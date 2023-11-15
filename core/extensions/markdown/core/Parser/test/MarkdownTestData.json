@@ -1,0 +1,314 @@
+{
+	"Code": [
+		{
+			"text": "`text`",
+			"renderTree": {
+				"$$mdtype": "Tag",
+				"name": "p",
+				"attributes": {},
+				"children": [
+					{
+						"$$mdtype": "Tag",
+						"attributes": {},
+						"children": ["text"],
+						"name": "Code"
+					}
+				]
+			},
+			"html": "<p><code>text</code></p>"
+		}
+	],
+	"Fence": [
+		{
+			"text": "```\ntext\n```",
+			"renderTree": { "$$mdtype": "Tag", "name": "Fence", "attributes": { "value": "text\n" }, "children": [] },
+			"html": "<pre class=\"prism-code language-undefined css-x5ob5f\" style=\"color:#403f53;background-color:#FBFBFB;position:relative\"><div style=\"overflow:auto;padding:20px\"><div class=\"token-line\" style=\"color:#403f53\"><span class=\"token plain\">text</span></div></div></pre>"
+		},
+		{
+			"text": "```plant-uml:title\n@startuml\nBob -> Alice : hello@enduml\n```",
+			"renderTree": {
+				"$$mdtype": "Tag",
+				"name": "Plant-uml",
+				"attributes": {
+					"content": "@startuml\nBob -> Alice : hello@enduml\n",
+					"title": "title"
+				},
+				"children": []
+			},
+			"html": "<br/><img src=\"requestURL.com/testBasePath/api/diagram/content?diagram=Plant-uml&amp;content=SoWkIImgAStDuNBAJrBGjLDmpCbCJbMmKiX8pSd9TqZDIm790G00\"/><br/>"
+		}
+	],
+	"Plant-uml": [
+		{
+			"text": "[plant-uml:./plantUmlTest.puml]",
+			"renderTree": {
+				"$$mdtype": "Tag",
+				"name": "Plant-uml",
+				"attributes": {
+					"src": "./plantUmlTest.puml"
+				},
+				"children": []
+			},
+			"html": "<br/><img src=\"requestURL.com/testBasePath/api/diagram/path?articlePath=MarkdownCatalog%2Fcategory%2FemptyArticle.md&amp;catalogName=MarkdownCatalog&amp;diagram=Plant-uml&amp;path=.%2FplantUmlTest.puml\"/><br/>"
+		}
+	],
+	"Cmd": [
+		{
+			"text": "[cmd:text:icon]",
+			"renderTree": {
+				"$$mdtype": "Tag",
+				"name": "Cmd",
+				"attributes": { "text": "text", "icon": "icon" },
+				"children": []
+			},
+			"html": "<span class=\"cmd\" data-icon=\"icon\"><i class=\"fa-regular  fa-icon  \" style=\"font-weight:300\"></i><span>text</span></span>"
+		}
+	],
+	"Kbd": [
+		{
+			"text": "[kbd:text]",
+			"renderTree": { "$$mdtype": "Tag", "name": "Kbd", "attributes": { "text": "text" }, "children": [] },
+			"html": "<kbd>text</kbd>"
+		}
+	],
+	"Icon": [
+		{
+			"text": "[icon:code::green]",
+			"renderTree": {
+				"$$mdtype": "Tag",
+				"name": "Icon",
+				"attributes": { "code": "code", "prefix": "", "color": "green" },
+				"children": []
+			},
+			"html": "<i class=\"fa-regular  fa-code  \" style=\"color:green;font-weight:300\"></i>"
+		}
+	],
+	"Issue": [
+		{
+			"text": "[issue:DR-1]",
+			"renderTree": { "$$mdtype": "Tag", "name": "Issue", "attributes": { "id": "DR-1" }, "children": [] },
+			"html": "<a class=\"issueLink\" href=\"https://support.ics-it.ru/issue/DR-1\" data-id=\"DR-1\" target=\"_blank\" rel=\"noopener\">DR-1<span style=\"white-space:nowrap;padding:0\" data-mdignore=\"true\">﻿<i class=\"fa-light  fa-external-link linkIcon \" style=\"font-weight:300\"></i></span></a>"
+		}
+	],
+	"Module": [
+		{
+			"text": "[module:id]",
+			"renderTree": { "$$mdtype": "Tag", "name": "Module", "attributes": { "id": "id" }, "children": [] },
+			"html": "<span class=\"module\">id</span>"
+		}
+	],
+	"Who": [
+		{
+			"text": "[who:text]",
+			"renderTree": { "$$mdtype": "Tag", "name": "Who", "attributes": { "text": "text" }, "children": [] },
+			"html": "<span class=\"attr\"><span class=\"delimiter\">/</span><i class=\"fa-duotone  fa-circle-user  \" style=\"font-weight:300\"></i><span>text</span></span>"
+		}
+	],
+	"When": [
+		{
+			"text": "[when:text]",
+			"renderTree": { "$$mdtype": "Tag", "name": "When", "attributes": { "text": "text" }, "children": [] },
+			"html": "<span class=\"attr\"><span class=\"delimiter\">/</span><i class=\"fa-duotone  fa-clock  \" style=\"font-weight:300\"></i><span>text</span></span>"
+		}
+	],
+	"Fn": [
+		{
+			"text": "[fn:code:defaultValues]",
+			"renderTree": {
+				"$$mdtype": "Tag",
+				"name": "Fn",
+				"attributes": { "code": "code", "defaultValues": "defaultValues" },
+				"children": []
+			},
+			"html": "<span>Такой функции нет!</span>"
+		}
+	],
+	"Header": [
+		{
+			"text": "## Header {#my-id}",
+			"renderTree": {
+				"$$mdtype": "Tag",
+				"attributes": { "level": 2, "id": "my-id", "title": "Header " },
+				"children": ["Header "],
+				"name": "Heading"
+			},
+			"html": "<style data-emotion=\"css 1kqvq6\">.css-1kqvq6:hover>a.anchor{opacity:0.5;}.css-1kqvq6:hover>a.anchor:hover{opacity:1;}.css-1kqvq6 >a.anchor{opacity:0;font-size:0.9em;line-height:inherit;margin-left:var(--distance-i-span);color:var(--color-article-text)!important;}.css-1kqvq6 sup a.anchor{font-weight:inherit;color:var(--color-link);}</style><h2 id=\"my-id\" class=\"css-1kqvq6\">Header <a href=\"#my-id\" class=\"anchor\" data-mdignore=\"true\" contenteditable=\"false\"><i class=\"fa-regular  fa-link  \" style=\"font-weight:300\"></i></a></h2>"
+		}
+	],
+	"Image": [
+		{
+			"text": "\n\n![someAlt](./image.png \"someTitle\")",
+			"renderTree": {
+				"$$mdtype": "Tag",
+				"attributes": {},
+				"children": [
+					{
+						"$$mdtype": "Tag",
+						"attributes": {
+							"alt": "someAlt",
+							"src": "./image.png",
+							"title": "someTitle"
+						},
+						"children": [],
+						"name": "Image"
+					}
+				],
+				"name": "p"
+			},
+			"html": "<p><br/><img src=\"requestURL.com/testBasePath/api/article/resource/get?articlePath=MarkdownCatalog%2Fcategory%2FemptyArticle.md&amp;catalogName=MarkdownCatalog&amp;src=.%2Fimage.png\" width=\"50%\"/><br/></p>"
+		}
+	],
+	"Video": [
+		{
+			"text": "[video:sample-mp4-file.mp4:Очень интересное видео]",
+			"renderTree": {
+				"$$mdtype": "Tag",
+				"attributes": {
+					"isLink": false,
+					"path": "sample-mp4-file.mp4",
+					"title": "Очень интересное видео"
+				},
+				"children": [],
+				"name": "Video"
+			},
+			"html": "<span data-type=\"video\"><video controls=\"\" id=\"my-player\" preload=\"auto\" data-focusable=\"true\" data-setup=\"{}\" class=\"video-js\"></video><em>Очень интересное видео</em></span>"
+		}
+	],
+	"Term": [
+		{
+			"text": "[term:first:second]",
+			"renderTree": {
+				"$$mdtype": "Tag",
+				"attributes": {
+					"children": null,
+					"summary": "",
+					"title": "second",
+					"url": null
+				},
+				"children": [],
+				"name": "Term"
+			},
+			"html": "<style data-emotion=\"css 11cflfh\">.css-11cflfh .content{gap:3px;display:-webkit-box;display:-webkit-flex;display:-ms-flexbox;display:flex;font-size:14px;line-height:initial;-webkit-flex-direction:column;-ms-flex-direction:column;flex-direction:column;}.css-11cflfh .content .summary{font-weight:500;}.css-11cflfh .content a{outline:none!important;color:var(--color-tooltip-text)!important;}.css-11cflfh .term{border-bottom:1px dotted var(--color-article-text);cursor:help;}</style><span class=\"css-11cflfh\" data-qa=\"term\"><span class=\"term\">second</span></span>"
+		}
+	],
+	"Strong": [
+		{
+			"text": "**strong text**",
+			"renderTree": {
+				"$$mdtype": "Tag",
+				"attributes": {},
+				"children": [
+					{
+						"$$mdtype": "Tag",
+						"attributes": {},
+						"children": ["strong text"],
+						"name": "strong"
+					}
+				],
+				"name": "p"
+			},
+			"html": "<p><strong>strong text</strong></p>"
+		}
+	],
+	"Em": [
+		{
+			"text": "*italic text*",
+			"renderTree": {
+				"$$mdtype": "Tag",
+				"attributes": {},
+				"children": [
+					{
+						"$$mdtype": "Tag",
+						"attributes": {},
+						"children": ["italic text"],
+						"name": "em"
+					}
+				],
+				"name": "p"
+			},
+			"html": "<p><em>italic text</em></p>"
+		}
+	],
+	"Strikethrough": [
+		{
+			"text": "~~strikethrough text~~",
+			"renderTree": {
+				"$$mdtype": "Tag",
+				"attributes": {},
+				"children": [
+					{
+						"$$mdtype": "Tag",
+						"attributes": {},
+						"children": ["strikethrough text"],
+						"name": "s"
+					}
+				],
+				"name": "p"
+			},
+			"html": "<p><s>strikethrough text</s></p>"
+		}
+	],
+	"Color": [
+		{
+			"text": "[color:red]123[/color]",
+			"renderTree": {
+				"$$mdtype": "Tag",
+				"attributes": {},
+				"children": [
+					{
+						"$$mdtype": "Tag",
+						"children": ["123"],
+						"attributes": { "color": "red", "isInline": true },
+						"name": "Color"
+					}
+				],
+				"name": "p"
+			},
+			"html": "<p><span style=\"color:red\">123</span></p>"
+		},
+		{
+			"text": "[color:red]\n\n123\n\n456\n\n789\n[/color]",
+			"renderTree": {
+				"$$mdtype": "Tag",
+				"attributes": {
+					"color": "red",
+					"isInline": false
+				},
+				"children": [
+					{
+						"$$mdtype": "Tag",
+						"attributes": {},
+						"children": ["123"],
+						"name": "p"
+					},
+					{
+						"$$mdtype": "Tag",
+						"attributes": {},
+						"children": ["456"],
+						"name": "p"
+					},
+					{
+						"$$mdtype": "Tag",
+						"attributes": {},
+						"children": ["789"],
+						"name": "p"
+					}
+				],
+				"name": "Color"
+			},
+			"html": "<div style=\"color:red\"><p>123</p><p>456</p><p>789</p></div>"
+		}
+	],
+	"Hr": [
+		{
+			"text": "---",
+			"renderTree": {
+				"$$mdtype": "Tag",
+				"attributes": {},
+				"children": [],
+				"name": "hr"
+			},
+			"html": "<hr>"
+		}
+	]
+}

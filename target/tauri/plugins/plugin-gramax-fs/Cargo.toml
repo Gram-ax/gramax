@@ -1,0 +1,16 @@
+[package]
+name = "plugin-gramax-fs"
+version = "0.0.0"
+authors = ["You"]
+description = ""
+edition = "2021"
+links = "plugin-gramax-fs"
+
+[dependencies]
+tauri = { workspace = true }
+serde = "1.0"
+thiserror = "1.0"
+copy_dir = "0.1.3"
+
+[build-dependencies]
+tauri-build = "^2.0.0-alpha"

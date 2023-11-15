@@ -1,0 +1,7 @@
+indent_style = "Block"
+chained_indent = "Block"
+hard_tabs = false
+tab_spaces = 2
+empty_item_single_line = false
+max_width = 110
+use_small_heuristics = "Max"

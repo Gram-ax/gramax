@@ -1,0 +1,72 @@
+{
+	"compilerOptions": {
+		"baseUrl": "./",
+		"rootDir": "./",
+		"declaration": true,
+		"declarationMap": true,
+
+		"target": "esnext",
+		"noEmit": true,
+		"lib": ["dom", "dom.iterable", "esnext"],
+
+		"strict": false,
+		"downlevelIteration": true,
+		"alwaysStrict": true,
+		"incremental": true,
+
+		"noImplicitOverride": false,
+		"noImplicitThis": true,
+
+		"noPropertyAccessFromIndexSignature": false,
+		"strictFunctionTypes": false,
+		"strictNullChecks": false,
+
+		"skipLibCheck": true,
+		"allowSyntheticDefaultImports": true,
+		"resolveJsonModule": true,
+		"esModuleInterop": true,
+		"isolatedModules": true,
+		"module": "esnext",
+		"moduleResolution": "node",
+
+		"paths": {
+			"@components/*": ["core/components/*"],
+			"@ext/*": ["core/extensions/*"],
+			"@core/*": ["core/logic/*"],
+			"@core-ui/*": ["core/ui-logic/*"],
+			"@app/*": ["app/*"],
+			"@app-plugins/git": ["target/tauri/plugins/plugin-gramax-git/webview-src/"]
+		},
+
+		"importHelpers": true,
+		"importsNotUsedAsValues": "remove",
+
+		"newLine": "crlf",
+		"removeComments": true,
+		"forceConsistentCasingInFileNames": true,
+		"preserveSymlinks": true,
+
+		"jsx": "preserve",
+		"allowJs": true,
+		"checkJs": true
+	},
+
+	"include": [
+		"./app/**/*",
+		"./core/**/*",
+		"./target/**/*",
+		"./services/**/*",
+		"./storybook/**/*",
+		"./e2e/**/*",
+		"./scripts/**/*",
+		"./**/*.config.ts"
+	],
+
+	"exclude": [
+		"./**/node_modules",
+		"./**/dist/*",
+		"./target/tauri/**/target",
+		"./target/tauri/src-tauri/**",
+		"./services/**/Services/TSClassDiagram/files/*"
+	]
+}

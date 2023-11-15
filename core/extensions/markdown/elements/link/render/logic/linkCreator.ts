@@ -1,0 +1,82 @@
+import ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
+import Path from "../../../../../../logic/FileProvider/Path/Path";
+import ParserContext from "../../../../core/Parser/ParserContext/ParserContext";
+import { CATEGORY_ROOT_FILENAME } from "@core/FileStructue/FileStructure";
+
+class LinkCreator {
+	isExternalLink(href: string): boolean {
+		return !!(href?.match(/^#/) || href?.match(/^\w+:/) || href?.slice(1, 4) == "api");
+		// вынести?
+	}
+
+	getLink(
+		href: string,
+		context: ParserContext,
+	): {
+		href: string;
+		hash: string;
+		resourcePath: Path;
+		isFile?: boolean;
+	} {
+		if (this.isExternalLink(href)) return { href, resourcePath: null, hash: null };
+		if (!href) return { href, resourcePath: null, hash: null };
+
+		const articlePath = context.getArticle().ref.path;
+		const catalogName = context.getCatalog().getName();
+		const basePath = context.getBasePath().value;
+		const articleExtension = articlePath.extension;
+
+		const hashAndPath = this.getHash(href);
+		if (!hashAndPath) return { href, resourcePath: null, hash: null };
+		const [, p, hash] = hashAndPath;
+		const docsPath = context.getCatalog().getRootCategoryRef().path.parentDirectoryPath;
+		let hrefPath = this.getLinkPath(docsPath, docsPath.subDirectory(articlePath.parentDirectoryPath), p);
+
+		const resourcePath = new Path(p);
+
+		let relativeHrefPath = articlePath.getRelativePath(hrefPath);
+
+		if (!hrefPath.extension) {
+			const testHrefPath = new Path(hrefPath.value);
+			testHrefPath.extension = articleExtension;
+			if (context.getItemByPath(testHrefPath)) {
+				hrefPath.extension = articleExtension;
+				resourcePath.extension = articleExtension;
+				relativeHrefPath = articlePath.getRelativePath(hrefPath);
+			} else {
+				const testIndexHrefPath = new Path(hrefPath.value).join(new Path(CATEGORY_ROOT_FILENAME));
+				if (context.getItemByPath(testIndexHrefPath)) {
+					hrefPath = testIndexHrefPath;
+					relativeHrefPath = articlePath.getRelativePath(hrefPath);
+				} else {
+					return { href: hrefPath?.value ?? "", resourcePath, hash };
+				}
+			}
+		}
+		let isFile = false;
+		if (hrefPath.extension !== articleExtension) {
+			isFile = true;
+			href = new ApiUrlCreator(basePath, null, null, null, catalogName, articlePath.value)
+				.getArticleResource(relativeHrefPath.value)
+				.toString();
+		} else {
+			const link = context.getItemByPath(hrefPath)?.logicPath ?? "";
+			href = link ? link : hrefPath?.stripExtension ?? "";
+		}
+
+		return { href, resourcePath, hash, isFile };
+	}
+
+	getHash(href: string) {
+		return href.match(/^(.+?)(#.+)?$/);
+	}
+
+	getLinkPath(rootPath: Path, mainPath: Path, href: string): Path {
+		return rootPath.parentDirectoryPath.join(
+			rootPath.parentDirectoryPath.subDirectory(rootPath).join(mainPath).join(new Path(href)),
+		);
+	}
+}
+const linkCreator = new LinkCreator();
+
+export default linkCreator;

@@ -1,0 +1,60 @@
+{
+	"editor.tabCompletion": "on",
+
+	"search.exclude": {
+		"./**/.next": true,
+		"./**/node_modules": true
+	},
+
+	"search.searchEditor.reusePriorSearchConfiguration": true,
+	"cSpell.language": "en,ru",
+	"git.ignoreLimitWarning": true,
+	"cucumberautocomplete.steps": ["e2e/runner/src/**/*.steps.ts"],
+	"cucumberautocomplete.strictGherkinCompletion": true,
+	"cucumberautocomplete.strictGherkinValidation": true,
+	"[cucumber]": {
+		"editor.defaultFormatter": "CucumberOpen.cucumber-official"
+	},
+	"cucumberautocomplete.skipDocStringsFormat": true,
+	"cucumberautocomplete.formatConfOverride": {
+		"Функция": 0,
+		"Функционал": 0,
+		"Правило": 1,
+		"Сценарий": 1,
+		"Контекст": 1,
+		"Дано": 2,
+		"Пусть": 2,
+		"Когда": 2,
+		"Тогда": 2,
+		"То": 2,
+		"И": 2,
+		"\\*": 4,
+		"\\|": 3,
+		"\"\"\"": 3,
+		"#": "relative",
+		"@": "relative"
+	},
+	"[feature]": {
+		"editor.defaultFormatter": "alexkrechik.cucumberautocomplete"
+	},
+
+	"[yaml]": {
+		"editor.defaultFormatter": "redhat.vscode-yaml"
+	},
+
+	"typescript.preferences.importModuleSpecifier": "non-relative",
+	"typescript.tsserver.experimental.enableProjectDiagnostics": true,
+
+	// "rust-analyzer.cargo.target": "x86_64-pc-windows-msvc",
+	// "rust-analyzer.cargo.target": "x86_64-apple-darwin",
+	"rust-analyzer.cargo.target": "aarch64-apple-darwin",
+	// "rust-analyzer.cargo.target": "aarch64-linux-android"
+	// "rust-analyzer.cargo.target": "aarch64-apple-ios",
+
+	"rust-analyzer.cargo.autoreload": true,
+	"rust-analyzer.linkedProjects": [
+		"./target/tauri/src-tauri/Cargo.toml",
+		"./target/tauri/tauri-plugin-gramaxfs/Cargo.toml"
+	],
+	"cSpell.words": ["katex", "Markdoc", "prosemirror", "Renderable", "tiptap", "traptitech", "Bugsnag"]
+}

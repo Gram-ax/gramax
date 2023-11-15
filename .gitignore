@@ -1,0 +1,59 @@
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+
+.vite-cache
+bun.lockb
+
+# storybook
+/storybook/storybook-static
+
+# e2e
+/e2e/runner/src/failures
+
+# target -> next
+out/
+.next/
+next-env.d.ts
+
+# target -> vite
+.build
+
+# target -> application
+/application/bin
+/application/dist
+/application/doc-reader
+
+# services
+dist
+
+# services -> diagram-renderer
+work.svg
+work.ts
+
+# dependencies
+*.schema.json
+node_modules
+IndexCaches
+testFiles
+/.pnp
+.npm/
+.pnp.js
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# testing
+/coverage
+
+# mix
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+.env*
+junit.xml
+.idea/
+
+
