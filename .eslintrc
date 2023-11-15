@@ -1,0 +1,99 @@
+{
+	"env": {
+		"browser": true,
+		"es2021": true
+	},
+	"extends": [
+		"eslint:recommended",
+		"plugin:@typescript-eslint/eslint-recommended",
+		"plugin:@typescript-eslint/recommended",
+		"plugin:@typescript-eslint/recommended-requiring-type-checking",
+		"plugin:react/recommended",
+		"plugin:promise/recommended"
+	],
+	"parser": "@typescript-eslint/parser",
+	"parserOptions": {
+		"ecmaVersion": "latest",
+		"sourceType": "module",
+		"project": "tsconfig.json"
+	},
+	"ignorePatterns": [
+		// temp
+		"**/*.jsx",
+		//
+
+		"node_modules",
+		"docs",
+		"services/**/TSClassDiagram/files",
+		"core/extensions/markdown/core/edit/logic/Prosemirror",
+		"core/extensions/markdown/core/render/logic/Markdoc",
+		"*.js",
+
+		"**/dist/**/*"
+	],
+	"plugins": ["@typescript-eslint", "react", "react-hooks", "promise"],
+	"settings": {
+		"react": {
+			"version": "18"
+		}
+	},
+	"overrides": [
+		{
+			"files": ["./e2e/runner/**/*"],
+			"rules": {
+				"no-constant-condition": "warn",
+				"promise/param-names": "off"
+			}
+		},
+		{
+			"files": ["./core/extensions/**/*.ts"],
+			"rules": {
+				"@typescript-eslint/unbound-method": "off"
+			}
+		},
+		{
+			"files": ["**/*.test.js"],
+			"env": {
+				"jest": true
+			}
+		},
+		{
+			"files": ["*.tsx"],
+			"rules": {
+				"@typescript-eslint/no-floating-promises": "off",
+				"@typescript-eslint/no-misused-promises": "off",
+				"promise/catch-or-return": "off",
+				"promise/always-return": "off"
+			}
+		}
+	],
+	"rules": {
+		"require-await": "off",
+		"no-empty": "off",
+		"react/display-name": "off",
+		"react/react-in-jsx-scope": "off",
+		"react/no-unknown-property": "off",
+		"@typescript-eslint/no-empty-function": "off",
+		"@typescript-eslint/no-unsafe-argument": "off",
+		"@typescript-eslint/no-unsafe-return": "off",
+		"@typescript-eslint/no-unsafe-assignment": "off",
+		"@typescript-eslint/no-unsafe-member-access": "off",
+		"@typescript-eslint/restrict-plus-operands": "off",
+		"@typescript-eslint/restrict-template-expressions": "off",
+		"@typescript-eslint/no-unsafe-any": "off",
+		"@typescript-eslint/no-explicit-any": "off",
+		"@typescript-eslint/no-unsafe-call": "off",
+		"@typescript-eslint/explicit-function-return-type": "off",
+		"no-case-declarations": "off",
+
+		"prefer-const": "warn",
+		"@typescript-eslint/ban-ts-comment": "warn",
+		"@typescript-eslint/no-floating-promises": "warn",
+		"@typescript-eslint/require-await": "warn",
+		"@typescript-eslint/no-unnecessary-type-assertion": "warn",
+
+		"@typescript-eslint/no-misused-promises": "error",
+
+		"no-mixed-spaces-and-tabs": [2, "smart-tabs"]
+	}
+}

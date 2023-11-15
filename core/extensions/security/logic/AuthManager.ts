@@ -1,0 +1,56 @@
+import ApiRequest from "../../../logic/Api/ApiRequest";
+import ApiResponse from "../../../logic/Api/ApiResponse";
+import Cookie from "../../cookie/Cookie";
+import { AuthProvider } from "./AuthProviders/AuthProvider";
+import Permission from "./Permission/Permission";
+import { TicketManager } from "./TicketManager/TicketManager";
+import User from "./User/User";
+
+const COOKIE_USER = "user";
+const QUERY_TICKET = "t";
+
+export default class AuthManager {
+	constructor(private _am: AuthProvider, private _ticketManager: TicketManager) {}
+
+	getUser(cookie: Cookie, query: any): User {
+		let user: User = this._getUser(cookie);
+		if (!query?.[QUERY_TICKET]) return user;
+		const { catalogPermissions, user: ticketUser } = this._ticketManager.checkTicket(
+			decodeURIComponent(query[QUERY_TICKET]),
+		);
+		Object.keys(catalogPermissions).forEach((catalogName) => {
+			user.setCatalogPermission(catalogName, catalogPermissions[catalogName]);
+		});
+		if (ticketUser) user = ticketUser;
+		this._setUser(cookie, user, 60 * 60);
+		return user;
+	}
+
+	getMailLoginTicket(mail: string) {
+		const user: User = new User(true, { mail, name: mail, id: mail }, new Permission(mail));
+		return this._ticketManager.getUserTicket(user);
+	}
+
+	async assert(req: ApiRequest, res: ApiResponse, cookie: Cookie) {
+		return await this._am.assertEndpoint(req, res, cookie, this._setUser.bind(this));
+	}
+
+	async login(req: ApiRequest, res: ApiResponse) {
+		return await this._am.login(req, res);
+	}
+
+	async logout(cookie: Cookie, req: ApiRequest, res: ApiResponse) {
+		cookie.remove(COOKIE_USER);
+		return await this._am.logout(req, res);
+	}
+
+	private _setUser(cookie: Cookie, user: User, expires?: number): void {
+		cookie.set(COOKIE_USER, JSON.stringify(user.toJSON()), expires);
+	}
+
+	private _getUser(cookie: Cookie): User {
+		const user = cookie.get(COOKIE_USER);
+		if (!user) return new User();
+		return User.initInJSON(JSON.parse(user));
+	}
+}

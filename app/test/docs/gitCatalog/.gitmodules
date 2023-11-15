@@ -1,0 +1,3 @@
+[submodule "submoduleDocs"]
+	path = submoduleDocs
+	url = git@gitlab.ics-it.ru:submoduleDocs.git

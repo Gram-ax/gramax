@@ -1,0 +1,63 @@
+import styled from "@emotion/styled";
+import LeftSidebar from "../../../LeftSidebar/LeftSidebar";
+
+const LeftNavigationNarrowLayout = styled(
+	({
+		leftNavigationTop,
+		leftNavigationContent,
+		leftNavigationBottom,
+		isOpen,
+		className,
+	}: {
+		leftNavigationContent: JSX.Element;
+		leftNavigationTop: JSX.Element;
+		leftNavigationBottom: JSX.Element;
+		className?: string;
+		isOpen: boolean;
+	}) => {
+		return (
+			<div className={className + " left-navigation-layout"}>
+				<div className="header-navigation">{leftNavigationTop}</div>
+				<div className="left-sidebar-content">
+					<LeftSidebar shadow={isOpen} sidebarBottom={leftNavigationBottom}>
+						{leftNavigationContent}
+					</LeftSidebar>
+				</div>
+			</div>
+		);
+	},
+)`
+	width: 100%;
+
+	&,
+	.header-navigation,
+	.left-sidebar-content {
+		position: absolute;
+	}
+
+	.header-navigation {
+		width: 100%;
+		background: var(--color-menu-bg);
+		z-index: 103;
+	}
+
+	.left-sidebar-content {
+		top: var(--top-bar-height);
+		z-index: 102;
+		height: calc(100dvh - var(--top-bar-height));
+		width: var(--left-nav-width);
+		background: var(--color-menu-bg);
+		transition: var(--navigation-transition);
+
+		${(p) =>
+			p.isOpen
+				? `
+		transform: translateX(0);
+		box-shadow: var(--shadows-deeplight);
+				`
+				: `
+		transform: translateX(calc(-1 * var(--left-nav-width)));`}
+	}
+`;
+
+export default LeftNavigationNarrowLayout;

@@ -1,0 +1,23 @@
+0000000000000000000000000000000000000000 a7e8a39bfe3c4218fb55504532945f8b7c7bf939 Danil Kazanov <danil.kazanov@ics-it.ru> 1685521935 +0300	commit (initial): init gitCatalog
+a7e8a39bfe3c4218fb55504532945f8b7c7bf939 a7e8a39bfe3c4218fb55504532945f8b7c7bf939 Danil Kazanov <danil.kazanov@ics-it.ru> 1685542353 +0300	reset: moving to HEAD
+a7e8a39bfe3c4218fb55504532945f8b7c7bf939 d07caef3e43ffca9d974001f9d7aaa51a93794d6 Danil Kazanov <danil.kazanov@ics-it.ru> 1685607469 +0300	commit: add recources
+d07caef3e43ffca9d974001f9d7aaa51a93794d6 f7d40577743b76a218a24692b6934df9b9f9de58 Danil Kazanov <danil.kazanov@ics-it.ru> 1685607913 +0300	commit: fix
+f7d40577743b76a218a24692b6934df9b9f9de58 7ebaf65d0b8a58d25390ac89563caf21b5e6bf8b Danil Kazanov <danil.kazanov@ics-it.ru> 1685607927 +0300	commit: fix2
+7ebaf65d0b8a58d25390ac89563caf21b5e6bf8b d5e251016edd9e512329e157ce94fecf9332ef21 Danil Kazanov <danil.kazanov@ics-it.ru> 1685608018 +0300	commit: add 2_1.png
+d5e251016edd9e512329e157ce94fecf9332ef21 d5e251016edd9e512329e157ce94fecf9332ef21 Danil Kazanov <danil.kazanov@ics-it.ru> 1685608344 +0300	reset: moving to HEAD
+d5e251016edd9e512329e157ce94fecf9332ef21 d5e251016edd9e512329e157ce94fecf9332ef21 Danil Kazanov <danil.kazanov@ics-it.ru> 1685608543 +0300	reset: moving to HEAD
+d5e251016edd9e512329e157ce94fecf9332ef21 d5e251016edd9e512329e157ce94fecf9332ef21 Danil Kazanov <danil.kazanov@ics-it.ru> 1685609101 +0300	reset: moving to HEAD
+d5e251016edd9e512329e157ce94fecf9332ef21 d5e251016edd9e512329e157ce94fecf9332ef21 Danil Kazanov <danil.kazanov@ics-it.ru> 1685609701 +0300	reset: moving to HEAD
+d5e251016edd9e512329e157ce94fecf9332ef21 d5e251016edd9e512329e157ce94fecf9332ef21 Danil Kazanov <danil.kazanov@ics-it.ru> 1685609733 +0300	reset: moving to HEAD
+d5e251016edd9e512329e157ce94fecf9332ef21 d5e251016edd9e512329e157ce94fecf9332ef21 Danil Kazanov <danil.kazanov@ics-it.ru> 1685609961 +0300	reset: moving to HEAD
+d5e251016edd9e512329e157ce94fecf9332ef21 d5e251016edd9e512329e157ce94fecf9332ef21 Danil Kazanov <danil.kazanov@ics-it.ru> 1685610100 +0300	reset: moving to HEAD
+d5e251016edd9e512329e157ce94fecf9332ef21 d5e251016edd9e512329e157ce94fecf9332ef21 Danil Kazanov <danil.kazanov@ics-it.ru> 1685610266 +0300	reset: moving to HEAD
+d5e251016edd9e512329e157ce94fecf9332ef21 d5e251016edd9e512329e157ce94fecf9332ef21 Danil Kazanov <danil.kazanov@ics-it.ru> 1685610328 +0300	reset: moving to HEAD
+d5e251016edd9e512329e157ce94fecf9332ef21 d5e251016edd9e512329e157ce94fecf9332ef21 Danil Kazanov <danil.kazanov@ics-it.ru> 1685610397 +0300	reset: moving to HEAD
+d5e251016edd9e512329e157ce94fecf9332ef21 182c3759338ba8811012aa9d8c6983ff88d7a38c Danil Kazanov <danil.kazanov@ics-it.ru> 1685611013 +0300	commit: fix file with resource
+182c3759338ba8811012aa9d8c6983ff88d7a38c 0ad29c3cacf084b83506838b49950cd0aca6558e Danil Kazanov <danil.kazanov@ics-it.ru> 1685706146 +0300	commit: add gitignore
+0ad29c3cacf084b83506838b49950cd0aca6558e 588ba7caf4a1378a2000977d75e543aa52dc9ebc Danil Kazanov <danil.kazanov@ics-it.ru> 1685706834 +0300	commit: change gitignore
+588ba7caf4a1378a2000977d75e543aa52dc9ebc f0a85a100163564ffbe8bf8ac8daf5e1696cab82 Danil Kazanov <danil.kazanov@ics-it.ru> 1685712135 +0300	commit: first history
+f0a85a100163564ffbe8bf8ac8daf5e1696cab82 983c0f7872b3cd3821a3eb97c499f6d44e452059 Danil Kazanov <danil.kazanov@ics-it.ru> 1685712144 +0300	commit: second history
+983c0f7872b3cd3821a3eb97c499f6d44e452059 18329a0852d3e29e296a58ff12b55131bd77b5b7 Danil Kazanov <danil.kazanov@ics-it.ru> 1685712152 +0300	commit: third history
+18329a0852d3e29e296a58ff12b55131bd77b5b7 1c2d496d219a8f0103642be49ab481b16cfc0eaa Danil Kazanov <danil.kazanov@ics-it.ru> 1697529520 +0300	commit: fix

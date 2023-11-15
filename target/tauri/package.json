@@ -1,0 +1,32 @@
+{
+	"name": "gramax-app",
+	"private": true,
+	"version": "0.0.0",
+	"type": "module",
+	"scripts": {
+		"dev": "vite --host",
+		"build": "vite build",
+		"preview": "vite preview",
+		"test": "cargo tauri dev -- -F self-test > /dev/null 2> >(rg \"Test:|Error:\")",
+		"tauri": "tauri"
+	},
+	"dependencies": {
+		"@tauri-apps/api": "^2.0.0-alpha.3",
+		"@tauri-apps/plugin-dialog": "^2.0.0-alpha.2",
+		"@tauri-apps/plugin-log": "^2.0.0-alpha.2",
+		"react": "file:../../node_modules/react",
+		"react-dom": "file:../../node_modules/react-dom"
+	},
+	"devDependencies": {
+		"@types/react": "file:../../node_modules/@types/react",
+		"@types/react-dom": "file:../../node_modules/@types/react-dom",
+		"@typescript-eslint/eslint-plugin": "^5.62.0",
+		"@typescript-eslint/parser": "^5.62.0",
+		"@vitejs/plugin-react": "^4.0.3",
+		"internal-ip": "^8.0.0",
+		"typescript": "^5.0.2",
+		"vite": "^4.5.0",
+		"vite-plugin-conditional-compiler": "^0.1.1",
+		"vite-plugin-node-polyfills": "^0.9.0"
+	}
+}

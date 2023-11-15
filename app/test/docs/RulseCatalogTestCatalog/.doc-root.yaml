@@ -1,0 +1,8 @@
+lang: en
+private: true
+relatedLinks:
+    - url: https://play.google.com/store/apps/details?id=ru.ics_it.quiz
+      title: App in Google Play for Android
+      icon: google-play
+      iconPrefix: brands
+      private: true

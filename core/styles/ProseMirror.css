@@ -1,0 +1,208 @@
+.ProseMirror {
+	position: relative;
+	outline-style: none;
+	word-wrap: break-word;
+	white-space: inherit;
+	outline-color: initial;
+	font-variant-ligatures: none;
+	outline-width: 0px !important;
+	font-feature-settings: "liga" 0;
+	-webkit-font-variant-ligatures: none;
+}
+
+.ProseMirror-hideselection {
+	caret-color: transparent;
+}
+.ProseMirror-hideselection *::selection,
+.ProseMirror-hideselection *::-moz-selection {
+	background: transparent;
+}
+
+.ProseMirror img.ProseMirror-separator {
+	display: inline !important;
+	border: none !important;
+	margin: 0 !important;
+}
+
+.ProseMirror li {
+	position: relative;
+}
+.ProseMirror li > p {
+	line-height: 1.7em;
+}
+
+.ProseMirror pre {
+	white-space: pre-wrap;
+	padding: 22px 26px !important;
+}
+
+.ProseMirror comment-react-component {
+	cursor: pointer;
+	border-radius: 4px;
+	background: var(--color-comment-bg);
+}
+
+.ProseMirror pre > div {
+	padding: 0;
+	font-size: 0.8rem;
+	text-wrap: nowrap;
+	line-height: 20px;
+	background: none !important;
+	color: var(--color-fence-text);
+}
+
+.ProseMirror span.node-inlineMd_component span.term {
+	pointer-events: none !important;
+}
+
+.ProseMirror blockquote {
+	padding-left: 1rem;
+	border-left: 2px solid rgba(#0d0d0d, 0.1);
+}
+
+.ProseMirror hr {
+	border: none;
+	border-top: 2px solid rgba(#0d0d0d, 0.1);
+	margin: 2rem 0;
+}
+
+.ProseMirror .color:before {
+	background-color: var(--color);
+	border: 1px solid rgba(128, 128, 128, 0.3);
+	border-radius: 2px;
+	content: " ";
+	display: inline-block;
+	height: 1em;
+	margin-bottom: 0.15em;
+	margin-right: 0.1em;
+	vertical-align: middle;
+	width: 1em;
+}
+
+.ProseMirror *,
+.ProseMirror *:before,
+.ProseMirror *:after {
+	box-sizing: border-box;
+}
+
+.ProseMirror table {
+	margin: 0;
+	width: 100%;
+	table-layout: fixed;
+	border-collapse: collapse;
+}
+.ProseMirror table td,
+.ProseMirror table th {
+	box-sizing: border-box;
+	min-width: 1em;
+	position: relative;
+	vertical-align: top !important;
+	border: 1px solid var(--color-line) !important;
+	border-left: 1px solid var(--color-line) !important;
+	border-right: 1px solid var(--color-line) !important;
+}
+
+.ProseMirror table > tbody > tr > td:first-of-type,
+.ProseMirror table > tbody > tr > th:first-of-type,
+.ProseMirror table > tfoot > tr > td:first-of-type,
+.ProseMirror table > tfoot > tr > th:first-of-type,
+.ProseMirror table > thead > tr > td:first-of-type,
+.ProseMirror table > thead > tr > th:first-of-type {
+	padding-left: 12px !important;
+	border-left: 1px solid var(--color-line) !important;
+}
+.ProseMirror table > tbody > tr > td:last-child,
+.ProseMirror table > tbody > tr > th:last-child,
+.ProseMirror table > tfoot > tr > td:last-child,
+.ProseMirror table > tfoot > tr > th:last-child,
+.ProseMirror table > thead > tr > td:last-child,
+.ProseMirror table > thead > tr > th:last-child {
+	padding-right: 12px !important;
+	border-right: 1px solid var(--color-line) !important;
+}
+
+.ProseMirror table td,
+.ProseMirror table th > * {
+	margin-bottom: 0;
+}
+
+.ProseMirror table th {
+	font-weight: bold;
+	text-align: left;
+}
+
+.ProseMirror table .selectedCell:after {
+	background: var(--color-code-bg);
+	content: "";
+	left: 0;
+	right: 0;
+	top: 0;
+	bottom: 0;
+	pointer-events: none;
+	position: absolute;
+	z-index: 2;
+}
+
+.ProseMirror table .column-resize-handle {
+	background-color: #adf;
+	bottom: -2px;
+	position: absolute;
+	right: -2px;
+	pointer-events: none;
+	top: 0;
+	width: 4px;
+}
+
+.ProseMirror .node-inlineMd_component code,
+.ProseMirror .node-blockMd_component code {
+	background: var(--color-markdown-bg) !important;
+}
+
+.table-actions {
+	position: absolute;
+}
+.tableWrapper {
+	overflow-x: auto;
+}
+
+.resize-cursor {
+	cursor: ew-resize;
+	cursor: col-resize;
+}
+
+.ProseMirror p.is-editor-empty:first-of-type::before {
+	content: attr(data-placeholder);
+	pointer-events: none;
+	opacity: 0.4;
+	float: left;
+	height: 0;
+}
+
+.ProseMirror gr-file {
+	color: var(--color-link);
+}
+
+.ProseMirror gr-file::before {
+	content: "\f319";
+	color: var(--color-link);
+	font-family: "Font Awesome 6 Pro";
+	margin-left: var(--distance-i-span-min);
+	margin-right: var(--distance-i-span-min);
+}
+
+@media print {
+	.ProseMirror pre > div {
+		text-wrap: wrap;
+	}
+
+	.ProseMirror code {
+		border: solid 1px rgba(0, 0, 0, 0.93);
+		overflow: auto;
+		break-inside: avoid;
+	}
+
+	.ProseMirror comment-react-component {
+		cursor: auto;
+		background: none;
+	}
+}

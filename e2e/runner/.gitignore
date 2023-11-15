@@ -1,0 +1,6 @@
+/lib
+node_modules/
+e2e/screenshots/*
+e2e/debug.log
+e2e/**/report.json
+e2e/*/screenshots/*
