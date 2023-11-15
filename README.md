@@ -1,6 +1,8 @@
 ![Gramax logo](https://github.com/Gram-ax/gramax/assets/149784102/6e587f0c-f45e-4368-96cf-ec598fff16cf)
 
-Quickstart/Быстрый старт:
+# Gramax
+
+### Quickstart/Быстрый старт:
 
 If you want to self-host gramax to make readonly instance of Gramax, you need Docker (Version 20.04 or higher) and sh if you Linux or macOS
 
@@ -18,7 +20,7 @@ curl https://raw.githubusercontent.com/StanislavPetrovIcs/test-gramax-setup/main
 Invoke-Expression (Invoke-WebRequest -Uri "https://raw.githubusercontent.com/StanislavPetrovIcs/test-gramax-setup/main/setup.ps1" -UseBasicParsing).Content; docker compose up
 ```
 
-Languages:
+## Languages:
 
 - [EN](#EN)
 - [RU](#RU)
