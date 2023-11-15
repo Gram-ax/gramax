@@ -1,0 +1,68 @@
+{
+	"build": {
+		"beforeBuildCommand": "npm run build",
+		"beforeDevCommand": "npm run dev",
+		"devPath": "http://localhost:5173",
+		"distDir": "../dist",
+		"withGlobalTauri": true
+	},
+	"package": {
+		"productName": "Gramax"
+	},
+	"plugins": {
+		"shell": {
+			"open": true
+		},
+		"updater": {
+			"endpoints": ["https://localhost/updates.json"]
+		}
+	},
+	"tauri": {
+		"macOSPrivateApi": true,
+		"bundle": {
+			"updater": {
+				"active": true,
+				"pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDVBQzhGRjE3NzMxODk0OTgKUldTWWxCaHpGLy9JV2dVMzBVbUdURDMwV3NBcGJGK1EzYUtJTkY0Vzl5cFNONjJiWGJ3TzloTzQK",
+				"windows": {
+					"installMode": "quiet"
+				}
+			},
+			"active": true,
+			"category": "DeveloperTool",
+			"copyright": "",
+			"deb": {
+				"depends": []
+			},
+			"externalBin": [],
+			"icon": [
+				"icons/32x32.png",
+				"icons/128x128.png",
+				"icons/128x128@2x.png",
+				"icons/icon.icns",
+				"icons/icon.ico"
+			],
+			"identifier": "com.ics.gramax",
+			"longDescription": "",
+			"iOS": {
+				"developmentTeam": "V9C959AY94"
+			},
+			"macOS": {
+				"entitlements": null,
+				"exceptionDomain": "",
+				"frameworks": [],
+				"providerShortName": null,
+				"signingIdentity": null
+			},
+			"shortDescription": "",
+			"targets": "all",
+			"windows": {
+				"certificateThumbprint": null,
+				"digestAlgorithm": "sha256",
+				"timestampUrl": ""
+			}
+		},
+		"security": {
+			"csp": null
+		}
+	}
+}

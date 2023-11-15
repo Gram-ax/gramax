@@ -1,0 +1,43 @@
+{
+	"name": "gramax-web",
+	"version": "1.0.0",
+	"private": true,
+	"scripts": {
+		"dev": "vite",
+		"build": "vite build",
+		"start": "http-server-spa dist index.html ${PORT}",
+		"run": "npm run build && npm run start",
+		"analyze": "vite-bundle-visualizer",
+		"prune": "node-prune"
+	},
+	"dependencies": {
+		"@fortawesome/fontawesome-pro": "^6.2.0",
+		"@isomorphic-git/lightning-fs": "^4.6.0",
+		"@vitejs/plugin-react": "^4.0.0",
+		"buffer": "^6.0.3",
+		"express": "^4.18.2",
+		"fake-indexeddb": "^4.0.1",
+		"http-server-spa": "^1.3.0",
+		"react": "file:../../node_modules/react",
+		"react-dom": "file:../../node_modules/react-dom",
+		"wouter": "^2.11.0"
+	},
+	"devDependencies": {
+		"@emotion/babel-plugin": "file:../../node_modules/@emotion/babel-plugin",
+		"@emotion/react": "file:../../node_modules/@emotion/react",
+		"@types/node": "^20.3.2",
+		"@types/react": "file:../../node_modules/@types/react",
+		"@types/react-dom": "file:../../node_modules/@types/react-dom",
+		"@types/wicg-file-system-access": "^2020.9.6",
+		"eslint": "^8.42.0",
+		"eslint-plugin-react": "file:../../node_modules/eslint-plugin-react",
+		"http-server": "^14.1.1",
+		"node-loader": "^2.0.0",
+		"node-prune": "file:../../node_modules/node-prune",
+		"vite": "^4.5.0",
+		"vite-bundle-visualizer": "^0.10.0",
+		"vite-plugin-conditional-compiler": "^0.1.1",
+		"vite-plugin-node": "^3.0.2",
+		"vite-plugin-node-polyfills": "^0.8.2"
+	}
+}

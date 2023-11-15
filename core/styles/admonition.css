@@ -1,0 +1,175 @@
+.article .admonition {
+	margin: 1em 0;
+}
+
+.admonition {
+	display: flex;
+	overflow: hidden;
+	padding: 1em var(--distance-admonition);
+	border-left: solid 2px transparent;
+}
+
+.admonition-row {
+	--distance-admonition: 0.7em;
+	flex-direction: row;
+	align-items: flex-start;
+}
+.admonition-column {
+	--distance-admonition: 1em;
+	flex-direction: column;
+	align-items: flex-start;
+}
+
+.admonition-row .admonition-heading {
+	margin-bottom: 0 !important;
+}
+
+.admonition-heading {
+	height: 100%;
+	display: flex;
+	align-items: center;
+	margin-bottom: 0.7em;
+}
+
+.admonition-heading h5 {
+	font-weight: 500;
+	line-height: 1.5em;
+	vertical-align: top;
+	margin: 0 !important;
+	text-transform: uppercase;
+	font-size: 12px !important;
+	margin-left: var(--distance-admonition) !important;
+}
+
+.admonition-heading h5 code {
+	font-size: 1.2em;
+	font-weight: 600;
+}
+
+.admonition-heading .admonition-icon {
+	height: 100%;
+	display: flex;
+	font-size: 20px;
+	align-items: flex-start;
+	font-family: "Font Awesome 6 Pro", "Font Awesome 6 Brands";
+}
+
+.admonition-icon i {
+	line-height: 1.7rem;
+	vertical-align: top;
+}
+
+.admonition-content {
+	width: 100%;
+	overflow: visible;
+}
+
+.admonition-content-ml {
+	margin-left: var(--distance-admonition);
+}
+
+.admonition-content ul {
+	margin: inherit;
+	margin-left: 0;
+}
+
+.admonition-content > ul:first-of-type {
+	margin-left: 0;
+	padding-left: 18px;
+}
+
+.admonition-lab {
+	border-color: var(--color-admonition-lab-br-h);
+	background: var(--color-admonition-lab-bg);
+}
+.admonition-lab .admonition-heading *,
+.admonition-lab strong {
+	color: var(--color-admonition-lab-br-h);
+}
+
+.admonition-tip {
+	border-color: var(--color-admonition-tip-br-h);
+	background: var(--color-admonition-tip-bg);
+}
+.admonition-tip .admonition-heading *,
+.admonition-tip strong {
+	color: var(--color-admonition-tip-br-h);
+}
+
+.admonition-info {
+	border-color: var(--color-admonition-info-br-h);
+	background: var(--color-admonition-info-bg);
+}
+.admonition-info .admonition-heading *,
+.admonition-info strong {
+	color: var(--color-admonition-info-br-h);
+}
+
+.admonition-note {
+	border-color: var(--color-admonition-note-br-h);
+	background: var(--color-admonition-note-bg);
+}
+.admonition-note .admonition-heading *,
+.admonition-note strong {
+	color: var(--color-admonition-note-br-h);
+}
+
+.admonition-danger {
+	border-color: var(--color-admonition-danger-br-h);
+	background: var(--color-admonition-danger-bg);
+}
+.admonition-danger .admonition-heading *,
+.admonition-danger strong {
+	color: var(--color-admonition-danger-br-h);
+}
+
+.admonition-hotfixes {
+	border-color: var(--color-admonition-hotfixes-br-h);
+	background: var(--color-admonition-hotfixes-bg);
+}
+.admonition-hotfixes .admonition-heading *,
+.admonition-hotfixes strong {
+	color: var(--color-admonition-hotfixes-br-h);
+}
+
+.admonition-cut {
+	margin: 0 0 0.7em;
+	border-left: solid 2px var(--color-line);
+	padding: 4px 0px 4px var(--distance-admonition);
+}
+
+.article .admonition.admonition-cut {
+	margin: 0;
+	margin-bottom: 0.7em;
+}
+
+.admonition-cut > .admonition-heading {
+	cursor: pointer;
+	margin-bottom: 0;
+	color: var(--color-article-heading-text);
+}
+/* .admonition-cut > .admonition-heading:hover {
+	color: var(--color-primary);
+} */
+.admonition-cut > .admonition-heading i {
+	font-size: 1rem;
+	line-height: 100%;
+}
+
+.admonition-cut > .admonition-content {
+	margin-top: 0.7em;
+}
+
+.admonition-content *:last-child,
+.admonition-content ul:last-child li:last-child,
+.admonition-content ol:last-child li:last-child,
+.admonition-content ul:last-child li:last-child > *:last-child,
+.admonition-content ol:last-child li:last-child > *:last-child {
+	margin-bottom: 0 !important;
+}
+
+@media print {
+	.admonition {
+		break-inside: avoid;
+	}
+}

@@ -1,0 +1,37 @@
+{
+	"editor.quickSuggestions": {
+		"strings": true
+	},
+	"cSpell.language": "en,ru",
+	"cSpell.words": ["cписок"],
+	"cucumber.features": ["tests/**/*.feature"],
+	"cucumber.glue": ["runner/src/pageObject/**/*.steps.ts"],
+	"cucumberautocomplete.steps": ["runner/src/pageObject/**/*.steps.ts"],
+	"cucumberautocomplete.strictGherkinCompletion": true,
+	"cucumberautocomplete.strictGherkinValidation": true,
+	"[cucumber]": {
+		"editor.defaultFormatter": "CucumberOpen.cucumber-official"
+	},
+	"cucumberautocomplete.skipDocStringsFormat": true,
+	"cucumberautocomplete.formatConfOverride": {
+		"Функция": 0,
+		"Функционал": 0,
+		"Правило": 1,
+		"Сценарий": 1,
+		"Контекст": 1,
+		"Дано": 2,
+		"Пусть": 2,
+		"Когда": 2,
+		"Тогда": 2,
+		"То": 2,
+		"И": 2,
+		"\\*": 4,
+		"\\|": 3,
+		"\"\"\"": 3,
+		"#": "relative",
+		"@": "relative"
+	},
+	"[feature]": {
+		"editor.defaultFormatter": "alexkrechik.cucumberautocomplete"
+	}
+}

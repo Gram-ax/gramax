@@ -1,0 +1,38 @@
+import Path from "../../../../logic/FileProvider/Path/Path";
+import gitDataParser from "./GitDataParser";
+
+describe("GitDataParser", () => {
+	describe("получает массив файлов и их изменений, распарсив логи команды", () => {
+		test("git diff --name-status <old> <new>", () => {
+			const gitDiff = `M\tdocs/cut.md
+A\tdocs/.doc-root.yml
+R072\tdocs/log/.category.yml\tdocs/.category.yml
+D\tdocs/video.ts`;
+
+			const changeItems = gitDataParser.getDiffChanges(gitDiff, false).map((c) => {
+				return { absolutePath: c.path.value, type: c.type };
+			});
+
+			expect(changeItems).toEqual([
+				{ absolutePath: "docs/cut.md", type: "modified" },
+				{ absolutePath: "docs/.doc-root.yml", type: "new" },
+				{ absolutePath: "docs/.category.yml", type: "new" },
+				{ absolutePath: "docs/log/.category.yml", type: "delete" },
+				{ absolutePath: "docs/video.ts", type: "delete" },
+			]);
+		});
+	});
+
+	test("получает ссылку на gitlab", () => {
+		const data: [string[], string, string, Path] = [
+			["https:", "", "gitlab.ics-it.ru", "ics", "mdt.bpmn.git\n"],
+			"master",
+			"mdt.bpmn",
+			new Path("docs/bpmn/_index.md"),
+		];
+
+		const result = gitDataParser.getGitLabLink(...data);
+
+		expect(result).toEqual("https://gitlab.ics-it.ru/-/ide/project/ics/mdt.bpmn/blob/master/-/docs/bpmn/_index.md");
+	});
+});

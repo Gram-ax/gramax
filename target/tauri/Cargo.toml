@@ -1,0 +1,29 @@
+[workspace]
+resolver = "2"
+members = [
+  "libs/gramax-git",
+  "plugins/plugin-gramax-fs",
+  "plugins/plugin-gramax-git",
+  "src-tauri",
+]
+
+[workspace.package]
+version = "0.1.0"
+authors = ["ics-it"]
+description = "Gramax"
+edition = "2021"
+
+[workspace.dependencies]
+tauri = { version = "^2.0.0-alpha.17", features = [
+  "macos-private-api",
+  "devtools",
+] }
+
+[patch.crates-io]
+tauri = { git = "https://github.com/pashokitsme/tauri", branch = "expose-download-handler-setters" }
+
+[profile.release]
+codegen-units = 1
+lto = true
+incremental = false
+opt-level = "s"

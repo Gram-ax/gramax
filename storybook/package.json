@@ -1,0 +1,90 @@
+{
+	"name": "cra-ts",
+	"version": "0.1.0",
+	"private": true,
+	"scripts": {
+		"build": "sb build -o storybook-static/storybook/",
+		"start": "http-server ./storybook-static -p ${PORT} ",
+		"dev": "cross-env PRODUCTION=false sb dev"
+	},
+	"browserslist": {
+		"production": [
+			">0.2%",
+			"not dead",
+			"not op_mini all"
+		],
+		"development": [
+			"last 1 chrome version",
+			"last 1 firefox version",
+			"last 1 safari version"
+		]
+	},
+	"dependencies": {
+		"@bartaxyz/react-tree-list": "^0.6.0",
+		"@emotion/react": "^11.10.4",
+		"@emotion/styled": "^11.10.4",
+		"@emotion/styled-base": "^11.0.0",
+		"@minoru/react-dnd-treeview": "^3.1.0",
+		"@mui/icons-material": "^5.10.6",
+		"@mui/material": "^5.10.5",
+		"@rjsf/core": "^4.2.0",
+		"@testing-library/jest-dom": "^4.2.4",
+		"@testing-library/react": "^9.3.2",
+		"@testing-library/user-event": "^7.1.2",
+		"@tippyjs/react": "^4.2.6",
+		"@tiptap/react": "2.0.0-beta.196",
+		"@types/jest": "^24.0.0",
+		"@types/node": "^12.0.0",
+		"crypto-browserify": "^3.12.0",
+		"dotenv-webpack": "^8.0.1",
+		"hsluv": "^0.1.0",
+		"http-server": "^14.1.1",
+		"ifdef-loader": "^2.3.2",
+		"react": "file:../node_modules/react",
+		"react-dnd": "file:../node_modules/react-dnd",
+		"react-dom": "file:../node_modules/react-dom",
+		"react-scripts": "5.0.1",
+		"react-tooltip": "^4.2.21",
+		"reactjs-popup": "^2.0.5",
+		"ts-loader": "^9.4.4",
+		"typescript": "5.1.6",
+		"util": "^0.12.5"
+	},
+	"overrides": {
+		"webpack": "^5.88.2"
+	},
+	"devDependencies": {
+		"@babel/compat-data": "7.19.4",
+		"@babel/core": "^7.19.6",
+		"@babel/generator": "7.19.6",
+		"@babel/helper-compilation-targets": "7.19.3",
+		"@babel/helper-create-class-features-plugin": "7.19.0",
+		"@babel/helper-module-transforms": "7.19.6",
+		"@babel/preset-react": "^7.22.5",
+		"@babel/preset-typescript": "^7.22.5",
+		"@fortawesome/fontawesome-pro": "^6.2.0",
+		"@react-theming/storybook-addon": "^1.1.7",
+		"@storybook/addon-controls": "^7.2.0",
+		"@storybook/addon-docs": "^7.2.0",
+		"@storybook/addon-outline": "^7.2.0",
+		"@storybook/addon-toolbars": "^7.2.0",
+		"@storybook/addon-viewport": "^7.2.0",
+		"@storybook/addons": "^7.2.0",
+		"@storybook/cli": "^7.2.0",
+		"@storybook/preset-create-react-app": "^7.2.0",
+		"@storybook/react": "^7.2.0",
+		"@storybook/react-webpack5": "^7.2.0",
+		"@storybook/theming": "^7.2.0",
+		"babel-loader": "^8.1.0",
+		"msw": "^1.2.1",
+		"msw-storybook-addon": "^1.8.0",
+		"react-docgen-typescript": "^2.2.2",
+		"storybook-addon-themes": "^6.1.0",
+		"@types/react": "file:../node_modules/@types/react",
+		"@types/react-dom": "file:../node_modules/@types/react-dom",
+		"webpack": "^5.88.2"
+	},
+	"msw": {
+		"workerDirectory": "public"
+	}
+}

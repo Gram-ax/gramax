@@ -1,0 +1,59 @@
+.article-body .beta,
+.article-body .alfa {
+	background: var(--color-warning);
+	color: white;
+	font-size: 12px;
+	padding: 1px 3px;
+	border-radius: 4px;
+}
+
+.article-body .alfa:before {
+	content: "\03B1lfa";
+}
+.article-body .alfa {
+	background: var(--color-danger);
+}
+
+.article-body span.module:before {
+	content: "\f1b2";
+	font-family: "Font Awesome 6 Pro", "Font Awesome 6 Brands";
+	padding-right: 4px;
+}
+
+.article-body h3 .alfa,
+.article-body h2 .alfa,
+.article-body h3 .beta,
+.article-body h2 .beta {
+	top: -8px;
+	position: relative;
+}
+
+.article-body span.module {
+	font-weight: 400;
+	zoom: 0.8;
+}
+
+.article-body p span.module {
+	zoom: 1;
+}
+
+.article-body h2 span.module {
+	zoom: 0.6;
+}
+
+.article-body .beta:before {
+	content: "\3b2";
+}
+.article-body .beta:after {
+	/* странный баг с разбиением b от eta. Пришлось разделить */
+	content: "eta";
+}
+
+.article-body h2 span.module,
+.article-body h2 .beta {
+	margin-right: 10px;
+}
+
+.article-body > h2:first-of-type {
+	margin-top: 0;
+}

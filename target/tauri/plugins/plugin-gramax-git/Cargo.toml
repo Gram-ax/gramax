@@ -1,0 +1,18 @@
+[package]
+name = "plugin-gramax-git"
+version = { workspace = true }
+edition = { workspace = true }
+authors = { workspace = true }
+exclude = ["/examples", "/webview-dist", "/webview-src", "/node_modules"]
+links = "plugin-gramax-git"
+
+[dependencies]
+tauri = { workspace = true }
+gramax-git = { path = "../../libs/gramax-git" }
+serde = "1.0"
+thiserror = "1.0"
+anyhow = "1.0.75"
+log = "0.4.20"
+
+[build-dependencies]
+tauri-build = "^2.0.0-alpha"

@@ -1,0 +1,58 @@
+import Query from "@core/Api/Query";
+import { MainMiddleware } from "@core/Api/middleware/MainMiddleware";
+import Middleware from "@core/Api/middleware/Middleware";
+import Context from "@core/Context/Context";
+import { CommandTree } from "../commands";
+import Application from "./Application";
+
+export enum ResponseKind {
+	json = "json",
+	plain = "plain",
+	blob = "blob",
+	file = "file",
+	none = "none",
+	redirect = "redirect",
+	html = "html",
+}
+
+interface CommandConfig<P, O> {
+	path?: string;
+	kind?: ResponseKind;
+	middlewares?: Middleware[];
+	do: (this: { _app: Application; _commands: CommandTree }, args: P) => O | Promise<O>;
+	params?: (ctx: Context, query: Query, body?: any) => P;
+}
+
+export class Command<P, O> {
+	private _app: Application = {} as any;
+	private _commands: CommandTree = {} as any;
+
+	constructor(private _c: CommandConfig<P, O>) {
+		if (!_c.kind) _c.kind = ResponseKind.none;
+		_c.middlewares = [new MainMiddleware(), ...(_c.middlewares ?? [])];
+	}
+
+	get path(): string {
+		return this._c.path;
+	}
+
+	get middlewares(): Middleware[] {
+		return this._c.middlewares;
+	}
+
+	get kind(): ResponseKind {
+		return this._c.kind;
+	}
+
+	do(args: P): O | Promise<O> {
+		return this._c.do.bind(this)(args);
+	}
+
+	params(ctx: Context, query: Query, body: any): P {
+		return this._c.params(ctx, query, body);
+	}
+
+	static create<P, O>(config: CommandConfig<P, O>): Command<P, O> {
+		return new Command(config);
+	}
+}

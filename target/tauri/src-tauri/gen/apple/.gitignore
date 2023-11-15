@@ -1,0 +1,4 @@
+xcuserdata/
+build/
+Externals/
+Assets.xcassets/AppIcon.appiconset/*.png

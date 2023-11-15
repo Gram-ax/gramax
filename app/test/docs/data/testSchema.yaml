@@ -1,0 +1,7 @@
+Contract:
+    title: Some contract title
+    description: Some contact description
+    fields:
+        ID:
+            title: some id title
+            sqlType: some sqlType
