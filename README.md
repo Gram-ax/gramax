@@ -1,20 +1,18 @@
 ![Gramax logo](https://github.com/Gram-ax/gramax/assets/149784102/6e587f0c-f45e-4368-96cf-ec598fff16cf)
 
-# Gramax
-
-## Languages:
+Languages:
 
 - [EN](#EN)
 - [RU](#RU)
 
 # EN
 
-### Free Text Editor and Doc Portals for IT Projects
+## Free text editor and doc portals for it-projects
 Work collaboratively on documents in WYSIWYG or Markdown, control every change with Git, and use the Docs as Code approach for collaboration with colleagues and clients.
 
 Gramax is a free text editor with a simple visual interface for Git commands. The text is stored in your chosen repository in Markdown files along with the code, versioned with the code, and changes are made within Git transactions.
 
-### Usage Scenarios
+## Usage Scenarios
 
 The Gramax text editor enables managers and non-technical specialists to work with documentation as if it were code. No longer is there a need to learn specialized skills and install numerous programs to leave a comment or make changes to the content.
 
@@ -32,7 +30,7 @@ Technical specialists can continue to edit articles in Markdown markup through V
 
 - **Content for Websites and Presentations**. This site was compiled, elaborated, and verified in Gramax.
 
-### Convenient Editor
+## Convenient Editor
 
 Taking the best from Notion, Paper, Google Docs, and adding tools for professionals:
 
@@ -44,41 +42,32 @@ Taking the best from Notion, Paper, Google Docs, and adding tools for profession
 
 Collaboration is built through asynchronous offline editing, thanks to which the editor works quickly and does not overwrite others' changes.
 
-### Confidentiality
-Gramax works directly with your selected Git repository. When working in the browser, data is stored in the local memory of the browser. In the app, it's on the disk of your device. When you finish your work, the changes synchronize with the Git repository.
+## Benefits
 
-Interaction with our server occurs only to receive information about new versions.
+- **Confidentiality**. Gramax works directly with your selected Git repository. When working in the browser, data is stored in the local memory of the browser. In the app, it's on the disk of your device. When you finish your work, the changes synchronize with the Git repository. Interaction with our server occurs only to receive information about new versions.
 
-### Links Between Articles
+- **Links Between Articles**. Create convenient links to articles in just a few clicks.
 
-Create convenient links to articles in just a few clicks.
+- **Storage in Your Infrastructure**. Work for free with your cloud or local GitHub, GitLab. Or deploy the Gramax server with Single Sign-On authentication and integrated Git storage.
 
-### Storage in Your Infrastructure
+- **Web Portal for Readers**. Separate portals can be deployed for external and internal readers. Organize access division by projects. Share secure links to articles or export them in .docx and .pdf.
 
-Work for free with your cloud or local GitHub, GitLab. Or deploy the Gramax server with Single Sign-On authentication and integrated Git storage.
+- **Quick Search**. Allows editors and readers to search for information by project or across the entire knowledge base.
 
-### Web Portal for Readers
+## Usage
 
-Separate portals can be deployed for external and internal readers. Organize access division by projects. Share secure links to articles or export them in .docx and .pdf.
-
-### Quick Search
-
-Allows editors and readers to search for information by project or across the entire knowledge base.
-
-### Usage
-
-  #### Vite build
+  ### Vite build
 
     TODO
 
-  #### Next build
+  ### Next build
 
     TODO
 
-### Contributing
+## Contributing
 We welcome contributions! Please read our Contributing Guide for more information on how to get started.
 
-### Contact
+## Contact
 For any inquiries or contributions, please contact with as by [email](support@gram.ax).
 
 # RU
@@ -87,9 +76,9 @@ For any inquiries or contributions, please contact with as by [email](support@gr
 
 Работайте совместно над документами в WYSIWYG или Markdown, контролируйте каждое изменение с помощью Git, используйте подход Docs as Code для совместной работы с коллегами и заказчиками.
 
-Gramax -- это **бесплатный** текстовый редактор с простым визуальным интерфейсом для Git-команд. Текст хранится в выбранном вами хранилище в Markdown файлах вместе с кодом, версионируется вместе с кодом, а изменения вносятся в рамках Git-транзакций.
+Gramax - это **бесплатный** текстовый редактор с простым визуальным интерфейсом для Git-команд. Текст хранится в выбранном вами хранилище в Markdown файлах вместе с кодом, версионируется вместе с кодом, а изменения вносятся в рамках Git-транзакций.
 
-### Сценарии использования
+## Сценарии использования
 
 Текстовый редактор Gramax даёт возможность менеджерам и нетехническим специалистам работать с документацией как с кодом. Больше не требуется обучаться специальным навыкам и установливать множество программ, чтобы оставить комментарий или внести изменения в контент.
 
@@ -107,7 +96,7 @@ Gramax -- это **бесплатный** текстовый редактор с
 
 -  **Контент для сайта и презентации**. Этот сайт был составлен, проработан и проверен в Gramax.
 
-### Удобный редактор
+## Удобный редактор
 
 Взяли лучшее из Notion, Paper, Google.Docs и добавили инструментов для профессионалов:
 
@@ -119,42 +108,30 @@ Gramax -- это **бесплатный** текстовый редактор с
 
 Совместная работа строится через асинхронное офлайн редактирование, благодаря чему редактор быстро работает и не затирает чужие изменения.
 
-### Конфиденциальность
+## Преимущества
 
-Gramax работает напрямую с выбранным Git-хранилищем. При работе в браузере данные хранятся в локальной памяти браузера. В приложении -- на диске вашего устройства. Когда вы завершили работу, то изменения синхронизируются с Git-хранилищем.
+- **Конфиденциальность**. Gramax работает напрямую с выбранным Git-хранилищем. При работе в браузере данные хранятся в локальной памяти браузера. В приложении -- на диске вашего устройства. Когда вы завершили работу, то изменения синхронизируются с Git-хранилищем. Взаимодействие с нашим сервером происходит только для получения информации о новых версиях.
 
-Взаимодействие с нашим сервером происходит только для получения информации о новых версиях.
+- **Ссылки между статьями**. Создавайте удобные ссылки на статьи в несколько кликов.
 
-![](./main_0.png)
+- **Хранение в вашей инфраструктуре**. Работайте бесплатно с вашим облачным или локальным GitHub, GitLab. Или разверните Gramax server с аутентификацией Single Sign-On и встроенным Git-хранилищем.
 
-### Ссылки между статьями
+- **Веб-портал для читателей**. Можно развернуть отдельные порталы для внешних и внутренних читателей. Организовать разделение доступов по проектам. Делиться безопасными ссылками на статьи или экспортировать их в .doсx и .pdf.
 
-Создавайте удобные ссылки на статьи в несколько кликов.
+- **Быстрый поиск**. Позволяет редакторам и читателям искать информацию по проекту или по всей базе знаний.
 
-### Хранение в вашей инфраструктуре
+## Запуск
 
-Работайте бесплатно с вашим облачным или локальным GitHub, GitLab. Или разверните Gramax server с аутентификацией Single Sign-On и встроенным Git-хранилищем.
-
-### Веб-портал для читателей
-
-Можно развернуть отдельные порталы для внешних и внутренних читателей. Организовать разделение доступов по проектам. Делиться безопасными ссылками на статьи или экспортировать их в .doсx и .pdf.
-
-### Быстрый поиск
-
-Позволяет редакторам и читателям искать информацию по проекту или по всей базе знаний.
-
-### Запуск
-
-  #### Запуск Vite
+  ### Запуск Vite
 
     TODO
   
-  #### Запуск Next
+  ### Запуск Next
 
     TODO
 
-### Участие в разработке
-Мы приветствуем вклад каждого! Пожалуйста, ознакомьтесь с нашим Руководством по участию, чтобы узнать больше о том, как начать работу.
+## Участие в разработке
+Мы приветствуем вклад каждого! Пожалуйста, ознакомьтесь с нашим *Руководством по участию*, чтобы узнать больше о том, как начать работу.
 
-### Контакты
+## Контакты
 Для всех запросов или предложений о сотрудничестве, пожалуйста, свяжитесь с нами по [электронной почте](support@gram.ax).
