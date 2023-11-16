@@ -132,7 +132,13 @@ On windows WSL is preferended, but not mandatory.
     npm run start
 
 ## Contributing
-We welcome contributions! Please read our Contributing Guide for more information on how to get started.
+There are you can [contribute](https://github.com/Gram-ax/gramax) to Gramax:
+* Identify and Report Bugs: Notice something off? Report any bugs you find [here](https://github.com/Gram-ax/gramax/issues) or [here](https://t.me/gramax_chat) and assist our team in confirming bug fixes.
+* Community Support on [Telegram](https://t.me/gramax_chat): Engage with the Gramax community. Offer support and share insights on Telegram.
+* Feature Suggestions: Have ideas for new features or improvements? Share your thoughts and contribute to the project's growth.
+* Code Contributions: If you're a developer, consider contributing code. Check out the project's GitHub repository for areas where you can contribute.
+* Documentation: Help improve or expand the project's documentation, making it more accessible and understandable for new users.
+* Spread the Word: Share your experiences with Gramax on social media or tech forums, helping to grow the user base and community.
 
 ## Contact
 For any inquiries or contributions, please contact with as by [email](support@gram.ax).
@@ -237,7 +243,13 @@ Gramax - это **бесплатный** текстовый редактор с 
     npm run start
 
 ## Участие в разработке
-Мы приветствуем вклад каждого! Пожалуйста, ознакомьтесь с нашим *Руководством по участию*, чтобы узнать больше о том, как начать работу.
+Вот как вы можете [внести свой вклад](https://github.com/Gram-ax/gramax) в развитие Gramax:
+* Выявление и сообщение об ошибках: Заметили что-то неладное? Сообщите о любых найденных вами ошибках [здесь](https://github.com/Gram-ax/gramax/issues) или [здесь](https://t.me/gramax_chat) и помогите нашей команде подтвердить исправления.
+* Поддержка сообщества в [Telegram](https://t.me/gramax_chat): Присоединяйтесь к сообществу Gramax. Предлагайте поддержку и делитесь своими идеями в Telegram.
+* Предложения по функционалу: Есть идеи новых функций или улучшений? Поделитесь своими мыслями и внесите свой вклад в развитие проекта.
+* Вклад в код: Если вы разработчик, рассмотрите возможность внесения своего кода. Ознакомьтесь с репозиторием проекта на GitHub, чтобы найти, где вы можете внести свой вклад.
+* Документация: Помогите улучшить или расширить документацию проекта, сделав её более доступной и понятной для новых пользователей.
+* Распространение информации: Делитесь своим опытом использования Gramax в социальных сетях или на технических форумах, помогая увеличить базу пользователей и сообщество.
 
 ## Контакты
 Для всех запросов или предложений о сотрудничестве, пожалуйста, свяжитесь с нами по [электронной почте](support@gram.ax).
