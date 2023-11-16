@@ -10,11 +10,19 @@ If you want to self-host gramax to make readonly instance of Gramax, you need Do
 
 ### On Linux or macOS
 
+Open your terminal and execute this command
+
+Откройте ваш терминал и выполните команду
+
 ```bash
 curl https://raw.githubusercontent.com/StanislavPetrovIcs/test-gramax-setup/main/setup.sh | bash; docker compose up
 ```
 
 ### On Windows
+
+Open powershell and execute this command
+
+Откройте powershell и выполните команду
 
 ```powershell
 Invoke-Expression (Invoke-WebRequest -Uri "https://raw.githubusercontent.com/StanislavPetrovIcs/test-gramax-setup/main/setup.ps1" -UseBasicParsing).Content; docker compose up
@@ -74,15 +82,54 @@ Collaboration is built through asynchronous offline editing, thanks to which the
 
 - **Quick Search**. Allows editors and readers to search for information by project or across the entire knowledge base.
 
-## Usage
+## Building and running
+
+In order to run this project you need to clone repository, download necessary tools (or don't if you already have them ƪ(˘⌣˘)ʃ) and download dependencies via install-deps.sh or manualy by npm (no pnpm or yarn, sadly).
+
+On windows WSL is preferended, but not mandatory.
+
+### You'll need the following tools:
+
+  - Git
+  - Node.js
+
+### Building
 
   ### Vite build
+  ---
+  ### Where
 
-    TODO
+    target/browser/
 
-  ### Next build
+  #### Dev mode
 
-    TODO
+    npm run dev
+  
+  #### Production build
+  
+    npm run build
+
+  #### Production run
+
+    npm run start
+
+### Next build
+---
+   ### Where
+
+    target/next/
+
+  #### Dev mode
+
+    npm run dev
+  
+  #### Production build
+  
+    npm run build
+
+  #### Production run
+
+    npm run start
 
 ## Contributing
 We welcome contributions! Please read our Contributing Guide for more information on how to get started.
@@ -140,15 +187,54 @@ Gramax - это **бесплатный** текстовый редактор с 
 
 - **Быстрый поиск**. Позволяет редакторам и читателям искать информацию по проекту или по всей базе знаний.
 
-## Запуск
+## Сборка и запуск
 
-  ### Запуск Vite
+Для запуска проекта необходимо клонировать репозиторий, скачать необходимые инструменты (или не делать этого, если они у вас уже есть ƪ(˘⌣˘)ʃ) и загрузить зависимости через install-deps.sh или вручную через npm.
 
-    TODO
-  
-  ### Запуск Next
+На Windows предпочтительнее использовать WSL, но это не обязательно.
 
-    TODO
+### Вам понадобятся следующие инструменты:
+
+- Git
+- Node.js
+
+### Сборка
+
+#### Сборка Vite
+---
+#### Где
+
+    target/browser/
+
+### Режим разработки
+
+    npm run dev
+
+### Сборка для продакшена
+
+    npm run build
+
+### Запуск продакшена
+
+    npm run start
+
+### Сборка Next
+---
+### Где
+
+    target/next/
+
+### Режим разработки
+
+    npm run dev
+
+### Сборка для продакшена
+
+    npm run build
+
+### Запуск продакшена
+
+    npm run start
 
 ## Участие в разработке
 Мы приветствуем вклад каждого! Пожалуйста, ознакомьтесь с нашим *Руководством по участию*, чтобы узнать больше о том, как начать работу.
