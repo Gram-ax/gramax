@@ -84,7 +84,7 @@ Collaboration is built through asynchronous offline editing, thanks to which the
 
 ## Building and running
 
-In order to run this project you need to clone repository, download necessary tools (or don't if you already have them ƪ(˘⌣˘)ʃ) and download dependencies via install-deps.sh or manualy by npm (no pnpm or yarn, sadly).
+In order to run this project you need to clone repository, **download necessary tools** (or don't if you already have them ƪ(˘⌣˘)ʃ) and **install dependencies**.
 
 On windows WSL is preferended, but not mandatory.
 
@@ -93,43 +93,23 @@ On windows WSL is preferended, but not mandatory.
   - Git
   - Node.js
 
-### Building
+### Installing dependencies
 
-  ### Vite build
-  ---
-  ### Where
+You can install dependencies via install-deps.sh (uses fd, so you need to have fd installed on your system before using it) or manualy by npm (no pnpm or yarn, sadly)
 
-    target/browser/
+### Build Processes
 
-  #### Dev mode
+#### Vite Build:
+Location: `target/browser/`
 
-    npm run dev
-  
-  #### Production build
-  
-    npm run build
+- **Development Mode:** Run `npm run dev`
+- **Production Build:** Execute `npm run run`
 
-  #### Production run
+#### Next.js Build:
+Location: `target/next/`
 
-    npm run start
-
-### Next build
----
-   ### Where
-
-    target/next/
-
-  #### Dev mode
-
-    npm run dev
-  
-  #### Production build
-  
-    npm run build
-
-  #### Production run
-
-    npm run start
+- **Development Mode:** Execute `npm run dev`
+- **Production Build:** Run `npm run run`
 
 ## Contributing
 There are you can [contribute](https://github.com/Gram-ax/gramax) to Gramax:
@@ -195,7 +175,7 @@ Gramax - это **бесплатный** текстовый редактор с 
 
 ## Сборка и запуск
 
-Для запуска проекта необходимо клонировать репозиторий, скачать необходимые инструменты (или не делать этого, если они у вас уже есть ƪ(˘⌣˘)ʃ) и загрузить зависимости через install-deps.sh или вручную через npm.
+Для запуска проекта необходимо склонировать репозиторий, скачать необходимые инструменты (или не делать этого, если они у вас уже есть ƪ(˘⌣˘)ʃ) и загрузить зависимости через install-deps.sh или вручную через npm.
 
 На Windows предпочтительнее использовать WSL, но это не обязательно.
 
