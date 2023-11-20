@@ -19,11 +19,11 @@ Gramax — это бесплатный текстовый редактор со 
 
 ### Запуск докер образ
 
-Если вы хотите запустить на своем домене доступный только для чтения инстанс Gramax'а, вам нужен Docker (версии 20.04 или выше) и sh если вы используете Linux или macOS
+Если вы хотите запустить на своем домене доступный только для чтения инстанс Gramax'а, вам нужен Docker (версии 20.04 или выше) и sh если вы используете Linux или macOS.
 
 #### На Linux или macOS
 
-Откройте ваш терминал и выполните команду
+Откройте ваш терминал и выполните команду:
 
 ```bash
 curl https://raw.githubusercontent.com/StanislavPetrovIcs/test-gramax-setup/main/setup.sh | bash; docker compose up
@@ -31,7 +31,7 @@ curl https://raw.githubusercontent.com/StanislavPetrovIcs/test-gramax-setup/main
 
 #### На Windows
 
-Откройте powershell и выполните команду
+Откройте powershell и выполните команду:
 
 ```powershell
 Invoke-Expression (Invoke-WebRequest -Uri "https://raw.githubusercontent.com/StanislavPetrovIcs/test-gramax-setup/main/setup.ps1" -UseBasicParsing).Content; docker compose up
@@ -79,7 +79,7 @@ Invoke-Expression (Invoke-WebRequest -Uri "https://raw.githubusercontent.com/Sta
 
 ## Как использовать
 
-Документация для пользователей расположена [тут](https://ics-it.gram.ax/gramax)
+Документация для пользователей расположена [тут](https://ics-it.gram.ax/gramax).
 
 ## Участие в разработке
 
@@ -109,4 +109,4 @@ Invoke-Expression (Invoke-WebRequest -Uri "https://raw.githubusercontent.com/Sta
 
 ## Лицензия
 
-Проект находится под лицензией [тут лицензия]
+Проект находится под лицензией [тут лицензия].
