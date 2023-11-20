@@ -105,7 +105,7 @@ Invoke-Expression (Invoke-WebRequest -Uri "https://raw.githubusercontent.com/Sta
 
 ### Поддержка и сообщество
 
-Если у вас есть вопросы или вам нужна помощь, не стесняйтесь писать нам на почту или в [Telegram](https://t.me/gramax_chat)
+Если у вас есть вопросы или вам нужна помощь, не стесняйтесь писать нам на почту или в [Telegram](https://t.me/gramax_chat).
 
 ## Лицензия
 
