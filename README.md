@@ -6,6 +6,8 @@
 
 - [Быстрый старт](#Быстрый%20старт)
 - [Как использовать](#Как20использовать)
+- [Как начать](#Как%20начать)
+- [Контакты](#Контакты)
 - [Лицензия](#Лицензия)
 
 ![Gramax interface](https://gram.ax/data/ru/gramax.png)
@@ -40,17 +42,23 @@ Invoke-Expression (Invoke-WebRequest -Uri "https://raw.githubusercontent.com/Sta
 
 - Для запуска режима разработчика выполните команду:
 
-  `npm run dev`
+  ```bash
+  npm run dev
+  ```
 
-- Для запуска продакшн-билда выполните команду:
+- Для запуска продакшн-билда:
 
   Необходимо сбилдить приложение командой:
 
-  `npm run build`
+  ```bash
+  npm run build
+  ```
 
-  Затем запустите приложение командой:
+  Затем запустить приложение командой:
 
-  `npm run start`
+  ```bash
+  npm run start
+  ```
 
   (или можно использовать команду `npm run run`)
 
@@ -80,7 +88,7 @@ Invoke-Expression (Invoke-WebRequest -Uri "https://raw.githubusercontent.com/Sta
 
 3. **Участвуйте в обсуждениях**: Присоединяйтесь к обсуждениям в [Telegram](https://t.me/gramax_chat) и помогите формировать будущее Gramax.
 
-### Поддержка и сообщество
+### Контакты
 
 Если у вас есть вопросы или вам нужна помощь, не стесняйтесь писать нам на почту или в [Telegram](https://t.me/gramax_chat).
 
