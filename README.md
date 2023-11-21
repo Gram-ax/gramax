@@ -48,17 +48,17 @@ Invoke-Expression (Invoke-WebRequest -Uri "https://raw.githubusercontent.com/Sta
 
 - Для запуска продакшн-билда:
 
-  Необходимо сбилдить приложение командой:
-
-  ```bash
-  npm run build
-  ```
-
-  Затем запустить приложение командой:
-
-  ```bash
-  npm run start
-  ```
+    Необходимо сбилдить приложение командой:
+  
+    ```bash
+    npm run build
+    ```
+  
+    Затем запустить приложение командой:
+  
+    ```bash
+    npm run start
+    ```
 
   (или можно использовать команду `npm run run`)
 
