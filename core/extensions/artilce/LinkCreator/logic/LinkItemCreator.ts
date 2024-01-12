@@ -1,7 +1,7 @@
 import Path from "../../../../logic/FileProvider/Path/Path";
-import { Catalog } from "../../../../logic/FileStructue/Catalog/Catalog";
-import { Category } from "../../../../logic/FileStructue/Category/Category";
-import { Item } from "../../../../logic/FileStructue/Item/Item";
+import { Catalog } from "@core/FileStructue/Catalog/Catalog";
+import { Category } from "@core/FileStructue/Category/Category";
+import { Item } from "@core/FileStructue/Item/Item";
 import LinkItem from "../models/LinkItem";
 
 class LinkItemCreator {
@@ -19,7 +19,7 @@ class LinkItemCreator {
 			type: item.type,
 			title: item.props.title?.toString() ?? "",
 			logicPath: `/${item.logicPath}`,
-			relativePath: `...${catalog.getRootCategoryPath().subDirectory(item.ref.path).value}`,
+			relativePath: `.../${catalog.getRootCategoryPath().subDirectory(item.ref.path).value}`,
 			breadcrumb: this._getBreadcrumb(itemsTree, [], item.logicPath) ?? [],
 		};
 	}

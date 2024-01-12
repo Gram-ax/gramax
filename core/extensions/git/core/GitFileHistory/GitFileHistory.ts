@@ -1,20 +1,19 @@
-import GitRepositoryConfig from "@ext/git/core/GitRepository/model/GitRepositoryConfig";
+import GitCommandsConfig from "@ext/git/core/GitCommands/model/GitCommandsConfig";
 import Path from "../../../../logic/FileProvider/Path/Path";
 import FileProvider from "../../../../logic/FileProvider/model/FileProvider";
 import { Catalog } from "../../../../logic/FileStructue/Catalog/Catalog";
 import { ItemRef } from "../../../../logic/FileStructue/Item/Item";
 import { getDiff } from "../../../VersionControl/DiffHandler/DiffHandler";
 import { VersionControlInfo } from "../../../VersionControl/model/VersionControlInfo";
-import VersionControlType from "../../../VersionControl/model/VersionControlType";
 import DefaultError from "../../../errorHandlers/logic/DefaultError";
 import SourceType from "../../../storage/logic/SourceDataProvider/model/SourceType";
 import { ArticleHistoryViewModel } from "../../actions/History/model/ArticleHistoryViewModel";
-import { GitRepository } from "../GitRepository/GitRepository";
+import { GitCommands } from "../GitCommands/GitCommands";
 import GitVersionControl from "../GitVersionControl/GitVersionControl";
 
 export default class GitFileHistory {
 	private _versionControl: GitVersionControl;
-	private _gitRepository: GitRepository;
+	private _gitRepository: GitCommands;
 	private _relativeFilePath: Path;
 	private _filePath: Path;
 
@@ -22,7 +21,7 @@ export default class GitFileHistory {
 		private _catalog: Catalog,
 		private _fp: FileProvider,
 		private _enterpriseServerUrl: string = "",
-		private _conf: GitRepositoryConfig = { corsProxy: null },
+		private _conf: GitCommandsConfig = { corsProxy: null },
 		private _storageData?: { sourceType: SourceType; name: string; branch: string },
 	) {}
 
@@ -53,12 +52,12 @@ export default class GitFileHistory {
 			return await response.json();
 		}
 
-		const vc = (await this._catalog.getVersionControl()) as GitVersionControl;
-		if (!vc || vc.getType() !== VersionControlType.git) return;
-		({ versionControl: this._versionControl, relativePath: this._relativeFilePath } =
-			await vc.getVersionControlContainsItem(this._filePath));
+		const gvc = this._catalog.repo.gvc;
+		if (!gvc) return;
+		({ gitVersionControl: this._versionControl, relativePath: this._relativeFilePath } =
+			await gvc.getGitVersionControlContainsItem(this._filePath));
 
-		this._gitRepository = new GitRepository(this._conf, this._fp, this._versionControl.getPath());
+		this._gitRepository = new GitCommands(this._conf, this._fp, this._versionControl.getPath());
 		return this._gitRepository.getFileHistory(this._relativeFilePath);
 	}
 

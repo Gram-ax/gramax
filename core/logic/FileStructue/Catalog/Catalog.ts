@@ -1,16 +1,14 @@
+import ArticleParser from "@core/FileStructue/Article/ArticleParser";
 import CatalogEntry from "@core/FileStructue/Catalog/CatalogEntry";
 import CatalogFileStructure from "@core/FileStructue/Catalog/CatalogFileStructure";
 import { CATEGORY_ROOT_FILENAME, FSProps } from "@core/FileStructue/FileStructure";
-import ArticleParser from "@core/FileStructue/Article/ArticleParser";
 import { ItemStatus } from "@ext/Watchers/model/ItemStatus";
 import CatalogEditProps from "@ext/catalog/actions/propsEditor/model/CatalogEditProps.schema";
-import VersionControl from "../../../extensions/VersionControl/VersionControl";
-import VersionControlProvider from "../../../extensions/VersionControl/model/VersionControlProvider";
+import Repository from "@ext/git/core/Repository/Repository";
+import RepositoryProvider from "@ext/git/core/Repository/RepositoryProvider";
 import { FileStatus } from "../../../extensions/Watchers/model/FileStatus";
 import Language, { defaultLanguage } from "../../../extensions/localization/core/model/Language";
 import IPermission from "../../../extensions/security/logic/Permission/IPermission";
-import Storage from "../../../extensions/storage/logic/Storage";
-import StorageProvider from "../../../extensions/storage/logic/StorageProvider";
 import Path from "../../FileProvider/Path/Path";
 import FileProvider from "../../FileProvider/model/FileProvider";
 import ResourceUpdater from "../../Resource/ResourceUpdater";
@@ -30,27 +28,29 @@ export type CatalogInitProps = {
 
 	fp: FileProvider;
 	fs: CatalogFileStructure;
-
-	entry?: CatalogEntry;
 };
 
-export class Catalog {
-	private _props: FSProps;
+export class Catalog extends CatalogEntry {
 	private _rootCategory: Category;
-	private _name: string;
-	private _basePath: Path;
-	private _errors: CatalogErrors;
 	private _rootPath: Path;
 	private _fp: FileProvider;
 	private _fs: CatalogFileStructure;
-	private _entry: CatalogEntry;
 
-	private _storage: Storage;
 	private _watcherFuncs: WatcherFunc[] = [];
-	private _versionControl: VersionControl;
 	private _onUpdateNameFuncs: ((oldName: string, catalog: Catalog) => Promise<void>)[] = [];
+	private _repo: Repository;
 
 	constructor(init: CatalogInitProps) {
+		super({
+			name: init.name,
+			rootCaterogyRef: init.root.ref,
+			rootCaterogyPath: init.root.folderPath,
+			basePath: init.basePath,
+			props: init.props,
+			errors: init.errors,
+			load: null,
+		});
+
 		this._props = init.props;
 		this._rootCategory = init.root;
 		this._basePath = init.basePath;
@@ -59,37 +59,26 @@ export class Catalog {
 		this._name = init.name;
 		this._fp = init.fp;
 		this._fs = init.fs;
-		this._entry = init.entry;
 
 		const items = this._getItems(this._rootCategory);
 		items.forEach((i) => i.watch(this._onChange.bind(this)));
 	}
 
-	getName(): string {
-		return this._name;
+	load() {
+		return Promise.resolve(this);
 	}
 
-	setStorage(storage: Storage) {
-		this._storage = storage;
+	get repo() {
+		return this._repo;
 	}
 
-	setVersionControl(sp: StorageProvider, vcp: VersionControlProvider, versionControl: VersionControl) {
-		this._versionControl = versionControl;
-		if (!this._versionControl) return;
-		this._versionControl.watch((items) => {
-			this._onChange(items);
-			void this.update(sp, vcp);
+	setRepo(value: Repository, rp: RepositoryProvider) {
+		this._repo = value;
+		if (!this._repo.gvc) return;
+		this._repo.gvc.watch(async (items) => {
+			await this.update(rp);
+			await this._onChange(items);
 		});
-	}
-
-	getVersionControl(): Promise<VersionControl> {
-		if (!this._versionControl) return null;
-		return Promise.resolve(this._versionControl);
-	}
-
-	getStorage(): Storage {
-		if (!this._storage) return null;
-		return this._storage;
 	}
 
 	getRelativeRepPath(itemRef: Path | ItemRef): Path {
@@ -112,12 +101,10 @@ export class Catalog {
 		const index = item.parent.items.findIndex((i) => i.ref.path.compare(item?.ref?.path));
 		if (index == -1) return;
 		item.parent.items.splice(index, 1);
-		if (item.type == ItemType.category) await this._fp.delete(itemRef.path.parentDirectoryPath);
-		else await this._fp.delete(itemRef.path);
 
 		if ((item as Article).content && articleParser) {
 			await articleParser.parse(item as Article, this);
-			await (item as Article).parsedContent.resourceManager.deleteAll(this._fp);
+			await (item as Article).parsedContent.resourceManager.deleteAll();
 		}
 
 		if (item.type == ItemType.category) {
@@ -126,14 +113,14 @@ export class Catalog {
 				await Promise.all(
 					items.map(async (item) => {
 						await articleParser.parse(item as Article, this);
-						await (item as Article).parsedContent.resourceManager.deleteAll(this._fp);
+						await (item as Article).parsedContent.resourceManager.deleteAll();
 					}),
 				);
 			}
 			await this._fp.delete(itemRef.path.parentDirectoryPath);
 		} else await this._fp.delete(itemRef.path);
 
-		this._onChange([{ itemRef, type: FileStatus.delete }]);
+		void this._onChange([{ itemRef, type: FileStatus.delete }]);
 	}
 
 	async createArticle(
@@ -155,7 +142,7 @@ export class Catalog {
 		const article = await this._fs.createArticle(path, parentItem, this._props, this._errors);
 		await article.setLastPosition();
 		parentItem.items.push(article);
-		this._onChange([{ itemRef: article.ref, type: FileStatus.new }]);
+		void this._onChange([{ itemRef: article.ref, type: FileStatus.new }]);
 		return article;
 	}
 
@@ -167,7 +154,6 @@ export class Catalog {
 	) {
 		const dir = parentArticle.ref.path.parentDirectoryPath.join(new Path(parentArticle.getFileName()));
 		const path = dir.join(new Path(CATEGORY_ROOT_FILENAME));
-		await resourceUpdater.updateArticle(parentArticle, this, path);
 
 		const index = parentArticle.parent.items.findIndex((i) => i.ref.path.compare(parentArticle.ref.path));
 		await this.deleteItem(parentArticle.ref);
@@ -180,29 +166,32 @@ export class Catalog {
 			this._props,
 			this._errors,
 		);
+		await resourceUpdater.update(parentArticle, newCategory);
 
 		parentArticle.parent.items.splice(index, 0, newCategory);
-		return this.createArticle( resourceUpdater, markdown, lang,  newCategory.ref);
+		return this.createArticle(resourceUpdater, markdown, lang, newCategory.ref);
 	}
 
-	async moveItem(oldItemRef: ItemRef, newItemRef: ItemRef, resourceUpdater: ResourceUpdater) {
-		const category = this.findItemByItemRef(oldItemRef);
-		if (!category) return;
+	async moveItem(oldItemRef: ItemRef, newItemRef: ItemRef, resourceUpdater: ResourceUpdater, rp: RepositoryProvider) {
+		const item = this.findItemByItemRef(oldItemRef);
+		if (!item) return;
 
-		await resourceUpdater.updateArticle(category as Article, this, newItemRef.path);
-		await this._fp.move(category.ref.path, newItemRef.path);
-		if (category.type == ItemType.category) {
-			for (const item of (category as Category).items) {
+		await this._fp.move(item.ref.path, newItemRef.path);
+		if (item.type == ItemType.category) {
+			for (const i of (item as Category).items) {
 				const childNewBasePath = newItemRef.path.parentDirectoryPath.join(
-					category.ref.path.parentDirectoryPath.subDirectory(item.ref.path),
+					item.ref.path.parentDirectoryPath.subDirectory(i.ref.path),
 				);
-				const childNewItemRef = { path: childNewBasePath, storageId: item.ref.storageId };
-				await this.moveItem(item.ref, childNewItemRef, resourceUpdater);
+				const childNewItemRef = { path: childNewBasePath, storageId: i.ref.storageId };
+				await this.moveItem(i.ref, childNewItemRef, resourceUpdater, rp);
 			}
 		}
+		await this.update(rp);
+		const newItem = this.findItemByItemRef(newItemRef);
+		await resourceUpdater.update(item as Article, newItem as Article);
 	}
 
-	async update(sp: StorageProvider, vcp: VersionControlProvider) {
+	async update(rp: RepositoryProvider) {
 		const catalog = await this._fs.getCatalogByPath(this._basePath);
 		this._name = catalog._name;
 		this._props = catalog._props;
@@ -210,8 +199,7 @@ export class Catalog {
 		this._rootPath = catalog._rootPath;
 		this._basePath = catalog._basePath;
 		this._rootCategory = catalog._rootCategory;
-		this.setStorage(await sp.getStorageByPath(this._basePath, this._fp));
-		this.setVersionControl(sp, vcp, await vcp.getVersionControlByPath(this._basePath, this._fp));
+		this.setRepo(await rp.getRepositoryByPath(this._basePath, this._fp), rp);
 	}
 
 	getNeededPermission(): IPermission {
@@ -224,25 +212,17 @@ export class Catalog {
 		await this._fs.saveCatalog(this);
 	}
 
-	asEntry(): CatalogEntry {
-		return this._entry;
-	}
-
-	getProps(): FSProps {
-		return this._props;
-	}
-
 	getProp(propName: string): any {
 		return this._props[propName];
 	}
 
-	async updateProps(sp: StorageProvider, vcp: VersionControlProvider, props: CatalogEditProps) {
+	async updateProps(rp: RepositoryProvider, props: CatalogEditProps) {
 		Object.keys(props).forEach((key) => {
 			if (key !== "url") this._props[key] = props[key];
 		});
 		await this._fs.saveCatalog(this);
-		await this.update(sp, vcp);
-		if (props.url !== this._name) return this.updateName(props.url, sp, vcp);
+		await this.update(rp);
+		if (props.url !== this._name) return this.updateName(props.url, rp);
 		return this;
 	}
 
@@ -250,12 +230,12 @@ export class Catalog {
 		this._onUpdateNameFuncs.push(onUpdateName);
 	}
 
-	async updateName(newName: string, sp: StorageProvider, vcp: VersionControlProvider) {
+	async updateName(newName: string, rp: RepositoryProvider) {
 		const newBasePath = this._basePath.getNewName(newName);
 		const oldName = this._name;
 		await this._fp.move(this._basePath, newBasePath);
 		this._basePath = newBasePath;
-		await this.update(sp, vcp);
+		await this.update(rp);
 		await Promise.all(this._onUpdateNameFuncs.map((f) => f(oldName, this)));
 		return this;
 	}
@@ -295,7 +275,7 @@ export class Catalog {
 	findArticle(logicPath: string, filters: ArticleFilter[]): Article {
 		const item = this._findItemByLogicPath(this._rootCategory, logicPath, filters);
 		if (!item) return null;
-		if (item.type === ItemType.category && (item as Category).content) return item as Article;
+		if (item.type === ItemType.category && (item as Category).parent) return item as Article;
 		if (item.type === ItemType.article) return item as Article;
 		return this._findItem(item as Category, filters, [(a) => !!a.content]) as Article;
 	}
@@ -351,9 +331,9 @@ export class Catalog {
 		this._watcherFuncs.push(w);
 	}
 
-	private _onChange(changeItem: ItemStatus[]): void {
+	private async _onChange(changeItem: ItemStatus[]): Promise<void> {
 		const changeCatalog = this._convertToChangeCatalog(changeItem);
-		this._watcherFuncs.forEach((w) => w(changeCatalog));
+		for (const f of this._watcherFuncs) await f(changeCatalog);
 	}
 
 	private _getItems(category: Category, filters?: ItemFilter[]): Item[] {
@@ -482,4 +462,4 @@ export interface ChangeCatalog {
 	type: FileStatus;
 }
 
-type WatcherFunc = (changes: ChangeCatalog[]) => void;
+type WatcherFunc = (changes: ChangeCatalog[]) => Promise<void>;

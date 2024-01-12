@@ -8,7 +8,7 @@ const setSourceData: Command<{ ctx: Context } & SourceData, string> = Command.cr
 	kind: ResponseKind.plain,
 
 	do({ ctx, ...data }) {
-		return this._app.sp.setSourceData(ctx.cookie, data);
+		return this._app.rp.setSourceData(ctx.cookie, data);
 	},
 
 	params(ctx, _, body) {

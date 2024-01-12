@@ -1,8 +1,9 @@
 import Context from "@core/Context/Context";
-import { Packer } from "docx";
 import { Tag } from "../../../core/extensions/markdown/core/render/logic/Markdoc";
-import { WordExport } from "../../../core/extensions/wordExport/WordExport";
 import { Command, ResponseKind } from "../../types/Command";
+
+const WordExport = import("../../../core/extensions/wordExport/WordExport");
+const docx = import("docx");
 
 const getAllAsWordDocument: Command<{ ctx: Context; catalogName: string }, Blob> = Command.create({
 	path: "word/all",
@@ -15,7 +16,7 @@ const getAllAsWordDocument: Command<{ ctx: Context; catalogName: string }, Blob>
 		const catalog = await lib.getCatalog(catalogName);
 		const articles = catalog.getContentItems();
 		await sitePresenterFactory.fromContext(ctx).parseAllItems(catalog);
-		const wordExport = new WordExport(
+		const wordExport = new (await WordExport).default(
 			lib.getFileProviderByCatalog(catalog),
 			parserContextFactory.fromArticle(articles[0], catalog, ctx.lang, ctx.user.isLogged),
 		);
@@ -29,7 +30,7 @@ const getAllAsWordDocument: Command<{ ctx: Context; catalogName: string }, Blob>
 			})),
 		);
 
-		return await Packer.toBlob(document);
+		return await (await docx).Packer.toBlob(document);
 	},
 
 	params(ctx, q) {

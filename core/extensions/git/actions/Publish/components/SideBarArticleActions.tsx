@@ -4,36 +4,27 @@ import Icon from "@components/Atoms/Icon";
 import Sidebar from "@components/Layouts/Sidebar";
 import { useState } from "react";
 import DiffItem from "../../../../VersionControl/model/DiffItem";
-import { FileStatus } from "../../../../Watchers/model/FileStatus";
+import { FileStatus } from "@ext/Watchers/model/FileStatus";
 import Discard from "../../Discard/Discard";
 import SideBarResourceData from "../model/SideBarResourceData";
 import DiffCounter from "./DiffCounter";
 import SidebarArticleLink from "./SidebarArticleLink";
 
-const SideBarArticleActions = ({
-	checked,
-	changeType,
-	title,
-	resources,
-	filePath,
-	addedCounter,
-	removedCounter,
-	onDiscard,
-	onChangeCheckbox,
-	goToActicleOnClick,
-	logicPath,
-}: {
+interface SideBarArticleActionsProps extends Pick<DiffItem, "filePath"> {
 	checked: boolean;
 	changeType: FileStatus;
 	title: string;
 	resources: SideBarResourceData[];
 	onDiscard: (paths: string[]) => void;
 	onChangeCheckbox: (isChecked: boolean) => void;
-	goToActicleOnClick: () => void;
+	goToArticleOnClick: () => void;
 	addedCounter: number;
 	removedCounter: number;
 	logicPath?: string;
-} & Pick<DiffItem, "filePath">) => {
+}
+const SideBarArticleActions = (props: SideBarArticleActionsProps) => {
+	const { checked, changeType, title, resources, filePath, addedCounter, removedCounter, logicPath } = props;
+	const { onDiscard, onChangeCheckbox, goToArticleOnClick } = props;
 	const [hover, setHover] = useState(false);
 
 	return (
@@ -68,7 +59,7 @@ const SideBarArticleActions = ({
 												/>
 											}
 											href={logicPath}
-											onClick={goToActicleOnClick}
+											onClick={goToArticleOnClick}
 										/>
 									) : null,
 									<Discard

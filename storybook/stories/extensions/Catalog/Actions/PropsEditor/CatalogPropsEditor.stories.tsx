@@ -1,21 +1,19 @@
 // import { JSONSchema7, validate } from "json-schema";
 import Style from "@components/HomePage/Groups/model/Style";
-import MimeTypes from "@core-ui/ApiServices/Types/MimeTypes";
 import { Meta, StoryObj } from "@storybook/react";
 import CatalogPropsEditor from "../../../../../../core/extensions/catalog/actions/propsEditor/components/CatalogPropsEditor";
 import CatalogEditProps from "../../../../../../core/extensions/catalog/actions/propsEditor/model/CatalogEditProps.schema";
-import mockApi from "../../../../../logic/api/mockApi";
 
 const meta: Meta = {
-	title: "DocReader/extensions/Catalog/Actions/PropsEditor",
+	title: "gx/extensions/Catalog/Actions/PropsEditor",
 	parameters: {
-		msw: mockApi([
-			{
-				path: "/api/catalog/getBrotherFileNames",
-				response: ["test_url", "test_url_1"],
-				mimeType: MimeTypes.json,
-			},
-		]),
+		// msw: mockApi([
+		// 	{
+		// 		path: "/api/catalog/getBrotherFileNames",
+		// 		response: ["test_url", "test_url_1"],
+		// 		mimeType: MimeTypes.json,
+		// 	},
+		// ]),
 	},
 };
 export default meta;

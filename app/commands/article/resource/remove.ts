@@ -13,6 +13,7 @@ const remove: Command<{ src: Path; articlePath: Path; catalogName: string; ctx: 
 	middlewares: [new DesktopModeMiddleware()],
 
 	async do({ src, articlePath, catalogName, ctx }) {
+		if (!src?.value) return;
 		const { lib, parser, parserContextFactory } = this._app;
 
 		const catalog = await lib.getCatalog(catalogName);
@@ -21,7 +22,7 @@ const remove: Command<{ src: Path; articlePath: Path; catalogName: string; ctx: 
 		const article = catalog.findItemByItemRef(itemRef) as Article;
 		if (!article) return;
 		await parseContent(article, catalog, ctx, parser, parserContextFactory);
-		await article.parsedContent.resourceManager.delete(src, fp);
+		await article.parsedContent.resourceManager.delete(src);
 	},
 
 	params(ctx, q) {

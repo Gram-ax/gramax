@@ -1,5 +1,6 @@
 import Context from "@core/Context/Context";
 import PageDataContext from "@core/Context/PageDataContext";
+import { Article } from "@core/FileStructue/Article/Article";
 import { ArticleData, OpenGraphData } from "@core/SitePresenter/SitePresenter";
 import { Command } from "../../types/Command";
 import getPageDataContext from "./getPageDataContext";
@@ -23,9 +24,14 @@ const getArticlePageData: Command<
 				data = await dataProvider.getArticleData(errorArticle, catalog);
 				openGraphData = await dataProvider.getOpenGraphData(path, errorArticle, catalog);
 			}
+			data.articleProps.errorCode = data.articleProps.errorCode || null;
 		} catch (error) {
-			logger.logError(error, ctx.user?.info);
-			const errorArticle = errorArticlesProvider.getErrorArticle("500", error, ctx.user.isLogged);
+			logger.logError(error);
+			let article: Article = null;
+			try {
+				article = (await dataProvider.getArticleCatalog(path))?.article ?? null;
+			} catch {}
+			const errorArticle = errorArticlesProvider.getErrorArticle("500", error, ctx.user.isLogged, article?.ref);
 			const catalog = await lib.getCatalog(path[0]);
 			data = await dataProvider.getArticleData(errorArticle, catalog);
 			openGraphData = await dataProvider.getOpenGraphData(path, errorArticle, catalog);

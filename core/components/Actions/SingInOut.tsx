@@ -1,36 +1,34 @@
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
-import IsReadOnlyHOC from "@core-ui/HigherOrderComponent/IsReadOnlyHOC";
 import styled from "@emotion/styled";
 import useLocalize from "../../extensions/localization/useLocalize";
 import { useRouter } from "../../logic/Api/useRouter";
 import Icon from "../Atoms/Icon";
-import PopupMenuLayout from "../Layouts/PopupMenuLayout";
-import SingInByMail from "./Modal/SingInByMail";
 
 const SingInOut = styled(({ className }: { className?: string }) => {
 	const isLogged = PageDataContextService.value.isLogged;
 	const apiUrlCreator = ApiUrlCreatorService.value;
 	const router = useRouter();
-	const enterpriseServerURL = PageDataContextService.value.conf.enterpriseServerUrl;
+	const isServerApp = PageDataContextService.value.conf.isServerApp;
+	const ssoServerUrl = PageDataContextService.value.conf.ssoServerUrl;
 
 	if (isLogged)
 		return (
 			<div className={className}>
-				<a href={apiUrlCreator.getAuthUrl(router).toString()} data-qa="app-action">
+				<a href={apiUrlCreator.getAuthUrl(router).toString()} data-qa="qa-clickable">
 					<Icon code={"sign-out"} />
 					<span>{useLocalize("singOut")}</span>
 				</a>
 			</div>
 		);
 
-	if (enterpriseServerURL)
+	if (isServerApp && ssoServerUrl)
 		return (
-			<IsReadOnlyHOC>
-				<PopupMenuLayout
+			<>
+				{/* <PopupMenuLayout
 					trigger={
 						<div className={className}>
-							<a data-qa="app-action">
+							<a data-qa="qa-clickable">
 								<Icon code={"sign-in"} />
 								<span>{useLocalize("singIn")}</span>
 							</a>
@@ -38,16 +36,16 @@ const SingInOut = styled(({ className }: { className?: string }) => {
 					}
 				>
 					<>
-						<SingInByMail />
-						<div>
-							<a href={apiUrlCreator.getAuthUrl(router).toString()} data-qa="app-action">
-								<Icon code={"microsoft"} faFw prefix="fab" />
-								<span>{useLocalize("byAzure")}</span>
-							</a>
-						</div>
-					</>
-				</PopupMenuLayout>
-			</IsReadOnlyHOC>
+						<SingInByMail /> */}
+				<div>
+					<a href={apiUrlCreator.getAuthUrl(router).toString()} data-qa="qa-clickable">
+						<Icon code={"sign-in"} />
+						<span>{useLocalize("singIn")}</span>
+					</a>
+				</div>
+				{/* </>
+				</PopupMenuLayout> */}
+			</>
 		);
 })`
 	display: flex;

@@ -1,7 +1,7 @@
+import resolveModule from "@app/resolveModule";
 import ArticleUpdaterService from "@components/Article/ArticleUpdater/ArticleUpdaterService";
 import Button from "@components/Atoms/Button/Button";
 import { ButtonStyle } from "@components/Atoms/Button/ButtonStyle";
-import FileInput from "@components/Atoms/FileInput";
 import SpinnerLoader from "@components/Atoms/SpinnerLoader";
 import FormStyle from "@components/Form/FormStyle";
 import ModalLayout from "@components/Layouts/Modal";
@@ -10,6 +10,8 @@ import FetchService from "@core-ui/ApiServices/FetchService";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import { useCallback, useState } from "react";
 import useLocalize from "../../localization/useLocalize";
+
+const FileInput = resolveModule("FileInput");
 
 const FileEditor = ({ trigger }: { trigger: JSX.Element }) => {
 	const [value, setValue] = useState(null);
@@ -22,8 +24,8 @@ const FileEditor = ({ trigger }: { trigger: JSX.Element }) => {
 	}, [apiUrlCreator]);
 
 	const save = useCallback(async () => {
-		await FetchService.fetch(apiUrlCreator.setArticleContent(), value);
-		await ArticleUpdaterService.update(apiUrlCreator);
+		const res = await FetchService.fetch(apiUrlCreator.setArticleContent(), value);
+		if (res.ok) ArticleUpdaterService.setUpdateData(await res.json());
 		setIsOpen(false);
 	}, [value, apiUrlCreator]);
 

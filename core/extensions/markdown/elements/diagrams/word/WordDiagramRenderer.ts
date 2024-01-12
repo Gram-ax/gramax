@@ -1,6 +1,5 @@
 import { AlignmentType, ImageRun, Paragraph } from "docx";
 import Path from "../../../../../logic/FileProvider/Path/Path";
-import FileProvider from "../../../../../logic/FileProvider/model/FileProvider";
 import ResourceManager from "../../../../../logic/Resource/ResourceManager";
 import DiagramType from "../../../../../logic/components/Diagram/DiagramType";
 import Diagrams from "../../../../../logic/components/Diagram/Diagrams";
@@ -13,14 +12,12 @@ export class WordDiagramRenderer {
 		tag: Tag,
 		diagramType: DiagramType,
 		resourceManager: ResourceManager,
-		fileProvider: FileProvider,
 		enterpriseServerUrl?: string,
 	) {
 		if (tag.attributes.src && tag.attributes.content) return;
 
 		const diagramContent =
-			tag.attributes.content ??
-			(await resourceManager.getContent(new Path(tag.attributes.src), fileProvider)).toString();
+			tag.attributes.content ?? (await resourceManager.getContent(new Path(tag.attributes.src))).toString();
 
 		try {
 			const diagram = await new Diagrams(enterpriseServerUrl).getDiagram(diagramType, diagramContent);
@@ -38,14 +35,12 @@ export class WordDiagramRenderer {
 		tag: Tag,
 		diagramType: DiagramType,
 		resourceManager: ResourceManager,
-		fileProvider: FileProvider,
 		enterpriseServerUrl: string,
 	) {
 		if (tag.attributes.src && tag.attributes.content) return;
 
 		const diagramContent =
-			tag.attributes.content ??
-			(await resourceManager.getContent(new Path(tag.attributes.src), fileProvider)).toString();
+			tag.attributes.content ?? (await resourceManager.getContent(new Path(tag.attributes.src))).toString();
 
 		try {
 			const diagramString = await new Diagrams(enterpriseServerUrl).getDiagram(diagramType, diagramContent, NaN);

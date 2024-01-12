@@ -10,7 +10,10 @@ export function link(context: ParserContext): Schema {
 		},
 		transform: async (node, config) => {
 			const { href, resourcePath, isFile, hash } = linkCreator.getLink(node.attributes.href, context);
-			if (resourcePath) context.getResourceManager().set(resourcePath);
+			if (resourcePath) {
+				if (isFile) context.getResourceManager().set(resourcePath);
+				else context.getLinkManager().set(resourcePath);
+			}
 			return new Tag(
 				"Link",
 				{ href: href + (hash ?? ""), isFile, resourcePath: resourcePath?.value ?? "" },

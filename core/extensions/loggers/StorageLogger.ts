@@ -36,8 +36,8 @@ export default abstract class StorageLogger {
 	}
 
 	static clearLogs(): void {
-		const storage = window?.localStorage;
-		if (!storage) return;
+		if (typeof window === "undefined") return;
+		const storage = window.localStorage;
 		storage.removeItem(this._storageNameKey);
 	}
 
@@ -52,15 +52,15 @@ export default abstract class StorageLogger {
 	}
 
 	private static _saveLogs(logs: string[], logsHead: number) {
-		const storage = window?.localStorage;
-		if (!storage) return;
+		if (typeof window === "undefined") return;
+		const storage = window.localStorage;
 		storage.setItem(this._storageNameKey, JSON.stringify({ logs, logsHead }));
 	}
 
 	private static _loadLogs(): { logs: string[]; logsHead: number } {
+		if (typeof window === "undefined" || !window.localStorage) return { logs: [], logsHead: 0 };
 		const logs: string[] = [];
-		const storage = window?.localStorage;
-		if (!storage) return { logs: [], logsHead: 0 };
+		const storage = window.localStorage;
 		if (storage.getItem(this._storageNameKey)) {
 			return JSON.parse(storage.getItem(this._storageNameKey)) as {
 				logsHead: number;

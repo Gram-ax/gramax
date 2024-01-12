@@ -1,6 +1,8 @@
+import { FileInput } from "@components/Atoms/FileInput/FileInput";
 import Link from "../core/components/Atoms/Link";
 import FetchService from "../core/ui-logic/ApiServices/FetchService";
 import { EnvironmentVariable, defaultVariables } from "./config/env";
+import viteEnv from "./config/viteenv";
 
 type Environment = "next" | "tauri" | "browser";
 
@@ -22,7 +24,8 @@ interface DynamicModules {
 		name?: string;
 		features?: string;
 	}) => Promise<Window> | Window;
-	GitRepositoryImpl: typeof IsomorphicGitRepository | typeof TauriGitRepository;
+	GitCommandsImpl: typeof IsomorphicGitCommands | typeof TauriGitCommands;
+	FileInput: typeof FileInput;
 }
 
 let modules: DynamicModules;
@@ -31,7 +34,8 @@ let _env: (name: keyof EnvironmentVariable) => string;
 
 /// #if VITE_ENVIRONMENT == "browser"
 // #v-ifdef VITE_ENVIRONMENT=browser
-import IsomorphicGitRepository from "../core/extensions/git/core/GitRepository/Isomorphic/IsomorphicGitRepository";
+import { FileInput as FileInputBrowser } from "@components/Atoms/FileInput/FileInput";
+import IsomorphicGitCommands from "../core/extensions/git/core/GitCommands/Isomorphic/IsomorphicGitCommands";
 import BrowserLink from "../target/browser/src/components/Atoms/Link";
 import useBase64Image from "../target/browser/src/hooks/useBase64Image";
 import BrowserFetchService from "../target/browser/src/logic/Api/BrowserFetchService";
@@ -47,7 +51,8 @@ modules = {
 	useImage: useBase64Image,
 	FileProvider: BrowserFileProvider,
 	openChildWindow: (params) => window.open(params.url, params.name, params.features),
-	GitRepositoryImpl: IsomorphicGitRepository,
+	GitCommandsImpl: IsomorphicGitCommands,
+	FileInput: FileInputBrowser,
 };
 
 executing = "browser";
@@ -59,8 +64,9 @@ _env = () => undefined;
 
 /// #if VITE_ENVIRONMENT == "next"
 // #v-ifdef VITE_ENVIRONMENT=next
+import { FileInput as FileInputNext } from "@components/Atoms/FileInput/FileInput";
 import useUrlImage from "../core/components/Atoms/Image/useImage";
-import IsomorphicRepository2 from "../core/extensions/git/core/GitRepository/Isomorphic/IsomorphicGitRepository";
+import IsomorphicRepository2 from "../core/extensions/git/core/GitCommands/Isomorphic/IsomorphicGitCommands";
 import Method from "../core/ui-logic/ApiServices/Types/Method";
 import MimeTypes from "../core/ui-logic/ApiServices/Types/MimeTypes";
 import Url from "../core/ui-logic/ApiServices/Types/Url";
@@ -77,7 +83,8 @@ modules = {
 	useImage: useUrlImage,
 	openChildWindow: (params) =>
 		typeof window === "undefined" ? undefined : window.open(params.url, params.name, params.features),
-	GitRepositoryImpl: IsomorphicRepository2,
+	GitCommandsImpl: IsomorphicRepository2,
+	FileInput: FileInputNext,
 };
 
 executing = "next";
@@ -91,7 +98,8 @@ _env = (name) => {
 
 /// #if VITE_ENVIRONMENT == "tauri"
 // #v-ifdef VITE_ENVIRONMENT=tauri
-import TauriGitRepository from "../core/extensions/git/core/GitRepository/Tauri/TauriGitRepository";
+import FileInputTauri from "@components/Atoms/FileInput/FileInputTauri";
+import TauriGitCommands from "../core/extensions/git/core/GitCommands/Tauri/TauriGitCommands";
 import DiskFileProvider from "../core/logic/FileProvider/DiskFileProvider/DiskFileProvider";
 import TauriLink from "../target/browser/src/components/Atoms/Link";
 import useBase64Image2 from "../target/browser/src/hooks/useBase64Image";
@@ -108,7 +116,8 @@ modules = {
 	Fetcher: TauriFetcher,
 	FileProvider: DiskFileProvider,
 	openChildWindow,
-	GitRepositoryImpl: TauriGitRepository,
+	GitCommandsImpl: TauriGitCommands,
+	FileInput: FileInputTauri,
 };
 
 executing = "tauri";
@@ -126,9 +135,9 @@ const resolveModule = <K extends keyof DynamicModules>(name: K): DynamicModules[
 	return module;
 };
 
-const builtIn = (process as any).builtIn;
+const builtIn = { ...(process as any).builtIn, ...viteEnv };
 
-export const env = (name: keyof EnvironmentVariable) => builtIn?.[name] ?? _env(name) ?? defaultVariables[name];
+export const env = <T extends keyof EnvironmentVariable>(name: T): EnvironmentVariable[T] => builtIn?.[name] ?? _env(name) ?? defaultVariables[name];
 
 export const getExecutingEnvironment = () => executing;
 

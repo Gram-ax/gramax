@@ -1,26 +1,33 @@
 import { AuthorizeMiddleware } from "@core/Api/middleware/AuthorizeMiddleware";
 import { DesktopModeMiddleware } from "@core/Api/middleware/DesktopModeMiddleware";
+import Context from "@core/Context/Context";
 import Path from "@core/FileProvider/Path/Path";
 import { Article } from "@core/FileStructue/Article/Article";
-import { Command } from "../../../types/Command";
+import { ArticleData } from "@core/SitePresenter/SitePresenter";
+import { Command, ResponseKind } from "../../../types/Command";
 
-const setContent: Command<{ catalogName: string; articlePath: Path; content: string }, void> = Command.create({
-	path: "article/features/setContent",
+const setContent: Command<{ ctx: Context; catalogName: string; articlePath: Path; content: string }, ArticleData> =
+	Command.create({
+		path: "article/features/setContent",
 
-	middlewares: [new AuthorizeMiddleware(), new DesktopModeMiddleware()],
+		kind: ResponseKind.json,
 
-	async do({ articlePath, catalogName, content }) {
-		const catalog = await this._app.lib.getCatalog(catalogName);
-		const article = catalog.findItemByItemPath(articlePath) as Article;
-		if (!article) return;
-		await article.updateContent(content);
-	},
+		middlewares: [new AuthorizeMiddleware(), new DesktopModeMiddleware()],
 
-	params(_, q, body) {
-		const articlePath = new Path(q.path);
-		const catalogName = q.catalogName;
-		return { articlePath, catalogName, content: body };
-	},
-});
+		async do({ ctx, articlePath, catalogName, content }) {
+			const { sitePresenterFactory, lib } = this._app;
+			const catalog = await lib.getCatalog(catalogName);
+			const article = catalog.findItemByItemPath(articlePath) as Article;
+			if (!article) return;
+			await article.updateContent(content ?? "");
+			return await sitePresenterFactory.fromContext(ctx).getArticleData(article, catalog);
+		},
+
+		params(ctx, q, body) {
+			const articlePath = new Path(q.path);
+			const catalogName = q.catalogName;
+			return { ctx, articlePath, catalogName, content: body };
+		},
+	});
 
 export default setContent;

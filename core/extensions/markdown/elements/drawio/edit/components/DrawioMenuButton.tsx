@@ -1,25 +1,29 @@
+import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
+import ArticlePropsService from "@core-ui/ContextServices/ArticleProps";
 import Button from "@ext/markdown/core/edit/components/Menu/Button";
 import SvgContainer from "@ext/markdown/core/edit/components/Menu/SvgContainer";
 import { Editor } from "@tiptap/core";
-import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
-import ArticlePropsService from "@core-ui/ContextServices/ArticleProps";
-import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import createDrawio from "../logic/createDrawio";
 
 const DrawioMenuButton = ({ editor }: { editor: Editor }) => {
 	const articleProps = ArticlePropsService.value;
 	const apiUrlCreator = ApiUrlCreatorService.value;
-	const lang = PageDataContextService.value.lang;
 
 	return (
 		<Button
-			dataQa={"diagrams.net"}
 			nodeValues={{ action: "diagrams.net" }}
 			tooltipText={"Диаграмма diagrams.net"}
-			onClick={() => createDrawio(editor, articleProps, apiUrlCreator, lang)}
+			onClick={() => createDrawio(editor, articleProps, apiUrlCreator)}
 		>
 			<SvgContainer>
-				<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+				<svg
+					data-qa="qa-edit-menu-diagrams.net"
+					width="16"
+					height="16"
+					viewBox="0 0 16 16"
+					fill="none"
+					xmlns="http://www.w3.org/2000/svg"
+				>
 					<g clipPath="url(#clip0_2_16)">
 						<path
 							d="M14.6667 14.0974C14.6667 14.4191 14.4026 14.6667 14.0974 14.6667H1.90264C1.58086 14.6667 1.33333 14.4026 1.33333 14.0974V1.90264C1.33333 1.58086 1.59736 1.33333 1.90264 1.33333H14.0974C14.4191 1.33333 14.6667 1.59736 14.6667 1.90264V14.0974Z"

@@ -9,20 +9,24 @@ name = "gramaxgit"
 crate-type = ["staticlib", "rlib", "cdylib"]
 
 [dependencies]
+dirs-next = "2.0.0"
 log = "0.4.20"
 serde = { version = "1.0.188", features = ["derive"] }
+ssh2-config = { git = "https://github.com/pashokitsme/ssh2-config" }
 
 [target.'cfg(not(target_os = "windows"))'.dependencies]
 git2 = { git = "https://github.com/pashokitsme/git2-rs", branch = "use-openssl", default-features = false, features = [
   "https",
   "openssl",
   "vendored-libgit2",
+  "ssh",
 ] }
 
 [target.'cfg(target_os = "windows")'.dependencies]
 git2 = { git = "https://github.com/pashokitsme/git2-rs", branch = "use-openssl", default-features = false, features = [
   "https",
   "vendored-libgit2",
+  "ssh",
 ] }
 
 

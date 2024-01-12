@@ -1,44 +1,72 @@
-import VersionControlType from "../../../../../core/extensions/VersionControl/model/VersionControlType";
+import deleteBranchAfterMerge from "@app/commands/versionControl/branch/mergeConflict/utils/deleteBranchAfterMerge";
+import GitStorage from "@ext/git/core/GitStorage/GitStorage";
+import GitSourceData from "@ext/git/core/model/GitSourceData.schema";
+import SourceType from "@ext/storage/logic/SourceDataProvider/model/SourceType";
 import { MergeFile } from "../../../../../core/extensions/git/actions/MergeConflictHandler/model/MergeFile";
 import BranchGitMergeConflictResolver from "../../../../../core/extensions/git/core/GitMergeConflictResolver/Branch/BranchGitMergeConflictResolver";
-import GitVersionControl from "../../../../../core/extensions/git/core/GitVersionControl/GitVersionControl";
 import { AuthorizeMiddleware } from "../../../../../core/logic/Api/middleware/AuthorizeMiddleware";
 import Context from "../../../../../core/logic/Context/Context";
 import { Command, ResponseKind } from "../../../../types/Command";
 
-const resolve: Command<{ ctx: Context; catalogName: string; files: MergeFile[]; theirsBranch: string }, void> =
-	Command.create({
-		path: "versionControl/branch/mergeConflict/resolve",
+const resolve: Command<
+	{
+		ctx: Context;
+		catalogName: string;
+		files: MergeFile[];
+		theirsBranch: string;
+		branchNameBefore: string;
+		headBeforeMerge: string;
+		deleteAfterMerge: boolean;
+	},
+	void
+> = Command.create({
+	path: "versionControl/branch/mergeConflict/resolve",
 
-		kind: ResponseKind.none,
+	kind: ResponseKind.none,
 
-		middlewares: [new AuthorizeMiddleware()],
+	middlewares: [new AuthorizeMiddleware()],
 
-		async do({ ctx, catalogName, files, theirsBranch }) {
-			const { lib, sp } = this._app;
-			const catalog = await lib.getCatalog(catalogName);
-			if (!catalog) return;
-			const vc = await catalog.getVersionControl();
-			if (vc.getType() !== VersionControlType.git) return;
-			const storage = catalog.getStorage();
-			const sourceData = sp.getSourceData(ctx.cookie, await storage.getSourceName());
+	async do({ ctx, catalogName, files, theirsBranch, branchNameBefore, headBeforeMerge, deleteAfterMerge }) {
+		const { lib, rp } = this._app;
+		const catalog = await lib.getCatalog(catalogName);
+		if (!catalog) return;
+		const gvc = catalog.repo.gvc;
+		const storage = catalog.repo.storage;
+		const sourceData = rp.getSourceData(ctx.cookie, await storage.getSourceName()) as GitSourceData;
 
-			const fp = lib.getFileProviderByCatalog(catalog);
+		const fp = lib.getFileProviderByCatalog(catalog);
 
-			const branchGitMergeConflictResolver = new BranchGitMergeConflictResolver(
-				vc as GitVersionControl,
-				fp,
-				vc.getPath(),
-			);
-			await branchGitMergeConflictResolver.resolveConflictedFiles(theirsBranch, files, sourceData);
-			await storage.push(sourceData);
-		},
+		const branchGitMergeConflictResolver = new BranchGitMergeConflictResolver(gvc, fp, gvc.getPath());
+		await branchGitMergeConflictResolver.resolveConflictedFiles(theirsBranch, files, sourceData);
 
-		params(ctx, q, body) {
-			const catalogName = q.catalogName;
-			const theirsBranch = q.theirsBranch;
-			return { ctx, catalogName, files: body as MergeFile[], theirsBranch };
-		},
-	});
+		if ((await storage.getType()) !== SourceType.gitHub && (await storage.getType()) !== SourceType.gitLab) return;
+
+		if (deleteAfterMerge) {
+			await deleteBranchAfterMerge({
+				commands: this._commands,
+				branchNameBefore,
+				catalogName,
+				gvc,
+				headBeforeMerge,
+				sourceData,
+				storage: storage as GitStorage,
+			});
+		}
+
+		await storage.push(sourceData);
+	},
+
+	params(ctx, q, body) {
+		return {
+			ctx,
+			catalogName: q.catalogName,
+			files: body as MergeFile[],
+			theirsBranch: q.theirsBranch,
+			branchNameBefore: q.branchNameBefore,
+			headBeforeMerge: q.headBeforeMerge,
+			deleteAfterMerge: q.deleteAfterMerge === "true",
+		};
+	},
+});
 
 export default resolve;

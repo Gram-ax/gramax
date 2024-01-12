@@ -1,23 +1,20 @@
 import Url from "@core-ui/ApiServices/Types/Url";
-import { CSSProperties, ReactChild } from "react";
-import { useRouter } from "../../logic/Api/useRouter";
+import { CSSProperties, ReactNode } from "react";
+import { useRouter } from "@core/Api/useRouter";
 import Icon from "../Atoms/Icon";
 import Link from "../Atoms/Link";
 
-const Anchor = ({
-	children,
-	basePath,
-	style = { fontWeight: 300 },
-	target = "_blank",
-	...props
-}: {
+interface AnchorProps {
 	href: string;
-	children: ReactChild;
+	children?: ReactNode;
 	basePath?: string;
 	className?: string;
 	style?: CSSProperties;
 	target?: "_self" | "_blank" | "_parent" | "_top";
-}) => {
+}
+const Anchor = (Props: AnchorProps) => {
+	const { children, basePath, style = { fontWeight: 300 }, target = "_blank", ...props } = Props;
+
 	const isAnchor = props.href?.match(/^#/);
 	const basePathLength = useRouter()?.basePath?.length ?? basePath?.length ?? 0;
 	if (!isAnchor && props.href != null && props.href.slice(basePathLength + 1, basePathLength + 4) != "api") {

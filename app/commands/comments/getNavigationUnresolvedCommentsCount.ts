@@ -29,7 +29,7 @@ const getNavigationUnresolvedCommentsCount: Command<{ catalogName: string }, { [
 
 			for (const article of articles) {
 				const context = parserContextFactory.fromArticle(article, catalog, defaultLanguage, true);
-				const tokens = parser.getTokens(article.content, context);
+				const tokens = await parser.getTokens(article.content, context);
 
 				const count = tokens.reduce((p, x) => p + countComments(x), 0);
 				commentsCount[article.logicPath] = count;

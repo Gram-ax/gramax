@@ -5,7 +5,7 @@ import Button from "@ext/markdown/core/edit/components/Menu/Button";
 import getFocusNode from "@ext/markdown/elementsUtils/getFocusNode";
 import { Editor } from "@tiptap/core";
 import { Node } from "prosemirror-model";
-import { useEffect, useState, ChangeEvent } from "react";
+import { ChangeEvent, useEffect, useState } from "react";
 
 const VideoMenu = ({ editor }: { editor: Editor }) => {
 	const [node, setNode] = useState<Node>(null);
@@ -20,7 +20,7 @@ const VideoMenu = ({ editor }: { editor: Editor }) => {
 			setPath(node.attrs?.path);
 			setTitle(node.attrs?.title);
 		}
-		if (position) setPosition(position);
+		if (typeof position === "number") setPosition(position);
 	}, [editor.state.selection]);
 
 	if (!editor.isActive("video")) return null;
@@ -36,7 +36,7 @@ const VideoMenu = ({ editor }: { editor: Editor }) => {
 	};
 
 	const handleDelete = () => {
-		if (position !== null && node) {
+		if (node) {
 			editor.commands.deleteRange({ from: position, to: position + node.nodeSize });
 		}
 	};

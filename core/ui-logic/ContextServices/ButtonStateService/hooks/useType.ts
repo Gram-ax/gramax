@@ -1,18 +1,21 @@
 import { Editor } from "@tiptap/core";
 import { useRef, useState, useEffect } from "react";
-import { Mark } from "./types";
+import { Mark as MarkType } from "./types";
+import { Mark } from "@tiptap/pm/model";
 
 const topLevelNodes = ["drawio", "image", "video"];
+
+const markList: MarkType[] = ["link", "strong", "em", "code", "file", "comment"];
 
 const useType = (editor: Editor) => {
 	const test = useRef({
 		action: "",
-		marks: [] as Mark[],
+		marks: [] as MarkType[],
 		attrs: { level: null, notFirstInList: false },
 	});
 	const [state, setState] = useState({
 		action: "",
-		marks: [] as Mark[],
+		marks: [] as MarkType[],
 		attrs: { level: null, notFirstInList: false },
 	});
 
@@ -48,13 +51,35 @@ const useType = (editor: Editor) => {
 		test.current.action = cursor.node(-2).type.name;
 	};
 
-	const markList: Mark[] = ["link", "strong", "em", "code", "file", "comment"];
 	const getMarksAction = () => {
 		test.current.marks = [];
 
-		const name = editor.state.selection.$from.node().type.name;
-		if (["paragraph", "heading"].includes(name)) {
-			test.current.marks = markList.filter((mark) => editor.isActive(mark));
+		function getActiveMarksInSelection(markTypes: MarkType[]) {
+			const { state } = editor;
+			const { from, to, empty } = state.selection;
+
+			const addActiveMarks = (marks: readonly Mark[]) => {
+				marks.forEach((mark) => {
+					const markName = mark.type.name as MarkType;
+					if (markTypes.includes(markName) && !test.current.marks.includes(markName)) {
+						test.current.marks.push(markName);
+					}
+				});
+			};
+
+			if (empty) {
+				const marksAtCursor = state.storedMarks || state.selection.$head.marks();
+				addActiveMarks(marksAtCursor);
+			} else {
+				state.doc.nodesBetween(from, to, (node) => {
+					addActiveMarks(node.marks);
+				});
+			}
+		}
+
+		const node = editor.state.selection.$from.node();
+		if (["paragraph", "heading"].includes(node.type.name)) {
+			getActiveMarksInSelection(markList);
 		}
 	};
 
@@ -75,7 +100,7 @@ const useType = (editor: Editor) => {
 				attrs: { level: attrs.level, notFirstInList: attrs.notFirstInList },
 			});
 		}
-	}, [editor.state.selection]);
+	}, [editor.state.selection, editor.commands]);
 
 	return state;
 };

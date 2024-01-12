@@ -8,10 +8,7 @@ import IsMacService from "@core-ui/ContextServices/IsMac";
 import IsSelectedOneNodeService from "@core-ui/ContextServices/IsSelected";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import { ArticleProps } from "@core/SitePresenter/SitePresenter";
-import HeadersMenuGroup from "@ext/markdown/core/edit/components/Menu/Groups/Headers";
-import InlineMenuGroup from "@ext/markdown/core/edit/components/Menu/Groups/Inline";
-import ListMenuGroup from "@ext/markdown/core/edit/components/Menu/Groups/List";
-import TextMenuGroup from "@ext/markdown/core/edit/components/Menu/Groups/Text";
+import InlineEditPanel from "@ext/markdown/elements/article/edit/helpers/InlineEditPanel";
 import { Editor, Extension } from "@tiptap/core";
 import { Plugin, PluginKey } from "prosemirror-state";
 import { EditorView } from "prosemirror-view";
@@ -21,7 +18,6 @@ import Base from "../../../../elementsUtils/prosemirrorPlugins/Base";
 class TextSelectionMenu extends Base {
 	private _selectPosition: { x: number; y: number };
 	private _timeoutId: NodeJS.Timeout = null;
-	private _canBeDeleted: boolean;
 
 	constructor(
 		view: EditorView,
@@ -32,14 +28,11 @@ class TextSelectionMenu extends Base {
 		private _pageDataContext: PageDataContext,
 	) {
 		super(view, editor);
-		window.addEventListener("keydown", this.keydown);
-		window.addEventListener("mousedown", this._mousedown.bind(this));
 	}
 
-	override destroy() {
-		this._removeComponent();
-		window.removeEventListener("keydown", this.keydown);
-		window.removeEventListener("mousedown", this._mousedown.bind(this));
+	updateEditor(newEditor) {
+		this._editor = newEditor;
+		this._setTooltip();
 	}
 
 	update(view, prevState) {
@@ -55,18 +48,8 @@ class TextSelectionMenu extends Base {
 		}
 	}
 
-	private keydown = (e: KeyboardEvent) => {
-		if (e.key == "Escape" || e.key == "Backspace") this._removeComponent();
-	};
-
-	private _click() {
-		if (this._canBeDeleted) this._removeComponent();
-		this._canBeDeleted = true;
-	}
-
-	private _mousedown() {
-		if (!this._componentIsSet) this._canBeDeleted = false;
-		else this._canBeDeleted = true;
+	private _closeHandler() {
+		this._removeComponent();
 	}
 
 	private _setTooltip() {
@@ -77,24 +60,17 @@ class TextSelectionMenu extends Base {
 		this._selectPosition = { x: anchor.left, y: anchor.top };
 		this._setTooltipPosition();
 		this._setComponent(
-			<IsMacService.Provider value={this._isMac}>
+			<IsMacService.Provider>
 				<ArticlePropsService.Provider value={this._articleProps}>
 					<ApiUrlCreatorService.Provider value={this._apiUrlCreator}>
 						<PageDataContextService.Provider value={this._pageDataContext}>
 							<ModalLayoutDark>
-								<ButtonsLayout onClick={this._click.bind(this)}>
+								<ButtonsLayout>
 									<IsSelectedOneNodeService.Provider editor={this._editor}>
 										<ButtonStateService.Provider editor={this._editor}>
-											<HeadersMenuGroup editor={this._editor} />
-											<div className="divider" />
-											<TextMenuGroup editor={this._editor} />
-											<div className="divider" />
-											<ListMenuGroup editor={this._editor} />
-											<div className="divider" />
-											<InlineMenuGroup
+											<InlineEditPanel
 												editor={this._editor}
-												onFileSave={this._click.bind(this)}
-												onClick={() => (this._canBeDeleted = false)}
+												closeHandler={() => this._closeHandler()}
 											/>
 										</ButtonStateService.Provider>
 									</IsSelectedOneNodeService.Provider>
@@ -134,7 +110,7 @@ const SelectionMenu = Extension.create({
 			new Plugin({
 				key: new PluginKey("selectionMenu"),
 				view: (view) => {
-					return new TextSelectionMenu(
+					const textSelectionMenu = new TextSelectionMenu(
 						view,
 						this.editor,
 						this.options.isMac,
@@ -142,6 +118,11 @@ const SelectionMenu = Extension.create({
 						this.options.apiUrlCreator,
 						this.options.pageDataContext,
 					);
+					this.editor.on("update", ({ editor }) => {
+						textSelectionMenu.updateEditor(editor);
+					});
+
+					return textSelectionMenu;
 				},
 			}),
 		];

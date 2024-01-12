@@ -1,4 +1,5 @@
 import useSWR, { SWRResponse } from "swr";
+import { BareFetcher, PublicConfiguration } from "swr/dist/types";
 import FetchService from "./FetchService";
 import Fetcher from "./Types/Fetcher";
 import Method from "./Types/Method";
@@ -11,9 +12,18 @@ const fetchers: { [fetcher in Fetcher]: (url: Url) => Promise<any> } = {
 };
 
 export default abstract class UseSWRService {
-	public static getData<Type = any>(url: Url, fetcher = Fetcher.json, isLoad = true): SWRResponse<Type, Error> {
+	public static getData<Type = any>(
+		url: Url,
+		fetcher = Fetcher.json,
+		isLoad = true,
+		config?: Partial<PublicConfiguration<Type, Error, BareFetcher<Type>>>,
+	): SWRResponse<Type, Error> {
 		try {
-			return useSWR<Type, Error>(isLoad ? url?.toString() : null, async () => await fetchers[fetcher](url));
+			return useSWR<Type, Error>(
+				isLoad ? url?.toString() : null,
+				async () => await fetchers[fetcher](url),
+				config,
+			);
 		} catch {
 			return null;
 		}

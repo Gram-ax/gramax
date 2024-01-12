@@ -3,13 +3,12 @@ import Path from "../../../../../logic/FileProvider/Path/Path";
 import { WordExportHelper } from "../../../../wordExport/WordExportHelpers";
 import { WordBlockChild } from "../../../../wordExport/WordTypes";
 
-export const imagesWordLayout: WordBlockChild = async ({ tag, resourceManager, fileProvider }) => {
+export const imagesWordLayout: WordBlockChild = async ({ tag, resourceManager }) => {
 	const images = await Promise.all(
 		(tag.attributes.images as string[]).map((image) =>
 			WordExportHelper.getImageByPath(
 				new Path(image),
 				resourceManager,
-				fileProvider,
 				tag.attributes.postfix === "h" ? 600 / tag.attributes.images.length : undefined,
 			),
 		),

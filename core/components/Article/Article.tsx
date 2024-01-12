@@ -3,7 +3,7 @@ import MimeTypes from "@core-ui/ApiServices/Types/MimeTypes";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import ArticlePropsService from "@core-ui/ContextServices/ArticleProps";
 import ArticleRefService from "@core-ui/ContextServices/ArticleRef";
-import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
+import { useCtrlKeyLinkHandler } from "@core-ui/hooks/useCtrlKeyLinkHandler";
 import trollCaller from "@core-ui/trollCaller";
 import { ArticleData } from "@core/SitePresenter/SitePresenter";
 import imageHandlePaste from "@ext/markdown/elements/image/edit/logic/imageHandlePaste";
@@ -12,13 +12,11 @@ import getTocItems, { getLevelTocItemsByJSONContent } from "@ext/navigation/arti
 import { Editor } from "@tiptap/core";
 import { EditorView } from "prosemirror-view";
 import { useEffect, useState } from "react";
-import getE2E from "../../../e2e";
 import ArticleRenderer from "./ArticleRenderer";
 import ArticleTitle from "./ArticleTitle";
 import ArticleUpdater from "./ArticleUpdater/ArticleUpdater";
 
 const Article = ({ data }: { data: ArticleData }) => {
-	const lang = PageDataContextService.value.lang;
 	const articleRef = ArticleRefService.value;
 	const articleProps = ArticlePropsService.value;
 	const apiUrlCreator = ApiUrlCreatorService.value;
@@ -26,11 +24,12 @@ const Article = ({ data }: { data: ArticleData }) => {
 	const [actualData, setActualData] = useState(data);
 	const [scrollPosition, setScrollPosition] = useState(0);
 
+	useCtrlKeyLinkHandler();
+
 	useEffect(() => {
-		if (data.articleProps.ref.path == actualData.articleProps.ref.path) return;
 		setActualData(data);
 		ArticlePropsService.set(data.articleProps);
-	}, [data.articleProps.ref.path]);
+	}, [data]);
 
 	const onUpdate = (newData: ArticleData) => {
 		setActualData(newData);
@@ -39,11 +38,12 @@ const Article = ({ data }: { data: ArticleData }) => {
 	};
 
 	const onCreate = () => {
-		if (articleRef?.current) articleRef.current.scrollTo({ top: scrollPosition, behavior: "auto" });
+		if (!articleRef?.current) return;
+		setTimeout(() => articleRef.current.scrollTo({ top: scrollPosition, behavior: "auto" }), 50);
 	};
 
 	const handlePaste = (view: EditorView, event: ClipboardEvent) => {
-		return imageHandlePaste(view, event, articleProps, apiUrlCreator, lang);
+		return imageHandlePaste(view, event, articleProps, apiUrlCreator);
 	};
 
 	const onBlur = () => {
@@ -53,10 +53,13 @@ const Article = ({ data }: { data: ArticleData }) => {
 	};
 
 	const onContentUpdate = ({ editor }: { editor: Editor }) => {
-		getE2E().documentReady = false;
-		const articleContentEdit = JSON.stringify(editor.getJSON());
-		const url = apiUrlCreator.updateArticleContent();
-		trollCaller(() => FetchService.fetch(url, articleContentEdit, MimeTypes.json), 500);
+		const f = async () => {
+			const articleContentEdit = JSON.stringify(editor.getJSON());
+			const url = apiUrlCreator.updateArticleContent();
+			await FetchService.fetch(url, articleContentEdit, MimeTypes.json);
+		};
+		window.forceTrollCaller = f;
+		trollCaller(f, 500);
 
 		const tocItems = getTocItems(getLevelTocItemsByJSONContent(editor.state.doc));
 		if (!tocItems) return;

@@ -1,7 +1,5 @@
 import { GitVersion } from "@ext/git/core/model/GitVersion";
-import VersionControlType from "../../../../../core/extensions/VersionControl/model/VersionControlType";
 import BranchGitMergeConflictResolver from "../../../../../core/extensions/git/core/GitMergeConflictResolver/Branch/BranchGitMergeConflictResolver";
-import GitVersionControl from "../../../../../core/extensions/git/core/GitVersionControl/GitVersionControl";
 import { AuthorizeMiddleware } from "../../../../../core/logic/Api/middleware/AuthorizeMiddleware";
 import { Command, ResponseKind } from "../../../../types/Command";
 
@@ -16,18 +14,13 @@ const abort: Command<{ theirsBranch: string; catalogName: string; headBeforeMerg
 		const { lib } = this._app;
 		const catalog = await lib.getCatalog(catalogName);
 		if (!catalog) return;
-		const storage = catalog.getStorage();
+		const storage = catalog.repo.storage;
 		if (!storage) return;
 
 		const fp = lib.getFileProviderByCatalog(catalog);
 
-		const vc = await catalog.getVersionControl();
-		if (vc.getType() !== VersionControlType.git) return;
-		const branchGitMergeConflictResolver = new BranchGitMergeConflictResolver(
-			vc as GitVersionControl,
-			fp,
-			vc.getPath(),
-		);
+		const gvc = catalog.repo.gvc;
+		const branchGitMergeConflictResolver = new BranchGitMergeConflictResolver(gvc, fp, gvc.getPath());
 		await branchGitMergeConflictResolver.abortMerge(
 			theirsBranch,
 			headBeforeMerge ? new GitVersion(headBeforeMerge) : undefined,

@@ -1,3 +1,4 @@
+import ResourceUpdater from "@core/Resource/ResourceUpdater";
 import { ItemStatus } from "@ext/Watchers/model/ItemStatus";
 import IPermission from "../../../extensions/security/logic/Permission/IPermission";
 import Permission from "../../../extensions/security/logic/Permission/Permission";
@@ -69,7 +70,7 @@ export abstract class Item {
 
 	abstract get type(): ItemType;
 
-	abstract updateProps(props: ArticleProps, rootCategoryProps?: any): Promise<Item>;
+	abstract updateProps(props: ArticleProps, resourceUpdater: ResourceUpdater, rootCategoryProps?: any): Promise<Item>;
 
 	abstract getFileName(): string;
 

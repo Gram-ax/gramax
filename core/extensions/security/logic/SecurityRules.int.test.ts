@@ -9,7 +9,7 @@ const getSecurityRulesData = async () => {
 
 	const user = new User();
 	const nav = new Navigation();
-	const sr = new SecurityRules(app.errorArticlesProvider, user);
+	const sr = new SecurityRules(user, app.errorArticlesProvider);
 
 	const categoryTestCatalog = await app.lib.getCatalog("RulesCategoryTestCatalog");
 	const catalogTestCatalog = await app.lib.getCatalog("RulseCatalogTestCatalog");
@@ -47,7 +47,7 @@ describe("Security Rules фильтрует приватные", () => {
 
 		const filter = sr.getNavCatalogRule();
 
-		expect(filter(catalogTestCatalog.asEntry())).toEqual(false);
+		expect(filter(catalogTestCatalog)).toEqual(false);
 	});
 
 	test("relatedLinks", async () => {

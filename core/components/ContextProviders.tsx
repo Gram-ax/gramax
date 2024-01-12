@@ -7,6 +7,7 @@ import CommentCounterService from "@core-ui/ContextServices/CommentCounter";
 import IsEditService from "@core-ui/ContextServices/IsEdit";
 import IsMacService from "@core-ui/ContextServices/IsMac";
 import IsMenuBarOpenService from "@core-ui/ContextServices/IsMenuBarOpenService";
+import IsOfflineService from "@core-ui/ContextServices/IsOfflineService";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import RefreshPageService from "@core-ui/ContextServices/RefreshPageContext";
 import ScrollWebkitService from "@core-ui/ContextServices/ScrollWebkit";
@@ -28,7 +29,7 @@ export default function ContextProviders({
 }: {
 	pageProps: { data: HomePageData & ArticleData; context: PageDataContext };
 	apiHost?: string;
-	refreshPage?: () => void;
+	refreshPage?: () => Promise<void>;
 	children: JSX.Element;
 }) {
 	const basePath = apiHost ?? useRouter().basePath;
@@ -43,66 +44,69 @@ export default function ContextProviders({
 		pageProps.context.isLogged,
 		isArticlePage ? pageProps.data.catalogProps.name : null,
 		isArticlePage ? pageProps.data.articleProps.ref.path : null,
+		pageProps.context.conf.ssoServerUrl,
 	);
 
 	return (
-		<ApiUrlCreatorService.Provider value={apiUrlCreator}>
-			<PageDataContextService.Provider value={pageProps.context}>
-				<RefreshPageService.Provider refresh={refreshPage}>
-					<ThemeService.Provider value={pageProps.context.theme}>
-						<IsMacService.Provider value={pageProps}>
-							<SearchQueryService.Provider>
-								<IsOpenModalService.Provider>
-									<ScrollWebkitService.Provider>
-										<SidebarsIsPinService.Provider>
-											<>
-												{isArticlePage ? (
-													<IsMenuBarOpenService.Provider>
-														<ModalToOpenService.Provider>
-															<ArticleRefService.Provider>
-																<ArticlePropsService.Provider
-																	value={pageProps.data.articleProps}
-																>
-																	<CatalogPropsService.Provider
-																		value={pageProps.data.catalogProps}
+		<IsOfflineService.Provider>
+			<ApiUrlCreatorService.Provider value={apiUrlCreator}>
+				<PageDataContextService.Provider value={pageProps.context}>
+					<RefreshPageService.Provider refresh={refreshPage}>
+						<ThemeService.Provider value={pageProps.context.theme}>
+							<IsMacService.Provider>
+								<SearchQueryService.Provider>
+									<IsOpenModalService.Provider>
+										<ScrollWebkitService.Provider>
+											<SidebarsIsPinService.Provider>
+												<>
+													{isArticlePage ? (
+														<IsMenuBarOpenService.Provider>
+															<ModalToOpenService.Provider>
+																<ArticleRefService.Provider>
+																	<ArticlePropsService.Provider
+																		value={pageProps.data.articleProps}
 																	>
-																		<IsEditService.Provider>
-																			<>
-																				{pageProps.context.isLogged ? (
-																					<CommentCounterService.Provider
-																						deps={[pageProps]}
-																					>
+																		<CatalogPropsService.Provider
+																			value={pageProps.data.catalogProps}
+																		>
+																			<IsEditService.Provider>
+																				<>
+																					{pageProps.context.isLogged ? (
+																						<CommentCounterService.Provider
+																							deps={[pageProps]}
+																						>
+																							<StartAppFuncs>
+																								{children}
+																							</StartAppFuncs>
+																						</CommentCounterService.Provider>
+																					) : (
 																						<StartAppFuncs>
 																							{children}
 																						</StartAppFuncs>
-																					</CommentCounterService.Provider>
-																				) : (
-																					<StartAppFuncs>
-																						{children}
-																					</StartAppFuncs>
-																				)}
-																			</>
-																		</IsEditService.Provider>
-																	</CatalogPropsService.Provider>
-																</ArticlePropsService.Provider>
-															</ArticleRefService.Provider>
+																					)}
+																				</>
+																			</IsEditService.Provider>
+																		</CatalogPropsService.Provider>
+																	</ArticlePropsService.Provider>
+																</ArticleRefService.Provider>
+															</ModalToOpenService.Provider>
+														</IsMenuBarOpenService.Provider>
+													) : (
+														<ModalToOpenService.Provider>
+															<StartAppFuncs>{children}</StartAppFuncs>
 														</ModalToOpenService.Provider>
-													</IsMenuBarOpenService.Provider>
-												) : (
-													<ModalToOpenService.Provider>
-														<StartAppFuncs>{children}</StartAppFuncs>
-													</ModalToOpenService.Provider>
-												)}
-											</>
-										</SidebarsIsPinService.Provider>
-									</ScrollWebkitService.Provider>
-								</IsOpenModalService.Provider>
-							</SearchQueryService.Provider>
-						</IsMacService.Provider>
-					</ThemeService.Provider>
-				</RefreshPageService.Provider>
-			</PageDataContextService.Provider>
-		</ApiUrlCreatorService.Provider>
+													)}
+												</>
+											</SidebarsIsPinService.Provider>
+										</ScrollWebkitService.Provider>
+									</IsOpenModalService.Provider>
+								</SearchQueryService.Provider>
+							</IsMacService.Provider>
+						</ThemeService.Provider>
+					</RefreshPageService.Provider>
+				</PageDataContextService.Provider>
+			</ApiUrlCreatorService.Provider>
+		</IsOfflineService.Provider>
 	);
 }
 

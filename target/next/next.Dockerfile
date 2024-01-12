@@ -44,7 +44,8 @@ RUN apk add --no-cache bash git
 ENV PORT=80
 ENV ENTERPRISE_SERVER_URL=http://gramax-diagram-renderer:80
 ENV SERVER_APP=true
-ENV READ_ONLY_MODE=true
+ENV SSO_SERVER_URL=http://localhost:3000
+ENV READ_ONLY=true
 ENV ROOT_PATH=/app/data
 
 RUN mkdir $ROOT_PATH
@@ -52,4 +53,4 @@ COPY --from=builder /app .
 
 WORKDIR /app/target/next
 
-ENTRYPOINT npm run start; tail -f package.json
+ENTRYPOINT npm run start

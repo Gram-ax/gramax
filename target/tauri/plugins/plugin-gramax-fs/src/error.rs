@@ -9,8 +9,6 @@ pub type Result<T> = std::result::Result<T, IoError>;
 pub enum IoErrorKind {
   EEXISTS,
   ENOENT,
-  ENOTDIR,
-  ENOTEMPTY,
   ETIMEOUT,
   EOTHER,
 }
@@ -32,8 +30,6 @@ impl From<io::Error> for IoError {
     let kind = match value.kind() {
       ErrorKind::AlreadyExists => IoErrorKind::EEXISTS,
       ErrorKind::NotFound => IoErrorKind::ENOENT,
-      ErrorKind::NotADirectory => IoErrorKind::ENOTDIR,
-      ErrorKind::DirectoryNotEmpty => IoErrorKind::ENOTEMPTY,
       ErrorKind::TimedOut => IoErrorKind::ETIMEOUT,
       _ => IoErrorKind::EOTHER,
     };

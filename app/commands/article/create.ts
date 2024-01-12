@@ -21,7 +21,7 @@ const create: Command<{ ctx: Context; catalogName: string; parentPath?: Path }, 
 
 		const markdown = "\n\n";
 		const article = await catalog.createArticle(
-			new ResourceUpdater(ctx, parser, parserContextFactory, formatter),
+			new ResourceUpdater(ctx, catalog, parser, parserContextFactory, formatter),
 			markdown,
 			ctx.lang ?? defaultLanguage,
 			parentPath ? parentRef : null,

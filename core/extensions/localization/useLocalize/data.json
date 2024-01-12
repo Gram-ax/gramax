@@ -21,7 +21,6 @@
 	"add": { "ru": "Добавить", "en": "Add" },
 	"addArticleToRoot": { "ru": "Добавить статью в корень", "en": "Add article to root" },
 	"addCatalog": { "ru": "Добавить каталог", "en": "Add catalog" },
-	"addCatalogToGetStarted": { "ru": "Для начала работы добавьте каталог", "en": "Add a catalog to get started" },
 	"addChildArticle": { "ru": "Добавить дочернюю статью", "en": "Add child article" },
 	"addNewBranch": { "ru": "Добавить новую ветку", "en": "Add new branch" },
 	"addNewStorage": { "ru": "Добавить новое хранилище", "en": "Add new storage" },
@@ -37,6 +36,7 @@
 	"afterMerge": { "ru": "После объединения", "en": "After merge" },
 	"articleProperties": { "ru": "Свойства статьи", "en": "Article properties" },
 	"articleTitle": { "ru": "Заголовок статьи", "en": "Article title" },
+	"articleNotFound": { "ru": "Статья не найдена", "en": "Article not found" },
 	"articlesNotFound": { "ru": "Статей не найдено", "en": "Articles not found" },
 	"authorizationByMail": { "ru": "Авторизация по почте", "en": "Authorization by mail" },
 	"branch": { "ru": "Ветка", "en": "Branch" },
@@ -69,6 +69,7 @@
 	"continueLocally": { "ru": "Продолжить локально", "en": "Continue locally" },
 	"copied": { "ru": "Скопировано", "en": "Copied" },
 	"createNew": { "ru": "Создать новый", "en": "Create new" },
+	"createNew2": { "ru": "Создать каталог", "en": "Create catalog" },
 	"current": { "ru": "Русский", "en": "English" },
 	"currentBranch": { "ru": "Отображаемая ветка", "en": "Current branch" },
 	"currentVersion": { "ru": "Текущая версия", "en": "Current version" },
@@ -93,7 +94,6 @@
 	"existing": { "ru": "существующий", "en": "existing" },
 	"exportArticleToPdf": { "ru": "Экспорт статьи в PDF", "en": "Export article to PDF" },
 	"field": { "ru": "Поле", "en": "Field" },
-	"fileLoadError": { "ru": "Ошибка при загрузке файла. Попробуйте еще раз", "en": "Error loading file. Try again" },
 	"find": { "ru": "Поиск", "en": "Find" },
 	"findBranch": { "ru": "Поиск ветки", "en": "Find branch" },
 	"forCertainUsers": { "ru": "Определенным пользователям", "en": "For certain users" },
@@ -158,6 +158,7 @@
 	"pull": { "ru": "Pull", "en": "Pull" },
 	"purple-orange": { "ru": "Фиолето-оранжевый", "en": "Purple-orange" },
 	"remote": { "ru": "Опубликовано", "en": "remote" },
+	"refresh": { "ru": "Перезагрузить", "en": "Refresh" },
 	"repository": { "ru": "Репозиторий", "en": "Repository" },
 	"repository2": { "ru": "репозитория", "en": "repository" },
 	"repositoryHttpsUrl": { "ru": "HTTPS URL репозитория", "en": "Repository HTTPS URL" },
@@ -209,6 +210,10 @@
 	"withoutGroup": { "ru": "Без группы", "en": "Without group" },
 	"yesterdayAt": { "ru": "Вчера в ", "en": "Yesterday at " },
 	"сategoryProperties": { "ru": "Свойства раздела", "en": "Category properties" },
+	"articleNotFountError": {
+		"ru": "Статья была перенесена или удалена. Перезагрузите страницу, чтобы получить изменения.",
+		"en": "The article has been moved or deleted. Reload the page to see the changes."
+	},
 	"noChangesInCatalog": {
 		"ru": "В текущем каталоге нет изменений",
 		"en": "There is no change in the current catalog"
@@ -251,24 +256,36 @@
 		"en": "Discard selected the changes? The articles will return to its previous state, and the added media files will be deleted."
 	},
 	"confirmAnswerDelete": {
-		"ru": "Вы уверены, что хотите удалить комментарий?",
-		"en": "Are you sure you want to delete the comment?"
+		"ru": "Удалить комментарий?",
+		"en": "Delete comment?"
 	},
 	"confirmArticleDelete": {
-		"ru": "Вы уверены, что хотите удалить всю статью?",
-		"en": "Are you sure you want to delete the entire article?"
+		"ru": "Удалить всю статью?",
+		"en": "Delete the entire article?"
 	},
 	"confirmCategoryDelete": {
-		"ru": "Вы уверены, что хотите удалить весь раздел?",
-		"en": "Are you sure you want to delete the entire category?"
+		"ru": "Удалить весь раздел?",
+		"en": "Delete the entire category?"
 	},
 	"confirmCommentDelete": {
-		"ru": "Вы уверены, что хотите удалить все обсуждение?",
-		"en": "Are you sure you want to delete the whole discussion?"
+		"ru": "Удалить всю цепочку обсуждения?",
+		"en": "Delete entire discussion thread?"
 	},
-	"fileSizeError": {
-		"ru": "Файл превышает 15 MB, уменьшите его или загрузите другой",
-		"en": "The file is over 15 MB, please reduce it or upload another one"
+	"confirmCreateCatalogOnCloneHeader": {
+		"ru": "В репозитории нет каталога. Создать?",
+		"en": "There is no catalog in the repository. Create it?"
+	},
+	"confirmCreateCatalogOnClone": {
+		"ru": "Gramax создаст в репозитории папку docs и добавит в нее системные файлы каталога. Затем вы сможете начать работу.",
+		"en": "Gramax will create a docs directory in the repository and add the system files to it. Then you can get started."
+	},
+	"addCatalogToGetStarted": {
+		"ru": "С помощью Gramax можно создавать и редактировать документацию прямо в репозитории с кодом. Начать работу можно двумя способами:",
+		"en": "With Gramax, you can create and edit documentation directly in your code repository. There are two ways to get started:"
+	},
+	"addCatalogOptions": {
+		"ru": "<ul><li>Создайте каталог в Gramax и опубликуйте его в GitLab или GitHub.</li><li>Загрузите существующий репозиторий. Предварительно оформите его по <a href='https://github.com/Gram-ax/GxCatalogTemplate' target='_blank'>примеру</a>.</li></ul>",
+		"en": "<ul><li>Create a catalog in Gramax and publish it to GitLab or GitHub.</li><li>Upload an existing repository. Pre-format it according to the <a href='https://github.com/Gram-ax/GxCatalogTemplate' target='_blank'>example</a>.</li></ul>"
 	},
 	"searchOptions": {
 		"ru": "<ul><li>Если слово должно быть в результате поиска, поставьте перед ним <code>+</code>. Например:&nbsp;<code>+оба&nbsp;+обязательных</code>.</li><li>Если из поиска нужно исключить слово, поставьте перед ним <code>-</code>. Например:&nbsp;<code>+обязательно -исключить</code>.</li><li>Если искать нужно по части слова, используйте <code>*</code>. Например:&nbsp;<code>прило*</code> или <code>*жение</code>.</li></ul>",
@@ -310,5 +327,25 @@
 	"adminPassword": {
 		"ru": "Пароль",
 		"en": "Password"
+	},
+	"diagramRenderFailed": {
+		"ru": "Не удалось отрисовать диаграмму",
+		"en": "Failed to render the diagram"
+	},
+	"cantGetDiagramData": {
+		"ru": "Проверьте, правильно ли указан путь, а также есть ли файл с диаграммой в репозитории.",
+		"en": "Could not find the diagram. Check if the path is correct and if there is a file with the diagram in the repository."
+	},
+	"checkInternetDiagramError": {
+		"ru": "Проверьте подключение к интернету.",
+		"en": "Failed to draw the diagram. Check the Internet connection."
+	},
+	"checkInternetOrSyntaxDiagramError": {
+		"ru": "Проверьте синтаксис и подключение к интернету.",
+		"en": "Check syntax and internet connection."
+	},
+	"techDetails": {
+		"ru": "Технические детали",
+		"en": "Technical details"
 	}
 }

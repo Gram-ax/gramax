@@ -8,11 +8,9 @@ class BugsnagErrorBoundary extends React.Component<{ context: PageDataContext; c
 	constructor(props) {
 		super(props);
 		if (!props.context.bugsnagApiKey) return;
-		const userInfo = props.context.userInfo;
 		const onError: OnErrorCallback = (e) => {
-			if (userInfo) e.setUser(userInfo.id, userInfo.mail, userInfo.name);
 			e.addFeatureFlag("env", getExecutingEnvironment());
-			e.addMetadata("props", props.context);
+			e.addMetadata("props", { ...props.context, sourceDatas: [], userInfo: null });
 		};
 		if (Bugsnag.isStarted()) Bugsnag.addOnError(onError);
 		else Bugsnag.start({ apiKey: props.context.bugsnagApiKey, onError });

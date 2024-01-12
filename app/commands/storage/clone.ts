@@ -4,22 +4,39 @@ import StorageСhecker from "@ext/storage/logic/StorageСhecker";
 import StorageData from "@ext/storage/models/StorageData";
 import { Command, ResponseKind } from "../../types/Command";
 
-const clone: Command<{ path: Path; data: StorageData; recursive?: boolean; branch?: string }, string> = Command.create({
+const clone: Command<
+	{ path: Path; data: StorageData; skipCheck?: boolean; recursive?: boolean; branch?: string },
+	string
+> = Command.create({
 	path: "storage/clone",
 
 	kind: ResponseKind.plain,
 
 	middlewares: [new AuthorizeMiddleware()],
 
-	async do({ path, data, recursive, branch }) {
-		const { lib, sp } = this._app;
+	async do({ path, data, recursive, skipCheck, branch }) {
+		const { lib, rp } = this._app;
 
-		const sc = new StorageСhecker();
 		const fs = lib.getFileStructure();
 		const fp = lib.getFileProvider();
-		await sp.cloneNewStorage(fp, sc, path, data, recursive, branch);
-		const catalog = await fs.getCatalogByPath(path);
-		if (!catalog) return;
+		const sc = new StorageСhecker();
+		await rp.cloneNewRepository(
+			fp,
+			path,
+			data,
+			recursive,
+			skipCheck ? branch : branch ?? (await sc.getCorrectBranch(data)),
+		);
+		const entry = await fs.getCatalogEntryByPath(path);
+		const catalog = entry
+			? await entry.load()
+			: await fs.createCatalog(
+					{
+						title: path.name,
+						url: path.name,
+					},
+					new Path("docs"),
+			  );
 		await lib.addCatalog(catalog);
 		return catalog.getName();
 	},
@@ -30,6 +47,7 @@ const clone: Command<{ path: Path; data: StorageData; recursive?: boolean; branc
 			data: body,
 			recursive: q.recursive ? q.recursive === "true" : null,
 			branch: q.branch ? q.branch : null,
+			skipCheck: q.skipCheck == "true",
 		};
 	},
 });

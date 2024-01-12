@@ -1,16 +1,16 @@
+import ErrorModal from "@ext/errorHandlers/client/components/ErrorModal";
 import MergeType from "@ext/git/actions/MergeConflictHandler/model/MergeType";
+import GitErrorCode from "@ext/git/core/GitCommands/errors/model/GitErrorCode";
 import { Meta, StoryObj } from "@storybook/react";
 import { useState } from "react";
-import ErrorModal from "../../../../../../../core/extensions/errorHandlers/client/components/ErrorModal";
-import GitErrorCode from "../../../../../../../core/extensions/git/core/GitRepository/errors/model/GitErrorCode";
-import mockApi from "../../../../../../logic/api/mockApi";
-import InlineDecorator from "../../../../../../styles/decorators/InlineDecorator";
+import mock from "storybook/data/mock";
+import InlineDecorator from "storybook/styles/decorators/InlineDecorator";
 import branchApiErrorData from "./branchApiErrorData";
 
 const meta: Meta = {
-	title: "DocReader/extensions/Catalog/Git/BranchActions/errors/BranchMergeConflictError",
+	title: "gx/extensions/Catalog/Git/BranchActions/errors/BranchMergeConflictError",
 	decorators: [InlineDecorator],
-	parameters: { msw: mockApi(branchApiErrorData) },
+	parameters: { msw: mock(branchApiErrorData) },
 };
 
 export default meta;

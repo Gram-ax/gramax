@@ -1,51 +1,91 @@
 import Icon from "@components/Atoms/Icon";
 import Tooltip from "@components/Atoms/Tooltip";
 import HotKey from "@components/GetHotKey";
+import { classNames } from "@components/libs/classNames";
 import ButtonStateService from "@core-ui/ContextServices/ButtonStateService/ButtonStateService";
 import { NodeValues } from "@core-ui/ContextServices/ButtonStateService/hooks/types";
 import styled from "@emotion/styled";
-import { ButtonHTMLAttributes, CSSProperties } from "react";
+import { CSSProperties, ForwardedRef, HTMLAttributes, forwardRef } from "react";
 
-interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
+export interface ButtonProps extends HTMLAttributes<HTMLDivElement> {
 	isActive?: boolean;
-	dataQa?: string;
 	tooltipText?: string;
+	disabled?: boolean;
 	hotKey?: string;
+	title?: string;
 	nodeValues?: NodeValues;
 	icon?: string;
 	iconStyle?: CSSProperties;
+	dataQa?: string;
 	onMouseLeave?: () => void;
 	useSvgDefaultWidth?: boolean;
-	onClick?: () => void;
 	text?: string;
 }
 
-const Button = (props: ButtonProps) => {
+const StyledDiv = styled.div<ButtonProps>`
+	.iconFrame {
+		padding: 5px 5.5px;
+		line-height: 16px;
+	}
+
+	.button {
+		cursor: pointer;
+		font-size: 12px;
+		border-radius: var(--radius-block);
+	}
+
+	.button:hover,
+	.button.is-active {
+		background: var(--color-edit-menu-button-active-bg);
+	}
+
+	.button.disabled {
+		pointer-events: none !important;
+		opacity: 0.4 !important;
+	}
+
+	.button {
+		svg {
+			${(p) => (p.useSvgDefaultWidth === false ? "" : "width: 1.25em;")}
+		}
+	}
+
+	i.fa-fw {
+		margin-left: 0 !important;
+	}
+`;
+
+const Button = forwardRef((props: ButtonProps, ref: ForwardedRef<HTMLDivElement>) => {
 	const {
+		isActive: propsIsActive = false,
+		disabled: propsDisabled = false,
+		iconStyle = { fontWeight: 300 },
+		onMouseLeave,
+		onClick,
+		tooltipText,
+		nodeValues,
+		dataQa,
 		className,
 		children,
-		iconStyle = { fontWeight: 300 },
-		onClick,
-		onMouseLeave,
-		dataQa,
-		disabled: propsDisabled = false,
-		icon,
-		nodeValues,
-		tooltipText,
+		title,
+		useSvgDefaultWidth,
 		hotKey,
 		text,
+		icon,
+		...otherProps
 	} = props;
 
 	const { disabled, isActive } = nodeValues
 		? ButtonStateService.useCurrentAction(nodeValues)
-		: { disabled: propsDisabled, isActive: false };
+		: { disabled: propsDisabled, isActive: propsIsActive };
+
+	const mods = {
+		["disabled"]: disabled,
+		["is-active"]: isActive,
+	};
 
 	const ButtonContent = (
-		<div
-			onMouseLeave={onMouseLeave}
-			onClick={onClick}
-			className={"button" + (disabled ? " disabled " : "") + (isActive ? " is-active" : "")}
-		>
+		<div onMouseLeave={onMouseLeave} onClick={onClick} className={classNames("button", mods)}>
 			{icon ? (
 				<div className="iconFrame">
 					<Icon faFw code={icon} prefix={icon == "markdown" ? "fab" : null} style={iconStyle} />
@@ -62,11 +102,20 @@ const Button = (props: ButtonProps) => {
 	);
 
 	return (
-		<div className={className} data-qa={`editor-button-${dataQa || icon}`}>
-			{tooltipText ? ButtonWithTooltip : ButtonContent}
+		<div data-qa="qa-edit-menu-button">
+			<StyledDiv
+				useSvgDefaultWidth={useSvgDefaultWidth}
+				ref={ref}
+				className={className}
+				data-qa={dataQa}
+				title={title}
+				{...otherProps}
+			>
+				{tooltipText ? ButtonWithTooltip : ButtonContent}
+			</StyledDiv>
 		</div>
 	);
-};
+});
 
 const ButtonTooltipContent = styled((props: { tooltipText?: string; hotKey?: string; className?: string }) => {
 	const { tooltipText, hotKey, className } = props;
@@ -89,36 +138,4 @@ const ButtonTooltipContent = styled((props: { tooltipText?: string; hotKey?: str
 	}
 `;
 
-export default styled(Button)`
-	.iconFrame {
-		padding: 5px 5.5px;
-		line-height: 16px;
-	}
-
-	.button {
-		cursor: pointer;
-		font-size: 12px;
-		border-radius: var(--radius-block);
-	}
-
-	.button:hover,
-	.button.is-active {
-		background: var(--color-edit-menu-button-active-bg);
-		transition: background-color 100ms;
-	}
-
-	.button.disabled {
-		pointer-events: none !important;
-		opacity: 0.4 !important;
-	}
-
-	.button {
-		svg {
-			${(p) => (p.useSvgDefaultWidth === false ? "" : "width: 1.25em;")}
-		}
-	}
-
-	i.fa-fw {
-		margin-left: 0 !important;
-	}
-`;
+export default Button;

@@ -8,4 +8,4 @@ storybook/
 **/*.Dockerfile
 deploy/
 docs/
-e2e/runner/
+e2e/

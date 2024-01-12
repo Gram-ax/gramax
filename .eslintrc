@@ -9,7 +9,8 @@
 		"plugin:@typescript-eslint/recommended",
 		"plugin:@typescript-eslint/recommended-requiring-type-checking",
 		"plugin:react/recommended",
-		"plugin:promise/recommended"
+		"plugin:promise/recommended",
+		"plugin:storybook/recommended"
 	],
 	"parser": "@typescript-eslint/parser",
 	"parserOptions": {
@@ -70,6 +71,7 @@
 	"rules": {
 		"require-await": "off",
 		"no-empty": "off",
+		"react/prop-types": "off",
 		"react/display-name": "off",
 		"react/react-in-jsx-scope": "off",
 		"react/no-unknown-property": "off",

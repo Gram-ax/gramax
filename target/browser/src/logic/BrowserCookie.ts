@@ -1,8 +1,8 @@
 import Cookie from "@ext/cookie/Cookie";
 
 export default class BrowserCookie extends Cookie {
-	constructor() {
-		super();
+	constructor(secret: string) {
+		super(secret);
 	}
 
 	set(name: string, value: string): void {

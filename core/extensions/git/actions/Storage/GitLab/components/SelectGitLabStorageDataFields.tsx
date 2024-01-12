@@ -4,15 +4,15 @@ import CloneFields from "../../components/CloneFields";
 import GitLabApi from "../logic/GitLabApi";
 import ConnectFields from "./ConnectFields";
 
-const SelectGitLabStorageDataFields = ({
-	source,
-	forClone,
-	onChange,
-}: {
+interface SelectGitLabStorageDataFieldsProps {
 	source: GitSourceData;
 	forClone?: boolean;
 	onChange?: (data: GitStorageData) => void;
-}) => {
+}
+
+const SelectGitLabStorageDataFields = (props: SelectGitLabStorageDataFieldsProps) => {
+	const { source, forClone, onChange } = props;
+	
 	return forClone ? (
 		<CloneFields
 			onChange={onChange}

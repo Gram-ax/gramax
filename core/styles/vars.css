@@ -39,7 +39,7 @@
 
 	--color-comment-bg: #ffe50042;
 	--color-comment-active-bg: #fdd89a;
-	--color-comment-active-text: #905f09;
+	--color-comment-active-text: #000000;
 	--color-removed-text: rgb(255 82 82);
 	--color-removed-text-opacity: rgb(255 82 82 / 60%);
 	--color-resolve-comment-active-bg: #ededed;
@@ -76,6 +76,7 @@
 	--color-scroll: #a4a4a4;
 	--color-scroll-bg: #a4a4a420;
 	--color-image-line: #c8c8c8;
+	--color-image-title: #00000099;
 	--color-primary-general: rgba(0, 0, 0, 0.6);
 	--color-primary-secondary: rgba(0, 0, 0, 0.4);
 	--color-fence-text: #403f53;
@@ -179,6 +180,7 @@
 	--color-scroll: hsl(230deg 15% 35% / 50%);
 	--color-scroll-bg: rgba(76, 80, 103, 0.2);
 	--color-image-line: #2b2f45;
+	--color-image-title: #abb2d499;
 	--color-primary-general: rgba(255, 255, 255, 0.6);
 	--color-primary-secondary: rgba(255, 255, 255, 0.4);
 	--color-lev-sidebar-hover: var(--color-input-bg);

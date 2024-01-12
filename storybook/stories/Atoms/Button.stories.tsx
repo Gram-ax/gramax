@@ -15,7 +15,7 @@ export const Button = (args: Props) => {
 };
 
 const meta: Meta<Props> = {
-	title: "DocReader/Atoms/Button",
+	title: "gx/Atoms/Button",
 	component: Button,
 	decorators: [InlineDecorator],
 	args: {

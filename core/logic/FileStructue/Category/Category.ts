@@ -1,4 +1,5 @@
 import CategoryFileStructure from "@core/FileStructue/Category/CategoryFileStructure";
+import ResourceUpdater from "@core/Resource/ResourceUpdater";
 import Path from "../../FileProvider/Path/Path";
 import { ArticleProps } from "../../SitePresenter/SitePresenter";
 import { Article, ArticleInitProps } from "../Article/Article";
@@ -63,21 +64,18 @@ export class Category extends Article<CategoryFileStructure> {
 		return this._ref.path.parentDirectoryPath.name;
 	}
 
-	override async updateProps(props: ArticleProps, rootCategoryProps?: FSProps) {
+	override async updateProps(props: ArticleProps, _: ResourceUpdater, rootCategoryProps?: FSProps) {
 		await this._updateProps(props);
-		if (this.getFileName() !== props.fileName) await this._updateFolderName(props.fileName, rootCategoryProps);
+		await this._updateFolderName(props.fileName, rootCategoryProps);
 		return this;
 	}
 
 	private async _updateFolderName(fileName: string, rootCategoryProps?: FSProps) {
 		if (this.getFileName() == fileName) return;
 		const path = this._ref.path.parentDirectoryPath.getNewName(fileName);
-		await this._fs.setCategoryPath(this, path);
+		await this._fs.moveCategory(this, path);
 		const newCategory = await this._updateCategory(rootCategoryProps, path);
-		this._logicPath = newCategory._logicPath;
-		this._ref.path = newCategory._ref.path;
-		this._items = newCategory._items;
-		this._props = newCategory._props;
+		Object.assign(this, newCategory);
 		return this;
 	}
 

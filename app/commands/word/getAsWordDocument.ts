@@ -2,9 +2,10 @@ import Context from "@core/Context/Context";
 import Path from "@core/FileProvider/Path/Path";
 import { Article } from "@core/FileStructue/Article/Article";
 import parseContent from "@core/FileStructue/Article/parseContent";
-import { Packer } from "docx";
-import { WordExport } from "../../../core/extensions/wordExport/WordExport";
 import { Command, ResponseKind } from "../../types/Command";
+
+const WordExport = import("../../../core/extensions/wordExport/WordExport");
+const docx = import("docx");
 
 const getAsWordDocument: Command<{ ctx: Context; articlePath: Path; catalogName: string }, Blob> = Command.create({
 	path: "word",
@@ -18,14 +19,14 @@ const getAsWordDocument: Command<{ ctx: Context; articlePath: Path; catalogName:
 
 		await parseContent(article, catalog, ctx, parser, parserContextFactory);
 		const parserContext = parserContextFactory.fromArticle(article, catalog, ctx.lang, ctx.user.isLogged);
-		const wordExport = new WordExport(lib.getFileProviderByCatalog(catalog), parserContext);
+		const wordExport = new (await WordExport).default(lib.getFileProviderByCatalog(catalog), parserContext);
 		const document = await wordExport.getDocumentFromArticle({
 			title: article.props.title,
 			content: article.parsedContent.renderTree,
 			resourceManager: article.parsedContent.resourceManager,
 		});
 
-		return await Packer.toBlob(document);
+		return await (await docx).Packer.toBlob(document);
 	},
 
 	params(ctx, q) {

@@ -1,12 +1,26 @@
 import Anchor from "@components/controls/Anchor";
+import { ReactNode } from "react";
 import Path from "../../../../../../logic/FileProvider/Path/Path";
 import ApiUrlCreatorService from "../../../../../../ui-logic/ContextServices/ApiUrlCreator";
 import downloadResource from "../../../../../../ui-logic/downloadResource";
 
-const Link = (props: { resourcePath: string; isFile: boolean; children: JSX.Element }) => {
+interface LinkProps {
+	resourcePath: string;
+	isFile: boolean;
+	children: ReactNode;
+}
+
+const Link = (props: LinkProps) => {
+	const { isFile, resourcePath, ...otherProps } = props;
 	const apiUrlCreator = ApiUrlCreatorService.value;
-	if (!props.isFile) return <Anchor {...(props as any)} />;
-	return <a onClick={() => downloadResource(apiUrlCreator, new Path(props.resourcePath))}>{props.children}</a>;
+
+	const onClickHandler = () => {
+		void downloadResource(apiUrlCreator, new Path(resourcePath));
+	};
+
+	if (!isFile) return <Anchor href={null} {...otherProps} />;
+
+	return <a onClick={onClickHandler}>{otherProps.children}</a>;
 };
 
 export default Link;

@@ -47,7 +47,7 @@ export interface Link {
 
 export class TableDB {
 	private _tables: Map<string, Table[]> = new Map();
-	private _parseToHtml;
+	private _parseToHtml: (content: string) => Promise<string>;
 
 	constructor(parser: MarkdownParser, private _lib: Library) {
 		this._parseToHtml = parser.parseToHtml.bind(parser);
@@ -58,18 +58,18 @@ export class TableDB {
 		this._tables = new Map();
 	}
 
-	private _parseToMd(str: string): string {
-		return str ? String(this._parseToHtml(str)) : str;
+	private async _parseToMd(str: string): Promise<string> {
+		return str ? String(await this._parseToHtml(str)) : str;
 	}
 
-	private _parseTableToMd(table: Table): void {
-		table.subtitle = this._parseToMd(table.subtitle) ?? null;
+	private async _parseTableToMd(table: Table): Promise<void> {
+		table.subtitle = (await this._parseToMd(table.subtitle)) ?? null;
 		for (const lang in table.description) {
-			table.description[lang] = this._parseToMd(table.description[lang]);
+			table.description[lang] = await this._parseToMd(table.description[lang]);
 		}
 		for (const field of table.fields) {
 			for (const lang in field.description) {
-				field.description[lang] = this._parseToMd(field.description[lang]);
+				field.description[lang] = await this._parseToMd(field.description[lang]);
 			}
 		}
 	}
@@ -98,7 +98,7 @@ export class TableDB {
 		if (tables) return tables;
 		tables = await this.readSchema(ref);
 		for (const table of tables) {
-			this._parseTableToMd(table);
+			await this._parseTableToMd(table);
 			table.fields.forEach((field) => {
 				if (!field.description.default && field.refObject)
 					field.description.default = tables.find((table) => table.code == field.refObject)?.subtitle ?? null;
@@ -137,7 +137,7 @@ export class TableDB {
 		if (!Array.isArray(file)) {
 			objects = [];
 			for (const key in file as object) {
-				const f = (file as any)[key];
+				const f = file[key];
 				f.code = key;
 				objects.push(f);
 			}
@@ -209,17 +209,19 @@ export class TableDB {
 
 	async readDiagram(ref: ItemRef): Promise<Diagram> {
 		const fp = this._lib.getFileProvider(ref.storageId);
-		const file = yaml.load(await fp.read(ref.path)) as Diagram;
+		const file = await fp.read(ref.path);
+		if (!file) return null;
+		const diagram = yaml.load(file) as Diagram;
 		let positions;
-		if (!Array.isArray(file.tables)) {
+		if (!Array.isArray(diagram.tables)) {
 			positions = [];
-			for (const key in file.tables as object) {
-				const p = (file.tables[key] as TablePosition) ?? { name: null };
+			for (const key in diagram.tables as object) {
+				const p = (diagram.tables[key] as TablePosition) ?? { name: null };
 				p.name = key;
 				positions.push(p);
 			}
 		} else {
-			positions = file.tables;
+			positions = diagram.tables;
 		}
 		for (const obj of positions) {
 			if (!Array.isArray(obj.links)) {
@@ -232,7 +234,7 @@ export class TableDB {
 				obj.links = links;
 			}
 		}
-		file.tables = positions;
-		return file;
+		diagram.tables = positions;
+		return diagram;
 	}
 }

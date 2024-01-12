@@ -5,8 +5,12 @@ export interface AppConfig {
 	isReadOnly: boolean;
 	isServerApp: boolean;
 	isProduction: boolean;
+	ssoServerUrl: string;
+	ssoPublicKey: string;
+	branch: string;
 	enterpriseServerUrl: string;
 	bugsnagApiKey: string;
+	cookieSecret: string;
 	adminLogin: string;
 	adminPassword: string;
 	gramaxVersion: string;

@@ -11,30 +11,42 @@ const StatusBarElement = styled(
 				iconCode,
 				children,
 				tooltipText,
+				iconClassName,
+				disable = false,
 				className,
 			}: {
 				onClick?: () => void;
 				iconCode?: string;
 				children?: JSX.Element;
 				tooltipText?: ReactNode;
+				disable?: boolean;
+				iconClassName?: string;
 				className?: string;
 			},
 			ref: React.LegacyRef<HTMLDivElement>,
 		) => {
 			return (
-				<div ref={ref} className={className} onClick={onClick}>
+				<div
+					ref={ref}
+					className={className}
+					onClick={() => {
+						if (!disable) onClick?.();
+					}}
+				>
 					<Tooltip content={tooltipText}>
-						<div className="status-bar-element">
-							{iconCode && (
-								<div className="status-bar-icon">
-									<Icon code={iconCode} faFw />
-								</div>
-							)}
-							{children && (
-								<div className="status-bar-text">
-									<div className="content">{children}</div>
-								</div>
-							)}
+						<div style={{ height: "100%" }}>
+							<div className="status-bar-element" style={disable ? { pointerEvents: "none" } : null}>
+								{iconCode && (
+									<div className={"status-bar-icon" + (iconClassName ? " " + iconClassName : "")}>
+										<Icon code={iconCode} faFw />
+									</div>
+								)}
+								{children && (
+									<div className="status-bar-text">
+										<div className="content">{children}</div>
+									</div>
+								)}
+							</div>
 						</div>
 					</Tooltip>
 				</div>
@@ -58,7 +70,7 @@ const StatusBarElement = styled(
 
 	.status-bar-element {
 		display: flex;
-		gap: 7px;
+		gap: 0.15rem;
 		height: 100%;
 		padding: 0 4px;
 		cursor: pointer;

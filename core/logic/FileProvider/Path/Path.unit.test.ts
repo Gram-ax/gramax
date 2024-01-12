@@ -16,6 +16,56 @@ describe("Path правильно", () => {
 			new Path(".../docs/bi/3.Subsystems Architecture/eCompass_Export"),
 		];
 
+		describe("имя", () => {
+			const names = [
+				"file",
+				"file",
+				"file",
+				"file",
+				"file",
+				"folder2",
+				"eCompass_Export",
+				"eCompass_Export",
+				"eCompass_Export",
+				"eCompass_Export",
+				"eCompass_Export",
+				"1.name",
+				"1.name",
+				"1.name",
+				"1.name",
+				"1.name",
+				"1.name",
+				"1. name",
+				"1 .name",
+				"1 .name",
+				"1 .name",
+				"1 .name",
+				"1 .name",
+			];
+
+			[
+				...testPaths,
+				...[
+					new Path("1.name.md"),
+					new Path("docs/bi/3.Subsystems Architecture/1.name.md"),
+					new Path("/docs/bi/3.Subsystems Architecture/1.name.md"),
+					new Path("./docs/bi/3.Subsystems Architecture/1.name.md"),
+					new Path("../docs/bi/3.Subsystems Architecture/1.name.md"),
+					new Path(".../docs/bi/3.Subsystems Architecture/1.name.md"),
+					new Path("1. name.md"),
+					new Path("docs/bi/3.Subsystems Architecture/1 .name.md"),
+					new Path("/docs/bi/3.Subsystems Architecture/1 .name.md"),
+					new Path("./docs/bi/3.Subsystems Architecture/1 .name.md"),
+					new Path("../docs/bi/3.Subsystems Architecture/1 .name.md"),
+					new Path(".../docs/bi/3.Subsystems Architecture/1 .name.md"),
+				],
+			].forEach((path, idx) => {
+				test(`для ${path} => ${names[idx]}`, () => {
+					expect(path.name).toEqual(names[idx]);
+				});
+			});
+		});
+
 		describe("родительскую директорию", () => {
 			const testParentDirectoryPaths = [
 				new Path("folder"),
@@ -75,7 +125,7 @@ describe("Path правильно", () => {
 		});
 
 		describe("расширение", () => {
-			const extentions = [
+			const extensions = [
 				"extention0",
 				"extention0",
 				"extention1",
@@ -90,8 +140,8 @@ describe("Path правильно", () => {
 			];
 
 			testPaths.forEach((path, idx) => {
-				test(`для ${path} => ${extentions[idx]}`, () => {
-					expect(path.extension).toEqual(extentions[idx]);
+				test(`для ${path} => ${extensions[idx]}`, () => {
+					expect(path.extension).toEqual(extensions[idx]);
 				});
 			});
 		});
@@ -340,11 +390,33 @@ describe("Path правильно", () => {
 			expect(comparePaths.compare(path)).toEqual(true);
 		});
 	});
-	describe("отрезает", () => {
-		test("путь", () => {
-			const path = new Path("rootFolder/folder/file.ext");
-			const res = new Path("rootFolder").subDirectory(path);
-			expect(res).toEqual(new Path("/folder/file.ext"));
+	describe("отрезает путь", () => {
+		test("без лишних символов", () => {
+			expect(new Path("rootFolder").subDirectory(new Path("rootFolder/folder/file.ext"))).toEqual(
+				new Path("folder/file.ext"),
+			);
+		});
+		test("со слешами", () => {
+			expect(new Path("rootFolder").subDirectory(new Path("/rootFolder/folder/file.ext"))).toEqual(
+				new Path("folder/file.ext"),
+			);
+			expect(new Path("/rootFolder").subDirectory(new Path("rootFolder/folder/file.ext"))).toEqual(
+				new Path("folder/file.ext"),
+			);
+			expect(new Path("/rootFolder").subDirectory(new Path("/rootFolder/folder/file.ext"))).toEqual(
+				new Path("folder/file.ext"),
+			);
+		});
+		test("с точкой и слешем", () => {
+			expect(new Path("rootFolder").subDirectory(new Path("./rootFolder/folder/file.ext"))).toEqual(
+				new Path("folder/file.ext"),
+			);
+			expect(new Path("./rootFolder").subDirectory(new Path("rootFolder/folder/file.ext"))).toEqual(
+				new Path("folder/file.ext"),
+			);
+			expect(new Path("./rootFolder").subDirectory(new Path("./rootFolder/folder/file.ext"))).toEqual(
+				new Path("folder/file.ext"),
+			);
 		});
 	});
 });

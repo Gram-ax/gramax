@@ -5,7 +5,9 @@ const UiUrlUtils = {
 	getArticleLinks(itemLinks: ItemLink[]): ItemLink[] {
 		return itemLinks
 			.map((link) =>
-				link.type == ItemType.article ? link : [...UiUrlUtils.getArticleLinks((link as CategoryLink).items)],
+				link.type == ItemType.article
+					? link
+					: [link, ...UiUrlUtils.getArticleLinks((link as CategoryLink).items)],
 			)
 			.flat();
 	},

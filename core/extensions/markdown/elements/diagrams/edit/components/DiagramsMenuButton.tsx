@@ -1,10 +1,9 @@
+import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
+import ArticlePropsService from "@core-ui/ContextServices/ArticleProps";
 import DiagramType from "@core/components/Diagram/DiagramType";
 import Button from "@ext/markdown/core/edit/components/Menu/Button";
 import SvgContainer from "@ext/markdown/core/edit/components/Menu/SvgContainer";
 import { Editor } from "@tiptap/core";
-import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
-import ArticlePropsService from "@core-ui/ContextServices/ArticleProps";
-import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import { c4DiagramIcon, c4DiagramTooltipText } from "../../diagrams/c4Diagram/c4DiagramData";
 import { mermaidIcon, mermaidTooltipText } from "../../diagrams/mermaid/mermaidData";
 import { plantUmlIcon, plantUmlTooltipText } from "../../diagrams/plantUml/plantUmlData";
@@ -14,7 +13,6 @@ import createDiagrams from "../../logic/createDiagrams";
 const DiagramsMenuButton = ({ editor, diagramName }: { editor: Editor; diagramName: DiagramType }) => {
 	const articleProps = ArticlePropsService.value;
 	const apiUrlCreator = ApiUrlCreatorService.value;
-	const lang = PageDataContextService.value.lang;
 
 	let diagramIcon: JSX.Element;
 	let diagramTooltipText: string;
@@ -39,12 +37,10 @@ const DiagramsMenuButton = ({ editor, diagramName }: { editor: Editor; diagramNa
 
 	return (
 		<Button
-			dataQa={diagramName}
+			dataQa={`qa-edit-menu-${diagramName}`}
 			tooltipText={diagramTooltipText}
 			nodeValues={{ action: diagramName as any }}
-			onClick={() => {
-				createDiagrams(editor, articleProps, apiUrlCreator, lang, diagramName);
-			}}
+			onClick={() => void createDiagrams(editor, articleProps, apiUrlCreator, diagramName)}
 		>
 			<SvgContainer>{diagramIcon}</SvgContainer>
 		</Button>

@@ -1,5 +1,6 @@
 import LeftNavigationIsOpenService from "@core-ui/ContextServices/LeftNavigationIsOpen";
 import { cssMedia } from "@core-ui/utils/cssUtils";
+import useIsStorageInitialized from "@ext/storage/logic/utils/useIsStorageIniziliate";
 import { useMediaQuery } from "@mui/material";
 import CreateArticle from "../../../../extensions/artilce/actions/CreateArticle";
 import CatalogPropsService from "../../../../ui-logic/ContextServices/CatalogProps";
@@ -16,6 +17,7 @@ const LeftNavigationBottom = ({ closeNavigation }: { closeNavigation?: () => voi
 	const leftNavIsOpen = LeftNavigationIsOpenService.value;
 	const leftNavTrEndIsOpen = LeftNavigationIsOpenService.transitionEndIsOpen;
 	const mediumMedia = useMediaQuery(cssMedia.JSmedium);
+	const isStorageInitialized = useIsStorageInitialized();
 
 	const getPaddingTop = (): string => {
 		if (leftNavIsOpen) return "0";
@@ -30,7 +32,7 @@ const LeftNavigationBottom = ({ closeNavigation }: { closeNavigation?: () => voi
 	};
 
 	return (
-		<>
+		<div data-qa="qa-status-bar">
 			<ExtensionBarLayout
 				height={getHeight()}
 				padding={{
@@ -41,8 +43,13 @@ const LeftNavigationBottom = ({ closeNavigation }: { closeNavigation?: () => voi
 				leftExtensions={[<CreateArticle key={0} onCreate={closeNavigation} />]}
 				rightExtensions={mediumMedia ? null : [<PinToggleArrowIcon key={0} />]}
 			/>
-			{!readOnlyCatalog && neededToBeLogged && <ArticleStatusBar padding={leftNavIsOpen ? "0 6px" : "0 31px"} />}
-		</>
+			{!readOnlyCatalog && neededToBeLogged && (
+				<ArticleStatusBar
+					isStorageInitialized={isStorageInitialized}
+					padding={leftNavIsOpen ? "0 6px" : "0 31px"}
+				/>
+			)}
+		</div>
 	);
 };
 export default LeftNavigationBottom;

@@ -9,7 +9,7 @@ const PlantUMLRenderer = ({
 	src,
 	isUpdating = false,
 }: {
-	diagramContent: string;
+	diagramContent?: string;
 	src: string;
 	isUpdating?: boolean;
 }) => {

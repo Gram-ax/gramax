@@ -1,8 +1,7 @@
-import { Editor } from "@tiptap/core";
 import ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
+import { Editor } from "@tiptap/core";
 import { ArticleProps } from "../../../../../logic/SitePresenter/SitePresenter";
 import DiagramType from "../../../../../logic/components/Diagram/DiagramType";
-import Language from "../../../../localization/core/model/Language";
 
 import initArticleResource from "../../../elementsUtils/AtricleResource/initArticleResource";
 import { startC4DiagramText } from "../diagrams/c4Diagram/c4DiagramData";
@@ -14,7 +13,6 @@ const createDiagrams = async (
 	editor: Editor,
 	articleProps: ArticleProps,
 	apiUrlCreator: ApiUrlCreator,
-	lang: Language,
 	diagramName: DiagramType,
 ) => {
 	let file = "";
@@ -38,7 +36,7 @@ const createDiagrams = async (
 			break;
 	}
 
-	const newName = await initArticleResource(editor, articleProps, apiUrlCreator, lang, file, extension);
+	const newName = await initArticleResource(articleProps, apiUrlCreator, file, extension);
 	if (!newName) return;
 	editor.chain().setDiagrams({ src: newName, diagramName }).run();
 };

@@ -5,9 +5,9 @@ export function formula(context: ParserContext): Schema {
 	return {
 		render: "Formula",
 		attributes: { content: { type: String } },
-		transform: (node: Node): RenderableTreeNodes => {
+		transform: async (node: Node): Promise<RenderableTreeNodes> => {
 			return new Tag("Formula", {
-				content: context.parser.getRenderMarkdownIt(node.attributes.content),
+				content: await context.parser.getRenderMarkdownIt(node.attributes.content),
 			});
 		},
 	};

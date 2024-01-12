@@ -1,6 +1,7 @@
 import Icon from "@components/Atoms/Icon";
 import Breadcrumb from "@components/Breadcrumbs/Breadcrumb";
 import styled from "@emotion/styled";
+import DiagramError from "@ext/markdown/elements/diagrams/component/DiagramError";
 import { ReactElement, useEffect, useRef, useState } from "react";
 import DiagramType from "../../../../../logic/components/Diagram/DiagramType";
 import C4Data from "../diagrams/c4Diagram/C4Data";
@@ -46,6 +47,9 @@ const C4Render = styled(
 				}
 			}
 		}, [data, currentDiagramIndex, parentDiagramIndexes]);
+
+		if (error) return <DiagramError error={error} />;
+
 		return (
 			<div
 				className={`${className} diagram-image`}

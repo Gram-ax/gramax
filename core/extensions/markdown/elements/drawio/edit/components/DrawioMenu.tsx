@@ -68,7 +68,7 @@ const DrawioMenu = ({ editor }: { editor: Editor }) => {
 			setNode(node);
 			setTitle(node?.attrs?.title ?? "");
 		}
-		if (position) setPosition(position);
+		if (typeof position === "number") setPosition(position);
 	}, [editor.state.selection]);
 
 	if (!editor.isActive("drawio")) return null;
@@ -79,7 +79,7 @@ const DrawioMenu = ({ editor }: { editor: Editor }) => {
 	};
 
 	const handleDelete = () => {
-		if (position !== null && node) {
+		if (node) {
 			editor.commands.deleteRange({ from: position, to: position + node.nodeSize });
 		}
 	};

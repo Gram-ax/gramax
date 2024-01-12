@@ -8,7 +8,7 @@ const getLocalizationRulesData = async () => {
 	const app = await getApplication();
 
 	const nav = new Navigation();
-	const lr = new LocalizationRules(app.errorArticlesProvider, defaultLanguage);
+	const lr = new LocalizationRules(defaultLanguage, app.errorArticlesProvider);
 
 	const catalogTestCatalog = await app.lib.getCatalog("RulseCatalogTestCatalog");
 	const articleTestCatalog = await app.lib.getCatalog("RulseArticleTestCatalog");
@@ -50,9 +50,9 @@ describe("Localization Rules правильно фильтрует", () => {
 	test("catalog", async () => {
 		const { nav, lr, catalogTestCatalog } = await getLocalizationRulesData();
 		const filter = lr.getNavCatalogRule();
-		const catalogLink = nav.getCatalogLink(catalogTestCatalog.asEntry(), catalogTestCatalog.getName());
+		const catalogLink = nav.getCatalogLink(catalogTestCatalog, catalogTestCatalog.getName());
 
-		expect(filter(catalogTestCatalog.asEntry(), catalogLink)).toEqual(false);
+		expect(filter(catalogTestCatalog, catalogLink)).toEqual(false);
 	});
 
 	test("article", async () => {

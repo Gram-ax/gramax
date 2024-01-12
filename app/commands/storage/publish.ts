@@ -14,24 +14,22 @@ const publish: Command<
 	middlewares: [new AuthorizeMiddleware()],
 
 	async do({ ctx, catalogName, message, filePaths, recursive }) {
-		const { lib, logger, sp } = this._app;
+		const { lib, logger, rp } = this._app;
 		const catalog = await lib.getCatalog(catalogName);
 		if (!catalog) return;
-		const storage = catalog.getStorage();
-		const data = sp.getSourceData(ctx.cookie, await storage.getSourceName());
+		const storage = catalog.repo.storage;
 		if (!storage) return;
-		const versionControl = await catalog.getVersionControl();
-
-		await versionControl.add(filePaths.map((p) => new Path(p)));
-		await versionControl.commit(message, data);
-
-		try {
-			await storage.push(data, recursive);
-		} catch (e) {
-			await versionControl.restoreRepositoryState();
-			throw e;
-		}
-		logger.logTrace(`Pushed to catalog "${catalogName}". Files: "${filePaths.map((p) => p).join('", "')}"`);
+		const data = rp.getSourceData(ctx.cookie, await storage.getSourceName());
+		await catalog.repo.publish({
+			message,
+			filePaths: filePaths.map((p) => new Path(p)),
+			recursive,
+			data,
+			onAdd: () =>
+				logger.logTrace(`Added in catalog "${catalogName}". Files: "${filePaths.map((p) => p).join('", "')}"`),
+			onCommit: () => logger.logTrace(`Commited in catalog "${catalogName}". Message: "${message}"`),
+			onPush: () => logger.logInfo(`Pushed in catalog "${catalogName}".`),
+		});
 	},
 
 	params(ctx, q, body) {

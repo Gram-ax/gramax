@@ -22,13 +22,16 @@ const DeleteItem = ({
 
 	return (
 		<div
+			data-qa="qa-clickable"
 			onClick={async () => {
 				if (!(await confirm(deleteConfirmText))) return;
 				ErrorConfirmService.stop();
 				await FetchService.fetch(apiUrlCreator.removeItem(itemPath));
 				ErrorConfirmService.start();
-				router.pushPath(new Path(itemLink).parentDirectoryPath.value);
-				refreshPage();
+				const itemLinkPath = new Path(itemLink);
+				if (new Path(router.path).removeExtraSymbols.compare(itemLinkPath))
+					router.pushPath(itemLinkPath.parentDirectoryPath.value);
+				else refreshPage();
 			}}
 		>
 			<Icon code="trash" faFw />

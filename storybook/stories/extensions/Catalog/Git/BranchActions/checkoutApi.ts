@@ -1,4 +1,4 @@
-import ApiData from "../../../../../logic/api/model/ApiData";
+import { MockedAPIEndpoint } from "storybook/data/mock";
 
 const data = [
 	{
@@ -48,7 +48,7 @@ const data = [
 	},
 ];
 
-const checkoutApi: ApiData[] = [
+const checkoutApi = [
 	{
 		path: "/api/versionControl/branch/checkout",
 		delay: 1000,
@@ -65,6 +65,6 @@ const checkoutApi: ApiData[] = [
 		response: data,
 		// errorMessage: "reset error",
 	},
-];
+] as MockedAPIEndpoint[];
 
 export default checkoutApi;

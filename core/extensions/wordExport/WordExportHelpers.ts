@@ -1,7 +1,6 @@
 import { ImageRun } from "docx";
 import { toBlob } from "html-to-image";
 import Path from "../../logic/FileProvider/Path/Path";
-import FileProvider from "../../logic/FileProvider/model/FileProvider";
 import ResourceManager from "../../logic/Resource/ResourceManager";
 
 export interface ImageDimensions {
@@ -12,12 +11,8 @@ export interface ImageDimensions {
 const fontEmbedCSS = "";
 
 export class WordExportHelper {
-	static async getFileByPath(
-		path: Path,
-		resourceManager: ResourceManager,
-		fileProvider: FileProvider,
-	): Promise<Buffer> {
-		return await resourceManager.getContent(path, fileProvider);
+	static async getFileByPath(path: Path, resourceManager: ResourceManager): Promise<Buffer> {
+		return await resourceManager.getContent(path);
 	}
 
 	static async getImageSizeFromImageData(
@@ -50,22 +45,14 @@ export class WordExportHelper {
 	static async getImageByPath(
 		path: Path,
 		resourceManager: ResourceManager,
-		fileProvider: FileProvider,
 		maxWidth?: number,
 		maxHeight?: number,
 		defaultImageSize?: number,
 	): Promise<ImageRun> {
 		if (path.extension === "svg")
-			return WordExportHelper.getImageFromSvgPath(
-				path,
-				resourceManager,
-				fileProvider,
-				maxWidth,
-				maxHeight,
-				defaultImageSize,
-			);
+			return WordExportHelper.getImageFromSvgPath(path, resourceManager, maxWidth, maxHeight, defaultImageSize);
 
-		const imageBuffer = await resourceManager.getContent(path, fileProvider);
+		const imageBuffer = await resourceManager.getContent(path);
 
 		const dimensions = await this.getImageSizeFromImageData(imageBuffer, maxWidth, maxHeight, defaultImageSize);
 
@@ -75,12 +62,11 @@ export class WordExportHelper {
 	static async getImageFromSvgPath(
 		path: Path,
 		resourceManager: ResourceManager,
-		fileProvider: FileProvider,
 		maxWidth?: number,
 		maxHeight?: number,
 		defaultImageSize?: number,
 	): Promise<ImageRun> {
-		const svgCode = (await resourceManager.getContent(path, fileProvider)).toString();
+		const svgCode = (await resourceManager.getContent(path)).toString();
 		return await WordExportHelper.getImageFromSvgString(svgCode, undefined, maxWidth, maxHeight, defaultImageSize);
 	}
 

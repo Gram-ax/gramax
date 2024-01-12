@@ -1,35 +1,41 @@
 import styled from "@emotion/styled";
 import { useMediaQuery } from "@mui/material";
-import Tippy from "@tippyjs/react";
+import Tippy, { TippyProps } from "@tippyjs/react";
 import { ReactNode, useState } from "react";
 import { Placement } from "tippy.js";
 import { cssMedia } from "@core-ui/utils/cssUtils";
 
-const Tooltip = ({
-	children,
-	content,
-	place = "top",
-	trigger,
-	distance = 10,
-	visible,
-	arrow = true,
-	hideInMobile = true,
-	customStyle = false,
-	hideOnClick = false,
-	interactive = false,
-}: {
-	children: React.ReactElement<any>;
-	content?: ReactNode;
+interface TooltipProps extends TippyProps {
 	place?: Placement;
 	distance?: number;
 	arrow?: boolean;
-	visible?: boolean;
 	hideInMobile?: boolean;
 	trigger?: string;
 	customStyle?: boolean;
 	hideOnClick?: boolean;
 	interactive?: boolean;
-}) => {
+}
+
+interface TooltipContentProps extends Omit<TooltipProps, "children"> {
+	children: ReactNode;
+}
+
+const Tooltip = (props: TooltipProps) => {
+	const {
+		children,
+		content,
+		place = "top",
+		trigger,
+		distance = 10,
+		visible,
+		arrow = true,
+		hideInMobile = true,
+		customStyle = false,
+		hideOnClick = false,
+		interactive = false,
+		...otherProps
+	} = props;
+
 	const [finalPlace, setFinalPlace] = useState<Placement>(place);
 
 	if (!content || (hideInMobile && useMediaQuery(cssMedia.narrow))) return children;
@@ -53,25 +59,15 @@ const Tooltip = ({
 			appendTo={() => document.body}
 			interactive={interactive}
 			delay={0}
+			{...otherProps}
 		>
 			{children}
 		</Tippy>
 	);
 };
-const TooltipContent = styled(
-	({
-		children,
-		className,
-	}: {
-		place: Placement;
-		children: ReactNode;
-		arrow?: boolean;
-		customStyle?: boolean;
-		className?: string;
-	}) => {
-		return <div className={className}>{children}</div>;
-	},
-)`
+const TooltipContent = styled(({ children, className }: TooltipContentProps) => {
+	return <div className={className}>{children}</div>;
+})`
 	${(p) =>
 		p.customStyle
 			? ""

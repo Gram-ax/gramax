@@ -19,8 +19,9 @@ const DiagramsMenuGroup = ({ editor }: { editor?: Editor }) => {
 				<ModalLayoutDark>
 					<ButtonsLayout>
 						<DrawioMenuButton editor={editor} />
-						<DiagramsMenuButton editor={editor} diagramName={DiagramType["ts-diagram"]} />
-						<DiagramsMenuButton editor={editor} diagramName={DiagramType["c4-diagram"]} />
+						{/* <DiagramsMenuButton editor={editor} diagramName={DiagramType["ts-diagram"]} /> */}
+						{/* <DiagramsMenuButton editor={editor} diagramName={DiagramType["c4-diagram"]} /> */}
+						<DiagramsMenuButton editor={editor} diagramName={DiagramType["mermaid"]} />
 						{/* <MermaidMenuButton editor={editor} /> */}
 						<DiagramsMenuButton editor={editor} diagramName={DiagramType["plant-uml"]} />
 					</ButtonsLayout>

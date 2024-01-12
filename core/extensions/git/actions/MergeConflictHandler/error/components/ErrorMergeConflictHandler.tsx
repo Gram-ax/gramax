@@ -2,7 +2,10 @@ import ArticleUpdaterService from "@components/Article/ArticleUpdater/ArticleUpd
 import SpinnerLoader from "@components/Atoms/SpinnerLoader";
 import LogsLayout from "@components/Layouts/LogsLayout";
 import ModalLayout from "@components/Layouts/Modal";
-import { useEffect, useState } from "react";
+import GetErrorComponent from "@ext/errorHandlers/logic/GetErrorComponent";
+import getAbortMergeUrl from "@ext/git/actions/MergeConflictHandler/error/logic/getAbortMergeUrl";
+import getResolveMergeConflictFilesUrl from "@ext/git/actions/MergeConflictHandler/error/logic/getResolveMergeConflictFilesUrl";
+import { ComponentProps, useEffect, useState } from "react";
 import FetchService from "../../../../../../ui-logic/ApiServices/FetchService";
 import MimeTypes from "../../../../../../ui-logic/ApiServices/Types/MimeTypes";
 import ApiUrlCreatorService from "../../../../../../ui-logic/ContextServices/ApiUrlCreator";
@@ -14,13 +17,10 @@ import MergeType from "../../model/MergeType";
 
 const ErrorMergeConflictHandler = ({
 	type,
-	theirsBranch,
-	stashHash,
+	error,
 }: {
 	type: MergeType;
-	theirsBranch: string;
-	stashHash: string;
-}) => {
+} & Pick<ComponentProps<typeof GetErrorComponent>, "error">) => {
 	const apiUrlCreator = ApiUrlCreatorService.value;
 
 	const [files, setFiles] = useState<MergeFile[]>([]);
@@ -28,19 +28,9 @@ const ErrorMergeConflictHandler = ({
 	const [isOpen, setIsOpen] = useState(true);
 	const [merged, setMerged] = useState(false);
 
-	const getAbortMergeUrl = () => {
-		if (type === MergeType.Branches) return apiUrlCreator.abortMergeBranch(theirsBranch);
-		if (type === MergeType.Sync) return apiUrlCreator.abortMergeSync(stashHash);
-	};
-
-	const getResolveMergeConflictFilesUrl = () => {
-		if (type === MergeType.Branches) return apiUrlCreator.resolveMergeBranchConflictedFiles(theirsBranch);
-		if (type === MergeType.Sync) return apiUrlCreator.resolveMergeSyncConflictedFiles(stashHash);
-	};
-
 	const abortMerge = async () => {
 		setLoading(true);
-		await FetchService.fetch<void>(getAbortMergeUrl());
+		await FetchService.fetch<void>(getAbortMergeUrl({ apiUrlCreator, error, type }));
 		setLoading(false);
 	};
 
@@ -86,7 +76,7 @@ const ErrorMergeConflictHandler = ({
 					onMerge={async (mergedFiles) => {
 						setLoading(true);
 						const response = await FetchService.fetch<void>(
-							getResolveMergeConflictFilesUrl(),
+							getResolveMergeConflictFilesUrl({ apiUrlCreator, error, type }),
 							JSON.stringify(mergedFiles),
 							MimeTypes.json,
 						);

@@ -1,59 +1,53 @@
-import GitRepositoryConfig from "@ext/git/core/GitRepository/model/GitRepositoryConfig";
+import GitCommandsConfig from "@ext/git/core/GitCommands/model/GitCommandsConfig";
 import GitStash from "@ext/git/core/model/GitStash";
 import Path from "../../../../logic/FileProvider/Path/Path";
 import FileProvider from "../../../../logic/FileProvider/model/FileProvider";
-import VersionControl from "../../../VersionControl/VersionControl";
-import VersionControlType from "../../../VersionControl/model/VersionControlType";
 import { FileStatus } from "../../../Watchers/model/FileStatus";
 import { ItemStatus } from "../../../Watchers/model/ItemStatus";
 import SourceData from "../../../storage/logic/SourceDataProvider/model/SourceData";
 import { GitBranch } from "../GitBranch/GitBranch";
-import { GitRepository } from "../GitRepository/GitRepository";
-import GitError from "../GitRepository/errors/GitError";
-import GitErrorCode from "../GitRepository/errors/model/GitErrorCode";
+import { GitCommands } from "../GitCommands/GitCommands";
+import GitError from "../GitCommands/errors/GitError";
+import GitErrorCode from "../GitCommands/errors/model/GitErrorCode";
 import convertToChangeItem from "../GitWatcher/ConvertToChangeItem";
 import GitWatcher from "../GitWatcher/GitWatcher";
 import { GitStatus } from "../GitWatcher/model/GitStatus";
 import { GitVersion } from "../model/GitVersion";
 import SubmoduleData from "../model/SubmoduleData";
 
-export default class GitVersionControl implements VersionControl {
-	private _watcherFunc: ((changes: ItemStatus[]) => void)[];
+export default class GitVersionControl {
+	private _watcherFunc: ((changes: ItemStatus[]) => Promise<void>)[];
 	private _currentVersion: GitVersion;
 	private _currentBranch: GitBranch;
 	private _allBranches: GitBranch[];
 	private _subGitVersionControls: GitVersionControl[];
 	private _submodulesData: SubmoduleData[];
 	private _gitWatcher: GitWatcher;
-	private _gitRepository: GitRepository;
+	private _gitRepository: GitCommands;
 
-	constructor(private _conf: GitRepositoryConfig, private _path: Path, private _fp: FileProvider) {
-		this._gitRepository = new GitRepository(_conf, this._fp, this._path);
+	constructor(private _conf: GitCommandsConfig, private _path: Path, private _fp: FileProvider) {
+		this._gitRepository = new GitCommands(_conf, this._fp, this._path);
 		this._gitWatcher = new GitWatcher(this._gitRepository);
 		this._gitWatcher.watch(this._onChange.bind(this));
 		this._watcherFunc = [];
 		void this._initSubGitVersionControls();
 	}
 
-	watch(w: (changeFiles: ItemStatus[]) => void): void {
+	watch(w: (changeFiles: ItemStatus[]) => Promise<void>): void {
 		this._watcherFunc.push(w);
 	}
 
-	getType() {
-		return VersionControlType.git;
-	}
-
-	static hasInit(conf: GitRepositoryConfig, fp: FileProvider, path: Path): Promise<boolean> {
-		return new GitRepository(conf, fp, path).hasInit();
+	static hasInit(conf: GitCommandsConfig, fp: FileProvider, path: Path): Promise<boolean> {
+		return new GitCommands(conf, fp, path).hasInit();
 	}
 
 	static async init(
-		conf: GitRepositoryConfig,
+		conf: GitCommandsConfig,
 		fp: FileProvider,
 		path: Path,
 		userData: SourceData,
 	): Promise<GitVersionControl> {
-		await new GitRepository(conf, fp, path).init(userData);
+		await new GitCommands(conf, fp, path).init(userData);
 		return new GitVersionControl(conf, path, fp);
 	}
 
@@ -81,8 +75,8 @@ export default class GitVersionControl implements VersionControl {
 	}
 
 	async showLastCommitContent(filePath: Path): Promise<string> {
-		const { versionControl, relativePath } = await this.getVersionControlContainsItem(filePath);
-		const gitRepository = new GitRepository(this._conf, this._fp, versionControl.getPath());
+		const { gitVersionControl, relativePath } = await this.getGitVersionControlContainsItem(filePath);
+		const gitRepository = new GitCommands(this._conf, this._fp, gitVersionControl.getPath());
 		return gitRepository.showFileContent(relativePath);
 	}
 
@@ -127,7 +121,7 @@ export default class GitVersionControl implements VersionControl {
 	async add(filePaths: Path[]): Promise<void> {
 		const versionContolsAndItsFiles = await this._getVersionControlsAndItsFiles(filePaths);
 		for (const [storage, paths] of Array.from(versionContolsAndItsFiles)) {
-			const gitRepository = new GitRepository(this._conf, this._fp, storage.getPath());
+			const gitRepository = new GitCommands(this._conf, this._fp, storage.getPath());
 			await gitRepository.add(paths);
 		}
 	}
@@ -138,7 +132,7 @@ export default class GitVersionControl implements VersionControl {
 			await storage.restore(false, paths);
 		}
 		const gitChangeFiles: GitStatus[] = filePaths.map((path) => ({ path, type: FileStatus.modified }));
-		this._onChange(gitChangeFiles);
+		await this._onChange(gitChangeFiles);
 	}
 
 	async checkChanges(oldVersion: GitVersion, newVersion: GitVersion): Promise<void> {
@@ -147,7 +141,9 @@ export default class GitVersionControl implements VersionControl {
 
 	async commit(message: string, userData: SourceData, parents?: (string | GitBranch)[]): Promise<void> {
 		const subModules = await this._getSubGitVersionControls();
-		for (const s of subModules) await s.commit(message, userData);
+		for (const s of subModules) {
+			if ((await s.getChanges()).length > 0) await s.commit(message, userData);
+		}
 		await this._gitRepository.commit(message, userData, parents);
 	}
 
@@ -202,19 +198,19 @@ export default class GitVersionControl implements VersionControl {
 		);
 	}
 
-	async getVersionControlContainsItem(
+	async getGitVersionControlContainsItem(
 		path: Path,
-	): Promise<{ versionControl: GitVersionControl; relativePath: Path }> {
+	): Promise<{ gitVersionControl: GitVersionControl; relativePath: Path }> {
 		const submodules = await this._getSubGitVersionControls();
 		for (const submodule of submodules) {
 			const relativeSubmodulePath = await this._getRelativeSubmodulePath(submodule.getPath());
 			if (path.startsWith(relativeSubmodulePath)) {
-				return await submodule.getVersionControlContainsItem(
+				return await submodule.getGitVersionControlContainsItem(
 					relativeSubmodulePath.subDirectory(path).removeExtraSymbols,
 				);
 			}
 		}
-		return { versionControl: this, relativePath: path };
+		return { gitVersionControl: this, relativePath: path };
 	}
 
 	async softReset(head?: GitVersion): Promise<void> {
@@ -239,14 +235,14 @@ export default class GitVersionControl implements VersionControl {
 		const versionControlsAndFiles = new Map<GitVersionControl, Path[]>();
 
 		for (const filePath of filePaths) {
-			const items = await this.getVersionControlContainsItem(filePath);
+			const items = await this.getGitVersionControlContainsItem(filePath);
 			if (!items) return;
-			const { versionControl, relativePath } = items;
+			const { gitVersionControl, relativePath } = items;
 
-			if (versionControlsAndFiles.has(versionControl)) {
-				versionControlsAndFiles.get(versionControl).push(relativePath);
+			if (versionControlsAndFiles.has(gitVersionControl)) {
+				versionControlsAndFiles.get(gitVersionControl).push(relativePath);
 			} else {
-				versionControlsAndFiles.set(versionControl, [relativePath]);
+				versionControlsAndFiles.set(gitVersionControl, [relativePath]);
 			}
 		}
 
@@ -258,8 +254,8 @@ export default class GitVersionControl implements VersionControl {
 		return this._submodulesData;
 	}
 
-	private _onChange(changeFiles: GitStatus[]): void {
-		this._watcherFunc.forEach((f) => f(convertToChangeItem(changeFiles, this._fp)));
+	private async _onChange(changeFiles: GitStatus[]): Promise<void> {
+		for (const f of this._watcherFunc) await f(convertToChangeItem(changeFiles, this._fp));
 	}
 
 	private async _getSubGitVersionControls(): Promise<GitVersionControl[]> {

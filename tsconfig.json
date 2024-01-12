@@ -57,6 +57,7 @@
 		"./target/**/*",
 		"./services/**/*",
 		"./storybook/**/*",
+		"./storybook/.storybook/*",
 		"./e2e/**/*",
 		"./scripts/**/*",
 		"./**/*.config.ts"
@@ -65,6 +66,7 @@
 	"exclude": [
 		"./**/node_modules",
 		"./**/dist/*",
+		"./storybook/storybook-static",
 		"./target/tauri/**/target",
 		"./target/tauri/src-tauri/**",
 		"./services/**/Services/TSClassDiagram/files/*"

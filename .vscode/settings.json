@@ -9,7 +9,8 @@
 	"search.searchEditor.reusePriorSearchConfiguration": true,
 	"cSpell.language": "en,ru",
 	"git.ignoreLimitWarning": true,
-	"cucumberautocomplete.steps": ["e2e/runner/src/**/*.steps.ts"],
+	"cucumber.glue": ["e2e/steps/**/*.steps.ts"],
+	"cucumberautocomplete.steps": ["**/*.steps.ts"],
 	"cucumberautocomplete.strictGherkinCompletion": true,
 	"cucumberautocomplete.strictGherkinValidation": true,
 	"[cucumber]": {

@@ -12,12 +12,12 @@ const getShareLink: Command<{ ctx: Context; catalogName: string; filePath: strin
 	middlewares: [new AuthorizeMiddleware()],
 
 	async do({ ctx, catalogName, filePath }) {
-		const { lib, sp } = this._app;
+		const { lib, rp } = this._app;
 		const catalog = await lib.getCatalog(catalogName);
-		const storage = catalog.getStorage();
+		const storage = catalog.repo.storage;
 		const shareLinkCreator = new ShareLinkHandler();
-		const source = sp.getSourceData(ctx.cookie, await storage.getSourceName());
-		const branch = (await (await catalog.getVersionControl()).getCurrentBranch()).toString();
+		const source = rp.getSourceData(ctx.cookie, await storage.getSourceName());
+		const branch = (await catalog.repo.gvc.getCurrentBranch()).toString();
 		const shareLinkData = await storage.getReviewData(source, branch, new Path(filePath));
 		const ticket = shareLinkCreator.createShareLinkTicket(shareLinkData);
 		return `${ctx.domain}/?share=${ticket}`;

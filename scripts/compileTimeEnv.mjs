@@ -1,18 +1,23 @@
 import child_process from "child_process";
 const { execSync } = child_process;
 
-const names = [
-	"ENTERPRISE_SERVER_URL",
-	"GRAMAX_VERSION",
-	"BUGSNAG_API_KEY",
-	"PRODUCTION",
-	"SERVER_APP",
-	"BUGSNAG_CLIENT_KEY",
-	"BUGSNAG_SERVER_KEY",
-	"SUBMODULE_BRANCH_NAME",
-];
+const env = {
+	ENTERPRISE_SERVER_URL: null,
+	GRAMAX_VERSION: null,
+	BUGSNAG_API_KEY: null,
+	PRODUCTION: null,
+	SERVER_APP: null,
+	SSO_SERVER_URL: null,
+	SSO_PUBLIC_KEY: null,
+	BUGSNAG_CLIENT_KEY: null,
+	BUGSNAG_SERVER_KEY: null,
+	BRANCH: null,
+	COOKIE_SECRET: ".",
+};
 
-const getBuiltInVariables = () => names.reduce((obj, x) => ({ ...obj, [x]: process.env[x] }), {});
+if (!process.env.COOKIE_SECRET) console.warn("WARNING: You need to set COOKIE_SECRET if you run gramax in production.");
+
+const getBuiltInVariables = () => Object.keys(env).reduce((obj, x) => ({ ...obj, [x]: process.env[x] ?? env[x] }), {});
 
 const setVersion = (platform) => {
 	const commitCount = execSync('git rev-list --count --date=local --after="$(date +"%Y-%m-01T00:00:00")" HEAD', {

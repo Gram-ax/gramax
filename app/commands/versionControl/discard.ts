@@ -10,12 +10,12 @@ const discard: Command<{ catalogName: string; filePaths: string[] }, void> = Com
 	middlewares: [new AuthorizeMiddleware()],
 
 	async do({ catalogName, filePaths }) {
-		const { sp, lib, vcp, logger } = this._app;
+		const { rp, lib, logger } = this._app;
 		const catalog = await lib.getCatalog(catalogName);
 		if (!catalog) return;
 
-		await (await catalog.getVersionControl()).discard(filePaths.map((filePath) => new Path(filePath)));
-		await catalog.update(sp, vcp);
+		await catalog.repo.gvc.discard(filePaths.map((filePath) => new Path(filePath)));
+		await catalog.update(rp);
 		logger.logTrace(
 			`Discarded in catalog: ${catalog.getName()}. Files: "${filePaths ? filePaths.join('", "') + '"' : "."}`,
 		);

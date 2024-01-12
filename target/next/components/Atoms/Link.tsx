@@ -1,5 +1,4 @@
 import Url from "@core-ui/ApiServices/Types/Url";
-import { useRouter } from "@core/Api/useRouter";
 import { BaseLink } from "@ext/navigation/NavigationLinks";
 import Link from "next/link";
 import React, { ReactNode, RefObject } from "react";
@@ -20,7 +19,7 @@ const NextLink = (
 	},
 	ref: RefObject<HTMLAnchorElement>,
 ) => {
-	const url = href ? Url.fromBasePath(href?.pathname, useRouter().basePath, href?.query) : null;
+	const url = href ? Url.from({ pathname: href?.pathname, query: href?.query }) : null;
 
 	return (
 		<Link href={url} scroll={true} passHref>

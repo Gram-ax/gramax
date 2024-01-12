@@ -25,8 +25,8 @@ const set: Command<
 		const itemRef = fp.getItemRef(articlePath);
 		const article = catalog.findItemByItemPath(itemRef.path) as Article;
 		await parseContent(article, catalog, ctx, parser, parserContextFactory);
-		const hashItem: HashResourceManager = new HashResourceManager(src, fp, article.parsedContent.resourceManager);
-		await article.parsedContent.resourceManager.setContent(src, isBase64 ? Buffer.from(data, "base64") : data, fp);
+		const hashItem = new HashResourceManager(src, article.parsedContent.resourceManager);
+		await article.parsedContent.resourceManager.setContent(src, isBase64 ? Buffer.from(data, "base64") : data);
 		hashes.deleteHash(hashItem);
 	},
 

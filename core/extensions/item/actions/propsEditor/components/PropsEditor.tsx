@@ -11,28 +11,24 @@ import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import ArticlePropsService from "@core-ui/ContextServices/ArticleProps";
 import IsEditService from "@core-ui/ContextServices/IsEdit";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
+import { useRouter } from "@core/Api/useRouter";
+import { ArticleProps } from "@core/SitePresenter/SitePresenter";
+import { getHeaderRef } from "@ext/artilce/actions/HeaderEditor";
+import { ItemLink } from "@ext/navigation/NavigationLinks";
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
-import { useRouter } from "../../../../../logic/Api/useRouter";
-import { ArticleProps } from "../../../../../logic/SitePresenter/SitePresenter";
-import { getHeaderRef } from "../../../../artilce/actions/HeaderEditor";
 import useLocalize from "../../../../localization/useLocalize";
-import { ItemLink } from "../../../../navigation/NavigationLinks";
 
-const PropsEditor = ({
-	item,
-	itemLink,
-	setItemLink,
-	isCategory,
-	isCurrentItem,
-	brotherFileNames,
-}: {
+interface PropsEditorProps {
 	item: ArticleProps;
 	itemLink: ItemLink;
 	setItemLink: Dispatch<SetStateAction<ItemLink>>;
 	isCategory: boolean;
 	isCurrentItem: boolean;
 	brotherFileNames: string[];
-}) => {
+}
+
+const PropsEditor = (props: PropsEditorProps) => {
+	const { item, itemLink, setItemLink, isCategory, isCurrentItem, brotherFileNames } = props;
 	const domain = PageDataContextService.value.domain;
 	const isEdit = IsEditService.value;
 	const router = useRouter();
@@ -76,7 +72,7 @@ const PropsEditor = ({
 		<ModalLayout
 			isOpen={isOpen}
 			trigger={
-				<div>
+				<div data-qa="qa-clickable">
 					<Icon code="pen" faFw />
 					<span>{`${useLocalize("properties")}...`}</span>
 				</div>
@@ -93,6 +89,7 @@ const PropsEditor = ({
 						<label className="control-label">{useLocalize("title")}</label>
 						<div className="form-group field field-string">
 							<Input
+								dataQa={useLocalize("title")}
 								isCode
 								value={itemProps?.title}
 								onChange={(e) => {
@@ -113,6 +110,7 @@ const PropsEditor = ({
 						</label>
 						<div className="form-group field field-string">
 							<Input
+								dataQa="URL"
 								isCode
 								value={itemProps?.fileName}
 								startText={parentCategoryLink}

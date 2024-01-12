@@ -1,5 +1,6 @@
 import { getHttpsRepositoryUrl } from "@components/libs/utils";
-import GitRepositoryConfig from "@ext/git/core/GitRepository/model/GitRepositoryConfig";
+import GitCommandsConfig from "@ext/git/core/GitCommands/model/GitCommandsConfig";
+import getDistanceToCommonCommit from "@ext/git/utils/getDistanceToCommonCommit";
 import Path from "../../../../logic/FileProvider/Path/Path";
 import FileProvider from "../../../../logic/FileProvider/model/FileProvider";
 import parseStorageUrl from "../../../../logic/utils/parseStorageUrl";
@@ -10,10 +11,10 @@ import Storage from "../../../storage/logic/Storage";
 import getPartSourceDataByStorageName from "../../../storage/logic/utils/getPartSourceDataByStorageName";
 import getSourceNameByData from "../../../storage/logic/utils/getSourceNameByData";
 import createGitHubRepository from "../../actions/Storage/GitHub/logic/createGitHubRepository";
+import GitCommands from "../GitCommands/GitCommands";
+import GitError from "../GitCommands/errors/GitError";
+import GitErrorCode from "../GitCommands/errors/model/GitErrorCode";
 import gitDataParser, { GitDataParser } from "../GitDataParser/GitDataParser";
-import GitRepository from "../GitRepository/GitRepository";
-import GitError from "../GitRepository/errors/GitError";
-import GitErrorCode from "../GitRepository/errors/model/GitErrorCode";
 import GitShareLinkData from "../model/GitShareLinkData";
 import GitSourceData from "../model/GitSourceData.schema";
 import GitStorageData from "../model/GitStorageData";
@@ -25,16 +26,17 @@ export default class GitStorage implements Storage {
 	private _subGitStorages: GitStorage[];
 	private _url: GitStorageUrl;
 	private _submodulesData: SubmoduleData[];
-	private _gitRepository: GitRepository;
+	private _gitRepository: GitCommands;
+	private _syncCount: { pull: number; push: number };
 	private static _gitDataParser: GitDataParser = gitDataParser;
 
-	constructor(private _conf: GitRepositoryConfig, private _path: Path, private _fp: FileProvider) {
-		this._gitRepository = new GitRepository(_conf, this._fp, this._path);
+	constructor(private _conf: GitCommandsConfig, private _path: Path, private _fp: FileProvider) {
+		this._gitRepository = new GitCommands(_conf, this._fp, this._path);
 		void this._initSubGitStorages();
 	}
 
-	static hasInit(conf: GitRepositoryConfig, fp: FileProvider, path: Path): Promise<boolean> {
-		return new GitRepository(conf, fp, path).hasRemote();
+	static hasInit(conf: GitCommandsConfig, fp: FileProvider, path: Path): Promise<boolean> {
+		return new GitCommands(conf, fp, path).hasRemote();
 	}
 
 	static async clone({
@@ -50,7 +52,7 @@ export default class GitStorage implements Storage {
 	}: GitCloneData) {
 		fp.stopWatch();
 
-		const gitRepository = new GitRepository(conf, fp, repositoryPath);
+		const gitRepository = new GitCommands(conf, fp, repositoryPath);
 		const currentUrl = url ?? `https://${data.source.domain}/${data.group}/${data.name}`;
 		try {
 			await gitRepository.clone(getHttpsRepositoryUrl(currentUrl), source, branch, onProgress);
@@ -77,9 +79,9 @@ export default class GitStorage implements Storage {
 		fp.startWatch();
 	}
 
-	static async init(conf: GitRepositoryConfig, repositoryPath: Path, fp: FileProvider, data: GitStorageData) {
+	static async init(conf: GitCommandsConfig, repositoryPath: Path, fp: FileProvider, data: GitStorageData) {
 		if (data.source.sourceType == SourceType.gitHub) await createGitHubRepository(data);
-		const gitRepository = new GitRepository(conf, fp, repositoryPath);
+		const gitRepository = new GitCommands(conf, fp, repositoryPath);
 		await gitRepository.addRemote(data);
 	}
 
@@ -129,10 +131,34 @@ export default class GitStorage implements Storage {
 	async push(data: GitSourceData, recursive = true) {
 		if (getSourceNameByData(data) !== (await this.getSourceName())) return;
 		await this._gitRepository.push(data);
-		const subModules = await this._getSubGitStorages();
 		if (recursive) {
+			const subModules = await this._getSubGitStorages();
 			for (const s of subModules) await s.push(data);
 		}
+		await this.updateSyncCount();
+	}
+
+	async getSyncCount() {
+		if (!this._syncCount) await this.updateSyncCount();
+		return this._syncCount;
+	}
+
+	async updateSyncCount() {
+		const currentBranch = await this._gitRepository.getCurrentBranch();
+		const remoteName = currentBranch.getData().remoteName;
+		if (!remoteName) {
+			this._syncCount = { pull: 0, push: 0 };
+			return;
+		}
+		const localBranchName = currentBranch.toString();
+		const remoteBranchName = (await this._gitRepository.getRemoteName()) + "/" + remoteName.replace("origin/", "");
+		let res = { a: 0, b: 0 };
+		try {
+			res = await getDistanceToCommonCommit(remoteBranchName, localBranchName, this._gitRepository);
+		} catch (e) {
+			console.log("Update sync count error: ", e);
+		}
+		this._syncCount = { pull: res.a, push: res.b };
 	}
 
 	async pull(data: GitSourceData, recursive = true) {
@@ -141,13 +167,15 @@ export default class GitStorage implements Storage {
 		try {
 			const remoteName = (await this._gitRepository.getCurrentBranch()).getData().remoteName;
 			if (remoteName) await this._gitRepository.pull(data);
+
+			if (recursive) {
+				const newSubmodulDatas = await this._getSubmodulesData();
+				await this._updateSubmodules(oldSubmodulDatas, newSubmodulDatas, data);
+			}
 		} finally {
 			await this.update();
 		}
-		if (recursive) {
-			const newSubmodulDatas = await this._getSubmodulesData();
-			await this._updateSubmodules(oldSubmodulDatas, newSubmodulDatas, data);
-		}
+
 		this._fp.startWatch();
 	}
 
@@ -177,12 +205,14 @@ export default class GitStorage implements Storage {
 
 	async fetch(data: GitSourceData) {
 		await this._gitRepository.fetch(data);
+		await this.updateSyncCount();
 	}
 
 	async update() {
 		await this._initSubGitStorages();
 		await this._initRepositoryUrl();
 		await this._initSubmodulesData();
+		await this.updateSyncCount();
 	}
 
 	deleteRemoteBranch(branch: string, data: GitSourceData): Promise<void> {

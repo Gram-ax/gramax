@@ -1,9 +1,9 @@
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import registerMetric from "@core-ui/yandexMetric";
+import { ArticleData } from "@core/SitePresenter/SitePresenter";
 import ThemeService from "../../extensions/Theme/components/ThemeService";
 import interceptPrintShortkeys from "../../extensions/artilce/actions/SaveAsPdf/interceptPrintShortkeys";
 import NextPrevious from "../../extensions/navigation/NextPrevious";
-import { ArticleData } from "@core/SitePresenter/SitePresenter";
 import IsMacService from "../../ui-logic/ContextServices/IsMac";
 import Article from "../Article/Article";
 import ArticleExtensions from "../Article/ArticleExtensions";
@@ -14,8 +14,8 @@ const ArticlePage = ({ data }: { data: ArticleData }) => {
 	const isMac = IsMacService.value;
 	const isLogged = PageDataContextService.value.isLogged;
 	const IsServerApp = PageDataContextService.value.conf.isServerApp;
-
-	if (IsServerApp) registerMetric(data.catalogProps.name, isLogged);
+	const isProduction = PageDataContextService.value.conf.isProduction;
+	if (IsServerApp && isProduction) registerMetric(data.catalogProps.name, isLogged);
 
 	interceptPrintShortkeys(isMac, theme);
 

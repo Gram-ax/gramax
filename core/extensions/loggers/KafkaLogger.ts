@@ -1,6 +1,5 @@
 import { env } from "@app/resolveModule";
 import { Kafka } from "kafkajs";
-import UserInfo from "../security/logic/User/UserInfo2";
 import BaseLogger from "./BaseLogger";
 import Logger from "./Logger";
 
@@ -28,7 +27,7 @@ export default class KafkaLogger extends BaseLogger implements Logger {
 		await this._sendMessage(message, status.warning, procId);
 	}
 
-	async logError(e: Error, userInfo: UserInfo, procId?: string) {
+	async logError(e: Error, procId?: string) {
 		await this._sendMessage(e.message, status.error, procId);
 	}
 

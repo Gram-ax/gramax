@@ -15,21 +15,28 @@ export function dbDiagram(context: ParserContext): Schema {
 		transform: async (node: Node) => {
 			const moreTags = node.attributes.moreTags;
 			const path = new Path(node.attributes.path);
-			const rm = context.getResourceManager();
+			const lm = context.getLinkManager();
 			const diagramRef = {
 				storageId: context.getStorageId(),
-				path: rm.getAbsolutePath(path),
+				path: lm.getAbsolutePath(path),
 			};
 			const diagram = await context.getTablesManager().readDiagram(diagramRef);
+			if (!diagram)
+				return new Tag("Db-diagram", {
+					src: null,
+					tags: "",
+				});
+
 			const schemaPath = new Path(diagram.schema);
 			const tableResourceManager = new ResourceManager(
-				rm.rootPath.subDirectory(diagramRef.path.parentDirectoryPath),
-				rm.rootPath,
+				context.fp,
+				lm.rootPath.subDirectory(diagramRef.path.parentDirectoryPath),
+				lm.rootPath,
 			);
 			const absoluteSchemaPath = tableResourceManager.getAbsolutePath(schemaPath);
-			const relativeSchemaPath = rm.rootPath.join(rm.basePath).getRelativePath(absoluteSchemaPath);
-			rm.set(path);
-			rm.set(relativeSchemaPath);
+			const relativeSchemaPath = lm.rootPath.join(lm.basePath).getRelativePath(absoluteSchemaPath);
+			lm.set(path);
+			lm.set(relativeSchemaPath);
 
 			let primary = "";
 			if (moreTags) {

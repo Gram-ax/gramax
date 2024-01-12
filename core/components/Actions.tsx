@@ -20,6 +20,7 @@ export default styled(
 	}) => {
 		const isLogged = PageDataContextService.value.isLogged;
 		const isServerApp = PageDataContextService.value.conf.isServerApp;
+
 		return (
 			<div className={className} data-qa="app-actions">
 				{isHomePage ? <Search isHomePage={isHomePage} catalogLinks={catalogLinks} /> : null}

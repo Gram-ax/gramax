@@ -6,7 +6,7 @@ import { setTimeout } from "timers/promises";
 import DiskFileProvider from "../../../../../logic/FileProvider/DiskFileProvider/DiskFileProvider";
 import Path from "../../../../../logic/FileProvider/Path/Path";
 import TestGitRepository, { RemoteNames } from "../../../test/TestGitRepository";
-import GitError from "../../GitRepository/errors/GitError";
+import GitError from "../../GitCommands/errors/GitError";
 import GitStorage from "../GitStorage";
 
 const rep = new TestGitRepository(__dirname, "rep");

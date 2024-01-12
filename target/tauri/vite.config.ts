@@ -1,32 +1,29 @@
+import react from "@vitejs/plugin-react";
 import path from "path";
 import { fileURLToPath } from "url";
-import { UserConfig, defineConfig } from "vite";
+import { UserConfig, mergeConfig } from "vite";
 import baseConfig from "../../vite.config";
 
 process.env.VITE_ENVIRONMENT = "tauri";
 
-export default defineConfig((env) => {
-	const config = baseConfig(env);
+export default mergeConfig(baseConfig(), {
+	plugins: [react()],
 
-	config.resolve.alias["fs-extra"] = fileURLToPath(new URL("../../target/tauri/src/tauri", import.meta.url));
+	resolve: {
+		alias: {
+			"fs-extra": fileURLToPath(new URL("../../target/tauri/src/tauri", import.meta.url)),
+		},
+	},
 
-	return {
-		...config,
-
-		publicDir: "../../core/public",
-
-		build: {
-			...config.build,
-			rollupOptions: {
-				...config.build.rollupOptions,
-				input: {
-					index: path.resolve(__dirname, "index.html"),
-					settings: path.resolve(__dirname, "settings.html"),
-					test: path.resolve(__dirname, "test.html"),
-				},
+	build: {
+		rollupOptions: {
+			input: {
+				index: path.resolve(__dirname, "index.html"),
+				settings: path.resolve(__dirname, "settings.html"),
 			},
 		},
+	},
 
-		css: null,
-	} as UserConfig;
-});
+	publicDir: "../../core/public",
+	envDir: "../..",
+} as UserConfig);

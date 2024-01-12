@@ -1,9 +1,8 @@
 let _timeoutId = null;
 
-const trollCaller = (func: () => void, time: number) => {
+const trollCaller = (func: () => Promise<any>, time: number) => {
 	if (_timeoutId) clearTimeout(_timeoutId);
-	const tID = setTimeout(func, time);
-	_timeoutId = tID;
+	_timeoutId = setTimeout(() => void func(), time);
 };
 
 export default trollCaller;

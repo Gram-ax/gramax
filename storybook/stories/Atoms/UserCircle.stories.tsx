@@ -2,7 +2,7 @@ import UserCircleSource from "@components/Atoms/UserCircle";
 import { ComponentMeta } from "@storybook/react";
 
 export default {
-	title: "DocReader/Atoms/UserCircle",
+	title: "gx/Atoms/UserCircle",
 	args: {
 		name: "Test Name (ics-it)",
 	},

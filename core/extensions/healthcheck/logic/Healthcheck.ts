@@ -1,3 +1,4 @@
+import { Article } from "@core/FileStructue/Article/Article";
 import Path from "../../../logic/FileProvider/Path/Path";
 import FileProvider from "../../../logic/FileProvider/model/FileProvider";
 import { Catalog, CatalogErrorArgs, CatalogErrors } from "../../../logic/FileStructue/Catalog/Catalog";
@@ -35,57 +36,11 @@ class Healthcheck {
 				item.ref.path.value,
 			);
 
-			const resources = item.parsedContent.resourceManager.resources;
-
-			for (const resource of resources) {
-				const path = !resource.extension ? resource.join(new Path("_index.md")) : resource;
-				if (await item.parsedContent.resourceManager.exist(path, this._fp)) continue;
-
-				if (ItemExtensions.includes(resource.extension) || !resource.extension) {
-					if (!errors.Links) errors.Links = [];
-					errors.Links.push(
-						this._getRefCatalogError({
-							linkTo: resource.value,
-							logicPath: item.logicPath,
-							title: item.props.title,
-							editorLink: await this._getErrorLink(catalog, item, apiUrlCreator),
-						}),
-					);
-				} else {
-					if (ResourceExtensions.diagrams.includes(resource.extension)) {
-						if (!errors.Diagrams) errors.Diagrams = [];
-						errors.Diagrams.push(
-							this._getRefCatalogError({
-								linkTo: resource.value,
-								logicPath: item.logicPath,
-								title: item.props.title,
-								editorLink: await this._getErrorLink(catalog, item, apiUrlCreator),
-							}),
-						);
-					} else {
-						if (ResourceExtensions.images.includes(resource.extension)) {
-							if (!errors.Images) errors.Images = [];
-							errors.Images.push(
-								this._getRefCatalogError({
-									linkTo: resource.value,
-									logicPath: item.logicPath,
-									title: item.props.title,
-									editorLink: await this._getErrorLink(catalog, item, apiUrlCreator),
-								}),
-							);
-						} else {
-							if (!errors.FileStructure) errors.FileStructure = [];
-							errors.FileStructure.push(
-								this._getRefCatalogError({
-									linkTo: resource.value,
-									logicPath: item.logicPath,
-									title: item.props.title,
-									editorLink: await this._getErrorLink(catalog, item, apiUrlCreator),
-								}),
-							);
-						}
-					}
-				}
+			for (const resource of item.parsedContent.resourceManager.resources) {
+				await this._checkResource(errors, catalog, item, apiUrlCreator, resource);
+			}
+			for (const resource of item.parsedContent.linkManager.resources) {
+				await this._checkResource(errors, catalog, item, apiUrlCreator, resource);
 			}
 		}
 
@@ -132,8 +87,65 @@ class Healthcheck {
 		args,
 	});
 
+	private _checkResource = async (
+		errors: CatalogErrors,
+		catalog: Catalog,
+		item: Article,
+		apiUrlCreator: ApiUrlCreator,
+		resource: Path,
+	) => {
+		const path = !resource.extension ? resource.join(new Path("_index.md")) : resource;
+		if (await item.parsedContent.resourceManager.exists(path)) return;
+
+		if (ItemExtensions.includes(resource.extension) || !resource.extension) {
+			if (!errors.Links) errors.Links = [];
+			errors.Links.push(
+				this._getRefCatalogError({
+					linkTo: resource.value,
+					logicPath: item.logicPath,
+					title: item.props.title,
+					editorLink: await this._getErrorLink(catalog, item, apiUrlCreator),
+				}),
+			);
+		} else {
+			if (ResourceExtensions.diagrams.includes(resource.extension)) {
+				if (!errors.Diagrams) errors.Diagrams = [];
+				errors.Diagrams.push(
+					this._getRefCatalogError({
+						linkTo: resource.value,
+						logicPath: item.logicPath,
+						title: item.props.title,
+						editorLink: await this._getErrorLink(catalog, item, apiUrlCreator),
+					}),
+				);
+			} else {
+				if (ResourceExtensions.images.includes(resource.extension)) {
+					if (!errors.Images) errors.Images = [];
+					errors.Images.push(
+						this._getRefCatalogError({
+							linkTo: resource.value,
+							logicPath: item.logicPath,
+							title: item.props.title,
+							editorLink: await this._getErrorLink(catalog, item, apiUrlCreator),
+						}),
+					);
+				} else {
+					if (!errors.FileStructure) errors.FileStructure = [];
+					errors.FileStructure.push(
+						this._getRefCatalogError({
+							linkTo: resource.value,
+							logicPath: item.logicPath,
+							title: item.props.title,
+							editorLink: await this._getErrorLink(catalog, item, apiUrlCreator),
+						}),
+					);
+				}
+			}
+		}
+	};
+
 	private _getErrorLink = async (catalog: Catalog, item: Item, apiUrlCreator: ApiUrlCreator): Promise<string> => {
-		const storage = catalog.getStorage();
+		const storage = catalog.repo.storage;
 		const path = catalog.getRelativeRepPath(item.ref);
 
 		return this._isServerApp ? await storage.getFileLink(path) : apiUrlCreator.getRedirectVScodeUrl().toString();

@@ -1,7 +1,7 @@
 import ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
 import FetchService from "@core-ui/ApiServices/FetchService";
-import { Dispatch, SetStateAction } from "react";
 import { ArticleData } from "@core/SitePresenter/SitePresenter";
+import { Dispatch, SetStateAction } from "react";
 
 let _flag: boolean;
 let _data: ArticleData;
@@ -33,6 +33,10 @@ export default abstract class ArticleUpdaterService {
 		const data = await ArticleUpdaterService._getUpdateDate(apiUrlCreator);
 		_setIsLoading(false);
 		if (data && data?.articleProps?.ref?.path == _data.articleProps.ref.path) _onUpdate(data);
+	}
+
+	public static setUpdateData(data: ArticleData) {
+		_onUpdate?.(data);
 	}
 
 	private static async _getUpdateDate(apiUrlCreator: ApiUrlCreator): Promise<ArticleData> {

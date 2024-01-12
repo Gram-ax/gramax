@@ -1,7 +1,6 @@
 import { getExecutingEnvironment } from "@app/resolveModule";
 import Bugsnag from "@bugsnag/js";
 import sendBug from "../bugsnag/logic/sendBug";
-import UserInfo from "../security/logic/User/UserInfo2";
 import BaseLogger from "./BaseLogger";
 import Logger from "./Logger";
 
@@ -12,11 +11,9 @@ export default class BugsnagLogger extends BaseLogger implements Logger {
 		Bugsnag.start({ apiKey: bugsnagApiKey });
 	}
 
-	logError(e: Error, userInfo?: UserInfo) {
+	logError(e: Error) {
 		if (!this._checkErrorLogLevel()) return;
 		void sendBug(e, (event) => {
-			console.log(userInfo, e);
-			if (userInfo) event.setUser(userInfo.id, userInfo.mail, userInfo.name);
 			event.addFeatureFlag("env", getExecutingEnvironment());
 		});
 	}

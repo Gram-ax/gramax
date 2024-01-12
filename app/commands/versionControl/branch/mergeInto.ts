@@ -1,9 +1,8 @@
-import VersionControlType from "../../../../core/extensions/VersionControl/model/VersionControlType";
+import deleteBranchAfterMerge from "@app/commands/versionControl/branch/mergeConflict/utils/deleteBranchAfterMerge";
 import MergeType from "../../../../core/extensions/git/actions/MergeConflictHandler/model/MergeType";
-import GitError from "../../../../core/extensions/git/core/GitRepository/errors/GitError";
-import GitErrorCode from "../../../../core/extensions/git/core/GitRepository/errors/model/GitErrorCode";
+import GitError from "../../../../core/extensions/git/core/GitCommands/errors/GitError";
+import GitErrorCode from "../../../../core/extensions/git/core/GitCommands/errors/model/GitErrorCode";
 import GitStorage from "../../../../core/extensions/git/core/GitStorage/GitStorage";
-import GitVersionControl from "../../../../core/extensions/git/core/GitVersionControl/GitVersionControl";
 import GitSourceData from "../../../../core/extensions/git/core/model/GitSourceData.schema";
 import { AuthorizeMiddleware } from "../../../../core/logic/Api/middleware/AuthorizeMiddleware";
 import Context from "../../../../core/logic/Context/Context";
@@ -18,57 +17,56 @@ const mergeInto: Command<{ ctx: Context; catalogName: string; branchName: string
 		middlewares: [new AuthorizeMiddleware()],
 
 		async do({ ctx, catalogName, branchName, deleteAfterMerge }) {
-			const { lib, sp } = this._app;
+			const { lib, rp } = this._app;
 			const catalog = await lib.getCatalog(catalogName);
 			if (!catalog) return;
-			const vc = await catalog.getVersionControl();
-			if (vc.getType() !== VersionControlType.git) return;
+			const gvc = catalog.repo.gvc;
 
-			const gvc = vc as GitVersionControl;
-			const storage = catalog.getStorage() as GitStorage;
-			const sourceData = sp.getSourceData(ctx.cookie, await storage.getSourceName()) as GitSourceData;
-			const branchBefore = await gvc.getCurrentBranch();
+			const storage = catalog.repo.storage as GitStorage;
+			const sourceData = rp.getSourceData(ctx.cookie, await storage.getSourceName()) as GitSourceData;
+			const branchNameBefore = (await gvc.getCurrentBranch()).toString();
 
 			await this._commands.versionControl.branch.checkout.do({
 				branch: branchName,
 				catalogName,
 				ctx,
 			});
-			const headBeforeMerge = await gvc.getCurrentVersion();
-
-			const abortMerge = async () => {
-				await this._commands.versionControl.branch.mergeConflict.abort.do({
-					theirsBranch: branchBefore.toString(),
-					catalogName,
-					headBeforeMerge: headBeforeMerge.toString(),
-				});
-			};
+			const headBeforeMerge = (await gvc.getCurrentVersion()).toString();
 
 			try {
-				await gvc.mergeBranch(sourceData, branchBefore);
+				await gvc.mergeBranch(sourceData, branchNameBefore);
 			} catch (error) {
 				const e: GitError = error;
 				const errorCode = e.props.errorCode;
-				e.setProps({ mergeType: MergeType.Branches, fromMerge: true });
-				if (errorCode !== GitErrorCode.MergeConflictError) await abortMerge();
+				e.setProps({
+					mergeType: MergeType.Branches,
+					fromMerge: true,
+					deleteAfterMerge,
+					branchNameBefore,
+					headBeforeMerge,
+				});
+				if (errorCode !== GitErrorCode.MergeConflictError)
+					await this._commands.versionControl.branch.mergeConflict.abort.do({
+						theirsBranch: branchNameBefore,
+						catalogName,
+						headBeforeMerge,
+					});
 				throw e;
 			}
 
-			try {
-				if (deleteAfterMerge) {
-					const remoteBranchName = branchBefore.getData().remoteName;
-					if (remoteBranchName) {
-						await storage.deleteRemoteBranch(remoteBranchName, sourceData);
-					}
-					await gvc.deleteLocalBranch(branchBefore.getData().name);
-				}
-				await storage.push(sourceData);
-			} catch (error) {
-				const e: GitError = error;
-				e.setProps({ mergeType: MergeType.Branches, fromMerge: true });
-				await abortMerge();
-				throw e;
+			if (deleteAfterMerge) {
+				await deleteBranchAfterMerge({
+					commands: this._commands,
+					branchNameBefore,
+					headBeforeMerge,
+					catalogName,
+					sourceData,
+					storage,
+					gvc,
+				});
 			}
+
+			await storage.push(sourceData);
 		},
 
 		params(ctx, q) {

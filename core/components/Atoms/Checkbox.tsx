@@ -6,7 +6,8 @@ const Checkbox = styled(
 	({
 		children,
 		checked,
-		interactive = false,
+		disabled,
+		interactive,
 		borderClickArea = 4,
 		onChange,
 		onClick,
@@ -15,6 +16,7 @@ const Checkbox = styled(
 	}: {
 		children?: React.ReactNode;
 		checked?: boolean;
+		disabled?: boolean;
 		interactive?: boolean;
 		borderClickArea?: number;
 		onChange?: (isChecked: boolean) => void;
@@ -27,6 +29,7 @@ const Checkbox = styled(
 		const checkboxRef = useRef<HTMLInputElement>(null);
 
 		const currentOnClick = () => {
+			if (disabled) return;
 			if (onClick) onClick(!currentChecked);
 			setCurrentChecked(!currentChecked);
 		};
@@ -80,6 +83,7 @@ const Checkbox = styled(
 				<div onClick={interactive ? null : currentOnClick}>
 					{borderAreaDiv}
 					<input
+						disabled={disabled}
 						type="checkbox"
 						className="atom-checkbox"
 						checked={currentChecked}

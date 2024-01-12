@@ -1,9 +1,9 @@
 import SelectSrc from "@components/Select/Select";
-import { ComponentMeta } from "@storybook/react";
+import { Meta } from "@storybook/react";
 import BlockDecorator from "../../../../styles/decorators/InlineDecorator";
 
 export default {
-	title: "DocReader/extensions/app/Select",
+	title: "gx/extensions/app/Select",
 	args: {
 		create: true,
 		loading: true,
@@ -21,7 +21,7 @@ export default {
 		),
 		BlockDecorator,
 	],
-} as ComponentMeta<typeof SelectSrc>;
+} as Meta<typeof SelectSrc>;
 
 export const DefaultSelect = (props) => {
 	return (

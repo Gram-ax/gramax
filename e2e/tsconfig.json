@@ -1,13 +1,13 @@
 {
-	"extends": "../tsconfig.json",
-
 	"ts-node": {
 		"transpileOnly": true
 	},
 
 	"compilerOptions": {
-		"module": "commonjs"
+		"module": "CommonJS"
 	},
 
-	"include": ["./runner/index.d.ts", "./**/*"]
+	"include": ["**/*.ts", "**/*.d.ts"],
+
+	"extends": "../tsconfig.json"
 }

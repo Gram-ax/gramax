@@ -359,10 +359,13 @@ samp {
 .article .img-h + p > em:first-of-type,
 .article span.react-renderer.node-image + em {
 	display: block;
-	text-align: center;
+	font-size: 13px;
+	margin-top: -4px;
 	font-weight: 300;
-	margin-bottom: 25px;
-	margin-top: -5px;
+	line-height: 1.4em;
+	text-align: center;
+	margin-bottom: 16px;
+	color: var(--color-image-title);
 }
 
 .article .lightbox .__react_modal_image__large_img {
@@ -427,15 +430,20 @@ samp {
 .article .article-body a {
 	color: var(--color-link);
 	font-weight: inherit;
+	/* !!! */
+	cursor: text;
 }
 
 .article .article-body a:hover {
 	text-decoration: underline;
 }
+/* !!! */
+.article .linkViewMode a {
+	cursor: pointer;
+}
 
 .article strong {
 	font-weight: 500;
-	font-size: 0.95em;
 	color: var(--color-article-strong-text);
 }
 
@@ -660,6 +668,24 @@ samp {
 
 .article .hover-right-button > i {
 	padding-left: 0 !important;
+}
+
+.buttonView .button .iconFrame {
+	display: flex;
+}
+
+.buttonView .button .iconFrame span {
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	max-width: 170px;
+}
+
+.buttonView .button .iconFrame i {
+	margin-top: 2px;
+	align-items: start;
+	justify-content: center;
+	display: flex;
 }
 
 @media print {

@@ -28,7 +28,7 @@ const ErrorForm = ({
 		<ModalLayoutLight>
 			<FormStyle>
 				<>
-					<legend>
+					<legend data-qa="qa-error-modal">
 						{icon && <Icon style={{ color: icon.color }} code={icon.code} />}
 						<span className="min">{title}</span>
 					</legend>

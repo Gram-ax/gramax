@@ -3,7 +3,7 @@ import GetErrorComponent from "../../errorHandlers/logic/GetErrorComponent";
 import CheckoutConflictErrorComponent from "../actions/Branch/error/components/CheckoutConflictError";
 import MergeErrorConfirm from "../actions/MergeConflictHandler/error/components/MergeErrorConfirm";
 import MergeNotSupportedErrorComponent from "../actions/MergeConflictHandler/error/components/MergeNotSupportedError";
-import GitErrorCode from "../core/GitRepository/errors/model/GitErrorCode";
+import GitErrorCode from "../core/GitCommands/errors/model/GitErrorCode";
 import NotFoundErrorHandler from "./NotFoundErrorHandler";
 
 const getGitErrors = (): {

@@ -4,9 +4,8 @@ import FormStyle from "@components/Form/FormStyle";
 import Input from "@components/Labels/Input";
 import ModalLayout from "@components/Layouts/Modal";
 import ModalLayoutLight from "@components/Layouts/ModalLayoutLight";
-import { ListItem } from "@components/List/Item";
+import { ListItem, ButtonItem } from "@components/List/Item";
 import ListLayout from "@components/List/ListLayout";
-import LoadingListItemElement from "@components/List/LoadingListItem";
 import FetchService from "@core-ui/ApiServices/FetchService";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
@@ -18,17 +17,15 @@ import GitBranchData from "@ext/git/core/GitBranch/model/GitBranchData";
 import useLocalize from "@ext/localization/useLocalize";
 import { useEffect, useRef, useState } from "react";
 
-const BranchActions = ({
-	currentBranch,
-	trigger,
-	onNewBranch = () => {},
-	onStopMerge = () => {},
-}: {
+interface BranchActionsProps {
 	currentBranch: string;
 	trigger: JSX.Element;
 	onNewBranch?: (branchName: string) => void;
 	onStopMerge?: (isError: boolean) => void;
-}) => {
+}
+
+const BranchActions = (props: BranchActionsProps) => {
+	const { currentBranch, trigger, onNewBranch = () => {}, onStopMerge = () => {} } = props;
 	const lang = PageDataContextService.value.lang;
 	const apiUrlCreator = ApiUrlCreatorService.value;
 	const readOnly = PageDataContextService.value.conf.isReadOnly;
@@ -51,14 +48,15 @@ const BranchActions = ({
 	const [brancTohMergeInTo, setBrancTohMergeInTo] = useState<string>(null);
 	const [deleteAfterMerge, setDeleteAfterMerge] = useState<boolean>(null);
 	const [canMerge, setCanMerge] = useState<boolean>(null);
+	const [isLoadingData, setIsLoadingData] = useState(false);
 
 	const canInitNewBranch =
 		isInitNewBranch && !isNewBranch && initNewBranchName && !isInitNewBranchNameExist && !apiProcess;
 	const canSwitchBranch =
 		!isInitNewBranch && displayedBranch && !isNewBranch && currentBranch !== displayedBranch && !apiProcess;
-	const areNewBranchesLoading = newBranches.length === 0;
 
 	const getNewBranches = async () => {
+		setIsLoadingData(true);
 		const getBranchUrl = apiUrlCreator.getVersionControlResetBranchesUrl();
 		const response = await FetchService.fetch<GitBranchData[]>(getBranchUrl);
 		if (!response.ok) {
@@ -66,6 +64,7 @@ const BranchActions = ({
 			return;
 		}
 		setNewBranches(await response.json());
+		setIsLoadingData(false);
 	};
 
 	const switchBranch = async () => {
@@ -132,6 +131,8 @@ const BranchActions = ({
 		if (isInitNewBranch) initNewBranchInputRef.current.focus();
 	}, [isInitNewBranch]);
 
+	const areNewBranchesLoading = newBranches.length === 0;
+
 	useEffect(() => {
 		if (areNewBranchesLoading) return;
 		if (isInitNewBranch) initNewBranchInputRef.current.focus();
@@ -142,10 +143,17 @@ const BranchActions = ({
 		setBranches(newBranches.filter((b) => b.name != currentBranch));
 	}, [newBranches]);
 
-	const addNewBranchListItem: ListItem = {
-		element: <AddNewBranchListItem addNewBranchText={addNewBranchText} />,
-		labelField: addNewBranchText,
-	};
+	const addNewBranchListItem: ButtonItem[] = !readOnly
+		? [
+				{
+					element: <AddNewBranchListItem addNewBranchText={addNewBranchText} />,
+					labelField: addNewBranchText,
+					onCLick: () => {
+						setIsInitNewBranch(true);
+					},
+				},
+		  ]
+		: undefined;
 
 	const branchListItems: ListItem[] = [
 		...branches.map((b) => {
@@ -163,16 +171,13 @@ const BranchActions = ({
 		}),
 	];
 
-	const loadingListItem: ListItem[] = [...(!readOnly ? [addNewBranchListItem] : []), LoadingListItemElement];
-	const branchListItemsWithAdd: ListItem[] = [...(!readOnly ? [addNewBranchListItem] : []), ...branchListItems];
-
 	return (
 		<ModalLayout
 			trigger={trigger}
 			isOpen={isOpen}
 			onOpen={() => {
 				setIsOpen(true);
-				getNewBranches();
+				void getNewBranches();
 			}}
 			onClose={() => {
 				setIsInitNewBranch(false);
@@ -197,25 +202,22 @@ const BranchActions = ({
 							<legend>{useLocalize("changeBranch", lang)}</legend>
 							<div className="form-group field field-string">
 								<ListLayout
+									isLoadingData={isLoadingData}
+									selectAllOnFocus={true}
 									onSearchClick={() => {
 										setIsInitNewBranch(false);
 										setDisplayedBranch("");
 									}}
-									hideScrollbar={areNewBranchesLoading}
-									items={areNewBranchesLoading ? loadingListItem : branchListItemsWithAdd}
+									openByDefault={true}
+									buttons={addNewBranchListItem}
+									items={branchListItems}
 									onItemClick={(elem) => {
-										if (areNewBranchesLoading) {
-											setIsInitNewBranch(elem === loadingListItem[0].labelField && !readOnly);
-											return;
-										}
-										setIsInitNewBranch(elem === branchListItemsWithAdd[0].labelField && !readOnly);
 										setDisplayedBranch(elem ?? currentBranch);
 									}}
 									placeholder={useLocalize("findBranch", lang)}
-									focusOnMount={false}
 								/>
 							</div>
-							{isInitNewBranch ? (
+							{isInitNewBranch && (
 								<div className="init-new-branch-input form-group">
 									<Input
 										ref={initNewBranchInputRef}
@@ -224,7 +226,7 @@ const BranchActions = ({
 										onChange={(e) => setInitNewBranchName(e.currentTarget.value)}
 									/>
 								</div>
-							) : null}
+							)}
 							<div className="buttons">
 								{isInitNewBranch ? (
 									<Button disabled={!canInitNewBranch} onClick={initNewBranch}>
@@ -243,7 +245,8 @@ const BranchActions = ({
 									onBrancTohMergeInToChange={(value) => setBrancTohMergeInTo(value)}
 									onDeleteAfterMergeChange={(value) => setDeleteAfterMerge(value)}
 									currentBranch={currentBranch}
-									branches={areNewBranchesLoading ? [LoadingListItemElement] : branchListItems}
+									isLoadingData={isLoadingData}
+									branches={branchListItems}
 								/>
 							</IsReadOnlyHOC>
 						</>

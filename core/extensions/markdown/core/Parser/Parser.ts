@@ -13,42 +13,35 @@ import Markdoc, {
 import getNodeElementRenderModels from "../render/logic/getRenderElements/getNodeElementRenderModels";
 import getTagElementRenderModels from "../render/logic/getRenderElements/getTagElementRenderModels";
 
+import { Content } from "@core/FileStructue/Article/Article";
 import { getComponentsHTML } from "../render/components/getComponents/getComponents";
 import MdParser from "./MdParser/MdParser";
-
-import katexPlugin from "@traptitech/markdown-it-katex";
-import { Content } from "@core/FileStructue/Article/Article";
 
 import { Node } from "prosemirror-model";
 import { ProsemirrorMarkdownParser, ProsemirrorTransformer } from "../edit/logic/Prosemirror";
 import { schema } from "../edit/logic/Prosemirror/schema";
 import { getTokens } from "../edit/logic/Prosemirror/tokens";
 
+import commentNodeTransformer from "@ext/markdown/elements/comment/legacy/transformer/commentNodeTransformer";
 import { JSONContent } from "@tiptap/core";
 import getTocItems, { getLevelTocItemsByRenderableTree } from "../../../navigation/article/logic/createTocItems";
 import inlineCutNodeTransformer from "../../elements/cut/edit/logic/inlineCutNodeTransformer";
-import diagramsNodeTransformer from "../../elements/diagrams/logic/transformer/imageNodeTransformer";
+import diagramsNodeTransformer from "../../elements/diagrams/logic/transformer/diagramsNodeTransformer";
 import filesParserTransformer from "../../elements/file/edit/logic/filesParserTransformer";
 import imageNodeTransformer from "../../elements/image/edit/logic/transformer/imageNodeTransformer";
 import getBlockMdNodeTransformer from "../../elements/md/logic/getBlockMdNodeTransformer";
 import emptyParagraphTransformer from "../../elements/paragraph/edit/logic/emptyParagraphTransformer";
 import MarkdownFormatter from "../edit/logic/Formatter/Formatter";
 import Transformer from "./Transformer/Transformer";
-import commentNodeTransformer from "@ext/markdown/elements/comment/legacy/transformer/commentNodeTransformer";
+
+const katexPlugin = import("@traptitech/markdown-it-katex");
 
 export type EditRenderableTreeNode = RenderableTreeNode | Node;
 
 export default class MarkdownParser {
-	private _tokenizer: Tokenizer;
-
-	constructor() {
-		this._tokenizer = new Tokenizer({ linkify: true });
-		this._tokenizer.use(katexPlugin, { blockClass: "math-block", errorColor: " #cc0000" });
-	}
-
 	public async parse(content: string, context?: ParserContext, requestUrl?: string): Promise<Content> {
 		const schemes = this._getSchemes(context);
-		const tokens = this._getTokens(content, schemes);
+		const tokens = await this._getTokens(content, schemes);
 
 		const renderTree = await this._getRenderableTreeNode(tokens, schemes, context);
 		const editTree = await this._editParser(tokens, schemes, context);
@@ -57,13 +50,14 @@ export default class MarkdownParser {
 			renderTree,
 			htmlValue: await this.parseToHtml(content, context, requestUrl),
 			tocItems: getTocItems(getLevelTocItemsByRenderableTree((renderTree as Tag)?.children ?? [])),
+			linkManager: context?.getLinkManager(),
 			resourceManager: context?.getResourceManager(),
 		};
 	}
 
 	public async editParse(content: string, context?: ParserContext): Promise<JSONContent> {
 		const schemes = this._getSchemes(context);
-		const tokens = this._getTokens(content, schemes);
+		const tokens = await this._getTokens(content, schemes);
 		return this._editParser(tokens, schemes, context);
 	}
 
@@ -79,7 +73,7 @@ export default class MarkdownParser {
 		parserOptions?: ParserOptions,
 	): Promise<RenderableTreeNodes> {
 		const schemes = this._getSchemes(context);
-		const tokens = this._getTokens(content, schemes);
+		const tokens = await this._getTokens(content, schemes);
 		const renderTreeNode = await this._getRenderableTreeNode(tokens, schemes, context);
 		return parserOptions ? this._oneElementTransformer(renderTreeNode, parserOptions) : renderTreeNode;
 	}
@@ -88,13 +82,13 @@ export default class MarkdownParser {
 		return this.getRenderMarkdownIt(content);
 	}
 
-	public getTokens(content: string, context: ParserContext): Token[] {
+	public async getTokens(content: string, context: ParserContext): Promise<Token[]> {
 		const schemes = this._getSchemes(context);
-		return this._getTokens(content, schemes);
+		return await this._getTokens(content, schemes);
 	}
 
-	public getRenderMarkdownIt(content: string): string {
-		return this._tokenizer.renderToHtml(content);
+	public async getRenderMarkdownIt(content: string): Promise<string> {
+		return (await this._getTokenizer()).renderToHtml(content);
 	}
 
 	private _oneElementTransformer(node: RenderableTreeNodes, parserOptions: ParserOptions): RenderableTreeNodes {
@@ -117,13 +111,18 @@ export default class MarkdownParser {
 		return { tags, nodes };
 	}
 
-	private _getTokens(content: string, schemes?: Schemes) {
+	private async _getTokens(content: string, schemes?: Schemes) {
 		const mdParser = new MdParser({ tags: schemes.tags });
 		const parseDoc = mdParser.preParse(content);
-		const tockens = this._tokenizer.tokenize(parseDoc);
+		const tockens = (await this._getTokenizer()).tokenize(parseDoc);
 		return new Transformer().tableTransform(tockens);
 	}
 
+	private async _getTokenizer() {
+		const tokenizer = new Tokenizer({ linkify: true });
+		tokenizer.use((await katexPlugin).default, { blockClass: "math-block", errorColor: " #cc0000" });
+		return tokenizer;
+	}
 	private async _getRenderableTreeNode(
 		tokens: Token[],
 		schemes: Schemes,
@@ -136,7 +135,7 @@ export default class MarkdownParser {
 	}
 
 	private async _editParser(tokens: Token[], schemes: Schemes, context?: ParserContext): Promise<JSONContent> {
-		const prosemirrorParser = new ProsemirrorMarkdownParser(schema, this._tokenizer, getTokens(context));
+		const prosemirrorParser = new ProsemirrorMarkdownParser(schema, await this._getTokenizer(), getTokens(context));
 
 		const transformer = new ProsemirrorTransformer({ ...schemes.tags, ...schemes.nodes }, [
 			emptyParagraphTransformer,

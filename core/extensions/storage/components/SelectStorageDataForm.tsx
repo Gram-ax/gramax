@@ -2,7 +2,7 @@ import Icon from "@components/Atoms/Icon";
 import FormStyle from "@components/Form/FormStyle";
 import Sidebar from "@components/Layouts/Sidebar";
 import ActionListItem from "@components/List/ActionListItem";
-import { ListItem } from "@components/List/Item";
+import { ButtonItem } from "@components/List/Item";
 import ListLayout from "@components/List/ListLayout";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import { useEffect, useState } from "react";
@@ -17,28 +17,28 @@ import getSourceNameByData from "../logic/utils/getSourceNameByData";
 import StorageData from "../models/StorageData";
 import SourceListItem from "./SourceListItem";
 
-const SelectStorageDataForm = ({
-	title,
-	children,
-	forClone,
-	onChange,
-}: {
+interface SelectStorageDataFormProps {
 	title: string;
 	children?: JSX.Element;
 	forClone?: boolean;
 	onChange?: (data: StorageData) => void;
-}) => {
+}
+
+const SelectStorageDataForm = (props: SelectStorageDataFormProps) => {
+	const { title, children, forClone, onChange } = props;
 	const pageProps = PageDataContextService.value;
 	const [sourceDatas, setStorageDatas] = useState<SourceData[]>(pageProps.sourceDatas);
 	const [selectSourceData, setSelectStorageData] = useState<SourceData>(null);
 
-	const addNewStorageListItem: ListItem = {
+	const [externalIsOpen, setExternalIsOpen] = useState(false);
+	const addNewStorageListItem: ButtonItem = {
 		element: (
 			<CreateSourceData
+				externalIsOpen={externalIsOpen}
 				trigger={
 					<div style={{ width: "100%" }}>
 						<ActionListItem>
-							<div style={{ width: "100%", padding: "5px 10px" }}>
+							<div style={{ width: "100%", padding: "6px 11px" }}>
 								<Sidebar
 									title={useLocalize("addNewStorage") + "..."}
 									leftActions={[<Icon code={"plus"} key={0} />]}
@@ -53,6 +53,7 @@ const SelectStorageDataForm = ({
 				}}
 			/>
 		),
+		onCLick: () => setExternalIsOpen(true),
 		labelField: "",
 	};
 
@@ -68,12 +69,10 @@ const SelectStorageDataForm = ({
 					<label className="control-label">{useLocalize("storage")}</label>
 					<div className="input-lable">
 						<ListLayout
-							openByDefault={true}
 							placeholder={`${useLocalize("find")} ${useLocalize("storage2")}`}
 							item={
-								!selectSourceData
-									? ""
-									: {
+								selectSourceData
+									? {
 											element: (
 												<SourceListItem
 													code={selectSourceData.sourceType}
@@ -82,18 +81,19 @@ const SelectStorageDataForm = ({
 											),
 											labelField: getSourceNameByData(selectSourceData),
 									  }
+									: ""
 							}
+							buttons={[addNewStorageListItem]}
 							items={[
-								addNewStorageListItem,
 								...sourceDatas.map((d) => ({
 									element: <SourceListItem code={d.sourceType} text={getSourceNameByData(d)} />,
 									labelField: getSourceNameByData(d),
 								})),
 							]}
 							onItemClick={(labelField, _, idx) => {
-								if (labelField) setSelectStorageData(sourceDatas[idx - 1]);
+								if (labelField) setSelectStorageData(sourceDatas[idx]);
 							}}
-							onSearchClick={() => setSelectStorageData(null)}
+							openByDefault={true}
 						/>
 					</div>
 				</div>
@@ -111,7 +111,6 @@ const SelectStorageDataForm = ({
 						forClone={forClone}
 					/>
 				)}
-
 				{children}
 			</>
 		</FormStyle>

@@ -1,14 +1,12 @@
 import ArticleUpdaterService from "@components/Article/ArticleUpdater/ArticleUpdaterService";
+import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
+import ArticlePropsService from "@core-ui/ContextServices/ArticleProps";
 import styled from "@emotion/styled";
 import Button from "@ext/markdown/core/edit/components/Menu/Button";
 import { Editor } from "@tiptap/core";
-import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
-import ArticlePropsService from "@core-ui/ContextServices/ArticleProps";
-import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import createImages from "../logic/createImages";
 
 const ImageMenuButton = styled(({ editor, className }: { editor: Editor; className?: string }) => {
-	const lang = PageDataContextService.value.lang;
 	const articleProps = ArticlePropsService.value;
 	const apiUrlCreator = ApiUrlCreatorService.value;
 
@@ -25,7 +23,7 @@ const ImageMenuButton = styled(({ editor, className }: { editor: Editor; classNa
 					id="image"
 					accept="image/*"
 					onChange={(event) =>
-						createImages([...event.currentTarget.files], editor.view, articleProps, apiUrlCreator, lang)
+						createImages([...event.currentTarget.files], editor.view, articleProps, apiUrlCreator)
 					}
 				/>
 				<Button icon="image" />

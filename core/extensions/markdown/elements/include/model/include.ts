@@ -17,7 +17,7 @@ export function include(context: ParserContext): Schema {
 
 			if (!path.extension) path.extension = "md";
 
-			context.getResourceManager().set(path);
+			context.getLinkManager().set(path);
 			const childPath = context.getArticle().ref.path.parentDirectoryPath.join(path);
 			const article = context.getItemByPath(childPath) as Article;
 			if (!article) {

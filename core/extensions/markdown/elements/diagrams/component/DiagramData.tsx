@@ -46,12 +46,9 @@ export default function DiagramData({
 		setError(null);
 
 		(async () => {
-			const res = await FetchService.fetch(
-				content
-					? apiUrlCreator.getDiagramByContentUrl(content, diagramName)
-					: apiUrlCreator.getDiagram(src, diagramName),
-			);
-
+			const res = content
+				? await FetchService.fetch(apiUrlCreator.getDiagramByContentUrl(diagramName), content)
+				: await FetchService.fetch(apiUrlCreator.getDiagram(src, diagramName));
 			if (!res.ok) return setError(await res.json());
 			const data = await (isC4Diagram ? res.json() : res.text());
 			setData(data);

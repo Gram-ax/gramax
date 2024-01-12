@@ -8,6 +8,9 @@ import ApiRequest from "@core/Api/ApiRequest";
 import ApiResponse from "@core/Api/ApiResponse";
 import Query from "@core/Api/Query";
 import { apiUtils } from "@core/Api/apiUtils";
+import ApiMiddleware from "@core/Api/middleware/ApiMiddleware";
+import Middleware from "@core/Api/middleware/Middleware";
+import buildMiddleware from "@core/Api/middleware/buildMiddleware";
 import localizer from "@ext/localization/core/Localizer";
 import BrowserApiResponse from "./BrowserApiResponse";
 
@@ -25,16 +28,14 @@ const fetchSelf = async (url: Url, body?: BodyInit): Promise<Response> => {
 	const req: ApiRequest = { headers: {}, query: url.query, body: parseBody(body) };
 	const res: ApiResponse = new BrowserApiResponse();
 
-	const ctx = app.contextFactory.fromBrowser(localizer.extract(location.pathname), {});
-	try {
+	const process: Middleware = new ApiMiddleware(async (req, res) => {
+		const ctx = app.contextFactory.fromBrowser(localizer.extract(location.pathname), {});
 		const params = command.params(ctx, req.query as Query, req.body);
 		const result = await command.do(params);
 		await respond(app, req, res, command.kind, result);
-	} catch (err) {
-		apiUtils.sendError(res, err);
-		app.logger.logError(err, ctx.user?.info);
-		console.log(err);
-	}
+	});
+
+	await buildMiddleware(app, commands, command.middlewares, process).Process(req, res);
 
 	return res as unknown as Response;
 };

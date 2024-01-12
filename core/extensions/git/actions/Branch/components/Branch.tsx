@@ -1,3 +1,4 @@
+import { getExecutingEnvironment } from "@app/resolveModule";
 import ArticleUpdaterService from "@components/Article/ArticleUpdater/ArticleUpdaterService";
 import { refreshPage } from "@core-ui/ContextServices/RefreshPageContext";
 import BranchActions from "@ext/git/actions/Branch/components/BranchActions";
@@ -13,15 +14,15 @@ import BranchUpdaterService from "../logic/BranchUpdaterService";
 
 const Branch = () => {
 	const router = useRouter();
-	const catalogProps = CatalogPropsService.value;
 	const isReview = useIsReview();
+	const catalogProps = CatalogPropsService.value;
 	const apiUrlCreator = ApiUrlCreatorService.value;
 
 	const [branchName, setBranchName] = useState<string>("");
 
 	const onUpdateBranch = (branch: string) => {
 		setBranchName(branch);
-		refreshPage();
+		if (getExecutingEnvironment() !== "next") refreshPage();
 	};
 
 	useEffect(() => {
@@ -30,12 +31,12 @@ const Branch = () => {
 	}, []);
 
 	return (
-		<div style={{ pointerEvents: isReview ? "none" : "all" }}>
+		<div data-qa="qa-clickable" style={{ pointerEvents: isReview ? "none" : "all" }}>
 			<BranchActions
 				currentBranch={branchName}
 				trigger={
 					<StatusBarElement tooltipText={useLocalize("changeBranch")} iconCode="code-branch">
-						<span>{branchName ? branchName : <SpinnerLoader width={11} height={11} />}</span>
+						<span>{branchName ? branchName : <SpinnerLoader width={12} height={12} />}</span>
 					</StatusBarElement>
 				}
 				onNewBranch={async () => {

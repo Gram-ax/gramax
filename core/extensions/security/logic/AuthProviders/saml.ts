@@ -31,7 +31,7 @@ export default class SamlProvider implements AuthProvider {
 	private users = new Set<string>();
 	private _cookie = new CookieFactory();
 
-	constructor(options: SamlProviderOptions) {
+	constructor(options: SamlProviderOptions, private _cookieSecret: string) {
 		options.spOptions.certificate = this._readCertificate();
 		options.spOptions.private_key = this._readPrivateKey();
 		this.serviceProvider = new saml.ServiceProvider(options.spOptions as any);
@@ -67,7 +67,7 @@ export default class SamlProvider implements AuthProvider {
 	}
 
 	logout(req: ApiRequest, res: ApiResponse) {
-		this._cookie.from(req, res).set("user_id", "", 0);
+		this._cookie.from(this._cookieSecret, req, res).set("user_id", "", 0);
 		res.statusCode = 302;
 		res.setHeader("location", "/");
 		res.end();
@@ -95,7 +95,7 @@ export default class SamlProvider implements AuthProvider {
 				else {
 					const name_id: string = saml_res?.user.name_id;
 					this.users.add(name_id);
-					this._cookie.from(req, res).set("user_id", name_id);
+					this._cookie.from(this._cookieSecret, req, res).set("user_id", name_id);
 					res.statusCode = 302;
 					res.setHeader("location", "/");
 					res.end();

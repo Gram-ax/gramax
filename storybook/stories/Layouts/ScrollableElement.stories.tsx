@@ -2,7 +2,7 @@ import ScrollableSrc from "@components/Layouts/ScrollableElement";
 import BlockDecorator from "../../styles/decorators/BlockDecorator";
 
 const ScrollableElementData = {
-	title: "DocReader/Layouts/Scrollable",
+	title: "gx/Layouts/Scrollable",
 	decorators: [BlockDecorator],
 };
 

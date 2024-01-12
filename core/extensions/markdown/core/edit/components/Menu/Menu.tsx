@@ -29,7 +29,7 @@ const Menu = styled(({ editor, className }: { editor: Editor; className?: string
 
 	return (
 		<Portal parentId={MenuBarId}>
-			<div className={className} style={isOpen ? null : { display: "none" }}>
+			<div className={className} style={isOpen ? null : { display: "none" }} data-qa="qa-edit-menu-button">
 				<IsSelectedOneNodeService.Provider editor={editor}>
 					<ButtonStateService.Provider editor={editor}>
 						<DiagramsMenu editor={editor} />

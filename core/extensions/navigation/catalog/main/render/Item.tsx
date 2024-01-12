@@ -55,7 +55,7 @@ const LevNavItem = styled(
 						onClickCapture={(e) => e.preventDefault()}
 					/>
 				)}
-				<div className="text">
+				<div className="text" data-qa="qa-clickable">
 					<span>{title}</span>
 					{leftExtensions}
 				</div>
@@ -69,7 +69,7 @@ const LevNavItem = styled(
 
 		if (!item || articleProps?.ref?.path == item?.ref?.path || !existsContent) return Item;
 		return <Link href={Url.from(item)}>{Item}</Link>;
-	}
+	},
 )`
 	display: flex;
 	padding: 5px 0;

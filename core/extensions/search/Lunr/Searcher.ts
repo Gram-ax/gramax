@@ -1,5 +1,3 @@
-import Path from "@core/FileProvider/Path/Path";
-import { Article } from "@core/FileStructue/Article/Article";
 import lunr from "lunr";
 import { ChangeCatalog } from "../../../logic/FileStructue/Catalog/Catalog";
 import { ItemRef } from "../../../logic/FileStructue/Item/Item";
@@ -20,6 +18,7 @@ interface IndexData {
 	tags: string;
 }
 export default class LunrSearcher implements Searcher {
+	private _catalogs: { [catalogName: string]: IndexData[] } = {};
 	private _catalogsIndexes: { [catalogName: string]: lunr.Index } = {};
 	private _paragraphOffset = 30;
 
@@ -34,6 +33,7 @@ export default class LunrSearcher implements Searcher {
 	}
 
 	resetAllCatalogs() {
+		this._catalogs = {};
 		this._catalogsIndexes = {};
 		return Promise.resolve();
 	}
@@ -49,7 +49,6 @@ export default class LunrSearcher implements Searcher {
 	}
 
 	async search(query: string, catalogName: string, itemRefs: ItemRef[]): Promise<SearchItem[]> {
-		const catalog = await this._lib.getCatalog(catalogName);
 		query = query.replace(/ *-[- +]*/g, " -").replace(/ *\+[- +]*/g, " +");
 		if (query[query.length - 1] == "-" || query[query.length - 1] == "+") query = query.slice(0, query.length - 1);
 
@@ -63,7 +62,7 @@ export default class LunrSearcher implements Searcher {
 			.search(query)
 			.forEach((entry) => {
 				if (!itemRefs.some((r) => r.path.value == entry.ref)) return;
-				const article = catalog.findItemByItemPath(new Path(entry.ref)) as Article;
+				const article = this._catalogs[catalogName].find((article) => article.path === entry.ref);
 				const paragraph = article.content;
 				const searchItem: SearchItem = {
 					name: {} as { targets: { start: string; target: string }[]; end: string },
@@ -101,7 +100,7 @@ export default class LunrSearcher implements Searcher {
 				titleHighlight.sort((a, b) => {
 					return a.start < b.start ? -1 : 1;
 				});
-				const title = article.props.title ?? "";
+				const title = article.title ?? "";
 				let prevEndPos = 0;
 				for (const pos of titleHighlight) {
 					if (pos.start >= prevEndPos) {
@@ -127,10 +126,12 @@ export default class LunrSearcher implements Searcher {
 			datas = await this._getIndexDatas(catalogName);
 			await this._indexCacheProvider.set(catalogName, datas);
 		}
-		this._createIdx(catalogName, datas);
+		this._catalogs[catalogName] = datas;
+		this._createIdx(catalogName);
 	}
 
-	private _createIdx(catalogName: string, datas: IndexData[]) {
+	private _createIdx(catalogName: string) {
+		const datas = this._catalogs[catalogName];
 		this._catalogsIndexes[catalogName] = lunr(function () {
 			this.ref("path");
 			this.field("content");
@@ -159,7 +160,6 @@ export default class LunrSearcher implements Searcher {
 	private async _getIndexDatas(catalogName: string): Promise<IndexData[]> {
 		const datas: IndexData[] = [];
 		const catalog = await this._lib.getCatalog(catalogName);
-		if (!catalog) return [];
 		for (const article of catalog.getContentItems()) {
 			const content = await searchUtils.getIndexContent(
 				catalog,
@@ -180,6 +180,7 @@ export default class LunrSearcher implements Searcher {
 	}
 
 	private async _resetCatalog(catalogName: string) {
+		delete this._catalogs[catalogName];
 		delete this._catalogsIndexes[catalogName];
 		await this._indexCacheProvider.set(catalogName, await this._getIndexDatas(catalogName));
 		await this._initCatalog(catalogName);

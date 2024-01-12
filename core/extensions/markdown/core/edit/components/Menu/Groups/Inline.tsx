@@ -9,21 +9,19 @@ import { Editor } from "@tiptap/core";
 const InlineMenuGroup = ({
 	editor,
 	onClick,
-	onFileSave,
 }: {
 	editor?: Editor;
 	onClick?: () => void;
-	onFileSave?: () => void;
 }) => {
 	return (
-		<ButtonsLayout onClick={onClick}>
-			<LinkMenuButton editor={editor} />
+		<ButtonsLayout>
+			<LinkMenuButton onClick={onClick} editor={editor} />
 			<CodeMenuButton editor={editor} />
-			<FileMenuButton onSave={onFileSave} editor={editor} />
+			<FileMenuButton onSave={onClick} editor={editor} />
 			<div className="divider" />
 			<ClearDecorationMenuButton editor={editor} />
 			<div className="divider" />
-			<CommentMenuButton editor={editor} />
+			<CommentMenuButton onClick={onClick} editor={editor} />
 		</ButtonsLayout>
 	);
 };

@@ -1,7 +1,7 @@
 import GroupsName from "@components/HomePage/Groups/model/GroupsName";
 import Style from "@components/HomePage/Groups/model/Style";
-import { ItemType } from "../../logic/FileStructue/Item/Item";
-import { ItemRefProps } from "../../logic/SitePresenter/SitePresenter";
+import { ItemType } from "@core/FileStructue/Item/Item";
+import { ItemRefProps } from "@core/SitePresenter/SitePresenter";
 
 export interface CatalogLink extends BaseLink {
 	name: string;

@@ -17,7 +17,7 @@ export class CommentRedirectMiddleware extends Middleware {
 		}
 
 		const catalog = await this._app.lib.getCatalog(req.query.catalogName as string);
-		req.query.repositoryUrl = await catalog.getStorage().getUrl();
+		req.query.repositoryUrl = await catalog.repo.storage.getUrl();
 		const url = Url.fromBasePath(
 			CommentServerURL + this._apiRoute,
 			"/",

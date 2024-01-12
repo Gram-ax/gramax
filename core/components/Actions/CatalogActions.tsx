@@ -1,10 +1,9 @@
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
+import useIsReview from "@ext/storage/logic/utils/useIsReview";
 import CatalogEditAction from "../../extensions/catalog/actions/propsEditor/components/CatalogEditAction";
 import Review from "../../extensions/catalog/actions/review/components/Review";
 import Healthcheck from "../../extensions/healthcheck/components/Healthcheck";
 import { ItemLink } from "../../extensions/navigation/NavigationLinks";
-import useIsEnterprise from "../../extensions/storage/logic/utils/useIsEnterprise";
-import useIsReview from "../../extensions/storage/logic/utils/useIsReview";
 import useIsStorageInitialized from "../../extensions/storage/logic/utils/useIsStorageIniziliate";
 import CatalogPropsService from "../../ui-logic/ContextServices/CatalogProps";
 import IsEditService from "../../ui-logic/ContextServices/IsEdit";
@@ -15,8 +14,6 @@ const CatalogActions = ({ itemLinks }: { itemLinks: ItemLink[] }): JSX.Element =
 	const readOnly = CatalogPropsService.value.readOnly;
 	const isLogged = PageDataContextService.value.isLogged;
 	const storageInitialized = useIsStorageInitialized();
-	const enterpriseServerUrl = PageDataContextService.value?.conf.enterpriseServerUrl;
-	const isEnterprise = useIsEnterprise(enterpriseServerUrl);
 	const isReview = useIsReview();
 
 	return (
@@ -32,18 +29,18 @@ const CatalogActions = ({ itemLinks }: { itemLinks: ItemLink[] }): JSX.Element =
 					pdfPart={<>PDF</>}
 				/>
 			</li> */}
-				<li data-qa={`catalog-healthcheck-button`}>
+				<li data-qa="qa-clickable">
 					<Healthcheck itemLinks={itemLinks} />
 				</li>
 				<IsReadOnlyHOC>
 					<>
-						{!isReview && storageInitialized && isEnterprise && (
-							<li>
+						{!isReview && storageInitialized && (
+							<li data-qa="qa-clickable">
 								<Review />
 							</li>
 						)}
 						{isEdit && !readOnly && !isReview && (
-							<li>
+							<li data-qa="qa-clickable">
 								<CatalogEditAction />
 							</li>
 						)}

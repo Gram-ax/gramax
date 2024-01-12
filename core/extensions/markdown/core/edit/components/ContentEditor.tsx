@@ -9,7 +9,6 @@ import ApiUrlCreatorService from "../../../../../ui-logic/ContextServices/ApiUrl
 import ArticlePropsService from "../../../../../ui-logic/ContextServices/ArticleProps";
 import IsMacService from "../../../../../ui-logic/ContextServices/IsMac";
 import PageDataContextService from "../../../../../ui-logic/ContextServices/PageDataContext";
-import ThemeService from "../../../../Theme/components/ThemeService";
 import SelectionMenu from "../../../elements/article/edit/helpers/SelectionMenu";
 import addComments from "../../../elements/comment/edit/logic/addCommet";
 import deleteComments from "../../../elements/comment/edit/logic/deleteComments";
@@ -24,16 +23,7 @@ import ExtensionUpdater from "../../../elementsUtils/editExtensionUpdator/Extens
 import ContextWrapper from "./ContextWrapper";
 import Menu from "./Menu/Menu";
 
-const ContentEditor = ({
-	content,
-	extensions,
-	onCreate,
-	onBlur,
-	onUpdate,
-	onSelectionUpdate,
-	handlePaste,
-	deps,
-}: {
+interface ContentEditorProps {
 	content: string;
 	extensions: Extensions;
 	onCreate: () => void;
@@ -41,10 +31,12 @@ const ContentEditor = ({
 	onUpdate: ({ editor }: { editor: Editor }) => void;
 	onSelectionUpdate: ({ editor }: { editor: Editor }) => void;
 	handlePaste: (view: EditorView, event: ClipboardEvent, slice: Slice) => boolean | void;
-
 	deps?: DependencyList;
-}) => {
-	const theme = ThemeService.value;
+}
+
+const ContentEditor = (props: ContentEditorProps) => {
+	const { content, extensions, onCreate, onBlur, onUpdate, onSelectionUpdate, handlePaste, deps } = props;
+
 	const isMac = IsMacService.value;
 	const comments = CommentCounterService.value;
 	const articleProps = ArticlePropsService.value;
@@ -83,7 +75,7 @@ const ContentEditor = ({
 			onSelectionUpdate,
 			onBlur,
 		},
-		[content, theme, isMac, apiUrlCreator, pageDataContext, articleProps.ref.path, ...deps],
+		[content, isMac, apiUrlCreator, pageDataContext, articleProps.ref.path, ...deps],
 	);
 
 	return (

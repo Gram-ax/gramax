@@ -12,6 +12,7 @@ import MarkdownParser from "../Parser";
 import ParserContext, { BaseContext } from "./ParserContext";
 
 export default class TestContext extends BaseContext implements ParserContext {
+	private _linkManager: ResourceManager;
 	private _resourceManager: ResourceManager;
 
 	constructor(
@@ -22,7 +23,8 @@ export default class TestContext extends BaseContext implements ParserContext {
 		readonly formatter: MarkdownFormatter,
 	) {
 		super();
-		this._resourceManager = new ResourceManager(this._itemRef.path);
+		this._linkManager = new ResourceManager(fp, this._itemRef.path);
+		this._resourceManager = new ResourceManager(fp, this._itemRef.path);
 	}
 
 	getEnterpriseServerUrl(): string {
@@ -31,6 +33,10 @@ export default class TestContext extends BaseContext implements ParserContext {
 
 	getResourceManager(): ResourceManager {
 		return this._resourceManager;
+	}
+
+	getLinkManager(): ResourceManager {
+		return this._linkManager;
 	}
 
 	getItemByPath(): Article {

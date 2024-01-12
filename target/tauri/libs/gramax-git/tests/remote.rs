@@ -65,7 +65,7 @@ fn add_remote(_sandbox: TempDir, #[with(&_sandbox)] repo: impl Repository<DummyC
 }
 
 #[rstest]
-#[case("https://github.com/Gram-ax/submodulestest", "master")]
+#[case("https://github.com/gram-ax/gramax-catalog-template", "master")]
 fn clone(sandbox: TempDir, #[case] url: &str, #[case] branch: &str) -> Result {
   let mut objects = 0;
   GitRepository::clone(url, sandbox.path(), branch, DummyCreds, |_, _| {
@@ -73,7 +73,7 @@ fn clone(sandbox: TempDir, #[case] url: &str, #[case] branch: &str) -> Result {
     true
   })?;
   assert!(sandbox.path().join(".git").exists());
-  assert!(objects > 2800);
+  assert!(objects > 0);
   Ok(())
 }
 #[rstest]

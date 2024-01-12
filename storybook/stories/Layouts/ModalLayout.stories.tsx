@@ -1,11 +1,11 @@
 import ButtonsLayout from "@components/Layouts/ButtonLayout";
 import ModalLayout from "@components/Layouts/Modal";
-import { ComponentMeta } from "@storybook/react";
+import { Meta } from "@storybook/react";
 
 export default {
-	title: "DocReader/Layouts/ModalLayout",
+	title: "gx/Layouts/ModalLayout",
 	component: ModalLayout,
-} as ComponentMeta<typeof ModalLayout>;
+} as Meta<typeof ModalLayout>;
 
 export const Basic = () => (
 	<ModalLayout>

@@ -56,7 +56,7 @@ class CommentFocusTooltip extends BaseMark {
 		this._oldMarkPosition = markPosition;
 		this._setTooltipPosition(element);
 		this._setComponent(
-			<ThemeService.Provider value={this._theme}>
+			<ThemeService.Provide value={this._theme}>
 				<PageDataContextService.Provider value={this._pageDataContext}>
 					<Comment
 						mark={mark}
@@ -66,7 +66,7 @@ class CommentFocusTooltip extends BaseMark {
 						onCreateComment={(c) => this._createComment(markPosition, c)}
 					/>
 				</PageDataContextService.Provider>
-			</ThemeService.Provider>,
+			</ThemeService.Provide>,
 		);
 	}
 

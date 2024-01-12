@@ -19,4 +19,6 @@ export default interface Storage {
 	getName(): Promise<string>;
 	getFileLink(path: Path, branch?: Branch): Promise<string>;
 	getStorageContainsItem(path: Path): Promise<{ storage: Storage; relativePath: Path }>;
+	getSyncCount(): Promise<{ pull: number; push: number }>;
+	updateSyncCount(): Promise<void>;
 }

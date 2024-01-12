@@ -1,12 +1,4 @@
 class Path {
-	static empty = new Path();
-
-	static join(...paths: string[]): string {
-		const newPaths = paths.map((p) => new Path(p));
-		const basePath = newPaths.shift();
-		return basePath.join(...newPaths).value;
-	}
-
 	private _path: string;
 
 	constructor(path: string | string[] = "") {
@@ -14,6 +6,14 @@ class Path {
 		if (typeof path !== "string") path = this._parseArrayPath(path);
 		this._path = path;
 		this._path = this._path.replace(/\\/g, "/");
+	}
+
+	static empty = new Path();
+
+	static join(...paths: string[]): string {
+		const newPaths = paths.map((p) => new Path(p));
+		const basePath = newPaths.shift();
+		return basePath.join(...newPaths).value;
 	}
 
 	get value() {
@@ -27,7 +27,9 @@ class Path {
 	}
 
 	get name(): string {
-		return this._path.match(/([^.\\/]+)(\.[^.\\/]+)?$/)?.[1] ?? null;
+		const matches = this._path.match(/([^\\/]+)(\.[^.\\/]+)?$/);
+		if (matches && matches[1]) return matches[1].split(".").slice(0, -1).join(".") || matches[1];
+		return null;
 	}
 
 	get nameWithExtension(): string {
@@ -109,8 +111,10 @@ class Path {
 	}
 
 	subDirectory(path: Path): Path {
-		if (path.value.slice(0, this._path.length) != this._path) return null;
-		return new Path(path.value.slice(this._path.length));
+		const thisPath = this.removeExtraSymbols.value;
+		const otherPath = path.removeExtraSymbols.value;
+		if (otherPath.slice(0, thisPath.length) != thisPath) return null;
+		return new Path(otherPath.slice(thisPath.length)).removeExtraSymbols;
 	}
 
 	getRelativePath(path: Path): Path {
@@ -123,13 +127,11 @@ class Path {
 			depthCount++;
 		}
 		if (generalPath._path == path._path) depthCount++;
-		return new Path(
-			"." +
-				"/..".repeat(depthCount) +
-				(generalPath._path == path._path
-					? "/" + path.name
-					: (generalPath._path == "" ? "/" : "") + generalPath.subDirectory(path).value),
-		);
+		return new Path([
+			"." + "/..".repeat(depthCount),
+			(generalPath._path == path._path ? "/" + path.name : generalPath._path == "" ? "/" : "",
+			generalPath.subDirectory(path).value),
+		]);
 	}
 
 	join(...paths: Path[]): Path {

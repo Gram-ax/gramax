@@ -16,6 +16,8 @@ const ErrorModal = ({ error, setError }: { error: DefaultError; setError: Dispat
 		setIsOpen(false);
 	};
 
+	if (error?.props?.errorCode === "silent") return null;
+
 	return (
 		<ModalLayout
 			isOpen={isOpen}

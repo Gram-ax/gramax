@@ -4,7 +4,7 @@ import ModalToOpenService from "../../../../../ui-logic/ContextServices/ModalToO
 import ModalToOpen from "../../../../../ui-logic/ContextServices/ModalToOpenService/model/ModalsToOpen";
 import ShareTicketHandler from "../components/ShareTicketHandler";
 
-const userShareHandler = (router: Router) => {
+const useShareHandler = (router: Router) => {
 	useEffect(() => {
 		if (!router?.query?.share) return;
 		const ticket = router.query.share;
@@ -16,4 +16,4 @@ const userShareHandler = (router: Router) => {
 	}, []);
 };
 
-export default userShareHandler;
+export default useShareHandler;

@@ -14,8 +14,8 @@ const getNavigationData = async () => {
 
 	const user = new User();
 	const hr = new HiddenRule(errorArticlesProvider);
-	const lr = new LocalizationRules(errorArticlesProvider, defaultLanguage);
-	const sr = new SecurityRules(errorArticlesProvider, user);
+	const lr = new LocalizationRules(defaultLanguage, errorArticlesProvider);
+	const sr = new SecurityRules(user, errorArticlesProvider);
 
 	nav.addRules({ itemFilter: hr.getItemRule() });
 	nav.addRules({ catalogFilter: lr.getNavCatalogRule(), itemFilter: lr.getNavItemRule() });

@@ -39,7 +39,7 @@ const CircularProgressbar = styled(
 		const pathRatio = getPathRatio();
 
 		return (
-			<div className={className}>
+			<div className={className} data-qa="loader">
 				<svg className="circular-progressbar" viewBox={`0 0 ${VIEWBOX_WIDTH} ${VIEWBOX_HEIGHT}`}>
 					<Path
 						className="circular-progressbar-trail"

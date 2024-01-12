@@ -82,7 +82,6 @@ export const getComponentsHTML = (requestURL?: string, context?: ParserContext) 
 	const htmlComponents: HTMLComponents = new HTMLComponents(requestURL, context);
 	components.Code = htmlComponents.getCode();
 	components.Image = htmlComponents.getImg();
-
 	components.Video = htmlComponents.getNull();
 	components.Drawio = htmlComponents.getNull();
 	components.Mermaid = htmlComponents.getNull();

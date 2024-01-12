@@ -1,12 +1,12 @@
-import { ComponentMeta } from "@storybook/react";
+import { Meta } from "@storybook/react";
 import NavigationLayout from "../../../../../core/extensions/navigation/catalog/main/render/Layout";
 import NavigationWatchTree from "../../../../../core/extensions/navigation/catalog/watch/WatchTree";
-import items from "../../../../data/pageProps.json";
+import items from "../../../../data/pageProps";
 
 export default {
-	title: "DocReader/extensions/Catalog/Navigation/WatchTree",
+	title: "gx/extensions/Catalog/Navigation/WatchTree",
 	component: NavigationWatchTree,
-} as ComponentMeta<typeof NavigationWatchTree>;
+} as Meta<typeof NavigationWatchTree>;
 
 export const WatchTree = () => (
 	<div style={{ overflow: "auto" }}>

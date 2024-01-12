@@ -1,4 +1,4 @@
-import { CommandTree, findCommand } from "@app/commands";
+import { findCommand } from "@app/commands";
 import getApp from "@app/node/app";
 import getCommands from "@app/node/commands";
 import Application from "@app/types/Application";
@@ -11,6 +11,7 @@ import Query from "@core/Api/Query";
 import { apiUtils } from "@core/Api/apiUtils";
 import ApiMiddleware from "@core/Api/middleware/ApiMiddleware";
 import Middleware from "@core/Api/middleware/Middleware";
+import buildMiddleware from "@core/Api/middleware/buildMiddleware";
 
 export default async (req: ApiRequest, res: ApiResponse) => {
 	Object.entries(req.query)
@@ -74,8 +75,4 @@ const respond = async (app: Application, req: ApiRequest, res: ApiResponse, kind
 	}
 
 	throw new Error("Invalid ResponseKind");
-};
-
-const buildMiddleware = (app: Application, commands: CommandTree, middlewares: Middleware[], process: Middleware) => {
-	return [...middlewares, process].map((m) => m.init({ app, commands })).reduceRight((r, l) => l.SetNext(r));
 };

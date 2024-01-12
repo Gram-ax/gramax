@@ -1,102 +1,99 @@
+import { classNames } from "@components/libs/classNames";
 import styled from "@emotion/styled";
-import { forwardRef, useEffect, useImperativeHandle, useRef } from "react";
+import { ChangeEventHandler, ForwardedRef, HTMLProps, forwardRef, useEffect, useImperativeHandle, useRef } from "react";
 import useLocalize from "../../extensions/localization/useLocalize";
 import Icon from "../Atoms/Icon";
 import Input from "../Atoms/Input";
 
-export type SearchElement = HTMLDivElement & { inputRef: HTMLInputElement; chevronRef: HTMLDivElement };
+export interface SearchElement extends HTMLDivElement {
+	inputRef: HTMLInputElement;
+	chevronRef: HTMLDivElement;
+}
 
-const Search = styled(
-	forwardRef(
-		(
-			{
-				isOpen,
-				placeholder = useLocalize("searchPlaceholder"),
-				value,
-				icon,
-				disable,
-				tabIndex,
-				isErrorValue,
-				onClick,
-				onChevronClick,
-				onSearchChange,
-				setValue,
-				onFocus,
-				className,
-			}: {
-				isOpen: boolean;
-				placeholder?: string;
-				value?: string;
-				icon?: string;
-				disable?: boolean;
-				tabIndex?: number;
-				isCode?: boolean;
-				isErrorValue?: boolean;
-				onClick?: (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => void;
-				onChevronClick?: (isOpen: boolean) => void;
-				onSearchChange?: (value: string) => void;
-				setValue?: (value: string) => void;
-				onFocus?: () => void;
-				className?: string;
-			},
-			ref?: React.MutableRefObject<SearchElement>,
-		) => {
-			const searchRef = useRef<HTMLDivElement>(null);
-			const inputRef = useRef<HTMLInputElement>(null);
-			const chevronRef = useRef<HTMLDivElement>(null);
+interface ConfigProps {
+	isOpen: boolean;
+	disable?: boolean;
+	isCode?: boolean;
+	isErrorValue?: boolean;
+}
 
-			useImperativeHandle(ref, () => ({
-				get inputRef(): HTMLInputElement {
-					return inputRef.current;
-				},
-				get chevronRef(): HTMLDivElement {
-					return chevronRef.current;
-				},
-				...searchRef.current,
-			}));
+interface SearchProps extends ConfigProps, HTMLProps<HTMLInputElement> {
+	onSearchChange?: (value: string) => void;
+	setValue: (value: string) => void;
+	onChevronClick?: () => void;
+	value: string;
+	icon?: string;
+	tabIndex?: number;
+}
 
-			useEffect(() => {
-				if (disable) inputRef.current.blur();
-			}, [disable]);
+const Search = forwardRef((props: SearchProps, ref: ForwardedRef<SearchElement>) => {
+	const { isOpen, value, icon, disable, tabIndex, isErrorValue, className } = props;
+	const { placeholder, title = useLocalize("searchPlaceholder") } = props;
+	const { onClick, onChevronClick, onSearchChange, setValue, onFocus } = props;
 
-			useEffect(() => {
-				if (!value && value !== "") return;
-			}, [value]);
+	const inputRef = useRef<HTMLInputElement>(null);
+	const searchRef = useRef<HTMLDivElement>(null);
+	const chevronRef = useRef<HTMLDivElement>(null);
 
-			return (
-				<div className={"search " + className}>
-					<div className="list-search" ref={searchRef}>
-						{icon ? (
-							<div className="left-icon">
-								<Icon faFw code={icon} />
-							</div>
-						) : null}
-						<div className="list-input" onClick={onClick}>
-							<Input
-								tabIndex={tabIndex}
-								isInputInvalid={isErrorValue}
-								ref={inputRef}
-								value={value}
-								onChange={(e) => {
-									setValue(e.target.value);
-									if (onSearchChange) onSearchChange(e.target.value);
-								}}
-								placeholder={placeholder}
-								onFocus={onFocus}
-							/>
-						</div>
-						<div className="chevron-icon" onClick={() => onChevronClick(isOpen)} ref={chevronRef}>
-							<Icon
-								code={`chevron-${!isOpen ? "down" : "up"}`}
-								style={{ fontSize: "10px", fontWeight: 300, cursor: "pointer" }}
-							/>
-						</div>
-					</div>
-				</div>
-			);
+	useImperativeHandle(ref, () => ({
+		get inputRef(): HTMLInputElement {
+			return inputRef.current;
 		},
-	),
-)`
+		get chevronRef(): HTMLDivElement {
+			return chevronRef.current;
+		},
+		...searchRef.current,
+	}));
+
+	useEffect(() => {
+		if (disable) inputRef.current?.blur();
+	}, [disable]);
+
+	const onChangeHandler: ChangeEventHandler<HTMLInputElement> = (e) => {
+		setValue(e.target.value);
+		onSearchChange?.(e.target.value);
+	};
+
+	return (
+		<div className={classNames("search", {}, [className])}>
+			<div className="list-search" ref={searchRef}>
+				{icon && (
+					<div className="left-icon">
+						<Icon faFw code={icon} />
+					</div>
+				)}
+				<div className="list-input" onClick={onClick}>
+					<Input
+						style={{ paddingRight: "2px" }}
+						title={title}
+						dataQa={placeholder}
+						tabIndex={tabIndex}
+						isInputInvalid={isErrorValue}
+						ref={inputRef}
+						value={value}
+						onChange={onChangeHandler}
+						placeholder={placeholder}
+						onFocus={onFocus}
+					/>
+				</div>
+				<div className="chevron-icon" onClick={onChevronClick} ref={chevronRef}>
+					<Icon
+						code={`chevron-${isOpen ? "up" : "down"}`}
+						style={{
+							fontSize: "10px",
+							fontWeight: 300,
+							cursor: "pointer",
+							width: "10px",
+							textAlign: "center",
+						}}
+					/>
+				</div>
+			</div>
+		</div>
+	);
+});
+
+export default styled(Search)`
 	${(p) => (p.disable ? "pointer-events: none;" : "")}
 	${(p) =>
 		p.isCode
@@ -136,5 +133,3 @@ const Search = styled(
 		}
 	}
 `;
-
-export default Search;

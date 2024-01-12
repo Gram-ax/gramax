@@ -12,7 +12,7 @@ import { localizationProps } from "./FSLocalizationRules";
 export default class LocalizationRules {
 	private _currentLanguage: Language;
 
-	constructor(private _errorArticlePresenter: ErrorArticlePresenter, language: Language) {
+	constructor(language: Language, private _errorArticlePresenter?: ErrorArticlePresenter) {
 		this._currentLanguage = language ?? defaultLanguage;
 	}
 
@@ -23,7 +23,9 @@ export default class LocalizationRules {
 			return article.props[localizationProps.language] == this._currentLanguage;
 		};
 
-		(rule as any).errorArticle = this._errorArticlePresenter.getErrorArticle("404");
+		if (this._errorArticlePresenter) {
+			(rule as any).errorArticle = this._errorArticlePresenter.getErrorArticle("404");
+		}
 		return rule;
 	}
 

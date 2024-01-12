@@ -12,15 +12,15 @@ const Cut = styled(
 		className,
 	}: {
 		text: string;
-		expanded: string;
+		expanded: boolean;
 		children?: ReactNode;
 		isInline?: boolean;
 		onUpdate?: (isExpanded: boolean) => void;
 		className?: string;
 	}): ReactElement => {
-		const [isExpanded, setExpanded] = useState(expanded?.toString() === "true");
+		const [isExpanded, setExpanded] = useState(expanded);
 		useEffect(() => {
-			setExpanded(expanded?.toString() === "true");
+			setExpanded(expanded);
 		}, [expanded]);
 
 		return isInline ? (

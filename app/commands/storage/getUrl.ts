@@ -12,7 +12,7 @@ const getUrl: Command<{ catalogName: string }, string> = Command.create({
 		const { lib } = this._app;
 		const catalog = await lib.getCatalog(catalogName);
 		if (!catalog) return;
-		const storage = catalog.getStorage();
+		const storage = catalog.repo.storage;
 		if (!storage) return;
 		return storage.getUrl();
 	},

@@ -9,6 +9,7 @@ import "../../../core/styles/swagger-ui-theme.css";
 import ContextProviders from "@components/ContextProviders";
 import CatalogComponent from "@components/Layouts/CatalogLayout/CatalogComponent";
 import OpenGraph from "@components/OpenGraph";
+import { defaultRefreshPage } from "@core-ui/ContextServices/RefreshPageContext";
 import getPageTitle from "@core-ui/getPageTitle";
 import PageDataContext from "@core/Context/PageDataContext";
 import { ArticleData, HomePageData, OpenGraphData } from "@core/SitePresenter/SitePresenter";
@@ -37,7 +38,7 @@ export default function App({
 			<Head>
 				<title>{getPageTitle(isArticle, pageProps.data)}</title>
 			</Head>
-			<ContextProviders pageProps={pageProps}>
+			<ContextProviders pageProps={pageProps} refreshPage={defaultRefreshPage}>
 				<ErrorBoundary context={pageProps.context}>
 					{isArticle ? (
 						<>

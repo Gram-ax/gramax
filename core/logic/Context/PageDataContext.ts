@@ -14,9 +14,12 @@ interface PageDataContext {
 	conf: {
 		version: string;
 		basePath: string;
+		branch: string;
 		isReadOnly: boolean;
 		isServerApp: boolean;
 		isProduction: boolean;
+		ssoServerUrl: string;
+		ssoPublicKey: string;
 		enterpriseServerUrl: string;
 		bugsnagApiKey: string;
 	};

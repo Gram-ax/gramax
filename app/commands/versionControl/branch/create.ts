@@ -12,7 +12,7 @@ const create: Command<{ catalogName: string; branch: string }, void> = Command.c
 		const { lib } = this._app;
 		const catalog = await lib.getCatalog(catalogName);
 		if (!catalog) return;
-		const vc = await catalog.getVersionControl();
+		const vc = catalog.repo.gvc;
 		await vc.createNewBranch(branch);
 	},
 

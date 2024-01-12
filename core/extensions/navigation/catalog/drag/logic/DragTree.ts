@@ -1,10 +1,9 @@
 import FileProvider from "@core/FileProvider/model/FileProvider";
+import RepositoryProvider from "@ext/git/core/Repository/RepositoryProvider";
 import { NodeModel } from "@minoru/react-dnd-treeview";
 import { Catalog } from "../../../../../logic/FileStructue/Catalog/Catalog";
 import ResourceUpdater from "../../../../../logic/Resource/ResourceUpdater";
 import itemRefUtils from "../../../../../logic/utils/itemRefUtils";
-import VersionControlProvider from "../../../../VersionControl/model/VersionControlProvider";
-import StorageProvider from "../../../../storage/logic/StorageProvider";
 import { ItemLink } from "../../../NavigationLinks";
 import DragTreeTransformer from "./DragTreeTransformer";
 import getMovements from "./Movement/getMovements";
@@ -13,8 +12,7 @@ class DragTree {
 	constructor(
 		private _fp: FileProvider,
 		private _resourceUpdater: ResourceUpdater,
-		private _sp: StorageProvider,
-		private _vcp: VersionControlProvider,
+		private _rp: RepositoryProvider,
 	) {}
 
 	public async drag(
@@ -37,9 +35,8 @@ class DragTree {
 
 			const item = catalog.findItemByItemRef(moveItemRef);
 			const newItemRef = itemRefUtils.move(newParentItemRef, moveItemRef, item.type, newBrowsersRef);
-			await catalog.moveItem(moveItemRef, newItemRef, this._resourceUpdater);
+			await catalog.moveItem(moveItemRef, newItemRef, this._resourceUpdater, this._rp);
 		}
-		await catalog.update(this._sp, this._vcp);
 		await this._fp.deleteEmptyFolders(catalog.getRootCategoryRef().path.parentDirectoryPath);
 	}
 

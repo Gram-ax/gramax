@@ -4,6 +4,7 @@ import Context from "@core/Context/Context";
 import Path from "@core/FileProvider/Path/Path";
 import { Article } from "@core/FileStructue/Article/Article";
 import { ArticleData } from "@core/SitePresenter/SitePresenter";
+import DefaultError from "../../../../core/extensions/errorHandlers/logic/DefaultError";
 import { Command, ResponseKind } from "../../../types/Command";
 
 const checkLastModified: Command<{ ctx: Context; articlePath: Path; catalogName: string }, ArticleData> =
@@ -22,12 +23,17 @@ const checkLastModified: Command<{ ctx: Context; articlePath: Path; catalogName:
 			const fp = lib.getFileProviderByCatalog(catalog);
 			const itemRef = fp.getItemRef(articlePath);
 			const article = catalog.findItemByItemRef(itemRef) as Article;
-
 			if (!article) return;
+			let res = false;
 
-			const stat = await fp.getStat(article.ref.path);
-			await article.checkLastModified(stat.mtimeMs);
-			return await sitePresenterFactory.fromContext(ctx).getArticleData(article, catalog);
+			try {
+				const stat = await fp.getStat(article.ref.path);
+				res = await article.checkLastModified(stat.mtimeMs);
+			} catch (e) {
+				if (e?.code === "ENOENT") throw new DefaultError(null, e, { errorCode: e?.code });
+			}
+
+			return res ? await sitePresenterFactory.fromContext(ctx).getArticleData(article, catalog) : null;
 		},
 
 		params(ctx, q) {

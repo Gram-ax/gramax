@@ -10,6 +10,7 @@ const languages = Object.values(Language);
 
 const LangToggle = styled(({ className }: { className?: string }) => {
 	const currentLanguage = PageDataContextService.value.lang;
+	const isReadOnly = PageDataContextService.value.conf.isReadOnly;
 	const router = useRouter();
 
 	const currenLangIdx = languages.findIndex((l) => l == currentLanguage);
@@ -22,8 +23,9 @@ const LangToggle = styled(({ className }: { className?: string }) => {
 		const article = localizer.trim(router.path).split(/[/|#|?]/, 2)[1];
 		router.pushPath("/" + newLang + "/" + article);
 	};
+	if (!isReadOnly) return null;
 	return (
-		<div data-qa="app-action" onClick={onClick} className={className} style={{}}>
+		<div data-qa="qa-clickable" onClick={onClick} className={className} style={{}}>
 			<Icon code="globe" />
 			<span>{useLocalize("current")}</span>
 		</div>

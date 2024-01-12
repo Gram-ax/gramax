@@ -8,7 +8,7 @@ import InlineDecorator from "../../styles/decorators/InlineDecorator";
 type Props = ComponentProps<typeof DiffContentSrc> & { content: string };
 
 const meta: Meta<Props> = {
-	title: "DocReader/Atoms/DiffContent",
+	title: "gx/Atoms/DiffContent",
 	decorators: [InlineDecorator],
 	args: {
 		content: "New code content.",

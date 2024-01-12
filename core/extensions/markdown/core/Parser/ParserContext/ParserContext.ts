@@ -13,6 +13,7 @@ import MarkdownParser from "../Parser";
 export default interface ParserContext {
 	getItemByPath(itemPath: Path): Item;
 	getResourceManager(): ResourceManager;
+	getLinkManager(): ResourceManager;
 	getRootLogicPath(): Path;
 	getArticle(): Article;
 	getCatalog(): Catalog;

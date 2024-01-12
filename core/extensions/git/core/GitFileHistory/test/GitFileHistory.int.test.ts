@@ -8,14 +8,14 @@ import { TEST_GIT_CATALOG_PATH } from "../../../test/testGitCatalogPath";
 import GitFileHistory from "../GitFileHistory";
 
 const getGitFileHistoryData = async () => {
-	const { lib, sp, vcp } = await getApp();
+	const { lib, rp } = await getApp();
 	const dfp = new DiskFileProvider(TEST_GIT_CATALOG_PATH);
 	const catalog = await lib.getCatalog("gitCatalog");
 	const fs = lib.getFileStructureByCatalog(catalog);
 	const fp = lib.getFileProviderByCatalog(catalog);
 	const gitFileHistory = new GitFileHistory(catalog, fp);
 
-	return { catalog, dfp, gitFileHistory, fs, fp, sp, vcp };
+	return { catalog, dfp, gitFileHistory, fs, fp, rp };
 };
 
 describe("GitFileHistory", () => {
@@ -38,7 +38,7 @@ describe("GitFileHistory", () => {
 					{ value: "content ", type: undefined },
 					{ value: "2", type: "delete" },
 					{ value: "3", type: "new" },
-					{ value: "\n", type: undefined },
+					{ value: " \n", type: undefined },
 				],
 			},
 			{
@@ -49,7 +49,7 @@ describe("GitFileHistory", () => {
 					{ value: "content ", type: undefined },
 					{ value: "1", type: "delete" },
 					{ value: "2", type: "new" },
-					{ value: "\n", type: undefined },
+					{ value: " \n", type: undefined },
 				],
 			},
 			{
@@ -57,7 +57,7 @@ describe("GitFileHistory", () => {
 				author: "Danil Kazanov",
 				date: "2023-06-02T13:22:15.000Z",
 				content: [
-					{ value: "content 1\n", type: "new" },
+					{ value: "content 1 \n", type: "new" },
 					{ value: "", type: undefined },
 				],
 			},
@@ -65,9 +65,9 @@ describe("GitFileHistory", () => {
 	});
 
 	it("Возвращает пустой массив, если файла не существует в git", async () => {
-		const { dfp, gitFileHistory, catalog, sp, vcp } = await getGitFileHistoryData();
+		const { dfp, gitFileHistory, catalog, rp } = await getGitFileHistoryData();
 		await dfp.write(new Path("new.md"), "new file content");
-		await catalog.update(sp, vcp);
+		await catalog.update(rp);
 		const itemRef = dfp.getItemRef(new Path("gitCatalog/new.md"));
 
 		const res = await gitFileHistory.getArticleHistoryInfo(itemRef);

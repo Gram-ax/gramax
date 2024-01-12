@@ -16,7 +16,7 @@ const RenderTitledLink = ({ link }: { link: TitledLink }): JSX.Element => {
 		</>
 	);
 	return (
-		<Anchor href={link.url} target={link.target}>
+		<Anchor href={link.url} target={link.target} data-qa="qa-clickable">
 			{Item}
 		</Anchor>
 	);

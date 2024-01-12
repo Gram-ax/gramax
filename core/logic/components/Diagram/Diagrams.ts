@@ -1,4 +1,5 @@
 import MimeTypes from "@core-ui/ApiServices/Types/MimeTypes";
+import SilentError from "@ext/errorHandlers/silent/SilentError";
 import getMermaidDiagram from "@ext/markdown/elements/diagrams/diagrams/mermaid/getMermaidDiagram";
 import getPlantUmlDiagram from "@ext/markdown/elements/diagrams/diagrams/plantUml/getPlantUmlDiagram";
 import DefaultError from "../../../extensions/errorHandlers/logic/DefaultError";
@@ -45,14 +46,22 @@ export default class Diagrams {
 	private async _getDiagramInternal(type: DiagramType, content: string) {
 		const metadata = this._diagramMetadata[type];
 		const url = `${this._enterpriseServerUrl}/diagram-renderer/convert/${metadata.req}/${metadata.toType}`;
+
+		if (!content)
+			throw new SilentError(
+				"Не удалось найти диаграмму. Проверьте, правильно ли указан путь, а также есть ли файл с диаграммой в репозитории.",
+			);
+
 		const response = await fetch(url, {
 			method: "POST",
 			headers: { "Content-Type": "text/plain" },
 			body: content,
+		}).catch(() => {
+			throw new SilentError("Не удалось отрисовать диаграмму. Проверьте подключение к интернету.");
 		});
 		if (response.status !== 200) {
 			console.log(`Не удалось отрисовать диаграмму: ${url} (статус ${response.status})`);
-			throw new DefaultError("Мы не смогли отрисовать вашу диаграмму.");
+			throw new SilentError("Мы не смогли отрисовать вашу диаграмму.");
 		}
 		return await (await response.blob()).text();
 	}

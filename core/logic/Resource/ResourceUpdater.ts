@@ -1,61 +1,57 @@
+import ResourceMovements from "@core/Resource/models/ResourceMovements";
 import { JSONContent } from "@tiptap/core";
 import MarkdownParser from "../../extensions/markdown/core/Parser/Parser";
 import ParserContextFactory from "../../extensions/markdown/core/Parser/ParserContext/ParserContextFactory";
 import MarkdownFormatter from "../../extensions/markdown/core/edit/logic/Formatter/Formatter";
 import Context from "../Context/Context";
-import Path from "../FileProvider/Path/Path";
 import { Article } from "../FileStructue/Article/Article";
 import parseContent from "../FileStructue/Article/parseContent";
 import { Catalog } from "../FileStructue/Catalog/Catalog";
-import { Category } from "../FileStructue/Category/Category";
-import { ItemType } from "../FileStructue/Item/Item";
 
 class ResourceUpdater {
 	constructor(
 		private _rc: Context,
+		private _catalog: Catalog,
 		private _parser: MarkdownParser,
 		private _parserContextFactory: ParserContextFactory,
 		private _formatter: MarkdownFormatter,
 	) {}
 
-	async updateCategory(category: Category, catalog: Catalog, newBasePath: Path) {
-		await this.updateArticle(category, catalog, newBasePath);
-		for (const item of category.items) {
-			const childNewBasePath = newBasePath.parentDirectoryPath.join(
-				category.ref.path.parentDirectoryPath.subDirectory(item.ref.path),
-			);
-			if (item.type === ItemType.category) {
-				await this.updateCategory(item as Category, catalog, childNewBasePath);
-			} else {
-				await this.updateArticle(item as Article, catalog, childNewBasePath);
-			}
-		}
-	}
+	async update(oldArticle: Article, newArticle: Article) {
+		await parseContent(oldArticle, this._catalog, this._rc, this._parser, this._parserContextFactory);
+		if (!oldArticle?.parsedContent) return;
 
-	async updateArticle(article: Article, catalog: Catalog, newBasePath: Path) {
-		if (article?.content) await parseContent(article, catalog, this._rc, this._parser, this._parserContextFactory);
-		if (!article?.parsedContent) return;
+		const { resourceManager, linkManager } = oldArticle.parsedContent;
+		const newResourceBasePath = this._catalog
+			.getRootCategoryRef()
+			.path.parentDirectoryPath.subDirectory(newArticle.ref.path.parentDirectoryPath);
 
-		const moveResources = article.parsedContent.resourceManager?.setNewBasePath(
-			catalog.getRootCategoryRef().path.parentDirectoryPath.subDirectory(newBasePath.parentDirectoryPath),
+		const resourceMovements = {
+			oldResources: resourceManager.setNewBasePath(newResourceBasePath).oldResources,
+			newResources: (await resourceManager.move(oldArticle.ref.path, newArticle.ref.path)).newResources,
+		};
+
+		const linkMovements = linkManager.setNewBasePath(newResourceBasePath);
+
+		const allMovements = {
+			oldResources: [...resourceMovements.oldResources, ...linkMovements.oldResources],
+			newResources: [...resourceMovements.newResources, ...linkMovements.newResources],
+		};
+
+		const newEditTree = this._updateEditTree(oldArticle.parsedContent.editTree, allMovements);
+		this._updateInInlineMdComponent(newEditTree, allMovements);
+
+		const context = this._parserContextFactory.fromArticle(
+			newArticle,
+			this._catalog,
+			this._rc.lang,
+			this._rc.user.isLogged,
 		);
-
-		const context = this._parserContextFactory.fromArticle(article, catalog, this._rc.lang, this._rc.user.isLogged);
-
-		const udpEditTree = this._updateEditTree(article.parsedContent.editTree, moveResources);
-		this._updateInlineMd_component(udpEditTree, moveResources);
-
-		const markdown = await this._formatter.render(udpEditTree, context);
-		await article.updateContent(markdown);
+		const markdown = await this._formatter.render(newEditTree, context);
+		await newArticle.updateContent(markdown);
 	}
 
-	private _updateEditTree(
-		editTree: JSONContent,
-		moveResources: {
-			oldResources: Path[];
-			newResources: Path[];
-		},
-	) {
+	private _updateEditTree(editTree: JSONContent, moveResources: ResourceMovements) {
 		let strEditTree = JSON.stringify(editTree);
 		moveResources.oldResources.forEach((resource, idx) => {
 			strEditTree = strEditTree.replaceAll(`"${resource.value}"`, `"${moveResources.newResources[idx].value}"`);
@@ -63,13 +59,7 @@ class ResourceUpdater {
 		return JSON.parse(strEditTree) as JSONContent;
 	}
 
-	private _updateInlineMd_component(
-		editTree: JSONContent,
-		moveResources: {
-			oldResources: Path[];
-			newResources: Path[];
-		},
-	) {
+	private _updateInInlineMdComponent(editTree: JSONContent, moveResources: ResourceMovements) {
 		if (editTree?.type == "inlineMd_component") {
 			moveResources.oldResources.forEach((resource, idx) => {
 				editTree.attrs.text = editTree.attrs.text.replaceAll(
@@ -80,7 +70,7 @@ class ResourceUpdater {
 		}
 		if (editTree?.content) {
 			editTree?.content.forEach((e) => {
-				this._updateInlineMd_component(e, moveResources);
+				this._updateInInlineMdComponent(e, moveResources);
 			});
 		}
 	}

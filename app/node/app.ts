@@ -9,9 +9,9 @@ import VideoUrlRepository from "@core/components/video/videoUrlRepository";
 import { Encoder } from "@ext/Encoder/Encoder";
 import MailProvider from "@ext/MailProvider";
 import ThemeManager from "@ext/Theme/ThemeManager";
-import VersionControlProvider from "@ext/VersionControl/model/VersionControlProvider";
 import ChokidarWatcher from "@ext/Watchers/ChokidarWatcher";
 import ProductionWatcher from "@ext/Watchers/ProductionWatcher";
+import RepositoryProvider from "@ext/git/core/Repository/RepositoryProvider";
 import FSLocalizationRules from "@ext/localization/core/rules/FSLocalizationRules";
 import BugsnagLogger from "@ext/loggers/BugsnagLogger";
 import ConsoleLogger from "@ext/loggers/ConsoleLogger";
@@ -24,8 +24,6 @@ import LunrSearcher from "@ext/search/Lunr/Searcher";
 import Searcher from "@ext/search/Searcher";
 import AuthManager from "@ext/security/logic/AuthManager";
 import { TicketManager } from "@ext/security/logic/TicketManager/TicketManager";
-import UserRepository from "@ext/security/logic/UserRepository";
-import StorageProvider from "@ext/storage/logic/StorageProvider";
 import EnvAuth from "../../core/extensions/security/logic/AuthProviders/EnvAuth";
 import { AppConfig } from "../config/AppConfig";
 import Application from "../types/Application";
@@ -45,9 +43,9 @@ const _init = async (config: AppConfig): Promise<Application> => {
 		? null
 		: config.enterpriseServerUrl && `${config.enterpriseServerUrl}/cors-proxy`;
 
-	const sp = new StorageProvider({ corsProxy });
-	const vcp = new VersionControlProvider({ corsProxy });
-	const lib = new Library(sp, vcp);
+	const rp = new RepositoryProvider({ corsProxy });
+
+	const lib = new Library(rp);
 
 	await lib.addFileProvider(fp, (fs) => FSLocalizationRules.bind(fs));
 
@@ -63,7 +61,6 @@ const _init = async (config: AppConfig): Promise<Application> => {
 	const encoder = new Encoder();
 
 	const ticketManager = new TicketManager(lib, encoder, config.tokens.share);
-	const ur = new UserRepository(envAuth);
 
 	const parser = new MarkdownParser();
 
@@ -82,7 +79,6 @@ const _init = async (config: AppConfig): Promise<Application> => {
 		parser,
 		formatter,
 		config.enterpriseServerUrl,
-		ur,
 	);
 
 	const searcher: Searcher = new LunrSearcher(lib, parser, parserContextFactory, indexCacheProvider);
@@ -91,23 +87,21 @@ const _init = async (config: AppConfig): Promise<Application> => {
 
 	const tm = new ThemeManager();
 	const am = new AuthManager(envAuth, ticketManager);
-	const contextFactory = new ContextFactory(tm, am, config.isServerApp);
+	const contextFactory = new ContextFactory(tm, config.cookieSecret, am, config.isServerApp);
 	const sitePresenterFactory = new SitePresenterFactory(
 		lib,
 		parser,
 		parserContextFactory,
 		searcher,
-		sp,
+		rp,
 		errorArticlesProvider,
-		config.isServerApp,
 	);
 
 	return {
 		tm,
 		am,
-		sp,
 		mp,
-		vcp,
+		rp,
 		lib,
 		vur,
 		parser,
@@ -122,10 +116,13 @@ const _init = async (config: AppConfig): Promise<Application> => {
 		sitePresenterFactory,
 		errorArticlesProvider,
 		conf: {
+			branch: config.branch,
 			basePath: config.paths.base,
 			isServerApp: config.isServerApp,
 			isProduction: config.isProduction,
 			isReadOnly: config.isReadOnly,
+			ssoServerUrl: config.ssoServerUrl,
+			ssoPublicKey: config.ssoPublicKey,
 			enterpriseServerUrl: config.enterpriseServerUrl,
 			corsProxy: corsProxy,
 			bugsnagApiKey: config.bugsnagApiKey,

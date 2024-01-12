@@ -1,5 +1,7 @@
 import LeftNavigationIsOpenService from "@core-ui/ContextServices/LeftNavigationIsOpen";
 import SidebarsIsPinService from "@core-ui/ContextServices/SidebarsIsPin";
+import { cssMedia } from "@core-ui/utils/cssUtils";
+import { useMediaQuery } from "@mui/material";
 import { useRef, useState } from "react";
 import ArticleLayout from "./ArticleLayout";
 
@@ -19,16 +21,9 @@ const ArticleComponent = ({
 	return (
 		<ArticleLayout
 			article={article}
-			rightNav={
-				<div
-					onMouseEnter={() => (isRightNavHover.current = true)}
-					onMouseLeave={() => (isRightNavHover.current = false)}
-				>
-					{rightNav}
-				</div>
-			}
 			isRightNavPin={isSidebarsPin}
 			isRightNavOpen={isRightNavOpen}
+			narrowMedia={useMediaQuery(cssMedia.JSmedium)}
 			onArticleMouseEnter={() => {
 				if (isSidebarsPin) return;
 				setIsRightNavOpen(false);
@@ -41,6 +36,14 @@ const ArticleComponent = ({
 					}
 				}, delay);
 			}}
+			rightNav={
+				<div
+					onMouseEnter={() => (isRightNavHover.current = true)}
+					onMouseLeave={() => (isRightNavHover.current = false)}
+				>
+					{rightNav}
+				</div>
+			}
 		/>
 	);
 };

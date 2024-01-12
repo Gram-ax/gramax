@@ -8,7 +8,7 @@ const BugReport = () => {
 	// const version = PageDataContextService.value.version;
 
 	return (
-		<li>
+		<li data-qa="qa-clickable">
 			<a
 				onClick={async () => {
 					// const hash = Hash(new Date());

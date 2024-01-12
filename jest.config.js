@@ -8,7 +8,7 @@ module.exports = {
 			"jest-chain-transform",
 			{
 				transformers: [
-					["ts-jest"],
+					["ts-jest", { diagnostics: true, babelConfig: true }],
 					[
 						"jest-ifdef-transform",
 						{
@@ -31,10 +31,8 @@ module.exports = {
 		"<rootDir>/target/tauri",
 	],
 	reporters: ["default", ["jest-junit", { suiteName: "jest tests" }]],
-	globals: {
-		"ts-jest": { diagnostics: true, babelConfig: true },
-	},
 	moduleNameMapper: {
+		viteenv: "<rootDir>/app/test/__mocks__/mermaid.js",
 		"\\.(css|scss)$": "identity-obj-proxy",
 		"^lodash-es(/(.*)|$)": "lodash$1",
 		"^nanoid(/(.*)|$)": "nanoid$1",

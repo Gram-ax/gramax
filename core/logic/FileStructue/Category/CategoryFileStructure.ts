@@ -13,7 +13,7 @@ interface CategoryFileStructure extends ArticleFileStructure {
 		indexPath: Path,
 	): Promise<Category>;
 
-	setCategoryPath(category: Category, path: Path): Promise<void>;
+	moveCategory(category: Category, path: Path): Promise<void>;
 }
 
 export default CategoryFileStructure;

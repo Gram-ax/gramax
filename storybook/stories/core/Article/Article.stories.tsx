@@ -2,16 +2,14 @@ import ArticleComponentSrc from "@components/Layouts/CatalogLayout/ArticleLayout
 import RightNavigationLayout from "@components/Layouts/CatalogLayout/RightNavigation/RightNavigationLayout";
 import SidebarsIsPinService from "@core-ui/ContextServices/SidebarsIsPin";
 import { useEffect } from "react";
-import pageProps from "../../../data/pageProps.json";
+import pageProps from "../../../data/pageProps";
 
 const ArticleData = {
-	title: "DocReader/core/Article/Article",
+	title: "gx/core/Article/Article",
 	decorators: [
 		(S) => (
 			<div style={{ background: "white", width: "100%", height: "100%" }}>
-				<SidebarsIsPinService.Provider>
-					<S />
-				</SidebarsIsPinService.Provider>
+				<S />
 			</div>
 		),
 	],

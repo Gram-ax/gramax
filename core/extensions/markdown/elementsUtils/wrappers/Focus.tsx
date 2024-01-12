@@ -36,6 +36,10 @@ const Focus = styled(
 		);
 	},
 )`
+	user-select: none;
+	-ms-user-select: none;
+	-webkit-user-select: none;
+
 	&[is-focus="false"] > * {
 		pointer-events: none;
 	}

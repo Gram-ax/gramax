@@ -88,8 +88,8 @@ const CatalogPropsEditor = ({
 								description: Schema.properties.description,
 								style: Schema.properties.style,
 								code: Schema.properties.code,
-								__h2: "Приватность",
-								private: Schema.properties.private,
+								// __h2: "Приватность",
+								// private: Schema.properties.private,
 							} as any;
 						}}
 					/>

@@ -1,4 +1,4 @@
-import GitErrorCode from "@ext/git/core/GitRepository/errors/model/GitErrorCode";
+import GitErrorCode from "@ext/git/core/GitCommands/errors/model/GitErrorCode";
 
 export class LibGit2Error extends Error {
 	code?: GitErrorCode;

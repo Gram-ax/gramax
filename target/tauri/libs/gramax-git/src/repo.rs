@@ -2,6 +2,7 @@ use git2::build::CheckoutBuilder;
 use git2::build::RepoBuilder;
 use git2::*;
 
+use std::borrow::Cow;
 use std::path::Path;
 
 use crate::branch::*;
@@ -11,6 +12,7 @@ use crate::ShortInfo;
 use crate::error::Error;
 use crate::error::Result;
 use crate::prelude::StatusInfo;
+use crate::remote_callback::make_remote_callback;
 
 type Repo = git2::Repository;
 
@@ -102,7 +104,7 @@ impl<C: Creds> Repository<C> for GitRepository<C> {
   ) -> Result<Self> {
     info!(target: "git", "cloning {} into {} ({})", remote_url.as_ref(), into.as_ref().display(), branch_name.as_ref());
     let mut cbs = RemoteCallbacks::new();
-    cbs.credentials(|_, _, _| git2::Cred::userpass_plaintext("git", creds.access_token()));
+    cbs.credentials(make_remote_callback(&creds));
     cbs.transfer_progress(|progress| {
       on_progress(
         progress.received_objects()
@@ -182,7 +184,7 @@ impl<C: Creds> Repository<C> for GitRepository<C> {
     info!(target: "git", "fetching..");
     let mut cbs = RemoteCallbacks::new();
     let mut opts = FetchOptions::new();
-    cbs.credentials(|_, _, _| git2::Cred::userpass_plaintext("git", self.creds().access_token()));
+    cbs.credentials(make_remote_callback(&self.1));
     opts.remote_callbacks(cbs);
     opts.prune(FetchPrune::On);
 
@@ -194,7 +196,7 @@ impl<C: Creds> Repository<C> for GitRepository<C> {
   fn push(&self) -> Result<()> {
     info!(target: "git", "pushing..");
     let mut cbs = RemoteCallbacks::new();
-    cbs.credentials(|_, _, _| git2::Cred::userpass_plaintext("git", self.creds().access_token()));
+    cbs.credentials(make_remote_callback(&self.1));
     let mut push_opts = PushOptions::new();
     push_opts.remote_callbacks(cbs);
 
@@ -309,6 +311,9 @@ impl<C: Creds> Repository<C> for GitRepository<C> {
       match tree.get_path(path.as_ref()) {
         Ok(entry) => {
           let blob = entry.to_object(&self.0)?.peel_to_blob()?;
+          if !fs_path.parent().map(|p| p.exists()).unwrap_or(true) {
+            std::fs::create_dir_all(fs_path.parent().unwrap())?;
+          }
           std::fs::write(fs_path, blob.content())?;
         }
         Err(err)
@@ -361,6 +366,12 @@ impl<C: Creds> Repository<C> for GitRepository<C> {
   }
 
   fn branch_by_name<S: AsRef<str>>(&self, shorthand: S, branch_type: BranchType) -> Result<BranchEntry<'_>> {
+    let shorthand = if branch_type == BranchType::Remote && !shorthand.as_ref().contains("origin/") {
+      Cow::Owned(format!("origin/{}", shorthand.as_ref()))
+    } else {
+      Cow::Borrowed(shorthand.as_ref())
+    };
+
     let branch = self.0.find_branch(shorthand.as_ref(), branch_type)?;
     self.resolve_branch_entry((branch, branch_type))
   }

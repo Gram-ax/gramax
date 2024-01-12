@@ -1,8 +1,6 @@
-import { lazy } from "react";
+import MermaidRenderer from "@ext/markdown/elements/diagrams/component/MermaidRenderer";
+import PlantUMLRenderer from "@ext/markdown/elements/diagrams/component/PlantUMLRenderer";
 import DiagramType from "../../../../../logic/components/Diagram/DiagramType";
-
-const PlantUMLRenderer = lazy(() => import("./PlantUMLRenderer"));
-const MermaidRenderer = lazy(() => import("./MermaidRenderer"));
 
 const diagramComponents: Partial<
 	Record<DiagramType, (content: string, src: string, isUpdating?: boolean) => JSX.Element>

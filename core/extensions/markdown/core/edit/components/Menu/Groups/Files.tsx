@@ -1,3 +1,4 @@
+import ButtonStateService from "@core-ui/ContextServices/ButtonStateService/ButtonStateService";
 import Button from "@ext/markdown/core/edit/components/Menu/Button";
 import FileMenuButton from "@ext/markdown/elements/file/edit/components/FileMenuButton";
 import ImageMenuButton from "@ext/markdown/elements/image/edit/components/ImageMenuButton";
@@ -8,6 +9,10 @@ import ButtonsLayout from "@components/Layouts/ButtonLayout";
 import ModalLayoutDark from "@components/Layouts/ModalLayoutDark";
 
 const FilesMenuGroup = ({ editor }: { editor?: Editor }) => {
+	const file = ButtonStateService.useCurrentAction({ mark: "file" });
+	const image = ButtonStateService.useCurrentAction({ action: "image" });
+	const video = ButtonStateService.useCurrentAction({ action: "video" });
+
 	return (
 		<Tooltip
 			arrow={false}
@@ -25,7 +30,11 @@ const FilesMenuGroup = ({ editor }: { editor?: Editor }) => {
 			}
 		>
 			<div>
-				<Button nodeValues={{ action: "filesMenuGroup" }} icon="file" />
+				<Button
+					disabled={file.disabled && image.disabled && video.disabled}
+					isActive={file.isActive || image.isActive || video.isActive}
+					icon="file"
+				/>
 			</div>
 		</Tooltip>
 	);

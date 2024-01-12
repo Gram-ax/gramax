@@ -49,9 +49,9 @@ export const app = async () => await getApp();
 
 export const commands = async () => getCommands(await app());
 
-export const path = (path: string) => new Path(path);
+export const intoPath = (path: string) => new Path(path);
 
-export const env1 = env;
+export { env };
 
 export const logger = new ConsoleLogger();
 logger.setLogLevel(LogLevel.error);

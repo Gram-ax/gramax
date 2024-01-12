@@ -9,20 +9,22 @@ import Permission from "./Permission/Permission";
 import User from "./User/User";
 
 export default class SecurityRules {
-	constructor(private _errorArticlePresenter: ErrorArticlePresenter, private _currentUser: User) {}
+	constructor(private _currentUser: User, private _errorArticlePresenter?: ErrorArticlePresenter) {}
 
 	getFilterRule() {
 		const rule = (article: Article, catalogName: string): boolean => {
 			return this._canReadItem(article, catalogName);
 		};
 
-		(rule as any).errorArticle = this._errorArticlePresenter.getErrorArticle("403");
+		if (this._errorArticlePresenter) {
+			(rule as any).errorArticle = this._errorArticlePresenter.getErrorArticle("403");
+		}
 		return rule;
 	}
 
 	getNavCatalogRule() {
 		return (catalog: CatalogEntry): boolean => {
-			return this._canRead(catalog.perms, catalog.name);
+			return this._canRead(catalog.perms, catalog.getName());
 		};
 	}
 

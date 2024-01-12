@@ -8,7 +8,7 @@ import { LibGit2Error } from "./error";
 let onProgressCallback = undefined;
 
 void listen("clone-progress", (ev) => {
-	const payload = ev.payload as any;
+	const payload = ev.payload;
 	onProgressCallback?.({
 		phase: "receiving-objects",
 		percent: (payload.received / payload.total) * 100,

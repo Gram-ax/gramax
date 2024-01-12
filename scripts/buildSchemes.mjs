@@ -6,7 +6,7 @@ import parseMarkdown from "./logic/parseMarkdown.mjs";
 const settings = {
 	required: true,
 	ref: false,
-	validationKeywords: ["private"],
+	validationKeywords: ["private", "readOnly"],
 };
 
 await initSchemes("./core/");

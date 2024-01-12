@@ -9,7 +9,7 @@ import VideoUrlRepository from "@core/components/video/videoUrlRepository";
 import { Encoder } from "@ext/Encoder/Encoder";
 import MailProvider from "@ext/MailProvider";
 import ThemeManager from "@ext/Theme/ThemeManager";
-import VersionControlProvider from "@ext/VersionControl/model/VersionControlProvider";
+import RepositoryProvider from "@ext/git/core/Repository/RepositoryProvider";
 import FSLocalizationRules from "@ext/localization/core/rules/FSLocalizationRules";
 import BugsnagLogger from "@ext/loggers/BugsnagLogger";
 import Logger from "@ext/loggers/Logger";
@@ -21,7 +21,6 @@ import LunrSearcher from "@ext/search/Lunr/Searcher";
 import Searcher from "@ext/search/Searcher";
 import AuthManager from "@ext/security/logic/AuthManager";
 import { TicketManager } from "@ext/security/logic/TicketManager/TicketManager";
-import StorageProvider from "@ext/storage/logic/StorageProvider";
 import { AppConfig } from "../config/AppConfig";
 import resolveModule, { getExecutingEnvironment } from "../resolveModule";
 import Application from "../types/Application";
@@ -35,8 +34,7 @@ const _init = async (config: AppConfig): Promise<Application> => {
 	const corsProxy = config.isServerApp
 		? null
 		: config.enterpriseServerUrl && `${config.enterpriseServerUrl}/cors-proxy`;
-	const sp = new StorageProvider({ corsProxy });
-	const vcp = new VersionControlProvider({ corsProxy });
+	const rp = new RepositoryProvider({ corsProxy });
 
 	const FileProvider = resolveModule("FileProvider");
 
@@ -44,7 +42,7 @@ const _init = async (config: AppConfig): Promise<Application> => {
 	await fp.validate();
 
 	const libRules = getExecutingEnvironment() == "browser" ? [deleteAnyFolderRule] : [];
-	const lib = new Library(sp, vcp);
+	const lib = new Library(rp);
 	await lib.addFileProvider(fp, (fs) => FSLocalizationRules.bind(fs), libRules);
 
 	if (config.paths.local) {
@@ -78,18 +76,16 @@ const _init = async (config: AppConfig): Promise<Application> => {
 		parser,
 		parserContextFactory,
 		searcher,
-		sp,
+		rp,
 		errorArticlesProvider,
-		config.isServerApp,
 	);
-	const contextFactory = new ContextFactory(tm);
+	const contextFactory = new ContextFactory(tm, config.cookieSecret);
 
 	return {
 		am,
 		tm,
 		mp,
-		sp,
-		vcp,
+		rp,
 		lib,
 		vur,
 		logger,
@@ -104,12 +100,15 @@ const _init = async (config: AppConfig): Promise<Application> => {
 		parserContextFactory,
 		errorArticlesProvider,
 		conf: {
+			corsProxy: corsProxy,
+			branch: config.branch,
 			basePath: config.paths.base,
 			isReadOnly: config.isReadOnly,
 			isServerApp: config.isServerApp,
+			ssoServerUrl: config.ssoServerUrl,
+			ssoPublicKey: config.ssoPublicKey,
 			isProduction: config.isProduction,
 			enterpriseServerUrl: config.enterpriseServerUrl,
-			corsProxy: corsProxy,
 			bugsnagApiKey: config.bugsnagApiKey,
 			gramaxVersion: config.gramaxVersion,
 		},

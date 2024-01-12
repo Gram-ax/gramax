@@ -1,7 +1,7 @@
-import Error from "@components/Error";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import styled from "@emotion/styled";
+import DiagramError from "@ext/markdown/elements/diagrams/component/DiagramError";
 import { useEffect, useState } from "react";
 import Popup from "reactjs-popup";
 import { Table } from "../../../../../logic/components/tableDB/table";
@@ -46,11 +46,10 @@ const DbDiagram = styled(
 			load();
 		}, []);
 
-		if (error) return <div>Failed to load</div>;
+		if (error || (data && !data?.tables)) return <DiagramError error={error ?? data} />;
+
 		return !data ? (
 			<div data-type="dbdiagram" contentEditable={false} />
-		) : !data.tables ? (
-			<Error error={data as { message: string; stack: string }} isLogged={isLogged} />
 		) : (
 			<div className={className} data-type="dbdiagram" contentEditable={false}>
 				<div className="svg">

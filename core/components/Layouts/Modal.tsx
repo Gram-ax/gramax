@@ -6,8 +6,23 @@ import ErrorHandler from "../../extensions/errorHandlers/client/components/Error
 import IsOpenModalService from "../../ui-logic/ContextServices/IsOpenMpdal";
 import Icon from "../Atoms/Icon";
 
-const ModalLayout = styled(
-	({
+export interface ModalLayoutProps {
+	children: JSX.Element;
+	trigger?: JSX.Element;
+	onOpen?: () => void;
+	onClose?: () => void;
+	onEnter?: () => void;
+	onCmdEnter?: () => void;
+	isOpen?: boolean;
+	className?: string;
+	contentWidth?: string;
+	closeOnEscape?: boolean;
+	closeOnCmdEnter?: boolean;
+	setGlobasStyles?: boolean;
+}
+
+const ModalLayout = (props: ModalLayoutProps) => {
+	const {
 		children,
 		trigger,
 		onOpen,
@@ -18,122 +33,111 @@ const ModalLayout = styled(
 		className,
 		closeOnEscape = true,
 		closeOnCmdEnter = true,
-	}: {
-		children: JSX.Element;
-		trigger?: JSX.Element;
-		onOpen?: () => void;
-		onClose?: () => void;
-		onEnter?: () => void;
-		onCmdEnter?: () => void;
-		isOpen?: boolean;
-		className?: string;
-		contentWidth?: string;
-		closeOnEscape?: boolean;
-		closeOnCmdEnter?: boolean;
-		setGlobasStyles?: boolean;
-	}) => {
-		const [isOpen, setIsOpen] = useState(isParentOpen ?? false);
-		const [closeOnDocumentClick, setCloseOnDocumentClick] = useState(true);
-		const [mouseDownOnModal, setMouseDownOnModal] = useState(false);
-		const [isCloseOnEscape, setIsCloseOnEscape] = useState(false);
+	} = props;
+	const [isOpen, setIsOpen] = useState(isParentOpen ?? false);
+	const [closeOnDocumentClick, setCloseOnDocumentClick] = useState(true);
+	const [mouseDownOnModal, setMouseDownOnModal] = useState(false);
+	const [isCloseOnEscape, setIsCloseOnEscape] = useState(false);
 
-		const CloseEsc = () => {
-			if (!closeOnEscape) return;
-			if (onClose) onClose();
-			setIsOpen(false);
-			IsOpenModalService.value = false;
+	const CloseEsc = () => {
+		if (!closeOnEscape) return;
+		if (onClose) onClose();
+		setIsOpen(false);
+		IsOpenModalService.value = false;
+	};
+
+	const keydownHandler = (e: KeyboardEvent) => {
+		if (e.code === "Escape" && isOpen) {
+			setIsCloseOnEscape(true);
+			CloseEsc();
+		}
+		if (e.code === "Enter" && isOpen && onEnter) onEnter();
+		if (e.code === "Enter" && (e.ctrlKey || e.metaKey) && isOpen && onCmdEnter && closeOnCmdEnter) onCmdEnter();
+	};
+
+	useEffect(() => {
+		document.addEventListener("keydown", keydownHandler, false);
+		return () => {
+			document.removeEventListener("keydown", keydownHandler, false);
 		};
+	});
 
-		const keydownHandler = (e: KeyboardEvent) => {
-			if (e.code === "Escape" && isOpen) {
-				setIsCloseOnEscape(true);
+	useEffect(() => {
+		setIsOpen(isParentOpen);
+	}, [isParentOpen]);
+
+	return (
+		<Popup
+			open={isOpen}
+			onOpen={() => {
+				if (onOpen) onOpen();
+				setIsOpen(true);
+				IsOpenModalService.value = true;
+			}}
+			onClose={() => {
+				if (isCloseOnEscape) {
+					setIsCloseOnEscape(false);
+					return;
+				}
 				CloseEsc();
-			}
-			if (e.code === "Enter" && isOpen && onEnter) onEnter();
-			if (e.code === "Enter" && (e.ctrlKey || e.metaKey) && isOpen && onCmdEnter && closeOnCmdEnter) onCmdEnter();
-		};
-
-		useEffect(() => {
-			document.addEventListener("keydown", keydownHandler, false);
-			return () => {
-				document.removeEventListener("keydown", keydownHandler, false);
-			};
-		});
-
-		useEffect(() => {
-			setIsOpen(isParentOpen);
-		}, [isParentOpen]);
-
-		return (
-			<Popup
-				open={isOpen}
-				onOpen={() => {
-					if (onOpen) onOpen();
-					setIsOpen(true);
-					IsOpenModalService.value = true;
+			}}
+			
+			trigger={trigger}
+			overlayStyle={{ backgroundColor: "rgba(19, 19, 19, 0.75)" }}
+			contentStyle={{
+				display: "flex",
+				height: "100%",
+				border: "none",
+				background: "none",
+				width: "100%",
+			}}
+			closeOnEscape={false}
+			closeOnDocumentClick={true}
+			modal
+			nested
+		>
+			<div
+				className={className}
+				onMouseUp={() => {
+					if (closeOnDocumentClick && !mouseDownOnModal) setIsOpen(false);
+					setMouseDownOnModal(false);
 				}}
-				onClose={() => {
-					if (isCloseOnEscape) {
-						setIsCloseOnEscape(false);
-						return;
-					}
-					CloseEsc();
+				onMouseDown={() => {
+					if (!closeOnDocumentClick) setMouseDownOnModal(true);
 				}}
-				trigger={trigger}
-				overlayStyle={{ backgroundColor: "rgba(19, 19, 19, 0.75)" }}
-				contentStyle={{
-					display: "flex",
-					height: "100%",
-					border: "none",
-					background: "none",
-					width: "100%",
-				}}
-				closeOnEscape={false}
-				closeOnDocumentClick={true}
-				modal
-				nested
+				data-qa={`modal-layout`}
 			>
+				<div className="x-mark">
+					<Icon code="xmark" onClick={() => setIsOpen(false)} />
+				</div>
 				<div
-					className={className}
-					onMouseUp={() => {
-						if (closeOnDocumentClick && !mouseDownOnModal) setIsOpen(false);
-						setMouseDownOnModal(false);
+					className="outer-modal"
+					onMouseEnter={() => {
+						setCloseOnDocumentClick(false);
+					}}
+					onMouseLeave={() => {
+						setCloseOnDocumentClick(true);
 					}}
 					onMouseDown={() => {
-						if (!closeOnDocumentClick) setMouseDownOnModal(true);
+						setCloseOnDocumentClick(false);
 					}}
-					data-qa={`modal-layout`}
 				>
-					<div className="x-mark">
-						<Icon code="xmark" onClick={() => setIsOpen(false)} />
-					</div>
+					<ErrorHandler>
+						<>{children}</>
+					</ErrorHandler>
 					<div
-						className="outer-modal"
-						onMouseEnter={() => {
-							setCloseOnDocumentClick(false);
+						style={{ height: "100%" }}
+						onClick={() => {
+							setIsOpen(false);
 						}}
-						onMouseLeave={() => {
-							setCloseOnDocumentClick(true);
-						}}
-						onMouseDown={() => {
-							setCloseOnDocumentClick(false);
-						}}
-					>
-						<ErrorHandler>
-							<>{children}</>
-						</ErrorHandler>
-						<div
-							style={{ height: "100%" }}
-							onClick={() => {
-								setIsOpen(false);
-							}}
-						/>
-					</div>
+					/>
 				</div>
-			</Popup>
-		);
-	},
-)`
+			</div>
+		</Popup>
+	);
+};
+
+export default styled(ModalLayout)`
 	width: 100%;
 	display: flex;
 
@@ -157,8 +161,8 @@ const ModalLayout = styled(
 
 	.x-mark {
 		position: absolute;
-		top: 0px;
-		right: 0px;
+		top: 0;
+		right: 0;
 		padding-top: 1.2em;
 		padding-right: 1.2em;
 
@@ -280,5 +284,3 @@ const ModalLayout = styled(
 	`
 			: ""}
 `;
-
-export default ModalLayout;

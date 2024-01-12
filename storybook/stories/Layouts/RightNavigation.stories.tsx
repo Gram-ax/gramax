@@ -1,8 +1,8 @@
 import RightNavigationLayout from "@components/Layouts/CatalogLayout/RightNavigation/RightNavigationLayout";
-import pageProps from "../../data/pageProps.json";
+import pageProps from "../../data/pageProps";
 
 const RightNavigationData = {
-	title: "DocReader/Layouts/RightNavigation",
+	title: "gx/Layouts/RightNavigation",
 	decorators: [
 		(S) => (
 			<div style={{ background: "white", width: "100%", height: "100%" }}>

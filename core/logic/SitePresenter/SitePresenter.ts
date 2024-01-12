@@ -1,3 +1,4 @@
+import GitRepositoryProvider from "@ext/git/core/Repository/RepositoryProvider";
 import htmlToText from "html-to-text";
 import Language from "../../extensions/localization/core/model/Language";
 import { localizationProps } from "../../extensions/localization/core/rules/FSLocalizationRules";
@@ -10,7 +11,6 @@ import Navigation from "../../extensions/navigation/catalog/main/logic/Navigatio
 import Searcher from "../../extensions/search/Searcher";
 import SecurityRules from "../../extensions/security/logic/SecurityRules";
 import UserInfo from "../../extensions/security/logic/User/UserInfo2";
-import StorageProvider from "../../extensions/storage/logic/StorageProvider";
 import Context from "../Context/Context";
 import Path from "../FileProvider/Path/Path";
 import { Article } from "../FileStructue/Article/Article";
@@ -31,15 +31,14 @@ export default class SitePresenter {
 		private _parser: MarkdownParser,
 		private _parserContextFactory: ParserContextFactory,
 		private _sm: Searcher,
-		private _sp: StorageProvider,
+		private _grp: GitRepositoryProvider,
 		private _errorArticlesPresenter: ErrorArticlePresenter,
-		private _isServerApp: boolean,
 		private _context: Context,
 	) {
 		const shr = new ShowHomePageRule();
 		const hr = new HiddenRule(_errorArticlesPresenter);
-		const lr = new LocalizationRules(_errorArticlesPresenter, _context.lang);
-		const sr = new SecurityRules(_errorArticlesPresenter, _context.user);
+		const lr = new LocalizationRules(_context.lang, _errorArticlesPresenter);
+		const sr = new SecurityRules(_context.user, _errorArticlesPresenter);
 
 		this._nav.addRules({ itemFilter: hr.getItemRule() });
 		this._nav.addRules({ catalogFilter: shr.getNavCatalogRule() });
@@ -170,7 +169,7 @@ export default class SitePresenter {
 			description: article.props["description"] ?? "",
 			tags: Array.from(tags.values()),
 			tocItems: article?.parsedContent?.tocItems ?? [],
-			errorCode: article.errorCode,
+			errorCode: article.errorCode ?? null,
 		};
 	}
 
@@ -190,10 +189,10 @@ export default class SitePresenter {
 			};
 		}
 
-		const storage = catalog.getStorage();
+		const storage = catalog.repo.storage;
 
 		return {
-			link: this._nav.getCatalogLink(catalog.asEntry()),
+			link: this._nav.getCatalogLink(catalog),
 			relatedLinks: this._nav.getRelatedLinks(catalog),
 			contactEmail: catalog.getProp("contactEmail") ?? null,
 			name: catalog.getName() ?? null,
@@ -201,7 +200,7 @@ export default class SitePresenter {
 			readOnly: catalog.getProp("readOnly") ?? false,
 			repositoryName: catalog.getName(),
 			sourceName: (await storage?.getSourceName()) ?? null,
-			userInfo: this._sp.getSourceUserInfo(this._context.cookie, await storage?.getSourceName()),
+			userInfo: this._grp.getSourceUserInfo(this._context.cookie, await storage?.getSourceName()),
 			private: catalog.getProp("private") ?? [],
 		};
 	}

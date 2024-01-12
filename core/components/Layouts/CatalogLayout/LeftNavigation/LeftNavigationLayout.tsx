@@ -66,10 +66,10 @@ const LeftNavigationLayout = styled(
 	},
 )`
 	height: 100%;
-	width: var(--left-nav-width);
-	background: var(--color-menu-bg);
 	z-index: 102;
 	position: absolute;
+	width: var(--left-nav-width);
+	background: var(--color-menu-bg);
 	transition: var(--navigation-transition);
 
 	${(p) =>

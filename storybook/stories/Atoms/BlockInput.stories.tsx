@@ -1,14 +1,14 @@
 import BlockInputSrc from "@components/Atoms/BlockInput";
-import { ComponentMeta } from "@storybook/react";
+import { Meta } from "@storybook/react";
 import { useState } from "react";
 
 export default {
-	title: "DocReader/Atoms/BlockInput",
+	title: "gx/Atoms/BlockInput",
 	args: {
 		placeholder: "placeholder",
 		value: "defaultValue",
 	},
-} as ComponentMeta<typeof BlockInput>;
+} as Meta<typeof BlockInput>;
 
 export const BlockInput = (args: { placeholder: string; value: string }) => {
 	const [value, setValue] = useState(args.value);

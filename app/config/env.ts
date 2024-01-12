@@ -1,12 +1,17 @@
+type Bool = "true" | "false";
+
 export type EnvironmentVariable = {
 	PORT: string;
-	ENTERPRISE_SERVER_URL: string;
-
-	SUBMODULE_BRANCH_NAME: string;
+	BRANCH: string;
+	SSO_SERVER_URL: string;
 	GRAMAX_VERSION: string;
-	SERVER_APP: "true" | "false";
-	PRODUCTION: "true" | "false";
-	READ_ONLY_MODE: "true" | "false";
+	ENTERPRISE_SERVER_URL: string;
+	SSO_PUBLIC_KEY: string;
+	COOKIE_SECRET: string;
+
+	READ_ONLY: Bool;
+	SERVER_APP: Bool;
+	PRODUCTION: Bool;
 
 	// FileProvider
 	ROOT_PATH: string;

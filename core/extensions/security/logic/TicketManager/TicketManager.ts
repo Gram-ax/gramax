@@ -11,11 +11,7 @@ interface AuthProp {
 }
 
 export class TicketManager {
-	constructor(
-		private _lib: Library,
-		private _encoder: Encoder,
-		private _shareAccessToken: string,
-	) {}
+	constructor(private _lib: Library, private _encoder: Encoder, private _shareAccessToken: string) {}
 
 	public checkTicket(ticket: string): { catalogPermissions: { [catalogName: string]: IPermission }; user: User } {
 		const catalogPermissions: { [catalogName: string]: IPermission } = {};
@@ -61,7 +57,7 @@ export class TicketManager {
 			const intTimeExpired = Number.parseInt(timeExpired, 10);
 			if (intTimeExpired && Date.now() < intTimeExpired) {
 				catalogsPermissions.push({
-					catalogName: c.name,
+					catalogName: c.getName(),
 					permission: new Permission(auth.groups ?? []),
 				});
 			}

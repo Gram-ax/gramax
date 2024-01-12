@@ -1,8 +1,6 @@
 import { AuthorizeMiddleware } from "@core/Api/middleware/AuthorizeMiddleware";
-import VersionControlType from "@ext/VersionControl/model/VersionControlType";
 import { MergeFile } from "@ext/git/actions/MergeConflictHandler/model/MergeFile";
 import BaseGitMergeConflictResolver from "@ext/git/core/GitMergeConflictResolver/Base/BaseGitMergeConflictResolver";
-import GitVersionControl from "@ext/git/core/GitVersionControl/GitVersionControl";
 import { Command, ResponseKind } from "../../../types/Command";
 
 const getFiles: Command<{ catalogName: string }, MergeFile[]> = Command.create({
@@ -16,15 +14,10 @@ const getFiles: Command<{ catalogName: string }, MergeFile[]> = Command.create({
 		const { lib } = this._app;
 		const catalog = await lib.getCatalog(catalogName);
 		if (!catalog) return;
-		const vc = await catalog.getVersionControl();
-		if (vc.getType() !== VersionControlType.git) return;
+		const gvc = catalog.repo.gvc;
 		const fp = lib.getFileProviderByCatalog(catalog);
 		const fs = lib.getFileStructureByCatalog(catalog);
-		const baseGitMergeConflictResolver = new BaseGitMergeConflictResolver(
-			vc as GitVersionControl,
-			fp,
-			vc.getPath(),
-		);
+		const baseGitMergeConflictResolver = new BaseGitMergeConflictResolver(gvc, fp, gvc.getPath());
 		return baseGitMergeConflictResolver.getFilesToMerge(fs);
 	},
 

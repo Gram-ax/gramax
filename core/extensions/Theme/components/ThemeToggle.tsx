@@ -11,7 +11,7 @@ const ThemeToggle = styled(({ className }: { className?: string }) => {
 
 	return (
 		<div className={className} onClick={() => ThemeService.toggleTheme(apiUrlCreator)}>
-			<a data-qa="app-action">
+			<a data-qa="qa-clickable">
 				<Icon
 					code={theme == Theme.dark ? "moon" : "sun-bright"}
 					style={{ fontSize: "12px", fontWeight: 300 }}

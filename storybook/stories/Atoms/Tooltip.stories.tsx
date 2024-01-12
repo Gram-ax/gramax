@@ -1,33 +1,33 @@
 import TooltipSource from "@components/Atoms/Tooltip";
-import { ComponentMeta } from "@storybook/react";
-import { Placement } from "tippy.js";
+import { Meta, StoryObj } from "@storybook/react";
+import { ComponentProps } from "react";
+import CenterDecorator from "storybook/styles/decorators/CenterDecorator";
 
-export default {
-	title: "DocReader/Atoms/Tooltip",
-	decorators: [
-		(Story) => {
-			return (
-				<div style={{ position: "absolute", left: "50%", top: "50%", transform: "translate(-50%, -50%)" }}>
-					<Story />
-				</div>
-			);
-		},
-	],
+type Props = { childrenString: string } & ComponentProps<typeof TooltipSource>;
+
+const meta: Meta<Props> = {
+	title: "gx/Atoms/Tooltip",
+	decorators: [CenterDecorator],
 	args: {
-		children: "children",
+		childrenString: "children",
 		content: "content",
 		distance: 10,
+		interactive: false,
 	},
 	argTypes: {
 		content: { type: "string" },
 	},
-} as ComponentMeta<typeof Tooltip>;
+};
 
-export const Tooltip = (args: { children: string; content: string; place: Placement; distance: number }) => {
-	const { children, ...thisArgs } = args;
-	return (
-		<TooltipSource {...thisArgs}>
-			<span>{children}</span>
-		</TooltipSource>
-	);
+export default meta;
+
+export const Tooltip: StoryObj<Props> = {
+	render: (props) => {
+		const { childrenString, ...thisArgs } = props;
+		return (
+			<TooltipSource {...thisArgs}>
+				<span>{childrenString}</span>
+			</TooltipSource>
+		);
+	},
 };

@@ -8,7 +8,7 @@ const getCatalogEditProps = (props: CatalogProps): CatalogEditProps => {
 		title: props.title,
 		description: props.link.description,
 		style: props.link.style,
-		private: props.private,
+		// private: props.private,
 	};
 };
 

@@ -29,12 +29,12 @@ export interface CatalogEditProps {
 	 * @format PN
 	 */
 	code?: string;
-	/**
-	 * @title Кому доступно
-	 * @format Почта или группа
-	 * @description Укажите, кто сможет просматривать каталог после публикации. Это могут быть группы или отдельные пользователи.
-	 */
-	private?: string[];
+	// /**
+	//  * @title Кому доступно
+	//  * @format Почта или группа
+	//  * @description Укажите, кто сможет просматривать каталог после публикации. Это могут быть группы или отдельные пользователи.
+	//  */
+	// private?: string[];
 }
 
 export default CatalogEditProps;

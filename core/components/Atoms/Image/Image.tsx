@@ -1,7 +1,7 @@
 import resolveModule from "@app/resolveModule";
+import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import { DetailedHTMLProps, Fragment, ImgHTMLAttributes, useState } from "react";
 import Path from "../../../logic/FileProvider/Path/Path";
-import ApiUrlCreatorService from "../../../ui-logic/ContextServices/ApiUrlCreator";
 import { GifImage } from "./GifImage";
 import Lightbox from "./modalImage/Lightbox";
 

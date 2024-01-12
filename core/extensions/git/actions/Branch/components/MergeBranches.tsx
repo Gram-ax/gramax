@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import Button from "../../../../../components/Atoms/Button/Button";
 import Checkbox from "../../../../../components/Atoms/Checkbox";
 import SmallFence from "../../../../../components/Labels/SmallFence";
-import { ListItem } from "../../../../../components/List/Item";
+import { ListItem } from "@components/List/Item";
 import ListLayout from "../../../../../components/List/ListLayout";
 import useLocalize from "../../../../localization/useLocalize";
 
@@ -15,9 +15,11 @@ const MergeBranches = styled(
 		onDeleteAfterMergeChange = () => {},
 		onCanMergeChange = () => {},
 		branches,
+		isLoadingData,
 		className,
 	}: {
 		onClick: () => void;
+		isLoadingData?: boolean;
 		currentBranch: string;
 		onCanMergeChange?: (canMerge: boolean) => void;
 		onBrancTohMergeInToChange?: (brancTohMergeInTo: string) => void;
@@ -59,6 +61,7 @@ const MergeBranches = styled(
 							<span>{useLocalize("inBranch").toLowerCase()}</span>
 						</label>
 						<ListLayout
+							isLoadingData={isLoadingData}
 							items={branches}
 							placeholder={useLocalize("findBranch")}
 							onSearchClick={() => setBrancTohMergeInTo("")}

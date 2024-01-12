@@ -1,7 +1,6 @@
 import SpinnerLoader from "@components/Atoms/SpinnerLoader";
-import Error from "@components/Error";
-import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import styled from "@emotion/styled";
+import DiagramError from "@ext/markdown/elements/diagrams/component/DiagramError";
 import { forwardRef, MutableRefObject } from "react";
 import DiagramType from "../../../../../logic/components/Diagram/DiagramType";
 
@@ -26,14 +25,15 @@ const DiagramRender = styled(
 			},
 			ref?: MutableRefObject<HTMLDivElement>,
 		) => {
-			const isLogged = PageDataContextService.value.isLogged;
 			if (!data && !error)
 				return (
 					<div className={`${className} diagram-image`}>
 						<SpinnerLoader width={75} height={75} />
 					</div>
 				);
-			if (error) return <Error error={{ message: error.message, stack: error.stack }} isLogged={isLogged} />;
+
+			if (error) return <DiagramError error={error} />;
+
 			return (
 				<div
 					className={`${className} ${background ? "diagram-background" : ""} diagram-image`}
@@ -51,6 +51,8 @@ const DiagramRender = styled(
 	),
 )`
 	display: flex;
+	width: 100%;
+	height: 100%;
 	margin: 1rem 0;
 	align-items: center;
 	justify-content: center;

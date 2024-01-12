@@ -1,9 +1,9 @@
 import Divider from "@components/Atoms/Divider";
 import LeftNavViewContentSrc, { ViewContent } from "@components/Layouts/LeftNavViewContent/LeftNavViewContent";
-import { ComponentMeta } from "@storybook/react";
+import { Meta } from "@storybook/react";
 export default {
-	title: "DocReader/Layouts/LeftNavViewContent",
-} as ComponentMeta<typeof LeftNavViewContent>;
+	title: "gx/Layouts/LeftNavViewContent",
+} as Meta<typeof LeftNavViewContent>;
 
 export const LeftNavViewContent = () => {
 	const elements: ViewContent[] = [];

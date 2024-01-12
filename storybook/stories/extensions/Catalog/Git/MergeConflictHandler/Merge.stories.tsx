@@ -16,7 +16,7 @@ export const Handler: StoryObj = {
 };
 
 const MergeData = {
-	title: "DocReader/extensions/Catalog/Git/Merge",
+	title: "gx/extensions/Catalog/Git/Merge",
 };
 
 export default MergeData;

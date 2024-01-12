@@ -1,218 +1,230 @@
+import { classNames } from "@components/libs/classNames";
+import { useOutsideClick } from "@core-ui/hooks/useOutsideClick";
 import styled from "@emotion/styled";
-import { MutableRefObject, forwardRef, useEffect, useImperativeHandle, useRef, useState } from "react";
+import { forwardRef, useEffect, useImperativeHandle, useRef, useState, useMemo } from "react";
+import { ForwardedRef, MouseEventHandler } from "react";
 import Tooltip from "../Atoms/Tooltip";
-import { ListItem } from "./Item";
-import Items from "./Items";
+import { ListItem, ItemContent, ButtonItem } from "./Item";
+import Items, { OnItemClick } from "./Items";
 import Search, { SearchElement } from "./Search";
 
-export type ListLayoutElement = HTMLDivElement & { searchRef: SearchElement };
+export interface ListLayoutElement extends HTMLDivElement {
+	searchRef: SearchElement;
+}
 
-const ListLayout = styled(
-	forwardRef(
-		(
-			{
-				items,
-				icon,
-				tabIndex,
-				maxItems,
-				placeholder,
-				isErrorValue,
-				hideScrollbar,
-				disableSearch,
-				item = "",
-				isCode = true,
-				openByDefault = false,
-				selectOnSearchClick = false,
-				focusOnMount = true,
-				onSearchClick,
-				onSearchChange,
-				onItemClick,
-				onFocus,
-				className,
-				itemsClassName,
-			}: {
-				items: (string | ListItem)[];
-				item?: string | ListItem;
-				icon?: string;
-				openByDefault?: boolean;
-				placeholder?: string;
-				disable?: boolean;
-				maxItems?: number;
-				tabIndex?: number;
-				isCode?: boolean;
-				isErrorValue?: boolean;
-				hideScrollbar?: boolean;
-				selectOnSearchClick?: boolean;
-				focusOnMount?: boolean;
-				disableSearch?: boolean;
-				onSearchClick?: () => void;
-				onSearchChange?: (value: string) => void;
-				onItemClick?: (
-					labelField: string,
-					e: React.MouseEvent<HTMLDivElement, MouseEvent>,
-					idx: number,
-				) => void;
-				onFocus?: () => void;
-				className?: string;
-				itemsClassName?: string;
-			},
-			ref: MutableRefObject<ListLayoutElement>,
-		) => {
-			const [filteredWidth, setFilteredWidth] = useState<number>();
-			const [filteredItems, setFilteredItems] = useState(items);
-			const [isOpen, setIsOpen] = useState(openByDefault);
-			const [value, setValue] = useState(item);
-			const listRef = useRef<HTMLDivElement>(null);
-			const searchRef = useRef<SearchElement>(null);
-			const itemsRef = useRef<HTMLDivElement>(null);
+interface ConfigProps {
+	openByDefault?: boolean;
+	placeholder?: string;
+	disable?: boolean;
+	isCode?: boolean;
+	isErrorValue?: boolean;
+	hideScrollbar?: boolean;
+	selectAllOnFocus?: boolean;
+	disableSearch?: boolean;
+	isLoadingData?: boolean;
+}
 
-			useImperativeHandle(ref, () => ({
-				get searchRef(): SearchElement {
-					return searchRef.current;
-				},
-				get itemsRef(): HTMLDivElement {
-					return itemsRef.current;
-				},
-				...listRef.current,
-			}));
+interface ListLayoutProps extends ConfigProps {
+	buttons?: ButtonItem[];
+	items: ItemContent[];
+	item?: ItemContent;
+	icon?: string;
+	maxItems?: number;
+	tabIndex?: number;
+	onSearchClick?: () => void;
+	onSearchChange?: (value: string) => void;
+	onItemClick?: (value: string, e: MouseEventHandler<HTMLDivElement> | KeyboardEvent, idx: number) => void;
+	onFocus?: () => void;
+	className?: string;
+	itemsClassName?: string;
+}
 
-			const setItem = (v: string) => {
-				if (typeof value == "string") return setValue(v);
-				if (typeof value.element == "string") return setValue({ ...value, element: v });
-				return setValue({ ...value, labelField: v });
-			};
-
-			const getStrValue = (value: string | ListItem) =>
-				typeof value == "string" ? value : typeof value.element == "string" ? value.element : value.labelField;
-
-			const filterItems = (items: (ListItem | string)[], input: string) => {
-				const filter = (item: string): boolean => {
-					if (input.endsWith(" ")) return item.endsWith(input.trim());
-					return item.toLowerCase().includes(input.toLowerCase());
-				};
-				return items.filter((item) => {
-					if (typeof item === "string") return filter(item);
-					if (typeof item.element === "string") return filter(item.element);
-					else return item.labelField ? filter(item.labelField) : null;
-				});
-			};
-
-			const clickHandler = (e: any) => {
-				if (itemsRef.current.contains(e.target) || searchRef.current.chevronRef.contains(e.target)) return;
-				setIsOpen(false);
-			};
-
-			useEffect(() => {
-				setValue(item);
-			}, [item]);
-
-			useEffect(() => {
-				setFilteredItems(items);
-			}, [items]);
-
-			useEffect(() => {
-				if (value === "") {
-					setFilteredItems(items);
-					return;
-				}
-				setFilteredItems(
-					filterItems(
-						items,
-						typeof value == "string"
-							? value
-							: typeof value.element == "string"
-							? value.element
-							: value.labelField,
-					),
-				);
-			}, [value]);
-
-			useEffect(() => {
-				if (!listRef?.current) return;
-				setFilteredWidth(listRef.current.clientWidth);
-			});
-
-			useEffect(() => {
-				document.addEventListener("mouseup", clickHandler);
-				return () => {
-					document.removeEventListener("mouseup", clickHandler);
-				};
-			});
-
-			useEffect(() => {
-				if (!focusOnMount) searchRef.current.inputRef.blur();
-			}, []);
-
-			return (
-				<Tooltip
-					arrow={false}
-					distance={4}
-					interactive
-					customStyle
-					place="bottom"
-					trigger="click"
-					visible={true}
-					hideOnClick={false}
-					hideInMobile={false}
-					content={
-						<div style={{ width: filteredWidth }} ref={itemsRef}>
-							<Items
-								className={itemsClassName}
-								isCode={isCode}
-								filteredWidth={filteredWidth}
-								maxItems={maxItems}
-								hideScrollbar={hideScrollbar}
-								items={filteredItems}
-								onItemClick={(value, e) => {
-									if (onItemClick)
-										onItemClick(
-											typeof value === "string" ? value : value.labelField,
-											e,
-											items.findIndex((item) => item == value),
-										);
-									setIsOpen(false);
-									setValue(value);
-								}}
-								isOpen={isOpen}
-							/>
-						</div>
-					}
-				>
-					<div data-qa="list" ref={listRef} className={"list-layout " + className}>
-						<Search
-							ref={searchRef}
-							icon={icon}
-							isCode={isCode}
-							isOpen={isOpen}
-							tabIndex={tabIndex}
-							disable={disableSearch}
-							placeholder={placeholder}
-							isErrorValue={isErrorValue}
-							onFocus={onFocus}
-							setValue={setItem}
-							value={getStrValue(value)}
-							onSearchChange={onSearchChange}
-							onClick={() => {
-								if (onSearchClick) onSearchClick();
-								setIsOpen(true);
-								if (selectOnSearchClick) searchRef.current.inputRef.select();
-								else setItem("");
-							}}
-							onChevronClick={() => {
-								setIsOpen(!isOpen);
-								setItem("");
-							}}
-						/>
-					</div>
-				</Tooltip>
-			);
-		},
-	),
-)`
+const StyledDiv = styled.div<ConfigProps>`
 	width: 100%;
-	border-radius: 4px 4px 0px 0px;
-	${(p) => (p.disable ? "pointer-events: none;" : "")}
-	${(p) => (p.isCode ? "color: var(--color-prism-text);" : "")}
+	border-radius: 4px 4px 0 0;
+	pointer-events: ${(props) => (props.disable ? "none" : "auto")};
+	color: ${(props) => (props.isCode ? "var(--color-prism-text)" : "inherit")};
 `;
+
+const filterItems = (items: (ListItem | string)[], input: string) => {
+	const filter = (item: string): boolean => {
+		if (input.endsWith(" ")) return item.endsWith(input.trim());
+		return item.toLowerCase().includes(input.toLowerCase());
+	};
+
+	return items?.filter((item) => {
+		if (typeof item === "string") return filter(item);
+		if (typeof item?.element === "string") return filter(item.element);
+		else return item?.labelField ? filter(item.labelField) : false;
+	});
+};
+
+const getStrValue = (value: string | ListItem) => {
+	return typeof value == "string" ? value : typeof value.element == "string" ? value.element : value.labelField;
+};
+
+const ListLayout = forwardRef((props: ListLayoutProps, ref: ForwardedRef<ListLayoutElement>) => {
+	const { items = [], buttons = [], item = "" } = props;
+	const { onSearchClick, onSearchChange, onItemClick, onFocus } = props;
+
+	const {
+		selectAllOnFocus = true,
+		openByDefault = false,
+		isLoadingData = false,
+		disable = false,
+		isCode = true,
+	} = props;
+
+	const {
+		isErrorValue,
+		maxItems = 6,
+		hideScrollbar,
+		disableSearch,
+		icon,
+		tabIndex,
+		placeholder,
+		className,
+		itemsClassName,
+	} = props;
+
+	const [filteredWidth, setFilteredWidth] = useState<number>();
+	const [isOpen, setIsOpen] = useState<boolean>(openByDefault);
+	const [value, setValue] = useState<ItemContent>(item);
+	const listRef = useRef<HTMLDivElement>(null);
+	const searchRef = useRef<SearchElement>(null);
+	const itemsRef = useRef<HTMLDivElement>(null);
+
+	useImperativeHandle(ref, () => ({
+		get searchRef(): SearchElement {
+			return searchRef.current;
+		},
+		get itemsRef(): HTMLDivElement {
+			return itemsRef.current;
+		},
+		...listRef.current,
+	}));
+
+	useOutsideClick(
+		[itemsRef?.current, searchRef?.current?.inputRef, searchRef?.current?.chevronRef],
+		() => setIsOpen(false),
+		true,
+	);
+
+	const filteredItems = useMemo(() => {
+		return value ? filterItems(items, getStrValue(value)) : items || [];
+	}, [value, items]);
+
+	const focusInInput = () => {
+		if (searchRef.current) searchRef.current.inputRef.focus();
+	};
+
+	const blurInInput = () => {
+		if (searchRef.current) searchRef.current.inputRef.blur();
+	};
+
+	const selectInInput = () => {
+		if (searchRef.current) searchRef.current.inputRef.select();
+	};
+
+	const itemClickHandler: OnItemClick = (value, e, idx) => {
+		const index = items.indexOf(filteredItems[idx]);
+		onItemClick?.(getStrValue(value), e, index !== -1 ? index : idx);
+		setValue(value);
+	};
+
+	const setValueHandler = (v: string) => {
+		if (typeof value == "string") return setValue(v);
+		if (typeof value.element == "string") return setValue({ ...value, element: v });
+		return setValue({ ...value, labelField: v });
+	};
+
+	const onSearchClickHandler = () => {
+		onSearchClick?.();
+		setIsOpen(true);
+	};
+
+	const onChevronClickHandler = () => {
+		setIsOpen(!isOpen);
+	};
+
+	const onFocusHandler = () => {
+		if (selectAllOnFocus) selectInInput();
+		onFocus?.();
+	};
+
+	useEffect(() => {
+		if (openByDefault) focusInInput();
+	}, []);
+
+	useEffect(() => {
+		setValue(item);
+	}, [item]);
+
+	useEffect(() => {
+		if (listRef?.current) setFilteredWidth(listRef.current.clientWidth);
+	}, [listRef?.current]);
+
+	const TooltipContent = (
+		<div style={{ width: filteredWidth }} ref={itemsRef}>
+			<Items
+				setIsOpen={setIsOpen}
+				buttons={buttons}
+				isLoadingData={isLoadingData}
+				value={getStrValue(value)}
+				blurInInput={blurInInput}
+				className={itemsClassName}
+				isCode={isCode}
+				filteredWidth={filteredWidth}
+				maxItems={maxItems}
+				hideScrollbar={hideScrollbar}
+				items={filteredItems}
+				onItemClick={itemClickHandler}
+				isOpen={isOpen}
+				searchRef={searchRef}
+			/>
+		</div>
+	);
+
+	return (
+		<Tooltip
+			arrow={false}
+			distance={4}
+			interactive
+			customStyle
+			place="bottom"
+			trigger="click"
+			visible={true}
+			hideOnClick={false}
+			hideInMobile={false}
+			content={TooltipContent}
+		>
+			<StyledDiv
+				disable={disable}
+				isCode={isCode}
+				data-qa="list"
+				ref={listRef}
+				className={classNames("list-layout", {}, [className])}
+			>
+				<Search
+					title={getStrValue(value)}
+					value={getStrValue(value)}
+					setValue={setValueHandler}
+					ref={searchRef}
+					icon={icon}
+					isCode={isCode}
+					isOpen={isOpen}
+					tabIndex={tabIndex}
+					disable={disableSearch}
+					placeholder={placeholder}
+					isErrorValue={isErrorValue}
+					onFocus={onFocusHandler}
+					onSearchChange={onSearchChange}
+					onClick={onSearchClickHandler}
+					onChevronClick={onChevronClickHandler}
+				/>
+			</StyledDiv>
+		</Tooltip>
+	);
+});
 
 export default ListLayout;

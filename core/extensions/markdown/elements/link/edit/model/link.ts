@@ -41,7 +41,7 @@ export const Link = Mark.create<LinkOptions>({
 			linkOnPaste: true,
 			autolink: true,
 			HTMLAttributes: {
-				target: "_blank",
+				target: "_self",
 				rel: "noopener noreferrer nofollow",
 			},
 			validate: undefined,

@@ -1,12 +1,12 @@
 import { Meta, StoryObj } from "@storybook/react";
 import { ComponentProps } from "react";
-import InlineDecorator from "../../styles/decorators/InlineDecorator";
 import CodeSrc from "../../../core/extensions/markdown/elements/code/render/component/Code";
+import InlineDecorator from "../../styles/decorators/InlineDecorator";
 
 type Props = ComponentProps<typeof CodeSrc>;
 
 const meta: Meta<Props> = {
-	title: "DocReader/Atoms/Code",
+	title: "gx/Atoms/Code",
 	decorators: [InlineDecorator],
 	args: {
 		children: "code",

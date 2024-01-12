@@ -1,5 +1,7 @@
+import Path from "@core/FileProvider/Path/Path";
 import ArticleFileStructure from "@core/FileStructue/Article/ArticleFileStructure";
 import { FSProps } from "@core/FileStructue/FileStructure";
+import ResourceUpdater from "@core/Resource/ResourceUpdater";
 import { FileStatus } from "@ext/Watchers/model/FileStatus";
 import { JSONContent } from "@tiptap/core";
 import { RenderableTreeNode } from "../../../extensions/markdown/core/render/logic/Markdoc";
@@ -68,9 +70,9 @@ export class Article<FS extends ArticleFileStructure = ArticleFileStructure> ext
 		await this._save();
 	}
 
-	async updateProps(props: ClientArticleProps) {
+	async updateProps(props: ClientArticleProps, resourceUpdater: ResourceUpdater) {
 		await this._updateProps(props);
-		if (this.getFileName() !== props.fileName) await this._updateArticleFileName(props.fileName);
+		await this._updateArticleFileName(props.fileName, resourceUpdater);
 		return this;
 	}
 
@@ -102,12 +104,13 @@ export class Article<FS extends ArticleFileStructure = ArticleFileStructure> ext
 		this._watcherFuncs.map((f) => f([{ itemRef: this._ref, type: FileStatus.modified }]));
 	}
 
-	private async _updateArticleFileName(fileName: string) {
+	private async _updateArticleFileName(fileName: string, resourceUpdater: ResourceUpdater) {
 		if (this.getFileName() == fileName) return;
 		const path = this._ref.path.getNewName(fileName);
-		await this._fs.setArticlePath(this, path);
-		this._ref.path = path;
-		this._logicPath = this._getUpdateArticleByProps()._logicPath;
+		await this._fs.moveArticle(this, path);
+		const newArticle = this._getUpdateArticleByProps(path);
+		await resourceUpdater.update(this, newArticle);
+		Object.assign(this, newArticle);
 		return this;
 	}
 
@@ -115,9 +118,9 @@ export class Article<FS extends ArticleFileStructure = ArticleFileStructure> ext
 		return await this._fs.createArticle(this._ref.path, this._parent, this._parent.props);
 	}
 
-	private _getUpdateArticleByProps() {
+	private _getUpdateArticleByProps(path: Path) {
 		return this._fs.makeArticleByProps(
-			this._ref.path,
+			path,
 			this._props,
 			this._content,
 			this._parent,
@@ -133,6 +136,7 @@ export interface Content {
 	editTree: JSONContent;
 	renderTree: RenderableTreeNode;
 	resourceManager: ResourceManager;
+	linkManager: ResourceManager;
 }
 
 enum ArticleProps {

@@ -1,14 +1,14 @@
 import { Meta, StoryObj } from "@storybook/react";
-import mockApi from "../../../../../../logic/api/mockApi";
+import mock from "storybook/data/mock";
 import InlineDecorator from "../../../../../../styles/decorators/InlineDecorator";
 import { SyncMergeConflictError as SyncMergeConflictErrorSrc } from "../../Sync/errors/SyncMergeConflictError.stories";
 import { SyncMergeNotSupportedError as SyncMergeNotSupportedErrorSrc } from "../../Sync/errors/SyncMergeNotSupportedError.stories";
 import syncApiErrorData from "../../Sync/errors/syncApiErrorData";
 
 const meta: Meta = {
-	title: "DocReader/extensions/Catalog/Git/Merge/Error/Sync",
+	title: "gx/extensions/Catalog/Git/Merge/Error/Sync",
 	decorators: [InlineDecorator],
-	parameters: { msw: mockApi(syncApiErrorData) },
+	parameters: { msw: mock(syncApiErrorData) },
 };
 
 export default meta;

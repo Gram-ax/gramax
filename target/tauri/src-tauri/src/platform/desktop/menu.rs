@@ -4,44 +4,28 @@ use tauri::menu::*;
 use tauri::*;
 
 use crate::build_main_window;
-use crate::child_window::PredefinedChildWindow;
+use crate::platform::child_window::ChildWindow;
+use crate::platform::desktop::open_help_docs;
 use crate::platform::desktop::updater::AppUpdater;
-
-use super::open_help_docs;
-
 use crate::translation::*;
 
-pub trait MenuBuilder<R: Runtime> {
-  fn setup_menu(&self);
+pub trait MenuBuilder {
+  fn setup_menu(&self) -> Result<()>;
 }
 
-impl<R: Runtime> MenuBuilder<R> for tauri::App<R> {
-  fn setup_menu(&self) {
-    let language = Language::detect_user_language();
-    let menu = create_menu(self, language);
-    self.set_menu(menu.clone()).expect("unable to set menu");
-    self.manage(MenuHandle(menu));
-    self.on_menu_event(on_event);
+impl<R: Runtime> MenuBuilder for tauri::App<R> {
+  fn setup_menu(&self) -> Result<()> {
+    make_menu(self.handle()).set_as_app_menu()?;
+    self.on_menu_event(on_menu_event);
+    Ok(())
   }
 }
 
-pub struct MenuHandle<R: Runtime>(Menu<R>);
-
-impl<R: Runtime> MenuHandle<R> {
-  pub fn get(&self, id: MenuItemId) -> Option<MenuItemKind<R>> {
-    if let Ok(items) = self.0.items() {
-      return items.iter().find_map(move |item_kind| match item_kind {
-        MenuItemKind::Submenu(submenu) => submenu.get(id.as_ref()),
-        kind if kind.id() == id.as_ref() => Some(kind.clone()),
-        _ => None,
-      });
-    }
-    None
-  }
-
-  pub fn update_item(&self) -> MenuItem<R> {
-    let kind = self.get(MenuItemId::CheckUpdate).unwrap();
-    kind.as_menuitem_unchecked().to_owned()
+impl<R: Runtime> MenuBuilder for tauri::Window<R> {
+  fn setup_menu(&self) -> Result<()> {
+    make_menu(self.app_handle()).set_as_window_menu(self)?;
+    self.on_menu_event(|w, e| on_menu_event(w.app_handle(), e));
+    Ok(())
   }
 }
 
@@ -58,17 +42,29 @@ pub enum MenuItemId {
   Unknown,
 }
 
-fn on_event<R: Runtime>(app: &AppHandle<R>, event: MenuEvent) {
+pub fn search_menu<R: Runtime>(menu: &Menu<R>, id: MenuItemId) -> Option<MenuItemKind<R>> {
+  if let Ok(items) = menu.items() {
+    return items.iter().find_map(|item_kind| match item_kind {
+      MenuItemKind::Submenu(submenu) => submenu.get(id.as_ref()),
+      kind if kind.id() == id.as_ref() => Some(kind.clone()),
+      _ => None,
+    });
+  }
+  None
+}
+
+fn on_menu_event<R: Runtime>(app: &AppHandle<R>, event: MenuEvent) {
   use MenuItemId as Id;
+  let app = app.clone();
 
   match Id::from_str(event.id().as_ref()).unwrap_or(Id::Unknown) {
     Id::Help => {
-      if let Err(err) = open_help_docs(app) {
+      if let Err(err) = open_help_docs(&app) {
         error!("Can't open docs: {:?}", err);
       }
     }
     Id::Settings => {
-      PredefinedChildWindow::Settings.create(app).unwrap();
+      ChildWindow::Settings.create_exact(&app).unwrap();
     }
     Id::ToggleInspector => {
       if let Some(window) = app.get_focused_window() {
@@ -86,17 +82,13 @@ fn on_event<R: Runtime>(app: &AppHandle<R>, event: MenuEvent) {
       }
     }
     Id::CheckUpdate => {
-      let app = app.clone();
       async_runtime::spawn(async move { app.state::<AppUpdater<R>>().check_and_ask().await });
     }
     Id::NewWindow => {
-      build_main_window(app).unwrap();
+      std::thread::spawn(move || build_main_window(&app).unwrap());
     }
     Id::CloseWindow => {
-      let app = app.clone();
-      std::thread::spawn(move || {
-        app.get_focused_window().map(|w| w.close());
-      });
+      std::thread::spawn(move || app.get_focused_window().map(|w| w.close()));
     }
     _ => (),
   }
@@ -109,7 +101,8 @@ fn about_metadata<R: Runtime, M: Manager<R>>(app: &M) -> AboutMetadata {
   builder.build()
 }
 
-fn create_menu<R: Runtime, M: Manager<R>>(app: &M, language: Language) -> Menu<R> {
+fn make_menu<R: Runtime>(app: &AppHandle<R>) -> Menu<R> {
+  let language = Language::detect_user_language();
   let build_item = |id: MenuItemId, accelerator: Option<&str>| {
     let text = language.translate(id.into());
     let item = MenuItemBuilder::with_id(MenuId(id.as_ref().into()), text);
@@ -122,7 +115,7 @@ fn create_menu<R: Runtime, M: Manager<R>>(app: &M, language: Language) -> Menu<R
 
   let menu = Menu::new(app);
 
-  #[cfg(target_os = "macos")]
+  #[cfg(target_family = "unix")]
   let main_sub = {
     let app_name = &app.package_info().name;
     Submenu::new(app, app_name, true)

@@ -12,8 +12,9 @@ export function tabledb(context: ParserContext): Schema {
 		type: SchemaType.block,
 		transform: async (node: Node) => {
 			const relativePath = new Path(node.attributes.path);
-			context.getResourceManager().set(relativePath);
-			const tablePath = context.getResourceManager().getAbsolutePath(relativePath);
+			const lm = context.getLinkManager();
+			lm.set(relativePath);
+			const tablePath = lm.getAbsolutePath(relativePath);
 			const { storageId, path, name } = {
 				storageId: context.getStorageId(),
 				path: tablePath,

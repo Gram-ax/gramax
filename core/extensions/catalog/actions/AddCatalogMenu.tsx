@@ -9,7 +9,7 @@ const AddCatalogMenu = () => {
 	return (
 		<PopupMenuLayout
 			trigger={
-				<a data-qa="app-action">
+				<a data-qa="qa-clickable">
 					<Icon code={"plus"} />
 					<span>{useLocalize("addCatalog")}</span>
 				</a>
@@ -19,7 +19,7 @@ const AddCatalogMenu = () => {
 				<IsReadOnlyHOC>
 					<CreateCatalog
 						trigger={
-							<div data-qa="app-action">
+							<div data-qa="qa-clickable">
 								<Icon code="plus" faFw />
 								<span>{useLocalize("createNew")}</span>
 							</div>
@@ -28,7 +28,7 @@ const AddCatalogMenu = () => {
 				</IsReadOnlyHOC>
 				<Clone
 					trigger={
-						<div data-qa="app-action">
+						<div data-qa="qa-clickable">
 							<Icon code="cloud" faFw />
 							<span>{`${useLocalize("load")} ${useLocalize("existing")}`}</span>
 						</div>

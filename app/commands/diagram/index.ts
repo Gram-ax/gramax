@@ -1,11 +1,11 @@
 import getDbDiagram from "./getDbDiagram";
 import getDiagramByContent from "./getDiagramByContent";
-import getDiagramContentByPath from "./getDiagramContentByPath";
+import getDiagramByPath from "./getDiagramByPath";
 
 const diagram = {
 	getDbDiagram,
+	getDiagramByPath,
 	getDiagramByContent,
-	getDiagramContentByPath,
 };
 
 export default diagram;

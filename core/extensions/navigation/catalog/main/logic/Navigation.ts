@@ -48,7 +48,7 @@ export default class Navigation {
 
 	getCatalogLink(catalog: CatalogEntry, name?: string): CatalogLink {
 		if (!catalog) return null;
-		if (!name) name = catalog.name;
+		if (!name) name = catalog.getName();
 		const catalogLink: CatalogLink = {
 			name: name,
 			pathname: name,
@@ -99,7 +99,7 @@ export default class Navigation {
 				catalog.getRootCategoryPath().compare(item.parent.folderPath);
 
 			categoryLink.items = [];
-			categoryLink.existContent = !!(item as Category).content;
+			categoryLink.existContent = true;
 			const categoryItems = [];
 			const notIndexArticleRules = this._itemFilter.filter((rule) => !(rule as any).isIndexRule);
 			for (const i of (<Category>item).items) {

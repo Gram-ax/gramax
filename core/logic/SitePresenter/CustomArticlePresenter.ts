@@ -1,5 +1,6 @@
+import Path from "@core/FileProvider/Path/Path";
+import { ItemRef } from "@core/FileStructue/Item/Item";
 import matter from "gray-matter";
-import Path from "../FileProvider/Path/Path";
 import { Article } from "../FileStructue/Article/Article";
 import error403 from "./customArticles/error403";
 import error404 from "./customArticles/error404";
@@ -25,14 +26,14 @@ export default class CustomArticlePresenter {
 		return this._customArticles[name];
 	}
 
-	protected _createErrorArticle(name: string, error?: Error, isLogged?: boolean): Article {
+	protected _createErrorArticle(name: string, error?: Error, isLogged?: boolean, ref?: ItemRef): Article {
 		const errorMessage = isLogged && error ? `\n[error:${error.message}]${error.stack}[/error]` : "";
 		const md = matter(articles[name] + errorMessage);
 		const path = name;
 		const errorCode = Number(name);
 
 		return new Article({
-			ref: {
+			ref: ref ?? {
 				path: Path.empty,
 				storageId: "",
 			},

@@ -1,3 +1,4 @@
+import sso from "@app/commands/sso/sso";
 import Application from "../types/Application";
 import { Command } from "../types/Command";
 import article from "./article";
@@ -19,6 +20,7 @@ import vscode from "./vscode";
 import word from "./word";
 
 const commands = {
+	sso,
 	setTheme,
 	article,
 	catalog,

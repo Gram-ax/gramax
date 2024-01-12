@@ -46,7 +46,7 @@ pub(crate) fn branch_info(repo_path: &Path, name: Option<&str>) -> Result<Branch
   let info = if let Some(name) = name {
     repo
       .branch_by_name(name, BranchType::Local)
-      .or_else(|_| repo.branch_by_name(format!("origin/{name}"), BranchType::Remote))?
+      .or_else(|_| repo.branch_by_name(name, BranchType::Remote))?
       .short_info()?
   } else {
     repo.branch_by_head()?.short_info()?

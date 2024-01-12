@@ -1,4 +1,5 @@
 node_modules/
+.vite-cache
 **/node_modules/
 **/.next/
 **/tauri/**/target/

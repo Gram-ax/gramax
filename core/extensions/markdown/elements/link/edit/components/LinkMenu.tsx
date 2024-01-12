@@ -1,51 +1,109 @@
 import ButtonsLayout from "@components/Layouts/ButtonLayout";
 import ModalLayoutDark from "@components/Layouts/ModalLayoutDark";
+import { usePlatform } from "@core-ui/hooks/usePlatform";
+import parseStorageUrl from "@core/utils/parseStorageUrl";
+import styled from "@emotion/styled";
 import SelectLinkItem from "@ext/artilce/LinkCreator/components/SelectLinkItem";
 import LinkItem from "@ext/artilce/LinkCreator/models/LinkItem";
-import Button from "@ext/markdown/core/edit/components/Menu/Button";
+import Button, { ButtonProps } from "@ext/markdown/core/edit/components/Menu/Button";
+import { useState, useEffect, HTMLProps } from "react";
 
-import { getExecutingEnvironment } from "@app/resolveModule";
-import parseStorageUrl from "@core/utils/parseStorageUrl";
-
-const LinkMenu = ({
-	href,
-	value,
-	itemLinks,
-	onDelete,
-	onUpdate,
-}: {
-	href: string;
+interface LinkMenuProps extends HTMLProps<HTMLInputElement> {
 	value: string;
+	focusOnMount: boolean;
 	itemLinks: LinkItem[];
 	onDelete: () => void;
+	closeMenu: () => void;
 	onUpdate: (value: string, href: string) => void;
-}) => {
-	// GXS-1126
-	// logger.logInfo({ href, value, editor, itemLinks });
-	const isTauri = getExecutingEnvironment() == "tauri";
-	const isExternalLink = !!parseStorageUrl(value)?.domain;
+}
+interface CopyButtonProps extends ButtonProps {
+	isCopied: boolean;
+	isCopyShow: boolean;
+}
+
+const StyledDiv = styled.div`
+	display: flex;
+	gap: 4px;
+	width: 300px;
+	align-items: center;
+`;
+
+const CopyButton = ({ isCopied, isCopyShow, ...otherProps }: CopyButtonProps) =>
+	isCopyShow && (
+		<>
+			<div className="divider" />
+			<Button icon="copy" tooltipText={isCopied ? "Скопировано!" : "Скопировать"} {...otherProps} />
+		</>
+	);
+
+const LinkMenu = (props: LinkMenuProps) => {
+	const { href, value, itemLinks, onDelete, onUpdate, focusOnMount, closeMenu } = props;
+	const [oldHref, setOldHref] = useState(href);
+	const [isReady, setIsReady] = useState(false);
+	const [isCopied, setIsCopied] = useState(false);
+	const [isCopyShow, setIsCopyShow] = useState(false);
+
+	const { isTauri } = usePlatform();
+
+	useEffect(() => {
+		const handleKeyDown = (e: KeyboardEvent) => {
+			if (e.key === "Escape") {
+				e.stopImmediatePropagation();
+				closeMenu();
+			}
+		};
+
+		document.addEventListener("keydown", handleKeyDown);
+
+		return () => document.removeEventListener("keydown", handleKeyDown);
+	}, []);
+
+	const onClickHandler = () => {
+		const parsedUrl = parseStorageUrl(href);
+		const isArticle = parsedUrl.domain && parsedUrl.domain !== "...";
+		const linkToCopy = isArticle ? href : `${window.location.origin}${href}`;
+		setIsCopied(true);
+
+		return linkToCopy;
+	};
+
+	useEffect(() => {
+		setIsCopyShow(href && href !== "/" && !isTauri);
+		if (href !== oldHref) setIsReady(false);
+		setOldHref(href);
+	}, [href]);
+
+	useEffect(() => {
+		if (!isReady) {
+			setIsCopied(false);
+			setIsReady(true);
+		}
+	}, [isReady]);
+
+	if (!isReady) return null;
+
 
 	return (
 		<ModalLayoutDark>
-			<div style={{ width: "300px" }}>
-				<ButtonsLayout>
-					<SelectLinkItem value={value ?? ""} itemLinks={itemLinks} onChange={onUpdate} />
-					<div className="divider" />
-					<a
+			<ButtonsLayout>
+				<StyledDiv>
+					<SelectLinkItem
+						focusOnMount={focusOnMount}
 						href={href}
-						rel="noopener noreferrer"
-						style={{ color: "var(--color-article-bg)" }}
-						target={isTauri ? (isExternalLink ? null : "_self") : "_blank"}
-					>
-						<Button
-							icon="arrow-up-right-from-square"
-							tooltipText={isTauri ? "Перейти по ссылке" : "Открыть ссылку в новой вкладке"}
-						/>
-					</a>
+						value={value ?? ""}
+						itemLinks={itemLinks}
+						onChange={onUpdate}
+					/>
+					<CopyButton
+						onMouseLeave={() => setIsCopied(false)}
+						onClick={() => navigator.clipboard.writeText(onClickHandler())}
+						isCopied={isCopied}
+						isCopyShow={isCopyShow}
+					/>
 					<div className="divider" />
 					<Button icon="trash" onClick={onDelete} tooltipText={"Удалить ссылку"} />
-				</ButtonsLayout>
-			</div>
+				</StyledDiv>
+			</ButtonsLayout>
 		</ModalLayoutDark>
 	);
 };

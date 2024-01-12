@@ -30,11 +30,11 @@ export default class ServicesSearcher implements Searcher {
 		const serviseDatas: SaveServiseData[] = (
 			await Promise.all(
 				catalogs.map(async (entry) => {
-					const catalog = await entry.catalog();
+					const catalog = await entry.load();
 					return await Promise.all(
 						catalog
 							.getContentItems()
-							.map(async (article) => await this._getArticleData(article, await entry.catalog())),
+							.map(async (article) => await this._getArticleData(article, await entry.load())),
 					);
 				}),
 			)

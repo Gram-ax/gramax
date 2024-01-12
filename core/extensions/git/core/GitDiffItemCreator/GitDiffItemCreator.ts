@@ -11,7 +11,6 @@ import { getDiff, getMatchingPercent } from "../../../VersionControl/DiffHandler
 import { Change } from "../../../VersionControl/DiffHandler/model/Change";
 import DiffItem from "../../../VersionControl/model/DiffItem";
 import DiffResource from "../../../VersionControl/model/DiffResource";
-import VersionControlType from "../../../VersionControl/model/VersionControlType";
 import { FileStatus } from "../../../Watchers/model/FileStatus";
 import GitVersionControl from "../GitVersionControl/GitVersionControl";
 import { GitStatus } from "../GitWatcher/model/GitStatus";
@@ -27,11 +26,8 @@ export default class GitDiffItemCreator {
 	) {}
 
 	public async getDiffItems(): Promise<{ items: DiffItem[]; resources: DiffResource[] }> {
-		const versionControl = await this._catalog.getVersionControl();
-		if (!versionControl || versionControl.getType() !== VersionControlType.git) return { items: [], resources: [] };
-
-		this._gitVersionControl = versionControl as GitVersionControl;
-
+		this._gitVersionControl = this._catalog.repo.gvc;
+		if (!this._gitVersionControl) return { items: [], resources: [] };
 		const changeFiles = await this._getChangeFiles();
 		const { items: diffItems, resources } = await this._getDiffItems(changeFiles.items, changeFiles.resources);
 
@@ -46,8 +42,11 @@ export default class GitDiffItemCreator {
 
 	private async _getOldContent(path: Path, isNew = false): Promise<string> {
 		if (isNew) return "";
-		const content = await this._gitVersionControl.showLastCommitContent(path);
-		return content ? content : "";
+		try {
+			return await this._gitVersionControl.showLastCommitContent(path);
+		} catch (ex) {
+			return "";
+		}
 	}
 
 	private async _getNewContent(path: Path, isDelete = false): Promise<string> {
@@ -214,8 +213,9 @@ export default class GitDiffItemCreator {
 		for (const changeFile of changeResources) {
 			for (const item of this._catalog.getContentItems()) {
 				if (!item.parsedContent) continue;
+				const linkManager = item.parsedContent.linkManager;
 				const resourceManager = item.parsedContent.resourceManager;
-				for (const path of resourceManager.resources) {
+				for (const path of [...resourceManager.resources, ...linkManager.resources]) {
 					if (resourceManager.getAbsolutePath(path).endsWith(changeFile.path)) {
 						itemResources.push(changeFile);
 						const diffResource = await this._getDiffResource(changeFile);

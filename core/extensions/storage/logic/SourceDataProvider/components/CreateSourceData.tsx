@@ -5,8 +5,8 @@ import ListLayout from "@components/List/ListLayout";
 import FetchService from "@core-ui/ApiServices/FetchService";
 import MimeTypes from "@core-ui/ApiServices/Types/MimeTypes";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
-import { useState } from "react";
-import { refreshPage } from "../../../../../ui-logic/ContextServices/RefreshPageContext";
+import { useState, useEffect } from "react";
+import { refreshPage } from "@core-ui/ContextServices/RefreshPageContext";
 import ErrorHandler from "../../../../errorHandlers/client/components/ErrorHandler";
 import CreateGitHubSourceData from "../../../../git/actions/Storage/GitHub/components/CreateGitHubSourceData";
 import CreateGitLabSourceData from "../../../../git/actions/Storage/GitLab/components/CreateGitLabSourceData";
@@ -15,29 +15,32 @@ import SourceListItem from "../../../components/SourceListItem";
 import SourceData from "../model/SourceData";
 import SourceType from "../model/SourceType";
 
-const CreateSourceData = ({
-	trigger,
-	onCreate,
-	defaultSourceType,
-	defaultSourceData,
-	onClose = () => {},
-}: {
+interface CreateSourceDataProps {
 	trigger?: JSX.Element;
 	defaultSourceType?: SourceType;
 	defaultSourceData?: { [key: string]: string };
 	onCreate?: (data: SourceData) => void;
 	onClose?: () => void;
-}) => {
-	const [isOpen, setIsOpen] = useState(trigger ? false : true);
+	externalIsOpen?: boolean;
+}
+
+const CreateSourceData = (props: CreateSourceDataProps) => {
+	const { trigger, onCreate, defaultSourceType, defaultSourceData, onClose = () => {}, externalIsOpen } = props;
+	const [isOpen, setIsOpen] = useState(!trigger);
 	const [sourceType, setSourceType] = useState<SourceType>(defaultSourceType ?? null);
 	const apiUrlCreator = ApiUrlCreatorService.value;
+
 	const createStorageUserData = async (data: SourceData) => {
 		const url = apiUrlCreator.setSourceData();
 		const res = await FetchService.fetch(url, JSON.stringify(data), MimeTypes.json);
 		if (res.ok) onCreate?.(data);
-		refreshPage();
 		setIsOpen(false);
+		void refreshPage();
 	};
+
+	useEffect(() => {
+		if (externalIsOpen) setIsOpen(externalIsOpen);
+	}, [externalIsOpen]);
 
 	return (
 		<ModalLayout
@@ -61,7 +64,7 @@ const CreateSourceData = ({
 									<ListLayout
 										disable={!!defaultSourceType}
 										disableSearch={!!defaultSourceType}
-										openByDefault={defaultSourceType ? false : true}
+										openByDefault={!defaultSourceType}
 										item={defaultSourceType ?? ""}
 										placeholder={`${useLocalize("find")} ${useLocalize("storage2")}`}
 										items={Object.values(SourceType)

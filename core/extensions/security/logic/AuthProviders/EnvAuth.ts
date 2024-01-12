@@ -1,5 +1,3 @@
-import UserInfo from "@ext/security/logic/User/UserInfo2";
-import { UserRepositoryProvider } from "@ext/security/logic/UserRepository";
 import ApiRequest from "../../../../logic/Api/ApiRequest";
 import ApiResponse from "../../../../logic/Api/ApiResponse";
 import { apiUtils } from "../../../../logic/Api/apiUtils";
@@ -10,12 +8,8 @@ import AllPermission from "../Permission/AllPermission";
 import User from "../User/User";
 import { AuthProvider } from "./AuthProvider";
 
-class EnvAuth implements AuthProvider, UserRepositoryProvider {
+class EnvAuth implements AuthProvider {
 	constructor(private _basePath: Path, private _login: string, private _password: string) {}
-
-	async getUser(): Promise<UserInfo> {
-		return await Promise.resolve({ id: "admin", mail: "admin", name: "admin" });
-	}
 
 	login(req: ApiRequest, res: ApiResponse): void | Promise<void> {
 		if (!req.body.login || !req.body.password) {

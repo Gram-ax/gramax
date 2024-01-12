@@ -2,7 +2,7 @@ import BranchSideBar from "../../../../../../core/extensions/git/actions/Branch/
 import InlineDecorator from "../../../../../styles/decorators/InlineDecorator";
 
 const BranchData = {
-	title: "DocReader/extensions/Catalog/Git/Atoms/Branch",
+	title: "gx/extensions/Catalog/Git/Atoms/Branch",
 	decorators: [
 		(Story) => (
 			<div style={{ background: "lightblue", maxWidth: "500px" }}>

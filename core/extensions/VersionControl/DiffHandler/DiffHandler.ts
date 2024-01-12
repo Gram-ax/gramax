@@ -9,6 +9,8 @@ export const getDiff = (
 	oldContent: string,
 	newContent: string,
 ): { changes: Change[]; added: number; removed: number } => {
+	oldContent = oldContent.replaceAll("\n", " \n");
+	newContent = newContent.replaceAll("\n", " \n");
 	const diff = new Diff();
 	const diffs: VersionControlDiff[] = [];
 	const d = diff.diff_main(oldContent, newContent);

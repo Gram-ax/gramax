@@ -21,7 +21,7 @@ export default class BaseGitMergeConflictResolver {
 			changeFiles.map(async (file) => {
 				const content = await this._fp.read(this._pathToRep.join(file.path));
 				const path = file.path.value;
-				const title = fs ? fs.parseMarkdown(content).props.title ?? "" : null;
+				const title: string = fs ? fs.parseMarkdown(content).props.title ?? "" : null;
 				const entry = { content, path, title, type: file.type };
 
 				if (content?.match(FIND_MERGE_CONFLICT)) return entry;
@@ -35,7 +35,7 @@ export default class BaseGitMergeConflictResolver {
 					exists = false;
 				}
 
-				if (exists) entry.type = exists ? FileStatus.delete : FileStatus.new;
+				entry.type = exists ? FileStatus.delete : FileStatus.new;
 				return entry;
 			}),
 		).then((x) => x.filter((x) => x));

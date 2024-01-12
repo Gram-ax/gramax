@@ -12,7 +12,6 @@ mod translation;
 
 use std::sync::atomic::AtomicUsize;
 use std::sync::atomic::Ordering;
-use std::time::Duration;
 
 use platform::config::init_env;
 use platform::*;
@@ -26,8 +25,6 @@ pub const ALLOWED_DOMAINS: [&str; 3] = ["tauri.localhost", "localhost", "gramax"
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
-  color_eyre::install().expect("error while installing color_eyre");
-
   let builder = Builder::default().init().attach_commands().attach_plugins();
   let context = tauri::generate_context!();
 
@@ -40,8 +37,9 @@ pub fn run() {
 
   #[cfg(desktop)]
   {
-    app.setup_menu();
-    app.setup_updater();
+    #[cfg(target_family = "unix")]
+    app.setup_menu().expect("unable to setup menu");
+    app.setup_updater().expect("unable to setup updater");
   }
 
   app.run(|_, _| {});
@@ -49,7 +47,6 @@ pub fn run() {
 
 pub fn build_main_window<R: Runtime>(app: &AppHandle<R>) -> Result<Window<R>> {
   static NEXT_ID: AtomicUsize = AtomicUsize::new(0);
-  let downloads_path = app.path().download_dir().unwrap_or_default();
 
   let window = WindowBuilder::new(
     app,
@@ -58,11 +55,16 @@ pub fn build_main_window<R: Runtime>(app: &AppHandle<R>) -> Result<Window<R>> {
   )
   .initialization_script(include_str!("init.js"))
   .on_navigation(on_navigation)
-  .on_download_started(move |_, path| {
-    *path = downloads_path.join(&path);
-    true
-  })
   .disable_file_drop_handler();
+
+  #[cfg(target_os = "macos")]
+  let window = {
+    let downloads_path = app.path().download_dir().unwrap_or_default();
+    window.on_download_started(move |_, path| {
+      *path = downloads_path.join(&path);
+      true
+    })
+  };
 
   #[cfg(desktop)]
   let window = window
@@ -86,13 +88,6 @@ trait AppBuilder {
 impl<R: Runtime> AppBuilder for Builder<R> {
   fn init(self) -> Self {
     self.manage(Language::detect_user_language()).setup(|app| {
-      #[cfg(feature = "self-test")]
-      {
-        use owo_colors::OwoColorize;
-        warn!("{}", "Self-testing mode".purple());
-        tauri::WindowBuilder::new(app, "test", WindowUrl::App("test.html".into())).build()?;
-      }
-
       app.ipc_scope().configure_remote_access(
         RemoteDomainAccessScope::new("tauri.localhost")
           .add_plugins(["gramaxfs", "shell", "app", "dialog"])
@@ -101,9 +96,6 @@ impl<R: Runtime> AppBuilder for Builder<R> {
       );
 
       build_main_window(app.handle())?;
-      #[cfg(desktop)]
-      start_quiet_update_checking(app.handle().clone(), Duration::from_secs(6 * 3600));
-
       Ok(())
     })
   }

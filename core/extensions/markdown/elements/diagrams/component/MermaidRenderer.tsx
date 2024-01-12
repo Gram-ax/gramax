@@ -1,9 +1,10 @@
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import DiagramRender from "@ext/markdown/elements/diagrams/component/DiagramRender";
 import getMermaidDiagram from "@ext/markdown/elements/diagrams/diagrams/mermaid/getMermaidDiagram";
-import mermaid from "mermaid";
 import { useEffect, useState } from "react";
 import DiagramType from "../../../../../logic/components/Diagram/DiagramType";
+
+const mermaid = import("mermaid")
 
 const MermaidRenderer = ({
 	diagramContent,
@@ -27,7 +28,7 @@ const MermaidRenderer = ({
 
 	useEffect(() => {
 		setState({});
-		mermaid.initialize({ startOnLoad: true, securityLevel: "strict" });
+		mermaid.then((mermaid) => mermaid.default.initialize({ startOnLoad: true, securityLevel: "strict" }));
 		loadData(diagramContent, src);
 	}, [diagramContent, src, isUpdating]);
 

@@ -14,11 +14,11 @@ const updateProps: Command<{ ctx: Context; catalogName: string; props: CatalogEd
 		middlewares: [new AuthorizeMiddleware(), new DesktopModeMiddleware()],
 
 		async do({ ctx, catalogName, props }) {
-			const { lib, sitePresenterFactory, sp, vcp } = this._app;
+			const { lib, sitePresenterFactory, rp } = this._app;
 			const catalog = await lib.getCatalog(catalogName);
 			if (!catalog) return;
 
-			const newCatalog = await catalog.updateProps(sp, vcp, props);
+			const newCatalog = await catalog.updateProps(rp, props);
 			return sitePresenterFactory.fromContext(ctx).getCatalogProps(newCatalog);
 		},
 

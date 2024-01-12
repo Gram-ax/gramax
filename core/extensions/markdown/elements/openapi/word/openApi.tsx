@@ -6,10 +6,8 @@ import Path from "../../../../../logic/FileProvider/Path/Path";
 import { WordExportHelper } from "../../../../wordExport/WordExportHelpers";
 import { WordBlockChild } from "../../../../wordExport/WordTypes";
 
-export const openApiWordLayout: WordBlockChild = async ({ tag, resourceManager, fileProvider }) => {
-	const spec = (
-		await WordExportHelper.getFileByPath(new Path(tag.attributes.src), resourceManager, fileProvider)
-	).toString();
+export const openApiWordLayout: WordBlockChild = async ({ tag, resourceManager }) => {
+	const spec = (await WordExportHelper.getFileByPath(new Path(tag.attributes.src), resourceManager)).toString();
 
 	const component = <SwaggerUI defaultModelsExpandDepth={1} spec={spec} />;
 	const node = document.createElement("div");

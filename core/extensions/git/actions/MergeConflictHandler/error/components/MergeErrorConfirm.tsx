@@ -1,4 +1,5 @@
 import ArticleUpdaterService from "@components/Article/ArticleUpdater/ArticleUpdaterService";
+import getAbortMergeUrl from "@ext/git/actions/MergeConflictHandler/error/logic/getAbortMergeUrl";
 import { ComponentProps, useEffect } from "react";
 import FetchService from "../../../../../../ui-logic/ApiServices/FetchService";
 import ApiUrlCreatorService from "../../../../../../ui-logic/ContextServices/ApiUrlCreator";
@@ -16,15 +17,10 @@ import ErrorMergeConflictHandler from "./ErrorMergeConflictHandler";
 
 const MergeErrorConfirm = ({ error, onCancelClick }: ComponentProps<typeof GetErrorComponent>) => {
 	const mergeType: MergeType = error.props.mergeType;
-	const theirsBranch: string = error.props.theirs;
 	const stashHash: string = error.props.theirs;
+
 	const apiUrlCreator = ApiUrlCreatorService.value;
 	const lang = PageDataContextService.value.lang;
-
-	const getAbortMergeUrl = () => {
-		if (mergeType === MergeType.Branches) return apiUrlCreator.abortMergeBranch(theirsBranch);
-		if (mergeType === MergeType.Sync) return apiUrlCreator.abortMergeSync(stashHash);
-	};
 
 	const getTitle = () => {
 		if (mergeType === MergeType.Branches) return useLocalize("mergeBranchesError", lang);
@@ -36,7 +32,8 @@ const MergeErrorConfirm = ({ error, onCancelClick }: ComponentProps<typeof GetEr
 		if (mergeType === MergeType.Sync) return useLocalize("mergeSyncConfirm", lang);
 	};
 
-	const abortMerge = async () => await FetchService.fetch<void>(getAbortMergeUrl());
+	const abortMerge = async () =>
+		await FetchService.fetch<void>(getAbortMergeUrl({ apiUrlCreator, error, type: mergeType }));
 
 	useEffect(() => {
 		if (mergeType === MergeType.Sync && !stashHash) return;
@@ -65,8 +62,7 @@ const MergeErrorConfirm = ({ error, onCancelClick }: ComponentProps<typeof GetEr
 					onCancelClick();
 					ModalToOpenService.setValue<ComponentProps<typeof ErrorMergeConflictHandler>>(ModalToOpen.Merge, {
 						type: mergeType,
-						theirsBranch,
-						stashHash,
+						error,
 					});
 				},
 				text: useLocalize("resolveConflict"),

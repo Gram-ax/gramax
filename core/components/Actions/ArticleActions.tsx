@@ -23,54 +23,56 @@ const ArticleActions = (): JSX.Element => {
 	const catalogProps = CatalogPropsService.value;
 	const apiUrlCreator = ApiUrlCreatorService.value;
 
-	return !catalogProps.readOnly && (
-		<>
-			<li>
-				<ExportToDocxOrPdf
-					text={useLocalize("article")}
-					wordLink={{
-						downloadLink: apiUrlCreator.getWordSaveUrl(articleProps.ref.path),
-						fileName: articleProps.fileName,
-					}}
-					pdfPart={<a onClick={() => openPrintView(theme)}>PDF</a>}
-				/>
-			</li>
-			{isLogged && (
-				<>
-					<li data-qa={`article-history-button`}>
-						<History />
-					</li>
-					<IsReadOnlyHOC>
-						{!articleProps?.errorCode && (
-							<li>
-								<a
-									onClick={() => {
-										ArticleUpdaterService.update(apiUrlCreator);
-										IsEditService.value = !isEdit;
-									}}
-								>
-									<Icon code={isEdit ? "eye" : "pencil"} faFw={true} />
-									<span>{useLocalize(isEdit ? "switchToViewMode" : "switchToEditMode")}</span>
-								</a>
-							</li>
-						)}
-					</IsReadOnlyHOC>
-					<BugReport />
-					{!isServerApp && (
-						<FileEditor
-							trigger={
-								<li>
-									<a>
-										<Icon code={"file-pen"} faFw={true} />
-										<span>{useLocalize("editMarkdown")}</span>
+	return (
+		!catalogProps.readOnly && (
+			<>
+				<li>
+					<ExportToDocxOrPdf
+						text={useLocalize("article")}
+						wordLink={{
+							downloadLink: apiUrlCreator.getWordSaveUrl(articleProps.ref.path),
+							fileName: articleProps.fileName,
+						}}
+						pdfPart={<a onClick={() => openPrintView(theme)}>PDF</a>}
+					/>
+				</li>
+				{isLogged && (
+					<>
+						<li data-qa="qa-clickable">
+							<History />
+						</li>
+						<IsReadOnlyHOC>
+							{!articleProps?.errorCode && (
+								<li data-qa="qa-clickable">
+									<a
+										onClick={() => {
+											ArticleUpdaterService.update(apiUrlCreator);
+											IsEditService.value = !isEdit;
+										}}
+									>
+										<Icon code={isEdit ? "eye" : "pencil"} faFw={true} />
+										<span>{useLocalize(isEdit ? "switchToViewMode" : "switchToEditMode")}</span>
 									</a>
 								</li>
-							}
-						/>
-					)}
-				</>
-			)}
-		</>
+							)}
+						</IsReadOnlyHOC>
+						<BugReport />
+						{!isServerApp && (
+							<FileEditor
+								trigger={
+									<li data-qa="qa-clickable">
+										<a>
+											<Icon code={"file-pen"} faFw={true} />
+											<span>{useLocalize("editMarkdown")}</span>
+										</a>
+									</li>
+								}
+							/>
+						)}
+					</>
+				)}
+			</>
+		)
 	);
 };
 

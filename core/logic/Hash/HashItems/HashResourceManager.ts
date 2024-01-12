@@ -1,15 +1,10 @@
 import { Buffer } from "buffer";
 import Path from "../../FileProvider/Path/Path";
-import FileProvider from "../../FileProvider/model/FileProvider";
 import ResourceManager from "../../Resource/ResourceManager";
 import HashItem from "./HashItem";
 
 export default class HashResourceManager extends HashItem {
-	constructor(
-		private _path: Path,
-		private _fp: FileProvider,
-		private _resourceManager: ResourceManager,
-	) {
+	constructor(private _path: Path, private _resourceManager: ResourceManager) {
 		super();
 	}
 
@@ -18,7 +13,7 @@ export default class HashResourceManager extends HashItem {
 	}
 
 	public async getContent(): Promise<string> {
-		return (await this._resourceManager.getContent(this._path, this._fp))?.toString() ?? "" ?? "";
+		return (await this._resourceManager.getContent(this._path))?.toString() ?? "" ?? "";
 	}
 
 	public getHashContent(): Promise<string> {
@@ -26,6 +21,6 @@ export default class HashResourceManager extends HashItem {
 	}
 
 	public async getContentAsBinary(): Promise<Buffer> {
-		return (await this._resourceManager.getContent(this._path, this._fp)) ?? Buffer.from("");
+		return (await this._resourceManager.getContent(this._path)) ?? Buffer.from("");
 	}
 }

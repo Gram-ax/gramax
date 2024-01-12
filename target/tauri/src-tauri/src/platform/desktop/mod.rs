@@ -8,14 +8,16 @@ pub mod config;
 pub mod menu;
 
 pub use menu::MenuBuilder;
-pub use updater::start_quiet_update_checking;
-pub use updater::UpdaterBuilder;
+pub use updater::AppUpdaterBuilder;
 
 mod updater;
 
 pub fn window_post_init<R: Runtime>(window: &Window<R>) -> Result<()> {
   #[cfg(target_os = "macos")]
   window.eval(include_str!("macos.js")).unwrap();
+
+  #[cfg(target_os = "windows")]
+  window.setup_menu()?;
 
   Ok(())
 }
@@ -35,6 +37,10 @@ pub fn window_event_handler(event: tauri::GlobalWindowEvent) {
     return;
   };
 
+  if event.window().app_handle().windows().iter().filter(|w| w.0.contains("main")).nth(1).is_some() {
+    return;
+  }
+
   if let tauri::WindowEvent::CloseRequested { api, .. } = event.event() {
     event.window().app_handle().hide().unwrap();
     api.prevent_close();
@@ -44,7 +50,7 @@ pub fn window_event_handler(event: tauri::GlobalWindowEvent) {
 fn open_help_docs<R: Runtime>(#[allow(unused)] app: &AppHandle<R>) -> Result<()> {
   #[cfg(target_os = "windows")]
   {
-    _ = open::that("https://docs.ics-it.ru/doc-reader");
+    _ = open::that("https://docs.ics-it.ru/gramax");
   }
 
   #[cfg(not(target_os = "windows"))]

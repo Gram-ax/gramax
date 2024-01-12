@@ -1,8 +1,4 @@
-import Icon from "@components/Atoms/Icon";
-import Sidebar from "@components/Layouts/Sidebar";
-import ActionListItem from "@components/List/ActionListItem";
 import ListLayout from "@components/List/ListLayout";
-import LoadingListItem from "@components/List/LoadingListItem";
 import { useEffect, useState } from "react";
 import parseStorageUrl from "../../../../../../logic/utils/parseStorageUrl";
 import createChildWindow from "../../../../../../ui-logic/ChildWindow/createChildWindow";
@@ -24,15 +20,18 @@ const SelectGitHubStorageDataFields = ({
 	const [group, setGroup] = useState<string>(null);
 	const [installation, setInstallation] = useState(null);
 	const [installations, setInstallations] = useState(null);
+	const [isLoadingData, setIsLoadingData] = useState(false);
 
 	const loadInstallations = async () => {
 		if (!source?.token) return;
+		setIsLoadingData(true);
 		const gitHubApi = new GitHubApi(source.token);
 		setInstallations(await gitHubApi.getInstallations());
+		setIsLoadingData(false);
 	};
 
 	useEffect(() => {
-		loadInstallations();
+		void loadInstallations();
 	}, [source]);
 
 	useEffect(() => {
@@ -51,51 +50,37 @@ const SelectGitHubStorageDataFields = ({
 				<div className="control-label">Аккаунт</div>
 				<div className="input-lable">
 					<ListLayout
+						isLoadingData={isLoadingData}
 						openByDefault={true}
-						items={[
+						buttons={[
 							{
-								element: (
-									<div
-										style={{ width: "100%" }}
-										onClick={() =>
-											createChildWindow(
-												"https://github.com/apps/gram-ax/installations/select_target",
-												700,
-												550,
-												"https://github.com/login/device/success",
-												() => {
-													setInstallations(null);
-													loadInstallations();
-												},
-											)
-										}
-									>
-										<ActionListItem>
-											<div style={{ width: "100%", padding: "5px 10px" }}>
-												<Sidebar
-													title={"Добавить аккаунт..."}
-													leftActions={[<Icon code={"plus"} key={0} />]}
-												/>
-											</div>
-										</ActionListItem>
-									</div>
-								),
+								element: "Добавить аккаунт...",
+								icon: "plus",
 								labelField: "",
+								onCLick: () => {
+									void createChildWindow(
+										"https://github.com/apps/gram-ax/installations/select_target",
+										700,
+										550,
+										"https://github.com/login/device/success",
+										() => {
+											setInstallations(null);
+											void loadInstallations();
+										},
+									);
+								},
 							},
-							...(installations
-								? installations.map((installation) => ({
-										element: (
-											<div style={{ width: "100%", padding: "5px 10px" }}>
-												<GitHubUser {...installation} />
-											</div>
-										),
-										labelField: installation.name,
-								  }))
-								: [LoadingListItem]),
 						]}
-						onItemClick={(labelField, _, idx) => {
-							if (!labelField) return;
-							setInstallation(installations[idx - 1]);
+						items={installations?.map((installation) => ({
+							element: (
+								<div style={{ width: "100%", padding: "6px 12px" }}>
+									<GitHubUser {...installation} />
+								</div>
+							),
+							labelField: installation.name,
+						}))}
+						onItemClick={(_, __, idx) => {
+							setInstallation(installations[idx]);
 						}}
 						onSearchClick={() => setInstallation(null)}
 					/>

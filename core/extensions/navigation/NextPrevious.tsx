@@ -24,7 +24,7 @@ const Arrow = styled(({ next, link, className }: { next: boolean; link: ItemLink
 	return (
 		<div className={className}>
 			{link && (
-				<Link href={link}>
+				<Link href={link} dataQa={"jump-to-" + (next ? "next" : "prev")}>
 					<Icon code={`arrow-${next ? "right" : "left"}`} />
 					<span>{link.title}</span>
 				</Link>

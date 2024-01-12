@@ -35,7 +35,7 @@ const LeftNavViewContent = styled(
 
 		if (elements.length == 0) return null;
 		return (
-			<div className={className} data-qa={`article-history-modal`}>
+			<div className={className} data-qa={`article-git-modal`}>
 				<div className="left-sidebar">
 					<LeftSidebar sidebarTop={sideBarTop} sidebarBottom={sideBarBottom}>
 						<div className={"sidebar"}>
@@ -55,6 +55,7 @@ const LeftNavViewContent = styled(
 											setCurrentElementIdx(idx);
 											contentRef.current.scrollTo(0, 0);
 										}}
+										data-qa="qa-clickable"
 									>
 										{c.leftSidebar}
 									</div>
@@ -63,7 +64,7 @@ const LeftNavViewContent = styled(
 						</div>
 					</LeftSidebar>
 				</div>
-				<div className="content" ref={contentRef}>
+				<div className="content" ref={contentRef} key={currentElementIdx}>
 					{elements[currentElementIdx]?.content}
 				</div>
 			</div>

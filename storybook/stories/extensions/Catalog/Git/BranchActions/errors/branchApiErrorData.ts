@@ -1,7 +1,7 @@
-import ApiData from "../../../../../../logic/api/model/ApiData";
+import { MockedAPIEndpoint } from "storybook/data/mock";
 import { files as testedFiles } from "../../MergeConflictHandler/data";
 
-const branchApiErrorData: ApiData[] = [
+const branchApiErrorData: MockedAPIEndpoint[] = [
 	{
 		path: "/api/versionControl/mergeConflict/getFiles",
 		response: testedFiles,

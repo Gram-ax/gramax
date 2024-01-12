@@ -1,8 +1,8 @@
 import MergeType from "@ext/git/actions/MergeConflictHandler/model/MergeType";
-import GitErrorCode from "@ext/git/core/GitRepository/errors/model/GitErrorCode";
+import GitErrorCode from "@ext/git/core/GitCommands/errors/model/GitErrorCode";
 import { Meta, StoryObj } from "@storybook/react";
+import mock from "storybook/data/mock";
 import BranchActionsSrc from "../../../../../../core/extensions/git/actions/Branch/components/BranchActions";
-import mockApi from "../../../../../logic/api/mockApi";
 import BlockDecorator from "../../../../../styles/decorators/InlineDecorator";
 import checkoutApi from "./checkoutApi";
 
@@ -16,10 +16,10 @@ export const BranchActions: StoryObj<{ currentBranch: string }> = {
 };
 
 const meta: Meta = {
-	title: "DocReader/extensions/Catalog/Git/BranchActions",
+	title: "gx/extensions/Catalog/Git/BranchActions",
 	decorators: [BlockDecorator],
 	parameters: {
-		msw: mockApi([
+		msw: mock([
 			...checkoutApi,
 			{
 				path: "/api/versionControl/branch/mergeInto",

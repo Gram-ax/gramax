@@ -25,11 +25,11 @@ const updateNavigation: Command<
 	middlewares: [new AuthorizeMiddleware(), new DesktopModeMiddleware()],
 
 	async do({ ctx, logicPath, catalogName, newLevNav, oldLevNav }) {
-		const { formatter, lib, parser, parserContextFactory, sp, vcp, sitePresenterFactory } = this._app;
+		const { formatter, lib, parser, parserContextFactory, rp, sitePresenterFactory } = this._app;
 		const catalog = await lib.getCatalog(catalogName);
 		const fp = lib.getFileProviderByCatalog(catalog);
-		const ru = new ResourceUpdater(ctx, parser, parserContextFactory, formatter);
-		const dragTree = new DragTree(fp, ru, sp, vcp);
+		const ru = new ResourceUpdater(ctx, catalog, parser, parserContextFactory, formatter);
+		const dragTree = new DragTree(fp, ru, rp);
 		await dragTree.setOrders(newLevNav, catalog);
 		await dragTree.drag(oldLevNav, newLevNav, catalog);
 		return DragTreeTransformer.getRenderDragNav(

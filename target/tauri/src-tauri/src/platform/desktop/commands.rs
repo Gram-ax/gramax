@@ -3,7 +3,8 @@ use std::{env, fs};
 
 use tauri::*;
 
-use super::child_window::PredefinedChildWindow;
+use super::child_window::ChildWindow;
+
 
 #[command]
 pub fn close_current_window<R: Runtime>(app: AppHandle<R>, window: Window<R>) -> Result<()> {
@@ -39,6 +40,6 @@ pub fn show_print<R: Runtime>(window: Window<R>) -> Result<()> {
 
 #[command]
 pub fn show_settings<R: Runtime>(app: AppHandle<R>) -> Result<()> {
-  PredefinedChildWindow::Settings.create(&app)?;
+  ChildWindow::Settings.create_exact(&app)?;
   Ok(())
 }

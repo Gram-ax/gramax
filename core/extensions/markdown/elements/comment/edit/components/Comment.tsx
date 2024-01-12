@@ -24,8 +24,10 @@ const Comment = styled(
 		className?: string;
 	}) => {
 		useEffect(() => {
+			element.style.color = "var(--color-comment-active-text)";
 			element.style.background = "var(--color-comment-active-bg)";
 			return () => {
+				element.style.color = "var(--color-article-text)";
 				element.style.background = "var(--color-comment-bg)";
 			};
 		}, [mark?.attrs?.count]);

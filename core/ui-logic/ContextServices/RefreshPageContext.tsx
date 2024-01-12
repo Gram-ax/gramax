@@ -1,16 +1,22 @@
-import { getExecutingEnvironment } from "@app/resolveModule";
 import { ReactElement } from "react";
 
 export const defaultRefreshPage = () => void setTimeout(() => location.reload(), 100);
 
-let _refreshPage = defaultRefreshPage;
+const w = typeof window == "undefined" ? ({} as any) : (window as any);
 
-export const refreshPage = () => _refreshPage();
+w.refreshPage = defaultRefreshPage;
+
+export const refreshPage = () => w.refreshPage();
 
 export default abstract class RefreshPageService {
-	static Provider({ children, refresh: _refresh }: { children: ReactElement; refresh: () => void }): ReactElement {
-		_refreshPage = getExecutingEnvironment() === "next" ? () => {} : _refresh ?? defaultRefreshPage;
-
+	static Provider({
+		children,
+		refresh: _refresh,
+	}: {
+		children: ReactElement;
+		refresh: () => Promise<void>;
+	}): ReactElement {
+		w.refreshPage = _refresh ?? defaultRefreshPage;
 		return children;
 	}
 }

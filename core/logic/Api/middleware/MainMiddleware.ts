@@ -1,4 +1,3 @@
-import { applyCors } from "@components/libs/cors";
 import ApiRequest from "../ApiRequest";
 import ApiResponse from "../ApiResponse";
 import { apiUtils } from "../apiUtils";
@@ -10,14 +9,14 @@ export class MainMiddleware extends Middleware {
 	}
 
 	async Process(req: ApiRequest, res: ApiResponse): Promise<void> {
-		await applyCors(req, res);
+		// await applyCors(req, res);
 		res.statusCode = 200;
-		const ctx = this._app.contextFactory.from(req, res, req.query);
 		try {
 			await this._next.Process(req, res);
 		} catch (e) {
 			apiUtils.sendError(res, e);
-			this._app.logger.logError(e, ctx?.user?.info);
+			this._app.logger.logError(e);
+			console.error(e);
 		}
 	}
 }

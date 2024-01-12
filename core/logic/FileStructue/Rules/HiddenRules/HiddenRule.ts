@@ -4,14 +4,16 @@ import { Catalog } from "../../Catalog/Catalog";
 import { Item } from "../../Item/Item";
 
 export default class HiddenRule {
-	constructor(private _errorArticlePresenter: ErrorArticlePresenter) {}
+	constructor(private _errorArticlePresenter?: ErrorArticlePresenter) {}
 
 	getFilterRule() {
 		const rule = (article: Article): boolean => {
 			return this.getItemRule()(null, article);
 		};
 
-		(rule as any).errorArticle = this._errorArticlePresenter.getErrorArticle("404");
+		if (this._errorArticlePresenter) {
+			(rule as any).errorArticle = this._errorArticlePresenter.getErrorArticle("404");
+		}
 		return rule;
 	}
 

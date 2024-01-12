@@ -1,10 +1,10 @@
 import StatusBarSrc from "@components/Layouts/StatusBar/StatusBar";
-import { ComponentMeta } from "@storybook/react";
+import { Meta } from "@storybook/react";
 import { Icon } from "../../../../Atoms/Icon.stories";
 
 export default {
-	title: "DocReader/extensions/Catalog/Git/StatusBar",
-} as ComponentMeta<typeof StatusBar>;
+	title: "gx/extensions/Catalog/Git/StatusBar",
+} as Meta<typeof StatusBar>;
 
 export const StatusBar = () => {
 	return (

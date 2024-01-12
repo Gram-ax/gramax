@@ -13,6 +13,7 @@ import MarkdownParser from "../Parser";
 import ParserContext, { BaseContext } from "./ParserContext";
 
 export default class ArticleContext extends BaseContext implements ParserContext {
+	private _linkManager: ResourceManager;
 	private _resourceManager: ResourceManager;
 
 	constructor(
@@ -29,12 +30,11 @@ export default class ArticleContext extends BaseContext implements ParserContext
 		readonly formatter: MarkdownFormatter,
 	) {
 		super();
-		this._resourceManager = new ResourceManager(
-			this._catalog
-				?.getRootCategoryRef()
-				.path.parentDirectoryPath.subDirectory(this._article.ref.path.parentDirectoryPath),
-			this._catalog?.getRootCategoryRef().path.parentDirectoryPath,
-		);
+		const rootPath = this._catalog?.getRootCategoryRef().path.parentDirectoryPath;
+		const basePath = rootPath?.subDirectory(this._article.ref.path.parentDirectoryPath);
+
+		this._linkManager = new ResourceManager(fp, basePath, rootPath);
+		this._resourceManager = new ResourceManager(fp, basePath, rootPath);
 	}
 
 	getEnterpriseServerUrl(): string {
@@ -43,6 +43,10 @@ export default class ArticleContext extends BaseContext implements ParserContext
 
 	getResourceManager(): ResourceManager {
 		return this._resourceManager;
+	}
+
+	getLinkManager(): ResourceManager {
+		return this._linkManager;
 	}
 
 	getItemByPath(itemPath: Path): Item {

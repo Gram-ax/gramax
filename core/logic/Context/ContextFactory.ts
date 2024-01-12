@@ -16,12 +16,13 @@ export class ContextFactory {
 	private _cookieFactory = new CookieFactory();
 	constructor(
 		private _tm: ThemeManager,
+		private _cookieSecret: string,
 		private _am?: AuthManager,
 		private _isServerApp?: boolean,
 	) {}
 
 	from(req: ApiRequest, res: ApiResponse, query?: { [key: string]: string | string[] }): Context {
-		const cookie = this._cookieFactory.from(req, res);
+		const cookie = this._cookieFactory.from(this._cookieSecret, req, res);
 		return this._getContext({
 			query,
 			cookie,
@@ -31,7 +32,7 @@ export class ContextFactory {
 	}
 
 	fromBrowser(language: Language, query: Query): Context {
-		const cookie = this._cookieFactory.from();
+		const cookie = this._cookieFactory.from(this._cookieSecret);
 		return this._getContext({
 			cookie,
 			user: localUser,

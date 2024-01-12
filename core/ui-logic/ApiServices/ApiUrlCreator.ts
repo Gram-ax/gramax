@@ -1,32 +1,39 @@
+import { getExecutingEnvironment } from "@app/resolveModule";
 import { Router } from "@core/Api/Router";
 import DiagramType from "@core/components/Diagram/DiagramType";
 import Theme from "@ext/Theme/Theme";
 import Language from "@ext/localization/core/model/Language";
-import plantumlEncoder from "plantuml-encoder";
 import MimeTypes from "./Types/MimeTypes";
 import Url from "./Types/Url";
 
 export default class ApiUrlCreator {
-	private _basePath: string;
-	private _lang?: Language;
-	private _theme?: Theme;
-	private _isLogged?: boolean;
-	private _catalogName?: string;
-	private _articlePath?: string;
 	constructor(
-		basePath: string,
-		lang?: Language,
-		theme?: Theme,
-		isLogged?: boolean,
-		catalogName?: string,
-		articlePath?: string,
-	) {
-		this._basePath = basePath;
-		this._lang = lang;
-		this._theme = theme;
-		this._isLogged = isLogged;
-		this._catalogName = catalogName;
-		this._articlePath = articlePath;
+		private _basePath: string,
+		private _lang?: Language,
+		private _theme?: Theme,
+		private _isLogged?: boolean,
+		private _catalogName?: string,
+		private _articlePath?: string,
+		private _ssoServerUrl?: string,
+	) {}
+
+	fromArticle(articlePath: string) {
+		articlePath = this._catalogName + "/" + articlePath;
+		return new ApiUrlCreator(
+			this._basePath,
+			this._lang,
+			this._theme,
+			this._isLogged,
+			this._catalogName,
+			articlePath,
+		);
+	}
+
+	public getLogo(theme: Theme) {
+		return Url.fromBasePath(
+			theme == Theme.dark ? `/images/gramax-logo-dark.svg` : `/images/gramax-logo-light.svg`,
+			getExecutingEnvironment() == "next" ? this._basePath : "",
+		);
 	}
 
 	public getArticleResource(src: string, mimeType?: MimeTypes) {
@@ -131,11 +138,10 @@ export default class ApiUrlCreator {
 		});
 	}
 
-	public getDiagramByContentUrl(content: string, diagramName: DiagramType, count: number = null) {
+	public getDiagramByContentUrl(diagramName: DiagramType, count: number = null) {
 		return Url.fromBasePath(`/api/diagram/content`, this._basePath, {
 			diagram: diagramName,
 			count: count?.toString(),
-			content: plantumlEncoder.encode(content),
 		});
 	}
 
@@ -159,8 +165,13 @@ export default class ApiUrlCreator {
 	}
 
 	public getAuthUrl(router: Router) {
+		const from = encodeURIComponent(router?.basePath + router?.path);
+		if (this._ssoServerUrl)
+			return Url.from({
+				pathname: `${this._ssoServerUrl}/${this._isLogged ? "logout" : "login"}?from=${from}`,
+			});
 		return Url.fromBasePath(this._isLogged ? `/api/auth/logout` : `/api/auth/login`, this._basePath, {
-			from: router?.basePath + router?.path,
+			from: from,
 		});
 	}
 
@@ -185,6 +196,12 @@ export default class ApiUrlCreator {
 		});
 	}
 
+	public getSyncCountUrl() {
+		return Url.fromBasePath(`/api/storage/getSyncCount`, this._basePath, {
+			catalogName: this._catalogName,
+		});
+	}
+
 	public getStoragePublishUrl(message: string, recursive?: boolean) {
 		return Url.fromBasePath(`/api/storage/publish`, this._basePath, {
 			catalogName: this._catalogName,
@@ -205,17 +222,28 @@ export default class ApiUrlCreator {
 		});
 	}
 
-	public getStoragePullUrl(recursive?: boolean) {
-		return Url.fromBasePath(`/api/storage/pull`, this._basePath, {
+	public getStorageFetch() {
+		return Url.fromBasePath(`/api/storage/fetch`, this._basePath, {
+			catalogName: this._catalogName,
+		});
+	}
+
+	public getStorageSyncUrl(recursive?: boolean) {
+		return Url.fromBasePath(`/api/storage/sync`, this._basePath, {
 			catalogName: this._catalogName,
 			recursive: recursive.toString(),
 		});
 	}
 
-	public getStorageCloneUrl(path: string, recursive = true, branch?: string) {
+	public getVerifyStorageUrl() {
+		return Url.fromBasePath(`/api/storage/verify`, this._basePath);
+	}
+
+	public getStorageCloneUrl(path: string, recursive = true, skipCheck?: boolean, branch?: string) {
 		return Url.fromBasePath(`/api/storage/clone`, this._basePath, {
 			recursive: recursive.toString(),
 			branch,
+			skipCheck: skipCheck.toString(),
 			path,
 		});
 	}
@@ -310,14 +338,14 @@ export default class ApiUrlCreator {
 	}
 
 	public abortMergeSync(stashHash: string) {
-		return Url.fromBasePath(`/api/storage/pull/mergeConflict/abort`, this._basePath, {
+		return Url.fromBasePath(`/api/storage/sync/mergeConflict/abort`, this._basePath, {
 			catalogName: this._catalogName,
 			stashHash,
 		});
 	}
 
 	public resolveMergeSyncConflictedFiles(stashHash: string) {
-		return Url.fromBasePath(`/api/storage/pull/mergeConflict/resolve`, this._basePath, {
+		return Url.fromBasePath(`/api/storage/sync/mergeConflict/resolve`, this._basePath, {
 			catalogName: this._catalogName,
 			stashHash,
 		});
@@ -330,10 +358,18 @@ export default class ApiUrlCreator {
 		});
 	}
 
-	public resolveMergeBranchConflictedFiles(theirsBranch: string) {
+	public resolveMergeBranchConflictedFiles(
+		theirsBranch: string,
+		branchNameBefore: string,
+		headBeforeMerge: string,
+		deleteAfterMerge: boolean,
+	) {
 		return Url.fromBasePath(`/api/versionControl/branch/mergeConflict/resolve`, this._basePath, {
 			catalogName: this._catalogName,
 			theirsBranch,
+			branchNameBefore,
+			headBeforeMerge,
+			deleteAfterMerge: deleteAfterMerge.toString(),
 		});
 	}
 

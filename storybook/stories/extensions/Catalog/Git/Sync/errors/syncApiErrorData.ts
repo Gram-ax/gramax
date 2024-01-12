@@ -1,7 +1,7 @@
-import ApiData from "../../../../../../logic/api/model/ApiData";
+import { MockedAPIEndpoint } from "storybook/data/mock";
 import { files as testedFiles } from "../../MergeConflictHandler/data";
 
-const syncApiErrorData: ApiData[] = [
+const syncApiErrorData = [
 	{
 		path: "/api/versionControl/mergeConflict/getFiles",
 		response: testedFiles,
@@ -24,6 +24,6 @@ const syncApiErrorData: ApiData[] = [
 		delay: 50,
 		// errorMessage: "merge abort to merge error",
 	},
-];
+] as MockedAPIEndpoint[];
 
 export default syncApiErrorData;

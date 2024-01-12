@@ -1,73 +1,67 @@
 import styled from "@emotion/styled";
-import React from "react";
+import { HTMLProps, forwardRef, ChangeEvent, MutableRefObject } from "react";
 import Icon from "./Icon";
 import Tooltip from "./Tooltip";
 
-const Input = styled(
-	React.forwardRef(
-		(
-			{
-				dataQa,
-				value,
-				onKeyDown,
-				onChange,
-				onFocus,
-				onBlur,
-				icon,
-				placeholder,
-				hidden,
-				endText,
-				startText,
-				tabIndex,
-				className,
-				isInputInvalid,
-				errorText,
-			}: {
-				dataQa?: string;
-				value: string;
-				onKeyDown?: React.KeyboardEventHandler<HTMLInputElement>;
-				onChange?: React.ChangeEventHandler<HTMLInputElement>;
-				onFocus?: React.FocusEventHandler<HTMLInputElement>;
-				onBlur?: React.FocusEventHandler<HTMLInputElement>;
-				icon?: string;
-				placeholder?: string;
-				hidden?: boolean;
-				endText?: string;
-				startText?: string;
-				isCode?: boolean;
-				isInputInvalid?: boolean;
-				errorText?: string;
-				disable?: boolean;
-				tabIndex?: number;
-				className?: string;
-			},
-			ref?: React.MutableRefObject<HTMLInputElement>,
-		) => {
-			return (
-				<div className={className}>
-					{icon ? <Icon code={icon} faFw /> : null}
-					{startText && <div className={"startTextContainer"}>{startText}</div>}
-					<Tooltip visible={!!(isInputInvalid && errorText)} content={<span>{errorText}</span>}>
-						<input
-							className="textInput"
-							data-qa={dataQa}
-							ref={ref}
-							type={hidden ? 'password' : 'text'}
-							tabIndex={tabIndex}
-							onKeyDown={onKeyDown}
-							onChange={onChange}
-							onFocus={onFocus}
-							onBlur={onBlur}
-							value={value}
-							placeholder={placeholder}
-						/>
-					</Tooltip>
-					{endText && <div className="endTextContainer">{endText}</div>}
-				</div>
-			);
-		},
-	),
-)`
+interface InputProps extends HTMLProps<HTMLInputElement> {
+	onChange?: (e: ChangeEvent<HTMLInputElement>) => void;
+	dataQa?: string;
+	icon?: string;
+	endText?: string;
+	startText?: string;
+	isCode?: boolean;
+	isInputInvalid?: boolean;
+	errorText?: string;
+	disable?: boolean;
+	tabIndex?: number;
+}
+
+const Input = forwardRef((props: InputProps, ref?: MutableRefObject<HTMLInputElement>) => {
+	const {
+		dataQa,
+		value,
+		onKeyDown,
+		onChange,
+		onFocus,
+		onBlur,
+		icon,
+		placeholder,
+		hidden,
+		endText,
+		startText,
+		tabIndex,
+		className,
+		isInputInvalid,
+		errorText,
+		...otherProps
+	} = props;
+
+	return (
+		<div className={className}>
+			{icon && <Icon code={icon} faFw />}
+			{startText && <div className={"startTextContainer"}>{startText}</div>}
+			<Tooltip visible={!!(isInputInvalid && errorText)} content={<span>{errorText}</span>}>
+				<input
+					className="textInput"
+					data-qa={dataQa}
+					ref={ref}
+					type={hidden ? "password" : "text"}
+					tabIndex={tabIndex}
+					onKeyDown={onKeyDown}
+					onChange={onChange}
+					onFocus={onFocus}
+					onBlur={onBlur}
+					value={value}
+					placeholder={placeholder}
+					{...otherProps}
+				/>
+			</Tooltip>
+			{endText && <div className="endTextContainer">{endText}</div>}
+		</div>
+	);
+});
+
+export default styled(Input)`
 	gap: 0.5rem;
 	${(p) => (p.disable ? "pointer-events: none;" : "")}
 	width: 100%;
@@ -134,5 +128,3 @@ const Input = styled(
 		min-width: 32px;
 	}
 `;
-
-export default Input;

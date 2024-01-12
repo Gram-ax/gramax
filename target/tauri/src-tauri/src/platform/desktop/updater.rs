@@ -3,6 +3,7 @@ use std::sync::atomic::Ordering;
 use std::time::Duration;
 
 use tauri::menu::MenuItem;
+use tauri::Result;
 use tauri::*;
 use tauri_plugin_updater::*;
 
@@ -10,26 +11,26 @@ use tauri::process::restart;
 
 use tauri_plugin_dialog::DialogExt;
 use tauri_plugin_dialog::MessageDialogKind;
-use tauri_plugin_updater::Result;
+use tauri_plugin_updater as updater;
 
 use semver::Prerelease;
 use semver::Version;
 
 use crate::translation::*;
 
-use super::menu::MenuHandle;
+use super::menu::search_menu;
+use super::menu::MenuItemId;
 
-pub trait UpdaterBuilder<R: Runtime> {
-  fn setup_updater(&self);
+pub trait AppUpdaterBuilder<R: Runtime> {
+  fn setup_updater(&self) -> updater::Result<()>;
 }
 
-impl<R: Runtime> UpdaterBuilder<R> for tauri::App<R> {
-  fn setup_updater(&self) {
-    let mut updater = AppUpdater::new(self.app_handle().clone()).expect("unable to build updater");
-    if let Some(menu) = self.try_state::<MenuHandle<R>>() {
-      updater.setup(menu.update_item());
-    }
+impl<R: Runtime> AppUpdaterBuilder<R> for tauri::App<R> {
+  fn setup_updater(&self) -> updater::Result<()> {
+    let updater = AppUpdater::new(self.app_handle().clone())?;
     self.manage(updater);
+    AppUpdater::start_background_check(self.app_handle().clone(), Duration::from_secs(3600 * 6));
+    Ok(())
   }
 }
 
@@ -37,29 +38,29 @@ pub struct AppUpdater<R: Runtime> {
   app: AppHandle<R>,
   updater: Updater,
   language: Language,
-  menu_item: Option<MenuItem<R>>,
 }
 
 impl<R: Runtime> AppUpdater<R> {
-  pub fn new(app: AppHandle<R>) -> Result<Self> {
+  pub fn new(app: AppHandle<R>) -> updater::Result<Self> {
     let updater = app.updater_builder().version_comparator(|v, r| compare_versions(v, r.version)).build()?;
     let language = *app.state::<Language>().inner();
-    Ok(Self { app, updater, language, menu_item: None })
-  }
-
-  pub fn setup(&mut self, item: MenuItem<R>) {
-    self.menu_item = Some(item)
+    Ok(Self { app, updater, language })
   }
 
   pub async fn check_and_ask(&self) -> Result<()> {
-    if !matches!(self.menu_item.as_ref().map(|i| i.is_enabled()), Some(Ok(true))) {
+    let Some(menu_item) = self.get_menu_item() else {
+      return Ok(());
+    };
+    if !menu_item.is_enabled()? {
       warn!("update checking is disabled");
       return Ok(());
     }
 
-    self.set_menu_enabled(false).unwrap();
+    let installer = AppUpdateInstaller::new(&self.app, Some(&menu_item));
 
-    if let Err(err) = self.check().await {
+    self.set_menu_enabled(Some(&menu_item), false)?;
+
+    if let Err(err) = self.check(installer, false).await {
       self
         .app
         .dialog()
@@ -69,21 +70,23 @@ impl<R: Runtime> AppUpdater<R> {
         .blocking_show();
     }
 
-    self.set_menu_enabled(true).unwrap();
+    self.set_menu_enabled(Some(&menu_item), true)?;
 
     Ok(())
   }
 
-  pub async fn check_quiet_and_ask(&self) -> Result<()> {
+  pub async fn check_quiet_and_ask(&self) -> updater::Result<()> {
     info!("check for updates quiet");
+    let menu_item = self.get_menu_item();
+    let installer = AppUpdateInstaller::new(&self.app, menu_item.as_ref());
 
-    self.set_menu_enabled(false).unwrap();
-    let res = self.check_quiet().await;
-    self.set_menu_enabled(true).unwrap();
+    _ = self.set_menu_enabled(menu_item.as_ref(), false);
+    let res = self.check(installer, true).await;
+    _ = self.set_menu_enabled(menu_item.as_ref(), true);
     res
   }
 
-  pub fn ask(&self) -> bool {
+  fn ask(&self) -> bool {
     self
       .app
       .dialog()
@@ -94,17 +97,30 @@ impl<R: Runtime> AppUpdater<R> {
       .blocking_show()
   }
 
-  fn install(&self, update: &Update, bytes: Vec<u8>) -> Result<()> {
-    update.install(bytes)?;
-    restart(&self.app.env());
-    Ok(())
+  fn start_background_check(app: AppHandle<R>, interval: Duration) {
+    async_runtime::spawn(async move {
+      let mut interval = tokio::time::interval(interval);
+      let updater = app.state::<AppUpdater<R>>();
+      loop {
+        interval.tick().await;
+        if let Err(err) = updater.check_quiet_and_ask().await {
+          warn!("An error occurred while checking for updates: {:?}", err);
+        }
+      }
+    });
   }
 
-  async fn check(&self) -> Result<()> {
+  async fn check(&self, installer: AppUpdateInstaller<'_, R>, quiet: bool) -> updater::Result<()> {
     match self.updater.check().await? {
-      Some(update) if self.ask() => self.install(&update, self.download(&update).await?),
-      Some(_) => Ok(()),
-      _ => {
+      Some(update) if quiet => {
+        let bytes = installer.download(&update).await?;
+        if self.ask() {
+          installer.install(&update, bytes)?;
+        }
+        Ok(())
+      }
+      Some(update) if self.ask() => installer.install(&update, installer.download(&update).await?),
+      _ if !quiet => {
         self
           .app
           .dialog()
@@ -114,26 +130,46 @@ impl<R: Runtime> AppUpdater<R> {
           .blocking_show();
         Ok(())
       }
+      _ => Ok(()),
     }
   }
 
-  async fn check_quiet(&self) -> Result<()> {
-    if let Some(update) = self.updater.check().await? {
-      let bytes = self.download(&update).await?;
-      let should_install = self.ask();
-      if should_install {
-        self.install(&update, bytes)?;
-      }
-    }
+  fn set_menu_enabled(&self, item: Option<&MenuItem<R>>, enabled: bool) -> tauri::Result<()> {
+    let Some(item) = item else { return Ok(()) };
+
+    item.set_enabled(enabled)?;
+    if enabled {
+      item.set_text(self.language.translate(Translation::CheckUpdate))?;
+    } else {
+      item.set_text(self.language.translate(Translation::CheckingForUpdate))?;
+    };
+
     Ok(())
   }
 
-  async fn download(&self, update: &Update) -> Result<Vec<u8>> {
+  fn get_menu_item(&self) -> Option<MenuItem<R>> {
+    let menu = self.app.menu().or_else(|| self.app.get_focused_window().and_then(|w| w.menu()))?;
+    let item = search_menu(&menu, MenuItemId::CheckUpdate)?;
+    item.as_menuitem().cloned()
+  }
+}
+
+struct AppUpdateInstaller<'u, R: Runtime> {
+  app: &'u AppHandle<R>,
+  menu_item: Option<&'u MenuItem<R>>,
+}
+
+impl<'u, R: Runtime> AppUpdateInstaller<'u, R> {
+  fn new(app: &'u AppHandle<R>, menu_item: Option<&'u MenuItem<R>>) -> Self {
+    Self { app, menu_item }
+  }
+
+  async fn download(&self, update: &Update) -> updater::Result<Vec<u8>> {
     let total = AtomicUsize::new(0);
     let total_lazy = AtomicUsize::new(0);
 
     match self.menu_item {
-      Some(ref item) => {
+      Some(item) => {
         let language = self.app.state::<Language>();
         update
           .download(
@@ -165,31 +201,11 @@ impl<R: Runtime> AppUpdater<R> {
     }
   }
 
-  fn set_menu_enabled(&self, enabled: bool) -> tauri::Result<()> {
-    if let Some(item) = self.menu_item.as_ref() {
-      item.set_enabled(enabled)?;
-      if enabled {
-        item.set_text(self.language.translate(Translation::CheckUpdate))?;
-      } else {
-        item.set_text(self.language.translate(Translation::CheckingForUpdate))?;
-      };
-    }
-
+  fn install(&self, update: &Update, bytes: Vec<u8>) -> updater::Result<()> {
+    update.install(bytes)?;
+    restart(&self.app.env());
     Ok(())
   }
-}
-
-pub fn start_quiet_update_checking<R: Runtime>(app: AppHandle<R>, interval: Duration) {
-  async_runtime::spawn(async move {
-    let mut interval = tokio::time::interval(interval);
-    let updater = app.state::<AppUpdater<R>>();
-    loop {
-      interval.tick().await;
-      if let Err(err) = updater.check_quiet_and_ask().await {
-        warn!("An error occurred while checking for updates: {:?}", err);
-      }
-    }
-  });
 }
 
 fn compare_versions(version: Version, release: Version) -> bool {

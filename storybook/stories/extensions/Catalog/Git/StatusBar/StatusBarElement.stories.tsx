@@ -2,7 +2,7 @@ import StatusBarElement from "@components/Layouts/StatusBar/StatusBarElement";
 import InlineDecorator from "../../../../../styles/decorators/InlineDecorator";
 
 const StatusBarData = {
-	title: "DocReader/extensions/Catalog/Git/StatusBarElement",
+	title: "gx/extensions/Catalog/Git/StatusBarElement",
 	decorators: [InlineDecorator],
 };
 

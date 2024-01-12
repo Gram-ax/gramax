@@ -2,7 +2,7 @@
 echo "Installing packages"
 for p in $(fd -a package.json --type f -x dirname {} | sort); do
   echo Installing: "$p"
-  npm --prefix "$p" --force ci --cache .npm
+  npm --prefix "$p" --force ci --cache .npm --prefer-offline --no-audit
 done
 
 echo "Building schemes"

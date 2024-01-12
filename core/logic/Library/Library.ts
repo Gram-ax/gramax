@@ -1,8 +1,7 @@
 import CatalogEntry from "@core/FileStructue/Catalog/CatalogEntry";
 import { FileStatus } from "@ext/Watchers/model/FileStatus";
 import { ItemStatus } from "@ext/Watchers/model/ItemStatus";
-import VersionControlProvider from "../../extensions/VersionControl/model/VersionControlProvider";
-import StorageProvider from "../../extensions/storage/logic/StorageProvider";
+import RepositoryProvider from "@ext/git/core/Repository/RepositoryProvider";
 import Path from "../FileProvider/Path/Path";
 import FileProvider from "../FileProvider/model/FileProvider";
 import { Catalog, ChangeCatalog } from "../FileStructue/Catalog/Catalog";
@@ -19,7 +18,7 @@ export default class Library {
 	private _structures = new Map<string, FileStructure>();
 	private _onChanged: CatalogChangedCallback[] = [];
 
-	constructor(private _sp: StorageProvider, private _vcp: VersionControlProvider) {
+	constructor(private _rp: RepositoryProvider) {
 		this.addOnChangeRule(this._checkCatalogPropsChanged.bind(this));
 	}
 
@@ -36,7 +35,7 @@ export default class Library {
 		rules?.forEach((rule) => rule(fp, entries));
 		entries.forEach((entry) => {
 			entry.withOnLoad((catalog) => this.addCatalog(catalog));
-			this._entries.set(entry.name, entry);
+			this._entries.set(entry.getName(), entry);
 		});
 		return fs;
 	}
@@ -46,7 +45,7 @@ export default class Library {
 	}
 
 	async getCatalog(name: string): Promise<Catalog> {
-		return await this._entries.get(name)?.catalog();
+		return await this._entries.get(name)?.load();
 	}
 
 	getCatalogEntry(name: string): CatalogEntry {
@@ -82,11 +81,10 @@ export default class Library {
 	}
 
 	async addCatalog(catalog: Catalog): Promise<void> {
-		this._entries.set(catalog.getName(), catalog.asEntry());
+		this._entries.set(catalog.getName(), catalog);
 		const basePath = catalog.getBasePath();
 		const fp = this.getFileProvider(catalog.getRootCategoryRef().storageId);
-		catalog.setStorage(await this._sp.getStorageByPath(basePath, fp));
-		catalog.setVersionControl(this._sp, this._vcp, await this._vcp.getVersionControlByPath(basePath, fp));
+		catalog.setRepo(await this._rp.getRepositoryByPath(basePath, fp), this._rp);
 		catalog.watch(this._onCatalogChange.bind(this));
 		catalog.onUpdateName(async (prevName, catalog) => {
 			this._entries.delete(prevName);
@@ -98,8 +96,8 @@ export default class Library {
 		return catalog.getRootCategoryRef().storageId;
 	}
 
-	private async _onCatalogChange(items: ChangeCatalog[]): Promise<void> {
-		await Promise.all(this._onChanged.map((rule) => rule(items)));
+	private _onCatalogChange(items: ChangeCatalog[]): void {
+		this._onChanged.map((rule) => rule(items));
 	}
 
 	private async _onItemChange(changeItems: ItemStatus[]): Promise<void> {
@@ -109,7 +107,7 @@ export default class Library {
 				let catalog = null;
 				const catalogName = itemRef.path.rootDirectory.removeExtraSymbols.value;
 				for (const c of catalogs.values()) {
-					if (c.name == catalogName && !this._checkCatalogRemoved(itemRef, type, catalogName)) {
+					if (c.getName() == catalogName && !this._checkCatalogRemoved(itemRef, type, catalogName)) {
 						catalog = c;
 					} else {
 						await this._checkCatalogAddition(itemRef, type);
@@ -125,9 +123,9 @@ export default class Library {
 			if (!changedCatalogs.includes(changeItem.catalog)) changedCatalogs.push(changeItem.catalog);
 		});
 
-		await Promise.all(changedCatalogs.map((catalog: Catalog) => catalog.update(this._sp, this._vcp)));
+		await Promise.all(changedCatalogs.map((catalog: Catalog) => catalog.update(this._rp)));
 
-		if (changeCatalogs.length) await this._onCatalogChange(changeCatalogs);
+		if (changeCatalogs.length) this._onCatalogChange(changeCatalogs);
 	}
 
 	private _filterItems(items: ChangeCatalog[]): ChangeCatalog[] {
@@ -141,8 +139,8 @@ export default class Library {
 		if (!FileStructure.isCatalog(itemRef.path) || (type !== FileStatus.new && type !== FileStatus.modified)) return;
 		const fs = this.getFileStructure(itemRef.storageId);
 		const catalog = await fs.getCatalogEntryByPath(itemRef.path.rootDirectory);
-		if (!catalog || this._entries.has(catalog.name)) return;
-		await this.addCatalog(await catalog.catalog());
+		if (!catalog || this._entries.has(catalog.getName())) return;
+		await this.addCatalog(await catalog.load());
 	}
 
 	private async _checkCatalogPropsChanged(items: ChangeCatalog[]) {
@@ -150,7 +148,7 @@ export default class Library {
 		const catalog = items[0].catalog;
 		const entry = await this.getFileStructureByCatalog(catalog).getCatalogEntryByPath(catalog.getBasePath());
 		this._entries.delete(catalog.getName());
-		await this.addCatalog(await entry.catalog());
+		await this.addCatalog(await entry.load());
 	}
 
 	private _checkCatalogRemoved(itemRef: ItemRef, type: FileStatus, catalogName: string): boolean {

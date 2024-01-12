@@ -1,41 +1,25 @@
 import Url from "@core-ui/ApiServices/Types/Url";
 import { BaseLink } from "@ext/navigation/NavigationLinks";
-import React, { ReactNode, RefObject } from "react";
-import { Link, useRouter } from "wouter";
+import { HTMLAttributes, ReactNode, RefObject, forwardRef } from "react";
+import { useRouter, Link } from "wouter";
 
-const BrowserLink = (
-	{
-		href,
-		children,
-		dataQa,
-		onClick,
-		onMouseOver,
-		className,
-	}: {
-		href: BaseLink;
-		children: ReactNode;
-		dataQa?: string;
-		onClick?: () => void;
-		onMouseOver?: () => void;
-		className?: string;
-	},
-	ref: RefObject<HTMLAnchorElement>,
-) => {
+interface BrowserLinkProps extends HTMLAttributes<HTMLAnchorElement> {
+	href: BaseLink;
+	children: ReactNode;
+	dataQa?: string;
+}
+
+const BrowserLink = forwardRef((props: BrowserLinkProps, ref: RefObject<HTMLAnchorElement>) => {
+	const { href, children, dataQa, ...otherProps } = props;
 	const url = href ? Url.fromBasePath(href?.pathname, useRouter()?.base, href?.query) : null;
+
 	return (
-		<Link href={url.toString()}>
-			<a
-				ref={ref}
-				data-qa={dataQa}
-				onClick={onClick}
-				onMouseOver={onMouseOver}
-				onContextMenu={(e) => e.preventDefault()}
-				className={className}
-			>
+		<Link href={url.pathname} {...otherProps}>
+			<a ref={ref} data-qa={dataQa} onContextMenu={(e) => e.preventDefault()} {...otherProps}>
 				{children}
 			</a>
 		</Link>
 	);
-};
+});
 
-export default React.forwardRef(BrowserLink);
+export default BrowserLink;

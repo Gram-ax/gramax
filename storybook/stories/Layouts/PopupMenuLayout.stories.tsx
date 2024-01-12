@@ -1,10 +1,10 @@
 import PopupMenuLayout from "@components/Layouts/PopupMenuLayout";
-import { ComponentMeta } from "@storybook/react";
+import { Meta } from "@storybook/react";
 
 export default {
-	title: "DocReader/Layouts/PopupMenuLayout",
+	title: "gx/Layouts/PopupMenuLayout",
 	component: PopupMenuLayout,
-} as ComponentMeta<typeof PopupMenuLayout>;
+} as Meta<typeof PopupMenuLayout>;
 
 export const Basic = () => (
 	<PopupMenuLayout>

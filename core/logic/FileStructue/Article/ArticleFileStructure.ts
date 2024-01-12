@@ -15,7 +15,7 @@ interface ArticleFileStructure {
 		lastModified: number,
 	): Article;
 
-	setArticlePath(article: Article, path: Path): Promise<void>;
+	moveArticle(article: Article, path: Path): Promise<void>;
 
 	saveArticle(article: Article): Promise<FileInfo>;
 

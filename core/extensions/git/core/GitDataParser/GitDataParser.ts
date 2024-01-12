@@ -1,6 +1,6 @@
 import Path from "../../../../logic/FileProvider/Path/Path";
 import { FileStatus } from "../../../Watchers/model/FileStatus";
-import StatusResult from "../GitRepository/model/StatusResult";
+import StatusResult from "../GitCommands/model/StatusResult";
 import { GitStatus } from "../GitWatcher/model/GitStatus";
 
 export class GitDataParser {

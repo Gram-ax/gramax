@@ -1,17 +1,16 @@
 import resolveModule from "@app/resolveModule";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
-import React, { HTMLAttributes, ReactNode, RefObject } from "react";
+import { HTMLAttributes, ReactNode, RefObject, forwardRef } from "react";
 import localizer from "../../extensions/localization/core/Localizer";
-import { BaseLink } from "../../extensions/navigation/NavigationLinks";
+import { BaseLink } from "@ext/navigation/NavigationLinks";
 
-const Link = (
-	props: {
-		href: BaseLink;
-		children: ReactNode;
-		dataQa?: string;
-	} & HTMLAttributes<HTMLAnchorElement>,
-	ref: RefObject<HTMLAnchorElement>,
-) => {
+interface LinkProps extends HTMLAttributes<HTMLAnchorElement> {
+	href: BaseLink;
+	children: ReactNode;
+	dataQa?: string;
+}
+
+const Link = forwardRef((props: LinkProps, ref: RefObject<HTMLAnchorElement>) => {
 	const ExternalLink = resolveModule("Link");
 
 	const lang = PageDataContextService.value?.lang;
@@ -23,6 +22,6 @@ const Link = (
 		},
 	};
 	return <ExternalLink {...newProps} ref={ref} />;
-};
+});
 
-export default React.forwardRef(Link);
+export default Link;

@@ -48,7 +48,7 @@ export const getArticleLinks = (isLogged: boolean, IsServerApp: boolean): Titled
 		});
 	}
 
-	if (!IsServerApp && !isAppReadOnly && !isReview && getExecutingEnvironment() == "tauri") {
+	if (!IsServerApp && !isAppReadOnly && !catalogProps.readOnly && !isReview && getExecutingEnvironment() == "tauri") {
 		links.push({
 			icon: "display-code",
 			title: useLocalize("editOnVSCode"),

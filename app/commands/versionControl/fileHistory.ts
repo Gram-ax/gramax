@@ -17,11 +17,11 @@ const fileHistory: Command<{ catalogName: string; filePath: string }, ArticleHis
 		if (!catalog) return;
 		const fp = lib.getFileProviderByCatalog(catalog);
 		const itemRef = fp.getItemRef(new Path(filePath));
-		const storage = catalog.getStorage();
+		const storage = catalog.repo.storage;
 		const storageData = {
 			name: await storage.getName(),
 			sourceType: await storage.getType(),
-			branch: (await (await catalog.getVersionControl()).getCurrentBranch()).toString(),
+			branch: (await catalog.repo.gvc.getCurrentBranch()).toString(),
 		};
 		const gitFileHistory = new GitFileHistory(
 			catalog,

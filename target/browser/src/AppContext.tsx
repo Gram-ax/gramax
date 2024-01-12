@@ -34,25 +34,22 @@ const AppContext = ({ children }: { children: (data: any) => JSX.Element }) => {
 
 	const [error, setError] = useState<Error>();
 
-	const refresh = useCallback(
-		() =>
-			void (async () => {
-				try {
-					const data = await getData(path, parserQuery(query));
-					setData({ path: localizer.trim(path), ...data });
-				} catch (err) {
-					setError(err);
-				}
-			})(),
-		[path, query],
-	);
+	const refresh = useCallback(async () => {
+		try {
+			const data = await getData(path, parserQuery(query));
+			setData({ path: localizer.trim(path), ...data });
+		} catch (err) {
+			console.error(err);
+			setError(err);
+		}
+	}, [path, query]);
 
 	useEffect(() => {
 		if (!data) return;
 		document.title = getPageTitle(data.context.isArticle, data.data as any);
 	}, [data]);
 
-	useEffect(refresh, [refresh]);
+	useEffect(() => void refresh(), [refresh]);
 
 	if (data) {
 		return (

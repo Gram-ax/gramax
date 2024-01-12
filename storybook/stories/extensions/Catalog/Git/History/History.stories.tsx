@@ -1,8 +1,8 @@
 import { FileStatus } from "@ext/Watchers/model/FileStatus";
-import { ComponentMeta } from "@storybook/react";
-import HistorySrc from "../../../../../../core/extensions/git/actions/History/component/History";
-import mockApi from "../../../../../logic/api/mockApi";
-import BlockDecorator from "../../../../../styles/decorators/InlineDecorator";
+import HistorySrc from "@ext/git/actions/History/component/History";
+import { Meta } from "@storybook/react";
+import mock from "storybook/data/mock";
+import BlockDecorator from "storybook/styles/decorators/BlockDecorator";
 
 export const History = () => {
 	return <HistorySrc />;
@@ -10,10 +10,10 @@ export const History = () => {
 
 export default {
 	component: History,
-	title: "DocReader/extensions/Catalog/Git/History",
+	title: "gx/extensions/Catalog/Git/History",
 	decorators: [BlockDecorator],
 	parameters: {
-		msw: mockApi([
+		msw: mock([
 			{
 				path: "/api/versionControl/fileHistory",
 				response: [
@@ -43,4 +43,4 @@ export default {
 			},
 		]),
 	},
-} as ComponentMeta<typeof HistorySrc>;
+} as Meta<typeof HistorySrc>;

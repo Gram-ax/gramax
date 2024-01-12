@@ -5,7 +5,7 @@ import { useState } from "react";
 import InlineDecorator from "../../styles/decorators/InlineDecorator";
 
 const meta: Meta = {
-	title: "DocReader/Atoms/Checkbox",
+	title: "gx/Atoms/Checkbox",
 	decorators: [InlineDecorator],
 };
 export default meta;

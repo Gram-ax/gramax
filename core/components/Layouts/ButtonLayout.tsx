@@ -17,7 +17,7 @@ const ButtonsLayout = styled(({ children, ...props }: HTMLAttributes<HTMLDivElem
 	}
 
 	> div > input {
-		padding: 0px 5.5px;
+		padding: 0 5.5px;
 	}
 `;
 

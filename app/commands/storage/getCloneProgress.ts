@@ -11,7 +11,7 @@ const getCloneProgress: Command<{ path: Path }, Progress> = Command.create({
 	middlewares: [new AuthorizeMiddleware()],
 
 	do({ path }) {
-		return this._app.sp.getCloneProgress(path);
+		return this._app.rp.getCloneProgress(path);
 	},
 
 	params(_, q, body) {

@@ -3,7 +3,7 @@ import TableMenuSrc from "../../../../../core/extensions/markdown/elements/table
 import BlockDecorator from "../../../../styles/decorators/InlineDecorator";
 
 const MenuData = {
-	title: "DocReader/extensions/Article/Wysiwyg/Menu",
+	title: "gx/extensions/Article/Wysiwyg/Menu",
 	decorators: [BlockDecorator],
 };
 

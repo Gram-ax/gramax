@@ -21,7 +21,14 @@ describe("FileStructure", () => {
 
 		await fp.write(path("catalog1/doc-root.yaml"), "");
 		await fp.write(path("catalog1/article2.md"), "");
+		await fp.write(path("catalog1/1.article3.md"), "");
+		await fp.write(path("catalog1/1. article4.md"), "");
 		await fp.write(path("catalog1/test_article.md"), "");
+
+		await fp.write(path("catalog1/category1/_index.md"), "");
+		await fp.write(path("catalog1/category1/article1.md"), "");
+		await fp.write(path("catalog1/category 1/_index.md"), "");
+		await fp.write(path("catalog1/category 1/article 1.md"), "");
 
 		await fp.write(path("catalog2/doc-root.yaml"), "");
 	});
@@ -34,7 +41,7 @@ describe("FileStructure", () => {
 		test("каталоги (они есть)", async () => {
 			const catalogs = await fs.getCatalogEntries();
 			expect(catalogs.length).toBe(3);
-			const paths = catalogs.map((c) => c.ref.path.value);
+			const paths = catalogs.map((c) => c.getRootCategoryPath().value);
 			expect(paths).toEqual(["3/4", "catalog1", "catalog2"]);
 		});
 
@@ -48,14 +55,55 @@ describe("FileStructure", () => {
 
 		test("статьи", async () => {
 			const catalogs: Catalog[] = [];
-			for (const entry of await fs.getCatalogEntries()) catalogs.push(await entry.catalog());
+			for (const entry of await fs.getCatalogEntries()) catalogs.push(await entry.load());
 
 			const articles = catalogs
 				.map((c) => c.getArticles())
 				.map((c) => c.map((a) => a.getFileName()))
 				.map((c) => c.sort());
 
-			expect(articles).toEqual([["article"], ["article2", "test_article"], []]);
+			expect(articles).toEqual([
+				["article"],
+				["1. article4", "1.article3", "article 1", "article1", "article2", "test_article"],
+				[],
+			]);
+		});
+	});
+
+	describe("формирует правильные logicPath у", () => {
+		test("разделов", async () => {
+			const catalogs: Catalog[] = [];
+			for (const entry of await fs.getCatalogEntries()) catalogs.push(await entry.load());
+
+			const articles = catalogs
+				.map((c) => c.getCategories())
+				.map((c) => c.map((a) => a.logicPath))
+				.map((c) => c.sort());
+
+			expect(articles).toEqual([["3"], ["catalog1", "catalog1/category 1", "catalog1/category1"], ["catalog2"]]);
+		});
+
+		test("статей", async () => {
+			const catalogs: Catalog[] = [];
+			for (const entry of await fs.getCatalogEntries()) catalogs.push(await entry.load());
+
+			const articles = catalogs
+				.map((c) => c.getArticles())
+				.map((c) => c.map((a) => a.logicPath))
+				.map((c) => c.sort());
+
+			expect(articles).toEqual([
+				["3/article"],
+				[
+					"catalog1/1. article4",
+					"catalog1/1.article3",
+					"catalog1/article2",
+					"catalog1/category 1/article 1",
+					"catalog1/category1/article1",
+					"catalog1/test_article",
+				],
+				[],
+			]);
 		});
 	});
 
@@ -63,9 +111,9 @@ describe("FileStructure", () => {
 		test("каталог", async () => {
 			await fs.createCatalog({ title: "test1", url: "test1" });
 			const entries = await fs.getCatalogEntries();
-			const entry = entries.find((x) => x.name == "test1");
+			const entry = entries.find((x) => x.getName() == "test1");
 			expect(entry).toBeDefined();
-			const catalog = await entry.catalog();
+			const catalog = await entry.load();
 			expect(catalog).toBeDefined();
 			expect(fp.exists(path("test1/doc-root.yaml"))).toBeTruthy();
 			expect(catalog.getArticles().map((a) => a.getFileName())).toEqual([NEW_ARTICLE_NAME]);
@@ -129,7 +177,7 @@ describe("FileStructure", () => {
 	describe("сохраняет", () => {
 		test("каталог с изменёнными пропасами", async () => {
 			const entry = await fs.getCatalogEntryByPath(path("catalog1"));
-			const catalog = await entry.catalog();
+			const catalog = await entry.load();
 			catalog["_props"] = { title: "test" };
 			await fs.saveCatalog(catalog);
 			const entry2 = await fs.getCatalogEntryByPath(path("catalog1"));
@@ -175,17 +223,17 @@ describe("FileStructure", () => {
 
 		test("имя каталога", async () => {
 			const catalog = await fs.getCatalogEntryByPath(path("catalog1"));
-			expect(catalog.name).toEqual("catalog1");
+			expect(catalog.getName()).toEqual("catalog1");
 		});
 
 		test("имя вложенного каталога", async () => {
 			const catalog = await fs.getCatalogEntryByPath(path("3"));
-			expect(catalog.name).toEqual("3");
+			expect(catalog.getName()).toEqual("3");
 		});
 
 		test("basePath", async () => {
 			const entry = await fs.getCatalogEntryByPath(path("3"));
-			const catalog = await entry.catalog();
+			const catalog = await entry.load();
 			expect(catalog.getBasePath().value).toEqual("3");
 		});
 	});

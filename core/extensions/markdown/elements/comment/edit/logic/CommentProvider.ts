@@ -1,14 +1,11 @@
+import { Comment, CommentBlock } from "@core-ui/CommentBlock";
 import * as yaml from "js-yaml";
 import Path from "../../../../../../logic/FileProvider/Path/Path";
 import FileProvider from "../../../../../../logic/FileProvider/model/FileProvider";
-import { Comment, CommentBlock } from "@core-ui/CommentBlock";
 import ParserContext from "../../../../core/Parser/ParserContext/ParserContext";
 
 class CommentProvider {
-	constructor(
-		private _fp: FileProvider,
-		private _articlePath: Path,
-	) {}
+	constructor(private _fp: FileProvider, private _articlePath: Path) {}
 
 	getFilePath() {
 		return new Path([this._articlePath.parentDirectoryPath.toString(), `${this._articlePath.name}.comments.yaml`]);

@@ -1,3 +1,4 @@
+import { classNames } from "@components/libs/classNames";
 import IsEditService from "@core-ui/ContextServices/IsEdit";
 import { ArticleData } from "@core/SitePresenter/SitePresenter";
 import { Editor } from "@tiptap/core";
@@ -28,7 +29,8 @@ const ArticleRenderer = ({
 
 	return (
 		<>
-			<div className="article-body" data-qa="article-body">
+			{/*  !!! */}
+			<div className={classNames("article-body", { linkViewMode: !isEdit })} data-qa="article-body">
 				<ErrorHandler>
 					<>
 						{isEdit ? (

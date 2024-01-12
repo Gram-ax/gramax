@@ -11,7 +11,7 @@ import { wordFontSizes } from "./wordExportSizes";
 
 const convertMmToHeadingSpacing = 4;
 
-export class WordExport {
+class WordExport {
 	constructor(
 		private _fileProvider: FileProvider,
 		private _parserContext: ParserContext,
@@ -83,3 +83,5 @@ export class WordExport {
 		];
 	}
 }
+
+export default WordExport;

@@ -13,7 +13,7 @@ const get: Command<{ catalogName: string }, BranchData> = Command.create({
 		const { lib } = this._app;
 		const catalog = await lib.getCatalog(catalogName);
 		if (!catalog) return;
-		const vc = await catalog.getVersionControl();
+		const vc = catalog.repo.gvc;
 		return (await vc.getCurrentBranch()).getData();
 	},
 

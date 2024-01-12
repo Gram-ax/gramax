@@ -23,7 +23,11 @@ const LeftNavigationComponent = ({ data, delay }: { data: ArticleData; delay?: n
 	}, [isOpen]);
 
 	return (
-		<div onMouseEnter={() => (isLeftNavHover.current = true)} onMouseLeave={() => (isLeftNavHover.current = false)}>
+		<div
+			style={{ width: "fit-content" }}
+			onMouseEnter={() => (isLeftNavHover.current = true)}
+			onMouseLeave={() => (isLeftNavHover.current = false)}
+		>
 			<LeftNavigationLayout
 				hideScroll={hideScroll}
 				leftNavigationTop={<LeftNavigationTop data={data} />}

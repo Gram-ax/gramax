@@ -1,7 +1,6 @@
-import { EditorView } from "prosemirror-view";
 import ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
+import { EditorView } from "prosemirror-view";
 import { ArticleProps } from "../../../../../../logic/SitePresenter/SitePresenter";
-import Language from "../../../../../localization/core/model/Language";
 import createImages from "./createImages";
 
 const getHtmlImageUrl = (html: string): string => {
@@ -17,7 +16,6 @@ const imageHandlePaste = (
 	event: ClipboardEvent,
 	articleProps: ArticleProps,
 	apiUrlCreator: ApiUrlCreator,
-	language: Language,
 ) => {
 	if (!event.clipboardData.items.length) return;
 
@@ -33,13 +31,13 @@ const imageHandlePaste = (
 			const type = response.headers.get("Content-Type");
 			if (!type.startsWith("image")) return;
 			const file = await response.blob();
-			await createImages([file as File], view, articleProps, apiUrlCreator, language);
+			await createImages([file as File], view, articleProps, apiUrlCreator);
 		});
 	}
 	if (item.type.startsWith("image")) {
 		result = true;
 		const file = item.getAsFile();
-		void createImages([file], view, articleProps, apiUrlCreator, language);
+		void createImages([file], view, articleProps, apiUrlCreator);
 	}
 	return result;
 };

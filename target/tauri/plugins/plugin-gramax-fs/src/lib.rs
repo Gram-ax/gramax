@@ -1,5 +1,3 @@
-#![feature(io_error_more)]
-
 use serde::Serialize;
 use tauri::{
   plugin::{Builder, TauriPlugin},

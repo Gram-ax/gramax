@@ -157,7 +157,7 @@ const Search = styled(
 				}}
 				isOpen={isOpen}
 				trigger={
-					<a data-qa="app-action">
+					<a data-qa="qa-clickable">
 						<Icon isAction code={"search"} />
 						{isHomePage ? <span>{useLocalize("search")}</span> : null}
 					</a>
@@ -239,18 +239,16 @@ const Search = styled(
 													<div ref={itemsResponseRef}>
 														{data?.map((d, id) => (
 															<Link
-																href={Url.from({ pathname: d.url })}
 																key={id}
+																onClick={() => setIsOpen(false)}
 																ref={focusId === id ? focusRef : null}
-																className={
-																	"item" + (focusId === id ? " item-active" : "")
-																}
-																onClick={() => {
-																	setIsOpen(false);
-																}}
+																href={Url.from({ pathname: d.url })}
 																onMouseOver={() => {
 																	if (cursorFlaf) setFocusId(id);
 																}}
+																className={`item ${
+																	focusId === id ? "item-active" : ""
+																}`}
 															>
 																{d.count > 1 && (
 																	<span className="count">{d.count} шт.</span>

@@ -8,7 +8,7 @@ const removeSourceData: Command<{ ctx: Context; sourceName: string }, void> = Co
 	middlewares: [new DesktopModeMiddleware()],
 
 	do({ ctx, sourceName }) {
-		this._app.sp.removeSourceData(ctx.cookie, sourceName);
+		this._app.rp.removeSourceData(ctx.cookie, sourceName);
 	},
 
 	params(ctx, query) {

@@ -27,7 +27,7 @@ const Scrollspy = forwardRef(
 		const items = ArticlePropsService.value.tocItems;
 		useEffect(() => {
 			const el = navRef.current as HTMLElement;
-			const scrollEl = articleElementRef.current.parentNode.parentNode as HTMLElement;
+			const scrollEl = articleElementRef.current;
 			if (!scrollEl) return;
 
 			let pairs: Pair[] = null;

@@ -5,7 +5,7 @@ import InlineDecorator from "../../styles/decorators/InlineDecorator";
 type Props = { size: number };
 
 const meta: Meta<Props> = {
-	title: "DocReader/Atoms/SpinnerLoader",
+	title: "gx/Atoms/SpinnerLoader",
 	decorators: [InlineDecorator],
 	args: {
 		size: 75,

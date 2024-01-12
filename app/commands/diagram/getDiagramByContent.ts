@@ -4,11 +4,10 @@ import HashItem from "@core/Hash/HashItems/HashItem";
 import HashItemContent from "@core/Hash/HashItems/HashItemContent";
 import DiagramType from "@core/components/Diagram/DiagramType";
 import Diagrams from "@core/components/Diagram/Diagrams";
-import PlantUmlEncoder from "plantuml-encoder";
 import { Command, ResponseKind } from "../../types/Command";
 
 const getDiagramByContent: Command<
-	{ type: DiagramType; encodeContent: string; count?: number },
+	{ type: DiagramType; count?: number; content: string },
 	{ hashItem: HashItem; mime: MimeTypes }
 > = Command.create({
 	path: "diagram/content",
@@ -17,14 +16,13 @@ const getDiagramByContent: Command<
 
 	middlewares: [new MainMiddleware()],
 
-	do({ type, encodeContent, count }) {
+	do({ type, content, count }) {
 		const { conf } = this._app;
 
-		const content = PlantUmlEncoder.decode(encodeContent);
 		const diagrams = new Diagrams(conf.enterpriseServerUrl);
 
 		const hashItem: HashItem = new HashItemContent(
-			encodeContent,
+			content,
 			async () => await diagrams.getDiagram(type, content, +count),
 			() => content,
 		);
@@ -34,9 +32,9 @@ const getDiagramByContent: Command<
 		};
 	},
 
-	params(ctx, query) {
+	params(_, query, body) {
 		return {
-			encodeContent: query.content,
+			content: body,
 			type: query.diagram as DiagramType,
 			count: Number.parseInt(query.count),
 		};

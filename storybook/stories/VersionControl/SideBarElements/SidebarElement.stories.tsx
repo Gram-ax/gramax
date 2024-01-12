@@ -7,7 +7,7 @@ import InlineDecorator from "../../../styles/decorators/InlineDecorator";
 import { Branch } from "../../extensions/Catalog/Git/Atoms/Branch.stories";
 
 const SidebarElementData = {
-	title: "DocReader/VersionControl/SideBar/Elements/SideBarElement",
+	title: "gx/VersionControl/SideBar/Elements/SideBarElement",
 	decorators: [
 		(Story) => (
 			<div style={{ background: "lightblue", width: "200px" }}>
@@ -41,7 +41,7 @@ export const Publish: StoryObj<ComponentProps<typeof SideBarArticleActions> & { 
 				resources={[]}
 				filePath={{ path: "path/to/file" }}
 				logicPath={args.hasLogicPath ? "path/to/file" : null}
-				goToActicleOnClick={() => {}}
+				goToArticleOnClick={() => {}}
 			/>
 		);
 	},

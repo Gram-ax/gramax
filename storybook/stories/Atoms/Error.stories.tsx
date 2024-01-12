@@ -10,7 +10,7 @@ type Props = ComponentProps<typeof ErrorForm> & {
 };
 
 const meta: Meta<Props> = {
-	title: "DocReader/Atoms/Error",
+	title: "gx/Atoms/Error",
 	decorators: [InlineDecorator],
 	argTypes: {
 		type: {

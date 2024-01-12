@@ -1,6 +1,6 @@
+import resolveModule from "@app/resolveModule";
 import ButtonAtom from "@components/Atoms/Button/Button";
 import { ButtonStyle } from "@components/Atoms/Button/ButtonStyle";
-import FileInput from "@components/Atoms/FileInput";
 import Input from "@components/Atoms/Input";
 import FormStyle from "@components/Form/FormStyle";
 import ButtonsLayout from "@components/Layouts/ButtonLayout";
@@ -13,11 +13,13 @@ import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import Button from "@ext/markdown/core/edit/components/Menu/Button";
 import { Editor } from "@tiptap/core";
 import { Node } from "prosemirror-model";
-import { useEffect, useState, ChangeEvent } from "react";
+import { ChangeEvent, useEffect, useState } from "react";
 import DiagramType from "../../../../../../logic/components/Diagram/DiagramType";
 import ApiUrlCreator from "../../../../../../ui-logic/ApiServices/ApiUrlCreator";
 import useLocalize from "../../../../../localization/useLocalize";
 import getFocusNode from "../../../../elementsUtils/getFocusNode";
+
+const FileInput = resolveModule("FileInput");
 
 const langs: { [type in DiagramType]: string } = {
 	Mermaid: "mermaid",
@@ -133,7 +135,7 @@ const DiagramsMenu = ({ editor }: { editor: Editor }) => {
 			setNode(focusNode);
 			setTitle(focusNode.attrs?.title ?? "");
 		}
-		if (focusPosition) setPosition(focusPosition);
+		if (typeof focusPosition === "number") setPosition(focusPosition);
 	}, [editor.state.selection]);
 
 	if (!editor.isActive("diagrams")) return null;
@@ -144,7 +146,7 @@ const DiagramsMenu = ({ editor }: { editor: Editor }) => {
 	};
 
 	const handleDelete = () => {
-		if (position !== null && node) {
+		if (node) {
 			editor.commands.deleteRange({ from: position, to: position + node.nodeSize });
 		}
 	};

@@ -2,13 +2,7 @@ import parsePermissionFromJSON from "@ext/security/logic/Permission/logic/Permis
 import IPermission from "../Permission/IPermission";
 import PermissionJSONData from "../Permission/model/PermissionJSONData";
 import UserInfo from "./UserInfo2";
-
-export interface UserJSONData {
-	info?: UserInfo;
-	isLogged: boolean;
-	globalPermission?: PermissionJSONData;
-	catalogPermissions?: Record<string, PermissionJSONData>;
-}
+import UserJSONData from "./UserJSONData";
 
 export default class User {
 	private _info: UserInfo;

@@ -24,6 +24,10 @@ abstract class ThemeService {
 		return <ThemeContext.Provider value={theme}>{children}</ThemeContext.Provider>;
 	}
 
+	static Provide({ children, value }: { children: ReactElement; value: Theme }): ReactElement {
+		return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;
+	}
+
 	static get value(): Theme {
 		return useContext(ThemeContext);
 	}

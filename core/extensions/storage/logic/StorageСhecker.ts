@@ -9,11 +9,12 @@ import StorageData from "../models/StorageData";
 import SourceType from "./SourceDataProvider/model/SourceType";
 
 export default class StorageСhecker {
-	async getСorrectBranch(data: StorageData): Promise<string> {
+	async getCorrectBranch(data: StorageData, shouldThrow = true): Promise<string> {
 		const api = this._getApi(data);
 		if (!api) return null;
 		const branch = await api.getBranchСontainsFile(DOC_ROOT_FILENAME, data);
-		if (!branch) throw new DefaultError("Ни в одной ветке репозитория нет каталога. Создайте и опубликуйте его.");
+		if (!branch && shouldThrow)
+			throw new DefaultError("Ни в одной ветке репозитория нет каталога. Создайте и опубликуйте его.");
 		return branch;
 	}
 

@@ -1,11 +1,11 @@
-import { Editor } from "@tiptap/core";
-import { Node } from "prosemirror-model";
-import { useEffect, useState } from "react";
 import Input from "@components/Atoms/Input";
 import ButtonsLayout from "@components/Layouts/ButtonLayout";
 import ModalLayoutDark from "@components/Layouts/ModalLayoutDark";
 import Button from "@ext/markdown/core/edit/components/Menu/Button";
 import getFocusNode from "@ext/markdown/elementsUtils/getFocusNode";
+import { Editor } from "@tiptap/core";
+import { Node } from "prosemirror-model";
+import { useEffect, useState } from "react";
 
 const ImageMenu = ({ editor }: { editor: Editor }) => {
 	const [node, setNode] = useState<Node>(null);
@@ -18,7 +18,7 @@ const ImageMenu = ({ editor }: { editor: Editor }) => {
 			setNode(node);
 			setTitle(node.attrs?.title ?? "");
 		}
-		if (position) setPosition(position);
+		if (typeof position === "number") setPosition(position);
 	}, [editor.state.selection]);
 
 	if (!editor.isActive("image")) return null;
@@ -29,7 +29,7 @@ const ImageMenu = ({ editor }: { editor: Editor }) => {
 	};
 
 	const handleDelete = () => {
-		if (position !== null && node) {
+		if (node) {
 			editor.commands.deleteRange({ from: position, to: position + node.nodeSize });
 		}
 	};

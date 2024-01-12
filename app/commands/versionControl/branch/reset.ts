@@ -12,13 +12,13 @@ const reset: Command<{ ctx: Context; catalogName: string }, BranchData[]> = Comm
 	middlewares: [new AuthorizeMiddleware()],
 
 	async do({ ctx, catalogName }) {
-		const { lib, sp } = this._app;
+		const { lib, rp } = this._app;
 		const catalog = await lib.getCatalog(catalogName);
 		if (!catalog) return;
-		const storage = catalog.getStorage();
-		const data = sp.getSourceData(ctx.cookie, await storage.getSourceName()) as GitSourceData;
+		const storage = catalog.repo.storage;
+		const data = rp.getSourceData(ctx.cookie, await storage.getSourceName()) as GitSourceData;
 		if (storage) await storage.fetch(data);
-		const vc = await catalog.getVersionControl();
+		const vc = catalog.repo.gvc;
 		return (await vc.resetBranches()).map((b) => b.getData());
 	},
 

@@ -16,7 +16,7 @@ export const Input = ({
 };
 
 const InputData = {
-	title: "DocReader/Atoms/Input",
+	title: "gx/Atoms/Input",
 	argTypes: {
 		value: { defaultValue: "Text", type: { name: "string", required: true }, description: "`string`" },
 		icon: { defaultValue: "link", type: { required: false }, description: "`string`" },

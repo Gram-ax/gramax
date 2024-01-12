@@ -37,10 +37,10 @@ export const CATEGORY_ROOT_REGEXP = /(_index_\w\w\.md$|_index\.md$)/;
 export const FS_EXCLUDE_FILENAMES = [".git", ".idea", ".vscode", "node_modules"];
 
 export default class FileStructure implements CatalogFileStructure, CategoryFileStructure, ArticleFileStructure {
-	private _saveRules: FSSaveRule[] = [];
-	private _articleSaveRules: FSArticleSaveRule[] = [];
-	private _filterRules: FSFilterRule[] = [];
 	private _rules: FSRule[] = [];
+	private _saveRules: FSSaveRule[] = [];
+	private _filterRules: FSFilterRule[] = [];
+	private _articleSaveRules: FSArticleSaveRule[] = [];
 
 	constructor(private _fp: FileProvider) {}
 
@@ -89,13 +89,13 @@ export default class FileStructure implements CatalogFileStructure, CategoryFile
 
 	async getCatalogsByEntries(entries: CatalogEntry[]): Promise<Catalog[]> {
 		const catalogs = [];
-		for (const entry of entries) catalogs.push(await entry.catalog());
+		for (const entry of entries) catalogs.push(await entry.load());
 		return catalogs;
 	}
 
 	async getCatalogByPath(path: Path): Promise<Catalog> {
 		const entry = await this.getCatalogEntryByPath(path);
-		return await entry.catalog();
+		return await entry.load();
 	}
 
 	async getCatalogEntryByPath(path: Path): Promise<CatalogEntry> {
@@ -108,45 +108,52 @@ export default class FileStructure implements CatalogFileStructure, CategoryFile
 		const props = await this._parseYaml(docroot, errors, `${DOC_ROOT_FILENAME} is invalid: `);
 		const name = path.name;
 
-		const ref = this._fp.getItemRef(root);
-		return new CatalogEntry(name, ref, props, errors, (entry) => this.getCatalogByEntry(entry));
+		const ref = this._fp.getItemRef(docroot);
+		return new CatalogEntry({
+			name,
+			rootCaterogyRef: ref,
+			rootCaterogyPath: root,
+			basePath: path,
+			props,
+			errors,
+			load: (entry) => this.getCatalogByEntry(entry),
+		});
 	}
 
 	async getCatalogByEntry(entry: CatalogEntry): Promise<Catalog> {
 		if (!entry) return;
 
-		const stat = await this._fp.getStat(entry.ref.path);
-		const ref = entry.ref.path.join(new Path(entry.ref.path.value == entry.name ? DOC_ROOT_FILENAME : entry.name));
+		const stat = await this._fp.getStat(entry.getRootCategoryPath());
 		const category = new Category({
-			ref: this.getItemRef(ref),
+			ref: this.getItemRef(entry.getRootCategoryRef().path),
 			parent: null,
 			content: null,
 			props: { ...entry.props },
 			items: [],
-			logicPath: entry.name,
-			directory: entry.ref.path,
+			logicPath: entry.getName(),
+			directory: entry.getRootCategoryPath(),
 			fs: this,
 			lastModified: stat.mtimeMs,
 		});
 
 		this._rules.forEach((rule) => rule(category, entry.props, true));
-		await this._readCategoryItems(entry.ref.path, category, entry.props, entry.errors);
+		await this._readCategoryItems(entry.getRootCategoryPath(), category, entry.props, entry.errors);
 
 		return new Catalog({
-			name: entry.name,
+			name: entry.getName(),
 			props: entry.props,
 			root: category,
 			errors: entry.errors,
-			basePath: new Path(entry.name),
+			basePath: entry.getBasePath(),
 			rootPath: this._fp.rootPath,
 			fs: this,
 			fp: this._fp,
-			entry,
 		});
 	}
 
-	async createCatalog(props: CatalogEditProps): Promise<Catalog> {
-		const path = new Path(props.url);
+	async createCatalog(props: CatalogEditProps, base?: Path): Promise<Catalog> {
+		const url = new Path(props.url);
+		const path = base ? url.join(base) : url;
 		delete props.url;
 
 		const docroot = path.join(new Path(DOC_ROOT_FILENAME));
@@ -156,8 +163,8 @@ export default class FileStructure implements CatalogFileStructure, CategoryFile
 		const article = new CustomArticlePresenter().getArticle(NEW_ARTICLE_NAME);
 
 		await this._fp.write(articlePath, this._serializeArticle(article));
-		const entry = await this.getCatalogEntryByPath(path);
-		return await entry.catalog();
+		const entry = await this.getCatalogEntryByPath(url);
+		return await entry.load();
 	}
 
 	async createCategory(
@@ -172,11 +179,11 @@ export default class FileStructure implements CatalogFileStructure, CategoryFile
 		return category;
 	}
 
-	async setArticlePath(article: Article, path: Path): Promise<void> {
+	async moveArticle(article: Article, path: Path): Promise<void> {
 		await this._fp.move(article.ref.path, path);
 	}
 
-	async setCategoryPath(category: Category, path: Path): Promise<void> {
+	async moveCategory(category: Category, path: Path): Promise<void> {
 		await this._fp.move(category.ref.path.parentDirectoryPath, path);
 	}
 
@@ -205,7 +212,7 @@ export default class FileStructure implements CatalogFileStructure, CategoryFile
 
 	async saveCatalog(catalog: Catalog): Promise<void> {
 		const root = catalog.getRootCategory();
-		let props = catalog.getProps();
+		let props = catalog.props;
 		let rootProps = root.props;
 		this._saveRules.forEach((rule) => {
 			props = rule(props);
@@ -285,7 +292,7 @@ export default class FileStructure implements CatalogFileStructure, CategoryFile
 		catalogErrors: CatalogErrors,
 	): Promise<Article> {
 		const { props, content } = this.parseMarkdown(await this._fp.read(path), path, catalogErrors);
-		const articleCodeInCategory = parentCategory.folderPath.subDirectory(path).stripDotsAndExtension;
+		const articleCodeInCategory = parentCategory.folderPath.subDirectory(path).name;
 
 		const logicPath = Path.join(parentCategory.logicPath, articleCodeInCategory);
 		const stat = await this._fp.getStat(path);
@@ -382,13 +389,7 @@ export default class FileStructure implements CatalogFileStructure, CategoryFile
 		const files = await this._fp.getItems(folderPath);
 		await Promise.all(
 			files
-				.filter(
-					(f) =>
-						!f.isDirectory() &&
-						f.name.search(" ") == -1 &&
-						f.name.match(/\.md$/) &&
-						!FileStructure.isCategory(f.name),
-				)
+				.filter((f) => !f.isDirectory() && f.name.match(/\.md$/) && !FileStructure.isCategory(f.name))
 				.map(async (f) => {
 					const article = await this._makeArticle(f.path, category, catalogProps, catalogErrors);
 					if (article && this._filterRules.every((r) => r(category, catalogProps, article)))
@@ -407,32 +408,42 @@ export default class FileStructure implements CatalogFileStructure, CategoryFile
 		await category.sortItems();
 	}
 
-	private async _search(root: Path, search: RegExp): Promise<Path> {
+	private async _search(root: Path, search: RegExp, depth = 5): Promise<Path> {
 		const queue = [];
-		const explored = [];
+		const explored = new Set<string>();
 		let path: Path;
 
-		path = await this._explore(search, root, queue, explored);
+		path = await this._explore(search, root, queue, explored, 0);
 		while (queue.length > 0 && !path) {
 			const node = queue.shift();
-			path = await this._explore(search, node, queue, explored);
+			if (node.depth > depth) continue;
+			path = await this._explore(search, node.path, queue, explored, depth);
 		}
 		return path;
 	}
 
-	private async _explore(search: RegExp, target: Path, queue: Path[], explored: Path[]): Promise<Path> {
-		explored[target.value] = true;
-		const dirs = await this._fp.readdir(target);
+	private async _explore(
+		search: RegExp,
+		target: Path,
+		queue: { path: Path; depth: number }[],
+		explored: Set<string>,
+		depth: number,
+	): Promise<Path> {
+		if (explored.has(target.value)) return;
+		explored.add(target.value);
+
+		const dirs = await this._fp.readdir(target).catch(() => []);
 		if (!dirs) return;
 
 		for (const entry of dirs.filter((filename) => !FS_EXCLUDE_FILENAMES.includes(filename))) {
 			const path = target.join(new Path(entry));
-			if (explored[path.value]) continue;
+			if (explored.has(path.value)) continue;
 
-			const stat = await this._fp.getStat(path);
+			const stat = await this._fp.getStat(path).catch(() => undefined);
+			if (!stat) return;
 
 			if (stat.isDirectory()) {
-				queue.push(path);
+				queue.push({ path, depth: depth + 1 });
 				continue;
 			}
 

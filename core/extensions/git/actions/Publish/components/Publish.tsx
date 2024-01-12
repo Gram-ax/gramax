@@ -14,7 +14,11 @@ import MimeTypes from "@core-ui/ApiServices/Types/MimeTypes";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import ArticlePropsService from "@core-ui/ContextServices/ArticleProps";
 import { refreshPage } from "@core-ui/ContextServices/RefreshPageContext";
+import Path from "@core/FileProvider/Path/Path";
 import styled from "@emotion/styled";
+import SideBarResource from "@ext/git/actions/Publish/components/SideBarResource";
+import formatComment from "@ext/git/actions/Publish/logic/formatComment";
+import { useResourceView } from "@ext/git/actions/Publish/logic/useResourceView";
 import { useEffect, useRef, useState } from "react";
 import DiffItem from "../../../../VersionControl/model/DiffItem";
 import DiffResource from "../../../../VersionControl/model/DiffResource";
@@ -27,11 +31,10 @@ import getAllFilePaths from "../logic/getAllFilePaths";
 import getSideBarData from "../logic/getSideBarData";
 import SideBarData from "../model/SideBarData";
 import SideBarArticleActions from "./SideBarArticleActions";
-import SideBarResource from "./SideBarResource";
 
 const Publish = styled(({ changesCount, className }: { changesCount?: number; className?: string }) => {
 	const [hasDiscard, setHasDiscard] = useState(false);
-	const [commitMessage, setCommitMessage] = useState("");
+	const [commitMessage, setCommitMessage] = useState<string>(undefined);
 	const [publishProcess, setPublishProcess] = useState(false);
 	const [discardProcess, setDiscardProcess] = useState(false);
 	const [contentEditable, setContentEditable] = useState(true);
@@ -55,17 +58,21 @@ const Publish = styled(({ changesCount, className }: { changesCount?: number; cl
 
 	const publishText = useLocalize("publish");
 	const selectAllText = useLocalize("selectAll");
-	const commitMessageText = useLocalize("commitMessage");
+	const [commitMessagePlaceholder, setCommitMessagePlaceholder] = useState("");
+	const placeholder = commitMessagePlaceholder.split("\n\n")[0];
 
 	const isReview = useIsReview();
-	const publishUrl = apiUrlCreator.getStoragePublishUrl(commitMessage, !isReview);
 	const diffItemsUrl = apiUrlCreator.getVersionControlDiffItemsUrl();
 
-	const canPublish = !publishProcess && commitMessage && fileCountToShow;
+	const canPublish = !publishProcess && fileCountToShow && commitMessage != "";
 
 	const publish = async () => {
 		setContentEditable(false);
 		setPublishProcess(true);
+		const publishUrl = apiUrlCreator.getStoragePublishUrl(
+			commitMessage?.length > 0 ? commitMessage : commitMessagePlaceholder,
+			!isReview,
+		);
 		const response = await FetchService.fetch(publishUrl, JSON.stringify(filePaths), MimeTypes.json);
 		setPublishProcess(false);
 		if (!response.ok) {
@@ -94,7 +101,7 @@ const Publish = styled(({ changesCount, className }: { changesCount?: number; cl
 			if (anyFileDiffs.length) currentSideBarData.push(...anyFileDiffs);
 		}
 
-		const currentLogicPaths: string[] = itemDiffs.map((sideBarItem) => sideBarItem.data.logicPath);
+		const currentLogicPaths = itemDiffs.map((sideBarItem) => sideBarItem.data.logicPath);
 		setLogicPaths(currentLogicPaths);
 		setSideBarData(currentSideBarData);
 		setOpenId(findArticleIdx(articleProps.path, currentLogicPaths));
@@ -103,11 +110,13 @@ const Publish = styled(({ changesCount, className }: { changesCount?: number; cl
 	useEffect(() => {
 		if (!sideBarData) return;
 		if (!hasFocused) {
-			inputRef.current.focus();
+			inputRef.current?.focus();
 			setHasFocused(true);
 		}
+
 		setFilePaths(getAllFilePaths(sideBarData));
 		setFileCountToShow(getAllFilePaths(sideBarData, false).length);
+		setCommitMessagePlaceholder(formatComment(sideBarData));
 
 		setCheckAll(
 			sideBarData
@@ -154,7 +163,7 @@ const Publish = styled(({ changesCount, className }: { changesCount?: number; cl
 				setContentEditable(true);
 				setPublishProcess(false);
 				setHasFocused(false);
-				setCommitMessage("");
+				setCommitMessage(undefined);
 				setSideBarData(null);
 				setHasDiscard(false);
 				setIsOpen(false);
@@ -202,7 +211,7 @@ const Publish = styled(({ changesCount, className }: { changesCount?: number; cl
 												setSideBarData(editedSideBarData);
 												setHasDiscard(hasDeleted);
 											}}
-											goToActicleOnClick={() => setIsOpen(false)}
+											goToArticleOnClick={() => setIsOpen(false)}
 										/>
 									),
 									content: (
@@ -213,33 +222,28 @@ const Publish = styled(({ changesCount, className }: { changesCount?: number; cl
 										</div>
 									),
 								};
+
+								const resourceApi = apiUrlCreator.fromArticle(x.data.filePath.path);
+								const relativeTo = new Path(x.data.filePath.path);
 								return x.data.resources
 									? [
 											item,
-											...x.data.resources.map(
-												(resource): ViewContent => ({
-													leftSidebar: (
-														<div style={{ padding: "1rem 1rem 1rem 0" }}>
-															<SideBarResource title={resource.title} />
-														</div>
-													),
-													content: (
-														<div className={className}>
-															<div className="diff-content">
-																<DiffContent
-																	showDiff={true}
-																	changes={resource.diff?.changes ?? []}
-																/>
-															</div>
-														</div>
-													),
-												}),
-											),
+											...x.data.resources.map((resource, id) => ({
+												leftSidebar: (
+													<div style={{ padding: "1rem 1rem 1rem 0" }}>
+														<SideBarResource
+															changeType={x.data.changeType}
+															title={resource.title}
+														/>
+													</div>
+												),
+												content: <>{useResourceView(id, resourceApi, resource, relativeTo)}</>,
+											})),
 									  ]
 									: item;
 							})}
 							sideBarTop={
-								<div className="select-all">
+								<div className="select-all" data-qa="qa-clickable">
 									<div className="select-all-checkbox">
 										<Checkbox
 											checked={checkAll}
@@ -287,12 +291,19 @@ const Publish = styled(({ changesCount, className }: { changesCount?: number; cl
 									<Input
 										ref={inputRef}
 										isCode
-										value={commitMessage}
+										value={commitMessage ?? placeholder}
+										onFocus={(e) => {
+											if (e.currentTarget.value == placeholder) e.currentTarget.select();
+										}}
 										onChange={(e) => {
-											setCommitMessage(e.currentTarget.value);
+											setCommitMessage(
+												e.currentTarget.value == placeholder
+													? undefined
+													: e.currentTarget.value,
+											);
 										}}
 										disable={!contentEditable}
-										placeholder={commitMessageText}
+										placeholder={useLocalize("commitMessage")}
 									/>
 									<div className="commit-button">
 										<Button onClick={publish} disabled={!canPublish} fullWidth>

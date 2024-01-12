@@ -18,11 +18,10 @@ const get: Command<
 		const { lib, parser, parserContextFactory } = this._app;
 		const mime = mimeType ?? MimeTypes?.[src.extension] ?? `application/${src.extension}`;
 		const catalog = await lib.getCatalog(catalogName);
-		const fp = lib.getFileProviderByCatalog(catalog);
 		const article = catalog.findItemByItemPath(articlePath) as Article;
 		if (!article) return;
 		await parseContent(article, catalog, ctx, parser, parserContextFactory);
-		const hashItem = new HashResourceManager(src, fp, article.parsedContent.resourceManager);
+		const hashItem = new HashResourceManager(src, article.parsedContent.resourceManager);
 		return { hashItem, mime };
 	},
 

@@ -4,8 +4,8 @@ import ApiResponse from "../../logic/Api/ApiResponse";
 import Cookie from "./Cookie";
 
 export default class CookieFactory {
-	from(req?: ApiRequest, res?: ApiResponse): Cookie {
+	from(secret: string, req?: ApiRequest, res?: ApiResponse): Cookie {
 		const Cookie = resolveModule("Cookie");
-		return new Cookie(req, res);
+		return new Cookie(secret, req, res);
 	}
 }

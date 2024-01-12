@@ -3,7 +3,6 @@ import IsEditService from "@core-ui/ContextServices/IsEdit";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import { ArticleData } from "@core/SitePresenter/SitePresenter";
 import { useCallback, useEffect, useState } from "react";
-import getE2E from "../../../../e2e";
 import ArticleUpdaterService from "./ArticleUpdaterService";
 
 const ArticleUpdater = ({
@@ -41,7 +40,6 @@ const ArticleUpdater = ({
 	}, []);
 
 	useEffect(() => {
-		getE2E().updateContent = updateContent;
 		window.addEventListener("focus", updateContent);
 		return () => window.removeEventListener("focus", updateContent);
 	}, [updateContent]);

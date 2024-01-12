@@ -2,7 +2,7 @@ import { ComponentProps } from "react";
 import DefaultErrorComponent from "../../errorHandlers/client/components/DefaultError";
 import GetErrorComponent from "../../errorHandlers/logic/GetErrorComponent";
 import CloneError from "../actions/Clone/error/components/CloneError";
-import GitError from "../core/GitRepository/errors/GitError";
+import GitError from "../core/GitCommands/errors/GitError";
 
 const NotFoundErrorHandler = ({ error, onCancelClick }: ComponentProps<typeof GetErrorComponent>) => {
 	const e = error as GitError;

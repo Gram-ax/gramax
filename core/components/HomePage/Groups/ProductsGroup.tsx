@@ -5,7 +5,7 @@ import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import styled from "@emotion/styled";
 import { HTMLAttributes, useState } from "react";
 import useLocalize from "../../../extensions/localization/useLocalize";
-import { CatalogLink } from "../../../extensions/navigation/NavigationLinks";
+import { CatalogLink } from "@ext/navigation/NavigationLinks";
 import Link from "../../Atoms/Link";
 import GroupsName from "./model/GroupsName";
 
@@ -15,21 +15,23 @@ const ProductCard = ({ link, ...props }: { link: CatalogLink } & HTMLAttributes<
 	const [isLoading, setIsLoading] = useState<boolean>(false);
 
 	return (
-		<Link href={Url.from(link)} {...props}>
-			{isLoading ? (
+		<Link
+			onClick={(e) => {
+				props.onClick?.(e);
+				setIsLoading(true);
+			}}
+			href={Url.from(link)}
+			{...props}
+		>
+			{isLoading && (
 				<div className="spinner-loader">
 					<SpinnerLoader height={15} width={15}></SpinnerLoader>
 				</div>
-			) : null}
-
-			<a
+			)}
+	
+			<div
 				className={`catalog-background block-elevation-hover-1 ${isLoading ? "loading" : ""}`}
 				data-qa={`home-page-to-catalog-page-button`}
-        
-				onClick={(e) => {
-					props.onClick?.(e);
-					setIsLoading(true);
-				}}
 			>
 				<div className={`catalog background-${link.style}`} data-qa="home-page-products-group-catalog">
 					<div className={`catalog-titles`}>
@@ -54,7 +56,7 @@ const ProductCard = ({ link, ...props }: { link: CatalogLink } & HTMLAttributes<
 						</div>
 					</div>
 				</div>
-			</a>
+			</div>
 		</Link>
 	);
 };

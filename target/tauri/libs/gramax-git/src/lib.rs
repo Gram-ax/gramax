@@ -9,6 +9,7 @@ pub mod repo;
 pub mod status;
 pub mod prelude;
 pub mod repo_ext;
+mod remote_callback;
 
 pub(crate) type Result<T> = std::result::Result<T, error::Error>;
 

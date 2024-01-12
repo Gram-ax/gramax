@@ -2,7 +2,7 @@ import TeamsEmailAnchorSource from "@components/Atoms/TeamsEmailAnchor";
 import { ComponentMeta } from "@storybook/react";
 
 export default {
-	title: "DocReader/Atoms/TeamsEmailAnchor",
+	title: "gx/Atoms/TeamsEmailAnchor",
 	component: TeamsEmailAnchorSource,
 	decorators: [
 		(Story) => {

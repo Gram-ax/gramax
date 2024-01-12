@@ -2,18 +2,20 @@ FROM node:20-alpine as deps
 
 WORKDIR /src
 
+
 RUN [ "apk", "update" ]; [ "apk", "upgrade" ]
-RUN [ "apk", "--no-cache", "add", "nodejs-current", "npm", "git", "fd", "chromium", "bash" ]
+RUN [ "apk", "--no-cache", "add", "git", "fd", "bash" ]
 
 COPY . .
+
+RUN rm -r services/*
 
 RUN ["sh", "install-deps.sh"]
 
 FROM deps as build
 
-ARG ENTERPRISE_SERVER_URL
-ARG BUGSNAG_API_KEY
-ARG SUBMODULE_BRANCH_NAME
+ARG ENTERPRISE_SERVER_URL BUGSNAG_API_KEY BRANCH COOKIE_SECRET
+ENV NODE_OPTIONS=--max_old_space_size=4096
 
 WORKDIR /src/target/browser
 

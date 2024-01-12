@@ -16,14 +16,14 @@ const getReviewLink: Command<
 	middlewares: [new AuthorizeMiddleware()],
 
 	async do({ ctx, catalogName, userName, userEmail, filePath }) {
-		const { lib, sp, conf } = this._app;
+		const { lib, rp, conf } = this._app;
 		const catalog = await lib.getCatalog(catalogName);
-		const storage = catalog.getStorage();
-		const source = sp.getSourceData(ctx.cookie, await storage.getSourceName());
+		const storage = catalog.repo.storage;
+		const source = rp.getSourceData(ctx.cookie, await storage.getSourceName());
 		const baseStorageData = await storage.getData(source);
 		const body: StorageData & { branch: string; filePath: string } = {
 			...baseStorageData,
-			branch: (await (await catalog.getVersionControl()).getCurrentBranch()).toString(),
+			branch: catalog.repo.gvc.getCurrentBranch().toString(),
 			source: { ...baseStorageData.source, userName, userEmail },
 			filePath,
 		};

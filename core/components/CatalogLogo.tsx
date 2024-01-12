@@ -17,17 +17,21 @@ export const CatalogLogo = ({
 	useEffect(() => {
 		FetchService.fetch(apiUrlCreator.getLogoUrl(catalogName)).then((r) => serIsError(!r.ok));
 	}, []);
+	const imageSrc = useImage(apiUrlCreator.getLogoUrl(catalogName));
 
-	return isError ? null : (
-		<img
-			ref={ref}
-			src={useImage(apiUrlCreator.getLogoUrl(catalogName))}
-			data-qa="catalog-logo"
-			{...props}
-			onError={() => {
-				if (ref.current) ref.current.style.display = "none";
-			}}
-			alt=""
-		/>
+	return (
+		!isError &&
+		imageSrc && (
+			<img
+				ref={ref}
+				src={imageSrc}
+				data-qa="catalog-logo"
+				{...props}
+				onError={() => {
+					if (ref.current) ref.current.style.display = "none";
+				}}
+				alt=""
+			/>
+		)
 	);
 };

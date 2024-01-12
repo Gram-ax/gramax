@@ -7,15 +7,7 @@ import ListLayout from "../List/ListLayout";
 import Select from "../Select/Select";
 import { Validate } from "./ValidateObject";
 
-const ItemInput = ({
-	value,
-	tabIndex,
-	editedPropsValue,
-	onChange,
-	validate,
-	onFocus,
-	focus = false,
-}: {
+interface ItemInputProps {
 	tabIndex: number;
 	value: JSONSchema7;
 	validate: Validate;
@@ -23,7 +15,12 @@ const ItemInput = ({
 	onChange: (value: string | string[] | boolean) => void;
 	onFocus?: () => void;
 	focus?: boolean;
-}) => {
+}
+
+const ItemInput = (props: ItemInputProps) => {
+	const { value, tabIndex, onChange, validate, onFocus, focus = false } = props;
+	let { editedPropsValue } = props;
+
 	const ref = useRef<HTMLElement>();
 
 	useEffect(() => {
@@ -50,7 +47,6 @@ const ItemInput = ({
 						(value.default ? useLocalize(value.default as any) : ""),
 				}}
 				onItemClick={onChange}
-				onSearchClick={() => onChange(null)}
 				placeholder={useLocalize(value.format as any)}
 			/>
 		);
@@ -79,6 +75,7 @@ const ItemInput = ({
 		return (
 			<Checkbox
 				interactive={true}
+				disabled={value.readOnly}
 				checked={(editedPropsValue ?? value.default) as boolean}
 				onChange={(isChecked) => {
 					editedPropsValue = isChecked;
@@ -93,7 +90,7 @@ const ItemInput = ({
 		<Input
 			isCode
 			dataQa={(value as any).dataQa}
-			disable={value.readOnly ?? false}
+			disable={value.readOnly}
 			tabIndex={tabIndex}
 			hidden={(value as any).private}
 			ref={ref as MutableRefObject<HTMLInputElement>}

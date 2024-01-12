@@ -7,7 +7,7 @@ bun.lockb
 /storybook/storybook-static
 
 # e2e
-/e2e/runner/src/failures
+/e2e/report
 
 # target -> next
 out/
@@ -52,7 +52,6 @@ yarn-error.log*
 .Trashes
 ehthumbs.db
 Thumbs.db
-.env*
 junit.xml
 .idea/
 

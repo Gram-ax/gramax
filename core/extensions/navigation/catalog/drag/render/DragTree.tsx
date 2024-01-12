@@ -65,7 +65,9 @@ const LevNavDragTree = styled(
 		const handleCanDrop = (_, { dropTarget, dragSource, dropTargetId }: DropOptions<ItemLink>) => {
 			// logger.logInfo(`handleCanDrop:canDrag: ${canDrag}`);
 			if (!canDrag) false;
-			const flag = ((dropTargetId == 0 || dragSource?.parent === dropTargetId || dropTarget?.droppable) ?? false) && dragSource?.id !== dropTargetId;
+			const flag =
+				((dropTargetId == 0 || dragSource?.parent === dropTargetId || dropTarget?.droppable) ?? false) &&
+				dragSource?.id !== dropTargetId;
 			// logger.logInfo(`handleCanDrop: ${flag}`);
 			return flag;
 		};
@@ -150,7 +152,10 @@ const LevNavDragTree = styled(
 												onOpen={() => setIsHover(true)}
 												onClose={() => setIsHover(false)}
 											/>,
-											<CreateArticle key={1} item={thisItem} />,
+											<CreateArticle
+												key={1}
+												item={thisItem}
+											/>,
 										]}
 									/>
 								);

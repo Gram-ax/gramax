@@ -1,16 +1,16 @@
 import MergeType from "@ext/git/actions/MergeConflictHandler/model/MergeType";
 import { Meta, StoryObj } from "@storybook/react";
 import { useState } from "react";
+import mock from "storybook/data/mock";
 import ErrorModal from "../../../../../../../core/extensions/errorHandlers/client/components/ErrorModal";
-import GitErrorCode from "../../../../../../../core/extensions/git/core/GitRepository/errors/model/GitErrorCode";
-import mockApi from "../../../../../../logic/api/mockApi";
+import GitErrorCode from "../../../../../../../core/extensions/git/core/GitCommands/errors/model/GitErrorCode";
 import InlineDecorator from "../../../../../../styles/decorators/InlineDecorator";
 import branchApiErrorData from "./branchApiErrorData";
 
 const meta: Meta = {
-	title: "DocReader/extensions/Catalog/Git/BranchActions/errors/BranchMergeNotSupportedError",
+	title: "gx/extensions/Catalog/Git/BranchActions/errors/BranchMergeNotSupportedError",
 	decorators: [InlineDecorator],
-	parameters: { msw: mockApi(branchApiErrorData) },
+	parameters: { msw: mock(branchApiErrorData) },
 };
 
 export default meta;

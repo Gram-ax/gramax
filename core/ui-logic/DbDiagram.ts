@@ -1,3 +1,4 @@
+import FileProvider from "@core/FileProvider/model/FileProvider";
 import dagre from "dagre";
 import { getLocalizedString } from "../components/libs/utils";
 import Path from "../logic/FileProvider/Path/Path";
@@ -52,7 +53,10 @@ export default class DbDiagram {
 	private linksSvg: { link: string; table1Name: string; table2Name: string }[];
 	private width: number;
 	private height: number;
-	constructor(private _tableManager: TableDB) {
+	constructor(
+		private _tableManager: TableDB,
+		private _fp: FileProvider,
+	) {
 		this.tablesSvg = [];
 		this.linksSvg = [];
 		this.width = 0;
@@ -351,8 +355,17 @@ export default class DbDiagram {
 	}
 
 	async addDiagram(ref: ItemRef, tags: string, lang: string, rootPath: Path, primary?: string) {
-		const resourceManager = new ResourceManager(rootPath.subDirectory(ref.path.parentDirectoryPath), rootPath);
+		const resourceManager = new ResourceManager(
+			this._fp,
+			rootPath.subDirectory(ref.path.parentDirectoryPath),
+			rootPath,
+		);
 		const diagram = await this._tableManager.readDiagram(ref);
+		if (!diagram)
+			return Promise.reject(
+				"Не удалось найти диаграмму. Проверьте, правильно ли указан путь, а также есть ли файл с диаграммой в репозитории.",
+			);
+
 		const tableRef = {
 			path: resourceManager.getAbsolutePath(new Path(diagram.schema)),
 			storageId: ref.storageId,
