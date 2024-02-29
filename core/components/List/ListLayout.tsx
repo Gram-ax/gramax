@@ -17,7 +17,8 @@ interface ConfigProps {
 	placeholder?: string;
 	disable?: boolean;
 	isCode?: boolean;
-	isErrorValue?: boolean;
+	errorText?: string;
+	showErrorText?: boolean;
 	hideScrollbar?: boolean;
 	selectAllOnFocus?: boolean;
 	disableSearch?: boolean;
@@ -76,7 +77,8 @@ const ListLayout = forwardRef((props: ListLayoutProps, ref: ForwardedRef<ListLay
 	} = props;
 
 	const {
-		isErrorValue,
+		errorText,
+		showErrorText = true,
 		maxItems = 6,
 		hideScrollbar,
 		disableSearch,
@@ -216,7 +218,8 @@ const ListLayout = forwardRef((props: ListLayoutProps, ref: ForwardedRef<ListLay
 					tabIndex={tabIndex}
 					disable={disableSearch}
 					placeholder={placeholder}
-					isErrorValue={isErrorValue}
+					errorText={errorText}
+					showErrorText={showErrorText}
 					onFocus={onFocusHandler}
 					onSearchChange={onSearchChange}
 					onClick={onSearchClickHandler}

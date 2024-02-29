@@ -1,7 +1,7 @@
 import Icon from "@components/Atoms/Icon";
+import ArticlePropsService from "@core-ui/ContextServices/ArticleProps";
 import styled from "@emotion/styled";
 import React from "react";
-import ArticlePropsService from "@core-ui/ContextServices/ArticleProps";
 
 const Header = styled(
 	({
@@ -19,7 +19,7 @@ const Header = styled(
 		props?: any;
 	}) => {
 		const articleProps = ArticlePropsService?.value;
-		const logicPath = articleProps?.path ?? "";
+		const logicPath = articleProps?.logicPath ?? "";
 		const href = "#" + (id ?? "");
 		const header = (
 			<>

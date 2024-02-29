@@ -46,7 +46,7 @@ const ConfirmComponent = styled(
 							<span>{message}</span>
 							<div className="alert-buttons">
 								<Button
-									buttonStyle={ButtonStyle.transparent}
+									buttonStyle={ButtonStyle.underline}
 									onClick={() => {
 										if (onAnswer) onAnswer(false);
 										onClose();

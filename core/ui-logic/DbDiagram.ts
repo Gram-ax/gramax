@@ -53,10 +53,7 @@ export default class DbDiagram {
 	private linksSvg: { link: string; table1Name: string; table2Name: string }[];
 	private width: number;
 	private height: number;
-	constructor(
-		private _tableManager: TableDB,
-		private _fp: FileProvider,
-	) {
+	constructor(private _tableManager: TableDB, private _fp: FileProvider) {
 		this.tablesSvg = [];
 		this.linksSvg = [];
 		this.width = 0;

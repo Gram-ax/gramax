@@ -13,18 +13,18 @@ export const Logo = styled(({ className, catalogLink }: { catalogLink?: CatalogL
 	const logo = (
 		<>
 			<CatalogLogo catalogName={catalogProps.name} style={{ maxHeight: "32px" }} />
-			<span className="title" title={catalogProps.title} data-qa="catalog-title">
+			<span className="title" title={catalogProps.title}>
 				{catalogProps.title}
 			</span>
 		</>
 	);
 
 	return catalogLink ? (
-		<Link href={Url.from(catalogLink)} className={className} data-qa="catalog-page-button">
+		<Link href={Url.from(catalogLink)} className={className}>
 			{logo}
 		</Link>
 	) : (
-		<a className={className} data-qa="catalog-page-button">
+		<a className={className}>
 			{logo}
 		</a>
 	);

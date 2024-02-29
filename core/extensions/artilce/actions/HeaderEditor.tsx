@@ -10,6 +10,8 @@ import { MutableRefObject, useEffect, useRef } from "react";
 import useLocalize from "../../localization/useLocalize";
 import EditorService from "../../markdown/elementsUtils/ContextServices/EditorService";
 
+const UPDATE_ARTICLE_TITLE_SYMBOL = Symbol();
+
 let headerRef: MutableRefObject<HTMLDivElement> = null;
 export const getHeaderRef = () => headerRef;
 
@@ -22,7 +24,11 @@ export default styled(({ className }: { className?: string }) => {
 		articleProps.title = title;
 		ArticlePropsService.set(articleProps);
 		const url = apiUrlCreator.updateItemProps();
-		trollCaller(() => FetchService.fetch(url, JSON.stringify(articleProps), MimeTypes.json), 500);
+		trollCaller(
+			UPDATE_ARTICLE_TITLE_SYMBOL,
+			() => FetchService.fetch(url, JSON.stringify(articleProps), MimeTypes.json),
+			500,
+		);
 	};
 
 	const replaceSpaceToUnbreakableSpace = (text: string): string =>

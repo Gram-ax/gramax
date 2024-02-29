@@ -4,7 +4,7 @@ import { ItemRef } from "../../../../../logic/FileStructue/Item/Item";
 
 const convertToSharePointDir = (catalog: Catalog, articleRef: ItemRef, path: string): Path => {
 	if (!path) return Path.empty;
-	const sharePointDirectory = catalog?.getProp("sharePointDirectory") ?? catalog?.getName() ?? "";
+	const sharePointDirectory = catalog?.props.sharePointDirectory ?? catalog?.getName() ?? "";
 
 	const sharePointPathParts =
 		catalog

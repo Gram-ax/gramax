@@ -1,10 +1,9 @@
 {
 	"ts-node": {
-		"transpileOnly": true
-	},
-
-	"compilerOptions": {
-		"module": "CommonJS"
+		"transpileOnly": true,
+		"compilerOptions": {
+			"module": "CommonJS"
+		}
 	},
 
 	"include": ["**/*.ts", "**/*.d.ts"],

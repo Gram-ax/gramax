@@ -1,26 +1,40 @@
 import { Level } from "@ext/markdown/elements/heading/edit/model/heading";
+import OPEN_API_NAME from "@ext/markdown/elements/openApi/name";
 
-type Attrs = { level: Level; notFirstInList?: boolean };
+export type Attrs = { level: Level; notFirstInList?: boolean };
 
-type DiagramsGroup = "diagramsMenuGroup" | "drawio" | "Ts-diagram" | "C4-diagram" | "Plant-uml" | "diagrams.net";
-type FilesGroup = "filesMenuGroup" | "image" | "video";
-
-type Nodes = "heading" | "paragraph" | "note" | "blockquote" | "code_block" | "code" | "cut";
-type List = "bullet_list" | "ordered_list";
-type Table = "table" | "tableCell" | "tableHeader";
-
-type Actions = Nodes | DiagramsGroup | FilesGroup | List | Table;
+export type NodeType =
+	| "heading"
+	| "paragraph"
+	| "blockquote"
+	| "ordered_list"
+	| "bullet_list"
+	| "table"
+	| "cut"
+	| "note"
+	| "diagramsMenuGroup"
+	| "drawio"
+	| "diagrams"
+	| "image"
+	| "video"
+	| typeof OPEN_API_NAME
+	| "code_block";
 
 export type Mark = "link" | "strong" | "em" | "code" | "file" | "comment";
 
 export interface NodeValues {
-	action?: Actions | Actions[];
+	action?: NodeType;
 	mark?: Mark;
 	attrs?: Attrs;
 }
 
 export interface ActionContextValue {
-	action: string;
+	actions: NodeType[];
 	marks: Mark[];
 	attrs: Partial<Attrs>;
+}
+
+export interface ButtonState {
+	isActive: boolean;
+	disabled: boolean;
 }

@@ -26,12 +26,12 @@ pub mod commands {
 
   #[command]
   pub fn set_root_path() -> std::result::Result<(), String> {
-    Err("Not implemented".into())
+    unimplemented!()
   }
 
   #[command]
   pub fn close_current_window() -> std::result::Result<(), String> {
-    Err("Unimplemented".into())
+    unimplemented!()
   }
 }
 

@@ -12,6 +12,10 @@ class IndexCacheProvider {
 		return JSON.parse(await this._fp.read(this._getKeyPath(key)));
 	}
 
+	async remove(key: string) {
+		if (await this.exists(key)) await this._fp.delete(this._getKeyPath(key));
+	}
+
 	async exists(key: string) {
 		return await this._fp.exists(this._getKeyPath(key));
 	}

@@ -1,5 +1,5 @@
 import PageDataContext from "../../../../../logic/Context/PageDataContext";
-import { ArticleProps } from "../../../../../logic/SitePresenter/SitePresenter";
+import { ClientArticleProps } from "../../../../../logic/SitePresenter/SitePresenter";
 import ApiUrlCreator from "../../../../../ui-logic/ApiServices/ApiUrlCreator";
 import Theme from "../../../../Theme/Theme";
 import ExtensionUpdaterRules from "./ExtensionUpdaterRules";
@@ -12,7 +12,7 @@ import getThemeRule from "./extensionRules/theme";
 export const getExtensionUpdaterRules = (
 	theme: Theme,
 	isMac: boolean,
-	articleProps: ArticleProps,
+	articleProps: ClientArticleProps,
 	apiUrlCreator: ApiUrlCreator,
 	pageDataContext: PageDataContext,
 ): ExtensionUpdaterRules[] => {

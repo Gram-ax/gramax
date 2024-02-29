@@ -6,7 +6,7 @@ import { RenderableTreeNodes, Scalar, Tag } from "../logic/Markdoc";
 
 type Component = ComponentType<unknown>;
 
-export default function Renderer(mainNode: RenderableTreeNodes, { components = {} } = {}) {
+export default function Renderer(mainNode: RenderableTreeNodes, { components = {} } = {}, onCreate?: VoidFunction) {
 	function deepRender(value: any): any {
 		if (value == null || typeof value !== "object") return value;
 		if (Array.isArray(value)) return value.map(deepRender);
@@ -17,6 +17,7 @@ export default function Renderer(mainNode: RenderableTreeNodes, { components = {
 
 		const output: Record<string, Scalar> = {};
 		for (const [k, v] of Object.entries(value)) output[k] = deepRender(v);
+		onCreate?.();
 		return output;
 	}
 

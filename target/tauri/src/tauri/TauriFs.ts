@@ -1,5 +1,5 @@
 import FileInfo from "@core/FileProvider/model/FileInfo";
-import { invoke, InvokeArgs } from "@tauri-apps/api/primitives";
+import { invoke, InvokeArgs } from "@tauri-apps/api/core";
 import { Buffer } from "buffer";
 import TauriIoError from "./TauriIoError";
 

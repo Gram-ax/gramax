@@ -1,3 +1,4 @@
+import getStorageErrors from "@ext/storage/components/getStorageErrors";
 import { ComponentProps, ReactNode } from "react";
 import getFileProviderErrors from "../../../logic/FileProvider/error/logic/getFileProviderErrors";
 import getGitDiffItemCreatorErrors from "../../git/core/GitDiffItemCreator/error/logic/getGitDiffItemCreatorErrors";
@@ -11,6 +12,7 @@ const getComponents = (): {
 	...getGitDiffItemCreatorErrors(),
 	...getFileProviderErrors(),
 	...getGitErrors(),
+	...getStorageErrors(),
 });
 
 const GetErrorComponent = (args: { error: DefaultError; onCancelClick: () => void }): ReactNode => {

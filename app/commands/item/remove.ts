@@ -1,5 +1,6 @@
 import { AuthorizeMiddleware } from "@core/Api/middleware/AuthorizeMiddleware";
 import { DesktopModeMiddleware } from "@core/Api/middleware/DesktopModeMiddleware";
+import ReloadConfirmMiddleware from "@core/Api/middleware/ReloadConfirmMiddleware";
 import Context from "@core/Context/Context";
 import Path from "@core/FileProvider/Path/Path";
 import ArticleParser from "@core/FileStructue/Article/ArticleParser";
@@ -10,7 +11,7 @@ const remove: Command<{ ctx: Context; catalogName: string; path: Path }, void> =
 
 	kind: ResponseKind.none,
 
-	middlewares: [new AuthorizeMiddleware(), new DesktopModeMiddleware()],
+	middlewares: [new AuthorizeMiddleware(), new DesktopModeMiddleware(), new ReloadConfirmMiddleware()],
 
 	async do({ ctx, catalogName, path }) {
 		const { lib, parser, parserContextFactory } = this._app;

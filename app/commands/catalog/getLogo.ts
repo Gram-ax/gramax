@@ -16,7 +16,9 @@ const getLogo: Command<{ catalogName: string; themeName: string }, { hashItem: H
 			const catalog = lib.getCatalogEntry(catalogName);
 			if (!catalog) return;
 			const logo =
-				theme == Theme.light ? catalog.props["logo"] : catalog.props["logo_" + theme] ?? catalog.props["logo"];
+				Theme[theme] == Theme.light
+					? catalog.props["logo"]
+					: catalog.props["logo_" + theme] ?? catalog.props["logo"];
 			if (!logo) return;
 
 			const path = catalog.getRootCategoryPath().join(new Path(logo));

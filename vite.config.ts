@@ -1,6 +1,6 @@
 import { networkInterfaces } from "os";
 import * as path from "path";
-import { UserConfig, searchForWorkspaceRoot } from "vite";
+import { Plugin, UserConfig, searchForWorkspaceRoot } from "vite";
 import ifdef from "vite-plugin-conditional-compiler";
 import { nodePolyfills as polyfills } from "vite-plugin-node-polyfills";
 import env from "./scripts/compileTimeEnv.mjs";
@@ -11,15 +11,50 @@ if (!process.env.VITE_ENVIRONMENT) process.env.VITE_ENVIRONMENT = "next";
 
 const ipv4 = networkInterfaces()?.en0?.[1]?.address ?? "localhost";
 
+if (process.env.VITE_SOURCEMAPS) console.log("Building with sourcemaps");
+
+// https://github.com/vitejs/vite/issues/15012
+const muteWarningsPlugin = (warningsToIgnore: string[][]): Plugin => {
+	return {
+		name: "mute-warnings",
+		enforce: "pre",
+		config: (userConfig) => ({
+			build: {
+				rollupOptions: {
+					onwarn(warning, defaultHandler) {
+						if (warning.code) {
+							const muted = warningsToIgnore.find(
+								([code, message]) => code == warning.code && warning.message.includes(message),
+							);
+							if (muted) return;
+						}
+
+						if (userConfig.build?.rollupOptions?.onwarn) {
+							userConfig.build.rollupOptions.onwarn(warning, defaultHandler);
+						} else {
+							defaultHandler(warning);
+						}
+					},
+				},
+			},
+		}),
+	};
+};
+
 export default (): UserConfig => ({
 	cacheDir: ".vite-cache",
 	logLevel: "info",
 	appType: "spa",
 
 	plugins: [
+		muteWarningsPlugin([
+			["MODULE_LEVEL_DIRECTIVE", `"use-client"`],
+			["EVAL", "Use of eval"],
+		]),
 		ifdef(),
 		polyfills({
 			protocolImports: false,
+			exclude: ["buffer"],
 		}),
 	],
 
@@ -60,11 +95,12 @@ export default (): UserConfig => ({
 	build: {
 		emptyOutDir: true,
 		modulePreload: true,
+		chunkSizeWarningLimit: 5000,
 		outDir: "dist",
 		rollupOptions: {
 			external: ["fsevents"],
 		},
-		minify: !process.env.GX_DEBUG || !process.env.TAURI_DEBUG,
-		sourcemap: !!process.env.GX_DEBUG || !!process.env.TAURI_DEBUG,
+		minify: true,
+		sourcemap: !!process.env.VITE_SOURCEMAPS,
 	},
 });

@@ -1,11 +1,5 @@
 import styled from "@emotion/styled";
-import {
-	ArticleLink,
-	BaseLink,
-	CatalogLink,
-	CategoryLink,
-	ItemLink,
-} from "../../extensions/navigation/NavigationLinks";
+import { ArticleLink, BaseLink, CatalogLink, CategoryLink, ItemLink } from "@ext/navigation/NavigationLinks";
 import { CatalogLogo } from "../CatalogLogo";
 import Breadcrumb from "./Breadcrumb";
 

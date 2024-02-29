@@ -7,6 +7,7 @@ export type EnvironmentVariable = {
 	GRAMAX_VERSION: string;
 	ENTERPRISE_SERVER_URL: string;
 	SSO_PUBLIC_KEY: string;
+	AUTH_SERVICE_URL: string;
 	COOKIE_SECRET: string;
 
 	READ_ONLY: Bool;

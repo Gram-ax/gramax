@@ -1,20 +1,16 @@
-import ButtonSrc from "@components/Atoms/Button/Button";
+import ButtonSrc, { ButtonProps, TextSize } from "@components/Atoms/Button/Button";
 import { ButtonStyle } from "@components/Atoms/Button/ButtonStyle";
-import { Meta } from "@storybook/react";
-import { ComponentProps } from "react";
+import { Meta, StoryObj } from "@storybook/react";
 import InlineDecorator from "../../styles/decorators/InlineDecorator";
 
-type Props = { buttonStyle: ButtonStyle } & Pick<
-	ComponentProps<typeof ButtonSrc>,
-	"disabled" | "children" | "fullWidth"
->;
+type Story = StoryObj<typeof ButtonSrc>;
 
-export const Button = (args: Props) => {
+export const Button = (args: ButtonProps) => {
 	args = { ...args, children: args.children ? args.children : "text" };
 	return <ButtonSrc {...args} />;
 };
 
-const meta: Meta<Props> = {
+const meta: Meta<typeof ButtonSrc> = {
 	title: "gx/Atoms/Button",
 	component: Button,
 	decorators: [InlineDecorator],
@@ -22,7 +18,38 @@ const meta: Meta<Props> = {
 		children: "text",
 		buttonStyle: ButtonStyle.default,
 		disabled: false,
+		textSize: TextSize.L,
 		fullWidth: false,
+	},
+};
+
+export const Orange: Story = {
+	args: {
+		buttonStyle: ButtonStyle.orange,
+	},
+};
+
+export const TransparentUnderline: Story = {
+	args: {
+		buttonStyle: ButtonStyle.underline,
+	},
+};
+
+export const Transparent: Story = {
+	args: {
+		buttonStyle: ButtonStyle.transparent,
+	},
+};
+
+export const Blue: Story = {
+	args: {
+		buttonStyle: ButtonStyle.blue,
+	},
+};
+
+export const Purple: Story = {
+	args: {
+		buttonStyle: ButtonStyle.purple,
 	},
 };
 

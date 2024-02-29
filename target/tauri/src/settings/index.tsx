@@ -1,7 +1,7 @@
-import { render } from "react-dom";
+import { createRoot } from "react-dom/client";
 import Settings from "./Settings";
 
 import "./styles.css";
 
-const root = document.getElementById("root");
-render(<Settings />, root);
+const root = createRoot(document.getElementById("root"));
+root.render(<Settings />);

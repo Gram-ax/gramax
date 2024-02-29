@@ -1,6 +1,7 @@
+import { classNames } from "@components/libs/classNames";
 import styled from "@emotion/styled";
 import { Property } from "csstype";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, ReactNode } from "react";
 
 const Checkbox = styled(
 	({
@@ -14,7 +15,7 @@ const Checkbox = styled(
 		overflow,
 		className,
 	}: {
-		children?: React.ReactNode;
+		children?: ReactNode;
 		checked?: boolean;
 		disabled?: boolean;
 		interactive?: boolean;
@@ -66,7 +67,7 @@ const Checkbox = styled(
 			return (
 				<span>
 					{borderAreaDiv}
-					<span className={className + " checkbox-layout"}>
+					<span className={classNames(className, {}, ["checkbox-layout"])}>
 						<input
 							ref={checkboxRef}
 							type="checkbox"
@@ -79,7 +80,7 @@ const Checkbox = styled(
 			);
 
 		return (
-			<div className={className + " checkbox-layout"}>
+			<div className={classNames(className, {}, ["checkbox-layout"])}>
 				<div onClick={interactive ? null : currentOnClick}>
 					{borderAreaDiv}
 					<input

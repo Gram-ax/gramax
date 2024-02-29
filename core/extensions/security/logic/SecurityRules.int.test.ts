@@ -26,7 +26,7 @@ describe("Security Rules фильтрует приватные", () => {
 		test("article", async () => {
 			const { sr, nav, articleItemRef, articleTestCatalog } = await getSecurityRulesData();
 
-			const filter = sr.getNavItemRule();
+			const filter = sr.getNavRules().itemRule;
 			const item = articleTestCatalog.findArticleByItemRef(articleItemRef);
 			const itemLink = (await nav.getCatalogNav(articleTestCatalog, item.logicPath))[0];
 			expect(filter(articleTestCatalog, item, itemLink)).toEqual(false);
@@ -35,7 +35,7 @@ describe("Security Rules фильтрует приватные", () => {
 		test("category", async () => {
 			const { sr, nav, categoryItemRef, categoryTestCatalog } = await getSecurityRulesData();
 
-			const filter = sr.getNavItemRule();
+			const filter = sr.getNavRules().itemRule;
 			const item = categoryTestCatalog.findCategoryByItemRef(categoryItemRef);
 			const itemLink = (await nav.getCatalogNav(categoryTestCatalog, item.logicPath))[0];
 			expect(filter(categoryTestCatalog, item, itemLink)).toEqual(false);
@@ -43,17 +43,18 @@ describe("Security Rules фильтрует приватные", () => {
 	});
 
 	test("catalog", async () => {
-		const { sr, catalogTestCatalog } = await getSecurityRulesData();
+		const { sr, nav, catalogTestCatalog } = await getSecurityRulesData();
 
-		const filter = sr.getNavCatalogRule();
+		const filter = sr.getNavRules().catalogRule;
+		const catalogLink = await nav.getCatalogLink(catalogTestCatalog);
 
-		expect(filter(catalogTestCatalog)).toEqual(false);
+		expect(filter(catalogTestCatalog, catalogLink)).toEqual(false);
 	});
 
 	test("relatedLinks", async () => {
 		const { sr, nav, catalogTestCatalog } = await getSecurityRulesData();
 
-		const filter = sr.getNavRelationRule();
+		const filter = sr.getNavRules().relatedLinkRule;
 		const relatedLinks = nav.getRelatedLinks(catalogTestCatalog);
 
 		expect(filter(catalogTestCatalog, relatedLinks[0])).toEqual(false);
@@ -62,9 +63,9 @@ describe("Security Rules фильтрует приватные", () => {
 	test("article", async () => {
 		const { sr, articleItemRef, articleTestCatalog } = await getSecurityRulesData();
 
-		const filter = sr.getFilterRule();
+		const filter = sr.getItemFilter();
 		const article = articleTestCatalog.findArticleByItemRef(articleItemRef);
 
-		expect(filter(article, articleTestCatalog.getName())).toEqual(false);
+		expect(filter(article, articleTestCatalog)).toEqual(false);
 	});
 });

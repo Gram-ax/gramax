@@ -1,11 +1,11 @@
 import { AuthorizeMiddleware } from "@core/Api/middleware/AuthorizeMiddleware";
-import { DesktopModeMiddleware } from "@core/Api/middleware/DesktopModeMiddleware";
 import { Command } from "../../types/Command";
+import ReloadConfirmMiddleware from "@core/Api/middleware/ReloadConfirmMiddleware";
 
 const remove: Command<{ catalogName: string }, void> = Command.create({
 	path: "catalog/remove",
 
-	middlewares: [new AuthorizeMiddleware(), new DesktopModeMiddleware()],
+	middlewares: [new AuthorizeMiddleware(), new ReloadConfirmMiddleware()],
 
 	async do({ catalogName }) {
 		await this._app.lib.removeCatalog(catalogName);

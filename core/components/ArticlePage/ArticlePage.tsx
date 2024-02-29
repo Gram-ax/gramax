@@ -1,6 +1,9 @@
+import Welcome from "@components/Welcome";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import registerMetric from "@core-ui/yandexMetric";
-import { ArticleData } from "@core/SitePresenter/SitePresenter";
+import { ArticlePageData } from "@core/SitePresenter/SitePresenter";
+import CreateFirstArticle from "@ext/artilce/actions/CreateFirstArticle";
+import useLocalize from "@ext/localization/useLocalize";
 import ThemeService from "../../extensions/Theme/components/ThemeService";
 import interceptPrintShortkeys from "../../extensions/artilce/actions/SaveAsPdf/interceptPrintShortkeys";
 import NextPrevious from "../../extensions/navigation/NextPrevious";
@@ -9,7 +12,7 @@ import Article from "../Article/Article";
 import ArticleExtensions from "../Article/ArticleExtensions";
 import Breadcrumb from "../Breadcrumbs/ArticleBreadcrumb";
 
-const ArticlePage = ({ data }: { data: ArticleData }) => {
+const ArticlePage = ({ data }: { data: ArticlePageData }) => {
 	const theme = ThemeService.value;
 	const isMac = IsMacService.value;
 	const isLogged = PageDataContextService.value.isLogged;
@@ -19,10 +22,22 @@ const ArticlePage = ({ data }: { data: ArticleData }) => {
 
 	interceptPrintShortkeys(isMac, theme);
 
+	if (data.articleProps.welcome == "modal")
+		return (
+			<Welcome
+				article
+				title={useLocalize("soFarItsEmpty")}
+				body={<span>{useLocalize("createNewArticleDesc")}</span>}
+				actions={<CreateFirstArticle />}
+			/>
+		);
+
 	return (
 		<>
 			<Breadcrumb itemLinks={data.itemLinks} />
-			<Article data={data} />
+			<div style={{ flex: 1 }}>
+				<Article data={data} />
+			</div>
 			<NextPrevious itemLinks={data.itemLinks} />
 			<ArticleExtensions />
 		</>

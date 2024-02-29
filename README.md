@@ -9,7 +9,7 @@ Gramax — это бесплатный текстовый редактор со 
 
 ### Разворачивание приложения для редактирования
 
-Чтобы начать редактировать документацию, достаточно скачать приложение или открыть его в браузере. Ссылки доступны на [gram.ax](https://gram.ax).
+Чтобы начать редактировать документацию, достаточно скачать приложение или открыть его в браузере. Ссылки доступны на нашем [сайте](https://gram.ax).
 
 ### Разворачивание портала для читателей
 
@@ -22,7 +22,7 @@ Gramax — это бесплатный текстовый редактор со 
 Откройте ваш терминал и выполните команду:
 
 ```bash
-curl https://raw.githubusercontent.com/StanislavPetrovIcs/test-gramax-setup/main/setup.sh | bash; docker compose up
+curl -O https://gram.ax/docker-compose.yaml; docker compose up
 ```
 
 #### На Windows
@@ -30,7 +30,7 @@ curl https://raw.githubusercontent.com/StanislavPetrovIcs/test-gramax-setup/main
 Откройте powershell и выполните команду:
 
 ```powershell
-Invoke-Expression (Invoke-WebRequest -Uri "https://raw.githubusercontent.com/StanislavPetrovIcs/test-gramax-setup/main/setup.ps1" -UseBasicParsing).Content; docker compose up
+Invoke-WebRequest -Uri "https://gram.ax/docker-compose.yaml" -OutFile "docker-compose.yaml"; docker compose up
 ```
 
 ### Запуск для разработки (Vite и Next.js)

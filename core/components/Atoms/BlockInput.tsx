@@ -68,9 +68,9 @@ const BlockInput = styled(
 							contentEditable: true,
 							suppressContentEditableWarning: true,
 							"data-text": placeholder,
-							onPaste: async (e) => {
+							onPaste: (e) => {
 								e.preventDefault();
-								insertPlainText(await navigator.clipboard.readText());
+								insertPlainText(e.clipboardData.getData("Text"));
 							},
 						},
 						currentValue,

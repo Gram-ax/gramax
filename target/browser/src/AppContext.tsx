@@ -4,7 +4,7 @@ import ContextProviders from "@components/ContextProviders";
 import getPageTitle from "@core-ui/getPageTitle";
 import Query, { parserQuery } from "@core/Api/Query";
 import PageDataContext from "@core/Context/PageDataContext";
-import { ArticleData, HomePageData } from "@core/SitePresenter/SitePresenter";
+import { ArticlePageData, HomePageData } from "@core/SitePresenter/SitePresenter";
 import Theme from "@ext/Theme/Theme";
 import ThemeService from "@ext/Theme/components/ThemeService";
 import ErrorBoundary from "@ext/errorHandlers/client/components/ErrorBoundary";
@@ -18,7 +18,7 @@ const getData = async (route: string, query: Query) => {
 	const app = await getApp();
 	const commands = getCommands(app);
 	const lang = localizer.extract(route);
-	const path = decodeURIComponent(localizer.trim(route));
+	const path = localizer.trim(route);
 	const ctx = app.contextFactory.fromBrowser(lang, query);
 	return commands.page.getPageData.do({ ctx, path });
 };
@@ -27,7 +27,7 @@ const AppContext = ({ children }: { children: (data: any) => JSX.Element }) => {
 	const [path, , query] = useLocation();
 
 	const [data, setData] = useState<{
-		data: HomePageData | ArticleData;
+		data: HomePageData | ArticlePageData;
 		context: PageDataContext;
 		path: string;
 	}>();

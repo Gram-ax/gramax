@@ -1,4 +1,3 @@
-import Path from "../../../../logic/FileProvider/Path/Path";
 import gitDataParser from "./GitDataParser";
 
 describe("GitDataParser", () => {
@@ -21,18 +20,5 @@ D\tdocs/video.ts`;
 				{ absolutePath: "docs/video.ts", type: "delete" },
 			]);
 		});
-	});
-
-	test("получает ссылку на gitlab", () => {
-		const data: [string[], string, string, Path] = [
-			["https:", "", "gitlab.ics-it.ru", "ics", "mdt.bpmn.git\n"],
-			"master",
-			"mdt.bpmn",
-			new Path("docs/bpmn/_index.md"),
-		];
-
-		const result = gitDataParser.getGitLabLink(...data);
-
-		expect(result).toEqual("https://gitlab.ics-it.ru/-/ide/project/ics/mdt.bpmn/blob/master/-/docs/bpmn/_index.md");
 	});
 });

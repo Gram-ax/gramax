@@ -1,87 +1,120 @@
 import GitRepositoryProvider from "@ext/git/core/Repository/RepositoryProvider";
+import RuleProvider from "@ext/rules/RuleProvider";
 import htmlToText from "html-to-text";
 import Language from "../../extensions/localization/core/model/Language";
-import { localizationProps } from "../../extensions/localization/core/rules/FSLocalizationRules";
-import LocalizationRules from "../../extensions/localization/core/rules/LocalizationRules";
 import MarkdownParser from "../../extensions/markdown/core/Parser/Parser";
 import ParserContextFactory from "../../extensions/markdown/core/Parser/ParserContext/ParserContextFactory";
 import { CatalogLink, ItemLink, TitledLink } from "../../extensions/navigation/NavigationLinks";
 import { TocItem } from "../../extensions/navigation/article/logic/createTocItems";
 import Navigation from "../../extensions/navigation/catalog/main/logic/Navigation";
-import Searcher from "../../extensions/search/Searcher";
-import SecurityRules from "../../extensions/security/logic/SecurityRules";
 import UserInfo from "../../extensions/security/logic/User/UserInfo2";
 import Context from "../Context/Context";
 import Path from "../FileProvider/Path/Path";
 import { Article } from "../FileStructue/Article/Article";
 import parseContent from "../FileStructue/Article/parseContent";
-import { ArticleFilter, Catalog } from "../FileStructue/Catalog/Catalog";
-import { Item, ItemRef } from "../FileStructue/Item/Item";
-import HiddenRule from "../FileStructue/Rules/HiddenRules/HiddenRule";
-import ShowHomePageRule from "../FileStructue/Rules/ShowHomePageRule/ShowHomePageRule";
+import { ArticleFilter, Catalog, ItemFilter } from "../FileStructue/Catalog/Catalog";
+import { Item } from "../FileStructue/Item/Item";
 import Library from "../Library/Library";
 import ErrorArticlePresenter from "./ErrorArticlePresenter";
 
+export type ClientCatalogProps = {
+	name: string;
+	title: string;
+	docroot: string;
+	repositoryName: string;
+	contactEmail: string;
+	sourceName: string;
+	userInfo: UserInfo;
+	link: CatalogLink;
+	readOnly?: boolean;
+	relatedLinks?: TitledLink[];
+};
+
+export type ClientArticleProps = {
+	logicPath: string;
+	pathname: string;
+	fileName: string;
+	ref: ClientItemRef;
+	title: string;
+	description: string;
+	tags: string[];
+	tocItems: TocItem[];
+	errorCode: number;
+	welcome?: "editor" | "modal" | false;
+};
+
+export type ClientItemRef = {
+	path: string;
+	storageId: string;
+};
+
+export type HomePageData = {
+	catalogLinks: { [group: string]: CatalogLink[] };
+};
+
+export type ArticlePageData = {
+	articleContentEdit: string;
+	articleContentRender: string;
+	articleProps: ClientArticleProps;
+	catalogProps: ClientCatalogProps;
+	itemLinks: ItemLink[];
+};
+
+export type OpenGraphData = {
+	title: string;
+	description: string;
+};
+
 export default class SitePresenter {
-	private _filters: ArticleFilter[];
+	private _filters: ItemFilter[];
 
 	constructor(
 		private _nav: Navigation,
 		private _lib: Library,
 		private _parser: MarkdownParser,
 		private _parserContextFactory: ParserContextFactory,
-		private _sm: Searcher,
 		private _grp: GitRepositoryProvider,
 		private _errorArticlesPresenter: ErrorArticlePresenter,
 		private _context: Context,
 	) {
-		const shr = new ShowHomePageRule();
-		const hr = new HiddenRule(_errorArticlesPresenter);
-		const lr = new LocalizationRules(_context.lang, _errorArticlesPresenter);
-		const sr = new SecurityRules(_context.user, _errorArticlesPresenter);
+		const rp = new RuleProvider(_context, _errorArticlesPresenter);
+		rp.getNavRules().forEach((r) => this._nav.addRules(r));
+		this._filters = rp.getItemFilters();
+	}
 
-		this._nav.addRules({ itemFilter: hr.getItemRule() });
-		this._nav.addRules({ catalogFilter: shr.getNavCatalogRule() });
-		this._nav.addRules({ catalogFilter: lr.getNavCatalogRule(), itemFilter: lr.getNavItemRule() });
-		this._nav.addRules({
-			catalogFilter: sr.getNavCatalogRule(),
-			itemFilter: sr.getNavItemRule(),
-			relatedLinkFilter: sr.getNavRelationRule(),
+	async getHomePageData(): Promise<HomePageData> {
+		const catalogLinks: { [group: string]: CatalogLink[] } = {};
+		const catalogs = this._lib.getCatalogEntries();
+		(await this._nav.getCatalogsLink(catalogs)).forEach((cLink) => {
+			if (catalogLinks[cLink.group] === undefined) catalogLinks[cLink.group] = [];
+			catalogLinks[cLink.group].push(cLink);
 		});
-
-		this._filters = [sr.getFilterRule(), hr.getFilterRule(), lr.getFilterRule()];
+		return {
+			catalogLinks,
+		};
 	}
 
-	async getSearchData(query: string, catalogName: string) {
-		return await this._sm.search(query, catalogName, await this._getCatalogItemRefs(catalogName));
-	}
-
-	async getAllSearchData(query: string) {
-		const catalogs = this._nav.getCatalogsLink(this._lib.getCatalogEntries()).map((l) => l.name);
-		const catalogsItemRefs = {};
-		await Promise.all(catalogs.map(async (c) => (catalogsItemRefs[c] = await this._getCatalogItemRefs(c))));
-		return await this._sm.searchAll(query, catalogsItemRefs);
-	}
-
-	async getData(path: string[]): Promise<ArticleData> {
-		const data = await this.getArticleCatalog(path);
-		if (!data.catalog) return null;
-		if (!data.article) {
-			data.article = this._errorArticlesPresenter.getErrorArticle("404");
-			data.article.props[localizationProps.language] = this._context.lang;
-		}
-		return await this.getArticleData(data.article, data.catalog);
-	}
-
-	async getArticleData(article: Article, catalog: Catalog): Promise<ArticleData> {
+	async getArticlePageData(article: Article, catalog: Catalog): Promise<ArticlePageData> {
 		await parseContent(article, catalog, this._context, this._parser, this._parserContextFactory);
 		return {
 			articleContentEdit: JSON.stringify(article.parsedContent.editTree),
 			articleContentRender: JSON.stringify(article.parsedContent.renderTree),
-			articleProps: this.getArticleProps(article),
-			catalogProps: await this.getCatalogProps(catalog),
+			articleProps: this.serializeArticleProps(article, await catalog?.getPathname(article)),
+			catalogProps: await this.serializeCatalogProps(catalog),
 			itemLinks: catalog ? await this._nav.getCatalogNav(catalog, article.logicPath) : [],
 		};
+	}
+
+	async getArticlePageDataByPath(path: string[]): Promise<ArticlePageData> {
+		const data = await this.getArticleByPathOfCatalog(path);
+		if (!data.catalog) return null;
+		if (!data.article) {
+			data.article = data.catalog.hasItems()
+				? this._errorArticlesPresenter.getErrorArticle("404")
+				: data.catalog.createWelcomeArticle(false);
+			data.article.props.lang = this._context.lang;
+		}
+		return await this.getArticlePageData(data.article, data.catalog);
 	}
 
 	async getCatalogNav(catalog: Catalog, currentItemLogicPath: string): Promise<ItemLink[]> {
@@ -89,7 +122,7 @@ export default class SitePresenter {
 	}
 
 	async getHtml(path: string[], ApiRequestUrl?: string): Promise<string> {
-		const { article, catalog } = await this.getArticleCatalog(path);
+		const { article, catalog } = await this.getArticleByPathOfCatalog(path);
 		if (!article || !catalog) return null;
 		const parsedContext = this._parserContextFactory.fromArticle(
 			article,
@@ -100,18 +133,6 @@ export default class SitePresenter {
 		return await this._parser.parseToHtml(article.content, parsedContext, ApiRequestUrl);
 	}
 
-	getHomePageData(): HomePageData {
-		const catalogLinks: { [group: string]: CatalogLink[] } = {};
-		const catalogs = this._lib.getCatalogEntries();
-		this._nav.getCatalogsLink(catalogs).forEach((link) => {
-			if (catalogLinks[link.group] === undefined) catalogLinks[link.group] = [];
-			catalogLinks[link.group].push(link);
-		});
-		return {
-			catalogLinks,
-		};
-	}
-
 	getFilters(): ArticleFilter[] {
 		return this._filters;
 	}
@@ -119,7 +140,7 @@ export default class SitePresenter {
 	async getOpenGraphData(path: string[], readyArticle?: Article, readyCatalog?: Catalog): Promise<OpenGraphData> {
 		const { article, catalog } = readyArticle
 			? { article: readyArticle, catalog: readyCatalog }
-			: await this.getArticleCatalog(path, [this._filters[1], this._filters[2]]);
+			: await this.getArticleByPathOfCatalog(path, [this._filters[1], this._filters[2]]);
 
 		if (!article) return null;
 		if (!article.parsedContent)
@@ -133,7 +154,7 @@ export default class SitePresenter {
 			});
 		if (description.length > 150) description = description.slice(0, 150) + "...";
 		return {
-			title: article.props["title"] ?? "",
+			title: article.props.title ?? "",
 			description,
 		};
 	}
@@ -149,7 +170,7 @@ export default class SitePresenter {
 		return catalog;
 	}
 
-	getArticleProps(article: Article): ArticleProps {
+	serializeArticleProps(article: Article, pathname: string): ClientArticleProps {
 		const tags: Set<string> = new Set<string>();
 		let currentItem: Item = article;
 		while (currentItem) {
@@ -159,21 +180,23 @@ export default class SitePresenter {
 			currentItem = currentItem.parent;
 		}
 		return {
-			path: article.logicPath,
+			pathname,
+			logicPath: article.logicPath,
 			fileName: article.getFileName(),
 			ref: {
 				path: article.ref.path.value,
 				storageId: article.ref.storageId,
 			},
-			title: article.props["title"] ?? "",
+			title: article.props.title ?? "",
 			description: article.props["description"] ?? "",
 			tags: Array.from(tags.values()),
 			tocItems: article?.parsedContent?.tocItems ?? [],
 			errorCode: article.errorCode ?? null,
+			welcome: article.props.welcome,
 		};
 	}
 
-	async getCatalogProps(catalog: Catalog): Promise<CatalogProps> {
+	async serializeCatalogProps(catalog: Catalog): Promise<ClientCatalogProps> {
 		if (!catalog) {
 			return {
 				relatedLinks: null,
@@ -185,32 +208,36 @@ export default class SitePresenter {
 				readOnly: false,
 				sourceName: null,
 				userInfo: null,
-				private: [],
+				docroot: "",
 			};
 		}
 
 		const storage = catalog.repo.storage;
 
 		return {
-			link: this._nav.getCatalogLink(catalog),
+			link: await this._nav.getCatalogLink(catalog),
 			relatedLinks: this._nav.getRelatedLinks(catalog),
-			contactEmail: catalog.getProp("contactEmail") ?? null,
+			contactEmail: catalog.props.contactEmail ?? null,
 			name: catalog.getName() ?? null,
-			title: catalog.getProp("title") ?? "",
-			readOnly: catalog.getProp("readOnly") ?? false,
+			title: catalog.props.title ?? "",
+			readOnly: catalog.props.readOnly ?? false,
 			repositoryName: catalog.getName(),
 			sourceName: (await storage?.getSourceName()) ?? null,
 			userInfo: this._grp.getSourceUserInfo(this._context.cookie, await storage?.getSourceName()),
-			private: catalog.getProp("private") ?? [],
+			docroot: catalog.getRelativeRootCategoryPath()?.value,
 		};
 	}
 
-	async getArticleCatalog(path: string[], filters = this._filters): Promise<{ article: Article; catalog: Catalog }> {
+	async getArticleByPathOfCatalog(
+		path: string[],
+		filters = this._filters,
+	): Promise<{ article: Article; catalog: Catalog }> {
 		const catalogName = path[0];
 		const catalog = await this._lib.getCatalog(catalogName);
 		if (!catalog) return { article: null, catalog: null };
 		const itemLogicPath = Path.join(...path);
-		const article = catalog.findAnyArticle(itemLogicPath, filters);
+		if (path.length <= 1) return { article: catalog.getArticles()[0], catalog };
+		const article = catalog.findArticle(itemLogicPath, filters);
 		return { article, catalog };
 	}
 
@@ -221,58 +248,4 @@ export default class SitePresenter {
 	private _getLang(): Language {
 		return this._context.lang;
 	}
-
-	private async _getCatalogItemRefs(catalogName: string): Promise<ItemRef[]> {
-		const catalog = await this._lib.getCatalog(catalogName);
-		return catalog
-			?.getContentItems()
-			.filter((a) => this._filters.every((f) => f(a, catalogName)))
-			.map((a) => a.ref);
-	}
-}
-
-export interface ArticleData {
-	articleContentEdit: string;
-	articleContentRender: string;
-	articleProps: ArticleProps;
-	catalogProps: CatalogProps;
-	itemLinks: ItemLink[];
-}
-
-export interface HomePageData {
-	catalogLinks: { [group: string]: CatalogLink[] };
-}
-
-export interface ArticleProps {
-	path: string;
-	fileName: string;
-	ref: ItemRefProps;
-	title: string;
-	description: string;
-	tags: string[];
-	tocItems: TocItem[];
-	errorCode: number;
-}
-
-export interface ItemRefProps {
-	path: string;
-	storageId: string;
-}
-
-export interface CatalogProps {
-	relatedLinks: TitledLink[];
-	repositoryName: string;
-	contactEmail: string;
-	sourceName: string;
-	readOnly?: boolean;
-	userInfo: UserInfo;
-	link: CatalogLink;
-	private: string[];
-	title: string;
-	name: string;
-}
-
-export interface OpenGraphData {
-	title: string;
-	description: string;
 }

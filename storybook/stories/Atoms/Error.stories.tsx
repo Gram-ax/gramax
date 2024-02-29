@@ -1,9 +1,9 @@
 import { Meta, StoryObj } from "@storybook/react";
 import { ComponentProps } from "react";
-import ErrorForm from "../../../core/extensions/errorHandlers/client/components/ErrorForm";
+import InfoModalForm from "../../../core/extensions/errorHandlers/client/components/ErrorForm";
 import InlineDecorator from "../../styles/decorators/InlineDecorator";
 
-type Props = ComponentProps<typeof ErrorForm> & {
+type Props = ComponentProps<typeof InfoModalForm> & {
 	hasActionButton: boolean;
 	actionText: string;
 	type: "warning" | "error";
@@ -31,7 +31,7 @@ export default meta;
 export const Error: StoryObj<Props> = {
 	render: ({ children, type }) => {
 		return (
-			<ErrorForm
+			<InfoModalForm
 				title={type === "warning" ? "Предупреждение" : "Ошибка"}
 				icon={
 					type === "warning"
@@ -41,7 +41,7 @@ export const Error: StoryObj<Props> = {
 				onCancelClick={function (): void {}}
 			>
 				{children}
-			</ErrorForm>
+			</InfoModalForm>
 		);
 	},
 };

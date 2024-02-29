@@ -1,11 +1,12 @@
 import { Locator } from "playwright";
 import config from "../../setup/config";
-import { globalIcon } from "../../steps/utils/aliases";
+import { Aliases, globalIcon } from "../../steps/utils/aliases";
+import { replaceMultiple } from "../../steps/utils/utils";
 import { PageInfo } from "../Pages/PageContext";
 import { ReplaceAlias } from "../World";
 
 export default class SearcherContext {
-	constructor(private _alias: ReplaceAlias, private _info: PageInfo) {}
+	constructor(private _alias: ReplaceAlias, private _aliases: Aliases, private _info: PageInfo) {}
 
 	current() {
 		return this._info.scope;
@@ -24,22 +25,18 @@ export default class SearcherContext {
 	async lookup(selector: string, scope?: Locator, forceQa?: boolean) {
 		const was = scope ?? this._info.scope ?? page;
 		const alias = this._alias(selector);
-
-		let locator = forceQa
-			? was.locator(`[data-qa="${selector}"]`)
-			: !alias
-			? was
-					.locator(`[data-qa="${selector}"]`)
-					.or(was.locator("[data-qa]", { hasText: selector }))
-					.or(was.locator(alias ?? "text=" + selector))
-			: was.locator(alias ?? "text=" + selector);
-		locator = locator.locator("visible=true").first();
+		const makeLocator = () => {
+			if (forceQa) return was.locator(`[data-qa="${selector}"]`);
+			if (alias) return was.locator(alias);
+			return was.locator("[data-qa]", { hasText: selector });
+		};
+		const locator = makeLocator().first();
 		if (config.highlight) await locator.highlight();
 		return locator;
 	}
 
 	async find(selector: string, scope?: Locator) {
-		const elem = (scope ?? this._info.scope ?? page).locator(selector).locator("visible=true").last();
+		const elem = (scope ?? this._info.scope ?? page).locator(selector).last();
 		if (config.highlight) await elem.highlight();
 		return elem;
 	}
@@ -50,9 +47,9 @@ export default class SearcherContext {
 	}
 
 	clickable(text: string, scope?: Locator, all?: boolean) {
-		const locator = (scope ?? this._info.scope ?? page)
-			.locator('[data-qa="qa-clickable"]')
-			.filter({ hasText: text });
+		const locator = (scope ?? this._info.scope ?? page).locator('[data-qa="qa-clickable"]', {
+			hasText: replaceMultiple(text, this._alias.bind(this)),
+		});
 		return all ? locator : locator.first();
 	}
 

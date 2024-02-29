@@ -7,10 +7,10 @@ import getPageDataContext from "./getPageDataContext";
 const getHomePageData: Command<{ ctx: Context }, { data: HomePageData; context: PageDataContext }> = Command.create({
 	path: "index",
 
-	do({ ctx }) {
+	async do({ ctx }) {
 		const { sitePresenterFactory } = this._app;
 		const dataProvider = sitePresenterFactory.fromContext(ctx);
-		const data = dataProvider.getHomePageData();
+		const data = await dataProvider.getHomePageData();
 		const context = getPageDataContext({ ctx, app: this._app, isArticle: false });
 
 		return {

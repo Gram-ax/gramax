@@ -3,7 +3,7 @@ import styled from "@emotion/styled";
 const CatalogLayout = styled(
 	({ catalogNav, article, className }: { catalogNav: JSX.Element; article: JSX.Element; className?: string }) => {
 		return (
-			<div data-qa="catalog" className={"catalog-layout " + className}>
+			<div className={"catalog-layout " + className}>
 				{catalogNav}
 				{article}
 			</div>

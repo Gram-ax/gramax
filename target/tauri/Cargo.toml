@@ -14,15 +14,16 @@ description = "Gramax"
 edition = "2021"
 
 [workspace.dependencies]
-tauri = { version = "^2.0.0-alpha", git = "https://github.com/gram-ax/tauri", branch = "locked-version", features = [
+tauri-build = { git = "https://github.com/gram-ax/tauri", branch = "locked-version" }
+
+
+tauri = { git = "https://github.com/gram-ax/tauri", branch = "locked-version", features = [
   "macos-private-api",
   "devtools",
 ] }
-tauri-build = { version = "^2.0.0-alpha", git = "https://github.com/gram-ax/tauri", branch = "locked-version" }
-
 tauri-plugin-dialog = { version = "^2.0.0-alpha", git = "https://github.com/gram-ax/tauri-plugins", branch = "locked-version" }
 tauri-plugin-log = { version = "^2.0.0-alpha", git = "https://github.com/gram-ax/tauri-plugins", branch = "locked-version" }
-tauri-plugin-updater = { version = "^2.0.0-alpha", git = "https://github.com/gram-ax/tauri-plugins", branch = "locked-version" }
+tauri-plugin-updater = { version = "^2.0.0-alpha", git = "https://github.com/gram-ax/tauri-plugins", branch = "updater-chunk-timeout" }
 tauri-plugin-shell = { version = "^2.0.0-alpha", git = "https://github.com/gram-ax/tauri-plugins", branch = "locked-version" }
 
 [profile.release]
@@ -32,7 +33,11 @@ incremental = false
 opt-level = "s"
 
 [patch.crates-io]
-tauri = { git = "https://github.com/gram-ax/tauri", branch = "locked-version" }
+tauri = { git = "https://github.com/gram-ax/tauri", branch = "locked-version", features = [
+  "macos-private-api",
+  "devtools",
+] }
 tauri-build = { git = "https://github.com/gram-ax/tauri", branch = "locked-version" }
 tauri-plugin-fs = { git = "https://github.com/gram-ax/tauri-plugins", branch = "locked-version" }
+wry = { git = "https://github.com/pashokitsme/wry", branch = "fix-proguard-v0.35.2" }
 cc = { git = "https://github.com/pashokitsme/cc-rs", branch = "1.0.83-fix-try-expand" }

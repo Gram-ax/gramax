@@ -1,33 +1,32 @@
 import { getExecutingEnvironment } from "@app/resolveModule";
 import ArticleUpdaterService from "@components/Article/ArticleUpdater/ArticleUpdaterService";
 import { refreshPage } from "@core-ui/ContextServices/RefreshPageContext";
+import OnBranchUpdateCaller from "@ext/git/actions/Branch/BranchUpdaterService/model/OnBranchUpdateCaller";
 import BranchActions from "@ext/git/actions/Branch/components/BranchActions";
 import { useEffect, useState } from "react";
 import SpinnerLoader from "../../../../../components/Atoms/SpinnerLoader";
 import StatusBarElement from "../../../../../components/Layouts/StatusBar/StatusBarElement";
-import { useRouter } from "../../../../../logic/Api/useRouter";
 import ApiUrlCreatorService from "../../../../../ui-logic/ContextServices/ApiUrlCreator";
-import CatalogPropsService from "../../../../../ui-logic/ContextServices/CatalogProps";
 import useLocalize from "../../../../localization/useLocalize";
 import useIsReview from "../../../../storage/logic/utils/useIsReview";
-import BranchUpdaterService from "../logic/BranchUpdaterService";
+import BranchUpdaterService from "../BranchUpdaterService/logic/BranchUpdaterService";
 
 const Branch = () => {
-	const router = useRouter();
 	const isReview = useIsReview();
-	const catalogProps = CatalogPropsService.value;
 	const apiUrlCreator = ApiUrlCreatorService.value;
 
-	const [branchName, setBranchName] = useState<string>("");
-
-	const onUpdateBranch = (branch: string) => {
-		setBranchName(branch);
-		if (getExecutingEnvironment() !== "next") refreshPage();
-	};
+	const [branchName, setBranchName] = useState<string>(null);
 
 	useEffect(() => {
-		BranchUpdaterService.bindOnUpdateBranch(onUpdateBranch);
-		BranchUpdaterService.updateBranch(apiUrlCreator);
+		const onUpdateBranch = (branch: string) => {
+			setBranchName(branch);
+			if (getExecutingEnvironment() !== "next") refreshPage();
+		};
+
+		BranchUpdaterService.addListener(onUpdateBranch);
+		BranchUpdaterService.updateBranch(apiUrlCreator, OnBranchUpdateCaller.Init);
+
+		return () => BranchUpdaterService.removeListener(onUpdateBranch);
 	}, []);
 
 	return (
@@ -40,7 +39,6 @@ const Branch = () => {
 					</StatusBarElement>
 				}
 				onNewBranch={async () => {
-					router.pushPath(catalogProps.name);
 					await BranchUpdaterService.updateBranch(apiUrlCreator);
 					await ArticleUpdaterService.update(apiUrlCreator);
 				}}

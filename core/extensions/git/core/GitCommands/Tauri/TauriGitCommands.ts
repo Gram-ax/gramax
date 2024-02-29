@@ -88,6 +88,11 @@ class TauriGitCommands implements GitCommandsModel {
 		return new GitBranch(data);
 	}
 
+	async getCurrentBranchName(): Promise<string> {
+		const data = await git.branchInfo({ repoPath: this._repoPath });
+		return data.name;
+	}
+
 	async getAllBranches(): Promise<GitBranch[]> {
 		const data = await git.getAllBranches({ repoPath: this._repoPath });
 		return data
@@ -101,6 +106,11 @@ class TauriGitCommands implements GitCommandsModel {
 	async getBranch(name: string): Promise<GitBranch> {
 		const data = await git.branchInfo({ repoPath: this._repoPath, name });
 		return new GitBranch(data);
+	}
+
+	async getCommitHash(ref: string): Promise<GitVersion> {
+		const data = await git.branchInfo({ repoPath: this._repoPath, name: ref });
+		return new GitVersion(data.lastCommitOid);
 	}
 
 	deleteBranch(name: string, remote?: boolean, data?: GitSourceData): Promise<void> {

@@ -1,103 +1,76 @@
-import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
+import ButtonLink from "@components/Molecules/ButtonLink";
 import styled from "@emotion/styled";
-import { TitledLink } from "../../extensions/navigation/NavigationLinks";
+import { TitledLink } from "@ext/navigation/NavigationLinks";
+import { ReactNode, Fragment } from "react";
 import Divider from "../Atoms/Divider";
-import Icon from "../Atoms/Icon";
 import Anchor from "../controls/Anchor";
 
+interface RenderTitledLinks {
+	links: TitledLink[];
+	isCatalog?: boolean;
+	isChildren?: boolean;
+}
+
 const RenderTitledLink = ({ link }: { link: TitledLink }): JSX.Element => {
-	const Item = (
-		<>
-			<Icon code={link.icon} prefix={link.iconPrefix as any} faFw={true} />
-			<span>
-				{link.title}
-				{link.childrens ? <RenderTitledLinks links={link.childrens} isChildren={true} /> : null}
-			</span>
-		</>
-	);
 	return (
-		<Anchor href={link.url} target={link.target} data-qa="qa-clickable">
-			{Item}
+		<Anchor className="layout_link" href={link.url} target={link.target} data-qa="qa-clickable">
+			<ButtonLink iconCode={link.icon} iconPrefix={link.iconPrefix as any} text={link.title} />
+			{link.childrens && <RenderTitledLinks links={link.childrens} isChildren={true} />}
 		</Anchor>
 	);
 };
 
-const RenderTitledLinks = ({
-	links,
-	isCatalog,
-	isChildren,
-}: {
-	links: TitledLink[];
-	isCatalog?: boolean;
-	isChildren?: boolean;
-}): JSX.Element => {
-	if (isChildren)
-		return (
-			<>
-				{links.map((link, idx) => (
-					<>
-						{idx != 0 ? "/" : ""}
-						<RenderTitledLink link={link} />
-					</>
-				))}
-			</>
-		);
+const RenderTitledLinks = ({ links, isCatalog, isChildren }: RenderTitledLinks): ReactNode => {
+	if (isChildren) {
+		return links.map((link, idx) => (
+			<Fragment key={idx}>
+				{idx != 0 ? "/" : ""}
+				<RenderTitledLink link={link} />
+			</Fragment>
+		));
+	}
 
-	return (
-		<>
-			{links.map((link, key) =>
-				!Object.keys(link).length ? (
-					<Divider key={key} className="divider" />
-				) : (
-					<li
-						key={key}
-						onClick={link.onClick}
-						data-qa={`${isCatalog ? "catalog" : "article"}-${link.icon}-button`}
-					>
-						<RenderTitledLink link={link} />
-					</li>
-				),
-			)}
-		</>
+	return links.map((link, key) =>
+		!Object.keys(link).length ? (
+			<Divider key={key} className="divider" />
+		) : (
+			<li key={key} onClick={link.onClick} data-qa={`${isCatalog ? "catalog" : "article"}-${link.icon}-button`}>
+				<RenderTitledLink link={link} />
+			</li>
+		),
 	);
 };
 
-export const Links = styled(
-	({
-		articleLinks = [],
-		articleChildren,
-		catalogLinks = [],
-		catalogChildren,
-		className,
-	}: {
-		articleLinks?: TitledLink[];
-		catalogLinks?: TitledLink[];
-		articleChildren?: JSX.Element;
-		catalogChildren?: JSX.Element;
-		className?: string;
-	}) => {
-		const isLogged = PageDataContextService.value.isLogged;
-		return (
+const Links = (props: {
+	articleLinks?: TitledLink[];
+	catalogLinks?: TitledLink[];
+	articleChildren?: JSX.Element;
+	catalogChildren?: JSX.Element;
+	className?: string;
+}) => {
+	const { articleLinks = [], articleChildren, catalogLinks = [], catalogChildren, className } = props;
+	return (
+		<ul className={className}>
+			{articleLinks?.length || articleChildren ? <Divider /> : null}
 			<ul className={className}>
-				<Divider />
-				<ul className={className}>
-					<RenderTitledLinks isCatalog={false} links={articleLinks} />
-					{articleChildren}
-				</ul>
-				{isLogged && (
-					<>
-						<Divider />
-						<ul className={className}>
-							<RenderTitledLinks isCatalog={true} links={catalogLinks} />
-							{catalogChildren}
-						</ul>
-					</>
-				)}
+				<RenderTitledLinks isCatalog={false} links={articleLinks} />
+				{articleChildren}
 			</ul>
-		);
-	},
-)`
+			{catalogLinks?.length || catalogChildren ? <Divider /> : null}
+			<ul className={className}>
+				<RenderTitledLinks isCatalog={true} links={catalogLinks} />
+				{catalogChildren}
+			</ul>
+		</ul>
+	);
+};
+
+export default styled(Links)`
 	margin-left: -20px !important;
+
+	.layout_link {
+		display: inline-flex;
+	}
 
 	a:hover {
 		color: var(--color-primary);
@@ -121,11 +94,10 @@ export const Links = styled(
 		color: var(--color-primary);
 	}
 
-	> li,
+	> ul > li,
 	.divider {
-		line-height: 1.2em !important;
-		margin-bottom: 0.9rem !important;
-		padding-left: 1.25rem;
+		line-height: 1.2em;
+		margin-bottom: 0.9rem;
 	}
 
 	.fa-fw {

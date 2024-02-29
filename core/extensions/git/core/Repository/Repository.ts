@@ -6,7 +6,6 @@ import GitErrorCode from "@ext/git/core/GitCommands/errors/model/GitErrorCode";
 import GitVersionControl from "@ext/git/core/GitVersionControl/GitVersionControl";
 import SourceData from "@ext/storage/logic/SourceDataProvider/model/SourceData";
 import Storage from "@ext/storage/logic/Storage";
-import StorageСhecker from "@ext/storage/logic/StorageСhecker";
 
 export default class Repository {
 	constructor(
@@ -47,6 +46,7 @@ export default class Repository {
 		onCommit?.();
 		await this.storage.updateSyncCount();
 		await this._push({ recursive, data, onPush });
+		await this._gvc.update();
 	}
 
 	async sync({
@@ -60,12 +60,15 @@ export default class Repository {
 		onPull?: () => void;
 		onPush?: () => void;
 	}): Promise<void> {
-		const oldVersion = await this.gvc.getCurrentVersion();
+		const beforePullVersion = await this.gvc.getCurrentVersion();
 		await this._pull({ recursive, data, onPull });
 		await this.gvc.update();
-		const newVersion = await this.gvc.getCurrentVersion();
-		await this._push({ recursive, data, onPush });
-		await this.gvc.checkChanges(oldVersion, newVersion);
+		const afterPullVersion = await this.gvc.getCurrentVersion();
+
+		const toPush = (await this._storage.getSyncCount()).push;
+
+		await this.gvc.checkChanges(beforePullVersion, afterPullVersion);
+		if (toPush > 0) await this._push({ recursive, data, onPush });
 	}
 
 	async checkout({
@@ -78,26 +81,37 @@ export default class Repository {
 		branch: string;
 		onCheckout?: (branch: string) => void;
 		onPull?: () => void;
+		authServiceUrl: string;
 	}): Promise<void> {
-		const vcBranch = await this._gvc.getBranch(branch);
-		await new StorageСhecker().checkBranch(await this.storage.getData(data), vcBranch);
-
 		const oldVersion = await this._gvc.getCurrentVersion();
 		const oldBranch = await this._gvc.getCurrentBranch();
 		await this._gvc.checkoutToBranch(branch);
+
+		try {
+			await this._pull({ data });
+		} catch (e) {
+			await this._gvc.checkoutToBranch(oldBranch.toString());
+			throw e;
+		}
+
 		onCheckout?.(branch);
+		onPull?.();
+
 		await this._gvc.update();
 		const newVersion = await this._gvc.getCurrentVersion();
 
 		await this._gvc.checkChanges(oldVersion, newVersion);
+	}
 
-		try {
-			await this._pull({ data, onPull });
-		} catch (e) {
-			await this._gvc.checkoutToBranch(oldBranch.toString());
-			onCheckout?.(oldBranch.toString());
-			throw e;
-		}
+	async haveToPull({ data, onFetch }: { data: SourceData; onFetch?: () => void }): Promise<boolean> {
+		let toPull = (await this._storage.getSyncCount()).pull;
+		if (toPull > 0) return true;
+
+		await this.storage.fetch(data);
+		onFetch?.();
+
+		toPull = (await this._storage.getSyncCount()).pull;
+		return toPull > 0;
 	}
 
 	private async _push({

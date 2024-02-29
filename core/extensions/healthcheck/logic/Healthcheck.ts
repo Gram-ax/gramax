@@ -70,7 +70,7 @@ class Healthcheck {
 							this._getRefCatalogError({
 								linkTo: refs[key],
 								editorLink: await this._getErrorLink(catalog, category, apiUrlCreator),
-								title: category.getProp("title") ?? new Path(category.logicPath).name,
+								title: category.getTitle() ?? new Path(category.logicPath).name,
 								logicPath: category.logicPath,
 							}),
 						);
@@ -103,7 +103,7 @@ class Healthcheck {
 				this._getRefCatalogError({
 					linkTo: resource.value,
 					logicPath: item.logicPath,
-					title: item.props.title,
+					title: item.getTitle(),
 					editorLink: await this._getErrorLink(catalog, item, apiUrlCreator),
 				}),
 			);
@@ -114,7 +114,7 @@ class Healthcheck {
 					this._getRefCatalogError({
 						linkTo: resource.value,
 						logicPath: item.logicPath,
-						title: item.props.title,
+						title: item.getTitle(),
 						editorLink: await this._getErrorLink(catalog, item, apiUrlCreator),
 					}),
 				);
@@ -125,7 +125,7 @@ class Healthcheck {
 						this._getRefCatalogError({
 							linkTo: resource.value,
 							logicPath: item.logicPath,
-							title: item.props.title,
+							title: item.getTitle(),
 							editorLink: await this._getErrorLink(catalog, item, apiUrlCreator),
 						}),
 					);
@@ -135,7 +135,7 @@ class Healthcheck {
 						this._getRefCatalogError({
 							linkTo: resource.value,
 							logicPath: item.logicPath,
-							title: item.props.title,
+							title: item.getTitle(),
 							editorLink: await this._getErrorLink(catalog, item, apiUrlCreator),
 						}),
 					);

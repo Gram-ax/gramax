@@ -8,75 +8,72 @@ import { TocItem } from "../logic/createTocItems";
 const SCROLLSPY_OFFSET = 50;
 type Pair = { hEl: HTMLElement; aEl: HTMLElement };
 
-const Scrollspy = forwardRef(
-	(
-		{
-			children,
-			className,
-			activeClassName,
-			activeClassEl,
-		}: {
-			children: JSX.Element;
-			className: string;
-			activeClassEl: (e: HTMLElement) => HTMLElement;
-			activeClassName: string;
-		},
-		articleElementRef: MutableRefObject<HTMLDivElement>,
-	) => {
-		const navRef = useRef(null);
-		const items = ArticlePropsService.value.tocItems;
-		useEffect(() => {
-			const el = navRef.current as HTMLElement;
-			const scrollEl = articleElementRef.current;
-			if (!scrollEl) return;
+interface ScrollspyProps {
+	children: JSX.Element;
+	className: string;
+	activeClassEl: (e: HTMLElement) => HTMLElement;
+	activeClassName: string;
+}
 
-			let pairs: Pair[] = null;
-			function refreshPairs() {
-				pairs = Array.from(el.querySelectorAll("a[href]")).map((x) => ({
-					hEl: document.getElementById(x.attributes["href"].value.substring(1)),
-					aEl: x as HTMLElement,
-				}));
-			}
+const Scrollspy = forwardRef((props: ScrollspyProps, articleElementRef: MutableRefObject<HTMLDivElement>) => {
+	const { children, className, activeClassName, activeClassEl } = props;
+	const navRef = useRef(null);
+	const items = ArticlePropsService.value.tocItems;
+	useEffect(() => {
+		const el = navRef.current as HTMLElement;
+		const scrollEl = articleElementRef.current;
+		if (!scrollEl) return;
 
-			let prevAEl: HTMLElement = null;
+		let pairs: Pair[] = null;
+		function refreshPairs() {
+			pairs = Array.from(el.querySelectorAll("a[href]")).map((x) => ({
+				hEl: document.getElementById(x.attributes["href"].value.substring(1)),
+				aEl: x as HTMLElement,
+			}));
+		}
 
-			function onScroll() {
-				if (!pairs || !pairs[0].hEl || !pairs[0]?.hEl.parentNode || !pairs[0]?.hEl.offsetTop) refreshPairs();
-				// если элементы размонтировались (сменилась статья), тогда надо заново прочитать пары
-				// почему-то после перехода по анкорной ссылке (href=#XXX) все DOM-элементы в pairs размонтируются
+		let prevAEl: HTMLElement = null;
 
-				const y = scrollEl.scrollTop + SCROLLSPY_OFFSET;
-				let aEl = null as HTMLElement;
+		function onScroll() {
+			if (!pairs || !pairs[0].hEl || !pairs[0]?.hEl.parentNode || !pairs[0]?.hEl.offsetTop) refreshPairs();
+			// если элементы размонтировались (сменилась статья), тогда надо заново прочитать пары
+			// почему-то после перехода по анкорной ссылке (href=#XXX) все DOM-элементы в pairs размонтируются
 
-				if (Math.ceil(scrollEl.scrollTop + scrollEl.clientHeight) >= scrollEl.scrollHeight)
-					aEl = pairs[pairs.length - 1].aEl;
-				else for (let i = 0; i < pairs.length && pairs[i].hEl?.offsetTop < y; aEl = pairs[i].aEl, i++);
+			const y = scrollEl.scrollTop + SCROLLSPY_OFFSET;
+			let aEl = null as HTMLElement;
 
-				if (aEl != prevAEl) {
-					prevAEl && activeClassEl(prevAEl)?.classList.remove(activeClassName);
-					aEl && activeClassEl(aEl)?.classList.add(activeClassName);
-					prevAEl = aEl;
+			if (Math.ceil(scrollEl.scrollTop + scrollEl.clientHeight) >= scrollEl.scrollHeight)
+				aEl = pairs[pairs.length - 1].aEl;
+			else for (let i = 0; i < pairs.length && pairs[i].hEl?.offsetTop < y; aEl = pairs[i].aEl, i++);
+
+			if (aEl != prevAEl) {
+				if (aEl) {
+					aEl.parentNode.parentNode.childNodes.forEach((node: HTMLElement) => {
+						if (node.classList) node.classList.remove(activeClassName);
+					});
+					activeClassEl(aEl)?.classList.add(activeClassName);
 				}
+				prevAEl = aEl;
 			}
+		}
 
-			scrollEl.addEventListener("scroll", onScroll);
-			return () => {
-				pairs = null;
-				scrollEl.removeEventListener("scroll", onScroll);
-			};
-		}, [items]);
+		scrollEl.addEventListener("scroll", onScroll);
+		return () => {
+			pairs = null;
+			scrollEl.removeEventListener("scroll", onScroll);
+		};
+	}, [items]);
 
-		return (
-			<div className={className} ref={navRef}>
-				{children}
-			</div>
-		);
-	},
-);
+	return (
+		<div className={className} ref={navRef}>
+			{children}
+		</div>
+	);
+});
 
 const Tree = ({ items, level }: { items: TocItem[]; level: number }) => {
 	return (
-		<>
+		<ul style={{ margin: "0.7em 0 0 0" }}>
 			{items.map((x, i) => (
 				<li key={i}>
 					{!x.items?.length ? (
@@ -91,17 +88,19 @@ const Tree = ({ items, level }: { items: TocItem[]; level: number }) => {
 					)}
 				</li>
 			))}
-		</>
+		</ul>
 	);
 };
 
 const CategoryTree = ({ item, level }: { item: TocItem; level: number }) => {
 	// const [isExpanded, setExpanded] = useState(true);
+
+	if (!item.title) return null;
+
 	return (
 		<ul>
-			{item.title ? (
-				<li className="expand">
-					{/* <div className={`lvl-${level}`}>
+			<li className="expand">
+				{/* <div className={`lvl-${level}`}>
 						<Icon
 							onClick={() => {
 								setExpanded(!isExpanded);
@@ -112,11 +111,10 @@ const CategoryTree = ({ item, level }: { item: TocItem; level: number }) => {
 							style={{ fontWeight: 300, verticalAlign: "baseline" }}
 						/>
 					</div> */}
-					<a className={`lvl-${level}`} href={item.url} data-qa={`article-navigation-level-${level}-link`}>
-						{item.title}
-					</a>
-				</li>
-			) : null}
+				<a className={`lvl-${level}`} href={item.url} data-qa={`article-navigation-level-${level}-link`}>
+					{item.title}
+				</a>
+			</li>
 			{/* {isExpanded ? */} <Tree items={item.items} level={item.title ? level + 1 : level} /> {/* : null} */}
 		</ul>
 	);
@@ -125,7 +123,10 @@ const CategoryTree = ({ item, level }: { item: TocItem; level: number }) => {
 const TableOfContents = styled(({ className }: { className?: string }) => {
 	const items = ArticlePropsService.tocItems;
 	const articleElement = ArticleRefService.value;
-	return !items.length ? null : (
+
+	if (!items.length) return null;
+
+	return (
 		<Scrollspy
 			ref={articleElement}
 			className={className}
@@ -141,9 +142,7 @@ const TableOfContents = styled(({ className }: { className?: string }) => {
 				>
 					{useLocalize("inArticle")}
 				</div>
-				<ul>
-					<Tree items={items} level={0} />
-				</ul>
+				<Tree items={items} level={0} />
 			</>
 		</Scrollspy>
 	);
@@ -160,6 +159,13 @@ const TableOfContents = styled(({ className }: { className?: string }) => {
 
 	ul {
 		margin-left: -20px !important;
+	}
+
+	li > a {
+		width: 100%;
+		overflow: hidden;
+		white-space: nowrap;
+		text-overflow: ellipsis;
 	}
 
 	.active a {

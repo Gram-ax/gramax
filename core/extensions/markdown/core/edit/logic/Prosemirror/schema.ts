@@ -22,6 +22,7 @@ import * as listSchema from "@ext/markdown/elements/list/edit/models/listSchema"
 import * as blockMd from "@ext/markdown/elements/md/model/blockMdSchema";
 import inlineMd_component from "@ext/markdown/elements/md/model/inlineMdSchema";
 import note from "@ext/markdown/elements/note/edit/model/noteSchema";
+import openapi from "@ext/markdown/elements/openApi/edit/models/openApiSchema";
 import paragraph from "@ext/markdown/elements/paragraph/editor/model/paragraphSchema";
 import style_wrapper from "@ext/markdown/elements/styleWrapper/model/styleWrapperSchema";
 import * as table_simple from "@ext/markdown/elements/table/edit/model/simpleTableSchema";
@@ -45,6 +46,7 @@ export const schema = new Schema({
 		...table_simple,
 		...listSchema,
 
+		openapi,
 		diagrams,
 		mermaid,
 		"plant-uml": plantUml,

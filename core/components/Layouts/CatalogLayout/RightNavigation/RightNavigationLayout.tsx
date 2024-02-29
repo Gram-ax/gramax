@@ -1,8 +1,8 @@
 import { cssMedia } from "@core-ui/utils/cssUtils";
 import styled from "@emotion/styled";
 import { useMediaQuery } from "@mui/material";
-import { ItemLink } from "../../../../extensions/navigation/NavigationLinks";
-import RightNavigation from "../../../ArticlePage/RightNavigation";
+import { ItemLink } from "@ext/navigation/NavigationLinks";
+import RightNavigation from "./RightNavigation";
 
 const RightNavigationLayout = styled(({ itemLinks, className }: { itemLinks: ItemLink[]; className?: string }) => {
 	return (

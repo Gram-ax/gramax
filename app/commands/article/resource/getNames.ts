@@ -14,7 +14,8 @@ const getNames: Command<{ catalogName: string; articlePath: Path; ctx: Context }
 	async do({ catalogName, articlePath, ctx }) {
 		const { lib, parser, parserContextFactory } = this._app;
 		const catalog = await lib.getCatalog(catalogName);
-		const article = catalog.findItemByItemPath(articlePath) as Article;
+		const article = catalog.findItemByItemPath<Article>(articlePath);
+		if (!article) return [];
 		await parseContent(article, catalog, ctx, parser, parserContextFactory);
 		return article.parsedContent.resourceManager.resources.map((r) => r.value);
 	},

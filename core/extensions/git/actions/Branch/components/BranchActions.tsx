@@ -1,10 +1,10 @@
 import Button from "@components/Atoms/Button/Button";
+import Input from "@components/Atoms/Input";
 import SpinnerLoader from "@components/Atoms/SpinnerLoader";
 import FormStyle from "@components/Form/FormStyle";
-import Input from "@components/Labels/Input";
 import ModalLayout from "@components/Layouts/Modal";
 import ModalLayoutLight from "@components/Layouts/ModalLayoutLight";
-import { ListItem, ButtonItem } from "@components/List/Item";
+import { ButtonItem, ListItem } from "@components/List/Item";
 import ListLayout from "@components/List/ListLayout";
 import FetchService from "@core-ui/ApiServices/FetchService";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
@@ -13,6 +13,8 @@ import IsReadOnlyHOC from "@core-ui/HigherOrderComponent/IsReadOnlyHOC";
 import AddNewBranchListItem from "@ext/git/actions/Branch/components/AddNewBranchListItem";
 import BranchSideBar from "@ext/git/actions/Branch/components/BranchSideBar";
 import MergeBranches from "@ext/git/actions/Branch/components/MergeBranches";
+import getNewBranchNameErrorLocalization from "@ext/git/actions/Branch/components/logic/getNewBranchNameErrorLocalization";
+import validateBranchError from "@ext/git/actions/Branch/components/logic/validateBranchError";
 import GitBranchData from "@ext/git/core/GitBranch/model/GitBranchData";
 import useLocalize from "@ext/localization/useLocalize";
 import { useEffect, useRef, useState } from "react";
@@ -20,7 +22,7 @@ import { useEffect, useRef, useState } from "react";
 interface BranchActionsProps {
 	currentBranch: string;
 	trigger: JSX.Element;
-	onNewBranch?: (branchName: string) => void;
+	onNewBranch?: () => void;
 	onStopMerge?: (isError: boolean) => void;
 }
 
@@ -45,13 +47,21 @@ const BranchActions = (props: BranchActionsProps) => {
 
 	const [newBranches, setNewBranches] = useState<GitBranchData[]>([]);
 
-	const [brancTohMergeInTo, setBrancTohMergeInTo] = useState<string>(null);
+	const [branchToMergeInTo, setBranchToMergeInTo] = useState<string>(null);
 	const [deleteAfterMerge, setDeleteAfterMerge] = useState<boolean>(null);
 	const [canMerge, setCanMerge] = useState<boolean>(null);
 	const [isLoadingData, setIsLoadingData] = useState(false);
 
+	const [newBranchValidationError, setNewBranchValidationError] = useState<string>("");
+
 	const canInitNewBranch =
-		isInitNewBranch && !isNewBranch && initNewBranchName && !isInitNewBranchNameExist && !apiProcess;
+		isInitNewBranch &&
+		!isNewBranch &&
+		initNewBranchName &&
+		!isInitNewBranchNameExist &&
+		!apiProcess &&
+		!newBranchValidationError;
+
 	const canSwitchBranch =
 		!isInitNewBranch && displayedBranch && !isNewBranch && currentBranch !== displayedBranch && !apiProcess;
 
@@ -67,16 +77,25 @@ const BranchActions = (props: BranchActionsProps) => {
 		setIsLoadingData(false);
 	};
 
+	const validateBranchName = (value: string): string => {
+		const branchExists = [currentBranch, ...branches.map((otherBranch) => otherBranch.name)];
+		const errorResult = validateBranchError(value, branchExists);
+		const str = getNewBranchNameErrorLocalization(errorResult, lang);
+
+		return str;
+	};
+
 	const switchBranch = async () => {
 		if (!displayedBranch) return;
 		const newBranchUrl = apiUrlCreator.getVersionControlCheckoutBranchUrl(displayedBranch);
 		setApiProcess(true);
 		const response = await FetchService.fetch(newBranchUrl);
 		if (!response.ok) {
+			setIsOpen(false);
 			setApiProcess(false);
 			return;
 		}
-		onNewBranch(displayedBranch);
+		onNewBranch();
 		setIsNewBranch(true);
 		setIsOpen(false);
 		setApiProcess(false);
@@ -90,14 +109,14 @@ const BranchActions = (props: BranchActionsProps) => {
 			setApiProcess(false);
 			return;
 		}
-		onNewBranch(initNewBranchName);
+		onNewBranch();
 		setIsNewBranch(true);
 		setIsOpen(false);
 		setApiProcess(false);
 	};
 
 	const mergeBranches = async () => {
-		const mergeIntoUrl = apiUrlCreator.mergeInto(brancTohMergeInTo, deleteAfterMerge);
+		const mergeIntoUrl = apiUrlCreator.mergeInto(branchToMergeInTo, deleteAfterMerge);
 		setApiProcess(true);
 		const res = await FetchService.fetch(mergeIntoUrl);
 		if (!res.ok) {
@@ -171,86 +190,116 @@ const BranchActions = (props: BranchActionsProps) => {
 		}),
 	];
 
-	return (
-		<ModalLayout
-			trigger={trigger}
-			isOpen={isOpen}
-			onOpen={() => {
-				setIsOpen(true);
-				void getNewBranches();
-			}}
-			onClose={() => {
-				setIsInitNewBranch(false);
-				setDisplayedBranch("");
-				setIsNewBranch(false);
-				setNewBranches([]);
-				setApiProcess(false);
-				setIsOpen(false);
-			}}
-			onCmdEnter={onCmdEnter}
-			setGlobasStyles={true}
-		>
-			<ModalLayoutLight>
-				<FormStyle>
-					{apiProcess ? (
+	const modalOnCloseHandler = () => {
+		setIsInitNewBranch(false);
+		setDisplayedBranch("");
+		setIsNewBranch(false);
+		setNewBranches([]);
+		setApiProcess(false);
+		setIsOpen(false);
+		setInitNewBranchName("");
+		setNewBranchValidationError(null);
+	};
+
+	const modalOnOpenHandler = () => {
+		setIsOpen(true);
+		void getNewBranches();
+	};
+
+	if (apiProcess) {
+		return (
+			<ModalLayout
+				trigger={trigger}
+				isOpen={isOpen}
+				onOpen={modalOnOpenHandler}
+				onClose={modalOnCloseHandler}
+				onCmdEnter={onCmdEnter}
+				setGlobalsStyles
+			>
+				<ModalLayoutLight>
+					<FormStyle>
 						<>
 							<legend>{useLocalize("loading2", lang)}</legend>
 							<SpinnerLoader fullScreen />
 						</>
-					) : (
-						<>
-							<legend>{useLocalize("changeBranch", lang)}</legend>
-							<div className="form-group field field-string">
-								<ListLayout
-									isLoadingData={isLoadingData}
-									selectAllOnFocus={true}
-									onSearchClick={() => {
-										setIsInitNewBranch(false);
-										setDisplayedBranch("");
+					</FormStyle>
+				</ModalLayoutLight>
+			</ModalLayout>
+		);
+	}
+
+	return (
+		<ModalLayout
+			trigger={trigger}
+			isOpen={isOpen}
+			onOpen={modalOnOpenHandler}
+			onClose={modalOnCloseHandler}
+			onCmdEnter={onCmdEnter}
+			setGlobalsStyles
+		>
+			<ModalLayoutLight>
+				<FormStyle>
+					<>
+						<legend>{useLocalize("changeBranch", lang)}</legend>
+						<div className="form-group field field-string">
+							<ListLayout
+								openByDefault
+								selectAllOnFocus
+								isLoadingData={isLoadingData}
+								onSearchChange={() => {
+									setIsInitNewBranch(false);
+									setDisplayedBranch("");
+								}}
+								onSearchClick={() => {
+									if (isInitNewBranch) setIsInitNewBranch(false);
+								}}
+								item={isInitNewBranch ? "Добавить новую ветку" : undefined}
+								buttons={addNewBranchListItem}
+								items={branchListItems}
+								onItemClick={(elem) => {
+									setDisplayedBranch(elem ?? currentBranch);
+								}}
+								placeholder={useLocalize("findBranch", lang)}
+							/>
+						</div>
+						{isInitNewBranch && (
+							<div className="init-new-branch-input form-group">
+								<Input
+									isCode
+									errorText={newBranchValidationError}
+									type="text"
+									ref={initNewBranchInputRef}
+									style={{ pointerEvents: isNewBranch ? "none" : "auto" }}
+									placeholder={useLocalize("enterBranchName", lang)}
+									onChange={(e) => {
+										const validateBranchNameValue = validateBranchName(e.currentTarget.value);
+										setNewBranchValidationError(validateBranchNameValue);
+										setInitNewBranchName(e.currentTarget.value);
 									}}
-									openByDefault={true}
-									buttons={addNewBranchListItem}
-									items={branchListItems}
-									onItemClick={(elem) => {
-										setDisplayedBranch(elem ?? currentBranch);
-									}}
-									placeholder={useLocalize("findBranch", lang)}
 								/>
 							</div>
-							{isInitNewBranch && (
-								<div className="init-new-branch-input form-group">
-									<Input
-										ref={initNewBranchInputRef}
-										style={isNewBranch ? { pointerEvents: "none" } : null}
-										placeholder={useLocalize("enterBranchName", lang)}
-										onChange={(e) => setInitNewBranchName(e.currentTarget.value)}
-									/>
-								</div>
-							)}
-							<div className="buttons">
-								{isInitNewBranch ? (
-									<Button disabled={!canInitNewBranch} onClick={initNewBranch}>
-										{useLocalize("add", lang)}
-									</Button>
-								) : (
-									<Button disabled={!canSwitchBranch} onClick={switchBranch}>
-										{useLocalize("switch", lang)}
-									</Button>
-								)}
-							</div>
-							<IsReadOnlyHOC>
-								<MergeBranches
-									onClick={mergeBranches}
-									onCanMergeChange={(value) => setCanMerge(value)}
-									onBrancTohMergeInToChange={(value) => setBrancTohMergeInTo(value)}
-									onDeleteAfterMergeChange={(value) => setDeleteAfterMerge(value)}
-									currentBranch={currentBranch}
-									isLoadingData={isLoadingData}
-									branches={branchListItems}
-								/>
-							</IsReadOnlyHOC>
-						</>
-					)}
+						)}
+						<div className="buttons">
+							<Button
+								disabled={isInitNewBranch ? !canInitNewBranch : !canSwitchBranch}
+								onClick={isInitNewBranch ? initNewBranch : switchBranch}
+							>
+								{useLocalize(isInitNewBranch ? "add" : "switch", lang)}
+							</Button>
+						</div>
+
+						<IsReadOnlyHOC>
+							<MergeBranches
+								onClick={mergeBranches}
+								onCanMergeChange={(value) => setCanMerge(value)}
+								onBranchToMergeInToChange={(value) => setBranchToMergeInTo(value)}
+								onDeleteAfterMergeChange={(value) => setDeleteAfterMerge(value)}
+								currentBranch={currentBranch}
+								isLoadingData={isLoadingData}
+								branches={branchListItems}
+							/>
+						</IsReadOnlyHOC>
+					</>
 				</FormStyle>
 			</ModalLayoutLight>
 		</ModalLayout>

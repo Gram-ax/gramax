@@ -2,13 +2,14 @@ import { GitVersion } from "@ext/git/core/model/GitVersion";
 import BranchGitMergeConflictResolver from "../../../../../core/extensions/git/core/GitMergeConflictResolver/Branch/BranchGitMergeConflictResolver";
 import { AuthorizeMiddleware } from "../../../../../core/logic/Api/middleware/AuthorizeMiddleware";
 import { Command, ResponseKind } from "../../../../types/Command";
+import ReloadConfirmMiddleware from "@core/Api/middleware/ReloadConfirmMiddleware";
 
 const abort: Command<{ theirsBranch: string; catalogName: string; headBeforeMerge?: string }, void> = Command.create({
 	path: "versionControl/branch/mergeConflict/abort",
 
 	kind: ResponseKind.none,
 
-	middlewares: [new AuthorizeMiddleware()],
+	middlewares: [new AuthorizeMiddleware(), new ReloadConfirmMiddleware()],
 
 	async do({ theirsBranch, catalogName, headBeforeMerge }) {
 		const { lib } = this._app;

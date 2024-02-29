@@ -60,9 +60,12 @@ pub fn build_main_window<R: Runtime>(app: &AppHandle<R>) -> Result<Window<R>> {
   #[cfg(target_os = "macos")]
   let window = {
     let downloads_path = app.path().download_dir().unwrap_or_default();
-    window.on_download_started(move |_, path| {
-      *path = downloads_path.join(&path);
-      true
+    window.on_download(move |_, ev| match ev {
+      window::DownloadEvent::Requested { url: _, destination } => {
+        *destination = downloads_path.join(&destination);
+        true
+      }
+      _ => true,
     })
   };
 

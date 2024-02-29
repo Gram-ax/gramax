@@ -11,6 +11,7 @@ import Storage from "./Storage";
 
 export default class StorageProvider {
 	private _progressData: Map<string, Progress>;
+
 	constructor(private _conf: GitCommandsConfig) {
 		this._progressData = new Map();
 	}

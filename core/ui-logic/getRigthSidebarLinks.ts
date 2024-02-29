@@ -1,9 +1,7 @@
 import { getExecutingEnvironment } from "@app/resolveModule";
-import { feedbackLink } from "../components/libs/utils";
+import { feedbackLink } from "@components/libs/utils";
+import { TitledLink } from "@ext/navigation/NavigationLinks";
 import useLocalize from "../extensions/localization/useLocalize";
-import { TitledLink } from "../extensions/navigation/NavigationLinks";
-import SourceType from "../extensions/storage/logic/SourceDataProvider/model/SourceType";
-import getPartSourceDataByStorageName from "../extensions/storage/logic/utils/getPartSourceDataByStorageName";
 import useIsReview from "../extensions/storage/logic/utils/useIsReview";
 import FetchService from "./ApiServices/FetchService";
 import ApiUrlCreatorService from "./ContextServices/ApiUrlCreator";
@@ -14,13 +12,12 @@ import PageDataContextService from "./ContextServices/PageDataContext";
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const divider = {} as TitledLink;
 
-export const getArticleLinks = (isLogged: boolean, IsServerApp: boolean): TitledLink[] => {
+export const useGetArticleLinks = (): TitledLink[] => {
 	const articleProps = ArticlePropsService.value;
 	const catalogProps = CatalogPropsService.value;
 	const apiUrlCreator = ApiUrlCreatorService.value;
-	const isAppReadOnly = PageDataContextService.value.conf.isReadOnly;
-	const neededToBeLogged = (isLogged && isAppReadOnly) || !isAppReadOnly;
-	const { sourceType } = getPartSourceDataByStorageName(catalogProps.sourceName);
+	const pageDataContext = PageDataContextService.value;
+	const { isServerApp, isReadOnly } = pageDataContext.conf;
 	const isReview = useIsReview();
 	const links: TitledLink[] = [];
 
@@ -30,28 +27,13 @@ export const getArticleLinks = (isLogged: boolean, IsServerApp: boolean): Titled
 		links.push({
 			icon: "envelope",
 			title: useLocalize("commentsToArticle"),
-			url: feedbackLink(catalogProps.contactEmail, articleProps.path, catalogProps.repositoryName),
+			url: feedbackLink(catalogProps.contactEmail, articleProps.logicPath, catalogProps.repositoryName),
 		});
 
-	if (neededToBeLogged && !!catalogProps.sourceName && sourceType === SourceType.gitLab && !isReview) {
-		const url = apiUrlCreator.getFileLink(articleProps.ref.path);
-		const isNext = getExecutingEnvironment() == "next";
-		links.push({
-			icon: "pencil-alt",
-			title: useLocalize("editOnGitLab"),
-			url: isNext ? url.toString() : null,
-			onClick: () => {
-				if (isNext) return;
-				void FetchService.fetch(url);
-			},
-			target: "_blank",
-		});
-	}
-
-	if (!IsServerApp && !isAppReadOnly && !catalogProps.readOnly && !isReview && getExecutingEnvironment() == "tauri") {
+	if (!isServerApp && !isReadOnly && !catalogProps.readOnly && !isReview && getExecutingEnvironment() == "tauri") {
 		links.push({
 			icon: "display-code",
-			title: useLocalize("editOnVSCode"),
+			title: useLocalize("editOn") + " VSCode",
 			onClick: () => void FetchService.fetch(apiUrlCreator.getRedirectVScodeUrl()),
 		});
 	}

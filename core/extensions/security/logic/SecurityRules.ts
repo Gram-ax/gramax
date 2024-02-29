@@ -1,18 +1,18 @@
-import CatalogEntry from "@core/FileStructue/Catalog/CatalogEntry";
-import { Article } from "../../../logic/FileStructue/Article/Article";
-import { Catalog } from "../../../logic/FileStructue/Catalog/Catalog";
+import { ItemFilter } from "@core/FileStructue/Catalog/Catalog";
+import { NavRules } from "@ext/navigation/catalog/main/logic/Navigation";
+import Rules from "@ext/rules/Rule";
 import { Item } from "../../../logic/FileStructue/Item/Item";
 import ErrorArticlePresenter from "../../../logic/SitePresenter/ErrorArticlePresenter";
-import { ItemLink, TitledLink } from "../../navigation/NavigationLinks";
 import IPermission from "./Permission/IPermission";
 import Permission from "./Permission/Permission";
 import User from "./User/User";
 
-export default class SecurityRules {
+export default class SecurityRules implements Rules {
 	constructor(private _currentUser: User, private _errorArticlePresenter?: ErrorArticlePresenter) {}
 
-	getFilterRule() {
-		const rule = (article: Article, catalogName: string): boolean => {
+	getItemFilter() {
+		const rule: ItemFilter = (article, catalog) => {
+			const catalogName = catalog.getName();
 			return this._canReadItem(article, catalogName);
 		};
 
@@ -22,25 +22,23 @@ export default class SecurityRules {
 		return rule;
 	}
 
-	getNavCatalogRule() {
-		return (catalog: CatalogEntry): boolean => {
-			return this._canRead(catalog.perms, catalog.getName());
-		};
-	}
+	getNavRules(): NavRules {
+		return {
+			itemRule: (catalog, item, itemLink) => {
+				if (this._isPrivate(item)) itemLink.icon = "unlock";
+				return (
+					this._canRead(item?.neededPermission, catalog.getName()) &&
+					this._canRead(item?.parent?.neededPermission, catalog.getName())
+				);
+			},
 
-	getNavItemRule() {
-		return (catalog: Catalog, item: Item, itemLink: ItemLink): boolean => {
-			if (this._isPrivate(item)) itemLink.icon = "unlock";
-			return (
-				this._canRead(item?.neededPermission, catalog.getName()) &&
-				this._canRead(item?.parent?.neededPermission, catalog.getName())
-			);
-		};
-	}
+			catalogRule: (catalog) => {
+				return this._canRead(catalog.perms, catalog.getName());
+			},
 
-	getNavRelationRule() {
-		return (catalog: Catalog, relatedLinks: TitledLink): boolean => {
-			return this._canRead(new Permission(relatedLinks.private), catalog.getName());
+			relatedLinkRule: (catalog, relatedLinks) => {
+				return this._canRead(new Permission(relatedLinks.private), catalog.getName());
+			},
 		};
 	}
 

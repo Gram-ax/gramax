@@ -23,7 +23,7 @@ import Kbd from "../../../../elements/kbd/render/Kbd";
 import Link from "../../../../elements/link/render/components/Link";
 import Module from "../../../../elements/module/render/Module";
 import Note from "../../../../elements/note/render/component/Note";
-import OpenApi from "../../../../elements/openapi/model/render/OpenApi";
+import OpenApi from "../../../../elements/openApi/render/OpenApi";
 import See from "../../../../elements/see/render/See";
 import Table from "../../../../elements/table/render/component/Table";
 import DbTable from "../../../../elements/tabledb/render/DbTable";

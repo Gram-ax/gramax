@@ -7,7 +7,7 @@ const VersionControlCommentCount = styled(({ count, className }: { count: number
 	return count > 0 ? (
 		<Tooltip content={<span>{useLocalize("numberoOfUnsolvedComments")}</span>}>
 			<div className={className}>
-				<Icon prefix="fad" code="comment-alt" style={{ fontSize: "15px" }} color="var(--color-text-accent)" />
+				<Icon prefix="fad" code="comment-alt" style={{ fontSize: "15px", color: "var(--color-text-accent)" }} />
 				<div className="count">{count}</div>
 			</div>
 		</Tooltip>

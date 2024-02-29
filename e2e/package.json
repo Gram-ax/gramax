@@ -3,19 +3,19 @@
 	"version": "0.0.0",
 	"type": "commonjs",
 	"scripts": {
-		"test": "cucumber-js",
+		"test": "cucumber-js -f junit:junit.web.xml -f progress-bar -t \"not @next-only\"",
+		"test:next": "cucumber-js -f junit:junit.next.xml -f progress-bar -t \"@next or @next-only\"",
 		"dev": "npm --prefix ../target/browser run dev"
 	},
 	"dependencies": {
 		"@cucumber/cucumber": "^9.5.1",
 		"@playwright/test": "^1.28.1",
-		"ts-node": "^10.9.1",
 		"playwright": "^1.40.1"
 	},
 	"devDependencies": {
 		"@babel/preset-env": "^7.19.0",
 		"@babel/preset-typescript": "^7.18.6",
 		"cross-env": "^7.0.3",
-		"typescript": "^5.1.6"
+		"ts-node": "^10.9.2"
 	}
 }

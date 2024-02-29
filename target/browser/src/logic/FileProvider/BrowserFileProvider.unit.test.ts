@@ -1,4 +1,4 @@
-require("fake-indexeddb/auto");
+import "fake-indexeddb/auto";
 
 import Path from "@core/FileProvider/Path/Path";
 import { BrowserFileProvider } from "./BrowserFileProvider";

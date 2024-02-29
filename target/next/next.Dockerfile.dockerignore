@@ -9,3 +9,8 @@ storybook/
 deploy/
 docs/
 e2e/
+./target/tauri/target/
+.ci/
+core/extensions/security/logic/AuthProviders/dropbox.ts
+**/*.cem
+.gitlab-ci.yml

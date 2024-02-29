@@ -297,7 +297,7 @@ samp {
 }
 
 .article blockquote {
-	padding: 10px 20px;
+	padding-left: 1.25rem;
 	margin: 20px 0;
 	font-size: 17.5px;
 	border-left: 5px solid #eee;
@@ -430,14 +430,14 @@ samp {
 .article .article-body a {
 	color: var(--color-link);
 	font-weight: inherit;
-	/* !!! */
+	/* TODO */
 	cursor: text;
 }
 
 .article .article-body a:hover {
 	text-decoration: underline;
 }
-/* !!! */
+/* TODO */
 .article .linkViewMode a {
 	cursor: pointer;
 }
@@ -683,7 +683,7 @@ samp {
 
 .buttonView .button .iconFrame i {
 	margin-top: 2px;
-	align-items: start;
+	align-items: flex-start;
 	justify-content: center;
 	display: flex;
 }

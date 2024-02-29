@@ -1,15 +1,15 @@
 import ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
 import FetchService from "@core-ui/ApiServices/FetchService";
-import { ArticleData } from "@core/SitePresenter/SitePresenter";
+import { ArticlePageData } from "@core/SitePresenter/SitePresenter";
 import { Dispatch, SetStateAction } from "react";
 
 let _flag: boolean;
-let _data: ArticleData;
-let _onUpdate: (data: ArticleData) => void;
+let _data: ArticlePageData;
+let _onUpdate: (data: ArticlePageData) => void;
 let _setIsLoading: Dispatch<SetStateAction<boolean>>;
 
 export default abstract class ArticleUpdaterService {
-	public static bindData(data: ArticleData) {
+	public static bindData(data: ArticlePageData) {
 		_data = data;
 	}
 	public static bindOnUpdate(onUpdate: typeof _onUpdate) {
@@ -35,11 +35,11 @@ export default abstract class ArticleUpdaterService {
 		if (data && data?.articleProps?.ref?.path == _data.articleProps.ref.path) _onUpdate(data);
 	}
 
-	public static setUpdateData(data: ArticleData) {
+	public static setUpdateData(data: ArticlePageData) {
 		_onUpdate?.(data);
 	}
 
-	private static async _getUpdateDate(apiUrlCreator: ApiUrlCreator): Promise<ArticleData> {
+	private static async _getUpdateDate(apiUrlCreator: ApiUrlCreator): Promise<ArticlePageData> {
 		if (!_flag) ArticleUpdaterService.startLoadingAfterFocus();
 		else {
 			const response = await FetchService.fetch(apiUrlCreator.checkLastModifiedArticle());

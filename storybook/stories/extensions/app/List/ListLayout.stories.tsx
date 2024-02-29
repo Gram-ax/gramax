@@ -66,7 +66,7 @@ const branches = [
 	{ element: "experiment/newUIConcept", labelField: "experiment/newUIConcept" },
 ];
 
-export const ListLayout = (props: Partial<typeof ListLayout & { fit: boolean }>) => {
+export const ListLayout = (props) => {
 	const { fit, openByDefault, lazy, withButton, selectAllOnFocus } = props;
 
 	const [itemsFit, setItemsFit] = useState<ListItem[]>(items);

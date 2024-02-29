@@ -1,5 +1,4 @@
 {
-	"typescript.preferences.importModuleSpecifier": "relative",
 	"cucumber.glue": ["steps/**/*.ts"],
 	"cucumber.features": ["features/**/*.feature"]
 }

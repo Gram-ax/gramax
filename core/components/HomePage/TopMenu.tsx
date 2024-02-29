@@ -11,11 +11,10 @@ const TopMenu = styled(({ catalogLinks, className }: { catalogLinks: CatalogLink
 
 	return (
 		<div className={className}>
-			<div className="top-menucontainer" data-qa="home-page-top-menu">
+			<div className="top-menucontainer">
 				<img
 					src={useUrlImage(apiUrlCreator.getLogo(theme))}
 					style={{ width: "5.5rem" }}
-					data-qa="home-page-logo"
 				/>
 				<Actions isHomePage={true} catalogLinks={catalogLinks} />
 			</div>

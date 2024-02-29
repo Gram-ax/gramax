@@ -28,13 +28,16 @@ export function include(context: ParserContext): Schema {
 				});
 			}
 
-			const header = article?.props?.title ? `${gratings} ${article.props.title}\r\n\r\n` : "";
+			const header = article?.getTitle() ? `${gratings} ${article.getTitle()}\r\n\r\n` : "";
 			return new Tag(
 				"Include",
 				{ path: article.ref.path.value },
 				(
 					(article?.parsedContent?.renderTree as Tag) ??
-					((await context.parser.parseRenderableTreeNode(header + article?.content ?? "")) as Tag)
+					((await context.parser.parseRenderableTreeNode(
+						header + article?.content ?? "",
+						context.createContext(article),
+					)) as Tag)
 				).children,
 			);
 		},

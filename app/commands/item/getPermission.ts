@@ -12,6 +12,7 @@ const getPermission: Command<{ catalogName: string; articlePath: Path }, string[
 	async do({ catalogName, articlePath }) {
 		const { lib } = this._app;
 		const catalog = await lib.getCatalog(catalogName);
+		if (!catalog) return [];
 		if (!articlePath) return catalog.getNeededPermission().getValues();
 		const item = catalog.findItemByItemPath(articlePath);
 		if (item) return item.neededPermission.getValues();

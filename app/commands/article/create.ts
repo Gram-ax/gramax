@@ -1,5 +1,6 @@
 import { AuthorizeMiddleware } from "@core/Api/middleware/AuthorizeMiddleware";
 import { DesktopModeMiddleware } from "@core/Api/middleware/DesktopModeMiddleware";
+import ReloadConfirmMiddleware from "@core/Api/middleware/ReloadConfirmMiddleware";
 import Context from "@core/Context/Context";
 import Path from "@core/FileProvider/Path/Path";
 import ResourceUpdater from "@core/Resource/ResourceUpdater";
@@ -11,7 +12,7 @@ const create: Command<{ ctx: Context; catalogName: string; parentPath?: Path }, 
 
 	kind: ResponseKind.plain,
 
-	middlewares: [new AuthorizeMiddleware(), new DesktopModeMiddleware()],
+	middlewares: [new AuthorizeMiddleware(), new DesktopModeMiddleware(), new ReloadConfirmMiddleware()],
 
 	async do({ ctx, catalogName, parentPath }) {
 		const { formatter, lib, parser, parserContextFactory } = this._app;
@@ -27,7 +28,7 @@ const create: Command<{ ctx: Context; catalogName: string; parentPath?: Path }, 
 			parentPath ? parentRef : null,
 		);
 
-		return article.logicPath;
+		return await catalog.getPathname(article);
 	},
 
 	params(ctx: Context, query: { [key: string]: string }) {

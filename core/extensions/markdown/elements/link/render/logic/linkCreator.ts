@@ -1,7 +1,7 @@
 import ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
+import { CATEGORY_ROOT_FILENAME } from "@core/FileStructue/FileStructure";
 import Path from "../../../../../../logic/FileProvider/Path/Path";
 import ParserContext from "../../../../core/Parser/ParserContext/ParserContext";
-import { CATEGORY_ROOT_FILENAME } from "@core/FileStructue/FileStructure";
 
 class LinkCreator {
 	isExternalLink(href: string): boolean {
@@ -9,32 +9,31 @@ class LinkCreator {
 		// вынести?
 	}
 
-	getLink(
+	async getLink(
 		href: string,
 		context: ParserContext,
-	): {
+	): Promise<{
 		href: string;
 		hash: string;
 		resourcePath: Path;
 		isFile?: boolean;
-	} {
+	}> {
 		if (this.isExternalLink(href)) return { href, resourcePath: null, hash: null };
 		if (!href) return { href, resourcePath: null, hash: null };
 
-		const articlePath = context.getArticle().ref.path;
-		const catalogName = context.getCatalog().getName();
-		const basePath = context.getBasePath().value;
-		const articleExtension = articlePath.extension;
-
 		const hashAndPath = this.getHash(href);
 		if (!hashAndPath) return { href, resourcePath: null, hash: null };
+
 		const [, p, hash] = hashAndPath;
-		const docsPath = context.getCatalog().getRootCategoryRef().path.parentDirectoryPath;
+		const catalog = context.getCatalog();
+		const basePath = context.getBasePath().value;
+		const articlePath = context.getArticle().ref.path;
+		const articleExtension = articlePath.extension;
+		const docsPath = catalog.getRootCategoryRef().path.parentDirectoryPath;
+
 		let hrefPath = this.getLinkPath(docsPath, docsPath.subDirectory(articlePath.parentDirectoryPath), p);
-
-		const resourcePath = new Path(p);
-
 		let relativeHrefPath = articlePath.getRelativePath(hrefPath);
+		let resourcePath = new Path(p);
 
 		if (!hrefPath.extension) {
 			const testHrefPath = new Path(hrefPath.value);
@@ -56,12 +55,17 @@ class LinkCreator {
 		let isFile = false;
 		if (hrefPath.extension !== articleExtension) {
 			isFile = true;
-			href = new ApiUrlCreator(basePath, null, null, null, catalogName, articlePath.value)
+			href = new ApiUrlCreator(basePath, null, null, null, catalog.getName(), articlePath.value)
 				.getArticleResource(relativeHrefPath.value)
 				.toString();
 		} else {
-			const link = context.getItemByPath(hrefPath)?.logicPath ?? "";
-			href = link ? link : hrefPath?.stripExtension ?? "";
+			const item = context.getItemByPath(hrefPath);
+			if (!item) href = "";
+			else {
+				const link = await context.getCatalog().getPathname(item);
+				resourcePath = articlePath.getRelativePath(item.ref.path);
+				href = link ? link : hrefPath?.stripExtension ?? "";
+			}
 		}
 
 		return { href, resourcePath, hash, isFile };

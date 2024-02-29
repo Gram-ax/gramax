@@ -20,7 +20,8 @@ struct CloneProgress {
 }
 
 fn with_root_path(path: &Path) -> PathBuf {
-  Path::new(&std::env::var("ROOT_PATH").unwrap_or_default()).join(path)
+  let path = if path.has_root() { path.strip_prefix("/").unwrap() } else { path };
+  Path::new(&std::env::var("ROOT_PATH").expect("missing ROOT_PATH")).join(path)
 }
 
 fn with_creds<C: Creds>(path: &Path, creds: C) -> Result<GitRepository<C>> {
@@ -156,12 +157,8 @@ pub(crate) fn clone<R: Runtime>(
   branch: Option<&str>,
 ) -> Result<()> {
   let mut last_event = SystemTime::now();
-  let cloned_repo = GitRepository::clone(
-    remote_url,
-    with_root_path(repo_path),
-    branch.unwrap_or("master"),
-    creds,
-    |received, total| {
+  let cloned_repo =
+    GitRepository::clone(remote_url, with_root_path(repo_path), branch, creds, |received, total| {
       let now = SystemTime::now();
       let elapsed = now.duration_since(last_event);
       if elapsed.is_err() || elapsed.unwrap().as_secs() > 3 {
@@ -170,8 +167,7 @@ pub(crate) fn clone<R: Runtime>(
       }
 
       true
-    },
-  );
+    });
   if let Err(err) = cloned_repo {
     println!("{:?}", err);
     return Err(err.into());

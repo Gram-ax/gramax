@@ -1,7 +1,7 @@
-import { invoke } from "@tauri-apps/api/primitives";
+import { invoke } from "@tauri-apps/api/core";
 import * as dialog from "@tauri-apps/plugin-dialog";
 
-import Button from "@components/Atoms/Button/Styles/Base";
+import Button from "@components/Atoms/Button/Button";
 import Input from "@components/Atoms/Input";
 import styled from "@emotion/styled";
 import Language, { defaultLanguage } from "@ext/localization/core/model/Language";

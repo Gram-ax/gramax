@@ -3,13 +3,14 @@ import Context from "@core/Context/Context";
 import Path from "@core/FileProvider/Path/Path";
 import ShareLinkHandler from "@ext/catalog/actions/share/logic/ShareLinkHandler";
 import { Command, ResponseKind } from "../../../types/Command";
+import ReloadConfirmMiddleware from "@core/Api/middleware/ReloadConfirmMiddleware";
 
 const getShareLink: Command<{ ctx: Context; catalogName: string; filePath: string }, string> = Command.create({
 	path: "catalog/share/getShareLink",
 
 	kind: ResponseKind.plain,
 
-	middlewares: [new AuthorizeMiddleware()],
+	middlewares: [new AuthorizeMiddleware(), new ReloadConfirmMiddleware()],
 
 	async do({ ctx, catalogName, filePath }) {
 		const { lib, rp } = this._app;
@@ -18,7 +19,7 @@ const getShareLink: Command<{ ctx: Context; catalogName: string; filePath: strin
 		const shareLinkCreator = new ShareLinkHandler();
 		const source = rp.getSourceData(ctx.cookie, await storage.getSourceName());
 		const branch = (await catalog.repo.gvc.getCurrentBranch()).toString();
-		const shareLinkData = await storage.getReviewData(source, branch, new Path(filePath));
+		const shareLinkData = await storage.getShareData(source, branch, new Path(filePath));
 		const ticket = shareLinkCreator.createShareLinkTicket(shareLinkData);
 		return `${ctx.domain}/?share=${ticket}`;
 	},

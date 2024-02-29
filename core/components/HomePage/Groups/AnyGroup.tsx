@@ -9,48 +9,38 @@ import { CatalogLink } from "../../../extensions/navigation/NavigationLinks";
 import Link from "../../Atoms/Link";
 import GroupsName from "./model/GroupsName";
 
-const AnyCard = ({
-	link,
-	group,
-	...props
-}: { link: CatalogLink; group: GroupsName } & HTMLAttributes<HTMLAnchorElement>) => {
+const AnyCard = ({ link, ...props }: { link: CatalogLink } & HTMLAttributes<HTMLAnchorElement>) => {
 	const apiUrlCreator = ApiUrlCreatorService.value;
 	const useImage = resolveModule("useImage");
 	const [isLoading, setIsLoading] = useState<boolean>(false);
 
 	return (
-		<Link {...props} href={Url.from(link)} data-qa={`home-page-to-catalog-page-button`}>
+		<Link
+			{...props}
+			href={Url.from(link)}
+			onClick={(e) => {
+				props.onClick?.(e);
+				setIsLoading(true);
+			}}
+		>
 			<a
-				className={`catalog-background block-elevation-hover-1 ${isLoading ? "loading" : null}`}
-				onClick={(e) => {
-					props.onClick?.(e);
-					setIsLoading(true);
-				}}
+				className={`catalog-background block-elevation-hover-1 background-${link.style} ${
+					isLoading ? "loading" : ""
+				}`}
 			>
 				{isLoading ? (
 					<div className="spinner-loader">
 						<SpinnerLoader height={15} width={15}></SpinnerLoader>
 					</div>
 				) : null}
-				<div
-					className={`catalog`}
-					style={link.brand ? { background: `${link.brand}10` } : null}
-					data-qa={`home-page-${group}-group-catalog`}
-				>
+				<div className="catalog">
 					<div
-						data-qa="home-page-catalog-logo"
 						className="catalog-title-logo"
-						style={{
-							backgroundImage: `url(${useImage(apiUrlCreator.getLogoUrl(link.name))})`,
-						}}
+						style={{ backgroundImage: `url(${useImage(apiUrlCreator.getLogoUrl(link.name))})` }}
 					/>
 					<div title={link.description} className="catalog-texts">
-						<div className="catalog-text-logo" data-qa="home-page-catalog-title">
-							{link.title}
-						</div>
-						<div className="catalog-text" data-qa="home-page-catalog-description">
-							{link.description}
-						</div>
+						<div className="catalog-text-logo">{link.title}</div>
+						<div className="catalog-text">{link.description}</div>
 					</div>
 				</div>
 			</a>
@@ -82,13 +72,11 @@ const AnyCardGroup = ({
 	...props
 }: { group: GroupsName; links: CatalogLink[] } & HTMLAttributes<HTMLAnchorElement>) => {
 	return (
-		<div className={className} data-qa={`home-page-group`}>
-			<div className="group-header" data-qa="home-page-group-header">
-				{useLocalize(group)}
-			</div>
+		<div className={className}>
+			<div className="group-header">{useLocalize(group)}</div>
 			<div className="group-container">
 				{links.map((link, i) => (
-					<AnyCardStyled link={link} group={group} key={i} {...props} />
+					<AnyCardStyled link={link} key={i} {...props} />
 				))}
 			</div>
 		</div>

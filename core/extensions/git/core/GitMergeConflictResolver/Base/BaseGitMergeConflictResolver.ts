@@ -28,14 +28,14 @@ export default class BaseGitMergeConflictResolver {
 
 				if (file.type != FileStatus.conflict) return;
 
-				let exists = true;
+				let existsInHead = true;
 				try {
-					exists = !!(await this._gitVersionControl.showLastCommitContent(file.path));
+					existsInHead = !!(await this._gitVersionControl.showLastCommitContent(file.path));
 				} catch {
-					exists = false;
+					existsInHead = false;
 				}
 
-				entry.type = exists ? FileStatus.delete : FileStatus.new;
+				entry.type = existsInHead ? FileStatus.new : FileStatus.delete;
 				return entry;
 			}),
 		).then((x) => x.filter((x) => x));

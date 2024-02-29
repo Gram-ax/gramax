@@ -31,7 +31,7 @@ const ExportLevNavDragTree = ({ items, closeNavigation }: { items: ItemLink[]; c
 
 	const handleOnDrop = async (newTree: NodeModel<ItemLink>[]) => {
 		setDragged(false);
-		const url = apiUrlCreator.updateCatalogNav(articleProps.path);
+		const url = apiUrlCreator.updateCatalogNav(articleProps.logicPath);
 		const body = JSON.stringify({ old: treeData, new: newTree });
 		const res = await FetchService.fetch<NodeModel<ItemLink>[]>(url, body, MimeTypes.json);
 		if (!res.ok) return;
@@ -152,10 +152,7 @@ const LevNavDragTree = styled(
 												onOpen={() => setIsHover(true)}
 												onClose={() => setIsHover(false)}
 											/>,
-											<CreateArticle
-												key={1}
-												item={thisItem}
-											/>,
+											<CreateArticle key={1} item={thisItem} />,
 										]}
 									/>
 								);

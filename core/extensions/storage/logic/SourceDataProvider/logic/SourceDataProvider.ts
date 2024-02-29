@@ -1,6 +1,6 @@
 import { Encoder } from "../../../../Encoder/Encoder";
 import Cookie from "../../../../cookie/Cookie";
-import getSourceNameByData from "../../utils/getSourceNameByData";
+import getStorageNameByData from "../../utils/getStorageNameByData";
 import SourceData from "../model/SourceData";
 
 export default class SourceDataProvider {
@@ -34,7 +34,7 @@ export default class SourceDataProvider {
 	}
 
 	setData(cookie: Cookie, data: SourceData): string {
-		const storageName = getSourceNameByData(data);
+		const storageName = getStorageNameByData(data);
 		cookie.set(this._getName(storageName), this._encodeData(data));
 		return storageName;
 	}

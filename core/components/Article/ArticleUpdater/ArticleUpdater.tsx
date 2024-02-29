@@ -1,7 +1,7 @@
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import IsEditService from "@core-ui/ContextServices/IsEdit";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
-import { ArticleData } from "@core/SitePresenter/SitePresenter";
+import { ArticlePageData } from "@core/SitePresenter/SitePresenter";
 import { useCallback, useEffect, useState } from "react";
 import ArticleUpdaterService from "./ArticleUpdaterService";
 
@@ -10,15 +10,15 @@ const ArticleUpdater = ({
 	onUpdate,
 	children,
 }: {
-	data: ArticleData;
-	onUpdate: (data: ArticleData) => void;
+	data: ArticlePageData;
+	onUpdate: (data: ArticlePageData) => void;
 	children: JSX.Element;
 }) => {
 	const isEdit = IsEditService.value;
 	const apiUrlCreator = ApiUrlCreatorService.value;
-	const isServerApp = PageDataContextService.value.conf.isServerApp;
+	const isReadOnly = PageDataContextService.value.conf.isReadOnly;
 
-	if (isServerApp) return children;
+	if (isReadOnly) return children;
 
 	const [isLoading, setIsLoading] = useState(false);
 	const updateContent = useCallback(() => {
@@ -26,7 +26,7 @@ const ArticleUpdater = ({
 	}, [apiUrlCreator]);
 
 	useEffect(() => {
-		if (!isEdit && !isServerApp) updateContent();
+		if (!isEdit && !isReadOnly) updateContent();
 	}, [isEdit]);
 
 	useEffect(() => {
@@ -44,7 +44,7 @@ const ArticleUpdater = ({
 		return () => window.removeEventListener("focus", updateContent);
 	}, [updateContent]);
 
-	return <div style={isLoading ? { flex: 1, opacity: 0.6, pointerEvents: "none" } : { flex: 1 }}>{children}</div>;
+	return <div style={isLoading ? { opacity: 0.6, pointerEvents: "none" } : null}>{children}</div>;
 };
 
 export default ArticleUpdater;

@@ -25,7 +25,6 @@ export const CatalogLogo = ({
 			<img
 				ref={ref}
 				src={imageSrc}
-				data-qa="catalog-logo"
 				{...props}
 				onError={() => {
 					if (ref.current) ref.current.style.display = "none";

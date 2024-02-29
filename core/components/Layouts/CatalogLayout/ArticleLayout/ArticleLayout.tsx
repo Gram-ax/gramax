@@ -32,7 +32,7 @@ const ArticleLayout = styled(
 					onMouseLeave={onArticleMouseLeave}
 					onTouchEnd={onArticleMouseEnter}
 				>
-					<div data-qa="article-content" className="article-content">
+					<div className="article-content">
 						{article}
 					</div>
 				</div>
@@ -70,7 +70,7 @@ const ArticleLayout = styled(
 		display: flex;
 		min-width: 0px;
 		max-width: 780px;
-		height: fit-content;
+		height: 100%;
 		min-height: 100%;
 		flex-direction: column;
 	}
@@ -121,7 +121,7 @@ const ArticleLayout = styled(
 		display: flex;
 		min-width: 0px;
 		max-width: 780px;
-		height: fit-content;
+		height: 100%;
 		min-height: 100%;
 		flex-direction: column;
 	}

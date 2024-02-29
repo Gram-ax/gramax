@@ -23,11 +23,13 @@ interface SearchProps extends ConfigProps, HTMLProps<HTMLInputElement> {
 	onChevronClick?: () => void;
 	value: string;
 	icon?: string;
+	errorText?: string;
+	showErrorText?: boolean;
 	tabIndex?: number;
 }
 
 const Search = forwardRef((props: SearchProps, ref: ForwardedRef<SearchElement>) => {
-	const { isOpen, value, icon, disable, tabIndex, isErrorValue, className } = props;
+	const { isOpen, value, icon, disable, tabIndex, errorText, showErrorText, className } = props;
 	const { placeholder, title = useLocalize("searchPlaceholder") } = props;
 	const { onClick, onChevronClick, onSearchChange, setValue, onFocus } = props;
 
@@ -68,7 +70,8 @@ const Search = forwardRef((props: SearchProps, ref: ForwardedRef<SearchElement>)
 						title={title}
 						dataQa={placeholder}
 						tabIndex={tabIndex}
-						isInputInvalid={isErrorValue}
+						showErrorText={showErrorText}
+						errorText={errorText}
 						ref={inputRef}
 						value={value}
 						onChange={onChangeHandler}

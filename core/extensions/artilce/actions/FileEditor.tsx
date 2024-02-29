@@ -13,7 +13,9 @@ import useLocalize from "../../localization/useLocalize";
 
 const FileInput = resolveModule("FileInput");
 
-const FileEditor = ({ trigger }: { trigger: JSX.Element }) => {
+const FileEditor = ({ trigger, shouldRender }: { trigger: JSX.Element; shouldRender?: boolean }) => {
+	if (!shouldRender) return null;
+
 	const [value, setValue] = useState(null);
 	const [isOpen, setIsOpen] = useState(false);
 	const apiUrlCreator = ApiUrlCreatorService.value;
@@ -32,7 +34,7 @@ const FileEditor = ({ trigger }: { trigger: JSX.Element }) => {
 	return (
 		<ModalLayout
 			trigger={trigger}
-			contentWidth="80%"
+			contentWidth="L"
 			isOpen={isOpen}
 			closeOnCmdEnter={false}
 			onOpen={() => {
@@ -55,7 +57,7 @@ const FileEditor = ({ trigger }: { trigger: JSX.Element }) => {
 							<FileInput value={value} language="markdown" onChange={setValue} />
 							<div className="buttons">
 								<Button
-									buttonStyle={ButtonStyle.transparent}
+									buttonStyle={ButtonStyle.underline}
 									onClick={() => {
 										setIsOpen(false);
 									}}

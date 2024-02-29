@@ -3,10 +3,18 @@ import LoadingListItem from "@components/List/LoadingListItem";
 import { SearchElement } from "@components/List/Search";
 import { classNames } from "@components/libs/classNames";
 import styled from "@emotion/styled";
-import { useEffect, useRef, useState, useCallback, useMemo } from "react";
-import { MouseEventHandler, MutableRefObject, HTMLAttributes } from "react";
+import {
+	HTMLAttributes,
+	MouseEventHandler,
+	MutableRefObject,
+	useCallback,
+	useEffect,
+	useMemo,
+	useRef,
+	useState,
+} from "react";
 
-import Item, { ListItem, ItemContent, ButtonItem } from "./Item";
+import Item, { ButtonItem, ItemContent, ListItem } from "./Item";
 
 export type OnItemClick = (
 	value: string | ListItem,
@@ -64,6 +72,7 @@ const Items = (props: ItemsProps) => {
 	const focusRef = useRef<HTMLDivElement>(null);
 
 	const [activeIdx, setActiveIdx] = useState<number>(0);
+	const [scrollIntoViewBehavior, setScrollIntoViewBehavior] = useState<ScrollBehavior>("smooth");
 
 	const getArray = (array: unknown) => (!Array.isArray(array) || !array.length ? [] : array);
 
@@ -81,10 +90,10 @@ const Items = (props: ItemsProps) => {
 			});
 
 			setTimeout(() => {
-				focusRef.current?.scrollIntoView({ behavior: "smooth", block: n > 0 ? "start" : "end" });
+				focusRef.current?.scrollIntoView({ behavior: scrollIntoViewBehavior, block: n > 0 ? "start" : "end" });
 			});
 		},
-		[itemsWithButtons.length],
+		[itemsWithButtons.length, scrollIntoViewBehavior],
 	);
 
 	useEffect(() => {
@@ -111,6 +120,7 @@ const Items = (props: ItemsProps) => {
 
 	const keydownHandler = useCallback(
 		(e: KeyboardEvent) => {
+			setScrollIntoViewBehavior(e.repeat ? "instant" : "smooth");
 			const action = {
 				PageDown: () => moveActiveIdx(maxItems),
 				PageUp: () => moveActiveIdx(-maxItems),

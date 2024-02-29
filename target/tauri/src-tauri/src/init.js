@@ -1,1 +1,1 @@
-window.close = () => window.__TAURI__.primitives.invoke("close_current_window");
+window.close = () => window.__TAURI__.core.invoke("close_current_window");

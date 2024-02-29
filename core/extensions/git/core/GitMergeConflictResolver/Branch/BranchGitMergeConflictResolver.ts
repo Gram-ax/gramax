@@ -26,5 +26,10 @@ export default class BranchGitMergeConflictResolver {
 			currentBranch,
 			theirsBranch,
 		]);
+		await Promise.all(
+			files.map(async (file) => {
+				await this._gitVersionControl.restore(true, [new Path(file.path)]);
+			}),
+		);
 	}
 }

@@ -1,7 +1,14 @@
+import type { CatalogProps } from "@core/FileStructue/Catalog/Catalog";
 import { Category } from "../../../../logic/FileStructue/Category/Category";
-import FileStructure, { FSProps } from "../../../../logic/FileStructue/FileStructure";
+import FileStructure from "../../../../logic/FileStructue/FileStructure";
 import { Item } from "../../../../logic/FileStructue/Item/Item";
 import Language, { defaultLanguage } from "../model/Language";
+
+export type FSLocalizationProps = {
+	lang?: Language;
+	catalogLangs?: Set<string>;
+	allLanguages?: boolean;
+};
 
 export default class FSLocalizationRules {
 	static bind(fs: FileStructure): void {
@@ -11,40 +18,31 @@ export default class FSLocalizationRules {
 		fs.addFilterRule(FSLocalizationRules._filterRule);
 	}
 
-	private static _rule(item: Item, catalogProps: FSProps, isRootCategory = false): void {
+	private static _rule(item: Item, catalogProps: CatalogProps, isRootCategory = false): void {
 		let language = getLanguageByPath(item.ref.path.value);
 		let fileNameHasLang = true;
 		if (!language) {
 			fileNameHasLang = false;
-			language = catalogProps[localizationProps.language] ?? defaultLanguage;
+			language = catalogProps.lang ?? defaultLanguage;
 		}
-		if (isRootCategory) catalogProps[localizationProps.allLanguages] = true;
-		item.props[localizationProps.language] = language;
+		if (isRootCategory) catalogProps.allLanguages = true;
+		item.props.lang = Language[language];
 		if (fileNameHasLang && getLanguageByPath(item.logicPath))
 			item.logicPath = item.logicPath.slice(0, item.logicPath.length - 3);
-		if (!catalogProps[localizationProps.languages]) catalogProps[localizationProps.languages] = new Set<string>();
-		(catalogProps[localizationProps.languages] as Set<string>).add(language);
+		if (!catalogProps.catalogLangs) catalogProps.catalogLangs = new Set<string>();
+		catalogProps.catalogLangs.add(language);
 	}
 
 	private static _filterRule(parent: Category, catalogProps: any, item: Item): boolean {
-		return (
-			catalogProps[localizationProps.allLanguages] ||
-			parent.props[localizationProps.language] == item.props[localizationProps.language]
-		);
+		return catalogProps.allLanguages || parent.props.lang == item.props.lang;
 	}
 
-	private static _saveRule(props: FSProps): FSProps {
+	private static _saveRule(props: FSLocalizationProps) {
 		const p = { ...props };
-		delete p[localizationProps.languages];
-		delete p[localizationProps.allLanguages];
-		return p;
+		delete p.catalogLangs;
+		delete p.allLanguages;
+		return p as any;
 	}
-}
-
-export enum localizationProps {
-	language = "lang",
-	languages = "catalogLangs",
-	allLanguages = "allLanguages",
 }
 
 function getLanguageByPath(path: string): string {

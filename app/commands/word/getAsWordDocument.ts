@@ -15,13 +15,13 @@ const getAsWordDocument: Command<{ ctx: Context; articlePath: Path; catalogName:
 	async do({ ctx, catalogName, articlePath }) {
 		const { lib, parser, parserContextFactory } = this._app;
 		const catalog = await lib.getCatalog(catalogName);
-		const article = catalog.findItemByItemPath(articlePath) as Article;
+		const article = catalog.findItemByItemPath<Article>(articlePath);
 
 		await parseContent(article, catalog, ctx, parser, parserContextFactory);
 		const parserContext = parserContextFactory.fromArticle(article, catalog, ctx.lang, ctx.user.isLogged);
 		const wordExport = new (await WordExport).default(lib.getFileProviderByCatalog(catalog), parserContext);
 		const document = await wordExport.getDocumentFromArticle({
-			title: article.props.title,
+			title: article.getTitle(),
 			content: article.parsedContent.renderTree,
 			resourceManager: article.parsedContent.resourceManager,
 		});

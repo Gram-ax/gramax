@@ -1,15 +1,15 @@
 import React, { ReactElement, useContext, useEffect, useState } from "react";
 import { TocItem } from "../../extensions/navigation/article/logic/createTocItems";
-import { ArticleProps } from "../../logic/SitePresenter/SitePresenter";
+import { ClientArticleProps } from "../../logic/SitePresenter/SitePresenter";
 
-const ArticlePropsContext = React.createContext<ArticleProps>(undefined);
-let _setArticleProps: React.Dispatch<React.SetStateAction<ArticleProps>>;
+const ArticlePropsContext = React.createContext<ClientArticleProps>(undefined);
+let _setArticleProps: React.Dispatch<React.SetStateAction<ClientArticleProps>>;
 const TocItemsContext = React.createContext<TocItem[]>(undefined);
 let _setTocItems: React.Dispatch<React.SetStateAction<TocItem[]>>;
 
 abstract class ArticlePropsService {
-	static Provider({ children, value }: { children: ReactElement; value: ArticleProps }): ReactElement {
-		const [articleProps, setArticleProps] = useState<ArticleProps>(value);
+	static Provider({ children, value }: { children: ReactElement; value: ClientArticleProps }): ReactElement {
+		const [articleProps, setArticleProps] = useState<ClientArticleProps>(value);
 		_setArticleProps = setArticleProps;
 
 		const [tocItems, setTocItems] = useState<TocItem[]>(value.tocItems);
@@ -27,11 +27,11 @@ abstract class ArticlePropsService {
 		);
 	}
 
-	static get value(): ArticleProps {
+	static get value(): ClientArticleProps {
 		return useContext(ArticlePropsContext);
 	}
 
-	static set(articleProps: ArticleProps) {
+	static set(articleProps: ClientArticleProps) {
 		_setArticleProps({ ...articleProps });
 	}
 

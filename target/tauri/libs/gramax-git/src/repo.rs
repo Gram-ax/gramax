@@ -7,12 +7,13 @@ use std::path::Path;
 
 use crate::branch::*;
 use crate::creds::*;
+use crate::remote_callback::ssl_callback;
 use crate::ShortInfo;
 
 use crate::error::Error;
 use crate::error::Result;
 use crate::prelude::StatusInfo;
-use crate::remote_callback::make_remote_callback;
+use crate::remote_callback::make_credentials_callback;
 
 type Repo = git2::Repository;
 
@@ -26,10 +27,10 @@ where
 
   fn open<P: AsRef<Path>>(path: P, creds: C) -> Result<Self>;
   fn init<P: AsRef<Path>>(path: P, creds: C) -> Result<Self>;
-  fn clone<S: AsRef<str>, B: AsRef<str>, P: AsRef<Path>, F: FnMut(usize, usize) -> bool>(
+  fn clone<S: AsRef<str>, P: AsRef<Path>, F: FnMut(usize, usize) -> bool>(
     remote_url: S,
     into: P,
-    branch_shorthand: B,
+    branch_shorthand: Option<&str>,
     creds: C,
     on_progress: F,
   ) -> Result<Self>;
@@ -95,16 +96,17 @@ impl<C: Creds> Repository<C> for GitRepository<C> {
     Ok(Self(repo, creds))
   }
 
-  fn clone<S: AsRef<str>, B: AsRef<str>, P: AsRef<Path>, F: FnMut(usize, usize) -> bool>(
+  fn clone<S: AsRef<str>, P: AsRef<Path>, F: FnMut(usize, usize) -> bool>(
     remote_url: S,
     into: P,
-    branch_name: B,
+    branch_name: Option<&str>,
     creds: C,
     mut on_progress: F,
   ) -> Result<Self> {
-    info!(target: "git", "cloning {} into {} ({})", remote_url.as_ref(), into.as_ref().display(), branch_name.as_ref());
+    info!(target: "git", "cloning {} into {}; branch {}", remote_url.as_ref(), into.as_ref().display(), branch_name.unwrap_or("default"));
     let mut cbs = RemoteCallbacks::new();
-    cbs.credentials(make_remote_callback(&creds));
+    cbs.credentials(make_credentials_callback(&creds));
+    cbs.certificate_check(ssl_callback);
     cbs.transfer_progress(|progress| {
       on_progress(
         progress.received_objects()
@@ -121,11 +123,14 @@ impl<C: Creds> Repository<C> for GitRepository<C> {
     let mut checkout_opts = CheckoutBuilder::new();
     checkout_opts.force();
 
-    let repo = RepoBuilder::new()
-      .branch(branch_name.as_ref())
-      .fetch_options(fetch_opts)
-      .with_checkout(checkout_opts)
-      .clone(remote_url.as_ref(), into.as_ref())?;
+    let repo = {
+      let mut builder = RepoBuilder::new();
+      builder.fetch_options(fetch_opts).with_checkout(checkout_opts);
+      if let Some(branch) = branch_name {
+        builder.branch(branch);
+      }
+      builder.clone(remote_url.as_ref(), into.as_ref())?
+    };
 
     let repo = Self(repo, creds);
     Ok(repo)
@@ -184,7 +189,8 @@ impl<C: Creds> Repository<C> for GitRepository<C> {
     info!(target: "git", "fetching..");
     let mut cbs = RemoteCallbacks::new();
     let mut opts = FetchOptions::new();
-    cbs.credentials(make_remote_callback(&self.1));
+    cbs.credentials(make_credentials_callback(&self.1));
+    cbs.certificate_check(ssl_callback);
     opts.remote_callbacks(cbs);
     opts.prune(FetchPrune::On);
 
@@ -196,7 +202,8 @@ impl<C: Creds> Repository<C> for GitRepository<C> {
   fn push(&self) -> Result<()> {
     info!(target: "git", "pushing..");
     let mut cbs = RemoteCallbacks::new();
-    cbs.credentials(make_remote_callback(&self.1));
+    cbs.credentials(make_credentials_callback(&self.1));
+    cbs.certificate_check(ssl_callback);
     let mut push_opts = PushOptions::new();
     push_opts.remote_callbacks(cbs);
 
@@ -394,7 +401,8 @@ impl<C: Creds> Repository<C> for GitRepository<C> {
     match kind {
       BranchType::Remote => {
         let mut cbs = RemoteCallbacks::new();
-        cbs.credentials(|_, _, _| git2::Cred::userpass_plaintext("git", self.creds().access_token()));
+        cbs.credentials(make_credentials_callback(&self.1));
+        cbs.certificate_check(ssl_callback);
         let mut push_opts = PushOptions::new();
         push_opts.remote_callbacks(cbs);
 

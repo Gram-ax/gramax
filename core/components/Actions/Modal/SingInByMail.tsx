@@ -4,9 +4,9 @@ import { useState } from "react";
 import useLocalize from "../../../extensions/localization/useLocalize";
 import Button from "../../Atoms/Button/Button";
 import Icon from "../../Atoms/Icon";
-import Input from "../../Labels/Input";
 import ModalLayout from "../../Layouts/Modal";
 import ModalLayoutLight from "../../Layouts/ModalLayoutLight";
+import Input from "@components/Atoms/Input";
 
 const SingInByMail = () => {
 	const mailRegExp = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/gm;
@@ -22,7 +22,7 @@ const SingInByMail = () => {
 
 	return (
 		<ModalLayout
-			setGlobasStyles
+			setGlobalsStyles
 			isOpen={isOpen}
 			onOpen={() => setIsOpen(true)}
 			onClose={() => setIsOpen(false)}

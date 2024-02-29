@@ -1,16 +1,14 @@
 import Path from "@core/FileProvider/Path/Path";
 import { ItemRef } from "@core/FileStructue/Item/Item";
 import matter from "gray-matter";
-import { Article } from "../FileStructue/Article/Article";
+import { Article, type ArticleProps } from "../FileStructue/Article/Article";
 import error403 from "./customArticles/error403";
 import error404 from "./customArticles/error404";
 import error500 from "./customArticles/error500";
 import homePage from "./customArticles/homePage";
 import initSource from "./customArticles/initSource";
-import newArticle from "./customArticles/newArticle";
 
 const articles = {
-	newArticle: newArticle,
 	initSource: initSource,
 	homePage: homePage,
 	403: error403,
@@ -39,7 +37,7 @@ export default class CustomArticlePresenter {
 			},
 			content: md.content ?? "",
 			parent: null,
-			props: md.data,
+			props: md.data as ArticleProps,
 			logicPath: path,
 			lastModified: new Date().getTime(),
 			errorCode: errorCode ? errorCode : null,

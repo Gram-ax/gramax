@@ -13,6 +13,13 @@ export const Chooser: StoryObj = {
 
 export const Handler: StoryObj = {
 	render: () => <MergeConflictHandler rawFiles={testFiles} onMerge={console.log} />,
+	decorators: [
+		(S) => (
+			<div style={{ background: "gray", padding: "1rem" }}>
+				<S />
+			</div>
+		),
+	],
 };
 
 const MergeData = {

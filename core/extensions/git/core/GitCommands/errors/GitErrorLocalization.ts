@@ -25,7 +25,7 @@ const gitErrorLocalization: GitErrorLocalization = {
 	PushRejectedError: (props) => {
 		if (props.error?.data?.reason === "not-fast-forward")
 			return "У вас устаревшая версия каталога. Синхронизируйте его, затем опубликуйте изменения";
-		return `Неизвестная ошибка при публикации. error.data - ${JSON.stringify(props.error.data)}`;
+		return `Неизвестная ошибка при публикации. Сообщение ошибки - ${props.error.message}`;
 	},
 	GitPushError: (props) => {
 		if (props.caller === "deleteBranch") {
@@ -35,9 +35,7 @@ const gitErrorLocalization: GitErrorLocalization = {
 			}
 			return `Не удалось удалить удалённую ветку ${props.error.props.branchName}`;
 		}
-		return `Неизвестная ошибка при публикации. Сообщение ошибки - ${
-			props.error.message
-		}. error.data - ${JSON.stringify(props.error.data)}`;
+		return `Ветка защищена от публикации`;
 	},
 	CurrentBranchNotFoundError: () => {
 		return "Не удалось определить текущую ветку";
@@ -46,7 +44,7 @@ const gitErrorLocalization: GitErrorLocalization = {
 		return `Не удалось найти удалённую ветку для локальной ветки ${props.error?.props?.branchName}`;
 	},
 	MergeNotSupportedError: () => {
-		return `Вы внесли изменения в файл, который был удалён/перемещён в хранилище. Отмените изменения и попробуйте ещё раз`;
+		return `Ошибка при слиянии. Мы пока не умеем решать такие конфликты`;
 	},
 	MergeConflictError: (props) => {
 		if (props?.error?.data?.filepaths)
@@ -73,17 +71,19 @@ const gitErrorLocalization: GitErrorLocalization = {
 	},
 	NotFoundError: (props) => {
 		if (props.caller === "resolveRef") {
-			return `Невозможно найти ветку ${props.error.props.branchName}`;
+			return `Не удалось найти ветку ${props.error.props.branchName}`;
 		} else if (props.caller === "pull") {
-			return `Невозможно найти удалённую ветку "${props.error.data.what}"`;
+			return `Не удалось найти удалённую ветку "${props.error.data.what}"`;
 		} else if (props.caller === "checkout") {
-			return `Невозможно найти ветку ${props.error.data.what}`;
+			return `Не удалось найти ветку ${props.error.data.what}`;
+		} else if (props.caller === "branch") {
+			return `Не удалось найти ветку ${props.error.props.what}`;
 		} else if (props.caller === "readBlob") {
 			return `Не удалось найти файл ${props.error.props.filePath} в ${
 				props.error.props.hash ? `коммите ${props.error.props.hash}` : "последнем коммите"
 			}`;
 		} else {
-			return `Код ошибки - NotFoundError. error.data - ${JSON.stringify(props.error.data)}`;
+			return `Код ошибки - NotFoundError. Сообщение ошибки - ${props.error.message}`;
 		}
 	},
 };

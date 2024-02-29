@@ -13,21 +13,12 @@
 		"analyze": "cross-env ANALYZE=true next build"
 	},
 	"dependencies": {
-		"docx": "^8.2.3",
 		"next": "^12.3.4",
 		"nookies": "^2.5.2",
-		"react": "file:../../node_modules/react",
-		"react-dom": "file:../../node_modules/react-dom"
+		"prom-client": "^15.1.0"
 	},
 	"devDependencies": {
 		"@next/bundle-analyzer": "^13.4.4",
-		"@next/eslint-plugin-next": "^13.4.4",
-		"@types/react": "file:../../node_modules/@types/react",
-		"@types/react-dom": "file:../../node_modules/@types/react-dom",
-		"eslint": "^8.42.0",
-		"eslint-plugin-react": "file:../../node_modules/eslint-plugin-react",
-		"ifdef-loader": "^2.3.2",
-		"node-loader": "^2.0.0",
-		"node-prune": "file:../../node_modules/node-prune"
+		"@next/eslint-plugin-next": "^13.4.4"
 	}
 }

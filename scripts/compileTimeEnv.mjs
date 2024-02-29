@@ -12,7 +12,9 @@ const env = {
 	BUGSNAG_CLIENT_KEY: null,
 	BUGSNAG_SERVER_KEY: null,
 	BRANCH: null,
-	COOKIE_SECRET: ".",
+	COOKIE_SECRET: null,
+	SHARE_ACCESS_TOKEN: null,
+	AUTH_SERVICE_URL: null,
 };
 
 if (!process.env.COOKIE_SECRET) console.warn("WARNING: You need to set COOKIE_SECRET if you run gramax in production.");

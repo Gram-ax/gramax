@@ -9,10 +9,7 @@ import { schema } from "./schema";
 type Token = any;
 
 export class Transformer {
-	constructor(
-		private _schemes: Record<string, Schema>,
-		private _nodeTransformerFuncs: NodeTransformerFunc[],
-	) {}
+	constructor(private _schemes: Record<string, Schema>, private _nodeTransformerFuncs: NodeTransformerFunc[]) {}
 
 	async transformMdComponents(
 		node: JSONContent,
@@ -191,7 +188,7 @@ export class Transformer {
 			if (token.type === "comment_open") {
 				token.type = "comment_old_open";
 				token.tag = "comment_old";
-				token.attrs = { mail: token.attrs.count, date: token.attrs.undefined };
+				token.attrs = { mail: token.attrs.count, dateTime: token.attrs.undefined };
 			}
 			if (token.type === "comment_close") {
 				token.type = "comment_old_close";

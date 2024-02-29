@@ -1,104 +1,123 @@
 import styled from "@emotion/styled";
 import Tippy from "@tippyjs/react";
-import React, { Children, useEffect, useState } from "react";
+import React, { Children, useEffect, useState, ReactNode, useCallback } from "react";
 import Icon from "../Atoms/Icon";
 import Tooltip from "../Atoms/Tooltip";
 
-const PopupMenuLayout = styled(
-	({
+export interface PopupMenuLayoutProps {
+	children: JSX.Element | JSX.Element[];
+	trigger?: JSX.Element | JSX.Element[];
+	appendTo?: Element | "parent" | ((ref: Element) => Element);
+	isInline?: boolean;
+	bottomOffset?: number;
+	tooltipText?: string;
+	onOpen?: () => void;
+	onClose?: () => void;
+	className?: string;
+}
+
+interface PopupProps {
+	className: string;
+	onClick: () => void;
+	onClickCapture: () => void;
+	isOpen: boolean;
+	children: ReactNode;
+}
+
+const Popup = ({ className, onClick, onClickCapture, isOpen, children }: PopupProps) => {
+	const keydownHandler = useCallback(
+		(e: KeyboardEvent) => {
+			if (e.key === "Escape" && isOpen) onClick();
+		},
+		[isOpen],
+	);
+
+	useEffect(() => {
+		if (!isOpen) return;
+		document.addEventListener("keydown", keydownHandler);
+
+		return () => document.removeEventListener("keydown", keydownHandler);
+	}, [isOpen]);
+
+	return (
+		<div className={className} onClick={onClick} onClickCapture={onClickCapture}>
+			{children}
+		</div>
+	);
+};
+const PopupMenuLayout = (props: PopupMenuLayoutProps) => {
+	const {
 		children,
 		trigger,
 		appendTo,
 		isInline = false,
 		tooltipText,
-		open,
-		onOpen,
-		onClose,
+		onOpen = () => {},
+		onClose = () => {},
 		className,
-	}: {
-		children: JSX.Element | JSX.Element[];
-		trigger?: JSX.Element | JSX.Element[];
-		appendTo?: Element | "parent" | ((ref: Element) => Element);
-		isInline?: boolean;
-		bottomOffset?: number;
-		tooltipText?: string;
-		open?: boolean;
-		onOpen?: () => void;
-		onClose?: () => void;
-		className?: string;
-	}) => {
-		const [isOpen, setIsOpen] = useState(false);
-		const IconElement = trigger ?? (
-			<Icon style={{ fontSize: "var(--big-icon-size)", fontWeight: "300" }} code="ellipsis-h" isAction />
-		);
+	} = props;
+	const [isOpen, setIsOpen] = useState(false);
 
-		useEffect(() => {
-			const keydownHandler = (e: KeyboardEvent) => {
-				if (e.key === "Escape" && isOpen) setIsOpen(false);
-			};
+	const IconElement = trigger ?? (
+		<Icon style={{ fontSize: "var(--big-icon-size)", fontWeight: "300" }} code="ellipsis-h" isAction />
+	);
 
-			document.addEventListener("keydown", keydownHandler);
+	const closeHandler = () => {
+		setIsOpen(false);
+	};
 
-			return () => {
-				document.removeEventListener("keydown", keydownHandler);
-			};
-		});
+	const openHandler = () => {
+		setIsOpen(true);
+		onOpen();
+	};
 
-		useEffect(() => {
-			setIsOpen(open);
-		}, [open]);
+	return (
+		<Tippy
+			onAfterUpdate={(instance) => {
+				if (!isOpen) instance.hide();
+			}}
+			appendTo={appendTo}
+			animation={null}
+			interactive
+			placement="bottom-start"
+			trigger="click"
+			arrow={false}
+			maxWidth="none"
+			onShow={openHandler}
+			onHide={() => {
+				closeHandler();
+				onClose();
+			}}
+			content={
+				<Popup onClick={closeHandler} onClickCapture={closeHandler} isOpen={isOpen} className={className}>
+					{children}
+				</Popup>
+			}
+		>
+			{React.createElement(
+				isInline ? "span" : "div",
+				{ className: "button" },
+				tooltipText ? (
+					<Tooltip content={tooltipText}>
+						<div>{IconElement}</div>
+					</Tooltip>
+				) : (
+					IconElement
+				),
+			)}
+		</Tippy>
+	);
+};
 
-		return (
-			<Tippy
-				onAfterUpdate={(instance) => {
-					if (!isOpen) {
-						instance.hide();
-					}
-				}}
-				appendTo={appendTo}
-				animation={null}
-				interactive
-				placement="bottom-start"
-				trigger="click"
-				arrow={false}
-				maxWidth="none"
-				onShow={() => {
-					setIsOpen(true);
-					if (onOpen) onOpen();
-				}}
-				onHide={() => {
-					setIsOpen(false);
-					if (onClose) onClose();
-				}}
-				content={
-					<div className={className} onClick={() => setIsOpen(false)} onClickCapture={() => setIsOpen(false)}>
-						{children}
-					</div>
-				}
-			>
-				{React.createElement(
-					isInline ? "span" : "div",
-					{ className: "button" },
-					tooltipText ? (
-						<Tooltip content={tooltipText}>
-							<div>{IconElement}</div>
-						</Tooltip>
-					) : (
-						IconElement
-					),
-				)}
-			</Tippy>
-		);
-	},
-)`
+export default styled(PopupMenuLayout)`
 	margin: ${(p) => p.bottomOffset ?? -10}px 0px 0px;
-	min-width: 0px;
+	min-width: 0;
 	font-size: 13px;
 	overflow: hidden;
 	padding: ${(p) => (Children.count(p.children) > 1 ? "0.3rem" : "")} 0px;
 	border-radius: 0.34rem;
 	background: var(--color-article-bg);
-	left: 0px !important;
+	left: 0 !important;
 	box-shadow: var(--menu-tooltip-shadow) !important;
 
 	> div {
@@ -112,11 +131,9 @@ const PopupMenuLayout = styled(
 		text-decoration: none;
 		padding: 0.46rem 0.9rem;
 		color: var(--color-primary-general);
-		margin: 0px !important;
+		margin: 0 !important;
 	}
 	> div:hover {
 		background: var(--color-menu-bg);
 	}
 `;
-
-export default PopupMenuLayout;

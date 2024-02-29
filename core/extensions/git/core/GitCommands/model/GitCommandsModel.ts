@@ -33,10 +33,12 @@ interface GitCommandsModel {
 	stashParent(stashOid: string): Promise<GitVersion>;
 
 	getCurrentBranch(data: GitSourceData): Promise<GitBranch>;
+	getCurrentBranchName(): Promise<string>;
 	getAllBranches(): Promise<GitBranch[]>;
 	getBranch(name: string): Promise<GitBranch>;
 	deleteBranch(name: string, remote?: boolean, data?: GitSourceData): Promise<void>;
 	newBranch(name: string): Promise<void>;
+	getCommitHash(ref: string): Promise<GitVersion>;
 
 	getFileHistory(filePath: Path, count: number): Promise<VersionControlInfo[]>;
 

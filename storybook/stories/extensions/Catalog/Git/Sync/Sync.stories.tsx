@@ -1,8 +1,8 @@
-import SyncLayoutSrc from "@ext/git/actions/Sync/SyncLayout";
+import SyncLayoutSrc from "@ext/git/actions/Sync/components/SyncLayout";
 import { Meta, StoryObj } from "@storybook/react";
 import { ComponentProps } from "react";
 import mock from "storybook/data/mock";
-import SyncSrc from "../../../../../../core/extensions/git/actions/Sync/Sync";
+import SyncSrc from "../../../../../../core/extensions/git/actions/Sync/components/Sync";
 import BlockDecorator from "../../../../../styles/decorators/BlockDecorator";
 import syncApiData from "./syncApiData";
 
@@ -38,7 +38,7 @@ export const SyncComponent: StoryObj = {
 export const SyncLayout: StoryObj<ComponentProps<typeof SyncLayoutSrc>> = {
 	args: {
 		pullCounter: 1,
-		pushCounter: 1,
+		pushCounter: 0,
 		syncProccess: false,
 	},
 	render: (props) => <SyncLayoutSrc {...props} />,

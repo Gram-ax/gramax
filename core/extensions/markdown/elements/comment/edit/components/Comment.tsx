@@ -42,7 +42,7 @@ const Comment = styled(
 						onDeleteComment={onDelete}
 					/>
 				) : (
-					<div className="add-input">
+					<div className="add-input" data-qa="qa-add-comment">
 						<Input
 							onCancel={onDelete}
 							onConfirm={onCreateComment}

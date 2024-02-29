@@ -3,13 +3,14 @@ import Context from "@core/Context/Context";
 import BranchData from "@ext/VersionControl/model/branch/BranchData";
 import GitSourceData from "@ext/git/core/model/GitSourceData.schema";
 import { Command, ResponseKind } from "../../../types/Command";
+import ReloadConfirmMiddleware from "@core/Api/middleware/ReloadConfirmMiddleware";
 
 const reset: Command<{ ctx: Context; catalogName: string }, BranchData[]> = Command.create({
 	path: "versionControl/branch/reset",
 
 	kind: ResponseKind.json,
 
-	middlewares: [new AuthorizeMiddleware()],
+	middlewares: [new AuthorizeMiddleware(), new ReloadConfirmMiddleware()],
 
 	async do({ ctx, catalogName }) {
 		const { lib, rp } = this._app;

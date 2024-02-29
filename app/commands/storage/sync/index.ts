@@ -1,3 +1,4 @@
+import ReloadConfirmMiddleware from "@core/Api/middleware/ReloadConfirmMiddleware";
 import { AuthorizeMiddleware } from "../../../../core/logic/Api/middleware/AuthorizeMiddleware";
 import Context from "../../../../core/logic/Context/Context";
 import { Command, ResponseKind } from "../../../types/Command";
@@ -7,7 +8,7 @@ const sync: Command<{ ctx: Context; catalogName: string; recursive?: boolean }, 
 
 	kind: ResponseKind.none,
 
-	middlewares: [new AuthorizeMiddleware()],
+	middlewares: [new AuthorizeMiddleware(), new ReloadConfirmMiddleware()],
 
 	async do({ ctx, catalogName, recursive }) {
 		const { lib, rp, logger } = this._app;

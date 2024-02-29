@@ -2,11 +2,12 @@ use std::str::FromStr;
 
 use tauri::menu::*;
 use tauri::*;
+use tauri_plugin_dialog::DialogExt;
 
 use crate::build_main_window;
 use crate::platform::child_window::ChildWindow;
 use crate::platform::desktop::open_help_docs;
-use crate::platform::desktop::updater::AppUpdater;
+use crate::platform::desktop::updater::Updater;
 use crate::translation::*;
 
 pub trait MenuBuilder {
@@ -59,8 +60,8 @@ fn on_menu_event<R: Runtime>(app: &AppHandle<R>, event: MenuEvent) {
 
   match Id::from_str(event.id().as_ref()).unwrap_or(Id::Unknown) {
     Id::Help => {
-      if let Err(err) = open_help_docs(&app) {
-        error!("Can't open docs: {:?}", err);
+      if let Err(err) = open_help_docs() {
+        app.dialog().message(format!("Can't open docs: {:?}", err)).blocking_show();
       }
     }
     Id::Settings => {
@@ -82,7 +83,7 @@ fn on_menu_event<R: Runtime>(app: &AppHandle<R>, event: MenuEvent) {
       }
     }
     Id::CheckUpdate => {
-      async_runtime::spawn(async move { app.state::<AppUpdater<R>>().check_and_ask().await });
+      async_runtime::spawn(async move { app.state::<Updater<R>>().check_and_ask().await });
     }
     Id::NewWindow => {
       std::thread::spawn(move || build_main_window(&app).unwrap());

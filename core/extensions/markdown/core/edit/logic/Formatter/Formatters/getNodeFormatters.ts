@@ -3,14 +3,16 @@ import { NodeSerializerSpec } from "../../Prosemirror/to_markdown";
 import ParserContext from "@ext/markdown/core/Parser/ParserContext/ParserContext";
 import DiagramsFormatter from "@ext/markdown/elements/diagrams/logic/DiagramsFormatter";
 import codeBlockFormatter from "@ext/markdown/elements/fence/edit/logic/codeBlockFormatter";
+import OpenApiFormatter from "@ext/markdown/elements/openApi/edit/logic/OpenApiFormatter";
 import screenSymbols from "@ext/markdown/logic/screenSymbols";
 import TableUtils from "../Utils/Table";
 
-const blocks = ["Db-diagram", "Db-table", "OpenApi"];
+const blocks = ["Db-diagram", "Db-table"];
 
 const getNodeFormatters = (context?: ParserContext): { [node: string]: NodeSerializerSpec } => ({
 	diagrams: DiagramsFormatter,
 	code_block: codeBlockFormatter,
+	openapi: OpenApiFormatter,
 
 	inlineMd_component: (state, node) => {
 		const isBlock = blocks.includes(node.attrs.tag?.[0]?.name);
@@ -170,6 +172,13 @@ const getNodeFormatters = (context?: ParserContext): { [node: string]: NodeSeria
 		state.closeBlock(node);
 	},
 	hard_break(state, node, parent, index) {
+		for (let i = index + 1; i < parent.childCount; i++)
+			if (parent.child(i).type != node.type) {
+				state.write("\\\n");
+				return;
+			}
+	},
+	br(state, node, parent, index) {
 		for (let i = index + 1; i < parent.childCount; i++)
 			if (parent.child(i).type != node.type) {
 				state.write("\\\n");

@@ -5,15 +5,16 @@ import ActionListItem from "@components/List/ActionListItem";
 import { ButtonItem } from "@components/List/Item";
 import ListLayout from "@components/List/ListLayout";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
+import GitHubSourceData from "@ext/git/actions/Source/GitHub/logic/GitHubSourceData";
+import GitlabSourceData from "@ext/git/actions/Source/GitLab/logic/GitlabSourceData";
 import { useEffect, useState } from "react";
-import SelectGitHubStorageDataFields from "../../git/actions/Storage/GitHub/components/SelectGitHubStorageDataFields";
-import SelectGitLabStorageDataFields from "../../git/actions/Storage/GitLab/components/SelectGitLabStorageDataFields";
-import GitSourceData from "../../git/core/model/GitSourceData.schema";
+import SelectGitHubStorageDataFields from "../../git/actions/Source/GitHub/components/SelectGitHubStorageDataFields";
+import SelectGitLabStorageDataFields from "../../git/actions/Source/GitLab/components/SelectGitLabStorageDataFields";
 import useLocalize from "../../localization/useLocalize";
 import CreateSourceData from "../logic/SourceDataProvider/components/CreateSourceData";
 import SourceData from "../logic/SourceDataProvider/model/SourceData";
 import SourceType from "../logic/SourceDataProvider/model/SourceType";
-import getSourceNameByData from "../logic/utils/getSourceNameByData";
+import getStorageNameByData from "../logic/utils/getStorageNameByData";
 import StorageData from "../models/StorageData";
 import SourceListItem from "./SourceListItem";
 
@@ -76,18 +77,18 @@ const SelectStorageDataForm = (props: SelectStorageDataFormProps) => {
 											element: (
 												<SourceListItem
 													code={selectSourceData.sourceType}
-													text={getSourceNameByData(selectSourceData)}
+													text={getStorageNameByData(selectSourceData)}
 												/>
 											),
-											labelField: getSourceNameByData(selectSourceData),
+											labelField: getStorageNameByData(selectSourceData),
 									  }
 									: ""
 							}
 							buttons={[addNewStorageListItem]}
 							items={[
 								...sourceDatas.map((d) => ({
-									element: <SourceListItem code={d.sourceType} text={getSourceNameByData(d)} />,
-									labelField: getSourceNameByData(d),
+									element: <SourceListItem code={d.sourceType} text={getStorageNameByData(d)} />,
+									labelField: getStorageNameByData(d),
 								})),
 							]}
 							onItemClick={(labelField, _, idx) => {
@@ -99,14 +100,14 @@ const SelectStorageDataForm = (props: SelectStorageDataFormProps) => {
 				</div>
 				{selectSourceData?.sourceType == SourceType.gitLab && (
 					<SelectGitLabStorageDataFields
-						source={selectSourceData as GitSourceData}
+						source={selectSourceData as GitlabSourceData}
 						onChange={onChange}
 						forClone={forClone}
 					/>
 				)}
 				{selectSourceData?.sourceType == SourceType.gitHub && (
 					<SelectGitHubStorageDataFields
-						source={selectSourceData as GitSourceData}
+						source={selectSourceData as GitHubSourceData}
 						onChange={onChange}
 						forClone={forClone}
 					/>

@@ -10,12 +10,14 @@ const NextLink = (
 		onClick,
 		className,
 		onMouseOver,
+		dataQa,
 	}: {
 		href: BaseLink;
 		children: ReactNode;
 		onClick?: () => void;
 		onMouseOver?: () => void;
 		className?: string;
+		dataQa?: string;
 	},
 	ref: RefObject<HTMLAnchorElement>,
 ) => {
@@ -23,7 +25,7 @@ const NextLink = (
 
 	return (
 		<Link href={url} scroll={true} passHref>
-			<a ref={ref} onClick={onClick} className={className} onMouseOver={onMouseOver}>
+			<a ref={ref} onClick={onClick} className={className} onMouseOver={onMouseOver} data-qa={dataQa}>
 				{children}
 			</a>
 		</Link>

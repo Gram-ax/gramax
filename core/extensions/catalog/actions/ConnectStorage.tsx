@@ -1,15 +1,14 @@
 import StatusBarElement from "@components/Layouts/StatusBar/StatusBarElement";
-import CatalogPropsService from "@core-ui/ContextServices/CatalogProps";
+import useHasRemoteStorage from "@ext/storage/logic/utils/useHasRemoteStorage";
 import useLocalize from "../../localization/useLocalize";
 import InitSource from "../../storage/components/InitSource";
 import InitStorage from "../../storage/components/InitStorage";
 
 const ConnectStorage = () => {
-	const catalogProps = CatalogPropsService.value;
-	const storageName = catalogProps.sourceName;
+	const hasRemoteStorage = useHasRemoteStorage();
 	const trigger = <StatusBarElement iconCode="cloud-slash" tooltipText={useLocalize("connectStorage")} />;
 
-	return storageName ? <InitSource trigger={trigger} /> : <InitStorage trigger={trigger} />;
+	return hasRemoteStorage ? <InitSource trigger={trigger} /> : <InitStorage trigger={trigger} />;
 };
 
 export default ConnectStorage;

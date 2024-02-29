@@ -1,27 +1,21 @@
-import Icon from "@components/Atoms/Icon";
+import ButtonLink from "@components/Molecules/ButtonLink";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
-import styled from "@emotion/styled";
-import useLocalize from "../../localization/useLocalize";
 import Theme from "../Theme";
 import ThemeService from "./ThemeService";
+import useLocalize from "@ext/localization/useLocalize";
 
-const ThemeToggle = styled(({ className }: { className?: string }) => {
+const ThemeToggle = ({ className }: { className?: string }) => {
 	const theme = ThemeService.value;
 	const apiUrlCreator = ApiUrlCreatorService.value;
 
 	return (
-		<div className={className} onClick={() => ThemeService.toggleTheme(apiUrlCreator)}>
-			<a data-qa="qa-clickable">
-				<Icon
-					code={theme == Theme.dark ? "moon" : "sun-bright"}
-					style={{ fontSize: "12px", fontWeight: 300 }}
-				/>
-				<span>{useLocalize("theme")}</span>
-			</a>
-		</div>
+		<ButtonLink
+			className={className}
+			onClick={() => ThemeService.toggleTheme(apiUrlCreator)}
+			iconCode={theme == Theme.dark ? "moon" : "sun-bright"}
+			text={useLocalize("theme")}
+		/>
 	);
-})`
-	font-size: 11px;
-`;
+};
 
 export default ThemeToggle;

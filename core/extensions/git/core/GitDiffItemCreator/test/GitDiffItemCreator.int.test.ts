@@ -27,14 +27,14 @@ const getGitDiffItemCreatorData = async () => {
 };
 
 describe("GitDiffItemCreator ", () => {
-	describe("Выдаёт DiffItems", () => {
+	describe("выдаёт DiffItems", () => {
 		afterEach(async () => {
 			const { dfp } = await getGitDiffItemCreatorData();
 			await repTestUtils.clearChanges(dfp, TEST_GIT_CATALOG_PATH);
 			await repTestUtils.clearRenameChanges(dfp, TEST_GIT_CATALOG_PATH);
 			await repTestUtils.clearResourceChanges(dfp, TEST_GIT_CATALOG_PATH);
 		});
-		test("Без изменения ресурсов", async () => {
+		test("без изменения ресурсов", async () => {
 			const { catalog, dfp, gitDiffItemCreator, rp } = await getGitDiffItemCreatorData();
 			await repTestUtils.makeChanges(dfp);
 			await catalog.update(rp);
@@ -50,7 +50,7 @@ describe("GitDiffItemCreator ", () => {
 				{ path: "category/articleTest2.md", type: FileStatus.new },
 			]);
 		});
-		test("С изменением ресурсов", async () => {
+		test("с изменением ресурсов", async () => {
 			const { catalog, dfp, gitDiffItemCreator, rp } = await getGitDiffItemCreatorData();
 			await repTestUtils.makeResourceChanges(dfp);
 			await catalog.update(rp);
@@ -73,7 +73,7 @@ describe("GitDiffItemCreator ", () => {
 			]);
 		});
 
-		test("С отдельными ресурсами", async () => {
+		test("с отдельными ресурсами", async () => {
 			const { catalog, dfp, gitDiffItemCreator, rp } = await getGitDiffItemCreatorData();
 			await repTestUtils.makeResourceChanges(dfp);
 			await catalog.update(rp);
@@ -90,7 +90,7 @@ describe("GitDiffItemCreator ", () => {
 			expect(hasItemDiffs).toBeFalsy();
 		});
 
-		test("С переименованием", async () => {
+		test("с переименованием", async () => {
 			const { catalog, dfp, gitDiffItemCreator, rp } = await getGitDiffItemCreatorData();
 			await repTestUtils.makeRenameChanges(dfp);
 			await catalog.update(rp);

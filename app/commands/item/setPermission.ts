@@ -2,13 +2,14 @@ import { AuthorizeMiddleware } from "@core/Api/middleware/AuthorizeMiddleware";
 import Path from "@core/FileProvider/Path/Path";
 import Permission from "@ext/security/logic/Permission/Permission";
 import { Command, ResponseKind } from "../../types/Command";
+import ReloadConfirmMiddleware from "@core/Api/middleware/ReloadConfirmMiddleware";
 
 const setPermission: Command<{ catalogName: string; path?: Path; permissions: Permission }, void> = Command.create({
 	path: "item/setPermission",
 
 	kind: ResponseKind.json,
 
-	middlewares: [new AuthorizeMiddleware()],
+	middlewares: [new AuthorizeMiddleware(), new ReloadConfirmMiddleware()],
 
 	async do({ catalogName, path, permissions }) {
 		const { lib } = this._app;

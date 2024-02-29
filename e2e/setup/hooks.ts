@@ -1,5 +1,4 @@
 import {
-	After,
 	AfterAll,
 	AfterStep,
 	Before,
@@ -12,45 +11,61 @@ import fs from "fs/promises";
 import path from "path";
 import { chromium } from "playwright";
 import E2EWorld from "../models/World";
+import { checkForErrorModal } from "../steps/utils/utils";
 import config from "./config";
-import { checkForErrorModal, dumpAllLogs, dumpLogs, onConsoleMessage } from "./logs";
 
 setWorldConstructor(E2EWorld);
 setDefaultTimeout(config.timeouts.medium);
 
+let TRACE_DUMP_COUNT = 0;
+
+const makeGlobalContext = async () => {
+	await global.context?.close();
+	global.context = await browser.newContext({
+		recordVideo: { dir: path.resolve(__dirname, "../report"), size: { height: 720, width: 1080 } },
+	});
+	const page = await context.newPage();
+	await context.tracing.start({ screenshots: true, snapshots: true });
+	await page.goto(config.url);
+	await page.waitForLoadState("domcontentloaded");
+	page.on("dialog", (d) => void d.accept());
+	global.page = page;
+};
+
+const shouldClearContext = (left: ITestCaseHookParameter, right: ITestCaseHookParameter, deep = 2) => {
+	const lhs = left?.gherkinDocument.uri;
+	const rhs = right?.gherkinDocument.uri;
+
+	let splits = 0;
+
+	for (let i = 0; i < Math.min(lhs?.length, rhs?.length); i++) {
+		if (lhs[i] != rhs[i]) return true;
+		if (lhs[i] == "/" || lhs[i] == "\\") splits++;
+		if (splits == deep) return false;
+	}
+	return false;
+};
+
 BeforeAll({ timeout: config.timeouts.long }, async function () {
 	await fs.rm(path.resolve(__dirname, "../report"), { recursive: true }).catch(() => undefined);
 	global.browser = await chromium.launch(config.launch);
-	global.context = await browser.newContext({
-		recordVideo: { dir: path.resolve(__dirname, "../report"), size: { height: 720, width: 1080 } },
-		permissions: ["clipboard-read", "clipboard-write"],
-	});
-	const page = await context.newPage();
-	await page.goto(config.url);
-	await page.waitForLoadState("domcontentloaded");
-	await page.evaluate(() => ((window as any).confirm = () => true));
-	page.on("console", onConsoleMessage);
-	global.page = page;
+	await makeGlobalContext();
 });
 
-Before({ timeout: config.timeouts.long }, function (this: E2EWorld, scenario: ITestCaseHookParameter) {
+Before({ timeout: config.timeouts.long }, async function (this: E2EWorld, scenario: ITestCaseHookParameter) {
+	if (shouldClearContext(global.scenario, scenario)) {
+		await context.tracing.stop({ path: "report/tracing/trace-" + ++TRACE_DUMP_COUNT + ".zip" });
+		await makeGlobalContext();
+	}
 	this.setContext(global.page, scenario);
+	global.scenario = scenario;
 });
 
-AfterStep(async function (this: E2EWorld, scenario: ITestCaseHookParameter) {
-	if (await checkForErrorModal(this, scenario.gherkinDocument.uri)) throw new Error("An error modal found");
-});
-
-After(async function (this: E2EWorld, scenario: ITestCaseHookParameter) {
-	await dumpLogs(
-		this,
-		scenario.result.status != "PASSED",
-		scenario.gherkinDocument.uri.replace("features/", ""),
-		"console.error",
-		scenario.pickle.name,
-	);
+AfterStep(async function (this: E2EWorld) {
+	if ((await checkForErrorModal(this)) && !this.allowErrorModal) throw new Error("An error modal found");
 });
 
 AfterAll(async function () {
-	await dumpAllLogs();
+	await context.tracing.stop({ path: "report/tracing/trace-" + ++TRACE_DUMP_COUNT + ".zip" });
+	await context.pages().at(0).screenshot({ path: "report/screenshot.png", fullPage: true, caret: "initial" });
 });

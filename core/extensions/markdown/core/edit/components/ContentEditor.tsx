@@ -19,6 +19,7 @@ import deleteImages from "../../../elements/image/edit/logic/deleteImages";
 import OnAddMark from "../../../elements/onAdd/OnAddMark";
 import OnDeleteMark from "../../../elements/onDocChange/OnDeleteMark";
 import OnDeleteNode from "../../../elements/onDocChange/OnDeleteNode";
+import deleteOpenApi from "../../../elements/openApi/edit/logic/deleteOpenApi";
 import ExtensionUpdater from "../../../elementsUtils/editExtensionUpdator/ExtensionUpdater";
 import ContextWrapper from "./ContextWrapper";
 import Menu from "./Menu/Menu";
@@ -42,21 +43,25 @@ const ContentEditor = (props: ContentEditorProps) => {
 	const articleProps = ArticlePropsService.value;
 	const apiUrlCreator = ApiUrlCreatorService.value;
 	const pageDataContext = PageDataContextService.value;
+	const articleIsEdit = !articleProps.errorCode;
 
 	const onDeleteNodes = (nodes: Node[]): void => {
 		deleteImages(nodes, apiUrlCreator);
 		deleteDrawio(nodes, apiUrlCreator);
+		deleteOpenApi(nodes, apiUrlCreator);
 		deleteDiagrams(nodes, apiUrlCreator);
 	};
 
 	const onDeleteMarks = (marks: Mark[]): void => {
 		deleteFiles(marks, apiUrlCreator);
-		deleteComments(marks, apiUrlCreator, articleProps.path, comments);
+		deleteComments(marks, apiUrlCreator, articleProps.pathname, comments);
 	};
 
 	const onAddMarks = (marks: Mark[]): void => {
-		addComments(marks, articleProps.path, comments);
+		addComments(marks, articleProps.pathname, comments);
 	};
+
+	const isEditExtensions = articleIsEdit ? [SelectionMenu] : [];
 
 	const editor = useEditor(
 		{
@@ -66,7 +71,7 @@ const ContentEditor = (props: ContentEditorProps) => {
 				OnDeleteNode.configure({ onDeleteNodes }),
 				OnAddMark.configure({ onAddMarks }),
 				OnDeleteMark.configure({ onDeleteMarks }),
-				SelectionMenu,
+				...isEditExtensions,
 			]),
 			injectCSS: false,
 			editorProps: { handlePaste },
@@ -74,13 +79,14 @@ const ContentEditor = (props: ContentEditorProps) => {
 			onUpdate,
 			onSelectionUpdate,
 			onBlur,
+			editable: articleIsEdit,
 		},
 		[content, isMac, apiUrlCreator, pageDataContext, articleProps.ref.path, ...deps],
 	);
 
 	return (
 		<ContextWrapper editor={editor}>
-			<Menu editor={editor} />
+			{articleIsEdit && <Menu editor={editor} />}
 			<EditorContent editor={editor} />
 		</ContextWrapper>
 	);

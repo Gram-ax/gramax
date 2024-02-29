@@ -21,7 +21,7 @@ import { issue } from "@ext/markdown/elements/issue/model/issue";
 import { kbd } from "@ext/markdown/elements/kbd/model/kbd";
 import { module } from "@ext/markdown/elements/module/model/module";
 import { note } from "@ext/markdown/elements/note/render/model/note";
-import { openapi } from "@ext/markdown/elements/openapi/model/openapi";
+import { OpenApi } from "@ext/markdown/elements/openApi/render/model/OpenApi";
 import { see } from "@ext/markdown/elements/see/model/see";
 import { tabledb } from "@ext/markdown/elements/tabledb/model/tabledb";
 import { term } from "@ext/markdown/elements/term/model/term";
@@ -39,7 +39,7 @@ function getContextTagElementRenderModels(context: ParserContext): Record<string
 		"db-table": tabledb(context),
 		"img-h": imgs(context, "h"),
 		"img-v": imgs(context, "v"),
-		openapi: openapi(context),
+		openapi: OpenApi(context),
 		mermaid: mermaid(context),
 		include: include(context),
 		formula: formula(context),

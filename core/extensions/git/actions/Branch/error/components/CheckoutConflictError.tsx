@@ -1,17 +1,17 @@
 import { ComponentProps } from "react";
-import ErrorForm from "../../../../../errorHandlers/client/components/ErrorForm";
+import InfoModalForm from "../../../../../errorHandlers/client/components/ErrorForm";
 import GetErrorComponent from "../../../../../errorHandlers/logic/GetErrorComponent";
 import useLocalize from "../../../../../localization/useLocalize";
 
 const CheckoutConflictErrorComponent = ({ onCancelClick }: ComponentProps<typeof GetErrorComponent>) => {
 	return (
-		<ErrorForm
+		<InfoModalForm
 			onCancelClick={onCancelClick}
 			title={useLocalize("checkoutError")}
 			closeButton={{ text: useLocalize("ok") }}
 		>
 			<span>{useLocalize("checkoutConflict")}</span>
-		</ErrorForm>
+		</InfoModalForm>
 	);
 };
 

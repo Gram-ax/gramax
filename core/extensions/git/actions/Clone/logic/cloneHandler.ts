@@ -4,14 +4,16 @@ import MimeTypes from "../../../../../ui-logic/ApiServices/Types/MimeTypes";
 import Progress from "../../../../storage/models/Progress";
 import StorageData from "../../../../storage/models/StorageData";
 
-interface CloneHandlerProps {
+export interface CloneHandlerProps {
 	storageData: StorageData;
 	apiUrlCreator: ApiUrlCreator;
 	skipCheck?: boolean;
 	recursive?: boolean;
 	branch?: string;
-	onStart?: (isStart: boolean) => void;
 	onProgress?: (progress: Progress) => void;
+	onStart?: VoidFunction;
+	onFinish?: (path: string) => void;
+	onError?: VoidFunction;
 }
 
 const cloneHandler = async ({
@@ -21,11 +23,13 @@ const cloneHandler = async ({
 	recursive = true,
 	branch,
 	onStart = () => {},
+	onFinish = () => {},
+	onError = () => {},
 	onProgress = () => {},
-}: CloneHandlerProps): Promise<string> => {
+}: CloneHandlerProps): Promise<void> => {
 	if (!storageData) return;
 
-	onStart(true);
+	onStart();
 	const pRes = FetchService.fetch(
 		apiUrlCreator.getStorageCloneUrl(storageData.name, recursive, skipCheck, branch),
 		JSON.stringify(storageData),
@@ -41,12 +45,14 @@ const cloneHandler = async ({
 	}, 50);
 
 	const res = await pRes;
-	onStart(false);
 	onProgress(null);
 	clearInterval(intervalIdx);
 
-	if (!res.ok) return null;
-	return await res.text();
+	if (!res.ok) {
+		onError();
+		return null;
+	}
+	onFinish(await res.text());
 };
 
 export default cloneHandler;

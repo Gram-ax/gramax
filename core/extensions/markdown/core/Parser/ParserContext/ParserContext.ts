@@ -26,6 +26,7 @@ export default interface ParserContext {
 	getProp(propName: string): any;
 	getTablesManager(): TableDB;
 	getUserByMail(mail: string): Promise<UserInfo>;
+	createContext(article: Article): ParserContext;
 	fp: FileProvider;
 	parser: MarkdownParser;
 	formatter: MarkdownFormatter;

@@ -8,14 +8,14 @@ import Branch from "../../../VersionControl/model/branch/Branch";
 import { FileStatus } from "../../../Watchers/model/FileStatus";
 import SourceType from "../../../storage/logic/SourceDataProvider/model/SourceType";
 import Storage from "../../../storage/logic/Storage";
-import getPartSourceDataByStorageName from "../../../storage/logic/utils/getPartSourceDataByStorageName";
-import getSourceNameByData from "../../../storage/logic/utils/getSourceNameByData";
-import createGitHubRepository from "../../actions/Storage/GitHub/logic/createGitHubRepository";
+import getPartGitSourceDataByStorageName from "../../../storage/logic/utils/getPartSourceDataByStorageName";
+import getStorageNameByData from "../../../storage/logic/utils/getStorageNameByData";
+import createGitHubRepository from "../../actions/Source/GitHub/logic/createGitHubRepository";
 import GitCommands from "../GitCommands/GitCommands";
 import GitError from "../GitCommands/errors/GitError";
 import GitErrorCode from "../GitCommands/errors/model/GitErrorCode";
 import gitDataParser, { GitDataParser } from "../GitDataParser/GitDataParser";
-import GitShareLinkData from "../model/GitShareLinkData";
+import GitShareData from "../model/GitShareData";
 import GitSourceData from "../model/GitSourceData.schema";
 import GitStorageData from "../model/GitStorageData";
 import GitStorageUrl from "../model/GitStorageUrl";
@@ -51,32 +51,35 @@ export default class GitStorage implements Storage {
 		conf,
 	}: GitCloneData) {
 		fp.stopWatch();
-
-		const gitRepository = new GitCommands(conf, fp, repositoryPath);
-		const currentUrl = url ?? `https://${data.source.domain}/${data.group}/${data.name}`;
 		try {
-			await gitRepository.clone(getHttpsRepositoryUrl(currentUrl), source, branch, onProgress);
-		} catch (e) {
-			if (!((e as GitError).props?.errorCode === GitErrorCode.AlreadyExistsError)) throw e;
-		}
-		if (recursive) {
-			const submodulesData = await gitRepository.getSubmodulesData();
-			for (const d of submodulesData) {
-				const submodulePath = repositoryPath.join(d.path);
-				await GitStorage.clone({
-					fp,
-					source,
-					conf,
-					url: d.url,
-					branch: d.branch,
-					repositoryPath: submodulePath,
-					recursive,
-					onProgress,
-				});
+			const gitRepository = new GitCommands(conf, fp, repositoryPath);
+			const currentUrl = url ?? `https://${data.source.domain}/${data.group}/${data.name}`;
+			try {
+				await gitRepository.clone(getHttpsRepositoryUrl(currentUrl), source, branch, onProgress);
+			} catch (e) {
+				if (!((e as GitError).props?.errorCode === GitErrorCode.AlreadyExistsError)) throw e;
 			}
+			if (recursive) {
+				const submodulesData = await gitRepository.getSubmodulesData();
+				await Promise.all(
+					submodulesData.map(async (d) => {
+						const submodulePath = repositoryPath.join(d.path);
+						await GitStorage.clone({
+							fp,
+							source,
+							conf,
+							url: d.url,
+							branch: d.branch,
+							repositoryPath: submodulePath,
+							recursive: true,
+							onProgress,
+						});
+					}),
+				);
+			}
+		} finally {
+			fp?.startWatch();
 		}
-
-		fp.startWatch();
 	}
 
 	static async init(conf: GitCommandsConfig, repositoryPath: Path, fp: FileProvider, data: GitStorageData) {
@@ -97,11 +100,23 @@ export default class GitStorage implements Storage {
 		return parseStorageUrl(await this.getUrl()).group;
 	}
 
-	async getType() {
-		return getPartSourceDataByStorageName(await this.getSourceName()).sourceType;
+	async getSourceName() {
+		return parseStorageUrl(await this.getUrl()).domain;
 	}
 
-	async getReviewData(source: GitSourceData, branch: string, filePath: Path): Promise<GitShareLinkData> {
+	async getType() {
+		return getPartGitSourceDataByStorageName(await this.getSourceName()).sourceType;
+	}
+
+	async getStorageData(source: GitSourceData): Promise<GitStorageData> {
+		return {
+			group: await this.getGroup(),
+			name: await this.getName(),
+			source,
+		};
+	}
+
+	async getShareData(source: GitSourceData, branch: string, filePath: Path): Promise<GitShareData> {
 		return {
 			name: await this.getName(),
 			group: await this.getGroup(),
@@ -112,24 +127,13 @@ export default class GitStorage implements Storage {
 		};
 	}
 
-	async getSourceName() {
-		return parseStorageUrl(await this.getUrl()).domain;
-	}
-	async getData(source: GitSourceData): Promise<GitStorageData> {
-		return {
-			group: await this.getGroup(),
-			name: await this.getName(),
-			source,
-		};
-	}
-
 	async getUrl(): Promise<GitStorageUrl> {
 		if (!this._url) await this._initRepositoryUrl();
 		return this._url;
 	}
 
 	async push(data: GitSourceData, recursive = true) {
-		if (getSourceNameByData(data) !== (await this.getSourceName())) return;
+		if (getStorageNameByData(data) !== (await this.getSourceName())) return;
 		await this._gitRepository.push(data);
 		if (recursive) {
 			const subModules = await this._getSubGitStorages();
@@ -161,6 +165,10 @@ export default class GitStorage implements Storage {
 		this._syncCount = { pull: res.a, push: res.b };
 	}
 
+	getRemoteName(): Promise<string> {
+		return this._gitRepository.getRemoteName();
+	}
+
 	async pull(data: GitSourceData, recursive = true) {
 		const oldSubmodulDatas = await this._getSubmodulesData();
 		this._fp.stopWatch();
@@ -176,17 +184,17 @@ export default class GitStorage implements Storage {
 			await this.update();
 		}
 
-		this._fp.startWatch();
+		this._fp?.startWatch();
 	}
 
 	async getFileLink(path: Path, branch?: Branch): Promise<string> {
-		const { storage, relativePath } = await this.getStorageContainsItem(path);
-		const splitRepositoryUrl = getHttpsRepositoryUrl(await storage.getUrl()).split("/");
-		return GitStorage._gitDataParser.getGitLabLink(
-			splitRepositoryUrl,
+		return GitStorage._gitDataParser.getEditFileLink(
+			await this.getSourceName(),
+			await this.getGroup(),
+			await this.getName(),
 			branch ? await this._gitRepository.getRemoteBranchName(branch.toString()) : "master",
-			await storage.getName(),
-			relativePath,
+			path,
+			await this.getType(),
 		);
 	}
 

@@ -1,3 +1,4 @@
+import SourceType from "@ext/storage/logic/SourceDataProvider/model/SourceType";
 import Path from "../../../../logic/FileProvider/Path/Path";
 import { FileStatus } from "../../../Watchers/model/FileStatus";
 import StatusResult from "../GitCommands/model/StatusResult";
@@ -63,13 +64,20 @@ export class GitDataParser {
 			.filter((x) => x);
 	}
 
-	getGitLabLink(splitRepositoryUrl: string[], currentBranch: string, storageName: string, filePath: Path): string {
-		const gitLabUrl = splitRepositoryUrl.slice(0, 3).join("/");
-		const project = splitRepositoryUrl[3];
-
-		return `${gitLabUrl}/-/ide/project/${project}/${storageName}/blob/${currentBranch}/-/${filePath}`
-			.replace(/\/\//g, "/")
-			.replace(":/", "://");
+	getEditFileLink(
+		sourceName: string,
+		group: string,
+		repName: string,
+		branch: string,
+		filePath: Path,
+		sourceType: SourceType,
+	): string {
+		const links: Record<SourceType, string> = {
+			GitHub: `https://${sourceName}/${group}/${repName}/edit/${branch}/${filePath.value}`,
+			GitLab: `https://${sourceName}/-/ide/project/${group}/${repName}/blob/${branch}/-/${filePath.value}`,
+			"Enterprise Server": "",
+		};
+		return links[sourceType];
 	}
 
 	private _getChanges(change: string): string[] {

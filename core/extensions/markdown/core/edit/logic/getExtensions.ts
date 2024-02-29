@@ -1,8 +1,7 @@
+import Blockquote from "@ext/markdown/elements/blockquote/edit/model/blockquote";
 import Br from "@ext/markdown/elements/br/edit/br";
-import ClearDecoration from "@ext/markdown/elements/сlearDecoration/model/ClearDecoration";
 import { Extensions } from "@tiptap/react";
 
-import Blockquote from "@tiptap/extension-blockquote";
 import Document from "@tiptap/extension-document";
 import Gapcursor from "@tiptap/extension-gapcursor";
 import History from "@tiptap/extension-history";
@@ -36,6 +35,7 @@ import BlockMdComponent from "@ext/markdown/elements/md/model/blockMd";
 import InlineMdComponent from "@ext/markdown/elements/md/model/inlineMd";
 import ArrowsMove from "@ext/markdown/elements/moveNode/model/ArrowsMove";
 import NoteComponent from "@ext/markdown/elements/note/edit/model/note";
+import OpenApi from "@ext/markdown/elements/openApi/edit/models/openApi";
 import Paragraph from "@ext/markdown/elements/paragraph/edit/model/paragraph";
 import Placeholder from "@ext/markdown/elements/placeholder/placeholder";
 import Strike from "@ext/markdown/elements/strikethrough/edit/strike";
@@ -51,7 +51,6 @@ const getExtensions = (): Extensions => [
 	InlineCutComponent,
 	InlineMdComponent,
 	BlockMdComponent,
-	ClearDecoration,
 	VideoComponent,
 	HorizontalRule,
 	NoteComponent,
@@ -64,11 +63,11 @@ const getExtensions = (): Extensions => [
 	CodeBlock,
 	Gapcursor,
 	Diagrams,
+	OpenApi,
 	Drawio,
 	Image,
 	File,
 
-	HardBreak,
 	Br,
 
 	TableRow,
@@ -93,6 +92,8 @@ export const getSimpleExtensions = (): Extensions => [
 	Code,
 	Text,
 	Em,
+
+	HardBreak,
 
 	LinkComponent,
 	OrderedList,

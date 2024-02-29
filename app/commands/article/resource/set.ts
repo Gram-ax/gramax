@@ -1,4 +1,5 @@
 import { DesktopModeMiddleware } from "@core/Api/middleware/DesktopModeMiddleware";
+import ReloadConfirmMiddleware from "@core/Api/middleware/ReloadConfirmMiddleware";
 import Context from "@core/Context/Context";
 import Path from "@core/FileProvider/Path/Path";
 import { Article } from "@core/FileStructue/Article/Article";
@@ -15,7 +16,7 @@ const set: Command<
 
 	kind: ResponseKind.none,
 
-	middlewares: [new DesktopModeMiddleware()],
+	middlewares: [new DesktopModeMiddleware(), new ReloadConfirmMiddleware()],
 
 	async do({ data, isBase64, src, catalogName, articlePath, ctx }) {
 		const { hashes, lib, parser, parserContextFactory } = this._app;
@@ -23,7 +24,8 @@ const set: Command<
 		const catalog = await lib.getCatalog(catalogName);
 		const fp = lib.getFileProvider(catalog.getRootCategoryRef().storageId);
 		const itemRef = fp.getItemRef(articlePath);
-		const article = catalog.findItemByItemPath(itemRef.path) as Article;
+		const article = catalog.findItemByItemPath<Article>(itemRef.path);
+		if (!article) return;
 		await parseContent(article, catalog, ctx, parser, parserContextFactory);
 		const hashItem = new HashResourceManager(src, article.parsedContent.resourceManager);
 		await article.parsedContent.resourceManager.setContent(src, isBase64 ? Buffer.from(data, "base64") : data);

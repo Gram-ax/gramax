@@ -1,7 +1,7 @@
 import Url from "@core-ui/ApiServices/Types/Url";
 import { BaseLink } from "@ext/navigation/NavigationLinks";
 import { HTMLAttributes, ReactNode, RefObject, forwardRef } from "react";
-import { useRouter, Link } from "wouter";
+import { Link, useRouter } from "wouter";
 
 interface BrowserLinkProps extends HTMLAttributes<HTMLAnchorElement> {
 	href: BaseLink;

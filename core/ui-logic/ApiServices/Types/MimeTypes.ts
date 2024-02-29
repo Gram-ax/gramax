@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-duplicate-enum-values */
 enum MimeTypes {
 	html = "text/html",
 	text = "text/plain",
@@ -15,6 +16,7 @@ enum MimeTypes {
 	xls = "application/vnd.ms-excel",
 	xlsx = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
 	docx = "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+	zip = "application/zip",
 }
 
 export default MimeTypes;

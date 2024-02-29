@@ -4,9 +4,10 @@ import { Editor } from "@tiptap/core";
 
 const LinkMenuButton = ({ editor, onClick }: { editor: Editor; onClick: () => void }) => {
 	const onClickHandler = () => {
-		onClick()
+		onClick();
 		editor.commands.toggleLink({ href: "", target: editor ? getSelectedText(editor.state) : "" });
 	};
+
 	return (
 		<Button
 			onClick={onClickHandler}

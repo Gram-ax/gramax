@@ -6,12 +6,12 @@ import CommentCounterService from "../../../../../../ui-logic/ContextServices/Co
 const deleteComments = async (
 	marks: Mark[],
 	apiUrlCreator: ApiUrlCreator,
-	articlePath: string,
+	articlePathname: string,
 	comments: { [path: string]: number },
 ) => {
 	for (const mark of marks) {
 		if (mark.type.name !== "comment") return;
-		CommentCounterService.delete(comments, articlePath);
+		CommentCounterService.delete(comments, articlePathname);
 		await FetchService.fetch(apiUrlCreator.deleteComment(mark.attrs.count));
 	}
 };

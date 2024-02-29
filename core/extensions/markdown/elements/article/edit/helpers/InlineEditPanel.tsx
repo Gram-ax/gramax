@@ -27,7 +27,7 @@ const InlineEditPanel = ({ editor, closeHandler }: { editor: Editor; closeHandle
 	}, []);
 
 	return (
-		<div style={{ display: "flex", gap: "4px" }} ref={editPanelRef}>
+		<div style={{ display: "flex", gap: "4px" }} ref={editPanelRef} data-qa="qa-inline-wysiwyg-menu">
 			<HeadersMenuGroup editor={editor} />
 			<div className="divider" />
 			<TextMenuGroup editor={editor} />

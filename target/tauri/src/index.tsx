@@ -7,7 +7,7 @@ import "../../../core/styles/global.css";
 import "../../../core/styles/swagger-ui-theme.css";
 
 import { listen } from "@tauri-apps/api/event";
-import { invoke } from "@tauri-apps/api/primitives";
+import { invoke } from "@tauri-apps/api/core";
 import { attachConsole } from "@tauri-apps/plugin-log";
 
 import { refreshPage } from "@core-ui/ContextServices/RefreshPageContext";

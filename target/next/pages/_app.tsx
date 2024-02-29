@@ -12,7 +12,7 @@ import OpenGraph from "@components/OpenGraph";
 import { defaultRefreshPage } from "@core-ui/ContextServices/RefreshPageContext";
 import getPageTitle from "@core-ui/getPageTitle";
 import PageDataContext from "@core/Context/PageDataContext";
-import { ArticleData, HomePageData, OpenGraphData } from "@core/SitePresenter/SitePresenter";
+import { ArticlePageData, HomePageData, OpenGraphData } from "@core/SitePresenter/SitePresenter";
 import ErrorBoundary from "@ext/errorHandlers/client/components/ErrorBoundary";
 import Error from "next/error";
 import Head from "next/head";
@@ -23,7 +23,7 @@ export default function App({
 }: {
 	Component: any;
 	pageProps: {
-		data: HomePageData & ArticleData;
+		data: HomePageData & ArticlePageData;
 		context: PageDataContext;
 		error?: number;
 		openGraphData?: OpenGraphData;

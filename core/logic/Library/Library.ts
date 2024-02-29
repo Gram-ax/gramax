@@ -18,7 +18,7 @@ export default class Library {
 	private _structures = new Map<string, FileStructure>();
 	private _onChanged: CatalogChangedCallback[] = [];
 
-	constructor(private _rp: RepositoryProvider) {
+	constructor(private _rp: RepositoryProvider, private _isServerApp: boolean) {
 		this.addOnChangeRule(this._checkCatalogPropsChanged.bind(this));
 	}
 
@@ -27,16 +27,13 @@ export default class Library {
 		callback?: FSCreatedCallback,
 		rules?: FSCatalogsInitalizedCallback[],
 	): Promise<FileStructure> {
-		const fs = new FileStructure(fp);
+		const fs = new FileStructure(fp, this._isServerApp);
 		callback?.(fs);
 		fp.watch(this._onItemChange.bind(this));
 		this._structures.set(fp.storageId, fs);
 		const entries = await fs.getCatalogEntries();
 		rules?.forEach((rule) => rule(fp, entries));
-		entries.forEach((entry) => {
-			entry.withOnLoad((catalog) => this.addCatalog(catalog));
-			this._entries.set(entry.getName(), entry);
-		});
+		await this._initRepositories(entries, fp);
 		return fs;
 	}
 
@@ -92,12 +89,22 @@ export default class Library {
 		});
 	}
 
+	private async _initRepositories(entries: CatalogEntry[], fp: FileProvider): Promise<void> {
+		await Promise.all(
+			entries.map(async (entry) => {
+				entry.withOnLoad((catalog) => this.addCatalog(catalog));
+				entry.setRepo(await this._rp.getRepositoryByPath(new Path(entry.getName()), fp), this._rp);
+				this._entries.set(entry.getName(), entry);
+			}),
+		);
+	}
+
 	private _getStorageIdByCatalog(catalog: Catalog) {
 		return catalog.getRootCategoryRef().storageId;
 	}
 
-	private _onCatalogChange(items: ChangeCatalog[]): void {
-		this._onChanged.map((rule) => rule(items));
+	private async _onCatalogChange(items: ChangeCatalog[]): Promise<void> {
+		await Promise.all(this._onChanged.map(async (rule) => rule(items)));
 	}
 
 	private async _onItemChange(changeItems: ItemStatus[]): Promise<void> {
@@ -106,6 +113,7 @@ export default class Library {
 			changeItems.map(async ({ itemRef, type }) => {
 				let catalog = null;
 				const catalogName = itemRef.path.rootDirectory.removeExtraSymbols.value;
+				if (!catalogs.size) await this._checkCatalogAddition(itemRef, type);
 				for (const c of catalogs.values()) {
 					if (c.getName() == catalogName && !this._checkCatalogRemoved(itemRef, type, catalogName)) {
 						catalog = c;
@@ -119,13 +127,13 @@ export default class Library {
 		changeCatalogs = this._filterItems(changeCatalogs);
 
 		const changedCatalogs: Catalog[] = [];
-		changeItems.forEach((changeItem: ChangeCatalog) => {
-			if (!changedCatalogs.includes(changeItem.catalog)) changedCatalogs.push(changeItem.catalog);
+		changeCatalogs.forEach((changeCatalog: ChangeCatalog) => {
+			if (!changedCatalogs.includes(changeCatalog.catalog)) changedCatalogs.push(changeCatalog.catalog);
 		});
 
 		await Promise.all(changedCatalogs.map((catalog: Catalog) => catalog.update(this._rp)));
 
-		if (changeCatalogs.length) this._onCatalogChange(changeCatalogs);
+		if (changeCatalogs.length) await this._onCatalogChange(changeCatalogs);
 	}
 
 	private _filterItems(items: ChangeCatalog[]): ChangeCatalog[] {

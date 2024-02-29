@@ -1,6 +1,6 @@
 import Path from "../FileProvider/Path/Path";
 import { ItemRef, ItemType } from "../FileStructue/Item/Item";
-import { ItemRefProps } from "../SitePresenter/SitePresenter";
+import { ClientItemRef } from "../SitePresenter/SitePresenter";
 import createNewFilePathUtils from "./createNewFilePathUtils";
 
 const itemRefUtils = {
@@ -11,7 +11,7 @@ const itemRefUtils = {
 		};
 	},
 
-	parseRef(ref: ItemRefProps): ItemRef {
+	parseRef(ref: ClientItemRef): ItemRef {
 		return {
 			path: new Path(ref.path),
 			storageId: ref.storageId,

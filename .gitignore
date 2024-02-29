@@ -52,7 +52,8 @@ yarn-error.log*
 .Trashes
 ehthumbs.db
 Thumbs.db
-junit.xml
+.env*
+junit*.xml
 .idea/
 
 

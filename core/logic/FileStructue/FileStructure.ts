@@ -1,15 +1,11 @@
 import Path from "@core/FileProvider/Path/Path";
 import FileInfo from "@core/FileProvider/model/FileInfo";
 import FileProvider from "@core/FileProvider/model/FileProvider";
-import { Article } from "@core/FileStructue/Article/Article";
-import ArticleFileStructure from "@core/FileStructue/Article/ArticleFileStructure";
-import { Catalog, CatalogErrors } from "@core/FileStructue/Catalog/Catalog";
+import { Article, type ArticleProps } from "@core/FileStructue/Article/Article";
+import { Catalog, CatalogErrors, type CatalogProps } from "@core/FileStructue/Catalog/Catalog";
 import CatalogEntry from "@core/FileStructue/Catalog/CatalogEntry";
-import CatalogFileStructure from "@core/FileStructue/Catalog/CatalogFileStructure";
-import { Category } from "@core/FileStructue/Category/Category";
-import CategoryFileStructure from "@core/FileStructue/Category/CategoryFileStructure";
+import { Category, type CategoryProps } from "@core/FileStructue/Category/Category";
 import { Item, ItemRef } from "@core/FileStructue/Item/Item";
-import CustomArticlePresenter from "@core/SitePresenter/CustomArticlePresenter";
 import CatalogEditProps from "@ext/catalog/actions/propsEditor/model/CatalogEditProps.schema";
 import { defaultLanguage } from "@ext/localization/core/model/Language";
 import matter from "gray-matter";
@@ -17,32 +13,31 @@ import * as yaml from "js-yaml";
 
 export type FSRule = (item: Item, catalogProps: FSProps, isRootCategory?: boolean) => void;
 export type FSFilterRule = (parent: Category, catalogProps: FSProps, item: Item) => void;
-export type FSSaveRule = (catalogProps: FSProps) => FSProps;
-export type FSArticleSaveRule = (articleProps: FSProps) => FSProps;
+export type FSSaveRule = (catalogProps: CatalogProps) => CatalogProps;
+export type FSArticleSaveRule = (articleProps: ArticleProps) => ArticleProps;
 export type FSLazyLoadCatalog = (entry: CatalogEntry) => Promise<Catalog>;
 
 export type FSProps = { [key: string]: any };
 
 export type MarkdownProps = {
-	props: FSProps;
+	props: ArticleProps;
 	content: string;
 };
 
 export const DOC_ROOT_FILENAME = ".doc-root.yaml";
 export const DOC_ROOT_REGEXP = /.(doc-)?root.yaml/;
-export const NEW_ARTICLE_NAME = "newArticle";
-export const NEW_ARTICLE_FILENAME = NEW_ARTICLE_NAME + ".md";
 export const CATEGORY_ROOT_FILENAME = "_index.md";
 export const CATEGORY_ROOT_REGEXP = /(_index_\w\w\.md$|_index\.md$)/;
 export const FS_EXCLUDE_FILENAMES = [".git", ".idea", ".vscode", "node_modules"];
+export const FS_EXCLUDE_CATALOG_NAMES = ["IndexCaches"];
 
-export default class FileStructure implements CatalogFileStructure, CategoryFileStructure, ArticleFileStructure {
+export default class FileStructure {
 	private _rules: FSRule[] = [];
 	private _saveRules: FSSaveRule[] = [];
 	private _filterRules: FSFilterRule[] = [];
 	private _articleSaveRules: FSArticleSaveRule[] = [];
 
-	constructor(private _fp: FileProvider) {}
+	constructor(private _fp: FileProvider, private _isServerApp: boolean) {}
 
 	get fp() {
 		return this._fp;
@@ -82,7 +77,9 @@ export default class FileStructure implements CatalogFileStructure, CategoryFile
 
 	async getCatalogEntries(): Promise<CatalogEntry[]> {
 		const items = await this._fp.getItems(Path.empty);
-		const promises = items.filter((i) => i.isDirectory()).map((i) => this.getCatalogEntryByPath(i.path));
+		const promises = items
+			.filter((i) => i.isDirectory() && !FS_EXCLUDE_CATALOG_NAMES.includes(i.name))
+			.map((i) => this.getCatalogEntryByPath(i.path));
 		const catalogs = await Promise.all(promises);
 		return catalogs.filter((c) => c);
 	}
@@ -100,23 +97,24 @@ export default class FileStructure implements CatalogFileStructure, CategoryFile
 
 	async getCatalogEntryByPath(path: Path): Promise<CatalogEntry> {
 		const docroot = await this._search(path, DOC_ROOT_REGEXP);
-		if (!docroot) return;
 
-		const root = docroot.parentDirectoryPath;
+		if (!(docroot || (await this.fp.exists(path)))) return;
 
 		const errors: CatalogErrors = {};
-		const props = await this._parseYaml(docroot, errors, `${DOC_ROOT_FILENAME} is invalid: `);
+		const props = docroot
+			? await this._parseYaml(docroot, errors, `${DOC_ROOT_FILENAME} is invalid: `)
+			: this._defaultProps(path);
 		const name = path.name;
 
-		const ref = this._fp.getItemRef(docroot);
+		const ref = this._fp.getItemRef(docroot ?? path.join(new Path(DOC_ROOT_FILENAME)));
 		return new CatalogEntry({
 			name,
 			rootCaterogyRef: ref,
-			rootCaterogyPath: root,
 			basePath: path,
 			props,
 			errors,
 			load: (entry) => this.getCatalogByEntry(entry),
+			isServerApp: this._isServerApp,
 		});
 	}
 
@@ -128,7 +126,12 @@ export default class FileStructure implements CatalogFileStructure, CategoryFile
 			ref: this.getItemRef(entry.getRootCategoryRef().path),
 			parent: null,
 			content: null,
-			props: { ...entry.props },
+			props: {
+				...entry.props,
+				title: entry.props.title,
+				logicPath: "",
+				order: 0,
+			},
 			items: [],
 			logicPath: entry.getName(),
 			directory: entry.getRootCategoryPath(),
@@ -139,7 +142,7 @@ export default class FileStructure implements CatalogFileStructure, CategoryFile
 		this._rules.forEach((rule) => rule(category, entry.props, true));
 		await this._readCategoryItems(entry.getRootCategoryPath(), category, entry.props, entry.errors);
 
-		return new Catalog({
+		const catalog = new Catalog({
 			name: entry.getName(),
 			props: entry.props,
 			root: category,
@@ -148,7 +151,10 @@ export default class FileStructure implements CatalogFileStructure, CategoryFile
 			rootPath: this._fp.rootPath,
 			fs: this,
 			fp: this._fp,
+			isServerApp: this._isServerApp,
 		});
+		await catalog.initWelcomeArticleIfNeed();
+		return catalog;
 	}
 
 	async createCatalog(props: CatalogEditProps, base?: Path): Promise<Catalog> {
@@ -156,13 +162,8 @@ export default class FileStructure implements CatalogFileStructure, CategoryFile
 		const path = base ? url.join(base) : url;
 		delete props.url;
 
-		const docroot = path.join(new Path(DOC_ROOT_FILENAME));
-		await this._fp.write(docroot, this._serializeProps(props));
+		await this._fp.mkdir(path);
 
-		const articlePath = path.join(new Path(NEW_ARTICLE_FILENAME));
-		const article = new CustomArticlePresenter().getArticle(NEW_ARTICLE_NAME);
-
-		await this._fp.write(articlePath, this._serializeArticle(article));
 		const entry = await this.getCatalogEntryByPath(url);
 		return await entry.load();
 	}
@@ -171,7 +172,7 @@ export default class FileStructure implements CatalogFileStructure, CategoryFile
 		path: Path,
 		parent: Category,
 		article: Article,
-		props?: FSProps,
+		props?: CatalogProps,
 		errors?: CatalogErrors,
 	): Promise<Category> {
 		await this._fp.write(path, this._serializeArticle(article));
@@ -203,7 +204,7 @@ export default class FileStructure implements CatalogFileStructure, CategoryFile
 		}
 
 		const stat = await this._fp.getStat(path);
-		const article: Article = this.makeArticleByProps(path, md.data, md.content, parent, props, stat.mtimeMs);
+		const article = this.makeArticleByProps(path, md.data, md.content, parent, props, stat.mtimeMs);
 
 		this._rules.forEach((rule) => rule(article, props));
 
@@ -211,14 +212,10 @@ export default class FileStructure implements CatalogFileStructure, CategoryFile
 	}
 
 	async saveCatalog(catalog: Catalog): Promise<void> {
-		const root = catalog.getRootCategory();
 		let props = catalog.props;
-		let rootProps = root.props;
-		this._saveRules.forEach((rule) => {
-			props = rule(props);
-			rootProps = rule(rootProps);
-		});
-		const text = this._serializeProps({ ...rootProps.props, ...props });
+		this._saveRules.forEach((rule) => (props = rule(props)));
+		delete props.docroot;
+		const text = this._serializeProps({ ...props });
 		await this._fp.write(catalog.getRootCategoryPath().join(new Path(DOC_ROOT_FILENAME)), text);
 	}
 
@@ -230,7 +227,7 @@ export default class FileStructure implements CatalogFileStructure, CategoryFile
 
 	makeArticleByProps(
 		path: Path,
-		props: FSProps,
+		props: ArticleProps,
 		content: string,
 		parent: Category,
 		catalogProps: FSProps,
@@ -239,7 +236,7 @@ export default class FileStructure implements CatalogFileStructure, CategoryFile
 		const articleCodeInCategory = parent.folderPath.subDirectory(path).stripDotsAndExtension;
 		const logicPath = Path.join(parent.logicPath, articleCodeInCategory);
 
-		const article: Article = new Article({
+		const article = new Article({
 			ref: this.getItemRef(path),
 			parent,
 			props: props ?? {},
@@ -256,7 +253,7 @@ export default class FileStructure implements CatalogFileStructure, CategoryFile
 	async makeCategory(
 		path: Path,
 		parent: Category,
-		props: FSProps,
+		props: CatalogProps,
 		errors: CatalogErrors,
 		indexPath: Path,
 	): Promise<Category> {
@@ -280,15 +277,15 @@ export default class FileStructure implements CatalogFileStructure, CategoryFile
 					message: `Invalid matter in markdown file${path ? " " + path : ""}: ${e.message ?? ""}`,
 				});
 			}
-			return { props: {}, content: "" };
+			return { props: undefined, content: "" };
 		}
-		return { props: md.data ? md.data : {}, content: md.content.trim() };
+		return { props: md.data as ArticleProps, content: md.content.trim() };
 	}
 
 	private async _makeArticle(
 		path: Path,
 		parentCategory: Category,
-		catalogProps: FSProps,
+		catalogProps: CatalogProps,
 		catalogErrors: CatalogErrors,
 	): Promise<Article> {
 		const { props, content } = this.parseMarkdown(await this._fp.read(path), path, catalogErrors);
@@ -296,10 +293,10 @@ export default class FileStructure implements CatalogFileStructure, CategoryFile
 
 		const logicPath = Path.join(parentCategory.logicPath, articleCodeInCategory);
 		const stat = await this._fp.getStat(path);
-		const article: Article = new Article({
+		const article = new Article({
 			ref: this.getItemRef(path),
 			parent: parentCategory,
-			props,
+			props: props ?? {},
 			content,
 			logicPath,
 			fs: this,
@@ -311,11 +308,11 @@ export default class FileStructure implements CatalogFileStructure, CategoryFile
 	}
 
 	private async _makeCategoryByProps(
-		props: FSProps,
+		props: CategoryProps,
 		path: Path,
 		content: string,
 		parent: Category,
-		catalogProps: FSProps,
+		catalogProps: CatalogProps,
 		errors: CatalogErrors,
 		indexPath: Path,
 	): Promise<Category> {
@@ -329,7 +326,7 @@ export default class FileStructure implements CatalogFileStructure, CategoryFile
 			ref: this._fp.getItemRef(indexPath),
 			parent,
 			content,
-			props: props ?? {},
+			props,
 			logicPath,
 			directory: path,
 			items: [],
@@ -344,7 +341,7 @@ export default class FileStructure implements CatalogFileStructure, CategoryFile
 	private async _readCategory(
 		folderPath: Path,
 		parentCategory: Category,
-		catalogProps: FSProps,
+		catalogProps: CatalogProps,
 		catalogErrors: CatalogErrors,
 	): Promise<void> {
 		const files = await this._fp.getItems(folderPath);
@@ -383,7 +380,7 @@ export default class FileStructure implements CatalogFileStructure, CategoryFile
 	private async _readCategoryItems(
 		folderPath: Path,
 		category: Category,
-		catalogProps: FSProps,
+		catalogProps: CatalogProps,
 		catalogErrors: CatalogErrors,
 	) {
 		const files = await this._fp.getItems(folderPath);
@@ -416,8 +413,8 @@ export default class FileStructure implements CatalogFileStructure, CategoryFile
 		path = await this._explore(search, root, queue, explored, 0);
 		while (queue.length > 0 && !path) {
 			const node = queue.shift();
-			if (node.depth > depth) continue;
-			path = await this._explore(search, node.path, queue, explored, depth);
+			if (node.depth >= depth) continue;
+			path = await this._explore(search, node.path, queue, explored, node.depth);
 		}
 		return path;
 	}
@@ -453,7 +450,7 @@ export default class FileStructure implements CatalogFileStructure, CategoryFile
 		}
 	}
 
-	private async _parseYaml(path: Path, errors: CatalogErrors, errorMessage: string): Promise<FSProps> {
+	private async _parseYaml(path: Path, errors: CatalogErrors, errorMessage: string): Promise<CatalogProps> {
 		let props;
 		try {
 			props = yaml.load(await this._fp.read(path)) ?? {};
@@ -469,6 +466,12 @@ export default class FileStructure implements CatalogFileStructure, CategoryFile
 		return props;
 	}
 
+	private _defaultProps(path: Path): CatalogProps {
+		return {
+			title: path.name,
+		};
+	}
+
 	private _serializeArticle(article: Article): string {
 		let props = article.props;
 		this._articleSaveRules.forEach((rule) => (props = rule(props)));
@@ -477,6 +480,7 @@ export default class FileStructure implements CatalogFileStructure, CategoryFile
 
 	private _serializeProps(props: FSProps): string {
 		const p = { ...props };
+		delete p.welcome;
 		if (p.lang == defaultLanguage) delete p.lang;
 		return yaml.dump(p, { quotingType: '"' });
 	}

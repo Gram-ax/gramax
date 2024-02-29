@@ -5,7 +5,7 @@ import ArticlePropsService from "@core-ui/ContextServices/ArticleProps";
 import ArticleRefService from "@core-ui/ContextServices/ArticleRef";
 import { useCtrlKeyLinkHandler } from "@core-ui/hooks/useCtrlKeyLinkHandler";
 import trollCaller from "@core-ui/trollCaller";
-import { ArticleData } from "@core/SitePresenter/SitePresenter";
+import { ArticlePageData } from "@core/SitePresenter/SitePresenter";
 import imageHandlePaste from "@ext/markdown/elements/image/edit/logic/imageHandlePaste";
 import FocusService from "@ext/markdown/elementsUtils/ContextServices/FocusService";
 import getTocItems, { getLevelTocItemsByJSONContent } from "@ext/navigation/article/logic/createTocItems";
@@ -16,7 +16,9 @@ import ArticleRenderer from "./ArticleRenderer";
 import ArticleTitle from "./ArticleTitle";
 import ArticleUpdater from "./ArticleUpdater/ArticleUpdater";
 
-const Article = ({ data }: { data: ArticleData }) => {
+const ARTICLE_UPDATE_SYMBOL = Symbol();
+
+const Article = ({ data }: { data: ArticlePageData }) => {
 	const articleRef = ArticleRefService.value;
 	const articleProps = ArticlePropsService.value;
 	const apiUrlCreator = ApiUrlCreatorService.value;
@@ -31,7 +33,7 @@ const Article = ({ data }: { data: ArticleData }) => {
 		ArticlePropsService.set(data.articleProps);
 	}, [data]);
 
-	const onUpdate = (newData: ArticleData) => {
+	const onUpdate = (newData: ArticlePageData) => {
 		setActualData(newData);
 		setScrollPosition(articleRef?.current?.scrollTop ?? 0);
 		ArticlePropsService.set(newData.articleProps);
@@ -39,7 +41,7 @@ const Article = ({ data }: { data: ArticleData }) => {
 
 	const onCreate = () => {
 		if (!articleRef?.current) return;
-		setTimeout(() => articleRef.current.scrollTo({ top: scrollPosition, behavior: "auto" }), 50);
+		setTimeout(() => articleRef.current?.scrollTo({ top: scrollPosition, behavior: "auto" }), 50);
 	};
 
 	const handlePaste = (view: EditorView, event: ClipboardEvent) => {
@@ -59,7 +61,7 @@ const Article = ({ data }: { data: ArticleData }) => {
 			await FetchService.fetch(url, articleContentEdit, MimeTypes.json);
 		};
 		window.forceTrollCaller = f;
-		trollCaller(f, 500);
+		trollCaller(ARTICLE_UPDATE_SYMBOL, f, 500);
 
 		const tocItems = getTocItems(getLevelTocItemsByJSONContent(editor.state.doc));
 		if (!tocItems) return;

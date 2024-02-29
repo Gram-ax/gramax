@@ -86,4 +86,8 @@ export default class TestContext extends BaseContext implements ParserContext {
 			id: "testId",
 		});
 	}
+
+	createContext(article: Article) {
+		return new TestContext(article.ref, this._catalog, this.fp, this.parser, this.formatter);
+	}
 }

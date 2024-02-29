@@ -3,7 +3,7 @@ import getGitError from "@ext/git/core/GitCommands/errors/logic/getGitError";
 import { Caller } from "@ext/git/core/GitCommands/errors/model/Caller";
 import GitErrorCode from "@ext/git/core/GitCommands/errors/model/GitErrorCode";
 import GitCommandsConfig from "@ext/git/core/GitCommands/model/GitCommandsConfig";
-import StorageLogger from "@ext/loggers/StorageLogger";
+import PersistentLogger from "@ext/loggers/PersistentLogger";
 import ini from "ini";
 import Path from "../../../../logic/FileProvider/Path/Path";
 import FileProvider from "../../../../logic/FileProvider/model/FileProvider";
@@ -68,7 +68,22 @@ export class GitCommands {
 			} catch (err) {
 				throw new GitError(
 					GitErrorCode.CurrentBranchNotFoundError,
-					null,
+					err,
+					{ repositoryPath: this._repoPath.value },
+					"branch",
+				);
+			}
+		});
+	}
+
+	async getCurrentBranchName(): Promise<string> {
+		return await this._logWrapper("getCurrentBranchName", "Getting current branch name (string)", async () => {
+			try {
+				return await this._impl.getCurrentBranchName();
+			} catch (err) {
+				throw new GitError(
+					GitErrorCode.CurrentBranchNotFoundError,
+					err,
 					{ repositoryPath: this._repoPath.value },
 					"branch",
 				);
@@ -90,14 +105,28 @@ export class GitCommands {
 	}
 
 	async getBranch(branchName: string): Promise<GitBranch> {
-		return await this._logWrapper("getBranch", `Getting branch ${branchName} failed`, () =>
-			this._impl.getBranch(branchName),
-		);
+		return await this._logWrapper("getBranch", `Getting branch ${branchName} failed`, async () => {
+			const branch = await this._impl.getBranch(branchName);
+			if (!branch)
+				throw new GitError(
+					GitErrorCode.NotFoundError,
+					null,
+					{ repositoryPath: this._repoPath.value, what: branchName },
+					"branch",
+				);
+			return branch;
+		});
 	}
 
 	async getRemoteBranchName(name: string, data?: GitSourceData): Promise<string> {
 		return await this._logWrapper("getRemoteBranchName", `Getting remote branch name for ${name}`, () =>
 			this._impl.getRemoteBranchName(name, data),
+		);
+	}
+
+	async getCommitHash(ref = "HEAD"): Promise<GitVersion> {
+		return await this._logWrapper("getCommitHash", `Getting commit hash for ${ref}`, () =>
+			this._impl.getCommitHash(ref),
 		);
 	}
 
@@ -145,7 +174,7 @@ export class GitCommands {
 					throw getGitError(
 						e,
 						{ repositoryPath: this._repoPath.value, branchName: branchName.toString() },
-						"branch",
+						"deleteBranch",
 					);
 				}
 			},
@@ -379,20 +408,8 @@ export class GitCommands {
 	}
 
 	private _log(msg: string, command: string, error?: Error) {
-		const message = `${this._getContext()} CMD: '${command}' > ${msg}`;
-		if (error) StorageLogger.logError(error, message);
-		else StorageLogger.logInfo(message);
-	}
-
-	private _getContext(): string {
-		const date = new Date();
-		return `${date.getFullYear()}-${
-			date.getMonth() + 1
-		}-${date.getDate()} ${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}.${(
-			1000 +
-			date.getMilliseconds() +
-			""
-		).slice(1)} REP: '${this._repoPath}'`;
+		if (error) PersistentLogger.err(msg, error, "git", { command, repo: this._repoPath });
+		else PersistentLogger.info(msg, "git", { command, repo: this._repoPath.value });
 	}
 
 	private async _logWrapper<T>(command: string, msg: string, func: () => T | Promise<T>): Promise<T> {

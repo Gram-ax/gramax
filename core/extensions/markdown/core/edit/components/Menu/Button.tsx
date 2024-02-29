@@ -34,13 +34,13 @@ const StyledDiv = styled.div<ButtonProps>`
 		border-radius: var(--radius-block);
 	}
 
-	.button:hover,
+	.button:hover:not(.disabled),
 	.button.is-active {
 		background: var(--color-edit-menu-button-active-bg);
 	}
 
 	.button.disabled {
-		pointer-events: none !important;
+		cursor: default;
 		opacity: 0.4 !important;
 	}
 
@@ -85,7 +85,7 @@ const Button = forwardRef((props: ButtonProps, ref: ForwardedRef<HTMLDivElement>
 	};
 
 	const ButtonContent = (
-		<div onMouseLeave={onMouseLeave} onClick={onClick} className={classNames("button", mods)}>
+		<div onMouseLeave={onMouseLeave} onClick={disabled ? () => {} : onClick} className={classNames("button", mods)}>
 			{icon ? (
 				<div className="iconFrame">
 					<Icon faFw code={icon} prefix={icon == "markdown" ? "fab" : null} style={iconStyle} />

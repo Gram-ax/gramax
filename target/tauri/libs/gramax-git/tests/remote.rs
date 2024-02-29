@@ -23,7 +23,7 @@ fn repo(#[default(&sandbox())] sandbox: &TempDir, #[default("")] url: &str) -> i
   if url.is_empty() {
     GitRepository::init(sandbox.path(), DummyCreds).unwrap()
   } else {
-    GitRepository::clone(url, sandbox.path(), "master", DummyCreds, |_, _| true).unwrap()
+    GitRepository::clone(url, sandbox.path(), Some("master"), DummyCreds, |_, _| true).unwrap()
   }
 }
 
@@ -45,7 +45,7 @@ fn repos(#[default(&sandbox())] sandbox: &TempDir) -> WithRemote {
   let remote = GitRepository::init(&remote_path, DummyCreds).unwrap();
   remote.repo().config().unwrap().set_bool("core.bare", true).unwrap();
   let local =
-    GitRepository::clone(remote_path.to_string_lossy(), &local_path, "master", DummyCreds, |_, _| true)
+    GitRepository::clone(remote_path.to_string_lossy(), &local_path, Some("master"), DummyCreds, |_, _| true)
       .unwrap();
 
   WithRemote { local, local_path, remote, remote_path }
@@ -65,10 +65,10 @@ fn add_remote(_sandbox: TempDir, #[with(&_sandbox)] repo: impl Repository<DummyC
 }
 
 #[rstest]
-#[case("https://github.com/gram-ax/gramax-catalog-template", "master")]
-fn clone(sandbox: TempDir, #[case] url: &str, #[case] branch: &str) -> Result {
+#[case("https://github.com/gram-ax/gramax-catalog-template")]
+fn clone(sandbox: TempDir, #[case] url: &str) -> Result {
   let mut objects = 0;
-  GitRepository::clone(url, sandbox.path(), branch, DummyCreds, |_, _| {
+  GitRepository::clone(url, sandbox.path(), None, DummyCreds, |_, _| {
     objects += 1;
     true
   })?;

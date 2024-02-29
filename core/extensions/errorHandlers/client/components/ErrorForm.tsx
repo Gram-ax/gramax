@@ -7,10 +7,11 @@ import { Property } from "csstype";
 import { ReactNode } from "react";
 import useLocalize from "../../../localization/useLocalize";
 
-const ErrorForm = ({
+const InfoModalForm = ({
 	title,
 	children,
 	onCancelClick,
+	isError = true,
 	icon,
 	actionButton,
 	closeButton,
@@ -18,6 +19,7 @@ const ErrorForm = ({
 	title: string;
 	children: ReactNode;
 	onCancelClick: () => void;
+	isError?: boolean;
 	icon?: { color?: Property.Color; code: string };
 	actionButton?: { text: string; onClick: () => void };
 	closeButton?: { text: string };
@@ -28,7 +30,7 @@ const ErrorForm = ({
 		<ModalLayoutLight>
 			<FormStyle>
 				<>
-					<legend data-qa="qa-error-modal">
+					<legend data-qa={`qa-${isError ? "error-" : ""}info-modal`}>
 						{icon && <Icon style={{ color: icon.color }} code={icon.code} />}
 						<span className="min">{title}</span>
 					</legend>
@@ -37,7 +39,7 @@ const ErrorForm = ({
 					<div className="buttons">
 						<Button
 							onClick={onCancelClick}
-							buttonStyle={actionButton ? ButtonStyle.transparent : ButtonStyle.default}
+							buttonStyle={actionButton ? ButtonStyle.underline : ButtonStyle.default}
 						>
 							{closeButton?.text ?? (actionButton ? cancelText : closeText)}
 						</Button>
@@ -53,4 +55,4 @@ const ErrorForm = ({
 	);
 };
 
-export default ErrorForm;
+export default InfoModalForm;

@@ -2,6 +2,7 @@ import { AuthorizeMiddleware } from "@core/Api/middleware/AuthorizeMiddleware";
 import Context from "@core/Context/Context";
 import Path from "@core/FileProvider/Path/Path";
 import { Command, ResponseKind } from "../../types/Command";
+import ReloadConfirmMiddleware from "@core/Api/middleware/ReloadConfirmMiddleware";
 
 const publish: Command<
 	{ ctx: Context; catalogName: string; message: string; filePaths: string[]; recursive?: boolean },
@@ -11,7 +12,7 @@ const publish: Command<
 
 	kind: ResponseKind.none,
 
-	middlewares: [new AuthorizeMiddleware()],
+	middlewares: [new AuthorizeMiddleware(), new ReloadConfirmMiddleware()],
 
 	async do({ ctx, catalogName, message, filePaths, recursive }) {
 		const { lib, logger, rp } = this._app;

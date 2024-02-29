@@ -7,7 +7,11 @@ export default abstract class Cookie {
 	abstract exist(name: string): boolean;
 	abstract getAllNames(): string[];
 
-	constructor(private _secret: string) {}
+	private _secret: string
+
+	constructor(secret: string) {
+		this._secret = secret ?? "."
+	}
 
 	protected _encrypt(value: string): string {
 		return cryptoJS.AES.encrypt(value, this._secret).toString();

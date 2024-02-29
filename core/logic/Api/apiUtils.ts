@@ -20,17 +20,15 @@ export const apiUtils = {
 	},
 
 	getProtocolHost(req: ApiRequest) {
-		let protocol = "https:";
-		const host: string = req ? req.headers["x-forwarded-host"] || req.headers["host"] : window.location.host;
-		if (host.indexOf("localhost") > -1) {
-			protocol = "http:";
-		}
+		if (!req.headers.referer)
+			return { protocol: "http", host: req.headers["x-forwarded-host"] ?? req.headers["host"] };
+		const [, protocol = "http", host] = /^(?:(https?):\/\/)?([^/]+)/.exec(req.headers.referer);
 		return { protocol, host };
 	},
 
 	getDomain(req: ApiRequest): string {
 		const { protocol, host } = apiUtils.getProtocolHost(req);
-		return protocol + "//" + host;
+		return protocol + "://" + host;
 	},
 
 	getDomainByBasePath(req: ApiRequest, basePath: string): string {

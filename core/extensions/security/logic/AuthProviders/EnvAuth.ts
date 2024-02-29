@@ -21,10 +21,9 @@ class EnvAuth implements AuthProvider {
 	}
 
 	logout(req: ApiRequest, res: ApiResponse): void | Promise<void> {
-		const url = (req.query.from as string) ?? "/";
+		const url = decodeURIComponent(req.query.from as string) ?? "/";
 		res.statusCode = 302;
-		res.setHeader("location", url);
-		res.end();
+		res.redirect(url);
 	}
 
 	assertEndpoint(

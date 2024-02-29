@@ -4,10 +4,7 @@ import { Router, RouterRule } from "@core/Api/Router";
 import { NextRouter as DefaultNextRouter, useRouter as useDefaultNextRouter } from "next/router";
 
 export default class NextRouter extends Router {
-	private constructor(
-		private _router: DefaultNextRouter,
-		rules: RouterRule[],
-	) {
+	private constructor(private _router: DefaultNextRouter, rules: RouterRule[]) {
 		super(rules);
 	}
 
@@ -20,18 +17,18 @@ export default class NextRouter extends Router {
 	}
 
 	get path() {
-		return this._router.asPath;
+		return this._router?.asPath;
 	}
 
 	pushQuery(query: Query) {
 		this._router.query = query;
-		void this._router.push(this._router.route);
+		void this._router.push({ query: this._router.query });
 		return this;
 	}
 
 	pushPath(path: string) {
 		const transformed = this._transform(path);
-		this._router.push({ pathname: transformed }).then(refreshPage).catch(null);
+		void this._router.push({ pathname: transformed }).then(refreshPage).catch(null);
 		return this;
 	}
 

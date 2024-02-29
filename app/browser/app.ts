@@ -16,9 +16,9 @@ import Logger from "@ext/loggers/Logger";
 import MarkdownParser from "@ext/markdown/core/Parser/Parser";
 import ParserContextFactory from "@ext/markdown/core/Parser/ParserContext/ParserContextFactory";
 import MarkdownFormatter from "@ext/markdown/core/edit/logic/Formatter/Formatter";
+import FuseSearcher from "@ext/search/Fuse/FuseSearcher";
 import IndexCacheProvider from "@ext/search/IndexCacheProvider";
-import LunrSearcher from "@ext/search/Lunr/Searcher";
-import Searcher from "@ext/search/Searcher";
+import { IndexDataProvider } from "@ext/search/IndexDataProvider";
 import AuthManager from "@ext/security/logic/AuthManager";
 import { TicketManager } from "@ext/security/logic/TicketManager/TicketManager";
 import { AppConfig } from "../config/AppConfig";
@@ -42,7 +42,7 @@ const _init = async (config: AppConfig): Promise<Application> => {
 	await fp.validate();
 
 	const libRules = getExecutingEnvironment() == "browser" ? [deleteAnyFolderRule] : [];
-	const lib = new Library(rp);
+	const lib = new Library(rp, config.isServerApp);
 	await lib.addFileProvider(fp, (fs) => FSLocalizationRules.bind(fs), libRules);
 
 	if (config.paths.local) {
@@ -51,8 +51,8 @@ const _init = async (config: AppConfig): Promise<Application> => {
 		await lib.addFileProvider(fp);
 	}
 
-	const cacheFileProvider = new FileProvider(config.paths.cache);
-	const cache = new IndexCacheProvider(cacheFileProvider);
+	const cacheFileProvider = new FileProvider(config.paths.userDataPath);
+	const indexCacheProvider = new IndexCacheProvider(cacheFileProvider);
 	const hashes = new Hash();
 	const tm = new ThemeManager();
 	const encoder = new Encoder();
@@ -70,15 +70,9 @@ const _init = async (config: AppConfig): Promise<Application> => {
 		config.enterpriseServerUrl,
 	);
 	const logger: Logger = new BugsnagLogger(config.bugsnagApiKey);
-	const searcher: Searcher = new LunrSearcher(lib, parser, parserContextFactory, cache);
-	const sitePresenterFactory = new SitePresenterFactory(
-		lib,
-		parser,
-		parserContextFactory,
-		searcher,
-		rp,
-		errorArticlesProvider,
-	);
+	const indexDataProvider = new IndexDataProvider(lib, parser, parserContextFactory, indexCacheProvider);
+	const searcher = new FuseSearcher(indexDataProvider);
+	const sitePresenterFactory = new SitePresenterFactory(lib, parser, parserContextFactory, rp, errorArticlesProvider);
 	const contextFactory = new ContextFactory(tm, config.cookieSecret);
 
 	return {
@@ -100,13 +94,14 @@ const _init = async (config: AppConfig): Promise<Application> => {
 		parserContextFactory,
 		errorArticlesProvider,
 		conf: {
-			corsProxy: corsProxy,
+			corsProxy,
 			branch: config.branch,
 			basePath: config.paths.base,
 			isReadOnly: config.isReadOnly,
 			isServerApp: config.isServerApp,
 			ssoServerUrl: config.ssoServerUrl,
 			ssoPublicKey: config.ssoPublicKey,
+			authServiceUrl: config.authServiceUrl,
 			isProduction: config.isProduction,
 			enterpriseServerUrl: config.enterpriseServerUrl,
 			bugsnagApiKey: config.bugsnagApiKey,

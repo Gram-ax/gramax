@@ -7,7 +7,7 @@ const downloadResource = async (apiUrlCreator: ApiUrlCreator, path: Path) => {
 	const res = await FetchService.fetch(apiUrlCreator.getArticleResource(path.value));
 	if (!res.ok) return;
 	const extension = path.extension;
-	downloadFile(res.body, MimeTypes[extension] ?? extension, path.nameWithExtension);
+	downloadFile(await res.blob(), MimeTypes[extension] ?? extension, path.nameWithExtension);
 };
 
 export const downloadFile = (fileData: any, mimeType: MimeTypes, fileName: string) => {

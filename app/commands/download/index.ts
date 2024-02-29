@@ -1,4 +1,4 @@
-import { getDownloadUrl, getServerVersion } from "@core/utils/appUtils";
+import { getDownloadUrl } from "@core/utils/appUtils";
 import { Command, ResponseKind } from "../../types/Command";
 
 const download: Command<{ platform: string; isDev: boolean }, string> = Command.create({
@@ -7,9 +7,7 @@ const download: Command<{ platform: string; isDev: boolean }, string> = Command.
 	kind: ResponseKind.redirect,
 
 	async do({ platform, isDev }) {
-		const version = await getServerVersion(isDev);
-		const url = getDownloadUrl(isDev, platform, version);
-		return url;
+		return await getDownloadUrl(isDev, platform);
 	},
 
 	params(ctx, q) {

@@ -36,15 +36,15 @@ const DbDiagram = styled(
 		const [hover, setHover] = useState(null);
 		const [focus, setFocus] = useState(false);
 
-		const load = async () => {
+		const load = async (src: string, tags: string, primary?: string) => {
 			const res = await FetchService.fetch<DbDiagramData>(apiUrlCreator.getDbDiagramUrl(src, primary, tags));
 			if (res.ok) setData(await res.json());
 			else setError(await res.json());
 		};
 
 		useEffect(() => {
-			load();
-		}, []);
+			load(src, tags, primary);
+		}, [src, tags, primary]);
 
 		if (error || (data && !data?.tables)) return <DiagramError error={error ?? data} />;
 
@@ -185,9 +185,7 @@ const DbDiagram = styled(
 		outline: none;
 	}
 	svg .title {
-		font:
-			bold 30px "Open Sans",
-			sans-serif;
+		font: bold 30px "Open Sans", sans-serif;
 	}
 	svg .titleBlock {
 		cursor: pointer;
@@ -196,17 +194,13 @@ const DbDiagram = styled(
 		text-decoration: underline;
 	}
 	svg .field {
-		font:
-			25px "Open Sans",
-			sans-serif;
+		font: 25px "Open Sans", sans-serif;
 	}
 	svg .key {
 		font-weight: bold;
 	}
 	svg .notNullable {
-		font:
-			25px "Open Sans",
-			sans-serif;
+		font: 25px "Open Sans", sans-serif;
 	}
 	svg.highlight > * {
 		opacity: 0.5;

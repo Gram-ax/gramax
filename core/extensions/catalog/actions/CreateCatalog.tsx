@@ -2,7 +2,7 @@ import FetchService from "@core-ui/ApiServices/FetchService";
 import MimeTypes from "@core-ui/ApiServices/Types/MimeTypes";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import Path from "@core/FileProvider/Path/Path";
-import { CatalogProps } from "@core/SitePresenter/SitePresenter";
+import { ClientCatalogProps } from "@core/SitePresenter/SitePresenter";
 import createNewFilePathUtils from "@core/utils/createNewFilePathUtils";
 import CatalogEditProps from "@ext/catalog/actions/propsEditor/model/CatalogEditProps.schema";
 import { useRouter } from "../../../logic/Api/useRouter";
@@ -34,14 +34,14 @@ const CreateCatalog = ({ trigger }: { trigger: JSX.Element }) => {
 			description: "",
 		};
 
-		const response = await FetchService.fetch<CatalogProps>(
+		const response = await FetchService.fetch<ClientCatalogProps>(
 			apiUrlCreator.createCatalog(),
 			JSON.stringify(props),
 			MimeTypes.json,
 		);
 		if (!response.ok) return;
 		const newCatalogProps = await response.json();
-		router.pushPath("/" + newCatalogProps.name);
+		router.pushPath("/" + newCatalogProps.link.pathname);
 	};
 
 	return <div onClick={createCatalog}>{trigger}</div>;

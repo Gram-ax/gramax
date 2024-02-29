@@ -1,7 +1,32 @@
-import { Then, When } from "@cucumber/cucumber";
+import { Given, Then, When } from "@cucumber/cucumber";
 import { expect } from "playwright/test";
 import E2EWorld from "../models/World";
-import { checkForErrorModal, dumpLogs } from "../setup/logs";
+import config from "../setup/config";
+import { checkForErrorModal } from "./utils/utils";
+
+Given("отменяем все изменения", { timeout: config.timeouts.long }, async function (this: E2EWorld) {
+	const search = this.page().search().reset();
+	await search.scope("левую панель");
+	await search.scope("нижнюю панель");
+	await search.icon("облачка").click();
+
+	await search.reset().find(".form-layout");
+	await this.page().waitForLoad();
+
+	const close = search.clickable("Закрыть");
+
+	if (await close.isVisible()) {
+		await search.clickable("Закрыть").click();
+	} else {
+		await search.scope("публикация");
+		await search.scope("левую панель");
+		await search.scope("Выбрать все");
+		await search.icon("отмена").click();
+	}
+
+	search.reset();
+	await this.page().waitForLoad();
+});
 
 When("вставляем тестовую картинку", async function (this: E2EWorld) {
 	await this.page()
@@ -29,17 +54,14 @@ Then("проверяем, что картинка загрузилась", async
 });
 
 Then("нажимаем кнопку далее, пока видим её", { timeout: 1000 * 60 * 5 }, async function (this: E2EWorld) {
-	const next = await this.page().search().lookup("jump-to-next");
+	const next = await this.page().search().lookup("jump-to-next", undefined, true);
 	while (await next.isVisible()) {
 		await next.click();
 
 		const scope = await this.page().search().lookup("редактор");
 		await this.page().waitForLoad(scope);
 
-		const url = this.page().url().replace("/test-catalog/", "").replaceAll("/", ".");
-
-		const failed = await checkForErrorModal(this, url);
-		await dumpLogs(this, failed, this.scenario().gherkinDocument.uri.replace("features/", ""), `${url}.error`, url);
+		const failed = await checkForErrorModal(this);
 		if (failed) throw new Error("An error modal found");
 	}
 });

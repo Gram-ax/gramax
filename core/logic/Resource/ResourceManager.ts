@@ -22,7 +22,7 @@ class ResourceManager {
 	}
 
 	setNewBasePath(newBasePath: Path): ResourceMovements {
-		if (newBasePath.value == this._basePath.value) {
+		if (newBasePath.compare(this._basePath)) {
 			return { oldResources: this._resources, newResources: this._resources };
 		}
 		const oldResources = [...this._resources];
@@ -38,7 +38,7 @@ class ResourceManager {
 	}
 
 	async move(oldPath: Path, newPath: Path): Promise<ResourceMovements> {
-		if (oldPath.value == newPath.value) {
+		if (oldPath.compare(newPath)) {
 			return { oldResources: this._resources, newResources: this._resources };
 		}
 		const oldResources = [...this._resources];
@@ -47,6 +47,7 @@ class ResourceManager {
 				const newResource = new Path(`./${resource.nameWithExtension.replaceAll(oldPath.name, newPath.name)}`);
 				const absoluteResource = this.getAbsolutePath(resource);
 				const newAbsoluteResource = this.getAbsolutePath(newResource);
+				if (!(await this._fp.exists(absoluteResource))) return newResource;
 				await this._fp.move(absoluteResource, newAbsoluteResource);
 				return newResource;
 			}),
@@ -64,6 +65,7 @@ class ResourceManager {
 	}
 
 	async delete(path: Path) {
+		if (!(await this._fp.exists(this.getAbsolutePath(path)))) return;
 		return await this._fp.delete(this.getAbsolutePath(path));
 	}
 

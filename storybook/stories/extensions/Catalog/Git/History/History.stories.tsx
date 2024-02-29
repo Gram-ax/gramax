@@ -5,7 +5,7 @@ import mock from "storybook/data/mock";
 import BlockDecorator from "storybook/styles/decorators/BlockDecorator";
 
 export const History = () => {
-	return <HistorySrc />;
+	return <HistorySrc shouldRender={true} />;
 };
 
 export default {

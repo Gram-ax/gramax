@@ -1,12 +1,13 @@
 import { env } from "@app/resolveModule";
+import GitSourceData from "@ext/git/core/model/GitSourceData.schema";
 import parseStorageUrl from "../../../../logic/utils/parseStorageUrl";
 import SourceType from "../SourceDataProvider/model/SourceType";
 
-const getPartSourceDataByStorageName = (
+const getPartGitSourceDataByStorageName = (
 	name: string,
 ): {
 	sourceType: SourceType;
-	data: { [key: string]: string };
+	data: Partial<GitSourceData>;
 } => {
 	const emptyObject = { sourceType: null, data: {} };
 	if (!name) return emptyObject;
@@ -25,4 +26,4 @@ const getPartSourceDataByStorageName = (
 	return emptyObject;
 };
 
-export default getPartSourceDataByStorageName;
+export default getPartGitSourceDataByStorageName;

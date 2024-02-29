@@ -3,13 +3,14 @@ import Path from "@core/FileProvider/Path/Path";
 import { ArticleHistoryViewModel } from "@ext/git/actions/History/model/ArticleHistoryViewModel";
 import GitFileHistory from "@ext/git/core/GitFileHistory/GitFileHistory";
 import { Command, ResponseKind } from "../../types/Command";
+import ReloadConfirmMiddleware from "@core/Api/middleware/ReloadConfirmMiddleware";
 
 const fileHistory: Command<{ catalogName: string; filePath: string }, ArticleHistoryViewModel[]> = Command.create({
 	path: "versionControl/fileHistory",
 
 	kind: ResponseKind.json,
 
-	middlewares: [new AuthorizeMiddleware()],
+	middlewares: [new AuthorizeMiddleware(), new ReloadConfirmMiddleware()],
 
 	async do({ catalogName, filePath }) {
 		const { lib, conf } = this._app;

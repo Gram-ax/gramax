@@ -1,7 +1,7 @@
 import Button from "@components/Atoms/Button/Button";
 import LeftNavViewContent from "@components/Layouts/LeftNavViewContent/LeftNavViewContent";
 import Sidebar from "@components/Layouts/Sidebar";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import useLocalize from "../../../../localization/useLocalize";
 import SidebarArticleLink from "../../Publish/components/SidebarArticleLink";
 import buildFile from "../logic/buildFile";
@@ -18,8 +18,17 @@ const MergeConflictHandler = ({
 	onMerge: (result: MergeFile[]) => void;
 }) => {
 	const [parsedFiles, setParsedFiles] = useState<ParsedMergeFile[]>([]);
-	const [isAllMergesResolved, setIsAllMergesResolved] = useState(false);
 	const confirmText = useLocalize("confirm");
+	const isAllMergesResolved = useMemo(
+		() =>
+			parsedFiles.every((file) =>
+				file.parts.every((part) => {
+					if (part.type === PartType.Normal) return true;
+					return part.resolved;
+				}),
+			),
+		[parsedFiles],
+	);
 
 	const currentOnMerge = () => {
 		onMerge(
@@ -34,17 +43,6 @@ const MergeConflictHandler = ({
 		if (JSON.stringify(rawFiles) == JSON.stringify(parsedFiles)) return;
 		setParsedFiles(parseRawFile(rawFiles, true));
 	}, [rawFiles]);
-
-	useEffect(() => {
-		setIsAllMergesResolved(
-			parsedFiles.every((file) =>
-				file.parts.every((part) => {
-					if (part.type === PartType.Normal) return true;
-					return part.resolved;
-				}),
-			),
-		);
-	}, [parsedFiles]);
 
 	const keydownHandler = (e: KeyboardEvent) => {
 		if (e.code === "Enter" && (e.ctrlKey || e.metaKey) && isAllMergesResolved) currentOnMerge();

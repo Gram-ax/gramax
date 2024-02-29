@@ -12,10 +12,19 @@ Given("находимся в/на {string}", { timeout: config.timeouts.long }, 
 	await this.page().goto(path);
 });
 
-Given("смотрим на/в {string}", { timeout: config.timeouts.short }, async function (this: E2EWorld, selector: string) {
+async function lookAt(this: E2EWorld, selector: string, reset?: boolean) {
+	if (reset) this.page().search().reset();
 	const scope = await this.page().search().scope(selector);
 	await scope.focus();
 	await this.page().waitForLoad();
+}
+
+Given("смотрим на/в {string}", { timeout: config.timeouts.short }, async function (this: E2EWorld, selector: string) {
+	await lookAt.bind(this)(selector);
+});
+
+Then("заново смотрим на/в {string}", async function (this: E2EWorld, selector: string) {
+	await lookAt.bind(this)(selector, true);
 });
 
 Given("ждём {float} секунд(ы)(у)", { timeout: 1000000 }, async function (this: E2EWorld, secs: number) {
@@ -36,8 +45,8 @@ Then("нажимаем на {int} кнопку с текстом {string}", asyn
 	await this.page().search().clickable(text, undefined, true).nth(i).click();
 });
 
-When("нажимаем на {string}", { timeout: config.timeouts.medium }, async function (this: E2EWorld, text: string) {
-	const elem = await this.page().search().lookup(text);
+When("нажимаем на поле {string}", { timeout: config.timeouts.medium }, async function (this: E2EWorld, text: string) {
+	const elem = await this.page().search().lookup(text, undefined, true);
 	await elem.click();
 	await this.page().waitForLoad();
 });
@@ -86,9 +95,7 @@ When("ждём конца загрузки", { timeout: config.timeouts.long * 4
 });
 
 Then("находимся по адресу {string}", async function (this: E2EWorld, path: string) {
-	await this.page()
-		.inner()
-		.waitForURL(config.url + path);
+	await this.page().waitForUrl(path);
 });
 
 Then("находимся на главной", function (this: E2EWorld) {
@@ -110,7 +117,7 @@ Then("папка/файл/путь {string} не существует", async fu
 });
 
 Then("разметка текущей статьи содержит", async function (this: E2EWorld, text: string) {
-	await sleep(100);
+	await sleep(10);
 	if (text.includes("(*)")) await this.page().keyboard().type("(*)");
 	const content = (await this.page().asArticle().getContent()).replace("(\\*)", "(*)");
 	expect(content).toEqual(text);
@@ -120,29 +127,44 @@ Then("разметка текущей статьи ничего не содер�
 	expect((await this.page().asArticle().getContent()).trim()).toEqual("");
 });
 
-Then("файл {string} содержит", async function (this: E2EWorld, p: string, content: string) {
-	const fp = await this.fp();
-	const path = makePath(p);
-	expect(await fp.handle.exists(path)).toBeTruthy();
-	expect(await fp.handle.read(path)).toEqual(content.trim());
+Then("свойства текущей статьи содержат", async function (this: E2EWorld, raw: string) {
+	const props = await this.page().asArticle().getProps();
+	for (const [name, val] of raw.split("\n").map((raw) => raw.split(": ", 2).map((s) => s.trim()))) {
+		expect(props[name]?.toString()).toEqual(val);
+	}
 });
 
-Then("видим элемент {string}", async function (this: E2EWorld, name: string) {
-	const elem = await this.page().search().lookup(name);
-	expect(await elem.isVisible()).toBeTruthy();
+Then("перезагружаем страницу", async function (this: E2EWorld) {
+	await this.page().inner().reload();
 });
 
-Then("видим кнопку {string}", async function (this: E2EWorld, name: string) {
+Then(
+	/^файл "([^"]*)" (не )?содержит "([^"]*)"$/,
+	async function (this: E2EWorld, p: string, content: string, negative: boolean) {
+		const fp = await this.fp();
+		const path = makePath(p);
+		expect(await fp.handle.exists(path)).toBeTruthy();
+		let assert = expect(await fp.handle.read(path));
+		assert = negative ? assert : assert.not;
+		assert.toEqual(content.trim());
+	},
+);
+
+Then(/^(не )?видим текст "([^"]*)"$/, async function (this: E2EWorld, negative: boolean, text: string) {
+	const elem = await this.page().search().find(`text=${text}`);
+	negative ? await expect(elem).not.toBeVisible() : await expect(elem).toBeVisible();
+});
+
+Then(/^(не )?видим кнопку "([^"]*)"$/, async function (this: E2EWorld, negative: boolean, name: string) {
 	const elem = this.page().search().clickable(name);
-	expect(await elem.isVisible()).toBeTruthy();
+	negative ? await expect(elem).not.toBeVisible() : await expect(elem).toBeVisible();
 });
 
-Then("не видим кнопку {string}", async function (this: E2EWorld, name: string) {
-	const elem = this.page().search().clickable(name);
-	expect(!(await elem.isVisible())).toBeTruthy();
-});
-
-Then("видим иконку {string}", async function (this: E2EWorld, name: string) {
+Then(/^(не )?видим иконку "([^"]*)"$/, async function (this: E2EWorld, negative: boolean, name: string) {
 	const elem = this.page().search().icon(name);
-	expect(await elem.isVisible()).toBeTruthy();
+	negative ? await expect(elem).not.toBeVisible() : await expect(elem).toBeVisible();
+});
+
+Then(/^((не )?ожидаем ошибку)$/, function (this: E2EWorld, negative: boolean) {
+	this.allowErrorModal = !negative;
 });

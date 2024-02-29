@@ -2,11 +2,11 @@ import ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
 import FetchService from "@core-ui/ApiServices/FetchService";
 import MimeTypes from "@core-ui/ApiServices/Types/MimeTypes";
 import fileNameUtils from "@core-ui/fileNameUtils";
-import { ArticleProps } from "../../../../logic/SitePresenter/SitePresenter";
+import { ClientArticleProps } from "../../../../logic/SitePresenter/SitePresenter";
 import getArticleResourceNames from "./getAtricleResourceNames";
 
 const initArticleResource = async (
-	articleProps: ArticleProps,
+	articleProps: ClientArticleProps,
 	apiUrlCreator: ApiUrlCreator,
 	file: string,
 	extension: string,

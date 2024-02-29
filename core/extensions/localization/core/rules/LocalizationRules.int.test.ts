@@ -31,7 +31,7 @@ describe("Localization Rules правильно фильтрует", () => {
 		test("category", async () => {
 			const { nav, lr, indexArticleItemRef, articleTestCatalog } = await getLocalizationRulesData();
 
-			const filter = lr.getNavItemRule();
+			const filter = lr.getNavRules().itemRule;
 			const item = articleTestCatalog.findCategoryByItemRef(indexArticleItemRef);
 			const itemLink = (await nav.getCatalogNav(articleTestCatalog, item.logicPath))[0];
 			expect(filter(articleTestCatalog, item, itemLink)).toEqual(false);
@@ -39,7 +39,7 @@ describe("Localization Rules правильно фильтрует", () => {
 
 		test("article", async () => {
 			const { nav, lr, articleItemRef, articleTestCatalog } = await getLocalizationRulesData();
-			const filter = lr.getNavItemRule();
+			const filter = lr.getNavRules().itemRule;
 			const item = articleTestCatalog.findArticleByItemRef(articleItemRef);
 			const itemLink = (await nav.getCatalogNav(articleTestCatalog, item.logicPath))[0];
 
@@ -49,17 +49,17 @@ describe("Localization Rules правильно фильтрует", () => {
 
 	test("catalog", async () => {
 		const { nav, lr, catalogTestCatalog } = await getLocalizationRulesData();
-		const filter = lr.getNavCatalogRule();
-		const catalogLink = nav.getCatalogLink(catalogTestCatalog, catalogTestCatalog.getName());
+		const filter = lr.getNavRules().catalogRule;
+		const catalogLink = await nav.getCatalogLink(catalogTestCatalog, catalogTestCatalog.getName());
 
 		expect(filter(catalogTestCatalog, catalogLink)).toEqual(false);
 	});
 
 	test("article", async () => {
 		const { lr, articleItemRef, articleTestCatalog } = await getLocalizationRulesData();
-		const filter = lr.getFilterRule();
+		const filter = lr.getItemFilter();
 		const article = articleTestCatalog.findArticleByItemRef(articleItemRef);
 
-		expect(filter(article, articleTestCatalog.getName())).toEqual(false);
+		expect(filter(article, articleTestCatalog)).toEqual(false);
 	});
 });

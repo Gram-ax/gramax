@@ -1,66 +1,28 @@
 import styled from "@emotion/styled";
-import Select from "react-dropdown-select";
+import SelectRDS, { SelectProps } from "react-dropdown-select";
 import Icon from "../Atoms/Icon";
 import SpinnerLoader from "../Atoms/SpinnerLoader";
 
-export default styled(function <T extends { value: string; label: string; [key: string]: string }>({
-	values,
-	options,
-	onFocus,
-	onChange,
-	create,
-	loading,
-	disabled,
-	clearable,
-	placeholder,
-	addPlaceholder,
-	createNewLabel,
-	className,
-}: {
-	values: T[];
-	options: T[];
-	onFocus: () => void;
-	onChange: (value: T[]) => void;
-	create?: boolean;
-	loading?: boolean;
-	disabled?: boolean;
-	clearable?: boolean;
-	placeholder?: string;
-	addPlaceholder?: string;
-	createNewLabel?: string;
-	className?: string;
-}) {
+const Select = <T extends { value: string; label: string; [key: string]: string }>(
+	props: SelectProps<T> & { onFocus: any; chevronView?: boolean },
+) => {
+	const { onFocus, className, chevronView, ...otherProps } = props;
+
 	return (
 		<div className={className} onClickCapture={onFocus}>
-			<Select<T>
+			<SelectRDS<T>
 				multi
-				values={values}
-				options={options}
 				valueField="value"
 				labelField="label"
-				onChange={onChange}
-				create={create}
-				loading={loading}
-				disabled={disabled}
-				clearable={clearable}
-				placeholder={placeholder}
-				addPlaceholder={addPlaceholder}
-				createNewLabel={createNewLabel}
-				dropdownHandleRenderer={({ state }) => {
-					if (!options.length) return null;
-					return (
+				{...otherProps}
+				dropdownHandleRenderer={({ state }) =>
+					!props.options.length || chevronView ? (
 						<div className="custom-icon" style={state.dropdown ? { marginTop: "-2px" } : {}}>
 							<Icon code={`chevron-${!state.dropdown ? "down" : "up"}`} isAction />
 						</div>
-					);
-				}}
-				clearRenderer={({ methods }) => {
-					return (
-						<div className="custom-icon">
-							<Icon code="xmark" isAction onClick={methods.clearAll} />
-						</div>
-					);
-				}}
+					) : null
+				}
+				clearRenderer={() => null}
 				loadingRenderer={() => (
 					<div className="custom-icon">
 						<SpinnerLoader width={15} height={15} lineWidth={2} />
@@ -70,7 +32,9 @@ export default styled(function <T extends { value: string; label: string; [key: 
 			/>
 		</div>
 	);
-})`
+};
+
+export default styled(Select)`
 	.react-dropdown-select {
 		outline: 0;
 		width: 100%;

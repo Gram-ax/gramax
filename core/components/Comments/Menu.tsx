@@ -20,15 +20,11 @@ const Menu = styled(
 		return (
 			<div className={className}>
 				<PopupMenuLayout>
-					{showEditButton ? (
-						<div
-							onClick={() => {
-								editOnClick();
-							}}
-						>
+					{showEditButton && (
+						<div onClick={() => editOnClick()}>
 							<span>{useLocalize("edit") + "..."}</span>
 						</div>
-					) : null}
+					)}
 
 					<div
 						onClick={() => {

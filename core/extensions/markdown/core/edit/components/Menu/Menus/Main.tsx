@@ -8,7 +8,6 @@ import AnyMenuGroup from "../Groups/Any";
 import HeadersMenuGroup from "../Groups/Headers";
 import ListMenuGroup from "../Groups/List";
 import TextMenuGroup from "../Groups/Text";
-import ClearDecorationMenuButton from "@ext/markdown/elements/сlearDecoration/editor/components/ClearDecorationMenuButton";
 
 const MainMenu = styled(({ editor, className }: { editor?: Editor; className?: string }) => {
 	return (
@@ -22,8 +21,6 @@ const MainMenu = styled(({ editor, className }: { editor?: Editor; className?: s
 					<ListMenuGroup editor={editor} />
 					<div className="divider" />
 					<AnyMenuGroup editor={editor} />
-					<div className="divider" />
-					<ClearDecorationMenuButton editor={editor} />
 				</ButtonsLayout>
 			</ModalLayoutDark>
 		</div>

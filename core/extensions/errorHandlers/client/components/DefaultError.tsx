@@ -1,17 +1,17 @@
 import { ComponentProps } from "react";
 import useLocalize from "../../../localization/useLocalize";
 import GetErrorComponent from "../../logic/GetErrorComponent";
-import ErrorForm from "./ErrorForm";
+import InfoModalForm from "./ErrorForm";
 
 const DefaultErrorComponent = ({ error, onCancelClick }: ComponentProps<typeof GetErrorComponent>) => {
 	return (
-		<ErrorForm
+		<InfoModalForm
 			onCancelClick={onCancelClick}
 			title={useLocalize("error")}
 			icon={{ code: "circle-xmark", color: "var(--color-danger)" }}
 		>
 			<span>{error.message}</span>
-		</ErrorForm>
+		</InfoModalForm>
 	);
 };
 

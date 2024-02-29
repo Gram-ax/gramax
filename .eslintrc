@@ -30,7 +30,8 @@
 		"core/extensions/markdown/core/render/logic/Markdoc",
 		"*.js",
 
-		"**/dist/**/*"
+		"**/dist/**/*",
+		"target/tauri/target"
 	],
 	"plugins": ["@typescript-eslint", "react", "react-hooks", "promise"],
 	"settings": {
@@ -81,11 +82,13 @@
 		"@typescript-eslint/no-unsafe-assignment": "off",
 		"@typescript-eslint/no-unsafe-member-access": "off",
 		"@typescript-eslint/restrict-plus-operands": "off",
+		"@typescript-eslint/no-unused-vars": "warn",
 		"@typescript-eslint/restrict-template-expressions": "off",
 		"@typescript-eslint/no-unsafe-any": "off",
 		"@typescript-eslint/no-explicit-any": "off",
 		"@typescript-eslint/no-unsafe-call": "off",
 		"@typescript-eslint/explicit-function-return-type": "off",
+		"@typescript-eslint/no-base-to-string": "warn",
 		"no-case-declarations": "off",
 
 		"prefer-const": "warn",

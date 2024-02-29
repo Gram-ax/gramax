@@ -1,0 +1,259 @@
+{
+	"type": "doc",
+	"content": [
+		{
+			"type": "paragraph",
+			"content": [
+				{
+					"type": "text",
+					"marks": [
+						{
+							"type": "link",
+							"attrs": {
+								"href": "https://51f982ecbfb2a4756eaa64bbf511a0c1cd3a11aa",
+								"hash": "",
+								"newHref": null,
+								"resourcePath": ""
+							}
+						}
+					],
+					"text": "https://e42a81444c903aae2fcc315b0a52aa33"
+				}
+			]
+		},
+		{ "type": "paragraph" },
+		{ "type": "paragraph", "content": [{ "type": "text", "text": "asdasdasd" }] },
+		{
+			"type": "bullet_list",
+			"content": [
+				{
+					"type": "list_item",
+					"content": [
+						{
+							"type": "paragraph",
+							"content": [
+								{
+									"type": "text",
+									"marks": [
+										{
+											"type": "link",
+											"attrs": {
+												"href": "https://3cbd5a8f057007169bb0a93a9d9f792b38551ba6",
+												"hash": "",
+												"newHref": null,
+												"resourcePath": ""
+											}
+										}
+									],
+									"text": "3cbd5a8f057007169bb0a93a9d9f792b38551ba6"
+								},
+								{ "type": "text", "text": "- 3cbd5a8f057007169bb0a93a9d9f792b38551ba6" }
+							]
+						},
+						{
+							"type": "bullet_list",
+							"content": [
+								{
+									"type": "list_item",
+									"content": [
+										{
+											"type": "paragraph",
+											"content": [
+												{
+													"type": "text",
+													"marks": [{ "type": "strong" }],
+													"text": "007169bb0a93a9d9f792b38551ba6:"
+												},
+												{ "type": "text", "text": "007169bb0a93a9d9f792b38551ba6" }
+											]
+										}
+									]
+								}
+							]
+						}
+					]
+				},
+				{
+					"type": "list_item",
+					"content": [
+						{
+							"type": "paragraph",
+							"content": [
+								{
+									"type": "text",
+									"marks": [
+										{
+											"type": "link",
+											"attrs": {
+												"href": "https://a214a6080ba9366ebc75c67e813c747f303b788c",
+												"hash": "",
+												"newHref": null,
+												"resourcePath": ""
+											}
+										}
+									],
+									"text": "Баг "
+								},
+								{
+									"type": "text",
+									"text": "- a214a6080ba9366ebc75c67e813c747f303b788c ("
+								},
+								{ "type": "text", "marks": [{ "type": "code" }], "text": "a214a6080ba9366ebc75c67e813c747f303b788c" },
+								{ "type": "text", "text": ")." }
+							]
+						},
+						{
+							"type": "bullet_list",
+							"content": [
+								{
+									"type": "list_item",
+									"content": [
+										{
+											"type": "paragraph",
+											"content": [
+												{
+													"type": "text",
+													"marks": [{ "type": "strong" }],
+													"text": "a214a6080ba9366ebc75c67e813c747f303b788c:"
+												},
+												{ "type": "text", "text": " a214a6080ba9366ebc75c67e813c747f303b788c" }
+											]
+										}
+									]
+								},
+								{
+									"type": "list_item",
+									"content": [
+										{
+											"type": "paragraph",
+											"content": [
+												{ "type": "text", "marks": [{ "type": "strong" }], "text": "2027cb9cc0cbb1a507adbd7f910c0712" },
+												{ "type": "text", "text": ": 2027cb9cc0cbb1a507adbd7f910c0712" }
+											]
+										}
+									]
+								}
+							]
+						}
+					]
+				}
+			]
+		},
+		{
+			"type": "paragraph",
+			"content": [
+				{
+					"type": "text",
+					"marks": [
+						{
+							"type": "link",
+							"attrs": {
+								"href": "https://9cd3b66c5904f3edb73d1639f5dd8e13",
+								"hash": "",
+								"newHref": null,
+								"resourcePath": ""
+							}
+						}
+					],
+					"text": "Саппорт "
+				},
+				{ "type": "text", "text": "- 3e9bed2b1b2f7d822e14a7d1cda1081466e6ef15 " },
+				{ "type": "text", "marks": [{ "type": "code" }], "text": "9cd3b66c5904f3edb73d1639f5dd8e13" },
+				{ "type": "text", "text": " с 3e9bed2b1b2f7d822e14a7d1cda1081466e6ef15." }
+			]
+		},
+		{
+			"type": "bullet_list",
+			"content": [
+				{
+					"type": "list_item",
+					"content": [
+						{
+							"type": "paragraph",
+							"content": [
+								{ "type": "text", "marks": [{ "type": "strong" }], "text": "3e9bed2b1b2f7d822e14a7d1cda1081466e6ef15:" },
+								{ "type": "text", "text": " 3e9bed2b1b2f7d822e14a7d1cda1081466e6ef15" }
+							]
+						}
+					]
+				},
+				{
+					"type": "list_item",
+					"content": [
+						{
+							"type": "paragraph",
+							"content": [
+								{ "type": "text", "marks": [{ "type": "strong" }], "text": "3e9bed2b1b2f7d822e14a7d1cda1081466e6ef15" },
+								{ "type": "text", "text": ": 3e9bed2b1b2f7d822e14a7d1cda1081466e6ef15" }
+							]
+						}
+					]
+				},
+				{
+					"type": "list_item",
+					"content": [
+						{
+							"type": "paragraph",
+							"content": [
+								{
+									"type": "text",
+									"marks": [
+										{
+											"type": "link",
+											"attrs": {
+												"href": "https://3e9bed2b1b2f7d822e14a7d1cda1081466e6ef15",
+												"hash": "",
+												"newHref": null,
+												"resourcePath": ""
+											}
+										}
+									],
+									"text": "Баг "
+								},
+								{ "type": "text", "text": "- 3e9bed2b1b2f7d822e14a7d1cda1081466e6ef15" },
+								{ "type": "text", "marks": [{ "type": "code" }], "text": "3e9bed2b1b2f7d822e14a7d1cda1081466e6ef15" },
+								{
+									"type": "text",
+									"text": ", 3e9bed2b1b2f7d822e14a7d1cda1081466e6ef15."
+								}
+							]
+						},
+						{
+							"type": "bullet_list",
+							"content": [
+								{
+									"type": "list_item",
+									"content": [
+										{
+											"type": "paragraph",
+											"content": [
+												{
+													"type": "text",
+													"marks": [{ "type": "strong" }],
+													"text": "3e9bed2b1b2f7d822e14a7d1cda1081466e6ef15:"
+												},
+												{ "type": "text", "text": " unknown" }
+											]
+										}
+									]
+								},
+								{
+									"type": "list_item",
+									"content": [
+										{
+											"type": "paragraph",
+											"content": [
+												{ "type": "text", "marks": [{ "type": "strong" }], "text": "3e9bed2b1b2f7d822e14a7d1cda1081466e6ef15" },
+												{ "type": "text", "text": ": 3e9bed2b1b2f7d822e14a7d1cda1081466e6ef15" }
+											]
+										}
+									]
+								}
+							]
+						}
+					]
+				}
+			]
+		}
+	]
+}

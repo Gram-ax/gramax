@@ -1,23 +1,30 @@
+import Path from "@core/FileProvider/Path/Path";
+import assertStorageExists from "@ext/storage/logic/utils/assertStorageExists";
 import StorageData from "@ext/storage/models/StorageData";
 import { Command, ResponseKind } from "../../types/Command";
 
-const init: Command<{ catalogName: string; data: StorageData }, void> = Command.create({
+const init: Command<{ catalogName: string; articlePath: Path; data: StorageData }, string> = Command.create({
 	path: "storage/init",
 
-	kind: ResponseKind.none,
+	kind: ResponseKind.plain,
 
-	async do({ catalogName, data }) {
+	async do({ catalogName, articlePath, data }) {
 		const { lib, rp } = this._app;
 		const catalog = await lib.getCatalog(catalogName);
 		if (!catalog) return;
+
+		await assertStorageExists(data, this._app.conf.authServiceUrl);
 		const fp = lib.getFileProviderByCatalog(catalog);
 		const repo = await rp.initNewRepository(catalog.getBasePath(), fp, data);
 		catalog.setRepo(repo, rp);
+		const item = catalog.findItemByItemPath(articlePath);
+		return await catalog.getPathname(item);
 	},
 
 	params(_, q, body) {
 		const catalogName = q.catalogName;
-		return { catalogName, data: body };
+		const articlePath = new Path(q.articlePath);
+		return { catalogName, articlePath, data: body };
 	},
 });
 

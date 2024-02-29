@@ -1,3 +1,4 @@
+import Tooltip from "@components/Atoms/Tooltip";
 import { JSONSchema7 } from "json-schema";
 import { MutableRefObject, useEffect, useRef } from "react";
 import useLocalize from "../../extensions/localization/useLocalize";
@@ -14,11 +15,12 @@ interface ItemInputProps {
 	editedPropsValue: string | string[] | boolean;
 	onChange: (value: string | string[] | boolean) => void;
 	onFocus?: () => void;
+	showErrorText?: boolean;
 	focus?: boolean;
 }
 
 const ItemInput = (props: ItemInputProps) => {
-	const { value, tabIndex, onChange, validate, onFocus, focus = false } = props;
+	const { value, tabIndex, onChange, validate, showErrorText, onFocus, focus = false } = props;
 	let { editedPropsValue } = props;
 
 	const ref = useRef<HTMLElement>();
@@ -32,7 +34,7 @@ const ItemInput = (props: ItemInputProps) => {
 		return (
 			<ListLayout
 				tabIndex={tabIndex}
-				isErrorValue={!!validate}
+				errorText={validate}
 				onFocus={onFocus}
 				disable={value.readOnly ?? false}
 				disableSearch={value.readOnly ?? false}
@@ -46,7 +48,9 @@ const ItemInput = (props: ItemInputProps) => {
 						useLocalize(editedPropsValue as any) ??
 						(value.default ? useLocalize(value.default as any) : ""),
 				}}
-				onItemClick={onChange}
+				onItemClick={(_, __, idx) => {
+					onChange((value.enum as string[])[idx]);
+				}}
 				placeholder={useLocalize(value.format as any)}
 			/>
 		);
@@ -54,36 +58,44 @@ const ItemInput = (props: ItemInputProps) => {
 
 	if (value.type === "array" && (value.items as JSONSchema7).type == "string") {
 		return (
-			<Select
-				create
-				// disable={value.readOnly ?? false}
-				placeholder={value.format}
-				addPlaceholder={value.format ?? ""}
-				createNewLabel={useLocalize("addValue") + " {search}"}
-				values={(editedPropsValue as string[])?.map((value) => ({ value, label: value }))}
-				options={[]}
-				onChange={(values) => {
-					editedPropsValue = values.map((value) => value.value);
-					onChange(editedPropsValue);
-				}}
-				onFocus={onFocus}
-			/>
+			<Tooltip content={validate}>
+				<div>
+					<Select
+						create
+						// disable={value.readOnly ?? false}
+						placeholder={value.format}
+						addPlaceholder={value.format ?? ""}
+						createNewLabel={useLocalize("addValue") + " {search}"}
+						values={(editedPropsValue as string[])?.map((value) => ({ value, label: value }))}
+						options={[]}
+						onChange={(values) => {
+							editedPropsValue = values.map((value) => value.value);
+							onChange(editedPropsValue);
+						}}
+						onFocus={onFocus}
+					/>
+				</div>
+			</Tooltip>
 		);
 	}
 
 	if (value.type === "boolean") {
 		return (
-			<Checkbox
-				interactive={true}
-				disabled={value.readOnly}
-				checked={(editedPropsValue ?? value.default) as boolean}
-				onChange={(isChecked) => {
-					editedPropsValue = isChecked;
-					onChange(editedPropsValue);
-				}}
-			>
-				<span className="control-label" dangerouslySetInnerHTML={{ __html: value?.title }} />
-			</Checkbox>
+			<Tooltip content={validate}>
+				<div>
+					<Checkbox
+						interactive={true}
+						disabled={value.readOnly}
+						checked={(editedPropsValue ?? value.default) as boolean}
+						onChange={(isChecked) => {
+							editedPropsValue = isChecked;
+							onChange(editedPropsValue);
+						}}
+					>
+						<span className="control-label" dangerouslySetInnerHTML={{ __html: value?.title }} />
+					</Checkbox>
+				</div>
+			</Tooltip>
 		);
 	}
 	return (
@@ -94,7 +106,8 @@ const ItemInput = (props: ItemInputProps) => {
 			tabIndex={tabIndex}
 			hidden={(value as any).private}
 			ref={ref as MutableRefObject<HTMLInputElement>}
-			isInputInvalid={!!validate}
+			errorText={validate}
+			showErrorText={showErrorText}
 			value={(editedPropsValue as string) ?? (value.default as string) ?? ""}
 			onChange={(e) => onChange(e.target.value)}
 			placeholder={value.format}

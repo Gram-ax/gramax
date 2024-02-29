@@ -1,5 +1,3 @@
-use std::sync::atomic::AtomicUsize;
-use std::sync::atomic::Ordering;
 use std::time::Duration;
 
 use tauri::menu::MenuItem;
@@ -21,30 +19,37 @@ use crate::translation::*;
 use super::menu::search_menu;
 use super::menu::MenuItemId;
 
-pub trait AppUpdaterBuilder<R: Runtime> {
+pub trait UpdaterBuilder<R: Runtime> {
   fn setup_updater(&self) -> updater::Result<()>;
 }
 
-impl<R: Runtime> AppUpdaterBuilder<R> for tauri::App<R> {
+impl<R: Runtime> UpdaterBuilder<R> for tauri::App<R> {
   fn setup_updater(&self) -> updater::Result<()> {
-    let updater = AppUpdater::new(self.app_handle().clone())?;
+    let updater = Updater::new(self.app_handle().clone())?;
     self.manage(updater);
-    AppUpdater::start_background_check(self.app_handle().clone(), Duration::from_secs(3600 * 6));
+    Updater::start_background_check(self.app_handle().clone(), Duration::from_secs(3600 * 6));
     Ok(())
   }
 }
 
-pub struct AppUpdater<R: Runtime> {
+pub struct Updater<R: Runtime> {
   app: AppHandle<R>,
-  updater: Updater,
+  inner: updater::Updater,
   language: Language,
 }
 
-impl<R: Runtime> AppUpdater<R> {
+#[derive(Default)]
+enum UpdateCheckMode {
+  #[default]
+  Ask,
+  Quiet,
+}
+
+impl<R: Runtime> Updater<R> {
   pub fn new(app: AppHandle<R>) -> updater::Result<Self> {
-    let updater = app.updater_builder().version_comparator(|v, r| compare_versions(v, r.version)).build()?;
+    let updater = app.updater_builder().version_comparator(|v, r| is_version_newer(v, r.version)).build()?;
     let language = *app.state::<Language>().inner();
-    Ok(Self { app, updater, language })
+    Ok(Self { app, inner: updater, language })
   }
 
   pub async fn check_and_ask(&self) -> Result<()> {
@@ -56,11 +61,11 @@ impl<R: Runtime> AppUpdater<R> {
       return Ok(());
     }
 
-    let installer = AppUpdateInstaller::new(&self.app, Some(&menu_item));
+    let installer = UpdateInstaller::new(&self.app, Some(&menu_item));
 
     self.set_menu_enabled(Some(&menu_item), false)?;
 
-    if let Err(err) = self.check(installer, false).await {
+    if let Err(err) = self.check(installer, UpdateCheckMode::Ask).await {
       self
         .app
         .dialog()
@@ -78,10 +83,10 @@ impl<R: Runtime> AppUpdater<R> {
   pub async fn check_quiet_and_ask(&self) -> updater::Result<()> {
     info!("check for updates quiet");
     let menu_item = self.get_menu_item();
-    let installer = AppUpdateInstaller::new(&self.app, menu_item.as_ref());
+    let installer = UpdateInstaller::new(&self.app, menu_item.as_ref());
 
     _ = self.set_menu_enabled(menu_item.as_ref(), false);
-    let res = self.check(installer, true).await;
+    let res = self.check(installer, UpdateCheckMode::Quiet).await;
     _ = self.set_menu_enabled(menu_item.as_ref(), true);
     res
   }
@@ -100,7 +105,7 @@ impl<R: Runtime> AppUpdater<R> {
   fn start_background_check(app: AppHandle<R>, interval: Duration) {
     async_runtime::spawn(async move {
       let mut interval = tokio::time::interval(interval);
-      let updater = app.state::<AppUpdater<R>>();
+      let updater = app.state::<Updater<R>>();
       loop {
         interval.tick().await;
         if let Err(err) = updater.check_quiet_and_ask().await {
@@ -110,17 +115,27 @@ impl<R: Runtime> AppUpdater<R> {
     });
   }
 
-  async fn check(&self, installer: AppUpdateInstaller<'_, R>, quiet: bool) -> updater::Result<()> {
-    match self.updater.check().await? {
-      Some(update) if quiet => {
+  async fn check(&self, installer: UpdateInstaller<'_, R>, mode: UpdateCheckMode) -> updater::Result<()> {
+    match (self.inner.check().await?, mode) {
+      (Some(update), UpdateCheckMode::Quiet) => {
         let bytes = installer.download(&update).await?;
         if self.ask() {
-          installer.install(&update, bytes)?;
+          if let Some(update) = self.check_for_newer_update().await? {
+            let bytes = installer.download(&update).await?;
+            installer.install(&update, bytes)?;
+          } else {
+            installer.install(&update, bytes)?;
+          }
         }
         Ok(())
       }
-      Some(update) if self.ask() => installer.install(&update, installer.download(&update).await?),
-      _ if !quiet => {
+      (Some(update), UpdateCheckMode::Ask) => {
+        if self.ask() {
+          installer.install(&update, installer.download(&update).await?)?
+        }
+        Ok(())
+      }
+      (_, UpdateCheckMode::Ask) => {
         self
           .app
           .dialog()
@@ -132,6 +147,27 @@ impl<R: Runtime> AppUpdater<R> {
       }
       _ => Ok(()),
     }
+  }
+
+  async fn check_for_newer_update(&self) -> updater::Result<Option<Update>> {
+    let update = self.inner.check().await?;
+    if let Some(update) = update {
+      if !is_version_newer(Version::parse(&update.current_version)?, Version::parse(&update.version)?) {
+        return Ok(None);
+      };
+
+      self
+        .app
+        .dialog()
+        .message(self.language.translate(Translation::NewerUpdateFound))
+        .title(self.language.translate(Translation::NewVersion))
+        .ok_button_label(self.language.translate(Translation::UpdateNow))
+        .cancel_button_label(self.language.translate(Translation::DeclineUpdate))
+        .blocking_show();
+      return Ok(Some(update));
+    }
+
+    Ok(None)
   }
 
   fn set_menu_enabled(&self, item: Option<&MenuItem<R>>, enabled: bool) -> tauri::Result<()> {
@@ -154,45 +190,55 @@ impl<R: Runtime> AppUpdater<R> {
   }
 }
 
-struct AppUpdateInstaller<'u, R: Runtime> {
+#[derive(Default)]
+struct ChunkedProgress {
+  downloaded: usize,
+  delta: usize,
+}
+
+impl ChunkedProgress {
+  fn on_chunk<F: Fn(usize, usize)>(&mut self, bytes: usize, total: Option<u64>, display: F) {
+    self.downloaded += bytes;
+    self.delta += bytes;
+
+    if self.delta < 1024 * 128 {
+      return;
+    }
+
+    self.delta = 0;
+    display(self.downloaded, total.unwrap_or(self.downloaded as u64) as usize);
+  }
+}
+
+struct UpdateInstaller<'u, R: Runtime> {
   app: &'u AppHandle<R>,
   menu_item: Option<&'u MenuItem<R>>,
 }
 
-impl<'u, R: Runtime> AppUpdateInstaller<'u, R> {
+impl<'u, R: Runtime> UpdateInstaller<'u, R> {
   fn new(app: &'u AppHandle<R>, menu_item: Option<&'u MenuItem<R>>) -> Self {
     Self { app, menu_item }
   }
 
   async fn download(&self, update: &Update) -> updater::Result<Vec<u8>> {
-    let total = AtomicUsize::new(0);
-    let total_lazy = AtomicUsize::new(0);
-
     match self.menu_item {
       Some(item) => {
         let language = self.app.state::<Language>();
+        let on_chunk = |downloaded, total| {
+          item
+            .set_text(format!(
+              "{} {:.2}mb/{:.2}mb",
+              language.translate(Translation::UpdateDownloading),
+              downloaded as f32 / 1024f32.powf(2.0),
+              total as f32 / 1024f32.powf(2.0)
+            ))
+            .unwrap();
+        };
+        let mut progress = ChunkedProgress::default();
+
         update
           .download(
-            |bytes, len| {
-              total.fetch_add(bytes, Ordering::Relaxed);
-              let total = total.load(Ordering::Relaxed);
-              let delta = total - total_lazy.load(Ordering::Relaxed);
-
-              if delta <= 1024 * 10 {
-                return;
-              }
-
-              total_lazy.fetch_add(delta, Ordering::Relaxed);
-
-              item
-                .set_text(format!(
-                  "{} {:.2}mb/{:.2}mb",
-                  language.translate(Translation::UpdateDownloading),
-                  total as f32 / 1024f32.powf(2.0),
-                  len.unwrap_or_default() as f32 / 1024f32.powf(2.0)
-                ))
-                .unwrap();
-            },
+            |bytes, len| progress.on_chunk(bytes, len, on_chunk),
             || item.set_text(language.translate(Translation::CheckUpdate)).unwrap(),
           )
           .await
@@ -208,23 +254,23 @@ impl<'u, R: Runtime> AppUpdateInstaller<'u, R> {
   }
 }
 
-fn compare_versions(version: Version, release: Version) -> bool {
-  let pre = Prerelease::new(version.pre.split_once('.').unwrap_or_default().1).unwrap();
-  release.cmp(&Version { pre, ..version }).is_gt()
+fn is_version_newer(prev: Version, version: Version) -> bool {
+  let pre = Prerelease::new(prev.pre.split_once('.').unwrap_or_default().1).unwrap();
+  version.cmp(&Version { pre, ..prev }).is_gt()
 }
 
 #[cfg(test)]
 mod tests {
   use semver::Version;
 
-  use crate::platform::desktop::updater::compare_versions;
+  use crate::platform::desktop::updater::is_version_newer;
 
   #[rstest]
   #[case("2023.9.4-mac-silicon.8", "2023.9.4-8")]
   #[case("2023.9.4-windows.15", "2023.9.4-15")]
   #[case("2043.9.5-mac-intel.8", "2043.9.5-8")]
   fn same_version(#[case] left: Version, #[case] right: Version) {
-    assert!(!compare_versions(left, right));
+    assert!(!is_version_newer(left, right));
   }
 
   #[rstest]
@@ -232,7 +278,7 @@ mod tests {
   #[case("2023.9.6-windows.15", "2023.9.4-15")]
   #[case("2063.9.5-mac-intel.8", "2043.9.5-8")]
   fn greater_version(#[case] left: Version, #[case] right: Version) {
-    assert!(!compare_versions(left, right))
+    assert!(!is_version_newer(left, right))
   }
 
   #[rstest]
@@ -240,6 +286,6 @@ mod tests {
   #[case("2023.7.4-windows.15", "2023.9.4-15")]
   #[case("2003.9.5-mac-intel.8", "2043.9.5-8")]
   fn older_version(#[case] left: Version, #[case] right: Version) {
-    assert!(compare_versions(left, right));
+    assert!(is_version_newer(left, right));
   }
 }

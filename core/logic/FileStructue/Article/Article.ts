@@ -1,38 +1,41 @@
 import Path from "@core/FileProvider/Path/Path";
-import ArticleFileStructure from "@core/FileStructue/Article/ArticleFileStructure";
-import { FSProps } from "@core/FileStructue/FileStructure";
+import type FileStructure from "@core/FileStructue/FileStructure";
 import ResourceUpdater from "@core/Resource/ResourceUpdater";
 import { FileStatus } from "@ext/Watchers/model/FileStatus";
 import { JSONContent } from "@tiptap/core";
 import { RenderableTreeNode } from "../../../extensions/markdown/core/render/logic/Markdoc";
 import { TocItem } from "../../../extensions/navigation/article/logic/createTocItems";
 import ResourceManager from "../../Resource/ResourceManager";
-import { ArticleProps as ClientArticleProps } from "../../SitePresenter/SitePresenter";
+import { ClientArticleProps } from "../../SitePresenter/SitePresenter";
 import { Category } from "../Category/Category";
-import { Item, ItemRef, ItemType } from "../Item/Item";
+import { Item, ItemRef, ItemType, type ItemProps } from "../Item/Item";
 
-export type ArticleInitProps<FS extends ArticleFileStructure> = {
+export type ArticleInitProps<P extends ItemProps> = {
 	ref: ItemRef;
 	parent: Category;
 	content: string;
-	props: FSProps;
+	props: P;
 	logicPath: string;
 
-	fs: FS;
+	fs: FileStructure;
 
 	lastModified: number;
 	errorCode?: number;
 };
 
-export class Article<FS extends ArticleFileStructure = ArticleFileStructure> extends Item {
-	protected _fs: FS;
+export type ArticleProps = {
+	welcome?: "editor" | "modal" | false;
+} & ItemProps;
+
+export class Article<P extends ArticleProps = ArticleProps> extends Item<P> {
+	protected _fs: FileStructure;
 
 	private _parsedContent?: Content;
 	private _content: string;
 	private _errorCode?: number;
 	private _lastModified: number;
 
-	constructor({ ref, parent, props, logicPath, ...init }: ArticleInitProps<FS>) {
+	constructor({ ref, parent, props, logicPath, ...init }: ArticleInitProps<P>) {
 		super(ref, parent, props, logicPath);
 		this._content = init.content;
 		this._errorCode = init.errorCode;
@@ -81,7 +84,7 @@ export class Article<FS extends ArticleFileStructure = ArticleFileStructure> ext
 		if (result) {
 			const newArticle = await this._getUpdateArticleByRead();
 			this._content = newArticle._content;
-			this._props = newArticle._props;
+			this._props = newArticle._props as P;
 			this._parsedContent = null;
 		}
 
@@ -93,12 +96,17 @@ export class Article<FS extends ArticleFileStructure = ArticleFileStructure> ext
 	}
 
 	protected async _updateProps(props: ClientArticleProps) {
-		this._props[ArticleProps.title] = props.title;
-		if (props.description !== "") this._props[ArticleProps.description] = props.description;
+		this._props.title = props.title;
+		if (props.description !== "") this._props.description = props.description;
 		await this._save();
 	}
 
+	save() {
+		return this._save();
+	}
+
 	protected async _save() {
+		delete this._props.welcome;
 		const stat = await this._fs.saveArticle(this);
 		this._lastModified = stat.mtimeMs;
 		this._watcherFuncs.map((f) => f([{ itemRef: this._ref, type: FileStatus.modified }]));
@@ -137,9 +145,4 @@ export interface Content {
 	renderTree: RenderableTreeNode;
 	resourceManager: ResourceManager;
 	linkManager: ResourceManager;
-}
-
-enum ArticleProps {
-	title = "title",
-	description = "description",
 }

@@ -1,4 +1,4 @@
-import { getEnglishStr } from "@core-ui/getEnglishStr";
+import { getEnglishStr } from "@core-ui/languageConverter/getEnglishStr";
 import { IcsAccountIn } from "./IcsAccountIn.schema";
 import { IcsAccountOut } from "./IcsAccountOut.schema";
 

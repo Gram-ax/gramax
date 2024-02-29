@@ -9,8 +9,8 @@ import VideoUrlRepository from "@core/components/video/videoUrlRepository";
 import { Encoder } from "@ext/Encoder/Encoder";
 import MailProvider from "@ext/MailProvider";
 import ThemeManager from "@ext/Theme/ThemeManager";
+import BlankWatcher from "@ext/Watchers/BlankWatcher";
 import ChokidarWatcher from "@ext/Watchers/ChokidarWatcher";
-import ProductionWatcher from "@ext/Watchers/ProductionWatcher";
 import RepositoryProvider from "@ext/git/core/Repository/RepositoryProvider";
 import FSLocalizationRules from "@ext/localization/core/rules/FSLocalizationRules";
 import BugsnagLogger from "@ext/loggers/BugsnagLogger";
@@ -19,9 +19,9 @@ import Logger, { LogLevel } from "@ext/loggers/Logger";
 import MarkdownParser from "@ext/markdown/core/Parser/Parser";
 import ParserContextFactory from "@ext/markdown/core/Parser/ParserContext/ParserContextFactory";
 import MarkdownFormatter from "@ext/markdown/core/edit/logic/Formatter/Formatter";
+import FuseSearcher from "@ext/search/Fuse/FuseSearcher";
 import IndexCacheProvider from "@ext/search/IndexCacheProvider";
-import LunrSearcher from "@ext/search/Lunr/Searcher";
-import Searcher from "@ext/search/Searcher";
+import { IndexDataProvider } from "@ext/search/IndexDataProvider";
 import AuthManager from "@ext/security/logic/AuthManager";
 import { TicketManager } from "@ext/security/logic/TicketManager/TicketManager";
 import EnvAuth from "../../core/extensions/security/logic/AuthProviders/EnvAuth";
@@ -30,12 +30,12 @@ import Application from "../types/Application";
 import configure from "./configure";
 
 const _init = async (config: AppConfig): Promise<Application> => {
-	if (!config.isServerApp && !config.paths.userData) throw new Error(`Необходимо указать USER_DATA_PATH`);
+	if (!config.isServerApp && !config.paths.userDataPath) throw new Error(`Необходимо указать USER_DATA_PATH`);
 
 	const logger: Logger = config.isProduction ? new BugsnagLogger(config.bugsnagApiKey) : new ConsoleLogger();
 	logger.setLogLevel(LogLevel.trace);
 
-	const watcher = config.isServerApp ? new ProductionWatcher() : new ChokidarWatcher();
+	const watcher = config.isProduction ? new ChokidarWatcher() : new BlankWatcher();
 	const fp = new DiskFileProvider(config.paths.root, watcher);
 	await fp.validate();
 
@@ -45,7 +45,7 @@ const _init = async (config: AppConfig): Promise<Application> => {
 
 	const rp = new RepositoryProvider({ corsProxy });
 
-	const lib = new Library(rp);
+	const lib = new Library(rp, config.isServerApp);
 
 	await lib.addFileProvider(fp, (fs) => FSLocalizationRules.bind(fs));
 
@@ -68,7 +68,7 @@ const _init = async (config: AppConfig): Promise<Application> => {
 	const tablesManager = new TableDB(parser, lib);
 	const errorArticlesProvider = new ErrorArticlePresenter();
 
-	const cacheFileProvider = new DiskFileProvider(config.paths.cache);
+	const cacheFileProvider = new DiskFileProvider(config.paths.userDataPath);
 	await cacheFileProvider.validate();
 	const indexCacheProvider = new IndexCacheProvider(cacheFileProvider);
 
@@ -81,21 +81,15 @@ const _init = async (config: AppConfig): Promise<Application> => {
 		config.enterpriseServerUrl,
 	);
 
-	const searcher: Searcher = new LunrSearcher(lib, parser, parserContextFactory, indexCacheProvider);
+	const indexDataProvider = new IndexDataProvider(lib, parser, parserContextFactory, indexCacheProvider);
+	const searcher = new FuseSearcher(indexDataProvider);
 	const vur: VideoUrlRepository = null;
 	const mp: MailProvider = new MailProvider(config.mail);
 
 	const tm = new ThemeManager();
 	const am = new AuthManager(envAuth, ticketManager);
 	const contextFactory = new ContextFactory(tm, config.cookieSecret, am, config.isServerApp);
-	const sitePresenterFactory = new SitePresenterFactory(
-		lib,
-		parser,
-		parserContextFactory,
-		searcher,
-		rp,
-		errorArticlesProvider,
-	);
+	const sitePresenterFactory = new SitePresenterFactory(lib, parser, parserContextFactory, rp, errorArticlesProvider);
 
 	return {
 		tm,
@@ -116,6 +110,7 @@ const _init = async (config: AppConfig): Promise<Application> => {
 		sitePresenterFactory,
 		errorArticlesProvider,
 		conf: {
+			corsProxy,
 			branch: config.branch,
 			basePath: config.paths.base,
 			isServerApp: config.isServerApp,
@@ -123,8 +118,8 @@ const _init = async (config: AppConfig): Promise<Application> => {
 			isReadOnly: config.isReadOnly,
 			ssoServerUrl: config.ssoServerUrl,
 			ssoPublicKey: config.ssoPublicKey,
+			authServiceUrl: config.authServiceUrl,
 			enterpriseServerUrl: config.enterpriseServerUrl,
-			corsProxy: corsProxy,
 			bugsnagApiKey: config.bugsnagApiKey,
 			gramaxVersion: config.gramaxVersion,
 		},

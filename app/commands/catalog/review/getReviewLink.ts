@@ -1,5 +1,6 @@
 import MimeTypes from "@core-ui/ApiServices/Types/MimeTypes";
 import { AuthorizeMiddleware } from "@core/Api/middleware/AuthorizeMiddleware";
+import ReloadConfirmMiddleware from "@core/Api/middleware/ReloadConfirmMiddleware";
 import Context from "@core/Context/Context";
 import DefaultError from "@ext/errorHandlers/logic/DefaultError";
 import StorageData from "@ext/storage/models/StorageData";
@@ -13,17 +14,17 @@ const getReviewLink: Command<
 
 	kind: ResponseKind.plain,
 
-	middlewares: [new AuthorizeMiddleware()],
+	middlewares: [new AuthorizeMiddleware(), new ReloadConfirmMiddleware()],
 
 	async do({ ctx, catalogName, userName, userEmail, filePath }) {
 		const { lib, rp, conf } = this._app;
 		const catalog = await lib.getCatalog(catalogName);
 		const storage = catalog.repo.storage;
 		const source = rp.getSourceData(ctx.cookie, await storage.getSourceName());
-		const baseStorageData = await storage.getData(source);
+		const baseStorageData = await storage.getStorageData(source);
 		const body: StorageData & { branch: string; filePath: string } = {
 			...baseStorageData,
-			branch: catalog.repo.gvc.getCurrentBranch().toString(),
+			branch: (await catalog.repo.gvc.getCurrentBranch()).toString(),
 			source: { ...baseStorageData.source, userName, userEmail },
 			filePath,
 		};

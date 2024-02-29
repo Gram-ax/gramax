@@ -1,4 +1,5 @@
 import note from "@ext/markdown/elements/note/edit/model/noteSchema";
+import { stopExecution } from "@ext/markdown/elementsUtils/cursorFunctions";
 import getExtensionOptions from "@ext/markdown/logic/getExtensionOptions";
 import { mergeAttributes, Node } from "@tiptap/core";
 import { ReactNodeViewRenderer } from "@tiptap/react";
@@ -47,7 +48,9 @@ const Note = Node.create({
 				},
 			toggleNote:
 				() =>
-				({ commands }) => {
+				({ commands, editor }) => {
+					if (stopExecution(editor, "note")) return false;
+
 					return commands.toggleWrap(this.name);
 				},
 			updateNote:

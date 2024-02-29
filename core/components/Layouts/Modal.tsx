@@ -15,10 +15,10 @@ export interface ModalLayoutProps {
 	onCmdEnter?: () => void;
 	isOpen?: boolean;
 	className?: string;
-	contentWidth?: string;
+	contentWidth?: "S" | "M" | "L";
 	closeOnEscape?: boolean;
 	closeOnCmdEnter?: boolean;
-	setGlobasStyles?: boolean;
+	setGlobalsStyles?: boolean;
 }
 
 const ModalLayout = (props: ModalLayoutProps) => {
@@ -81,7 +81,6 @@ const ModalLayout = (props: ModalLayoutProps) => {
 				}
 				CloseEsc();
 			}}
-			
 			trigger={trigger}
 			overlayStyle={{ backgroundColor: "rgba(19, 19, 19, 0.75)" }}
 			contentStyle={{
@@ -144,8 +143,12 @@ export default styled(ModalLayout)`
 	.outer-modal {
 		height: 80%;
 		margin: auto;
-		width: ${(p) => p.contentWidth ?? "var(--default-form-width)"};
-
+		width: ${(p) => {
+			if (!p.contentWidth) return "var(--default-form-width)";
+			if (p.contentWidth === "S") return "45%";
+			if (p.contentWidth === "M") return "60%";
+			if (p.contentWidth === "L") return "80%";
+		}};
 		${cssMedia.mediumest} {
 			width: 70% !important;
 		}
@@ -183,7 +186,7 @@ export default styled(ModalLayout)`
 	}
 
 	${(p) =>
-		p.setGlobasStyles ?? false
+		p.setGlobalsStyles ?? false
 			? `
 	.global {
 		gap: 1rem;

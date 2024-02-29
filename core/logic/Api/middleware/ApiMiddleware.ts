@@ -7,7 +7,7 @@ export default class ApiMiddleware extends Middleware {
 		super();
 	}
 
-	Process(req: ApiRequest, res: ApiResponse): void | Promise<void> {
-		return this._api(req, res);
+	Process(req: ApiRequest, res: ApiResponse): Promise<void> {
+		return Promise.resolve(this._api(req, res));
 	}
 }

@@ -22,7 +22,7 @@ fn repo(#[default(&sandbox())] sandbox: &TempDir, #[default("")] url: &str) -> G
   if url.is_empty() {
     GitRepository::init(sandbox.path(), DummyCreds).unwrap()
   } else {
-    GitRepository::clone(url, sandbox.path(), "master", DummyCreds, |_, _| true).unwrap()
+    GitRepository::clone(url, sandbox.path(), Some("master"), DummyCreds, |_, _| true).unwrap()
   }
 }
 

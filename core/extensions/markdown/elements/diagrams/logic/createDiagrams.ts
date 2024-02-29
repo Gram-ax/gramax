@@ -1,6 +1,6 @@
 import ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
 import { Editor } from "@tiptap/core";
-import { ArticleProps } from "../../../../../logic/SitePresenter/SitePresenter";
+import { ClientArticleProps } from "../../../../../logic/SitePresenter/SitePresenter";
 import DiagramType from "../../../../../logic/components/Diagram/DiagramType";
 
 import initArticleResource from "../../../elementsUtils/AtricleResource/initArticleResource";
@@ -11,7 +11,7 @@ import { startTsDiagram } from "../diagrams/tsDiagram/tsDiagramData";
 
 const createDiagrams = async (
 	editor: Editor,
-	articleProps: ArticleProps,
+	articleProps: ClientArticleProps,
 	apiUrlCreator: ApiUrlCreator,
 	diagramName: DiagramType,
 ) => {

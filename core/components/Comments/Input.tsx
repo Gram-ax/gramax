@@ -20,7 +20,6 @@ const Input = styled(({ className, ...props }: EditorProps) => {
 })`
 	width: 100%;
 	display: flex;
-	font-size: 15px;
 
 	.user-circle {
 		margin-right: 1rem;

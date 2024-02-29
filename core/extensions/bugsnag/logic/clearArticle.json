@@ -1,0 +1,169 @@
+{
+	"type": "doc",
+	"content": [
+		{
+			"type": "paragraph",
+			"content": [{ "type": "text", "marks": [{ "type": "link", "attrs": null }], "text": "" }]
+		},
+		{ "type": "paragraph" },
+		{ "type": "paragraph", "content": [{ "type": "text", "text": "" }] },
+		{
+			"type": "bullet_list",
+			"content": [
+				{
+					"type": "list_item",
+					"content": [
+						{
+							"type": "paragraph",
+							"content": [
+								{ "type": "text", "marks": [{ "type": "link", "attrs": null }], "text": "" },
+								{ "type": "text", "text": "" }
+							]
+						},
+						{
+							"type": "bullet_list",
+							"content": [
+								{
+									"type": "list_item",
+									"content": [
+										{
+											"type": "paragraph",
+											"content": [
+												{ "type": "text", "marks": [{ "type": "strong" }], "text": "" },
+												{ "type": "text", "text": "" }
+											]
+										}
+									]
+								}
+							]
+						}
+					]
+				},
+				{
+					"type": "list_item",
+					"content": [
+						{
+							"type": "paragraph",
+							"content": [
+								{ "type": "text", "marks": [{ "type": "link", "attrs": null }], "text": "" },
+								{ "type": "text", "text": "" },
+								{ "type": "text", "marks": [{ "type": "code" }], "text": "" },
+								{ "type": "text", "text": "" }
+							]
+						},
+						{
+							"type": "bullet_list",
+							"content": [
+								{
+									"type": "list_item",
+									"content": [
+										{
+											"type": "paragraph",
+											"content": [
+												{ "type": "text", "marks": [{ "type": "strong" }], "text": "" },
+												{ "type": "text", "text": "" }
+											]
+										}
+									]
+								},
+								{
+									"type": "list_item",
+									"content": [
+										{
+											"type": "paragraph",
+											"content": [
+												{ "type": "text", "marks": [{ "type": "strong" }], "text": "" },
+												{ "type": "text", "text": "" }
+											]
+										}
+									]
+								}
+							]
+						}
+					]
+				}
+			]
+		},
+		{
+			"type": "paragraph",
+			"content": [
+				{ "type": "text", "marks": [{ "type": "link", "attrs": null }], "text": "" },
+				{ "type": "text", "text": "" },
+				{ "type": "text", "marks": [{ "type": "code" }], "text": "" },
+				{ "type": "text", "text": "" }
+			]
+		},
+		{
+			"type": "bullet_list",
+			"content": [
+				{
+					"type": "list_item",
+					"content": [
+						{
+							"type": "paragraph",
+							"content": [
+								{ "type": "text", "marks": [{ "type": "strong" }], "text": "" },
+								{ "type": "text", "text": "" }
+							]
+						}
+					]
+				},
+				{
+					"type": "list_item",
+					"content": [
+						{
+							"type": "paragraph",
+							"content": [
+								{ "type": "text", "marks": [{ "type": "strong" }], "text": "" },
+								{ "type": "text", "text": "" }
+							]
+						}
+					]
+				},
+				{
+					"type": "list_item",
+					"content": [
+						{
+							"type": "paragraph",
+							"content": [
+								{ "type": "text", "marks": [{ "type": "link", "attrs": null }], "text": "" },
+								{ "type": "text", "text": "" },
+								{ "type": "text", "marks": [{ "type": "code" }], "text": "" },
+								{ "type": "text", "text": "" }
+							]
+						},
+						{
+							"type": "bullet_list",
+							"content": [
+								{
+									"type": "list_item",
+									"content": [
+										{
+											"type": "paragraph",
+											"content": [
+												{ "type": "text", "marks": [{ "type": "strong" }], "text": "" },
+												{ "type": "text", "text": "" }
+											]
+										}
+									]
+								},
+								{
+									"type": "list_item",
+									"content": [
+										{
+											"type": "paragraph",
+											"content": [
+												{ "type": "text", "marks": [{ "type": "strong" }], "text": "" },
+												{ "type": "text", "text": "" }
+											]
+										}
+									]
+								}
+							]
+						}
+					]
+				}
+			]
+		}
+	]
+}

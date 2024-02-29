@@ -1,6 +1,6 @@
+import ListItem from "@components/Layouts/CatalogLayout/RightNavigation/ListItem";
 import Checkbox from "@components/Atoms/Checkbox";
 import DiffContent from "@components/Atoms/DiffContent";
-import Icon from "@components/Atoms/Icon";
 import SpinnerLoader from "@components/Atoms/SpinnerLoader";
 import LeftNavViewContent, { ViewContent } from "@components/Layouts/LeftNavViewContent/LeftNavViewContent";
 import LogsLayout from "@components/Layouts/LogsLayout";
@@ -13,7 +13,9 @@ import useLocalize from "../../../../localization/useLocalize";
 import User from "../../../../security/components/User/User";
 import { ArticleHistoryViewModel } from "../model/ArticleHistoryViewModel";
 
-const History = styled(({ className }: { className?: string }) => {
+const History = styled(({ className, shouldRender }: { className?: string; shouldRender: boolean }) => {
+	if (!shouldRender) return null;
+
 	const apiUrlCreator = ApiUrlCreatorService.value;
 	const [showDiff, setShowDiff] = useState(true);
 	const [isOpen, setIsOpen] = useState(false);
@@ -49,15 +51,8 @@ const History = styled(({ className }: { className?: string }) => {
 				setIsOpen(false);
 				setData(null);
 			}}
-			trigger={
-				<div className={className}>
-					<a style={{ display: "flex" }}>
-						<Icon code="history" faFw={true} />
-						<span>{useLocalize("versionHistory")}</span>
-					</a>
-				</div>
-			}
-			contentWidth={data ? "80%" : null}
+			contentWidth={data ? "L" : null}
+			trigger={<ListItem iconCode="history" text={useLocalize("versionHistory")} />}
 		>
 			<div className={className}>
 				{data ? (

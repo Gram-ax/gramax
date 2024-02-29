@@ -139,6 +139,6 @@ const builtIn = { ...(process as any).builtIn, ...viteEnv };
 
 export const env = <T extends keyof EnvironmentVariable>(name: T): EnvironmentVariable[T] => builtIn?.[name] ?? _env(name) ?? defaultVariables[name];
 
-export const getExecutingEnvironment = () => executing;
+export const getExecutingEnvironment = (): Environment => executing;
 
 export default resolveModule;

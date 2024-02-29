@@ -11,7 +11,7 @@ const DrawioMenuButton = ({ editor }: { editor: Editor }) => {
 
 	return (
 		<Button
-			nodeValues={{ action: "diagrams.net" }}
+			nodeValues={{ action: "drawio" }}
 			tooltipText={"Диаграмма diagrams.net"}
 			onClick={() => createDrawio(editor, articleProps, apiUrlCreator)}
 		>

@@ -1,56 +1,41 @@
-FROM --platform=$BUILDPLATFORM node:21-alpine3.18 as deps
-RUN apk add git bash
+ARG CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX
+
+
+FROM --platform=$BUILDPLATFORM ${CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX}/node:21-alpine as build
+
+RUN apk add --no-cache git bash
 
 WORKDIR /app
-COPY ./package.json ./package-lock.json ./.npmrc ./
-RUN npm ci -f
 
-WORKDIR /app/target/browser
-COPY ./target/browser/package.json ./target/browser/package-lock.json ./
-RUN npm ci -f
-
-WORKDIR /app/target/tauri
-COPY ./target/tauri/package.json ./target/tauri/package-lock.json ./target/browser/.npmrc ./
-RUN npm ci -f
-
-WORKDIR /app/target/next
-COPY ./target/next/package.json ./target/next/package-lock.json ./target/next/.npmrc ./
-RUN npm ci -f
-
-#
-
-FROM deps as builder
-
-WORKDIR /app
 COPY . .
+RUN ./install-deps.sh --ci
+RUN npm --prefix target/next run build
 
-RUN npm run build:schemes
+RUN rm -rf .npm
 
-WORKDIR /app/target/next
-RUN npm run build
+FROM --platform=$BUILDPLATFORM ${CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX}/node:21-alpine as run
 
-WORKDIR /app
-RUN rm -fr /app/e2e /app/target/browser /app/target/tauri /app/target/next/.next/cache
-RUN find . -name ".npmrc" -type f -exec rm -f {} +
-RUN npm i --omit=dev -f
-
-#
-
-FROM --platform=$TARGETPLATFORM node:21-alpine3.18 as Runner
-
-WORKDIR /app
-RUN apk add --no-cache bash git
+RUN apk add --no-cache git bash
 
 ENV PORT=80
 ENV ENTERPRISE_SERVER_URL=http://gramax-diagram-renderer:80
 ENV SERVER_APP=true
-ENV SSO_SERVER_URL=http://localhost:3000
 ENV READ_ONLY=true
 ENV ROOT_PATH=/app/data
+ARG BRANCH
+ENV BRANCH=${BRANCH}
+ARG SHARE_ACCESS_TOKEN
+ENV SHARE_ACCESS_TOKEN=${SHARE_ACCESS_TOKEN}
 
-RUN mkdir $ROOT_PATH
-COPY --from=builder /app .
+RUN echo $SHARE_ACCESS_TOKEN
 
-WORKDIR /app/target/next
+# TODO: Move to build args
+# ENV SSO_SERVER_URL=http://localhost:3000
 
-ENTRYPOINT npm run start
+ARG COOKIE_SECRET="."
+ENV COOKIE_SECRET=${COOKIE_SECRET}
+
+RUN mkdir -p $ROOT_PATH
+COPY --from=build /app .
+
+CMD npm --prefix target/next run start

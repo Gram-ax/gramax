@@ -92,4 +92,20 @@ export default class ArticleContext extends BaseContext implements ParserContext
 	async getUserByMail(mail: string): Promise<UserInfo> {
 		return await this._getUserByMail(mail);
 	}
+
+	createContext(article: Article) {
+		return new ArticleContext(
+			article,
+			this._catalog,
+			this._basePath,
+			this._language,
+			this._isLogged,
+			this._enterpriseServerUrl,
+			this._tablesManager,
+			this._getUserByMail,
+			this.fp,
+			this.parser,
+			this.formatter,
+		);
+	}
 }

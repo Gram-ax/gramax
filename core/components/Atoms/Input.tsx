@@ -10,8 +10,8 @@ interface InputProps extends HTMLProps<HTMLInputElement> {
 	endText?: string;
 	startText?: string;
 	isCode?: boolean;
-	isInputInvalid?: boolean;
 	errorText?: string;
+	showErrorText?: boolean;
 	disable?: boolean;
 	tabIndex?: number;
 }
@@ -19,20 +19,13 @@ interface InputProps extends HTMLProps<HTMLInputElement> {
 const Input = forwardRef((props: InputProps, ref?: MutableRefObject<HTMLInputElement>) => {
 	const {
 		dataQa,
-		value,
-		onKeyDown,
-		onChange,
-		onFocus,
-		onBlur,
 		icon,
-		placeholder,
 		hidden,
 		endText,
 		startText,
-		tabIndex,
 		className,
-		isInputInvalid,
 		errorText,
+		showErrorText = true,
 		...otherProps
 	} = props;
 
@@ -40,19 +33,12 @@ const Input = forwardRef((props: InputProps, ref?: MutableRefObject<HTMLInputEle
 		<div className={className}>
 			{icon && <Icon code={icon} faFw />}
 			{startText && <div className={"startTextContainer"}>{startText}</div>}
-			<Tooltip visible={!!(isInputInvalid && errorText)} content={<span>{errorText}</span>}>
+			<Tooltip visible={!!errorText && showErrorText} content={<span>{errorText}</span>}>
 				<input
 					className="textInput"
 					data-qa={dataQa}
 					ref={ref}
 					type={hidden ? "password" : "text"}
-					tabIndex={tabIndex}
-					onKeyDown={onKeyDown}
-					onChange={onChange}
-					onFocus={onFocus}
-					onBlur={onBlur}
-					value={value}
-					placeholder={placeholder}
 					{...otherProps}
 				/>
 			</Tooltip>
@@ -100,7 +86,7 @@ export default styled(Input)`
 	.textInput {
 		${(p) => (p.startText || p.endText ? "max-width: 220px;" : "")};
 		${(p) =>
-			!p.isInputInvalid
+			p.errorText == null || p.errorText == undefined
 				? ""
 				: `
 		color: var(--color-admonition-danger-br-h);

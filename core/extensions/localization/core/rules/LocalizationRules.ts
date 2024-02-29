@@ -1,26 +1,23 @@
 import Path from "@core/FileProvider/Path/Path";
-import CatalogEntry from "@core/FileStructue/Catalog/CatalogEntry";
-import { Article } from "../../../../logic/FileStructue/Article/Article";
-import { Catalog } from "../../../../logic/FileStructue/Catalog/Catalog";
-import { Item } from "../../../../logic/FileStructue/Item/Item";
+import { ItemFilter } from "@core/FileStructue/Catalog/Catalog";
+import Rules from "@ext/rules/Rule";
 import ErrorArticlePresenter from "../../../../logic/SitePresenter/ErrorArticlePresenter";
-import { CatalogLink, ItemLink } from "../../../navigation/NavigationLinks";
-import { navProps } from "../../../navigation/catalog/main/logic/Navigation";
+import { NavRules, navProps } from "../../../navigation/catalog/main/logic/Navigation";
 import Language, { defaultLanguage } from "../model/Language";
-import { localizationProps } from "./FSLocalizationRules";
 
-export default class LocalizationRules {
+export default class LocalizationRules implements Rules {
 	private _currentLanguage: Language;
 
 	constructor(language: Language, private _errorArticlePresenter?: ErrorArticlePresenter) {
 		this._currentLanguage = language ?? defaultLanguage;
 	}
 
-	getFilterRule() {
-		const rule = (article: Article, catalogName: string): boolean => {
+	getItemFilter() {
+		const rule: ItemFilter = (article, catalog) => {
+			const catalogName = catalog.getName();
 			if (new Path(article.logicPath).name == catalogName) return true;
-			if (!article.props[localizationProps.language]) article.props[localizationProps.language] = defaultLanguage;
-			return article.props[localizationProps.language] == this._currentLanguage;
+			if (!article.props.lang) article.props.lang = defaultLanguage;
+			return article.props.lang === this._currentLanguage;
 		};
 
 		if (this._errorArticlePresenter) {
@@ -29,21 +26,21 @@ export default class LocalizationRules {
 		return rule;
 	}
 
-	getNavCatalogRule() {
-		return (catalog: CatalogEntry, catalogLink: CatalogLink): boolean => {
-			if (this._currentLanguage != defaultLanguage) {
-				catalogLink.description = catalog.props[navProps.description + "_" + this._currentLanguage] ?? null;
-			}
-			const prop = catalog.props[localizationProps.languages] as Set<string>;
-			return prop?.has(this._currentLanguage) ?? true;
-		};
-	}
+	getNavRules(): NavRules {
+		return {
+			itemRule: (catalog, item, itemLink) => {
+				const langTitle = item?.props?.["title_" + this._currentLanguage];
+				if (langTitle) itemLink.title = langTitle;
+				return (item.props.lang ?? defaultLanguage) == this._currentLanguage;
+			},
 
-	getNavItemRule() {
-		return (catalog: Catalog, item: Item, itemLink: ItemLink): boolean => {
-			const langTitle = item?.props?.["title_" + this._currentLanguage];
-			if (langTitle) itemLink.title = langTitle;
-			return (item.props[localizationProps.language] ?? defaultLanguage) == this._currentLanguage;
+			catalogRule: (catalog, catalogLink) => {
+				if (this._currentLanguage != defaultLanguage) {
+					catalogLink.description = catalog.props[navProps.description + "_" + this._currentLanguage] ?? null;
+				}
+				const prop = catalog.props.catalogLangs;
+				return prop?.has(this._currentLanguage) ?? true;
+			},
 		};
 	}
 }

@@ -13,7 +13,9 @@ import FetchService from "@core-ui/ApiServices/FetchService";
 import MimeTypes from "@core-ui/ApiServices/Types/MimeTypes";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import ArticlePropsService from "@core-ui/ContextServices/ArticleProps";
+import CatalogPropsService from "@core-ui/ContextServices/CatalogProps";
 import { refreshPage } from "@core-ui/ContextServices/RefreshPageContext";
+import { useRouter } from "@core/Api/useRouter";
 import Path from "@core/FileProvider/Path/Path";
 import styled from "@emotion/styled";
 import SideBarResource from "@ext/git/actions/Publish/components/SideBarResource";
@@ -54,6 +56,7 @@ const Publish = styled(({ changesCount, className }: { changesCount?: number; cl
 	const [hasFocused, setHasFocused] = useState(false);
 
 	const articleProps = ArticlePropsService.value;
+	const catalogProps = CatalogPropsService.value;
 	const apiUrlCreator = ApiUrlCreatorService.value;
 
 	const publishText = useLocalize("publish");
@@ -61,6 +64,7 @@ const Publish = styled(({ changesCount, className }: { changesCount?: number; cl
 	const [commitMessagePlaceholder, setCommitMessagePlaceholder] = useState("");
 	const placeholder = commitMessagePlaceholder.split("\n\n")[0];
 
+	const router = useRouter();
 	const isReview = useIsReview();
 	const diffItemsUrl = apiUrlCreator.getVersionControlDiffItemsUrl();
 
@@ -104,7 +108,7 @@ const Publish = styled(({ changesCount, className }: { changesCount?: number; cl
 		const currentLogicPaths = itemDiffs.map((sideBarItem) => sideBarItem.data.logicPath);
 		setLogicPaths(currentLogicPaths);
 		setSideBarData(currentSideBarData);
-		setOpenId(findArticleIdx(articleProps.path, currentLogicPaths));
+		setOpenId(findArticleIdx(articleProps.logicPath, currentLogicPaths));
 	};
 
 	useEffect(() => {
@@ -127,9 +131,9 @@ const Publish = styled(({ changesCount, className }: { changesCount?: number; cl
 	}, [sideBarData]);
 
 	useEffect(() => {
-		if (!articleProps.path || !logicPaths) return;
-		setOpenId(findArticleIdx(articleProps.path, logicPaths));
-	}, [articleProps.path]);
+		if (!articleProps.logicPath || !logicPaths) return;
+		setOpenId(findArticleIdx(articleProps.logicPath, logicPaths));
+	}, [articleProps.logicPath]);
 
 	useEffect(() => {
 		if (!sideBarData) return;
@@ -159,6 +163,7 @@ const Publish = styled(({ changesCount, className }: { changesCount?: number; cl
 				if (hasDiscard) {
 					refreshPage();
 					await ArticleUpdaterService.update(apiUrlCreator);
+					router.pushPath(catalogProps.link.pathname);
 				}
 				setContentEditable(true);
 				setPublishProcess(false);
@@ -173,7 +178,7 @@ const Publish = styled(({ changesCount, className }: { changesCount?: number; cl
 				if (canPublish) publish();
 			}}
 			className={"commit-modal " + className}
-			contentWidth={sideBarData ? "80%" : null}
+			contentWidth={sideBarData ? "L" : null}
 		>
 			<>
 				<ModalLayout isOpen={publishProcess || discardProcess}>{spinnerLoader}</ModalLayout>

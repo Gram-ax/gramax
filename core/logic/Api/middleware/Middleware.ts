@@ -19,5 +19,5 @@ export default abstract class Middleware {
 		return this;
 	}
 
-	abstract Process(req: ApiRequest, res: ApiResponse): void | Promise<void>;
+	abstract Process(req: ApiRequest, res: ApiResponse): Promise<void>;
 }

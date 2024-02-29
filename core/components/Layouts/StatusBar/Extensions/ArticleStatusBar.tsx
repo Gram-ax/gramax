@@ -1,7 +1,7 @@
 import ConnectStorage from "../../../../extensions/catalog/actions/ConnectStorage";
 import Branch from "../../../../extensions/git/actions/Branch/components/Branch";
 import Publish from "../../../../extensions/git/actions/Publish/components/Publish";
-import Sync from "../../../../extensions/git/actions/Sync/Sync";
+import Sync from "../../../../extensions/git/actions/Sync/components/Sync";
 import IsReadOnlyHOC from "../../../../ui-logic/HigherOrderComponent/IsReadOnlyHOC";
 import StatusBar from "../StatusBar";
 

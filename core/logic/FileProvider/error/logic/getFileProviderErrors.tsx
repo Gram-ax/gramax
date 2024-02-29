@@ -1,11 +1,11 @@
 import { ComponentProps, ReactNode } from "react";
 import GetErrorComponent from "../../../../extensions/errorHandlers/logic/GetErrorComponent";
-import NotFountErrorComponent from "../components/NotFountError";
+import NotFoundErrorComponent from "../components/NotFoundError";
 
 const getFileProviderErrors = (): {
 	[key: string]: (args: ComponentProps<typeof GetErrorComponent>) => ReactNode;
 } => ({
-	ENOENT: NotFountErrorComponent,
+	ENOENT: NotFoundErrorComponent,
 });
 
 export default getFileProviderErrors;

@@ -1,17 +1,17 @@
-import { useState, useEffect } from "react";
+import { useEffect, useRef } from "react";
 
 export const useCtrlKey = () => {
-	const [isCtrlPressed, setIsCtrlPressed] = useState(false);
+	const { current } = useRef({ isCtrlPressed: false });
+
+	const handleKeyDown = (event: KeyboardEvent) => {
+		if (event.ctrlKey) current.isCtrlPressed = true;
+	};
+
+	const handleKeyUp = (event: KeyboardEvent) => {
+		if (!event.ctrlKey) current.isCtrlPressed = false;
+	};
 
 	useEffect(() => {
-		const handleKeyDown = (event: KeyboardEvent) => {
-			if (event.ctrlKey) setIsCtrlPressed(true);
-		};
-
-		const handleKeyUp = (event: KeyboardEvent) => {
-			if (!event.ctrlKey) setIsCtrlPressed(false);
-		};
-
 		window.addEventListener("keydown", handleKeyDown);
 		window.addEventListener("keyup", handleKeyUp);
 
@@ -21,5 +21,5 @@ export const useCtrlKey = () => {
 		};
 	}, []);
 
-	return { isCtrlPressed };
+	return { isCtrlPressed: current.isCtrlPressed };
 };

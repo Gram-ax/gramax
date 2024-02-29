@@ -19,7 +19,7 @@ const remove: Command<{ src: Path; articlePath: Path; catalogName: string; ctx: 
 		const catalog = await lib.getCatalog(catalogName);
 		const fp = lib.getFileProvider(catalog.getRootCategoryRef().storageId);
 		const itemRef = fp.getItemRef(articlePath);
-		const article = catalog.findItemByItemRef(itemRef) as Article;
+		const article = catalog.findItemByItemRef<Article>(itemRef);
 		if (!article) return;
 		await parseContent(article, catalog, ctx, parser, parserContextFactory);
 		await article.parsedContent.resourceManager.delete(src);

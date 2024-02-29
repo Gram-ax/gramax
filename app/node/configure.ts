@@ -11,6 +11,7 @@ const configure = (): AppConfig => {
 		branch: env("BRANCH") ?? "develop",
 		ssoServerUrl: env("SSO_SERVER_URL") ?? null,
 		ssoPublicKey: env("SSO_PUBLIC_KEY") ?? null,
+		authServiceUrl: env("AUTH_SERVICE_URL") ?? "https://app.gram.ax/-server/auth",
 		enterpriseServerUrl: env("ENTERPRISE_SERVER_URL") ?? null,
 		bugsnagApiKey: env("BUGSNAG_API_KEY") ?? null,
 		cookieSecret: env("COOKIE_SECRET") ?? null,

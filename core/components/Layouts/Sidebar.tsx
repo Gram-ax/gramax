@@ -1,34 +1,29 @@
+import { classNames } from "@components/libs/classNames";
 import styled from "@emotion/styled";
+import { ReactNode, HTMLProps } from "react";
 
-const Sidebar = styled(
-	({
-		title,
-		leftActions,
-		rightActions,
-		className,
-	}: {
-		title: string;
-		leftActions?: React.ReactNode[];
-		rightActions?: React.ReactNode[];
-		className?: string;
-	}) => {
-		return (
-			<div className={"sidebar-article-element " + className}>
-				<div className="article-title">
-					{leftActions && leftActions.length ? (
-						<div className="sidebar-left-actions actions">{leftActions}</div>
-					) : null}
-					<div className="title" title={title}>
-						{title}
-					</div>
-					{rightActions && rightActions.length ? (
-						<div className="sidebar-right-actions actions">{rightActions}</div>
-					) : null}
+interface SidebarProps extends HTMLProps<HTMLDivElement> {
+	leftActions?: ReactNode[];
+	rightActions?: ReactNode[];
+}
+
+const Sidebar = styled((props: SidebarProps) => {
+	const { title, leftActions, rightActions, className } = props;
+
+	return (
+		<div className={classNames("sidebar-article-element", {}, [className])}>
+			<div className="article-title">
+				{leftActions?.length > 0 && <div className="sidebar-left-actions actions">{leftActions}</div>}
+				<div className="title" title={title}>
+					{title}
 				</div>
+				{leftActions?.length > 0 && rightActions?.length > 0 && (
+					<div className="sidebar-right-actions actions">{rightActions}</div>
+				)}
 			</div>
-		);
-	},
-)`
+		</div>
+	);
+})`
 	.article-title,
 	.actions {
 		display: flex;

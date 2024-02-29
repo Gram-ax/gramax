@@ -11,12 +11,12 @@ import Button from "@ext/markdown/core/edit/components/Menu/Button";
 import getFocusNode from "@ext/markdown/elementsUtils/getFocusNode";
 import { Editor } from "@tiptap/core";
 import { Node } from "prosemirror-model";
-import { useEffect, useState, ChangeEvent } from "react";
+import { ChangeEvent, useEffect, useState } from "react";
 import ApiUrlCreator from "../../../../../../ui-logic/ApiServices/ApiUrlCreator";
 import DiagramEditor from "../../logic/diagram-editor";
 import getDrawioID from "../logic/getDrawioID";
 
-const DrawioEditButton = ({ src }: { src: string }) => {
+const DrawioEditButton = ({ src, onUpdate }: { src: string; onUpdate: () => void }) => {
 	const [base64Img, setBase64Img] = useState(null);
 	const articleProps = ArticlePropsService.value;
 	const apiUrlCreator = ApiUrlCreatorService.value;
@@ -35,12 +35,14 @@ const DrawioEditButton = ({ src }: { src: string }) => {
 		loadContent(src, apiUrlCreator);
 	}, [src, apiUrlCreator]);
 
-	const getImgTag = () => (document.getElementById(getDrawioID(src, articleProps.path)) ?? {}) as HTMLImageElement;
+	const getImgTag = () =>
+		(document.getElementById(getDrawioID(src, articleProps.logicPath)) ?? {}) as HTMLImageElement;
 
-	const saveCallBack = () => {
+	const saveCallBack = async () => {
 		const newBase64Img = DataImageToBase64(getImgTag().src);
 		if (base64Img == newBase64Img) return;
-		FetchService.fetch(apiUrlCreator.setArticleResource(src, true), newBase64Img);
+		await FetchService.fetch(apiUrlCreator.setArticleResource(src, true), newBase64Img);
+		onUpdate();
 	};
 
 	return (
@@ -58,6 +60,7 @@ const DrawioEditButton = ({ src }: { src: string }) => {
 };
 
 const DrawioMenu = ({ editor }: { editor: Editor }) => {
+	const [src, setSrc] = useState<string>(null);
 	const [node, setNode] = useState<Node>(null);
 	const [title, setTitle] = useState("");
 	const [position, setPosition] = useState<number>(null);
@@ -67,6 +70,7 @@ const DrawioMenu = ({ editor }: { editor: Editor }) => {
 		if (node) {
 			setNode(node);
 			setTitle(node?.attrs?.title ?? "");
+			if (!src) setSrc(node?.attrs?.src ?? "");
 		}
 		if (typeof position === "number") setPosition(position);
 	}, [editor.state.selection]);
@@ -89,7 +93,13 @@ const DrawioMenu = ({ editor }: { editor: Editor }) => {
 			<ButtonsLayout>
 				<Input placeholder="Подпись" value={title} onChange={handleTitleChange} />
 				<div className="divider" />
-				<DrawioEditButton src={node?.attrs?.src} />
+				<DrawioEditButton
+					src={node?.attrs?.src}
+					onUpdate={() => {
+						editor.commands.updateAttributes(node.type, { src: "" });
+						editor.commands.updateAttributes(node.type, { src });
+					}}
+				/>
 				<Button icon={"trash"} tooltipText={"Удалить"} onClick={handleDelete} />
 			</ButtonsLayout>
 		</ModalLayoutDark>

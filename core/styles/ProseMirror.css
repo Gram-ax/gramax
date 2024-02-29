@@ -51,10 +51,6 @@
 	color: var(--color-fence-text);
 }
 
-.ProseMirror span.node-inlineMd_component span.term {
-	pointer-events: none !important;
-}
-
 .ProseMirror blockquote {
 	padding-left: 1rem;
 	border-left: 2px solid rgba(#0d0d0d, 0.1);
@@ -151,11 +147,6 @@
 	pointer-events: none;
 	top: 0;
 	width: 4px;
-}
-
-.ProseMirror .node-inlineMd_component code,
-.ProseMirror .node-blockMd_component code {
-	background: var(--color-markdown-bg) !important;
 }
 
 .table-actions {

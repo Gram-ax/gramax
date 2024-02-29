@@ -1,30 +1,86 @@
-import getApplication from "@app/node/app";
-import Path from "../../FileProvider/Path/Path";
+import getApp from "@app/node/app";
+import type Application from "@app/types/Application";
+import DiskFileProvider from "@core/FileProvider/DiskFileProvider/DiskFileProvider";
+import Path from "@core/FileProvider/Path/Path";
+import type FileProvider from "@core/FileProvider/model/FileProvider";
+import type { Catalog } from "@core/FileStructue/Catalog/Catalog";
+import type Library from "@core/Library/Library";
+import ResourceUpdater from "@core/Resource/ResourceUpdater";
+import { resolve } from "path";
 
-const getCatalogRefsData = async () => {
-	const app = await getApplication();
-	return app.lib.getCatalog("RefsCatalog");
-};
+let app: Application;
+let fp: FileProvider;
+let lib: Library;
+
+const p = (s: string) => new Path(s);
+const ru = (catalog: Catalog) =>
+	new ResourceUpdater(
+		app.contextFactory.fromBrowser("ru" as any, {}),
+		catalog,
+		app.parser,
+		app.parserContextFactory,
+		app.formatter,
+	);
 
 describe("Catalog", () => {
-	test("парвильно выдет статью по refLink", async () => {
-		const catalogRefs = await getCatalogRefsData();
+	beforeAll(async () => {
+		process.env.ROOT_PATH = resolve(__dirname, "tests");
+		const dfp = new DiskFileProvider(p(process.env.ROOT_PATH));
 
-		const refLink = catalogRefs.getName() + "/ref:ref";
-		const articlePath = new Path("RefsCatalog/path/article.md");
+		await dfp.write(p("x/a.md"), "");
+		await dfp.write(p("x/b/_index.md"), "");
+		await dfp.write(p("x/b/c.md"), "");
 
-		const article = catalogRefs.findArticle(refLink, []);
+		await dfp.write(p("y/x/a.md"), "");
+		await dfp.write(p("y/x/b/_index.md"), "");
+		await dfp.write(p("y/x/b/c.md"), "");
+		await dfp.write(p("y/x/.doc-root.yaml"), "");
 
-		expect(article.ref.path).toEqual(articlePath);
+		await dfp.write(p("res/a.md"), "");
+		await dfp.write(p("res/b.md"), "![](./pic.png)");
+		await dfp.write(p("res/pic.png"), "");
+
+		app = await getApp();
+		fp = app.lib.getFileProvider();
+		lib = app.lib;
 	});
 
-	test("конвертирует itemRefPath в относительный путь репозитория", async () => {
-		const catalogRefs = await getCatalogRefsData();
+	afterAll(async () => {
+		await fp.delete(p("."));
+	});
 
-		const itemRefPath = new Path("RefsCatalog/path/to/file/1.md");
+	test("перемещает внутрь папки", async () => {
+		const catalog = await lib.getCatalog("x");
+		await catalog.updateProps(ru(catalog), app.rp, { docroot: "r", title: "x", url: "x" });
+		await expect(fp.exists(p("x/r/.doc-root.yaml"))).resolves.toBe(true);
+		await expect(fp.exists(p("x/r/b/_index.md"))).resolves.toBe(true);
+		await expect(fp.exists(p("x/r/b/c.md"))).resolves.toBe(true);
 
-		const catalogRef = catalogRefs.getRelativeRepPath(itemRefPath);
+		await expect(fp.exists(p("x/a.md"))).resolves.toBe(false);
+	});
 
-		expect(catalogRef).toEqual(new Path("path/to/file/1.md"));
+	test("перемещает из папки в другую папку", async () => {
+		const catalog = await lib.getCatalog("y");
+		await catalog.updateProps(ru(catalog), app.rp, { docroot: "z", title: "y", url: "y" });
+
+		await expect(fp.exists(p("y/z"))).resolves.toBe(true);
+
+		await expect(fp.exists(p("y/z/b/_index.md"))).resolves.toBe(true);
+		await expect(fp.exists(p("y/z/b/c.md"))).resolves.toBe(true);
+		await expect(fp.exists(p("y/z/.doc-root.yaml"))).resolves.toBe(true);
+		await expect(fp.exists(p("y/z/a.md"))).resolves.toBe(true);
+
+		await expect(fp.exists(p("y/x/a.md"))).resolves.toBe(false);
+	});
+
+	test("перемещает с ресурсом", async () => {
+		const catalog = await lib.getCatalog("res");
+		await catalog.updateProps(ru(catalog), app.rp, { docroot: "f", title: "res", url: "res" });
+
+		await expect(fp.exists(p("res/f/a.md"))).resolves.toBe(true);
+		await expect(fp.exists(p("res/f/b.md"))).resolves.toBe(true);
+		await expect(fp.exists(p("res/f/pic.png"))).resolves.toBe(true);
+
+		await expect(fp.exists(p("res/pic.png"))).resolves.toBe(false);
 	});
 });

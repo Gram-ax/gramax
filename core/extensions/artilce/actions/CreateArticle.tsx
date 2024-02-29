@@ -7,7 +7,7 @@ import { refreshPage } from "@core-ui/ContextServices/RefreshPageContext";
 import styled from "@emotion/styled";
 import { ItemLink } from "@ext/navigation/NavigationLinks";
 import { useState, MouseEventHandler } from "react";
-import { useRouter } from "../../../logic/Api/useRouter";
+import { useRouter } from "@core/Api/useRouter";
 import useLocalize from "../../localization/useLocalize";
 
 interface CreateArticleProps {
@@ -16,8 +16,19 @@ interface CreateArticleProps {
 	onCreate?: () => void;
 }
 
+const isDeepestCatalog = (path: string) => {
+	const MAX_DEPTH = 9;
+
+	if (!path) return false;
+
+	return path.replace("/_index.md", "").split("/").length > MAX_DEPTH;
+};
+
 const CreateArticle = (props: CreateArticleProps) => {
 	const { item, className, onCreate } = props;
+
+	if (isDeepestCatalog(item?.ref?.path)) return null;
+
 	const [isLoading, setIsLoading] = useState(false);
 	const content = useLocalize(item ? "addChildArticle" : "addArticleToRoot");
 	const router = useRouter();
@@ -32,7 +43,7 @@ const CreateArticle = (props: CreateArticleProps) => {
 			setIsLoading(false);
 			if (!response.ok) return refreshPage();
 			onCreate?.();
-			router.pushPath("/" + (await response.text()));
+			router.pushPath(await response.text());
 		});
 		setIsLoading(true);
 	};
@@ -41,8 +52,8 @@ const CreateArticle = (props: CreateArticleProps) => {
 
 	return (
 		<Tooltip content={content} place={item ? "top" : "right"}>
-			<span className={className}>
-				<Icon code="plus" isAction isLoading={isLoading} onClick={onClickHandler} />
+			<span className={className} onClick={onClickHandler}>
+				<Icon code="plus" isAction isLoading={isLoading} />
 			</span>
 		</Tooltip>
 	);

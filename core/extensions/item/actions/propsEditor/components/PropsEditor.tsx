@@ -11,15 +11,16 @@ import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import ArticlePropsService from "@core-ui/ContextServices/ArticleProps";
 import IsEditService from "@core-ui/ContextServices/IsEdit";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
+import { Router } from "@core/Api/Router";
 import { useRouter } from "@core/Api/useRouter";
-import { ArticleProps } from "@core/SitePresenter/SitePresenter";
+import { ClientArticleProps } from "@core/SitePresenter/SitePresenter";
 import { getHeaderRef } from "@ext/artilce/actions/HeaderEditor";
 import { ItemLink } from "@ext/navigation/NavigationLinks";
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import useLocalize from "../../../../localization/useLocalize";
 
 interface PropsEditorProps {
-	item: ArticleProps;
+	item: ClientArticleProps;
 	itemLink: ItemLink;
 	setItemLink: Dispatch<SetStateAction<ItemLink>>;
 	isCategory: boolean;
@@ -30,38 +31,48 @@ interface PropsEditorProps {
 const PropsEditor = (props: PropsEditorProps) => {
 	const { item, itemLink, setItemLink, isCategory, isCurrentItem, brotherFileNames } = props;
 	const domain = PageDataContextService.value.domain;
+	const articleProps = ArticlePropsService.value;
 	const isEdit = IsEditService.value;
 	const router = useRouter();
 	const apiUrlCreator = ApiUrlCreatorService.value;
 	const [parentCategoryLink, setParentCategoryLink] = useState<string>(domain);
 
 	const [isOpen, setIsOpen] = useState(false);
-	const [itemProps, setItemProps] = useState<ArticleProps>();
-	const [isInputInvalid, setIsInputInvalid] = useState<boolean>(false);
+	const [itemProps, setItemProps] = useState<ClientArticleProps>();
 
 	useEffect(() => {
-		setParentCategoryLink(domain + "/" + item?.path.replace(/[^/]*$/, ""));
+		setParentCategoryLink(domain + "/" + item?.logicPath.replace(/[^/]*$/, ""));
 		setItemProps(item);
-
-		setIsInputInvalid(
-			!/^[\w\d\-_]+$/m.test(itemProps?.fileName) || brotherFileNames?.includes(itemProps?.fileName),
-		);
 	}, [item]);
 
+	const updateNavigation = (
+		isCurrentItem: boolean,
+		router: Router,
+		logicPath: string,
+		articleLogicPath: string,
+		itemLogicPath: string,
+	) => {
+		if (isCurrentItem) return router.pushPath(logicPath);
+		if (articleLogicPath.startsWith(itemLogicPath))
+			return router.pushPath(articleProps.logicPath.replace(itemProps.logicPath, logicPath));
+		return refreshPage();
+	};
+
 	const save = async () => {
+		if (getErrorText()) return;
 		const response = await FetchService.fetch(
 			apiUrlCreator.updateItemProps(),
 			JSON.stringify(itemProps),
 			MimeTypes.json,
 		);
-		const data = (await response.json()) as ArticleProps;
-		router.pushPath(data.path);
+		const logicPath = await response.text();
+		updateNavigation(isCurrentItem, router, logicPath, articleProps.logicPath, itemProps.logicPath);
 		setIsOpen(false);
 	};
 
 	if (!isEdit) return null;
 
-	const errorText = () => {
+	const getErrorText = () => {
 		if (!itemProps?.fileName) return useLocalize("mustBeNotEmpty");
 		if (brotherFileNames?.includes(itemProps?.fileName)) return useLocalize("cantBeSameName");
 		if (!/^[\w\d\-_]+$/m.test(itemProps?.fileName)) return useLocalize("noEncodingSymbolsInUrl");
@@ -77,7 +88,7 @@ const PropsEditor = (props: PropsEditorProps) => {
 					<span>{`${useLocalize("properties")}...`}</span>
 				</div>
 			}
-			contentWidth={"45%"}
+			contentWidth={"S"}
 			onCmdEnter={save}
 			onOpen={() => setIsOpen(true)}
 			onClose={() => setIsOpen(false)}
@@ -115,16 +126,9 @@ const PropsEditor = (props: PropsEditorProps) => {
 								value={itemProps?.fileName}
 								startText={parentCategoryLink}
 								endText={"/"}
-								isInputInvalid={isInputInvalid}
-								errorText={errorText()}
+								errorText={getErrorText()}
 								onChange={(e) => {
 									const inputValue = e.target.value ?? "";
-
-									setIsInputInvalid(
-										!inputValue ||
-											!/^[\w\d\-_]+$/m.test(inputValue) ||
-											brotherFileNames?.includes(inputValue),
-									);
 
 									itemProps.fileName = inputValue;
 									setItemProps({ ...itemProps });
@@ -134,7 +138,7 @@ const PropsEditor = (props: PropsEditorProps) => {
 							/>
 						</div>
 						<div className="buttons">
-							<Button buttonStyle={ButtonStyle.default} onClick={save} disabled={isInputInvalid}>
+							<Button buttonStyle={ButtonStyle.default} onClick={save} disabled={!!getErrorText()}>
 								<span>{useLocalize("save")}</span>
 							</Button>
 						</div>

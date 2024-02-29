@@ -1,26 +1,26 @@
-import Path from "../../../../logic/FileProvider/Path/Path";
 import { Catalog } from "@core/FileStructue/Catalog/Catalog";
 import { Category } from "@core/FileStructue/Category/Category";
 import { Item } from "@core/FileStructue/Item/Item";
+import Path from "../../../../logic/FileProvider/Path/Path";
 import LinkItem from "../models/LinkItem";
 
 class LinkItemCreator {
 	constructor(private _catalog: Catalog) {}
 
-	getLinkItems(articlePath: Path): LinkItem[] {
+	async getLinkItems(articlePath: Path): Promise<LinkItem[]> {
 		if (!this._catalog) return [];
 		const items = this._catalog.getItems().filter((item) => !item.ref.path.compare(articlePath));
 		const itemsTree = this._catalog.getRootCategory().items;
-		return items.map((i) => this._toItemLink(this._catalog, i, itemsTree)).filter((i) => i);
+		return Promise.all(items.map((i) => this._toItemLink(this._catalog, i, itemsTree, articlePath)));
 	}
 
-	private _toItemLink(catalog: Catalog, item: Item, itemsTree: Item[]): LinkItem {
+	private async _toItemLink(catalog: Catalog, item: Item, itemsTree: Item[], articlePath: Path): Promise<LinkItem> {
 		return {
 			type: item.type,
-			title: item.props.title?.toString() ?? "",
-			logicPath: `/${item.logicPath}`,
-			relativePath: `.../${catalog.getRootCategoryPath().subDirectory(item.ref.path).value}`,
+			title: item.getTitle() ?? "",
+			pathname: `/${await catalog.getPathname(item)}`,
 			breadcrumb: this._getBreadcrumb(itemsTree, [], item.logicPath) ?? [],
+			relativePath: articlePath.getRelativePath(item.ref.path).value,
 		};
 	}
 
@@ -28,7 +28,7 @@ class LinkItemCreator {
 		for (const i of itemsTree) {
 			if (url.includes(i.logicPath)) {
 				if (!(i as Category)?.items || url === i.logicPath) {
-					return categoties.map((c) => c.props.title);
+					return categoties.map((c) => c.getTitle());
 				} else return this._getBreadcrumb((i as Category).items, [...categoties, i as Category], url);
 			}
 		}

@@ -1,8 +1,7 @@
+import { Item } from "@core/FileStructue/Item/Item";
 import Path from "../../../../logic/FileProvider/Path/Path";
 import FileProvider from "../../../../logic/FileProvider/model/FileProvider";
-import { Article } from "../../../../logic/FileStructue/Article/Article";
 import { Catalog } from "../../../../logic/FileStructue/Catalog/Catalog";
-import { Category } from "../../../../logic/FileStructue/Category/Category";
 import FileStructure from "../../../../logic/FileStructue/FileStructure";
 import ItemExtensions from "../../../../logic/FileStructue/Item/ItemExtensions";
 import ResourceExtensions from "../../../../logic/Resource/ResourceExtensions";
@@ -160,7 +159,7 @@ export default class GitDiffItemCreator {
 				continue;
 			}
 			const itemRef = this._fp.getItemRef(this._catalog.getItemRefPath(c.path));
-			const item = this._catalog.findItemByItemRef(itemRef) as Article | Category;
+			const item = this._catalog.findItemByItemRef(itemRef);
 			if (!item) {
 				resources.push(c);
 				continue;
@@ -184,7 +183,7 @@ export default class GitDiffItemCreator {
 		isDelete = false,
 		resources = [],
 	}: {
-		item: Article | Category;
+		item: Item;
 		isChanged: boolean;
 		isNew?: boolean;
 		isDelete?: boolean;
@@ -197,8 +196,8 @@ export default class GitDiffItemCreator {
 		return {
 			type: "item",
 			changeType,
-			title: item.props.title,
-			logicPath: item.logicPath,
+			title: item.getTitle(),
+			logicPath: await this._catalog.getPathname(item),
 			filePath: { path: relativeRepPath.value },
 			content: await this._getNewContent(relativeRepPath),
 			diff: await this._getDiffByPath(relativeRepPath, isNew, isDelete),
@@ -220,16 +219,16 @@ export default class GitDiffItemCreator {
 						itemResources.push(changeFile);
 						const diffResource = await this._getDiffResource(changeFile);
 						let includes = false;
-						diffItems.forEach((diffItem) => {
+						for (const diffItem of diffItems) {
 							const diffItemResourcePaths = diffItem.resources.map((resource) => resource.filePath.path);
 							if (
 								!diffItemResourcePaths.includes(diffResource.filePath.path) &&
-								diffItem.logicPath === item.logicPath
+								diffItem.logicPath === (await this._catalog.getPathname(item))
 							) {
 								diffItem.resources.push(diffResource);
 								includes = true;
 							}
-						});
+						}
 
 						if (!includes) {
 							diffItems.push(

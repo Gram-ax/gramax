@@ -2,13 +2,13 @@ import { useEffect, useRef, useState } from "react";
 
 import LeftNavigationIsOpenService from "@core-ui/ContextServices/LeftNavigationIsOpen";
 import SidebarsIsPinService from "@core-ui/ContextServices/SidebarsIsPin";
-import { ArticleData } from "../../../../logic/SitePresenter/SitePresenter";
+import { ArticlePageData } from "../../../../logic/SitePresenter/SitePresenter";
 import LeftNavigationBottom from "./LeftNavigationBottom";
 import LeftNavigationContent from "./LeftNavigationContent";
 import LeftNavigationLayout from "./LeftNavigationLayout";
 import LeftNavigationTop from "./LeftNavigationTop";
 
-const LeftNavigationComponent = ({ data, delay }: { data: ArticleData; delay?: number }) => {
+const LeftNavigationComponent = ({ data, delay }: { data: ArticlePageData; delay?: number }) => {
 	const [hideScroll, setHideScroll] = useState(true);
 	const isPin = SidebarsIsPinService.value;
 	const isOpen = LeftNavigationIsOpenService.value;

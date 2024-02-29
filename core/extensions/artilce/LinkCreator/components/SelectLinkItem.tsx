@@ -6,11 +6,11 @@ import ListLayout, { ListLayoutElement } from "@components/List/ListLayout";
 import { useCtrlKey } from "@core-ui/hooks/useCtrlKey";
 import { useExternalLink } from "@core-ui/hooks/useExternalLink";
 import { usePlatform } from "@core-ui/hooks/usePlatform";
+import { ItemType } from "@core/FileStructue/Item/Item";
 import parseStorageUrl from "@core/utils/parseStorageUrl";
 import styled from "@emotion/styled";
 import Button from "@ext/markdown/core/edit/components/Menu/Button";
-import { useEffect, useRef, useState, Dispatch, SetStateAction, RefObject } from "react";
-import { ItemType } from "@core/FileStructue/Item/Item";
+import { Dispatch, RefObject, SetStateAction, useEffect, useRef, useState } from "react";
 import LinkItem from "../models/LinkItem";
 
 interface SelectLinkItemProps {
@@ -142,7 +142,7 @@ const SelectLinkItem = (props: SelectLinkItemProps) => {
 		if (externalLink) {
 			onChange(externalLink, externalLink);
 		} else {
-			onChange(itemLinks[idx].relativePath, itemLinks[idx].logicPath);
+			onChange(itemLinks[idx].relativePath, itemLinks[idx].pathname);
 		}
 	};
 

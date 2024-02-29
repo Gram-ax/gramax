@@ -1,5 +1,6 @@
 // import { JSONSchema7, validate } from "json-schema";
 import Style from "@components/HomePage/Groups/model/Style";
+import CatalogPropsService from "@core-ui/ContextServices/CatalogProps";
 import { Meta, StoryObj } from "@storybook/react";
 import CatalogPropsEditor from "../../../../../../core/extensions/catalog/actions/propsEditor/components/CatalogPropsEditor";
 import CatalogEditProps from "../../../../../../core/extensions/catalog/actions/propsEditor/model/CatalogEditProps.schema";
@@ -29,7 +30,9 @@ export const InlineContent: StoryObj = {
 		};
 
 		return (
-			<CatalogPropsEditor trigger={<div>Открыть настройки</div>} catalogProps={props} onSubmit={console.log} />
+			<CatalogPropsService.Provider value={props as any}>
+				<CatalogPropsEditor trigger={<div>Открыть настройки</div>} onSubmit={console.log} />
+			</CatalogPropsService.Provider>
 		);
 	},
 };

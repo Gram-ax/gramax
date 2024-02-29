@@ -29,6 +29,10 @@ export default class BrowserApiResponse implements ApiResponse {
 		if (!this.body) this.body = body;
 	}
 
+	blob() {
+		return Promise.resolve(this.body);
+	}
+
 	json(): Promise<any> {
 		if (!this.body?.buffer) return Promise.resolve(this.body);
 		return Promise.resolve(JSON.parse(this.body));

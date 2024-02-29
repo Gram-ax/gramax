@@ -7,6 +7,7 @@ import tsDiagramToken from "../../../../elements/diagrams/diagrams/tsDiagram/tsD
 import answer from "../../../../elements/comment/legacy/answer/edit/answerToken";
 import comment_old from "../../../../elements/comment/legacy/comment/commentToken";
 
+import openApiToken from "@ext/markdown/elements/openApi/edit/models/openApiToken";
 import diagramsToken from "../../../../elements/diagrams/edit/models/diagramsToken";
 import drawioToken from "../../../../elements/drawio/edit/model/drawioToken";
 import codeBlockToken from "../../../../elements/fence/edit/model/codeBlockToken";
@@ -34,6 +35,7 @@ export const getTokens = (context?: ParserContext): { [name: string]: ParseSpec 
 	return {
 		image: imageToken(),
 		drawio: drawioToken(),
+		openapi: openApiToken,
 		code_block: codeBlockToken,
 		mermaid: mermaidToken,
 		diagrams: diagramsToken,

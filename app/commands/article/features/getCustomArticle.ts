@@ -16,7 +16,7 @@ const getCustomArticle: Command<{ name: string }, { title: string; content: stri
 		if (article && !article.parsedContent) article.parsedContent = await parser.parse(article.content);
 
 		return {
-			title: article?.props?.title ?? "None article",
+			title: article?.getTitle() ?? "None article",
 			content: JSON.stringify(article?.parsedContent?.renderTree ?? {}),
 		};
 	},

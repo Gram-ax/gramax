@@ -6,9 +6,9 @@ const BottomInfo = styled(({ className }: { className?: string }) => {
 	const config = PageDataContextService.value.conf;
 	return (
 		<div className={className}>
-			<div className="bottom-info" data-qa="home-page-bottom-info">
+			<div className="bottom-info">
 				<div>{`${useLocalize("version")} ${config.version}${config.branch == "master" ? "" : " dev"}`}</div>
-				<div data-qa="home-page-bottom-info-copyright">{"© Gramax " + new Date().getFullYear()}</div>
+				<div>{"© Gramax " + new Date().getFullYear()}</div>
 			</div>
 		</div>
 	);

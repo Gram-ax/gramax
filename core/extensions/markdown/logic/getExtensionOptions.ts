@@ -1,4 +1,4 @@
-export default function getExtensionOptions({ schema, name, withAttributes = true }) {
+function getExtensionOptions({ schema, name, withAttributes = true }) {
 	const { attrs, ...rest } = schema;
 
 	return {
@@ -7,3 +7,5 @@ export default function getExtensionOptions({ schema, name, withAttributes = tru
 		...(attrs && withAttributes ? { addAttributes: () => attrs } : {}),
 	};
 }
+
+export default getExtensionOptions;

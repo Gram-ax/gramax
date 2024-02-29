@@ -1,3 +1,6 @@
+import { TextSize } from "@components/Atoms/Button/Button";
+import ButtonLink from "@components/Molecules/ButtonLink";
+import Input from "@components/Atoms/Input";
 import Fetcher from "@core-ui/ApiServices/Types/Fetcher";
 import Url from "@core-ui/ApiServices/Types/Url";
 import UseSWRService from "@core-ui/ApiServices/UseSWRService";
@@ -21,7 +24,6 @@ import Icon from "../../Atoms/Icon";
 import Link from "../../Atoms/Link";
 import Breadcrumb from "../../Breadcrumbs/ArticleBreadcrumb";
 import Error from "../../Error";
-import Input from "../../Labels/Input";
 import ModalLayout from "../../Layouts/Modal";
 import ModalLayoutLight from "../../Layouts/ModalLayoutLight";
 
@@ -157,10 +159,11 @@ const Search = styled(
 				}}
 				isOpen={isOpen}
 				trigger={
-					<a data-qa="qa-clickable">
-						<Icon isAction code={"search"} />
-						{isHomePage ? <span>{useLocalize("search")}</span> : null}
-					</a>
+					<ButtonLink
+						iconCode="search"
+						textSize={isHomePage ? TextSize.XS : TextSize.L}
+						text={isHomePage ? useLocalize("search") : null}
+					/>
 				}
 			>
 				<div style={{ height: "100%" }} data-qa={`search-modal`}>
@@ -186,6 +189,7 @@ const Search = styled(
 											setMyTimeout(tID);
 										}}
 										placeholder={useLocalize("searchPlaceholder")}
+										data-qa={useLocalize("searchPlaceholder")}
 									/>
 									{!query ? null : (
 										<a
@@ -253,7 +257,7 @@ const Search = styled(
 																{d.count > 1 && (
 																	<span className="count">{d.count} шт.</span>
 																)}
-																<div className="item-title">
+																<div className="item-title" data-qa="qa-clickable">
 																	<div className="title-text">
 																		{d.name.targets.map((t) => {
 																			return (
@@ -278,7 +282,7 @@ const Search = styled(
 																	)}
 																</div>
 																{d.paragraph.map((p) => (
-																	<div key={p.target} className="excerpt">
+																	<div key={p.target} className="excerpt" data-qa="qa-clickable">
 																		<span>{p.prev}</span>
 																		<span className="match">{p.target}</span>
 																		<span>{p.next}</span>
@@ -361,19 +365,19 @@ const Search = styled(
 		);
 	},
 )`
-	height: 274px;
+	height: 230px;
 	transition: all 0.3s;
 
 	.layer-two {
 		overflow: hidden;
 
 		.form > div {
-			gap: 1rem;
 			width: 100%;
 			display: flex;
-			height: 2.5rem;
+			height: 1.5rem;
 			flex-direction: row;
-			align-items: baseline;
+			align-items: center;
+			gap: var(--distance-i-span);
 			border-radius: var(--radius-small);
 
 			input {

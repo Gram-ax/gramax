@@ -24,7 +24,7 @@ const getDiagramByPath: Command<
 	async do({ ctx, src, articlePath, catalogName, type, count }) {
 		const { lib, parser, parserContextFactory, conf } = this._app;
 		const catalog = await lib.getCatalog(catalogName);
-		const article = catalog.findItemByItemPath(articlePath) as Article;
+		const article = catalog.findItemByItemPath<Article>(articlePath);
 		if (!article) return;
 		const diagrams = new Diagrams(conf.enterpriseServerUrl);
 		await parseContent(article, catalog, ctx, parser, parserContextFactory);

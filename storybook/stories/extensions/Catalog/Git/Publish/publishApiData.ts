@@ -57,10 +57,8 @@ const data: { items: DiffItem[]; resources: DiffResource[] } = {
 			filePath: { path: "docs/catalog/category/FirstLevel/FirstLevelArticle.md" },
 			diff: {
 				changes: [
-					{ value: '--\ntitle: "123"\n---\n\ncontent123\n\n123\n2', type: FileStatus.new },
-					{ value: "ckozosc\n" },
-					{ value: "oldoldoldold\n", type: FileStatus.new },
-					{ value: "newnewnewnew\n", type: FileStatus.new },
+					{ value: '--\ntitle: "long article"\n---\n\n', type: FileStatus.new },
+					{ value: [...Array(100).keys()].map(() => "looong title").join("\n"), type: FileStatus.new },
 				],
 				added: 2,
 				removed: 1,
@@ -99,7 +97,7 @@ const data: { items: DiffItem[]; resources: DiffResource[] } = {
 			resources: [
 				{
 					title: "Ресурс",
-					filePath: { path: "docs/catalog/category/FirstLevel/FirstLevelArticle2.md/resource.puml" },
+					filePath: { path: "docs/catalog/category/FirstLevel/FirstLevelArticle2.md/resource.res" },
 					changeType: FileStatus.modified,
 					diff: {
 						changes: [
@@ -172,13 +170,13 @@ const data: { items: DiffItem[]; resources: DiffResource[] } = {
 					title: "Переименованный ресурс",
 					changeType: FileStatus.modified,
 					filePath: {
-						oldPath: "docs/catalog/category/FirstLevel/FirstLevelArticle2.md/resource2.puml",
-						path: "docs/category/FirstLevel/FirstLevelArticle2.md/resource2.puml",
+						oldPath: "docs/catalog/category/FirstLevel/FirstLevelArticle2.md/resource2.res",
+						path: "docs/category/FirstLevel/FirstLevelArticle2.md/resource2.res",
 						diff: [
 							{ value: "docs/" },
 							{ value: "catalog", type: FileStatus.delete },
 							{ value: "category", type: FileStatus.new },
-							{ value: "/FirstLevel/FirstLevelArticle2.md/resource2.puml" },
+							{ value: "/FirstLevel/FirstLevelArticle2.md/resource2.res" },
 						],
 					},
 					diff: {

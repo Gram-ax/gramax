@@ -7,11 +7,7 @@
 		"build": "storybook build && node ./.storybook/build.js",
 		"start": "http-server storybook-static ${PORT}"
 	},
-	"dependencies": {
-		"react": "file:../node_modules/react",
-		"react-dnd": "file:../node_modules/react-dnd",
-		"react-dom": "file:../node_modules/react-dom"
-	},
+	"dependencies": {},
 	"devDependencies": {
 		"@storybook/addon-essentials": "^7.6.1",
 		"@storybook/addon-interactions": "^7.6.1",
@@ -21,8 +17,6 @@
 		"@storybook/react": "^7.6.1",
 		"@storybook/react-vite": "^7.6.1",
 		"@storybook/testing-library": "^0.2.2",
-		"@types/react": "file:../node_modules/@types/react",
-		"@types/react-dom": "file:../node_modules/@types/react-dom",
 		"http-server": "^14.1.1",
 		"msw": "^1.3.2",
 		"msw-storybook-addon": "^1.10.0",

@@ -4,7 +4,7 @@ import { Editor } from "@tiptap/core";
 import { NodeValues, ActionContextValue } from "./hooks/types";
 import useType from "./hooks/useType";
 
-const ActionContext = createContext<ActionContextValue>({ action: "", marks: [], attrs: { level: null } });
+const ActionContext = createContext<ActionContextValue>({ actions: [], marks: [], attrs: { level: null } });
 
 abstract class ButtonStateService {
 	static Provider({ children, editor }: { children: ReactNode; editor: Editor }): ReactElement {

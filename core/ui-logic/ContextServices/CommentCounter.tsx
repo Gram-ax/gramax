@@ -36,15 +36,15 @@ abstract class CommentCounterService {
 		_setComments(comments);
 	}
 
-	public static delete(comments: { [articlePath: string]: number }, articlePath: string) {
-		if (comments[articlePath] == 0) return;
-		comments[articlePath] = comments[articlePath] - 1;
+	public static delete(comments: { [articlePath: string]: number }, articlePathname: string) {
+		if (comments[articlePathname] == 0) return;
+		comments[articlePathname] = comments[articlePathname] - 1;
 		_setComments(Object.assign({}, comments));
 	}
 
-	public static add(comments: { [articlePath: string]: number }, articlePath: string) {
-		if (!comments[articlePath]) comments[articlePath] = 1;
-		else comments[articlePath] = comments[articlePath] + 1;
+	public static add(comments: { [articlePath: string]: number }, articlePathname: string) {
+		if (!comments[articlePathname]) comments[articlePathname] = 1;
+		else comments[articlePathname] = comments[articlePathname] + 1;
 		_setComments(Object.assign({}, comments));
 	}
 }

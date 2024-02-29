@@ -1,9 +1,9 @@
+import { cssMedia } from "@core-ui/utils/cssUtils";
 import styled from "@emotion/styled";
 import { useMediaQuery } from "@mui/material";
 import Tippy, { TippyProps } from "@tippyjs/react";
 import { ReactNode, useState } from "react";
 import { Placement } from "tippy.js";
-import { cssMedia } from "@core-ui/utils/cssUtils";
 
 interface TooltipProps extends TippyProps {
 	place?: Placement;
@@ -14,6 +14,7 @@ interface TooltipProps extends TippyProps {
 	customStyle?: boolean;
 	hideOnClick?: boolean;
 	interactive?: boolean;
+	delay?: number;
 }
 
 interface TooltipContentProps extends Omit<TooltipProps, "children"> {
@@ -33,6 +34,7 @@ const Tooltip = (props: TooltipProps) => {
 		customStyle = false,
 		hideOnClick = false,
 		interactive = false,
+		delay = 0,
 		...otherProps
 	} = props;
 
@@ -58,13 +60,14 @@ const Tooltip = (props: TooltipProps) => {
 			}}
 			appendTo={() => document.body}
 			interactive={interactive}
-			delay={0}
+			delay={delay}
 			{...otherProps}
 		>
 			{children}
 		</Tippy>
 	);
 };
+
 const TooltipContent = styled(({ children, className }: TooltipContentProps) => {
 	return <div className={className}>{children}</div>;
 })`

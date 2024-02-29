@@ -1,4 +1,5 @@
 import cut from "@ext/markdown/elements/cut/edit/model/cutSchema";
+import { stopExecution } from "@ext/markdown/elementsUtils/cursorFunctions";
 import getExtensionOptions from "@ext/markdown/logic/getExtensionOptions";
 import { mergeAttributes, Node } from "@tiptap/core";
 import { ReactNodeViewRenderer } from "@tiptap/react";
@@ -30,6 +31,8 @@ const Cut = Node.create({
 			toggleCut:
 				() =>
 				({ editor, commands }) => {
+					if (stopExecution(editor, this.name)) return false;
+
 					const isActive = editor?.isActive("cut") || editor?.isActive("inlineCut_component");
 					if (isActive) return commands.toggleWrap(this.name);
 					return commands.toggleWrap(this.name, { text: "Подробнее", expanded: true, isInline: false });

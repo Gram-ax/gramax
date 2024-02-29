@@ -111,7 +111,7 @@ export default class ServicesSearcher implements Searcher {
 		return {
 			objectID: hash(article.ref),
 			logicPath: article.logicPath,
-			title: article.props["title"] ?? "",
+			title: article.getTitle() ?? "",
 			body: body ?? "",
 		};
 	}

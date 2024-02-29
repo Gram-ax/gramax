@@ -7,6 +7,7 @@ import DragTree from "@ext/navigation/catalog/drag/logic/DragTree";
 import DragTreeTransformer from "@ext/navigation/catalog/drag/logic/DragTreeTransformer";
 import { NodeModel } from "@minoru/react-dnd-treeview";
 import { Command, ResponseKind } from "../../types/Command";
+import ReloadConfirmMiddleware from "@core/Api/middleware/ReloadConfirmMiddleware";
 
 const updateNavigation: Command<
 	{
@@ -22,7 +23,7 @@ const updateNavigation: Command<
 
 	kind: ResponseKind.json,
 
-	middlewares: [new AuthorizeMiddleware(), new DesktopModeMiddleware()],
+	middlewares: [new AuthorizeMiddleware(), new DesktopModeMiddleware(), new ReloadConfirmMiddleware()],
 
 	async do({ ctx, logicPath, catalogName, newLevNav, oldLevNav }) {
 		const { formatter, lib, parser, parserContextFactory, rp, sitePresenterFactory } = this._app;

@@ -6,12 +6,12 @@ const Focus = styled(
 	({
 		children,
 		position,
-		isInline,
+		isMd,
 		className,
 	}: {
 		children: JSX.Element;
 		position: number;
-		isInline?: boolean;
+		isMd?: boolean;
 		className?: string;
 	}) => {
 		const focusPosition = useContext(FocusPositionContext);
@@ -21,7 +21,7 @@ const Focus = styled(
 			setIsFocus(focusPosition === position);
 		}, [focusPosition]);
 
-		if (isInline) {
+		if (isMd) {
 			return (
 				<span className={className} is-focus={`${isFocus}`}>
 					{children}
@@ -40,9 +40,13 @@ const Focus = styled(
 	-ms-user-select: none;
 	-webkit-user-select: none;
 
+	${(p) =>
+		p.isMd
+			? ``
+			: `
 	&[is-focus="false"] > * {
 		pointer-events: none;
-	}
+	}`}
 
 	&[is-focus="true"] *[data-focusable="true"] {
 		outline: 2px solid #0563d6;

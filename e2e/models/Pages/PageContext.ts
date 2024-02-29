@@ -1,5 +1,7 @@
+import { Aliases } from "e2e/steps/utils/aliases";
 import { Locator, Page } from "playwright";
 import config from "../../setup/config";
+import { replaceMultiple } from "../../steps/utils/utils";
 import { KeyboardContext } from "../Contexts/KeyboardContext";
 import SearcherContext from "../Contexts/SearcherContext";
 import { ReplaceAlias } from "../World";
@@ -10,14 +12,19 @@ export class PageInfo {
 }
 
 export default class PageContext {
-	constructor(protected _page: Page, protected _alias: ReplaceAlias, protected _info = new PageInfo()) {}
+	constructor(
+		protected _page: Page,
+		protected _alias: ReplaceAlias,
+		protected _aliases: Aliases,
+		protected _info = new PageInfo(),
+	) {}
 
 	inner() {
 		return this._page;
 	}
 
 	async goto(path: string) {
-		const url = config.url + this._alias(path, () => path);
+		const url = config.url + this._alias(path, () => replaceMultiple(path, this._alias.bind(this)));
 		if (this.inner().url() == url) return;
 		await this.inner().goto(url, { waitUntil: "domcontentloaded" });
 		return this;
@@ -31,6 +38,10 @@ export default class PageContext {
 		const loaders = await this.search().find(`[data-qa="loader"]`, scope);
 		for (const loader of await loaders.all())
 			await loader.waitFor({ timeout: config.timeouts.long * 4, state: "detached" });
+	}
+
+	async waitForUrl(url: string) {
+		await this.inner().waitForURL(config.url + replaceMultiple(url, this._alias.bind(this)));
 	}
 
 	kind(): "home" | "article" {
@@ -49,11 +60,11 @@ export default class PageContext {
 
 	asArticle() {
 		if (this.kind() == "home") throw new Error("Not an article");
-		return new ArticlePageContext(this._page, this._alias, this._info);
+		return new ArticlePageContext(this._page, this._alias, this._aliases, this._info);
 	}
 
 	search() {
-		return new SearcherContext(this._alias, this._info);
+		return new SearcherContext(this._alias, this._aliases, this._info);
 	}
 
 	keyboard() {

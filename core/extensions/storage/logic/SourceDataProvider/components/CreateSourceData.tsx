@@ -5,11 +5,10 @@ import ListLayout from "@components/List/ListLayout";
 import FetchService from "@core-ui/ApiServices/FetchService";
 import MimeTypes from "@core-ui/ApiServices/Types/MimeTypes";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
-import { useState, useEffect } from "react";
-import { refreshPage } from "@core-ui/ContextServices/RefreshPageContext";
+import { useEffect, useState } from "react";
 import ErrorHandler from "../../../../errorHandlers/client/components/ErrorHandler";
-import CreateGitHubSourceData from "../../../../git/actions/Storage/GitHub/components/CreateGitHubSourceData";
-import CreateGitLabSourceData from "../../../../git/actions/Storage/GitLab/components/CreateGitLabSourceData";
+import CreateGitHubSourceData from "../../../../git/actions/Source/GitHub/components/CreateGitHubSourceData";
+import CreateGitLabSourceData from "../../../../git/actions/Source/GitLab/components/CreateGitLabSourceData";
 import useLocalize from "../../../../localization/useLocalize";
 import SourceListItem from "../../../components/SourceListItem";
 import SourceData from "../model/SourceData";
@@ -18,7 +17,7 @@ import SourceType from "../model/SourceType";
 interface CreateSourceDataProps {
 	trigger?: JSX.Element;
 	defaultSourceType?: SourceType;
-	defaultSourceData?: { [key: string]: string };
+	defaultSourceData?: Partial<SourceData>;
 	onCreate?: (data: SourceData) => void;
 	onClose?: () => void;
 	externalIsOpen?: boolean;
@@ -35,7 +34,6 @@ const CreateSourceData = (props: CreateSourceDataProps) => {
 		const res = await FetchService.fetch(url, JSON.stringify(data), MimeTypes.json);
 		if (res.ok) onCreate?.(data);
 		setIsOpen(false);
-		void refreshPage();
 	};
 
 	useEffect(() => {
@@ -82,7 +80,7 @@ const CreateSourceData = (props: CreateSourceDataProps) => {
 							{sourceType == SourceType.gitLab && (
 								<CreateGitLabSourceData
 									props={{
-										sourceType: sourceType,
+										sourceType: sourceType as any,
 										domain: "",
 										token: "",
 										userName: null,

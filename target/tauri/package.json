@@ -11,23 +11,12 @@
 		"tauri": "tauri"
 	},
 	"dependencies": {
-		"@tauri-apps/api": "^2.0.0-alpha.12",
-		"@tauri-apps/plugin-dialog": "^2.0.0-alpha.3",
-		"@tauri-apps/plugin-log": "^2.0.0-alpha.3",
-		"react": "file:../../node_modules/react",
-		"react-dom": "file:../../node_modules/react-dom"
+		"@tauri-apps/api": "^2.0.0-alpha.14",
+		"@tauri-apps/plugin-dialog": "^2.0.0-alpha.5",
+		"@tauri-apps/plugin-log": "^2.0.0-alpha.5"
 	},
 	"devDependencies": {
-		"@types/react": "file:../../node_modules/@types/react",
-		"@types/react-dom": "file:../../node_modules/@types/react-dom",
-		"@typescript-eslint/eslint-plugin": "^5.62.0",
-		"@typescript-eslint/parser": "^5.62.0",
-		"@vitejs/plugin-react": "^4.0.3",
 		"internal-ip": "^8.0.0",
-		"typescript": "^5.0.2",
-		"vite": "^4.5.0",
-		"vite-plugin-conditional-compiler": "^0.1.1",
-		"vite-plugin-node-polyfills": "^0.9.0",
 		"vite-plugin-monaco-editor": "^1.1.0",
 		"vite-plugin-webfont-dl": "^3.9.1"
 	}

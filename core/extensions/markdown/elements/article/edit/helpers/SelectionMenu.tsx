@@ -7,7 +7,7 @@ import ButtonStateService from "@core-ui/ContextServices/ButtonStateService/Butt
 import IsMacService from "@core-ui/ContextServices/IsMac";
 import IsSelectedOneNodeService from "@core-ui/ContextServices/IsSelected";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
-import { ArticleProps } from "@core/SitePresenter/SitePresenter";
+import { ClientArticleProps } from "@core/SitePresenter/SitePresenter";
 import InlineEditPanel from "@ext/markdown/elements/article/edit/helpers/InlineEditPanel";
 import { Editor, Extension } from "@tiptap/core";
 import { Plugin, PluginKey } from "prosemirror-state";
@@ -23,7 +23,7 @@ class TextSelectionMenu extends Base {
 		view: EditorView,
 		editor: Editor,
 		private _isMac: boolean,
-		private _articleProps: ArticleProps,
+		private _articleProps: ClientArticleProps,
 		private _apiUrlCreator: ApiUrlCreator,
 		private _pageDataContext: PageDataContext,
 	) {

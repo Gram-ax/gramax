@@ -10,9 +10,6 @@ interface BulletListOptions {
 declare module "@tiptap/core" {
 	interface Commands<ReturnType> {
 		bulletList: {
-			/**
-			 * Toggle a bullet list
-			 */
 			toggleBulletList: () => ReturnType;
 		};
 	}

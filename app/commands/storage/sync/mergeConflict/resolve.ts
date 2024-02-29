@@ -1,3 +1,4 @@
+import ReloadConfirmMiddleware from "@core/Api/middleware/ReloadConfirmMiddleware";
 import { MergeFile } from "../../../../../core/extensions/git/actions/MergeConflictHandler/model/MergeFile";
 import SyncGitMergeConflictResolver from "../../../../../core/extensions/git/core/GitMergeConflictResolver/Sync/SyncGitMergeConflictResolver";
 import GitStash from "../../../../../core/extensions/git/core/model/GitStash";
@@ -9,7 +10,7 @@ const resolve: Command<{ catalogName: string; files: MergeFile[]; stashHash: str
 
 	kind: ResponseKind.none,
 
-	middlewares: [new AuthorizeMiddleware()],
+	middlewares: [new AuthorizeMiddleware(), new ReloadConfirmMiddleware()],
 
 	async do({ catalogName, files, stashHash }) {
 		const { lib } = this._app;

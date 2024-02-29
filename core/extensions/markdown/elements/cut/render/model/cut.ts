@@ -15,7 +15,7 @@ export const cut: Schema = {
 			"Cut",
 			{
 				text: node.attributes.text ?? "Раскрыть",
-				expanded: node.attributes.expanded,
+				expanded: node.attributes.expanded === "true",
 				isInline: isInline(children),
 			},
 			children,

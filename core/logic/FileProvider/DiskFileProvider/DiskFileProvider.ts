@@ -74,13 +74,16 @@ export default class DiskFileProvider implements FileProvider {
 
 	async write(path: Path, data: string | Buffer) {
 		this._watcher?.stop();
-		const absolutePath = this._toAbsolute(path);
-		if (await this.exists(path)) await fs.writeFile(absolutePath, data, "utf-8");
-		else {
-			await fs.mkdir(this._toAbsolute(path.parentDirectoryPath), { recursive: true });
-			await fs.writeFile(absolutePath, data, { encoding: "utf-8", flag: "wx" });
+		try {
+			const absolutePath = this._toAbsolute(path);
+			if (await this.exists(path)) await fs.writeFile(absolutePath, data, "utf-8");
+			else {
+				await fs.mkdir(this._toAbsolute(path.parentDirectoryPath), { recursive: true });
+				await fs.writeFile(absolutePath, data, { encoding: "utf-8", flag: "wx" });
+			}
+		} finally {
+			this._watcher?.start();
 		}
-		this._watcher?.start();
 	}
 
 	async move(from: Path, to: Path) {
@@ -94,9 +97,12 @@ export default class DiskFileProvider implements FileProvider {
 
 	async mkdir(path: Path, mode?: number) {
 		this._watcher?.stop();
-		const absolutPath = this._toAbsolute(path);
-		if (!(await this.exists(path))) await fs.mkdir(absolutPath, { recursive: true, mode });
-		this._watcher?.start();
+		try {
+			const absolutPath = this._toAbsolute(path);
+			if (!(await this.exists(path))) await fs.mkdir(absolutPath, { recursive: true, mode });
+		} finally {
+			this._watcher?.start();
+		}
 	}
 
 	async read(path: Path): Promise<string> {
@@ -157,30 +163,42 @@ export default class DiskFileProvider implements FileProvider {
 	private async _deleteFile(path: Path) {
 		if (!(await this.exists(path))) return;
 		this._watcher?.stop();
-		await fs.unlink(this._toAbsolute(path));
-		this._watcher?.start();
+		try {
+			await fs.unlink(this._toAbsolute(path));
+		} finally {
+			this._watcher?.start();
+		}
 	}
 
 	private async _deleteFolder(uri: Path) {
 		const path = this._toAbsolute(uri);
 		if (!(await fs.exists(path))) return;
 		this._watcher?.stop();
-		await fs.rm(path, { recursive: true, force: true });
-		this._watcher?.start();
+		try {
+			await fs.rm(path, { recursive: true, force: true });
+		} finally {
+			this._watcher?.start();
+		}
 	}
 
 	private async _copyFolder(oldPath: Path, newPath: Path) {
 		this._watcher?.stop();
-		await fs.copy(this._toAbsolute(oldPath), this._toAbsolute(newPath));
-		this._watcher?.start();
+		try {
+			await fs.copy(this._toAbsolute(oldPath), this._toAbsolute(newPath));
+		} finally {
+			this._watcher?.start();
+		}
 	}
 
 	private async _copyFile(oldFilePath: Path, newFilePath: Path) {
 		this._watcher?.stop();
-		const content = await this.read(oldFilePath);
-		if (!(await this.exists(oldFilePath))) return;
-		await this.write(newFilePath, content);
-		this._watcher?.start();
+		try {
+			const content = await this.read(oldFilePath);
+			if (!(await this.exists(oldFilePath))) return;
+			await this.write(newFilePath, content);
+		} finally {
+			this._watcher?.start();
+		}
 	}
 
 	private async _isEmptyFolder(path: Path) {

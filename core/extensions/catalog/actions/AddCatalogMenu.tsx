@@ -1,40 +1,17 @@
-import Icon from "@components/Atoms/Icon";
+import ButtonLink from "@components/Molecules/ButtonLink";
 import PopupMenuLayout from "@components/Layouts/PopupMenuLayout";
 import IsReadOnlyHOC from "../../../ui-logic/HigherOrderComponent/IsReadOnlyHOC";
 import Clone from "../../git/actions/Clone/components/Clone";
-import useLocalize from "../../localization/useLocalize";
 import CreateCatalog from "./CreateCatalog";
+import useLocalize from "@ext/localization/useLocalize";
 
 const AddCatalogMenu = () => {
 	return (
-		<PopupMenuLayout
-			trigger={
-				<a data-qa="qa-clickable">
-					<Icon code={"plus"} />
-					<span>{useLocalize("addCatalog")}</span>
-				</a>
-			}
-		>
-			<>
-				<IsReadOnlyHOC>
-					<CreateCatalog
-						trigger={
-							<div data-qa="qa-clickable">
-								<Icon code="plus" faFw />
-								<span>{useLocalize("createNew")}</span>
-							</div>
-						}
-					/>
-				</IsReadOnlyHOC>
-				<Clone
-					trigger={
-						<div data-qa="qa-clickable">
-							<Icon code="cloud" faFw />
-							<span>{`${useLocalize("load")} ${useLocalize("existing")}`}</span>
-						</div>
-					}
-				/>
-			</>
+		<PopupMenuLayout trigger={<ButtonLink iconCode="plus" text={useLocalize("addCatalog")} />}>
+			<IsReadOnlyHOC>
+				<CreateCatalog trigger={<ButtonLink iconCode="plus" text={useLocalize("createNew")} />} />
+			</IsReadOnlyHOC>
+			<Clone trigger={<ButtonLink iconCode="cloud" text={useLocalize("loadExisting")} />} />
 		</PopupMenuLayout>
 	);
 };

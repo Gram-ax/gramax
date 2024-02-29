@@ -1,5 +1,5 @@
 import PageDataContext from "@core/Context/PageDataContext";
-import { ArticleData, HomePageData } from "@core/SitePresenter/SitePresenter";
+import { ArticlePageData, HomePageData } from "@core/SitePresenter/SitePresenter";
 
 export default {
 	data: {
@@ -7,7 +7,8 @@ export default {
 		articleContentEdit: '{"type":"doc","content":[{"type":"paragraph"}]}',
 		articleContentRender: '{"$$mdtype":"Tag","name":"article","attributes":{},"children":[]}',
 		articleProps: {
-			path: "doc-reader/test/Refs/path",
+			logicPath: "doc-reader/test/Refs/path",
+			pathname: "/gitlab.ics-it.ru/dr/doc-reader/master/-/test/Refs/path",
 			fileName: "path",
 			ref: {
 				path: "doc-reader/docs/test/Refs/path/_index.md",
@@ -30,10 +31,10 @@ export default {
 				group: "products",
 				code: "dr",
 				style: "red",
-				brand: null,
 				description: "Предназначен для ведения документации.",
 				order: 999999,
 			},
+			docroot: "",
 			relatedLinks: null,
 			contactEmail: null,
 			name: "doc-reader",
@@ -43,7 +44,6 @@ export default {
 			repositoryName: "doc-reader",
 			storageType: "GitHub",
 			storageName: "testdomain",
-			private: [],
 			sourceName: "GitHub",
 			userInfo: null,
 		},
@@ -738,7 +738,7 @@ export default {
 				filter: null,
 			},
 		] as any[],
-	} as HomePageData & ArticleData,
+	} as HomePageData & ArticlePageData,
 	openGraphData: {
 		title: "",
 		description: "",
@@ -762,6 +762,7 @@ export default {
 			isProduction: false,
 			isReadOnly: false,
 			isServerApp: false,
+			authServiceUrl: "",
 			isSso: false,
 			ssoPublicKey: "",
 			ssoServerUrl: "",

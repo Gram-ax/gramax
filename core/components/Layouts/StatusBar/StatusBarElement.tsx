@@ -21,6 +21,7 @@ const StatusBarElement = styled(
 				tooltipText?: ReactNode;
 				disable?: boolean;
 				iconClassName?: string;
+				reverse?: boolean;
 				className?: string;
 			},
 			ref: React.LegacyRef<HTMLDivElement>,
@@ -70,6 +71,7 @@ const StatusBarElement = styled(
 
 	.status-bar-element {
 		display: flex;
+		${(p) => (p.reverse ? "flex-direction: row-reverse;" : "")}
 		gap: 0.15rem;
 		height: 100%;
 		padding: 0 4px;

@@ -1,14 +1,14 @@
 import GitBranchData from "@ext/git/core/GitBranch/model/GitBranchData";
 import GitProgressEvent from "@ext/git/core/model/GitProgressEvent";
 import { VersionControlInfo } from "@ext/VersionControl/model/VersionControlInfo";
+import { invoke, InvokeArgs } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
-import { invoke, InvokeArgs } from "@tauri-apps/api/primitives";
 import { LibGit2Error } from "./error";
 
 let onProgressCallback = undefined;
 
 void listen("clone-progress", (ev) => {
-	const payload = ev.payload;
+	const payload = ev.payload as any;
 	onProgressCallback?.({
 		phase: "receiving-objects",
 		percent: (payload.received / payload.total) * 100,

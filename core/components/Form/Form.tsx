@@ -2,7 +2,6 @@ import { JSONSchema7 } from "json-schema";
 import { DependencyList, useEffect, useState } from "react";
 import useLocalize from "../../extensions/localization/useLocalize";
 import Button from "../Atoms/Button/Button";
-import Tooltip from "../Atoms/Tooltip";
 import FormStyle from "./FormStyle";
 import ItemInput from "./InputItem";
 import ValidateObject from "./ValidateObject";
@@ -123,29 +122,25 @@ const Form = <Type,>({
 									</div>
 								</label>
 							)}
-							<Tooltip
-								visible={requiredError || (!!validateValues[key] && focusInput == idx)}
-								content={<span>{requiredError ? requiredParameterText : validateValues[key]}</span>}
-							>
-								<div className={`input-lable ${isCheckbox ? "checkbox" : ""}`}>
-									<ItemInput
-										value={value}
-										tabIndex={idx + 1}
-										focus={idx == 0}
-										validate={validateValues[key]}
-										editedPropsValue={editedProps[key]}
-										onChange={(value: string | string[]) => {
-											const newProps = { ...editedProps, ...{ [key]: value } };
-											setEditedProps(newProps);
-											if (onChange) onChange(newProps, editedSchema);
-										}}
-										onFocus={() => setFocusInput(idx)}
-									/>
-								</div>
-							</Tooltip>
+							<div className={`input-lable ${isCheckbox ? "fill-width" : ""}`}>
+								<ItemInput
+									value={value}
+									tabIndex={idx + 1}
+									focus={idx == 0}
+									validate={requiredError ? requiredParameterText : validateValues[key]}
+									showErrorText={focusInput == idx}
+									editedPropsValue={editedProps[key]}
+									onChange={(value: string | string[]) => {
+										const newProps = { ...editedProps, ...{ [key]: value } };
+										setEditedProps(newProps);
+										if (onChange) onChange(newProps, editedSchema);
+									}}
+									onFocus={() => setFocusInput(idx)}
+								/>
+							</div>
 						</div>
 						{value.description && (
-							<div className={`input-lable-description ${isCheckbox ? "checkbox" : ""}`}>
+							<div className={`input-lable-description ${isCheckbox ? "full-width" : ""}`}>
 								{!isCheckbox && <div />}
 								<div className="article" dangerouslySetInnerHTML={{ __html: value.description }} />
 							</div>

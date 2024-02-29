@@ -2,24 +2,25 @@ import { AuthorizeMiddleware } from "@core/Api/middleware/AuthorizeMiddleware";
 import BranchData from "@ext/VersionControl/model/branch/BranchData";
 import { Command, ResponseKind } from "../../../types/Command";
 
-const get: Command<{ catalogName: string }, BranchData> = Command.create({
+const get: Command<{ catalogName: string; cached: boolean; onlyName: boolean }, BranchData> = Command.create({
 	path: "versionControl/branch/get",
 
 	kind: ResponseKind.json,
 
 	middlewares: [new AuthorizeMiddleware()],
 
-	async do({ catalogName }) {
+	async do({ catalogName, cached, onlyName }) {
 		const { lib } = this._app;
 		const catalog = await lib.getCatalog(catalogName);
-		if (!catalog) return;
-		const vc = catalog.repo.gvc;
-		return (await vc.getCurrentBranch()).getData();
+		const vc = catalog?.repo.gvc;
+		if (!vc) return;
+		return onlyName
+			? { name: await vc.getCurrentBranchName(cached) }
+			: (await vc.getCurrentBranch(cached)).getData();
 	},
 
-	params(ctx, q) {
-		const catalogName = q.catalogName;
-		return { ctx, catalogName };
+	params(_, q) {
+		return { catalogName: q.catalogName, cached: q.cached === "true", onlyName: q.onlyName === "true" };
 	},
 });
 

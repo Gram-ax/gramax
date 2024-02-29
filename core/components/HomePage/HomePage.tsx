@@ -17,7 +17,7 @@ export default styled(({ data, className }: { data: HomePageData; className?: st
 
 	return (
 		<div className={className + (isMac ? "" : " scrollbar-webkit")}>
-			<div className="article container" data-qa="home-page">
+			<div className="article container">
 				<TopMenu catalogLinks={Object.values(data.catalogLinks).flat()} />
 				<Groups links={data.catalogLinks} />
 				<BottomInfo />

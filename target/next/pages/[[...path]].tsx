@@ -1,11 +1,11 @@
 import ArticlePage from "@components/ArticlePage/ArticlePage";
 import HomePage from "@components/HomePage/HomePage";
 import PageDataContext from "@core/Context/PageDataContext";
-import { ArticleData, HomePageData } from "@core/SitePresenter/SitePresenter";
+import { ArticlePageData, HomePageData } from "@core/SitePresenter/SitePresenter";
 import localizer from "@ext/localization/core/Localizer";
 import { ApplyPageMiddleware } from "../logic/Api/ApplyMiddleware";
 
-export default function Home({ data, context }: { data: ArticleData & HomePageData; context: PageDataContext }) {
+export default function Home({ data, context }: { data: ArticlePageData & HomePageData; context: PageDataContext }) {
 	return context.isArticle ? <ArticlePage data={data}></ArticlePage> : <HomePage data={data}></HomePage>;
 }
 

@@ -1,5 +1,5 @@
 import styled from "@emotion/styled";
-import ErrorForm from "@ext/errorHandlers/client/components/ErrorForm";
+import InfoModalForm from "@ext/errorHandlers/client/components/ErrorForm";
 import { HTMLAttributes } from "react";
 
 const invoke = (window as any).__TAURI__?.primitives?.invoke;
@@ -8,14 +8,14 @@ const AppError = ({ error, ...props }: { error: Error } & HTMLAttributes<HTMLDiv
 	return (
 		<div {...props}>
 			<div className="container">
-				<ErrorForm
+				<InfoModalForm
 					title={"Не удалось загрузить каталоги"}
 					icon={{ code: "circle-xmark", color: "var(--color-danger)" }}
 					closeButton={invoke ? { text: "Настройки" } : null}
 					onCancelClick={invoke ? () => invoke("show_settings") : null}
 				>
 					{error.message ?? "Неизвестная ошибка"}
-				</ErrorForm>
+				</InfoModalForm>
 			</div>
 		</div>
 	);

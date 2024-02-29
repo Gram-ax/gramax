@@ -18,6 +18,7 @@
 	"green-orange": { "ru": "Зелено-оранжевый", "en": "Green-orange" },
 	"bright-orange": { "ru": "Светло-оранжевый", "en": "Bright-orange" },
 	"Save": { "ru": "Сохранить", "en": "Save" },
+	"share": { "ru": "Поделиться", "en": "Share" },
 	"add": { "ru": "Добавить", "en": "Add" },
 	"addArticleToRoot": { "ru": "Добавить статью в корень", "en": "Add article to root" },
 	"addCatalog": { "ru": "Добавить каталог", "en": "Add catalog" },
@@ -45,21 +46,26 @@
 	"byAzure": { "ru": "C помощью Azure", "en": "Using Azure" },
 	"byMail": { "ru": "По почте", "en": "By Mail" },
 	"cancel": { "ru": "Отменить", "en": "Cancel" },
+	"send": { "ru": "Отправить", "en": "Send" },
 	"catalog": { "ru": "каталогом", "en": "catalog" },
 	"catalog2": { "ru": "каталог", "en": "catalog" },
 	"catalogSettings": { "ru": "Настроить каталог", "en": "Catalog settings" },
+	"catalogNotCloned": { "ru": "Такой каталог ещё не склонирован", "en": "Such a catalog has not yet been cloned" },
 	"category": { "ru": "раздел", "en": "category" },
 	"category2": { "ru": "разделом", "en": "category" },
 	"category3": { "ru": "раздела", "en": "category" },
 	"changeBranch": { "ru": "Сменить ветку", "en": "Change branch" },
+	"changeAndSync": { "ru": "Сменить и синхронизировать", "en": "Change and synchronize" },
 	"checkDiagrams": { "ru": "Диаграммы", "en": "Diagrams" },
 	"checkFileStructure": { "ru": "Файловая структура", "en": "File structure" },
 	"checkImages": { "ru": "Изображения", "en": "Images" },
 	"checkLinks": { "ru": "Ссылки", "en": "Links" },
 	"checkoutError": { "ru": "Не удалось сменить ветку", "en": "Failed to change branch" },
+	"copy": { "ru": "Скопировать", "en": "Copy" },
 	"clickToCopy": { "ru": "Нажмите, чтобы скопировать", "en": "Click to copy" },
 	"close": { "ru": "Закрыть", "en": "Close" },
 	"closeComment": { "ru": "Закрыть комментарий", "en": "Close comment" },
+	"clone": { "ru": "Склонировать", "en": "Clone" },
 	"comment": { "ru": "Комментировать", "en": "Comment" },
 	"commentsToArticle": { "ru": "Замечание к статье", "en": "Comments to article" },
 	"commitMessage": { "ru": "Комментарий", "en": "Message" },
@@ -70,29 +76,51 @@
 	"copied": { "ru": "Скопировано", "en": "Copied" },
 	"createNew": { "ru": "Создать новый", "en": "Create new" },
 	"createNew2": { "ru": "Создать каталог", "en": "Create catalog" },
+	"createNewArticle": { "ru": "Создать статью", "en": "Create article" },
+	"createNewArticleDesc": {
+		"ru": "В левой навигации будут ваши разделы и статьи. Для начала создайте первую статью.",
+		"en": "Your categories and articles will be in the left navigation.<br>First, create the first article."
+	},
 	"current": { "ru": "Русский", "en": "English" },
 	"currentBranch": { "ru": "Отображаемая ветка", "en": "Current branch" },
 	"currentVersion": { "ru": "Текущая версия", "en": "Current version" },
 	"delete": { "ru": "Удалить", "en": "Delete" },
+	"signature": { "ru": "Подпись", "en": "Signature" },
 	"deleteAnswer": { "ru": "Удалить ответ", "en": "Delete answer" },
 	"deleteAsResolved": { "ru": "Удалить как решенный", "en": "Delete as resolved" },
 	"description": { "ru": "Описание", "en": "Description" },
+	"clarifyingTags": { "ru": "Уточняющие метки", "en": "Clarifying tags" },
+	"selectOrAddNew": { "ru": "Выберите или добавьте новые", "en": "Select or add new" },
+	"specifyDetails": {
+		"ru": "Укажите детали, которые помогут нам понять суть ошибки",
+		"en": "Specify details that will help us understand the nature of the error"
+	},
+	"descriptionTechDetails": {
+		"ru": "Отправляются только настройки приложения. Мы не увидим ваш контент или личные данные",
+		"en": "Only the application settings are sent. We will not see your content or personal data."
+	},
+	"sendTechDetails": { "ru": "Отправить технические детали", "en": "Send technical details" },
+	"viewDetails": { "ru": "Посмотреть детали.", "en": "View details." },
+	"editor": { "ru": "Редактор", "en": "Editor" },
+	"interface": { "ru": "Интерфейс", "en": "Interface" },
 	"desktopSettings.targetDirectory": { "ru": "Рабочая директория", "en": "Working directory" },
 	"desktopSettings.title": { "ru": "Настройки", "en": "Settings" },
 	"diagram": { "ru": "Диаграмма", "en": "Diagram" },
 	"discard": { "ru": "Отменить изменения", "en": "Discard changes" },
 	"discardSelected": { "ru": "Отменить выбранные изменения", "en": "Discard selected changes" },
 	"edit": { "ru": "Отредактировать", "en": "Edit" },
+	"edit2": { "ru": "Редактировать", "en": "Edit" },
 	"editAndDelete": { "ru": "Изменить и удалить", "en": "Edit and delete" },
 	"editMarkdown": { "ru": "Редактировать Markdown", "en": "Edit Markdown" },
-	"editOnGitLab": { "ru": "Редактировать в GitLab", "en": "Edit on GitLab" },
-	"editOnVSCode": { "ru": "Редактировать в VSCode", "en": "Edit on VSCode" },
+	"editOn": { "ru": "Редактировать в", "en": "Edit on" },
 	"enterBranchName": { "ru": "Введите название ветки", "en": "Enter branch name" },
 	"error": { "ru": "Ошибка", "en": "Error" },
 	"errorExpand": { "ru": "Показать детали", "en": "Expand" },
 	"errorOccured": { "ru": "К сожалению, при отображении документации возникла ошибка.", "en": "Error occured." },
 	"existing": { "ru": "существующий", "en": "existing" },
+	"loadExisting": { "ru": "Загрузить существующий", "en": "Load existing" },
 	"exportArticleToPdf": { "ru": "Экспорт статьи в PDF", "en": "Export article to PDF" },
+	"export": { "ru": "Экспорт", "en": "Export" },
 	"field": { "ru": "Поле", "en": "Field" },
 	"find": { "ru": "Поиск", "en": "Find" },
 	"findBranch": { "ru": "Поиск ветки", "en": "Find branch" },
@@ -102,6 +130,7 @@
 	"gitPull": { "ru": "Git pull", "en": "Git pull" },
 	"gitStatus": { "ru": "Git status", "en": "Git status" },
 	"goToArticle": { "ru": "Перейти к статье", "en": "Go to article" },
+	"goToLink": { "ru": "Перейти по ссылке", "en": "Go to the link" },
 	"group": { "ru": "Группа", "en": "Group" },
 	"group2": { "ru": "группы", "en": "group" },
 	"healthcheck": { "ru": "Проверка на ошибки", "en": "Error checking" },
@@ -119,6 +148,10 @@
 	"loading": { "ru": "Загрузка...", "en": "Loading..." },
 	"loading2": { "ru": "Загружаем...", "en": "Loading..." },
 	"local": { "ru": "Локально", "en": "Local" },
+	"link": { "ru": "Ссылка", "en": "Link" },
+	"link2" : {"ru":"Ссылку", "en":"Link"},
+	"leadsToTheBranch": { "ru": "Ведет на ветку", "en": "Leads to the branch" },
+	"leadsToTheRepo": { "ru": "Ведет на репозиторий", "en": "Leads to the repository" },
 	"mail": { "ru": "Почта", "en": "Mail" },
 	"mailOrGroup": { "ru": "Почта или Группа", "en": "Mail or Group" },
 	"maxLength": { "ru": "Максимальное кол-во символов - ", "en": "Maximum number of characters - " },
@@ -146,7 +179,7 @@
 	"numberoOfUnsolvedComments": { "ru": "Кол-во нерешенных комментариев", "en": "Number of unsolved comments" },
 	"ok": { "ru": "Понятно", "en": "Ok" },
 	"open": { "ru": "Открыть", "en": "Open" },
-	"openInGitlab": { "ru": "Открыть в Gitlab", "en": "Open in Gitlab" },
+	"openIn": { "ru": "Открыть в", "en": "Open in" },
 	"openInTeams": { "ru": "Открыть в Teams", "en": "Open in Teams" },
 	"openSearch": { "ru": "Открыть поиск", "en": "Open search" },
 	"otherVersion": { "ru": "Другая версия", "en": "Other version" },
@@ -168,6 +201,7 @@
 	"resolveConflict": { "ru": "Решить конфликт", "en": "Resolve the conflict" },
 	"returnSidebar": { "ru": "Вернуть панель", "en": "Return sidebar" },
 	"save": { "ru": "Сохранить", "en": "Save" },
+	"saveArticleIn": { "ru": "Сохранить статью в", "en": "Save article in" },
 	"search": { "ru": "Поиск", "en": "Search" },
 	"searchInAllCatalogs": { "ru": "Искать по всем каталогам", "en": "Search in all catalogs" },
 	"searchPlaceholder": { "ru": "Введите запрос", "en": "Enter a request" },
@@ -182,16 +216,28 @@
 	"storage": { "ru": "Хранилище", "en": "Storage" },
 	"storage2": { "ru": "хранилища", "en": "storage" },
 	"submitLoginLink": { "ru": "Отправить ссылку для входа", "en": "Submit login link" },
-	"submitToReview": { "ru": "Отправить на ревью", "en": "Submit to review" },
 	"suchCatalogExists": { "ru": "Такой каталог уже существует", "en": "Such catalog already exists" },
 	"switch": { "ru": "Сменить", "en": "Switch" },
 	"switchBranch": { "ru": "Switch branch", "en": "Switch branch" },
-	"switchToEditMode": { "ru": "В режим редактирования", "en": "Switch to edit mode" },
-	"switchToViewMode": { "ru": "В режим просмотра", "en": "Switch to view mode" },
-	"syncCatalog": { "ru": "Синхронизировать каталог", "en": "Synchronize catalog" },
+	"sync": { "ru": "Синхронизировать", "en": "Synchronize" },
 	"syncError": { "ru": "Не удалось синхронизировать каталог", "en": "Failed to synchronize the catalog" },
 	"syncLogs": { "ru": "Логи синхронизации", "en": "Synchronization logs" },
 	"synchronization": { "ru": "Синхронизация...", "en": "Synchronization..." },
+	"schemasBlock": { "ru": "Выводить блок «Schemas»", "en": "Display the «Schemas» block" },
+	"noSchemasBlock": { "ru": "Не выводить блок «Schemas»", "en": "Do not output the «Schemas» block" },
+	"shareInBrowserHint": {
+		"ru": "Также можно просто скопировать URL страницы",
+		"en": "Alternatively, you can just copy the URL of the page"
+	},
+	"needPermission": { "ru": "Нужен доступ к каталогу", "en": "You need access to the catalog" },
+	"shareDescription": {
+		"ru": "Убедитесь, что у получателя есть доступ к каталогу. Когда он перейдет по ссылке: если каталог не был загружен — он загрузится, если ветка не синхронизирована — Gramax предложит ее синхронизировать.",
+		"en": "Make sure the recipient has access to the catalog. When he follows the link: if the directory has not been loaded - it will be loaded, if the branch is not synchronized - Gramax will offer to synchronize it."
+	},
+	"takesToMoreCurrentVersion": {
+		"ru": "Ведет на более актуальную версию каталога",
+		"en": "Takes you to a more current version of the catalog"
+	},
 	"theme": { "ru": "Тема", "en": "Theme" },
 	"title": { "ru": "Заголовок", "en": "Title" },
 	"toNavigate": { "ru": "Навигация", "en": "To navigate" },
@@ -227,25 +273,21 @@
 		"en": "This directory is stored only in the application. You cannot restore it."
 	},
 	"deleteBranch": { "ru": "Удалить ветку", "en": "Delete branch" },
-	"mergeSyncNotSupportedError": {
-		"ru": "Вы внесли изменения в файл, который был удалён из хранилища. Отмените изменения и попробуйте ещё раз.",
-		"en": "You have made changes to a file that has been deleted from the repository. Discard the changes and try again."
-	},
-	"mergeBranchNotSupportedError": {
-		"ru": "Есть конфликты, которые мы пока что не умеем решать :(",
-		"en": "You have made changes to a file that has been deleted in another branch. Discard the changes and try again."
+	"mergeBranchConfirm": {
+		"ru": "Изменения в ветках конфилктуют. Решите конфликт перед объединением.",
+		"en": "Changes between branches are conflcted. Resolve the conflict before merging."
 	},
 	"mergeSyncConfirm": {
 		"ru": "У вас есть неопубликованные изменения, которые конфликтуют с изменениями в актуальном состоянии ветки. Решите конфликт перед синхронизацией.",
 		"en": "You have unpublished changes that conflict with changes in the current branch state. Resolve the conflict before synchronizing."
 	},
-	"mergeBranchConfirm": {
-		"ru": "Изменения в ветках конфилктуют. Решите конфликт перед объединением.",
-		"en": "Changes between branches are conflcted. Resolve the conflict before merging."
-	},
 	"checkoutConflict": {
 		"ru": "В текущей ветке есть неопубликованные изменения, которые конфликтуют с изменениями в другой ветке. Опубликуйте или отмените их.",
 		"en": "There are unpublished changes in the current branch that conflict with changes in another branch. Publish or discard them."
+	},
+	"checkoutPathnameConfirm": {
+		"ru": "Если у вас есть неопубликованные изменения и они не конфликтуют с изменениями в другой ветке - они перенесутся. Сменить ветку и синхронизировать каталог?",
+		"en": "When you change a branch, your unpublished changes will be moved to that branch. Change the branch and synchronize the directory?"
 	},
 	"confirmDiscard": {
 		"ru": "Отменить изменения? Статья вернется в предыдущее состояние, а добавленные медиафайлы удалятся.",
@@ -288,8 +330,8 @@
 		"en": "<ul><li>Create a catalog in Gramax and publish it to GitLab or GitHub.</li><li>Upload an existing repository. Pre-format it according to the <a href='https://github.com/Gram-ax/GxCatalogTemplate' target='_blank'>example</a>.</li></ul>"
 	},
 	"searchOptions": {
-		"ru": "<ul><li>Если слово должно быть в результате поиска, поставьте перед ним <code>+</code>. Например:&nbsp;<code>+оба&nbsp;+обязательных</code>.</li><li>Если из поиска нужно исключить слово, поставьте перед ним <code>-</code>. Например:&nbsp;<code>+обязательно -исключить</code>.</li><li>Если искать нужно по части слова, используйте <code>*</code>. Например:&nbsp;<code>прило*</code> или <code>*жение</code>.</li></ul>",
-		"en": "<ul><li>If the word should be in the search result, precede it with a <code>+</code>. For&nbsp;example:&nbsp;<code>+both +mandatory</code>.</li><li>If you want to exclude a word from the search, put <code>-</code> in front of it. For&nbsp;example:&nbsp;<code>+mandatory -exclude</code>.</li><li>If you need to search by part of a word, use <code>*</code>. For&nbsp;example:&nbsp;<code>app*</code> or <code>*endix</code>.</li></ul>"
+		"ru": "<ul><li>Для поиска точного совпадения используйте <code>\"</code>. Например:&nbsp;<code><nobr>\"слово\"</nobr></code> или <code><nobr>\"искомая фраза\"</nobr></code>.</li><li>Для исключения из поиска используйте <code>-</code>. Например:&nbsp;<code><nobr>-слово</nobr></code> или <code><nobr>-\"исключенная фраза\"</nobr></code>.</li></ul>",
+		"en": "<ul>For searching for an exact match, use the <code>\"</code>. For&nbsp;example:&nbsp;<code><nobr>\"word\"</nobr></code> or <code><nobr>\"search phrase\"</nobr></code>.</li><li>To exclude something from the search, use the <code>-</code>. For&nbsp;example:&nbsp;<code><nobr>-word</nobr></code> <code><nobr>-\"excluded phrase\"</nobr></code>.</li></ul>"
 	},
 	"cloneBranchNotFound": {
 		"ru": "Это может произойти в двух случаях: ветку удалили или создали, но не опубликовали. Запросите новую ссылку.",
@@ -305,8 +347,8 @@
 	},
 
 	"noEncodingSymbolsInUrl": {
-		"ru": "URL может содержать только латинские буквы, цифры и символы '-', '_'.",
-		"en": "URL can only contain Latin letters, digits, and characters '-', '_'."
+		"ru": "URL может содержать только латинские буквы, цифры и символы '-', '_'",
+		"en": "URL can only contain Latin letters, digits, and characters '-', '_'"
 	},
 	"mustBeNotEmpty": {
 		"ru": "Это поле не может быть пустым.",
@@ -347,5 +389,49 @@
 	"techDetails": {
 		"ru": "Технические детали",
 		"en": "Technical details"
+	},
+	"leaveComment": {
+		"ru": "Оставить комментарий",
+		"en": "Leave a comment"
+	},
+	"connectStorageToLeaveComment": {
+		"ru": "Подключите хранилище, чтобы оставить комментарий",
+		"en": "Connect storage to leave a comment"
+	},
+	"catalogExistsError": {
+		"ru": "В хранилище % каталог % уже существует.\nИзмените «Название репозитория» в настройках каталога.",
+		"en": "In the storage %, the catalog % already exists.\nChange the 'Name in repository' in the catalog settings."
+	},
+	"branchNameCanNotHaveEncodingSymbols": {
+		"ru": "Имя ветки не может содержать специальные символы, такие как пробел, *, ?, [], ~, :, \", <, >, |, ^, \\",
+		"en": "The branch name cannot contain special characters such as space, *, ?, [], ~, :, \", <, >, |, ^, \\"
+	},
+	"branchNameCanNotHaveDotsSequenceAndLeadingDot": {
+		"ru": "Имя ветки не может начинаться с точки или содержать последовательность двойных точек '..'",
+		"en": "The branch name cannot start with a dot or contain a sequence of double dots '..'"
+	},
+	"branchNameCanNotHaveDotAndSlashAtEndAndContainSequencesOfSlashes": {
+		"ru": "Имя ветки не может заканчиваться на '/' или '.', а также содержать последовательности '//'",
+		"en": "The branch name cannot end with '/' or '.' and cannot contain sequences of '//'"
+	},
+	"branchNameCanNotBeReservedNames": {
+		"ru": "Имя ветки не может совпадать с зарезервированными именами HEAD",
+		"en": "The branch name cannot match reserved names HEAD"
+	},
+	"branchNameAlreadyExists": {
+		"ru": "Ветка с таким названием уже существует",
+		"en": "A branch with that name already exists"
+	},
+	"branchNameCanNotHaveExistingPrefixBranch": {
+		"ru": "Имя ветки не может содержать префикс, как у существующей ветки",
+		"en": "The branch name cannot have the same prefix as an existing branch"
+	},
+	"branchNameNotEndWithLock": {
+		"ru": "Имя ветки не может заканчиваться на '.lock'",
+		"en": "The branch name cannot end with '.lock'"
+	},
+	"deleteCatalog": {
+		"ru": "Удалить каталог",
+		"en": "Delete a catalog"
 	}
 }

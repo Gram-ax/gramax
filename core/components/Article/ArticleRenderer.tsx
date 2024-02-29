@@ -1,6 +1,6 @@
 import { classNames } from "@components/libs/classNames";
 import IsEditService from "@core-ui/ContextServices/IsEdit";
-import { ArticleData } from "@core/SitePresenter/SitePresenter";
+import { ArticlePageData } from "@core/SitePresenter/SitePresenter";
 import { Editor } from "@tiptap/core";
 import { Slice } from "@tiptap/pm/model";
 import { EditorView } from "prosemirror-view";
@@ -18,7 +18,7 @@ const ArticleRenderer = ({
 	onSelectionUpdate,
 	handlePaste,
 }: {
-	data: ArticleData;
+	data: ArticlePageData;
 	onCreate: () => void;
 	onBlur: ({ editor }: { editor: Editor }) => void;
 	onUpdate: ({ editor }: { editor: Editor }) => void;
@@ -29,8 +29,8 @@ const ArticleRenderer = ({
 
 	return (
 		<>
-			{/*  !!! */}
-			<div className={classNames("article-body", { linkViewMode: !isEdit })} data-qa="article-body">
+			{/*  TODO */}
+			<div className={classNames("article-body", { linkViewMode: !isEdit })}>
 				<ErrorHandler>
 					<>
 						{isEdit ? (
@@ -45,7 +45,7 @@ const ArticleRenderer = ({
 								deps={[data.articleProps.ref.path]}
 							/>
 						) : (
-							Renderer(JSON.parse(data.articleContentRender), { components: getComponents() })
+							Renderer(JSON.parse(data.articleContentRender), { components: getComponents() }, onCreate)
 						)}
 					</>
 				</ErrorHandler>

@@ -1,9 +1,10 @@
+import { classNames } from "@components/libs/classNames";
+import { cssMedia } from "@core-ui/utils/cssUtils";
 import styled from "@emotion/styled";
-import { cssMedia } from "../../ui-logic/utils/cssUtils";
 
 const FormStyle = styled(
 	({ className, children }: { padding?: string; overflow?: boolean; className?: string; children?: JSX.Element }) => (
-		<div className={className + " form-layout"}>
+		<div className={classNames("form-layout", {}, [className])}>
 			<fieldset>{children}</fieldset>
 		</div>
 	),
@@ -35,7 +36,6 @@ const FormStyle = styled(
 		}
 
 		legend {
-			margin-top: 1em;
 			line-height: 1.5;
 			font-weight: 400;
 			font-size: 1.6em;
@@ -68,19 +68,19 @@ const FormStyle = styled(
 		}
 
 		.field.column {
-			gap: 0.3rem;
+			gap: 0.4rem;
 			display: flex;
 			flex-direction: column;
 		}
 
 		.field.row {
 			display: flex;
-			align-items: center;
+			align-items: baseline;
 			flex-direction: row;
 			justify-content: space-between;
 
 			> .control-label {
-				flex: 0.3;
+				flex: 0.4;
 
 				> div {
 					${cssMedia.narrow} {
@@ -90,9 +90,9 @@ const FormStyle = styled(
 			}
 
 			> .input-lable {
-				flex: 0.7;
+				flex: 0.6;
 			}
-			> .input-lable.checkbox {
+			> .input-lable.full-width {
 				flex: 1;
 			}
 		}
@@ -102,17 +102,17 @@ const FormStyle = styled(
 			flex-direction: row;
 
 			> div:first-of-type {
-				flex: 0.3;
+				flex: 0.4;
 			}
 
 			> div:last-child {
-				flex: 0.7;
+				flex: 0.6;
 				font-size: 12px;
 				color: var(--color-text-main);
 			}
 		}
 
-		.input-lable-description.checkbox {
+		.input-lable-description.full-width {
 			> div:last-child {
 				flex: 1;
 			}
@@ -124,6 +124,7 @@ const FormStyle = styled(
 			align-items: center;
 			flex-direction: row;
 			justify-content: flex-end;
+			gap: 1rem;
 
 			.left-buttons {
 				flex: 1;

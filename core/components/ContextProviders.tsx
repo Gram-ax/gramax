@@ -5,6 +5,7 @@ import ArticleRefService from "@core-ui/ContextServices/ArticleRef";
 import CatalogPropsService from "@core-ui/ContextServices/CatalogProps";
 import CommentCounterService from "@core-ui/ContextServices/CommentCounter";
 import IsEditService from "@core-ui/ContextServices/IsEdit";
+import IsFirstLoadService from "@core-ui/ContextServices/IsFirstLoadService";
 import IsMacService from "@core-ui/ContextServices/IsMac";
 import IsMenuBarOpenService from "@core-ui/ContextServices/IsMenuBarOpenService";
 import IsOfflineService from "@core-ui/ContextServices/IsOfflineService";
@@ -13,13 +14,14 @@ import RefreshPageService from "@core-ui/ContextServices/RefreshPageContext";
 import ScrollWebkitService from "@core-ui/ContextServices/ScrollWebkit";
 import SearchQueryService from "@core-ui/ContextServices/SearchQuery";
 import SidebarsIsPinService from "@core-ui/ContextServices/SidebarsIsPin";
+import useIsFirstLoad from "@core-ui/useIsFirstLoad";
 import { useRouter } from "@core/Api/useRouter";
-import { ArticleData, HomePageData } from "@core/SitePresenter/SitePresenter";
+import { ArticlePageData, HomePageData } from "@core/SitePresenter/SitePresenter";
 import ThemeService from "../extensions/Theme/components/ThemeService";
 import PageDataContext from "../logic/Context/PageDataContext";
 import IsOpenModalService from "../ui-logic/ContextServices/IsOpenMpdal";
 import ModalToOpenService from "../ui-logic/ContextServices/ModalToOpenService/ModalToOpenService";
-import useStartAppFuncs from "../ui-logic/useStartAppFuncs";
+import useOnUpdateFuncs from "../ui-logic/useOnUpdateFuncs";
 
 export default function ContextProviders({
 	pageProps,
@@ -27,13 +29,14 @@ export default function ContextProviders({
 	children,
 	refreshPage,
 }: {
-	pageProps: { data: HomePageData & ArticleData; context: PageDataContext };
+	pageProps: { data: HomePageData & ArticlePageData; context: PageDataContext };
 	apiHost?: string;
 	refreshPage?: () => Promise<void>;
 	children: JSX.Element;
 }) {
 	const basePath = apiHost ?? useRouter().basePath;
 	const isArticlePage = pageProps?.context?.isArticle;
+	const isFirstLoad = useIsFirstLoad();
 
 	if (!pageProps || !pageProps.context) return children;
 
@@ -58,10 +61,10 @@ export default function ContextProviders({
 									<IsOpenModalService.Provider>
 										<ScrollWebkitService.Provider>
 											<SidebarsIsPinService.Provider>
-												<>
-													{isArticlePage ? (
-														<IsMenuBarOpenService.Provider>
-															<ModalToOpenService.Provider>
+												<ModalToOpenService.Provider>
+													<>
+														{isArticlePage ? (
+															<IsMenuBarOpenService.Provider>
 																<ArticleRefService.Provider>
 																	<ArticlePropsService.Provider
 																		value={pageProps.data.articleProps}
@@ -70,33 +73,36 @@ export default function ContextProviders({
 																			value={pageProps.data.catalogProps}
 																		>
 																			<IsEditService.Provider>
-																				<>
-																					{pageProps.context.isLogged ? (
-																						<CommentCounterService.Provider
-																							deps={[pageProps]}
-																						>
-																							<StartAppFuncs>
-																								{children}
-																							</StartAppFuncs>
-																						</CommentCounterService.Provider>
-																					) : (
-																						<StartAppFuncs>
-																							{children}
-																						</StartAppFuncs>
-																					)}
-																				</>
+																				<IsFirstLoadService.Provider
+																					value={isFirstLoad}
+																				>
+																					<OnUpdateAppFuncs>
+																						<>
+																							{pageProps.context
+																								.isLogged ? (
+																								<CommentCounterService.Provider
+																									deps={[pageProps]}
+																								>
+																									{children}
+																								</CommentCounterService.Provider>
+																							) : (
+																								children
+																							)}
+																						</>
+																					</OnUpdateAppFuncs>
+																				</IsFirstLoadService.Provider>
 																			</IsEditService.Provider>
 																		</CatalogPropsService.Provider>
 																	</ArticlePropsService.Provider>
 																</ArticleRefService.Provider>
-															</ModalToOpenService.Provider>
-														</IsMenuBarOpenService.Provider>
-													) : (
-														<ModalToOpenService.Provider>
-															<StartAppFuncs>{children}</StartAppFuncs>
-														</ModalToOpenService.Provider>
-													)}
-												</>
+															</IsMenuBarOpenService.Provider>
+														) : (
+															<IsFirstLoadService.Provider value={isFirstLoad}>
+																<OnUpdateAppFuncs>{children}</OnUpdateAppFuncs>
+															</IsFirstLoadService.Provider>
+														)}
+													</>
+												</ModalToOpenService.Provider>
 											</SidebarsIsPinService.Provider>
 										</ScrollWebkitService.Provider>
 									</IsOpenModalService.Provider>
@@ -110,7 +116,7 @@ export default function ContextProviders({
 	);
 }
 
-const StartAppFuncs = ({ children }: { children: JSX.Element }) => {
-	useStartAppFuncs();
+const OnUpdateAppFuncs = ({ children }: { children: JSX.Element }) => {
+	useOnUpdateFuncs();
 	return children;
 };

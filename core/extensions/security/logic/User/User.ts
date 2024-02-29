@@ -57,12 +57,12 @@ export default class User {
 	toJSON(): UserJSONData {
 		const cp: Record<string, PermissionJSONData> = {};
 		Object.keys(this._catalogPermissions).forEach((catalogName) => {
-			cp[catalogName] = this._catalogPermissions[catalogName].toJSON();
+			cp[catalogName] = this._catalogPermissions[catalogName]?.toJSON?.();
 		});
 		return {
 			info: this._info,
 			isLogged: this._isLogged,
-			globalPermission: this._globalPermission.toJSON(),
+			globalPermission: this._globalPermission?.toJSON?.(),
 			catalogPermissions: cp,
 		};
 	}

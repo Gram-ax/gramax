@@ -11,11 +11,11 @@ import Icon from "../../../components/Atoms/Icon";
 import Tooltip from "../../../components/Atoms/Tooltip";
 import Breadcrumb from "../../../components/Breadcrumbs/ArticleBreadcrumb";
 import ModalLayout from "../../../components/Layouts/Modal";
-import { CatalogError, CatalogErrors } from "../../../logic/FileStructue/Catalog/Catalog";
-import { CatalogErrorGroups } from "../../../logic/FileStructue/Catalog/CatalogErrorGroups";
+import { CatalogError, CatalogErrors } from "@core/FileStructue/Catalog/Catalog";
+import { CatalogErrorGroups } from "@core/FileStructue/Catalog/CatalogErrorGroups";
 import useLocalize from "../../localization/useLocalize";
 import Code from "../../markdown/elements/code/render/component/Code";
-import { CategoryLink, ItemLink } from "../../navigation/NavigationLinks";
+import { CategoryLink, ItemLink } from "@ext/navigation/NavigationLinks";
 
 interface ResourceError {
 	title: string;
@@ -24,65 +24,61 @@ interface ResourceError {
 	resourcePath: string[];
 }
 
-const Healthcheck = styled(({ itemLinks, className }: { itemLinks: ItemLink[]; className?: string }) => {
-	const isLogged = PageDataContextService.value.isLogged;
-	const catalogProps = CatalogPropsService.value;
-	if (!isLogged || catalogProps.readOnly) return null;
+const Healthcheck = styled(
+	({ itemLinks, className, trigger }: { itemLinks: ItemLink[]; className?: string; trigger: JSX.Element }) => {
+		const isLogged = PageDataContextService.value.isLogged;
+		const catalogProps = CatalogPropsService.value;
+		if (!isLogged || catalogProps.readOnly) return null;
 
-	const apiUrlCreator = ApiUrlCreatorService.value;
-	const [isOpen, setIsOpen] = useState(false);
-	const [getData, setGetData] = useState(false);
-	const [saveData, setSaveData] = useState<CatalogErrors>(null);
+		const apiUrlCreator = ApiUrlCreatorService.value;
+		const [isOpen, setIsOpen] = useState(false);
+		const [getData, setGetData] = useState(false);
+		const [saveData, setSaveData] = useState<CatalogErrors>(null);
 
-	const healthcheckUrl = apiUrlCreator.getHealthcheckUrl();
-	const { data, error } = UseSWRService.getData<CatalogErrors>(healthcheckUrl, Fetcher.json, getData);
+		const healthcheckUrl = apiUrlCreator.getHealthcheckUrl();
+		const { data, error } = UseSWRService.getData<CatalogErrors>(healthcheckUrl, Fetcher.json, getData);
 
-	useEffect(() => {
-		if (!data) return;
-		setSaveData(data);
-		setGetData(false);
-	});
+		useEffect(() => {
+			if (!data) return;
+			setSaveData(data);
+			setGetData(false);
+		});
 
-	return (
-		<ModalLayout
-			isOpen={isOpen}
-			trigger={
-				<a>
-					<Icon code="heart-pulse" faFw={true} />
-					<span>{useLocalize("healthcheck")}</span>
-				</a>
-			}
-			onClose={() => {
-				setIsOpen(false);
-			}}
-			onOpen={() => {
-				setIsOpen(true);
-				setGetData(true);
-			}}
-			setGlobasStyles={true}
-			contentWidth="60%"
-		>
-			<div className={`${className} modal article  block-elevation-2`} data-qa={`catalog-healthcheck-modal`}>
-				<h2>{useLocalize("healthcheck")}</h2>
-				{saveData ? (
-					Object.values(CatalogErrorGroups).map((value, key) => {
-						return (
-							<ResourceErrorComponent
-								key={key}
-								title={useLocalize(("check" + value) as any)}
-								data={saveData?.[value] ?? []}
-								itemLinks={itemLinks}
-								goToArticleOnClick={() => setIsOpen(false)}
-							/>
-						);
-					})
-				) : (
-					<ApiNoData error={error} />
-				)}
-			</div>
-		</ModalLayout>
-	);
-})`
+		return (
+			<ModalLayout
+				isOpen={isOpen}
+				trigger={trigger}
+				onClose={() => {
+					setIsOpen(false);
+				}}
+				onOpen={() => {
+					setIsOpen(true);
+					setGetData(true);
+				}}
+				setGlobalsStyles={true}
+			>
+				<div className={`${className} modal article  block-elevation-2`} data-qa={`catalog-healthcheck-modal`}>
+					<h2>{useLocalize("healthcheck")}</h2>
+					{saveData ? (
+						Object.values(CatalogErrorGroups).map((value, key) => {
+							return (
+								<ResourceErrorComponent
+									key={key}
+									title={useLocalize(("check" + value) as any)}
+									data={saveData?.[value] ?? []}
+									itemLinks={itemLinks}
+									goToArticleOnClick={() => setIsOpen(false)}
+								/>
+							);
+						})
+					) : (
+						<ApiNoData error={error} />
+					)}
+				</div>
+			</ModalLayout>
+		);
+	},
+)`
 	padding: 1rem;
 	overflow: auto;
 	max-height: 100%;
@@ -267,9 +263,9 @@ const ResourceErrorComponent = ({
 													distance={5}
 													content={
 														<span>
-															{IsServerApp
-																? useLocalize("editOnGitLab")
-																: useLocalize("editOnVSCode")}
+															{`${useLocalize("editOn")} ${
+																IsServerApp ? "Gitlab" : "VSCode"
+															}`}
 														</span>
 													}
 												>

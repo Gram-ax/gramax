@@ -1,15 +1,17 @@
-import Icon from "@components/Atoms/Icon";
+import ButtonLink from "@components/Molecules/ButtonLink";
+import CatalogPropsService from "@core-ui/ContextServices/CatalogProps";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
+import Path from "@core/FileProvider/Path/Path";
 import styled from "@emotion/styled";
-import { useRouter } from "../../../logic/Api/useRouter";
-import localizer from "../core/Localizer";
+import { useRouter } from "@core/Api/useRouter";
 import Language from "../core/model/Language";
-import useLocalize from "../useLocalize";
+import useLocalize from "@ext/localization/useLocalize";
 
 const languages = Object.values(Language);
 
 const LangToggle = styled(({ className }: { className?: string }) => {
 	const currentLanguage = PageDataContextService.value.lang;
+	const catalogProps = CatalogPropsService.value;
 	const isReadOnly = PageDataContextService.value.conf.isReadOnly;
 	const router = useRouter();
 
@@ -20,26 +22,18 @@ const LangToggle = styled(({ className }: { className?: string }) => {
 
 	const onClick = (e) => {
 		e.preventDefault();
-		const article = localizer.trim(router.path).split(/[/|#|?]/, 2)[1];
-		router.pushPath("/" + newLang + "/" + article);
+		router.pushPath(new Path(["/" + newLang, catalogProps?.link.pathname]).value);
 	};
+
 	if (!isReadOnly) return null;
+
 	return (
-		<div data-qa="qa-clickable" onClick={onClick} className={className} style={{}}>
-			<Icon code="globe" />
-			<span>{useLocalize("current")}</span>
-		</div>
+		<ButtonLink onClick={onClick} className={className} iconCode="globe" text={useLocalize("current")} />
 	);
 })`
 	flex: 1;
 	display: flex;
-	cursor: pointer;
 	align-items: baseline;
-	color: var(--color-primary-general);
-
-	:hover {
-		color: var(--color-primary);
-	}
 `;
 
 export default LangToggle;

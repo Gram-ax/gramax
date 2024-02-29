@@ -1,13 +1,14 @@
 import { AuthorizeMiddleware } from "@core/Api/middleware/AuthorizeMiddleware";
 import Path from "@core/FileProvider/Path/Path";
 import { Command, ResponseKind } from "../../types/Command";
+import ReloadConfirmMiddleware from "@core/Api/middleware/ReloadConfirmMiddleware";
 
 const discard: Command<{ catalogName: string; filePaths: string[] }, void> = Command.create({
 	path: "versionControl/discard",
 
 	kind: ResponseKind.none,
 
-	middlewares: [new AuthorizeMiddleware()],
+	middlewares: [new AuthorizeMiddleware(), new ReloadConfirmMiddleware()],
 
 	async do({ catalogName, filePaths }) {
 		const { rp, lib, logger } = this._app;

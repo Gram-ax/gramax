@@ -15,11 +15,7 @@ class LinkFocusTooltip extends BaseMark {
 	private _itemLinks: LinkItem[];
 	private _lastInputMethod: string;
 
-	constructor(
-		view: EditorView,
-		editor: Editor,
-		private _apiUrlCreator: ApiUrlCreator,
-	) {
+	constructor(view: EditorView, editor: Editor, private _apiUrlCreator: ApiUrlCreator) {
 		super(view, editor);
 		void this._loadLinkItems();
 		this.update(view);
@@ -67,7 +63,7 @@ class LinkFocusTooltip extends BaseMark {
 
 	private _getValue(mark: Mark) {
 		const { attrs } = mark;
-		const href = attrs.resourcePath && attrs.resourcePath !== "" ? attrs.resourcePath : attrs.href;
+		const href = attrs.resourcePath ? attrs.resourcePath : attrs.href;
 		return (href ?? "") + (attrs.hash ?? "");
 	}
 

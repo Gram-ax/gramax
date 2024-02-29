@@ -39,7 +39,7 @@ const DiagramsMenuButton = ({ editor, diagramName }: { editor: Editor; diagramNa
 		<Button
 			dataQa={`qa-edit-menu-${diagramName}`}
 			tooltipText={diagramTooltipText}
-			nodeValues={{ action: diagramName as any }}
+			nodeValues={{ action: "diagrams" }}
 			onClick={() => void createDiagrams(editor, articleProps, apiUrlCreator, diagramName)}
 		>
 			<SvgContainer>{diagramIcon}</SvgContainer>

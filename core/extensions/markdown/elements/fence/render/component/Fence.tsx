@@ -10,6 +10,7 @@ import useLocalize from "../../../../../localization/useLocalize";
 import ThemeService from "../../../../../Theme/components/ThemeService";
 
 import { gherkin } from "../logic/prism-gherkin";
+import Theme from "@ext/Theme/Theme";
 
 const Fence = styled(
 	({ className, value, overflow, ...props }: HTMLProps<HTMLElement> & { overflow?: Property.Overflow }) => {
@@ -31,7 +32,7 @@ const Fence = styled(
 		return (
 			<Highlight
 				{...defaultProps}
-				theme={theme === "dark" ? themeDark : themeLight}
+				theme={theme === Theme.dark ? themeDark : themeLight}
 				code={(value as string).trim()}
 				language={language as Language}
 			>

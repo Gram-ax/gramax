@@ -4,13 +4,13 @@ import MimeTypes from "@core-ui/ApiServices/Types/MimeTypes";
 import { arrayBufferToBase64 } from "@core-ui/Base64Converter";
 import fileNameUtils from "@core-ui/fileNameUtils";
 import { EditorView } from "prosemirror-view";
-import { ArticleProps } from "../../../../../../logic/SitePresenter/SitePresenter";
+import { ClientArticleProps } from "../../../../../../logic/SitePresenter/SitePresenter";
 import getArticleResourceNames from "../../../../elementsUtils/AtricleResource/getAtricleResourceNames";
 
 const createImages = async (
 	files: File[],
 	view: EditorView,
-	articleProps: ArticleProps,
+	articleProps: ClientArticleProps,
 	apiUrlCreator: ApiUrlCreator,
 ) => {
 	files = files.filter((f) => f);

@@ -8,7 +8,7 @@ pub mod config;
 pub mod menu;
 
 pub use menu::MenuBuilder;
-pub use updater::AppUpdaterBuilder;
+pub use updater::UpdaterBuilder;
 
 mod updater;
 
@@ -32,33 +32,22 @@ pub fn on_navigation(url: &url::Url) -> bool {
 }
 
 #[cfg(target_os = "macos")]
-pub fn window_event_handler(event: tauri::GlobalWindowEvent) {
-  if !event.window().label().contains("main") {
+pub fn window_event_handler<R: Runtime>(window: &Window<R>, event: &WindowEvent) {
+  if !window.label().contains("main") {
     return;
   };
 
-  if event.window().app_handle().windows().iter().filter(|w| w.0.contains("main")).nth(1).is_some() {
+  if window.app_handle().windows().iter().filter(|w| w.0.contains("main")).nth(1).is_some() {
     return;
   }
 
-  if let tauri::WindowEvent::CloseRequested { api, .. } = event.event() {
-    event.window().app_handle().hide().unwrap();
+  if let WindowEvent::CloseRequested { api, .. } = event {
+    window.app_handle().hide().unwrap();
     api.prevent_close();
   }
 }
 
-fn open_help_docs<R: Runtime>(#[allow(unused)] app: &AppHandle<R>) -> Result<()> {
-  #[cfg(target_os = "windows")]
-  {
-    _ = open::that("https://docs.ics-it.ru/gramax");
-  }
-
-  #[cfg(not(target_os = "windows"))]
-  {
-    if let Some(window) = app.get_focused_window() {
-      window.eval("location.replace('/docs')")?
-    }
-  }
-
+fn open_help_docs() -> Result<()> {
+  open::that("https://ics-it.gram.ax/gramax")?;
   Ok(())
 }

@@ -3,12 +3,12 @@ import SpinnerLoader from "@components/Atoms/SpinnerLoader";
 import FormStyle from "@components/Form/FormStyle";
 import ModalLayout from "@components/Layouts/Modal";
 import ModalLayoutLight from "@components/Layouts/ModalLayoutLight";
+import { useRouter } from "@core/Api/useRouter";
 import { useState } from "react";
 import FetchService from "../../../ui-logic/ApiServices/FetchService";
 import MimeTypes from "../../../ui-logic/ApiServices/Types/MimeTypes";
 import ApiUrlCreatorService from "../../../ui-logic/ContextServices/ApiUrlCreator";
 import CatalogPropsService from "../../../ui-logic/ContextServices/CatalogProps";
-import { refreshPage } from "../../../ui-logic/ContextServices/RefreshPageContext";
 import useLocalize from "../../localization/useLocalize";
 import StorageData from "../models/StorageData";
 import SelectStorageDataForm from "./SelectStorageDataForm";
@@ -16,6 +16,7 @@ import SelectStorageDataForm from "./SelectStorageDataForm";
 const InitStorage = ({ trigger }: { trigger: JSX.Element }) => {
 	const catalogProps = CatalogPropsService.value;
 	const apiUrlCreator = ApiUrlCreatorService.value;
+	const router = useRouter();
 
 	const [load, setLoad] = useState(false);
 	const [isOpen, setIsOpen] = useState(false);
@@ -26,7 +27,7 @@ const InitStorage = ({ trigger }: { trigger: JSX.Element }) => {
 		setLoad(true);
 		const res = await FetchService.fetch(apiUrlCreator.initStorage(), JSON.stringify(data), MimeTypes.json);
 		setLoad(false);
-		if (res.ok) refreshPage();
+		if (res.ok) router.pushPath(await res.text());
 		setIsOpen(false);
 	};
 

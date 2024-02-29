@@ -1,7 +1,7 @@
-import { ArticleProps } from "../../../../../../logic/SitePresenter/SitePresenter";
+import { ClientArticleProps } from "../../../../../../logic/SitePresenter/SitePresenter";
 import ExtensionUpdaterRules from "../ExtensionUpdaterRules";
 
-const getArticlePropsRule = (articleProps: ArticleProps): ExtensionUpdaterRules => {
+const getArticlePropsRule = (articleProps: ClientArticleProps): ExtensionUpdaterRules => {
 	const filterNames = ["selectionMenu"];
 
 	return {

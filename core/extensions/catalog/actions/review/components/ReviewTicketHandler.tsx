@@ -6,8 +6,8 @@ import { useEffect, useState } from "react";
 import FetchService from "../../../../../ui-logic/ApiServices/FetchService";
 import MimeTypes from "../../../../../ui-logic/ApiServices/Types/MimeTypes";
 import ApiUrlCreatorService from "../../../../../ui-logic/ContextServices/ApiUrlCreator";
+import CloneProgressbar from "../../../../git/actions/Clone/components/CloneProgressbar";
 import useLocalize from "../../../../localization/useLocalize";
-import ReviewClone from "./ReviewClone";
 
 const ReviewTicketHandler = ({ ticket }: { ticket: string }) => {
 	const apiUrlCreator = ApiUrlCreatorService.value;
@@ -50,10 +50,13 @@ const ReviewTicketHandler = ({ ticket }: { ticket: string }) => {
 				<FormStyle>
 					<>
 						<legend>{useLocalize("loading2")}</legend>
-						<ReviewClone
+						<CloneProgressbar
+							triggerClone={reviewData}
 							filePath={reviewData?.filePath}
 							storageData={reviewData}
-							onCloneError={() => setIsOpen(false)}
+							onFinish={() => setIsOpen(false)}
+							onError={() => setIsOpen(false)}
+							recursive={false}
 						/>
 					</>
 				</FormStyle>

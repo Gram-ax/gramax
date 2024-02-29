@@ -40,7 +40,6 @@ open = "5.0.0"
 android-intent = { git = "https://github.com/pashokitsme/android-intent" }
 
 [target.'cfg(target_os = "ios")'.dependencies]
-const_format = "0.2.31"
 cacao = { version = "0.3.2", default-features = false, features = ["uikit"] }
 
 [features]

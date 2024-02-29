@@ -1,68 +1,97 @@
 import { Editor } from "@tiptap/core";
-import { useRef, useState, useEffect } from "react";
-import { Mark as MarkType } from "./types";
 import { Mark } from "@tiptap/pm/model";
-
-const topLevelNodes = ["drawio", "image", "video"];
+import { useEffect, useRef, useState } from "react";
+import { Attrs, Mark as MarkType, NodeType } from "./types";
 
 const markList: MarkType[] = ["link", "strong", "em", "code", "file", "comment"];
 
+type State = { actions: NodeType[]; marks: MarkType[]; attrs: Attrs };
+
 const useType = (editor: Editor) => {
-	const test = useRef({
-		action: "",
-		marks: [] as MarkType[],
+	const mirror = useRef<State>({
+		actions: [],
+		marks: [],
 		attrs: { level: null, notFirstInList: false },
 	});
-	const [state, setState] = useState({
-		action: "",
-		marks: [] as MarkType[],
+
+	const [state, setState] = useState<State>({
+		actions: [],
+		marks: [],
 		attrs: { level: null, notFirstInList: false },
 	});
 
 	const getNodeNameFromCursor = () => {
-		const cursor = editor.state.selection.$from;
-		const node = cursor.node();
-		const depth = cursor.depth;
-		const nodeName = node.type.name;
+		const { selection } = editor.state;
+		const { from, to, empty } = selection;
+		let { $anchor } = selection;
 
-		test.current.attrs = { level: null, notFirstInList: false };
+		const nodeStack = [];
+		let ignoreList = false;
 
-		if (topLevelNodes.includes(cursor.nodeAfter?.type?.name)) {
-			return (test.current.action = cursor.nodeAfter.type.name);
+		const addRules = {
+			bullet_list: () => {
+				if (!ignoreList) nodeStack.push("bullet_list");
+				ignoreList = true;
+			},
+			ordered_list: () => {
+				if (!ignoreList) nodeStack.push("ordered_list");
+				ignoreList = true;
+			},
+			heading: (node) => {
+				nodeStack.push("heading");
+				mirror.current.attrs.level = node.attrs?.level;
+			},
+		};
+
+		while ($anchor) {
+			const name = $anchor.parent.type.name;
+
+			if (addRules[name]) {
+				addRules[name]($anchor.parent);
+			} else {
+				nodeStack.push(name);
+			}
+
+			$anchor = $anchor.node($anchor.depth - 1) ? $anchor.doc.resolve($anchor.before($anchor.depth)) : null;
 		}
 
-		if (depth <= 2) {
-			const firstLevel = cursor.node(1);
-			if (firstLevel?.attrs) test.current.attrs.level = firstLevel.attrs.level;
-			return (test.current.action = nodeName === "paragraph" ? firstLevel.type.name : nodeName);
+		if (!nodeStack.some((nodeName) => ["paragraph", "heading", "code_block"].includes(nodeName))) {
+			const cursor = editor.state.selection.$from;
+			nodeStack.unshift(cursor.nodeAfter?.type?.name || cursor.nodeBefore?.type?.name);
 		}
 
-		const oneDeepNode = cursor.node(-1);
+		if (!empty) {
+			editor.state.doc.nodesBetween(from, to, (node) => {
+				const name = node.type.name;
 
-		if (nodeName !== "paragraph") {
-			return (test.current.action = nodeName);
+				if (nodeStack.includes(name)) return;
+
+				if (addRules[name]) {
+					addRules[name](node);
+				} else {
+					nodeStack.push(name);
+				}
+			});
 		}
 
-		if (oneDeepNode.type.name !== "list_item") {
-			return (test.current.action = oneDeepNode.type.name);
-		}
-
-		test.current.attrs.notFirstInList = node !== oneDeepNode.firstChild;
-		test.current.action = cursor.node(-2).type.name;
+		return nodeStack.filter(
+			(elem) => !["doc", "text", "list_item", "tableHeader", "tableCell", "tableRow"].includes(elem),
+		);
 	};
 
 	const getMarksAction = () => {
-		test.current.marks = [];
+		const node = editor.state.selection.$from.node();
+		const marks = [];
 
-		function getActiveMarksInSelection(markTypes: MarkType[]) {
+		if (node.type.name === "paragraph" || node.type.name === "heading") {
 			const { state } = editor;
 			const { from, to, empty } = state.selection;
 
-			const addActiveMarks = (marks: readonly Mark[]) => {
-				marks.forEach((mark) => {
+			const addActiveMarks = (marksAtCursor: readonly Mark[]) => {
+				marksAtCursor.forEach((mark) => {
 					const markName = mark.type.name as MarkType;
-					if (markTypes.includes(markName) && !test.current.marks.includes(markName)) {
-						test.current.marks.push(markName);
+					if (markList.includes(markName) && !marks.includes(markName)) {
+						marks.push(markName);
 					}
 				});
 			};
@@ -71,33 +100,30 @@ const useType = (editor: Editor) => {
 				const marksAtCursor = state.storedMarks || state.selection.$head.marks();
 				addActiveMarks(marksAtCursor);
 			} else {
-				state.doc.nodesBetween(from, to, (node) => {
-					addActiveMarks(node.marks);
-				});
+				state.doc.nodesBetween(from, to, (node) => addActiveMarks(node.marks));
 			}
 		}
 
-		const node = editor.state.selection.$from.node();
-		if (["paragraph", "heading"].includes(node.type.name)) {
-			getActiveMarksInSelection(markList);
-		}
+		return marks;
 	};
 
 	useEffect(() => {
-		getNodeNameFromCursor();
-		getMarksAction();
+		const actions = getNodeNameFromCursor();
+		const marks = getMarksAction();
 
-		const { marks, attrs, action } = test.current;
 		const deepDifference =
 			state.marks.toString() !== marks.toString() ||
-			state.attrs?.level !== attrs?.level ||
-			state.attrs.notFirstInList !== attrs.notFirstInList;
+			state.attrs?.level !== mirror.current.attrs?.level ||
+			state.attrs.notFirstInList !== mirror.current.attrs.notFirstInList;
 
-		if (state.action !== action || deepDifference) {
+		if (actions.toString() !== mirror.current.actions.toString() || deepDifference) {
+			mirror.current.actions = [...actions];
+			mirror.current.marks = [...marks];
+
 			setState({
-				action,
-				marks: [...marks],
-				attrs: { level: attrs.level, notFirstInList: attrs.notFirstInList },
+				actions: [...mirror.current.actions],
+				marks: [...mirror.current.marks],
+				attrs: { level: mirror.current.attrs?.level, notFirstInList: mirror.current.attrs?.notFirstInList },
 			});
 		}
 	}, [editor.state.selection, editor.commands]);

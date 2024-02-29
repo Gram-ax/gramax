@@ -19,6 +19,6 @@ COPY . .
 
 RUN node -v && \
     npm -v && \
-    ./install-deps.sh && \
+    ./install-deps.sh --ci && \
     npm run test:unit && \
     npm run test:int

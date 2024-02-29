@@ -1,5 +1,5 @@
 const diagramsToken = {
-	node: "plant-uml",
+	node: "diagrams",
 	getAttrs: (tok) => tok?.attrs,
 };
 

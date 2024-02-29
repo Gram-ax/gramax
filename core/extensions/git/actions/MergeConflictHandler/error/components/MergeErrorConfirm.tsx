@@ -8,10 +8,10 @@ import ModalToOpen from "../../../../../../ui-logic/ContextServices/ModalToOpenS
 import PageDataContextService from "../../../../../../ui-logic/ContextServices/PageDataContext";
 import ErrorConfirmService from "../../../../../errorHandlers/client/ErrorConfirmService";
 import DefaultErrorComponent from "../../../../../errorHandlers/client/components/DefaultError";
-import ErrorForm from "../../../../../errorHandlers/client/components/ErrorForm";
+import InfoModalForm from "../../../../../errorHandlers/client/components/ErrorForm";
 import GetErrorComponent from "../../../../../errorHandlers/logic/GetErrorComponent";
 import useLocalize from "../../../../../localization/useLocalize";
-import BranchUpdaterService from "../../../Branch/logic/BranchUpdaterService";
+import BranchUpdaterService from "../../../Branch/BranchUpdaterService/logic/BranchUpdaterService";
 import MergeType from "../../model/MergeType";
 import ErrorMergeConflictHandler from "./ErrorMergeConflictHandler";
 
@@ -54,7 +54,7 @@ const MergeErrorConfirm = ({ error, onCancelClick }: ComponentProps<typeof GetEr
 	}
 
 	return (
-		<ErrorForm
+		<InfoModalForm
 			onCancelClick={onCancelClick}
 			actionButton={{
 				onClick: () => {
@@ -70,7 +70,7 @@ const MergeErrorConfirm = ({ error, onCancelClick }: ComponentProps<typeof GetEr
 			title={getTitle()}
 		>
 			<span>{getErrorText()}</span>
-		</ErrorForm>
+		</InfoModalForm>
 	);
 };
 

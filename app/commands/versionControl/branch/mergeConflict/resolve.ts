@@ -7,6 +7,7 @@ import BranchGitMergeConflictResolver from "../../../../../core/extensions/git/c
 import { AuthorizeMiddleware } from "../../../../../core/logic/Api/middleware/AuthorizeMiddleware";
 import Context from "../../../../../core/logic/Context/Context";
 import { Command, ResponseKind } from "../../../../types/Command";
+import ReloadConfirmMiddleware from "@core/Api/middleware/ReloadConfirmMiddleware";
 
 const resolve: Command<
 	{
@@ -24,7 +25,7 @@ const resolve: Command<
 
 	kind: ResponseKind.none,
 
-	middlewares: [new AuthorizeMiddleware()],
+	middlewares: [new AuthorizeMiddleware(), new ReloadConfirmMiddleware()],
 
 	async do({ ctx, catalogName, files, theirsBranch, branchNameBefore, headBeforeMerge, deleteAfterMerge }) {
 		const { lib, rp } = this._app;

@@ -1,29 +1,28 @@
 import { AuthorizeMiddleware } from "@core/Api/middleware/AuthorizeMiddleware";
-import { DesktopModeMiddleware } from "@core/Api/middleware/DesktopModeMiddleware";
 import Context from "@core/Context/Context";
 import Path from "@core/FileProvider/Path/Path";
 import { Article } from "@core/FileStructue/Article/Article";
-import { ArticleData } from "@core/SitePresenter/SitePresenter";
+import { ArticlePageData } from "@core/SitePresenter/SitePresenter";
 import DefaultError from "../../../../core/extensions/errorHandlers/logic/DefaultError";
 import { Command, ResponseKind } from "../../../types/Command";
 
-const checkLastModified: Command<{ ctx: Context; articlePath: Path; catalogName: string }, ArticleData> =
+const checkLastModified: Command<{ ctx: Context; articlePath: Path; catalogName: string }, ArticlePageData> =
 	Command.create({
 		path: "article/features/checkLastModified",
 
 		kind: ResponseKind.json,
 
-		middlewares: [new AuthorizeMiddleware(), new DesktopModeMiddleware()],
+		middlewares: [new AuthorizeMiddleware()],
 
 		async do({ ctx, articlePath, catalogName }) {
 			const { lib, sitePresenterFactory } = this._app;
 			const catalog = await lib.getCatalog(catalogName);
-			if (!catalog) return;
+			if (!catalog || !catalog.getRootCategory().items.length) return;
 
 			const fp = lib.getFileProviderByCatalog(catalog);
 			const itemRef = fp.getItemRef(articlePath);
-			const article = catalog.findItemByItemRef(itemRef) as Article;
-			if (!article) return;
+			const article = catalog.findItemByItemRef<Article>(itemRef);
+			if (!article || article.props.welcome) return;
 			let res = false;
 
 			try {
@@ -33,7 +32,7 @@ const checkLastModified: Command<{ ctx: Context; articlePath: Path; catalogName:
 				if (e?.code === "ENOENT") throw new DefaultError(null, e, { errorCode: e?.code });
 			}
 
-			return res ? await sitePresenterFactory.fromContext(ctx).getArticleData(article, catalog) : null;
+			return res ? await sitePresenterFactory.fromContext(ctx).getArticlePageData(article, catalog) : null;
 		},
 
 		params(ctx, q) {

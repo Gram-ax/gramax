@@ -1,10 +1,10 @@
 import getApplication from "@app/node/app";
 import getItemRef from "../../../Library/test/getItemRef";
-import HiddenRule from "./HiddenRule";
+import HiddenRules from "./HiddenRule";
 
 const getHiddenRuleData = async () => {
 	const app = await getApplication();
-	const hr = new HiddenRule(app.errorArticlesProvider);
+	const hr = new HiddenRules(app.errorArticlesProvider);
 
 	const categoryTestCatalog = await app.lib.getCatalog("RulesCategoryTestCatalog");
 	const articleTestCatalog = await app.lib.getCatalog("RulseArticleTestCatalog");
@@ -19,24 +19,24 @@ describe("HiddenRule правильно фильтрует", () => {
 	describe("item", () => {
 		test("article", async () => {
 			const { hr, articleItemRef, articleTestCatalog } = await getHiddenRuleData();
-			const filter = hr.getItemRule();
+			const filter = hr.getItemFilter();
 			const item = articleTestCatalog.findArticleByItemRef(articleItemRef);
-			expect(filter(articleTestCatalog, item)).toEqual(false);
+			expect(filter(item, articleTestCatalog)).toEqual(false);
 		});
 
 		test("category", async () => {
 			const { hr, categoryItemRef, categoryTestCatalog } = await getHiddenRuleData();
-			const filter = hr.getItemRule();
+			const filter = hr.getItemFilter();
 			const item = categoryTestCatalog.findCategoryByItemRef(categoryItemRef);
-			expect(filter(categoryTestCatalog, item)).toEqual(false);
+			expect(filter(item, categoryTestCatalog)).toEqual(false);
 		});
 	});
 
 	test("article", async () => {
 		const { hr, articleItemRef, articleTestCatalog } = await getHiddenRuleData();
-		const filter = hr.getFilterRule();
+		const filter = hr.getItemFilter();
 		const article = articleTestCatalog.findArticleByItemRef(articleItemRef);
 
-		expect(filter(article)).toEqual(false);
+		expect(filter(article, articleTestCatalog)).toEqual(false);
 	});
 });

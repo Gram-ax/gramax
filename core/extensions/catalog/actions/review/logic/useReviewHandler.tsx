@@ -1,11 +1,16 @@
+import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
+import { useRouter } from "@core/Api/useRouter";
 import { ComponentProps, useEffect } from "react";
-import { Router } from "../../../../../logic/Api/Router";
 import ModalToOpenService from "../../../../../ui-logic/ContextServices/ModalToOpenService/ModalToOpenService";
 import ModalToOpen from "../../../../../ui-logic/ContextServices/ModalToOpenService/model/ModalsToOpen";
 import ReviewTicketHandler from "../components/ReviewTicketHandler";
 
-const useReviewHandler = (router: Router) => {
+const useReviewHandler = (isFirstLoad: boolean) => {
+	const router = useRouter();
+	const { isReadOnly } = PageDataContextService.value.conf;
+
 	useEffect(() => {
+		if (!isFirstLoad || isReadOnly) return;
 		if (!router?.query?.review) return;
 		const ticket = router.query.review;
 		delete router.query.review;
@@ -13,7 +18,7 @@ const useReviewHandler = (router: Router) => {
 		ModalToOpenService.setValue<ComponentProps<typeof ReviewTicketHandler>>(ModalToOpen.ReviewTicketHandler, {
 			ticket,
 		});
-	}, []);
+	}, [isFirstLoad]);
 };
 
 export default useReviewHandler;

@@ -9,6 +9,7 @@ import Watcher from "./model/Watcher";
 export default class ChokidarWatcher implements Watcher {
 	private _onChanges: ((changes: ItemStatus[]) => void)[] = [];
 	private _cache: { event: string; path: string }[] = [];
+	private _changeItems: ItemStatus[] = [];
 	private _watcher: chokidar.FSWatcher;
 	private _ignoredRegExp = /(^|[/\\])\.git/;
 	private _semaphore = 0;
@@ -64,18 +65,22 @@ export default class ChokidarWatcher implements Watcher {
 			});
 
 		setInterval(() => {
-			const tmp = this._cache.slice();
+			this._changeItems = [
+				...this._cache.map(({ event, path }) => {
+					const subDirectory = new Path(fp.rootPath.subDirectory(new Path(path)).value);
+					return {
+						itemRef: fp.getItemRef(subDirectory),
+						type: this._changeTypes[event],
+					};
+				}),
+				...this._changeItems,
+			];
 			this._cache = [];
 
-			const changeItems: ItemStatus[] = tmp.map(({ event, path }) => {
-				const subDirectory = new Path(fp.rootPath.subDirectory(new Path(path)).value);
-				return {
-					itemRef: fp.getItemRef(subDirectory),
-					type: this._changeTypes[event],
-				};
-			});
-
-			if (!!changeItems.length && this._semaphore == 0) this._onChanges.forEach((e) => e(changeItems));
+			if (!!this._changeItems.length && this._semaphore == 0) {
+				this._onChanges.forEach((e) => e(this._changeItems));
+				this._changeItems = [];
+			}
 		}, 3000);
 	}
 

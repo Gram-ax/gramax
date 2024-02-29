@@ -4,7 +4,7 @@ import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import ArticlePropsService from "@core-ui/ContextServices/ArticleProps";
 import IsEditService from "@core-ui/ContextServices/IsEdit";
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
-import { ArticleProps } from "../../logic/SitePresenter/SitePresenter";
+import { ClientArticleProps } from "@core/SitePresenter/SitePresenter";
 import useLocalize from "../localization/useLocalize";
 import { ItemLink } from "../navigation/NavigationLinks";
 import DeleteItem from "./actions/DeleteItem";
@@ -29,7 +29,7 @@ const EditMenu = ({
 
 	const [brotherFileNames, setBrotherFileName] = useState<string[]>(null);
 	const [isCurrentItem, setIsCurrentItem] = useState(articleProps.ref.path == itemLink.ref.path);
-	const [itemProps, setItemProps] = useState<ArticleProps>(isCurrentItem ? { ...articleProps } : null);
+	const [itemProps, setItemProps] = useState<ClientArticleProps>(isCurrentItem ? { ...articleProps } : null);
 
 	useEffect(() => {
 		setIsCurrentItem(articleProps.ref.path == itemLink.ref.path);
@@ -41,7 +41,7 @@ const EditMenu = ({
 	const setItemPropsData = async () => {
 		const response = await FetchService.fetch(apiUrlCreator.getItemProps(itemLink.ref.path));
 		if (!response.ok) return;
-		const data = (await response.json()) as ArticleProps;
+		const data = (await response.json()) as ClientArticleProps;
 		setItemProps(data);
 	};
 

@@ -90,11 +90,11 @@ const DiagramsEditButton = ({
 
 	return (
 		<ModalLayout
-			contentWidth="80%"
+			contentWidth="L"
 			isOpen={isOpen}
 			onClose={cancel}
 			onOpen={() => setIsOpen(true)}
-			trigger={<Button icon={"pen"} tooltipText={"Редактировать"} />}
+			trigger={<Button icon={"pen"} tooltipText={useLocalize("edit2")} />}
 			onCmdEnter={save}
 		>
 			<ModalLayoutLight>
@@ -107,7 +107,7 @@ const DiagramsEditButton = ({
 							onChange={setContentEditState}
 						/>
 						<div className="buttons">
-							<ButtonAtom buttonStyle={ButtonStyle.transparent} onClick={cancel}>
+							<ButtonAtom buttonStyle={ButtonStyle.underline} onClick={cancel}>
 								<span>{useLocalize("cancel")}</span>
 							</ButtonAtom>
 							<ButtonAtom buttonStyle={ButtonStyle.default} onClick={save}>
@@ -146,15 +146,14 @@ const DiagramsMenu = ({ editor }: { editor: Editor }) => {
 	};
 
 	const handleDelete = () => {
-		if (node) {
-			editor.commands.deleteRange({ from: position, to: position + node.nodeSize });
-		}
+		if (!node) return;
+		editor.commands.deleteRange({ from: position, to: position + node.nodeSize });
 	};
 
 	return (
 		<ModalLayoutDark>
 			<ButtonsLayout>
-				<Input placeholder="Подпись" value={title} onChange={handleTitleChange} />
+				<Input placeholder={useLocalize("signature")} value={title} onChange={handleTitleChange} />
 				<div className="divider" />
 				{node && (
 					<DiagramsEditButton
@@ -164,7 +163,7 @@ const DiagramsMenu = ({ editor }: { editor: Editor }) => {
 						diagramName={node.attrs?.diagramName}
 					/>
 				)}
-				<Button icon="trash" tooltipText="Удалить" onClick={handleDelete} />
+				<Button icon="trash" tooltipText={useLocalize("delete")} onClick={handleDelete} />
 			</ButtonsLayout>
 		</ModalLayoutDark>
 	);

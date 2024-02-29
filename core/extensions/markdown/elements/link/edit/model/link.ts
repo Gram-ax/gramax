@@ -71,17 +71,31 @@ export const Link = Mark.create<LinkOptions>({
 			toggleLink:
 				(attributes) =>
 				({ chain, editor, state }) => {
-					if (getSelectedText(state))
+					const { from, to } = state.selection;
+					let linkInSelection = false;
+
+					state.doc.nodesBetween(from, to, (node) => {
+						if (node.marks.some((mark) => mark.type.name === this.name)) {
+							linkInSelection = true;
+						}
+					});
+
+					if (linkInSelection) {
+						return chain().unsetMark(this.name).setMeta("preventAutolink", true).run();
+					}
+
+					if (getSelectedText(state)) {
 						return chain()
 							.toggleMark(this.name, attributes, { extendEmptyMarkRange: true })
 							.setMeta("preventAutolink", true)
 							.focus(editor.state.tr.selection.to - 1)
 							.run();
-					else
-						return chain()
-							.toggleMark(this.name, attributes, { extendEmptyMarkRange: true })
-							.setMeta("preventAutolink", true)
-							.run();
+					}
+
+					return chain()
+						.toggleMark(this.name, attributes, { extendEmptyMarkRange: true })
+						.setMeta("preventAutolink", true)
+						.run();
 				},
 			unsetLink:
 				() =>

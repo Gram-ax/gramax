@@ -1,12 +1,20 @@
 import Path from "@core/FileProvider/Path/Path";
 import { env, getExecutingEnvironment } from "../resolveModule";
 
+interface AppConfigPaths {
+	base: Path;
+	root: Path;
+	local?: Path;
+	userDataPath: Path;
+}
+
 export interface AppConfig {
 	isReadOnly: boolean;
 	isServerApp: boolean;
 	isProduction: boolean;
 	ssoServerUrl: string;
 	ssoPublicKey: string;
+	authServiceUrl: string;
 	branch: string;
 	enterpriseServerUrl: string;
 	bugsnagApiKey: string;
@@ -19,13 +27,7 @@ export interface AppConfig {
 		share: string;
 	};
 
-	paths: {
-		base: Path;
-		root: Path;
-		cache: Path;
-		local?: Path;
-		userData?: Path;
-	};
+	paths: AppConfigPaths;
 
 	mail: {
 		user: string;
@@ -33,12 +35,12 @@ export interface AppConfig {
 	};
 }
 
-export const getPaths = () => {
+export const getPaths = (): AppConfigPaths => {
 	if (getExecutingEnvironment() == "browser") {
 		return {
 			base: Path.empty,
 			root: new Path("docs"),
-			cache: new Path("cache"),
+			userDataPath: new Path("cache"),
 		};
 	}
 
@@ -57,7 +59,6 @@ export const getPaths = () => {
 		base: new Path(env("BASE_PATH")),
 		root,
 		local: env("LOCAL_DOC_PATH") && new Path(env("LOCAL_DOC_PATH")),
-		userData,
-		cache: userData,
+		userDataPath: userData,
 	};
 };

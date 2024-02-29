@@ -30,6 +30,7 @@ const getPageDataContext = ({
 			isServerApp: app.conf.isServerApp,
 			ssoServerUrl: app.conf.ssoServerUrl,
 			ssoPublicKey: app.conf.ssoPublicKey,
+			authServiceUrl: app.conf.authServiceUrl,
 			isProduction: app.conf.isProduction,
 			enterpriseServerUrl: app.conf.enterpriseServerUrl,
 			bugsnagApiKey: app.conf.bugsnagApiKey,

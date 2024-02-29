@@ -9,7 +9,7 @@ export function link(context: ParserContext): Schema {
 			href: { type: String },
 		},
 		transform: async (node, config) => {
-			const { href, resourcePath, isFile, hash } = linkCreator.getLink(node.attributes.href, context);
+			const { href, resourcePath, isFile, hash } = await linkCreator.getLink(node.attributes.href, context);
 			if (resourcePath) {
 				if (isFile) context.getResourceManager().set(resourcePath);
 				else context.getLinkManager().set(resourcePath);

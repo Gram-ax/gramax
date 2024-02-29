@@ -1,4 +1,5 @@
 import deleteBranchAfterMerge from "@app/commands/versionControl/branch/mergeConflict/utils/deleteBranchAfterMerge";
+import ReloadConfirmMiddleware from "@core/Api/middleware/ReloadConfirmMiddleware";
 import MergeType from "../../../../core/extensions/git/actions/MergeConflictHandler/model/MergeType";
 import GitError from "../../../../core/extensions/git/core/GitCommands/errors/GitError";
 import GitErrorCode from "../../../../core/extensions/git/core/GitCommands/errors/model/GitErrorCode";
@@ -14,13 +15,16 @@ const mergeInto: Command<{ ctx: Context; catalogName: string; branchName: string
 
 		kind: ResponseKind.json,
 
-		middlewares: [new AuthorizeMiddleware()],
+		middlewares: [new AuthorizeMiddleware(), new ReloadConfirmMiddleware()],
 
 		async do({ ctx, catalogName, branchName, deleteAfterMerge }) {
 			const { lib, rp } = this._app;
 			const catalog = await lib.getCatalog(catalogName);
 			if (!catalog) return;
 			const gvc = catalog.repo.gvc;
+
+			if ((await gvc.getChanges(false)).length > 0)
+				throw new GitError(GitErrorCode.WorkingDirNotEmpty, null, { repositoryPath: gvc.getPath().value });
 
 			const storage = catalog.repo.storage as GitStorage;
 			const sourceData = rp.getSourceData(ctx.cookie, await storage.getSourceName()) as GitSourceData;

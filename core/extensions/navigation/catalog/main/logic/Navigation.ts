@@ -1,38 +1,42 @@
 import GroupsName from "@components/HomePage/Groups/model/GroupsName";
+import Path from "@core/FileProvider/Path/Path";
 import CatalogEntry from "@core/FileStructue/Catalog/CatalogEntry";
+import RouterPathProvider from "@core/RouterPath/RouterPathProvider";
 import { Catalog } from "../../../../../logic/FileStructue/Catalog/Catalog";
 import { Category } from "../../../../../logic/FileStructue/Category/Category";
 import { Item, ItemType } from "../../../../../logic/FileStructue/Item/Item";
 import { ArticleLink, CatalogLink, CategoryLink, ItemLink, TitledLink } from "../../../NavigationLinks";
 
-export type NavigationCatalogFilter = (entry: CatalogEntry, link: CatalogLink) => boolean;
-export type NavigationItemFilter = (entry: Catalog, item: Item, link: ItemLink) => boolean;
-export type NavigationRelatedLinkFilter = (entry: Catalog, related: TitledLink) => boolean;
+type NavItemRule = (entry: Catalog, item: Item, link: ItemLink) => boolean;
+type NavCatalogRule = (entry: CatalogEntry, link: CatalogLink) => boolean;
+type NavRelatedLinkRule = (entry: Catalog, related: TitledLink) => boolean;
+
+export interface NavRules {
+	itemRule?: NavItemRule;
+	catalogRule?: NavCatalogRule;
+	relatedLinkRule?: NavRelatedLinkRule;
+}
 
 export default class Navigation {
-	private _catalogFilter: NavigationCatalogFilter[] = [];
-	private _itemFilter: NavigationItemFilter[] = [];
-	private _relatedLinkFilter: NavigationRelatedLinkFilter[] = [];
+	private _itemFilter: NavItemRule[] = [];
+	private _catalogFilter: NavCatalogRule[] = [];
+	private _relatedLinkFilter: NavRelatedLinkRule[] = [];
 
-	addRules(filters: {
-		catalogFilter?: NavigationCatalogFilter;
-		itemFilter?: NavigationItemFilter;
-		relatedLinkFilter?: NavigationRelatedLinkFilter;
-	}) {
-		if (filters.catalogFilter) this._catalogFilter.push(filters.catalogFilter);
-		if (filters.itemFilter) this._itemFilter.push(filters.itemFilter);
-		if (filters.relatedLinkFilter) this._relatedLinkFilter.push(filters.relatedLinkFilter);
+	addRules(rules: NavRules) {
+		if (rules.itemRule) this._itemFilter.push(rules.itemRule);
+		if (rules.catalogRule) this._catalogFilter.push(rules.catalogRule);
+		if (rules.relatedLinkRule) this._relatedLinkFilter.push(rules.relatedLinkRule);
 	}
 
-	getCatalogsLink(catalogs: Map<string, CatalogEntry>): CatalogLink[] {
-		return Array.from(catalogs.entries())
-			.map(([name, catalog]) => this.getCatalogLink(catalog, name))
-			.filter((c) => c)
-			.sort((a, b) => a.order - b.order);
+	async getCatalogsLink(catalogs: Map<string, CatalogEntry>): Promise<CatalogLink[]> {
+		const catalogLinks = await Promise.all(
+			Array.from(catalogs.entries()).map(async ([name, catalog]) => await this.getCatalogLink(catalog, name)),
+		);
+		return catalogLinks.filter((c) => c).sort((a, b) => a.order - b.order);
 	}
 
 	getRelatedLinks(catalog: Catalog): TitledLink[] {
-		const relatedLinks: TitledLink[] = catalog.getProp("relatedLinks") ?? null;
+		const relatedLinks = catalog.props.relatedLinks ?? null;
 		if (!relatedLinks) return relatedLinks;
 		if (this._relatedLinkFilter.length == 0) return relatedLinks;
 		const newRelatedLinks: TitledLink[] = [];
@@ -46,19 +50,18 @@ export default class Navigation {
 		return newRelatedLinks;
 	}
 
-	getCatalogLink(catalog: CatalogEntry, name?: string): CatalogLink {
+	async getCatalogLink(catalog: CatalogEntry, name?: string): Promise<CatalogLink> {
 		if (!catalog) return null;
 		if (!name) name = catalog.getName();
 		const catalogLink: CatalogLink = {
-			name: name,
-			pathname: name,
+			name,
+			pathname: await catalog.getPathname(),
 			logo: catalog.props[navProps.logo] ?? null,
 			title: catalog.props[navProps.title] ?? name,
 			query: {},
 			group: catalog.props[navProps.group] ?? GroupsName.company,
 			code: catalog.props[navProps.code] ?? catalog.props[navProps.title] ?? name,
 			style: catalog.props[navProps.style] ?? null,
-			brand: catalog.props[navProps.brand] ?? null,
 			description: catalog.props[navProps.description] ?? null,
 			order: catalog.props[navProps.order] ?? 999999,
 		};
@@ -77,38 +80,33 @@ export default class Navigation {
 		const itemLink: ItemLink = {
 			ref: { path: item.ref.path.value, storageId: item.ref.storageId },
 			icon: item.props[navProps.icon] ?? null,
-			title: item.props[navProps.title] ?? item.ref.path.name,
+			title: item.getTitle() ?? item.ref.path.name,
 			type: null,
-			pathname: item.logicPath,
+			pathname: await catalog.getPathname(item),
 			query: {},
 			isCurrentLink: item.logicPath === currentItemLogicPath,
 		};
-		if (item.type == "article") {
+		if (item.type == ItemType.article) {
 			itemLink.type = ItemType.article;
 			(<ArticleLink>itemLink).alwaysShow = item.props["alwaysShow"] ?? null;
 		} else {
-			if ((<Category>item).items.length == 0 && !(item as Category).content) return null;
 			itemLink.type = ItemType.category;
 			const categoryLink = itemLink as CategoryLink;
-			if ((item as Category).content) {
-				categoryLink.isCurrentLink = item.logicPath === currentItemLogicPath;
-				categoryLink.existContent = true;
-			}
-			categoryLink.isExpanded =
-				currentItemLogicPath.includes(categoryLink.pathname) ||
-				catalog.getRootCategoryPath().compare(item.parent.folderPath);
-
 			categoryLink.items = [];
 			categoryLink.existContent = true;
-			const categoryItems = [];
-			const notIndexArticleRules = this._itemFilter.filter((rule) => !(rule as any).isIndexRule);
+			categoryLink.isCurrentLink = item.logicPath === currentItemLogicPath;
+			const cataegoryLinkItemLogicPath = new Path(
+				RouterPathProvider.parsePath(new Path(categoryLink.pathname)).itemLogicPath,
+			).value;
+
+			categoryLink.isExpanded =
+				currentItemLogicPath.includes(cataegoryLinkItemLogicPath) ||
+				catalog.getRootCategoryPath().compare(item.parent.folderPath);
+
 			for (const i of (<Category>item).items) {
 				const link = await this._toItemLink(catalog, i, currentItemLogicPath);
 				if (link) categoryLink.items.push(link);
-				if (notIndexArticleRules.every((rule) => rule(catalog, i, itemLink)) && i.type == "article")
-					categoryItems.push(i);
 			}
-			if (categoryLink.items.length == 0 && categoryItems.length == 0 && !categoryLink.existContent) return null;
 			categoryLink.filter = item.props["filter"] ?? null;
 		}
 		for (const rule of this._itemFilter) if (!rule(catalog, item, itemLink)) return null;

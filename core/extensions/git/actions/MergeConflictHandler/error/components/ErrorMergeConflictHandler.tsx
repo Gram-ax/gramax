@@ -10,7 +10,7 @@ import FetchService from "../../../../../../ui-logic/ApiServices/FetchService";
 import MimeTypes from "../../../../../../ui-logic/ApiServices/Types/MimeTypes";
 import ApiUrlCreatorService from "../../../../../../ui-logic/ContextServices/ApiUrlCreator";
 import ModalToOpenService from "../../../../../../ui-logic/ContextServices/ModalToOpenService/ModalToOpenService";
-import BranchUpdaterService from "../../../Branch/logic/BranchUpdaterService";
+import BranchUpdaterService from "../../../Branch/BranchUpdaterService/logic/BranchUpdaterService";
 import MergeConflictHandler from "../../components/MergeConflictHandler";
 import { MergeFile } from "../../model/MergeFile";
 import MergeType from "../../model/MergeType";
@@ -58,7 +58,7 @@ const ErrorMergeConflictHandler = ({
 
 	return (
 		<ModalLayout
-			contentWidth={loading ? null : "80%"}
+			contentWidth={loading ? null : "L"}
 			onClose={async () => {
 				window.onbeforeunload = undefined;
 				if (!merged) await abortMerge();

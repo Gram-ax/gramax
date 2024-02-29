@@ -79,6 +79,7 @@ export class TicketManager {
 		const datas = this._encoder.decode(this._shareAccessToken, ticket);
 		if (!datas) return null;
 		const parseDatas = this._parseUserSharedDatas(datas);
+		if (!parseDatas) return null;
 		const intTimeExpired = parseDatas.date.valueOf();
 		if (intTimeExpired && Date.now() < intTimeExpired) return parseDatas.user;
 		return;
@@ -88,6 +89,7 @@ export class TicketManager {
 		return [JSON.stringify(user.toJSON()), date.toJSON()];
 	}
 	private _parseUserSharedDatas(datas: string[]): { user: User; date: Date } {
+		if (datas.length !== 2) return null;
 		return { user: User.initInJSON(JSON.parse(datas[0])), date: new Date(datas[1]) };
 	}
 

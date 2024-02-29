@@ -6,14 +6,16 @@ import getReviewLink from "./review/getReviewLink";
 import getReviewLinkData from "./review/getReviewLinkData";
 import getShareLink from "./share/getShareLink";
 import getShareLinkData from "./share/getShareLinkData";
+import getShareTicket from "./share/getShareTicket";
 import updateNavigation from "./updateNavigation";
 import updateProps from "./updateProps";
 
 const catalog = {
 	review: {
 		getShareLink,
-		getShareLinkData,
 		getReviewLink,
+		getShareTicket,
+		getShareLinkData,
 		getReviewLinkData,
 	},
 	create,

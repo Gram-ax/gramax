@@ -1,7 +1,7 @@
 import GroupsName from "@components/HomePage/Groups/model/GroupsName";
 import Style from "@components/HomePage/Groups/model/Style";
 import { ItemType } from "@core/FileStructue/Item/Item";
-import { ItemRefProps } from "@core/SitePresenter/SitePresenter";
+import { ClientItemRef } from "@core/SitePresenter/SitePresenter";
 
 export interface CatalogLink extends BaseLink {
 	name: string;
@@ -11,7 +11,6 @@ export interface CatalogLink extends BaseLink {
 	style: Style;
 	group: GroupsName;
 	order: number;
-	brand: string;
 	description: string;
 }
 
@@ -26,7 +25,7 @@ export interface ItemLink extends BaseLink {
 	title: string;
 	icon: string;
 	isCurrentLink: boolean;
-	ref: ItemRefProps;
+	ref: ClientItemRef;
 }
 
 export interface CategoryLink extends ItemLink {

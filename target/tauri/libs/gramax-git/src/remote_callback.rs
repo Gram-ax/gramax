@@ -8,7 +8,15 @@ use crate::creds::Creds;
 
 type CredentialsCallback<'c> = Box<dyn FnMut(&str, Option<&str>, CredentialType) -> Result<Cred, Error> + 'c>;
 
-pub fn make_remote_callback<C: Creds>(creds: &C) -> CredentialsCallback {
+pub fn ssl_callback(_cert: &cert::Cert, _host: &str) -> Result<CertificateCheckStatus, Error> {
+  #[cfg(not(target_os = "android"))]
+  return Ok(CertificateCheckStatus::CertificatePassthrough);
+
+  #[cfg(target_os = "android")]
+  return Ok(CertificateCheckStatus::CertificateOk);
+}
+
+pub fn make_credentials_callback<C: Creds>(creds: &C) -> CredentialsCallback {
   let mut identities = resolve_identities();
   Box::new(move |url: &str, username: Option<&str>, allowed_type: CredentialType| -> Result<Cred, Error> {
     match allowed_type {

@@ -7,6 +7,8 @@ import PageContext from "./Pages/PageContext";
 export type ReplaceAlias = (alias: string, or?: () => string) => string;
 
 export default class E2EWorld extends World {
+	allowErrorModal = false;
+
 	private _page: PageContext;
 	private _aliases: Aliases = {};
 	private _scenario: ITestCaseHookParameter;
@@ -38,7 +40,7 @@ export default class E2EWorld extends World {
 	}
 
 	setContext(page: PlaywrightPage, scenario: ITestCaseHookParameter) {
-		this._page = new PageContext(page, this.replace.bind(this));
+		this._page = new PageContext(page, this.replace.bind(this), this._aliases);
 		this._scenario = scenario;
 		this._aliases = {};
 	}

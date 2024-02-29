@@ -36,7 +36,7 @@ const getDbDiagram: Command<
 		const fp = lib.getFileProviderByCatalog(catalog);
 		const diagram = new DbDiagram(tablesManager, fp);
 
-		const article = catalog.findItemByItemPath(articlePath) as Article;
+		const article = catalog.findItemByItemPath<Article>(articlePath);
 		await parseContent(article, catalog, ctx, this._app.parser, this._app.parserContextFactory);
 		const resourceManager = article.parsedContent.resourceManager;
 		const diagramRef = fp.getItemRef(resourceManager.getAbsolutePath(path));

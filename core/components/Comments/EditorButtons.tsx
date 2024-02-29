@@ -1,6 +1,6 @@
 import styled from "@emotion/styled";
 import useLocalize from "../../extensions/localization/useLocalize";
-import Button from "../Atoms/Button/Button";
+import Button, { TextSize } from "../Atoms/Button/Button";
 import { ButtonStyle } from "../Atoms/Button/ButtonStyle";
 
 const EditorButtons = styled(
@@ -20,11 +20,11 @@ const EditorButtons = styled(
 		return (
 			<div className={className}>
 				<div className="buttons">
-					<Button buttonStyle={ButtonStyle.transparent} onClick={onCancel}>
+					<Button buttonStyle={ButtonStyle.underline} textSize={TextSize.S} onClick={onCancel}>
 						<span>{useLocalize("cancel")}</span>
 					</Button>
 
-					<Button buttonStyle={style} onClick={onConfirm}>
+					<Button buttonStyle={style} textSize={TextSize.S} onClick={onConfirm}>
 						<span>{confirmButtonText}</span>
 					</Button>
 				</div>

@@ -11,7 +11,7 @@ export class AuthorizeMiddleware extends Middleware {
 		super();
 	}
 
-	Process(req: ApiRequest, res: ApiResponse): void | Promise<void> {
+	Process(req: ApiRequest, res: ApiResponse): Promise<void> {
 		const isNext = getExecutingEnvironment() === "next";
 		const ctx = isNext
 			? this._app.contextFactory.from(req, res, req.query)

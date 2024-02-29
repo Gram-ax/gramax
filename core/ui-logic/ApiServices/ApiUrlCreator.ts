@@ -55,6 +55,7 @@ export default class ApiUrlCreator {
 
 	public initStorage() {
 		return Url.fromBasePath(`/api/storage/init`, this._basePath, {
+			articlePath: this._articlePath,
 			catalogName: this._catalogName,
 		});
 	}
@@ -149,8 +150,15 @@ export default class ApiUrlCreator {
 		return Url.fromBasePath("/api/vscode", this._basePath, { path: this._articlePath });
 	}
 
-	public getFileLink(articlePath: string) {
-		return Url.fromBasePath("/api/article/redirect/fileLink", this._basePath, {
+	public getEditOnSourceLink(articlePath: string) {
+		return Url.fromBasePath("/api/article/editOn/source", this._basePath, {
+			catalogName: this._catalogName,
+			articlePath,
+		});
+	}
+
+	public getEditOnAppUrl(articlePath: string) {
+		return Url.fromBasePath("/api/article/editOn/app", this._basePath, {
 			catalogName: this._catalogName,
 			articlePath,
 		});
@@ -228,15 +236,17 @@ export default class ApiUrlCreator {
 		});
 	}
 
+	public getStorageHaveToPull() {
+		return Url.fromBasePath(`/api/storage/haveToPull`, this._basePath, {
+			catalogName: this._catalogName,
+		});
+	}
+
 	public getStorageSyncUrl(recursive?: boolean) {
 		return Url.fromBasePath(`/api/storage/sync`, this._basePath, {
 			catalogName: this._catalogName,
 			recursive: recursive.toString(),
 		});
-	}
-
-	public getVerifyStorageUrl() {
-		return Url.fromBasePath(`/api/storage/verify`, this._basePath);
 	}
 
 	public getStorageCloneUrl(path: string, recursive = true, skipCheck?: boolean, branch?: string) {
@@ -258,9 +268,17 @@ export default class ApiUrlCreator {
 		return Url.fromBasePath("/api/storage/getUrl", this._basePath, { catalogName: this._catalogName });
 	}
 
-	public getVersionControlCurrentBranchUrl() {
+	public getVersionControlCurrentBranchUrl({
+		onlyName = true,
+		cached = true,
+	}: {
+		onlyName?: boolean;
+		cached?: boolean;
+	} = {}) {
 		return Url.fromBasePath(`/api/versionControl/branch/get`, this._basePath, {
 			catalogName: this._catalogName,
+			cached: cached.toString(),
+			onlyName: onlyName.toString(),
 		});
 	}
 
@@ -508,6 +526,15 @@ export default class ApiUrlCreator {
 		return Url.fromBasePath(`/api/item/getPermission`, this._basePath, {
 			catalogName: this._catalogName,
 			path,
+		});
+	}
+
+	public getShareTicket(group: string, date: string) {
+		return Url.fromBasePath(`/api/catalog/share/getShareTicket`, this._basePath, {
+			catalogName: this._catalogName,
+			path: this._articlePath,
+			group,
+			date,
 		});
 	}
 

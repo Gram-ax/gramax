@@ -24,7 +24,7 @@ const getAllAsWordDocument: Command<{ ctx: Context; catalogName: string }, Blob>
 		const filteredArticles = articles.filter((a) => (a?.parsedContent?.renderTree as Tag)?.children.length);
 		const document = await wordExport.getDocumentFromArticles(
 			filteredArticles.map((article) => ({
-				title: article.props.title,
+				title: article.getTitle(),
 				content: article.parsedContent.renderTree,
 				resourceManager: article.parsedContent.resourceManager,
 			})),

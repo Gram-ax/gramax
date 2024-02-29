@@ -40,6 +40,7 @@ interface Application {
 		branch: string;
 		ssoServerUrl: string;
 		ssoPublicKey: string;
+		authServiceUrl: string;
 		corsProxy: string;
 		isReadOnly: boolean;
 		isServerApp: boolean;

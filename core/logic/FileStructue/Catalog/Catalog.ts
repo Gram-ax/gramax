@@ -1,11 +1,12 @@
 import ArticleParser from "@core/FileStructue/Article/ArticleParser";
 import CatalogEntry from "@core/FileStructue/Catalog/CatalogEntry";
-import CatalogFileStructure from "@core/FileStructue/Catalog/CatalogFileStructure";
-import { CATEGORY_ROOT_FILENAME, FSProps } from "@core/FileStructue/FileStructure";
+import FileStructure, { CATEGORY_ROOT_FILENAME, FS_EXCLUDE_FILENAMES } from "@core/FileStructue/FileStructure";
 import { ItemStatus } from "@ext/Watchers/model/ItemStatus";
 import CatalogEditProps from "@ext/catalog/actions/propsEditor/model/CatalogEditProps.schema";
 import Repository from "@ext/git/core/Repository/Repository";
 import RepositoryProvider from "@ext/git/core/Repository/RepositoryProvider";
+import type { FSLocalizationProps } from "@ext/localization/core/rules/FSLocalizationRules";
+import type { TitledLink } from "@ext/navigation/NavigationLinks";
 import { FileStatus } from "../../../extensions/Watchers/model/FileStatus";
 import Language, { defaultLanguage } from "../../../extensions/localization/core/model/Language";
 import IPermission from "../../../extensions/security/logic/Permission/IPermission";
@@ -20,35 +21,53 @@ import { CatalogErrorGroups } from "./CatalogErrorGroups";
 
 export type CatalogInitProps = {
 	name: string;
-	props: FSProps;
+	props: CatalogProps;
 	root: Category;
 	basePath: Path;
 	rootPath: Path;
 	errors: CatalogErrors;
+	isServerApp: boolean;
 
 	fp: FileProvider;
-	fs: CatalogFileStructure;
+	fs: FileStructure;
 };
+
+export type CatalogProps = FSLocalizationProps & {
+	title?: string;
+	description?: string;
+	url?: string;
+	docroot?: string;
+	readOnly?: boolean;
+	contactEmail?: string;
+
+	relatedLinks?: TitledLink[];
+	private?: string[];
+	refs?: string[];
+
+	sharePointDirectory?: string;
+};
+
+export const EXCLUDED_PROPS = ["url", "docroot"];
 
 export class Catalog extends CatalogEntry {
 	private _rootCategory: Category;
 	private _rootPath: Path;
 	private _fp: FileProvider;
-	private _fs: CatalogFileStructure;
+	private _fs: FileStructure;
 
 	private _watcherFuncs: WatcherFunc[] = [];
 	private _onUpdateNameFuncs: ((oldName: string, catalog: Catalog) => Promise<void>)[] = [];
-	private _repo: Repository;
+	protected declare _repo: Repository;
 
 	constructor(init: CatalogInitProps) {
 		super({
 			name: init.name,
 			rootCaterogyRef: init.root.ref,
-			rootCaterogyPath: init.root.folderPath,
 			basePath: init.basePath,
 			props: init.props,
 			errors: init.errors,
 			load: null,
+			isServerApp: init.isServerApp,
 		});
 
 		this._props = init.props;
@@ -68,12 +87,16 @@ export class Catalog extends CatalogEntry {
 		return Promise.resolve(this);
 	}
 
+	getName(): string {
+		return this._name;
+	}
+
 	get repo() {
 		return this._repo;
 	}
 
-	setRepo(value: Repository, rp: RepositoryProvider) {
-		this._repo = value;
+	setRepo(repo: Repository, rp: RepositoryProvider) {
+		super.setRepo(repo, rp);
 		if (!this._repo.gvc) return;
 		this._repo.gvc.watch(async (items) => {
 			await this.update(rp);
@@ -97,30 +120,64 @@ export class Catalog extends CatalogEntry {
 	}
 
 	async deleteItem(itemRef: ItemRef, articleParser?: ArticleParser) {
-		const item = this.findItemByItemRef(itemRef);
+		const item = this.findItemByItemRef<Article>(itemRef);
 		const index = item.parent.items.findIndex((i) => i.ref.path.compare(item?.ref?.path));
 		if (index == -1) return;
 		item.parent.items.splice(index, 1);
 
-		if ((item as Article).content && articleParser) {
-			await articleParser.parse(item as Article, this);
-			await (item as Article).parsedContent.resourceManager.deleteAll();
+		if (await this._fp.exists(item.ref.path)) {
+			if (item.content && articleParser) {
+				await articleParser.parse(item, this);
+				await item.parsedContent.resourceManager.deleteAll();
+			}
+
+			if (item.type == ItemType.category) {
+				const items = this._getItems(item as Category);
+				if (articleParser) {
+					await Promise.all(
+						items.map(async (item: Article) => {
+							await articleParser.parse(item, this);
+							await item.parsedContent.resourceManager.deleteAll();
+						}),
+					);
+				}
+				await this._fp.delete(itemRef.path.parentDirectoryPath);
+			} else await this._fp.delete(itemRef.path);
 		}
 
-		if (item.type == ItemType.category) {
-			const items = this._getItems(item as Category);
-			if (articleParser) {
-				await Promise.all(
-					items.map(async (item) => {
-						await articleParser.parse(item as Article, this);
-						await (item as Article).parsedContent.resourceManager.deleteAll();
-					}),
-				);
-			}
-			await this._fp.delete(itemRef.path.parentDirectoryPath);
-		} else await this._fp.delete(itemRef.path);
-
 		void this._onChange([{ itemRef, type: FileStatus.delete }]);
+	}
+
+	hasItems() {
+		return this._rootCategory.items?.length > 0;
+	}
+
+	async initWelcomeArticleIfNeed() {
+		if (this._rootCategory.items?.length > 0) return;
+		const dir = await this._fp.readdir(this._rootCategory.folderPath);
+		const editor = dir.filter((p) => !FS_EXCLUDE_FILENAMES.includes(p)).length == 0;
+		this._rootCategory.items.push(this.createWelcomeArticle(editor));
+	}
+
+	async saveWelcomeArticleIfPresent() {
+		const article = this._rootCategory.items?.[0] as Article;
+		if (article?.props?.welcome == "editor") await article.save();
+	}
+
+	createWelcomeArticle(editor = true) {
+		const ref = itemRefUtils.create(
+			this._rootCategory.ref,
+			this._rootCategory.items.map((i) => i.ref),
+		);
+
+		return this._fs.makeArticleByProps(
+			ref.path,
+			{ welcome: editor ? "editor" : "modal" },
+			"",
+			this._rootCategory,
+			this._props,
+			Date.now(),
+		);
 	}
 
 	async createArticle(
@@ -129,10 +186,11 @@ export class Catalog extends CatalogEntry {
 		lang: Language,
 		parentRef?: ItemRef,
 	): Promise<Article> {
-		const parentItem = parentRef ? (this.findItemByItemRef(parentRef) as Category) : this._rootCategory;
-		if (parentItem.type == ItemType.article) {
+		await this.saveWelcomeArticleIfPresent();
+		const parentItem = parentRef ? this.findItemByItemRef<Category>(parentRef) : this._rootCategory;
+		if (parentItem.type == ItemType.article)
 			return await this.createCategoryByArticle(resourceUpdater, lang, markdown, parentItem as Article);
-		}
+
 		const itemRef: ItemRef = itemRefUtils.create(
 			parentItem.ref,
 			parentItem.items.map((i) => i.ref),
@@ -142,6 +200,7 @@ export class Catalog extends CatalogEntry {
 		const article = await this._fs.createArticle(path, parentItem, this._props, this._errors);
 		await article.setLastPosition();
 		parentItem.items.push(article);
+		article.watch(this._onChange.bind(this));
 		void this._onChange([{ itemRef: article.ref, type: FileStatus.new }]);
 		return article;
 	}
@@ -167,16 +226,17 @@ export class Catalog extends CatalogEntry {
 			this._errors,
 		);
 		await resourceUpdater.update(parentArticle, newCategory);
+		newCategory.watch(this._onChange.bind(this));
+		void this._onChange([{ itemRef: newCategory.ref, type: FileStatus.new }]);
 
 		parentArticle.parent.items.splice(index, 0, newCategory);
 		return this.createArticle(resourceUpdater, markdown, lang, newCategory.ref);
 	}
 
 	async moveItem(oldItemRef: ItemRef, newItemRef: ItemRef, resourceUpdater: ResourceUpdater, rp: RepositoryProvider) {
-		const item = this.findItemByItemRef(oldItemRef);
+		const item = this.findItemByItemRef<Article>(oldItemRef);
 		if (!item) return;
 
-		await this._fp.move(item.ref.path, newItemRef.path);
 		if (item.type == ItemType.category) {
 			for (const i of (item as Category).items) {
 				const childNewBasePath = newItemRef.path.parentDirectoryPath.join(
@@ -186,9 +246,12 @@ export class Catalog extends CatalogEntry {
 				await this.moveItem(i.ref, childNewItemRef, resourceUpdater, rp);
 			}
 		}
+
+		await this._fp.move(item.ref.path, newItemRef.path);
+
 		await this.update(rp);
-		const newItem = this.findItemByItemRef(newItemRef);
-		await resourceUpdater.update(item as Article, newItem as Article);
+		const newItem = this.findItemByItemRef<Article>(newItemRef);
+		await resourceUpdater.update(item, newItem);
 	}
 
 	async update(rp: RepositoryProvider) {
@@ -208,19 +271,16 @@ export class Catalog extends CatalogEntry {
 
 	async updateNeededPermission(permission: IPermission) {
 		await this._rootCategory.setNeededPermission(permission);
-		this._props["private"] = this._rootCategory.neededPermission.getValues();
+		this._props.private = this._rootCategory.neededPermission.getValues();
 		await this._fs.saveCatalog(this);
 	}
 
-	getProp(propName: string): any {
-		return this._props[propName];
-	}
-
-	async updateProps(rp: RepositoryProvider, props: CatalogEditProps) {
-		Object.keys(props).forEach((key) => {
-			if (key !== "url") this._props[key] = props[key];
-		});
+	async updateProps(ru: ResourceUpdater, rp: RepositoryProvider, props: CatalogEditProps) {
+		Object.keys(props)
+			.filter((k) => !EXCLUDED_PROPS.includes(k))
+			.forEach((k) => (this._props[k] = props[k]));
 		await this._fs.saveCatalog(this);
+		await this._moveRootCategoryIfNeed(new Path(props.docroot), ru, rp);
 		await this.update(rp);
 		if (props.url !== this._name) return this.updateName(props.url, rp);
 		return this;
@@ -242,18 +302,19 @@ export class Catalog extends CatalogEntry {
 
 	async getTransformedItems<T>(transformer: (item: Item) => Promise<T> | T): Promise<T[]> {
 		const transformedItems: T[] = [];
-		for (const item of this._rootCategory.items) {
+		for (const item of this._rootCategory.items.filter((i) => !((i as Article).props?.welcome == "modal"))) {
 			transformedItems.push(await transformer(item));
 		}
-		return transformedItems.filter((l) => l);
+		const items = transformedItems.filter((l) => l);
+		return items;
 	}
 
-	findItemByItemPath(itemPath: Path): Item {
-		return this._findItem(this._rootCategory, [], [(a) => a.ref.path.compare(itemPath)]) as Article;
+	findItemByItemPath<T extends Item = Item>(itemPath: Path): T {
+		return this._findItem(this._rootCategory, [], [(a) => a.ref.path.compare(itemPath)]) as T;
 	}
 
-	findItemByItemRef(itemRef: ItemRef): Item {
-		return this._findItem(this._rootCategory, [], [(a) => a.ref.path.compare(itemRef.path)]) as Article;
+	findItemByItemRef<T extends Item = Item>(itemRef: ItemRef): T {
+		return this._findItem(this._rootCategory, [], [(a) => a.ref.path.compare(itemRef.path)]) as T;
 	}
 
 	findArticleByItemRef(itemRef: ItemRef): Article {
@@ -301,6 +362,11 @@ export class Catalog extends CatalogEntry {
 		return this._rootCategory.folderPath;
 	}
 
+	getRelativeRootCategoryPath(): Path {
+		const root = this.getRootCategoryPath();
+		return root.rootDirectory?.subDirectory(root);
+	}
+
 	getItems(filters: ArticleFilter[] = []): Item[] {
 		return this._getItems(this._rootCategory, filters);
 	}
@@ -323,10 +389,6 @@ export class Catalog extends CatalogEntry {
 		return this._getItems(this._rootCategory, filters) as Article[];
 	}
 
-	getErrors(): CatalogErrors {
-		return this._errors;
-	}
-
 	watch(w: WatcherFunc): void {
 		this._watcherFuncs.push(w);
 	}
@@ -339,12 +401,38 @@ export class Catalog extends CatalogEntry {
 	private _getItems(category: Category, filters?: ItemFilter[]): Item[] {
 		let items: Item[] = [];
 		category.items.forEach((i) => {
-			if (i.type == ItemType.category) items.push(...[i, ...this._getItems(i as Category, filters)]);
+			if (i.type == ItemType.category) items.push(i, ...this._getItems(i as Category, filters));
 			else items.push(i);
 		});
-		if (filters) items = items.filter((i) => filters.every((f) => f(i, this._name)));
+		if (filters) items = items.filter((i) => filters.every((f) => f(i, this)));
 
 		return items;
+	}
+
+	private async _moveRootCategoryIfNeed(rootRelative: Path, ru: ResourceUpdater, rp: RepositoryProvider) {
+		if (this.getRelativeRootCategoryPath().compare(rootRelative)) return;
+
+		const root = this.getRootCategory();
+		const ref = root.ref;
+		const to = ref.path.rootDirectory.join(rootRelative).join(new Path(ref.path.nameWithExtension));
+		if (!to.rootDirectory.compare(ref.path.rootDirectory)) throw new Error(`Invalid path: ${rootRelative.value}`);
+		const rootPath = new Path(`${this._name}/${ref.path.nameWithExtension}`);
+
+		if (!ref.path.compare(rootPath)) {
+			await this._fp.move(ref.path, rootPath);
+			await this.update(rp);
+		}
+
+		await Promise.all(
+			root.items?.map((item) => {
+				const path = to.parentDirectoryPath.join(root.ref.path.parentDirectoryPath.subDirectory(item.ref.path));
+				const ref = this._fp.getItemRef(path);
+				return this.moveItem(item.ref, ref, ru, rp);
+			}),
+		);
+
+		await this._fp.move(rootPath, to);
+		await this.update(rp);
 	}
 
 	private _findItem(
@@ -369,7 +457,7 @@ export class Catalog extends CatalogEntry {
 	private _getExistRefs(category: Category, logicPath: string) {
 		const startsRefLink = category.logicPath + "/ref:";
 		if (logicPath.startsWith(startsRefLink)) {
-			const newLinkthis = category.getProp("refs")?.[logicPath.slice(startsRefLink.length)];
+			const newLinkthis = category.props.refs?.[logicPath.slice(startsRefLink.length)];
 			if (newLinkthis) return Path.join(category.logicPath, newLinkthis);
 		}
 	}
@@ -390,6 +478,7 @@ export class Catalog extends CatalogEntry {
 			}
 			return null;
 		}
+
 		if (logicPath === category.logicPath) {
 			return category;
 		}
@@ -418,12 +507,12 @@ export class Catalog extends CatalogEntry {
 	}
 
 	private _findErrorArticle(article: Article, filters: ArticleFilter[]) {
-		const filter = filters.find((f) => !f(article, this._name) && (f as any).errorArticle);
+		const filter = filters.find((f) => !f(article, this) && (f as any).errorArticle);
 		if (filter) return (filter as any).errorArticle as Article;
 	}
 
 	private _testArticle(article: Article, filters: ArticleFilter[]) {
-		return !filters || filters.every((f) => f(article, this._name));
+		return !filters || filters.every((f) => f(article, this));
 	}
 
 	private _convertToChangeCatalog(items: ItemStatus[]): ChangeCatalog[] {
@@ -435,9 +524,9 @@ export class Catalog extends CatalogEntry {
 	}
 }
 
-export type ItemFilter = (item: Item, catalogName: string) => boolean;
-export type ArticleFilter = (article: Article, catalogName: string) => boolean;
-export type CategoryFilter = (category: Category, catalogName: string) => boolean;
+export type ItemFilter = (item: Item, catalog: Catalog) => boolean;
+export type ArticleFilter = (article: Article, catalog: Catalog) => boolean;
+export type CategoryFilter = (category: Category, catalog: Catalog) => boolean;
 
 export type CatalogErrors = {
 	[catalogErrorGroup in CatalogErrorGroups]?: CatalogError[];

@@ -180,7 +180,7 @@ class IsomorphicGitCommands implements GitCommandsModel {
 
 	async getCurrentBranch(data?: GitSourceData): Promise<GitBranch> {
 		let branchName: string;
-		branchName = (await git.currentBranch({ fs: this._gitFs, dir: this._repoPath.value })) as string;
+		branchName = await this.getCurrentBranchName();
 		if (!branchName)
 			throw new GitError(GitErrorCode.CurrentBranchNotFoundError, null, {
 				repositoryPath: this._repoPath.value,
@@ -193,6 +193,15 @@ class IsomorphicGitCommands implements GitCommandsModel {
 			lastCommitModify: new Date(info.timestamp * 1000).toString(),
 			remoteName: await this._getRemoteBranchName(branchName, data),
 		});
+	}
+
+	async getCurrentBranchName() {
+		const branchName = await git.currentBranch({ fs: this._gitFs, dir: this._repoPath.value });
+		if (!branchName)
+			throw new GitError(GitErrorCode.CurrentBranchNotFoundError, null, {
+				repositoryPath: this._repoPath.value,
+			});
+		return branchName;
 	}
 
 	async getAllBranches(): Promise<GitBranch[]> {
@@ -221,6 +230,19 @@ class IsomorphicGitCommands implements GitCommandsModel {
 		return branches.find(
 			(b) => name === b.toString() || (b.getData().remoteName && name === b.getData().remoteName),
 		);
+	}
+
+	async getCommitHash(ref: GitBranch | GitVersion | string = "HEAD"): Promise<GitVersion> {
+		try {
+			const hash = await git.resolveRef({
+				fs: this._gitFs,
+				dir: this._repoPath.value,
+				ref: ref.toString(),
+			});
+			return new GitVersion(hash);
+		} catch (e) {
+			throw getGitError(e, { repositoryPath: this._repoPath.value, branchName: ref.toString() }, "resolveRef");
+		}
 	}
 
 	async getFileHistory(filePath: Path, count: number): Promise<VersionControlInfo[]> {
@@ -285,7 +307,7 @@ class IsomorphicGitCommands implements GitCommandsModel {
 
 	async newBranch(name: string): Promise<void> {
 		const currentBranch = await this.getCurrentBranch();
-		const commitHash = await this._getCommitHash(currentBranch);
+		const commitHash = await this.getCommitHash(currentBranch);
 		await git.branch({
 			fs: this._gitFs,
 			dir: this._repoPath.value,
@@ -597,10 +619,10 @@ class IsomorphicGitCommands implements GitCommandsModel {
 		let commitHash: GitVersion;
 		const remote = await this.getRemoteName();
 		try {
-			commitHash = await this._getCommitHash(branchName);
+			commitHash = await this.getCommitHash(branchName);
 		} catch {
 			try {
-				commitHash = await this._getCommitHash(`refs/remotes/${remote}/${branchName}`);
+				commitHash = await this.getCommitHash(`refs/remotes/${remote}/${branchName}`);
 			} catch (e) {
 				throw getGitError(e, { repositoryPath: this._repoPath.value });
 			}
@@ -614,19 +636,6 @@ class IsomorphicGitCommands implements GitCommandsModel {
 		});
 
 		return commitInfo.commit.author;
-	}
-
-	private async _getCommitHash(ref: GitBranch | GitVersion | string = "HEAD"): Promise<GitVersion> {
-		try {
-			const hash = await git.resolveRef({
-				fs: this._gitFs,
-				dir: this._repoPath.value,
-				ref: ref.toString(),
-			});
-			return new GitVersion(hash);
-		} catch (e) {
-			throw getGitError(e, { repositoryPath: this._repoPath.value, branchName: ref.toString() }, "resolveRef");
-		}
 	}
 
 	private async _getRemoteInfo(data: GitSourceData): Promise<GetRemoteInfoResult> {

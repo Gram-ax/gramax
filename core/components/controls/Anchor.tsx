@@ -11,9 +11,10 @@ interface AnchorProps {
 	className?: string;
 	style?: CSSProperties;
 	target?: "_self" | "_blank" | "_parent" | "_top";
+	hideExternalLinkIcon?: boolean;
 }
 const Anchor = (Props: AnchorProps) => {
-	const { children, basePath, style = { fontWeight: 300 }, target = "_blank", ...props } = Props;
+	const { children, basePath, target = "_blank", style = { fontWeight: 300 }, ...props } = Props;
 
 	const isAnchor = props.href?.match(/^#/);
 	const basePathLength = useRouter()?.basePath?.length ?? basePath?.length ?? 0;

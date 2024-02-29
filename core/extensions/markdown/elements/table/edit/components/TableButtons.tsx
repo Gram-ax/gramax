@@ -3,7 +3,6 @@ import Button from "@ext/markdown/core/edit/components/Menu/Button";
 import SvgContainer from "@ext/markdown/core/edit/components/Menu/SvgContainer";
 import { Editor } from "@tiptap/core";
 import { columnIsHeader, rowIsHeader, selectedRect, TableRect } from "prosemirror-tables";
-import { memo } from "react";
 
 const Table = ({ editor }: { editor?: Editor; className?: string }) => {
 	const focusIsTable = editor?.isActive("table");
@@ -289,4 +288,4 @@ const Table = ({ editor }: { editor?: Editor; className?: string }) => {
 	);
 };
 
-export default memo(Table);
+export default Table;

@@ -1,5 +1,5 @@
 import getApplication from "@app/node/app";
-import HiddenRule from "../../../../../logic/FileStructue/Rules/HiddenRules/HiddenRule";
+import HiddenRules from "../../../../../logic/FileStructue/Rules/HiddenRules/HiddenRule";
 import getItemRef from "../../../../../logic/Library/test/getItemRef";
 import { defaultLanguage } from "../../../../localization/core/model/Language";
 import LocalizationRules from "../../../../localization/core/rules/LocalizationRules";
@@ -13,17 +13,13 @@ const getNavigationData = async () => {
 	const nav = new Navigation();
 
 	const user = new User();
-	const hr = new HiddenRule(errorArticlesProvider);
+	const hr = new HiddenRules(errorArticlesProvider);
 	const lr = new LocalizationRules(defaultLanguage, errorArticlesProvider);
 	const sr = new SecurityRules(user, errorArticlesProvider);
 
-	nav.addRules({ itemFilter: hr.getItemRule() });
-	nav.addRules({ catalogFilter: lr.getNavCatalogRule(), itemFilter: lr.getNavItemRule() });
-	nav.addRules({
-		catalogFilter: sr.getNavCatalogRule(),
-		itemFilter: sr.getNavItemRule(),
-		relatedLinkFilter: sr.getNavRelationRule(),
-	});
+	nav.addRules(hr.getNavRules());
+	nav.addRules(lr.getNavRules());
+	nav.addRules(sr.getNavRules());
 
 	const navIndexArticleTestCatalog = await app.lib.getCatalog("NavigationIndexCatalog");
 	const navTestCatalog = await app.lib.getCatalog("NavigationArticleCatalog");

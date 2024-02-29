@@ -1,12 +1,12 @@
 import LeftNavigationIsOpenService from "@core-ui/ContextServices/LeftNavigationIsOpen";
 import { cssMedia } from "@core-ui/utils/cssUtils";
 import { useMediaQuery } from "@mui/material";
-import { ArticleData } from "../../../../logic/SitePresenter/SitePresenter";
+import { ArticlePageData } from "../../../../logic/SitePresenter/SitePresenter";
 import TopBarContent from "../../../ArticlePage/Bars/TopBarContent";
 import Icon from "../../../Atoms/Icon";
 import BarLayout from "../../BarLayout";
 
-const LeftNavigationTop = ({ data }: { data: ArticleData }) => {
+const LeftNavigationTop = ({ data }: { data: ArticlePageData }) => {
 	const leftNavIsOpen = LeftNavigationIsOpenService.value;
 	const narrowMedia = useMediaQuery(cssMedia.narrow);
 

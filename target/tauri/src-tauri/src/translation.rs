@@ -8,7 +8,6 @@ pub enum Language {
 }
 
 #[derive(Clone, Copy, Default)]
-#[allow(dead_code)]
 pub enum Translation {
   #[default]
   Unknown,
@@ -28,6 +27,7 @@ pub enum Translation {
   UpdateNow,
   UpdateNowBody,
   DeclineUpdate,
+  NewerUpdateFound,
   ErrorWhileUpdating,
   TryLater,
   NewVersion,
@@ -122,7 +122,11 @@ impl Translator for Language {
       T::CheckingForUpdate => self.decide("Checking...", "Проверяем..."),
       T::UpdateDownloading => self.decide("Downloading...", "Загружаем..."),
       T::NewWindow => self.decide("New Window", "Новое окно"),
-      T::CloseWindow => self.decide("Close Window", "Закрыть окно")
+      T::CloseWindow => self.decide("Close Window", "Закрыть окно"),
+      T::NewerUpdateFound => self.decide(
+        "Newer update was found. It will be downloaded in the background, after which the application will restart.", 
+        "Найдена более новая версия приложения. Оно будет скачано в фоновом режиме, после чего приложение перезапустится."
+      )
       // "file" => self.decide("File", "Файл"),
       // "help" => self.decide("Help", "Справка"),
       // "edit" => self.decide("Edit", "Правка"),

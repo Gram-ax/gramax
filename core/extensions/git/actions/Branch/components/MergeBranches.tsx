@@ -11,7 +11,7 @@ const MergeBranches = styled(
 	({
 		onClick,
 		currentBranch,
-		onBrancTohMergeInToChange = () => {},
+		onBranchToMergeInToChange = () => {},
 		onDeleteAfterMergeChange = () => {},
 		onCanMergeChange = () => {},
 		branches,
@@ -22,19 +22,19 @@ const MergeBranches = styled(
 		isLoadingData?: boolean;
 		currentBranch: string;
 		onCanMergeChange?: (canMerge: boolean) => void;
-		onBrancTohMergeInToChange?: (brancTohMergeInTo: string) => void;
+		onBranchToMergeInToChange?: (branchToMergeInTo: string) => void;
 		onDeleteAfterMergeChange?: (deleteAfterMerge: boolean) => void;
 		branches: ListItem[];
 		className?: string;
 	}) => {
-		const [brancTohMergeInTo, setBrancTohMergeInTo] = useState("");
+		const [branchToMergeInTo, setBranchToMergeInTo] = useState("");
 		const [deleteAfterMerge, setDeleteAfterMerge] = useState(false);
 		const [canMerge, setCanMerge] = useState(false);
 
 		useEffect(() => {
-			onBrancTohMergeInToChange(brancTohMergeInTo);
-			setCanMerge(!!brancTohMergeInTo);
-		}, [brancTohMergeInTo]);
+			onBranchToMergeInToChange(branchToMergeInTo);
+			setCanMerge(!!branchToMergeInTo);
+		}, [branchToMergeInTo]);
 
 		useEffect(() => {
 			onDeleteAfterMergeChange(deleteAfterMerge);
@@ -64,14 +64,14 @@ const MergeBranches = styled(
 							isLoadingData={isLoadingData}
 							items={branches}
 							placeholder={useLocalize("findBranch")}
-							onSearchClick={() => setBrancTohMergeInTo("")}
-							onItemClick={(branch) => setBrancTohMergeInTo(branch)}
+							onSearchClick={() => setBranchToMergeInTo("")}
+							onItemClick={(branch) => setBranchToMergeInTo(branch)}
 						/>
 					</div>
 				</div>
 				<div className="control-label delete-after-merge-checkbox">
 					<Checkbox overflow="hidden" onClick={(value) => setDeleteAfterMerge(value)}>
-						<div className="control-label picker-text">
+						<div className="control-label picker-text" data-qa='qa-clickable'>
 							<span>{useLocalize("deleteBranch")}</span>
 							&nbsp;{currentBranchElement}&nbsp;
 							<span>{useLocalize("afterMerge").toLowerCase()}</span>
@@ -79,7 +79,7 @@ const MergeBranches = styled(
 					</Checkbox>
 				</div>
 				<div className="buttons">
-					<Button disabled={!brancTohMergeInTo} onClick={onClick}>
+					<Button disabled={!branchToMergeInTo} onClick={onClick}>
 						{useLocalize("merge")}
 					</Button>
 				</div>

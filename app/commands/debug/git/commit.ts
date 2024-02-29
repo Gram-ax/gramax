@@ -7,8 +7,8 @@ const commit: Command<{ catalogName: string; msg?: string }, void> = Command.cre
 	async do({ catalogName, msg = "test" }) {
 		const { lib, conf } = this._app;
 		const catalog = await lib.getCatalog(catalogName);
-		const fp = lib.getFileProviderByCatalog(catalog);
 		if (!catalog) throw new Error("no catalog found");
+		const fp = lib.getFileProviderByCatalog(catalog);
 
 		const storage = catalog.repo.storage;
 		const name = await storage.getSourceName();

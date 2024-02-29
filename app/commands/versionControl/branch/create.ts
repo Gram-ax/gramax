@@ -1,12 +1,13 @@
 import { AuthorizeMiddleware } from "@core/Api/middleware/AuthorizeMiddleware";
 import { Command, ResponseKind } from "../../../types/Command";
+import ReloadConfirmMiddleware from "@core/Api/middleware/ReloadConfirmMiddleware";
 
-const create: Command<{ catalogName: string; branch: string }, void> = Command.create({
+const create: Command<{ catalogName: string; branch: string }, string> = Command.create({
 	path: "versionControl/branch/create",
 
-	kind: ResponseKind.none,
+	kind: ResponseKind.plain,
 
-	middlewares: [new AuthorizeMiddleware()],
+	middlewares: [new AuthorizeMiddleware(), new ReloadConfirmMiddleware()],
 
 	async do({ catalogName, branch }) {
 		const { lib } = this._app;
@@ -14,6 +15,7 @@ const create: Command<{ catalogName: string; branch: string }, void> = Command.c
 		if (!catalog) return;
 		const vc = catalog.repo.gvc;
 		await vc.createNewBranch(branch);
+		return await catalog.getPathname();
 	},
 
 	params(ctx, q) {

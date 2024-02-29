@@ -1,3 +1,4 @@
+import { stopExecution } from "@ext/markdown/elementsUtils/cursorFunctions";
 import { mergeAttributes, Node, textblockTypeInputRule } from "@tiptap/core";
 import getChildTextId from "@ext/markdown/elements/heading/logic/getChildTextId";
 import { selecInsideSingleParagraph } from "@ext/markdown/elementsUtils/selecInsideSingleParagraph";
@@ -68,10 +69,9 @@ const Heading = Node.create<HeadingOptions>({
 				},
 			toggleHeading:
 				(attributes) =>
-				({ commands }) => {
-					if (!this.options.levels.includes(attributes.level)) {
-						return false;
-					}
+				({ commands, editor }) => {
+					if (!this.options.levels.includes(attributes.level)) return false;
+					if (stopExecution(editor, this.name)) return false;
 
 					return commands.toggleNode(this.name, "paragraph", attributes);
 				},

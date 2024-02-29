@@ -1,8 +1,11 @@
-let _timeoutId = null;
+const symbols = {};
 
-const trollCaller = (func: () => Promise<any>, time: number) => {
-	if (_timeoutId) clearTimeout(_timeoutId);
-	_timeoutId = setTimeout(() => void func(), time);
+const trollCaller = (id: symbol, func: () => Promise<any>, time: number) => {
+	if (symbols[id]) {
+		clearTimeout(symbols[id]);
+		delete symbols[id];
+	}
+	symbols[id] = setTimeout(() => void func(), time);
 };
 
 export default trollCaller;

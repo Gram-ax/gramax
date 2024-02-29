@@ -17,7 +17,7 @@ export default class NextCookie extends Cookie {
 	}
 
 	get(name: string): string {
-		const cookie = this._parse(this._req.headers.cookie, name);
+		const cookie = this._parse(this._req?.headers?.cookie, name);
 		if (!cookie) return;
 		return this._decrypt(decodeURIComponent(cookie));
 	}
@@ -27,6 +27,6 @@ export default class NextCookie extends Cookie {
 	}
 
 	getAllNames(): string[] {
-		return Object.keys(parseCookies({ req: this._req }));
+		return Object.keys(parseCookies({ req: this._req as any }));
 	}
 }

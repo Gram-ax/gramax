@@ -37,6 +37,8 @@ export default class GitError extends DefaultError {
 	}
 
 	private static _getMessage(errorCode: GitErrorCode, defaultError: any, caller: Caller, props: GitErrorProps) {
+		if (defaultError?.message) console.error("Error message:\n", defaultError?.message);
+		if (defaultError?.data) console.error("Error data:\n", defaultError?.data);
 		return errorCode === null
 			? GitError._generateErrorMessage(defaultError)
 			: gitErrorLocalization[errorCode]({

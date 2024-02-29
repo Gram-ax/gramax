@@ -1,29 +1,26 @@
+import { Catalog, ItemFilter } from "@core/FileStructue/Catalog/Catalog";
+import { NavRules } from "@ext/navigation/catalog/main/logic/Navigation";
+import Rules from "@ext/rules/Rule";
 import ErrorArticlePresenter from "../../../SitePresenter/ErrorArticlePresenter";
-import { Article } from "../../Article/Article";
-import { Catalog } from "../../Catalog/Catalog";
 import { Item } from "../../Item/Item";
+import type { ArticleProps } from "@core/FileStructue/Article/Article";
 
-export default class HiddenRule {
+export default class HiddenRules implements Rules {
 	constructor(private _errorArticlePresenter?: ErrorArticlePresenter) {}
 
-	getFilterRule() {
-		const rule = (article: Article): boolean => {
-			return this.getItemRule()(null, article);
+	getItemFilter(): (item: Item<ArticleProps>, catalog: Catalog) => boolean {
+		const rule: ItemFilter = (item) => {
+			return item.props.hidden !== true && item?.parent?.props?.hidden !== true;
 		};
-
 		if (this._errorArticlePresenter) {
 			(rule as any).errorArticle = this._errorArticlePresenter.getErrorArticle("404");
 		}
 		return rule;
 	}
 
-	getItemRule() {
-		return (catalog: Catalog, item: Item) => {
-			return item.props[hiddenProps.hidden] !== true && item?.parent?.props?.[hiddenProps.hidden] !== true;
+	getNavRules(): NavRules {
+		return {
+			itemRule: this.getItemFilter.bind(this),
 		};
 	}
-}
-
-export enum hiddenProps {
-	hidden = "hidden",
 }

@@ -2,7 +2,6 @@ import { htmlToText } from "html-to-text";
 import { Article } from "../../logic/FileStructue/Article/Article";
 import { Catalog } from "../../logic/FileStructue/Catalog/Catalog";
 import { defaultLanguage } from "../localization/core/model/Language";
-import { localizationProps } from "../localization/core/rules/FSLocalizationRules";
 import MarkdownParser from "../markdown/core/Parser/Parser";
 import ParserContextFactory from "../markdown/core/Parser/ParserContext/ParserContextFactory";
 
@@ -22,7 +21,7 @@ const searchUtils = {
 							parserContextFactory.fromArticle(
 								article,
 								catalog,
-								article.getProp(localizationProps.language) ?? defaultLanguage,
+								article.props.lang ?? defaultLanguage,
 								true,
 							),
 					  ),

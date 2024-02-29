@@ -1,18 +1,22 @@
-import CategoryFileStructure from "@core/FileStructue/Category/CategoryFileStructure";
 import ResourceUpdater from "@core/Resource/ResourceUpdater";
 import Path from "../../FileProvider/Path/Path";
-import { ArticleProps } from "../../SitePresenter/SitePresenter";
-import { Article, ArticleInitProps } from "../Article/Article";
+import { ClientArticleProps } from "../../SitePresenter/SitePresenter";
+import { Article, ArticleInitProps, type ArticleProps } from "../Article/Article";
 import { FSProps } from "../FileStructure";
 import { Item, ItemRef, ItemType } from "../Item/Item";
 
-export type CategoryInitProps = ArticleInitProps<CategoryFileStructure> & {
+export type CategoryInitProps = ArticleInitProps<CategoryProps> & {
 	directory: Path;
 	items: Item[];
 	content?: string;
 };
 
-export class Category extends Article<CategoryFileStructure> {
+export type CategoryProps = {
+	orderAsc?: boolean;
+  refs?: string[]
+} & ArticleProps;
+
+export class Category extends Article<CategoryProps> {
 	private _items: Item[];
 	private _directory: Path;
 
@@ -64,7 +68,7 @@ export class Category extends Article<CategoryFileStructure> {
 		return this._ref.path.parentDirectoryPath.name;
 	}
 
-	override async updateProps(props: ArticleProps, _: ResourceUpdater, rootCategoryProps?: FSProps) {
+	override async updateProps(props: ClientArticleProps, _: ResourceUpdater, rootCategoryProps?: FSProps) {
 		await this._updateProps(props);
 		await this._updateFolderName(props.fileName, rootCategoryProps);
 		return this;
@@ -91,11 +95,6 @@ export class Category extends Article<CategoryFileStructure> {
 	}
 
 	private _isAscOrder(): boolean {
-		return this._props[CategoryProps.orderAsc] ?? true;
+		return this._props.orderAsc ?? true;
 	}
-}
-
-enum CategoryProps {
-	title = "title",
-	orderAsc = "orderAsc",
 }

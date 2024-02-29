@@ -4,10 +4,10 @@ import FetchService from "../../../../../../ui-logic/ApiServices/FetchService";
 import ApiUrlCreatorService from "../../../../../../ui-logic/ContextServices/ApiUrlCreator";
 import PageDataContextService from "../../../../../../ui-logic/ContextServices/PageDataContext";
 import ErrorConfirmService from "../../../../../errorHandlers/client/ErrorConfirmService";
-import ErrorForm from "../../../../../errorHandlers/client/components/ErrorForm";
+import InfoModalForm from "../../../../../errorHandlers/client/components/ErrorForm";
 import GetErrorComponent from "../../../../../errorHandlers/logic/GetErrorComponent";
 import useLocalize from "../../../../../localization/useLocalize";
-import BranchUpdaterService from "../../../Branch/logic/BranchUpdaterService";
+import BranchUpdaterService from "../../../Branch/BranchUpdaterService/logic/BranchUpdaterService";
 import MergeType from "../../model/MergeType";
 
 const MergeNotSupportedErrorComponent = ({ error, onCancelClick }: ComponentProps<typeof GetErrorComponent>) => {
@@ -21,10 +21,6 @@ const MergeNotSupportedErrorComponent = ({ error, onCancelClick }: ComponentProp
 	const getAbortMergeUrl = () => {
 		if (mergeType === MergeType.Branches) return apiUrlCreator.abortMergeBranch(theirsBranch);
 		if (mergeType === MergeType.Sync) return apiUrlCreator.abortMergeSync(stashHash);
-	};
-	const getErrorText = () => {
-		if (mergeType === MergeType.Branches) return useLocalize("mergeBranchNotSupportedError", lang);
-		if (mergeType === MergeType.Sync) return useLocalize("mergeSyncNotSupportedError", lang);
 	};
 
 	const getTitle = () => {
@@ -47,9 +43,9 @@ const MergeNotSupportedErrorComponent = ({ error, onCancelClick }: ComponentProp
 	}, []);
 
 	return (
-		<ErrorForm onCancelClick={onCancelClick} title={getTitle()} closeButton={{ text: useLocalize("ok") }}>
-			<span>{getErrorText()}</span>
-		</ErrorForm>
+		<InfoModalForm onCancelClick={onCancelClick} title={getTitle()} closeButton={{ text: useLocalize("ok") }}>
+			<span>{error.message}</span>
+		</InfoModalForm>
 	);
 };
 

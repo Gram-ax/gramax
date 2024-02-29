@@ -1,9 +1,12 @@
 import getApp from "@app/browser/app";
 import getCommands from "@app/browser/commands";
 import { env } from "@app/resolveModule";
+import MimeTypes from "@core-ui/ApiServices/Types/MimeTypes";
+import { downloadFile } from "@core-ui/downloadResource";
 import Path from "@core/FileProvider/Path/Path";
 import ConsoleLogger from "@ext/loggers/ConsoleLogger";
 import { LogLevel } from "@ext/loggers/Logger";
+import PersistentLogger from "@ext/loggers/PersistentLogger";
 
 export const clear = async () => {
 	console.log("Delete all");
@@ -38,6 +41,22 @@ export const items = async () => {
 	console.log(str);
 };
 
+export const download = async (name: string) => {
+	const JSZip = await import("jszip");
+	const zip = new JSZip.default();
+	const app = await getApp();
+	const fp = app.lib.getFileProvider();
+	const addFiles = async (path: Path) => {
+		const dir = await fp.getItems(path);
+		for (const file of dir) {
+			file.isFile() ? zip.file(file.path.value, await fp.readAsBinary(file.path)) : await addFiles(file.path);
+		}
+	};
+	await addFiles(intoPath(name));
+	const content = await zip.generateAsync({ type: "blob" });
+	downloadFile(content, MimeTypes.zip, name);
+};
+
 export const read = async (path: string) => {
 	const app = await getApp();
 	const fp = app.lib.getFileProvider();
@@ -54,4 +73,11 @@ export const intoPath = (path: string) => new Path(path);
 export { env };
 
 export const logger = new ConsoleLogger();
+
+export const logs = (filter?: RegExp, max = 9999) => {
+	console.log(PersistentLogger.getLogs(filter, max));
+};
+
+export const clearLogs = PersistentLogger.clearLogs.bind(this);
+
 logger.setLogLevel(LogLevel.error);

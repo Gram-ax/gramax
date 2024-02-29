@@ -1,7 +1,8 @@
 fn main() {
-  if std::env::var("CARGO_CFG_TARGET_OS").unwrap() == "ios" {
-    println!("cargo:rustc-env=ENTERPRISE_SERVER_URL=https://app.gram.ax/-server");
-  }
+  println!(
+    "cargo:rustc-env=ENTERPRISE_SERVER_URL={}",
+    std::env::var("ENTERPRISE_SERVER_URL").unwrap_or_default()
+  );
 
   tauri_build::build();
 }

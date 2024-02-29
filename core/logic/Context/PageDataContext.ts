@@ -1,7 +1,8 @@
+import ShareData from "@ext/catalog/actions/share/model/ShareData";
+import Theme from "../../extensions/Theme/Theme";
 import Language from "../../extensions/localization/core/model/Language";
 import UserInfo from "../../extensions/security/logic/User/UserInfo2";
 import SourceData from "../../extensions/storage/logic/SourceDataProvider/model/SourceData";
-import Theme from "../../extensions/Theme/Theme";
 
 interface PageDataContext {
 	lang: Language;
@@ -20,9 +21,11 @@ interface PageDataContext {
 		isProduction: boolean;
 		ssoServerUrl: string;
 		ssoPublicKey: string;
+		authServiceUrl: string;
 		enterpriseServerUrl: string;
 		bugsnagApiKey: string;
 	};
+	shareData?: ShareData;
 }
 
 export default PageDataContext;

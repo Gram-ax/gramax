@@ -7,8 +7,6 @@ import { ItemStatus } from "../../../Watchers/model/ItemStatus";
 import SourceData from "../../../storage/logic/SourceDataProvider/model/SourceData";
 import { GitBranch } from "../GitBranch/GitBranch";
 import { GitCommands } from "../GitCommands/GitCommands";
-import GitError from "../GitCommands/errors/GitError";
-import GitErrorCode from "../GitCommands/errors/model/GitErrorCode";
 import convertToChangeItem from "../GitWatcher/ConvertToChangeItem";
 import GitWatcher from "../GitWatcher/GitWatcher";
 import { GitStatus } from "../GitWatcher/model/GitStatus";
@@ -19,6 +17,7 @@ export default class GitVersionControl {
 	private _watcherFunc: ((changes: ItemStatus[]) => Promise<void>)[];
 	private _currentVersion: GitVersion;
 	private _currentBranch: GitBranch;
+	private _currentBranchName: string;
 	private _allBranches: GitBranch[];
 	private _subGitVersionControls: GitVersionControl[];
 	private _submodulesData: SubmoduleData[];
@@ -55,9 +54,14 @@ export default class GitVersionControl {
 		return this._path;
 	}
 
-	async getCurrentBranch(): Promise<GitBranch> {
-		if (!this._currentBranch) await this._initCurrentBranch();
+	async getCurrentBranch(cached = true): Promise<GitBranch> {
+		if (!cached || !this._currentBranch) await this._initCurrentBranch();
 		return this._currentBranch;
+	}
+
+	async getCurrentBranchName(cached = true): Promise<string> {
+		if (!cached || !this._currentBranchName) await this._initCurrentBranchName();
+		return this._currentBranchName;
 	}
 
 	async getAllBranches(): Promise<GitBranch[]> {
@@ -82,7 +86,7 @@ export default class GitVersionControl {
 
 	async createNewBranch(newBranchName: string) {
 		await this._gitRepository.createNewBranch(newBranchName);
-		await this._initCurrentBranch();
+		await this.update();
 	}
 
 	async deleteLocalBranch(branchName: string) {
@@ -105,8 +109,12 @@ export default class GitVersionControl {
 		return this._gitRepository.stashParent(stashHash);
 	}
 
-	async getCommitHash(ref?: string | GitBranch | GitStash) {
+	async getHeadCommit(ref?: string | GitBranch | GitStash) {
 		return this._gitRepository.getHeadCommit(ref.toString());
+	}
+
+	async getCommitHash(ref?: string) {
+		return this._gitRepository.getCommitHash(ref.toString());
 	}
 
 	async getParentCommitHash(hash: GitVersion) {
@@ -149,18 +157,21 @@ export default class GitVersionControl {
 
 	async checkoutToBranch(branch: GitBranch | string) {
 		this._fp.stopWatch();
-		await this._gitRepository.checkout(branch);
-		await this.update();
-		this._fp.startWatch();
+		try {
+			await this._gitRepository.checkout(branch);
+			await this.update();
+		} finally {
+			this._fp?.startWatch();
+		}
 	}
 
 	async mergeBranch(data: SourceData, theirs: GitBranch | string) {
-		if ((await this.getChanges(false)).length > 0)
-			throw new GitError(GitErrorCode.WorkingDirNotEmpty, null, { repositoryPath: this._path.value });
-
 		this._fp.stopWatch();
-		await this._gitRepository.merge(data, theirs.toString(), false);
-		this._fp.startWatch();
+		try {
+			await this._gitRepository.merge(data, theirs.toString(), false);
+		} finally {
+			this._fp?.startWatch();
+		}
 	}
 
 	async getChanges(recursive = true): Promise<GitStatus[]> {
@@ -183,6 +194,7 @@ export default class GitVersionControl {
 
 	async update() {
 		await this._initCurrentBranch();
+		await this._initCurrentBranchName();
 		await this._initAllBranches();
 		await this._initCurrentVersion();
 		await this._initSubmodulesData();
@@ -269,6 +281,10 @@ export default class GitVersionControl {
 
 	private async _initCurrentBranch() {
 		this._currentBranch = await this._gitRepository.getCurrentBranch();
+	}
+
+	private async _initCurrentBranchName() {
+		this._currentBranchName = await this._gitRepository.getCurrentBranchName();
 	}
 
 	private async _initAllBranches() {

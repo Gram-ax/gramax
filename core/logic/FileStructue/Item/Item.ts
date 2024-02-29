@@ -1,26 +1,34 @@
 import ResourceUpdater from "@core/Resource/ResourceUpdater";
 import { ItemStatus } from "@ext/Watchers/model/ItemStatus";
+import type { FSLocalizationProps } from "@ext/localization/core/rules/FSLocalizationRules";
 import IPermission from "../../../extensions/security/logic/Permission/IPermission";
 import Permission from "../../../extensions/security/logic/Permission/Permission";
 import Path from "../../FileProvider/Path/Path";
-import { ArticleProps } from "../../SitePresenter/SitePresenter";
+import { ClientArticleProps } from "../../SitePresenter/SitePresenter";
 import { Category } from "../Category/Category";
 
-export abstract class Item {
+export type ItemProps = FSLocalizationProps & {
+	title?: string;
+	description?: string;
+	order?: number;
+
+	logicPath?: string;
+
+	hidden?: boolean;
+	private?: string[];
+};
+
+export abstract class Item<P extends ItemProps = ItemProps> {
 	private _neededPermission: IPermission = null;
 	protected _watcherFuncs: WatcherFunc[] = [];
 
 	constructor(
 		protected _ref: ItemRef,
 		protected _parent: Category,
-		protected _props: { [code: string]: any } = {},
+		protected _props: P,
 		protected _logicPath: string,
 	) {
-		this._neededPermission = new Permission(this._props["private"]);
-	}
-
-	getProp<T>(propName: string): T {
-		return this._props[propName] ?? null;
+		this._neededPermission = new Permission(this._props.private);
 	}
 
 	get logicPath(): string {
@@ -45,20 +53,24 @@ export abstract class Item {
 		return this._neededPermission;
 	}
 
+	getTitle(): string {
+		return this.props.title?.length ? this.props.title : "Без названия";
+	}
+
 	watch(w: WatcherFunc): void {
 		this._watcherFuncs.push(w);
 	}
 
 	async setOrder(order: number) {
-		if (this._props[ItemProps.order] == order) return;
-		this._props[ItemProps.order] = order;
+		if (this._props.order == order) return;
+		this._props.order = order;
 		await this._save();
 	}
 
 	async setLastPosition() {
 		const items = this.parent.items;
-		if (items.length == 0) this.props[ItemProps.order] = 0;
-		else this.props[ItemProps.order] = +items[items.length - 1].props[ItemProps.order] + 1;
+		if (items.length == 0) this.props.order = 0;
+		else this.props.order = +items[items.length - 1].props.order + 1;
 		await this._save();
 	}
 
@@ -70,7 +82,11 @@ export abstract class Item {
 
 	abstract get type(): ItemType;
 
-	abstract updateProps(props: ArticleProps, resourceUpdater: ResourceUpdater, rootCategoryProps?: any): Promise<Item>;
+	abstract updateProps(
+		props: ClientArticleProps,
+		resourceUpdater: ResourceUpdater,
+		rootCategoryProps?: any,
+	): Promise<Item<P>>;
 
 	abstract getFileName(): string;
 
@@ -78,10 +94,6 @@ export abstract class Item {
 }
 
 type WatcherFunc = (changes: ItemStatus[]) => void;
-
-enum ItemProps {
-	order = "order",
-}
 
 export interface ItemRef {
 	storageId: string;
