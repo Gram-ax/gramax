@@ -165,7 +165,7 @@ const Items = (props: ItemsProps) => {
 						onClick={() => {
 							setIsOpen(false);
 							blurInInput();
-							return button.onCLick();
+							return button.onClick();
 						}}
 						ref={idx === activeIdx ? focusRef : null}
 						isActive={idx === activeIdx}

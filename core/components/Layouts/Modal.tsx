@@ -1,6 +1,6 @@
 import { cssMedia } from "@core-ui/utils/cssUtils";
 import styled from "@emotion/styled";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Popup from "reactjs-popup";
 import ErrorHandler from "../../extensions/errorHandlers/client/components/ErrorHandler";
 import IsOpenModalService from "../../ui-logic/ContextServices/IsOpenMpdal";
@@ -38,6 +38,7 @@ const ModalLayout = (props: ModalLayoutProps) => {
 	const [closeOnDocumentClick, setCloseOnDocumentClick] = useState(true);
 	const [mouseDownOnModal, setMouseDownOnModal] = useState(false);
 	const [isCloseOnEscape, setIsCloseOnEscape] = useState(false);
+	const needToCallOnClose = useRef(true);
 
 	const CloseEsc = () => {
 		if (!closeOnEscape) return;
@@ -55,12 +56,25 @@ const ModalLayout = (props: ModalLayoutProps) => {
 		if (e.code === "Enter" && (e.ctrlKey || e.metaKey) && isOpen && onCmdEnter && closeOnCmdEnter) onCmdEnter();
 	};
 
+	const onCurrentClose = () => {
+		needToCallOnClose.current = false;
+		if (isCloseOnEscape) {
+			setIsCloseOnEscape(false);
+			return;
+		}
+		CloseEsc();
+	};
+
 	useEffect(() => {
 		document.addEventListener("keydown", keydownHandler, false);
 		return () => {
 			document.removeEventListener("keydown", keydownHandler, false);
 		};
 	});
+
+	useEffect(() => {
+		return () => needToCallOnClose.current && onCurrentClose();
+	}, []);
 
 	useEffect(() => {
 		setIsOpen(isParentOpen);
@@ -74,13 +88,7 @@ const ModalLayout = (props: ModalLayoutProps) => {
 				setIsOpen(true);
 				IsOpenModalService.value = true;
 			}}
-			onClose={() => {
-				if (isCloseOnEscape) {
-					setIsCloseOnEscape(false);
-					return;
-				}
-				CloseEsc();
-			}}
+			onClose={onCurrentClose}
 			trigger={trigger}
 			overlayStyle={{ backgroundColor: "rgba(19, 19, 19, 0.75)" }}
 			contentStyle={{

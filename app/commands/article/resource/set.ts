@@ -1,3 +1,4 @@
+import { ResponseKind } from "@app/types/ResponseKind";
 import { DesktopModeMiddleware } from "@core/Api/middleware/DesktopModeMiddleware";
 import ReloadConfirmMiddleware from "@core/Api/middleware/ReloadConfirmMiddleware";
 import Context from "@core/Context/Context";
@@ -6,7 +7,7 @@ import { Article } from "@core/FileStructue/Article/Article";
 import parseContent from "@core/FileStructue/Article/parseContent";
 import HashResourceManager from "@core/Hash/HashItems/HashResourceManager";
 import { Buffer } from "buffer";
-import { Command, ResponseKind } from "../../../types/Command";
+import { Command } from "../../../types/Command";
 
 const set: Command<
 	{ data: any; isBase64: boolean; src: Path; catalogName: string; articlePath: Path; ctx: Context },

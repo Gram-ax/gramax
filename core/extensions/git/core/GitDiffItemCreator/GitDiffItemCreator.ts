@@ -50,8 +50,9 @@ export default class GitDiffItemCreator {
 
 	private async _getNewContent(path: Path, isDelete = false): Promise<string> {
 		if (isDelete) return "";
-		const content = await this._fp.read(this._catalog.getItemRefPath(path));
-		return content ? content : "";
+		const filePath = this._catalog.getItemRefPath(path);
+		const content = (await this._fp.exists(filePath)) && (await this._fp.read(filePath));
+		return content ?? "";
 	}
 
 	private async _getDiffByPath(

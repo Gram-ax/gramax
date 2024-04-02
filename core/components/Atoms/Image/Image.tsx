@@ -1,4 +1,4 @@
-import resolveModule from "@app/resolveModule";
+import resolveModule from "@app/resolveModule/frontend";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import { DetailedHTMLProps, Fragment, ImgHTMLAttributes, useState } from "react";
 import Path from "../../../logic/FileProvider/Path/Path";

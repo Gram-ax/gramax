@@ -755,17 +755,20 @@ export default {
 			mail: "danil.kazanov@ics-it.ru",
 		},
 		conf: {
-			branch: "develop",
 			basePath: "",
 			bugsnagApiKey: "",
+			authServiceUrl: "",
 			enterpriseServerUrl: "",
-			isProduction: false,
+			diagramRendererServerUrl: "",
+
+			isSso: false,
+			ssoServerUrl: "",
+
+			isRelease: false,
 			isReadOnly: false,
 			isServerApp: false,
-			authServiceUrl: "",
-			isSso: false,
-			ssoPublicKey: "",
-			ssoServerUrl: "",
+			isProduction: false,
+
 			version: "0.0.0@storybook",
 		},
 		isServerApp: false,

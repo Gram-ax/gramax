@@ -1,5 +1,0 @@
-0000000000000000000000000000000000000000 d96e45e65adfd44a070d64e5c30d8e4655522f3b Danil Kazanov <danil.kazanov@ics-it.ru> 1685521831 +0300	commit (initial): init submoduleDocs
-d96e45e65adfd44a070d64e5c30d8e4655522f3b d96e45e65adfd44a070d64e5c30d8e4655522f3b Danil Kazanov <danil.kazanov@ics-it.ru> 1685542417 +0300	reset: moving to HEAD
-d96e45e65adfd44a070d64e5c30d8e4655522f3b d96e45e65adfd44a070d64e5c30d8e4655522f3b Danil Kazanov <danil.kazanov@ics-it.ru> 1685543040 +0300	reset: moving to HEAD
-d96e45e65adfd44a070d64e5c30d8e4655522f3b ebdae44ae04cbf53b0fe8fbff576bc66a132faed Danil Kazanov <danil.kazanov@ics-it.ru> 1685706135 +0300	commit: add gitignore
-ebdae44ae04cbf53b0fe8fbff576bc66a132faed 63748d9b003d7e6b53ae10291848bed63b5f1bc3 Danil Kazanov <danil.kazanov@ics-it.ru> 1685706794 +0300	commit: change gitignore

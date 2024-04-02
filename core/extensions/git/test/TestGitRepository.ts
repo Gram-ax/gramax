@@ -5,7 +5,7 @@ import Path from "../../../logic/FileProvider/Path/Path";
 import SourceType from "../../storage/logic/SourceDataProvider/model/SourceType";
 import GitSourceData from "../core/model/GitSourceData.schema";
 
-const gitmodules = `[submodule "subModule"]\n\tpath = subModule\n\turl = git@gitlab.ics-it.ru:ics/submodule.git`;
+// const gitmodules = `[submodule "subModule"]\n\tpath = subModule\n\turl = git@gitlab.ics-it.ru:ics/submodule.git`;
 export const FIXTURES_PATH = __dirname + "/fixtures";
 export enum RemoteNames {
 	Push = "remoteRepPush.git",
@@ -17,6 +17,7 @@ export enum RemoteNames {
 export default class TestGitRepository {
 	private _repDir: string;
 	private _submodule: TestGitRepository;
+
 	constructor(
 		path: string,
 		private _name = "testRep",
@@ -25,7 +26,7 @@ export default class TestGitRepository {
 	) {
 		this._repDir = path + "/" + this._name;
 		if (this._isSubmodule) return;
-		this._submodule = new TestGitRepository(this._repDir, "subModule", true, this._name);
+		// this._submodule = new TestGitRepository(this._repDir, "subModule", true, this._name);
 	}
 
 	static getRemote(): { remoteRep: TestGitRepository; remoteSubModuleRep: TestGitRepository } {
@@ -61,10 +62,10 @@ export default class TestGitRepository {
 		if (fromRemote) {
 			await git.clone({ fs, http, dir: this._repDir, url: `http://localhost:8174/${RemoteNames.Push}` });
 		} else {
-			fs.mkdirSync(this._repDir);
-			fs.writeFileSync(this._repDir + "/.gitmodules", gitmodules);
+			fs.mkdirSync(this._repDir, { recursive: true });
+			// fs.writeFileSync(this._repDir + "/.gitmodules", gitmodules);
 			await git.init({ fs, dir: this._repDir });
-			await git.add({ fs, dir: this._repDir, filepath: ".gitmodules" });
+			// await git.add({ fs, dir: this._repDir, filepath: ".gitmodules" });
 			await git.commit({
 				fs,
 				dir: this._repDir,
@@ -72,7 +73,7 @@ export default class TestGitRepository {
 				message: "init",
 			});
 		}
-		await this._addSubModule(fromRemote);
+		// await this._addSubModule(fromRemote);
 	}
 
 	async setRemote(remoteName: RemoteNames) {

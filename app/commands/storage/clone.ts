@@ -1,8 +1,9 @@
+import { ResponseKind } from "@app/types/ResponseKind";
 import { AuthorizeMiddleware } from "@core/Api/middleware/AuthorizeMiddleware";
 import ReloadConfirmMiddleware from "@core/Api/middleware/ReloadConfirmMiddleware";
 import Path from "@core/FileProvider/Path/Path";
 import StorageData from "@ext/storage/models/StorageData";
-import { Command, ResponseKind } from "../../types/Command";
+import { Command } from "../../types/Command";
 
 const clone: Command<{ path: Path; data: StorageData; recursive?: boolean; branch?: string }, string> = Command.create({
 	path: "storage/clone",

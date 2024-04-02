@@ -1,21 +1,12 @@
-import { Paragraph } from "docx";
 import { WordBlockChild } from "../../../../wordExport/WordTypes";
-import { wordFontSizes } from "../../../../wordExport/wordExportSizes";
+import { createTitleParagraph } from "@ext/wordExport/TextWordGenerator";
 
-const convertMmToSpacingUnits = 8;
+export const headingWordLayout: WordBlockChild = async ({ tag }) => {
+	const text = tag.children[0];
 
-export const headingWordLayout: WordBlockChild = async ({ state, tag, addOptions }) => {
-	return [
-		new Paragraph({
-			children: await state.renderInline(tag, {
-				...addOptions,
-				size: wordFontSizes.heading[tag.attributes.level] ?? wordFontSizes.normal,
-				bold: true,
-			}),
-			spacing: {
-				after: (wordFontSizes.heading[tag.attributes.level] ?? wordFontSizes.normal) * convertMmToSpacingUnits,
-				before: (wordFontSizes.heading[tag.attributes.level] ?? wordFontSizes.normal) * convertMmToSpacingUnits,
-			},
-		}),
-	];
+	if (typeof text === "string")
+		return Promise.resolve([createTitleParagraph(text, tag.attributes.level)]);
+
+	return Promise.resolve([]);
+
 };

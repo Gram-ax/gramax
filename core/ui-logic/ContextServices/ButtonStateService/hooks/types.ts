@@ -12,6 +12,8 @@ export type NodeType =
 	| "table"
 	| "cut"
 	| "note"
+	| "tabs"
+	| "snippet"
 	| "diagramsMenuGroup"
 	| "drawio"
 	| "diagrams"

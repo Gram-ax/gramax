@@ -12,7 +12,7 @@ const getBlockMdNodeTransformer = (
 	context: ParserContext,
 ): NodeTransformerFunc => {
 	return async (node) => {
-		if (node.type === "blockMd") {
+		if (node?.type === "blockMd") {
 			const content = node.content;
 			const text = await markdownFormatter.render({ type: "doc", content }, context);
 			node = { type: "blockMd", content: [getTextNode(text, true)] };

@@ -1,7 +1,7 @@
 import ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
+import createImages from "@ext/markdown/elements/image/edit/logic/createImages";
 import { EditorView } from "prosemirror-view";
 import { ClientArticleProps } from "../../../../../../logic/SitePresenter/SitePresenter";
-import createImages from "./createImages";
 
 const imageHandlePaste = (
 	view: EditorView,
@@ -10,12 +10,15 @@ const imageHandlePaste = (
 	apiUrlCreator: ApiUrlCreator,
 ) => {
 	if (event.clipboardData.files.length == 0) return false;
-	for (const file of event.clipboardData.files) {
-		if (!file.type.startsWith("image")) continue;
-		void createImages([file], view, articleProps, apiUrlCreator);
-		return true;
+	for (const item of event.clipboardData.items) {
+		if (item.type == "text/rtf") return false;
+		if (item.type.startsWith("image")) {
+			const file = item.getAsFile();
+			if (!file) continue;
+			void createImages([file], view, articleProps, apiUrlCreator);
+			return true;
+		}
 	}
-	return false;
 };
 
 export default imageHandlePaste;

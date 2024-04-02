@@ -1,6 +1,6 @@
 import { Paragraph, TextRun } from "docx";
 import { WordBlockChild } from "../../../../wordExport/WordTypes";
-import { wordFontSizes, wordIndentSizes } from "../../../../wordExport/wordExportSizes";
+import { wordFontSizes, wordIndentSizes } from "../../../../wordExport/wordExportSettings";
 
 export const cutBlockWordLayout: WordBlockChild = async ({ state, tag, addOptions }) => {
 	return [

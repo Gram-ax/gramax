@@ -1,6 +1,6 @@
+import { ItemType } from "@core/FileStructue/Item/ItemType";
 import { NodeModel } from "@minoru/react-dnd-treeview";
 import hash from "object-hash";
-import { ItemType } from "../../../../../logic/FileStructue/Item/Item";
 import { CategoryLink, ItemLink } from "../../../NavigationLinks";
 
 abstract class DragTreeTransformer {

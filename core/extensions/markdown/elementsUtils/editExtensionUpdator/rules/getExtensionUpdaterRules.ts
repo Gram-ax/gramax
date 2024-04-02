@@ -1,5 +1,6 @@
+import getCatalogPropsRule from "@ext/markdown/elementsUtils/editExtensionUpdator/rules/extensionRules/catalogProps";
 import PageDataContext from "../../../../../logic/Context/PageDataContext";
-import { ClientArticleProps } from "../../../../../logic/SitePresenter/SitePresenter";
+import { ClientArticleProps, ClientCatalogProps } from "../../../../../logic/SitePresenter/SitePresenter";
 import ApiUrlCreator from "../../../../../ui-logic/ApiServices/ApiUrlCreator";
 import Theme from "../../../../Theme/Theme";
 import ExtensionUpdaterRules from "./ExtensionUpdaterRules";
@@ -13,6 +14,7 @@ export const getExtensionUpdaterRules = (
 	theme: Theme,
 	isMac: boolean,
 	articleProps: ClientArticleProps,
+	catalogProps: ClientCatalogProps,
 	apiUrlCreator: ApiUrlCreator,
 	pageDataContext: PageDataContext,
 ): ExtensionUpdaterRules[] => {
@@ -20,6 +22,7 @@ export const getExtensionUpdaterRules = (
 		getThemeRule(theme),
 		isMacInfoRule(isMac),
 		getArticlePropsRule(articleProps),
+		getCatalogPropsRule(catalogProps),
 		getApiUrlCreatorRule(apiUrlCreator),
 		getPageDataContextRule(pageDataContext),
 	];

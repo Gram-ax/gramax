@@ -1,11 +1,13 @@
 import ArticleParser from "@core/FileStructue/Article/ArticleParser";
 import CatalogEntry from "@core/FileStructue/Catalog/CatalogEntry";
-import FileStructure, { CATEGORY_ROOT_FILENAME, FS_EXCLUDE_FILENAMES } from "@core/FileStructue/FileStructure";
+import FileStructure, { CATEGORY_ROOT_FILENAME } from "@core/FileStructue/FileStructure";
 import { ItemStatus } from "@ext/Watchers/model/ItemStatus";
 import CatalogEditProps from "@ext/catalog/actions/propsEditor/model/CatalogEditProps.schema";
 import Repository from "@ext/git/core/Repository/Repository";
 import RepositoryProvider from "@ext/git/core/Repository/RepositoryProvider";
 import type { FSLocalizationProps } from "@ext/localization/core/rules/FSLocalizationRules";
+import TabsTags from "@ext/markdown/elements/tabs/model/TabsTags";
+import SnippetProvider from "@ext/markdown/elements/snippet/logic/SnippetProvider";
 import type { TitledLink } from "@ext/navigation/NavigationLinks";
 import { FileStatus } from "../../../extensions/Watchers/model/FileStatus";
 import Language, { defaultLanguage } from "../../../extensions/localization/core/model/Language";
@@ -16,7 +18,9 @@ import ResourceUpdater from "../../Resource/ResourceUpdater";
 import itemRefUtils from "../../utils/itemRefUtils";
 import { Article } from "../Article/Article";
 import { Category } from "../Category/Category";
-import { Item, ItemRef, ItemType } from "../Item/Item";
+import { Item } from "../Item/Item";
+import { ItemRef } from "../Item/ItemRef";
+import { ItemType } from "../Item/ItemType";
 import { CatalogErrorGroups } from "./CatalogErrorGroups";
 
 export type CatalogInitProps = {
@@ -30,6 +34,7 @@ export type CatalogInitProps = {
 
 	fp: FileProvider;
 	fs: FileStructure;
+	snippetProvider: SnippetProvider;
 };
 
 export type CatalogProps = FSLocalizationProps & {
@@ -38,6 +43,7 @@ export type CatalogProps = FSLocalizationProps & {
 	url?: string;
 	docroot?: string;
 	readOnly?: boolean;
+	tabsTags?: TabsTags;
 	contactEmail?: string;
 
 	relatedLinks?: TitledLink[];
@@ -57,6 +63,7 @@ export class Catalog extends CatalogEntry {
 
 	private _watcherFuncs: WatcherFunc[] = [];
 	private _onUpdateNameFuncs: ((oldName: string, catalog: Catalog) => Promise<void>)[] = [];
+	private _snippetProvider: SnippetProvider;
 	protected declare _repo: Repository;
 
 	constructor(init: CatalogInitProps) {
@@ -78,6 +85,7 @@ export class Catalog extends CatalogEntry {
 		this._name = init.name;
 		this._fp = init.fp;
 		this._fs = init.fs;
+		this._snippetProvider = init.snippetProvider;
 
 		const items = this._getItems(this._rootCategory);
 		items.forEach((i) => i.watch(this._onChange.bind(this)));
@@ -89,6 +97,10 @@ export class Catalog extends CatalogEntry {
 
 	getName(): string {
 		return this._name;
+	}
+
+	get snippetProvider() {
+		return this._snippetProvider;
 	}
 
 	get repo() {
@@ -106,9 +118,9 @@ export class Catalog extends CatalogEntry {
 
 	getRelativeRepPath(itemRef: Path | ItemRef): Path {
 		if (itemRef instanceof Path) {
-			return this._basePath.subDirectory(itemRef).removeExtraSymbols;
+			return this._basePath.subDirectory(itemRef)?.removeExtraSymbols; // TODO: remove `?`
 		}
-		return this._basePath.subDirectory(itemRef.path).removeExtraSymbols;
+		return this._basePath.subDirectory(itemRef.path)?.removeExtraSymbols; // TODO: remove `?`
 	}
 
 	getItemRefPath(relativeRepPath: Path): Path {
@@ -152,41 +164,12 @@ export class Catalog extends CatalogEntry {
 		return this._rootCategory.items?.length > 0;
 	}
 
-	async initWelcomeArticleIfNeed() {
-		if (this._rootCategory.items?.length > 0) return;
-		const dir = await this._fp.readdir(this._rootCategory.folderPath);
-		const editor = dir.filter((p) => !FS_EXCLUDE_FILENAMES.includes(p)).length == 0;
-		this._rootCategory.items.push(this.createWelcomeArticle(editor));
-	}
-
-	async saveWelcomeArticleIfPresent() {
-		const article = this._rootCategory.items?.[0] as Article;
-		if (article?.props?.welcome == "editor") await article.save();
-	}
-
-	createWelcomeArticle(editor = true) {
-		const ref = itemRefUtils.create(
-			this._rootCategory.ref,
-			this._rootCategory.items.map((i) => i.ref),
-		);
-
-		return this._fs.makeArticleByProps(
-			ref.path,
-			{ welcome: editor ? "editor" : "modal" },
-			"",
-			this._rootCategory,
-			this._props,
-			Date.now(),
-		);
-	}
-
 	async createArticle(
 		resourceUpdater: ResourceUpdater,
 		markdown: string,
 		lang: Language,
 		parentRef?: ItemRef,
 	): Promise<Article> {
-		await this.saveWelcomeArticleIfPresent();
 		const parentItem = parentRef ? this.findItemByItemRef<Category>(parentRef) : this._rootCategory;
 		if (parentItem.type == ItemType.article)
 			return await this.createCategoryByArticle(resourceUpdater, lang, markdown, parentItem as Article);
@@ -302,7 +285,7 @@ export class Catalog extends CatalogEntry {
 
 	async getTransformedItems<T>(transformer: (item: Item) => Promise<T> | T): Promise<T[]> {
 		const transformedItems: T[] = [];
-		for (const item of this._rootCategory.items.filter((i) => !((i as Article).props?.welcome == "modal"))) {
+		for (const item of this._rootCategory.items) {
 			transformedItems.push(await transformer(item));
 		}
 		const items = transformedItems.filter((l) => l);
@@ -338,16 +321,7 @@ export class Catalog extends CatalogEntry {
 		if (!item) return null;
 		if (item.type === ItemType.category && (item as Category).parent) return item as Article;
 		if (item.type === ItemType.article) return item as Article;
-		return this._findItem(item as Category, filters, [(a) => !!a.content]) as Article;
-	}
-
-	findAnyArticle(logicPath: string, filters: ArticleFilter[]): Article {
-		let item: Article = null;
-		while ((!item || (item.content && item.errorCode)) && logicPath) {
-			item = this.findArticle(logicPath, filters);
-			logicPath = new Path(logicPath).parentDirectoryPath.value;
-		}
-		return item;
+		return this._findItem(item as Category, filters, [(a) => typeof a.content === "string"]) as Article;
 	}
 
 	getRootCategory(): Category {

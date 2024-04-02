@@ -1,4 +1,5 @@
 import SourceType from "@ext/storage/logic/SourceDataProvider/model/SourceType";
+import git from "isomorphic-git";
 import Path from "../../../../logic/FileProvider/Path/Path";
 import { FileStatus } from "../../../Watchers/model/FileStatus";
 import StatusResult from "../GitCommands/model/StatusResult";
@@ -32,7 +33,7 @@ export class GitDataParser {
 	}
 
 	getStatusChanges(statusResults: StatusResult[], submodulePaths: Path[]): GitStatus[] {
-		const statusMapping: { [filePath: string]: { type: FileStatus; isUntracked: boolean } } = {
+		const statusMapping: { [statusResult: string]: { type: FileStatus; isUntracked: boolean } } = {
 			"003": { type: FileStatus.delete, isUntracked: true }, // added, staged, deleted unstaged
 			"020": { type: FileStatus.new, isUntracked: true }, // added, unstaged
 			"022": { type: FileStatus.new, isUntracked: false }, // added, staged
@@ -62,6 +63,31 @@ export class GitDataParser {
 				};
 			})
 			.filter((x) => x);
+	}
+
+	getFileStatus(status: Awaited<ReturnType<typeof git.status>>, filePath: Path): GitStatus {
+		const fileStatusMapping = new Map<
+			Awaited<ReturnType<typeof git.status>>,
+			{ type: FileStatus; isUntracked: boolean }
+		>([
+			["ignored", null],
+			["unmodified", null],
+			["*modified", { type: FileStatus.modified, isUntracked: true }],
+			["*deleted", { type: FileStatus.delete, isUntracked: true }],
+			["*added", { type: FileStatus.new, isUntracked: true }],
+			["absent", null], // ?
+			["modified", { type: FileStatus.modified, isUntracked: false }],
+			["deleted", { type: FileStatus.delete, isUntracked: false }],
+			["added", { type: FileStatus.new, isUntracked: false }],
+			["*unmodified", { type: FileStatus.new, isUntracked: true }], // complex value
+			["*absent", { type: FileStatus.delete, isUntracked: false }], // complex value
+			["*undeleted", { type: FileStatus.delete, isUntracked: true }], // complex value
+			["*undeletemodified", { type: FileStatus.modified, isUntracked: true }], // complex value
+		]);
+		const fileStatus = fileStatusMapping.get(status);
+		if (!fileStatus) return;
+		const { type, isUntracked } = fileStatus;
+		return { path: filePath, type, isUntracked };
 	}
 
 	getEditFileLink(

@@ -14,7 +14,7 @@ import Links from "../../layoutComponents";
 export default styled(({ itemLinks, className }: { itemLinks: ItemLink[]; className?: string }): JSX.Element => {
 	const ref = useRef<HTMLDivElement>(null);
 	const articleProps = ArticlePropsService.value;
-	const showArticleActions = !(articleProps?.errorCode && articleProps.errorCode !== 500);
+	const showArticleActions = !((articleProps?.errorCode && articleProps.errorCode !== 500) || !articleProps.fileName);
 	const articleLinks = useGetArticleLinks();
 
 	return (

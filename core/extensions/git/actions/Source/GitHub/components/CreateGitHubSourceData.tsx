@@ -1,14 +1,16 @@
+import { getExecutingEnvironment } from "@app/resolveModule/env";
 import Button from "@components/Atoms/Button/Button";
 import Icon from "@components/Atoms/Icon";
 import SpinnerLoader from "@components/Atoms/SpinnerLoader";
+import { parserQuery } from "@core/Api/Query";
 import { useEffect, useState } from "react";
-import { parserQuery } from "../../../../../../logic/Api/Query";
 import createChildWindow from "../../../../../../ui-logic/ChildWindow/createChildWindow";
 import PageDataContextService from "../../../../../../ui-logic/ContextServices/PageDataContext";
 import useLocalize from "../../../../../localization/useLocalize";
 import SourceType from "../../../../../storage/logic/SourceDataProvider/model/SourceType";
 import { makeSourceApi } from "../../makeSourceApi";
 import GitHubSourceData from "../logic/GitHubSourceData";
+import { waitForTempGithubToken } from "../logic/GithubTempToken";
 import GitHubUser from "./GitHubUser";
 
 const CreateGitHubSourceData = ({ onSubmit }: { onSubmit?: (editProps: GitHubSourceData) => void }) => {
@@ -26,9 +28,7 @@ const CreateGitHubSourceData = ({ onSubmit }: { onSubmit?: (editProps: GitHubSou
 		setUser(await api.getUser());
 	};
 
-	useEffect(() => {
-		loadUser(token);
-	}, [token]);
+	useEffect(() => void loadUser(token), [token]);
 
 	return (
 		<>
@@ -48,15 +48,18 @@ const CreateGitHubSourceData = ({ onSubmit }: { onSubmit?: (editProps: GitHubSou
 					<Button
 						fullWidth
 						className="input-lable"
-						onClick={() => {
+						onClick={async () => {
 							if (token) return;
 							createChildWindow(
 								`${authServiceUrl}/github?redirect=${domain}`,
 								450,
 								500,
 								"https://github.com/login/device/success",
-								(location) => setToken(parserQuery(location.search) as any),
+								(location) => setToken(parserQuery(location.search)),
 							);
+
+							if (getExecutingEnvironment() == "browser")
+								setToken(parserQuery(await waitForTempGithubToken()));
 						}}
 					>
 						<div>

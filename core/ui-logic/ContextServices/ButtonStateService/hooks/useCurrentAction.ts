@@ -4,8 +4,8 @@ import { ActionContext } from "../ButtonStateService";
 import { Attrs, ButtonState, Mark, NodeType, NodeValues } from "./types";
 
 const Block = ["heading", "ordered_list", "bullet_list"];
-const BlockPlus = ["table", "cut", "note", "blockquote"];
-const BlockOutContent = ["drawio", "diagrams", "image", "video", "code_block", OPEN_API_NAME];
+const BlockPlus = ["table", "cut", "note", "tab", "tabs", "blockquote"];
+const BlockOutContent = ["drawio", "diagrams", "image", "video", "code_block", "snippet", OPEN_API_NAME];
 
 const disabledMarkRule: Record<Mark, Mark[]> = {
 	code: ["link", "file", "comment", "strong", "em"],
@@ -40,7 +40,7 @@ function changeResultByAction(activeNode: NodeType, buttonNode: NodeType, result
 			result.disabled = true;
 		}
 	} else if (BlockPlus.includes(activeNode)) {
-		result.disabled = Block.includes(buttonNode) || (BlockPlus.includes(buttonNode) && !result.isActive);
+		result.disabled = BlockPlus.includes(buttonNode) || buttonNode === "heading";
 	} else if (Block.includes(activeNode)) {
 		result.disabled = disableBlockRule[activeNode](buttonNode);
 	}

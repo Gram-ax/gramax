@@ -2,12 +2,13 @@ import FetchService from "@core-ui/ApiServices/FetchService";
 import MimeTypes from "@core-ui/ApiServices/Types/MimeTypes";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import ArticlePropsService from "@core-ui/ContextServices/ArticleProps";
+import { ItemType } from "@core/FileStructue/Item/ItemType";
+import IsEditService from "@core-ui/ContextServices/IsEdit";
 import styled from "@emotion/styled";
 import { DropOptions, getBackendOptions, MultiBackend, NodeModel, Tree, useDragOver } from "@minoru/react-dnd-treeview";
 import { CssBaseline } from "@mui/material";
 import { useEffect, useState } from "react";
 import { DndProvider } from "react-dnd";
-import { ItemType } from "../../../../../logic/FileStructue/Item/Item";
 import CreateArticle from "../../../../artilce/actions/CreateArticle";
 import EditMenu from "../../../../item/EditMenu";
 import CommentCountNavExtension from "../../../../markdown/elements/comment/edit/components/CommentCountNavExtension";
@@ -17,12 +18,13 @@ import NavigationItem from "../../main/render/Item";
 import DragTreeTransformer from "../logic/DragTreeTransformer";
 import getOpenItemsIds from "../logic/getOpenItemsIds";
 
-// import { logger } from "../../../../../../target/browser/src/debug";
+// import { logger } from "../../../../../../apps/browser/src/debug";
 
 const ExportLevNavDragTree = ({ items, closeNavigation }: { items: ItemLink[]; closeNavigation?: () => void }) => {
+	const isEdit = IsEditService.value;
 	const articleProps = ArticlePropsService.value;
 	const apiUrlCreator = ApiUrlCreatorService.value;
-	const [dragged, setDragged] = useState<boolean>();
+	const [dragged, setDragged] = useState<boolean>(isEdit);
 	const [treeData, setTreeData] = useState<NodeModel<ItemLink>[]>(DragTreeTransformer.getRenderDragNav(items));
 
 	useEffect(() => {
@@ -38,6 +40,10 @@ const ExportLevNavDragTree = ({ items, closeNavigation }: { items: ItemLink[]; c
 		setTreeData(await res.json());
 		setDragged(true);
 	};
+
+	useEffect(() => {
+		setDragged(isEdit);
+	}, [isEdit]);
 
 	return (
 		<LevNavDragTree items={treeData} canDrag={dragged} onDrop={handleOnDrop} closeNavigation={closeNavigation} />
@@ -76,7 +82,7 @@ const LevNavDragTree = styled(
 			<>
 				<CssBaseline />
 				<DndProvider backend={MultiBackend} options={getBackendOptions()}>
-					<div onContextMenu={(e) => e.stopPropagation()} className={className}>
+					<div className={className}>
 						<Tree<ItemLink>
 							tree={items}
 							rootId={DragTreeTransformer.getRootId()}

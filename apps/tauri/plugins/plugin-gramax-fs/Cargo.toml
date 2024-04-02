@@ -1,0 +1,13 @@
+[package]
+name = "plugin-gramax-fs"
+version = { workspace = true }
+edition = { workspace = true }
+authors = { workspace = true }
+links = "plugin-gramax-fs"
+
+[build-dependencies]
+tauri-build = { workspace = true }
+
+[dependencies]
+tauri = { workspace = true }
+gramax-fs = { path = "../../../../rlibs/fs" }

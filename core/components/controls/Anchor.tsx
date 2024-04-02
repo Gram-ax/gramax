@@ -1,11 +1,13 @@
 import Url from "@core-ui/ApiServices/Types/Url";
-import { CSSProperties, ReactNode } from "react";
+import ArticleTooltipService from "@core-ui/ContextServices/ArticleTooltip";
 import { useRouter } from "@core/Api/useRouter";
+import { CSSProperties, ReactNode } from "react";
 import Icon from "../Atoms/Icon";
 import Link from "../Atoms/Link";
 
 interface AnchorProps {
 	href: string;
+	resourcePath?: string;
 	children?: ReactNode;
 	basePath?: string;
 	className?: string;
@@ -14,14 +16,23 @@ interface AnchorProps {
 	hideExternalLinkIcon?: boolean;
 }
 const Anchor = (Props: AnchorProps) => {
-	const { children, basePath, target = "_blank", style = { fontWeight: 300 }, ...props } = Props;
-
+	const { children, basePath, target = "_blank", resourcePath, style = { fontWeight: 300 }, ...props } = Props;
 	const isAnchor = props.href?.match(/^#/);
 	const basePathLength = useRouter()?.basePath?.length ?? basePath?.length ?? 0;
+	const setLink = ArticleTooltipService.value;
+
 	if (!isAnchor && props.href != null && props.href.slice(basePathLength + 1, basePathLength + 4) != "api") {
 		const isExternal = props.href?.match(/^\w+:/);
+
 		if (!isExternal) {
-			return <Link href={Url.from({ pathname: props.href })}>{children}</Link>;
+			return (
+				<Link
+					onMouseEnter={setLink ? (event) => setLink(event.target as HTMLElement, resourcePath) : undefined}
+					href={Url.from({ pathname: props.href })}
+				>
+					{children}
+				</Link>
+			);
 		}
 
 		return (
@@ -29,11 +40,12 @@ const Anchor = (Props: AnchorProps) => {
 				{children}
 				<span style={{ whiteSpace: "nowrap", padding: 0 }} data-mdignore={true}>
 					&#65279;
-					<Icon prefix="fal" className="linkIcon" code="external-link" style={style} />
+					<Icon className="linkIcon" code="external-link" />
 				</span>
 			</a>
 		);
 	}
+
 	return <a {...props}>{children}</a>;
 };
 

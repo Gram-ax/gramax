@@ -6,7 +6,7 @@ import RenderLinkVideo from "./RenderLinkVideo";
 
 const Video = ({ path, title, isLink }: { path: string; title: string; isLink: boolean }) => {
 	const apiUrlCreator = ApiUrlCreatorService.value;
-	const url = apiUrlCreator?.getVideoSrc(path);
+	const url = apiUrlCreator?.getVideoUrl(path);
 	const { data, error } = UseSWRService.getData<{ url: string }>(url, Fetcher.json, !isLink);
 
 	const RenderVideo = isLink ? (

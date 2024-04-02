@@ -16,7 +16,7 @@ const push: Command<{ catalogName: string }, void> = Command.create({
 			name,
 		);
 		const path = catalog.repo.gvc.getPath();
-		const gr = new GitCommands({ corsProxy: conf.corsProxy }, fp, path);
+		const gr = new GitCommands({ corsProxy: conf.services.cors.url }, fp, path);
 		await gr.push(sourceData as GitSourceData);
 	},
 });

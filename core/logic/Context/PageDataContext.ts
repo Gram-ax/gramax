@@ -15,14 +15,13 @@ interface PageDataContext {
 	conf: {
 		version: string;
 		basePath: string;
-		branch: string;
+		isRelease: boolean;
 		isReadOnly: boolean;
 		isServerApp: boolean;
 		isProduction: boolean;
 		ssoServerUrl: string;
-		ssoPublicKey: string;
+		diagramRendererServerUrl: string;
 		authServiceUrl: string;
-		enterpriseServerUrl: string;
 		bugsnagApiKey: string;
 	};
 	shareData?: ShareData;

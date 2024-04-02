@@ -1,43 +1,42 @@
+import resolveModule from "@app/resolveModule/backend";
+import { getExecutingEnvironment } from "@app/resolveModule/env";
 import { ContextFactory } from "@core/Context/ContextFactory";
 import Hash from "@core/Hash/Hash";
 import Library from "@core/Library/Library";
 import deleteAnyFolderRule from "@core/Library/Rules/DeleteAnyFolderRule/DeleteAnyFolderRule";
-import ErrorArticlePresenter from "@core/SitePresenter/ErrorArticlePresenter";
+import PluginImporterType from "@core/Plugin/PluginImporter/logic/PluginImporterType";
+import PluginProvider from "@core/Plugin/logic/PluginProvider";
+import CustomArticlePresenter from "@core/SitePresenter/CustomArticlePresenter";
 import SitePresenterFactory from "@core/SitePresenter/SitePresenterFactory";
 import { TableDB } from "@core/components/tableDB/table";
 import VideoUrlRepository from "@core/components/video/videoUrlRepository";
+import Cache from "@ext/Cache";
 import { Encoder } from "@ext/Encoder/Encoder";
 import MailProvider from "@ext/MailProvider";
 import ThemeManager from "@ext/Theme/ThemeManager";
 import RepositoryProvider from "@ext/git/core/Repository/RepositoryProvider";
+import HtmlParser from "@ext/html/HtmlParser";
 import FSLocalizationRules from "@ext/localization/core/rules/FSLocalizationRules";
 import BugsnagLogger from "@ext/loggers/BugsnagLogger";
 import Logger from "@ext/loggers/Logger";
 import MarkdownParser from "@ext/markdown/core/Parser/Parser";
 import ParserContextFactory from "@ext/markdown/core/Parser/ParserContext/ParserContextFactory";
 import MarkdownFormatter from "@ext/markdown/core/edit/logic/Formatter/Formatter";
-import FuseSearcher from "@ext/search/Fuse/FuseSearcher";
-import IndexCacheProvider from "@ext/search/IndexCacheProvider";
-import { IndexDataProvider } from "@ext/search/IndexDataProvider";
 import AuthManager from "@ext/security/logic/AuthManager";
+import Sso from "@ext/security/logic/AuthProviders/Sso";
 import { TicketManager } from "@ext/security/logic/TicketManager/TicketManager";
-import { AppConfig } from "../config/AppConfig";
-import resolveModule, { getExecutingEnvironment } from "../resolveModule";
+import { AppConfig, getConfig } from "../config/AppConfig";
 import Application from "../types/Application";
-import configure from "./configure";
 
 const _init = async (config: AppConfig): Promise<Application> => {
 	const am: AuthManager = null;
 	const mp: MailProvider = null;
 	const vur: VideoUrlRepository = null;
-
-	const corsProxy = config.isServerApp
-		? null
-		: config.enterpriseServerUrl && `${config.enterpriseServerUrl}/cors-proxy`;
-	const rp = new RepositoryProvider({ corsProxy });
+	const sso: Sso = null;
 
 	const FileProvider = resolveModule("FileProvider");
 
+	const rp = new RepositoryProvider({ corsProxy: config.services.cors.url });
 	const fp = new FileProvider(config.paths.root);
 	await fp.validate();
 
@@ -45,14 +44,6 @@ const _init = async (config: AppConfig): Promise<Application> => {
 	const lib = new Library(rp, config.isServerApp);
 	await lib.addFileProvider(fp, (fs) => FSLocalizationRules.bind(fs), libRules);
 
-	if (config.paths.local) {
-		const fp = new FileProvider(config.paths.local);
-		await fp.validate();
-		await lib.addFileProvider(fp);
-	}
-
-	const cacheFileProvider = new FileProvider(config.paths.userDataPath);
-	const indexCacheProvider = new IndexCacheProvider(cacheFileProvider);
 	const hashes = new Hash();
 	const tm = new ThemeManager();
 	const encoder = new Encoder();
@@ -60,52 +51,64 @@ const _init = async (config: AppConfig): Promise<Application> => {
 	const parser = new MarkdownParser();
 	const formatter = new MarkdownFormatter();
 	const tablesManager = new TableDB(parser, lib);
-	const errorArticlesProvider = new ErrorArticlePresenter();
+	const customArticlePresenter = new CustomArticlePresenter();
 	const parserContextFactory = new ParserContextFactory(
 		config.paths.base,
 		fp,
 		tablesManager,
 		parser,
 		formatter,
-		config.enterpriseServerUrl,
+		config.services.sso.url,
+		config.services.diagramRenderer.url,
 	);
+	const htmlParser = new HtmlParser(parser, parserContextFactory);
 	const logger: Logger = new BugsnagLogger(config.bugsnagApiKey);
-	const indexDataProvider = new IndexDataProvider(lib, parser, parserContextFactory, indexCacheProvider);
-	const searcher = new FuseSearcher(indexDataProvider);
-	const sitePresenterFactory = new SitePresenterFactory(lib, parser, parserContextFactory, rp, errorArticlesProvider);
-	const contextFactory = new ContextFactory(tm, config.cookieSecret);
+	const sitePresenterFactory = new SitePresenterFactory(
+		lib,
+		parser,
+		parserContextFactory,
+		rp,
+		customArticlePresenter,
+	);
+	const contextFactory = new ContextFactory(tm, config.tokens.cookie);
+
+	const cacheFileProvider = new FileProvider(config.paths.userDataPath);
+	const cache = new Cache(cacheFileProvider);
+	const pluginProvider = new PluginProvider(lib, htmlParser, cache, PluginImporterType.browser);
 
 	return {
 		am,
 		tm,
 		mp,
-		rp,
+		sso,
 		lib,
 		vur,
+		rp,
+		cache,
 		logger,
 		parser,
 		hashes,
-		searcher,
 		formatter,
+		htmlParser,
 		tablesManager,
 		ticketManager,
 		contextFactory,
 		sitePresenterFactory,
 		parserContextFactory,
-		errorArticlesProvider,
+		pluginProvider,
+		customArticlePresenter,
 		conf: {
-			corsProxy,
-			branch: config.branch,
+			services: config.services,
+
+			isRelease: config.isRelease,
 			basePath: config.paths.base,
+
 			isReadOnly: config.isReadOnly,
 			isServerApp: config.isServerApp,
-			ssoServerUrl: config.ssoServerUrl,
-			ssoPublicKey: config.ssoPublicKey,
-			authServiceUrl: config.authServiceUrl,
 			isProduction: config.isProduction,
-			enterpriseServerUrl: config.enterpriseServerUrl,
+
 			bugsnagApiKey: config.bugsnagApiKey,
-			gramaxVersion: config.gramaxVersion,
+			version: config.version,
 		},
 	};
 };
@@ -116,7 +119,7 @@ const container = window as {
 
 const getApp = async (): Promise<Application> => {
 	if (container.app) return container.app;
-	const config = configure();
+	const config = getConfig();
 	container.app = await _init(config);
 	return container.app;
 };

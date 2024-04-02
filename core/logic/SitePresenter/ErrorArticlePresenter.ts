@@ -1,4 +1,4 @@
-import { ItemRef } from "@core/FileStructue/Item/Item";
+import { ItemRef } from "@core/FileStructue/Item/ItemRef";
 import { Article } from "../FileStructue/Article/Article";
 import CustomArticlePresenter from "./CustomArticlePresenter";
 

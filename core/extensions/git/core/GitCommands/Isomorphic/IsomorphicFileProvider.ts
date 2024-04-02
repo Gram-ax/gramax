@@ -53,7 +53,8 @@ class IsomorphicFileProvider {
 
 	async readlink(path: string): Promise<string> {
 		const result = await this._fp.readlink(this._pathConverter(path));
-		if (!result) throw new Error(`Не удалось прочитать символическую ссылку файла по пути ${path}`);
+		if (!result) 
+			throw new Error(`Не удалось прочитать символическую ссылку файла по пути ${path}`);
 		return result;
 	}
 

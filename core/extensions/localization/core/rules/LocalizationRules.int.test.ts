@@ -8,7 +8,7 @@ const getLocalizationRulesData = async () => {
 	const app = await getApplication();
 
 	const nav = new Navigation();
-	const lr = new LocalizationRules(defaultLanguage, app.errorArticlesProvider);
+	const lr = new LocalizationRules(defaultLanguage, app.customArticlePresenter);
 
 	const catalogTestCatalog = await app.lib.getCatalog("RulseCatalogTestCatalog");
 	const articleTestCatalog = await app.lib.getCatalog("RulseArticleTestCatalog");

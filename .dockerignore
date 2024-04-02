@@ -2,9 +2,10 @@ node_modules/
 .vite-cache
 **/node_modules/
 **/.next/
-**/tauri/**/target/
+**/tauri/**/apps/
 **/tauri/**/gen/**/build/
 **/tauri/**/gen/**/.gradle/
 **/.vite-cache/
 **/dist/
 **/out/
+target/

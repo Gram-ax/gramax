@@ -2,6 +2,7 @@ import { Paragraph, TextRun } from "docx";
 import { WordBlockChild } from "../../../../wordExport/WordTypes";
 import { getBlockChilds } from "../../../../wordExport/getBlockChilds";
 import { Tag } from "../../../core/render/logic/Markdoc";
+import { ParagraphType, levelSpacingConfig } from "@ext/wordExport/wordExportSettings";
 
 export const listItemWordLayout: WordBlockChild = async ({ state, tag, addOptions }) => {
 	const filteredChildrens = tag.children.filter((child) => child && typeof child !== "string") as Tag[];
@@ -13,12 +14,14 @@ export const listItemWordLayout: WordBlockChild = async ({ state, tag, addOption
 
 		if (child.name === "p") {
 			const inlineElements = await state.renderInline(child);
+
 			paragraph.push([
 				...inlineElements.flat().filter((val) => val),
 				...(inlineElements &&
 				tag.children.length > 1 &&
+				tag.children[tag.children.length - 1] !== tag.children[i] &&
 				(!blockLayouts[(tag.children[i + 1] as Tag)?.name] || (tag.children[i + 1] as Tag)?.name === "p")
-					? [new TextRun({ text: "", break: 1 })]
+					? [new TextRun({ break: 1 })]
 					: []),
 			]);
 
@@ -30,6 +33,7 @@ export const listItemWordLayout: WordBlockChild = async ({ state, tag, addOption
 				new Paragraph({
 					children: paragraph.flat(),
 					...addOptions,
+					spacing: levelSpacingConfig[ParagraphType.list],
 				}),
 			);
 			paragraph = [];
@@ -43,6 +47,7 @@ export const listItemWordLayout: WordBlockChild = async ({ state, tag, addOption
 			new Paragraph({
 				children: paragraph.flat(),
 				...addOptions,
+				spacing: levelSpacingConfig[ParagraphType.list],
 			}),
 		);
 	}

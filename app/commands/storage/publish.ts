@@ -1,8 +1,9 @@
+import { ResponseKind } from "@app/types/ResponseKind";
 import { AuthorizeMiddleware } from "@core/Api/middleware/AuthorizeMiddleware";
+import ReloadConfirmMiddleware from "@core/Api/middleware/ReloadConfirmMiddleware";
 import Context from "@core/Context/Context";
 import Path from "@core/FileProvider/Path/Path";
-import { Command, ResponseKind } from "../../types/Command";
-import ReloadConfirmMiddleware from "@core/Api/middleware/ReloadConfirmMiddleware";
+import { Command } from "../../types/Command";
 
 const publish: Command<
 	{ ctx: Context; catalogName: string; message: string; filePaths: string[]; recursive?: boolean },

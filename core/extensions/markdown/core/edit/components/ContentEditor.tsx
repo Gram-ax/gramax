@@ -24,6 +24,8 @@ import ExtensionUpdater from "../../../elementsUtils/editExtensionUpdator/Extens
 import ContextWrapper from "./ContextWrapper";
 import Menu from "./Menu/Menu";
 
+export const ContentEditorId = "ContentEditorId";
+
 interface ContentEditorProps {
 	content: string;
 	extensions: Extensions;
@@ -86,7 +88,7 @@ const ContentEditor = (props: ContentEditorProps) => {
 
 	return (
 		<ContextWrapper editor={editor}>
-			{articleIsEdit && <Menu editor={editor} />}
+			{articleIsEdit && <Menu editor={editor} id={ContentEditorId} />}
 			<EditorContent editor={editor} />
 		</ContextWrapper>
 	);

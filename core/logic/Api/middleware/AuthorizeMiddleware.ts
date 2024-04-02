@@ -1,4 +1,4 @@
-import { getExecutingEnvironment } from "@app/resolveModule";
+import { getExecutingEnvironment } from "@app/resolveModule/env";
 import Query from "@core/Api/Query";
 import { defaultLanguage } from "@ext/localization/core/model/Language";
 import Context from "../../Context/Context";

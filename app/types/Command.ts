@@ -4,18 +4,9 @@ import Middleware from "@core/Api/middleware/Middleware";
 import Context from "@core/Context/Context";
 import { CommandTree } from "../commands";
 import Application from "./Application";
+import { ResponseKind } from "./ResponseKind";
 
-export enum ResponseKind {
-	json = "json",
-	plain = "plain",
-	blob = "blob",
-	file = "file",
-	none = "none",
-	redirect = "redirect",
-	html = "html",
-}
-
-interface CommandConfig<P, O> {
+export interface CommandConfig<P, O> {
 	path?: string;
 	kind?: ResponseKind;
 	middlewares?: Middleware[];
@@ -49,7 +40,7 @@ export class Command<P, O> {
 	}
 
 	params(ctx: Context, query: Query, body: any): P {
-		return this._c.params(ctx, query, body);
+		return this._c.params?.(ctx, query, body);
 	}
 
 	static create<P, O>(config: CommandConfig<P, O>): Command<P, O> {

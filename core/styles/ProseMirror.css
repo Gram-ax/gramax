@@ -24,6 +24,10 @@
 	margin: 0 !important;
 }
 
+.ProseMirror a {
+	cursor: text !important;
+}
+
 .ProseMirror li {
 	position: relative;
 }

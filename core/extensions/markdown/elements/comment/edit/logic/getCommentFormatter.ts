@@ -3,7 +3,9 @@ import ParserContext from "../../../../core/Parser/ParserContext/ParserContext";
 import { MarkSerializerSpec } from "../../../../core/edit/logic/Prosemirror/to_markdown";
 import CommentProvider from "./CommentProvider";
 
-const getCommentFormatter = (context: ParserContext): MarkSerializerSpec => {
+const getCommentFormatter = (context?: ParserContext): MarkSerializerSpec => {
+	if (!context) return { open: () => "", close: () => "" };
+
 	const commentProvider = new CommentProvider(context.fp, context.getArticle().ref.path);
 
 	return {

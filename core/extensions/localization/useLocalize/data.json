@@ -74,6 +74,36 @@
 	"connectStorage": { "ru": "Подключить хранилище", "en": "Connect storage" },
 	"continueLocally": { "ru": "Продолжить локально", "en": "Continue locally" },
 	"copied": { "ru": "Скопировано", "en": "Copied" },
+	"snippet": { "ru": "Сниппет", "en": "Snippet" },
+	"addNewSnippet": { "ru": "Добавить новый сниппет", "en": "Add a new snippet" },
+	"enterSnippetText": { "ru": "Введите текст сниппета", "en": "Enter snippet text" },
+	"deletingSnippetInUse": { "ru": "Удаление используемого сниппета", "en": "Deleting a snippet in use" },
+	"deleteSnippetDesc": {
+		"ru": "Вы собираетесь удалить сниппет, который в настоящее время используется в одной или более статьях",
+		"en": "You are going to remove a snippet that is currently being used in one or more articles"
+	},
+	"snippetRenderError": { "ru": "Не удалось отрисовать сниппет", "en": "Failed to render the snippet" },
+	"cantGetSnippetData": {
+		"ru": "Проверьте, правильно ли указан путь, а также есть ли файл со сниппетом в репозитории",
+		"en": "Check if the path is correct and if the snippet file is in the repository"
+	},
+	"deleteSnippetWarn": {
+		"ru": "После удаления сниппета, в статьях, где он использовался, возникнут ошибки вместо отображения удаленного сниппета",
+		"en": "After removing the snippet, the articles where it was used will have errors instead of displaying the removed snippet"
+	},
+	"deleteSnippetConfirmNotUse": {
+		"ru": "Этот сниппет не используется ни в одной из статей",
+		"en": "This snippet is not used in any of the articles"
+	},
+	"deleteSnippetConfirm": {
+		"ru": "Вы уверены, что хотите удалить сниппет?",
+		"en": "Are you sure you want to delete snippet?"
+	},
+	"continueConfirm": {
+		"ru": "Вы уверены, что хотите продолжить?",
+		"en": "Are you sure you want to continue?"
+	},
+	"viewUsage": { "ru": "Посмотреть использования", "en": "View usage" },
 	"createNew": { "ru": "Создать новый", "en": "Create new" },
 	"createNew2": { "ru": "Создать каталог", "en": "Create catalog" },
 	"createNewArticle": { "ru": "Создать статью", "en": "Create article" },
@@ -91,15 +121,30 @@
 	"description": { "ru": "Описание", "en": "Description" },
 	"clarifyingTags": { "ru": "Уточняющие метки", "en": "Clarifying tags" },
 	"selectOrAddNew": { "ru": "Выберите или добавьте новые", "en": "Select or add new" },
-	"specifyDetails": {
-		"ru": "Укажите детали, которые помогут нам понять суть ошибки",
-		"en": "Specify details that will help us understand the nature of the error"
+	"submit": {
+		"ru": "Сообщить",
+		"en": "Submit"
 	},
-	"descriptionTechDetails": {
-		"ru": "Отправляются только настройки приложения. Мы не увидим ваш контент или личные данные",
-		"en": "Only the application settings are sent. We will not see your content or personal data."
+	"whatHappened": {
+		"ru": "Что произошло",
+		"en": "What happened"
 	},
-	"sendTechDetails": { "ru": "Отправить технические детали", "en": "Send technical details" },
+	"describeTheProblem": {
+		"ru": "Опишите проблему или ошибку",
+		"en": "Describe the problem or error"
+	},
+	"attachTechnicalDetails": {
+		"ru": "Приложить технические детали",
+		"en": "Attach technical details"
+	},
+	"thisWillHelpUs": {
+		"ru": "Эта информация поможет нам оперативнее решить ошибку. Мы не увидим контент или личные данные.",
+		"en": "This information will help us resolve the error more quickly. We will not see the content or personal data."
+	},
+	"whatWillBeSent": {
+		"ru": "Что отправится?",
+		"en": "What will be sent?"
+	},
 	"viewDetails": { "ru": "Посмотреть детали.", "en": "View details." },
 	"editor": { "ru": "Редактор", "en": "Editor" },
 	"interface": { "ru": "Интерфейс", "en": "Interface" },
@@ -126,6 +171,10 @@
 	"findBranch": { "ru": "Поиск ветки", "en": "Find branch" },
 	"forCertainUsers": { "ru": "Определенным пользователям", "en": "For certain users" },
 	"foreignKey": { "ru": "Внешний ключ FK", "en": "Foreign Key" },
+	"fileHistoryWarning": {
+		"ru": "История изменений станет доступна после публикации статьи",
+		"en": "A history of changes will be available once the article is published"
+	},
 	"generateLink": { "ru": "Сформировать ссылку", "en": "Generate link" },
 	"gitPull": { "ru": "Git pull", "en": "Git pull" },
 	"gitStatus": { "ru": "Git status", "en": "Git status" },
@@ -149,7 +198,7 @@
 	"loading2": { "ru": "Загружаем...", "en": "Loading..." },
 	"local": { "ru": "Локально", "en": "Local" },
 	"link": { "ru": "Ссылка", "en": "Link" },
-	"link2" : {"ru":"Ссылку", "en":"Link"},
+	"link2": { "ru": "Ссылку", "en": "Link" },
 	"leadsToTheBranch": { "ru": "Ведет на ветку", "en": "Leads to the branch" },
 	"leadsToTheRepo": { "ru": "Ведет на репозиторий", "en": "Leads to the repository" },
 	"mail": { "ru": "Почта", "en": "Mail" },
@@ -433,5 +482,13 @@
 	"deleteCatalog": {
 		"ru": "Удалить каталог",
 		"en": "Delete a catalog"
+	},
+	"cantSendFeedback": {
+		"ru": "Не удалось отправить отчет об ошибке",
+		"en": "Can't send feedback"
+	},
+	"checkInternetAndDisableAdBlocker": {
+		"ru": "Проверьте подключение к интернету и отключите блокировщики рекламы.",
+		"en": "Check internet connection and disable internet connection."
 	}
 }

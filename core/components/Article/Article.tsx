@@ -3,8 +3,8 @@ import MimeTypes from "@core-ui/ApiServices/Types/MimeTypes";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import ArticlePropsService from "@core-ui/ContextServices/ArticleProps";
 import ArticleRefService from "@core-ui/ContextServices/ArticleRef";
+import debounceFunction from "@core-ui/debounceFunction";
 import { useCtrlKeyLinkHandler } from "@core-ui/hooks/useCtrlKeyLinkHandler";
-import trollCaller from "@core-ui/trollCaller";
 import { ArticlePageData } from "@core/SitePresenter/SitePresenter";
 import imageHandlePaste from "@ext/markdown/elements/image/edit/logic/imageHandlePaste";
 import FocusService from "@ext/markdown/elementsUtils/ContextServices/FocusService";
@@ -26,7 +26,7 @@ const Article = ({ data }: { data: ArticlePageData }) => {
 	const [actualData, setActualData] = useState(data);
 	const [scrollPosition, setScrollPosition] = useState(0);
 
-	useCtrlKeyLinkHandler();
+	useCtrlKeyLinkHandler(); // Для открытия ссылок в tauri
 
 	useEffect(() => {
 		setActualData(data);
@@ -61,7 +61,7 @@ const Article = ({ data }: { data: ArticlePageData }) => {
 			await FetchService.fetch(url, articleContentEdit, MimeTypes.json);
 		};
 		window.forceTrollCaller = f;
-		trollCaller(ARTICLE_UPDATE_SYMBOL, f, 500);
+		debounceFunction(ARTICLE_UPDATE_SYMBOL, f, 500);
 
 		const tocItems = getTocItems(getLevelTocItemsByJSONContent(editor.state.doc));
 		if (!tocItems) return;

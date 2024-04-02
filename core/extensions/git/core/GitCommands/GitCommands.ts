@@ -1,4 +1,5 @@
-import resolveModule from "@app/resolveModule";
+import resolveModule from "@app/resolveModule/backend";
+import { getExecutingEnvironment } from "@app/resolveModule/env";
 import getGitError from "@ext/git/core/GitCommands/errors/logic/getGitError";
 import { Caller } from "@ext/git/core/GitCommands/errors/model/Caller";
 import GitErrorCode from "@ext/git/core/GitCommands/errors/model/GitErrorCode";
@@ -25,7 +26,8 @@ export class GitCommands {
 
 	constructor(conf: GitCommandsConfig, private _fp: FileProvider, private _repoPath: Path) {
 		const impl = resolveModule("GitCommandsImpl");
-		this._impl = new impl(_repoPath, _fp, this, conf);
+		if (getExecutingEnvironment() == "browser") this._impl = new impl(_repoPath, _fp, this, conf);
+		else this._impl = new impl(this._fp.rootPath.join(_repoPath), _fp, this, conf);
 	}
 
 	inner() {
@@ -201,7 +203,7 @@ export class GitCommands {
 		onProgress?: (progress: Progress) => void,
 	): Promise<void> {
 		return this._logWrapper("clone", `Cloning url: '${url}', path: '${this._repoPath}'`, async () => {
-			if ((await this._fp.exists(this._repoPath)) && (await this._fp.getItems(this._repoPath)).length > 0) {
+			if ((await this._fp.exists(this._repoPath)) && (await this._fp.readdir(this._repoPath)).length > 0) {
 				throw new GitError(
 					GitErrorCode.AlreadyExistsError,
 					null,
@@ -337,7 +339,19 @@ export class GitCommands {
 	}
 
 	async status(): Promise<GitStatus[]> {
-		return await this._logWrapper("status", "Getting status", () => this._impl.status());
+		const status = await this._logWrapper("status", "Getting status", () => this._impl.status());
+		const filteredStatus = (
+			await Promise.all(
+				status.map(async (file) => ((await this._fp.isFolder(this._repoPath.join(file.path))) ? null : file)),
+			)
+		).filter((x) => x);
+		return filteredStatus;
+	}
+
+	async fileStatus(filePath: Path): Promise<GitStatus> {
+		return this._logWrapper("status file", `Getting file status ${filePath.value}`, () =>
+			this._impl.fileStatus(filePath),
+		);
 	}
 
 	async showFileContent(filePath: Path, hash?: GitVersion): Promise<string> {

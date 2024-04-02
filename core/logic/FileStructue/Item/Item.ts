@@ -1,15 +1,17 @@
+import { ItemRef } from "@core/FileStructue/Item/ItemRef";
+import { ItemType } from "@core/FileStructue/Item/ItemType";
 import ResourceUpdater from "@core/Resource/ResourceUpdater";
 import { ItemStatus } from "@ext/Watchers/model/ItemStatus";
 import type { FSLocalizationProps } from "@ext/localization/core/rules/FSLocalizationRules";
 import IPermission from "../../../extensions/security/logic/Permission/IPermission";
 import Permission from "../../../extensions/security/logic/Permission/Permission";
-import Path from "../../FileProvider/Path/Path";
 import { ClientArticleProps } from "../../SitePresenter/SitePresenter";
 import { Category } from "../Category/Category";
 
 export type ItemProps = FSLocalizationProps & {
 	title?: string;
 	description?: string;
+	tags?: string[];
 	order?: number;
 
 	logicPath?: string;
@@ -94,13 +96,3 @@ export abstract class Item<P extends ItemProps = ItemProps> {
 }
 
 type WatcherFunc = (changes: ItemStatus[]) => void;
-
-export interface ItemRef {
-	storageId: string;
-	path: Path;
-}
-
-export enum ItemType {
-	article = "article",
-	category = "category",
-}

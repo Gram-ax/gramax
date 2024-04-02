@@ -1,4 +1,4 @@
-import { ItemType } from "../../../../logic/FileStructue/Item/Item";
+import { ItemType } from "@core/FileStructue/Item/ItemType";
 
 interface LinkItem {
 	title: string;

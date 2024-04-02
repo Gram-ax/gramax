@@ -1,6 +1,7 @@
+import { ResponseKind } from "@app/types/ResponseKind";
 import { AuthorizeMiddleware } from "@core/Api/middleware/AuthorizeMiddleware";
 import BranchData from "@ext/VersionControl/model/branch/BranchData";
-import { Command, ResponseKind } from "../../../types/Command";
+import { Command } from "../../../types/Command";
 
 const get: Command<{ catalogName: string; cached: boolean; onlyName: boolean }, BranchData> = Command.create({
 	path: "versionControl/branch/get",

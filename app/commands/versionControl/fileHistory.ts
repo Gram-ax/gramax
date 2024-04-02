@@ -1,9 +1,10 @@
+import { ResponseKind } from "@app/types/ResponseKind";
 import { AuthorizeMiddleware } from "@core/Api/middleware/AuthorizeMiddleware";
+import ReloadConfirmMiddleware from "@core/Api/middleware/ReloadConfirmMiddleware";
 import Path from "@core/FileProvider/Path/Path";
 import { ArticleHistoryViewModel } from "@ext/git/actions/History/model/ArticleHistoryViewModel";
 import GitFileHistory from "@ext/git/core/GitFileHistory/GitFileHistory";
-import { Command, ResponseKind } from "../../types/Command";
-import ReloadConfirmMiddleware from "@core/Api/middleware/ReloadConfirmMiddleware";
+import { Command } from "../../types/Command";
 
 const fileHistory: Command<{ catalogName: string; filePath: string }, ArticleHistoryViewModel[]> = Command.create({
 	path: "versionControl/fileHistory",
@@ -27,8 +28,8 @@ const fileHistory: Command<{ catalogName: string; filePath: string }, ArticleHis
 		const gitFileHistory = new GitFileHistory(
 			catalog,
 			fp,
-			conf.enterpriseServerUrl,
-			{ corsProxy: conf.corsProxy },
+			conf.services.review.url,
+			{ corsProxy: conf.services.cors.url },
 			storageData,
 		);
 

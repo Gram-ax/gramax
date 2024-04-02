@@ -1,35 +1,39 @@
 import { TextSize } from "@components/Atoms/Button/Button";
-import ButtonLink from "@components/Molecules/ButtonLink";
 import Input from "@components/Atoms/Input";
-import Fetcher from "@core-ui/ApiServices/Types/Fetcher";
+import ButtonLink from "@components/Molecules/ButtonLink";
+import FetchService from "@core-ui/ApiServices/FetchService";
+import MimeTypes from "@core-ui/ApiServices/Types/MimeTypes";
 import Url from "@core-ui/ApiServices/Types/Url";
-import UseSWRService from "@core-ui/ApiServices/UseSWRService";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
+import CatalogPropsService from "@core-ui/ContextServices/CatalogProps";
 import IsMacService from "@core-ui/ContextServices/IsMac";
-import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import SearchQueryService from "@core-ui/ContextServices/SearchQuery";
+import debounceFunction from "@core-ui/debounceFunction";
 import { cssMedia } from "@core-ui/utils/cssUtils";
 import styled from "@emotion/styled";
 import useMediaQuery from "@mui/material/useMediaQuery";
 import { useEffect, useRef, useState } from "react";
-import { SWRResponse } from "swr";
+import { SearchItem } from "../../../../plugins/target/search/src/Searcher";
 import useLocalize from "../../../extensions/localization/useLocalize";
 import { CatalogLink, CategoryLink, ItemLink } from "../../../extensions/navigation/NavigationLinks";
-import { SearchItem } from "../../../extensions/search/Searcher";
 import { useRouter } from "../../../logic/Api/useRouter";
-import Path from "../../../logic/FileProvider/Path/Path";
 import IsOpenModalService from "../../../ui-logic/ContextServices/IsOpenMpdal";
 import Checkbox from "../../Atoms/Checkbox";
 import Icon from "../../Atoms/Icon";
 import Link from "../../Atoms/Link";
 import Breadcrumb from "../../Breadcrumbs/ArticleBreadcrumb";
-import Error from "../../Error";
 import ModalLayout from "../../Layouts/Modal";
 import ModalLayoutLight from "../../Layouts/ModalLayoutLight";
+// import Path from "../../../logic/FileProvider/Path/Path";
+// import RouterPathProvider from "@core/RouterPath/RouterPathProvider";
+
+const DEBOUNCE_DELAY = 400;
+const SEARCH_SYMBOL = Symbol();
 
 const Search = styled(
 	({
 		isHomePage,
+		// eslint-disable-next-line @typescript-eslint/no-unused-vars
 		catalogLinks,
 		itemLinks,
 		className,
@@ -42,9 +46,9 @@ const Search = styled(
 		const router = useRouter();
 		const isMac = IsMacService.value;
 		const query = SearchQueryService.value;
-		const isLogged = PageDataContextService.value.isLogged;
 		const isOpenModal = IsOpenModalService.value;
 		const apiUrlCreator = ApiUrlCreatorService.value;
+		const catalogName = CatalogPropsService.value?.name;
 
 		const narrowMedia = useMediaQuery(cssMedia.JSnarrow);
 		const blockRef = useRef<HTMLDivElement>(null);
@@ -55,10 +59,9 @@ const Search = styled(
 
 		const [focusId, setFocusId] = useState(0);
 		const [isOpen, setIsOpen] = useState(false);
-		const [timeout, setMyTimeout] = useState(null);
+		const [data, setData] = useState<SearchItem[]>(null);
 		const [cursorFlaf, setCursorFlaf] = useState(true);
 		const [searchAll, setSearchAll] = useState(isHomePage);
-		const [requestTroll, setRequestTroll] = useState(true);
 		const homePageBreadcrumbDatas: CatalogLink[] = [];
 		const articleBreadcrumbDatas: { titles: string[]; links: CategoryLink[] }[] = [];
 
@@ -92,12 +95,6 @@ const Search = styled(
 			}
 		};
 
-		const { data, error }: SWRResponse<SearchItem[], any> = UseSWRService.getData<SearchItem[]>(
-			apiUrlCreator.getSearchDataUrl(searchAll, query),
-			Fetcher.json,
-			query != "" && query != null && requestTroll,
-		);
-
 		const setHeight = () => {
 			if (blockRef.current) blockRef.current.style.height = query && (!data || !data.length) ? "193.59px" : "";
 			if (document && responseRef.current && itemsResponseRef.current) {
@@ -119,11 +116,14 @@ const Search = styled(
 
 		if (data && data.length) {
 			if (isHomePage) {
-				data.forEach((d) => {
-					homePageBreadcrumbDatas.push(
-						catalogLinks.find((link) => link.name === new Path(d.url).rootDirectory.toString()),
-					);
-				});
+				// data.forEach((d) => {
+				// 	const url = new Path(d.url);
+				// 	const isNewPath = RouterPathProvider.isNewPath(url);
+				// 	const catalogName = isNewPath
+				// 		? RouterPathProvider.parsePath(url).catalogName
+				// 		: RouterPathProvider.parseItemLogicPath(url).catalogName;
+				// 	homePageBreadcrumbDatas.push(catalogLinks.find((link) => link.name === catalogName));
+				// });
 			} else {
 				data.forEach((d) => {
 					const search = (itemLinks: ItemLink[], catLinks: CategoryLink[]) => {
@@ -178,15 +178,25 @@ const Search = styled(
 										ref={inputRef}
 										type="text"
 										onChange={(e) => {
-											setFocusId(0);
-											SearchQueryService.value = e.target.value;
-											setRequestTroll(false);
-											if (timeout) clearTimeout(timeout);
-											const tID = setTimeout(() => {
-												setRequestTroll(true);
-												clearTimeout(timeout);
-											}, 400);
-											setMyTimeout(tID);
+											const query = e.target.value;
+											SearchQueryService.value = query;
+											setData(null);
+											debounceFunction(
+												SEARCH_SYMBOL,
+												async () => {
+													const res = await FetchService.fetch<{ data: SearchItem[] }>(
+														apiUrlCreator.getSearchDataUrl(),
+														JSON.stringify({
+															query,
+															catalogName: searchAll ? null : catalogName,
+														}),
+														MimeTypes.json,
+													);
+													if (!res.ok) return;
+													setData((await res.json()).data);
+												},
+												DEBOUNCE_DELAY,
+											);
 										}}
 										placeholder={useLocalize("searchPlaceholder")}
 										data-qa={useLocalize("searchPlaceholder")}
@@ -221,78 +231,62 @@ const Search = styled(
 									</>
 								) : (
 									<>
-										{error ? (
-											<div className="msg tip">
-												<div className="article">
-													<Error error={error} isLogged={isLogged} />
-												</div>
+										{!data ? (
+											<div className="msg loading">
+												<Icon code="spinner fa-spin" />
+												<span>{useLocalize("loading")}</span>
+											</div>
+										) : !data.length ? (
+											<div className="msg empty">
+												<Icon code="empty-set" />
+												<span>{useLocalize("articlesNotFound")}</span>
 											</div>
 										) : (
-											<>
-												{!data ? (
-													<div className="msg loading">
-														<Icon code="spinner fa-spin" />
-														<span>{useLocalize("loading")}</span>
-													</div>
-												) : !data.length ? (
-													<div className="msg empty">
-														<Icon code="empty-set" />
-														<span>{useLocalize("articlesNotFound")}</span>
-													</div>
-												) : (
-													<div ref={itemsResponseRef}>
-														{data?.map((d, id) => (
-															<Link
-																key={id}
-																onClick={() => setIsOpen(false)}
-																ref={focusId === id ? focusRef : null}
-																href={Url.from({ pathname: d.url })}
-																onMouseOver={() => {
-																	if (cursorFlaf) setFocusId(id);
-																}}
-																className={`item ${
-																	focusId === id ? "item-active" : ""
-																}`}
+											<div ref={itemsResponseRef}>
+												{data?.map((d, id) => (
+													<Link
+														key={id}
+														onClick={() => setIsOpen(false)}
+														ref={focusId === id ? focusRef : null}
+														href={Url.from({ pathname: d.url })}
+														onMouseOver={() => {
+															if (cursorFlaf) setFocusId(id);
+														}}
+														className={`item ${focusId === id ? "item-active" : ""}`}
+													>
+														{d.count > 1 && <span className="count">{d.count} шт.</span>}
+														<div className="item-title" data-qa="qa-clickable">
+															<div className="title-text">
+																{d.name.targets.map((t) => {
+																	return (
+																		<>
+																			<span>{t.start}</span>
+																			<span className="match">{t.target}</span>
+																		</>
+																	);
+																})}
+																<span>{d.name.end}</span>
+															</div>
+															{isHomePage && homePageBreadcrumbDatas.length ? (
+																<Breadcrumb catalogLink={homePageBreadcrumbDatas[id]} />
+															) : (
+																<Breadcrumb readyData={articleBreadcrumbDatas[id]} />
+															)}
+														</div>
+														{d.paragraph.map((p) => (
+															<div
+																key={p.target}
+																className="excerpt"
+																data-qa="qa-clickable"
 															>
-																{d.count > 1 && (
-																	<span className="count">{d.count} шт.</span>
-																)}
-																<div className="item-title" data-qa="qa-clickable">
-																	<div className="title-text">
-																		{d.name.targets.map((t) => {
-																			return (
-																				<>
-																					<span>{t.start}</span>
-																					<span className="match">
-																						{t.target}
-																					</span>
-																				</>
-																			);
-																		})}
-																		<span>{d.name.end}</span>
-																	</div>
-																	{isHomePage && homePageBreadcrumbDatas.length ? (
-																		<Breadcrumb
-																			catalogLink={homePageBreadcrumbDatas[id]}
-																		/>
-																	) : (
-																		<Breadcrumb
-																			readyData={articleBreadcrumbDatas[id]}
-																		/>
-																	)}
-																</div>
-																{d.paragraph.map((p) => (
-																	<div key={p.target} className="excerpt" data-qa="qa-clickable">
-																		<span>{p.prev}</span>
-																		<span className="match">{p.target}</span>
-																		<span>{p.next}</span>
-																	</div>
-																))}
-															</Link>
+																<span>{p.prev}</span>
+																<span className="match">{p.target}</span>
+																<span>{p.next}</span>
+															</div>
 														))}
-													</div>
-												)}
-											</>
+													</Link>
+												))}
+											</div>
 										)}
 									</>
 								)}

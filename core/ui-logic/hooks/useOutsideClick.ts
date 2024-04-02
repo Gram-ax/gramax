@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 
-export const useOutsideClick = (elements, callback, isActive) => {
+export const useOutsideClick = (elements, callback, isActive = true) => {
 	useEffect(() => {
 		if (!isActive) return;
 

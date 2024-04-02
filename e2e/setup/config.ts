@@ -9,12 +9,12 @@ export default {
 		medium: 15000,
 		long: 20000,
 	},
+	workers: !ci(true) ? 1 : undefined,
 	highlight: ci(true),
 	screenshots: true,
 	url: addr("http://localhost:5173"),
 	launch: {
 		devtools: false,
-		headless: !ci(true),
-		args: ["--disable-web-security", "--disable-features=IsolateOrigins,site-per-process"],
+		args: ["--disable-web-security", "--headless=new", "--disable-features=IsolateOrigins,site-per-process"],
 	} as LaunchOptions,
 };

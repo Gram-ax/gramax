@@ -1,7 +1,8 @@
+import { ResponseKind } from "@app/types/ResponseKind";
 import ReloadConfirmMiddleware from "@core/Api/middleware/ReloadConfirmMiddleware";
 import { AuthorizeMiddleware } from "../../../../core/logic/Api/middleware/AuthorizeMiddleware";
 import Context from "../../../../core/logic/Context/Context";
-import { Command, ResponseKind } from "../../../types/Command";
+import { Command } from "../../../types/Command";
 
 const sync: Command<{ ctx: Context; catalogName: string; recursive?: boolean }, void> = Command.create({
 	path: "storage/sync",

@@ -1,8 +1,9 @@
+import { ResponseKind } from "@app/types/ResponseKind";
 import { AuthorizeMiddleware } from "@core/Api/middleware/AuthorizeMiddleware";
+import ReloadConfirmMiddleware from "@core/Api/middleware/ReloadConfirmMiddleware";
 import Path from "@core/FileProvider/Path/Path";
 import Permission from "@ext/security/logic/Permission/Permission";
-import { Command, ResponseKind } from "../../types/Command";
-import ReloadConfirmMiddleware from "@core/Api/middleware/ReloadConfirmMiddleware";
+import { Command } from "../../types/Command";
 
 const setPermission: Command<{ catalogName: string; path?: Path; permissions: Permission }, void> = Command.create({
 	path: "item/setPermission",

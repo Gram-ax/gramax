@@ -1,6 +1,6 @@
+import { ItemRef } from "@core/FileStructue/Item/ItemRef";
 import yaml from "js-yaml";
 import MarkdownParser from "../../../extensions/markdown/core/Parser/Parser";
-import { ItemRef } from "../../FileStructue/Item/Item";
 import Library from "../../Library/Library";
 
 export type LocalizedString = { [lang: string]: string; default: string };

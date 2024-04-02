@@ -1,10 +1,10 @@
 import Button from "@components/Atoms/Button/Button";
 import { ButtonStyle } from "@components/Atoms/Button/ButtonStyle";
-import Icon from "@components/Atoms/Icon";
 import Input from "@components/Atoms/Input";
 import FormStyle from "@components/Form/FormStyle";
 import ModalLayout from "@components/Layouts/Modal";
 import ModalLayoutLight from "@components/Layouts/ModalLayoutLight";
+import ButtonLink from "@components/Molecules/ButtonLink";
 import FetchService from "@core-ui/ApiServices/FetchService";
 import MimeTypes from "@core-ui/ApiServices/Types/MimeTypes";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
@@ -82,12 +82,7 @@ const PropsEditor = (props: PropsEditorProps) => {
 	return (
 		<ModalLayout
 			isOpen={isOpen}
-			trigger={
-				<div data-qa="qa-clickable">
-					<Icon code="pen" faFw />
-					<span>{`${useLocalize("properties")}...`}</span>
-				</div>
-			}
+			trigger={<ButtonLink iconCode="pen" text={useLocalize("properties") + "..."} />}
 			contentWidth={"S"}
 			onCmdEnter={save}
 			onOpen={() => setIsOpen(true)}

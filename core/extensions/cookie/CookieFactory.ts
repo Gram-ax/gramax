@@ -1,4 +1,4 @@
-import resolveModule from "@app/resolveModule";
+import resolveModule from "@app/resolveModule/backend";
 import ApiRequest from "../../logic/Api/ApiRequest";
 import ApiResponse from "../../logic/Api/ApiResponse";
 import Cookie from "./Cookie";

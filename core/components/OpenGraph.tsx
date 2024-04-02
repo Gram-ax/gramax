@@ -1,6 +1,6 @@
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
-import NextHead from "../../target/next/components/Atoms/Head";
+import NextHead from "../../apps/next/components/Atoms/Head";
 import { useRouter } from "../logic/Api/useRouter";
 import { OpenGraphData } from "../logic/SitePresenter/SitePresenter";
 

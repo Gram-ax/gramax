@@ -154,7 +154,7 @@ const BranchActions = (props: BranchActionsProps) => {
 
 	useEffect(() => {
 		if (areNewBranchesLoading) return;
-		if (isInitNewBranch) initNewBranchInputRef.current.focus();
+		if (isInitNewBranch) initNewBranchInputRef.current?.focus();
 	}, [areNewBranchesLoading]);
 
 	useEffect(() => {
@@ -167,7 +167,7 @@ const BranchActions = (props: BranchActionsProps) => {
 				{
 					element: <AddNewBranchListItem addNewBranchText={addNewBranchText} />,
 					labelField: addNewBranchText,
-					onCLick: () => {
+					onClick: () => {
 						setIsInitNewBranch(true);
 					},
 				},
@@ -241,64 +241,66 @@ const BranchActions = (props: BranchActionsProps) => {
 				<FormStyle>
 					<>
 						<legend>{useLocalize("changeBranch", lang)}</legend>
-						<div className="form-group field field-string">
-							<ListLayout
-								openByDefault
-								selectAllOnFocus
-								isLoadingData={isLoadingData}
-								onSearchChange={() => {
-									setIsInitNewBranch(false);
-									setDisplayedBranch("");
-								}}
-								onSearchClick={() => {
-									if (isInitNewBranch) setIsInitNewBranch(false);
-								}}
-								item={isInitNewBranch ? "Добавить новую ветку" : undefined}
-								buttons={addNewBranchListItem}
-								items={branchListItems}
-								onItemClick={(elem) => {
-									setDisplayedBranch(elem ?? currentBranch);
-								}}
-								placeholder={useLocalize("findBranch", lang)}
-							/>
-						</div>
-						{isInitNewBranch && (
-							<div className="init-new-branch-input form-group">
-								<Input
-									isCode
-									errorText={newBranchValidationError}
-									type="text"
-									ref={initNewBranchInputRef}
-									style={{ pointerEvents: isNewBranch ? "none" : "auto" }}
-									placeholder={useLocalize("enterBranchName", lang)}
-									onChange={(e) => {
-										const validateBranchNameValue = validateBranchName(e.currentTarget.value);
-										setNewBranchValidationError(validateBranchNameValue);
-										setInitNewBranchName(e.currentTarget.value);
+						<fieldset>
+							<div className="form-group field field-string">
+								<ListLayout
+									openByDefault
+									selectAllOnFocus
+									isLoadingData={isLoadingData}
+									onSearchChange={() => {
+										setIsInitNewBranch(false);
+										setDisplayedBranch("");
 									}}
+									onSearchClick={() => {
+										if (isInitNewBranch) setIsInitNewBranch(false);
+									}}
+									item={isInitNewBranch ? useLocalize("addNewBranch", lang) : undefined}
+									buttons={addNewBranchListItem}
+									items={branchListItems}
+									onItemClick={(elem) => {
+										setDisplayedBranch(elem ?? currentBranch);
+									}}
+									placeholder={useLocalize("findBranch", lang)}
 								/>
 							</div>
-						)}
-						<div className="buttons">
-							<Button
-								disabled={isInitNewBranch ? !canInitNewBranch : !canSwitchBranch}
-								onClick={isInitNewBranch ? initNewBranch : switchBranch}
-							>
-								{useLocalize(isInitNewBranch ? "add" : "switch", lang)}
-							</Button>
-						</div>
+							{isInitNewBranch && (
+								<div className="init-new-branch-input form-group">
+									<Input
+										isCode
+										errorText={newBranchValidationError}
+										type="text"
+										ref={initNewBranchInputRef}
+										style={{ pointerEvents: isNewBranch ? "none" : "auto" }}
+										placeholder={useLocalize("enterBranchName", lang)}
+										onChange={(e) => {
+											const validateBranchNameValue = validateBranchName(e.currentTarget.value);
+											setNewBranchValidationError(validateBranchNameValue);
+											setInitNewBranchName(e.currentTarget.value);
+										}}
+									/>
+								</div>
+							)}
+							<div className="buttons">
+								<Button
+									disabled={isInitNewBranch ? !canInitNewBranch : !canSwitchBranch}
+									onClick={isInitNewBranch ? initNewBranch : switchBranch}
+								>
+									{useLocalize(isInitNewBranch ? "add" : "switch", lang)}
+								</Button>
+							</div>
 
-						<IsReadOnlyHOC>
-							<MergeBranches
-								onClick={mergeBranches}
-								onCanMergeChange={(value) => setCanMerge(value)}
-								onBranchToMergeInToChange={(value) => setBranchToMergeInTo(value)}
-								onDeleteAfterMergeChange={(value) => setDeleteAfterMerge(value)}
-								currentBranch={currentBranch}
-								isLoadingData={isLoadingData}
-								branches={branchListItems}
-							/>
-						</IsReadOnlyHOC>
+							<IsReadOnlyHOC>
+								<MergeBranches
+									onClick={mergeBranches}
+									onCanMergeChange={(value) => setCanMerge(value)}
+									onBranchToMergeInToChange={(value) => setBranchToMergeInTo(value)}
+									onDeleteAfterMergeChange={(value) => setDeleteAfterMerge(value)}
+									currentBranch={currentBranch}
+									isLoadingData={isLoadingData}
+									branches={branchListItems}
+								/>
+							</IsReadOnlyHOC>
+						</fieldset>
 					</>
 				</FormStyle>
 			</ModalLayoutLight>

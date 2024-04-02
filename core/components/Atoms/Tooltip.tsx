@@ -2,7 +2,7 @@ import { cssMedia } from "@core-ui/utils/cssUtils";
 import styled from "@emotion/styled";
 import { useMediaQuery } from "@mui/material";
 import Tippy, { TippyProps } from "@tippyjs/react";
-import { ReactNode, useState } from "react";
+import { ReactNode, forwardRef, useState, useEffect, Ref } from "react";
 import { Placement } from "tippy.js";
 
 interface TooltipProps extends TippyProps {
@@ -12,7 +12,9 @@ interface TooltipProps extends TippyProps {
 	hideInMobile?: boolean;
 	trigger?: string;
 	customStyle?: boolean;
+	setPlaceCallback?: (place: string) => void;
 	hideOnClick?: boolean;
+	contentClassName?: string;
 	interactive?: boolean;
 	delay?: number;
 }
@@ -21,18 +23,20 @@ interface TooltipContentProps extends Omit<TooltipProps, "children"> {
 	children: ReactNode;
 }
 
-const Tooltip = (props: TooltipProps) => {
+const Tooltip = forwardRef((props: TooltipProps, ref?: Ref<Element>) => {
 	const {
 		children,
 		content,
 		place = "top",
 		trigger,
 		distance = 10,
+		contentClassName,
 		visible,
 		arrow = true,
 		hideInMobile = true,
 		customStyle = false,
 		hideOnClick = false,
+		setPlaceCallback = () => {},
 		interactive = false,
 		delay = 0,
 		...otherProps
@@ -40,12 +44,16 @@ const Tooltip = (props: TooltipProps) => {
 
 	const [finalPlace, setFinalPlace] = useState<Placement>(place);
 
+	useEffect(() => {
+		setPlaceCallback(finalPlace);
+	}, [finalPlace]);
+
 	if (!content || (hideInMobile && useMediaQuery(cssMedia.narrow))) return children;
 
 	return (
 		<Tippy
 			content={
-				<TooltipContent place={finalPlace} arrow={arrow} customStyle={customStyle}>
+				<TooltipContent className={contentClassName} place={finalPlace} arrow={arrow} customStyle={customStyle}>
 					{content}
 				</TooltipContent>
 			}
@@ -54,10 +62,11 @@ const Tooltip = (props: TooltipProps) => {
 			visible={visible}
 			placement={place}
 			offset={[0, distance]}
-			hideOnClick={hideOnClick}
+			hideOnClick={visible !== undefined && !hideOnClick ? undefined : hideOnClick}
 			onMount={(instance) => {
 				setFinalPlace(instance.popperInstance.state.placement);
 			}}
+			ref={ref}
 			appendTo={() => document.body}
 			interactive={interactive}
 			delay={delay}
@@ -66,7 +75,7 @@ const Tooltip = (props: TooltipProps) => {
 			{children}
 		</Tippy>
 	);
-};
+});
 
 const TooltipContent = styled(({ children, className }: TooltipContentProps) => {
 	return <div className={className}>{children}</div>;

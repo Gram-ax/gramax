@@ -1,0 +1,26 @@
+{
+	"name": "gramax-next",
+	"version": "1.0.0",
+	"private": true,
+	"type": "module",
+	"scripts": {
+		"build": "next build",
+		"start": "next start -p ${PORT}",
+		"run": "npm run build && npm run start",
+		"dev": "next dev -p ${PORT}",
+		"lint": "next lint",
+		"prune": "node-prune",
+		"analyze": "cross-env ANALYZE=true next build"
+	},
+	"dependencies": {
+		"next": "^12.3.4",
+		"nookies": "^2.5.2",
+		"prom-client": "^15.1.0"
+	},
+	"devDependencies": {
+		"@next/bundle-analyzer": "^13.4.4",
+		"@next/eslint-plugin-next": "^13.4.4",
+		"nextjs-node-loader": "^1.1.5-alpha.0",
+		"node-loader": "^2.0.0"
+	}
+}

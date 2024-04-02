@@ -1,0 +1,15 @@
+{
+	"name": "next-gramax-git",
+	"version": "0.0.0",
+	"description": "",
+	"main": "gramax-git.node",
+	"scripts": {
+		"build": "cargo-cp-artifact -nc gramax-git.node -- cargo build --release --message-format=json-render-diagnostics",
+		"build-debug": "npm run build --",
+		"build-release": "npm run build -- --release",
+		"test": "cargo test"
+	},
+	"devDependencies": {
+		"cargo-cp-artifact": "^0.1"
+	}
+}

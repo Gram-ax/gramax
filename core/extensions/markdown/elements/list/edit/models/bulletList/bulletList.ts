@@ -1,3 +1,4 @@
+import { toggleList } from "@ext/markdown/elements/list/edit/logic/toggleList";
 import { bullet_list } from "@ext/markdown/elements/list/edit/models/bulletList/model/bulletListSchema";
 import getExtensionOptions from "@ext/markdown/logic/getExtensionOptions";
 import { mergeAttributes, Node, wrappingInputRule } from "@tiptap/core";
@@ -39,8 +40,11 @@ const BulletList = Node.create<BulletListOptions>({
 		return {
 			toggleBulletList:
 				() =>
-				({ commands }) => {
-					return commands.toggleList(this.name, this.options.itemTypeName);
+				({ commands, state, dispatch }) => {
+					const mainToggle = commands.toggleList(this.name, this.options.itemTypeName);
+					const secondToggle = toggleList({ state, dispatch, listName: this.name });
+
+					return mainToggle || secondToggle;
 				},
 		};
 	},

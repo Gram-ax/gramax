@@ -1,8 +1,8 @@
 import FileProvider from "@core/FileProvider/model/FileProvider";
+import { ItemRef } from "@core/FileStructue/Item/ItemRef";
 import dagre from "dagre";
 import { getLocalizedString } from "../components/libs/utils";
 import Path from "../logic/FileProvider/Path/Path";
-import { ItemRef } from "../logic/FileStructue/Item/Item";
 import ResourceManager from "../logic/Resource/ResourceManager";
 import { Field, Link, Table, TableDB } from "../logic/components/tableDB/table";
 

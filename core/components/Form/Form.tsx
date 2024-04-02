@@ -1,9 +1,9 @@
+import Field from "@components/Form/Field";
 import { JSONSchema7 } from "json-schema";
 import { DependencyList, useEffect, useState } from "react";
 import useLocalize from "../../extensions/localization/useLocalize";
 import Button from "../Atoms/Button/Button";
 import FormStyle from "./FormStyle";
-import ItemInput from "./InputItem";
 import ValidateObject from "./ValidateObject";
 
 const Form = <Type,>({
@@ -22,6 +22,7 @@ const Form = <Type,>({
 	initStyles = true,
 	disableSubmit: parentDisableSubmit,
 	fieldDirection = "column",
+	formDirection = "column",
 }: {
 	props: Type;
 	schema: JSONSchema7;
@@ -38,6 +39,7 @@ const Form = <Type,>({
 	initStyles?: boolean;
 	disableSubmit?: boolean;
 	fieldDirection?: "row" | "column";
+	formDirection?: "row" | "column";
 }) => {
 	const [editedSchema, setEditedSchema] = useState<JSONSchema7>(schema);
 	const [focusInput, setFocusInput] = useState(-1);
@@ -70,7 +72,7 @@ const Form = <Type,>({
 		const props = {} as Type;
 		Object.keys(editedSchema.properties).forEach((key) => (props[key] = editedProps[key]));
 		if (submitDisabled) return;
-		onSubmit(editedProps);
+		onSubmit?.(editedProps);
 	};
 
 	const keydownHandler = (e: KeyboardEvent) => {
@@ -103,51 +105,29 @@ const Form = <Type,>({
 		<>
 			{editedSchema.title && <legend dangerouslySetInnerHTML={{ __html: editedSchema.title }} />}
 			{editedSchema.description && <p className="description">{editedSchema.description}</p>}
-			{Object.entries(editedSchema.properties).map(([key, value], idx) => {
-				value = value as JSONSchema7;
-				const isCheckbox = value.type == "boolean";
-				if (typeof value === "string") {
-					if (value === "separator") return <div className="separator" />;
-					return <h3 key={idx}>{value}</h3>;
-				}
-				const requiredError = required.includes(key) && focusInput == idx && !editedProps[key];
-				return (
-					<div className="form-group" key={idx}>
-						<div className={`field field-string ${fieldDirection}`}>
-							{!isCheckbox && (
-								<label className="control-label">
-									<div style={{ display: "flex" }}>
-										<span dangerouslySetInnerHTML={{ __html: value?.title }} />
-										{required.includes(key) && <span className="required">*</span>}
-									</div>
-								</label>
-							)}
-							<div className={`input-lable ${isCheckbox ? "fill-width" : ""}`}>
-								<ItemInput
-									value={value}
-									tabIndex={idx + 1}
-									focus={idx == 0}
-									validate={requiredError ? requiredParameterText : validateValues[key]}
-									showErrorText={focusInput == idx}
-									editedPropsValue={editedProps[key]}
-									onChange={(value: string | string[]) => {
-										const newProps = { ...editedProps, ...{ [key]: value } };
-										setEditedProps(newProps);
-										if (onChange) onChange(newProps, editedSchema);
-									}}
-									onFocus={() => setFocusInput(idx)}
-								/>
-							</div>
-						</div>
-						{value.description && (
-							<div className={`input-lable-description ${isCheckbox ? "full-width" : ""}`}>
-								{!isCheckbox && <div />}
-								<div className="article" dangerouslySetInnerHTML={{ __html: value.description }} />
-							</div>
-						)}
-					</div>
-				);
-			})}
+			<fieldset>
+				{Object.entries(editedSchema.properties).map(([key, value], idx) => {
+					const requiredError = required.includes(key) && focusInput == idx && !editedProps[key];
+					return (
+						<Field
+							key={idx}
+							required={required.includes(key)}
+							scheme={value as JSONSchema7}
+							value={editedProps[key]}
+							validate={requiredError ? requiredParameterText : validateValues[key]}
+							tabIndex={idx + 1}
+							onChange={(value: string | string[]) => {
+								const newProps = { ...editedProps, ...{ [key]: value } };
+								setEditedProps(newProps);
+								if (onChange) onChange(newProps, editedSchema);
+							}}
+							onFocus={() => setFocusInput(idx)}
+							isFocused={focusInput == idx}
+							fieldDirection={fieldDirection}
+						/>
+					);
+				})}
+			</fieldset>
 			{onSubmit && (
 				<div className="buttons">
 					{leftButton && <div className="left-buttons">{leftButton}</div>}
@@ -159,7 +139,7 @@ const Form = <Type,>({
 		</>
 	);
 	return initStyles ? (
-		<FormStyle padding={padding} overflow={overflow}>
+		<FormStyle padding={padding} overflow={overflow} formDirection={formDirection}>
 			{formControl}
 		</FormStyle>
 	) : (

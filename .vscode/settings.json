@@ -1,4 +1,13 @@
 {
+	// "rust-analyzer.cargo.target": "x86_64-pc-windows-msvc",
+	// "rust-analyzer.cargo.target": "x86_64-apple-darwin",
+	"rust-analyzer.cargo.target": "aarch64-apple-darwin",
+	// "rust-analyzer.cargo.target": "wasm32-unknown-emscripten",
+	// "rust-analyzer.cargo.target": "aarch64-linux-android",
+	// "rust-analyzer.cargo.target": "aarch64-apple-ios",
+
+	"rust-analyzer.check.allTargets": true,
+
 	"editor.tabCompletion": "on",
 
 	"search.exclude": {
@@ -35,9 +44,6 @@
 		"#": "relative",
 		"@": "relative"
 	},
-	"[feature]": {
-		"editor.defaultFormatter": "alexkrechik.cucumberautocomplete"
-	},
 
 	"[yaml]": {
 		"editor.defaultFormatter": "redhat.vscode-yaml"
@@ -46,16 +52,5 @@
 	"typescript.preferences.importModuleSpecifier": "non-relative",
 	"typescript.tsserver.experimental.enableProjectDiagnostics": true,
 
-	// "rust-analyzer.cargo.target": "x86_64-pc-windows-msvc",
-	// "rust-analyzer.cargo.target": "x86_64-apple-darwin",
-	"rust-analyzer.cargo.target": "aarch64-apple-darwin",
-	// "rust-analyzer.cargo.target": "aarch64-linux-android"
-	// "rust-analyzer.cargo.target": "aarch64-apple-ios",
-
-	"rust-analyzer.cargo.autoreload": true,
-	"rust-analyzer.linkedProjects": [
-		"./target/tauri/src-tauri/Cargo.toml",
-		"./target/tauri/tauri-plugin-gramaxfs/Cargo.toml"
-	],
 	"cSpell.words": ["katex", "Markdoc", "prosemirror", "Renderable", "tiptap", "traptitech", "Bugsnag"]
 }

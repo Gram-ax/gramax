@@ -1,5 +1,6 @@
+import { ResponseKind } from "@app/types/ResponseKind";
 import { getDownloadUrl } from "@core/utils/appUtils";
-import { Command, ResponseKind } from "../../types/Command";
+import { Command } from "../../types/Command";
 
 const download: Command<{ platform: string; isDev: boolean }, string> = Command.create({
 	path: "download",

@@ -1,7 +1,8 @@
+import { ResponseKind } from "@app/types/ResponseKind";
 import { AuthorizeMiddleware } from "@core/Api/middleware/AuthorizeMiddleware";
 import { MergeFile } from "@ext/git/actions/MergeConflictHandler/model/MergeFile";
 import BaseGitMergeConflictResolver from "@ext/git/core/GitMergeConflictResolver/Base/BaseGitMergeConflictResolver";
-import { Command, ResponseKind } from "../../../types/Command";
+import { Command } from "../../../types/Command";
 
 const getFiles: Command<{ catalogName: string }, MergeFile[]> = Command.create({
 	path: "versionControl/mergeConflict/getFiles",

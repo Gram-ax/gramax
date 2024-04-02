@@ -33,11 +33,10 @@ export function include(context: ParserContext): Schema {
 				"Include",
 				{ path: article.ref.path.value },
 				(
-					(article?.parsedContent?.renderTree as Tag) ??
-					((await context.parser.parseRenderableTreeNode(
-						header + article?.content ?? "",
+					(await context.parser.parseRenderableTreeNode(
+						header + (article?.content ?? ""),
 						context.createContext(article),
-					)) as Tag)
+					)) as Tag
 				).children,
 			);
 		},

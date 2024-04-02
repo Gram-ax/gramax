@@ -3,27 +3,24 @@ import ArticlePropsService from "@core-ui/ContextServices/ArticleProps";
 import styled from "@emotion/styled";
 import React from "react";
 
-const Header = styled(
-	({
-		level,
-		id,
-		children,
-		className,
-		dataQa,
-	}: {
-		level: number;
-		id?: string;
-		children?: any;
-		className?: string;
-		dataQa?: string;
-		props?: any;
-	}) => {
-		const articleProps = ArticlePropsService?.value;
-		const logicPath = articleProps?.logicPath ?? "";
-		const href = "#" + (id ?? "");
-		const header = (
-			<>
-				{children}
+export interface HeaderProps {
+	level: number;
+	id?: string;
+	children?: any;
+	copyLinkIcon?: boolean;
+	className?: string;
+	dataQa?: string;
+}
+
+const Header = (props: HeaderProps) => {
+	const { level, id, children, className, dataQa, copyLinkIcon = true } = props;
+	const articleProps = ArticlePropsService?.value;
+	const logicPath = articleProps?.logicPath ?? "";
+	const href = "#" + (id ?? "");
+	const header = (
+		<>
+			{children}
+			{copyLinkIcon && (
 				<a
 					href={href}
 					className="anchor"
@@ -37,11 +34,13 @@ const Header = styled(
 				>
 					<Icon code="link" />
 				</a>
-			</>
-		);
-		return React.createElement("h" + level, { id, className, "data-qa": dataQa }, header);
-	},
-)`
+			)}
+		</>
+	);
+	return React.createElement("h" + level, { id, className, "data-qa": dataQa }, header);
+};
+
+export default styled(Header)`
 	:hover > a.anchor {
 		opacity: 0.5;
 	}
@@ -64,5 +63,3 @@ const Header = styled(
 		}
 	}
 `;
-
-export default Header;

@@ -1,4 +1,5 @@
 import getFirstPatentByName from "@core-ui/utils/getFirstPatentByName";
+import isURL from "@core-ui/utils/isURL";
 import { Editor } from "@tiptap/core";
 import { Mark } from "@tiptap/pm/model";
 import { EditorState } from "prosemirror-state";
@@ -58,7 +59,7 @@ class LinkFocusTooltip extends BaseMark {
 	private _getHref(mark: Mark) {
 		const { attrs } = mark;
 		if (attrs?.newHref) return attrs.newHref;
-		return (attrs.href.slice(0, 4) == "http" ? attrs.href : "/" + attrs.href) + (mark?.attrs?.hash ?? "");
+		return (isURL(attrs.href) ? attrs.href : "/" + attrs.href) + (mark?.attrs?.hash ?? "");
 	}
 
 	private _getValue(mark: Mark) {
@@ -87,12 +88,7 @@ class LinkFocusTooltip extends BaseMark {
 			href = hashHatch[1];
 			hash = hashHatch?.[2] ?? "";
 		}
-		if (mark.attrs.resourcePath) {
-			mark.attrs = { ...mark.attrs, resourcePath: href, hash, newHref };
-		} else {
-			mark.attrs = { ...mark.attrs, href: href, hash, newHref };
-		}
-
+		mark.attrs = { ...mark.attrs, resourcePath: href, hash, newHref };
 		transaction.addMark(from, to, mark);
 		this._editor.view.dispatch(transaction);
 	}

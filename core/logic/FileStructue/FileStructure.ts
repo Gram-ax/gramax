@@ -5,9 +5,11 @@ import { Article, type ArticleProps } from "@core/FileStructue/Article/Article";
 import { Catalog, CatalogErrors, type CatalogProps } from "@core/FileStructue/Catalog/Catalog";
 import CatalogEntry from "@core/FileStructue/Catalog/CatalogEntry";
 import { Category, type CategoryProps } from "@core/FileStructue/Category/Category";
-import { Item, ItemRef } from "@core/FileStructue/Item/Item";
+import { Item } from "@core/FileStructue/Item/Item";
+import { ItemRef } from "@core/FileStructue/Item/ItemRef";
 import CatalogEditProps from "@ext/catalog/actions/propsEditor/model/CatalogEditProps.schema";
 import { defaultLanguage } from "@ext/localization/core/model/Language";
+import SnippetProvider from "@ext/markdown/elements/snippet/logic/SnippetProvider";
 import matter from "gray-matter";
 import * as yaml from "js-yaml";
 
@@ -28,8 +30,11 @@ export const DOC_ROOT_FILENAME = ".doc-root.yaml";
 export const DOC_ROOT_REGEXP = /.(doc-)?root.yaml/;
 export const CATEGORY_ROOT_FILENAME = "_index.md";
 export const CATEGORY_ROOT_REGEXP = /(_index_\w\w\.md$|_index\.md$)/;
-export const FS_EXCLUDE_FILENAMES = [".git", ".idea", ".vscode", "node_modules"];
-export const FS_EXCLUDE_CATALOG_NAMES = ["IndexCaches"];
+export const FS_EXCLUDE_FILENAMES = [".git", ".idea", ".vscode", "node_modules", ".snippets"];
+export const FS_EXCLUDE_CATALOG_NAMES = [
+	"IndexCaches", // Legacy
+	".storage",
+];
 
 export default class FileStructure {
 	private _rules: FSRule[] = [];
@@ -141,6 +146,7 @@ export default class FileStructure {
 
 		this._rules.forEach((rule) => rule(category, entry.props, true));
 		await this._readCategoryItems(entry.getRootCategoryPath(), category, entry.props, entry.errors);
+		const snippetProvider = new SnippetProvider(this._fp, this, category.folderPath);
 
 		const catalog = new Catalog({
 			name: entry.getName(),
@@ -151,9 +157,9 @@ export default class FileStructure {
 			rootPath: this._fp.rootPath,
 			fs: this,
 			fp: this._fp,
+			snippetProvider,
 			isServerApp: this._isServerApp,
 		});
-		await catalog.initWelcomeArticleIfNeed();
 		return catalog;
 	}
 
@@ -188,25 +194,18 @@ export default class FileStructure {
 		await this._fp.move(category.ref.path.parentDirectoryPath, path);
 	}
 
-	async createArticle(path: Path, parent: Category, props?: FSProps, errors?: CatalogErrors): Promise<Article> {
-		let md;
-		try {
-			md = matter(await this._fp.read(path), {});
-			if (md.data && typeof md.data != "object") throw "Wrong format";
-		} catch (e) {
-			if (typeof errors == "undefined") errors = {};
-			if (!errors.FileStructure) errors.FileStructure = [];
-			errors.FileStructure?.push({
-				code: "YAML error",
-				message: `Invalid matter in markdown file ${path}: ${e.message ?? ""}`,
-			});
-			return null;
-		}
+	async createArticle(
+		path: Path,
+		parent: Category,
+		catalogProps?: FSProps,
+		errors?: CatalogErrors,
+	): Promise<Article> {
+		const { props, content } = this.parseMarkdown(await this._fp.read(path), path, errors);
 
 		const stat = await this._fp.getStat(path);
-		const article = this.makeArticleByProps(path, md.data, md.content, parent, props, stat.mtimeMs);
+		const article = this.makeArticleByProps(path, props, content, parent, catalogProps, stat.mtimeMs);
 
-		this._rules.forEach((rule) => rule(article, props));
+		this._rules.forEach((rule) => rule(article, catalogProps));
 
 		return article;
 	}
@@ -277,7 +276,7 @@ export default class FileStructure {
 					message: `Invalid matter in markdown file${path ? " " + path : ""}: ${e.message ?? ""}`,
 				});
 			}
-			return { props: undefined, content: "" };
+			return { props: {}, content: "" };
 		}
 		return { props: md.data as ArticleProps, content: md.content.trim() };
 	}
@@ -347,7 +346,9 @@ export default class FileStructure {
 		const files = await this._fp.getItems(folderPath);
 		let categories = [parentCategory];
 
-		const indexes = files.filter((f) => !f.isDirectory() && FileStructure.isCategory(f.name));
+		const indexes = files.filter(
+			(f) => !FS_EXCLUDE_FILENAMES.includes(f.name) && f.isFile() && FileStructure.isCategory(f.name),
+		);
 
 		if (!indexes?.length) {
 			await Promise.all(
@@ -396,7 +397,7 @@ export default class FileStructure {
 
 		await Promise.all(
 			files
-				.filter((f) => f.isDirectory())
+				.filter((f) => f.isDirectory() && !FS_EXCLUDE_FILENAMES.includes(f.name))
 				.map(async (f) => {
 					await this._readCategory(f.path, category, catalogProps, catalogErrors);
 				}),

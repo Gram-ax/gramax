@@ -28,6 +28,10 @@ const InitSource = ({ trigger }: { trigger: JSX.Element }) => {
 							<CreateSourceData
 								defaultSourceData={data}
 								defaultSourceType={sourceType}
+								onCreate={() => {
+									setIsOpen(false);
+									refreshPage();
+								}}
 								trigger={<Button>{useLocalize("addStorage")}</Button>}
 							/>
 						</div>

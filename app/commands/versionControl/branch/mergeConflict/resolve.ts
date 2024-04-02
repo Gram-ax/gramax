@@ -1,4 +1,6 @@
 import deleteBranchAfterMerge from "@app/commands/versionControl/branch/mergeConflict/utils/deleteBranchAfterMerge";
+import { ResponseKind } from "@app/types/ResponseKind";
+import ReloadConfirmMiddleware from "@core/Api/middleware/ReloadConfirmMiddleware";
 import GitStorage from "@ext/git/core/GitStorage/GitStorage";
 import GitSourceData from "@ext/git/core/model/GitSourceData.schema";
 import SourceType from "@ext/storage/logic/SourceDataProvider/model/SourceType";
@@ -6,8 +8,7 @@ import { MergeFile } from "../../../../../core/extensions/git/actions/MergeConfl
 import BranchGitMergeConflictResolver from "../../../../../core/extensions/git/core/GitMergeConflictResolver/Branch/BranchGitMergeConflictResolver";
 import { AuthorizeMiddleware } from "../../../../../core/logic/Api/middleware/AuthorizeMiddleware";
 import Context from "../../../../../core/logic/Context/Context";
-import { Command, ResponseKind } from "../../../../types/Command";
-import ReloadConfirmMiddleware from "@core/Api/middleware/ReloadConfirmMiddleware";
+import { Command } from "../../../../types/Command";
 
 const resolve: Command<
 	{

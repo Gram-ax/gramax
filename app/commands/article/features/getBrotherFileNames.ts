@@ -1,7 +1,8 @@
+import { ResponseKind } from "@app/types/ResponseKind";
 import { AuthorizeMiddleware } from "@core/Api/middleware/AuthorizeMiddleware";
 import { DesktopModeMiddleware } from "@core/Api/middleware/DesktopModeMiddleware";
 import Path from "@core/FileProvider/Path/Path";
-import { Command, ResponseKind } from "../../../types/Command";
+import { Command } from "../../../types/Command";
 
 const getBrotherFileNames: Command<{ path: Path; catalogName: string }, string[]> = Command.create({
 	path: "article/features/getBrotherFileNames",

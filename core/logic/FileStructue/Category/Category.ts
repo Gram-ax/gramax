@@ -3,7 +3,9 @@ import Path from "../../FileProvider/Path/Path";
 import { ClientArticleProps } from "../../SitePresenter/SitePresenter";
 import { Article, ArticleInitProps, type ArticleProps } from "../Article/Article";
 import { FSProps } from "../FileStructure";
-import { Item, ItemRef, ItemType } from "../Item/Item";
+import { Item } from "../Item/Item";
+import { ItemRef } from "../Item/ItemRef";
+import { ItemType } from "../Item/ItemType";
 
 export type CategoryInitProps = ArticleInitProps<CategoryProps> & {
 	directory: Path;

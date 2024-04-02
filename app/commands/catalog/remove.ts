@@ -1,6 +1,6 @@
 import { AuthorizeMiddleware } from "@core/Api/middleware/AuthorizeMiddleware";
-import { Command } from "../../types/Command";
 import ReloadConfirmMiddleware from "@core/Api/middleware/ReloadConfirmMiddleware";
+import { Command } from "../../types/Command";
 
 const remove: Command<{ catalogName: string }, void> = Command.create({
 	path: "catalog/remove",

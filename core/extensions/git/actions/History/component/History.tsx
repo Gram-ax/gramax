@@ -1,26 +1,42 @@
-import ListItem from "@components/Layouts/CatalogLayout/RightNavigation/ListItem";
 import Checkbox from "@components/Atoms/Checkbox";
 import DiffContent from "@components/Atoms/DiffContent";
 import SpinnerLoader from "@components/Atoms/SpinnerLoader";
+import Tooltip from "@components/Atoms/Tooltip";
+import ListItem from "@components/Layouts/CatalogLayout/RightNavigation/ListItem";
 import LeftNavViewContent, { ViewContent } from "@components/Layouts/LeftNavViewContent/LeftNavViewContent";
 import LogsLayout from "@components/Layouts/LogsLayout";
 import ModalLayout from "@components/Layouts/Modal";
 import FetchService from "@core-ui/ApiServices/FetchService";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
+import ArticlePropsService from "@core-ui/ContextServices/ArticleProps";
+import CatalogPropsService from "@core-ui/ContextServices/CatalogProps";
+import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import styled from "@emotion/styled";
-import { useState } from "react";
+import { FileStatus } from "@ext/Watchers/model/FileStatus";
+import { GitStatus } from "@ext/git/core/GitWatcher/model/GitStatus";
+import useHasRemoteStorage from "@ext/storage/logic/utils/useHasRemoteStorage";
+import useIsStorageInitialized from "@ext/storage/logic/utils/useIsStorageIniziliate";
+import { useEffect, useState } from "react";
 import useLocalize from "../../../../localization/useLocalize";
 import User from "../../../../security/components/User/User";
 import { ArticleHistoryViewModel } from "../model/ArticleHistoryViewModel";
 
-const History = styled(({ className, shouldRender }: { className?: string; shouldRender: boolean }) => {
-	if (!shouldRender) return null;
-
+const History = styled(({ className }: { className?: string }) => {
 	const apiUrlCreator = ApiUrlCreatorService.value;
+	const articleProps = ArticlePropsService.value;
+	const catalogProps = CatalogPropsService.value;
+	const pageData = PageDataContextService.value;
+	const { isReadOnly } = pageData.conf;
+
+	const [isFileNew, setIsFileNew] = useState(false);
 	const [showDiff, setShowDiff] = useState(true);
 	const [isOpen, setIsOpen] = useState(false);
 	const [data, setData] = useState<ArticleHistoryViewModel[]>(null);
 	const showDiffText = useLocalize("showDiffs");
+
+	const hasRemoteStorage = useHasRemoteStorage();
+	const isStorageInitialized = useIsStorageInitialized();
+	const disabled = !hasRemoteStorage || !isStorageInitialized || isFileNew;
 
 	const loadData = async () => {
 		const response = await FetchService.fetch<ArticleHistoryViewModel[]>(
@@ -32,6 +48,17 @@ const History = styled(({ className, shouldRender }: { className?: string; shoul
 		}
 		setData(await response.json());
 	};
+
+	const getIsFileNew = async () => {
+		const res = await FetchService.fetch<GitStatus>(apiUrlCreator.getVersionControlFileStatus());
+		const gitStatus = await res.json();
+		setIsFileNew(!gitStatus || gitStatus.type == FileStatus.new);
+	};
+
+	useEffect(() => {
+		if (!hasRemoteStorage || !isStorageInitialized || isReadOnly) return;
+		void getIsFileNew();
+	}, [catalogProps.name, articleProps.logicPath, hasRemoteStorage, isStorageInitialized, isReadOnly]);
 
 	const spinnerLoader = (
 		<LogsLayout style={{ overflow: "hidden" }}>
@@ -52,7 +79,16 @@ const History = styled(({ className, shouldRender }: { className?: string; shoul
 				setData(null);
 			}}
 			contentWidth={data ? "L" : null}
-			trigger={<ListItem iconCode="history" text={useLocalize("versionHistory")} />}
+			trigger={
+				<Tooltip content={useLocalize("fileHistoryWarning")} disabled={!disabled}>
+					<ListItem
+						onClick={() => setIsOpen(true)} // без этого не работает
+						disabled={disabled}
+						iconCode="history"
+						text={useLocalize("versionHistory")}
+					/>
+				</Tooltip>
+			}
 		>
 			<div className={className}>
 				{data ? (

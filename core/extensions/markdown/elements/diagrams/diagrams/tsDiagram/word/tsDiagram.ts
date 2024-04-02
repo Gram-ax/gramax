@@ -7,6 +7,6 @@ export const tsDiagramWordLayout: WordBlockChild = async ({ tag, resourceManager
 		tag,
 		DiagramType["ts-diagram"],
 		resourceManager,
-		parserContext.getEnterpriseServerUrl(),
+		parserContext.getDiagramRendererServerUrl(),
 	);
 };

@@ -4,15 +4,21 @@ import ParserContext from "@ext/markdown/core/Parser/ParserContext/ParserContext
 import DiagramsFormatter from "@ext/markdown/elements/diagrams/logic/DiagramsFormatter";
 import codeBlockFormatter from "@ext/markdown/elements/fence/edit/logic/codeBlockFormatter";
 import OpenApiFormatter from "@ext/markdown/elements/openApi/edit/logic/OpenApiFormatter";
+import TabFormatter from "@ext/markdown/elements/tabs/logic/TabFormatter";
+import TabsFormatter from "@ext/markdown/elements/tabs/logic/TabsFormatter";
+import SnippetFormatter from "@ext/markdown/elements/snippet/edit/logic/SnippetFormatter";
 import screenSymbols from "@ext/markdown/logic/screenSymbols";
 import TableUtils from "../Utils/Table";
 
-const blocks = ["Db-diagram", "Db-table"];
+const blocks = ["Db-diagram", "Db-table", "Snippet"];
 
 const getNodeFormatters = (context?: ParserContext): { [node: string]: NodeSerializerSpec } => ({
-	diagrams: DiagramsFormatter,
 	code_block: codeBlockFormatter,
+	diagrams: DiagramsFormatter,
+	snippet: SnippetFormatter,
 	openapi: OpenApiFormatter,
+	tabs: TabsFormatter,
+	tab: TabFormatter,
 
 	inlineMd_component: (state, node) => {
 		const isBlock = blocks.includes(node.attrs.tag?.[0]?.name);

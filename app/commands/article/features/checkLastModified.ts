@@ -1,10 +1,11 @@
+import { ResponseKind } from "@app/types/ResponseKind";
 import { AuthorizeMiddleware } from "@core/Api/middleware/AuthorizeMiddleware";
 import Context from "@core/Context/Context";
 import Path from "@core/FileProvider/Path/Path";
 import { Article } from "@core/FileStructue/Article/Article";
 import { ArticlePageData } from "@core/SitePresenter/SitePresenter";
 import DefaultError from "../../../../core/extensions/errorHandlers/logic/DefaultError";
-import { Command, ResponseKind } from "../../../types/Command";
+import { Command } from "../../../types/Command";
 
 const checkLastModified: Command<{ ctx: Context; articlePath: Path; catalogName: string }, ArticlePageData> =
 	Command.create({

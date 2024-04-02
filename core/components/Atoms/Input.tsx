@@ -1,5 +1,5 @@
 import styled from "@emotion/styled";
-import { HTMLProps, forwardRef, ChangeEvent, MutableRefObject } from "react";
+import { ChangeEvent, HTMLProps, MutableRefObject, forwardRef } from "react";
 import Icon from "./Icon";
 import Tooltip from "./Tooltip";
 
@@ -12,7 +12,6 @@ interface InputProps extends HTMLProps<HTMLInputElement> {
 	isCode?: boolean;
 	errorText?: string;
 	showErrorText?: boolean;
-	disable?: boolean;
 	tabIndex?: number;
 }
 
@@ -49,7 +48,7 @@ const Input = forwardRef((props: InputProps, ref?: MutableRefObject<HTMLInputEle
 
 export default styled(Input)`
 	gap: 0.5rem;
-	${(p) => (p.disable ? "pointer-events: none;" : "")}
+	${(p) => (p.disabled ? "pointer-events: none;" : "")}
 	width: 100%;
 	display: flex;
 	align-items: center;

@@ -11,7 +11,7 @@ export interface ListItem {
 }
 
 export interface ButtonItem extends ListItem {
-	onCLick?: () => void;
+	onClick?: () => void;
 	icon?: string;
 }
 

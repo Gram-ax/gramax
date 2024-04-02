@@ -3,9 +3,18 @@ import { cssMedia } from "@core-ui/utils/cssUtils";
 import styled from "@emotion/styled";
 
 const FormStyle = styled(
-	({ className, children }: { padding?: string; overflow?: boolean; className?: string; children?: JSX.Element }) => (
+	({
+		className,
+		children,
+	}: {
+		padding?: string;
+		overflow?: boolean;
+		className?: string;
+		formDirection?: "row" | "column";
+		children?: JSX.Element;
+	}) => (
 		<div className={classNames("form-layout", {}, [className])}>
-			<fieldset>{children}</fieldset>
+			<div>{children}</div>
 		</div>
 	),
 )`
@@ -18,23 +27,7 @@ const FormStyle = styled(
 	padding: ${(p) => p.padding ?? "1rem"};
 	overflow: ${(p) => (p.overflow ?? true ? "auto" : "")};
 
-	fieldset {
-		border: 0;
-		width: 100%;
-		min-width: 100%;
-		max-width: 100%;
-
-		.description {
-			font-size: 18px;
-			font-weight: normal;
-			margin-bottom: 0.5rem;
-		}
-
-		span.required {
-			margin-left: 0.2rem;
-			color: var(--color-admonition-danger-br-h);
-		}
-
+	> div {
 		legend {
 			line-height: 1.5;
 			font-weight: 400;
@@ -43,78 +36,103 @@ const FormStyle = styled(
 			color: var(--color-article-heading-text);
 		}
 
-		h3 {
-			margin: 1.5rem 0px 0.5rem;
-		}
-
-		.separator {
-			height: 2rem;
-		}
-
-		.control-label {
-			font-weight: 400;
-		}
-
-		.field {
-			font-size: 14px;
-		}
-
-		.field.field-height {
-			height: 34px;
-		}
-
-		.form-group {
+		.description {
+			font-size: 18px;
+			font-weight: normal;
 			margin-bottom: 0.5rem;
 		}
 
-		.field.column {
-			gap: 0.4rem;
+		fieldset {
+			border: 0;
+			width: 100%;
+			min-width: 100%;
+			max-width: 100%;
+
 			display: flex;
-			flex-direction: column;
-		}
+			flex-direction: ${(p) => p?.formDirection ?? "column"};
+			${(p) => (p?.formDirection ? "gap: 1rem;" : "")}
 
-		.field.row {
-			display: flex;
-			align-items: baseline;
-			flex-direction: row;
-			justify-content: space-between;
+			span.required {
+				margin-left: 0.2rem;
+				color: var(--color-admonition-danger-br-h);
+			}
 
-			> .control-label {
-				flex: 0.4;
+			h3 {
+				margin: 1.5rem 0px 0.5rem;
+			}
 
-				> div {
-					${cssMedia.narrow} {
-						width: min-content;
+			.separator {
+				height: 2rem;
+			}
+
+			.control-label {
+				font-weight: 400;
+			}
+
+			.field {
+				font-size: 14px;
+			}
+
+			.field.field-height {
+				height: 34px;
+			}
+
+			.form-group {
+				margin-bottom: 0.5rem;
+				${(p) => (p?.formDirection ? "flex: 1;" : "")}
+			}
+
+			.field.column {
+				gap: 0.4rem;
+				display: flex;
+				flex-direction: column;
+			}
+
+			.field.row {
+				display: flex;
+				align-items: baseline;
+				flex-direction: row;
+				justify-content: space-between;
+
+				> .control-label {
+					flex: 0.4;
+
+					> div {
+						${cssMedia.narrow} {
+							width: min-content;
+						}
 					}
+				}
+
+				> .input-lable {
+					flex: 0.6;
+					max-width: 60%;
+				}
+				> .input-lable.full-width {
+					flex: 1;
+					max-width: 100%;
 				}
 			}
 
-			> .input-lable {
-				flex: 0.6;
-			}
-			> .input-lable.full-width {
-				flex: 1;
-			}
-		}
+			.input-lable-description {
+				display: flex;
+				flex-direction: row;
 
-		.input-lable-description {
-			display: flex;
-			flex-direction: row;
+				> div:first-of-type {
+					flex: 0.4;
+				}
 
-			> div:first-of-type {
-				flex: 0.4;
+				> div:last-child {
+					flex: 0.6;
+					font-size: 12px;
+					color: var(--color-text-main);
+				}
 			}
 
-			> div:last-child {
-				flex: 0.6;
-				font-size: 12px;
-				color: var(--color-text-main);
-			}
-		}
-
-		.input-lable-description.full-width {
-			> div:last-child {
-				flex: 1;
+			.input-lable-description.full-width {
+				> div:last-child {
+					flex: 1;
+				}
 			}
 		}
 

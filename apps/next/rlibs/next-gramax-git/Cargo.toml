@@ -1,0 +1,13 @@
+[package]
+name = "next-gramax-git"
+version = "0.0.0"
+edition = "2021"
+exclude = ["gramax-git.node"]
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+neon = { version = "^1.0.0-alpha", features = ["napi-8"] }
+neon-serde = { git = "https://github.com/pashokitsme/neon-serde.git", branch = "1.0.0-alpha" }
+gramax-git = { path = "../../../../rlibs/git" }

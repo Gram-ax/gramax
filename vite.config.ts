@@ -54,7 +54,7 @@ export default (): UserConfig => ({
 		ifdef(),
 		polyfills({
 			protocolImports: false,
-			exclude: ["buffer"],
+			exclude: ["buffer", "module"],
 		}),
 	],
 
@@ -68,7 +68,7 @@ export default (): UserConfig => ({
 			"@ext": path.resolve(__dirname, "core/extensions"),
 			"@app": path.resolve(__dirname, "app"),
 			"@services": path.resolve(__dirname, "services/core"),
-			"@app-plugins/git": path.resolve(__dirname, "target/tauri/plugins/plugin-gramax-git/webview-src"),
+			"fs-extra": path.resolve(__dirname, "core/logic/FileProvider/DiskFileProvider/DFPIntermediateCommands.ts"),
 		},
 	},
 
@@ -92,7 +92,12 @@ export default (): UserConfig => ({
 	publicDir: "./core/public",
 	envPrefix: ["VITE", "TAURI", "GX"],
 
+	worker: {
+		format: "es",
+	},
+
 	build: {
+		target: "esnext",
 		emptyOutDir: true,
 		modulePreload: true,
 		chunkSizeWarningLimit: 5000,

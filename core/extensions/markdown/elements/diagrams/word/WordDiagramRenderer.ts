@@ -12,7 +12,7 @@ export class WordDiagramRenderer {
 		tag: Tag,
 		diagramType: DiagramType,
 		resourceManager: ResourceManager,
-		enterpriseServerUrl?: string,
+		diagramRendererServerUrl?: string,
 	) {
 		if (tag.attributes.src && tag.attributes.content) return;
 
@@ -20,7 +20,7 @@ export class WordDiagramRenderer {
 			tag.attributes.content ?? (await resourceManager.getContent(new Path(tag.attributes.src))).toString();
 
 		try {
-			const diagram = await new Diagrams(enterpriseServerUrl).getDiagram(diagramType, diagramContent);
+			const diagram = await new Diagrams(diagramRendererServerUrl).getDiagram(diagramType, diagramContent);
 			const diagramImage = await WordExportHelper.getImageFromDom(diagram);
 
 			const dimensions = await WordExportHelper.getImageSizeFromImageData(diagramImage);
@@ -35,7 +35,7 @@ export class WordDiagramRenderer {
 		tag: Tag,
 		diagramType: DiagramType,
 		resourceManager: ResourceManager,
-		enterpriseServerUrl: string,
+		diagramRendererServerUrl: string,
 	) {
 		if (tag.attributes.src && tag.attributes.content) return;
 
@@ -43,7 +43,7 @@ export class WordDiagramRenderer {
 			tag.attributes.content ?? (await resourceManager.getContent(new Path(tag.attributes.src))).toString();
 
 		try {
-			const diagramString = await new Diagrams(enterpriseServerUrl).getDiagram(diagramType, diagramContent, NaN);
+			const diagramString = await new Diagrams(diagramRendererServerUrl).getDiagram(diagramType, diagramContent, NaN);
 			const diagramJson: C4Data = JSON.parse(diagramString);
 
 			const images = [];

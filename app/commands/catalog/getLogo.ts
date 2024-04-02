@@ -1,9 +1,10 @@
+import { ResponseKind } from "@app/types/ResponseKind";
 import MimeTypes from "@core-ui/ApiServices/Types/MimeTypes";
 import Path from "@core/FileProvider/Path/Path";
-import { ItemRef } from "@core/FileStructue/Item/Item";
+import { ItemRef } from "@core/FileStructue/Item/ItemRef";
 import HashItemRef from "@core/Hash/HashItems/HashItemRef";
 import Theme from "@ext/Theme/Theme";
-import { Command, ResponseKind } from "../../types/Command";
+import { Command } from "../../types/Command";
 
 const getLogo: Command<{ catalogName: string; themeName: string }, { hashItem: HashItemRef; mime: string }> =
 	Command.create({

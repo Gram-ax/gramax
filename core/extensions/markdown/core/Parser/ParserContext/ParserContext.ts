@@ -22,7 +22,8 @@ export default interface ParserContext {
 	getBasePath(): Path;
 	getIsLogged(): boolean;
 	getLanguage(): Language;
-	getEnterpriseServerUrl(): string;
+	getDiagramRendererServerUrl(): string;
+	getSsoServerUrl(): string;
 	getProp(propName: string): any;
 	getTablesManager(): TableDB;
 	getUserByMail(mail: string): Promise<UserInfo>;
@@ -30,9 +31,16 @@ export default interface ParserContext {
 	fp: FileProvider;
 	parser: MarkdownParser;
 	formatter: MarkdownFormatter;
+	snippet: Set<string>;
 }
 
 export abstract class BaseContext {
+	private _snippet = new Set<string>();
+
+	get snippet() {
+		return this._snippet;
+	}
+
 	abstract getArticle(): Article;
 
 	getProp(propName: string): any {

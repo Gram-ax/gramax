@@ -87,7 +87,7 @@
 		{
 			"text": "[issue:DR-1]",
 			"renderTree": { "$$mdtype": "Tag", "name": "Issue", "attributes": { "id": "DR-1" }, "children": [] },
-			"html": "<a class=\"issueLink\" href=\"https://support.ics-it.ru/issue/DR-1\" data-id=\"DR-1\" target=\"_blank\" rel=\"noopener\">DR-1<span style=\"white-space:nowrap;padding:0\" data-mdignore=\"true\">﻿<i class=\"fa-external-link linkIcon fa-light\" style=\"font-weight:300\"></i></span></a>"
+			"html": "<a class=\"issueLink\" href=\"https://support.ics-it.ru/issue/DR-1\" data-id=\"DR-1\" target=\"_blank\" rel=\"noopener\">DR-1<span style=\"white-space:nowrap;padding:0\" data-mdignore=\"true\">﻿<i class=\"fa-external-link linkIcon fa-regular\" style=\"font-weight:300\"></i></span></a>"
 		}
 	],
 	"Module": [

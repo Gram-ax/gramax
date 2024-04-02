@@ -10,9 +10,8 @@ export default {
 
 export const WatchTree = () => (
 	<div style={{ overflow: "auto" }}>
-		<NavigationLayout
-			wathChildren={<NavigationWatchTree items={items.data.itemLinks as []} />}
-			dragChildren={undefined}
-		/>
+		<NavigationLayout>
+			<NavigationWatchTree items={items.data.itemLinks as []} />
+		</NavigationLayout>
 	</div>
 );

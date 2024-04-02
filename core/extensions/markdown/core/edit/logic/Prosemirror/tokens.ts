@@ -16,6 +16,9 @@ import linkToken from "../../../../elements/link/edit/model/linkToken";
 import video from "../../../../elements/video/edit/model/videoToken";
 import ParserContext from "../../../Parser/ParserContext/ParserContext";
 
+import snippetToken from "@ext/markdown/elements/snippet/edit/model/snippetToken";
+import tabToken from "@ext/markdown/elements/tabs/edit/model/tab/tabToken";
+import tabsToken from "@ext/markdown/elements/tabs/edit/model/tabs/tabsToken";
 import { ParseSpec } from "./from_markdown";
 
 function listIsTight(tokens, i) {
@@ -27,12 +30,15 @@ const getTokensByContext = (context?: ParserContext): { [name: string]: ParseSpe
 	return {
 		link: linkToken(context),
 		comment: commentToken(context),
+		snippet: snippetToken(context),
 	};
 };
 
 export const getTokens = (context?: ParserContext): { [name: string]: ParseSpec } => {
 	const contextTokens = context ? getTokensByContext(context) : {};
 	return {
+		tab: tabToken,
+		tabs: tabsToken,
 		image: imageToken(),
 		drawio: drawioToken(),
 		openapi: openApiToken,

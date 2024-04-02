@@ -267,10 +267,10 @@ DiagramEditor.prototype.getFrameUrl = function () {
  */
 DiagramEditor.prototype.createFrame = function (url, style) {
 	var frame = document.createElement("iframe");
+	frame.setAttribute("credentialless", "true");
 	frame.setAttribute("frameborder", "0");
 	frame.setAttribute("style", style);
 	frame.setAttribute("src", url);
-
 	return frame;
 };
 

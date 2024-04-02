@@ -1,11 +1,11 @@
-import type ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
 import FetchService from "@core-ui/ApiServices/FetchService";
-import MimeTypes from "@core-ui/ApiServices/Types/MimeTypes";
+import type ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
 import type Branch from "@ext/VersionControl/model/branch/Branch";
 import type { SourceAPI, SourceUser } from "@ext/git/actions/Source/SourceAPI";
 import type GitSourceData from "@ext/git/core/model/GitSourceData.schema";
 import getStorageNameByData from "@ext/storage/logic/utils/getStorageNameByData";
 import type StorageData from "@ext/storage/models/StorageData";
+import MimeTypes from "@core-ui/ApiServices/Types/MimeTypes";
 
 abstract class GitSourceApi implements SourceAPI {
 	constructor(protected _data: GitSourceData) {}

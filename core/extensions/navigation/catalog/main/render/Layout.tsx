@@ -1,21 +1,8 @@
-import IsEditService from "@core-ui/ContextServices/IsEdit";
 import styled from "@emotion/styled";
 
-export default styled(
-	({
-		dragChildren,
-		wathChildren,
-		className,
-	}: {
-		wathChildren: JSX.Element;
-		dragChildren: JSX.Element;
-		className?: string;
-	}) => {
-		const isEdit = IsEditService.value;
-
-		return <div className={className}>{isEdit ? dragChildren : wathChildren}</div>;
-	},
-)`
+export default styled(({ children, className }: { children: JSX.Element; className?: string }) => {
+	return <div className={className}>{children}</div>;
+})`
 	padding-top: 10px;
 	margin-bottom: 1.5rem;
 

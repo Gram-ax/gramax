@@ -10,10 +10,7 @@ abstract class Base {
 	protected _componentIsShow: boolean;
 	protected _lastPosition: number = null;
 
-	constructor(
-		protected _view: EditorView,
-		protected _editor: Editor,
-	) {
+	constructor(protected _view: EditorView, protected _editor: Editor) {
 		this._tooltip = document.createElement("div");
 		this._tooltip.style.position = "absolute";
 		this._view.dom.parentElement.appendChild(this._tooltip);

@@ -8,10 +8,12 @@ import ModalLayoutLight from "@components/Layouts/ModalLayoutLight";
 import MimeTypes from "@core-ui/ApiServices/Types/MimeTypes";
 import ArticlePropsService from "@core-ui/ContextServices/ArticleProps";
 import CatalogPropsService from "@core-ui/ContextServices/CatalogProps";
+import openNewTab from "@core-ui/utils/openNewTab";
 import { useRouter } from "@core/Api/useRouter";
 import Path from "@core/FileProvider/Path/Path";
 import RouterPathProvider from "@core/RouterPath/RouterPathProvider";
 import type { ClientCatalogProps } from "@core/SitePresenter/SitePresenter";
+import validateEncodingSymbolsUrl from "@core/utils/validateEncodingSymbolsUrl";
 import getCatalogEditProps from "@ext/catalog/actions/propsEditor/logic/getCatalogEditProps";
 import getRepUrl from "@ext/git/core/GitPathnameHandler/clone/logic/getRepUrl";
 import GitShareData from "@ext/git/core/model/GitShareData";
@@ -95,7 +97,7 @@ const CatalogPropsEditor = ({
 		noEncodingSymbolsInUrl: string,
 	): string => {
 		if (allCatalogNames.includes(url)) return suchCatalogExists;
-		if (!/^[\w\d\-_]+$/m.test(url)) return noEncodingSymbolsInUrl;
+		if (!validateEncodingSymbolsUrl(url)) return noEncodingSymbolsInUrl;
 		return null;
 	};
 
@@ -123,27 +125,32 @@ const CatalogPropsEditor = ({
 					<ErrorHandler>
 						<Form<CatalogEditProps>
 							leftButton={
-								<Button
-									style={{ margin: 0 }}
-									buttonStyle={ButtonStyle.underline}
-									onClick={() => {
-										const pathnameData = RouterPathProvider.parsePath(
-											new Path(catalogProps.link.pathname),
-										);
-										const gitShareData: GitShareData = {
-											domain: pathnameData.sourceName,
-											group: pathnameData.group,
-											sourceType: getPartGitSourceDataByStorageName(pathnameData.sourceName)
-												.sourceType,
-											branch: pathnameData.branch,
-											name: pathnameData.repName,
-											filePath: "",
-										};
-										window.open(getRepUrl(gitShareData).href);
-									}}
-								>
-									{useLocalize("openIn") + " " + sourceType}
-								</Button>
+								<>
+									{!!sourceType && (
+										<Button
+											style={{ margin: 0 }}
+											buttonStyle={ButtonStyle.underline}
+											onClick={() => {
+												const pathnameData = RouterPathProvider.parsePath(
+													new Path(catalogProps.link.pathname),
+												);
+												const gitShareData: GitShareData = {
+													domain: pathnameData.sourceName,
+													group: pathnameData.group,
+													sourceType: getPartGitSourceDataByStorageName(
+														pathnameData.sourceName,
+													).sourceType,
+													branch: pathnameData.branch,
+													name: pathnameData.repName,
+													filePath: "",
+												};
+												openNewTab(getRepUrl(gitShareData).href);
+											}}
+										>
+											{useLocalize("openIn") + " " + sourceType}
+										</Button>
+									)}
+								</>
 							}
 							schema={Schema as JSONSchema7}
 							props={getCatalogEditProps(catalogProps)}

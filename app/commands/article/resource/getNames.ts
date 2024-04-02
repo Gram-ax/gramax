@@ -1,8 +1,9 @@
+import { ResponseKind } from "@app/types/ResponseKind";
 import Context from "@core/Context/Context";
 import Path from "@core/FileProvider/Path/Path";
 import { Article } from "@core/FileStructue/Article/Article";
 import parseContent from "@core/FileStructue/Article/parseContent";
-import { Command, ResponseKind } from "../../../types/Command";
+import { Command } from "../../../types/Command";
 
 const getNames: Command<{ catalogName: string; articlePath: Path; ctx: Context }, string[]> = Command.create({
 	path: "article/resource/getNames",

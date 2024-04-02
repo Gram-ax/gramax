@@ -7,6 +7,7 @@ import getDrawioID from "../../edit/logic/getDrawioID";
 const Drawio = styled(({ src, title, className }: { src: string; title: string; className?: string }): ReactElement => {
 	const articleProps = ArticlePropsService.value;
 
+	if (!src) return null;
 	return <Image src={src} id={getDrawioID(src, articleProps.logicPath)} className={className} title={title} />;
 })`
 	padding: 20px;

@@ -1,4 +1,5 @@
 import CatalogEntry from "@core/FileStructue/Catalog/CatalogEntry";
+import { ItemRef } from "@core/FileStructue/Item/ItemRef";
 import { FileStatus } from "@ext/Watchers/model/FileStatus";
 import { ItemStatus } from "@ext/Watchers/model/ItemStatus";
 import RepositoryProvider from "@ext/git/core/Repository/RepositoryProvider";
@@ -6,7 +7,6 @@ import Path from "../FileProvider/Path/Path";
 import FileProvider from "../FileProvider/model/FileProvider";
 import { Catalog, ChangeCatalog } from "../FileStructue/Catalog/Catalog";
 import FileStructure, { DOC_ROOT_REGEXP } from "../FileStructue/FileStructure";
-import { ItemRef } from "../FileStructue/Item/Item";
 import ItemExtensions from "../FileStructue/Item/ItemExtensions";
 
 export type FSCreatedCallback = (fs: FileStructure) => void;

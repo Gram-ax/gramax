@@ -1,17 +1,22 @@
+import ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
+import PageDataContext from "@core/Context/PageDataContext";
+import { ClientCatalogProps } from "@core/SitePresenter/SitePresenter";
+import { hoverTooltip } from "@ext/markdown/elements/link/edit/model/helpers/termsTooltip";
+import getSelectedText from "@ext/markdown/elementsUtils/getSelectedText";
+import addShortcuts from "@ext/markdown/elementsUtils/keyboardShortcuts/addShortcuts";
+import space from "@ext/markdown/logic/keys/marks/space";
 import { Mark, markPasteRule, mergeAttributes } from "@tiptap/core";
 import { find } from "linkifyjs";
 import { autolink } from "./helpers/autolink";
 import { editTooltip } from "./helpers/editTooltip";
 import { pasteHandler } from "./helpers/pasteHandler";
-import getSelectedText from "@ext/markdown/elementsUtils/getSelectedText";
-import space from "@ext/markdown/logic/keys/marks/space";
-import addShortcuts from "@ext/markdown/elementsUtils/keyboardShortcuts/addShortcuts";
-import ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
 
 export interface LinkOptions {
 	autolink: boolean;
 	linkOnPaste: boolean;
 	apiUrlCreator?: ApiUrlCreator;
+	pageDataContext?: PageDataContext;
+	catalogProps?: ClientCatalogProps;
 	HTMLAttributes: Record<string, any>;
 	validate?: (url: string) => boolean;
 }
@@ -151,6 +156,14 @@ export default Link.extend({
 		const plugins = [];
 
 		plugins.push(editTooltip(this.editor, this.options.apiUrlCreator));
+		plugins.push(
+			hoverTooltip(
+				this.editor,
+				this.options.apiUrlCreator,
+				this.options.pageDataContext,
+				this.options.catalogProps,
+			),
+		);
 
 		return plugins;
 	},

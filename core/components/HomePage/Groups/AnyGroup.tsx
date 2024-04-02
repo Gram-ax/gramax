@@ -1,4 +1,4 @@
-import resolveModule from "@app/resolveModule";
+import resolveModule from "@app/resolveModule/frontend";
 import SpinnerLoader from "@components/Atoms/SpinnerLoader";
 import Url from "@core-ui/ApiServices/Types/Url";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";

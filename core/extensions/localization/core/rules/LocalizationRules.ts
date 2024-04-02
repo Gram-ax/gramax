@@ -1,14 +1,14 @@
 import Path from "@core/FileProvider/Path/Path";
 import { ItemFilter } from "@core/FileStructue/Catalog/Catalog";
+import CustomArticlePresenter from "@core/SitePresenter/CustomArticlePresenter";
 import Rules from "@ext/rules/Rule";
-import ErrorArticlePresenter from "../../../../logic/SitePresenter/ErrorArticlePresenter";
 import { NavRules, navProps } from "../../../navigation/catalog/main/logic/Navigation";
 import Language, { defaultLanguage } from "../model/Language";
 
 export default class LocalizationRules implements Rules {
 	private _currentLanguage: Language;
 
-	constructor(language: Language, private _errorArticlePresenter?: ErrorArticlePresenter) {
+	constructor(language: Language, private _customArticlePresenter?: CustomArticlePresenter) {
 		this._currentLanguage = language ?? defaultLanguage;
 	}
 
@@ -20,8 +20,8 @@ export default class LocalizationRules implements Rules {
 			return article.props.lang === this._currentLanguage;
 		};
 
-		if (this._errorArticlePresenter) {
-			(rule as any).errorArticle = this._errorArticlePresenter.getErrorArticle("404");
+		if (this._customArticlePresenter) {
+			(rule as any).errorArticle = this._customArticlePresenter.getArticle("404");
 		}
 		return rule;
 	}

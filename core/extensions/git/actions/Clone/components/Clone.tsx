@@ -67,7 +67,7 @@ const Clone = ({ trigger }: { trigger: JSX.Element }) => {
 			onOpen={() => setIsOpen(true)}
 			onClose={closeForm}
 			onCmdEnter={startClone}
-			trigger={trigger}
+			trigger={<div>{trigger}</div>}
 		>
 			<ModalLayoutLight>
 				{stage === CloneStage.AskForStorage && (

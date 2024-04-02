@@ -10,47 +10,40 @@ import getExtensions from "../../extensions/markdown/core/edit/logic/getExtensio
 import Renderer from "../../extensions/markdown/core/render/components/Renderer";
 import getComponents from "../../extensions/markdown/core/render/components/getComponents/getComponents";
 
-const ArticleRenderer = ({
-	data,
-	onCreate,
-	onBlur,
-	onUpdate,
-	onSelectionUpdate,
-	handlePaste,
-}: {
+interface ArticleRendererProps {
 	data: ArticlePageData;
 	onCreate: () => void;
 	onBlur: ({ editor }: { editor: Editor }) => void;
 	onUpdate: ({ editor }: { editor: Editor }) => void;
 	onSelectionUpdate: ({ editor }: { editor: Editor }) => void;
 	handlePaste: (view: EditorView, event: ClipboardEvent, slice: Slice) => boolean;
-}) => {
+}
+
+const ArticleRenderer = (props: ArticleRendererProps) => {
+	const { data, onCreate, onBlur, onUpdate, onSelectionUpdate, handlePaste } = props;
 	const isEdit = IsEditService.value;
 
 	return (
-		<>
-			{/*  TODO */}
-			<div className={classNames("article-body", { linkViewMode: !isEdit })}>
-				<ErrorHandler>
-					<>
-						{isEdit ? (
-							<ContentEditor
-								content={data.articleContentEdit}
-								extensions={getExtensions()}
-								onCreate={onCreate}
-								onBlur={onBlur}
-								onUpdate={onUpdate}
-								handlePaste={handlePaste}
-								onSelectionUpdate={onSelectionUpdate}
-								deps={[data.articleProps.ref.path]}
-							/>
-						) : (
-							Renderer(JSON.parse(data.articleContentRender), { components: getComponents() }, onCreate)
-						)}
-					</>
-				</ErrorHandler>
-			</div>
-		</>
+		<div className={classNames("article-body")}>
+			<ErrorHandler>
+				<>
+					{isEdit ? (
+						<ContentEditor
+							content={data.articleContentEdit}
+							extensions={getExtensions()}
+							onCreate={onCreate}
+							onBlur={onBlur}
+							onUpdate={onUpdate}
+							handlePaste={handlePaste}
+							onSelectionUpdate={onSelectionUpdate}
+							deps={[data.articleProps.ref.path]}
+						/>
+					) : (
+						Renderer(JSON.parse(data.articleContentRender), { components: getComponents() })
+					)}
+				</>
+			</ErrorHandler>
+		</div>
 	);
 };
 

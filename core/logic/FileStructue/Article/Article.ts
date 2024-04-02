@@ -1,5 +1,7 @@
 import Path from "@core/FileProvider/Path/Path";
 import type FileStructure from "@core/FileStructue/FileStructure";
+import { ItemRef } from "@core/FileStructue/Item/ItemRef";
+import { ItemType } from "@core/FileStructue/Item/ItemType";
 import ResourceUpdater from "@core/Resource/ResourceUpdater";
 import { FileStatus } from "@ext/Watchers/model/FileStatus";
 import { JSONContent } from "@tiptap/core";
@@ -8,7 +10,7 @@ import { TocItem } from "../../../extensions/navigation/article/logic/createTocI
 import ResourceManager from "../../Resource/ResourceManager";
 import { ClientArticleProps } from "../../SitePresenter/SitePresenter";
 import { Category } from "../Category/Category";
-import { Item, ItemRef, ItemType, type ItemProps } from "../Item/Item";
+import { Item, type ItemProps } from "../Item/Item";
 
 export type ArticleInitProps<P extends ItemProps> = {
 	ref: ItemRef;
@@ -24,7 +26,7 @@ export type ArticleInitProps<P extends ItemProps> = {
 };
 
 export type ArticleProps = {
-	welcome?: "editor" | "modal" | false;
+	welcome?: boolean;
 } & ItemProps;
 
 export class Article<P extends ArticleProps = ArticleProps> extends Item<P> {
@@ -143,6 +145,7 @@ export interface Content {
 	tocItems: TocItem[];
 	editTree: JSONContent;
 	renderTree: RenderableTreeNode;
-	resourceManager: ResourceManager;
+	snippets: Set<string>;
 	linkManager: ResourceManager;
+	resourceManager: ResourceManager;
 }

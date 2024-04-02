@@ -1,3 +1,5 @@
+import { TextSize } from "@components/Atoms/Button/Button";
+import ButtonLink from "@components/Molecules/ButtonLink";
 import styled from "@emotion/styled";
 import useLocalize from "../../extensions/localization/useLocalize";
 import ArticleUpdaterService from "../Article/ArticleUpdater/ArticleUpdaterService";
@@ -21,19 +23,23 @@ const Menu = styled(
 			<div className={className}>
 				<PopupMenuLayout>
 					{showEditButton && (
-						<div onClick={() => editOnClick()}>
-							<span>{useLocalize("edit") + "..."}</span>
-						</div>
+						<ButtonLink
+							onClick={() => editOnClick()}
+							textSize={TextSize.S}
+							iconCode="pen"
+							text={useLocalize("edit") + "..."}
+						/>
 					)}
 
-					<div
+					<ButtonLink
 						onClick={() => {
 							ArticleUpdaterService.stopLoadingAfterFocus();
 							deleteOnClick();
 						}}
-					>
-						<span>{deleteText}</span>
-					</div>
+						textSize={TextSize.S}
+						iconCode="trash"
+						text={deleteText}
+					/>
 				</PopupMenuLayout>
 			</div>
 		);

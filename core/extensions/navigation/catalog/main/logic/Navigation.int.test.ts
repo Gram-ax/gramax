@@ -9,7 +9,7 @@ import Navigation from "./Navigation";
 
 const getNavigationData = async () => {
 	const app = await getApplication();
-	const errorArticlesProvider = app.errorArticlesProvider;
+	const errorArticlesProvider = app.customArticlePresenter;
 	const nav = new Navigation();
 
 	const user = new User();

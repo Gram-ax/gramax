@@ -1,4 +1,8 @@
+import { GRAMAX_EDITOR_URL } from "@app/config/const";
+import Context from "@core/Context/Context";
 import { Article } from "@core/FileStructue/Article/Article";
+import RouterPathProvider from "@core/RouterPath/RouterPathProvider";
+import RuleProvider from "@ext/rules/RuleProvider";
 import Path from "../../../logic/FileProvider/Path/Path";
 import FileProvider from "../../../logic/FileProvider/model/FileProvider";
 import { Catalog, CatalogErrorArgs, CatalogErrors } from "../../../logic/FileStructue/Catalog/Catalog";
@@ -6,24 +10,30 @@ import { Item } from "../../../logic/FileStructue/Item/Item";
 import ItemExtensions from "../../../logic/FileStructue/Item/ItemExtensions";
 import ResourceExtensions from "../../../logic/Resource/ResourceExtensions";
 import ApiUrlCreator from "../../../ui-logic/ApiServices/ApiUrlCreator";
-import Language from "../../localization/core/model/Language";
 import ParserContextFactory from "../../markdown/core/Parser/ParserContext/ParserContextFactory";
 
 class Healthcheck {
 	constructor(
 		private _fp: FileProvider,
-		private _isServerApp: boolean,
-		private _isLogged: boolean,
-		private _lang: Language,
+		private _ctx: Context,
 		private _parserContextFactory: ParserContextFactory,
 	) {}
 
 	async getLinkChecks(catalog: Catalog): Promise<CatalogErrors> {
 		const errors: CatalogErrors = {};
+		const rp = new RuleProvider(this._ctx);
+		const filters = rp.getItemFilters();
 		if (!catalog) return {};
 
 		for (const item of catalog.getContentItems()) {
-			const context = this._parserContextFactory.fromArticle(item, catalog, this._lang, this._isLogged);
+			if (!filters.every((f) => f(item, catalog))) continue;
+
+			const context = this._parserContextFactory.fromArticle(
+				item,
+				catalog,
+				this._ctx.lang,
+				this._ctx.user.isLogged,
+			);
 
 			if (!item.parsedContent) continue;
 
@@ -46,15 +56,7 @@ class Healthcheck {
 
 		const categories = catalog.getCategories();
 		for (const category of categories) {
-			const context = this._parserContextFactory.fromArticle(category, catalog, this._lang, this._isLogged);
-			const apiUrlCreator = new ApiUrlCreator(
-				context.getBasePath().value,
-				null,
-				null,
-				null,
-				catalog.getName(),
-				category.ref.path.value,
-			);
+			if (!filters.every((f) => f(category, catalog))) continue;
 
 			const refs = category?.props?.refs;
 
@@ -69,7 +71,7 @@ class Healthcheck {
 						errors.Links.push(
 							this._getRefCatalogError({
 								linkTo: refs[key],
-								editorLink: await this._getErrorLink(catalog, category, apiUrlCreator),
+								editorLink: await this._getErrorLink(catalog, category),
 								title: category.getTitle() ?? new Path(category.logicPath).name,
 								logicPath: category.logicPath,
 							}),
@@ -104,7 +106,7 @@ class Healthcheck {
 					linkTo: resource.value,
 					logicPath: item.logicPath,
 					title: item.getTitle(),
-					editorLink: await this._getErrorLink(catalog, item, apiUrlCreator),
+					editorLink: await this._getErrorLink(catalog, item),
 				}),
 			);
 		} else {
@@ -115,7 +117,7 @@ class Healthcheck {
 						linkTo: resource.value,
 						logicPath: item.logicPath,
 						title: item.getTitle(),
-						editorLink: await this._getErrorLink(catalog, item, apiUrlCreator),
+						editorLink: await this._getErrorLink(catalog, item),
 					}),
 				);
 			} else {
@@ -126,7 +128,7 @@ class Healthcheck {
 							linkTo: resource.value,
 							logicPath: item.logicPath,
 							title: item.getTitle(),
-							editorLink: await this._getErrorLink(catalog, item, apiUrlCreator),
+							editorLink: await this._getErrorLink(catalog, item),
 						}),
 					);
 				} else {
@@ -136,7 +138,7 @@ class Healthcheck {
 							linkTo: resource.value,
 							logicPath: item.logicPath,
 							title: item.getTitle(),
-							editorLink: await this._getErrorLink(catalog, item, apiUrlCreator),
+							editorLink: await this._getErrorLink(catalog, item),
 						}),
 					);
 				}
@@ -144,11 +146,8 @@ class Healthcheck {
 		}
 	};
 
-	private _getErrorLink = async (catalog: Catalog, item: Item, apiUrlCreator: ApiUrlCreator): Promise<string> => {
-		const storage = catalog.repo.storage;
-		const path = catalog.getRelativeRepPath(item.ref);
-
-		return this._isServerApp ? await storage.getFileLink(path) : apiUrlCreator.getRedirectVScodeUrl().toString();
+	private _getErrorLink = async (catalog: Catalog, item: Item): Promise<string> => {
+		return GRAMAX_EDITOR_URL + "/" + RouterPathProvider.getPathname(await catalog.getPathnameData(item)).value;
 	};
 }
 

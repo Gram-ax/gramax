@@ -6,7 +6,7 @@ import styled from "@emotion/styled";
 import SelectLinkItem from "@ext/artilce/LinkCreator/components/SelectLinkItem";
 import LinkItem from "@ext/artilce/LinkCreator/models/LinkItem";
 import Button, { ButtonProps } from "@ext/markdown/core/edit/components/Menu/Button";
-import { useState, useEffect, HTMLProps } from "react";
+import { HTMLProps, useEffect, useState } from "react";
 
 interface LinkMenuProps extends HTMLProps<HTMLInputElement> {
 	value: string;
@@ -81,7 +81,6 @@ const LinkMenu = (props: LinkMenuProps) => {
 	}, [isReady]);
 
 	if (!isReady) return null;
-
 
 	return (
 		<ModalLayoutDark>

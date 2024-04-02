@@ -35,7 +35,7 @@
 			"@core/*": ["core/logic/*"],
 			"@core-ui/*": ["core/ui-logic/*"],
 			"@app/*": ["app/*"],
-			"@app-plugins/git": ["target/tauri/plugins/plugin-gramax-git/webview-src/"]
+			"@app-plugins/git": ["apps/tauri/plugins/plugin-gramax-git/webview-src"]
 		},
 
 		"importHelpers": true,
@@ -48,27 +48,29 @@
 
 		"jsx": "preserve",
 		"allowJs": true,
-		"checkJs": true
+		"checkJs": false
 	},
 
 	"include": [
 		"./app/**/*",
 		"./core/**/*",
-		"./target/**/*",
+		"./apps/**/*",
 		"./services/**/*",
 		"./storybook/**/*",
 		"./storybook/.storybook/*",
 		"./e2e/**/*",
 		"./scripts/**/*",
-		"./**/*.config.ts"
+		"./**/*.config.ts",
+		"./plugins/**/*"
 	],
 
 	"exclude": [
 		"./**/node_modules",
-		"./**/dist/*",
+		"./**/dist",
 		"./storybook/storybook-static",
-		"./target/tauri/**/target",
-		"./target/tauri/src-tauri/**",
-		"./services/**/Services/TSClassDiagram/files/*"
+		"./apps/tauri/**/target",
+		"./apps/tauri/src-tauri",
+		"./apps/browser/wasm/dist",
+		"./services/**/Services/TSClassDiagram/files"
 	]
 }

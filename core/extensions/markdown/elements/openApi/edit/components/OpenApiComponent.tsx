@@ -22,4 +22,5 @@ const OpenApiComponent = ({ node, updateAttributes, getPos }: NodeViewProps): Re
 		</NodeViewWrapper>
 	);
 };
+
 export default OpenApiComponent;

@@ -1,4 +1,4 @@
-import { ItemRef } from "../../../logic/FileStructue/Item/Item";
+import { ItemRef } from "@core/FileStructue/Item/ItemRef";
 import { FileStatus } from "./FileStatus";
 
 export interface ItemStatus {

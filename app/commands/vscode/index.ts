@@ -1,6 +1,7 @@
+import { ResponseKind } from "@app/types/ResponseKind";
 import { DesktopModeMiddleware } from "@core/Api/middleware/DesktopModeMiddleware";
 import Path from "@core/FileProvider/Path/Path";
-import { Command, ResponseKind } from "../../types/Command";
+import { Command } from "../../types/Command";
 
 const vscode: Command<{ path: string }, string> = Command.create({
 	path: "vscode",

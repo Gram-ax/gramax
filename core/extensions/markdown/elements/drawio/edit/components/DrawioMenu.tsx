@@ -16,7 +16,7 @@ import ApiUrlCreator from "../../../../../../ui-logic/ApiServices/ApiUrlCreator"
 import DiagramEditor from "../../logic/diagram-editor";
 import getDrawioID from "../logic/getDrawioID";
 
-const DrawioEditButton = ({ src, onUpdate }: { src: string; onUpdate: () => void }) => {
+const DrawioEditButton = ({ src }: { src: string }) => {
 	const [base64Img, setBase64Img] = useState(null);
 	const articleProps = ArticlePropsService.value;
 	const apiUrlCreator = ApiUrlCreatorService.value;
@@ -42,7 +42,6 @@ const DrawioEditButton = ({ src, onUpdate }: { src: string; onUpdate: () => void
 		const newBase64Img = DataImageToBase64(getImgTag().src);
 		if (base64Img == newBase64Img) return;
 		await FetchService.fetch(apiUrlCreator.setArticleResource(src, true), newBase64Img);
-		onUpdate();
 	};
 
 	return (
@@ -93,13 +92,7 @@ const DrawioMenu = ({ editor }: { editor: Editor }) => {
 			<ButtonsLayout>
 				<Input placeholder="Подпись" value={title} onChange={handleTitleChange} />
 				<div className="divider" />
-				<DrawioEditButton
-					src={node?.attrs?.src}
-					onUpdate={() => {
-						editor.commands.updateAttributes(node.type, { src: "" });
-						editor.commands.updateAttributes(node.type, { src });
-					}}
-				/>
+				<DrawioEditButton src={node?.attrs?.src} />
 				<Button icon={"trash"} tooltipText={"Удалить"} onClick={handleDelete} />
 			</ButtonsLayout>
 		</ModalLayoutDark>

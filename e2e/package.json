@@ -5,7 +5,7 @@
 	"scripts": {
 		"test": "cucumber-js -f junit:junit.web.xml -f progress-bar -t \"not @next-only\"",
 		"test:next": "cucumber-js -f junit:junit.next.xml -f progress-bar -t \"@next or @next-only\"",
-		"dev": "npm --prefix ../target/browser run dev"
+		"dev": "npm --prefix ../apps/browser run dev"
 	},
 	"dependencies": {
 		"@cucumber/cucumber": "^9.5.1",

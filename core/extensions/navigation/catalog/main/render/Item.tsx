@@ -2,9 +2,9 @@ import Icon from "@components/Atoms/Icon";
 import Link from "@components/Atoms/Link";
 import Url from "@core-ui/ApiServices/Types/Url";
 import ArticlePropsService from "@core-ui/ContextServices/ArticleProps";
+import { ItemType } from "@core/FileStructue/Item/ItemType";
 import styled from "@emotion/styled";
 import { DragOverProps } from "@minoru/react-dnd-treeview";
-import { ItemType } from "../../../../../logic/FileStructue/Item/Item";
 import { CategoryLink, ItemLink } from "../../../NavigationLinks";
 
 const LevNavItem = styled(
@@ -39,7 +39,7 @@ const LevNavItem = styled(
 
 		const Item = (
 			<div
-				onContextMenu={(e) => e.preventDefault()}
+				// onContextMenu={(e) => e.preventDefault()}
 				className={className + " depth-" + level + (!isOpen && isDroppable ? " a-drop-target" : "")}
 				data-qa={`catalog-navigation-${isDroppable ? "category" : "article"}-link-level-${level}`}
 				onClick={onClick}

@@ -15,6 +15,14 @@ interface ScrollspyProps {
 	activeClassName: string;
 }
 
+function removeActiveClassInChildren(parentElement: HTMLElement, activeClassName: string) {
+	const children = parentElement.childNodes;
+	children.forEach((child: HTMLElement) => {
+		if (child.classList) child.classList.remove(activeClassName);
+		if (child.childNodes) removeActiveClassInChildren(child, activeClassName);
+	});
+}
+
 const Scrollspy = forwardRef((props: ScrollspyProps, articleElementRef: MutableRefObject<HTMLDivElement>) => {
 	const { children, className, activeClassName, activeClassEl } = props;
 	const navRef = useRef(null);
@@ -48,9 +56,7 @@ const Scrollspy = forwardRef((props: ScrollspyProps, articleElementRef: MutableR
 
 			if (aEl != prevAEl) {
 				if (aEl) {
-					aEl.parentNode.parentNode.childNodes.forEach((node: HTMLElement) => {
-						if (node.classList) node.classList.remove(activeClassName);
-					});
+					removeActiveClassInChildren(navRef.current, activeClassName);
 					activeClassEl(aEl)?.classList.add(activeClassName);
 				}
 				prevAEl = aEl;

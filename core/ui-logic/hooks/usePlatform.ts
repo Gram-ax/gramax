@@ -1,4 +1,4 @@
-import { getExecutingEnvironment } from "@app/resolveModule";
+import { getExecutingEnvironment } from "@app/resolveModule/env";
 
 export const usePlatform = () => {
 	const Environment = getExecutingEnvironment();

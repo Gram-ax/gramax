@@ -1,6 +1,7 @@
+import { ResponseKind } from "@app/types/ResponseKind";
 import { AuthorizeMiddleware } from "@core/Api/middleware/AuthorizeMiddleware";
-import { Command, ResponseKind } from "../../../types/Command";
 import ReloadConfirmMiddleware from "@core/Api/middleware/ReloadConfirmMiddleware";
+import { Command } from "../../../types/Command";
 
 const create: Command<{ catalogName: string; branch: string }, string> = Command.create({
 	path: "versionControl/branch/create",

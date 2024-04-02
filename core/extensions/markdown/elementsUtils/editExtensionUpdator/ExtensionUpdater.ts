@@ -1,7 +1,8 @@
-import { Extensions } from "@tiptap/react";
 import ArticlePropsService from "@core-ui/ContextServices/ArticleProps";
+import CatalogPropsService from "@core-ui/ContextServices/CatalogProps";
 import IsMacService from "@core-ui/ContextServices/IsMac";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
+import { Extensions } from "@tiptap/react";
 import ApiUrlCreatorService from "../../../../ui-logic/ContextServices/ApiUrlCreator";
 import ThemeService from "../../../Theme/components/ThemeService";
 import attributeUpdaterExtension from "./attributeUpdaterExtension";
@@ -13,12 +14,14 @@ export default abstract class ExtensionUpdater {
 		const theme = ThemeService.value;
 		const isMac = IsMacService.value;
 		const articleProps = ArticlePropsService.value;
+		const catalogProps = CatalogPropsService.value;
 		const apiUrlCreator = ApiUrlCreatorService.value;
 		const pageDataContext = PageDataContextService.value;
 		const extensionUpdatersRules = getExtensionUpdaterRules(
 			theme,
 			isMac,
 			articleProps,
+			catalogProps,
 			apiUrlCreator,
 			pageDataContext,
 		);

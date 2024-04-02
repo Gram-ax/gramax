@@ -1,14 +1,14 @@
 import { ItemFilter } from "@core/FileStructue/Catalog/Catalog";
+import CustomArticlePresenter from "@core/SitePresenter/CustomArticlePresenter";
 import { NavRules } from "@ext/navigation/catalog/main/logic/Navigation";
 import Rules from "@ext/rules/Rule";
 import { Item } from "../../../logic/FileStructue/Item/Item";
-import ErrorArticlePresenter from "../../../logic/SitePresenter/ErrorArticlePresenter";
 import IPermission from "./Permission/IPermission";
 import Permission from "./Permission/Permission";
 import User from "./User/User";
 
 export default class SecurityRules implements Rules {
-	constructor(private _currentUser: User, private _errorArticlePresenter?: ErrorArticlePresenter) {}
+	constructor(private _currentUser: User, private _customArticlePresenter?: CustomArticlePresenter) {}
 
 	getItemFilter() {
 		const rule: ItemFilter = (article, catalog) => {
@@ -16,8 +16,8 @@ export default class SecurityRules implements Rules {
 			return this._canReadItem(article, catalogName);
 		};
 
-		if (this._errorArticlePresenter) {
-			(rule as any).errorArticle = this._errorArticlePresenter.getErrorArticle("403");
+		if (this._customArticlePresenter) {
+			(rule as any).errorArticle = this._customArticlePresenter.getArticle("403");
 		}
 		return rule;
 	}

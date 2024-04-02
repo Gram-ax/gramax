@@ -16,9 +16,8 @@ const getMarkFormatters = (context?: ParserContext): { [mark: string]: MarkSeria
 		close(_state, mark, parent, index) {
 			const resourcePath =
 				mark.attrs.resourcePath && mark.attrs.resourcePath != "" ? new Path(mark.attrs.resourcePath) : null;
-			return isPlainURL(mark, parent, index, -1)
-				? ">"
-				: "](" + (resourcePath?.value ?? mark.attrs.href) + (mark.attrs.hash ?? "") + ")";
+			const link: string = (resourcePath?.value ?? mark.attrs.href) + (mark.attrs.hash ?? "");
+			return isPlainURL(mark, parent, index, -1) ? ">" : `](${link.includes(" ") ? `<${link}>` : link})`;
 		},
 	},
 

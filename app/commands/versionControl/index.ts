@@ -9,12 +9,14 @@ import reset from "./branch/reset";
 import diffItems from "./diffItems";
 import discard from "./discard";
 import fileHistory from "./fileHistory";
+import fileStatus from "./fileStatus";
 import getFiles from "./mergeConflict/getFiles";
 
 const versionControl = {
 	init,
 	discard,
 	diffItems,
+	fileStatus,
 	fileHistory,
 	mergeConflict: {
 		getFiles,

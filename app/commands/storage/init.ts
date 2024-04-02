@@ -1,7 +1,8 @@
+import { ResponseKind } from "@app/types/ResponseKind";
 import Path from "@core/FileProvider/Path/Path";
 import assertStorageExists from "@ext/storage/logic/utils/assertStorageExists";
 import StorageData from "@ext/storage/models/StorageData";
-import { Command, ResponseKind } from "../../types/Command";
+import { Command } from "../../types/Command";
 
 const init: Command<{ catalogName: string; articlePath: Path; data: StorageData }, string> = Command.create({
 	path: "storage/init",
@@ -13,7 +14,7 @@ const init: Command<{ catalogName: string; articlePath: Path; data: StorageData 
 		const catalog = await lib.getCatalog(catalogName);
 		if (!catalog) return;
 
-		await assertStorageExists(data, this._app.conf.authServiceUrl);
+		await assertStorageExists(data, this._app.conf.services.auth.url);
 		const fp = lib.getFileProviderByCatalog(catalog);
 		const repo = await rp.initNewRepository(catalog.getBasePath(), fp, data);
 		catalog.setRepo(repo, rp);

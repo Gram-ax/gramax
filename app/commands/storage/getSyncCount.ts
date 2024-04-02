@@ -1,6 +1,7 @@
+import { ResponseKind } from "@app/types/ResponseKind";
 import { AuthorizeMiddleware } from "@core/Api/middleware/AuthorizeMiddleware";
 import { SilentMiddleware } from "@core/Api/middleware/SilentMiddleware";
-import { Command, ResponseKind } from "../../types/Command";
+import { Command } from "../../types/Command";
 
 const getSyncCount: Command<{ catalogName: string }, { pull: number; push: number }> = Command.create({
 	path: "storage/getSyncCount",

@@ -1,4 +1,4 @@
-import resolveModule from "@app/resolveModule";
+import resolveModule from "@app/resolveModule/frontend";
 import FetchService from "@core-ui/ApiServices/FetchService";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import { useEffect, useRef, useState } from "react";

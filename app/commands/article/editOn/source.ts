@@ -1,4 +1,5 @@
-import { Command, ResponseKind } from "@app/types/Command";
+import { Command } from "@app/types/Command";
+import { ResponseKind } from "@app/types/ResponseKind";
 import Path from "@core/FileProvider/Path/Path";
 
 const source: Command<{ catalogName: string; articlePath: Path }, string> = Command.create({

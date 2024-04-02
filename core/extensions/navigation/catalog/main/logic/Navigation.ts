@@ -1,10 +1,11 @@
 import GroupsName from "@components/HomePage/Groups/model/GroupsName";
 import Path from "@core/FileProvider/Path/Path";
 import CatalogEntry from "@core/FileStructue/Catalog/CatalogEntry";
+import { ItemType } from "@core/FileStructue/Item/ItemType";
 import RouterPathProvider from "@core/RouterPath/RouterPathProvider";
 import { Catalog } from "../../../../../logic/FileStructue/Catalog/Catalog";
 import { Category } from "../../../../../logic/FileStructue/Category/Category";
-import { Item, ItemType } from "../../../../../logic/FileStructue/Item/Item";
+import { Item } from "../../../../../logic/FileStructue/Item/Item";
 import { ArticleLink, CatalogLink, CategoryLink, ItemLink, TitledLink } from "../../../NavigationLinks";
 
 type NavItemRule = (entry: Catalog, item: Item, link: ItemLink) => boolean;
@@ -86,7 +87,7 @@ export default class Navigation {
 			query: {},
 			isCurrentLink: item.logicPath === currentItemLogicPath,
 		};
-		if (item.type == ItemType.article) {
+		if (item.type === ItemType.article) {
 			itemLink.type = ItemType.article;
 			(<ArticleLink>itemLink).alwaysShow = item.props["alwaysShow"] ?? null;
 		} else {

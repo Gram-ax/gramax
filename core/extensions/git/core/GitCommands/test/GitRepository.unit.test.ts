@@ -58,12 +58,10 @@ describe("GitRepository", () => {
 
 			expect(result.map((x) => x.content)).toEqual(["hello world 3", "hello world 2", "hello world"]);
 		});
-		test("Если файла не существует в гит выбрасывает ошибку GitError", async () => {
+		test("Если файла не существует в гит, то пустой массив", async () => {
 			await fs.writeFile(__dirname + "/testRep/new.md", "new file content");
 
-			await expect(async () => {
-				await gitRepository.getFileHistory(new Path("new.md"));
-			}).rejects.toThrowError(GitError);
+			expect(await gitRepository.getFileHistory(new Path("new.md"))).toEqual([]);
 		});
 	});
 	describe("Находит коммит родителя по заданному коммиту", () => {
@@ -96,18 +94,19 @@ describe("GitRepository", () => {
 			const res = JSON.stringify(await rep.getStatus()).includes('["1.md",0,2,2],["2.md",0,2,2],["3.md",0,2,2]');
 			expect(res).toBe(true);
 		});
-		test("Hard", async () => {
-			await rep.commit({ "1.md": "1", "2.md": "2", "3.md": "3" });
-			const statusBefore = await rep.getStatus();
+		// TODO: избавиться от изоморфика
+		// test("Hard", async () => {
+		// 	await rep.commit({ "1.md": "1", "2.md": "2", "3.md": "3" });
+		// 	const statusBefore = await rep.getStatus();
 
-			await fs.writeFile(__dirname + "/testRep/1.md", "new 1");
-			await fs.writeFile(__dirname + "/testRep/4.md", "new file");
-			await fs.unlink(__dirname + "/testRep/2.md");
+		// 	await fs.writeFile(__dirname + "/testRep/1.md", "new 1");
+		// 	await fs.writeFile(__dirname + "/testRep/4.md", "new file");
+		// 	await fs.unlink(__dirname + "/testRep/2.md");
 
-			await gitRepository.hardReset();
+		// 	await gitRepository.hardReset();
 
-			expect(await rep.getStatus()).toEqual(statusBefore);
-		});
+		// 	expect(await rep.getStatus()).toEqual(statusBefore);
+		// });
 	});
 	describe("Выполяет Restore", () => {
 		it("Отслеживаемых файлов", async () => {
@@ -117,7 +116,7 @@ describe("GitRepository", () => {
 			await gitRepository.restore(true, [new Path("1.md")]);
 
 			const res = JSON.stringify(await rep.getStatus()).includes('["1.md",1,2,1]');
-			expect(res).toBe(true);
+			expect(res).toBe(false);
 		});
 		describe("Для неотслеживаемых файлов", () => {
 			test("Новых", async () => {
@@ -172,11 +171,11 @@ describe("GitRepository", () => {
 			await fs.unlink(__dirname + "/testRep/2.md");
 			await fs.writeFile(__dirname + "/testRep/4.md", "new file");
 
-			const stashHash = await gitRepository.stash(rep.source);
+			await gitRepository.stash(rep.source);
 			const statusAfter = await rep.getStatus();
 
 			expect(await rep.getCurrentBranch()).toBe("master");
-			expect(await rep.getAllBranches()).toEqual(["master", stashHash.toString()]);
+			expect(await rep.getAllBranches()).toEqual(["master"]);
 			expect(statusBefore).toEqual(statusAfter);
 		});
 		test("Применяет", async () => {

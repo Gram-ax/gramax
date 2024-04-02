@@ -18,7 +18,7 @@ const Link = (props: LinkProps) => {
 		void downloadResource(apiUrlCreator, new Path(resourcePath));
 	};
 
-	if (!isFile) return <Anchor href={null} {...otherProps} />;
+	if (!isFile) return <Anchor href={null} {...otherProps} resourcePath={resourcePath} />;
 
 	return <a onClick={onClickHandler}>{otherProps.children}</a>;
 };

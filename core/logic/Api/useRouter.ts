@@ -1,4 +1,4 @@
-import resolveModule from "@app/resolveModule";
+import resolveModule from "@app/resolveModule/frontend";
 import localizer from "../../extensions/localization/core/Localizer";
 import { Router } from "./Router";
 

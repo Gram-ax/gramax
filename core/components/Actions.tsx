@@ -1,6 +1,7 @@
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import { cssMedia } from "@core-ui/utils/cssUtils";
 import styled from "@emotion/styled";
+import SwitchTabsTag from "@ext/markdown/elements/tabs/components/SwitchTabsTag";
 import { CatalogLink } from "@ext/navigation/NavigationLinks";
 import ThemeToggle from "../extensions/Theme/components/ThemeToggle";
 import AddCatalogMenu from "../extensions/catalog/actions/AddCatalogMenu";
@@ -22,11 +23,12 @@ export default styled(
 
 		return (
 			<div className={className} data-qa="app-actions">
-				{isHomePage ? <Search isHomePage={isHomePage} catalogLinks={catalogLinks} /> : null}
+				{isHomePage && <Search isHomePage={isHomePage} catalogLinks={catalogLinks} />}
 				{/* <LangToggle /> */}
 				<ThemeToggle />
 				{isHomePage && isLogged && <AddCatalogMenu />}
 				{isServerApp && <SingInOut />}
+				{!isHomePage && <SwitchTabsTag />}
 			</div>
 		);
 	},

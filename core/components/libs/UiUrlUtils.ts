@@ -1,5 +1,5 @@
+import { ItemType } from "@core/FileStructue/Item/ItemType";
 import { CategoryLink, ItemLink } from "../../extensions/navigation/NavigationLinks";
-import { ItemType } from "../../logic/FileStructue/Item/Item";
 
 const UiUrlUtils = {
 	getArticleLinks(itemLinks: ItemLink[]): ItemLink[] {

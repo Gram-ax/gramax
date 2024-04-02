@@ -2,7 +2,7 @@ import DiskFileProvider from "@core/FileProvider/DiskFileProvider/DiskFileProvid
 import Path from "@core/FileProvider/Path/Path";
 import { Catalog } from "@core/FileStructue/Catalog/Catalog";
 import FileStructure from "@core/FileStructue/FileStructure";
-import { ItemType } from "@core/FileStructue/Item/Item";
+import { ItemType } from "@core/FileStructue/Item/ItemType";
 import Language from "@ext/localization/core/model/Language";
 import { resolve } from "path";
 
@@ -65,10 +65,10 @@ describe("FileStructure", () => {
 
 			expect(articles).toEqual([
 				["article"],
-				["new_article_0"],
-				["new_article_0"],
+				[],
+				[],
 				["1. article4", "1.article3", "article 1", "article1", "article2", "test_article"],
-				["new_article_0"],
+				[],
 			]);
 		});
 	});
@@ -103,8 +103,8 @@ describe("FileStructure", () => {
 
 			expect(articles).toEqual([
 				["1/article"],
-				["3/new_article_0"],
-				["_1/new_article_0"],
+				[],
+				[],
 				[
 					"catalog1/1. article4",
 					"catalog1/1.article3",
@@ -113,7 +113,7 @@ describe("FileStructure", () => {
 					"catalog1/category1/article1",
 					"catalog1/test_article",
 				],
-				["catalog2/new_article_0"],
+				[],
 			]);
 		});
 	});
@@ -127,14 +127,14 @@ describe("FileStructure", () => {
 			const catalog = await entry.load();
 			expect(catalog).toBeDefined();
 			expect(fp.exists(path("test1/doc-root.yaml"))).toBeTruthy();
-			expect(catalog.getArticles()).toHaveLength(1);
+			expect(catalog.getArticles()).toHaveLength(0);
 		});
 
 		test("статью", async () => {
 			const catalog = await fs.getCatalogByPath(path("test1"));
 			const article = await catalog.createArticle(null, "", Language.ru);
-			expect(article.getFileName()).toEqual("new_article_1");
-			expect(fp.exists(path("test1/new_article_1.md")));
+			expect(article.getFileName()).toEqual("new_article_0");
+			expect(fp.exists(path("test1/new_article_0.md")));
 		});
 
 		test("категорию", async () => {

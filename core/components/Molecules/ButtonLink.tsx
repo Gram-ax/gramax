@@ -1,25 +1,22 @@
-import Button, { TextSize } from "@components/Atoms/Button/Button";
+import Button, { ButtonProps, TextSize } from "@components/Atoms/Button/Button";
 import { ButtonStyle } from "@components/Atoms/Button/ButtonStyle";
 import Icon, { IconPrefixes } from "@components/Atoms/Icon";
 import styled from "@emotion/styled";
-import { forwardRef, MutableRefObject } from "react";
+import { MutableRefObject, forwardRef } from "react";
 
-export interface ButtonLinkProps {
-	iconCode: string;
+export interface ButtonLinkProps extends Omit<ButtonProps, "children" | "style"> {
+	iconCode?: string;
 	iconPrefix?: IconPrefixes;
-	onClick?: (event?: React.MouseEvent<HTMLElement>) => any;
-	className?: string;
-	textSize?: TextSize;
 	text?: string;
 }
 
 const ButtonLink = forwardRef((props: ButtonLinkProps, ref?: MutableRefObject<HTMLDivElement>) => {
-	const { textSize = TextSize.XS, iconCode, iconPrefix, text, className, onClick } = props;
+	const { textSize = TextSize.XS, iconCode, iconPrefix, text, className, ...otherProps } = props;
 
 	return (
 		<div ref={ref} className={className}>
-			<Button buttonStyle={ButtonStyle.transparent} textSize={textSize} onClick={onClick}>
-				<Icon className="button_icon" prefix={iconPrefix} code={iconCode} />
+			<Button buttonStyle={ButtonStyle.transparent} textSize={textSize} {...otherProps}>
+				{iconCode && <Icon className="button_icon" prefix={iconPrefix} code={iconCode} />}
 				{text && <span>{text}</span>}
 			</Button>
 		</div>

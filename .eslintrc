@@ -28,10 +28,10 @@
 		"services/**/TSClassDiagram/files",
 		"core/extensions/markdown/core/edit/logic/Prosemirror",
 		"core/extensions/markdown/core/render/logic/Markdoc",
-		"*.js",
+		"**/*.js",
 
 		"**/dist/**/*",
-		"target/tauri/target"
+		"apps/tauri/target"
 	],
 	"plugins": ["@typescript-eslint", "react", "react-hooks", "promise"],
 	"settings": {

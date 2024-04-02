@@ -1,5 +1,6 @@
+import { ResponseKind } from "@app/types/ResponseKind";
 import { AuthorizeMiddleware } from "@core/Api/middleware/AuthorizeMiddleware";
-import { Command, ResponseKind } from "../../types/Command";
+import { Command } from "../../types/Command";
 
 const getUrl: Command<{ catalogName: string }, string> = Command.create({
 	path: "storage/getUrl",

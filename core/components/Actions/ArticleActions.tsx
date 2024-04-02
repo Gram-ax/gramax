@@ -5,7 +5,6 @@ import ArticlePropsService from "@core-ui/ContextServices/ArticleProps";
 import CatalogPropsService from "@core-ui/ContextServices/CatalogProps";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import BugsnagLogsModal from "@ext/bugsnag/components/BugsnagLogsModal";
-import useHasRemoteStorage from "@ext/storage/logic/utils/useHasRemoteStorage";
 import FileEditor from "../../extensions/artilce/actions/FileEditor";
 import History from "../../extensions/git/actions/History/component/History";
 import useLocalize from "../../extensions/localization/useLocalize";
@@ -19,7 +18,6 @@ const ArticleActions = (): JSX.Element => {
 	const pageData = PageDataContextService.value;
 	const { isLogged } = pageData;
 	const { isReadOnly } = pageData.conf;
-	const hasRemoteStorage = useHasRemoteStorage();
 
 	if (catalogProps.readOnly) return null;
 
@@ -32,7 +30,7 @@ const ArticleActions = (): JSX.Element => {
 			/>
 			{isLogged && (
 				<>
-					<History shouldRender={hasRemoteStorage} />
+					<History />
 					<BugsnagLogsModal />
 					<FileEditor
 						shouldRender={!isServerApp}

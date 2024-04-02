@@ -19,6 +19,7 @@ interface GitCommandsModel {
 	commit(message: string, data: SourceData, parents?: string[]): Promise<GitVersion>;
 	add(paths?: Path[]): Promise<void>;
 	status(): Promise<GitStatus[]>;
+	fileStatus(filePath: Path): Promise<GitStatus>;
 
 	push(data: GitSourceData): Promise<void>;
 	fetch(data: GitSourceData): Promise<void>;

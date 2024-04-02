@@ -52,6 +52,7 @@ export default class MarkdownParser {
 			tocItems: getTocItems(getLevelTocItemsByRenderableTree((renderTree as Tag)?.children ?? [])),
 			linkManager: context?.getLinkManager(),
 			resourceManager: context?.getResourceManager(),
+			snippets: context?.snippet,
 		};
 	}
 

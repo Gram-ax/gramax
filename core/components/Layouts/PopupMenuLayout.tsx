@@ -1,6 +1,6 @@
 import styled from "@emotion/styled";
 import Tippy from "@tippyjs/react";
-import React, { Children, useEffect, useState, ReactNode, useCallback } from "react";
+import { useEffect, useState, ReactNode, useCallback, createElement } from "react";
 import Icon from "../Atoms/Icon";
 import Tooltip from "../Atoms/Tooltip";
 
@@ -45,6 +45,7 @@ const Popup = ({ className, onClick, onClickCapture, isOpen, children }: PopupPr
 		</div>
 	);
 };
+
 const PopupMenuLayout = (props: PopupMenuLayoutProps) => {
 	const {
 		children,
@@ -94,7 +95,7 @@ const PopupMenuLayout = (props: PopupMenuLayoutProps) => {
 				</Popup>
 			}
 		>
-			{React.createElement(
+			{createElement(
 				isInline ? "span" : "div",
 				{ className: "button" },
 				tooltipText ? (
@@ -114,7 +115,6 @@ export default styled(PopupMenuLayout)`
 	min-width: 0;
 	font-size: 13px;
 	overflow: hidden;
-	padding: ${(p) => (Children.count(p.children) > 1 ? "0.3rem" : "")} 0px;
 	border-radius: 0.34rem;
 	background: var(--color-article-bg);
 	left: 0 !important;
@@ -133,7 +133,14 @@ export default styled(PopupMenuLayout)`
 		color: var(--color-primary-general);
 		margin: 0 !important;
 	}
+
 	> div:hover {
 		background: var(--color-menu-bg);
+
+		i,
+		span {
+			user-select: none;
+			color: var(--color-primary);
+		}
 	}
 `;

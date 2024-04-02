@@ -1,4 +1,4 @@
-import { getExecutingEnvironment } from "@app/resolveModule";
+import { getExecutingEnvironment } from "@app/resolveModule/env";
 import ArticleUpdaterService from "@components/Article/ArticleUpdater/ArticleUpdaterService";
 import { refreshPage } from "@core-ui/ContextServices/RefreshPageContext";
 import OnBranchUpdateCaller from "@ext/git/actions/Branch/BranchUpdaterService/model/OnBranchUpdateCaller";

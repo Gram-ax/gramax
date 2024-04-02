@@ -1,6 +1,7 @@
+import { ResponseKind } from "@app/types/ResponseKind";
 import Context from "@core/Context/Context";
 import { Tag } from "../../../core/extensions/markdown/core/render/logic/Markdoc";
-import { Command, ResponseKind } from "../../types/Command";
+import { Command } from "../../types/Command";
 
 const WordExport = import("../../../core/extensions/wordExport/WordExport");
 const docx = import("docx");

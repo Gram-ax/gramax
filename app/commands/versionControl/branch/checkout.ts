@@ -1,7 +1,8 @@
+import { ResponseKind } from "@app/types/ResponseKind";
 import { AuthorizeMiddleware } from "@core/Api/middleware/AuthorizeMiddleware";
 import ReloadConfirmMiddleware from "@core/Api/middleware/ReloadConfirmMiddleware";
 import Context from "@core/Context/Context";
-import { Command, ResponseKind } from "../../../types/Command";
+import { Command } from "../../../types/Command";
 
 const checkout: Command<{ ctx: Context; catalogName: string; branch: string }, string> = Command.create({
 	path: "versionControl/branch/checkout",
@@ -21,7 +22,7 @@ const checkout: Command<{ ctx: Context; catalogName: string; branch: string }, s
 			branch,
 			onCheckout: (branch) => logger.logInfo(`Checkout to "${branch}".`),
 			onPull: () => logger.logInfo(`Pulled in "${catalogName}", branch: ${branch}.`),
-			authServiceUrl: this._app.conf.authServiceUrl,
+			authServiceUrl: this._app.conf.services.auth.url,
 		});
 
 		return await catalog.getPathname();

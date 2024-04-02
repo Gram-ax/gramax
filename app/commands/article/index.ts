@@ -6,6 +6,7 @@ import getBrotherFileNames from "./features/getBrotherFileNames";
 import getContent from "./features/getContent";
 import getCustomArticle from "./features/getCustomArticle";
 import getLinkItems from "./features/getLinkItems";
+import getRenderContent from "./features/getRenderContent";
 import setContent from "./features/setContent";
 import getProps from "./getProps";
 import get from "./resource/get";
@@ -20,6 +21,7 @@ const article = {
 		getContent,
 		getLinkItems,
 		getCustomArticle,
+		getRenderContent,
 		getBrotherFileNames,
 	},
 	editOn: {

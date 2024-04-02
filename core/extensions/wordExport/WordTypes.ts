@@ -5,6 +5,7 @@ import ResourceManager from "../../logic/Resource/ResourceManager";
 import ParserContext from "../markdown/core/Parser/ParserContext/ParserContext";
 import { RenderableTreeNode, Tag } from "../markdown/core/render/logic/Markdoc";
 import { WordSerializerState } from "./WordExportState";
+import { ParagraphType as ParagraphType } from "@ext/wordExport/wordExportSettings";
 
 export type WordBlockChilds = Record<string, WordBlockChild>;
 
@@ -27,7 +28,11 @@ export type WordInlineChild = (params: {
 	fileProvider: FileProvider;
 }) => Promise<ParagraphChild[]>;
 
-export type AddOptionsWord = IRunPropertiesOptions & TextRunOptions & IParagraphOptions;
+export type AddOptionsWord = IRunPropertiesOptions &
+	TextRunOptions &
+	IParagraphOptions &
+	ParagraphOptions &
+	CodeOptions;
 
 export type TextRunOptions = { readonly break?: number; removeWhiteSpace?: boolean };
 
@@ -35,4 +40,12 @@ export interface Article {
 	title: string;
 	content: RenderableTreeNode;
 	resourceManager: ResourceManager;
+}
+
+export interface CodeOptions {
+	isCode?: boolean;
+}
+
+export interface ParagraphOptions {
+	paragraphType?: ParagraphType;
 }

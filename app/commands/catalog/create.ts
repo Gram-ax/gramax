@@ -1,10 +1,11 @@
+import { ResponseKind } from "@app/types/ResponseKind";
 import { AuthorizeMiddleware } from "@core/Api/middleware/AuthorizeMiddleware";
 import { DesktopModeMiddleware } from "@core/Api/middleware/DesktopModeMiddleware";
 import ReloadConfirmMiddleware from "@core/Api/middleware/ReloadConfirmMiddleware";
 import Context from "@core/Context/Context";
 import { ClientCatalogProps } from "@core/SitePresenter/SitePresenter";
 import CatalogEditProps from "@ext/catalog/actions/propsEditor/model/CatalogEditProps.schema";
-import { Command, ResponseKind } from "../../types/Command";
+import { Command } from "../../types/Command";
 
 const create: Command<{ props: CatalogEditProps; ctx: Context }, ClientCatalogProps> = Command.create({
 	path: "catalog/create",
@@ -14,14 +15,14 @@ const create: Command<{ props: CatalogEditProps; ctx: Context }, ClientCatalogPr
 	middlewares: [new AuthorizeMiddleware(), new DesktopModeMiddleware(), new ReloadConfirmMiddleware()],
 
 	async do({ props, ctx }) {
-		const { lib, sitePresenterFactory } = this._app;
+		const { sitePresenterFactory, lib } = this._app;
 
 		if (Array.from(lib.getCatalogEntries().keys()).includes(props.url)) return;
 		const fs = lib.getFileStructure();
 		const catalog = await fs.createCatalog(props);
 		if (!catalog) return null;
-
 		await lib.addCatalog(catalog);
+		await this._commands.article.create.do({ ctx, catalogName: catalog.getName() });
 		return sitePresenterFactory.fromContext(ctx).serializeCatalogProps(catalog);
 	},
 

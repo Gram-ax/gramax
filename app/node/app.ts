@@ -1,17 +1,22 @@
+import autoPull from "@core/AutoPull/AutoPull";
 import { ContextFactory } from "@core/Context/ContextFactory";
 import DiskFileProvider from "@core/FileProvider/DiskFileProvider/DiskFileProvider";
 import Hash from "@core/Hash/Hash";
 import Library from "@core/Library/Library";
-import ErrorArticlePresenter from "@core/SitePresenter/ErrorArticlePresenter";
+import PluginImporterType from "@core/Plugin/PluginImporter/logic/PluginImporterType";
+import PluginProvider from "@core/Plugin/logic/PluginProvider";
+import CustomArticlePresenter from "@core/SitePresenter/CustomArticlePresenter";
 import SitePresenterFactory from "@core/SitePresenter/SitePresenterFactory";
 import { TableDB } from "@core/components/tableDB/table";
 import VideoUrlRepository from "@core/components/video/videoUrlRepository";
+import Cache from "@ext/Cache";
 import { Encoder } from "@ext/Encoder/Encoder";
 import MailProvider from "@ext/MailProvider";
 import ThemeManager from "@ext/Theme/ThemeManager";
 import BlankWatcher from "@ext/Watchers/BlankWatcher";
 import ChokidarWatcher from "@ext/Watchers/ChokidarWatcher";
 import RepositoryProvider from "@ext/git/core/Repository/RepositoryProvider";
+import HtmlParser from "@ext/html/HtmlParser";
 import FSLocalizationRules from "@ext/localization/core/rules/FSLocalizationRules";
 import BugsnagLogger from "@ext/loggers/BugsnagLogger";
 import ConsoleLogger from "@ext/loggers/ConsoleLogger";
@@ -19,15 +24,12 @@ import Logger, { LogLevel } from "@ext/loggers/Logger";
 import MarkdownParser from "@ext/markdown/core/Parser/Parser";
 import ParserContextFactory from "@ext/markdown/core/Parser/ParserContext/ParserContextFactory";
 import MarkdownFormatter from "@ext/markdown/core/edit/logic/Formatter/Formatter";
-import FuseSearcher from "@ext/search/Fuse/FuseSearcher";
-import IndexCacheProvider from "@ext/search/IndexCacheProvider";
-import { IndexDataProvider } from "@ext/search/IndexDataProvider";
 import AuthManager from "@ext/security/logic/AuthManager";
+import Sso from "@ext/security/logic/AuthProviders/Sso";
 import { TicketManager } from "@ext/security/logic/TicketManager/TicketManager";
 import EnvAuth from "../../core/extensions/security/logic/AuthProviders/EnvAuth";
-import { AppConfig } from "../config/AppConfig";
+import { AppConfig, getConfig } from "../config/AppConfig";
 import Application from "../types/Application";
-import configure from "./configure";
 
 const _init = async (config: AppConfig): Promise<Application> => {
 	if (!config.isServerApp && !config.paths.userDataPath) throw new Error(`Необходимо указать USER_DATA_PATH`);
@@ -39,25 +41,17 @@ const _init = async (config: AppConfig): Promise<Application> => {
 	const fp = new DiskFileProvider(config.paths.root, watcher);
 	await fp.validate();
 
-	const corsProxy = config.isServerApp
-		? null
-		: config.enterpriseServerUrl && `${config.enterpriseServerUrl}/cors-proxy`;
+	const sso = new Sso(config.services.sso.url);
 
-	const rp = new RepositoryProvider({ corsProxy });
+	const rp = new RepositoryProvider({ corsProxy: config.services.cors.url });
 
 	const lib = new Library(rp, config.isServerApp);
 
 	await lib.addFileProvider(fp, (fs) => FSLocalizationRules.bind(fs));
 
-	if (config.paths.local) {
-		const fp = new DiskFileProvider(config.paths.local, watcher);
-		await fp.validate();
-		await lib.addFileProvider(fp);
-	}
-
 	const formatter = new MarkdownFormatter();
 
-	const envAuth = new EnvAuth(config.paths.base, config.adminLogin, config.adminPassword);
+	const envAuth = new EnvAuth(config.paths.base, config.admin.login, config.admin.password);
 	const encoder = new Encoder();
 
 	const ticketManager = new TicketManager(lib, encoder, config.tokens.share);
@@ -66,11 +60,7 @@ const _init = async (config: AppConfig): Promise<Application> => {
 
 	const hashes = new Hash();
 	const tablesManager = new TableDB(parser, lib);
-	const errorArticlesProvider = new ErrorArticlePresenter();
-
-	const cacheFileProvider = new DiskFileProvider(config.paths.userDataPath);
-	await cacheFileProvider.validate();
-	const indexCacheProvider = new IndexCacheProvider(cacheFileProvider);
+	const customArticlePresenter = new CustomArticlePresenter();
 
 	const parserContextFactory = new ParserContextFactory(
 		config.paths.base,
@@ -78,59 +68,73 @@ const _init = async (config: AppConfig): Promise<Application> => {
 		tablesManager,
 		parser,
 		formatter,
-		config.enterpriseServerUrl,
+		config.services.sso.url,
+		config.services.diagramRenderer.url,
 	);
+	const htmlParser = new HtmlParser(parser, parserContextFactory);
 
-	const indexDataProvider = new IndexDataProvider(lib, parser, parserContextFactory, indexCacheProvider);
-	const searcher = new FuseSearcher(indexDataProvider);
 	const vur: VideoUrlRepository = null;
 	const mp: MailProvider = new MailProvider(config.mail);
 
 	const tm = new ThemeManager();
 	const am = new AuthManager(envAuth, ticketManager);
-	const contextFactory = new ContextFactory(tm, config.cookieSecret, am, config.isServerApp);
-	const sitePresenterFactory = new SitePresenterFactory(lib, parser, parserContextFactory, rp, errorArticlesProvider);
+	const contextFactory = new ContextFactory(tm, config.tokens.cookie, am, config.isServerApp);
+	const sitePresenterFactory = new SitePresenterFactory(
+		lib,
+		parser,
+		parserContextFactory,
+		rp,
+		customArticlePresenter,
+	);
+
+	const cacheFileProvider = new DiskFileProvider(config.paths.userDataPath);
+	await cacheFileProvider.validate();
+	const cache = new Cache(cacheFileProvider);
+	const pluginProvider = new PluginProvider(lib, htmlParser, cache, PluginImporterType.next);
 
 	return {
 		tm,
 		am,
 		mp,
+		sso,
 		rp,
 		lib,
 		vur,
+		cache,
 		parser,
 		logger,
 		hashes,
-		searcher,
 		formatter,
+		htmlParser,
 		ticketManager,
 		tablesManager,
 		contextFactory,
 		parserContextFactory,
 		sitePresenterFactory,
-		errorArticlesProvider,
+		pluginProvider,
+		customArticlePresenter,
 		conf: {
-			corsProxy,
-			branch: config.branch,
+			services: config.services,
+
+			isRelease: config.isRelease,
 			basePath: config.paths.base,
+
+			isReadOnly: config.isReadOnly,
 			isServerApp: config.isServerApp,
 			isProduction: config.isProduction,
-			isReadOnly: config.isReadOnly,
-			ssoServerUrl: config.ssoServerUrl,
-			ssoPublicKey: config.ssoPublicKey,
-			authServiceUrl: config.authServiceUrl,
-			enterpriseServerUrl: config.enterpriseServerUrl,
+
 			bugsnagApiKey: config.bugsnagApiKey,
-			gramaxVersion: config.gramaxVersion,
+			version: config.version,
 		},
 	};
 };
 
+let app: Application = null;
 const getApp = async (): Promise<Application> => {
-	if (global.app) return global.app;
-	const config = configure();
-	global.app = await _init(config);
-	return global.app;
+	if (app) return app;
+	app = await _init(getConfig());
+	autoPull(app);
+	return app;
 };
 
 export default getApp;

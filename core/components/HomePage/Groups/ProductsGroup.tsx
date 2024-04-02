@@ -1,4 +1,4 @@
-import resolveModule from "@app/resolveModule";
+import resolveModule from "@app/resolveModule/frontend";
 import SpinnerLoader from "@components/Atoms/SpinnerLoader";
 import Url from "@core-ui/ApiServices/Types/Url";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
@@ -29,28 +29,17 @@ const ProductCard = ({ link, ...props }: { link: CatalogLink } & HTMLAttributes<
 				</div>
 			)}
 
-			<div
-				className={`catalog-background block-elevation-hover-1 ${isLoading ? "loading" : ""}`}
-			>
+			<div className={`catalog-background block-elevation-hover-1 ${isLoading ? "loading" : ""}`}>
 				<div className={`catalog background-${link.style}`}>
 					<div className={`catalog-titles`}>
-						<div
-							className={`catalog-title ${"gradient-" + link.style}`}
-						>
+						<div className={`catalog-title ${"gradient-" + link.style}`}>
 							{link.code.length <= 4 ? link.code : link.code.slice(0, 3) + "..."}
 						</div>
-						<div
-							className="catalog-title-logo"
-							style={{ backgroundImage: `url(${logo})` }}
-						/>
+						<div className="catalog-title-logo" style={{ backgroundImage: `url(${logo})` }} />
 					</div>
 					<div title={link.description} className="catalog-texts">
-						<div className="catalog-text-logo">
-							{link.title}
-						</div>
-						<div className="catalog-text">
-							{link.description}
-						</div>
+						<div className="catalog-text-logo">{link.title}</div>
+						<div className="catalog-text">{link.description}</div>
 					</div>
 				</div>
 			</div>
@@ -82,9 +71,7 @@ const ProductCardGroup = ({
 }: { links: CatalogLink[] } & HTMLAttributes<HTMLAnchorElement>) => {
 	return (
 		<div className={className}>
-			<div className="group-header">
-				{useLocalize(GroupsName.products)}
-			</div>
+			<div className="group-header">{useLocalize(GroupsName.products)}</div>
 			<div className="group-container">
 				{links.map((link, i) => (
 					<ProductCardStyled link={link} key={i} {...props} />

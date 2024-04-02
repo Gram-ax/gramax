@@ -7,7 +7,7 @@ abstract class IsEditService {
 	static Provider({ children }: { children: JSX.Element }): JSX.Element {
 		const catalogProps = CatalogPropsService.value;
 		const isReadonly = PageDataContextService.value.conf.isReadOnly;
-		const [isEdit, setIsEdit] = useState<boolean>(false);
+		const [isEdit, setIsEdit] = useState(false);
 
 		useEffect(() => {
 			setIsEdit(!catalogProps.readOnly && !isReadonly);

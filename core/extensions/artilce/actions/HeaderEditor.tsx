@@ -3,7 +3,7 @@ import FetchService from "@core-ui/ApiServices/FetchService";
 import MimeTypes from "@core-ui/ApiServices/Types/MimeTypes";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import ArticlePropsService from "@core-ui/ContextServices/ArticleProps";
-import trollCaller from "@core-ui/trollCaller";
+import debounceFunction from "@core-ui/debounceFunction";
 import { splitRange } from "@core-ui/utils/rangeUtils";
 import styled from "@emotion/styled";
 import { MutableRefObject, useEffect, useRef } from "react";
@@ -24,7 +24,7 @@ export default styled(({ className }: { className?: string }) => {
 		articleProps.title = title;
 		ArticlePropsService.set(articleProps);
 		const url = apiUrlCreator.updateItemProps();
-		trollCaller(
+		debounceFunction(
 			UPDATE_ARTICLE_TITLE_SYMBOL,
 			() => FetchService.fetch(url, JSON.stringify(articleProps), MimeTypes.json),
 			500,

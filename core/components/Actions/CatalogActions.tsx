@@ -15,6 +15,7 @@ import IsReadOnlyHOC from "../../ui-logic/HigherOrderComponent/IsReadOnlyHOC";
 const CatalogActions = ({ itemLinks }: { itemLinks: ItemLink[] }): JSX.Element => {
 	const isEdit = IsEditService.value;
 	const isLogged = PageDataContextService.value.isLogged;
+	const conf = PageDataContextService.value.conf;
 	const storageInitialized = useIsStorageInitialized();
 	const isReview = useIsReview();
 
@@ -31,8 +32,10 @@ const CatalogActions = ({ itemLinks }: { itemLinks: ItemLink[] }): JSX.Element =
 				itemLinks={itemLinks}
 				trigger={<ListItem text={useLocalize("healthcheck")} iconCode="heart-pulse" />}
 			/>
-			<IsReadOnlyHOC>
+			{conf.isServerApp && (
 				<GetSharedTicket trigger={<ListItem text={useLocalize("share")} iconCode="share-from-square" />} />
+			)}
+			<IsReadOnlyHOC>
 				<Share
 					shouldRender={!isReview && storageInitialized}
 					trigger={<ListItem text={useLocalize("share")} iconCode="share-from-square" />}

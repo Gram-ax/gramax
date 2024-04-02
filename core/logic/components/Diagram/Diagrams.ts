@@ -13,7 +13,7 @@ export default class Diagrams {
 		"Ts-diagram": { mimeType: MimeTypes.svg, toType: "svg", req: "typeScript" },
 	};
 
-	constructor(private _enterpriseServerUrl: string) {}
+	constructor(private _diagramRendererServerUrl: string) {}
 
 	getDiagram(type: DiagramType, content: string, count?: number): Promise<string> {
 		switch (type) {
@@ -45,7 +45,7 @@ export default class Diagrams {
 
 	private async _getDiagramInternal(type: DiagramType, content: string) {
 		const metadata = this._diagramMetadata[type];
-		const url = `${this._enterpriseServerUrl}/diagram-renderer/convert/${metadata.req}/${metadata.toType}`;
+		const url = `${this._diagramRendererServerUrl}/convert/${metadata.req}/${metadata.toType}`;
 
 		if (!content)
 			throw new SilentError(

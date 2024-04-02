@@ -2,6 +2,12 @@
 
 .vite-cache
 bun.lockb
+Cargo.lock
+target
+.ci/github-private-key
+
+# expection for plugins -> target
+!plugins/target
 
 # storybook
 /storybook/storybook-static
@@ -44,6 +50,9 @@ yarn-error.log*
 # testing
 /coverage
 
+# plugins
+/core/public/plugins
+
 # mix
 .DS_Store
 .DS_Store?
@@ -57,3 +66,4 @@ junit*.xml
 .idea/
 
 
+gramax-git.node

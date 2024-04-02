@@ -1,3 +1,4 @@
+import { GRAMAX_EDITOR_URL } from "@app/config/const";
 import GramaxLogo from "@components/GramaxLogo";
 import Anchor from "@components/controls/Anchor";
 import FetchService from "@core-ui/ApiServices/FetchService";
@@ -7,8 +8,6 @@ import CatalogPropsService from "@core-ui/ContextServices/CatalogProps";
 import styled from "@emotion/styled";
 import useLocalize from "@ext/localization/useLocalize";
 import { useEffect, useState } from "react";
-
-const GRAMAX_URL = "https://app.gram.ax";
 
 const EditInGramax = ({ className, shouldRender }: { className?: string; shouldRender: boolean }) => {
 	if (!shouldRender) return null;
@@ -31,7 +30,7 @@ const EditInGramax = ({ className, shouldRender }: { className?: string; shouldR
 	return (
 		<li data-qa="qa-clickable" className={className}>
 			<div className="wrapper">
-				<Anchor href={GRAMAX_URL + "/" + editInGramaxUrl} target="_blank">
+				<Anchor href={GRAMAX_EDITOR_URL + "/" + editInGramaxUrl} target="_blank">
 					<div className="gramax-icon">
 						<GramaxLogo size={14} />
 					</div>

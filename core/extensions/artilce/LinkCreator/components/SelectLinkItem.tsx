@@ -1,16 +1,15 @@
 import GoToArticle from "@components/Actions/GoToArticle";
-import Icon from "@components/Atoms/Icon";
-import Sidebar from "@components/Layouts/Sidebar";
 import { ListItem } from "@components/List/Item";
 import ListLayout, { ListLayoutElement } from "@components/List/ListLayout";
 import { useCtrlKey } from "@core-ui/hooks/useCtrlKey";
 import { useExternalLink } from "@core-ui/hooks/useExternalLink";
 import { usePlatform } from "@core-ui/hooks/usePlatform";
-import { ItemType } from "@core/FileStructue/Item/Item";
+import { ItemType } from "@core/FileStructue/Item/ItemType";
 import parseStorageUrl from "@core/utils/parseStorageUrl";
 import styled from "@emotion/styled";
+import LinkItemSidebar from "@ext/artilce/LinkCreator/components/LinkItemSidebar";
 import Button from "@ext/markdown/core/edit/components/Menu/Button";
-import { Dispatch, RefObject, SetStateAction, useEffect, useRef, useState } from "react";
+import { Dispatch, RefObject, SetStateAction, useCallback, useEffect, useRef, useState } from "react";
 import LinkItem from "../models/LinkItem";
 
 interface SelectLinkItemProps {
@@ -41,17 +40,11 @@ interface ListViewProps {
 	inputValue?: string;
 }
 
-const renderSidebar = (title, iconCode) => (
-	<div style={{ width: "100%", padding: "5px 10px" }}>
-		<Sidebar title={title} leftActions={[<Icon faFw key={0} code={iconCode} />]} />
-	</div>
-);
-
 const renderItem = (item) => {
 	const { type, title } = item;
 
 	return {
-		element: type === "article" ? renderSidebar(title, "file") : renderSidebar(title, "folder"),
+		element: type === "article" ? LinkItemSidebar(title, "file") : LinkItemSidebar(title, "folder"),
 		labelField: title,
 	};
 };
@@ -113,10 +106,9 @@ const ListView = (props: ListViewProps) => {
 const SelectLinkItem = (props: SelectLinkItemProps) => {
 	const { href, value, onChange, itemLinks, className, focusOnMount } = props;
 
-	const { externalLink, updateLink, isExternalLink } = useExternalLink(href);
+	const [isExternalLink, externalLink, setExternalLink] = useExternalLink(href);
 
 	const item = itemLinks ? itemLinks.find((i) => i.relativePath === value) : null;
-
 	const icon = !item ? "globe" : item.type == ItemType.article ? "file" : "folder";
 
 	const [button, setButton] = useState<boolean>(!!item || isExternalLink);
@@ -124,12 +116,8 @@ const SelectLinkItem = (props: SelectLinkItemProps) => {
 	const [itemName, setItemName] = useState("");
 	const listRef = useRef<ListLayoutElement>();
 
-	const onSearchChange = (value) => {
-		updateLink(value);
-	};
-
-	const items = externalLink
-		? [{ element: renderSidebar(externalLink, "globe"), labelField: externalLink }]
+	const items = isExternalLink
+		? [{ element: LinkItemSidebar(externalLink, "globe"), labelField: externalLink }]
 		: itemLinks
 		? itemLinks.map(renderItem)
 		: [];
@@ -138,13 +126,16 @@ const SelectLinkItem = (props: SelectLinkItemProps) => {
 		setItemName((item?.title ?? value) || "");
 	}, [item, externalLink]);
 
-	const itemClickHandler = (_, __, idx) => {
-		if (externalLink) {
-			onChange(externalLink, externalLink);
-		} else {
-			onChange(itemLinks[idx].relativePath, itemLinks[idx].pathname);
-		}
-	};
+	const itemClickHandler = useCallback(
+		(_, __, idx) => {
+			if (isExternalLink) {
+				onChange(externalLink, externalLink);
+			} else {
+				onChange(itemLinks[idx].relativePath, itemLinks[idx].pathname);
+			}
+		},
+		[isExternalLink, externalLink, itemLinks],
+	);
 
 	useEffect(() => {
 		const { domain } = parseStorageUrl(value);
@@ -174,7 +165,7 @@ const SelectLinkItem = (props: SelectLinkItemProps) => {
 			items={items}
 			listRef={listRef}
 			className={className}
-			onSearchChange={onSearchChange}
+			onSearchChange={setExternalLink}
 			itemClickHandler={itemClickHandler}
 		/>
 	);

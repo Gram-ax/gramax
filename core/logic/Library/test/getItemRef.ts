@@ -1,6 +1,6 @@
+import { ItemRef } from "@core/FileStructue/Item/ItemRef";
 import Path from "../../FileProvider/Path/Path";
 import { Catalog } from "../../FileStructue/Catalog/Catalog";
-import { ItemRef } from "../../FileStructue/Item/Item";
 
 function getItemRef(catalog: Catalog, path: string): ItemRef {
 	return {

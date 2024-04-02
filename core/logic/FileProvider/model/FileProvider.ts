@@ -1,6 +1,6 @@
+import { ItemRef } from "@core/FileStructue/Item/ItemRef";
 import { Buffer } from "buffer";
 import { ItemStatus } from "../../../extensions/Watchers/model/ItemStatus";
-import { ItemRef } from "../../FileStructue/Item/Item";
 import Path from "../Path/Path";
 import FileInfo from "./FileInfo";
 

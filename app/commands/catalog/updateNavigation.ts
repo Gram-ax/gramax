@@ -1,13 +1,14 @@
+import { ResponseKind } from "@app/types/ResponseKind";
 import { AuthorizeMiddleware } from "@core/Api/middleware/AuthorizeMiddleware";
 import { DesktopModeMiddleware } from "@core/Api/middleware/DesktopModeMiddleware";
+import ReloadConfirmMiddleware from "@core/Api/middleware/ReloadConfirmMiddleware";
 import Context from "@core/Context/Context";
 import ResourceUpdater from "@core/Resource/ResourceUpdater";
 import { ItemLink } from "@ext/navigation/NavigationLinks";
 import DragTree from "@ext/navigation/catalog/drag/logic/DragTree";
 import DragTreeTransformer from "@ext/navigation/catalog/drag/logic/DragTreeTransformer";
 import { NodeModel } from "@minoru/react-dnd-treeview";
-import { Command, ResponseKind } from "../../types/Command";
-import ReloadConfirmMiddleware from "@core/Api/middleware/ReloadConfirmMiddleware";
+import { Command } from "../../types/Command";
 
 const updateNavigation: Command<
 	{

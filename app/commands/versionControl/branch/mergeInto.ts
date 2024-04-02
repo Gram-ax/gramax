@@ -1,4 +1,5 @@
 import deleteBranchAfterMerge from "@app/commands/versionControl/branch/mergeConflict/utils/deleteBranchAfterMerge";
+import { ResponseKind } from "@app/types/ResponseKind";
 import ReloadConfirmMiddleware from "@core/Api/middleware/ReloadConfirmMiddleware";
 import MergeType from "../../../../core/extensions/git/actions/MergeConflictHandler/model/MergeType";
 import GitError from "../../../../core/extensions/git/core/GitCommands/errors/GitError";
@@ -7,7 +8,7 @@ import GitStorage from "../../../../core/extensions/git/core/GitStorage/GitStora
 import GitSourceData from "../../../../core/extensions/git/core/model/GitSourceData.schema";
 import { AuthorizeMiddleware } from "../../../../core/logic/Api/middleware/AuthorizeMiddleware";
 import Context from "../../../../core/logic/Context/Context";
-import { Command, ResponseKind } from "../../../types/Command";
+import { Command } from "../../../types/Command";
 
 const mergeInto: Command<{ ctx: Context; catalogName: string; branchName: string; deleteAfterMerge: boolean }, void> =
 	Command.create({

@@ -9,7 +9,7 @@ const getSecurityRulesData = async () => {
 
 	const user = new User();
 	const nav = new Navigation();
-	const sr = new SecurityRules(user, app.errorArticlesProvider);
+	const sr = new SecurityRules(user, app.customArticlePresenter);
 
 	const categoryTestCatalog = await app.lib.getCatalog("RulesCategoryTestCatalog");
 	const catalogTestCatalog = await app.lib.getCatalog("RulseCatalogTestCatalog");

@@ -1,6 +1,6 @@
 import Icon from "@components/Atoms/Icon";
+import { ItemType } from "@core/FileStructue/Item/ItemType";
 import { useEffect, useRef, useState } from "react";
-import { ItemType } from "../../../../logic/FileStructue/Item/Item";
 import { ArticleLink, CategoryLink, ItemLink, LinkFilter } from "../../NavigationLinks";
 import IconExtension from "../main/render/IconExtension";
 import LevNavItem from "../main/render/Item";

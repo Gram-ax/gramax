@@ -1,9 +1,10 @@
+import { ResponseKind } from "@app/types/ResponseKind";
 import { AuthorizeMiddleware } from "@core/Api/middleware/AuthorizeMiddleware";
+import ReloadConfirmMiddleware from "@core/Api/middleware/ReloadConfirmMiddleware";
 import Context from "@core/Context/Context";
 import BranchData from "@ext/VersionControl/model/branch/BranchData";
 import GitSourceData from "@ext/git/core/model/GitSourceData.schema";
-import { Command, ResponseKind } from "../../../types/Command";
-import ReloadConfirmMiddleware from "@core/Api/middleware/ReloadConfirmMiddleware";
+import { Command } from "../../../types/Command";
 
 const reset: Command<{ ctx: Context; catalogName: string }, BranchData[]> = Command.create({
 	path: "versionControl/branch/reset",

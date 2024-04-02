@@ -1,4 +1,4 @@
-import { getExecutingEnvironment } from "@app/resolveModule";
+import { getExecutingEnvironment } from "@app/resolveModule/env";
 import ApiRequest from "../ApiRequest";
 import ApiResponse from "../ApiResponse";
 import Middleware from "./Middleware";

@@ -42,9 +42,12 @@ import Strike from "@ext/markdown/elements/strikethrough/edit/strike";
 import Strong from "@ext/markdown/elements/strong/edit/strong";
 import StyleWrapper from "@ext/markdown/elements/styleWrapper/model/styleWrapper";
 import TableKeyboardShortcuts from "@ext/markdown/elements/table/edit/model/TableKeyboardShortcuts";
+import Tab from "@ext/markdown/elements/tabs/edit/model/tab/tab";
+import Tabs from "@ext/markdown/elements/tabs/edit/model/tabs/tabs";
 import Typography from "@ext/markdown/elements/typography/typography";
 import VideoComponent from "@ext/markdown/elements/video/edit/model/video";
 import SmileReplacer from "../../../elements/smilieReplacer/smileReplacer";
+import Snippet from "@ext/markdown/elements/snippet/edit/model/snippet";
 
 const getExtensions = (): Extensions => [
 	DocKeyboardShortcuts,
@@ -67,9 +70,12 @@ const getExtensions = (): Extensions => [
 	Drawio,
 	Image,
 	File,
+	Tabs,
+	Tab,
 
 	Br,
 
+	Snippet,
 	TableRow,
 	TableCell,
 	TableHeader,

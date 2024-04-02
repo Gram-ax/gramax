@@ -8,6 +8,10 @@ export default {
 			description: "<p>$VAR1 $VAR2 description</p>",
 			type: "string",
 		},
+		title: {
+			title: "<p>test</p>",
+			type: "string",
+		},
 	},
 	required: ["varsTest"],
 	$schema: "http://json-schema.org/draft-07/schema#",

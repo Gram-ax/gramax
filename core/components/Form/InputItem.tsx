@@ -10,18 +10,18 @@ import { Validate } from "./ValidateObject";
 
 interface ItemInputProps {
 	tabIndex: number;
-	value: JSONSchema7;
+	scheme: JSONSchema7;
 	validate: Validate;
-	editedPropsValue: string | string[] | boolean;
-	onChange: (value: string | string[] | boolean) => void;
+	value: string | string[] | boolean;
+	onChange?: (value: string | string[] | boolean) => void;
 	onFocus?: () => void;
 	showErrorText?: boolean;
 	focus?: boolean;
 }
 
 const ItemInput = (props: ItemInputProps) => {
-	const { value, tabIndex, onChange, validate, showErrorText, onFocus, focus = false } = props;
-	let { editedPropsValue } = props;
+	const { scheme, tabIndex, onChange, validate, showErrorText, onFocus, focus = false } = props;
+	let { value } = props;
 
 	const ref = useRef<HTMLElement>();
 
@@ -30,47 +30,45 @@ const ItemInput = (props: ItemInputProps) => {
 		ref.current.focus();
 	}, [focus]);
 
-	if (value.enum) {
+	if (scheme.enum) {
 		return (
 			<ListLayout
 				tabIndex={tabIndex}
 				errorText={validate}
 				onFocus={onFocus}
-				disable={value.readOnly ?? false}
-				disableSearch={value.readOnly ?? false}
-				items={(value.enum as string[]).map((v) => ({
+				disable={scheme.readOnly ?? false}
+				disableSearch={scheme.readOnly ?? false}
+				items={(scheme.enum as string[]).map((v) => ({
 					labelField: v,
 					element: useLocalize(v as any),
 				}))}
 				item={{
-					labelField: (editedPropsValue as string) ?? (value.default as string) ?? "",
-					element:
-						useLocalize(editedPropsValue as any) ??
-						(value.default ? useLocalize(value.default as any) : ""),
+					labelField: (value as string) ?? (scheme.default as string) ?? "",
+					element: useLocalize(value as any) ?? (scheme.default ? useLocalize(scheme.default as any) : ""),
 				}}
 				onItemClick={(_, __, idx) => {
-					onChange((value.enum as string[])[idx]);
+					onChange?.((scheme.enum as string[])[idx]);
 				}}
-				placeholder={useLocalize(value.format as any)}
+				placeholder={useLocalize(scheme.format as any)}
 			/>
 		);
 	}
 
-	if (value.type === "array" && (value.items as JSONSchema7).type == "string") {
+	if (scheme.type === "array" && (scheme.items as JSONSchema7).type == "string") {
 		return (
 			<Tooltip content={validate}>
 				<div>
 					<Select
 						create
 						// disable={value.readOnly ?? false}
-						placeholder={value.format}
-						addPlaceholder={value.format ?? ""}
+						placeholder={scheme.format}
+						addPlaceholder={scheme.format ?? ""}
 						createNewLabel={useLocalize("addValue") + " {search}"}
-						values={(editedPropsValue as string[])?.map((value) => ({ value, label: value }))}
+						values={(value as string[])?.map((value) => ({ value, label: value }))}
 						options={[]}
 						onChange={(values) => {
-							editedPropsValue = values.map((value) => value.value);
-							onChange(editedPropsValue);
+							value = values.map((value) => value.value);
+							onChange?.(value);
 						}}
 						onFocus={onFocus}
 					/>
@@ -79,20 +77,20 @@ const ItemInput = (props: ItemInputProps) => {
 		);
 	}
 
-	if (value.type === "boolean") {
+	if (scheme.type === "boolean") {
 		return (
 			<Tooltip content={validate}>
 				<div>
 					<Checkbox
 						interactive={true}
-						disabled={value.readOnly}
-						checked={(editedPropsValue ?? value.default) as boolean}
+						disabled={scheme.readOnly}
+						checked={(value ?? scheme.default) as boolean}
 						onChange={(isChecked) => {
-							editedPropsValue = isChecked;
-							onChange(editedPropsValue);
+							value = isChecked;
+							onChange?.(value);
 						}}
 					>
-						<span className="control-label" dangerouslySetInnerHTML={{ __html: value?.title }} />
+						<span className="control-label" dangerouslySetInnerHTML={{ __html: scheme?.title }} />
 					</Checkbox>
 				</div>
 			</Tooltip>
@@ -101,16 +99,18 @@ const ItemInput = (props: ItemInputProps) => {
 	return (
 		<Input
 			isCode
-			dataQa={(value as any).dataQa}
-			disable={value.readOnly}
+			dataQa={(scheme as any).dataQa}
+			disabled={scheme.readOnly}
 			tabIndex={tabIndex}
-			hidden={(value as any).private}
+			hidden={(scheme as any).private}
 			ref={ref as MutableRefObject<HTMLInputElement>}
 			errorText={validate}
 			showErrorText={showErrorText}
-			value={(editedPropsValue as string) ?? (value.default as string) ?? ""}
-			onChange={(e) => onChange(e.target.value)}
-			placeholder={value.format}
+			value={(value as string) ?? (scheme.default as string) ?? ""}
+			onChange={(e) => {
+				onChange?.(e.target.value);
+			}}
+			placeholder={scheme.format}
 			onFocus={onFocus}
 		/>
 	);

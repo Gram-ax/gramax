@@ -38,7 +38,11 @@ const test = spawn("jest", [...jestArgs, ...process.argv.slice(3)], { stdio: "in
 if (useServer) {
 	test.on("exit", (code) => {
 		testGitCatalogUtils.removeGit();
-		execSync("npx git-http-mock-server stop", { cwd: FIXTURES_PATH });
+		try {
+			execSync("npx git-http-mock-server stop", { cwd: FIXTURES_PATH });
+		} catch (error) {
+			console.error("Failed to stop git-http-mock-server:", error);
+		}
 		process.exit(code);
 	});
 }

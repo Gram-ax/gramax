@@ -56,44 +56,46 @@ const CreateSourceData = (props: CreateSourceDataProps) => {
 					<FormStyle>
 						<>
 							<legend>{useLocalize("addNewStorage")}</legend>
-							<div className="form-group field field-string row">
-								<label className="control-label">{useLocalize("storage")}</label>
-								<div className="input-lable">
-									<ListLayout
-										disable={!!defaultSourceType}
-										disableSearch={!!defaultSourceType}
-										openByDefault={!defaultSourceType}
-										item={defaultSourceType ?? ""}
-										placeholder={`${useLocalize("find")} ${useLocalize("storage2")}`}
-										items={Object.values(SourceType)
-											.filter((v) => v !== SourceType.enterprise)
-											.map((v) => ({
-												element: <SourceListItem code={v.toLowerCase()} text={v} />,
-												labelField: v,
-											}))}
-										onItemClick={(labelField) => setSourceType(labelField as SourceType)}
-										onSearchClick={() => setSourceType(null)}
-									/>
+							<fieldset>
+								<div className="form-group field field-string row">
+									<label className="control-label">{useLocalize("storage")}</label>
+									<div className="input-lable">
+										<ListLayout
+											disable={!!defaultSourceType}
+											disableSearch={!!defaultSourceType}
+											openByDefault={!defaultSourceType}
+											item={defaultSourceType ?? ""}
+											placeholder={`${useLocalize("find")} ${useLocalize("storage2")}`}
+											items={Object.values(SourceType)
+												.filter((v) => v !== SourceType.enterprise)
+												.map((v) => ({
+													element: <SourceListItem code={v.toLowerCase()} text={v} />,
+													labelField: v,
+												}))}
+											onItemClick={(labelField) => setSourceType(labelField as SourceType)}
+											onSearchClick={() => setSourceType(null)}
+										/>
+									</div>
 								</div>
-							</div>
 
-							{sourceType == SourceType.gitLab && (
-								<CreateGitLabSourceData
-									props={{
-										sourceType: sourceType as any,
-										domain: "",
-										token: "",
-										userName: null,
-										userEmail: null,
-										...defaultSourceData,
-									}}
-									onSubmit={createStorageUserData}
-									readOnlyProps={defaultSourceData}
-								/>
-							)}
-							{sourceType == SourceType.gitHub && (
-								<CreateGitHubSourceData onSubmit={createStorageUserData} />
-							)}
+								{sourceType == SourceType.gitLab && (
+									<CreateGitLabSourceData
+										props={{
+											sourceType: sourceType as any,
+											domain: "",
+											token: "",
+											userName: null,
+											userEmail: null,
+											...defaultSourceData,
+										}}
+										onSubmit={createStorageUserData}
+										readOnlyProps={defaultSourceData}
+									/>
+								)}
+								{sourceType == SourceType.gitHub && (
+									<CreateGitHubSourceData onSubmit={createStorageUserData} />
+								)}
+							</fieldset>
 						</>
 					</FormStyle>
 				</ErrorHandler>

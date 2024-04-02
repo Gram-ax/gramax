@@ -1,8 +1,8 @@
-import resolveModule from "@app/resolveModule";
+import resolveModule from "@app/resolveModule/frontend";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
+import { BaseLink } from "@ext/navigation/NavigationLinks";
 import { HTMLAttributes, ReactNode, RefObject, forwardRef } from "react";
 import localizer from "../../extensions/localization/core/Localizer";
-import { BaseLink } from "@ext/navigation/NavigationLinks";
 
 interface LinkProps extends HTMLAttributes<HTMLAnchorElement> {
 	href: BaseLink;

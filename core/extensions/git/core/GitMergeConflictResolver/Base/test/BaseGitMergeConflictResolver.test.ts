@@ -56,7 +56,7 @@ describe("BaseGitMergeConflictResolver", () => {
 		const filesToMerge = await baseGitMergeConflictResolver.getFilesToMerge();
 
 		expect(filesToMerge).toEqual([
-			{ content: CONFLICT_CONTENT, path: "conflict.md", title: null, type: FileStatus.modified },
+			{ content: CONFLICT_CONTENT, path: "conflict.md", title: null, type: FileStatus.conflict },
 		]);
 	});
 
@@ -70,7 +70,7 @@ describe("BaseGitMergeConflictResolver", () => {
 		await expect(baseGitMergeConflictResolver.resolveConflictedFiles(conflictFiles)).resolves.toBeUndefined();
 		expect(await dfp.read(rep.path("conflict.md"))).toBe("conflict content ours and theirs :)");
 		const conflictFileStatus = (await rep.getStatus()).find((value) => value[0] === "conflict.md");
-		expect(conflictFileStatus).toEqual(["conflict.md", 1, 2, 1]);
+		expect(conflictFileStatus).toEqual(["conflict.md", 1, 2, 2]);
 	});
 });
 

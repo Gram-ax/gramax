@@ -1,8 +1,8 @@
+import { ItemRef } from "@core/FileStructue/Item/ItemRef";
 import GitCommandsConfig from "@ext/git/core/GitCommands/model/GitCommandsConfig";
 import Path from "../../../../logic/FileProvider/Path/Path";
 import FileProvider from "../../../../logic/FileProvider/model/FileProvider";
 import { Catalog } from "../../../../logic/FileStructue/Catalog/Catalog";
-import { ItemRef } from "../../../../logic/FileStructue/Item/Item";
 import { getDiff } from "../../../VersionControl/DiffHandler/DiffHandler";
 import { VersionControlInfo } from "../../../VersionControl/model/VersionControlInfo";
 import DefaultError from "../../../errorHandlers/logic/DefaultError";
@@ -20,7 +20,7 @@ export default class GitFileHistory {
 	constructor(
 		private _catalog: Catalog,
 		private _fp: FileProvider,
-		private _enterpriseServerUrl: string = "",
+		private _reviewServerUrl: string = "",
 		private _conf: GitCommandsConfig = { corsProxy: null },
 		private _storageData?: { sourceType: SourceType; name: string; branch: string },
 	) {}
@@ -43,7 +43,7 @@ export default class GitFileHistory {
 				repName: this._storageData.name,
 				branch: this._storageData.branch,
 			};
-			const response = await fetch(`${this._enterpriseServerUrl}/review/filehistory`, {
+			const response = await fetch(`${this._reviewServerUrl}/filehistory`, {
 				method: "POST",
 				body: JSON.stringify(body),
 				headers: { "Content-Type": "application/json" },

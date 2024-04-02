@@ -1,17 +1,12 @@
-ARG CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX
-
-FROM ${CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX}/node:20-alpine as deps
+FROM gitlab.ics-it.ru:4567/ics/doc-reader:base-image as deps
 
 WORKDIR /src
-
-RUN [ "apk", "update" ]; [ "apk", "upgrade" ]
-RUN [ "apk", "--no-cache", "add", "nodejs-current", "npm", "git", "fd", "bash" ]
 
 COPY . .
 
 RUN rm -r services/*
 
-RUN ["sh", "install-deps.sh"]
+RUN ./install-deps.sh --ci --wasm
 
 FROM deps as build
 
@@ -19,9 +14,9 @@ ENV NODE_OPTIONS=--max_old_space_size=4096
 
 WORKDIR /src/storybook
 
-RUN [ "npm", "run", "build" ]
+RUN npm run build
 
-FROM ${CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX}/devforth/spa-to-http:latest
+FROM devforth/spa-to-http:latest
 
 WORKDIR /app
 
@@ -30,4 +25,4 @@ EXPOSE 80
 
 COPY --from=build /src/storybook/storybook-static .
 
-CMD [ "go-http-server", "--spa", "false" ]
+CMD [ "go-http-serve", "--spa", "false" ]

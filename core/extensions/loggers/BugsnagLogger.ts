@@ -1,4 +1,4 @@
-import { getExecutingEnvironment } from "@app/resolveModule";
+import { getExecutingEnvironment } from "@app/resolveModule/env";
 import Bugsnag from "@bugsnag/js";
 import sendBug from "../bugsnag/logic/sendBug";
 import BaseLogger from "./BaseLogger";

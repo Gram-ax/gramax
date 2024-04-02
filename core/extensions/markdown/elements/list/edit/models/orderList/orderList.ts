@@ -1,3 +1,4 @@
+import { toggleList } from "@ext/markdown/elements/list/edit/logic/toggleList";
 import { ordered_list } from "@ext/markdown/elements/list/edit/models/orderList/model/orderListSchema";
 import getExtensionOptions from "@ext/markdown/logic/getExtensionOptions";
 import { mergeAttributes, Node, wrappingInputRule } from "@tiptap/core";
@@ -61,8 +62,11 @@ const OrderedList = Node.create<OrderedListOptions>({
 		return {
 			toggleOrderedList:
 				() =>
-				({ commands }) => {
-					return commands.toggleList(this.name, this.options.itemTypeName);
+				({ commands, state, dispatch }) => {
+					const mainToggle = commands.toggleList(this.name, this.options.itemTypeName);
+					const secondToggle = toggleList({ state, dispatch, listName: this.name });
+
+					return mainToggle || secondToggle;
 				},
 		};
 	},

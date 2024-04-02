@@ -1,15 +1,26 @@
 import { classNames } from "@components/libs/classNames";
 import { useOutsideClick } from "@core-ui/hooks/useOutsideClick";
 import styled from "@emotion/styled";
-import { forwardRef, useEffect, useImperativeHandle, useRef, useState, useMemo } from "react";
-import { ForwardedRef, MouseEventHandler } from "react";
+import {
+	ForwardedRef,
+	MouseEventHandler,
+	forwardRef,
+	useEffect,
+	useImperativeHandle,
+	useMemo,
+	useRef,
+	useState,
+} from "react";
+import { Placement } from "tippy.js";
 import Tooltip from "../Atoms/Tooltip";
-import { ListItem, ItemContent, ButtonItem } from "./Item";
+import { ButtonItem, ItemContent, ListItem } from "./Item";
 import Items, { OnItemClick } from "./Items";
 import Search, { SearchElement } from "./Search";
 
-export interface ListLayoutElement extends HTMLDivElement {
+export interface ListLayoutElement {
 	searchRef: SearchElement;
+	itemsRef: HTMLDivElement;
+	htmlElement: HTMLDivElement;
 }
 
 interface ConfigProps {
@@ -23,6 +34,7 @@ interface ConfigProps {
 	selectAllOnFocus?: boolean;
 	disableSearch?: boolean;
 	isLoadingData?: boolean;
+	place?: Placement;
 }
 
 interface ListLayoutProps extends ConfigProps {
@@ -34,7 +46,11 @@ interface ListLayoutProps extends ConfigProps {
 	tabIndex?: number;
 	onSearchClick?: () => void;
 	onSearchChange?: (value: string) => void;
-	onItemClick?: (value: string, e: MouseEventHandler<HTMLDivElement> | KeyboardEvent, idx: number) => void;
+	onItemClick?: (
+		labelField: string,
+		mouseEvent: MouseEventHandler<HTMLDivElement> | KeyboardEvent,
+		idx: number,
+	) => void;
 	onFocus?: () => void;
 	className?: string;
 	itemsClassName?: string;
@@ -74,6 +90,7 @@ const ListLayout = forwardRef((props: ListLayoutProps, ref: ForwardedRef<ListLay
 		isLoadingData = false,
 		disable = false,
 		isCode = true,
+		place = "bottom",
 	} = props;
 
 	const {
@@ -103,7 +120,9 @@ const ListLayout = forwardRef((props: ListLayoutProps, ref: ForwardedRef<ListLay
 		get itemsRef(): HTMLDivElement {
 			return itemsRef.current;
 		},
-		...listRef.current,
+		get htmlElement(): HTMLDivElement {
+			return listRef.current;
+		},
 	}));
 
 	useOutsideClick(
@@ -190,15 +209,15 @@ const ListLayout = forwardRef((props: ListLayoutProps, ref: ForwardedRef<ListLay
 	return (
 		<Tooltip
 			arrow={false}
-			distance={4}
 			interactive
 			customStyle
-			place="bottom"
+			place={place}
 			trigger="click"
 			visible={true}
 			hideOnClick={false}
 			hideInMobile={false}
 			content={TooltipContent}
+			offset={(p) => (p.placement == "top" ? [0, 7] : [0, 3])}
 		>
 			<StyledDiv
 				disable={disable}

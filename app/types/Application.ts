@@ -2,52 +2,63 @@ import { ContextFactory } from "@core/Context/ContextFactory";
 import Path from "@core/FileProvider/Path/Path";
 import Hash from "@core/Hash/Hash";
 import Library from "@core/Library/Library";
-import ErrorArticlePresenter from "@core/SitePresenter/ErrorArticlePresenter";
+import PluginProvider from "@core/Plugin/logic/PluginProvider";
+import CustomArticlePresenter from "@core/SitePresenter/CustomArticlePresenter";
 import SitePresenterFactory from "@core/SitePresenter/SitePresenterFactory";
 import { TableDB } from "@core/components/tableDB/table";
 import VideoUrlRepository from "@core/components/video/videoUrlRepository";
+import Cache from "@ext/Cache";
 import MailProvider from "@ext/MailProvider";
 import ThemeManager from "@ext/Theme/ThemeManager";
 import GitRepositoryProvider from "@ext/git/core/Repository/RepositoryProvider";
+import HtmlParser from "@ext/html/HtmlParser";
 import Logger from "@ext/loggers/Logger";
 import MarkdownParser from "@ext/markdown/core/Parser/Parser";
 import ParserContextFactory from "@ext/markdown/core/Parser/ParserContext/ParserContextFactory";
 import MarkdownFormatter from "@ext/markdown/core/edit/logic/Formatter/Formatter";
-import Searcher from "@ext/search/Searcher";
 import AuthManager from "@ext/security/logic/AuthManager";
+import Sso from "@ext/security/logic/AuthProviders/Sso";
 import { TicketManager } from "@ext/security/logic/TicketManager/TicketManager";
 
 interface Application {
+	sso: Sso;
 	lib: Library;
+	cache: Cache;
 	hashes: Hash;
 	logger: Logger;
 	am: AuthManager;
 	tm: ThemeManager;
 	mp: MailProvider;
-	searcher: Searcher;
 	parser: MarkdownParser;
+	htmlParser: HtmlParser;
 	tablesManager: TableDB;
 	vur: VideoUrlRepository;
 	rp: GitRepositoryProvider;
 	formatter: MarkdownFormatter;
 	ticketManager: TicketManager;
 	contextFactory: ContextFactory;
+	pluginProvider: PluginProvider;
 	parserContextFactory: ParserContextFactory;
 	sitePresenterFactory: SitePresenterFactory;
-	errorArticlesProvider: ErrorArticlePresenter;
+	customArticlePresenter: CustomArticlePresenter;
 	conf: {
 		basePath: Path;
-		branch: string;
-		ssoServerUrl: string;
-		ssoPublicKey: string;
-		authServiceUrl: string;
-		corsProxy: string;
+
+		version: string;
+		isRelease: boolean;
 		isReadOnly: boolean;
 		isServerApp: boolean;
 		isProduction: boolean;
+
 		bugsnagApiKey: string;
-		gramaxVersion: string;
-		enterpriseServerUrl: string;
+
+		services: {
+			review: { url: string };
+			cors: { url: string };
+			auth: { url: string };
+			diagramRenderer: { url: string };
+			sso: { publicKey: string; url: string };
+		};
 	};
 }
 

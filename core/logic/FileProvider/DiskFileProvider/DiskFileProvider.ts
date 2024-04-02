@@ -1,8 +1,8 @@
-// в tauri заменяем его на TauriFs(tauri/vite.comfig.ts)
-import fs from "fs-extra";
+// в tauri заменяем fs-extra на TauriFs(tauri/vite.config.ts); в wasm на wasmfs
+import { ItemRef } from "@core/FileStructue/Item/ItemRef";
+import * as fs from "fs-extra";
 import { ItemStatus } from "../../../extensions/Watchers/model/ItemStatus";
 import Watcher from "../../../extensions/Watchers/model/Watcher";
-import { ItemRef } from "../../FileStructue/Item/Item";
 import Path from "../Path/Path";
 import FileInfo from "../model/FileInfo";
 import FileProvider from "../model/FileProvider";
@@ -76,10 +76,10 @@ export default class DiskFileProvider implements FileProvider {
 		this._watcher?.stop();
 		try {
 			const absolutePath = this._toAbsolute(path);
-			if (await this.exists(path)) await fs.writeFile(absolutePath, data, "utf-8");
+			if (await this.exists(path.parentDirectoryPath)) await fs.writeFile(absolutePath, data);
 			else {
 				await fs.mkdir(this._toAbsolute(path.parentDirectoryPath), { recursive: true });
-				await fs.writeFile(absolutePath, data, { encoding: "utf-8", flag: "wx" });
+				await fs.writeFile(absolutePath, data);
 			}
 		} finally {
 			this._watcher?.start();
@@ -106,9 +106,7 @@ export default class DiskFileProvider implements FileProvider {
 	}
 
 	async read(path: Path): Promise<string> {
-		if (await this.exists(path))
-			return (await fs.readFile(this._toAbsolute(path), { encoding: "utf-8" })).toString();
-		return null;
+		return (await fs.readFile(this._toAbsolute(path))).toString();
 	}
 
 	async readAsBinary(path: Path): Promise<Buffer> {
@@ -117,15 +115,14 @@ export default class DiskFileProvider implements FileProvider {
 	}
 
 	async readdir(path: Path): Promise<string[]> {
-		if (await this.exists(path)) return fs.readdir(this._toAbsolute(path));
+		return fs.readdir(this._toAbsolute(path));
 	}
 
 	async readlink(path: Path): Promise<string> {
-		if (await this.exists(path)) return fs.readlink(this._toAbsolute(path));
+		return fs.readlink(this._toAbsolute(path));
 	}
 
 	async symlink(target: Path, path: Path): Promise<void> {
-		if (!(await this.exists(path))) return;
 		await fs.symlink(this._toAbsolute(target), this._toAbsolute(path));
 	}
 

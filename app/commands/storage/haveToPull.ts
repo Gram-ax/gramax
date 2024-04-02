@@ -1,6 +1,7 @@
+import { ResponseKind } from "@app/types/ResponseKind";
 import { AuthorizeMiddleware } from "@core/Api/middleware/AuthorizeMiddleware";
 import Context from "@core/Context/Context";
-import { Command, ResponseKind } from "../../types/Command";
+import { Command } from "../../types/Command";
 
 const haveToPull: Command<{ ctx: Context; catalogName: string }, boolean> = Command.create({
 	path: "storage/haveToPull",

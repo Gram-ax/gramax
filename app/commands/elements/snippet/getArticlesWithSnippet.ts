@@ -1,0 +1,40 @@
+import { Command } from "@app/types/Command";
+import { ResponseKind } from "@app/types/ResponseKind";
+import { DesktopModeMiddleware } from "@core/Api/middleware/DesktopModeMiddleware";
+import ReloadConfirmMiddleware from "@core/Api/middleware/ReloadConfirmMiddleware";
+import Context from "@core/Context/Context";
+
+const getArticlesWithSnippet: Command<
+	{ catalogName: string; snippetId: string; ctx: Context },
+	{ pathname: string; title: string }[]
+> = Command.create({
+	path: "elements/snippet/getArticlesWithSnippet",
+
+	kind: ResponseKind.json,
+
+	middlewares: [new DesktopModeMiddleware(), new ReloadConfirmMiddleware()],
+
+	async do({ catalogName, snippetId, ctx }) {
+		const { lib, sitePresenterFactory } = this._app;
+		const catalog = await lib.getCatalog(catalogName);
+		if (!catalog) return;
+		const sp = sitePresenterFactory.fromContext(ctx);
+		const items = (await sp.parseAllItems(catalog))
+			.getContentItems()
+			.filter((i) => i.parsedContent?.snippets.has(snippetId));
+
+		if (items.length === 0) return [];
+		return Promise.all(
+			items.map(async (i) => ({
+				pathname: await catalog.getPathname(i),
+				title: i.getTitle(),
+			})),
+		);
+	},
+
+	params(ctx, q) {
+		return { catalogName: q.catalogName, snippetId: q.snippetId, ctx };
+	},
+});
+
+export default getArticlesWithSnippet;

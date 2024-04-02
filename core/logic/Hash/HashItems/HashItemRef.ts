@@ -1,5 +1,5 @@
+import { ItemRef } from "@core/FileStructue/Item/ItemRef";
 import { Buffer } from "buffer";
-import { ItemRef } from "../../FileStructue/Item/Item";
 import Library from "../../Library/Library";
 import HashItem from "./HashItem";
 

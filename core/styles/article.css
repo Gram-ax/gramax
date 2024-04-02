@@ -252,12 +252,13 @@ samp {
 
 .article code,
 .article pre {
-	border-radius: var(--radius-block);
-	overflow: auto;
-	color: var(--color-article-heading-text);
-	background: var(--color-code-bg);
-	padding: 2px 6px;
+	tab-size: 4;
 	margin: 2em 0;
+	overflow: auto;
+	padding: 2px 6px;
+	background: var(--color-code-bg);
+	border-radius: var(--radius-block);
+	color: var(--color-article-heading-text);
 }
 
 .article td pre {
@@ -298,8 +299,8 @@ samp {
 
 .article blockquote {
 	padding-left: 1.25rem;
-	margin: 20px 0;
-	font-size: 17.5px;
+	margin: 1.15em 0;
+	font-size: 1.08em;
 	border-left: 5px solid #eee;
 }
 
@@ -430,16 +431,11 @@ samp {
 .article .article-body a {
 	color: var(--color-link);
 	font-weight: inherit;
-	/* TODO */
-	cursor: text;
+	cursor: pointer;
 }
 
 .article .article-body a:hover {
 	text-decoration: underline;
-}
-/* TODO */
-.article .linkViewMode a {
-	cursor: pointer;
 }
 
 .article strong {

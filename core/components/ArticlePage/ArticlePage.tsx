@@ -4,6 +4,7 @@ import registerMetric from "@core-ui/yandexMetric";
 import { ArticlePageData } from "@core/SitePresenter/SitePresenter";
 import CreateFirstArticle from "@ext/artilce/actions/CreateFirstArticle";
 import useLocalize from "@ext/localization/useLocalize";
+import { ContentEditorId } from "@ext/markdown/core/edit/components/ContentEditor";
 import ThemeService from "../../extensions/Theme/components/ThemeService";
 import interceptPrintShortkeys from "../../extensions/artilce/actions/SaveAsPdf/interceptPrintShortkeys";
 import NextPrevious from "../../extensions/navigation/NextPrevious";
@@ -22,7 +23,7 @@ const ArticlePage = ({ data }: { data: ArticlePageData }) => {
 
 	interceptPrintShortkeys(isMac, theme);
 
-	if (data.articleProps.welcome == "modal")
+	if (data.articleProps.welcome)
 		return (
 			<Welcome
 				article
@@ -39,7 +40,7 @@ const ArticlePage = ({ data }: { data: ArticlePageData }) => {
 				<Article data={data} />
 			</div>
 			<NextPrevious itemLinks={data.itemLinks} />
-			<ArticleExtensions />
+			<ArticleExtensions id={ContentEditorId} />
 		</>
 	);
 };

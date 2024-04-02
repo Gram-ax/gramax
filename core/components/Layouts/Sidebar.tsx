@@ -1,6 +1,6 @@
 import { classNames } from "@components/libs/classNames";
 import styled from "@emotion/styled";
-import { ReactNode, HTMLProps } from "react";
+import { HTMLProps, ReactNode } from "react";
 
 interface SidebarProps extends HTMLProps<HTMLDivElement> {
 	leftActions?: ReactNode[];

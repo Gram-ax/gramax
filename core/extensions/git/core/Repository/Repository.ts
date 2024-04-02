@@ -85,6 +85,8 @@ export default class Repository {
 	}): Promise<void> {
 		const oldVersion = await this._gvc.getCurrentVersion();
 		const oldBranch = await this._gvc.getCurrentBranch();
+		const allBranches = (await this._gvc.getAllBranches()).map((b) => b.getData().remoteName ?? b.getData().name);
+		if (!allBranches.includes(branch)) await this.storage.fetch(data);
 		await this._gvc.checkoutToBranch(branch);
 
 		try {

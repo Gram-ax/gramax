@@ -54,7 +54,7 @@ const SelectStorageDataForm = (props: SelectStorageDataFormProps) => {
 				}}
 			/>
 		),
-		onCLick: () => setExternalIsOpen(true),
+		onClick: () => setExternalIsOpen(true),
 		labelField: "",
 	};
 
@@ -66,53 +66,55 @@ const SelectStorageDataForm = (props: SelectStorageDataFormProps) => {
 		<FormStyle>
 			<>
 				<legend>{title}</legend>
-				<div className="form-group field field-string row">
-					<label className="control-label">{useLocalize("storage")}</label>
-					<div className="input-lable">
-						<ListLayout
-							placeholder={`${useLocalize("find")} ${useLocalize("storage2")}`}
-							item={
-								selectSourceData
-									? {
-											element: (
-												<SourceListItem
-													code={selectSourceData.sourceType}
-													text={getStorageNameByData(selectSourceData)}
-												/>
-											),
-											labelField: getStorageNameByData(selectSourceData),
-									  }
-									: ""
-							}
-							buttons={[addNewStorageListItem]}
-							items={[
-								...sourceDatas.map((d) => ({
-									element: <SourceListItem code={d.sourceType} text={getStorageNameByData(d)} />,
-									labelField: getStorageNameByData(d),
-								})),
-							]}
-							onItemClick={(labelField, _, idx) => {
-								if (labelField) setSelectStorageData(sourceDatas[idx]);
-							}}
-							openByDefault={true}
-						/>
+				<fieldset>
+					<div className="form-group field field-string row">
+						<label className="control-label">{useLocalize("storage")}</label>
+						<div className="input-lable">
+							<ListLayout
+								placeholder={`${useLocalize("find")} ${useLocalize("storage2")}`}
+								item={
+									selectSourceData
+										? {
+												element: (
+													<SourceListItem
+														code={selectSourceData.sourceType}
+														text={getStorageNameByData(selectSourceData)}
+													/>
+												),
+												labelField: getStorageNameByData(selectSourceData),
+										  }
+										: ""
+								}
+								buttons={[addNewStorageListItem]}
+								items={[
+									...sourceDatas.map((d) => ({
+										element: <SourceListItem code={d.sourceType} text={getStorageNameByData(d)} />,
+										labelField: getStorageNameByData(d),
+									})),
+								]}
+								onItemClick={(labelField, _, idx) => {
+									if (labelField) setSelectStorageData(sourceDatas[idx]);
+								}}
+								openByDefault={true}
+							/>
+						</div>
 					</div>
-				</div>
-				{selectSourceData?.sourceType == SourceType.gitLab && (
-					<SelectGitLabStorageDataFields
-						source={selectSourceData as GitlabSourceData}
-						onChange={onChange}
-						forClone={forClone}
-					/>
-				)}
-				{selectSourceData?.sourceType == SourceType.gitHub && (
-					<SelectGitHubStorageDataFields
-						source={selectSourceData as GitHubSourceData}
-						onChange={onChange}
-						forClone={forClone}
-					/>
-				)}
-				{children}
+					{selectSourceData?.sourceType == SourceType.gitLab && (
+						<SelectGitLabStorageDataFields
+							source={selectSourceData as GitlabSourceData}
+							onChange={onChange}
+							forClone={forClone}
+						/>
+					)}
+					{selectSourceData?.sourceType == SourceType.gitHub && (
+						<SelectGitHubStorageDataFields
+							source={selectSourceData as GitHubSourceData}
+							onChange={onChange}
+							forClone={forClone}
+						/>
+					)}
+					{children}
+				</fieldset>
 			</>
 		</FormStyle>
 	);

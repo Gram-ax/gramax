@@ -13,7 +13,7 @@ module.exports = {
 						"jest-ifdef-transform",
 						{
 							"ifdef-triple-slash": true,
-							VITE_ENVIRONMENT: "next",
+							VITE_ENVIRONMENT: "jest",
 						},
 					],
 				],
@@ -28,7 +28,7 @@ module.exports = {
 		"<rootDir>/public",
 		"<rootDir>/docs",
 		"<rootDir>/application",
-		"<rootDir>/target/tauri",
+		"<rootDir>/apps/tauri",
 	],
 	reporters: ["default", ["jest-junit", { suiteName: "jest tests" }]],
 	moduleNameMapper: {

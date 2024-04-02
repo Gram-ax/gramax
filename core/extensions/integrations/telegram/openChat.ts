@@ -1,4 +1,4 @@
-import resolveModule from "../../../../app/resolveModule";
+import resolveModule from "../../../../app/resolveModule/frontend";
 
 const openChat = async () => {
 	const uri = `https://t.me/gramax_chat`;

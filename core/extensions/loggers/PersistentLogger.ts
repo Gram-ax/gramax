@@ -7,17 +7,17 @@ export default class PersistentLogger {
 	}
 
 	static err(message: string, error: Error, scope?: string, meta?: any) {
-		if (scope) meta.s = scope;
+		if (scope && meta) meta.s = scope;
 		this._pushMessage(this._format("err", message, scope, meta, error));
 	}
 
 	static info(message: string, scope?: string, meta?: any) {
-		if (scope) meta.s = scope;
+		if (scope && meta) meta.s = scope;
 		this._pushMessage(this._format("info", message, scope, meta));
 	}
 
 	static trace(message: string, meta?: any, scope?: string) {
-		if (scope) meta.s = scope;
+		if (scope && meta) meta.s = scope;
 		this._pushMessage(this._format("trace", message, scope, meta));
 	}
 
@@ -64,7 +64,7 @@ export default class PersistentLogger {
 	}
 
 	private static _format(prefix: string, body: string, scope?: string, meta?: any, error?: Error): string {
-		if (scope) meta.s = scope;
+		if (scope && meta) meta.s = scope;
 		const obj: any = { d: new Date(), p: prefix, b: body };
 
 		if (meta) obj.m = meta;

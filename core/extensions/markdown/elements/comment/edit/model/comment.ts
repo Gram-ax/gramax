@@ -22,6 +22,7 @@ const Comment = Mark.create({
 	addAttributes() {
 		return { comment: { default: null }, answers: { default: null }, count: { default: null } };
 	},
+
 	parseHTML() {
 		return [{ tag: "comment-react-component" }];
 	},

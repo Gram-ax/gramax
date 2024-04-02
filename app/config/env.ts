@@ -3,22 +3,30 @@ type Bool = "true" | "false";
 export type EnvironmentVariable = {
 	PORT: string;
 	BRANCH: string;
-	SSO_SERVER_URL: string;
 	GRAMAX_VERSION: string;
-	ENTERPRISE_SERVER_URL: string;
-	SSO_PUBLIC_KEY: string;
-	AUTH_SERVICE_URL: string;
 	COOKIE_SECRET: string;
 
 	READ_ONLY: Bool;
 	SERVER_APP: Bool;
 	PRODUCTION: Bool;
 
+	// Services
+	AUTH_SERVICE_URL: string;
+	SSO_SERVICE_PUBLIC_KEY: string;
+	SSO_SERVICE_URL: string;
+	DIAGRAM_RENDERER_SERVICE_URL: string;
+	REVIEW_SERVICE_URL: string;
+	CORS_PROXY_SERVICE_URL: string;
+	STORAGE_URL: string;
+
+	// AutoPull
+	AUTO_PULL_TOKEN: string;
+	AUTO_PULL_INTERVAL: number;
+
 	// FileProvider
 	ROOT_PATH: string;
 	BASE_PATH: string;
 	USER_DATA_PATH: string;
-	LOCAL_DOC_PATH: string;
 
 	// Other
 	SHARE_ACCESS_TOKEN: string;

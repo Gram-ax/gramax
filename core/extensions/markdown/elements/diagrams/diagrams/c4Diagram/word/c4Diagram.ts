@@ -7,6 +7,6 @@ export const c4DiagramWordLayout: WordBlockChild = async ({ tag, resourceManager
 		tag,
 		DiagramType["c4-diagram"],
 		resourceManager,
-		parserContext.getEnterpriseServerUrl(),
+		parserContext.getDiagramRendererServerUrl(),
 	);
 };

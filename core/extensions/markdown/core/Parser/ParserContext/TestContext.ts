@@ -1,8 +1,8 @@
+import { ItemRef } from "@core/FileStructue/Item/ItemRef";
 import Path from "../../../../../logic/FileProvider/Path/Path";
 import FileProvider from "../../../../../logic/FileProvider/model/FileProvider";
 import { Article } from "../../../../../logic/FileStructue/Article/Article";
 import { Catalog } from "../../../../../logic/FileStructue/Catalog/Catalog";
-import { ItemRef } from "../../../../../logic/FileStructue/Item/Item";
 import ResourceManager from "../../../../../logic/Resource/ResourceManager";
 import { TableDB } from "../../../../../logic/components/tableDB/table";
 import Language from "../../../../localization/core/model/Language";
@@ -27,8 +27,12 @@ export default class TestContext extends BaseContext implements ParserContext {
 		this._resourceManager = new ResourceManager(fp, this._itemRef.path);
 	}
 
-	getEnterpriseServerUrl(): string {
-		return process.env.ENTERPRISE_SERVER_URL;
+	getSsoServerUrl(): string {
+		return process.env.SSO_SERVICE_URL;
+	}
+
+	getDiagramRendererServerUrl(): string {
+		return process.env.DIAGRAM_RENDERER_SERVICE_URL;
 	}
 
 	getResourceManager(): ResourceManager {

@@ -2,6 +2,7 @@ import ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import ArticlePropsService from "@core-ui/ContextServices/ArticleProps";
 import ArticleRefService from "@core-ui/ContextServices/ArticleRef";
+import ArticleTooltipService from "@core-ui/ContextServices/ArticleTooltip";
 import CatalogPropsService from "@core-ui/ContextServices/CatalogProps";
 import CommentCounterService from "@core-ui/ContextServices/CommentCounter";
 import IsEditService from "@core-ui/ContextServices/IsEdit";
@@ -17,6 +18,7 @@ import SidebarsIsPinService from "@core-ui/ContextServices/SidebarsIsPin";
 import useIsFirstLoad from "@core-ui/useIsFirstLoad";
 import { useRouter } from "@core/Api/useRouter";
 import { ArticlePageData, HomePageData } from "@core/SitePresenter/SitePresenter";
+import CurrentTabsTagService from "@ext/markdown/elements/tabs/components/CurrentTabsTagService";
 import ThemeService from "../extensions/Theme/components/ThemeService";
 import PageDataContext from "../logic/Context/PageDataContext";
 import IsOpenModalService from "../ui-logic/ContextServices/IsOpenMpdal";
@@ -72,26 +74,32 @@ export default function ContextProviders({
 																		<CatalogPropsService.Provider
 																			value={pageProps.data.catalogProps}
 																		>
-																			<IsEditService.Provider>
-																				<IsFirstLoadService.Provider
-																					value={isFirstLoad}
-																				>
-																					<OnUpdateAppFuncs>
-																						<>
-																							{pageProps.context
-																								.isLogged ? (
-																								<CommentCounterService.Provider
-																									deps={[pageProps]}
-																								>
-																									{children}
-																								</CommentCounterService.Provider>
-																							) : (
-																								children
-																							)}
-																						</>
-																					</OnUpdateAppFuncs>
-																				</IsFirstLoadService.Provider>
-																			</IsEditService.Provider>
+																			<CurrentTabsTagService.Provider>
+																				<IsEditService.Provider>
+																					<ArticleTooltipService.Provider>
+																						<IsFirstLoadService.Provider
+																							value={isFirstLoad}
+																						>
+																							<OnUpdateAppFuncs>
+																								<>
+																									{pageProps.context
+																										.isLogged ? (
+																										<CommentCounterService.Provider
+																											deps={[
+																												pageProps,
+																											]}
+																										>
+																											{children}
+																										</CommentCounterService.Provider>
+																									) : (
+																										children
+																									)}
+																								</>
+																							</OnUpdateAppFuncs>
+																						</IsFirstLoadService.Provider>
+																					</ArticleTooltipService.Provider>
+																				</IsEditService.Provider>
+																			</CurrentTabsTagService.Provider>
 																		</CatalogPropsService.Provider>
 																	</ArticlePropsService.Provider>
 																</ArticleRefService.Provider>

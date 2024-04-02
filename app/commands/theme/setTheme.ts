@@ -1,6 +1,7 @@
+import { ResponseKind } from "@app/types/ResponseKind";
 import Context from "@core/Context/Context";
 import Theme from "@ext/Theme/Theme";
-import { Command, ResponseKind } from "../../types/Command";
+import { Command } from "../../types/Command";
 
 const setTheme: Command<{ ctx: Context; theme: Theme }, void> = Command.create({
 	path: "theme/set",

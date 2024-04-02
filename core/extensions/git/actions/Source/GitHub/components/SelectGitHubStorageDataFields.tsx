@@ -60,7 +60,7 @@ const SelectGitHubStorageDataFields = ({
 								element: "Добавить аккаунт...",
 								icon: "plus",
 								labelField: "",
-								onCLick: () => {
+								onClick: () => {
 									void createChildWindow(
 										"https://github.com/apps/gram-ax/installations/select_target",
 										700,

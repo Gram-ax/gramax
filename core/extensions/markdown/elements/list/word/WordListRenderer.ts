@@ -10,11 +10,19 @@ export class WordListRenderer {
 			await Promise.all(
 				tag.children.map(async (child) => {
 					if (!child || typeof child === "string") return;
-					return (await state.renderBlock(child, addOption as AddOptionsWord)).flat();
+					return await WordListRenderer._getRenderedBlock(state, child, addOption);
 				}),
 			)
 		)
 			.flat()
 			.filter((val) => val);
+	}
+
+	private static async _getRenderedBlock(
+		state: WordSerializerState,
+		child: Tag,
+		addOption: IParagraphOptions,
+	): Promise<FileChild[]> {
+		return (await state.renderBlock(child, addOption as AddOptionsWord)).flat();
 	}
 }

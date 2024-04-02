@@ -6,7 +6,7 @@ import ModalLayout from "@components/Layouts/Modal";
 import ModalLayoutLight from "@components/Layouts/ModalLayoutLight";
 import { usePlatform } from "@core-ui/hooks/usePlatform";
 import { useRouter } from "@core/Api/useRouter";
-import { getClientDomain } from "@core/utils/getDomain";
+import { getClientDomain } from "@core/utils/getClientDomain";
 import { noteIcons } from "@ext/markdown/elements/note/render/component/Note";
 import { useRef, useState } from "react";
 import useLocalize from "../../../../localization/useLocalize";
@@ -30,7 +30,7 @@ const Share = ({ trigger, shouldRender = true }: { trigger: JSX.Element; shouldR
 			<>
 				<ModalLayoutLight>
 					<FormStyle>
-						<>
+						<fieldset>
 							<legend>
 								<span>{useLocalize("share")}</span>
 							</legend>
@@ -62,7 +62,7 @@ const Share = ({ trigger, shouldRender = true }: { trigger: JSX.Element; shouldR
 									{useLocalize("copy") + " " + useLocalize("link2").toLowerCase()}
 								</Button>
 							</div>
-						</>
+						</fieldset>
 					</FormStyle>
 				</ModalLayoutLight>
 			</>

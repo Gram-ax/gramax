@@ -1,7 +1,8 @@
 import Path from "@core/FileProvider/Path/Path";
 import { Catalog, CatalogErrors, type CatalogProps } from "@core/FileStructue/Catalog/Catalog";
 import { FSLazyLoadCatalog } from "@core/FileStructue/FileStructure";
-import { Item, ItemRef } from "@core/FileStructue/Item/Item";
+import { Item } from "@core/FileStructue/Item/Item";
+import { ItemRef } from "@core/FileStructue/Item/ItemRef";
 import RouterPathProvider from "@core/RouterPath/RouterPathProvider";
 import PathnameData from "@core/RouterPath/model/PathnameData";
 import GitStorage from "@ext/git/core/GitStorage/GitStorage";

@@ -23,7 +23,9 @@ import { module } from "@ext/markdown/elements/module/model/module";
 import { note } from "@ext/markdown/elements/note/render/model/note";
 import { OpenApi } from "@ext/markdown/elements/openApi/render/model/OpenApi";
 import { see } from "@ext/markdown/elements/see/model/see";
+import { snippet } from "@ext/markdown/elements/snippet/render/model/snippet";
 import { tabledb } from "@ext/markdown/elements/tabledb/model/tabledb";
+import { tab, tabs } from "@ext/markdown/elements/tabs/render/model/tabs";
 import { term } from "@ext/markdown/elements/term/model/term";
 import { video } from "@ext/markdown/elements/video/render/model/video";
 import { when, who } from "@ext/markdown/elements/whowhen/model/whowhen";
@@ -42,6 +44,7 @@ function getContextTagElementRenderModels(context: ParserContext): Record<string
 		openapi: OpenApi(context),
 		mermaid: mermaid(context),
 		include: include(context),
+		snippet: snippet(context),
 		formula: formula(context),
 		drawio: drawio(context),
 		error: error(context),
@@ -63,6 +66,8 @@ export default function getTagElementRenderModels(context?: ParserContext): Reco
 		beta,
 		icon,
 		when,
+		tabs,
+		tab,
 		cut,
 		cmd,
 		who,

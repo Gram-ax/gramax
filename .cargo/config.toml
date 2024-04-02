@@ -1,0 +1,13 @@
+[net]
+git-fetch-with-cli = true
+
+[target.wasm32-unknown-emscripten]
+rustflags = [
+  "-Ctarget-feature=+atomics,+bulk-memory",
+  "-Clink-args=-pthread -sPTHREAD_POOL_SIZE=1",
+  "-Clink-args=--post-js apps/browser/wasm/js/post.js -o apps/browser/wasm/dist/gramax-wasm.js",
+  "-Clink-args=-sASSERTIONS=0 -sWASM=1 -sWASMFS=1 -sUSE_ZLIB=1 -sEXPORT_ES6=1 -sEXPORTED_RUNTIME_METHODS=Asyncify,FS,wasmMemory -sMALLOC=mimalloc -sALLOW_MEMORY_GROWTH=1 -sINITIAL_MEMORY=1024mb -sSTACK_SIZE=5mb -sMAXIMUM_MEMORY=4gb",
+  "-Clink-args=-sASYNCIFY=1 -sASYNCIFY_STACK_SIZE=2000000 -sASYNCIFY_IMPORTS=emscriptenhttp_do_get,emscriptenhttp_do_read,emscriptenhttp_do_post",
+  "-Clink-args=-sDEFAULT_LIBRARY_FUNCS_TO_INCLUDE=$writeArrayToMemory",
+  "-Clink-args=-sEXPORTED_FUNCTIONS=_main,_ralloc,_rfree,_add,_status_file,_add_remote,_branch_info,_branch_list,_checkout,_clone,_commit,_delete_branch,_diff,_fetch,_file_history,_get_content,_get_parent,_get_remote,_has_remotes,_init_new,_merge,_new_branch,_push,_reset_all,_restore,_stash,_stash_apply,_stash_delete,_status,_copy,_exists,_make_dir,_make_symlink,_mv,_read_dir,_read_file,_read_link,_remove_dir,_rename,_getstat,_rmfile,_write_file",
+]

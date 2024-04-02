@@ -1,6 +1,6 @@
+import { ItemRef } from "@core/FileStructue/Item/ItemRef";
 import Path from "../../../../../logic/FileProvider/Path/Path";
 import { Catalog } from "../../../../../logic/FileStructue/Catalog/Catalog";
-import { ItemRef } from "../../../../../logic/FileStructue/Item/Item";
 
 const convertToSharePointDir = (catalog: Catalog, articleRef: ItemRef, path: string): Path => {
 	if (!path) return Path.empty;

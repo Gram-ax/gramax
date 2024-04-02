@@ -9,7 +9,7 @@ import ApiRequest from "../Api/ApiRequest";
 import ApiResponse from "../Api/ApiResponse";
 import Query from "../Api/Query";
 import { apiUtils } from "../Api/apiUtils";
-import { getClientDomain } from "../utils/getDomain";
+import { getClientDomain } from "../utils/getClientDomain";
 import Context from "./Context";
 
 export class ContextFactory {

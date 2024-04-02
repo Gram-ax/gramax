@@ -1,12 +1,20 @@
-import parseStorageUrl from "@core/utils/parseStorageUrl";
-import { useState, useCallback } from "react";
+import isURL from "@core-ui/utils/isURL";
+import { useCallback, useState } from "react";
 
-export const useExternalLink = (href: string) => {
-	const parse = (props) => (parseStorageUrl(props)?.domain ? props : null);
-	const [externalLink, setExternalLink] = useState(parse(href));
+const regex = /^(?!:\/\/)(?:(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,}|localhost)(?:\/.*)?$/;
 
-	const updateLink: (v: string) => void = useCallback((value) => setExternalLink(parse(value)), []);
-	const isExternalLink = Boolean(parseStorageUrl(externalLink)?.domain);
+export const useExternalLink = (href: string): [boolean, string, (v: string) => void] => {
+	const isUrl = isURL(href);
+	const isDomain = regex.test(href);
+	const [isExternalLink, setIsExternalLink] = useState(isUrl || isDomain);
+	const [externalLink, setExternalLink] = useState(isDomain ? `https://${href}` : href);
 
-	return { externalLink, isExternalLink, updateLink };
+	const updateLink: (v: string) => void = useCallback((value) => {
+		const isUrl = isURL(value);
+		const isDomain = regex.test(value);
+		setExternalLink(isDomain ? `https://${value}` : value);
+		setIsExternalLink(isUrl || isDomain);
+	}, []);
+
+	return [isExternalLink, externalLink, updateLink];
 };

@@ -4,7 +4,7 @@ import HiddenRules from "./HiddenRule";
 
 const getHiddenRuleData = async () => {
 	const app = await getApplication();
-	const hr = new HiddenRules(app.errorArticlesProvider);
+	const hr = new HiddenRules(app.customArticlePresenter);
 
 	const categoryTestCatalog = await app.lib.getCatalog("RulesCategoryTestCatalog");
 	const articleTestCatalog = await app.lib.getCatalog("RulseArticleTestCatalog");

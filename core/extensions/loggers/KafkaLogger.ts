@@ -1,4 +1,4 @@
-import { env } from "@app/resolveModule";
+import { env } from "@app/resolveModule/env";
 import { Kafka } from "kafkajs";
 import BaseLogger from "./BaseLogger";
 import Logger from "./Logger";

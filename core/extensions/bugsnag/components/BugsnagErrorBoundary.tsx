@@ -1,4 +1,4 @@
-import { getExecutingEnvironment } from "@app/resolveModule";
+import { getExecutingEnvironment } from "@app/resolveModule/env";
 import Bugsnag, { OnErrorCallback } from "@bugsnag/js";
 import React from "react";
 import PageDataContext from "../../../logic/Context/PageDataContext";

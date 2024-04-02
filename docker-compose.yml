@@ -1,33 +1,31 @@
 version: "3.8"
 
 x-common-args: &common-args
-  DOCKER_BUILDKIT: 1
-  CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX: docker.io
+    DOCKER_BUILDKIT: 1
+    CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX: docker.io
 
 x-common-settings: &common-settings
-  networks: [gramax]
-  mem_limit: 512m
-  mem_reservation: 410m
-  memswap_limit: 512m
-  cpus: 0.5
+    networks: [gramax]
+    mem_limit: 512m
+    mem_reservation: 410m
+    memswap_limit: 512m
+    cpus: 0.5
 
 services:
-  api-gateway:
-    image: nginx:1.24.0-alpine
-    container_name: gramax-api-gateway
-    restart: unless-stopped
-    ports:
-      - ${GRAMAX_EXTERNAL_HTTP_PORT:-80}:80
-    volumes:
-      - ./deploy/conf.d:/etc/nginx/conf.d
-    networks: [gramax]
+    api-gateway:
+        image: nginx:1.24.0-alpine
+        container_name: gramax-api-gateway
+        restart: unless-stopped
+        ports:
+            - ${GRAMAX_EXTERNAL_HTTP_PORT:-80}:80
+        volumes:
+            - ./deploy/conf.d:/etc/nginx/conf.d
+        networks: [gramax]
 
   web:
     build:
       dockerfile: ./target/browser/Dockerfile
       args:
-        ENTERPRISE_SERVER_URL: ${GRAMAX_SITE_HTTP_PROTOCOL:-http}://${GRAMAX_SITE_URL:-localhost}/-server
-        BRANCH: master
         <<: *common-args
     container_name: gramax-web
     restart: unless-stopped
@@ -37,116 +35,114 @@ services:
     environment:
       - PORT=80
       - PRODUCTION=true
-      - CORS_PROXY=https://cors.isomorphic-git.org/
-      - ENTERPRISE_SERVER_URL=${GRAMAX_SITE_HTTP_PROTOCOL:-http}://${GRAMAX_SITE_URL:-localhost}/-server
     ports: [9000:80]
     <<: *common-settings
 
-  storybook:
-    build:
-      dockerfile: ./storybook/Dockerfile
-      args:
-        <<: *common-args
-    container_name: gramax-storybook
-    restart: unless-stopped
-    depends_on:
-    - api-gateway
-    environment:
-      - PORT=80
-    ports: [9001:80]
-    <<: *common-settings
+    storybook:
+        build:
+            dockerfile: ./storybook/Dockerfile
+            args:
+                <<: *common-args
+        container_name: gramax-storybook
+        restart: unless-stopped
+        depends_on:
+            - api-gateway
+        environment:
+            - PORT=80
+        ports: [9001:80]
+        <<: *common-settings
 
-  cors-proxy:
-    build:
-      dockerfile: ./services/target/cors-proxy/Dockerfile
-      args:
-        <<: *common-args
-    container_name: gramax-cors-proxy
-    depends_on: [api-gateway]
-    environment: [PORT=80]
-    ports: [9002:80]
-    <<: *common-settings
+    cors-proxy:
+        build:
+            dockerfile: ./services/target/cors-proxy/Dockerfile
+            args:
+                <<: *common-args
+        container_name: gramax-cors-proxy
+        depends_on: [api-gateway]
+        environment: [PORT=80]
+        ports: [9002:80]
+        <<: *common-settings
 
-  diagram-renderer:
-    build:
-      dockerfile: ./services/target/diagram-renderer/Dockerfile
-      args:
-        <<: *common-args
-    container_name: gramax-diagram-renderer
-    restart: unless-stopped
-    depends_on: [api-gateway]
-    environment:
-      - PORT=80
-      - BASE_URL=/
-    ports: [9003:80]
-    <<: *common-settings
+    diagram-renderer:
+        build:
+            dockerfile: ./services/target/diagram-renderer/Dockerfile
+            args:
+                <<: *common-args
+        container_name: gramax-diagram-renderer
+        restart: unless-stopped
+        depends_on: [api-gateway]
+        environment:
+            - PORT=80
+            - BASE_URL=/
+        ports: [9003:80]
+        <<: *common-settings
 
-  auth:
-    build:
-      dockerfile: ./services/target/auth/Dockerfile
-      args:
-        <<: *common-args
-    container_name: gramax-auth
-    restart: unless-stopped
-    depends_on: [api-gateway]
-    environment:
-      - PORT=80
-      - BASE_URL=/
-      - GITHUB_CLIENT_ID=Iv1.f934a5b0274ca2d5
-      - GITHUB_CLIENT_SECRET=e2d7199a4837bb7e33f6a449fd98ef2d5470eb64
-      - GITHUB_REDIRECT_URI=${GRAMAX_SITE_HTTP_PROTOCOL:-http}://${GRAMAX_SITE_URL:-localhost}/-server/auth/github
-    ports: [9006:80]
-    <<: *common-settings
+    auth:
+        build:
+            dockerfile: ./services/target/auth/Dockerfile
+            args:
+                <<: *common-args
+        container_name: gramax-auth
+        restart: unless-stopped
+        depends_on: [api-gateway]
+        environment:
+            - PORT=80
+            - BASE_URL=/
+            - GITHUB_CLIENT_ID=Iv1.f934a5b0274ca2d5
+            - GITHUB_CLIENT_SECRET=e2d7199a4837bb7e33f6a449fd98ef2d5470eb64
+            - GITHUB_REDIRECT_URI=${GRAMAX_SITE_HTTP_PROTOCOL:-http}://${GRAMAX_SITE_URL:-localhost}/-server/auth/github
+        ports: [9006:80]
+        <<: *common-settings
 
-  review:
-    build:
-      dockerfile: ./services/target/review/Dockerfile
-      args:
-        <<: *common-args
-    container_name: gramax-review
-    restart: unless-stopped
-    depends_on:
-      - api-gateway
-      - storage
-    volumes:
-      - review:/app/docs
-    environment:
-      - PORT=80
-      - BASE_URL=/
-      - ACCESS_TOKEN=test123
-      - REVIEW_REPS_PATH=/app/docs
-      - CURRENT_SERVER_DOMAIN=${GRAMAX_SITE_URL:-localhost}/-server/review
-      - ENTERPRISE_SOURCE_USER=gramax
-      - ENTERPRISE_SOURCE_TYPE=gitea
-      - ENTERPRISE_SOURCE_DOMAIN=${GRAMAX_SITE_URL:-localhost}/-server/storage
-      - ENTERPRISE_SOURCE_ADMIN_TOKEN=${GRAMAX_SERVICE_GITEA_ADMIN_TOKEN:-f283c0cc7e77aa703d29f70882938db0f440ab05}
-      - ENTERPRISE_SOURCE_REVIEWER_TOKEN=${GRAMAX_SERVICE_GITEA_REVIEWER_TOKEN:-05edb9997484d55a04b59405fdc9fa49b06e5ec1}
-    ports: [9007:80]
-    <<: *common-settings
+    review:
+        build:
+            dockerfile: ./services/target/review/Dockerfile
+            args:
+                <<: *common-args
+        container_name: gramax-review
+        restart: unless-stopped
+        depends_on:
+            - api-gateway
+            - storage
+        volumes:
+            - review:/app/docs
+        environment:
+            - PORT=80
+            - BASE_URL=/
+            - ACCESS_TOKEN=test123
+            - REVIEW_REPS_PATH=/app/docs
+            - CURRENT_SERVER_DOMAIN=${GRAMAX_SITE_URL:-localhost}/-server/review
+            - ENTERPRISE_SOURCE_USER=gramax
+            - ENTERPRISE_SOURCE_TYPE=gitea
+            - ENTERPRISE_SOURCE_DOMAIN=${GRAMAX_SITE_URL:-localhost}/-server/storage
+            - ENTERPRISE_SOURCE_ADMIN_TOKEN=${GRAMAX_SERVICE_GITEA_ADMIN_TOKEN:-f283c0cc7e77aa703d29f70882938db0f440ab05}
+            - ENTERPRISE_SOURCE_REVIEWER_TOKEN=${GRAMAX_SERVICE_GITEA_REVIEWER_TOKEN:-05edb9997484d55a04b59405fdc9fa49b06e5ec1}
+        ports: [9007:80]
+        <<: *common-settings
 
-  storage:
-    image: gitea/gitea:1.20.4
-    container_name: gramax-storage
-    restart: unless-stopped
-    depends_on: [api-gateway]
-    environment:
-      - USER_UID=1000
-      - USER_GID=1000
-    volumes:
-      - storage:/data
-      - /etc/timezone:/etc/timezone:ro
-      - /etc/localtime:/etc/localtime:ro
-    ports: [9008:3000]
-    networks: [gramax]
-    <<: *common-settings
+    storage:
+        image: gitea/gitea:1.20.4
+        container_name: gramax-storage
+        restart: unless-stopped
+        depends_on: [api-gateway]
+        environment:
+            - USER_UID=1000
+            - USER_GID=1000
+        volumes:
+            - storage:/data
+            - /etc/timezone:/etc/timezone:ro
+            - /etc/localtime:/etc/localtime:ro
+        ports: [9008:3000]
+        networks: [gramax]
+        <<: *common-settings
 
 networks:
-  gramax:
-    name: gramax
-    driver: bridge
+    gramax:
+        name: gramax
+        driver: bridge
 
 volumes:
-  review:
-    name: gramax-review
-  storage:
-    name: gramax-storage
+    review:
+        name: gramax-review
+    storage:
+        name: gramax-storage

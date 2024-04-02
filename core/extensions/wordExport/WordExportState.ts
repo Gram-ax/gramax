@@ -1,13 +1,12 @@
-import { IRunOptions, LineRuleType, Paragraph, ParagraphChild, TextRun } from "docx";
+import { IRunOptions, ParagraphChild, TextRun } from "docx";
 import { FileChild } from "docx/build/file/file-child";
 import FileProvider from "../../logic/FileProvider/model/FileProvider";
 import ResourceManager from "../../logic/Resource/ResourceManager";
 import ParserContext from "../markdown/core/Parser/ParserContext/ParserContext";
 import { Tag } from "../markdown/core/render/logic/Markdoc";
 import { AddOptionsWord, WordBlockChilds, WordInlineChilds } from "./WordTypes";
-import { wordFontSizes } from "./wordExportSizes";
-
-const convertMmToOneAndHalfLineSpacing = 18; // Aka 1.5 line
+import { createContent, createContentsParagraph, createSpacingConfig } from "@ext/wordExport/TextWordGenerator";
+import { ParagraphType } from "@ext/wordExport/wordExportSettings";
 
 export class WordSerializerState {
 	constructor(
@@ -22,17 +21,18 @@ export class WordSerializerState {
 		const paragraphChild = await Promise.all(
 			parent.children.map(async (child) => {
 				if (!child) return;
-				if (typeof child === "string")
-					return new TextRun({
-						text: addOptions?.removeWhiteSpace ? child.trim() : child,
-						size: wordFontSizes.normal,
-						...(addOptions as IRunOptions),
-					});
+
+				if (typeof child === "string") {
+					let text = addOptions?.removeWhiteSpace ? child.trim() : child;
+
+					if (addOptions?.isCode) text = ` ${text}\u00A0`;
+					return createContent(text, addOptions as IRunOptions);
+				}
 
 				return await this._inlineConfig[child.name]?.({
 					state: this,
 					tag: child,
-					addOptions: addOptions,
+					addOptions,
 					resourceManager: this._resourceManager,
 					fileProvider: this._fileProvider,
 				});
@@ -51,9 +51,7 @@ export class WordSerializerState {
 
 					return [
 						(await this.renderInline(child)).flat().filter((val) => val),
-						...(tag.children.length > 1 && tag.children.length > i + 1
-							? [new TextRun({ text: "", break: 1 })]
-							: []),
+						...(tag.children.length > 1 && tag.children.length > i + 1 ? [new TextRun({ break: 1 })] : []),
 					];
 				}),
 			)
@@ -64,18 +62,16 @@ export class WordSerializerState {
 
 	async renderBlock(block: Tag, addOptions?: AddOptionsWord): Promise<FileChild[]> {
 		if (!this._blockConfig[block.name] && this._inlineConfig[block.name])
-			return [new Paragraph({ children: await this.renderInline({ children: [block] } as Tag) })];
+			return [createContentsParagraph(await this.renderInline({ children: [block] } as Tag))];
+
+		const spacing = createSpacingConfig(addOptions?.paragraphType ?? ParagraphType.normal);
+		const tag = block;
+		addOptions = { ...addOptions, spacing };
 
 		return await this._blockConfig[block.name]?.({
 			state: this,
-			tag: block,
-			addOptions: {
-				...addOptions,
-				spacing: {
-					line: wordFontSizes.normal * convertMmToOneAndHalfLineSpacing,
-					lineRule: LineRuleType.AT_LEAST,
-				},
-			},
+			tag,
+			addOptions,
 			resourceManager: this._resourceManager,
 			fileProvider: this._fileProvider,
 			parserContext: this._parserContext,

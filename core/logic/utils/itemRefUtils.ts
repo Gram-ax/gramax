@@ -1,5 +1,6 @@
+import { ItemRef } from "@core/FileStructue/Item/ItemRef";
+import { ItemType } from "@core/FileStructue/Item/ItemType";
 import Path from "../FileProvider/Path/Path";
-import { ItemRef, ItemType } from "../FileStructue/Item/Item";
 import { ClientItemRef } from "../SitePresenter/SitePresenter";
 import createNewFilePathUtils from "./createNewFilePathUtils";
 

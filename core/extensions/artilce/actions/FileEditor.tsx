@@ -1,4 +1,4 @@
-import resolveModule from "@app/resolveModule";
+import resolveModule from "@app/resolveModule/frontend";
 import ArticleUpdaterService from "@components/Article/ArticleUpdater/ArticleUpdaterService";
 import Button from "@components/Atoms/Button/Button";
 import { ButtonStyle } from "@components/Atoms/Button/ButtonStyle";
@@ -48,7 +48,7 @@ const FileEditor = ({ trigger, shouldRender }: { trigger: JSX.Element; shouldRen
 			onCmdEnter={save}
 		>
 			<ModalLayoutLight>
-				<FormStyle>
+				<FormStyle overflow={false}>
 					{value == null ? (
 						<SpinnerLoader fullScreen />
 					) : (

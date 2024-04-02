@@ -1,9 +1,10 @@
+import { ResponseKind } from "@app/types/ResponseKind";
 import ReloadConfirmMiddleware from "@core/Api/middleware/ReloadConfirmMiddleware";
 import Context from "@core/Context/Context";
 import Permission from "@ext/security/logic/Permission/Permission";
 import User from "@ext/security/logic/User/User";
 import { KEYUTIL, KJUR } from "jsrsasign";
-import { Command, ResponseKind } from "../../types/Command";
+import { Command } from "../../types/Command";
 
 const sso: Command<{ ctx: Context; data: string; sign: string; from: string }, string> = Command.create({
 	path: "auth/sso",
@@ -13,7 +14,7 @@ const sso: Command<{ ctx: Context; data: string; sign: string; from: string }, s
 	middlewares: [new ReloadConfirmMiddleware()],
 
 	do({ ctx, data, sign, from }) {
-		const publicKey = KEYUTIL.getKey(this._app.conf.ssoPublicKey);
+		const publicKey = KEYUTIL.getKey(this._app.conf.services.sso.publicKey);
 		const userData = decodeURIComponent(data);
 		const signature = decodeURIComponent(sign);
 		const sig = new KJUR.crypto.Signature({ alg: "SHA256withRSA" });

@@ -16,9 +16,8 @@ import VideoMenu from "@ext/markdown/elements/video/edit/components/VideoMenu";
 import { Editor } from "@tiptap/react";
 import { useEffect, useState } from "react";
 import MainMenu from "./Menus/Main";
-export const MenuBarId = "MenuBarId";
 
-const Menu = styled(({ editor, className }: { editor: Editor; className?: string }) => {
+const Menu = styled(({ editor, id, className }: { editor: Editor; id: string; className?: string }) => {
 	const [isOpen, setIsOpen] = useState(true);
 	const isMenuBarOpenContext = IsMenuBarOpenService.value;
 
@@ -29,7 +28,7 @@ const Menu = styled(({ editor, className }: { editor: Editor; className?: string
 	if (!editor) return null;
 
 	return (
-		<Portal parentId={MenuBarId}>
+		<Portal parentId={id}>
 			<div className={className} style={isOpen ? null : { display: "none" }} data-qa="qa-edit-menu-button">
 				<IsSelectedOneNodeService.Provider editor={editor}>
 					<ButtonStateService.Provider editor={editor}>

@@ -23,10 +23,14 @@ import * as blockMd from "@ext/markdown/elements/md/model/blockMdSchema";
 import inlineMd_component from "@ext/markdown/elements/md/model/inlineMdSchema";
 import note from "@ext/markdown/elements/note/edit/model/noteSchema";
 import openapi from "@ext/markdown/elements/openApi/edit/models/openApiSchema";
+import paragraphSchema from "@ext/markdown/elements/paragraph/editor/model/paragraphSchema";
 import paragraph from "@ext/markdown/elements/paragraph/editor/model/paragraphSchema";
+import snippetSchema from "@ext/markdown/elements/snippet/edit/model/snippetSchema";
 import style_wrapper from "@ext/markdown/elements/styleWrapper/model/styleWrapperSchema";
 import * as table_simple from "@ext/markdown/elements/table/edit/model/simpleTableSchema";
 import * as table from "@ext/markdown/elements/table/edit/model/tableSchema";
+import tabSchema from "@ext/markdown/elements/tabs/edit/model/tab/tabSchema";
+import tabsSchema from "@ext/markdown/elements/tabs/edit/model/tabs/tabsSchema";
 import video from "@ext/markdown/elements/video/edit/model/videoSchema";
 import { Schema } from "prosemirror-model";
 
@@ -34,8 +38,11 @@ export const schema = new Schema({
 	nodes: {
 		doc,
 
+		tab: tabSchema,
+		tabs: tabsSchema,
+
 		heading,
-		paragraph,
+		paragraph: paragraphSchema,
 		text: { group: "inline" },
 
 		br,
@@ -47,6 +54,7 @@ export const schema = new Schema({
 		...listSchema,
 
 		openapi,
+		snippet: snippetSchema,
 		diagrams,
 		mermaid,
 		"plant-uml": plantUml,

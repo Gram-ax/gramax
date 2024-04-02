@@ -1,4 +1,4 @@
-import { getExecutingEnvironment } from "@app/resolveModule";
+import { getExecutingEnvironment } from "@app/resolveModule/env";
 import { feedbackLink } from "@components/libs/utils";
 import { TitledLink } from "@ext/navigation/NavigationLinks";
 import useLocalize from "../extensions/localization/useLocalize";
@@ -33,7 +33,7 @@ export const useGetArticleLinks = (): TitledLink[] => {
 	if (!isServerApp && !isReadOnly && !catalogProps.readOnly && !isReview && getExecutingEnvironment() == "tauri") {
 		links.push({
 			icon: "display-code",
-			title: useLocalize("editOn") + " VSCode",
+			title: useLocalize("editOn") + " VS Code",
 			onClick: () => void FetchService.fetch(apiUrlCreator.getRedirectVScodeUrl()),
 		});
 	}

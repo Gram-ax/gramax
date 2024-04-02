@@ -1,10 +1,11 @@
+import { ResponseKind } from "@app/types/ResponseKind";
 import { AuthorizeMiddleware } from "@core/Api/middleware/AuthorizeMiddleware";
 import Context from "@core/Context/Context";
 import DiffItem from "@ext/VersionControl/model/DiffItem";
 import DiffResource from "@ext/VersionControl/model/DiffResource";
 import DefaultError from "@ext/errorHandlers/logic/DefaultError";
 import GitDiffItemCreator from "@ext/git/core/GitDiffItemCreator/GitDiffItemCreator";
-import { Command, ResponseKind } from "../../types/Command";
+import { Command } from "../../types/Command";
 
 const diffItems: Command<{ catalogName: string; ctx: Context }, { items: DiffItem[]; resources: DiffResource[] }> =
 	Command.create({

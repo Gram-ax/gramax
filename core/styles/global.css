@@ -19,12 +19,7 @@ div#root {
 	scroll-behavior: smooth !important;
 	background-color: var(--color-menu-bg);
 	-webkit-font-smoothing: subpixel-antialiased !important;
-	font-family:
-		-apple-system,
-		BlinkMacSystemFont,
-		Roboto,
-		Helvetica Neue,
-		sans-serif !important;
+	font-family: -apple-system, BlinkMacSystemFont, Roboto, Helvetica Neue, sans-serif !important;
 }
 
 * {

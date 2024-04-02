@@ -9,6 +9,6 @@ global.window = {
 	cancelAnimationFrame,
 };
 
-delete process.env.ENTERPRISE_SERVER_URL;
+delete process.env.CORS_PROXY_SERVICE_URL;
 
 jest.setTimeout(15000);

@@ -10,7 +10,7 @@ const getArticlePageData: Command<
 	{ data: ArticlePageData; openGraphData: OpenGraphData; context: PageDataContext }
 > = Command.create({
 	async do({ path, ctx }) {
-		const { errorArticlesProvider, lib, logger, sitePresenterFactory } = this._app;
+		const { customArticlePresenter, lib, logger, sitePresenterFactory } = this._app;
 		const dataProvider = sitePresenterFactory.fromContext(ctx);
 		logger.logTrace(`Article: ${path.join("/")}`);
 		let data: ArticlePageData;
@@ -19,7 +19,7 @@ const getArticlePageData: Command<
 			data = await dataProvider.getArticlePageDataByPath(path);
 			openGraphData = await dataProvider.getOpenGraphData(path);
 			if (!data) {
-				const errorArticle = errorArticlesProvider.getErrorArticle("404");
+				const errorArticle = customArticlePresenter.getArticle("404");
 				const catalog = await lib.getCatalog(path[0]);
 				data = await dataProvider.getArticlePageData(errorArticle, catalog);
 				openGraphData = await dataProvider.getOpenGraphData(path, errorArticle, catalog);
@@ -31,7 +31,7 @@ const getArticlePageData: Command<
 			try {
 				article = (await dataProvider.getArticleByPathOfCatalog(path))?.article ?? null;
 			} catch {}
-			const errorArticle = errorArticlesProvider.getErrorArticle("500", error, ctx.user.isLogged, article?.ref);
+			const errorArticle = customArticlePresenter.getArticle("500", error, ctx.user.isLogged, article?.ref);
 			const catalog = await lib.getCatalog(path[0]);
 			data = await dataProvider.getArticlePageData(errorArticle, catalog);
 			openGraphData = await dataProvider.getOpenGraphData(path, errorArticle, catalog);

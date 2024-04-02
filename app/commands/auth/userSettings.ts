@@ -3,7 +3,8 @@ import type { UserSettingsSourceData } from "@app/types/UserSettings";
 import ReloadConfirmMiddleware from "@core/Api/middleware/ReloadConfirmMiddleware";
 import Context from "@core/Context/Context";
 import { makeSourceApi } from "@ext/git/actions/Source/makeSourceApi";
-import { Command, ResponseKind } from "../../types/Command";
+import { Command, } from "../../types/Command";
+import { ResponseKind } from "@app/types/ResponseKind";
 
 const userSettings: Command<{ ctx: Context; userSettings: UserSettings }, string> = Command.create({
 	path: "auth/userSettings",
@@ -15,7 +16,7 @@ const userSettings: Command<{ ctx: Context; userSettings: UserSettings }, string
 	async do({ ctx, userSettings }) {
 		const setStorage = async (sourceData: UserSettingsSourceData) => {
 			if (sourceData.error) return console.log(sourceData.error);
-			if (!(await makeSourceApi(sourceData, this._app.conf.authServiceUrl).isCredentialsValid()))
+			if (!(await makeSourceApi(sourceData, this._app.conf.services.auth.url).isCredentialsValid()))
 				throw Error("Invalid creds");
 			await this._commands.storage.setSourceData.do({ ctx, ...sourceData });
 		};

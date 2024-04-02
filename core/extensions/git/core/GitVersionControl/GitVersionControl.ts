@@ -192,6 +192,10 @@ export default class GitVersionControl {
 		return [...changeFiles, ...subGitVersionControlChanges.flat()];
 	}
 
+	async getFileStatus(filePath: Path): Promise<GitStatus> {
+		return this._gitRepository.fileStatus(filePath);
+	}
+
 	async update() {
 		await this._initCurrentBranch();
 		await this._initCurrentBranchName();
@@ -229,7 +233,7 @@ export default class GitVersionControl {
 		return this._gitRepository.softReset(head);
 	}
 
-	async hardReset(): Promise<void> {
+	async hardReset(head?: GitVersion): Promise<void> {
 		return this._gitRepository.hardReset();
 	}
 

@@ -307,7 +307,7 @@ const Publish = styled(({ changesCount, className }: { changesCount?: number; cl
 													: e.currentTarget.value,
 											);
 										}}
-										disable={!contentEditable}
+										disabled={!contentEditable}
 										placeholder={useLocalize("commitMessage")}
 									/>
 									<div className="commit-button">

@@ -1,4 +1,5 @@
-import resolveModule, { getExecutingEnvironment } from "@app/resolveModule";
+import { getExecutingEnvironment } from "@app/resolveModule/env";
+import resolveModule from "@app/resolveModule/frontend";
 
 const createIssue = async (version: string, hash?: string) => {
 	const uri = `https://support.ics-it.ru/newIssue?project=DRS&description=

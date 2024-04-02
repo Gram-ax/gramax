@@ -36,7 +36,7 @@ const DeleteCatalog = () => {
 					<SpinnerLoader fullScreen />
 				</LogsLayout>
 			</ModalLayout>
-			<ListItem text={useLocalize("deleteCatalog")} onClick={deleteCatalog} iconCode="trash" iconPrefix="far" />
+			<ListItem text={useLocalize("deleteCatalog")} onClick={deleteCatalog} iconCode="trash" />
 		</>
 	);
 };

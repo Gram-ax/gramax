@@ -1,6 +1,7 @@
 import { useState } from "react";
 import Hosting from "../../edit/model/Hosting";
 import ErrorVideo from "./ErrorVideo";
+import IframeTag from "./IframeTag";
 
 const Hostings: { [hostin in Hosting]: (link: string) => JSX.Element } = {
 	"youtube.com": (link) => {
@@ -15,21 +16,6 @@ const Hostings: { [hostin in Hosting]: (link: string) => JSX.Element } = {
 	"mega.nz": (link) => <IframeTag link={link.replace(`/file/`, `/embed/`)} />,
 	"dropbox.com": (link) => <VideoTag link={link.replace("?dl=0", "?raw=1")} />,
 	// "sharepoint.com": (link) => <VideoTag link={link.replace(/\?e=.*?$/, "?download=1")} />,
-};
-
-const IframeTag = ({ link }: { link: string }) => {
-	return (
-		<iframe
-			data-focusable="true"
-			className="video-js"
-			style={{ border: "none" }}
-			src={link}
-			width="640"
-			height="480"
-			allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-			allowFullScreen
-		/>
-	);
 };
 
 const VideoTag = ({ link }: { link: string }) => {

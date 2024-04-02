@@ -7,7 +7,7 @@ const BottomInfo = styled(({ className }: { className?: string }) => {
 	return (
 		<div className={className}>
 			<div className="bottom-info">
-				<div>{`${useLocalize("version")} ${config.version}${config.branch == "master" ? "" : " dev"}`}</div>
+				<div>{`${useLocalize("version")} ${config.version}${config.isRelease ? "" : " dev"}`}</div>
 				<div>{"© Gramax " + new Date().getFullYear()}</div>
 			</div>
 		</div>

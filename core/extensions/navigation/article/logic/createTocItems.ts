@@ -41,8 +41,9 @@ const getTocItems = (tocItems: LevelTocItem[]): TocItem[] => {
 export const getLevelTocItemsByRenderableTree = (tags: RenderableTreeNode[]): LevelTocItem[] => {
 	const items: LevelTocItem[] = [];
 	tags.forEach((tag) => {
-		if (tag && typeof tag !== "string" && tag.name == "Include")
+		if (tag && typeof tag !== "string" && tag.name == "Include") {
 			items.push(...getLevelTocItemsByRenderableTree(tag.children));
+		}
 		if (!tag || typeof tag === "string" || tag.name !== "Heading") return;
 		if (tag?.attributes?.level == 4 || tag?.attributes?.level == 3 || tag?.attributes?.level == 2) {
 			items.push({

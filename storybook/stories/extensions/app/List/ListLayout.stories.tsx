@@ -28,12 +28,12 @@ const buttons: ButtonItem[] = [
 		element: "Добавить аккаунт...",
 		icon: "plus",
 		labelField: "",
-		onCLick: () => console.log("Добавлен"),
+		onClick: () => console.log("Добавлен"),
 	},
 	{
 		element: "кнопка",
 		labelField: "",
-		onCLick: () => console.log("Кнопочка"),
+		onClick: () => console.log("Кнопочка"),
 	},
 ];
 

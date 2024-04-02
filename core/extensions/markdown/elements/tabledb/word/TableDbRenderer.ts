@@ -9,8 +9,8 @@ import {
 	TextRun,
 } from "docx";
 import { Table as TableDB } from "../../../../../logic/components/tableDB/table";
-import { wordFontSizes, wordIndentSizes } from "../../../../wordExport/wordExportSizes";
-import { wordExportColors } from "../../../../wordExport/wordExportColors";
+import { wordFontSizes, wordIndentSizes } from "../../../../wordExport/wordExportSettings";
+import { wordExportColors } from "@ext/wordExport/wordExportSettings";
 
 export class TableDbRenderer {
 	static renderDbTable(table: TableDB) {

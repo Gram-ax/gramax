@@ -1,9 +1,10 @@
+import { ResponseKind } from "@app/types/ResponseKind";
 import ReloadConfirmMiddleware from "@core/Api/middleware/ReloadConfirmMiddleware";
 import { MergeFile } from "../../../../../core/extensions/git/actions/MergeConflictHandler/model/MergeFile";
 import SyncGitMergeConflictResolver from "../../../../../core/extensions/git/core/GitMergeConflictResolver/Sync/SyncGitMergeConflictResolver";
 import GitStash from "../../../../../core/extensions/git/core/model/GitStash";
 import { AuthorizeMiddleware } from "../../../../../core/logic/Api/middleware/AuthorizeMiddleware";
-import { Command, ResponseKind } from "../../../../types/Command";
+import { Command } from "../../../../types/Command";
 
 const resolve: Command<{ catalogName: string; files: MergeFile[]; stashHash: string }, void> = Command.create({
 	path: "storage/sync/mergeConflict/resolve",

@@ -1,7 +1,8 @@
+import { ResponseKind } from "@app/types/ResponseKind";
 import { AuthorizeMiddleware } from "@core/Api/middleware/AuthorizeMiddleware";
-import Path from "@core/FileProvider/Path/Path";
-import { Command, ResponseKind } from "../../types/Command";
 import ReloadConfirmMiddleware from "@core/Api/middleware/ReloadConfirmMiddleware";
+import Path from "@core/FileProvider/Path/Path";
+import { Command } from "../../types/Command";
 
 const discard: Command<{ catalogName: string; filePaths: string[] }, void> = Command.create({
 	path: "versionControl/discard",

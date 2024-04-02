@@ -10,7 +10,7 @@ const COOKIE_USER = "user";
 const QUERY_TICKET = "t";
 
 export default class AuthManager {
-	constructor(private _am: AuthProvider, private _ticketManager: TicketManager) {}
+	constructor(private _ap: AuthProvider, private _ticketManager: TicketManager) {}
 
 	getUser(cookie: Cookie, query: any): User {
 		let user: User = this._getUser(cookie);
@@ -32,16 +32,16 @@ export default class AuthManager {
 	}
 
 	async assert(req: ApiRequest, res: ApiResponse, cookie: Cookie) {
-		return await this._am.assertEndpoint(req, res, cookie, this._setUser.bind(this));
+		return await this._ap.assertEndpoint(req, res, cookie, this._setUser.bind(this));
 	}
 
 	async login(req: ApiRequest, res: ApiResponse) {
-		return await this._am.login(req, res);
+		return await this._ap.login(req, res);
 	}
 
 	async logout(cookie: Cookie, req: ApiRequest, res: ApiResponse) {
 		cookie.remove(COOKIE_USER);
-		return await this._am.logout(req, res);
+		return await this._ap.logout(req, res);
 	}
 
 	private _setUser(cookie: Cookie, user: User, expires?: number): void {

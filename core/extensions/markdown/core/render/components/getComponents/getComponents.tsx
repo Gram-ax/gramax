@@ -25,8 +25,11 @@ import Module from "../../../../elements/module/render/Module";
 import Note from "../../../../elements/note/render/component/Note";
 import OpenApi from "../../../../elements/openApi/render/OpenApi";
 import See from "../../../../elements/see/render/See";
+import Snippet from "../../../../elements/snippet/render/components/Snippet";
 import Table from "../../../../elements/table/render/component/Table";
 import DbTable from "../../../../elements/tabledb/render/DbTable";
+import Tab from "../../../../elements/tabs/render/component/Tab";
+import Tabs from "../../../../elements/tabs/render/component/Tabs";
 import Term from "../../../../elements/term/render/Term";
 import Video from "../../../../elements/video/render/components/Video";
 import When from "../../../../elements/whowhen/render/When";
@@ -40,6 +43,7 @@ export default function getComponents(): { [name: string]: (...props: any) => Re
 		Link,
 		Formula,
 		Fence,
+		Snippet,
 		Code,
 		Alfa: () => <span className="alfa" />,
 		Beta: () => <span className="beta" />,
@@ -59,6 +63,8 @@ export default function getComponents(): { [name: string]: (...props: any) => Re
 		OpenApi,
 		Fn,
 		Note,
+		Tabs,
+		Tab,
 		Video,
 		Heading: Header,
 		Drawio,

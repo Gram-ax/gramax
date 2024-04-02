@@ -8,7 +8,7 @@
 
 import Path from "../Path/Path";
 export interface FileInfo {
-	type: "file" | "dir";
+	type: "file" | "dir" | "symbolic";
 	mode: any;
 	size: number;
 	ino: any;

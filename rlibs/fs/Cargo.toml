@@ -1,0 +1,15 @@
+[package]
+name = "gramax-fs"
+version = { workspace = true }
+edition = { workspace = true }
+authors = { workspace = true }
+
+[lib]
+name = "gramaxfs"
+crate-type = ["staticlib", "rlib"]
+
+[dependencies]
+serde = "1.0"
+thiserror = "1.0"
+copy_dir = "0.1.3"
+log = "0.4.21"

@@ -1,4 +1,6 @@
+import CustomArticlePresenter from "@core/SitePresenter/CustomArticlePresenter";
 import GitRepositoryProvider from "@ext/git/core/Repository/RepositoryProvider";
+import TabsTags from "@ext/markdown/elements/tabs/model/TabsTags";
 import RuleProvider from "@ext/rules/RuleProvider";
 import htmlToText from "html-to-text";
 import Language from "../../extensions/localization/core/model/Language";
@@ -15,7 +17,6 @@ import parseContent from "../FileStructue/Article/parseContent";
 import { ArticleFilter, Catalog, ItemFilter } from "../FileStructue/Catalog/Catalog";
 import { Item } from "../FileStructue/Item/Item";
 import Library from "../Library/Library";
-import ErrorArticlePresenter from "./ErrorArticlePresenter";
 
 export type ClientCatalogProps = {
 	name: string;
@@ -23,6 +24,7 @@ export type ClientCatalogProps = {
 	docroot: string;
 	repositoryName: string;
 	contactEmail: string;
+	tabsTags?: TabsTags;
 	sourceName: string;
 	userInfo: UserInfo;
 	link: CatalogLink;
@@ -40,7 +42,7 @@ export type ClientArticleProps = {
 	tags: string[];
 	tocItems: TocItem[];
 	errorCode: number;
-	welcome?: "editor" | "modal" | false;
+	welcome?: boolean;
 };
 
 export type ClientItemRef = {
@@ -74,10 +76,10 @@ export default class SitePresenter {
 		private _parser: MarkdownParser,
 		private _parserContextFactory: ParserContextFactory,
 		private _grp: GitRepositoryProvider,
-		private _errorArticlesPresenter: ErrorArticlePresenter,
+		private _customArticlePresenter: CustomArticlePresenter,
 		private _context: Context,
 	) {
-		const rp = new RuleProvider(_context, _errorArticlesPresenter);
+		const rp = new RuleProvider(_context, _customArticlePresenter);
 		rp.getNavRules().forEach((r) => this._nav.addRules(r));
 		this._filters = rp.getItemFilters();
 	}
@@ -110,8 +112,8 @@ export default class SitePresenter {
 		if (!data.catalog) return null;
 		if (!data.article) {
 			data.article = data.catalog.hasItems()
-				? this._errorArticlesPresenter.getErrorArticle("404")
-				: data.catalog.createWelcomeArticle(false);
+				? this._customArticlePresenter.getArticle("404")
+				: this._customArticlePresenter.getArticle("welcome");
 			data.article.props.lang = this._context.lang;
 		}
 		return await this.getArticlePageData(data.article, data.catalog);
@@ -202,6 +204,7 @@ export default class SitePresenter {
 				relatedLinks: null,
 				link: null,
 				contactEmail: null,
+				tabsTags: null,
 				name: null,
 				title: "",
 				repositoryName: null,
@@ -218,6 +221,7 @@ export default class SitePresenter {
 			link: await this._nav.getCatalogLink(catalog),
 			relatedLinks: this._nav.getRelatedLinks(catalog),
 			contactEmail: catalog.props.contactEmail ?? null,
+			tabsTags: catalog.props.tabsTags ?? null,
 			name: catalog.getName() ?? null,
 			title: catalog.props.title ?? "",
 			readOnly: catalog.props.readOnly ?? false,
@@ -236,7 +240,6 @@ export default class SitePresenter {
 		const catalog = await this._lib.getCatalog(catalogName);
 		if (!catalog) return { article: null, catalog: null };
 		const itemLogicPath = Path.join(...path);
-		if (path.length <= 1) return { article: catalog.getArticles()[0], catalog };
 		const article = catalog.findArticle(itemLogicPath, filters);
 		return { article, catalog };
 	}

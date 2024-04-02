@@ -1,7 +1,8 @@
+import { ResponseKind } from "@app/types/ResponseKind";
 import { AuthorizeMiddleware } from "@core/Api/middleware/AuthorizeMiddleware";
 import Path from "@core/FileProvider/Path/Path";
 import Progress from "@ext/storage/models/Progress";
-import { Command, ResponseKind } from "../../types/Command";
+import { Command } from "../../types/Command";
 
 const getCloneProgress: Command<{ path: Path }, Progress> = Command.create({
 	path: "storage/getCloneProgress",

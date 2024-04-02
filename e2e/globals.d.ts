@@ -3,7 +3,7 @@ import type { CommandTree } from "@app/commands";
 import type { ITestCaseHookParameter } from "@cucumber/cucumber";
 import type { Browser, BrowserContext, Page } from "playwright";
 import type App from "../app/types/Application";
-import type Debug from "../target/browser/src/debug";
+import type Debug from "../apps/browser/src/debug";
 
 declare global {
 	var page: Page;

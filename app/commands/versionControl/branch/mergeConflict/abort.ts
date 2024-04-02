@@ -1,8 +1,9 @@
+import { ResponseKind } from "@app/types/ResponseKind";
+import ReloadConfirmMiddleware from "@core/Api/middleware/ReloadConfirmMiddleware";
 import { GitVersion } from "@ext/git/core/model/GitVersion";
 import BranchGitMergeConflictResolver from "../../../../../core/extensions/git/core/GitMergeConflictResolver/Branch/BranchGitMergeConflictResolver";
 import { AuthorizeMiddleware } from "../../../../../core/logic/Api/middleware/AuthorizeMiddleware";
-import { Command, ResponseKind } from "../../../../types/Command";
-import ReloadConfirmMiddleware from "@core/Api/middleware/ReloadConfirmMiddleware";
+import { Command } from "../../../../types/Command";
 
 const abort: Command<{ theirsBranch: string; catalogName: string; headBeforeMerge?: string }, void> = Command.create({
 	path: "versionControl/branch/mergeConflict/abort",

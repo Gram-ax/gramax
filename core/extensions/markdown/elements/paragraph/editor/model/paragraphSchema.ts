@@ -1,6 +1,6 @@
-const paragraph = {
+const paragraphSchema = {
 	group: "block",
 	content: "inline*",
 };
 
-export default paragraph;
+export default paragraphSchema;

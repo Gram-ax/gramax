@@ -1,6 +1,7 @@
+import { ResponseKind } from "@app/types/ResponseKind";
 import { AuthorizeMiddleware } from "@core/Api/middleware/AuthorizeMiddleware";
 import Path from "@core/FileProvider/Path/Path";
-import { Command, ResponseKind } from "../../types/Command";
+import { Command } from "../../types/Command";
 
 const getPermission: Command<{ catalogName: string; articlePath: Path }, string[]> = Command.create({
 	path: "item/getPermission",

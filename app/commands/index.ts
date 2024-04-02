@@ -3,19 +3,17 @@ import Application from "../types/Application";
 import { Command } from "../types/Command";
 import article from "./article";
 import catalog from "./catalog";
-import comments from "./comments";
 import debug from "./debug";
-import diagram from "./diagram";
 import download from "./download";
+import elements from "./elements";
 import healthcheck from "./healthcheck";
 import html from "./html";
 import item from "./item";
 import page from "./pageData";
-import search from "./search";
+import plugin from "./plugin";
 import storage from "./storage";
 import setTheme from "./theme/setTheme";
 import versionControl from "./versionControl";
-import getVideoUrl from "./video/getVideoUrl";
 import vscode from "./vscode";
 import word from "./word";
 
@@ -24,34 +22,34 @@ const commands = {
 	setTheme,
 	article,
 	catalog,
-	diagram,
-	comments,
-	getVideoUrl,
+	elements,
 	healthcheck,
 	download,
 	vscode,
 	html,
 	item,
 	page,
-	search,
 	storage,
 	versionControl,
 	word,
 	debug,
+	plugin,
 };
 
 type CommandTree = typeof commands;
 
 const assign = (object: object, app: Application, deep?: number) => {
 	if (!object || typeof object !== "object") return;
-	if ("_app" in object) {
-		object["_app"] = app;
-		object["_commands"] = commands;
-		return;
-	}
+	if ("_app" in object) return assignCommand(object as any, app, commands);
 
 	if (deep > 10) throw new Error("Commands structure are invalid");
 	Object.values(object).forEach((x) => assign(x, app, ++deep));
+};
+
+const assignCommand = (command: Command<any, any>, app: Application, commandTree: CommandTree) => {
+	command["_app"] = app;
+	command["_commands"] = commandTree;
+	return;
 };
 
 const findCommand = (commands: CommandTree, path: string): Command<unknown, any> => {
@@ -74,5 +72,5 @@ const createCommands = (app: Application) => {
 	return commands;
 };
 
-export { createCommands, findCommand };
+export { assignCommand, createCommands, findCommand };
 export type { CommandTree };

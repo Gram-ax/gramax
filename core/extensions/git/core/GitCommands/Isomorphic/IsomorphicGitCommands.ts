@@ -174,6 +174,16 @@ class IsomorphicGitCommands implements GitCommandsModel {
 		return gitDataParser.getStatusChanges(status, submodulePaths);
 	}
 
+	async fileStatus(filePath: Path): Promise<GitStatus> {
+		const status = await git.status({
+			fs: this._gitFs,
+			dir: this._repoPath.value,
+			cache: IsomorphicGitCommands._cache,
+			filepath: filePath.value,
+		});
+		return gitDataParser.getFileStatus(status, filePath);
+	}
+
 	diff(branchA: string, branchB: string): Promise<GitStatus[]> {
 		return isomorphicDiff(branchA, branchB, this._gitFs, this._repoPath.value);
 	}

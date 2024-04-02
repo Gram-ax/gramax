@@ -28,6 +28,8 @@ export interface IconProps {
 	onClickCapture?: (event?: React.MouseEvent<HTMLElement>) => void;
 }
 
+const brandIcons = ["git", "apple", "windows", "linux"];
+
 const Icon = forwardRef((props: IconProps, ref?: React.LegacyRef<HTMLDivElement>) => {
 	const {
 		code,
@@ -42,7 +44,8 @@ const Icon = forwardRef((props: IconProps, ref?: React.LegacyRef<HTMLDivElement>
 		...otherProps
 	} = props;
 
-	const Prefix = iconPrefixes[prefix?.toLowerCase() ?? ""] || (code?.includes("git") ? "brands" : "regular");
+	const Prefix =
+		iconPrefixes?.[prefix?.toLowerCase()] ?? (brandIcons.some((i) => code?.includes(i)) ? "brands" : "regular");
 
 	if (isLoading) {
 		return (

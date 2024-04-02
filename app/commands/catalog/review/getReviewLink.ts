@@ -1,10 +1,11 @@
+import { ResponseKind } from "@app/types/ResponseKind";
 import MimeTypes from "@core-ui/ApiServices/Types/MimeTypes";
 import { AuthorizeMiddleware } from "@core/Api/middleware/AuthorizeMiddleware";
 import ReloadConfirmMiddleware from "@core/Api/middleware/ReloadConfirmMiddleware";
 import Context from "@core/Context/Context";
 import DefaultError from "@ext/errorHandlers/logic/DefaultError";
 import StorageData from "@ext/storage/models/StorageData";
-import { Command, ResponseKind } from "../../../types/Command";
+import { Command } from "../../../types/Command";
 
 const getReviewLink: Command<
 	{ ctx: Context; catalogName: string; userName: string; userEmail: string; filePath: string },
@@ -28,7 +29,7 @@ const getReviewLink: Command<
 			source: { ...baseStorageData.source, userName, userEmail },
 			filePath,
 		};
-		const response = await fetch(`${conf.enterpriseServerUrl}/review/ticket`, {
+		const response = await fetch(`${conf.services.review.url}/ticket`, {
 			body: JSON.stringify(body),
 			method: "POST",
 			headers: { "Content-Type": MimeTypes.json },

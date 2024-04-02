@@ -1,8 +1,9 @@
+import { ResponseKind } from "@app/types/ResponseKind";
 import Context from "@core/Context/Context";
 import Path from "@core/FileProvider/Path/Path";
 import { Article } from "@core/FileStructue/Article/Article";
 import { ClientArticleProps } from "@core/SitePresenter/SitePresenter";
-import { Command, ResponseKind } from "../../types/Command";
+import { Command } from "../../types/Command";
 
 const getProps: Command<{ catalogName: string; articlePath: Path; ctx: Context }, ClientArticleProps> = Command.create({
 	path: "article/getProps",

@@ -1,8 +1,9 @@
+import { ResponseKind } from "@app/types/ResponseKind";
 import { AuthorizeMiddleware } from "@core/Api/middleware/AuthorizeMiddleware";
 import ReloadConfirmMiddleware from "@core/Api/middleware/ReloadConfirmMiddleware";
 import { SilentMiddleware } from "@core/Api/middleware/SilentMiddleware";
 import Context from "@core/Context/Context";
-import { Command, ResponseKind } from "../../types/Command";
+import { Command } from "../../types/Command";
 
 const fetchCmd: Command<{ ctx: Context; catalogName: string }, void> = Command.create({
 	path: "storage/fetch",

@@ -1,8 +1,9 @@
+import { ResponseKind } from "@app/types/ResponseKind";
 import MimeTypes from "@core-ui/ApiServices/Types/MimeTypes";
 import { AuthorizeMiddleware } from "@core/Api/middleware/AuthorizeMiddleware";
 import { ReviewLinkData } from "@ext/catalog/actions/review/model/ReviewLinkData";
 import DefaultError from "@ext/errorHandlers/logic/DefaultError";
-import { Command, ResponseKind } from "../../../types/Command";
+import { Command } from "../../../types/Command";
 
 const getReviewLinkData: Command<{ ticket: string }, ReviewLinkData> = Command.create({
 	path: "catalog/review/getReviewLinkData",
@@ -13,7 +14,7 @@ const getReviewLinkData: Command<{ ticket: string }, ReviewLinkData> = Command.c
 
 	async do({ ticket }) {
 		const { conf } = this._app;
-		const response = await fetch(`${conf.enterpriseServerUrl}/review/repdata`, {
+		const response = await fetch(`${conf.services.review.url}/repdata`, {
 			body: ticket,
 			method: "POST",
 			headers: { "Content-Type": MimeTypes.text },

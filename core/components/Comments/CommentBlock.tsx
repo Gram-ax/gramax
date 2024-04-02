@@ -115,7 +115,7 @@ const CommentBlockComponent = styled(
 							onEdit={commentOnEdit}
 						/>
 					</div>
-					{currentCommentBlock.answers.map((answer, idx) => (
+					{(currentCommentBlock?.answers ?? []).map((answer, idx) => (
 						<CommentComponent
 							key={idx}
 							editorId={idx}

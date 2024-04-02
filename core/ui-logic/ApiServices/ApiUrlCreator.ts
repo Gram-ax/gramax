@@ -1,4 +1,4 @@
-import { getExecutingEnvironment } from "@app/resolveModule";
+import { getExecutingEnvironment } from "@app/resolveModule/env";
 import { Router } from "@core/Api/Router";
 import DiagramType from "@core/components/Diagram/DiagramType";
 import Theme from "@ext/Theme/Theme";
@@ -18,7 +18,10 @@ export default class ApiUrlCreator {
 	) {}
 
 	fromArticle(articlePath: string) {
-		articlePath = this._catalogName + "/" + articlePath;
+		return this.fromNewArticlePath(this._catalogName + "/" + articlePath);
+	}
+
+	fromNewArticlePath(articlePath: string) {
 		return new ApiUrlCreator(
 			this._basePath,
 			this._lang,
@@ -57,6 +60,14 @@ export default class ApiUrlCreator {
 		return Url.fromBasePath(`/api/storage/init`, this._basePath, {
 			articlePath: this._articlePath,
 			catalogName: this._catalogName,
+		});
+	}
+
+	public getArticleContentByRelativePath(articleRelativePath: string) {
+		return Url.fromBasePath(`/api/article/features/getRenderContent`, this._basePath, {
+			articleRelativePath,
+			catalogName: this._catalogName,
+			articlePath: this._articlePath,
 		});
 	}
 
@@ -230,6 +241,13 @@ export default class ApiUrlCreator {
 		});
 	}
 
+	public getVersionControlFileStatus() {
+		return Url.fromBasePath(`/api/versionControl/fileStatus`, this._basePath, {
+			catalogName: this._catalogName,
+			articlePath: this._articlePath,
+		});
+	}
+
 	public getStorageFetch() {
 		return Url.fromBasePath(`/api/storage/fetch`, this._basePath, {
 			catalogName: this._catalogName,
@@ -326,12 +344,8 @@ export default class ApiUrlCreator {
 		});
 	}
 
-	public getSearchDataUrl(searchAll: boolean, query: string) {
-		return Url.fromBasePath(`/api/search`, this._basePath, {
-			query: query,
-			l: this._lang,
-			catalogName: searchAll ? null : this._catalogName,
-		});
+	public getSearchDataUrl() {
+		return Url.fromBasePath(`/api/plugin/plugins/search/searchCommand`, this._basePath);
 	}
 
 	public getVersionControlFileHistoryUrl() {
@@ -391,8 +405,8 @@ export default class ApiUrlCreator {
 		});
 	}
 
-	public getVideoSrc(path: string) {
-		return Url.fromBasePath("/api/video", this._basePath, {
+	public getVideoUrl(path: string) {
+		return Url.fromBasePath("/api/elements/video/getUrl", this._basePath, {
 			path: path,
 			catalogName: this._catalogName,
 			articlePath: this._articlePath,
@@ -542,6 +556,59 @@ export default class ApiUrlCreator {
 		return Url.fromBasePath(`/api/item/setPermission`, this._basePath, {
 			catalogName: this._catalogName,
 			path,
+		});
+	}
+
+	public pluginsAddLocals() {
+		return Url.fromBasePath(`/api/plugin/addLocals`, this._basePath);
+	}
+
+	public pluginsInit() {
+		return Url.fromBasePath(`/api/plugin/init`, this._basePath);
+	}
+
+	public getSnippetsListData() {
+		return Url.fromBasePath(`/api/elements/snippet/getListData`, this._basePath, {
+			catalogName: this._catalogName,
+		});
+	}
+
+	public createSnippet() {
+		return Url.fromBasePath(`/api/elements/snippet/create`, this._basePath, { catalogName: this._catalogName });
+	}
+
+	public removeSnippet(snippetId: string) {
+		return Url.fromBasePath(`/api/elements/snippet/remove`, this._basePath, {
+			catalogName: this._catalogName,
+			snippetId,
+		});
+	}
+
+	public getArticlesWithSnippet(snippetId: string) {
+		return Url.fromBasePath(`/api/elements/snippet/getArticlesWithSnippet`, this._basePath, {
+			catalogName: this._catalogName,
+			snippetId,
+		});
+	}
+
+	public editSnippet(oldSnippetId: string) {
+		return Url.fromBasePath(`/api/elements/snippet/edit`, this._basePath, {
+			catalogName: this._catalogName,
+			oldSnippetId,
+		});
+	}
+
+	public getSnippetEditData(snippetId: string) {
+		return Url.fromBasePath(`/api/elements/snippet/getEditData`, this._basePath, {
+			catalogName: this._catalogName,
+			snippetId,
+		});
+	}
+
+	public getSnippetRenderData(snippetId: string) {
+		return Url.fromBasePath(`/api/elements/snippet/getRenderData`, this._basePath, {
+			catalogName: this._catalogName,
+			snippetId,
 		});
 	}
 }

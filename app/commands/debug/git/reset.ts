@@ -10,7 +10,7 @@ const reset: Command<{ catalogName: string; staged: boolean; filePaths?: string[
 		if (!catalog) throw new Error("no catalog found");
 
 		const path = catalog.repo.gvc.getPath();
-		const gr = new GitCommands({ corsProxy: conf.corsProxy }, fp, path);
+		const gr = new GitCommands({ corsProxy: conf.services.cors.url }, fp, path);
 		await gr.restore(
 			staged,
 			filePaths ? filePaths.map((f) => new Path(f)) : (await gr.status()).map((x) => x.path),

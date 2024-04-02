@@ -11,8 +11,7 @@ export default class BaseGitMergeConflictResolver {
 	constructor(private _gitVersionControl: GitVersionControl, private _fp: FileProvider, private _pathToRep: Path) {}
 
 	async abortMerge(headBeforeMerge?: GitVersion): Promise<void> {
-		if (headBeforeMerge) await this._gitVersionControl.softReset(headBeforeMerge);
-		await this._gitVersionControl.hardReset();
+		await this._gitVersionControl.hardReset(headBeforeMerge);
 	}
 
 	async getFilesToMerge(fs?: FileStructure): Promise<MergeFile[]> {

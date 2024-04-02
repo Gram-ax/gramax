@@ -3,7 +3,10 @@ import UseSWRService from "@core-ui/ApiServices/UseSWRService";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import CatalogPropsService from "@core-ui/ContextServices/CatalogProps";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
+import { CatalogError, CatalogErrors } from "@core/FileStructue/Catalog/Catalog";
+import { CatalogErrorGroups } from "@core/FileStructue/Catalog/CatalogErrorGroups";
 import styled from "@emotion/styled";
+import { CategoryLink, ItemLink } from "@ext/navigation/NavigationLinks";
 import { useEffect, useState } from "react";
 import GoToArticle from "../../../components/Actions/GoToArticle";
 import ApiNoData from "../../../components/ApiNoData";
@@ -11,11 +14,8 @@ import Icon from "../../../components/Atoms/Icon";
 import Tooltip from "../../../components/Atoms/Tooltip";
 import Breadcrumb from "../../../components/Breadcrumbs/ArticleBreadcrumb";
 import ModalLayout from "../../../components/Layouts/Modal";
-import { CatalogError, CatalogErrors } from "@core/FileStructue/Catalog/Catalog";
-import { CatalogErrorGroups } from "@core/FileStructue/Catalog/CatalogErrorGroups";
 import useLocalize from "../../localization/useLocalize";
 import Code from "../../markdown/elements/code/render/component/Code";
-import { CategoryLink, ItemLink } from "@ext/navigation/NavigationLinks";
 
 interface ResourceError {
 	title: string;
@@ -46,6 +46,7 @@ const Healthcheck = styled(
 
 		return (
 			<ModalLayout
+				contentWidth="M"
 				isOpen={isOpen}
 				trigger={trigger}
 				onClose={() => {
@@ -140,21 +141,9 @@ const Healthcheck = styled(
 				display: flex;
 				align-items: center;
 				justify-content: space-between;
-
-				> div:last-child {
-					visibility: hidden;
-				}
-			}
-
-			> th:last-child,
-			> td:last-child {
-				width: 24px;
 			}
 		}
 
-		> tr:hover > td.flex > div:last-child {
-			visibility: visible !important;
-		}
 	}
 
 	.errors {
@@ -257,24 +246,20 @@ const ResourceErrorComponent = ({
 												</>
 											))}
 										</div>
-										<div>
-											<a target="_blank" href={resourceError.editorLink} rel="noreferrer">
-												<Tooltip
-													distance={5}
-													content={
+										{IsServerApp && (
+											<div>
+												<a target="_blank" href={resourceError.editorLink} rel="noreferrer">
+													<Tooltip
+														distance={5}
+														content={<span>{`${useLocalize("editOn")} Gramax`}</span>}
+													>
 														<span>
-															{`${useLocalize("editOn")} ${
-																IsServerApp ? "Gitlab" : "VSCode"
-															}`}
+															<Icon code="pencil-alt" isAction={true} />
 														</span>
-													}
-												>
-													<span>
-														<Icon code="pencil-alt" isAction={true} />
-													</span>
-												</Tooltip>
-											</a>
-										</div>
+													</Tooltip>
+												</a>
+											</div>
+										)}
 									</td>
 								</tr>
 							);

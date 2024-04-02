@@ -1,4 +1,4 @@
-import paragraph from "@ext/markdown/elements/paragraph/editor/model/paragraphSchema";
+import paragraphSchema from "@ext/markdown/elements/paragraph/editor/model/paragraphSchema";
 import getExtensionOptions from "@ext/markdown/logic/getExtensionOptions";
 import { mergeAttributes, Node } from "@tiptap/core";
 
@@ -9,7 +9,7 @@ declare module "@tiptap/core" {
 }
 
 const Paragraph = Node.create({
-	...getExtensionOptions({ schema: paragraph, name: "paragraph" }),
+	...getExtensionOptions({ schema: paragraphSchema, name: "paragraph" }),
 
 	priority: 1000,
 

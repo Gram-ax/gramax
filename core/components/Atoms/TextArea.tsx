@@ -50,6 +50,7 @@ export default styled(memo(TextArea))`
 		padding: 6px 12px;
 
 		width: 100%;
+
 		color: var(--color-article-heading-text);
 		background: var(--color-code-bg);
 		border-radius: var(--radius-block);
