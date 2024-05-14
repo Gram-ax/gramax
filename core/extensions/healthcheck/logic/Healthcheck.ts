@@ -5,58 +5,57 @@ import RouterPathProvider from "@core/RouterPath/RouterPathProvider";
 import RuleProvider from "@ext/rules/RuleProvider";
 import Path from "../../../logic/FileProvider/Path/Path";
 import FileProvider from "../../../logic/FileProvider/model/FileProvider";
-import { Catalog, CatalogErrorArgs, CatalogErrors } from "../../../logic/FileStructue/Catalog/Catalog";
+import { Catalog } from "../../../logic/FileStructue/Catalog/Catalog";
 import { Item } from "../../../logic/FileStructue/Item/Item";
-import ItemExtensions from "../../../logic/FileStructue/Item/ItemExtensions";
 import ResourceExtensions from "../../../logic/Resource/ResourceExtensions";
-import ApiUrlCreator from "../../../ui-logic/ApiServices/ApiUrlCreator";
-import ParserContextFactory from "../../markdown/core/Parser/ParserContext/ParserContextFactory";
+import { CatalogErrorGroups } from "@core/FileStructue/Catalog/CatalogErrorGroups";
+import LucideIcon from "@components/Atoms/Icon/LucideIcon";
+
+export type CatalogErrors = Record<keyof typeof CatalogErrorGroups, CatalogError[]>;
+
+export interface CatalogError {
+	code: string;
+	message: string;
+	args?: CatalogErrorArgs;
+}
+
+export interface CatalogErrorArgs {
+	value: string;
+	editorLink: string;
+	title: string;
+	logicPath: string;
+}
 
 class Healthcheck {
-	constructor(
-		private _fp: FileProvider,
-		private _ctx: Context,
-		private _parserContextFactory: ParserContextFactory,
-	) {}
+	constructor(private _fp: FileProvider, private _ctx: Context, private _catalog: Catalog) {}
 
-	async getLinkChecks(catalog: Catalog): Promise<CatalogErrors> {
-		const errors: CatalogErrors = {};
+	private _errors: CatalogErrors;
+
+	async сheckCatalog(): Promise<CatalogErrors> {
+		if (!this._catalog) return {};
+		this._errors = { Icons: [], Links: [], Images: [], Diagrams: [], FileStructure: [] };
 		const rp = new RuleProvider(this._ctx);
 		const filters = rp.getItemFilters();
-		if (!catalog) return {};
 
-		for (const item of catalog.getContentItems()) {
-			if (!filters.every((f) => f(item, catalog))) continue;
-
-			const context = this._parserContextFactory.fromArticle(
-				item,
-				catalog,
-				this._ctx.lang,
-				this._ctx.user.isLogged,
-			);
+		for (const item of this._catalog.getContentItems()) {
+			if (!filters.every((f) => f(item, this._catalog))) continue;
 
 			if (!item.parsedContent) continue;
 
-			const apiUrlCreator = new ApiUrlCreator(
-				context.getBasePath().value,
-				null,
-				null,
-				null,
-				catalog.getName(),
-				item.ref.path.value,
-			);
-
 			for (const resource of item.parsedContent.resourceManager.resources) {
-				await this._checkResource(errors, catalog, item, apiUrlCreator, resource);
+				await this._checkResource(item, resource);
 			}
 			for (const resource of item.parsedContent.linkManager.resources) {
-				await this._checkResource(errors, catalog, item, apiUrlCreator, resource);
+				await this._checkLink(item, resource);
+			}
+			for (const iconCode of item.parsedContent.icons) {
+				await this._checkIcons(item, iconCode);
 			}
 		}
 
-		const categories = catalog.getCategories();
+		const categories = this._catalog.getCategories();
 		for (const category of categories) {
-			if (!filters.every((f) => f(category, catalog))) continue;
+			if (!filters.every((f) => f(category, this._catalog))) continue;
 
 			const refs = category?.props?.refs;
 
@@ -67,11 +66,10 @@ class Healthcheck {
 					const directoryPath = refPath.parentDirectoryPath;
 					const filePath = category.ref.path.parentDirectoryPath.join(directoryPath, fileNamePath);
 					if (!(await this._fp.exists(filePath))) {
-						if (!errors.Links) errors.Links = [];
-						errors.Links.push(
+						this._errors.Links.push(
 							this._getRefCatalogError({
-								linkTo: refs[key],
-								editorLink: await this._getErrorLink(catalog, category),
+								value: refs[key],
+								editorLink: await this._getErrorLink(this._catalog, category),
 								title: category.getTitle() ?? new Path(category.logicPath).name,
 								logicPath: category.logicPath,
 							}),
@@ -80,7 +78,7 @@ class Healthcheck {
 				}
 			}
 		}
-		return errors;
+		return this._errors;
 	}
 
 	private _getRefCatalogError = (args?: CatalogErrorArgs) => ({
@@ -89,59 +87,53 @@ class Healthcheck {
 		args,
 	});
 
-	private _checkResource = async (
-		errors: CatalogErrors,
-		catalog: Catalog,
-		item: Article,
-		apiUrlCreator: ApiUrlCreator,
-		resource: Path,
-	) => {
+	private _pathExists = async (item: Article, resource: Path) => {
 		const path = !resource.extension ? resource.join(new Path("_index.md")) : resource;
-		if (await item.parsedContent.resourceManager.exists(path)) return;
+		return await item.parsedContent.resourceManager.exists(path);
+	};
 
-		if (ItemExtensions.includes(resource.extension) || !resource.extension) {
-			if (!errors.Links) errors.Links = [];
-			errors.Links.push(
+	private _checkLink = async (item: Article, resource: Path) => {
+		if (await this._pathExists(item, resource)) return;
+		this._errors.Links.push(
+			this._getRefCatalogError({
+				value: resource.value,
+				logicPath: item.logicPath,
+				title: item.getTitle(),
+				editorLink: await this._getErrorLink(this._catalog, item),
+			}),
+		);
+	};
+
+	private _checkResource = async (item: Article, resource: Path) => {
+		if (await this._pathExists(item, resource)) return;
+		if (ResourceExtensions.diagrams.includes(resource.extension)) {
+			this._errors.Diagrams.push(
 				this._getRefCatalogError({
-					linkTo: resource.value,
+					value: resource.value,
 					logicPath: item.logicPath,
 					title: item.getTitle(),
-					editorLink: await this._getErrorLink(catalog, item),
+					editorLink: await this._getErrorLink(this._catalog, item),
 				}),
 			);
 		} else {
-			if (ResourceExtensions.diagrams.includes(resource.extension)) {
-				if (!errors.Diagrams) errors.Diagrams = [];
-				errors.Diagrams.push(
+			if (ResourceExtensions.images.includes(resource.extension)) {
+				this._errors.Images.push(
 					this._getRefCatalogError({
-						linkTo: resource.value,
+						value: resource.value,
 						logicPath: item.logicPath,
 						title: item.getTitle(),
-						editorLink: await this._getErrorLink(catalog, item),
+						editorLink: await this._getErrorLink(this._catalog, item),
 					}),
 				);
 			} else {
-				if (ResourceExtensions.images.includes(resource.extension)) {
-					if (!errors.Images) errors.Images = [];
-					errors.Images.push(
-						this._getRefCatalogError({
-							linkTo: resource.value,
-							logicPath: item.logicPath,
-							title: item.getTitle(),
-							editorLink: await this._getErrorLink(catalog, item),
-						}),
-					);
-				} else {
-					if (!errors.FileStructure) errors.FileStructure = [];
-					errors.FileStructure.push(
-						this._getRefCatalogError({
-							linkTo: resource.value,
-							logicPath: item.logicPath,
-							title: item.getTitle(),
-							editorLink: await this._getErrorLink(catalog, item),
-						}),
-					);
-				}
+				this._errors.FileStructure.push(
+					this._getRefCatalogError({
+						value: resource.value,
+						logicPath: item.logicPath,
+						title: item.getTitle(),
+						editorLink: await this._getErrorLink(this._catalog, item),
+					}),
+				);
 			}
 		}
 	};
@@ -149,6 +141,18 @@ class Healthcheck {
 	private _getErrorLink = async (catalog: Catalog, item: Item): Promise<string> => {
 		return GRAMAX_EDITOR_URL + "/" + RouterPathProvider.getPathname(await catalog.getPathnameData(item)).value;
 	};
+
+	private async _checkIcons(item: Article, code: string) {
+		if (LucideIcon(code)) return;
+		this._errors.Icons.push(
+			this._getRefCatalogError({
+				value: code,
+				logicPath: item.logicPath,
+				title: item.getTitle(),
+				editorLink: await this._getErrorLink(this._catalog, item),
+			}),
+		);
+	}
 }
 
 export default Healthcheck;

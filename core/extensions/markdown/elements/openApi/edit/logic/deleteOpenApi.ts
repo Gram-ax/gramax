@@ -5,7 +5,7 @@ import { Node } from "prosemirror-model";
 
 const deleteOpenApi = async (nodes: Node[], apiUrlCreator: ApiUrlCreator) => {
 	for (const node of nodes) {
-		if (node.type.name !== OPEN_API_NAME) return;
+		if (node.type.name !== OPEN_API_NAME) continue;
 		await FetchService.fetch(apiUrlCreator.deleteArticleResource(node.attrs.src));
 	}
 };

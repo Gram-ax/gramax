@@ -1,4 +1,4 @@
-import type { FileInput } from "@components/Atoms/FileInput/FileInput";
+import type FileInput from "@components/Atoms/FileInput/FileInputProps";
 import type Link from "../../core/components/Atoms/Link";
 import type FetchService from "../../core/ui-logic/ApiServices/FetchService";
 
@@ -7,7 +7,7 @@ interface DynamicModules {
 	Router: typeof BrowserRouter | typeof NextRouter;
 	Fetcher: typeof FetchService.fetch;
 	useImage: typeof useUrlImage;
-	FileInput: typeof FileInput;
+	FileInput: FileInput;
 
 	openChildWindow: ({
 		url,
@@ -26,7 +26,7 @@ let modules: DynamicModules;
 
 /// #if VITE_ENVIRONMENT == "browser"
 // #v-ifdef VITE_ENVIRONMENT=browser
-import { FileInput as FileInputBrowser } from "@components/Atoms/FileInput/FileInput";
+import LazyFileInputBrowser from "@components/Atoms/FileInput/LazyFileInput";
 import BrowserLink from "../../apps/browser/src/components/Atoms/Link";
 import useBase64Image from "../../apps/browser/src/hooks/useBase64Image";
 import BrowserFetchService from "../../apps/browser/src/logic/Api/BrowserFetchService";
@@ -38,7 +38,7 @@ modules = {
 	Fetcher: BrowserFetchService,
 	useImage: useBase64Image,
 	openChildWindow: (params) => window.open(params.url, params.name, params.features),
-	FileInput: FileInputBrowser,
+	FileInput: LazyFileInputBrowser,
 };
 
 /// #endif
@@ -46,7 +46,7 @@ modules = {
 
 /// #if VITE_ENVIRONMENT == "next"
 // #v-ifdef VITE_ENVIRONMENT=next
-import { FileInput as FileInputNext } from "@components/Atoms/FileInput/FileInput";
+import FileInputCdn from "@components/Atoms/FileInput/FileInputCdn";
 import NextLink from "../../apps/next/components/Atoms/Link";
 import NextRouter from "../../apps/next/logic/Api/NextRouter";
 import useUrlImage from "../../core/components/Atoms/Image/useImage";
@@ -62,7 +62,7 @@ modules = {
 	useImage: useUrlImage,
 	openChildWindow: (params) =>
 		typeof window === "undefined" ? undefined : window.open(params.url, params.name, params.features),
-	FileInput: FileInputNext,
+	FileInput: FileInputCdn,
 };
 
 // #v-endif
@@ -71,7 +71,7 @@ modules = {
 
 /// #if VITE_ENVIRONMENT == "jest"
 // #v-ifdef VITE_ENVIRONMENT=jest
-import { FileInput as FileInputNextJest } from "@components/Atoms/FileInput/FileInput";
+import FileInputCdnJest from "@components/Atoms/FileInput/FileInputCdn";
 import NextLinkJest from "../../apps/next/components/Atoms/Link";
 import NextRouterJest from "../../apps/next/logic/Api/NextRouter";
 import useUrlImageJest from "../../core/components/Atoms/Image/useImage";
@@ -87,7 +87,7 @@ modules = {
 	useImage: useUrlImageJest,
 	openChildWindow: (params) =>
 		typeof window === "undefined" ? undefined : window.open(params.url, params.name, params.features),
-	FileInput: FileInputNextJest,
+	FileInput: FileInputCdnJest,
 };
 
 // #v-endif
@@ -95,7 +95,7 @@ modules = {
 
 /// #if VITE_ENVIRONMENT == "tauri"
 // #v-ifdef VITE_ENVIRONMENT=tauri
-import FileInputTauri from "@components/Atoms/FileInput/FileInputTauri";
+import LazyFileInputTauri from "@components/Atoms/FileInput/LazyFileInput";
 import TauriLink from "../../apps/browser/src/components/Atoms/Link";
 import useBase64Image2 from "../../apps/browser/src/hooks/useBase64Image";
 import TauriFetcher from "../../apps/browser/src/logic/Api/BrowserFetchService";
@@ -108,7 +108,7 @@ modules = {
 	useImage: useBase64Image2,
 	Fetcher: TauriFetcher,
 	openChildWindow,
-	FileInput: FileInputTauri,
+	FileInput: LazyFileInputTauri,
 };
 
 // #v-endif

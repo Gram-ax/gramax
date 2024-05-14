@@ -7,6 +7,7 @@ import Path from "@core/FileProvider/Path/Path";
 import ConsoleLogger from "@ext/loggers/ConsoleLogger";
 import { LogLevel } from "@ext/loggers/Logger";
 import PersistentLogger from "@ext/loggers/PersistentLogger";
+import * as git from "@ext/git/core/GitCommands/LibGit2IntermediateCommands";
 
 export const clear = async () => {
 	console.log("Delete all");
@@ -58,6 +59,29 @@ export const download = async (name: string) => {
 };
 
 export const app = async () => await getApp();
+
+export const fs = {
+	read: async (path: string) => {
+		const app = await getApp();
+		const fp = app.lib.getFileProvider();
+		if ((await fp.getStat(new Path(path))).isDirectory()) {
+			const items = await fp.getItems(new Path(path));
+			items.forEach((i) => console.log(i.path.value));
+		} else {
+			const content = await fp.read(new Path(path));
+			console.log(content);
+		}
+	},
+	delete: async (path: string) => {
+		const app = await getApp();
+		const fp = app.lib.getFileProvider();
+		await fp.delete(new Path(path));
+	},
+};
+
+export const status = async (repoPath: string) => {
+  return await git.status({ repoPath })
+} 
 
 export const commands = async () => getCommands(await app());
 

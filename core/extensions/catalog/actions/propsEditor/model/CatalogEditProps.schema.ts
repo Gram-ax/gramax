@@ -5,7 +5,7 @@ import Style from "@components/HomePage/Groups/model/Style";
  */
 export interface CatalogEditProps {
 	/**
-	 * @title Наименование
+	 * @title Название каталога
 	 * @format Мой каталог
 	 * @description Отображается на главной и в самом каталоге
 	 */
@@ -19,7 +19,7 @@ export interface CatalogEditProps {
 	/**
 	 * @title Директория
 	 * @format ./
-	 * @description Путь до директории с файлами статей
+	 * @description Путь до директории, где будет храниться вся документация в репозитории
 	 */
 	docroot?: string;
 	/**

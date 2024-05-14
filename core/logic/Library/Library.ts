@@ -6,8 +6,9 @@ import RepositoryProvider from "@ext/git/core/Repository/RepositoryProvider";
 import Path from "../FileProvider/Path/Path";
 import FileProvider from "../FileProvider/model/FileProvider";
 import { Catalog, ChangeCatalog } from "../FileStructue/Catalog/Catalog";
-import FileStructure, { DOC_ROOT_REGEXP } from "../FileStructue/FileStructure";
+import FileStructure from "../FileStructue/FileStructure";
 import ItemExtensions from "../FileStructue/Item/ItemExtensions";
+import { DOC_ROOT_REGEXP } from "@app/config/const";
 
 export type FSCreatedCallback = (fs: FileStructure) => void;
 export type CatalogChangedCallback = (items: ChangeCatalog[]) => void | Promise<void>;

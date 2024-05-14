@@ -14,7 +14,7 @@
 			"open": true
 		},
 		"updater": {
-			"endpoints": ["https://localhost/updates.json"]
+			"endpoints": ["https://localhost/public/docreader/dev/updates.json"]
 		}
 	},
 	"tauri": {

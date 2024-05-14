@@ -4,7 +4,7 @@ import BranchSideBar from "./BranchSideBar";
 const AddNewBranchListItem = ({ addNewBranchText }: { addNewBranchText: string }) => {
 	return (
 		<ActionListItem>
-			<BranchSideBar name={addNewBranchText} iconCode="plus" />
+			<BranchSideBar name={addNewBranchText} iconCode="plus" iconViewBox="3 3 18 18" />
 		</ActionListItem>
 	);
 };

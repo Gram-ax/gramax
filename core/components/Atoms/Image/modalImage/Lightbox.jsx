@@ -145,6 +145,7 @@ export default class Lightbox extends Component {
 			showRotate,
 			noneShadow = true,
 			imageBackgroundColor = "#ffffff00",
+			objects,
 		} = this.props;
 		const { move, zoomed, rotationDeg } = this.state;
 
@@ -168,6 +169,7 @@ export default class Lightbox extends Component {
 								id="react-modal-image-img"
 								className="__react_modal_image__large_img"
 								src={large || medium}
+								objects={objects}
 								style={{
 									transform: `translate3d(-50%, -50%, 0) translate3d(${move.x}px, ${move.y}px, 0) rotate(${rotationDeg}deg)`,
 									WebkitTransform: `translate3d(-50%, -50%, 0) translate3d(${move.x}px, ${move.y}px, 0) rotate(${rotationDeg}deg)`,
@@ -181,6 +183,7 @@ export default class Lightbox extends Component {
 								id="react-modal-image-img"
 								className="__react_modal_image__medium_img"
 								src={medium || large}
+								objects={objects}
 								handleDoubleClick={this.toggleZoom}
 								contextMenu={!medium}
 								style={{

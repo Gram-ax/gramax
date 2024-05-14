@@ -25,7 +25,7 @@ const Arrow = styled(({ next, link, className }: { next: boolean; link: ItemLink
 		<div className={className}>
 			{link && (
 				<Link href={link} dataQa={"jump-to-" + (next ? "next" : "prev")}>
-					<Icon code={`arrow-${next ? "right" : "left"}`} />
+					<Icon code={next ? "arrow-right" : "arrow-left"} />
 					<span>{link.title}</span>
 				</Link>
 			)}
@@ -42,7 +42,7 @@ const Arrow = styled(({ next, link, className }: { next: boolean; link: ItemLink
 		display: flex;
 		font-size: 13px;
 		width: fit-content;
-		align-items: baseline;
+		align-items: center;
 		text-decoration: none;
 		color: var(--color-primary-general);
 	}

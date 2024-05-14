@@ -14,7 +14,7 @@ import Links from "../../layoutComponents";
 export default styled(({ itemLinks, className }: { itemLinks: ItemLink[]; className?: string }): JSX.Element => {
 	const ref = useRef<HTMLDivElement>(null);
 	const articleProps = ArticlePropsService.value;
-	const showArticleActions = !((articleProps?.errorCode && articleProps.errorCode !== 500) || !articleProps.fileName);
+	const showArticleActions = !(articleProps?.errorCode && articleProps.errorCode !== 500);
 	const articleLinks = useGetArticleLinks();
 
 	return (
@@ -25,7 +25,7 @@ export default styled(({ itemLinks, className }: { itemLinks: ItemLink[]; classN
 				<Links
 					articleLinks={showArticleActions ? articleLinks : []}
 					catalogLinks={getCatalogLinks()}
-					articleChildren={showArticleActions ? <ArticleActions /> : null}
+					articleChildren={<ArticleActions />}
 					catalogChildren={<CatalogActions itemLinks={itemLinks} />}
 				/>
 				{showArticleActions && <Tags tags={articleProps.tags} />}
@@ -37,6 +37,11 @@ export default styled(({ itemLinks, className }: { itemLinks: ItemLink[]; classN
 	height: 100%;
 	color: var(--color-primary-general);
 	background-color: var(--color-contextmenu-bg);
+
+	i {
+		font-size: 13px;
+		margin-left: -1px;
+	}
 
 	ul {
 		list-style-type: none;

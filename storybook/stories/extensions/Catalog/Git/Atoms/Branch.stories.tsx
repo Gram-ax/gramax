@@ -22,7 +22,7 @@ export const Branch = (args: { title: string }) => {
 		<BranchSideBar
 			name={args.title}
 			tooltipContent={"123123"}
-			iconCode={"desktop"}
+			iconCode={"monitor"}
 			data={{ lastCommitAuthor: "Test Author (ICS)", lastCommitModify: new Date(date).toJSON() }}
 		/>
 	);

@@ -51,12 +51,11 @@
 	display: flex;
 	font-size: 20px;
 	align-items: flex-start;
-	font-family: "Font Awesome 6 Pro", "Font Awesome 6 Brands";
 }
 
 .admonition-icon i {
-	line-height: 1.7rem;
 	vertical-align: top;
+	padding: 4px 0;
 }
 
 .admonition-content {

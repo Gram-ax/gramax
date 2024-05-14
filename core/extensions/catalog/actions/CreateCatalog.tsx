@@ -1,9 +1,9 @@
+import { NEW_CATALOG_NAME } from "@app/config/const";
 import FetchService from "@core-ui/ApiServices/FetchService";
 import MimeTypes from "@core-ui/ApiServices/Types/MimeTypes";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
-import Path from "@core/FileProvider/Path/Path";
 import { ClientCatalogProps } from "@core/SitePresenter/SitePresenter";
-import createNewFilePathUtils from "@core/utils/createNewFilePathUtils";
+import { uniqueName } from "@core/utils/uniqueName";
 import CatalogEditProps from "@ext/catalog/actions/propsEditor/model/CatalogEditProps.schema";
 import { useRouter } from "../../../logic/Api/useRouter";
 
@@ -20,18 +20,10 @@ const CreateCatalog = ({ trigger }: { trigger: JSX.Element }) => {
 	const createCatalog = async () => {
 		const catalogNames = await getAllCatalogNames();
 		if (!catalogNames) return;
-		const newPath = createNewFilePathUtils.create(
-			Path.empty,
-			catalogNames.map((n) => new Path(n)),
-			"catalog_",
-			"",
-		);
 
 		const props: CatalogEditProps = {
-			url: newPath.value,
-			code: "",
-			title: `Каталог ${newPath.value.slice(-1)}`,
-			description: "",
+			url: uniqueName(NEW_CATALOG_NAME, catalogNames),
+			title: `Новый каталог`,
 		};
 
 		const response = await FetchService.fetch<ClientCatalogProps>(

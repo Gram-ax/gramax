@@ -1,8 +1,9 @@
+import { classNames } from "@components/libs/classNames";
 import styled from "@emotion/styled";
 import { getSimpleExtensions } from "@ext/markdown/core/edit/logic/getExtensions";
 import { Placeholder } from "@ext/markdown/elements/placeholder/placeholder";
 import { Editor } from "@tiptap/core";
-import { EditorContent, JSONContent, PureEditorContent, useEditor } from "@tiptap/react";
+import { EditorContent, JSONContent, useEditor } from "@tiptap/react";
 import { Dispatch, SetStateAction, useEffect, useRef, useState } from "react";
 import EditorButtons from "./EditorButtons";
 
@@ -42,7 +43,7 @@ const CommentEditor = styled(
 		const [currentContent, setCurrentContent] = useState(content);
 		const [isActive, setIsActive] = useState(false);
 
-		const contentRef = useRef<PureEditorContent>(null);
+		const contentRef = useRef<HTMLDivElement>(null);
 
 		useEffect(() => {
 			if (JSON.stringify(currentContent) !== JSON.stringify(content)) setCurrentContent(content);
@@ -97,7 +98,7 @@ const CommentEditor = styled(
 			if (contentElement && isFirstOpenFlag && isEditable) {
 				contentElement.scrollTo({ top: contentElement.scrollHeight, behavior: "smooth" });
 			}
-		}, [contentRef.current?.editorContentRef.current?.firstChild]);
+		}, [contentRef.current?.firstChild]);
 
 		const onCurrentConfirm = () => {
 			if (!editor.isEmpty) onConfirm(editor.getJSON().content);
@@ -117,7 +118,7 @@ const CommentEditor = styled(
 		};
 
 		const getContentElement = (): HTMLDivElement => {
-			return contentRef.current?.editorContentRef.current?.firstChild;
+			return contentRef.current?.firstChild as HTMLDivElement;
 		};
 
 		useEffect(() => {
@@ -143,9 +144,9 @@ const CommentEditor = styled(
 		});
 
 		return (
-			<div className={className + " article"}>
+			<div className={classNames("article", {}, [className])}>
 				<EditorContent
-					ref={contentRef}
+					innerRef={contentRef}
 					editor={editor}
 					className={"article-body"}
 					onClick={onCurrentEditorClick}

@@ -42,7 +42,7 @@ const SelectStorageDataForm = (props: SelectStorageDataFormProps) => {
 							<div style={{ width: "100%", padding: "6px 11px" }}>
 								<Sidebar
 									title={useLocalize("addNewStorage") + "..."}
-									leftActions={[<Icon code={"plus"} key={0} />]}
+									leftActions={[<Icon code="plus" viewBox="3 3 18 18" key={0} />]}
 								/>
 							</div>
 						</ActionListItem>

@@ -9,7 +9,7 @@ const StatusBarData = {
 export const Icon = () => {
 	return (
 		<div style={{ background: "green", height: "25px", width: "fit-content" }}>
-			<StatusBarElement tooltipText="tooltip" iconCode="code-branch" />
+			<StatusBarElement tooltipText="tooltip" iconCode="source-branch" iconStrokeWidth="1.6" />
 		</div>
 	);
 };
@@ -27,7 +27,7 @@ export const Text = () => {
 export const IconWithText = () => {
 	return (
 		<div style={{ background: "green", height: "25px", width: "fit-content" }}>
-			<StatusBarElement tooltipText="tooltip" iconCode="code-branch">
+			<StatusBarElement tooltipText="tooltip" iconCode="source-branch" iconStrokeWidth="1.6">
 				<div>master</div>
 			</StatusBarElement>
 		</div>

@@ -8,7 +8,8 @@ const HeadingMenuButton = ({ level, editor }: { level: Level; editor: Editor }) 
 			onClick={() => editor.chain().focus().toggleHeading({ level }).run()}
 			tooltipText={`Заголовок ${level}`}
 			hotKey={`Mod-Alt-${level}`}
-			icon={`h${level}`}
+			icon={`heading-${level}`}
+			iconViewBox="3 3 20 20"
 			nodeValues={{ action: "heading", attrs: { level } }}
 		/>
 	);

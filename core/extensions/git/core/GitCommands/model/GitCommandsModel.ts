@@ -45,15 +45,14 @@ interface GitCommandsModel {
 
 	getHeadCommit(branch: string): Promise<GitVersion>;
 
-	resetHard(): Promise<void>;
+	resetHard(head?: GitVersion): Promise<void>;
 	resetSoft(head?: GitVersion): Promise<void>;
 
 	addRemote(url: string): Promise<void>;
 	getRemoteBranchName(name: string, data?: GitSourceData): Promise<string>;
 	getRemoteName(): Promise<string>;
 	getRemoteUrl(): Promise<string>;
-
-	getRemoteUrl(): Promise<string>;
+	hasRemote(): Promise<boolean>;
 	showFileContent(filePath: Path, hash?: GitVersion): Promise<string>;
 	getParentCommit(commitOid: string): Promise<string>;
 	getFixedSubmodulePaths(): Promise<Path[]>;

@@ -31,7 +31,7 @@ const CatalogExistsError = ({ error, onCancelClick }: ComponentProps<typeof GetE
 					onClick: () => setIsSettingsOpen(true),
 				}}
 				closeButton={{ text: useLocalize("close") }}
-				icon={{ code: "circle-xmark", color: "var(--color-danger)" }}
+				icon={{ code: "alert-circle", color: "var(--color-danger)" }}
 			>
 				{formatError()}
 			</InfoModalForm>

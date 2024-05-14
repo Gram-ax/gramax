@@ -5,12 +5,13 @@ import Form from "@components/Form/Form";
 import FormStyle from "@components/Form/FormStyle";
 import Modal from "@components/Layouts/Modal";
 import ModalLayoutLight from "@components/Layouts/ModalLayoutLight";
-import { getEnglishStr } from "@core-ui/languageConverter/getEnglishStr";
+import { transliterate } from "@core-ui/languageConverter/transliterate";
 import FormVariableHandler from "@core/Form/FormVariableHandler";
 import validateEncodingSymbolsUrl from "@core/utils/validateEncodingSymbolsUrl";
 import useLocalize from "@ext/localization/useLocalize";
 import { getSimpleExtensions } from "@ext/markdown/core/edit/logic/getExtensions";
 import { Placeholder } from "@ext/markdown/elements/placeholder/placeholder";
+import SnippetViewUses from "@ext/markdown/elements/snippet/edit/components/SnippetViewUses";
 import SnippetEditorProps from "@ext/markdown/elements/snippet/edit/model/SnippetEditorProps.schema";
 import SnippetEditorPropsSchema from "@ext/markdown/elements/snippet/edit/model/SnippetEditorProps.schema.json";
 import SnippetEditData from "@ext/markdown/elements/snippet/model/SnippetEditData";
@@ -22,16 +23,20 @@ const emptyContent = { type: "doc", content: [[{ type: "text", text: "" }]] };
 
 const SnippetEditor = ({
 	snippetData = { content: emptyContent, id: undefined, title: undefined },
+	snippetsListIds,
 	type,
+	articles,
 	onOpen,
 	onSave,
 	onClose,
 	onDelete,
 }: {
-	snippetData?: SnippetEditData;
 	type: "create" | "edit";
-	onOpen?: VoidFunction;
-	onClose?: VoidFunction;
+	snippetsListIds: string[];
+	snippetData?: SnippetEditData;
+	articles?: { pathname: string; title: string }[];
+	onOpen?: () => void | Promise<void>;
+	onClose?: () => void | Promise<void>;
 	onDelete?: () => Promise<void> | void;
 	onSave?: (data: SnippetEditData) => Promise<void> | void;
 }) => {
@@ -42,6 +47,7 @@ const SnippetEditor = ({
 	});
 	const [schema] = useState<JSONSchema7>({ ...SnippetEditorPropsSchema } as JSONSchema7);
 	const noEncodingSymbolsInUrlText = useLocalize("noEncodingSymbolsInUrl");
+	const snippetAlreadyExistsText = useLocalize("snippetAlreadyExists");
 	const enterSnippetText = useLocalize("enterSnippetText");
 
 	const editor = useEditor(
@@ -51,6 +57,9 @@ const SnippetEditor = ({
 		},
 		[],
 	);
+
+	useEffect(() => void onOpen?.(), []);
+
 	useEffect(() => {
 		if (!editor || !currentProps.id || !currentProps.title) return;
 		editor.commands.focus(editor.state.doc.nodeSize);
@@ -94,9 +103,13 @@ const SnippetEditor = ({
 							schema={schema}
 							initStyles={false}
 							props={currentProps}
-							validate={(a) => ({
-								id: validateEncodingSymbolsUrl(a.id) ? null : noEncodingSymbolsInUrlText,
-							})}
+							validate={(a) => {
+								let idValidationText: string = null;
+								if (!validateEncodingSymbolsUrl(a.id)) idValidationText = noEncodingSymbolsInUrlText;
+								if (snippetsListIds.filter((s) => s !== snippetData.id).includes(a.id))
+									idValidationText = snippetAlreadyExistsText;
+								return { id: idValidationText };
+							}}
 							onMount={() => {
 								new FormVariableHandler(schema, {
 									TYPE: type === "edit" ? "Редактирование" : "Создание",
@@ -106,18 +119,11 @@ const SnippetEditor = ({
 							onChange={(props) => {
 								if (type === "edit") return setCurrentProps(props);
 
-								const getScreeningEngStr = (str: string) =>
-									getEnglishStr(str.toLocaleLowerCase())
-										.replaceAll(/[^\w\-_]/g, "-")
-										.replaceAll("--", "-")
-										.replaceAll("--", "-")
-										.replaceAll("--", "-");
-
 								const oldTitle = currentProps.title ?? "";
-								const engStr = getScreeningEngStr(oldTitle);
+								const engStr = transliterate(oldTitle, { kebab: true });
 
 								if ((!props.id && !oldTitle) || props.id == engStr) {
-									props.id = getScreeningEngStr(props.title);
+									props.id = transliterate(props.title, { kebab: true });
 								}
 
 								setCurrentProps(props);
@@ -127,20 +133,41 @@ const SnippetEditor = ({
 							<Field
 								required
 								fieldDirection="column"
-								scheme={{ title: "<p>Контент сниппета</p>" }}
+								scheme={{ title: "<p>Содержимое</p>" }}
 								input={
-									<div className="article">
-										<div className="article-content">
-											<EditorContent editor={editor} tabIndex={3} />
+									<>
+										<div
+											className="article"
+											style={{
+												border: "1px solid var(--color-line)",
+												borderRadius: "var(--radius-small)",
+												padding: "6px 12px",
+											}}
+										>
+											<div className="article-content">
+												<EditorContent editor={editor} tabIndex={3} />
+											</div>
 										</div>
-									</div>
+										{articles && (
+											<div style={{ marginBottom: "-0.7em", marginTop: "1rem", fontSize: "1rem" }}>
+												<SnippetViewUses
+													articles={articles}
+													onLinkClick={() => setIsOpen(false)}
+												/>
+											</div>
+										)}
+									</>
 								}
 							/>
 						</fieldset>
 						<div className="buttons">
 							{onDelete && (
 								<div className="left-buttons">
-									<ButtonAtom buttonStyle={ButtonStyle.underline} onClick={onDelete}>
+									<ButtonAtom
+										buttonStyle={ButtonStyle.underline}
+										onClick={onDelete}
+										style={{ marginLeft: "0" }}
+									>
 										<span>{useLocalize("delete")}</span>
 									</ButtonAtom>
 								</div>

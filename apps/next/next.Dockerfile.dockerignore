@@ -9,7 +9,6 @@ storybook/
 deploy/
 docs/
 e2e/
-./apps/tauri/apps/
 .ci/
 core/extensions/security/logic/AuthProviders/dropbox.ts
 **/*.cem

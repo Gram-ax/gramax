@@ -47,8 +47,8 @@ const LevNavItem = styled(
 			>
 				{isDroppable && (
 					<Icon
-						code={isOpen ? "angle-down" : "angle-right"}
-						faFw
+						code={isOpen ? "chevron-down" : "chevron-right"}
+						viewBox="3 3 18 18"
 						isAction
 						className="angle"
 						onClick={onToggle}
@@ -75,7 +75,7 @@ const LevNavItem = styled(
 	padding: 5px 0;
 	cursor: pointer;
 	font-weight: 300;
-	align-items: baseline;
+	align-items: center;
 	padding-right: 20px !important;
 	padding-left: var(--left-padding) !important;
 	color: var(--color-primary-general) !important;
@@ -101,7 +101,8 @@ const LevNavItem = styled(
 	:hover {
 		background: var(--color-lev-sidebar-hover);
 
-		.right-extensions {
+		.right-extensions,
+		.right-extensions * {
 			display: inline-flex;
 		}
 	}
@@ -114,7 +115,8 @@ const LevNavItem = styled(
     color: var(--color-primary);
 	font-weight: 400;
 
-	.right-extensions {
+	.right-extensions,
+	.right-extensions * {
 		display: inline-flex !important;
 	}
     
@@ -131,9 +133,8 @@ const LevNavItem = styled(
 	}
 
 	> i.angle {
-		width: 12px;
 		margin-right: 0 !important;
-		margin-left: -12px !important;
+		margin-left: -15px !important;
 	}
 
 	.text {

@@ -7,7 +7,7 @@ export const parseButton = (button: ButtonItem & { isLastButton: boolean }): Lis
 		typeof button.element === "string" ? (
 			<div style={{ width: "100%" }}>
 				<StyledDiv>
-					{button.icon && <Icon code={button.icon} />}
+					{button.icon && <Icon code={button.icon} viewBox={button.iconViewBox}/>}
 					<div>{button.element}</div>
 				</StyledDiv>
 				{button.isLastButton && <Devider />}

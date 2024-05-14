@@ -3,7 +3,6 @@ import UseSWRService from "@core-ui/ApiServices/UseSWRService";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import CatalogPropsService from "@core-ui/ContextServices/CatalogProps";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
-import { CatalogError, CatalogErrors } from "@core/FileStructue/Catalog/Catalog";
 import { CatalogErrorGroups } from "@core/FileStructue/Catalog/CatalogErrorGroups";
 import styled from "@emotion/styled";
 import { CategoryLink, ItemLink } from "@ext/navigation/NavigationLinks";
@@ -16,12 +15,13 @@ import Breadcrumb from "../../../components/Breadcrumbs/ArticleBreadcrumb";
 import ModalLayout from "../../../components/Layouts/Modal";
 import useLocalize from "../../localization/useLocalize";
 import Code from "../../markdown/elements/code/render/component/Code";
+import { CatalogError, CatalogErrors } from "@ext/healthcheck/logic/Healthcheck";
 
 interface ResourceError {
 	title: string;
 	logicPath: string;
 	editorLink: string;
-	resourcePath: string[];
+	values: string[];
 }
 
 const Healthcheck = styled(
@@ -61,12 +61,12 @@ const Healthcheck = styled(
 				<div className={`${className} modal article  block-elevation-2`} data-qa={`catalog-healthcheck-modal`}>
 					<h2>{useLocalize("healthcheck")}</h2>
 					{saveData ? (
-						Object.values(CatalogErrorGroups).map((value, key) => {
+						Object.values(CatalogErrorGroups).map((errorGroups, key) => {
 							return (
 								<ResourceErrorComponent
 									key={key}
-									title={useLocalize(("check" + value) as any)}
-									data={saveData?.[value] ?? []}
+									errorGroup={errorGroups}
+									data={saveData?.[errorGroups.type] ?? []}
 									itemLinks={itemLinks}
 									goToArticleOnClick={() => setIsOpen(false)}
 								/>
@@ -143,7 +143,6 @@ const Healthcheck = styled(
 				justify-content: space-between;
 			}
 		}
-
 	}
 
 	.errors {
@@ -152,23 +151,28 @@ const Healthcheck = styled(
 		> pre {
 			margin: 0 !important;
 		}
+		h3 {
+			margin-bottom: 0px;
+			display: flex;
+			align-items: center;
+		}
 	}
 `;
 
 const getIcons = (isError) =>
 	isError ? (
-		<Icon code="xmark" style={{ fontWeight: 600, color: "red", fontSize: "20px", marginRight: "0.5rem" }} />
+		<Icon code="x" style={{ color: "red", marginRight: "0.5rem" }} strokeWidth="2.5" />
 	) : (
-		<Icon code="check" style={{ fontWeight: 900, color: "green", marginRight: "0.5rem" }} />
+		<Icon code="check" style={{ color: "green", marginRight: "0.5rem" }} strokeWidth="2.5" />
 	);
 
 const ResourceErrorComponent = ({
-	title,
+	errorGroup,
 	data,
 	itemLinks,
 	goToArticleOnClick,
 }: {
-	title: string;
+	errorGroup: { type: string; title: string };
 	data: CatalogError[];
 	itemLinks: ItemLink[];
 	goToArticleOnClick: () => void;
@@ -183,13 +187,13 @@ const ResourceErrorComponent = ({
 			title: d.args.title,
 			logicPath: d.args.logicPath,
 			editorLink: d.args.editorLink,
-			resourcePath: [d.args.linkTo],
+			values: [d.args.value],
 		};
 		const index = resourceErrors.findIndex((el) => el.logicPath === errorLink.logicPath);
 		if (index == -1) {
 			resourceErrors.push(errorLink);
 		} else {
-			resourceErrors[index].resourcePath.push(d.args.linkTo);
+			resourceErrors[index].values.push(d.args.value);
 		}
 	});
 
@@ -211,16 +215,16 @@ const ResourceErrorComponent = ({
 
 	return (
 		<div className="errors">
-			<h3 style={{ marginBottom: 0 }}>
+			<h3>
 				{getIcons(data.length)}
-				{title}
+				{useLocalize(("check" + errorGroup.type) as any)}
 			</h3>
 			{resourceErrors.length ? (
 				<table style={{ overflow: "visible" }}>
 					<thead>
 						<tr>
 							<th>{useLocalize("article2")}</th>
-							<th className="flex">{useLocalize("incorrectsPaths")}</th>
+							<th className="flex">{useLocalize((errorGroup.title) as any)}</th>
 						</tr>
 					</thead>
 					<tbody>
@@ -239,7 +243,7 @@ const ResourceErrorComponent = ({
 									</td>
 									<td className="flex">
 										<div>
-											{resourceError.resourcePath.map((link) => (
+											{resourceError.values.map((link) => (
 												<>
 													<Code>{link}</Code>
 													<br />
@@ -254,7 +258,7 @@ const ResourceErrorComponent = ({
 														content={<span>{`${useLocalize("editOn")} Gramax`}</span>}
 													>
 														<span>
-															<Icon code="pencil-alt" isAction={true} />
+															<Icon code="pencil" isAction={true} />
 														</span>
 													</Tooltip>
 												</a>

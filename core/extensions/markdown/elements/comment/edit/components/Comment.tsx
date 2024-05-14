@@ -7,57 +7,58 @@ import Input from "../../../../../../components/Comments/Input";
 import { CommentBlock } from "../../../../../../ui-logic/CommentBlock";
 import useLocalize from "../../../../../localization/useLocalize";
 
-const Comment = styled(
-	({
-		mark,
-		element,
-		onDelete,
-		onUpdate,
-		onCreateComment,
-		className,
-	}: {
-		mark: Mark;
-		element: HTMLElement;
-		onDelete: () => void;
-		onUpdate: (commentBlock: CommentBlock) => void;
-		onCreateComment: (content: JSONContent[]) => void;
-		className?: string;
-	}) => {
-		useEffect(() => {
-			element.style.color = "var(--color-comment-active-text)";
-			element.style.background = "var(--color-comment-active-bg)";
-			return () => {
-				element.style.color = "var(--color-article-text)";
-				element.style.background = "var(--color-comment-bg)";
-			};
-		}, [mark?.attrs?.count]);
+interface CommentProps {
+	mark: Mark;
+	element: HTMLElement;
+	onDelete: () => void;
+	onUpdate: (commentBlock: CommentBlock) => void;
+	onCreateComment: (content: JSONContent[]) => void;
+	className?: string;
+}
 
+const Comment = (props: CommentProps) => {
+	const { mark, element, onDelete, onUpdate, onCreateComment, className } = props;
+
+	useEffect(() => {
+		element.style.color = "var(--color-comment-active-text)";
+		element.style.background = "var(--color-comment-active-bg)";
+		return () => {
+			element.style.color = "var(--color-article-text)";
+			element.style.background = "var(--color-comment-bg)";
+		};
+	}, [mark?.attrs?.count]);
+
+	if (mark.attrs?.comment) {
 		return (
 			<div className={className}>
-				{mark.attrs?.comment ? (
-					<CommentBlockComponent
-						maxHeight="50vh"
-						commentBlock={mark.attrs as any}
-						onUpdate={onUpdate}
-						onDeleteComment={onDelete}
-					/>
-				) : (
-					<div className="add-input" data-qa="qa-add-comment">
-						<Input
-							onCancel={onDelete}
-							onConfirm={onCreateComment}
-							placeholder={useLocalize("leaveAComment")}
-							confirmButtonText={useLocalize("comment")}
-							onCreate={({ editor }) => editor.commands.focus()}
-						/>
-					</div>
-				)}
+				<CommentBlockComponent
+					maxHeight="50vh"
+					commentBlock={mark.attrs as any}
+					onUpdate={onUpdate}
+					onDeleteComment={onDelete}
+				/>
 			</div>
 		);
-	},
-)`
+	}
+
+	return (
+		<div className={className}>
+			<div className="add-input" data-qa="qa-add-comment">
+				<Input
+					onCancel={onDelete}
+					onConfirm={onCreateComment}
+					placeholder={useLocalize("leaveAComment")}
+					confirmButtonText={useLocalize("comment")}
+					onCreate={({ editor }) => editor.commands.focus()}
+				/>
+			</div>
+		</div>
+	);
+};
+
+export default styled(Comment)`
 	z-index: 1;
-	border-radius: 4px;
+	border-radius: var(--radius-normal);
 	background: var(--color-comments-bg);
 	box-shadow: var(--comment-tooltip-shadow);
 
@@ -66,5 +67,3 @@ const Comment = styled(
 		padding: 1rem 0 1rem 1rem;
 	}
 `;
-
-export default Comment;

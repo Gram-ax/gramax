@@ -44,7 +44,6 @@ const Button = forwardRef((props: ButtonProps, ref?: MutableRefObject<HTMLDivEle
 
 export default styled(Button)`
 	${(p) => (p.disabled ? `pointer-events: none; opacity: 0.4;` : ``)}
-
 	.text_xx_small {
 		font-size: 0.6rem;
 	}
@@ -85,7 +84,7 @@ export default styled(Button)`
 	}
 
 	.default {
-		border-radius: var(--radius-block);
+		border-radius: var(--radius-normal);
 		background: var(--color-code-bg);
 		color: var(--color-article-heading-text);
 		border: 1px solid var(--color-article-heading-text);
@@ -101,7 +100,7 @@ export default styled(Button)`
 		background: var(--color-btn-bg);
 		color: var(--color-text-accent);
 		border: 1px solid var(--color-text-accent);
-		border-radius: var(--radius-block);
+		border-radius: var(--radius-normal);
 
 		&:hover {
 			color: white;
@@ -134,7 +133,7 @@ export default styled(Button)`
 	.purple {
 		background: var(--merger-bottom-primary);
 		color: white;
-		border-radius: var(--radius-block);
+		border-radius: var(--radius-normal);
 
 		&:hover {
 			color: #d338f8;
@@ -145,7 +144,7 @@ export default styled(Button)`
 	.blue {
 		background: var(--merger-top-primary);
 		color: white;
-		border-radius: var(--radius-block);
+		border-radius: var(--radius-normal);
 
 		&:hover {
 			color: #3a9ffb;

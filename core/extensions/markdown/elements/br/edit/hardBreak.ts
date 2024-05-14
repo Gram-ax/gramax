@@ -34,10 +34,10 @@ const HardBreak = Node.create<HardBreakOptions>({
 	addProseMirrorPlugins() {
 		return [
 			new Plugin({
-				key: new PluginKey("Shift-Enter"),
+				key: new PluginKey("Shift-Enter_br"),
 				props: {
 					handleKeyDown: (view, event) => {
-						if (event.key === "Enter" && (event.shiftKey || event.metaKey || event.ctrlKey)) {
+						if (event.key === "Enter" && event.shiftKey) {
 							splitBlock(view.state, view.dispatch);
 						}
 					},

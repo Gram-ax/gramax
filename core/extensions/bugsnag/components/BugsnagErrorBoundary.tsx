@@ -1,19 +1,21 @@
 import { getExecutingEnvironment } from "@app/resolveModule/env";
 import Bugsnag, { OnErrorCallback } from "@bugsnag/js";
-import React from "react";
+import React, { ReactNode } from "react";
 import PageDataContext from "../../../logic/Context/PageDataContext";
 import sendBug from "../logic/sendBug";
 
-class BugsnagErrorBoundary extends React.Component<{ context: PageDataContext; children: JSX.Element }> {
-	constructor(props) {
+type ErrorBoundaryProps = { context: PageDataContext; children: ReactNode };
+
+class BugsnagErrorBoundary extends React.Component<ErrorBoundaryProps> {
+	constructor(props: ErrorBoundaryProps) {
 		super(props);
-		if (!props.context.bugsnagApiKey) return;
+		if (!props.context.conf.bugsnagApiKey) return;
 		const onError: OnErrorCallback = (e) => {
 			e.addFeatureFlag("env", getExecutingEnvironment());
 			e.addMetadata("props", { ...props.context, sourceDatas: [], userInfo: null });
 		};
 		if (Bugsnag.isStarted()) Bugsnag.addOnError(onError);
-		else Bugsnag.start({ apiKey: props.context.bugsnagApiKey, onError });
+		else Bugsnag.start({ apiKey: props.context.conf.bugsnagApiKey, onError });
 	}
 
 	static getDerivedStateFromError(error) {

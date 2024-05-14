@@ -1,27 +1,34 @@
+import Welcome from "@components/Welcome";
+import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import IsReadOnlyHOC from "@core-ui/HigherOrderComponent/IsReadOnlyHOC";
+import styled from "@emotion/styled";
+import { type HTMLAttributes } from "react";
 import CreateCatalog from "../../extensions/catalog/actions/CreateCatalog";
 import Clone from "../../extensions/git/actions/Clone/components/Clone";
 import useLocalize from "../../extensions/localization/useLocalize";
-import Welcome from "@components/Welcome";
-import styled from "@emotion/styled";
-import { type HTMLAttributes } from "react";
 import Button from "../Atoms/Button/Button";
 import Icon from "../Atoms/Icon";
 
-const NoneGroups = (props: HTMLAttributes<HTMLDivElement>) => {  
+const NoneGroups = (props: HTMLAttributes<HTMLDivElement>) => {
+	const isReadOnly = PageDataContextService.value.conf.isReadOnly;
+
 	return (
 		<div {...props}>
 			<Welcome
 				title={useLocalize("soFarItsEmpty")}
 				body={
-					<>
-						<p>{useLocalize("addCatalogToGetStarted")}</p>
-						<div
-							dangerouslySetInnerHTML={{
-								__html: useLocalize("addCatalogOptions"),
-							}}
-						/>
-					</>
+					isReadOnly ? (
+						<p>{useLocalize("addCatalogToGetStartedDocportal")}</p>
+					) : (
+						<>
+							<p>{useLocalize("addCatalogToGetStarted")}</p>
+							<div
+								dangerouslySetInnerHTML={{
+									__html: useLocalize("addCatalogOptions"),
+								}}
+							/>
+						</>
+					)
 				}
 				actions={
 					<>
@@ -29,7 +36,7 @@ const NoneGroups = (props: HTMLAttributes<HTMLDivElement>) => {
 							<CreateCatalog
 								trigger={
 									<Button>
-										<Icon code="plus" faFw />
+										<Icon code="plus" viewBox="3 3 18 18"/>
 										<span>{useLocalize("createNew")}</span>
 									</Button>
 								}
@@ -38,8 +45,11 @@ const NoneGroups = (props: HTMLAttributes<HTMLDivElement>) => {
 						<Clone
 							trigger={
 								<Button>
-									<Icon code="cloud-arrow-down" faFw />
-									<span>{`${useLocalize("load")} ${useLocalize("existing")}`}</span>
+									<Icon code="cloud-download" />
+									<span>
+										{`${useLocalize("load")}`}
+										<IsReadOnlyHOC>{` ${useLocalize("existing")}`}</IsReadOnlyHOC>
+									</span>
 								</Button>
 							}
 						/>

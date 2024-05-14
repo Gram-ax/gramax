@@ -1,6 +1,6 @@
 import { classNames } from "@components/libs/classNames";
 import styled from "@emotion/styled";
-import { ForwardedRef, MouseEventHandler, ReactNode, forwardRef, HTMLAttributes } from "react";
+import { ForwardedRef, HTMLAttributes, MouseEventHandler, ReactNode, forwardRef } from "react";
 
 export type ItemContent = ListItem | ButtonItem | string;
 
@@ -8,11 +8,13 @@ export interface ListItem {
 	element: ReactNode | string;
 	labelField: string;
 	disable?: boolean;
+	tooltipDisabledContent?: ReactNode;
 }
 
 export interface ButtonItem extends ListItem {
 	onClick?: () => void;
 	icon?: string;
+	iconViewBox?: string;
 }
 
 interface ItemProps extends Omit<HTMLAttributes<HTMLDivElement>, "content"> {

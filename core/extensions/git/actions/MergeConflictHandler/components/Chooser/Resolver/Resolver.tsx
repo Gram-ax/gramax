@@ -51,9 +51,9 @@ const Resolver = styled(
 		);
 	},
 )`
-	border-radius: 8px;
+	border-radius: var(--radius-x-large);
 	overflow: hidden;
-	margin: 0px calc(20px - 0.5rem);
+	margin: 0 calc(20px - 0.5rem);
 `;
 
 export default Resolver;

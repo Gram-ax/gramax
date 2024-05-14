@@ -6,6 +6,7 @@ import Watcher from "../../../extensions/Watchers/model/Watcher";
 import Path from "../Path/Path";
 import FileInfo from "../model/FileInfo";
 import FileProvider from "../model/FileProvider";
+import { getExecutingEnvironment } from "@app/resolveModule/env";
 
 export default class DiskFileProvider implements FileProvider {
 	private _rootPath: Path;
@@ -151,10 +152,13 @@ export default class DiskFileProvider implements FileProvider {
 	}
 
 	async validate() {
-		if (!(await this.exists(Path.empty)))
-			throw new Error(
-				`Корневая директория ${this._rootPath} не существует.\nВозможно вы ее удалили или переименовали. Укажите новую директорию.`,
-			);
+		if (await this.exists(Path.empty)) return;
+
+		if (getExecutingEnvironment() == "browser") return await this.mkdir(Path.empty);
+
+		throw new Error(
+			`Корневая директория ${this._rootPath} не существует.\nВозможно вы ее удалили или переименовали. Укажите новую директорию.`,
+		);
 	}
 
 	private async _deleteFile(path: Path) {

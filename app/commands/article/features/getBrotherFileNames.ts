@@ -18,7 +18,9 @@ const getBrotherFileNames: Command<{ path: Path; catalogName: string }, string[]
 		const itemRef = fp.getItemRef(path);
 		const article = catalog.findItemByItemRef(itemRef);
 		const fileNames = article
-			? article.parent.items.filter((i) => !i.ref.path.compare(itemRef.path)).map((i) => i.getFileName())
+			? article.parent.items
+					.filter((i) => !(i.getFileName() === article.getFileName()))
+					.map((i) => i.getFileName())
 			: null;
 		return fileNames;
 	},

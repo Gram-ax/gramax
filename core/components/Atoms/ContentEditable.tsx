@@ -4,11 +4,13 @@ import { DependencyList, KeyboardEventHandler, useEffect, useState } from "react
 const ContentEditable = ({
 	value,
 	onChange,
+	onEnter,
 	deps,
 	className,
 }: {
 	value: string;
 	onChange: (v: string) => void;
+	onEnter?: () => void;
 	deps?: DependencyList;
 	className?: string;
 }) => {
@@ -29,7 +31,10 @@ const ContentEditable = ({
 	};
 
 	const handleKeyDown: KeyboardEventHandler<HTMLDivElement> = (e) => {
-		if (e.key === "Enter") e.preventDefault();
+		if (e.key === "Enter") {
+			e.preventDefault();
+			onEnter?.();
+		}
 
 		if ((e.metaKey || e.ctrlKey) && e.key === "a") {
 			e.preventDefault();
@@ -56,8 +61,9 @@ const ContentEditable = ({
 
 export default styled(ContentEditable)`
 	outline: none;
+	min-width: 1px;
 	overflow-x: auto;
-	white-space: nowrap;
+	white-space: nowrap !important;
 
 	scrollbar-width: none; /* Firefox */
 	-ms-overflow-style: none; /* IE and Edge */

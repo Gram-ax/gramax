@@ -180,11 +180,13 @@ export default class GitStorage implements Storage {
 				const newSubmodulDatas = await this._getSubmodulesData();
 				await this._updateSubmodules(oldSubmodulDatas, newSubmodulDatas, data);
 			}
+			// eslint-disable-next-line no-useless-catch
+		} catch (err) {
+			throw err;
 		} finally {
 			await this.update();
+			this._fp?.startWatch();
 		}
-
-		this._fp?.startWatch();
 	}
 
 	async getFileLink(path: Path, branch?: Branch): Promise<string> {

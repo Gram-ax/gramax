@@ -56,7 +56,7 @@ const MergeConflictHandler = ({
 	});
 
 	return (
-		parsedFiles.length && (
+		parsedFiles.length > 0 && (
 			<LeftNavViewContent
 				elements={parsedFiles.map((parsedFile, idx) => {
 					return {

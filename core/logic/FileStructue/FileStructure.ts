@@ -1,15 +1,16 @@
+import { CATEGORY_ROOT_REGEXP, DOC_ROOT_FILENAME, DOC_ROOT_REGEXP } from "@app/config/const";
 import Path from "@core/FileProvider/Path/Path";
 import FileInfo from "@core/FileProvider/model/FileInfo";
 import FileProvider from "@core/FileProvider/model/FileProvider";
 import { Article, type ArticleProps } from "@core/FileStructue/Article/Article";
-import { Catalog, CatalogErrors, type CatalogProps } from "@core/FileStructue/Catalog/Catalog";
+import { Catalog, type CatalogProps } from "@core/FileStructue/Catalog/Catalog";
 import CatalogEntry from "@core/FileStructue/Catalog/CatalogEntry";
 import { Category, type CategoryProps } from "@core/FileStructue/Category/Category";
 import { Item } from "@core/FileStructue/Item/Item";
 import { ItemRef } from "@core/FileStructue/Item/ItemRef";
 import CatalogEditProps from "@ext/catalog/actions/propsEditor/model/CatalogEditProps.schema";
+import { CatalogErrors } from "@ext/healthcheck/logic/Healthcheck";
 import { defaultLanguage } from "@ext/localization/core/model/Language";
-import SnippetProvider from "@ext/markdown/elements/snippet/logic/SnippetProvider";
 import matter from "gray-matter";
 import * as yaml from "js-yaml";
 
@@ -26,10 +27,6 @@ export type MarkdownProps = {
 	content: string;
 };
 
-export const DOC_ROOT_FILENAME = ".doc-root.yaml";
-export const DOC_ROOT_REGEXP = /.(doc-)?root.yaml/;
-export const CATEGORY_ROOT_FILENAME = "_index.md";
-export const CATEGORY_ROOT_REGEXP = /(_index_\w\w\.md$|_index\.md$)/;
 export const FS_EXCLUDE_FILENAMES = [".git", ".idea", ".vscode", "node_modules", ".snippets"];
 export const FS_EXCLUDE_CATALOG_NAMES = [
 	"IndexCaches", // Legacy
@@ -69,8 +66,8 @@ export default class FileStructure {
 	}
 
 	static isCategory(path: string): boolean {
-		return !!path.match(CATEGORY_ROOT_REGEXP)?.[1];
-	}
+    return !!path.match(CATEGORY_ROOT_REGEXP)?.[1];
+  }
 
 	static getCatalogPath(catalog: Catalog): Path {
 		return new Path(catalog.getName());
@@ -146,7 +143,6 @@ export default class FileStructure {
 
 		this._rules.forEach((rule) => rule(category, entry.props, true));
 		await this._readCategoryItems(entry.getRootCategoryPath(), category, entry.props, entry.errors);
-		const snippetProvider = new SnippetProvider(this._fp, this, category.folderPath);
 
 		const catalog = new Catalog({
 			name: entry.getName(),
@@ -157,7 +153,6 @@ export default class FileStructure {
 			rootPath: this._fp.rootPath,
 			fs: this,
 			fp: this._fp,
-			snippetProvider,
 			isServerApp: this._isServerApp,
 		});
 		return catalog;
@@ -169,6 +164,7 @@ export default class FileStructure {
 		delete props.url;
 
 		await this._fp.mkdir(path);
+		await this._fp.write(path.join(new Path(DOC_ROOT_FILENAME)), this._serializeProps(props));
 
 		const entry = await this.getCatalogEntryByPath(url);
 		return await entry.load();

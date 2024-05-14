@@ -13,7 +13,7 @@ const Drawio = styled(({ src, title, className }: { src: string; title: string; 
 	padding: 20px;
 	max-width: 90% !important;
 	max-height: none !important;
-	border-radius: var(--radius-block);
+	border-radius: var(--radius-normal);
 	background: var(--color-diagram-bg);
 `;
 

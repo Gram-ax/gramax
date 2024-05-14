@@ -164,6 +164,7 @@ fn status(sandbox: TempDir, #[with(&sandbox)] repo: Repo<DummyCreds>) -> Result 
   repo.add_glob(["."].iter())?;
   fs::write(sandbox.path().join("new_file"), "123")?;
   fs::remove_file(&file_deleted_path)?;
+  fs::create_dir(sandbox.path().join("dir"))?;
 
   let status = repo.status()?.short_info()?;
 

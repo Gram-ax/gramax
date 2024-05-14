@@ -8,7 +8,7 @@ export interface PCommandConfig<P = any, O = any> {
 export abstract class Plugin {
 	private _commandConfigs: PCommandConfig[];
 
-	constructor(protected _app: PApplication) {
+	constructor() {
 		this._commandConfigs = [];
 	}
 

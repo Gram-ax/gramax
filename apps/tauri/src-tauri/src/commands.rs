@@ -1,14 +1,14 @@
+use rust_i18n::locale;
 use tauri::*;
 
 use std::collections::HashMap;
 
-use crate::oauth_server::listen_one;
+use crate::oauth_server::listen_once;
 use crate::platform::commands::*;
-use crate::translation::Language;
 
 pub fn generate_handler<R: Runtime>(builder: Builder<R>) -> Builder<R> {
   builder.invoke_handler(generate_handler![
-    http_listen_one,
+    http_listen_once,
     close_current_window,
     get_user_language,
     set_root_path,
@@ -33,12 +33,12 @@ pub fn quit(code: i32, message: &str) {
 }
 
 #[command]
-pub fn get_user_language<R: Runtime>(app: AppHandle<R>) -> String {
-  app.state::<Language>().to_string()
+pub fn get_user_language() -> String {
+  locale().to_string()
 }
 
 #[command]
-pub fn http_listen_one<R: Runtime>(
+pub fn http_listen_once<R: Runtime>(
   window: Window<R>,
   url: &str,
   redirect: Box<str>,
@@ -50,6 +50,6 @@ pub fn http_listen_one<R: Runtime>(
   #[cfg(desktop)]
   open::that(url)?;
 
-  listen_one(redirect, move |req| window.emit(&callback_name, req.url().split('?').nth(1)).unwrap());
+  listen_once(redirect, move |req| window.emit(&callback_name, req.url().split('?').nth(1)).unwrap());
   Ok(())
 }

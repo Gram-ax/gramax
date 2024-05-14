@@ -7,11 +7,13 @@ export const GifImage = styled(
 		alt,
 		title,
 		className,
+		noplay,
 	}: {
 		src: string;
 		alt?: string;
 		title?: string;
 		className?: string;
+		noplay?: boolean;
 		props?: React.ImgHTMLAttributes<HTMLElement>;
 	}) => {
 		const gif = useRef<HTMLImageElement>();
@@ -24,6 +26,7 @@ export const GifImage = styled(
 			fetch(src)
 				.then((r) => r.blob())
 				.then(() => {
+					if (noplay) return;
 					gif.current.onclick = () => {
 						setIsplaying(false);
 					};

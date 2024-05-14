@@ -13,6 +13,10 @@ export default class BrowserApiResponse implements ApiResponse {
 		return this.statusCode;
 	}
 
+	set status(value: number) {
+		this.statusCode = value;
+	}
+
 	setHeader(name: string, value: string) {
 		this.headers[name] = value;
 	}

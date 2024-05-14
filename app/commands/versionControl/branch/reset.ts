@@ -2,11 +2,11 @@ import { ResponseKind } from "@app/types/ResponseKind";
 import { AuthorizeMiddleware } from "@core/Api/middleware/AuthorizeMiddleware";
 import ReloadConfirmMiddleware from "@core/Api/middleware/ReloadConfirmMiddleware";
 import Context from "@core/Context/Context";
-import BranchData from "@ext/VersionControl/model/branch/BranchData";
+import ClientGitBranchData from "@ext/git/actions/Branch/model/ClientGitBranchData";
 import GitSourceData from "@ext/git/core/model/GitSourceData.schema";
 import { Command } from "../../../types/Command";
 
-const reset: Command<{ ctx: Context; catalogName: string }, BranchData[]> = Command.create({
+const reset: Command<{ ctx: Context; catalogName: string }, ClientGitBranchData[]> = Command.create({
 	path: "versionControl/branch/reset",
 
 	kind: ResponseKind.json,
@@ -20,8 +20,15 @@ const reset: Command<{ ctx: Context; catalogName: string }, BranchData[]> = Comm
 		const storage = catalog.repo.storage;
 		const data = rp.getSourceData(ctx.cookie, await storage.getSourceName()) as GitSourceData;
 		if (storage) await storage.fetch(data);
-		const vc = catalog.repo.gvc;
-		return (await vc.resetBranches()).map((b) => b.getData());
+		const gvc = catalog.repo.gvc;
+		const headCommitHash = await gvc.getHeadCommit();
+
+		return (await gvc.resetBranches()).map(
+			(b): ClientGitBranchData => ({
+				...b.getData(),
+				branchHashSameAsHead: b.getData().lastCommitOid === headCommitHash.toString(),
+			}),
+		);
 	},
 
 	params(ctx, q) {

@@ -19,6 +19,7 @@ export interface ModalLayoutProps {
 	closeOnEscape?: boolean;
 	closeOnCmdEnter?: boolean;
 	setGlobalsStyles?: boolean;
+	disabled?: boolean;
 }
 
 const ModalLayout = (props: ModalLayoutProps) => {
@@ -31,6 +32,7 @@ const ModalLayout = (props: ModalLayoutProps) => {
 		onCmdEnter,
 		isOpen: isParentOpen,
 		className,
+		disabled,
 		closeOnEscape = true,
 		closeOnCmdEnter = true,
 	} = props;
@@ -88,9 +90,10 @@ const ModalLayout = (props: ModalLayoutProps) => {
 				setIsOpen(true);
 				IsOpenModalService.value = true;
 			}}
+			disabled={disabled}
 			onClose={onCurrentClose}
 			trigger={trigger}
-			overlayStyle={{ backgroundColor: "rgba(19, 19, 19, 0.75)" }}
+			overlayStyle={{ backgroundColor: "var(--color-modal-overlay-style-bg)" }}
 			contentStyle={{
 				display: "flex",
 				height: "100%",
@@ -115,7 +118,7 @@ const ModalLayout = (props: ModalLayoutProps) => {
 				data-qa={`modal-layout`}
 			>
 				<div className="x-mark">
-					<Icon code="xmark" onClick={() => setIsOpen(false)} />
+					<Icon code="x" onClick={() => setIsOpen(false)} />
 				</div>
 				<div
 					className="outer-modal"
@@ -235,7 +238,7 @@ export default styled(ModalLayout)`
 		width: 100%;
 		overflow-y: hidden;
 		transition: all 0.3s;
-		border-radius: var(--radius-small);
+		border-radius: var(--radius-normal);
 
 		.new-branch-form {
 			margin: 1rem;

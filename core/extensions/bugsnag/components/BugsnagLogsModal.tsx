@@ -19,17 +19,28 @@ import useLocalize from "@ext/localization/useLocalize";
 import PersistentLogger from "@ext/loggers/PersistentLogger";
 import Fence from "@ext/markdown/elements/fence/render/component/Fence";
 import EditorService from "@ext/markdown/elementsUtils/ContextServices/EditorService";
-import { Editor } from "@tiptap/core";
+import { Editor, JSONContent } from "@tiptap/core";
 import { useCallback, useEffect, useState } from "react";
 
-const getDetails = (props: { editor: Editor; context: PageDataContext }) => {
+const getDetails = (props: { editor?: Editor; context?: PageDataContext }) => {
 	const { editor, context } = props;
+	const result: { replacedArticle?: JSONContent; context?: any; gitLogs?: any } = {};
 
-	const replacedArticle = parseContent(editor.getJSON());
-	const gitLogs = PersistentLogger.getLogs(/git/, 100);
-	const conf = { branch: context.conf?.isRelease, version: context.conf?.version };
+	if (editor) {
+		result.replacedArticle = parseContent(editor.getJSON());
+	}
 
-	return { context: { ...context, sourceDatas: null, userInfo: null, conf }, replacedArticle, gitLogs };
+	if (context && context.conf) {
+		const conf = { branch: context.conf?.isRelease, version: context.conf?.version };
+		result.context = { ...context, sourceDatas: null, userInfo: null, conf };
+	}
+
+	if (PersistentLogger) {
+		const gitLogs = PersistentLogger.getLogs(/git/, 100);
+		result.gitLogs = gitLogs;
+	}
+
+	return result;
 };
 
 const BugsnagLogsModal = ({ className }: { className?: string }) => {
@@ -67,10 +78,13 @@ const BugsnagBody = ({ setIsOpen, className }: { setIsOpen: (v: boolean) => void
 		(comment) => {
 			const logs = { comment, ...getDetails({ editor, context: data }) };
 			void sendBug(new Error("Пользовательская ошибка"), (e) => {
+				// TODO Нужно как то отлавливать, дошел ли контент до багснега и если нет, то бросать ошибку.
+				e.addMetadata("props", logs);
+			}).catch((e) => {
+				console.error(e);
 				ErrorConfirmService.notify(
 					new DefaultError(cantSendFeedback, new Error(checkInternetAndDisableAdBlocker)),
 				);
-				e.addMetadata("props", logs);
 			});
 			setIsOpen(false);
 		},

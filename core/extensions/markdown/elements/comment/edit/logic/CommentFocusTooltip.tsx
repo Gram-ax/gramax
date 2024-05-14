@@ -1,3 +1,4 @@
+import { getMat } from "@ext/markdown/core/edit/components/ArticleMat";
 import { Editor, JSONContent } from "@tiptap/core";
 import { Mark } from "@tiptap/pm/model";
 import { EditorState } from "prosemirror-state";
@@ -75,21 +76,26 @@ class CommentFocusTooltip extends BaseMark {
 		const tooltipHeight = document.documentElement.clientHeight / 2;
 		const rect = element.getBoundingClientRect();
 		const domReact = this._view.dom.getBoundingClientRect();
+		const mat = getMat();
+		const matHeight = (mat?.getBoundingClientRect().height ?? 0) + 12;
 
 		this._tooltip.style.top = this._tooltip.style.bottom = null;
 		const top = rect.top - domReact.top;
+
 		if (tooltipHeight > domReact.height) this._tooltip.style.top = top + rect.height + "px";
 		else {
-			if (top + tooltipHeight > domReact.height) this._tooltip.style.bottom = domReact.height - top + "px";
-			else this._tooltip.style.top = top + rect.height + "px";
+			if (top + tooltipHeight > domReact.height) {
+				this._tooltip.style.bottom = domReact.height + matHeight - top + "px";
+			} else this._tooltip.style.top = top + rect.height + "px";
 		}
 
 		this._tooltip.style.left = this._tooltip.style.right = null;
 		const left = rect.left - domReact.left;
 
-		if (left + tooltipWidth > domReact.width + 200)
+		if (left + tooltipWidth > domReact.width + 200) {
 			this._tooltip.style.right = domReact.width - (left + rect.width) + "px";
-		else this._tooltip.style.left = left + "px";
+		} else this._tooltip.style.left = left + "px";
+
 		this._tooltip.style.zIndex = "100";
 	};
 

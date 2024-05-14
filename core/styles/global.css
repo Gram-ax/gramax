@@ -120,10 +120,6 @@ ul li {
 	margin-bottom: 0.6em;
 }
 
-.fad.fad.fad {
-	font-family: "Font Awesome 6 Duotone";
-}
-
 a i.linkIcon {
 	font-size: 0.7em;
 	font-weight: 600;
@@ -221,7 +217,7 @@ span.pk .far {
 	flex-direction: column;
 	color: var(--color-primary);
 	justify-content: flex-start;
-	border-radius: var(--radius-small);
+	border-radius: var(--radius-normal);
 }
 
 .modal .bottom-content {
@@ -229,7 +225,7 @@ span.pk .far {
 	width: 100%;
 	padding: 0.5rem;
 	background: var(--color-menu-bg);
-	border-radius: var(--radius-small);
+	border-radius: var(--radius-normal);
 	position: relative;
 }
 

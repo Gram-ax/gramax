@@ -53,8 +53,8 @@ export default (): UserConfig => ({
 		]),
 		ifdef(),
 		polyfills({
-			protocolImports: false,
-			exclude: ["buffer", "module"],
+			protocolImports: true,
+			exclude: ["buffer"],
 		}),
 	],
 
@@ -88,7 +88,11 @@ export default (): UserConfig => ({
 		},
 	},
 
-	define: { "process.builtIn": getBuiltInVariables(), "process.env.NODE_DEBUG": false },
+	define: {
+		"process.version": [], // https://github.com/browserify/browserify-sign/issues/85
+		"process.builtIn": getBuiltInVariables(),
+		"process.env.NODE_DEBUG": false,
+	},
 	publicDir: "./core/public",
 	envPrefix: ["VITE", "TAURI", "GX"],
 

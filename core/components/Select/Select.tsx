@@ -18,7 +18,7 @@ const Select = <T extends { value: string; label: string; [key: string]: string 
 				dropdownHandleRenderer={({ state }) =>
 					!props.options.length || chevronView ? (
 						<div className="custom-icon" style={state.dropdown ? { marginTop: "-2px" } : {}}>
-							<Icon code={`chevron-${!state.dropdown ? "down" : "up"}`} isAction />
+							<Icon code={`chevron-${!state.dropdown ? "down" : "up"}`} viewBox="3 3 18 18" isAction />
 						</div>
 					) : null
 				}
@@ -41,7 +41,7 @@ export default styled(Select)`
 		border: none;
 		font-weight: 300;
 		padding: 6px 12px;
-		border-radius: 4px;
+		border-radius: var(--radius-normal);
 		box-shadow: none !important;
 		background: var(--color-code-bg);
 	}
@@ -49,6 +49,7 @@ export default styled(Select)`
 	.react-dropdown-select-content > .react-dropdown-select-input:first-of-type {
 		margin: 0;
 	}
+
 	.react-dropdown-select,
 	.react-dropdown-select-input {
 		font-size: 14px;
@@ -80,7 +81,7 @@ export default styled(Select)`
 
 	.react-dropdown-select-dropdown {
 		border: none;
-		border-radius: var(--radius-block);
+		border-radius: var(--radius-normal);
 		background: var(--color-code-copy-bg);
 
 		.react-dropdown-select-item:hover,

@@ -1,6 +1,8 @@
 import resolveModule from "@app/resolveModule/backend";
 import { getExecutingEnvironment } from "@app/resolveModule/env";
 import { ContextFactory } from "@core/Context/ContextFactory";
+import DiskFileProvider from "@core/FileProvider/DiskFileProvider/DiskFileProvider";
+import Path from "@core/FileProvider/Path/Path";
 import Hash from "@core/Hash/Hash";
 import Library from "@core/Library/Library";
 import deleteAnyFolderRule from "@core/Library/Rules/DeleteAnyFolderRule/DeleteAnyFolderRule";
@@ -25,6 +27,7 @@ import MarkdownFormatter from "@ext/markdown/core/edit/logic/Formatter/Formatter
 import AuthManager from "@ext/security/logic/AuthManager";
 import Sso from "@ext/security/logic/AuthProviders/Sso";
 import { TicketManager } from "@ext/security/logic/TicketManager/TicketManager";
+import { BrowserFileProvider } from "../../apps/browser/src/logic/FileProvider/BrowserFileProvider";
 import { AppConfig, getConfig } from "../config/AppConfig";
 import Application from "../types/Application";
 
@@ -34,11 +37,13 @@ const _init = async (config: AppConfig): Promise<Application> => {
 	const vur: VideoUrlRepository = null;
 	const sso: Sso = null;
 
-	const FileProvider = resolveModule("FileProvider");
+	await resolveModule("initWasm")?.(config.services.cors.url);
 
 	const rp = new RepositoryProvider({ corsProxy: config.services.cors.url });
-	const fp = new FileProvider(config.paths.root);
+	const fp = new DiskFileProvider(config.paths.root);
 	await fp.validate();
+
+	const obsoleteFp = getExecutingEnvironment() == "browser" && new BrowserFileProvider(Path.empty);
 
 	const libRules = getExecutingEnvironment() == "browser" ? [deleteAnyFolderRule] : [];
 	const lib = new Library(rp, config.isServerApp);
@@ -72,7 +77,7 @@ const _init = async (config: AppConfig): Promise<Application> => {
 	);
 	const contextFactory = new ContextFactory(tm, config.tokens.cookie);
 
-	const cacheFileProvider = new FileProvider(config.paths.userDataPath);
+	const cacheFileProvider = new DiskFileProvider(config.paths.userDataPath);
 	const cache = new Cache(cacheFileProvider);
 	const pluginProvider = new PluginProvider(lib, htmlParser, cache, PluginImporterType.browser);
 
@@ -97,6 +102,7 @@ const _init = async (config: AppConfig): Promise<Application> => {
 		parserContextFactory,
 		pluginProvider,
 		customArticlePresenter,
+		obsoleteFp,
 		conf: {
 			services: config.services,
 

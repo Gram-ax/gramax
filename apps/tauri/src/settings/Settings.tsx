@@ -115,7 +115,7 @@ const SettingsStyled = styled(Settings)`
 		cursor: pointer;
 		color: #313031;
 		font-weight: 500;
-		border-radius: 4px;
+		border-radius: var(--radius-normal);
 		align-items: center;
 		text-decoration: none;
 		padding: 0.33rem 0.88rem;

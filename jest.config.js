@@ -4,6 +4,7 @@ module.exports = {
 	setupFilesAfterEnv: ["<rootDir>/jest.setup.js"],
 	transform: {
 		"^.+\\.jsx?$": "babel-jest",
+		"^.+\\.svg$": "<rootDir>/scripts/jest/svgTransform.js",
 		"^.+\\.(ts)x?$": [
 			"jest-chain-transform",
 			{

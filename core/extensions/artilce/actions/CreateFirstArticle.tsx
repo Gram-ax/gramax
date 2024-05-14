@@ -37,7 +37,7 @@ const CreateFirstArticle = (props: CreateArticleProps) => {
 
 	return (
 		<Button className={className} buttonStyle={ButtonStyle.default} onClick={onClickHandler}>
-			<Icon code="plus" faFw isLoading={isLoading} />
+			<Icon code="plus" viewBox="3 3 18 18" isLoading={isLoading} />
 			<span>{useLocalize("createNewArticle")}</span>
 		</Button>
 	);

@@ -74,13 +74,13 @@ const TableDB = styled(
 										</code>
 										{field.primary && (
 											<span className="pk">
-												<Icon code="key" />
+												<Icon code="key-round" />
 												&nbsp;PK
 											</span>
 										)}
 										{field.refObject && (
 											<div className="fk" title={useLocalize("foreignKey")}>
-												<Icon code="arrow-to-right" />{" "}
+												<Icon code="arrow-right-to-line" />{" "}
 												{table(
 													field.refObject,
 													(object as TableWithRefs).refs
@@ -142,7 +142,7 @@ const TableDB = styled(
 		display: inline-block;
 		margin-left: 0.5em;
 		color: var(--color-article-text);
-		border-radius: 4px;
+		border-radius: var(--radius-normal);
 		background: var(--color-code-bg);
 		padding: 2px 6px;
 		.icon {

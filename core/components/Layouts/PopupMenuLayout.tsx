@@ -1,6 +1,7 @@
 import styled from "@emotion/styled";
+import { Placement } from "@popperjs/core";
 import Tippy from "@tippyjs/react";
-import { useEffect, useState, ReactNode, useCallback, createElement } from "react";
+import { ReactNode, createElement, useCallback, useEffect, useState } from "react";
 import Icon from "../Atoms/Icon";
 import Tooltip from "../Atoms/Tooltip";
 
@@ -10,10 +11,12 @@ export interface PopupMenuLayoutProps {
 	appendTo?: Element | "parent" | ((ref: Element) => Element);
 	isInline?: boolean;
 	bottomOffset?: number;
+	placement?: Placement;
 	tooltipText?: string;
 	onOpen?: () => void;
 	onClose?: () => void;
 	className?: string;
+	disabled?: boolean;
 }
 
 interface PopupProps {
@@ -55,12 +58,14 @@ const PopupMenuLayout = (props: PopupMenuLayoutProps) => {
 		tooltipText,
 		onOpen = () => {},
 		onClose = () => {},
+		placement = "bottom-start",
 		className,
+		disabled,
 	} = props;
 	const [isOpen, setIsOpen] = useState(false);
 
 	const IconElement = trigger ?? (
-		<Icon style={{ fontSize: "var(--big-icon-size)", fontWeight: "300" }} code="ellipsis-h" isAction />
+		<Icon code="ellipsis" isAction />
 	);
 
 	const closeHandler = () => {
@@ -80,7 +85,8 @@ const PopupMenuLayout = (props: PopupMenuLayoutProps) => {
 			appendTo={appendTo}
 			animation={null}
 			interactive
-			placement="bottom-start"
+			placement={placement}
+			disabled={disabled}
 			trigger="click"
 			arrow={false}
 			maxWidth="none"
@@ -100,7 +106,7 @@ const PopupMenuLayout = (props: PopupMenuLayoutProps) => {
 				{ className: "button" },
 				tooltipText ? (
 					<Tooltip content={tooltipText}>
-						<div>{IconElement}</div>
+						<span>{IconElement}</span>
 					</Tooltip>
 				) : (
 					IconElement
@@ -111,6 +117,19 @@ const PopupMenuLayout = (props: PopupMenuLayoutProps) => {
 };
 
 export default styled(PopupMenuLayout)`
+	${(p) =>
+		p.disabled
+			? `opacity: 0.4;
+			cursor: default;`
+			: `	> div:hover {
+				background: var(--color-menu-bg);
+
+				i,
+				span {
+					user-select: none;
+					color: var(--color-primary);
+				}
+			}`}
 	margin: ${(p) => p.bottomOffset ?? -10}px 0px 0px;
 	min-width: 0;
 	font-size: 13px;
@@ -120,7 +139,8 @@ export default styled(PopupMenuLayout)`
 	left: 0 !important;
 	box-shadow: var(--menu-tooltip-shadow) !important;
 
-	> div {
+	> div,
+	.popup-button {
 		display: flex;
 		cursor: pointer;
 		font-size: 14px;
@@ -134,7 +154,8 @@ export default styled(PopupMenuLayout)`
 		margin: 0 !important;
 	}
 
-	> div:hover {
+	> div:hover,
+	.popup-button:hover {
 		background: var(--color-menu-bg);
 
 		i,

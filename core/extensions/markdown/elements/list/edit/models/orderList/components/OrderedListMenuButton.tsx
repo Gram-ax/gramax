@@ -5,7 +5,7 @@ const OrderedListMenuButton = ({ editor }: { editor: Editor }) => {
 	return (
 		<Button
 			onClick={() => editor.chain().focus().toggleOrderedList().run()}
-			icon={"list-ol"}
+			icon={"list-ordered"}
 			tooltipText={"Нумерованный список"}
 			hotKey={"Mod-Shift-7"}
 			nodeValues={{ action: "ordered_list" }}

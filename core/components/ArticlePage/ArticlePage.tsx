@@ -1,7 +1,9 @@
+import { classNames } from "@components/libs/classNames";
 import Welcome from "@components/Welcome";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import registerMetric from "@core-ui/yandexMetric";
 import { ArticlePageData } from "@core/SitePresenter/SitePresenter";
+import styled from "@emotion/styled";
 import CreateFirstArticle from "@ext/artilce/actions/CreateFirstArticle";
 import useLocalize from "@ext/localization/useLocalize";
 import { ContentEditorId } from "@ext/markdown/core/edit/components/ContentEditor";
@@ -13,7 +15,7 @@ import Article from "../Article/Article";
 import ArticleExtensions from "../Article/ArticleExtensions";
 import Breadcrumb from "../Breadcrumbs/ArticleBreadcrumb";
 
-const ArticlePage = ({ data }: { data: ArticlePageData }) => {
+const ArticlePage = ({ data, className }: { data: ArticlePageData; className?: string }) => {
 	const theme = ThemeService.value;
 	const isMac = IsMacService.value;
 	const isLogged = PageDataContextService.value.isLogged;
@@ -36,7 +38,7 @@ const ArticlePage = ({ data }: { data: ArticlePageData }) => {
 	return (
 		<>
 			<Breadcrumb itemLinks={data.itemLinks} />
-			<div style={{ flex: 1 }}>
+			<div className={classNames("article-page-wrapper", {}, [className])}>
 				<Article data={data} />
 			</div>
 			<NextPrevious itemLinks={data.itemLinks} />
@@ -45,4 +47,10 @@ const ArticlePage = ({ data }: { data: ArticlePageData }) => {
 	);
 };
 
-export default ArticlePage;
+export default styled(ArticlePage)`
+	&.article-page-wrapper {
+		flex: 1 1 0;
+		display: flex;
+		flex-direction: column;
+	}
+`;

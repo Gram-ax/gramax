@@ -20,10 +20,9 @@ const LeftNavigationTop = ({ data }: { data: ArticlePageData }) => {
 			<>
 				{narrowMedia ? (
 					<Icon
-						faFw
 						style={{ fontSize: "var(--big-icon-size)", fontWeight: 300 }}
 						isAction
-						code={leftNavIsOpen ? "times" : "bars"}
+						code={leftNavIsOpen ? "x" : "menu"}
 						onClick={() => {
 							LeftNavigationIsOpenService.value = !leftNavIsOpen;
 						}}

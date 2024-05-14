@@ -1,3 +1,4 @@
+import { NEW_CATALOG_NAME } from "@app/config/const";
 import Button from "@components/Atoms/Button/Button";
 import { ButtonStyle } from "@components/Atoms/Button/ButtonStyle";
 import SpinnerLoader from "@components/Atoms/SpinnerLoader";
@@ -8,11 +9,13 @@ import ModalLayoutLight from "@components/Layouts/ModalLayoutLight";
 import MimeTypes from "@core-ui/ApiServices/Types/MimeTypes";
 import ArticlePropsService from "@core-ui/ContextServices/ArticleProps";
 import CatalogPropsService from "@core-ui/ContextServices/CatalogProps";
+import { transliterate } from "@core-ui/languageConverter/transliterate";
 import openNewTab from "@core-ui/utils/openNewTab";
 import { useRouter } from "@core/Api/useRouter";
 import Path from "@core/FileProvider/Path/Path";
 import RouterPathProvider from "@core/RouterPath/RouterPathProvider";
 import type { ClientCatalogProps } from "@core/SitePresenter/SitePresenter";
+import { uniqueName } from "@core/utils/uniqueName";
 import validateEncodingSymbolsUrl from "@core/utils/validateEncodingSymbolsUrl";
 import getCatalogEditProps from "@ext/catalog/actions/propsEditor/logic/getCatalogEditProps";
 import getRepUrl from "@ext/git/core/GitPathnameHandler/clone/logic/getRepUrl";
@@ -50,6 +53,8 @@ const CatalogPropsEditor = ({
 	const router = useRouter();
 	const articleProps = ArticlePropsService.value;
 	const catalogProps = CatalogPropsService.value;
+	const [generatedUrl, setGeneratedUrl] = useState<string>(catalogProps.name);
+	const [editProps, setEditProps] = useState(getCatalogEditProps(catalogProps));
 	const [saveProcess, setSaveProcess] = useState(false);
 
 	const { sourceType } = getPartGitSourceDataByStorageName(catalogProps.sourceName);
@@ -77,6 +82,15 @@ const CatalogPropsEditor = ({
 		);
 
 		onSubmitParent?.(props);
+	};
+
+	const onChange = (props: CatalogEditProps) => {
+		if (sourceType) return;
+		if (!props.title || !catalogProps.name.includes(NEW_CATALOG_NAME) || props.url != generatedUrl) return;
+		const generated = uniqueName(transliterate(props.title, { kebab: true, maxLength: 50 }), allCatalogNames);
+		setGeneratedUrl(generated);
+		props.url = generated;
+		setEditProps({ ...props });
 	};
 
 	const submit = (props: CatalogEditProps) => {
@@ -153,7 +167,7 @@ const CatalogPropsEditor = ({
 								</>
 							}
 							schema={Schema as JSONSchema7}
-							props={getCatalogEditProps(catalogProps)}
+							props={editProps}
 							fieldDirection="row"
 							validateDeps={[allCatalogNames]}
 							validate={({ url, description, code }) => {
@@ -163,6 +177,7 @@ const CatalogPropsEditor = ({
 									code: code?.length > 4 ? maxLength + 4 : null,
 								};
 							}}
+							onChange={onChange}
 							onSubmit={submit}
 							onMount={(_, schema) => {
 								schema.properties = {
@@ -176,6 +191,7 @@ const CatalogPropsEditor = ({
 									// __h2: "Приватность",
 									// private: Schema.properties.private,
 								} as any;
+								(schema.properties.url as any).readOnly = !!sourceType;
 							}}
 						/>
 					</ErrorHandler>

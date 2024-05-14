@@ -3,7 +3,7 @@ use tauri::*;
 
 use commands::*;
 
-use std::{collections::HashMap, path::Path, sync::Mutex};
+use std::path::Path;
 
 #[cfg(desktop)]
 mod desktop;
@@ -15,12 +15,8 @@ mod commands;
 pub struct PluginGramaxGit<R: Runtime>(AppHandle<R>);
 
 impl<R: Runtime> PluginGramaxGit<R> {
-  pub fn repo(&self, _path: &Path) {
-  }
+  pub fn repo(&self, _path: &Path) {}
 }
-
-#[derive(Default)]
-struct MyState(Mutex<HashMap<String, String>>);
 
 pub trait GramaxGitExt<R: Runtime> {
   fn plugin_gramax_git(&self) -> &PluginGramaxGit<R>;

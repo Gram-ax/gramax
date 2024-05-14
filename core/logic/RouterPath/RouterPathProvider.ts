@@ -44,12 +44,12 @@ export default class RouterPathProvider {
 		]);
 	}
 
-	static parseItemLogicPath(logicPath: string[] | Path): {
+	static parseItemLogicPath(itemLogicPath: string[] | Path): {
 		catalogName: string;
 		filePath: string[];
 		fullPath: string[];
 	} {
-		const fullPath = this._getArrayOfStrings(logicPath);
+		const fullPath = this._getArrayOfStrings(itemLogicPath);
 		const [catalogName, ...filePath] = fullPath;
 		return { catalogName, filePath, fullPath };
 	}

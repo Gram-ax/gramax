@@ -5,46 +5,43 @@ import useLocalize from "../../extensions/localization/useLocalize";
 import ArticleUpdaterService from "../Article/ArticleUpdater/ArticleUpdaterService";
 import PopupMenuLayout from "../Layouts/PopupMenuLayout";
 
-const Menu = styled(
-	({
-		showEditButton = true,
-		deleteOnClick,
-		editOnClick,
-		deleteText = useLocalize("delete"),
-		className,
-	}: {
-		deleteOnClick: () => void;
-		editOnClick: () => void;
-		showEditButton?: boolean;
-		deleteText?: string;
-		className?: string;
-	}) => {
-		return (
-			<div className={className}>
-				<PopupMenuLayout>
-					{showEditButton && (
-						<ButtonLink
-							onClick={() => editOnClick()}
-							textSize={TextSize.S}
-							iconCode="pen"
-							text={useLocalize("edit") + "..."}
-						/>
-					)}
+export interface MenuProps {
+	deleteOnClick: () => void;
+	editOnClick: () => void;
+	showEditButton?: boolean;
+	deleteText?: string;
+	className?: string;
+}
 
+const Menu = styled((props: MenuProps) => {
+	const { showEditButton = true, deleteOnClick, editOnClick, deleteText = useLocalize("delete"), className } = props;
+
+	return (
+		<div className={className}>
+			<PopupMenuLayout>
+				{showEditButton && (
 					<ButtonLink
-						onClick={() => {
-							ArticleUpdaterService.stopLoadingAfterFocus();
-							deleteOnClick();
-						}}
+						fullWidth
+						onClick={() => editOnClick()}
 						textSize={TextSize.S}
-						iconCode="trash"
-						text={deleteText}
+						iconCode="pencil"
+						text={useLocalize("edit") + "..."}
 					/>
-				</PopupMenuLayout>
-			</div>
-		);
-	},
-)`
+				)}
+
+				<ButtonLink
+					onClick={() => {
+						ArticleUpdaterService.stopLoadingAfterFocus();
+						deleteOnClick();
+					}}
+					textSize={TextSize.S}
+					iconCode="trash"
+					text={deleteText}
+				/>
+			</PopupMenuLayout>
+		</div>
+	);
+})`
 	.button:hover {
 		color: var(--color-primary);
 	}

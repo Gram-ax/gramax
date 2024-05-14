@@ -1,9 +1,11 @@
 import Path from "@core/FileProvider/Path/Path";
 import FileInfo from "@core/FileProvider/model/FileInfo";
 import FileProvider from "@core/FileProvider/model/FileProvider";
-import { ItemRef } from "@core/FileStructue/Item/ItemRef";
+import type { ItemRef } from "@core/FileStructue/Item/ItemRef";
 import FS, { PromisifiedFS } from "@isomorphic-git/lightning-fs";
 import { Buffer } from "buffer";
+
+const BLACKLIST = ["mdt", "dcore", "sellout", "org-team"];
 
 export class BrowserFileProvider implements FileProvider {
 	private _fs: PromisifiedFS;
@@ -21,18 +23,43 @@ export class BrowserFileProvider implements FileProvider {
 	}
 
 	// TODO: delete in future
-	async migrate(fp: FileProvider) {
-		const blacklist = ["mdt", "dcore", "sellout", "org-team"];
-		if (fp === this) return;
+	async shouldMigrate(fp: FileProvider) {
 		const readdir = await this.readdir(Path.empty);
-		if (readdir.length == 0 || readdir.includes(".migrated")) return;
+		return !(fp === this || readdir.length == 0 || readdir.includes(".migrate-done"));
+	}
+
+	async countAllFiles() {
+		const count = async (base: Path, n: number) => {
+			const items = await this.getItems(base);
+			for (const item of items.filter((f) => !BLACKLIST.includes(f.name))) {
+				if (item.isDirectory()) {
+					n = await count(item.path, n);
+					continue;
+				}
+				n++;
+			}
+
+			return n;
+		};
+
+		return await count(new Path("docs"), 0);
+	}
+
+	// TODO: delete in future
+	async migrate(fp: FileProvider, onProgress?: (n: number) => void, onIgnore?: (name: string) => void) {
+		if (!(await this.shouldMigrate(fp))) return;
+		let n = 0;
 
 		console.warn(`migrating: ${this.storageId} -> ${fp.storageId}`);
 
 		const copy = async (base: Path) => {
 			const items = await this.getItems(base);
-			for (const item of items.filter((f) => !blacklist.includes(f.name))) {
-				if (!item.isFile()) {
+			for (const item of items.filter((f) => {
+				const ignore = BLACKLIST.includes(f.name);
+				if (ignore) onIgnore?.(f.name);
+				return !ignore;
+			})) {
+				if (item.isDirectory()) {
 					await copy(item.path);
 					continue;
 				}
@@ -50,6 +77,7 @@ export class BrowserFileProvider implements FileProvider {
 				);
 				if (!content) return;
 				await fp.write(new Path("docs").subDirectory(item.path), content);
+				onProgress(++n);
 			}
 		};
 
@@ -62,7 +90,7 @@ export class BrowserFileProvider implements FileProvider {
 			if (readdir.length == 0 || (readdir.length == 1 && readdir.includes(".git"))) await fp.delete(entry.path);
 		}
 
-		await this.write(new Path(".migrated"), "");
+		await this.write(new Path(".migrate-done"), "");
 	}
 
 	async getItems(path: Path): Promise<FileInfo[]> {

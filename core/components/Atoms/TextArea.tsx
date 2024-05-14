@@ -1,6 +1,6 @@
 import { classNames } from "@components/libs/classNames";
 import styled from "@emotion/styled";
-import { forwardRef, MutableRefObject, TextareaHTMLAttributes, memo } from "react";
+import { MutableRefObject, TextareaHTMLAttributes, forwardRef, memo } from "react";
 import Tooltip from "./Tooltip";
 
 interface TextAreaProps extends TextareaHTMLAttributes<HTMLTextAreaElement> {
@@ -53,7 +53,7 @@ export default styled(memo(TextArea))`
 
 		color: var(--color-article-heading-text);
 		background: var(--color-code-bg);
-		border-radius: var(--radius-block);
+		border-radius: var(--radius-normal);
 
 		max-height: 400px;
 		line-height: 1.6;

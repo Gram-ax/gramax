@@ -1,7 +1,7 @@
 import LeftNavigationIsOpenService from "@core-ui/ContextServices/LeftNavigationIsOpen";
 import { cssMedia } from "@core-ui/utils/cssUtils";
 import { useMediaQuery } from "@mui/material";
-import { ArticlePageData } from "../../../logic/SitePresenter/SitePresenter";
+import { ArticlePageData } from "@core/SitePresenter/SitePresenter";
 import ArticleComponent from "./ArticleLayout/ArticleComponent";
 import CatalogLayout from "./CatalogLayout";
 import LeftNavigationComponent from "./LeftNavigation/LeftNavigationComponent";

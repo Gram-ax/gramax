@@ -72,6 +72,7 @@ const mergeInto: Command<{ ctx: Context; catalogName: string; branchName: string
 			}
 
 			await storage.push(sourceData);
+			await catalog.update(rp);
 		},
 
 		params(ctx, q) {

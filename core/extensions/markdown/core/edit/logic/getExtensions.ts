@@ -57,6 +57,7 @@ const getExtensions = (): Extensions => [
 	VideoComponent,
 	HorizontalRule,
 	NoteComponent,
+	LinkComponent,
 	CutComponent,
 	StyleWrapper,
 	Placeholder,
@@ -101,7 +102,6 @@ export const getSimpleExtensions = (): Extensions => [
 
 	HardBreak,
 
-	LinkComponent,
 	OrderedList,
 	BulletList,
 	ListItem,

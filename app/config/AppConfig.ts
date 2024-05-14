@@ -57,8 +57,8 @@ const getPaths = (): AppConfigPaths => {
 	if (getExecutingEnvironment() == "browser") {
 		return {
 			base: Path.empty,
-			root: new Path("/docs"),
-			userDataPath: new Path("cache"),
+			root: new Path("/mnt/docs"),
+			userDataPath: new Path("/mnt/cache"),
 		};
 	}
 

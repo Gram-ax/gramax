@@ -25,7 +25,7 @@ export default class SecurityRules implements Rules {
 	getNavRules(): NavRules {
 		return {
 			itemRule: (catalog, item, itemLink) => {
-				if (this._isPrivate(item)) itemLink.icon = "unlock";
+				if (this._isPrivate(item)) itemLink.icon = "lock-open";
 				return (
 					this._canRead(item?.neededPermission, catalog.getName()) &&
 					this._canRead(item?.parent?.neededPermission, catalog.getName())

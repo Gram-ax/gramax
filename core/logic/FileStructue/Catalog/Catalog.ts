@@ -1,13 +1,16 @@
+import { CATEGORY_ROOT_FILENAME } from "@app/config/const";
 import ArticleParser from "@core/FileStructue/Article/ArticleParser";
 import CatalogEntry from "@core/FileStructue/Catalog/CatalogEntry";
-import FileStructure, { CATEGORY_ROOT_FILENAME } from "@core/FileStructue/FileStructure";
+import FileStructure from "@core/FileStructue/FileStructure";
 import { ItemStatus } from "@ext/Watchers/model/ItemStatus";
 import CatalogEditProps from "@ext/catalog/actions/propsEditor/model/CatalogEditProps.schema";
 import Repository from "@ext/git/core/Repository/Repository";
 import RepositoryProvider from "@ext/git/core/Repository/RepositoryProvider";
+import { CatalogErrors } from "@ext/healthcheck/logic/Healthcheck";
 import type { FSLocalizationProps } from "@ext/localization/core/rules/FSLocalizationRules";
-import TabsTags from "@ext/markdown/elements/tabs/model/TabsTags";
+import IconProvider from "@ext/markdown/elements/icon/logic/IconProvider";
 import SnippetProvider from "@ext/markdown/elements/snippet/logic/SnippetProvider";
+import TabsTags from "@ext/markdown/elements/tabs/model/TabsTags";
 import type { TitledLink } from "@ext/navigation/NavigationLinks";
 import { FileStatus } from "../../../extensions/Watchers/model/FileStatus";
 import Language, { defaultLanguage } from "../../../extensions/localization/core/model/Language";
@@ -21,7 +24,6 @@ import { Category } from "../Category/Category";
 import { Item } from "../Item/Item";
 import { ItemRef } from "../Item/ItemRef";
 import { ItemType } from "../Item/ItemType";
-import { CatalogErrorGroups } from "./CatalogErrorGroups";
 
 export type CatalogInitProps = {
 	name: string;
@@ -34,7 +36,6 @@ export type CatalogInitProps = {
 
 	fp: FileProvider;
 	fs: FileStructure;
-	snippetProvider: SnippetProvider;
 };
 
 export type CatalogProps = FSLocalizationProps & {
@@ -48,6 +49,7 @@ export type CatalogProps = FSLocalizationProps & {
 
 	relatedLinks?: TitledLink[];
 	private?: string[];
+	hidden?: boolean;
 	refs?: string[];
 
 	sharePointDirectory?: string;
@@ -64,6 +66,7 @@ export class Catalog extends CatalogEntry {
 	private _watcherFuncs: WatcherFunc[] = [];
 	private _onUpdateNameFuncs: ((oldName: string, catalog: Catalog) => Promise<void>)[] = [];
 	private _snippetProvider: SnippetProvider;
+	private _iconProvider: IconProvider;
 	protected declare _repo: Repository;
 
 	constructor(init: CatalogInitProps) {
@@ -85,10 +88,13 @@ export class Catalog extends CatalogEntry {
 		this._name = init.name;
 		this._fp = init.fp;
 		this._fs = init.fs;
-		this._snippetProvider = init.snippetProvider;
 
 		const items = this._getItems(this._rootCategory);
 		items.forEach((i) => i.watch(this._onChange.bind(this)));
+
+		this._snippetProvider = new SnippetProvider(this._fp, this._fs, this);
+
+		this._iconProvider = new IconProvider(this._fp, this._fs, this);
 	}
 
 	load() {
@@ -101,6 +107,10 @@ export class Catalog extends CatalogEntry {
 
 	get snippetProvider() {
 		return this._snippetProvider;
+	}
+
+	get iconProvider() {
+		return this._iconProvider;
 	}
 
 	get repo() {
@@ -170,7 +180,10 @@ export class Catalog extends CatalogEntry {
 		lang: Language,
 		parentRef?: ItemRef,
 	): Promise<Article> {
-		const parentItem = parentRef ? this.findItemByItemRef<Category>(parentRef) : this._rootCategory;
+		const parentItem = parentRef
+			? this.findItemByItemRef<Category>(parentRef) ?? this._rootCategory
+			: this._rootCategory;
+
 		if (parentItem.type == ItemType.article)
 			return await this.createCategoryByArticle(resourceUpdater, lang, markdown, parentItem as Article);
 
@@ -501,23 +514,6 @@ export class Catalog extends CatalogEntry {
 export type ItemFilter = (item: Item, catalog: Catalog) => boolean;
 export type ArticleFilter = (article: Article, catalog: Catalog) => boolean;
 export type CategoryFilter = (category: Category, catalog: Catalog) => boolean;
-
-export type CatalogErrors = {
-	[catalogErrorGroup in CatalogErrorGroups]?: CatalogError[];
-};
-
-export interface CatalogError {
-	code: string;
-	message: string;
-	args?: CatalogErrorArgs;
-}
-
-export interface CatalogErrorArgs {
-	linkTo: string;
-	editorLink: string;
-	title: string;
-	logicPath: string;
-}
 
 export interface ChangeCatalog {
 	catalog: Catalog;

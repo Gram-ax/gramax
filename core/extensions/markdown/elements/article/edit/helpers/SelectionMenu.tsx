@@ -104,6 +104,9 @@ class TextSelectionMenu extends Base {
 
 const SelectionMenu = Extension.create({
 	name: "selectionMenu",
+	addOptions() {
+		return {};
+	},
 
 	addProseMirrorPlugins() {
 		return [

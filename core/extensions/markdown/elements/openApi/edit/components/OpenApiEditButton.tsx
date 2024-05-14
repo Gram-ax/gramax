@@ -61,7 +61,7 @@ const OpenApiEditButton = ({ src, editor }: { src?: string; editor: Editor }) =>
 			isOpen={isOpen}
 			onClose={cancel}
 			onOpen={() => setIsOpen(true)}
-			trigger={<Button icon={"pen"} tooltipText={useLocalize("edit2")} />}
+			trigger={<Button icon={"pencil"} tooltipText={useLocalize("edit2")} />}
 			onCmdEnter={save}
 		>
 			<ModalLayoutLight>

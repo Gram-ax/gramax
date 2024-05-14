@@ -14,6 +14,7 @@ import {
 	useState,
 } from "react";
 
+import Tooltip from "@components/Atoms/Tooltip";
 import Item, { ButtonItem, ItemContent, ListItem } from "./Item";
 
 export type OnItemClick = (
@@ -44,14 +45,21 @@ interface ItemsProps extends HTMLAttributes<HTMLDivElement>, ConfigProps {
 const StyleDiv = styled.div<ConfigProps>`
 	z-index: 1;
 	width: 100%;
-	border-radius: 4px;
+	border-radius: var(--radius-normal);
 	box-shadow: var(--shadows-deeplight);
 	background: var(--color-code-copy-bg);
 	${(p) => (p.isCode ? "" : "left: 5.5px;")}
 	${(p) => `max-width: ${p.filteredWidth ?? 0}px;`}
 	${(p) => (p.isOpen ? `max-height: ${p.maxItems * 32}px;` : "height: 0px;")}
 	overflow: ${(p) => (p.hideScrollbar ? "hidden" : "auto")};
+
+	.disable-with-tooltip {
+		pointer-events: all !important;
+		cursor: default;
+	}
 `;
+
+const getArray = <T,>(array: T[]): T[] => (!Array.isArray(array) || !array.length ? [] : array);
 
 const Items = (props: ItemsProps) => {
 	const {
@@ -73,8 +81,6 @@ const Items = (props: ItemsProps) => {
 
 	const [activeIdx, setActiveIdx] = useState<number>(0);
 	const [scrollIntoViewBehavior, setScrollIntoViewBehavior] = useState<ScrollBehavior>("smooth");
-
-	const getArray = (array: unknown) => (!Array.isArray(array) || !array.length ? [] : array);
 
 	const itemsWithButtons = useMemo(() => {
 		return [...getArray(buttons), ...getArray(items)];
@@ -138,7 +144,7 @@ const Items = (props: ItemsProps) => {
 				action();
 			}
 		},
-		[moveActiveIdx, onItemClick, items, activeIdx, blurInInput],
+		[moveActiveIdx, onItemClick, items, activeIdx, maxItems, blurInInput],
 	);
 
 	useEffect(() => {
@@ -175,19 +181,26 @@ const Items = (props: ItemsProps) => {
 			})}
 			{getArray(items).map((item, index) => {
 				const idx = index + (getArray(buttons)?.length || 0);
+
+				const tooltipDisabledContent =
+					typeof item !== "string" && item.disable ? item.tooltipDisabledContent : undefined;
+
 				return (
-					<Item
-						key={idx}
-						content={item}
-						onClick={(e) => {
-							itemClickHandler({ item, e, idx: index });
-							setIsOpen(false);
-							blurInInput();
-						}}
-						ref={idx === activeIdx ? focusRef : null}
-						isActive={idx === activeIdx}
-						disable={typeof item === "string" ? null : item?.disable}
-					/>
+					<Tooltip content={tooltipDisabledContent} key={idx}>
+						<Item
+							key={idx}
+							className={classNames("", { "disable-with-tooltip": !!tooltipDisabledContent })}
+							content={item}
+							onClick={(e) => {
+								itemClickHandler({ item, e, idx: index });
+								setIsOpen(false);
+								blurInInput();
+							}}
+							ref={idx === activeIdx ? focusRef : null}
+							isActive={idx === activeIdx}
+							disable={typeof item === "string" ? null : item?.disable}
+						/>
+					</Tooltip>
 				);
 			})}
 			{!getArray(items).length && (

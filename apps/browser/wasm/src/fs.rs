@@ -16,11 +16,8 @@ define_c_api! {
   }
 
   noreturn fn write_file(path: String, content_ptr: usize, content_len: usize) -> () {
-    unsafe {
-      let vec = Vec::from_raw_parts(content_ptr as *mut u8, content_len, content_len);
-      fs::write_file(path, vec)?;
-    };
-    Ok(())
+    let vec = unsafe { Vec::from_raw_parts(content_ptr as *mut u8, content_len, content_len) };
+    fs::write_file(path, vec)
   }
 
   json fn read_link(path: String) -> PathBuf {

@@ -43,7 +43,7 @@ const CutMenu = ({ editor }: { editor: Editor }) => {
 				<div className="divider" />
 				<ButtonsLayout>
 					<Button
-						icon={expanded ? "square-check" : "square"}
+						icon={expanded ? "square" : "square-check"}
 						tooltipText={`Выводить первоначально ${expanded ? "развернуто" : "свернуто"}`}
 						onClick={toggleExpanded}
 					/>

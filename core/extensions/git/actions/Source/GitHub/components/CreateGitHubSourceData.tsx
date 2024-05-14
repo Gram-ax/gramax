@@ -3,6 +3,7 @@ import Button from "@components/Atoms/Button/Button";
 import Icon from "@components/Atoms/Icon";
 import SpinnerLoader from "@components/Atoms/SpinnerLoader";
 import { parserQuery } from "@core/Api/Query";
+import { waitForTempToken } from "@ext/git/actions/Source/tempToken";
 import { useEffect, useState } from "react";
 import createChildWindow from "../../../../../../ui-logic/ChildWindow/createChildWindow";
 import PageDataContextService from "../../../../../../ui-logic/ContextServices/PageDataContext";
@@ -10,11 +11,10 @@ import useLocalize from "../../../../../localization/useLocalize";
 import SourceType from "../../../../../storage/logic/SourceDataProvider/model/SourceType";
 import { makeSourceApi } from "../../makeSourceApi";
 import GitHubSourceData from "../logic/GitHubSourceData";
-import { waitForTempGithubToken } from "../logic/GithubTempToken";
 import GitHubUser from "./GitHubUser";
 
 const CreateGitHubSourceData = ({ onSubmit }: { onSubmit?: (editProps: GitHubSourceData) => void }) => {
-	const domain = PageDataContextService.value?.domain;
+	const page = PageDataContextService.value;
 	const authServiceUrl = PageDataContextService.value.conf.authServiceUrl;
 	const [user, setUser] = useState(null);
 	const [token, setToken] = useState(null);
@@ -51,19 +51,18 @@ const CreateGitHubSourceData = ({ onSubmit }: { onSubmit?: (editProps: GitHubSou
 						onClick={async () => {
 							if (token) return;
 							createChildWindow(
-								`${authServiceUrl}/github?redirect=${domain}`,
+								`${authServiceUrl}/github?redirect=${page?.domain}${page?.conf.basePath ?? ""}`,
 								450,
 								500,
 								"https://github.com/login/device/success",
 								(location) => setToken(parserQuery(location.search)),
 							);
 
-							if (getExecutingEnvironment() == "browser")
-								setToken(parserQuery(await waitForTempGithubToken()));
+							if (getExecutingEnvironment() == "browser") setToken(parserQuery(await waitForTempToken()));
 						}}
 					>
 						<div>
-							<Icon code="github" prefix="fab" />
+							<Icon code="github" />
 							<span>Войти в GitHub</span>
 						</div>
 					</Button>

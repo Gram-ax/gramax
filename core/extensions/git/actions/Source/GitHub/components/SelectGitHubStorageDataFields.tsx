@@ -59,6 +59,7 @@ const SelectGitHubStorageDataFields = ({
 							{
 								element: "Добавить аккаунт...",
 								icon: "plus",
+								iconViewBox: "3 3 18 18",
 								labelField: "",
 								onClick: () => {
 									void createChildWindow(

@@ -30,7 +30,7 @@ const Input = forwardRef((props: InputProps, ref?: MutableRefObject<HTMLInputEle
 
 	return (
 		<div className={className}>
-			{icon && <Icon code={icon} faFw />}
+			{icon && <Icon code={icon} />}
 			{startText && <div className={"startTextContainer"}>{startText}</div>}
 			<Tooltip visible={!!errorText && showErrorText} content={<span>{errorText}</span>}>
 				<input
@@ -53,7 +53,6 @@ export default styled(Input)`
 	display: flex;
 	align-items: center;
 	flex-direction: row;
-	width: 100%;
 
 	input,
 	.startTextContainer,
@@ -76,10 +75,12 @@ export default styled(Input)`
 		display: block;
 		font-size: 14px;
 		padding: 6px 12px;
-		border-radius: 4px;
-		background: var(--color-code-bg);
-		color: var(--color-article-heading-text);
-		`}
+		border-radius: var(--radius-normal);
+		background: var(--color-code-bg);`}
+
+		${(p) =>
+			(p.disabled && "color: var(--color-input-disabled-text);") ||
+			(p.isCode && "color: var(--color-article-heading-text);")}
 	}
 
 	.textInput {

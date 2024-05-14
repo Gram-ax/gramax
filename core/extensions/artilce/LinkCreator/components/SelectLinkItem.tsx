@@ -78,7 +78,7 @@ const ButtonView = ({ href, icon, itemName, setButton, isExternalLink }: ButtonV
 			)}
 
 			<div className="divider" />
-			<Button icon="pen" onClick={editButtonHandler} tooltipText="Редактировать" />
+			<Button icon="pencil" onClick={editButtonHandler} tooltipText="Редактировать" />
 		</>
 	);
 };
@@ -176,7 +176,7 @@ export default styled(SelectLinkItem)`
 	margin-top: 4px;
 	min-width: 238px;
 	margin-left: -9px;
-	border-radius: var(--radius-big-block);
+	border-radius: var(--radius-x-large);
 	background: var(--color-tooltip-background);
 
 	.item,

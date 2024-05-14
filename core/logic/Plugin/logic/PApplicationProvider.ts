@@ -1,16 +1,20 @@
+import Context from "@core/Context/Context";
 import { Article } from "@core/FileStructue/Article/Article";
-import { Catalog, ChangeCatalog } from "@core/FileStructue/Catalog/Catalog";
+import { ArticleFilter, Catalog, ChangeCatalog } from "@core/FileStructue/Catalog/Catalog";
 import { Category } from "@core/FileStructue/Category/Category";
 import Library from "@core/Library/Library";
 import { ArticleType, PApplication, PArticle, PCatalog, PCategory, PChangeCatalog } from "@core/Plugin";
 import PluginsCache from "@core/Plugin/logic/PluginsCache";
 import itemRefConverter from "@core/Plugin/logic/utils/itemRefConverter";
 import HtmlParser from "@ext/html/HtmlParser";
+import RuleProvider from "@ext/rules/RuleProvider";
 
 export default class PApplicationProvider {
 	constructor(private _lib: Library, private _htmlParser: HtmlParser, private _pluginsCache: PluginsCache) {}
 
-	async getApp(pluginName: string): Promise<PApplication> {
+	async getApp(pluginName: string, context: Context): Promise<PApplication> {
+		const rules = new RuleProvider(context);
+		const filters = rules.getItemFilters();
 		const pluginNameCache = await this._pluginsCache.getPluginStorage(pluginName);
 		return {
 			storage: {
@@ -21,33 +25,33 @@ export default class PApplicationProvider {
 			},
 			catalogs: {
 				get: async (name) => {
-					return this._getCatalog(await this._lib.getCatalog(name));
+					return this._getCatalog(await this._lib.getCatalog(name), filters);
 				},
 				getAll: async () => {
 					const res: PCatalog[] = [];
 					for (const entry of this._lib.getCatalogEntries().values()) {
-						res.push(this._getCatalog(await entry.load()));
+						res.push(this._getCatalog(await entry.load(), filters));
 					}
 					return res;
 				},
 				onUpdate: (callback) => {
 					this._lib.addOnChangeRule((changeCatalogs) => {
-						void callback(changeCatalogs.map((c) => this._getChangeCatalog(c)));
+						void callback(changeCatalogs.map((c) => this._getChangeCatalog(c, filters)));
 					});
 				},
 			},
 		};
 	}
 
-	private _getChangeCatalog(changeCatalog: ChangeCatalog): PChangeCatalog {
+	private _getChangeCatalog(changeCatalog: ChangeCatalog, filters?: ArticleFilter[]): PChangeCatalog {
 		return {
-			catalog: this._getCatalog(changeCatalog.catalog),
+			catalog: this._getCatalog(changeCatalog.catalog, filters),
 			articleId: itemRefConverter.toId(changeCatalog.itemRef),
 			type: changeCatalog.type,
 		};
 	}
 
-	private _getCatalog(catalog: Catalog): PCatalog {
+	private _getCatalog(catalog: Catalog, filters?: ArticleFilter[]): PCatalog {
 		return {
 			getArticleById: (id) => {
 				const item = catalog.findItemByItemRef(itemRefConverter.toItemRef(id));
@@ -56,7 +60,7 @@ export default class PApplicationProvider {
 			},
 			getArticles: () =>
 				catalog
-					.getItems()
+					.getItems(filters)
 					.map((i) =>
 						this._getArticle(i as Article, this._getCategory(catalog.getRootCategory(), catalog), catalog),
 					),
@@ -81,7 +85,6 @@ export default class PApplicationProvider {
 			parent: category.parent ? this._getCategory(category.parent, catalog) : null,
 			type: ArticleType.category,
 		};
-		pCategory.articles = category.getItems().map((i) => this._getArticle(i as Article, pCategory, catalog));
 
 		return pCategory;
 	}

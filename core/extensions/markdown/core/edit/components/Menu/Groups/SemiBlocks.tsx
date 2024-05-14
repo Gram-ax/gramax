@@ -36,7 +36,7 @@ const SemiBlocks = ({ editor }: { editor?: Editor }) => {
 				</ModalLayoutDark>
 			}
 		>
-			<Button isActive={isActive} disabled={disabled} icon="pen-ruler" />
+			<Button isActive={isActive} disabled={disabled} icon="pencil-ruler" />
 		</Tooltip>
 	);
 };

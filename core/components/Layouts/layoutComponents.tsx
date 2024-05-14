@@ -14,7 +14,7 @@ interface RenderTitledLinks {
 const RenderTitledLink = ({ link }: { link: TitledLink }): JSX.Element => {
 	return (
 		<Anchor className="layout_link" href={link.url} target={link.target} data-qa="qa-clickable">
-			<ButtonLink iconCode={link.icon} iconPrefix={link.iconPrefix as any} text={link.title} />
+			<ButtonLink iconCode={link.icon} text={link.title} />
 			{link.childrens && <RenderTitledLinks links={link.childrens} isChildren={true} />}
 		</Anchor>
 	);

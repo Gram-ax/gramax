@@ -33,16 +33,16 @@ const CatalogActions = ({ itemLinks }: { itemLinks: ItemLink[] }): JSX.Element =
 				trigger={<ListItem text={useLocalize("healthcheck")} iconCode="heart-pulse" />}
 			/>
 			{conf.isServerApp && (
-				<GetSharedTicket trigger={<ListItem text={useLocalize("share")} iconCode="share-from-square" />} />
+				<GetSharedTicket trigger={<ListItem text={useLocalize("share")} iconCode="external-link" />} />
 			)}
 			<IsReadOnlyHOC>
 				<Share
 					shouldRender={!isReview && storageInitialized}
-					trigger={<ListItem text={useLocalize("share")} iconCode="share-from-square" />}
+					trigger={<ListItem text={useLocalize("share")} iconCode="external-link" />}
 				/>
 				<CatalogEditAction
 					shouldRender={!isReview && isEdit}
-					trigger={<ListItem text={useLocalize("catalogSettings")} iconCode="pen-to-square" />}
+					trigger={<ListItem text={useLocalize("catalogSettings")} iconCode="square-pen" />}
 				/>
 			</IsReadOnlyHOC>
 			{isLogged && <DeleteCatalog />}

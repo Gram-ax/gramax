@@ -4,7 +4,7 @@ export default function WhoWhen({ text, isWhen }: { text: string; isWhen: boolea
 	return (
 		<span className="attr">
 			<span className="delimiter">/</span>
-			<Icon prefix="fad" code={isWhen ? "clock" : "circle-user"} />
+			<Icon code={isWhen ? "clock" : "circle-user"} />
 			<span>{text}</span>
 		</span>
 	);

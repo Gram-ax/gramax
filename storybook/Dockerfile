@@ -16,7 +16,7 @@ WORKDIR /src/storybook
 
 RUN npm run build
 
-FROM devforth/spa-to-http:latest
+FROM gitlab.ics-it.ru:4567/ics/doc-reader:warp-spa
 
 WORKDIR /app
 
@@ -25,4 +25,4 @@ EXPOSE 80
 
 COPY --from=build /src/storybook/storybook-static .
 
-CMD [ "go-http-serve", "--spa", "false" ]
+CMD [ "warp-spa" ]

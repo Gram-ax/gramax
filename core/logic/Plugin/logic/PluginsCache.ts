@@ -8,10 +8,14 @@ const STORAGE_KEY_NAME = "storage";
 const SRC_FILE_NAME = "bundle";
 
 export default class PluginsCache {
+	private _pluginStorageByPluginName: Map<string, Cache> = new Map();
 	constructor(private _baseCache: Cache) {}
 
 	async getPluginStorage(pluginName: string): Promise<Cache> {
-		return (await this._getPluginNameStorage(pluginName)).storage;
+		if (!this._pluginStorageByPluginName.has(pluginName)) {
+			this._pluginStorageByPluginName.set(pluginName, (await this._getPluginNameStorage(pluginName)).storage);
+		}
+		return this._pluginStorageByPluginName.get(pluginName);
 	}
 
 	async setPluginSrc(pluginName: string, src: string): Promise<void> {

@@ -5,7 +5,8 @@ const NoteMenuButton = ({ editor }: { editor: Editor }) => {
 	return (
 		<Button
 			onClick={() => editor.chain().focus().toggleNote().run()}
-			icon={"note"}
+			icon={"sticky-note"}
+			iconStyle={{transform:"scale(1, -1)"}}
 			tooltipText={"Заметка"}
 			nodeValues={{ action: "note" }}
 		/>

@@ -1,8 +1,8 @@
 import { ResponseKind } from "@app/types/ResponseKind";
 import { AuthorizeMiddleware } from "@core/Api/middleware/AuthorizeMiddleware";
 import Context from "@core/Context/Context";
-import { CatalogErrors } from "@core/FileStructue/Catalog/Catalog";
-import Healthcheck from "../../../core/extensions/healthcheck/logic/Healthcheck";
+
+import Healthcheck, { CatalogErrors } from "../../../core/extensions/healthcheck/logic/Healthcheck";
 import { Command } from "../../types/Command";
 
 const healthcheck: Command<{ ctx: Context; catalogName: string }, CatalogErrors> = Command.create({
@@ -13,21 +13,24 @@ const healthcheck: Command<{ ctx: Context; catalogName: string }, CatalogErrors>
 	middlewares: [new AuthorizeMiddleware()],
 
 	async do({ ctx, catalogName }) {
-		const { lib, sitePresenterFactory, parserContextFactory } = this._app;
+		const { lib, sitePresenterFactory } = this._app;
 		const catalog = await lib.getCatalog(catalogName);
 		const fp = lib.getFileProviderByCatalog(catalog);
 
 		if (!catalog) return;
 
-		const healthcheck = new Healthcheck(fp, ctx, parserContextFactory);
-		const errors = await healthcheck.getLinkChecks(
+		const healthcheck = new Healthcheck(
+			fp,
+			ctx,
 			await sitePresenterFactory.fromContext(ctx).parseAllItems(catalog),
 		);
+
+		const errors = await healthcheck.сheckCatalog();
 
 		const catalogErrors = catalog.errors;
 		Object.keys(catalogErrors).forEach((key) => {
 			if (!errors[key]) errors[key] = [];
-			errors[key].push(catalogErrors[key]);
+			errors[key].push(...catalogErrors[key]);
 		});
 
 		return errors;

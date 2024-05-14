@@ -187,6 +187,22 @@ someMoreChildrenText
 
 				expect(testParseStr).toEqual(parsedStr);
 			});
+
+			test("без note в image", async () => {
+				const mdParser = await getMdParser();
+				const str = `
+				[image:./src.png:::0,0,100,100:]
+				[image:./src.png:::0,0,100,100:]
+				`;
+				const parsedStr = `
+				{%image src="./src.png" alt="" title="" crop="0,0,100,100" objects="" /%}
+				{%image src="./src.png" alt="" title="" crop="0,0,100,100" objects="" /%}
+				`;
+
+				const testParseStr = mdParser.preParse(str);
+
+				expect(testParseStr).toEqual(parsedStr);
+			});
 		});
 
 		describe("тег id в тег Markdoc", () => {
@@ -556,6 +572,67 @@ someMoreChildrenText
 			const parsedStr = `Paragraph\n\n&nbsp;\n\n&nbsp;\n\n&nbsp;\n\n&nbsp;\n\nParagraph`;
 
 			const testParseStr = mdParser.preParse(str);
+
+			expect(testParseStr).toEqual(parsedStr);
+		});
+	});
+
+	describe("элемент списка без текста на той же строке, что и пункт списка", () => {
+		test("маркированный", async () => {
+			const mdParser = await getMdParser();
+
+			const str = `
+-  
+   text`;
+			const parsedStr = `
+-  \u00A0
+   text`;
+
+			const testParseStr = mdParser.backParse(str);
+
+			expect(testParseStr).toEqual(parsedStr);
+		});
+
+		test("нумерованный", async () => {
+			const mdParser = await getMdParser();
+
+			const str = `
+1. 
+   text`;
+			const parsedStr = `
+1. \u00A0
+   text`;
+
+			const testParseStr = mdParser.backParse(str);
+
+			expect(testParseStr).toEqual(parsedStr);
+		});
+
+		test("многомерный", async () => {
+			const mdParser = await getMdParser();
+
+			const str = `
+1. 1
+   text
+2. 
+   1. 
+      -  i
+      -  ii
+      -  
+         iii
+   2. b`;
+			const parsedStr = `
+1. 1
+   text
+2. \u00A0
+   1. \u00A0
+      -  i
+      -  ii
+      -  \u00A0
+         iii
+   2. b`;
+
+			const testParseStr = mdParser.backParse(str);
 
 			expect(testParseStr).toEqual(parsedStr);
 		});

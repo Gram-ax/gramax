@@ -7,7 +7,6 @@ import ModalToOpenService from "../../../../../../ui-logic/ContextServices/Modal
 import ModalToOpen from "../../../../../../ui-logic/ContextServices/ModalToOpenService/model/ModalsToOpen";
 import PageDataContextService from "../../../../../../ui-logic/ContextServices/PageDataContext";
 import ErrorConfirmService from "../../../../../errorHandlers/client/ErrorConfirmService";
-import DefaultErrorComponent from "../../../../../errorHandlers/client/components/DefaultError";
 import InfoModalForm from "../../../../../errorHandlers/client/components/ErrorForm";
 import GetErrorComponent from "../../../../../errorHandlers/logic/GetErrorComponent";
 import useLocalize from "../../../../../localization/useLocalize";
@@ -43,15 +42,11 @@ const MergeErrorConfirm = ({ error, onCancelClick }: ComponentProps<typeof GetEr
 		};
 		ErrorConfirmService.onModalClose = async () => {
 			window.onbeforeunload = undefined;
-			await abortMerge();
+			if (stashHash) await abortMerge();
 			await BranchUpdaterService.updateBranch(apiUrlCreator);
 			await ArticleUpdaterService.update(apiUrlCreator);
 		};
 	}, []);
-
-	if (mergeType === MergeType.Sync && !stashHash) {
-		return <DefaultErrorComponent error={error} onCancelClick={onCancelClick} />;
-	}
 
 	return (
 		<InfoModalForm

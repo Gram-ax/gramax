@@ -26,13 +26,14 @@ const SyncLayout = styled(
 					reverse
 					onClick={onClick}
 					className="sync-icons"
+					iconCode="refresh-cw"
+					iconStrokeWidth="1.6"
 					iconClassName={"rotate-icon" + (syncProccess ? " rotate" : "")}
 					tooltipText={
 						syncProccess
 							? useLocalize("synchronization")
 							: `${useLocalize("sync")} ${useLocalize("catalog2")}`
 					}
-					iconCode="arrows-rotate"
 					disable={syncProccess}
 				>
 					<PullPushCounter pullCounter={pullCounter} pushCounter={pushCounter} />

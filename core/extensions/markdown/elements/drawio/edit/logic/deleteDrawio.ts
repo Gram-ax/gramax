@@ -4,7 +4,7 @@ import { Node } from "prosemirror-model";
 
 const deleteDrawio = async (nodes: Node[], apiUrlCreator: ApiUrlCreator) => {
 	for (const node of nodes) {
-		if (node.type.name !== "drawio") return;
+		if (node.type.name !== "drawio") continue;
 		await FetchService.fetch(apiUrlCreator.deleteArticleResource(node.attrs.src));
 	}
 };

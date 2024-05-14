@@ -14,7 +14,7 @@ import { drawio } from "@ext/markdown/elements/drawio/render/model/drawio";
 import { error } from "@ext/markdown/elements/error/error";
 import { fn } from "@ext/markdown/elements/fn/model/fn";
 import { formula } from "@ext/markdown/elements/formula/model/formula";
-import { icon } from "@ext/markdown/elements/icon/icon";
+import { icon } from "@ext/markdown/elements/icon/render/model/icon";
 import { imgs } from "@ext/markdown/elements/imgs/model/imgs";
 import { include } from "@ext/markdown/elements/include/model/include";
 import { issue } from "@ext/markdown/elements/issue/model/issue";
@@ -31,6 +31,7 @@ import { video } from "@ext/markdown/elements/video/render/model/video";
 import { when, who } from "@ext/markdown/elements/whowhen/model/whowhen";
 import ParserContext from "../../../Parser/ParserContext/ParserContext";
 import { Schema } from "../Markdoc";
+import { image } from "@ext/markdown/elements/image/render/image";
 
 function getContextTagElementRenderModels(context: ParserContext): Record<string, Schema> {
 	return {
@@ -41,6 +42,7 @@ function getContextTagElementRenderModels(context: ParserContext): Record<string
 		"db-table": tabledb(context),
 		"img-h": imgs(context, "h"),
 		"img-v": imgs(context, "v"),
+		image: image(context),
 		openapi: OpenApi(context),
 		mermaid: mermaid(context),
 		include: include(context),
@@ -49,6 +51,7 @@ function getContextTagElementRenderModels(context: ParserContext): Record<string
 		drawio: drawio(context),
 		error: error(context),
 		term: term(context),
+		icon: icon(context),
 	};
 }
 
@@ -64,7 +67,6 @@ export default function getTagElementRenderModels(context?: ParserContext): Reco
 		note,
 		alfa,
 		beta,
-		icon,
 		when,
 		tabs,
 		tab,

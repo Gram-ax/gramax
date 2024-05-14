@@ -1,9 +1,24 @@
+import { classNames } from "@components/libs/classNames";
 import ArticleRefService from "@core-ui/ContextServices/ArticleRef";
 import { cssMedia } from "@core-ui/utils/cssUtils";
 import styled from "@emotion/styled";
 
-const ArticleLayout = styled(
-	({
+export interface ArticleLayoutProps {
+	article: JSX.Element;
+	rightNav: JSX.Element;
+	narrowMedia: boolean;
+	isRightNavPin: boolean;
+	isRightNavOpen: boolean;
+	onArticleMouseEnter?: () => void;
+	onArticleMouseLeave?: () => void;
+	onRightNavMouseEnter?: () => void;
+	onRightNavMouseLeave?: () => void;
+	className?: string;
+}
+
+const ArticleLayout = (props: ArticleLayoutProps) => {
+	const articleRef = ArticleRefService.value;
+	const {
 		article,
 		rightNav,
 		onArticleMouseEnter,
@@ -11,43 +26,31 @@ const ArticleLayout = styled(
 		onRightNavMouseEnter,
 		onRightNavMouseLeave,
 		className,
-	}: {
-		article: JSX.Element;
-		rightNav: JSX.Element;
-		narrowMedia: boolean;
-		isRightNavPin: boolean;
-		isRightNavOpen: boolean;
-		onArticleMouseEnter?: () => void;
-		onArticleMouseLeave?: () => void;
-		onRightNavMouseEnter?: () => void;
-		onRightNavMouseLeave?: () => void;
-		className?: string;
-	}) => {
-		const articleRef = ArticleRefService.value;
-		return (
-			<div className={`${className} article`} ref={articleRef}>
-				<div
-					className="article-content-wrapper"
-					onMouseEnter={onArticleMouseEnter}
-					onMouseLeave={onArticleMouseLeave}
-					onTouchEnd={onArticleMouseEnter}
-				>
-					<div className="article-content">
-						{article}
-					</div>
-				</div>
-				<div
-					className="right-nav-layout"
-					onMouseEnter={onRightNavMouseEnter}
-					onMouseLeave={onRightNavMouseLeave}
-					onTouchEnd={onRightNavMouseEnter}
-				>
-					{rightNav}
-				</div>
+	} = props;
+
+	return (
+		<div className={classNames("article", {}, [className])} ref={articleRef}>
+			<div
+				className="article-content-wrapper"
+				onMouseEnter={onArticleMouseEnter}
+				onMouseLeave={onArticleMouseLeave}
+				onTouchEnd={onArticleMouseEnter}
+			>
+				<div className="article-content">{article}</div>
 			</div>
-		);
-	},
-)`
+			<div
+				className="right-nav-layout"
+				onMouseEnter={onRightNavMouseEnter}
+				onMouseLeave={onRightNavMouseLeave}
+				onTouchEnd={onRightNavMouseEnter}
+			>
+				{rightNav}
+			</div>
+		</div>
+	);
+};
+
+export default styled(ArticleLayout)`
 	${(p) =>
 		p.narrowMedia
 			? `display: flex;
@@ -165,5 +168,3 @@ const ArticleLayout = styled(
 	}
 	`}
 `;
-
-export default ArticleLayout;

@@ -11,16 +11,17 @@ const getHiddenRuleData = async () => {
 
 	const categoryItemRef = getItemRef(categoryTestCatalog, "category/_index.md");
 	const articleItemRef = getItemRef(articleTestCatalog, "category/testRules_en.md");
+	const articleRuItemRef = getItemRef(articleTestCatalog, "category/testRules.md");
 
-	return { hr, articleItemRef, articleTestCatalog, categoryItemRef, categoryTestCatalog };
+	return { hr, articleRuItemRef, articleItemRef, articleTestCatalog, categoryItemRef, categoryTestCatalog };
 };
 
 describe("HiddenRule правильно фильтрует", () => {
 	describe("item", () => {
 		test("article", async () => {
-			const { hr, articleItemRef, articleTestCatalog } = await getHiddenRuleData();
+			const { hr, articleRuItemRef, articleTestCatalog } = await getHiddenRuleData();
 			const filter = hr.getItemFilter();
-			const item = articleTestCatalog.findArticleByItemRef(articleItemRef);
+			const item = articleTestCatalog.findArticleByItemRef(articleRuItemRef);
 			expect(filter(item, articleTestCatalog)).toEqual(false);
 		});
 
@@ -33,9 +34,9 @@ describe("HiddenRule правильно фильтрует", () => {
 	});
 
 	test("article", async () => {
-		const { hr, articleItemRef, articleTestCatalog } = await getHiddenRuleData();
+		const { hr, articleRuItemRef, articleTestCatalog } = await getHiddenRuleData();
 		const filter = hr.getItemFilter();
-		const article = articleTestCatalog.findArticleByItemRef(articleItemRef);
+		const article = articleTestCatalog.findArticleByItemRef(articleRuItemRef);
 
 		expect(filter(article, articleTestCatalog)).toEqual(false);
 	});

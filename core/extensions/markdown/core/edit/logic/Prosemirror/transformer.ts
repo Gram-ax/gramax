@@ -2,14 +2,19 @@ import { JSONContent } from "@tiptap/core";
 import { ParserOptions } from "../../../Parser/Parser";
 import ParserContext from "../../../Parser/ParserContext/ParserContext";
 import { RenderableTreeNodes, Schema, SchemaType, Tag } from "../../../render/logic/Markdoc";
-import { getSquareFormatter } from "../Formatter/Formatters/getSquareFormatter";
 import NodeTransformerFunc from "./NodeTransformerFunc";
+import TokenTransformerFunc from "@ext/markdown/core/edit/logic/Prosemirror/TokenTransformerFunc";
 import { schema } from "./schema";
+import { getSquareFormatter } from "../Formatter/Formatters/getSquareFormatter";
 
 type Token = any;
 
 export class Transformer {
-	constructor(private _schemes: Record<string, Schema>, private _nodeTransformerFuncs: NodeTransformerFunc[]) {}
+	constructor(
+		private _schemes: Record<string, Schema>,
+		private _nodeTransformerFuncs: NodeTransformerFunc[],
+		private _tokenTransformerFuncs: TokenTransformerFunc[],
+	) {}
 
 	async transformMdComponents(
 		node: JSONContent,
@@ -90,13 +95,19 @@ export class Transformer {
 			];
 		}
 
-		tokens = this._filterTokens(
-			tokens.map((t, idx) => this._transformTokenPart1(t, idx == 0 ? null : tokens[idx - 1])),
-		);
+		const duplicate = [...this._tokenTransformerFuncs];
 
-		tokens = this._filterTokens(
-			tokens.map((t, idx) => this._transformTokenPart2(t, idx == 0 ? null : tokens[idx - 1])),
-		);
+		this._tokenTransformerFuncs.unshift(this._tagTokenTransformer);
+		this._tokenTransformerFuncs.unshift(this._variableTokenTransformer);
+		this._tokenTransformerFuncs.unshift(this._annotationTokenTransformer);
+
+		tokens = this._filterTokens(tokens.map((t, idx) => this._transformToken(t, idx == 0 ? null : tokens[idx - 1])));
+
+		this._tokenTransformerFuncs = duplicate;
+		this._tokenTransformerFuncs.unshift(this._openCloseTokenTransformer);
+		this._tokenTransformerFuncs.push(this._inlineTokenTransformer);
+
+		tokens = this._filterTokens(tokens.map((t, idx) => this._transformToken(t, idx == 0 ? null : tokens[idx - 1])));
 
 		return tokens;
 	}
@@ -105,34 +116,42 @@ export class Transformer {
 		return tokens.flat().filter((n) => n);
 	}
 
-	private _transformTokenPart1(token: Token, previous?: Token, parent?: Token): Token | Token[] {
+	private _variableTokenTransformer: TokenTransformerFunc = ({ token, transformer }) => {
+		if (token.type === "variable") return transformer.getInlineMdTokens(`{% ${token.info} %}`);
+	};
+
+	private _annotationTokenTransformer: TokenTransformerFunc = ({ token, transformer, parent }) => {
 		if (token.type === "annotation") {
-			if (!parent || parent.type !== "inline") return this._getInlineMdTokens(`{${token.info}}`);
+			if (!parent || parent.type !== "inline") return transformer.getInlineMdTokens(`{${token.info}}`);
 			if (!parent.attrs) parent.attrs = {};
 			if (token.meta?.attributes)
 				token.meta?.attributes.forEach(({ name, value }) => (parent.attrs[name] = value));
 			parent.attrs.info = token.info;
 			return null;
 		}
+	};
 
-		if (token.type === "variable") return this._getInlineMdTokens(`{% ${token.info} %}`);
-
-		if (token.tag) {
-			if (token.tag === "tbody" || token.tag === "thead") return null;
-			if (token.tag === "tr") {
-				token.type = "tableRow" + token.type.slice(2);
-				token.tag = "tableRow";
-			}
-			if (token.tag === "td") {
-				token.type = "tableCell" + token.type.slice(2);
-				token.tag = "tableCell";
-			}
-			if (token.tag === "th") {
-				token.type = "tableHeader" + token.type.slice(2);
-				token.tag = "tableHeader";
+	private _openCloseTokenTransformer: TokenTransformerFunc = ({ token, previous }) => {
+		if (token && token?.type?.includes("_close") && previous?.type?.includes("_open")) {
+			const tokenTypeName = token.type.match(/(.*?)_close/)?.[1];
+			if (tokenTypeName && tokenTypeName === previous.type.match(/(.*?)_open/)?.[1]) {
+				return [{ type: "paragraph_open", tag: "p" }, { type: "paragraph_close", tag: "p" }, token];
 			}
 		}
+	};
 
+	private _inlineTokenTransformer: TokenTransformerFunc = ({ token, transformer, previous }) => {
+		if (token && token.type == "inline" && token.attrs) {
+			if (previous.type !== "heading_open") {
+				token.children.push(transformer.getInlineMdTokens(`{${token.attrs.info}}`));
+			} else {
+				if (!previous.attrs) previous.attrs = {};
+				previous.attrs = { ...token.attrs, ...previous.attrs };
+			}
+		}
+	};
+
+	private _tagTokenTransformer: TokenTransformerFunc = ({ token, transformer, parent }) => {
 		if (token.type === "tag" || token.type === "tag_open" || token.type === "tag_close") {
 			const attrs = {};
 			if (token.meta?.attributes) token.meta?.attributes.forEach(({ name, value }) => (attrs[name] = value));
@@ -143,27 +162,28 @@ export class Transformer {
 			};
 
 			if (!schema.nodes?.[newNode.type] && !schema.marks?.[newNode.type]) {
-				const nodeSchema = this._schemes[newNode.type];
+				const nodeSchema = transformer._schemes[newNode.type];
 				const formatter = getSquareFormatter(nodeSchema);
 				const tag = new Tag(newNode.type, newNode.attrs);
 
 				if (token.type === "tag_open") {
 					const content = formatter(tag, "", false, true);
-					if (parent && parent.type == "inline") return this._getInlineMdOpenTokens(content);
-					return [{ type: "blockMd_open", tag: "blockMd" }, ...this._getParagraphTokens(content)];
+					if (parent && parent.type == "inline") return transformer.getInlineMdOpenTokens(content);
+					return [{ type: "blockMd_open", tag: "blockMd" }, ...transformer.getParagraphTokens(content)];
 				}
 
 				if (token.type === "tag_close") {
 					const content = formatter(tag, "", true);
-					if (parent && parent.type == "inline") return this._getInlineMdCloseTokens(content);
-					return [...this._getParagraphTokens(content), { type: "blockMd_close", tag: "blockMd" }];
+					if (parent && parent.type == "inline") return transformer.getInlineMdCloseTokens(content);
+					return [...transformer.getParagraphTokens(content), { type: "blockMd_close", tag: "blockMd" }];
 				}
 
 				if (nodeSchema.type == SchemaType.block) {
-					return this._getParagraphTokens(null, this._getInlineMdTokens(formatter(tag, "")));
+					return transformer.getParagraphTokens(null, transformer.getInlineMdTokens(formatter(tag, "")));
 				} else {
-					if (!parent) return this._getParagraphTokens(null, this._getInlineMdTokens(formatter(tag, "")));
-					return this._getInlineMdTokens(formatter(new Tag(newNode.type, newNode.attrs), ""));
+					if (!parent)
+						return transformer.getParagraphTokens(null, transformer.getInlineMdTokens(formatter(tag, "")));
+					return transformer.getInlineMdTokens(formatter(new Tag(newNode.type, newNode.attrs), ""));
 				}
 			}
 
@@ -172,97 +192,58 @@ export class Transformer {
 
 			return newNode;
 		}
+	};
 
-		if (token?.children)
+	private _transformToken(token: Token, previous?: Token, parent?: Token): Token | Token[] {
+		for (const transformFunc of this._tokenTransformerFuncs) {
+			const result = transformFunc({ token, previous, parent, transformer: this });
+			if (result !== undefined) {
+				token = result;
+				return token;
+			}
+		}
+
+		if (token?.children) {
 			token.children = this._filterTokens(
-				token.children.map((t, idx) =>
-					this._transformTokenPart1(t, idx == 0 ? null : token.children[idx - 1], token),
+				token.children.map((childToken, idx) =>
+					this._transformToken(childToken, idx === 0 ? null : token.children[idx - 1], token),
 				),
 			);
+		}
 
 		return token;
 	}
 
-	private _transformTokenPart2(token: Token, previous?: Token, parent?: Token): Token | Token[] {
-		if (token?.tag === "comment" && parent?.type !== "inline") {
-			if (token.type === "comment_open") {
-				token.type = "comment_old_open";
-				token.tag = "comment_old";
-				token.attrs = { mail: token.attrs.count, dateTime: token.attrs.undefined };
-			}
-			if (token.type === "comment_close") {
-				token.type = "comment_old_close";
-				token.tag = "comment_old";
-			}
-		}
-
-		if (token && token?.type?.includes("_close") && previous?.type?.includes("_open")) {
-			const tokenTypeName = token.type.match(/(.*?)_close/)?.[1];
-			if (tokenTypeName && tokenTypeName === previous.type.match(/(.*?)_open/)?.[1]) {
-				return [{ type: "paragraph_open", tag: "p" }, { type: "paragraph_close", tag: "p" }, token];
-			}
-		}
-
-		if (token && token.tag === "cut" && parent?.type === "inline") {
-			if (token.type === "cut_open") {
-				token.type = "inlineCut_open";
-				token.tag = "inlineCut";
-			}
-			if (token.type === "cut_close") {
-				token.type = "inlineCut_close";
-				token.tag = "inlineCut";
-			}
-		}
-
-		if (token && token.type == "inline" && token.attrs) {
-			if (previous.type !== "heading_open") {
-				token.children.push(this._getInlineMdTokens(`{${token.attrs.info}}`));
-			} else {
-				if (!previous.attrs) previous.attrs = {};
-				previous.attrs = { ...token.attrs, ...previous.attrs };
-			}
-		}
-
-		if (token?.children)
-			token.children = this._filterTokens(
-				token.children.map((t, idx) =>
-					this._transformTokenPart2(t, idx == 0 ? null : token.children[idx - 1], token),
-				),
-			);
-
-		return token;
-	}
-
-	private _getParagraphTokens(content?: string, children?: any[]) {
+	public getParagraphTokens(content?: string, children?: any[]) {
 		return [
 			{ type: "paragraph_open", tag: "p" },
 			{
 				type: "inline",
 				tag: "",
-				children: children ?? [...this._getInlineMdTokens(content)],
+				children: children ?? [...this.getInlineMdTokens(content)],
 				content: content ?? "",
 			},
 			{ type: "paragraph_close", tag: "p" },
 		];
 	}
 
-	private _getTextToken(content: string) {
+	public getTextToken(content: string) {
 		return { type: "text", content };
 	}
 
-	private _getInlineMdOpenTokens(content?: string) {
+	public getInlineMdOpenTokens(content?: string) {
 		const openToken = { type: "inlineMd_open", tag: "inlineMd" };
 		if (!content) return openToken;
-		return [openToken, this._getTextToken(content)];
+		return [openToken, this.getTextToken(content)];
 	}
 
-	private _getInlineMdCloseTokens(content?: string) {
+	public getInlineMdCloseTokens(content?: string) {
 		const closeToken = { type: "inlineMd_close", tag: "inlineMd" };
 		if (!content) return closeToken;
-		return [this._getTextToken(content), closeToken];
+		return [this.getTextToken(content), closeToken];
 	}
 
-	private _getInlineMdTokens(content: string) {
-		return [this._getInlineMdOpenTokens(), this._getTextToken(content), this._getInlineMdCloseTokens()];
+	public getInlineMdTokens(content: string) {
+		return [this.getInlineMdOpenTokens(), this.getTextToken(content), this.getInlineMdCloseTokens()];
 	}
 }

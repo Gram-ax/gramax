@@ -22,7 +22,7 @@ const CommentMenuButton = ({ editor, onClick }: { editor: Editor; onClick: () =>
 		<Button
 			disabled={isButtonDisabled}
 			isActive={isActive}
-			icon={"message"}
+			icon={"message-square"}
 			onClick={onClickHandler}
 			tooltipText={(!pageDataContext.userInfo || !isButtonDisabled) && useLocalize(tooltipText)}
 		/>

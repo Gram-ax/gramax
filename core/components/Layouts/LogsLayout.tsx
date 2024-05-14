@@ -30,12 +30,13 @@ const LogsLayout = styled(
 	width: 100%;
 	max-height: 100%;
 	background: var(--color-menu-bg);
-	border-radius: var(--radius-small);
+	border-radius: var(--radius-normal);
 	padding: 1rem;
 	overflow: auto;
 
 	.logs-title {
 		background: none;
+
 		> h2 {
 			margin-top: 0;
 		}

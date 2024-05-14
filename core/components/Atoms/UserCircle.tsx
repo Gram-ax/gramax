@@ -30,9 +30,8 @@ const UserCircle = styled(({ name, className }: { name: string; className?: stri
 	justify-content: center;
 
 	> div {
-		color: rgb(0 0 0);
-		margin-top: 1px;
 		opacity: 0.4;
+		color: rgb(0 0 0);
 		text-transform: uppercase;
 	}
 `;

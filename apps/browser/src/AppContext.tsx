@@ -8,10 +8,12 @@ import { ArticlePageData, HomePageData } from "@core/SitePresenter/SitePresenter
 import Theme from "@ext/Theme/Theme";
 import ThemeService from "@ext/Theme/components/ThemeService";
 import ErrorBoundary from "@ext/errorHandlers/client/components/ErrorBoundary";
+import type DefaultError from "@ext/errorHandlers/logic/DefaultError";
 import localizer from "@ext/localization/core/Localizer";
 import { useCallback, useEffect, useState } from "react";
 import AppError from "./components/Atoms/AppError";
 import AppLoader from "./components/Atoms/AppLoader";
+import Migrate, { MigrateState } from "./components/Migrate";
 import useLocation from "./logic/Api/useLocation";
 
 const getData = async (route: string, query: Query) => {
@@ -32,7 +34,8 @@ const AppContext = ({ children }: { children: (data: any) => JSX.Element }) => {
 		path: string;
 	}>();
 
-	const [error, setError] = useState<Error>();
+	const [error, setError] = useState<DefaultError>();
+	const [migrateState, setMigrateState] = useState(undefined);
 
 	const refresh = useCallback(async () => {
 		try {
@@ -51,18 +54,24 @@ const AppContext = ({ children }: { children: (data: any) => JSX.Element }) => {
 
 	useEffect(() => void refresh(), [refresh]);
 
-	if (data) {
+	if (!data)
 		return (
-			<ContextProviders pageProps={data as any} refreshPage={refresh}>
-				<ErrorBoundary context={data.context}>{children(data)}</ErrorBoundary>
-			</ContextProviders>
+			<ThemeService.Provider value={Theme.light}>
+				{error ? <AppError error={error} /> : <AppLoader delayBeforeShow={500} />}
+			</ThemeService.Provider>
 		);
-	}
+
+	if (migrateState !== MigrateState.None && !error)
+		return (
+			<ThemeService.Provider value={Theme.light}>
+				<Migrate state={migrateState} setState={setMigrateState} onDone={refresh} />
+			</ThemeService.Provider>
+		);
 
 	return (
-		<ThemeService.Provider value={Theme.light}>
-			{error ? <AppError error={error} /> : <AppLoader />}
-		</ThemeService.Provider>
+		<ContextProviders pageProps={data as any} refreshPage={refresh}>
+			<ErrorBoundary context={data.context}>{children(data)}</ErrorBoundary>
+		</ContextProviders>
 	);
 };
 

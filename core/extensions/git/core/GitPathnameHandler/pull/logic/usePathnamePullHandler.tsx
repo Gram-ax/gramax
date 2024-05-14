@@ -1,3 +1,4 @@
+import ArticlePropsService from "@core-ui/ContextServices/ArticleProps";
 import ModalToOpenService from "@core-ui/ContextServices/ModalToOpenService/ModalToOpenService";
 import ModalToOpen from "@core-ui/ContextServices/ModalToOpenService/model/ModalsToOpen";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
@@ -12,6 +13,7 @@ const usePathnamePullHandler = (isFirstLoad: boolean) => {
 	const modalToOpen = ModalToOpenService.value;
 	const isStorageInitialized = useIsStorageInitialized();
 	const pageDataContext = PageDataContextService.value;
+	const articleProps = ArticlePropsService.value;
 	const { isArticle } = pageDataContext;
 	const { isReadOnly } = pageDataContext.conf;
 
@@ -22,6 +24,7 @@ const usePathnamePullHandler = (isFirstLoad: boolean) => {
 		ModalToOpenService.setValue<ComponentProps<typeof PullHandler>>(ModalToOpen.PullHandler, {
 			href: logicPath.value,
 			isStorageInitialized,
+			articleProps,
 		});
 	}, []);
 };

@@ -1,19 +1,21 @@
+import { classNames } from "@components/libs/classNames";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import IsEditService from "@core-ui/ContextServices/IsEdit";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import { ArticlePageData } from "@core/SitePresenter/SitePresenter";
+import styled from "@emotion/styled";
 import { useCallback, useEffect, useState } from "react";
 import ArticleUpdaterService from "./ArticleUpdaterService";
 
-const ArticleUpdater = ({
-	data,
-	onUpdate,
-	children,
-}: {
+export interface ArticleUpdaterProps {
 	data: ArticlePageData;
 	onUpdate: (data: ArticlePageData) => void;
 	children: JSX.Element;
-}) => {
+	className?: string;
+}
+
+const ArticleUpdater = (props: ArticleUpdaterProps) => {
+	const { data, onUpdate, children, className } = props;
 	const isEdit = IsEditService.value;
 	const apiUrlCreator = ApiUrlCreatorService.value;
 	const isReadOnly = PageDataContextService.value.conf.isReadOnly;
@@ -44,7 +46,18 @@ const ArticleUpdater = ({
 		return () => window.removeEventListener("focus", updateContent);
 	}, [updateContent]);
 
-	return <div style={isLoading ? { opacity: 0.6, pointerEvents: "none" } : null}>{children}</div>;
+	return <div className={classNames("updaterWrapper", { isLoading }, [className])}>{children}</div>;
 };
 
-export default ArticleUpdater;
+export default styled(ArticleUpdater)`
+	&.isLoading {
+		opacity: 0.6;
+		pointer-events: none;
+	}
+
+	&.updaterWrapper {
+		display: flex;
+		flex-grow: 1;
+		flex-direction: column;
+	}
+`;

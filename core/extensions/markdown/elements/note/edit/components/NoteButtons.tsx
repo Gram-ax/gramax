@@ -21,6 +21,7 @@ const Note = ({
 			{Object.values(NoteType).map((value, key) => (
 				<Button
 					icon={noteIcons[value]}
+					iconStrokeWidth="2"
 					iconStyle={{ color: `var(--color-admonition-${value}-br-h)` }}
 					key={key}
 					onClick={() => {

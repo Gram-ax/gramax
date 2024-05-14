@@ -126,6 +126,15 @@ const FormStyle = styled(
 					flex: 0.6;
 					font-size: 12px;
 					color: var(--color-text-main);
+
+					> p {
+						line-height: 1.6em;
+
+						> code {
+							font-size: 10px;
+							padding: 0 2px 1px 2px;
+						}
+					}
 				}
 			}
 

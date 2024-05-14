@@ -17,6 +17,7 @@ class SearchPlugin extends Plugin {
 				const searcher = new FuseSearcher(indexDataProvider);
 				const getCatalogArticleIds = async (catalogName: string) => {
 					const catalog = await this.app.catalogs.get(catalogName);
+
 					return catalog?.getArticles().map((a) => a.id);
 				};
 
@@ -27,8 +28,10 @@ class SearchPlugin extends Plugin {
 							catalogName,
 							await getCatalogArticleIds(catalogName),
 						);
+
 						return result.length > 0 ? result : null;
 					};
+
 					return (await multiLayoutSearcher<SearchItem[]>(search)(query)) ?? [];
 				};
 
@@ -41,11 +44,13 @@ class SearchPlugin extends Plugin {
 
 					const search = async (query: string) => {
 						const result = await searcher.searchAll(query, catalogArticleIds);
+
 						return result.length > 0 ? result : null;
 					};
 
 					return (await multiLayoutSearcher<SearchItem[]>(search)(query)) ?? [];
 				};
+
 				return catalogName ? await getSearchData(query, catalogName) : await getAllSearchData(query);
 			},
 		});

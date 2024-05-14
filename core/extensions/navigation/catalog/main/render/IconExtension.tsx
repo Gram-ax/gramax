@@ -3,7 +3,7 @@ import styled from "@emotion/styled";
 import { ItemLink } from "../../../NavigationLinks";
 
 const IconExtension = styled(({ item, className }: { item: ItemLink; className?: string }) => {
-	return <>{item?.icon ? <Icon code={item.icon} className={className} style={{}} /> : null}</>;
+	return item?.icon ? <Icon code={item.icon} className={className} strokeWidth="2" viewBox="0 0 24 24" /> : null;
 })`
 	font-size: 0.7em;
 	font-weight: 600;

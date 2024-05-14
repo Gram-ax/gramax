@@ -22,7 +22,7 @@ const SaveAsWord = ({ onClick }: { onClick: (signal: AbortSignal) => Promise<voi
 			isOpen={isOpen}
 			onOpen={onOpenHandler}
 			onClose={() => cancelableFunction.abort()}
-			trigger={<ButtonLink iconCode="file-word" text="DOCX" />}
+			trigger={<ButtonLink iconCode="file-text" text="DOCX" />}
 		>
 			<ModalLayoutLight>
 				<FormStyle>

@@ -133,8 +133,8 @@ describe("FileStructure", () => {
 		test("статью", async () => {
 			const catalog = await fs.getCatalogByPath(path("test1"));
 			const article = await catalog.createArticle(null, "", Language.ru);
-			expect(article.getFileName()).toEqual("new_article_0");
-			expect(fp.exists(path("test1/new_article_0.md")));
+			expect(article.getFileName()).toEqual("new-article");
+			expect(fp.exists(path("test1/new-article.md")));
 		});
 
 		test("категорию", async () => {

@@ -3,6 +3,7 @@ import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import CatalogFetchTimersSerivce from "@core-ui/ContextServices/CatalogFetchTimers";
 import CatalogPropsService from "@core-ui/ContextServices/CatalogProps";
 import IsOfflineService from "@core-ui/ContextServices/IsOfflineService";
+import SyncIconService from "@core-ui/ContextServices/SyncIconService";
 import useIsStorageInitialized from "@ext/storage/logic/utils/useIsStorageIniziliate";
 import { useEffect, useRef } from "react";
 
@@ -22,7 +23,9 @@ const useFetchCatalog = () => {
 		)
 			return;
 
+		SyncIconService.start();
 		const res = await FetchService.fetch(apiUrlCreator.getStorageFetch());
+		SyncIconService.stop();
 		if (!res) return;
 		CatalogFetchTimersSerivce.setTimer(catalogName);
 	};

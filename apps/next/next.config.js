@@ -3,7 +3,7 @@ import path from "path";
 import { fileURLToPath } from "url";
 import env from "../../scripts/compileTimeEnv.mjs";
 
-env.setVersion("static");
+env.setVersion("docportal");
 
 const withBundleAnalyzer = NextBundleAnalyzer({
 	enabled: process.env.ANALYZE === "true",

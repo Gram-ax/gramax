@@ -1,0 +1,16 @@
+[package]
+name = "warp-spa"
+version.workspace = true
+authors.workspace = true
+description.workspace = true
+edition.workspace = true
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+tokio = { version = "1.36.0", features = ["macros", "mio", "rt-multi-thread"] }
+warp = { version = "0.3.6", features = [
+  "tls",
+  "tokio-rustls",
+  "compression-brotli",
+] }

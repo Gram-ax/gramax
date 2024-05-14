@@ -5,7 +5,7 @@ const TabsMenuButton = ({ editor }: { editor: Editor }) => {
 	return (
 		<Button
 			onClick={() => editor.chain().focus().setTabs().run()}
-			icon={"browser"}
+			icon={"app-window"}
 			tooltipText={"Табы"}
 			nodeValues={{ action: "tabs" }}
 		/>

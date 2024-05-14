@@ -46,7 +46,7 @@ const DrawioEditButton = ({ src }: { src: string }) => {
 
 	return (
 		<Button
-			icon={"pen"}
+			icon={"pencil"}
 			tooltipText={"Редактировать"}
 			onClick={() => {
 				ArticleUpdaterService.stopLoadingAfterFocus();

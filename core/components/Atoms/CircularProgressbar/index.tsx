@@ -25,7 +25,7 @@ const CircularProgressbar = styled(
 	}) => {
 		if (!value || value == maxValue) return <SpinnerLoader fullScreen />;
 
-		if (!text) text = `${Math.min(100, value)}/${maxValue}`;
+		if (!text) text = `${Math.min(maxValue, value)}/${maxValue}`;
 		const getPathRadius = () => {
 			return VIEWBOX_HEIGHT_HALF - strokeWidth / 2;
 		};
@@ -39,7 +39,7 @@ const CircularProgressbar = styled(
 		const pathRatio = getPathRatio();
 
 		return (
-			<div className={className} data-qa="loader">
+			<div key={text} className={className} data-qa="loader">
 				<svg className="circular-progressbar" viewBox={`0 0 ${VIEWBOX_WIDTH} ${VIEWBOX_HEIGHT}`}>
 					<Path
 						className="circular-progressbar-trail"

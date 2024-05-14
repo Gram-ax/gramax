@@ -22,7 +22,7 @@ const EditInline = ({ node, getPos }: NodeViewProps) => {
 						</span>
 					}
 				>
-					<div style={{ display: "inline", borderRadius: "var(--radius-block)" }} data-focusable="true">
+					<div style={{ display: "inline", borderRadius: "var(--radius-normal)" }} data-focusable="true">
 						{Renderer(node.attrs.tag, { components: getComponents() })}
 					</div>
 				</Tooltip>

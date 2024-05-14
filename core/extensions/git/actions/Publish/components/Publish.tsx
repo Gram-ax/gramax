@@ -108,7 +108,7 @@ const Publish = styled(({ changesCount, className }: { changesCount?: number; cl
 		const currentLogicPaths = itemDiffs.map((sideBarItem) => sideBarItem.data.logicPath);
 		setLogicPaths(currentLogicPaths);
 		setSideBarData(currentSideBarData);
-		setOpenId(findArticleIdx(articleProps.logicPath, currentLogicPaths));
+		setOpenId(findArticleIdx(articleProps.pathname, currentLogicPaths));
 	};
 
 	useEffect(() => {
@@ -151,7 +151,11 @@ const Publish = styled(({ changesCount, className }: { changesCount?: number; cl
 		<ModalLayout
 			isOpen={isOpen}
 			trigger={
-				<StatusBarElement tooltipText={useLocalize("publishChanges")} iconCode="cloud-arrow-up">
+				<StatusBarElement
+					iconCode="cloud"
+					iconStyle={{fontSize: "15px"}}
+					tooltipText={useLocalize("publishChanges")}
+				>
 					{changesCount ? <span>{changesCount}</span> : null}
 				</StatusBarElement>
 			}

@@ -29,7 +29,6 @@ const meta: Meta<typeof ButtonLinkSrc> = {
 	args: {
 		iconCode: "globe",
 		textSize: TextSize.S,
-		iconPrefix: undefined,
 	},
 };
 

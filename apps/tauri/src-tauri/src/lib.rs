@@ -5,26 +5,38 @@ extern crate log;
 #[macro_use]
 extern crate rstest;
 
+#[macro_use]
+extern crate rust_i18n;
+
 mod commands;
 mod oauth_server;
 mod platform;
-mod translation;
 
 use std::sync::atomic::AtomicUsize;
 use std::sync::atomic::Ordering;
 
 use platform::config::init_env;
+
 use platform::*;
-use translation::*;
 
 use tauri::*;
 
 use tauri::scope::ipc::RemoteDomainAccessScope;
 
+i18n!("locales");
+
 pub const ALLOWED_DOMAINS: [&str; 3] = ["tauri.localhost", "localhost", "gramax"];
+
+trait AppBuilder {
+  fn init(self) -> Self;
+  fn attach_plugins(self) -> Self;
+  fn attach_commands(self) -> Self;
+}
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
+  rust_i18n::set_locale(&sys_locale::get_locale().unwrap_or("en".to_string()));
+
   let builder = Builder::default().init().attach_commands().attach_plugins();
   let context = tauri::generate_context!();
 
@@ -45,56 +57,13 @@ pub fn run() {
   app.run(|_, _| {});
 }
 
-pub fn build_main_window<R: Runtime>(app: &AppHandle<R>) -> Result<Window<R>> {
-  static NEXT_ID: AtomicUsize = AtomicUsize::new(0);
-
-  let window = WindowBuilder::new(
-    app,
-    format!("main_{}", NEXT_ID.fetch_add(1, Ordering::Relaxed)),
-    WindowUrl::App("index.html".into()),
-  )
-  .initialization_script(include_str!("init.js"))
-  .on_navigation(on_navigation)
-  .disable_file_drop_handler();
-
-  #[cfg(target_os = "macos")]
-  let window = {
-    let downloads_path = app.path().download_dir().unwrap_or_default();
-    window.on_download(move |_, ev| match ev {
-      window::DownloadEvent::Requested { url: _, destination } => {
-        *destination = downloads_path.join(&destination);
-        true
-      }
-      _ => true,
-    })
-  };
-
-  #[cfg(desktop)]
-  let window = window
-    .title(app.package_info().name.clone())
-    .maximized(true)
-    .enable_clipboard_access()
-    .inner_size(900.0, 600.0);
-
-  let window = window.build()?;
-
-  window_post_init(&window)?;
-  Ok(window)
-}
-
-trait AppBuilder {
-  fn init(self) -> Self;
-  fn attach_plugins(self) -> Self;
-  fn attach_commands(self) -> Self;
-}
-
 impl<R: Runtime> AppBuilder for Builder<R> {
   fn init(self) -> Self {
-    self.manage(Language::detect_user_language()).setup(|app| {
+    self.setup(|app| {
       app.ipc_scope().configure_remote_access(
         RemoteDomainAccessScope::new("tauri.localhost")
           .add_plugins(["gramaxfs", "shell", "app", "dialog"])
-          .add_window("settings")
+          .add_window("settings"),
       );
 
       build_main_window(app.handle())?;
@@ -142,4 +111,35 @@ impl<R: Runtime> AppBuilder for Builder<R> {
   fn attach_commands(self) -> Self {
     commands::generate_handler(self)
   }
+}
+
+pub fn build_main_window<R: Runtime>(app: &AppHandle<R>) -> Result<Window<R>> {
+  static NEXT_ID: AtomicUsize = AtomicUsize::new(0);
+
+  let window = WindowBuilder::new(
+    app,
+    format!("main_{}", NEXT_ID.fetch_add(1, Ordering::Relaxed)),
+    WindowUrl::App("index.html".into()),
+  )
+  .initialization_script(include_str!("init.js"))
+  .on_navigation(on_navigation)
+  .disable_file_drop_handler();
+
+  #[cfg(any(target_os = "macos", target_os = "linux"))]
+  let window = {
+    let callback = platform::download_callback::DownloadCallback::new();
+    window.on_download(move |w, e| callback.on_download(w, e))
+  };
+
+  #[cfg(desktop)]
+  let window = window
+    .title(app.package_info().name.clone())
+    .maximized(true)
+    .enable_clipboard_access()
+    .inner_size(900.0, 600.0);
+
+  let window = window.build()?;
+
+  window_post_init(&window)?;
+  Ok(window)
 }

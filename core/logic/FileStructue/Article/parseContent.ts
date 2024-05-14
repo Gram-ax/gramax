@@ -24,10 +24,13 @@ async function parseContent(
 	ctx: Context,
 	parser: MarkdownParser,
 	parserContextFactory: ParserContextFactory,
+	initChildLinks = true,
 ) {
 	if (!article) return;
-	if (article.type == ItemType.article && !!article.parsedContent) return;
-	if (article.type == ItemType.category && !!article.parsedContent && !!article.content.trim()) return;
+	if (article.type == ItemType.article && !!article.parsedContent && initChildLinks) return;
+	if (article.type == ItemType.category && !!article.parsedContent && !!article.content.trim() && initChildLinks) {
+		return;
+	}
 
 	try {
 		const context = parserContextFactory.fromArticle(article, catalog, ctx.lang, ctx.user?.isLogged);
@@ -35,7 +38,9 @@ async function parseContent(
 		const filters = new RuleProvider(ctx).getItemFilters();
 		const content =
 			article.type == ItemType.category && !article.content.trim()
-				? getChildLinks(article as Category, catalog, filters)
+				? initChildLinks
+					? getChildLinks(article as Category, catalog, filters)
+					: ""
 				: article.content;
 		article.parsedContent = await parser.parse(content, context);
 	} catch (e) {

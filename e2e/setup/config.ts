@@ -5,7 +5,7 @@ const addr = (b: string) => process.env.URL ?? b;
 
 export default {
 	timeouts: {
-		short: 3000,
+		short: 6000,
 		medium: 15000,
 		long: 20000,
 	},

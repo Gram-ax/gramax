@@ -11,7 +11,7 @@
 	cursor: pointer;
 	font-weight: 300;
 	margin-top: 1rem;
-	border-radius: var(--radius-block);
+	border-radius: var(--radius-normal);
 	width: fit-content;
 	align-items: center;
 	text-decoration: none;
@@ -257,7 +257,7 @@ samp {
 	overflow: auto;
 	padding: 2px 6px;
 	background: var(--color-code-bg);
-	border-radius: var(--radius-block);
+	border-radius: var(--radius-normal);
 	color: var(--color-article-heading-text);
 }
 
@@ -281,7 +281,6 @@ samp {
 .article .icon {
 	vertical-align: middle;
 	font-style: normal;
-	font-family: "Font Awesome 6 Pro", "Font Awesome 6 Brands";
 }
 
 .article .cmd {
@@ -318,7 +317,7 @@ samp {
 	background: var(--color-code-bg);
 	font-size: 85%;
 	box-shadow: inset 0 -1px 0 var(--color-menu-bg);
-	border-radius: 4px;
+	border-radius: var(--radius-normal);
 	text-shadow: 0 1px 0 var(--color-article-text) / 60%;
 }
 
@@ -476,8 +475,7 @@ samp {
 	border-spacing: 0;
 	border-collapse: collapse;
 	display: block;
-	overflow-x: auto;
-	overflow-y: hidden;
+	overflow: scroll;
 }
 
 .article table > thead > tr > th {
@@ -496,6 +494,7 @@ samp {
 .article table > thead > tr > td:first-of-type,
 .article table > thead > tr > th:first-of-type {
 	padding-left: 0;
+	border-left: none !important;
 }
 
 .article table > tbody > tr > td:last-child,
@@ -505,7 +504,7 @@ samp {
 .article table > thead > tr > td:last-child,
 .article table > thead > tr > th:last-child {
 	padding-right: 0;
-	border-right: none;
+	border-right: none !important;
 }
 
 .article table > tbody > tr > td,
@@ -519,6 +518,7 @@ samp {
 	padding: 12px;
 	min-width: 30px;
 	border-right: 1px solid var(--color-line);
+	border-left: 1px solid var(--color-line);
 	border-top: none;
 	border-bottom: none;
 }
@@ -628,7 +628,7 @@ samp {
 	margin-top: 4px;
 	padding: 2.5px 4.5px;
 	position: absolute;
-	border-radius: 4px;
+	border-radius: var(--radius-normal);
 	background: var(--color-article-bg);
 }
 
@@ -637,7 +637,7 @@ samp {
 	padding: 20px;
 	margin: 2em 0;
 	position: relative;
-	border-radius: var(--radius-block);
+	border-radius: var(--radius-normal);
 	background-color: var(--color-diagram-bg);
 }
 
@@ -678,7 +678,6 @@ samp {
 }
 
 .buttonView .button .iconFrame i {
-	margin-top: 2px;
 	align-items: flex-start;
 	justify-content: center;
 	display: flex;

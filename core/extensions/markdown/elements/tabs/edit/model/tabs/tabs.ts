@@ -30,7 +30,7 @@ const Tabs = Node.create({
 			setTabs:
 				() =>
 				({ chain }) => {
-					const tabAttrs = { name: "name", idx: 0 };
+					const tabAttrs = { name: "Вкладка", idx: 0 };
 					return chain().insertContent({
 						type: this.name,
 						attrs: { childAttrs: [tabAttrs] },

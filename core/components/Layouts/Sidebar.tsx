@@ -1,13 +1,16 @@
 import { classNames } from "@components/libs/classNames";
 import styled from "@emotion/styled";
-import { HTMLProps, ReactNode } from "react";
+import { ReactNode } from "react";
 
-interface SidebarProps extends HTMLProps<HTMLDivElement> {
+interface SidebarProps {
 	leftActions?: ReactNode[];
 	rightActions?: ReactNode[];
+	className?: string;
+	title?: string;
+	disable?: boolean;
 }
 
-const Sidebar = styled((props: SidebarProps) => {
+const Sidebar = (props: SidebarProps) => {
 	const { title, leftActions, rightActions, className } = props;
 
 	return (
@@ -17,13 +20,21 @@ const Sidebar = styled((props: SidebarProps) => {
 				<div className="title" title={title}>
 					{title}
 				</div>
-				{leftActions?.length > 0 && rightActions?.length > 0 && (
-					<div className="sidebar-right-actions actions">{rightActions}</div>
-				)}
+				{rightActions?.length > 0 && <div className="sidebar-right-actions actions">{rightActions}</div>}
 			</div>
 		</div>
 	);
-})`
+};
+
+export default styled(Sidebar)`
+	${(p) =>
+		p.disable
+			? `
+	opacity: 0.4;
+	pointer-events: none;
+	`
+			: ""}
+
 	.article-title,
 	.actions {
 		display: flex;
@@ -31,9 +42,6 @@ const Sidebar = styled((props: SidebarProps) => {
 
 	.article-title {
 		gap: 0.5rem;
-	}
-
-	.article-title {
 		align-items: center;
 	}
 
@@ -58,5 +66,3 @@ const Sidebar = styled((props: SidebarProps) => {
 		color: var(--color-primary);
 	}
 `;
-
-export default Sidebar;

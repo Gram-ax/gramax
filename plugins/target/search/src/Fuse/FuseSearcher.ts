@@ -13,7 +13,7 @@ export default class FuseSearcher implements Searcher {
 	} = {
 		nameSimilarityOffset: 0.8,
 		paragraphSimilarityOffset: 0.8,
-		paragraphOffset: 30,
+		paragraphOffset: 60,
 	};
 	private _excludedWordsCount = 0;
 	private _fuses: { [catalogName: string]: Fuse<IndexData> } = {};

@@ -9,7 +9,7 @@ const autoPull = (app: Application) => {
 	const logger = app.logger;
 	if (!process.env.AUTO_PULL_TOKEN) return logger.logWarning("Disabling auto-pull, because token is not set");
 
-	const pullInterval = Number(process.env.AUTO_PULL_INTERVAL ?? DEFAULT_AUTO_PULL_INTERVAL) * 1000;
+	const pullInterval = (Number(process.env.AUTO_PULL_INTERVAL) ?? DEFAULT_AUTO_PULL_INTERVAL) * 1000;
 	logger.logInfo(`Enabled auto-pull with pulling interval: ${pullInterval}`);
 
 	const pullCatalog = async (catalog: CatalogEntry, logger: Logger) => {
@@ -39,9 +39,10 @@ const autoPull = (app: Application) => {
 	const pullCatalogs = async (lib: Library) => {
 		const catalogEntries = Array.from(lib.getCatalogEntries().values());
 		await Promise.all(catalogEntries.map((catalogEntry) => pullCatalog(catalogEntry, logger)));
+		setTimeout(() => void pullCatalogs(app.lib), pullInterval);
 	};
 
-	setInterval(() => void pullCatalogs(app.lib), pullInterval);
+	setTimeout(() => void pullCatalogs(app.lib), pullInterval);
 };
 
 export default autoPull;

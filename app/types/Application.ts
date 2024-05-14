@@ -19,6 +19,7 @@ import MarkdownFormatter from "@ext/markdown/core/edit/logic/Formatter/Formatter
 import AuthManager from "@ext/security/logic/AuthManager";
 import Sso from "@ext/security/logic/AuthProviders/Sso";
 import { TicketManager } from "@ext/security/logic/TicketManager/TicketManager";
+import type { BrowserFileProvider } from "apps/browser/src/logic/FileProvider/BrowserFileProvider";
 
 interface Application {
 	sso: Sso;
@@ -41,6 +42,7 @@ interface Application {
 	parserContextFactory: ParserContextFactory;
 	sitePresenterFactory: SitePresenterFactory;
 	customArticlePresenter: CustomArticlePresenter;
+	obsoleteFp: BrowserFileProvider;
 	conf: {
 		basePath: Path;
 

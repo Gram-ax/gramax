@@ -22,6 +22,8 @@ export default class MdParser {
 	private _backDashRegExp: RegExp;
 	private _backArrowRegExp: RegExp;
 
+	private _listWithAnEmptyItem: RegExp;
+
 	constructor(preParserOptions: MdParserOptions = null) {
 		this._tags = preParserOptions?.tags ?? {};
 		this._escapeDoubleQuotesRegExp = this._createIgnoreRegExp(String.raw`.*?[^\\](").*?`);
@@ -32,12 +34,13 @@ export default class MdParser {
 		this._squareRegExp = this._createIgnoreRegExp(String.raw`\[(.*?)\]`);
 		this._quotesRegExp = this._createIgnoreRegExp(String.raw`[\[({].*?"[^]*?"[\])}].*?|("[^\[\]{}()]*?")`);
 		this._arrowRegExp = this._createIgnoreRegExp(String.raw`\\-->|[^\\\r\n]?(-->)`);
-		this._noteRegExp = this._createIgnoreRegExp(String.raw`:::([^\s]*) *([^\r\n]*)\r?\n([\s\S]*?):::`);
+		this._noteRegExp = this._createIgnoreRegExp(String.raw`(?<!\[.*):::([^\s]*) *([^\r\n]*)\r?\n([\s\S]*?)(?<!\[.*):::`);
 		this._dashRegExp = this._createIgnoreRegExp(String.raw`.?-->.?|\\--|.?--[-]+|[^\\\n\r]?(--)`);
 		this._idRegExp = this._createIgnoreRegExp(String.raw`[[{] ?(#.*?) ?[\]}]`);
 		this._brRegExp = this._createIgnoreRegExp(String.raw`(<br>|<br\/>)`);
 		this._backDashRegExp = this._createIgnoreRegExp(String.raw`(—)`);
 		this._backArrowRegExp = this._createIgnoreRegExp(String.raw`(→)`);
+		this._listWithAnEmptyItem = new RegExp(String.raw`^[ \t]*(?:\d+\.|-)[ \t]*$`, "gm");
 	}
 
 	use(tag: Schema) {
@@ -60,7 +63,14 @@ export default class MdParser {
 
 	backParse(content: string): string {
 		content = this._backdashArrowParser(content);
+		content = this._listParser(content);
 		return content;
+	}
+
+	private _listParser(content: string): string {
+		return content.replaceAll(this._listWithAnEmptyItem, (listItem: string) => {
+			return listItem + "\u00A0";
+		});
 	}
 
 	private _emptyParagraphParser(content: string): string {

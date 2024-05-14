@@ -8,7 +8,7 @@ const NoChangesErrorComponent = (args: ComponentProps<typeof GetErrorComponent>)
 		<InfoModalForm
 			{...args}
 			title={useLocalize("warning")}
-			icon={{ code: "circle-exclamation", color: "var(--color-admonition-note-br-h)" }}
+			icon={{ code: "alert-circle", color: "var(--color-admonition-note-br-h)" }}
 			isError={false}
 		>
 			<span>{useLocalize("noChangesInCatalog")}</span>

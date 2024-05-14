@@ -23,7 +23,7 @@ const useBase64Image = (url: Url) => {
 			setData(`data:${resolveImageKind(base64)};base64,${base64}`);
 		};
 		void loadImage();
-	}, [url.toString()]);
+	}, [url?.toString()]);
 
 	return data;
 };

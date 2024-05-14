@@ -1,12 +1,12 @@
-import ArticlePage from "@components/ArticlePage/ArticlePage";
 import HomePage from "@components/HomePage/HomePage";
+import ArticleViewContainer from "@core-ui/ContextServices/views/articleView/ArticleViewContainer";
 import PageDataContext from "@core/Context/PageDataContext";
 import { ArticlePageData, HomePageData } from "@core/SitePresenter/SitePresenter";
 import localizer from "@ext/localization/core/Localizer";
 import { ApplyPageMiddleware } from "../logic/Api/ApplyMiddleware";
 
 export default function Home({ data, context }: { data: ArticlePageData & HomePageData; context: PageDataContext }) {
-	return context.isArticle ? <ArticlePage data={data}></ArticlePage> : <HomePage data={data}></HomePage>;
+	return context.isArticle ? <ArticleViewContainer /> : <HomePage data={data}></HomePage>;
 }
 
 export function getServerSideProps({ req, res, query }) {

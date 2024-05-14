@@ -38,7 +38,7 @@ const DiagramsMenuGroup = ({ editor }: { editor?: Editor }) => {
 			}
 		>
 			<div>
-				<Button isActive={isActive} disabled={disabled} icon="diagram-project" />
+				<Button isActive={isActive} disabled={disabled} icon="share-2" />
 			</div>
 		</Tooltip>
 	);

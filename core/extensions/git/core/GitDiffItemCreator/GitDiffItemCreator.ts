@@ -117,7 +117,11 @@ export default class GitDiffItemCreator {
 		(await this._gitVersionControl.getChanges())
 			.filter((c) => c.isUntracked)
 			.forEach((c) => {
-				if (ItemExtensions.includes(c.path.allExtensions?.[0] ?? "")) return items.push(c);
+				if (
+					c.path.allExtensions?.length &&
+					ItemExtensions.includes(c.path.allExtensions[c.path.allExtensions.length - 1] ?? "")
+				)
+					return items.push(c);
 				return resources.push(c);
 			});
 

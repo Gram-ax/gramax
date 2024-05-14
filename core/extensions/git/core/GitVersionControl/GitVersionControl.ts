@@ -110,11 +110,11 @@ export default class GitVersionControl {
 	}
 
 	async getHeadCommit(ref?: string | GitBranch | GitStash) {
-		return this._gitRepository.getHeadCommit(ref.toString());
+		return this._gitRepository.getHeadCommit(ref?.toString());
 	}
 
 	async getCommitHash(ref?: string) {
-		return this._gitRepository.getCommitHash(ref.toString());
+		return this._gitRepository.getCommitHash(ref?.toString());
 	}
 
 	async getParentCommitHash(hash: GitVersion) {
@@ -234,7 +234,7 @@ export default class GitVersionControl {
 	}
 
 	async hardReset(head?: GitVersion): Promise<void> {
-		return this._gitRepository.hardReset();
+		return this._gitRepository.hardReset(head);
 	}
 
 	async restore(staged: boolean, filePaths: Path[]): Promise<void> {

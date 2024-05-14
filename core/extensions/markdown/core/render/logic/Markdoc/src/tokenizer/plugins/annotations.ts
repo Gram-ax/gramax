@@ -3,7 +3,7 @@ import type StateCore from "markdown-it/lib/rules_core/state_core";
 import type StateInline from "markdown-it/lib/rules_inline/state_inline";
 import Function from "../../ast/function";
 import Variable from "../../ast/variable";
-import { SyntaxError, parse } from "../../grammar/tag";
+import { parse, type SyntaxError } from "../../grammar/tag";
 import type { AttributeValue, StateBlock, Token } from "../../types";
 import { CLOSE, OPEN, findTagEnd, parseTags } from "../../utils";
 

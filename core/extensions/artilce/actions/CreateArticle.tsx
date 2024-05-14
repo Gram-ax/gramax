@@ -53,7 +53,7 @@ const CreateArticle = (props: CreateArticleProps) => {
 	return (
 		<Tooltip content={content} place={item ? "top" : "right"}>
 			<span className={className} onClick={onClickHandler}>
-				<Icon code="plus" isAction isLoading={isLoading} />
+				<Icon code="plus" viewBox="3 3 18 18" isAction isLoading={isLoading}/>
 			</span>
 		</Tooltip>
 	);

@@ -6,7 +6,13 @@ import linkCreator from "../../link/render/logic/linkCreator";
 export function image(context: ParserContext): Schema {
 	return {
 		render: "Image",
-		attributes: { alt: { type: String }, src: { type: String }, title: { type: String } },
+		attributes: {
+			src: { type: String },
+			alt: { type: String },
+			title: { type: String },
+			crop: { type: String },
+			objects: { type: String },
+		},
 		type: SchemaType.block,
 		transform: async (node: Node, config: Config) => {
 			if (!linkCreator.isExternalLink(node.attributes.src))

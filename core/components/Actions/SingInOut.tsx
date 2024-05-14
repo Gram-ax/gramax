@@ -16,7 +16,7 @@ const SingInOut = styled(({ className }: { className?: string }) => {
 		return (
 			<div className={className}>
 				<a href={apiUrlCreator.getAuthUrl(router).toString()} data-qa="qa-clickable">
-					<ButtonLink iconCode="sign-out" text={useLocalize("singOut")} />
+					<ButtonLink iconCode="log-out" text={useLocalize("singOut")} />
 				</a>
 			</div>
 		);
@@ -37,7 +37,7 @@ const SingInOut = styled(({ className }: { className?: string }) => {
 			<SingInByMail /> */
 			<div>
 				<a href={apiUrlCreator.getAuthUrl(router).toString()} data-qa="qa-clickable">
-					<ButtonLink iconCode="sign-in" text={useLocalize("singIn")} />
+					<ButtonLink iconCode="log-in" text={useLocalize("singIn")} />
 				</a>
 			</div>
 			/* </PopupMenuLayout> */

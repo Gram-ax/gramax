@@ -1,0 +1,95 @@
+_version: 2
+
+menu:
+  new-window:
+    ru: 'Новое окно'
+    en: 'New Window'
+
+  close-window:
+    ru: 'Закрыть окно'
+    en: 'Close Window'
+
+  settings:
+    ru: 'Настройки...'
+    en: 'Settings...'
+
+  quit:
+    ru: 'Закрыть'
+    en: 'Quit'
+
+  hide:
+    ru: 'Скрыть'
+    en: 'Hide'
+
+  about:
+    ru: 'О программе'
+    en: 'About'
+
+  help:
+    ru: 'Справка'
+    en: 'Help'
+
+updates:
+  you-have-actual-ver:
+    title:
+      ru: 'У вас актуальная версия!'
+      en: 'You have actual version!'
+    body:
+      ru: 'Мы сообщим, когда выйдет новая.'
+      en: "We'll let you know when a new one is available."
+
+  new-version:
+    title:
+      ru: 'Gramax стал лучше!'
+      en: 'Gramax just got better!'
+    body:
+      ru: 'Нажмите «Обновить сейчас» и приложение перезапустится.'
+      en: 'Click «Update Now» and the application will restart.'
+
+  update-now:
+    ru: 'Обновить сейчас'
+    en: 'Update Now'
+
+  check:
+    ru: 'Проверить обновления...'
+    en: 'Check for updates...'
+
+  check-in-progress:
+    ru: 'Проверяем...'
+    en: 'Checking...'
+
+  download-in-progress:
+    ru: 'Загружаем...'
+    en: 'Downloading...'
+
+  newer-update-found:
+    ru: 'Найдена более новая версия приложения. Оно будет скачано в фоновом режиме, после чего приложение перезапустится.'
+    en: 'Newer update was found. It will be downloaded in the background, after which the application will restart.'
+
+  error-occured:
+    ru: 'Не удалось обновить приложение'
+    en: 'Failed to update the application'
+
+file-download:
+  title:
+    ru: 'Сохранение файла'
+    en: 'Saving file'
+  body-ok:
+    ru: 'Файл сохранён в загрузках'
+    en: 'File saved in downloads'
+  body-err:
+    ru: 'Не удалось сохранить файл'
+    en: 'Failed to save file'
+
+etc:
+  ok:
+    ru: 'Понятно'
+    en: 'Ok'
+
+  later:
+    ru: 'Позже'
+    en: 'Later'
+
+  try-later:
+    ru: 'Попробуйте позже'
+    en: 'Please try again later'

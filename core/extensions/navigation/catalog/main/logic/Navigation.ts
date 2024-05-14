@@ -61,7 +61,7 @@ export default class Navigation {
 			title: catalog.props[navProps.title] ?? name,
 			query: {},
 			group: catalog.props[navProps.group] ?? GroupsName.company,
-			code: catalog.props[navProps.code] ?? catalog.props[navProps.title] ?? name,
+			code: catalog.props[navProps.code] ?? "",
 			style: catalog.props[navProps.style] ?? null,
 			description: catalog.props[navProps.description] ?? null,
 			order: catalog.props[navProps.order] ?? 999999,

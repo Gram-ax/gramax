@@ -9,7 +9,7 @@ const ModalLayoutDark = styled(
 	font-size: 12px;
 	width: fit-content;
 	color: var(--color-article-bg);
-	border-radius: var(--radius-big-block);
+	border-radius: var(--radius-x-large);
 	background: var(--color-tooltip-background);
 
 	@media print {

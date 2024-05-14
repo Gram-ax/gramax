@@ -11,13 +11,13 @@ const PullPushCounter = styled(
 				{showPullCounter && (
 					<div className="counter">
 						{pullCounter}
-						<Icon code="arrow-down-long"></Icon>
+						<Icon code="move-down" strokeWidth="2.3" viewBox="2 4 20 20"></Icon>
 					</div>
 				)}
 				{showPushCounter && (
 					<div className="counter">
 						{pushCounter}
-						<Icon code="arrow-up-long"></Icon>
+						<Icon code="move-up" strokeWidth="2.3" viewBox="2 0 20 20"></Icon>
 					</div>
 				)}
 			</div>
@@ -30,7 +30,6 @@ const PullPushCounter = styled(
 		display: flex;
 		height: 100%;
 		align-items: center;
-		gap: 1px;
 	}
 	font-size: 10px;
 	i {

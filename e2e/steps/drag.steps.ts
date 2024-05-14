@@ -7,8 +7,11 @@ When("перетаскиваем {string} над {string}", async function (this
 	const target = await this.page().search().lookup(targetName);
 
 	await source.dispatchEvent("dragstart");
+	await sleep(150);
 	await target.dispatchEvent("dragenter");
+	await sleep(150);
 	await target.dispatchEvent("dragover");
-	await sleep(50);
+	await sleep(150);
 	await target.dispatchEvent("drop");
+	await sleep(150);
 });

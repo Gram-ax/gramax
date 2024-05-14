@@ -8,7 +8,7 @@ const TableMenuButton = ({ editor }: { editor: Editor }) => {
 
 	return (
 		<Button
-			icon={"table-cells-large"}
+			icon={"table"}
 			tooltipText={"Таблица"}
 			onClick={() => {
 				if (!readyToPlace(editor, "table")) return false;

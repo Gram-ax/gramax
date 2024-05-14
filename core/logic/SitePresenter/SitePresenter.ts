@@ -194,7 +194,7 @@ export default class SitePresenter {
 			tags: Array.from(tags.values()),
 			tocItems: article?.parsedContent?.tocItems ?? [],
 			errorCode: article.errorCode ?? null,
-			welcome: article.props.welcome,
+			welcome: article.props.welcome ?? null,
 		};
 	}
 

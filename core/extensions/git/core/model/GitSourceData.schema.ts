@@ -10,7 +10,7 @@ interface GitSourceData extends SourceData {
 	/**
 	 * @title GitLab-токен
 	 * @format glpat-aq6PK8sz1eQeKhTy-Dm5
-	 * @description Токен для доступа к удаленным репозиториям. [Подробнее](https://docs.gitlab.com/ee/user/profile/personal_access_tokens.html).
+	 * @description Токен для чтения и изменения репозиториев в хранилище. Укажите для токена права: `api`, `read_repository`, `write_repository`. [Подробнее](https://docs.gitlab.com/ee/user/profile/personal_access_tokens.html).
 	 */
 	token: string;
 	/**

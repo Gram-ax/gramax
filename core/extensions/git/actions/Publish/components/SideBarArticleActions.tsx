@@ -54,7 +54,7 @@ const SideBarArticleActions = (props: SideBarArticleActionsProps) => {
 											distance={5}
 											trigger={
 												<Icon
-													code="arrow-up-right-from-square"
+													code="external-link"
 													style={{ fontSize: "13px", fontWeight: 300 }}
 												/>
 											}

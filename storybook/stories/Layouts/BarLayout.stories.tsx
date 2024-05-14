@@ -24,9 +24,9 @@ export const Bar = ({ height, gap }: { height: number; gap: number }) => {
 	return (
 		<BarLayout height={height} gap={gap}>
 			<>
-				<Icon code="git" />
-				<Icon code="git" />
-				<Icon code="git" />
+				<Icon code="github" />
+				<Icon code="github" />
+				<Icon code="github" />
 			</>
 		</BarLayout>
 	);

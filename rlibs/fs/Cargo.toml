@@ -9,7 +9,7 @@ name = "gramaxfs"
 crate-type = ["staticlib", "rlib"]
 
 [dependencies]
-serde = "1.0"
+serde = { workspace = true }
 thiserror = "1.0"
 copy_dir = "0.1.3"
 log = "0.4.21"

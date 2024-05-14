@@ -1,3 +1,4 @@
+use std::borrow::Cow;
 use std::str::FromStr;
 
 use tauri::menu::*;
@@ -8,7 +9,6 @@ use crate::build_main_window;
 use crate::platform::child_window::ChildWindow;
 use crate::platform::desktop::open_help_docs;
 use crate::platform::desktop::updater::Updater;
-use crate::translation::*;
 
 pub trait MenuBuilder {
   fn setup_menu(&self) -> Result<()>;
@@ -41,6 +41,19 @@ pub enum MenuItemId {
   Refresh,
   ToggleInspector,
   Unknown,
+}
+
+impl MenuItemId {
+  fn translated(&self) -> Cow<str> {
+    match self {
+      MenuItemId::NewWindow => t!("menu.new-window"),
+      MenuItemId::Settings => t!("menu.settings"),
+      MenuItemId::CloseWindow => t!("menu.close-window"),
+      MenuItemId::CheckUpdate => t!("updates.check"),
+      MenuItemId::Help => t!("menu.help"),
+      _ => Cow::Owned("unknown".to_string()),
+    }
+  }
 }
 
 pub fn search_menu<R: Runtime>(menu: &Menu<R>, id: MenuItemId) -> Option<MenuItemKind<R>> {
@@ -103,10 +116,8 @@ fn about_metadata<R: Runtime, M: Manager<R>>(app: &M) -> AboutMetadata {
 }
 
 fn make_menu<R: Runtime>(app: &AppHandle<R>) -> Menu<R> {
-  let language = Language::detect_user_language();
   let build_item = |id: MenuItemId, accelerator: Option<&str>| {
-    let text = language.translate(id.into());
-    let item = MenuItemBuilder::with_id(MenuId(id.as_ref().into()), text);
+    let item = MenuItemBuilder::with_id(MenuId(id.as_ref().into()), id.translated());
     match accelerator {
       Some(accelerator) => item.accelerator(accelerator),
       None => item,
@@ -132,15 +143,11 @@ fn make_menu<R: Runtime>(app: &AppHandle<R>) -> Menu<R> {
       &build_item(Id::NewWindow, Some("CmdOrControl+T")),
       &build_item(Id::Settings, None),
       &build_item(Id::CheckUpdate, None),
-      &PredefinedMenuItem::about(
-        app,
-        Some(&language.translate(Translation::About)),
-        Some(about_metadata(app)),
-      ),
+      &PredefinedMenuItem::about(app, Some(&t!("menu.about")), Some(about_metadata(app))),
       &PredefinedMenuItem::separator(app),
       &build_item(Id::CloseWindow, Some("CmdOrControl+W")),
-      &PredefinedMenuItem::hide(app, Some(&language.translate(Translation::Hide))),
-      &PredefinedMenuItem::quit(app, Some(&language.translate(Translation::Quit))),
+      &PredefinedMenuItem::hide(app, Some(&t!("menu.hide"))),
+      &PredefinedMenuItem::quit(app, Some(&t!("menu.quit"))),
     ])
     .unwrap();
 

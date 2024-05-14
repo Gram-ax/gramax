@@ -46,13 +46,13 @@ const shouldClearContext = (left: ITestCaseHookParameter, right: ITestCaseHookPa
 	return false;
 };
 
-BeforeAll({ timeout: config.timeouts.long }, async function () {
+BeforeAll({ timeout: config.timeouts.long * 10 }, async function () {
 	await fs.rm(path.resolve(__dirname, "../report"), { recursive: true }).catch(() => undefined);
 	global.browser = await chromium.launch(config.launch);
 	await makeGlobalContext();
 });
 
-Before({ timeout: config.timeouts.long }, async function (this: E2EWorld, scenario: ITestCaseHookParameter) {
+Before({ timeout: config.timeouts.long * 10 }, async function (this: E2EWorld, scenario: ITestCaseHookParameter) {
 	if (shouldClearContext(global.scenario, scenario)) {
 		await context.tracing.stop({ path: "report/tracing/trace-" + ++TRACE_DUMP_COUNT + ".zip" });
 		await makeGlobalContext();

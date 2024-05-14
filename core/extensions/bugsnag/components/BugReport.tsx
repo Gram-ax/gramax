@@ -24,7 +24,7 @@ const BugReport = () => {
 				}}
 			>
 				<div>
-					<Icon code={"bug"} faFw={true} />
+					<Icon code={"bug"} />
 					<span>{useLocalize("bugReport")}</span>
 				</div>
 			</a>

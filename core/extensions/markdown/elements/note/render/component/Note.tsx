@@ -12,13 +12,13 @@ export enum NoteType {
 }
 
 export const noteIcons: { [note in NoteType]: string } = {
-	none: "circle-exclamation",
-	lab: "vial",
+	none: "alert-circle",
+	lab: "test-tube-diagonal",
 	tip: "lightbulb",
 	hotfixes: "wrench",
-	info: "info-circle",
-	note: "exclamation-circle",
-	danger: "exclamation-triangle",
+	info: "info",
+	note: "circle-alert",
+	danger: "triangle-alert",
 };
 
 const Note = ({
@@ -35,7 +35,7 @@ const Note = ({
 		<div className={`admonition admonition-${type} admonition-${title ? "column" : "row"}`}>
 			<div className="admonition-heading">
 				<div className="admonition-icon">
-					<Icon code={noteIcons[type]} />
+					<Icon code={noteIcons[type]} strokeWidth="2"/>
 				</div>
 				<h5>{title}</h5>
 			</div>

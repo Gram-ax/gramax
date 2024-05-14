@@ -14,7 +14,6 @@ import { Encoder } from "@ext/Encoder/Encoder";
 import MailProvider from "@ext/MailProvider";
 import ThemeManager from "@ext/Theme/ThemeManager";
 import BlankWatcher from "@ext/Watchers/BlankWatcher";
-import ChokidarWatcher from "@ext/Watchers/ChokidarWatcher";
 import RepositoryProvider from "@ext/git/core/Repository/RepositoryProvider";
 import HtmlParser from "@ext/html/HtmlParser";
 import FSLocalizationRules from "@ext/localization/core/rules/FSLocalizationRules";
@@ -37,7 +36,7 @@ const _init = async (config: AppConfig): Promise<Application> => {
 	const logger: Logger = config.isProduction ? new BugsnagLogger(config.bugsnagApiKey) : new ConsoleLogger();
 	logger.setLogLevel(LogLevel.trace);
 
-	const watcher = config.isProduction ? new ChokidarWatcher() : new BlankWatcher();
+	const watcher = new BlankWatcher(); // config.isProduction ? new ChokidarWatcher() :
 	const fp = new DiskFileProvider(config.paths.root, watcher);
 	await fp.validate();
 
@@ -113,6 +112,7 @@ const _init = async (config: AppConfig): Promise<Application> => {
 		sitePresenterFactory,
 		pluginProvider,
 		customArticlePresenter,
+		obsoleteFp: undefined,
 		conf: {
 			services: config.services,
 

@@ -7,6 +7,8 @@ fn hello(mut cx: FunctionContext) -> JsResult<JsString> {
 
 #[neon::main]
 fn main(mut cx: ModuleContext) -> NeonResult<()> {
+  _ = env_logger::try_init();
+
   cx.export_function("hello", hello)?;
   cx.export_function("add", commands::add)?;
   cx.export_function("add_remote", commands::add_remote)?;

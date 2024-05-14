@@ -12,7 +12,7 @@ const getLogo: Command<{ catalogName: string; themeName: string }, { hashItem: H
 
 		kind: ResponseKind.blob,
 
-		do({ catalogName, themeName: theme }) {
+		async do({ catalogName, themeName: theme }) {
 			const { lib } = this._app;
 			const catalog = lib.getCatalogEntry(catalogName);
 			if (!catalog) return;
@@ -24,8 +24,10 @@ const getLogo: Command<{ catalogName: string; themeName: string }, { hashItem: H
 
 			const path = catalog.getRootCategoryPath().join(new Path(logo));
 			const itemRef: ItemRef = { path, storageId: catalog.getRootCategoryRef().storageId };
-			const hashItem: HashItemRef = new HashItemRef(itemRef, lib);
 
+			if (!(await lib.getFileProvider(itemRef.storageId).exists(itemRef.path))) return;
+
+			const hashItem: HashItemRef = new HashItemRef(itemRef, lib);
 			return { hashItem, mime: MimeTypes[path.extension] ?? path.extension };
 		},
 

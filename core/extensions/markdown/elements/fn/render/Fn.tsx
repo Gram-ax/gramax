@@ -42,7 +42,7 @@ const Fn = ({ code, defaultValues }: { code: string; defaultValues?: string }): 
 		<ModalLayout
 			trigger={
 				<kbd className="active">
-					<Icon code="function" />
+					<Icon code="square-function" />
 					<span>{inputJsonSchema.title}</span>
 				</kbd>
 			}

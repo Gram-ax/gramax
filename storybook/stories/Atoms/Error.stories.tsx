@@ -35,8 +35,8 @@ export const Error: StoryObj<Props> = {
 				title={type === "warning" ? "Предупреждение" : "Ошибка"}
 				icon={
 					type === "warning"
-						? { code: "circle-exclamation", color: "var(--color-admonition-note-br-h)" }
-						: { code: "circle-xmark", color: "var(--color-danger)" }
+						? { code: "alert-circle", color: "var(--color-admonition-note-br-h)" }
+						: { code: "close-circle", color: "var(--color-danger)" }
 				}
 				onCancelClick={function (): void {}}
 			>

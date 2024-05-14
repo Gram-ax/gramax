@@ -2,7 +2,6 @@ import SourceType from "@ext/storage/logic/SourceDataProvider/model/SourceType";
 import git from "isomorphic-git";
 import Path from "../../../../logic/FileProvider/Path/Path";
 import { FileStatus } from "../../../Watchers/model/FileStatus";
-import StatusResult from "../GitCommands/model/StatusResult";
 import { GitStatus } from "../GitWatcher/model/GitStatus";
 
 export class GitDataParser {
@@ -32,46 +31,13 @@ export class GitDataParser {
 		return changeFiles;
 	}
 
-	getStatusChanges(statusResults: StatusResult[], submodulePaths: Path[]): GitStatus[] {
-		const statusMapping: { [statusResult: string]: { type: FileStatus; isUntracked: boolean } } = {
-			"003": { type: FileStatus.delete, isUntracked: true }, // added, staged, deleted unstaged
-			"020": { type: FileStatus.new, isUntracked: true }, // added, unstaged
-			"022": { type: FileStatus.new, isUntracked: false }, // added, staged
-			"023": { type: FileStatus.conflict, isUntracked: true }, // added, staged, with unstaged changes
-			"100": { type: FileStatus.delete, isUntracked: false }, // deleted, staged
-			"101": { type: FileStatus.delete, isUntracked: true }, // deleted, unstaged
-			"103": { type: FileStatus.delete, isUntracked: true }, // deleted unstaged, modified staged
-			"110": { type: FileStatus.current, isUntracked: false }, // not-modified, deleted unstaged
-			"111": null, // unmodified
-			"113": { type: FileStatus.conflict, isUntracked: false }, // not-modified unstaged, modified staged
-			"120": { type: FileStatus.modified, isUntracked: false }, // modified staged, delete unstaged
-			"121": { type: FileStatus.modified, isUntracked: true }, // modified, unstaged
-			"122": { type: FileStatus.modified, isUntracked: false }, // modified, staged
-			"123": { type: FileStatus.modified, isUntracked: true }, // modified, staged, with unstaged changes
-		};
-
-		return statusResults
-			.map((result) => {
-				const statusPath = result.shift() as string;
-				for (const submodulePath of submodulePaths) if (statusPath.startsWith(submodulePath.value)) return;
-				const status = result.join("");
-				if (!statusMapping[status]) return;
-
-				return {
-					path: new Path(statusPath),
-					...statusMapping[status],
-				};
-			})
-			.filter((x) => x);
-	}
-
 	getFileStatus(status: Awaited<ReturnType<typeof git.status>>, filePath: Path): GitStatus {
 		const fileStatusMapping = new Map<
 			Awaited<ReturnType<typeof git.status>>,
 			{ type: FileStatus; isUntracked: boolean }
 		>([
 			["ignored", null],
-			["unmodified", null],
+			["unmodified", { type: FileStatus.current, isUntracked: null }],
 			["*modified", { type: FileStatus.modified, isUntracked: true }],
 			["*deleted", { type: FileStatus.delete, isUntracked: true }],
 			["*added", { type: FileStatus.new, isUntracked: true }],

@@ -12,10 +12,11 @@ import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import IsReadOnlyHOC from "@core-ui/HigherOrderComponent/IsReadOnlyHOC";
 import AddNewBranchListItem from "@ext/git/actions/Branch/components/AddNewBranchListItem";
 import BranchSideBar from "@ext/git/actions/Branch/components/BranchSideBar";
+import DisableTooltipContent from "@ext/git/actions/Branch/components/DisableTooltipContent";
 import MergeBranches from "@ext/git/actions/Branch/components/MergeBranches";
 import getNewBranchNameErrorLocalization from "@ext/git/actions/Branch/components/logic/getNewBranchNameErrorLocalization";
 import validateBranchError from "@ext/git/actions/Branch/components/logic/validateBranchError";
-import GitBranchData from "@ext/git/core/GitBranch/model/GitBranchData";
+import ClientGitBranchData from "@ext/git/actions/Branch/model/ClientGitBranchData";
 import useLocalize from "@ext/localization/useLocalize";
 import { useEffect, useRef, useState } from "react";
 
@@ -43,9 +44,9 @@ const BranchActions = (props: BranchActionsProps) => {
 	const initNewBranchInputRef = useRef<HTMLInputElement>(null);
 
 	const [isNewBranch, setIsNewBranch] = useState(false);
-	const [branches, setBranches] = useState<GitBranchData[]>([]);
+	const [branches, setBranches] = useState<ClientGitBranchData[]>([]);
 
-	const [newBranches, setNewBranches] = useState<GitBranchData[]>([]);
+	const [newBranches, setNewBranches] = useState<ClientGitBranchData[]>([]);
 
 	const [branchToMergeInTo, setBranchToMergeInTo] = useState<string>(null);
 	const [deleteAfterMerge, setDeleteAfterMerge] = useState<boolean>(null);
@@ -68,12 +69,13 @@ const BranchActions = (props: BranchActionsProps) => {
 	const getNewBranches = async () => {
 		setIsLoadingData(true);
 		const getBranchUrl = apiUrlCreator.getVersionControlResetBranchesUrl();
-		const response = await FetchService.fetch<GitBranchData[]>(getBranchUrl);
+		const response = await FetchService.fetch<ClientGitBranchData[]>(getBranchUrl);
 		if (!response.ok) {
 			setIsOpen(false);
 			return;
 		}
-		setNewBranches(await response.json());
+		const a = await response.json();
+		setNewBranches(a);
 		setIsLoadingData(false);
 	};
 
@@ -174,18 +176,22 @@ const BranchActions = (props: BranchActionsProps) => {
 		  ]
 		: undefined;
 
-	const branchListItems: ListItem[] = [
-		...branches.map((b) => {
+	const getBranchListItems = (disableBranchesSameAsHead: boolean): ListItem[] => [
+		...branches.map((b): ListItem => {
+			const disable = disableBranchesSameAsHead ? b.branchHashSameAsHead : false;
 			return {
 				element: (
 					<BranchSideBar
 						name={b.name}
-						iconCode={b.remoteName ? "cloud" : "desktop"}
+						iconCode={b.remoteName ? "cloud" : "monitor"}
 						tooltipContent={b.remoteName ? useLocalize("remote", lang) : useLocalize("local", lang)}
 						data={{ lastCommitAuthor: b.lastCommitAuthor, lastCommitModify: b.lastCommitModify }}
+						disable={disable}
 					/>
 				),
 				labelField: b.name,
+				disable,
+				tooltipDisabledContent: <DisableTooltipContent branch={currentBranch} />,
 			};
 		}),
 	];
@@ -256,7 +262,7 @@ const BranchActions = (props: BranchActionsProps) => {
 									}}
 									item={isInitNewBranch ? useLocalize("addNewBranch", lang) : undefined}
 									buttons={addNewBranchListItem}
-									items={branchListItems}
+									items={getBranchListItems(false)}
 									onItemClick={(elem) => {
 										setDisplayedBranch(elem ?? currentBranch);
 									}}
@@ -297,7 +303,7 @@ const BranchActions = (props: BranchActionsProps) => {
 									onDeleteAfterMergeChange={(value) => setDeleteAfterMerge(value)}
 									currentBranch={currentBranch}
 									isLoadingData={isLoadingData}
-									branches={branchListItems}
+									branches={getBranchListItems(true)}
 								/>
 							</IsReadOnlyHOC>
 						</fieldset>

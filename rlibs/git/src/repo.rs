@@ -26,7 +26,12 @@ impl<C: Creds> Repo<C> {
 
   pub fn open<P: AsRef<Path>>(path: P, creds: C) -> Result<Self> {
     let repo = git2::Repository::open(path)?;
-    repo.config()?.set_bool("core.fileMode", false)?;
+
+    #[cfg(target_family = "wasm")]
+    if repo.config()?.get_bool("core.fileMode")? {
+      repo.config()?.set_bool("core.fileMode", false)?;
+    }
+
     Ok(Self(repo, creds))
   }
 

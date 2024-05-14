@@ -37,7 +37,7 @@ const Tree = ({
 					<LevNavItem
 						onClick={closeNavigation}
 						level={level}
-						leftExtensions={[<Icon key={0} code="ellipsis-h" />]}
+						leftExtensions={[<Icon key={0} code="ellipsis" />]}
 					/>
 				</li>
 			) : null}

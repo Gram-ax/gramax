@@ -39,6 +39,8 @@ const Welcome = ({ title, body, actions, ...props }: WelcomeProps) => {
 const WelcomeStyled = styled(Welcome)`
 	height: inherit;
 	max-width: 50rem;
+	width: 100%;
+
 	align-items: center;
 	justify-content: center;
 	display: flex;
@@ -49,12 +51,12 @@ const WelcomeStyled = styled(Welcome)`
 	}
 
 	h2 {
-		margin-top: 0px !important;
+		margin-top: 0 !important;
 		line-height: 1;
 	}
 
 	ul {
-		margin: 0px;
+		margin: 0;
 	}
 
 	${(p) =>
@@ -68,7 +70,7 @@ const WelcomeStyled = styled(Welcome)`
 	}
 
 	> div {
-		border-radius: var(--radius-small);
+		border-radius: var(--radius-normal);
 		border: 1px solid rgba(0, 0, 0, 0.1);
 		overflow: hidden;
 		margin: auto;
@@ -80,6 +82,7 @@ const WelcomeStyled = styled(Welcome)`
 	}
 
 	${cssMedia.medium} {
+		min-width: 0;
 		> div {
 			width: 100%;
 		}

@@ -5,7 +5,7 @@ const openChildWindow = async ({ url, redirect }: { url: string; redirect: strin
 	const dummy = { onLoadApp: undefined, focus: () => {} };
 	await once("on_done", (ev) => dummy.onLoadApp({ search: "?" + (ev.payload as string) }));
 	if (redirect) {
-		await invoke("http_listen_one", {
+		await invoke("http_listen_once", {
 			url: url.replace(/\?redirect=.*$/, `?redirect=${encodeURIComponent("http://localhost:52054")}`),
 			redirect,
 			callbackName: "on_done",

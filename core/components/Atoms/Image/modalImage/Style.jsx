@@ -73,6 +73,22 @@ const Styles = styled(({ className = "", children, imageBackgroundColor, noneSha
 		background-color: rgba(0, 0, 0, 0.7);
 		overflow: hidden;
 	}
+	.__react_modal_image__container {
+		position: relative;
+		transform: translateX(-50%) translateY(-50%);
+	}
+	.__react_modal_image__objects {
+		font-size: 16px !important;
+		position: absolute;
+		display: block;
+		top: 50%;
+		left: 50%;
+		transform: translateX(-50%) translateY(-50%);
+		width: 100%;
+		height: 100%;
+		z-index: 0;
+		margin: 0 auto;
+	}
 `;
 
 export default Styles;

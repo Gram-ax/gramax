@@ -63,7 +63,7 @@ const C4Render = styled(
 				>
 					{isHover ? (
 						<div className="hover-right-button" onClick={() => setIsFull(!isFull)}>
-							<Icon code={isFull ? "compress" : "expand"} isAction={true} />
+							<Icon code={isFull ? "minimize" : "maximize"} isAction={true} />
 						</div>
 					) : null}
 					<div className="c4-breadcrumb">

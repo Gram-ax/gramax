@@ -1,9 +1,10 @@
-import CommentCounterService from "@core-ui/ContextServices/CommentCounter";
-import { Editor } from "@tiptap/core";
-import { Mark } from "@tiptap/pm/model";
 import { EditorContent, Extensions, JSONContent, useEditor } from "@tiptap/react";
+import CommentCounterService from "@core-ui/ContextServices/CommentCounter";
+import ArticleMat from "@ext/markdown/core/edit/components/ArticleMat";
 import { Node, Slice } from "prosemirror-model";
 import { EditorView } from "prosemirror-view";
+import { Mark } from "@tiptap/pm/model";
+import { Editor } from "@tiptap/core";
 import { DependencyList } from "react";
 import ApiUrlCreatorService from "../../../../../ui-logic/ContextServices/ApiUrlCreator";
 import ArticlePropsService from "../../../../../ui-logic/ContextServices/ArticleProps";
@@ -87,10 +88,13 @@ const ContentEditor = (props: ContentEditorProps) => {
 	);
 
 	return (
-		<ContextWrapper editor={editor}>
-			{articleIsEdit && <Menu editor={editor} id={ContentEditorId} />}
-			<EditorContent editor={editor} />
-		</ContextWrapper>
+		<>
+			<ContextWrapper editor={editor}>
+				{articleIsEdit && <Menu editor={editor} id={ContentEditorId} />}
+				<EditorContent editor={editor} />
+			</ContextWrapper>
+			<ArticleMat editor={editor} />
+		</>
 	);
 };
 

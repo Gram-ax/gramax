@@ -1,3 +1,4 @@
+import { NEW_ARTICLE_REGEX } from "@app/config/const";
 import Button from "@components/Atoms/Button/Button";
 import { ButtonStyle } from "@components/Atoms/Button/ButtonStyle";
 import Input from "@components/Atoms/Input";
@@ -11,9 +12,11 @@ import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import ArticlePropsService from "@core-ui/ContextServices/ArticleProps";
 import IsEditService from "@core-ui/ContextServices/IsEdit";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
+import { transliterate } from "@core-ui/languageConverter/transliterate";
 import { Router } from "@core/Api/Router";
 import { useRouter } from "@core/Api/useRouter";
 import { ClientArticleProps } from "@core/SitePresenter/SitePresenter";
+import { uniqueName } from "@core/utils/uniqueName";
 import { getHeaderRef } from "@ext/artilce/actions/HeaderEditor";
 import { ItemLink } from "@ext/navigation/NavigationLinks";
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
@@ -40,6 +43,8 @@ const PropsEditor = (props: PropsEditorProps) => {
 	const [isOpen, setIsOpen] = useState(false);
 	const [itemProps, setItemProps] = useState<ClientArticleProps>();
 
+	const [generatedFileName, setGeneratedFileName] = useState<string>();
+
 	useEffect(() => {
 		setParentCategoryLink(domain + "/" + item?.logicPath.replace(/[^/]*$/, ""));
 		setItemProps(item);
@@ -60,6 +65,8 @@ const PropsEditor = (props: PropsEditorProps) => {
 
 	const save = async () => {
 		if (getErrorText()) return;
+		if (generatedFileName) itemProps.fileName = generatedFileName;
+		ArticlePropsService.set(itemProps);
 		const response = await FetchService.fetch(
 			apiUrlCreator.updateItemProps(),
 			JSON.stringify(itemProps),
@@ -73,16 +80,17 @@ const PropsEditor = (props: PropsEditorProps) => {
 	if (!isEdit) return null;
 
 	const getErrorText = () => {
-		if (!itemProps?.fileName) return useLocalize("mustBeNotEmpty");
-		if (brotherFileNames?.includes(itemProps?.fileName)) return useLocalize("cantBeSameName");
-		if (!/^[\w\d\-_]+$/m.test(itemProps?.fileName)) return useLocalize("noEncodingSymbolsInUrl");
+		const fileName = generatedFileName ?? itemProps?.fileName;
+		if (!fileName) return useLocalize("mustBeNotEmpty");
+		if (brotherFileNames?.includes(fileName)) return useLocalize("cantBeSameName");
+		if (!/^[\w\d\-_]+$/m.test(fileName)) return useLocalize("noEncodingSymbolsInUrl");
 		return null;
 	};
 
 	return (
 		<ModalLayout
 			isOpen={isOpen}
-			trigger={<ButtonLink iconCode="pen" text={useLocalize("properties") + "..."} />}
+			trigger={<ButtonLink fullWidth iconCode="pencil" text={useLocalize("properties") + "..."} />}
 			contentWidth={"S"}
 			onCmdEnter={save}
 			onOpen={() => setIsOpen(true)}
@@ -100,6 +108,14 @@ const PropsEditor = (props: PropsEditorProps) => {
 								value={itemProps?.title}
 								onChange={(e) => {
 									itemProps.title = itemLink.title = e.target.value ?? "";
+									if (itemProps.title && NEW_ARTICLE_REGEX.test(itemProps.fileName)) {
+										setGeneratedFileName(
+											uniqueName(
+												transliterate(itemProps.title, { kebab: true, maxLength: 50 }),
+												brotherFileNames,
+											),
+										);
+									}
 									setItemLink({ ...itemLink });
 									setItemProps({ ...itemProps });
 									if (isCurrentItem) ArticlePropsService.set(itemProps);
@@ -118,14 +134,13 @@ const PropsEditor = (props: PropsEditorProps) => {
 							<Input
 								dataQa="URL"
 								isCode
-								value={itemProps?.fileName}
+								value={generatedFileName ?? itemProps?.fileName}
 								startText={parentCategoryLink}
 								endText={"/"}
 								errorText={getErrorText()}
 								onChange={(e) => {
-									const inputValue = e.target.value ?? "";
-
-									itemProps.fileName = inputValue;
+									setGeneratedFileName(undefined);
+									itemProps.fileName = e.target.value ?? "";
 									setItemProps({ ...itemProps });
 									if (isCurrentItem) ArticlePropsService.set(itemProps);
 								}}

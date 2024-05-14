@@ -1,12 +1,8 @@
 import ErrorType from "../model/ErrorTypes";
 
 export default class DefaultError extends Error {
-	constructor(
-		message: string,
-		cause?: Error,
-		protected _props?: { [key: string]: any } & { errorCode?: string },
-	) {
-		super(message, { cause });
+	constructor(message: string, cause?: Error, protected _props?: { [key: string]: any } & { errorCode?: string }) {
+		super(message ?? cause?.message, { cause });
 	}
 
 	setProps(props: { [key: string]: any }): void {

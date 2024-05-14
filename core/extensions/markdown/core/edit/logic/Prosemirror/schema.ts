@@ -16,7 +16,7 @@ import error from "@ext/markdown/elements/error/editor/model/errorSchema";
 import code_block from "@ext/markdown/elements/fence/edit/model/codeBlockSchema";
 import heading from "@ext/markdown/elements/heading/edit/model/headingSchema";
 import horizontal_rule from "@ext/markdown/elements/hr/edit/model/hrSchema";
-import image from "@ext/markdown/elements/image/edit/model/imageSchema";
+import imageSchema from "@ext/markdown/elements/image/edit/model/imageSchema";
 import link from "@ext/markdown/elements/link/edit/model/linkSchema";
 import * as listSchema from "@ext/markdown/elements/list/edit/models/listSchema";
 import * as blockMd from "@ext/markdown/elements/md/model/blockMdSchema";
@@ -24,7 +24,6 @@ import inlineMd_component from "@ext/markdown/elements/md/model/inlineMdSchema";
 import note from "@ext/markdown/elements/note/edit/model/noteSchema";
 import openapi from "@ext/markdown/elements/openApi/edit/models/openApiSchema";
 import paragraphSchema from "@ext/markdown/elements/paragraph/editor/model/paragraphSchema";
-import paragraph from "@ext/markdown/elements/paragraph/editor/model/paragraphSchema";
 import snippetSchema from "@ext/markdown/elements/snippet/edit/model/snippetSchema";
 import style_wrapper from "@ext/markdown/elements/styleWrapper/model/styleWrapperSchema";
 import * as table_simple from "@ext/markdown/elements/table/edit/model/simpleTableSchema";
@@ -62,7 +61,7 @@ export const schema = new Schema({
 		"ts-diagram": tsDiagram,
 
 		video,
-		image,
+		image: imageSchema,
 		drawio,
 
 		cut,

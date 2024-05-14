@@ -5,7 +5,7 @@
 	white-space: inherit;
 	outline-color: initial;
 	font-variant-ligatures: none;
-	outline-width: 0px !important;
+	outline-width: 0 !important;
 	font-feature-settings: "liga" 0;
 	-webkit-font-variant-ligatures: none;
 }
@@ -28,6 +28,10 @@
 	cursor: text !important;
 }
 
+.ProseMirror p:empty::after {
+	content: "\00A0" !important;
+}
+
 .ProseMirror li {
 	position: relative;
 }
@@ -42,7 +46,7 @@
 
 .ProseMirror comment-react-component {
 	cursor: pointer;
-	border-radius: 4px;
+	border-radius: var(--radius-normal);
 	background: var(--color-comment-bg);
 }
 
@@ -97,7 +101,6 @@
 	min-width: 1em;
 	position: relative;
 	vertical-align: top !important;
-	border: 1px solid var(--color-line) !important;
 	border-left: 1px solid var(--color-line) !important;
 	border-right: 1px solid var(--color-line) !important;
 }
@@ -160,8 +163,11 @@
 	overflow-x: auto;
 }
 
+.tableWrapper table {
+	overflow: unset !important;
+}
+
 .resize-cursor {
-	cursor: ew-resize;
 	cursor: col-resize;
 }
 
@@ -178,11 +184,9 @@
 }
 
 .ProseMirror gr-file::before {
-	content: "\f319";
-	color: var(--color-link);
-	font-family: "Font Awesome 6 Pro";
-	margin-left: var(--distance-i-span-min);
-	margin-right: var(--distance-i-span-min);
+	content: var(--content-file-plus);
+	vertical-align: text-bottom;
+	line-height: 1;
 }
 
 @media print {

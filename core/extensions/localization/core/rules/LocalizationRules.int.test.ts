@@ -14,13 +14,17 @@ const getLocalizationRulesData = async () => {
 	const articleTestCatalog = await app.lib.getCatalog("RulseArticleTestCatalog");
 
 	const articleItemRef = getItemRef(articleTestCatalog, "category/testRules_en.md");
+	const articleRuItemRef = getItemRef(articleTestCatalog, "category/testRules.md");
 	const indexArticleItemRef = getItemRef(articleTestCatalog, "category/_index_en.md");
+	const indexArticleRuItemRef = getItemRef(articleTestCatalog, "category/_index.md");
 
 	return {
 		nav,
 		lr,
 		articleItemRef,
+		articleRuItemRef,
 		indexArticleItemRef,
+		indexArticleRuItemRef,
 		articleTestCatalog,
 		catalogTestCatalog,
 	};
@@ -29,21 +33,21 @@ const getLocalizationRulesData = async () => {
 describe("Localization Rules правильно фильтрует", () => {
 	describe("item", () => {
 		test("category", async () => {
-			const { nav, lr, indexArticleItemRef, articleTestCatalog } = await getLocalizationRulesData();
+			const { nav, lr, indexArticleRuItemRef, articleTestCatalog } = await getLocalizationRulesData();
 
 			const filter = lr.getNavRules().itemRule;
-			const item = articleTestCatalog.findCategoryByItemRef(indexArticleItemRef);
+			const item = articleTestCatalog.findCategoryByItemRef(indexArticleRuItemRef);
 			const itemLink = (await nav.getCatalogNav(articleTestCatalog, item.logicPath))[0];
-			expect(filter(articleTestCatalog, item, itemLink)).toEqual(false);
+			expect(filter(articleTestCatalog, item, itemLink)).toEqual(true);
 		});
 
 		test("article", async () => {
-			const { nav, lr, articleItemRef, articleTestCatalog } = await getLocalizationRulesData();
+			const { nav, lr, articleRuItemRef, articleTestCatalog } = await getLocalizationRulesData();
 			const filter = lr.getNavRules().itemRule;
-			const item = articleTestCatalog.findArticleByItemRef(articleItemRef);
+			const item = articleTestCatalog.findArticleByItemRef(articleRuItemRef);
 			const itemLink = (await nav.getCatalogNav(articleTestCatalog, item.logicPath))[0];
 
-			expect(filter(articleTestCatalog, item, itemLink)).toEqual(false);
+			expect(filter(articleTestCatalog, item, itemLink)).toEqual(true);
 		});
 	});
 
@@ -56,10 +60,10 @@ describe("Localization Rules правильно фильтрует", () => {
 	});
 
 	test("article", async () => {
-		const { lr, articleItemRef, articleTestCatalog } = await getLocalizationRulesData();
+		const { lr, articleRuItemRef, articleTestCatalog } = await getLocalizationRulesData();
 		const filter = lr.getItemFilter();
-		const article = articleTestCatalog.findArticleByItemRef(articleItemRef);
+		const article = articleTestCatalog.findArticleByItemRef(articleRuItemRef);
 
-		expect(filter(article, articleTestCatalog)).toEqual(false);
+		expect(filter(article, articleTestCatalog)).toEqual(true);
 	});
 });

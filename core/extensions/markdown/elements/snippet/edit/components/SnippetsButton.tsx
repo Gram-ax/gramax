@@ -45,7 +45,13 @@ const SnippetsButton = ({ editor, className }: { editor: Editor; className?: str
 		const res = await FetchService.fetch<SnippetRenderData>(apiUrlCreator.getSnippetRenderData(snippetData.id));
 		if (!res.ok) return;
 		const data = await res.json();
+		const focusBefore = editor.state.selection.anchor;
 		editor.commands.setSnippet(data);
+		editor.commands.focus(focusBefore);
+	};
+
+	const focusEditor = () => {
+		editor.commands.focus(editor.state.selection.anchor);
 	};
 
 	useEffect(() => {
@@ -68,12 +74,14 @@ const SnippetsButton = ({ editor, className }: { editor: Editor; className?: str
 	}, [isTooltipOpen]);
 
 	const button = (
-		<Button
-			icon="tarp"
-			tooltipText={isTooltipOpen ? undefined : snippetText}
-			onClick={() => setIsTooltipOpen(true)}
-			nodeValues={{ action: "snippet" }}
-		/>
+		<div data-qa="qa-snippets">
+			<Button
+				icon="sticky-note"
+				tooltipText={isTooltipOpen ? undefined : snippetText}
+				onClick={() => setIsTooltipOpen(true)}
+				nodeValues={{ action: "snippet" }}
+			/>
+		</div>
 	);
 	if (!isTooltipOpen) return button;
 
@@ -94,7 +102,7 @@ const SnippetsButton = ({ editor, className }: { editor: Editor; className?: str
 								buttons={[
 									{
 										element: (
-											<div style={{ width: "100%" }}>
+											<div style={{ width: "100%" }} data-qa="qa-clickable">
 												{LinkItemSidebar(addNewSnippetText, "plus")}
 												<Divider
 													style={{ background: "var(--color-edit-menu-button-active-bg)" }}
@@ -107,9 +115,12 @@ const SnippetsButton = ({ editor, className }: { editor: Editor; className?: str
 												ModalToOpen.SnippetEditor,
 												{
 													type: "create",
+													snippetsListIds: snippetsList.map((s) => s.id),
 													onSave: createSnippet,
 													onClose: () => {
-														ModalToOpenService.resetValue();
+														focusEditor();
+														if (ModalToOpenService.value === ModalToOpen.SnippetEditor)
+															ModalToOpenService.resetValue();
 													},
 												},
 											);
@@ -124,7 +135,11 @@ const SnippetsButton = ({ editor, className }: { editor: Editor; className?: str
 								items={snippetsList.map((s) => ({
 									labelField: s.title,
 									element: (
-										<SnippetListElement snippet={s} onEditClick={() => setIsTooltipOpen(false)} />
+										<SnippetListElement
+											snippet={s}
+											onEditClick={() => setIsTooltipOpen(false)}
+											onClose={focusEditor}
+										/>
 									),
 								}))}
 								onItemClick={async (_, __, idx) => {
@@ -135,6 +150,7 @@ const SnippetsButton = ({ editor, className }: { editor: Editor; className?: str
 									if (!res.ok) return;
 									const data = await res.json();
 									editor.commands.setSnippet(data);
+									focusEditor();
 								}}
 							/>
 						</StyledDiv>
@@ -152,11 +168,13 @@ export default styled(SnippetsButton)`
 	margin-top: 4px;
 	min-width: 238px;
 	margin-left: -9px;
-	border-radius: var(--radius-big-block);
+	border-radius: var(--radius-x-large);
 	background: var(--color-tooltip-background);
+
 	.item {
 		color: var(--color-article-bg);
 	}
+
 	.item,
 	.breadcrumb {
 		.link {

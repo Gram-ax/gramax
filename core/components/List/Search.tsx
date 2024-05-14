@@ -61,7 +61,7 @@ const Search = forwardRef((props: SearchProps, ref: ForwardedRef<SearchElement>)
 			<div className="list-search" ref={searchRef}>
 				{icon && (
 					<div className="left-icon">
-						<Icon faFw code={icon} />
+						<Icon code={icon} />
 					</div>
 				)}
 				<div className="list-input" onClick={onClick}>
@@ -82,6 +82,7 @@ const Search = forwardRef((props: SearchProps, ref: ForwardedRef<SearchElement>)
 				<div className="chevron-icon" onClick={onChevronClick} ref={chevronRef}>
 					<Icon
 						code={`chevron-${isOpen ? "up" : "down"}`}
+						viewBox="3 3 18 18"
 						style={{
 							fontSize: "10px",
 							fontWeight: 300,
@@ -109,7 +110,7 @@ export default styled(Search)`
 	font-size: 14px;
 	font-weight: 300;
 	padding: 6px 12px;
-	border-radius: 4px;
+	border-radius: var(--radius-normal);
 	background: var(--color-code-bg);
 	color: var(--color-article-heading-text);`
 			: ""}

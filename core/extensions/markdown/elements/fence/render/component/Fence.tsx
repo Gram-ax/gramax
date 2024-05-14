@@ -9,8 +9,8 @@ import { HTMLProps, useState } from "react";
 import useLocalize from "../../../../../localization/useLocalize";
 import ThemeService from "../../../../../Theme/components/ThemeService";
 
-import { gherkin } from "../logic/prism-gherkin";
 import Theme from "@ext/Theme/Theme";
+import { gherkin } from "../logic/prism-gherkin";
 
 const Fence = styled(
 	({ className, value, overflow, ...props }: HTMLProps<HTMLElement> & { overflow?: Property.Overflow }) => {
@@ -50,7 +50,7 @@ const Fence = styled(
 							{coppedIsExpanded ? (
 								<Tooltip content={!copped ? clickToCopyText : copiedText}>
 									<div className="hover-right-button" onClick={coppedText}>
-										<Icon code={!copped ? "copy" : "check"} faFw={true} />
+										<Icon code={!copped ? "copy" : "check"} />
 									</div>
 								</Tooltip>
 							) : null}
@@ -72,10 +72,10 @@ const Fence = styled(
 				)}
 			</Highlight>
 		);
-	}
+	},
 )`
 	background: var(--color-code-bg) !important;
-	border-radius: var(--radius-block);
+	border-radius: var(--radius-normal);
 
 	*::-webkit-scrollbar {
 		height: var(--scroll-width);

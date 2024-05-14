@@ -8,6 +8,7 @@ import { HTMLAttributes, useState } from "react";
 import useLocalize from "../../../extensions/localization/useLocalize";
 import Link from "../../Atoms/Link";
 import GroupsName from "./model/GroupsName";
+import { getExecutingEnvironment } from "@app/resolveModule/env";
 
 const ProductCard = ({ link, ...props }: { link: CatalogLink } & HTMLAttributes<HTMLAnchorElement>) => {
 	const apiUrlCreator = ApiUrlCreatorService.value;
@@ -18,8 +19,9 @@ const ProductCard = ({ link, ...props }: { link: CatalogLink } & HTMLAttributes<
 		<Link
 			{...props}
 			href={Url.from(link)}
-			onClick={(e) => {
-				props.onClick?.(e);
+			onClick={(ev) => {
+				if (getExecutingEnvironment() == "next" || ev.currentTarget.target === "_blank") return;
+				props.onClick?.(ev);
 				setIsLoading(true);
 			}}
 		>
@@ -35,7 +37,7 @@ const ProductCard = ({ link, ...props }: { link: CatalogLink } & HTMLAttributes<
 						<div className={`catalog-title ${"gradient-" + link.style}`}>
 							{link.code.length <= 4 ? link.code : link.code.slice(0, 3) + "..."}
 						</div>
-						<div className="catalog-title-logo" style={{ backgroundImage: `url(${logo})` }} />
+						<div className="catalog-title-logo" style={logo && { backgroundImage: `url(${logo})` }} />
 					</div>
 					<div title={link.description} className="catalog-texts">
 						<div className="catalog-text-logo">{link.title}</div>

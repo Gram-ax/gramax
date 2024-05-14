@@ -179,42 +179,52 @@ const DbDiagram = styled(
 	.svg {
 		max-width: 780px;
 	}
+
 	svg a {
 		text-decoration: none;
 		cursor: default;
 		outline: none;
 	}
+
 	svg .title {
 		font: bold 30px "Open Sans", sans-serif;
 	}
+
 	svg .titleBlock {
 		cursor: pointer;
 	}
+
 	svg .titleBlock:hover {
 		text-decoration: underline;
 	}
+
 	svg .field {
 		font: 25px "Open Sans", sans-serif;
 	}
+
 	svg .key {
 		font-weight: bold;
 	}
+
 	svg .notNullable {
 		font: 25px "Open Sans", sans-serif;
 	}
+
 	svg.highlight > * {
 		opacity: 0.5;
 	}
+
 	svg.highlight > .highlight {
 		opacity: 1;
 	}
+
 	.scroll {
 		padding: 20px;
 		overflow-y: auto;
 		max-height: 600px;
 		color: var(--color-article-text);
 		background: var(--color-article-bg);
-		border-radius: var(--radius-small);
+		border-radius: var(--radius-normal);
 		box-shadow: 0 0 4px var(--color-shadows-scroll);
 	}
 `;

@@ -17,7 +17,7 @@ const SmallBranchInfo = styled(
 				}
 			>
 				<div className={className}>
-					<Icon code="circle-exclamation"></Icon>
+					<Icon code="circle-alert"></Icon>
 				</div>
 			</Tooltip>
 		);

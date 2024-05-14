@@ -16,7 +16,7 @@ const abort: Command<{ ctx: Context; catalogName: string; stashHash: string }, v
 	async do({ ctx, catalogName, stashHash }) {
 		const { lib, rp } = this._app;
 		const catalog = await lib.getCatalog(catalogName);
-		if (!catalog) return;
+		if (!catalog || !stashHash) return;
 		const storage = catalog.repo.storage;
 		if (!storage) return;
 		const fp = lib.getFileProviderByCatalog(catalog);

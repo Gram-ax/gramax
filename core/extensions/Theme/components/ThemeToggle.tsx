@@ -12,7 +12,7 @@ const ThemeToggle = ({ className }: { className?: string }) => {
 		<ButtonLink
 			className={className}
 			onClick={() => ThemeService.toggleTheme(apiUrlCreator)}
-			iconCode={theme == Theme.dark ? "moon" : "sun-bright"}
+			iconCode={theme == Theme.dark ? "moon" : "sun"}
 			text={useLocalize("theme")}
 		/>
 	);

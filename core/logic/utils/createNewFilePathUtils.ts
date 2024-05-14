@@ -1,16 +1,15 @@
-import { CATEGORY_ROOT_FILENAME } from "@core/FileStructue/FileStructure";
+import { CATEGORY_ROOT_FILENAME, NEW_ARTICLE_FILENAME, UNIQUE_NAME_SEPARATOR, UNIQUE_NAME_START_IDX } from "@app/config/const";
 import Path from "../FileProvider/Path/Path";
 
+
 const createNewFilePathUtils = {
-	create(basePath: Path, brothers: Path[], baseFileName = "new_article_", extension = ".md"): Path {
-		let idx = 0;
-		let path: Path;
-		let pathIsExist = false;
-		do {
-			path = basePath.parentDirectoryPath.join(new Path(baseFileName + idx + extension));
-			pathIsExist = createNewFilePathUtils.pathIsExist(path, brothers);
+	create(basePath: Path, brothers: Path[], baseFileName = NEW_ARTICLE_FILENAME, extension = ".md"): Path {
+		let idx = UNIQUE_NAME_START_IDX;
+		let path = basePath.parentDirectoryPath.join(new Path(baseFileName + extension));
+		while (createNewFilePathUtils.pathIsExist(path, brothers)) {
+			path = basePath.parentDirectoryPath.join(new Path(baseFileName + UNIQUE_NAME_SEPARATOR + idx + extension));
 			idx++;
-		} while (pathIsExist);
+		}
 		return path;
 	},
 
@@ -28,7 +27,7 @@ const createNewFilePathUtils = {
 
 		if (brothers) {
 			if (createNewFilePathUtils.pathIsExist(path, brothers))
-				path = createNewFilePathUtils.create(basePath, brothers, path.name + "_", extension);
+				path = createNewFilePathUtils.create(basePath, brothers, path.name, extension);
 			else path = null;
 		}
 

@@ -5,7 +5,7 @@ const BlockquoteMenuButton = ({ editor }: { editor: Editor }) => {
 	return (
 		<Button
 			onClick={() => editor.chain().focus().toggleBlockquote().run()}
-			icon={"block-quote"}
+			icon={"text-quote"}
 			nodeValues={{ action: "blockquote" }}
 			tooltipText={"Цитата"}
 		/>

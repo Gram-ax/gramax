@@ -25,14 +25,14 @@ export const useGetArticleLinks = (): TitledLink[] => {
 
 	if (catalogProps.contactEmail)
 		links.push({
-			icon: "envelope",
+			icon: "mail",
 			title: useLocalize("commentsToArticle"),
 			url: feedbackLink(catalogProps.contactEmail, articleProps.logicPath, catalogProps.repositoryName),
 		});
 
 	if (!isServerApp && !isReadOnly && !catalogProps.readOnly && !isReview && getExecutingEnvironment() == "tauri") {
 		links.push({
-			icon: "display-code",
+			icon: "square-code",
 			title: useLocalize("editOn") + " VS Code",
 			onClick: () => void FetchService.fetch(apiUrlCreator.getRedirectVScodeUrl()),
 		});

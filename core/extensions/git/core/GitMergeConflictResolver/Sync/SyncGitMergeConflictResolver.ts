@@ -25,6 +25,6 @@ export default class SyncGitMergeConflictResolver {
 				await this._gitVersionControl.restore(true, [new Path(file.path)]);
 			}),
 		);
-		await this._gitVersionControl.deleteStash(stashHash);
+		if (stashHash) await this._gitVersionControl.deleteStash(stashHash);
 	}
 }

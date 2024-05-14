@@ -1,11 +1,9 @@
-import resolveModule from "@app/resolveModule/backend";
-import { getExecutingEnvironment } from "@app/resolveModule/env";
+import LibGit2Commands from "@ext/git/core/GitCommands/LibGit2Commands";
 import getGitError from "@ext/git/core/GitCommands/errors/logic/getGitError";
 import { Caller } from "@ext/git/core/GitCommands/errors/model/Caller";
 import GitErrorCode from "@ext/git/core/GitCommands/errors/model/GitErrorCode";
 import GitCommandsConfig from "@ext/git/core/GitCommands/model/GitCommandsConfig";
 import PersistentLogger from "@ext/loggers/PersistentLogger";
-import ini from "ini";
 import Path from "../../../../logic/FileProvider/Path/Path";
 import FileProvider from "../../../../logic/FileProvider/model/FileProvider";
 import { VersionControlInfo } from "../../../VersionControl/model/VersionControlInfo";
@@ -25,9 +23,7 @@ export class GitCommands {
 	private _impl: GitCommandsModel;
 
 	constructor(conf: GitCommandsConfig, private _fp: FileProvider, private _repoPath: Path) {
-		const impl = resolveModule("GitCommandsImpl");
-		if (getExecutingEnvironment() == "browser") this._impl = new impl(_repoPath, _fp, this, conf);
-		else this._impl = new impl(this._fp.rootPath.join(_repoPath), _fp, this, conf);
+		this._impl = new LibGit2Commands(this._fp.rootPath.join(_repoPath));
 	}
 
 	inner() {
@@ -35,20 +31,18 @@ export class GitCommands {
 	}
 
 	async hasInit(): Promise<boolean> {
-		return await this._logWrapper("hasInit", "Checking '.git' directory", () =>
-			this._fp.exists(this._repoPath.join(new Path(".git"))),
-		);
+		try {
+			await this._impl.hasRemote();
+		} catch {
+			return false;
+		}
+
+		return true;
 	}
 
 	async hasRemote(): Promise<boolean> {
 		if (!(await this.hasInit())) return false;
-		const filePath = this._repoPath.join(new Path(".git/config"));
-		if (!(await this._fp.exists(filePath))) return false;
-		const content = await this._fp.read(filePath);
-		if (!content) return;
-		const config = ini.parse(content);
-		const remote = await this.getRemoteName();
-		return !!config[`remote "${remote}"`];
+		return await this._impl.hasRemote();
 	}
 
 	async init(data: SourceData) {
@@ -56,7 +50,7 @@ export class GitCommands {
 	}
 
 	async addRemote(data: GitStorageData) {
-		const url = `https://${data.source.domain}/${data.group}/${data.name}`;
+		const url = `https://${data.source.domain}/${data.group}/${data.name}.git`;
 		await this._logWrapper("addRemote", `Adding remote url: '${url}'`, async () => {
 			await this._impl.addRemote(url);
 			await this.push(data.source);
@@ -212,7 +206,7 @@ export class GitCommands {
 				);
 			}
 			try {
-				await this._impl.clone(url, source, branch, onProgress);
+				await this._impl.clone(url.endsWith(".git") ? url : url + ".git", source, branch, onProgress);
 			} catch (e) {
 				await this._logWrapper("delete", `Deleting path: '${this._repoPath}'`, async () => {
 					if (await this._fp.exists(this._repoPath)) await this._fp.delete(this._repoPath);
@@ -230,8 +224,8 @@ export class GitCommands {
 		);
 	}
 
-	async hardReset(): Promise<void> {
-		return await this._logWrapper("hardReset", `Hardresetting`, () => this._impl.resetHard());
+	async hardReset(head?: GitVersion): Promise<void> {
+		return await this._logWrapper("hardReset", `Hardresetting`, () => this._impl.resetHard(head));
 	}
 
 	async softReset(head?: GitVersion): Promise<void> {
@@ -264,16 +258,20 @@ export class GitCommands {
 
 	async pull(data: GitSourceData) {
 		return await this._logWrapper("pull", "Pulling", async () => {
-			await this.fetch(data);
+			try {
+				await this.fetch(data);
 
-			const remoteBranchName =
-				(await this.getRemoteName()) +
-				"/" +
-				(await this.getCurrentBranch()).getData().remoteName.replace("origin/", "");
+				const remoteBranchName =
+					(await this.getRemoteName()) +
+					"/" +
+					(await this.getCurrentBranch()).getData().remoteName.replace("origin/", "");
 
-			const stashOid = (await this.status()).length > 0 ? await this.stash(data) : undefined;
-			await this.merge(data, remoteBranchName);
-			if (stashOid) await this.applyStash(data, stashOid);
+				const stashOid = (await this.status()).length > 0 ? await this.stash(data) : undefined;
+				await this.merge(data, remoteBranchName);
+				if (stashOid) await this.applyStash(data, stashOid);
+			} catch (e) {
+				throw e.props ? e : getGitError(e, { repositoryPath: this._repoPath.value }, "pull");
+			}
 		});
 	}
 
@@ -339,13 +337,7 @@ export class GitCommands {
 	}
 
 	async status(): Promise<GitStatus[]> {
-		const status = await this._logWrapper("status", "Getting status", () => this._impl.status());
-		const filteredStatus = (
-			await Promise.all(
-				status.map(async (file) => ((await this._fp.isFolder(this._repoPath.join(file.path))) ? null : file)),
-			)
-		).filter((x) => x);
-		return filteredStatus;
+		return await this._logWrapper("status", "Getting status", () => this._impl.status());
 	}
 
 	async fileStatus(filePath: Path): Promise<GitStatus> {

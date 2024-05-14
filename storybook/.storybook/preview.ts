@@ -1,4 +1,3 @@
-import "@fortawesome/fontawesome-pro/css/all.css";
 import "../../core/styles/ProseMirror.css";
 import "../../core/styles/admonition.css";
 import "../../core/styles/article-alfabeta.css";

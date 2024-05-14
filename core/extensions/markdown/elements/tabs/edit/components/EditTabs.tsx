@@ -1,4 +1,5 @@
 import styled from "@emotion/styled";
+import useLocalize from "@ext/localization/useLocalize";
 import { FocusPositionContext } from "@ext/markdown/core/edit/components/ContextWrapper";
 import TabAttrs from "@ext/markdown/elements/tabs/model/TabAttrs";
 import Tabs from "@ext/markdown/elements/tabs/render/component/Tabs";
@@ -12,6 +13,7 @@ const EditTabs = ({
 	getPos,
 	updateAttributes,
 }: { className?: string } & NodeViewProps): ReactElement => {
+	const tabText = useLocalize("tab");
 	const position = useContext(FocusPositionContext);
 	const [activeHoverStyle, setActiveHoverStyle] = useState(false);
 
@@ -32,17 +34,25 @@ const EditTabs = ({
 
 	const onAddClick = useCallback(() => {
 		const childAttrs = node.attrs.childAttrs.map((a) => ({ ...a }));
-		const attrs = { name: "name", idx: node.attrs.childAttrs.length };
+		const attrs = { name: tabText, idx: node.attrs.childAttrs.length };
 		childAttrs.push(attrs);
 
-		editor
-			.chain()
-			.focus(getPos() + node.nodeSize - 1)
-			.setTab(attrs)
-			.updateAttributes(node.type, { childAttrs })
-			.focus(getPos() + node.nodeSize - 1)
-			.run();
+		const position =
+			getPos() + node.nodeSize > editor.state.doc.content.size
+				? editor.state.doc.content.size
+				: getPos() + node.nodeSize - 1;
+
+		editor.chain().focus(position).setTab(position, attrs).updateAttributes(node.type, { childAttrs }).run();
 	}, [node]);
+
+	const onTabEnter = (idx: number) => {
+		let offset = 1;
+		const child = node.child(idx);
+		node.forEach((c, o) => {
+			if (c == child) offset = o;
+		});
+		editor.commands.focus(getPos() + offset + child.nodeSize);
+	};
 
 	const onRemoveClick = useCallback(
 		(removeIdx: number) => {
@@ -81,6 +91,7 @@ const EditTabs = ({
 		<NodeViewWrapper>
 			<Tabs
 				isEdit
+				onTabEnter={onTabEnter}
 				onAddClick={onAddClick}
 				onNameUpdate={onNameUpdate}
 				onRemoveClick={onRemoveClick}
@@ -94,10 +105,8 @@ const EditTabs = ({
 };
 
 export default styled(EditTabs)`
-	margin-left: -5px;
-	padding-left: 5px;
-	margin-right: -5px;
-	padding-right: 5px;
+	padding: 4px 8px;
+	margin: -4px -8px;
 	border: 1px dashed #ffffff0f;
 
 	&.no-hover:hover {
@@ -106,7 +115,7 @@ export default styled(EditTabs)`
 
 	:hover,
 	&.hover {
+		border-radius: var(--radius-large);
 		border: 1px dashed var(--color-line);
-		border-radius: var(--radius-small);
 	}
 `;

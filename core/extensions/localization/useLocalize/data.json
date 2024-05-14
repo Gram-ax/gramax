@@ -21,6 +21,13 @@
 	"share": { "ru": "Поделиться", "en": "Share" },
 	"add": { "ru": "Добавить", "en": "Add" },
 	"addArticleToRoot": { "ru": "Добавить статью в корень", "en": "Add article to root" },
+	"addNewTab": { "ru": "Добавить новую вкладку", "en": "Add new tab" },
+	"deleteTab": { "ru": "Удалить вкладку", "en": "Delete tab" },
+	"tab": { "ru": "Вкладка", "en": "Tab" },
+	"deleteTabs": {
+		"ru": "Вы удаляете последнюю вкладку. Удалить весь элемент?",
+		"en": "You delete the last tab. Delete the entire element?"
+	},
 	"addCatalog": { "ru": "Добавить каталог", "en": "Add catalog" },
 	"addChildArticle": { "ru": "Добавить дочернюю статью", "en": "Add child article" },
 	"addNewBranch": { "ru": "Добавить новую ветку", "en": "Add new branch" },
@@ -58,6 +65,7 @@
 	"changeAndSync": { "ru": "Сменить и синхронизировать", "en": "Change and synchronize" },
 	"checkDiagrams": { "ru": "Диаграммы", "en": "Diagrams" },
 	"checkFileStructure": { "ru": "Файловая структура", "en": "File structure" },
+	"checkIcons": { "ru": "Иконки", "en": "Icons" },
 	"checkImages": { "ru": "Изображения", "en": "Images" },
 	"checkLinks": { "ru": "Ссылки", "en": "Links" },
 	"checkoutError": { "ru": "Не удалось сменить ветку", "en": "Failed to change branch" },
@@ -73,6 +81,7 @@
 	"confirm": { "ru": "Подтвердить", "en": "Confirm" },
 	"connectStorage": { "ru": "Подключить хранилище", "en": "Connect storage" },
 	"continueLocally": { "ru": "Продолжить локально", "en": "Continue locally" },
+	"command": { "ru": "Команда", "en": "Command" },
 	"copied": { "ru": "Скопировано", "en": "Copied" },
 	"snippet": { "ru": "Сниппет", "en": "Snippet" },
 	"addNewSnippet": { "ru": "Добавить новый сниппет", "en": "Add a new snippet" },
@@ -81,6 +90,10 @@
 	"deleteSnippetDesc": {
 		"ru": "Вы собираетесь удалить сниппет, который в настоящее время используется в одной или более статьях",
 		"en": "You are going to remove a snippet that is currently being used in one or more articles"
+	},
+	"snippetAlreadyExists": {
+		"ru": "Сниппет с таким id уже существует",
+		"en": "A snippet with this id already exists"
 	},
 	"snippetRenderError": { "ru": "Не удалось отрисовать сниппет", "en": "Failed to render the snippet" },
 	"cantGetSnippetData": {
@@ -187,6 +200,7 @@
 	"in": { "ru": "в", "en": "in" },
 	"inArticle": { "ru": "В статье", "en": "In article" },
 	"inTheRightPanel": { "ru": "в правой панели", "en": "in the right panel" },
+	"incorrectsIcons": { "ru": "Некорректные иконки", "en": "Incorrect icons" },
 	"incorrectsPaths": { "ru": "Некорректные пути", "en": "Incorrect paths" },
 	"initGitVersionControl": { "ru": "Инициализировать Git", "en": "Init git" },
 	"invalid": { "ru": "Некорректное", "en": "Invalid" },
@@ -268,6 +282,11 @@
 	"suchCatalogExists": { "ru": "Такой каталог уже существует", "en": "Such catalog already exists" },
 	"switch": { "ru": "Сменить", "en": "Switch" },
 	"switchBranch": { "ru": "Switch branch", "en": "Switch branch" },
+	"yourBranch": { "ru": "Ваша ветка", "en": "Your branch" },
+	"onTheSameVersion": {
+		"ru": "Находится на одной версии с этой веткой",
+		"en": "Is on the same version as this branch"
+	},
 	"sync": { "ru": "Синхронизировать", "en": "Synchronize" },
 	"syncError": { "ru": "Не удалось синхронизировать каталог", "en": "Failed to synchronize the catalog" },
 	"syncLogs": { "ru": "Логи синхронизации", "en": "Synchronization logs" },
@@ -374,9 +393,13 @@
 		"ru": "С помощью Gramax можно создавать и редактировать документацию прямо в репозитории с кодом. Начать работу можно двумя способами:",
 		"en": "With Gramax, you can create and edit documentation directly in your code repository. There are two ways to get started:"
 	},
+	"addCatalogToGetStartedDocportal": {
+		"ru": "Загрузите каталоги, которые будут видны читателям",
+		"en": "Upload catalogs that will be visible to readers"
+	},
 	"addCatalogOptions": {
-		"ru": "<ul><li>Создайте каталог в Gramax и опубликуйте его в GitLab или GitHub.</li><li>Загрузите существующий репозиторий. Предварительно оформите его по <a href='https://github.com/Gram-ax/GxCatalogTemplate' target='_blank'>примеру</a>.</li></ul>",
-		"en": "<ul><li>Create a catalog in Gramax and publish it to GitLab or GitHub.</li><li>Upload an existing repository. Pre-format it according to the <a href='https://github.com/Gram-ax/GxCatalogTemplate' target='_blank'>example</a>.</li></ul>"
+		"ru": "<ul><li>Создайте каталог в Gramax и опубликуйте его в GitLab или GitHub.</li><li>Загрузите существующий репозиторий.</li></ul>",
+		"en": "<ul><li>Create a catalog in Gramax and publish it to GitLab or GitHub.</li><li>Upload an existing repository.</li></ul>"
 	},
 	"searchOptions": {
 		"ru": "<ul><li>Для поиска точного совпадения используйте <code>\"</code>. Например:&nbsp;<code><nobr>\"слово\"</nobr></code> или <code><nobr>\"искомая фраза\"</nobr></code>.</li><li>Для исключения из поиска используйте <code>-</code>. Например:&nbsp;<code><nobr>-слово</nobr></code> или <code><nobr>-\"исключенная фраза\"</nobr></code>.</li></ul>",
@@ -490,5 +513,61 @@
 	"checkInternetAndDisableAdBlocker": {
 		"ru": "Проверьте подключение к интернету и отключите блокировщики рекламы.",
 		"en": "Check internet connection and disable internet connection."
+	},
+	"createFilesToEditMarkdown": {
+		"ru": "Добавьте статью для редактирования",
+		"en": "Add article to edit markdown"
+	},
+	"createFilesToExport": {
+		"ru": "Добавьте статью для экспорта",
+		"en": "Add article to export"
+	},
+	"emptyField": {
+		"ru": "Пустое поле",
+		"en": "Empty field"
+	},
+	"topLeftPointer": {
+		"ru": "Верхний левый указатель",
+		"en": "Top left pointer"
+	},
+	"topRightPointer": {
+		"ru": "Верхний правый указатель",
+		"en": "Top right pointer"
+	},
+	"bottomLeftPointer": {
+		"ru": "Нижний левый указатель",
+		"en": "Bottom left pointer"
+	},
+	"bottomRightPointer": {
+		"ru": "Нижний правый указатель",
+		"en": "Bottom right pointer"
+	},
+	"saveAndExit": {
+		"ru": "Сохранить и выйти",
+		"en": "Save and exit"
+	},
+	"exit": {
+		"ru": "Выход",
+		"en": "Exit"
+	},
+	"addText": {
+		"ru": "Добавить текст",
+		"en": "Add text"
+	},
+	"addPointer": {
+		"ru": "Добавить указатель",
+		"en": "Add pointer"
+	},
+	"addSquare": {
+		"ru": "Добавить квадрат",
+		"en": "Add square"
+	},
+	"cropImage": {
+		"ru": "Обрезать изображение",
+		"en": "Crop image"
+	},
+	"cancelCrop": {
+		"ru": "Отменить обрезку",
+		"en": "Cancel crop"
 	}
 }

@@ -1,5 +1,4 @@
-import { getEnglishStr } from "@core-ui/languageConverter/getEnglishStr";
-import { getRussianStr } from "@core-ui/languageConverter/getRussianStr";
+import { transliterate } from "@core-ui/languageConverter/transliterate";
 
 export class StringRewriter {
 	private _keyboardRuToEn = new Map<string, string>([
@@ -52,11 +51,11 @@ export class StringRewriter {
 	}
 
 	public changeRussianToEnglishTransliteration(stringToFix: string): string {
-		return getEnglishStr(stringToFix);
+		return transliterate(stringToFix);
 	}
 
 	public changeEnglishToRussianTransliteration(stringToFix: string): string {
-		return getRussianStr(stringToFix);
+		return transliterate(stringToFix, { targetLanguage: "ru" });
 	}
 
 	private _getKeyByValue(letter: string): string {

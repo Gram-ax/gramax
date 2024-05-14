@@ -18,7 +18,7 @@ class ResourceUpdater {
 	) {}
 
 	async update(oldArticle: Article, newArticle: Article) {
-		await parseContent(oldArticle, this._catalog, this._rc, this._parser, this._parserContextFactory);
+		await parseContent(oldArticle, this._catalog, this._rc, this._parser, this._parserContextFactory, false);
 		if (!oldArticle?.parsedContent) return;
 
 		const { resourceManager, linkManager } = oldArticle.parsedContent;

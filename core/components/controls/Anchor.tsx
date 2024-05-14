@@ -1,7 +1,7 @@
 import Url from "@core-ui/ApiServices/Types/Url";
 import ArticleTooltipService from "@core-ui/ContextServices/ArticleTooltip";
 import { useRouter } from "@core/Api/useRouter";
-import { CSSProperties, ReactNode } from "react";
+import { ReactNode } from "react";
 import Icon from "../Atoms/Icon";
 import Link from "../Atoms/Link";
 
@@ -11,12 +11,11 @@ interface AnchorProps {
 	children?: ReactNode;
 	basePath?: string;
 	className?: string;
-	style?: CSSProperties;
 	target?: "_self" | "_blank" | "_parent" | "_top";
 	hideExternalLinkIcon?: boolean;
 }
 const Anchor = (Props: AnchorProps) => {
-	const { children, basePath, target = "_blank", resourcePath, style = { fontWeight: 300 }, ...props } = Props;
+	const { children, basePath, target = "_blank", resourcePath, ...props } = Props;
 	const isAnchor = props.href?.match(/^#/);
 	const basePathLength = useRouter()?.basePath?.length ?? basePath?.length ?? 0;
 	const setLink = ArticleTooltipService.value;
@@ -27,7 +26,7 @@ const Anchor = (Props: AnchorProps) => {
 		if (!isExternal) {
 			return (
 				<Link
-					onMouseEnter={setLink ? (event) => setLink(event.target as HTMLElement, resourcePath) : undefined}
+					onMouseEnter={(event) => setLink(event.target as HTMLElement, resourcePath)}
 					href={Url.from({ pathname: props.href })}
 				>
 					{children}

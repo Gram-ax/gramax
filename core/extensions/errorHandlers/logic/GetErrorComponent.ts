@@ -5,6 +5,7 @@ import getGitDiffItemCreatorErrors from "../../git/core/GitDiffItemCreator/error
 import getGitErrors from "../../git/error/getGitError";
 import DefaultErrorComponent from "../client/components/DefaultError";
 import DefaultError from "./DefaultError";
+import getCommandsErrors from "@components/Commands/getCommandsErrors";
 
 const getComponents = (): {
 	[key: string]: (args: ComponentProps<typeof GetErrorComponent>) => ReactNode;
@@ -13,6 +14,7 @@ const getComponents = (): {
 	...getFileProviderErrors(),
 	...getGitErrors(),
 	...getStorageErrors(),
+	...getCommandsErrors(),
 });
 
 const GetErrorComponent = (args: { error: DefaultError; onCancelClick: () => void }): ReactNode => {

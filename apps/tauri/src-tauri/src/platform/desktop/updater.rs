@@ -14,8 +14,6 @@ use tauri_plugin_updater as updater;
 use semver::Prerelease;
 use semver::Version;
 
-use crate::translation::*;
-
 use super::menu::search_menu;
 use super::menu::MenuItemId;
 
@@ -35,7 +33,6 @@ impl<R: Runtime> UpdaterBuilder<R> for tauri::App<R> {
 pub struct Updater<R: Runtime> {
   app: AppHandle<R>,
   inner: updater::Updater,
-  language: Language,
 }
 
 #[derive(Default)]
@@ -48,8 +45,7 @@ enum UpdateCheckMode {
 impl<R: Runtime> Updater<R> {
   pub fn new(app: AppHandle<R>) -> updater::Result<Self> {
     let updater = app.updater_builder().version_comparator(|v, r| is_version_newer(v, r.version)).build()?;
-    let language = *app.state::<Language>().inner();
-    Ok(Self { app, inner: updater, language })
+    Ok(Self { app, inner: updater })
   }
 
   pub async fn check_and_ask(&self) -> Result<()> {
@@ -69,9 +65,9 @@ impl<R: Runtime> Updater<R> {
       self
         .app
         .dialog()
-        .message(format!("{:?}\n{}", err, self.language.translate(Translation::TryLater)))
+        .message(format!("{}\n\n{}\n\nError: {:?}", t!("etc.try-later"), err, err))
         .kind(MessageDialogKind::Error)
-        .title(self.language.translate(Translation::ErrorWhileUpdating))
+        .title(t!("updates.error-occured"))
         .blocking_show();
     }
 
@@ -95,10 +91,10 @@ impl<R: Runtime> Updater<R> {
     self
       .app
       .dialog()
-      .message(self.language.translate(Translation::UpdateNowBody))
-      .title(self.language.translate(Translation::NewVersion))
-      .ok_button_label(self.language.translate(Translation::UpdateNow))
-      .cancel_button_label(self.language.translate(Translation::DeclineUpdate))
+      .message(t!("updates.new-version.body"))
+      .title(t!("updates.new-version.title"))
+      .ok_button_label(t!("updates.update-now"))
+      .cancel_button_label(t!("etc.later"))
       .blocking_show()
   }
 
@@ -139,9 +135,9 @@ impl<R: Runtime> Updater<R> {
         self
           .app
           .dialog()
-          .message(self.language.translate(Translation::YouHaveActualVersionBody))
-          .title(self.language.translate(Translation::YouHaveActualVersion))
-          .ok_button_label(self.language.translate(Translation::UpdateOk))
+          .message(t!("updates.you-have-actual-ver.body"))
+          .title(t!("updates.you-have-actual-ver.title"))
+          .ok_button_label(t!("etc.ok"))
           .blocking_show();
         Ok(())
       }
@@ -159,10 +155,10 @@ impl<R: Runtime> Updater<R> {
       self
         .app
         .dialog()
-        .message(self.language.translate(Translation::NewerUpdateFound))
-        .title(self.language.translate(Translation::NewVersion))
-        .ok_button_label(self.language.translate(Translation::UpdateNow))
-        .cancel_button_label(self.language.translate(Translation::DeclineUpdate))
+        .message(t!("updates.newer-update-found"))
+        .title(t!("updates.new-version.title"))
+        .ok_button_label(t!("updates.update-now"))
+        .cancel_button_label(t!("etc.later"))
         .blocking_show();
       return Ok(Some(update));
     }
@@ -175,9 +171,9 @@ impl<R: Runtime> Updater<R> {
 
     item.set_enabled(enabled)?;
     if enabled {
-      item.set_text(self.language.translate(Translation::CheckUpdate))?;
+      item.set_text(t!("updates.check"))?;
     } else {
-      item.set_text(self.language.translate(Translation::CheckingForUpdate))?;
+      item.set_text(t!("updates.check-in-progress"))?;
     };
 
     Ok(())
@@ -223,12 +219,11 @@ impl<'u, R: Runtime> UpdateInstaller<'u, R> {
   async fn download(&self, update: &Update) -> updater::Result<Vec<u8>> {
     match self.menu_item {
       Some(item) => {
-        let language = self.app.state::<Language>();
         let on_chunk = |downloaded, total| {
           item
             .set_text(format!(
               "{} {:.2}mb/{:.2}mb",
-              language.translate(Translation::UpdateDownloading),
+              t!("updates.download-in-progress"),
               downloaded as f32 / 1024f32.powf(2.0),
               total as f32 / 1024f32.powf(2.0)
             ))
@@ -239,7 +234,7 @@ impl<'u, R: Runtime> UpdateInstaller<'u, R> {
         update
           .download(
             |bytes, len| progress.on_chunk(bytes, len, on_chunk),
-            || item.set_text(language.translate(Translation::CheckUpdate)).unwrap(),
+            || item.set_text(t!("updates.check")).unwrap(),
           )
           .await
       }

@@ -1,20 +1,34 @@
 import styled from "@emotion/styled";
 import InfoModalForm from "@ext/errorHandlers/client/components/ErrorForm";
+import type DefaultError from "@ext/errorHandlers/logic/DefaultError";
 import { HTMLAttributes } from "react";
 
 const invoke = (window as any).__TAURI__?.core?.invoke;
 
-const AppError = ({ error, ...props }: { error: Error } & HTMLAttributes<HTMLDivElement>) => {
+const AppError = ({ error, ...props }: { error: DefaultError } & HTMLAttributes<HTMLDivElement>) => {
+	const isWasmError = error.props?.errorCode == "wasmInitTimeout";
+
 	return (
 		<div {...props}>
 			<div className="container">
 				<InfoModalForm
-					title={"Не удалось загрузить каталоги"}
-					icon={{ code: "circle-xmark", color: "var(--color-danger)" }}
+					title={isWasmError ? "Этот браузер не поддерживается" : "Не удалось загрузить приложение"}
+					icon={{ code: "circle-x", color: "var(--color-danger)" }}
 					closeButton={invoke ? { text: "Настройки" } : null}
 					onCancelClick={invoke ? () => invoke("show_settings") : null}
+					noButtons={!invoke}
 				>
-					{error.message ?? "Неизвестная ошибка"}
+					{isWasmError ? (
+						<div>
+							<span>
+								Откройте Gramax в <a href="https://gram.ax/resources/docs/faq">другом браузере</a> или
+							</span>
+							<a href="https://gram.ax"> скачайте приложение </a>
+							<span>на компьютер</span>
+						</div>
+					) : (
+						error?.message ?? "Неизвестная ошибка"
+					)}
 				</InfoModalForm>
 			</div>
 		</div>

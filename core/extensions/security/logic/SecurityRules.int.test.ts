@@ -17,17 +17,27 @@ const getSecurityRulesData = async () => {
 
 	const categoryItemRef = getItemRef(categoryTestCatalog, "category/_index.md");
 	const articleItemRef = getItemRef(articleTestCatalog, "category/testRules_en.md");
+	const articleRuItemRef = getItemRef(articleTestCatalog, "category/testRules.md");
 
-	return { nav, sr, articleItemRef, articleTestCatalog, catalogTestCatalog, categoryItemRef, categoryTestCatalog };
+	return {
+		nav,
+		sr,
+		articleRuItemRef,
+		articleItemRef,
+		articleTestCatalog,
+		catalogTestCatalog,
+		categoryItemRef,
+		categoryTestCatalog,
+	};
 };
 
 describe("Security Rules фильтрует приватные", () => {
 	describe("item", () => {
 		test("article", async () => {
-			const { sr, nav, articleItemRef, articleTestCatalog } = await getSecurityRulesData();
+			const { sr, nav, articleRuItemRef, articleTestCatalog } = await getSecurityRulesData();
 
 			const filter = sr.getNavRules().itemRule;
-			const item = articleTestCatalog.findArticleByItemRef(articleItemRef);
+			const item = articleTestCatalog.findArticleByItemRef(articleRuItemRef);
 			const itemLink = (await nav.getCatalogNav(articleTestCatalog, item.logicPath))[0];
 			expect(filter(articleTestCatalog, item, itemLink)).toEqual(false);
 		});
@@ -61,10 +71,10 @@ describe("Security Rules фильтрует приватные", () => {
 	});
 
 	test("article", async () => {
-		const { sr, articleItemRef, articleTestCatalog } = await getSecurityRulesData();
+		const { sr, articleRuItemRef, articleTestCatalog } = await getSecurityRulesData();
 
 		const filter = sr.getItemFilter();
-		const article = articleTestCatalog.findArticleByItemRef(articleItemRef);
+		const article = articleTestCatalog.findArticleByItemRef(articleRuItemRef);
 
 		expect(filter(article, articleTestCatalog)).toEqual(false);
 	});

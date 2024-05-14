@@ -8,14 +8,14 @@ import CatalogPropsService from "@core-ui/ContextServices/CatalogProps";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import { useDebounce } from "@core-ui/hooks/useDebounce";
 import PageDataContext from "@core/Context/PageDataContext";
-import { ClientCatalogProps, ClientArticleProps } from "@core/SitePresenter/SitePresenter";
+import { ClientArticleProps, ClientCatalogProps } from "@core/SitePresenter/SitePresenter";
 import styled from "@emotion/styled";
 import getComponents from "@ext/markdown/core/render/components/getComponents/getComponents";
 import Renderer from "@ext/markdown/core/render/components/Renderer";
 import { RenderableTreeNodes } from "@ext/markdown/core/render/logic/Markdoc";
 import Header from "@ext/markdown/elements/heading/render/component/Header";
 import { Mark } from "@tiptap/pm/model";
-import { useState, useCallback, useEffect, useRef, ReactNode } from "react";
+import { ReactNode, useCallback, useEffect, useRef, useState } from "react";
 import { useLocation } from "wouter";
 
 type dataType = {
@@ -216,64 +216,98 @@ const TooltipContent = (props: TooltipContent) => {
 					>
 						{data.title}
 					</Header>
-					<div className={classNames("article-body", {}, ["popup-article"])}>
-						{Renderer(data.content, { components: getComponents() })}
-					</div>
+					<MinimizedArticleStyle>
+						<div className={classNames("article-body", {}, ["popup-article"])}>
+							{Renderer(data.content, { components: getComponents() })}
+						</div>
+					</MinimizedArticleStyle>
 				</div>
 			</div>
 		</div>
 	);
 };
 
+const MinimizedArticleStyle = styled(({ className, children }: { className?: string; children: ReactNode }) => {
+	return <div className={className}>{children}</div>;
+})`
+	h2 {
+		font-size: 1.2em !important;
+	}
+
+	h3 {
+		font-size: 1.1em !important;
+	}
+
+	h4,
+	h5,
+	h6 {
+		font-size: 1em !important;
+	}
+
+	h2,
+	h3,
+	h4,
+	h5,
+	h6 {
+		margin-top: 0.5em !important;
+		margin-bottom: 0.25em !important;
+	}
+
+	blockquote {
+		margin: 0.575em 0 !important;
+	}
+
+	table {
+		padding: 0.5rem 0 !important;
+	}
+
+	.admonition {
+		margin: 0.5em 0 !important;
+	}
+
+	img {
+		margin: 0.5em auto !important;
+		pointer-events: none !important;
+	}
+
+	ol > li::before {
+		top: 0.23em !important;
+		width: 18px !important;
+		padding: 4px 0 !important;
+	}
+
+	pre,
+	code,
+	.diagram-background {
+		margin: 1em 0 !important;
+	}
+
+	ol,
+	ul,
+	p {
+		margin: 0 0 0.35em !important;
+		line-height: 1.5em !important;
+	}
+`;
+
 export default styled(ArticleLinkTooltip)`
 	&.tooltip-wrapper {
-		background: transparent !important;
 		padding: 0 !important;
+		font-size: 14px !important;
+		line-height: 1.4 !important;
+		background: transparent !important;
+		color: var(--color-article-text) !important;
+		background: var(--color-article-bg) !important;
 	}
 
 	&.tooltip-open {
 		box-shadow: var(--menu-tooltip-shadow);
 		animation: TooltipAppend 50ms linear forwards;
+		border-radius: var(--radius-normal) !important;
 	}
 
 	&.tooltip-closed {
 		animation: TooltipClosed 50ms linear forwards;
-	}
-
-	.tooltip-size {
-		height: 250px;
-		width: 400px;
-		padding: 1rem;
-		overflow: scroll;
-		zoom: 0.875;
-	}
-
-	.tooltip-top {
-		margin-bottom: -0.75rem;
-		padding-bottom: 0.75rem;
-	}
-
-	.tooltip-bottom {
-		margin-top: -0.75rem;
-		padding-top: 0.75rem;
-	}
-
-	.tooltip-article {
-		color: var(--color-article-text) !important;
-		background: var(--color-article-bg) !important;
-		font-size: 16px !important;
-		padding: 0 !important;
-		border-radius: var(--radius-block) !important;
-	}
-
-	.link-popup-title {
-		font-size: 1.5em !important;
-		margin-bottom: 0.5rem !important;
-		margin-top: 0 !important;
-	}
-
-	.popup-article img {
-		pointer-events: none !important;
 	}
 
 	@keyframes TooltipAppend {
@@ -298,5 +332,34 @@ export default styled(ArticleLinkTooltip)`
 			opacity: 0.2;
 			transform: translate(0, 5px);
 		}
+	}
+
+	.tooltip-size {
+		width: 400px;
+		height: 250px;
+		padding: 1rem;
+		overflow: scroll;
+	}
+
+	.tooltip-top {
+		margin-bottom: -0.75rem;
+		padding-bottom: 0.75rem;
+	}
+
+	.tooltip-bottom {
+		margin-top: -0.75rem;
+		padding-top: 0.75rem;
+	}
+
+	.tooltip-article {
+		overflow: hidden;
+		padding: 0 !important;
+		border-radius: var(--radius-normal) !important;
+	}
+
+	.link-popup-title {
+		margin-top: 0 !important;
+		font-size: 1.3em !important;
+		margin-bottom: 0.5rem !important;
 	}
 `;

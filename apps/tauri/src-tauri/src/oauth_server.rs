@@ -9,13 +9,13 @@ const HTTP_SERVER_TIMEOUT: Duration = Duration::from_secs(60 * 6);
 
 type Error = Box<dyn std::error::Error + Send + Sync + 'static>;
 
-pub fn listen_one<F: FnOnce(&Request) + Send + Sync + 'static>(redirect: Box<str>, on_request: F) {
+pub fn listen_once<F: FnOnce(&Request) + Send + Sync + 'static>(redirect: Box<str>, on_request: F) {
   async_runtime::spawn(async move { start_server(&redirect, on_request) });
 }
 
 fn start_server<F: FnOnce(&Request)>(#[allow(unused)] redirect: &str, on_request: F) -> Result<(), Error> {
   let server = Server::http(HTTP_SERVER_ADDRESS)?;
-  warn!("http-server started at {HTTP_SERVER_ADDRESS}");
+  info!("http-server started at {HTTP_SERVER_ADDRESS}");
 
   #[cfg(target_os = "ios")]
   let redirect = "gramax://";
@@ -27,6 +27,6 @@ fn start_server<F: FnOnce(&Request)>(#[allow(unused)] redirect: &str, on_request
     req.respond(res)?;
   }
 
-  warn!("http-server died");
+  info!("http-server died");
   Ok(())
 }

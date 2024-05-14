@@ -1,6 +1,7 @@
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
 .vite-cache
+gramax-wasm.worker.js
 bun.lockb
 Cargo.lock
 target
@@ -8,6 +9,9 @@ target
 
 # expection for plugins -> target
 !plugins/target
+
+#services
+!services/target
 
 # storybook
 /storybook/storybook-static
@@ -67,3 +71,6 @@ junit*.xml
 
 
 gramax-git.node
+
+!apps/browser/wasm/dist
+

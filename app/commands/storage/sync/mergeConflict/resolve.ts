@@ -21,8 +21,7 @@ const resolve: Command<{ catalogName: string; files: MergeFile[]; stashHash: str
 		const vc = catalog.repo.gvc;
 
 		const syncGitMergeConflictResolver = new SyncGitMergeConflictResolver(vc, fp, vc.getPath());
-
-		await syncGitMergeConflictResolver.resolveConflictedFiles(files, new GitStash(stashHash));
+		await syncGitMergeConflictResolver.resolveConflictedFiles(files, stashHash && new GitStash(stashHash));
 	},
 
 	params(ctx, q, body) {

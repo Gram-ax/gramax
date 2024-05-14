@@ -3,17 +3,18 @@ import Fetcher from "@core-ui/ApiServices/Types/Fetcher";
 import UseSWRService from "@core-ui/ApiServices/UseSWRService";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import IsOfflineService from "@core-ui/ContextServices/IsOfflineService";
+import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import { refreshPage } from "@core-ui/ContextServices/RefreshPageContext";
+import SyncIconService from "@core-ui/ContextServices/SyncIconService";
 import SyncLayout from "@ext/git/actions/Sync/components/SyncLayout";
 import SyncService from "@ext/git/actions/Sync/logic/SyncService";
-import { CSSProperties, useEffect, useState } from "react";
+import { CSSProperties, useEffect } from "react";
 import { SWRResponse } from "swr";
 import useIsReview from "../../../../storage/logic/utils/useIsReview";
-import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 
 const Sync = ({ style }: { style?: CSSProperties }) => {
 	const apiUrlCreator = ApiUrlCreatorService.value;
-	const [syncProccess, setSyncProccess] = useState(false);
+	const syncProccess = SyncIconService.value;
 	const isReview = useIsReview();
 	const disableFetch = IsOfflineService.value || PageDataContextService.value.conf.isReadOnly;
 
@@ -28,18 +29,18 @@ const Sync = ({ style }: { style?: CSSProperties }) => {
 		SyncService.bindOnSyncService({
 			onStartSync: () => {
 				if (syncProccess) return;
-				setSyncProccess(true);
+				SyncIconService.start();
 			},
 			onFinishSync: async () => {
-				setSyncProccess(false);
+				SyncIconService.stop();
 				refreshPage();
 				await ArticleUpdaterService.update(apiUrlCreator);
 			},
 			onSyncError: () => {
-				setSyncProccess(false);
+				SyncIconService.stop();
 			},
 		});
-	}, []);
+	}, [syncProccess]);
 
 	return (
 		<SyncLayout

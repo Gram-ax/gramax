@@ -14,9 +14,9 @@ const add: Command<{ ctx: Context }, void> = Command.create({
 		if (pluginProvider.hasAddedLocals) return;
 		const isNext = getExecutingEnvironment() === "next";
 		const pluginListUrl = "/plugins/pluginList.json";
-		const res = await fetch(`${isNext ? ctx.domain : ""}${pluginListUrl}`);
-		if (!res.ok || res.headers.get("content-type") != "application/json") {
-			logger.logInfo("No plugins founded");
+		const res = await fetch(`${isNext ? ctx.domain : ""}${this._app.conf.basePath.value ?? ""}${pluginListUrl}`);
+		if (!res.ok || !res.headers.get("content-type").toLowerCase().includes("application/json")) {
+			logger.logInfo("No plugins found");
 			pluginProvider.hasAddedLocals = true;
 			return;
 		}

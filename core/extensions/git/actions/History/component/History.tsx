@@ -78,6 +78,7 @@ const History = styled(({ className }: { className?: string }) => {
 				setIsOpen(false);
 				setData(null);
 			}}
+			disabled={disabled}
 			contentWidth={data ? "L" : null}
 			trigger={
 				<Tooltip content={useLocalize("fileHistoryWarning")} disabled={!disabled}>
@@ -139,7 +140,7 @@ const History = styled(({ className }: { className?: string }) => {
 		display: flex;
 		font-size: 13px;
 		max-height: 70px;
-		border-radius: 4px;
+		border-radius: var(--radius-normal);
 		padding-left: 15px;
 		padding-bottom: 10px;
 		padding-top: 10px;

@@ -1,7 +1,9 @@
 import Path from "@core/FileProvider/Path/Path";
 import FileProvider from "@core/FileProvider/model/FileProvider";
 import { Article } from "@core/FileStructue/Article/Article";
+import { Catalog } from "@core/FileStructue/Catalog/Catalog";
 import FileStructure from "@core/FileStructue/FileStructure";
+import SitePresenter from "@core/SitePresenter/SitePresenter";
 import MarkdownParser from "@ext/markdown/core/Parser/Parser";
 import MarkdownFormatter from "@ext/markdown/core/edit/logic/Formatter/Formatter";
 import { Tag } from "@ext/markdown/core/render/logic/Markdoc";
@@ -15,8 +17,8 @@ export default class SnippetProvider {
 	private _snippetsPath: Path;
 	private _snippetsArticles = new Map<string, Article>();
 
-	constructor(private _fp: FileProvider, private _fs: FileStructure, private _catalogRootPath: Path) {
-		this._snippetsPath = new Path([this._catalogRootPath.value, SNIPPETS_FOLDER]);
+	constructor(private _fp: FileProvider, private _fs: FileStructure, private _catalog: Catalog) {
+		this._snippetsPath = new Path([this._catalog.getRootCategoryPath().value, SNIPPETS_FOLDER]);
 	}
 
 	async create(snippetData: SnippetEditData, formatter: MarkdownFormatter) {
@@ -25,12 +27,22 @@ export default class SnippetProvider {
 
 	async edit(oldSnippetId: string, snippetData: SnippetEditData, formatter: MarkdownFormatter) {
 		await this._setSnippet(snippetData, formatter);
-		if (oldSnippetId !== snippetData.id) await this.remove(oldSnippetId);
+
+		// пока без переименований
+		// if (oldSnippetId !== snippetData.id) await this.remove(oldSnippetId);
 	}
 
-	async remove(id: string) {
+	async remove(id: string, sp: SitePresenter) {
+		const articlesWithSnippet = await this.getArticlesWithSnippet(id, sp);
 		this._snippetsArticles.delete(id);
 		await this._fp.delete(this._getSnippetPath(id));
+		articlesWithSnippet.forEach((a) => (a.parsedContent = null));
+	}
+
+	async getArticlesWithSnippet(snippetId: string, sp: SitePresenter) {
+		return (await sp.parseAllItems(this._catalog))
+			.getContentItems()
+			.filter((i) => i.parsedContent?.snippets.has(snippetId));
 	}
 
 	async getEditData(id: string, parser: MarkdownParser): Promise<SnippetEditData> {

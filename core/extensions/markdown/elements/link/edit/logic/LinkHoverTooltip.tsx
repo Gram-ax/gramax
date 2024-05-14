@@ -37,6 +37,15 @@ class LinkHoverTooltip extends TooltipBase {
 		return this.mark;
 	}
 
+	unMount() {
+		if (this.element) {
+			this.closeComponent();
+		}
+		setTimeout(() => {
+			this.destroy(this._element);
+		}, 20);
+	}
+
 	canSetComponent() {
 		if (!this.markPosition || !this.anchorPos) return true;
 

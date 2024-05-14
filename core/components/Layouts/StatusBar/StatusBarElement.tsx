@@ -1,5 +1,5 @@
 import styled from "@emotion/styled";
-import React, { ReactNode } from "react";
+import React, { CSSProperties, ReactNode } from "react";
 import Icon from "../../Atoms/Icon";
 import Tooltip from "../../Atoms/Tooltip";
 
@@ -9,6 +9,8 @@ const StatusBarElement = styled(
 			{
 				onClick,
 				iconCode,
+				iconStyle,
+				iconStrokeWidth,
 				children,
 				tooltipText,
 				iconClassName,
@@ -17,6 +19,8 @@ const StatusBarElement = styled(
 			}: {
 				onClick?: () => void;
 				iconCode?: string;
+				iconStyle?: CSSProperties;
+				iconStrokeWidth?: string;
 				children?: JSX.Element;
 				tooltipText?: ReactNode;
 				disable?: boolean;
@@ -39,7 +43,7 @@ const StatusBarElement = styled(
 							<div className="status-bar-element" style={disable ? { pointerEvents: "none" } : null}>
 								{iconCode && (
 									<div className={"status-bar-icon" + (iconClassName ? " " + iconClassName : "")}>
-										<Icon code={iconCode} faFw />
+										<Icon code={iconCode} style={iconStyle} strokeWidth={iconStrokeWidth}/>
 									</div>
 								)}
 								{children && (

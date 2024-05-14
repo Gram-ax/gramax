@@ -1,41 +1,45 @@
 import { CommandTree } from "@app/commands";
 import { Command } from "@app/types/Command";
 import { ResponseKind } from "@app/types/ResponseKind";
-import { PApplication, Plugin } from "@core/Plugin";
+import Context from "@core/Context/Context";
+import { Plugin } from "@core/Plugin";
+import PApplicationProvider from "@core/Plugin/logic/PApplicationProvider";
 import PluginsCache from "@core/Plugin/logic/PluginsCache";
 import PluginConfig from "@core/Plugin/model/PluginConfig";
 
 export default abstract class PluginImporter {
-	constructor(protected _pluginsCache: PluginsCache) {}
+	constructor(protected _pluginsCache: PluginsCache, protected _pApplicationProvider: PApplicationProvider) {}
 
-	abstract importPlugin(pluginConfig: PluginConfig, app: PApplication, commands: CommandTree): Promise<Plugin>;
+	abstract importPlugin(pluginConfig: PluginConfig, commands: CommandTree): Promise<Plugin>;
 
-	protected _addPluginCommand(pluginName: string, plugin: Plugin, app: PApplication, commands: CommandTree) {
+	protected _addPluginCommand(pluginName: string, plugin: Plugin, commands: CommandTree) {
+		const pApplicationProvider = this._pApplicationProvider;
 		commands.plugin.plugins[pluginName] = {};
 		plugin.commandConfigs.map((c) => {
-			commands.plugin.plugins[pluginName][c.name] = Command.create({
+			commands.plugin.plugins[pluginName][c.name] = Command.create<{ ctx: Context; props: any }, { data: any }>({
 				path: `plugin/plugins/${pluginName}/${c.name}`,
 				kind: ResponseKind.json,
-				do: async (props: any) => ({
-					data: await c.do.bind({ app })(props),
-				}),
-				params(_, __, body) {
-					return body;
+				async do({ ctx, props }) {
+					const app = await pApplicationProvider.getApp(pluginName, ctx);
+					return { data: await c.do.bind({ app })(props) };
+				},
+				params(ctx, __, body) {
+					return { ctx, props: body };
 				},
 			});
 		});
 	}
 
-	protected async _getPlugin(module: any, name: string, app: PApplication, commands: CommandTree): Promise<Plugin> {
+	protected async _getPlugin(module: any, name: string, commands: CommandTree): Promise<Plugin> {
 		if (!module) return;
-		const plugin = new module.default(app) as Plugin;
+		const plugin = new module.default() as Plugin;
 		if (!plugin) return;
 		try {
 			await plugin.onLoad();
 		} catch (e) {
 			console.error(`Error in ${plugin.name} plugin:\n`, e);
 		}
-		this._addPluginCommand(name, plugin, app, commands);
+		this._addPluginCommand(name, plugin, commands);
 		return plugin;
 	}
 

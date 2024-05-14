@@ -1,3 +1,4 @@
+import { NEW_ARTICLE_FILENAME } from "@app/config/const";
 import { ItemRef } from "@core/FileStructue/Item/ItemRef";
 import { ItemType } from "@core/FileStructue/Item/ItemType";
 import Path from "../FileProvider/Path/Path";
@@ -32,7 +33,7 @@ const itemRefUtils = {
 		};
 	},
 
-	create(baseRef: ItemRef, itemRefs: ItemRef[], baseFileName = "new_article_"): ItemRef {
+	create(baseRef: ItemRef, itemRefs: ItemRef[], baseFileName = NEW_ARTICLE_FILENAME): ItemRef {
 		return {
 			path: createNewFilePathUtils.create(
 				baseRef.path,

@@ -9,3 +9,5 @@ node_modules/
 **/dist/
 **/out/
 target/
+
+!apps/browser/wasm/dist

@@ -3,7 +3,7 @@ import CatalogPropsService from "@core-ui/ContextServices/CatalogProps";
 import IsEditService from "@core-ui/ContextServices/IsEdit";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import LinkHoverTooltip from "@ext/markdown/elements/link/edit/logic/LinkHoverTooltip";
-import { createContext, useContext, useRef } from "react";
+import { createContext, useContext, useRef, useEffect } from "react";
 
 const ArticleTooltip = createContext<(link: HTMLElement, resourcePath: string) => void>(undefined);
 
@@ -13,19 +13,38 @@ abstract class ArticleTooltipService {
 		const catalogProps = CatalogPropsService.value;
 		const apiUrlCreator = ApiUrlCreatorService.value;
 		const pageDataContext = PageDataContextService.value;
+		const linkHoverTooltipRef = useRef<LinkHoverTooltip>(null);
 
-		if (isEdit || typeof document === "undefined") return children;
+		useEffect(() => {
+			if (typeof document === "undefined" || isEdit) return;
 
-		const linkHoverTooltipRef = useRef<LinkHoverTooltip>(
-			new LinkHoverTooltip(document.body, apiUrlCreator, pageDataContext, catalogProps),
-		);
+			if (linkHoverTooltipRef.current !== null) {
+				linkHoverTooltipRef.current.unMount();
+			}
+
+			linkHoverTooltipRef.current = new LinkHoverTooltip(
+				document.body,
+				apiUrlCreator,
+				pageDataContext,
+				catalogProps,
+			);
+
+			return () => {
+				if (linkHoverTooltipRef.current !== null) {
+					linkHoverTooltipRef.current.unMount();
+					linkHoverTooltipRef.current = null;
+				}
+			};
+		}, [catalogProps]);
 
 		const setLinkHandler = (element: HTMLElement, resourcePath: string) => {
+			if (typeof document === "undefined") return;
+
 			linkHoverTooltipRef.current.setResourcePath(resourcePath);
 			linkHoverTooltipRef.current.setComponent(element);
 		};
 
-		return <ArticleTooltip.Provider value={setLinkHandler}>{children}</ArticleTooltip.Provider>;
+		return <ArticleTooltip.Provider value={isEdit ? () => {} : setLinkHandler}>{children}</ArticleTooltip.Provider>;
 	}
 
 	static get value(): (link: HTMLElement, resourcePath: string) => void {

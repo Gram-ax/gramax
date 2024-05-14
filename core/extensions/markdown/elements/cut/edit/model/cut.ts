@@ -7,7 +7,7 @@ import EditCut from "../components/Cut";
 
 declare module "@tiptap/core" {
 	interface Commands<ReturnType> {
-		cut: { toggleCut: () => ReturnType };
+		ourCut: { toggleCut: () => ReturnType };
 	}
 }
 

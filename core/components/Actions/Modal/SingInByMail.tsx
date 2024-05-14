@@ -29,7 +29,7 @@ const SingInByMail = () => {
 			trigger={
 				<div>
 					<a>
-						<Icon code={"envelope"} faFw />
+						<Icon code={"mail"}/>
 						<span>{useLocalize("byMail")}</span>
 					</a>
 				</div>

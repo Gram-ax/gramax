@@ -32,21 +32,13 @@ export default class PluginProvider {
 
 	async initPlugins(commands: CommandTree): Promise<void> {
 		for (const pluginConfig of await this._getPluginList()) {
-			const plugin = await this._pluginImporter.importPlugin(
-				pluginConfig,
-				await this._pApplicationProvider.getApp(pluginConfig.name),
-				commands,
-			);
+			const plugin = await this._pluginImporter.importPlugin(pluginConfig, commands);
 			if (plugin) this._plugins.push(plugin);
 		}
 	}
 
 	async addPlugin(pluginConfig: PluginConfig, commands: CommandTree): Promise<boolean> {
-		const plugin = await this._pluginImporter.importPlugin(
-			pluginConfig,
-			await this._pApplicationProvider.getApp(pluginConfig.name),
-			commands,
-		);
+		const plugin = await this._pluginImporter.importPlugin(pluginConfig, commands);
 		if (!plugin) return false;
 		await this.addInPluginList(pluginConfig);
 		return true;
@@ -81,8 +73,8 @@ export default class PluginProvider {
 
 	private _createPluginImporter(pluginImporterType: PluginImporterType): PluginImporter {
 		return pluginImporterType == PluginImporterType.next
-			? new NextPluginImporter(this._pluginsCache)
-			: new BrowserPluginImporter(this._pluginsCache);
+			? new NextPluginImporter(this._pluginsCache, this._pApplicationProvider)
+			: new BrowserPluginImporter(this._pluginsCache, this._pApplicationProvider);
 	}
 
 	private async _getPluginList(): Promise<PluginConfig[]> {

@@ -4,5 +4,5 @@ export default interface GitBranchData extends BranchData {
 	lastCommitModify: string;
 	lastCommitAuthor: string;
 	remoteName?: string;
-	lastCommitOid?: string;
+	lastCommitOid: string;
 }

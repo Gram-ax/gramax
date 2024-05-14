@@ -53,7 +53,10 @@ const respond = async (app: Application, req: ApiRequest, res: ApiResponse, kind
 		const { mime, hashItem } = commandResult;
 		if (mime) res.setHeader("Content-Type", mime);
 		if (mime == MimeTypes.xml || mime == MimeTypes.xls || MimeTypes.xlsx)
-			res.setHeader("Content-Disposition", `attachment; filename=${req.query?.src}`);
+			res.setHeader(
+				"Content-Disposition",
+				`attachment; filename=${encodeURIComponent(req.query?.src as string)}`,
+			);
 		if (hashItem) return await apiUtils.sendWithETag(req, res, hashItem, app.hashes);
 		res.end();
 	}

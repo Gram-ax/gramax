@@ -17,13 +17,18 @@ import BrowserApiResponse from "./BrowserApiResponse";
 
 const fetchSelf = async (url: Url, body?: BodyInit): Promise<Response> => {
 	const route = url.pathname.split("api/").slice(-1)[0];
+	const res: ApiResponse = new BrowserApiResponse();
 	const app = await getApp();
 	const commands = getCommands(app);
 	const command = findCommand(commands, route);
+
 	if (!command) {
-		const err = new Error(`Route ${route} was not found`);
-		PersistentLogger.err("command not found", err, "cmd", body);
-		throw err;
+		const msg = `Route ${route} was not found`;
+		const err = new Error(msg);
+		PersistentLogger.err("command not found", err, "cmd", { body });
+		res.statusCode = 404;
+		res.send(msg);
+		return res as unknown as Response;
 	}
 
 	Object.entries(url.query)
@@ -31,7 +36,6 @@ const fetchSelf = async (url: Url, body?: BodyInit): Promise<Response> => {
 		.forEach(([k, v]) => (url.query[k] = decodeURIComponent(v)));
 
 	const req: ApiRequest = { headers: {}, query: url.query, body: parseBody(body) };
-	const res: ApiResponse = new BrowserApiResponse();
 
 	const process: Middleware = new ApiMiddleware(async (req, res) => {
 		const ctx = app.contextFactory.fromBrowser(localizer.extract(location.pathname), {});

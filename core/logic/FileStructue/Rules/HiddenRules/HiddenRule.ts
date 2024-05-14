@@ -18,6 +18,7 @@ export default class HiddenRules implements Rules {
 	getNavRules(): NavRules {
 		return {
 			itemRule: (_, item) => this._check(item),
+			catalogRule: (entry) => !entry.props.hidden,
 		};
 	}
 

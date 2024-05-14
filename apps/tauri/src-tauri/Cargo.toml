@@ -21,13 +21,18 @@ plugin-gramax-fs = { path = "../plugins/plugin-gramax-fs" }
 plugin-gramax-git = { path = "../plugins/plugin-gramax-git" }
 
 dotenvy = "0.15.7"
-sys-locale = "0.3.0"
 tiny_http = "0.12.0"
 serde_json = "1.0.105"
 url = "2.4.0"
 log = "0.4.20"
 semver = { version = "1.0.18", features = ["serde"] }
-strum = { version = "0.25.0", features = ["derive"] }
+strum = { version = "0.26.0", features = ["derive"] }
+rfd = "0.12.0"
+rust-i18n = "3.0.1"
+sys-locale = "0.3.1"
+
+[target.'cfg(any(target_os = "linux", target_os = "macos"))'.dependencies]
+notify-rust = "4.10.0"
 
 [target.'cfg(any(target_os = "windows", target_os = "macos", target_os = "linux"))'.dependencies]
 tauri-plugin-updater = { workspace = true }
@@ -36,8 +41,8 @@ tauri-plugin-shell = { workspace = true }
 tokio = { version = "1.32.0", features = ["time"] }
 open = "5.0.0"
 
-[target.'cfg(target_os = "android")'.dependencies]
-android-intent = { git = "https://github.com/pashokitsme/android-intent.git" }
+# [target.'cfg(target_os = "android")'.dependencies]
+# android-intent = { git = "https://github.com/pashokitsme/android-intent.git" }
 
 [target.'cfg(target_os = "ios")'.dependencies]
 cacao = { version = "0.3.2", default-features = false, features = ["uikit"] }

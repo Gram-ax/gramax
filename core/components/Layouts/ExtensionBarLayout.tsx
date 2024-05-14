@@ -40,7 +40,7 @@ const ExtensionBarLayout = styled(
 
 	.elements {
 		display: flex;
-		gap: 0.5rem;
+		gap: 0.6rem;
 	}
 
 	.elements.left {

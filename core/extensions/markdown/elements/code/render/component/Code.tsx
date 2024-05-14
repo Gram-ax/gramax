@@ -22,7 +22,7 @@ export default function Code({ children }: { children: string }) {
 			<code>{"\u00A0" + children + "\u00A0"}</code>
 			<Tooltip content={!copped ? clickToCopyText : copiedText}>
 				<span className="copy">
-					<Icon code={!copped ? "copy" : "check"} faFw={true} />
+					<Icon code={!copped ? "copy" : "check"}/>
 				</span>
 			</Tooltip>
 		</span>

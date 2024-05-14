@@ -10,7 +10,7 @@ import noneBackspace from "../../logic/noneBackspace";
 
 declare module "@tiptap/core" {
 	interface Commands<ReturnType> {
-		tab: { setTab: (attrs: TabAttrs) => ReturnType };
+		tab: { setTab: (position: number, attrs: TabAttrs) => ReturnType };
 	}
 }
 
@@ -32,13 +32,11 @@ const Tab = Node.create({
 	addCommands() {
 		return {
 			setTab:
-				(attrs) =>
+				(position, attrs) =>
 				({ commands }) => {
-					return commands.insertContent({
-						attrs,
-						type: this.name,
-						content: [{ type: "paragraph", content: [] }],
-					});
+					return commands.insertContentAt(position, 
+						{ type: this.name, attrs, content: [{ type: "paragraph", content: [] }] }
+					);
 				},
 		};
 	},

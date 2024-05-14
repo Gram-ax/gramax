@@ -18,6 +18,10 @@ const Comment = Mark.create({
 	name: "comment",
 	priority: 1000,
 	keepOnSplit: false,
+	
+	addOptions() {
+		return {}
+	},
 
 	addAttributes() {
 		return { comment: { default: null }, answers: { default: null }, count: { default: null } };

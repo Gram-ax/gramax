@@ -54,7 +54,7 @@ export default class PageContext {
 			await this._page.locator(`text=Создать новый`).first().click();
 		}
 
-		await this._page.locator(".status-bar .fa-plus").click();
+		await this._page.locator(".status-bar .lucide-plus").click();
 		await this._page.locator(".status-bar .spinner").waitFor({ state: "detached" });
 	}
 

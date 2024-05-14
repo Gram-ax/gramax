@@ -1,5 +1,5 @@
+import { CATEGORY_ROOT_FILENAME } from "@app/config/const";
 import ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
-import { CATEGORY_ROOT_FILENAME } from "@core/FileStructue/FileStructure";
 import Path from "../../../../../../logic/FileProvider/Path/Path";
 import ParserContext from "../../../../core/Parser/ParserContext/ParserContext";
 

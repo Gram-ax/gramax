@@ -1,3 +1,4 @@
+import { getExecutingEnvironment } from "@app/resolveModule/env";
 import resolveModule from "@app/resolveModule/frontend";
 import SpinnerLoader from "@components/Atoms/SpinnerLoader";
 import Url from "@core-ui/ApiServices/Types/Url";
@@ -11,15 +12,16 @@ import GroupsName from "./model/GroupsName";
 
 const AnyCard = ({ link, ...props }: { link: CatalogLink } & HTMLAttributes<HTMLAnchorElement>) => {
 	const apiUrlCreator = ApiUrlCreatorService.value;
-	const useImage = resolveModule("useImage");
+	const logo = resolveModule("useImage")(apiUrlCreator.getLogoUrl(link.name));
 	const [isLoading, setIsLoading] = useState<boolean>(false);
 
 	return (
 		<Link
 			{...props}
 			href={Url.from(link)}
-			onClick={(e) => {
-				props.onClick?.(e);
+			onClick={(ev) => {
+				if (getExecutingEnvironment() == "next" || ev.currentTarget.target === "_blank") return;
+				props.onClick?.(ev);
 				setIsLoading(true);
 			}}
 		>
@@ -34,10 +36,7 @@ const AnyCard = ({ link, ...props }: { link: CatalogLink } & HTMLAttributes<HTML
 					</div>
 				) : null}
 				<div className="catalog">
-					<div
-						className="catalog-title-logo"
-						style={{ backgroundImage: `url(${useImage(apiUrlCreator.getLogoUrl(link.name))})` }}
-					/>
+					<div className="catalog-title-logo" style={logo && { backgroundImage: `url(${logo})` }} />
 					<div title={link.description} className="catalog-texts">
 						<div className="catalog-text-logo">{link.title}</div>
 						<div className="catalog-text">{link.description}</div>

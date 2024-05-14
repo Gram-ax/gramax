@@ -5,14 +5,15 @@ import { useEffect, useState } from "react";
 import DarkLogo from "../../../../../core/public/images/gramax-logo-dark.svg";
 import LightLogo from "../../../../../core/public/images/gramax-logo-light.svg";
 
-const AppLoader = ({ className }: { className?: string }) => {
+const AppLoader = ({ className, delayBeforeShow = 0 }: { className?: string; delayBeforeShow?: number }) => {
 	const theme = ThemeService.value;
 	const [dotsCount, setDotsCount] = useState(0);
 	const [show, setShow] = useState(false);
 
 	useEffect(() => {
 		const interval = setInterval(() => setDotsCount((prev) => (prev < 3 ? prev + 1 : 1)), 500);
-		setTimeout(() => setShow(true), 500);
+		if (delayBeforeShow) setTimeout(() => setShow(true), delayBeforeShow);
+		else setShow(true);
 		return () => clearInterval(interval);
 	}, []);
 

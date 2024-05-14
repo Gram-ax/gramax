@@ -7,8 +7,8 @@ const push: Command<{ catalogName: string }, void> = Command.create({
 	async do({ catalogName }) {
 		const { lib, conf } = this._app;
 		const catalog = await lib.getCatalog(catalogName);
-		const fp = lib.getFileProviderByCatalog(catalog);
 		if (!catalog) throw new Error("no catalog found");
+		const fp = lib.getFileProviderByCatalog(catalog);
 
 		const name = await catalog.repo.storage.getSourceName();
 		const sourceData = this._app.rp.getSourceData(

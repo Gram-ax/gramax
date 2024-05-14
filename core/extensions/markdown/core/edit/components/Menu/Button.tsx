@@ -16,6 +16,8 @@ export interface ButtonProps extends HTMLAttributes<HTMLDivElement> {
 	nodeValues?: NodeValues;
 	icon?: string;
 	iconStyle?: CSSProperties;
+	iconStrokeWidth?: string;
+	iconViewBox?: string;
 	dataQa?: string;
 	onMouseLeave?: () => void;
 	useSvgDefaultWidth?: boolean;
@@ -24,14 +26,17 @@ export interface ButtonProps extends HTMLAttributes<HTMLDivElement> {
 
 const StyledDiv = styled.div<ButtonProps>`
 	.iconFrame {
-		padding: 5px 5.5px;
-		line-height: 16px;
+		line-height: 100%;
+		padding: 6.5px 7px;
+		i {
+			font-size: 10px;
+		}
 	}
 
 	.button {
 		cursor: pointer;
 		font-size: 12px;
-		border-radius: var(--radius-block);
+		border-radius: var(--radius-normal);
 	}
 
 	.button:hover:not(.disabled),
@@ -46,7 +51,7 @@ const StyledDiv = styled.div<ButtonProps>`
 
 	.button {
 		svg {
-			${(p) => (p.useSvgDefaultWidth === false ? "" : "width: 1.25em;")}
+			${(p) => (p.useSvgDefaultWidth === false ? "" : "width: 1.25em; height: 1.25em;")}
 		}
 	}
 
@@ -67,6 +72,8 @@ const Button = forwardRef((props: ButtonProps, ref: ForwardedRef<HTMLDivElement>
 		dataQa,
 		className,
 		children,
+		iconViewBox,
+		iconStrokeWidth,
 		title,
 		useSvgDefaultWidth,
 		hotKey,
@@ -88,7 +95,7 @@ const Button = forwardRef((props: ButtonProps, ref: ForwardedRef<HTMLDivElement>
 		<div onMouseLeave={onMouseLeave} onClick={disabled ? () => {} : onClick} className={classNames("button", mods)}>
 			{icon ? (
 				<div className="iconFrame">
-					<Icon faFw code={icon} prefix={icon == "markdown" ? "fab" : null} style={iconStyle} />
+					<Icon viewBox={iconViewBox} code={icon} style={iconStyle} strokeWidth={iconStrokeWidth}/>
 					{text && <span>{text}</span>}
 				</div>
 			) : (

@@ -55,7 +55,10 @@ Then("проверяем, что картинка загрузилась", async
 
 Then("нажимаем кнопку далее, пока видим её", { timeout: 1000 * 60 * 5 }, async function (this: E2EWorld) {
 	const next = await this.page().search().lookup("jump-to-next", undefined, true);
-	while (await next.isVisible()) {
+	let counter = 0;
+
+	while ((await next.isVisible()) && counter < 5) {
+		counter++;
 		await next.click();
 
 		const scope = await this.page().search().lookup("редактор");
@@ -64,6 +67,8 @@ Then("нажимаем кнопку далее, пока видим её", { tim
 		const failed = await checkForErrorModal(this);
 		if (failed) throw new Error("An error modal found");
 	}
+
+	expect(counter).toEqual(5);
 });
 
 Then("diff содержит", async function (this: E2EWorld, text: string) {

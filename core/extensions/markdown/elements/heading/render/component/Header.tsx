@@ -1,5 +1,4 @@
 import Icon from "@components/Atoms/Icon";
-import ArticlePropsService from "@core-ui/ContextServices/ArticleProps";
 import styled from "@emotion/styled";
 import React from "react";
 
@@ -14,9 +13,7 @@ export interface HeaderProps {
 
 const Header = (props: HeaderProps) => {
 	const { level, id, children, className, dataQa, copyLinkIcon = true } = props;
-	const articleProps = ArticlePropsService?.value;
-	const logicPath = articleProps?.logicPath ?? "";
-	const href = "#" + (id ?? "");
+	const href = id ? `#${id}` : "";
 	const header = (
 		<>
 			{children}
@@ -26,10 +23,9 @@ const Header = (props: HeaderProps) => {
 					className="anchor"
 					data-mdignore={true}
 					contentEditable={false}
-					onClick={() => {
-						navigator.clipboard.writeText(
-							window.location.protocol + "//" + window.location.host + "/" + logicPath + href,
-						);
+					onClick={(e) => {
+						if (!href.length) e.preventDefault();
+						navigator.clipboard.writeText(`${window.location.href}${href}`);
 					}}
 				>
 					<Icon code="link" />

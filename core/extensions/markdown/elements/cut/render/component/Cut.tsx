@@ -33,7 +33,7 @@ const Cut = styled(
 					}}
 				>
 					<span>{isExpanded ? "Скрыть" : text}</span>
-					<Icon code={"chevron" + (isExpanded ? "-left" : "-right")} />
+					<Icon code={isExpanded ? "chevron-left" : "chevron-right"} viewBox="3 3 18 18" />
 				</a>
 				{isExpanded && <span className="bg">{children}</span>}
 			</span>
@@ -48,7 +48,7 @@ const Cut = styled(
 					contentEditable={false}
 				>
 					<div className="admonition-icon">
-						<Icon code={isExpanded ? "chevron-down" : "chevron-right"} faFw />
+						<Icon code={isExpanded ? "chevron-down" : "chevron-right"} viewBox="3 3 18 18"/>
 					</div>
 					<h5>{text}</h5>
 				</div>

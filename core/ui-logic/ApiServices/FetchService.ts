@@ -1,4 +1,6 @@
 import resolveModule from "@app/resolveModule/frontend";
+import CommandErrors from "@app/types/CommandErrors";
+import DefaultError from "@ext/errorHandlers/logic/DefaultError";
 import FetchResponse from "./Types/FetchResponse";
 import Method from "./Types/Method";
 import MimeTypes from "./Types/MimeTypes";
@@ -14,7 +16,21 @@ const FetchService = {
 	): Promise<FetchResponse<T>> => {
 		const res = await resolveModule("Fetcher")(url, body, mime, method);
 		if (res.ok) return res;
-		const error = await res?.json();
+
+		let error: any;
+		if (res.status === 404) {
+			error = new DefaultError(null, error, {
+				errorCode: CommandErrors.CommandNotFound,
+				commandPath: url.toString(),
+			});
+		} else {
+			try {
+				error = await res?.json();
+			} catch (e) {
+				error = e;
+			}
+		}
+
 		(await ErrorConfirmService).default.notify(error);
 		return res;
 	},

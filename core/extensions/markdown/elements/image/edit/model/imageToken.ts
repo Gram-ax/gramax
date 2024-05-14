@@ -1,11 +1,19 @@
+import { parse } from "@ext/markdown/elements/image/edit/logic/transformer/imageTransformer";
+
 function imageToken() {
 	return {
 		node: "image",
-		getAttrs: (tok) => ({
-			src: tok.attrGet("src"),
-			title: tok.attrGet("title") || null,
-			alt: (tok.children[0] && tok.children[0].content) || null,
-		}),
+		getAttrs: (tok) => {
+			const {crop, objects} = parse(tok.attrs.crop ?? "0,0,100,100", tok.attrs.objects ?? "[]");
+
+			return {
+				src: tok?.attrGet ? tok.attrGet("src") : tok.attrs.src,
+				title: tok?.attrGet ? (tok.attrGet("title") || null) : tok.attrs.title,
+				alt: tok.children ? (tok.children[0] && tok.children[0].content) || null : tok.attrs.alt,
+				crop: crop,
+				objects: objects,
+			};
+		},
 	};
 }
 

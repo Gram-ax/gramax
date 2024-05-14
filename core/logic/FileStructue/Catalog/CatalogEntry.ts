@@ -1,5 +1,5 @@
 import Path from "@core/FileProvider/Path/Path";
-import { Catalog, CatalogErrors, type CatalogProps } from "@core/FileStructue/Catalog/Catalog";
+import { Catalog, type CatalogProps } from "@core/FileStructue/Catalog/Catalog";
 import { FSLazyLoadCatalog } from "@core/FileStructue/FileStructure";
 import { Item } from "@core/FileStructue/Item/Item";
 import { ItemRef } from "@core/FileStructue/Item/ItemRef";
@@ -8,6 +8,7 @@ import PathnameData from "@core/RouterPath/model/PathnameData";
 import GitStorage from "@ext/git/core/GitStorage/GitStorage";
 import Repository from "@ext/git/core/Repository/Repository";
 import RepositoryProvider from "@ext/git/core/Repository/RepositoryProvider";
+import { CatalogErrors } from "@ext/healthcheck/logic/Healthcheck";
 import IPermission from "@ext/security/logic/Permission/IPermission";
 import Permission from "@ext/security/logic/Permission/Permission";
 import SourceType from "@ext/storage/logic/SourceDataProvider/model/SourceType";

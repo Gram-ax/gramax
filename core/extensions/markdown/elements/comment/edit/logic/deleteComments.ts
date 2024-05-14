@@ -10,7 +10,7 @@ const deleteComments = async (
 	comments: { [path: string]: number },
 ) => {
 	for (const mark of marks) {
-		if (mark.type.name !== "comment") return;
+		if (mark.type.name !== "comment") continue;
 		CommentCounterService.delete(comments, articlePathname);
 		await FetchService.fetch(apiUrlCreator.deleteComment(mark.attrs.count));
 	}

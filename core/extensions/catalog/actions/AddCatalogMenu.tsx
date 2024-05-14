@@ -7,11 +7,11 @@ import useLocalize from "@ext/localization/useLocalize";
 
 const AddCatalogMenu = () => {
 	return (
-		<PopupMenuLayout trigger={<ButtonLink iconCode="plus" text={useLocalize("addCatalog")} />}>
+		<PopupMenuLayout trigger={<ButtonLink iconCode="plus" iconViewBox="3 3 18 18" text={useLocalize("addCatalog")} />}>
 			<IsReadOnlyHOC>
-				<CreateCatalog trigger={<ButtonLink iconCode="plus" text={useLocalize("createNew")} />} />
+				<CreateCatalog trigger={<ButtonLink iconCode="plus" iconViewBox="3 3 18 18" text={useLocalize("createNew")} />} />
 			</IsReadOnlyHOC>
-			<Clone trigger={<ButtonLink iconCode="cloud" text={useLocalize("loadExisting")} />} />
+			<Clone trigger={<ButtonLink iconCode="cloud-download" text={useLocalize("loadExisting")} />} />
 		</PopupMenuLayout>
 	);
 };

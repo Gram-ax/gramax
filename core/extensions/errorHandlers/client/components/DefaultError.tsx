@@ -8,7 +8,7 @@ const DefaultErrorComponent = ({ error, onCancelClick }: ComponentProps<typeof G
 		<InfoModalForm
 			onCancelClick={onCancelClick}
 			title={useLocalize("error")}
-			icon={{ code: "circle-xmark", color: "var(--color-danger)" }}
+			icon={{ code: "circle-x", color: "var(--color-danger)" }}
 		>
 			<span>{error.message}</span>
 		</InfoModalForm>

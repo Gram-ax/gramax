@@ -2,6 +2,7 @@ import ContentEditable from "@components/Atoms/ContentEditable";
 import Icon from "@components/Atoms/Icon";
 import CatalogPropsService from "@core-ui/ContextServices/CatalogProps";
 import styled from "@emotion/styled";
+import useLocalize from "@ext/localization/useLocalize";
 import CurrentTabsTagService from "@ext/markdown/elements/tabs/components/CurrentTabsTagService";
 import getVisibleChildAttrs from "@ext/markdown/elements/tabs/logic/getVisibleChildAttrs";
 import TabAttrs from "@ext/markdown/elements/tabs/model/TabAttrs";
@@ -12,6 +13,7 @@ const Tabs = ({
 	childAttrs,
 	children,
 	onAddClick,
+	onTabEnter,
 	onRemoveClick,
 	onNameUpdate,
 	isEdit = false,
@@ -20,6 +22,7 @@ const Tabs = ({
 	childAttrs: TabAttrs[];
 	children?: ReactElement;
 	onAddClick?: () => void;
+	onTabEnter?: (idx: number) => void;
 	onRemoveClick?: (idx: number) => void;
 	onNameUpdate?: (value: string, idx: number) => void;
 	className?: string;
@@ -48,17 +51,27 @@ const Tabs = ({
 								{isEdit ? (
 									<ContentEditable
 										value={name}
+										className="text"
 										deps={[visibleChildAttrs.length]}
+										onEnter={() => onTabEnter(idx)}
 										onChange={(v) => onNameUpdate(v, idx)}
 									/>
 								) : (
-									<span>{name}</span>
+									<span title={name} className="read text">
+										{name}
+									</span>
 								)}
 								{isEdit && (
 									<Icon
 										key={key}
-										code="xmark"
 										isAction
+										code="x"
+										className="xmark"
+										tooltipContent={
+											visibleChildAttrs.length == 1
+												? useLocalize("deleteTabs")
+												: useLocalize("deleteTab")
+										}
 										onClick={() => {
 											onRemoveClick(idx);
 											setActiveIdx(0);
@@ -71,7 +84,9 @@ const Tabs = ({
 					{isEdit && visibleChildAttrs.length < 5 && (
 						<Icon
 							code="plus"
+							viewBox="3 3 18 18"
 							isAction
+							tooltipContent={useLocalize("addNewTab")}
 							onClick={() => {
 								onAddClick();
 								setActiveIdx(visibleChildAttrs.length);
@@ -87,30 +102,54 @@ const Tabs = ({
 
 export default styled(Tabs)`
 	.switch {
-		gap: 1rem;
 		display: flex;
 		flex-direction: row;
-		align-items: baseline;
+		align-items: center;
 		margin-bottom: 0.7rem;
+		gap: ${(p) => (p.isEdit ? "0.3rem" : "1rem")};
 		border-bottom: var(--color-article-text) solid 1px;
 
 		.case {
+			gap: 0.1rem;
 			display: flex;
-			cursor: pointer;
 			max-height: 34px;
+			font-weight: 400;
 			align-items: center;
-			padding-bottom: 0.2rem;
-			gap: var(--distance-i-span);
-			border-bottom: 2px #ffffff0f solid;
-			max-width: calc((100% / 5) - 13px);
+			cursor: ${(p) => (p.isEdit ? "text" : "pointer")};
+			max-width: ${(p) =>
+				p.isEdit
+					? `calc(((100% - ${p.childAttrs.length != 5 ? "20px" : "0px"}) / ${p.childAttrs.length}) - 0.5rem)`
+					: `calc((100% / ${p.childAttrs.length}) - 1rem)`};
+
+			.read {
+				overflow: hidden;
+				text-overflow: ellipsis;
+				white-space: nowrap !important;
+			}
+
+			.text {
+				border-bottom: 2px #ffffff0f solid;
+			}
+
+			.xmark {
+				visibility: hidden;
+			}
 		}
 
 		.case:hover {
-			border-bottom: var(--color-article-text) solid 2px;
+			.text {
+				border-bottom: var(--color-text-secondary) solid 2px;
+			}
+
+			.xmark {
+				visibility: ${(p) => (p.isEdit ? "visible" : "hidden")};
+			}
 		}
 
 		.case.active {
-			border-bottom: var(--color-article-text) solid 2px;
+			.text {
+				border-bottom: var(--color-article-text) solid 2px;
+			}
 		}
 	}
 

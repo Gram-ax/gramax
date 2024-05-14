@@ -1,4 +1,4 @@
-import { getEnglishStr } from "@core-ui/languageConverter/getEnglishStr";
+import { transliterate } from "@core-ui/languageConverter/transliterate";
 import { IcsAccountIn } from "./IcsAccountIn.schema";
 import { IcsAccountOut } from "./IcsAccountOut.schema";
 
@@ -9,7 +9,7 @@ export const icsAccount = (transliteration: IcsAccountIn): IcsAccountOut => {
 			email: ``,
 			login: ``,
 		};
-	const fullName = getEnglishStr(transliteration.fullName.toLowerCase());
+	const fullName = transliterate(transliteration.fullName.toLowerCase());
 	let N1 = "";
 	let N2 = "";
 	const n1 = fullName.split(" ")?.[0] ?? "";

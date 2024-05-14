@@ -12,7 +12,7 @@ tauri-build = { workspace = true }
 [dependencies]
 tauri = { workspace = true }
 gramax-git = { path = "../../../../rlibs/git" }
-serde = "1.0"
+serde = { workspace = true }
 thiserror = "1.0"
 anyhow = "1.0"
 log = "0.4.20"

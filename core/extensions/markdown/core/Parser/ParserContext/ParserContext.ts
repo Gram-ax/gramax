@@ -32,6 +32,7 @@ export default interface ParserContext {
 	parser: MarkdownParser;
 	formatter: MarkdownFormatter;
 	snippet: Set<string>;
+	icons: Set<string>;
 }
 
 export abstract class BaseContext {
@@ -39,6 +40,12 @@ export abstract class BaseContext {
 
 	get snippet() {
 		return this._snippet;
+	}
+
+	private _icons = new Set<string>();
+
+	get icons() {
+		return this._icons;
 	}
 
 	abstract getArticle(): Article;

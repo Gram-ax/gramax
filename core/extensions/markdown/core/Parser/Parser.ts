@@ -33,6 +33,10 @@ import getBlockMdNodeTransformer from "../../elements/md/logic/getBlockMdNodeTra
 import emptyParagraphTransformer from "../../elements/paragraph/edit/logic/emptyParagraphTransformer";
 import MarkdownFormatter from "../edit/logic/Formatter/Formatter";
 import Transformer from "./Transformer/Transformer";
+import imageTokenTransformer from "@ext/markdown/elements/image/edit/logic/transformer/imageTokenTransformer";
+import commentTokenTransformer from "@ext/markdown/elements/comment/edit/logic/commentTokenTransformer";
+import tableTokenTransformer from "@ext/markdown/elements/table/edit/logic/tableTokenTransformer";
+import cutTokenTransformer from "@ext/markdown/elements/cut/edit/logic/cutTokenTransformer";
 
 const katexPlugin = import("@traptitech/markdown-it-katex");
 
@@ -42,7 +46,6 @@ export default class MarkdownParser {
 	public async parse(content: string, context?: ParserContext, requestUrl?: string): Promise<Content> {
 		const schemes = this._getSchemes(context);
 		const tokens = await this._getTokens(content, schemes);
-
 		const renderTree = await this._getRenderableTreeNode(tokens, schemes, context);
 		const editTree = await this._editParser(tokens, schemes, context);
 		return {
@@ -53,6 +56,7 @@ export default class MarkdownParser {
 			linkManager: context?.getLinkManager(),
 			resourceManager: context?.getResourceManager(),
 			snippets: context?.snippet,
+			icons: context?.icons,
 		};
 	}
 
@@ -120,7 +124,7 @@ export default class MarkdownParser {
 	}
 
 	private async _getTokenizer() {
-		const tokenizer = new Tokenizer({ linkify: true });
+		const tokenizer = new Tokenizer({ linkify: false });
 		tokenizer.use((await katexPlugin).default, { blockClass: "math-block", errorColor: " #cc0000" });
 		return tokenizer;
 	}
@@ -137,7 +141,7 @@ export default class MarkdownParser {
 
 	private async _editParser(tokens: Token[], schemes: Schemes, context?: ParserContext): Promise<JSONContent> {
 		const prosemirrorParser = new ProsemirrorMarkdownParser(schema, await this._getTokenizer(), getTokens(context));
-
+		
 		const transformer = new ProsemirrorTransformer({ ...schemes.tags, ...schemes.nodes }, [
 			emptyParagraphTransformer,
 			imageNodeTransformer,
@@ -146,6 +150,11 @@ export default class MarkdownParser {
 			filesParserTransformer,
 			diagramsNodeTransformer,
 			commentNodeTransformer,
+		], [
+			tableTokenTransformer,
+			imageTokenTransformer,
+			commentTokenTransformer,
+			cutTokenTransformer,
 		]);
 
 		const transformTokens = transformer.transformToken(tokens);
@@ -159,7 +168,6 @@ export default class MarkdownParser {
 			this.parseRenderableTreeNode.bind(this),
 			context,
 		);
-
 		return finalEditTree;
 	}
 }

@@ -52,7 +52,6 @@ export interface TitledLink {
 	icon?: string;
 	target?: "_self" | "_blank" | "_parent" | "_top";
 	private?: boolean;
-	iconPrefix?: string;
 	onClick?: () => void;
 	childrens?: TitledLink[];
 }

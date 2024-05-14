@@ -3,6 +3,7 @@ import type FileStructure from "@core/FileStructue/FileStructure";
 import { ItemRef } from "@core/FileStructue/Item/ItemRef";
 import { ItemType } from "@core/FileStructue/Item/ItemType";
 import ResourceUpdater from "@core/Resource/ResourceUpdater";
+import createNewFilePathUtils from "@core/utils/createNewFilePathUtils";
 import { FileStatus } from "@ext/Watchers/model/FileStatus";
 import { JSONContent } from "@tiptap/core";
 import { RenderableTreeNode } from "../../../extensions/markdown/core/render/logic/Markdoc";
@@ -116,7 +117,15 @@ export class Article<P extends ArticleProps = ArticleProps> extends Item<P> {
 
 	private async _updateArticleFileName(fileName: string, resourceUpdater: ResourceUpdater) {
 		if (this.getFileName() == fileName) return;
-		const path = this._ref.path.getNewName(fileName);
+		let path = this._ref.path.getNewName(fileName);
+		if (await this._fs.fp.exists(path)) {
+			const readdir = await this._fs.fp.getItems(this.ref.path.parentDirectoryPath);
+			path = createNewFilePathUtils.create(
+				this.ref.path,
+				readdir.map((s) => s.path),
+				fileName,
+			);
+		}
 		await this._fs.moveArticle(this, path);
 		const newArticle = this._getUpdateArticleByProps(path);
 		await resourceUpdater.update(this, newArticle);
@@ -146,6 +155,7 @@ export interface Content {
 	editTree: JSONContent;
 	renderTree: RenderableTreeNode;
 	snippets: Set<string>;
+	icons: Set<string>;
 	linkManager: ResourceManager;
 	resourceManager: ResourceManager;
 }

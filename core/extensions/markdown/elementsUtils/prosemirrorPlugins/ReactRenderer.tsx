@@ -13,6 +13,11 @@ class ReactRenderer {
 		this._parentElement = _parentElement;
 	}
 
+	public destroy(element) {
+		this._parentElement.removeChild(element);
+		this._root.unmount();
+	}
+
 	protected _initialization(element: HTMLElement) {
 		this._root = createRoot(element);
 		this._parentElement.appendChild(element);

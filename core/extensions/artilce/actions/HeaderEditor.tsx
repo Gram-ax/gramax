@@ -1,16 +1,16 @@
+import { NEW_ARTICLE_REGEX } from "@app/config/const";
 import BlockInput from "@components/Atoms/BlockInput";
 import FetchService from "@core-ui/ApiServices/FetchService";
 import MimeTypes from "@core-ui/ApiServices/Types/MimeTypes";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import ArticlePropsService from "@core-ui/ContextServices/ArticleProps";
-import debounceFunction from "@core-ui/debounceFunction";
+import { transliterate } from "@core-ui/languageConverter/transliterate";
 import { splitRange } from "@core-ui/utils/rangeUtils";
+import { useRouter } from "@core/Api/useRouter";
 import styled from "@emotion/styled";
 import { MutableRefObject, useEffect, useRef } from "react";
 import useLocalize from "../../localization/useLocalize";
 import EditorService from "../../markdown/elementsUtils/ContextServices/EditorService";
-
-const UPDATE_ARTICLE_TITLE_SYMBOL = Symbol();
 
 let headerRef: MutableRefObject<HTMLDivElement> = null;
 export const getHeaderRef = () => headerRef;
@@ -18,17 +18,31 @@ export const getHeaderRef = () => headerRef;
 export default styled(({ className }: { className?: string }) => {
 	const articleProps = ArticlePropsService.value;
 	const apiUrlCreator = ApiUrlCreatorService.value;
+	const router = useRouter();
 	const ref = useRef<HTMLDivElement>(null);
 
-	const updateArticleTitle = (title: string) => {
+	const updateArticleTitleLocal = (title: string) => {
 		articleProps.title = title;
 		ArticlePropsService.set(articleProps);
+	};
+
+	const updateArticleTitle = async (title: string) => {
+		updateArticleTitleLocal(title);
+
+		const maybeKebabName =
+			title && NEW_ARTICLE_REGEX.test(articleProps.fileName)
+				? transliterate(articleProps.title, { kebab: true, maxLength: 50 })
+				: undefined;
+
+		if (maybeKebabName) articleProps.fileName = maybeKebabName;
+
 		const url = apiUrlCreator.updateItemProps();
-		debounceFunction(
-			UPDATE_ARTICLE_TITLE_SYMBOL,
-			() => FetchService.fetch(url, JSON.stringify(articleProps), MimeTypes.json),
-			500,
-		);
+		const res = await FetchService.fetch(url, JSON.stringify(articleProps), MimeTypes.json);
+
+		if (maybeKebabName && res.ok) {
+			const pathname = await res.text();
+			router.pushPath(pathname);
+		}
 	};
 
 	const replaceSpaceToUnbreakableSpace = (text: string): string =>
@@ -36,9 +50,7 @@ export default styled(({ className }: { className?: string }) => {
 
 	const removeExtraSpaceFromStart = (text: string): string => text.match(/^\s*(.*)/)[1].match(/(.*?)\s*$/)[1];
 
-	const onArrowDown = () => {
-		EditorService.getEditor().commands.focus(0);
-	};
+	const onArrowDown = () => EditorService.getEditor().commands.focus(0);
 
 	const onEnter = () => {
 		const sel = window.getSelection();
@@ -51,7 +63,6 @@ export default styled(({ className }: { className?: string }) => {
 		const textFocusToEnd = replaceSpaceToUnbreakableSpace(afterOffset.toString());
 
 		elem.innerHTML = removeExtraSpaceFromStart(textStartToFocus);
-		updateArticleTitle(elem.innerText);
 
 		editor.commands.insertContentAt(0, {
 			type: "paragraph",
@@ -71,7 +82,7 @@ export default styled(({ className }: { className?: string }) => {
 					ref={ref}
 					value={articleProps.title}
 					placeholder={useLocalize("articleTitle")}
-					onInput={(e) => updateArticleTitle(e.currentTarget.innerText.trim())}
+					onInput={(e) => updateArticleTitleLocal(e.currentTarget.innerText.trim())}
 					onBlur={(e) => updateArticleTitle(e.currentTarget.innerText.trim())}
 					deps={[articleProps.ref.path]}
 					onKeyDown={(e) => {

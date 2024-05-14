@@ -9,8 +9,10 @@ import TabsFormatter from "@ext/markdown/elements/tabs/logic/TabsFormatter";
 import SnippetFormatter from "@ext/markdown/elements/snippet/edit/logic/SnippetFormatter";
 import screenSymbols from "@ext/markdown/logic/screenSymbols";
 import TableUtils from "../Utils/Table";
-
+import { format } from "@ext/markdown/elements/image/edit/logic/transformer/imageTransformer";
 const blocks = ["Db-diagram", "Db-table", "Snippet"];
+
+const CLEAR_CROP = { x: 0, y: 0, w: 100, h: 100 };
 
 const getNodeFormatters = (context?: ParserContext): { [node: string]: NodeSerializerSpec } => ({
 	code_block: codeBlockFormatter,
@@ -19,6 +21,37 @@ const getNodeFormatters = (context?: ParserContext): { [node: string]: NodeSeria
 	openapi: OpenApiFormatter,
 	tabs: TabsFormatter,
 	tab: TabFormatter,
+	image: (state, node) => {
+		const newFormat =
+			(node.attrs?.crop &&
+				typeof node.attrs.crop !== "string" &&
+				(node.attrs.crop.x !== 0 ||
+					node.attrs.crop.y !== 0 ||
+					node.attrs.crop.w !== 100 ||
+					node.attrs.crop.h !== 100)) ||
+			(node.attrs?.objects && node.attrs.objects.length > 0);
+		const str = (newFormat && format(node.attrs?.crop ?? CLEAR_CROP, node.attrs?.objects ?? [])) || "";
+
+		state.write(
+			(newFormat &&
+				"[image:" +
+					node.attrs.src +
+					":" +
+					(node.attrs?.alt ?? "") +
+					":" +
+					(node.attrs?.title ?? "") +
+					":" +
+					str +
+					"]") ||
+				"![" +
+					state.esc(node.attrs.alt || "") +
+					"](" +
+					node.attrs.src +
+					(node.attrs.title ? ' "' + node.attrs.title.replace(/"/g, '\\"') + '"' : "") +
+					")\n",
+		);
+		state.closeBlock(node);
+	},
 
 	inlineMd_component: (state, node) => {
 		const isBlock = blocks.includes(node.attrs.tag?.[0]?.name);
@@ -164,17 +197,6 @@ const getNodeFormatters = (context?: ParserContext): { [node: string]: NodeSeria
 	paragraph: async (state, node) => {
 		if (node.content?.size) await state.renderInline(node);
 		else state.write("\n");
-		state.closeBlock(node);
-	},
-	image: (state, node) => {
-		state.write(
-			"![" +
-				state.esc(node.attrs.alt || "") +
-				"](" +
-				node.attrs.src +
-				(node.attrs.title ? ' "' + node.attrs.title.replace(/"/g, '\\"') + '"' : "") +
-				")\n",
-		);
 		state.closeBlock(node);
 	},
 	hard_break(state, node, parent, index) {

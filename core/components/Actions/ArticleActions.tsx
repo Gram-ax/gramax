@@ -27,6 +27,7 @@ const ArticleActions = (): JSX.Element => {
 			<ExportToDocxOrPdf
 				downloadLink={apiUrlCreator.getWordSaveUrl(articleProps.ref.path)}
 				fileName={articleProps.fileName}
+				disabled={!articleProps.fileName}
 			/>
 			{isLogged && (
 				<>
@@ -34,7 +35,18 @@ const ArticleActions = (): JSX.Element => {
 					<BugsnagLogsModal />
 					<FileEditor
 						shouldRender={!isServerApp}
-						trigger={<ListItem iconCode="file-pen" text={useLocalize("editMarkdown")} />}
+						trigger={
+							// <Tooltip
+							// 	disabled={!!articleProps.fileName}
+							// 	content={useLocalize("createFilesToEditMarkdown")}
+							// >
+							<ListItem
+								disabled={!articleProps.fileName}
+								iconCode="file-pen"
+								text={useLocalize("editMarkdown")}
+							/>
+							// </Tooltip>
+						}
 					/>
 				</>
 			)}

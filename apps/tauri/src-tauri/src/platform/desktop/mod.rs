@@ -7,6 +7,9 @@ pub mod commands;
 pub mod config;
 pub mod menu;
 
+#[cfg(any(target_os = "macos", target_os = "linux"))]
+pub mod download_callback;
+
 pub use menu::MenuBuilder;
 pub use updater::UpdaterBuilder;
 
@@ -23,12 +26,12 @@ pub fn window_post_init<R: Runtime>(window: &Window<R>) -> Result<()> {
 }
 
 pub fn on_navigation(url: &url::Url) -> bool {
-  if !url.domain().is_some_and(|domain| ALLOWED_DOMAINS.contains(&domain)) {
-    open::that(url.as_str()).unwrap();
-    return false;
+  if url.scheme() == "blob" || url.domain().is_some_and(|domain| ALLOWED_DOMAINS.contains(&domain)) {
+    return true;
   }
 
-  true
+  open::that(url.as_str()).unwrap();
+  false
 }
 
 #[cfg(target_os = "macos")]

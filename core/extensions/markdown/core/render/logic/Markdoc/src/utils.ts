@@ -1,6 +1,6 @@
 import Function from "./ast/function";
 import Variable from "./ast/variable";
-import { parse, SyntaxError } from "./grammar/tag";
+import { parse, type SyntaxError } from "./grammar/tag";
 import { Token } from "./types";
 
 enum STATES {

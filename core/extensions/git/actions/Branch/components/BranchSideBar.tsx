@@ -7,13 +7,17 @@ import Sidebar from "../../../../../components/Layouts/Sidebar";
 const BranchSideBar = ({
 	name,
 	iconCode,
+	iconViewBox,
 	tooltipContent,
 	data,
+	disable = false,
 }: {
 	name: string;
 	iconCode?: string;
+	iconViewBox?: string;
 	tooltipContent?: string;
 	data?: { lastCommitAuthor: string; lastCommitModify: string };
+	disable?: boolean;
 }) => {
 	const ref = useRef<HTMLDivElement>();
 	const [width, setWidth] = useState(0);
@@ -27,6 +31,7 @@ const BranchSideBar = ({
 	return (
 		<div ref={ref} style={{ width: "100%", padding: "6px 12px" }}>
 			<Sidebar
+				disable={disable}
 				title={name}
 				leftActions={[
 					iconCode ? (
@@ -34,8 +39,8 @@ const BranchSideBar = ({
 							key={0}
 							code={iconCode}
 							tooltipContent={tooltipContent}
-							style={{ fontSize: "12px", color: "var(--color-placeholder)", fontWeight: 300 }}
-							faFw
+							viewBox={iconViewBox}
+							style={{ fontSize: "1rem", color: "var(--color-placeholder)", fontWeight: 300 }}
 						/>
 					) : null,
 				]}

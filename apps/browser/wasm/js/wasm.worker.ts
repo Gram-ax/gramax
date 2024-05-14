@@ -1,7 +1,5 @@
 import { callFS } from "@app/resolveModule/fscall/wasm.worker";
 import { callGit } from "@app/resolveModule/gitcall/wasm.worker";
-
-// @ts-expect-error only in browser
 import WasmModule from "../dist/gramax-wasm";
 
 (self as any).wasm = await WasmModule({});
@@ -27,5 +25,9 @@ addEventListener("message", async (ev) => {
 
 	self.postMessage({ ok, res, callbackId: ev.data.callbackId, type: ev.data.type });
 });
+
+(self as any).onCloneProgress = (progress: string) => {
+	self.postMessage({ type: "clone-progress", progress: JSON.parse(progress) });
+};
 
 self.postMessage({ type: "ready" });

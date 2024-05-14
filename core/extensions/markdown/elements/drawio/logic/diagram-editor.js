@@ -74,7 +74,7 @@ DiagramEditor.prototype.config = null;
 /**
  * Protocol and domain to use.
  */
-DiagramEditor.prototype.drawDomain = "https://embed.diagrams.net/";
+DiagramEditor.prototype.drawDomain = "https://gram.ax/drawio/";
 
 /**
  * UI theme to be use.
@@ -241,7 +241,7 @@ DiagramEditor.prototype.getFrameStyle = function () {
  * Returns the URL for the iframe.
  */
 DiagramEditor.prototype.getFrameUrl = function () {
-	var url = this.drawDomain + "?proto=json&spin=1";
+	var url = this.drawDomain + "?embed=1&proto=json&spin=1";
 
 	if (this.ui != null) {
 		url += "&ui=" + this.ui;

@@ -6,7 +6,7 @@ import Path from "@core/FileProvider/Path/Path";
 import Button from "@ext/markdown/core/edit/components/Menu/Button";
 
 const FileMenu = ({ onDelete, resourcePath }: { onDelete: () => void; resourcePath: string }) => {
-	const path = new Path(resourcePath);
+	const path = new Path(window.decodeURIComponent(resourcePath));
 	const apiUrlCreator = ApiUrlCreatorService.value;
 
 	const anchorClickHandler = () => {

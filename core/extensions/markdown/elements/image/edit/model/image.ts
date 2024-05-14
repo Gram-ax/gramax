@@ -12,8 +12,18 @@ const Image = Node.create({
 	name: "image",
 	group: "block",
 
+	addOptions() {
+		return {};
+	},
+
 	addAttributes() {
-		return { src: { default: null }, alt: { default: null }, title: { default: null } };
+		return {
+			src: { default: null },
+			alt: { default: null },
+			title: { default: null },
+			crop: { default: null },
+			objects: { default: null },
+		};
 	},
 
 	parseHTML() {

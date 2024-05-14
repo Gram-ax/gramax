@@ -1,8 +1,8 @@
 import ButtonsLayout from "@components/Layouts/ButtonLayout";
 import ModalLayoutDark from "@components/Layouts/ModalLayoutDark";
+import { cssMedia } from "@core-ui/utils/cssUtils";
 import styled from "@emotion/styled";
 import { Editor } from "@tiptap/core";
-import { cssMedia } from "@core-ui/utils/cssUtils";
 import { memo } from "react";
 import AnyMenuGroup from "../Groups/Any";
 import HeadersMenuGroup from "../Groups/Headers";
@@ -26,7 +26,7 @@ const MainMenu = styled(({ editor, className }: { editor?: Editor; className?: s
 		</div>
 	);
 })`
-	border-radius: var(--radius-big-block);
+	border-radius: var(--radius-x-large);
 
 	> div > div {
 		flex-wrap: wrap;

@@ -19,13 +19,9 @@ export default class FSLocalizationRules {
 	}
 
 	private static _rule(item: Item, catalogProps: CatalogProps, isRootCategory = false): void {
-		let language = getLanguageByPath(item.ref.path.value);
-		let fileNameHasLang = true;
-		if (!language) {
-			fileNameHasLang = false;
-			language = catalogProps.lang ?? defaultLanguage;
-		}
-		if (isRootCategory) catalogProps.allLanguages = true;
+		const language = getLanguageByPath(item.ref.path.value) ?? catalogProps.lang ?? defaultLanguage;
+		const fileNameHasLang = !!language;
+		catalogProps.allLanguages = isRootCategory;
 		item.props.lang = Language[language];
 		if (fileNameHasLang && getLanguageByPath(item.logicPath))
 			item.logicPath = item.logicPath.slice(0, item.logicPath.length - 3);

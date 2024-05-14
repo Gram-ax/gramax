@@ -1,10 +1,9 @@
-import Icon from "@components/Atoms/Icon";
 import styled from "@emotion/styled";
 
 const SvgContainer = styled(({ children, className }: { children: JSX.Element; className?: string }) => {
 	return (
 		<div className={className}>
-			<Icon svgIcon={children} />
+			{children}
 		</div>
 	);
 })`

@@ -14,7 +14,7 @@ Given("смотрим на выпадающий список", async function (t
 });
 
 When("закрываем активную форму", async function (this: E2EWorld) {
-	const elem = await this.page().search().find(".fa-xmark", this.page().inner().locator(".x-mark"));
+	const elem = await this.page().search().find(".lucide-x", this.page().inner().locator(".x-mark"));
 	await elem.click();
 });
 
