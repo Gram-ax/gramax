@@ -21,10 +21,7 @@ function maybeMerge(a: Node, b: Node): Node | undefined {
 class MarkdownParseState {
 	stack: { type: NodeType; attrs: Attrs | null; content: Node[]; marks: readonly Mark[] }[];
 
-	constructor(
-		readonly schema: Schema,
-		readonly tokenHandlers: { [token: string]: Handler },
-	) {
+	constructor(readonly schema: Schema, readonly tokenHandlers: { [token: string]: Handler }) {
 		this.stack = [{ type: schema.topNodeType, attrs: null, content: [], marks: Mark.none }];
 	}
 
@@ -74,6 +71,7 @@ class MarkdownParseState {
 	addNode(type: NodeType, attrs: Attrs | null, content?: readonly Node[]) {
 		const top = this.top();
 		const node = type.createAndFill(attrs, content, top ? top.marks : []);
+
 		if (!node) return null;
 		this.push(node);
 		return node;

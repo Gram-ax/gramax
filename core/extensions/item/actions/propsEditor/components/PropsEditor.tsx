@@ -90,7 +90,7 @@ const PropsEditor = (props: PropsEditorProps) => {
 	return (
 		<ModalLayout
 			isOpen={isOpen}
-			trigger={<ButtonLink fullWidth iconCode="pencil" text={useLocalize("properties") + "..."} />}
+			trigger={<ButtonLink iconCode="pencil" text={useLocalize("configure")} />}
 			contentWidth={"S"}
 			onCmdEnter={save}
 			onOpen={() => setIsOpen(true)}

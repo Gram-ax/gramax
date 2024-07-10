@@ -4,7 +4,7 @@ import SwaggerUI from "swagger-ui-react";
 import "swagger-ui-react/swagger-ui.css";
 import Path from "../../../../../logic/FileProvider/Path/Path";
 import { WordExportHelper } from "../../../../wordExport/WordExportHelpers";
-import { WordBlockChild } from "../../../../wordExport/WordTypes";
+import { WordBlockChild } from "../../../../wordExport/options/WordTypes";
 
 export const openApiWordLayout: WordBlockChild = async ({ tag, resourceManager }) => {
 	const spec = (await WordExportHelper.getFileByPath(new Path(tag.attributes.src), resourceManager)).toString();
@@ -15,7 +15,8 @@ export const openApiWordLayout: WordBlockChild = async ({ tag, resourceManager }
 	root.render(component);
 	const innerHTML = node.innerHTML;
 	node.remove();
-	const diagramImage = await WordExportHelper.getImageFromDom(innerHTML, false);
+	const size = WordExportHelper.getSvgDimensions(innerHTML);
+	const diagramImage = await WordExportHelper.svgToPngBlob(innerHTML, size);
 
 	const dimensions = await WordExportHelper.getImageSizeFromImageData(diagramImage);
 
@@ -25,8 +26,8 @@ export const openApiWordLayout: WordBlockChild = async ({ tag, resourceManager }
 				new ImageRun({
 					data: await diagramImage.arrayBuffer(),
 					transformation: {
-						height: dimensions.height,
 						width: dimensions.width,
+						height: dimensions.height,
 					},
 				}),
 			],

@@ -1,3 +1,4 @@
+import ArticleUpdaterService from "@components/Article/ArticleUpdater/ArticleUpdaterService";
 import Icon from "@components/Atoms/Icon";
 import FetchService from "@core-ui/ApiServices/FetchService";
 import MimeTypes from "@core-ui/ApiServices/Types/MimeTypes";
@@ -30,6 +31,7 @@ const Discard = ({
 	return (
 		<span
 			onClick={async () => {
+				ArticleUpdaterService.stopLoadingAfterFocus();
 				if (await confirm(confirmText)) await currentOnDiscard();
 			}}
 			style={{ height: "100%" }}

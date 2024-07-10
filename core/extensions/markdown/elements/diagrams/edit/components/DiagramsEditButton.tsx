@@ -1,6 +1,6 @@
-import resolveModule from "@app/resolveModule/frontend";
 import ButtonAtom from "@components/Atoms/Button/Button";
 import { ButtonStyle } from "@components/Atoms/Button/ButtonStyle";
+import FileInput from "@components/Atoms/FileInput/FileInput";
 import Input from "@components/Atoms/Input";
 import FormStyle from "@components/Form/FormStyle";
 import ButtonsLayout from "@components/Layouts/ButtonLayout";
@@ -8,9 +8,9 @@ import ModalLayout from "@components/Layouts/Modal";
 import ModalLayoutDark from "@components/Layouts/ModalLayoutDark";
 import ModalLayoutLight from "@components/Layouts/ModalLayoutLight";
 import FetchService from "@core-ui/ApiServices/FetchService";
-import Fetcher from "@core-ui/ApiServices/Types/Fetcher";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import Button from "@ext/markdown/core/edit/components/Menu/Button";
+import OnLoadResourceService from "@ext/markdown/elements/copyArticles/onLoadResourceService";
 import { Editor } from "@tiptap/core";
 import { Node } from "prosemirror-model";
 import { ChangeEvent, useEffect, useState } from "react";
@@ -18,8 +18,6 @@ import DiagramType from "../../../../../../logic/components/Diagram/DiagramType"
 import ApiUrlCreator from "../../../../../../ui-logic/ApiServices/ApiUrlCreator";
 import useLocalize from "../../../../../localization/useLocalize";
 import getFocusNode from "../../../../elementsUtils/getFocusNode";
-
-const FileInput = resolveModule("FileInput");
 
 const langs: { [type in DiagramType]: string } = {
 	Mermaid: "mermaid",
@@ -48,12 +46,12 @@ const DiagramsEditButton = ({
 	const saveSrc = (newContent: string) => {
 		if (!src) return;
 		FetchService.fetch(apiUrlCreator.setArticleResource(src), newContent);
-		editor.commands.updateAttributes("diagrams", { isUpdating: true });
+		OnLoadResourceService.update(src, Buffer.from(newContent));
 	};
 
 	const saveContent = (newContent: string) => {
 		if (!content) return;
-		editor.commands.updateAttributes("diagrams", { content: newContent, isUpdating: true });
+		editor.commands.updateAttributes("diagrams", { content: newContent });
 	};
 
 	const save = () => {
@@ -71,7 +69,7 @@ const DiagramsEditButton = ({
 	};
 
 	const loadContent = async (src: string, apiUrlCreator: ApiUrlCreator) => {
-		const res = await FetchService.fetch<string>(apiUrlCreator.getArticleResource(src), Fetcher.text);
+		const res = await FetchService.fetch<string>(apiUrlCreator.getArticleResource(src));
 		if (!res.ok) return;
 		const content = await res.text();
 		setContentState(content);

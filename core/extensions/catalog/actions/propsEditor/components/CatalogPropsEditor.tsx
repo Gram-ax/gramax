@@ -86,7 +86,13 @@ const CatalogPropsEditor = ({
 
 	const onChange = (props: CatalogEditProps) => {
 		if (sourceType) return;
-		if (!props.title || !catalogProps.name.includes(NEW_CATALOG_NAME) || props.url != generatedUrl) return;
+		if (
+			!props.title ||
+			(props.title == catalogProps.title && props.url.includes(NEW_CATALOG_NAME)) ||
+			!catalogProps.name.includes(NEW_CATALOG_NAME) ||
+			props.url != generatedUrl
+		)
+			return;
 		const generated = uniqueName(transliterate(props.title, { kebab: true, maxLength: 50 }), allCatalogNames);
 		setGeneratedUrl(generated);
 		props.url = generated;
@@ -132,6 +138,8 @@ const CatalogPropsEditor = ({
 				}}
 				onClose={() => {
 					setIsOpen(false);
+					setEditProps(getCatalogEditProps(catalogProps));
+					setGeneratedUrl(undefined);
 					props.onClose?.();
 				}}
 			>

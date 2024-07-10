@@ -3,6 +3,7 @@ import { callGit } from "@app/resolveModule/gitcall/wasm.worker";
 import WasmModule from "../dist/gramax-wasm";
 
 (self as any).wasm = await WasmModule({});
+self.postMessage({ type: "ready" });
 
 // eslint-disable-next-line @typescript-eslint/no-misused-promises
 addEventListener("message", async (ev) => {
@@ -29,5 +30,3 @@ addEventListener("message", async (ev) => {
 (self as any).onCloneProgress = (progress: string) => {
 	self.postMessage({ type: "clone-progress", progress: JSON.parse(progress) });
 };
-
-self.postMessage({ type: "ready" });

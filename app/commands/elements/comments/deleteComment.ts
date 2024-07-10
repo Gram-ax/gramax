@@ -5,23 +5,21 @@ import { DesktopModeMiddleware } from "../../../../core/logic/Api/middleware/Des
 import Path from "../../../../core/logic/FileProvider/Path/Path";
 import { Command } from "../../../types/Command";
 
-const deleteComment: Command<{ catalogName: string; articlePath: Path; count: string }, void> = Command.create({
+const deleteComment: Command<{ articlePath: Path; count: string }, void> = Command.create({
 	path: "comments/deleteComment",
 
 	middlewares: [new AuthorizeMiddleware(), new DesktopModeMiddleware(), new ReloadConfirmMiddleware()],
 
-	async do({ catalogName, articlePath, count }) {
-		const { lib } = this._app;
-		const catalog = await lib.getCatalog(catalogName);
-		const fp = lib.getFileProviderByCatalog(catalog);
+	async do({ articlePath, count }) {
+		const workspace = this._app.wm.current();
+		const fp = workspace.getFileProvider();
 		return await new CommentProvider(fp, articlePath).deleteComment(count);
 	},
 
 	params(ctx, q) {
 		const count = q.count;
-		const catalogName = q.catalogName;
 		const articlePath = new Path(q.articlePath);
-		return { ctx, catalogName, articlePath, count };
+		return { ctx, articlePath, count };
 	},
 });
 

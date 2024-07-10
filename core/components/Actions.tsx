@@ -1,8 +1,11 @@
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
+import WorkspaceService from "@core-ui/ContextServices/Workspace";
+import HasWorkspaceHOC from "@core-ui/HigherOrderComponent/HasWorkspaceHOC";
 import { cssMedia } from "@core-ui/utils/cssUtils";
 import styled from "@emotion/styled";
 import SwitchTabsTag from "@ext/markdown/elements/tabs/components/SwitchTabsTag";
 import { CatalogLink } from "@ext/navigation/NavigationLinks";
+import SwitchWorkspace from "@ext/workspace/components/SwitchWorkspace";
 import ThemeToggle from "../extensions/Theme/components/ThemeToggle";
 import AddCatalogMenu from "../extensions/catalog/actions/AddCatalogMenu";
 import Search from "./Actions/Modal/Search";
@@ -23,12 +26,21 @@ export default styled(
 
 		return (
 			<div className={className} data-qa="app-actions">
-				{isHomePage && <Search isHomePage={isHomePage} catalogLinks={catalogLinks} />}
+				{isHomePage && !isServerApp && (
+					<WorkspaceService.Provider>
+						<SwitchWorkspace />
+					</WorkspaceService.Provider>
+				)}
+				<HasWorkspaceHOC>
+					{isHomePage && <Search isHomePage={isHomePage} catalogLinks={catalogLinks} />}
+				</HasWorkspaceHOC>
 				{/* <LangToggle /> */}
 				<ThemeToggle />
-				{isHomePage && isLogged && <AddCatalogMenu />}
-				{isServerApp && <SingInOut />}
-				{!isHomePage && <SwitchTabsTag />}
+				<HasWorkspaceHOC>
+					{isHomePage && isLogged && <AddCatalogMenu />}
+					{isServerApp && <SingInOut />}
+					{!isHomePage && <SwitchTabsTag />}
+				</HasWorkspaceHOC>
 			</div>
 		);
 	},

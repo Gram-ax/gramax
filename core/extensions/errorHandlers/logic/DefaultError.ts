@@ -1,7 +1,14 @@
 import ErrorType from "../model/ErrorTypes";
 
 export default class DefaultError extends Error {
-	constructor(message: string, cause?: Error, protected _props?: { [key: string]: any } & { errorCode?: string }) {
+	constructor(
+		message: string,
+		public cause?: Error,
+		protected _props?: { [key: string]: any } & { errorCode?: string },
+		public isWarning = false,
+		public title?: string,
+	) {
+		if (cause) console.error(cause);
 		super(message ?? cause?.message, { cause });
 	}
 

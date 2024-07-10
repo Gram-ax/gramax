@@ -8,6 +8,7 @@ interface DynamicModules {
 	Fetcher: typeof FetchService.fetch;
 	useImage: typeof useUrlImage;
 	FileInput: FileInput;
+	openDirectory: () => string | Promise<string>;
 
 	openChildWindow: ({
 		url,
@@ -26,9 +27,9 @@ let modules: DynamicModules;
 
 /// #if VITE_ENVIRONMENT == "browser"
 // #v-ifdef VITE_ENVIRONMENT=browser
-import LazyFileInputBrowser from "@components/Atoms/FileInput/LazyFileInput";
+import BrowserLazyFileInput from "@components/Atoms/FileInput/LazyFileInput";
 import BrowserLink from "../../apps/browser/src/components/Atoms/Link";
-import useBase64Image from "../../apps/browser/src/hooks/useBase64Image";
+import useUrlObjectImage from "../../apps/browser/src/hooks/useUrlObjectImage";
 import BrowserFetchService from "../../apps/browser/src/logic/Api/BrowserFetchService";
 import BrowserRouter from "../../apps/browser/src/logic/Api/BrowserRouter";
 
@@ -36,9 +37,10 @@ modules = {
 	Link: BrowserLink,
 	Router: BrowserRouter,
 	Fetcher: BrowserFetchService,
-	useImage: useBase64Image,
+	useImage: useUrlObjectImage,
 	openChildWindow: (params) => window.open(params.url, params.name, params.features),
-	FileInput: LazyFileInputBrowser,
+	openDirectory: () => "",
+	FileInput: BrowserLazyFileInput,
 };
 
 /// #endif
@@ -49,7 +51,7 @@ modules = {
 import FileInputCdn from "@components/Atoms/FileInput/FileInputCdn";
 import NextLink from "../../apps/next/components/Atoms/Link";
 import NextRouter from "../../apps/next/logic/Api/NextRouter";
-import useUrlImage from "../../core/components/Atoms/Image/useImage";
+import useUrlImage from "../../core/components/Atoms/Image/useUrlImage";
 import Method from "../../core/ui-logic/ApiServices/Types/Method";
 import MimeTypes from "../../core/ui-logic/ApiServices/Types/MimeTypes";
 import Url from "../../core/ui-logic/ApiServices/Types/Url";
@@ -57,11 +59,19 @@ import Url from "../../core/ui-logic/ApiServices/Types/Url";
 modules = {
 	Link: NextLink,
 	Router: NextRouter,
-	Fetcher: <T = any>(url: Url, body?: BodyInit, mime?: MimeTypes, method?: Method) =>
-		fetch(url.toString(), body ? { method, body, headers: { "Content-type": mime } } : null) as Promise<T>,
+	Fetcher: async <T = any>(url: Url, body?: BodyInit, mime?: MimeTypes, method?: Method) => {
+		const res = (await fetch(
+			url.toString(),
+			body ? { method, body, headers: { "Content-type": mime } } : null,
+		)) as FetchResponse<T>;
+		res.buffer = async () => Buffer.from(await res.arrayBuffer());
+		return res;
+	},
+
 	useImage: useUrlImage,
 	openChildWindow: (params) =>
 		typeof window === "undefined" ? undefined : window.open(params.url, params.name, params.features),
+	openDirectory: () => "",
 	FileInput: FileInputCdn,
 };
 
@@ -74,8 +84,9 @@ modules = {
 import FileInputCdnJest from "@components/Atoms/FileInput/FileInputCdn";
 import NextLinkJest from "../../apps/next/components/Atoms/Link";
 import NextRouterJest from "../../apps/next/logic/Api/NextRouter";
-import useUrlImageJest from "../../core/components/Atoms/Image/useImage";
+import useUrlImageJest from "../../core/components/Atoms/Image/useUrlImage";
 import MethodJest from "../../core/ui-logic/ApiServices/Types/Method";
+
 import MimeTypesJest from "../../core/ui-logic/ApiServices/Types/MimeTypes";
 import UrlJest from "../../core/ui-logic/ApiServices/Types/Url";
 
@@ -87,6 +98,7 @@ modules = {
 	useImage: useUrlImageJest,
 	openChildWindow: (params) =>
 		typeof window === "undefined" ? undefined : window.open(params.url, params.name, params.features),
+	openDirectory: () => "",
 	FileInput: FileInputCdnJest,
 };
 
@@ -96,19 +108,21 @@ modules = {
 /// #if VITE_ENVIRONMENT == "tauri"
 // #v-ifdef VITE_ENVIRONMENT=tauri
 import LazyFileInputTauri from "@components/Atoms/FileInput/LazyFileInput";
+import FetchResponse from "@core-ui/ApiServices/Types/FetchResponse";
 import TauriLink from "../../apps/browser/src/components/Atoms/Link";
-import useBase64Image2 from "../../apps/browser/src/hooks/useBase64Image";
+import useUrlObjectImage2 from "../../apps/browser/src/hooks/useUrlObjectImage";
 import TauriFetcher from "../../apps/browser/src/logic/Api/BrowserFetchService";
 import TauriRouter from "../../apps/browser/src/logic/Api/BrowserRouter";
-import openChildWindow from "../../apps/tauri/src/window/openChildWindow";
+import { openChildWindow, openDirectory } from "../../apps/tauri/src/window/commands";
 
 modules = {
 	Link: TauriLink,
 	Router: TauriRouter,
-	useImage: useBase64Image2,
+	useImage: useUrlObjectImage2,
 	Fetcher: TauriFetcher,
 	openChildWindow,
 	FileInput: LazyFileInputTauri,
+	openDirectory,
 };
 
 // #v-endif

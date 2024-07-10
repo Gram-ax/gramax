@@ -3,7 +3,7 @@ const cut = {
 	content: "block+",
 	defining: true,
 	attrs: {
-		text: { default: "Раскрыть" },
+		text: { default: "Подробнее" },
 		expanded: { default: true },
 		isInline: { default: false },
 	},

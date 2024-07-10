@@ -5,5 +5,5 @@ export default interface GitShareData extends ShareData {
 	group: string;
 	domain: string;
 	branch: string;
-	sourceType: SourceType.enterprise | SourceType.gitHub | SourceType.gitLab;
+	sourceType: SourceType.enterprise | SourceType.gitHub | SourceType.gitLab | SourceType.confluence;
 }

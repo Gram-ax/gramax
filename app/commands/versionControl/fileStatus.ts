@@ -13,8 +13,8 @@ const fileStatus: Command<{ catalogName: string; articlePath: string }, GitStatu
 
 	async do({ catalogName, articlePath }) {
 		if (!articlePath) return;
-		const { lib } = this._app;
-		const catalog = await lib.getCatalog(catalogName);
+		const workspace = this._app.wm.current();
+		const catalog = await workspace.getCatalog(catalogName);
 		if (!catalog?.repo.gvc) return;
 		const relativeRepPath = catalog.getRelativeRepPath(new Path(articlePath));
 		return catalog.repo.gvc.getFileStatus(relativeRepPath);

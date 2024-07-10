@@ -11,10 +11,8 @@ class CommentProvider {
 		return new Path([this._articlePath.parentDirectoryPath.toString(), `${this._articlePath.name}.comments.yaml`]);
 	}
 
-	async getCount(): Promise<string> {
-		const allCommentKeys = Object.keys(await this._read());
-		if (!allCommentKeys.length) return "1";
-		return (+allCommentKeys[allCommentKeys.length - 1] + 1).toString();
+	getCount(): string {
+		return this._generateGUID();
 	}
 
 	async getComment(count: string, context: ParserContext): Promise<CommentBlock> {
@@ -33,6 +31,15 @@ class CommentProvider {
 		delete allComment[count];
 		if (Object.keys(allComment).length) await this._write(allComment);
 		else await this._delete();
+	}
+
+	private _generateGUID(): string {
+		const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+		let randomKey = "";
+		for (let i = 0; i < 5; i++) {
+			randomKey += characters.charAt(Math.floor(Math.random() * characters.length));
+		}
+		return randomKey;
 	}
 
 	private async _parse(strCommentBlock: CommentBlock<string>, context: ParserContext): Promise<CommentBlock> {
@@ -68,7 +75,14 @@ class CommentProvider {
 	private async _read(): Promise<{ [count: string]: CommentBlock<string> }> {
 		if (await this._fp.exists(this.getFilePath())) {
 			const data = await this._fp.read(this.getFilePath());
-			return yaml.load(data) as { [count: string]: CommentBlock<string> };
+			let result: { [count: string]: CommentBlock<string> };
+			try {
+				result = yaml.load(data) as { [count: string]: CommentBlock<string> };
+			} catch (e) {
+				console.error(e);
+				result = {};
+			}
+			return result;
 		} else return {};
 	}
 

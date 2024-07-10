@@ -4,8 +4,18 @@ import { ClientArticleProps } from "../../../../../../logic/SitePresenter/SitePr
 import initArticleResource from "../../../../elementsUtils/AtricleResource/initArticleResource";
 import initDrawioDiagram from "./initDrawioDiagram";
 
-const createDrawio = async (editor: Editor, articleProps: ClientArticleProps, apiUrlCreator: ApiUrlCreator) => {
-	const newName = await initArticleResource(articleProps, apiUrlCreator, initDrawioDiagram, "svg");
+const createDrawio = async (
+	editor: Editor,
+	articleProps: ClientArticleProps,
+	apiUrlCreator: ApiUrlCreator,
+	diagramContent?: string,
+) => {
+	const newName = await initArticleResource(
+		articleProps,
+		apiUrlCreator,
+		diagramContent ?? initDrawioDiagram,
+		"svg",
+	);
 	if (!newName) return;
 
 	editor.chain().setDrawio({ src: newName }).run();

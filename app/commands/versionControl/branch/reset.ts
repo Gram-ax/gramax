@@ -14,8 +14,10 @@ const reset: Command<{ ctx: Context; catalogName: string }, ClientGitBranchData[
 	middlewares: [new AuthorizeMiddleware(), new ReloadConfirmMiddleware()],
 
 	async do({ ctx, catalogName }) {
-		const { lib, rp } = this._app;
-		const catalog = await lib.getCatalog(catalogName);
+		const { rp, wm } = this._app;
+		const workspace = wm.current();
+
+		const catalog = await workspace.getCatalog(catalogName);
 		if (!catalog) return;
 		const storage = catalog.repo.storage;
 		const data = rp.getSourceData(ctx.cookie, await storage.getSourceName()) as GitSourceData;

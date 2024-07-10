@@ -8,7 +8,7 @@ const remove: Command<{ catalogName: string }, void> = Command.create({
 	middlewares: [new AuthorizeMiddleware(), new ReloadConfirmMiddleware()],
 
 	async do({ catalogName }) {
-		await this._app.lib.removeCatalog(catalogName);
+		await this._app.wm.current().removeCatalog(catalogName);
 	},
 
 	params(_, q) {

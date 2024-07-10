@@ -1,3 +1,6 @@
+import getUnsupportedElements from "@app/commands/storage/confluence/getUnsupportedElements";
+import getAllSyncCount from "@app/commands/storage/getAllSyncCount";
+import canPull from "./canPull";
 import clone from "./clone";
 import fetchCmd from "./fetch";
 import getCloneProgress from "./getCloneProgress";
@@ -7,24 +10,19 @@ import haveToPull from "./haveToPull";
 import publish from "./publish";
 import removeSourceData from "./removeSourceData";
 import setSourceData from "./setSourceData";
-import index from "./sync";
-import abort from "./sync/mergeConflict/abort";
-import resolve from "./sync/mergeConflict/resolve";
+import sync from "./sync";
 
 const storage = {
-	sync: {
-		index,
-		mergeConflict: {
-			abort,
-			resolve,
-		},
-	},
+	confluence: { getUnsupportedElements },
+	sync,
 	fetchCmd,
 	clone,
 	haveToPull,
+	canPull,
 	getUrl,
 	publish,
 	getSyncCount,
+	getAllSyncCount,
 	setSourceData,
 	getCloneProgress,
 	removeSourceData,

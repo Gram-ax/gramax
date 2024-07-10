@@ -1,68 +1,96 @@
 {
-	"build": {
-		"beforeBuildCommand": "npm run build",
-		"beforeDevCommand": "npm run dev",
-		"devPath": "http://localhost:5173",
-		"distDir": "../dist",
-		"withGlobalTauri": true
-	},
-	"package": {
-		"productName": "Gramax"
-	},
-	"plugins": {
-		"shell": {
-			"open": true
-		},
-		"updater": {
-			"endpoints": ["https://localhost/public/docreader/dev/updates.json"]
-		}
-	},
-	"tauri": {
+	"productName": "Gramax",
+	"identifier": "com.ics.gramax",
+
+	"app": {
 		"macOSPrivateApi": true,
-		"bundle": {
-			"updater": {
-				"active": true,
-				"pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDVBQzhGRjE3NzMxODk0OTgKUldTWWxCaHpGLy9JV2dVMzBVbUdURDMwV3NBcGJGK1EzYUtJTkY0Vzl5cFNONjJiWGJ3TzloTzQK",
-				"windows": {
-					"installMode": "quiet"
-				}
-			},
-			"active": true,
-			"category": "DeveloperTool",
-			"copyright": "",
-			"deb": {
-				"depends": []
-			},
-			"externalBin": [],
-			"icon": [
-				"icons/32x32.png",
-				"icons/128x128.png",
-				"icons/128x128@2x.png",
-				"icons/icon.icns",
-				"icons/icon.ico"
-			],
-			"identifier": "com.ics.gramax",
-			"longDescription": "",
-			"iOS": {
-				"developmentTeam": "V9C959AY94"
-			},
-			"macOS": {
-				"entitlements": null,
-				"exceptionDomain": "",
-				"frameworks": [],
-				"providerShortName": null,
-				"signingIdentity": null
-			},
-			"shortDescription": "",
-			"targets": "all",
-			"windows": {
-				"certificateThumbprint": null,
-				"digestAlgorithm": "sha256",
-				"timestampUrl": ""
+		"security": {
+			"capabilities": [],
+			"dangerousDisableAssetCspModification": false,
+			"freezePrototype": false,
+			"pattern": {
+				"use": "brownfield"
 			}
 		},
-		"security": {
-			"csp": null
+		"withGlobalTauri": true
+	},
+
+	"build": {
+		"beforeBuildCommand": "echo npm run build",
+		"beforeDevCommand": "npm run dev",
+		"devUrl": "http://localhost:5173",
+		"frontendDist": "../dist"
+	},
+
+	"bundle": {
+		"active": true,
+
+		"targets": "all",
+		"createUpdaterArtifacts": true,
+
+		"category": "DeveloperTool",
+		"copyright": "Gramax",
+
+		"android": {
+			"minSdkVersion": 24
+		},
+		"iOS": {
+			"developmentTeam": "V9C959AY94"
+		},
+		"icon": ["icons/32x32.png", "icons/128x128.png", "icons/128x128@2x.png", "icons/icon.icns", "icons/icon.ico"],
+		"linux": {
+			"appimage": {
+				"bundleMediaFramework": true,
+				"files": {}
+			}
+		},
+		"macOS": {
+			"dmg": {
+				"appPosition": {
+					"x": 180,
+					"y": 170
+				},
+				"applicationFolderPosition": {
+					"x": 480,
+					"y": 170
+				},
+				"windowSize": {
+					"height": 400,
+					"width": 660
+				}
+			},
+			"minimumSystemVersion": "10.13"
+		},
+		"windows": {
+			"allowDowngrades": true,
+			"certificateThumbprint": null,
+			"digestAlgorithm": null,
+			"nsis": null,
+			"signCommand": null,
+			"timestampUrl": null,
+			"tsp": false,
+			"webviewFixedRuntimePath": null,
+			"webviewInstallMode": {
+				"silent": true,
+				"type": "downloadBootstrapper"
+			},
+			"wix": null
+		}
+	},
+
+	"plugins": {
+		"updater": {
+			"endpoints": ["https://localhost/public/docreader/dev/updates.json"],
+			"pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDVBQzhGRjE3NzMxODk0OTgKUldTWWxCaHpGLy9JV2dVMzBVbUdURDMwV3NBcGJGK1EzYUtJTkY0Vzl5cFNONjJiWGJ3TzloTzQK",
+			"windows": {
+				"installMode": "quiet"
+			}
+		},
+		"deep-link": {
+			"mobile": [],
+			"desktop": {
+				"schemes": ["gramax"]
+			}
 		}
 	}
 }

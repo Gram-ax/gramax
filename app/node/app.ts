@@ -1,14 +1,15 @@
 import autoPull from "@core/AutoPull/AutoPull";
 import { ContextFactory } from "@core/Context/ContextFactory";
 import DiskFileProvider from "@core/FileProvider/DiskFileProvider/DiskFileProvider";
+import Path from "@core/FileProvider/Path/Path";
 import Hash from "@core/Hash/Hash";
-import Library from "@core/Library/Library";
 import PluginImporterType from "@core/Plugin/PluginImporter/logic/PluginImporterType";
 import PluginProvider from "@core/Plugin/logic/PluginProvider";
 import CustomArticlePresenter from "@core/SitePresenter/CustomArticlePresenter";
 import SitePresenterFactory from "@core/SitePresenter/SitePresenterFactory";
 import { TableDB } from "@core/components/tableDB/table";
 import VideoUrlRepository from "@core/components/video/videoUrlRepository";
+import YamlFileConfig from "@core/utils/YamlFileConfig";
 import Cache from "@ext/Cache";
 import { Encoder } from "@ext/Encoder/Encoder";
 import MailProvider from "@ext/MailProvider";
@@ -26,44 +27,50 @@ import MarkdownFormatter from "@ext/markdown/core/edit/logic/Formatter/Formatter
 import AuthManager from "@ext/security/logic/AuthManager";
 import Sso from "@ext/security/logic/AuthProviders/Sso";
 import { TicketManager } from "@ext/security/logic/TicketManager/TicketManager";
+import WorkspaceManager from "@ext/workspace/WorkspaceManager";
 import EnvAuth from "../../core/extensions/security/logic/AuthProviders/EnvAuth";
 import { AppConfig, getConfig } from "../config/AppConfig";
 import Application from "../types/Application";
 
 const _init = async (config: AppConfig): Promise<Application> => {
-	if (!config.isServerApp && !config.paths.userDataPath) throw new Error(`Необходимо указать USER_DATA_PATH`);
+	if (!config.isServerApp && !config.paths.data) throw new Error(`Необходимо указать USER_DATA_PATH`);
 
-	const logger: Logger = config.isProduction ? new BugsnagLogger(config.bugsnagApiKey) : new ConsoleLogger();
+	const logger: Logger = config.isProduction ? new BugsnagLogger(config) : new ConsoleLogger();
 	logger.setLogLevel(LogLevel.trace);
 
 	const watcher = new BlankWatcher(); // config.isProduction ? new ChokidarWatcher() :
-	const fp = new DiskFileProvider(config.paths.root, watcher);
-	await fp.validate();
 
 	const sso = new Sso(config.services.sso.url);
 
 	const rp = new RepositoryProvider({ corsProxy: config.services.cors.url });
 
-	const lib = new Library(rp, config.isServerApp);
+	const wm = new WorkspaceManager(
+		(path) => new DiskFileProvider(new Path(path), watcher),
+		(fs) => FSLocalizationRules.bind(fs),
+		rp,
+		config,
+		YamlFileConfig.dummy(),
+	);
 
-	await lib.addFileProvider(fp, (fs) => FSLocalizationRules.bind(fs));
+	const workspace = await wm.addWorkspace(config.paths.root.value, { name: "Gramax", icon: "layers" });
+	await wm.setWorkspace(workspace);
 
 	const formatter = new MarkdownFormatter();
 
 	const envAuth = new EnvAuth(config.paths.base, config.admin.login, config.admin.password);
 	const encoder = new Encoder();
 
-	const ticketManager = new TicketManager(lib, encoder, config.tokens.share);
+	const ticketManager = new TicketManager(wm, encoder, config.tokens.share);
 
 	const parser = new MarkdownParser();
 
 	const hashes = new Hash();
-	const tablesManager = new TableDB(parser, lib);
+	const tablesManager = new TableDB(parser, wm);
 	const customArticlePresenter = new CustomArticlePresenter();
 
 	const parserContextFactory = new ParserContextFactory(
 		config.paths.base,
-		fp,
+		wm,
 		tablesManager,
 		parser,
 		formatter,
@@ -78,18 +85,12 @@ const _init = async (config: AppConfig): Promise<Application> => {
 	const tm = new ThemeManager();
 	const am = new AuthManager(envAuth, ticketManager);
 	const contextFactory = new ContextFactory(tm, config.tokens.cookie, am, config.isServerApp);
-	const sitePresenterFactory = new SitePresenterFactory(
-		lib,
-		parser,
-		parserContextFactory,
-		rp,
-		customArticlePresenter,
-	);
+	const sitePresenterFactory = new SitePresenterFactory(wm, parser, parserContextFactory, rp, customArticlePresenter);
 
-	const cacheFileProvider = new DiskFileProvider(config.paths.userDataPath);
-	await cacheFileProvider.validate();
+	const cacheFileProvider = new DiskFileProvider(config.paths.cache);
+	await cacheFileProvider.createRootPathIfNeed();
 	const cache = new Cache(cacheFileProvider);
-	const pluginProvider = new PluginProvider(lib, htmlParser, cache, PluginImporterType.next);
+	const pluginProvider = new PluginProvider(wm, htmlParser, cache, PluginImporterType.next);
 
 	return {
 		tm,
@@ -97,7 +98,7 @@ const _init = async (config: AppConfig): Promise<Application> => {
 		mp,
 		sso,
 		rp,
-		lib,
+		wm,
 		vur,
 		cache,
 		parser,
@@ -112,7 +113,6 @@ const _init = async (config: AppConfig): Promise<Application> => {
 		sitePresenterFactory,
 		pluginProvider,
 		customArticlePresenter,
-		obsoleteFp: undefined,
 		conf: {
 			services: config.services,
 
@@ -125,16 +125,16 @@ const _init = async (config: AppConfig): Promise<Application> => {
 
 			bugsnagApiKey: config.bugsnagApiKey,
 			version: config.version,
+			buildVersion: config.buildVersion,
 		},
 	};
 };
 
-let app: Application = null;
 const getApp = async (): Promise<Application> => {
-	if (app) return app;
-	app = await _init(getConfig());
-	autoPull(app);
-	return app;
+	if (global.app) return global.app;
+	global.app = await _init(getConfig());
+	autoPull(global.app);
+	return global.app;
 };
 
 export default getApp;

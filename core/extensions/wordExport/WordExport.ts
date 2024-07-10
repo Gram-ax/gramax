@@ -1,73 +1,105 @@
-import { Document, ISectionOptions, PageBreak, Paragraph } from "docx";
+import useBareLocalize from "@ext/localization/useLocalize/useBareLocalize";
+import { Tag } from "@ext/markdown/core/render/logic/Markdoc";
+import DocumentTree from "@ext/wordExport/DocumentTree/DocumentTree";
+import { createContent } from "@ext/wordExport/TextWordGenerator";
+import { Document, ISectionOptions, TableOfContents } from "docx";
 import { FileChild } from "docx/build/file/file-child";
 import FileProvider from "../../logic/FileProvider/model/FileProvider";
-import ParserContext from "../markdown/core/Parser/ParserContext/ParserContext";
-import { wordDocumentStyles } from "./wordDocumentStyles";
 import { WordSerializerState } from "./WordExportState";
-import { Article } from "./WordTypes";
-import { getBlockChilds } from "./getBlockChilds";
-import { getInlineChilds } from "./getInlineChilds";
-import { createTitleParagraph } from "@ext/wordExport/TextWordGenerator";
+import { getBlockChildren } from "./getBlockChildren";
+import { getInlineChildren } from "./getInlineChildren";
+import jsonXml from "./options/styles.json";
+import { wordDocumentStyles } from "./options/wordDocumentStyles";
+import { HeadingStyles, WordFontStyles } from "./options/wordExportSettings";
+import { createParagraph } from "@ext/wordExport/createParagraph";
+import { defaultLanguage } from "@ext/localization/core/model/Language";
 
 class WordExport {
-	constructor(private _fileProvider: FileProvider, private _parserContext: ParserContext) {}
+	constructor(private _fileProvider: FileProvider) {}
 
-	async getDocumentFromArticle(article: Article) {
-		return await this._getDocument([article]);
+	async getDocument(documentTree: DocumentTree, isCategory: boolean) {
+		const sections = await this._getDocumentSections(documentTree, isCategory);
+		const externalStyles = jsonXml[0];
+
+		return new Document({ sections, ...wordDocumentStyles, externalStyles });
 	}
 
-	async getDocumentFromArticles(articles: Article[]) {
-		return await this._getDocument(articles, true);
+	private async _getDocumentSections(rootNode: DocumentTree, isCategory: boolean) {
+		const sections: ISectionOptions[] = [];
+
+		if (isCategory) sections.push({ children: this._createTableOfContents(rootNode) });
+
+		const processNode = async (currentNode: DocumentTree, content = []) => {
+			content.push(...(await this._parseArticle(currentNode)));
+
+			const isEmptyArticle =
+				(currentNode.content === "" || (currentNode.content as Tag).children.length < 1) &&
+				currentNode.children.length > 0;
+
+			if (isEmptyArticle) {
+				await processNode(currentNode.children[0], content);
+				currentNode.children.shift();
+				for (const child of currentNode.children) await processNode(child);
+				return;
+			}
+
+			sections.push({ children: content });
+
+			if (!isEmptyArticle) for (const child of currentNode.children) await processNode(child);
+		};
+
+		await processNode(rootNode);
+
+		return sections;
 	}
 
-	private async _getDocument(articles: Article[], pageBreak?: boolean) {
-		const sections = (await this._getDocumentSections(articles, pageBreak)).filter((val) => val);
-		
-		return new Document({ sections, ...wordDocumentStyles });
+	private _createTableOfContents(article: DocumentTree): FileChild[] {
+		return [
+			createParagraph(
+				[
+					createContent(
+						useBareLocalize("tableOfContents", article?.parserContext?.getLanguage() ?? defaultLanguage),
+					),
+				],
+				WordFontStyles.tableOfContents,
+			),
+			new TableOfContents("tableOfContents", {
+				hyperlink: true,
+				headingStyleRange: "1-1",
+			}),
+		];
 	}
 
-	private _getDocumentSections(articles: Article[], pageBreak?: boolean): Promise<ISectionOptions[]> {
-		const margin = { top: 567, bottom: 567, right: 1049, left: 1049 };
-		const properties = { page: { margin } };
+	private async _parseArticle(article: DocumentTree) {
+		if (!article.content || typeof article.content === "string") return [this._createTitle(article)];
 
-		try {
-			return Promise.all(
-				articles.map(async (article, i) => ({
-					properties,
-					children: [
-						...(await this._parseArticle(article)),
-						...(pageBreak && i + 1 < articles.length
-							? [new Paragraph({ children: [new PageBreak()] })]
-							: []),
-					],
-				})),
-			);
-		} catch {
-			return;
-		}
-	}
-
-	private async _parseArticle(article: Article): Promise<FileChild[]> {
-		if (!article.content || typeof article.content === "string") return;
-
-		const wordSerializerState = new WordSerializerState(
-			getInlineChilds(),
-			getBlockChilds(),
+		const state = new WordSerializerState(
+			getInlineChildren(),
+			getBlockChildren(),
 			article.resourceManager,
 			this._fileProvider,
-			this._parserContext,
+			article.parserContext,
 		);
 
-		const content = [];
-		for (const child of article.content.children) {
+		const contentPromises = article.content.children.map(async (child) => {
 			if (child && typeof child !== "string") {
-				const renderedBlock = await wordSerializerState.renderBlock(child);
-				if (renderedBlock) content.push(...[].concat(renderedBlock));
+				const renderedBlock = await state.renderBlock(child);
+				return renderedBlock ? [].concat(renderedBlock) : [];
 			}
-		}
+			return [];
+		});
 
-		return [createTitleParagraph(article.title, 1), ...content];
+		const content = (await Promise.all(contentPromises)).flat();
+
+		return [this._createTitle(article), ...content];
 	}
+
+	private _createTitle = (article: DocumentTree) => {
+		return createParagraph(
+			[createContent(article.level ? article.number + " " + article.name : article.name)],
+			HeadingStyles[+!!article.level],
+		);
+	};
 }
 
 export default WordExport;

@@ -11,8 +11,8 @@ const create: Command<{ catalogName: string; branch: string }, string> = Command
 	middlewares: [new AuthorizeMiddleware(), new ReloadConfirmMiddleware()],
 
 	async do({ catalogName, branch }) {
-		const { lib } = this._app;
-		const catalog = await lib.getCatalog(catalogName);
+		const workspace = this._app.wm.current();
+		const catalog = await workspace.getCatalog(catalogName);
 		if (!catalog) return;
 		const vc = catalog.repo.gvc;
 		await vc.createNewBranch(branch);

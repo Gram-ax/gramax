@@ -1,6 +1,6 @@
 import getApplication from "@app/node/app";
-import getItemRef from "../../../../logic/Library/test/getItemRef";
 import Navigation from "../../../navigation/catalog/main/logic/Navigation";
+import getItemRef from "../../../workspace/test/getItemRef";
 import { defaultLanguage } from "../model/Language";
 import LocalizationRules from "./LocalizationRules";
 
@@ -10,8 +10,8 @@ const getLocalizationRulesData = async () => {
 	const nav = new Navigation();
 	const lr = new LocalizationRules(defaultLanguage, app.customArticlePresenter);
 
-	const catalogTestCatalog = await app.lib.getCatalog("RulseCatalogTestCatalog");
-	const articleTestCatalog = await app.lib.getCatalog("RulseArticleTestCatalog");
+	const catalogTestCatalog = await app.wm.current().getCatalog("RulseCatalogTestCatalog");
+	const articleTestCatalog = await app.wm.current().getCatalog("RulseArticleTestCatalog");
 
 	const articleItemRef = getItemRef(articleTestCatalog, "category/testRules_en.md");
 	const articleRuItemRef = getItemRef(articleTestCatalog, "category/testRules.md");
@@ -54,7 +54,7 @@ describe("Localization Rules правильно фильтрует", () => {
 	test("catalog", async () => {
 		const { nav, lr, catalogTestCatalog } = await getLocalizationRulesData();
 		const filter = lr.getNavRules().catalogRule;
-		const catalogLink = await nav.getCatalogLink(catalogTestCatalog, catalogTestCatalog.getName());
+		const catalogLink = await nav.getCatalogLink(catalogTestCatalog);
 
 		expect(filter(catalogTestCatalog, catalogLink)).toEqual(false);
 	});

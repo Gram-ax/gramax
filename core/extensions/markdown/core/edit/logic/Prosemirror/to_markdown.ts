@@ -1,3 +1,4 @@
+import MdParser from "@ext/markdown/core/Parser/MdParser/MdParser";
 import { Mark, Node } from "prosemirror-model";
 
 export type NodeSerializerSpec = (
@@ -174,6 +175,7 @@ export class MarkdownSerializerState {
 		if (!this.nodes[node.type.name])
 			throw new Error("Token type `" + node.type.name + "` not supported by Markdown renderer");
 		await this.nodes[node.type.name](this, node, parent, index);
+		if (node.type.name === "table_simple") this.out = formatTable(this.out);
 	}
 
 	/// Render the contents of `parent` as block nodes.
@@ -367,3 +369,36 @@ export class MarkdownSerializerState {
 		};
 	}
 }
+
+export const formatTable = (table: string) => {
+	table = new MdParser().backParse(table);
+	const lines = table.trim().split("\n");
+
+	const headers = lines[0]
+		.split("|")
+		.slice(1, -1)
+		.map((header) => header.trim());
+
+	const dataLines = lines.slice(2);
+
+	const data = dataLines.map((line) => {
+		return line.split("|").slice(1, -1);
+	});
+
+	const columnWidths = headers.map((header, index) => {
+		return Math.max(1, header.length, ...data.map((row) => row[index]?.length || 0));
+	});
+
+	const formattedHeaders = headers.map((header, index) => header.padEnd(columnWidths[index])).join(" | ");
+
+	const separator = columnWidths.map((width) => "-".repeat(width)).join("-|-");
+
+	const formattedRows = data.map((row) => {
+		return row.map((cell, index) => (cell || "").padEnd(columnWidths[index])).join(" | ");
+	});
+
+	const formattedTable =
+		`| ${formattedHeaders} |\n|-${separator}-|\n` + formattedRows.map((row) => `| ${row} |`).join("\n");
+
+	return formattedTable;
+};

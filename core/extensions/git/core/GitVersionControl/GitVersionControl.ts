@@ -1,3 +1,5 @@
+import gitMergeConverter from "@ext/git/actions/MergeConflictHandler/logic/GitMergeConverter";
+import GitMergeResult from "@ext/git/actions/MergeConflictHandler/model/GitMergeResult";
 import GitCommandsConfig from "@ext/git/core/GitCommands/model/GitCommandsConfig";
 import GitStash from "@ext/git/core/model/GitStash";
 import Path from "../../../../logic/FileProvider/Path/Path";
@@ -93,19 +95,20 @@ export default class GitVersionControl {
 		await this._gitRepository.deleteBranch(branchName, false);
 	}
 
-	stash(data: SourceData): Promise<GitStash> {
+	async stash(data: SourceData, doAddBeforeStash = true): Promise<GitStash> {
+		if (doAddBeforeStash) await this.add();
 		return this._gitRepository.stash(data);
 	}
 
-	async applyStash(data: SourceData, stashHash: GitStash): Promise<void> {
-		await this._gitRepository.applyStash(data, stashHash);
+	async applyStash(stashHash: GitStash): Promise<GitMergeResult[]> {
+		return gitMergeConverter(await this._gitRepository.applyStash(stashHash));
 	}
 
 	async deleteStash(stashHash: GitStash): Promise<void> {
 		await this._gitRepository.deleteStash(stashHash);
 	}
 
-	stashParent(stashHash: GitStash): Promise<GitVersion> {
+	async stashParent(stashHash: GitStash): Promise<GitVersion> {
 		return this._gitRepository.stashParent(stashHash);
 	}
 
@@ -126,7 +129,8 @@ export default class GitVersionControl {
 		return this._allBranches;
 	}
 
-	async add(filePaths: Path[]): Promise<void> {
+	async add(filePaths?: Path[]): Promise<void> {
+		if (!filePaths) return this._gitRepository.add();
 		const versionContolsAndItsFiles = await this._getVersionControlsAndItsFiles(filePaths);
 		for (const [storage, paths] of Array.from(versionContolsAndItsFiles)) {
 			const gitRepository = new GitCommands(this._conf, this._fp, storage.getPath());
@@ -165,10 +169,10 @@ export default class GitVersionControl {
 		}
 	}
 
-	async mergeBranch(data: SourceData, theirs: GitBranch | string) {
+	async mergeBranch(data: SourceData, theirs: GitBranch | string): Promise<GitMergeResult[]> {
 		this._fp.stopWatch();
 		try {
-			await this._gitRepository.merge(data, theirs.toString(), false);
+			return gitMergeConverter(await this._gitRepository.merge(data, theirs.toString()));
 		} finally {
 			this._fp?.startWatch();
 		}
@@ -206,7 +210,8 @@ export default class GitVersionControl {
 	}
 
 	async restoreRepositoryState(): Promise<void> {
-		await this.softReset();
+		const parent = await this.getParentCommitHash(await this.getHeadCommit());
+		await this.softReset(parent);
 		const changes = await this.getChanges();
 		await this.restore(
 			true,

@@ -2,20 +2,22 @@ import ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
 import FetchService from "@core-ui/ApiServices/FetchService";
 import MimeTypes from "@core-ui/ApiServices/Types/MimeTypes";
 import fileNameUtils from "@core-ui/fileNameUtils";
+import OnLoadResourceService from "@ext/markdown/elements/copyArticles/onLoadResourceService";
 import { ClientArticleProps } from "../../../../logic/SitePresenter/SitePresenter";
-import getArticleResourceNames from "./getAtricleResourceNames";
+import getArticleFileBrotherNames from "./getAtricleResourceNames";
 
 const initArticleResource = async (
 	articleProps: ClientArticleProps,
 	apiUrlCreator: ApiUrlCreator,
-	file: string,
+	file: string | Buffer,
 	extension: string,
-	isBase64 = false,
+	name?: string,
 ) => {
-	const names = await getArticleResourceNames(apiUrlCreator);
-	const newName = fileNameUtils.getNewName(names, articleProps.fileName, extension);
-	const res = await FetchService.fetch(apiUrlCreator.setArticleResource(newName, isBase64), file, MimeTypes.text);
+	const names = await getArticleFileBrotherNames(apiUrlCreator);
+	const newName = fileNameUtils.getNewName(names, name ?? articleProps.fileName, extension);
+	const res = await FetchService.fetch(apiUrlCreator.setArticleResource(newName), file, MimeTypes.text);
 	if (!res.ok) return;
+	OnLoadResourceService.update(newName, typeof file == "string" ? Buffer.from(file) : file);
 	names.push(newName);
 	return newName;
 };

@@ -57,6 +57,9 @@ const gitErrorLocalization: GitErrorLocalization = {
 	MergeError: () => {
 		return `Не удалось слить ветки`;
 	},
+	CantGetConflictedFiles: () => {
+		return `Не удалось получить конфликтующие файлы`;
+	},
 	AlreadyExistsError: (props) => {
 		if (props.caller === "branch") {
 			return `Не удалось создать новую ветку. Ветка "${props.error?.props?.branchName}" уже существует`;
@@ -85,6 +88,13 @@ const gitErrorLocalization: GitErrorLocalization = {
 		} else {
 			return `Код ошибки - NotFoundError. Сообщение ошибки - ${props.error.message}`;
 		}
+	},
+	CloneError404: (props) => {
+		return `Нет доступа к репозиторию ${props.error.props.repUrl}`;
+	},
+
+	CloneError: () => {
+		return `Попробуйте обновить страницу и загрузить каталог заново.`;
 	},
 };
 

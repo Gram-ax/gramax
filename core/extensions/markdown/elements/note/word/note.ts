@@ -1,30 +1,47 @@
-import { Paragraph, TextRun } from "docx";
-import { WordBlockChild } from "../../../../wordExport/WordTypes";
-import { wordFontSizes, wordIndentSizes } from "../../../../wordExport/wordExportSettings";
+import DefaultError from "@ext/errorHandlers/logic/DefaultError";
+import { WordBlockChild } from "../../../../wordExport/options/WordTypes";
+import { WordBlockType } from "../../../../wordExport/options/wordExportSettings";
+import { createBlock } from "@ext/wordExport/createBlock";
+
+const wordNoteTypeMap: Record<string, WordBlockType> = {
+	note: WordBlockType.noteTable,
+	lab: WordBlockType.labTable,
+	tip: WordBlockType.tipTable,
+	info: WordBlockType.infoTable,
+	danger: WordBlockType.dangerTable,
+	hotfixes: WordBlockType.hotfixesTable,
+	quote: WordBlockType.quoteTable,
+};
+
+const wordNoteTitleTypeMap: Record<string, WordBlockType> = {
+	note: WordBlockType.note,
+	lab: WordBlockType.lab,
+	tip: WordBlockType.tip,
+	info: WordBlockType.info,
+	danger: WordBlockType.danger,
+	hotfixes: WordBlockType.hotfixes,
+	quote: WordBlockType.quote,
+};
 
 export const noteWordLayout: WordBlockChild = async ({ state, tag, addOptions }) => {
-	return [
-		new Paragraph({
-			children: [
-				...(tag.attributes.title
-					? [
-							new TextRun({
-								text: tag.attributes.title,
-								bold: true,
-								size: wordFontSizes.heading[4],
-							}),
-							new TextRun({
-								text: "",
-								break: 1,
-							}),
-					  ]
-					: []),
-				...(await state.renderBlockAsInline(tag)),
-			],
-			indent: {
-				left: wordIndentSizes.note,
-			},
-			...addOptions,
-		}),
-	];
+	if (!tag.attributes?.type) return [];
+
+	const moduleType = wordNoteTitleTypeMap[tag.attributes?.type];
+	const style = wordNoteTypeMap[tag.attributes?.type];
+
+	if (!moduleType) {
+		throw new DefaultError("Need to add this note type to wordNoteTitleTypeMap", null, {
+			errorCode: "wordNotFound",
+			type: "note",
+		});
+	}
+
+	if (!style) {
+		throw new DefaultError("Need to add this note type to wordNoteTypeMap", null, {
+			errorCode: "wordNotFound",
+			type: "note",
+		});
+	}
+
+	return createBlock(state, tag, addOptions, moduleType, style);
 };

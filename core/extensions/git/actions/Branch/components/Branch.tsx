@@ -34,7 +34,11 @@ const Branch = () => {
 			<BranchActions
 				currentBranch={branchName}
 				trigger={
-					<StatusBarElement tooltipText={useLocalize("changeBranch")} iconCode="git-branch" iconStrokeWidth="1.6">
+					<StatusBarElement
+						tooltipText={useLocalize("changeBranch")}
+						iconCode="git-branch"
+						iconStrokeWidth="1.6"
+					>
 						<span>{branchName ? branchName : <SpinnerLoader width={12} height={12} />}</span>
 					</StatusBarElement>
 				}
@@ -42,8 +46,8 @@ const Branch = () => {
 					await BranchUpdaterService.updateBranch(apiUrlCreator);
 					await ArticleUpdaterService.update(apiUrlCreator);
 				}}
-				onStopMerge={async (isError) => {
-					if (isError) return;
+				onStopMerge={async (haveConflicts) => {
+					if (haveConflicts) return;
 					await BranchUpdaterService.updateBranch(apiUrlCreator);
 					await ArticleUpdaterService.update(apiUrlCreator);
 				}}

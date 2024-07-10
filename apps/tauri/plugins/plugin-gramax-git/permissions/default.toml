@@ -1,0 +1,31 @@
+"$schema" = "schemas/schema.json"
+[default]
+permissions = [
+  "allow-init-new",
+  "allow-clone",
+  "allow-file-history",
+  "allow-checkout",
+  "allow-fetch",
+  "allow-stash",
+  "allow-stash-apply",
+  "allow-push",
+  "allow-add",
+  "allow-status",
+  "allow-status-file",
+  "allow-branch-info",
+  "allow-new-branch",
+  "allow-stash-delete",
+  "allow-delete-branch",
+  "allow-get-remote",
+  "allow-branch-list",
+  "allow-diff",
+  "allow-add-remote",
+  "allow-has-remotes",
+  "allow-reset-all",
+  "allow-commit",
+  "allow-merge",
+  "allow-restore",
+  "allow-get-parent",
+  "allow-get-content",
+  "allow-graph-head-upstream-files"
+]

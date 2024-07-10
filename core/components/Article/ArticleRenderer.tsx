@@ -26,22 +26,20 @@ const ArticleRenderer = (props: ArticleRendererProps) => {
 	return (
 		<div className={classNames("article-body")}>
 			<ErrorHandler>
-				<>
-					{isEdit ? (
-						<ContentEditor
-							content={data.articleContentEdit}
-							extensions={getExtensions()}
-							onCreate={onCreate}
-							onBlur={onBlur}
-							onUpdate={onUpdate}
-							handlePaste={handlePaste}
-							onSelectionUpdate={onSelectionUpdate}
-							deps={[data.articleProps.ref.path]}
-						/>
-					) : (
-						Renderer(JSON.parse(data.articleContentRender), { components: getComponents() })
-					)}
-				</>
+				{isEdit ? (
+					<ContentEditor
+						content={data.articleContentEdit}
+						extensions={getExtensions()}
+						onCreate={onCreate}
+						onBlur={onBlur}
+						onUpdate={onUpdate}
+						handlePaste={handlePaste}
+						onSelectionUpdate={onSelectionUpdate}
+						deps={[data.articleProps.ref.path]}
+					/>
+				) : (
+					Renderer(JSON.parse(data.articleContentRender), { components: getComponents() })
+				)}
 			</ErrorHandler>
 		</div>
 	);

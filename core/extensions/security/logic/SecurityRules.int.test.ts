@@ -1,6 +1,6 @@
 import getApplication from "@app/node/app";
-import getItemRef from "../../../logic/Library/test/getItemRef";
 import Navigation from "../../navigation/catalog/main/logic/Navigation";
+import getItemRef from "../../workspace/test/getItemRef";
 import SecurityRules from "./SecurityRules";
 import User from "./User/User";
 
@@ -11,9 +11,10 @@ const getSecurityRulesData = async () => {
 	const nav = new Navigation();
 	const sr = new SecurityRules(user, app.customArticlePresenter);
 
-	const categoryTestCatalog = await app.lib.getCatalog("RulesCategoryTestCatalog");
-	const catalogTestCatalog = await app.lib.getCatalog("RulseCatalogTestCatalog");
-	const articleTestCatalog = await app.lib.getCatalog("RulseArticleTestCatalog");
+	const workspace = app.wm.current();
+	const categoryTestCatalog = await workspace.getCatalog("RulesCategoryTestCatalog");
+	const catalogTestCatalog = await workspace.getCatalog("RulseCatalogTestCatalog");
+	const articleTestCatalog = await workspace.getCatalog("RulseArticleTestCatalog");
 
 	const categoryItemRef = getItemRef(categoryTestCatalog, "category/_index.md");
 	const articleItemRef = getItemRef(articleTestCatalog, "category/testRules_en.md");

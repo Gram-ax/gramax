@@ -1,4 +1,5 @@
-import { createContext, useContext, useEffect, useState } from "react";
+import ArticlePropsService from "@core-ui/ContextServices/ArticleProps";
+import { createContext, useContext } from "react";
 import CatalogPropsService from "./CatalogProps";
 import PageDataContextService from "./PageDataContext";
 
@@ -6,12 +7,9 @@ const IsEditContext = createContext<boolean>(undefined);
 abstract class IsEditService {
 	static Provider({ children }: { children: JSX.Element }): JSX.Element {
 		const catalogProps = CatalogPropsService.value;
+		const articleProps = ArticlePropsService.value;
 		const isReadonly = PageDataContextService.value.conf.isReadOnly;
-		const [isEdit, setIsEdit] = useState(false);
-
-		useEffect(() => {
-			setIsEdit(!catalogProps.readOnly && !isReadonly);
-		}, [isReadonly, catalogProps.readOnly]);
+		const isEdit = !isReadonly && !catalogProps.readOnly && !articleProps?.errorCode;
 
 		return <IsEditContext.Provider value={isEdit}>{children}</IsEditContext.Provider>;
 	}

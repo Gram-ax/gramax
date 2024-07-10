@@ -1,14 +1,10 @@
 use std::path::Path;
 use std::path::PathBuf;
 
-use gramaxgit::branch::BranchInfo;
+use gramaxgit::actions::prelude::*;
 use gramaxgit::commands as git;
 use gramaxgit::commands::Result;
 use gramaxgit::creds::AccessTokenCreds;
-
-use gramaxgit::diff::FileDiff;
-use gramaxgit::status::Status;
-use gramaxgit::status::StatusInfo;
 
 use crate::define_c_api;
 
@@ -49,7 +45,7 @@ define_c_api! {
     git::status(Path::new(&repo_path))
   }
 
-  json fn status_file(repo_path: String, file_path: String) -> Status {
+  json fn status_file(repo_path: String, file_path: String) -> StatusEntry {
     git::status_file(Path::new(&repo_path), Path::new(&file_path))
   }
 
@@ -85,8 +81,12 @@ define_c_api! {
     git::commit(Path::new(&repo_path), creds, &message, parents)
   }
 
-  noreturn fn merge(repo_path: String, creds: AccessTokenCreds, theirs: String) -> () {
+  json fn merge(repo_path: String, creds: AccessTokenCreds, theirs: String) -> MergeResult {
     git::merge(Path::new(&repo_path), creds, &theirs)
+  }
+
+  json fn graph_head_upstream_files(repo_path: String, search_in: String) -> UpstreamCountChangedFiles {
+    git::graph_head_upstream_files(Path::new(&repo_path), Path::new(&search_in))
   }
 
   json fn get_content(repo_path: String, path: String, oid: Option<String>) -> String {
@@ -105,11 +105,11 @@ define_c_api! {
     git::get_remote(Path::new(&repo_path))
   }
 
-  json fn stash(repo_path: String, message: Option<String>) -> String {
-    git::stash(Path::new(&repo_path), message.as_deref())
+  json fn stash(repo_path: String, message: Option<String>, creds: AccessTokenCreds) -> String {
+    git::stash(Path::new(&repo_path), message.as_deref(), creds)
   }
 
-  noreturn fn stash_apply(repo_path: String, oid: String) -> () {
+  json fn stash_apply(repo_path: String, oid: String) -> MergeResult {
     git::stash_apply(Path::new(&repo_path), &oid)
   }
 

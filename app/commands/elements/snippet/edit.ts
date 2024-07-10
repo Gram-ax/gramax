@@ -13,8 +13,10 @@ const edit: Command<{ oldSnippetId: string; snippetEditData: SnippetEditData; ca
 		middlewares: [new DesktopModeMiddleware(), new ReloadConfirmMiddleware()],
 
 		async do({ oldSnippetId, snippetEditData, catalogName }) {
-			const { lib, formatter } = this._app;
-			const catalog = await lib.getCatalog(catalogName);
+			const { wm, formatter } = this._app;
+			const workspace = wm.current();
+
+			const catalog = await workspace.getCatalog(catalogName);
 			if (!catalog) return;
 			return catalog.snippetProvider.edit(oldSnippetId, snippetEditData, formatter);
 		},

@@ -1,15 +1,20 @@
 import GoToArticle from "@components/Actions/GoToArticle";
 import { ListItem } from "@components/List/Item";
+import { OnItemClick } from "@components/List/Items";
 import ListLayout, { ListLayoutElement } from "@components/List/ListLayout";
+import LinkTitleContextService from "@core-ui/ContextServices/LinkTitleTooltip";
 import { useCtrlKey } from "@core-ui/hooks/useCtrlKey";
 import { useExternalLink } from "@core-ui/hooks/useExternalLink";
 import { usePlatform } from "@core-ui/hooks/usePlatform";
 import { ItemType } from "@core/FileStructue/Item/ItemType";
+import eventEmitter from "@core/utils/eventEmmiter";
 import parseStorageUrl from "@core/utils/parseStorageUrl";
 import styled from "@emotion/styled";
 import LinkItemSidebar from "@ext/artilce/LinkCreator/components/LinkItemSidebar";
+import useLocalize from "@ext/localization/useLocalize";
 import Button from "@ext/markdown/core/edit/components/Menu/Button";
-import { Dispatch, RefObject, SetStateAction, useCallback, useEffect, useRef, useState } from "react";
+import LinkFocusTooltip from "@ext/markdown/elements/link/edit/logic/LinkFocusTooltip";
+import { Dispatch, RefObject, SetStateAction, useEffect, useRef, useState, useMemo } from "react";
 import LinkItem from "../models/LinkItem";
 
 interface SelectLinkItemProps {
@@ -35,7 +40,7 @@ interface ListViewProps {
 	listRef: RefObject<ListLayoutElement>;
 	className?: string;
 	onSearchChange: (value: string) => void;
-	itemClickHandler: (labelField: unknown, e: unknown, idx: number) => void;
+	itemClickHandler: OnItemClick;
 	items: ListItem[];
 	inputValue?: string;
 }
@@ -44,7 +49,7 @@ const renderItem = (item) => {
 	const { type, title } = item;
 
 	return {
-		element: type === "article" ? LinkItemSidebar(title, "file") : LinkItemSidebar(title, "folder"),
+		element: <LinkItemSidebar title={title} iconCode={type === "article" ? "file" : "folder"} item={item} />,
 		labelField: title,
 	};
 };
@@ -85,57 +90,105 @@ const ButtonView = ({ href, icon, itemName, setButton, isExternalLink }: ButtonV
 
 const ListView = (props: ListViewProps) => {
 	const { listRef, focusOnMount, className, onSearchChange, itemClickHandler, items, itemName } = props;
+	const { parentRef } = LinkTitleContextService.value;
 
 	return (
-		<div style={{ padding: "0 5.5px", width: "300px" }}>
+		<div ref={parentRef} style={{ padding: "0 5.5px", width: "300px" }}>
 			<ListLayout
+				containerRef={parentRef}
+				addWidth={8}
+				itemsClassName={className}
 				openByDefault={focusOnMount}
 				item={itemName}
 				ref={listRef}
 				isCode={false}
-				placeholder="Cсылка"
-				itemsClassName={className}
+				placeholder={useLocalize("linkOrSearchArticles")}
 				onSearchChange={onSearchChange}
 				onItemClick={itemClickHandler}
 				items={items}
+				customOutsideClick
+				keepFullWidth
 			/>
 		</div>
 	);
 };
 
+const getItemByItemLinks = (itemLinks: LinkItem[], value, href) => {
+	const linkToArticle = itemLinks.find((i) => i.relativePath === value);
+
+	const linkToHeader = itemLinks.find((i) => {
+		const match = LinkFocusTooltip.getLinkToHeading(value);
+		return i.relativePath === (match ? match[1] : href);
+	});
+
+	if (!linkToHeader && !linkToArticle) return null;
+
+	return linkToHeader ? linkToHeader : linkToArticle;
+};
+
+type getItemsType = {
+	itemLinks: LinkItem[];
+	isExternalLink?: boolean;
+	externalLink?: string;
+};
+
+const getItemsByItemLinks = (props: getItemsType) => {
+	const { itemLinks, isExternalLink, externalLink } = props;
+	if (isExternalLink)
+		return [{ element: <LinkItemSidebar title={externalLink} iconCode={"globe"} />, labelField: externalLink }];
+	if (!itemLinks) return [];
+	return itemLinks.map(renderItem);
+};
+
 const SelectLinkItem = (props: SelectLinkItemProps) => {
 	const { href, value, onChange, itemLinks, className, focusOnMount } = props;
-
 	const [isExternalLink, externalLink, setExternalLink] = useExternalLink(href);
 
-	const item = itemLinks ? itemLinks.find((i) => i.relativePath === value) : null;
-	const icon = !item ? "globe" : item.type == ItemType.article ? "file" : "folder";
+	const item = getItemByItemLinks(itemLinks, value, href);
+	const items = useMemo(
+		() => getItemsByItemLinks({ itemLinks, isExternalLink, externalLink }),
+		[itemLinks, isExternalLink, externalLink],
+	);
 
+	const icon = !item ? "globe" : item.type == ItemType.article ? "file" : "folder";
 	const [button, setButton] = useState<boolean>(!!item || isExternalLink);
 	const [isEdit, setIsEdit] = useState(false);
 	const [itemName, setItemName] = useState("");
 	const listRef = useRef<ListLayoutElement>();
 
-	const items = isExternalLink
-		? [{ element: LinkItemSidebar(externalLink, "globe"), labelField: externalLink }]
-		: itemLinks
-		? itemLinks.map(renderItem)
-		: [];
+	const setName = (withHash = true) => {
+		if (!item || !item.title || !value) return setItemName(value || "");
+
+		const { title } = item;
+		const hash = LinkFocusTooltip.getLinkToHeading(value);
+
+		if (hash && withHash && !isEdit) {
+			setItemName(title + decodeURI(hash[2]));
+		} else {
+			setItemName(title);
+		}
+	};
 
 	useEffect(() => {
-		setItemName((item?.title ?? value) || "");
-	}, [item, externalLink]);
+		setName();
+	}, [item, externalLink, isEdit]);
 
-	const itemClickHandler = useCallback(
-		(_, __, idx) => {
-			if (isExternalLink) {
-				onChange(externalLink, externalLink);
-			} else {
-				onChange(itemLinks[idx].relativePath, itemLinks[idx].pathname);
-			}
-		},
-		[isExternalLink, externalLink, itemLinks],
-	);
+	const itemClickHandler = (_, __, idx) => {
+		if (isExternalLink) onChange(externalLink, externalLink);
+		else onChange(itemLinks[idx].relativePath, itemLinks[idx].pathname);
+	};
+
+	useEffect(() => {
+		const handleItemClick = ({ path, href }: { path: string; href: string }) => {
+			onChange(path, href);
+		};
+
+		eventEmitter.on("itemTitleLinkClick", handleItemClick);
+
+		return () => {
+			eventEmitter.off("itemTitleLinkClick", handleItemClick);
+		};
+	}, [onChange, itemLinks]);
 
 	useEffect(() => {
 		const { domain } = parseStorageUrl(value);
@@ -147,6 +200,7 @@ const SelectLinkItem = (props: SelectLinkItemProps) => {
 
 	const setButtonHandler = (value) => {
 		setButton(value);
+		setName(false);
 		setIsEdit(true);
 	};
 
@@ -172,10 +226,8 @@ const SelectLinkItem = (props: SelectLinkItemProps) => {
 };
 
 export default styled(SelectLinkItem)`
-	left: 0;
 	margin-top: 4px;
-	min-width: 238px;
-	margin-left: -9px;
+
 	border-radius: var(--radius-x-large);
 	background: var(--color-tooltip-background);
 
@@ -190,5 +242,8 @@ export default styled(SelectLinkItem)`
 
 	.item.active {
 		background: var(--color-edit-menu-button-active-bg);
+		.hidden_elem {
+			opacity: 1;
+		}
 	}
 `;

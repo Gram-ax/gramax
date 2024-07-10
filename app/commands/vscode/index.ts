@@ -3,22 +3,19 @@ import { DesktopModeMiddleware } from "@core/Api/middleware/DesktopModeMiddlewar
 import Path from "@core/FileProvider/Path/Path";
 import { Command } from "../../types/Command";
 
-const vscode: Command<{ path: string }, string> = Command.create({
+const vscode: Command<{ path: Path }, string> = Command.create({
 	path: "vscode",
 
 	kind: ResponseKind.redirect,
 
 	middlewares: [new DesktopModeMiddleware()],
 
-	async do({ path }) {
-		const name = path.split("/")[0];
-		const catalog = await this._app.lib.getCatalog(name);
-		const fp = this._app.lib.getFileProviderByCatalog(catalog);
-		return "vscode://file/" + fp.rootPath.join(new Path(path)).value;
+	do({ path }) {
+		return "vscode://file/" + this._app.wm.current().getFileProvider().rootPath.join(path).value;
 	},
 
 	params(ctx, q) {
-		return { ctx, path: q.path };
+		return { ctx, path: new Path(q.path) };
 	},
 });
 

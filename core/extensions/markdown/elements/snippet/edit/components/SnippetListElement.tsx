@@ -33,7 +33,7 @@ const SnippetListElement = ({
 	if (isLoading) return <ModalLoading />;
 
 	return (
-		<div style={{ width: "100%", padding: "5px 10px" }}>
+		<div style={{ width: "100%", padding: "5px 13px" }}>
 			<Sidebar
 				title={snippet.title}
 				rightActions={[

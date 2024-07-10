@@ -3,6 +3,7 @@ export enum ButtonStyle {
 	orange = "orange",
 	underline = "underline",
 	transparent = "transparent",
+	transparentInverse = "transparentInverse",
 	blue = "blue",
 	purple = "purple",
 }

@@ -1,6 +1,7 @@
 import { getHttpsRepositoryUrl } from "@components/libs/utils";
+import GithubStorageData from "@ext/git/actions/Source/GitHub/model/GithubStorageData";
 import GitCommandsConfig from "@ext/git/core/GitCommands/model/GitCommandsConfig";
-import getDistanceToCommonCommit from "@ext/git/utils/getDistanceToCommonCommit";
+import getUrlFromGitStorageData from "@ext/git/core/GitStorage/utils/getUrlFromGitStorageData";
 import Path from "../../../../logic/FileProvider/Path/Path";
 import FileProvider from "../../../../logic/FileProvider/model/FileProvider";
 import parseStorageUrl from "../../../../logic/utils/parseStorageUrl";
@@ -27,7 +28,8 @@ export default class GitStorage implements Storage {
 	private _url: GitStorageUrl;
 	private _submodulesData: SubmoduleData[];
 	private _gitRepository: GitCommands;
-	private _syncCount: { pull: number; push: number };
+	private _syncCount: { pull: number; push: number; hasChanges: boolean };
+	private _syncSearchInPath = "";
 	private static _gitDataParser: GitDataParser = gitDataParser;
 
 	constructor(private _conf: GitCommandsConfig, private _path: Path, private _fp: FileProvider) {
@@ -53,7 +55,7 @@ export default class GitStorage implements Storage {
 		fp.stopWatch();
 		try {
 			const gitRepository = new GitCommands(conf, fp, repositoryPath);
-			const currentUrl = url ?? `https://${data.source.domain}/${data.group}/${data.name}`;
+			const currentUrl = url ?? getUrlFromGitStorageData(data);
 			try {
 				await gitRepository.clone(getHttpsRepositoryUrl(currentUrl), source, branch, onProgress);
 			} catch (e) {
@@ -83,13 +85,17 @@ export default class GitStorage implements Storage {
 	}
 
 	static async init(conf: GitCommandsConfig, repositoryPath: Path, fp: FileProvider, data: GitStorageData) {
-		if (data.source.sourceType == SourceType.gitHub) await createGitHubRepository(data);
+		if (data.source.sourceType == SourceType.gitHub) await createGitHubRepository(data as GithubStorageData);
 		const gitRepository = new GitCommands(conf, fp, repositoryPath);
 		await gitRepository.addRemote(data);
 	}
 
 	getPath(): Path {
 		return this._path;
+	}
+
+	setSyncSearchInPath(path: string) {
+		this._syncSearchInPath = path;
 	}
 
 	async getName(): Promise<string> {
@@ -148,41 +154,25 @@ export default class GitStorage implements Storage {
 	}
 
 	async updateSyncCount() {
-		const currentBranch = await this._gitRepository.getCurrentBranch();
-		const remoteName = currentBranch.getData().remoteName;
-		if (!remoteName) {
-			this._syncCount = { pull: 0, push: 0 };
-			return;
-		}
-		const localBranchName = currentBranch.toString();
-		const remoteBranchName = (await this._gitRepository.getRemoteName()) + "/" + remoteName.replace("origin/", "");
-		let res = { a: 0, b: 0 };
-		try {
-			res = await getDistanceToCommonCommit(remoteBranchName, localBranchName, this._gitRepository);
-		} catch (e) {
-			console.log("Update sync count error: ", e);
-		}
-		this._syncCount = { pull: res.a, push: res.b };
+		this._syncCount = await this._gitRepository.graphHeadUpstreamFilesCount(this._syncSearchInPath);
 	}
 
 	getRemoteName(): Promise<string> {
 		return this._gitRepository.getRemoteName();
 	}
 
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	async pull(data: GitSourceData, recursive = true) {
-		const oldSubmodulDatas = await this._getSubmodulesData();
+		// const oldSubmodulDatas = await this._getSubmodulesData();
 		this._fp.stopWatch();
 		try {
 			const remoteName = (await this._gitRepository.getCurrentBranch()).getData().remoteName;
 			if (remoteName) await this._gitRepository.pull(data);
 
-			if (recursive) {
-				const newSubmodulDatas = await this._getSubmodulesData();
-				await this._updateSubmodules(oldSubmodulDatas, newSubmodulDatas, data);
-			}
-			// eslint-disable-next-line no-useless-catch
-		} catch (err) {
-			throw err;
+			// if (recursive) {
+			// 	const newSubmodulDatas = await this._getSubmodulesData();
+			// 	await this._updateSubmodules(oldSubmodulDatas, newSubmodulDatas, data);
+			// }
 		} finally {
 			await this.update();
 			this._fp?.startWatch();
@@ -288,6 +278,7 @@ export default class GitStorage implements Storage {
 	}
 
 	private async _initRepositoryUrl() {
+		if (!(await this._gitRepository.hasRemote())) return;
 		this._url = await this._gitRepository.getRemoteUrl();
 	}
 

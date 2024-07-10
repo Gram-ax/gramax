@@ -1,56 +1,120 @@
-import { FileStatus } from "@ext/Watchers/model/FileStatus";
-import { PartType } from "@ext/git/actions/MergeConflictHandler/model/FileTypes";
-import { MergeFile, ParsedMergeFile } from "@ext/git/actions/MergeConflictHandler/model/MergeFile";
+import { GitMergeResultContent } from "@ext/git/actions/MergeConflictHandler/model/GitMergeResultContent";
+import GitMergeStatus from "@ext/git/actions/MergeConflictHandler/model/GitMergeStatus";
 
-export const files: MergeFile[] = [
+export const files: GitMergeResultContent[] = [
 	{
-		title: "file1",
-		path: "path/to/file1.md",
-		content:
-			"file 1\nIf you have questions, please \n<<<<<<< HEAD\nblue content\n=======\nporple content\n>>>>>>> branch-a\nI am\n<<<<<<< HEAD\ntomato\n=======\npotato\n>>>>>>> branch-a\nwqeqw",
-		type: FileStatus.conflict,
+		title: "file both modified 1",
+		path: "path/to/bothModified1.md",
+		content: `start
+<<<<<<< Updated upstream
+изменение на сервере 1
+1234567890
+000
+111
+=======
+локальное изменение 1
+456
+>>>>>>> Stashed changes
+end
+`,
+		status: GitMergeStatus.BothModified,
 	},
 	{
-		title: "file2",
-		path: "path/to/file2.md",
-		content:
-			"file 1\nIf you have questions, please \n<<<<<<< HEAD\nStyling is a topic of its own in React. React does not offer its own in-house solution to make styling easier, however the introduction of CSS-in-JS has shaken up the scene a little bit. Adopted widely and loved by some but hotly debated by others. With CSS-in-JS, the styling of components also moves into JavaScript to not break with the paradigm of component-based development. \nBut let's start with the basics and explore the topic bit by bit.\n=======\nask your question in IRC.\n>>>>>>> branch-a\nI am\n<<<<<<< HEAD\n11111111111111111111\n=======\n2222222222222222222\n>>>>>>> branch-a\nwqeqw",
-		type: FileStatus.conflict,
+		title: "file both modified 2",
+		path: "path/to/bothModified2.md",
+		content: `start
+2
+3
+<<<<<<< Updated upstream
+изменение на сервере 2
+1234567890
+=======
+локальное изменение 2
+456
+>>>>>>> Stashed changes
+end
+4
+5
+
+<<<<<<< Updated upstream
+текущее, входящая одна строка
+=======
+
+>>>>>>> Stashed changes
+
+start
+2
+3
+<<<<<<< Updated upstream
+
+=======
+входящее, текущее одна строка
+>>>>>>> Stashed changes
+end
+4
+5
+<<<<<<< Updated upstream
+=======
+входящее, текущее пусто
+>>>>>>> Stashed changes
+
+<<<<<<< Updated upstream
+текущее, входящее пусто
+=======
+>>>>>>> Stashed changes
+`,
+		status: GitMergeStatus.BothModified,
+	},
+	{
+		title: "file deleted by them",
+		path: "path/to/deletedByThem.md",
+		content: `Some content
+that deleted in their version
+some more content... `,
+		status: GitMergeStatus.DeletedByThem,
+	},
+	{
+		title: "file deleted by us",
+		path: "path/to/deletedByUs.md",
+		content: `Some content
+that deleted in our version
+some more content... `,
+		status: GitMergeStatus.DeletedByUs,
+	},
+	{
+		title: "file deleted both",
+		path: "path/to/bothDeleted.md",
+		content: "",
+		status: GitMergeStatus.BothDeleted,
+	},
+	{
+		title: "file added by them",
+		path: "path/to/addedByThem.md",
+		content: `Some content
+they only added in their version
+some more content... `,
+		status: GitMergeStatus.AddedByThem,
+	},
+	{
+		title: "file added by us",
+		path: "path/to/addedByUs.md",
+		content: `Some content
+we only added in our version
+some more content... `,
+		status: GitMergeStatus.AddedByUs,
+	},
+	{
+		title: "file both added",
+		path: "path/to/bothAdded.md",
+		content: `<<<<<<< Updated upstream
+Some content
+in our version
+some more content...
+=======
+Some content
+in their version
+some more content...
+>>>>>>> Stashed changes`,
+		status: GitMergeStatus.BothAdded,
 	},
 ];
-
-export const parsedFile: ParsedMergeFile = {
-	...files[0],
-	parts: [
-		{
-			content: "file 1\nIf you have questions, please \n",
-			type: PartType.Normal,
-		},
-		{
-			content:
-				"<<<<<<< HEAD\nStyling is a topic of its own in React. React does not offer its own in-house solution to make styling easier, however the introduction of CSS-in-JS has shaken up the scene a little bit. Adopted widely and loved by some but hotly debated by others. With CSS-in-JS, the styling of components also moves into JavaScript to not break with the paradigm of component-based development. \nBut let's start with the basics and explore the topic bit by bit.\n=======\nask your question in IRC.\n>>>>>>> branch-a",
-			type: PartType.Conflict,
-			topPart:
-				"Styling is a topic of its own in React. React does not offer its own in-house solution to make styling easier, however the introduction of CSS-in-JS has shaken up the scene a little bit. Adopted widely and loved by some but hotly debated by others. With CSS-in-JS, the styling of components also moves into JavaScript to not break with the paradigm of component-based development. \nBut let's start with the basics and explore the topic bit by bit.",
-			bottomPart: "ask your question in IRC.\n",
-			resolved: false,
-			isTopPart: null,
-		},
-		{
-			content: "\nI am\n",
-			type: PartType.Normal,
-		},
-		{
-			content: "<<<<<<< HEAD\ntomato\n=======\npotato\n>>>>>>> branch-a",
-			type: PartType.Conflict,
-			topPart: "tomato",
-			bottomPart: "potato\n",
-			resolved: false,
-			isTopPart: null,
-		},
-		{
-			content: "\nwqeqw",
-			type: PartType.Normal,
-		},
-	],
-};

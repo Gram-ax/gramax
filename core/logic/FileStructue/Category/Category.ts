@@ -1,12 +1,14 @@
+import { digitsAfterDot } from "@core/FileStructue/Item/ItemOrderUtils";
 import ResourceUpdater from "@core/Resource/ResourceUpdater";
 import createNewFilePathUtils from "@core/utils/createNewFilePathUtils";
 import Path from "../../FileProvider/Path/Path";
 import { ClientArticleProps } from "../../SitePresenter/SitePresenter";
 import { Article, ArticleInitProps, type ArticleProps } from "../Article/Article";
 import { FSProps } from "../FileStructure";
-import { Item } from "../Item/Item";
+import { Item, ORDERING_MAX_PRECISION } from "../Item/Item";
 import { ItemRef } from "../Item/ItemRef";
 import { ItemType } from "../Item/ItemType";
+import { Catalog, ItemFilter } from "@core/FileStructue/Catalog/Catalog";
 
 export type CategoryInitProps = ArticleInitProps<CategoryProps> & {
 	directory: Path;
@@ -41,25 +43,26 @@ export class Category extends Article<CategoryProps> {
 		return ItemType.category;
 	}
 
-	async sortItems(items?: Item[]) {
+	async sortItems(force?: boolean) {
 		const isAsc = this._isAscOrder();
-		if (items) {
-			let order = isAsc ? 1 : items.length;
-			for (const item of items) {
+
+		if (force || this.items.some((i) => digitsAfterDot(i.order) > ORDERING_MAX_PRECISION)) {
+			let order = isAsc ? 1 : this.items.length;
+			for (const item of this.items) {
 				if (item) await item.setOrder(order);
 				if (isAsc) order++;
 				else order--;
 			}
 		}
+
 		this._items.sort((x, y) => ((x.props.order ?? 0) - (y.props.order ?? 0)) * (isAsc ? 1 : -1));
 	}
 
-	// Нигде не используется
-	// getItems(...filters: ((item: Item) => boolean)[]): Item[] {
-	// 	let items = [...this._items];
-	// 	filters?.forEach((filter) => (items = items.filter(filter)));
-	// 	return items;
-	// }
+	getFilteredItems(filters: ItemFilter[], catalog: Catalog): Item[] {
+		return (
+			filters?.reduce((items, filter) => items.filter((item) => filter(item, catalog)), [...this._items]) || []
+		);
+	}
 
 	getCategoryPathRef(): ItemRef {
 		return {

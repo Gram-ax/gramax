@@ -2,65 +2,58 @@ import Icon from "@components/Atoms/Icon";
 import styled from "@emotion/styled";
 import { ReactElement, ReactNode, useEffect, useState } from "react";
 
-const Cut = styled(
-	({
-		text,
-		expanded,
-		children,
-		isInline,
-		onUpdate,
-		className,
-	}: {
-		text: string;
-		expanded: boolean;
-		children?: ReactNode;
-		isInline?: boolean;
-		onUpdate?: (isExpanded: boolean) => void;
-		className?: string;
-	}): ReactElement => {
-		const [isExpanded, setExpanded] = useState(expanded);
-		useEffect(() => {
-			setExpanded(expanded);
-		}, [expanded]);
+interface CutProps {
+	text: string;
+	expanded: boolean;
+	children?: ReactNode;
+	isInline?: boolean;
+	onUpdate?: (isExpanded: boolean) => void;
+	className?: string;
+}
 
-		return isInline ? (
-			<span className={className}>
-				<a
-					className={"noselect " + (isExpanded ? "bg in-mp" : "")}
-					onClick={() => {
-						setExpanded(!isExpanded);
-						onUpdate?.(!isExpanded);
-					}}
-				>
-					<span>{isExpanded ? "Скрыть" : text}</span>
-					<Icon code={isExpanded ? "chevron-left" : "chevron-right"} viewBox="3 3 18 18" />
-				</a>
-				{isExpanded && <span className="bg">{children}</span>}
-			</span>
-		) : (
-			<div className={`admonition admonition-cut admonition-column`}>
-				<div
-					className="admonition-heading"
-					onClick={() => {
-						setExpanded(!isExpanded);
-						onUpdate?.(!isExpanded);
-					}}
-					contentEditable={false}
-				>
-					<div className="admonition-icon">
-						<Icon code={isExpanded ? "chevron-down" : "chevron-right"} viewBox="3 3 18 18"/>
-					</div>
-					<h5>{text}</h5>
+const Cut = styled(({ text, expanded, children, isInline, onUpdate, className }: CutProps): ReactElement => {
+	const [isExpanded, setExpanded] = useState(expanded);
+	useEffect(() => {
+		setExpanded(expanded);
+	}, [expanded]);
+
+	return isInline ? (
+		<span className={className}>
+			<a
+				className={"noselect " + (isExpanded ? "bg in-mp" : "")}
+				onClick={() => {
+					setExpanded(!isExpanded);
+					onUpdate?.(!isExpanded);
+				}}
+			>
+				<span>{isExpanded ? "Скрыть" : text}</span>
+				<Icon code={isExpanded ? "chevron-left" : "chevron-right"} viewBox="3 3 18 18" />
+			</a>
+			{isExpanded && <span className="bg">{children}</span>}
+		</span>
+	) : (
+		<div className={`admonition admonition-cut admonition-column`}>
+			<div
+				className="admonition-heading"
+				onClick={() => {
+					setExpanded(!isExpanded);
+					onUpdate?.(!isExpanded);
+				}}
+				contentEditable={false}
+			>
+				<div className="admonition-icon">
+					<Icon code={isExpanded ? "chevron-down" : "chevron-right"} viewBox="3 3 18 18" />
 				</div>
-				{isExpanded && (
-					<div className="admonition-content">
-						<p className="paragraph">{children}</p>
-					</div>
-				)}
+				<h5>{text}</h5>
 			</div>
-		);
-	},
-)`
+			{isExpanded && (
+				<div className="admonition-content">
+					<p className="paragraph">{children}</p>
+				</div>
+			)}
+		</div>
+	);
+})`
 	.noselect {
 		user-select: none;
 		cursor: pointer;

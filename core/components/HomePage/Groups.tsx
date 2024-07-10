@@ -1,58 +1,40 @@
+import CatalogSyncService from "@core-ui/ContextServices/CatalogSync";
+import type { CatalogsLinks } from "@core/SitePresenter/SitePresenter";
 import styled from "@emotion/styled";
 import { useState } from "react";
-import { CatalogLink } from "../../extensions/navigation/NavigationLinks";
-import { cssMedia } from "../../ui-logic/utils/cssUtils";
-import AnyGroup from "./Groups/AnyGroup";
-import ProductsGroup from "./Groups/ProductsGroup";
-import GroupsName from "./Groups/model/GroupsName";
+import Group from "./Group";
 import NoneGroups from "./NoneGroups";
 
-const Groups = styled(({ links, className }: { links: { [group: string]: CatalogLink[] }; className?: string }) => {
-	const [isAnyCardLoading, setIsAnyCardLoading] = useState<boolean>(false);
+const Groups = ({ catalogsLinks, className }: { catalogsLinks: CatalogsLinks; className?: string }) => {
+	const [isAnyCardLoading, setIsAnyCardLoading] = useState(false);
+	const groupsData = catalogsLinks ? Object.values(catalogsLinks) : [];
+	const catalogCount = groupsData.reduce((total, group) => total + group.catalogLinks.length, 0);
 
 	return (
-		<div className={className} style={isAnyCardLoading ? { pointerEvents: "none" } : {}}>
-			{Object.keys(links).length ? (
-				<div className="groups-container">
-					{links[GroupsName.products] ? (
-						<ProductsGroup onClick={() => setIsAnyCardLoading(true)} links={links[GroupsName.products]} />
-					) : null}
-					{links[GroupsName.company] ? (
-						<AnyGroup
-							onClick={() => setIsAnyCardLoading(true)}
-							group={GroupsName.company}
-							links={links[GroupsName.company]}
-						/>
-					) : null}
-					{links[GroupsName.projects] ? (
-						<AnyGroup
-							onClick={() => setIsAnyCardLoading(true)}
-							group={GroupsName.projects}
-							links={links[GroupsName.projects]}
-						/>
-					) : null}
-				</div>
-			) : (
-				<NoneGroups />
-			)}
-		</div>
+		<CatalogSyncService.Provider>
+			<div className={className} style={isAnyCardLoading ? { pointerEvents: "none" } : {}}>
+				{catalogCount ? (
+					<>
+						{groupsData.map((groupData, i) => {
+							if (groupData?.catalogLinks.length)
+								return (
+									<Group key={i} groupData={groupData} setIsAnyCardLoading={setIsAnyCardLoading} />
+								);
+						})}
+					</>
+				) : (
+					<NoneGroups />
+				)}
+			</div>
+		</CatalogSyncService.Provider>
 	);
-})`
+};
+
+export default styled(Groups)`
 	flex: 1;
 	width: 100%;
 	display: flex;
-
-	.groups-container {
-		width: 100%;
-		display: flex;
-		flex-direction: column;
-	}
-
-	.group-container {
-		gap: 1rem;
-		display: grid;
-		grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr;
-	}
+	flex-direction: column;
 
 	.catalog-background {
 		width: 100%;
@@ -108,30 +90,6 @@ const Groups = styled(({ links, className }: { links: { [group: string]: Catalog
 		background-size: contain;
 		background-position: center center;
 		background-repeat: no-repeat !important;
-	}
-
-	@media only screen and (max-width: 80rem) {
-		.group-container {
-			grid-template-columns: 1fr 1fr 1fr 1fr 1fr;
-		}
-	}
-
-	${cssMedia.mediumest} {
-		.group-container {
-			grid-template-columns: 1fr 1fr 1fr 1fr;
-		}
-	}
-
-	${cssMedia.medium} {
-		.group-container {
-			grid-template-columns: 1fr 1fr 1fr;
-		}
-	}
-
-	${cssMedia.narrow} {
-		.group-container {
-			grid-template-columns: 1fr 1fr;
-		}
 	}
 
 	@media only screen and (max-width: 380px) {
@@ -345,5 +303,3 @@ const Groups = styled(({ links, className }: { links: { [group: string]: Catalog
 		background-color: hsl(0deg 0% 0% / 5%) !important;
 	}
 `;
-
-export default Groups;

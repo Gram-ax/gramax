@@ -1,9 +1,9 @@
-import useUrlImage from "@components/Atoms/Image/useImage";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import styled from "@emotion/styled";
 import ThemeService from "../../extensions/Theme/components/ThemeService";
 import { CatalogLink } from "../../extensions/navigation/NavigationLinks";
 import Actions from "../Actions";
+import useUrlImage from "../Atoms/Image/useUrlImage";
 
 const TopMenu = styled(({ catalogLinks, className }: { catalogLinks: CatalogLink[]; className?: string }) => {
 	const theme = ThemeService.value;
@@ -12,10 +12,7 @@ const TopMenu = styled(({ catalogLinks, className }: { catalogLinks: CatalogLink
 	return (
 		<div className={className}>
 			<div className="top-menucontainer">
-				<img
-					src={useUrlImage(apiUrlCreator.getLogo(theme))}
-					style={{ width: "5.5rem" }}
-				/>
+				<img src={useUrlImage(apiUrlCreator.getLogo(theme))} style={{ width: "5.5rem" }} />
 				<Actions isHomePage={true} catalogLinks={catalogLinks} />
 			</div>
 		</div>

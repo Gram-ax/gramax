@@ -1,3 +1,4 @@
+import getArticleHeadersByRelativePath from "./features/getArticleHeadersByRelativePath";
 import create from "./create";
 import app from "./editOn/app";
 import source from "./editOn/source";
@@ -10,7 +11,7 @@ import getRenderContent from "./features/getRenderContent";
 import setContent from "./features/setContent";
 import getProps from "./getProps";
 import get from "./resource/get";
-import getNames from "./resource/getNames";
+import getBrotherNames from "./features/getBrotherNames";
 import remove from "./resource/remove";
 import set from "./resource/set";
 import updateContent from "./updateContent";
@@ -18,6 +19,7 @@ import updateContent from "./updateContent";
 const article = {
 	features: {
 		setContent,
+		getArticleHeadersByRelativePath,
 		getContent,
 		getLinkItems,
 		getCustomArticle,
@@ -32,7 +34,7 @@ const article = {
 		get,
 		set,
 		remove,
-		getNames,
+		getBrotherNames,
 	},
 	create,
 	getProps,

@@ -1,16 +1,17 @@
+use crate::actions::prelude::*;
 use crate::creds::*;
 use crate::prelude::*;
 
 use crate::error::Error;
 
+use crate::repo::Repo;
 use crate::ShortInfo;
 
 use std::path::Path;
 use std::path::PathBuf;
 use std::time::SystemTime;
 
-use self::repo_ext::RepoExt;
-
+use git2::BranchType;
 use serde::Serialize;
 
 #[derive(Serialize, Debug)]
@@ -114,13 +115,13 @@ pub fn delete_branch(
   match creds {
     Some(creds) if remote => {
       let repo = with_creds(repo_path, creds)?;
-      repo.delete_branch(name, BranchType::Remote)?;
+      repo.delete_branch_remote(name)?;
     }
     _ => {
       let repo = with_dummy_creds(repo_path)?;
-      repo.delete_branch(name, BranchType::Local)?
+      repo.delete_branch_local(name)?;
     }
-  }
+  };
   Ok(())
 }
 
@@ -142,7 +143,7 @@ pub fn status(repo_path: &Path) -> Result<StatusInfo> {
   Ok(info)
 }
 
-pub fn status_file(repo_path: &Path, file_path: &Path) -> Result<Status> {
+pub fn status_file(repo_path: &Path, file_path: &Path) -> Result<StatusEntry> {
   let repo = with_dummy_creds(repo_path)?;
   Ok(repo.status_file(file_path)?)
 }
@@ -229,10 +230,15 @@ pub fn commit(
   Ok(())
 }
 
-pub fn merge(repo_path: &Path, creds: AccessTokenCreds, theirs: &str) -> Result<()> {
+pub fn graph_head_upstream_files(repo_path: &Path, search_in: &Path) -> Result<UpstreamCountChangedFiles> {
+  let repo = with_dummy_creds(repo_path)?;
+  Ok(repo.graph_head_upstream_files(search_in)?)
+}
+
+pub fn merge(repo_path: &Path, creds: AccessTokenCreds, theirs: &str) -> Result<MergeResult> {
   let repo = with_creds(repo_path, creds)?;
-  repo.merge(theirs)?;
-  Ok(())
+  use crate::actions::merge::Merge;
+  Ok(repo.merge(theirs)?)
 }
 
 pub fn get_content(repo_path: &Path, path: &Path, oid: Option<&str>) -> Result<String> {
@@ -260,17 +266,16 @@ pub fn get_remote(repo_path: &Path) -> Result<Option<String>> {
   Ok(remote)
 }
 
-pub fn stash(repo_path: &Path, message: Option<&str>) -> Result<String> {
-  let mut repo = with_dummy_creds(repo_path)?;
+pub fn stash(repo_path: &Path, message: Option<&str>, creds: AccessTokenCreds) -> Result<String> {
+  let mut repo = with_creds(repo_path, creds)?;
   let oid = repo.stash(message)?;
   Ok(oid.to_string())
 }
 
-pub fn stash_apply(repo_path: &Path, oid: &str) -> Result<()> {
+pub fn stash_apply(repo_path: &Path, oid: &str) -> Result<MergeResult> {
   let mut repo = with_dummy_creds(repo_path)?;
   let oid = Oid::from_str(oid).map_err(Error::from)?;
-  repo.stash_apply(oid)?;
-  Ok(())
+  Ok(repo.stash_apply(oid)?)
 }
 
 pub fn stash_delete(repo_path: &Path, oid: &str) -> Result<()> {

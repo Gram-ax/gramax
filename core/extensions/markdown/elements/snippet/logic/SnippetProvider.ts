@@ -80,12 +80,14 @@ export default class SnippetProvider {
 		if (this._snippetsArticles.has(id)) return this._snippetsArticles.get(id);
 		const path = this._getSnippetPath(id);
 
-		const { props, content } = this._fs.parseMarkdown(await this._fp.read(path), path);
-		const lastModified = (await this._fp.getStat(path)).mtimeMs;
-
-		const article = this._createArticle(path, props.title, lastModified, content);
-
-		this._snippetsArticles.set(id, article);
+		if (await this._fp.exists(path)) {
+			const { props, content } = this._fs.parseMarkdown(await this._fp.read(path), path);
+			const lastModified = (await this._fp.getStat(path)).mtimeMs;
+			const article = this._createArticle(path, props.title, lastModified, content);
+			this._snippetsArticles.set(id, article);
+		} else {
+			this._snippetsArticles.set(id, null);
+		}
 		return this._snippetsArticles.get(id);
 	}
 

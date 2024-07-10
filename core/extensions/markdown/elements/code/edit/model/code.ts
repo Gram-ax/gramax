@@ -54,9 +54,7 @@ const Code = Mark.create<CodeOptions>({
 					if (editor.isActive(this.name)) return commands.toggleMark(this.name);
 					if (getIsSelectedOneNode(editor.state)) return commands.toggleMark(this.name);
 
-					return getIsSelected(state)
-						? editor.commands.multilineCodeBlock()
-						: editor.commands.toggleCodeBlock();
+					return getIsSelected(state) ? commands.multilineCodeBlock() : commands.toggleCodeBlock();
 				},
 			unsetCode:
 				() =>

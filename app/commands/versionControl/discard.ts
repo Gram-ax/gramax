@@ -12,8 +12,10 @@ const discard: Command<{ catalogName: string; filePaths: string[] }, void> = Com
 	middlewares: [new AuthorizeMiddleware(), new ReloadConfirmMiddleware()],
 
 	async do({ catalogName, filePaths }) {
-		const { rp, lib, logger } = this._app;
-		const catalog = await lib.getCatalog(catalogName);
+		const { rp, logger, wm } = this._app;
+		const workspace = wm.current();
+
+		const catalog = await workspace.getCatalog(catalogName);
 		if (!catalog) return;
 
 		await catalog.repo.gvc.discard(filePaths.map((filePath) => new Path(filePath)));

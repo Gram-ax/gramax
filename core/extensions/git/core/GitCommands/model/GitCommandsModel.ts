@@ -1,3 +1,4 @@
+import type { MergeResult, UpstreamCountFileChanges } from "@ext/git/core/GitCommands/LibGit2IntermediateCommands";
 import Path from "../../../../../logic/FileProvider/Path/Path";
 import { VersionControlInfo } from "../../../../VersionControl/model/VersionControlInfo";
 import SourceData from "../../../../storage/logic/SourceDataProvider/model/SourceData";
@@ -24,12 +25,12 @@ interface GitCommandsModel {
 	push(data: GitSourceData): Promise<void>;
 	fetch(data: GitSourceData): Promise<void>;
 	checkout(ref: string, force?: boolean): Promise<void>;
-	merge(data: SourceData, theirs: string, abortOnConflict?: boolean): Promise<void>;
+	merge(data: SourceData, theirs: string): Promise<MergeResult>;
 	restore(staged: boolean, filePaths: Path[]): Promise<void>;
 	diff(oldTree: string, newTree: string): Promise<GitStatus[]>;
 
 	stash(data: SourceData): Promise<string>;
-	applyStash(data: SourceData, stashOid: string): Promise<void>;
+	applyStash(stashOid: string): Promise<MergeResult>;
 	deleteStash(stashOid: string): Promise<void>;
 	stashParent(stashOid: string): Promise<GitVersion>;
 
@@ -42,6 +43,7 @@ interface GitCommandsModel {
 	getCommitHash(ref: string): Promise<GitVersion>;
 
 	getFileHistory(filePath: Path, count: number): Promise<VersionControlInfo[]>;
+	graphHeadUpstreamFilesCount(searchIn: string): Promise<UpstreamCountFileChanges>;
 
 	getHeadCommit(branch: string): Promise<GitVersion>;
 

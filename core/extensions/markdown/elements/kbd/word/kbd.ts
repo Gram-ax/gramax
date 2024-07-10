@@ -1,7 +1,12 @@
-import { TextRun } from "docx";
-import { WordInlineChild } from "../../../../wordExport/WordTypes";
-import { wordExportColors } from "@ext/wordExport/wordExportSettings";
+import { WordInlineChild } from "../../../../wordExport/options/WordTypes";
+import { NON_BREAKING_SPACE, WordFontStyles } from "@ext/wordExport/options/wordExportSettings";
+import { createContent } from "@ext/wordExport/TextWordGenerator";
 
-export const kbdWordLayout: WordInlineChild = async ({ tag }) => {
-	return await Promise.resolve([new TextRun({ text: tag.attributes.text, highlight: wordExportColors.codeBlocks })]);
+export const kbdWordLayout: WordInlineChild = async ({ tag, addOptions }) => {
+	return await Promise.resolve([
+		createContent(NON_BREAKING_SPACE + tag.attributes.text + NON_BREAKING_SPACE, {
+			...addOptions,
+			style: WordFontStyles.kbd,
+		}),
+	]);
 };

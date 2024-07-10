@@ -27,6 +27,13 @@
 	background: var(--color-article-heading-text);
 }
 
+.docportal-sidebar {
+	height: 100%;
+	display: flex;
+	flex-direction: column;
+	justify-content: space-between;
+}
+
 .article .article-description {
 	margin-top: -1rem;
 }
@@ -151,7 +158,10 @@ samp {
 }
 
 .article .article-body {
+	flex: 1;
+	display: flex;
 	position: relative;
+	flex-direction: column;
 }
 
 .article .article-body ol,
@@ -344,7 +354,6 @@ samp {
 
 .article img {
 	box-shadow: var(--shadows-deeplight);
-	margin: 1em auto;
 	max-width: 100%;
 	border: 0;
 	display: block;
@@ -437,6 +446,7 @@ samp {
 	text-decoration: underline;
 }
 
+.article .article-body table th,
 .article strong {
 	font-weight: 500;
 	color: var(--color-article-strong-text);
@@ -475,7 +485,6 @@ samp {
 	border-spacing: 0;
 	border-collapse: collapse;
 	display: block;
-	overflow: scroll;
 }
 
 .article table > thead > tr > th {
@@ -516,11 +525,12 @@ samp {
 	text-align: left;
 	vertical-align: top !important;
 	padding: 12px;
-	min-width: 30px;
 	border-right: 1px solid var(--color-line);
 	border-left: 1px solid var(--color-line);
 	border-top: none;
 	border-bottom: none;
+	word-break: break-word;
+	white-space: normal;
 }
 
 .article table > tbody > tr {

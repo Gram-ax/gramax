@@ -8,31 +8,43 @@ import HashResourceManager from "@core/Hash/HashItems/HashResourceManager";
 import { Article } from "../../../../core/logic/FileStructue/Article/Article";
 
 const get: Command<
-	{ src: Path; mimeType: MimeTypes; catalogName: string; articlePath: Path; ctx: Context },
+	{
+		src: Path;
+		ctx: Context;
+		articlePath: Path;
+		catalogName: string;
+		mimeType: MimeTypes;
+		ifNotExistsErrorText: { title: string; message: string };
+	},
 	{ mime: MimeTypes; hashItem: HashResourceManager }
 > = Command.create({
 	path: "article/resource/get",
 
 	kind: ResponseKind.blob,
 
-	async do({ src, mimeType, catalogName, articlePath, ctx }) {
-		const { lib, parser, parserContextFactory } = this._app;
+	async do({ src, mimeType, catalogName, articlePath, ifNotExistsErrorText, ctx }) {
+		const { parser, parserContextFactory, wm } = this._app;
+		const workspace = wm.current();
+
 		const mime = mimeType ?? MimeTypes?.[src.extension] ?? `application/${src.extension}`;
-		const catalog = await lib.getCatalog(catalogName);
+		const catalog = await workspace.getCatalog(catalogName);
 		if (!catalog) return;
 		const article = catalog.findItemByItemPath<Article>(articlePath);
 		if (!article) return;
 		await parseContent(article, catalog, ctx, parser, parserContextFactory);
+
+		ifNotExistsErrorText && (await article.parsedContent.resourceManager.assertExists(src, ifNotExistsErrorText));
+
 		const hashItem = new HashResourceManager(src, article.parsedContent.resourceManager);
 		return { hashItem, mime };
 	},
 
-	params(ctx, q) {
+	params(ctx, q, body) {
 		const src = new Path(q.src);
 		const mimeType = q.mimeType as MimeTypes;
 		const catalogName = q.catalogName;
 		const articlePath = new Path(q.articlePath);
-		return { ctx, src, mimeType, catalogName, articlePath };
+		return { ctx, src, mimeType, catalogName, articlePath, ifNotExistsErrorText: body };
 	},
 });
 

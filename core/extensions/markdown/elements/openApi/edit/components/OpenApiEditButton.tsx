@@ -1,15 +1,15 @@
-import resolveModule from "@app/resolveModule/frontend";
 import ButtonAtom from "@components/Atoms/Button/Button";
 import { ButtonStyle } from "@components/Atoms/Button/ButtonStyle";
+import FileInput from "@components/Atoms/FileInput/FileInput";
 import FormStyle from "@components/Form/FormStyle";
 import ButtonsLayout from "@components/Layouts/ButtonLayout";
 import ModalLayout from "@components/Layouts/Modal";
 import ModalLayoutDark from "@components/Layouts/ModalLayoutDark";
 import ModalLayoutLight from "@components/Layouts/ModalLayoutLight";
 import FetchService from "@core-ui/ApiServices/FetchService";
-import Fetcher from "@core-ui/ApiServices/Types/Fetcher";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import Button from "@ext/markdown/core/edit/components/Menu/Button";
+import OnLoadResourceService from "@ext/markdown/elements/copyArticles/onLoadResourceService";
 import OPEN_API_NAME from "@ext/markdown/elements/openApi/name";
 import { Editor } from "@tiptap/core";
 import { Node } from "prosemirror-model";
@@ -18,9 +18,7 @@ import ApiUrlCreator from "../../../../../../ui-logic/ApiServices/ApiUrlCreator"
 import useLocalize from "../../../../../localization/useLocalize";
 import getFocusNode from "../../../../elementsUtils/getFocusNode";
 
-const FileInput = resolveModule("FileInput");
-
-const OpenApiEditButton = ({ src, editor }: { src?: string; editor: Editor }) => {
+const OpenApiEditButton = ({ src }: { src?: string }) => {
 	const [isOpen, setIsOpen] = useState(false);
 	const [content, setContent] = useState<string>(null);
 	const [startContent, setStartContent] = useState<string>(null);
@@ -29,7 +27,7 @@ const OpenApiEditButton = ({ src, editor }: { src?: string; editor: Editor }) =>
 	const saveSrc = (newContent: string) => {
 		if (!src) return;
 		FetchService.fetch(apiUrlCreator.setArticleResource(src), newContent);
-		editor.commands.updateAttributes(OPEN_API_NAME, { isUpdating: true });
+		OnLoadResourceService.update(src, Buffer.from(newContent));
 	};
 
 	const save = () => {
@@ -44,7 +42,7 @@ const OpenApiEditButton = ({ src, editor }: { src?: string; editor: Editor }) =>
 	};
 
 	const loadContent = async (src: string, apiUrlCreator: ApiUrlCreator) => {
-		const res = await FetchService.fetch<string>(apiUrlCreator.getArticleResource(src), Fetcher.text);
+		const res = await FetchService.fetch<string>(apiUrlCreator.getArticleResource(src));
 		if (!res.ok) return;
 		const content = await res.text();
 		setContent(content);
@@ -123,7 +121,7 @@ const OpenApiMenu = ({ editor }: { editor: Editor }) => {
 						onClick={toggleFlag}
 					/>
 				</ButtonsLayout>
-				{node && <OpenApiEditButton editor={editor} src={node.attrs?.src} />}
+				{node && <OpenApiEditButton src={node.attrs?.src} />}
 				<Button icon="trash" tooltipText={useLocalize("delete")} onClick={handleDelete} />
 			</ButtonsLayout>
 		</ModalLayoutDark>

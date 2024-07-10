@@ -1,4 +1,5 @@
 import { ReactElement, useEffect, useRef } from "react";
+import TableWrapper from "@ext/markdown/elements/table/render/component/TableWrapper";
 
 const setTableCellsWidth = (table: HTMLTableElement) => {
 	const tds = table.getElementsByTagName("td");
@@ -8,14 +9,16 @@ const setTableCellsWidth = (table: HTMLTableElement) => {
 };
 
 const setCellWidth = (cell: HTMLElement) => {
-	if (!cell.getAttribute("colwidth")) return;
-	cell.style.width =
-		cell
-			.getAttribute("colwidth")
-			.split(",")
-			.map((w) => Number.parseInt(w))
-			.reduce((a, b) => a + b, 0)
-			.toString() + "px";
+	if (cell.getAttribute("colwidth")) {
+		cell.style.minWidth =
+			cell
+				.getAttribute("colwidth")
+				.split(",")
+				.map((w) => Number.parseInt(w))
+				.reduce((a, b) => a + b, 0)
+				.toString() + "px";
+		cell.style.width = cell.style.minWidth;
+	}
 };
 
 const setTableCellsLeftPadding = (table: HTMLTableElement) => {
@@ -38,9 +41,15 @@ const Table = ({ children }: { children?: any }): ReactElement => {
 		setTableCellsLeftPadding(ref.current);
 	});
 
-	if (typeof children === "string")
-		return <table ref={ref} dangerouslySetInnerHTML={{ __html: children }} suppressHydrationWarning={true} />;
-	else return <table ref={ref}>{children}</table>;
+	return (
+		<TableWrapper>
+			{typeof children === "string" ? (
+				<table ref={ref} dangerouslySetInnerHTML={{ __html: children }} suppressHydrationWarning={true} />
+			) : (
+				<table ref={ref}>{children}</table>
+			)}
+		</TableWrapper>
+	);
 };
 
 export default Table;

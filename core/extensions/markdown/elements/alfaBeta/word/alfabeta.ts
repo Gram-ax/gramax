@@ -1,10 +1,11 @@
-import { TextRun } from "docx";
-import { WordInlineChild } from "../../../../wordExport/WordTypes";
+import { WordInlineChild } from "../../../../wordExport/options/WordTypes";
+import { WordFontStyles } from "@ext/wordExport/options/wordExportSettings";
+import { createContent } from "@ext/wordExport/TextWordGenerator";
 
-export const alphaWordLayout: WordInlineChild = async () => {
-	return await Promise.resolve([new TextRun({ text: "αlfa", highlight: "red" })]);
+export const alfaWordLayout: WordInlineChild = async ({ addOptions }) => {
+	return await Promise.resolve([createContent("αlfa", { ...addOptions, style: WordFontStyles.alfa })]);
 };
 
-export const betaWordLayout: WordInlineChild = async () => {
-	return await Promise.resolve([new TextRun({ text: "βeta", highlight: "yellow" })]);
+export const betaWordLayout: WordInlineChild = async ({ addOptions }) => {
+	return await Promise.resolve([createContent("βeta", { ...addOptions, style: WordFontStyles.beta })]);
 };

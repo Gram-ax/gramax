@@ -13,3 +13,6 @@ export const NEW_ARTICLE_REGEX = /^new[-|_]article/;
 
 export const UNIQUE_NAME_SEPARATOR = "-";
 export const UNIQUE_NAME_START_IDX = 2;
+
+export const LEFT_NAV_CLASS = "left-navigation-layout";
+export const RIGHT_NAV_CLASS = "right-nav-layout";

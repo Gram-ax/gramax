@@ -9,7 +9,8 @@
  *
  * See https://jgraph.github.io/drawio-integration/javascript.html
  */
-function DiagramEditor(config, ui, done, initialized, urlParams) {
+function DiagramEditor(config, ui, done, initialized, urlParams, olCB) {
+	this.olCB = olCB;
 	this.config = config != null ? config : this.config;
 	this.ui = ui != null ? ui : this.ui;
 	this.done = done != null ? done : this.done;
@@ -36,7 +37,7 @@ function DiagramEditor(config, ui, done, initialized, urlParams) {
 /**
  * Static method to edit the diagram in the given img or object.
  */
-DiagramEditor.editElement = function (elt, sCB, config, ui, done, urlParams) {
+DiagramEditor.editElement = function (elt, sCB, olCB, config, ui, done, urlParams) {
 	if (!elt.diagramEditorStarting) {
 		elt.diagramEditorStarting = true;
 
@@ -48,6 +49,7 @@ DiagramEditor.editElement = function (elt, sCB, config, ui, done, urlParams) {
 				delete elt.diagramEditorStarting;
 			},
 			urlParams,
+			olCB,
 		).editElement(elt, sCB);
 	}
 };
@@ -182,6 +184,7 @@ DiagramEditor.prototype.setWaiting = function (waiting) {
 			} else {
 				elt.style.cursor = this.previousCursor;
 				this.frame.style.pointerEvents = "";
+				this.frame.style.visibility = "visible";
 			}
 		}
 	}
@@ -233,7 +236,7 @@ DiagramEditor.prototype.getFrameStyle = function () {
 		"px;top:" +
 		document.body.scrollTop +
 		"px;" +
-		"z-index: 999;"
+		"z-index: 999; visibility:hidden;"
 	);
 };
 
@@ -354,6 +357,7 @@ DiagramEditor.prototype.initializeEditor = function () {
 	this.setWaiting(false);
 	this.setActive(true);
 	this.initialized();
+	this.olCB?.();
 };
 
 /**

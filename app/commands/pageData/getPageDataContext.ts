@@ -22,9 +22,15 @@ const getPageDataContext = ({
 		isLogged: ctx.user.isLogged,
 		sourceDatas: app.rp.getSourceDatas(ctx.cookie) ?? [],
 		isArticle,
+		workspace: {
+			workspaces: app.wm.workspaces(),
+			current: app.wm.maybeCurrent()?.path(),
+			defaultPath: app.wm.defaultPath().value,
+		},
 		conf: {
 			isRelease: app.conf.isRelease,
 			version: app.conf.version,
+			buildVersion: app.conf.buildVersion,
 			basePath: app.conf.basePath.value,
 			isReadOnly: app.conf.isReadOnly,
 			isServerApp: app.conf.isServerApp,

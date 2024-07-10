@@ -1,5 +1,4 @@
 import { CommandTree } from "@app/commands";
-import Library from "@core/Library/Library";
 import { Plugin } from "@core/Plugin";
 import BrowserPluginImporter from "@core/Plugin/PluginImporter/logic/BrowserPluginImporter";
 import NextPluginImporter from "@core/Plugin/PluginImporter/logic/NextPluginImporter";
@@ -10,6 +9,7 @@ import PluginsCache from "@core/Plugin/logic/PluginsCache";
 import PluginConfig from "@core/Plugin/model/PluginConfig";
 import Cache from "@ext/Cache";
 import HtmlParser from "@ext/html/HtmlParser";
+import type WorkspaceManager from "@ext/workspace/WorkspaceManager";
 
 export default class PluginProvider {
 	hasInit = false;
@@ -20,9 +20,14 @@ export default class PluginProvider {
 	private _pluginImporter: PluginImporter;
 	private _pluginsCache: PluginsCache;
 
-	constructor(lib: Library, htmlParser: HtmlParser, baseCache: Cache, pluginImporterType: PluginImporterType) {
+	constructor(
+		wm: WorkspaceManager,
+		htmlParser: HtmlParser,
+		baseCache: Cache,
+		pluginImporterType: PluginImporterType,
+	) {
 		this._pluginsCache = new PluginsCache(baseCache);
-		this._pApplicationProvider = new PApplicationProvider(lib, htmlParser, this._pluginsCache);
+		this._pApplicationProvider = new PApplicationProvider(wm, htmlParser, this._pluginsCache);
 		this._pluginImporter = this._createPluginImporter(pluginImporterType);
 	}
 

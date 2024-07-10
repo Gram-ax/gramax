@@ -40,3 +40,4 @@ _rename
 _getstat
 _rmfile
 _write_file
+_graph_head_upstream_files

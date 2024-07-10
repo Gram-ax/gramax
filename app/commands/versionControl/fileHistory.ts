@@ -14,10 +14,12 @@ const fileHistory: Command<{ catalogName: string; filePath: string }, ArticleHis
 	middlewares: [new AuthorizeMiddleware(), new ReloadConfirmMiddleware()],
 
 	async do({ catalogName, filePath }) {
-		const { lib, conf } = this._app;
-		const catalog = await lib.getCatalog(catalogName);
+		const { conf, wm } = this._app;
+		const workspace = wm.current();
+
+		const catalog = await workspace.getCatalog(catalogName);
 		if (!catalog) return;
-		const fp = lib.getFileProviderByCatalog(catalog);
+		const fp = workspace.getFileProvider();
 		const itemRef = fp.getItemRef(new Path(filePath));
 		const storage = catalog.repo.storage;
 		const storageData = {

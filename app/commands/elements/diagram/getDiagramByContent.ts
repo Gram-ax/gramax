@@ -1,6 +1,5 @@
 import { ResponseKind } from "@app/types/ResponseKind";
 import MimeTypes from "@core-ui/ApiServices/Types/MimeTypes";
-import { MainMiddleware } from "@core/Api/middleware/MainMiddleware";
 import HashItem from "@core/Hash/HashItems/HashItem";
 import HashItemContent from "@core/Hash/HashItems/HashItemContent";
 import DiagramType from "@core/components/Diagram/DiagramType";
@@ -14,8 +13,6 @@ const getDiagramByContent: Command<
 	path: "diagram/content",
 
 	kind: ResponseKind.blob,
-
-	middlewares: [new MainMiddleware()],
 
 	do({ type, content, count }) {
 		const { conf } = this._app;

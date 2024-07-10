@@ -1,4 +1,4 @@
-import { WordBlockChild } from "../../../../wordExport/WordTypes";
+import { WordBlockChild } from "../../../../wordExport/options/WordTypes";
 import { wordNestedListMaxLevel } from "./WordListLevel";
 import { WordListRenderer } from "./WordListRenderer";
 

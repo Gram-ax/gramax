@@ -8,9 +8,18 @@ const getHomePageData: Command<{ ctx: Context }, { data: HomePageData; context: 
 	path: "index",
 
 	async do({ ctx }) {
-		const { sitePresenterFactory } = this._app;
+		const { wm, sitePresenterFactory } = this._app;
+
+		if (!wm.hasWorkspace()) {
+			return {
+				data: { catalogLinks: {} },
+				context: getPageDataContext({ ctx, app: this._app, isArticle: false }),
+			};
+		}
+
+		const workspace = wm.current();
 		const dataProvider = sitePresenterFactory.fromContext(ctx);
-		const data = await dataProvider.getHomePageData();
+		const data = await dataProvider.getHomePageData(workspace.config());
 		const context = getPageDataContext({ ctx, app: this._app, isArticle: false });
 
 		return {

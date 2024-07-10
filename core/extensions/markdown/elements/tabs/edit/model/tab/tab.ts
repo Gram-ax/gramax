@@ -7,6 +7,8 @@ import { Editor, mergeAttributes, Node } from "@tiptap/core";
 import { ReactNodeViewRenderer } from "@tiptap/react";
 import { splitBlock } from "prosemirror-commands";
 import noneBackspace from "../../logic/noneBackspace";
+import { Plugin, PluginKey } from "@tiptap/pm/state";
+import { EditorView } from "prosemirror-view";
 
 declare module "@tiptap/core" {
 	interface Commands<ReturnType> {
@@ -34,9 +36,11 @@ const Tab = Node.create({
 			setTab:
 				(position, attrs) =>
 				({ commands }) => {
-					return commands.insertContentAt(position, 
-						{ type: this.name, attrs, content: [{ type: "paragraph", content: [] }] }
-					);
+					return commands.insertContentAt(position, {
+						type: this.name,
+						attrs,
+						content: [{ type: "paragraph", content: [] }],
+					});
 				},
 		};
 	},
@@ -44,17 +48,53 @@ const Tab = Node.create({
 		return {
 			Enter: ({ editor }: { editor: Editor }) => {
 				const { $from, $to } = editor.view.state.selection;
-				const { node } = getFocusNode(editor.state, (node) => node.type.name === this.type.name);
-				if (node?.type?.name === this.type.name && $from.pos === $to.pos) {
-					return splitBlock(editor.view.state, editor.view.dispatch);
+				const { node: curTab } = getFocusNode(editor.state, (node) => node.type.name === this.type.name);
+				const { node: parent, position } = getFocusNode(editor.state, (node) => node.type.name === "tabs");
+				const { node: curBlock } = getFocusNode(editor.state);
+
+				if (
+					curTab?.type?.name === this.type.name &&
+					$from.pos === $to.pos &&
+					curBlock.type.name === "paragraph"
+				) {
+					const lastChild = curTab.child(curTab.content.childCount - 1);
+					if (lastChild === curBlock && curBlock.textContent.length === 0) {
+						const insertPosition = position + parent.nodeSize - curBlock.nodeSize;
+						return editor
+							.chain()
+							.deleteCurrentNode()
+							.insertContentAt(insertPosition, { type: "paragraph", content: [] })
+							.focus()
+							.run();
+					} else return splitBlock(editor.view.state, editor.view.dispatch);
 				}
+
 				return false;
 			},
 
 			Backspace: noneBackspace(this.type.name),
+			Delete: noneBackspace(this.type.name),
 			"Mod-Backspace": noneBackspace(this.type.name),
 			"Shift-Backspace": noneBackspace(this.type.name),
 		};
+	},
+	addProseMirrorPlugins() {
+		return [
+			new Plugin({
+				key: new PluginKey("tabPreventBackspace"),
+				props: {
+					handleKeyDown(view: EditorView, event: KeyboardEvent) {
+						if (event.key !== "Backspace") return;
+						const { state } = view;
+						const { $from, empty } = state.selection;
+						if ($from.parentOffset !== 0 || !empty) return;
+						const indexBefore = $from.index($from.depth - 1) - 1;
+						const nodeBefore = indexBefore >= 0 ? $from.node($from.depth - 1).child(indexBefore) : null;
+						if (nodeBefore && nodeBefore.type.name === "tabs") return true;
+					},
+				},
+			}),
+		];
 	},
 });
 

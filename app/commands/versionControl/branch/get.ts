@@ -11,8 +11,8 @@ const get: Command<{ catalogName: string; cached: boolean; onlyName: boolean }, 
 	middlewares: [new AuthorizeMiddleware()],
 
 	async do({ catalogName, cached, onlyName }) {
-		const { lib } = this._app;
-		const catalog = await lib.getCatalog(catalogName);
+		const workspace = this._app.wm.current();
+		const catalog = await workspace.getCatalog(catalogName);
 		const vc = catalog?.repo.gvc;
 		if (!vc) return;
 		return onlyName

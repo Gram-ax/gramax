@@ -2,45 +2,110 @@ import styled from "@emotion/styled";
 import useLocalize from "../../extensions/localization/useLocalize";
 import Button, { TextSize } from "../Atoms/Button/Button";
 import { ButtonStyle } from "../Atoms/Button/ButtonStyle";
+import { classNames } from "@components/libs/classNames";
+import { useEffect, useState } from "react";
 
-const EditorButtons = styled(
-	({
+interface EditorButtonsProps {
+	confirmButtonText: string;
+	onCancel: () => void;
+	onConfirm: () => void;
+	confirmDisabled?: boolean;
+	style?: ButtonStyle;
+	className?: string;
+}
+
+const EditorButtons = (props: EditorButtonsProps) => {
+	const {
 		confirmButtonText,
 		onCancel,
 		onConfirm,
+		confirmDisabled = true,
 		style = ButtonStyle.orange,
 		className,
-	}: {
-		confirmButtonText: string;
-		onCancel: () => void;
-		onConfirm: () => void;
-		style?: ButtonStyle;
-		className?: string;
-	}) => {
-		return (
-			<div className={className}>
-				<div className="buttons">
-					<Button buttonStyle={ButtonStyle.underline} textSize={TextSize.S} onClick={onCancel}>
-						<span>{useLocalize("cancel")}</span>
-					</Button>
+	} = props;
+	const [isEditing, setEditing] = useState<boolean>();
 
-					<Button buttonStyle={style} textSize={TextSize.S} onClick={onConfirm}>
-						<span>{confirmButtonText}</span>
-					</Button>
-				</div>
+	useEffect(() => {
+		if (isEditing || confirmDisabled) return;
+		setEditing(true);
+	}, [confirmDisabled]);
+
+	return (
+		<div className={className}>
+			<div
+				className={classNames("buttons", {
+					appear: !confirmDisabled,
+					disappear: isEditing && confirmDisabled,
+				})}
+			>
+				{!confirmDisabled && (
+					<>
+						<Button
+							disabled={confirmDisabled}
+							buttonStyle={ButtonStyle.underline}
+							textSize={TextSize.S}
+							onClick={onCancel}
+							isEmUnits={true}
+						>
+							<span>{useLocalize("cancel")}</span>
+						</Button>
+
+						<Button
+							disabled={confirmDisabled}
+							buttonStyle={style}
+							textSize={TextSize.S}
+							onClick={onConfirm}
+							isEmUnits={true}
+						>
+							<span>{confirmButtonText}</span>
+						</Button>
+					</>
+				)}
 			</div>
-		);
-	},
-)`
+		</div>
+	);
+};
+
+export default styled(EditorButtons)`
 	.buttons {
+		font-size: 1em;
 		gap: 1.2rem;
 		display: flex;
-		margin-top: 1rem;
 		align-items: center;
 		flex-direction: row;
 		-webkit-box-pack: center;
 		justify-content: flex-end;
+		transition: all 0.15s forwards;
+		opacity: 0;
+		height: 0;
+	}
+
+	.appear {
+		animation: slideDown 0.15s forwards;
+	}
+
+	.disappear {
+		animation: slideUp 0.15s forwards;
+	}
+
+	@keyframes slideDown {
+		from {
+			opacity: 0;
+		}
+		to {
+			opacity: 1;
+			height: 2.6em;
+		}
+	}
+
+	@keyframes slideUp {
+		from {
+			opacity: 1;
+			height: 2.6em;
+		}
+		to {
+			opacity: 0;
+			height: 0;
+		}
 	}
 `;
-
-export default EditorButtons;

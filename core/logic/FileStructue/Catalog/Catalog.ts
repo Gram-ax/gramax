@@ -258,7 +258,8 @@ export class Catalog extends CatalogEntry {
 		this._rootPath = catalog._rootPath;
 		this._basePath = catalog._basePath;
 		this._rootCategory = catalog._rootCategory;
-		this.setRepo(await rp.getRepositoryByPath(this._basePath, this._fp), rp);
+		await rp.updateRepository(this._repo, this._fp, this._basePath);
+		this._repo?.storage?.setSyncSearchInPath(this._props.docroot ?? "");
 	}
 
 	getNeededPermission(): IPermission {

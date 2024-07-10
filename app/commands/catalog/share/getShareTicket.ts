@@ -15,8 +15,10 @@ const getShareTicket: Command<{ ctx: Context; catalogName: string; path: Path; d
 		middlewares: [new AuthorizeMiddleware(), new ReloadConfirmMiddleware()],
 
 		async do({ ctx, catalogName, path, group, date }) {
-			const { lib, ticketManager } = this._app;
-			const catalog = await lib.getCatalog(catalogName);
+			const { wm, ticketManager } = this._app;
+			const workspace = wm.current();
+
+			const catalog = await workspace.getCatalog(catalogName);
 			const article = catalog.findItemByItemPath(path);
 			const catalogPermission = catalog?.getNeededPermission();
 

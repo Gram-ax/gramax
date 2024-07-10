@@ -1,9 +1,13 @@
 import { ResponseKind } from "@app/types/ResponseKind";
 import { AuthorizeMiddleware } from "@core/Api/middleware/AuthorizeMiddleware";
 import { SilentMiddleware } from "@core/Api/middleware/SilentMiddleware";
+import type Context from "@core/Context/Context";
 import { Command } from "../../types/Command";
 
-const getSyncCount: Command<{ catalogName: string }, { pull: number; push: number }> = Command.create({
+const getSyncCount: Command<
+	{ ctx: Context; catalogName: string },
+	{ pull?: number; push?: number; hasChanges?: boolean; errorMessage?: string }
+> = Command.create({
 	path: "storage/getSyncCount",
 
 	kind: ResponseKind.json,
@@ -11,15 +15,15 @@ const getSyncCount: Command<{ catalogName: string }, { pull: number; push: numbe
 	middlewares: [new AuthorizeMiddleware(), new SilentMiddleware()],
 
 	async do({ catalogName }) {
-		const { lib } = this._app;
-		const catalog = await lib.getCatalog(catalogName);
+		const workspace = this._app.wm.current();
+		const catalog = await workspace.getCatalog(catalogName);
 		const storage = catalog?.repo.storage;
 		if (!storage) return;
-		return storage.getSyncCount();
+		return await storage.getSyncCount();
 	},
 
-	params(_, q) {
-		return { catalogName: q.catalogName };
+	params(ctx, q) {
+		return { ctx, catalogName: q.catalogName };
 	},
 });
 

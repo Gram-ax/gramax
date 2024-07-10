@@ -1,24 +1,29 @@
+import getFirstPatentByName from "@core-ui/utils/getFirstPatentByName";
+import eventEmitter from "@core/utils/eventEmitter";
 import { getMat } from "@ext/markdown/core/edit/components/ArticleMat";
-import { Editor, JSONContent } from "@tiptap/core";
+import getFocusMarkFromSelection from "@ext/markdown/elementsUtils/getFocusMarkFromSelection";
+import { Editor, JSONContent, MarkRange } from "@tiptap/core";
 import { Mark } from "@tiptap/pm/model";
-import { EditorState } from "prosemirror-state";
 import { EditorView } from "prosemirror-view";
 import PageDataContext from "../../../../../../logic/Context/PageDataContext";
 import ApiUrlCreator from "../../../../../../ui-logic/ApiServices/ApiUrlCreator";
 import FetchService from "../../../../../../ui-logic/ApiServices/FetchService";
 import { CommentBlock } from "../../../../../../ui-logic/CommentBlock";
 import PageDataContextService from "../../../../../../ui-logic/ContextServices/PageDataContext";
-import getFirstPatentByName from "../../../../../../ui-logic/utils/getFirstPatentByName";
 import Theme from "../../../../../Theme/Theme";
 import ThemeService from "../../../../../Theme/components/ThemeService";
-import getFocusMark from "../../../../elementsUtils/getFocusMark";
-import getMarkPosition from "../../../../elementsUtils/getMarkPosition";
 import BaseMark from "../../../../elementsUtils/prosemirrorPlugins/BaseMark";
 import Comment from "../components/Comment";
+import getMarkByPos from "@ext/markdown/elementsUtils/getMarkByPos";
+import getMarkPosition from "@ext/markdown/elementsUtils/getMarkPosition";
 
 class CommentFocusTooltip extends BaseMark {
 	private _oldMark: Mark;
 	private _oldMarkPosition: { from: number; to: number; mark: Mark };
+	private _onCommentClick: any;
+	private _onCreateCommentHandler: any;
+	private _clickHandlerEvent: any;
+	private _keydownHandlerEvent: any;
 	constructor(
 		view: EditorView,
 		editor: Editor,
@@ -27,55 +32,32 @@ class CommentFocusTooltip extends BaseMark {
 		private _pageDataContext: PageDataContext,
 	) {
 		super(view, editor);
-		document.addEventListener("keydown", this._keydownHandler.bind(this));
-		this.update(view);
-	}
+		this._onCommentClick = this._onClickComment.bind(this);
+		this._clickHandlerEvent = this._clickHandler.bind(this);
+		this._keydownHandlerEvent = this._keydownHandler.bind(this);
+		this._onCreateCommentHandler = this._onCreateComment.bind(this);
 
-	public destroy() {
-		document.removeEventListener("keydown", this._keydownHandler.bind(this));
+		document.addEventListener("keydown", this._keydownHandlerEvent);
+		document.addEventListener("mouseup", this._clickHandlerEvent);
+
+		eventEmitter.on("addComment", this._onCreateCommentHandler);
+		eventEmitter.on("onClickComment", this._onCommentClick);
+	}
+	update() {}
+
+	destroy() {
+		document.removeEventListener("keydown", this._keydownHandlerEvent);
+		document.removeEventListener("mouseup", this._clickHandlerEvent);
+		eventEmitter.off("addComment", this._onCreateCommentHandler);
+		eventEmitter.off("onClickComment", this._onCommentClick);
 		this._tooltip.remove();
 	}
 
-	update(view: EditorView, lastState?: EditorState) {
-		const state = this._getState(view, lastState);
-		if (!state) return;
-
-		const { mark, position } = getFocusMark(state, "comment");
-
-		const { node: text } = this._view.domAtPos(position);
-		const markPosition = mark ? getMarkPosition(state, state.selection.$anchor.pos, mark.type) : null;
-
-		if (!text || !markPosition) return this._removeCommentComponent();
-
-		const element = getFirstPatentByName(text as HTMLElement, "comment-react-component");
-		if (!element || element.tagName == "BODY") return;
-		if (this._componentIsSet) {
-			if (this._oldMark !== mark) this._removeCommentComponent();
-			return;
-		}
-		this._oldMark = mark;
-		this._oldMarkPosition = markPosition;
-		this._setTooltipPosition(element);
-		this._setComponent(
-			<ThemeService.Provide value={this._theme}>
-				<PageDataContextService.Provider value={this._pageDataContext}>
-					<Comment
-						mark={mark}
-						element={element}
-						onDelete={() => this._delete(markPosition)}
-						onUpdate={(c) => this._updateComment(markPosition, c)}
-						onCreateComment={(c) => this._createComment(markPosition, c)}
-					/>
-				</PageDataContextService.Provider>
-			</ThemeService.Provide>,
-		);
-	}
-
 	protected _setTooltipPosition = (element: HTMLElement) => {
-		const tooltipWidth = 500;
+		const tooltipWidth = +element.style.width;
 		const tooltipHeight = document.documentElement.clientHeight / 2;
 		const rect = element.getBoundingClientRect();
-		const domReact = this._view.dom.getBoundingClientRect();
+		const domReact = this._view.dom.parentElement.getBoundingClientRect();
 		const mat = getMat();
 		const matHeight = (mat?.getBoundingClientRect().height ?? 0) + 12;
 
@@ -96,10 +78,59 @@ class CommentFocusTooltip extends BaseMark {
 			this._tooltip.style.right = domReact.width - (left + rect.width) + "px";
 		} else this._tooltip.style.left = left + "px";
 
+		this._tooltip.style.fontSize = "14px";
 		this._tooltip.style.zIndex = "100";
 	};
 
+	private _commentClick = (element: HTMLElement, mark: Mark, markPosition: MarkRange) => {
+		this._oldMark = mark;
+		this._oldMarkPosition = markPosition;
+		this._setTooltipPosition(element);
+		this._setComponent(
+			<ThemeService.Provide value={this._theme}>
+				<PageDataContextService.Provider value={this._pageDataContext}>
+					<Comment
+						mark={mark}
+						element={element}
+						onDelete={() => this._delete(this._oldMarkPosition)}
+						onUpdate={(c) => this._updateComment(markPosition, c)}
+						onConfirm={(c) => this._createComment(markPosition, c)}
+					/>
+				</PageDataContextService.Provider>
+			</ThemeService.Provide>,
+		);
+	};
+
+	private _onClickComment({ dom }: { dom: HTMLElement }) {
+		const state = this._getState(this._view);
+		if (!state) return;
+
+		const pos = this._view.posAtDOM(dom, 0);
+		if (pos < 0) return;
+		const mark = getMarkByPos(state, pos, "comment");
+
+		if (this._componentIsSet) {
+			if (this._oldMark !== mark) this._removeCommentComponent();
+			return;
+		}
+
+		if (mark) this._commentClick(dom, mark, getMarkPosition(state, pos, mark.type));
+	}
+
+	private _onCreateComment(props: { pos: number; view: EditorView }) {
+		const state = this._getState(props.view);
+		if (!state) return;
+
+		const { mark, position } = getFocusMarkFromSelection(state, "comment");
+		if (!mark) return;
+
+		const { node: text } = props.view.domAtPos(position, 1);
+		const element = getFirstPatentByName(text as HTMLElement, "comment-react-component");
+		element.click();
+	}
+
 	private _delete({ from, to, mark }: { from: number; to: number; mark: Mark }) {
+		this._removeComponent();
 		const transaction = this._editor.state.tr;
 		transaction.removeMark(from, to, mark);
 		this._editor.view.dispatch(transaction);
@@ -122,13 +153,13 @@ class CommentFocusTooltip extends BaseMark {
 			},
 			answers: [],
 		} as CommentBlock);
-		this._removeCommentComponent();
-		this._editor.commands.focus(this._lastPosition + 1);
+		this._removeComponent();
+		eventEmitter.emit("addComment", { pos: markPosition.to - 1, view: this._view });
 	}
 
 	private _removeCommentComponent() {
-		this._deleteIfNull();
 		this._removeComponent();
+		this._deleteIfNull();
 	}
 
 	private _deleteIfNull() {
@@ -149,10 +180,17 @@ class CommentFocusTooltip extends BaseMark {
 	}
 
 	private _keydownHandler(e: KeyboardEvent) {
-		if (e.key == "Escape" && this._componentIsSet) {
-			this._deleteIfNull();
-			this._editor.commands.focus(this._lastPosition + 1);
-		}
+		if (e.key == "Escape" && this._componentIsSet) this._removeCommentComponent();
+	}
+
+	private _clickHandler(e: MouseEvent) {
+		const element = e.target as HTMLElement;
+		if (
+			this._componentIsSet &&
+			!this._tooltip.contains(element) &&
+			!element.classList.contains("article-page-wrapper")
+		)
+			this._removeCommentComponent();
 	}
 }
 

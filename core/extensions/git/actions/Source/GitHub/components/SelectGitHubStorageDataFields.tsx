@@ -1,29 +1,30 @@
 import ListLayout from "@components/List/ListLayout";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import GitHubSourceData from "@ext/git/actions/Source/GitHub/logic/GitHubSourceData";
+import GithubStorageData from "@ext/git/actions/Source/GitHub/model/GithubStorageData";
+import GitSourceApi from "@ext/git/actions/Source/GitSourceApi";
+import User2 from "@ext/security/components/User/User2";
 import { useEffect, useState } from "react";
 import parseStorageUrl from "../../../../../../logic/utils/parseStorageUrl";
 import createChildWindow from "../../../../../../ui-logic/ChildWindow/createChildWindow";
-import GitStorageData from "../../../../core/model/GitStorageData";
 import CloneFields from "../../components/CloneFields";
 import { makeSourceApi } from "../../makeSourceApi";
 import GithubSourceAPI from "../logic/GithubSourceAPI";
-import GitHubUser from "./GitHubUser";
 
-const SelectGitHubStorageDataFields = ({
-	source,
-	forClone,
-	onChange,
-}: {
+type SelectProps = {
 	source: GitHubSourceData;
 	forClone?: boolean;
-	onChange?: (data: GitStorageData) => void;
-}) => {
-	const authServiceUrl = PageDataContextService.value.conf.authServiceUrl;
-	const [group, setGroup] = useState<string>(null);
+	onChange?: (data: GithubStorageData) => void;
+};
+
+const SelectGitHubStorageDataFields = ({ source, forClone, onChange }: SelectProps) => {
+	const { authServiceUrl, isRelease } = PageDataContextService.value.conf;
 	const [installation, setInstallation] = useState(null);
 	const [installations, setInstallations] = useState(null);
 	const [isLoadingData, setIsLoadingData] = useState(false);
+
+	const type = installation?.type;
+	const group = installation?.htmlUrl ? parseStorageUrl(installation.htmlUrl).name : null;
 
 	const loadInstallations = async () => {
 		if (!source?.token) return;
@@ -38,14 +39,9 @@ const SelectGitHubStorageDataFields = ({
 	}, [source]);
 
 	useEffect(() => {
-		if (!installation?.htmlUrl) return setGroup(null);
-		setGroup(parseStorageUrl(installation.htmlUrl).name);
-	}, [installation]);
-
-	useEffect(() => {
-		if (!group) return;
-		onChange({ name: null, group, source });
-	}, [group]);
+		if (!group || !type) return;
+		onChange({ name: null, group, source, type });
+	}, [group, type]);
 
 	return (
 		<>
@@ -63,7 +59,9 @@ const SelectGitHubStorageDataFields = ({
 								labelField: "",
 								onClick: () => {
 									void createChildWindow(
-										"https://github.com/apps/gram-ax/installations/select_target",
+										isRelease
+											? "https://github.com/apps/gram-ax/installations/select_target"
+											: "https://github.com/apps/gramax-dev/installations/select_target",
 										700,
 										550,
 										"https://github.com/login/device/success",
@@ -78,7 +76,7 @@ const SelectGitHubStorageDataFields = ({
 						items={installations?.map((installation) => ({
 							element: (
 								<div style={{ width: "100%", padding: "6px 12px" }}>
-									<GitHubUser {...installation} />
+									<User2 {...installation} />
 								</div>
 							),
 							labelField: installation.name,
@@ -96,7 +94,7 @@ const SelectGitHubStorageDataFields = ({
 					source={source}
 					getLoadProjects={async (source) => {
 						if (!source) return;
-						const project = await makeSourceApi(source, authServiceUrl).getAllProjects();
+						const project = await (makeSourceApi(source, authServiceUrl) as GitSourceApi).getAllProjects();
 						return project.filter((p) => p.split("/")[0] == group);
 					}}
 				/>

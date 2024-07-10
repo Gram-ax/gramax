@@ -1,6 +1,12 @@
 import { useEffect } from "react";
 
-export const useOutsideClick = (elements, callback, isActive = true) => {
+type OutsideClick = <T extends HTMLElement>(
+	elements: T[],
+	callback: (e: MouseEvent) => void,
+	isActive?: boolean,
+) => void;
+
+export const useOutsideClick: OutsideClick = (elements, callback, isActive = true) => {
 	useEffect(() => {
 		if (!isActive) return;
 
@@ -9,7 +15,7 @@ export const useOutsideClick = (elements, callback, isActive = true) => {
 				return element && !element.contains(event.target);
 			});
 
-			if (isOutside) callback();
+			if (isOutside) callback(event);
 		};
 
 		document.addEventListener("mousedown", handleClickOutside);

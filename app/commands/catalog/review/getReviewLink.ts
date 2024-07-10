@@ -18,8 +18,10 @@ const getReviewLink: Command<
 	middlewares: [new AuthorizeMiddleware(), new ReloadConfirmMiddleware()],
 
 	async do({ ctx, catalogName, userName, userEmail, filePath }) {
-		const { lib, rp, conf } = this._app;
-		const catalog = await lib.getCatalog(catalogName);
+		const { rp, wm, conf } = this._app;
+		const workspace = wm.current();
+
+		const catalog = await workspace.getCatalog(catalogName);
 		const storage = catalog.repo.storage;
 		const source = rp.getSourceData(ctx.cookie, await storage.getSourceName());
 		const baseStorageData = await storage.getStorageData(source);

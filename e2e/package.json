@@ -8,9 +8,9 @@
 		"dev": "npm --prefix ../apps/browser run dev"
 	},
 	"dependencies": {
-		"@cucumber/cucumber": "^9.5.1",
-		"@playwright/test": "^1.28.1",
-		"playwright": "=1.41.2"
+		"@cucumber/cucumber": "^10.8.0",
+		"@playwright/test": "^1.44.1",
+		"playwright": "^1.44.1"
 	},
 	"devDependencies": {
 		"@babel/preset-env": "^7.19.0",

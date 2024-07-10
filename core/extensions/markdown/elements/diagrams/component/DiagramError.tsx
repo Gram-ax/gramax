@@ -1,6 +1,5 @@
 import styled from "@emotion/styled";
 import useLocalize from "@ext/localization/useLocalize";
-import Cut from "@ext/markdown/elements/cut/render/component/Cut";
 import Fence from "@ext/markdown/elements/fence/render/component/Fence";
 import Note, { NoteType } from "@ext/markdown/elements/note/render/component/Note";
 
@@ -10,17 +9,19 @@ const DiagramError = styled(({ error, className }: { error: Error; className?: s
 			<Note type={NoteType.danger} title={useLocalize("diagramRenderFailed")}>
 				<>
 					<div className="error-explanation">{useLocalize(error.message as any)}</div>
-					<Cut text={useLocalize("techDetails")} expanded={false}>
+					<Note title={useLocalize("techDetails")} collapsed={true} type={NoteType.danger}>
 						<Fence value={error.stack} />
-					</Cut>
+					</Note>
 				</>
 			</Note>
 		</div>
 	);
 })`
-	.admonition-cut {
+	.admonition-danger .admonition-danger {
+		background-color: transparent;
 		border-left: none;
-		padding-left: 0;
+		margin: 0;
+		padding: 0;
 	}
 
 	.error-explanation {

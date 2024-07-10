@@ -3,8 +3,6 @@ import InfoModalForm from "@ext/errorHandlers/client/components/ErrorForm";
 import type DefaultError from "@ext/errorHandlers/logic/DefaultError";
 import { HTMLAttributes } from "react";
 
-const invoke = (window as any).__TAURI__?.core?.invoke;
-
 const AppError = ({ error, ...props }: { error: DefaultError } & HTMLAttributes<HTMLDivElement>) => {
 	const isWasmError = error.props?.errorCode == "wasmInitTimeout";
 
@@ -14,9 +12,8 @@ const AppError = ({ error, ...props }: { error: DefaultError } & HTMLAttributes<
 				<InfoModalForm
 					title={isWasmError ? "Этот браузер не поддерживается" : "Не удалось загрузить приложение"}
 					icon={{ code: "circle-x", color: "var(--color-danger)" }}
-					closeButton={invoke ? { text: "Настройки" } : null}
-					onCancelClick={invoke ? () => invoke("show_settings") : null}
-					noButtons={!invoke}
+					onCancelClick={null}
+					noButtons={true}
 				>
 					{isWasmError ? (
 						<div>

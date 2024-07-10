@@ -73,10 +73,14 @@ const ArticleLinkTooltip = (props: LinkTooltipProps) => {
 	}, [isVisible]);
 
 	const fetchData = useCallback(async () => {
-		const url = apiUrlCreator.getArticleContentByRelativePath(getMark()?.attrs?.resourcePath || resourcePath);
+		const combinedResourcePath = getMark()?.attrs?.resourcePath || resourcePath;
+		if (!combinedResourcePath) return;
+
+		const url = apiUrlCreator.getArticleContentByRelativePath(combinedResourcePath);
+		if (!url) return;
 
 		const res = await FetchService.fetch<dataType>(url);
-		if (!res.ok) return;
+		if (!res || !res.ok) return;
 
 		const data = await res.json();
 		setData(data);

@@ -16,14 +16,14 @@ export const callGitWasm = async <O>(command: string, args?): Promise<O> => {
 		args,
 		callbackId,
 	});
-	return (await promise) as O;
+	const data = (await promise) as any;
+	if (!data.ok) throw new LibGit2Error(data.res.message, data.res.class, data.res.code);
+	return data.res;
 };
 
 export const onGitWasmCallback = (ev) => {
 	if (!(ev.data.type == "git-call" && ev.data.callbackId)) return;
 	const promise = callbacks[ev.data.callbackId];
 	delete callbacks[ev.data.callbackId];
-	const res = ev.data.res;
-	if (!ev.data.ok) return promise.reject(new LibGit2Error(res.message, res.class, res.code));
-	promise.resolve(ev.data.res);
+	promise.resolve(ev.data);
 };

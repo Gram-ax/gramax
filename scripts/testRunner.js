@@ -16,7 +16,7 @@ if (useServer) {
 	execSync("npx git-http-mock-server start", { cwd: FIXTURES_PATH });
 }
 
-let jestArgs = ["--reporters=default", "--reporters=jest-junit", "--ci", "--runInBand", "--forceExit"];
+let jestArgs = ["--reporters=default", "--reporters=jest-junit", "--ci", "--runInBand", "--forceExit", "-u"];
 
 switch (arg) {
 	case "unit":

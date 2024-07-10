@@ -14,7 +14,11 @@ const callInternal = async <O>(command: string, args?: any): Promise<O> => {
 		const str_res = ptr2str(r_ptr);
 		if (!str_res.ok) throw str_res.buf;
 
-		return (JSON_OPEN_PAREN.includes(str_res.buf?.[0]) ? JSON.parse(str_res.buf) : str_res?.buf) ?? {};
+		return (
+			(JSON_OPEN_PAREN.includes(str_res.buf?.[0]) || str_res.buf == "null"
+				? JSON.parse(str_res.buf)
+				: str_res?.buf) ?? {}
+		);
 	} catch (err) {
 		if ((args as CredsArgs)?.creds?.accessToken) (args as CredsArgs).creds.accessToken = "<redacted>";
 		console.error(`git-command ${command} ${JSON.stringify(args, null, 4)} returned an error`);

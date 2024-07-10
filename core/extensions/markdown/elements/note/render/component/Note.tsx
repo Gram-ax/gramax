@@ -1,8 +1,9 @@
 import Icon from "@components/Atoms/Icon";
-import { ReactElement } from "react";
+import { classNames } from "@components/libs/classNames";
+import { ReactElement, useState, MouseEvent } from "react";
 
 export enum NoteType {
-	none = "none",
+	quote = "quote",
 	lab = "lab",
 	tip = "tip",
 	note = "note",
@@ -12,7 +13,7 @@ export enum NoteType {
 }
 
 export const noteIcons: { [note in NoteType]: string } = {
-	none: "alert-circle",
+	quote: "quote",
 	lab: "test-tube-diagonal",
 	tip: "lightbulb",
 	hotfixes: "wrench",
@@ -21,27 +22,45 @@ export const noteIcons: { [note in NoteType]: string } = {
 	danger: "triangle-alert",
 };
 
-const Note = ({
-	type,
-	title,
-	children,
-}: {
+interface NoteProps {
 	type?: NoteType;
 	title?: string;
+	collapsed?: string | boolean;
 	children?: ReactElement;
-}): ReactElement => {
-	type = type ? type : NoteType.note;
+}
+
+const Note = (props: NoteProps): ReactElement => {
+	const { type = NoteType.note, title, children, collapsed } = props;
+	const [expanded, dispatchExpanded] = useState(!collapsed);
+
+	const toggleExpanded = (e: MouseEvent<HTMLElement>) => {
+		e.preventDefault();
+		dispatchExpanded((p) => !p);
+	};
+
+	const clickable = !expanded || collapsed;
+
 	return (
 		<div className={`admonition admonition-${type} admonition-${title ? "column" : "row"}`}>
-			<div className="admonition-heading">
+			<div
+				className={classNames("admonition-heading", { expanded: !expanded })}
+				onClick={clickable ? toggleExpanded : null}
+			>
 				<div className="admonition-icon">
-					<Icon code={noteIcons[type]} strokeWidth="2"/>
+					{clickable ? (
+						<Icon
+							style={{ cursor: "pointer", userSelect: "none" }}
+							code={expanded ? "chevron-down" : "chevron-right"}
+						/>
+					) : (
+						<Icon code={noteIcons[type]} strokeWidth="2" />
+					)}
 				</div>
-				<h5>{title}</h5>
+				<div contentEditable={"false"} suppressContentEditableWarning={true} className={"titleWrapper"}>
+					<div className={classNames("title", { clickable })}>{title}</div>
+				</div>
 			</div>
-			<div className="admonition-content">
-				<div className="paragraph">{children}</div>
-			</div>
+			<div className="admonition-content">{expanded && <div className="paragraph">{children}</div>}</div>
 		</div>
 	);
 };

@@ -35,7 +35,7 @@ export default class E2EWorld extends World {
 	}
 
 	async fp() {
-		const handle = await this._page.inner().evaluateHandle(() => window.app.lib.getFileProvider());
+		const handle = await this._page.inner().evaluateHandle(() => window.app.wm.current().getFileProvider());
 		return new FPContext(handle);
 	}
 

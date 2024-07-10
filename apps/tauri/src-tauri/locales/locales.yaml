@@ -9,10 +9,6 @@ menu:
     ru: 'Закрыть окно'
     en: 'Close Window'
 
-  settings:
-    ru: 'Настройки...'
-    en: 'Settings...'
-
   quit:
     ru: 'Закрыть'
     en: 'Quit'
@@ -71,15 +67,21 @@ updates:
     en: 'Failed to update the application'
 
 file-download:
-  title:
-    ru: 'Сохранение файла'
-    en: 'Saving file'
-  body-ok:
-    ru: 'Файл сохранён в загрузках'
-    en: 'File saved in downloads'
-  body-err:
+  fail:
     ru: 'Не удалось сохранить файл'
     en: 'Failed to save file'
+
+  fail-desc:
+    ru: 'Не удалось сохранить файл %{name}'
+    en: 'Failed to save file %{name}'
+
+  no-permissions:
+    ru: |
+      У приложения нет доступа к папке %{path}.
+      Выберите другую.
+    en: |
+      The application does not have access to the %{path} directory.
+      Choose another one.
 
 etc:
   ok:

@@ -5,4 +5,5 @@ declare module "*.svg" {
 
 declare function confirm(message?: string): Promise<boolean>;
 declare function refreshPage(): Promise<void>;
+declare function clearData(): void;
 declare function forceTrollCaller(): Promise<void>;

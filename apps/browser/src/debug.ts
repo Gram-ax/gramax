@@ -4,15 +4,17 @@ import { env } from "@app/resolveModule/env";
 import MimeTypes from "@core-ui/ApiServices/Types/MimeTypes";
 import { downloadFile } from "@core-ui/downloadResource";
 import Path from "@core/FileProvider/Path/Path";
+import * as git from "@ext/git/core/GitCommands/LibGit2IntermediateCommands";
 import ConsoleLogger from "@ext/loggers/ConsoleLogger";
 import { LogLevel } from "@ext/loggers/Logger";
 import PersistentLogger from "@ext/loggers/PersistentLogger";
-import * as git from "@ext/git/core/GitCommands/LibGit2IntermediateCommands";
+import { Buffer } from "buffer";
+import type { FsPromisesApi } from "memfs/lib/node/types/FsPromisesApi";
 
 export const clear = async () => {
 	console.log("Delete all");
 	const app = await getApp();
-	const fp = app.lib.getFileProvider();
+	const fp = app.wm.current().getFileProvider();
 
 	const items = await fp.getItems(Path.empty);
 	await Promise.all(items.map((item) => fp.delete(item.path)));
@@ -21,7 +23,7 @@ export const clear = async () => {
 
 export const items = async () => {
 	const app = await getApp();
-	const fp = app.lib.getFileProvider();
+	const fp = app.wm.current().getFileProvider();
 
 	let str = "Files of \n";
 	const showFiles = async (path: Path, deep: number) => {
@@ -44,13 +46,25 @@ export const items = async () => {
 
 export const download = async (name: string) => {
 	const JSZip = await import("jszip");
+	const FsaNodeFs = (await import("memfs/lib/fsa-to-node")).FsaNodeFs;
 	const zip = new JSZip.default();
+	const memFp: FsPromisesApi = new FsaNodeFs((await window.navigator.storage.getDirectory()) as any).promises;
+
 	const app = await getApp();
-	const fp = app.lib.getFileProvider();
+	const fp = app.wm.current().getFileProvider();
 	const addFiles = async (path: Path) => {
 		const dir = await fp.getItems(path);
 		for (const file of dir) {
-			file.isFile() ? zip.file(file.path.value, await fp.readAsBinary(file.path)) : await addFiles(file.path);
+			if (file.isFile()) {
+				let fileBuffer: Buffer;
+				try {
+					fileBuffer = (await memFp.readFile(`docs/${file.path.value}`)) as Buffer;
+				} catch (e) {
+					console.error(e);
+					fileBuffer = await fp.readAsBinary(file.path);
+				}
+				zip.file(file.path.value, fileBuffer);
+			} else await addFiles(file.path);
 		}
 	};
 	await addFiles(intoPath(name));
@@ -63,7 +77,7 @@ export const app = async () => await getApp();
 export const fs = {
 	read: async (path: string) => {
 		const app = await getApp();
-		const fp = app.lib.getFileProvider();
+		const fp = app.wm.current().getFileProvider();
 		if ((await fp.getStat(new Path(path))).isDirectory()) {
 			const items = await fp.getItems(new Path(path));
 			items.forEach((i) => console.log(i.path.value));
@@ -74,14 +88,14 @@ export const fs = {
 	},
 	delete: async (path: string) => {
 		const app = await getApp();
-		const fp = app.lib.getFileProvider();
+		const fp = app.wm.current().getFileProvider();
 		await fp.delete(new Path(path));
 	},
 };
 
 export const status = async (repoPath: string) => {
-  return await git.status({ repoPath })
-} 
+	return await git.status({ repoPath });
+};
 
 export const commands = async () => getCommands(await app());
 

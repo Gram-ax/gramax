@@ -5,8 +5,9 @@ const note = {
 	content: "block+",
 	defining: true,
 	attrs: {
-		type: { default: NoteType.note },
 		title: { default: null },
+		type: { default: NoteType.note },
+		collapsed: { default: false },
 	},
 };
 

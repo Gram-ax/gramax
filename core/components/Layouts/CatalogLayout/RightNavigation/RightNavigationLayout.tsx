@@ -13,14 +13,17 @@ const RightNavigationLayout = styled(({ itemLinks, className }: { itemLinks: Ite
 		</div>
 	);
 })`
-	height: 100vh;
-	overflow: auto;
+	height: 100%;
 	width: var(--narrow-nav-width);
 	background: var(--color-contextmenu-bg);
 	color: var(--color-primary-general);
 
 	.right-nav {
-		padding: 20px;
+		display: flex;
+		flex-direction: column;
+		padding: 20px 12px 20px 20px;
+		overflow-y: scroll;
+		height: 100%;
 		${() => (useMediaQuery(cssMedia.narrow) ? "padding-top: 84px;" : "")}
 	}
 

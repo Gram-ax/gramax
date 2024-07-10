@@ -13,8 +13,8 @@ const setPermission: Command<{ catalogName: string; path?: Path; permissions: Pe
 	middlewares: [new AuthorizeMiddleware(), new ReloadConfirmMiddleware()],
 
 	async do({ catalogName, path, permissions }) {
-		const { lib } = this._app;
-		const catalog = await lib.getCatalog(catalogName);
+		const workspace = this._app.wm.current();
+		const catalog = await workspace.getCatalog(catalogName);
 
 		if (!path) return catalog.updateNeededPermission(permissions);
 

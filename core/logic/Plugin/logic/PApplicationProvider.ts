@@ -2,15 +2,15 @@ import Context from "@core/Context/Context";
 import { Article } from "@core/FileStructue/Article/Article";
 import { ArticleFilter, Catalog, ChangeCatalog } from "@core/FileStructue/Catalog/Catalog";
 import { Category } from "@core/FileStructue/Category/Category";
-import Library from "@core/Library/Library";
 import { ArticleType, PApplication, PArticle, PCatalog, PCategory, PChangeCatalog } from "@core/Plugin";
 import PluginsCache from "@core/Plugin/logic/PluginsCache";
 import itemRefConverter from "@core/Plugin/logic/utils/itemRefConverter";
 import HtmlParser from "@ext/html/HtmlParser";
 import RuleProvider from "@ext/rules/RuleProvider";
+import type WorkspaceManager from "@ext/workspace/WorkspaceManager";
 
 export default class PApplicationProvider {
-	constructor(private _lib: Library, private _htmlParser: HtmlParser, private _pluginsCache: PluginsCache) {}
+	constructor(private _wm: WorkspaceManager, private _htmlParser: HtmlParser, private _pluginsCache: PluginsCache) {}
 
 	async getApp(pluginName: string, context: Context): Promise<PApplication> {
 		const rules = new RuleProvider(context);
@@ -25,17 +25,17 @@ export default class PApplicationProvider {
 			},
 			catalogs: {
 				get: async (name) => {
-					return this._getCatalog(await this._lib.getCatalog(name), filters);
+					return this._getCatalog(await this._wm.current().getCatalog(name), filters);
 				},
 				getAll: async () => {
 					const res: PCatalog[] = [];
-					for (const entry of this._lib.getCatalogEntries().values()) {
+					for (const entry of this._wm.current().getCatalogEntries().values()) {
 						res.push(this._getCatalog(await entry.load(), filters));
 					}
 					return res;
 				},
 				onUpdate: (callback) => {
-					this._lib.addOnChangeRule((changeCatalogs) => {
+					this._wm.addOnChangeRule((changeCatalogs) => {
 						void callback(changeCatalogs.map((c) => this._getChangeCatalog(c, filters)));
 					});
 				},

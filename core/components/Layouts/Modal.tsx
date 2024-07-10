@@ -12,7 +12,7 @@ export interface ModalLayoutProps {
 	onOpen?: () => void;
 	onClose?: () => void;
 	onEnter?: () => void;
-	onCmdEnter?: () => void;
+	onCmdEnter?: (e: KeyboardEvent) => void;
 	isOpen?: boolean;
 	className?: string;
 	contentWidth?: "S" | "M" | "L";
@@ -55,7 +55,7 @@ const ModalLayout = (props: ModalLayoutProps) => {
 			CloseEsc();
 		}
 		if (e.code === "Enter" && isOpen && onEnter) onEnter();
-		if (e.code === "Enter" && (e.ctrlKey || e.metaKey) && isOpen && onCmdEnter && closeOnCmdEnter) onCmdEnter();
+		if (e.code === "Enter" && (e.ctrlKey || e.metaKey) && isOpen && onCmdEnter && closeOnCmdEnter) onCmdEnter(e);
 	};
 
 	const onCurrentClose = () => {

@@ -1,4 +1,4 @@
-abstract class CatalogFetchTimersSerivce {
+abstract class CatalogFetchTimersService {
 	private static _localStorageName = "CatalogFetchTimers";
 	private static _delayBetweenFetch = 300000; // 5 mins
 	static fetchIntervalDelay = 300000 + 100; // 5 mins
@@ -22,4 +22,4 @@ abstract class CatalogFetchTimersSerivce {
 	}
 }
 
-export default CatalogFetchTimersSerivce;
+export default CatalogFetchTimersService;

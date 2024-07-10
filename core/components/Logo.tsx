@@ -1,8 +1,7 @@
-import styled from "@emotion/styled";
-
 import Url from "@core-ui/ApiServices/Types/Url";
 import CatalogPropsService from "@core-ui/ContextServices/CatalogProps";
 import { cssMedia } from "@core-ui/utils/cssUtils";
+import styled from "@emotion/styled";
 import { CatalogLink } from "../extensions/navigation/NavigationLinks";
 import Link from "./Atoms/Link";
 import { CatalogLogo } from "./CatalogLogo";
@@ -24,9 +23,7 @@ export const Logo = styled(({ className, catalogLink }: { catalogLink?: CatalogL
 			{logo}
 		</Link>
 	) : (
-		<a className={className}>
-			{logo}
-		</a>
+		<a className={className}>{logo}</a>
 	);
 })`
 	width: 100%;

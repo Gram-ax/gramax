@@ -1,3 +1,4 @@
+import DefaultError from "@ext/errorHandlers/logic/DefaultError";
 import ApiRequest from "../../../../logic/Api/ApiRequest";
 import ApiResponse from "../../../../logic/Api/ApiResponse";
 import { apiUtils } from "../../../../logic/Api/apiUtils";
@@ -13,7 +14,7 @@ class EnvAuth implements AuthProvider {
 
 	login(req: ApiRequest, res: ApiResponse): void | Promise<void> {
 		if (!req.body.login || !req.body.password) {
-			apiUtils.sendError(res, new Error("Empty login or password"), 401);
+			apiUtils.sendError(res, new DefaultError("Empty login or password"), 401);
 			return;
 		}
 
@@ -33,7 +34,7 @@ class EnvAuth implements AuthProvider {
 		setUser: (cookie: Cookie, user: User) => void,
 	): void | Promise<void> {
 		if (req.body.login !== this._login || req.body.password !== this._password) {
-			apiUtils.sendError(res, new Error("Wrong login or password"), 401);
+			apiUtils.sendError(res, new DefaultError("Wrong login or password"), 401);
 			return;
 		}
 

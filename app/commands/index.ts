@@ -1,5 +1,5 @@
 import auth from "@app/commands/auth";
-import migrate from "@app/commands/migrate";
+import workspace from "@app/commands/workspace";
 import Application from "../types/Application";
 import { Command } from "../types/Command";
 import article from "./article";
@@ -35,9 +35,7 @@ const commands = {
 	word,
 	debug,
 	plugin,
-
-	// TODO: Delete in future
-	migrate,
+	workspace,
 };
 
 type CommandTree = typeof commands;

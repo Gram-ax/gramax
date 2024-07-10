@@ -1,12 +1,12 @@
-import { WordBlockChild } from "../../../../wordExport/WordTypes";
-import { createTitleParagraph } from "@ext/wordExport/TextWordGenerator";
+import { Paragraph } from "docx";
+import { WordBlockChild } from "../../../../wordExport/options/WordTypes";
+import { HeadingStyles } from "@ext/wordExport/options/wordExportSettings";
 
-export const headingWordLayout: WordBlockChild = async ({ tag }) => {
-	const text = tag.children[0];
-
-	if (typeof text === "string")
-		return Promise.resolve([createTitleParagraph(text, tag.attributes.level)]);
-
-	return Promise.resolve([]);
-
+export const headingWordLayout: WordBlockChild = async ({ state, tag, addOptions }) => {
+	return [
+		new Paragraph({
+			children: await state.renderInline(tag, addOptions),
+			style: HeadingStyles[tag.attributes.level],
+		}),
+	];
 };

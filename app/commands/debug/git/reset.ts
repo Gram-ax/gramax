@@ -4,10 +4,12 @@ import { Command } from "../../../types/Command";
 
 const reset: Command<{ catalogName: string; staged: boolean; filePaths?: string[] }, void> = Command.create({
 	async do({ catalogName, staged, filePaths }) {
-		const { lib, conf } = this._app;
-		const catalog = await lib.getCatalog(catalogName);
+		const { conf, wm } = this._app;
+		const workspace = wm.current();
+
+		const catalog = await workspace.getCatalog(catalogName);
 		if (!catalog) throw new Error("no catalog found");
-		const fp = lib.getFileProviderByCatalog(catalog);
+		const fp = workspace.getFileProvider();
 
 		const path = catalog.repo.gvc.getPath();
 		const gr = new GitCommands({ corsProxy: conf.services.cors.url }, fp, path);

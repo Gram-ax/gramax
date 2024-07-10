@@ -1,17 +1,18 @@
-import { IRunOptions, ParagraphChild, TextRun } from "docx";
+import { ParagraphChild, TextRun } from "docx";
 import { FileChild } from "docx/build/file/file-child";
 import FileProvider from "../../logic/FileProvider/model/FileProvider";
 import ResourceManager from "../../logic/Resource/ResourceManager";
 import ParserContext from "../markdown/core/Parser/ParserContext/ParserContext";
 import { Tag } from "../markdown/core/render/logic/Markdoc";
-import { AddOptionsWord, WordBlockChilds, WordInlineChilds } from "./WordTypes";
-import { createContent, createContentsParagraph, createSpacingConfig } from "@ext/wordExport/TextWordGenerator";
-import { ParagraphType } from "@ext/wordExport/wordExportSettings";
+import { AddOptionsWord, WordBlockChildren, WordInlineChildren } from "./options/WordTypes";
+import { createContent } from "@ext/wordExport/TextWordGenerator";
+import { createParagraph } from "@ext/wordExport/createParagraph";
+import { NON_BREAKING_SPACE } from "@ext/wordExport/options/wordExportSettings";
 
 export class WordSerializerState {
 	constructor(
-		private _inlineConfig: WordInlineChilds,
-		private _blockConfig: WordBlockChilds,
+		private _inlineConfig: WordInlineChildren,
+		private _blockConfig: WordBlockChildren,
 		private _resourceManager: ResourceManager,
 		private _fileProvider: FileProvider,
 		private _parserContext: ParserContext,
@@ -25,11 +26,11 @@ export class WordSerializerState {
 				if (typeof child === "string") {
 					let text = addOptions?.removeWhiteSpace ? child.trim() : child;
 
-					if (addOptions?.isCode) text = ` ${text}\u00A0`;
-					return createContent(text, addOptions as IRunOptions);
+					if (addOptions?.code) text = NON_BREAKING_SPACE + text + NON_BREAKING_SPACE;
+					return createContent(text, addOptions);
 				}
 
-				return await this._inlineConfig[child.name]?.({
+				return this._inlineConfig[child.name]?.({
 					state: this,
 					tag: child,
 					addOptions,
@@ -62,15 +63,11 @@ export class WordSerializerState {
 
 	async renderBlock(block: Tag, addOptions?: AddOptionsWord): Promise<FileChild[]> {
 		if (!this._blockConfig[block.name] && this._inlineConfig[block.name])
-			return [createContentsParagraph(await this.renderInline({ children: [block] } as Tag))];
+			return [createParagraph(await this.renderInline({ children: [block] } as Tag))];
 
-		const spacing = createSpacingConfig(addOptions?.paragraphType ?? ParagraphType.normal);
-		const tag = block;
-		addOptions = { ...addOptions, spacing };
-
-		return await this._blockConfig[block.name]?.({
+		return this._blockConfig[block.name]?.({
 			state: this,
-			tag,
+			tag: block,
 			addOptions,
 			resourceManager: this._resourceManager,
 			fileProvider: this._fileProvider,

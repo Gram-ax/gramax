@@ -1,5 +1,6 @@
-interface FetchResponse<T> extends Response {
+interface FetchResponse<T = any> extends Response {
 	json(): Promise<T>;
+	buffer(): Promise<Buffer>;
 }
 
 export default FetchResponse;

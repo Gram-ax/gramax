@@ -14,8 +14,10 @@ const getShareLink: Command<{ ctx: Context; catalogName: string; filePath: strin
 	middlewares: [new AuthorizeMiddleware(), new ReloadConfirmMiddleware()],
 
 	async do({ ctx, catalogName, filePath }) {
-		const { lib, rp } = this._app;
-		const catalog = await lib.getCatalog(catalogName);
+		const { wm, rp } = this._app;
+		const workspace = wm.current();
+
+		const catalog = await workspace.getCatalog(catalogName);
 		const storage = catalog.repo.storage;
 		const shareLinkCreator = new ShareLinkHandler();
 		const source = rp.getSourceData(ctx.cookie, await storage.getSourceName());

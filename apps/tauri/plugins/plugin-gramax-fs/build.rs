@@ -1,12 +1,17 @@
-use std::process::exit;
+const COMMANDS: &[&str] = &[
+  "read_dir",
+  "read_link",
+  "make_dir",
+  "remove_dir",
+  "rmfile",
+  "mv",
+  "make_symlink",
+  "getstat",
+  "exists",
+  "copy",
+  "mv",
+];
 
 fn main() {
-  if let Err(error) = tauri_build::mobile::PluginBuilder::new()
-    .android_path("android")
-    .ios_path("ios")
-    .run()
-  {
-    println!("{error:#}");
-    exit(1);
-  }
+  tauri_plugin::Builder::new(COMMANDS).android_path("android").ios_path("ios").build();
 }

@@ -16,6 +16,7 @@ import error from "@ext/markdown/elements/error/editor/model/errorSchema";
 import code_block from "@ext/markdown/elements/fence/edit/model/codeBlockSchema";
 import heading from "@ext/markdown/elements/heading/edit/model/headingSchema";
 import horizontal_rule from "@ext/markdown/elements/hr/edit/model/hrSchema";
+import icon from "@ext/markdown/elements/icon/edit/model/iconSchema";
 import imageSchema from "@ext/markdown/elements/image/edit/model/imageSchema";
 import link from "@ext/markdown/elements/link/edit/model/linkSchema";
 import * as listSchema from "@ext/markdown/elements/list/edit/models/listSchema";
@@ -64,6 +65,7 @@ export const schema = new Schema({
 		image: imageSchema,
 		drawio,
 
+		icon,
 		cut,
 		note,
 		style_wrapper,

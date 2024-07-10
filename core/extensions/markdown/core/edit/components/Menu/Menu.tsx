@@ -5,7 +5,6 @@ import IsSelectedOneNodeService from "@core-ui/ContextServices/IsSelected";
 import { cssMedia } from "@core-ui/utils/cssUtils";
 import styled from "@emotion/styled";
 import CodeBlockMenu from "@ext/markdown/elements/code/edit/components/CodeBlockMenu";
-import CutMenu from "@ext/markdown/elements/cut/edit/components/CutMenu";
 import DiagramsMenu from "@ext/markdown/elements/diagrams/edit/components/DiagramsEditButton";
 import DrawioMenu from "@ext/markdown/elements/drawio/edit/components/DrawioMenu";
 import ImageMenu from "@ext/markdown/elements/image/edit/components/ImageMenu";
@@ -37,7 +36,6 @@ const Menu = styled(({ editor, id, className }: { editor: Editor; id: string; cl
 						<DrawioMenu editor={editor} />
 						<ImageMenu editor={editor} />
 						<VideoMenu editor={editor} />
-						<CutMenu editor={editor} />
 						<CodeBlockMenu editor={editor} />
 						<TableMenu editor={editor} />
 						<NoteMenu editor={editor} />

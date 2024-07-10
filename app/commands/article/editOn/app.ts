@@ -9,10 +9,10 @@ const app: Command<{ catalogName: string; articlePath: Path }, string> = Command
 	kind: ResponseKind.plain,
 
 	async do({ catalogName, articlePath }) {
-		const { lib } = this._app;
-		const catalog = await lib.getCatalog(catalogName);
+		const workspace = this._app.wm.current();
+		const catalog = await workspace.getCatalog(catalogName);
 		if (!catalog) return;
-		const fp = lib.getFileProviderByCatalog(catalog);
+		const fp = workspace.getFileProvider();
 		const itemRef = fp.getItemRef(articlePath);
 		const item = catalog.findArticleByItemRef(itemRef);
 		return RouterPathProvider.getPathname(await catalog.getPathnameData(item)).value;

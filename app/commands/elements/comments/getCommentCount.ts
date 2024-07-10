@@ -5,24 +5,22 @@ import { DesktopModeMiddleware } from "../../../../core/logic/Api/middleware/Des
 import Path from "../../../../core/logic/FileProvider/Path/Path";
 import { Command } from "../../../types/Command";
 
-const getCommentsCount: Command<{ catalogName: string; articlePath: Path }, string> = Command.create({
+const getCommentsCount: Command<{ articlePath: Path }, string> = Command.create({
 	path: "comments/getCommentCount",
 
 	kind: ResponseKind.plain,
 
 	middlewares: [new AuthorizeMiddleware(), new DesktopModeMiddleware()],
 
-	async do({ catalogName, articlePath }) {
-		const { lib } = this._app;
-		const catalog = await lib.getCatalog(catalogName);
-		const fp = lib.getFileProviderByCatalog(catalog);
-		return await new CommentProvider(fp, articlePath).getCount();
+	do({ articlePath }) {
+		const workspace = this._app.wm.current();
+		const fp = workspace.getFileProvider();
+		return new CommentProvider(fp, articlePath).getCount();
 	},
 
 	params(ctx, q) {
-		const catalogName = q.catalogName;
 		const articlePath = new Path(q.articlePath);
-		return { ctx, catalogName, articlePath };
+		return { ctx, articlePath };
 	},
 });
 

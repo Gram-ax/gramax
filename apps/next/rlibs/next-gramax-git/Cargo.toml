@@ -1,5 +1,5 @@
 [package]
-name = "next-gramax-git"
+name = "next_gramax_git"
 version = "0.0.0"
 edition = "2021"
 exclude = ["gramax-git.node"]

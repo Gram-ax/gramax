@@ -1,17 +1,19 @@
 #[macro_use]
 extern crate log;
 
-pub mod branch;
 pub mod commands;
 
+pub mod actions;
 pub mod creds;
-pub mod diff;
 pub mod error;
 pub mod prelude;
 mod remote_callback;
 pub mod repo;
 pub mod repo_ext;
-pub mod status;
+
+pub mod git2 {
+  pub use git2::*;
+}
 
 pub(crate) type Result<T> = std::result::Result<T, error::Error>;
 

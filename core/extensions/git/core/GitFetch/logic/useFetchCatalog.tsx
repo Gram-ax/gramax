@@ -1,8 +1,9 @@
 import FetchService from "@core-ui/ApiServices/FetchService";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
-import CatalogFetchTimersSerivce from "@core-ui/ContextServices/CatalogFetchTimers";
+import CatalogFetchTimersService from "@core-ui/ContextServices/CatalogFetchTimers";
 import CatalogPropsService from "@core-ui/ContextServices/CatalogProps";
 import IsOfflineService from "@core-ui/ContextServices/IsOfflineService";
+import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import SyncIconService from "@core-ui/ContextServices/SyncIconService";
 import useIsStorageInitialized from "@ext/storage/logic/utils/useIsStorageIniziliate";
 import { useEffect, useRef } from "react";
@@ -11,15 +12,18 @@ const useFetchCatalog = () => {
 	const catalogName = CatalogPropsService.value?.name;
 	const apiUrlCreator = ApiUrlCreatorService.value;
 	const isOffline = IsOfflineService.value;
+	const isReadOnly = PageDataContextService.value.conf.isReadOnly;
 	const isStorageInitialized = useIsStorageInitialized();
 	const isStorageInitializedRef = useRef<boolean>(isStorageInitialized);
+	const readOnly = PageDataContextService.value.conf.isReadOnly;
 
 	const fetchCatalog = async () => {
 		if (
 			!catalogName ||
 			isOffline ||
 			!isStorageInitializedRef.current ||
-			!CatalogFetchTimersSerivce.canFetch(catalogName)
+			readOnly ||
+			!CatalogFetchTimersService.canFetch(catalogName)
 		)
 			return;
 
@@ -27,7 +31,7 @@ const useFetchCatalog = () => {
 		const res = await FetchService.fetch(apiUrlCreator.getStorageFetch());
 		SyncIconService.stop();
 		if (!res) return;
-		CatalogFetchTimersSerivce.setTimer(catalogName);
+		CatalogFetchTimersService.setTimer(catalogName);
 	};
 
 	useEffect(() => {
@@ -38,7 +42,7 @@ const useFetchCatalog = () => {
 		const interval = setInterval(() => {
 			if (document.hidden) return;
 			fetchCatalog();
-		}, CatalogFetchTimersSerivce.fetchIntervalDelay);
+		}, CatalogFetchTimersService.fetchIntervalDelay);
 		return () => clearInterval(interval);
 	}, []);
 

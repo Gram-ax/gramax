@@ -37,15 +37,9 @@ const Strike = Mark.create<StrikeOptions>({
 
 	parseHTML() {
 		return [
-			{
-				tag: "s",
-			},
-			{
-				tag: "del",
-			},
-			{
-				tag: "strike",
-			},
+			{ tag: "s" },
+			{ tag: "del" },
+			{ tag: "strike" },
 			{
 				style: "text-decoration",
 				consuming: false,

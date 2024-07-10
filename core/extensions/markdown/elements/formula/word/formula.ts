@@ -1,18 +1,18 @@
 import { ImageRun } from "docx";
 import { WordExportHelper } from "../../../../wordExport/WordExportHelpers";
-import { WordInlineChild } from "../../../../wordExport/WordTypes";
+import { WordInlineChild } from "../../../../wordExport/options/WordTypes";
 
 export const formulaWordLayout: WordInlineChild = async ({ tag }) => {
-	const imageBlob = await WordExportHelper.getImageFromDom(tag.attributes.content);
-
+	const size = WordExportHelper.getSvgDimensions(tag.attributes.content);
+	const imageBlob = await WordExportHelper.svgToPngBlob(tag.attributes.content, size);
 	const dimensions = await WordExportHelper.getImageSizeFromImageData(imageBlob);
 
 	return [
 		new ImageRun({
 			data: await imageBlob.arrayBuffer(),
 			transformation: {
-				height: dimensions.height,
 				width: dimensions.width,
+				height: dimensions.height,
 			},
 		}),
 	];

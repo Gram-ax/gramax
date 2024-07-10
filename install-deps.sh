@@ -8,7 +8,6 @@ CI_MODE=false
 SHOULD_COMPILE_WASM=false
 SHOULD_COMPILE_NODE=false
 SHOULD_COMPILE_WARP=false
-
 SHOULD_BUILD_PLUGINS=false
 
 for arg in "$@"; do
@@ -48,12 +47,6 @@ install() {
 		echo "Installing: $1"
 		local npm_log_file
 		npm_log_file=$(mktemp)
-		set -xv
-		npm config rm proxy
-		npm config rm https-proxy
-		npm config set registry https://registry.npmjs.org/
-		npm config set maxsockets 1
-		set +xv
 
 		if $CI_MODE; then
 			npm --prefix "$1" --force ci --cache .npm --prefer-offline --no-audit --verbose 2>"$npm_log_file" || {

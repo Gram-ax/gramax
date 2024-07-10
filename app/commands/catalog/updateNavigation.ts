@@ -15,6 +15,7 @@ const updateNavigation: Command<
 		ctx: Context;
 		logicPath: string;
 		catalogName: string;
+		draggedItemPath: string;
 		newLevNav: NodeModel<ItemLink>[];
 		oldLevNav: NodeModel<ItemLink>[];
 	},
@@ -26,24 +27,30 @@ const updateNavigation: Command<
 
 	middlewares: [new AuthorizeMiddleware(), new DesktopModeMiddleware(), new ReloadConfirmMiddleware()],
 
-	async do({ ctx, logicPath, catalogName, newLevNav, oldLevNav }) {
-		const { formatter, lib, parser, parserContextFactory, rp, sitePresenterFactory } = this._app;
-		const catalog = await lib.getCatalog(catalogName);
-		const fp = lib.getFileProviderByCatalog(catalog);
+	async do({ ctx, draggedItemPath, logicPath, catalogName, newLevNav, oldLevNav }) {
+		const { wm, formatter, parser, parserContextFactory, rp, sitePresenterFactory } = this._app;
+		const workspace = wm.current();
+
+		const catalog = await workspace.getCatalog(catalogName);
+		const fp = workspace.getFileProvider();
+		const sitePresenter = sitePresenterFactory.fromContext(ctx);
 		const ru = new ResourceUpdater(ctx, catalog, parser, parserContextFactory, formatter);
 		const dragTree = new DragTree(fp, ru, rp);
-		await dragTree.setOrders(newLevNav, catalog);
+		const ancestors = dragTree.findOrderingAncestors(newLevNav, draggedItemPath, catalog);
+		if (!ancestors) return;
+		const prev = ancestors.prev != ancestors.parent ? ancestors.prev : null;
+		await ancestors.dragged.setOrderAfter(ancestors.parent, prev);
 		await dragTree.drag(oldLevNav, newLevNav, catalog);
-		return DragTreeTransformer.getRenderDragNav(
-			await sitePresenterFactory.fromContext(ctx).getCatalogNav(catalog, logicPath),
-		);
+		await ancestors.parent.sortItems();
+		return DragTreeTransformer.getRenderDragNav(await sitePresenter.getCatalogNav(catalog, logicPath));
 	},
 
 	params(ctx, q, body) {
 		const catalogName = q.catalogName;
 		const logicPath = q.logicPath;
+		const draggedItemPath = body.draggedItemPath;
 		const data = body as { old: NodeModel<ItemLink>[]; new: NodeModel<ItemLink>[] };
-		return { ctx, logicPath, catalogName, newLevNav: data.new, oldLevNav: data.old };
+		return { ctx, logicPath, draggedItemPath, catalogName, newLevNav: data.new, oldLevNav: data.old };
 	},
 });
 

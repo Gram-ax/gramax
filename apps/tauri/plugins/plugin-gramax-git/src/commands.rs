@@ -1,3 +1,4 @@
+use gramaxgit::actions::merge::MergeResult;
 use gramaxgit::creds::*;
 use tauri::*;
 
@@ -60,7 +61,7 @@ pub(crate) fn status(repo_path: &Path) -> Result<StatusInfo> {
 }
 
 #[command(async)]
-pub(crate) fn status_file(repo_path: &Path, file_path: &Path) -> Result<Status> {
+pub(crate) fn status_file(repo_path: &Path, file_path: &Path) -> Result<StatusEntry> {
   git::status_file(repo_path, file_path)
 }
 
@@ -119,7 +120,15 @@ pub(crate) fn commit(
 }
 
 #[command(async)]
-pub(crate) fn merge(repo_path: &Path, creds: AccessTokenCreds, theirs: &str) -> Result<()> {
+pub(crate) fn graph_head_upstream_files(
+  repo_path: &Path,
+  search_in: &Path,
+) -> Result<UpstreamCountChangedFiles> {
+  git::graph_head_upstream_files(Path::new(&repo_path), search_in)
+}
+
+#[command(async)]
+pub(crate) fn merge(repo_path: &Path, creds: AccessTokenCreds, theirs: &str) -> Result<MergeResult> {
   git::merge(repo_path, creds, theirs)
 }
 
@@ -144,12 +153,12 @@ pub(crate) fn get_remote(repo_path: &Path) -> Result<Option<String>> {
 }
 
 #[command(async)]
-pub(crate) fn stash(repo_path: &Path, message: Option<&str>) -> Result<String> {
-  git::stash(repo_path, message)
+pub(crate) fn stash(repo_path: &Path, message: Option<&str>, creds: AccessTokenCreds) -> Result<String> {
+  git::stash(repo_path, message, creds)
 }
 
 #[command(async)]
-pub(crate) fn stash_apply(repo_path: &Path, oid: &str) -> Result<()> {
+pub(crate) fn stash_apply(repo_path: &Path, oid: &str) -> Result<MergeResult> {
   git::stash_apply(repo_path, oid)
 }
 

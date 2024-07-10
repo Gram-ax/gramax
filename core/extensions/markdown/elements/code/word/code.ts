@@ -1,12 +1,6 @@
-import { WordInlineChild } from "@ext/wordExport/WordTypes";
-import { wordFontSizes, wordFontTypes } from "@ext/wordExport/wordExportSettings";
-import { BorderStyle } from "docx";
+import { WordInlineChild } from "@ext/wordExport/options/WordTypes";
+import { WordFontStyles } from "@ext/wordExport/options/wordExportSettings";
 
-export const codeWordLayout: WordInlineChild = async ({ state, tag, addOptions }) => {
-	const font = wordFontTypes.code;
-	const border = { style: BorderStyle.SINGLE };
-	const size = wordFontSizes.code;
-	const options = { ...addOptions, font, border, size, isCode: true };
-
-	return await state.renderInline(tag, options);
+export const codeWordLayout: WordInlineChild = async ({ state, tag }) => {
+	return await state.renderInline(tag, { style: WordFontStyles.code, code: true });
 };

@@ -13,6 +13,7 @@
 	--color-breadcrumb-text: #00000099;
 	--color-breadcrumb-text-hover: black;
 	--color-loader: #9a9a9a;
+	--color-focus: #0563d6;
 
 	--color-link-dark-theme: hsl(205deg 79% 52%);
 	--color-article-text-dark-theme: #abb2d4;
@@ -38,8 +39,9 @@
 	--menu-tooltip-shadow: rgb(6 6 6 / 18%) -1px 2px 10px;
 	--comment-tooltip-shadow: 0px 0px 12px 1px rgba(13, 13, 13, 0.19);
 
-	--color-comment-bg: #ffe50042;
-	--color-comment-active-bg: #fdd89a;
+	--color-comment-bg: #ffa80060;
+	--color-comment-hover-bg: #ffa80080;
+	--color-comment-active-bg: #ffa800a0;
 	--color-comment-active-text: #000000;
 	--color-removed-text: rgb(255 82 82);
 	--color-removed-text-opacity: rgb(255 82 82 / 60%);
@@ -66,6 +68,8 @@
 	--transition-time: 0.3s;
 	--navigation-transition: transform var(--transition-time) ease 0s, width var(--transition-time) ease 0s,
 		padding var(--transition-time) ease 0s, padding-right var(--transition-time) ease 0s;
+
+	--article-max-width: 780px;
 }
 
 :root.theme-light {
@@ -73,18 +77,26 @@
 
 	--color-block: hsl(0deg 0% 98%);
 	--color-block-hover: #ffffff;
+	--color-block-hover-inverse: hsl(206deg 40% 20%);
+
 	--color-primary: black;
+	--color-primary-inverse: white;
 	--color-line: #a4a4a4;
 	--color-scroll: #a4a4a4;
 	--color-scroll-bg: #a4a4a420;
 	--color-image-line: #c8c8c8;
 	--color-image-title: #00000099;
 	--color-primary-general: rgb(120, 120, 120);
+	--color-primary-general-inverse: rgb(177, 178, 184);
+
 	--color-primary-secondary: rgba(0, 0, 0, 0.4);
 	--color-fence-text: #403f53;
 
 	--color-tooltip-text: #fbfbfb;
 	--color-tooltip-background: #2b2a2d;
+
+	--color-tooltip-text-inverse: #1d2135;
+	--color-tooltip-background-inverse: #f4f4f5;
 
 	--color-menu-bg: #f4f4f4;
 	--color-menu-opacity-bg: #f4f4f4c7;
@@ -119,18 +131,19 @@
 	--shadows-deeplight: 0 0 10px rgba(0, 0, 0, 0.15);
 	--shadows-changeable-deeplight: 0 0 10px rgba(0, 0, 0, 0.15);
 
-	--color-admonition-lab-bg: hsla(200, 50%, 95%, 1);
+	--color-admonition-lab-bg: hsl(252 100% 97.06%);
 	--color-admonition-tip-bg: hsla(200, 50%, 95%, 1);
-	--color-admonition-note-bg: hsla(40, 50%, 95%, 1);
+	--color-admonition-note-bg: hsl(37.5deg 100% 95.29%);
 	--color-admonition-info-bg: hsla(220, 100%, 95%, 1);
 	--color-admonition-danger-bg: hsla(0, 100%, 96%, 1);
 
 	--color-admonition-hotfixes-br-h: #7b7b7b;
-	--color-admonition-lab-br-h: hsla(200, 100%, 44%, 1);
+	--color-admonition-quote-br-h: #9e9e9e;
+	--color-admonition-lab-br-h: hsl(250.09 59.78% 64.9%);
 	--color-admonition-tip-br-h: hsla(200, 100%, 44%, 1);
-	--color-admonition-note-br-h: #eb9c00;
+	--color-admonition-note-br-h: hsl(37.42deg 90.29% 40.39%);
 	--color-admonition-info-br-h: hsla(220, 44%, 47%, 1);
-	--color-admonition-danger-br-h: #d90000;
+	--color-admonition-danger-br-h: hsl(0, 74%, 42%);
 
 	--color-hp-product-bright-orange: hsl(48deg 65% 97%);
 	--color-hp-product-dark-orange: hsl(39deg 65% 97%);
@@ -178,20 +191,27 @@
 
 :root.theme-dark {
 	--color-primary: white;
+	--color-primary-inverse: black;
 	--color-block: #182b39cf;
 	--color-block-hover: hsl(206deg 40% 20%);
+	--color-block-hover-inverse: #ffffff;
+
 	--color-line: hsl(230deg 15% 35%);
 	--color-scroll: hsl(230deg 15% 35% / 50%);
 	--color-scroll-bg: rgba(76, 80, 103, 0.2);
 	--color-image-line: #2b2f45;
 	--color-image-title: #abb2d499;
 	--color-primary-general: rgb(177, 178, 184);
+	--color-primary-general-inverse: rgb(120, 120, 120);
 	--color-primary-secondary: rgba(255, 255, 255, 0.4);
 	--color-lev-sidebar-hover: var(--color-input-bg);
 	--color-fence-text: #d6deeb;
 
 	--color-tooltip-text: #1d2135;
 	--color-tooltip-background: #f4f4f5;
+
+	--color-tooltip-text-inverse: #fbfbfb;
+	--color-tooltip-background-inverse: #2b2a2d;
 
 	--color-menu-bg: #151828;
 	--color-menu-opacity-bg: #151828c7;
@@ -226,17 +246,18 @@
 	--shadows-deeplight: 0 0 10px rgba(0, 0, 0, 0.15);
 	--shadows-changeable-deeplight: 0 0 10px rgba(255, 255, 255, 0.15);
 
-	--color-admonition-hotfixes-bg: rgba(255, 255, 255, 0.05);
-	--color-admonition-lab-bg: rgba(255, 255, 255, 0.05);
-	--color-admonition-tip-bg: rgba(255, 255, 255, 0.05);
-	--color-admonition-note-bg: rgba(255, 255, 255, 0.05);
-	--color-admonition-info-bg: rgba(255, 255, 255, 0.05);
-	--color-admonition-danger-bg: rgba(255, 255, 255, 0.05);
+	--color-admonition-hotfixes-bg: rgba(255, 255, 255, 0.07);
+	--color-admonition-lab-bg: rgba(255, 255, 255, 0.07);
+	--color-admonition-tip-bg: rgba(255, 255, 255, 0.07);
+	--color-admonition-note-bg: rgba(255, 255, 255, 0.07);
+	--color-admonition-info-bg: rgba(255, 255, 255, 0.07);
+	--color-admonition-danger-bg: rgba(255, 255, 255, 0.07);
 
+	--color-admonition-quote-br-h: hsl(0deg 0% 70%);
 	--color-admonition-hotfixes-br-h: hsl(0deg 0% 70%);
-	--color-admonition-lab-br-h: hsl(200deg 100% 50%);
+	--color-admonition-lab-br-h: hsl(249.71deg 68.63% 70%);
 	--color-admonition-tip-br-h: hsl(200deg 100% 50%);
-	--color-admonition-note-br-h: hsl(40deg 75% 50%);
+	--color-admonition-note-br-h: hsl(37.5deg 90.32% 48.63%);
 	--color-admonition-info-br-h: hsl(220deg 50% 70%);
 	--color-admonition-danger-br-h: hsl(0deg 100% 75%);
 

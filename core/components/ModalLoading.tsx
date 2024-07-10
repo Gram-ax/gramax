@@ -1,12 +1,15 @@
 import SpinnerLoader from "@components/Atoms/SpinnerLoader";
-import LogsLayout from "@components/Layouts/LogsLayout";
+import FormStyle from "@components/Form/FormStyle";
 import Modal from "@components/Layouts/Modal";
+import ModalLayoutLight from "@components/Layouts/ModalLayoutLight";
 import { useState } from "react";
 
 const ModalLoading = ({
+	title,
 	onOpen,
 	onClose,
 }: {
+	title?: string;
 	onOpen?: () => Promise<void> | void;
 	onClose?: () => Promise<void> | void;
 }) => {
@@ -23,9 +26,14 @@ const ModalLoading = ({
 				onClose?.();
 			}}
 		>
-			<LogsLayout style={{ overflow: "hidden" }}>
-				<SpinnerLoader fullScreen />
-			</LogsLayout>
+			<ModalLayoutLight>
+				<FormStyle>
+					<>
+						{title && <legend>{title}</legend>}
+						<SpinnerLoader fullScreen />
+					</>
+				</FormStyle>
+			</ModalLayoutLight>
 		</Modal>
 	);
 };

@@ -1,3 +1,5 @@
+import ConfluenceStorage from "@ext/confluence/core/logic/ConfluenceStorage";
+import ConfluenceStorageData from "@ext/confluence/core/model/ConfluenceStorageData";
 import GitCommandsConfig from "@ext/git/core/GitCommands/model/GitCommandsConfig";
 import Path from "../../../logic/FileProvider/Path/Path";
 import FileProvider from "../../../logic/FileProvider/model/FileProvider";
@@ -39,6 +41,14 @@ export default class StorageProvider {
 				data: data as GitStorageData,
 				source: data.source as GitSourceData,
 				onProgress: this._getOnProgress(path),
+			});
+		}
+
+		if (data.source.sourceType == SourceType.confluence) {
+			await ConfluenceStorage.clone({
+				fp,
+				data: data as ConfluenceStorageData,
+				catalogPath: path,
 			});
 		}
 	}

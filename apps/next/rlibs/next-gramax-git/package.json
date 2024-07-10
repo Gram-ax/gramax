@@ -4,7 +4,7 @@
 	"description": "",
 	"main": "gramax-git.node",
 	"scripts": {
-		"build": "cargo-cp-artifact -nc gramax-git.node -- cargo build --release --message-format=json-render-diagnostics",
+		"build": "cargo-cp-artifact -ac next_gramax_git gramax-git.node -- cargo build --release --message-format=json-render-diagnostics",
 		"build-debug": "npm run build --",
 		"build-release": "npm run build -- --release",
 		"test": "cargo test"

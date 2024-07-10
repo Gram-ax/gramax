@@ -23,19 +23,7 @@ const Styles = styled(({ className = "", children, imageBackgroundColor, noneSha
 		height: 100%;
 		width: 100%;
 	}
-	.__react_modal_image__modal_content img,
-	.__react_modal_image__modal_content svg {
-		position: absolute;
-		top: 50%;
-		left: 50%;
-		transform: translate3d(-50%, -50%, 0);
-		-webkit-transform: translate3d(-50%, -50%, 0);
-		-ms-transform: translate3d(-50%, -50%, 0);
-		overflow: hidden;
-	}
 	.__react_modal_image__medium_img {
-		max-width: 98%;
-		max-height: 98%;
 		background-color: ${(p) => p.imageBackgroundColor};
 		${(p) => (p.noneShadow ? "box-shadow: none !important;" : "")}
 	}
@@ -46,7 +34,7 @@ const Styles = styled(({ className = "", children, imageBackgroundColor, noneSha
 	.__react_modal_image__icon_menu a {
 		display: inline-block;
 		font-size: 40px;
-		cursor: pointer;
+		cursor: pointer !important;
 		line-height: 40px;
 		box-sizing: border-box;
 		border: none;
@@ -73,21 +61,22 @@ const Styles = styled(({ className = "", children, imageBackgroundColor, noneSha
 		background-color: rgba(0, 0, 0, 0.7);
 		overflow: hidden;
 	}
-	.__react_modal_image__container {
+	.modal__container__image {
 		position: relative;
-		transform: translateX(-50%) translateY(-50%);
+		overflow: hidden;
+		max-width: 100%;
+		max-height: 100%;
 	}
-	.__react_modal_image__objects {
-		font-size: 16px !important;
-		position: absolute;
-		display: block;
-		top: 50%;
+	.modal__container {
+		position: relative;
+		transform: translate(-50%, -50%);
 		left: 50%;
-		transform: translateX(-50%) translateY(-50%);
-		width: 100%;
-		height: 100%;
-		z-index: 0;
-		margin: 0 auto;
+		top: 50%;
+		max-width: 98%;
+		max-height: 98%;
+		width: fit-content;
+		height: fit-content;
+		box-shadow: var(--shadows-deeplight);
 	}
 `;
 

@@ -4,14 +4,13 @@ import { Plugin, UserConfig, searchForWorkspaceRoot } from "vite";
 import ifdef from "vite-plugin-conditional-compiler";
 import { nodePolyfills as polyfills } from "vite-plugin-node-polyfills";
 import env from "./scripts/compileTimeEnv.mjs";
+import ViteSourceMapUploader from "./scripts/sourceMaps/ViteSourceMapUploader.mjs";
 
 const { getBuiltInVariables } = env;
-
 if (!process.env.VITE_ENVIRONMENT) process.env.VITE_ENVIRONMENT = "next";
 
+const isProduction = process.env.PRODUCTION === "true";
 const ipv4 = networkInterfaces()?.en0?.[1]?.address ?? "localhost";
-
-if (process.env.VITE_SOURCEMAPS) console.log("Building with sourcemaps");
 
 // https://github.com/vitejs/vite/issues/15012
 const muteWarningsPlugin = (warningsToIgnore: string[][]): Plugin => {
@@ -56,6 +55,7 @@ export default (): UserConfig => ({
 			protocolImports: true,
 			exclude: ["buffer"],
 		}),
+		isProduction && ViteSourceMapUploader(),
 	],
 
 	clearScreen: false,
@@ -110,6 +110,6 @@ export default (): UserConfig => ({
 			external: ["fsevents"],
 		},
 		minify: true,
-		sourcemap: !!process.env.VITE_SOURCEMAPS,
+		sourcemap: isProduction,
 	},
 });

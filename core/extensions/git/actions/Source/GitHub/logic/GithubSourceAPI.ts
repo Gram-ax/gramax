@@ -1,4 +1,5 @@
 import type GitHubSourceData from "@ext/git/actions/Source/GitHub/logic/GitHubSourceData";
+import GithubInstallation from "@ext/git/actions/Source/GitHub/model/GithubInstallation";
 import GitSourceApi from "@ext/git/actions/Source/GitSourceApi";
 import { SourceUser } from "@ext/git/actions/Source/SourceAPI";
 import getTotalPages from "@ext/git/actions/Storage/GitHub/logic/utils/getTotalPages";
@@ -80,14 +81,15 @@ export default class GithubSourceAPI extends GitSourceApi {
 		return (await res.json()).tree.map((file) => file?.[field] ?? file?.path);
 	}
 
-	async getInstallations() {
+	async getInstallations(): Promise<GithubInstallation[]> {
 		const res = await this._api("user/installations");
 		if (!res.ok) return null;
 		const installations = await res.json();
-		return installations.installations.map((i) => ({
+		return installations.installations.map((i): GithubInstallation => ({
 			name: i.account.login,
 			htmlUrl: i.account.html_url,
 			avatarUrl: i.account.avatar_url,
+			type: i.account.type
 		}));
 	}
 

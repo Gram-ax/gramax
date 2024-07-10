@@ -1,5 +1,4 @@
 import DiffContent from "@components/Atoms/DiffContent";
-import Image from "@components/Atoms/Image/Image";
 import ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import Path from "@core/FileProvider/Path/Path";
@@ -7,6 +6,7 @@ import DiagramType from "@core/components/Diagram/DiagramType";
 import styled from "@emotion/styled";
 import SideBarResourceData from "@ext/git/actions/Publish/model/SideBarResourceData";
 import DiagramData from "@ext/markdown/elements/diagrams/component/DiagramData";
+import Image from "@ext/markdown/elements/image/render/components/Image";
 
 const IMG_FILE_TYPES = ["png", "jpg", "jpeg", "bmp", "svg"];
 const DIAGRAM_FILE_TYPES = {

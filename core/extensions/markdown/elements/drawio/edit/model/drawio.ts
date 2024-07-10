@@ -13,7 +13,7 @@ declare module "@tiptap/core" {
 }
 
 const Drawio = Node.create({
-	...getExtensionOptions({ schema: drawio, name: "drawio" }),
+	...getExtensionOptions({ schema: drawio, name: "drawio", withResource: true }),
 
 	parseHTML() {
 		return [{ tag: "drawio-react-component" }];

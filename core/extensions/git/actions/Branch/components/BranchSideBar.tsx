@@ -29,7 +29,7 @@ const BranchSideBar = ({
 	const rightActions = width > 350 ? <BranchInfo key={0} data={data} /> : <SmallBranchInfo key={0} data={data} />;
 
 	return (
-		<div ref={ref} style={{ width: "100%", padding: "6px 12px" }}>
+		<div ref={ref} style={{ width: "100%", padding: "6px 15px" }}>
 			<Sidebar
 				disable={disable}
 				title={name}

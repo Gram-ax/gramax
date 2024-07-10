@@ -11,18 +11,20 @@ const InfoModalForm = ({
 	title,
 	children,
 	onCancelClick,
-	isError = true,
+	isWarning = false,
 	icon,
 	actionButton,
+	secondButton,
 	closeButton,
 	noButtons,
 }: {
 	title: string;
 	children: ReactNode;
 	onCancelClick: () => void;
-	isError?: boolean;
+	isWarning?: boolean;
 	icon?: { color?: Property.Color; code: string };
 	actionButton?: { text: string; onClick: () => void };
+	secondButton?: { text: string; onClick: () => void };
 	closeButton?: { text: string };
 	noButtons?: boolean;
 }) => {
@@ -33,7 +35,7 @@ const InfoModalForm = ({
 			<FormStyle>
 				<>
 					<legend
-						data-qa={`qa-${isError ? "error-" : ""}info-modal`}
+						data-qa={`qa-${isWarning ? "" : "error-"}info-modal`}
 						style={{ display: "flex", alignItems: "center" }}
 					>
 						{icon && <Icon style={{ color: icon.color }} code={icon.code} />}
@@ -49,6 +51,15 @@ const InfoModalForm = ({
 							>
 								{closeButton?.text ?? (actionButton ? cancelText : closeText)}
 							</Button>
+							{secondButton && (
+								<Button
+									buttonStyle={ButtonStyle.underline}
+									className="custom-button"
+									onClick={secondButton.onClick}
+								>
+									{secondButton.text}
+								</Button>
+							)}
 							{actionButton && (
 								<Button className="custom-button" onClick={actionButton.onClick}>
 									{actionButton.text}

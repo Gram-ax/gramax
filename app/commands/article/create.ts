@@ -16,9 +16,11 @@ const create: Command<{ ctx: Context; catalogName: string; parentPath?: Path }, 
 	middlewares: [new AuthorizeMiddleware(), new DesktopModeMiddleware(), new ReloadConfirmMiddleware()],
 
 	async do({ ctx, catalogName, parentPath }) {
-		const { formatter, lib, parser, parserContextFactory } = this._app;
-		const catalog = await lib.getCatalog(catalogName);
-		const fp = lib.getFileProviderByCatalog(catalog);
+		const { formatter, parser, parserContextFactory, wm } = this._app;
+		const workspace = wm.current();
+
+		const catalog = await workspace.getCatalog(catalogName);
+		const fp = workspace.getFileProvider();
 		const parentRef = fp.getItemRef(parentPath);
 
 		const markdown = "\n\n";

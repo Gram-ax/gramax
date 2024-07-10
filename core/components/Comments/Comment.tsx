@@ -1,4 +1,3 @@
-import { classNames } from "@components/libs/classNames";
 import { Comment } from "@core-ui/CommentBlock";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import styled from "@emotion/styled";
@@ -96,7 +95,6 @@ const CommentComponent = (props: CommentComponentProps): ReactElement => {
 			borderBottom
 		>
 			<div className={className}>
-				<div className={classNames("transition-bg", { "transition-bg-active": isActive })} />
 				<div className="comment">
 					<User
 						name={comment.user.name}
@@ -128,6 +126,6 @@ const CommentComponent = (props: CommentComponentProps): ReactElement => {
 export default styled(CommentComponent)`
 	.comment {
 		height: auto;
-		padding: 0 1rem 1rem;
+		padding: 0 1em 1em;
 	}
 `;

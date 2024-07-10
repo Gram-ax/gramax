@@ -1,6 +1,8 @@
 import { mergeAttributes, Node } from "@tiptap/core";
 import { ReactNodeViewRenderer } from "@tiptap/react";
 import EditDiagrams from "../components/DiagramsComponent";
+import getExtensionOptions from "@ext/markdown/logic/getExtensionOptions";
+import diagrams from "@ext/markdown/elements/diagrams/edit/models/diagramsSchema";
 
 declare module "@tiptap/core" {
 	interface Commands<ReturnType> {
@@ -11,18 +13,7 @@ declare module "@tiptap/core" {
 }
 
 const Diagrams = Node.create({
-	name: "diagrams",
-	group: "block",
-
-	addAttributes() {
-		return {
-			src: { default: null },
-			title: { default: null },
-			content: { default: null },
-			diagramName: { default: null },
-			isUpdating: { default: false },
-		};
-	},
+	...getExtensionOptions({ schema: diagrams, name: "diagrams", withResource: true }),
 
 	parseHTML() {
 		return [{ tag: "diagrams-react-component" }];

@@ -7,5 +7,6 @@ module.exports = {
 		require: ["./steps/**/*", "./models/**/*", "./setup/**/*"],
 		language: "ru",
 		forceExit: true,
+		retry: 3,
 	},
 };

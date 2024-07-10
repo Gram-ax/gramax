@@ -9,19 +9,18 @@ extern crate rstest;
 extern crate rust_i18n;
 
 mod commands;
-mod oauth_server;
+mod http_server;
 mod platform;
 
 use std::sync::atomic::AtomicUsize;
 use std::sync::atomic::Ordering;
 
+use http_server::start_ping_server;
 use platform::config::init_env;
 
 use platform::*;
 
 use tauri::*;
-
-use tauri::scope::ipc::RemoteDomainAccessScope;
 
 i18n!("locales");
 
@@ -35,6 +34,7 @@ trait AppBuilder {
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
+  start_ping_server();
   rust_i18n::set_locale(&sys_locale::get_locale().unwrap_or("en".to_string()));
 
   let builder = Builder::default().init().attach_commands().attach_plugins();
@@ -45,8 +45,6 @@ pub fn run() {
 
   let app = builder.build(context).expect("Can't build app");
 
-  init_env(app.handle());
-
   #[cfg(desktop)]
   {
     #[cfg(target_family = "unix")]
@@ -54,19 +52,14 @@ pub fn run() {
     app.setup_updater().expect("unable to setup updater");
   }
 
-  app.run(|_, _| {});
+  app.run(platform::on_run_event);
 }
 
 impl<R: Runtime> AppBuilder for Builder<R> {
   fn init(self) -> Self {
     self.setup(|app| {
-      app.ipc_scope().configure_remote_access(
-        RemoteDomainAccessScope::new("tauri.localhost")
-          .add_plugins(["gramaxfs", "shell", "app", "dialog"])
-          .add_window("settings"),
-      );
-
-      build_main_window(app.handle())?;
+      let mut window = build_main_window(app.handle())?;
+      init_env(app.handle(), &mut window);
       Ok(())
     })
   }
@@ -76,7 +69,8 @@ impl<R: Runtime> AppBuilder for Builder<R> {
     let app = self
       .plugin(plugin_gramax_fs::init())
       .plugin(plugin_gramax_git::init())
-      .plugin(tauri_plugin_dialog::init());
+      .plugin(tauri_plugin_dialog::init())
+      .plugin(tauri_plugin_deep_link::init());
 
     #[cfg(desktop)]
     let app = app
@@ -90,7 +84,10 @@ impl<R: Runtime> AppBuilder for Builder<R> {
       use tauri_plugin_log::*;
       app.plugin(
         Builder::default()
-          .targets([Target::new(TargetKind::Webview), Target::new(TargetKind::Stdout)])
+          .targets([
+            Target::new(TargetKind::Stdout),
+            Target::new(TargetKind::LogDir { file_name: Some("gramax".into()) }),
+          ])
           .level(LevelFilter::Info)
           .format(|f, _, record| {
             f.finish(format_args!(
@@ -113,32 +110,44 @@ impl<R: Runtime> AppBuilder for Builder<R> {
   }
 }
 
-pub fn build_main_window<R: Runtime>(app: &AppHandle<R>) -> Result<Window<R>> {
+pub fn build_main_window<R: Runtime>(app: &AppHandle<R>) -> Result<WebviewWindow<R>> {
+  build_main_window_with_path(app, "index.html")
+}
+
+pub fn build_main_window_with_path<R: Runtime, P: AsRef<str>>(
+  app: &AppHandle<R>,
+  path: P,
+) -> Result<WebviewWindow<R>> {
   static NEXT_ID: AtomicUsize = AtomicUsize::new(0);
 
-  let window = WindowBuilder::new(
+  let builder = WebviewWindowBuilder::new(
     app,
     format!("main_{}", NEXT_ID.fetch_add(1, Ordering::Relaxed)),
-    WindowUrl::App("index.html".into()),
+    WebviewUrl::App(std::path::PathBuf::from(path.as_ref())),
   )
+  .auto_resize()
+  .zoom_hotkeys_enabled(true)
+  .disable_drag_drop_handler()
   .initialization_script(include_str!("init.js"))
-  .on_navigation(on_navigation)
-  .disable_file_drop_handler();
-
-  #[cfg(any(target_os = "macos", target_os = "linux"))]
-  let window = {
-    let callback = platform::download_callback::DownloadCallback::new();
-    window.on_download(move |w, e| callback.on_download(w, e))
-  };
+  .on_navigation(on_navigation);
 
   #[cfg(desktop)]
-  let window = window
+  let builder = {
+    let callback = download_callback::DownloadCallback::new();
+    builder.on_download(move |w, e| callback.on_download(w, e))
+  };
+
+  #[cfg(target_os = "macos")]
+  let builder = builder.initialization_script(include_str!("platform/desktop/macos.js"));
+
+  #[cfg(desktop)]
+  let builder = builder
     .title(app.package_info().name.clone())
     .maximized(true)
     .enable_clipboard_access()
     .inner_size(900.0, 600.0);
 
-  let window = window.build()?;
+  let window = builder.build()?;
 
   window_post_init(&window)?;
   Ok(window)

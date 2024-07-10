@@ -17,8 +17,10 @@ const updateProps: Command<{ ctx: Context; catalogName: string; props: CatalogEd
 		middlewares: [new AuthorizeMiddleware(), new DesktopModeMiddleware(), new ReloadConfirmMiddleware()],
 
 		async do({ ctx, catalogName, props }) {
-			const { lib, sitePresenterFactory, parser, parserContextFactory, formatter, rp } = this._app;
-			const catalog = await lib.getCatalog(catalogName);
+			const { wm, sitePresenterFactory, parser, parserContextFactory, formatter, rp } = this._app;
+			const workspace = wm.current();
+
+			const catalog = await workspace.getCatalog(catalogName);
 			if (!catalog) return;
 
 			const resourceUpdater = new ResourceUpdater(ctx, catalog, parser, parserContextFactory, formatter);

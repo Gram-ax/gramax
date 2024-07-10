@@ -140,15 +140,26 @@ describe("MdParser корректно парсит", () => {
 
 			expect(testParseStr).toEqual(parsedStr);
 		});
+		describe("формулы", () => {
+			test("простая строка", async () => {
+				const mdParser = await getMdParser();
+				const str = `текст $L = \\frac{1}{2} \\rho v^2 S C_L$ текст`;
+				const parsedStr = `текст {%formula content="$L = \\\\frac{1}{2} \\\\rho v^2 S C_L$" /%} текст`;
 
-		test("формула", async () => {
-			const mdParser = await getMdParser();
-			const str = `текст $L = \\frac{1}{2} \\rho v^2 S C_L$ текст`;
-			const parsedStr = `текст {%formula content="$L = \\\\frac{1}{2} \\\\rho v^2 S C_L$" /%} текст`;
+				const testParseStr = mdParser.preParse(str);
 
-			const testParseStr = mdParser.preParse(str);
+				expect(testParseStr).toEqual(parsedStr);
+			});
 
-			expect(testParseStr).toEqual(parsedStr);
+			test("несколько подряд", async () => {
+				const mdParser = await getMdParser();
+				const str = `$E = mc^2$$$$ \\int_a^b f(x)\\,dx = F(b) - F(a) $$$$E = mc^2$`;
+				const parsedStr = `{%formula content="$E = mc^2$" /%}\${%formula content="$$ \\\\int_a^b f(x)\\\\,dx = F(b) - F(a) $$" /%}\${%formula content="$E = mc^2$" /%}`;
+
+				const testParseStr = mdParser.preParse(str);
+
+				expect(testParseStr).toEqual(parsedStr);
+			});
 		});
 
 		describe("заметки в тег Markdoc", () => {
@@ -161,7 +172,27 @@ someChildrenText
 someMoreChildrenText
 :::`;
 				const parsedStr = `
-{%note type="someType" title="someTitle" %}
+{%note type="someType" title="someTitle" collapsed="false" %}
+childrenText
+someChildrenText
+someMoreChildrenText
+{%/note%}`;
+
+				const testParseStr = mdParser.preParse(str);
+
+				expect(testParseStr).toEqual(parsedStr);
+			});
+
+			test("с типом, заголовком и в свернутом состоянии", async () => {
+				const mdParser = await getMdParser();
+				const str = `
+:::someType:true someTitle
+childrenText
+someChildrenText
+someMoreChildrenText
+:::`;
+				const parsedStr = `
+{%note type="someType" title="someTitle" collapsed="true" %}
 childrenText
 someChildrenText
 someMoreChildrenText
@@ -179,7 +210,7 @@ someMoreChildrenText
 			test
 			:::`;
 				const parsedStr = `
-			{%note type="" title="" %}
+			{%note type="" title="" collapsed="false" %}
 			test
 			{%/note%}`;
 
@@ -636,5 +667,74 @@ someMoreChildrenText
 
 			expect(testParseStr).toEqual(parsedStr);
 		});
+	});
+
+	test("таблица с пустыми строками", async () => {
+		const mdParser = await getMdParser();
+
+		const str = `
+{% table %}
+
+---
+
+*  {% isHeader=true %}
+
+   
+
+   text
+
+*  
+
+   text
+
+*  text
+
+   text
+
+---
+
+*  {% isHeader=true %}
+
+   text
+
+*  text
+
+*  
+
+{% /table %}`;
+		const parsedStr = `
+{% table %}
+
+---
+
+*  {% isHeader=true %}
+
+   
+
+   text
+
+*  \u00A0
+
+   text
+
+*  text
+
+   text
+
+---
+
+*  {% isHeader=true %}
+
+   text
+
+*  text
+
+*  \u00A0
+
+{% /table %}`;
+
+		const testParseStr = mdParser.backParse(str);
+
+		expect(testParseStr).toEqual(parsedStr);
 	});
 });

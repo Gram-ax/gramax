@@ -11,7 +11,8 @@ import RepositoryProvider from "@ext/git/core/Repository/RepositoryProvider";
 import { CatalogErrors } from "@ext/healthcheck/logic/Healthcheck";
 import IPermission from "@ext/security/logic/Permission/IPermission";
 import Permission from "@ext/security/logic/Permission/Permission";
-import SourceType from "@ext/storage/logic/SourceDataProvider/model/SourceType";
+// TEMP:
+// import SourceType from "@ext/storage/logic/SourceDataProvider/model/SourceType";
 
 type CatalogOnLoad = (catalog: Catalog) => void | Promise<void>;
 
@@ -30,7 +31,7 @@ export default class CatalogEntry {
 	protected _perms: IPermission;
 	protected _isLoad = false;
 	protected _name: string;
-	protected _repo: Repository;
+	protected _repo: Repository = {} as Repository;
 	private _rootCaterogyRef: ItemRef;
 	private _rootCaterogyPath: Path;
 	protected _basePath: Path;
@@ -73,11 +74,17 @@ export default class CatalogEntry {
 			? RouterPathProvider.parseItemLogicPath(new Path(item.logicPath)).fullPath
 			: undefined;
 		if (!this.repo.storage) return { catalogName: this.getName(), itemLogicPath };
-		const storageType = await this.repo.storage.getType();
-		const group =
-			storageType === SourceType.gitHub || storageType === SourceType.gitLab // что делать с enterprise?
-				? await (this.repo.storage as GitStorage).getGroup()
-				: undefined;
+
+		// TEMP:
+
+		// const storageType = await this.repo.storage.getType();
+
+		// const group =
+		// 	storageType === SourceType.gitHub || storageType === SourceType.gitLab // что делать с enterprise?
+		// 		? await (this.repo.storage as GitStorage).getGroup()
+		// 		: undefined;
+		const group = await (this.repo.storage as GitStorage).getGroup();
+
 		let branch: string;
 		try {
 			branch = await this.repo.gvc.getCurrentBranchName();

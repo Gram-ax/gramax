@@ -15,9 +15,11 @@ const remove: Command<{ ctx: Context; catalogName: string; path: Path }, void> =
 	middlewares: [new AuthorizeMiddleware(), new DesktopModeMiddleware(), new ReloadConfirmMiddleware()],
 
 	async do({ ctx, catalogName, path }) {
-		const { lib, parser, parserContextFactory } = this._app;
-		const catalog = await lib.getCatalog(catalogName);
-		const fp = lib.getFileProviderByCatalog(catalog);
+		const { wm, parser, parserContextFactory } = this._app;
+		const workspace = wm.current();
+
+		const catalog = await workspace.getCatalog(catalogName);
+		const fp = workspace.getFileProvider();
 		const articleParser = new ArticleParser(ctx, parser, parserContextFactory);
 		await catalog.deleteItem(fp.getItemRef(path), articleParser);
 	},

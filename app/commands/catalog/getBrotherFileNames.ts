@@ -10,9 +10,9 @@ const getBrotherFileNames: Command<{ catalogName: string }, string[]> = Command.
 
 	middlewares: [new AuthorizeMiddleware(), new DesktopModeMiddleware()],
 
-	do({ catalogName }) {
-		const { lib } = this._app;
-		return Array.from(lib.getCatalogEntries().keys()).filter((n) => n !== catalogName);
+	async do({ catalogName }) {
+		const workspace = await this._app.wm.currentOrDefault();
+		return Array.from(workspace.getCatalogEntries().keys()).filter((n) => n !== catalogName);
 	},
 
 	params(ctx, q) {

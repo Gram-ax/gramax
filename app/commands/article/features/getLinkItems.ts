@@ -13,9 +13,9 @@ const getLinkItems: Command<{ path: Path; catalogName: string }, LinkItem[]> = C
 	middlewares: [new AuthorizeMiddleware()],
 
 	async do({ catalogName, path }) {
-		const { lib } = this._app;
+		const workspace = this._app.wm.current();
 		if (!catalogName) return;
-		const catalog = await lib.getCatalog(catalogName);
+		const catalog = await workspace.getCatalog(catalogName);
 		const linkCreator = new LinkItemCreator(catalog);
 		return linkCreator.getLinkItems(path);
 	},

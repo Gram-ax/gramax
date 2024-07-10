@@ -15,10 +15,12 @@ const getRenderContent: Command<
 	kind: ResponseKind.json,
 
 	async do({ ctx, catalogName, articlePath, articleRelativePath }) {
-		const { lib, parser, parserContextFactory, sitePresenterFactory } = this._app;
+		const { parser, parserContextFactory, sitePresenterFactory, wm } = this._app;
+		const workspace = wm.current();
+
 		if (!articleRelativePath.value) return null;
 		const path = articlePath.parentDirectoryPath.join(articleRelativePath);
-		const catalog = await lib.getCatalog(catalogName);
+		const catalog = await workspace.getCatalog(catalogName);
 		const article: Article = catalog.findItemByItemPath(path);
 		if (!article) return null;
 		await parseContent(article, catalog, ctx, parser, parserContextFactory);

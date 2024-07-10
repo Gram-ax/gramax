@@ -13,8 +13,8 @@
 		"prune": "node-prune"
 	},
 	"dependencies": {
-		"@isomorphic-git/lightning-fs": "^4.6.0",
 		"jszip": "^3.10.1",
+		"memfs": "^4.9.2",
 		"wouter": "^2.11.0"
 	},
 	"devDependencies": {

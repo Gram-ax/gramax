@@ -1,8 +1,9 @@
+import MergeData from "@ext/git/actions/MergeConflictHandler/model/MergeData";
 import ApiUrlCreator from "../../../../../ui-logic/ApiServices/ApiUrlCreator";
 import FetchService from "../../../../../ui-logic/ApiServices/FetchService";
 
 let _onStartSync: () => void | Promise<void>;
-let _onFinishSync: () => void | Promise<void>;
+let _onFinishSync: (mergeData: MergeData) => void | Promise<void>;
 let _onSyncError: () => void | Promise<void>;
 
 export default class SyncService {
@@ -22,16 +23,19 @@ export default class SyncService {
 
 	public static async sync(apiUrlCreator: ApiUrlCreator, isReview: boolean) {
 		await _onStartSync?.();
-		const isOk = await SyncService._sync(apiUrlCreator, isReview);
-		if (!isOk) {
+		const { ok, mergeData } = await SyncService._sync(apiUrlCreator, isReview);
+		if (!ok) {
 			await _onSyncError?.();
 			return;
 		}
-		await _onFinishSync?.();
+		await _onFinishSync?.(mergeData);
 	}
 
-	private static async _sync(apiUrlCreator: ApiUrlCreator, isReview: boolean): Promise<boolean> {
-		const res = await FetchService.fetch<null>(apiUrlCreator.getStorageSyncUrl(!isReview));
-		return res.ok;
+	private static async _sync(
+		apiUrlCreator: ApiUrlCreator,
+		isReview: boolean,
+	): Promise<{ ok: boolean; mergeData: MergeData }> {
+		const res = await FetchService.fetch<MergeData>(apiUrlCreator.getStorageSyncUrl(!isReview));
+		return { ok: res.ok, mergeData: await res.json() };
 	}
 }

@@ -2,6 +2,7 @@ import { ResponseKind } from "@app/types/ResponseKind";
 import { AuthorizeMiddleware } from "@core/Api/middleware/AuthorizeMiddleware";
 import ReloadConfirmMiddleware from "@core/Api/middleware/ReloadConfirmMiddleware";
 import Path from "@core/FileProvider/Path/Path";
+import GitStorageData from "@ext/git/core/model/GitStorageData";
 import StorageData from "@ext/storage/models/StorageData";
 import { Command } from "../../types/Command";
 
@@ -13,14 +14,22 @@ const clone: Command<{ path: Path; data: StorageData; recursive?: boolean; branc
 	middlewares: [new AuthorizeMiddleware(), new ReloadConfirmMiddleware()],
 
 	async do({ path, data, recursive, branch }) {
-		const { lib, rp } = this._app;
+		const workspace = await this._app.wm.currentOrDefault();
+		const { rp } = this._app;
 
-		const fs = lib.getFileStructure();
-		const fp = lib.getFileProvider();
-		await rp.cloneNewRepository(fp, path, data, recursive, branch);
+		const fs = workspace.getFileStructure();
+		const fp = workspace.getFileProvider();
+		await rp.cloneNewRepository(
+			fp,
+			path,
+			data as GitStorageData,
+			this._app.conf.services.auth.url,
+			recursive,
+			branch,
+		);
 		const entry = await fs.getCatalogEntryByPath(path);
 		const catalog = await entry.load();
-		await lib.addCatalog(catalog);
+		await workspace.addCatalog(catalog);
 		return await catalog.getPathname();
 	},
 

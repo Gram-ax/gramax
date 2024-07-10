@@ -12,12 +12,12 @@ interface CommentProps {
 	element: HTMLElement;
 	onDelete: () => void;
 	onUpdate: (commentBlock: CommentBlock) => void;
-	onCreateComment: (content: JSONContent[]) => void;
+	onConfirm: (content: JSONContent[]) => void;
 	className?: string;
 }
 
 const Comment = (props: CommentProps) => {
-	const { mark, element, onDelete, onUpdate, onCreateComment, className } = props;
+	const { mark, element, onDelete, onUpdate, onConfirm, className } = props;
 
 	useEffect(() => {
 		element.style.color = "var(--color-comment-active-text)";
@@ -28,9 +28,9 @@ const Comment = (props: CommentProps) => {
 		};
 	}, [mark?.attrs?.count]);
 
-	if (mark.attrs?.comment) {
+	if (mark?.attrs?.comment) {
 		return (
-			<div className={className}>
+			<div className={className} data-comment={true}>
 				<CommentBlockComponent
 					maxHeight="50vh"
 					commentBlock={mark.attrs as any}
@@ -46,10 +46,9 @@ const Comment = (props: CommentProps) => {
 			<div className="add-input" data-qa="qa-add-comment">
 				<Input
 					onCancel={onDelete}
-					onConfirm={onCreateComment}
+					onConfirm={onConfirm}
 					placeholder={useLocalize("leaveAComment")}
 					confirmButtonText={useLocalize("comment")}
-					onCreate={({ editor }) => editor.commands.focus()}
 				/>
 			</div>
 		</div>
@@ -58,12 +57,12 @@ const Comment = (props: CommentProps) => {
 
 export default styled(Comment)`
 	z-index: 1;
+	transition: all var(--transition-time) ease-in-out;
 	border-radius: var(--radius-normal);
 	background: var(--color-comments-bg);
 	box-shadow: var(--comment-tooltip-shadow);
 
 	.add-input {
-		width: 500px;
-		padding: 1rem 0 1rem 1rem;
+		padding: 1em;
 	}
 `;

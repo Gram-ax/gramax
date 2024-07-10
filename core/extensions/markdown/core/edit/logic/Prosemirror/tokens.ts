@@ -16,10 +16,12 @@ import linkToken from "../../../../elements/link/edit/model/linkToken";
 import video from "../../../../elements/video/edit/model/videoToken";
 import ParserContext from "../../../Parser/ParserContext/ParserContext";
 
+import noteToken from "@ext/markdown/elements/note/edit/model/noteToken";
 import snippetToken from "@ext/markdown/elements/snippet/edit/model/snippetToken";
 import tabToken from "@ext/markdown/elements/tabs/edit/model/tab/tabToken";
 import tabsToken from "@ext/markdown/elements/tabs/edit/model/tabs/tabsToken";
 import { ParseSpec } from "./from_markdown";
+import iconToken from "@ext/markdown/elements/icon/edit/model/iconToken";
 
 function listIsTight(tokens, i) {
 	while (++i < tokens.length) if (tokens[i].type != "list_item_open") return tokens[i].hidden;
@@ -31,6 +33,7 @@ const getTokensByContext = (context?: ParserContext): { [name: string]: ParseSpe
 		link: linkToken(context),
 		comment: commentToken(context),
 		snippet: snippetToken(context),
+		icon: iconToken(context),
 	};
 };
 
@@ -38,6 +41,7 @@ export const getTokens = (context?: ParserContext): { [name: string]: ParseSpec 
 	const contextTokens = context ? getTokensByContext(context) : {};
 	return {
 		tab: tabToken,
+		note: noteToken,
 		tabs: tabsToken,
 		image: imageToken(),
 		drawio: drawioToken(),
@@ -57,7 +61,6 @@ export const getTokens = (context?: ParserContext): { [name: string]: ParseSpec 
 				return { ...tok.attrs, isInline: false };
 			},
 		},
-		note: { block: "note", getAttrs: (tok) => tok.attrs },
 
 		blockMd: { block: "blockMd" },
 		table: { block: "table" },

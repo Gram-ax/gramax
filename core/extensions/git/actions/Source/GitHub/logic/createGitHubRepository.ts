@@ -1,7 +1,7 @@
-import GitStorageData from "../../../../core/model/GitStorageData";
+import GithubStorageData from "@ext/git/actions/Source/GitHub/model/GithubStorageData";
 
-async function createGitHubRepository(storageData: GitStorageData) {
-	const url = `https://api.github.com/user/repos`;
+async function createGitHubRepository(storageData: GithubStorageData) {
+	const url = `https://api.github.com/${storageData.type === "User" ? "user" : `orgs/${storageData.group}`}/repos`;
 	const data = { name: storageData.name, private: true };
 
 	const response = await fetch(url, {
@@ -12,7 +12,7 @@ async function createGitHubRepository(storageData: GitStorageData) {
 
 	if (!response.ok) {
 		const errorData = await response.json();
-		new Error(`Не удалось создать репозиторий. ${errorData}`);
+		throw new Error(`Не удалось создать репозиторий. ${errorData}`);
 	}
 }
 

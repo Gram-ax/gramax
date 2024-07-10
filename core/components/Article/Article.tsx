@@ -2,31 +2,34 @@ import FetchService from "@core-ui/ApiServices/FetchService";
 import MimeTypes from "@core-ui/ApiServices/Types/MimeTypes";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import ArticlePropsService from "@core-ui/ContextServices/ArticleProps";
-import ArticleRefService from "@core-ui/ContextServices/ArticleRef";
 import debounceFunction from "@core-ui/debounceFunction";
 import { useCtrlKeyLinkHandler } from "@core-ui/hooks/useCtrlKeyLinkHandler";
+import useScrollToArticleAnchor from "@core-ui/hooks/useScrollToArticleAnchor";
 import { ArticlePageData } from "@core/SitePresenter/SitePresenter";
-import imageHandlePaste from "@ext/markdown/elements/image/edit/logic/imageHandlePaste";
 import FocusService from "@ext/markdown/elementsUtils/ContextServices/FocusService";
 import getTocItems, { getLevelTocItemsByJSONContent } from "@ext/navigation/article/logic/createTocItems";
 import { Editor } from "@tiptap/core";
-import { EditorView } from "prosemirror-view";
 import { useEffect, useState } from "react";
 import ArticleRenderer from "./ArticleRenderer";
 import ArticleTitle from "./ArticleTitle";
 import ArticleUpdater from "./ArticleUpdater/ArticleUpdater";
+import { EditorView } from "prosemirror-view";
+import imageHandlePaste from "@ext/markdown/elements/image/edit/logic/imageHandlePaste";
+import { pasteArticleResource } from "@ext/markdown/elements/copyArticles/copyPasteArticleResource";
 
 const ARTICLE_UPDATE_SYMBOL = Symbol();
 
 const Article = ({ data }: { data: ArticlePageData }) => {
-	const articleRef = ArticleRefService.value;
+	// const articleRef = ArticleRefService.value;
 	const articleProps = ArticlePropsService.value;
 	const apiUrlCreator = ApiUrlCreatorService.value;
 
 	const [actualData, setActualData] = useState(data);
-	const [scrollPosition, setScrollPosition] = useState(0);
+	// const [scrollPosition, setScrollPosition] = useState(0);
 
 	useCtrlKeyLinkHandler(); // Для открытия ссылок в tauri
+
+	useScrollToArticleAnchor(data); // Для скрола до заголовка в статье
 
 	useEffect(() => {
 		setActualData(data);
@@ -35,17 +38,19 @@ const Article = ({ data }: { data: ArticlePageData }) => {
 
 	const onUpdate = (newData: ArticlePageData) => {
 		setActualData(newData);
-		setScrollPosition(articleRef?.current?.scrollTop ?? 0);
+		// setScrollPosition(articleRef?.current?.scrollTop ?? 0);
 		ArticlePropsService.set(newData.articleProps);
 	};
 
 	const onCreate = () => {
-		if (!articleRef?.current) return;
-		setTimeout(() => articleRef.current?.scrollTo({ top: scrollPosition, behavior: "auto" }), 50);
+		// if (!articleRef?.current) return;
+		// setTimeout(() => articleRef.current?.scrollTo({ top: scrollPosition, behavior: "auto" }), 50);
 	};
 
 	const handlePaste = (view: EditorView, event: ClipboardEvent) => {
-		return imageHandlePaste(view, event, articleProps, apiUrlCreator);
+		if (event.clipboardData.files.length !== 0) return imageHandlePaste(view, event, articleProps, apiUrlCreator);
+
+		return pasteArticleResource(view, event, articleProps, apiUrlCreator);
 	};
 
 	const onBlur = () => {

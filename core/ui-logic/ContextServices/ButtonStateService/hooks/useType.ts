@@ -3,7 +3,7 @@ import { Mark } from "@tiptap/pm/model";
 import { useEffect, useRef, useState } from "react";
 import { Attrs, Mark as MarkType, NodeType } from "./types";
 
-const markList: MarkType[] = ["link", "strong", "em", "code", "file", "comment"];
+const markList: MarkType[] = ["link", "strong", "em", "code", "file", "comment", "s"];
 
 type State = { actions: NodeType[]; marks: MarkType[]; attrs: Attrs };
 

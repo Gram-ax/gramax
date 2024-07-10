@@ -11,6 +11,7 @@ import getFocusMark from "../../../../elementsUtils/getFocusMark";
 import getMarkPosition from "../../../../elementsUtils/getMarkPosition";
 import BaseMark from "../../../../elementsUtils/prosemirrorPlugins/BaseMark";
 import LinkMenu from "../components/LinkMenu";
+import LinkTitleContextService from "@core-ui/ContextServices/LinkTitleTooltip";
 
 class LinkFocusTooltip extends BaseMark {
 	private _itemLinks: LinkItem[];
@@ -41,20 +42,27 @@ class LinkFocusTooltip extends BaseMark {
 		this._setTooltipPosition(element);
 
 		this._setComponent(
-			<LinkMenu
-				focusOnMount={this._lastInputMethod === "mouse"}
-				href={this._getHref(mark)}
-				closeMenu={() => this._closeComponent()}
-				value={this._getValue(mark)}
-				itemLinks={this._itemLinks}
-				onDelete={() => this._delete(markPosition)}
-				onUpdate={(v, href) => {
-					this._update(v, href, markPosition);
-					this._removeComponent();
-				}}
-			/>,
+			<LinkTitleContextService.Provider apiUrlCreator={this._apiUrlCreator}>
+				<LinkMenu
+					focusOnMount={this._lastInputMethod === "mouse"}
+					href={this._getHref(mark)}
+					closeMenu={() => this._closeComponent()}
+					value={this._getValue(mark)}
+					itemLinks={this._itemLinks}
+					onDelete={() => this._delete(markPosition)}
+					onUpdate={(v, href) => {
+						this._update(v, href, markPosition);
+						this._removeComponent();
+					}}
+				/>
+			</LinkTitleContextService.Provider>,
 		);
 	}
+
+	static getLinkToHeading = (href: string) => {
+		const regex = /^(.*?)(#.+)$/;
+		return href.match(regex);
+	};
 
 	private _getHref(mark: Mark) {
 		const { attrs } = mark;
@@ -84,11 +92,14 @@ class LinkFocusTooltip extends BaseMark {
 		const transaction = this._editor.state.tr;
 		transaction.removeMark(from, to, mark);
 		const hashHatch = this._getHashHatch(href);
+
 		if (hashHatch) {
 			href = hashHatch[1];
 			hash = hashHatch?.[2] ?? "";
 		}
+
 		mark.attrs = { ...mark.attrs, resourcePath: href, hash, newHref };
+
 		transaction.addMark(from, to, mark);
 		this._editor.view.dispatch(transaction);
 	}
@@ -107,7 +118,7 @@ class LinkFocusTooltip extends BaseMark {
 	protected _setTooltipPosition = (element: HTMLElement) => {
 		const distance = 0;
 		const tooltipWidth = 300;
-		const domReact = this._view.dom.getBoundingClientRect();
+		const domReact = this._view.dom.parentElement.getBoundingClientRect();
 		const rect = element.getBoundingClientRect();
 		const left = rect.left - domReact.left;
 		this._tooltip.style.top = rect.top - domReact.top + rect.height + distance + "px";

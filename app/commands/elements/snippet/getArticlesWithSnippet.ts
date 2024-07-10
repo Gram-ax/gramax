@@ -15,8 +15,10 @@ const getArticlesWithSnippet: Command<
 	middlewares: [new DesktopModeMiddleware(), new ReloadConfirmMiddleware()],
 
 	async do({ catalogName, snippetId, ctx }) {
-		const { lib, sitePresenterFactory } = this._app;
-		const catalog = await lib.getCatalog(catalogName);
+		const { wm, sitePresenterFactory } = this._app;
+		const workspace = wm.current();
+
+		const catalog = await workspace.getCatalog(catalogName);
 		if (!catalog) return;
 		const sp = sitePresenterFactory.fromContext(ctx);
 		const items = await catalog.snippetProvider.getArticlesWithSnippet(snippetId, sp);

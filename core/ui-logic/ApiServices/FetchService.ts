@@ -1,6 +1,8 @@
 import resolveModule from "@app/resolveModule/frontend";
-import CommandErrors from "@app/types/CommandErrors";
+import trimRoutePrefix from "@core-ui/ApiServices/trimRoutePrefix";
 import DefaultError from "@ext/errorHandlers/logic/DefaultError";
+import Language from "@ext/localization/core/model/Language";
+import useLocalize from "@ext/localization/useLocalize";
 import FetchResponse from "./Types/FetchResponse";
 import Method from "./Types/Method";
 import MimeTypes from "./Types/MimeTypes";
@@ -19,10 +21,13 @@ const FetchService = {
 
 		let error: any;
 		if (res.status === 404) {
-			error = new DefaultError(null, error, {
-				errorCode: CommandErrors.CommandNotFound,
-				commandPath: url.toString(),
-			});
+			error = new DefaultError(
+				`${useLocalize("command", Language.ru)} "${trimRoutePrefix(url)}" ${useLocalize(
+					"notFound2",
+					Language.ru,
+				).toLowerCase()}`,
+				error,
+			);
 		} else {
 			try {
 				error = await res?.json();

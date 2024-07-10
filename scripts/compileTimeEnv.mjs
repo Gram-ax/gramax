@@ -1,15 +1,16 @@
+/* global process */
 import child_process from "child_process";
 const { execSync } = child_process;
 
 const env = {
 	GRAMAX_VERSION: null,
+	BUILD_VERSION: null,
 	BUGSNAG_API_KEY: null,
 	PRODUCTION: null,
 	SERVER_APP: null,
 	SSO_SERVICE_URL: null,
 	SSO_SERVICE_PUBLIC_KEY: null,
 	BUGSNAG_CLIENT_KEY: null,
-	BUGSNAG_SERVER_KEY: null,
 	BRANCH: null,
 	COOKIE_SECRET: null,
 	SHARE_ACCESS_TOKEN: null,
@@ -24,12 +25,21 @@ if (!process.env.COOKIE_SECRET) console.warn("WARNING: You need to set COOKIE_SE
 
 const getBuiltInVariables = () => Object.keys(env).reduce((obj, x) => ({ ...obj, [x]: process.env[x] ?? env[x] }), {});
 
-const setVersion = (platform) => {
+const getVersionData = () => {
 	const commitCount = execSync('git rev-list --count --date=local --after="$(date +"%Y-%m-01T00:00:00")" HEAD', {
 		shell: "bash",
 	});
 	const currentDate = execSync("date +%Y.%-m.%-d", { shell: "bash" });
-	process.env.GRAMAX_VERSION = `${currentDate}-${platform}.${commitCount}`.replace("\n", "");
+	return { commitCount, currentDate };
+};
+const setVersion = (platform) => {
+	const { commitCount, currentDate } = getVersionData();
+	process.env.GRAMAX_VERSION = `${currentDate}-${platform}.${commitCount}`.replaceAll("\n", "");
 };
 
-export default { getBuiltInVariables, setVersion };
+const setBuildVersion = (platform) => {
+	const { commitCount, currentDate } = getVersionData();
+	process.env.BUILD_VERSION = `${currentDate}-${platform}.${commitCount}`.replaceAll("\n", "");
+};
+
+export default { getBuiltInVariables, setVersion, setBuildVersion };

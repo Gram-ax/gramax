@@ -7,7 +7,6 @@ mod macros;
 
 use std::alloc::Layout;
 use std::ffi::*;
-use std::mem::align_of;
 
 use log::info;
 
@@ -43,6 +42,9 @@ impl<E: serde::Serialize> From<Result<Vec<u8>, E>> for Buffer {
 
 impl From<Vec<u8>> for Buffer {
   fn from(value: Vec<u8>) -> Self {
+    if value.len() == 0 {
+      return Self::null();
+    }
     Self { len: value.len(), ptr: value.leak().as_ptr(), err: false }
   }
 }
@@ -73,10 +75,10 @@ pub unsafe extern "C" fn main() -> i32 {
 
 #[no_mangle]
 pub unsafe extern "C" fn ralloc(len: usize) -> *mut u8 {
-  std::alloc::alloc(Layout::from_size_align_unchecked(len, align_of::<u8>()))
+  std::alloc::alloc(Layout::from_size_align_unchecked(len, 4))
 }
 
 #[no_mangle]
 pub unsafe extern "C" fn rfree(ptr: *mut c_void, len: usize) {
-  std::alloc::dealloc(ptr.cast(), Layout::from_size_align_unchecked(len, align_of::<u8>()));
+  std::alloc::dealloc(ptr.cast(), Layout::from_size_align_unchecked(len, 4));
 }

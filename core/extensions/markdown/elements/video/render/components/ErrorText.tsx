@@ -19,7 +19,7 @@ const ErrorText = ({ isLink, isNoneError, link }: { isLink: boolean; isNoneError
 				{isNoneError ? (
 					<>
 						Из каких источников можно добавлять ссылки на видео читайте
-						<Anchor href={"https://gram.ax/resources/docs/faq"}> в статье</Anchor>.
+						<Anchor href={"https://gram.ax/resources/docs/key-functions/files#видео"}> в статье</Anchor>.
 					</>
 				) : isLink ? (
 					"Убедитесь, что в хранилище для ссылки/видео нет ограничений к доступу на просмотр."
@@ -27,7 +27,7 @@ const ErrorText = ({ isLink, isNoneError, link }: { isLink: boolean; isNoneError
 					<>
 						Убедитесь, что видео есть в соответствующей папке в SharePoint. Куда нужно поместить файл
 						читайте
-						<Anchor href="https://gram.ax/resources/docs/faq"> здесь</Anchor>.
+						<Anchor href="https://gram.ax/resources/docs/key-functions/files#видео"> здесь</Anchor>.
 					</>
 				)}
 			</li>

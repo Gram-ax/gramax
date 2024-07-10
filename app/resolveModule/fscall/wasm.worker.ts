@@ -8,7 +8,7 @@ const RAW_BYTES_COMMANDS = ["read_file"];
 export const callInternal = async <O>(command: string, args?: any): Promise<O> => {
 	let ptr = [0, 0];
 	if (command == "write_file") {
-		const buf = new Uint8Array(args.content as Array<number>);
+		const buf = new Uint8Array(typeof args.content == "string" ? Buffer.from(args.content) : args.content);
 		ptr = await str2ptr(
 			JSON.stringify({
 				path: args.path,
@@ -32,6 +32,7 @@ export const callInternal = async <O>(command: string, args?: any): Promise<O> =
 		if (!str_res.ok) throw str_res?.buf;
 		return str_res.buf && JSON.parse(str_res.buf);
 	} catch (err) {
+		console.error(`git-command ${command} ${JSON.stringify(args, null, 4)} returned an error`);
 		return typeof err == "string" ? JSON.parse(err) : err;
 	}
 };

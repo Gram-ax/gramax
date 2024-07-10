@@ -1,7 +1,7 @@
 import { ItemRef } from "@core/FileStructue/Item/ItemRef";
 import yaml from "js-yaml";
 import MarkdownParser from "../../../extensions/markdown/core/Parser/Parser";
-import Library from "../../Library/Library";
+import type WorkspaceManager from "@ext/workspace/WorkspaceManager";
 
 export type LocalizedString = { [lang: string]: string; default: string };
 
@@ -49,9 +49,9 @@ export class TableDB {
 	private _tables: Map<string, Table[]> = new Map();
 	private _parseToHtml: (content: string) => Promise<string>;
 
-	constructor(parser: MarkdownParser, private _lib: Library) {
+	constructor(parser: MarkdownParser, private _wm: WorkspaceManager) {
 		this._parseToHtml = parser.parseToHtml.bind(parser);
-		this._lib.addOnChangeRule(this._onChange.bind(this));
+		this._wm.addOnChangeRule(this._onChange.bind(this));
 	}
 
 	private _onChange(): void {
@@ -110,7 +110,7 @@ export class TableDB {
 	}
 
 	async readSchema(ref: ItemRef): Promise<Table[]> {
-		const fp = this._lib.getFileProvider(ref.storageId);
+		const fp = this._wm.current().getFileProvider();
 		const file = yaml.load(await fp.read(ref.path));
 
 		if (!file) throw new Error(`Ошибка при отображении элемента. Не найден файл схемы по пути: "${ref.path}"`);
@@ -208,7 +208,7 @@ export class TableDB {
 	}
 
 	async readDiagram(ref: ItemRef): Promise<Diagram> {
-		const fp = this._lib.getFileProvider(ref.storageId);
+		const fp = this._wm.current().getFileProvider();
 		const file = await fp.read(ref.path);
 		if (!file) return null;
 		const diagram = yaml.load(file) as Diagram;

@@ -38,7 +38,7 @@ const SnippetAlreadyUseWarn = ({
 						onClick: onDelete,
 						text: `${useLocalize("delete")} ${useLocalize("snippet").toLowerCase()}`,
 					}}
-					isError={false}
+					isWarning={true}
 				>
 					<div className="article">
 						<p>{useLocalize("deleteSnippetDesc")}.</p>

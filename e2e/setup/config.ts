@@ -15,6 +15,11 @@ export default {
 	url: addr("http://localhost:5173"),
 	launch: {
 		devtools: false,
-		args: ["--disable-web-security", "--headless=new", "--disable-features=IsolateOrigins,site-per-process"],
+		headless: !ci(true),
+		args: [
+			"--disable-web-security",
+			"--disable-features=IsolateOrigins,site-per-process",
+			!ci(true) ? "--headless=new" : "",
+		],
 	} as LaunchOptions,
 };

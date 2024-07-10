@@ -20,10 +20,10 @@ const UserCircle = styled(({ name, className }: { name: string; className?: stri
 		</div>
 	);
 })`
-	width: 39px;
-	height: 39px;
+	width: 2.4em;
+	height: 2.4em;
 	display: flex;
-	font-size: 15px;
+	font-size: 1em;
 	font-weight: 500;
 	align-items: center;
 	border-radius: 3rem;

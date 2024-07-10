@@ -1,24 +1,23 @@
 import ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
-import { arrayBufferToBase64 } from "@core-ui/Base64Converter";
 import { EditorView } from "prosemirror-view";
 import Path from "../../../../../../logic/FileProvider/Path/Path";
 import FetchService from "../../../../../../ui-logic/ApiServices/FetchService";
 import MimeTypes from "../../../../../../ui-logic/ApiServices/Types/MimeTypes";
 import fileNameUtils from "../../../../../../ui-logic/fileNameUtils";
-import getArticleResourceNames from "../../../../elementsUtils/AtricleResource/getAtricleResourceNames";
+import getArticleFileBrotherNames from "../../../../elementsUtils/AtricleResource/getAtricleResourceNames";
 
 const createFile = async (files: File[], view: EditorView, apiUrlCreator: ApiUrlCreator) => {
 	files = files.filter((f) => f);
 	if (!files.length) return;
-	const names = await getArticleResourceNames(apiUrlCreator);
+	const names = await getArticleFileBrotherNames(apiUrlCreator);
 
 	for (const file of files) {
 		const filePath = new Path(file.name);
 		const newName = fileNameUtils.getNewName(names, filePath.name, filePath.extension);
 
 		const res = await FetchService.fetch(
-			apiUrlCreator.setArticleResource(newName, true),
-			arrayBufferToBase64(await file.arrayBuffer()),
+			apiUrlCreator.setArticleResource(newName),
+			await file.arrayBuffer(),
 			MimeTypes[filePath.extension] ?? filePath.extension,
 		);
 

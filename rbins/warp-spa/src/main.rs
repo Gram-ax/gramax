@@ -22,7 +22,11 @@ async fn main() {
   h.insert(HeaderName::from_static("cross-origin-embedder-policy"), HeaderValue::from_static("require-corp"));
   let additional_cors = warp::filters::reply::headers(h);
 
-  let service = warp::fs::dir(path.clone()).or(warp::fs::file(index_file)).with(additional_cors);
+  // let log = warp::log::custom(|info| {
+  //   println!("[WARP][INFO]: {} {} {} {:#?}", info.method(), info.path(), info.status(), info.elapsed());
+  // });
+
+  let service = warp::fs::dir(path.clone()).or(warp::fs::file(index_file)).with(additional_cors); // .with(log);
 
   println!("warp started at: http://localhost:{} (listening 0.0.0.0)", port);
   println!("serving files at: {}", std::env::current_dir().unwrap().join(path).display());

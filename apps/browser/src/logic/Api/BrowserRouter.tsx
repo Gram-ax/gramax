@@ -29,6 +29,10 @@ export default class BrowserRouter extends Router {
 		return this._route;
 	}
 
+	get hash(): string {
+		return encodeURI(window.location.hash ?? "");
+	}
+
 	pushQuery(query: Query) {
 		this._setPath(Url.fromBasePath("", this._route, query).toString());
 		return this;

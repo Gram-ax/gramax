@@ -1,4 +1,7 @@
+import resolveModule from "@app/resolveModule/frontend";
 import Welcome from "@components/Welcome";
+import FetchService from "@core-ui/ApiServices/FetchService";
+import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import IsReadOnlyHOC from "@core-ui/HigherOrderComponent/IsReadOnlyHOC";
 import styled from "@emotion/styled";
@@ -11,6 +14,8 @@ import Icon from "../Atoms/Icon";
 
 const NoneGroups = (props: HTMLAttributes<HTMLDivElement>) => {
 	const isReadOnly = PageDataContextService.value.conf.isReadOnly;
+	const apiUrlCreator = ApiUrlCreatorService.value;
+	const hasWorkspace = !!PageDataContextService.value.workspace.current;
 
 	return (
 		<div {...props}>
@@ -27,6 +32,26 @@ const NoneGroups = (props: HTMLAttributes<HTMLDivElement>) => {
 									__html: useLocalize("addCatalogOptions"),
 								}}
 							/>
+							{!hasWorkspace && (
+								<p>
+									<span>{useLocalize("selectWorkspace")}</span>
+									<code>{PageDataContextService.value.workspace.defaultPath}</code>
+									<span>
+										&nbsp;
+										<a
+											href="#"
+											onClick={async () => {
+												const path = await resolveModule("openDirectory")();
+												if (!path) return;
+												await FetchService.fetch(apiUrlCreator.setDefaultPath(path));
+												await refreshPage();
+											}}
+										>
+											{useLocalize("edit3")}
+										</a>
+									</span>
+								</p>
+							)}
 						</>
 					)
 				}
@@ -36,7 +61,7 @@ const NoneGroups = (props: HTMLAttributes<HTMLDivElement>) => {
 							<CreateCatalog
 								trigger={
 									<Button>
-										<Icon code="plus" viewBox="3 3 18 18"/>
+										<Icon code="plus" viewBox="3 3 18 18" />
 										<span>{useLocalize("createNew")}</span>
 									</Button>
 								}
@@ -46,13 +71,22 @@ const NoneGroups = (props: HTMLAttributes<HTMLDivElement>) => {
 							trigger={
 								<Button>
 									<Icon code="cloud-download" />
-									<span>
-										{`${useLocalize("load")}`}
-										<IsReadOnlyHOC>{` ${useLocalize("existing")}`}</IsReadOnlyHOC>
-									</span>
+									<span>{`${useLocalize("load")}`}</span>
 								</Button>
 							}
+							forClone={true}
 						/>
+						<IsReadOnlyHOC>
+							<Clone
+								trigger={
+									<Button>
+										<Icon code="import" />
+										<span>{`${useLocalize("import")}`}</span>
+									</Button>
+								}
+								forClone={false}
+							/>
+						</IsReadOnlyHOC>
 					</>
 				}
 			/>
@@ -61,6 +95,7 @@ const NoneGroups = (props: HTMLAttributes<HTMLDivElement>) => {
 };
 
 export const NoneGroupsStyled = styled(NoneGroups)`
+	margin: auto 0;
 	height: inherit;
 	width: inherit;
 	display: flex;
@@ -68,10 +103,10 @@ export const NoneGroupsStyled = styled(NoneGroups)`
 	justify-content: center;
 `;
 // `
-	// flex: 1;
-	// display: flex;
-	// align-items: center;
-	// flex-direction: column;
+// flex: 1;
+// display: flex;
+// align-items: center;
+// flex-direction: column;
 
 // 	> div {
 // 		width: 45rem;

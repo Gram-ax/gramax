@@ -18,6 +18,7 @@ const getCommentFormatter = (context?: ParserContext): MarkSerializerSpec => {
 			if (!mark.attrs?.comment) return "";
 			return "[/comment]";
 		},
+		mixable: true,
 	};
 };
 

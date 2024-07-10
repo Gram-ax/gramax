@@ -4,6 +4,7 @@ import Icon from "@components/Atoms/Icon";
 import SpinnerLoader from "@components/Atoms/SpinnerLoader";
 import { parserQuery } from "@core/Api/Query";
 import { waitForTempToken } from "@ext/git/actions/Source/tempToken";
+import User2 from "@ext/security/components/User/User2";
 import { useEffect, useState } from "react";
 import createChildWindow from "../../../../../../ui-logic/ChildWindow/createChildWindow";
 import PageDataContextService from "../../../../../../ui-logic/ContextServices/PageDataContext";
@@ -11,7 +12,6 @@ import useLocalize from "../../../../../localization/useLocalize";
 import SourceType from "../../../../../storage/logic/SourceDataProvider/model/SourceType";
 import { makeSourceApi } from "../../makeSourceApi";
 import GitHubSourceData from "../logic/GitHubSourceData";
-import GitHubUser from "./GitHubUser";
 
 const CreateGitHubSourceData = ({ onSubmit }: { onSubmit?: (editProps: GitHubSourceData) => void }) => {
 	const page = PageDataContextService.value;
@@ -38,7 +38,7 @@ const CreateGitHubSourceData = ({ onSubmit }: { onSubmit?: (editProps: GitHubSou
 					<div className="input-lable">
 						{user ? (
 							<div className="input-lable">
-								<GitHubUser {...user} />
+								<User2 {...user} />
 							</div>
 						) : (
 							<SpinnerLoader height={25} width={25} lineWidth={2} />
@@ -58,7 +58,7 @@ const CreateGitHubSourceData = ({ onSubmit }: { onSubmit?: (editProps: GitHubSou
 								(location) => setToken(parserQuery(location.search)),
 							);
 
-							if (getExecutingEnvironment() == "browser") setToken(parserQuery(await waitForTempToken()));
+							if (getExecutingEnvironment() !== "tauri") setToken(parserQuery(await waitForTempToken()));
 						}}
 					>
 						<div>

@@ -5,12 +5,12 @@ import { NavRules } from "@ext/navigation/catalog/main/logic/Navigation";
 import Rules from "@ext/rules/Rule";
 
 export default class HiddenRules implements Rules {
-	constructor(private _сustomArticlePresenter?: CustomArticlePresenter) {}
+	constructor(private _customArticlePresenter?: CustomArticlePresenter) {}
 
 	getItemFilter(): ItemFilter {
 		const rule: ItemFilter = this._check.bind(this);
-		if (this._сustomArticlePresenter) {
-			(rule as any).errorArticle = this._сustomArticlePresenter.getArticle("404");
+		if (this._customArticlePresenter) {
+			(rule as any).errorArticle = this._customArticlePresenter.getArticle("Article404");
 		}
 		return rule;
 	}

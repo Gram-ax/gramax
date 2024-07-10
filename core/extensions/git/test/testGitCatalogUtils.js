@@ -24,13 +24,15 @@ const testGitCatalogUtils = {
 		);
 	},
 	removeGit: () => {
-		fs.rmSync(join(TEST_GIT_CATALOG_PATH, ".git"), { recursive: true, force: true, maxRetries: 5 });
+		const gitDir = join(TEST_GIT_CATALOG_PATH, ".git");
+		if (fs.existsSync(gitDir)) fs.rmSync(gitDir, { recursive: true, force: true, maxRetries: 5 });
 		// fs.rmSync(join(TEST_GIT_CATALOG_PATH, "submoduleDocs", ".git"), {
 		// 	recursive: true,
 		// 	force: true,
 		// 	maxRetries: 5,
 		// });
-		fs.unlinkSync(join(TEST_GIT_CATALOG_PATH, ".gitignore"));
+		const gitIgnoreDir = join(TEST_GIT_CATALOG_PATH, ".gitignore");
+		if (fs.existsSync(gitIgnoreDir)) fs.unlinkSync(gitIgnoreDir);
 		// fs.unlinkSync(join(TEST_GIT_CATALOG_PATH, "submoduleDocs", ".gitignore"));
 	},
 };

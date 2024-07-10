@@ -3,7 +3,8 @@ import useLocalize from "@ext/localization/useLocalize";
 import { FocusPositionContext } from "@ext/markdown/core/edit/components/ContextWrapper";
 import TabAttrs from "@ext/markdown/elements/tabs/model/TabAttrs";
 import Tabs from "@ext/markdown/elements/tabs/render/component/Tabs";
-import { JSONContent, NodeViewContent, NodeViewProps, NodeViewWrapper } from "@tiptap/react";
+import { TextSelection } from "@tiptap/pm/state";
+import { NodeViewContent, NodeViewProps, NodeViewWrapper } from "@tiptap/react";
 import { ReactElement, useCallback, useContext, useEffect, useState } from "react";
 
 const EditTabs = ({
@@ -26,7 +27,7 @@ const EditTabs = ({
 	const onNameUpdate = useCallback(
 		(value: string, idx: number) => {
 			const childAttrs: TabAttrs[] = node.attrs.childAttrs.map((a) => ({ ...a }));
-			childAttrs[idx].name = value;
+			childAttrs[idx].name = value.replace("\n", "");
 			updateAttributes({ childAttrs });
 		},
 		[node],
@@ -54,6 +55,27 @@ const EditTabs = ({
 		editor.commands.focus(getPos() + offset + child.nodeSize);
 	};
 
+	const updateChildAttrs = (removeIdx: number, childAttrs: TabAttrs[]) => {
+		const tr = editor.view.state.tr;
+		tr.setNodeAttribute(getPos(), "childAttrs", childAttrs);
+
+		let childPos = getPos() + 1;
+		let offset = 0;
+		for (let i = 0; i < node.childCount; i++) {
+			const child = node.child(i);
+			if (i === removeIdx) {
+				tr.delete(childPos, childPos + child.nodeSize);
+				offset += 1;
+			} else {
+				tr.setNodeAttribute(childPos, "idx", i === 0 ? 0 : i - offset);
+				childPos += child.nodeSize;
+			}
+		}
+
+		tr.setSelection(TextSelection.create(tr.doc, getPos() + node.firstChild.nodeSize - 1));
+		editor.view.dispatch(tr);
+	};
+
 	const onRemoveClick = useCallback(
 		(removeIdx: number) => {
 			const childAttrs: TabAttrs[] = node.attrs.childAttrs
@@ -61,28 +83,8 @@ const EditTabs = ({
 				.filter((a) => a.idx !== removeIdx);
 			childAttrs.forEach((attrs, idx) => (attrs.idx = idx));
 
-			const json: JSONContent = node.toJSON();
-			json.attrs = { childAttrs };
-			json.content = json.content
-				.filter((node) => node.attrs.idx !== removeIdx)
-				.map((node, idx) => {
-					node.attrs.idx = idx;
-					return node;
-				});
-
-			if (json.content.length == 0) editor.commands.deleteNode(node.type);
-			else {
-				editor
-					.chain()
-					.deleteNode(node.type)
-					.focus(getPos() - 1)
-					.run();
-				editor
-					.chain()
-					.insertContent(json)
-					.focus(getPos() - 1)
-					.run();
-			}
+			if (childAttrs.length === 0) editor.commands.deleteNode(node.type);
+			else updateChildAttrs(removeIdx, childAttrs);
 		},
 		[node],
 	);

@@ -1,7 +1,6 @@
 import { ResponseKind } from "@app/types/ResponseKind";
 import MimeTypes from "@core-ui/ApiServices/Types/MimeTypes";
 import DbDiagram from "@core-ui/DbDiagram";
-import { MainMiddleware } from "@core/Api/middleware/MainMiddleware";
 import Context from "@core/Context/Context";
 import Path from "@core/FileProvider/Path/Path";
 import { Article } from "@core/FileStructue/Article/Article";
@@ -28,13 +27,12 @@ const getDbDiagram: Command<
 
 	kind: ResponseKind.blob,
 
-	middlewares: [new MainMiddleware()],
-
 	async do({ ctx, path, articlePath, catalogName, tags, lang, primary, shouldDraw }) {
-		const { lib, tablesManager } = this._app;
+		const { wm, tablesManager } = this._app;
+		const workspace = wm.current();
 
-		const catalog = await lib.getCatalog(catalogName);
-		const fp = lib.getFileProviderByCatalog(catalog);
+		const catalog = await workspace.getCatalog(catalogName);
+		const fp = workspace.getFileProvider();
 		const diagram = new DbDiagram(tablesManager, fp);
 
 		const article = catalog.findItemByItemPath<Article>(articlePath);

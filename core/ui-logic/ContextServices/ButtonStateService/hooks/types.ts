@@ -18,11 +18,12 @@ export type NodeType =
 	| "drawio"
 	| "diagrams"
 	| "image"
+	| "icon"
 	| "video"
 	| typeof OPEN_API_NAME
 	| "code_block";
 
-export type Mark = "link" | "strong" | "em" | "code" | "file" | "comment";
+export type Mark = "link" | "strong" | "em" | "code" | "file" | "comment" | "s";
 
 export interface NodeValues {
 	action?: NodeType;

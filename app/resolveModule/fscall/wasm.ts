@@ -16,14 +16,14 @@ export const callFSWasm = async <O>(command: string, args?: any): Promise<O> => 
 		args,
 		callbackId,
 	});
-	return await promise as O;
+	const data = (await promise) as any;
+	if (!data.ok) throw new IoError(data.res);
+	return data.res;
 };
 
 export const onFSWasmCallback = (ev) => {
 	if (!(ev.data.type == "fs-call" && ev.data.callbackId)) return;
 	const promise = callbacks[ev.data.callbackId];
 	delete callbacks[ev.data.callbackId];
-  const res = ev.data.res;
-  if (!ev.data.ok) return promise.reject(new IoError(res, res.message));
-	promise.resolve(ev.data.res);
+	promise.resolve(ev.data);
 };

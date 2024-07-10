@@ -1,11 +1,9 @@
-import Blockquote from "@ext/markdown/elements/blockquote/edit/model/blockquote";
 import Br from "@ext/markdown/elements/br/edit/br";
 import { Extensions } from "@tiptap/react";
 
 import Document from "@tiptap/extension-document";
 import Gapcursor from "@tiptap/extension-gapcursor";
 import History from "@tiptap/extension-history";
-import Table from "@tiptap/extension-table";
 import TableCell from "@tiptap/extension-table-cell";
 import TableHeader from "@tiptap/extension-table-header";
 import TableRow from "@tiptap/extension-table-row";
@@ -16,7 +14,6 @@ import HardBreak from "@ext/markdown/elements/br/edit/hardBreak";
 import Code from "@ext/markdown/elements/code/edit/model/code";
 import ColorHighlighter from "@ext/markdown/elements/colorHighlighter/colorHighlighter";
 import Comment from "@ext/markdown/elements/comment/edit/model/comment";
-import CutComponent from "@ext/markdown/elements/cut/edit/model/cut";
 import InlineCutComponent from "@ext/markdown/elements/cut/edit/model/inlineCut";
 import Diagrams from "@ext/markdown/elements/diagrams/edit/models/diagrams";
 import Drawio from "@ext/markdown/elements/drawio/edit/model/drawio";
@@ -48,6 +45,9 @@ import Typography from "@ext/markdown/elements/typography/typography";
 import VideoComponent from "@ext/markdown/elements/video/edit/model/video";
 import SmileReplacer from "../../../elements/smilieReplacer/smileReplacer";
 import Snippet from "@ext/markdown/elements/snippet/edit/model/snippet";
+import CopyArticles from "@ext/markdown/elements/copyArticles/copyArticles";
+import Icon from "@ext/markdown/elements/icon/edit/model/icon";
+import CustomTable from "@ext/markdown/elements/table/edit/model/customTable";
 
 const getExtensions = (): Extensions => [
 	DocKeyboardShortcuts,
@@ -58,11 +58,9 @@ const getExtensions = (): Extensions => [
 	HorizontalRule,
 	NoteComponent,
 	LinkComponent,
-	CutComponent,
 	StyleWrapper,
 	Placeholder,
 	ArrowsMove,
-	Blockquote,
 	joinLists,
 	CodeBlock,
 	Gapcursor,
@@ -71,6 +69,7 @@ const getExtensions = (): Extensions => [
 	Drawio,
 	Image,
 	File,
+	Icon,
 	Tabs,
 	Tab,
 
@@ -81,13 +80,14 @@ const getExtensions = (): Extensions => [
 	TableCell,
 	TableHeader,
 	TableKeyboardShortcuts,
-	Table.configure({ resizable: true }),
+	CustomTable,
 
 	...getSimpleExtensions(),
 ];
 
 export const getSimpleExtensions = (): Extensions => [
 	ColorHighlighter,
+	CopyArticles,
 	SmileReplacer,
 	Typography,
 	Paragraph,

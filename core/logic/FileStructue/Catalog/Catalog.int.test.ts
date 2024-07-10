@@ -4,13 +4,13 @@ import DiskFileProvider from "@core/FileProvider/DiskFileProvider/DiskFileProvid
 import Path from "@core/FileProvider/Path/Path";
 import type FileProvider from "@core/FileProvider/model/FileProvider";
 import type { Catalog } from "@core/FileStructue/Catalog/Catalog";
-import type Library from "@core/Library/Library";
 import ResourceUpdater from "@core/Resource/ResourceUpdater";
+import type { Workspace } from "@ext/workspace/Workspace";
 import { resolve } from "path";
 
 let app: Application;
 let fp: FileProvider;
-let lib: Library;
+let workspace: Workspace;
 
 const p = (s: string) => new Path(s);
 const ru = (catalog: Catalog) =>
@@ -41,8 +41,8 @@ describe("Catalog", () => {
 		await dfp.write(p("res/pic.png"), "");
 
 		app = await getApp();
-		fp = app.lib.getFileProvider();
-		lib = app.lib;
+		fp = app.wm.current().getFileProvider();
+		workspace = app.wm.current();
 	});
 
 	afterAll(async () => {
@@ -50,7 +50,7 @@ describe("Catalog", () => {
 	});
 
 	test("перемещает внутрь папки", async () => {
-		const catalog = await lib.getCatalog("x");
+		const catalog = await workspace.getCatalog("x");
 		await catalog.updateProps(ru(catalog), app.rp, { docroot: "r", title: "x", url: "x" });
 		await expect(fp.exists(p("x/r/.doc-root.yaml"))).resolves.toBe(true);
 		await expect(fp.exists(p("x/r/b/_index.md"))).resolves.toBe(true);
@@ -60,7 +60,7 @@ describe("Catalog", () => {
 	});
 
 	test("перемещает из папки в другую папку", async () => {
-		const catalog = await lib.getCatalog("y");
+		const catalog = await workspace.getCatalog("y");
 		await catalog.updateProps(ru(catalog), app.rp, { docroot: "z", title: "y", url: "y" });
 
 		await expect(fp.exists(p("y/z"))).resolves.toBe(true);
@@ -74,7 +74,7 @@ describe("Catalog", () => {
 	});
 
 	test("перемещает с ресурсом", async () => {
-		const catalog = await lib.getCatalog("res");
+		const catalog = await workspace.getCatalog("res");
 		await catalog.updateProps(ru(catalog), app.rp, { docroot: "f", title: "res", url: "res" });
 
 		await expect(fp.exists(p("res/f/a.md"))).resolves.toBe(true);

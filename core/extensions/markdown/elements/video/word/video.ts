@@ -1,5 +1,6 @@
 import { ExternalHyperlink, Paragraph, TextRun } from "docx";
-import { WordBlockChild } from "../../../../wordExport/WordTypes";
+import { WordBlockChild } from "../../../../wordExport/options/WordTypes";
+import { WordFontStyles } from "@ext/wordExport/options/wordExportSettings";
 
 export const videoWordLayout: WordBlockChild = async ({ tag }) => {
 	return await Promise.resolve([
@@ -8,13 +9,17 @@ export const videoWordLayout: WordBlockChild = async ({ tag }) => {
 				new ExternalHyperlink({
 					children: [
 						new TextRun({
-							text: tag.attributes.title,
-							style: "Hyperlink",
+							text: "Video: ",
+							style: WordFontStyles.link,
+						}),
+						new TextRun({
+							text: tag.attributes?.title,
 						}),
 					],
-					link: tag.attributes.path,
+					link: tag.attributes?.path,
 				}),
 			],
+			style: WordFontStyles.videoTitle,
 		}),
 	]);
 };

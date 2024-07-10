@@ -16,8 +16,10 @@ const updateContent: Command<{ ctx: Context; articlePath: Path; catalogName: str
 		middlewares: [new DesktopModeMiddleware(), new ReloadConfirmMiddleware()],
 
 		async do({ ctx, articlePath, catalogName, editTree }) {
-			const { formatter, lib, parser, parserContextFactory } = this._app;
-			const catalog = await lib.getCatalog(catalogName);
+			const { formatter, parser, parserContextFactory, wm } = this._app;
+			const workspace = wm.current();
+
+			const catalog = await workspace.getCatalog(catalogName);
 			if (!catalog) return;
 			const article = catalog.findItemByItemPath<Article>(articlePath);
 			if (!article) return;

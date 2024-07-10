@@ -1,9 +1,3 @@
-.article-body {
-	display: flex;
-	flex-direction: column;
-	flex-grow: 1;
-}
-
 .article-body .beta,
 .article-body .alfa {
 	background: var(--color-warning);

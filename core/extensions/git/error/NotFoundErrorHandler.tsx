@@ -1,7 +1,7 @@
 import { ComponentProps } from "react";
 import DefaultErrorComponent from "../../errorHandlers/client/components/DefaultError";
 import GetErrorComponent from "../../errorHandlers/logic/GetErrorComponent";
-import CloneError from "../actions/Clone/error/components/CloneError";
+import NotFoundedBranchError from "../actions/Clone/error/components/NotFoundedBranchError";
 import GitError from "../core/GitCommands/errors/GitError";
 
 const NotFoundErrorHandler = ({ error, onCancelClick }: ComponentProps<typeof GetErrorComponent>) => {
@@ -10,7 +10,7 @@ const NotFoundErrorHandler = ({ error, onCancelClick }: ComponentProps<typeof Ge
 	if (caller == "clone") {
 		const notFoundedBranch = e.props.errorData?.what;
 		return notFoundedBranch ? (
-			<CloneError notFoundedBranch={notFoundedBranch} onCancelClick={onCancelClick} />
+			<NotFoundedBranchError notFoundedBranch={notFoundedBranch} onCancelClick={onCancelClick} />
 		) : (
 			<DefaultErrorComponent error={error} onCancelClick={onCancelClick} />
 		);

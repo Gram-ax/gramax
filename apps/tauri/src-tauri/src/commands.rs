@@ -3,7 +3,7 @@ use tauri::*;
 
 use std::collections::HashMap;
 
-use crate::oauth_server::listen_once;
+use crate::http_server::oauth_listen_once;
 use crate::platform::commands::*;
 
 pub fn generate_handler<R: Runtime>(builder: Builder<R>) -> Builder<R> {
@@ -11,13 +11,12 @@ pub fn generate_handler<R: Runtime>(builder: Builder<R>) -> Builder<R> {
     http_listen_once,
     close_current_window,
     get_user_language,
-    set_root_path,
+    open_directory,
     quit,
     read_env,
+    request_delete_config,
     #[cfg(target_os = "macos")]
-    show_print,
-    #[cfg(desktop)]
-    show_settings,
+    show_print
   ])
 }
 
@@ -27,8 +26,7 @@ pub fn read_env() -> HashMap<String, String> {
 }
 
 #[tauri::command]
-pub fn quit(code: i32, message: &str) {
-  eprintln!("{}", message);
+pub fn quit(code: i32) {
   std::process::exit(code)
 }
 
@@ -50,6 +48,6 @@ pub fn http_listen_once<R: Runtime>(
   #[cfg(desktop)]
   open::that(url)?;
 
-  listen_once(redirect, move |req| window.emit(&callback_name, req.url().split('?').nth(1)).unwrap());
+  oauth_listen_once(redirect, move |req| window.emit(&callback_name, req.url().split('?').nth(1)).unwrap());
   Ok(())
 }

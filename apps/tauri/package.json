@@ -10,13 +10,12 @@
 		"tauri": "tauri"
 	},
 	"dependencies": {
-		"@tauri-apps/api": "^2.0.0-alpha.14",
-		"@tauri-apps/plugin-dialog": "^2.0.0-alpha.5",
-		"@tauri-apps/plugin-log": "^2.0.0-alpha.5"
+		"@tauri-apps/api": "^2.0.0-beta.0",
+		"@tauri-apps/plugin-dialog": "^2.0.0-beta.0",
+		"@tauri-apps/plugin-log": "^2.0.0-beta.0"
 	},
 	"devDependencies": {
 		"internal-ip": "^8.0.0",
-		"vite-plugin-monaco-editor": "^1.1.0",
-		"vite-plugin-webfont-dl": "^3.9.1"
+		"vite-plugin-webfont-dl": "^3.9.4"
 	}
 }

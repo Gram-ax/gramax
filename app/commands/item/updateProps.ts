@@ -16,9 +16,10 @@ const updateProps: Command<{ ctx: Context; catalogName: string; props: ClientArt
 	middlewares: [new AuthorizeMiddleware(), new DesktopModeMiddleware(), new ReloadConfirmMiddleware()],
 
 	async do({ ctx, catalogName, props }) {
-		const { lib, parser, parserContextFactory, formatter } = this._app;
+		const { wm, parser, parserContextFactory, formatter } = this._app;
+		const workspace = wm.current();
 
-		const catalog = await lib.getCatalog(catalogName);
+		const catalog = await workspace.getCatalog(catalogName);
 		const item = catalog.findItemByItemPath(new Path(props.ref.path));
 		if (!item) return;
 

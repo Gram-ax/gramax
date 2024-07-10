@@ -1,30 +1,26 @@
 import SpinnerLoader from "@components/Atoms/SpinnerLoader";
 import styled from "@emotion/styled";
-import { Suspense, lazy, useEffect, useState, useCallback } from "react";
-import FetchService from "../../../../../ui-logic/ApiServices/FetchService";
-import MimeType from "../../../../../ui-logic/ApiServices/Types/MimeTypes";
+import OnLoadResourceService from "@ext/markdown/elements/copyArticles/onLoadResourceService";
+import { Suspense, lazy, useState } from "react";
 import ApiUrlCreatorService from "../../../../../ui-logic/ContextServices/ApiUrlCreator";
-const LazySwaggerUI = lazy(() => import("swagger-ui-react"));
+const LazySwaggerUI = lazy(() => import("./SwaggerUI"));
 
-const OpenApi = (props: { src?: string; className?: string; flag?: boolean; isUpdating?: boolean }) => {
-	const { src, className, flag = true, isUpdating = false } = props;
+interface OpenApiProps {
+	src?: string;
+	className?: string;
+	flag?: boolean;
+}
+
+const OpenApi = (props: OpenApiProps) => {
+	const { src, className, flag = true } = props;
 	const [data, setData] = useState<string>();
 	const apiUrlCreator = ApiUrlCreatorService.value;
 
-	const loadData = useCallback(
-		async (src: string) => {
-			const res = await FetchService.fetch(apiUrlCreator.getArticleResource(src, MimeType.text));
-			if (!res.ok) return;
-			setData(await res.text());
-		},
-		[apiUrlCreator],
-	);
+	if (typeof window === "undefined" || !apiUrlCreator || !OnLoadResourceService.value) return null;
 
-	useEffect(() => {
-		void loadData(src);
-	}, [src, isUpdating]);
-
-	if (typeof window === "undefined" || !apiUrlCreator) return null;
+	OnLoadResourceService.useGetContent(src, apiUrlCreator, (buffer: Buffer) => {
+		setData(buffer.toString());
+	});
 
 	return (
 		<div data-focusable="true">

@@ -1,8 +1,8 @@
-import { Mark, mergeAttributes } from "@tiptap/core";
-import { editTooltip } from "./helpers/editTooltip";
 import getSelectedText from "@ext/markdown/elementsUtils/getSelectedText";
 import addShortcuts from "@ext/markdown/elementsUtils/keyboardShortcuts/addShortcuts";
 import space from "@ext/markdown/logic/keys/marks/space";
+import { Mark, mergeAttributes } from "@tiptap/core";
+import { editTooltip } from "./helpers/editTooltip";
 
 declare module "@tiptap/core" {
 	interface Commands<ReturnType> {
@@ -62,7 +62,7 @@ export const File = Mark.create({
 	},
 
 	addProseMirrorPlugins() {
-		return [editTooltip(this.editor, this.options.apiUrlCreator)];
+		return [editTooltip(this.editor, this.options.apiUrlCreator, this.options.pageDataContext)];
 	},
 
 	addKeyboardShortcuts() {

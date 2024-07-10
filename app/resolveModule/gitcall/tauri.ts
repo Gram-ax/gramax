@@ -15,12 +15,12 @@ void listen("clone-progress", (ev) => {
 
 export const call = async <O>(command: string, args?: InvokeArgs): Promise<O> => {
 	try {
-		return await invoke<O>(`plugin:gramaxgit|${command}`, args);
+		return await invoke<O>(`plugin:plugin-gramax-git|${command}`, args);
 	} catch (err) {
 		if ((args as CredsArgs)?.creds?.accessToken) (args as CredsArgs).creds.accessToken = "<redacted>";
 		console.error(`git-command ${command} ${JSON.stringify(args, null, 4)} returned an error`);
 		console.error(err);
-		const error = JSON.parse(err);
+		const error = typeof err === "string" ? JSON.parse(err) : err;
 		throw new LibGit2Error(error.message, error.class, error.code);
 	}
 };

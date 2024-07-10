@@ -1,5 +1,5 @@
 // import { JSONSchema7, validate } from "json-schema";
-import Style from "@components/HomePage/Groups/model/Style";
+import Style from "@components/HomePage/Cards/model/Style";
 import CatalogPropsService from "@core-ui/ContextServices/CatalogProps";
 import { Meta, StoryObj } from "@storybook/react";
 import CatalogPropsEditor from "../../../../../../core/extensions/catalog/actions/propsEditor/components/CatalogPropsEditor";

@@ -3,16 +3,6 @@ use neon::prelude::*;
 use std::path::Path;
 use std::path::PathBuf;
 
-struct GitError(gramaxgit::commands::GitError);
-
-impl std::ops::Deref for GitError {
-  type Target = gramaxgit::commands::GitError;
-
-  fn deref(&self) -> &Self::Target {
-    &self.0
-  }
-}
-
 macro_rules! js_obj {
   ($cx: expr, $val: expr) => {{
     let val = $val.or_else(|err| match neon_serde::to_value_js(&mut $cx, &err) {
@@ -166,6 +156,12 @@ pub(crate) fn commit(mut cx: FunctionContext) -> JsResult<JsPromise> {
   run!(cx, git::commit(creds, &message, parents))
 }
 
+pub(crate) fn graph_head_upstream_files(mut cx: FunctionContext) -> JsResult<JsPromise> {
+  let search_in = cx.argument::<JsString>(1)?.value(&mut cx);
+
+  run!(cx, git::graph_head_upstream_files(Path::new(&search_in)))
+}
+
 pub(crate) fn merge(mut cx: FunctionContext) -> JsResult<JsPromise> {
   let creds = cx.argument(1)?;
   let creds = neon_serde::from_value_js(&mut cx, creds)?;
@@ -203,7 +199,9 @@ pub(crate) fn get_remote(mut cx: FunctionContext) -> JsResult<JsPromise> {
 }
 
 pub(crate) fn stash(mut cx: FunctionContext) -> JsResult<JsPromise> {
-  run!(cx, git::stash(None))
+  let creds = cx.argument(2)?;
+  let creds = neon_serde::from_value_js(&mut cx, creds)?;
+  run!(cx, git::stash(None, creds))
 }
 
 pub(crate) fn stash_apply(mut cx: FunctionContext) -> JsResult<JsPromise> {

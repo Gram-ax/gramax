@@ -18,6 +18,7 @@ export interface IconProps {
 	tooltipContent?: ReactNode;
 	onClick?: (event?: MouseEvent<HTMLElement>) => void;
 	onClickCapture?: (event?: MouseEvent<HTMLElement>) => void;
+	fw?: boolean;
 }
 
 const Icon = (props: IconProps) => {
@@ -30,6 +31,7 @@ const Icon = (props: IconProps) => {
 		svgStyle,
 		strokeWidth = "max(0.075em, 1.3px)",
 		isLoading = false,
+		fw,
 		viewBox,
 		...otherProps
 	} = props;
@@ -41,21 +43,23 @@ const Icon = (props: IconProps) => {
 			</i>
 		);
 	}
-	if (!code) return;
-
-	const IconComponent = LucideIcon(code)
+	const IconComponent = LucideIcon(code);
 
 	if (!IconComponent) return <Icon {...props} tooltipContent="Unknown icon" code="circle-help" />;
 
 	return (
 		<Tooltip content={tooltipContent}>
-			<i style={style} className={classNames(className, { "action-icon": isAction })} {...otherProps}>
+			<i
+				style={style}
+				className={classNames(className, { "action-icon": isAction, "li-fw": fw })}
+				{...otherProps}
+			>
 				<IconComponent
 					width="1em"
 					height="1em"
 					style={svgStyle}
 					strokeWidth={strokeWidth}
-					viewBox={viewBox ?? "1 1 22 22"}
+					viewBox={viewBox ?? "0 0 24 24"}
 				/>
 			</i>
 		</Tooltip>
@@ -63,6 +67,11 @@ const Icon = (props: IconProps) => {
 };
 
 export default styled(Icon)`
+	&.li-fw {
+		width: 1.25em;
+		text-align: center;
+	}
+
 	vertical-align: middle;
 	display: inline-block;
 	line-height: 1px;

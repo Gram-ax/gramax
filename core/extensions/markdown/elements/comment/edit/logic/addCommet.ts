@@ -3,7 +3,7 @@ import CommentCounterService from "../../../../../../ui-logic/ContextServices/Co
 
 const addComments = (marks: Mark[], articlePathname: string, comments: { [path: string]: number }) => {
 	for (const mark of marks) {
-		if (mark.type.name !== "comment") return;
+		if (mark.type.name !== "comment") continue;
 		CommentCounterService.add(comments, articlePathname);
 	}
 };

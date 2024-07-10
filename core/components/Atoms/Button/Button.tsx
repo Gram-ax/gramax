@@ -1,17 +1,18 @@
 import { classNames } from "@components/libs/classNames";
 import styled from "@emotion/styled";
-import { MutableRefObject, ReactNode, forwardRef, type CSSProperties } from "react";
+import { CSSProperties, MouseEvent, MutableRefObject, ReactNode, forwardRef } from "react";
 import { ButtonStyle } from "./ButtonStyle";
 
 export interface ButtonProps {
 	buttonStyle?: ButtonStyle;
 	style?: CSSProperties;
-	onClick?: (event?: React.MouseEvent<HTMLElement>) => any;
+	onClick?: (event?: MouseEvent<HTMLElement>) => any;
 	children?: ReactNode;
 	disabled?: boolean;
 	fullWidth?: boolean;
 	textSize?: TextSize;
 	className?: string;
+	isEmUnits?: boolean;
 }
 
 export enum TextSize {
@@ -23,6 +24,15 @@ export enum TextSize {
 	XL = "text_x_large",
 }
 
+const TextKeys = {
+	text_xx_small: 0.6,
+	text_x_small: 0.75,
+	text_small: 0.875,
+	text_medium: 1,
+	text_large: 1.25,
+	text_x_large: 1.5,
+};
+
 const Button = forwardRef((props: ButtonProps, ref?: MutableRefObject<HTMLDivElement>) => {
 	const {
 		buttonStyle = ButtonStyle.default,
@@ -30,12 +40,17 @@ const Button = forwardRef((props: ButtonProps, ref?: MutableRefObject<HTMLDivEle
 		fullWidth = false,
 		className,
 		children,
+		isEmUnits,
 		...otherProps
 	} = props;
 
 	return (
 		<div data-qa="qa-clickable" className={className} ref={ref}>
-			<div className={classNames(buttonStyle, { fullWidth }, [textSize, "content"])} {...otherProps}>
+			<div
+				style={{ fontSize: TextKeys[textSize] + (isEmUnits ? "em" : "rem") }}
+				className={classNames(buttonStyle, { fullWidth }, ["content"])}
+				{...otherProps}
+			>
 				{children}
 			</div>
 		</div>
@@ -44,37 +59,14 @@ const Button = forwardRef((props: ButtonProps, ref?: MutableRefObject<HTMLDivEle
 
 export default styled(Button)`
 	${(p) => (p.disabled ? `pointer-events: none; opacity: 0.4;` : ``)}
-	.text_xx_small {
-		font-size: 0.6rem;
-	}
-
-	.text_x_small {
-		font-size: 0.75rem;
-	}
-
-	.text_small {
-		font-size: 0.875rem;
-	}
-
-	.text_medium {
-		font-size: 1rem;
-	}
-
-	.text_large {
-		font-size: 1.25rem;
-	}
-
-	.text_x_large {
-		font-size: 1.5rem;
-	}
 
 	.fullWidth {
-		width: 100%;
+		width: 100% !important;
 	}
 
 	.content {
 		width: fit-content;
-		padding: 0.33rem 0.88rem;
+		padding: 0.33${(p) => (p.isEmUnits ? "em" : "rem")} 0.88${(p) => (p.isEmUnits ? "em" : "rem")};
 		display: flex;
 		align-items: center;
 		justify-content: center;
@@ -127,6 +119,16 @@ export default styled(Button)`
 
 		&:hover {
 			color: var(--color-primary);
+		}
+	}
+
+	.transparentInverse {
+		color: var(--color-primary-general-inverse);
+		font-weight: 300;
+		padding: 0;
+
+		&:hover {
+			color: var(--color-primary-inverse);
 		}
 	}
 

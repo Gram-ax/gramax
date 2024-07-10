@@ -30,17 +30,21 @@ export default class MdParser {
 		this._emptyParagraphRegExp = this._createIgnoreRegExp(String.raw`(\r?\n{4,})`);
 		this._removeCommentsRegExp = this._createIgnoreRegExp(String.raw`(<!--[\s\S]*?-->)`);
 		this._includeRegExp = this._createIgnoreRegExp(String.raw`^ *(#*) *\[include:([^\n\]]*)\]`);
-		this._formulaRegExp = this._createIgnoreRegExp(String.raw`{\s?.*?\s?}|(\${1,2}[^\$].*?\$)`);
+		this._formulaRegExp = this._createIgnoreRegExp(
+			String.raw`{\s?.*?\s?}|(\${1}[^\$].*?\${1})|(\${2}[^\$].*?\${2})`,
+		);
 		this._squareRegExp = this._createIgnoreRegExp(String.raw`\[(.*?)\]`);
 		this._quotesRegExp = this._createIgnoreRegExp(String.raw`[\[({].*?"[^]*?"[\])}].*?|("[^\[\]{}()]*?")`);
 		this._arrowRegExp = this._createIgnoreRegExp(String.raw`\\-->|[^\\\r\n]?(-->)`);
-		this._noteRegExp = this._createIgnoreRegExp(String.raw`(?<!\[.*):::([^\s]*) *([^\r\n]*)\r?\n([\s\S]*?)(?<!\[.*):::`);
+		this._noteRegExp = this._createIgnoreRegExp(
+			String.raw`:::([^\s:]*)(?::(true|false))? *([^\r\n]*)\r?\n([\s\S]*?):::|image:\S*?:::.*?:`,
+		);
 		this._dashRegExp = this._createIgnoreRegExp(String.raw`.?-->.?|\\--|.?--[-]+|[^\\\n\r]?(--)`);
 		this._idRegExp = this._createIgnoreRegExp(String.raw`[[{] ?(#.*?) ?[\]}]`);
 		this._brRegExp = this._createIgnoreRegExp(String.raw`(<br>|<br\/>)`);
 		this._backDashRegExp = this._createIgnoreRegExp(String.raw`(—)`);
 		this._backArrowRegExp = this._createIgnoreRegExp(String.raw`(→)`);
-		this._listWithAnEmptyItem = new RegExp(String.raw`^[ \t]*(?:\d+\.|-)[ \t]*$`, "gm");
+		this._listWithAnEmptyItem = new RegExp(String.raw`^[ \t]*(?:\d+\.|-|\*)[ \t]*$`, "gm");
 	}
 
 	use(tag: Schema) {
@@ -121,13 +125,17 @@ export default class MdParser {
 	}
 
 	private _notesParser(content: string): string {
-		return content.replaceAll(this._noteRegExp, (str: string, type: string, title: string, children: string) => {
-			if (typeof type != "string") return str;
-			return `${this._parse(
-				[this._tags.note.render, type, title],
-				this._tags.note,
-			)}\n${children}${this._parseClose(this._tags.note.render)}`;
-		});
+		return content.replace(
+			this._noteRegExp,
+			(str: string, type: string, collapsed = "false", title: string, children: string) => {
+				if (typeof type !== "string") return str;
+
+				return `${this._parse(
+					[this._tags.note.render, type, title, collapsed],
+					this._tags.note,
+				)}\n${children}${this._parseClose(this._tags.note.render)}`;
+			},
+		);
 	}
 
 	private _squareBracketsParser(content: string): string {
@@ -154,7 +162,8 @@ export default class MdParser {
 	}
 
 	private _formulaParser(content: string): string {
-		return content.replaceAll(this._formulaRegExp, (str: string, group: string) => {
+		return content.replaceAll(this._formulaRegExp, (str: string, firstGroup: string, secondGroup: string) => {
+			const group = firstGroup || secondGroup;
 			if (!group) return str;
 			const tag = this._tags.formula;
 			return this._parse([tag.render, group.replaceAll("\\", "\\\\")], tag);

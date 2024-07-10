@@ -1,11 +1,10 @@
 use std::time::Duration;
 
+use process::restart;
 use tauri::menu::MenuItem;
 use tauri::Result;
 use tauri::*;
 use tauri_plugin_updater::*;
-
-use tauri::process::restart;
 
 use tauri_plugin_dialog::DialogExt;
 use tauri_plugin_dialog::MessageDialogKind;
@@ -243,6 +242,7 @@ impl<'u, R: Runtime> UpdateInstaller<'u, R> {
   }
 
   fn install(&self, update: &Update, bytes: Vec<u8>) -> updater::Result<()> {
+    super::config::dump_opened_windows(self.app)?;
     update.install(bytes)?;
     restart(&self.app.env());
     Ok(())

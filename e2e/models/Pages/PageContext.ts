@@ -17,7 +17,7 @@ export default class PageContext {
 		protected _alias: ReplaceAlias,
 		protected _aliases: Aliases,
 		protected _info = new PageInfo(),
-	) {}
+	) { }
 
 	inner() {
 		return this._page;
@@ -25,8 +25,9 @@ export default class PageContext {
 
 	async goto(path: string) {
 		const url = config.url + this._alias(path, () => replaceMultiple(path, this._alias.bind(this)));
-		if (this.inner().url() == url) return;
+		if (this.inner().url() == url) return await this.waitForLoad();
 		await this.inner().goto(url, { waitUntil: "domcontentloaded" });
+
 		return this;
 	}
 

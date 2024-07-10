@@ -4,8 +4,9 @@ import Renderer from "../extensions/markdown/core/render/components/Renderer";
 import getComponents from "../extensions/markdown/core/render/components/getComponents/getComponents";
 import Header from "../extensions/markdown/elements/heading/render/component/Header";
 import ModalLayoutLight from "./Layouts/ModalLayoutLight";
+import CustomArticleName from "@core/SitePresenter/customArticles/model/CustomArticle";
 
-const CustomArticle = ({ name, setLayout = true }: { name: string; setLayout?: boolean }) => {
+const CustomArticle = ({ name, setLayout = true }: { name: CustomArticleName; setLayout?: boolean }) => {
 	const apiUrlCreator = ApiUrlCreatorService.value;
 	const { data } = UseSWRService.getData<{ title: string; content: string }>(apiUrlCreator.getCustomArticle(name));
 	const article = (

@@ -1,18 +1,14 @@
 [package]
 name = "plugin-gramax-git"
 version = { workspace = true }
-edition = { workspace = true }
 authors = { workspace = true }
-exclude = ["/examples", "/webview-dist", "/webview-src", "/node_modules"]
+edition = { workspace = true }
 links = "plugin-gramax-git"
-
-[build-dependencies]
-tauri-build = { workspace = true }
 
 [dependencies]
 tauri = { workspace = true }
-gramax-git = { path = "../../../../rlibs/git" }
 serde = { workspace = true }
-thiserror = "1.0"
-anyhow = "1.0"
-log = "0.4.20"
+gramax-git = { path = "../../../../rlibs/git" }
+
+[build-dependencies]
+tauri-plugin = { workspace = true }

@@ -1,26 +1,46 @@
-import { useEffect, useRef, useState } from "react";
-
 import LeftNavigationIsOpenService from "@core-ui/ContextServices/LeftNavigationIsOpen";
 import SidebarsIsPinService from "@core-ui/ContextServices/SidebarsIsPin";
+import { useRef, useState } from "react";
 import { ArticlePageData } from "../../../../logic/SitePresenter/SitePresenter";
 import LeftNavigationBottom from "./LeftNavigationBottom";
 import LeftNavigationContent from "./LeftNavigationContent";
 import LeftNavigationLayout from "./LeftNavigationLayout";
 import LeftNavigationTop from "./LeftNavigationTop";
 
-const LeftNavigationComponent = ({ data, delay }: { data: ArticlePageData; delay?: number }) => {
+const LeftNavigationComponent = ({
+	data,
+	mediumMedia,
+	delay,
+}: {
+	data: ArticlePageData;
+	mediumMedia: boolean;
+	delay?: number;
+}) => {
 	const [hideScroll, setHideScroll] = useState(true);
+
 	const isPin = SidebarsIsPinService.value;
+	const [prevIsPin, setPrevIsPin] = useState<boolean>(undefined);
+
 	const isOpen = LeftNavigationIsOpenService.value;
+	const [prevIsOpen, setPrevIsOpen] = useState<boolean>(undefined);
+
+	const transitionEndIsOpen = LeftNavigationIsOpenService.transitionEndIsOpen;
+
 	const isLeftNavHover = useRef(false);
+	const unpinAnimation = useRef(false);
 
-	useEffect(() => {
-		if (!isPin) LeftNavigationIsOpenService.value = false;
-	}, [isPin]);
+	if (prevIsPin !== isPin) {
+		if (prevIsPin && !isPin) {
+			LeftNavigationIsOpenService.value = false;
+			unpinAnimation.current = true;
+		}
+		setPrevIsPin(isPin);
+	}
 
-	useEffect(() => {
+	if (prevIsOpen !== isOpen) {
+		setPrevIsOpen(isOpen);
 		if (!isOpen) setHideScroll(true);
-	}, [isOpen]);
+	}
 
 	return (
 		<div
@@ -29,20 +49,23 @@ const LeftNavigationComponent = ({ data, delay }: { data: ArticlePageData; delay
 			onMouseLeave={() => (isLeftNavHover.current = false)}
 		>
 			<LeftNavigationLayout
+				mediumMedia={mediumMedia}
 				hideScroll={hideScroll}
 				leftNavigationTop={<LeftNavigationTop data={data} />}
 				leftNavigationContent={<LeftNavigationContent itemLinks={data.itemLinks} />}
 				leftNavigationBottom={<LeftNavigationBottom />}
 				onMouseEnter={() =>
 					setTimeout(() => {
-						if (isLeftNavHover.current) {
-							LeftNavigationIsOpenService.value = true;
-							setHideScroll(false);
-						}
+						if (!isLeftNavHover.current || unpinAnimation.current) return;
+						LeftNavigationIsOpenService.value = true;
+						setHideScroll(false);
 					}, delay)
 				}
-				onTransitionEnd={() => (LeftNavigationIsOpenService.transitionEndIsOpen = isOpen)}
-				transitionEndIsOpen={LeftNavigationIsOpenService.transitionEndIsOpen}
+				onTransitionEnd={() => {
+					LeftNavigationIsOpenService.transitionEndIsOpen = isOpen;
+					unpinAnimation.current = false;
+				}}
+				transitionEndIsOpen={transitionEndIsOpen}
 				isOpen={isOpen}
 				isPin={isPin}
 			/>

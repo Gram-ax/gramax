@@ -87,7 +87,7 @@ const User = styled(
 
 	.date {
 		color: var(--color-article-text);
-		font-size: 12px;
+		font-size: 0.85em;
 		display: flex;
 		align-items: flex-end;
 	}

@@ -1,12 +1,11 @@
 import SourceData from "../../../storage/logic/SourceDataProvider/model/SourceData";
 import SourceType from "../../../storage/logic/SourceDataProvider/model/SourceType";
-
 interface GitSourceData extends SourceData {
 	/**
 	 * @title Тип
 	 * @default ""
 	 */
-	sourceType: SourceType.gitHub | SourceType.gitLab | SourceType.enterprise;
+	sourceType: SourceType.gitHub | SourceType.gitLab | SourceType.enterprise | SourceType.confluence;
 	/**
 	 * @title GitLab-токен
 	 * @format glpat-aq6PK8sz1eQeKhTy-Dm5

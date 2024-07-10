@@ -1,14 +1,16 @@
 import { classNames } from "@components/libs/classNames";
 import styled from "@emotion/styled";
-import { ForwardedRef, HTMLAttributes, MouseEventHandler, ReactNode, forwardRef } from "react";
+import { ForwardedRef, HTMLAttributes, MouseEventHandler, ReactNode, forwardRef, ReactElement } from "react";
 
 export type ItemContent = ListItem | ButtonItem | string;
 
 export interface ListItem {
-	element: ReactNode | string;
-	labelField: string;
+	element: ReactElement | string;
+	labelField?: string;
 	disable?: boolean;
 	tooltipDisabledContent?: ReactNode;
+	isTitle?: boolean;
+	value?: string;
 }
 
 export interface ButtonItem extends ListItem {
@@ -26,19 +28,23 @@ interface ItemProps extends Omit<HTMLAttributes<HTMLDivElement>, "content"> {
 }
 
 const Item = forwardRef((props: ItemProps, ref: ForwardedRef<HTMLDivElement>) => {
-	const { content, disable = false, isActive, onHover, onClick, className, ...otherProps } = props;
+	const { disable = false, className, isActive, content, onHover, onClick, ...otherProps } = props;
+
+	const mods = {
+		active: isActive,
+		disable,
+	};
 
 	return (
 		<div
 			ref={ref}
 			data-qa="qa-clickable"
 			onMouseOver={onHover}
-			style={disable ? { pointerEvents: "none" } : {}}
-			onClick={!disable && onClick}
-			className={classNames("item", { active: isActive }, [className])}
+			onClick={!disable ? onClick : null}
+			className={classNames("item", mods, [className])}
 			{...otherProps}
 		>
-			{typeof content === "string" ? content : content?.element}
+			{typeof content === "string" ? content : content.element}
 		</div>
 	);
 });
@@ -53,4 +59,9 @@ export default styled(Item)`
 	${(p) => (typeof p.content === "string" || typeof p.content?.element === "string" ? "padding: 6px 12px;" : "")}
 
 	${(p) => (p.isActive ? "cursor: pointer; background: var(--color-lev-sidebar-hover);" : "")}
+	
+	&.disable {
+		cursor: unset;
+		pointer-events: none;
+	}
 `;

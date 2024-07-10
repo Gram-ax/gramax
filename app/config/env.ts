@@ -3,6 +3,7 @@ type Bool = "true" | "false";
 export type EnvironmentVariable = {
 	PORT: string;
 	BRANCH: string;
+	BUILD_VERSION: string;
 	GRAMAX_VERSION: string;
 	COOKIE_SECRET: string;
 
@@ -27,6 +28,7 @@ export type EnvironmentVariable = {
 	ROOT_PATH: string;
 	BASE_PATH: string;
 	USER_DATA_PATH: string;
+	GRAMAX_DEFAULT_WORKSPACE_PATH: string;
 
 	// Other
 	SHARE_ACCESS_TOKEN: string;
@@ -54,6 +56,9 @@ export type EnvironmentVariable = {
 	// Admin
 	ADMIN_LOGIN: string;
 	ADMIN_PASSWORD: string;
+
+	// Enterprise
+	WORKSPACE_PATH: string;
 };
 
 export const defaultVariables: Partial<EnvironmentVariable> = {

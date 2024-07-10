@@ -5,10 +5,12 @@ import { Command } from "../../../types/Command";
 
 const push: Command<{ catalogName: string }, void> = Command.create({
 	async do({ catalogName }) {
-		const { lib, conf } = this._app;
-		const catalog = await lib.getCatalog(catalogName);
+		const { wm, conf } = this._app;
+		const workspace = wm.current();
+
+		const catalog = await workspace.getCatalog(catalogName);
 		if (!catalog) throw new Error("no catalog found");
-		const fp = lib.getFileProviderByCatalog(catalog);
+		const fp = workspace.getFileProvider();
 
 		const name = await catalog.repo.storage.getSourceName();
 		const sourceData = this._app.rp.getSourceData(

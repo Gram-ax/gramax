@@ -36,5 +36,6 @@ fn main(mut cx: ModuleContext) -> NeonResult<()> {
   cx.export_function("stash_delete", commands::stash_delete)?;
   cx.export_function("status", commands::status)?;
   cx.export_function("status_file", commands::status_file)?;
+  cx.export_function("graph_head_upstream_files", commands::graph_head_upstream_files)?;
   Ok(())
 }

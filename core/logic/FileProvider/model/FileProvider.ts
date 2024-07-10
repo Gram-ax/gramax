@@ -27,5 +27,6 @@ export default interface FileProvider {
 	watch: (onChange: (changeItems: ItemStatus[]) => void) => void;
 	startWatch: () => void;
 	stopWatch: () => void;
-	validate: () => Promise<void>;
+	createRootPathIfNeed: () => Promise<void>;
+	isRootPathExists: () => Promise<boolean>;
 }

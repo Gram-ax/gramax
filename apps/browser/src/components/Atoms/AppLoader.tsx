@@ -18,19 +18,21 @@ const AppLoader = ({ className, delayBeforeShow = 0 }: { className?: string; del
 	}, []);
 
 	return (
-		show && (
-			<div className={className}>
-				<div className={className}>
-					<div className="logo-container">
-						<img src={theme == Theme.light ? LightLogo : DarkLogo} />
-					</div>
-					<div className="text">
-						<span>загружаем</span>
-						<span className="dots">{".".repeat(dotsCount)}</span>
-					</div>
-				</div>
+		<div className={className}>
+			<div className={className} data-qa="loader">
+				{show && (
+					<>
+						<div className="logo-container">
+							<img src={theme == Theme.light ? LightLogo : DarkLogo} />
+						</div>
+						<div className="text">
+							<span>загружаем</span>
+							<span className="dots">{".".repeat(dotsCount)}</span>
+						</div>
+					</>
+				)}
 			</div>
-		)
+		</div>
 	);
 };
 

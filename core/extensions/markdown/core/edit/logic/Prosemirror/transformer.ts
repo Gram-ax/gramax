@@ -165,30 +165,53 @@ export class Transformer {
 				const nodeSchema = transformer._schemes[newNode.type];
 				const formatter = getSquareFormatter(nodeSchema);
 				const tag = new Tag(newNode.type, newNode.attrs);
-
 				if (token.type === "tag_open") {
 					const content = formatter(tag, "", false, true);
 					if (parent && parent.type == "inline") return transformer.getInlineMdOpenTokens(content);
-					return [{ type: "blockMd_open", tag: "blockMd" }, ...transformer.getParagraphTokens(content)];
+					return [
+						{ type: "paragraph_open", tag: "p" },
+						{ type: "blockMd_open", tag: "blockMd" },
+						...transformer.getParagraphTokens(content),
+					];
 				}
 
 				if (token.type === "tag_close") {
 					const content = formatter(tag, "", true);
 					if (parent && parent.type == "inline") return transformer.getInlineMdCloseTokens(content);
-					return [...transformer.getParagraphTokens(content), { type: "blockMd_close", tag: "blockMd" }];
+					return [
+						...transformer.getParagraphTokens(content),
+						{ type: "blockMd_close", tag: "blockMd" },
+						{ type: "paragraph_close", tag: "p" },
+					];
 				}
 
-				if (nodeSchema.type == SchemaType.block) {
-					return transformer.getParagraphTokens(null, transformer.getInlineMdTokens(formatter(tag, "")));
+				if (
+					nodeSchema.type == SchemaType.block ||
+					(newNode.tag === "formula" && newNode.attrs["content"].includes("$$"))
+				) {
+					if (!parent)
+						return transformer.getParagraphTokens(
+							null,
+							transformer.getBlockMdTokens(
+								transformer.getParagraphTokens(null, [this.getTextToken(formatter(tag, ""))]),
+							),
+						);
+
+					return transformer.getBlockMdTokens(
+						transformer.getParagraphTokens(null, [this.getTextToken(formatter(tag, ""))]),
+					);
 				} else {
 					if (!parent)
 						return transformer.getParagraphTokens(null, transformer.getInlineMdTokens(formatter(tag, "")));
-					return transformer.getInlineMdTokens(formatter(new Tag(newNode.type, newNode.attrs), ""));
+					return transformer.getInlineMdTokens(formatter(tag, ""));
 				}
 			}
-
 			if (token.type === "tag_open") newNode.type = newNode.type + "_open";
 			if (token.type === "tag_close") newNode.type = newNode.type + "_close";
+
+			if (transformer._schemes[newNode.type]?.type == SchemaType.block) {
+				if (parent) return transformer.getBlockMdTokens(newNode);
+			}
 
 			return newNode;
 		}
@@ -245,5 +268,9 @@ export class Transformer {
 
 	public getInlineMdTokens(content: string) {
 		return [this.getInlineMdOpenTokens(), this.getTextToken(content), this.getInlineMdCloseTokens()];
+	}
+
+	public getBlockMdTokens(children) {
+		return [{ type: "blockMd_open", tag: "blockMd" }, children, { type: "blockMd_close", tag: "blockMd" }];
 	}
 }

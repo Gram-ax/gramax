@@ -1,7 +1,8 @@
+import NoteAttrs from "@ext/markdown/elements/note/edit/model/NoteAtrrs";
 import note from "@ext/markdown/elements/note/edit/model/noteSchema";
 import { stopExecution } from "@ext/markdown/elementsUtils/cursorFunctions";
 import getExtensionOptions from "@ext/markdown/logic/getExtensionOptions";
-import { mergeAttributes, Node } from "@tiptap/core";
+import { mergeAttributes, Node, wrappingInputRule } from "@tiptap/core";
 import { ReactNodeViewRenderer } from "@tiptap/react";
 import EditNote from "../components/Note";
 import getSelectedText from "@ext/markdown/elementsUtils/getSelectedText";
@@ -12,16 +13,18 @@ declare module "@tiptap/core" {
 		note: {
 			setNote: () => ReturnType;
 			toggleNote: () => ReturnType;
-			updateNote: (attrs: { type: NoteType; title: string }) => ReturnType;
+			updateNote: (attrs: NoteAttrs) => ReturnType;
 		};
 	}
 }
+
+const inputRegex = /^\s*>\s$/;
 
 const Note = Node.create({
 	...getExtensionOptions({ schema: note, name: "note" }),
 
 	parseHTML() {
-		return [{ tag: "note-react-component" }];
+		return [{ tag: "note-react-component" }, { tag: "blockquote", attrs: { type: NoteType.quote } }];
 	},
 
 	renderHTML({ HTMLAttributes }) {
@@ -30,6 +33,20 @@ const Note = Node.create({
 
 	addNodeView() {
 		return ReactNodeViewRenderer(EditNote);
+	},
+
+	addInputRules() {
+		return [
+			wrappingInputRule({
+				find: inputRegex,
+				type: this.type,
+				joinPredicate: () => false,
+				keepAttributes: true,
+				getAttributes: {
+					type: NoteType.quote,
+				},
+			}),
+		];
 	},
 
 	addCommands() {
@@ -54,9 +71,9 @@ const Note = Node.create({
 					return commands.toggleWrap(this.name);
 				},
 			updateNote:
-				({ type, title }: { type: NoteType; title: string }) =>
+				(props: NoteAttrs) =>
 				({ commands }) => {
-					return commands.updateAttributes(this.type, { type, title });
+					return commands.updateAttributes(this.type, props);
 				},
 		};
 	},

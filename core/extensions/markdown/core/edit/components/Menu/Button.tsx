@@ -24,78 +24,37 @@ export interface ButtonProps extends HTMLAttributes<HTMLDivElement> {
 	text?: string;
 }
 
-const StyledDiv = styled.div<ButtonProps>`
-	.iconFrame {
-		line-height: 100%;
-		padding: 6.5px 7px;
-		i {
-			font-size: 10px;
-		}
-	}
-
-	.button {
-		cursor: pointer;
-		font-size: 12px;
-		border-radius: var(--radius-normal);
-	}
-
-	.button:hover:not(.disabled),
-	.button.is-active {
-		background: var(--color-edit-menu-button-active-bg);
-	}
-
-	.button.disabled {
-		cursor: default;
-		opacity: 0.4 !important;
-	}
-
-	.button {
-		svg {
-			${(p) => (p.useSvgDefaultWidth === false ? "" : "width: 1.25em; height: 1.25em;")}
-		}
-	}
-
-	i.fa-fw {
-		margin-left: 0 !important;
-	}
-`;
-
 const Button = forwardRef((props: ButtonProps, ref: ForwardedRef<HTMLDivElement>) => {
+	const { iconStyle = { fontWeight: 300 }, iconViewBox, iconStrokeWidth, icon, ...propsWithoutIcon } = props;
+
 	const {
 		isActive: propsIsActive = false,
 		disabled: propsDisabled = false,
-		iconStyle = { fontWeight: 300 },
 		onMouseLeave,
 		onClick,
 		tooltipText,
 		nodeValues,
 		dataQa,
-		className,
 		children,
-		iconViewBox,
-		iconStrokeWidth,
-		title,
-		useSvgDefaultWidth,
 		hotKey,
 		text,
-		icon,
 		...otherProps
-	} = props;
+	} = propsWithoutIcon;
 
 	const { disabled, isActive } = nodeValues
 		? ButtonStateService.useCurrentAction(nodeValues)
 		: { disabled: propsDisabled, isActive: propsIsActive };
 
 	const mods = {
-		["disabled"]: disabled,
-		["is-active"]: isActive,
+		disabled: disabled,
+		"is-active": isActive,
 	};
 
 	const ButtonContent = (
-		<div onMouseLeave={onMouseLeave} onClick={disabled ? () => {} : onClick} className={classNames("button", mods)}>
+		<div onMouseLeave={onMouseLeave} onClick={disabled ? null : onClick} className={classNames("button", mods)}>
 			{icon ? (
 				<div className="iconFrame">
-					<Icon viewBox={iconViewBox} code={icon} style={iconStyle} strokeWidth={iconStrokeWidth}/>
+					<Icon viewBox={iconViewBox} code={icon} style={iconStyle} strokeWidth={iconStrokeWidth} />
 					{text && <span>{text}</span>}
 				</div>
 			) : (
@@ -110,14 +69,7 @@ const Button = forwardRef((props: ButtonProps, ref: ForwardedRef<HTMLDivElement>
 
 	return (
 		<div data-qa="qa-edit-menu-button">
-			<StyledDiv
-				useSvgDefaultWidth={useSvgDefaultWidth}
-				ref={ref}
-				className={className}
-				data-qa={dataQa}
-				title={title}
-				{...otherProps}
-			>
+			<StyledDiv ref={ref} data-qa={dataQa} {...otherProps}>
 				{tooltipText ? ButtonWithTooltip : ButtonContent}
 			</StyledDiv>
 		</div>
@@ -142,6 +94,38 @@ const ButtonTooltipContent = styled((props: { tooltipText?: string; hotKey?: str
 		border-radius: 2px;
 		color: var(--color-article-text);
 		background: var(--color-article-bg) !important;
+	}
+`;
+
+const StyledDiv = styled.div<ButtonProps>`
+	.iconFrame {
+		display: flex;
+		align-items: center;
+		line-height: 100%;
+		padding: 6.5px 7px;
+		i {
+			font-size: 12.5px;
+		}
+	}
+
+	.button {
+		cursor: pointer;
+		font-size: 12px;
+		border-radius: var(--radius-normal);
+	}
+
+	.button:hover:not(.disabled),
+	.button.is-active {
+		background: var(--color-edit-menu-button-active-bg);
+	}
+
+	.button.disabled {
+		cursor: default;
+		opacity: 0.4 !important;
+	}
+
+	i.fa-fw {
+		margin-left: 0 !important;
 	}
 `;
 

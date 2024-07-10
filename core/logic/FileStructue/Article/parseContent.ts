@@ -1,6 +1,5 @@
 import { Category } from "@core/FileStructue/Category/Category";
 import RuleProvider from "@ext/rules/RuleProvider";
-import DefaultError from "../../../extensions/errorHandlers/logic/DefaultError";
 import MarkdownParser from "../../../extensions/markdown/core/Parser/Parser";
 import ParserContextFactory from "../../../extensions/markdown/core/Parser/ParserContext/ParserContextFactory";
 import Context from "../../Context/Context";
@@ -32,20 +31,15 @@ async function parseContent(
 		return;
 	}
 
-	try {
-		const context = parserContextFactory.fromArticle(article, catalog, ctx.lang, ctx.user?.isLogged);
-
-		const filters = new RuleProvider(ctx).getItemFilters();
-		const content =
-			article.type == ItemType.category && !article.content.trim()
-				? initChildLinks
-					? getChildLinks(article as Category, catalog, filters)
-					: ""
-				: article.content;
-		article.parsedContent = await parser.parse(content, context);
-	} catch (e) {
-		throw new DefaultError(`Article ${article.ref.path.value} parse error`, e);
-	}
+	const context = parserContextFactory.fromArticle(article, catalog, ctx.lang, ctx.user?.isLogged);
+	const filters = new RuleProvider(ctx).getItemFilters();
+	const content =
+		article.type == ItemType.category && !article.content.trim()
+			? initChildLinks
+				? getChildLinks(article as Category, catalog, filters)
+				: ""
+			: article.content;
+	article.parsedContent = await parser.parse(content, context);
 }
 
 export default parseContent;

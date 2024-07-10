@@ -12,9 +12,10 @@ const checkout: Command<{ ctx: Context; catalogName: string; branch: string }, s
 	middlewares: [new AuthorizeMiddleware(), new ReloadConfirmMiddleware()],
 
 	async do({ ctx, catalogName, branch }) {
-		const { lib, rp, logger } = this._app;
+		const { rp, logger, wm } = this._app;
+		const workspace = wm.current();
 
-		const catalog = await lib.getCatalog(catalogName);
+		const catalog = await workspace.getCatalog(catalogName);
 		if (!catalog) return;
 		const source = rp.getSourceData(ctx.cookie, await catalog.repo.storage.getSourceName());
 		await catalog.repo.checkout({
@@ -22,7 +23,6 @@ const checkout: Command<{ ctx: Context; catalogName: string; branch: string }, s
 			branch,
 			onCheckout: (branch) => logger.logInfo(`Checkout to "${branch}".`),
 			onPull: () => logger.logInfo(`Pulled in "${catalogName}", branch: ${branch}.`),
-			authServiceUrl: this._app.conf.services.auth.url,
 		});
 
 		return await catalog.getPathname();

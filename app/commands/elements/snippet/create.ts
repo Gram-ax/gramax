@@ -12,8 +12,10 @@ const create: Command<{ catalogName: string; snippetEditData: SnippetEditData },
 	middlewares: [new DesktopModeMiddleware(), new ReloadConfirmMiddleware()],
 
 	async do({ catalogName, snippetEditData }) {
-		const { formatter, lib } = this._app;
-		const catalog = await lib.getCatalog(catalogName);
+		const { wm, formatter } = this._app;
+		const workspace = wm.current();
+
+		const catalog = await workspace.getCatalog(catalogName);
 		if (!catalog) return;
 		return catalog.snippetProvider.create(snippetEditData, formatter);
 	},

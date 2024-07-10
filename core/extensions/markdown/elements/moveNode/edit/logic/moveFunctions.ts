@@ -197,14 +197,14 @@ const swapNode = ({ isUp, anchor, doc, tr }: MoveProps) => {
 
 	const { prevNodeSize, nextNodeSize } = getPrevAndNextNodeSize(doc, node);
 
+	if (!position && isUp) return tr;
+	if (!nextNodeSize && !isUp) return tr;
+
 	const upPosition = position - prevNodeSize;
 	const downPosition = position + node.nodeSize;
 
 	const upFocusPos = anchor - prevNodeSize;
 	const downFocusPos = anchor + nextNodeSize;
-
-	if (!position && isUp) return;
-	if (!nextNodeSize && !isUp) return;
 
 	const swapPos = isUp ? upPosition : downPosition;
 	const swapFocusPos = isUp ? upFocusPos : downFocusPos;

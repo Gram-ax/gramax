@@ -1,76 +1,80 @@
-import { GRAMAX_EDITOR_URL } from "@app/config/const";
-import GramaxLogo from "@components/GramaxLogo";
-import Anchor from "@components/controls/Anchor";
-import FetchService from "@core-ui/ApiServices/FetchService";
-import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
-import ArticlePropsService from "@core-ui/ContextServices/ArticleProps";
-import CatalogPropsService from "@core-ui/ContextServices/CatalogProps";
-import styled from "@emotion/styled";
+import { getExecutingEnvironment } from "@app/resolveModule/env";
+import Button, { TextSize } from "@components/Atoms/Button/Button";
+import { ButtonStyle } from "@components/Atoms/Button/ButtonStyle";
+import IconLink from "@components/Molecules/IconLink";
+import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
+import ErrorConfirmService from "@ext/errorHandlers/client/ErrorConfirmService";
+import DefaultError from "@ext/errorHandlers/logic/DefaultError";
 import useLocalize from "@ext/localization/useLocalize";
-import { useEffect, useState } from "react";
+import useEditUrl from "./useEditUrl";
 
-const EditInGramax = ({ className, shouldRender }: { className?: string; shouldRender: boolean }) => {
-	if (!shouldRender) return null;
+const DESKTOP_APP_LISTENING_ADDRESS = "http://localhost:52055";
 
-	const [editInGramaxUrl, setEditInGramaxUrl] = useState<string>(null);
-	const catalogProps = CatalogPropsService.value;
-	const articleProps = ArticlePropsService.value;
-	const apiUrlCreator = ApiUrlCreatorService.value;
-
-	const getEditInGramaxLink = async () => {
-		const res = await FetchService.fetch(apiUrlCreator.getEditOnAppUrl(articleProps.ref.path));
-		if (!res.ok) return;
-		setEditInGramaxUrl(await res.text());
-	};
-
-	useEffect(() => {
-		void getEditInGramaxLink();
-	}, [catalogProps.name, articleProps.logicPath]);
-
+const EditInGramaxButton = ({
+	text,
+	targetSelf,
+	onClick,
+}: {
+	text: string;
+	targetSelf?: boolean;
+	onClick?: () => void;
+}) => {
 	return (
-		<li data-qa="qa-clickable" className={className}>
-			<div className="wrapper">
-				<Anchor href={GRAMAX_EDITOR_URL + "/" + editInGramaxUrl} target="_blank">
-					<div className="gramax-icon">
-						<GramaxLogo size={14} />
-					</div>
-					<span>{useLocalize("editOn") + " Gramax"}</span>
-				</Anchor>
-			</div>
+		<li style={{ listStyleType: "none", width: "fit-content" }}>
+			<Button buttonStyle={ButtonStyle.transparent} textSize={TextSize.XS}>
+				<IconLink
+					onClick={onClick}
+					href={useEditUrl()}
+					afterIconCode={"gramax"}
+					text={text}
+					isExternal
+					target={targetSelf ? "_self" : "_blank"}
+				/>
+			</Button>
 		</li>
 	);
 };
 
-export default styled(EditInGramax)`
-	cursor: pointer;
-
-	:hover {
-		.gramax-icon {
-			opacity: 1;
-		}
+const assertDesktopAvailable = async () => {
+	let attempts = 3;
+	await new Promise((resolve) => setTimeout(resolve, 200));
+	while (attempts--) {
+		try {
+			if (await fetch(DESKTOP_APP_LISTENING_ADDRESS).then((r) => r.ok)) return;
+		} catch {}
+		await new Promise((resolve) => setTimeout(resolve, 1000));
 	}
 
-	.gramax-icon {
-		width: 1.25em;
-		display: flex;
-		justify-content: center;
-		align-items: center;
-		opacity: 0.6;
-	}
+	ErrorConfirmService.notify(
+		new DefaultError(
+			`<a target="_blank" rel="noreferrer" href="https://gram.ax">Скачайте приложение</a><span> и попробуйте еще раз.</span>`,
+			null,
+			{ html: true },
+			true,
+			"Приложение не установлено",
+		),
+	);
+};
 
-	.wrapper {
-		display: flex;
-		font-size: 12px;
-		line-height: 1.2em;
-		margin-bottom: 0.9rem;
-	}
+const EditInDesktop = () => (
+	<EditInGramaxButton targetSelf text={useLocalize("openInDesktop")} onClick={assertDesktopAvailable} />
+);
 
-	a {
-		display: flex;
-		align-items: center;
-	}
+const EditInWeb = () =>
+	!PageDataContextService.value?.conf.isRelease && <EditInGramaxButton text={useLocalize("openInWeb")} />;
 
-	span {
-		padding-left: var(--distance-i-span);
-	}
-`;
+const EditInWebFromDocPortal = () => <EditInGramaxButton text={useLocalize("editOn") + " Gramax"} />;
+
+const editInGramaxComponents = {
+	next: EditInWebFromDocPortal,
+	tauri: EditInWeb,
+	browser: EditInDesktop,
+};
+
+const EditInGramax = ({ shouldRender }: { shouldRender: boolean }) => {
+	if (!shouldRender) return null;
+
+	return editInGramaxComponents[getExecutingEnvironment()]();
+};
+
+export default EditInGramax;

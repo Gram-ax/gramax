@@ -2,7 +2,6 @@ import { classNames } from "@components/libs/classNames";
 import styled from "@emotion/styled";
 import { getSimpleExtensions } from "@ext/markdown/core/edit/logic/getExtensions";
 import { Placeholder } from "@ext/markdown/elements/placeholder/placeholder";
-import { Editor } from "@tiptap/core";
 import { EditorContent, JSONContent, useEditor } from "@tiptap/react";
 import { Dispatch, SetStateAction, useEffect, useRef, useState } from "react";
 import EditorButtons from "./EditorButtons";
@@ -15,8 +14,6 @@ export type EditorProps = {
 	onEditorClick?: () => void;
 	setParentIsActive?: Dispatch<SetStateAction<boolean>>;
 	onInput?: (content: string) => void;
-	onCreate?: (props: { editor: Editor }) => void;
-	openButtons?: boolean;
 	placeholder?: string;
 	content?: JSONContent[];
 	isEditable?: boolean;
@@ -27,13 +24,11 @@ const CommentEditor = styled(
 	({
 		confirmButtonText,
 		onConfirm,
-		onCreate,
 		onCancel,
 		setFocusId,
-		onEditorClick,
 		setParentIsActive,
+		onEditorClick,
 		onInput,
-		openButtons = true,
 		placeholder,
 		content = [{ type: "paragraph", content: [] }],
 		isEditable = true,
@@ -53,7 +48,6 @@ const CommentEditor = styled(
 			{
 				content: { type: "doc", content },
 				extensions: [...getSimpleExtensions(), placeholder ? Placeholder.configure({ placeholder }) : null],
-				onCreate: onCreate,
 				editable: isEditable,
 			},
 			[isEditable, currentContent],
@@ -62,6 +56,10 @@ const CommentEditor = styled(
 		useEffect(() => {
 			if (onInput) onInput(editor?.getText());
 		}, [editor?.getText()]);
+
+		useEffect(() => {
+			if (setParentIsActive) setParentIsActive(isActive);
+		}, [isActive]);
 
 		const blur = (): void => {
 			editor.commands.blur();
@@ -73,10 +71,6 @@ const CommentEditor = styled(
 		};
 
 		useEffect(() => {
-			if (setParentIsActive) setParentIsActive(isActive);
-		}, [isActive]);
-
-		useEffect(() => {
 			if (!editor) return;
 
 			const contentElement = getContentElement();
@@ -85,8 +79,7 @@ const CommentEditor = styled(
 				focus();
 			}
 
-			if (!editor.isEmpty && isEditable) setIsActive(true);
-			else setIsActive(false);
+			setIsActive(isEditable);
 		});
 
 		useEffect(() => {
@@ -151,10 +144,11 @@ const CommentEditor = styled(
 					className={"article-body"}
 					onClick={onCurrentEditorClick}
 				/>
-				{isActive && openButtons ? (
+				{isActive ? (
 					<EditorButtons
 						onCancel={onCurrentCancel}
 						onConfirm={onCurrentConfirm}
+						confirmDisabled={editor.isEmpty && isEditable}
 						confirmButtonText={confirmButtonText}
 					/>
 				) : null}
@@ -163,12 +157,16 @@ const CommentEditor = styled(
 	},
 )`
 	flex: 1;
-	width: 406px;
+	width: 25em;
 	color: var(--color-article-text);
 	background: none;
 
 	.ProseMirror {
-		${(p) => (p.isEditable === false ? "" : `max-height: 112px;	overflow-y: scroll;`)}
+		${(p) => (p.isEditable === false ? "" : `max-height: 7em;	overflow-y: auto;`)}
+	}
+
+	.ProseMirror.is-editor-empty {
+		margin: 0;
 	}
 `;
 

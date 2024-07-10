@@ -1,4 +1,3 @@
-import resolveModule from "@app/resolveModule/frontend";
 import ArticleUpdaterService from "@components/Article/ArticleUpdater/ArticleUpdaterService";
 import Button from "@components/Atoms/Button/Button";
 import { ButtonStyle } from "@components/Atoms/Button/ButtonStyle";
@@ -10,8 +9,7 @@ import FetchService from "@core-ui/ApiServices/FetchService";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import { useCallback, useState } from "react";
 import useLocalize from "../../localization/useLocalize";
-
-const FileInput = resolveModule("FileInput");
+import FileInput from "@components/Atoms/FileInput/FileInput";
 
 const FileEditor = ({ trigger, shouldRender }: { trigger: JSX.Element; shouldRender?: boolean }) => {
 	if (!shouldRender) return null;

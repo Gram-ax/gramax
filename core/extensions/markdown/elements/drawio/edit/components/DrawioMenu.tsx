@@ -1,60 +1,75 @@
 import ArticleUpdaterService from "@components/Article/ArticleUpdater/ArticleUpdaterService";
 import Input from "@components/Atoms/Input";
+import SpinnerLoader from "@components/Atoms/SpinnerLoader";
 import ButtonsLayout from "@components/Layouts/ButtonLayout";
+import LogsLayout from "@components/Layouts/LogsLayout";
+import Modal from "@components/Layouts/Modal";
 import ModalLayoutDark from "@components/Layouts/ModalLayoutDark";
 import FetchService from "@core-ui/ApiServices/FetchService";
-import Fetcher from "@core-ui/ApiServices/Types/Fetcher";
-import { Base64ToDataImage, DataImageToBase64 } from "@core-ui/Base64Converter";
+import { Base64ToDataImage, DataImageToBase64, isDataImage } from "@core-ui/Base64Converter";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import ArticlePropsService from "@core-ui/ContextServices/ArticleProps";
 import Button from "@ext/markdown/core/edit/components/Menu/Button";
+import OnLoadResourceService from "@ext/markdown/elements/copyArticles/onLoadResourceService";
 import getFocusNode from "@ext/markdown/elementsUtils/getFocusNode";
 import { Editor } from "@tiptap/core";
 import { Node } from "prosemirror-model";
-import { ChangeEvent, useEffect, useState } from "react";
-import ApiUrlCreator from "../../../../../../ui-logic/ApiServices/ApiUrlCreator";
+import { ChangeEvent, useCallback, useEffect, useState } from "react";
 import DiagramEditor from "../../logic/diagram-editor";
 import getDrawioID from "../logic/getDrawioID";
 
 const DrawioEditButton = ({ src }: { src: string }) => {
-	const [base64Img, setBase64Img] = useState(null);
+	const [isLoading, setIsLoading] = useState(false);
 	const articleProps = ArticlePropsService.value;
 	const apiUrlCreator = ApiUrlCreatorService.value;
 
-	const loadContent = async (src: string, apiUrlCreator: ApiUrlCreator) => {
-		const res = await FetchService.fetch<string>(apiUrlCreator.getArticleResource(src), Fetcher.text);
-		if (!res.ok) return;
-		const content = await res.text();
-		const loadBase64Img = window.btoa(window.unescape(window.encodeURIComponent(content)));
-		setBase64Img(loadBase64Img);
-		getImgTag().src = Base64ToDataImage(loadBase64Img);
-	};
+	const getImgTag = useCallback(
+		() => (document.getElementById(getDrawioID(src, articleProps.logicPath)) ?? {}) as HTMLImageElement,
+		[src, articleProps.logicPath],
+	);
 
-	useEffect(() => {
-		if (!src) return;
-		loadContent(src, apiUrlCreator);
-	}, [src, apiUrlCreator]);
+	const setImgData = useCallback(() => {
+		const imagData = getImgTag().src;
+		if (!isDataImage(imagData)) {
+			getImgTag().src = Base64ToDataImage(OnLoadResourceService.getBuffer(src).toString("base64"));
+		}
+	}, [src, getImgTag]);
 
-	const getImgTag = () =>
-		(document.getElementById(getDrawioID(src, articleProps.logicPath)) ?? {}) as HTMLImageElement;
+	const saveCallBack = useCallback(async () => {
+		setImgData();
+		const imagData = getImgTag().src;
+		const newBase64Img = DataImageToBase64(imagData);
+		const buffer = Buffer.from(newBase64Img, "base64");
+		await FetchService.fetch(apiUrlCreator.setArticleResource(src), buffer);
+		OnLoadResourceService.update(src, buffer);
+	}, [src, getImgTag, setImgData, apiUrlCreator]);
 
-	const saveCallBack = async () => {
-		const newBase64Img = DataImageToBase64(getImgTag().src);
-		if (base64Img == newBase64Img) return;
-		await FetchService.fetch(apiUrlCreator.setArticleResource(src, true), newBase64Img);
-	};
+	OnLoadResourceService.useGetContent(
+		src,
+		apiUrlCreator,
+		useCallback(() => setImgData(), [setImgData]),
+	);
 
 	return (
-		<Button
-			icon={"pencil"}
-			tooltipText={"Редактировать"}
-			onClick={() => {
-				ArticleUpdaterService.stopLoadingAfterFocus();
-				const diagramEditor = DiagramEditor.editElement(getImgTag(), saveCallBack);
-				window.history.pushState({}, document.location.href, "");
-				window.addEventListener("popstate", () => diagramEditor.stopEditing(), { once: true });
-			}}
-		/>
+		<>
+			<Modal isOpen={isLoading}>
+				<LogsLayout style={{ overflow: "hidden" }}>
+					<SpinnerLoader fullScreen />
+				</LogsLayout>
+			</Modal>
+			<Button
+				icon={"pencil"}
+				tooltipText={"Редактировать"}
+				onClick={useCallback(() => {
+					ArticleUpdaterService.stopLoadingAfterFocus();
+					setImgData();
+					setIsLoading(true);
+					const de = DiagramEditor.editElement(getImgTag(), saveCallBack, () => setIsLoading(false));
+					window.history.pushState({}, document.location.href, "");
+					window.addEventListener("popstate", () => de.stopEditing(), { once: true });
+				}, [setImgData, getImgTag])}
+			/>
+		</>
 	);
 };
 
@@ -68,8 +83,8 @@ const DrawioMenu = ({ editor }: { editor: Editor }) => {
 		const { node, position } = getFocusNode(editor.state, (node) => node.type.name === "drawio");
 		if (node) {
 			setNode(node);
+			setSrc(node?.attrs?.src ?? "");
 			setTitle(node?.attrs?.title ?? "");
-			if (!src) setSrc(node?.attrs?.src ?? "");
 		}
 		if (typeof position === "number") setPosition(position);
 	}, [editor.state.selection]);
@@ -86,13 +101,13 @@ const DrawioMenu = ({ editor }: { editor: Editor }) => {
 			editor.commands.deleteRange({ from: position, to: position + node.nodeSize });
 		}
 	};
-
+	if (!src) return null;
 	return (
 		<ModalLayoutDark>
 			<ButtonsLayout>
 				<Input placeholder="Подпись" value={title} onChange={handleTitleChange} />
 				<div className="divider" />
-				<DrawioEditButton src={node?.attrs?.src} />
+				<DrawioEditButton src={src} />
 				<Button icon={"trash"} tooltipText={"Удалить"} onClick={handleDelete} />
 			</ButtonsLayout>
 		</ModalLayoutDark>

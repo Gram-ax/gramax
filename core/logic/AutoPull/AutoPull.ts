@@ -1,7 +1,7 @@
 import type Application from "@app/types/Application";
 import type CatalogEntry from "@core/FileStructue/Catalog/CatalogEntry";
-import type Library from "@core/Library/Library";
 import type Logger from "@ext/loggers/Logger";
+import type { Workspace } from "@ext/workspace/Workspace";
 
 const DEFAULT_AUTO_PULL_INTERVAL = 180;
 
@@ -36,13 +36,13 @@ const autoPull = (app: Application) => {
 		}
 	};
 
-	const pullCatalogs = async (lib: Library) => {
+	const pullCatalogs = async (lib: Workspace) => {
 		const catalogEntries = Array.from(lib.getCatalogEntries().values());
 		await Promise.all(catalogEntries.map((catalogEntry) => pullCatalog(catalogEntry, logger)));
-		setTimeout(() => void pullCatalogs(app.lib), pullInterval);
+		setTimeout(() => void pullCatalogs(app.wm.current()), pullInterval);
 	};
 
-	setTimeout(() => void pullCatalogs(app.lib), pullInterval);
+	setTimeout(() => void pullCatalogs(app.wm.current()), pullInterval);
 };
 
 export default autoPull;

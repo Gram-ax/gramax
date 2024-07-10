@@ -29,7 +29,7 @@ impl<R: Runtime, T: Manager<R>> crate::GramaxGitExt<R> for T {
 }
 
 pub fn init<R: Runtime>() -> TauriPlugin<R> {
-  plugin::Builder::new("gramaxgit")
+  plugin::Builder::new("plugin-gramax-git")
     .invoke_handler(tauri::generate_handler![
       init_new,
       clone,
@@ -56,7 +56,8 @@ pub fn init<R: Runtime>() -> TauriPlugin<R> {
       merge,
       restore,
       get_parent,
-      get_content
+      get_content,
+      graph_head_upstream_files
     ])
     .setup(|app, api| {
       #[cfg(mobile)]

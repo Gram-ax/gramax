@@ -1,6 +1,6 @@
+import { cssMedia } from "@core-ui/utils/cssUtils";
 import styled from "@emotion/styled";
 import { useState } from "react";
-import { cssMedia } from "@core-ui/utils/cssUtils";
 import Note, { NoteType } from "../../../note/render/component/Note";
 import ErrorText from "./ErrorText";
 
@@ -32,7 +32,7 @@ const ErrorVideo = styled(
 				/>
 				{showText ? (
 					<div className="error-text-parent">
-						<Note type={NoteType.none} title={isNoneError ? "Тут будет ваше видео" : "Видео недоступно"}>
+						<Note type={NoteType.info} title={isNoneError ? "Тут будет ваше видео" : "Видео недоступно"}>
 							<ErrorText link={link} isLink={isLink} isNoneError={isNoneError} />
 						</Note>
 					</div>
@@ -60,14 +60,17 @@ const ErrorVideo = styled(
 		> div {
 			max-width: 665px;
 		}
+		.admonition {
+			border: none;
+			background: transparent;
 
-		h5,
-		> div {
-			color: var(--color-article-text-dark-theme);
-		}
+			* {
+				color: var(--color-article-text-dark-theme) !important;
+			}
 
-		a {
-			color: var(--color-link-dark-theme) !important;
+			a {
+				color: var(--color-link-dark-theme) !important;
+			}
 		}
 	}
 `;

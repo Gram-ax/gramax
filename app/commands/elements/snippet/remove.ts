@@ -12,8 +12,10 @@ const remove: Command<{ catalogName: string; snippetId: string; ctx: Context }, 
 	middlewares: [new DesktopModeMiddleware(), new ReloadConfirmMiddleware()],
 
 	async do({ catalogName, snippetId, ctx }) {
-		const { lib, sitePresenterFactory } = this._app;
-		const catalog = await lib.getCatalog(catalogName);
+		const { wm, sitePresenterFactory } = this._app;
+		const workspace = wm.current();
+
+		const catalog = await workspace.getCatalog(catalogName);
 		if (!catalog) return;
 		const sp = sitePresenterFactory.fromContext(ctx);
 		return catalog.snippetProvider.remove(snippetId, sp);

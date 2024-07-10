@@ -20,6 +20,7 @@ import ArticleViewService from "@core-ui/ContextServices/views/articleView/Artic
 import useIsFirstLoad from "@core-ui/useIsFirstLoad";
 import { useRouter } from "@core/Api/useRouter";
 import { ArticlePageData, HomePageData } from "@core/SitePresenter/SitePresenter";
+import OnLoadResourceService from "@ext/markdown/elements/copyArticles/onLoadResourceService";
 import CurrentTabsTagService from "@ext/markdown/elements/tabs/components/CurrentTabsTagService";
 import ThemeService from "../extensions/Theme/components/ThemeService";
 import PageDataContext from "../logic/Context/PageDataContext";
@@ -36,11 +37,13 @@ export default function ContextProviders({
 	pageProps,
 	apiHost,
 	children,
+	clearData,
 	refreshPage,
 }: {
 	pageProps: PageProps;
 	apiHost?: string;
 	refreshPage?: () => Promise<void>;
+	clearData?: () => void;
 	children: JSX.Element;
 }) {
 	const basePath = apiHost ?? useRouter().basePath;
@@ -49,7 +52,7 @@ export default function ContextProviders({
 
 	if (!pageProps || !pageProps.context) return children;
 
-	const apiUrlCreator: ApiUrlCreator = new ApiUrlCreator(
+	const apiUrlCreator = new ApiUrlCreator(
 		basePath,
 		pageProps.context.lang,
 		pageProps.context.theme,
@@ -63,7 +66,7 @@ export default function ContextProviders({
 		<IsOfflineService.Provider>
 			<ApiUrlCreatorService.Provider value={apiUrlCreator}>
 				<PageDataContextService.Provider value={pageProps.context}>
-					<RefreshPageService.Provider refresh={refreshPage}>
+					<RefreshPageService.Provider refresh={refreshPage} clearData={clearData}>
 						<ThemeService.Provider value={pageProps.context.theme}>
 							<IsMacService.Provider>
 								<SearchQueryService.Provider>
@@ -74,51 +77,55 @@ export default function ContextProviders({
 													<ModalToOpenService.Provider>
 														<>
 															{isArticlePage ? (
-																<IsMenuBarOpenService.Provider>
-																	<ArticleRefService.Provider>
-																		<ArticlePropsService.Provider
-																			value={pageProps.data.articleProps}
-																		>
-																			<CatalogPropsService.Provider
-																				value={pageProps.data.catalogProps}
+																<OnLoadResourceService.Provider>
+																	<IsMenuBarOpenService.Provider>
+																		<ArticleRefService.Provider>
+																			<ArticlePropsService.Provider
+																				value={pageProps.data.articleProps}
 																			>
-																				<CurrentTabsTagService.Provider>
-																					<IsEditService.Provider>
-																						<ArticleTooltipService.Provider>
-																							<ViewContextProvider
-																								pageProps={pageProps}
-																							>
+																				<CatalogPropsService.Provider
+																					value={pageProps.data.catalogProps}
+																				>
+																					<CurrentTabsTagService.Provider>
+																						<IsEditService.Provider>
+																							<ArticleTooltipService.Provider>
 																								<IsFirstLoadService.Provider
 																									value={isFirstLoad}
 																								>
-																									<OnUpdateAppFuncs>
-																										<>
-																											{pageProps
-																												.context
-																												.isLogged ? (
-																												<CommentCounterService.Provider
-																													deps={[
-																														pageProps,
-																													]}
-																												>
-																													{
-																														children
-																													}
-																												</CommentCounterService.Provider>
-																											) : (
-																												children
-																											)}
-																										</>
-																									</OnUpdateAppFuncs>
+																									<ViewContextProvider
+																										articlePageData={
+																											pageProps.data
+																										}
+																									>
+																										<OnUpdateAppFuncs>
+																											<>
+																												{pageProps
+																													.context
+																													.isLogged ? (
+																													<CommentCounterService.Provider
+																														deps={[
+																															pageProps,
+																														]}
+																													>
+																														{
+																															children
+																														}
+																													</CommentCounterService.Provider>
+																												) : (
+																													children
+																												)}
+																											</>
+																										</OnUpdateAppFuncs>
+																									</ViewContextProvider>
 																								</IsFirstLoadService.Provider>
-																							</ViewContextProvider>
-																						</ArticleTooltipService.Provider>
-																					</IsEditService.Provider>
-																				</CurrentTabsTagService.Provider>
-																			</CatalogPropsService.Provider>
-																		</ArticlePropsService.Provider>
-																	</ArticleRefService.Provider>
-																</IsMenuBarOpenService.Provider>
+																							</ArticleTooltipService.Provider>
+																						</IsEditService.Provider>
+																					</CurrentTabsTagService.Provider>
+																				</CatalogPropsService.Provider>
+																			</ArticlePropsService.Provider>
+																		</ArticleRefService.Provider>
+																	</IsMenuBarOpenService.Provider>
+																</OnLoadResourceService.Provider>
 															) : (
 																<IsFirstLoadService.Provider value={isFirstLoad}>
 																	<OnUpdateAppFuncs>{children}</OnUpdateAppFuncs>
@@ -146,10 +153,10 @@ const OnUpdateAppFuncs = ({ children }: { children: JSX.Element }) => {
 };
 
 interface ViewContextProviderProps {
-	pageProps: PageProps;
+	articlePageData: ArticlePageData;
 	children: JSX.Element;
 }
 
-const ViewContextProvider = ({ pageProps, children }: ViewContextProviderProps) => {
-	return <ArticleViewService.Provider articlePageData={pageProps.data}>{children}</ArticleViewService.Provider>;
+const ViewContextProvider = ({ articlePageData, children }: ViewContextProviderProps) => {
+	return <ArticleViewService.Provider articlePageData={articlePageData}>{children}</ArticleViewService.Provider>;
 };

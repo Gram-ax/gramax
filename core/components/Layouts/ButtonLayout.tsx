@@ -1,9 +1,17 @@
 import styled from "@emotion/styled";
-import { HTMLAttributes } from "react";
+import { HTMLAttributes, MutableRefObject, forwardRef } from "react";
 
-const ButtonsLayout = styled(({ children, ...props }: HTMLAttributes<HTMLDivElement>): JSX.Element => {
-	return <div {...props}>{children}</div>;
-})`
+const ButtonsLayout = forwardRef(
+	({ children, ...props }: HTMLAttributes<HTMLDivElement>, ref?: MutableRefObject<HTMLDivElement>): JSX.Element => {
+		return (
+			<div ref={ref} {...props}>
+				{children}
+			</div>
+		);
+	},
+);
+
+export default styled(ButtonsLayout)`
 	gap: 4px;
 	display: flex;
 	align-items: center;
@@ -20,5 +28,3 @@ const ButtonsLayout = styled(({ children, ...props }: HTMLAttributes<HTMLDivElem
 		padding: 0 5.5px;
 	}
 `;
-
-export default ButtonsLayout;

@@ -5,7 +5,7 @@ import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import LinkHoverTooltip from "@ext/markdown/elements/link/edit/logic/LinkHoverTooltip";
 import { createContext, useContext, useRef, useEffect } from "react";
 
-const ArticleTooltip = createContext<(link: HTMLElement, resourcePath: string) => void>(undefined);
+export const ArticleTooltip = createContext<(link: HTMLElement, resourcePath: string) => void>(() => {});
 
 abstract class ArticleTooltipService {
 	static Provider({ children }: { children: JSX.Element }): JSX.Element {

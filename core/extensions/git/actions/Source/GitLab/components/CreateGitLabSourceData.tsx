@@ -45,6 +45,7 @@ const CreateGitLabSourceData = ({
 			}
 			if (!data.userName || !data.userEmail) {
 				const user = await new GitlabSourceAPI(data, authServiceUrl).getUser();
+				if (!user) return;
 				data.userName = user.name;
 				data.userEmail = user.email;
 				setThisProps({ ...data });

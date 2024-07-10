@@ -1,4 +1,4 @@
-FROM gitlab.ics-it.ru:4567/ics/doc-reader:base-image as deps
+FROM gitlab.ics-it.ru:4567/ics/doc-reader:base-image AS deps
 
 WORKDIR /src
 
@@ -8,7 +8,7 @@ RUN rm -r services/*
 
 RUN ./install-deps.sh --ci --wasm
 
-FROM deps as build
+FROM deps AS build
 
 ENV NODE_OPTIONS=--max_old_space_size=4096
 

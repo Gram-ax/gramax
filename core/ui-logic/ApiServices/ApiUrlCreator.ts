@@ -1,8 +1,10 @@
 import { getExecutingEnvironment } from "@app/resolveModule/env";
 import { Router } from "@core/Api/Router";
+import CustomArticle from "@core/SitePresenter/customArticles/model/CustomArticle";
 import DiagramType from "@core/components/Diagram/DiagramType";
 import Theme from "@ext/Theme/Theme";
 import Language from "@ext/localization/core/model/Language";
+import type { WorkspacePath } from "@ext/workspace/WorkspaceConfig";
 import MimeTypes from "./Types/MimeTypes";
 import Url from "./Types/Url";
 
@@ -39,6 +41,26 @@ export default class ApiUrlCreator {
 		);
 	}
 
+	public switchWorkspace(id: WorkspacePath) {
+		return Url.fromBasePath(`/api/workspace/switch`, this._basePath, { id });
+	}
+
+	public editWorkspace() {
+		return Url.fromBasePath(`/api/workspace/edit`, this._basePath);
+	}
+
+	public removeWorkspace(id: WorkspacePath) {
+		return Url.fromBasePath(`/api/workspace/remove`, this._basePath, { id });
+	}
+
+	public createWorkspace() {
+		return Url.fromBasePath(`/api/workspace/create`, this._basePath, {});
+	}
+
+	public setDefaultPath(path: string) {
+		return Url.fromBasePath(`/api/workspace/setDefaultPath`, this._basePath, { path });
+	}
+
 	public getArticleResource(src: string, mimeType?: MimeTypes) {
 		return Url.fromBasePath(`/api/article/resource/get`, this._basePath, {
 			articlePath: this._articlePath,
@@ -71,11 +93,18 @@ export default class ApiUrlCreator {
 		});
 	}
 
-	public setArticleResource(src: string, isBase64 = false) {
+	public getArticleHeadersByRelativePath(articleRelativePath: string) {
+		return Url.fromBasePath(`/api/article/features/getArticleHeadersByRelativePath`, this._basePath, {
+			articleRelativePath,
+			catalogName: this._catalogName,
+			articlePath: this._articlePath,
+		});
+	}
+
+	public setArticleResource(src: string) {
 		return Url.fromBasePath(`/api/article/resource/set`, this._basePath, {
 			articlePath: this._articlePath,
 			catalogName: this._catalogName,
-			isBase64: `${isBase64}`,
 			src,
 		});
 	}
@@ -88,8 +117,8 @@ export default class ApiUrlCreator {
 		});
 	}
 
-	public getArticleResourceNames() {
-		return Url.fromBasePath(`/api/article/resource/getNames`, this._basePath, {
+	public getArticleFileBrotherNames() {
+		return Url.fromBasePath(`/api/article/features/getBrotherNames`, this._basePath, {
 			articlePath: this._articlePath,
 			catalogName: this._catalogName,
 		});
@@ -103,14 +132,12 @@ export default class ApiUrlCreator {
 
 	public getCommentCount() {
 		return Url.fromBasePath(`/api/comments/getCommentCount`, this._basePath, {
-			catalogName: this._catalogName,
 			articlePath: this._articlePath,
 		});
 	}
 
 	public deleteComment(count: string) {
 		return Url.fromBasePath(`/api/comments/deleteComment`, this._basePath, {
-			catalogName: this._catalogName,
 			articlePath: this._articlePath,
 			count,
 		});
@@ -140,16 +167,6 @@ export default class ApiUrlCreator {
 		});
 	}
 
-	public getDiagram(src: string, diagramName: DiagramType, count: number = null) {
-		return Url.fromBasePath(`/api/diagram/path`, this._basePath, {
-			articlePath: this._articlePath,
-			catalogName: this._catalogName,
-			count: count?.toString(),
-			diagram: diagramName,
-			path: src,
-		});
-	}
-
 	public getDiagramByContentUrl(diagramName: DiagramType, count: number = null) {
 		return Url.fromBasePath(`/api/diagram/content`, this._basePath, {
 			diagram: diagramName,
@@ -175,8 +192,11 @@ export default class ApiUrlCreator {
 		});
 	}
 
-	public getLogoUrl(catalogName: string) {
-		return Url.fromBasePath(`/api/catalog/logo`, this._basePath, { catalogName, theme: this._theme });
+	public getLogoUrl(catalogName: string, theme?: Theme) {
+		return Url.fromBasePath(`/api/catalog/logo`, this._basePath, {
+			catalogName,
+			theme: theme ?? this._theme,
+		});
 	}
 
 	public getOpenGraphLogoUrl(domain: string) {
@@ -194,11 +214,26 @@ export default class ApiUrlCreator {
 		});
 	}
 
-	public getWordSaveUrl(articlePath?: string) {
-		return Url.fromBasePath(`/api/word${articlePath ? "" : "/all"}`, this._basePath, {
+	public getWordSaveUrl(isCategory: boolean, itemPath?: string) {
+		return Url.fromBasePath(`/api/word`, this._basePath, {
 			l: this._lang,
-			articlePath,
+			itemPath,
 			catalogName: this._catalogName,
+			isCategory: isCategory ? "true" : "false",
+		});
+	}
+
+	public getErrorWordElementsUrl(isCategory: boolean, itemPath?: string) {
+		return Url.fromBasePath(`api/word/getErrorElements`, this._basePath, {
+			itemPath,
+			catalogName: this._catalogName,
+			isCategory: isCategory ? "true" : "false",
+		});
+	}
+
+	public getUnsupportedElementsUrl(storageDataName: string) {
+		return Url.fromBasePath(`/api/storage/confluence/getUnsupportedElements`, this._basePath, {
+			storageDataName,
 		});
 	}
 
@@ -215,10 +250,16 @@ export default class ApiUrlCreator {
 		});
 	}
 
-	public getSyncCountUrl() {
+	public getSyncCountUrl({
+		forceCatalogName,
+	}: { forceCatalogName?: string; fetch?: boolean; returnError?: boolean } = {}) {
 		return Url.fromBasePath(`/api/storage/getSyncCount`, this._basePath, {
-			catalogName: this._catalogName,
+			catalogName: forceCatalogName ?? this._catalogName,
 		});
+	}
+
+	public getAllSyncCountUrl(shouldFetch: boolean) {
+		return Url.fromBasePath(`/api/storage/getAllSyncCount`, this._basePath, { fetch: shouldFetch.toString() });
 	}
 
 	public getStoragePublishUrl(message: string, recursive?: boolean) {
@@ -260,10 +301,17 @@ export default class ApiUrlCreator {
 		});
 	}
 
+	public getStorageCanPull() {
+		return Url.fromBasePath(`/api/storage/canPull`, this._basePath, {
+			catalogName: this._catalogName,
+		});
+	}
+
 	public getStorageSyncUrl(recursive?: boolean) {
 		return Url.fromBasePath(`/api/storage/sync`, this._basePath, {
 			catalogName: this._catalogName,
 			recursive: recursive.toString(),
+			articlePath: this._articlePath,
 		});
 	}
 
@@ -369,39 +417,15 @@ export default class ApiUrlCreator {
 		});
 	}
 
-	public abortMergeSync(stashHash: string) {
-		return Url.fromBasePath(`/api/storage/sync/mergeConflict/abort`, this._basePath, {
+	public abortMerge() {
+		return Url.fromBasePath(`/api/versionControl/mergeConflict/abort`, this._basePath, {
 			catalogName: this._catalogName,
-			stashHash,
 		});
 	}
 
-	public resolveMergeSyncConflictedFiles(stashHash: string) {
-		return Url.fromBasePath(`/api/storage/sync/mergeConflict/resolve`, this._basePath, {
+	public resolveMerge() {
+		return Url.fromBasePath(`/api/versionControl/mergeConflict/resolve`, this._basePath, {
 			catalogName: this._catalogName,
-			stashHash,
-		});
-	}
-
-	public abortMergeBranch(theirsBranch: string) {
-		return Url.fromBasePath(`/api/versionControl/branch/mergeConflict/abort`, this._basePath, {
-			catalogName: this._catalogName,
-			theirsBranch,
-		});
-	}
-
-	public resolveMergeBranchConflictedFiles(
-		theirsBranch: string,
-		branchNameBefore: string,
-		headBeforeMerge: string,
-		deleteAfterMerge: boolean,
-	) {
-		return Url.fromBasePath(`/api/versionControl/branch/mergeConflict/resolve`, this._basePath, {
-			catalogName: this._catalogName,
-			theirsBranch,
-			branchNameBefore,
-			headBeforeMerge,
-			deleteAfterMerge: deleteAfterMerge.toString(),
 		});
 	}
 
@@ -457,9 +481,7 @@ export default class ApiUrlCreator {
 	}
 
 	public getCatalogBrotherFileNames() {
-		return Url.fromBasePath(`/api/catalog/getBrotherFileNames`, this._basePath, {
-			catalogName: this._catalogName,
-		});
+		return Url.fromBasePath(`/api/catalog/getBrotherFileNames`, this._basePath);
 	}
 
 	public createArticle(parentPath?: string) {
@@ -519,7 +541,7 @@ export default class ApiUrlCreator {
 		});
 	}
 
-	public getCustomArticle(name: string) {
+	public getCustomArticle(name: CustomArticle) {
 		return Url.fromBasePath("/api/article/features/getCustomArticle", this._basePath, { name });
 	}
 
@@ -609,6 +631,12 @@ export default class ApiUrlCreator {
 		return Url.fromBasePath(`/api/elements/snippet/getRenderData`, this._basePath, {
 			catalogName: this._catalogName,
 			snippetId,
+		});
+	}
+
+	public getCustomIconsList() {
+		return Url.fromBasePath(`/api/elements/icon/getIconsList`, this._basePath, {
+			catalogName: this._catalogName,
 		});
 	}
 }

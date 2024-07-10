@@ -1,4 +1,5 @@
 import FileProvider from "@core/FileProvider/model/FileProvider";
+import type { Category } from "@core/FileStructue/Category/Category";
 import RepositoryProvider from "@ext/git/core/Repository/RepositoryProvider";
 import { NodeModel } from "@minoru/react-dnd-treeview";
 import { Catalog } from "../../../../../logic/FileStructue/Catalog/Catalog";
@@ -15,14 +16,52 @@ class DragTree {
 		private _rp: RepositoryProvider,
 	) {}
 
+	public findOrderingAncestors(newNav: NodeModel<ItemLink>[], draggedItemPath: string, catalog: Catalog) {
+		const items = [DragTreeTransformer.getRootItem(), ...newNav];
+
+		const draggedNodeIndex = items.findIndex((item) => item.data?.ref.path == draggedItemPath);
+		if (draggedNodeIndex == -1) return;
+
+		const draggedNode = items[draggedNodeIndex];
+		const draggedItem = catalog.findItemByItemRef(this._getItemRef(draggedNode, catalog));
+
+		const itemsWithSameParent = items.filter((i) => i.parent == draggedNode.parent);
+
+		const prevNodeIndex =
+			itemsWithSameParent[itemsWithSameParent.findIndex((i) => i.data?.ref.path == draggedItemPath) - 1];
+
+		const prevItem = prevNodeIndex && catalog.findItemByItemRef(this._getItemRef(prevNodeIndex, catalog));
+
+		const parentNodeIdx = prevItem && items.findIndex((i) => i.id == prevNodeIndex.parent);
+
+		let parent: Category;
+		if (typeof parentNodeIdx == "undefined" || parentNodeIdx == -1) {
+			const ref = this._getItemRef(
+				items.find((i) => i.id == draggedNode.parent),
+				catalog,
+			);
+			parent = catalog.findItemByItemRef(ref);
+		} else {
+			parent = catalog.findItemByItemRef(this._getItemRef(items[parentNodeIdx], catalog));
+		}
+
+		if (!draggedItem || !parent) return;
+
+		return {
+			dragged: draggedItem,
+			prev: prevItem,
+			parent,
+		};
+	}
+
 	public async drag(
 		oldLevNav: NodeModel<ItemLink>[],
 		newLevNav: NodeModel<ItemLink>[],
 		catalog: Catalog,
-	): Promise<NodeModel<ItemLink>[]> {
+	): Promise<boolean> {
 		const rootItem = DragTreeTransformer.getRootItem();
 		const movements = getMovements<ItemLink>([rootItem, ...oldLevNav], [rootItem, ...newLevNav]);
-		if (!movements.length) return newLevNav;
+		if (!movements.length) return false;
 		for (const movement of movements) {
 			const { moveItem, newList, oldList } = movement;
 			const newParentItem = newList[newList.length - 2];
@@ -38,28 +77,7 @@ class DragTree {
 			await catalog.moveItem(moveItemRef, newItemRef, this._resourceUpdater, this._rp);
 		}
 		await this._fp.deleteEmptyFolders(catalog.getRootCategoryRef().path.parentDirectoryPath);
-	}
-
-	public async setOrders(nav: NodeModel<ItemLink>[], catalog: Catalog) {
-		const items = [DragTreeTransformer.getRootItem(), ...nav];
-		const newGroupedItems: { [parentId: number | string]: NodeModel<ItemLink>[] } = {};
-
-		items.forEach((item) => {
-			if (!newGroupedItems[item.parent]) newGroupedItems[item.parent] = [item];
-			else newGroupedItems[item.parent].push(item);
-		});
-
-		const parentIds = Object.keys(newGroupedItems);
-		for (const parentId of parentIds) {
-			const parentItem = items.find((item) => item.id == parentId);
-			if (!parentItem) continue;
-
-			const newCategoryItems = newGroupedItems[parentId];
-			const newBrowsers = newCategoryItems.map((i) => catalog.findItemByItemRef(this._getItemRef(i, catalog)));
-
-			const parentCategory = catalog.findCategoryByItemRef(this._getItemRef(parentItem, catalog));
-			await parentCategory.sortItems(newBrowsers);
-		}
+		return true;
 	}
 
 	private _getItemRef = (item: NodeModel<ItemLink>, catalog: Catalog) =>

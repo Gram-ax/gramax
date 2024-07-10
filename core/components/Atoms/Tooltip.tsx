@@ -1,3 +1,4 @@
+import { classNames } from "@components/libs/classNames";
 import { cssMedia } from "@core-ui/utils/cssUtils";
 import styled from "@emotion/styled";
 import { useMediaQuery } from "@mui/material";
@@ -16,6 +17,7 @@ interface TooltipProps extends TippyProps {
 	hideOnClick?: boolean;
 	contentClassName?: string;
 	interactive?: boolean;
+	inverseStyle?: boolean;
 	delay?: number;
 }
 
@@ -37,8 +39,10 @@ const Tooltip = forwardRef((props: TooltipProps, ref?: Ref<Element>) => {
 		customStyle = false,
 		hideOnClick = false,
 		setPlaceCallback = () => {},
+		appendTo = () => document.body,
 		interactive = false,
 		delay = 0,
+		inverseStyle,
 		...otherProps
 	} = props;
 
@@ -53,7 +57,13 @@ const Tooltip = forwardRef((props: TooltipProps, ref?: Ref<Element>) => {
 	return (
 		<Tippy
 			content={
-				<TooltipContent className={contentClassName} place={finalPlace} arrow={arrow} customStyle={customStyle}>
+				<TooltipContent
+					className={contentClassName}
+					inverseStyle={inverseStyle}
+					place={finalPlace}
+					arrow={arrow}
+					customStyle={customStyle}
+				>
 					{content}
 				</TooltipContent>
 			}
@@ -67,7 +77,7 @@ const Tooltip = forwardRef((props: TooltipProps, ref?: Ref<Element>) => {
 				setFinalPlace(instance.popperInstance.state.placement);
 			}}
 			ref={ref}
-			appendTo={() => document.body}
+			appendTo={appendTo}
 			interactive={interactive}
 			delay={delay}
 			{...otherProps}
@@ -77,30 +87,36 @@ const Tooltip = forwardRef((props: TooltipProps, ref?: Ref<Element>) => {
 	);
 });
 
-const TooltipContent = styled(({ children, className }: TooltipContentProps) => {
-	return <div className={className}>{children}</div>;
+const TooltipContent = styled((props: TooltipContentProps) => {
+	const { children, customStyle, inverseStyle, className } = props;
+	return <div className={classNames(className, { defaultStyle: !customStyle, inverseStyle })}>{children}</div>;
 })`
-	${(p) =>
-		p.customStyle
-			? ""
-			: `
-	font-size: 10.5px;
-	font-weight: 300;
-	line-height: 1.2em;
-	text-transform: none;
-	font-family: "Roboto";
-	opacity: 1;
-	padding: 6px;
-	background: var(--color-tooltip-background);
-	color: var(--color-tooltip-text);
-	border-radius: 3px;`}
+	&.defaultStyle {
+		font-size: 10.5px;
+		font-weight: 300;
+		line-height: 1.2em;
+		text-transform: none;
+		font-family: "Roboto", sans-serif;
+		opacity: 1;
+		padding: 6px;
+		color: var(--color-tooltip-text);
+		background: var(--color-tooltip-background);
+		border-radius: 3px;
+	}
 
-	${(p) => (p.arrow === false ? "" : getArrow(p.place))}
+	&.inverseStyle {
+		box-shadow: var(--menu-tooltip-shadow);
+		color: var(--color-tooltip-text-inverse);
+		background: var(--color-tooltip-background-inverse);
+	}
+
+	${(p) => (p.arrow === false ? "" : getArrow(p.place, p.inverseStyle))}
 `;
 
-const getArrow = (place: Placement): string => {
+const getArrow = (place: Placement, inverseStyle: boolean): string => {
 	const arrowSize = "5px";
 	let result = "";
+	const color = inverseStyle ? "var(--color-tooltip-background-inverse)" : "var(--color-tooltip-background)";
 
 	if (place.includes("top"))
 		result = `
@@ -109,7 +125,7 @@ const getArrow = (place: Placement): string => {
 			transform: translate(-50%, 0);
 			border-left: ${arrowSize} solid transparent;
 			border-right: ${arrowSize} solid transparent;
-			border-top: ${arrowSize} solid var(--color-tooltip-background);
+			border-top: ${arrowSize} solid ${color};
 		`;
 	else if (place.includes("bottom"))
 		result = `
@@ -118,7 +134,7 @@ const getArrow = (place: Placement): string => {
 			transform: translate(-50%, 0);
 			border-left: ${arrowSize} solid transparent;
 			border-right: ${arrowSize} solid transparent;
-			border-bottom: ${arrowSize} solid var(--color-tooltip-background);
+			border-bottom: ${arrowSize} solid ${color};
 		`;
 	else if (place.includes("left"))
 		result = `
@@ -127,7 +143,7 @@ const getArrow = (place: Placement): string => {
 			transform: translate(0, -50%);
 			border-top: ${arrowSize} solid transparent;
 			border-bottom: ${arrowSize} solid transparent;
-			border-left: ${arrowSize} solid var(--color-tooltip-background);
+			border-left: ${arrowSize} solid ${color};
 		`;
 	else if (place.includes("right"))
 		result = `
@@ -136,7 +152,7 @@ const getArrow = (place: Placement): string => {
 			transform: translate(0, -50%);
 			border-top: ${arrowSize} solid transparent;
 			border-bottom: ${arrowSize} solid transparent;
-			border-right: ${arrowSize} solid var(--color-tooltip-background);
+			border-right: ${arrowSize} solid ${color};
 		`;
 
 	return `

@@ -4,7 +4,7 @@ import Path from "../../FileProvider/Path/Path";
 describe("TableDB", () => {
 	test("корректно выдает поля для таблицы", async () => {
 		const app = await getApplication();
-		const fp = app.lib.getFileProvider();
+		const fp = app.wm.current().getFileProvider();
 
 		const ref = {
 			storageId: fp.storageId,

@@ -8,11 +8,11 @@ const source: Command<{ catalogName: string; articlePath: Path }, string> = Comm
 	kind: ResponseKind.plain,
 
 	async do({ catalogName, articlePath }) {
-		const { lib } = this._app;
-		const catalog = await lib.getCatalog(catalogName);
+		const workspace = this._app.wm.current();
+		const catalog = await workspace.getCatalog(catalogName);
 		if (!catalog) return;
 		if (!articlePath.startsWith(catalog.getBasePath())) return;
-		const fp = lib.getFileProviderByCatalog(catalog);
+		const fp = workspace.getFileProvider();
 		const itemRef = fp.getItemRef(articlePath);
 		const path = catalog.getRelativeRepPath(itemRef);
 		const { gitVersionControl } = await catalog.repo.gvc.getGitVersionControlContainsItem(path);

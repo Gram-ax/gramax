@@ -2,7 +2,7 @@ import { ClientArticleProps } from "../../../../../../logic/SitePresenter/SitePr
 import ExtensionUpdaterRules from "../ExtensionUpdaterRules";
 
 const getArticlePropsRule = (articleProps: ClientArticleProps): ExtensionUpdaterRules => {
-	const filterNames = ["selectionMenu"];
+	const filterNames = ["selectionMenu", "copyArticles"];
 
 	return {
 		filter: (extension) => filterNames.includes(extension.name),

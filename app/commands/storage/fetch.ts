@@ -13,8 +13,10 @@ const fetchCmd: Command<{ ctx: Context; catalogName: string }, void> = Command.c
 	middlewares: [new AuthorizeMiddleware(), new ReloadConfirmMiddleware(), new SilentMiddleware()],
 
 	async do({ ctx, catalogName }) {
-		const { lib, logger, rp } = this._app;
-		const catalog = await lib.getCatalog(catalogName);
+		const { logger, rp, wm } = this._app;
+		const workspace = wm.current();
+
+		const catalog = await workspace.getCatalog(catalogName);
 		const storage = catalog?.repo.storage;
 		if (!storage) return;
 		const data = rp.getSourceData(ctx.cookie, await storage.getSourceName());

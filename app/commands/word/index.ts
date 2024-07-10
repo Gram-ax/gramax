@@ -1,9 +1,9 @@
-import getAllAsWordDocument from "./getAllAsWordDocument";
 import getAsWordDocument from "./getAsWordDocument";
+import getErrorElements from "./getErrorElements";
 
 const word = {
+	getErrorElements,
 	getAsWordDocument,
-	getAllAsWordDocument,
 };
 
 export default word;

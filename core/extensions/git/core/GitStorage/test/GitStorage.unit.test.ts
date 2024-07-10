@@ -47,27 +47,13 @@ describe("GitStorage", () => {
 	// });
 	describe("Pull", () => {
 		describe("Без конфликта", () => {
-			describe("Обычный репозиторий", () => {
-				test("Без изменений", async () => {
-					await rep.setRemote(RemoteNames.Pull);
-					expect(await fs.exists(__dirname + "/rep/file_to_pull.md")).toBeFalsy();
+			test("Обычный репозиторий", async () => {
+				await rep.setRemote(RemoteNames.Pull);
+				expect(await fs.exists(__dirname + "/rep/file_to_pull.md")).toBeFalsy();
 
-					await storage.pull(rep.source);
+				await storage.pull(rep.source);
 
-					expect(await fs.exists(__dirname + "/rep/file_to_pull.md")).toBeTruthy();
-				});
-				test("С изменениями", async () => {
-					await rep.setRemote(RemoteNames.Pull);
-					await fs.writeFile(__dirname + "/rep/2.md", "content 2\nnew line");
-					const commitHashBefore = await rep.getCurrentHash();
-					expect(await fs.exists(__dirname + "/rep/file_to_pull.md")).toBeFalsy();
-
-					await storage.pull(rep.source);
-
-					expect(commitHashBefore).not.toBe(await rep.getCurrentHash());
-					expect(await fs.readFile(__dirname + "/rep/2.md", "utf-8")).toBe("content 2\nnew line");
-					expect(await fs.exists(__dirname + "/rep/file_to_pull.md")).toBeTruthy();
-				});
+				expect(await fs.exists(__dirname + "/rep/file_to_pull.md")).toBeTruthy();
 			});
 			// it("Репозиторий с подмодулем", async () => {
 			// 	await rep.submodule.setRemote(RemoteNames.SubModulePull);

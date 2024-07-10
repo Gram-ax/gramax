@@ -47,7 +47,7 @@ fn resolve_identity_from_config(url: &str) -> Option<PathBuf> {
 
 #[cfg(not(target_family = "wasm"))]
 fn resolve_identities() -> Option<impl Iterator<Item = PathBuf>> {
-  let ssh_dir = dirs_next::home_dir()?.join(".ssh");
+  let ssh_dir = dirs::home_dir()?.join(".ssh");
   let files = ssh_dir.read_dir().ok()?;
   let iter = files
     .filter_map(|f| f.ok())

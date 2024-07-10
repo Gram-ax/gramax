@@ -1,33 +1,22 @@
-use gramaxgit::creds::*;
-use gramaxgit::prelude::repo_ext::*;
 use gramaxgit::prelude::*;
 
 use rstest::*;
 use tempdir::*;
 
 use std::fs;
-use std::path::Path;
 
-type Result = std::result::Result<(), gramaxgit::error::Error>;
+use test_utils::git::*;
+use test_utils::*;
 
-#[fixture]
-fn sandbox() -> TempDir {
-  let path = Path::new(env!("CARGO_TARGET_TMPDIR")).join("gramax-git");
-  std::fs::create_dir_all(&path).unwrap();
-  TempDir::new_in(path, "repo").unwrap()
-}
-
-#[fixture]
-fn repo(#[default(&sandbox())] sandbox: &TempDir, #[default("")] url: &str) -> Repo<DummyCreds> {
-  if url.is_empty() {
-    Repo::init(sandbox.path(), DummyCreds).unwrap()
-  } else {
-    Repo::clone(url, sandbox.path(), Some("master"), DummyCreds, |_, _| true).unwrap()
-  }
+#[rstest]
+fn init_new(sandbox: TempDir) -> Result {
+  Repo::init(sandbox.path(), TestCreds)?;
+  assert!(sandbox.path().join(".git").exists());
+  Ok(())
 }
 
 #[rstest]
-fn get_content(sandbox: TempDir, #[with(&sandbox)] repo: Repo<DummyCreds>) -> Result {
+fn get_content(sandbox: TempDir, #[with(&sandbox)] repo: Repo<TestCreds>) -> Result {
   fs::write(sandbox.path().join("file"), "content")?;
   repo.add_glob(["."].iter())?;
   let oid = repo.commit("test")?;
@@ -38,5 +27,22 @@ fn get_content(sandbox: TempDir, #[with(&sandbox)] repo: Repo<DummyCreds>) -> Re
   assert_eq!(repo.get_content("file", Some(oid))?, "content");
   assert_eq!(repo.get_content("file", None)?, "content231");
 
+  Ok(())
+}
+
+#[rstest]
+fn file_history(sandbox: TempDir, #[with(&sandbox)] repo: Repo<TestCreds>) -> Result {
+  fs::write(sandbox.path().join("file"), "init")?;
+  repo.add("file")?;
+  repo.commit("commit_1")?;
+  fs::write(sandbox.path().join("file"), "222")?;
+  repo.commit("commit 2")?;
+  fs::write(sandbox.path().join("file_2"), "init")?;
+  repo.add("file_2")?;
+  repo.commit("commit 3")?;
+
+  let diff = repo.history("file", 10)?;
+
+  assert_eq!(diff.len(), 1);
   Ok(())
 }

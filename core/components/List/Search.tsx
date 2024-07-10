@@ -1,3 +1,5 @@
+import Button, { TextSize } from "@components/Atoms/Button/Button";
+import { ButtonStyle } from "@components/Atoms/Button/ButtonStyle";
 import { classNames } from "@components/libs/classNames";
 import styled from "@emotion/styled";
 import { ChangeEventHandler, ForwardedRef, HTMLProps, forwardRef, useEffect, useImperativeHandle, useRef } from "react";
@@ -79,18 +81,10 @@ const Search = forwardRef((props: SearchProps, ref: ForwardedRef<SearchElement>)
 						onFocus={onFocus}
 					/>
 				</div>
-				<div className="chevron-icon" onClick={onChevronClick} ref={chevronRef}>
-					<Icon
-						code={`chevron-${isOpen ? "up" : "down"}`}
-						viewBox="3 3 18 18"
-						style={{
-							fontSize: "10px",
-							fontWeight: 300,
-							cursor: "pointer",
-							width: "10px",
-							textAlign: "center",
-						}}
-					/>
+				<div className={"chevron-icon"} onClick={onChevronClick} ref={chevronRef}>
+					<Button textSize={TextSize.S} buttonStyle={ButtonStyle.transparentInverse}>
+						<Icon code={`chevron-${isOpen ? "up" : "down"}`} />
+					</Button>
 				</div>
 			</div>
 		</div>

@@ -1,6 +1,8 @@
 import { mergeAttributes, Node } from "@tiptap/core";
 import { ReactNodeViewRenderer } from "@tiptap/react";
-import EditImage from "../components/ImageComponent";
+import ImageComponent from "../components/ImageComponent";
+import getExtensionOptions from "@ext/markdown/logic/getExtensionOptions";
+import imageSchema from "@ext/markdown/elements/image/edit/model/imageSchema";
 
 declare module "@tiptap/core" {
 	interface Commands<ReturnType> {
@@ -9,22 +11,10 @@ declare module "@tiptap/core" {
 }
 
 const Image = Node.create({
-	name: "image",
+	...getExtensionOptions({ schema: imageSchema, name: "image", withResource: true }),
+	draggable: false,
+	inline: false,
 	group: "block",
-
-	addOptions() {
-		return {};
-	},
-
-	addAttributes() {
-		return {
-			src: { default: null },
-			alt: { default: null },
-			title: { default: null },
-			crop: { default: null },
-			objects: { default: null },
-		};
-	},
 
 	parseHTML() {
 		return [{ tag: "image-react-component" }];
@@ -35,7 +25,7 @@ const Image = Node.create({
 	},
 
 	addNodeView() {
-		return ReactNodeViewRenderer(EditImage);
+		return ReactNodeViewRenderer(ImageComponent);
 	},
 
 	addCommands() {

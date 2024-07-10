@@ -2,40 +2,36 @@ import styled from "@emotion/styled";
 import { useContext, useEffect, useState } from "react";
 import { FocusPositionContext } from "../../core/edit/components/ContextWrapper";
 
-const Focus = styled(
-	({
-		children,
-		position,
-		isMd,
-		className,
-	}: {
-		children: JSX.Element;
-		position: number;
-		isMd?: boolean;
-		className?: string;
-	}) => {
-		const focusPosition = useContext(FocusPositionContext);
-		const [isFocus, setIsFocus] = useState(false);
+interface FocusProps {
+	children: JSX.Element;
+	position: number;
+	isMd?: boolean;
+	className?: string;
+}
 
-		useEffect(() => {
-			setIsFocus(focusPosition === position);
-		}, [focusPosition]);
+const Focus = ({ children, position, isMd, className }: FocusProps) => {
+	const focusPosition = useContext(FocusPositionContext);
+	const [isFocus, setIsFocus] = useState(false);
+	useEffect(() => {
+		setIsFocus(focusPosition === position);
+	}, [focusPosition]);
 
-		if (isMd) {
-			return (
-				<span className={className} is-focus={`${isFocus}`}>
-					{children}
-				</span>
-			);
-		}
-
+	if (isMd) {
 		return (
-			<div className={className} is-focus={`${isFocus}`}>
+			<span className={className} is-focus={`${isFocus}`}>
 				{children}
-			</div>
+			</span>
 		);
-	},
-)`
+	}
+
+	return (
+		<div className={className} is-focus={`${isFocus}`}>
+			{children}
+		</div>
+	);
+};
+
+export default styled(Focus)`
 	user-select: none;
 	-ms-user-select: none;
 	-webkit-user-select: none;
@@ -49,8 +45,6 @@ const Focus = styled(
 	}`}
 
 	&[is-focus="true"] *[data-focusable="true"] {
-		outline: 2px solid #0563d6;
+		outline: 2px solid var(--color-focus);
 	}
 `;
-
-export default Focus;

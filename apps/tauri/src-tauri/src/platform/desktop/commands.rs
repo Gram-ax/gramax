@@ -1,13 +1,10 @@
-use std::path::Path;
-use std::{env, fs};
+use std::path::PathBuf;
 
 use tauri::*;
 
-use super::child_window::ChildWindow;
-
 #[command]
-pub fn close_current_window<R: Runtime>(app: AppHandle<R>, window: Window<R>) -> Result<()> {
-  let url = window.url();
+pub fn close_current_window<R: Runtime>(app: AppHandle<R>, window: WebviewWindow<R>) -> Result<()> {
+  let url = window.url()?;
   let query = url.query();
   app.emit_to(window.label(), "on_window_close", query)?;
   window.close()?;
@@ -15,30 +12,21 @@ pub fn close_current_window<R: Runtime>(app: AppHandle<R>, window: Window<R>) ->
 }
 
 #[command]
-pub fn set_root_path<R: Runtime>(app: AppHandle<R>, path: &Path) -> tauri::Result<()> {
-  env::set_var("ROOT_PATH", path);
-  let config_path = super::config::config_path(&app);
-  fs::create_dir_all(config_path.parent().unwrap())?;
-  fs::write(&config_path, format!("ROOT_PATH={:?}", path))?;
-  for (_, window) in app.windows().iter().filter(|window| window.0.contains("main")) {
-    window.eval("location.replace('/')")?;
-  }
-
-  if let Some(window) = app.get_window("settings") {
-    window.close()?;
-  }
-
-  Ok(())
+pub fn open_directory() -> Option<PathBuf> {
+  rfd::FileDialog::new().pick_folder()
 }
 
 #[cfg(target_os = "macos")]
 #[command]
-pub fn show_print<R: Runtime>(window: Window<R>) -> Result<()> {
+pub fn show_print<R: Runtime>(window: WebviewWindow<R>) -> Result<()> {
   window.print()
 }
 
 #[command]
-pub fn show_settings<R: Runtime>(app: AppHandle<R>) -> Result<()> {
-  ChildWindow::Settings.create_exact(&app)?;
+pub fn request_delete_config<R: Runtime>(app: AppHandle<R>) -> Result<()> {
+  let path = super::config::config_path(&app);
+  if let Err(err) = std::fs::remove_file(path) {
+    warn!("old config file not deleted: {err:?}")
+  };
   Ok(())
 }

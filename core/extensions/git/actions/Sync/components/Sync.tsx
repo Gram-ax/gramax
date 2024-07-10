@@ -3,12 +3,15 @@ import Fetcher from "@core-ui/ApiServices/Types/Fetcher";
 import UseSWRService from "@core-ui/ApiServices/UseSWRService";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import IsOfflineService from "@core-ui/ContextServices/IsOfflineService";
+import ModalToOpenService from "@core-ui/ContextServices/ModalToOpenService/ModalToOpenService";
+import ModalToOpen from "@core-ui/ContextServices/ModalToOpenService/model/ModalsToOpen";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import { refreshPage } from "@core-ui/ContextServices/RefreshPageContext";
 import SyncIconService from "@core-ui/ContextServices/SyncIconService";
+import MergeConflictConfirm from "@ext/git/actions/MergeConflictHandler/error/components/MergeConflictConfirm";
 import SyncLayout from "@ext/git/actions/Sync/components/SyncLayout";
 import SyncService from "@ext/git/actions/Sync/logic/SyncService";
-import { CSSProperties, useEffect } from "react";
+import { ComponentProps, CSSProperties, useEffect } from "react";
 import { SWRResponse } from "swr";
 import useIsReview from "../../../../storage/logic/utils/useIsReview";
 
@@ -16,7 +19,8 @@ const Sync = ({ style }: { style?: CSSProperties }) => {
 	const apiUrlCreator = ApiUrlCreatorService.value;
 	const syncProccess = SyncIconService.value;
 	const isReview = useIsReview();
-	const disableFetch = IsOfflineService.value || PageDataContextService.value.conf.isReadOnly;
+	const pageDataContext = PageDataContextService.value;
+	const disableFetch = IsOfflineService.value || pageDataContext.conf.isReadOnly || !pageDataContext.userInfo;
 
 	const { data: syncCount }: SWRResponse<{ pull: 0; push: 0 }, any> = UseSWRService.getData<{ pull: 0; push: 0 }>(
 		disableFetch ? null : apiUrlCreator.getSyncCountUrl(),
@@ -31,8 +35,14 @@ const Sync = ({ style }: { style?: CSSProperties }) => {
 				if (syncProccess) return;
 				SyncIconService.start();
 			},
-			onFinishSync: async () => {
+			onFinishSync: async (mergeData) => {
 				SyncIconService.stop();
+				if (!mergeData.ok) {
+					ModalToOpenService.setValue<ComponentProps<typeof MergeConflictConfirm>>(ModalToOpen.MergeConfirm, {
+						mergeData: { ...mergeData },
+					});
+					return;
+				}
 				refreshPage();
 				await ArticleUpdaterService.update(apiUrlCreator);
 			},

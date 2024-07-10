@@ -12,9 +12,9 @@ const getBrotherFileNames: Command<{ path: Path; catalogName: string }, string[]
 	middlewares: [new AuthorizeMiddleware(), new DesktopModeMiddleware()],
 
 	async do({ catalogName, path }) {
-		const { lib } = this._app;
-		const catalog = await lib.getCatalog(catalogName);
-		const fp = lib.getFileProviderByCatalog(catalog);
+		const workspace = this._app.wm.current();
+		const catalog = await workspace.getCatalog(catalogName);
+		const fp = workspace.getFileProvider();
 		const itemRef = fp.getItemRef(path);
 		const article = catalog.findItemByItemRef(itemRef);
 		const fileNames = article

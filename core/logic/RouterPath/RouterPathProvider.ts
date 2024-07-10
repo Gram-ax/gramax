@@ -12,6 +12,10 @@ export default class RouterPathProvider {
 		const normalizedFilePath = filePath?.map((x) => decodeURIComponent(x));
 		const catalogName = dir ?? repName;
 		const itemLogicPath = [catalogName, ...normalizedFilePath];
+		const repNameItemLogicPath = repName ? [repName, ...normalizedFilePath] : undefined;
+
+		const hash = catalogName?.match(/^(.+?)(#.+)?$/)?.[2] ?? "";
+
 		return {
 			sourceName,
 			group,
@@ -20,6 +24,8 @@ export default class RouterPathProvider {
 			catalogName,
 			filePath: normalizedFilePath,
 			itemLogicPath,
+			repNameItemLogicPath,
+			hash,
 		};
 	}
 

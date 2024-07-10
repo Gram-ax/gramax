@@ -91,7 +91,7 @@ class TextSelectionMenu extends Base {
 		const y = this._selectPosition.y;
 
 		const endPosition = { left: x, top: y };
-		const domReact = this._view.dom.getBoundingClientRect();
+		const domReact = this._view.dom.parentElement.getBoundingClientRect();
 
 		const left = endPosition.left - domReact.left;
 		this._tooltip.style.top = endPosition.top - domReact.top + yDistance + "px";

@@ -8,9 +8,10 @@ import Tooltip from "../Atoms/Tooltip";
 export interface PopupMenuLayoutProps {
 	children: JSX.Element | JSX.Element[];
 	trigger?: JSX.Element | JSX.Element[];
+	openTrigger?: string;
 	appendTo?: Element | "parent" | ((ref: Element) => Element);
 	isInline?: boolean;
-	bottomOffset?: number;
+	offset?: [number, number];
 	placement?: Placement;
 	tooltipText?: string;
 	onOpen?: () => void;
@@ -27,7 +28,7 @@ interface PopupProps {
 	children: ReactNode;
 }
 
-const Popup = ({ className, onClick, onClickCapture, isOpen, children }: PopupProps) => {
+const Popup = ({ className, onClick, isOpen, children }: PopupProps) => {
 	const keydownHandler = useCallback(
 		(e: KeyboardEvent) => {
 			if (e.key === "Escape" && isOpen) onClick();
@@ -43,7 +44,7 @@ const Popup = ({ className, onClick, onClickCapture, isOpen, children }: PopupPr
 	}, [isOpen]);
 
 	return (
-		<div className={className} onClick={onClick} onClickCapture={onClickCapture}>
+		<div className={className} onClickCapture={onClick}>
 			{children}
 		</div>
 	);
@@ -51,6 +52,7 @@ const Popup = ({ className, onClick, onClickCapture, isOpen, children }: PopupPr
 
 const PopupMenuLayout = (props: PopupMenuLayoutProps) => {
 	const {
+		offset,
 		children,
 		trigger,
 		appendTo,
@@ -61,12 +63,11 @@ const PopupMenuLayout = (props: PopupMenuLayoutProps) => {
 		placement = "bottom-start",
 		className,
 		disabled,
+		openTrigger = "click",
 	} = props;
 	const [isOpen, setIsOpen] = useState(false);
 
-	const IconElement = trigger ?? (
-		<Icon code="ellipsis" isAction />
-	);
+	const IconElement = trigger ?? <Icon code="ellipsis" svgStyle={{ fill: "currentColor" }} isAction />;
 
 	const closeHandler = () => {
 		setIsOpen(false);
@@ -87,9 +88,10 @@ const PopupMenuLayout = (props: PopupMenuLayoutProps) => {
 			interactive
 			placement={placement}
 			disabled={disabled}
-			trigger="click"
+			trigger={openTrigger}
 			arrow={false}
 			maxWidth="none"
+			offset={offset}
 			onShow={openHandler}
 			onHide={() => {
 				closeHandler();
@@ -130,7 +132,7 @@ export default styled(PopupMenuLayout)`
 					color: var(--color-primary);
 				}
 			}`}
-	margin: ${(p) => p.bottomOffset ?? -10}px 0px 0px;
+	margin: -10px 0px 0px;
 	min-width: 0;
 	font-size: 13px;
 	overflow: hidden;
@@ -139,8 +141,16 @@ export default styled(PopupMenuLayout)`
 	left: 0 !important;
 	box-shadow: var(--menu-tooltip-shadow) !important;
 
+	.divider {
+		padding: 0;
+		height: 0;
+		border-bottom: 0.5px solid var(--color-line);
+		opacity: 0.5;
+	}
+
 	> div,
 	.popup-button {
+		width: 100%;
 		display: flex;
 		cursor: pointer;
 		font-size: 14px;

@@ -1,7 +1,8 @@
 import { ResponseKind } from "@app/types/ResponseKind";
+import CustomArticle from "@core/SitePresenter/customArticles/model/CustomArticle";
 import { Command } from "../../../types/Command";
 
-const getCustomArticle: Command<{ name: string }, { title: string; content: string }> = Command.create({
+const getCustomArticle: Command<{ name: CustomArticle }, { title: string; content: string }> = Command.create({
 	path: "article/features/getCustomArticle",
 
 	kind: ResponseKind.json,
@@ -21,7 +22,7 @@ const getCustomArticle: Command<{ name: string }, { title: string; content: stri
 	},
 
 	params(ctx, q) {
-		const name = q.name;
+		const name = q.name as CustomArticle;
 		return { ctx, name };
 	},
 });

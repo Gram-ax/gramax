@@ -6,31 +6,29 @@ const SidebarsIsPinContext = createContext<boolean>(undefined);
 let _setValue: Dispatch<SetStateAction<boolean>>;
 
 abstract class SidebarsIsPinService {
+	private static readonly _localStorageName = "SidebarsIsPin";
 	private static _mediumMedia = false;
+
 	static Provider({ children }: { children: ReactElement }): ReactElement {
 		const isMedium = useMediaQuery(cssMedia.JSmedium);
-		const localStorageName = SidebarsIsPinService.localStorageName;
-		const [value, setValue] = useState<boolean>(!isMedium);
+		const [value, setValue] = useState<boolean>(true);
 		SidebarsIsPinService._mediumMedia = isMedium;
 		_setValue = setValue;
 
 		useEffect(() => {
-			if (isMedium) setValue(false);
-		}, [isMedium]);
-
-		useEffect(() => {
-			if (isMedium) return;
-			setValue(window.localStorage.getItem(localStorageName) !== "false");
+			setValue(SidebarsIsPinService.localStorageValue);
 		}, []);
 
 		useEffect(() => {
-			window.localStorage.setItem(localStorageName, `${value}`);
+			if (SidebarsIsPinService._mediumMedia) return;
+			SidebarsIsPinService.localStorageValue = value;
 		}, [value]);
 
 		return <SidebarsIsPinContext.Provider value={value}>{children}</SidebarsIsPinContext.Provider>;
 	}
 
 	static get value(): boolean {
+		if (SidebarsIsPinService._mediumMedia) return false;
 		return useContext(SidebarsIsPinContext);
 	}
 
@@ -39,8 +37,12 @@ abstract class SidebarsIsPinService {
 		if (_setValue) _setValue(isPin);
 	}
 
-	static get localStorageName(): string {
-		return "SidebarsIsPin";
+	static get localStorageValue(): boolean {
+		return window.localStorage.getItem(SidebarsIsPinService._localStorageName) !== "false";
+	}
+
+	private static set localStorageValue(value: boolean) {
+		window.localStorage.setItem(SidebarsIsPinService._localStorageName, `${value}`);
 	}
 }
 export default SidebarsIsPinService;

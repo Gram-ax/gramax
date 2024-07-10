@@ -1,12 +1,7 @@
-import { WordBlockChild } from "@ext/wordExport/WordTypes";
+import { WordBlockChild } from "@ext/wordExport/options/WordTypes";
 import { WordTableExport } from "./transformer/WordTableExport";
-import { createEmptyTextRun, createParagraphBeforeTable } from "@ext/wordExport/TextWordGenerator";
-import { Paragraph } from "docx";
+import { createParagraphAfterTable, createParagraphBeforeTable } from "@ext/wordExport/createParagraph";
 
 export const tableWordLayout: WordBlockChild = async ({ state, tag }) => {
-	const paragraphAfterTable = new Paragraph({
-		children: [createEmptyTextRun()],
-	});
-
-	return [createParagraphBeforeTable(), await WordTableExport.renderTable(state, tag), paragraphAfterTable];
+	return [createParagraphBeforeTable(), await WordTableExport.renderTable(state, tag), createParagraphAfterTable()];
 };

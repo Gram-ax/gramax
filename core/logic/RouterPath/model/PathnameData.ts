@@ -5,7 +5,9 @@ interface BasePathnameData {
 	branch: string;
 	catalogName: string;
 	filePath: string[];
+	hash: string;
 	itemLogicPath: string[];
+	repNameItemLogicPath: string[];
 }
 
 type PathnameData = Partial<BasePathnameData>;

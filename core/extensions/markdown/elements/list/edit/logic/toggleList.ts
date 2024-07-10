@@ -1,10 +1,10 @@
 import { TextSelection } from "prosemirror-state";
 
-const replaceList = (pos, node, tr, schema) => {
+const replaceList = (pos, node, tr, list_schema) => {
 	const ListPos = pos;
 	const ListAttrs = node.attrs;
 	const ListSize = node.nodeSize;
-	const replacementNode = schema.create(ListAttrs, node.content);
+	const replacementNode = list_schema.create(ListAttrs, node.content);
 
 	tr.replaceRangeWith(ListPos, ListPos + ListSize, replacementNode);
 };

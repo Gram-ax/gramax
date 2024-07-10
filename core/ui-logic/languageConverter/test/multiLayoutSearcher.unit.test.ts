@@ -16,37 +16,37 @@ describe("multiLayoutSearcher ищет", () => {
 		return null;
 	};
 
-	test("по запросу", async () => {
+	test("по запросу", () => {
 		const text = "qwer";
-		const result = await multiLayoutSearcher<string>(searcher)(text);
+		const result = multiLayoutSearcher<string>(searcher, true)(text);
 
 		expect(result).toEqual("1");
 	});
 
-	test("по запросу на неправильной раскладке", async () => {
+	test("по запросу на неправильной раскладке", () => {
 		const text = "енui";
-		const result = await multiLayoutSearcher<string>(searcher)(text);
+		const result = multiLayoutSearcher<string>(searcher, true)(text);
 
 		expect(result).toEqual("2");
 	});
 
-	test("по запросу с транслетирацией с английского на русский", async () => {
+	test("по запросу с транслетирацией с английского на русский", () => {
 		const text = "schzkh";
-		const result = await multiLayoutSearcher<string>(searcher)(text);
+		const result = multiLayoutSearcher<string>(searcher, true)(text);
 
 		expect(result).toEqual("3");
 	});
 
-	test("по запросу с транслетирацией с русского на английский", async () => {
+	test("по запросу с транслетирацией с русского на английский", () => {
 		const text = "асдф";
-		const result = await multiLayoutSearcher<string>(searcher)(text);
+		const result = multiLayoutSearcher<string>(searcher, true)(text);
 
 		expect(result).toEqual("4");
 	});
 
-	test("и ничего не находит, если искомое не найдено", async () => {
+	test("и ничего не находит, если искомое не найдено", () => {
 		const text = "асдфф";
-		const result = await multiLayoutSearcher<string>(searcher)(text);
+		const result = multiLayoutSearcher<string>(searcher, true)(text);
 
 		expect(result).toEqual(null);
 	});

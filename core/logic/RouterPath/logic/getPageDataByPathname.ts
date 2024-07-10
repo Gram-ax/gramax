@@ -1,8 +1,10 @@
-import Library from "@core/Library/Library";
+import { Catalog } from "@core/FileStructue/Catalog/Catalog";
 import RouterPathProvider from "@core/RouterPath/RouterPathProvider";
 import PathnameData from "@core/RouterPath/model/PathnameData";
 import GitStorage from "@ext/git/core/GitStorage/GitStorage";
 import SourceType from "@ext/storage/logic/SourceDataProvider/model/SourceType";
+import Storage from "@ext/storage/logic/Storage";
+import type { Workspace } from "@ext/workspace/Workspace";
 
 export enum PageDataType {
 	article = "article",
@@ -10,26 +12,44 @@ export enum PageDataType {
 	home = "home",
 }
 
-const getPageDataByPathname = async (pathnameData: PathnameData, lib: Library): Promise<PageDataType> => {
+const getPageDataByPathname = async (
+	pathnameData: PathnameData,
+	workspace: Workspace,
+): Promise<{ type: PageDataType; itemLogicPath?: string[] }> => {
 	if (RouterPathProvider.isLocal(pathnameData)) {
-		if (await lib.getCatalog(pathnameData.catalogName)) return PageDataType.article;
-		else return PageDataType.notFound;
+		if (await workspace.getCatalog(pathnameData.catalogName))
+			return { type: PageDataType.article, itemLogicPath: pathnameData.itemLogicPath };
+		else return { type: PageDataType.notFound };
 	}
-	if (!RouterPathProvider.validate(pathnameData)) return PageDataType.notFound;
-	const catalog = await lib.getCatalog(pathnameData.catalogName);
-	if (catalog) {
-		const { storage } = catalog.repo;
-		const isGit =
-			(await storage.getType()) === SourceType.gitLab || (await storage.getType()) === SourceType.gitHub;
-		if (
-			(await storage.getSourceName()) === pathnameData.sourceName &&
-			(isGit ? (await (storage as GitStorage).getGroup()) === pathnameData.group : true) &&
-			(await storage.getName()) == pathnameData.repName
-		) {
-			return PageDataType.article;
-		} else return PageDataType.notFound;
+	if (!RouterPathProvider.validate(pathnameData)) return { type: PageDataType.notFound };
+
+	let itemLogicPath: string[];
+	let catalog: Catalog;
+
+	if (await workspace.getCatalog(pathnameData.catalogName)) {
+		catalog = await workspace.getCatalog(pathnameData.catalogName);
+		itemLogicPath = pathnameData.itemLogicPath;
+	} else if (await workspace.getCatalog(pathnameData.repName)) {
+		catalog = await workspace.getCatalog(pathnameData.repName);
+		itemLogicPath = pathnameData.repNameItemLogicPath;
 	}
-	return PageDataType.home;
+
+	if (!catalog) return { type: PageDataType.home };
+	const { storage } = catalog.repo;
+	if (!storage) return { type: PageDataType.notFound };
+
+	const isGit = (await storage.getType()) === SourceType.gitLab || (await storage.getType()) === SourceType.gitHub;
+	if (await isDataReal(isGit, storage, pathnameData)) {
+		return { type: PageDataType.article, itemLogicPath };
+	} else return { type: PageDataType.notFound };
+};
+
+const isDataReal = async (isGit: boolean, storage: Storage, pathnameData: PathnameData) => {
+	return (
+		(await storage.getSourceName()) === pathnameData.sourceName &&
+		(isGit ? (await (storage as GitStorage).getGroup()) === pathnameData.group : true) &&
+		(await storage.getName()) == pathnameData.repName
+	);
 };
 
 export default getPageDataByPathname;

@@ -1,5 +1,6 @@
 enum ModalToOpen {
-	Merge = "Merge",
+	MergeConfirm = "MergeConfirm",
+	MergeResolver = "MergeResolver",
 
 	ShareTicketHandler = "ShareTicketHandler",
 	ReviewTicketHandler = "ReviewTicketHandler",

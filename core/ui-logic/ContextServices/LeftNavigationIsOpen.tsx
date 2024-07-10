@@ -10,24 +10,21 @@ let _setTransitionEndValue: Dispatch<SetStateAction<boolean>>;
 abstract class LeftNavigationIsOpenService {
 	static Provider({ children }: { children: ReactElement }): ReactElement {
 		const isMedium = useMediaQuery(cssMedia.JSmedium);
-		const [value, setValue] = useState(!isMedium);
-		const [transitionEndValue, setTransitionEndValue] = useState(!isMedium);
+
+		const [value, setValue] = useState(true);
+		const [transitionEndValue, setTransitionEndValue] = useState(true);
 
 		useEffect(() => {
-			setValue(!isMedium);
-			setTransitionEndValue(!isMedium);
+			if (SidebarsIsPinService.localStorageValue) setValue(!isMedium);
 		}, [isMedium]);
+
+		useEffect(() => {
+			setValue(SidebarsIsPinService.localStorageValue);
+			setTransitionEndValue(SidebarsIsPinService.localStorageValue);
+		}, []);
 
 		_setValue = setValue;
 		_setTransitionEndValue = setTransitionEndValue;
-
-		useEffect(() => {
-			const value = window.localStorage.getItem(SidebarsIsPinService.localStorageName);
-			if (isMedium) return;
-			if (typeof value !== "boolean") return;
-			setValue(value === "true");
-			setTransitionEndValue(value === "true");
-		}, []);
 
 		return (
 			<LeftNavigationIsOpen.Provider value={value}>

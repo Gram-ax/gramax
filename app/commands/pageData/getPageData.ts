@@ -1,5 +1,6 @@
 import Context from "@core/Context/Context";
 import PageDataContext from "@core/Context/PageDataContext";
+import Path from "@core/FileProvider/Path/Path";
 import RouterPathProvider from "@core/RouterPath/RouterPathProvider";
 import getPageDataByPathname, { PageDataType } from "@core/RouterPath/logic/getPageDataByPathname";
 import getShareDataFromPathnameData from "@core/RouterPath/logic/getShareDataFromRouterPath";
@@ -13,21 +14,23 @@ const getPageData: Command<
 > = Command.create({
 	async do({ path, ctx }) {
 		const getHomePageData = () => this._commands.page.getHomePageData.do({ ctx });
-		const getArticlePageData = (path: string[]) => this._commands.page.getArticlePageData.do({ path, ctx });
-		const getNotFoundArticle = () => getArticlePageData([]);
+		const getArticlePageData = (path: string[], pathname: string) =>
+			this._commands.page.getArticlePageData.do({ path, ctx, pathname });
+		const getNotFoundCatalog = (pathname: string, logicPath: string) =>
+			this._commands.page.getCatalogNotFoundData.do({ pathname, logicPath, ctx });
 
 		if (!path || path == "/") return getHomePageData();
 
-		const { lib } = this._app;
 		const splittedPath = path.split("/").filter((x) => x);
-		if (!RouterPathProvider.isNewPath(splittedPath)) return getArticlePageData(splittedPath);
+		if (!RouterPathProvider.isNewPath(splittedPath)) return getArticlePageData(splittedPath, path);
 
 		const pathnameData = RouterPathProvider.parsePath(splittedPath);
 
-		const pageDataType = await getPageDataByPathname(pathnameData, lib);
+		const { type: pageDataType, itemLogicPath } = await getPageDataByPathname(pathnameData, this._app.wm.current());
 
-		if (pageDataType === PageDataType.article) return getArticlePageData(pathnameData.itemLogicPath);
-		else if (pageDataType === PageDataType.notFound) return getNotFoundArticle();
+		if (pageDataType === PageDataType.article) return getArticlePageData(itemLogicPath, path);
+		else if (pageDataType === PageDataType.notFound)
+			return getNotFoundCatalog(path, Path.join(...pathnameData.itemLogicPath));
 		else if (pageDataType === PageDataType.home) {
 			const { sourceType } = getPartGitSourceDataByStorageName(pathnameData.sourceName);
 

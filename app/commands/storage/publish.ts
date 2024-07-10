@@ -16,8 +16,10 @@ const publish: Command<
 	middlewares: [new AuthorizeMiddleware(), new ReloadConfirmMiddleware()],
 
 	async do({ ctx, catalogName, message, filePaths, recursive }) {
-		const { lib, logger, rp } = this._app;
-		const catalog = await lib.getCatalog(catalogName);
+		const { logger, rp, wm } = this._app;
+		const workspace = wm.current();
+
+		const catalog = await workspace.getCatalog(catalogName);
 		if (!catalog) return;
 		const storage = catalog.repo.storage;
 		if (!storage) return;

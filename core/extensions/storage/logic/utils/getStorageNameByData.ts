@@ -1,3 +1,4 @@
+import ConfluenceSourceData from "@ext/confluence/actions/Source/model/ConfluenceSourceData";
 import parseStorageUrl from "../../../../logic/utils/parseStorageUrl";
 import ShareData from "../../../catalog/actions/share/model/ShareData";
 import GitShareData from "../../../git/core/model/GitShareData";
@@ -13,6 +14,8 @@ const getStorageNameByData = (data: SourceData | ShareData): string => {
 		storageName = `${(data as GitSourceData | GitShareData).domain}`;
 	} else if (data.sourceType === SourceType.enterprise) {
 		storageName = parseStorageUrl(`${(data as GitSourceData | GitShareData).domain}`).domain;
+	} else if (data.sourceType === SourceType.confluence) {
+		storageName = parseStorageUrl(`${(data as ConfluenceSourceData).domain}`).domain;
 	}
 	return storageName;
 };

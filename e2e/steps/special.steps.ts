@@ -2,7 +2,7 @@ import { Given, Then, When } from "@cucumber/cucumber";
 import { expect } from "playwright/test";
 import E2EWorld from "../models/World";
 import config from "../setup/config";
-import { checkForErrorModal } from "./utils/utils";
+import { checkForErrorModal,sleep } from "./utils/utils";
 
 Given("отменяем все изменения", { timeout: config.timeouts.long }, async function (this: E2EWorld) {
 	const search = this.page().search().reset();
@@ -13,10 +13,10 @@ Given("отменяем все изменения", { timeout: config.timeouts.l
 	await search.reset().find(".form-layout");
 	await this.page().waitForLoad();
 
-	const close = search.clickable("Закрыть");
+	const close = search.clickable("Понятно");
 
 	if (await close.isVisible()) {
-		await search.clickable("Закрыть").click();
+		await search.clickable("Понятно").click();
 	} else {
 		await search.scope("публикация");
 		await search.scope("левую панель");
@@ -26,6 +26,12 @@ Given("отменяем все изменения", { timeout: config.timeouts.l
 
 	search.reset();
 	await this.page().waitForLoad();
+});
+
+Then("решаем конфликт", { timeout: config.timeouts.long }, async function (this: E2EWorld) {
+	await sleep(1000);
+	await this.page().keyboard().press("Control+A");
+	await this.page().keyboard().type(`---\norder: 1\ntitle: Тест\n---\n\nM\n`);
 });
 
 When("вставляем тестовую картинку", async function (this: E2EWorld) {

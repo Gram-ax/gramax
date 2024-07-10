@@ -5,7 +5,10 @@ import ParserContext from "../../../Parser/ParserContext/ParserContext";
 
 class HTMLComponents {
 	private _apiUrlCreator: ApiUrlCreator;
-	constructor(private _requestUrl: string, context: ParserContext) {
+	constructor(
+		private _requestUrl: string,
+		context: ParserContext,
+	) {
 		this._apiUrlCreator = new ApiUrlCreator(
 			context.getBasePath().value,
 			context.getLanguage(),
@@ -47,16 +50,12 @@ class HTMLComponents {
 
 	public getDiagramRendererImage(diagramName: DiagramType) {
 		if (diagramName == DiagramType["c4-diagram"])
-			return (props) => {
-				const src = props.content
-					? this._apiUrlCreator.getDiagramByContentUrl(diagramName, 0).toString()
-					: this._apiUrlCreator.getDiagram(props.src, diagramName, 0).toString();
+			return () => {
+				const src = this._apiUrlCreator.getDiagramByContentUrl(diagramName, 0).toString();
 				return this._getImage(src, this._requestUrl);
 			};
-		return (props) => {
-			const src = props.content
-				? this._apiUrlCreator.getDiagramByContentUrl(diagramName).toString()
-				: this._apiUrlCreator.getDiagram(props.src, diagramName).toString();
+		return () => {
+			const src = this._apiUrlCreator.getDiagramByContentUrl(diagramName).toString();
 			return this._getImage(src, this._requestUrl);
 		};
 	}

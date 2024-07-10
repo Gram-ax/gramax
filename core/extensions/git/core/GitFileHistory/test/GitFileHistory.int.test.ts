@@ -8,11 +8,12 @@ import { TEST_GIT_CATALOG_PATH } from "../../../test/testGitCatalogPath";
 import GitFileHistory from "../GitFileHistory";
 
 const getGitFileHistoryData = async () => {
-	const { lib, rp } = await getApp();
+	const { wm, rp } = await getApp();
 	const dfp = new DiskFileProvider(TEST_GIT_CATALOG_PATH);
-	const catalog = await lib.getCatalog("gitCatalog");
-	const fs = lib.getFileStructureByCatalog(catalog);
-	const fp = lib.getFileProviderByCatalog(catalog);
+	const workspace = wm.current();
+	const catalog = await workspace.getCatalog("gitCatalog");
+	const fs = workspace.getFileStructure();
+	const fp = workspace.getFileProvider();
 	const gitFileHistory = new GitFileHistory(catalog, fp);
 
 	return { catalog, dfp, gitFileHistory, fs, fp, rp };

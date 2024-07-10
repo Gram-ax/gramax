@@ -5,6 +5,7 @@ import parseStorageUrl from "@core/utils/parseStorageUrl";
 import styled from "@emotion/styled";
 import SelectLinkItem from "@ext/artilce/LinkCreator/components/SelectLinkItem";
 import LinkItem from "@ext/artilce/LinkCreator/models/LinkItem";
+import useLocalize from "@ext/localization/useLocalize";
 import Button, { ButtonProps } from "@ext/markdown/core/edit/components/Menu/Button";
 import { HTMLProps, useEffect, useState } from "react";
 
@@ -16,6 +17,7 @@ interface LinkMenuProps extends HTMLProps<HTMLInputElement> {
 	closeMenu: () => void;
 	onUpdate: (value: string, href: string) => void;
 }
+
 interface CopyButtonProps extends ButtonProps {
 	isCopied: boolean;
 	isCopyShow: boolean;
@@ -100,7 +102,7 @@ const LinkMenu = (props: LinkMenuProps) => {
 						isCopyShow={isCopyShow}
 					/>
 					<div className="divider" />
-					<Button icon="trash" onClick={onDelete} tooltipText={"Удалить ссылку"} />
+					<Button icon="trash" onClick={onDelete} tooltipText={useLocalize("removeLink")} />
 				</StyledDiv>
 			</ButtonsLayout>
 		</ModalLayoutDark>

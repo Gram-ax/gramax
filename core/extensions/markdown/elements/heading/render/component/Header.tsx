@@ -13,19 +13,21 @@ export interface HeaderProps {
 
 const Header = (props: HeaderProps) => {
 	const { level, id, children, className, dataQa, copyLinkIcon = true } = props;
-	const href = id ? `#${id}` : "";
+	const hash = id ? `#${id}` : "";
+
 	const header = (
 		<>
 			{children}
 			{copyLinkIcon && (
 				<a
-					href={href}
+					href={hash}
 					className="anchor"
 					data-mdignore={true}
 					contentEditable={false}
 					onClick={(e) => {
-						if (!href.length) e.preventDefault();
-						navigator.clipboard.writeText(`${window.location.href}${href}`);
+						if (!id) e.preventDefault();
+						const clipboardLink = window.location.origin + window.location.pathname + hash;
+						void navigator.clipboard.writeText(clipboardLink);
 					}}
 				>
 					<Icon code="link" />
@@ -33,6 +35,7 @@ const Header = (props: HeaderProps) => {
 			)}
 		</>
 	);
+
 	return React.createElement("h" + level, { id, className, "data-qa": dataQa }, header);
 };
 

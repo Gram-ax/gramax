@@ -1,10 +1,11 @@
+import ExportToDocxOrPdf from "@components/Actions/ExportToDocxOrPdf";
 import PopupMenuLayout from "@components/Layouts/PopupMenuLayout";
 import FetchService from "@core-ui/ApiServices/FetchService";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import ArticlePropsService from "@core-ui/ContextServices/ArticleProps";
 import IsEditService from "@core-ui/ContextServices/IsEdit";
-import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import { ClientArticleProps } from "@core/SitePresenter/SitePresenter";
+import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import useLocalize from "../localization/useLocalize";
 import { ItemLink } from "../navigation/NavigationLinks";
 import DeleteItem from "./actions/DeleteItem";
@@ -57,8 +58,8 @@ const EditMenu = ({
 		<span onClick={(e) => e.stopPropagation()}>
 			<PopupMenuLayout
 				isInline
-				bottomOffset={-3}
-				tooltipText={useLocalize("editAndDelete")}
+				offset={[0, 10]}
+				tooltipText={useLocalize("edit3")}
 				onOpen={() => {
 					if (onOpen) onOpen();
 					if (!isCurrentItem) setItemPropsData();
@@ -74,6 +75,12 @@ const EditMenu = ({
 					isCurrentItem={isCurrentItem}
 					brotherFileNames={brotherFileNames}
 					setItemLink={setItemLink}
+				/>
+				<ExportToDocxOrPdf
+					isCategory={isCategory}
+					fileName={itemProps?.fileName}
+					pathname={itemProps?.pathname}
+					itemRefPath={itemProps?.ref?.path}
 				/>
 				<DeleteItem isCategory={isCategory} itemPath={itemLink.ref.path} itemLink={itemLink.pathname} />
 			</PopupMenuLayout>

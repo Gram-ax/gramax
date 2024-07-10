@@ -1,61 +1,52 @@
-import SpinnerLoader from "@components/Atoms/SpinnerLoader";
 import FetchService from "@core-ui/ApiServices/FetchService";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
-import diagramComponents from "@ext/markdown/elements/diagrams/component/diagramComponents";
-import { Suspense, useEffect, useMemo, useState } from "react";
+import OnLoadResourceService from "@ext/markdown/elements/copyArticles/onLoadResourceService";
+import getMermaidDiagram from "@ext/markdown/elements/diagrams/diagrams/mermaid/getMermaidDiagram";
+import getPlantUmlDiagram from "@ext/markdown/elements/diagrams/diagrams/plantUml/getPlantUmlDiagram";
+import { useState } from "react";
 import DiagramType from "../../../../../logic/components/Diagram/DiagramType";
 import C4Render from "./C4Render";
 import DiagramRender from "./DiagramRender";
 
-export default function DiagramData({
-	src,
-	title,
-	content,
-	diagramName,
-	isUpdating = false,
-}: {
+const DIAGRAM_FUNCTIONS = {
+	[DiagramType.mermaid]: getMermaidDiagram,
+	[DiagramType["plant-uml"]]: getPlantUmlDiagram,
+};
+
+export default function DiagramData(props: {
+	diagramName: DiagramType;
 	src?: string;
 	title?: string;
 	content?: string;
-	isUpdating?: boolean;
-	diagramName: DiagramType;
 }) {
-	const diagramElement = useMemo(() => {
-		const diagramComponent = diagramComponents[diagramName];
-		if (!diagramComponent) return null;
-
-		return (
-			<>
-				<Suspense fallback={<SpinnerLoader width={75} height={75} />}>
-					{diagramComponent(content, src, isUpdating)}
-				</Suspense>
-				{title && <em>{title}</em>}
-			</>
-		);
-	}, [content, src, title, isUpdating]);
-
-	if (diagramComponents[diagramName]) return diagramElement;
-
+	const { src, title, content, diagramName } = props;
 	const isC4Diagram = diagramName == DiagramType["c4-diagram"];
 	const apiUrlCreator = ApiUrlCreatorService.value;
 	const [data, setData] = useState(null);
 	const [error, setError] = useState(null);
 
-	const loadData = () => {
-		setData(null);
-		setError(null);
-
-		(async () => {
-			const res = content
-				? await FetchService.fetch(apiUrlCreator.getDiagramByContentUrl(diagramName), content)
-				: await FetchService.fetch(apiUrlCreator.getDiagram(src, diagramName));
-			if (!res.ok) return setError(await res.json());
-			const data = await (isC4Diagram ? res.json() : res.text());
-			setData(data);
-		})();
+	const getAnyDiagrams = async (content: string) => {
+		const res = await FetchService.fetch(apiUrlCreator.getDiagramByContentUrl(diagramName), content);
+		if (!res.ok) return setError(await res.json());
+		return isC4Diagram ? await res.json() : await res.text();
 	};
 
-	useEffect(loadData, [isUpdating]);
+	OnLoadResourceService.useGetContent(
+		src,
+		apiUrlCreator,
+		async (buffer: Buffer) => {
+			try {
+				setError(null);
+				const diagramData = DIAGRAM_FUNCTIONS?.[diagramName]
+					? await DIAGRAM_FUNCTIONS?.[diagramName](buffer.toString())
+					: await getAnyDiagrams(buffer.toString());
+				setData(diagramData);
+			} catch (err) {
+				setError(err);
+			}
+		},
+		content,
+	);
 
 	return (
 		<>

@@ -1,7 +1,9 @@
 import FormStyle from "@components/Form/FormStyle";
+import SmallFence from "@components/Labels/SmallFence";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import convertShareLinkDataToStorageData from "@ext/catalog/actions/share/logic/convertShareLinkDataToStorageData";
 import ShareData from "@ext/catalog/actions/share/model/ShareData";
+import InfoModalForm from "@ext/errorHandlers/client/components/ErrorForm";
 import GitShareData from "@ext/git/core/model/GitShareData";
 import useLocalize from "@ext/localization/useLocalize";
 import CreateSourceData from "@ext/storage/logic/SourceDataProvider/components/CreateSourceData";
@@ -10,7 +12,7 @@ import SourceType from "@ext/storage/logic/SourceDataProvider/model/SourceType";
 import getPartGitSourceDataByStorageName from "@ext/storage/logic/utils/getPartSourceDataByStorageName";
 import getSourceDataByStorageName from "@ext/storage/logic/utils/getSourceDataByStorageName";
 import getStorageNameByData from "@ext/storage/logic/utils/getStorageNameByData";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import CloneProgressbar from "../../../../git/actions/Clone/components/CloneProgressbar";
 
 const CloneWithShareData = ({
@@ -22,11 +24,13 @@ const CloneWithShareData = ({
 	shareData: ShareData;
 	onCloneError?: VoidFunction;
 	onCloneFinish?: VoidFunction;
-	onCreateSourceDataClose?: VoidFunction;
+	onCreateSourceDataClose?: (success: boolean) => void;
 }) => {
 	const [sourceData, setSourceData] = useState<SourceData>(null);
 	const [hasStorageInitialized, setHasStorageInitialized] = useState(false);
+	const hasStorageInitializedRef = useRef(false);
 	const [partSourceData, setPartSourceData] = useState<Partial<SourceData>>(null);
+	const [createSourceDataStep, setCreateSourceDataStep] = useState<"warning" | "create">("warning");
 	const loadingText = useLocalize("loading2");
 
 	const pageProps = PageDataContextService.value;
@@ -53,11 +57,60 @@ const CloneWithShareData = ({
 		if (res) {
 			setSourceData(res);
 			setHasStorageInitialized(true);
+			hasStorageInitializedRef.current = true;
 		} else {
 			setPartSourceData(getPartSourceData());
 			setHasStorageInitialized(false);
+			hasStorageInitializedRef.current = false;
 		}
 	}, [shareData]);
+
+	const domain = (
+		<div style={{ display: "inline-flex" }}>
+			<SmallFence overflow="hidden" fixWidth value={(shareData as GitShareData).domain} />
+		</div>
+	);
+
+	const createSourceDataWarning = (
+		<InfoModalForm
+			isWarning={true}
+			title={useLocalize("cloneFail")}
+			onCancelClick={() => onCreateSourceDataClose(false)}
+			actionButton={{
+				onClick: () => setCreateSourceDataStep("create"),
+				text: useLocalize("addStorage"),
+			}}
+		>
+			<span>
+				{useLocalize("noAccessToStorage")} {domain}. {useLocalize("addToContinueDownloading")}
+			</span>
+		</InfoModalForm>
+	);
+
+	const createSourceData = (
+		<CreateSourceData
+			defaultSourceData={partSourceData}
+			defaultSourceType={shareData.sourceType}
+			onCreate={(data) => {
+				setSourceData(data);
+				setHasStorageInitialized(true);
+				hasStorageInitializedRef.current = true;
+			}}
+			onClose={() => onCreateSourceDataClose(!!hasStorageInitializedRef.current)}
+		/>
+	);
+
+	const getCreateSourceDataStep = createSourceDataStep === "warning" ? createSourceDataWarning : createSourceData;
+
+	useEffect(() => {
+		if (createSourceDataStep !== "warning") return;
+		const keydownHandler = (e: KeyboardEvent) => {
+			if (!(e.code === "Enter" && (e.ctrlKey || e.metaKey))) return;
+			setCreateSourceDataStep("create");
+		};
+		window.addEventListener("keydown", keydownHandler);
+		return () => window.removeEventListener("keydown", keydownHandler);
+	}, [createSourceDataStep]);
 
 	return hasStorageInitialized ? (
 		<FormStyle>
@@ -75,17 +128,7 @@ const CloneWithShareData = ({
 			</>
 		</FormStyle>
 	) : (
-		partSourceData && (
-			<CreateSourceData
-				defaultSourceData={partSourceData}
-				defaultSourceType={shareData.sourceType}
-				onCreate={(data) => {
-					setSourceData(data);
-					setHasStorageInitialized(true);
-				}}
-				onClose={onCreateSourceDataClose}
-			/>
-		)
+		partSourceData && getCreateSourceDataStep
 	);
 };
 

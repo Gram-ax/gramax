@@ -10,7 +10,9 @@ import ArticleStatusBar from "../../StatusBar/Extensions/ArticleStatusBar";
 import PinToggleArrowIcon from "./PinToggleArrowIcon";
 
 const LeftNavigationBottom = ({ closeNavigation }: { closeNavigation?: () => void }) => {
-	const readOnlyCatalog = CatalogPropsService.value.readOnly;
+	const catalogProps = CatalogPropsService.value;
+	const readOnlyCatalog = catalogProps.readOnly;
+	const isCatalogExist = !!catalogProps.name;
 	const isLogged = PageDataContextService.value.isLogged;
 	const isReadOnly = PageDataContextService.value.conf.isReadOnly;
 	const neededToBeLogged = (isLogged && isReadOnly) || !isReadOnly;
@@ -40,10 +42,10 @@ const LeftNavigationBottom = ({ closeNavigation }: { closeNavigation?: () => voi
 					left: leftNavIsOpen ? "20px" : "0",
 					right: leftNavIsOpen ? "20px" : "6px",
 				}}
-				leftExtensions={[<CreateArticle key={0} onCreate={closeNavigation} />]}
+				leftExtensions={isCatalogExist ? [<CreateArticle key={0} onCreate={closeNavigation} />] : null}
 				rightExtensions={mediumMedia ? null : [<PinToggleArrowIcon key={0} />]}
 			/>
-			{!readOnlyCatalog && neededToBeLogged && (
+			{!readOnlyCatalog && neededToBeLogged && isCatalogExist && (
 				<ArticleStatusBar
 					isStorageInitialized={isStorageInitialized}
 					padding={leftNavIsOpen ? "0 6px" : "0 31px"}

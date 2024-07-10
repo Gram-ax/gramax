@@ -5,7 +5,7 @@ import Note from "../../render/component/Note";
 const EditNote = ({ node }: NodeViewProps): ReactElement => {
 	return (
 		<NodeViewWrapper>
-			<Note type={node.attrs.type} title={node.attrs.title}>
+			<Note {...node.attrs}>
 				<NodeViewContent className="content" />
 			</Note>
 		</NodeViewWrapper>

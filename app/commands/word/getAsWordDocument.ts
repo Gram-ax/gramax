@@ -1,41 +1,55 @@
 import { ResponseKind } from "@app/types/ResponseKind";
 import Context from "@core/Context/Context";
 import Path from "@core/FileProvider/Path/Path";
-import { Article } from "@core/FileStructue/Article/Article";
-import parseContent from "@core/FileStructue/Article/parseContent";
+import RuleProvider from "@ext/rules/RuleProvider";
+import buildDocumentTree from "@ext/wordExport/DocumentTree/buildDocumentTree";
+import { exportedKeys } from "@ext/wordExport/layouts";
 import { Command } from "../../types/Command";
 
 const WordExport = import("../../../core/extensions/wordExport/WordExport");
 const docx = import("docx");
 
-const getAsWordDocument: Command<{ ctx: Context; articlePath: Path; catalogName: string }, Blob> = Command.create({
-	path: "word",
+const getAsWordDocument: Command<{ ctx: Context; itemPath?: Path; isCategory: boolean; catalogName: string }, Blob> =
+	Command.create({
+		path: "word",
+		kind: ResponseKind.file,
 
-	kind: ResponseKind.file,
+		async do({ ctx, catalogName, isCategory, itemPath }) {
+			const { wm, parser, parserContextFactory } = this._app;
+			const workspace = wm.current();
 
-	async do({ ctx, catalogName, articlePath }) {
-		const { lib, parser, parserContextFactory } = this._app;
-		const catalog = await lib.getCatalog(catalogName);
-		const article = catalog.findItemByItemPath<Article>(articlePath);
+			const catalog = await workspace.getCatalog(catalogName);
+			const isCatalog = itemPath.toString() === "";
 
-		await parseContent(article, catalog, ctx, parser, parserContextFactory);
-		const parserContext = parserContextFactory.fromArticle(article, catalog, ctx.lang, ctx.user.isLogged);
-		const wordExport = new (await WordExport).default(lib.getFileProviderByCatalog(catalog), parserContext);
-		const document = await wordExport.getDocumentFromArticle({
-			title: article.getTitle(),
-			content: article.parsedContent.renderTree,
-			resourceManager: article.parsedContent.resourceManager,
-		});
+			const item = isCatalog ? catalog.getRootCategory() : catalog.findItemByItemPath(itemPath);
 
-		return await (await docx).Packer.toBlob(document);
-	},
+			const wordExport = new (await WordExport).default(workspace.getFileProvider());
 
-	params(ctx, q) {
-		const catalogName = q.catalogName;
-		const articlePath = new Path(q.articlePath);
+			const filters = new RuleProvider(ctx).getItemFilters();
+			const documentTree = await buildDocumentTree(
+				isCategory,
+				isCatalog,
+				item,
+				exportedKeys,
+				catalog,
+				ctx,
+				parser,
+				parserContextFactory,
+				filters,
+			);
 
-		return { ctx, articlePath, catalogName };
-	},
-});
+			const document = await wordExport.getDocument(documentTree, isCategory || isCatalog);
+
+			return await (await docx).Packer.toBlob(document);
+		},
+
+		params(ctx, q) {
+			const catalogName = q.catalogName;
+			const itemPath = new Path(q.itemPath);
+			const isCategory = q.isCategory === "true";
+
+			return { ctx, itemPath, isCategory, catalogName };
+		},
+	});
 
 export default getAsWordDocument;

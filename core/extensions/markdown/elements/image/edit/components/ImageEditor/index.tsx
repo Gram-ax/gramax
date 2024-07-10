@@ -1,332 +1,634 @@
-"use client";
-
-import { Crop, EditorProps, ImageObject, ImageObjectTypes } from "../../model/imageEditorTypes";
-import React, { useState, useEffect, useRef } from "react";
+import {
+	AnnotationObject,
+	SquareObject,
+	Crop,
+	EditorProps,
+	ImageObject,
+	ImageObjectTypes,
+	DirectionType,
+	ImageProps,
+	AdditionData,
+} from "../../model/imageEditorTypes";
+import { useState, useEffect, useRef, MouseEventHandler, CSSProperties, ReactEventHandler } from "react";
 import ImageCropper from "./ImageCropper";
 import resolveModule from "@app/resolveModule/frontend";
-import Url from "@core-ui/ApiServices/Types/Url";
 import ModalLayoutDark from "@components/Layouts/ModalLayoutDark";
 import ButtonsLayout from "@components/Layouts/ButtonLayout";
-import Button from "@ext/markdown/core/edit/components/Menu/Button";
-import SpinnerLoader from "@components/Atoms/SpinnerLoader";
-import UnifiedComponent from "@ext/markdown/elements/image/edit/components/ImageEditor/Unified";
 import styled from "@emotion/styled";
-import linkCreator from "@ext/markdown/elements/link/render/logic/linkCreator";
 import useLocalize from "@ext/localization/useLocalize";
-import { cropImage, restoreImage } from "@ext/markdown/elements/image/edit/logic/imageEditorMethods";
+import Button from "@ext/markdown/core/edit/components/Menu/Button";
+import UnifiedComponent from "@ext/markdown/elements/image/render/components/ImageEditor/Unified";
+import {
+	calculateScale,
+	cropImage,
+	MINIMUM_SQUARE_SIZE,
+	restoreImage,
+} from "@ext/markdown/elements/image/edit/logic/imageEditorMethods";
+import AnnotationMenu from "@ext/markdown/elements/image/edit/components/ImageEditor/AnnotationMenu";
+import { cssMedia } from "@core-ui/utils/cssUtils";
+import Icon from "@components/Atoms/Icon";
+import InfoModalForm from "@ext/errorHandlers/client/components/ErrorForm";
 
-const DELTA: number = 3000;
-
-const ImageEditor = ({ imageProps, handleSave, handleToggle, className }: EditorProps & { className?: string }) => {
+const ImageEditor = (props: EditorProps & { className?: string; style?: CSSProperties }) => {
+	const { crop, src, objects, handleSave, handleToggle, className, style } = props;
 	const [cropEnabled, setCropEnabled] = useState<boolean>(false);
-	const [selectedElement, setSelectedElement] = useState<HTMLDivElement>();
-	const [elements, setElements] = useState<any[]>([]);
-	const [crop, setCrop] = useState({ x: 0, y: 0, w: 100, h: 100 });
-	const [selectedIndex, setSelectedIndex] = useState<number>();
-	const [additions, setAdditions] = useState<any>([]);
+	const [selectedIndex, setSelectedIndex] = useState<number>(null);
+	const [elements, setElements] = useState<ImageObject[]>(objects ?? []);
+	const [prevElements, setPrevElements] = useState<ImageObject[]>(null);
+	const [imageSize, setImageSize] = useState<{ w: number; h: number }>({ w: null, h: null });
+	const [curCrop, setCrop] = useState(crop);
+	const [prevCrop, setPrevCrop] = useState(null);
+	const [additions, setAdditions] = useState<AdditionData[]>([]);
+	const [showWarning, setShowWarning] = useState<boolean>(false);
+
+	const [tooltipText, setTooltipText] = useState<string>(null);
+	const [curDirection, setCurDirection] = useState<DirectionType>(null);
 
 	const [lastKeypress, setLastKeypress] = useState<string>(null);
-	const [lastKeypressTime, setLastKeypressTime] = useState<number>(null);
 
 	const containerRef = useRef<HTMLDivElement>(null);
 	const imgRef = useRef<HTMLImageElement>(null);
-	const modalRef = useRef<HTMLDivElement>(null);
 	const imageContainerRef = useRef<HTMLDivElement>(null);
 
-	const messages = [
-		useLocalize("addText"),
-		useLocalize("addPointer"),
-		useLocalize("addSquare"),
-		useLocalize("cropImage"),
-		useLocalize("cancelCrop"),
-	];
+	const messages = {
+		addAnnotation: useLocalize("addAnnotation"),
+		addSquare: useLocalize("addSquare"),
+		cropImage: useLocalize("cropImage"),
+		cancelCrop: useLocalize("cancelCrop"),
+		cancel: useLocalize("cancel"),
+		saveChanges: useLocalize("saveChanges"),
+		dontSave: useLocalize("dontSave"),
+		unsavedChanges: useLocalize("unsavedChanges"),
+		closeWithChanges: useLocalize("closeWithChanges"),
+		apply: useLocalize("apply"),
+		saveAndExit: useLocalize("saveAndExit"),
+	};
 
-	const mainSrc =
-		(linkCreator.isExternalLink(imageProps.src.toString()) && (imageProps.src as string)) ||
-		resolveModule("useImage")(imageProps.src as Url);
+	const mainSrc = resolveModule("useImage")(src);
 
 	const addElement = (newElement: ImageObject) => {
-		setElements((prevElements) => [...prevElements, newElement]);
+		setSelectedIndex(() => {
+			const updatedElements = [...elements, newElement];
+			setElements(updatedElements);
+
+			setTooltipText(newElement.text);
+			setCurDirection(newElement.direction);
+
+			const newIndex = Math.max(0, updatedElements.length - 1);
+			changeData(newIndex, "object", null);
+			return newIndex;
+		});
+	};
+
+	const selectElement = (id: number) => {
+		setSelectedIndex(() => {
+			const data = elements[id];
+			if (data) {
+				setTooltipText(data.text);
+				setCurDirection(data.direction);
+			}
+
+			return id;
+		});
 	};
 
 	const saveData = (exit: boolean) => {
-		handleSave(elements, crop);
+		handleSave(elements, curCrop);
 		setAdditions([]);
 
-		if (exit && containerRef.current) handleToggle();
+		if (exit) handleToggle();
 	};
 
 	useEffect(() => {
-		if (!imgRef.current || !imageContainerRef.current) return;
+		if (!imgRef.current) return;
 
-		setElements([]);
-		imageProps?.objects?.forEach((object) => {
-			addElement(object);
-		});
+		setElements(objects ?? []);
+		restoreImage(imgRef.current, imageSize);
+	}, [mainSrc, objects]);
 
-		restoreImage(imageContainerRef.current, imgRef.current, mainSrc);
+	useEffect(() => {
+		if (!prevCrop) return;
+		toggleAnimate();
+	}, [prevCrop]);
 
-		setTimeout(() => {
-			if (imageProps?.crop) cropImage(imgRef.current, imageContainerRef.current, mainSrc, imageProps?.crop);
-		}, 10);
-
-		if (imageProps?.crop)
-			setCrop({
-				x: imageProps?.crop?.x || imageProps?.crop[0] || 0,
-				y: imageProps?.crop?.y || imageProps?.crop[1] || 0,
-				w: imageProps?.crop?.w || imageProps?.crop[2] || 100,
-				h: imageProps?.crop?.h || imageProps?.crop[3] || 100,
-			});
-	}, [mainSrc, imageProps]);
-
-	const clearSelected = (event: React.MouseEvent<HTMLDivElement>) => {
-		if (selectedIndex === undefined) return;
-
-		const target = event.target as HTMLDivElement;
-
-		if (selectedElement && (selectedElement === target || selectedElement.contains(target))) return;
-
-		setSelectedIndex(undefined);
-		setSelectedElement(undefined);
+	const getClickPos = (element: HTMLDivElement, x: number, y: number) => {
+		const { left, top, width, height } = element.getBoundingClientRect();
+		return { x: Math.round(((x - left) / width) * 100), y: Math.round(((y - top) / height) * 100) };
 	};
 
-	const handleClick = (elementData: [HTMLDivElement, number]): boolean => {
-		if (cropEnabled) return false;
+	let mouseFirstDownPos = { x: 0, y: 0 };
+	let squareElement: HTMLDivElement = null;
+	let isDrawing = false;
 
-		const element: HTMLDivElement = elementData[0];
-		const index: number = elementData[1];
+	const handleMouseDown: MouseEventHandler<HTMLDivElement> = (event) => {
+		if (event.detail !== 2 || event.target !== imageContainerRef.current) return;
 
-		setSelectedIndex(index);
-		setSelectedElement(element);
-
-		return true;
+		const { x, y } = getClickPos(event.target as HTMLDivElement, event.clientX, event.clientY);
+		mouseFirstDownPos = { x, y };
+		event.preventDefault();
 	};
 
-	const createChildren = (type: ImageObjectTypes) => {
+	const handleMouseMove: MouseEventHandler<HTMLDivElement> = (event) => {
+		if (!isDrawing || !squareElement) {
+			if (mouseFirstDownPos.x === 0 && mouseFirstDownPos.y === 0) return;
+			isDrawing = true;
+
+			squareElement = document.createElement("div");
+			squareElement.style.position = "absolute";
+			squareElement.style.backgroundColor = "transparent";
+			squareElement.style.border = "3px solid #fc2847";
+			squareElement.style.borderRadius = "4px";
+			squareElement.style.pointerEvents = "none";
+			imageContainerRef.current.appendChild(squareElement);
+		}
+
+		const { x, y } = getClickPos(imageContainerRef.current, event.clientX, event.clientY);
+
+		const width = Math.abs(x - mouseFirstDownPos.x);
+		const height = Math.abs(y - mouseFirstDownPos.y);
+
+		squareElement.style.left = Math.min(x, mouseFirstDownPos.x) + "%";
+		squareElement.style.top = Math.min(y, mouseFirstDownPos.y) + "%";
+		squareElement.style.width = width + "%";
+		squareElement.style.height = height + "%";
+	};
+
+	const removeDrawingObject = () => {
+		if (!isDrawing || !squareElement) return;
+		mouseFirstDownPos = { x: 0, y: 0 };
+		imageContainerRef.current.removeChild(squareElement);
+		squareElement = null;
+		isDrawing = false;
+	};
+
+	const handleMouseUp: MouseEventHandler<HTMLDivElement> = (event) => {
+		if (mouseFirstDownPos.x === 0 && mouseFirstDownPos.y === 0) return;
+		const imageContainerRect = imageContainerRef.current.getBoundingClientRect();
+		const { x, y } = getClickPos(event.target as HTMLDivElement, event.clientX, event.clientY);
+
+		if (!isDrawing && x === mouseFirstDownPos.x && y === mouseFirstDownPos.y) {
+			createChildren(ImageObjectTypes.Annotation, x, y);
+		} else if (isDrawing && squareElement && event.target === imageContainerRef.current) {
+			const pixelFirstDownPosX = (mouseFirstDownPos.x / 100) * imageContainerRect.width;
+			const pixelFirstDownPosY = (mouseFirstDownPos.y / 100) * imageContainerRect.height;
+			const pixelCurrentPosX = (x / 100) * imageContainerRect.width;
+			const pixelCurrentPosY = (y / 100) * imageContainerRect.height;
+
+			if (
+				Math.abs(pixelCurrentPosX - pixelFirstDownPosX) >= MINIMUM_SQUARE_SIZE &&
+				Math.abs(pixelCurrentPosY - pixelFirstDownPosY) >= MINIMUM_SQUARE_SIZE
+			)
+				createChildren(
+					ImageObjectTypes.Square,
+					parseFloat(squareElement.style.left),
+					parseFloat(squareElement.style.top),
+					Math.abs(parseInt(squareElement.style.width)),
+					Math.abs(parseInt(squareElement.style.height)),
+				);
+		}
+
+		removeDrawingObject();
+	};
+
+	const createChildren = (type: ImageObjectTypes, x?: number, y?: number, w?: number, h?: number) => {
 		if (cropEnabled) return;
 
 		switch (type) {
-			case ImageObjectTypes.Text: {
-				const textObject = {
-					type: ImageObjectTypes.Text,
-					x: 50,
-					y: 50,
-					text: "Новый текст",
-					fontSize: 24,
-					color: "#000000",
+			case ImageObjectTypes.Annotation: {
+				const annotationObject: AnnotationObject = {
+					type: ImageObjectTypes.Annotation,
+					x: x ?? 50,
+					y: y ?? 50,
+					text: "",
+					direction: "top-left",
 				};
 
-				addElement(textObject);
-				break;
-			}
-			case ImageObjectTypes.Arrow: {
-				const arrowObject = {
-					type: ImageObjectTypes.Arrow,
-					x: 50,
-					y: 50,
-					direction: "down-left",
-					scale: 1,
-					color: "#000000",
-				};
-
-				addElement(arrowObject);
+				addElement(annotationObject);
 				break;
 			}
 			case ImageObjectTypes.Square: {
-				const squareObject = {
+				const squareObject: SquareObject = {
 					type: ImageObjectTypes.Square,
-					x: 50,
-					y: 50,
-					w: 25,
-					h: 25,
-					thick: 5,
-					color: "#000000",
+					x: x ?? 50,
+					y: y ?? 50,
+					w: w ?? 25,
+					h: h ?? 25,
+					text: "",
+					direction: "top-left",
 				};
 
 				addElement(squareObject);
 				break;
 			}
 		}
+	};
 
-		setSelectedIndex(elements.length);
+	const clearSelected: MouseEventHandler<HTMLDivElement> = (event) => {
+		if (selectedIndex === undefined) return;
+
+		const selectedElement = document.getElementById("object/" + selectedIndex);
+		const target = event.target as HTMLDivElement;
+
+		if (!selectedElement || selectedElement === target || target !== imageContainerRef.current) return;
+
+		selectElement(null);
 	};
 
 	const toggleCropper = (): boolean => {
-		if (!cropEnabled) {
-			restoreImage(imageContainerRef.current, imgRef.current, mainSrc);
-			setElements([]);
+		const image = imgRef.current;
 
-			const rect: Crop = {
-				x: parseInt(imageContainerRef.current.style.left) || 0,
-				y: parseInt(imageContainerRef.current.style.top) || 0,
-				w: parseInt(imageContainerRef.current.style.width) || 100,
-				h: parseInt(imageContainerRef.current.style.height) || 100,
-			};
-
-			setCrop(rect);
-		} else cropImage(imgRef.current, imageContainerRef.current, mainSrc ?? "", crop);
-
+		selectElement(null);
 		setCropEnabled(!cropEnabled);
+
+		if (cropEnabled) {
+			cropImage({ image, imageSize, crop: curCrop });
+			resetUpdateArea();
+			toggleAnimate();
+
+			changeData(0, "image", { src: src, crop: prevCrop, objects: prevElements });
+
+			setElements(() => {
+				const newElements = [...prevElements];
+				setPrevElements(null);
+
+				return newElements;
+			});
+		}
+
+		if (!cropEnabled) {
+			setPrevElements(() => {
+				const newElements = [...elements];
+				setElements([]);
+
+				return newElements;
+			});
+			setElements([]);
+			restoreImage(image, imageSize);
+			handleUpdateArea(curCrop);
+			setPrevCrop(curCrop);
+		}
+
 		return true;
 	};
 
+	const toggleAnimate = () => {
+		const image = imgRef.current;
+		const imageContainer = imageContainerRef.current;
+		const modalContainer = imageContainer.parentElement;
+
+		modalContainer.classList.toggle("animate");
+		imageContainer.classList.toggle("animate");
+		image.classList.toggle("animate");
+	};
+
 	const resetCropper = () => {
-		setCropEnabled(!cropEnabled);
+		const image = imgRef.current;
+		setCropEnabled(() => {
+			setElements(elements);
+			cropImage({ image, imageSize, crop: prevCrop });
+			resetUpdateArea();
+			toggleAnimate();
+
+			setCrop(prevCrop);
+			setElements(() => {
+				const newElements = [...prevElements];
+				setPrevElements(null);
+
+				return newElements;
+			});
+
+			setPrevCrop(null);
+			return false;
+		});
 	};
 
-	const changeData = (data: ImageObject, prevData: ImageObject, index: number, noAddition?: boolean) => {
-		const updatedElements = [...elements];
-		let changes = [...additions];
+	const changeData = (index: number, type: "image" | "object", data: ImageProps | ImageObject, newIndex?: number) => {
+		const changes = [...additions];
+		changes.push({ type, newIndex, index, data });
+		setAdditions(changes);
+	};
 
-		if (data.type === ImageObjectTypes.Unknown) {
-			handleClick([undefined, undefined]);
-			updatedElements.splice(index, 1);
-		} else updatedElements[index] = data;
+	const revertAdditions = (changes: AdditionData) => {
+		if (changes === undefined) return;
 
-		if (!noAddition) {
-			changes = [...changes, { index, prevData }];
-			setAdditions(changes);
+		if (changes.type === "object") {
+			const updatedElements = [...elements];
+			if (!changes.data) removeObject(changes.index, false);
+			else {
+				if (changes.newIndex) {
+					[updatedElements[changes.index], updatedElements[changes.newIndex - 1]] = [
+						updatedElements[changes.newIndex - 1],
+						updatedElements[changes.index],
+					];
+				} else updatedElements[changes.index] = changes.data as ImageObject;
+
+				setElements(updatedElements);
+			}
+		} else if (changes.type === "image") {
+			const data = changes.data as ImageProps;
+			setCrop(() => {
+				cropImage({ image: imgRef.current, imageSize, crop: data.crop });
+				resetUpdateArea();
+				return data.crop;
+			});
+			setElements(data.objects);
+			setPrevCrop(null);
 		}
-
-		setElements(updatedElements);
-	};
-
-	const revertAdditions = (data: { index: number; prevData: ImageObject }) => {
-		if (data === undefined) return;
-
-		const updatedElements = [...elements];
-		updatedElements[data.index] = data.prevData;
-
-		setSelectedIndex(data.index);
-		setElements(updatedElements);
 
 		const newAdditions = [...additions];
 		newAdditions.splice(newAdditions.length - 1, 1);
 		setAdditions(newAdditions);
+		selectElement(null);
 	};
 
-	const onKeyDown = (ev: React.KeyboardEvent<HTMLDivElement>) => {
+	const isDataEqual = (data: any, element: ImageObject) => {
+		for (const key in data) {
+			if (data[key] !== element?.[key]) {
+				return false;
+			}
+		}
+		return true;
+	};
+
+	const setElementData = (index: number, data: any) => {
+		const prevData = [...elements];
+		const updatedElements = [...prevData];
+		const element = updatedElements[index];
+
+		if (isDataEqual(data, element)) return;
+
+		updatedElements[index] = { ...element, ...data };
+		setElements(updatedElements);
+		changeData(index, "object", prevData[index]);
+	};
+
+	const changeDirection = (index: number, direction: DirectionType) => {
+		setElementData(index, { direction });
+		setCurDirection(direction);
+	};
+
+	const changeIndex = (index: number, newIndex: number) => {
+		if (index === newIndex - 1 || !elements?.[index] || !elements?.[newIndex - 1]) return;
+		setElements((prevElements) => {
+			const newElements = [...prevElements];
+			changeData(index, "object", newElements[index], newIndex);
+			[newElements[index], newElements[newIndex - 1]] = [newElements[newIndex - 1], newElements[index]];
+			selectElement(newIndex - 1);
+			return newElements;
+		});
+	};
+
+	const removeObject = (index: number, save: boolean) => {
+		setElements(() => {
+			selectElement(null);
+			const newElements = [...elements];
+			if (save) changeData(index, "object", newElements[index]);
+			newElements.splice(index, 1);
+			return newElements;
+		});
+	};
+
+	const changeText = (index: number, text: string) => {
+		setElementData(index, { text });
+		setTooltipText(text);
+	};
+
+	const resetUpdateArea = () => {
+		const imageContainer = imageContainerRef.current;
+		const modalContainer = imageContainer.parentElement;
+
+		modalContainer.style.position = "relative";
+		modalContainer.style.left = "50%";
+		modalContainer.style.top = "50%";
+	};
+
+	const handleUpdateArea = (crop: Crop, callback?: () => void) => {
+		const imageContainer = imageContainerRef.current;
+		const modalContainer = imageContainer.parentElement;
+		const parentContainer = modalContainer.parentElement;
+
+		const modalRect = modalContainer.getBoundingClientRect();
+		const parentRect = parentContainer.getBoundingClientRect();
+
+		const cropCenterX = modalRect.left + ((crop.x + crop.w / 2) * modalRect.width) / 100;
+		const cropCenterY = modalRect.top + ((crop.y + crop.h / 2) * modalRect.height) / 100;
+
+		const viewportCenterX = parentRect.left + parentRect.width / 2;
+		const viewportCenterY = parentRect.top + parentRect.height / 2;
+
+		const offsetX = viewportCenterX - cropCenterX;
+		const offsetY = viewportCenterY - cropCenterY;
+
+		modalContainer.style.position = "absolute";
+		modalContainer.style.left = `${modalContainer.offsetLeft + offsetX}px`;
+		modalContainer.style.top = `${modalContainer.offsetTop + offsetY}px`;
+
+		if (callback) callback();
+	};
+
+	const onKeyDown = (ev: KeyboardEvent) => {
 		const char = ev.key;
 
 		const isUndo = (ev.ctrlKey || ev.metaKey) && char === "z";
-
 		if (isUndo) {
-			let thisKeypressTime = new Date().getTime();
-
-			if (thisKeypressTime - lastKeypressTime <= DELTA && lastKeypress !== char) {
+			if (lastKeypress !== char && additions.length > 0) {
 				revertAdditions(additions[additions.length - 1]);
-				thisKeypressTime = 0;
 			}
 
 			ev.preventDefault();
+		} else if (char === "Escape") closeEditor();
+		else setLastKeypress(char);
+	};
 
-			setLastKeypressTime(thisKeypressTime);
-		} else {
-			setLastKeypress(char);
+	const closeEditor = (force?: boolean) => {
+		if (cropEnabled) return;
+		if (force || additions.length === 0) {
+			window.removeEventListener("keydown", onKeyDown);
+			containerRef.current.remove();
+		} else if (additions.length > 0) setShowWarning(true);
+	};
+
+	useEffect(() => {
+		window.addEventListener("keydown", onKeyDown);
+
+		return () => {
+			window.removeEventListener("keydown", onKeyDown);
+		};
+	}, [lastKeypress, additions]);
+
+	const handleOnLoad: ReactEventHandler<HTMLImageElement> = (e) => {
+		const target = e.target as HTMLImageElement;
+		const parent = target.parentElement;
+		const grandparent = parent.parentElement;
+
+		const maxWidth = grandparent.clientWidth;
+		const maxHeight = grandparent.clientHeight;
+
+		let currentWidth = target.clientWidth;
+		let currentHeight = target.clientHeight;
+
+		if (currentWidth > maxWidth) {
+			const widthScaleFactor = maxWidth / currentWidth;
+			currentWidth = maxWidth;
+			currentHeight = currentHeight * widthScaleFactor;
+		}
+
+		if (currentHeight > maxHeight) {
+			const heightScaleFactor = maxHeight / currentHeight;
+			currentHeight = maxHeight;
+			currentWidth = currentWidth * heightScaleFactor;
+		}
+
+		setImageSize({ w: currentWidth, h: currentHeight });
+
+		parent.style.width = currentWidth + "px";
+		parent.style.height = currentHeight + "px";
+
+		target.style.width = currentWidth + "px";
+		target.style.height = currentHeight + "px";
+
+		target.style.position = "absolute";
+
+		if (crop) {
+			const newImageSize = { w: currentWidth, h: currentHeight };
+			const scale = calculateScale(imageContainerRef.current, newImageSize, crop);
+			cropImage({
+				image: target,
+				imageSize: newImageSize,
+				crop,
+				scale,
+			});
+			resetUpdateArea();
 		}
 	};
 
 	return (
-		<div ref={containerRef} onKeyDown={onKeyDown} tabIndex={0} onClick={clearSelected} className={className}>
-			<div className="toolbar toolbar__top">
-				<ModalLayoutDark>
-					<ButtonsLayout>
-						<Button
-							hidden={!mainSrc}
-							text={useLocalize("Save")}
-							icon={"save"}
-							onClick={() => saveData(false)}
+		<div
+			id="image-editor-container"
+			ref={containerRef}
+			onMouseDown={(event) => (event.target as HTMLDivElement)?.id === "image-editor-container" && closeEditor()}
+			onMouseUp={handleMouseUp}
+			onClick={clearSelected}
+			className={className}
+		>
+			<Icon className="x-mark" code="x" onClick={() => closeEditor()} />
+
+			{showWarning && (
+				<div className="modal__confirm">
+					<div className="modal__confirm__container">
+						<InfoModalForm
+							title={messages.unsavedChanges}
+							icon={{ code: "circle-alert", color: "rgb(255 187 1)" }}
+							onCancelClick={() => setShowWarning(false)}
+							secondButton={{ onClick: () => closeEditor(true), text: messages.dontSave }}
+							actionButton={{ onClick: () => saveData(true), text: messages.saveChanges }}
+							closeButton={{ text: messages.cancel }}
+						>
+							<span>{messages.closeWithChanges}</span>
+						</InfoModalForm>
+					</div>
+				</div>
+			)}
+
+			<div
+				draggable="false"
+				onDragStart={(e) => e.preventDefault()}
+				onMouseDown={handleMouseDown}
+				onMouseMove={handleMouseMove}
+				className="modal__container"
+			>
+				<ImageCropper
+					crop={curCrop}
+					setCrop={setCrop}
+					handleUpdateArea={handleUpdateArea}
+					cropEnabled={cropEnabled}
+					parentRef={imageContainerRef}
+				/>
+				<div ref={imageContainerRef} className="modal__container__image">
+					<img
+						ref={imgRef}
+						onLoad={handleOnLoad}
+						draggable="false"
+						onDragStart={(e) => e.preventDefault()}
+						src={mainSrc}
+						style={style}
+						alt=""
+					/>
+					{elements.map((data: any, index: number) => (
+						<UnifiedComponent
+							index={index}
+							key={index}
+							parentRef={imageContainerRef}
+							type={data.type}
+							{...data}
+							onClick={(index: number) => selectElement(index)}
+							selectedIndex={selectedIndex}
+							changeData={setElementData}
+							editable={true}
+							drawIndexes={elements.length > 1}
 						/>
-						<Button
-							hidden={!mainSrc}
-							text={useLocalize("saveAndExit")}
-							icon={"save"}
-							onClick={() => saveData(true)}
-						/>
-						<Button
-							text={useLocalize("exit")}
-							icon={"log-out"}
-							onClick={() => {
-								setAdditions([]);
-								containerRef.current.remove();
-							}}
-						/>
-					</ButtonsLayout>
-				</ModalLayoutDark>
+					))}
+				</div>
 			</div>
 
-			<div ref={modalRef} className="modal-container">
-				<div ref={imageContainerRef} className="modal__image-container">
-					<ImageCropper
-						crop={imageProps?.crop || { x: 0, y: 0, w: 0, h: 0 }}
-						setCrop={setCrop}
-						cropEnabled={cropEnabled}
-						parentRef={imageContainerRef}
-					/>
-
-					{(!mainSrc && <SpinnerLoader />) || (
-						<img
-							ref={imgRef}
-							draggable="false"
-							onDragStart={(e) => e.preventDefault()}
-							src={mainSrc}
-							alt=""
+			{mainSrc && (
+				<div className="toolbar__under">
+					{selectedIndex !== null && (
+						<AnnotationMenu
+							setIndex={changeIndex}
+							remove={removeObject}
+							curDirection={curDirection}
+							tooltipText={tooltipText}
+							setTooltipText={changeText}
+							index={selectedIndex}
+							changeDirection={changeDirection}
+							maxIndex={elements.length}
 						/>
 					)}
 
-					{mainSrc && (
-						<div className="objects">
-							{elements.map((data: any, index: number) => (
-								<UnifiedComponent
-									index={index}
-									key={index + 22}
-									parentRef={imageContainerRef}
-									type={data.type}
-									{...data}
-									selected={selectedIndex === index}
-									onClick={handleClick}
-									changeData={changeData}
-									editable={true}
-								/>
-							))}
-						</div>
-					)}
-				</div>
-
-				{mainSrc && (
-					<div className="toolbar toolbar__under">
+					{cropEnabled && (
 						<ModalLayoutDark>
 							<ButtonsLayout>
-								<Button
-									tooltipText={messages[0]}
-									icon={"type"}
-									onClick={() => createChildren(ImageObjectTypes.Text)}
-								/>
-								<Button
-									tooltipText={messages[1]}
-									icon={"arrow-down-left"}
-									onClick={() => createChildren(ImageObjectTypes.Arrow)}
-								/>
-								<Button
-									tooltipText={messages[2]}
-									icon={"square"}
-									onClick={() => createChildren(ImageObjectTypes.Square)}
-								/>
-								{!cropEnabled && (
-									<Button tooltipText={messages[3]} icon={"crop"} onClick={toggleCropper} />
-								)}
-								{cropEnabled && (
-									<>
-										<div className="divider" />
-										<Button tooltipText={messages[3]} icon={"check"} onClick={toggleCropper} />
-										<Button tooltipText={messages[4]} icon={"x"} onClick={resetCropper} />
-									</>
-								)}
+								<>
+									<Button text={messages.apply} icon={"check"} onClick={toggleCropper} />
+									<Button text={messages.cancel} icon={"x"} onClick={resetCropper} />
+								</>
 							</ButtonsLayout>
 						</ModalLayoutDark>
-					</div>
-				)}
-			</div>
+					)}
+
+					<ModalLayoutDark>
+						<ButtonsLayout>
+							<Button
+								tooltipText={messages.addAnnotation}
+								icon={"circle-arrow-out-up-left"}
+								onClick={() => createChildren(ImageObjectTypes.Annotation)}
+							/>
+							<Button
+								tooltipText={messages.addSquare}
+								icon={"scan"}
+								onClick={() => createChildren(ImageObjectTypes.Square)}
+							/>
+
+							<div className="divider" />
+							<Button
+								tooltipText={messages.cropImage}
+								icon={"crop"}
+								onClick={cropEnabled ? resetCropper : toggleCropper}
+								isActive={cropEnabled || (curCrop.w < 99 && curCrop.h < 99)}
+							/>
+
+							<div className="divider" />
+							<Button
+								hidden={!mainSrc}
+								text={messages.saveAndExit}
+								icon={"save"}
+								onClick={() => saveData(true)}
+							/>
+						</ButtonsLayout>
+					</ModalLayoutDark>
+				</div>
+			)}
 		</div>
 	);
 };
@@ -340,53 +642,124 @@ export default styled(ImageEditor)`
 	top: 0;
 	background-color: var(--color-modal-overlay-style-bg);
 
-	.modal__image-container {
-		position: relative;
-		max-width: 100%;
-		max-height: 100%;
+	.animate {
+		transition: all 0.5s ease;
 	}
 
-	.modal-container {
+	input[type="number"]::-webkit-inner-spin-button,
+	input[type="number"]::-webkit-outer-spin-button {
+		-webkit-appearance: none;
+	}
+
+	.modal__confirm {
+		z-index: 201;
+		background-color: #2929298d;
+		position: fixed;
+		width: 100vw;
+		height: 100vh;
+	}
+
+	.modal__confirm__container {
 		position: absolute;
-		max-width: 75%;
-		max-height: 85%;
+		min-width: 30em;
+		max-width: 45%;
 		left: 50%;
 		top: 50%;
-		transform: translateX(-50%) translateY(-50%);
+		transform: translate(-50%, -50%);
 	}
 
-	.modal-image {
+	.x-mark {
+		position: absolute;
+		top: 0;
+		right: 0;
+		padding-top: 1.2em;
+		padding-right: 1.2em;
+		cursor: pointer;
+		transition: 0.25s;
+		font-size: var(--big-icon-size);
+		color: var(--color-active-white);
+
+		:hover {
+			color: var(--color-active-white-hover);
+		}
+
+		${cssMedia.narrow} {
+			display: none;
+		}
+	}
+
+	.text_x_large .button .iconFrame i {
+		font-size: 1.5rem;
+	}
+
+	.modal__container {
 		position: relative;
-		display: block;
-		max-width: 100%;
-		max-height: 100%;
-		user-select: none;
-		padding: 0;
-		margin: 0;
+		top: 50%;
+		left: 50%;
+		border: solid #bdbdbd 1px;
+		max-width: 75%;
+		max-height: 85%;
+		transform: translate(-50%, -50%);
+		width: fit-content;
+		height: fit-content;
+	}
+
+	.modal__container__image {
+		position: relative;
+		overflow: hidden;
+	}
+
+	.modal__container__image img {
+		width: auto;
+		height: auto;
+		position: relative;
 	}
 
 	.toolbar {
 		position: absolute;
 		display: flex;
+		flex-direction: column;
+		justify-content: center;
 		align-items: center;
-		bottom: 10px;
+		gap: 4px;
 		left: 50%;
 		z-index: 100;
 		transform: translateX(-50%);
 	}
 
+	.toolbar__dropdown__top {
+		position: absolute;
+		bottom: 4px;
+		background-color: #000000;
+	}
+
 	.toolbar__top {
-		top: 0px;
+		top: 1rem;
 		bottom: auto;
 		transform: translateX(-50%);
 	}
 
 	.toolbar__under {
-		transform: translateX(-50%) translateY(150%);
+		position: absolute;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		left: 50%;
+		bottom: 1rem;
+		transform: translateX(-50%);
+		gap: 4px;
+		z-index: 50;
+		margin-top: 0.5rem;
 	}
 
 	img {
 		user-select: none;
 		pointer-events: none;
+	}
+
+	.selected {
+		outline: 2px solid var(--color-focus);
+		z-index: 10;
+		align-content: center;
 	}
 `;

@@ -1,12 +1,13 @@
 {
 	// "rust-analyzer.cargo.target": "x86_64-pc-windows-msvc",
 	// "rust-analyzer.cargo.target": "x86_64-apple-darwin",
-	"rust-analyzer.cargo.target": "aarch64-apple-darwin",
+	// "rust-analyzer.cargo.target": "aarch64-apple-darwin",
 	// "rust-analyzer.cargo.target": "wasm32-unknown-emscripten",
 	// "rust-analyzer.cargo.target": "aarch64-linux-android",
 	// "rust-analyzer.cargo.target": "aarch64-apple-ios",
 
 	"rust-analyzer.check.allTargets": true,
+	"rust-analyzer.check.features": "all",
 
 	"editor.tabCompletion": "on",
 
@@ -49,8 +50,17 @@
 		"editor.defaultFormatter": "redhat.vscode-yaml"
 	},
 
+	"yaml.schemas": {
+		"https://gitlab.com/gitlab-org/gitlab/-/raw/master/app/assets/javascripts/editor/schema/ci.json": [
+			"/.ci/*.yml",
+			"/.ci/**/*.yml",
+			"/.gitlab-ci.yml"
+		]
+	},
+
 	"typescript.preferences.importModuleSpecifier": "non-relative",
 	"typescript.tsserver.experimental.enableProjectDiagnostics": true,
 
-	"cSpell.words": ["katex", "Markdoc", "prosemirror", "Renderable", "tiptap", "traptitech", "Bugsnag"]
+	"cSpell.words": ["katex", "Markdoc", "prosemirror", "Renderable", "tiptap", "traptitech", "Bugsnag"],
+	"typescript.tsdk": "node_modules/typescript/lib"
 }

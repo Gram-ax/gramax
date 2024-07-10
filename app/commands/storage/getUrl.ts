@@ -10,8 +10,8 @@ const getUrl: Command<{ catalogName: string }, string> = Command.create({
 	middlewares: [new AuthorizeMiddleware()],
 
 	async do({ catalogName }) {
-		const { lib } = this._app;
-		const catalog = await lib.getCatalog(catalogName);
+		const workspace = this._app.wm.current();
+		const catalog = await workspace.getCatalog(catalogName);
 		if (!catalog) return;
 		const storage = catalog.repo.storage;
 		if (!storage) return;

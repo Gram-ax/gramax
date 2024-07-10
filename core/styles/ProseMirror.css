@@ -41,13 +41,17 @@
 
 .ProseMirror pre {
 	white-space: pre-wrap;
-	padding: 22px 26px !important;
+	padding: 1.375em 1.625em !important;
 }
 
 .ProseMirror comment-react-component {
 	cursor: pointer;
 	border-radius: var(--radius-normal);
 	background: var(--color-comment-bg);
+}
+
+.ProseMirror comment-react-component:hover {
+	background: var(--color-comment-hover-bg) !important;
 }
 
 .ProseMirror pre > div {
@@ -91,7 +95,6 @@
 
 .ProseMirror table {
 	margin: 0;
-	width: 100%;
 	table-layout: fixed;
 	border-collapse: collapse;
 }
@@ -130,7 +133,6 @@
 }
 
 .ProseMirror table th {
-	font-weight: bold;
 	text-align: left;
 }
 
@@ -158,13 +160,6 @@
 
 .table-actions {
 	position: absolute;
-}
-.tableWrapper {
-	overflow-x: auto;
-}
-
-.tableWrapper table {
-	overflow: unset !important;
 }
 
 .resize-cursor {

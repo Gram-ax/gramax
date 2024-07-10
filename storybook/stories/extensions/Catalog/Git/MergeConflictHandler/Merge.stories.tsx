@@ -1,18 +1,23 @@
 import { StoryObj } from "@storybook/react";
-import { useState } from "react";
-import MergeConflictChooser from "../../../../../../core/extensions/git/actions/MergeConflictHandler/components/Chooser/Chooser";
 import MergeConflictHandler from "../../../../../../core/extensions/git/actions/MergeConflictHandler/components/MergeConflictHandler";
-import { files as testFiles, parsedFile as testParsedFile } from "./data";
-
-export const Chooser: StoryObj = {
-	render: () => {
-		const [parsedFile, setParsedFiles] = useState(testParsedFile);
-		return <MergeConflictChooser parsedFile={parsedFile} onResolve={setParsedFiles} />;
-	},
-};
+import { files as testFiles } from "./data";
 
 export const Handler: StoryObj = {
-	render: () => <MergeConflictHandler rawFiles={testFiles} onMerge={console.log} />,
+	render: () => <MergeConflictHandler rawFiles={testFiles} onMerge={(r) => alert(JSON.stringify(r))} reverseMerge />,
+	decorators: [
+		(S) => (
+			<div style={{ background: "gray", padding: "1rem" }}>
+				<S />
+			</div>
+		),
+	],
+};
+
+export const HandlerNoReverse: StoryObj = {
+	name: "Handler (no reverse)",
+	render: () => (
+		<MergeConflictHandler rawFiles={testFiles} onMerge={(r) => alert(JSON.stringify(r))} reverseMerge={false} />
+	),
 	decorators: [
 		(S) => (
 			<div style={{ background: "gray", padding: "1rem" }}>

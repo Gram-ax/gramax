@@ -14,7 +14,7 @@ declare module "@tiptap/core" {
 }
 
 const OpenApi = Node.create({
-	...getExtensionOptions({ schema: openapi, name: OPEN_API_NAME }),
+	...getExtensionOptions({ schema: openapi, name: OPEN_API_NAME, withResource: true }),
 
 	parseHTML() {
 		return [{ tag: "openapi-react-component" }];

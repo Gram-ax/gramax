@@ -43,7 +43,7 @@ export default abstract class ArticleUpdaterService {
 		if (!_flag) ArticleUpdaterService.startLoadingAfterFocus();
 		else {
 			const response = await FetchService.fetch(apiUrlCreator.checkLastModifiedArticle());
-			return response && response.ok ? await response?.json() : null;
+			return response && response.ok ? (await response?.json?.()) ?? null : null;
 		}
 	}
 }

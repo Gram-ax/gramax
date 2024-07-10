@@ -12,8 +12,10 @@ const getRenderData: Command<{ snippetId: string; catalogName: string }, Snippet
 	middlewares: [new DesktopModeMiddleware(), new ReloadConfirmMiddleware()],
 
 	async do({ snippetId, catalogName }) {
-		const { lib, parser } = this._app;
-		const catalog = await lib.getCatalog(catalogName);
+		const { wm, parser } = this._app;
+		const workspace = wm.current();
+
+		const catalog = await workspace.getCatalog(catalogName);
 		if (!catalog) return;
 		return catalog.snippetProvider.getRenderData(snippetId, parser);
 	},

@@ -2,38 +2,35 @@ import { ImageRun } from "docx";
 import { toBlob } from "html-to-image";
 import Path from "../../logic/FileProvider/Path/Path";
 import ResourceManager from "../../logic/Resource/ResourceManager";
+import DefaultError from "@ext/errorHandlers/logic/DefaultError";
 
 export interface ImageDimensions {
 	width: number;
 	height: number;
 }
 
-const fontEmbedCSS = "";
+const FONT_EMBED_CSS = "";
+const SCALE = 4;
 
 export class WordExportHelper {
-	static async getFileByPath(path: Path, resourceManager: ResourceManager): Promise<Buffer> {
-		return await resourceManager.getContent(path);
+	static async getFileByPath(path: Path, resourceManager: ResourceManager) {
+		const content = await resourceManager.getContent(path);
+		if (!content) throw new Error(`File not found at path: ${path.toString()}`);
+		return content;
 	}
 
-	static async getImageSizeFromImageData(
-		imageBuffer: Buffer | Blob,
-		maxWidth = 600,
-		maxHeight = 600,
-		defaultImageSize = 200,
-	): Promise<ImageDimensions> {
+	static async getImageSizeFromImageData(imageBuffer: Buffer | Blob, maxWidth = 600, maxHeight = 600) {
 		const img = new Image();
 		const imageUrl = URL.createObjectURL(imageBuffer instanceof Blob ? imageBuffer : new Blob([imageBuffer]));
 		img.src = imageUrl;
 
-		const imageDimensions = await new Promise<ImageDimensions>((resolve) => {
+		const imageDimensions = await new Promise<ImageDimensions>((resolve, reject) => {
 			img.onload = () => {
 				if (img.width > maxWidth) resolve({ width: maxWidth, height: (maxWidth / img.width) * img.height });
 				if (img.height > maxHeight) resolve({ height: maxHeight, width: (maxHeight / img.height) * img.width });
-				resolve({ width: img.width, height: img.height });
+				else resolve({ width: img.width, height: img.height });
 			};
-			img.onerror = () => {
-				resolve({ width: defaultImageSize, height: 200 });
-			};
+			img.onerror = () => reject(new Error("Failed to load image"));
 		});
 
 		URL.revokeObjectURL(imageUrl);
@@ -42,21 +39,13 @@ export class WordExportHelper {
 		return imageDimensions;
 	}
 
-	static async getImageByPath(
-		path: Path,
-		resourceManager: ResourceManager,
-		maxWidth?: number,
-		maxHeight?: number,
-		defaultImageSize?: number,
-	): Promise<ImageRun> {
-		if (path.extension === "svg")
-			return WordExportHelper.getImageFromSvgPath(path, resourceManager, maxWidth, maxHeight, defaultImageSize);
+	static async getImageByPath(path: Path, resourceManager: ResourceManager, maxWidth?: number, maxHeight?: number) {
+		if (path.extension === "svg") return this.getImageFromSvgPath(path, resourceManager, maxWidth, maxHeight);
 
-		const imageBuffer = await resourceManager.getContent(path);
+		const imageBuffer = await this.getFileByPath(path, resourceManager);
+		const dimensions = await this.getImageSizeFromImageData(imageBuffer, maxWidth, maxHeight);
 
-		const dimensions = await this.getImageSizeFromImageData(imageBuffer, maxWidth, maxHeight, defaultImageSize);
-
-		return WordExportHelper._getImageRun(imageBuffer, dimensions);
+		return this._getImageRun(imageBuffer, dimensions);
 	}
 
 	static async getImageFromSvgPath(
@@ -64,26 +53,73 @@ export class WordExportHelper {
 		resourceManager: ResourceManager,
 		maxWidth?: number,
 		maxHeight?: number,
-		defaultImageSize?: number,
-	): Promise<ImageRun> {
-		const svgCode = (await resourceManager.getContent(path)).toString();
-		return await WordExportHelper.getImageFromSvgString(svgCode, undefined, maxWidth, maxHeight, defaultImageSize);
-	}
-
-	static async getImageFromSvgString(
-		svgCode: string,
-		fitContent?: boolean,
-		maxWidth?: number,
-		maxHeight?: number,
-		defaultImageSize?: number,
 	) {
-		const image = await this.getImageFromDom(svgCode, fitContent);
-		const dimensions = await this.getImageSizeFromImageData(image, maxWidth, maxHeight, defaultImageSize);
-
-		return WordExportHelper._getImageRun(await image.arrayBuffer(), dimensions);
+		const svgCode = (await resourceManager.getContent(path)).toString();
+		return this.getImageFromSvgString(svgCode, maxWidth, maxHeight);
 	}
 
-	static async getImageFromDom(tag: string, fitContent = true): Promise<Blob> {
+	static async getImageFromSvgString(svgCode: string, maxWidth?: number, maxHeight?: number) {
+		const size = this.getSvgDimensions(svgCode);
+		const image = await this.svgToPngBlob(svgCode, size);
+		const dimensions = await this.getImageSizeFromImageData(image, maxWidth ?? size.width, maxHeight ?? size.width);
+
+		return this._getImageRun(await image.arrayBuffer(), dimensions);
+	}
+
+	static getSvgDimensions(svgContent: string): { width: number; height: number } {
+		const parser = new DOMParser();
+		const doc = parser.parseFromString(svgContent, "image/svg+xml");
+		const svgElement = doc.documentElement;
+
+		let widthAttr = svgElement.getAttribute("width");
+		let heightAttr = svgElement.getAttribute("height");
+
+		if (!widthAttr || !heightAttr) {
+			const viewBoxAttr = svgElement.getAttribute("viewBox");
+			if (viewBoxAttr) {
+				const [, , width, height] = viewBoxAttr.split(" ").map(Number);
+				widthAttr = width.toString();
+				heightAttr = height.toString();
+			}
+		}
+
+		return {
+			width: widthAttr ? parseFloat(widthAttr) : 0,
+			height: heightAttr ? parseFloat(heightAttr) : 0,
+		};
+	}
+
+	static async svgToPngBlob(svgContent: string, size: { width: number; height: number }): Promise<Blob | null> {
+		const image = new Image();
+		image.src = `data:image/svg+xml;base64,${btoa(unescape(encodeURIComponent(svgContent)))}`;
+
+		const canvas = document.createElement("canvas");
+		canvas.width = size.width * SCALE;
+		canvas.height = size.height * SCALE;
+
+		const ctx = canvas.getContext("2d");
+		if (!ctx) throw new Error("Couldn't upload data for Canvas");
+
+		await new Promise((resolve, reject) => {
+			image.onload = resolve;
+			image.onerror = () => reject(new DefaultError(`Failed to load image`));
+		});
+
+		ctx.drawImage(image, 0, 0, size.width * SCALE, size.height * SCALE);
+
+		return new Promise((resolve) => {
+			canvas.toBlob((blob) => resolve(blob));
+		});
+	}
+
+	static async getImageFromDiagramString(svgCode: string, fitContent = false, maxWidth?: number, maxHeight?: number) {
+		const image = await this.getImageFromDom(svgCode, fitContent);
+		const dimensions = await this.getImageSizeFromImageData(image, maxWidth, maxHeight);
+
+		return this._getImageRun(await image.arrayBuffer(), dimensions);
+	}
+
+	static async getImageFromDom(tag: string, fitContent = true) {
 		const dom = document.createElement("div");
 		dom.innerHTML = tag.trim();
 
@@ -94,7 +130,7 @@ export class WordExportHelper {
 		}
 
 		document.body.append(dom);
-		const imageBlob = await toBlob(dom, { fontEmbedCSS });
+		const imageBlob = await toBlob(dom, { fontEmbedCSS: FONT_EMBED_CSS });
 		dom.remove();
 
 		return imageBlob;

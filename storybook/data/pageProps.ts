@@ -744,6 +744,13 @@ export default {
 		description: "",
 	},
 	context: {
+		workspace: {
+			current: "f",
+			workspaces: [],
+			defaultPath: "f",
+			readResult: undefined,
+		},
+		currentWorkspace: "default-workspace",
 		domain: "http://localhost:3000",
 		isArticle: true,
 		lang: "ru",
@@ -770,6 +777,7 @@ export default {
 			isProduction: false,
 
 			version: "0.0.0@storybook",
+			buildVersion: "0.0.0@storybook",
 		},
 		isServerApp: false,
 		isProduction: false,

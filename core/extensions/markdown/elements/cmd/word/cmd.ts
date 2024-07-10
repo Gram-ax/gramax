@@ -1,7 +1,20 @@
-import { TextRun } from "docx";
-import { WordInlineChild } from "../../../../wordExport/WordTypes";
-import { wordExportColors } from "@ext/wordExport/wordExportSettings";
+import { WordInlineChild } from "../../../../wordExport/options/WordTypes";
+import { createContent } from "@ext/wordExport/TextWordGenerator";
+import { WordFontStyles, NON_BREAKING_SPACE } from "@ext/wordExport/options/wordExportSettings";
+import { ImageRun } from "docx";
+import { getIconFromString } from "@ext/markdown/elements/icon/render/word/icon";
 
-export const cmdWordLayout: WordInlineChild = async ({ tag }) => {
-	return await Promise.resolve([new TextRun({ text: tag.attributes.text, highlight: wordExportColors.codeBlocks })]);
+export const cmdWordLayout: WordInlineChild = async ({ tag, addOptions }) => {
+	const icons: ImageRun[] = [];
+
+	if (tag.attributes?.icon) icons.push(await getIconFromString(tag.attributes.icon));
+
+	return [
+		...icons,
+		createContent(NON_BREAKING_SPACE + tag.attributes.text + NON_BREAKING_SPACE, {
+			...addOptions,
+			italics: true,
+			style: WordFontStyles.button,
+		}),
+	];
 };

@@ -5,7 +5,7 @@ import ListLayout from "@components/List/ListLayout";
 import FetchService from "@core-ui/ApiServices/FetchService";
 import MimeTypes from "@core-ui/ApiServices/Types/MimeTypes";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import ErrorHandler from "../../../../errorHandlers/client/components/ErrorHandler";
 import CreateGitHubSourceData from "../../../../git/actions/Source/GitHub/components/CreateGitHubSourceData";
 import CreateGitLabSourceData from "../../../../git/actions/Source/GitLab/components/CreateGitLabSourceData";
@@ -13,6 +13,7 @@ import useLocalize from "../../../../localization/useLocalize";
 import SourceListItem from "../../../components/SourceListItem";
 import SourceData from "../model/SourceData";
 import SourceType from "../model/SourceType";
+import CreateConfluenceSourceData from "@ext/confluence/actions/Source/components/CreateConfluenceSourceData";
 
 interface CreateSourceDataProps {
 	trigger?: JSX.Element;
@@ -21,10 +22,19 @@ interface CreateSourceDataProps {
 	onCreate?: (data: SourceData) => void;
 	onClose?: () => void;
 	externalIsOpen?: boolean;
+	forClone?: boolean;
 }
 
 const CreateSourceData = (props: CreateSourceDataProps) => {
-	const { trigger, onCreate, defaultSourceType, defaultSourceData, onClose = () => {}, externalIsOpen } = props;
+	const {
+		trigger,
+		onCreate,
+		defaultSourceType,
+		defaultSourceData,
+		onClose = () => {},
+		externalIsOpen,
+		forClone,
+	} = props;
 	const [isOpen, setIsOpen] = useState(!trigger);
 	const [sourceType, setSourceType] = useState<SourceType>(defaultSourceType ?? null);
 	const apiUrlCreator = ApiUrlCreatorService.value;
@@ -39,6 +49,34 @@ const CreateSourceData = (props: CreateSourceDataProps) => {
 	useEffect(() => {
 		if (externalIsOpen) setIsOpen(externalIsOpen);
 	}, [externalIsOpen]);
+
+	const localizedSource2 = useLocalize("source2").toLowerCase();
+	const localizedAddNewSource = useLocalize("addNewSource");
+	const localizedSource = useLocalize("source");
+	const localizedStorage2 = useLocalize("storage2");
+	const localizedAddNewStorage = useLocalize("addNewStorage");
+	const localizedStorage = useLocalize("storage");
+	const localizedFind = useLocalize("find");
+
+	const config = useMemo(
+		() => ({
+			import: {
+				placeholderSuffix: localizedSource2,
+				legendLabel: localizedAddNewSource,
+				controlLabel: localizedSource,
+				filter: (v) => v === SourceType.confluence,
+			},
+			clone: {
+				placeholderSuffix: localizedStorage2,
+				legendLabel: localizedAddNewStorage,
+				controlLabel: localizedStorage,
+				filter: (v) => v !== SourceType.enterprise && v !== SourceType.confluence,
+			},
+		}),
+		[],
+	);
+
+	const mode = forClone ?? true ? config.clone : config.import;
 
 	return (
 		<ModalLayout
@@ -55,19 +93,19 @@ const CreateSourceData = (props: CreateSourceDataProps) => {
 				<ErrorHandler>
 					<FormStyle>
 						<>
-							<legend>{useLocalize("addNewStorage")}</legend>
+							<legend>{mode.legendLabel}</legend>
 							<fieldset>
 								<div className="form-group field field-string row">
-									<label className="control-label">{useLocalize("storage")}</label>
+									<label className="control-label">{mode.controlLabel}</label>
 									<div className="input-lable">
 										<ListLayout
 											disable={!!defaultSourceType}
 											disableSearch={!!defaultSourceType}
 											openByDefault={!defaultSourceType}
 											item={defaultSourceType ?? ""}
-											placeholder={`${useLocalize("find")} ${useLocalize("storage2")}`}
+											placeholder={`${localizedFind} ${mode.placeholderSuffix}`}
 											items={Object.values(SourceType)
-												.filter((v) => v !== SourceType.enterprise)
+												.filter(mode.filter)
 												.map((v) => ({
 													element: <SourceListItem code={v.toLowerCase()} text={v} />,
 													labelField: v,
@@ -94,6 +132,9 @@ const CreateSourceData = (props: CreateSourceDataProps) => {
 								)}
 								{sourceType == SourceType.gitHub && (
 									<CreateGitHubSourceData onSubmit={createStorageUserData} />
+								)}
+								{sourceType == SourceType.confluence && (
+									<CreateConfluenceSourceData onSubmit={createStorageUserData} />
 								)}
 							</fieldset>
 						</>

@@ -1,6 +1,6 @@
 import { ITableRowPropertiesOptions } from "docx";
 import { WordSerializerState } from "../../../../../wordExport/WordExportState";
-import { AddOptionsWord } from "../../../../../wordExport/WordTypes";
+import { AddOptionsWord } from "../../../../../wordExport/options/WordTypes";
 import { Tag } from "../../../../core/render/logic/Markdoc";
 import { WordTableExport } from "./WordTableExport";
 

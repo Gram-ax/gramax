@@ -5,6 +5,11 @@ import FileStructure from "@core/FileStructue/FileStructure";
 
 const ICONS_FOLDER = ".icons";
 
+export interface IconEditorProps {
+	code: string;
+	svg?: string;
+}
+
 export default class IconProvider {
 	private _iconsPath: Path;
 	private _cachedIcons = new Map<string, string>();
@@ -14,14 +19,28 @@ export default class IconProvider {
 	}
 
 	async getIconByCode(code: string) {
-		if (this._cachedIcons.has(code)) return this._cachedIcons.get(code);
-		const path = this._getIconPath(code);
-		const svg = await this._fp.read(path);
-		this._cachedIcons.set(code, svg);
-		return this._cachedIcons.get(code);
+		try {
+			if (this._cachedIcons.has(code)) return this._cachedIcons.get(code);
+			const path = this._getIconPath(code);
+			const svg = (await this._fp.exists(path)) ? await this._fp.read(path) : null;
+			this._cachedIcons.set(code, svg);
+			return this._cachedIcons.get(code);
+		} catch {}
 	}
 
 	private _getIconPath(id: string): Path {
 		return this._iconsPath.join(new Path(`${id}.svg`));
+	}
+
+	async getIconsList() {
+		if (!(await this._fp.exists(this._iconsPath))) return [];
+		const entries = (await this._fp.readdir(this._iconsPath)).map((e) => new Path(e));
+		const list: IconEditorProps[] = [];
+		for (const entry of entries) {
+			const code = entry.name;
+			const svg = await this.getIconByCode(code);
+			list.push({ code, svg });
+		}
+		return list;
 	}
 }

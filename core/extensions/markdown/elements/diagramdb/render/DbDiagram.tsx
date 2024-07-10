@@ -177,7 +177,7 @@ const DbDiagram = styled(
 	},
 )`
 	.svg {
-		max-width: 780px;
+		max-width: var(--article-max-width);
 	}
 
 	svg a {

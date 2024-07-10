@@ -1,10 +1,10 @@
 import { ItemRef } from "@core/FileStructue/Item/ItemRef";
 import { Buffer } from "buffer";
-import Library from "../../Library/Library";
 import HashItem from "./HashItem";
+import type { Workspace } from "@ext/workspace/Workspace";
 
 export default class HashItemRef extends HashItem {
-	constructor(private _itemRef: ItemRef, private _lib: Library) {
+	constructor(private _itemRef: ItemRef, private _workspace: Workspace) {
 		super();
 	}
 	public getKey(): string {
@@ -12,7 +12,7 @@ export default class HashItemRef extends HashItem {
 	}
 
 	public async getContent(): Promise<string> {
-		return (await this._lib.getFileProvider(this._itemRef.storageId).read(this._itemRef.path)) ?? "";
+		return (await this._workspace.getFileProvider().read(this._itemRef.path)) ?? "";
 	}
 
 	public getHashContent(): Promise<string> {
@@ -20,7 +20,7 @@ export default class HashItemRef extends HashItem {
 	}
 
 	public async getContentAsBinary(): Promise<Buffer> {
-		return await this._lib.getFileProvider(this._itemRef.storageId).readAsBinary(this._itemRef.path);
+		return await this._workspace.getFileProvider().readAsBinary(this._itemRef.path);
 	}
 
 	private _getKey(ref: ItemRef): string {

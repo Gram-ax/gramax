@@ -1,3 +1,4 @@
+import { RIGHT_NAV_CLASS } from "@app/config/const";
 import { classNames } from "@components/libs/classNames";
 import ArticleRefService from "@core-ui/ContextServices/ArticleRef";
 import { cssMedia } from "@core-ui/utils/cssUtils";
@@ -39,7 +40,7 @@ const ArticleLayout = (props: ArticleLayoutProps) => {
 				<div className="article-content">{article}</div>
 			</div>
 			<div
-				className="right-nav-layout"
+				className={RIGHT_NAV_CLASS}
 				onMouseEnter={onRightNavMouseEnter}
 				onMouseLeave={onRightNavMouseLeave}
 				onTouchEnd={onRightNavMouseEnter}
@@ -72,7 +73,7 @@ export default styled(ArticleLayout)`
 		width: 100%;
 		display: flex;
 		min-width: 0px;
-		max-width: 780px;
+		max-width: var(--article-max-width);
 		height: 100%;
 		min-height: 100%;
 		flex-direction: column;
@@ -81,6 +82,7 @@ export default styled(ArticleLayout)`
 	.right-nav-layout {
 		top: 0;
 		right: 0;
+		height: 100%;
 
 		position: fixed;
 		--transition-time: 0.3s;
@@ -103,7 +105,8 @@ export default styled(ArticleLayout)`
 			: `
 	flex: 1;
 	display: flex;
-	overflow: auto;
+	overflow-y: auto;
+	overflow-x: hidden;
 	justify-content: center;
 	background: var(--color-article-bg);
 	${p.isRightNavPin ? "" : "margin-right: 20px;"}
@@ -123,7 +126,7 @@ export default styled(ArticleLayout)`
 		width: 100%;
 		display: flex;
 		min-width: 0px;
-		max-width: 780px;
+		max-width: var(--article-max-width);
 		height: 100%;
 		min-height: 100%;
 		flex-direction: column;
@@ -132,6 +135,7 @@ export default styled(ArticleLayout)`
 	.right-nav-layout {
 		--transition-time: 0.3s;
 		transition: var(--navigation-transition);
+		height: 100%;
 
 		${
 			p.isRightNavPin

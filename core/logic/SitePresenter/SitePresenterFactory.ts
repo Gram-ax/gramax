@@ -1,15 +1,15 @@
 import CustomArticlePresenter from "@core/SitePresenter/CustomArticlePresenter";
 import GitRepositoryProvider from "@ext/git/core/Repository/RepositoryProvider";
+import type WorkspaceManager from "@ext/workspace/WorkspaceManager";
 import MarkdownParser from "../../extensions/markdown/core/Parser/Parser";
 import ParserContextFactory from "../../extensions/markdown/core/Parser/ParserContext/ParserContextFactory";
 import Navigation from "../../extensions/navigation/catalog/main/logic/Navigation";
 import Context from "../Context/Context";
-import Library from "../Library/Library";
 import SitePresenter from "./SitePresenter";
 
 export default class SitePresenterFactory {
 	constructor(
-		private _lib: Library,
+		private _wm: WorkspaceManager,
 		private _parser: MarkdownParser,
 		private _parserContextFactory: ParserContextFactory,
 		private _grp: GitRepositoryProvider,
@@ -20,7 +20,7 @@ export default class SitePresenterFactory {
 		const nav = new Navigation();
 		return new SitePresenter(
 			nav,
-			this._lib,
+			this._wm.current(),
 			this._parser,
 			this._parserContextFactory,
 			this._grp,

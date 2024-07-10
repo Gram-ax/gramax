@@ -1,6 +1,12 @@
 const MAX_LOG_COUNT = 1000;
 const LOCAL_STORAGE_KEY = ".logs";
 
+interface LogStorage {
+	clear: () => void;
+	set: (data: { logs: string[]; logsHead: number }) => void;
+	get: () => { logs: string[]; logsHead: number };
+}
+
 export default class PersistentLogger {
 	static warn(message: string, scope?: string, meta?: any) {
 		this._pushMessage(this._format("warn", message, scope, meta));
@@ -23,7 +29,7 @@ export default class PersistentLogger {
 
 	static getRawLogs(): string[] {
 		const result: string[] = [];
-		const { logs, logsHead } = this._loadLogs();
+		const { logs, logsHead } = this._getStorage().get();
 		if (!logs.length) return [];
 		for (let i = MAX_LOG_COUNT - 1; i >= 0; i--) {
 			const log = logs[(logsHead + i) % logs.length];
@@ -33,7 +39,7 @@ export default class PersistentLogger {
 	}
 
 	static getLogs(filter: RegExp, max = MAX_LOG_COUNT) {
-		const { logs, logsHead } = this._loadLogs();
+		const { logs, logsHead } = this._getStorage().get();
 		const result: string[] = [];
 
 		for (let i = logs.length - 1; i >= 0; i--) {
@@ -48,13 +54,11 @@ export default class PersistentLogger {
 	}
 
 	static clearLogs(): void {
-		if (typeof window === "undefined") return;
-		const storage = window.localStorage;
-		storage.removeItem(LOCAL_STORAGE_KEY);
+		this._getStorage().clear();
 	}
 
 	private static _pushMessage(msg: string) {
-		const data = this._loadLogs();
+		const data = this._getStorage().get();
 		const logs = data.logs;
 		if (!logs.length) return;
 		let logsHead = data.logsHead;
@@ -73,22 +77,45 @@ export default class PersistentLogger {
 	}
 
 	private static _saveLogs(logs: string[], logsHead: number) {
-		if (typeof window === "undefined") return;
-		const storage = window.localStorage;
-		storage.setItem(LOCAL_STORAGE_KEY, JSON.stringify({ logs, logsHead }));
+		this._getStorage().set({ logs, logsHead });
 	}
 
-	private static _loadLogs(): { logs: string[]; logsHead: number } {
-		if (typeof window === "undefined" || !window.localStorage) return { logs: [], logsHead: 0 };
-		const logs: string[] = [];
-		const storage = window.localStorage;
-		if (storage.getItem(LOCAL_STORAGE_KEY)) {
-			return JSON.parse(storage.getItem(LOCAL_STORAGE_KEY)) as {
-				logsHead: number;
-				logs: string[];
+	private static _getStorage(): LogStorage {
+		const loadData = { logs: [], logsHead: 0 };
+		if (typeof window === "undefined" || !window.localStorage) {
+			if (global.gramax_logger) return global.gramax_logger;
+
+			for (let i = 0; i < MAX_LOG_COUNT; i++) loadData.logs.push(undefined);
+			global.gramax_logger = {
+				data: loadData,
+				clear: () => {
+					global.gramax_logger.data = loadData;
+				},
+				set: (data: { logs: string[]; logsHead: number }) => {
+					global.gramax_logger.data = data;
+				},
+				get: (): { logs: string[]; logsHead: number } => {
+					return global.gramax_logger.data;
+				},
+			};
+
+			return global.gramax_logger;
+		} else {
+			if (!window.localStorage.getItem(LOCAL_STORAGE_KEY)) {
+				for (let i = 0; i < MAX_LOG_COUNT; i++) loadData.logs.push(undefined);
+				window.localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(loadData));
+			}
+			return {
+				clear: () => {
+					window.localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(loadData));
+				},
+				set: (data: { logs: string[]; logsHead: number }) => {
+					window.localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(data));
+				},
+				get: (): { logs: string[]; logsHead: number } => {
+					return JSON.parse(window.localStorage.getItem(LOCAL_STORAGE_KEY));
+				},
 			};
 		}
-		for (let i = 0; i < MAX_LOG_COUNT; i++) logs.push(undefined);
-		return { logs, logsHead: 0 };
 	}
 }

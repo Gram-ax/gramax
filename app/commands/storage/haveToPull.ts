@@ -11,8 +11,10 @@ const haveToPull: Command<{ ctx: Context; catalogName: string }, boolean> = Comm
 	middlewares: [new AuthorizeMiddleware()],
 
 	async do({ ctx, catalogName }) {
-		const { lib, logger, rp } = this._app;
-		const catalog = await lib.getCatalog(catalogName);
+		const { wm, logger, rp } = this._app;
+		const workspace = wm.current();
+
+		const catalog = await workspace.getCatalog(catalogName);
 		const storage = catalog?.repo.storage;
 		if (!storage) return false;
 		const data = rp.getSourceData(ctx.cookie, await storage.getSourceName());

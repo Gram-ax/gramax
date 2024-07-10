@@ -11,8 +11,8 @@ const getPermission: Command<{ catalogName: string; articlePath: Path }, string[
 	middlewares: [new AuthorizeMiddleware()],
 
 	async do({ catalogName, articlePath }) {
-		const { lib } = this._app;
-		const catalog = await lib.getCatalog(catalogName);
+		const workspace = this._app.wm.current();
+		const catalog = await workspace.getCatalog(catalogName);
 		if (!catalog) return [];
 		if (!articlePath) return catalog.getNeededPermission().getValues();
 		const item = catalog.findItemByItemPath(articlePath);

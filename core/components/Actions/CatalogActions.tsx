@@ -1,10 +1,13 @@
 import ListItem from "@components/Layouts/CatalogLayout/RightNavigation/ListItem";
+import ArticlePropsService from "@core-ui/ContextServices/ArticleProps";
+import CatalogPropsService from "@core-ui/ContextServices/CatalogProps";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import DeleteCatalog from "@ext/catalog/actions/propsEditor/components/DeleteCatalog";
 import useLocalize from "@ext/localization/useLocalize";
 import { ItemLink } from "@ext/navigation/NavigationLinks";
 import GetSharedTicket from "@ext/security/logic/TicketManager/components/GetSharedTicket";
 import useIsReview from "@ext/storage/logic/utils/useIsReview";
+import ItemExport from "@ext/wordExport/components/ItemExport";
 import CatalogEditAction from "../../extensions/catalog/actions/propsEditor/components/CatalogEditAction";
 import Share from "../../extensions/catalog/actions/share/components/Share";
 import Healthcheck from "../../extensions/healthcheck/components/Healthcheck";
@@ -14,8 +17,10 @@ import IsReadOnlyHOC from "../../ui-logic/HigherOrderComponent/IsReadOnlyHOC";
 
 const CatalogActions = ({ itemLinks }: { itemLinks: ItemLink[] }): JSX.Element => {
 	const isEdit = IsEditService.value;
+	const isErrorArticle = ArticlePropsService.value.errorCode;
 	const isLogged = PageDataContextService.value.isLogged;
 	const conf = PageDataContextService.value.conf;
+	const catalogProps = CatalogPropsService.value;
 	const storageInitialized = useIsStorageInitialized();
 	const isReview = useIsReview();
 
@@ -23,11 +28,6 @@ const CatalogActions = ({ itemLinks }: { itemLinks: ItemLink[] }): JSX.Element =
 
 	return (
 		<>
-			{/*<ExportToDocxOrPdf*/}
-			{/*	text={"catalog2"} Для Стаса: Зайди в компонент и посмотри как он работает*/}
-			{/*	downloadLink: apiUrlCreator.getWordSaveUrl(),*/}
-			{/*	fileName: catalogProps.name,*/}
-			{/*/>*/}
 			<Healthcheck
 				itemLinks={itemLinks}
 				trigger={<ListItem text={useLocalize("healthcheck")} iconCode="heart-pulse" />}
@@ -36,8 +36,11 @@ const CatalogActions = ({ itemLinks }: { itemLinks: ItemLink[] }): JSX.Element =
 				<GetSharedTicket trigger={<ListItem text={useLocalize("share")} iconCode="external-link" />} />
 			)}
 			<IsReadOnlyHOC>
+				<li>
+					<ItemExport fileName={catalogProps.name} />
+				</li>
 				<Share
-					shouldRender={!isReview && storageInitialized}
+					shouldRender={!isReview && storageInitialized && !isErrorArticle}
 					trigger={<ListItem text={useLocalize("share")} iconCode="external-link" />}
 				/>
 				<CatalogEditAction

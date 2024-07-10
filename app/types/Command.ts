@@ -20,7 +20,7 @@ export class Command<P, O> {
 
 	constructor(private _c: CommandConfig<P, O>) {
 		if (!_c.kind) _c.kind = ResponseKind.none;
-		_c.middlewares = [new MainMiddleware(), ...(_c.middlewares ?? [])];
+		_c.middlewares = [new MainMiddleware(_c.path), ...(_c.middlewares ?? [])];
 	}
 
 	get path(): string {

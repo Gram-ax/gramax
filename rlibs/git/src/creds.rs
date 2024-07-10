@@ -6,6 +6,8 @@ pub trait Creds {
   fn access_token(&self) -> &str;
 }
 
+pub trait ActualCreds: Creds {}
+
 pub struct DummyCreds;
 
 impl Creds for DummyCreds {
@@ -45,3 +47,5 @@ impl Creds for AccessTokenCreds {
     &self.access_token
   }
 }
+
+impl ActualCreds for AccessTokenCreds {}

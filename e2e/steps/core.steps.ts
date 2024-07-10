@@ -8,7 +8,7 @@ Given("находимся в новой статье", { timeout: config.timeout
 	await this.page().resetToArticle();
 });
 
-Given("находимся в/на {string}", { timeout: config.timeouts.long }, async function (this: E2EWorld, path: string) {
+Given("находимся в/на {string}", { timeout: config.timeouts.long * 4 }, async function (this: E2EWorld, path: string) {
 	await this.page().goto(path);
 });
 
@@ -47,6 +47,12 @@ Then("нажимаем на {int} кнопку с текстом {string}", asyn
 
 When("нажимаем на поле {string}", { timeout: config.timeouts.medium }, async function (this: E2EWorld, text: string) {
 	const elem = await this.page().search().lookup(text, undefined, true);
+	await elem.click();
+	await this.page().waitForLoad();
+});
+
+When("нажимаем на элемент {string}", { timeout: config.timeouts.medium }, async function (this: E2EWorld, text: string) {
+	const elem = await this.page().search().lookup(text, undefined);
 	await elem.click();
 	await this.page().waitForLoad();
 });

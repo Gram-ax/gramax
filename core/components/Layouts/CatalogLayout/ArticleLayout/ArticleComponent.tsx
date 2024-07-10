@@ -33,6 +33,7 @@ const ArticleComponent = (props: ArticleComponentProps) => {
 
 	const RightNav = (
 		<div
+			style={{ height: "inherit" }}
 			onMouseEnter={() => (isRightNavHover.current = true)}
 			onMouseLeave={() => (isRightNavHover.current = false)}
 		>

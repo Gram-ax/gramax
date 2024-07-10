@@ -4,6 +4,7 @@ import { useRouter } from "@core/Api/useRouter";
 import { ReactNode } from "react";
 import Icon from "../Atoms/Icon";
 import Link from "../Atoms/Link";
+import { getExecutingEnvironment } from "@app/resolveModule/env";
 
 interface AnchorProps {
 	href: string;
@@ -14,11 +15,14 @@ interface AnchorProps {
 	target?: "_self" | "_blank" | "_parent" | "_top";
 	hideExternalLinkIcon?: boolean;
 }
+
 const Anchor = (Props: AnchorProps) => {
-	const { children, basePath, target = "_blank", resourcePath, ...props } = Props;
+	const { children, basePath, target: propTarget = "_blank", resourcePath, ...props } = Props;
 	const isAnchor = props.href?.match(/^#/);
 	const basePathLength = useRouter()?.basePath?.length ?? basePath?.length ?? 0;
 	const setLink = ArticleTooltipService.value;
+	const executingEnvironment = getExecutingEnvironment();
+	const target = executingEnvironment === "tauri" ? "_self" : propTarget;
 
 	if (!isAnchor && props.href != null && props.href.slice(basePathLength + 1, basePathLength + 4) != "api") {
 		const isExternal = props.href?.match(/^\w+:/);

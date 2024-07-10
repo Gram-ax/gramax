@@ -1,8 +1,14 @@
-pub use crate::branch::*;
-pub use crate::diff::*;
-pub use crate::repo::*;
-pub use crate::status::*;
+pub use crate::actions::branch::*;
+pub use crate::actions::diff::*;
+pub use crate::actions::merge::*;
+pub use crate::actions::remote::*;
+pub use crate::actions::stash::*;
+pub use crate::actions::status::*;
 
-pub use crate::repo_ext;
+pub use crate::ShortInfo;
+
+pub use crate::repo::*;
+
+pub use crate::repo_ext::RepoExt;
 
 pub use git2::Oid;

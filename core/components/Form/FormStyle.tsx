@@ -9,17 +9,18 @@ const FormStyle = styled(
 	}: {
 		padding?: string;
 		overflow?: boolean;
+		height?: string;
 		className?: string;
 		formDirection?: "row" | "column";
 		children?: JSX.Element;
 	}) => (
 		<div className={classNames("form-layout", {}, [className])}>
-			<div>{children}</div>
+			<div style={{ height: "100%" }}>{children}</div>
 		</div>
 	),
 )`
+	height: ${(p) => p.height ?? "100%"};
 	width: 100%;
-	height: 100%;
 	max-height: 100%;
 	border-radius: 0.3rem;
 	background: var(--color-article-bg);

@@ -15,13 +15,14 @@ const create: Command<{ props: CatalogEditProps; ctx: Context }, ClientCatalogPr
 	middlewares: [new AuthorizeMiddleware(), new DesktopModeMiddleware(), new ReloadConfirmMiddleware()],
 
 	async do({ props, ctx }) {
-		const { sitePresenterFactory, lib } = this._app;
+		const { wm, sitePresenterFactory } = this._app;
+		const workspace = await wm.currentOrDefault();
 
-		if (Array.from(lib.getCatalogEntries().keys()).includes(props.url)) return;
-		const fs = lib.getFileStructure();
+		if (Array.from(workspace.getCatalogEntries().keys()).includes(props.url)) return;
+		const fs = workspace.getFileStructure();
 		const catalog = await fs.createCatalog(props);
 		if (!catalog) return null;
-		await lib.addCatalog(catalog);
+		await workspace.addCatalog(catalog);
 		await this._commands.article.create.do({ ctx, catalogName: catalog.getName() });
 		return sitePresenterFactory.fromContext(ctx).serializeCatalogProps(catalog);
 	},

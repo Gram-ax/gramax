@@ -1,10 +1,11 @@
-import { cssMedia } from "@core-ui/utils/cssUtils";
 import styled from "@emotion/styled";
-import { useMediaQuery } from "@mui/material";
 import LeftSidebar from "../../LeftSidebar/LeftSidebar";
+import { classNames } from "@components/libs/classNames";
+import { LEFT_NAV_CLASS } from "@app/config/const";
 
 const LeftNavigationLayout = styled(
 	({
+		mediumMedia,
 		leftNavigationTop,
 		leftNavigationContent,
 		leftNavigationBottom,
@@ -13,9 +14,9 @@ const LeftNavigationLayout = styled(
 		onMouseEnter,
 		onMouseLeave,
 		onTransitionEnd,
-
 		className,
 	}: {
+		mediumMedia: boolean;
 		leftNavigationContent: JSX.Element;
 		leftNavigationTop: JSX.Element;
 		leftNavigationBottom: JSX.Element;
@@ -28,10 +29,8 @@ const LeftNavigationLayout = styled(
 		onTransitionEnd?: () => void;
 		className?: string;
 	}) => {
-		const mediumMedia = useMediaQuery(cssMedia.JSmedium);
-
 		return (
-			<div className={className + " left-navigation-layout"} onTransitionEnd={onTransitionEnd}>
+			<div className={classNames(className, {}, [LEFT_NAV_CLASS])} onTransitionEnd={onTransitionEnd}>
 				<LeftSidebar
 					hideScroll={hideScroll}
 					shadow={isOpen}

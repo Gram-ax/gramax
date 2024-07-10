@@ -7,7 +7,6 @@ import ModalLayoutLight from "@components/Layouts/ModalLayoutLight";
 import { usePlatform } from "@core-ui/hooks/usePlatform";
 import { useRouter } from "@core/Api/useRouter";
 import { getClientDomain } from "@core/utils/getClientDomain";
-import { noteIcons } from "@ext/markdown/elements/note/render/component/Note";
 import { useRef, useState } from "react";
 import useLocalize from "../../../../localization/useLocalize";
 import Fence from "../../../../markdown/elements/fence/render/component/Fence";
@@ -42,7 +41,7 @@ const Share = ({ trigger, shouldRender = true }: { trigger: JSX.Element; shouldR
 									<p>
 										{isBrowser && (
 											<>
-												<Icon code={noteIcons.none} />
+												<Icon code={"circle-alert"} />
 												<span>{shareInBrowserHintText + ". "}</span>
 												<br />
 											</>

@@ -1,12 +1,12 @@
 // в tauri заменяем fs-extra на TauriFs(tauri/vite.config.ts); в wasm на wasmfs
 import { ItemRef } from "@core/FileStructue/Item/ItemRef";
+import DefaultError from "@ext/errorHandlers/logic/DefaultError";
 import * as fs from "fs-extra";
 import { ItemStatus } from "../../../extensions/Watchers/model/ItemStatus";
 import Watcher from "../../../extensions/Watchers/model/Watcher";
 import Path from "../Path/Path";
 import FileInfo from "../model/FileInfo";
 import FileProvider from "../model/FileProvider";
-import { getExecutingEnvironment } from "@app/resolveModule/env";
 
 export default class DiskFileProvider implements FileProvider {
 	private _rootPath: Path;
@@ -111,8 +111,12 @@ export default class DiskFileProvider implements FileProvider {
 	}
 
 	async readAsBinary(path: Path): Promise<Buffer> {
-		if (await this.exists(path)) return fs.readFile(this._toAbsolute(path));
-		return null;
+		try {
+			return await fs.readFile(this._toAbsolute(path));
+		} catch (e) {
+			if (e.name == "ENOENT" || e.code == "ENOENT") return;
+			throw e;
+		}
 	}
 
 	async readdir(path: Path): Promise<string[]> {
@@ -151,14 +155,19 @@ export default class DiskFileProvider implements FileProvider {
 		this._watcher?.start();
 	}
 
-	async validate() {
+	async createRootPathIfNeed() {
 		if (await this.exists(Path.empty)) return;
+		return await this.mkdir(Path.empty);
+	}
 
-		if (getExecutingEnvironment() == "browser") return await this.mkdir(Path.empty);
-
-		throw new Error(
-			`Корневая директория ${this._rootPath} не существует.\nВозможно вы ее удалили или переименовали. Укажите новую директорию.`,
-		);
+	async isRootPathExists() {
+		try {
+			await this.readdir(Path.empty);
+			return true;
+		} catch (e) {
+			if (e.name == "ENOENT" || e.code == "ENOENT") return false;
+			throw new DefaultError(`Корневая директория ${this._rootPath.value} не существует`, e);
+		}
 	}
 
 	private async _deleteFile(path: Path) {

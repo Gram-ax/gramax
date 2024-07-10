@@ -1,3 +1,5 @@
+import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
+import PageDataContext from "@core/Context/PageDataContext";
 import { Editor } from "@tiptap/core";
 import { Mark } from "@tiptap/pm/model";
 import { EditorState } from "prosemirror-state";
@@ -10,11 +12,12 @@ import getMarkPosition from "../../../../elementsUtils/getMarkPosition";
 import BaseMark from "../../../../elementsUtils/prosemirrorPlugins/BaseMark";
 import FileMenu from "../components/FileMenu";
 
-class LinkFocusTooltip extends BaseMark {
+class FileFocusTooltip extends BaseMark {
 	constructor(
 		view: EditorView,
 		editor: Editor,
 		private _apiUrlCreator: ApiUrlCreator,
+		private _pageDataContext: PageDataContext,
 	) {
 		super(view, editor);
 		this.update(view);
@@ -36,9 +39,11 @@ class LinkFocusTooltip extends BaseMark {
 
 		this._setTooltipPosition(element);
 		this._setComponent(
-			<ApiUrlCreatorService.Provider value={this._apiUrlCreator}>
-				<FileMenu resourcePath={mark.attrs.resourcePath} onDelete={() => this._delete(markPosition)} />
-			</ApiUrlCreatorService.Provider>,
+			<PageDataContextService.Provider value={this._pageDataContext}>
+				<ApiUrlCreatorService.Provider value={this._apiUrlCreator}>
+					<FileMenu resourcePath={mark.attrs.resourcePath} onDelete={() => this._delete(markPosition)} />
+				</ApiUrlCreatorService.Provider>
+			</PageDataContextService.Provider>,
 		);
 	}
 
@@ -52,7 +57,7 @@ class LinkFocusTooltip extends BaseMark {
 	protected _setTooltipPosition = (element: HTMLElement) => {
 		const distance = 0;
 		const tooltipWidth = 300;
-		const domReact = this._view.dom.getBoundingClientRect();
+		const domReact = this._view.dom.parentElement.getBoundingClientRect();
 		const rect = element.getBoundingClientRect();
 		const left = rect.left - domReact.left;
 		this._tooltip.style.top = rect.top - domReact.top + rect.height + distance + "px";
@@ -63,4 +68,4 @@ class LinkFocusTooltip extends BaseMark {
 	};
 }
 
-export default LinkFocusTooltip;
+export default FileFocusTooltip;

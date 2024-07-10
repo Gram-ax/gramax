@@ -1,13 +1,17 @@
 [package]
 name = "plugin-gramax-fs"
 version = { workspace = true }
-edition = { workspace = true }
 authors = { workspace = true }
+edition = { workspace = true }
 links = "plugin-gramax-fs"
-
-[build-dependencies]
-tauri-build = { workspace = true }
 
 [dependencies]
 tauri = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
 gramax-fs = { path = "../../../../rlibs/fs" }
+
+urlencoding = "^2.1"
+
+[build-dependencies]
+tauri-plugin = { workspace = true }

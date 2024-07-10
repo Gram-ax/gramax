@@ -28,11 +28,12 @@ const getNavigationUnresolvedCommentsCount: Command<
 	middlewares: [new AuthorizeMiddleware(), new DesktopModeMiddleware()],
 
 	async do({ ctx, catalogName }) {
-		const { lib, parser, parserContextFactory } = this._app;
+		const { wm, parser, parserContextFactory } = this._app;
+		const workspace = wm.current();
 
 		if (!catalogName) return;
 		const commentsCount: { [articlePath: string]: number } = {};
-		const catalog = await lib.getCatalog(catalogName);
+		const catalog = await workspace.getCatalog(catalogName);
 		const articles = catalog.getContentItems();
 
 		for (const article of articles) {

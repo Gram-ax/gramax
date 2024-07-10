@@ -1,5 +1,5 @@
+import type WorkspaceManager from "@ext/workspace/WorkspaceManager";
 import Path from "../../../../../logic/FileProvider/Path/Path";
-import FileProvider from "../../../../../logic/FileProvider/model/FileProvider";
 import { Article } from "../../../../../logic/FileStructue/Article/Article";
 import { Catalog } from "../../../../../logic/FileStructue/Catalog/Catalog";
 import { TableDB } from "../../../../../logic/components/tableDB/table";
@@ -13,7 +13,7 @@ import ParserContext from "./ParserContext";
 class ParserContextFactory {
 	constructor(
 		private _basePath: Path,
-		private _fp: FileProvider,
+		private _wm: WorkspaceManager,
 		private _tablesManager: TableDB,
 		private _parser: MarkdownParser,
 		private _formatter: MarkdownFormatter,
@@ -33,7 +33,7 @@ class ParserContextFactory {
 			this._diagramRendererServerUrl,
 			this._tablesManager,
 			this._ur ? this._ur.getUser.bind(this._ur) : (m) => ({ name: m }),
-			this._fp,
+			this._wm.current().getFileProvider(),
 			this._parser,
 			this._formatter,
 		);

@@ -9,7 +9,9 @@ const space = (toggleCommand: keyof UnionCommands): KeyboardRule => {
 
 		const markNode = editor.state.doc.nodeAt(position);
 
-		if (!(markNode.text.endsWith(String.fromCharCode(160)) || markNode.text.endsWith(" "))) return false;
+		if (!markNode || !(markNode.text.endsWith(String.fromCharCode(160)) || markNode.text.endsWith(" "))) {
+			return false;
+		}
 		if (position + markNode.nodeSize - editor.state.selection.anchor > 2) return false;
 
 		const removeSpaces = editor

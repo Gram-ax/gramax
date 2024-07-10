@@ -21,7 +21,7 @@ export default class LocalizationRules implements Rules {
 		};
 
 		if (this._customArticlePresenter) {
-			(rule as any).errorArticle = this._customArticlePresenter.getArticle("404");
+			(rule as any).errorArticle = this._customArticlePresenter.getArticle("Article404");
 		}
 		return rule;
 	}

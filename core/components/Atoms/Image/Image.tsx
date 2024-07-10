@@ -1,33 +1,46 @@
-import resolveModule from "@app/resolveModule/frontend";
-import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
-import { DetailedHTMLProps, Fragment, ImgHTMLAttributes, useState } from "react";
-import Path from "../../../logic/FileProvider/Path/Path";
-import { GifImage } from "./GifImage";
+import {
+	DetailedHTMLProps,
+	forwardRef,
+	Fragment,
+	ImgHTMLAttributes,
+	LegacyRef,
+	ReactEventHandler,
+	useState,
+} from "react";
 import Lightbox from "./modalImage/Lightbox";
+import { Crop, ImageObject } from "@ext/markdown/elements/image/edit/model/imageEditorTypes";
 
-const Image = ({
-	id,
-	src,
-	alt,
-	title,
-	className,
-}: DetailedHTMLProps<ImgHTMLAttributes<HTMLImageElement>, HTMLImageElement>) => {
-	const apiUrlCreator = ApiUrlCreatorService.value;
-	const data = resolveModule("useImage")(apiUrlCreator ? apiUrlCreator.getArticleResource(src) : null);
+interface ImageProps extends DetailedHTMLProps<ImgHTMLAttributes<HTMLImageElement>, HTMLImageElement> {
+	realSrc: string;
+	objects?: ImageObject[];
+	crop?: Crop;
+	onLoad?: ReactEventHandler<HTMLImageElement>;
+}
 
+const Image = forwardRef((props: ImageProps, ref?: LegacyRef<HTMLImageElement>) => {
 	const [isOpen, setOpen] = useState(false);
-
-	if (new Path(src).extension == "gif") return <GifImage src={data} title={title} alt={alt} />;
+	const { id, src, alt, title, className, realSrc, crop, objects, onLoad } = props;
 
 	return (
 		<Fragment>
 			<span className="lightbox">
-				{isOpen && <Lightbox large={data} onClose={() => setOpen(false)} noneShadow={false} />}
+				{isOpen && (
+					<Lightbox
+						large={src}
+						realSrc={realSrc}
+						crop={crop}
+						objects={objects ?? []}
+						onClose={() => setOpen(false)}
+						noneShadow={false}
+					/>
+				)}
 			</span>
 			<img
+				ref={ref}
 				id={id}
 				alt={alt}
-				src={data}
+				onLoad={onLoad}
+				src={src}
 				className={className}
 				data-focusable="true"
 				onClick={() => setOpen(true)}
@@ -35,6 +48,6 @@ const Image = ({
 			{title && <em>{title}</em>}
 		</Fragment>
 	);
-};
+});
 
 export default Image;

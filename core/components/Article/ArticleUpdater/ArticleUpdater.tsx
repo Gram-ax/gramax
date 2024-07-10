@@ -46,18 +46,16 @@ const ArticleUpdater = (props: ArticleUpdaterProps) => {
 		return () => window.removeEventListener("focus", updateContent);
 	}, [updateContent]);
 
-	return <div className={classNames("updaterWrapper", { isLoading }, [className])}>{children}</div>;
+	return <div className={classNames(className, { isLoading })}>{children}</div>;
 };
 
 export default styled(ArticleUpdater)`
+	height: 100%;
+	display: flex;
+	flex-direction: column;
+
 	&.isLoading {
 		opacity: 0.6;
 		pointer-events: none;
-	}
-
-	&.updaterWrapper {
-		display: flex;
-		flex-grow: 1;
-		flex-direction: column;
 	}
 `;

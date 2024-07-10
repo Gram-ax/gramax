@@ -10,8 +10,8 @@ const getListData: Command<{ catalogName: string }, SnippetEditorProps[]> = Comm
 	middlewares: [],
 
 	async do({ catalogName }) {
-		const { lib } = this._app;
-		const catalog = await lib.getCatalog(catalogName);
+		const workspace = this._app.wm.current();
+		const catalog = await workspace.getCatalog(catalogName);
 		if (!catalog) return;
 		return catalog.snippetProvider.getListData();
 	},

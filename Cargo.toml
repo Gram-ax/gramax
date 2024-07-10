@@ -13,6 +13,7 @@ members = [
   "rlibs/fs",
 
   "rbins/warp-spa",
+  "rlibs/test-utils",
 ]
 
 [workspace.package]
@@ -22,31 +23,27 @@ description = "Gramax"
 edition = "2021"
 
 [workspace.dependencies]
-tauri-build = { git = "https://github.com/gram-ax/tauri.git", branch = "locked-version" }
-
-
-tauri = { git = "https://github.com/gram-ax/tauri.git", branch = "locked-version", features = [
+tauri = { version = "^2.0.0-beta", features = [
   "macos-private-api",
+  "unstable",
   "devtools",
 ] }
-tauri-plugin-dialog = { version = "^2.0.0-alpha", git = "https://github.com/gram-ax/tauri-plugins.git", branch = "locked-version" }
-tauri-plugin-log = { version = "^2.0.0-alpha", git = "https://github.com/gram-ax/tauri-plugins.git", branch = "locked-version" }
-tauri-plugin-updater = { version = "^2.0.0-alpha", git = "https://github.com/gram-ax/tauri-plugins.git", branch = "updater-chunk-timeout" }
-tauri-plugin-shell = { version = "^2.0.0-alpha", git = "https://github.com/gram-ax/tauri-plugins.git", branch = "locked-version" }
+tauri-plugin = { version = "^2.0.0-beta", features = ["build"] }
+tauri-build = "^2.0.0-beta"
 
-serde = { version = "1.0.200", features = ["derive"] }
+tauri-plugin-deep-link = "2.0.0-beta"
+tauri-plugin-dialog = "^2.0.0-beta"
+tauri-plugin-log = "^2.0.0-beta"
+tauri-plugin-updater = { version = "^2.0.0-beta", features = ["zip"] }
+tauri-plugin-shell = "^2.0.0-beta"
+
+serde = { version = "^1.0", features = ["derive"] }
+serde_json = "^1.0"
+
+log = "^0.4"
 
 [profile.release]
 codegen-units = 1
 lto = true
 incremental = false
 opt-level = "s"
-
-[patch.crates-io]
-tauri = { git = "https://github.com/gram-ax/tauri.git", branch = "locked-version", features = [
-  "macos-private-api",
-  "devtools",
-] }
-tauri-build = { git = "https://github.com/gram-ax/tauri.git", branch = "locked-version" }
-tauri-plugin-fs = { git = "https://github.com/gram-ax/tauri-plugins.git", branch = "locked-version" }
-wry = { git = "https://github.com/pashokitsme/wry.git", branch = "fix-proguard-v0.35.2" }

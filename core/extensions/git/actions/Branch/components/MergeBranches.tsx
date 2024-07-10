@@ -1,9 +1,9 @@
+import { ListItem } from "@components/List/Item";
 import styled from "@emotion/styled";
 import { useEffect, useState } from "react";
 import Button from "../../../../../components/Atoms/Button/Button";
 import Checkbox from "../../../../../components/Atoms/Checkbox";
 import SmallFence from "../../../../../components/Labels/SmallFence";
-import { ListItem } from "@components/List/Item";
 import ListLayout from "../../../../../components/List/ListLayout";
 import useLocalize from "../../../../localization/useLocalize";
 
@@ -29,11 +29,10 @@ const MergeBranches = styled(
 	}) => {
 		const [branchToMergeInTo, setBranchToMergeInTo] = useState("");
 		const [deleteAfterMerge, setDeleteAfterMerge] = useState(false);
-		const [canMerge, setCanMerge] = useState(false);
+		const canMerge = !!branchToMergeInTo;
 
 		useEffect(() => {
 			onBranchToMergeInToChange(branchToMergeInTo);
-			setCanMerge(!!branchToMergeInTo);
 		}, [branchToMergeInTo]);
 
 		useEffect(() => {
@@ -71,7 +70,7 @@ const MergeBranches = styled(
 				</div>
 				<div className="control-label delete-after-merge-checkbox">
 					<Checkbox overflow="hidden" onClick={(value) => setDeleteAfterMerge(value)}>
-						<div className="control-label picker-text" data-qa='qa-clickable'>
+						<div className="control-label picker-text" data-qa="qa-clickable">
 							<span>{useLocalize("deleteBranch")}</span>
 							&nbsp;{currentBranchElement}&nbsp;
 							<span>{useLocalize("afterMerge").toLowerCase()}</span>

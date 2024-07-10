@@ -22,13 +22,11 @@ const CommentBlockComponent = (props: CommentBlockProps): ReactElement => {
 
 	const [currentCommentBlock, setCurrentCommentBlock] = useState(Object.assign({}, commentBlock));
 	const [focusId, setFocusId] = useState<number>(-2);
-	const [inputContent, setInputContent] = useState("");
 
 	const commentBlockRef = useRef<HTMLDivElement>(null);
 	const firstCommentRef = useRef<HTMLDivElement>(null);
 	const inputRef = useRef<HTMLDivElement>(null);
 	const user = PageDataContextService.value.userInfo;
-	const transitionDuration = 200;
 
 	const currentOnDeleteComment = async () => {
 		if (!(await confirm(confirmCommentDeleteText))) return;
@@ -59,6 +57,18 @@ const CommentBlockComponent = (props: CommentBlockProps): ReactElement => {
 		setCurrentCommentBlock(Object.assign({}, currentCommentBlock));
 	};
 
+	useEffect(() => {
+		if (!commentBlockRef.current) return;
+		setTimeout(() => {
+			if (!commentBlockRef.current?.scrollTo) return;
+
+			commentBlockRef.current.scrollTo({
+				top: commentBlockRef.current.scrollHeight,
+				behavior: "smooth",
+			});
+		}, 150);
+	}, []);
+
 	const addAnswer = (content: JSONContent[]) => {
 		currentCommentBlock.answers.push({
 			user: { mail: user.mail, name: user.name },
@@ -70,37 +80,9 @@ const CommentBlockComponent = (props: CommentBlockProps): ReactElement => {
 		setCurrentCommentBlock(Object.assign({}, currentCommentBlock));
 	};
 
-	// const handleScroll = () => {
-	// 	if (commentBlockRef.current.scrollTop !== 0) {
-	// 		firstCommentRef.current.style.boxShadow = "var(--shadows-deeplight)";
-	// 	} else {
-	// 		firstCommentRef.current.style.boxShadow = "";
-	// 	}
-	// };
-
-	const onEditorInput = (content: string) => {
-		setInputContent(content);
-	};
-
-	useEffect(() => {
-		if (!commentBlockRef.current) return;
-		setTimeout(() => {
-			if (!commentBlockRef.current?.scrollTo) return;
-
-			commentBlockRef.current.scrollTo({
-				top: commentBlockRef.current.scrollHeight,
-				behavior: "smooth",
-			});
-		}, transitionDuration);
-	}, [inputContent]);
-
 	return (
 		<div className={className}>
-			<div
-				ref={commentBlockRef}
-				className="comment-block"
-				// onScroll={handleScroll}
-			>
+			<div ref={commentBlockRef} className="comment-block">
 				<div ref={firstCommentRef} className="first-comment">
 					<CommentComponent
 						editorId={-1}
@@ -129,15 +111,7 @@ const CommentBlockComponent = (props: CommentBlockProps): ReactElement => {
 				))}
 			</div>
 			{user && (
-				<CommentBlockInput
-					transitionDuration={transitionDuration}
-					editorId={-2}
-					focusId={focusId}
-					setFocusId={setFocusId}
-					ref={inputRef}
-					onInput={onEditorInput}
-					onAddComment={addAnswer}
-				/>
+				<CommentBlockInput editorId={-2} setFocusId={setFocusId} ref={inputRef} onAddComment={addAnswer} />
 			)}
 		</div>
 	);
@@ -147,7 +121,7 @@ export default styled(CommentBlockComponent)`
 	.comment-block {
 		overflow: auto;
 		font-family: "Roboto", sans-serif;
-		font-size: 15px;
+		font-size: 1em;
 		max-height: ${(p) => p.maxHeight};
 	}
 
@@ -155,7 +129,7 @@ export default styled(CommentBlockComponent)`
 		top: 0;
 		z-index: 1;
 		padding-top: 1rem;
-		border-radius: 4px 4px 0 0;
+		border-radius: var(--radius-normal) var(--radius-normal) 0 0;
 		background: var(--color-comments-bg);
 	}
 

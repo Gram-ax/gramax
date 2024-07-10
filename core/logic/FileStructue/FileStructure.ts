@@ -66,8 +66,8 @@ export default class FileStructure {
 	}
 
 	static isCategory(path: string): boolean {
-    return !!path.match(CATEGORY_ROOT_REGEXP)?.[1];
-  }
+		return !!path.match(CATEGORY_ROOT_REGEXP)?.[1];
+	}
 
 	static getCatalogPath(catalog: Catalog): Path {
 		return new Path(catalog.getName());
@@ -277,6 +277,10 @@ export default class FileStructure {
 		return { props: md.data as ArticleProps, content: md.content.trim() };
 	}
 
+	serialize(props: any, content: string): string {
+		return `---\n${this._serializeProps(props)}---\n\n` + content;
+	}
+
 	private async _makeArticle(
 		path: Path,
 		parentCategory: Category,
@@ -472,7 +476,7 @@ export default class FileStructure {
 	private _serializeArticle(article: Article): string {
 		let props = article.props;
 		this._articleSaveRules.forEach((rule) => (props = rule(props)));
-		return `---\n${this._serializeProps(props)}---\n\n` + article.content;
+		return this.serialize(props, article.content);
 	}
 
 	private _serializeProps(props: FSProps): string {

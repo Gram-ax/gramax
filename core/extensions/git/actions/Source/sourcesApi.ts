@@ -1,3 +1,5 @@
+import ConfluenceAPI from "@ext/confluence/ConfluenceAPI";
+import ConfluenceSourceData from "@ext/confluence/actions/Source/model/ConfluenceSourceData";
 import type GitHubSourceData from "@ext/git/actions/Source/GitHub/logic/GitHubSourceData";
 import GithubSourceAPI from "@ext/git/actions/Source/GitHub/logic/GithubSourceAPI";
 import GitlabSourceAPI from "@ext/git/actions/Source/GitLab/logic/GitlabSourceAPI";
@@ -9,6 +11,7 @@ import type SourceType from "@ext/storage/logic/SourceDataProvider/model/SourceT
 const sourcesAPI: Record<SourceType, (data: SourceData, authServiceUrl: string) => SourceAPI> = {
 	GitHub: (data, authServiceUrl) => new GithubSourceAPI(data as GitHubSourceData, authServiceUrl),
 	GitLab: (data, authServiceUrl) => new GitlabSourceAPI(data as GitlabSourceData, authServiceUrl),
+	Confluence: (data, authServiceUrl) => new ConfluenceAPI(data as ConfluenceSourceData, authServiceUrl),
 	"Enterprise Server": () => null,
 };
 

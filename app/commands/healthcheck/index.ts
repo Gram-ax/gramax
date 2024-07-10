@@ -13,9 +13,11 @@ const healthcheck: Command<{ ctx: Context; catalogName: string }, CatalogErrors>
 	middlewares: [new AuthorizeMiddleware()],
 
 	async do({ ctx, catalogName }) {
-		const { lib, sitePresenterFactory } = this._app;
-		const catalog = await lib.getCatalog(catalogName);
-		const fp = lib.getFileProviderByCatalog(catalog);
+		const { wm, sitePresenterFactory } = this._app;
+		const workspace = wm.current();
+
+		const catalog = await workspace.getCatalog(catalogName);
+		const fp = workspace.getFileProvider();
 
 		if (!catalog) return;
 

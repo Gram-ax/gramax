@@ -1,15 +1,19 @@
 import ArticlePage from "@components/ArticlePage/ArticlePage";
+import IsFirstLoadService from "@core-ui/ContextServices/IsFirstLoadService";
+import ArticleLoadingView from "@core-ui/ContextServices/views/articleView/ArticleLoadingView";
 import { ArticlePageData } from "@core/SitePresenter/SitePresenter";
 import { createContext, ReactElement, ReactNode, useContext, useEffect, useState } from "react";
 
+type ArticleViewComponent = (data: ArticlePageData) => ReactNode;
+
 const ArticleViewContext = createContext<ReactNode>(undefined);
 let _setArticleView: React.Dispatch<React.SetStateAction<ReactNode>>;
-let _articlePageData: ArticlePageData;
 
-const initFunc = () => <ArticlePage data={_articlePageData} />;
+const ArticleView: ArticleViewComponent = (data) => <ArticlePage data={data} />;
 
 abstract class ArticleViewService {
-	private static _currentComponent: (data: ArticlePageData) => ReactNode = initFunc;
+	private static _currentComponent: ArticleViewComponent = null;
+	private static _articlePageData: ArticlePageData;
 
 	static Provider({
 		children,
@@ -18,13 +22,28 @@ abstract class ArticleViewService {
 		children: ReactElement;
 		articlePageData: ArticlePageData;
 	}): ReactElement {
-		_articlePageData = articlePageData;
+		const isFirstLoad = IsFirstLoadService.value;
+
 		const [articleView, setArticleView] = useState<ReactNode>(null);
 		_setArticleView = setArticleView;
 
+		const [prevArticlePageData, setPrevArticlePageData] = useState<ArticlePageData>(null);
+
+		if (prevArticlePageData !== articlePageData) {
+			ArticleViewService._articlePageData = articlePageData;
+			const currentComponent = ArticleViewService._currentComponent
+				? ArticleViewService._currentComponent(articlePageData)
+				: ArticleLoadingView;
+
+			setArticleView(currentComponent);
+			setPrevArticlePageData(articlePageData);
+		}
+
 		useEffect(() => {
-			setArticleView(ArticleViewService._currentComponent(articlePageData));
-		}, [articlePageData]);
+			if (!isFirstLoad && !ArticleViewService._currentComponent) {
+				ArticleViewService.setDefaultView();
+			}
+		}, [isFirstLoad]);
 
 		return <ArticleViewContext.Provider value={articleView}>{children}</ArticleViewContext.Provider>;
 	}
@@ -33,14 +52,17 @@ abstract class ArticleViewService {
 		return useContext(ArticleViewContext);
 	}
 
-	static setView(component: (data: ArticlePageData) => ReactNode) {
+	static setView(component: ArticleViewComponent) {
 		ArticleViewService._currentComponent = component;
-		_setArticleView(component(_articlePageData));
+		_setArticleView(component(ArticleViewService._articlePageData));
 	}
 
 	static setDefaultView() {
-		ArticleViewService._currentComponent = initFunc;
-		_setArticleView(initFunc());
+		ArticleViewService.setView(ArticleView);
+	}
+
+	static setLoadingView() {
+		ArticleViewService.setView(ArticleLoadingView);
 	}
 }
 

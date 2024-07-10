@@ -106,36 +106,21 @@ class Healthcheck {
 
 	private _checkResource = async (item: Article, resource: Path) => {
 		if (await this._pathExists(item, resource)) return;
-		if (ResourceExtensions.diagrams.includes(resource.extension)) {
-			this._errors.Diagrams.push(
-				this._getRefCatalogError({
-					value: resource.value,
-					logicPath: item.logicPath,
-					title: item.getTitle(),
-					editorLink: await this._getErrorLink(this._catalog, item),
-				}),
-			);
-		} else {
-			if (ResourceExtensions.images.includes(resource.extension)) {
-				this._errors.Images.push(
-					this._getRefCatalogError({
-						value: resource.value,
-						logicPath: item.logicPath,
-						title: item.getTitle(),
-						editorLink: await this._getErrorLink(this._catalog, item),
-					}),
-				);
-			} else {
-				this._errors.FileStructure.push(
-					this._getRefCatalogError({
-						value: resource.value,
-						logicPath: item.logicPath,
-						title: item.getTitle(),
-						editorLink: await this._getErrorLink(this._catalog, item),
-					}),
-				);
-			}
-		}
+
+		const refCatalogError = this._getRefCatalogError({
+			value: decodeURIComponent(resource.value),
+			logicPath: item.logicPath,
+			title: item.getTitle(),
+			editorLink: await this._getErrorLink(this._catalog, item),
+		});
+
+		if (ResourceExtensions.diagrams.includes(resource.extension))
+			return this._errors.Diagrams.push(refCatalogError);
+
+		if (ResourceExtensions.images.includes(resource.extension))
+			return this._errors.Images.push(refCatalogError);
+
+		return this._errors.FileStructure.push(refCatalogError);
 	};
 
 	private _getErrorLink = async (catalog: Catalog, item: Item): Promise<string> => {
@@ -143,7 +128,7 @@ class Healthcheck {
 	};
 
 	private async _checkIcons(item: Article, code: string) {
-		if (LucideIcon(code)) return;
+		if ((await this._catalog.iconProvider.getIconByCode(code)) || LucideIcon(code)) return;
 		this._errors.Icons.push(
 			this._getRefCatalogError({
 				value: code,

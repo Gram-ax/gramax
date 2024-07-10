@@ -11,10 +11,11 @@ const getProps: Command<{ catalogName: string; articlePath: Path; ctx: Context }
 	kind: ResponseKind.json,
 
 	async do({ catalogName, articlePath, ctx }) {
-		const { lib, sitePresenterFactory } = this._app;
+		const { sitePresenterFactory, wm } = this._app;
+		const workspace = wm.current();
 
-		const catalog = await lib.getCatalog(catalogName);
-		const fp = lib.getFileProvider(catalog.getRootCategoryRef().storageId);
+		const catalog = await workspace.getCatalog(catalogName);
+		const fp = workspace.getFileProvider();
 		const itemRef = fp.getItemRef(articlePath);
 		const article = catalog.findItemByItemRef<Article>(itemRef);
 		if (!article) return;

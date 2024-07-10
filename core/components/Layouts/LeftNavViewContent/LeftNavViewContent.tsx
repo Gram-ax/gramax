@@ -13,17 +13,21 @@ const LeftNavViewContent = ({
 	sideBarTop,
 	sideBarBottom,
 	currentIdx = 0,
+	commonContent,
 	elementClassName = "log-entry",
 	focusElementClassName = "log-entry active",
 	className,
+	onLeftSidebarClick,
 }: {
 	elements: ViewContent[];
 	sideBarTop?: JSX.Element;
 	sideBarBottom?: JSX.Element;
+	commonContent?: JSX.Element;
 	elementClassName?: string;
 	focusElementClassName?: string;
 	currentIdx?: number;
 	className?: string;
+	onLeftSidebarClick?: (idx: number) => void;
 }) => {
 	const contentRef = useRef<HTMLDivElement>(null);
 	const [currentElementIdx, setCurrentElementIdx] = useState(currentIdx);
@@ -51,6 +55,7 @@ const LeftNavViewContent = ({
 									key={idx}
 									onClick={() => {
 										if (c.clickable === false) return;
+										onLeftSidebarClick?.(idx);
 										setCurrentElementIdx(idx);
 										contentRef.current.scrollTo(0, 0);
 									}}
@@ -63,8 +68,8 @@ const LeftNavViewContent = ({
 					</div>
 				</LeftSidebar>
 			</div>
-			<div className="content" ref={contentRef} key={currentElementIdx}>
-				{elements[currentElementIdx]?.content}
+			<div className="content" ref={contentRef} key={commonContent ? undefined : currentElementIdx}>
+				{commonContent ?? elements[currentElementIdx]?.content}
 			</div>
 		</div>
 	);

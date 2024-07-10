@@ -8,6 +8,8 @@ import { ButtonItem, ListItem } from "@components/List/Item";
 import ListLayout from "@components/List/ListLayout";
 import FetchService from "@core-ui/ApiServices/FetchService";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
+import ModalToOpenService from "@core-ui/ContextServices/ModalToOpenService/ModalToOpenService";
+import ModalToOpen from "@core-ui/ContextServices/ModalToOpenService/model/ModalsToOpen";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import IsReadOnlyHOC from "@core-ui/HigherOrderComponent/IsReadOnlyHOC";
 import AddNewBranchListItem from "@ext/git/actions/Branch/components/AddNewBranchListItem";
@@ -17,14 +19,16 @@ import MergeBranches from "@ext/git/actions/Branch/components/MergeBranches";
 import getNewBranchNameErrorLocalization from "@ext/git/actions/Branch/components/logic/getNewBranchNameErrorLocalization";
 import validateBranchError from "@ext/git/actions/Branch/components/logic/validateBranchError";
 import ClientGitBranchData from "@ext/git/actions/Branch/model/ClientGitBranchData";
+import MergeConflictConfirm from "@ext/git/actions/MergeConflictHandler/error/components/MergeConflictConfirm";
+import MergeData from "@ext/git/actions/MergeConflictHandler/model/MergeData";
 import useLocalize from "@ext/localization/useLocalize";
-import { useEffect, useRef, useState } from "react";
+import { ComponentProps, useEffect, useRef, useState } from "react";
 
 interface BranchActionsProps {
 	currentBranch: string;
 	trigger: JSX.Element;
 	onNewBranch?: () => void;
-	onStopMerge?: (isError: boolean) => void;
+	onStopMerge?: (haveConflict: boolean) => void;
 }
 
 const BranchActions = (props: BranchActionsProps) => {
@@ -54,6 +58,8 @@ const BranchActions = (props: BranchActionsProps) => {
 	const [isLoadingData, setIsLoadingData] = useState(false);
 
 	const [newBranchValidationError, setNewBranchValidationError] = useState<string>("");
+
+	const mergeData = useRef<MergeData>({ ok: true });
 
 	const canInitNewBranch =
 		isInitNewBranch &&
@@ -120,16 +126,13 @@ const BranchActions = (props: BranchActionsProps) => {
 	const mergeBranches = async () => {
 		const mergeIntoUrl = apiUrlCreator.mergeInto(branchToMergeInTo, deleteAfterMerge);
 		setApiProcess(true);
-		const res = await FetchService.fetch(mergeIntoUrl);
-		if (!res.ok) {
-			setApiProcess(false);
-			onStopMerge(true);
-			setIsOpen(false);
-			return;
-		}
-		onStopMerge(false);
-		setIsOpen(false);
+		const res = await FetchService.fetch<MergeData>(mergeIntoUrl);
 		setApiProcess(false);
+		setIsOpen(false);
+		if (!res.ok) return;
+
+		mergeData.current = await res.json();
+		onStopMerge(!mergeData.current.ok);
 	};
 
 	const onCmdEnter = async () => {
@@ -205,6 +208,13 @@ const BranchActions = (props: BranchActionsProps) => {
 		setIsOpen(false);
 		setInitNewBranchName("");
 		setNewBranchValidationError(null);
+
+		if (!mergeData.current.ok)
+			ModalToOpenService.setValue<ComponentProps<typeof MergeConflictConfirm>>(ModalToOpen.MergeConfirm, {
+				mergeData: { ...mergeData.current },
+			});
+
+		mergeData.current = { ok: true };
 	};
 
 	const modalOnOpenHandler = () => {

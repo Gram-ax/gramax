@@ -1,4 +1,5 @@
 import Anchor from "@components/controls/Anchor";
+import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import { ReactNode } from "react";
 import Path from "../../../../../../logic/FileProvider/Path/Path";
 import ApiUrlCreatorService from "../../../../../../ui-logic/ContextServices/ApiUrlCreator";
@@ -13,9 +14,10 @@ interface LinkProps {
 const Link = (props: LinkProps) => {
 	const { isFile, resourcePath, ...otherProps } = props;
 	const apiUrlCreator = ApiUrlCreatorService.value;
+	const lang = PageDataContextService.value?.lang;
 
 	const onClickHandler = () => {
-		void downloadResource(apiUrlCreator, new Path(resourcePath));
+		void downloadResource(apiUrlCreator, new Path(resourcePath), lang);
 	};
 
 	if (!isFile) return <Anchor href={null} {...otherProps} resourcePath={resourcePath} />;

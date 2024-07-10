@@ -2,8 +2,8 @@ import IsMacService from "@core-ui/ContextServices/IsMac";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import { cssMedia } from "@core-ui/utils/cssUtils";
 import registerMetric from "@core-ui/yandexMetric";
-import styled from "@emotion/styled";
 import { HomePageData } from "@core/SitePresenter/SitePresenter";
+import styled from "@emotion/styled";
 import BottomInfo from "./BottomInfo";
 import Groups from "./Groups";
 import TopMenu from "./TopMenu";
@@ -18,8 +18,12 @@ export default styled(({ data, className }: { data: HomePageData; className?: st
 	return (
 		<div className={className + (isMac ? "" : " scrollbar-webkit")}>
 			<div className="article container">
-				<TopMenu catalogLinks={Object.values(data.catalogLinks).flat()} />
-				<Groups links={data.catalogLinks} />
+				<TopMenu
+					catalogLinks={Object.values(data.catalogLinks).flatMap(
+						(catalogData) => catalogData.catalogLinks || [],
+					)}
+				/>
+				<Groups catalogsLinks={data.catalogLinks} />
 				<BottomInfo />
 			</div>
 		</div>
@@ -27,10 +31,6 @@ export default styled(({ data, className }: { data: HomePageData; className?: st
 })`
 	height: 100%;
 	overflow: auto;
-
-	.group-header {
-		margin-bottom: 0.5rem;
-	}
 
 	.container {
 		display: flex;

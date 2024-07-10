@@ -1,13 +1,13 @@
 import getApplication from "@app/node/app";
-import getItemRef from "../../../Library/test/getItemRef";
+import getItemRef from "../../../../extensions/workspace/test/getItemRef";
 import HiddenRules from "./HiddenRule";
 
 const getHiddenRuleData = async () => {
 	const app = await getApplication();
 	const hr = new HiddenRules(app.customArticlePresenter);
 
-	const categoryTestCatalog = await app.lib.getCatalog("RulesCategoryTestCatalog");
-	const articleTestCatalog = await app.lib.getCatalog("RulseArticleTestCatalog");
+	const categoryTestCatalog = await app.wm.current().getCatalog("RulesCategoryTestCatalog");
+	const articleTestCatalog = await app.wm.current().getCatalog("RulseArticleTestCatalog");
 
 	const categoryItemRef = getItemRef(categoryTestCatalog, "category/_index.md");
 	const articleItemRef = getItemRef(articleTestCatalog, "category/testRules_en.md");

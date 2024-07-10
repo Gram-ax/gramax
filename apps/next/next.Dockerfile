@@ -1,11 +1,12 @@
-ARG CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX
+ARG CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX=docker.io
 
-FROM --platform=$BUILDPLATFORM gitlab.ics-it.ru:4567/ics/doc-reader:base-image as deps
+FROM --platform=$BUILDPLATFORM gitlab.ics-it.ru:4567/ics/doc-reader:base-image AS deps
 
 WORKDIR /app
 
 COPY ./package.json ./package-lock.json ./
 COPY  ./apps/browser/package.json ./apps/browser/
+COPY  ./apps/tauri/package.json ./apps/tauri/
 COPY  ./apps/next/package.json ./apps/next/
 COPY  ./apps/next/rlibs/next-gramax-git/package.json ./apps/next/rlibs/next-gramax-git/
 
@@ -17,11 +18,16 @@ RUN npm ci
 # RUN cargo install cargo-chef && \
 #   cargo chef cook --release --recipe-path recipe.json -p next-gramax-git
 
-FROM deps as build
+FROM deps AS build
 
 WORKDIR /app
 
-ENV ROOT_PATH=/app/data
+ARG BUGSNAG_API_KEY \
+  PRODUCTION 
+
+ENV BUGSNAG_API_KEY=${BUGSNAG_API_KEY} \
+  PRODUCTION=${PRODUCTION} \
+  ROOT_PATH=/app/data
 
 COPY . .
 RUN ./install-deps.sh --ci --build-plugins --node && \
@@ -31,12 +37,12 @@ RUN ./install-deps.sh --ci --build-plugins --node && \
   git prune && \
   rm -fr ./target ./apps/next/.next/cache 
 
-FROM --platform=$BUILDPLATFORM ${CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX}/node:21-bookworm as run
+FROM --platform=$TARGETPLATFORM ${CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX}/node:21-bookworm AS run
 
 WORKDIR /app
 
 RUN apt-get update && \
-  apt-get install git bash && \
+  apt-get install -y git bash && \
   apt-get clean
 
 ARG BRANCH \

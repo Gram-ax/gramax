@@ -14,16 +14,6 @@ pub(crate) fn read_dir(path: &Path) -> Result<Vec<String>> {
 }
 
 #[command]
-pub(crate) fn read_file(path: &Path) -> Result<Vec<u8>> {
-  fs::read_file(path)
-}
-
-#[command]
-pub(crate) fn write_file(path: &Path, content: Vec<u8>) -> Result<()> {
-  fs::write_file(path, content)
-}
-
-#[command]
 pub(crate) fn read_link(path: &Path) -> Result<PathBuf> {
   fs::read_link(path)
 }

@@ -1,8 +1,8 @@
-import GroupsName from "@components/HomePage/Groups/model/GroupsName";
 import Path from "@core/FileProvider/Path/Path";
 import CatalogEntry from "@core/FileStructue/Catalog/CatalogEntry";
 import { ItemType } from "@core/FileStructue/Item/ItemType";
 import RouterPathProvider from "@core/RouterPath/RouterPathProvider";
+import type LastVisited from "@core/SitePresenter/LastVisited";
 import { Catalog } from "../../../../../logic/FileStructue/Catalog/Catalog";
 import { Category } from "../../../../../logic/FileStructue/Category/Category";
 import { Item } from "../../../../../logic/FileStructue/Item/Item";
@@ -29,9 +29,9 @@ export default class Navigation {
 		if (rules.relatedLinkRule) this._relatedLinkFilter.push(rules.relatedLinkRule);
 	}
 
-	async getCatalogsLink(catalogs: Map<string, CatalogEntry>): Promise<CatalogLink[]> {
+	async getCatalogsLink(catalogs: Map<string, CatalogEntry>, lastVisited: LastVisited): Promise<CatalogLink[]> {
 		const catalogLinks = await Promise.all(
-			Array.from(catalogs.entries()).map(async ([name, catalog]) => await this.getCatalogLink(catalog, name)),
+			Array.from(catalogs.entries()).map(async ([, catalog]) => await this.getCatalogLink(catalog, lastVisited)),
 		);
 		return catalogLinks.filter((c) => c).sort((a, b) => a.order - b.order);
 	}
@@ -51,16 +51,16 @@ export default class Navigation {
 		return newRelatedLinks;
 	}
 
-	async getCatalogLink(catalog: CatalogEntry, name?: string): Promise<CatalogLink> {
+	async getCatalogLink(catalog: CatalogEntry, lastVisited?: LastVisited): Promise<CatalogLink> {
 		if (!catalog) return null;
-		if (!name) name = catalog.getName();
+		const name = catalog.getName();
 		const catalogLink: CatalogLink = {
 			name,
-			pathname: await catalog.getPathname(),
+			pathname: lastVisited?.getLastVisitedArticle(catalog) ?? (await catalog.getPathname()),
 			logo: catalog.props[navProps.logo] ?? null,
 			title: catalog.props[navProps.title] ?? name,
 			query: {},
-			group: catalog.props[navProps.group] ?? GroupsName.company,
+			group: catalog.props[navProps.group] ?? null,
 			code: catalog.props[navProps.code] ?? "",
 			style: catalog.props[navProps.style] ?? null,
 			description: catalog.props[navProps.description] ?? null,

@@ -11,11 +11,18 @@ import usePathnameCloneHandler from "@ext/git/core/GitPathnameHandler/clone/logi
 import usePathnamePullHandler from "@ext/git/core/GitPathnameHandler/pull/logic/usePathnamePullHandler";
 
 const closeIfChild = () => {
-	if (typeof window != "undefined" && typeof window.opener != "undefined") window?.opener?.onLoadApp(window.location);
 	if (
-		typeof window != "undefined" &&
-		getExecutingEnvironment() != "tauri" &&
-		saveTempTokenIfPresent(/\?access_token=ghu_/)
+		typeof window !== "undefined" &&
+		typeof window.opener !== "undefined" &&
+		getExecutingEnvironment() === "browser"
+	) {
+		window?.opener?.onLoadApp?.(window.location);
+	}
+
+	if (
+		typeof window !== "undefined" &&
+		getExecutingEnvironment() !== "tauri" &&
+		saveTempTokenIfPresent(/\?access_token=/)
 	)
 		window.close();
 };
@@ -27,8 +34,10 @@ const useOnFirstLoadFuncs = () => {
 	useInitPlugins(isFirstLoad);
 	useRemoveExpiredSources(isFirstLoad);
 	useRemoveQueryT(isFirstLoad);
+
 	useReviewHandler(isFirstLoad);
 	useShareHandler(isFirstLoad);
+
 	usePathnamePullHandler(isFirstLoad);
 	usePathnameCloneHandler(isFirstLoad);
 	usePathnameCheckoutHandler(isFirstLoad);

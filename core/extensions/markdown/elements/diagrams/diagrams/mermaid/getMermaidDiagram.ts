@@ -1,31 +1,26 @@
-import ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
-import FetchService from "@core-ui/ApiServices/FetchService";
-
-const mermaid = import("mermaid");
+import mermaid from "mermaid";
 
 let diagramCounter = 0;
 
-const getMermaidDiagram = async (diagramContent: string, apiUrlCreator?: ApiUrlCreator, src?: string) => {
-	const diagramData =
-		diagramContent ?? (await (await FetchService.fetch(apiUrlCreator.getArticleResource(src))).text());
-	if (!diagramData) throw Error("cantGetDiagramData");
+const getMermaidDiagram = async (diagramContent) => {
+	if (!diagramContent) throw new Error("cantGetDiagramData");
 
 	const diagramId = `mermaid-diagram-${diagramCounter++}`;
-	const diagramRenderElement = document.createElement(`pre`);
-	diagramRenderElement.id = diagramId;
-	const result = (
-		await mermaid
-			.catch(() => {
-				throw Error("checkInternetDiagramError");
-			})
-			.then((mermaid) => mermaid.default.render(diagramId, diagramData))
-			.catch(() => {
-				throw Error("checkInternetOrSyntaxDiagramError");
-			})
-	).svg;
+	const diagramRenderContainer = document.createElement("div");
+	document.body.appendChild(diagramRenderContainer);
 
-	diagramRenderElement.remove();
-	return result;
+	try {
+		const { svg } = await mermaid.render(diagramId, diagramContent, diagramRenderContainer);
+		return svg;
+	} catch (error) {
+		if (error.message.includes("Parse error"))
+			throw new Error("checkSyntaxDiagramError");
+
+		throw new Error("checkInternetDiagramError");
+	}
+	finally {
+		diagramRenderContainer.remove();
+	}
 };
 
 export default getMermaidDiagram;

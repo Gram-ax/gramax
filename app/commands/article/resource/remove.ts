@@ -15,10 +15,11 @@ const remove: Command<{ src: Path; articlePath: Path; catalogName: string; ctx: 
 
 	async do({ src, articlePath, catalogName, ctx }) {
 		if (!src?.value) return;
-		const { lib, parser, parserContextFactory } = this._app;
+		const { parser, parserContextFactory, wm } = this._app;
+		const workspace = wm.current();
 
-		const catalog = await lib.getCatalog(catalogName);
-		const fp = lib.getFileProvider(catalog.getRootCategoryRef().storageId);
+		const catalog = await workspace.getCatalog(catalogName);
+		const fp = workspace.getFileProvider();
 		const itemRef = fp.getItemRef(articlePath);
 		const article = catalog.findItemByItemRef<Article>(itemRef);
 		if (!article) return;

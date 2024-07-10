@@ -1,10 +1,12 @@
-function getExtensionOptions({ schema, name, withAttributes = true }) {
+function getExtensionOptions({ schema, name, withAttributes = true, withResource = false }) {
 	const { attrs, ...rest } = schema;
 
 	return {
 		...rest,
 		name: name,
-		...(attrs && withAttributes ? { addAttributes: () => attrs } : {}),
+		...(attrs && withAttributes
+			? { addAttributes: () => (withResource ? { ...attrs, resource: { defualt: null } } : attrs) }
+			: {}),
 	};
 }
 

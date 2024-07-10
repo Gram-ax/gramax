@@ -14,10 +14,10 @@ const disabledMarkRule: Record<Mark, Mark[]> = {
 	link: ["file", "comment", "code"],
 	strong: ["code"],
 	em: ["code"],
+	s: ["code"],
 };
 
 const disableBlockRule = {
-	heading: (buttonNode) => buttonNode !== "heading",
 	ordered_list: (buttonNode) => ["heading", ...BlockPlus].includes(buttonNode),
 	bullet_list: (buttonNode) => ["heading", ...BlockPlus].includes(buttonNode),
 };
@@ -42,7 +42,7 @@ function changeResultByAction(activeNode: NodeType, buttonNode: NodeType, result
 	} else if (BlockPlus.includes(activeNode)) {
 		result.disabled = BlockPlus.includes(buttonNode) || buttonNode === "heading";
 	} else if (Block.includes(activeNode)) {
-		result.disabled = disableBlockRule[activeNode](buttonNode);
+		result.disabled = disableBlockRule?.[activeNode]?.(buttonNode);
 	}
 }
 
@@ -74,7 +74,7 @@ function getButtonStateByMarks(contextMarks: Mark[], buttonMark: Mark, result: B
 }
 
 const useCurrentAction = (current: NodeValues) => {
-	const { actions, attrs = {}, marks } = useContext(ActionContext);
+	const { actions, attrs, marks } = useContext(ActionContext);
 
 	const result = { isActive: false, disabled: false };
 

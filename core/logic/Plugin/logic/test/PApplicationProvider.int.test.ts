@@ -6,9 +6,9 @@ import itemRefConverter from "@core/Plugin/logic/utils/itemRefConverter";
 
 const getCatalogs = async (catalogName: string) => {
 	const app = await getApplication();
-	const catalog = await app.lib.getCatalog(catalogName);
+	const catalog = await app.wm.current().getCatalog(catalogName);
 	const pluginsCache = new PluginsCache(app.cache);
-	const pApplicationProvider = new PApplicationProvider(app.lib, app.htmlParser, pluginsCache);
+	const pApplicationProvider = new PApplicationProvider(app.wm, app.htmlParser, pluginsCache);
 	const pCatalog = (await (await pApplicationProvider.getApp("test", new TestContext())).catalogs.getAll()).find(
 		(c) => c.getName() === catalogName,
 	);

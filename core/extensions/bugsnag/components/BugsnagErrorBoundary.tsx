@@ -1,21 +1,30 @@
 import { getExecutingEnvironment } from "@app/resolveModule/env";
 import Bugsnag, { OnErrorCallback } from "@bugsnag/js";
-import React, { ReactNode } from "react";
-import PageDataContext from "../../../logic/Context/PageDataContext";
+import normalizeStack from "@ext/bugsnag/logic/normalizeStacktrace";
+import { ErrorBoundaryProps } from "@ext/errorHandlers/client/components/ErrorBoundary";
+import React from "react";
 import sendBug from "../logic/sendBug";
-
-type ErrorBoundaryProps = { context: PageDataContext; children: ReactNode };
-
 class BugsnagErrorBoundary extends React.Component<ErrorBoundaryProps> {
 	constructor(props: ErrorBoundaryProps) {
 		super(props);
-		if (!props.context.conf.bugsnagApiKey) return;
+		if (!props.context.conf.bugsnagApiKey || typeof window === "undefined") return;
 		const onError: OnErrorCallback = (e) => {
-			e.addFeatureFlag("env", getExecutingEnvironment());
-			e.addMetadata("props", { ...props.context, sourceDatas: [], userInfo: null });
+			const target = getExecutingEnvironment().toUpperCase();
+			e.errors.forEach((e) => {
+				if (!e.errorMessage.includes(target)) e.errorMessage = `[${target}:ui] ${e.errorMessage}`;
+				normalizeStack(e.stacktrace);
+			});
+			e.addMetadata("ui_props", { context: { ...props.context, sourceDatas: [], userInfo: null } });
 		};
 		if (Bugsnag.isStarted()) Bugsnag.addOnError(onError);
-		else Bugsnag.start({ apiKey: props.context.conf.bugsnagApiKey, onError });
+		else {
+			Bugsnag.start({
+				releaseStage: "production",
+				apiKey: props.context.conf.bugsnagApiKey,
+				appVersion: props.context.conf.buildVersion,
+				onError,
+			});
+		}
 	}
 
 	static getDerivedStateFromError(error) {

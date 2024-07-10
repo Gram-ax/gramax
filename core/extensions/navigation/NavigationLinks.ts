@@ -1,5 +1,4 @@
-import GroupsName from "@components/HomePage/Groups/model/GroupsName";
-import Style from "@components/HomePage/Groups/model/Style";
+import Style from "@components/HomePage/Cards/model/Style";
 import { ItemType } from "@core/FileStructue/Item/ItemType";
 import { ClientItemRef } from "@core/SitePresenter/SitePresenter";
 
@@ -9,7 +8,7 @@ export interface CatalogLink extends BaseLink {
 	code: string;
 	title: string;
 	style: Style;
-	group: GroupsName;
+	group: string;
 	order: number;
 	description: string;
 }

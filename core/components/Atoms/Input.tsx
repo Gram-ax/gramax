@@ -25,6 +25,7 @@ const Input = forwardRef((props: InputProps, ref?: MutableRefObject<HTMLInputEle
 		className,
 		errorText,
 		showErrorText = true,
+		isCode,
 		...otherProps
 	} = props;
 

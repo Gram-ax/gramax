@@ -1,10 +1,15 @@
 import Path from "@core/FileProvider/Path/Path";
+import type { WorkspaceManagerConfig } from "@ext/workspace/WorkspaceManager";
 import { env, getExecutingEnvironment } from "../resolveModule/env";
+
+export type AppGlobalConfig = WorkspaceManagerConfig;
 
 interface AppConfigPaths {
 	base: Path;
 	root: Path;
-	userDataPath: Path;
+	data: Path;
+	cache: Path;
+	default: Path;
 }
 
 interface AppConfigServices {
@@ -15,8 +20,9 @@ interface AppConfigServices {
 	sso: { url: string; publicKey: string };
 }
 
-export interface AppConfig {
+export type AppConfig = {
 	version: string;
+	buildVersion: string;
 
 	isRelease: boolean;
 	isReadOnly: boolean;
@@ -29,8 +35,9 @@ export interface AppConfig {
 	mail: { user: string; password: string };
 	admin: { login: string; password: string };
 	tokens: { share: string; cookie: string };
+	enterprise: { workspacePath: string };
 	services: AppConfigServices;
-}
+};
 
 const getServices = (): AppConfigServices => {
 	return {
@@ -42,7 +49,7 @@ const getServices = (): AppConfigServices => {
 			url: env("CORS_PROXY_SERVICE_URL") ?? "https://dev.gram.ax/-server/cors-proxy",
 		},
 		auth: {
-			url: "https://app.gram.ax/-server/auth", // TODO: env("AUTH_SERVICE_URL") ?? "https://app.gram.ax/-server/auth",
+			url: env("AUTH_SERVICE_URL") ?? "https://app.gram.ax/-server/auth",
 		},
 		diagramRenderer: {
 			url: env("DIAGRAM_RENDERER_SERVICE_URL") ?? null,
@@ -58,25 +65,21 @@ const getPaths = (): AppConfigPaths => {
 		return {
 			base: Path.empty,
 			root: new Path("/mnt/docs"),
-			userDataPath: new Path("/mnt/cache"),
+			data: new Path("/mnt/data"),
+			cache: new Path("/mnt/cache"),
+			default: new Path("/mnt/default"),
 		};
 	}
 
-	if (!env("ROOT_PATH")) {
-		throw new Error(
-			`Корневой каталог (${env(
-				"ROOT_PATH",
-			)}) не указан.\nСледуйте инструкциям, указанным в документации (https://docs.ics-it.ru/ics-docs/documentation/local/dev).`,
-		);
-	}
-
-	const root = new Path(env("ROOT_PATH"));
+	const root = env("ROOT_PATH") && new Path(env("ROOT_PATH"));
 	const userData = (env("USER_DATA_PATH") && new Path(env("USER_DATA_PATH"))) ?? root;
 
 	return {
 		base: new Path(env("BASE_PATH")),
 		root,
-		userDataPath: userData,
+		data: userData,
+		cache: userData.join(new Path("cache")),
+		default: new Path(env("GRAMAX_DEFAULT_WORKSPACE_PATH")),
 	};
 };
 
@@ -88,6 +91,7 @@ export const getConfig = (): AppConfig => {
 		services: getServices(),
 
 		version: env("GRAMAX_VERSION") ?? null,
+		buildVersion: env("BUILD_VERSION") ?? null,
 
 		isReadOnly: env("READ_ONLY") === "true",
 		isServerApp: env("SERVER_APP") === "true",
@@ -110,7 +114,11 @@ export const getConfig = (): AppConfig => {
 			user: env("DOC_READER_MAIL"),
 			password: env("DOC_READER_MAIL_PASSWORD"),
 		},
-	};
+
+		enterprise: {
+			workspacePath: env("WORKSPACE_PATH"),
+		},
+	} as AppConfig;
 
 	return global.config;
 };

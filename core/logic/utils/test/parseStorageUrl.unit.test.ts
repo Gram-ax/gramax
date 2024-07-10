@@ -27,6 +27,14 @@ describe("ParseStorageUrl", () => {
 
 				expect(result).toEqual(parsedLink);
 			});
+			test("Confluence", () => {
+				const link = "https://domain.atlassian.net/";
+				const parsedLink = { domain: "domain.atlassian.net", group: undefined, name: undefined };
+
+				const result = parseStorageUrl(link);
+
+				expect(result).toEqual(parsedLink);
+			});
 		});
 		describe("SSH ссылку", () => {
 			test("С .git", () => {

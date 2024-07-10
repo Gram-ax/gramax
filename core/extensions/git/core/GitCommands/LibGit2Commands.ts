@@ -73,8 +73,9 @@ class LibGit2Commands implements GitCommandsModel {
 		await git.checkout({ repoPath: this._repoPath, refName: ref, force: force ?? false });
 	}
 
-	async merge(data: GitSourceData, theirs: string): Promise<void> {
-		await git.merge({ repoPath: this._repoPath, creds: this._intoCreds(data), theirs });
+	async merge(data: GitSourceData, theirs: string): Promise<git.MergeResult> {
+		const res = await git.merge({ repoPath: this._repoPath, creds: this._intoCreds(data), theirs });
+		return res?.length ? res : [];
 	}
 
 	async add(paths?: Path[]) {
@@ -158,25 +159,29 @@ class LibGit2Commands implements GitCommandsModel {
 		return git.getParent({ repoPath: this._repoPath, oid: commitOid });
 	}
 
-	async applyStash(_: GitSourceData, stashOid: string): Promise<void> {
+	async applyStash(stashOid: string): Promise<git.MergeResult> {
 		try {
-			await git.stashApply({ repoPath: this._repoPath, oid: stashOid });
-			await git.stashDelete({ repoPath: this._repoPath, oid: stashOid });
+			const res = await git.stashApply({ repoPath: this._repoPath, oid: stashOid });
+			return res?.length ? res : [];
 		} catch (e) {
 			throw getGitError(e, { repositoryPath: this._repoPath, theirs: stashOid });
 		}
+	}
+
+	graphHeadUpstreamFilesCount(searchIn: string): Promise<git.UpstreamCountFileChanges> {
+		return git.graphHeadUpstreamFiles({ repoPath: this._repoPath, searchIn });
 	}
 
 	deleteStash(stashOid: string): Promise<void> {
 		return git.stashDelete({ repoPath: this._repoPath, oid: stashOid });
 	}
 
-	stash(): Promise<string> {
-		return git.stash({ repoPath: this._repoPath });
+	stash(data: SourceData): Promise<string> {
+		return git.stash({ repoPath: this._repoPath, message: "", creds: this._intoCreds(data) });
 	}
 
-	stashParent(stashOid: string): Promise<GitVersion> {
-		return Promise.resolve(new GitVersion(stashOid));
+	async stashParent(stashOid: string): Promise<GitVersion> {
+		return new GitVersion(await this.getParentCommit(stashOid));
 	}
 
 	async getHeadCommit(branch: string): Promise<GitVersion> {

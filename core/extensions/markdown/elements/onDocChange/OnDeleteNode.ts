@@ -9,29 +9,52 @@ const OnDeleteNode = Extension.create({
 		return [
 			new Plugin({
 				appendTransaction: (transactions, oldState) => {
-					const changes = [];
-
 					transactions.forEach((transaction) => {
-						let changedContent = false;
-
-						if (transaction.doc.content.size !== oldState.doc.content.size) {
-							changedContent = true;
-						}
-
-						if (changedContent) {
+						if (transaction.doc.content.size !== oldState.doc.content.size && transaction.docChanged) {
 							transaction.steps.forEach((step) => {
 								if (step instanceof ReplaceStep || step instanceof ReplaceAroundStep) {
 									const { from, to } = step;
+									let gapTo, gapFrom;
+
+									if (step instanceof ReplaceAroundStep) {
+										gapTo = step.gapTo;
+										gapFrom = step.gapFrom;
+									} else {
+										gapTo = step.to;
+										gapFrom = step.from;
+									}
+
 									const sliceSizeChange = step.slice.size - (to - from);
 
 									if (sliceSizeChange !== 0) {
 										const removedNodes = [];
-										oldState.doc.nodesBetween(from, to, (node) => {
-											removedNodes.push(node);
-										});
+										const addedNodes = [];
+
+										if (oldState && oldState.doc && oldState.doc.content) {
+											const docSize = oldState.doc.content.size;
+											const oldFrom = Math.max(Math.min(from, docSize), 0);
+											const oldTo = Math.max(Math.min(to, docSize), 0);
+
+											oldState.doc.content.nodesBetween(oldFrom, oldTo, (node) => {
+												removedNodes.push(node);
+											});
+										}
+
+										if (transaction.doc && transaction.doc.content) {
+											const docSize = transaction.doc.content.size;
+											const oldFrom = Math.max(Math.min(gapFrom ?? from, docSize), 0);
+											const oldTo = Math.max(Math.min(gapTo ?? to, docSize), 0);
+
+											transaction.doc.content.nodesBetween(oldFrom, oldTo, (node) => {
+												addedNodes.push(node);
+											});
+										}
 
 										if (removedNodes.length && this.options.onDeleteNodes) {
-											this.options.onDeleteNodes(removedNodes);
+											const nodeNeedRemove = removedNodes.filter(
+												(node) => !addedNodes.includes(node),
+											);
+											this.options.onDeleteNodes(nodeNeedRemove);
 										}
 									}
 								}
@@ -39,11 +62,7 @@ const OnDeleteNode = Extension.create({
 						}
 					});
 
-					if (changes.length === 0) {
-						return null;
-					} else {
-						return changes.reduce((acc, val) => acc.concat(val), []);
-					}
+					return null;
 				},
 			}),
 		];

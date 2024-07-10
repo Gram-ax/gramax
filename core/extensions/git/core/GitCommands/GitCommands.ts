@@ -1,4 +1,6 @@
+import fixAdditionConflictLibgit2 from "@ext/git/actions/MergeConflictHandler/logic/FixAdditionConflictLibgit2";
 import LibGit2Commands from "@ext/git/core/GitCommands/LibGit2Commands";
+import type { MergeResult, UpstreamCountFileChanges } from "@ext/git/core/GitCommands/LibGit2IntermediateCommands";
 import getGitError from "@ext/git/core/GitCommands/errors/logic/getGitError";
 import { Caller } from "@ext/git/core/GitCommands/errors/model/Caller";
 import GitErrorCode from "@ext/git/core/GitCommands/errors/model/GitErrorCode";
@@ -196,6 +198,7 @@ export class GitCommands {
 		branch?: string,
 		onProgress?: (progress: Progress) => void,
 	): Promise<void> {
+		url = url.endsWith(".git") ? url : url + ".git";
 		return this._logWrapper("clone", `Cloning url: '${url}', path: '${this._repoPath}'`, async () => {
 			if ((await this._fp.exists(this._repoPath)) && (await this._fp.readdir(this._repoPath)).length > 0) {
 				throw new GitError(
@@ -206,12 +209,19 @@ export class GitCommands {
 				);
 			}
 			try {
-				await this._impl.clone(url.endsWith(".git") ? url : url + ".git", source, branch, onProgress);
+				await this._impl.clone(url, source, branch, onProgress);
 			} catch (e) {
 				await this._logWrapper("delete", `Deleting path: '${this._repoPath}'`, async () => {
 					if (await this._fp.exists(this._repoPath)) await this._fp.delete(this._repoPath);
 				});
-				throw getGitError(e, { repositoryPath: this._repoPath.value }, "clone");
+				throw new GitError(
+					GitErrorCode.CloneError,
+					e,
+					{ repositoryPath: this._repoPath.value, repUrl: url },
+					"clone",
+					null,
+					"Не удалось загрузить каталог", // TODO: localize
+				);
 			}
 		});
 	}
@@ -225,10 +235,12 @@ export class GitCommands {
 	}
 
 	async hardReset(head?: GitVersion): Promise<void> {
+		if (!head) head = await this.getHeadCommit();
 		return await this._logWrapper("hardReset", `Hardresetting`, () => this._impl.resetHard(head));
 	}
 
 	async softReset(head?: GitVersion): Promise<void> {
+		if (!head) head = await this.getHeadCommit();
 		return await this._logWrapper("softReset", `Softresetting to '${head ?? "parent"}'`, () =>
 			this._impl.resetSoft(head),
 		);
@@ -238,10 +250,11 @@ export class GitCommands {
 		return await this._logWrapper("stash", "Stashing", async () => new GitStash(await this._impl.stash(data)));
 	}
 
-	async applyStash(data: SourceData, stashOid: GitStash): Promise<void> {
-		return await this._logWrapper("applyStash", `Applying stash oid: '${stashOid.toString()}`, () =>
-			this._impl.applyStash(data, stashOid.toString()),
+	async applyStash(stashOid: GitStash): Promise<MergeResult> {
+		const res = await this._logWrapper("applyStash", `Applying stash oid: '${stashOid.toString()}`, () =>
+			this._impl.applyStash(stashOid.toString()),
 		);
+		return fixAdditionConflictLibgit2(res, this._fp, this._repoPath, this);
 	}
 
 	async deleteStash(stashHash: GitStash): Promise<void> {
@@ -266,9 +279,7 @@ export class GitCommands {
 					"/" +
 					(await this.getCurrentBranch()).getData().remoteName.replace("origin/", "");
 
-				const stashOid = (await this.status()).length > 0 ? await this.stash(data) : undefined;
 				await this.merge(data, remoteBranchName);
-				if (stashOid) await this.applyStash(data, stashOid);
 			} catch (e) {
 				throw e.props ? e : getGitError(e, { repositoryPath: this._repoPath.value }, "pull");
 			}
@@ -301,25 +312,18 @@ export class GitCommands {
 		});
 	}
 
-	async merge(data: SourceData, theirs: string, abortOnConflict?: boolean): Promise<void> {
+	async merge(data: SourceData, theirs: string): Promise<MergeResult> {
 		const head = await this.getCurrentBranch();
-		return await this._logWrapper(
+		const res = await this._logWrapper(
 			"merge",
 			`Merging branch '${theirs}' into current branch: '${head.toString()}'`,
 			async () => {
-				try {
-					await this._impl.merge(data, theirs, abortOnConflict);
-				} catch (e) {
-					throw getGitError(e, {
-						repositoryPath: this._repoPath.value,
-						ours: head.toString(),
-						theirs,
-					});
-				}
-
-				await this.checkout(head, { force: true });
+				const mergeResult = await this._impl.merge(data, theirs);
+				if (!mergeResult.length) await this.checkout(head, { force: true });
+				return mergeResult;
 			},
 		);
+		return fixAdditionConflictLibgit2(res, this._fp, this._repoPath, this);
 	}
 
 	async commit(message: string, data: SourceData, parents?: (string | GitBranch)[]): Promise<GitVersion> {
@@ -385,6 +389,10 @@ export class GitCommands {
 				return new GitVersion(oid);
 			},
 		);
+	}
+
+	graphHeadUpstreamFilesCount(searchIn: string): Promise<UpstreamCountFileChanges> {
+		return this._impl.graphHeadUpstreamFilesCount(searchIn);
 	}
 
 	async getSubmodulesData(): Promise<SubmoduleData[]> {

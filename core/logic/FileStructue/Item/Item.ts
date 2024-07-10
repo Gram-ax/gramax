@@ -1,3 +1,4 @@
+import { roundedOrderAfter } from "@core/FileStructue/Item/ItemOrderUtils";
 import { ItemRef } from "@core/FileStructue/Item/ItemRef";
 import { ItemType } from "@core/FileStructue/Item/ItemType";
 import ResourceUpdater from "@core/Resource/ResourceUpdater";
@@ -19,6 +20,8 @@ export type ItemProps = FSLocalizationProps & {
 	hidden?: boolean;
 	private?: string[];
 };
+
+export const ORDERING_MAX_PRECISION = 6;
 
 export abstract class Item<P extends ItemProps = ItemProps> {
 	private _neededPermission: IPermission = null;
@@ -54,6 +57,9 @@ export abstract class Item<P extends ItemProps = ItemProps> {
 	get neededPermission(): IPermission {
 		return this._neededPermission;
 	}
+	get order(): number {
+		return this._props.order ?? 0;
+	}
 
 	getTitle(): string {
 		return this.props.title?.length ? this.props.title : "Без названия";
@@ -69,9 +75,16 @@ export abstract class Item<P extends ItemProps = ItemProps> {
 		await this._save();
 	}
 
+	async setOrderAfter(parent: Category, item?: Item) {
+		if (parent.items.map((i) => i.order).some(isNaN)) await parent.sortItems(true);
+		const categoryItemOrders = parent.items.map((i) => i.order);
+		this._props.order = roundedOrderAfter(categoryItemOrders, item?.order ?? 0);
+		await this._save();
+	}
+
 	async setLastPosition() {
 		const items = this.parent.items;
-		if (items.length == 0) this.props.order = 0;
+		if (items.length == 0) this.props.order = 1;
 		else this.props.order = +items[items.length - 1].props.order + 1;
 		await this._save();
 	}

@@ -1,5 +1,7 @@
 import styled from "@emotion/styled";
 import LeftSidebar from "../../../LeftSidebar/LeftSidebar";
+import { classNames } from "@components/libs/classNames";
+import { LEFT_NAV_CLASS } from "@app/config/const";
 
 const LeftNavigationNarrowLayout = styled(
 	({
@@ -16,7 +18,7 @@ const LeftNavigationNarrowLayout = styled(
 		isOpen: boolean;
 	}) => {
 		return (
-			<div className={className + " left-navigation-layout"}>
+			<div className={classNames(className, {}, [LEFT_NAV_CLASS])}>
 				<div className="header-navigation">{leftNavigationTop}</div>
 				<div className="left-sidebar-content">
 					<LeftSidebar shadow={isOpen} sidebarBottom={leftNavigationBottom}>

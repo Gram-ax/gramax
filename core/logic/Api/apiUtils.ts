@@ -7,14 +7,21 @@ import ApiRequest from "./ApiRequest";
 import ApiResponse from "./ApiResponse";
 
 export const apiUtils = {
-	sendError(res: ApiResponse, e: Error, code = 500) {
+	sendError(res: ApiResponse, error: DefaultError, code = 500) {
 		res.statusCode = code;
 		res.setHeader("Content-type", "application/json");
-		const error = e instanceof DefaultError ? e : new DefaultError(e.message, e);
 		res.send({
+			isWarning: error.isWarning,
 			message: error.message,
 			stack: error.stack,
+			cause: error.cause
+				? {
+						stack: error.cause.stack,
+						message: error.cause.message,
+				  }
+				: null,
 			props: error.props,
+			title: error.title,
 			type: error.type,
 		});
 	},

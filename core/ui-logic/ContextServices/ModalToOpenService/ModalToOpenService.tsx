@@ -25,13 +25,13 @@ export default abstract class ModalToOpenService {
 
 	static resetValue() {
 		this._value = null;
-		_setIsOpenModal(null);
+		_setIsOpenModal?.(null);
 	}
 
 	static setValue<T extends { [name: string]: any }>(value: ModalToOpen, args?: T) {
 		this._value = value;
-		_setIsOpenModal(value);
-		if (args) _setArgs(args);
+		_setIsOpenModal?.(value);
+		if (args) _setArgs?.(args);
 	}
 
 	static get value(): ModalToOpen {

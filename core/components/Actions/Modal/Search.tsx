@@ -46,6 +46,7 @@ const Search = (props: SearchProps) => {
 	const isOpenModal = IsOpenModalService.value;
 	const apiUrlCreator = ApiUrlCreatorService.value;
 	const catalogName = CatalogPropsService.value?.name;
+	const isCatalogExist = !!catalogName;
 
 	const narrowMedia = useMediaQuery(cssMedia.JSnarrow);
 	const blockRef = useRef<HTMLDivElement>(null);
@@ -284,15 +285,21 @@ const Search = (props: SearchProps) => {
 															)}
 														</div>
 
-														{d.paragraph.map((p, index) => (
-															<div key={index} className="excerpt" data-qa="qa-clickable">
-																<span className="cut-content">
-																	{p.prev}
-																	<strong className="match">{p.target}</strong>
-																	{p.next}
-																</span>
-															</div>
-														))}
+														{d.paragraph.map((p, index) =>
+															index > 5 ? null : (
+																<div
+																	key={index}
+																	className="excerpt"
+																	data-qa="qa-clickable"
+																>
+																	<span className="cut-content">
+																		{p.prev}
+																		<strong className="match">{p.target}</strong>
+																		{p.next}
+																	</span>
+																</div>
+															),
+														)}
 													</div>
 												</Link>
 											))}
@@ -304,7 +311,7 @@ const Search = (props: SearchProps) => {
 					</ModalLayoutLight>
 					<div className="bottom-content prompt article ">
 						<div className="absolute-bg " />
-						{isHomePage ? null : (
+						{isHomePage || !isCatalogExist ? null : (
 							<div className="searchAll">
 								<div className={"text"}>
 									<span className="cmd">{isMac ? <Icon code="command" /> : "Ctrl"}</span>

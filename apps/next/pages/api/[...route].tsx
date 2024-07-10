@@ -12,6 +12,7 @@ import { apiUtils } from "@core/Api/apiUtils";
 import ApiMiddleware from "@core/Api/middleware/ApiMiddleware";
 import Middleware from "@core/Api/middleware/Middleware";
 import buildMiddleware from "@core/Api/middleware/buildMiddleware";
+import PersistentLogger from "@ext/loggers/PersistentLogger";
 
 export default async (req: ApiRequest, res: ApiResponse) => {
 	Object.entries(req.query)
@@ -34,6 +35,7 @@ export default async (req: ApiRequest, res: ApiResponse) => {
 	const process: Middleware = new ApiMiddleware(async (req, res) => {
 		const ctx = app.contextFactory.from(req, res);
 		const params = command.params(ctx, req.query as Query, req.body);
+		PersistentLogger.info(`executing command ${path}`, "cmd", { ...req.query });
 		const result = await command.do(params);
 		await respond(app, req, res, command.kind, result);
 	});

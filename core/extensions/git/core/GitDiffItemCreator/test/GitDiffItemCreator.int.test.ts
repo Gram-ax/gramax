@@ -15,11 +15,12 @@ global.TextEncoder = util.TextEncoder;
 global.TextDecoder = util.TextDecoder;
 
 const getGitDiffItemCreatorData = async () => {
-	const { lib, rp, sitePresenterFactory } = await getApp();
+	const { wm, rp, sitePresenterFactory } = await getApp();
 	const dfp = new DiskFileProvider(TEST_GIT_CATALOG_PATH);
-	const catalog = await lib.getCatalog("gitCatalog");
-	const fs = lib.getFileStructureByCatalog(catalog);
-	const fp = lib.getFileProviderByCatalog(catalog);
+	const workspace = wm.current();
+	const catalog = await workspace.getCatalog("gitCatalog");
+	const fs = workspace.getFileStructure();
+	const fp = workspace.getFileProvider();
 	const sitePresenter = sitePresenterFactory.fromContext(new TestContext());
 	const gitDiffItemCreator = new GitDiffItemCreator(catalog, fp as DiskFileProvider, sitePresenter, fs);
 

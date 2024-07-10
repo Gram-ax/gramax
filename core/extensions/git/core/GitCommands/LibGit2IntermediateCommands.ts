@@ -19,6 +19,18 @@ export type CredsArgs = Args & {
 	};
 };
 
+export type UpstreamCountFileChanges = {
+	pull: number;
+	push: number;
+	hasChanges: boolean;
+};
+
+export type MergeResult = {
+  ours?: string,
+  theirs?: string,
+  ancestor?: string
+}[];
+
 export const clone = async (
 	args: CredsArgs & { remoteUrl: string; branch?: string },
 	onProgress?: (progress: GitProgressEvent) => void,
@@ -51,7 +63,7 @@ export const status = (args: Args) => call<[{ path: string; status: string }]>("
 export const statusFile = (args: Args & { filePath: string }) => call<string>("status_file", args);
 
 export const fetch = (args: CredsArgs) => call<void>("fetch", args);
-export const merge = (args: CredsArgs & { theirs: string }) => call<void>("merge", args);
+export const merge = (args: CredsArgs & { theirs: string }) => call<MergeResult>("merge", args);
 export const push = (args: CredsArgs) => call<void>("push", args);
 
 export const add = (args: Args & { patterns: string[] }) => call<void>("add", args);
@@ -78,9 +90,9 @@ export const addRemote = (args: Args & { name: string; url: string }) => call<vo
 
 export const hasRemotes = (args: Args) => call<boolean>("has_remotes", args);
 
-export const stash = (args: Args) => call<Oid>("stash", args);
+export const stash = (args: Args & CredsArgs & { message: string }) => call<Oid>("stash", args);
 
-export const stashApply = (args: Args & { oid: Oid }) => call<void>("stash_apply", args);
+export const stashApply = (args: Args & { oid: Oid }) => call<MergeResult>("stash_apply", args);
 
 export const stashDelete = (args: Args & { oid: Oid }) => call<void>("stash_delete", args);
 
@@ -89,6 +101,9 @@ export const resetAll = (args: Args & { hard: boolean; head?: string }) => call<
 export const commit = (args: Args & CredsArgs & { message: string; parents?: string[] }) => call<void>("commit", args);
 
 export const checkout = (args: Args & { refName: string; force: boolean }) => call<void>("checkout", args);
+
+export const graphHeadUpstreamFiles = (args: Args & { searchIn: string }) =>
+	call<UpstreamCountFileChanges>("graph_head_upstream_files", args);
 
 export const getContent = (args: Args & { path: string; oid?: string }) => call<string>("get_content", args);
 

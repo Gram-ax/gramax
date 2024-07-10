@@ -2,12 +2,12 @@ import FetchService from "@core-ui/ApiServices/FetchService";
 import MimeTypes from "@core-ui/ApiServices/Types/MimeTypes";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import ArticlePropsService from "@core-ui/ContextServices/ArticleProps";
-import { ItemType } from "@core/FileStructue/Item/ItemType";
 import IsEditService from "@core-ui/ContextServices/IsEdit";
+import { ItemType } from "@core/FileStructue/Item/ItemType";
 import styled from "@emotion/styled";
 import { DropOptions, getBackendOptions, MultiBackend, NodeModel, Tree, useDragOver } from "@minoru/react-dnd-treeview";
 import { CssBaseline } from "@mui/material";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { DndProvider } from "react-dnd";
 import CreateArticle from "../../../../artilce/actions/CreateArticle";
 import EditMenu from "../../../../item/EditMenu";
@@ -17,8 +17,6 @@ import IconExtension from "../../main/render/IconExtension";
 import NavigationItem from "../../main/render/Item";
 import DragTreeTransformer from "../logic/DragTreeTransformer";
 import getOpenItemsIds from "../logic/getOpenItemsIds";
-
-// import { logger } from "../../../../../../apps/browser/src/debug";
 
 const ExportLevNavDragTree = ({ items, closeNavigation }: { items: ItemLink[]; closeNavigation?: () => void }) => {
 	const isEdit = IsEditService.value;
@@ -31,10 +29,10 @@ const ExportLevNavDragTree = ({ items, closeNavigation }: { items: ItemLink[]; c
 		setTreeData(DragTreeTransformer.getRenderDragNav(items));
 	}, [items]);
 
-	const handleOnDrop = async (newTree: NodeModel<ItemLink>[]) => {
+	const handleOnDrop = async (draggedItemPath: string, newTree: NodeModel<ItemLink>[]) => {
 		setDragged(false);
 		const url = apiUrlCreator.updateCatalogNav(articleProps.logicPath);
-		const body = JSON.stringify({ old: treeData, new: newTree });
+		const body = JSON.stringify({ draggedItemPath, old: treeData, new: newTree });
 		const res = await FetchService.fetch<NodeModel<ItemLink>[]>(url, body, MimeTypes.json);
 		if (!res.ok) return;
 		setTreeData(await res.json());
@@ -59,22 +57,26 @@ const LevNavDragTree = styled(
 		className,
 	}: {
 		items: NodeModel<ItemLink>[];
-		onDrop?: (data: NodeModel<ItemLink>[]) => void;
+		onDrop?: (draggedItemPath: string, data: NodeModel<ItemLink>[]) => void;
 		closeNavigation?: () => void;
 		canDrag?: boolean;
 		className?: string;
 	}) => {
 		const [initialOpen, setInitialOpen] = useState(new Set<number | string>(getOpenItemsIds(items)));
+		const [draggedItemPath, setDraggedItemPath] = useState<string>();
+		const onDropHandler = useCallback(
+			(tree: NodeModel<ItemLink>[]) => {
+				onDrop(draggedItemPath, tree);
+				setDraggedItemPath(undefined);
+			},
+			[draggedItemPath],
+		);
 
-		// GXS-1092
-		// logger.logInfo(`canDrag: ${canDrag}`);
 		const handleCanDrop = (_, { dropTarget, dragSource, dropTargetId }: DropOptions<ItemLink>) => {
-			// logger.logInfo(`handleCanDrop:canDrag: ${canDrag}`);
 			if (!canDrag) false;
 			const flag =
 				((dropTargetId == 0 || dragSource?.parent === dropTargetId || dropTarget?.droppable) ?? false) &&
 				dragSource?.id !== dropTargetId;
-			// logger.logInfo(`handleCanDrop: ${flag}`);
 			return flag;
 		};
 
@@ -89,9 +91,10 @@ const LevNavDragTree = styled(
 							sort={false}
 							insertDroppableFirst={false}
 							dropTargetOffset={10}
-							onDrop={onDrop}
+							onDrop={onDropHandler}
 							canDrop={handleCanDrop}
 							canDrag={() => canDrag}
+							onDragStart={(tree) => setDraggedItemPath(tree.data.ref.path)}
 							initialOpen={Array.from(initialOpen)}
 							render={(node, { depth, isOpen, onToggle, containerRef }) => {
 								const [thisItem, setThisItem] = useState(node.data);

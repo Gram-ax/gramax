@@ -48,6 +48,12 @@ const SupportedVideoHostings: { [key: string]: (url: string) => JSX.Element } = 
 			<IFrameVideo url={url.replace(`/file/`, `/embed/`)} />
 		),
 	"dropbox.com": (url) => <RawVideo url={url.replace("?dl=0", "?raw=1")} />,
+	"rutube.ru": (url) =>
+		isCredentiallessUnsupported ? (
+			<PreviewVideo url={url} previewUrl="/images/rutube.png" />
+		) : (
+			<IFrameVideo url={url.replace("video", "play/embed")} />
+		),
 	// "sharepoint.com": (link) => <VideoTag link={link.replace(/\?e=.*?$/, "?download=1")} />,
 };
 
@@ -67,6 +73,8 @@ const PreviewVideo = styled(PreviewVideoUnstyled)`
 `;
 
 const IFrameVideo = ({ url }: RenderVideoProps) => {
+	const [isError, setIsError] = useState(false);
+
 	const props = {
 		credentialless: "true",
 		width: "640",
@@ -75,7 +83,22 @@ const IFrameVideo = ({ url }: RenderVideoProps) => {
 		allowFullScreen: true,
 	};
 
-	return <iframe data-focusable="true" className="video-js" style={{ border: "none" }} src={url} {...props} />;
+	return isError ? (
+		<ErrorVideo link={url} isLink />
+	) : (
+		<iframe
+			onError={() => {
+				console.log("asdf");
+
+				setIsError(true);
+			}}
+			data-focusable="true"
+			className="video-js"
+			style={{ border: "none" }}
+			src={url}
+			{...props}
+		/>
+	);
 };
 
 const RawVideo = ({ url }: RenderVideoProps) => {

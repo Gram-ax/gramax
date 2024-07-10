@@ -9,11 +9,13 @@ const getUrl: Command<{ articlePath: Path; catalogName: string; path: string }, 
 	kind: ResponseKind.json,
 
 	async do({ articlePath, catalogName, path }) {
-		const { lib, vur } = this._app;
+		const { wm, vur } = this._app;
 		if (!vur) return;
 
-		const catalog = await lib.getCatalog(catalogName);
-		const fp = lib.getFileProviderByCatalog(catalog);
+		const workspace = wm.current();
+
+		const catalog = await workspace.getCatalog(catalogName);
+		const fp = workspace.getFileProvider();
 		const itemRef = fp.getItemRef(articlePath);
 
 		return await vur.getUrl(convertToSharePointDir(catalog, itemRef, path).toString());

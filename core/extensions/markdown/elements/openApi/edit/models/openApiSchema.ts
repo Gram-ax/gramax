@@ -3,7 +3,6 @@ const openapi = {
 	attrs: {
 		src: { default: null },
 		flag: { default: true },
-		isUpdating: { default: false },
 	},
 };
 

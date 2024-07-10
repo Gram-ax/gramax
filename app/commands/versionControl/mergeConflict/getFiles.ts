@@ -1,10 +1,9 @@
 import { ResponseKind } from "@app/types/ResponseKind";
 import { AuthorizeMiddleware } from "@core/Api/middleware/AuthorizeMiddleware";
-import { MergeFile } from "@ext/git/actions/MergeConflictHandler/model/MergeFile";
-import BaseGitMergeConflictResolver from "@ext/git/core/GitMergeConflictResolver/Base/BaseGitMergeConflictResolver";
+import { GitMergeResultContent } from "@ext/git/actions/MergeConflictHandler/model/GitMergeResultContent";
 import { Command } from "../../../types/Command";
 
-const getFiles: Command<{ catalogName: string }, MergeFile[]> = Command.create({
+const getFiles: Command<{ catalogName: string }, GitMergeResultContent[]> = Command.create({
 	path: "versionControl/mergeConflict/getFiles",
 
 	kind: ResponseKind.json,
@@ -12,14 +11,18 @@ const getFiles: Command<{ catalogName: string }, MergeFile[]> = Command.create({
 	middlewares: [new AuthorizeMiddleware()],
 
 	async do({ catalogName }) {
-		const { lib } = this._app;
-		const catalog = await lib.getCatalog(catalogName);
-		if (!catalog) return;
-		const gvc = catalog.repo.gvc;
-		const fp = lib.getFileProviderByCatalog(catalog);
-		const fs = lib.getFileStructureByCatalog(catalog);
-		const baseGitMergeConflictResolver = new BaseGitMergeConflictResolver(gvc, fp, gvc.getPath());
-		return baseGitMergeConflictResolver.getFilesToMerge(fs);
+		const workspace = this._app.wm.current();
+		const catalog = await workspace.getCatalog(catalogName);
+		const storage = catalog?.repo.storage;
+		if (!storage) return;
+		const fs = workspace.getFileStructure();
+		const state = catalog.repo.state;
+		const conflictFiles =
+			state.value === "mergeConflict" || state.value === "stashConflict"
+				? await catalog.repo.convertToMergeResultContent(state.data.conflictFiles, fs)
+				: [];
+
+		return conflictFiles;
 	},
 
 	params(ctx, q) {

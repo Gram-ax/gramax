@@ -43,7 +43,7 @@ const Tabs = ({
 					{visibleChildAttrs.map(({ name, icon, idx }, key) => {
 						return (
 							<div
-								key={key}
+								key={idx}
 								onClick={() => setActiveIdx(idx)}
 								className={`case ${activeIdx == idx ? "active" : ""} ${idx}`}
 							>
@@ -72,9 +72,10 @@ const Tabs = ({
 												? useLocalize("deleteTabs")
 												: useLocalize("deleteTab")
 										}
-										onClick={() => {
+										onClick={(e) => {
 											onRemoveClick(idx);
 											setActiveIdx(0);
+											e.stopPropagation();
 										}}
 									/>
 								)}

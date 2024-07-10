@@ -12,40 +12,32 @@ export interface ImageObject {
 	type: unknown;
 	x: number;
 	y: number;
-	onClick?: (elementProps: [HTMLDivElement, number]) => boolean;
-	changeData?: (data: ImageObject, prevData: ImageObject, index: number, noAddition?: boolean) => void;
-}
-
-export interface PointerObject extends ImageObject {
-	type: ImageObjectTypes.Arrow | ImageObjectTypes.Unknown;
-	direction: "down-left" | "down-right" | "up-left" | "up-right";
-	scale: number;
-	color?: string;
-}
-
-export interface TextObject extends ImageObject {
-	type: ImageObjectTypes.Text | ImageObjectTypes.Unknown;
 	text: string;
-	fontSize: number;
-	color: string;
+	direction: DirectionType;
+	onClick?: (index: number) => void;
+	changeData?: (index: number, data: any) => void;
+}
+
+export type DirectionType = "bottom-left" | "bottom-right" | "top-left" | "top-right";
+export interface AnnotationObject extends ImageObject {
+	type: ImageObjectTypes.Annotation | ImageObjectTypes.Unknown;
 }
 
 export interface SquareObject extends ImageObject {
 	type: ImageObjectTypes.Square | ImageObjectTypes.Unknown;
 	w: number;
 	h: number;
-	thick: number;
-	color: string;
 }
 
 export interface Cropper {
 	crop: Crop;
 	cropEnabled: boolean;
 	setCrop: (crop: Crop) => void;
+	handleUpdateArea: (crop: Crop) => void;
 }
 
 export interface ImageProps {
-	src: string | Url;
+	src: Url;
 	crop?: Crop;
 	alt?: string;
 	title?: string;
@@ -53,16 +45,28 @@ export interface ImageProps {
 	onEdit?: (imageProps: ImageProps, element: HTMLDivElement) => void;
 }
 
-export interface EditorProps {
-	imageProps?: ImageProps;
+export interface EditorProps extends ImageProps {
 	imageRef?: React.Ref<HTMLDivElement>;
 	handleSave: (objects: ImageObject[], crop: Crop) => void;
 	handleToggle: () => void;
 }
 
 export enum ImageObjectTypes {
-	Arrow = "arrow",
-	Text = "text",
+	Annotation = "annotation",
 	Square = "square",
 	Unknown = "unknown",
 }
+
+export interface AdditionData {
+	type: "image" | "object";
+	index: number;
+	data: ImageProps | ImageObject;
+	newIndex?: number;
+}
+
+export const AnnotationDirections = {
+	"top-left": "Верхний-левый",
+	"top-right": "Верхний-правый",
+	"bottom-left": "Нижний-левый",
+	"bottom-right": "Нижний-правый",
+};

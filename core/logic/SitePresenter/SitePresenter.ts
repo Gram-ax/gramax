@@ -1,7 +1,10 @@
 import CustomArticlePresenter from "@core/SitePresenter/CustomArticlePresenter";
+import LastVisited from "@core/SitePresenter/LastVisited";
 import GitRepositoryProvider from "@ext/git/core/Repository/RepositoryProvider";
 import TabsTags from "@ext/markdown/elements/tabs/model/TabsTags";
 import RuleProvider from "@ext/rules/RuleProvider";
+import type { Workspace } from "@ext/workspace/Workspace";
+import type { WorkspaceConfig } from "@ext/workspace/WorkspaceConfig";
 import htmlToText from "html-to-text";
 import Language from "../../extensions/localization/core/model/Language";
 import MarkdownParser from "../../extensions/markdown/core/Parser/Parser";
@@ -16,7 +19,6 @@ import { Article } from "../FileStructue/Article/Article";
 import parseContent from "../FileStructue/Article/parseContent";
 import { ArticleFilter, Catalog, ItemFilter } from "../FileStructue/Catalog/Catalog";
 import { Item } from "../FileStructue/Item/Item";
-import Library from "../Library/Library";
 
 export type ClientCatalogProps = {
 	name: string;
@@ -50,8 +52,16 @@ export type ClientItemRef = {
 	storageId: string;
 };
 
+export type GroupData = {
+	catalogLinks: CatalogLink[];
+	style: "small" | "big";
+	title: string;
+};
+
+export type CatalogsLinks = Record<string, GroupData>;
+
 export type HomePageData = {
-	catalogLinks: { [group: string]: CatalogLink[] };
+	catalogLinks: CatalogsLinks;
 };
 
 export type ArticlePageData = {
@@ -72,7 +82,7 @@ export default class SitePresenter {
 
 	constructor(
 		private _nav: Navigation,
-		private _lib: Library,
+		private _workspace: Workspace,
 		private _parser: MarkdownParser,
 		private _parserContextFactory: ParserContextFactory,
 		private _grp: GitRepositoryProvider,
@@ -84,16 +94,30 @@ export default class SitePresenter {
 		this._filters = rp.getItemFilters();
 	}
 
-	async getHomePageData(): Promise<HomePageData> {
-		const catalogLinks: { [group: string]: CatalogLink[] } = {};
-		const catalogs = this._lib.getCatalogEntries();
-		(await this._nav.getCatalogsLink(catalogs)).forEach((cLink) => {
-			if (catalogLinks[cLink.group] === undefined) catalogLinks[cLink.group] = [];
-			catalogLinks[cLink.group].push(cLink);
+	async getHomePageData(workspace: WorkspaceConfig): Promise<HomePageData> {
+		const groups = workspace?.groups && Object.keys(workspace.groups);
+		const catalogLinks: CatalogsLinks = {};
+		const catalogs = this._workspace.getCatalogEntries();
+
+		groups?.forEach((group) => {
+			catalogLinks[group] = {
+				catalogLinks: [],
+				style: workspace?.groups?.[group]?.style ?? "small",
+				title: workspace?.groups?.[group]?.title ?? "",
+			};
 		});
-		return {
-			catalogLinks,
-		};
+		catalogLinks.other = { catalogLinks: [], style: "small", title: "other" };
+		catalogLinks.null = { catalogLinks: [], style: "small", title: null };
+
+		const lastVisited = new LastVisited(this._context);
+		lastVisited.retain(Array.from(catalogs.keys()));
+		(await this._nav.getCatalogsLink(catalogs, lastVisited)).forEach((cLink) => {
+			let group: string = groups ? cLink.group : null;
+			if (groups && !groups.includes(cLink.group)) group = "other";
+			catalogLinks[group].catalogLinks.push(cLink);
+		});
+
+		return { catalogLinks };
 	}
 
 	async getArticlePageData(article: Article, catalog: Catalog): Promise<ArticlePageData> {
@@ -107,12 +131,12 @@ export default class SitePresenter {
 		};
 	}
 
-	async getArticlePageDataByPath(path: string[]): Promise<ArticlePageData> {
+	async getArticlePageDataByPath(path: string[], pathname?: string): Promise<ArticlePageData> {
 		const data = await this.getArticleByPathOfCatalog(path);
 		if (!data.catalog) return null;
 		if (!data.article) {
 			data.article = data.catalog.hasItems()
-				? this._customArticlePresenter.getArticle("404")
+				? this._customArticlePresenter.getArticle("Article404", { pathname })
 				: this._customArticlePresenter.getArticle("welcome");
 			data.article.props.lang = this._context.lang;
 		}
@@ -218,7 +242,7 @@ export default class SitePresenter {
 		const storage = catalog.repo.storage;
 
 		return {
-			link: await this._nav.getCatalogLink(catalog),
+			link: await this._nav.getCatalogLink(catalog, new LastVisited(this._context)),
 			relatedLinks: this._nav.getRelatedLinks(catalog),
 			contactEmail: catalog.props.contactEmail ?? null,
 			tabsTags: catalog.props.tabsTags ?? null,
@@ -237,7 +261,7 @@ export default class SitePresenter {
 		filters = this._filters,
 	): Promise<{ article: Article; catalog: Catalog }> {
 		const catalogName = path[0];
-		const catalog = await this._lib.getCatalog(catalogName);
+		const catalog = await this._workspace.getCatalog(catalogName);
 		if (!catalog) return { article: null, catalog: null };
 		const itemLogicPath = Path.join(...path);
 		const article = catalog.findArticle(itemLogicPath, filters);

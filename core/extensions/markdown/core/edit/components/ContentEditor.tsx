@@ -65,7 +65,6 @@ const ContentEditor = (props: ContentEditorProps) => {
 	};
 
 	const isEditExtensions = articleIsEdit ? [SelectionMenu] : [];
-
 	const editor = useEditor(
 		{
 			content: JSON.parse(content) as JSONContent,

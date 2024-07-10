@@ -1,5 +1,5 @@
 import { InternalHyperlink, Paragraph, TextRun } from "docx";
-import { WordBlockChild } from "../../../../wordExport/WordTypes";
+import { WordBlockChild } from "../../../../wordExport/options/WordTypes";
 
 export const seeWordLayout: WordBlockChild = async ({ tag, addOptions }) => {
 	const id = (tag.attributes.link as string).replace(/^#/, "");

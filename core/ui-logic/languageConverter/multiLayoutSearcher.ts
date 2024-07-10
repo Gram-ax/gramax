@@ -1,27 +1,39 @@
 import { StringRewriter } from "./StringRewriter";
 
-const multiLayoutSearcher = <T>(searcher: (query: string) => T | Promise<T>) => {
+function multiLayoutSearcher<T>(searcher: (query: string) => T, sync: true): (query: string) => T;
+function multiLayoutSearcher<T>(searcher: (query: string) => Promise<T>, sync?: false): (query: string) => Promise<T>;
+function multiLayoutSearcher<T>(searcher: (query: string) => T | Promise<T>, sync?: boolean) {
+	const stringRewriter = new StringRewriter();
+	const transformations = [
+		(query: string) => stringRewriter.changeTextLayout(query),
+		(query: string) => stringRewriter.changeRussianToEnglishTransliteration(query),
+		(query: string) => stringRewriter.changeEnglishToRussianTransliteration(query),
+	];
+
+	if (sync)
+		return (query: string) => {
+			let result = searcher(query);
+
+			for (const transform of transformations) {
+				if (result) return result;
+				const transformedQuery = transform(query);
+				result = searcher(transformedQuery);
+			}
+
+			return result;
+		};
+
 	return async (query: string) => {
 		let result = await searcher(query);
 
-		if (result) return result;
-
-		const stringRewriter = new StringRewriter();
-		const wrongLayoutQuery = stringRewriter.changeTextLayout(query);
-		result = await searcher(wrongLayoutQuery);
-
-		if (result) return result;
-
-		const RuToEnRev = stringRewriter.changeRussianToEnglishTransliteration(query);
-		result = await searcher(RuToEnRev);
-
-		if (result) return result;
-
-		const EnToRuRev = stringRewriter.changeEnglishToRussianTransliteration(query);
-		result = await searcher(EnToRuRev);
+		for (const transform of transformations) {
+			if (result) return result;
+			const transformedQuery = transform(query);
+			result = await searcher(transformedQuery);
+		}
 
 		return result;
 	};
-};
+}
 
 export default multiLayoutSearcher;

@@ -9,6 +9,17 @@ global.window = {
 	cancelAnimationFrame,
 };
 
+if (!process.env.DEBUG_JEST) {
+	global.console = {
+		...console,
+		log: jest.fn(),
+		debug: jest.fn(),
+		info: jest.fn(),
+		warn: jest.fn(),
+		error: jest.fn(),
+	};
+}
+
 delete process.env.CORS_PROXY_SERVICE_URL;
 
 jest.setTimeout(15000);

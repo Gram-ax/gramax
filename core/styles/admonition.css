@@ -6,11 +6,21 @@
 	display: flex;
 	overflow: hidden;
 	padding: 1em var(--distance-admonition);
-	border-left: solid 2px transparent;
+	border-left: solid 0.125em transparent;
+	border-top-right-radius: 0.5em;
+	border-bottom-right-radius: 0.5em;
+}
+
+.admonition .title {
+	cursor: default;
+}
+
+.admonition .title.clickable {
+	cursor: pointer;
 }
 
 .admonition-row {
-	--distance-admonition: 0.7em;
+	--distance-admonition: 1em;
 	flex-direction: row;
 	align-items: flex-start;
 }
@@ -18,6 +28,10 @@
 	--distance-admonition: 1em;
 	flex-direction: column;
 	align-items: flex-start;
+}
+
+.admonition-column .admonition-content {
+	padding-left: 1.75em;
 }
 
 .admonition-row .admonition-heading {
@@ -31,19 +45,14 @@
 	margin-bottom: 0.7em;
 }
 
-.admonition-heading h5 {
-	font-weight: 500;
-	line-height: 1.5em;
-	vertical-align: top;
-	margin: 0 !important;
-	text-transform: uppercase;
-	font-size: 12px !important;
-	margin-left: var(--distance-admonition) !important;
+.admonition-heading.expanded {
+	margin-bottom: 0;
 }
 
-.admonition-heading h5 code {
-	font-size: 1.2em;
-	font-weight: 600;
+.admonition-heading .titleWrapper {
+	display: flex;
+	justify-content: start;
+	align-items: center;
 }
 
 .admonition-heading .admonition-icon {
@@ -51,6 +60,13 @@
 	display: flex;
 	font-size: 20px;
 	align-items: flex-start;
+}
+
+.admonition-heading .title {
+	font-weight: 500;
+	line-height: 1.5em;
+	vertical-align: top;
+	margin-left: 0.5em;
 }
 
 .admonition-icon i {
@@ -75,6 +91,16 @@
 .admonition-content > ul:first-of-type {
 	margin-left: 0;
 	padding-left: 18px;
+}
+
+.admonition-quote {
+	border-color: var(--color-admonition-hotfixes-br-h);
+	background: var(--color-admonition-hotfixes-bg);
+}
+
+.admonition-quote .admonition-heading *,
+.admonition-quote strong {
+	color: var(--color-admonition-hotfixes-br-h);
 }
 
 .admonition-lab {
@@ -165,6 +191,10 @@
 .admonition-content ul:last-child li:last-child > *:last-child,
 .admonition-content ol:last-child li:last-child > *:last-child {
 	margin-bottom: 0 !important;
+}
+
+.admonition-content *:first-child {
+	margin-top: 0 !important;
 }
 
 @media print {

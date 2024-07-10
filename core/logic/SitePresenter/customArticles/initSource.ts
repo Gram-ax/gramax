@@ -1,4 +1,4 @@
-export default `---
+export default () => `---
 title: Каталог уже связан с репозиторием
 ---
 

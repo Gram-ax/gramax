@@ -3,7 +3,9 @@ import getCommands from "@app/browser/commands";
 import { findCommand } from "@app/commands";
 import Application from "@app/types/Application";
 import { ResponseKind } from "@app/types/ResponseKind";
+import FetchResponse from "@core-ui/ApiServices/Types/FetchResponse";
 import Url from "@core-ui/ApiServices/Types/Url";
+import trimRoutePrefix from "@core-ui/ApiServices/trimRoutePrefix";
 import ApiRequest from "@core/Api/ApiRequest";
 import ApiResponse from "@core/Api/ApiResponse";
 import Query from "@core/Api/Query";
@@ -11,12 +13,13 @@ import { apiUtils } from "@core/Api/apiUtils";
 import ApiMiddleware from "@core/Api/middleware/ApiMiddleware";
 import Middleware from "@core/Api/middleware/Middleware";
 import buildMiddleware from "@core/Api/middleware/buildMiddleware";
+import type HashResourceManager from "@core/Hash/HashItems/HashResourceManager";
 import localizer from "@ext/localization/core/Localizer";
 import PersistentLogger from "@ext/loggers/PersistentLogger";
 import BrowserApiResponse from "./BrowserApiResponse";
 
-const fetchSelf = async (url: Url, body?: BodyInit): Promise<Response> => {
-	const route = url.pathname.split("api/").slice(-1)[0];
+const fetchSelf = async (url: Url, body?: BodyInit): Promise<FetchResponse> => {
+	const route = trimRoutePrefix(url);
 	const res: ApiResponse = new BrowserApiResponse();
 	const app = await getApp();
 	const commands = getCommands(app);
@@ -28,7 +31,7 @@ const fetchSelf = async (url: Url, body?: BodyInit): Promise<Response> => {
 		PersistentLogger.err("command not found", err, "cmd", { body });
 		res.statusCode = 404;
 		res.send(msg);
-		return res as unknown as Response;
+		return res as unknown as FetchResponse;
 	}
 
 	Object.entries(url.query)
@@ -39,31 +42,15 @@ const fetchSelf = async (url: Url, body?: BodyInit): Promise<Response> => {
 
 	const process: Middleware = new ApiMiddleware(async (req, res) => {
 		const ctx = app.contextFactory.fromBrowser(localizer.extract(location.pathname), {});
-
-		let params;
-		try {
-			params = command.params(ctx, req.query as Query, req.body);
-		} catch (e) {
-			PersistentLogger.err("error while parsing query", e, "cmd", req.body);
-			return;
-		}
-
+		const params = command.params(ctx, req.query as Query, req.body);
 		PersistentLogger.info(`executing command ${route}`, "cmd", { ...req.query });
-
-		let result;
-		try {
-			result = await command.do(params);
-		} catch (e) {
-			PersistentLogger.err(`command ${route} failed`, e, "cmd", { ...req.query });
-			throw e;
-		}
-
+		const result = await command.do(params);
 		await respond(app, req, res, command.kind, result);
 	});
 
 	await buildMiddleware(app, commands, command.middlewares, process).Process(req, res);
 
-	return res as unknown as Response;
+	return res as unknown as FetchResponse;
 };
 
 const parseBody = (body: BodyInit) => {
@@ -84,9 +71,7 @@ const respond = async (app: Application, req: ApiRequest, res: ApiResponse, kind
 	if (kind == ResponseKind.plain) return apiUtils.sendPlainText(res, commandResult);
 
 	if (kind == ResponseKind.blob)
-		return commandResult?.hashItem
-			? await apiUtils.sendWithETag(req, res, commandResult.hashItem, app.hashes)
-			: undefined;
+		return res.send(await (commandResult?.hashItem as HashResourceManager)?.getContentAsBinary());
 
 	if (kind == ResponseKind.file) return res.send(commandResult);
 

@@ -20,13 +20,22 @@ const Input = styled(({ className, ...props }: EditorProps) => {
 })`
 	width: 100%;
 	display: flex;
+	align-items: flex-start;
 
 	.user-circle {
-		margin-right: 1rem;
+		margin-right: 1em;
 	}
 
 	.editer {
-		padding-top: 9px;
+		padding-top: 0.35em;
+	}
+
+	.editer .article .article-body .tiptap .is-empty {
+		margin: 0 !important;
+	}
+
+	.editer * {
+		font-size: 1em;
 	}
 `;
 

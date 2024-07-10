@@ -24,13 +24,7 @@ const DeleteItem = (props: { isCategory: boolean; itemPath: string; itemLink: st
 		else refreshPage();
 	};
 
-	return (
-		<ButtonLink
-			onClick={onClickHandler}
-			iconCode="trash"
-			text={`${useLocalize("delete")} ${useLocalize(isCategory ? "category" : "article")}`}
-		/>
-	);
+	return <ButtonLink onClick={onClickHandler} iconCode="trash" text={`${useLocalize("delete")}`} />;
 };
 
 export default DeleteItem;

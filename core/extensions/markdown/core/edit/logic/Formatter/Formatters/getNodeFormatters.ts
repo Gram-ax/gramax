@@ -1,15 +1,17 @@
+import noteFormatter from "@ext/markdown/elements/note/logic/noteFormatter";
 import { NodeSerializerSpec } from "../../Prosemirror/to_markdown";
 
 import ParserContext from "@ext/markdown/core/Parser/ParserContext/ParserContext";
 import DiagramsFormatter from "@ext/markdown/elements/diagrams/logic/DiagramsFormatter";
 import codeBlockFormatter from "@ext/markdown/elements/fence/edit/logic/codeBlockFormatter";
+import IconFormatter from "@ext/markdown/elements/icon/logic/IconFormatter";
+import { format } from "@ext/markdown/elements/image/render/logic/imageTransformer";
 import OpenApiFormatter from "@ext/markdown/elements/openApi/edit/logic/OpenApiFormatter";
+import SnippetFormatter from "@ext/markdown/elements/snippet/edit/logic/SnippetFormatter";
 import TabFormatter from "@ext/markdown/elements/tabs/logic/TabFormatter";
 import TabsFormatter from "@ext/markdown/elements/tabs/logic/TabsFormatter";
-import SnippetFormatter from "@ext/markdown/elements/snippet/edit/logic/SnippetFormatter";
 import screenSymbols from "@ext/markdown/logic/screenSymbols";
 import TableUtils from "../Utils/Table";
-import { format } from "@ext/markdown/elements/image/edit/logic/transformer/imageTransformer";
 const blocks = ["Db-diagram", "Db-table", "Snippet"];
 
 const CLEAR_CROP = { x: 0, y: 0, w: 100, h: 100 };
@@ -19,36 +21,35 @@ const getNodeFormatters = (context?: ParserContext): { [node: string]: NodeSeria
 	diagrams: DiagramsFormatter,
 	snippet: SnippetFormatter,
 	openapi: OpenApiFormatter,
+	icon: IconFormatter,
 	tabs: TabsFormatter,
 	tab: TabFormatter,
+	note: noteFormatter,
 	image: (state, node) => {
+		const str = format(node.attrs?.crop ?? CLEAR_CROP, node.attrs?.objects ?? []);
 		const newFormat =
 			(node.attrs?.crop &&
 				typeof node.attrs.crop !== "string" &&
-				(node.attrs.crop.x !== 0 ||
-					node.attrs.crop.y !== 0 ||
-					node.attrs.crop.w !== 100 ||
-					node.attrs.crop.h !== 100)) ||
-			(node.attrs?.objects && node.attrs.objects.length > 0);
-		const str = (newFormat && format(node.attrs?.crop ?? CLEAR_CROP, node.attrs?.objects ?? [])) || "";
+				(node.attrs.crop.w !== 100 || node.attrs.crop.h !== 100)) ||
+			node.attrs?.objects?.length > 0;
 
 		state.write(
-			(newFormat &&
-				"[image:" +
-					node.attrs.src +
-					":" +
-					(node.attrs?.alt ?? "") +
-					":" +
-					(node.attrs?.title ?? "") +
-					":" +
-					str +
-					"]") ||
-				"![" +
-					state.esc(node.attrs.alt || "") +
-					"](" +
-					node.attrs.src +
-					(node.attrs.title ? ' "' + node.attrs.title.replace(/"/g, '\\"') + '"' : "") +
-					")\n",
+			newFormat
+				? "[image:" +
+						node.attrs.src +
+						":" +
+						(node.attrs?.alt ?? "") +
+						":" +
+						(node.attrs?.title ?? "") +
+						":" +
+						str +
+						"]"
+				: "![" +
+						state.esc(node.attrs.alt || "") +
+						"](" +
+						(node.attrs.src?.includes?.(" ") ? `<${node.attrs.src}>` : node.attrs.src) +
+						(node.attrs.title ? ' "' + node.attrs.title.replace(/"/g, '\\"') + '"' : "") +
+						")\n",
 		);
 		state.closeBlock(node);
 	},
@@ -65,12 +66,6 @@ const getNodeFormatters = (context?: ParserContext): { [node: string]: NodeSeria
 	},
 	blockMd: (state, node) => {
 		state.text(node.textContent, false);
-		state.closeBlock(node);
-	},
-	note: async (state, node) => {
-		state.write(`:::${node.attrs.type ?? ""} ${node.attrs.title ?? ""}\n\n`);
-		await state.renderContent(node);
-		state.write(`:::`);
 		state.closeBlock(node);
 	},
 	video: (state, node) => {
@@ -90,19 +85,6 @@ const getNodeFormatters = (context?: ParserContext): { [node: string]: NodeSeria
 		state.write(`[cut:${node.attrs.text ?? ""}:${node.attrs.expanded ?? ""}]\n\n`);
 		await state.renderContent(node);
 		state.write(`[/cut]`);
-		state.closeBlock(node);
-	},
-	comment: async (state, node) => {
-		state.write(`[comment:${node.attrs.mail}:${node.attrs.dateTime}]\n\n`);
-		await state.renderContent(node);
-		state.write(`[/comment]`);
-		state.closeBlock(node);
-	},
-	answer: async (state, node) => {
-		state.write(`[answer:${node.attrs.mail}:${node.attrs.dateTime}]`);
-		state.closeBlock(node);
-		await state.renderContent(node);
-		state.write(`[/answer]`);
 		state.closeBlock(node);
 	},
 	table: async (state, node) => {
@@ -153,9 +135,6 @@ const getNodeFormatters = (context?: ParserContext): { [node: string]: NodeSeria
 	tableHeaderRow_simple: async (state, node) => {
 		await state.renderContent(node);
 		state.write("|\n" + state.delim + "|-".repeat(node.childCount) + "|\n");
-	},
-	blockquote: async (state, node) => {
-		await state.wrapBlock("> ", null, node, async () => await state.renderContent(node));
 	},
 	heading: async (state, node) => {
 		state.write(state.repeat("#", node.attrs.level) + " ");

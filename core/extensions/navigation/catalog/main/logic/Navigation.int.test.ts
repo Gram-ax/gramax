@@ -1,10 +1,10 @@
 import getApplication from "@app/node/app";
 import HiddenRules from "../../../../../logic/FileStructue/Rules/HiddenRules/HiddenRule";
-import getItemRef from "../../../../../logic/Library/test/getItemRef";
 import { defaultLanguage } from "../../../../localization/core/model/Language";
 import LocalizationRules from "../../../../localization/core/rules/LocalizationRules";
 import SecurityRules from "../../../../security/logic/SecurityRules";
 import User from "../../../../security/logic/User/User";
+import getItemRef from "../../../../workspace/test/getItemRef";
 import Navigation from "./Navigation";
 
 const getNavigationData = async () => {
@@ -21,8 +21,8 @@ const getNavigationData = async () => {
 	nav.addRules(lr.getNavRules());
 	nav.addRules(sr.getNavRules());
 
-	const navIndexArticleTestCatalog = await app.lib.getCatalog("NavigationIndexCatalog");
-	const navTestCatalog = await app.lib.getCatalog("NavigationArticleCatalog");
+	const navIndexArticleTestCatalog = await app.wm.current().getCatalog("NavigationIndexCatalog");
+	const navTestCatalog = await app.wm.current().getCatalog("NavigationArticleCatalog");
 
 	const navIndexArticleItemRef = getItemRef(navIndexArticleTestCatalog, "category/_index.md");
 	const navEmptyCategoryItemRef = getItemRef(navTestCatalog, "normalArticle.md");

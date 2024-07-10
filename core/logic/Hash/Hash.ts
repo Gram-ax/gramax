@@ -1,24 +1,30 @@
-import MD5 from "@core-ui/hash";
+import { type XXHashAPI } from "xxhash-wasm";
 import HashItem from "./HashItems/HashItem";
 
 export default class Hash {
-	private hashes = new Map<string, string>();
+	private _hashes = new Map<string, string>();
+	private _xxhash: XXHashAPI;
 
 	async getHash(hashItem: HashItem) {
-		return MD5(await hashItem.getHashContent());
+		if (!this._xxhash) await this._init();
+		return this._xxhash.h64ToString(await hashItem.getHashContent());
 	}
 
 	async setHash(hashItem: HashItem) {
 		const hash = await this.getHash(hashItem);
-		this.hashes.set(hashItem.getKey(), hash);
+		this._hashes.set(hashItem.getKey(), hash);
 		return hash;
 	}
 
 	hasHash(hashItem: HashItem) {
-		return this.hashes.has(hashItem.getKey());
+		return this._hashes.has(hashItem.getKey());
 	}
 
 	deleteHash(hashItem: HashItem) {
-		this.hashes.delete(hashItem.getKey());
+		this._hashes.delete(hashItem.getKey());
+	}
+	private async _init() {
+		const xxhash = await import("xxhash-wasm");
+		this._xxhash = await xxhash.default();
 	}
 }

@@ -12,7 +12,7 @@ const removeExpiredSources = async (apiUrlCreator: ApiUrlCreator, pageProperties
 		const sourceToRemove = await makeSourceApi(source, pageProperties.conf.authServiceUrl).removeExpiredCredentials(
 			apiUrlCreator,
 		);
-		if (!sourceToRemove) return;
+		if (!sourceToRemove) continue;
 		pageProperties.sourceDatas = pageProperties.sourceDatas.filter(
 			(s) => getStorageNameByData(s) !== sourceToRemove,
 		);

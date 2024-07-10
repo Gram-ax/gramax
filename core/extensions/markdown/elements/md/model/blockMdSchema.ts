@@ -2,7 +2,6 @@ const blockMd_component = {
 	group: "block",
 	marks: "",
 	defining: true,
-	content: "text*",
 	attrs: {
 		text: { default: null },
 		tag: { default: null },
@@ -10,7 +9,8 @@ const blockMd_component = {
 };
 
 const blockMd = {
-	group: "block",
+	group: "inline",
+	inline: true,
 	content: "block+",
 	defining: true,
 	marks: "",

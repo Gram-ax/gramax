@@ -14,7 +14,7 @@ const CommentMenuButton = ({ editor, onClick }: { editor: Editor; onClick: () =>
 	const isButtonDisabled = !isSelected || !isSelectionInsideSingleParagraph || !pageDataContext.userInfo || disabled;
 	const tooltipText = pageDataContext.userInfo ? "leaveComment" : "connectStorageToLeaveComment";
 	const onClickHandler = () => {
-		editor.chain().focus().toggleComment({ data: undefined }).run();
+		editor.commands.toggleComment({ data: undefined });
 		onClick();
 	};
 

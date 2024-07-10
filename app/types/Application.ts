@@ -1,7 +1,6 @@
 import { ContextFactory } from "@core/Context/ContextFactory";
 import Path from "@core/FileProvider/Path/Path";
 import Hash from "@core/Hash/Hash";
-import Library from "@core/Library/Library";
 import PluginProvider from "@core/Plugin/logic/PluginProvider";
 import CustomArticlePresenter from "@core/SitePresenter/CustomArticlePresenter";
 import SitePresenterFactory from "@core/SitePresenter/SitePresenterFactory";
@@ -19,11 +18,11 @@ import MarkdownFormatter from "@ext/markdown/core/edit/logic/Formatter/Formatter
 import AuthManager from "@ext/security/logic/AuthManager";
 import Sso from "@ext/security/logic/AuthProviders/Sso";
 import { TicketManager } from "@ext/security/logic/TicketManager/TicketManager";
-import type { BrowserFileProvider } from "apps/browser/src/logic/FileProvider/BrowserFileProvider";
+import type WorkspaceManager from "@ext/workspace/WorkspaceManager";
 
 interface Application {
 	sso: Sso;
-	lib: Library;
+	wm: WorkspaceManager;
 	cache: Cache;
 	hashes: Hash;
 	logger: Logger;
@@ -42,11 +41,11 @@ interface Application {
 	parserContextFactory: ParserContextFactory;
 	sitePresenterFactory: SitePresenterFactory;
 	customArticlePresenter: CustomArticlePresenter;
-	obsoleteFp: BrowserFileProvider;
 	conf: {
 		basePath: Path;
 
 		version: string;
+		buildVersion: string;
 		isRelease: boolean;
 		isReadOnly: boolean;
 		isServerApp: boolean;

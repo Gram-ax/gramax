@@ -67,6 +67,7 @@ export class GitDataParser {
 		const links: Record<SourceType, string> = {
 			GitHub: `https://${sourceName}/${group}/${repName}/edit/${branch}/${filePath.value}`,
 			GitLab: `https://${sourceName}/-/ide/project/${group}/${repName}/blob/${branch}/-/${filePath.value}`,
+			Confluence: "",
 			"Enterprise Server": "",
 		};
 		return links[sourceType];

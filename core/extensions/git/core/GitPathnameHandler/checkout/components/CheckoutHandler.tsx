@@ -8,11 +8,22 @@ import FetchService from "@core-ui/ApiServices/FetchService";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import InfoModalForm from "@ext/errorHandlers/client/components/ErrorForm";
 import BranchUpdaterService from "@ext/git/actions/Branch/BranchUpdaterService/logic/BranchUpdaterService";
-import CurrentLink from "@ext/git/core/GitPathnameHandler/components/CurrentLink";
 import useLocalize from "@ext/localization/useLocalize";
 import { useState } from "react";
 
-const CheckoutHandler = ({ href, branchName }: { href: string; branchName: string }) => {
+const BranchElement = ({ branchName }: { branchName: string }) => (
+	<div title={branchName} style={{ display: "inline-flex" }}>
+		<SmallFence overflow="hidden" fixWidth value={branchName} />
+	</div>
+);
+
+const CheckoutHandler = ({
+	currentBranchName,
+	branchToCheckout,
+}: {
+	currentBranchName: string;
+	branchToCheckout: string;
+}) => {
 	const apiUrlCreator = ApiUrlCreatorService.value;
 	const [isOpen, setIsOpen] = useState(true);
 	const [checkoutProcess, setCheckoutProcess] = useState(false);
@@ -22,7 +33,7 @@ const CheckoutHandler = ({ href, branchName }: { href: string; branchName: strin
 	};
 
 	const onActionButtonClick = async () => {
-		const url = apiUrlCreator.getVersionControlCheckoutBranchUrl(branchName);
+		const url = apiUrlCreator.getVersionControlCheckoutBranchUrl(branchToCheckout);
 
 		setCheckoutProcess(true);
 		const res = await FetchService.fetch(url);
@@ -43,12 +54,6 @@ const CheckoutHandler = ({ href, branchName }: { href: string; branchName: strin
 		</LogsLayout>
 	);
 
-	const branchElement = (
-		<div title={branchName} style={{ display: "inline-flex" }}>
-			<SmallFence overflow="hidden" fixWidth value={branchName} />
-		</div>
-	);
-
 	return (
 		<ModalLayout isOpen={isOpen} onClose={onCancel}>
 			<ModalLayoutLight>
@@ -57,15 +62,19 @@ const CheckoutHandler = ({ href, branchName }: { href: string; branchName: strin
 				) : (
 					<InfoModalForm
 						onCancelClick={onCancel}
-						title={useLocalize("goToLink")}
+						title={useLocalize("changeBranch") + "?"}
 						actionButton={{ text: useLocalize("changeAndSync"), onClick: onActionButtonClick }}
-						isError={false}
+						isWarning={true}
 					>
 						<span>
-							{useLocalize("link")} <CurrentLink href={href} />{" "}
-							{useLocalize("leadsToTheBranch").toLocaleLowerCase()} {branchElement}.{" "}
+							{useLocalize("leadsToTheBranch")}
+							<br />
+							{useLocalize("checkoutPathnameDesc")}
+							<br />
+							{useLocalize("changeBranch")} <BranchElement branchName={currentBranchName} />{" "}
+							{useLocalize("toBranch").toLowerCase()} <BranchElement branchName={branchToCheckout} />{" "}
+							{useLocalize("andSyncCatalog").toLowerCase()}
 						</span>
-						<span>{useLocalize("checkoutPathnameConfirm")}</span>
 					</InfoModalForm>
 				)}
 			</ModalLayoutLight>

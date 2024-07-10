@@ -1,0 +1,15 @@
+"$schema" = "schemas/schema.json"
+[default]
+permissions = [
+  "allow-read-dir",
+  "allow-read-link",
+  "allow-make-dir",
+  "allow-remove-dir",
+  "allow-rmfile",
+  "allow-mv",
+  "allow-make-symlink",
+  "allow-getstat",
+  "allow-exists",
+  "allow-copy",
+  "allow-mv",
+]

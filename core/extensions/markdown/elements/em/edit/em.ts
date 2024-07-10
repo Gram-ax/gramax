@@ -1,7 +1,7 @@
-import { Mark, markInputRule, markPasteRule, mergeAttributes } from "@tiptap/core";
 import addShortcuts from "@ext/markdown/elementsUtils/keyboardShortcuts/addShortcuts";
-import space from "@ext/markdown/logic/keys/marks/space";
 import arrowRight from "@ext/markdown/logic/keys/marks/arrowRight";
+import space from "@ext/markdown/logic/keys/marks/space";
+import { Mark, markInputRule, markPasteRule, mergeAttributes } from "@tiptap/core";
 
 interface ItalicOptions {
 	HTMLAttributes: Record<string, any>;
@@ -34,7 +34,7 @@ const Em = Mark.create<ItalicOptions>({
 			},
 			{
 				tag: "i",
-				getAttrs: (node) => (node as HTMLElement).style.fontStyle !== "normal" && null,
+				getAttrs: (node) => node.style.fontStyle !== "normal" && null,
 			},
 			{
 				style: "font-style=italic",

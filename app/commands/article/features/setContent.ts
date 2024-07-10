@@ -17,8 +17,10 @@ const setContent: Command<{ ctx: Context; catalogName: string; articlePath: Path
 		middlewares: [new AuthorizeMiddleware(), new DesktopModeMiddleware(), new ReloadConfirmMiddleware()],
 
 		async do({ ctx, articlePath, catalogName, content }) {
-			const { sitePresenterFactory, lib } = this._app;
-			const catalog = await lib.getCatalog(catalogName);
+			const { sitePresenterFactory, wm } = this._app;
+			const workspace = wm.current();
+
+			const catalog = await workspace.getCatalog(catalogName);
 			const article = catalog.findItemByItemPath<Article>(articlePath);
 			if (!article) return;
 			await article.updateContent(content ?? "");

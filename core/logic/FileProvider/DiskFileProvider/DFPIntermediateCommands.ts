@@ -11,8 +11,7 @@ export const unlink = (path: string) => {
 };
 
 export const writeFile = async (path: string, content: string | Buffer) => {
-	const buffer = typeof content == "string" ? Buffer.from(content) : content;
-	return call<void>("write_file", { path, content: buffer.toJSON().data });
+	return call<void>("write_file", { path, content });
 };
 
 export const stat = async (path: string, followLink = false) => {

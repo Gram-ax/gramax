@@ -13,7 +13,7 @@ const getContent: Command<{ catalogName: string; articlePath: Path }, string> = 
 	middlewares: [new AuthorizeMiddleware(), new DesktopModeMiddleware()],
 
 	async do({ articlePath, catalogName }) {
-		const catalog = await this._app.lib.getCatalog(catalogName);
+		const catalog = await this._app.wm.current().getCatalog(catalogName);
 		const article = catalog.findItemByItemPath<Article>(articlePath);
 		if (!article) return;
 		return article.content;

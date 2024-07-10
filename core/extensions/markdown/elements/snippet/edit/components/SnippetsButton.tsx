@@ -1,42 +1,38 @@
 import Divider from "@components/Atoms/Divider";
-import Tooltip from "@components/Atoms/Tooltip";
-import ButtonsLayout from "@components/Layouts/ButtonLayout";
-import ModalLayoutDark from "@components/Layouts/ModalLayoutDark";
-import ListLayout, { ListLayoutElement } from "@components/List/ListLayout";
 import FetchService from "@core-ui/ApiServices/FetchService";
 import MimeTypes from "@core-ui/ApiServices/Types/MimeTypes";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import ModalToOpenService from "@core-ui/ContextServices/ModalToOpenService/ModalToOpenService";
 import ModalToOpen from "@core-ui/ContextServices/ModalToOpenService/model/ModalsToOpen";
-import styled from "@emotion/styled";
 import LinkItemSidebar from "@ext/artilce/LinkCreator/components/LinkItemSidebar";
 import useLocalize from "@ext/localization/useLocalize";
-import Button from "@ext/markdown/core/edit/components/Menu/Button";
 import SnippetEditor from "@ext/markdown/elements/snippet/edit/components/SnippetEditor";
 import SnippetListElement from "@ext/markdown/elements/snippet/edit/components/SnippetListElement";
 import SnippetEditorProps from "@ext/markdown/elements/snippet/edit/model/SnippetEditorProps.schema";
 import SnippetEditData from "@ext/markdown/elements/snippet/model/SnippetEditData";
 import SnippetRenderData from "@ext/markdown/elements/snippet/model/SnippetRenderData";
 import { Editor } from "@tiptap/core";
-import { ComponentProps, useEffect, useRef, useState } from "react";
+import { ComponentProps, useState } from "react";
+import TooltipListLayout from "@components/List/TooltipListLayout";
 
-const StyledDiv = styled.div`
-	padding: 0 5.5px;
-	width: 300px;
-`;
+interface SnippetsButtonProps {
+	editor: Editor;
+	onClose?: () => void;
+}
 
-const SnippetsButton = ({ editor, className }: { editor: Editor; className?: string }) => {
+const SnippetsButton = ({ editor, onClose }: SnippetsButtonProps) => {
 	const apiUrlCreator = ApiUrlCreatorService.value;
-	const [isTooltipOpen, setIsTooltipOpen] = useState(false);
 	const [snippetsList, setSnippetsList] = useState<SnippetEditorProps[]>([]);
-	const listRef = useRef<ListLayoutElement>(null);
 	const snippetText = useLocalize("snippet");
 	const addNewSnippetText = useLocalize("addNewSnippet");
 
 	const getSnippets = async () => {
 		const res = await FetchService.fetch<SnippetEditorProps[]>(apiUrlCreator.getSnippetsListData());
 		if (!res.ok) return;
-		setSnippetsList(await res.json());
+		const snippets = await res.json();
+		if (JSON.stringify(snippets) !== JSON.stringify(snippetsList)) {
+			setSnippetsList(snippets);
+		}
 	};
 
 	const createSnippet = async (snippetData: SnippetEditData) => {
@@ -44,6 +40,7 @@ const SnippetsButton = ({ editor, className }: { editor: Editor; className?: str
 
 		const res = await FetchService.fetch<SnippetRenderData>(apiUrlCreator.getSnippetRenderData(snippetData.id));
 		if (!res.ok) return;
+
 		const data = await res.json();
 		const focusBefore = editor.state.selection.anchor;
 		editor.commands.setSnippet(data);
@@ -54,135 +51,60 @@ const SnippetsButton = ({ editor, className }: { editor: Editor; className?: str
 		editor.commands.focus(editor.state.selection.anchor);
 	};
 
-	useEffect(() => {
-		if (!isTooltipOpen) return;
-		void getSnippets();
-		const mouseHandler = (e: MouseEvent) => {
-			const target = e.target as HTMLElement;
-			if (!listRef.current.htmlElement.contains(target) && !listRef.current.itemsRef.contains(target))
-				setIsTooltipOpen(false);
-		};
-		const keyHandler = (e: KeyboardEvent) => {
-			if (e.key === "Escape") setIsTooltipOpen(false);
-		};
-		document.addEventListener("mousedown", mouseHandler);
-		document.addEventListener("keydown", keyHandler);
-		return () => {
-			document.addEventListener("keydown", keyHandler);
-			document.removeEventListener("mousedown", mouseHandler);
-		};
-	}, [isTooltipOpen]);
+	const buttons = [
+		{
+			element: (
+				<div style={{ width: "100%" }} data-qa="qa-clickable">
+					{<LinkItemSidebar title={addNewSnippetText} iconCode={"plus"} />}
+					<Divider
+						style={{
+							background: "var(--color-edit-menu-button-active-bg)",
+						}}
+					/>
+				</div>
+			),
+			labelField: "addNewSnippet",
+			onClick: () => {
+				ModalToOpenService.setValue<ComponentProps<typeof SnippetEditor>>(ModalToOpen.SnippetEditor, {
+					type: "create",
+					snippetsListIds: snippetsList.map((s) => s.id),
+					onSave: createSnippet,
+					onClose: () => {
+						focusEditor();
+						if (ModalToOpenService.value === ModalToOpen.SnippetEditor) ModalToOpenService.resetValue();
+					},
+				});
+				onClose();
+			},
+		},
+	];
 
-	const button = (
-		<div data-qa="qa-snippets">
-			<Button
-				icon="sticky-note"
-				tooltipText={isTooltipOpen ? undefined : snippetText}
-				onClick={() => setIsTooltipOpen(true)}
-				nodeValues={{ action: "snippet" }}
-			/>
-		</div>
-	);
-	if (!isTooltipOpen) return button;
+	const itemClickHandler = async (_, __, idx) => {
+		onClose();
+		const res = await FetchService.fetch<SnippetRenderData>(
+			apiUrlCreator.getSnippetRenderData(snippetsList[idx].id),
+		);
+		if (!res.ok) return;
+
+		const data = await res.json();
+		editor.commands.setSnippet(data);
+		focusEditor();
+	};
 
 	return (
-		<Tooltip
-			visible={true}
-			arrow={false}
-			interactive
-			distance={8}
-			customStyle
-			content={
-				<ModalLayoutDark>
-					<ButtonsLayout>
-						<StyledDiv>
-							<ListLayout
-								ref={listRef}
-								openByDefault
-								buttons={[
-									{
-										element: (
-											<div style={{ width: "100%" }} data-qa="qa-clickable">
-												{LinkItemSidebar(addNewSnippetText, "plus")}
-												<Divider
-													style={{ background: "var(--color-edit-menu-button-active-bg)" }}
-												/>
-											</div>
-										),
-										labelField: "addNewSnippet",
-										onClick: () => {
-											ModalToOpenService.setValue<ComponentProps<typeof SnippetEditor>>(
-												ModalToOpen.SnippetEditor,
-												{
-													type: "create",
-													snippetsListIds: snippetsList.map((s) => s.id),
-													onSave: createSnippet,
-													onClose: () => {
-														focusEditor();
-														if (ModalToOpenService.value === ModalToOpen.SnippetEditor)
-															ModalToOpenService.resetValue();
-													},
-												},
-											);
-											setIsTooltipOpen(false);
-										},
-									},
-								]}
-								isCode={false}
-								place="top"
-								placeholder={snippetText}
-								itemsClassName={className}
-								items={snippetsList.map((s) => ({
-									labelField: s.title,
-									element: (
-										<SnippetListElement
-											snippet={s}
-											onEditClick={() => setIsTooltipOpen(false)}
-											onClose={focusEditor}
-										/>
-									),
-								}))}
-								onItemClick={async (_, __, idx) => {
-									setIsTooltipOpen(false);
-									const res = await FetchService.fetch<SnippetRenderData>(
-										apiUrlCreator.getSnippetRenderData(snippetsList[idx].id),
-									);
-									if (!res.ok) return;
-									const data = await res.json();
-									editor.commands.setSnippet(data);
-									focusEditor();
-								}}
-							/>
-						</StyledDiv>
-					</ButtonsLayout>
-				</ModalLayoutDark>
-			}
-		>
-			{button}
-		</Tooltip>
+		<TooltipListLayout
+			action="snippet"
+			buttonIcon="sticky-note"
+			tooltipText={snippetText}
+			onShow={getSnippets}
+			buttons={buttons}
+			items={snippetsList.map((s) => ({
+				labelField: s.title,
+				element: <SnippetListElement snippet={s} onEditClick={onClose} onClose={focusEditor} />,
+			}))}
+			onItemClick={itemClickHandler}
+		/>
 	);
 };
 
-export default styled(SnippetsButton)`
-	left: 0;
-	margin-top: 4px;
-	min-width: 238px;
-	margin-left: -9px;
-	border-radius: var(--radius-x-large);
-	background: var(--color-tooltip-background);
-
-	.item {
-		color: var(--color-article-bg);
-	}
-
-	.item,
-	.breadcrumb {
-		.link {
-			line-height: 1.5em;
-		}
-	}
-
-	.item.active {
-		background: var(--color-edit-menu-button-active-bg);
-	}
-`;
+export default SnippetsButton;

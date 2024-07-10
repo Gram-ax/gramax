@@ -15,11 +15,13 @@ export default class GitError extends DefaultError {
 		private _defaultError: any,
 		props: Partial<GitErrorContextProps> & { [key: string]: any },
 		caller?: Caller,
+		isWarninig?: boolean,
+		title?: string,
 	) {
 		const currentCaller = GitError._getCaller(caller, _defaultError);
 		const currentProps = { ...props, caller: currentCaller, errorCode: _errorCode, errorData: _defaultError?.data };
 		const message = GitError._getMessage(_errorCode, _defaultError, currentCaller, currentProps);
-		super(message, _defaultError, currentProps);
+		super(message, _defaultError, currentProps, isWarninig, title);
 		this._caller = currentCaller;
 	}
 
@@ -39,24 +41,15 @@ export default class GitError extends DefaultError {
 	private static _getMessage(errorCode: GitErrorCode, defaultError: any, caller: Caller, props: GitErrorProps) {
 		if (defaultError?.message) console.error("Error message:\n", defaultError?.message);
 		if (defaultError?.data) console.error("Error data:\n", defaultError?.data);
-		return errorCode === null
-			? GitError._generateErrorMessage(defaultError)
-			: gitErrorLocalization[errorCode]({
-					lang: defaultLanguage,
-					caller,
-					error: {
-						data: defaultError?.data,
-						message: defaultError?.message,
-						props,
-					},
-			  });
-	}
-
-	private static _generateErrorMessage(defaultError: any) {
-		const messageString = `сообщение ошибки - ${defaultError.message}`;
-		const codeString = defaultError.code ? `код ошибки - ${defaultError.code}` : "";
-		const errorDataString = defaultError.data ? `errorData: ${JSON.stringify(defaultError.data)}` : "";
-		return ["Неизвестная ошибка", messageString, codeString, errorDataString].filter((x) => x).join(", ");
+		return gitErrorLocalization[errorCode]({
+			lang: defaultLanguage,
+			caller,
+			error: {
+				data: defaultError?.data,
+				message: defaultError?.message,
+				props,
+			},
+		});
 	}
 
 	private static _getCaller(caller: Caller, defaultError: any): Caller {

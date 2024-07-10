@@ -2,7 +2,9 @@ import PageDataContext from "../../../../logic/Context/PageDataContext";
 import BugsnagErrorBoundary from "../../../bugsnag/components/BugsnagErrorBoundary";
 import ErrorConfirmService from "../ErrorConfirmService";
 
-const ErrorBoundary = ({ context, children }: { children: JSX.Element; context: PageDataContext }) => {
+export type ErrorBoundaryProps = { context?: PageDataContext; children: JSX.Element };
+
+const ErrorBoundary = ({ context, children }: ErrorBoundaryProps) => {
 	if (!context?.conf?.isProduction) return <ErrorConfirmService.Provider>{children}</ErrorConfirmService.Provider>;
 
 	return (

@@ -3,6 +3,7 @@ import { AuthorizeMiddleware } from "@core/Api/middleware/AuthorizeMiddleware";
 import Context from "@core/Context/Context";
 import Path from "@core/FileProvider/Path/Path";
 import { Article } from "@core/FileStructue/Article/Article";
+import FileStructueErrorCode from "@core/FileStructue/error/model/FileStructueErrorCode";
 import { ArticlePageData } from "@core/SitePresenter/SitePresenter";
 import DefaultError from "../../../../core/extensions/errorHandlers/logic/DefaultError";
 import { Command } from "../../../types/Command";
@@ -16,11 +17,12 @@ const checkLastModified: Command<{ ctx: Context; articlePath: Path; catalogName:
 		middlewares: [new AuthorizeMiddleware()],
 
 		async do({ ctx, articlePath, catalogName }) {
-			const { lib, sitePresenterFactory } = this._app;
-			const catalog = await lib.getCatalog(catalogName);
+			const { sitePresenterFactory, wm } = this._app;
+			const workspace = wm.current();
+			const catalog = await workspace.getCatalog(catalogName);
 			if (!catalog || !catalog.getRootCategory().items.length) return;
 
-			const fp = lib.getFileProviderByCatalog(catalog);
+			const fp = workspace.getFileProvider();
 			const itemRef = fp.getItemRef(articlePath);
 			const article = catalog.findItemByItemRef<Article>(itemRef);
 			if (!article || article.props.welcome) return;
@@ -30,7 +32,8 @@ const checkLastModified: Command<{ ctx: Context; articlePath: Path; catalogName:
 				const stat = await fp.getStat(article.ref.path);
 				res = await article.checkLastModified(stat.mtimeMs);
 			} catch (e) {
-				if (e?.code === "ENOENT") throw new DefaultError(null, e, { errorCode: e?.code });
+				if (e?.code === "ENOENT")
+					throw new DefaultError(null, e, { errorCode: FileStructueErrorCode.ArticleNotFoundError });
 			}
 
 			return res ? await sitePresenterFactory.fromContext(ctx).getArticlePageData(article, catalog) : null;

@@ -101,8 +101,7 @@ const LevNavItem = styled(
 	:hover {
 		background: var(--color-lev-sidebar-hover);
 
-		.right-extensions,
-		.right-extensions * {
+		.right-extensions {
 			display: inline-flex;
 		}
 	}
@@ -115,8 +114,7 @@ const LevNavItem = styled(
     color: var(--color-primary);
 	font-weight: 400;
 
-	.right-extensions,
-	.right-extensions * {
+	.right-extensions {
 		display: inline-flex !important;
 	}
     

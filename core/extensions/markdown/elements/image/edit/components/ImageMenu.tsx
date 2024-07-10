@@ -6,7 +6,6 @@ import useLocalize from "@ext/localization/useLocalize";
 import Button from "@ext/markdown/core/edit/components/Menu/Button";
 import ImageEditor from "@ext/markdown/elements/image/edit/components/ImageEditor/index";
 import { Crop, ImageObject } from "@ext/markdown/elements/image/edit/model/imageEditorTypes";
-import linkCreator from "@ext/markdown/elements/link/render/logic/linkCreator";
 import getFocusNode from "@ext/markdown/elementsUtils/getFocusNode";
 import { Editor } from "@tiptap/core";
 import { Node } from "prosemirror-model";
@@ -41,10 +40,6 @@ const ImageMenu = ({ editor }: { editor: Editor }) => {
 		editor.commands.deleteRange({ from: position, to: position + node.nodeSize });
 	};
 
-	const url =
-		(linkCreator.isExternalLink(node?.attrs?.src) && node?.attrs?.src) ||
-		apiUrlCreator.getArticleResource(node?.attrs?.src);
-
 	const handleEdit = () => {
 		if (node) {
 			const handleSave = (objects: ImageObject[], crop: Crop) => {
@@ -60,17 +55,17 @@ const ImageMenu = ({ editor }: { editor: Editor }) => {
 
 			const root = createRoot(element);
 			root.render(
-				<ImageEditor
-					imageProps={{
-						alt: node?.attrs?.alt,
-						title: node?.attrs?.title,
-						src: url,
-						objects: node?.attrs?.objects !== "undefined" ? node?.attrs?.objects : [],
-						crop: node?.attrs?.crop,
-					}}
-					handleSave={handleSave}
-					handleToggle={handleToggle}
-				/>,
+				<ApiUrlCreatorService.Provider value={apiUrlCreator}>
+					<ImageEditor
+						alt={node?.attrs?.alt}
+						title={node?.attrs?.title}
+						src={apiUrlCreator.getArticleResource(node?.attrs?.src)}
+						crop={node?.attrs?.crop ?? { x: 0, y: 0, w: 100, h: 100 }}
+						objects={node?.attrs?.objects ?? []}
+						handleSave={handleSave}
+						handleToggle={handleToggle}
+					/>
+				</ApiUrlCreatorService.Provider>,
 			);
 		}
 	};
@@ -80,7 +75,7 @@ const ImageMenu = ({ editor }: { editor: Editor }) => {
 			<ButtonsLayout>
 				<Input placeholder="Подпись" value={title} onChange={handleTitleChange} />
 				<div className="divider" />
-				{/* <Button icon={"pen"} tooltipText={messages[0]} onClick={handleEdit} /> */}
+				<Button icon={"pen"} tooltipText={messages[0]} onClick={handleEdit} />
 				<Button icon={"trash"} tooltipText={messages[1]} onClick={handleDelete} />
 			</ButtonsLayout>
 		</ModalLayoutDark>

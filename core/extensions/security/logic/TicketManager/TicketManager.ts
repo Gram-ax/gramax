@@ -1,4 +1,4 @@
-import Library from "../../../../logic/Library/Library";
+import type WorkspaceManager from "@ext/workspace/WorkspaceManager";
 import { Encoder } from "../../../Encoder/Encoder";
 import IPermission from "../Permission/IPermission";
 import Permission from "../Permission/Permission";
@@ -11,7 +11,7 @@ interface AuthProp {
 }
 
 export class TicketManager {
-	constructor(private _lib: Library, private _encoder: Encoder, private _shareAccessToken: string) {}
+	constructor(private _wm: WorkspaceManager, private _encoder: Encoder, private _shareAccessToken: string) {}
 
 	public checkTicket(ticket: string): { catalogPermissions: { [catalogName: string]: IPermission }; user: User } {
 		const catalogPermissions: { [catalogName: string]: IPermission } = {};
@@ -45,7 +45,7 @@ export class TicketManager {
 	}
 
 	private _checkExternalTicket(ticket: string): { catalogName: string; permission: IPermission }[] {
-		const catalogs = Array.from(this._lib.getCatalogEntries().values());
+		const catalogs = Array.from(this._wm.current().getCatalogEntries().values());
 		const catalogsPermissions = [];
 		catalogs.forEach((c) => {
 			const auth: AuthProp = c.props[authProp];

@@ -6,9 +6,9 @@ export interface IoErrorBuilder {
 export default class IoError extends Error {
 	code: string;
 
-	constructor(err: IoErrorBuilder | string, message: string) {
+	constructor(err: IoErrorBuilder | string, message?: string) {
 		super(typeof err == "string" ? err : err.message);
-		this.message += "\n" + message;
+		message && (this.message += "\n" + message);
 		if (typeof err == "string") return;
 
 		this.name = err.name;

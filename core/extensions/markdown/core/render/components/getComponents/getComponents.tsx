@@ -3,8 +3,8 @@ import DiagramType from "../../../../../../logic/components/Diagram/DiagramType"
 import DiagramData from "../../../../elements/diagrams/component/DiagramData";
 import HTMLComponents from "./HTMLComponents";
 
-import LucideIcon from "../../../../elements/icon/render/components/Icon";
-import Image from "@components/Atoms/Image/Image";
+import Icon from "../../../../elements/icon/render/components/Icon";
+import Image from "../../../../elements/image/render/components/Image";
 import Error from "@components/Error";
 import Cmd from "../../../../elements/cmd/render/Cmd";
 import Code from "../../../../elements/code/render/component/Code";
@@ -50,7 +50,7 @@ export default function getComponents(): { [name: string]: (...props: any) => Re
 		Sub: ({ children }: { children: JSX.Element }) => <sub>{children}</sub>,
 		Cmd,
 		Cut,
-		Icon: LucideIcon,
+		Icon,
 		Issue,
 		Module,
 		Who,

@@ -1,4 +1,4 @@
-import Image from "@components/Atoms/Image/Image";
+import Image from "@ext/markdown/elements/image/render/components/Image";
 
 const Images = ({ images, postfix }: { postfix: string; images: string[] }) => {
 	return (

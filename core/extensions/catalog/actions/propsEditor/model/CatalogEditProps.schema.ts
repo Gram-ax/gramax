@@ -1,4 +1,4 @@
-import Style from "@components/HomePage/Groups/model/Style";
+import Style from "@components/HomePage/Cards/model/Style";
 
 /**
  * @title Настройки каталога

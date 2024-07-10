@@ -1,17 +1,15 @@
 import resolveModule from "@app/resolveModule/backend";
-import { getExecutingEnvironment } from "@app/resolveModule/env";
 import { ContextFactory } from "@core/Context/ContextFactory";
 import DiskFileProvider from "@core/FileProvider/DiskFileProvider/DiskFileProvider";
 import Path from "@core/FileProvider/Path/Path";
 import Hash from "@core/Hash/Hash";
-import Library from "@core/Library/Library";
-import deleteAnyFolderRule from "@core/Library/Rules/DeleteAnyFolderRule/DeleteAnyFolderRule";
 import PluginImporterType from "@core/Plugin/PluginImporter/logic/PluginImporterType";
 import PluginProvider from "@core/Plugin/logic/PluginProvider";
 import CustomArticlePresenter from "@core/SitePresenter/CustomArticlePresenter";
 import SitePresenterFactory from "@core/SitePresenter/SitePresenterFactory";
 import { TableDB } from "@core/components/tableDB/table";
 import VideoUrlRepository from "@core/components/video/videoUrlRepository";
+import YamlFileConfig from "@core/utils/YamlFileConfig";
 import Cache from "@ext/Cache";
 import { Encoder } from "@ext/Encoder/Encoder";
 import MailProvider from "@ext/MailProvider";
@@ -20,6 +18,7 @@ import RepositoryProvider from "@ext/git/core/Repository/RepositoryProvider";
 import HtmlParser from "@ext/html/HtmlParser";
 import FSLocalizationRules from "@ext/localization/core/rules/FSLocalizationRules";
 import BugsnagLogger from "@ext/loggers/BugsnagLogger";
+import ConsoleLogger from "@ext/loggers/ConsoleLogger";
 import Logger from "@ext/loggers/Logger";
 import MarkdownParser from "@ext/markdown/core/Parser/Parser";
 import ParserContextFactory from "@ext/markdown/core/Parser/ParserContext/ParserContextFactory";
@@ -27,8 +26,8 @@ import MarkdownFormatter from "@ext/markdown/core/edit/logic/Formatter/Formatter
 import AuthManager from "@ext/security/logic/AuthManager";
 import Sso from "@ext/security/logic/AuthProviders/Sso";
 import { TicketManager } from "@ext/security/logic/TicketManager/TicketManager";
-import { BrowserFileProvider } from "../../apps/browser/src/logic/FileProvider/BrowserFileProvider";
-import { AppConfig, getConfig } from "../config/AppConfig";
+import WorkspaceManager from "@ext/workspace/WorkspaceManager";
+import { AppConfig, getConfig, type AppGlobalConfig } from "../config/AppConfig";
 import Application from "../types/Application";
 
 const _init = async (config: AppConfig): Promise<Application> => {
@@ -40,26 +39,34 @@ const _init = async (config: AppConfig): Promise<Application> => {
 	await resolveModule("initWasm")?.(config.services.cors.url);
 
 	const rp = new RepositoryProvider({ corsProxy: config.services.cors.url });
-	const fp = new DiskFileProvider(config.paths.root);
-	await fp.validate();
 
-	const obsoleteFp = getExecutingEnvironment() == "browser" && new BrowserFileProvider(Path.empty);
+	const fileConfig = await YamlFileConfig.readFromFile<AppGlobalConfig>(
+		new DiskFileProvider(config.paths.data),
+		new Path("config.yaml"),
+	);
 
-	const libRules = getExecutingEnvironment() == "browser" ? [deleteAnyFolderRule] : [];
-	const lib = new Library(rp, config.isServerApp);
-	await lib.addFileProvider(fp, (fs) => FSLocalizationRules.bind(fs), libRules);
+	const wm = new WorkspaceManager(
+		(path) => new DiskFileProvider(path),
+		(fs) => FSLocalizationRules.bind(fs),
+		rp,
+		config,
+		fileConfig,
+	);
+
+	await wm.readWorkspaces();
 
 	const hashes = new Hash();
 	const tm = new ThemeManager();
 	const encoder = new Encoder();
-	const ticketManager = new TicketManager(lib, encoder, config.tokens.share);
+	const ticketManager = new TicketManager(wm, encoder, config.tokens.share);
 	const parser = new MarkdownParser();
 	const formatter = new MarkdownFormatter();
-	const tablesManager = new TableDB(parser, lib);
+	const tablesManager = new TableDB(parser, wm);
 	const customArticlePresenter = new CustomArticlePresenter();
+
 	const parserContextFactory = new ParserContextFactory(
 		config.paths.base,
-		fp,
+		wm,
 		tablesManager,
 		parser,
 		formatter,
@@ -67,26 +74,20 @@ const _init = async (config: AppConfig): Promise<Application> => {
 		config.services.diagramRenderer.url,
 	);
 	const htmlParser = new HtmlParser(parser, parserContextFactory);
-	const logger: Logger = new BugsnagLogger(config.bugsnagApiKey);
-	const sitePresenterFactory = new SitePresenterFactory(
-		lib,
-		parser,
-		parserContextFactory,
-		rp,
-		customArticlePresenter,
-	);
+	const logger: Logger = config.isProduction ? new BugsnagLogger(config) : new ConsoleLogger();
+	const sitePresenterFactory = new SitePresenterFactory(wm, parser, parserContextFactory, rp, customArticlePresenter);
+
 	const contextFactory = new ContextFactory(tm, config.tokens.cookie);
 
-	const cacheFileProvider = new DiskFileProvider(config.paths.userDataPath);
-	const cache = new Cache(cacheFileProvider);
-	const pluginProvider = new PluginProvider(lib, htmlParser, cache, PluginImporterType.browser);
+	const cache = new Cache(new DiskFileProvider(config.paths.cache));
+	const pluginProvider = new PluginProvider(wm, htmlParser, cache, PluginImporterType.browser);
 
 	return {
 		am,
 		tm,
 		mp,
 		sso,
-		lib,
+		wm,
 		vur,
 		rp,
 		cache,
@@ -102,7 +103,6 @@ const _init = async (config: AppConfig): Promise<Application> => {
 		parserContextFactory,
 		pluginProvider,
 		customArticlePresenter,
-		obsoleteFp,
 		conf: {
 			services: config.services,
 
@@ -115,6 +115,7 @@ const _init = async (config: AppConfig): Promise<Application> => {
 
 			bugsnagApiKey: config.bugsnagApiKey,
 			version: config.version,
+			buildVersion: config.buildVersion,
 		},
 	};
 };

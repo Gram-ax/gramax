@@ -1,7 +1,7 @@
 import { Paragraph, TextRun } from "docx";
 import Path from "../../../../../logic/FileProvider/Path/Path";
 import { WordExportHelper } from "../../../../wordExport/WordExportHelpers";
-import { WordBlockChild } from "../../../../wordExport/WordTypes";
+import { WordBlockChild } from "../../../../wordExport/options/WordTypes";
 
 export const imagesWordLayout: WordBlockChild = async ({ tag, resourceManager }) => {
 	const images = await Promise.all(

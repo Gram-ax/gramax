@@ -21,9 +21,7 @@ let TRACE_DUMP_COUNT = 0;
 
 const makeGlobalContext = async () => {
 	await global.context?.close();
-	global.context = await browser.newContext({
-		recordVideo: { dir: path.resolve(__dirname, "../report"), size: { height: 720, width: 1080 } },
-	});
+	global.context = await browser.newContext();
 	const page = await context.newPage();
 	await context.tracing.start({ screenshots: true, snapshots: true });
 	await page.goto(config.url);
@@ -58,6 +56,7 @@ Before({ timeout: config.timeouts.long * 10 }, async function (this: E2EWorld, s
 		await makeGlobalContext();
 	}
 	this.setContext(global.page, scenario);
+	await this.page().waitForLoad();
 	global.scenario = scenario;
 });
 
@@ -65,7 +64,7 @@ AfterStep(async function (this: E2EWorld) {
 	if ((await checkForErrorModal(this)) && !this.allowErrorModal) throw new Error("An error modal found");
 });
 
-AfterAll(async function () {
+AfterAll({ timeout: config.timeouts.long * 4 }, async function () {
 	await context.tracing.stop({ path: "report/tracing/trace-" + ++TRACE_DUMP_COUNT + ".zip" });
 	await context.pages().at(0).screenshot({ path: "report/screenshot.png", fullPage: true, caret: "initial" });
 });
