@@ -7,8 +7,11 @@ const getGitError = (
 	error: any,
 	gitErrorProps: Partial<GitErrorContextProps> & { [key: string]: any },
 	caller?: Caller,
+	title?: string,
 ): GitError | Error => {
-	return error.code in GitErrorCode ? new GitError(GitErrorCode[error.code], error, gitErrorProps, caller) : error;
+	return error.code in GitErrorCode
+		? new GitError(GitErrorCode[error.code], error, gitErrorProps, caller, false, title)
+		: error;
 };
 
 export default getGitError;

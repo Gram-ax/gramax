@@ -1,6 +1,7 @@
 import { Tag } from "@ext/markdown/core/render/logic/Markdoc";
 import { WordBlockChild } from "@ext/wordExport/options/WordTypes";
 import {
+	STANDART_PAGE_WIDTH,
 	WordBlockType,
 	wordBordersType,
 	WordFontStyles,
@@ -10,6 +11,8 @@ import { createContent } from "@ext/wordExport/TextWordGenerator";
 import { createParagraph } from "@ext/wordExport/createParagraph";
 import { Table, TableCell, TableRow, WidthType } from "docx";
 
+const INNER_BLOCK_WIDTH_DIFFERENCE = 310;
+
 export const tabsWordLayout: WordBlockChild = async ({ state, tag, addOptions }) => {
 	const rows = await Promise.all(
 		tag.children.map(async (tab) => {
@@ -17,7 +20,17 @@ export const tabsWordLayout: WordBlockChild = async ({ state, tag, addOptions })
 			const paragraphs = [
 				createParagraph([createContent(tabTag.attributes.name, addOptions)], WordFontStyles.tabsTitle),
 				...(
-					await Promise.all(tabTag.children.map((child) => state.renderBlock(child as Tag, addOptions)))
+					await Promise.all(
+						tabTag.children.map((child) =>
+							state.renderBlock(child as Tag, {
+								...addOptions,
+								maxPictureWidth:
+									(addOptions?.maxPictureWidth ?? STANDART_PAGE_WIDTH) - INNER_BLOCK_WIDTH_DIFFERENCE,
+								maxTableWidth:
+									(addOptions?.maxTableWidth ?? STANDART_PAGE_WIDTH) - INNER_BLOCK_WIDTH_DIFFERENCE,
+							}),
+						),
+					)
 				).flat(),
 			];
 
@@ -30,7 +43,7 @@ export const tabsWordLayout: WordBlockChild = async ({ state, tag, addOptions })
 	return [
 		new Table({
 			rows,
-			width: { size: 100, type: WidthType.PERCENTAGE },
+			width: { size: addOptions?.maxTableWidth ?? STANDART_PAGE_WIDTH, type: WidthType.DXA },
 			borders: wordBordersType[WordBlockType.tabs],
 			margins: wordMarginsType[WordBlockType.tabs],
 			style: WordBlockType.tabs,

@@ -1,14 +1,14 @@
 import { getExecutingEnvironment } from "@app/resolveModule/env";
 import { GifImage } from "@components/Atoms/Image/GifImage";
 import styled from "@emotion/styled";
-import { useState, type HTMLAttributes } from "react";
-import ErrorVideo from "./ErrorVideo";
+import { type HTMLAttributes } from "react";
 
 export type RenderVideoProps = {
 	url: string;
+	setIsError: (isError: boolean) => void;
 };
 
-export type PreviewVideoProps = RenderVideoProps &
+export type PreviewVideoProps = Omit<RenderVideoProps, "setIsError"> &
 	HTMLAttributes<HTMLAnchorElement> & {
 		previewUrl: string;
 	};
@@ -16,43 +16,51 @@ export type PreviewVideoProps = RenderVideoProps &
 const agent = typeof window !== "undefined" && window.navigator?.userAgent;
 const isCredentiallessUnsupported = getExecutingEnvironment() == "browser" && !agent.includes("Chrome");
 
-const SupportedVideoHostings: { [key: string]: (url: string) => JSX.Element } = {
-	"youtube.com": (url) => {
-		const id = url.match(/youtube.com\/watch\?v=(.*?)&/)?.[1];
+const SupportedVideoHostings: {
+	[key: string]: (url: string, setIsError: (isError: boolean) => void) => JSX.Element;
+} = {
+	"youtube.com": (url, setIsError) => {
+		const id = url.match(/v=([^&]+)/)?.[1];
 		return isCredentiallessUnsupported ? (
 			<PreviewVideo url={url} previewUrl={`https://img.youtube.com/vi/${id}/maxresdefault.jpg`} />
 		) : (
-			<IFrameVideo url={`https://www.youtube-nocookie.com/embed/${id}`} />
+			<IFrameVideo url={`https://www.youtube-nocookie.com/embed/${id}`} setIsError={setIsError} />
 		);
 	},
-	"youtu.be": (url) => {
+	"youtu.be": (url, setIsError) => {
 		const rel = url.match(/youtu\.be\/(.*)/)?.[1].replace("?t=", "?start=");
+		if (!rel) return null;
 		const videoId = rel.match(/(.*)\?/)?.[1];
 		return isCredentiallessUnsupported ? (
 			<PreviewVideo url={url} previewUrl={`https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`} />
 		) : (
-			<IFrameVideo url={`https://www.youtube-nocookie.com/embed/${rel}`} />
+			<IFrameVideo url={`https://www.youtube-nocookie.com/embed/${rel}`} setIsError={setIsError} />
 		);
 	},
-	"drive.google.com": (url) => {
+	"drive.google.com": (url, setIsError) => {
 		return isCredentiallessUnsupported ? (
-			<PreviewVideo url={url} previewUrl="/images/gdrive.png" />
+			<PreviewVideo url={url} previewUrl={"/images/gdrive.png"} />
 		) : (
-			<IFrameVideo url={url.replace("view", "preview")} />
+			<IFrameVideo url={url.replace("view", "preview")} setIsError={setIsError} />
 		);
 	},
-	"mega.nz": (url) =>
+	"mega.nz": (url, setIsError) =>
 		isCredentiallessUnsupported ? (
-			<PreviewVideo url={url} previewUrl="/images/meganz.png" />
+			<PreviewVideo url={url} previewUrl={"/images/meganz.png"} />
 		) : (
-			<IFrameVideo url={url.replace(`/file/`, `/embed/`)} />
+			<IFrameVideo url={url.replace(`/file/`, `/embed/`)} setIsError={setIsError} />
 		),
-	"dropbox.com": (url) => <RawVideo url={url.replace("?dl=0", "?raw=1")} />,
-	"rutube.ru": (url) =>
+	"dropbox.com": (url, setIsError) => (
+		<IFrameVideo
+			url={url.replace(url.includes("?dl=0") ? "?dl=0" : "&dl=0", url.includes("?dl=0") ? "?raw=1" : "&raw=1")}
+			setIsError={setIsError}
+		/>
+	),
+	"rutube.ru": (url, setIsError) =>
 		isCredentiallessUnsupported ? (
-			<PreviewVideo url={url} previewUrl="/images/rutube.png" />
+			<PreviewVideo url={url} previewUrl={"/images/rutube.png"} />
 		) : (
-			<IFrameVideo url={url.replace("video", "play/embed")} />
+			<IFrameVideo url={url.replace("video", "play/embed")} setIsError={setIsError} />
 		),
 	// "sharepoint.com": (link) => <VideoTag link={link.replace(/\?e=.*?$/, "?download=1")} />,
 };
@@ -72,9 +80,7 @@ const PreviewVideo = styled(PreviewVideoUnstyled)`
 	height: fit-content;
 `;
 
-const IFrameVideo = ({ url }: RenderVideoProps) => {
-	const [isError, setIsError] = useState(false);
-
+const IFrameVideo = ({ url, setIsError: setIsError }: RenderVideoProps) => {
 	const props = {
 		credentialless: "true",
 		width: "640",
@@ -83,13 +89,9 @@ const IFrameVideo = ({ url }: RenderVideoProps) => {
 		allowFullScreen: true,
 	};
 
-	return isError ? (
-		<ErrorVideo link={url} isLink />
-	) : (
+	return (
 		<iframe
 			onError={() => {
-				console.log("asdf");
-
 				setIsError(true);
 			}}
 			data-focusable="true"
@@ -101,12 +103,8 @@ const IFrameVideo = ({ url }: RenderVideoProps) => {
 	);
 };
 
-const RawVideo = ({ url }: RenderVideoProps) => {
-	const [isError, setIsError] = useState(false);
-
-	return isError ? (
-		<ErrorVideo link={url} isLink />
-	) : (
+const RawVideo = ({ url, setIsError: setIsError }: RenderVideoProps) => {
+	return (
 		<video
 			id="my-player"
 			data-focusable="true"
@@ -115,12 +113,16 @@ const RawVideo = ({ url }: RenderVideoProps) => {
 			preload="auto"
 			data-setup="{}"
 			src={url}
-			onError={() => setIsError(true)}
+			onError={() => {
+				setIsError(true);
+			}}
 		/>
 	);
 };
 
-const RenderVideo = ({ url }: RenderVideoProps) =>
-	Object.entries(SupportedVideoHostings).find(([name]) => url.includes(name))?.[1](url) ?? <RawVideo url={url} />;
+const RenderVideo = ({ url, setIsError: setIsError }: RenderVideoProps) =>
+	Object.entries(SupportedVideoHostings).find(([name]) => url.includes(name))?.[1](url, setIsError) ?? (
+		<RawVideo url={url} setIsError={setIsError} />
+	);
 
 export default RenderVideo;

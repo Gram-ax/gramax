@@ -5,7 +5,7 @@ import { Command } from "../../../types/Command";
 
 const commit: Command<{ catalogName: string; msg?: string }, void> = Command.create({
 	async do({ catalogName, msg = "test" }) {
-		const { wm, conf } = this._app;
+		const { wm } = this._app;
 		const workspace = wm.current();
 
 		const catalog = await workspace.getCatalog(catalogName);
@@ -19,7 +19,7 @@ const commit: Command<{ catalogName: string; msg?: string }, void> = Command.cre
 			name,
 		);
 		const path = catalog.repo.gvc.getPath();
-		const gr = new GitCommands({ corsProxy: conf.services.cors.url }, fp, path);
+		const gr = new GitCommands(fp, path);
 		await gr.add((await gr.status()).map((x) => x.path));
 		await gr.commit(msg, sourceData as GitSourceData);
 		await storage.updateSyncCount();

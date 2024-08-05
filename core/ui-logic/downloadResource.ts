@@ -1,14 +1,13 @@
-import Language from "@ext/localization/core/model/Language";
-import useLocalize from "@ext/localization/useLocalize/useBareLocalize";
+import t from "@ext/localization/locale/translate";
 import Path from "../logic/FileProvider/Path/Path";
 import ApiUrlCreator from "./ApiServices/ApiUrlCreator";
 import FetchService from "./ApiServices/FetchService";
 import MimeTypes from "./ApiServices/Types/MimeTypes";
 
-const downloadResource = async (apiUrlCreator: ApiUrlCreator, path: Path, lang: Language) => {
+const downloadResource = async (apiUrlCreator: ApiUrlCreator, path: Path) => {
 	const localizedErrorMessage = JSON.stringify({
-		title: useLocalize("fileDownloadErrorTitle", lang),
-		message: useLocalize("fileDownloadErrorMessage", lang),
+		title: t("file-download-error-title"),
+		message: t("file-download-error-message"),
 	});
 
 	const res = await FetchService.fetch(apiUrlCreator.getArticleResource(path.value, null), localizedErrorMessage);

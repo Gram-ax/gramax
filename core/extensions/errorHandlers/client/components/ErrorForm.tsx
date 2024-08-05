@@ -3,9 +3,9 @@ import { ButtonStyle } from "@components/Atoms/Button/ButtonStyle";
 import Icon from "@components/Atoms/Icon";
 import FormStyle from "@components/Form/FormStyle";
 import ModalLayoutLight from "@components/Layouts/ModalLayoutLight";
+import t from "@ext/localization/locale/translate";
 import { Property } from "csstype";
 import { ReactNode } from "react";
-import useLocalize from "../../../localization/useLocalize";
 
 const InfoModalForm = ({
 	title,
@@ -28,8 +28,8 @@ const InfoModalForm = ({
 	closeButton?: { text: string };
 	noButtons?: boolean;
 }) => {
-	const closeText = useLocalize("close");
-	const cancelText = useLocalize("cancel");
+	const closeText = t("close");
+	const cancelText = t("cancel");
 	return (
 		<ModalLayoutLight>
 			<FormStyle>
@@ -39,7 +39,7 @@ const InfoModalForm = ({
 						style={{ display: "flex", alignItems: "center" }}
 					>
 						{icon && <Icon style={{ color: icon.color }} code={icon.code} />}
-						<span className="min">{title}</span>
+						<span className="min" dangerouslySetInnerHTML={{ __html: title }} />
 					</legend>
 					{children}
 					<div className="form-group field field-string" />

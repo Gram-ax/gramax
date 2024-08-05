@@ -1,13 +1,13 @@
 import ListLayout from "@components/List/ListLayout";
-import { useEffect, useState } from "react";
-import ConfluenceSourceData from "@ext/confluence/actions/Source/model/ConfluenceSourceData";
-import useLocalize from "@ext/localization/useLocalize";
-import ConfluenceStorageData from "@ext/confluence/core/model/ConfluenceStorageData";
-import { transliterate } from "@core-ui/languageConverter/transliterate";
-import ConfluenceAPI, { Space } from "@ext/confluence/ConfluenceAPI";
-import { makeSourceApi } from "@ext/git/actions/Source/makeSourceApi";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
+import { transliterate } from "@core-ui/languageConverter/transliterate";
+import ConfluenceAPI, { Space } from "@ext/confluence/ConfluenceAPI";
+import ConfluenceSourceData from "@ext/confluence/actions/Source/model/ConfluenceSourceData";
+import ConfluenceStorageData from "@ext/confluence/core/model/ConfluenceStorageData";
+import { makeSourceApi } from "@ext/git/actions/Source/makeSourceApi";
+import t from "@ext/localization/locale/translate";
+import { useEffect, useState } from "react";
 
 type SelectProps = {
 	source: ConfluenceSourceData;
@@ -40,7 +40,7 @@ const SelectConfluenceStorageDataFields = ({ source, onChange }: SelectProps) =>
 
 	return (
 		<div className="form-group field field-string row">
-			<div className="control-label">{useLocalize("space")}</div>
+			<div className="control-label">{t("space")}</div>
 			<div className="input-lable">
 				<ListLayout
 					isLoadingData={isLoadingData}

@@ -9,7 +9,7 @@ class LinkItemCreator {
 
 	async getLinkItems(articlePath: Path): Promise<LinkItem[]> {
 		if (!this._catalog) return [];
-		const items = this._catalog.getItems().filter((item) => !item.ref.path.compare(articlePath));
+		const items = this._catalog.getItems();
 		const itemsTree = this._catalog.getRootCategory().items;
 		return Promise.all(items.map((i) => this._toItemLink(this._catalog, i, itemsTree, articlePath)));
 	}

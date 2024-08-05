@@ -1,14 +1,14 @@
 import Language from "@ext/localization/core/model/Language";
-import useBareLocalize from "@ext/localization/useLocalize/useBareLocalize";
+import t from "@ext/localization/locale/translate";
 import { BorderStyle, HeadingLevel } from "docx";
 
 export const NON_BREAKING_SPACE = "\u00A0";
 export const ICON_SIZE = 11;
 
-export const diagramString = (language: Language) => useBareLocalize("diagramWord", language);
-export const imageString = (language: Language) => useBareLocalize("pictureWord", language);
-export const tableDbString = (language: Language) => useBareLocalize("tableDbWord", language);
-export const snippetString = (language: Language) => useBareLocalize("snippetWord", language);
+export const diagramString = (language: Language) => t("word.diagram", language);
+export const imageString = (language: Language) => t("word.picture", language);
+export const tableDbString = (language: Language) => t("word.tabledb", language);
+export const snippetString = (language: Language) => t("word.snippet", language);
 
 export const wordFontSizes = {
 	list: 24,
@@ -21,6 +21,18 @@ export const HeadingStyles = {
 	2: HeadingLevel.HEADING_2,
 	3: HeadingLevel.HEADING_3,
 	4: HeadingLevel.HEADING_4,
+	5: HeadingLevel.HEADING_5,
+	6: HeadingLevel.HEADING_6,
+	7: "Heading7",
+	8: "Heading8",
+	9: "Heading9",
+	10: "Heading10",
+};
+
+export const HStyles = {
+	2: "H2",
+	3: "H3",
+	4: "H4",
 };
 
 export const wordFontTypes = {
@@ -104,9 +116,10 @@ export const wordMarginsType = {
 } as const;
 
 export const wordBordersColors = {
-	orange: "eb9c00",
+	orange: "c47e0a",
 	blue: "0096e0",
-	purple: "4366ad",
+	purple: "8270db",
+	darkBlue: "4366ad",
 	red: "d90000",
 	darkGrey: "7b7b7b",
 	grey: "a4a4a4",
@@ -132,9 +145,9 @@ export const wordBordersType = {
 	},
 	[WordBlockType.fence]: {},
 	[WordBlockType.note]: wordNoteBorderType(wordBordersColors.orange),
-	[WordBlockType.lab]: wordNoteBorderType(wordBordersColors.blue),
+	[WordBlockType.lab]: wordNoteBorderType(wordBordersColors.purple),
 	[WordBlockType.tip]: wordNoteBorderType(wordBordersColors.blue),
-	[WordBlockType.info]: wordNoteBorderType(wordBordersColors.purple),
+	[WordBlockType.info]: wordNoteBorderType(wordBordersColors.darkBlue),
 	[WordBlockType.danger]: wordNoteBorderType(wordBordersColors.red),
 	[WordBlockType.hotfixes]: wordNoteBorderType(wordBordersColors.darkGrey),
 	[WordBlockType.quote]: wordNoteBorderType(wordBordersColors.darkGrey),
@@ -154,3 +167,5 @@ export const wordBordersType = {
 		insideVertical: { style: BorderStyle.NIL },
 	},
 } as const;
+
+export const STANDART_PAGE_WIDTH = 9353;

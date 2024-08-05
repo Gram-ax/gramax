@@ -3,9 +3,8 @@ import { ItemContent, ListItem } from "@components/List/Item";
 import TooltipListLayout from "@components/List/TooltipListLayout";
 import FetchService from "@core-ui/ApiServices/FetchService";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
-import multiLayoutSearcher from "@core-ui/languageConverter/multiLayoutSearcher";
 import styled from "@emotion/styled";
-import useLocalize from "@ext/localization/useLocalize";
+import t from "@ext/localization/locale/translate";
 import { IconEditorProps } from "@ext/markdown/elements/icon/logic/IconProvider";
 import { Editor } from "@tiptap/core";
 import { useState } from "react";
@@ -25,8 +24,8 @@ const IconMenuButton = ({ editor, onClose, className }: IconMenuButtonProps) => 
 		(listItem) => !customIconsList.some((icon) => icon.code === listItem.labelField),
 	);
 
-	const iconText = useLocalize("icon");
-	const iconPlaceholderText = useLocalize("iconCone");
+	const iconText = t("icon");
+	const iconPlaceholderText = t("icon-cone");
 
 	const getIcons = async () => {
 		const res = await FetchService.fetch<IconEditorProps[]>(apiUrlCreator.getCustomIconsList());
@@ -46,13 +45,13 @@ const IconMenuButton = ({ editor, onClose, className }: IconMenuButtonProps) => 
 	const titleCustomIcons: ListItem = {
 		isTitle: true,
 		disable: true,
-		element: <div className="itemTitle">{useLocalize("catalogIconsTitle")}</div>,
+		element: <div className="itemTitle">{t("catalog-icons-title")}</div>,
 	};
 
 	const titleSystemIcons: ListItem = {
 		isTitle: true,
 		disable: true,
-		element: <div className="itemTitle">{useLocalize("systemIconsTitle")}</div>,
+		element: <div className="itemTitle">{t("system-icons-title")}</div>,
 	};
 
 	const items: ItemContent[] = (

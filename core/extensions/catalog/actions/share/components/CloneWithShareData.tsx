@@ -5,7 +5,7 @@ import convertShareLinkDataToStorageData from "@ext/catalog/actions/share/logic/
 import ShareData from "@ext/catalog/actions/share/model/ShareData";
 import InfoModalForm from "@ext/errorHandlers/client/components/ErrorForm";
 import GitShareData from "@ext/git/core/model/GitShareData";
-import useLocalize from "@ext/localization/useLocalize";
+import t from "@ext/localization/locale/translate";
 import CreateSourceData from "@ext/storage/logic/SourceDataProvider/components/CreateSourceData";
 import SourceData from "@ext/storage/logic/SourceDataProvider/model/SourceData";
 import SourceType from "@ext/storage/logic/SourceDataProvider/model/SourceType";
@@ -31,7 +31,7 @@ const CloneWithShareData = ({
 	const hasStorageInitializedRef = useRef(false);
 	const [partSourceData, setPartSourceData] = useState<Partial<SourceData>>(null);
 	const [createSourceDataStep, setCreateSourceDataStep] = useState<"warning" | "create">("warning");
-	const loadingText = useLocalize("loading2");
+	const loadingText = t("loading2");
 
 	const pageProps = PageDataContextService.value;
 
@@ -74,15 +74,15 @@ const CloneWithShareData = ({
 	const createSourceDataWarning = (
 		<InfoModalForm
 			isWarning={true}
-			title={useLocalize("cloneFail")}
+			title={t("clone-fail")}
 			onCancelClick={() => onCreateSourceDataClose(false)}
 			actionButton={{
 				onClick: () => setCreateSourceDataStep("create"),
-				text: useLocalize("addStorage"),
+				text: t("add-storage"),
 			}}
 		>
 			<span>
-				{useLocalize("noAccessToStorage")} {domain}. {useLocalize("addToContinueDownloading")}
+				{t("no-access-to-storage")} {domain}. {t("add-to-continue-downloading")}
 			</span>
 		</InfoModalForm>
 	);

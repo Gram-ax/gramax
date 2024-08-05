@@ -63,7 +63,6 @@ const Styles = styled(({ className = "", children, imageBackgroundColor, noneSha
 	}
 	.modal__container__image {
 		position: relative;
-		overflow: hidden;
 		max-width: 100%;
 		max-height: 100%;
 	}

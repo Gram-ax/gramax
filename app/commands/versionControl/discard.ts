@@ -12,14 +12,13 @@ const discard: Command<{ catalogName: string; filePaths: string[] }, void> = Com
 	middlewares: [new AuthorizeMiddleware(), new ReloadConfirmMiddleware()],
 
 	async do({ catalogName, filePaths }) {
-		const { rp, logger, wm } = this._app;
+		const { logger, wm } = this._app;
 		const workspace = wm.current();
 
 		const catalog = await workspace.getCatalog(catalogName);
 		if (!catalog) return;
 
 		await catalog.repo.gvc.discard(filePaths.map((filePath) => new Path(filePath)));
-		await catalog.update(rp);
 		logger.logTrace(
 			`Discarded in catalog: ${catalog.getName()}. Files: "${filePaths ? filePaths.join('", "') + '"' : "."}`,
 		);

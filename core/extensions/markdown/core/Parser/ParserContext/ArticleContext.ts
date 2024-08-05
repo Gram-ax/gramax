@@ -22,7 +22,6 @@ export default class ArticleContext extends BaseContext implements ParserContext
 		private _basePath: Path,
 		private _language: Language,
 		private _isLogged: boolean,
-		private _ssoServerUrl: string,
 		private _diagramRendererServerUrl: string,
 		private _tablesManager: TableDB,
 		private _getUserByMail: (mail: string) => Promise<UserInfo> | UserInfo,
@@ -36,10 +35,6 @@ export default class ArticleContext extends BaseContext implements ParserContext
 
 		this._linkManager = new ResourceManager(fp, basePath, rootPath);
 		this._resourceManager = new ResourceManager(fp, basePath, rootPath);
-	}
-
-	getSsoServerUrl(): string {
-		return this._ssoServerUrl;
 	}
 
 	getDiagramRendererServerUrl(): string {
@@ -105,7 +100,6 @@ export default class ArticleContext extends BaseContext implements ParserContext
 			this._basePath,
 			this._language,
 			this._isLogged,
-			this._ssoServerUrl,
 			this._diagramRendererServerUrl,
 			this._tablesManager,
 			this._getUserByMail,

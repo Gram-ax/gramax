@@ -145,6 +145,9 @@
 	--color-admonition-info-br-h: hsla(220, 44%, 47%, 1);
 	--color-admonition-danger-br-h: hsl(0, 74%, 42%);
 
+	--color-alert-warning-border: hsl(41, 100%, 86%);
+	--color-alert-error-border: hsl(0, 100%, 89%);
+
 	--color-hp-product-bright-orange: hsl(48deg 65% 97%);
 	--color-hp-product-dark-orange: hsl(39deg 65% 97%);
 	--color-hp-product-blue-green: hsl(147deg 65% 97%);
@@ -260,6 +263,9 @@
 	--color-admonition-note-br-h: hsl(37.5deg 90.32% 48.63%);
 	--color-admonition-info-br-h: hsl(220deg 50% 70%);
 	--color-admonition-danger-br-h: hsl(0deg 100% 75%);
+
+	--color-alert-warning-border: hsl(38, 90%, 24%);
+	--color-alert-error-border: hsl(16, 78%, 35%);
 
 	--color-hp-product-bright-orange: hsl(48deg 13% 29%);
 	--color-hp-product-dark-orange: hsl(39deg 13% 29%);

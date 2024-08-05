@@ -3,6 +3,7 @@ import WorkspaceService from "@core-ui/ContextServices/Workspace";
 import HasWorkspaceHOC from "@core-ui/HigherOrderComponent/HasWorkspaceHOC";
 import { cssMedia } from "@core-ui/utils/cssUtils";
 import styled from "@emotion/styled";
+import SwitchUiLanguage from "@ext/localization/actions/SwitchUiLanguage";
 import SwitchTabsTag from "@ext/markdown/elements/tabs/components/SwitchTabsTag";
 import { CatalogLink } from "@ext/navigation/NavigationLinks";
 import SwitchWorkspace from "@ext/workspace/components/SwitchWorkspace";
@@ -26,19 +27,15 @@ export default styled(
 
 		return (
 			<div className={className} data-qa="app-actions">
-				{isHomePage && !isServerApp && (
-					<WorkspaceService.Provider>
-						<SwitchWorkspace />
-					</WorkspaceService.Provider>
-				)}
+				{isHomePage && !isServerApp && WorkspaceService.hasActive() && <SwitchWorkspace />}
 				<HasWorkspaceHOC>
 					{isHomePage && <Search isHomePage={isHomePage} catalogLinks={catalogLinks} />}
 				</HasWorkspaceHOC>
-				{/* <LangToggle /> */}
+				<SwitchUiLanguage />
 				<ThemeToggle />
 				<HasWorkspaceHOC>
 					{isHomePage && isLogged && <AddCatalogMenu />}
-					{isServerApp && <SingInOut />}
+					<SingInOut />
 					{!isHomePage && <SwitchTabsTag />}
 				</HasWorkspaceHOC>
 			</div>

@@ -1,4 +1,3 @@
-import { getExecutingEnvironment } from "@app/resolveModule/env";
 import ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
 import FetchService from "@core-ui/ApiServices/FetchService";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
@@ -11,15 +10,18 @@ export default abstract class WorkspaceService {
 	private static _apiUrlCreator: ApiUrlCreator;
 
 	static Provider({ children }: { children: ReactElement }): ReactElement {
-		if (getExecutingEnvironment() == "next") return;
 		WorkspaceService._apiUrlCreator = ApiUrlCreatorService.value;
-		return PageDataContextService.value.workspace.current && children;
+		return children;
 	}
 
 	static current() {
 		return PageDataContextService.value.workspace.workspaces.find(
 			(w) => w.path == PageDataContextService.value.workspace.current,
 		);
+	}
+
+	static hasActive() {
+		return !!PageDataContextService.value.workspace.current;
 	}
 
 	static workspaces() {

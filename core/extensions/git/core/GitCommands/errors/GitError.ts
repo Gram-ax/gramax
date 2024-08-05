@@ -1,7 +1,6 @@
 import GitErrorProps from "@ext/git/core/GitCommands/errors/model/GitErrorProps";
 import DefaultError from "../../../../errorHandlers/logic/DefaultError";
 import ErrorType from "../../../../errorHandlers/model/ErrorTypes";
-import { defaultLanguage } from "../../../../localization/core/model/Language";
 import gitErrorLocalization from "./GitErrorLocalization";
 import { Caller } from "./model/Caller";
 import GitErrorCode from "./model/GitErrorCode";
@@ -20,14 +19,26 @@ export default class GitError extends DefaultError {
 	) {
 		const currentCaller = GitError._getCaller(caller, _defaultError);
 		const currentProps = { ...props, caller: currentCaller, errorCode: _errorCode, errorData: _defaultError?.data };
-		const message = GitError._getMessage(_errorCode, _defaultError, currentCaller, currentProps);
-		super(message, _defaultError, currentProps, isWarninig, title);
+		const { message, title: gitErrorTitle } = GitError._getMessage(
+			_errorCode,
+			_defaultError,
+			currentCaller,
+			currentProps,
+		);
+		super(message, _defaultError, currentProps, isWarninig, title ?? gitErrorTitle);
 		this._caller = currentCaller;
 	}
 
 	setProps(props: { [key: string]: any }): void {
 		this._props = { ...this.props, ...props };
-		this.message = GitError._getMessage(this._errorCode, this._defaultError, this._caller, this._props);
+		const { message, title: gitErrorTitle } = GitError._getMessage(
+			this._errorCode,
+			this._defaultError,
+			this._caller,
+			this._props,
+		);
+		this.message = message;
+		this.title = props.title ?? gitErrorTitle;
 	}
 
 	get props(): GitErrorProps {
@@ -42,7 +53,6 @@ export default class GitError extends DefaultError {
 		if (defaultError?.message) console.error("Error message:\n", defaultError?.message);
 		if (defaultError?.data) console.error("Error data:\n", defaultError?.data);
 		return gitErrorLocalization[errorCode]({
-			lang: defaultLanguage,
 			caller,
 			error: {
 				data: defaultError?.data,

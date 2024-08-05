@@ -3,7 +3,7 @@ import ArticlePropsService from "@core-ui/ContextServices/ArticleProps";
 import CatalogPropsService from "@core-ui/ContextServices/CatalogProps";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import DeleteCatalog from "@ext/catalog/actions/propsEditor/components/DeleteCatalog";
-import useLocalize from "@ext/localization/useLocalize";
+import t from "@ext/localization/locale/translate";
 import { ItemLink } from "@ext/navigation/NavigationLinks";
 import GetSharedTicket from "@ext/security/logic/TicketManager/components/GetSharedTicket";
 import useIsReview from "@ext/storage/logic/utils/useIsReview";
@@ -28,12 +28,9 @@ const CatalogActions = ({ itemLinks }: { itemLinks: ItemLink[] }): JSX.Element =
 
 	return (
 		<>
-			<Healthcheck
-				itemLinks={itemLinks}
-				trigger={<ListItem text={useLocalize("healthcheck")} iconCode="heart-pulse" />}
-			/>
+			<Healthcheck itemLinks={itemLinks} trigger={<ListItem text={t("healthcheck")} iconCode="heart-pulse" />} />
 			{conf.isServerApp && (
-				<GetSharedTicket trigger={<ListItem text={useLocalize("share")} iconCode="external-link" />} />
+				<GetSharedTicket trigger={<ListItem text={t("share.name")} iconCode="external-link" />} />
 			)}
 			<IsReadOnlyHOC>
 				<li>
@@ -41,11 +38,11 @@ const CatalogActions = ({ itemLinks }: { itemLinks: ItemLink[] }): JSX.Element =
 				</li>
 				<Share
 					shouldRender={!isReview && storageInitialized && !isErrorArticle}
-					trigger={<ListItem text={useLocalize("share")} iconCode="external-link" />}
+					trigger={<ListItem text={t("share.name")} iconCode="external-link" />}
 				/>
 				<CatalogEditAction
 					shouldRender={!isReview && isEdit}
-					trigger={<ListItem text={useLocalize("catalogSettings")} iconCode="square-pen" />}
+					trigger={<ListItem text={t("catalog.configure")} iconCode="square-pen" />}
 				/>
 			</IsReadOnlyHOC>
 			{isLogged && <DeleteCatalog />}

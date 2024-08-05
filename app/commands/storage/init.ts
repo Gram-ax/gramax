@@ -16,7 +16,7 @@ const init: Command<{ catalogName: string; articlePath: Path; data: StorageData 
 		const catalog = await workspace.getCatalog(catalogName);
 		if (!catalog) return;
 
-		await makeSourceApi(data.source, this._app.conf.services.auth.url).assertStorageExist(data);
+		await makeSourceApi(data.source, workspace.config().services?.auth?.url).assertStorageExist(data);
 		const fp = workspace.getFileProvider();
 		const repo = await rp.initNewRepository(catalog.getBasePath(), fp, data);
 		catalog.setRepo(repo, rp);

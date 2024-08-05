@@ -1,3 +1,4 @@
+import t from "@ext/localization/locale/translate";
 import { Encoder } from "../../../../Encoder/Encoder";
 import Cookie from "../../../../cookie/Cookie";
 import getStorageNameByData from "../../utils/getStorageNameByData";
@@ -29,7 +30,7 @@ export default class SourceDataProvider {
 
 	getData(cookie: Cookie, storageName: string): SourceData {
 		const data = cookie.get(this._getName(storageName));
-		if (!data) throw new Error(`Хранилище с имененм "${storageName}" не существует. Добавте его.`);
+		if (!data) throw new Error(t("git.source.error.storage-not-exist").replace("{{storage}}", storageName));
 		return this._decodeData(data);
 	}
 

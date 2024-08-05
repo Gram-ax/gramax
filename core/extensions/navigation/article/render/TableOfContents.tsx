@@ -1,8 +1,8 @@
 import ArticlePropsService from "@core-ui/ContextServices/ArticleProps";
 import ArticleRefService from "@core-ui/ContextServices/ArticleRef";
 import styled from "@emotion/styled";
+import t from "@ext/localization/locale/translate";
 import { MutableRefObject, forwardRef, useEffect, useRef } from "react";
-import useLocalize from "../../../localization/useLocalize";
 import { TocItem } from "../logic/createTocItems";
 
 const SCROLLSPY_OFFSET = 50;
@@ -146,7 +146,7 @@ const TableOfContents = styled(({ className }: { className?: string }) => {
 						articleElement.current.scrollTo({ top: 0, behavior: "auto" });
 					}}
 				>
-					{useLocalize("inArticle")}
+					{t("in-article")}
 				</div>
 				<Tree items={items} level={0} />
 			</>

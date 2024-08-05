@@ -1,11 +1,11 @@
-import { DirectionType } from "../../model/imageEditorTypes";
-import ModalLayoutDark from "@components/Layouts/ModalLayoutDark";
-import ButtonsLayout from "@components/Layouts/ButtonLayout";
-import Button from "@ext/markdown/core/edit/components/Menu/Button";
 import Input from "@components/Atoms/Input";
-import useLocalize from "@ext/localization/useLocalize";
-import { FormEventHandler, useEffect, useRef, useState } from "react";
+import ButtonsLayout from "@components/Layouts/ButtonLayout";
+import ModalLayoutDark from "@components/Layouts/ModalLayoutDark";
 import debounceFunction from "@core-ui/debounceFunction";
+import t from "@ext/localization/locale/translate";
+import Button from "@ext/markdown/core/edit/components/Menu/Button";
+import { FormEventHandler, useEffect, useRef, useState } from "react";
+import { DirectionType } from "../../model/imageEditorTypes";
 
 const ANNOTATION_MENU_SYMBOL = Symbol();
 
@@ -44,15 +44,15 @@ const AnnotationMenu = (props: AnnotationMenuProps) => {
 	const textRef = useRef<HTMLInputElement>();
 	const indexRef = useRef<HTMLInputElement>();
 
-	const localizedDelete = useLocalize("delete");
-	const invalidIndex = useLocalize("invalidIndex");
-	const annotationText = useLocalize("annotationText");
+	const localizedDelete = t("delete");
+	const invalidIndex = t("invalid-index");
+	const annotationText = t("annotation-text");
 
 	const localizeDirections = {
-		["bottom-left"]: useLocalize("bottomLeftPointer"),
-		["bottom-right"]: useLocalize("bottomRightPointer"),
-		["top-left"]: useLocalize("topLeftPointer"),
-		["top-right"]: useLocalize("topRightPointer"),
+		["bottom-left"]: t("bottom-left-pointer"),
+		["bottom-right"]: t("bottom-right-pointer"),
+		["top-left"]: t("top-left-pointer"),
+		["top-right"]: t("top-right-pointer"),
 	};
 
 	useEffect(() => {

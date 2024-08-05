@@ -1,3 +1,4 @@
+import t from "@ext/localization/locale/translate";
 import { Editor, Extension } from "@tiptap/core";
 import { Node as ProsemirrorNode } from "prosemirror-model";
 import { Plugin, PluginKey } from "prosemirror-state";
@@ -23,7 +24,7 @@ export const Placeholder = Extension.create<PlaceholderOptions>({
 			emptyNodeClass: "is-empty",
 			placeholder: "Write something …",
 			showOnlyWhenEditable: true,
-			showOnlyCurrent: true,
+			showOnlyCurrent: false,
 			includeChildren: false,
 		};
 	},
@@ -82,7 +83,15 @@ export const Placeholder = Extension.create<PlaceholderOptions>({
 
 export default Placeholder.configure({
 	placeholder: ({ editor, node }) => {
-		if (node.type.name !== "paragraph") return;
-		if (editor.state.doc.firstChild == node) return "Текст статьи";
+		if (editor.state.doc.firstChild.type.name === "heading" && editor.state.doc.firstChild === node)
+			return t("article.title");
+
+		if (
+			node.type.name === "paragraph" &&
+			editor.state.doc.content.childCount > 1 &&
+			editor.state.doc.content.child(1) === node &&
+			editor.state.doc.content.childCount === 2
+		)
+			return t("article.placeholder");
 	},
 });

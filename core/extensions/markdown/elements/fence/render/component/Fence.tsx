@@ -1,79 +1,86 @@
 import Icon from "@components/Atoms/Icon";
 import Tooltip from "@components/Atoms/Tooltip";
 import styled from "@emotion/styled";
+import t from "@ext/localization/locale/translate";
 import { Property } from "csstype";
 import Highlight, { defaultProps, Language } from "prism-react-renderer";
 import themeDark from "prism-react-renderer/themes/nightOwl";
 import themeLight from "prism-react-renderer/themes/nightOwlLight";
-import { HTMLProps, useState } from "react";
-import useLocalize from "../../../../../localization/useLocalize";
+import { CSSProperties, useState } from "react";
 import ThemeService from "../../../../../Theme/components/ThemeService";
 
 import Theme from "@ext/Theme/Theme";
 import { gherkin } from "../logic/prism-gherkin";
 
-const Fence = styled(
-	({ className, value, overflow, ...props }: HTMLProps<HTMLElement> & { overflow?: Property.Overflow }) => {
-		const theme = ThemeService.value;
-		const language = props.lang?.replace(/language-/, "");
-		const [coppedIsExpanded, setCoppedIsExpanded] = useState(false);
-		const [copped, setCopped] = useState(false);
-		const clickToCopyText = useLocalize("clickToCopy");
-		const copiedText = useLocalize("copied");
+interface FenceProps {
+	value: string;
+	style?: CSSProperties;
+	lang?: string;
+	overflow?: Property.Overflow;
+	className?: string;
+}
 
-		const coppedText = () => {
-			setCopped(true);
-			navigator.clipboard.writeText((value as string).trim());
-		};
+const Fence = styled((props: FenceProps) => {
+	const { lang, value = "", overflow, className, style: mainStyle } = props;
+	const theme = ThemeService.value;
+	const language = lang?.replace(/language-/, "");
+	const [coppedIsExpanded, setCoppedIsExpanded] = useState(false);
+	const [copped, setCopped] = useState(false);
+	const clickToCopyText = t("click-to-copy");
+	const copiedText = t("copied");
 
-		gherkin(defaultProps.Prism);
+	const coppedText = () => {
+		setCopped(true);
+		navigator.clipboard.writeText(value.trim());
+	};
 
-		const styledClassName = " " + className;
-		return (
-			<Highlight
-				{...defaultProps}
-				theme={theme === Theme.dark ? themeDark : themeLight}
-				code={(value as string).trim()}
-				language={language as Language}
-			>
-				{({ className, style, tokens, getLineProps, getTokenProps }) => (
-					<pre
-						className={className + styledClassName}
-						style={{ ...style, position: "relative" }}
-						onMouseEnter={() => setCoppedIsExpanded(true)}
-						onMouseLeave={() => {
-							setCoppedIsExpanded(false);
-							setCopped(false);
-						}}
-					>
-						<div style={{ overflow: overflow ?? "auto", padding: `${props?.style?.padding ?? "20"}px` }}>
-							{coppedIsExpanded ? (
-								<Tooltip content={!copped ? clickToCopyText : copiedText}>
-									<div className="hover-right-button" onClick={coppedText}>
-										<Icon code={!copped ? "copy" : "check"} />
-									</div>
-								</Tooltip>
-							) : null}
+	gherkin(defaultProps.Prism);
 
-							{tokens.map((line, i) => (
-								<div
-									className={className}
-									key={i}
-									style={{ ...style, color: "var(--color-article-text)" }}
-									{...getLineProps({ line, key: i })}
-								>
-									{line.map((token, key) => (
-										<span key={key} {...getTokenProps({ token, key })} />
-									))}
+	const styledClassName = " " + className;
+	return (
+		<Highlight
+			{...defaultProps}
+			theme={theme === Theme.dark ? themeDark : themeLight}
+			code={(value ?? "").trim()}
+			language={language as Language}
+		>
+			{({ className, style, tokens, getLineProps, getTokenProps }) => (
+				<pre
+					className={className + styledClassName}
+					style={{ ...style, position: "relative" }}
+					onMouseEnter={() => setCoppedIsExpanded(true)}
+					onMouseLeave={() => {
+						setCoppedIsExpanded(false);
+						setCopped(false);
+					}}
+				>
+					<div style={{ overflow: overflow ?? "auto", padding: `${mainStyle?.padding ?? "0"}px` }}>
+						{coppedIsExpanded ? (
+							<Tooltip content={!copped ? clickToCopyText : copiedText}>
+								<div className="hover-right-button" onClick={coppedText}>
+									<Icon code={!copped ? "copy" : "check"} />
 								</div>
-							))}
-						</div>
-					</pre>
-				)}
-			</Highlight>
-		);
-	},
-)`
+							</Tooltip>
+						) : null}
+
+						{tokens.map((line, i) => (
+							<div
+								className={className}
+								key={i}
+								style={{ ...style, color: "var(--color-article-text)" }}
+								{...getLineProps({ line, key: i })}
+							>
+								{line.map((token, key) => (
+									<span key={key} {...getTokenProps({ token, key })} />
+								))}
+							</div>
+						))}
+					</div>
+				</pre>
+			)}
+		</Highlight>
+	);
+})`
 	background: var(--color-code-bg) !important;
 	border-radius: var(--radius-normal);
 

@@ -1,11 +1,11 @@
 import { MockedAPIEndpoint } from "storybook/data/mock";
-import { mergeData } from "storybook/stories/extensions/Catalog/Git/BranchActions/mergeApi";
+import { mergeSyncData } from "storybook/stories/extensions/Catalog/Git/BranchActions/mergeApi";
 
 const syncApiData = [
 	{
 		path: "/api/storage/sync",
 		delay: 2000,
-		response: mergeData,
+		response: mergeSyncData,
 		// errorMessage: "sync error",
 	},
 	{

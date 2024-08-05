@@ -47,4 +47,12 @@ export default styled(MergeConflictStyles)`
 		color: gray !important;
 		opacity: 0.3;
 	}
+
+	.vscode-merge-after-text-light {
+		color: rgb(113, 113, 113) !important;
+	}
+
+	.vscode-merge-after-text-dark {
+		color: rgba(204, 204, 204, 0.7) !important;
+	}
 `;

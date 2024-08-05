@@ -1,24 +1,14 @@
 import resolveModule from "@app/resolveModule/frontend";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import ThemeService from "@ext/Theme/components/ThemeService";
-import { useRef, useState } from "react";
+import { useState } from "react";
 
-export const CatalogLogo = ({
-	catalogName,
-	...props
-}: {
-	catalogName?: string;
-	style?: { [param: string]: string };
-}) => {
+export const CatalogLogo = ({ catalogName }: { catalogName?: string }) => {
 	const useImage = resolveModule("useImage");
 	const [isError, setIsError] = useState(false);
-	const ref = useRef<HTMLImageElement>(null);
-	const apiUrlCreator = ApiUrlCreatorService.value;
 	const theme = ThemeService.value;
+	const apiUrlCreator = ApiUrlCreatorService.value;
 	const imageSrc = useImage(apiUrlCreator.getLogoUrl(catalogName, theme));
 
-	return (
-		!isError &&
-		imageSrc && <img ref={ref} src={imageSrc} {...props} onError={() => setIsError(true)} alt={catalogName} />
-	);
+	return !isError && imageSrc && <img src={imageSrc} onError={() => setIsError(true)} alt={catalogName} />;
 };

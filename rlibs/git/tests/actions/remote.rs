@@ -28,6 +28,17 @@ fn clone(sandbox: TempDir, #[case] url: &str) -> Result {
 }
 
 #[rstest]
+fn clone_empty(sandbox: TempDir) -> Result {
+  let path = sandbox.path();
+  git2::Repository::init(path.join("remote"))?;
+  let repo =
+    Repo::clone(path.join("remote").to_str().unwrap(), path.join("clone"), None, TestCreds, |_, _| true)?;
+  assert!(repo.repo().branches(Some(BranchType::Local))?.count() == 1);
+  assert_eq!(repo.repo().head()?.name().unwrap(), "refs/heads/master");
+  Ok(())
+}
+
+#[rstest]
 fn push(_sandbox: TempDir, #[with(&_sandbox)] repos: Repos) -> Result {
   fs::write(repos.local_path.join("file"), "content")?;
   assert!(repos.local_path.join("file").exists());

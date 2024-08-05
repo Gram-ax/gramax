@@ -7,13 +7,13 @@ import ConfluenceAPI, { ConfluenceInstance } from "@ext/confluence/ConfluenceAPI
 import { SourceUser } from "@ext/git/actions/Source/SourceAPI";
 import { makeSourceApi } from "@ext/git/actions/Source/makeSourceApi";
 import { waitForTempToken } from "@ext/git/actions/Source/tempToken";
+import t from "@ext/localization/locale/translate";
+import User2 from "@ext/security/components/User/User2";
 import { useEffect, useState } from "react";
 import createChildWindow from "../../../../../ui-logic/ChildWindow/createChildWindow";
 import PageDataContextService from "../../../../../ui-logic/ContextServices/PageDataContext";
-import useLocalize from "../../../../localization/useLocalize";
 import SourceType from "../../../../storage/logic/SourceDataProvider/model/SourceType";
 import ConfluenceSourceData from "../model/ConfluenceSourceData";
-import User2 from "@ext/security/components/User/User2";
 
 const CreateConfluenceSourceData = ({ onSubmit }: { onSubmit?: (editProps: ConfluenceSourceData) => void }) => {
 	const page = PageDataContextService.value;
@@ -53,7 +53,7 @@ const CreateConfluenceSourceData = ({ onSubmit }: { onSubmit?: (editProps: Confl
 	return (
 		<>
 			<div className="form-group field field-string row field-height">
-				<div className="control-label">{useLocalize("user")}</div>
+				<div className="control-label">{t("user")}</div>
 				{token ? (
 					<div className="input-lable">
 						{instanceData && user ? (
@@ -83,7 +83,7 @@ const CreateConfluenceSourceData = ({ onSubmit }: { onSubmit?: (editProps: Confl
 					>
 						<div>
 							<Icon code="confluence" />
-							<span>{useLocalize("enter")} Confluence</span>
+							<span>{t("confluence.log-in")}</span>
 						</div>
 					</Button>
 				)}
@@ -103,7 +103,7 @@ const CreateConfluenceSourceData = ({ onSubmit }: { onSubmit?: (editProps: Confl
 						});
 					}}
 				>
-					{useLocalize("add")}
+					{t("add")}
 				</Button>
 			</div>
 		</>

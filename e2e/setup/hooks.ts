@@ -21,7 +21,7 @@ let TRACE_DUMP_COUNT = 0;
 
 const makeGlobalContext = async () => {
 	await global.context?.close();
-	global.context = await browser.newContext();
+	global.context = await browser.newContext({ locale: "ru" });
 	const page = await context.newPage();
 	await context.tracing.start({ screenshots: true, snapshots: true });
 	await page.goto(config.url);

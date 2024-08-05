@@ -17,6 +17,7 @@ interface PageDataContext {
 		workspaces: ClientWorkspaceConfig[];
 		current: WorkspacePath;
 		defaultPath: WorkspacePath;
+		isEnterprise: boolean;
 	};
 	conf: {
 		version: string;
@@ -26,10 +27,11 @@ interface PageDataContext {
 		isReadOnly: boolean;
 		isServerApp: boolean;
 		isProduction: boolean;
+		glsUrl: string;
 		ssoServerUrl: string;
-		diagramRendererServerUrl: string;
 		authServiceUrl: string;
 		bugsnagApiKey: string;
+		yandexMetricCounter: string;
 	};
 	shareData?: ShareData;
 }

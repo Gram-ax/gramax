@@ -1,33 +1,33 @@
+import resolveModule from "@app/resolveModule/frontend";
+import Icon from "@components/Atoms/Icon";
+import ButtonsLayout from "@components/Layouts/ButtonLayout";
+import ModalLayoutDark from "@components/Layouts/ModalLayoutDark";
+import { cssMedia } from "@core-ui/utils/cssUtils";
+import styled from "@emotion/styled";
+import InfoModalForm from "@ext/errorHandlers/client/components/ErrorForm";
+import t from "@ext/localization/locale/translate";
+import Button from "@ext/markdown/core/edit/components/Menu/Button";
+import AnnotationMenu from "@ext/markdown/elements/image/edit/components/ImageEditor/AnnotationMenu";
 import {
+	MINIMUM_SQUARE_SIZE,
+	calculateScale,
+	cropImage,
+	restoreImage,
+} from "@ext/markdown/elements/image/edit/logic/imageEditorMethods";
+import UnifiedComponent from "@ext/markdown/elements/image/render/components/ImageEditor/Unified";
+import { CSSProperties, MouseEventHandler, ReactEventHandler, useEffect, useRef, useState } from "react";
+import {
+	AdditionData,
 	AnnotationObject,
-	SquareObject,
 	Crop,
+	DirectionType,
 	EditorProps,
 	ImageObject,
 	ImageObjectTypes,
-	DirectionType,
 	ImageProps,
-	AdditionData,
+	SquareObject,
 } from "../../model/imageEditorTypes";
-import { useState, useEffect, useRef, MouseEventHandler, CSSProperties, ReactEventHandler } from "react";
 import ImageCropper from "./ImageCropper";
-import resolveModule from "@app/resolveModule/frontend";
-import ModalLayoutDark from "@components/Layouts/ModalLayoutDark";
-import ButtonsLayout from "@components/Layouts/ButtonLayout";
-import styled from "@emotion/styled";
-import useLocalize from "@ext/localization/useLocalize";
-import Button from "@ext/markdown/core/edit/components/Menu/Button";
-import UnifiedComponent from "@ext/markdown/elements/image/render/components/ImageEditor/Unified";
-import {
-	calculateScale,
-	cropImage,
-	MINIMUM_SQUARE_SIZE,
-	restoreImage,
-} from "@ext/markdown/elements/image/edit/logic/imageEditorMethods";
-import AnnotationMenu from "@ext/markdown/elements/image/edit/components/ImageEditor/AnnotationMenu";
-import { cssMedia } from "@core-ui/utils/cssUtils";
-import Icon from "@components/Atoms/Icon";
-import InfoModalForm from "@ext/errorHandlers/client/components/ErrorForm";
 
 const ImageEditor = (props: EditorProps & { className?: string; style?: CSSProperties }) => {
 	const { crop, src, objects, handleSave, handleToggle, className, style } = props;
@@ -51,17 +51,17 @@ const ImageEditor = (props: EditorProps & { className?: string; style?: CSSPrope
 	const imageContainerRef = useRef<HTMLDivElement>(null);
 
 	const messages = {
-		addAnnotation: useLocalize("addAnnotation"),
-		addSquare: useLocalize("addSquare"),
-		cropImage: useLocalize("cropImage"),
-		cancelCrop: useLocalize("cancelCrop"),
-		cancel: useLocalize("cancel"),
-		saveChanges: useLocalize("saveChanges"),
-		dontSave: useLocalize("dontSave"),
-		unsavedChanges: useLocalize("unsavedChanges"),
-		closeWithChanges: useLocalize("closeWithChanges"),
-		apply: useLocalize("apply"),
-		saveAndExit: useLocalize("saveAndExit"),
+		addAnnotation: t("add-annotation"),
+		addSquare: t("add-square"),
+		cropImage: t("crop-image"),
+		cancelCrop: t("cancel-crop"),
+		cancel: t("cancel"),
+		saveChanges: t("save-changes"),
+		dontSave: t("dont-save"),
+		unsavedChanges: t("unsaved-changes"),
+		closeWithChanges: t("close-with-changes"),
+		apply: t("apply"),
+		saveAndExit: t("save-and-exit"),
 	};
 
 	const mainSrc = resolveModule("useImage")(src);
@@ -554,7 +554,7 @@ const ImageEditor = (props: EditorProps & { className?: string; style?: CSSPrope
 						style={style}
 						alt=""
 					/>
-					{elements.map((data: any, index: number) => (
+					{elements.map((data: ImageObject, index: number) => (
 						<UnifiedComponent
 							index={index}
 							key={index}
@@ -759,7 +759,6 @@ export default styled(ImageEditor)`
 
 	.selected {
 		outline: 2px solid var(--color-focus);
-		z-index: 10;
 		align-content: center;
 	}
 `;

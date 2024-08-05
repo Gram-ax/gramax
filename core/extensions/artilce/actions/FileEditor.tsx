@@ -1,15 +1,15 @@
 import ArticleUpdaterService from "@components/Article/ArticleUpdater/ArticleUpdaterService";
 import Button from "@components/Atoms/Button/Button";
 import { ButtonStyle } from "@components/Atoms/Button/ButtonStyle";
+import FileInput from "@components/Atoms/FileInput/FileInput";
 import SpinnerLoader from "@components/Atoms/SpinnerLoader";
 import FormStyle from "@components/Form/FormStyle";
 import ModalLayout from "@components/Layouts/Modal";
 import ModalLayoutLight from "@components/Layouts/ModalLayoutLight";
 import FetchService from "@core-ui/ApiServices/FetchService";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
+import t from "@ext/localization/locale/translate";
 import { useCallback, useState } from "react";
-import useLocalize from "../../localization/useLocalize";
-import FileInput from "@components/Atoms/FileInput/FileInput";
 
 const FileEditor = ({ trigger, shouldRender }: { trigger: JSX.Element; shouldRender?: boolean }) => {
 	if (!shouldRender) return null;
@@ -51,7 +51,7 @@ const FileEditor = ({ trigger, shouldRender }: { trigger: JSX.Element; shouldRen
 						<SpinnerLoader fullScreen />
 					) : (
 						<>
-							<legend>{useLocalize("editMarkdown")}</legend>
+							<legend>{t("article.edit-markdown")}</legend>
 							<FileInput value={value} language="markdown" onChange={setValue} />
 							<div className="buttons">
 								<Button
@@ -60,10 +60,10 @@ const FileEditor = ({ trigger, shouldRender }: { trigger: JSX.Element; shouldRen
 										setIsOpen(false);
 									}}
 								>
-									<span>{useLocalize("cancel")}</span>
+									<span>{t("cancel")}</span>
 								</Button>
 								<Button buttonStyle={ButtonStyle.default} onClick={save}>
-									<span>{useLocalize("save")}</span>
+									<span>{t("save")}</span>
 								</Button>
 							</div>
 						</>

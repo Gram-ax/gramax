@@ -1,6 +1,6 @@
 import { ResponseKind } from "@app/types/ResponseKind";
 import { AuthorizeMiddleware } from "@core/Api/middleware/AuthorizeMiddleware";
-import ReloadConfirmMiddleware from "@core/Api/middleware/ReloadConfirmMiddleware";
+import { NetworkConnectMiddleWare } from "@core/Api/middleware/NetworkConntectMiddleware";
 import { SilentMiddleware } from "@core/Api/middleware/SilentMiddleware";
 import Context from "@core/Context/Context";
 import { Command } from "../../types/Command";
@@ -10,7 +10,7 @@ const fetchCmd: Command<{ ctx: Context; catalogName: string }, void> = Command.c
 
 	kind: ResponseKind.none,
 
-	middlewares: [new AuthorizeMiddleware(), new ReloadConfirmMiddleware(), new SilentMiddleware()],
+	middlewares: [new NetworkConnectMiddleWare(), new AuthorizeMiddleware(), new SilentMiddleware()],
 
 	async do({ ctx, catalogName }) {
 		const { logger, rp, wm } = this._app;

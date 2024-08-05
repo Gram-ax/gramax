@@ -1,25 +1,19 @@
 import { NewBranchNameError } from "@ext/git/actions/Branch/components/logic/validateBranchError";
-import Language from "@ext/localization/core/model/Language";
-import useLocalize from "@ext/localization/useLocalize";
+import t from "@ext/localization/locale/translate";
 
-export default function getNewBranchNameErrorLocalization(key: NewBranchNameError, lang: Language) {
+export default function getNewBranchNameErrorLocalization(key: NewBranchNameError) {
 	const errors: Record<NewBranchNameError, string> = {
-		[NewBranchNameError.HaveEncodingSymbolsError]: useLocalize("branchNameCanNotHaveEncodingSymbols", lang),
-		[NewBranchNameError.HaveDotsSequenceAndLeadingDotError]: useLocalize(
-			"branchNameCanNotHaveDotsSequenceAndLeadingDot",
-			lang,
+		[NewBranchNameError.HaveEncodingSymbolsError]: t("branch-name-can-not-have-encoding-symbols"),
+		[NewBranchNameError.HaveDotsSequenceAndLeadingDotError]: t(
+			"branch-name-can-not-have-dots-sequence-and-leading-dot",
 		),
-		[NewBranchNameError.HaveDotAndSlashAtEndAndContainSequencesOfSlashesError]: useLocalize(
-			"branchNameCanNotHaveDotAndSlashAtEndAndContainSequencesOfSlashes",
-			lang,
+		[NewBranchNameError.HaveDotAndSlashAtEndAndContainSequencesOfSlashesError]: t(
+			"branch-name-can-not-have-dot-and-slash-at-end-and-contain-sequences-of-slashes",
 		),
-		[NewBranchNameError.IsReservedNamesError]: useLocalize("branchNameCanNotBeReservedNames", lang),
-		[NewBranchNameError.AlreadyExistsError]: useLocalize("branchNameAlreadyExists", lang),
-		[NewBranchNameError.HaveExistingPrefixBranchError]: useLocalize(
-			"branchNameCanNotHaveExistingPrefixBranch",
-			lang,
-		),
-		[NewBranchNameError.NotEndWithLockError]: useLocalize("branchNameNotEndWithLock", lang),
+		[NewBranchNameError.IsReservedNamesError]: t("branch-name-can-not-be-reserved-names"),
+		[NewBranchNameError.AlreadyExistsError]: t("branch-name-already-exists"),
+		[NewBranchNameError.HaveExistingPrefixBranchError]: t("branch-name-can-not-have-existing-prefix-branch"),
+		[NewBranchNameError.NotEndWithLockError]: t("branch-name-not-end-with-lock"),
 	};
 
 	return errors[key];

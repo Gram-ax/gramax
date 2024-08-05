@@ -2,8 +2,8 @@ import Button, { TextSize } from "@components/Atoms/Button/Button";
 import { ButtonStyle } from "@components/Atoms/Button/ButtonStyle";
 import { classNames } from "@components/libs/classNames";
 import styled from "@emotion/styled";
+import t from "@ext/localization/locale/translate";
 import { ChangeEventHandler, ForwardedRef, HTMLProps, forwardRef, useEffect, useImperativeHandle, useRef } from "react";
-import useLocalize from "../../extensions/localization/useLocalize";
 import Icon from "../Atoms/Icon";
 import Input from "../Atoms/Input";
 
@@ -32,7 +32,7 @@ interface SearchProps extends ConfigProps, HTMLProps<HTMLInputElement> {
 
 const Search = forwardRef((props: SearchProps, ref: ForwardedRef<SearchElement>) => {
 	const { isOpen, value, icon, disable, tabIndex, errorText, showErrorText, className } = props;
-	const { placeholder, title = useLocalize("searchPlaceholder") } = props;
+	const { placeholder, title = t("search.placeholder") } = props;
 	const { onClick, onChevronClick, onSearchChange, setValue, onFocus } = props;
 
 	const inputRef = useRef<HTMLInputElement>(null);

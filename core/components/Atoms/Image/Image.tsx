@@ -8,18 +8,18 @@ import {
 	useState,
 } from "react";
 import Lightbox from "./modalImage/Lightbox";
-import { Crop, ImageObject } from "@ext/markdown/elements/image/edit/model/imageEditorTypes";
+import { ImageObject } from "@ext/markdown/elements/image/edit/model/imageEditorTypes";
 
 interface ImageProps extends DetailedHTMLProps<ImgHTMLAttributes<HTMLImageElement>, HTMLImageElement> {
 	realSrc: string;
 	objects?: ImageObject[];
-	crop?: Crop;
 	onLoad?: ReactEventHandler<HTMLImageElement>;
+	onError?: ReactEventHandler<HTMLImageElement>;
 }
 
 const Image = forwardRef((props: ImageProps, ref?: LegacyRef<HTMLImageElement>) => {
 	const [isOpen, setOpen] = useState(false);
-	const { id, src, alt, title, className, realSrc, crop, objects, onLoad } = props;
+	const { id, src, alt, title, className, realSrc, objects, onLoad, onError } = props;
 
 	return (
 		<Fragment>
@@ -28,7 +28,6 @@ const Image = forwardRef((props: ImageProps, ref?: LegacyRef<HTMLImageElement>) 
 					<Lightbox
 						large={src}
 						realSrc={realSrc}
-						crop={crop}
 						objects={objects ?? []}
 						onClose={() => setOpen(false)}
 						noneShadow={false}
@@ -40,6 +39,7 @@ const Image = forwardRef((props: ImageProps, ref?: LegacyRef<HTMLImageElement>) 
 				id={id}
 				alt={alt}
 				onLoad={onLoad}
+				onError={onError}
 				src={src}
 				className={className}
 				data-focusable="true"

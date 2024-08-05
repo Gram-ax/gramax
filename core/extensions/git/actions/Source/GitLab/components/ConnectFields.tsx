@@ -1,8 +1,8 @@
 import ListLayout from "@components/List/ListLayout";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import type GitlabSourceData from "@ext/git/actions/Source/GitLab/logic/GitlabSourceData";
+import t from "@ext/localization/locale/translate";
 import { useEffect, useState } from "react";
-import useLocalize from "../../../../../localization/useLocalize";
 import GitStorageData from "../../../../core/model/GitStorageData";
 import GitlabSourceAPI from "../logic/GitlabSourceAPI";
 
@@ -36,11 +36,11 @@ const ConnectFields = ({
 
 	return (
 		<div className="form-group field field-string row">
-			<label className="control-label">{useLocalize("group") + " GitLab"}</label>
+			<label className="control-label">{t("group") + " GitLab"}</label>
 			<div className="input-lable">
 				<ListLayout
 					isLoadingData={isLoadingData}
-					placeholder={`${useLocalize("find")} ${useLocalize("group2")}`}
+					placeholder={`${t("find")} ${t("group2")}`}
 					item={group ?? ""}
 					items={groups}
 					onItemClick={setGroup}

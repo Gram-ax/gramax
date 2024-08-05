@@ -1,5 +1,6 @@
 import Icon from "@components/Atoms/Icon";
 import styled from "@emotion/styled";
+import t from "@ext/localization/locale/translate";
 import { ReactElement, ReactNode, useEffect, useState } from "react";
 
 interface CutProps {
@@ -26,7 +27,7 @@ const Cut = styled(({ text, expanded, children, isInline, onUpdate, className }:
 					onUpdate?.(!isExpanded);
 				}}
 			>
-				<span>{isExpanded ? "Скрыть" : text}</span>
+				<span>{isExpanded ? t("hide") : text}</span>
 				<Icon code={isExpanded ? "chevron-left" : "chevron-right"} viewBox="3 3 18 18" />
 			</a>
 			{isExpanded && <span className="bg">{children}</span>}

@@ -8,6 +8,7 @@ import { AddOptionsWord, WordBlockChildren, WordInlineChildren } from "./options
 import { createContent } from "@ext/wordExport/TextWordGenerator";
 import { createParagraph } from "@ext/wordExport/createParagraph";
 import { NON_BREAKING_SPACE } from "@ext/wordExport/options/wordExportSettings";
+import { ExportType } from "@ext/wordExport/ExportType";
 
 export class WordSerializerState {
 	constructor(
@@ -16,6 +17,7 @@ export class WordSerializerState {
 		private _resourceManager: ResourceManager,
 		private _fileProvider: FileProvider,
 		private _parserContext: ParserContext,
+		private _exportType: ExportType,
 	) {}
 
 	async renderInline(parent: Tag, addOptions?: AddOptionsWord): Promise<ParagraphChild[]> {
@@ -36,6 +38,7 @@ export class WordSerializerState {
 					addOptions,
 					resourceManager: this._resourceManager,
 					fileProvider: this._fileProvider,
+					exportType: this._exportType,
 				});
 			}),
 		);
@@ -72,6 +75,7 @@ export class WordSerializerState {
 			resourceManager: this._resourceManager,
 			fileProvider: this._fileProvider,
 			parserContext: this._parserContext,
+			exportType: this._exportType,
 		});
 	}
 }

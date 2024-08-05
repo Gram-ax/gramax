@@ -32,7 +32,7 @@ const autoPull = (app: Application) => {
 				});
 			}
 		} catch (error) {
-			logger.logError(Error(`Error occurred while auto-pulling in "${catalog.getName()}" catalog: ${error}`));
+			console.log(Error(`Error occurred while auto-pulling in "${catalog.getName()}" catalog: ${error}`));
 		}
 	};
 

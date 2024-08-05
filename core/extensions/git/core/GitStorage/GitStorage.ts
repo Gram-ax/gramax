@@ -1,6 +1,5 @@
 import { getHttpsRepositoryUrl } from "@components/libs/utils";
 import GithubStorageData from "@ext/git/actions/Source/GitHub/model/GithubStorageData";
-import GitCommandsConfig from "@ext/git/core/GitCommands/model/GitCommandsConfig";
 import getUrlFromGitStorageData from "@ext/git/core/GitStorage/utils/getUrlFromGitStorageData";
 import Path from "../../../../logic/FileProvider/Path/Path";
 import FileProvider from "../../../../logic/FileProvider/model/FileProvider";
@@ -32,29 +31,19 @@ export default class GitStorage implements Storage {
 	private _syncSearchInPath = "";
 	private static _gitDataParser: GitDataParser = gitDataParser;
 
-	constructor(private _conf: GitCommandsConfig, private _path: Path, private _fp: FileProvider) {
-		this._gitRepository = new GitCommands(_conf, this._fp, this._path);
+	constructor(private _path: Path, private _fp: FileProvider) {
+		this._gitRepository = new GitCommands(this._fp, this._path);
 		void this._initSubGitStorages();
 	}
 
-	static hasInit(conf: GitCommandsConfig, fp: FileProvider, path: Path): Promise<boolean> {
-		return new GitCommands(conf, fp, path).hasRemote();
+	static hasInit(fp: FileProvider, path: Path): Promise<boolean> {
+		return new GitCommands(fp, path).hasRemote();
 	}
 
-	static async clone({
-		fp,
-		url,
-		data,
-		source,
-		branch,
-		recursive = true,
-		onProgress,
-		repositoryPath,
-		conf,
-	}: GitCloneData) {
+	static async clone({ fp, url, data, source, branch, recursive = true, onProgress, repositoryPath }: GitCloneData) {
 		fp.stopWatch();
 		try {
-			const gitRepository = new GitCommands(conf, fp, repositoryPath);
+			const gitRepository = new GitCommands(fp, repositoryPath);
 			const currentUrl = url ?? getUrlFromGitStorageData(data);
 			try {
 				await gitRepository.clone(getHttpsRepositoryUrl(currentUrl), source, branch, onProgress);
@@ -69,7 +58,6 @@ export default class GitStorage implements Storage {
 						await GitStorage.clone({
 							fp,
 							source,
-							conf,
 							url: d.url,
 							branch: d.branch,
 							repositoryPath: submodulePath,
@@ -84,9 +72,9 @@ export default class GitStorage implements Storage {
 		}
 	}
 
-	static async init(conf: GitCommandsConfig, repositoryPath: Path, fp: FileProvider, data: GitStorageData) {
+	static async init(repositoryPath: Path, fp: FileProvider, data: GitStorageData) {
 		if (data.source.sourceType == SourceType.gitHub) await createGitHubRepository(data as GithubStorageData);
-		const gitRepository = new GitCommands(conf, fp, repositoryPath);
+		const gitRepository = new GitCommands(fp, repositoryPath);
 		await gitRepository.addRemote(data);
 	}
 
@@ -126,8 +114,9 @@ export default class GitStorage implements Storage {
 		return {
 			name: await this.getName(),
 			group: await this.getGroup(),
-			domain: source.domain,
 			branch,
+			domain: source.domain,
+			protocol: source.protocol,
 			sourceType: source.sourceType,
 			filePath: filePath.value,
 		};
@@ -234,7 +223,6 @@ export default class GitStorage implements Storage {
 					await GitStorage.clone({
 						source,
 						fp: this._fp,
-						conf: this._conf,
 						url: datas.new.url,
 						branch: datas.new.branch,
 						repositoryPath: submodulePath,
@@ -248,7 +236,6 @@ export default class GitStorage implements Storage {
 						await GitStorage.clone({
 							source,
 							fp: this._fp,
-							conf: this._conf,
 							url: datas.new.url,
 							branch: datas.new.branch,
 							repositoryPath: submodulePath,
@@ -264,7 +251,6 @@ export default class GitStorage implements Storage {
 						await GitStorage.clone({
 							source,
 							fp: this._fp,
-							conf: this._conf,
 							url: datas.new.url,
 							branch: datas.new.branch,
 							repositoryPath: submodulePath,
@@ -309,7 +295,7 @@ export default class GitStorage implements Storage {
 	private async _getFixedSubGitStorages(): Promise<GitStorage[]> {
 		try {
 			return (await this._gitRepository.getFixedSubmodulePaths()).map((path) => {
-				const subGitStorage = new GitStorage(this._conf, path, this._fp);
+				const subGitStorage = new GitStorage(path, this._fp);
 				return subGitStorage;
 			});
 		} catch {
@@ -332,7 +318,6 @@ export default class GitStorage implements Storage {
 		await GitStorage.clone({
 			source,
 			fp: this._fp,
-			conf: this._conf,
 			url: newData.url,
 			branch: newData.branch,
 			repositoryPath: submodulePath,

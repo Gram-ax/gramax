@@ -1,4 +1,5 @@
 import GithubStorageData from "@ext/git/actions/Source/GitHub/model/GithubStorageData";
+import t from "@ext/localization/locale/translate";
 
 async function createGitHubRepository(storageData: GithubStorageData) {
 	const url = `https://api.github.com/${storageData.type === "User" ? "user" : `orgs/${storageData.group}`}/repos`;
@@ -12,7 +13,7 @@ async function createGitHubRepository(storageData: GithubStorageData) {
 
 	if (!response.ok) {
 		const errorData = await response.json();
-		throw new Error(`Не удалось создать репозиторий. ${errorData}`);
+		throw new Error(`${t("git.source.error.cannot-create-repo")}. ${errorData}`);
 	}
 }
 

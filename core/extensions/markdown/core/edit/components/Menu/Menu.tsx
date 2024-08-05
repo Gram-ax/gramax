@@ -24,11 +24,19 @@ const Menu = styled(({ editor, id, className }: { editor: Editor; id: string; cl
 		setIsOpen(isMenuBarOpenContext);
 	}, [isMenuBarOpenContext]);
 
+	useEffect(() => {
+		if (!editor) return;
+		const { selection, doc } = editor.view.state;
+		const isFirst = selection.$from.parent === doc.firstChild;
+		if (isOpen && isFirst) setIsOpen(false);
+		if (!isOpen && !isFirst) setIsOpen(true);
+	}, [editor?.state?.selection]);
+
 	if (!editor) return null;
 
 	return (
 		<Portal parentId={id}>
-			<div className={className} style={isOpen ? null : { display: "none" }} data-qa="qa-edit-menu-button">
+			<div className={className} style={isOpen ? null : { visibility: "hidden" }} data-qa="qa-edit-menu-button">
 				<IsSelectedOneNodeService.Provider editor={editor}>
 					<ButtonStateService.Provider editor={editor}>
 						<OpenApiMenu editor={editor} />

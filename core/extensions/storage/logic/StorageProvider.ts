@@ -1,6 +1,5 @@
 import ConfluenceStorage from "@ext/confluence/core/logic/ConfluenceStorage";
 import ConfluenceStorageData from "@ext/confluence/core/model/ConfluenceStorageData";
-import GitCommandsConfig from "@ext/git/core/GitCommands/model/GitCommandsConfig";
 import Path from "../../../logic/FileProvider/Path/Path";
 import FileProvider from "../../../logic/FileProvider/model/FileProvider";
 import GitStorage from "../../git/core/GitStorage/GitStorage";
@@ -14,18 +13,18 @@ import Storage from "./Storage";
 export default class StorageProvider {
 	private _progressData: Map<string, Progress>;
 
-	constructor(private _conf: GitCommandsConfig) {
+	constructor() {
 		this._progressData = new Map();
 	}
 
 	async getStorageByPath(path: Path, fp: FileProvider): Promise<Storage> {
-		if (await GitStorage.hasInit(this._conf, fp, path)) return new GitStorage(this._conf, path, fp);
+		if (await GitStorage.hasInit(fp, path)) return new GitStorage(path, fp);
 		return null;
 	}
 
 	async initNewStorage(fp: FileProvider, path: Path, data: StorageData) {
 		if (this._isCorrectStorageType(data.source.sourceType)) {
-			await GitStorage.init(this._conf, path, fp, data as GitStorageData);
+			await GitStorage.init(path, fp, data as GitStorageData);
 		}
 		return await this.getStorageByPath(path, fp);
 	}
@@ -37,7 +36,6 @@ export default class StorageProvider {
 				branch,
 				recursive,
 				repositoryPath: path,
-				conf: this._conf,
 				data: data as GitStorageData,
 				source: data.source as GitSourceData,
 				onProgress: this._getOnProgress(path),
@@ -65,10 +63,6 @@ export default class StorageProvider {
 	}
 
 	private _isCorrectStorageType(storageType: SourceType): boolean {
-		return (
-			storageType === SourceType.gitLab ||
-			storageType === SourceType.gitHub ||
-			storageType === SourceType.enterprise
-		);
+		return storageType === SourceType.gitLab || storageType === SourceType.gitHub || storageType === SourceType.git;
 	}
 }

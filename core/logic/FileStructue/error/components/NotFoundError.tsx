@@ -4,10 +4,10 @@ import { defaultRefreshPage } from "@core-ui/ContextServices/RefreshPageContext"
 import Path from "@core/FileProvider/Path/Path";
 import RouterPathProvider from "@core/RouterPath/RouterPathProvider";
 import BranchData from "@ext/VersionControl/model/branch/BranchData";
+import t from "@ext/localization/locale/translate";
 import { ComponentProps } from "react";
 import InfoModalForm from "../../../../extensions/errorHandlers/client/components/ErrorForm";
 import GetErrorComponent from "../../../../extensions/errorHandlers/logic/GetErrorComponent";
-import useLocalize from "../../../../extensions/localization/useLocalize";
 import CatalogPropsService from "../../../../ui-logic/ContextServices/CatalogProps";
 import { useRouter } from "../../../Api/useRouter";
 
@@ -19,9 +19,9 @@ const ArticleNotFoundErrorComponent = (args: ComponentProps<typeof GetErrorCompo
 	return (
 		<InfoModalForm
 			{...args}
-			title={useLocalize("articleNotFound")}
+			title={t("article.error.not-found.title")}
 			actionButton={{
-				text: useLocalize("refresh"),
+				text: t("refresh"),
 				onClick: async () => {
 					const res = await FetchService.fetch<BranchData>(
 						apiUrlCreator.getVersionControlCurrentBranchUrl({ cached: false }),
@@ -37,7 +37,7 @@ const ArticleNotFoundErrorComponent = (args: ComponentProps<typeof GetErrorCompo
 				},
 			}}
 		>
-			<span>{useLocalize("articleNotFountError")}</span>
+			<span>{t("article.error.not-found.body")}</span>
 		</InfoModalForm>
 	);
 };

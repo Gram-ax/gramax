@@ -6,10 +6,10 @@ import FormStyle from "@components/Form/FormStyle";
 import Modal from "@components/Layouts/Modal";
 import ModalLayoutLight from "@components/Layouts/ModalLayoutLight";
 import { transliterate } from "@core-ui/languageConverter/transliterate";
-import FormVariableHandler from "@core/Form/FormVariableHandler";
 import validateEncodingSymbolsUrl from "@core/utils/validateEncodingSymbolsUrl";
-import useLocalize from "@ext/localization/useLocalize";
+import t from "@ext/localization/locale/translate";
 import { getSimpleExtensions } from "@ext/markdown/core/edit/logic/getExtensions";
+import simpleLink from "@ext/markdown/elements/link/edit/model/simpleLink";
 import { Placeholder } from "@ext/markdown/elements/placeholder/placeholder";
 import SnippetViewUses from "@ext/markdown/elements/snippet/edit/components/SnippetViewUses";
 import SnippetEditorProps from "@ext/markdown/elements/snippet/edit/model/SnippetEditorProps.schema";
@@ -46,14 +46,18 @@ const SnippetEditor = ({
 		title: snippetData.title,
 	});
 	const [schema] = useState<JSONSchema7>({ ...SnippetEditorPropsSchema } as JSONSchema7);
-	const noEncodingSymbolsInUrlText = useLocalize("noEncodingSymbolsInUrl");
-	const snippetAlreadyExistsText = useLocalize("snippetAlreadyExists");
-	const enterSnippetText = useLocalize("enterSnippetText");
+	const noEncodingSymbolsInUrlText = t("no-encoding-symbols-in-url");
+	const snippetAlreadyExistsText = t("snippet-already-exists");
+	const enterSnippetText = t("enter-snippet-text");
 
 	const editor = useEditor(
 		{
 			content: snippetData.content,
-			extensions: [...getSimpleExtensions(), Placeholder.configure({ placeholder: enterSnippetText })],
+			extensions: [
+				...getSimpleExtensions(),
+				Placeholder.configure({ placeholder: enterSnippetText }),
+				simpleLink,
+			],
 		},
 		[],
 	);
@@ -110,10 +114,8 @@ const SnippetEditor = ({
 									idValidationText = snippetAlreadyExistsText;
 								return { id: idValidationText };
 							}}
-							onMount={() => {
-								new FormVariableHandler(schema, {
-									TYPE: type === "edit" ? "Редактирование" : "Создание",
-								}).replaceVars();
+							onMount={(_, schema) => {
+								(schema as any).see = type === "edit" ? "snippet-editor" : "snippet-add";
 								(schema.properties.id as any).readOnly = type === "edit";
 							}}
 							onChange={(props) => {
@@ -132,8 +134,10 @@ const SnippetEditor = ({
 						<fieldset>
 							<Field
 								required
+								formTranslationKey={"snippet-editor"}
+								translationKey={"content"}
 								fieldDirection="column"
-								scheme={{ title: "<p>Содержимое</p>" }}
+								scheme={{ title: null }}
 								input={
 									<>
 										<div
@@ -145,11 +149,13 @@ const SnippetEditor = ({
 											}}
 										>
 											<div className="article-content">
-												<EditorContent editor={editor} tabIndex={3} />
+												<EditorContent editor={editor} tabIndex={3} data-qa="editor" />
 											</div>
 										</div>
 										{articles && (
-											<div style={{ marginBottom: "-0.7em", marginTop: "1rem", fontSize: "1rem" }}>
+											<div
+												style={{ marginBottom: "-0.7em", marginTop: "1rem", fontSize: "1rem" }}
+											>
 												<SnippetViewUses
 													articles={articles}
 													onLinkClick={() => setIsOpen(false)}
@@ -168,7 +174,7 @@ const SnippetEditor = ({
 										onClick={onDelete}
 										style={{ marginLeft: "0" }}
 									>
-										<span>{useLocalize("delete")}</span>
+										<span>{t("delete")}</span>
 									</ButtonAtom>
 								</div>
 							)}
@@ -178,14 +184,14 @@ const SnippetEditor = ({
 									setIsOpen(false);
 								}}
 							>
-								<span>{useLocalize("cancel")}</span>
+								<span>{t("cancel")}</span>
 							</ButtonAtom>
 							<ButtonAtom
 								buttonStyle={ButtonStyle.default}
 								onClick={currentOnSave}
 								disabled={!validate()}
 							>
-								<span>{useLocalize("save")}</span>
+								<span>{t("save")}</span>
 							</ButtonAtom>
 						</div>
 					</>

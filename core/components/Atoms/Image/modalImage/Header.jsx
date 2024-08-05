@@ -16,13 +16,12 @@ const Header = ({
 	enableRotate,
 }) => {
 	const apiUrlCreator = ApiUrlCreatorService.value;
-	const { lang } = PageDataContextService.value;
 
 	return (
 		<div className="__react_modal_image__header">
 			<span className="__react_modal_image__icon_menu">
 				{enableDownload && (
-					<a onClick={() => downloadResource(apiUrlCreator, new Path(realSrc), lang)}>
+					<a onClick={() => downloadResource(apiUrlCreator, new Path(realSrc))}>
 						<DownloadIcon />
 					</a>
 				)}

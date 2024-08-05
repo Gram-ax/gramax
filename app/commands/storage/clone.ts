@@ -1,8 +1,8 @@
 import { ResponseKind } from "@app/types/ResponseKind";
 import { AuthorizeMiddleware } from "@core/Api/middleware/AuthorizeMiddleware";
+import { NetworkConnectMiddleWare } from "@core/Api/middleware/NetworkConntectMiddleware";
 import ReloadConfirmMiddleware from "@core/Api/middleware/ReloadConfirmMiddleware";
 import Path from "@core/FileProvider/Path/Path";
-import GitStorageData from "@ext/git/core/model/GitStorageData";
 import StorageData from "@ext/storage/models/StorageData";
 import { Command } from "../../types/Command";
 
@@ -11,7 +11,7 @@ const clone: Command<{ path: Path; data: StorageData; recursive?: boolean; branc
 
 	kind: ResponseKind.plain,
 
-	middlewares: [new AuthorizeMiddleware(), new ReloadConfirmMiddleware()],
+	middlewares: [new NetworkConnectMiddleWare(), new AuthorizeMiddleware(), new ReloadConfirmMiddleware()],
 
 	async do({ path, data, recursive, branch }) {
 		const workspace = await this._app.wm.currentOrDefault();
@@ -19,14 +19,7 @@ const clone: Command<{ path: Path; data: StorageData; recursive?: boolean; branc
 
 		const fs = workspace.getFileStructure();
 		const fp = workspace.getFileProvider();
-		await rp.cloneNewRepository(
-			fp,
-			path,
-			data as GitStorageData,
-			this._app.conf.services.auth.url,
-			recursive,
-			branch,
-		);
+		await rp.cloneNewRepository(fp, path, data, recursive, branch);
 		const entry = await fs.getCatalogEntryByPath(path);
 		const catalog = await entry.load();
 		await workspace.addCatalog(catalog);

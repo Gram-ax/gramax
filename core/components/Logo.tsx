@@ -2,71 +2,61 @@ import Url from "@core-ui/ApiServices/Types/Url";
 import CatalogPropsService from "@core-ui/ContextServices/CatalogProps";
 import { cssMedia } from "@core-ui/utils/cssUtils";
 import styled from "@emotion/styled";
-import { CatalogLink } from "../extensions/navigation/NavigationLinks";
 import Link from "./Atoms/Link";
 import { CatalogLogo } from "./CatalogLogo";
 
-export const Logo = styled(({ className, catalogLink }: { catalogLink?: CatalogLink; className?: string }) => {
+const Logo = ({ className }: { className?: string }) => {
 	const catalogProps = CatalogPropsService.value;
 
-	const logo = (
-		<>
-			<CatalogLogo catalogName={catalogProps.name} style={{ maxHeight: "32px" }} />
-			<span className="title" title={catalogProps.title}>
-				{catalogProps.title}
-			</span>
-		</>
+	return (
+		<div className={className}>
+			<Link href={Url.from(catalogProps.link)}>
+				<CatalogLogo catalogName={catalogProps.name} />
+				<span className="title" title={catalogProps.title}>
+					{catalogProps.title}
+				</span>
+			</Link>
+		</div>
 	);
+};
 
-	return catalogLink ? (
-		<Link href={Url.from(catalogLink)} className={className}>
-			{logo}
-		</Link>
-	) : (
-		<a className={className}>{logo}</a>
-	);
-})`
-	width: 100%;
+export default styled(Logo)`
+	flex: 1;
 	display: flex;
-	max-width: 75%;
-	font-size: 24px;
-	margin-top: 1px;
-	line-height: 1.5em;
+	font-size: 20px;
+	line-height: 28px;
 	align-items: center;
+	max-width: calc(100% - 72px);
 
-	${(p) =>
-		p.catalogLink
-			? `
-	&:hover {
+	> a {
+		width: 100%;
+		display: flex;
+		max-width: 100%;
+		align-items: center;
+	}
+	> a:hover {
 		text-decoration: none;
-
 		.title {
 			color: var(--color-primary);
 		}
-	}`
-			: `cursor: auto;`}
+	}
 
 	.title {
 		overflow: hidden;
-		font-weight: 300;
+		font-weight: 400;
 		white-space: nowrap;
 		text-overflow: ellipsis;
 		color: var(--color-primary-general);
 	}
+
 	img {
 		vertical-align: middle;
 		display: inline-block;
-		max-height: 1.5em;
+		max-height: 1.625rem;
 		margin-right: 10px;
 	}
+
 	${cssMedia.narrow} {
-		margin-top: 0;
-		font-size: 22px;
-		img {
-			max-height: 1em;
-		}
-		.appTitle {
-			display: none;
-		}
+		max-width: calc(100vw - 148px);
 	}
 `;

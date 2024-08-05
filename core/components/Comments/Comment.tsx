@@ -1,9 +1,9 @@
 import { Comment } from "@core-ui/CommentBlock";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import styled from "@emotion/styled";
+import t from "@ext/localization/locale/translate";
 import { JSONContent } from "@tiptap/react";
 import { Dispatch, ReactElement, SetStateAction, useEffect, useState } from "react";
-import useLocalize from "../../extensions/localization/useLocalize";
 import User from "../../extensions/security/components/User/User";
 import Editor from "./CommentEditor";
 import InputTransitionWrapper from "./InputTransitionWrapper";
@@ -37,8 +37,8 @@ const CommentComponent = (props: CommentComponentProps): ReactElement => {
 	const [isEditable, setIsEditable] = useState(false);
 	const [isActive, setIsActive] = useState(false);
 	const userInfo = PageDataContextService.value.userInfo;
-	const answerDeleteText = useLocalize("deleteAnswer");
-	const commentDeleteText = useLocalize("deleteAsResolved");
+	const answerDeleteText = t("delete-answer");
+	const commentDeleteText = t("delete-as-resolved");
 
 	const currentOnCancel = () => {
 		setIsEditable(false);
@@ -104,14 +104,14 @@ const CommentComponent = (props: CommentComponentProps): ReactElement => {
 							<div className={"editer"}>
 								<Editor
 									setFocusId={setFocusId}
-									placeholder={useLocalize("leaveAComment")}
+									placeholder={t("leave-comment")}
 									setParentIsActive={setIsActive}
 									onInput={onEditorInput}
 									onConfirm={currentOnEdit}
 									onCancel={currentOnCancel}
 									content={comment.content}
 									isEditable={isEditable}
-									confirmButtonText={useLocalize("edit")}
+									confirmButtonText={t("edit")}
 								/>
 							</div>
 						}

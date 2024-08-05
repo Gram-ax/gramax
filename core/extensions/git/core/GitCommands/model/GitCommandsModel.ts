@@ -8,6 +8,7 @@ import GitProgressEvent from "../../model/GitProgressEvent";
 import GitSourceData from "../../model/GitSourceData.schema";
 import { GitVersion } from "../../model/GitVersion";
 import SubmoduleData from "../../model/SubmoduleData";
+import GitStash from "@ext/git/core/model/GitStash";
 
 interface GitCommandsModel {
 	init(data: SourceData): Promise<void>;
@@ -55,7 +56,7 @@ interface GitCommandsModel {
 	getRemoteName(): Promise<string>;
 	getRemoteUrl(): Promise<string>;
 	hasRemote(): Promise<boolean>;
-	showFileContent(filePath: Path, hash?: GitVersion): Promise<string>;
+	showFileContent(filePath: Path, ref?: GitVersion | GitStash): Promise<string>;
 	getParentCommit(commitOid: string): Promise<string>;
 	getFixedSubmodulePaths(): Promise<Path[]>;
 	getSubmodulesData(): Promise<SubmoduleData[]>;

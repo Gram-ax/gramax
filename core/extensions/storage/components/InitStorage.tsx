@@ -4,12 +4,12 @@ import FormStyle from "@components/Form/FormStyle";
 import ModalLayout from "@components/Layouts/Modal";
 import ModalLayoutLight from "@components/Layouts/ModalLayoutLight";
 import { useRouter } from "@core/Api/useRouter";
+import t from "@ext/localization/locale/translate";
 import { useState } from "react";
 import FetchService from "../../../ui-logic/ApiServices/FetchService";
 import MimeTypes from "../../../ui-logic/ApiServices/Types/MimeTypes";
 import ApiUrlCreatorService from "../../../ui-logic/ContextServices/ApiUrlCreator";
 import CatalogPropsService from "../../../ui-logic/ContextServices/CatalogProps";
-import useLocalize from "../../localization/useLocalize";
 import StorageData from "../models/StorageData";
 import SelectStorageDataForm from "./SelectStorageDataForm";
 
@@ -35,7 +35,7 @@ const InitStorage = ({ trigger }: { trigger: JSX.Element }) => {
 		<ModalLayout trigger={trigger} isOpen={isOpen} onOpen={() => setIsOpen(true)} onClose={() => setIsOpen(false)}>
 			<ModalLayoutLight>
 				{!load ? (
-					<SelectStorageDataForm title={useLocalize("connectStorage")} onChange={setStorageData}>
+					<SelectStorageDataForm title={t("connect-storage")} onChange={setStorageData}>
 						<div className="buttons">
 							<Button
 								disabled={
@@ -46,7 +46,7 @@ const InitStorage = ({ trigger }: { trigger: JSX.Element }) => {
 								}
 								onClick={() => onSelect({ ...storageData, name: catalogProps.name })}
 							>
-								{useLocalize("select")}
+								{t("select")}
 							</Button>
 						</div>
 					</SelectStorageDataForm>

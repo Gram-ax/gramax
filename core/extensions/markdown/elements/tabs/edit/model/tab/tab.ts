@@ -9,6 +9,8 @@ import { splitBlock } from "prosemirror-commands";
 import noneBackspace from "../../logic/noneBackspace";
 import { Plugin, PluginKey } from "@tiptap/pm/state";
 import { EditorView } from "prosemirror-view";
+import checkTabContent from "@ext/markdown/elements/tabs/edit/logic/checkTabContent";
+import preventBackspace from "@ext/markdown/elements/tabs/edit/logic/preventBackspace";
 
 declare module "@tiptap/core" {
 	interface Commands<ReturnType> {
@@ -84,14 +86,11 @@ const Tab = Node.create({
 				key: new PluginKey("tabPreventBackspace"),
 				props: {
 					handleKeyDown(view: EditorView, event: KeyboardEvent) {
-						if (event.key !== "Backspace") return;
-						const { state } = view;
-						const { $from, empty } = state.selection;
-						if ($from.parentOffset !== 0 || !empty) return;
-						const indexBefore = $from.index($from.depth - 1) - 1;
-						const nodeBefore = indexBefore >= 0 ? $from.node($from.depth - 1).child(indexBefore) : null;
-						if (nodeBefore && nodeBefore.type.name === "tabs") return true;
+						return preventBackspace(view, event);
 					},
+				},
+				appendTransaction(transactions, _, newState) {
+					return checkTabContent(transactions, newState);
 				},
 			}),
 		];

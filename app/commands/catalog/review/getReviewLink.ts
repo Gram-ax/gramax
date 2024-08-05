@@ -18,7 +18,7 @@ const getReviewLink: Command<
 	middlewares: [new AuthorizeMiddleware(), new ReloadConfirmMiddleware()],
 
 	async do({ ctx, catalogName, userName, userEmail, filePath }) {
-		const { rp, wm, conf } = this._app;
+		const { rp, wm } = this._app;
 		const workspace = wm.current();
 
 		const catalog = await workspace.getCatalog(catalogName);
@@ -31,7 +31,7 @@ const getReviewLink: Command<
 			source: { ...baseStorageData.source, userName, userEmail },
 			filePath,
 		};
-		const response = await fetch(`${conf.services.review.url}/ticket`, {
+		const response = await fetch(`${workspace.config().services?.review?.url}/ticket`, {
 			body: JSON.stringify(body),
 			method: "POST",
 			headers: { "Content-Type": MimeTypes.json },

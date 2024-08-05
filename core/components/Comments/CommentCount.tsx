@@ -1,11 +1,11 @@
 import styled from "@emotion/styled";
-import useLocalize from "../../extensions/localization/useLocalize";
+import t from "@ext/localization/locale/translate";
 import Icon from "../Atoms/Icon";
 import Tooltip from "../Atoms/Tooltip";
 
 const VersionControlCommentCount = styled(({ count, className }: { count: number; className?: string }) => {
 	return count > 0 ? (
-		<Tooltip content={<span>{useLocalize("numberoOfUnsolvedComments")}</span>}>
+		<Tooltip content={<span>{t("numbero-of-unsolved-comments")}</span>}>
 			<div className={className}>
 				<Icon
 					code="message-square"

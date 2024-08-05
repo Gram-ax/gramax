@@ -4,9 +4,9 @@ git-fetch-with-cli = true
 [target.wasm32-unknown-emscripten]
 rustflags = [
   "-Ctarget-feature=+atomics,+bulk-memory",
-  "-Clink-args=-pthread -sPTHREAD_POOL_SIZE=3",
+  "-Clink-args=-pthread -sPTHREAD_POOL_SIZE=6",
   "-Clink-args=--post-js apps/browser/wasm/js/post.js -o apps/browser/wasm/dist/gramax-wasm.js",
-  "-Clink-args=-sASSERTIONS=0 -sWASM=1 -sWASMFS=1 -sUSE_ZLIB=1 -sEXPORT_ES6=1 -sMALLOC=emmalloc -sEXPORTED_RUNTIME_METHODS=FS,wasmMemory -sALLOW_MEMORY_GROWTH=1 -sMAXIMUM_MEMORY=4gb -sINITIAL_MEMORY=500mb -sSTACK_SIZE=15mb",
+  "-Clink-args=-sASSERTIONS=0 -sWASM=1 -sWASMFS=1 -sUSE_ZLIB=1 -sEXPORT_ES6=1 -sMALLOC=emmalloc -sEXPORTED_RUNTIME_METHODS=FS,wasmMemory -sALLOW_MEMORY_GROWTH=1 -sMAXIMUM_MEMORY=4gb -sINITIAL_MEMORY=1024mb -sSTACK_SIZE=15mb",
   "-Clink-args=-sDEFAULT_LIBRARY_FUNCS_TO_INCLUDE=$writeArrayToMemory",
   "-Clink-args=-sEXPORTED_FUNCTIONS=@.cargo/exported-functions",
 ]

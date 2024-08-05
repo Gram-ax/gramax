@@ -1,19 +1,20 @@
 import fileNameUtils from "@core-ui/fileNameUtils";
 import Path from "@core/FileProvider/Path/Path";
 import FileProvider from "@core/FileProvider/model/FileProvider";
-import getConvertors from "@ext/confluence/actions/Import/logic/getConvertors";
-import { ConfluenceArticle } from "@ext/confluence/core/model/ConfluenceArticle";
-import ConfluenceStorageData from "@ext/confluence/core/model/ConfluenceStorageData";
-import { JSONContent } from "@tiptap/core";
-import NodeConverter from "./NodeConverter";
-import confluenceMimeToExtension from "./confluenceMimeToExtension";
-import convertUnsupportedNode from "@ext/confluence/actions/Import/logic/convertUnsupportedNode";
 import assertMaxFileSize from "@core/Resource/assertMaxFileSize";
-import generateConfluenceArticleLink from "@ext/confluence/core/logic/generateConfluenceArticleLink";
-import CONFLUENCE_EXTENSION_TYPES from "@ext/confluence/actions/Import/model/confluenceExtensionTypes";
+import convertUnsupportedNode from "@ext/confluence/actions/Import/logic/convertUnsupportedNode";
+import getConvertors from "@ext/confluence/actions/Import/logic/getConvertors";
 import ConfluenceAttachment, {
 	ConfluenceAttachmentResponse,
 } from "@ext/confluence/actions/Import/model/ConfluenceAttachment";
+import CONFLUENCE_EXTENSION_TYPES from "@ext/confluence/actions/Import/model/confluenceExtensionTypes";
+import generateConfluenceArticleLink from "@ext/confluence/core/logic/generateConfluenceArticleLink";
+import { ConfluenceArticle } from "@ext/confluence/core/model/ConfluenceArticle";
+import ConfluenceStorageData from "@ext/confluence/core/model/ConfluenceStorageData";
+import t from "@ext/localization/locale/translate";
+import { JSONContent } from "@tiptap/core";
+import NodeConverter from "./NodeConverter";
+import confluenceMimeToExtension from "./confluenceMimeToExtension";
 
 export default class ConfluenceConverter {
 	private _confluencePageUrl: string;
@@ -71,7 +72,7 @@ export default class ConfluenceConverter {
 
 			const extension = confluenceMimeToExtension(foundAttachment);
 
-			if (!extension) throw new Error(`Расширение не поддерживается: ${foundAttachment.mediaType}`);
+			if (!extension) throw new Error(`${t("confluence.error.ext-not-supported")} ${foundAttachment.mediaType}`);
 			assertMaxFileSize(foundAttachment.fileSize);
 			const downloadUrl = `https://api.atlassian.com/ex/confluence/${this._data.source.cloudId}/wiki/rest/api/content/${articleId}/child/attachment/${foundAttachment.id}/download`;
 			const downloadResponse = await fetch(downloadUrl, {
@@ -79,7 +80,7 @@ export default class ConfluenceConverter {
 					Authorization: `Bearer ${this._data.source.token}`,
 				},
 			});
-			if (!downloadResponse.ok) throw new Error(`Ошибка HTTP при загрузке файла: ${downloadResponse.status}`);
+			if (!downloadResponse.ok) throw new Error(`${t("confluence.error.http-2")} ${downloadResponse.status}`);
 
 			const blob = await downloadResponse.blob();
 			const filenameWithoutExtension = foundAttachment.title.substring(0, foundAttachment.title.lastIndexOf("."));
@@ -112,7 +113,7 @@ export default class ConfluenceConverter {
 				continue;
 			}
 
-			if (!res.ok) throw new Error(`Ошибка HTTP: ${res.status}`);
+			if (!res.ok) throw new Error(`${t("confluence.error.http")}: ${res.status}`);
 
 			const json: ConfluenceAttachmentResponse = await res.json();
 			this._pageAttachments.push(...json.results);

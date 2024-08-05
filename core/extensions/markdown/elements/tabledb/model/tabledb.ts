@@ -36,7 +36,6 @@ export function tabledb(context: ParserContext): Schema {
 					object: object,
 				};
 			} catch (e) {
-				// logger.logError(e);
 				attributes = {
 					lang: context.getLanguage(),
 					isLogged: context.getIsLogged(),

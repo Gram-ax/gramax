@@ -9,6 +9,9 @@ import ContentEditor from "../../extensions/markdown/core/edit/components/Conten
 import getExtensions from "../../extensions/markdown/core/edit/logic/getExtensions";
 import Renderer from "../../extensions/markdown/core/render/components/Renderer";
 import getComponents from "../../extensions/markdown/core/render/components/getComponents/getComponents";
+import Header from "../../extensions/markdown/elements/heading/render/component/Header";
+import ArticlePropsService from "@core-ui/ContextServices/ArticleProps";
+import t from "@ext/localization/locale/translate";
 
 interface ArticleRendererProps {
 	data: ArticlePageData;
@@ -22,10 +25,11 @@ interface ArticleRendererProps {
 const ArticleRenderer = (props: ArticleRendererProps) => {
 	const { data, onCreate, onBlur, onUpdate, onSelectionUpdate, handlePaste } = props;
 	const isEdit = IsEditService.value;
+	const articleProps = ArticlePropsService.value;
 
 	return (
 		<div className={classNames("article-body")}>
-			<ErrorHandler>
+			<ErrorHandler alertTitle={t("article.error.render-failed")} isAlert>
 				{isEdit ? (
 					<ContentEditor
 						content={data.articleContentEdit}
@@ -38,7 +42,17 @@ const ArticleRenderer = (props: ArticleRendererProps) => {
 						deps={[data.articleProps.ref.path]}
 					/>
 				) : (
-					Renderer(JSON.parse(data.articleContentRender), { components: getComponents() })
+					<>
+						<Header level={1} className={"article-title"} dataQa={"article-title"}>
+							{articleProps.title}
+						</Header>
+						{!articleProps.description ? null : (
+							<Header level={2} className={"article-description"} dataQa={"article-description"}>
+								{articleProps.description}
+							</Header>
+						)}
+						{Renderer(JSON.parse(data.articleContentRender), { components: getComponents() })}
+					</>
 				)}
 			</ErrorHandler>
 		</div>

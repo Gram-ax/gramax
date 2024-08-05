@@ -1,7 +1,7 @@
 import { getExecutingEnvironment } from "@app/resolveModule/env";
 import { feedbackLink } from "@components/libs/utils";
+import t from "@ext/localization/locale/translate";
 import { TitledLink } from "@ext/navigation/NavigationLinks";
-import useLocalize from "../extensions/localization/useLocalize";
 import useIsReview from "../extensions/storage/logic/utils/useIsReview";
 import FetchService from "./ApiServices/FetchService";
 import ApiUrlCreatorService from "./ContextServices/ApiUrlCreator";
@@ -26,14 +26,14 @@ export const useGetArticleLinks = (): TitledLink[] => {
 	if (catalogProps.contactEmail)
 		links.push({
 			icon: "mail",
-			title: useLocalize("commentsToArticle"),
+			title: t("comments-to-article"),
 			url: feedbackLink(catalogProps.contactEmail, articleProps.logicPath, catalogProps.repositoryName),
 		});
 
 	if (!isServerApp && !isReadOnly && !catalogProps.readOnly && !isReview && getExecutingEnvironment() == "tauri") {
 		links.push({
 			icon: "square-code",
-			title: useLocalize("editOn") + " VS Code",
+			title: t("edit-on") + " VS Code",
 			onClick: () => void FetchService.fetch(apiUrlCreator.getRedirectVScodeUrl()),
 		});
 	}
@@ -67,7 +67,7 @@ export const getCatalogLinks = (): TitledLink[] => {
 
 	// links.push({
 	// 	icon: "file-word",
-	// 	title: useLocalize("saveCatalogAsDOCX"),
+	// 	title: t("save-catalog-as-docx"),
 	// 	onClick: () => {
 	// 		const fetchData = async () => {
 	// 			const res = await FetchService.fetch(apiUrlCreator.getWordSaveUrl());

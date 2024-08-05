@@ -12,7 +12,6 @@ const useFetchCatalog = () => {
 	const catalogName = CatalogPropsService.value?.name;
 	const apiUrlCreator = ApiUrlCreatorService.value;
 	const isOffline = IsOfflineService.value;
-	const isReadOnly = PageDataContextService.value.conf.isReadOnly;
 	const isStorageInitialized = useIsStorageInitialized();
 	const isStorageInitializedRef = useRef<boolean>(isStorageInitialized);
 	const readOnly = PageDataContextService.value.conf.isReadOnly;

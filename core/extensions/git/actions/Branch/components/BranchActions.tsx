@@ -19,10 +19,10 @@ import MergeBranches from "@ext/git/actions/Branch/components/MergeBranches";
 import getNewBranchNameErrorLocalization from "@ext/git/actions/Branch/components/logic/getNewBranchNameErrorLocalization";
 import validateBranchError from "@ext/git/actions/Branch/components/logic/validateBranchError";
 import ClientGitBranchData from "@ext/git/actions/Branch/model/ClientGitBranchData";
-import MergeConflictConfirm from "@ext/git/actions/MergeConflictHandler/error/components/MergeConflictConfirm";
-import MergeData from "@ext/git/actions/MergeConflictHandler/model/MergeData";
-import useLocalize from "@ext/localization/useLocalize";
-import { ComponentProps, useEffect, useRef, useState } from "react";
+import type MergeConflictConfirm from "@ext/git/actions/MergeConflictHandler/error/components/MergeConflictConfirm";
+import type MergeData from "@ext/git/actions/MergeConflictHandler/model/MergeData";
+import t from "@ext/localization/locale/translate";
+import { useEffect, useRef, useState, type ComponentProps } from "react";
 
 interface BranchActionsProps {
 	currentBranch: string;
@@ -33,10 +33,9 @@ interface BranchActionsProps {
 
 const BranchActions = (props: BranchActionsProps) => {
 	const { currentBranch, trigger, onNewBranch = () => {}, onStopMerge = () => {} } = props;
-	const lang = PageDataContextService.value.lang;
 	const apiUrlCreator = ApiUrlCreatorService.value;
 	const readOnly = PageDataContextService.value.conf.isReadOnly;
-	const addNewBranchText = useLocalize("addNewBranch");
+	const addNewBranchText = t("add-new-branch");
 
 	const [displayedBranch, setDisplayedBranch] = useState("");
 	const [isOpen, setIsOpen] = useState(false);
@@ -88,7 +87,7 @@ const BranchActions = (props: BranchActionsProps) => {
 	const validateBranchName = (value: string): string => {
 		const branchExists = [currentBranch, ...branches.map((otherBranch) => otherBranch.name)];
 		const errorResult = validateBranchError(value, branchExists);
-		const str = getNewBranchNameErrorLocalization(errorResult, lang);
+		const str = getNewBranchNameErrorLocalization(errorResult);
 
 		return str;
 	};
@@ -128,11 +127,11 @@ const BranchActions = (props: BranchActionsProps) => {
 		setApiProcess(true);
 		const res = await FetchService.fetch<MergeData>(mergeIntoUrl);
 		setApiProcess(false);
-		setIsOpen(false);
-		if (!res.ok) return;
+		if (!res.ok) return setIsOpen(false);
 
 		mergeData.current = await res.json();
 		onStopMerge(!mergeData.current.ok);
+		setIsOpen(false);
 	};
 
 	const onCmdEnter = async () => {
@@ -187,7 +186,7 @@ const BranchActions = (props: BranchActionsProps) => {
 					<BranchSideBar
 						name={b.name}
 						iconCode={b.remoteName ? "cloud" : "monitor"}
-						tooltipContent={b.remoteName ? useLocalize("remote", lang) : useLocalize("local", lang)}
+						tooltipContent={b.remoteName ? t("remote") : t("local")}
 						data={{ lastCommitAuthor: b.lastCommitAuthor, lastCommitModify: b.lastCommitModify }}
 						disable={disable}
 					/>
@@ -235,7 +234,7 @@ const BranchActions = (props: BranchActionsProps) => {
 				<ModalLayoutLight>
 					<FormStyle>
 						<>
-							<legend>{useLocalize("loading2", lang)}</legend>
+							<legend>{t("loading2")}</legend>
 							<SpinnerLoader fullScreen />
 						</>
 					</FormStyle>
@@ -256,7 +255,7 @@ const BranchActions = (props: BranchActionsProps) => {
 			<ModalLayoutLight>
 				<FormStyle>
 					<>
-						<legend>{useLocalize("changeBranch", lang)}</legend>
+						<legend>{t("change-branch")}</legend>
 						<fieldset>
 							<div className="form-group field field-string">
 								<ListLayout
@@ -270,13 +269,13 @@ const BranchActions = (props: BranchActionsProps) => {
 									onSearchClick={() => {
 										if (isInitNewBranch) setIsInitNewBranch(false);
 									}}
-									item={isInitNewBranch ? useLocalize("addNewBranch", lang) : undefined}
+									item={isInitNewBranch ? t("add-new-branch") : undefined}
 									buttons={addNewBranchListItem}
 									items={getBranchListItems(false)}
 									onItemClick={(elem) => {
 										setDisplayedBranch(elem ?? currentBranch);
 									}}
-									placeholder={useLocalize("findBranch", lang)}
+									placeholder={t("find-branch")}
 								/>
 							</div>
 							{isInitNewBranch && (
@@ -287,7 +286,7 @@ const BranchActions = (props: BranchActionsProps) => {
 										type="text"
 										ref={initNewBranchInputRef}
 										style={{ pointerEvents: isNewBranch ? "none" : "auto" }}
-										placeholder={useLocalize("enterBranchName", lang)}
+										placeholder={t("enter-branch-name")}
 										onChange={(e) => {
 											const validateBranchNameValue = validateBranchName(e.currentTarget.value);
 											setNewBranchValidationError(validateBranchNameValue);
@@ -301,7 +300,7 @@ const BranchActions = (props: BranchActionsProps) => {
 									disabled={isInitNewBranch ? !canInitNewBranch : !canSwitchBranch}
 									onClick={isInitNewBranch ? initNewBranch : switchBranch}
 								>
-									{useLocalize(isInitNewBranch ? "add" : "switch", lang)}
+									{t(isInitNewBranch ? "add" : "switch")}
 								</Button>
 							</div>
 

@@ -5,7 +5,7 @@ import IconLink from "@components/Molecules/IconLink";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import ErrorConfirmService from "@ext/errorHandlers/client/ErrorConfirmService";
 import DefaultError from "@ext/errorHandlers/logic/DefaultError";
-import useLocalize from "@ext/localization/useLocalize";
+import t from "@ext/localization/locale/translate";
 import useEditUrl from "./useEditUrl";
 
 const DESKTOP_APP_LISTENING_ADDRESS = "http://localhost:52055";
@@ -47,23 +47,22 @@ const assertDesktopAvailable = async () => {
 
 	ErrorConfirmService.notify(
 		new DefaultError(
-			`<a target="_blank" rel="noreferrer" href="https://gram.ax">Скачайте приложение</a><span> и попробуйте еще раз.</span>`,
+			t("open-in.error.cannot-open-desktop.title"),
 			null,
 			{ html: true },
 			true,
-			"Приложение не установлено",
+			t("open-in.error.cannot-open-desktop.desc"),
 		),
 	);
 };
 
 const EditInDesktop = () => (
-	<EditInGramaxButton targetSelf text={useLocalize("openInDesktop")} onClick={assertDesktopAvailable} />
+	<EditInGramaxButton targetSelf text={t("open-in.desktop")} onClick={assertDesktopAvailable} />
 );
 
-const EditInWeb = () =>
-	!PageDataContextService.value?.conf.isRelease && <EditInGramaxButton text={useLocalize("openInWeb")} />;
+const EditInWeb = () => !PageDataContextService.value?.conf.isRelease && <EditInGramaxButton text={t("open-in.web")} />;
 
-const EditInWebFromDocPortal = () => <EditInGramaxButton text={useLocalize("editOn") + " Gramax"} />;
+const EditInWebFromDocPortal = () => <EditInGramaxButton text={t("open-in.gramax")} />;
 
 const editInGramaxComponents = {
 	next: EditInWebFromDocPortal,

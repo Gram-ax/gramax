@@ -17,9 +17,10 @@ Object.assign(Module, {
 
 		const proxy = self.corsProxy;
 		const token = self.token;
+		const gitServerUsername = self.gitServerUsername || "git";
 
 		const xhr = new XMLHttpRequest();
-		xhr.open(method, proxy + url.replace(/https?:\/\//, `/git:${token}@`), false);
+		xhr.open(method, proxy + url.replace(/https?:\/\//, `/${gitServerUsername}:${token}@`), false);
 		xhr.responseType = "arraybuffer";
 
 		if (headers) Object.keys(headers).forEach((header) => xhr.setRequestHeader(header, headers[header]));

@@ -1,5 +1,7 @@
 import GitErrorCode from "@ext/git/core/GitCommands/errors/model/GitErrorCode";
 
+export const JSErrorClass = 100;
+
 export class LibGit2Error extends Error {
 	code?: GitErrorCode;
 	data?: { [key: string]: string };
@@ -39,6 +41,12 @@ export const fromRaw = (klass: number, code: number): GitErrorCode => {
 
 		case eq(4, 9):
 			return GitErrorCode.PushRejectedError;
+
+		case eq(2, 0):
+			return GitErrorCode.NetworkConntectionError;
+
+		case eq(JSErrorClass, 19):
+			return GitErrorCode.NetworkConntectionError;
 
 		default:
 			return undefined;

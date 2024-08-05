@@ -18,6 +18,10 @@ class TestContext implements Context {
 		return this._user;
 	}
 
+	get ui() {
+		return Language.ru;
+	}
+
 	get theme(): Theme {
 		return Theme.dark;
 	}

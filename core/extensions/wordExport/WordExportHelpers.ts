@@ -11,6 +11,8 @@ export interface ImageDimensions {
 
 const FONT_EMBED_CSS = "";
 const SCALE = 4;
+const MAX_WIDTH = 595;
+const MAX_HEIGHT = 842;
 
 export class WordExportHelper {
 	static async getFileByPath(path: Path, resourceManager: ResourceManager) {
@@ -19,7 +21,7 @@ export class WordExportHelper {
 		return content;
 	}
 
-	static async getImageSizeFromImageData(imageBuffer: Buffer | Blob, maxWidth = 600, maxHeight = 600) {
+	static async getImageSizeFromImageData(imageBuffer: Buffer | Blob, maxWidth = MAX_WIDTH, maxHeight = MAX_HEIGHT) {
 		const img = new Image();
 		const imageUrl = URL.createObjectURL(imageBuffer instanceof Blob ? imageBuffer : new Blob([imageBuffer]));
 		img.src = imageUrl;
@@ -66,7 +68,7 @@ export class WordExportHelper {
 		return this._getImageRun(await image.arrayBuffer(), dimensions);
 	}
 
-	static getSvgDimensions(svgContent: string): { width: number; height: number } {
+	static getSvgDimensions(svgContent: string, maxWidth = MAX_WIDTH): { width: number; height: number } {
 		const parser = new DOMParser();
 		const doc = parser.parseFromString(svgContent, "image/svg+xml");
 		const svgElement = doc.documentElement;
@@ -83,9 +85,23 @@ export class WordExportHelper {
 			}
 		}
 
+		let width = widthAttr ? parseFloat(widthAttr) : 0;
+		let height = heightAttr ? parseFloat(heightAttr) : 0;
+
+		if (width > maxWidth) {
+			const ratio = maxWidth / width;
+			width = maxWidth;
+			height = height * ratio;
+		}
+		if (height > MAX_HEIGHT) {
+			const ratio = MAX_HEIGHT / height;
+			height = MAX_HEIGHT;
+			width = width * ratio;
+		}
+
 		return {
-			width: widthAttr ? parseFloat(widthAttr) : 0,
-			height: heightAttr ? parseFloat(heightAttr) : 0,
+			width,
+			height,
 		};
 	}
 

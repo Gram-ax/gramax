@@ -1,3 +1,6 @@
+import Language from "@ext/localization/core/model/Language";
+import { errorWordLayout } from "@ext/wordExport/error";
+import { WordFontStyles, diagramString } from "@ext/wordExport/options/wordExportSettings";
 import { ImageRun, Paragraph, TextRun } from "docx";
 import Path from "../../../../../logic/FileProvider/Path/Path";
 import ResourceManager from "../../../../../logic/Resource/ResourceManager";
@@ -6,13 +9,12 @@ import Diagrams from "../../../../../logic/components/Diagram/Diagrams";
 import { ImageDimensions, WordExportHelper } from "../../../../wordExport/WordExportHelpers";
 import { Tag } from "../../../core/render/logic/Markdoc";
 import C4Data from "../diagrams/c4Diagram/C4Data";
-import { WordFontStyles, diagramString } from "@ext/wordExport/options/wordExportSettings";
-import { errorWordLayout } from "@ext/wordExport/error";
-import Language from "@ext/localization/core/model/Language";
+import { AddOptionsWord } from "@ext/wordExport/options/WordTypes";
 
 export class WordDiagramRenderer {
 	static async renderSimpleDiagram(
 		tag: Tag,
+		addOptions: AddOptionsWord,
 		diagramType: DiagramType,
 		resourceManager: ResourceManager,
 		language: Language,
@@ -24,7 +26,7 @@ export class WordDiagramRenderer {
 			const diagramContent =
 				tag.attributes.content ?? (await resourceManager.getContent(new Path(tag.attributes.src))).toString();
 			const diagram = await new Diagrams(diagramRendererServerUrl).getDiagram(diagramType, diagramContent);
-			const size = WordExportHelper.getSvgDimensions(diagram);
+			const size = WordExportHelper.getSvgDimensions(diagram, addOptions?.maxPictureWidth);
 			const diagramImage = await WordExportHelper.svgToPngBlob(diagram, size);
 			const dimensions = await WordExportHelper.getImageSizeFromImageData(diagramImage, size.width, size.height);
 
@@ -48,6 +50,7 @@ export class WordDiagramRenderer {
 
 	static async renderC4Diagram(
 		tag: Tag,
+		addOptions: AddOptionsWord,
 		diagramType: DiagramType,
 		resourceManager: ResourceManager,
 		language: Language,
@@ -64,7 +67,7 @@ export class WordDiagramRenderer {
 
 			const images = await Promise.all(
 				diagramJson.viz.map(async (viz) => {
-					const size = WordExportHelper.getSvgDimensions(viz.svg);
+					const size = WordExportHelper.getSvgDimensions(viz.svg, addOptions?.maxPictureWidth);
 					const diagramImage = await WordExportHelper.svgToPngBlob(viz.svg, size);
 					const dimensions = await WordExportHelper.getImageSizeFromImageData(diagramImage);
 					return WordDiagramRenderer._getParagraphWithImage(await diagramImage.arrayBuffer(), dimensions);

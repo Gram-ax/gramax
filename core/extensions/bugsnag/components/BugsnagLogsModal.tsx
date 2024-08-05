@@ -15,7 +15,7 @@ import parseContent from "@ext/bugsnag/logic/parseContent";
 import sendBug from "@ext/bugsnag/logic/sendBug";
 import ErrorConfirmService from "@ext/errorHandlers/client/ErrorConfirmService";
 import DefaultError from "@ext/errorHandlers/logic/DefaultError";
-import useLocalize from "@ext/localization/useLocalize";
+import t from "@ext/localization/locale/translate";
 import PersistentLogger from "@ext/loggers/PersistentLogger";
 import Fence from "@ext/markdown/elements/fence/render/component/Fence";
 import EditorService from "@ext/markdown/elementsUtils/ContextServices/EditorService";
@@ -49,7 +49,7 @@ const BugsnagLogsModal = ({ className }: { className?: string }) => {
 	return (
 		<ModalLayout
 			className={className}
-			trigger={<ListItem iconCode="bug" text={useLocalize("bugReport")} />}
+			trigger={<ListItem iconCode="bug" text={t("bug-report.name")} />}
 			onOpen={() => setIsOpen(true)}
 			onClose={() => setIsOpen(false)}
 			isOpen={isOpen}
@@ -66,13 +66,10 @@ const BugsnagBody = ({ setIsOpen, className }: { setIsOpen: (v: boolean) => void
 	const [checked, setChecked] = useState(true);
 	const [comment, setComment] = useState("");
 	const [isWrongText, setIsWrongText] = useState(false);
-	const requiredParameterText = useLocalize("requiredParameter");
+	const requiredParameterText = t("required-parameter");
 
 	const data = PageDataContextService.value;
 	const editor = EditorService.getEditor();
-
-	const cantSendFeedback = useLocalize("cantSendFeedback");
-	const checkInternetAndDisableAdBlocker = useLocalize("checkInternetAndDisableAdBlocker");
 
 	const sendLogsHandler = useCallback(
 		(comment) => {
@@ -83,7 +80,10 @@ const BugsnagBody = ({ setIsOpen, className }: { setIsOpen: (v: boolean) => void
 			}).catch((e) => {
 				console.error(e);
 				ErrorConfirmService.notify(
-					new DefaultError(cantSendFeedback, new Error(checkInternetAndDisableAdBlocker)),
+					new DefaultError(
+						t("bug-report.error.cannot-send-feedback"),
+						new Error(t("bug-report.error.check-internet-or-adblocker")),
+					),
 				);
 			});
 			setIsOpen(false);
@@ -102,12 +102,12 @@ const BugsnagBody = ({ setIsOpen, className }: { setIsOpen: (v: boolean) => void
 
 	return (
 		<fieldset>
-			<legend>{useLocalize("bugReport")}</legend>
+			<legend>{t("bug-report.name")}</legend>
 
 			<div className="form-group">
 				<div className="field field-string row">
 					<label className="control-label">
-						<span>{useLocalize("whatHappened")}</span>
+						<span>{t("bug-report.what-happened")}</span>
 						<span className="required">*</span>
 					</label>
 				</div>
@@ -117,7 +117,7 @@ const BugsnagBody = ({ setIsOpen, className }: { setIsOpen: (v: boolean) => void
 				<div className="field field-string row">
 					<TextArea
 						onChange={(e) => setComment(e.target.value)}
-						placeholder={useLocalize("describeTheProblem")}
+						placeholder={t("bug-report.describe")}
 						onFocus={() => setIsWrongText(false)}
 						onBlur={textAreaBlurHandler}
 						value={comment}
@@ -131,22 +131,22 @@ const BugsnagBody = ({ setIsOpen, className }: { setIsOpen: (v: boolean) => void
 			<CheckboxWrapper className={classNames("form-group", {}, [className])}>
 				<div>
 					<Checkbox checked={checked} onClick={() => setChecked((prev) => !prev)}>
-						<span>{useLocalize("attachTechnicalDetails")}</span>
+						<span>{t("bug-report.attach-tech-details")}</span>
 					</Checkbox>
 				</div>
 
 				<div className="checkbox__description">
-					<span>{useLocalize("thisWillHelpUs")}</span>{" "}
+					<span>{t("bug-report.this-will-help-us")}</span>
 					<UserDetails details={JSON.stringify(getDetails({ editor, context: data }), null, 4)} />
 				</div>
 			</CheckboxWrapper>
 
 			<div className="buttons">
 				<Button onClick={() => setIsOpen(false)} buttonStyle={ButtonStyle.underline}>
-					<span>{useLocalize("cancel")}</span>
+					<span>{t("cancel")}</span>
 				</Button>
 				<Button disabled={buttonDisabled} onClick={() => sendLogsHandler(comment)}>
-					<span>{useLocalize("submit")}</span>
+					<span>{t("bug-report.submit")}</span>
 				</Button>
 			</div>
 		</fieldset>
@@ -162,7 +162,7 @@ const UserDetails = styled((props: { className?: string; details: string }) => {
 			className={className}
 			trigger={
 				<a>
-					{useLocalize("whatWillBeSent")}
+					{t("bug-report.what-will-be-sent")}
 					<span style={{ whiteSpace: "nowrap", padding: 0 }} data-mdignore={true}>
 						&#65279;
 						<Icon className="linkIcon" code="external-link" />
@@ -177,7 +177,7 @@ const UserDetails = styled((props: { className?: string; details: string }) => {
 			<ModalLayoutLight>
 				<FormStyle>
 					<>
-						<legend>{useLocalize("techDetails")}</legend>
+						<legend>{t("bug-report.view-tech-details")}</legend>
 						<div className={classNames("form-group", {}, ["code_wrapper"])}>
 							<Fence lang="javascript" value={details} />
 						</div>

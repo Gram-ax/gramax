@@ -18,7 +18,6 @@ export type EnvironmentVariable = {
 	DIAGRAM_RENDERER_SERVICE_URL: string;
 	REVIEW_SERVICE_URL: string;
 	CORS_PROXY_SERVICE_URL: string;
-	STORAGE_URL: string;
 
 	// AutoPull
 	AUTO_PULL_TOKEN: string;
@@ -50,6 +49,9 @@ export type EnvironmentVariable = {
 	// Bugsnag
 	BUGSNAG_API_KEY: string;
 
+	// Yandex
+	YANDEX_METRIC_COUNTER: string;
+
 	// kafka
 	KAFKA_CONNECTION: string;
 
@@ -59,6 +61,7 @@ export type EnvironmentVariable = {
 
 	// Enterprise
 	WORKSPACE_PATH: string;
+	GLS_URL: string;
 };
 
 export const defaultVariables: Partial<EnvironmentVariable> = {

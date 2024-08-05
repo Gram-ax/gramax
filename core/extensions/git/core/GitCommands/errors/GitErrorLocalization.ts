@@ -1,101 +1,73 @@
+import t from "@ext/localization/locale/translate";
 import { GitErrorLocalization } from "./model/GitErrorLocalization";
 
 const gitErrorLocalization: GitErrorLocalization = {
-	CheckoutConflictError: (props) => {
-		if (props?.caller == "pull") {
-			if (props?.error?.data?.filepaths) {
-				return `Ваши локальные изменения в следующих файлах не позволяют синхронизироваться:\n${
-					'"' + props.error.data.filepaths.join('"\n"') + '"'
-				}`;
-			} else return "Ваши локальные изменения не позволяют синхронизироваться";
-		} else {
-			if (props?.error?.data?.filepaths) {
-				return `Ваши локальные изменения в следующих файлах не позволяют поменять ветку:\n${
-					'"' + props.error.data.filepaths.join('"\n"') + '"'
-				}`;
-			} else return "Ваши локальные изменения не позволяют поменять ветку";
-		}
-	},
-	DeleteCurrentBranch: () => {
-		return "Вы пытаетесь удалить ветку, на которой находитесь. Переключите её и попробуйте ещё раз";
-	},
-	WorkingDirNotEmpty: () => {
-		return "У вас есть локальные изменения. Отмените их и попробуйте ещё раз";
-	},
-	PushRejectedError: (props) => {
-		if (props.error?.data?.reason === "not-fast-forward")
-			return "У вас устаревшая версия каталога. Синхронизируйте его, затем опубликуйте изменения";
-		return `Неизвестная ошибка при публикации. Сообщение ошибки - ${props.error.message}`;
-	},
+	CheckoutConflictError: (props) =>
+		props?.caller == "pull"
+			? { message: t("git.sync.error.local-changes-present") }
+			: { message: t("git.sync.error.local-changes-present") },
+	DeleteCurrentBranch: () => ({ message: t("git.branch.error.deleting-head-branch") }),
+	WorkingDirNotEmpty: () => ({ message: t("git.merge.error.workdir-not-empty") }),
+	PushRejectedError: (props) => ({
+		message:
+			props.error?.data?.reason === "not-fast-forward"
+				? t("git.publish.error.non-fast-forward")
+				: `${t("git.publish.error.unknown")} ${props.error.message}`,
+	}),
 	GitPushError: (props) => {
 		if (props.caller === "deleteBranch") {
 			if (props.error.props.fromMerge) {
-				const branch = props.error.props.branchName;
-				return `Ветка ${branch} защищена от удаления. Снимите флаг с пункта "Удалить ветку ${branch} после объединения" и попробуйте еще раз.`;
+				return {
+					message: t("git.branch.error.cannot-delete-protected").replace(
+						"{{branch}}",
+						props.error.props.branchName,
+					),
+				};
 			}
-			return `Не удалось удалить удалённую ветку ${props.error.props.branchName}`;
+			return { message: t("git.branch.error.cannot-delete").replace("{{branch}}", props.error.props.branchName) };
 		}
-		return `Ветка защищена от публикации`;
+		return { message: t("git.publish.error.protected") };
 	},
-	CurrentBranchNotFoundError: () => {
-		return "Не удалось определить текущую ветку";
-	},
-	RemoteNotFoundMessageError: (props) => {
-		return `Не удалось найти удалённую ветку для локальной ветки ${props.error?.props?.branchName}`;
-	},
-	MergeNotSupportedError: () => {
-		return `Ошибка при слиянии. Мы пока не умеем решать такие конфликты`;
-	},
-	MergeConflictError: (props) => {
-		if (props?.error?.data?.filepaths)
-			return `Не удалось автоматически решить конфликт слияния в следующих файлах: ${
-				'"' + props?.error?.data?.filepaths.join('"\n"') + '"'
-			}`;
-
-		return "Не удалось автоматически решить конфликт слияния";
-	},
-	MergeError: () => {
-		return `Не удалось слить ветки`;
-	},
-	CantGetConflictedFiles: () => {
-		return `Не удалось получить конфликтующие файлы`;
-	},
+	CurrentBranchNotFoundError: () => ({ message: t("git.branch.error.not-found.local") }),
+	RemoteNotFoundMessageError: (props) => ({
+		message: t("git.branch.error.not-found.remote").replace("{{branch}}", props.error?.props?.branchName),
+	}),
+	MergeNotSupportedError: () => ({ message: t("git.merge.error.not-supported") }),
+	MergeConflictError: () => ({ message: t("git.merge.error.conflict-occured") }),
+	MergeError: () => ({ message: t("git.merge.error.generic") }),
+	CantGetConflictedFiles: () => ({ message: t("git.merge.error.conflicts-not-found") }),
 	AlreadyExistsError: (props) => {
-		if (props.caller === "branch") {
-			return `Не удалось создать новую ветку. Ветка "${props.error?.props?.branchName}" уже существует`;
-		} else if (props.caller === "clone")
-			return `Каталог с таким названием уже существует (${props.error?.props?.repositoryPath})`;
+		if (props.caller === "branch")
+			return { message: t("git.branch.error.already-exist").replace("{{branch}}", props.error.props.branchName) };
+		if (props.caller === "clone")
+			return {
+				message: t("git.clone.error.already-exist").replace("{{path}}", props.error?.props?.repositoryPath),
+			};
 	},
-	HttpError: (props) => {
-		if (props.caller === "pull") {
-			if (props.error.data.statusCode === "401") return `У вас нет прав для синхронизации с этим каталогом`;
-		}
-		return `Ошибка HTTP${props.error.data.statusCode ? `, код ошибки: ${props.error.data.statusCode}` : ""}`;
-	},
+	HttpError: (props) => ({
+		message:
+			props.caller === "pull" && props.error.data.statusCode === "401"
+				? t("git.publish.error.no-permission")
+				: t("git.publish.error.http").replace("{{status}}", props.error.data.statusCode),
+	}),
 	NotFoundError: (props) => {
-		if (props.caller === "resolveRef") {
-			return `Не удалось найти ветку ${props.error.props.branchName}`;
-		} else if (props.caller === "pull") {
-			return `Не удалось найти удалённую ветку "${props.error.data.what}"`;
-		} else if (props.caller === "checkout") {
-			return `Не удалось найти ветку ${props.error.data.what}`;
-		} else if (props.caller === "branch") {
-			return `Не удалось найти ветку ${props.error.props.what}`;
-		} else if (props.caller === "readBlob") {
-			return `Не удалось найти файл ${props.error.props.filePath} в ${
-				props.error.props.hash ? `коммите ${props.error.props.hash}` : "последнем коммите"
-			}`;
-		} else {
-			return `Код ошибки - NotFoundError. Сообщение ошибки - ${props.error.message}`;
+		switch (props.caller) {
+			case "resolveRef":
+				return { message: t("git.sync.error.local-changes-present") };
+			case "pull":
+				return { message: t("git.error.not-found.remote-branch").replace("{{what}}", props.error.data.what) };
+			case "checkout":
+				return { message: t("git.error.not-found.branch").replace("{{what}}", props.error.data.what) };
+			case "branch":
+				return { message: t("git.error.not-found.branch").replace("{{what}}", props.error.props.what) };
+			case "readBlob":
+				return { message: t("git.error.not-found.blob").replace("{{path}}", props.error.props.filePath) };
+			default:
+				return { message: `${t("git.error.not-found.generic")} ${props.error.message}` };
 		}
 	},
-	CloneError404: (props) => {
-		return `Нет доступа к репозиторию ${props.error.props.repUrl}`;
-	},
-
-	CloneError: () => {
-		return `Попробуйте обновить страницу и загрузить каталог заново.`;
-	},
+	CloneError: () => ({ message: t("git.clone.error.generic") }),
+	NetworkConntectionError: () => ({ message: t("git.error.network.message"), title: t("git.error.network.title") }),
 };
 
 export default gitErrorLocalization;

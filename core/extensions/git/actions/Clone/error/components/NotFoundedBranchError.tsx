@@ -1,5 +1,5 @@
+import t from "@ext/localization/locale/translate";
 import InfoModalForm from "../../../../../errorHandlers/client/components/ErrorForm";
-import useLocalize from "../../../../../localization/useLocalize";
 
 const NotFoundedBranchError = ({
 	notFoundedBranch,
@@ -11,11 +11,11 @@ const NotFoundedBranchError = ({
 	return (
 		<InfoModalForm
 			onCancelClick={onCancelClick}
-			title={`${useLocalize("branch")} ${notFoundedBranch} ${useLocalize("notFound2").toLowerCase()}`}
-			closeButton={{ text: useLocalize("ok") }}
+			title={`${t("branch")} ${notFoundedBranch} ${t("not-found2").toLowerCase()}`}
+			closeButton={{ text: t("ok") }}
 		>
 			<div className="article">
-				<span>{useLocalize("cloneBranchNotFound")}</span>
+				<span>{t("clone-branch-not-found")}</span>
 			</div>
 		</InfoModalForm>
 	);

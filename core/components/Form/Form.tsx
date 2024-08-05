@@ -1,10 +1,12 @@
 import Field from "@components/Form/Field";
+import t, { hasTranslation } from "@ext/localization/locale/translate";
 import { JSONSchema7 } from "json-schema";
 import { DependencyList, useEffect, useState } from "react";
-import useLocalize from "../../extensions/localization/useLocalize";
 import Button from "../Atoms/Button/Button";
 import FormStyle from "./FormStyle";
 import ValidateObject from "./ValidateObject";
+
+export type FormSchema = JSONSchema7 & { see?: string };
 
 const Form = <Type,>({
 	props,
@@ -25,12 +27,12 @@ const Form = <Type,>({
 	formDirection = "column",
 }: {
 	props: Type;
-	schema: JSONSchema7;
+	schema: FormSchema;
 	leftButton?: JSX.Element;
 	onSubmit?: (props: Type) => void;
-	onChange?: (props: Type, schema: JSONSchema7) => void;
-	onMount?: (props: Type, schema: JSONSchema7) => void;
-	onUnmount?: (props: Type, schema: JSONSchema7) => void;
+	onChange?: (props: Type, schema: FormSchema) => void;
+	onMount?: (props: Type, schema: FormSchema) => void;
+	onUnmount?: (props: Type, schema: FormSchema) => void;
 	validate?: (props: Type) => ValidateObject | Promise<ValidateObject>;
 	validateDeps?: DependencyList;
 	submitText?: string;
@@ -41,17 +43,17 @@ const Form = <Type,>({
 	fieldDirection?: "row" | "column";
 	formDirection?: "row" | "column";
 }) => {
-	const [editedSchema, setEditedSchema] = useState<JSONSchema7>(schema);
+	const [editedSchema, setEditedSchema] = useState<FormSchema>(schema);
 	const [focusInput, setFocusInput] = useState(-1);
 	const [editedProps, setEditedProps] = useState(props);
 	const [submitDisabled, setSubmitDisabled] = useState(true);
 	const [validateValues, setValidateValues] = useState<ValidateObject>({});
-	const requiredParameterText = useLocalize("requiredParameter");
+	const requiredParameterText = t("required-parameter");
 
 	const getRequired = () => {
 		if (!editedSchema?.required) return [];
 		let required = editedSchema.required;
-		Object.entries(editedSchema.properties as { [key: string]: JSONSchema7 }).forEach(([key, value]) => {
+		Object.entries(editedSchema.properties as { [key: string]: FormSchema }).forEach(([key, value]) => {
 			if (value.readOnly) required = required.filter((x) => x != key);
 		});
 		return required;
@@ -101,10 +103,16 @@ const Form = <Type,>({
 		return () => document.removeEventListener("keydown", keydownHandler, false);
 	});
 
+	const translation = editedSchema.see;
+
 	const formControl = (
 		<>
-			{editedSchema.title && <legend dangerouslySetInnerHTML={{ __html: editedSchema.title }} />}
-			{editedSchema.description && <p className="description">{editedSchema.description}</p>}
+			{hasTranslation(`forms.${translation}.name`) && (
+				<legend dangerouslySetInnerHTML={{ __html: t(`forms.${translation}.name`) }} />
+			)}
+			{hasTranslation(`forms.${translation}.description`) && (
+				<p className="description">{t(`forms.${translation}.description`)}</p>
+			)}
 			<fieldset>
 				{Object.entries(editedSchema.properties).map(([key, value], idx) => {
 					const requiredError = required.includes(key) && focusInput == idx && !editedProps[key];
@@ -112,7 +120,9 @@ const Form = <Type,>({
 						<Field
 							key={idx}
 							required={required.includes(key)}
-							scheme={value as JSONSchema7}
+							translationKey={key}
+							formTranslationKey={translation}
+							scheme={value as FormSchema}
 							value={editedProps[key]}
 							validate={requiredError ? requiredParameterText : validateValues[key]}
 							tabIndex={idx + 1}
@@ -132,7 +142,7 @@ const Form = <Type,>({
 				<div className="buttons">
 					{leftButton && <div className="left-buttons">{leftButton}</div>}
 					<Button onClick={submit} disabled={submitDisabled || parentDisableSubmit}>
-						{submitText ?? useLocalize("save")}
+						{submitText ?? t("save")}
 					</Button>
 				</div>
 			)}

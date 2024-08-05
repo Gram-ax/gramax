@@ -2,7 +2,7 @@ import ContentEditable from "@components/Atoms/ContentEditable";
 import Icon from "@components/Atoms/Icon";
 import CatalogPropsService from "@core-ui/ContextServices/CatalogProps";
 import styled from "@emotion/styled";
-import useLocalize from "@ext/localization/useLocalize";
+import t from "@ext/localization/locale/translate";
 import CurrentTabsTagService from "@ext/markdown/elements/tabs/components/CurrentTabsTagService";
 import getVisibleChildAttrs from "@ext/markdown/elements/tabs/logic/getVisibleChildAttrs";
 import TabAttrs from "@ext/markdown/elements/tabs/model/TabAttrs";
@@ -65,12 +65,13 @@ const Tabs = ({
 									<Icon
 										key={key}
 										isAction
+										data-qa="qa-del-tab"
 										code="x"
 										className="xmark"
 										tooltipContent={
 											visibleChildAttrs.length == 1
-												? useLocalize("deleteTabs")
-												: useLocalize("deleteTab")
+												? t("editor.tabs.delete-last")
+												: t("editor.tabs.delete")
 										}
 										onClick={(e) => {
 											onRemoveClick(idx);
@@ -87,7 +88,8 @@ const Tabs = ({
 							code="plus"
 							viewBox="3 3 18 18"
 							isAction
-							tooltipContent={useLocalize("addNewTab")}
+							data-qa="qa-add-tab"
+							tooltipContent={t("editor.tabs.add")}
 							onClick={() => {
 								onAddClick();
 								setActiveIdx(visibleChildAttrs.length);
@@ -158,6 +160,7 @@ export default styled(Tabs)`
 		position: relative;
 
 		.tab {
+			top: 0;
 			left: 0;
 			position: absolute;
 			visibility: hidden;

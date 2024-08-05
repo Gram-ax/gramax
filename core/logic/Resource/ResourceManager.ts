@@ -81,7 +81,9 @@ class ResourceManager {
 	}
 
 	async getContent(path: Path): Promise<Buffer> {
-		return await this._fp.readAsBinary(this.getAbsolutePath(path));
+		try {
+			return await this._fp.readAsBinary(this.getAbsolutePath(path));
+		} catch {}
 	}
 
 	async delete(path: Path) {

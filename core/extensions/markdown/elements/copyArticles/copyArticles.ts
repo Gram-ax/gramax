@@ -3,7 +3,7 @@ import { ClientArticleProps } from "@core/SitePresenter/SitePresenter";
 import { copyArticleResource } from "@ext/markdown/elements/copyArticles/copyPasteArticleResource";
 import OnLoadResourceService from "@ext/markdown/elements/copyArticles/onLoadResourceService";
 import initArticleResource from "@ext/markdown/elementsUtils/AtricleResource/initArticleResource";
-import { Extension } from "@tiptap/core";
+import { Editor, Extension } from "@tiptap/core";
 import { Node } from "@tiptap/pm/model";
 import { Plugin, Transaction } from "@tiptap/pm/state";
 import { ReplaceAroundStep, ReplaceStep } from "@tiptap/pm/transform";
@@ -26,10 +26,35 @@ const processNode = (childNode: Node, articleProps: ClientArticleProps, apiUrlCr
 	}
 };
 
+const selectNodes = (editor: Editor): boolean => {
+	const { doc, selection } = editor.state;
+	if (doc.childCount < 2) return false;
+
+	const { $from } = selection;
+	const isFirstNode = editor.state.doc.firstChild === $from.parent;
+	const firstNodeSize = doc.firstChild.nodeSize;
+	const from = isFirstNode ? 1 : firstNodeSize + (!doc.maybeChild(1)?.isTextblock ? 2 : 1);
+	const to = isFirstNode ? 1 + editor.state.doc.firstChild.nodeSize : doc.content.size;
+
+	editor.commands.setTextSelection({
+		from: from,
+		to: to,
+	});
+
+	return true;
+};
+
 const CopyArticles = Extension.create({
 	name: "copyArticles",
 	addOptions() {
 		return {};
+	},
+
+	addKeyboardShortcuts() {
+		return {
+			"Mod-a": () => selectNodes(this.editor),
+			"Mod-A": () => selectNodes(this.editor),
+		};
 	},
 
 	addProseMirrorPlugins() {

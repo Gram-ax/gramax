@@ -13,6 +13,7 @@ import ApiMiddleware from "@core/Api/middleware/ApiMiddleware";
 import Middleware from "@core/Api/middleware/Middleware";
 import buildMiddleware from "@core/Api/middleware/buildMiddleware";
 import PersistentLogger from "@ext/loggers/PersistentLogger";
+import { withContext } from "apps/next/logic/Context/ContextHook";
 
 export default async (req: ApiRequest, res: ApiResponse) => {
 	Object.entries(req.query)
@@ -36,7 +37,8 @@ export default async (req: ApiRequest, res: ApiResponse) => {
 		const ctx = app.contextFactory.from(req, res);
 		const params = command.params(ctx, req.query as Query, req.body);
 		PersistentLogger.info(`executing command ${path}`, "cmd", { ...req.query });
-		const result = await command.do(params);
+
+		const result = await withContext(ctx, async () => await command.do(params));
 		await respond(app, req, res, command.kind, result);
 	});
 
@@ -60,7 +62,7 @@ const respond = async (app: Application, req: ApiRequest, res: ApiResponse, kind
 				`attachment; filename=${encodeURIComponent(req.query?.src as string)}`,
 			);
 		if (hashItem) return await apiUtils.sendWithETag(req, res, hashItem, app.hashes);
-		res.end();
+		return res.end();
 	}
 
 	if (kind == ResponseKind.file) {

@@ -1,8 +1,8 @@
-import React, { ReactElement, useRef, useEffect, useState, RefObject } from "react";
-import { SquareObject } from "../../../edit/model/imageEditorTypes";
-import styled from "@emotion/styled";
 import Tooltip from "@components/Atoms/Tooltip";
+import styled from "@emotion/styled";
 import { handleMove, objectMove } from "@ext/markdown/elements/image/edit/logic/imageEditorMethods";
+import { ReactElement, RefObject, useEffect, useRef, useState } from "react";
+import { SquareObject } from "../../../edit/model/imageEditorTypes";
 
 interface SquareObjectProps extends SquareObject {
 	parentRef: RefObject<HTMLDivElement>;
@@ -106,7 +106,11 @@ const Square = (props: SquareObjectProps): ReactElement => {
 	}, [selected, index, text]);
 
 	return (
-		<Tooltip visible={tooltipText.length > 0 && isTooltipHover} content={<span>{tooltipText}</span>}>
+		<Tooltip
+			hideInMobile={false}
+			visible={tooltipText.length > 0 && isTooltipHover}
+			content={<span>{tooltipText}</span>}
+		>
 			<div
 				id={"object/" + index}
 				ref={mainRef}
@@ -140,10 +144,6 @@ const Square = (props: SquareObjectProps): ReactElement => {
 
 export default styled(Square)`
 	position: absolute;
-	top: 0;
-	left: 0;
-	width: 100%;
-	height: 100%;
 	border: 3px solid #fc2847;
 	border-radius: 4px;
 	pointer-events: auto !important;

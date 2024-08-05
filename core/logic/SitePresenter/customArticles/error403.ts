@@ -1,5 +1,3 @@
-export default () => `---
-title: 403
----
+import t from "@ext/localization/locale/translate";
 
-Это приватная статья. Войдите в систему под аккаунтом с доступом или запросите права у автора.`;
+export default () => t("article.custom.403");

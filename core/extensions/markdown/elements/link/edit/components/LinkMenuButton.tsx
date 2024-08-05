@@ -1,3 +1,4 @@
+import t from "@ext/localization/locale/translate";
 import Button from "@ext/markdown/core/edit/components/Menu/Button";
 import getSelectedText from "@ext/markdown/elementsUtils/getSelectedText";
 import { Editor } from "@tiptap/core";
@@ -13,7 +14,7 @@ const LinkMenuButton = ({ editor, onClick }: { editor: Editor; onClick: () => vo
 			onClick={onClickHandler}
 			icon={"link"}
 			nodeValues={{ mark: "link" }}
-			tooltipText={"Ссылка"}
+			tooltipText={t("link")}
 			hotKey={"Mod-K"}
 		/>
 	);

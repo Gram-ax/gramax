@@ -13,6 +13,7 @@ export default {
 	highlight: ci(true),
 	screenshots: true,
 	url: addr("http://localhost:5173"),
+	resourcePath: "./export.puml",
 	launch: {
 		devtools: false,
 		headless: !ci(true),

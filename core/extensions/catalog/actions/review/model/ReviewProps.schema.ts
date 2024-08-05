@@ -1,12 +1,11 @@
 /**
- * @title Поделиться ссылкой
+ * @see review-edit-props
  */
 export interface ReviewProps {
 	/**
-	 * @title У получателя есть доступ к [$STORAGE_NAME]($STORAGE_URL)
+	 *
 	 * @default true
 	 * @readOnly true
-	 * @description Если у получателя нет доступа, то в ссылку будет добавлен [токена для доступа к репозиторию]($ACCESS_TOKEN_DOCS) от вашего имени.
 	 *
 	 */
 	haveAccess: boolean;

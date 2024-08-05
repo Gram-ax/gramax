@@ -1,15 +1,15 @@
 import Button, { TextSize } from "@components/Atoms/Button/Button";
 import { ButtonStyle } from "@components/Atoms/Button/ButtonStyle";
-import eventEmmiter from "@core/utils/eventEmmiter";
-import Tooltip from "@components/Atoms/Tooltip";
-import TitleItems from "./TitileItems";
-import LinkTitleContextService, { useFetchArticleHeaders } from "@core-ui/ContextServices/LinkTitleTooltip";
-import useLocalize from "@ext/localization/useLocalize";
-import { MouseEvent, useState, useEffect } from "react";
-import LinkItem from "@ext/artilce/LinkCreator/models/LinkItem";
-import Sidebar from "@components/Layouts/Sidebar";
 import Icon from "@components/Atoms/Icon";
+import Tooltip from "@components/Atoms/Tooltip";
+import Sidebar from "@components/Layouts/Sidebar";
+import LinkTitleContextService, { useFetchArticleHeaders } from "@core-ui/ContextServices/LinkTitleTooltip";
+import eventEmmiter from "@core/utils/eventEmmiter";
 import styled from "@emotion/styled";
+import LinkItem from "@ext/artilce/LinkCreator/models/LinkItem";
+import t from "@ext/localization/locale/translate";
+import { MouseEvent, useEffect, useState } from "react";
+import TitleItems from "./TitileItems";
 
 type HeadingLinkItemProps = { title: string; iconCode?: string; item?: LinkItem; className?: string };
 
@@ -68,7 +68,7 @@ const HeadingLinkItem = ({ title, iconCode, item, className }: HeadingLinkItemPr
 							/>
 						}
 					>
-						<Tooltip key={1} inverseStyle delay={300} content={useLocalize("chooseHeader")}>
+						<Tooltip key={1} inverseStyle delay={300} content={t("choose-header")}>
 							<Button
 								textSize={TextSize.S}
 								onClick={onClickHandler}

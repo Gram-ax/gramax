@@ -1,10 +1,6 @@
 /**
- * @title Сформировать аккаунт ICS
- * @description Входные данные
+ * @see ics-account-in
  */
 export interface IcsAccountIn {
-	/**
-	 * @title Имя и фамилия
-	 */
 	fullName: string;
 }

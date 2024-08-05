@@ -8,6 +8,7 @@ import ModalLayoutDark from "@components/Layouts/ModalLayoutDark";
 import ModalLayoutLight from "@components/Layouts/ModalLayoutLight";
 import FetchService from "@core-ui/ApiServices/FetchService";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
+import t from "@ext/localization/locale/translate";
 import Button from "@ext/markdown/core/edit/components/Menu/Button";
 import OnLoadResourceService from "@ext/markdown/elements/copyArticles/onLoadResourceService";
 import OPEN_API_NAME from "@ext/markdown/elements/openApi/name";
@@ -15,7 +16,6 @@ import { Editor } from "@tiptap/core";
 import { Node } from "prosemirror-model";
 import { useEffect, useState } from "react";
 import ApiUrlCreator from "../../../../../../ui-logic/ApiServices/ApiUrlCreator";
-import useLocalize from "../../../../../localization/useLocalize";
 import getFocusNode from "../../../../elementsUtils/getFocusNode";
 
 const OpenApiEditButton = ({ src }: { src?: string }) => {
@@ -59,7 +59,7 @@ const OpenApiEditButton = ({ src }: { src?: string }) => {
 			isOpen={isOpen}
 			onClose={cancel}
 			onOpen={() => setIsOpen(true)}
-			trigger={<Button icon={"pencil"} tooltipText={useLocalize("edit2")} />}
+			trigger={<Button icon={"pencil"} tooltipText={t("edit2")} />}
 			onCmdEnter={save}
 		>
 			<ModalLayoutLight>
@@ -69,10 +69,10 @@ const OpenApiEditButton = ({ src }: { src?: string }) => {
 						<FileInput language="yaml" value={content ?? ""} onChange={setContent} />
 						<div className="buttons">
 							<ButtonAtom buttonStyle={ButtonStyle.underline} onClick={cancel}>
-								<span>{useLocalize("cancel")}</span>
+								<span>{t("cancel")}</span>
 							</ButtonAtom>
 							<ButtonAtom buttonStyle={ButtonStyle.default} onClick={save}>
-								<span>{useLocalize("save")}</span>
+								<span>{t("save")}</span>
 							</ButtonAtom>
 						</div>
 					</>
@@ -117,12 +117,12 @@ const OpenApiMenu = ({ editor }: { editor: Editor }) => {
 				<ButtonsLayout>
 					<Button
 						icon={flag ? "square-check" : "square"}
-						tooltipText={flag ? useLocalize("schemasBlock") : useLocalize("noSchemasBlock")}
+						tooltipText={flag ? t("schemas-block") : t("no-schemas-block")}
 						onClick={toggleFlag}
 					/>
 				</ButtonsLayout>
 				{node && <OpenApiEditButton src={node.attrs?.src} />}
-				<Button icon="trash" tooltipText={useLocalize("delete")} onClick={handleDelete} />
+				<Button icon="trash" tooltipText={t("delete")} onClick={handleDelete} />
 			</ButtonsLayout>
 		</ModalLayoutDark>
 	);

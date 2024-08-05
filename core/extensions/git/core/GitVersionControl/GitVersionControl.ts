@@ -1,6 +1,5 @@
 import gitMergeConverter from "@ext/git/actions/MergeConflictHandler/logic/GitMergeConverter";
 import GitMergeResult from "@ext/git/actions/MergeConflictHandler/model/GitMergeResult";
-import GitCommandsConfig from "@ext/git/core/GitCommands/model/GitCommandsConfig";
 import GitStash from "@ext/git/core/model/GitStash";
 import Path from "../../../../logic/FileProvider/Path/Path";
 import FileProvider from "../../../../logic/FileProvider/model/FileProvider";
@@ -26,8 +25,8 @@ export default class GitVersionControl {
 	private _gitWatcher: GitWatcher;
 	private _gitRepository: GitCommands;
 
-	constructor(private _conf: GitCommandsConfig, private _path: Path, private _fp: FileProvider) {
-		this._gitRepository = new GitCommands(_conf, this._fp, this._path);
+	constructor(private _path: Path, private _fp: FileProvider) {
+		this._gitRepository = new GitCommands(this._fp, this._path);
 		this._gitWatcher = new GitWatcher(this._gitRepository);
 		this._gitWatcher.watch(this._onChange.bind(this));
 		this._watcherFunc = [];
@@ -38,18 +37,13 @@ export default class GitVersionControl {
 		this._watcherFunc.push(w);
 	}
 
-	static hasInit(conf: GitCommandsConfig, fp: FileProvider, path: Path): Promise<boolean> {
-		return new GitCommands(conf, fp, path).hasInit();
+	static hasInit(fp: FileProvider, path: Path): Promise<boolean> {
+		return new GitCommands(fp, path).hasInit();
 	}
 
-	static async init(
-		conf: GitCommandsConfig,
-		fp: FileProvider,
-		path: Path,
-		userData: SourceData,
-	): Promise<GitVersionControl> {
-		await new GitCommands(conf, fp, path).init(userData);
-		return new GitVersionControl(conf, path, fp);
+	static async init(fp: FileProvider, path: Path, userData: SourceData): Promise<GitVersionControl> {
+		await new GitCommands(fp, path).init(userData);
+		return new GitVersionControl(path, fp);
 	}
 
 	getPath(): Path {
@@ -82,7 +76,7 @@ export default class GitVersionControl {
 
 	async showLastCommitContent(filePath: Path): Promise<string> {
 		const { gitVersionControl, relativePath } = await this.getGitVersionControlContainsItem(filePath);
-		const gitRepository = new GitCommands(this._conf, this._fp, gitVersionControl.getPath());
+		const gitRepository = new GitCommands(this._fp, gitVersionControl.getPath());
 		return gitRepository.showFileContent(relativePath);
 	}
 
@@ -133,7 +127,7 @@ export default class GitVersionControl {
 		if (!filePaths) return this._gitRepository.add();
 		const versionContolsAndItsFiles = await this._getVersionControlsAndItsFiles(filePaths);
 		for (const [storage, paths] of Array.from(versionContolsAndItsFiles)) {
-			const gitRepository = new GitCommands(this._conf, this._fp, storage.getPath());
+			const gitRepository = new GitCommands(this._fp, storage.getPath());
 			await gitRepository.add(paths);
 		}
 	}
@@ -307,7 +301,7 @@ export default class GitVersionControl {
 	private async _getFixedSubVersionControls(): Promise<GitVersionControl[]> {
 		try {
 			return (await this._gitRepository.getFixedSubmodulePaths()).map((path) => {
-				const subGitStorage = new GitVersionControl(this._conf, path, this._fp);
+				const subGitStorage = new GitVersionControl(path, this._fp);
 				return subGitStorage;
 			});
 		} catch {

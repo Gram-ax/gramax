@@ -6,7 +6,7 @@ import SyncIconService from "@core-ui/ContextServices/SyncIconService";
 import ArticleViewService from "@core-ui/ContextServices/views/articleView/ArticleViewService";
 import InfoModalForm from "@ext/errorHandlers/client/components/ErrorForm";
 import SyncService from "@ext/git/actions/Sync/logic/SyncService";
-import useLocalize from "@ext/localization/useLocalize";
+import t from "@ext/localization/locale/translate";
 import useIsReview from "@ext/storage/logic/utils/useIsReview";
 import { useEffect, useRef, useState } from "react";
 
@@ -68,14 +68,14 @@ const PullHandler = () => {
 			<ModalLayoutLight>
 				<InfoModalForm
 					onCancelClick={() => setIsOpen(false)}
-					title={useLocalize("syncCatalog")}
+					title={t("sync-catalog")}
 					actionButton={{
-						text: useLocalize("sync"),
+						text: t("sync"),
 						onClick: onSyncClick,
 					}}
 					isWarning={true}
 				>
-					<span>{useLocalize("syncCatalogDesc")}</span>
+					<span>{t("sync-catalog-desc")}</span>
 				</InfoModalForm>
 			</ModalLayoutLight>
 		</ModalLayout>

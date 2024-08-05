@@ -7,6 +7,7 @@ interface Context {
 	get cookie(): Cookie;
 	get user(): User;
 	get lang(): Language;
+	get ui(): Language;
 	get theme(): Theme;
 	get domain(): string;
 }

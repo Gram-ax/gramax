@@ -1,4 +1,4 @@
-import type { AppConfig } from "@app/config/AppConfig";
+import type { AppConfig, ServicesConfig } from "@app/config/AppConfig";
 import resolveModule from "@app/resolveModule/backend";
 import { getExecutingEnvironment } from "@app/resolveModule/env";
 import type FileProvider from "@core/FileProvider/model/FileProvider";
@@ -6,21 +6,25 @@ import Path from "@core/FileProvider/Path/Path";
 import type { ChangeCatalog } from "@core/FileStructue/Catalog/Catalog";
 import CatalogEntry from "@core/FileStructue/Catalog/CatalogEntry";
 import FileStructure from "@core/FileStructue/FileStructure";
+import mergeObjects from "@core/utils/mergeObjects";
 import { uniqueName } from "@core/utils/uniqueName";
 import YamlFileConfig from "@core/utils/YamlFileConfig";
 import RepositoryProvider from "@ext/git/core/Repository/RepositoryProvider";
+import NoActiveWorkspace from "@ext/workspace/error/NoActiveWorkspaceError";
+import WorkspaceMissingPath from "@ext/workspace/error/UnknownWorkspace";
+import t from "@ext/localization/locale/translate";
 import { Workspace } from "@ext/workspace/Workspace";
 import type { WorkspaceConfig, WorkspacePath } from "@ext/workspace/WorkspaceConfig";
 
 export type FSCreatedCallback = (fs: FileStructure) => void;
 export type CatalogChangedCallback = (items: ChangeCatalog[]) => void | Promise<void>;
-export type FSCatalogsInitalizedCallback = (fp: FileProvider, catalogs: CatalogEntry[]) => void;
+export type FSCatalogsInitializedCallback = (fp: FileProvider, catalogs: CatalogEntry[]) => void;
 export type FSFileProviderFactory = (path: WorkspacePath) => FileProvider;
 
 export type WorkspaceManagerConfig = { "latest-workspace"?: WorkspacePath; workspaces?: WorkspacePath[] };
 
 const WORKSPACE_CONFIG_FILENAME = new Path("workspace.yaml");
-const DEFAULT_WORKSPACE_NAME = "Основное пространство";
+const DEFAULT_WORKSPACE_NAME = "workspace.default-name";
 const DEFAULT_WORKSPACE_ICON = "layers";
 
 export default class WorkspaceManager {
@@ -48,6 +52,7 @@ export default class WorkspaceManager {
 		this._rules?.forEach(this._current.addOnChangeRule.bind(this._current));
 
 		this._workspacesConfig.set("latest-workspace", this._current.path());
+
 		await this.saveWorkspaces();
 	}
 
@@ -68,7 +73,7 @@ export default class WorkspaceManager {
 		}
 
 		const latest = this._workspacesConfig.get("latest-workspace");
-		const path = this._workspaces.get(latest) ? latest : this._workspaces.keys().next().value;
+		const path = this._workspaces.get(latest) ? latest : this.workspaces()[0].path;
 		path && (await this.setWorkspace(path));
 	}
 
@@ -78,7 +83,7 @@ export default class WorkspaceManager {
 		create = false,
 		skipIfNoDirs = false,
 	): Promise<WorkspacePath> {
-		if (!path || typeof path !== "string") throw new Error(`Workspace ${config.name ?? "unknown"} missing path`);
+		if (!path || typeof path !== "string") throw new WorkspaceMissingPath(config?.name);
 		const fp = this._makeFileProvider(path);
 
 		if (!(await fp.isRootPathExists())) {
@@ -91,13 +96,14 @@ export default class WorkspaceManager {
 		const yaml = await this.readWorkspace(fp, config);
 
 		this._workspaces.set(path, yaml);
+
 		return path;
 	}
 
 	async currentOrDefault() {
 		if (this.maybeCurrent()) return this.maybeCurrent();
-		if (!this._workspaces.keys().next().value) await this._createDefaultWorkspace();
-		await this.setWorkspace(this._workspaces.keys().next().value);
+		if (!this.workspaces()?.[0]?.path) await this._createDefaultWorkspace();
+		await this.setWorkspace(this.workspaces()[0].path);
 		return this.maybeCurrent();
 	}
 
@@ -116,7 +122,7 @@ export default class WorkspaceManager {
 		else await fp.delete(WORKSPACE_CONFIG_FILENAME);
 		this._workspaces.delete(path);
 		await this.saveWorkspaces();
-		if (this.current().path() == path) await this.setWorkspace(this._workspaces.keys().next().value);
+		if (this.current().path() == path) await this.setWorkspace(this.workspaces()[0].path);
 	}
 
 	defaultPath() {
@@ -128,7 +134,11 @@ export default class WorkspaceManager {
 	}
 
 	workspaces() {
-		return Array.from(this._workspaces.entries()).map(([path, val]) => ({ path, ...val.inner() }));
+		return Array.from(this._workspaces.entries())
+			.map(([path, val]) => ({ path, ...val.inner() }))
+			.sort((a, b) =>
+				a.name.localeCompare(b.name, undefined, { sensitivity: "variant", ignorePunctuation: true }),
+			);
 	}
 
 	hasWorkspace() {
@@ -140,7 +150,7 @@ export default class WorkspaceManager {
 	}
 
 	current() {
-		if (!this._current) throw new Error("No active workspace");
+		if (!this._current) throw new NoActiveWorkspace();
 		return this.maybeCurrent();
 	}
 
@@ -151,16 +161,18 @@ export default class WorkspaceManager {
 
 	private async readWorkspace(fp: FileProvider, config?: WorkspaceConfig) {
 		const yaml = await YamlFileConfig.readFromFile(fp, WORKSPACE_CONFIG_FILENAME, {
-			name: config?.name || DEFAULT_WORKSPACE_NAME,
+			name: config?.name || t(DEFAULT_WORKSPACE_NAME),
 			icon: config?.icon || DEFAULT_WORKSPACE_ICON,
 			groups: config?.groups,
+			isEnterprise: config?.isEnterprise ?? false,
+			services: mergeObjects<ServicesConfig>(this._config.services, config?.services ?? {}),
 		});
 
 		const name = yaml.get("name");
 		yaml.set(
 			"name",
 			uniqueName(
-				name || DEFAULT_WORKSPACE_NAME,
+				name || t(DEFAULT_WORKSPACE_NAME),
 				this.workspaces().map((w) => w.name),
 				"",
 				" ",
@@ -183,7 +195,7 @@ export default class WorkspaceManager {
 
 	private async _importWorkspaceFromRootPath() {
 		const init = {
-			name: DEFAULT_WORKSPACE_NAME,
+			name: t(DEFAULT_WORKSPACE_NAME),
 			icon: DEFAULT_WORKSPACE_ICON,
 		};
 		const path = this._config.paths.root.value;
@@ -199,7 +211,7 @@ export default class WorkspaceManager {
 
 	private async _createDefaultWorkspace() {
 		const init = {
-			name: DEFAULT_WORKSPACE_NAME,
+			name: t(DEFAULT_WORKSPACE_NAME),
 			icon: DEFAULT_WORKSPACE_ICON,
 		};
 

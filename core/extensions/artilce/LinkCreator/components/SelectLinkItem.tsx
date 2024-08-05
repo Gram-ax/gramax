@@ -11,10 +11,10 @@ import eventEmitter from "@core/utils/eventEmmiter";
 import parseStorageUrl from "@core/utils/parseStorageUrl";
 import styled from "@emotion/styled";
 import LinkItemSidebar from "@ext/artilce/LinkCreator/components/LinkItemSidebar";
-import useLocalize from "@ext/localization/useLocalize";
+import t from "@ext/localization/locale/translate";
 import Button from "@ext/markdown/core/edit/components/Menu/Button";
 import LinkFocusTooltip from "@ext/markdown/elements/link/edit/logic/LinkFocusTooltip";
-import { Dispatch, RefObject, SetStateAction, useEffect, useRef, useState, useMemo } from "react";
+import { Dispatch, RefObject, SetStateAction, useEffect, useMemo, useRef, useState } from "react";
 import LinkItem from "../models/LinkItem";
 
 interface SelectLinkItemProps {
@@ -70,10 +70,18 @@ const ButtonView = ({ href, icon, itemName, setButton, isExternalLink }: ButtonV
 
 	const ButtonContent = <Button className={"buttonView"} title={itemName} icon={icon} text={itemName} />;
 
+	const hashHatch = LinkFocusTooltip.getLinkToHeading(href);
+	const isCurrentLink = typeof window !== "undefined" ? window.location.pathname === hashHatch?.[1] : false;
+	const isHashLink = hashHatch?.[2] && isCurrentLink;
 	return (
 		<>
-			{target === "_blank" ? (
-				<a href={href} target={target} rel="noopener noreferrer" style={commonStyle}>
+			{target === "_blank" || isHashLink ? (
+				<a
+					target={target}
+					style={commonStyle}
+					rel="noopener noreferrer"
+					href={isHashLink ? hashHatch?.[2] : href}
+				>
 					{ButtonContent}
 				</a>
 			) : (
@@ -83,7 +91,7 @@ const ButtonView = ({ href, icon, itemName, setButton, isExternalLink }: ButtonV
 			)}
 
 			<div className="divider" />
-			<Button icon="pencil" onClick={editButtonHandler} tooltipText="Редактировать" />
+			<Button icon="pencil" onClick={editButtonHandler} tooltipText={t("edit2")} />
 		</>
 	);
 };
@@ -102,7 +110,7 @@ const ListView = (props: ListViewProps) => {
 				item={itemName}
 				ref={listRef}
 				isCode={false}
-				placeholder={useLocalize("linkOrSearchArticles")}
+				placeholder={t("list.search-articles")}
 				onSearchChange={onSearchChange}
 				onItemClick={itemClickHandler}
 				items={items}

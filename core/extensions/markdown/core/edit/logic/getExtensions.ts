@@ -83,6 +83,9 @@ const getExtensions = (): Extensions => [
 	CustomTable,
 
 	...getSimpleExtensions(),
+	Document.extend({
+		content: "heading block+",
+	}),
 ];
 
 export const getSimpleExtensions = (): Extensions => [

@@ -1,5 +1,6 @@
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import ArticlePropsService from "@core-ui/ContextServices/ArticleProps";
+import t from "@ext/localization/locale/translate";
 import Button from "@ext/markdown/core/edit/components/Menu/Button";
 import SvgContainer from "@ext/markdown/core/edit/components/Menu/SvgContainer";
 import { Editor } from "@tiptap/core";
@@ -12,7 +13,7 @@ const DrawioMenuButton = ({ editor }: { editor: Editor }) => {
 	return (
 		<Button
 			nodeValues={{ action: "drawio" }}
-			tooltipText={"Диаграмма diagrams.net"}
+			tooltipText={t("diagram.names.drawio")}
 			onClick={() => createDrawio(editor, articleProps, apiUrlCreator)}
 		>
 			<SvgContainer>

@@ -9,12 +9,10 @@ const getShareDataFromPathnameData = (pathnameData: PathnameData, sourceType: So
 		name: pathnameData.repName,
 		sourceType,
 	};
-	if (sourceType === SourceType.gitHub || sourceType === SourceType.gitLab) {
+	if (sourceType === SourceType.gitHub || sourceType === SourceType.gitLab || sourceType === SourceType.git) {
 		const { sourceName: domain, group, branch } = pathnameData;
-		(shareData as GitShareData) = { ...shareData, domain, group, branch };
+		(shareData as GitShareData) = { ...shareData, domain, group, branch, sourceType };
 	}
-	// что делать с enterprise?
-
 	return shareData;
 };
 

@@ -24,6 +24,7 @@ async function parseContent(
 	parser: MarkdownParser,
 	parserContextFactory: ParserContextFactory,
 	initChildLinks = true,
+	requestUrl?: string,
 ) {
 	if (!article) return;
 	if (article.type == ItemType.article && !!article.parsedContent && initChildLinks) return;
@@ -39,7 +40,7 @@ async function parseContent(
 				? getChildLinks(article as Category, catalog, filters)
 				: ""
 			: article.content;
-	article.parsedContent = await parser.parse(content, context);
+	article.parsedContent = await parser.parse(content, context, requestUrl);
 }
 
 export default parseContent;

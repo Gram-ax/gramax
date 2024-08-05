@@ -4,7 +4,7 @@ import { createParagraphAfterTable, createParagraphBeforeTable } from "@ext/word
 import { WordBlockType } from "@ext/wordExport/options/wordExportSettings";
 import { createBlockChild } from "../../../../wordExport/createBlock";
 
-export const fenceWordLayout: WordBlockChild = async ({ tag }) => {
+export const fenceWordLayout: WordBlockChild = async ({ tag, addOptions }) => {
 	const lines = tag.attributes.value.split("\n");
 
 	const textRuns = lines.map(
@@ -20,7 +20,7 @@ export const fenceWordLayout: WordBlockChild = async ({ tag }) => {
 		style: WordBlockType.fence,
 	});
 
-	const fence = await createBlockChild([paragraph], WordBlockType.fence, WordBlockType.fenceTable);
+	const fence = await createBlockChild([paragraph], WordBlockType.fence, WordBlockType.fenceTable, addOptions);
 
 	return [createParagraphBeforeTable(), fence, createParagraphAfterTable()];
 };

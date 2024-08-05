@@ -63,10 +63,3 @@ export interface AdditionData {
 	data: ImageProps | ImageObject;
 	newIndex?: number;
 }
-
-export const AnnotationDirections = {
-	"top-left": "Верхний-левый",
-	"top-right": "Верхний-правый",
-	"bottom-left": "Нижний-левый",
-	"bottom-right": "Нижний-правый",
-};

@@ -1,4 +1,5 @@
 import ButtonStateService from "@core-ui/ContextServices/ButtonStateService/ButtonStateService";
+import t from "@ext/localization/locale/translate";
 import Button from "@ext/markdown/core/edit/components/Menu/Button";
 import { readyToPlace } from "@ext/markdown/elementsUtils/cursorFunctions";
 import { Editor } from "@tiptap/core";
@@ -9,7 +10,7 @@ const TableMenuButton = ({ editor }: { editor: Editor }) => {
 	return (
 		<Button
 			icon={"table"}
-			tooltipText={"Таблица"}
+			tooltipText={t("editor.table.name")}
 			onClick={() => {
 				if (!readyToPlace(editor, "table")) return false;
 

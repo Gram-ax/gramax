@@ -3,7 +3,7 @@ import FetchService from "@core-ui/ApiServices/FetchService";
 import eventEmitter from "@core/utils/eventEmmiter";
 import LinkItem from "@ext/artilce/LinkCreator/models/LinkItem";
 import { LevelTocItem } from "@ext/navigation/article/logic/createTocItems";
-import { createContext, useContext, useState, useRef, MutableRefObject } from "react";
+import { MutableRefObject, createContext, useContext, useRef, useState } from "react";
 
 interface LinkTitleContextProps {
 	apiUrlCreator: ApiUrlCreator;
@@ -21,6 +21,7 @@ export type TitleItem = {
 	url: string;
 	title: string;
 	level: number;
+	items?: TitleItem[];
 };
 
 export type FetchArticleHeadersProps = {

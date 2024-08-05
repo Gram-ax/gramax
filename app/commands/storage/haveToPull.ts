@@ -1,5 +1,7 @@
 import { ResponseKind } from "@app/types/ResponseKind";
 import { AuthorizeMiddleware } from "@core/Api/middleware/AuthorizeMiddleware";
+import { NetworkConnectMiddleWare } from "@core/Api/middleware/NetworkConntectMiddleware";
+import { SilentMiddleware } from "@core/Api/middleware/SilentMiddleware";
 import Context from "@core/Context/Context";
 import { Command } from "../../types/Command";
 
@@ -8,7 +10,7 @@ const haveToPull: Command<{ ctx: Context; catalogName: string }, boolean> = Comm
 
 	kind: ResponseKind.json,
 
-	middlewares: [new AuthorizeMiddleware()],
+	middlewares: [new NetworkConnectMiddleWare(), new AuthorizeMiddleware(), new SilentMiddleware()],
 
 	async do({ ctx, catalogName }) {
 		const { wm, logger, rp } = this._app;

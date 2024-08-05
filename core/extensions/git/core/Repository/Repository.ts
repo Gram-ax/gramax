@@ -1,6 +1,7 @@
 import Path from "@core/FileProvider/Path/Path";
 import FileProvider from "@core/FileProvider/model/FileProvider";
 import FileStructure from "@core/FileStructue/FileStructure";
+import haveInternetAccess from "@core/utils/haveInternetAccess";
 import GitMergeResult from "@ext/git/actions/MergeConflictHandler/model/GitMergeResult";
 import { GitMergeResultContent } from "@ext/git/actions/MergeConflictHandler/model/GitMergeResultContent";
 import GitError from "@ext/git/core/GitCommands/errors/GitError";
@@ -120,19 +121,22 @@ export default class Repository {
 		const oldVersion = await this.gvc.getCurrentVersion();
 		const oldBranch = await this.gvc.getCurrentBranch();
 		const allBranches = (await this.gvc.getAllBranches()).map((b) => b.getData().remoteName ?? b.getData().name);
-		if (!allBranches.includes(branch)) await this.storage.fetch(data);
+		const haveInternet = haveInternetAccess();
+		if (haveInternet && !allBranches.includes(branch)) await this.storage.fetch(data);
 		await this.gvc.checkoutToBranch(branch);
 		let mergeFiles: GitMergeResultContent[] = [];
 
-		try {
-			mergeFiles = await this._pull({ data });
-		} catch (e) {
-			await this.gvc.checkoutToBranch(oldBranch.toString());
-			throw e;
+		if (haveInternet) {
+			try {
+				mergeFiles = await this._pull({ data });
+			} catch (e) {
+				await this.gvc.checkoutToBranch(oldBranch.toString());
+				throw e;
+			}
 		}
 
 		onCheckout?.(branch);
-		onPull?.();
+		haveInternet && onPull?.();
 
 		await this.gvc.update();
 		const newVersion = await this.gvc.getCurrentVersion();
@@ -195,9 +199,11 @@ export default class Repository {
 
 	async resolveMerge(files: GitMergeResultContent[], data: SourceData) {
 		if (this._state.value !== "mergeConflict" && this._state.value !== "stashConflict") return;
-		if (this._state.value === "mergeConflict")
-			await this._mergeConflictResolver.resolveConflictedFiles(files, this._state as RepMergeConflictState, data);
-		else if (this._state.value === "stashConflict")
+		if (this._state.value === "mergeConflict") {
+			const mergeState = this._state as RepMergeConflictState;
+			await this._mergeConflictResolver.resolveConflictedFiles(files, mergeState, data);
+			if (mergeState.data.deleteAfterMerge) await this._deleteBranch(mergeState.data.theirs, data);
+		} else if (this._state.value === "stashConflict")
 			await this._stashConflictResolver.resolveConflictedFiles(files, this._state as RepStashConflictState, data);
 		this._restoreStateToDefault();
 	}
@@ -223,8 +229,9 @@ export default class Repository {
 		const branch = await this.gvc.getBranch(branchName);
 		const branchRemoteName = branch.getData().remoteName;
 		const storageType = await this.storage.getType();
+		const isGit = [SourceType.git, SourceType.gitHub, SourceType.gitLab].includes(storageType);
 
-		if (branchRemoteName && (storageType === SourceType.gitHub || storageType === SourceType.gitLab))
+		if (branchRemoteName && isGit)
 			await (this.storage as GitStorage).deleteRemoteBranch(branchRemoteName, data as GitSourceData);
 
 		await this.gvc.deleteLocalBranch(branchName);
@@ -266,7 +273,16 @@ export default class Repository {
 		const commitHeadBefore = await this.gvc.getCurrentVersion();
 		const stashOid = (await this.gvc.getChanges()).length > 0 ? await this.gvc.stash(data) : undefined;
 
-		await this.storage.pull(data, recursive);
+		try {
+			await this.storage.pull(data, recursive);
+		} catch (e) {
+			await this.gvc.hardReset(commitHeadBefore);
+			if (stashOid) {
+				await this.gvc.applyStash(stashOid);
+				await this.gvc.deleteStash(stashOid);
+			}
+			throw e;
+		}
 
 		if (stashOid) stashResult = await this.gvc.applyStash(stashOid);
 

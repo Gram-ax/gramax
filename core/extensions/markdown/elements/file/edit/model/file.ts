@@ -27,6 +27,7 @@ export const File = Mark.create({
 	addAttributes() {
 		return {
 			href: { default: null },
+			isFile: { default: true },
 			resourcePath: { default: null },
 			class: { default: this.options.HTMLAttributes.class },
 		};

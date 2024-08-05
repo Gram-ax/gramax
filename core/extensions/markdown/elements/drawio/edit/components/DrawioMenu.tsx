@@ -9,6 +9,8 @@ import FetchService from "@core-ui/ApiServices/FetchService";
 import { Base64ToDataImage, DataImageToBase64, isDataImage } from "@core-ui/Base64Converter";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import ArticlePropsService from "@core-ui/ContextServices/ArticleProps";
+import LanguageService from "@core-ui/ContextServices/Language";
+import t from "@ext/localization/locale/translate";
 import Button from "@ext/markdown/core/edit/components/Menu/Button";
 import OnLoadResourceService from "@ext/markdown/elements/copyArticles/onLoadResourceService";
 import getFocusNode from "@ext/markdown/elementsUtils/getFocusNode";
@@ -59,12 +61,20 @@ const DrawioEditButton = ({ src }: { src: string }) => {
 			</Modal>
 			<Button
 				icon={"pencil"}
-				tooltipText={"Редактировать"}
+				tooltipText={t("edit2")}
 				onClick={useCallback(() => {
 					ArticleUpdaterService.stopLoadingAfterFocus();
 					setImgData();
 					setIsLoading(true);
-					const de = DiagramEditor.editElement(getImgTag(), saveCallBack, () => setIsLoading(false));
+					const de = DiagramEditor.editElement(
+						getImgTag(),
+						saveCallBack,
+						() => setIsLoading(false),
+						null,
+						"modern",
+						null,
+						["splash=0", `lang=${LanguageService.currentUi()}`, "pv=0"],
+					);
 					window.history.pushState({}, document.location.href, "");
 					window.addEventListener("popstate", () => de.stopEditing(), { once: true });
 				}, [setImgData, getImgTag])}
@@ -105,10 +115,10 @@ const DrawioMenu = ({ editor }: { editor: Editor }) => {
 	return (
 		<ModalLayoutDark>
 			<ButtonsLayout>
-				<Input placeholder="Подпись" value={title} onChange={handleTitleChange} />
+				<Input placeholder={t("signature")} value={title} onChange={handleTitleChange} />
 				<div className="divider" />
 				<DrawioEditButton src={src} />
-				<Button icon={"trash"} tooltipText={"Удалить"} onClick={handleDelete} />
+				<Button icon={"trash"} tooltipText={t("delete")} onClick={handleDelete} />
 			</ButtonsLayout>
 		</ModalLayoutDark>
 	);

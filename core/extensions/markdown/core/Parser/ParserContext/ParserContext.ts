@@ -23,7 +23,6 @@ export default interface ParserContext {
 	getIsLogged(): boolean;
 	getLanguage(): Language;
 	getDiagramRendererServerUrl(): string;
-	getSsoServerUrl(): string;
 	getProp(propName: string): any;
 	getTablesManager(): TableDB;
 	getUserByMail(mail: string): Promise<UserInfo>;

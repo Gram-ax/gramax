@@ -4,7 +4,7 @@ import { useRouter } from "@core/Api/useRouter";
 import CloneWithShareData from "@ext/catalog/actions/share/components/CloneWithShareData";
 import ShareData from "@ext/catalog/actions/share/model/ShareData";
 import InfoModalForm from "@ext/errorHandlers/client/components/ErrorForm";
-import useLocalize from "@ext/localization/useLocalize";
+import t from "@ext/localization/locale/translate";
 import { useState } from "react";
 
 const CloneHandler = ({ shareData }: { shareData: ShareData }) => {
@@ -44,14 +44,14 @@ const CloneHandler = ({ shareData }: { shareData: ShareData }) => {
 			) : (
 				<InfoModalForm
 					onCancelClick={cancel}
-					title={useLocalize("downloadCatalog")}
+					title={t("git.clone.not-cloned.title")}
 					actionButton={{
-						text: useLocalize("load"),
+						text: t("catalog.clone"),
 						onClick: () => setClone(true),
 					}}
 					isWarning={true}
 				>
-					<span>{useLocalize("catalogNotClonedDesc")}</span>
+					<span>{t("git.clone.not-cloned.body")}</span>
 				</InfoModalForm>
 			)}
 		</ModalLayout>

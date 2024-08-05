@@ -22,6 +22,7 @@ export const apiUtils = {
 				: null,
 			props: error.props,
 			title: error.title,
+			icon: error.icon,
 			type: error.type,
 		});
 	},

@@ -4,6 +4,8 @@ import styled from "@emotion/styled";
 import ShadowBox from "@ext/markdown/elements/table/render/component/ShadowBox";
 import { useCallback, useEffect, useRef, useState } from "react";
 
+export const CELL_MIN_WIDTH = "3em";
+
 const TableWrapper = ({ children, className }: { children: JSX.Element; className?: string }) => {
 	const [rightWidth, setRightWidth] = useState(0);
 	const [leftWidth, setLeftWidth] = useState(0);
@@ -74,7 +76,8 @@ export default styled(TableWrapper)`
 		th,
 		td {
 			max-width: 15em;
-			min-width: 3em;
+			min-width: ${CELL_MIN_WIDTH};
+			height: 3.4em;
 		}
 	}
 `;

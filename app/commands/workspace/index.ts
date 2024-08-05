@@ -1,8 +1,8 @@
 import create from "./create";
-import edit from "./edit";
-import remove from "./remove";
-import setDefaultPath from "./setDefaultPath";
 import _switch from "./switch";
+import remove from "./remove";
+import edit from "./edit";
+import setDefaultPath from "./setDefaultPath";
 
 export default {
 	switch: _switch,

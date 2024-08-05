@@ -1,10 +1,9 @@
-export default (props: { pathname?: string }) => `---
-title: Статья не найдена
----
+import t from "@ext/localization/locale/translate";
 
-:::note
-${props?.pathname ? `\nСтатья по ссылке \`${props?.pathname}\` не найдена.` : ""}
-
-Проверьте, что путь указан верно.
-
-:::`;
+export default (props: { pathname?: string }) =>
+	t("article.custom.404.body")
+		.replace("{{what}}", t("article.custom.404.article.name"))
+		.replace(
+			"{{pathname}}",
+			props?.pathname ? t("article.custom.404.article.body").replace("{{pathname}}", props.pathname) : "",
+		);

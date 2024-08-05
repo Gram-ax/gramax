@@ -1,3 +1,5 @@
+import setWorkerProxy from "../../../apps/browser/src/logic/setWorkerProxy";
+import { getExecutingEnvironment } from "@app/resolveModule/env";
 import { ResponseKind } from "@app/types/ResponseKind";
 import { DesktopModeMiddleware } from "@core/Api/middleware/DesktopModeMiddleware";
 import type Context from "@core/Context/Context";
@@ -13,6 +15,8 @@ const remove: Command<{ ctx: Context; id: WorkspacePath }, void> = Command.creat
 
 	async do({ id }) {
 		await this._app.wm.removeWorkspace(id);
+		// TODO: Remove if
+		if (getExecutingEnvironment() == "browser") setWorkerProxy(this._app.wm.current().config().services?.cors?.url);
 	},
 
 	params(ctx, q) {

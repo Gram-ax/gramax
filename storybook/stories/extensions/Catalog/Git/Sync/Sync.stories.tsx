@@ -2,6 +2,7 @@ import SyncLayoutSrc from "@ext/git/actions/Sync/components/SyncLayout";
 import { Meta, StoryObj } from "@storybook/react";
 import { ComponentProps } from "react";
 import mock from "storybook/data/mock";
+import mergeApi from "storybook/stories/extensions/Catalog/Git/BranchActions/mergeApi";
 import SyncSrc from "../../../../../../core/extensions/git/actions/Sync/components/Sync";
 import BlockDecorator from "../../../../../styles/decorators/BlockDecorator";
 import syncApiData from "./syncApiData";
@@ -25,7 +26,7 @@ const meta: Meta = {
 		BlockDecorator,
 	],
 	parameters: {
-		msw: mock(syncApiData),
+		msw: mock([...syncApiData, ...mergeApi]),
 	},
 };
 

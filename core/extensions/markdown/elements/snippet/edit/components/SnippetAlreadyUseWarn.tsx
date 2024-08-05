@@ -1,7 +1,7 @@
 import Modal from "@components/Layouts/Modal";
 import ModalLayoutLight from "@components/Layouts/ModalLayoutLight";
 import InfoModalForm from "@ext/errorHandlers/client/components/ErrorForm";
-import useLocalize from "@ext/localization/useLocalize";
+import t from "@ext/localization/locale/translate";
 import SnippetViewUses from "@ext/markdown/elements/snippet/edit/components/SnippetViewUses";
 import { useState } from "react";
 
@@ -31,22 +31,22 @@ const SnippetAlreadyUseWarn = ({
 		>
 			<ModalLayoutLight>
 				<InfoModalForm
-					title={useLocalize("deletingSnippetInUse")}
+					title={t("deleting-snippet-in-use")}
 					onCancelClick={onClose}
 					icon={{ code: "circle-exclamation", color: "var(--color-admonition-note-br-h)" }}
 					actionButton={{
 						onClick: onDelete,
-						text: `${useLocalize("delete")} ${useLocalize("snippet").toLowerCase()}`,
+						text: `${t("delete")} ${t("snippet").toLowerCase()}`,
 					}}
 					isWarning={true}
 				>
 					<div className="article">
-						<p>{useLocalize("deleteSnippetDesc")}.</p>
+						<p>{t("delete-snippet-desc")}.</p>
 						<p>
 							<SnippetViewUses articles={articles} onLinkClick={() => setIsOpen(false)} />
 						</p>
-						<p>{useLocalize("deleteSnippetWarn")}.</p>
-						<p>{useLocalize("continueConfirm")}</p>
+						<p>{t("delete-snippet-warn")}.</p>
+						<p>{t("continue-confirm")}</p>
 					</div>
 				</InfoModalForm>
 			</ModalLayoutLight>

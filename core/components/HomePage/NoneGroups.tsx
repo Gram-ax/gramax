@@ -5,10 +5,10 @@ import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import IsReadOnlyHOC from "@core-ui/HigherOrderComponent/IsReadOnlyHOC";
 import styled from "@emotion/styled";
+import t from "@ext/localization/locale/translate";
 import { type HTMLAttributes } from "react";
 import CreateCatalog from "../../extensions/catalog/actions/CreateCatalog";
 import Clone from "../../extensions/git/actions/Clone/components/Clone";
-import useLocalize from "../../extensions/localization/useLocalize";
 import Button from "../Atoms/Button/Button";
 import Icon from "../Atoms/Icon";
 
@@ -20,21 +20,21 @@ const NoneGroups = (props: HTMLAttributes<HTMLDivElement>) => {
 	return (
 		<div {...props}>
 			<Welcome
-				title={useLocalize("soFarItsEmpty")}
+				title={t("so-far-its-empty")}
 				body={
 					isReadOnly ? (
-						<p>{useLocalize("addCatalogToGetStartedDocportal")}</p>
+						<p>{t("catalog.get-started.docportal")}</p>
 					) : (
 						<>
-							<p>{useLocalize("addCatalogToGetStarted")}</p>
+							<p>{t("catalog.get-started.editor")}</p>
 							<div
 								dangerouslySetInnerHTML={{
-									__html: useLocalize("addCatalogOptions"),
+									__html: t("catalog.get-started.editor-desc"),
 								}}
 							/>
 							{!hasWorkspace && (
 								<p>
-									<span>{useLocalize("selectWorkspace")}</span>
+									<span>{t("workspace.selected")}</span>
 									<code>{PageDataContextService.value.workspace.defaultPath}</code>
 									<span>
 										&nbsp;
@@ -47,7 +47,7 @@ const NoneGroups = (props: HTMLAttributes<HTMLDivElement>) => {
 												await refreshPage();
 											}}
 										>
-											{useLocalize("edit3")}
+											{t("edit3")}
 										</a>
 									</span>
 								</p>
@@ -62,7 +62,7 @@ const NoneGroups = (props: HTMLAttributes<HTMLDivElement>) => {
 								trigger={
 									<Button>
 										<Icon code="plus" viewBox="3 3 18 18" />
-										<span>{useLocalize("createNew")}</span>
+										<span>{t("catalog.new")}</span>
 									</Button>
 								}
 							/>
@@ -71,7 +71,7 @@ const NoneGroups = (props: HTMLAttributes<HTMLDivElement>) => {
 							trigger={
 								<Button>
 									<Icon code="cloud-download" />
-									<span>{`${useLocalize("load")}`}</span>
+									<span>{`${t("catalog.clone")}`}</span>
 								</Button>
 							}
 							forClone={true}
@@ -81,7 +81,7 @@ const NoneGroups = (props: HTMLAttributes<HTMLDivElement>) => {
 								trigger={
 									<Button>
 										<Icon code="import" />
-										<span>{`${useLocalize("import")}`}</span>
+										<span>{`${t("catalog.import")}`}</span>
 									</Button>
 								}
 								forClone={false}

@@ -1,33 +1,39 @@
 import Anchor from "@components/controls/Anchor";
+import t from "@ext/localization/locale/translate";
 
 const ErrorText = ({ isLink, isNoneError, link }: { isLink: boolean; isNoneError: boolean; link?: string }) => {
 	return (
 		<ul>
 			<li>
 				{isNoneError ? (
-					"В дополнительной панели укажите ссылку на него и добавьте подпись."
+					t("editor.video.error.none")
 				) : isLink ? (
 					<>
-						Проверьте наличие видео в файловом хранилище по
-						<Anchor href={link}> ссылке</Anchor>.
+						{t("editor.video.error.some")}
+						<Anchor href={link}>{t("editor.video.error.some-link")}</Anchor>.
 					</>
 				) : (
-					"Проверьте, правильно ли указано название файла."
+					t("editor.video.error.generic")
 				)}
 			</li>
 			<li>
 				{isNoneError ? (
 					<>
-						Из каких источников можно добавлять ссылки на видео читайте
-						<Anchor href={"https://gram.ax/resources/docs/key-functions/files#видео"}> в статье</Anchor>.
+						{t("editor.video.error.none-2")}
+						<Anchor href={"https://gram.ax/resources/docs/key-functions/video"}>
+							{t("editor.video.error.none-2-link")}
+						</Anchor>
+						.
 					</>
 				) : isLink ? (
-					"Убедитесь, что в хранилище для ссылки/видео нет ограничений к доступу на просмотр."
+					t("editor.video.error.some-2")
 				) : (
 					<>
-						Убедитесь, что видео есть в соответствующей папке в SharePoint. Куда нужно поместить файл
-						читайте
-						<Anchor href="https://gram.ax/resources/docs/key-functions/files#видео"> здесь</Anchor>.
+						{t("editor.video.error.generic-2")}
+						<Anchor href="https://gram.ax/resources/docs/key-functions/video">
+							{t("editor.video.error.generic-2-link")}
+						</Anchor>
+						.
 					</>
 				)}
 			</li>

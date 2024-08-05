@@ -1,6 +1,7 @@
 import styled from "@emotion/styled";
 import Theme from "@ext/Theme/Theme";
 import ThemeService from "@ext/Theme/components/ThemeService";
+import t from "@ext/localization/locale/translate";
 import { useEffect, useState } from "react";
 import DarkLogo from "../../../../../core/public/images/gramax-logo-dark.svg";
 import LightLogo from "../../../../../core/public/images/gramax-logo-light.svg";
@@ -26,7 +27,7 @@ const AppLoader = ({ className, delayBeforeShow = 0 }: { className?: string; del
 							<img src={theme == Theme.light ? LightLogo : DarkLogo} />
 						</div>
 						<div className="text">
-							<span>загружаем</span>
+							<span>{t("app.loading")}</span>
 							<span className="dots">{".".repeat(dotsCount)}</span>
 						</div>
 					</>

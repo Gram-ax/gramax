@@ -7,13 +7,9 @@ export const files: GitMergeResultContent[] = [
 		path: "path/to/bothModified1.md",
 		content: `start
 <<<<<<< Updated upstream
-изменение на сервере 1
-1234567890
-000
-111
+изменение на сервере
 =======
-локальное изменение 1
-456
+локальное изменение
 >>>>>>> Stashed changes
 end
 `,
@@ -55,11 +51,11 @@ end
 5
 <<<<<<< Updated upstream
 =======
-входящее, текущее пусто
+текущее, входящее пусто
 >>>>>>> Stashed changes
 
 <<<<<<< Updated upstream
-текущее, входящее пусто
+входящее, текущее пусто
 =======
 >>>>>>> Stashed changes
 `,

@@ -1,6 +1,6 @@
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import ArticlePropsService from "@core-ui/ContextServices/ArticleProps";
-import useLocalize from "@ext/localization/useLocalize";
+import t from "@ext/localization/locale/translate";
 import Renderer from "@ext/markdown/core/render/components/Renderer";
 import getComponents from "@ext/markdown/core/render/components/getComponents/getComponents";
 import SnippetUpdateService from "@ext/markdown/elements/snippet/edit/components/SnippetUpdateService";
@@ -14,9 +14,7 @@ import Focus from "../../../../elementsUtils/wrappers/Focus";
 const SnippetComponent = ({ node, getPos, editor }: NodeViewProps): ReactElement => {
 	const [content, setContent] = useState(node.attrs.content);
 	const apiUrlCreator = ApiUrlCreatorService.value;
-	const snippetDeleteConfirmText = `${useLocalize("deleteSnippetConfirmNotUse")}. ${useLocalize(
-		"deleteSnippetConfirm",
-	)}`;
+	const snippetDeleteConfirmText = `${t("delete-snippet-confirm-not-use")}. ${t("delete-snippet-confirm")}`;
 	const articleProps = ArticlePropsService.value;
 	const currentArticlePathname = articleProps.pathname;
 
@@ -29,7 +27,6 @@ const SnippetComponent = ({ node, getPos, editor }: NodeViewProps): ReactElement
 		<NodeViewWrapper as={"div"}>
 			<Focus position={getPos()}>
 				<div
-					data-focusable="true"
 					onClick={() => {
 						if (!content) return;
 						onSnippetEdit({

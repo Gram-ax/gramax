@@ -14,7 +14,7 @@ import { clearData } from "@core-ui/ContextServices/RefreshPageContext";
 import WorkspaceService from "@core-ui/ContextServices/Workspace";
 import { uniqueName } from "@core/utils/uniqueName";
 import styled from "@emotion/styled";
-import useLocalize from "@ext/localization/useLocalize";
+import t from "@ext/localization/locale/translate";
 import { ClientWorkspaceConfig } from "@ext/workspace/WorkspaceConfig";
 import { useMemo, useState } from "react";
 
@@ -85,16 +85,15 @@ const WorkspaceForm = ({
 		await refreshPage();
 	};
 
-	const removeTranslated = useLocalize(
-		getExecutingEnvironment() == "browser" ? "workspaceDeleteBrowser" : "workspaceDelete",
-	);
+	const removeTranslated =
+		getExecutingEnvironment() == "browser" ? t("workspace.delete.web") : t("workspace.delete.desktop");
 
 	const removeWorkspace = async () => {
 		if (!(await confirm(removeTranslated))) return;
 		setDeleteInProgress(true);
-		onSave?.();
 		clearData();
 		await FetchService.fetch(apiUrlCreator.removeWorkspace(workspace.path));
+		onSave?.();
 		await refreshPage();
 	};
 
@@ -102,18 +101,18 @@ const WorkspaceForm = ({
 		<ModalLayoutLight className={className}>
 			<FormStyle formDirection="column">
 				<>
-					<legend>{useLocalize("editWorkspaceTitle")}</legend>
+					<legend>{t("workspace.edit")}</legend>
 					<fieldset>
 						<div className="form-group">
 							<div className="field field-string row">
 								<label className="control-label">
-									{useLocalize("name")}
+									{t("name")}
 									<span className="required">*</span>
 								</label>
 								<div className={`input-lable`}>
 									<Input
 										showErrorText={!isNameUnique}
-										errorText={!isNameUnique ? useLocalize("cantBeSameName") : null}
+										errorText={!isNameUnique ? t("cant-be-same-name") : null}
 										isCode
 										placeholder="Gramax"
 										value={props.name}
@@ -128,10 +127,10 @@ const WorkspaceForm = ({
 						</div>
 						<div className="form-group">
 							<div className="field field-string row">
-								<label className="control-label">{useLocalize("icon")}</label>
+								<label className="control-label">{t("icon")}</label>
 								<div className={`input-lable`} style={{ display: "flex", gap: "1rem" }}>
 									<ListLayout
-										placeholder={useLocalize("icon")}
+										placeholder={t("icon")}
 										items={lucideIconList}
 										filterItems={iconFilter([], true)}
 										item={toListItem({ code: props.icon ?? "" })}
@@ -147,13 +146,13 @@ const WorkspaceForm = ({
 							<div className="form-group">
 								<div className="field field-string row">
 									<label className="control-label">
-										{useLocalize("workingDirectory")}
+										{t("working-directory")}
 										<span className="required">*</span>
 									</label>
 									<div className={`input-lable `} style={{ display: "flex", gap: "1rem" }}>
 										<Input
 											showErrorText={!isPathValid}
-											errorText={!isPathValid ? useLocalize("cantBeSamePath") : null}
+											errorText={!isPathValid ? t("cant-be-same-path") : null}
 											isCode
 											readOnly
 											placeholder={pathPlaceholder}
@@ -170,7 +169,7 @@ const WorkspaceForm = ({
 													setProps({ ...props });
 												}}
 											>
-												{useLocalize("open")}
+												{t("open")}
 											</Button>
 										)}
 									</div>
@@ -178,7 +177,7 @@ const WorkspaceForm = ({
 								<div className={`input-lable-description `}>
 									<div />
 									<div className="article">
-										<p>{useLocalize("workspacePathDesc")}</p>
+										<p>{t("workspace.path-desc")}</p>
 									</div>
 								</div>
 							</div>
@@ -197,7 +196,7 @@ const WorkspaceForm = ({
 											<SpinnerLoader height={15} width={15} fullScreen />
 										</span>
 									)}
-									<span>{useLocalize("delete")}</span>
+									<span>{t("delete")}</span>
 								</Button>
 							</div>
 						)}
@@ -205,11 +204,11 @@ const WorkspaceForm = ({
 							buttonStyle={ButtonStyle.default}
 							disabled={!canSave}
 							onClick={async () => {
-								onSave?.();
 								await saveWorkspace();
+								onSave?.();
 							}}
 						>
-							<span>{useLocalize("save")}</span>
+							<span>{t("save")}</span>
 						</Button>
 					</div>
 				</>

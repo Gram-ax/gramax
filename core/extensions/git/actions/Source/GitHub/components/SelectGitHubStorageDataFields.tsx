@@ -3,6 +3,7 @@ import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import GitHubSourceData from "@ext/git/actions/Source/GitHub/logic/GitHubSourceData";
 import GithubStorageData from "@ext/git/actions/Source/GitHub/model/GithubStorageData";
 import GitSourceApi from "@ext/git/actions/Source/GitSourceApi";
+import t from "@ext/localization/locale/translate";
 import User2 from "@ext/security/components/User/User2";
 import { useEffect, useState } from "react";
 import parseStorageUrl from "../../../../../../logic/utils/parseStorageUrl";
@@ -46,14 +47,14 @@ const SelectGitHubStorageDataFields = ({ source, forClone, onChange }: SelectPro
 	return (
 		<>
 			<div className="form-group field field-string row">
-				<div className="control-label">Аккаунт</div>
+				<div className="control-label">{t("account")}</div>
 				<div className="input-lable">
 					<ListLayout
 						isLoadingData={isLoadingData}
 						openByDefault={true}
 						buttons={[
 							{
-								element: "Добавить аккаунт...",
+								element: `${t("add-account")}...`,
 								icon: "plus",
 								iconViewBox: "3 3 18 18",
 								labelField: "",

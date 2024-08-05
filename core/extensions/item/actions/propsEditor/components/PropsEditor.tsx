@@ -17,10 +17,10 @@ import { Router } from "@core/Api/Router";
 import { useRouter } from "@core/Api/useRouter";
 import { ClientArticleProps } from "@core/SitePresenter/SitePresenter";
 import { uniqueName } from "@core/utils/uniqueName";
-import { getHeaderRef } from "@ext/artilce/actions/HeaderEditor";
+import t from "@ext/localization/locale/translate";
+import EditorService from "@ext/markdown/elementsUtils/ContextServices/EditorService";
 import { ItemLink } from "@ext/navigation/NavigationLinks";
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
-import useLocalize from "../../../../localization/useLocalize";
 
 interface PropsEditorProps {
 	item: ClientArticleProps;
@@ -66,7 +66,7 @@ const PropsEditor = (props: PropsEditorProps) => {
 	const save = async () => {
 		if (getErrorText()) return;
 		if (generatedFileName) itemProps.fileName = generatedFileName;
-		ArticlePropsService.set(itemProps);
+		ArticlePropsService.set({ ...itemProps });
 		const response = await FetchService.fetch(
 			apiUrlCreator.updateItemProps(),
 			JSON.stringify(itemProps),
@@ -74,6 +74,15 @@ const PropsEditor = (props: PropsEditorProps) => {
 		);
 		const logicPath = await response.text();
 		updateNavigation(isCurrentItem, router, logicPath, articleProps.logicPath, itemProps.logicPath);
+		const editor = EditorService.getEditor();
+		itemLink.title = itemProps.title;
+		setItemLink({ ...itemLink });
+
+		if (editor) {
+			const hr = editor.view.dom.firstChild as HTMLHeadingElement;
+			if (hr && isCurrentItem) hr.innerText = itemProps.title;
+		}
+
 		setIsOpen(false);
 	};
 
@@ -81,47 +90,48 @@ const PropsEditor = (props: PropsEditorProps) => {
 
 	const getErrorText = () => {
 		const fileName = generatedFileName ?? itemProps?.fileName;
-		if (!fileName) return useLocalize("mustBeNotEmpty");
-		if (brotherFileNames?.includes(fileName)) return useLocalize("cantBeSameName");
-		if (!/^[\w\d\-_]+$/m.test(fileName)) return useLocalize("noEncodingSymbolsInUrl");
+		if (!fileName) return t("must-be-not-empty");
+		if (brotherFileNames?.includes(fileName)) return t("cant-be-same-name");
+		if (!/^[\w\d\-_]+$/m.test(fileName)) return t("no-encoding-symbols-in-url");
 		return null;
+	};
+
+	const onClose = () => {
+		setItemProps({ ...item });
+		setIsOpen(false);
 	};
 
 	return (
 		<ModalLayout
 			isOpen={isOpen}
-			trigger={<ButtonLink iconCode="pencil" text={useLocalize("configure")} />}
+			trigger={<ButtonLink iconCode="pencil" text={t("configure")} />}
 			contentWidth={"S"}
 			onCmdEnter={save}
 			onOpen={() => setIsOpen(true)}
-			onClose={() => setIsOpen(false)}
+			onClose={onClose}
 		>
 			<ModalLayoutLight>
 				<FormStyle>
 					<>
-						<legend>{useLocalize(isCategory ? "сategoryProperties" : "articleProperties")}</legend>
-						<label className="control-label">{useLocalize("title")}</label>
+						<legend>{isCategory ? t("category.configure") : t("article.configure")}</legend>
+						<label className="control-label">{t("title")}</label>
 						<div className="form-group field field-string">
 							<Input
-								dataQa={useLocalize("title")}
+								dataQa={t("title")}
 								isCode
 								value={itemProps?.title}
 								onChange={(e) => {
-									itemProps.title = itemLink.title = e.target.value ?? "";
-									if (itemProps.title && NEW_ARTICLE_REGEX.test(itemProps.fileName)) {
+									const newItemProps = { ...itemProps };
+									newItemProps.title = e.target.value ?? "";
+									if (newItemProps.title && NEW_ARTICLE_REGEX.test(newItemProps.fileName)) {
 										setGeneratedFileName(
 											uniqueName(
-												transliterate(itemProps.title, { kebab: true, maxLength: 50 }),
+												transliterate(newItemProps.title, { kebab: true, maxLength: 50 }),
 												brotherFileNames,
 											),
 										);
 									}
-									setItemLink({ ...itemLink });
-									setItemProps({ ...itemProps });
-									if (isCurrentItem) ArticlePropsService.set(itemProps);
-
-									const hr = getHeaderRef();
-									if (hr && isCurrentItem) hr.current.innerText = e.target.value;
+									setItemProps({ ...newItemProps });
 								}}
 								placeholder="Enter value"
 							/>
@@ -139,17 +149,17 @@ const PropsEditor = (props: PropsEditorProps) => {
 								endText={"/"}
 								errorText={getErrorText()}
 								onChange={(e) => {
+									const newItemProps = { ...itemProps };
 									setGeneratedFileName(undefined);
-									itemProps.fileName = e.target.value ?? "";
-									setItemProps({ ...itemProps });
-									if (isCurrentItem) ArticlePropsService.set(itemProps);
+									newItemProps.fileName = e.target.value ?? "";
+									setItemProps({ ...newItemProps });
 								}}
 								placeholder="Enter value"
 							/>
 						</div>
 						<div className="buttons">
 							<Button buttonStyle={ButtonStyle.default} onClick={save} disabled={!!getErrorText()}>
-								<span>{useLocalize("save")}</span>
+								<span>{t("save")}</span>
 							</Button>
 						</div>
 					</>

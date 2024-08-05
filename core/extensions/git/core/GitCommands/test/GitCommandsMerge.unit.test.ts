@@ -29,8 +29,8 @@ let git: GitCommands;
 describe("GitCommands", () => {
 	beforeEach(async () => {
 		await dfp.mkdir(path("testRep"));
-		await GitVersionControl.init({ corsProxy: null }, dfp, path("testRep"), mockUserData);
-		git = new GitCommands({ corsProxy: null }, dfp, path("testRep"));
+		await GitVersionControl.init(dfp, path("testRep"), mockUserData);
+		git = new GitCommands(dfp, path("testRep"));
 		const testFile = await writeFile("testFile", "testFile content");
 		await git.add([testFile]), await git.commit("init", mockUserData);
 		const file = await writeFile("1.txt", "1.txt content\nline 2\nline 3");
@@ -199,9 +199,9 @@ describe("GitCommands", () => {
 						await git.add([fileA]), await git.commit("", mockUserData);
 
 						const conflictFiles = await git.merge(mockUserData, "B");
-
 						expect(conflictFiles).toContainEqual({ ancestor: null, ours: "2.txt", theirs: "2.txt" });
-						expect(await dfp.exists(repPath("1.txt"))).toBeFalsy();
+						expect(conflictFiles).toContainEqual({ ancestor: "1.txt", ours: "1.txt", theirs: null });
+						expect(await dfp.exists(repPath("1.txt"))).toBeTruthy();
 						expect(await dfp.exists(repPath("2.txt"))).toBeTruthy();
 						expect(await dfp.read(repPath("2.txt"))).toEqual(
 							"<<<<<<< ours\ncontent A\nline 2\nline 3\n=======\n1.txt content\nline 2\nline 3\n>>>>>>> theirs\n",
@@ -218,7 +218,8 @@ describe("GitCommands", () => {
 						const conflictFiles = await git.merge(mockUserData, "B");
 
 						expect(conflictFiles).toContainEqual({ ancestor: null, ours: "2.txt", theirs: "2.txt" });
-						expect(await dfp.exists(repPath("1.txt"))).toBeFalsy();
+						expect(conflictFiles).toContainEqual({ ancestor: "1.txt", ours: null, theirs: "1.txt" });
+						expect(await dfp.exists(repPath("1.txt"))).toBeTruthy();
 						expect(await dfp.exists(repPath("2.txt"))).toBeTruthy();
 						expect(await dfp.read(repPath("2.txt"))).toEqual(
 							"<<<<<<< ours\n1.txt content\nline 2\nline 3\n=======\ncontent B\nline 2\nline 3\n>>>>>>> theirs\n",
@@ -237,7 +238,8 @@ describe("GitCommands", () => {
 						const conflictFiles = await git.merge(mockUserData, "B");
 
 						expect(conflictFiles).toContainEqual({ ancestor: null, ours: "2.txt", theirs: "2.txt" });
-						expect(await dfp.exists(repPath("1.txt"))).toBeFalsy();
+						expect(conflictFiles).toContainEqual({ ancestor: "1.txt", ours: "1.txt", theirs: null });
+						expect(await dfp.exists(repPath("1.txt"))).toBeTruthy();
 						expect(await dfp.exists(repPath("2.txt"))).toBeTruthy();
 						expect(await dfp.read(repPath("2.txt"))).toEqual(
 							"<<<<<<< ours\ncontent A\nline 2 A\nline 3 A\n=======\n1.txt content\nline 2\nline 3\n>>>>>>> theirs\n",
@@ -254,7 +256,8 @@ describe("GitCommands", () => {
 						const conflictFiles = await git.merge(mockUserData, "B");
 
 						expect(conflictFiles).toContainEqual({ ancestor: null, ours: "2.txt", theirs: "2.txt" });
-						expect(await dfp.exists(repPath("1.txt"))).toBeFalsy();
+						expect(conflictFiles).toContainEqual({ ancestor: "1.txt", ours: null, theirs: "1.txt" });
+						expect(await dfp.exists(repPath("1.txt"))).toBeTruthy();
 						expect(await dfp.exists(repPath("2.txt"))).toBeTruthy();
 						expect(await dfp.read(repPath("2.txt"))).toEqual(
 							"<<<<<<< ours\n1.txt content\nline 2\nline 3\n=======\ncontent B\nline 2 B\nline 3 B\n>>>>>>> theirs\n",

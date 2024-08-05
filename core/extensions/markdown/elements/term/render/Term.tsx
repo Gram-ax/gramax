@@ -1,6 +1,7 @@
 import Tooltip from "@components/Atoms/Tooltip";
 import Anchor from "@components/controls/Anchor";
 import styled from "@emotion/styled";
+import t from "@ext/localization/locale/translate";
 
 const Term = styled(
 	({
@@ -24,7 +25,7 @@ const Term = styled(
 							<div className="content">
 								{summary && <span className="summary">{summary}</span>}
 								{children}
-								{url ? <Anchor href={url}>Подробнее</Anchor> : null}
+								{url ? <Anchor href={url}>{t("more")}</Anchor> : null}
 							</div>
 						</div>
 					}

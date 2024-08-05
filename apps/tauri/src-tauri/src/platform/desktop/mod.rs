@@ -60,7 +60,7 @@ pub fn on_run_event<R: Runtime>(app: &AppHandle<R>, ev: RunEvent) {
 pub fn on_run_event<R: Runtime>(_: &AppHandle<R>, _: RunEvent) {}
 
 fn open_help_docs() -> Result<()> {
-  open::that("https://ics-it.gram.ax/gramax")?;
+  open::that("https://gram.ax/resources/docs")?;
   Ok(())
 }
 

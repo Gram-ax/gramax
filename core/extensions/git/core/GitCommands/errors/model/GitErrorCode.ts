@@ -1,6 +1,7 @@
 enum GitErrorCode {
 	RemoteNotFoundMessageError = "RemoteNotFoundMessageError",
 	CurrentBranchNotFoundError = "CurrentBranchNotFoundError",
+	NetworkConntectionError = "NetworkConntectionError",
 	MergeNotSupportedError = "MergeNotSupportedError",
 	CantGetConflictedFiles = "CantGetConflictedFiles",
 	CheckoutConflictError = "CheckoutConflictError",
@@ -9,7 +10,6 @@ enum GitErrorCode {
 	AlreadyExistsError = "AlreadyExistsError",
 	WorkingDirNotEmpty = "WorkingDirNotEmpty",
 	PushRejectedError = "PushRejectedError",
-	CloneError404 = "CloneError404",
 	NotFoundError = "NotFoundError",
 	GitPushError = "GitPushError",
 	CloneError = "CloneError",

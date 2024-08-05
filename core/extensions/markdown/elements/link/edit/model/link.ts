@@ -2,6 +2,7 @@ import ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
 import PageDataContext from "@core/Context/PageDataContext";
 import { ClientCatalogProps } from "@core/SitePresenter/SitePresenter";
 import { hoverTooltip } from "@ext/markdown/elements/link/edit/model/helpers/termsTooltip";
+import simpleLink from "@ext/markdown/elements/link/edit/model/simpleLink";
 import getSelectedText from "@ext/markdown/elementsUtils/getSelectedText";
 import addShortcuts from "@ext/markdown/elementsUtils/keyboardShortcuts/addShortcuts";
 import space from "@ext/markdown/logic/keys/marks/space";
@@ -31,11 +32,7 @@ declare module "@tiptap/core" {
 }
 
 export const Link = Mark.create<LinkOptions>({
-	name: "link",
-
-	priority: 1000,
-
-	keepOnSplit: false,
+	...simpleLink,
 
 	inclusive() {
 		return this.options.autolink;

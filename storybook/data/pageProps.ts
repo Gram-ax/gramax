@@ -749,6 +749,7 @@ export default {
 			workspaces: [],
 			defaultPath: "f",
 			readResult: undefined,
+			isEnterprise: false,
 		},
 		currentWorkspace: "default-workspace",
 		domain: "http://localhost:3000",
@@ -762,11 +763,12 @@ export default {
 			mail: "danil.kazanov@ics-it.ru",
 		},
 		conf: {
+			glsUrl: "",
 			basePath: "",
 			bugsnagApiKey: "",
 			authServiceUrl: "",
+			yandexMetricCounter: "",
 			enterpriseServerUrl: "",
-			diagramRendererServerUrl: "",
 
 			isSso: false,
 			ssoServerUrl: "",

@@ -54,6 +54,10 @@ export function hoverTooltip(
 		linkHoverTooltip.setAnchorPos(cursorPos);
 	});
 
+	editor.on("blur", () => {
+		linkHoverTooltip.setAnchorPos(null);
+	});
+
 	editor.on("destroy", () => {
 		linkHoverTooltip.unMount();
 	});

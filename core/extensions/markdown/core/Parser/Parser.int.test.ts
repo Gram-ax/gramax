@@ -1,3 +1,5 @@
+import LanguageService from "@core-ui/ContextServices/Language";
+import Language from "@ext/localization/core/model/Language";
 import { RenderableTreeNode } from "../render/logic/Markdoc";
 import MarkdownTestData from "./test/MarkdownTestData.json";
 import { getParserTestData } from "./test/getParserTestData";
@@ -8,6 +10,10 @@ jest.mock("react", () => ({
 }));
 
 describe("MarkdownParser", () => {
+	beforeAll(() => {
+		LanguageService.setUiLanguage(Language.ru);
+	});
+
 	describe("правильно преобразует компонент", () => {
 		for (const [key, value] of Object.entries(MarkdownTestData)) {
 			value.forEach((obj: { text: string; renderTree: any; html: string }, idx: number) => {
@@ -47,7 +53,7 @@ function getFirstChildren(node: RenderableTreeNode): RenderableTreeNode {
 }
 
 function getChildrenHTML(html: string): string {
-	const matches = /<article>(.*?)<\/article>/gm.exec(html);
+	const matches = /<article>([\s\S]*?)<\/article>/gm.exec(html);
 	if (!matches?.[1]) return "";
 	return matches[1];
 }

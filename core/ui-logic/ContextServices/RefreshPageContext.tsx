@@ -18,7 +18,7 @@ export default abstract class RefreshPageService {
 		clearData: _clearData,
 	}: {
 		children: ReactElement;
-		refresh: () => Promise<void>;
+		refresh: () => Promise<void> | void;
 		clearData: () => void;
 	}): ReactElement {
 		w.refreshPage = _refresh ?? defaultRefreshPage;

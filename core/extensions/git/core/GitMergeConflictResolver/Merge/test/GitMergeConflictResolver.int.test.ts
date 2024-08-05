@@ -55,11 +55,11 @@ describe("GitMergeConflictResolver", () => {
 	beforeEach(async () => {
 		pushGitStorageMock.mockClear();
 		await dfp.mkdir(path("testRep"));
-		await GitVersionControl.init({ corsProxy: null }, dfp, path("testRep"), mockUserData);
-		gvc = new GitVersionControl({ corsProxy: null }, path("testRep"), dfp);
+		await GitVersionControl.init(dfp, path("testRep"), mockUserData);
+		gvc = new GitVersionControl(path("testRep"), dfp);
 		await commit(gvc, { "1.txt": "init" });
 		await gvc.createNewBranch("conflict");
-		const storage = new GitStorage({ corsProxy: null }, path("testRep"), dfp);
+		const storage = new GitStorage(path("testRep"), dfp);
 		const repo = new Repository(path("testRep"), dfp, gvc, storage);
 		resolver = new GitMergeConflictResolver(repo, dfp, path("testRep"));
 	});

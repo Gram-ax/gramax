@@ -1,5 +1,8 @@
 import MimeTypes from "@core-ui/ApiServices/Types/MimeTypes";
+import haveInternetAccess from "@core/utils/haveInternetAccess";
+import NetworkError from "@ext/errorHandlers/network/NetworkError";
 import SilentError from "@ext/errorHandlers/silent/SilentError";
+import t from "@ext/localization/locale/translate";
 import getMermaidDiagram from "@ext/markdown/elements/diagrams/diagrams/mermaid/getMermaidDiagram";
 import getPlantUmlDiagram from "@ext/markdown/elements/diagrams/diagrams/plantUml/getPlantUmlDiagram";
 import DefaultError from "../../../extensions/errorHandlers/logic/DefaultError";
@@ -39,29 +42,27 @@ export default class Diagrams {
 	}
 
 	private async _getSimpleDiagram(type: DiagramType, content: string) {
-		if (!this._diagramMetadata[type]) throw new DefaultError(`Неправильное имя диаграммы: ${type}`);
+		if (!this._diagramMetadata[type]) throw new DefaultError(`${t("diagram.error.wrong-name")}: ${type}`);
 		return await this._getDiagramInternal(type, content);
 	}
 
 	private async _getDiagramInternal(type: DiagramType, content: string) {
 		const metadata = this._diagramMetadata[type];
+		if (!haveInternetAccess()) throw new NetworkError({ errorCode: "silent" });
 		const url = `${this._diagramRendererServerUrl}/convert/${metadata.req}/${metadata.toType}`;
 
-		if (!content)
-			throw new SilentError(
-				"Не удалось найти диаграмму. Проверьте, правильно ли указан путь, а также есть ли файл с диаграммой в репозитории.",
-			);
+		if (!content) throw new SilentError(t("diagram.error.cannot-get-data"));
 
 		const response = await fetch(url, {
 			method: "POST",
 			headers: { "Content-Type": "text/plain" },
 			body: content,
 		}).catch(() => {
-			throw new SilentError("Не удалось отрисовать диаграмму. Проверьте подключение к интернету.");
+			throw new SilentError(t("diagram.error.no-internet"));
 		});
 		if (response.status !== 200) {
-			console.log(`Не удалось отрисовать диаграмму: ${url} (статус ${response.status})`);
-			throw new SilentError("Мы не смогли отрисовать вашу диаграмму.");
+			console.log(`${t("diagram.error.render-failed")}: ${url} (${response.status})`);
+			throw new SilentError(t("app.error.something-went-wrong"));
 		}
 		return await (await response.blob()).text();
 	}

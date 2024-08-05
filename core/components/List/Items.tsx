@@ -18,6 +18,7 @@ import {
 
 import Tooltip from "@components/Atoms/Tooltip";
 import ErrorHandler from "@ext/errorHandlers/client/components/ErrorHandler";
+import t from "@ext/localization/locale/translate";
 import { Virtuoso, VirtuosoHandle } from "react-virtuoso";
 import Item, { ButtonItem, ItemContent, ListItem } from "./Item";
 
@@ -62,6 +63,7 @@ const StyleDiv = styled.div<ConfigProps>`
 	.disable-with-tooltip {
 		pointer-events: all !important;
 		cursor: default;
+		opacity: 0.4;
 	}
 `;
 
@@ -72,9 +74,10 @@ const RequestValueNotFound = ({ value }: { value: string }) => (
 		style={{ display: "flex", justifyContent: "left" }}
 		content={{
 			element: (
-				<span style={{ fontSize: "14px", padding: "6px 12px" }}>
-					По запросу <strong>&quot;{value}&quot;</strong> совпадений не найдено.
-				</span>
+				<span
+					style={{ fontSize: "14px", padding: "6px 12px" }}
+					dangerouslySetInnerHTML={{ __html: t("list.no-items-found").replace("{{value}}", value) }}
+				/>
 			),
 			labelField: "",
 		}}
@@ -187,7 +190,7 @@ const Items = (props: ItemsProps) => {
 				},
 			}[e.key];
 
-			if (action) {
+			if (action && focusRef.current) {
 				e.preventDefault();
 				action();
 			}

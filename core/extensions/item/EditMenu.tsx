@@ -5,8 +5,8 @@ import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import ArticlePropsService from "@core-ui/ContextServices/ArticleProps";
 import IsEditService from "@core-ui/ContextServices/IsEdit";
 import { ClientArticleProps } from "@core/SitePresenter/SitePresenter";
+import t from "@ext/localization/locale/translate";
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
-import useLocalize from "../localization/useLocalize";
 import { ItemLink } from "../navigation/NavigationLinks";
 import DeleteItem from "./actions/DeleteItem";
 import PropsEditor from "./actions/propsEditor/components/PropsEditor";
@@ -59,7 +59,7 @@ const EditMenu = ({
 			<PopupMenuLayout
 				isInline
 				offset={[0, 10]}
-				tooltipText={useLocalize("edit3")}
+				tooltipText={t("edit3")}
 				onOpen={() => {
 					if (onOpen) onOpen();
 					if (!isCurrentItem) setItemPropsData();

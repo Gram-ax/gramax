@@ -29,8 +29,8 @@ let git: GitCommands;
 describe("GitCommands", () => {
 	beforeEach(async () => {
 		await dfp.mkdir(path("testRep"));
-		await GitVersionControl.init({ corsProxy: null }, dfp, path("testRep"), mockUserData);
-		git = new GitCommands({ corsProxy: null }, dfp, path("testRep"));
+		await GitVersionControl.init(dfp, path("testRep"), mockUserData);
+		git = new GitCommands(dfp, path("testRep"));
 		const testFile = await writeFile("testFile", "testFile content");
 		await git.add([testFile]), await git.commit("init", mockUserData);
 		const file = await writeFile("1.txt", "1.txt content\nline 2\nline 3");
@@ -186,6 +186,38 @@ describe("GitCommands", () => {
 				});
 			});
 			describe("переименование", () => {
+				describe("контент полностью совпадает", () => {
+					test("файл добавлен в хэде и переименован в стеше", async () => {
+						await dfp.move(repPath("1.txt"), repPath("2.txt"));
+						await git.add([path("1.txt"), path("2.txt")]);
+						const stashHash = await git.stash(mockUserData);
+
+						const fileA = await writeFile("2.txt", "1.txt content\nline 2\nline 3");
+						await git.add([fileA]), await git.commit("", mockUserData);
+
+						const conflictFiles = await git.applyStash(stashHash);
+
+						expect(conflictFiles).not.toContainEqual({ ancestor: null, ours: "2.txt", theirs: "2.txt" });
+						expect(conflictFiles).toContainEqual({ ancestor: "1.txt", ours: "1.txt", theirs: null });
+						expect(await dfp.read(repPath("2.txt"))).toBe("1.txt content\nline 2\nline 3");
+						expect(await dfp.exists(repPath("1.txt"))).toBeTruthy();
+					});
+					test("файл добавлен в стеше и переименован в хэде", async () => {
+						await writeFile("2.txt", "1.txt content\nline 2\nline 3");
+						await git.add([path("2.txt")]);
+						const stashHash = await git.stash(mockUserData);
+
+						await dfp.move(repPath("1.txt"), repPath("2.txt"));
+						await git.add([path("1.txt"), path("2.txt")]), await git.commit("", mockUserData);
+
+						const conflictFiles = await git.applyStash(stashHash);
+
+						expect(conflictFiles).not.toContainEqual({ ancestor: null, ours: "2.txt", theirs: "2.txt" });
+						expect(conflictFiles).toContainEqual({ ancestor: "1.txt", ours: null, theirs: "1.txt" });
+						expect(await dfp.read(repPath("2.txt"))).toBe("1.txt content\nline 2\nline 3");
+						expect(await dfp.exists(repPath("1.txt"))).toBeTruthy();
+					});
+				});
 				describe("контент совпадает больше 50%", () => {
 					test("файл добавлен в хэде и переименован в стеше", async () => {
 						await dfp.move(repPath("1.txt"), repPath("2.txt"));
@@ -198,7 +230,8 @@ describe("GitCommands", () => {
 						const conflictFiles = await git.applyStash(stashHash);
 
 						expect(conflictFiles).toContainEqual({ ancestor: null, ours: "2.txt", theirs: "2.txt" });
-						expect(await dfp.exists(repPath("1.txt"))).toBeFalsy();
+						expect(conflictFiles).toContainEqual({ ancestor: "1.txt", ours: "1.txt", theirs: null });
+						expect(await dfp.exists(repPath("1.txt"))).toBeTruthy();
 						expect(await dfp.exists(repPath("2.txt"))).toBeTruthy();
 						expect(await dfp.read(repPath("2.txt"))).toEqual(
 							"<<<<<<< Updated upstream\ncontent A\nline 2\nline 3\n=======\n1.txt content\nline 2\nline 3\n>>>>>>> Stashed changes\n",
@@ -215,7 +248,8 @@ describe("GitCommands", () => {
 						const conflictFiles = await git.applyStash(stashHash);
 
 						expect(conflictFiles).toContainEqual({ ancestor: null, ours: "2.txt", theirs: "2.txt" });
-						expect(await dfp.exists(repPath("1.txt"))).toBeFalsy();
+						expect(conflictFiles).toContainEqual({ ancestor: "1.txt", ours: null, theirs: "1.txt" });
+						expect(await dfp.exists(repPath("1.txt"))).toBeTruthy();
 						expect(await dfp.exists(repPath("2.txt"))).toBeTruthy();
 						expect(await dfp.read(repPath("2.txt"))).toEqual(
 							"<<<<<<< Updated upstream\n1.txt content\nline 2\nline 3\n=======\ncontent B\nline 2\nline 3\n>>>>>>> Stashed changes\n",
@@ -234,7 +268,8 @@ describe("GitCommands", () => {
 						const conflictFiles = await git.applyStash(stashHash);
 
 						expect(conflictFiles).toContainEqual({ ancestor: null, ours: "2.txt", theirs: "2.txt" });
-						expect(await dfp.exists(repPath("1.txt"))).toBeFalsy();
+						expect(conflictFiles).toContainEqual({ ancestor: "1.txt", ours: "1.txt", theirs: null });
+						expect(await dfp.exists(repPath("1.txt"))).toBeTruthy();
 						expect(await dfp.exists(repPath("2.txt"))).toBeTruthy();
 						expect(await dfp.read(repPath("2.txt"))).toEqual(
 							"<<<<<<< Updated upstream\ncontent A\nline 2 A\nline 3 A\n=======\n1.txt content\nline 2\nline 3\n>>>>>>> Stashed changes\n",
@@ -251,7 +286,8 @@ describe("GitCommands", () => {
 						const conflictFiles = await git.applyStash(stashHash);
 
 						expect(conflictFiles).toContainEqual({ ancestor: null, ours: "2.txt", theirs: "2.txt" });
-						expect(await dfp.exists(repPath("1.txt"))).toBeFalsy();
+						expect(conflictFiles).toContainEqual({ ancestor: "1.txt", ours: null, theirs: "1.txt" });
+						expect(await dfp.exists(repPath("1.txt"))).toBeTruthy();
 						expect(await dfp.exists(repPath("2.txt"))).toBeTruthy();
 						expect(await dfp.read(repPath("2.txt"))).toEqual(
 							"<<<<<<< Updated upstream\n1.txt content\nline 2\nline 3\n=======\ncontent B\nline 2 B\nline 3 B\n>>>>>>> Stashed changes\n",
@@ -561,38 +597,6 @@ describe("GitCommands", () => {
 				expect(await dfp.read(repPath("2.txt"))).toEqual(
 					"<<<<<<< Updated upstream\ncontent A\nline 2 A\nline 3 A\n=======\ncontent B\nline 2 B\nline 3 B\n>>>>>>> Stashed changes\nline 4",
 				);
-			});
-		});
-	});
-	describe("Мержит без конфликта", () => {
-		describe("Добавление и переименование, контент совпадает", () => {
-			test("файл добавлен в хэде и переименован в стеше", async () => {
-				await dfp.move(repPath("1.txt"), repPath("2.txt"));
-				await git.add([path("1.txt"), path("2.txt")]);
-				const stashHash = await git.stash(mockUserData);
-
-				const fileA = await writeFile("2.txt", "1.txt content\nline 2\nline 3");
-				await git.add([fileA]), await git.commit("", mockUserData);
-
-				const conflictFiles = await git.applyStash(stashHash);
-
-				expect(conflictFiles).not.toContainEqual({ ancestor: null, ours: "2.txt", theirs: "2.txt" });
-				expect(await dfp.read(repPath("2.txt"))).toBe("1.txt content\nline 2\nline 3");
-				expect(await dfp.exists(repPath("1.txt"))).toBeFalsy();
-			});
-			test("файл добавлен в стеше и переименован в хэде", async () => {
-				await writeFile("2.txt", "1.txt content\nline 2\nline 3");
-				await git.add([path("2.txt")]);
-				const stashHash = await git.stash(mockUserData);
-
-				await dfp.move(repPath("1.txt"), repPath("2.txt"));
-				await git.add([path("1.txt"), path("2.txt")]), await git.commit("", mockUserData);
-
-				const conflictFiles = await git.applyStash(stashHash);
-
-				expect(conflictFiles).not.toContainEqual({ ancestor: null, ours: "2.txt", theirs: "2.txt" });
-				expect(await dfp.read(repPath("2.txt"))).toBe("1.txt content\nline 2\nline 3");
-				expect(await dfp.exists(repPath("1.txt"))).toBeFalsy();
 			});
 		});
 	});

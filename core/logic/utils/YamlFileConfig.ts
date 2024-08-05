@@ -1,5 +1,6 @@
 import Path from "@core/FileProvider/Path/Path";
 import type FileProvider from "@core/FileProvider/model/FileProvider";
+import mergeObjects from "@core/utils/mergeObjects";
 import yaml from "js-yaml";
 
 export default class YamlFileConfig<C extends object> {
@@ -17,7 +18,7 @@ export default class YamlFileConfig<C extends object> {
 		self._config = defaultConfig;
 		if (await fp.exists(path)) {
 			const rawYaml = await fp.read(path);
-			self._config = yaml.load(rawYaml) as C;
+			self._config = mergeObjects<C>(self._config, yaml.load(rawYaml) as C);
 		} else {
 			await self.save();
 		}

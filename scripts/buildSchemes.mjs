@@ -6,7 +6,7 @@ import parseMarkdown from "./logic/parseMarkdown.mjs";
 const settings = {
 	required: true,
 	ref: false,
-	validationKeywords: ["private", "readOnly"],
+	validationKeywords: ["private", "readOnly", "see"],
 };
 
 await initSchemes("./core/");
@@ -34,13 +34,12 @@ async function initSchemes(basePath, contextOutPath = "/") {
 
 async function parse(object, deep = 0) {
 	if (!object || typeof object !== "object") return;
-	if ("description" in object && typeof object.description === "string") {
-		object["description"] = await parseMarkdown(object["description"]);
-	}
-	if ("title" in object && typeof object.title === "string") {
-		object.dataQa = object["title"];
-		object["title"] = await parseMarkdown(object["title"]);
-	}
+
+	if ("description" in object && typeof object.description === "string")
+		object.description = await parseMarkdown(object.description);
+
+	if ("title" in object && typeof object.title === "string") object.title = await parseMarkdown(object.title);
+
 	if (deep > 100) throw new Error("Commands structure are invalid");
 	for (const value of Object.values(object)) await parse(value, ++deep);
 }

@@ -27,10 +27,6 @@ export default class TestContext extends BaseContext implements ParserContext {
 		this._resourceManager = new ResourceManager(fp, this._itemRef.path);
 	}
 
-	getSsoServerUrl(): string {
-		return process.env.SSO_SERVICE_URL;
-	}
-
 	getDiagramRendererServerUrl(): string {
 		return process.env.DIAGRAM_RENDERER_SERVICE_URL;
 	}

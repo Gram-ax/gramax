@@ -1,9 +1,9 @@
 import { CommentBlock } from "@core-ui/CommentBlock";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import styled from "@emotion/styled";
+import t from "@ext/localization/locale/translate";
 import { JSONContent } from "@tiptap/react";
 import { ReactElement, useEffect, useRef, useState } from "react";
-import useLocalize from "../../extensions/localization/useLocalize";
 import CommentComponent from "./Comment";
 import CommentBlockInput from "./CommentBlockInput";
 
@@ -17,8 +17,8 @@ interface CommentBlockProps {
 
 const CommentBlockComponent = (props: CommentBlockProps): ReactElement => {
 	const { commentBlock, onUpdate, onDeleteComment, className } = props;
-	const confirmAnswerDelelteText = useLocalize("confirmAnswerDelete");
-	const confirmCommentDeleteText = useLocalize("confirmCommentDelete");
+	const confirmAnswerDelelteText = t("confirm-answer-delete");
+	const confirmCommentDeleteText = t("confirm-comment-delete");
 
 	const [currentCommentBlock, setCurrentCommentBlock] = useState(Object.assign({}, commentBlock));
 	const [focusId, setFocusId] = useState<number>(-2);

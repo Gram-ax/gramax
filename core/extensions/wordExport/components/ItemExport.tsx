@@ -9,8 +9,8 @@ import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import { downloadFile } from "@core-ui/downloadResource";
 import { CancelableFunction } from "@core/utils/CancelableFunction";
 import InfoModalForm from "@ext/errorHandlers/client/components/ErrorForm";
+import t from "@ext/localization/locale/translate";
 import { useMemo, useState } from "react";
-import useLocalize from "../../localization/useLocalize";
 
 interface ItemExportProps {
 	fileName: string;
@@ -64,7 +64,7 @@ const ItemExport = ({ fileName, itemRefPath, isCategory }: ItemExportProps) => {
 	const loading = (
 		<FormStyle>
 			<>
-				<legend>{useLocalize("loading2")}</legend>
+				<legend>{t("loading2")}</legend>
 				<SpinnerLoader height={100} width={100} fullScreen />
 			</>
 		</FormStyle>
@@ -72,27 +72,27 @@ const ItemExport = ({ fileName, itemRefPath, isCategory }: ItemExportProps) => {
 
 	const info = (
 		<InfoModalForm
-			title={useLocalize("unsupportedElementsTitle")}
+			title={t("unsupported-elements-title")}
 			icon={{ code: "circle-alert", color: "var(--color-admonition-note-br-h)" }}
 			isWarning={false}
 			actionButton={{
 				onClick: startDownload,
-				text: useLocalize("continue"),
+				text: t("continue"),
 			}}
 			onCancelClick={() => setIsOpen(false)}
 		>
 			<div className="article">
-				<p>{useLocalize("unsupportedElementsWarning1")}</p>
+				<p>{t("unsupported-elements-warning1")}</p>
 				<div style={{ overflowX: "hidden", overflowY: "auto", maxHeight: "50vh" }}>
 					<ul style={{ marginTop: 0 }}>
 						{errorWordElements.map((elem, idx) => (
 							<li key={idx}>
-								<p>{useLocalize(elem as any)}</p>
+								<p>{t(elem as any)}</p>
 							</li>
 						))}
 					</ul>
 				</div>
-				<p>{useLocalize("unsupportedElementsWarning2")}</p>
+				<p>{t("unsupported-elements-warning2")}</p>
 			</div>
 		</InfoModalForm>
 	);
@@ -111,8 +111,8 @@ const ItemExport = ({ fileName, itemRefPath, isCategory }: ItemExportProps) => {
 			trigger={
 				<ButtonLink
 					iconCode="file-text"
-					text={useLocalize(
-						itemRefPath ? (isCategory ? "categoryToDocx" : "articleToDocx") : "exportCatalogDocx",
+					text={t(
+						itemRefPath ? (isCategory ? "category-to-docx" : "article-to-docx") : "export-catalog-docx",
 					)}
 				/>
 			}

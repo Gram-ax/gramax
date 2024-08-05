@@ -19,7 +19,6 @@ export const startC4DiagramText = `workspace {
 
 }`;
 
-export const c4DiagramTooltipText = "C4-Диаграмма";
 export const c4DiagramIcon = (
 	<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
 		<path

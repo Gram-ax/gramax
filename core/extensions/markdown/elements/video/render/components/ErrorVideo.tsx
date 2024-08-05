@@ -1,8 +1,9 @@
 import { cssMedia } from "@core-ui/utils/cssUtils";
 import styled from "@emotion/styled";
-import { useState } from "react";
+import t from "@ext/localization/locale/translate";
 import Note, { NoteType } from "../../../note/render/component/Note";
 import ErrorText from "./ErrorText";
+import AlertError from "@components/AlertError";
 
 const ErrorVideo = styled(
 	({
@@ -16,9 +17,7 @@ const ErrorVideo = styled(
 		className?: string;
 		isNoneError?: boolean;
 	}) => {
-		const [showText, setShowText] = useState(false);
-
-		return (
+		return isNoneError ? (
 			<div className={"error-video " + className}>
 				<video
 					id="my-player"
@@ -28,16 +27,15 @@ const ErrorVideo = styled(
 					preload="auto"
 					data-setup="{}"
 					src={link}
-					onError={() => setShowText(true)}
 				/>
-				{showText ? (
-					<div className="error-text-parent">
-						<Note type={NoteType.info} title={isNoneError ? "Тут будет ваше видео" : "Видео недоступно"}>
-							<ErrorText link={link} isLink={isLink} isNoneError={isNoneError} />
-						</Note>
-					</div>
-				) : null}
+				<div className="error-text-parent">
+					<Note type={NoteType.info} title={t("editor.video.will-be-here")}>
+						<ErrorText link={link} isLink={isLink} isNoneError={isNoneError} />
+					</Note>
+				</div>
 			</div>
+		) : (
+			<AlertError title={t("alert.video.unavailable")} error={{ message: t("alert.video.path") }} />
 		);
 	},
 )`

@@ -1,35 +1,19 @@
 import resolveModule from "@app/resolveModule/frontend";
 import { FileInputProps } from "@components/Atoms/FileInput/FileInputProps";
+import getCodeLensDefaultText from "@components/Atoms/FileInput/getCodeLenseDefaultText";
 import getFileInputDefaultLanguage from "@components/Atoms/FileInput/getFileInputDefaultLanguage";
-import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import MergeConflictStyles from "@ext/git/actions/MergeConflictHandler/Monaco/components/MergeConflictStyles";
-import FileInputMergeConflict, {
-	CodeLensText,
-} from "@ext/git/actions/MergeConflictHandler/Monaco/logic/FileInputMergeConflict";
-import Language from "@ext/localization/core/model/Language";
-import useLocalize from "@ext/localization/useLocalize";
-import useBareLocalize from "@ext/localization/useLocalize/useBareLocalize";
+import FileInputMergeConflict from "@ext/git/actions/MergeConflictHandler/Monaco/logic/FileInputMergeConflict";
+import t from "@ext/localization/locale/translate";
 import { useEffect, useRef, useState } from "react";
 import Theme from "../../../extensions/Theme/Theme";
 import ThemeService from "../../../extensions/Theme/components/ThemeService";
 
 const DEFAULT_LANGAUGE = getFileInputDefaultLanguage();
 
-const getCodeLensDefaultText = (lang: Language): CodeLensText => {
-	return {
-		acceptCurrent: useBareLocalize("acceptCurrentChange", lang),
-		acceptIncoming: useBareLocalize("acceptIncomingChange", lang),
-		mergeWithDeletionHeader: useBareLocalize("defaultMergeWithDeletionText", lang),
-		deleteFile: useBareLocalize("delete", lang),
-		leaveFile: useBareLocalize("leave", lang),
-		mergeWithDeletionFileContent: useBareLocalize("fileContent", lang),
-	};
-};
-
 const FileInput = ({ value, language, onChange, onMount, options, height = "60vh", ...props }: FileInputProps) => {
 	const readOnly = options?.readOnly ?? false;
 	const theme = ThemeService.value;
-	const lang = PageDataContextService.value.lang;
 	const ref = useRef<HTMLDivElement>(null);
 	const [editorHeight, setEditorHeight] = useState(0);
 	const fileInputMergeConflict = useRef<FileInputMergeConflict>(null);
@@ -55,7 +39,12 @@ const FileInput = ({ value, language, onChange, onMount, options, height = "60vh
 							fileInputMergeConflict.current?.onChange();
 							onChange?.(value, e, fileInputMergeConflict.current);
 						}}
-						options={{ readOnlyMessage: { value: useLocalize("cantEditThisLine") }, ...options }}
+						options={{
+							readOnlyMessage: { value: t("cant-edit-this-line") },
+							unicodeHighlight: { ambiguousCharacters: false },
+							wordWrap: "on",
+							...options,
+						}}
 						theme={theme == Theme.dark ? "vs-dark" : "light"}
 						onMount={(editor, monaco) => {
 							if (readOnly) {
@@ -65,8 +54,9 @@ const FileInput = ({ value, language, onChange, onMount, options, height = "60vh
 							fileInputMergeConflict.current = new FileInputMergeConflict(
 								editor,
 								monaco,
-								language ?? DEFAULT_LANGAUGE,
-								getCodeLensDefaultText(lang),
+								language || DEFAULT_LANGAUGE,
+								getCodeLensDefaultText(),
+								theme,
 							);
 							onMount?.(editor, monaco, fileInputMergeConflict.current);
 						}}

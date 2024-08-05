@@ -15,6 +15,7 @@ const getTabShortcuts = (): KeyboardShortcut => {
 const moveInListBefore: KeyboardRule = ({ editor, node, nodePosition }) => {
 	const getListBeforeLastListItem = () => {
 		const listBefore = getNodeByPos(parentNode.position - 1, editor.state.doc);
+		if (!listBefore?.node) return;
 		if (!isTypeOf(listBefore.node, ["bullet_list", "ordered_list"])) return;
 		const listBeforeDeepiestChildPos = getDeepiestLastChild(listBefore.node, listBefore.position).position;
 		return getNodeByPos(listBeforeDeepiestChildPos, editor.state.doc, (node) => node === listBefore.node.lastChild);

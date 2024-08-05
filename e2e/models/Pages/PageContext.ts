@@ -17,7 +17,7 @@ export default class PageContext {
 		protected _alias: ReplaceAlias,
 		protected _aliases: Aliases,
 		protected _info = new PageInfo(),
-	) { }
+	) {}
 
 	inner() {
 		return this._page;

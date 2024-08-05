@@ -1,6 +1,5 @@
 // в tauri заменяем fs-extra на TauriFs(tauri/vite.config.ts); в wasm на wasmfs
 import { ItemRef } from "@core/FileStructue/Item/ItemRef";
-import DefaultError from "@ext/errorHandlers/logic/DefaultError";
 import * as fs from "fs-extra";
 import { ItemStatus } from "../../../extensions/Watchers/model/ItemStatus";
 import Watcher from "../../../extensions/Watchers/model/Watcher";
@@ -166,7 +165,7 @@ export default class DiskFileProvider implements FileProvider {
 			return true;
 		} catch (e) {
 			if (e.name == "ENOENT" || e.code == "ENOENT") return false;
-			throw new DefaultError(`Корневая директория ${this._rootPath.value} не существует`, e);
+			throw new Error(`Root path ${this._rootPath.value} not exist`, e);
 		}
 	}
 

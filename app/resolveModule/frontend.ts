@@ -49,6 +49,7 @@ modules = {
 /// #if VITE_ENVIRONMENT == "next"
 // #v-ifdef VITE_ENVIRONMENT=next
 import FileInputCdn from "@components/Atoms/FileInput/FileInputCdn";
+import LanguageService from "@core-ui/ContextServices/Language";
 import NextLink from "../../apps/next/components/Atoms/Link";
 import NextRouter from "../../apps/next/logic/Api/NextRouter";
 import useUrlImage from "../../core/components/Atoms/Image/useUrlImage";
@@ -62,7 +63,13 @@ modules = {
 	Fetcher: async <T = any>(url: Url, body?: BodyInit, mime?: MimeTypes, method?: Method) => {
 		const res = (await fetch(
 			url.toString(),
-			body ? { method, body, headers: { "Content-type": mime } } : null,
+			body
+				? {
+						method,
+						body,
+						headers: { "Content-type": mime, "x-gramax-ui-language": LanguageService.currentUi() },
+				  }
+				: { headers: { "x-gramax-ui-language": LanguageService.currentUi() } },
 		)) as FetchResponse<T>;
 		res.buffer = async () => Buffer.from(await res.arrayBuffer());
 		return res;
@@ -86,7 +93,6 @@ import NextLinkJest from "../../apps/next/components/Atoms/Link";
 import NextRouterJest from "../../apps/next/logic/Api/NextRouter";
 import useUrlImageJest from "../../core/components/Atoms/Image/useUrlImage";
 import MethodJest from "../../core/ui-logic/ApiServices/Types/Method";
-
 import MimeTypesJest from "../../core/ui-logic/ApiServices/Types/MimeTypes";
 import UrlJest from "../../core/ui-logic/ApiServices/Types/Url";
 

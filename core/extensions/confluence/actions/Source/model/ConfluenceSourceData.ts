@@ -1,9 +1,12 @@
-import type GitSourceData from "@ext/git/core/model/GitSourceData.schema";
+import SourceData from "@ext/storage/logic/SourceDataProvider/model/SourceData";
 import SourceType from "../../../../storage/logic/SourceDataProvider/model/SourceType";
 
-interface ConfluenceSourceData extends GitSourceData {
+interface ConfluenceSourceData extends SourceData {
 	sourceType: SourceType.confluence;
 	cloudId: string;
+	token: string;
+	domain: string;
+	refreshToken?: string;
 }
 
 export default ConfluenceSourceData;

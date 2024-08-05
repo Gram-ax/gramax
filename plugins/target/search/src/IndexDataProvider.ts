@@ -58,6 +58,11 @@ export class IndexDataProvider {
 	}
 
 	private async _getIndexDataFromStorage(catalogName: string): Promise<IndexData[]> {
-		return this._storage.get(catalogName).then((data) => JSON.parse(data));
+		try {
+			return this._storage.get(catalogName).then((data) => JSON.parse(data));
+		} catch (e) {
+			console.log(e);
+			return this._getAndCreateIndexData(catalogName);
+		}
 	}
 }

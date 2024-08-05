@@ -50,7 +50,8 @@ export default class TestGitRepository {
 	get source(): GitSourceData {
 		return {
 			sourceType: SourceType.gitLab,
-			domain: "http://localhost:8174",
+			domain: "localhost:8174",
+			protocol: "http",
 			token: "123",
 			userName: "test",
 			userEmail: "test@test.ru",

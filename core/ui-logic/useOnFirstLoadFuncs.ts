@@ -9,6 +9,8 @@ import { saveTempTokenIfPresent } from "@ext/git/actions/Source/tempToken";
 import usePathnameCheckoutHandler from "@ext/git/core/GitPathnameHandler/checkout/logic/usePathnameCheckoutHandler";
 import usePathnameCloneHandler from "@ext/git/core/GitPathnameHandler/clone/logic/usePathnameCloneHandler";
 import usePathnamePullHandler from "@ext/git/core/GitPathnameHandler/pull/logic/usePathnamePullHandler";
+import useSsoHandler from "@ext/sso/useSsoHandler";
+import useUserSettingsHandler from "@ext/sso/useUserSettingsHandler";
 
 const closeIfChild = () => {
 	if (
@@ -34,10 +36,10 @@ const useOnFirstLoadFuncs = () => {
 	useInitPlugins(isFirstLoad);
 	useRemoveExpiredSources(isFirstLoad);
 	useRemoveQueryT(isFirstLoad);
-
 	useReviewHandler(isFirstLoad);
 	useShareHandler(isFirstLoad);
-
+	useSsoHandler(isFirstLoad);
+	useUserSettingsHandler(isFirstLoad);
 	usePathnamePullHandler(isFirstLoad);
 	usePathnameCloneHandler(isFirstLoad);
 	usePathnameCheckoutHandler(isFirstLoad);

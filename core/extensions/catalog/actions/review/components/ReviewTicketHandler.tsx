@@ -2,12 +2,12 @@ import FormStyle from "@components/Form/FormStyle";
 import ModalLayout from "@components/Layouts/Modal";
 import ModalLayoutLight from "@components/Layouts/ModalLayoutLight";
 import { ReviewLinkData } from "@ext/catalog/actions/review/model/ReviewLinkData";
+import t from "@ext/localization/locale/translate";
 import { useEffect, useState } from "react";
 import FetchService from "../../../../../ui-logic/ApiServices/FetchService";
 import MimeTypes from "../../../../../ui-logic/ApiServices/Types/MimeTypes";
 import ApiUrlCreatorService from "../../../../../ui-logic/ContextServices/ApiUrlCreator";
 import CloneProgressbar from "../../../../git/actions/Clone/components/CloneProgressbar";
-import useLocalize from "../../../../localization/useLocalize";
 
 const ReviewTicketHandler = ({ ticket }: { ticket: string }) => {
 	const apiUrlCreator = ApiUrlCreatorService.value;
@@ -49,7 +49,7 @@ const ReviewTicketHandler = ({ ticket }: { ticket: string }) => {
 			<ModalLayoutLight>
 				<FormStyle>
 					<>
-						<legend>{useLocalize("loading2")}</legend>
+						<legend>{t("loading2")}</legend>
 						<CloneProgressbar
 							triggerClone={reviewData}
 							filePath={reviewData?.filePath}

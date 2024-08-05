@@ -8,11 +8,10 @@ interface AppConfigPaths {
 	base: Path;
 	root: Path;
 	data: Path;
-	cache: Path;
 	default: Path;
 }
 
-interface AppConfigServices {
+export interface ServicesConfig {
 	cors: { url: string };
 	auth: { url: string };
 	review: { url: string };
@@ -24,22 +23,24 @@ export type AppConfig = {
 	version: string;
 	buildVersion: string;
 
+	glsUrl: string;
 	isRelease: boolean;
 	isReadOnly: boolean;
 	isServerApp: boolean;
 	isProduction: boolean;
 
 	bugsnagApiKey: string;
+	yandexMetricCounter: string;
 	paths: AppConfigPaths;
 
 	mail: { user: string; password: string };
 	admin: { login: string; password: string };
 	tokens: { share: string; cookie: string };
 	enterprise: { workspacePath: string };
-	services: AppConfigServices;
+	services: ServicesConfig;
 };
 
-const getServices = (): AppConfigServices => {
+const getServices = (): ServicesConfig => {
 	return {
 		sso: {
 			url: env("SSO_SERVICE_URL") ?? null,
@@ -66,7 +67,6 @@ const getPaths = (): AppConfigPaths => {
 			base: Path.empty,
 			root: new Path("/mnt/docs"),
 			data: new Path("/mnt/data"),
-			cache: new Path("/mnt/cache"),
 			default: new Path("/mnt/default"),
 		};
 	}
@@ -78,7 +78,6 @@ const getPaths = (): AppConfigPaths => {
 		base: new Path(env("BASE_PATH")),
 		root,
 		data: userData,
-		cache: userData.join(new Path("cache")),
 		default: new Path(env("GRAMAX_DEFAULT_WORKSPACE_PATH")),
 	};
 };
@@ -93,12 +92,14 @@ export const getConfig = (): AppConfig => {
 		version: env("GRAMAX_VERSION") ?? null,
 		buildVersion: env("BUILD_VERSION") ?? null,
 
+		glsUrl: env("GLS_URL") ?? null,
 		isReadOnly: env("READ_ONLY") === "true",
 		isServerApp: env("SERVER_APP") === "true",
 		isProduction: env("PRODUCTION") === "true",
 		isRelease: (env("BRANCH") ?? "develop") == "master",
 
 		bugsnagApiKey: env("BUGSNAG_API_KEY") ?? null,
+		yandexMetricCounter: env("YANDEX_METRIC_COUNTER") ?? null,
 
 		admin: {
 			login: env("ADMIN_LOGIN") ?? null,

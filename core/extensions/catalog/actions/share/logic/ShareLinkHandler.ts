@@ -1,3 +1,4 @@
+import t from "@ext/localization/locale/translate";
 import { Encoder } from "../../../../Encoder/Encoder";
 import ShareData from "../model/ShareData";
 
@@ -21,7 +22,7 @@ export default class ShareLinkHandler {
 	}
 
 	private _parseData(data: string[]): ShareData {
-		if (!data) throw new Error("Некорректный тикет");
+		if (!data) throw new Error(t("share.error.incorrect-ticket"));
 		return JSON.parse(data[0]);
 	}
 }

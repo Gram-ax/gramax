@@ -1,13 +1,13 @@
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import styled from "@emotion/styled";
-import useLocalize from "../../extensions/localization/useLocalize";
+import t from "@ext/localization/locale/translate";
 
 const BottomInfo = styled(({ className }: { className?: string }) => {
 	const config = PageDataContextService.value.conf;
 	return (
 		<div className={className}>
 			<div className="bottom-info">
-				<div>{`${useLocalize("version")} ${config.version}${config.isRelease ? "" : " dev"}`}</div>
+				<div>{`${t("version")} ${config.version}${config.isRelease ? "" : " dev"}`}</div>
 				<div>{"© Gramax " + new Date().getFullYear()}</div>
 			</div>
 		</div>

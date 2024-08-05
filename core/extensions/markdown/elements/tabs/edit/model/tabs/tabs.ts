@@ -1,3 +1,4 @@
+import t from "@ext/localization/locale/translate";
 import tabsSchema from "@ext/markdown/elements/tabs/edit/model/tabs/tabsSchema";
 import getExtensionOptions from "@ext/markdown/logic/getExtensionOptions";
 import { mergeAttributes, Node } from "@tiptap/core";
@@ -30,7 +31,7 @@ const Tabs = Node.create({
 			setTabs:
 				() =>
 				({ chain }) => {
-					const tabAttrs = { name: "Вкладка", idx: 0 };
+					const tabAttrs = { name: t("editor.tabs.name"), idx: 0 };
 					return chain().insertContent({
 						type: this.name,
 						attrs: { childAttrs: [tabAttrs] },

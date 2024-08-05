@@ -1,11 +1,11 @@
-import { EditorContent, Extensions, JSONContent, useEditor } from "@tiptap/react";
 import CommentCounterService from "@core-ui/ContextServices/CommentCounter";
 import ArticleMat from "@ext/markdown/core/edit/components/ArticleMat";
+import { Editor } from "@tiptap/core";
+import { Mark } from "@tiptap/pm/model";
+import { EditorContent, Extensions, JSONContent, useEditor } from "@tiptap/react";
 import { Node, Slice } from "prosemirror-model";
 import { EditorView } from "prosemirror-view";
-import { Mark } from "@tiptap/pm/model";
-import { Editor } from "@tiptap/core";
-import { DependencyList } from "react";
+import { DependencyList, useEffect } from "react";
 import ApiUrlCreatorService from "../../../../../ui-logic/ContextServices/ApiUrlCreator";
 import ArticlePropsService from "../../../../../ui-logic/ContextServices/ArticleProps";
 import IsMacService from "../../../../../ui-logic/ContextServices/IsMac";
@@ -86,11 +86,15 @@ const ContentEditor = (props: ContentEditorProps) => {
 		[content, isMac, apiUrlCreator, pageDataContext, articleProps.ref.path, ...deps],
 	);
 
+	useEffect(() => {
+		if (editor && !editor.state.doc.textContent) editor.commands.focus();
+	}, [editor]);
+
 	return (
 		<>
 			<ContextWrapper editor={editor}>
 				{articleIsEdit && <Menu editor={editor} id={ContentEditorId} />}
-				<EditorContent editor={editor} />
+				<EditorContent editor={editor} data-qa="article-editor" />
 			</ContextWrapper>
 			<ArticleMat editor={editor} />
 		</>

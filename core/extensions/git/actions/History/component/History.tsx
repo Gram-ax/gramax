@@ -14,10 +14,10 @@ import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import styled from "@emotion/styled";
 import { FileStatus } from "@ext/Watchers/model/FileStatus";
 import { GitStatus } from "@ext/git/core/GitWatcher/model/GitStatus";
+import t from "@ext/localization/locale/translate";
 import useHasRemoteStorage from "@ext/storage/logic/utils/useHasRemoteStorage";
 import useIsStorageInitialized from "@ext/storage/logic/utils/useIsStorageIniziliate";
 import { useEffect, useState } from "react";
-import useLocalize from "../../../../localization/useLocalize";
 import User from "../../../../security/components/User/User";
 import { ArticleHistoryViewModel } from "../model/ArticleHistoryViewModel";
 
@@ -32,7 +32,7 @@ const History = styled(({ className }: { className?: string }) => {
 	const [showDiff, setShowDiff] = useState(true);
 	const [isOpen, setIsOpen] = useState(false);
 	const [data, setData] = useState<ArticleHistoryViewModel[]>(null);
-	const showDiffText = useLocalize("showDiffs");
+	const showDiffText = t("show-diffs");
 
 	const hasRemoteStorage = useHasRemoteStorage();
 	const isStorageInitialized = useIsStorageInitialized();
@@ -81,12 +81,12 @@ const History = styled(({ className }: { className?: string }) => {
 			disabled={disabled}
 			contentWidth={data ? "L" : null}
 			trigger={
-				<Tooltip content={useLocalize("fileHistoryWarning")} disabled={!disabled}>
+				<Tooltip content={t(t("git.history.error.need-to-publish"))} disabled={!disabled}>
 					<ListItem
 						onClick={() => setIsOpen(true)} // без этого не работает
 						disabled={disabled}
 						iconCode="history"
-						text={useLocalize("versionHistory")}
+						text={t("git.history.name")}
 					/>
 				</Tooltip>
 			}

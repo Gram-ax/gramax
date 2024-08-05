@@ -1,6 +1,6 @@
 import Url from "@core-ui/ApiServices/Types/Url";
-import { ReactNode, useEffect, useRef, HTMLAttributes } from "react";
-import useLocalize from "../../extensions/localization/useLocalize";
+import t from "@ext/localization/locale/translate";
+import { HTMLAttributes, ReactNode, useEffect, useRef } from "react";
 import Link from "../Atoms/Link";
 import Tooltip from "../Atoms/Tooltip";
 
@@ -20,7 +20,7 @@ const GoToArticle = (props: GoToArticleProps) => {
 	}, []);
 
 	return (
-		<Tooltip hideOnClick={true} content={useLocalize("goToArticle")} distance={distance}>
+		<Tooltip hideOnClick={true} content={t("go-to-article")} distance={distance}>
 			<span onClick={onClick}>
 				<Link href={Url.from({ pathname: href })} ref={ref} {...otherProps}>
 					{trigger}

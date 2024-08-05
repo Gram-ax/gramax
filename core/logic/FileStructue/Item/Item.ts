@@ -4,6 +4,7 @@ import { ItemType } from "@core/FileStructue/Item/ItemType";
 import ResourceUpdater from "@core/Resource/ResourceUpdater";
 import { ItemStatus } from "@ext/Watchers/model/ItemStatus";
 import type { FSLocalizationProps } from "@ext/localization/core/rules/FSLocalizationRules";
+import t from "@ext/localization/locale/translate";
 import IPermission from "../../../extensions/security/logic/Permission/IPermission";
 import Permission from "../../../extensions/security/logic/Permission/Permission";
 import { ClientArticleProps } from "../../SitePresenter/SitePresenter";
@@ -62,7 +63,7 @@ export abstract class Item<P extends ItemProps = ItemProps> {
 	}
 
 	getTitle(): string {
-		return this.props.title?.length ? this.props.title : "Без названия";
+		return this.props.title?.length ? this.props.title : t("article.no-name");
 	}
 
 	watch(w: WatcherFunc): void {

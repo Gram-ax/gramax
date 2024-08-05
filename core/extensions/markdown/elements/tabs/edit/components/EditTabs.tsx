@@ -1,5 +1,5 @@
 import styled from "@emotion/styled";
-import useLocalize from "@ext/localization/useLocalize";
+import t from "@ext/localization/locale/translate";
 import { FocusPositionContext } from "@ext/markdown/core/edit/components/ContextWrapper";
 import TabAttrs from "@ext/markdown/elements/tabs/model/TabAttrs";
 import Tabs from "@ext/markdown/elements/tabs/render/component/Tabs";
@@ -7,14 +7,9 @@ import { TextSelection } from "@tiptap/pm/state";
 import { NodeViewContent, NodeViewProps, NodeViewWrapper } from "@tiptap/react";
 import { ReactElement, useCallback, useContext, useEffect, useState } from "react";
 
-const EditTabs = ({
-	node,
-	editor,
-	className,
-	getPos,
-	updateAttributes,
-}: { className?: string } & NodeViewProps): ReactElement => {
-	const tabText = useLocalize("tab");
+const EditTabs = (props: { className?: string } & NodeViewProps): ReactElement => {
+	const { node, editor, className, getPos, updateAttributes } = props;
+	const tabText = t("editor.tabs.name");
 	const position = useContext(FocusPositionContext);
 	const [activeHoverStyle, setActiveHoverStyle] = useState(false);
 
@@ -72,7 +67,10 @@ const EditTabs = ({
 			}
 		}
 
-		tr.setSelection(TextSelection.create(tr.doc, getPos() + node.firstChild.nodeSize - 1));
+		const firstChild = tr.doc.resolve(getPos() + 1);
+		const position = getPos() + firstChild.parent.nodeSize;
+
+		tr.setSelection(TextSelection.create(tr.doc, position));
 		editor.view.dispatch(tr);
 	};
 
@@ -83,7 +81,7 @@ const EditTabs = ({
 				.filter((a) => a.idx !== removeIdx);
 			childAttrs.forEach((attrs, idx) => (attrs.idx = idx));
 
-			if (childAttrs.length === 0) editor.commands.deleteNode(node.type);
+			if (childAttrs.length === 0) editor.commands.deleteRange({ from: getPos(), to: getPos() + node.nodeSize });
 			else updateChildAttrs(removeIdx, childAttrs);
 		},
 		[node],

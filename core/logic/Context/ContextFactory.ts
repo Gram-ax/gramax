@@ -1,3 +1,4 @@
+import LanguageService from "@core-ui/ContextServices/Language";
 import ThemeManager from "../../extensions/Theme/ThemeManager";
 import Cookie from "../../extensions/cookie/Cookie";
 import CookieFactory from "../../extensions/cookie/CookieFactory";
@@ -23,21 +24,35 @@ export class ContextFactory {
 
 	from(req: ApiRequest, res: ApiResponse, query?: { [key: string]: string | string[] }): Context {
 		const cookie = this._cookieFactory.from(this._cookieSecret, req, res);
+		if (!query) query = {};
+
+		const ui = cookie.get("ui");
+		const reqUi = req.headers["x-gramax-ui-language"];
+		if (!!reqUi && reqUi != cookie.get("ui")) {
+			cookie.set("ui", reqUi);
+			query.ui = reqUi;
+		} else {
+			query.ui = ui;
+		}
+
 		return this._getContext({
-			query,
 			cookie,
 			domain: apiUtils.getDomain(req),
 			user: this._isServerApp ? this._am?.getUser(cookie, query) : localUser,
+			query,
 		});
 	}
 
 	fromBrowser(language: Language, query: Query): Context {
 		const cookie = this._cookieFactory.from(this._cookieSecret);
+		if (!query) query = {};
+		query.l = language;
+		query.ui = LanguageService.currentUi();
 		return this._getContext({
 			cookie,
 			user: localUser,
 			domain: getClientDomain(),
-			query: { ...query, l: language },
+			query,
 		});
 	}
 
@@ -57,7 +72,8 @@ export class ContextFactory {
 			domain,
 			cookie,
 			theme: this._tm?.getTheme(cookie),
-			lang: (query?.l ?? defaultLanguage) as Language,
+			lang: (query?.l || defaultLanguage) as Language,
+			ui: (query?.ui || defaultLanguage) as Language,
 		};
 	}
 }

@@ -5,20 +5,22 @@ import ActionListItem from "@components/List/ActionListItem";
 import { ButtonItem } from "@components/List/Item";
 import ListLayout from "@components/List/ListLayout";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
+import SelectConfluenceStorageDataFields from "@ext/confluence/actions/Source/components/SelectConfluenceStorageDataFields";
+import ConfluenceSourceData from "@ext/confluence/actions/Source/model/ConfluenceSourceData";
+import SelectGitStorageDataFields from "@ext/git/actions/Source/Git/components/SelectGitStorageDataFields";
 import GitHubSourceData from "@ext/git/actions/Source/GitHub/logic/GitHubSourceData";
 import GitlabSourceData from "@ext/git/actions/Source/GitLab/logic/GitlabSourceData";
+import GitSourceData from "@ext/git/core/model/GitSourceData.schema";
+import t from "@ext/localization/locale/translate";
 import { useEffect, useMemo, useState } from "react";
 import SelectGitHubStorageDataFields from "../../git/actions/Source/GitHub/components/SelectGitHubStorageDataFields";
 import SelectGitLabStorageDataFields from "../../git/actions/Source/GitLab/components/SelectGitLabStorageDataFields";
-import useLocalize from "../../localization/useLocalize";
 import CreateSourceData from "../logic/SourceDataProvider/components/CreateSourceData";
 import SourceData from "../logic/SourceDataProvider/model/SourceData";
 import SourceType from "../logic/SourceDataProvider/model/SourceType";
 import getStorageNameByData from "../logic/utils/getStorageNameByData";
 import StorageData from "../models/StorageData";
 import SourceListItem from "./SourceListItem";
-import SelectConfluenceStorageDataFields from "@ext/confluence/actions/Source/components/SelectConfluenceStorageDataFields";
-import ConfluenceSourceData from "@ext/confluence/actions/Source/model/ConfluenceSourceData";
 
 interface SelectStorageDataFormProps {
 	title: string;
@@ -30,12 +32,12 @@ interface SelectStorageDataFormProps {
 const SelectStorageDataForm = (props: SelectStorageDataFormProps) => {
 	const { title, children, forClone, onChange } = props;
 	const pageProps = PageDataContextService.value;
-	const localizedSource2 = useLocalize("source2").toLowerCase();
-	const localizedSource = useLocalize("source");
-	const localizedAddNewSource = useLocalize("addNewSource");
-	const localizedStorage2 = useLocalize("storage2");
-	const localizedStorage = useLocalize("storage");
-	const localizedAddNewStorage = useLocalize("addNewStorage");
+	const localizedSource2 = t("source2").toLowerCase();
+	const localizedSource = t("source");
+	const localizedAddNewSource = t("add-new-source");
+	const localizedStorage2 = t("storage2");
+	const localizedStorage = t("storage");
+	const localizedAddNewStorage = t("add-new-storage");
 
 	const storageConfig = useMemo(
 		() => ({
@@ -50,7 +52,9 @@ const SelectStorageDataForm = (props: SelectStorageDataFormProps) => {
 				controlLable: localizedStorage,
 				sideBarTitle: localizedAddNewStorage,
 				filter: (data: SourceData) =>
-					data.sourceType === SourceType.gitHub || data.sourceType === SourceType.gitLab,
+					data.sourceType === SourceType.git ||
+					data.sourceType === SourceType.gitHub ||
+					data.sourceType === SourceType.gitLab,
 			},
 		}),
 		[],
@@ -98,13 +102,16 @@ const SelectStorageDataForm = (props: SelectStorageDataFormProps) => {
 	return (
 		<FormStyle>
 			<>
-				<legend>{title}</legend>
+				<legend>
+					<Icon code="cloud-download" />
+					<span>{title}</span>
+				</legend>
 				<fieldset>
 					<div className="form-group field field-string row">
 						<label className="control-label">{mode.controlLable}</label>
 						<div className="input-lable">
 							<ListLayout
-								placeholder={`${useLocalize("find")} ${mode.placeholderSuffix}`}
+								placeholder={`${t("find")} ${mode.placeholderSuffix}`}
 								item={
 									selectSourceData
 										? {
@@ -119,12 +126,16 @@ const SelectStorageDataForm = (props: SelectStorageDataFormProps) => {
 										: ""
 								}
 								buttons={[addNewStorageListItem]}
-								items={[
-									...sourceDatas.map((d) => ({
-										element: <SourceListItem code={d.sourceType} text={getStorageNameByData(d)} />,
+								items={sourceDatas.map((d) => {
+									const disable = !forClone && d.sourceType === SourceType.git;
+									return {
+										isTitle: disable,
+										disable: disable,
 										labelField: getStorageNameByData(d),
-									})),
-								]}
+										element: <SourceListItem code={d.sourceType} text={getStorageNameByData(d)} />,
+										tooltipDisabledContent: disable && t("git.source.error.cannot-bind-to-storage"),
+									};
+								})}
 								onItemClick={(labelField, _, idx) => {
 									if (labelField) setSelectStorageData(sourceDatas[idx]);
 								}}
@@ -132,6 +143,13 @@ const SelectStorageDataForm = (props: SelectStorageDataFormProps) => {
 							/>
 						</div>
 					</div>
+					{selectSourceData?.sourceType === SourceType.git && (
+						<SelectGitStorageDataFields
+							source={selectSourceData as GitSourceData}
+							onChange={onChange}
+							forClone={forClone}
+						/>
+					)}
 					{selectSourceData?.sourceType === SourceType.gitLab && (
 						<SelectGitLabStorageDataFields
 							source={selectSourceData as GitlabSourceData}

@@ -29,11 +29,14 @@ export default class Navigation {
 		if (rules.relatedLinkRule) this._relatedLinkFilter.push(rules.relatedLinkRule);
 	}
 
-	async getCatalogsLink(catalogs: Map<string, CatalogEntry>, lastVisited: LastVisited): Promise<CatalogLink[]> {
+	async getCatalogsLink(catalogs: Map<string, CatalogEntry>, lastVisited?: LastVisited): Promise<CatalogLink[]> {
 		const catalogLinks = await Promise.all(
 			Array.from(catalogs.entries()).map(async ([, catalog]) => await this.getCatalogLink(catalog, lastVisited)),
 		);
-		return catalogLinks.filter((c) => c).sort((a, b) => a.order - b.order);
+		return catalogLinks
+			.filter((c) => c)
+			.sort((a, b) => a.title.localeCompare(b.title, undefined, { sensitivity: "variant", ignorePunctuation: true }))
+			.sort((a, b) => a.order - b.order);
 	}
 
 	getRelatedLinks(catalog: Catalog): TitledLink[] {

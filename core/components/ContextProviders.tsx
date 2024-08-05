@@ -10,6 +10,7 @@ import IsFirstLoadService from "@core-ui/ContextServices/IsFirstLoadService";
 import IsMacService from "@core-ui/ContextServices/IsMac";
 import IsMenuBarOpenService from "@core-ui/ContextServices/IsMenuBarOpenService";
 import IsOfflineService from "@core-ui/ContextServices/IsOfflineService";
+import LanguageService from "@core-ui/ContextServices/Language";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import RefreshPageService from "@core-ui/ContextServices/RefreshPageContext";
 import ScrollWebkitService from "@core-ui/ContextServices/ScrollWebkit";
@@ -17,7 +18,9 @@ import SearchQueryService from "@core-ui/ContextServices/SearchQuery";
 import SidebarsIsPinService from "@core-ui/ContextServices/SidebarsIsPin";
 import SyncIconService from "@core-ui/ContextServices/SyncIconService";
 import ArticleViewService from "@core-ui/ContextServices/views/articleView/ArticleViewService";
+import WorkspaceService from "@core-ui/ContextServices/Workspace";
 import useIsFirstLoad from "@core-ui/useIsFirstLoad";
+import yandexMetric from "@core-ui/yandexMetric";
 import { useRouter } from "@core/Api/useRouter";
 import { ArticlePageData, HomePageData } from "@core/SitePresenter/SitePresenter";
 import OnLoadResourceService from "@ext/markdown/elements/copyArticles/onLoadResourceService";
@@ -42,7 +45,7 @@ export default function ContextProviders({
 }: {
 	pageProps: PageProps;
 	apiHost?: string;
-	refreshPage?: () => Promise<void>;
+	refreshPage?: () => Promise<void> | void;
 	clearData?: () => void;
 	children: JSX.Element;
 }) {
@@ -59,90 +62,109 @@ export default function ContextProviders({
 		pageProps.context.isLogged,
 		isArticlePage ? pageProps.data.catalogProps.name : null,
 		isArticlePage ? pageProps.data.articleProps.ref.path : null,
-		pageProps.context.conf.ssoServerUrl,
 	);
+
+	const isServerApp = pageProps.context.conf.isServerApp;
+	const isProduction = pageProps.context.conf.isProduction;
+	const yandexMetricCounter = pageProps.context.conf.yandexMetricCounter;
+	if (isServerApp && isProduction) yandexMetric(yandexMetricCounter);
 
 	return (
 		<IsOfflineService.Provider>
-			<ApiUrlCreatorService.Provider value={apiUrlCreator}>
-				<PageDataContextService.Provider value={pageProps.context}>
-					<RefreshPageService.Provider refresh={refreshPage} clearData={clearData}>
-						<ThemeService.Provider value={pageProps.context.theme}>
-							<IsMacService.Provider>
-								<SearchQueryService.Provider>
-									<SyncIconService.Provider>
-										<IsOpenModalService.Provider>
-											<ScrollWebkitService.Provider>
-												<SidebarsIsPinService.Provider>
-													<ModalToOpenService.Provider>
-														<>
-															{isArticlePage ? (
-																<OnLoadResourceService.Provider>
-																	<IsMenuBarOpenService.Provider>
-																		<ArticleRefService.Provider>
-																			<ArticlePropsService.Provider
-																				value={pageProps.data.articleProps}
-																			>
-																				<CatalogPropsService.Provider
-																					value={pageProps.data.catalogProps}
-																				>
-																					<CurrentTabsTagService.Provider>
-																						<IsEditService.Provider>
-																							<ArticleTooltipService.Provider>
-																								<IsFirstLoadService.Provider
-																									value={isFirstLoad}
-																								>
-																									<ViewContextProvider
-																										articlePageData={
-																											pageProps.data
-																										}
-																									>
-																										<OnUpdateAppFuncs>
-																											<>
-																												{pageProps
-																													.context
-																													.isLogged ? (
-																													<CommentCounterService.Provider
-																														deps={[
-																															pageProps,
-																														]}
-																													>
-																														{
+			<LanguageService.Provider>
+				<ApiUrlCreatorService.Provider value={apiUrlCreator}>
+					<PageDataContextService.Provider value={pageProps.context}>
+						<RefreshPageService.Provider refresh={refreshPage} clearData={clearData}>
+							<ThemeService.Provider value={pageProps.context.theme}>
+								<IsMacService.Provider>
+									<WorkspaceService.Provider>
+										<SearchQueryService.Provider>
+											<SyncIconService.Provider>
+												<IsOpenModalService.Provider>
+													<ScrollWebkitService.Provider>
+														<SidebarsIsPinService.Provider>
+															<ModalToOpenService.Provider>
+																<>
+																	{isArticlePage ? (
+																		<OnLoadResourceService.Provider>
+																			<IsMenuBarOpenService.Provider>
+																				<ArticleRefService.Provider>
+																					<ArticlePropsService.Provider
+																						value={
+																							pageProps.data.articleProps
+																						}
+																					>
+																						<CatalogPropsService.Provider
+																							value={
+																								pageProps.data
+																									.catalogProps
+																							}
+																						>
+																							<CurrentTabsTagService.Provider>
+																								<IsEditService.Provider>
+																									<ArticleTooltipService.Provider>
+																										<IsFirstLoadService.Provider
+																											value={
+																												isFirstLoad
+																											}
+																										>
+																											<ViewContextProvider
+																												articlePageData={
+																													pageProps.data
+																												}
+																											>
+																												<OnUpdateAppFuncs>
+																													<>
+																														{pageProps
+																															.context
+																															.isLogged ? (
+																															<CommentCounterService.Provider
+																																deps={[
+																																	pageProps,
+																																]}
+																															>
+																																{
+																																	children
+																																}
+																															</CommentCounterService.Provider>
+																														) : (
 																															children
-																														}
-																													</CommentCounterService.Provider>
-																												) : (
-																													children
-																												)}
-																											</>
-																										</OnUpdateAppFuncs>
-																									</ViewContextProvider>
-																								</IsFirstLoadService.Provider>
-																							</ArticleTooltipService.Provider>
-																						</IsEditService.Provider>
-																					</CurrentTabsTagService.Provider>
-																				</CatalogPropsService.Provider>
-																			</ArticlePropsService.Provider>
-																		</ArticleRefService.Provider>
-																	</IsMenuBarOpenService.Provider>
-																</OnLoadResourceService.Provider>
-															) : (
-																<IsFirstLoadService.Provider value={isFirstLoad}>
-																	<OnUpdateAppFuncs>{children}</OnUpdateAppFuncs>
-																</IsFirstLoadService.Provider>
-															)}
-														</>
-													</ModalToOpenService.Provider>
-												</SidebarsIsPinService.Provider>
-											</ScrollWebkitService.Provider>
-										</IsOpenModalService.Provider>
-									</SyncIconService.Provider>
-								</SearchQueryService.Provider>
-							</IsMacService.Provider>
-						</ThemeService.Provider>
-					</RefreshPageService.Provider>
-				</PageDataContextService.Provider>
-			</ApiUrlCreatorService.Provider>
+																														)}
+																													</>
+																												</OnUpdateAppFuncs>
+																											</ViewContextProvider>
+																										</IsFirstLoadService.Provider>
+																									</ArticleTooltipService.Provider>
+																								</IsEditService.Provider>
+																							</CurrentTabsTagService.Provider>
+																						</CatalogPropsService.Provider>
+																					</ArticlePropsService.Provider>
+																				</ArticleRefService.Provider>
+																			</IsMenuBarOpenService.Provider>
+																		</OnLoadResourceService.Provider>
+																	) : (
+																		<IsFirstLoadService.Provider
+																			value={isFirstLoad}
+																		>
+																			<OnUpdateAppFuncs>
+																				{children}
+																			</OnUpdateAppFuncs>
+																		</IsFirstLoadService.Provider>
+																	)}
+																</>
+															</ModalToOpenService.Provider>
+														</SidebarsIsPinService.Provider>
+													</ScrollWebkitService.Provider>
+												</IsOpenModalService.Provider>
+											</SyncIconService.Provider>
+										</SearchQueryService.Provider>
+									</WorkspaceService.Provider>
+								</IsMacService.Provider>
+							</ThemeService.Provider>
+						</RefreshPageService.Provider>
+					</PageDataContextService.Provider>
+				</ApiUrlCreatorService.Provider>
+			</LanguageService.Provider>
 		</IsOfflineService.Provider>
 	);
 }

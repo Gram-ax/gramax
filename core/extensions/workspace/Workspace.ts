@@ -11,14 +11,14 @@ import { FileStatus } from "@ext/Watchers/model/FileStatus";
 import type { ItemStatus } from "@ext/Watchers/model/ItemStatus";
 import type RepositoryProvider from "@ext/git/core/Repository/RepositoryProvider";
 import { WorkspaceConfig, type WorkspacePath } from "@ext/workspace/WorkspaceConfig";
-import type { CatalogChangedCallback, FSCatalogsInitalizedCallback } from "@ext/workspace/WorkspaceManager";
+import type { CatalogChangedCallback, FSCatalogsInitializedCallback } from "@ext/workspace/WorkspaceManager";
 
 export type WorkspaceInitProps = {
 	fs: FileStructure;
 	rp: RepositoryProvider;
 	path: WorkspacePath;
 	config: YamlFileConfig<WorkspaceConfig>;
-	rules?: FSCatalogsInitalizedCallback[];
+	rules?: FSCatalogsInitializedCallback[];
 };
 
 export class Workspace {

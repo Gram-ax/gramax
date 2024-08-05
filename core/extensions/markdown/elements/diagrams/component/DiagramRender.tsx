@@ -32,7 +32,7 @@ const DiagramRender = styled(
 					</div>
 				);
 
-			if (error) return <DiagramError error={error} />;
+			if (error) return <DiagramError error={error} diagramName={diagramName} />;
 
 			return (
 				<div

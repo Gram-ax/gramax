@@ -1,5 +1,7 @@
 import { toggleList } from "@ext/markdown/elements/list/edit/logic/toggleList";
+import SelectionBackspace from "@ext/markdown/elements/list/edit/models/listItem/logic/keys/SelectionBackspace";
 import { ordered_list } from "@ext/markdown/elements/list/edit/models/orderList/model/orderListSchema";
+import addShortcuts from "@ext/markdown/elementsUtils/keyboardShortcuts/addShortcuts";
 import getExtensionOptions from "@ext/markdown/logic/getExtensionOptions";
 import { mergeAttributes, Node, wrappingInputRule } from "@tiptap/core";
 
@@ -74,6 +76,7 @@ const OrderedList = Node.create<OrderedListOptions>({
 	addKeyboardShortcuts() {
 		return {
 			"Mod-Shift-7": () => this.editor.commands.toggleOrderedList(),
+			...addShortcuts([SelectionBackspace()]),
 		};
 	},
 

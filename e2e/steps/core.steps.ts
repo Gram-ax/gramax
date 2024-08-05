@@ -23,8 +23,37 @@ Given("смотрим на/в {string}", { timeout: config.timeouts.short }, asy
 	await lookAt.bind(this)(selector);
 });
 
+Given("смотрим на редактор", { timeout: config.timeouts.short }, async function (this: E2EWorld) {
+	await lookAt.bind(this)("редактор");
+	this.page().search().reset();
+	const editor = await this.page().search().lookup("editor", null, true);
+	if ((await editor.count()) > 0) {
+		await editor.locator(":nth-child(1)").locator(":nth-child(1)").first().click({ clickCount: 1, delay: 200 });
+	} else {
+		this.page().search().reset();
+		const articleEditor = await this.page().search().lookup("article-editor", null, true);
+		if ((await articleEditor.count()) > 0) {
+			await articleEditor
+				.locator(":nth-child(1)")
+				.locator(":nth-child(2)")
+				.first()
+				.click({ clickCount: 1, delay: 200 });
+		}
+	}
+});
+
+Given("смотрим на редактор заголовка", { timeout: config.timeouts.short }, async function (this: E2EWorld) {
+	await lookAt.bind(this)("редактор");
+	await this.page().inner().locator(".ProseMirror :nth-child(1)").first().click({ clickCount: 1, delay: 200 });
+});
+
 Then("заново смотрим на/в {string}", async function (this: E2EWorld, selector: string) {
 	await lookAt.bind(this)(selector, true);
+});
+
+Given("заново смотрим на редактор", { timeout: config.timeouts.short }, async function (this: E2EWorld) {
+	await lookAt.bind(this)("редактор", true);
+	await this.page().inner().locator(".ProseMirror > h1:first-child + *").first().click({ clickCount: 1, delay: 200 });
 });
 
 Given("ждём {float} секунд(ы)(у)", { timeout: 1000000 }, async function (this: E2EWorld, secs: number) {
@@ -51,11 +80,26 @@ When("нажимаем на поле {string}", { timeout: config.timeouts.mediu
 	await this.page().waitForLoad();
 });
 
-When("нажимаем на элемент {string}", { timeout: config.timeouts.medium }, async function (this: E2EWorld, text: string) {
-	const elem = await this.page().search().lookup(text, undefined);
-	await elem.click();
-	await this.page().waitForLoad();
-});
+When(
+	"нажимаем на элемент {string}",
+	{ timeout: config.timeouts.medium },
+	async function (this: E2EWorld, text: string) {
+		const elem = await this.page().search().lookup(text, undefined);
+		await elem.click();
+		await this.page().waitForLoad();
+	},
+);
+
+When(
+	"наводимся и нажимаем на элемент {string}",
+	{ timeout: config.timeouts.medium },
+	async function (this: E2EWorld, text: string) {
+		const elem = await this.page().search().lookup(text, undefined);
+		await elem.hover({ force: true });
+		await elem.click();
+		await this.page().waitForLoad();
+	},
+);
 
 When(
 	"нажимаем на кнопку {string} и ждём загрузки",

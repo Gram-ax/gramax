@@ -5,7 +5,7 @@ import ModalLayout from "@components/Layouts/Modal";
 import CatalogPropsService from "@core-ui/ContextServices/CatalogProps";
 import { useRouter } from "@core/Api/useRouter";
 import ErrorConfirmService from "@ext/errorHandlers/client/ErrorConfirmService";
-import useLocalize from "@ext/localization/useLocalize";
+import t from "@ext/localization/locale/translate";
 import { useState } from "react";
 import FetchService from "../../../../../ui-logic/ApiServices/FetchService";
 import ApiUrlCreatorService from "../../../../../ui-logic/ContextServices/ApiUrlCreator";
@@ -16,7 +16,7 @@ const DeleteCatalog = () => {
 
 	const router = useRouter();
 	const [deleteProcess, setDeleteProcess] = useState(false);
-	const deleteText = useLocalize(catalogProps.sourceName ? "deleteStorageCatalog" : "deleteLocalCatalog");
+	const deleteText = t(catalogProps.sourceName ? "delete-storage-catalog" : "delete-local-catalog");
 
 	const deleteCatalog = async () => {
 		if (!(await confirm(deleteText))) return;
@@ -36,7 +36,7 @@ const DeleteCatalog = () => {
 					<SpinnerLoader fullScreen />
 				</LogsLayout>
 			</ModalLayout>
-			<ListItem text={useLocalize("deleteCatalog")} onClick={deleteCatalog} iconCode="trash" />
+			<ListItem text={t("catalog.delete")} onClick={deleteCatalog} iconCode="trash" />
 		</>
 	);
 };

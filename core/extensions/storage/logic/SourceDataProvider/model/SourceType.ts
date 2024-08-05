@@ -1,7 +1,7 @@
 enum SourceType {
+	git = "Git",
 	gitLab = "GitLab",
 	gitHub = "GitHub",
-	enterprise = "Enterprise Server",
 	confluence = "Confluence",
 }
 

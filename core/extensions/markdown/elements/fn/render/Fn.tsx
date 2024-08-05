@@ -1,9 +1,9 @@
 import Icon from "@components/Atoms/Icon";
 import ModalLayout from "@components/Layouts/Modal";
 import ModalLayoutLight from "@components/Layouts/ModalLayoutLight";
+import t from "@ext/localization/locale/translate";
 import Form from "@rjsf/core";
 import { ReactElement, useState } from "react";
-import useLocalize from "../../../../localization/useLocalize";
 import Fence from "../../fence/render/component/Fence";
 import fnProperties from "../logic/fnProperties";
 
@@ -36,7 +36,7 @@ const Fn = ({ code, defaultValues }: { code: string; defaultValues?: string }): 
 		});
 	};
 
-	if (!func) return <span>{useLocalize("noSuchFunction")}</span>;
+	if (!func) return <span>{t("no-such-function")}</span>;
 
 	return (
 		<ModalLayout

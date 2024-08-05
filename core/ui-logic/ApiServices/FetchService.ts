@@ -1,8 +1,7 @@
 import resolveModule from "@app/resolveModule/frontend";
 import trimRoutePrefix from "@core-ui/ApiServices/trimRoutePrefix";
 import DefaultError from "@ext/errorHandlers/logic/DefaultError";
-import Language from "@ext/localization/core/model/Language";
-import useLocalize from "@ext/localization/useLocalize";
+import t from "@ext/localization/locale/translate";
 import FetchResponse from "./Types/FetchResponse";
 import Method from "./Types/Method";
 import MimeTypes from "./Types/MimeTypes";
@@ -22,10 +21,7 @@ const FetchService = {
 		let error: any;
 		if (res.status === 404) {
 			error = new DefaultError(
-				`${useLocalize("command", Language.ru)} "${trimRoutePrefix(url)}" ${useLocalize(
-					"notFound2",
-					Language.ru,
-				).toLowerCase()}`,
+				`${t("command")} "${trimRoutePrefix(url)}" ${t("not-found2").toLowerCase()}`,
 				error,
 			);
 		} else {

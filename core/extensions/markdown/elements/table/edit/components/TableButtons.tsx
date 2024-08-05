@@ -1,5 +1,5 @@
 import ButtonsLayout from "@components/Layouts/ButtonLayout";
-import useLocalize from "@ext/localization/useLocalize";
+import t from "@ext/localization/locale/translate";
 import Button from "@ext/markdown/core/edit/components/Menu/Button";
 import SvgContainer from "@ext/markdown/core/edit/components/Menu/SvgContainer";
 import { Editor } from "@tiptap/core";
@@ -20,7 +20,7 @@ const Table = ({ editor }: { editor?: Editor; className?: string }) => {
 				}}
 				disabled={editor ? !editor.can().addRowBefore() : false}
 				useSvgDefaultWidth={false}
-				tooltipText={"Вставить строку сверху"}
+				tooltipText={t("editor.table.row.add-up")}
 			>
 				<SvgContainer>
 					<svg
@@ -49,7 +49,7 @@ const Table = ({ editor }: { editor?: Editor; className?: string }) => {
 				onClick={() => editor.chain().focus().addRowAfter().run()}
 				disabled={editor ? !editor.can().addRowAfter() : false}
 				useSvgDefaultWidth={false}
-				tooltipText={"Вставить строку снизу"}
+				tooltipText={t("editor.table.row.add-down")}
 			>
 				<SvgContainer>
 					<svg
@@ -82,7 +82,7 @@ const Table = ({ editor }: { editor?: Editor; className?: string }) => {
 				}}
 				disabled={editor ? !editor.can().addColumnBefore() : false}
 				useSvgDefaultWidth={false}
-				tooltipText={"Вставить столбец слева"}
+				tooltipText={t("editor.table.row.add-left")}
 			>
 				<SvgContainer>
 					<svg
@@ -111,7 +111,7 @@ const Table = ({ editor }: { editor?: Editor; className?: string }) => {
 				onClick={() => editor.chain().focus().addColumnAfter().run()}
 				disabled={editor ? !editor.can().addColumnAfter() : false}
 				useSvgDefaultWidth={false}
-				tooltipText={"Вставить столбец справа"}
+				tooltipText={t("editor.table.row.add-right")}
 			>
 				<SvgContainer>
 					<svg
@@ -140,7 +140,7 @@ const Table = ({ editor }: { editor?: Editor; className?: string }) => {
 				onClick={() => editor.chain().focus().deleteRow().run()}
 				disabled={editor ? !editor.can().deleteRow() : false}
 				useSvgDefaultWidth={false}
-				tooltipText={"Удалить всю строку"}
+				tooltipText={t("editor.table.row.delete")}
 			>
 				<SvgContainer>
 					<svg
@@ -167,7 +167,7 @@ const Table = ({ editor }: { editor?: Editor; className?: string }) => {
 				onClick={() => editor.chain().focus().deleteColumn().run()}
 				disabled={editor ? !editor.can().deleteColumn() : false}
 				useSvgDefaultWidth={false}
-				tooltipText={"Удалить весь столбец"}
+				tooltipText={t("editor.table.column.delete")}
 			>
 				<SvgContainer>
 					<svg
@@ -194,7 +194,7 @@ const Table = ({ editor }: { editor?: Editor; className?: string }) => {
 				onClick={() => editor.chain().focus().toggleHeaderRow().run()}
 				disabled={editor ? !editor.can().toggleHeaderRow() : false}
 				useSvgDefaultWidth={false}
-				tooltipText={"Строка заголовка"}
+				tooltipText={t("editor.table.row.title")}
 				isActive={editor ? isHeaderRow : false}
 			>
 				<SvgContainer>
@@ -218,7 +218,7 @@ const Table = ({ editor }: { editor?: Editor; className?: string }) => {
 				onClick={() => editor.chain().focus().toggleHeaderColumn().run()}
 				disabled={editor ? !editor.can().toggleHeaderColumn() : false}
 				useSvgDefaultWidth={false}
-				tooltipText={"Столбец заголовка"}
+				tooltipText={t("editor.table.column.title")}
 				isActive={editor ? isHeaderColumn : false}
 			>
 				<SvgContainer>
@@ -242,7 +242,7 @@ const Table = ({ editor }: { editor?: Editor; className?: string }) => {
 				onClick={() => editor.chain().focus().mergeCells().run()}
 				disabled={editor ? !editor.can().mergeCells() : false}
 				useSvgDefaultWidth={false}
-				tooltipText={"Объединить ячейки"}
+				tooltipText={t("editor.table.join-cells")}
 			>
 				<SvgContainer>
 					<svg
@@ -267,7 +267,7 @@ const Table = ({ editor }: { editor?: Editor; className?: string }) => {
 				onClick={() => editor.chain().focus().splitCell().run()}
 				disabled={editor ? !editor.can().splitCell() : false}
 				useSvgDefaultWidth={false}
-				tooltipText={"Разделить ячейки"}
+				tooltipText={t("editor.table.split-cells")}
 			>
 				<SvgContainer>
 					<svg
@@ -292,7 +292,7 @@ const Table = ({ editor }: { editor?: Editor; className?: string }) => {
 				onClick={() => editor.chain().focus().deleteTable().run()}
 				disabled={editor ? !editor.can().deleteTable() : false}
 				icon={"trash"}
-				tooltipText={useLocalize("delete")}
+				tooltipText={t("delete")}
 			/>
 		</ButtonsLayout>
 	);

@@ -26,6 +26,7 @@ const getPageDataContext = ({
 			workspaces: app.wm.workspaces(),
 			current: app.wm.maybeCurrent()?.path(),
 			defaultPath: app.wm.defaultPath().value,
+			isEnterprise: app.wm.maybeCurrent()?.config().isEnterprise,
 		},
 		conf: {
 			isRelease: app.conf.isRelease,
@@ -34,11 +35,12 @@ const getPageDataContext = ({
 			basePath: app.conf.basePath.value,
 			isReadOnly: app.conf.isReadOnly,
 			isServerApp: app.conf.isServerApp,
-			ssoServerUrl: app.conf.services.sso.url,
-			authServiceUrl: app.conf.services.auth.url,
 			isProduction: app.conf.isProduction,
-			diagramRendererServerUrl: app.conf.services.diagramRenderer.url,
 			bugsnagApiKey: app.conf.bugsnagApiKey,
+			glsUrl: app.conf.glsUrl,
+			ssoServerUrl: app.wm.maybeCurrent()?.config?.()?.services?.sso?.url,
+			authServiceUrl: app.wm.maybeCurrent()?.config?.()?.services?.auth?.url,
+			yandexMetricCounter: app.conf.yandexMetricCounter,
 		},
 	};
 };

@@ -4,8 +4,8 @@ import LoadingListItem from "@components/List/LoadingListItem";
 import { TitleItem } from "@core-ui/ContextServices/LinkTitleTooltip";
 import eventEmitter from "@core/utils/eventEmmiter";
 import styled from "@emotion/styled";
-import useLocalize from "@ext/localization/useLocalize";
-import { HTMLAttributes, MouseEventHandler, useRef, useState, useEffect, useCallback } from "react";
+import t from "@ext/localization/locale/translate";
+import { HTMLAttributes, MouseEventHandler, useCallback, useEffect, useRef, useState } from "react";
 
 interface ItemsProps extends HTMLAttributes<HTMLDivElement> {
 	items: TitleItem[];
@@ -71,7 +71,7 @@ const TitleItems = (props: ItemsProps) => {
 			<Item
 				onClick={(e) => e.stopPropagation()}
 				className={"headingItem"}
-				content={{ element: useLocalize("articleTitles"), labelField: "" }}
+				content={{ element: t("article-titles"), labelField: "" }}
 			/>
 
 			{items.map((item, index) => {
@@ -102,7 +102,7 @@ const TitleItems = (props: ItemsProps) => {
 				<Item
 					onClick={(e) => e.stopPropagation()}
 					className={"notFoundItem"}
-					content={{ element: useLocalize("noHeaders"), labelField: "" }}
+					content={{ element: t("no-headers"), labelField: "" }}
 					disable
 				/>
 			)}

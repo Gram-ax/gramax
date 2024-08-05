@@ -1,16 +1,20 @@
 import { MergeConflictParser } from "@ext/git/actions/MergeConflictHandler/Monaco/logic/mergeConflictParser";
 import { IDocumentMergeConflictDescriptor } from "@ext/git/actions/MergeConflictHandler/Monaco/model/interfaces";
+import Theme from "@ext/Theme/Theme";
 import { editor } from "monaco-editor";
 import type * as monaco from "monaco-editor/esm/vs/editor/editor.api";
 
 interface CodeLenseCommandProps {
-	codeLenseLineCurrent: number;
-	type: "current" | "incoming";
+	descriptorIdx: number;
+	type: "current" | "incoming" | "both";
 }
 
 export interface CodeLensText {
 	acceptCurrent: string;
+	currentTextAfter: string;
 	acceptIncoming: string;
+	incomingTextAfter: string;
+	acceptBoth: string;
 	mergeWithDeletionHeader: string;
 	deleteFile: string;
 	leaveFile: string;
@@ -31,6 +35,7 @@ export default class FileInputMergeConflict {
 		private _monaco: typeof monaco,
 		private _editorLanguage: string,
 		private _codeLensText: CodeLensText,
+		private _theme: Theme,
 	) {
 		this._mergeConflictParser = new MergeConflictParser(this._monaco);
 		this._commandId = this._editor.addCommand(0, this._command.bind(this), "");
@@ -48,6 +53,7 @@ export default class FileInputMergeConflict {
 
 	set haveConflictWithFileDelete(value: boolean) {
 		this._haveConflictWithFileDelete = value;
+		this.onChange();
 	}
 
 	get mergeConfilctDescriptor() {
@@ -60,6 +66,12 @@ export default class FileInputMergeConflict {
 
 	set codeLensText(value: CodeLensText) {
 		this._codeLensText = value;
+		this.onChange();
+	}
+
+	set theme(value: Theme) {
+		this._theme = value;
+		this.onChange();
 	}
 
 	onChange() {
@@ -95,48 +107,71 @@ export default class FileInputMergeConflict {
 	}
 
 	private _getDecorators(): editor.IEditorDecorationsCollection[] {
-		return this._mergeConfilctDescriptor.map((d) =>
-			this._editor.createDecorationsCollection([
-				{
-					options: { isWholeLine: true, inlineClassName: "git-marks-opacity" },
-					range: d.current.header,
-				},
-				{
-					options: { isWholeLine: true, className: "vscode-merge-current content-opacity" },
-					range: d.current.decoratorContent,
-				},
-
-				...d.commonAncestors.flatMap((a) => [
+		return this._mergeConfilctDescriptor.map((d) => {
+			const { isCurrentEmpty, isIncomingEmpty } = this._isConflictHaveEmpty(d);
+			return this._editor.createDecorationsCollection(
+				[
 					{
-						options: { isWholeLine: true, className: "vscode-merge-common-base" },
-						range: a.header,
+						options: {
+							isWholeLine: true,
+							className: "vscode-merge-current",
+							after: this._haveConflictWithFileDelete
+								? undefined
+								: {
+										content: ` (${this._codeLensText.currentTextAfter})`,
+										inlineClassName: `vscode-merge-after-text-${this._theme}`,
+								  },
+						},
+						range: d.current.header,
 					},
-					{
-						options: { isWholeLine: true, className: "vscode-merge-common-base content-opacity" },
-						range: a.decoratorContent,
-					},
-				]),
+					isCurrentEmpty
+						? null
+						: {
+								options: { isWholeLine: true, className: "vscode-merge-current content-opacity" },
+								range: d.current.decoratorContent,
+						  },
 
-				{
-					options: { isWholeLine: true, inlineClassName: "git-marks-opacity" },
-					range: d.splitter,
-				},
-				{
-					options: { isWholeLine: true, className: "vscode-merge-incoming content-opacity" },
-					range: d.incoming.decoratorContent,
-				},
-				{
-					options: { isWholeLine: true, inlineClassName: "git-marks-opacity" },
-					range: d.incoming.header,
-				},
-			]),
-		);
+					...d.commonAncestors.flatMap((a) => [
+						{
+							options: { isWholeLine: true, className: "vscode-merge-common-base" },
+							range: a.header,
+						},
+						{
+							options: { isWholeLine: true, className: "vscode-merge-common-base content-opacity" },
+							range: a.decoratorContent,
+						},
+					]),
+					isIncomingEmpty
+						? null
+						: {
+								options: { isWholeLine: true, className: "vscode-merge-incoming content-opacity" },
+								range: d.incoming.decoratorContent,
+						  },
+					{
+						options: {
+							isWholeLine: true,
+							className: "vscode-merge-incoming",
+
+							after: this._haveConflictWithFileDelete
+								? undefined
+								: {
+										content: ` (${this._codeLensText.incomingTextAfter})`,
+										inlineClassName: `vscode-merge-after-text-${this._theme}`,
+								  },
+						},
+						range: d.incoming.header,
+					},
+				].filter(Boolean),
+			);
+		});
 	}
 
 	private _getCodeLensLineNumbers(): typeof this._codeLensLineNumbers {
 		return this._mergeConfilctDescriptor.map((x) => ({
-			current: x.current.header.startLineNumber + 1,
-			incoming: x.incoming.decoratorContent.startLineNumber,
+			current: x.current.header.startLineNumber,
+			incoming: this._haveConflictWithFileDelete
+				? x.incoming.decoratorContent.startLineNumber
+				: x.current.header.startLineNumber,
 		}));
 	}
 
@@ -157,8 +192,8 @@ export default class FileInputMergeConflict {
 				provideCodeLenses: () => {
 					const codeLensLine = this._codeLensLineNumbers[idx];
 					return this._haveConflictWithFileDelete
-						? this._getDeletionCodeLenses(this._mergeConfilctDescriptor[idx], codeLensLine)
-						: this._getDefaultCodeLenses(codeLensLine);
+						? this._getDeletionCodeLenses(this._mergeConfilctDescriptor[idx], codeLensLine, idx)
+						: this._getDefaultCodeLenses(codeLensLine, idx);
 				},
 				resolveCodeLens: function (_, x) {
 					return x;
@@ -171,10 +206,20 @@ export default class FileInputMergeConflict {
 		return this._editor.getModel().getValueInRange(mergeConflictDescriptor.current.decoratorContent) === "";
 	}
 
-	private _getDefaultCodeLenses(codeLensLine: {
-		current: number;
-		incoming: number;
-	}): monaco.languages.ProviderResult<monaco.languages.CodeLensList> {
+	private _isConflictHaveEmpty = (conflict: IDocumentMergeConflictDescriptor) => {
+		const isCurrentEmpty = conflict.current.decoratorContent.startLineNumber === conflict.splitter.startLineNumber;
+		const isIncomingEmpty =
+			conflict.incoming.decoratorContent.startLineNumber === conflict.incoming.header.startLineNumber;
+		return { isCurrentEmpty, isIncomingEmpty };
+	};
+
+	private _getDefaultCodeLenses(
+		codeLensLine: {
+			current: number;
+			incoming: number;
+		},
+		idx: number,
+	): monaco.languages.ProviderResult<monaco.languages.CodeLensList> {
 		return {
 			lenses: [
 				{
@@ -189,7 +234,7 @@ export default class FileInputMergeConflict {
 						title: this._codeLensText.acceptCurrent,
 						arguments: [
 							{
-								codeLenseLineCurrent: codeLensLine.current,
+								descriptorIdx: idx,
 								type: "current",
 							} as CodeLenseCommandProps,
 						],
@@ -207,8 +252,26 @@ export default class FileInputMergeConflict {
 						title: this._codeLensText.acceptIncoming,
 						arguments: [
 							{
-								codeLenseLineCurrent: codeLensLine.current,
+								descriptorIdx: idx,
 								type: "incoming",
+							} as CodeLenseCommandProps,
+						],
+					},
+				},
+				{
+					range: {
+						startLineNumber: codeLensLine.incoming,
+						startColumn: 1,
+						endLineNumber: codeLensLine.incoming,
+						endColumn: 1,
+					},
+					command: {
+						id: this._commandId,
+						title: this._codeLensText.acceptBoth,
+						arguments: [
+							{
+								descriptorIdx: idx,
+								type: "both",
 							} as CodeLenseCommandProps,
 						],
 					},
@@ -221,6 +284,7 @@ export default class FileInputMergeConflict {
 	private _getDeletionCodeLenses(
 		mergeConflictDescriptor: IDocumentMergeConflictDescriptor,
 		codeLensLine: { current: number; incoming: number },
+		idx: number,
 	): monaco.languages.ProviderResult<monaco.languages.CodeLensList> {
 		const isCurrentDeleted = this._isCurrentDeleted(mergeConflictDescriptor);
 		return {
@@ -249,7 +313,7 @@ export default class FileInputMergeConflict {
 						title: this._codeLensText.deleteFile,
 						arguments: [
 							{
-								codeLenseLineCurrent: codeLensLine.current,
+								descriptorIdx: idx,
 								type: isCurrentDeleted ? "current" : "incoming",
 							} as CodeLenseCommandProps,
 						],
@@ -267,7 +331,7 @@ export default class FileInputMergeConflict {
 						title: this._codeLensText.leaveFile,
 						arguments: [
 							{
-								codeLenseLineCurrent: codeLensLine.current,
+								descriptorIdx: idx,
 								type: isCurrentDeleted ? "incoming" : "current",
 							} as CodeLenseCommandProps,
 						],
@@ -290,17 +354,17 @@ export default class FileInputMergeConflict {
 		};
 	}
 
-	private _command(_: any, { codeLenseLineCurrent, type }: CodeLenseCommandProps) {
-		const currentMergeConflict = this._mergeConfilctDescriptor.find(
-			(d) => d.current.header.startLineNumber === codeLenseLineCurrent - 1,
-		);
+	private _command(_: any, { descriptorIdx, type }: CodeLenseCommandProps) {
+		const currentMergeConflict = this._mergeConfilctDescriptor[descriptorIdx];
 
-		const contentRange =
-			type === "current"
-				? currentMergeConflict.current.decoratorContent
-				: currentMergeConflict.incoming.decoratorContent;
+		const currentText = this._editor.getModel().getValueInRange(currentMergeConflict.current.decoratorContent);
+		const incomingText = this._editor.getModel().getValueInRange(currentMergeConflict.incoming.decoratorContent);
+		const bothText = currentText + "\n" + incomingText;
 
-		const contentText = this._editor.getModel().getValueInRange(contentRange);
+		let contentText: string;
+		if (type === "current") contentText = currentText;
+		else if (type === "incoming") contentText = incomingText;
+		else contentText = bothText;
 
 		this._editor.getModel().pushEditOperations(
 			null,

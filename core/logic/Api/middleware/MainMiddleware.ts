@@ -1,4 +1,5 @@
 import DefaultError from "@ext/errorHandlers/logic/DefaultError";
+import t from "@ext/localization/locale/translate";
 import ApiRequest from "../ApiRequest";
 import ApiResponse from "../ApiResponse";
 import { apiUtils } from "../apiUtils";
@@ -24,11 +25,11 @@ export class MainMiddleware extends Middleware {
 				const error = this._getPathError(e);
 				this._app.logger.logError(error);
 				defaultError = new DefaultError(
-					`<p>Перезагрузите страницу и попробуйте еще раз.</p><p>Мы получим сообщение о проблеме и постараемся ее быстро исправить. Если ошибка блокирует работу — напишите об этом в нашем <a href="https://t.me/gramax_chat">Telegram-чате</a>.</p>`,
+					t("app.error.command-failed.body"),
 					error,
 					{ html: true, showCause: true },
 					false,
-					"Что-то пошло не так",
+					t("app.error.command-failed.title"),
 				);
 			}
 			apiUtils.sendError(res, defaultError);

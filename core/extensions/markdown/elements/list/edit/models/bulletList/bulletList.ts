@@ -1,5 +1,7 @@
 import { toggleList } from "@ext/markdown/elements/list/edit/logic/toggleList";
 import { bullet_list } from "@ext/markdown/elements/list/edit/models/bulletList/model/bulletListSchema";
+import SelectionBackspace from "@ext/markdown/elements/list/edit/models/listItem/logic/keys/SelectionBackspace";
+import addShortcuts from "@ext/markdown/elementsUtils/keyboardShortcuts/addShortcuts";
 import getExtensionOptions from "@ext/markdown/logic/getExtensionOptions";
 import { mergeAttributes, Node, wrappingInputRule } from "@tiptap/core";
 
@@ -52,6 +54,7 @@ const BulletList = Node.create<BulletListOptions>({
 	addKeyboardShortcuts() {
 		return {
 			"Mod-Shift-8": () => this.editor.commands.toggleBulletList(),
+			...addShortcuts([SelectionBackspace()]),
 		};
 	},
 

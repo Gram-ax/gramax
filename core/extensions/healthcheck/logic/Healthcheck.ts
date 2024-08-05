@@ -1,6 +1,8 @@
 import { GRAMAX_EDITOR_URL } from "@app/config/const";
+import LucideIcon from "@components/Atoms/Icon/LucideIcon";
 import Context from "@core/Context/Context";
 import { Article } from "@core/FileStructue/Article/Article";
+import { CatalogErrorGroups } from "@core/FileStructue/Catalog/CatalogErrorGroups";
 import RouterPathProvider from "@core/RouterPath/RouterPathProvider";
 import RuleProvider from "@ext/rules/RuleProvider";
 import Path from "../../../logic/FileProvider/Path/Path";
@@ -8,8 +10,6 @@ import FileProvider from "../../../logic/FileProvider/model/FileProvider";
 import { Catalog } from "../../../logic/FileStructue/Catalog/Catalog";
 import { Item } from "../../../logic/FileStructue/Item/Item";
 import ResourceExtensions from "../../../logic/Resource/ResourceExtensions";
-import { CatalogErrorGroups } from "@core/FileStructue/Catalog/CatalogErrorGroups";
-import LucideIcon from "@components/Atoms/Icon/LucideIcon";
 
 export type CatalogErrors = Record<keyof typeof CatalogErrorGroups, CatalogError[]>;
 
@@ -31,9 +31,9 @@ class Healthcheck {
 
 	private _errors: CatalogErrors;
 
-	async сheckCatalog(): Promise<CatalogErrors> {
+	async checkCatalog(): Promise<CatalogErrors> {
 		if (!this._catalog) return {};
-		this._errors = { Icons: [], Links: [], Images: [], Diagrams: [], FileStructure: [] };
+		this._errors = { icons: [], links: [], images: [], diagrams: [], fs: [] };
 		const rp = new RuleProvider(this._ctx);
 		const filters = rp.getItemFilters();
 
@@ -66,7 +66,7 @@ class Healthcheck {
 					const directoryPath = refPath.parentDirectoryPath;
 					const filePath = category.ref.path.parentDirectoryPath.join(directoryPath, fileNamePath);
 					if (!(await this._fp.exists(filePath))) {
-						this._errors.Links.push(
+						this._errors.links.push(
 							this._getRefCatalogError({
 								value: refs[key],
 								editorLink: await this._getErrorLink(this._catalog, category),
@@ -94,7 +94,7 @@ class Healthcheck {
 
 	private _checkLink = async (item: Article, resource: Path) => {
 		if (await this._pathExists(item, resource)) return;
-		this._errors.Links.push(
+		this._errors.links.push(
 			this._getRefCatalogError({
 				value: resource.value,
 				logicPath: item.logicPath,
@@ -115,12 +115,12 @@ class Healthcheck {
 		});
 
 		if (ResourceExtensions.diagrams.includes(resource.extension))
-			return this._errors.Diagrams.push(refCatalogError);
+			return this._errors.diagrams.push(refCatalogError);
 
 		if (ResourceExtensions.images.includes(resource.extension))
-			return this._errors.Images.push(refCatalogError);
+			return this._errors.images.push(refCatalogError);
 
-		return this._errors.FileStructure.push(refCatalogError);
+		return this._errors.fs.push(refCatalogError);
 	};
 
 	private _getErrorLink = async (catalog: Catalog, item: Item): Promise<string> => {
@@ -129,7 +129,7 @@ class Healthcheck {
 
 	private async _checkIcons(item: Article, code: string) {
 		if ((await this._catalog.iconProvider.getIconByCode(code)) || LucideIcon(code)) return;
-		this._errors.Icons.push(
+		this._errors.icons.push(
 			this._getRefCatalogError({
 				value: code,
 				logicPath: item.logicPath,

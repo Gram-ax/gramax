@@ -20,13 +20,13 @@ import validateEncodingSymbolsUrl from "@core/utils/validateEncodingSymbolsUrl";
 import getCatalogEditProps from "@ext/catalog/actions/propsEditor/logic/getCatalogEditProps";
 import getRepUrl from "@ext/git/core/GitPathnameHandler/clone/logic/getRepUrl";
 import GitShareData from "@ext/git/core/model/GitShareData";
+import t from "@ext/localization/locale/translate";
 import getPartGitSourceDataByStorageName from "@ext/storage/logic/utils/getPartSourceDataByStorageName";
 import { JSONSchema7 } from "json-schema";
 import { useEffect, useState } from "react";
 import FetchService from "../../../../../ui-logic/ApiServices/FetchService";
 import ApiUrlCreatorService from "../../../../../ui-logic/ContextServices/ApiUrlCreator";
 import ErrorHandler from "../../../../errorHandlers/client/components/ErrorHandler";
-import useLocalize from "../../../../localization/useLocalize";
 import CatalogEditProps from "../model/CatalogEditProps.schema";
 import Schema from "../model/CatalogEditProps.schema.json";
 
@@ -40,9 +40,9 @@ const CatalogPropsEditor = ({
 	onClose?: () => void;
 	trigger?: JSX.Element;
 }) => {
-	const maxLength = useLocalize("maxLength");
-	const suchCatalogExists = useLocalize("suchCatalogExists");
-	const noEncodingSymbolsInUrl = useLocalize("noEncodingSymbolsInUrl");
+	const maxLength = t("max-length");
+	const suchCatalogExists = t("catalog.error.already-exist");
+	const noEncodingSymbolsInUrl = t("no-encoding-symbols-in-url");
 
 	const apiUrlCreator = ApiUrlCreatorService.value;
 	const [isOpen, setIsOpen] = useState(props.isOpen);
@@ -157,11 +157,11 @@ const CatalogPropsEditor = ({
 													new Path(catalogProps.link.pathname),
 												);
 												const gitShareData: GitShareData = {
-													domain: pathnameData.sourceName,
-													group: pathnameData.group,
 													sourceType: getPartGitSourceDataByStorageName(
 														pathnameData.sourceName,
 													).sourceType,
+													domain: pathnameData.sourceName,
+													group: pathnameData.group,
 													branch: pathnameData.branch,
 													name: pathnameData.repName,
 													filePath: "",
@@ -169,7 +169,7 @@ const CatalogPropsEditor = ({
 												openNewTab(getRepUrl(gitShareData).href);
 											}}
 										>
-											{useLocalize("openIn") + " " + sourceType}
+											{t("open-in.generic") + " " + sourceType}
 										</Button>
 									)}
 								</>
@@ -192,7 +192,7 @@ const CatalogPropsEditor = ({
 									title: Schema.properties.title,
 									url: Schema.properties.url,
 									docroot: Schema.properties.docroot,
-									_h2: "Отображение на главной",
+									_h2: t("display-on-homepage"),
 									description: Schema.properties.description,
 									style: Schema.properties.style,
 									code: Schema.properties.code,

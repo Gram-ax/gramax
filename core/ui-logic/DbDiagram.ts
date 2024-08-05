@@ -1,10 +1,12 @@
 import FileProvider from "@core/FileProvider/model/FileProvider";
 import { ItemRef } from "@core/FileStructue/Item/ItemRef";
+import t from "@ext/localization/locale/translate";
 import dagre from "dagre";
 import { getLocalizedString } from "../components/libs/utils";
 import Path from "../logic/FileProvider/Path/Path";
 import ResourceManager from "../logic/Resource/ResourceManager";
 import { Field, Link, Table, TableDB } from "../logic/components/tableDB/table";
+import SilentError from "@ext/errorHandlers/silent/SilentError";
 
 const style = {
 	title: {
@@ -358,10 +360,7 @@ export default class DbDiagram {
 			rootPath,
 		);
 		const diagram = await this._tableManager.readDiagram(ref);
-		if (!diagram)
-			return Promise.reject(
-				"Не удалось найти диаграмму. Проверьте, правильно ли указан путь, а также есть ли файл с диаграммой в репозитории.",
-			);
+		if (!diagram) throw new SilentError(t("diagram.error.cannot-get-data"));
 
 		const tableRef = {
 			path: resourceManager.getAbsolutePath(new Path(diagram.schema)),

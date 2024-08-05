@@ -17,8 +17,6 @@ class ParserContextFactory {
 		private _tablesManager: TableDB,
 		private _parser: MarkdownParser,
 		private _formatter: MarkdownFormatter,
-		private _ssoServerUrl: string,
-		private _diagramRendererServerUrl: string,
 		private _ur?: UserRepository,
 	) {}
 
@@ -29,8 +27,7 @@ class ParserContextFactory {
 			this._basePath,
 			language,
 			isLogged,
-			this._ssoServerUrl,
-			this._diagramRendererServerUrl,
+			this._wm.current().config().services?.diagramRenderer?.url,
 			this._tablesManager,
 			this._ur ? this._ur.getUser.bind(this._ur) : (m) => ({ name: m }),
 			this._wm.current().getFileProvider(),

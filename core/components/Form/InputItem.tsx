@@ -1,7 +1,8 @@
 import Tooltip from "@components/Atoms/Tooltip";
+import type { FormSchema } from "@components/Form/Form";
+import t, { hasTranslation } from "@ext/localization/locale/translate";
 import { JSONSchema7 } from "json-schema";
 import { MutableRefObject, useEffect, useRef } from "react";
-import useLocalize from "../../extensions/localization/useLocalize";
 import Checkbox from "../Atoms/Checkbox";
 import Input from "../Atoms/Input";
 import ListLayout from "../List/ListLayout";
@@ -10,17 +11,30 @@ import { Validate } from "./ValidateObject";
 
 interface ItemInputProps {
 	tabIndex: number;
-	scheme: JSONSchema7;
+	scheme: FormSchema;
 	validate: Validate;
+	formTranslationKey: string;
+	translationKey: string;
 	value: string | string[] | boolean;
 	onChange?: (value: string | string[] | boolean) => void;
 	onFocus?: () => void;
 	showErrorText?: boolean;
 	focus?: boolean;
+	dataQa?: string;
 }
 
 const ItemInput = (props: ItemInputProps) => {
-	const { scheme, tabIndex, onChange, validate, showErrorText, onFocus, focus = false } = props;
+	const {
+		scheme,
+		tabIndex,
+		onChange,
+		validate,
+		showErrorText,
+		onFocus,
+		focus = false,
+		formTranslationKey: form,
+		translationKey,
+	} = props;
 	let { value } = props;
 
 	const ref = useRef<HTMLElement>();
@@ -29,6 +43,8 @@ const ItemInput = (props: ItemInputProps) => {
 		if (!focus || !ref?.current) return;
 		ref.current.focus();
 	}, [focus]);
+
+	const translation = scheme.see;
 
 	if (scheme.enum) {
 		return (
@@ -40,16 +56,20 @@ const ItemInput = (props: ItemInputProps) => {
 				disableSearch={scheme.readOnly ?? false}
 				items={(scheme.enum as string[]).map((v) => ({
 					labelField: v,
-					element: useLocalize(v as any),
+					element: t(`${translation}.${v}` as any),
 				}))}
 				item={{
 					labelField: (value as string) ?? (scheme.default as string) ?? "",
-					element: useLocalize(value as any) ?? (scheme.default ? useLocalize(scheme.default as any) : ""),
+					element: hasTranslation(`${translation}.${value}` as any)
+						? t(`${translation}.${value}` as any)
+						: scheme.default
+						? t(`${translation}.${scheme.default as string}` as any)
+						: "",
 				}}
 				onItemClick={(_, __, idx) => {
 					onChange?.((scheme.enum as string[])[idx]);
 				}}
-				placeholder={useLocalize(scheme.format as any)}
+				placeholder={t(`forms.${form}.props.${translationKey}.placeholder`)}
 			/>
 		);
 	}
@@ -63,7 +83,7 @@ const ItemInput = (props: ItemInputProps) => {
 						// disable={value.readOnly ?? false}
 						placeholder={scheme.format}
 						addPlaceholder={scheme.format ?? ""}
-						createNewLabel={useLocalize("addValue") + " {search}"}
+						createNewLabel={t("add-value") + " {search}"}
 						values={(value as string[])?.map((value) => ({ value, label: value }))}
 						options={[]}
 						onChange={(values) => {
@@ -99,7 +119,7 @@ const ItemInput = (props: ItemInputProps) => {
 	return (
 		<Input
 			isCode
-			dataQa={(scheme as any).dataQa}
+			dataQa={props.dataQa}
 			disabled={scheme.readOnly}
 			tabIndex={tabIndex}
 			hidden={(scheme as any).private}
@@ -110,7 +130,7 @@ const ItemInput = (props: ItemInputProps) => {
 			onChange={(e) => {
 				onChange?.(e.target.value);
 			}}
-			placeholder={scheme.format}
+			placeholder={t(`forms.${form}.props.${translationKey}.placeholder`)}
 			onFocus={onFocus}
 		/>
 	);

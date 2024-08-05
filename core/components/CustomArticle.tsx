@@ -1,10 +1,10 @@
 import UseSWRService from "@core-ui/ApiServices/UseSWRService";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
+import CustomArticleName from "@core/SitePresenter/customArticles/model/CustomArticle";
 import Renderer from "../extensions/markdown/core/render/components/Renderer";
 import getComponents from "../extensions/markdown/core/render/components/getComponents/getComponents";
 import Header from "../extensions/markdown/elements/heading/render/component/Header";
 import ModalLayoutLight from "./Layouts/ModalLayoutLight";
-import CustomArticleName from "@core/SitePresenter/customArticles/model/CustomArticle";
 
 const CustomArticle = ({ name, setLayout = true }: { name: CustomArticleName; setLayout?: boolean }) => {
 	const apiUrlCreator = ApiUrlCreatorService.value;

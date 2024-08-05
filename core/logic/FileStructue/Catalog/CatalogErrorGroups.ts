@@ -1,7 +1,7 @@
 export const CatalogErrorGroups: Record<string, { type: string; title: string }> = {
-	links: { type: "Links", title: "incorrectsPaths" },
-	images: { type: "Images", title: "incorrectsPaths" },
-	diagrams: { type: "Diagrams", title: "incorrectsPaths" },
-	fileStructure: { type: "FileStructure", title: "incorrectsPaths" },
-	icon: { type: "Icons", title: "incorrectsIcons" },
+	links: { type: "links", title: "incorrects-paths" },
+	images: { type: "images", title: "incorrects-paths" },
+	diagrams: { type: "diagrams", title: "incorrects-paths" },
+	fileStructure: { type: "fs", title: "incorrects-paths" },
+	icon: { type: "icons", title: "incorrects-icons" },
 };

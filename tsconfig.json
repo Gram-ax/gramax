@@ -6,6 +6,7 @@
 		"declarationMap": true,
 
 		"target": "esnext",
+		"experimentalDecorators": true,
 		"noEmit": true,
 		"lib": ["dom", "dom.iterable", "esnext"],
 

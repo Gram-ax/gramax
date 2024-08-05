@@ -1,5 +1,6 @@
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import styled from "@emotion/styled";
+import t from "@ext/localization/locale/translate";
 import { JSONSchema7 } from "json-schema";
 import { useEffect } from "react";
 import Form from "../../components/Form/Form";
@@ -7,7 +8,6 @@ import { useRouter } from "../../logic/Api/useRouter";
 import FetchService from "../../ui-logic/ApiServices/FetchService";
 import MimeTypes from "../../ui-logic/ApiServices/Types/MimeTypes";
 import ApiUrlCreatorService from "../../ui-logic/ContextServices/ApiUrlCreator";
-import useLocalize from "../localization/useLocalize";
 import AdminLayoutProps from "./AdminLayoutProps.schema";
 import Schema from "./AdminLayoutProps.schema.json";
 
@@ -15,15 +15,15 @@ const AdminLoginLayout = styled(
 	({ className, redirectCallback }: { className?: string; redirectCallback: () => void }) => {
 		const apiUrlCreator = ApiUrlCreatorService.value;
 		const isLogged = PageDataContextService.value.isLogged;
-		const isSso = PageDataContextService.value.conf.ssoServerUrl;
+		const ssoServerUrl = PageDataContextService.value.conf.ssoServerUrl;
 		const router = useRouter();
 		useEffect(() => {
-			if (isLogged || isSso) redirectCallback();
+			if (isLogged || ssoServerUrl) redirectCallback();
 		}, []);
 
 		return (
 			!isLogged &&
-			!isSso && (
+			!ssoServerUrl && (
 				<div className={className}>
 					<div className="container">
 						<Form<AdminLayoutProps>
@@ -32,14 +32,14 @@ const AdminLoginLayout = styled(
 							fieldDirection="row"
 							onSubmit={(data) => {
 								FetchService.fetch(
-									apiUrlCreator.getAuthUrl(router),
+									apiUrlCreator.getAuthUrl(router, ssoServerUrl),
 									JSON.stringify(data),
 									MimeTypes.json,
 								).then((res) => {
 									if (res.ok) redirectCallback();
 								});
 							}}
-							submitText={useLocalize("singIn")}
+							submitText={t("sing-in")}
 						/>
 					</div>
 				</div>

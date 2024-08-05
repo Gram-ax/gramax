@@ -41,7 +41,6 @@
 
 .ProseMirror pre {
 	white-space: pre-wrap;
-	padding: 1.375em 1.625em !important;
 }
 
 .ProseMirror comment-react-component {
@@ -103,28 +102,6 @@
 	box-sizing: border-box;
 	min-width: 1em;
 	position: relative;
-	vertical-align: top !important;
-	border-left: 1px solid var(--color-line) !important;
-	border-right: 1px solid var(--color-line) !important;
-}
-
-.ProseMirror table > tbody > tr > td:first-of-type,
-.ProseMirror table > tbody > tr > th:first-of-type,
-.ProseMirror table > tfoot > tr > td:first-of-type,
-.ProseMirror table > tfoot > tr > th:first-of-type,
-.ProseMirror table > thead > tr > td:first-of-type,
-.ProseMirror table > thead > tr > th:first-of-type {
-	padding-left: 12px !important;
-	border-left: 1px solid var(--color-line) !important;
-}
-.ProseMirror table > tbody > tr > td:last-child,
-.ProseMirror table > tbody > tr > th:last-child,
-.ProseMirror table > tfoot > tr > td:last-child,
-.ProseMirror table > tfoot > tr > th:last-child,
-.ProseMirror table > thead > tr > td:last-child,
-.ProseMirror table > thead > tr > th:last-child {
-	padding-right: 12px !important;
-	border-right: 1px solid var(--color-line) !important;
 }
 
 .ProseMirror table td,
@@ -166,7 +143,8 @@
 	cursor: col-resize;
 }
 
-.ProseMirror p.is-editor-empty:first-of-type::before {
+.ProseMirror p.is-empty:first-of-type::before,
+.ProseMirror h1.is-empty:first-of-type::before {
 	content: attr(data-placeholder);
 	pointer-events: none;
 	opacity: 0.4;

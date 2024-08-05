@@ -1,9 +1,8 @@
-/** Результат выполнения */
+/**
+ * @see ics-account-out
+ */
 export interface IcsAccountOut {
-	/** Полное имя */
 	fullName: string;
-	/** Почта */
 	email: string;
-	/** Логин */
 	login: string;
 }

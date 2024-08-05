@@ -1,11 +1,12 @@
-import { Editor } from "@tiptap/core";
-import { Node } from "prosemirror-model";
-import { useEffect, useState } from "react";
 import Input from "@components/Atoms/Input";
 import ButtonsLayout from "@components/Layouts/ButtonLayout";
 import ModalLayoutDark from "@components/Layouts/ModalLayoutDark";
+import t from "@ext/localization/locale/translate";
 import Button from "@ext/markdown/core/edit/components/Menu/Button";
 import getFocusNode from "@ext/markdown/elementsUtils/getFocusNode";
+import { Editor } from "@tiptap/core";
+import { Node } from "prosemirror-model";
+import { useEffect, useState } from "react";
 
 const CodeBlockMenu = ({ editor }: { editor: Editor }) => {
 	const [node, setNode] = useState<Node>(null);
@@ -45,16 +46,16 @@ const CodeBlockMenu = ({ editor }: { editor: Editor }) => {
 	return (
 		<ModalLayoutDark>
 			<ButtonsLayout>
-				<Input placeholder="Язык" value={params} onChange={handleParamsChange} />
+				<Input placeholder={t("language")} value={params} onChange={handleParamsChange} />
 				<div className="divider" />
 				<ButtonsLayout>
 					<Button
 						icon="copy"
-						tooltipText={isCoped ? "Скопировано!" : "Скопировать"}
+						tooltipText={isCoped ? t("copied") + "!" : t("copy")}
 						onClick={handleCopy}
 						onMouseLeave={handleMouseLeave}
 					/>
-					<Button icon="trash" tooltipText="Удалить" onClick={handleDelete} />
+					<Button icon="trash" tooltipText={t("delete")} onClick={handleDelete} />
 				</ButtonsLayout>
 			</ButtonsLayout>
 		</ModalLayoutDark>

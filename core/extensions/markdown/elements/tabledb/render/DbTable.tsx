@@ -1,13 +1,13 @@
 import Icon from "@components/Atoms/Icon";
 import SpinnerLoader from "@components/Atoms/SpinnerLoader";
-import Error from "@components/Error";
 import { getLocalizedString } from "@components/libs/utils";
 import styled from "@emotion/styled";
+import t from "@ext/localization/locale/translate";
 import { useState } from "react";
 import Popup from "reactjs-popup";
 import { Table, TableWithRefs } from "../../../../../logic/components/tableDB/table";
 import Language from "../../../../localization/core/model/Language";
-import useLocalize from "../../../../localization/useLocalize";
+import DiagramError from "@ext/markdown/elements/diagrams/component/DiagramError";
 
 const TableDB = styled(
 	({
@@ -23,7 +23,11 @@ const TableDB = styled(
 		isLogged: boolean;
 		className?: string;
 	}) => {
-		if (error) return <Error error={error} isLogged={isLogged} />;
+		if (error)
+			return (
+				<DiagramError error={error} title={t("diagram.error.tabledb-render-failed")} diagramName="Db-table" />
+			);
+
 		if (!object) return <SpinnerLoader width={75} height={75} />;
 
 		const table = (t: string, refTable?: Table) => (
@@ -54,9 +58,9 @@ const TableDB = styled(
 				<table className="fields">
 					<thead>
 						<tr>
-							<th>{useLocalize("field")}</th>
-							<th>{useLocalize("type")}</th>
-							<th>{useLocalize("description")}</th>
+							<th>{t("field")}</th>
+							<th>{t("type")}</th>
+							<th>{t("description")}</th>
 						</tr>
 					</thead>
 					<tbody>
@@ -79,7 +83,7 @@ const TableDB = styled(
 											</span>
 										)}
 										{field.refObject && (
-											<div className="fk" title={useLocalize("foreignKey")}>
+											<div className="fk" title={t("foreign-key")}>
 												<Icon code="arrow-right-to-line" />{" "}
 												{table(
 													field.refObject,
@@ -170,7 +174,7 @@ const TableDB = styled(
 	.title {
 	}
 	.description {
-		font-size: 0.9;
+		font-size: 0.9em;
 	}
 
 	.scroll {

@@ -9,10 +9,10 @@ import type SourceData from "@ext/storage/logic/SourceDataProvider/model/SourceD
 import type SourceType from "@ext/storage/logic/SourceDataProvider/model/SourceType";
 
 const sourcesAPI: Record<SourceType, (data: SourceData, authServiceUrl: string) => SourceAPI> = {
+	Git: () => null,
 	GitHub: (data, authServiceUrl) => new GithubSourceAPI(data as GitHubSourceData, authServiceUrl),
 	GitLab: (data, authServiceUrl) => new GitlabSourceAPI(data as GitlabSourceData, authServiceUrl),
 	Confluence: (data, authServiceUrl) => new ConfluenceAPI(data as ConfluenceSourceData, authServiceUrl),
-	"Enterprise Server": () => null,
 };
 
 export default sourcesAPI;

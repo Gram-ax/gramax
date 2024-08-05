@@ -1,11 +1,12 @@
 import Divider from "@components/Atoms/Divider";
+import TooltipListLayout from "@components/List/TooltipListLayout";
 import FetchService from "@core-ui/ApiServices/FetchService";
 import MimeTypes from "@core-ui/ApiServices/Types/MimeTypes";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import ModalToOpenService from "@core-ui/ContextServices/ModalToOpenService/ModalToOpenService";
 import ModalToOpen from "@core-ui/ContextServices/ModalToOpenService/model/ModalsToOpen";
 import LinkItemSidebar from "@ext/artilce/LinkCreator/components/LinkItemSidebar";
-import useLocalize from "@ext/localization/useLocalize";
+import t from "@ext/localization/locale/translate";
 import SnippetEditor from "@ext/markdown/elements/snippet/edit/components/SnippetEditor";
 import SnippetListElement from "@ext/markdown/elements/snippet/edit/components/SnippetListElement";
 import SnippetEditorProps from "@ext/markdown/elements/snippet/edit/model/SnippetEditorProps.schema";
@@ -13,7 +14,6 @@ import SnippetEditData from "@ext/markdown/elements/snippet/model/SnippetEditDat
 import SnippetRenderData from "@ext/markdown/elements/snippet/model/SnippetRenderData";
 import { Editor } from "@tiptap/core";
 import { ComponentProps, useState } from "react";
-import TooltipListLayout from "@components/List/TooltipListLayout";
 
 interface SnippetsButtonProps {
 	editor: Editor;
@@ -23,8 +23,8 @@ interface SnippetsButtonProps {
 const SnippetsButton = ({ editor, onClose }: SnippetsButtonProps) => {
 	const apiUrlCreator = ApiUrlCreatorService.value;
 	const [snippetsList, setSnippetsList] = useState<SnippetEditorProps[]>([]);
-	const snippetText = useLocalize("snippet");
-	const addNewSnippetText = useLocalize("addNewSnippet");
+	const snippetText = t("snippet");
+	const addNewSnippetText = t("add-new-snippet");
 
 	const getSnippets = async () => {
 		const res = await FetchService.fetch<SnippetEditorProps[]>(apiUrlCreator.getSnippetsListData());

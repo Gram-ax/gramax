@@ -27,14 +27,18 @@ export const GifImage = styled(
 				.then((r) => r.blob())
 				.then(() => {
 					if (noplay) return;
-					gif.current.onclick = () => {
-						setIsplaying(false);
-					};
-					button.current.onclick = () => {
-						setIsplaying(true);
-					};
+
+					if (gif?.current)
+						gif.current.onclick = () => {
+							setIsplaying(false);
+						};
+
+					if (button?.current)
+						button.current.onclick = () => {
+							setIsplaying(true);
+						};
 				});
-		}, [gif, button]);
+		}, [gif?.current, button?.current]);
 
 		return (
 			<div className={className}>
@@ -63,8 +67,9 @@ export const GifImage = styled(
 	display: flex;
 	justify-content: center;
 
-	img {
-		margin-top: 0px !important;
+	img,
+	canvas {
+		margin: 0.5em auto 0.5em auto !important;
 	}
 
 	.ff-active {

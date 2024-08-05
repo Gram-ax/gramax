@@ -89,6 +89,7 @@
 		"@typescript-eslint/no-unsafe-call": "off",
 		"@typescript-eslint/explicit-function-return-type": "off",
 		"@typescript-eslint/no-base-to-string": "warn",
+		"@typescript-eslint/await-thenable": "warn",
 		"no-case-declarations": "off",
 
 		"prefer-const": "warn",

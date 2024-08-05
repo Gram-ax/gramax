@@ -4,7 +4,6 @@ import MimeTypes from "@core-ui/ApiServices/Types/MimeTypes";
 import ConfluenceSourceData from "@ext/confluence/actions/Source/model/ConfluenceSourceData";
 import ConfluenceStorageData from "@ext/confluence/core/model/ConfluenceStorageData";
 import { SourceAPI, SourceUser } from "@ext/git/actions/Source/SourceAPI";
-import GitSourceData from "@ext/git/core/model/GitSourceData.schema";
 import getStorageNameByData from "@ext/storage/logic/utils/getStorageNameByData";
 
 export type ConfluenceInstance = {
@@ -143,7 +142,7 @@ export default class ConfluenceAPI implements SourceAPI {
 		//empty
 	}
 
-	private _isRefreshableSource(data: GitSourceData): boolean {
+	private _isRefreshableSource(data: ConfluenceSourceData): boolean {
 		return !!data?.refreshToken;
 	}
 

@@ -17,7 +17,7 @@ const createImages = async (
 		const newName = await initArticleResource(
 			articleProps,
 			apiUrlCreator,
-			(await file.arrayBuffer()) as Buffer,
+			Buffer.from(await file.arrayBuffer()),
 			file.type.slice("image/".length),
 		);
 

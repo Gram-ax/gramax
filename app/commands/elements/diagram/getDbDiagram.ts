@@ -7,7 +7,6 @@ import { Article } from "@core/FileStructue/Article/Article";
 import parseContent from "@core/FileStructue/Article/parseContent";
 import HashItem from "@core/Hash/HashItems/HashItem";
 import HashItemContent from "@core/Hash/HashItems/HashItemContent";
-import SilentError from "@ext/errorHandlers/silent/SilentError";
 import { Command } from "../../../types/Command";
 
 const getDbDiagram: Command<
@@ -43,12 +42,7 @@ const getDbDiagram: Command<
 		const key = diagramRef.path.value + diagramRef.storageId;
 
 		const hashItem = new HashItemContent(key, async () => {
-			await diagram.addDiagram(diagramRef, tags, lang, resourceManager.rootPath, primary).catch((error) => {
-				throw new SilentError(
-					"Не удалось найти диаграмму. Проверьте, правильно ли указан путь, а также есть ли файл с диаграммой в репозитории.",
-					error.stack,
-				);
-			});
+			await diagram.addDiagram(diagramRef, tags, lang, resourceManager.rootPath, primary);
 			return shouldDraw ? diagram.draw() : JSON.stringify(diagram.getData());
 		});
 

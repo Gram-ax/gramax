@@ -1,3 +1,4 @@
+import t from "@ext/localization/locale/translate";
 import { InternalHyperlink, Paragraph, TextRun } from "docx";
 import { WordBlockChild } from "../../../../wordExport/options/WordTypes";
 
@@ -6,7 +7,7 @@ export const seeWordLayout: WordBlockChild = async ({ tag, addOptions }) => {
 	return await Promise.resolve([
 		new Paragraph({
 			children: [
-				new TextRun({ text: "См. " }),
+				new TextRun({ text: t("see") }),
 				new InternalHyperlink({
 					anchor: id,
 					children: [

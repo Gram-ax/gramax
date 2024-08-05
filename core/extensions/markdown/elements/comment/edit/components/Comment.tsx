@@ -1,11 +1,11 @@
 import styled from "@emotion/styled";
+import t from "@ext/localization/locale/translate";
 import { JSONContent } from "@tiptap/core";
 import { Mark } from "prosemirror-model";
 import { useEffect } from "react";
 import CommentBlockComponent from "../../../../../../components/Comments/CommentBlock";
 import Input from "../../../../../../components/Comments/Input";
 import { CommentBlock } from "../../../../../../ui-logic/CommentBlock";
-import useLocalize from "../../../../../localization/useLocalize";
 
 interface CommentProps {
 	mark: Mark;
@@ -47,8 +47,8 @@ const Comment = (props: CommentProps) => {
 				<Input
 					onCancel={onDelete}
 					onConfirm={onConfirm}
-					placeholder={useLocalize("leaveAComment")}
-					confirmButtonText={useLocalize("comment")}
+					placeholder={t("leave-comment")}
+					confirmButtonText={t("comment")}
 				/>
 			</div>
 		</div>

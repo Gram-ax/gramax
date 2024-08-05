@@ -5,7 +5,11 @@ import Context from "@core/Context/Context";
 import Path from "@core/FileProvider/Path/Path";
 import { Article } from "@core/FileStructue/Article/Article";
 import parseContent from "@core/FileStructue/Article/parseContent";
-import { getLevelTocItemsByRenderableTree } from "@ext/navigation/article/logic/createTocItems";
+import {
+	flatTitleItems,
+	getTitleItemsByTocItems,
+} from "@ext/markdown/elements/link/edit/logic/titleItemsActions/getTitleItemsByTocItems";
+import getTocItems, { getLevelTocItemsByRenderableTree } from "@ext/navigation/article/logic/createTocItems";
 
 const getArticleHeadersByRelativePath: Command<
 	{ ctx: Context; articlePath: Path; catalogName: string; articleRelativePath: Path },
@@ -15,28 +19,34 @@ const getArticleHeadersByRelativePath: Command<
 	kind: ResponseKind.json,
 
 	async do({ ctx, catalogName, articlePath, articleRelativePath }) {
-		const { parser, parserContextFactory, wm } = this._app;
+		const { wm, parser, parserContextFactory } = this._app;
+		if (!articleRelativePath.value) return [];
 		const workspace = wm.current();
-		if (!articleRelativePath.value) return null;
 
 		const path = articlePath.parentDirectoryPath.join(articleRelativePath);
 		const catalog = await workspace.getCatalog(catalogName);
 		const article: Article = catalog.findItemByItemPath(path);
-		if (!article) return null;
+		if (!article) return [];
 
-		await parseContent(article, catalog, ctx, parser, parserContextFactory);
+		try {
+			await parseContent(article, catalog, ctx, parser, parserContextFactory);
+		} catch (e) {
+			console.warn(e);
+		}
 
 		const { renderTree } = article.parsedContent;
-		if (!renderTree || typeof renderTree === "string") return null;
+		if (!renderTree || typeof renderTree === "string") return [];
 
 		const headersTocItem = getLevelTocItemsByRenderableTree(renderTree.children);
 		if (headersTocItem.length === 0) return [];
 
-		const minLevel = Math.min(...headersTocItem.map((node) => node.level));
+		const tocItems = getTocItems(headersTocItem);
+		const titleItems = getTitleItemsByTocItems(tocItems);
 
-		return headersTocItem.map((headerItem) => {
-			return { level: headerItem.level - minLevel, url: headerItem.url, title: headerItem.title };
-		});
+		const flatItems: TitleItem[] = [];
+		flatTitleItems(titleItems, 0, flatItems);
+
+		return flatItems;
 	},
 
 	params(ctx, q) {

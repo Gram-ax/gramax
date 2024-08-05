@@ -2,7 +2,7 @@ import ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
 import { ClientArticleProps } from "@core/SitePresenter/SitePresenter";
 import OnLoadResourceService from "@ext/markdown/elements/copyArticles/onLoadResourceService";
 import initArticleResource from "@ext/markdown/elementsUtils/AtricleResource/initArticleResource";
-import { Attrs, Fragment, Mark, Node } from "@tiptap/pm/model";
+import { Attrs, DOMSerializer, Fragment, Mark, Node, Schema } from "@tiptap/pm/model";
 import { TextSelection } from "@tiptap/pm/state";
 import { EditorView } from "prosemirror-view";
 
@@ -13,7 +13,6 @@ interface CreateProps {
 	articleProps: ClientArticleProps;
 	apiUrlCreator: ApiUrlCreator;
 }
-
 interface FilterProps {
 	view: EditorView;
 	node: Node;
@@ -113,7 +112,11 @@ const createNodes = async (props: CreateProps) => {
 	const { tr } = view.state;
 
 	tr.replaceSelectionWith(newNode);
-	const endPos = position + newNode.content.size;
+
+	let i = 0;
+	for (let childNode = newNode.lastChild; childNode.lastChild && !(childNode.isText || childNode.isTextblock); i++)
+		childNode = childNode.lastChild;
+	const endPos = position + newNode.content.size - i;
 
 	if (endPos <= tr.doc.content.size) tr.setSelection(TextSelection.create(tr.doc, endPos));
 	else tr.setSelection(TextSelection.create(tr.doc, tr.doc.content.size));
@@ -160,29 +163,53 @@ const createNodesJSON = (editor: EditorView, fragment: Fragment): string[] => {
 	return nodes;
 };
 
+const createTableFragment = (content: Fragment, schema: Schema<any, any>) => {
+	const tableFragment =
+		content.firstChild.type.name === "table"
+			? content
+			: Fragment.empty.addToStart(schema.nodes.table.create(null, content));
+	return {
+		fragment: tableFragment,
+		plainText: tableFragment.textBetween(0, tableFragment.size, "\n"),
+	};
+};
+
+const createFragment = (
+	view: EditorView,
+): {
+	fragment: Fragment;
+	plainText: string;
+} => {
+	const { $from, $to, ranges } = view.state.selection;
+	const { doc, schema } = view.state;
+	const parent = $from.node($from.depth - 1);
+	const parentName = parent?.type?.name;
+
+	if ((parentName === "tableRow" || parentName === "tableHeader") && ranges.length > 1)
+		return createTableFragment(view.state.selection.content().content, schema);
+
+	const slice = doc.slice($from.pos, $to.pos);
+	if (slice.content?.firstChild?.type?.name !== "list_item")
+		return { fragment: slice.content, plainText: window.getSelection().toString() };
+
+	return {
+		fragment: Fragment.from(parent.type.create(null, slice.content)),
+		plainText: window.getSelection().toString(),
+	};
+};
+
 const copyArticleResource = (view: EditorView, event: ClipboardEvent, isCut?: boolean) => {
 	const { from, to } = view.state.selection;
-	const { doc, tr } = view.state;
+	const { tr, schema } = view.state;
 
-	const resolvedFrom = doc.resolve(from);
-	const commonAncestorDepth = resolvedFrom.sharedDepth(to);
-	const parentNode = resolvedFrom.node(commonAncestorDepth);
+	if (from === to) return;
 
-	const slice = doc.slice(
-		from,
-		to,
-		!parentNode.isTextblock &&
-			resolvedFrom.nodeAfter.isText &&
-			parentNode.type.name !== "paragraph" &&
-			commonAncestorDepth !== 0,
-	);
-
+	const { fragment, plainText } = createFragment(view);
 	const div = document.createElement("div");
-	div.appendChild(window.getSelection().getRangeAt(0).cloneContents());
-
-	const jsonText = createNodesJSON(view, slice.content);
+	div.appendChild(DOMSerializer.fromSchema(schema).serializeFragment(fragment));
+	const jsonText = createNodesJSON(view, fragment);
 	event.clipboardData.setData("text/gramax", JSON.stringify(jsonText));
-	event.clipboardData.setData("text/plain", window.getSelection().toString());
+	event.clipboardData.setData("text/plain", plainText);
 	event.clipboardData.setData(
 		"text/html",
 		new XMLSerializer().serializeToString(new DOMParser().parseFromString(div.innerHTML, "text/html")),
@@ -192,8 +219,6 @@ const copyArticleResource = (view: EditorView, event: ClipboardEvent, isCut?: bo
 		tr.deleteSelection();
 		view.dispatch(tr);
 	}
-
-	return slice.content;
 };
 
 const pasteArticleResource = (

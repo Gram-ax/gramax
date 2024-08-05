@@ -1,20 +1,18 @@
 import ArticleUpdaterService from "@components/Article/ArticleUpdater/ArticleUpdaterService";
 import ModalLayout from "@components/Layouts/Modal";
+import t from "@ext/localization/locale/translate";
 import { ComponentProps, useEffect, useRef, useState } from "react";
 import FetchService from "../../../../../../ui-logic/ApiServices/FetchService";
 import ApiUrlCreatorService from "../../../../../../ui-logic/ContextServices/ApiUrlCreator";
 import ModalToOpenService from "../../../../../../ui-logic/ContextServices/ModalToOpenService/ModalToOpenService";
 import ModalToOpen from "../../../../../../ui-logic/ContextServices/ModalToOpenService/model/ModalsToOpen";
-import PageDataContextService from "../../../../../../ui-logic/ContextServices/PageDataContext";
 import InfoModalForm from "../../../../../errorHandlers/client/components/ErrorForm";
-import useLocalize from "../../../../../localization/useLocalize";
 import BranchUpdaterService from "../../../Branch/BranchUpdaterService/logic/BranchUpdaterService";
 import MergeConflictCaller from "../../model/MergeConflictCaller";
 import MergeData from "../../model/MergeData";
 import MergeResolver from "./MergeResolver";
 
 const MergeConflictConfirm = ({ mergeData }: { mergeData: MergeData }) => {
-	const lang = PageDataContextService.value.lang;
 	const apiUrlCreator = ApiUrlCreatorService.value;
 	const caller = mergeData.caller;
 
@@ -22,13 +20,13 @@ const MergeConflictConfirm = ({ mergeData }: { mergeData: MergeData }) => {
 	const shouldAbort = useRef(true);
 
 	const getTitle = () => {
-		if (caller === MergeConflictCaller.Branch) return useLocalize("mergeBranchesError", lang);
-		if (caller === MergeConflictCaller.Sync) return useLocalize("syncError", lang);
+		if (caller === MergeConflictCaller.Branch) return t("git.merge.error.branches");
+		if (caller === MergeConflictCaller.Sync) return t("git.merge.error.sync");
 	};
 
 	const getErrorText = () => {
-		if (caller === MergeConflictCaller.Branch) return useLocalize("mergeBranchConfirm", lang);
-		if (caller === MergeConflictCaller.Sync) return useLocalize("mergeSyncConfirm", lang);
+		if (caller === MergeConflictCaller.Branch) return t("git.merge.confirm.branch");
+		if (caller === MergeConflictCaller.Sync) return t("git.merge.confirm.sync");
 	};
 
 	useEffect(() => {
@@ -64,7 +62,7 @@ const MergeConflictConfirm = ({ mergeData }: { mergeData: MergeData }) => {
 						});
 						shouldAbort.current = false;
 					},
-					text: useLocalize("resolveConflict"),
+					text: t("resolve-conflict"),
 				}}
 				title={getTitle()}
 			>

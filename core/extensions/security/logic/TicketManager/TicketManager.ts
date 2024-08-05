@@ -1,3 +1,4 @@
+import t from "@ext/localization/locale/translate";
 import type WorkspaceManager from "@ext/workspace/WorkspaceManager";
 import { Encoder } from "../../../Encoder/Encoder";
 import IPermission from "../Permission/IPermission";
@@ -30,7 +31,7 @@ export class TicketManager {
 	}
 
 	public getShareTicket(catalogName: string, permission: IPermission, date: Date): string {
-		if (!this._shareAccessToken) throw new Error("Share Access Token не установлен");
+		if (!this._shareAccessToken) throw new Error(t("share-access-token-not-installed"));
 		return this._encoder.ecode(
 			this._generateCatalogSharedDatas(catalogName, permission, date),
 			this._shareAccessToken,
@@ -38,7 +39,7 @@ export class TicketManager {
 	}
 
 	public getUserTicket(user: User): string {
-		if (!this._shareAccessToken) throw new Error("Share Access Token не установлен");
+		if (!this._shareAccessToken) throw new Error(t("share-access-token-not-installed"));
 		const date = new Date(new Date().getTime() + 3 * 60 * 1000); // Время действие тикета
 		const datas = this._generateUserSharedDatas(user, date);
 		return this._encoder.ecode(datas, this._shareAccessToken);

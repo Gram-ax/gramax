@@ -4,7 +4,6 @@ export const startMermaid = `sequenceDiagram
 	John-->>-Alice: Hi Alice, I can hear you!
 	John-->>-Alice: I feel great!`;
 
-export const mermaidTooltipText = "Диаграмма mermaid";
 export const mermaidIcon = (
 	<svg
 		xmlns="http://www.w3.org/2000/svg"

@@ -6,10 +6,20 @@ import { Tag } from "@ext/markdown/core/render/logic/Markdoc";
 import ResourceManager from "@core/Resource/ResourceManager";
 import { errorWordLayout } from "@ext/wordExport/error";
 import ParserContext from "@ext/markdown/core/Parser/ParserContext/ParserContext";
+import { AddOptionsWord } from "@ext/wordExport/options/WordTypes";
 
-export const imageWordLayout = async (tag: Tag, resourceManager: ResourceManager, parserContext: ParserContext) => {
+export const imageWordLayout = async (
+	tag: Tag,
+	addOptions: AddOptionsWord,
+	resourceManager: ResourceManager,
+	parserContext: ParserContext,
+) => {
 	try {
-		const image = await WordExportHelper.getImageByPath(new Path(tag.attributes.src), resourceManager);
+		const image = await WordExportHelper.getImageByPath(
+			new Path(tag.attributes.src),
+			resourceManager,
+			addOptions?.maxPictureWidth,
+		);
 
 		const paragraphs = [
 			new Paragraph({ children: [image], style: WordFontStyles.picture }),

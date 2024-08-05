@@ -1,5 +1,6 @@
 import { ResponseKind } from "@app/types/ResponseKind";
 import { AuthorizeMiddleware } from "@core/Api/middleware/AuthorizeMiddleware";
+import { NetworkConnectMiddleWare } from "@core/Api/middleware/NetworkConntectMiddleware";
 import ReloadConfirmMiddleware from "@core/Api/middleware/ReloadConfirmMiddleware";
 import Context from "@core/Context/Context";
 import Path from "@core/FileProvider/Path/Path";
@@ -13,7 +14,7 @@ const publish: Command<
 
 	kind: ResponseKind.none,
 
-	middlewares: [new AuthorizeMiddleware(), new ReloadConfirmMiddleware()],
+	middlewares: [new NetworkConnectMiddleWare(), new AuthorizeMiddleware(), new ReloadConfirmMiddleware()],
 
 	async do({ ctx, catalogName, message, filePaths, recursive }) {
 		const { logger, rp, wm } = this._app;

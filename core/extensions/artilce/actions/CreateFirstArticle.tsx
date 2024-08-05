@@ -5,7 +5,7 @@ import FetchService from "@core-ui/ApiServices/FetchService";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import IsEditService from "@core-ui/ContextServices/IsEdit";
 import { refreshPage } from "@core-ui/ContextServices/RefreshPageContext";
-import useLocalize from "@ext/localization/useLocalize";
+import t from "@ext/localization/locale/translate";
 import { useState } from "react";
 import { useRouter } from "../../../logic/Api/useRouter";
 
@@ -38,7 +38,7 @@ const CreateFirstArticle = (props: CreateArticleProps) => {
 	return (
 		<Button className={className} buttonStyle={ButtonStyle.default} onClick={onClickHandler}>
 			<Icon code="plus" viewBox="3 3 18 18" isLoading={isLoading} />
-			<span>{useLocalize("createNewArticle")}</span>
+			<span>{t("article.create.title")}</span>
 		</Button>
 	);
 };

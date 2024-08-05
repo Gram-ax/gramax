@@ -7,7 +7,7 @@ import { getCatalogLinks, useGetArticleLinks } from "@core-ui/getRigthSidebarLin
 import { usePlatform } from "@core-ui/hooks/usePlatform";
 import { cssMedia } from "@core-ui/utils/cssUtils";
 import styled from "@emotion/styled";
-import useLocalize from "@ext/localization/useLocalize";
+import t from "@ext/localization/locale/translate";
 import { ItemLink } from "@ext/navigation/NavigationLinks";
 import TableOfContents from "@ext/navigation/article/render/TableOfContents";
 import { useRef } from "react";
@@ -48,7 +48,7 @@ export default styled(({ itemLinks, className }: { itemLinks: ItemLink[]; classN
 						<IconLink
 							className={"gramax-link-text"}
 							href={"https://gram.ax/"}
-							text={useLocalize("createdInGramax")}
+							text={t("created-in-gramax")}
 							isExternal
 						/>
 					</Button>

@@ -1,8 +1,8 @@
 import ButtonLink from "@components/Molecules/ButtonLink";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
+import t from "@ext/localization/locale/translate";
 import Theme from "../Theme";
 import ThemeService from "./ThemeService";
-import useLocalize from "@ext/localization/useLocalize";
 
 const ThemeToggle = ({ className }: { className?: string }) => {
 	const theme = ThemeService.value;
@@ -13,7 +13,7 @@ const ThemeToggle = ({ className }: { className?: string }) => {
 			className={className}
 			onClick={() => ThemeService.toggleTheme(apiUrlCreator)}
 			iconCode={theme == Theme.dark ? "moon" : "sun"}
-			text={useLocalize("theme")}
+			text={t("theme")}
 		/>
 	);
 };

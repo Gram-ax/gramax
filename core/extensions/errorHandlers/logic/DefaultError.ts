@@ -7,6 +7,7 @@ export default class DefaultError extends Error {
 		protected _props?: { [key: string]: any } & { errorCode?: string },
 		public isWarning = false,
 		public title?: string,
+		public icon?: string
 	) {
 		if (cause) console.error(cause);
 		super(message ?? cause?.message, { cause });

@@ -7,8 +7,8 @@ import ModalLayoutLight from "@components/Layouts/ModalLayoutLight";
 import { usePlatform } from "@core-ui/hooks/usePlatform";
 import { useRouter } from "@core/Api/useRouter";
 import { getClientDomain } from "@core/utils/getClientDomain";
+import t from "@ext/localization/locale/translate";
 import { useRef, useState } from "react";
-import useLocalize from "../../../../localization/useLocalize";
 import Fence from "../../../../markdown/elements/fence/render/component/Fence";
 
 const Share = ({ trigger, shouldRender = true }: { trigger: JSX.Element; shouldRender?: boolean }) => {
@@ -19,9 +19,6 @@ const Share = ({ trigger, shouldRender = true }: { trigger: JSX.Element; shouldR
 	const copyBlockRef = useRef<HTMLDivElement>(null);
 	const shareUrl = getClientDomain() + router.path;
 
-	const needPermissionText = useLocalize("needPermission");
-	const shareDescriptionText = useLocalize("shareDescription");
-	const shareInBrowserHintText = useLocalize("shareInBrowserHint");
 	const { isBrowser } = usePlatform();
 
 	return (
@@ -31,7 +28,7 @@ const Share = ({ trigger, shouldRender = true }: { trigger: JSX.Element; shouldR
 					<FormStyle>
 						<fieldset>
 							<legend>
-								<span>{useLocalize("share")}</span>
+								<span>{t("share.name")}</span>
 							</legend>
 							<div ref={copyBlockRef} className="form-group">
 								<Fence value={shareUrl} />
@@ -42,12 +39,12 @@ const Share = ({ trigger, shouldRender = true }: { trigger: JSX.Element; shouldR
 										{isBrowser && (
 											<>
 												<Icon code={"circle-alert"} />
-												<span>{shareInBrowserHintText + ". "}</span>
+												<span>{t("share.hint") + ". "}</span>
 												<br />
 											</>
 										)}
 										<span>
-											<b>{needPermissionText}</b>. {shareDescriptionText}
+											<b>{t("share.error.need-permission")}</b>. {t("share.desc")}
 										</span>
 									</p>
 								</div>
@@ -55,10 +52,10 @@ const Share = ({ trigger, shouldRender = true }: { trigger: JSX.Element; shouldR
 
 							<div className="buttons">
 								<Button buttonStyle={ButtonStyle.underline} onClick={() => setIsOpen(false)}>
-									{useLocalize("close")}
+									{t("close")}
 								</Button>
 								<Button onClick={() => navigator.clipboard.writeText(shareUrl)}>
-									{useLocalize("copy") + " " + useLocalize("link2").toLowerCase()}
+									{t("copy") + " " + t("link2").toLowerCase()}
 								</Button>
 							</div>
 						</fieldset>

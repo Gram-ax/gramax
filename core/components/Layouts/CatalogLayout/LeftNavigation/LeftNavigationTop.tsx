@@ -1,12 +1,14 @@
+import { TextSize } from "@components/Atoms/Button/Button";
+import ButtonLink from "@components/Molecules/ButtonLink";
 import LeftNavigationIsOpenService from "@core-ui/ContextServices/LeftNavigationIsOpen";
 import { cssMedia } from "@core-ui/utils/cssUtils";
+import styled from "@emotion/styled";
 import { useMediaQuery } from "@mui/material";
 import { ArticlePageData } from "../../../../logic/SitePresenter/SitePresenter";
 import TopBarContent from "../../../ArticlePage/Bars/TopBarContent";
-import Icon from "../../../Atoms/Icon";
 import BarLayout from "../../BarLayout";
 
-const LeftNavigationTop = ({ data }: { data: ArticlePageData }) => {
+const LeftNavigationTop = ({ data, className }: { data: ArticlePageData; className?: string }) => {
 	const leftNavIsOpen = LeftNavigationIsOpenService.value;
 	const narrowMedia = useMediaQuery(cssMedia.narrow);
 
@@ -16,22 +18,25 @@ const LeftNavigationTop = ({ data }: { data: ArticlePageData }) => {
 	};
 
 	return (
-		<BarLayout height={64} padding={getPadding()} gap={narrowMedia ? "0.4em" : 0}>
+		<BarLayout className={className} height={64} padding={getPadding()} gap={narrowMedia ? "1rem" : 0}>
 			<>
-				{narrowMedia ? (
-					<Icon
-						style={{ fontSize: "var(--big-icon-size)", fontWeight: 300 }}
-						isAction
-						code={leftNavIsOpen ? "x" : "menu"}
+				{narrowMedia && (
+					<ButtonLink
+						textSize={TextSize.L}
+						iconCode={leftNavIsOpen ? "arrow-left-from-line" : "arrow-right-from-line"}
 						onClick={() => {
 							LeftNavigationIsOpenService.value = !leftNavIsOpen;
 						}}
 					/>
-				) : null}
+				)}
 				<TopBarContent data={data} />
 			</>
 		</BarLayout>
 	);
 };
 
-export default LeftNavigationTop;
+export default styled(LeftNavigationTop)`
+	i {
+		width: 1em !important;
+	}
+`;

@@ -1,10 +1,11 @@
-import fixAdditionConflictLibgit2 from "@ext/git/actions/MergeConflictHandler/logic/FixAdditionConflictLibgit2";
+import fixConflictLibgit2 from "@ext/git/actions/MergeConflictHandler/logic/FixConflictLibgit2";
 import LibGit2Commands from "@ext/git/core/GitCommands/LibGit2Commands";
 import type { MergeResult, UpstreamCountFileChanges } from "@ext/git/core/GitCommands/LibGit2IntermediateCommands";
 import getGitError from "@ext/git/core/GitCommands/errors/logic/getGitError";
 import { Caller } from "@ext/git/core/GitCommands/errors/model/Caller";
 import GitErrorCode from "@ext/git/core/GitCommands/errors/model/GitErrorCode";
-import GitCommandsConfig from "@ext/git/core/GitCommands/model/GitCommandsConfig";
+import getUrlFromGitStorageData from "@ext/git/core/GitStorage/utils/getUrlFromGitStorageData";
+import t from "@ext/localization/locale/translate";
 import PersistentLogger from "@ext/loggers/PersistentLogger";
 import Path from "../../../../logic/FileProvider/Path/Path";
 import FileProvider from "../../../../logic/FileProvider/model/FileProvider";
@@ -24,7 +25,7 @@ import GitCommandsModel from "./model/GitCommandsModel";
 export class GitCommands {
 	private _impl: GitCommandsModel;
 
-	constructor(conf: GitCommandsConfig, private _fp: FileProvider, private _repoPath: Path) {
+	constructor(private _fp: FileProvider, private _repoPath: Path) {
 		this._impl = new LibGit2Commands(this._fp.rootPath.join(_repoPath));
 	}
 
@@ -52,7 +53,7 @@ export class GitCommands {
 	}
 
 	async addRemote(data: GitStorageData) {
-		const url = `https://${data.source.domain}/${data.group}/${data.name}.git`;
+		const url = getUrlFromGitStorageData(data, true);
 		await this._logWrapper("addRemote", `Adding remote url: '${url}'`, async () => {
 			await this._impl.addRemote(url);
 			await this.push(data.source);
@@ -220,7 +221,7 @@ export class GitCommands {
 					{ repositoryPath: this._repoPath.value, repUrl: url },
 					"clone",
 					null,
-					"Не удалось загрузить каталог", // TODO: localize
+					t("git.clone.error.cannot-clone"),
 				);
 			}
 		});
@@ -254,7 +255,7 @@ export class GitCommands {
 		const res = await this._logWrapper("applyStash", `Applying stash oid: '${stashOid.toString()}`, () =>
 			this._impl.applyStash(stashOid.toString()),
 		);
-		return fixAdditionConflictLibgit2(res, this._fp, this._repoPath, this);
+		return fixConflictLibgit2(res, this._fp, this._repoPath, this, await this.getHeadCommit(), stashOid);
 	}
 
 	async deleteStash(stashHash: GitStash): Promise<void> {
@@ -323,7 +324,15 @@ export class GitCommands {
 				return mergeResult;
 			},
 		);
-		return fixAdditionConflictLibgit2(res, this._fp, this._repoPath, this);
+
+		return fixConflictLibgit2(
+			res,
+			this._fp,
+			this._repoPath,
+			this,
+			await this.getHeadCommit(),
+			await this.getHeadCommit(theirs),
+		);
 	}
 
 	async commit(message: string, data: SourceData, parents?: (string | GitBranch)[]): Promise<GitVersion> {
@@ -350,13 +359,13 @@ export class GitCommands {
 		);
 	}
 
-	async showFileContent(filePath: Path, hash?: GitVersion): Promise<string> {
+	async showFileContent(filePath: Path, ref?: GitVersion | GitStash): Promise<string> {
 		return await this._logWrapper(
 			"showFileContent",
 			`Getting file content for filePath: '${filePath}'`,
 			async () => {
 				try {
-					return await this._impl.showFileContent(filePath, hash);
+					return await this._impl.showFileContent(filePath, ref);
 				} catch (e) {
 					throw getGitError(e, { repositoryPath: this._repoPath.value });
 				}
@@ -375,9 +384,7 @@ export class GitCommands {
 	}
 
 	async getFixedSubmodulePaths(): Promise<Path[]> {
-		return await this._logWrapper("getFixedSubmodulesPaths", "Fixing submodules paths", () =>
-			this._impl.getFixedSubmodulePaths(),
-		);
+		return this._impl.getFixedSubmodulePaths();
 	}
 
 	async getParentCommit(commitOid: GitVersion): Promise<GitVersion> {
@@ -396,9 +403,7 @@ export class GitCommands {
 	}
 
 	async getSubmodulesData(): Promise<SubmoduleData[]> {
-		return await this._logWrapper("getSubmodulesData", "Checking submodulesData", () =>
-			this._impl.getSubmodulesData(),
-		);
+		return this._impl.getSubmodulesData();
 	}
 
 	async restore(staged: boolean, filePaths: Path[]): Promise<void> {

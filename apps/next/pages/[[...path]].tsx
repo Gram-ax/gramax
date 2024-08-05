@@ -3,6 +3,7 @@ import ArticleViewContainer from "@core-ui/ContextServices/views/articleView/Art
 import PageDataContext from "@core/Context/PageDataContext";
 import { ArticlePageData, HomePageData } from "@core/SitePresenter/SitePresenter";
 import localizer from "@ext/localization/core/Localizer";
+import { withContext } from "apps/next/logic/Context/ContextHook";
 import { ApplyPageMiddleware } from "../logic/Api/ApplyMiddleware";
 
 export default function Home({ data, context }: { data: ArticlePageData & HomePageData; context: PageDataContext }) {
@@ -15,13 +16,17 @@ export function getServerSideProps({ req, res, query }) {
 		query.l = localizer.extract(articlePath);
 		const ctx = this.app.contextFactory.from(req, res, query);
 
-		const data = await this.commands.page.getPageData.do({
-			path: decodeURIComponent(localizer.trim(articlePath)),
+		const props = await withContext(
 			ctx,
-		});
+			async () =>
+				await this.commands.page.getPageData.do({
+					path: decodeURIComponent(localizer.trim(articlePath)),
+					ctx,
+				}),
+		);
 
 		return {
-			props: data,
+			props,
 		};
 	})({ req, res, query });
 }

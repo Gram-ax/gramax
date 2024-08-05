@@ -33,7 +33,7 @@ import { AppConfig, getConfig } from "../config/AppConfig";
 import Application from "../types/Application";
 
 const _init = async (config: AppConfig): Promise<Application> => {
-	if (!config.isServerApp && !config.paths.data) throw new Error(`Необходимо указать USER_DATA_PATH`);
+	if (!config.isServerApp && !config.paths.data) throw new Error(`USER_DATA_PATH not specified`);
 
 	const logger: Logger = config.isProduction ? new BugsnagLogger(config) : new ConsoleLogger();
 	logger.setLogLevel(LogLevel.trace);
@@ -42,7 +42,7 @@ const _init = async (config: AppConfig): Promise<Application> => {
 
 	const sso = new Sso(config.services.sso.url);
 
-	const rp = new RepositoryProvider({ corsProxy: config.services.cors.url });
+	const rp = new RepositoryProvider();
 
 	const wm = new WorkspaceManager(
 		(path) => new DiskFileProvider(new Path(path), watcher),
@@ -68,15 +68,7 @@ const _init = async (config: AppConfig): Promise<Application> => {
 	const tablesManager = new TableDB(parser, wm);
 	const customArticlePresenter = new CustomArticlePresenter();
 
-	const parserContextFactory = new ParserContextFactory(
-		config.paths.base,
-		wm,
-		tablesManager,
-		parser,
-		formatter,
-		config.services.sso.url,
-		config.services.diagramRenderer.url,
-	);
+	const parserContextFactory = new ParserContextFactory(config.paths.base, wm, tablesManager, parser, formatter);
 	const htmlParser = new HtmlParser(parser, parserContextFactory);
 
 	const vur: VideoUrlRepository = null;
@@ -87,7 +79,7 @@ const _init = async (config: AppConfig): Promise<Application> => {
 	const contextFactory = new ContextFactory(tm, config.tokens.cookie, am, config.isServerApp);
 	const sitePresenterFactory = new SitePresenterFactory(wm, parser, parserContextFactory, rp, customArticlePresenter);
 
-	const cacheFileProvider = new DiskFileProvider(config.paths.cache);
+	const cacheFileProvider = new DiskFileProvider(config.paths.data);
 	await cacheFileProvider.createRootPathIfNeed();
 	const cache = new Cache(cacheFileProvider);
 	const pluginProvider = new PluginProvider(wm, htmlParser, cache, PluginImporterType.next);
@@ -114,8 +106,7 @@ const _init = async (config: AppConfig): Promise<Application> => {
 		pluginProvider,
 		customArticlePresenter,
 		conf: {
-			services: config.services,
-
+			glsUrl: config.glsUrl,
 			isRelease: config.isRelease,
 			basePath: config.paths.base,
 
@@ -123,9 +114,10 @@ const _init = async (config: AppConfig): Promise<Application> => {
 			isServerApp: config.isServerApp,
 			isProduction: config.isProduction,
 
-			bugsnagApiKey: config.bugsnagApiKey,
 			version: config.version,
 			buildVersion: config.buildVersion,
+			bugsnagApiKey: config.bugsnagApiKey,
+			yandexMetricCounter: config.yandexMetricCounter,
 		},
 	};
 };

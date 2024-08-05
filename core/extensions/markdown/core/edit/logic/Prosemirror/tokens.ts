@@ -16,12 +16,12 @@ import linkToken from "../../../../elements/link/edit/model/linkToken";
 import video from "../../../../elements/video/edit/model/videoToken";
 import ParserContext from "../../../Parser/ParserContext/ParserContext";
 
+import iconToken from "@ext/markdown/elements/icon/edit/model/iconToken";
 import noteToken from "@ext/markdown/elements/note/edit/model/noteToken";
 import snippetToken from "@ext/markdown/elements/snippet/edit/model/snippetToken";
 import tabToken from "@ext/markdown/elements/tabs/edit/model/tab/tabToken";
 import tabsToken from "@ext/markdown/elements/tabs/edit/model/tabs/tabsToken";
 import { ParseSpec } from "./from_markdown";
-import iconToken from "@ext/markdown/elements/icon/edit/model/iconToken";
 
 function listIsTight(tokens, i) {
 	while (++i < tokens.length) if (tokens[i].type != "list_item_open") return tokens[i].hidden;
@@ -30,7 +30,6 @@ function listIsTight(tokens, i) {
 
 const getTokensByContext = (context?: ParserContext): { [name: string]: ParseSpec } => {
 	return {
-		link: linkToken(context),
 		comment: commentToken(context),
 		snippet: snippetToken(context),
 		icon: iconToken(context),
@@ -40,6 +39,7 @@ const getTokensByContext = (context?: ParserContext): { [name: string]: ParseSpe
 export const getTokens = (context?: ParserContext): { [name: string]: ParseSpec } => {
 	const contextTokens = context ? getTokensByContext(context) : {};
 	return {
+		link: linkToken(context),
 		tab: tabToken,
 		note: noteToken,
 		tabs: tabsToken,

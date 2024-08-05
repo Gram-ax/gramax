@@ -1,34 +1,18 @@
 import SourceData from "../../../storage/logic/SourceDataProvider/model/SourceData";
 import SourceType from "../../../storage/logic/SourceDataProvider/model/SourceType";
+
+/**
+ * @see git-source-data
+ */
 interface GitSourceData extends SourceData {
 	/**
-	 * @title Тип
 	 * @default ""
 	 */
-	sourceType: SourceType.gitHub | SourceType.gitLab | SourceType.enterprise | SourceType.confluence;
-	/**
-	 * @title GitLab-токен
-	 * @format glpat-aq6PK8sz1eQeKhTy-Dm5
-	 * @description Токен для чтения и изменения репозиториев в хранилище. Укажите для токена права: `api`, `read_repository`, `write_repository`. [Подробнее](https://docs.gitlab.com/ee/user/profile/personal_access_tokens.html).
-	 */
-	token: string;
-	/**
-	 * @title Домен
-	 * @format gitlab.com
-	 * @description Войдите в GitLab и скопируйте URL с главной страницы.
-	 */
+	sourceType: SourceType.git | SourceType.gitHub | SourceType.gitLab;
 	domain: string;
-	/**
-	 * @title Время создания
-	 * @format "1707213960"
-	 * @description Время получения токена
-	 */
+	token: string;
+	protocol?: string;
 	createDate?: string;
-	/**
-	 * @title Refresh-токен
-	 * @format 4740fbc6db719d42c158b88580be7633c1e386827ebe9134e9a5198c52cb2e4c
-	 * @description Токен для обновления основного токена
-	 */
 	refreshToken?: string;
 }
 

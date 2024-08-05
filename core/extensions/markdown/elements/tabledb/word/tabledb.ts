@@ -6,13 +6,15 @@ import { errorWordLayout } from "@ext/wordExport/error";
 import { tableDbString } from "@ext/wordExport/options/wordExportSettings";
 
 export const tabledbWordlayout: WordBlockChild = async ({ tag, parserContext }) => {
+	const dbTableRenderer = new DbTableRenderer();
+
 	try {
 		const table: TableWithRefs = tag.attributes.object;
 		return await Promise.all([
-			...DbTableRenderer.renderDbTable(table),
+			...dbTableRenderer.renderDbTable(table),
 			...Object.values(table.refs)
 				.filter((val) => val)
-				.map((ref) => [new Paragraph(""), DbTableRenderer.renderDbTable(ref)])
+				.map((ref) => [new Paragraph(""), dbTableRenderer.renderDbTable(ref)])
 				.flat(2),
 		]);
 	} catch (error) {

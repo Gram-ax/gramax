@@ -39,7 +39,6 @@
 }
 
 .admonition-heading {
-	height: 100%;
 	display: flex;
 	align-items: center;
 	margin-bottom: 0.7em;
@@ -56,7 +55,6 @@
 }
 
 .admonition-heading .admonition-icon {
-	height: 100%;
 	display: flex;
 	font-size: 20px;
 	align-items: flex-start;
@@ -76,7 +74,7 @@
 
 .admonition-content {
 	width: 100%;
-	overflow: visible;
+	overflow: hidden;
 }
 
 .admonition-content-ml {

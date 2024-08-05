@@ -8,8 +8,9 @@ import { ArticlePageData, HomePageData } from "@core/SitePresenter/SitePresenter
 import Theme from "@ext/Theme/Theme";
 import ThemeService from "@ext/Theme/components/ThemeService";
 import ErrorBoundary from "@ext/errorHandlers/client/components/ErrorBoundary";
-import type DefaultError from "@ext/errorHandlers/logic/DefaultError";
+import DefaultError from "@ext/errorHandlers/logic/DefaultError";
 import localizer from "@ext/localization/core/Localizer";
+import NoActiveWorkspace from "@ext/workspace/error/NoActiveWorkspaceError";
 import { useCallback, useEffect, useState } from "react";
 import AppError from "./components/Atoms/AppError";
 import AppLoader from "./components/Atoms/AppLoader";
@@ -25,7 +26,7 @@ const getData = async (route: string, query: Query) => {
 };
 
 const AppContext = ({ children }: { children: (data: any) => JSX.Element }) => {
-	const [path, , query] = useLocation();
+	const [path, redirect, query] = useLocation();
 
 	const [data, setData] = useState<{
 		data: HomePageData | ArticlePageData;
@@ -40,6 +41,7 @@ const AppContext = ({ children }: { children: (data: any) => JSX.Element }) => {
 			const data = await getData(path, parserQuery(query));
 			setData({ path: localizer.trim(path), ...data });
 		} catch (err) {
+			if (err instanceof NoActiveWorkspace) return redirect("/");
 			console.error(err);
 			setError(err);
 		}

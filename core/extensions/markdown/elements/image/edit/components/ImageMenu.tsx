@@ -2,7 +2,7 @@ import Input from "@components/Atoms/Input";
 import ButtonsLayout from "@components/Layouts/ButtonLayout";
 import ModalLayoutDark from "@components/Layouts/ModalLayoutDark";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
-import useLocalize from "@ext/localization/useLocalize";
+import t from "@ext/localization/locale/translate";
 import Button from "@ext/markdown/core/edit/components/Menu/Button";
 import ImageEditor from "@ext/markdown/elements/image/edit/components/ImageEditor/index";
 import { Crop, ImageObject } from "@ext/markdown/elements/image/edit/model/imageEditorTypes";
@@ -17,7 +17,7 @@ const ImageMenu = ({ editor }: { editor: Editor }) => {
 	const [title, setTitle] = useState("");
 	const [position, setPosition] = useState<number>(null);
 	const apiUrlCreator = ApiUrlCreatorService.value;
-	const messages = [useLocalize("edit2"), useLocalize("delete")];
+	const messages = [t("edit2"), t("delete")];
 
 	useEffect(() => {
 		const { node, position } = getFocusNode(editor.state, (node) => node.type.name === "image");
@@ -73,7 +73,7 @@ const ImageMenu = ({ editor }: { editor: Editor }) => {
 	return (
 		<ModalLayoutDark>
 			<ButtonsLayout>
-				<Input placeholder="Подпись" value={title} onChange={handleTitleChange} />
+				<Input placeholder={t("signature")} value={title} onChange={handleTitleChange} />
 				<div className="divider" />
 				<Button icon={"pen"} tooltipText={messages[0]} onClick={handleEdit} />
 				<Button icon={"trash"} tooltipText={messages[1]} onClick={handleDelete} />

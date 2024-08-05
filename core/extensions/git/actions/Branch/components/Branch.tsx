@@ -3,11 +3,11 @@ import ArticleUpdaterService from "@components/Article/ArticleUpdater/ArticleUpd
 import { refreshPage } from "@core-ui/ContextServices/RefreshPageContext";
 import OnBranchUpdateCaller from "@ext/git/actions/Branch/BranchUpdaterService/model/OnBranchUpdateCaller";
 import BranchActions from "@ext/git/actions/Branch/components/BranchActions";
+import t from "@ext/localization/locale/translate";
 import { useEffect, useState } from "react";
 import SpinnerLoader from "../../../../../components/Atoms/SpinnerLoader";
 import StatusBarElement from "../../../../../components/Layouts/StatusBar/StatusBarElement";
 import ApiUrlCreatorService from "../../../../../ui-logic/ContextServices/ApiUrlCreator";
-import useLocalize from "../../../../localization/useLocalize";
 import useIsReview from "../../../../storage/logic/utils/useIsReview";
 import BranchUpdaterService from "../BranchUpdaterService/logic/BranchUpdaterService";
 
@@ -34,11 +34,7 @@ const Branch = () => {
 			<BranchActions
 				currentBranch={branchName}
 				trigger={
-					<StatusBarElement
-						tooltipText={useLocalize("changeBranch")}
-						iconCode="git-branch"
-						iconStrokeWidth="1.6"
-					>
+					<StatusBarElement tooltipText={t("change-branch")} iconCode="git-branch" iconStrokeWidth="1.6">
 						<span>{branchName ? branchName : <SpinnerLoader width={12} height={12} />}</span>
 					</StatusBarElement>
 				}

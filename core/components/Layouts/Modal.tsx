@@ -10,7 +10,7 @@ export interface ModalLayoutProps {
 	children: JSX.Element;
 	trigger?: JSX.Element;
 	onOpen?: () => void;
-	onClose?: () => void;
+	onClose?: (closeModal: () => void) => void;
 	onEnter?: () => void;
 	onCmdEnter?: (e: KeyboardEvent) => void;
 	isOpen?: boolean;
@@ -20,6 +20,7 @@ export interface ModalLayoutProps {
 	closeOnCmdEnter?: boolean;
 	setGlobalsStyles?: boolean;
 	disabled?: boolean;
+	preventClose?: boolean;
 }
 
 const ModalLayout = (props: ModalLayoutProps) => {
@@ -35,24 +36,32 @@ const ModalLayout = (props: ModalLayoutProps) => {
 		disabled,
 		closeOnEscape = true,
 		closeOnCmdEnter = true,
+		preventClose = false,
 	} = props;
 	const [isOpen, setIsOpen] = useState(isParentOpen ?? false);
 	const [closeOnDocumentClick, setCloseOnDocumentClick] = useState(true);
 	const [mouseDownOnModal, setMouseDownOnModal] = useState(false);
-	const [isCloseOnEscape, setIsCloseOnEscape] = useState(false);
+	const shouldAbortOnClose = useRef(false);
 	const needToCallOnClose = useRef(true);
 
-	const CloseEsc = () => {
-		if (!closeOnEscape) return;
-		if (onClose) onClose();
+	const closeModal = () => {
 		setIsOpen(false);
 		IsOpenModalService.value = false;
 	};
 
+	const tryClose = () => {
+		onClose?.(() => {
+			shouldAbortOnClose.current = true;
+			closeModal();
+		});
+		if (preventClose) return;
+		setIsOpen(false);
+	};
+
 	const keydownHandler = (e: KeyboardEvent) => {
 		if (e.code === "Escape" && isOpen) {
-			setIsCloseOnEscape(true);
-			CloseEsc();
+			if (!closeOnEscape) return;
+			tryClose();
 		}
 		if (e.code === "Enter" && isOpen && onEnter) onEnter();
 		if (e.code === "Enter" && (e.ctrlKey || e.metaKey) && isOpen && onCmdEnter && closeOnCmdEnter) onCmdEnter(e);
@@ -60,11 +69,11 @@ const ModalLayout = (props: ModalLayoutProps) => {
 
 	const onCurrentClose = () => {
 		needToCallOnClose.current = false;
-		if (isCloseOnEscape) {
-			setIsCloseOnEscape(false);
+		if (shouldAbortOnClose.current) {
+			shouldAbortOnClose.current = false;
 			return;
 		}
-		CloseEsc();
+		closeModal();
 	};
 
 	useEffect(() => {
@@ -79,14 +88,15 @@ const ModalLayout = (props: ModalLayoutProps) => {
 	}, []);
 
 	useEffect(() => {
-		setIsOpen(isParentOpen);
+		if (isParentOpen) setIsOpen(true);
+		else tryClose();
 	}, [isParentOpen]);
 
 	return (
 		<Popup
 			open={isOpen}
 			onOpen={() => {
-				if (onOpen) onOpen();
+				onOpen?.();
 				setIsOpen(true);
 				IsOpenModalService.value = true;
 			}}
@@ -109,7 +119,7 @@ const ModalLayout = (props: ModalLayoutProps) => {
 			<div
 				className={className}
 				onMouseUp={() => {
-					if (closeOnDocumentClick && !mouseDownOnModal) setIsOpen(false);
+					if (closeOnDocumentClick && !mouseDownOnModal) tryClose();
 					setMouseDownOnModal(false);
 				}}
 				onMouseDown={() => {
@@ -118,7 +128,13 @@ const ModalLayout = (props: ModalLayoutProps) => {
 				data-qa={`modal-layout`}
 			>
 				<div className="x-mark">
-					<Icon code="x" onClick={() => setIsOpen(false)} />
+					<Icon
+						code="x"
+						onMouseUp={(e) => {
+							e.stopPropagation();
+							tryClose();
+						}}
+					/>
 				</div>
 				<div
 					className="outer-modal"
@@ -135,12 +151,7 @@ const ModalLayout = (props: ModalLayoutProps) => {
 					<ErrorHandler>
 						<>{children}</>
 					</ErrorHandler>
-					<div
-						style={{ height: "100%" }}
-						onClick={() => {
-							setIsOpen(false);
-						}}
-					/>
+					<div style={{ height: "100%" }} onClick={tryClose} />
 				</div>
 			</div>
 		</Popup>

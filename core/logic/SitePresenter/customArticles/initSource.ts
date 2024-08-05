@@ -1,7 +1,3 @@
-export default () => `---
-title: Каталог уже связан с репозиторием
----
+import t from "@ext/localization/locale/translate";
 
-Мы определили, что каталог связан с репозиторием.
-Но мы не знаем, в каком хранилище этот репозиторий находится.
-Добавьте хранилище, чтобы подтвердить привязку.`;
+export default () => t("article.custom.init-source");

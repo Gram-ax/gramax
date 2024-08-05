@@ -48,7 +48,7 @@ const C4Render = styled(
 			}
 		}, [data, currentDiagramIndex, parentDiagramIndexes]);
 
-		if (error) return <DiagramError error={error} />;
+		if (error) return <DiagramError error={error} diagramName={DiagramType["c4-diagram"]} />;
 
 		return (
 			<div

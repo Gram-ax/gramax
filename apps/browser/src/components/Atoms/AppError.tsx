@@ -1,6 +1,7 @@
 import styled from "@emotion/styled";
 import InfoModalForm from "@ext/errorHandlers/client/components/ErrorForm";
 import type DefaultError from "@ext/errorHandlers/logic/DefaultError";
+import t from "@ext/localization/locale/translate";
 import { HTMLAttributes } from "react";
 
 const AppError = ({ error, ...props }: { error: DefaultError } & HTMLAttributes<HTMLDivElement>) => {
@@ -10,21 +11,15 @@ const AppError = ({ error, ...props }: { error: DefaultError } & HTMLAttributes<
 		<div {...props}>
 			<div className="container">
 				<InfoModalForm
-					title={isWasmError ? "Этот браузер не поддерживается" : "Не удалось загрузить приложение"}
+					title={isWasmError ? t("app.error.browser-not-supported.title") : t("app.error.cannot-load")}
 					icon={{ code: "circle-x", color: "var(--color-danger)" }}
 					onCancelClick={null}
 					noButtons={true}
 				>
 					{isWasmError ? (
-						<div>
-							<span>
-								Откройте Gramax в <a href="https://gram.ax/resources/docs/faq">другом браузере</a> или
-							</span>
-							<a href="https://gram.ax"> скачайте приложение </a>
-							<span>на компьютер</span>
-						</div>
+						<div dangerouslySetInnerHTML={{ __html: t("app.error.browser-not-supported.desc") }}></div>
 					) : (
-						error?.message ?? "Неизвестная ошибка"
+						error?.message ?? t("app.error.unknown-error")
 					)}
 				</InfoModalForm>
 			</div>

@@ -1,6 +1,6 @@
 import Icon from "@components/Atoms/Icon";
+import t from "@ext/localization/locale/translate";
 import openChat from "../../integrations/telegram/openChat";
-import useLocalize from "../../localization/useLocalize";
 
 const BugReport = () => {
 	// const isEdit = IsEditService.value;
@@ -25,7 +25,7 @@ const BugReport = () => {
 			>
 				<div>
 					<Icon code={"bug"} />
-					<span>{useLocalize("bugReport")}</span>
+					<span>{t("bug-report.name")}</span>
 				</div>
 			</a>
 		</li>

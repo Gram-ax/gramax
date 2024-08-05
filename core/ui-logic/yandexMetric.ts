@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 /* eslint-disable prefer-rest-params */
-export default function registerMetric(catalogName: string, isLogged: boolean) {
+export default function yandexMetric(counter: string) {
+	if (!counter) return;
 	if (typeof window != "undefined") {
 		(function (m, e, t, r, i, k, a) {
 			m[i] =
@@ -17,14 +18,11 @@ export default function registerMetric(catalogName: string, isLogged: boolean) {
 		})(window, document, "script", "https://mc.yandex.ru/metrika/tag.js", "ym");
 
 		// @ts-ignore
-		ym(91377166, "init", {
+		ym(counter, "init", {
 			clickmap: true,
 			trackLinks: true,
 			accurateTrackBounce: true,
 			webvisor: true,
 		});
-
-		// @ts-ignore
-		ym(91377166, "params", { catalog: catalogName, isLogged });
 	}
 }

@@ -5,7 +5,13 @@ import { Tag } from "../../../core/render/logic/Markdoc";
 import { WordFontStyles } from "@ext/wordExport/options/wordExportSettings";
 import { imageWordLayout } from "@ext/markdown/elements/image/word/image";
 
-export const listItemWordLayout: WordBlockChild = async ({ state, tag, addOptions, resourceManager, parserContext }) => {
+export const listItemWordLayout: WordBlockChild = async ({
+	state,
+	tag,
+	addOptions,
+	resourceManager,
+	parserContext,
+}) => {
 	const filteredChildren = transformerToNormalTag(tag).children.filter(
 		(child) => child && typeof child !== "string",
 	) as Tag[];
@@ -28,7 +34,9 @@ export const listItemWordLayout: WordBlockChild = async ({ state, tag, addOption
 					paragraph = [];
 				}
 
-				listElements.push(await imageWordLayout(child.children[0] as Tag, resourceManager, parserContext));
+				listElements.push(
+					await imageWordLayout(child.children[0] as Tag, addOptions, resourceManager, parserContext),
+				);
 			} else {
 				const inlineElements = await state.renderInline(child);
 
@@ -39,10 +47,10 @@ export const listItemWordLayout: WordBlockChild = async ({ state, tag, addOption
 				paragraph.push([
 					...inlineElements.flat().filter((val) => val),
 					...(inlineElements &&
-					tag.children.length > 1 &&
-					tag.children[tag.children.length - 1] !== tag.children[i] &&
+					filteredChildren.length > 1 &&
+					filteredChildren[filteredChildren.length - 1] !== child[i] &&
 					nextChildIsNotImage &&
-					(!blockLayouts[(tag.children[i + 1] as Tag)?.name] || (tag.children[i + 1] as Tag)?.name === "p")
+					(!blockLayouts[filteredChildren[i + 1]?.name] || filteredChildren[i + 1]?.name === "p")
 						? [new TextRun({ break: 1 })]
 						: []),
 				]);

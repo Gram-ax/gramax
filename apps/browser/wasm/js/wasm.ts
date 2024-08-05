@@ -2,6 +2,7 @@ import { onFSWasmCallback } from "@app/resolveModule/fscall/wasm";
 import { onGitWasmCallback } from "@app/resolveModule/gitcall/wasm";
 import DefaultError from "@ext/errorHandlers/logic/DefaultError";
 import { onCloneProgress } from "@ext/git/core/GitCommands/LibGit2IntermediateCommands";
+import setWorkerProxy from "../../src/logic/setWorkerProxy";
 
 const notSupported = () => new DefaultError(undefined, undefined, { errorCode: "wasmInitTimeout" });
 
@@ -33,5 +34,5 @@ export const initWasm = async (corsProxy: string) => {
 		});
 	});
 
-	w.wasm.postMessage({ type: "set-proxy", corsProxy });
+	setWorkerProxy(corsProxy);
 };

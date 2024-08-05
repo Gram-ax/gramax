@@ -5,15 +5,16 @@ import ListLayout from "@components/List/ListLayout";
 import FetchService from "@core-ui/ApiServices/FetchService";
 import MimeTypes from "@core-ui/ApiServices/Types/MimeTypes";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
+import CreateConfluenceSourceData from "@ext/confluence/actions/Source/components/CreateConfluenceSourceData";
+import CreateGitSourceData from "@ext/git/actions/Source/Git/components/CreateGitSourceData";
+import t from "@ext/localization/locale/translate";
 import { useEffect, useMemo, useState } from "react";
 import ErrorHandler from "../../../../errorHandlers/client/components/ErrorHandler";
 import CreateGitHubSourceData from "../../../../git/actions/Source/GitHub/components/CreateGitHubSourceData";
 import CreateGitLabSourceData from "../../../../git/actions/Source/GitLab/components/CreateGitLabSourceData";
-import useLocalize from "../../../../localization/useLocalize";
 import SourceListItem from "../../../components/SourceListItem";
 import SourceData from "../model/SourceData";
 import SourceType from "../model/SourceType";
-import CreateConfluenceSourceData from "@ext/confluence/actions/Source/components/CreateConfluenceSourceData";
 
 interface CreateSourceDataProps {
 	trigger?: JSX.Element;
@@ -50,13 +51,13 @@ const CreateSourceData = (props: CreateSourceDataProps) => {
 		if (externalIsOpen) setIsOpen(externalIsOpen);
 	}, [externalIsOpen]);
 
-	const localizedSource2 = useLocalize("source2").toLowerCase();
-	const localizedAddNewSource = useLocalize("addNewSource");
-	const localizedSource = useLocalize("source");
-	const localizedStorage2 = useLocalize("storage2");
-	const localizedAddNewStorage = useLocalize("addNewStorage");
-	const localizedStorage = useLocalize("storage");
-	const localizedFind = useLocalize("find");
+	const localizedSource2 = t("source2").toLowerCase();
+	const localizedAddNewSource = t("add-new-source");
+	const localizedSource = t("source");
+	const localizedStorage2 = t("storage2");
+	const localizedAddNewStorage = t("add-new-storage");
+	const localizedStorage = t("storage");
+	const localizedFind = t("find");
 
 	const config = useMemo(
 		() => ({
@@ -70,7 +71,7 @@ const CreateSourceData = (props: CreateSourceDataProps) => {
 				placeholderSuffix: localizedStorage2,
 				legendLabel: localizedAddNewStorage,
 				controlLabel: localizedStorage,
-				filter: (v) => v !== SourceType.enterprise && v !== SourceType.confluence,
+				filter: (v) => v !== SourceType.confluence,
 			},
 		}),
 		[],
@@ -115,12 +116,27 @@ const CreateSourceData = (props: CreateSourceDataProps) => {
 										/>
 									</div>
 								</div>
-
+								{sourceType == SourceType.git && (
+									<CreateGitSourceData
+										props={{
+											sourceType: sourceType as any,
+											domain: "",
+											protocol: "",
+											token: "",
+											userName: null,
+											userEmail: null,
+											...defaultSourceData,
+										}}
+										onSubmit={createStorageUserData}
+										readOnlyProps={defaultSourceData}
+									/>
+								)}
 								{sourceType == SourceType.gitLab && (
 									<CreateGitLabSourceData
 										props={{
 											sourceType: sourceType as any,
 											domain: "",
+											protocol: "",
 											token: "",
 											userName: null,
 											userEmail: null,

@@ -46,7 +46,7 @@ const DbDiagram = styled(
 			load(src, tags, primary);
 		}, [src, tags, primary]);
 
-		if (error || (data && !data?.tables)) return <DiagramError error={error ?? data} />;
+		if (error || (data && !data?.tables)) return <DiagramError error={error ?? data} diagramName="Db-diagram" />;
 
 		return !data ? (
 			<div data-type="dbdiagram" contentEditable={false} />

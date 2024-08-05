@@ -1,6 +1,7 @@
-import React, { useEffect, useState } from "react";
+import t from "@ext/localization/locale/translate";
+import { useEffect, useState } from "react";
 
-const See = ({ link, name, lang }: { link: string; name: string; lang?: string }) => {
+const See = ({ link, name }: { link: string; name: string }) => {
 	const [showNmae, setShowName] = useState(name ? name.replace(/[^a-zA-ZА-Яа-яЁё ]/gi, "") : null);
 
 	const idLink = link[0] == "#" ? link.slice(1) : null;
@@ -14,7 +15,7 @@ const See = ({ link, name, lang }: { link: string; name: string; lang?: string }
 	if (!showNmae) return null;
 	return (
 		<span data-type="see" data-value={link}>
-			{lang == "en" ? "See " : "См. "} <a href={link}>{showNmae}</a>
+			{t("see")} <a href={link}>{showNmae}</a>
 		</span>
 	);
 };

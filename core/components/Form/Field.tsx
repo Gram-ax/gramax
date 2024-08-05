@@ -1,15 +1,18 @@
+import type { FormSchema } from "@components/Form/Form";
 import ItemInput from "@components/Form/InputItem";
 import { Validate } from "@components/Form/ValidateObject";
-import { JSONSchema7 } from "json-schema";
+import t, { hasTranslation } from "@ext/localization/locale/translate";
 import { ReactNode } from "react";
 
 interface FieldProps {
-	scheme: JSONSchema7;
+	scheme: FormSchema;
 	value?: string | string[] | boolean;
 	tabIndex?: number;
 	required?: boolean;
 	isFocused?: boolean;
 	fieldDirection?: "row" | "column";
+	formTranslationKey: string;
+	translationKey: string;
 	validate?: Validate;
 	input?: ReactNode;
 	onFocus?: () => void;
@@ -18,7 +21,7 @@ interface FieldProps {
 
 const Field = (props: FieldProps) => {
 	const { required = false, isFocused = false, fieldDirection = "row" } = props;
-	const { scheme, value, tabIndex, validate, input } = props;
+	const { scheme, value, tabIndex, validate, input, formTranslationKey, translationKey } = props;
 	const { onChange, onFocus } = props;
 
 	const isCheckbox = scheme.type == "boolean";
@@ -28,13 +31,19 @@ const Field = (props: FieldProps) => {
 		return <h3>{scheme}</h3>;
 	}
 
+  const translatedName = t(`forms.${formTranslationKey}.props.${translationKey}.name`);
+
 	return (
 		<div className="form-group">
 			<div className={`field field-string ${fieldDirection}`}>
 				{!isCheckbox && (
 					<label className="control-label">
 						<div style={{ display: "flex" }}>
-							<span dangerouslySetInnerHTML={{ __html: scheme?.title }} />
+							<span
+								dangerouslySetInnerHTML={{
+									__html:translatedName,
+								}}
+							/>
 							{required && <span className="required">*</span>}
 						</div>
 					</label>
@@ -44,10 +53,13 @@ const Field = (props: FieldProps) => {
 						input
 					) : (
 						<ItemInput
+							dataQa={translatedName}
 							scheme={scheme}
 							tabIndex={tabIndex}
 							focus={tabIndex == 1}
 							validate={validate}
+							translationKey={translationKey}
+							formTranslationKey={formTranslationKey}
 							showErrorText={isFocused}
 							value={value}
 							onChange={onChange}
@@ -56,10 +68,15 @@ const Field = (props: FieldProps) => {
 					)}
 				</div>
 			</div>
-			{scheme.description && (
+			{hasTranslation(`forms.${formTranslationKey}.props.${translationKey}.description`) && (
 				<div className={`input-lable-description ${isCheckbox ? "full-width" : ""}`}>
 					{!isCheckbox && <div />}
-					<div className="article" dangerouslySetInnerHTML={{ __html: scheme.description }} />
+					<div
+						className="article"
+						dangerouslySetInnerHTML={{
+							__html: t(`forms.${formTranslationKey}.props.${translationKey}.description`),
+						}}
+					/>
 				</div>
 			)}
 		</div>

@@ -21,10 +21,10 @@ import styled from "@emotion/styled";
 import SideBarResource from "@ext/git/actions/Publish/components/SideBarResource";
 import formatComment from "@ext/git/actions/Publish/logic/formatComment";
 import { useResourceView } from "@ext/git/actions/Publish/logic/useResourceView";
+import t from "@ext/localization/locale/translate";
 import { useEffect, useRef, useState } from "react";
 import DiffItem from "../../../../VersionControl/model/DiffItem";
 import DiffResource from "../../../../VersionControl/model/DiffResource";
-import useLocalize from "../../../../localization/useLocalize";
 import useIsReview from "../../../../storage/logic/utils/useIsReview";
 import Discard from "../../Discard/Discard";
 import deleteSideBarDataItem from "../logic/deleteSideBarDataItems";
@@ -59,8 +59,8 @@ const Publish = styled(({ changesCount, className }: { changesCount?: number; cl
 	const catalogProps = CatalogPropsService.value;
 	const apiUrlCreator = ApiUrlCreatorService.value;
 
-	const publishText = useLocalize("publish");
-	const selectAllText = useLocalize("selectAll");
+	const publishText = t("publish");
+	const selectAllText = t("select-all");
 	const [commitMessagePlaceholder, setCommitMessagePlaceholder] = useState("");
 	const placeholder = commitMessagePlaceholder.split("\n\n")[0];
 
@@ -151,11 +151,7 @@ const Publish = styled(({ changesCount, className }: { changesCount?: number; cl
 		<ModalLayout
 			isOpen={isOpen}
 			trigger={
-				<StatusBarElement
-					iconCode="cloud"
-					iconStyle={{fontSize: "15px"}}
-					tooltipText={useLocalize("publishChanges")}
-				>
+				<StatusBarElement iconCode="cloud" iconStyle={{ fontSize: "15px" }} tooltipText={t("publish-changes")}>
 					{changesCount ? <span>{changesCount}</span> : null}
 				</StatusBarElement>
 			}
@@ -214,7 +210,9 @@ const Publish = styled(({ changesCount, className }: { changesCount?: number; cl
 												newSideBarData[idx].data.isChecked = isChecked;
 												setSideBarData(newSideBarData);
 											}}
-											onDiscard={(paths) => {
+											onStartDiscard={() => setDiscardProcess(true)}
+											onEndDiscard={(paths) => {
+												setDiscardProcess(false);
 												const { sideBarData: editedSideBarData, hasDeleted } =
 													deleteSideBarDataItem(sideBarData, paths);
 												setSideBarData(editedSideBarData);
@@ -276,7 +274,7 @@ const Publish = styled(({ changesCount, className }: { changesCount?: number; cl
 													paths={filePaths}
 													selectedText
 													onStartDiscard={() => setDiscardProcess(true)}
-													onDiscard={(paths) => {
+													onEndDiscard={(paths) => {
 														setDiscardProcess(false);
 														if (!paths.length) return;
 														setSideBarData(
@@ -312,7 +310,7 @@ const Publish = styled(({ changesCount, className }: { changesCount?: number; cl
 											);
 										}}
 										disabled={!contentEditable}
-										placeholder={useLocalize("commitMessage")}
+										placeholder={t("commit-message")}
 									/>
 									<div className="commit-button">
 										<Button onClick={publish} disabled={!canPublish} fullWidth>

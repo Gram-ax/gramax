@@ -8,7 +8,7 @@ import FetchService from "@core-ui/ApiServices/FetchService";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import InfoModalForm from "@ext/errorHandlers/client/components/ErrorForm";
 import BranchUpdaterService from "@ext/git/actions/Branch/BranchUpdaterService/logic/BranchUpdaterService";
-import useLocalize from "@ext/localization/useLocalize";
+import t from "@ext/localization/locale/translate";
 import { useState } from "react";
 
 const BranchElement = ({ branchName }: { branchName: string }) => (
@@ -62,18 +62,18 @@ const CheckoutHandler = ({
 				) : (
 					<InfoModalForm
 						onCancelClick={onCancel}
-						title={useLocalize("changeBranch") + "?"}
-						actionButton={{ text: useLocalize("changeAndSync"), onClick: onActionButtonClick }}
+						title={t("change-branch") + "?"}
+						actionButton={{ text: t("change-and-sync"), onClick: onActionButtonClick }}
 						isWarning={true}
 					>
 						<span>
-							{useLocalize("leadsToTheBranch")}
+							{t("leads-to-the-branch")}
 							<br />
-							{useLocalize("checkoutPathnameDesc")}
+							{t("git.checkout.pathname-desc")}
 							<br />
-							{useLocalize("changeBranch")} <BranchElement branchName={currentBranchName} />{" "}
-							{useLocalize("toBranch").toLowerCase()} <BranchElement branchName={branchToCheckout} />{" "}
-							{useLocalize("andSyncCatalog").toLowerCase()}
+							{t("change-branch")} <BranchElement branchName={currentBranchName} />{" "}
+							{t("to-branch").toLowerCase()} <BranchElement branchName={branchToCheckout} />{" "}
+							{t("and-sync-catalog").toLowerCase()}
 						</span>
 					</InfoModalForm>
 				)}

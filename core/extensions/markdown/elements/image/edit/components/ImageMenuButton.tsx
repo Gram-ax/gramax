@@ -3,6 +3,7 @@ import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import ArticlePropsService from "@core-ui/ContextServices/ArticleProps";
 import ButtonStateService from "@core-ui/ContextServices/ButtonStateService/ButtonStateService";
 import styled from "@emotion/styled";
+import t from "@ext/localization/locale/translate";
 import Button from "@ext/markdown/core/edit/components/Menu/Button";
 import { Editor } from "@tiptap/core";
 import createImages from "../logic/createImages";
@@ -14,12 +15,12 @@ const ImageMenuButton = styled(({ editor, className }: { editor: Editor; classNa
 	const { disabled } = ButtonStateService.useCurrentAction({ action: "image" });
 
 	if (disabled) {
-		return <Button icon="image" nodeValues={{ action: "image" }} tooltipText="Изображение" />;
+		return <Button icon="image" nodeValues={{ action: "image" }} tooltipText={t("image")} />;
 	}
 
 	return (
 		<Button
-			tooltipText={"Изображение"}
+			tooltipText={t("image")}
 			nodeValues={{ action: "image" }}
 			onClick={() => ArticleUpdaterService.stopLoadingAfterFocus()}
 		>

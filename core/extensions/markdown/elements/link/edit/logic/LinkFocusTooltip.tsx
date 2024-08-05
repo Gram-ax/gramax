@@ -1,3 +1,4 @@
+import LinkTitleContextService from "@core-ui/ContextServices/LinkTitleTooltip";
 import getFirstPatentByName from "@core-ui/utils/getFirstPatentByName";
 import isURL from "@core-ui/utils/isURL";
 import { Editor } from "@tiptap/core";
@@ -11,7 +12,6 @@ import getFocusMark from "../../../../elementsUtils/getFocusMark";
 import getMarkPosition from "../../../../elementsUtils/getMarkPosition";
 import BaseMark from "../../../../elementsUtils/prosemirrorPlugins/BaseMark";
 import LinkMenu from "../components/LinkMenu";
-import LinkTitleContextService from "@core-ui/ContextServices/LinkTitleTooltip";
 
 class LinkFocusTooltip extends BaseMark {
 	private _itemLinks: LinkItem[];
@@ -60,8 +60,7 @@ class LinkFocusTooltip extends BaseMark {
 	}
 
 	static getLinkToHeading = (href: string) => {
-		const regex = /^(.*?)(#.+)$/;
-		return href.match(regex);
+		return href.match(/^(.*?)(#.+)$/);
 	};
 
 	private _getHref(mark: Mark) {
@@ -83,15 +82,11 @@ class LinkFocusTooltip extends BaseMark {
 		this._editor.commands.focus(this._lastPosition);
 	}
 
-	private _getHashHatch = (href: string) => {
-		return href.match(/^(.+?)(#.+)?$/);
-	};
-
 	private _update(href: string, newHref: string, { from, to, mark }: { from: number; to: number; mark: any }) {
 		let hash = "";
 		const transaction = this._editor.state.tr;
 		transaction.removeMark(from, to, mark);
-		const hashHatch = this._getHashHatch(href);
+		const hashHatch = LinkFocusTooltip.getLinkToHeading(href);
 
 		if (hashHatch) {
 			href = hashHatch[1];

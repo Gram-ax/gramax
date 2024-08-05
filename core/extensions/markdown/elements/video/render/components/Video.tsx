@@ -1,33 +1,28 @@
-import Fetcher from "@core-ui/ApiServices/Types/Fetcher";
-import UseSWRService from "@core-ui/ApiServices/UseSWRService";
-import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
-import ErrorVideo from "./ErrorVideo";
+import { useEffect, useState } from "react";
 import RenderVideo from "./RenderVideo";
+import ErrorVideo from "@ext/markdown/elements/video/render/components/ErrorVideo";
 
-const Video = ({ path, title, isLink }: { path: string; title: string; isLink: boolean }) => {
-	const apiUrlCreator = ApiUrlCreatorService.value;
-	const url = apiUrlCreator?.getVideoUrl(path);
-	const { data, error } = UseSWRService.getData<{ url: string }>(url, Fetcher.json, !isLink);
+const Video = ({ path, title }: { path: string; title: string }) => {
+	const [isError, setIsError] = useState(false);
 
-	const Video = isLink ? (
-		<RenderVideo url={path} />
-	) : (
-		<video
-			controls
-			id="my-player"
-			preload="auto"
-			data-focusable="true"
-			data-setup="{}"
-			className="video-js"
-			src={data?.url}
-		/>
-	);
+	useEffect(() => {
+		setIsError(false);
+	}, [path]);
 
 	return (
-		<span data-type="video">
-			{!path || error ? <ErrorVideo isLink={false} link={path} isNoneError={!path} /> : Video}
-			{title ? <em>{title}</em> : null}
-		</span>
+		<div data-type="video">
+			{isError ? (
+				<>
+					<ErrorVideo link={path} isLink isNoneError={!path} />
+					{!path && title && <em>{title}</em>}
+				</>
+			) : (
+				<>
+					<RenderVideo url={path} setIsError={setIsError} />
+					{title && <em>{title}</em>}
+				</>
+			)}
+		</div>
 	);
 };
 

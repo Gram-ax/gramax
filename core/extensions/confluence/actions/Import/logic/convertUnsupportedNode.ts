@@ -1,4 +1,5 @@
 import translateConfluenceName from "@ext/confluence/actions/Import/logic/translateConfluenceName";
+import t from "@ext/localization/locale/translate";
 import { JSONContent } from "@tiptap/core";
 
 const convertUnsupportedNode = (UnsupportedNode: JSONContent, currentPageUrl: string): JSONContent[] => {
@@ -8,7 +9,10 @@ const convertUnsupportedNode = (UnsupportedNode: JSONContent, currentPageUrl: st
 			type: "note",
 			attrs: {
 				type: "note",
-				title: `Не удалось импортировать «${translateConfluenceName(UnsupportedNode)}» из Confluence`,
+				title: t("confluence.error.cannot-import.title").replace(
+					"{{name}}",
+					translateConfluenceName(UnsupportedNode),
+				),
 				collapsed: true,
 			},
 			content: [
@@ -17,7 +21,7 @@ const convertUnsupportedNode = (UnsupportedNode: JSONContent, currentPageUrl: st
 					content: [
 						{
 							type: "text",
-							text: `Вы можете перенести его вручную со страницы `,
+							text: t("confluence.error.cannot-import.desc"),
 						},
 						{
 							type: "text",

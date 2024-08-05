@@ -1,12 +1,12 @@
+import Input from "@components/Atoms/Input";
 import FetchService from "@core-ui/ApiServices/FetchService";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
+import t from "@ext/localization/locale/translate";
 import { useState } from "react";
-import useLocalize from "../../../extensions/localization/useLocalize";
 import Button from "../../Atoms/Button/Button";
 import Icon from "../../Atoms/Icon";
 import ModalLayout from "../../Layouts/Modal";
 import ModalLayoutLight from "../../Layouts/ModalLayoutLight";
-import Input from "@components/Atoms/Input";
 
 const SingInByMail = () => {
 	const mailRegExp = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/gm;
@@ -29,16 +29,16 @@ const SingInByMail = () => {
 			trigger={
 				<div>
 					<a>
-						<Icon code={"mail"}/>
-						<span>{useLocalize("byMail")}</span>
+						<Icon code={"mail"} />
+						<span>{t("by-mail")}</span>
 					</a>
 				</div>
 			}
 		>
 			<ModalLayoutLight className="block-elevation-2">
 				<div className="form small-code article block-elevation-3">
-					<h2>{useLocalize("authorizationByMail")}</h2>
-					<label>{useLocalize("mail")}</label>
+					<h2>{t("authorization-by-mail")}</h2>
+					<label>{t("mail")}</label>
 					<div className="catalog-url-slag margin-bottom">
 						<Input
 							value={mail}
@@ -49,7 +49,7 @@ const SingInByMail = () => {
 					</div>
 					<div className="article global">
 						<Button disabled={!(!!mail && mailRegExp.test(mail))} onClick={sendToken}>
-							<span> {useLocalize("submitLoginLink")}</span>
+							<span> {t("submit-login-link")}</span>
 						</Button>
 					</div>
 				</div>

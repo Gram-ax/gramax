@@ -4,11 +4,11 @@ import Icon from "@components/Atoms/Icon";
 import SpinnerLoader from "@components/Atoms/SpinnerLoader";
 import { parserQuery } from "@core/Api/Query";
 import { waitForTempToken } from "@ext/git/actions/Source/tempToken";
+import t from "@ext/localization/locale/translate";
 import User2 from "@ext/security/components/User/User2";
 import { useEffect, useState } from "react";
 import createChildWindow from "../../../../../../ui-logic/ChildWindow/createChildWindow";
 import PageDataContextService from "../../../../../../ui-logic/ContextServices/PageDataContext";
-import useLocalize from "../../../../../localization/useLocalize";
 import SourceType from "../../../../../storage/logic/SourceDataProvider/model/SourceType";
 import { makeSourceApi } from "../../makeSourceApi";
 import GitHubSourceData from "../logic/GitHubSourceData";
@@ -33,7 +33,7 @@ const CreateGitHubSourceData = ({ onSubmit }: { onSubmit?: (editProps: GitHubSou
 	return (
 		<>
 			<div className="form-group field field-string row field-height">
-				<div className="control-label">Пользователь</div>
+				<div className="control-label">{t("user")}</div>
 				{token ? (
 					<div className="input-lable">
 						{user ? (
@@ -63,7 +63,7 @@ const CreateGitHubSourceData = ({ onSubmit }: { onSubmit?: (editProps: GitHubSou
 					>
 						<div>
 							<Icon code="github" />
-							<span>Войти в GitHub</span>
+							<span>{t("log-in.github")}</span>
 						</div>
 					</Button>
 				)}
@@ -74,6 +74,7 @@ const CreateGitHubSourceData = ({ onSubmit }: { onSubmit?: (editProps: GitHubSou
 					onClick={() => {
 						onSubmit({
 							sourceType: SourceType.gitHub,
+							protocol: "https",
 							domain: "github.com",
 							token: token.access_token,
 							userName: user.name,
@@ -83,7 +84,7 @@ const CreateGitHubSourceData = ({ onSubmit }: { onSubmit?: (editProps: GitHubSou
 						});
 					}}
 				>
-					{useLocalize("add")}
+					{t("add")}
 				</Button>
 			</div>
 		</>

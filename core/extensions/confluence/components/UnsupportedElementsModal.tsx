@@ -2,9 +2,8 @@ import Anchor from "@components/controls/Anchor";
 import styled from "@emotion/styled";
 import UnsupportedElements from "@ext/confluence/actions/Import/model/UnsupportedElements";
 import InfoModalForm from "@ext/errorHandlers/client/components/ErrorForm";
-import useLocalize from "@ext/localization/useLocalize";
+import t from "@ext/localization/locale/translate";
 import Note, { NoteType } from "@ext/markdown/elements/note/render/component/Note";
-import Table from "@ext/markdown/elements/table/render/component/Table";
 
 interface UnsupportedElementsModalProps {
 	startClone: () => void;
@@ -17,24 +16,24 @@ const UnsupportedElementsModal = (props: UnsupportedElementsModalProps) => {
 	const { startClone, onCancelClick, unsupportedNodes, className } = props;
 	return (
 		<InfoModalForm
-			title={useLocalize("unsupportedElementsConfluenceTitle")}
+			title={t("unsupported-elements-confluence-title")}
 			icon={{ code: "circle-alert", color: "var(--color-admonition-note-br-h)" }}
 			isWarning={false}
 			actionButton={{
 				onClick: startClone,
-				text: useLocalize("continue"),
+				text: t("continue"),
 			}}
 			onCancelClick={onCancelClick}
 		>
 			<div className="article">
-				<p>{useLocalize("unsupportedElementsConfluence1")}</p>
+				<p>{t("unsupported-elements-confluence1")}</p>
 				<div className={className}>
-					<Note type={NoteType.info} collapsed={true} title={useLocalize("unsupportedElementsConfluence2")}>
-						<Table>
+					<Note type={NoteType.info} collapsed={true} title={t("unsupported-elements-confluence2")}>
+						<table>
 							<thead>
 								<tr>
-									<th>{useLocalize("page")}</th>
-									<th>{useLocalize("element")}</th>
+									<th>{t("page")}</th>
+									<th>{t("element")}</th>
 								</tr>
 							</thead>
 							<tbody>
@@ -55,7 +54,7 @@ const UnsupportedElementsModal = (props: UnsupportedElementsModalProps) => {
 									</tr>
 								))}
 							</tbody>
-						</Table>
+						</table>
 					</Note>
 				</div>
 			</div>
@@ -65,7 +64,6 @@ const UnsupportedElementsModal = (props: UnsupportedElementsModalProps) => {
 
 export default styled(UnsupportedElementsModal)`
 	table {
-		width: 100% !important;
 		overflow: hidden;
 		padding: 0;
 	}
@@ -78,8 +76,14 @@ export default styled(UnsupportedElementsModal)`
 		margin-bottom: 0;
 	}
 
+	.admonition-content {
+		width: 100%;
+		overflow: visible;
+		padding: 0;
+	}
+
 	.break-word {
-		width: 50vw !important;
+		width: 50vw;
 		word-break: break-word;
 	}
 `;

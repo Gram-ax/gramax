@@ -18,7 +18,7 @@ const env = {
 	DIAGRAM_RENDERER_SERVICE_URL: null,
 	REVIEW_SERVICE_URL: null,
 	CORS_PROXY_SERVICE_URL: null,
-	STORAGE_URL: null,
+	GLS_URL: null,
 };
 
 if (!process.env.COOKIE_SECRET) console.warn("WARNING: You need to set COOKIE_SECRET if you run gramax in production.");

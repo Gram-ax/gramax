@@ -14,6 +14,7 @@ import { Plugin, PluginKey } from "prosemirror-state";
 import { EditorView } from "prosemirror-view";
 import PageDataContext from "../../../../../../logic/Context/PageDataContext";
 import Base from "../../../../elementsUtils/prosemirrorPlugins/Base";
+import { EditorState } from "@tiptap/pm/state";
 
 class TextSelectionMenu extends Base {
 	private _selectPosition: { x: number; y: number };
@@ -35,11 +36,11 @@ class TextSelectionMenu extends Base {
 		this._setTooltip();
 	}
 
-	update(view, prevState) {
-		const { from, to } = view.state.selection;
+	update(view: EditorView, prevState: EditorState) {
+		const { from, to, $from } = view.state.selection;
 		if (prevState && prevState.selection.from === from && prevState.selection.to === to) return;
 		const selectedText = view.state.doc.textBetween(from, to);
-		if (selectedText) {
+		if (selectedText || view.state.doc.firstChild !== $from.parent) {
 			if (this._timeoutId) clearTimeout(this._timeoutId);
 			if (this._componentIsSet) this._setTooltip();
 			else this._timeoutId = setTimeout(this._setTooltip.bind(this), 300);
@@ -48,14 +49,19 @@ class TextSelectionMenu extends Base {
 		}
 	}
 
+	removeMenu() {
+		if (this._tooltip) this._closeHandler();
+	}
+
 	private _closeHandler() {
 		this._removeComponent();
 	}
 
 	private _setTooltip() {
-		const { from, to } = this._view.state.selection;
+		const { from, to, $from } = this._view.state.selection;
 		const selectedText = this._view.state.doc.textBetween(from, to);
-		if (!selectedText) return;
+		if (!selectedText || $from.parent.type.name === "doc" || this._view.state.doc.firstChild === $from.parent)
+			return this._closeHandler();
 		const anchor = this._view.coordsAtPos(from);
 		this._selectPosition = { x: anchor.left, y: anchor.top };
 		this._setTooltipPosition();
@@ -123,6 +129,10 @@ const SelectionMenu = Extension.create({
 					);
 					this.editor.on("update", ({ editor }) => {
 						textSelectionMenu.updateEditor(editor);
+					});
+
+					this.editor.on("blur", ({ event }) => {
+						if (event.relatedTarget) textSelectionMenu.removeMenu();
 					});
 
 					return textSelectionMenu;

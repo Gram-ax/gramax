@@ -1,9 +1,9 @@
 import ButtonsLayout from "@components/Layouts/ButtonLayout";
+import t from "@ext/localization/locale/translate";
 import Button from "@ext/markdown/core/edit/components/Menu/Button";
 import { Editor } from "@tiptap/core";
 import { Dispatch, memo } from "react";
-import { noteIcons, NoteType } from "../../render/component/Note";
-import useLocalize from "@ext/localization/useLocalize";
+import { NoteType, noteIcons } from "../../render/component/Note";
 
 interface NoteButtonsProps {
 	editor: Editor;
@@ -20,7 +20,7 @@ const Note = ({ editor, type, setType, title }: NoteButtonsProps) => {
 				(value, key) =>
 					value !== NoteType.hotfixes && (
 						<Button
-							tooltipText={useLocalize(`${value}Text`)}
+							tooltipText={t(`${value}-text`)}
 							icon={noteIcons[value]}
 							iconStrokeWidth="2"
 							iconStyle={{ color: `var(--color-admonition-${value}-br-h)` }}

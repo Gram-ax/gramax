@@ -19,6 +19,7 @@ import { tbody, thead, tr } from "../../../../elements/table/render/model/table"
 export default function getNodeElementRenderModels(context?: ParserContext): Record<string, Schema> {
 	const contextelements = context ? getContextNodeElementRenderModels(context) : {};
 	return {
+		link: link(context),
 		strikethrough,
 		paragraph,
 		article,
@@ -41,7 +42,6 @@ export default function getNodeElementRenderModels(context?: ParserContext): Rec
 
 function getContextNodeElementRenderModels(context: ParserContext): Record<string, Schema> {
 	return {
-		link: link(context),
 		image: image(context),
 	};
 }

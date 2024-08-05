@@ -14,11 +14,9 @@ const dfp = new DiskFileProvider(__dirname);
 let storage: GitStorage;
 
 describe("GitStorage", () => {
-	const corsProxy = null;
-
 	beforeAll(async () => {
 		await rep.init(true);
-		storage = new GitStorage({ corsProxy: corsProxy }, new Path(rep.repDir), dfp);
+		storage = new GitStorage(new Path(rep.repDir), dfp);
 	});
 	afterAll(async () => {
 		await fs.rm(__dirname + "/testClone", { recursive: true, force: true, maxRetries: 5 });
@@ -36,7 +34,6 @@ describe("GitStorage", () => {
 	// 	await GitStorage.clone({
 	// 		repositoryPath: new Path("testClone"),
 	// 		fp: dfp,
-	// 		conf: { corsProxy: corsProxy },
 	// 		source: rep.source,
 	// 		url: `http://localhost:8174/${RemoteNames.Push}`,
 	// 	});

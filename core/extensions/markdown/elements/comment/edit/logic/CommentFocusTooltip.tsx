@@ -2,6 +2,8 @@ import getFirstPatentByName from "@core-ui/utils/getFirstPatentByName";
 import eventEmitter from "@core/utils/eventEmitter";
 import { getMat } from "@ext/markdown/core/edit/components/ArticleMat";
 import getFocusMarkFromSelection from "@ext/markdown/elementsUtils/getFocusMarkFromSelection";
+import getMarkByPos from "@ext/markdown/elementsUtils/getMarkByPos";
+import getMarkPosition from "@ext/markdown/elementsUtils/getMarkPosition";
 import { Editor, JSONContent, MarkRange } from "@tiptap/core";
 import { Mark } from "@tiptap/pm/model";
 import { EditorView } from "prosemirror-view";
@@ -14,16 +16,18 @@ import Theme from "../../../../../Theme/Theme";
 import ThemeService from "../../../../../Theme/components/ThemeService";
 import BaseMark from "../../../../elementsUtils/prosemirrorPlugins/BaseMark";
 import Comment from "../components/Comment";
-import getMarkByPos from "@ext/markdown/elementsUtils/getMarkByPos";
-import getMarkPosition from "@ext/markdown/elementsUtils/getMarkPosition";
+
+const COMMENT_COMPONENT = "COMMENT-REACT-COMPONENT";
 
 class CommentFocusTooltip extends BaseMark {
 	private _oldMark: Mark;
 	private _oldMarkPosition: { from: number; to: number; mark: Mark };
 	private _onCommentClick: any;
 	private _onCreateCommentHandler: any;
-	private _clickHandlerEvent: any;
+	private _mouseUpHandler: any;
+	private _mouseDownHandler: any;
 	private _keydownHandlerEvent: any;
+	private _mouseDownInTooltip: boolean;
 	constructor(
 		view: EditorView,
 		editor: Editor,
@@ -32,13 +36,16 @@ class CommentFocusTooltip extends BaseMark {
 		private _pageDataContext: PageDataContext,
 	) {
 		super(view, editor);
+		this._mouseDownInTooltip = true;
 		this._onCommentClick = this._onClickComment.bind(this);
-		this._clickHandlerEvent = this._clickHandler.bind(this);
+		this._mouseUpHandler = this._mouseUp.bind(this);
+		this._mouseDownHandler = this._mouseDown.bind(this);
 		this._keydownHandlerEvent = this._keydownHandler.bind(this);
 		this._onCreateCommentHandler = this._onCreateComment.bind(this);
 
 		document.addEventListener("keydown", this._keydownHandlerEvent);
-		document.addEventListener("mouseup", this._clickHandlerEvent);
+		document.addEventListener("mouseup", this._mouseUpHandler);
+		document.addEventListener("mousedown", this._mouseDownHandler);
 
 		eventEmitter.on("addComment", this._onCreateCommentHandler);
 		eventEmitter.on("onClickComment", this._onCommentClick);
@@ -47,7 +54,8 @@ class CommentFocusTooltip extends BaseMark {
 
 	destroy() {
 		document.removeEventListener("keydown", this._keydownHandlerEvent);
-		document.removeEventListener("mouseup", this._clickHandlerEvent);
+		document.removeEventListener("mouseup", this._mouseUpHandler);
+		document.addEventListener("mousedown", this._mouseDownHandler);
 		eventEmitter.off("addComment", this._onCreateCommentHandler);
 		eventEmitter.off("onClickComment", this._onCommentClick);
 		this._tooltip.remove();
@@ -109,10 +117,7 @@ class CommentFocusTooltip extends BaseMark {
 		if (pos < 0) return;
 		const mark = getMarkByPos(state, pos, "comment");
 
-		if (this._componentIsSet) {
-			if (this._oldMark !== mark) this._removeCommentComponent();
-			return;
-		}
+		if (this._componentIsSet) return;
 
 		if (mark) this._commentClick(dom, mark, getMarkPosition(state, pos, mark.type));
 	}
@@ -183,14 +188,28 @@ class CommentFocusTooltip extends BaseMark {
 		if (e.key == "Escape" && this._componentIsSet) this._removeCommentComponent();
 	}
 
-	private _clickHandler(e: MouseEvent) {
+	private _mouseUp(e: MouseEvent) {
+		if (this._mouseDownInTooltip) this._mouseDownInTooltip = false;
 		const element = e.target as HTMLElement;
-		if (
-			this._componentIsSet &&
-			!this._tooltip.contains(element) &&
-			!element.classList.contains("article-page-wrapper")
-		)
-			this._removeCommentComponent();
+
+		if (!this._componentIsSet || this._mouseDownInTooltip) return;
+		if (this._tooltip.contains(element) || element.classList.contains("article-page-wrapper")) return;
+		if (element.tagName === COMMENT_COMPONENT) {
+			const state = this._getState(this._view);
+			if (state) {
+				const pos = this._view.posAtDOM(element, 0);
+				if (pos >= 0) {
+					const mark = getMarkByPos(state, pos, "comment");
+					if (this._oldMark === mark) return;
+				}
+			}
+		}
+
+		this._removeCommentComponent();
+	}
+
+	private _mouseDown(e: MouseEvent) {
+		if (this._tooltip.contains(e.target as HTMLElement)) this._mouseDownInTooltip = true;
 	}
 }
 

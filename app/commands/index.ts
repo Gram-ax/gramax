@@ -8,7 +8,6 @@ import debug from "./debug";
 import download from "./download";
 import elements from "./elements";
 import healthcheck from "./healthcheck";
-import html from "./html";
 import item from "./item";
 import page from "./pageData";
 import plugin from "./plugin";
@@ -27,7 +26,6 @@ const commands = {
 	healthcheck,
 	download,
 	vscode,
-	html,
 	item,
 	page,
 	storage,

@@ -7,7 +7,7 @@ const TableComponent = ({ node }: NodeViewProps) => {
 	return (
 		<NodeViewWrapper>
 			<TableWrapper>
-				<NodeViewContent as="table">
+				<NodeViewContent as="table" style={{ display: "block ruby" }}>
 					<colgroup>
 						{Array.from({ length: content.childCount }, (_, i) => {
 							const columnAttrs = content.child(i).attrs;

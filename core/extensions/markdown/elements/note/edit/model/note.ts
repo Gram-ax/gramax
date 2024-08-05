@@ -1,12 +1,13 @@
 import NoteAttrs from "@ext/markdown/elements/note/edit/model/NoteAtrrs";
 import note from "@ext/markdown/elements/note/edit/model/noteSchema";
-import { stopExecution } from "@ext/markdown/elementsUtils/cursorFunctions";
+import { NoteType } from "@ext/markdown/elements/note/render/component/Note";
+import { readyToPlace, stopExecution } from "@ext/markdown/elementsUtils/cursorFunctions";
+import getSelectedText from "@ext/markdown/elementsUtils/getSelectedText";
 import getExtensionOptions from "@ext/markdown/logic/getExtensionOptions";
-import { mergeAttributes, Node, wrappingInputRule } from "@tiptap/core";
+import { callOrReturn, InputRule, mergeAttributes, Node } from "@tiptap/core";
+import { findWrapping } from "@tiptap/pm/transform";
 import { ReactNodeViewRenderer } from "@tiptap/react";
 import EditNote from "../components/Note";
-import getSelectedText from "@ext/markdown/elementsUtils/getSelectedText";
-import { NoteType } from "@ext/markdown/elements/note/render/component/Note";
 
 declare module "@tiptap/core" {
 	interface Commands<ReturnType> {
@@ -37,13 +38,21 @@ const Note = Node.create({
 
 	addInputRules() {
 		return [
-			wrappingInputRule({
+			new InputRule({
 				find: inputRegex,
-				type: this.type,
-				joinPredicate: () => false,
-				keepAttributes: true,
-				getAttributes: {
-					type: NoteType.quote,
+				handler: ({ state, range, match }) => {
+					if (!readyToPlace(this.editor, this.type.name)) return null;
+
+					const attributes = callOrReturn({ type: NoteType.quote }, undefined, match) || {};
+					const tr = state.tr.delete(range.from, range.to);
+					const $start = tr.doc.resolve(range.from);
+					const blockRange = $start.blockRange();
+					const wrapping = blockRange && findWrapping(blockRange, this.type, attributes);
+
+					if (!wrapping) return null;
+
+					tr.wrap(blockRange, wrapping);
+					return true;
 				},
 			}),
 		];

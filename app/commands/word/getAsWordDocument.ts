@@ -5,8 +5,9 @@ import RuleProvider from "@ext/rules/RuleProvider";
 import buildDocumentTree from "@ext/wordExport/DocumentTree/buildDocumentTree";
 import { exportedKeys } from "@ext/wordExport/layouts";
 import { Command } from "../../types/Command";
+import { MainWordExport } from "@ext/wordExport/WordExport";
+import { ExportType } from "../../../core/extensions/wordExport/ExportType";
 
-const WordExport = import("../../../core/extensions/wordExport/WordExport");
 const docx = import("docx");
 
 const getAsWordDocument: Command<{ ctx: Context; itemPath?: Path; isCategory: boolean; catalogName: string }, Blob> =
@@ -17,14 +18,10 @@ const getAsWordDocument: Command<{ ctx: Context; itemPath?: Path; isCategory: bo
 		async do({ ctx, catalogName, isCategory, itemPath }) {
 			const { wm, parser, parserContextFactory } = this._app;
 			const workspace = wm.current();
-
 			const catalog = await workspace.getCatalog(catalogName);
 			const isCatalog = itemPath.toString() === "";
-
 			const item = isCatalog ? catalog.getRootCategory() : catalog.findItemByItemPath(itemPath);
-
-			const wordExport = new (await WordExport).default(workspace.getFileProvider());
-
+			const wordExport = new MainWordExport(workspace.getFileProvider(), ExportType.withoutTableOfContents);
 			const filters = new RuleProvider(ctx).getItemFilters();
 			const documentTree = await buildDocumentTree(
 				isCategory,
@@ -38,7 +35,7 @@ const getAsWordDocument: Command<{ ctx: Context; itemPath?: Path; isCategory: bo
 				filters,
 			);
 
-			const document = await wordExport.getDocument(documentTree, isCategory || isCatalog);
+			const document = await wordExport.getDocument(documentTree);
 
 			return await (await docx).Packer.toBlob(document);
 		},

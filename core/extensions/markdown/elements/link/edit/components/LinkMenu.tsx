@@ -5,7 +5,7 @@ import parseStorageUrl from "@core/utils/parseStorageUrl";
 import styled from "@emotion/styled";
 import SelectLinkItem from "@ext/artilce/LinkCreator/components/SelectLinkItem";
 import LinkItem from "@ext/artilce/LinkCreator/models/LinkItem";
-import useLocalize from "@ext/localization/useLocalize";
+import t from "@ext/localization/locale/translate";
 import Button, { ButtonProps } from "@ext/markdown/core/edit/components/Menu/Button";
 import { HTMLProps, useEffect, useState } from "react";
 
@@ -34,7 +34,7 @@ const CopyButton = ({ isCopied, isCopyShow, ...otherProps }: CopyButtonProps) =>
 	isCopyShow && (
 		<>
 			<div className="divider" />
-			<Button icon="copy" tooltipText={isCopied ? "Скопировано!" : "Скопировать"} {...otherProps} />
+			<Button icon="copy" tooltipText={isCopied ? t("copied") + "!" : t("copy")} {...otherProps} />
 		</>
 	);
 
@@ -102,7 +102,7 @@ const LinkMenu = (props: LinkMenuProps) => {
 						isCopyShow={isCopyShow}
 					/>
 					<div className="divider" />
-					<Button icon="trash" onClick={onDelete} tooltipText={useLocalize("removeLink")} />
+					<Button icon="trash" onClick={onDelete} tooltipText={t("remove-link")} />
 				</StyledDiv>
 			</ButtonsLayout>
 		</ModalLayoutDark>

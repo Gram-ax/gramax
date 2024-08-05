@@ -1,18 +1,19 @@
 import Button from "@components/Atoms/Button/Button";
+import SpinnerLoader from "@components/Atoms/SpinnerLoader";
 import FormStyle from "@components/Form/FormStyle";
 import ModalLayout from "@components/Layouts/Modal";
 import ModalLayoutLight from "@components/Layouts/ModalLayoutLight";
+import FetchService from "@core-ui/ApiServices/FetchService";
+import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
+import LanguageService from "@core-ui/ContextServices/Language";
 import { useRouter } from "@core/Api/useRouter";
+import UnsupportedElements from "@ext/confluence/actions/Import/model/UnsupportedElements";
+import UnsupportedElementsModal from "@ext/confluence/components/UnsupportedElementsModal";
 import CloneProgressbar from "@ext/git/actions/Clone/components/CloneProgressbar";
+import t from "@ext/localization/locale/translate";
 import { useMemo, useState } from "react";
-import useLocalize from "../../../../localization/useLocalize";
 import SelectStorageDataForm from "../../../../storage/components/SelectStorageDataForm";
 import StorageData from "../../../../storage/models/StorageData";
-import SpinnerLoader from "@components/Atoms/SpinnerLoader";
-import UnsupportedElementsModal from "@ext/confluence/components/UnsupportedElementsModal";
-import FetchService from "@core-ui/ApiServices/FetchService";
-import UnsupportedElements from "@ext/confluence/actions/Import/model/UnsupportedElements";
-import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 
 enum CloneStage {
 	AskForStorage,
@@ -24,7 +25,7 @@ enum CloneStage {
 const LoadingLayout = ({ title, children }: { title?: string; children: React.ReactNode }) => (
 	<FormStyle>
 		<>
-			<legend>{title || useLocalize("loading2")}</legend>
+			<legend>{title || t("loading2")}</legend>
 			{children}
 		</>
 	</FormStyle>
@@ -67,27 +68,20 @@ const Clone = ({ trigger, forClone }: { trigger: JSX.Element; forClone?: boolean
 		setStorageData(null);
 	};
 
-	const startClone = () => {
-		setStage(CloneStage.Cloning);
-	};
-
-	const localizedImport = useLocalize("import");
-	const localizedCatalog2 = useLocalize("catalog2");
-	const localizedLoad = useLocalize("load");
-	const localizedExisting = useLocalize("existing");
+	const startClone = () => setStage(CloneStage.Cloning);
 
 	const storageConfig = useMemo(
 		() => ({
 			import: {
-				title: `${localizedImport} ${localizedCatalog2}`,
-				buttonText: localizedImport,
+				title: `${t("catalog.import")} ${t("catalog.name")}`,
+				buttonText: t("catalog.import"),
 			},
 			clone: {
-				title: `${localizedLoad} ${localizedExisting} ${localizedCatalog2}`,
-				buttonText: localizedLoad,
+				title: `${t("catalog.clone")} ${t("existing")} ${t("catalog.name")}`,
+				buttonText: t("catalog.clone"),
 			},
 		}),
-		[],
+		[LanguageService.currentUi()],
 	);
 
 	const mode = forClone ? storageConfig.clone : storageConfig.import;
@@ -130,7 +124,7 @@ const Clone = ({ trigger, forClone }: { trigger: JSX.Element; forClone?: boolean
 					)}
 
 					{stage === CloneStage.LoadUnsupportedElements && (
-						<LoadingLayout title={useLocalize("checking") + "..."}>
+						<LoadingLayout title={t("checking") + "..."}>
 							<SpinnerLoader height={100} width={100} fullScreen />
 						</LoadingLayout>
 					)}

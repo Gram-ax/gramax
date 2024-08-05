@@ -1,22 +1,33 @@
 import ButtonLink from "@components/Molecules/ButtonLink";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
-import styled from "@emotion/styled";
 import { useRouter } from "@core/Api/useRouter";
-import useLocalize from "@ext/localization/useLocalize";
+import styled from "@emotion/styled";
+import SignInOutEnterprise from "@ext/enterprise/SignInOutEnterprise";
+import t from "@ext/localization/locale/translate";
 
 const SingInOut = styled(({ className }: { className?: string }) => {
-	const isLogged = PageDataContextService.value.isLogged;
-	const apiUrlCreator = ApiUrlCreatorService.value;
 	const router = useRouter();
+	const apiUrlCreator = ApiUrlCreatorService.value;
+	const isLogged = PageDataContextService.value.isLogged;
 	const isServerApp = PageDataContextService.value.conf.isServerApp;
 	const ssoServerUrl = PageDataContextService.value.conf.ssoServerUrl;
+	const authUrl = apiUrlCreator.getAuthUrl(router, ssoServerUrl).toString();
+	const glsUrl = PageDataContextService.value.conf.glsUrl;
+	const showEnterpriseSignIn = glsUrl && !isServerApp;
 
-	if (isLogged) {
+	if (showEnterpriseSignIn)
 		return (
 			<div className={className}>
-				<a href={apiUrlCreator.getAuthUrl(router).toString()} data-qa="qa-clickable">
-					<ButtonLink iconCode="log-out" text={useLocalize("singOut")} />
+				<SignInOutEnterprise />
+			</div>
+		);
+
+	if (isServerApp && isLogged) {
+		return (
+			<div className={className}>
+				<a href={authUrl} data-qa="qa-clickable">
+					<ButtonLink iconCode="log-out" text={t("sing-out")} />
 				</a>
 			</div>
 		);
@@ -24,23 +35,11 @@ const SingInOut = styled(({ className }: { className?: string }) => {
 
 	if (isServerApp && ssoServerUrl) {
 		return (
-			/* <PopupMenuLayout
-			trigger={
-				<div className={className}>
-					<a data-qa="qa-clickable">
-						<Icon code={"sign-in"} />
-						<span>{useLocalize("singIn")}</span>
-					</a>
-				</div>
-			}
-			>
-			<SingInByMail /> */
 			<div>
-				<a href={apiUrlCreator.getAuthUrl(router).toString()} data-qa="qa-clickable">
-					<ButtonLink iconCode="log-in" text={useLocalize("singIn")} />
+				<a href={authUrl} data-qa="qa-clickable">
+					<ButtonLink iconCode="log-in" text={t("sing-in")} />
 				</a>
 			</div>
-			/* </PopupMenuLayout> */
 		);
 	}
 })`

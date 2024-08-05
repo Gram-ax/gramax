@@ -1,3 +1,4 @@
+import t from "@ext/localization/locale/translate";
 import Button from "@ext/markdown/core/edit/components/Menu/Button";
 import { Editor } from "@tiptap/core";
 
@@ -6,7 +7,7 @@ const BulletListMenuButton = ({ editor }: { editor: Editor }) => {
 		<Button
 			onClick={() => editor.chain().focus().toggleBulletList().run()}
 			icon={"list"}
-			tooltipText={"Маркированный список"}
+			tooltipText={t("editor.bullet-list")}
 			hotKey={"Mod-Shift-8"}
 			nodeValues={{ action: "bullet_list" }}
 		/>

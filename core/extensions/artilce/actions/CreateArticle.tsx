@@ -4,11 +4,11 @@ import FetchService from "@core-ui/ApiServices/FetchService";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import IsEditService from "@core-ui/ContextServices/IsEdit";
 import { refreshPage } from "@core-ui/ContextServices/RefreshPageContext";
-import styled from "@emotion/styled";
-import { ItemLink } from "@ext/navigation/NavigationLinks";
-import { useState, MouseEventHandler } from "react";
 import { useRouter } from "@core/Api/useRouter";
-import useLocalize from "../../localization/useLocalize";
+import styled from "@emotion/styled";
+import t from "@ext/localization/locale/translate";
+import { ItemLink } from "@ext/navigation/NavigationLinks";
+import { MouseEventHandler, useState } from "react";
 
 interface CreateArticleProps {
 	item?: ItemLink;
@@ -30,7 +30,7 @@ const CreateArticle = (props: CreateArticleProps) => {
 	if (isDeepestCatalog(item?.ref?.path)) return null;
 
 	const [isLoading, setIsLoading] = useState(false);
-	const content = useLocalize(item ? "addChildArticle" : "addArticleToRoot");
+	const content = item ? t("article.add-child") : t("article.add-root");
 	const router = useRouter();
 
 	const isEdit = IsEditService.value;
@@ -53,7 +53,7 @@ const CreateArticle = (props: CreateArticleProps) => {
 	return (
 		<Tooltip content={content} place={item ? "top" : "right"}>
 			<span className={className} onClick={onClickHandler}>
-				<Icon code="plus" viewBox="3 3 18 18" isAction isLoading={isLoading}/>
+				<Icon code="plus" viewBox="3 3 18 18" isAction isLoading={isLoading} />
 			</span>
 		</Tooltip>
 	);

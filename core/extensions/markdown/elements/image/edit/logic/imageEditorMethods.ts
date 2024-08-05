@@ -25,6 +25,61 @@ interface cropImageProps {
 	scale?: number;
 }
 
+interface getCanvasProps {
+	imageContainer: HTMLDivElement;
+	imgElement: HTMLImageElement;
+	crop: Crop;
+	src: string;
+	setSrc?: (newSrc: Blob) => void;
+}
+
+export function getCroppedCanvas(props: getCanvasProps) {
+	const { imageContainer, imgElement, crop = { x: 0, y: 0, w: 100, h: 100 }, src, setSrc } = props;
+
+	if (crop.w === 100 && crop.h === 100) return;
+
+	const imageContainerRect = imageContainer.getBoundingClientRect();
+	const x = (crop.x / 100) * imageContainerRect.width;
+	const y = (crop.y / 100) * imageContainerRect.height;
+	const width = (crop.w / 100) * imageContainerRect.width;
+	const height = (crop.h / 100) * imageContainerRect.height;
+
+	if (width === 0 || height === 0) return;
+
+	const canvas = document.createElement("canvas");
+	const context = canvas.getContext("2d");
+
+	if (context) {
+		const image = new Image();
+		image.src = src ?? imgElement.src;
+
+		image.onload = () => {
+			const scaleX = image.naturalWidth / imageContainerRect.width;
+			const scaleY = image.naturalHeight / imageContainerRect.height;
+
+			canvas.width = width * scaleX;
+			canvas.height = height * scaleY;
+
+			context.drawImage(
+				image,
+				x * scaleX,
+				y * scaleY,
+				canvas.width,
+				canvas.height,
+				0,
+				0,
+				canvas.width,
+				canvas.height,
+			);
+
+			canvas.toBlob(
+				(blob) => (setSrc ? setSrc(blob) : (imgElement.src = URL.createObjectURL(blob))),
+				"image/png",
+			);
+		};
+	}
+}
+
 export function cropImage(props: cropImageProps) {
 	const { image, imageSize, crop = { x: 0, y: 0, w: 100, h: 100 }, scale = 1 } = props;
 	if (crop.w === 0 || crop.h === 0 || (crop.w === 100 && crop.h === 100)) return;
@@ -72,7 +127,7 @@ interface HandleMoveProps {
 	onMouseDownCallback?: () => boolean;
 }
 
-export const MINIMUM_SQUARE_SIZE = 60;
+export const MINIMUM_SQUARE_SIZE = 40;
 
 export const handleMove = (props: HandleMoveProps) => {
 	const { setDraggable, setHover, parentRef, mainRef, onMouseUpCallback, onMouseDownCallback } = props;

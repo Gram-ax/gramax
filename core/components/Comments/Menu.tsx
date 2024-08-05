@@ -1,7 +1,7 @@
 import { TextSize } from "@components/Atoms/Button/Button";
 import ButtonLink from "@components/Molecules/ButtonLink";
 import styled from "@emotion/styled";
-import useLocalize from "../../extensions/localization/useLocalize";
+import t from "@ext/localization/locale/translate";
 import ArticleUpdaterService from "../Article/ArticleUpdater/ArticleUpdaterService";
 import PopupMenuLayout from "../Layouts/PopupMenuLayout";
 
@@ -14,18 +14,17 @@ export interface MenuProps {
 }
 
 const Menu = styled((props: MenuProps) => {
-	const { showEditButton = true, deleteOnClick, editOnClick, deleteText = useLocalize("delete"), className } = props;
+	const { showEditButton = true, deleteOnClick, editOnClick, deleteText = t("delete"), className } = props;
 
 	return (
 		<div className={className}>
 			<PopupMenuLayout>
 				{showEditButton && (
 					<ButtonLink
-						fullWidth
 						onClick={() => editOnClick()}
 						textSize={TextSize.S}
 						iconCode="pencil"
-						text={useLocalize("edit") + "..."}
+						text={t("edit") + "..."}
 					/>
 				)}
 

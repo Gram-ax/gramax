@@ -3,29 +3,31 @@ import Icon from "@components/Atoms/Icon";
 import FetchService from "@core-ui/ApiServices/FetchService";
 import MimeTypes from "@core-ui/ApiServices/Types/MimeTypes";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
-import useLocalize from "../../../localization/useLocalize";
+import t from "@ext/localization/locale/translate";
 // import customConfirm from "@core-ui/CustomConfirm";
 
 const Discard = ({
 	paths,
-	onDiscard,
+	onEndDiscard,
 	onStartDiscard,
+	onDiscardError,
 	selectedText = false,
 }: {
 	paths: string[];
-	onDiscard?: (paths: string[]) => void;
+	onEndDiscard?: (paths: string[]) => void;
 	onStartDiscard?: (paths: string[]) => void;
+	onDiscardError?: () => void;
 	selectedText?: boolean;
 }) => {
-	const confirmText = useLocalize(selectedText ? "confirmSelectedDiscard" : "confirmDiscard");
+	const confirmText = t(selectedText ? "git.discard.seletected-confirm" : "git.discard.confirm");
 	const apiUrlCreator = ApiUrlCreatorService.value;
 
 	const currentOnDiscard = async () => {
-		if (onStartDiscard) onStartDiscard(paths);
+		onStartDiscard?.(paths);
 		const discardUrl = apiUrlCreator.getVersionControlDiscardUrl();
 		const response = await FetchService.fetch(discardUrl, JSON.stringify(paths), MimeTypes.json);
-		if (!response.ok) return;
-		if (onDiscard) onDiscard(paths);
+		if (!response.ok) return onDiscardError?.();
+		onEndDiscard?.(paths);
 	};
 
 	return (
@@ -38,7 +40,7 @@ const Discard = ({
 		>
 			<a>
 				<Icon
-					tooltipContent={useLocalize(selectedText ? "discardSelected" : "discard")}
+					tooltipContent={t(selectedText ? "discard-selected" : "discard")}
 					code="reply"
 					style={{ fontSize: "13px", fontWeight: 300 }}
 				/>

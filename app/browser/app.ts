@@ -38,7 +38,7 @@ const _init = async (config: AppConfig): Promise<Application> => {
 
 	await resolveModule("initWasm")?.(config.services.cors.url);
 
-	const rp = new RepositoryProvider({ corsProxy: config.services.cors.url });
+	const rp = new RepositoryProvider();
 
 	const fileConfig = await YamlFileConfig.readFromFile<AppGlobalConfig>(
 		new DiskFileProvider(config.paths.data),
@@ -64,22 +64,14 @@ const _init = async (config: AppConfig): Promise<Application> => {
 	const tablesManager = new TableDB(parser, wm);
 	const customArticlePresenter = new CustomArticlePresenter();
 
-	const parserContextFactory = new ParserContextFactory(
-		config.paths.base,
-		wm,
-		tablesManager,
-		parser,
-		formatter,
-		config.services.sso.url,
-		config.services.diagramRenderer.url,
-	);
+	const parserContextFactory = new ParserContextFactory(config.paths.base, wm, tablesManager, parser, formatter);
 	const htmlParser = new HtmlParser(parser, parserContextFactory);
 	const logger: Logger = config.isProduction ? new BugsnagLogger(config) : new ConsoleLogger();
 	const sitePresenterFactory = new SitePresenterFactory(wm, parser, parserContextFactory, rp, customArticlePresenter);
 
 	const contextFactory = new ContextFactory(tm, config.tokens.cookie);
 
-	const cache = new Cache(new DiskFileProvider(config.paths.cache));
+	const cache = new Cache(new DiskFileProvider(config.paths.data));
 	const pluginProvider = new PluginProvider(wm, htmlParser, cache, PluginImporterType.browser);
 
 	return {
@@ -104,8 +96,7 @@ const _init = async (config: AppConfig): Promise<Application> => {
 		pluginProvider,
 		customArticlePresenter,
 		conf: {
-			services: config.services,
-
+			glsUrl: config.glsUrl,
 			isRelease: config.isRelease,
 			basePath: config.paths.base,
 
@@ -113,9 +104,10 @@ const _init = async (config: AppConfig): Promise<Application> => {
 			isServerApp: config.isServerApp,
 			isProduction: config.isProduction,
 
-			bugsnagApiKey: config.bugsnagApiKey,
 			version: config.version,
 			buildVersion: config.buildVersion,
+			bugsnagApiKey: config.bugsnagApiKey,
+			yandexMetricCounter: config.yandexMetricCounter,
 		},
 	};
 };

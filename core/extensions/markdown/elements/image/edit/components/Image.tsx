@@ -21,13 +21,17 @@ const Image = (props: ImageDataProps): ReactElement => {
 
 	const [imageSrc, setImageSrc] = useState<string>(null);
 
+	const setSrc = (newSrc: Blob) => {
+		if (imageSrc) URL.revokeObjectURL(imageSrc);
+		setImageSrc(URL.createObjectURL(newSrc));
+	};
+
 	OnLoadResourceService.useGetContent(src, apiUrlCreator, (buffer: Buffer) => {
 		if (!buffer) return;
-		if (imageSrc) URL.revokeObjectURL(imageSrc);
-		setImageSrc(URL.createObjectURL(new Blob([buffer], { type: resolveImageKind(buffer) })));
+		setSrc(new Blob([buffer], { type: resolveImageKind(buffer) }));
 	});
 
-	return imageSrc && <ImageRenderer {...props} src={imageSrc} realSrc={src} />;
+	return imageSrc && <ImageRenderer {...props} setSrc={setSrc} src={imageSrc} realSrc={src} />;
 };
 
 export default Image;

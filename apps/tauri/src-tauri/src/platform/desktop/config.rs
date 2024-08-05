@@ -35,6 +35,7 @@ pub fn init_env<R: Runtime>(app: &AppHandle<R>, active_window: &mut WebviewWindo
 
   std::env::set_var("GRAMAX_VERSION", app.package_info().version.to_string());
   std::env::set_var("USER_DATA_PATH", user_data_path(app));
+  std::env::set_var("OS", std::env::consts::OS);
 
   let documents_dir = &app.path().document_dir().expect("Documents directory not exists");
   std::env::set_var("GRAMAX_DEFAULT_WORKSPACE_PATH", Path::new(documents_dir).join("Gramax/default"))

@@ -30,8 +30,8 @@ let git: GitCommands;
 describe("GitCommands", () => {
 	beforeEach(async () => {
 		await dfp.mkdir(path("testRep"));
-		await GitVersionControl.init({ corsProxy: null }, dfp, path("testRep"), mockUserData);
-		git = new GitCommands({ corsProxy: null }, dfp, path("testRep"));
+		await GitVersionControl.init(dfp, path("testRep"), mockUserData);
+		git = new GitCommands(dfp, path("testRep"));
 		const testFile = await writeFile("testFile", "testFile content");
 		await git.add([testFile]), await git.commit("init", mockUserData);
 	});

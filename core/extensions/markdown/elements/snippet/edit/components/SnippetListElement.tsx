@@ -4,7 +4,7 @@ import Sidebar from "@components/Layouts/Sidebar";
 import ModalLoading from "@components/ModalLoading";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import ArticlePropsService from "@core-ui/ContextServices/ArticleProps";
-import useLocalize from "@ext/localization/useLocalize";
+import t from "@ext/localization/locale/translate";
 import onSnippetDeleteCallback from "@ext/markdown/elements/snippet/edit/logic/onSnippetDeleteCallback";
 import onSnippetEdit from "@ext/markdown/elements/snippet/edit/logic/onSnippetEdit";
 import SnippetEditorProps from "@ext/markdown/elements/snippet/edit/model/SnippetEditorProps.schema";
@@ -24,11 +24,9 @@ const SnippetListElement = ({
 	const [isLoading, setIsLoading] = useState(false);
 	const apiUrlCreator = ApiUrlCreatorService.value;
 	const articleProps = ArticlePropsService.value;
-	const editText = useLocalize("edit2");
+	const editText = t("edit2");
 	const currentArticlePathname = articleProps.pathname;
-	const snippetDeleteConfirmText = `${useLocalize("deleteSnippetConfirmNotUse")}. ${useLocalize(
-		"deleteSnippetConfirm",
-	)}`;
+	const snippetDeleteConfirmText = `${t("delete-snippet-confirm-not-use")}. ${t("delete-snippet-confirm")}`;
 
 	if (isLoading) return <ModalLoading />;
 

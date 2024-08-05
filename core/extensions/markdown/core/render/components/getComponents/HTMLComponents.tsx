@@ -1,85 +1,117 @@
+import PublicApiUrlCreator from "@ext/publicApi/PublicApiUrlCreator";
 import Path from "../../../../../../logic/FileProvider/Path/Path";
-import DiagramType from "../../../../../../logic/components/Diagram/DiagramType";
-import ApiUrlCreator from "../../../../../../ui-logic/ApiServices/ApiUrlCreator";
 import ParserContext from "../../../Parser/ParserContext/ParserContext";
+import camelToKebabCase from "@core-ui/camelToKebabCase";
+import React from "react";
+
+export enum unSupportedElements {
+	"tab" = "Tab",
+	"openApi" = "OpenApi",
+	"mermaid" = "Mermaid",
+	"c4-diagram" = "C4-diagram",
+	"ts-diagram" = "Ts-diagram",
+	"db-diagram" = "Db-diagram",
+	"plant-uml" = "PlantUml",
+}
 
 class HTMLComponents {
-	private _apiUrlCreator: ApiUrlCreator;
-	constructor(
-		private _requestUrl: string,
-		context: ParserContext,
-	) {
-		this._apiUrlCreator = new ApiUrlCreator(
-			context.getBasePath().value,
-			context.getLanguage(),
-			null,
-			context.getIsLogged(),
-			context.getCatalog()?.getName(),
-			context.getArticle()?.ref.path.value,
+	private _publicApiUrlCreator: PublicApiUrlCreator;
+
+	constructor(private _requestUrl: string, private _context: ParserContext) {
+		this._publicApiUrlCreator = new PublicApiUrlCreator(
+			encodeURIComponent(_context.getCatalog()?.getName()),
+			encodeURIComponent(_context.getArticle()?.ref.path.value),
+			_context.getBasePath().value,
 		);
 	}
 
-	public getNull() {
-		return this._getNull;
+	public getNullComponent(name: unSupportedElements) {
+		return (props) => {
+			const content = camelToKebabCase(name);
+			return React.createElement(content, {
+				...props,
+				...(props.src && {
+					src: this._getApiArticleResource(props.src),
+				}),
+			});
+		};
+	}
+
+	public getTabs() {
+		return (props) => {
+			const { children } = props;
+			return React.createElement("tabs", null, children);
+		};
 	}
 
 	public getCode() {
-		return this._getCode;
+		return ({ children }: { children: JSX.Element }) => {
+			return <code>{children}</code>;
+		};
+	}
+
+	public getLink() {
+		return (props) => {
+			const { children, href, isFile, resourcePath, hash } = props;
+			const newHref = resourcePath
+				? isFile
+					? this._getApiArticleResource(resourcePath)
+					: this._getArticleLink(resourcePath, hash)
+				: href;
+			return <a href={newHref}>{children}</a>;
+		};
 	}
 
 	public getImg() {
 		return (props) => {
-			const src = this._apiUrlCreator.getArticleResource(props.src).toString();
-			return this._getImage(src, this._requestUrl, { width: "50%" });
+			const src = this._getApiArticleResource(props.src);
+			return this._getImage(src, props.title);
 		};
 	}
 
 	public getDrawio() {
 		return (props) => {
-			const src = this._apiUrlCreator.getArticleResource(props.src).toString();
-			return this._getImage(src, this._requestUrl);
+			const src = this._getApiArticleResource(props.src);
+			return this._getImage(src, props.title);
 		};
 	}
 
-	public getDiagramdb() {
+	public getPlantUmlDiagram() {
 		return (props) => {
-			const src = this._apiUrlCreator.getDbDiagramUrl(props.path, props.primary, props.tags, "true").toString();
-			return this._getImage(src, this._requestUrl);
+			const { content, ...otherProps } = props;
+			return this.getNullComponent(unSupportedElements["plant-uml"])({
+				...otherProps,
+				...(content && { children: content }),
+			});
 		};
 	}
 
-	public getDiagramRendererImage(diagramName: DiagramType) {
-		if (diagramName == DiagramType["c4-diagram"])
-			return () => {
-				const src = this._apiUrlCreator.getDiagramByContentUrl(diagramName, 0).toString();
-				return this._getImage(src, this._requestUrl);
-			};
-		return () => {
-			const src = this._apiUrlCreator.getDiagramByContentUrl(diagramName).toString();
-			return this._getImage(src, this._requestUrl);
-		};
-	}
-
-	private _getNull = () => {
-		return <></>;
-	};
-
-	private _getCode = ({ children }: { children: JSX.Element }) => {
-		return <code>{children}</code>;
-	};
-
-	private _getImage = (url: string, requestUrl: string, props?: React.ImgHTMLAttributes<HTMLImageElement>) => {
+	private _getImage = (src: string, title?: string) => {
 		return (
-			<>
-				<br />
-				<img src={this._addRequestUrl(url, requestUrl)} {...props} />
-				<br />
-			</>
+			<div>
+				<img src={src} />
+				{title && <em>{title}</em>}
+			</div>
 		);
 	};
 
-	private _addRequestUrl = (src: string, ApiRequestUrl: string) => {
-		return src.slice(0, 4) == "http" ? src : ApiRequestUrl + Path.empty.join(new Path(src)).value;
+	private _getArticleLink(path: string, hash: string) {
+		const modifiedLink = this._context.getLinkManager().getAbsolutePath(new Path(path));
+		return this._getApiArticle(modifiedLink.toString(), hash);
+	}
+
+	private _getApiArticle(link: string, hash?: string) {
+		const url = this._publicApiUrlCreator.getApiArticle(link, hash);
+		return this._addRequestUrl(url.toString());
+	}
+
+	private _getApiArticleResource(src: string) {
+		const url = this._publicApiUrlCreator.getApiArticleResource(src);
+		return this._addRequestUrl(url.toString());
+	}
+
+	private _addRequestUrl = (src: string) => {
+		return src.slice(0, 4) == "http" ? src : this._requestUrl + Path.empty.join(new Path(src)).value;
 	};
 }
 

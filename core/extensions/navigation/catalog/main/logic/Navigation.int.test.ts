@@ -20,6 +20,8 @@ const getNavigationData = async () => {
 	nav.addRules(hr.getNavRules());
 	nav.addRules(lr.getNavRules());
 	nav.addRules(sr.getNavRules());
+	
+	const navCatalogEntries = app.wm.current().getCatalogEntries();
 
 	const navIndexArticleTestCatalog = await app.wm.current().getCatalog("NavigationIndexCatalog");
 	const navTestCatalog = await app.wm.current().getCatalog("NavigationArticleCatalog");
@@ -27,7 +29,7 @@ const getNavigationData = async () => {
 	const navIndexArticleItemRef = getItemRef(navIndexArticleTestCatalog, "category/_index.md");
 	const navEmptyCategoryItemRef = getItemRef(navTestCatalog, "normalArticle.md");
 
-	return { nav, navIndexArticleTestCatalog, navIndexArticleItemRef, navTestCatalog, navEmptyCategoryItemRef };
+	return { nav, navIndexArticleTestCatalog, navIndexArticleItemRef, navTestCatalog, navEmptyCategoryItemRef, navCatalogEntries };
 };
 
 describe("Navigation правильно", () => {
@@ -49,5 +51,25 @@ describe("Navigation правильно", () => {
 		const navItemLinks = await nav.getCatalogNav(catalog, currentItemLogicPath.path.value);
 
 		expect(navItemLinks.length).toEqual(1);
+	});
+
+	test("возвращает каталоги в правильном порядке", async () => {
+		const { nav, navCatalogEntries } = await getNavigationData();
+
+		const catalogLinks = await nav.getCatalogsLink(navCatalogEntries);
+
+		expect(catalogLinks.map((cl) => cl.title)).toEqual([
+			"Многоуровневый каталог",
+			"data",
+			"NavigationArticleCatalog",
+			"NavigationIndexCatalog",
+			"RefsCatalog",
+			"RulesCategoryTestCatalog",
+			"RulseArticleTestCatalog",
+			"Test-catalog",
+			"Test-catalog",
+			"Test-catalog",
+			"Последний каталог",
+		]);
 	});
 });

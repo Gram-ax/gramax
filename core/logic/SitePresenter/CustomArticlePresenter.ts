@@ -8,13 +8,11 @@ import { Article, type ArticleProps } from "../FileStructue/Article/Article";
 import articleError404 from "./customArticles/articleError404";
 import error403 from "./customArticles/error403";
 import error500 from "./customArticles/error500";
-import homePage from "./customArticles/homePage";
 import initSource from "./customArticles/initSource";
 import welcome from "./customArticles/welcome";
 
 const articles: Record<CustomArticle, (props?: Record<string, string>) => string> = {
 	welcome,
-	homePage,
 	initSource,
 	403: error403,
 	Article404: articleError404,
@@ -24,7 +22,6 @@ const articles: Record<CustomArticle, (props?: Record<string, string>) => string
 
 const errorCodes: Record<CustomArticle, number> = {
 	welcome: null,
-	homePage: null,
 	initSource: null,
 	403: 403,
 	Article404: 404,

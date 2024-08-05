@@ -1,7 +1,7 @@
 import GoToArticle from "@components/Actions/GoToArticle";
 import Icon from "@components/Atoms/Icon";
 import PopupMenuLayout from "@components/Layouts/PopupMenuLayout";
-import useLocalize from "@ext/localization/useLocalize";
+import t from "@ext/localization/locale/translate";
 import { useState } from "react";
 
 const SnippetViewUses = ({
@@ -16,7 +16,7 @@ const SnippetViewUses = ({
 		<PopupMenuLayout
 			trigger={
 				<a style={{ display: "flex", alignItems: "center" }}>
-					<span>{useLocalize("viewUsage")} </span>
+					<span>{t("view-usage")} </span>
 					<Icon code={`chevron-${isOpen ? "up" : "down"}`} />
 				</a>
 			}

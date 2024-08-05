@@ -1,4 +1,4 @@
-import CloneError404Component from "@ext/git/actions/Clone/error/components/CloneError404";
+import CloneErrorComponent from "@ext/git/actions/Clone/error/components/CloneError";
 import { ComponentProps, ReactNode } from "react";
 import GetErrorComponent from "../../errorHandlers/logic/GetErrorComponent";
 import CheckoutConflictErrorComponent from "../actions/Branch/error/components/CheckoutConflictError";
@@ -10,7 +10,7 @@ const getGitErrors = (): {
 } => ({
 	[GitErrorCode.NotFoundError]: NotFoundErrorHandler,
 	[GitErrorCode.CheckoutConflictError]: CheckoutConflictErrorComponent,
-	[GitErrorCode.CloneError404]: CloneError404Component,
+	[GitErrorCode.CloneError]: CloneErrorComponent,
 });
 
 export default getGitErrors;

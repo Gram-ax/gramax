@@ -19,6 +19,7 @@ import { Article } from "../FileStructue/Article/Article";
 import parseContent from "../FileStructue/Article/parseContent";
 import { ArticleFilter, Catalog, ItemFilter } from "../FileStructue/Catalog/Catalog";
 import { Item } from "../FileStructue/Item/Item";
+import getArticleAsString from "@ext/markdown/elements/article/edit/logic/getArticleAsString";
 
 export type ClientCatalogProps = {
 	name: string;
@@ -122,8 +123,9 @@ export default class SitePresenter {
 
 	async getArticlePageData(article: Article, catalog: Catalog): Promise<ArticlePageData> {
 		await parseContent(article, catalog, this._context, this._parser, this._parserContextFactory);
+
 		return {
-			articleContentEdit: JSON.stringify(article.parsedContent.editTree),
+			articleContentEdit: getArticleAsString(article.props.title, article.parsedContent.editTree),
 			articleContentRender: JSON.stringify(article.parsedContent.renderTree),
 			articleProps: this.serializeArticleProps(article, await catalog?.getPathname(article)),
 			catalogProps: await this.serializeCatalogProps(catalog),

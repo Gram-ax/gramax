@@ -5,6 +5,7 @@ import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import { ClientCatalogProps } from "@core/SitePresenter/SitePresenter";
 import { uniqueName } from "@core/utils/uniqueName";
 import CatalogEditProps from "@ext/catalog/actions/propsEditor/model/CatalogEditProps.schema";
+import t from "@ext/localization/locale/translate";
 import { useRouter } from "../../../logic/Api/useRouter";
 
 const CreateCatalog = ({ trigger }: { trigger: JSX.Element }) => {
@@ -23,7 +24,7 @@ const CreateCatalog = ({ trigger }: { trigger: JSX.Element }) => {
 
 		const props: CatalogEditProps = {
 			url: uniqueName(NEW_CATALOG_NAME, catalogNames),
-			title: `Новый каталог`,
+			title: t("catalog.new-name"),
 		};
 
 		const response = await FetchService.fetch<ClientCatalogProps>(

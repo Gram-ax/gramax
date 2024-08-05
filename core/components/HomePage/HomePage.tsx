@@ -1,7 +1,5 @@
 import IsMacService from "@core-ui/ContextServices/IsMac";
-import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import { cssMedia } from "@core-ui/utils/cssUtils";
-import registerMetric from "@core-ui/yandexMetric";
 import { HomePageData } from "@core/SitePresenter/SitePresenter";
 import styled from "@emotion/styled";
 import BottomInfo from "./BottomInfo";
@@ -10,10 +8,6 @@ import TopMenu from "./TopMenu";
 
 export default styled(({ data, className }: { data: HomePageData; className?: string }) => {
 	const isMac = IsMacService.value;
-	const isLogged = PageDataContextService.value.isLogged;
-	const isServerApp = PageDataContextService.value.conf.isServerApp;
-	const isProduction = PageDataContextService.value.conf.isProduction;
-	if (isServerApp && isProduction) registerMetric("home-page", isLogged);
 
 	return (
 		<div className={className + (isMac ? "" : " scrollbar-webkit")}>

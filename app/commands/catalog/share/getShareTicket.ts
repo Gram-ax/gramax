@@ -3,6 +3,7 @@ import { AuthorizeMiddleware } from "@core/Api/middleware/AuthorizeMiddleware";
 import ReloadConfirmMiddleware from "@core/Api/middleware/ReloadConfirmMiddleware";
 import Context from "@core/Context/Context";
 import Path from "@core/FileProvider/Path/Path";
+import t from "@ext/localization/locale/translate";
 import Permission from "@ext/security/logic/Permission/Permission";
 import { Command } from "../../../types/Command";
 
@@ -22,11 +23,8 @@ const getShareTicket: Command<{ ctx: Context; catalogName: string; path: Path; d
 			const article = catalog.findItemByItemPath(path);
 			const catalogPermission = catalog?.getNeededPermission();
 
-			if (!catalogPermission.isWorked()) {
-				throw new Error(
-					"Не установленно ни одной приватной группы. Подробнее https://docs.ics-it.ru/doc-reader/catalog/private",
-				);
-			}
+			if (!catalogPermission.isWorked()) throw new Error(t("share.error.no-private-groups"));
+
 			const permission = group ? new Permission(group) : catalog?.getNeededPermission();
 			const ticket = encodeURIComponent(ticketManager.getShareTicket(catalogName, permission, new Date(date)));
 

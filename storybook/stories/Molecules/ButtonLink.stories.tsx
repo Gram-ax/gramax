@@ -1,8 +1,8 @@
 import { TextSize } from "@components/Atoms/Button/Button";
 import ButtonLinkSrc, { ButtonLinkProps } from "@components/Molecules/ButtonLink";
+import t from "@ext/localization/locale/translate";
 import { Meta, StoryObj } from "@storybook/react";
 import InlineDecorator from "../../styles/decorators/InlineDecorator";
-import useLocalize from "@ext/localization/useLocalize";
 
 type Story = StoryObj<typeof ButtonLinkSrc>;
 
@@ -10,10 +10,10 @@ export const ButtonLink = (args: ButtonLinkProps) => {
 	return (
 		<div style={{ background: "var(--color-contextmenu-bg)", padding: "15px" }}>
 			<div>
-				<ButtonLinkSrc {...args} iconCode="plus" text={useLocalize("createNew2")} />
+				<ButtonLinkSrc {...args} iconCode="plus" text={t("catalog.new")} />
 			</div>
 			<div style={{ margin: "8px 0" }}>
-				<ButtonLinkSrc {...args} iconCode="cloud" text={useLocalize("load")} />
+				<ButtonLinkSrc {...args} iconCode="cloud" text={t("catalog.clone")} />
 			</div>
 			<div>
 				<ButtonLinkSrc {...args} iconCode={"globe"} />

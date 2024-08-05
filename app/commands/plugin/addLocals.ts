@@ -13,8 +13,18 @@ const add: Command<{ ctx: Context }, void> = Command.create({
 		const { pluginProvider, logger } = this._app;
 		if (pluginProvider.hasAddedLocals) return;
 		const isNext = getExecutingEnvironment() === "next";
-		const pluginListUrl = "/plugins/pluginList.json";
-		const res = await fetch(`${isNext ? ctx.domain : ""}${this._app.conf.basePath.value ?? ""}${pluginListUrl}`);
+		const pluginListUrl = `${this._app.conf.basePath.value ?? ""}/plugins/pluginList.json`;
+
+		let res: Response;
+		try {
+			res = await fetch(`${isNext ? ctx.domain : ""}${pluginListUrl}`);
+		} catch (e) {
+			const message = `Failed to load plugins. Please check if this URL is accessible: "${ctx.domain}${pluginListUrl}"`;
+			const error = new Error(message, { cause: e });
+			if (!isNext) throw error;
+			console.error(error);
+		}
+
 		if (!res.ok || !res.headers.get("content-type").toLowerCase().includes("application/json")) {
 			logger.logInfo("No plugins found");
 			pluginProvider.hasAddedLocals = true;

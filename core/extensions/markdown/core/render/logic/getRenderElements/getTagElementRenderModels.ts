@@ -32,6 +32,7 @@ import { when, who } from "@ext/markdown/elements/whowhen/model/whowhen";
 import ParserContext from "../../../Parser/ParserContext/ParserContext";
 import { Schema } from "../Markdoc";
 import { image } from "@ext/markdown/elements/image/render/image";
+import { alert } from "@ext/markdown/elements/alert/render/model/alert";
 
 function getContextTagElementRenderModels(context: ParserContext): Record<string, Schema> {
 	return {
@@ -65,6 +66,7 @@ export default function getTagElementRenderModels(context?: ParserContext): Reco
 		color,
 		video,
 		note,
+		alert,
 		alfa,
 		beta,
 		when,

@@ -90,14 +90,30 @@ describe("Path правильно", () => {
 
 		describe("путь без расширения", () => {
 			const testPaths = [
+				new Path("folder"),
 				new Path("folder.md"),
 				new Path("./folder.md"),
+				new Path("./folder"),
 				new Path("../folder.md"),
+				new Path("../folder"),
 				new Path(".../folder.md"),
+				new Path(".../folder"),
 				new Path("rootFolder/folder1.md"),
+				new Path("rootFolder/folder1"),
 			];
 
-			const testStripExtension = ["folder", "./folder", "../folder", ".../folder", "rootFolder/folder1"];
+			const testStripExtension = [
+				"folder",
+				"folder",
+				"./folder",
+				"./folder",
+				"../folder",
+				"../folder",
+				".../folder",
+				".../folder",
+				"rootFolder/folder1",
+				"rootFolder/folder1",
+			];
 
 			testPaths.forEach((path, idx) => {
 				test(`с ${idx} точками в начале`, () => {

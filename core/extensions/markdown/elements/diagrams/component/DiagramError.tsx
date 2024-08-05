@@ -1,37 +1,20 @@
-import styled from "@emotion/styled";
-import useLocalize from "@ext/localization/useLocalize";
-import Fence from "@ext/markdown/elements/fence/render/component/Fence";
-import Note, { NoteType } from "@ext/markdown/elements/note/render/component/Note";
+import AlertError from "@components/AlertError";
+import t from "@ext/localization/locale/translate";
 
-const DiagramError = styled(({ error, className }: { error: Error; className?: string }) => {
-	return (
-		<div className={className} data-qa="qa-error-modal">
-			<Note type={NoteType.danger} title={useLocalize("diagramRenderFailed")}>
-				<>
-					<div className="error-explanation">{useLocalize(error.message as any)}</div>
-					<Note title={useLocalize("techDetails")} collapsed={true} type={NoteType.danger}>
-						<Fence value={error.stack} />
-					</Note>
-				</>
-			</Note>
-		</div>
-	);
-})`
-	.admonition-danger .admonition-danger {
-		background-color: transparent;
-		border-left: none;
-		margin: 0;
-		padding: 0;
-	}
+interface OptionalNameError extends Omit<Error, "name"> {
+	name?: string;
+}
 
-	.error-explanation {
-		padding-bottom: 16px;
-	}
+interface DiagramErrorProps {
+	error: OptionalNameError;
+	title?: string;
+	diagramName?: string;
+}
 
-	pre {
-		margin: 1rem 0;
-		padding: 12px 16px !important;
-	}
-`;
+const DiagramError = ({ error, title, diagramName }: DiagramErrorProps) => {
+	const alertTitle = `${title || t("diagram.error.render-failed")}${diagramName ? ` (${diagramName})` : ""}`;
+	error.stack = error.cause ? (error.cause as string) : error.stack;
+	return <AlertError title={alertTitle} error={error} />;
+};
 
 export default DiagramError;

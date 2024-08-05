@@ -16,7 +16,6 @@ export default class ApiUrlCreator {
 		private _isLogged?: boolean,
 		private _catalogName?: string,
 		private _articlePath?: string,
-		private _ssoServerUrl?: string,
 	) {}
 
 	fromArticle(articlePath: string) {
@@ -203,15 +202,25 @@ export default class ApiUrlCreator {
 		return domain + (this._basePath ?? "") + "/openGraph/logo.png";
 	}
 
-	public getAuthUrl(router: Router) {
+	public getAuthUrl(router: Router, ssoServerUrl?: string) {
 		const from = encodeURIComponent(router?.basePath + router?.path);
-		if (this._ssoServerUrl)
+		if (ssoServerUrl) {
 			return Url.from({
-				pathname: `${this._ssoServerUrl}/${this._isLogged ? "logout" : "login"}?from=${from}`,
+				pathname: `${ssoServerUrl}/${this._isLogged ? "logout" : "login"}?from=${from}&isDocportal=true`,
 			});
+		}
 		return Url.fromBasePath(this._isLogged ? `/api/auth/logout` : `/api/auth/login`, this._basePath, {
 			from: from,
+			isDocportal: "true",
 		});
+	}
+
+	public getAuthSsoUrl(data: string, sign: string, from: string) {
+		return Url.fromBasePath(`api/auth/sso`, this._basePath, { data, sign, from });
+	}
+
+	public getUserSettingsUrl(userSettings: string) {
+		return Url.fromBasePath(`api/auth/userSettings`, this._basePath, { userSettings });
 	}
 
 	public getWordSaveUrl(isCategory: boolean, itemPath?: string) {
@@ -481,7 +490,9 @@ export default class ApiUrlCreator {
 	}
 
 	public getCatalogBrotherFileNames() {
-		return Url.fromBasePath(`/api/catalog/getBrotherFileNames`, this._basePath);
+		return Url.fromBasePath(`/api/catalog/getBrotherFileNames`, this._basePath, {
+			catalogName: this._catalogName,
+		});
 	}
 
 	public createArticle(parentPath?: string) {

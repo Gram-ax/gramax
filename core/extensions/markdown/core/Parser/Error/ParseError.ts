@@ -1,12 +1,10 @@
 import DefaultError from "@ext/errorHandlers/logic/DefaultError";
 import ErrorType from "@ext/errorHandlers/model/ErrorTypes";
-
-export const parseErrorText = `Gramax не смог прочитать Markdown-конструкцию в файле статьи. 
-Кликните Редактировать Markdown, а затем исправьте ошибку или удалите конструкцию.`;
+import t from "@ext/localization/locale/translate";
 
 class ParseError extends DefaultError {
 	constructor(cause: Error) {
-		super(parseErrorText, cause);
+		super(t("article.error.parse"), cause);
 	}
 
 	get type() {

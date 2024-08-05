@@ -1,7 +1,7 @@
 import { StringRewriter } from "./StringRewriter";
 
-function multiLayoutSearcher<T>(searcher: (query: string) => T, sync: true): (query: string) => T;
-function multiLayoutSearcher<T>(searcher: (query: string) => Promise<T>, sync?: false): (query: string) => Promise<T>;
+function multiLayoutSearcher<T>(searcher: (query: string) => T, sync: boolean): (query: string) => T;
+function multiLayoutSearcher<T>(searcher: (query: string) => Promise<T>): (query: string) => Promise<T>;
 function multiLayoutSearcher<T>(searcher: (query: string) => T | Promise<T>, sync?: boolean) {
 	const stringRewriter = new StringRewriter();
 	const transformations = [

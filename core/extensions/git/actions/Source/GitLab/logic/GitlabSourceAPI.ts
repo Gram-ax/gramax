@@ -13,10 +13,8 @@ export default class GitlabSourceAPI extends GitSourceApi {
 	async isCredentialsValid() {
 		try {
 			const res = await this._api(`user`);
-			if (res.status == 401 || res.status == 403) return false;
-		} catch {
-			/* empty */
-		}
+			if ((res && res.status == 401) || res.status == 403) return false;
+		} catch {}
 		return true;
 	}
 
@@ -29,17 +27,15 @@ export default class GitlabSourceAPI extends GitSourceApi {
 
 	async isRepositoryExists(data: GitStorageData): Promise<boolean> {
 		const res = await this._api(`projects/${encodeURIComponent(`${data.group}/${data.name}`)}`, { method: "GET" });
-		if (await res.json().then((j) => j.id)) return true;
+		if (res && res.ok && (await res.json().then((j) => j.id))) return true;
 		return false;
 	}
 
 	async getUser(): Promise<SourceUser> {
 		const res = await this._api(`user`);
-		if (res.ok) {
-			const user = await res.json();
-			return { name: user.name, email: user.email, username: user.username, avatarUrl: user.avatar_url };
-		}
-		return null;
+		if (res && !res.ok) return null;
+		const user = await res.json();
+		return { name: user.name, email: user.email, username: user.username, avatarUrl: user.avatar_url };
 	}
 
 	async getProjectsByGroup(group: string, field = "name"): Promise<string[]> {
@@ -90,13 +86,13 @@ export default class GitlabSourceAPI extends GitSourceApi {
 
 	async getDefaultBranch(data: GitStorageData): Promise<string> {
 		const res = await this._api(`projects/${encodeURIComponent(`${data.group}/${data.name}`)}`);
-		if (!res.ok) return null;
+		if (res && !res.ok) return null;
 		return (await res.json()).default_branch;
 	}
 
 	async getAllBranches(data: GitStorageData, field?: string): Promise<any[]> {
 		const res = await this._api(`projects/${encodeURIComponent(`${data.group}/${data.name}`)}/repository/branches`);
-		if (!res.ok) return [];
+		if (res && !res.ok) return [];
 		return (await res.json()).map((branch) => branch?.[field] ?? branch?.name);
 	}
 
@@ -107,9 +103,9 @@ export default class GitlabSourceAPI extends GitSourceApi {
 	): Promise<{ ref: string }[]> {
 		const id = encodeURIComponent(`${data.group}/${data.name}`);
 		const url = `projects/${id}/search?scope=blobs&search=${fileName}&ref=${branch.toString()}`;
-		const response = await this._api(url);
-		if (!response.ok) return [];
-		const search = await response.json();
+		const res = await this._api(url);
+		if (res && !res.ok) return [];
+		const search = await res.json();
 		if (!search || !search.length) return [];
 		return search;
 	}
@@ -117,32 +113,35 @@ export default class GitlabSourceAPI extends GitSourceApi {
 	private async _paginationApi(url: string, init?: RequestInit, perPage?: number): Promise<Response[]> {
 		const result: Response[] = [];
 		const res = await this._api(`${url}${perPage ? `?per_page=${perPage}` : ""}`, init);
-		if (!res.ok) return [];
+		if (res && !res.ok) return [];
 		result.push(res);
 		const responseTotalPages = parseInt(res.headers.get("x-total-pages"));
 		if (responseTotalPages > 1) {
-			result.push(
-				...(await Promise.all(
-					Array.from([...Array(responseTotalPages - 1).keys()]).map(async (page): Promise<Response> => {
-						const res = await this._api(`${url}?${perPage ? `per_page=${perPage}&` : ""}page=${page + 2}`);
-						if (!res.ok) return null;
-						return res;
-					}),
-				).then((x) => x.filter((x) => x))),
+			const responses = await Promise.all(
+				Array.from([...Array(responseTotalPages - 1).keys()]).map(async (page): Promise<Response> => {
+					const res = await this._api(`${url}?${perPage ? `per_page=${perPage}&` : ""}page=${page + 2}`);
+					if (res && !res.ok) return null;
+					return res;
+				}),
 			);
+			result.push(...responses.filter((x) => x));
 		}
 
 		return result;
 	}
 
 	private async _api(url: string, init?: RequestInit): Promise<Response> {
-		const res = await fetch(`https://${this._data.domain}/api/v4/${url}`, {
-			...init,
-			headers: {
-				...(init?.headers ?? {}),
-				...(this._data.token && { Authorization: `Bearer ${this._data.token}` }),
-			},
-		});
-		return res;
+		try {
+			const res = await fetch(`${this._data.protocol ?? "https"}://${this._data.domain}/api/v4/${url}`, {
+				...init,
+				headers: {
+					...(init?.headers ?? {}),
+					...(this._data.token && { Authorization: `Bearer ${this._data.token}` }),
+				},
+			});
+			return res;
+		} catch (e) {
+			console.error(e);
+		}
 	}
 }

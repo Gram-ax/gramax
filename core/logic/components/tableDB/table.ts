@@ -1,7 +1,8 @@
 import { ItemRef } from "@core/FileStructue/Item/ItemRef";
+import t from "@ext/localization/locale/translate";
+import type WorkspaceManager from "@ext/workspace/WorkspaceManager";
 import yaml from "js-yaml";
 import MarkdownParser from "../../../extensions/markdown/core/Parser/Parser";
-import type WorkspaceManager from "@ext/workspace/WorkspaceManager";
 
 export type LocalizedString = { [lang: string]: string; default: string };
 
@@ -81,7 +82,7 @@ export class TableDB {
 	async getTableWithRefs(ref: ItemRef, tableName: string): Promise<TableWithRefs> {
 		const tables = await this.getTables(ref);
 		const table = tables.find((table) => table.code == tableName);
-		if (!table) throw new Error(`Ошибка при отображении элемента. Таблица не найдена: "${tableName}"`);
+		if (!table) throw new Error(`${t("diagram.error.tabledb-not-found")}: "${tableName}"`);
 		const tableWithRefs: TableWithRefs = { ...table, refs: {} };
 		table.fields.forEach((field) => {
 			if (field.refObject) {
@@ -111,10 +112,13 @@ export class TableDB {
 
 	async readSchema(ref: ItemRef): Promise<Table[]> {
 		const fp = this._wm.current().getFileProvider();
-		const file = yaml.load(await fp.read(ref.path));
-
-		if (!file) throw new Error(`Ошибка при отображении элемента. Не найден файл схемы по пути: "${ref.path}"`);
-
+		let content = "";
+		try {
+			content = await fp.read(ref.path);
+		} catch {
+			throw new Error(`${t("diagram.error.tabledb-file-not-found")}: "${ref.path}"`);
+		}
+		const file = yaml.load(content);
 		const fields = new Map<string, Field>();
 		if (file["$fields"]) {
 			let f = file["$fields"];
@@ -209,8 +213,12 @@ export class TableDB {
 
 	async readDiagram(ref: ItemRef): Promise<Diagram> {
 		const fp = this._wm.current().getFileProvider();
-		const file = await fp.read(ref.path);
-		if (!file) return null;
+		let file = "";
+		try {
+			file = await fp.read(ref.path);
+		} catch {
+			return null;
+		}
 		const diagram = yaml.load(file) as Diagram;
 		let positions;
 		if (!Array.isArray(diagram.tables)) {

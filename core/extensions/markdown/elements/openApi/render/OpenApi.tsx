@@ -3,6 +3,8 @@ import styled from "@emotion/styled";
 import OnLoadResourceService from "@ext/markdown/elements/copyArticles/onLoadResourceService";
 import { Suspense, lazy, useState } from "react";
 import ApiUrlCreatorService from "../../../../../ui-logic/ContextServices/ApiUrlCreator";
+import t from "@ext/localization/locale/translate";
+import DiagramError from "@ext/markdown/elements/diagrams/component/DiagramError";
 const LazySwaggerUI = lazy(() => import("./SwaggerUI"));
 
 interface OpenApiProps {
@@ -14,19 +16,27 @@ interface OpenApiProps {
 const OpenApi = (props: OpenApiProps) => {
 	const { src, className, flag = true } = props;
 	const [data, setData] = useState<string>();
+	const [isError, setIsError] = useState(false);
 	const apiUrlCreator = ApiUrlCreatorService.value;
 
 	if (typeof window === "undefined" || !apiUrlCreator || !OnLoadResourceService.value) return null;
 
 	OnLoadResourceService.useGetContent(src, apiUrlCreator, (buffer: Buffer) => {
+		if (!buffer.byteLength) setIsError(true);
 		setData(buffer.toString());
 	});
 
-	return (
-		<div data-focusable="true">
+	return isError ? (
+		<DiagramError
+			error={{ message: t("diagram.error.cannot-get-data") }}
+			title={t("diagram.error.specification")}
+			diagramName="OpenApi"
+		/>
+	) : (
+		<div data-focusable="true" className={className}>
 			<Suspense
 				fallback={
-					<div className={className}>
+					<div className="suspense">
 						<SpinnerLoader width={75} height={75} />
 					</div>
 				}
@@ -38,7 +48,12 @@ const OpenApi = (props: OpenApiProps) => {
 };
 
 export default styled(OpenApi)`
-	display: flex;
-	align-items: center;
-	justify-content: center;
+	.suspense {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+	}
+	.swagger-ui {
+		background: var(--color-active-white-hover);
+	}
 `;

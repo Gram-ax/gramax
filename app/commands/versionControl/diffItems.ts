@@ -5,8 +5,7 @@ import DiffItem from "@ext/VersionControl/model/DiffItem";
 import DiffResource from "@ext/VersionControl/model/DiffResource";
 import DefaultError from "@ext/errorHandlers/logic/DefaultError";
 import GitDiffItemCreator from "@ext/git/core/GitDiffItemCreator/GitDiffItemCreator";
-import Language from "@ext/localization/core/model/Language";
-import useLocalize from "@ext/localization/useLocalize";
+import t from "@ext/localization/locale/translate";
 import { Command } from "../../types/Command";
 
 const diffItems: Command<{ catalogName: string; ctx: Context }, { items: DiffItem[]; resources: DiffResource[] }> =
@@ -28,7 +27,7 @@ const diffItems: Command<{ catalogName: string; ctx: Context }, { items: DiffIte
 			const gitDiffItemCreator = new GitDiffItemCreator(catalog, fp, sitePresenterFactory.fromContext(ctx), fs);
 			const diffItems = await gitDiffItemCreator.getDiffItems();
 			if (diffItems.items.length == 0 && diffItems.resources.length == 0) {
-				throw new DefaultError(useLocalize("noChangesInCatalog", Language.ru), null, null, true);
+				throw new DefaultError(t("no-changes-in-catalog"), null, null, true);
 			}
 			return diffItems;
 		},

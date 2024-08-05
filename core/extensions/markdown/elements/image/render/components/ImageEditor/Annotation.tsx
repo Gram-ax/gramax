@@ -1,8 +1,8 @@
-import { useState, useRef, useEffect, RefObject } from "react";
-import { AnnotationObject } from "../../../edit/model/imageEditorTypes";
-import styled from "@emotion/styled";
 import Tooltip from "@components/Atoms/Tooltip";
+import styled from "@emotion/styled";
 import { objectMove } from "@ext/markdown/elements/image/edit/logic/imageEditorMethods";
+import { RefObject, useEffect, useRef, useState } from "react";
+import { AnnotationObject } from "../../../edit/model/imageEditorTypes";
 
 interface AnnotationObjectProps extends AnnotationObject {
 	parentRef: RefObject<HTMLDivElement>;
@@ -53,7 +53,11 @@ const Annotation = (props: AnnotationObjectProps) => {
 	});
 
 	return (
-		<Tooltip visible={tooltipText && tooltipText.length > 0 && isHover} content={<span>{tooltipText}</span>}>
+		<Tooltip
+			hideInMobile={false}
+			visible={tooltipText && tooltipText.length > 0 && isHover}
+			content={<span>{tooltipText}</span>}
+		>
 			<div
 				id={"object/" + curIndex}
 				ref={mainRef}

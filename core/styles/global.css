@@ -259,6 +259,7 @@ span.pk .far {
 }
 
 .tippy-box {
+	outline: none;
 	max-width: none !important;
 }
 

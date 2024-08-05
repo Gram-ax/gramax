@@ -4,9 +4,9 @@ import CustomArticle from "@components/CustomArticle";
 import FormStyle from "@components/Form/FormStyle";
 import ModalLayout from "@components/Layouts/Modal";
 import ModalLayoutLight from "@components/Layouts/ModalLayoutLight";
+import t from "@ext/localization/locale/translate";
 import { useState } from "react";
 import CatalogPropsService from "../../../ui-logic/ContextServices/CatalogProps";
-import useLocalize from "../../localization/useLocalize";
 import CreateSourceData from "../logic/SourceDataProvider/components/CreateSourceData";
 import getPartGitSourceDataByStorageName from "../logic/utils/getPartSourceDataByStorageName";
 
@@ -23,7 +23,7 @@ const InitSource = ({ trigger }: { trigger: JSX.Element }) => {
 						<CustomArticle name="initSource" setLayout={false} />
 						<div className="buttons">
 							<Button buttonStyle={ButtonStyle.underline} onClick={() => setIsOpen(false)}>
-								{useLocalize("continueLocally")}
+								{t("continue-locally")}
 							</Button>
 							<CreateSourceData
 								defaultSourceData={data}
@@ -32,7 +32,7 @@ const InitSource = ({ trigger }: { trigger: JSX.Element }) => {
 									setIsOpen(false);
 									refreshPage();
 								}}
-								trigger={<Button>{useLocalize("addStorage")}</Button>}
+								trigger={<Button>{t("add-storage")}</Button>}
 							/>
 						</div>
 					</>

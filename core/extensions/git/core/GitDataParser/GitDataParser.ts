@@ -65,10 +65,10 @@ export class GitDataParser {
 		sourceType: SourceType,
 	): string {
 		const links: Record<SourceType, string> = {
+			Git: "",
+			Confluence: "",
 			GitHub: `https://${sourceName}/${group}/${repName}/edit/${branch}/${filePath.value}`,
 			GitLab: `https://${sourceName}/-/ide/project/${group}/${repName}/blob/${branch}/-/${filePath.value}`,
-			Confluence: "",
-			"Enterprise Server": "",
 		};
 		return links[sourceType];
 	}

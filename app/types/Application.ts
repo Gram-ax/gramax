@@ -46,20 +46,14 @@ interface Application {
 
 		version: string;
 		buildVersion: string;
+		glsUrl: string;
 		isRelease: boolean;
 		isReadOnly: boolean;
 		isServerApp: boolean;
 		isProduction: boolean;
 
 		bugsnagApiKey: string;
-
-		services: {
-			review: { url: string };
-			cors: { url: string };
-			auth: { url: string };
-			diagramRenderer: { url: string };
-			sso: { publicKey: string; url: string };
-		};
+		yandexMetricCounter: string;
 	};
 }
 

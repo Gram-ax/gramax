@@ -9,7 +9,7 @@ import UseSWRService from "@core-ui/ApiServices/UseSWRService";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import styled from "@emotion/styled";
-import useLocalize from "@ext/localization/useLocalize";
+import t from "@ext/localization/locale/translate";
 import Fence from "@ext/markdown/elements/fence/render/component/Fence";
 import Form from "@rjsf/core";
 import { useState } from "react";
@@ -56,7 +56,7 @@ const GetSharedTicket = styled((props: { trigger: JSX.Element; className?: strin
 			<ModalLayoutLight>
 				<FormStyle>
 					<>
-						<h2>{useLocalize("share")}</h2>
+						<h2>{t("share.name")}</h2>
 						<Checkbox
 							className="checkbox"
 							checked={showData}
@@ -64,7 +64,7 @@ const GetSharedTicket = styled((props: { trigger: JSX.Element; className?: strin
 								setShowDate(!showData);
 							}}
 						>
-							<span>{useLocalize("linkEndDate")}</span>
+							<span>{t("link-end-date")}</span>
 						</Checkbox>
 						{!showData ? null : (
 							<Form
@@ -78,14 +78,14 @@ const GetSharedTicket = styled((props: { trigger: JSX.Element; className?: strin
 							/>
 						)}
 
-						<label>{useLocalize("usersGroup")}</label>
+						<label>{t("users-group")}</label>
 						<div className="field">
 							<ListLayout
 								items={groups ?? []}
 								onItemClick={(item) => {
 									setGroup(item);
 								}}
-								placeholder={useLocalize("allGroups")}
+								placeholder={t("all-groups")}
 							/>
 						</div>
 						<div className="article global">
@@ -97,7 +97,7 @@ const GetSharedTicket = styled((props: { trigger: JSX.Element; className?: strin
 									setTicket(await res.text());
 								}}
 							>
-								{useLocalize("generateLink")}
+								{t("generate-link")}
 							</div>
 						</div>
 						<div

@@ -1,10 +1,10 @@
 import Code from "@components/Atoms/Code";
-import useLocalize from "@ext/localization/useLocalize";
+import t from "@ext/localization/locale/translate";
 
 const DisableTooltipContent = ({ branch }: { branch: string }) => {
 	return (
 		<div>
-			{useLocalize("yourBranch")} <Code>{branch}</Code> {useLocalize("onTheSameVersion").toLowerCase()}
+			{t("your-branch")} <Code>{branch}</Code> {t("on-the-same-version").toLowerCase()}
 		</div>
 	);
 };

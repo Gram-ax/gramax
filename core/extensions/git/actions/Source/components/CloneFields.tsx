@@ -1,8 +1,8 @@
 import ListLayout, { ListLayoutElement } from "@components/List/ListLayout";
 import { getHttpsRepositoryUrl } from "@components/libs/utils";
+import t from "@ext/localization/locale/translate";
 import { useEffect, useRef, useState } from "react";
 import parseStorageUrl from "../../../../../logic/utils/parseStorageUrl";
-import useLocalize from "../../../../localization/useLocalize";
 import GitSourceData from "../../../core/model/GitSourceData.schema";
 import GitStorageData from "../../../core/model/GitStorageData";
 
@@ -42,13 +42,13 @@ const CloneFields = (props: CloneFieldsProps) => {
 
 	return (
 		<div className="form-group field field-string row">
-			<label className="control-label">{useLocalize("repository")}</label>
+			<label className="control-label">{t("repository")}</label>
 			<div className="input-lable">
 				<ListLayout
 					isLoadingData={isLoadingData}
 					ref={ref}
 					openByDefault={true}
-					placeholder={`${useLocalize("find")} ${useLocalize("repository2")}`}
+					placeholder={`${t("find")} ${t("repository2")}`}
 					item={project ?? ""}
 					items={projects}
 					onItemClick={setProject}

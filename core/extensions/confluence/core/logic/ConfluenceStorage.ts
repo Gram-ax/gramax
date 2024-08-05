@@ -9,6 +9,7 @@ import { ConfluenceArticle, ConfluenceArticleTree } from "@ext/confluence/core/m
 import ConfluenceImportData from "@ext/confluence/core/model/ConfluenceImportData";
 import ConfluenceStorageData from "@ext/confluence/core/model/ConfluenceStorageData";
 import { makeSourceApi } from "@ext/git/actions/Source/makeSourceApi";
+import t from "@ext/localization/locale/translate";
 import MarkdownFormatter from "@ext/markdown/core/edit/logic/Formatter/Formatter";
 import { JSONContent } from "@tiptap/core";
 
@@ -68,7 +69,7 @@ export default class ConfluenceStorage {
 		fp: FileProvider,
 	) {
 		const blogsPath = new Path(`${path.value}/blogs/${CATEGORY_ROOT_FILENAME}`);
-		const content = fs.serialize({ title: "Блоги", order: this.position++ }, "");
+		const content = fs.serialize({ title: t("confluence.blogs"), order: this.position++ }, "");
 		await fp.write(blogsPath, content);
 		let blogPosition = blogs.length;
 		for (const blog of blogs) {
@@ -186,7 +187,7 @@ export default class ConfluenceStorage {
 					content: [
 						{
 							type: "text",
-							text: "Ссылка на доску",
+							text: t("confluence.link-board"),
 							marks: [
 								{
 									type: "link",

@@ -1,4 +1,3 @@
-import GitCommandsConfig from "@ext/git/core/GitCommands/model/GitCommandsConfig";
 import Path from "../../../../logic/FileProvider/Path/Path";
 import FileProvider from "../../../../logic/FileProvider/model/FileProvider";
 import Progress from "../../../storage/models/Progress";
@@ -9,7 +8,6 @@ interface GitCloneData {
 	fp: FileProvider;
 	repositoryPath: Path;
 	source: GitSourceData;
-	conf: GitCommandsConfig;
 	url?: string;
 	branch?: string;
 	recursive?: boolean;

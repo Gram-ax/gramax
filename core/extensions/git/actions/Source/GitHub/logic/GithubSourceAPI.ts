@@ -85,12 +85,14 @@ export default class GithubSourceAPI extends GitSourceApi {
 		const res = await this._api("user/installations");
 		if (!res.ok) return null;
 		const installations = await res.json();
-		return installations.installations.map((i): GithubInstallation => ({
-			name: i.account.login,
-			htmlUrl: i.account.html_url,
-			avatarUrl: i.account.avatar_url,
-			type: i.account.type
-		}));
+		return installations.installations.map(
+			(i): GithubInstallation => ({
+				name: i.account.login,
+				htmlUrl: i.account.html_url,
+				avatarUrl: i.account.avatar_url,
+				type: i.account.type,
+			}),
+		);
 	}
 
 	async refreshAccessToken(): Promise<GitSourceData> {
@@ -115,17 +117,15 @@ export default class GithubSourceAPI extends GitSourceApi {
 		result.push(res);
 		const totalPages = getTotalPages(res.headers.get("link"));
 		if (totalPages > 1) {
-			result.push(
-				...(await Promise.all(
-					Array.from([...Array(totalPages - 1).keys()]).map(async (page): Promise<Response> => {
-						const res = await this._api(`${url}?${perPage ? `per_page=${perPage}&` : ""}page=${page + 2}`);
-						if (!res.ok) return null;
-						return res;
-					}),
-				).then((x) => x.filter((x) => x))),
+			const responses = await Promise.all(
+				Array.from([...Array(totalPages - 1).keys()]).map(async (page): Promise<Response> => {
+					const res = await this._api(`${url}?${perPage ? `per_page=${perPage}&` : ""}page=${page + 2}`);
+					if (!res.ok) return null;
+					return res;
+				}),
 			);
+			result.push(...responses.filter((x) => x));
 		}
-
 		return result;
 	}
 

@@ -27,7 +27,7 @@ const healthcheck: Command<{ ctx: Context; catalogName: string }, CatalogErrors>
 			await sitePresenterFactory.fromContext(ctx).parseAllItems(catalog),
 		);
 
-		const errors = await healthcheck.сheckCatalog();
+		const errors = await healthcheck.checkCatalog();
 
 		const catalogErrors = catalog.errors;
 		Object.keys(catalogErrors).forEach((key) => {

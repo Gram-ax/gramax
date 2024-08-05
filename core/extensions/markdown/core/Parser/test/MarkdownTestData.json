@@ -22,7 +22,7 @@
 		{
 			"text": "```\ntext\n```",
 			"renderTree": { "$$mdtype": "Tag", "name": "Fence", "attributes": { "value": "text\n" }, "children": [] },
-			"html": "<pre class=\"prism-code language-undefined css-1uvdwg0\" style=\"color:#403f53;background-color:#FBFBFB;position:relative\"><div style=\"overflow:auto;padding:20px\"><div class=\"token-line\" style=\"color:#403f53\"><span class=\"token plain\">text</span></div></div></pre>"
+			"html": "<pre class=\"prism-code language-undefined css-1uvdwg0\" style=\"color:#403f53;background-color:#FBFBFB;position:relative\"><div style=\"overflow:auto;padding:0px\"><div class=\"token-line\" style=\"color:#403f53\"><span class=\"token plain\">text</span></div></div></pre>"
 		},
 		{
 			"text": "```plant-uml:title\n@startuml\nBob -> Alice : hello@enduml\n```",
@@ -35,7 +35,7 @@
 				},
 				"children": []
 			},
-			"html": "<br/><img src=\"requestURL.com/testBasePath/api/diagram/content?diagram=Plant-uml&amp;content=SoWkIImgAStDuNBAJrBGjLDmpCbCJbMmKiX8pSd9TqZDIm790G00\"/><br/>"
+			"html": "<plant-uml title=\"title\">@startuml\nBob -&gt; Alice : hello@enduml\n</plant-uml>"
 		}
 	],
 	"Plant-uml": [
@@ -49,7 +49,7 @@
 				},
 				"children": []
 			},
-			"html": "<br/><img src=\"requestURL.com/testBasePath/api/diagram/path?articlePath=MarkdownCatalog%2Fcategory%2FemptyArticle.md&amp;catalogName=MarkdownCatalog&amp;diagram=Plant-uml&amp;path=.%2FplantUmlTest.puml\"/><br/>"
+			"html": "<plant-uml src=\"requestURL.com/testBasePath/api/catalogs/MarkdownCatalog/articles/MarkdownCatalog%2Fcategory%2FemptyArticle.md/resources/.%2FplantUmlTest.puml\"></plant-uml>"
 		}
 	],
 	"Cmd": [
@@ -162,7 +162,7 @@
 				],
 				"name": "p"
 			},
-			"html": "<p><br/><img src=\"requestURL.com/testBasePath/api/article/resource/get?articlePath=MarkdownCatalog%2Fcategory%2FemptyArticle.md&amp;catalogName=MarkdownCatalog&amp;src=.%2Fimage.png\" width=\"50%\"/><br/></p>"
+			"html": "<p><div><img src=\"requestURL.com/testBasePath/api/catalogs/MarkdownCatalog/articles/MarkdownCatalog%2Fcategory%2FemptyArticle.md/resources/.%2Fimage.png\"/><em>someTitle</em></div></p>"
 		}
 	],
 	"Video": [
@@ -178,7 +178,7 @@
 				"children": [],
 				"name": "Video"
 			},
-			"html": "<span data-type=\"video\"><video controls=\"\" id=\"my-player\" preload=\"auto\" data-focusable=\"true\" data-setup=\"{}\" class=\"video-js\"></video><em>Очень интересное видео</em></span>"
+			"html": "<div data-type=\"video\"><video id=\"my-player\" data-focusable=\"true\" class=\"video-js\" controls=\"\" preload=\"auto\" data-setup=\"{}\" src=\"sample-mp4-file.mp4\"></video><em>Очень интересное видео</em></div>"
 		}
 	],
 	"Term": [
@@ -316,6 +316,506 @@
 				"name": "hr"
 			},
 			"html": "<hr>"
+		}
+	],
+	"Drawio": [
+		{
+			"text": "[drawio:./drawio.svg:someTitle]",
+			"renderTree": {
+				"$$mdtype": "Tag",
+				"attributes": {
+					"src": "./drawio.svg",
+					"title": "someTitle"
+				},
+				"children": [],
+				"name": "Drawio"
+			},
+			"html": "<div><img src=\"requestURL.com/testBasePath/api/catalogs/MarkdownCatalog/articles/MarkdownCatalog%2Fcategory%2FemptyArticle.md/resources/.%2Fdrawio.svg\"/><em>someTitle</em></div>"
+		}
+	],
+	"Formula": [
+		{
+			"text": "$$ a=b+c $$",
+			"renderTree": {
+				"$$mdtype": "Tag",
+				"attributes": {
+					"content": "<p class=\"katex-block math-block\"><span class=\"katex-display\"><span class=\"katex\"><span class=\"katex-mathml\"><math xmlns=\"http://www.w3.org/1998/Math/MathML\" display=\"block\"><semantics><mrow><mi>a</mi><mo>=</mo><mi>b</mi><mo>+</mo><mi>c</mi></mrow><annotation encoding=\"application/x-tex\">a=b+c \n</annotation></semantics></math></span><span class=\"katex-html\" aria-hidden=\"true\"><span class=\"base\"><span class=\"strut\" style=\"height:0.4306em;\"></span><span class=\"mord mathnormal\">a</span><span class=\"mspace\" style=\"margin-right:0.2778em;\"></span><span class=\"mrel\">=</span><span class=\"mspace\" style=\"margin-right:0.2778em;\"></span></span><span class=\"base\"><span class=\"strut\" style=\"height:0.7778em;vertical-align:-0.0833em;\"></span><span class=\"mord mathnormal\">b</span><span class=\"mspace\" style=\"margin-right:0.2222em;\"></span><span class=\"mbin\">+</span><span class=\"mspace\" style=\"margin-right:0.2222em;\"></span></span><span class=\"base\"><span class=\"strut\" style=\"height:0.4306em;\"></span><span class=\"mord mathnormal\">c</span></span></span></span></span></p>\n"
+				},
+				"children": [],
+				"name": "Formula"
+			},
+			"html": "<span class=\"css-anpco5\"><p class=\"katex-block math-block\"><span class=\"katex-display\"><span class=\"katex\"><span class=\"katex-mathml\"><math xmlns=\"http://www.w3.org/1998/Math/MathML\" display=\"block\"><semantics><mrow><mi>a</mi><mo>=</mo><mi>b</mi><mo>+</mo><mi>c</mi></mrow><annotation encoding=\"application/x-tex\">a=b+c \n</annotation></semantics></math></span><span class=\"katex-html\" aria-hidden=\"true\"><span class=\"base\"><span class=\"strut\" style=\"height:0.4306em;\"></span><span class=\"mord mathnormal\">a</span><span class=\"mspace\" style=\"margin-right:0.2778em;\"></span><span class=\"mrel\">=</span><span class=\"mspace\" style=\"margin-right:0.2778em;\"></span></span><span class=\"base\"><span class=\"strut\" style=\"height:0.7778em;vertical-align:-0.0833em;\"></span><span class=\"mord mathnormal\">b</span><span class=\"mspace\" style=\"margin-right:0.2222em;\"></span><span class=\"mbin\">+</span><span class=\"mspace\" style=\"margin-right:0.2222em;\"></span></span><span class=\"base\"><span class=\"strut\" style=\"height:0.4306em;\"></span><span class=\"mord mathnormal\">c</span></span></span></span></span></p>\n</span>"
+		},
+		{
+			"text": "$ a=b+c $",
+			"renderTree": {
+				"$$mdtype": "Tag",
+				"attributes": {
+					"content": "<p>$ a=b+c $</p>\n"
+				},
+				"children": [],
+				"name": "Formula"
+			},
+			"html": "<span class=\"css-anpco5\" style=\"display:inline-flex\">$ a=b+c $\n</span>"
+		}
+	],
+	"Table": [
+		{
+			"text": "| Столбец 1 | Столбец 2 | Столбец 3 |\n|-----------|-----------|-----------|\n| Строка 1  | Строка 1  | Строка 1  |\n| Строка 2  | Строка 2  | Строка 2  |",
+			"renderTree": {
+				"$$mdtype": "Tag",
+				"attributes": {},
+				"children": [
+					{
+						"$$mdtype": "Tag",
+						"attributes": {},
+						"children": [
+							{
+								"$$mdtype": "Tag",
+								"attributes": {},
+								"children": [
+									{
+										"$$mdtype": "Tag",
+										"attributes": {
+											"align": "left"
+										},
+										"children": [
+											{
+												"$$mdtype": "Tag",
+												"attributes": {},
+												"children": ["Столбец 1"],
+												"name": "p"
+											}
+										],
+										"name": "th"
+									},
+									{
+										"$$mdtype": "Tag",
+										"attributes": {
+											"align": "left"
+										},
+										"children": [
+											{
+												"$$mdtype": "Tag",
+												"attributes": {},
+												"children": ["Столбец 2"],
+												"name": "p"
+											}
+										],
+										"name": "th"
+									},
+									{
+										"$$mdtype": "Tag",
+										"attributes": {
+											"align": "left"
+										},
+										"children": [
+											{
+												"$$mdtype": "Tag",
+												"attributes": {},
+												"children": ["Столбец 3"],
+												"name": "p"
+											}
+										],
+										"name": "th"
+									}
+								],
+								"name": "tr"
+							}
+						],
+						"name": "thead"
+					},
+					{
+						"$$mdtype": "Tag",
+						"attributes": {},
+						"children": [
+							{
+								"$$mdtype": "Tag",
+								"attributes": {},
+								"children": [
+									{
+										"$$mdtype": "Tag",
+										"attributes": {
+											"align": "left"
+										},
+										"children": [
+											{
+												"$$mdtype": "Tag",
+												"attributes": {},
+												"children": ["Строка 1"],
+												"name": "p"
+											}
+										],
+										"name": "td"
+									},
+									{
+										"$$mdtype": "Tag",
+										"attributes": {
+											"align": "left"
+										},
+										"children": [
+											{
+												"$$mdtype": "Tag",
+												"attributes": {},
+												"children": ["Строка 1"],
+												"name": "p"
+											}
+										],
+										"name": "td"
+									},
+									{
+										"$$mdtype": "Tag",
+										"attributes": {
+											"align": "left"
+										},
+										"children": [
+											{
+												"$$mdtype": "Tag",
+												"attributes": {},
+												"children": ["Строка 1"],
+												"name": "p"
+											}
+										],
+										"name": "td"
+									}
+								],
+								"name": "tr"
+							},
+							{
+								"$$mdtype": "Tag",
+								"attributes": {},
+								"children": [
+									{
+										"$$mdtype": "Tag",
+										"attributes": {
+											"align": "left"
+										},
+										"children": [
+											{
+												"$$mdtype": "Tag",
+												"attributes": {},
+												"children": ["Строка 2"],
+												"name": "p"
+											}
+										],
+										"name": "td"
+									},
+									{
+										"$$mdtype": "Tag",
+										"attributes": {
+											"align": "left"
+										},
+										"children": [
+											{
+												"$$mdtype": "Tag",
+												"attributes": {},
+												"children": ["Строка 2"],
+												"name": "p"
+											}
+										],
+										"name": "td"
+									},
+									{
+										"$$mdtype": "Tag",
+										"attributes": {
+											"align": "left"
+										},
+										"children": [
+											{
+												"$$mdtype": "Tag",
+												"attributes": {},
+												"children": ["Строка 2"],
+												"name": "p"
+											}
+										],
+										"name": "td"
+									}
+								],
+								"name": "tr"
+							}
+						],
+						"name": "tbody"
+					}
+				],
+				"name": "Table"
+			},
+			"html": "<div class=\"css-ufqlq9 expanded\"><div class=\"scrollableСontent\"><table><thead><tr><th align=\"left\"><p>Столбец 1</p></th><th align=\"left\"><p>Столбец 2</p></th><th align=\"left\"><p>Столбец 3</p></th></tr></thead><tbody><tr><td align=\"left\"><p>Строка 1</p></td><td align=\"left\"><p>Строка 1</p></td><td align=\"left\"><p>Строка 1</p></td></tr><tr><td align=\"left\"><p>Строка 2</p></td><td align=\"left\"><p>Строка 2</p></td><td align=\"left\"><p>Строка 2</p></td></tr></tbody></table></div></div>"
+		},
+		{
+			"text": "{% table %}\n\n---\n\n*  {% colspan=2 %}\n\n   Объединённая ячейка по горизонтали\n\n*  Строка 1 Ячейка 2\n\n---\n\n*  Строка 2 Ячейка 1\n\n*  Строка 2 Ячейка 2\n\n*  {% rowspan=2 %}\n\n   Строка 2 Ячейка 3\n\n   -  Объединённая\n\n   -  ячейка\n\n   -  по вертикали\n\n---\n\n*  Строка 3 Ячейка 1\n\n*  Строка 3 Ячейка 2\n\n{% /table %}",
+			"renderTree": {
+				"$$mdtype": "Tag",
+				"attributes": {},
+				"children": [
+					{
+						"$$mdtype": "Tag",
+						"attributes": {},
+						"children": [
+							{
+								"$$mdtype": "Tag",
+								"attributes": {},
+								"children": [
+									{
+										"$$mdtype": "Tag",
+										"attributes": {
+											"colspan": 2
+										},
+										"children": [
+											{
+												"$$mdtype": "Tag",
+												"attributes": {},
+												"children": ["Объединённая ячейка по горизонтали"],
+												"name": "p"
+											}
+										],
+										"name": "td"
+									},
+									{
+										"$$mdtype": "Tag",
+										"attributes": {},
+										"children": [
+											{
+												"$$mdtype": "Tag",
+												"attributes": {},
+												"children": ["Строка 1 Ячейка 2"],
+												"name": "p"
+											}
+										],
+										"name": "td"
+									}
+								],
+								"name": "tr"
+							},
+							{
+								"$$mdtype": "Tag",
+								"attributes": {},
+								"children": [
+									{
+										"$$mdtype": "Tag",
+										"attributes": {},
+										"children": [
+											{
+												"$$mdtype": "Tag",
+												"attributes": {},
+												"children": ["Строка 2 Ячейка 1"],
+												"name": "p"
+											}
+										],
+										"name": "td"
+									},
+									{
+										"$$mdtype": "Tag",
+										"attributes": {},
+										"children": [
+											{
+												"$$mdtype": "Tag",
+												"attributes": {},
+												"children": ["Строка 2 Ячейка 2"],
+												"name": "p"
+											}
+										],
+										"name": "td"
+									},
+									{
+										"$$mdtype": "Tag",
+										"attributes": {
+											"rowspan": 2
+										},
+										"children": [
+											{
+												"$$mdtype": "Tag",
+												"attributes": {},
+												"children": ["Строка 2 Ячейка 3"],
+												"name": "p"
+											},
+											{
+												"$$mdtype": "Tag",
+												"attributes": {
+													"depth": 0
+												},
+												"children": [
+													{
+														"$$mdtype": "Tag",
+														"attributes": {
+															"depth": 0
+														},
+														"children": [
+															{
+																"$$mdtype": "Tag",
+																"attributes": {},
+																"children": ["Объединённая"],
+																"name": "p"
+															}
+														],
+														"name": "li"
+													},
+													{
+														"$$mdtype": "Tag",
+														"attributes": {
+															"depth": 0
+														},
+														"children": [
+															{
+																"$$mdtype": "Tag",
+																"attributes": {},
+																"children": ["ячейка"],
+																"name": "p"
+															}
+														],
+														"name": "li"
+													},
+													{
+														"$$mdtype": "Tag",
+														"attributes": {
+															"depth": 0
+														},
+														"children": [
+															{
+																"$$mdtype": "Tag",
+																"attributes": {},
+																"children": ["по вертикали"],
+																"name": "p"
+															}
+														],
+														"name": "li"
+													}
+												],
+												"name": "ul"
+											}
+										],
+										"name": "td"
+									}
+								],
+								"name": "tr"
+							},
+							{
+								"$$mdtype": "Tag",
+								"attributes": {},
+								"children": [
+									{
+										"$$mdtype": "Tag",
+										"attributes": {},
+										"children": [
+											{
+												"$$mdtype": "Tag",
+												"attributes": {},
+												"children": ["Строка 3 Ячейка 1"],
+												"name": "p"
+											}
+										],
+										"name": "td"
+									},
+									{
+										"$$mdtype": "Tag",
+										"attributes": {},
+										"children": [
+											{
+												"$$mdtype": "Tag",
+												"attributes": {},
+												"children": ["Строка 3 Ячейка 2"],
+												"name": "p"
+											}
+										],
+										"name": "td"
+									}
+								],
+								"name": "tr"
+							}
+						],
+						"name": "tbody"
+					}
+				],
+				"name": "Table"
+			},
+			"html": "<div class=\"css-ufqlq9 expanded\"><div class=\"scrollableСontent\"><table><tbody><tr><td colspan=\"2\"><p>Объединённая ячейка по горизонтали</p></td><td><p>Строка 1 Ячейка 2</p></td></tr><tr><td><p>Строка 2 Ячейка 1</p></td><td><p>Строка 2 Ячейка 2</p></td><td rowspan=\"2\"><p>Строка 2 Ячейка 3</p><ul depth=\"0\"><li depth=\"0\"><p>Объединённая</p></li><li depth=\"0\"><p>ячейка</p></li><li depth=\"0\"><p>по вертикали</p></li></ul></td></tr><tr><td><p>Строка 3 Ячейка 1</p></td><td><p>Строка 3 Ячейка 2</p></td></tr></tbody></table></div></div>"
+		}
+	],
+	"Note": [
+		{
+			"text": ":::quote Цитата\n\nТекст заметки\n\n:::",
+			"renderTree": {
+				"$$mdtype": "Tag",
+				"attributes": {
+					"collapsed": false,
+					"title": "Цитата",
+					"type": "quote"
+				},
+				"children": [
+					{
+						"$$mdtype": "Tag",
+						"attributes": {},
+						"children": ["Текст заметки"],
+						"name": "p"
+					}
+				],
+				"name": "Note"
+			},
+			"html": "<div class=\"admonition admonition-quote admonition-column\"><div class=\"admonition-heading\"><div class=\"admonition-icon\"><i class=\"css-15fiha7\"><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"1em\" height=\"1em\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" class=\"lucide lucide-quote \"><path d=\"M3 21c3 0 7-1 7-8V5c0-1.25-.756-2.017-2-2H4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2 1 0 1 0 1 1v1c0 1-1 2-2 2s-1 .008-1 1.031V20c0 1 0 1 1 1z\"></path><path d=\"M15 21c3 0 7-1 7-8V5c0-1.25-.757-2.017-2-2h-4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2h.75c0 2.25.25 4-2.75 4v3c0 1 0 1 1 1z\"></path></svg></i></div><div contenteditable=\"false\" class=\"titleWrapper\"><div class=\"title\">Цитата</div></div></div><div class=\"admonition-content\"><div class=\"paragraph\"><p>Текст заметки</p></div></div></div>"
+		},
+		{
+			"text": ":::danger:true Предупреждение\n\nТекст заметки\n\n:::",
+			"renderTree": {
+				"$$mdtype": "Tag",
+				"attributes": {
+					"collapsed": true,
+					"title": "Предупреждение",
+					"type": "danger"
+				},
+				"children": [
+					{
+						"$$mdtype": "Tag",
+						"attributes": {},
+						"children": ["Текст заметки"],
+						"name": "p"
+					}
+				],
+				"name": "Note"
+			},
+			"html": "<div class=\"admonition admonition-danger admonition-column\"><div class=\"admonition-heading expanded\"><div class=\"admonition-icon\"><i style=\"cursor:pointer;user-select:none\" class=\"css-15fiha7\"><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"1em\" height=\"1em\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"max(0.075em, 1.3px)\" stroke-linecap=\"round\" stroke-linejoin=\"round\" class=\"lucide lucide-chevron-right \"><path d=\"m9 18 6-6-6-6\"></path></svg></i></div><div contenteditable=\"false\" class=\"titleWrapper\"><div class=\"title clickable\">Предупреждение</div></div></div><div class=\"admonition-content\"></div></div>"
+		}
+	],
+	"Link": [
+		{
+			"text": "[Gramax](https://ics-it.gram.ax/)",
+			"renderTree": {
+				"$$mdtype": "Tag",
+				"attributes": {},
+				"children": [
+					{
+						"$$mdtype": "Tag",
+						"attributes": {
+							"hash": null,
+							"href": "https://ics-it.gram.ax/",
+							"resourcePath": ""
+						},
+						"children": ["Gramax"],
+						"name": "Link"
+					}
+				],
+				"name": "p"
+			},
+			"html": "<p><a href=\"https://ics-it.gram.ax/\">Gramax</a></p>"
+		},
+		{
+			"text": "[Очень важный файл](./1718261246743-2.log)",
+			"renderTree": {
+				"$$mdtype": "Tag",
+				"attributes": {},
+				"children": [
+					{
+						"$$mdtype": "Tag",
+						"attributes": {
+							"href": "/testBasePath/api/article/resource/get?articlePath=MarkdownCatalog%2Fcategory%2FemptyArticle.md&catalogName=MarkdownCatalog&src=.%2F1718261246743-2.log",
+							"isFile": true,
+							"resourcePath": "./1718261246743-2.log"
+						},
+						"children": ["Очень важный файл"],
+						"name": "Link"
+					}
+				],
+				"name": "p"
+			},
+			"html": "<p><a href=\"requestURL.com/testBasePath/api/catalogs/MarkdownCatalog/articles/MarkdownCatalog%2Fcategory%2FemptyArticle.md/resources/.%2F1718261246743-2.log\">Очень важный файл</a></p>"
 		}
 	]
 }

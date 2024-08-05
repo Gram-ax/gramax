@@ -181,6 +181,8 @@ const swapListItem = ({ editor, isUp, anchor, doc, tr }: MoveProps) => {
 		parentListPos: parentPos,
 	});
 
+	if ((isUp && !prevNode) || (!isUp && !nextNode)) return tr;
+
 	const swapPos = parentPos + (isUp ? prevNodePos : nextNodePos);
 	const swapNode = isUp ? prevNode : nextNode;
 	const focusPos = isUp ? anchor - prevNode.nodeSize : anchor + nextNode.nodeSize;

@@ -2,6 +2,7 @@ import ArticleUpdaterService from "@components/Article/ArticleUpdater/ArticleUpd
 import InputFile from "@components/Atoms/InputFile";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import ButtonStateService from "@core-ui/ContextServices/ButtonStateService/ButtonStateService";
+import t from "@ext/localization/locale/translate";
 import Button from "@ext/markdown/core/edit/components/Menu/Button";
 import { Editor } from "@tiptap/core";
 import createFile from "../logic/createFile";
@@ -12,7 +13,7 @@ const FileMenuButton = ({ editor, onSave }: { editor: Editor; onSave?: () => voi
 	const { disabled } = ButtonStateService.useCurrentAction({ mark: "file" });
 
 	if (disabled) {
-		return <Button icon="file" nodeValues={{ mark: "file" }} tooltipText="Файл" />;
+		return <Button icon="file" nodeValues={{ mark: "file" }} tooltipText={t("file")} />;
 	}
 
 	return (
@@ -26,7 +27,7 @@ const FileMenuButton = ({ editor, onSave }: { editor: Editor; onSave?: () => voi
 			<Button
 				icon="file"
 				nodeValues={{ mark: "file" }}
-				tooltipText="Файл"
+				tooltipText={t("file")}
 				onClick={() => ArticleUpdaterService.stopLoadingAfterFocus()}
 			/>
 		</InputFile>

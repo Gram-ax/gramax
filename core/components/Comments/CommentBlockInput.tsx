@@ -1,7 +1,7 @@
 import styled from "@emotion/styled";
+import t from "@ext/localization/locale/translate";
 import { JSONContent } from "@tiptap/react";
 import React, { Dispatch, MutableRefObject, SetStateAction } from "react";
-import useLocalize from "../../extensions/localization/useLocalize";
 import Input from "./Input";
 
 export const CommentBlockInput = styled(
@@ -44,8 +44,8 @@ export const CommentBlockInput = styled(
 				<div ref={ref} className={className}>
 					<div className="input">
 						<Input
-							confirmButtonText={useLocalize("comment")}
-							placeholder={useLocalize("leaveAComment")}
+							confirmButtonText={t("comment")}
+							placeholder={t("leave-comment")}
 							onEditorClick={onEditorClick}
 							onConfirm={onCurrentConfirm}
 							onCancel={onCurrentCancel}

@@ -1,5 +1,5 @@
 import { ReactElement, useEffect, useRef } from "react";
-import TableWrapper from "@ext/markdown/elements/table/render/component/TableWrapper";
+import TableWrapper, { CELL_MIN_WIDTH } from "@ext/markdown/elements/table/render/component/TableWrapper";
 
 const setTableCellsWidth = (table: HTMLTableElement) => {
 	const tds = table.getElementsByTagName("td");
@@ -10,25 +10,14 @@ const setTableCellsWidth = (table: HTMLTableElement) => {
 
 const setCellWidth = (cell: HTMLElement) => {
 	if (cell.getAttribute("colwidth")) {
-		cell.style.minWidth =
+		cell.style.width =
 			cell
 				.getAttribute("colwidth")
 				.split(",")
 				.map((w) => Number.parseInt(w))
 				.reduce((a, b) => a + b, 0)
 				.toString() + "px";
-		cell.style.width = cell.style.minWidth;
-	}
-};
-
-const setTableCellsLeftPadding = (table: HTMLTableElement) => {
-	const trs = table.getElementsByTagName("tr");
-	let maxCellsInRow = 0;
-	for (let i = 0; i < trs.length; i++) {
-		if (trs[i].children.length > maxCellsInRow) maxCellsInRow = trs[i].children.length;
-	}
-	for (let i = 0; i < trs.length; i++) {
-		if (trs[i].children.length !== maxCellsInRow) (trs[i].firstChild as HTMLElement).style.paddingLeft = "12px";
+		cell.style.minWidth = `max(${cell.style.width}, ${CELL_MIN_WIDTH})`;
 	}
 };
 
@@ -38,7 +27,6 @@ const Table = ({ children }: { children?: any }): ReactElement => {
 	useEffect(() => {
 		if (!ref.current) return;
 		setTableCellsWidth(ref.current);
-		setTableCellsLeftPadding(ref.current);
 	});
 
 	return (

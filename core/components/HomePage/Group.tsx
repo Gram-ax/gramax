@@ -2,7 +2,7 @@ import Card from "@components/HomePage/Card";
 import { cssMedia } from "@core-ui/utils/cssUtils";
 import type { GroupData } from "@core/SitePresenter/SitePresenter";
 import styled from "@emotion/styled";
-import useLocalize from "@ext/localization/useLocalize";
+import t from "@ext/localization/locale/translate";
 import type { Dispatch, SetStateAction } from "react";
 
 const Group = ({
@@ -16,7 +16,7 @@ const Group = ({
 }) => {
 	return (
 		<div className={className}>
-			<div className="group-header">{groupData.title !== "null" && useLocalize(groupData.title as any)}</div>
+			<div className="group-header">{groupData.title !== "null" && t(groupData.title as any)}</div>
 			<div className="group-container">
 				{groupData.catalogLinks.map((link, i) => (
 					<Card key={i} link={link} style={groupData.style} onClick={() => setIsAnyCardLoading(true)} />

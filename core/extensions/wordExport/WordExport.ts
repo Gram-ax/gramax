@@ -1,33 +1,36 @@
-import useBareLocalize from "@ext/localization/useLocalize/useBareLocalize";
+import t from "@ext/localization/locale/translate";
 import { Tag } from "@ext/markdown/core/render/logic/Markdoc";
 import DocumentTree from "@ext/wordExport/DocumentTree/DocumentTree";
 import { createContent } from "@ext/wordExport/TextWordGenerator";
-import { Document, ISectionOptions, TableOfContents } from "docx";
-import { FileChild } from "docx/build/file/file-child";
+import { Document, ISectionOptions, Paragraph, TableOfContents } from "docx";
 import FileProvider from "../../logic/FileProvider/model/FileProvider";
 import { WordSerializerState } from "./WordExportState";
 import { getBlockChildren } from "./getBlockChildren";
 import { getInlineChildren } from "./getInlineChildren";
-import jsonXml from "./options/styles.json";
+import stylesJson from "./options/mainStyles.json";
 import { wordDocumentStyles } from "./options/wordDocumentStyles";
 import { HeadingStyles, WordFontStyles } from "./options/wordExportSettings";
 import { createParagraph } from "@ext/wordExport/createParagraph";
 import { defaultLanguage } from "@ext/localization/core/model/Language";
+import { ExportType } from "@ext/wordExport/ExportType";
 
-class WordExport {
-	constructor(private _fileProvider: FileProvider) {}
+const MAX_HEADING_LEVEL = 9;
 
-	async getDocument(documentTree: DocumentTree, isCategory: boolean) {
-		const sections = await this._getDocumentSections(documentTree, isCategory);
-		const externalStyles = jsonXml[0];
+abstract class WordExport {
+	constructor(protected _fileProvider: FileProvider, protected _exportType: ExportType) {}
+
+	async getDocument(documentTree: DocumentTree) {
+		const sections = await this._getDocumentSections(documentTree);
+		const externalStyles = stylesJson[0];
 
 		return new Document({ sections, ...wordDocumentStyles, externalStyles });
 	}
 
-	private async _getDocumentSections(rootNode: DocumentTree, isCategory: boolean) {
+	protected async _getDocumentSections(rootNode: DocumentTree) {
 		const sections: ISectionOptions[] = [];
 
-		if (isCategory) sections.push({ children: this._createTableOfContents(rootNode) });
+		if (this._exportType == ExportType.withTableOfContents)
+			sections.push({ children: this._createTableOfContents(rootNode) });
 
 		const processNode = async (currentNode: DocumentTree, content = []) => {
 			content.push(...(await this._parseArticle(currentNode)));
@@ -53,19 +56,15 @@ class WordExport {
 		return sections;
 	}
 
-	private _createTableOfContents(article: DocumentTree): FileChild[] {
+	protected _createTableOfContents(article: DocumentTree) {
 		return [
 			createParagraph(
-				[
-					createContent(
-						useBareLocalize("tableOfContents", article?.parserContext?.getLanguage() ?? defaultLanguage),
-					),
-				],
+				[createContent(t("word.table-of-contents", article?.parserContext?.getLanguage() ?? defaultLanguage))],
 				WordFontStyles.tableOfContents,
 			),
 			new TableOfContents("tableOfContents", {
 				hyperlink: true,
-				headingStyleRange: "1-1",
+				headingStyleRange: "1-9",
 			}),
 		];
 	}
@@ -79,6 +78,7 @@ class WordExport {
 			article.resourceManager,
 			this._fileProvider,
 			article.parserContext,
+			this._exportType,
 		);
 
 		const contentPromises = article.content.children.map(async (child) => {
@@ -94,12 +94,23 @@ class WordExport {
 		return [this._createTitle(article), ...content];
 	}
 
-	private _createTitle = (article: DocumentTree) => {
-		return createParagraph(
+	protected abstract _createTitle(article: DocumentTree): Paragraph;
+}
+
+export class FallbackWordExport extends WordExport {
+	protected _createTitle = (article: DocumentTree) =>
+		createParagraph(
 			[createContent(article.level ? article.number + " " + article.name : article.name)],
 			HeadingStyles[+!!article.level],
 		);
-	};
+}
+
+export class MainWordExport extends WordExport {
+	protected _createTitle = (article: DocumentTree) =>
+		createParagraph(
+			[createContent(article.name)],
+			HeadingStyles[article.level <= MAX_HEADING_LEVEL ? article.level : MAX_HEADING_LEVEL + 1],
+		);
 }
 
 export default WordExport;

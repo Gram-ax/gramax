@@ -1,5 +1,5 @@
 import { classNames } from "@components/libs/classNames";
-import { CSSProperties, ReactNode, MouseEvent } from "react";
+import { CSSProperties, MouseEvent, ReactNode } from "react";
 import SpinnerLoader from "../SpinnerLoader";
 import Tooltip from "../Tooltip";
 
@@ -17,6 +17,7 @@ export interface IconProps {
 	viewBox?: string;
 	tooltipContent?: ReactNode;
 	onClick?: (event?: MouseEvent<HTMLElement>) => void;
+	onMouseUp?: (event?: MouseEvent<HTMLElement>) => void;
 	onClickCapture?: (event?: MouseEvent<HTMLElement>) => void;
 	fw?: boolean;
 }

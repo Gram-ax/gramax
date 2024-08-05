@@ -2,9 +2,9 @@ import GoToArticle from "@components/Actions/GoToArticle";
 import Checkbox from "@components/Atoms/Checkbox";
 import Icon from "@components/Atoms/Icon";
 import Sidebar from "@components/Layouts/Sidebar";
+import { FileStatus } from "@ext/Watchers/model/FileStatus";
 import { useState } from "react";
 import DiffItem from "../../../../VersionControl/model/DiffItem";
-import { FileStatus } from "@ext/Watchers/model/FileStatus";
 import Discard from "../../Discard/Discard";
 import SideBarResourceData from "../model/SideBarResourceData";
 import DiffCounter from "./DiffCounter";
@@ -15,7 +15,8 @@ interface SideBarArticleActionsProps extends Pick<DiffItem, "filePath"> {
 	changeType: FileStatus;
 	title: string;
 	resources: SideBarResourceData[];
-	onDiscard: (paths: string[]) => void;
+	onStartDiscard: (paths: string[]) => void;
+	onEndDiscard: (paths: string[]) => void;
 	onChangeCheckbox: (isChecked: boolean) => void;
 	goToArticleOnClick: () => void;
 	addedCounter: number;
@@ -24,7 +25,7 @@ interface SideBarArticleActionsProps extends Pick<DiffItem, "filePath"> {
 }
 const SideBarArticleActions = (props: SideBarArticleActionsProps) => {
 	const { checked, changeType, title, resources, filePath, addedCounter, removedCounter, logicPath } = props;
-	const { onDiscard, onChangeCheckbox, goToArticleOnClick } = props;
+	const { onStartDiscard, onEndDiscard, onChangeCheckbox, goToArticleOnClick } = props;
 	const [hover, setHover] = useState(false);
 
 	return (
@@ -69,7 +70,8 @@ const SideBarArticleActions = (props: SideBarArticleActionsProps) => {
 											filePath.oldPath,
 											...resources.map((r) => r.filePath.path),
 										].filter((x) => x)}
-										onDiscard={onDiscard}
+										onStartDiscard={onStartDiscard}
+										onEndDiscard={onEndDiscard}
 									/>,
 							  ]
 							: [<DiffCounter key={1} added={addedCounter} removed={removedCounter} />]

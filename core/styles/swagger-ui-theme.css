@@ -210,9 +210,16 @@
 	padding: 0;
 }
 
+.article .swagger-ui pre.microlight {
+	overflow-y: auto;
+	max-height: 40em;
+}
+
 .article .swagger-ui pre.microlight code {
 	color: inherit;
 	background: inherit;
+	white-space: pre-wrap !important;
+	word-break: break-all;
 }
 
 .swagger-ui .parameter__name.required::after {
@@ -549,6 +556,7 @@
 	padding: 0;
 	cursor: pointer;
 	color: #3b4151;
+	list-style-type: none !important;
 }
 
 .swagger-ui .tab li:first-of-type {
@@ -1396,6 +1404,15 @@
 	border-collapse: collapse;
 }
 
+table td,
+table th {
+	word-break: unset !important;
+}
+
+.swagger-ui .parameters-col_description,
+.swagger-ui .response-col_description {
+	width: 99%;
+}
 .swagger-ui table.model tbody tr td {
 	padding: 0;
 	vertical-align: top;

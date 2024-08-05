@@ -139,6 +139,7 @@ const CommentEditor = styled(
 		return (
 			<div className={classNames("article", {}, [className])}>
 				<EditorContent
+					data-qa="editor"
 					innerRef={contentRef}
 					editor={editor}
 					className={"article-body"}

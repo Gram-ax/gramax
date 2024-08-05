@@ -1,9 +1,9 @@
+import { classNames } from "@components/libs/classNames";
 import styled from "@emotion/styled";
-import useLocalize from "../../extensions/localization/useLocalize";
+import t from "@ext/localization/locale/translate";
+import { useEffect, useState } from "react";
 import Button, { TextSize } from "../Atoms/Button/Button";
 import { ButtonStyle } from "../Atoms/Button/ButtonStyle";
-import { classNames } from "@components/libs/classNames";
-import { useEffect, useState } from "react";
 
 interface EditorButtonsProps {
 	confirmButtonText: string;
@@ -47,7 +47,7 @@ const EditorButtons = (props: EditorButtonsProps) => {
 							onClick={onCancel}
 							isEmUnits={true}
 						>
-							<span>{useLocalize("cancel")}</span>
+							<span>{t("cancel")}</span>
 						</Button>
 
 						<Button

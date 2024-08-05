@@ -14,9 +14,13 @@ const getMarkFormatters = (context?: ParserContext): { [mark: string]: MarkSeria
 			return isPlainURL(mark, parent, index, 1) ? "<" : "[";
 		},
 		close(_state, mark, parent, index) {
+			const isFile = mark.attrs?.isFile ?? false;
 			const resourcePath =
 				mark.attrs.resourcePath && mark.attrs.resourcePath != "" ? new Path(mark.attrs.resourcePath) : null;
-			const link: string = (resourcePath?.value ?? mark.attrs.href) + (mark.attrs.hash ?? "");
+
+			const link: string = isFile
+				? resourcePath.value
+				: (resourcePath?.stripExtension ?? mark.attrs.href) + (mark.attrs.hash ?? "");
 			return isPlainURL(mark, parent, index, -1) ? ">" : `](${link.includes(" ") ? `<${link}>` : link})`;
 		},
 	},

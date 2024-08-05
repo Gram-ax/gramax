@@ -1,6 +1,6 @@
 import Modal from "@components/Layouts/Modal";
 import ButtonLink from "@components/Molecules/ButtonLink";
-import useLocalize from "@ext/localization/useLocalize";
+import t from "@ext/localization/locale/translate";
 import WorkspaceForm from "@ext/workspace/components/WorkspaceForm";
 import { useState } from "react";
 
@@ -13,7 +13,7 @@ const AddWorkspace = () => {
 			isOpen={isOpen}
 			onOpen={() => setIsOpen(true)}
 			onClose={() => setIsOpen(false)}
-			trigger={<ButtonLink onClick={() => {}} iconCode="plus" text={useLocalize("addWorkspace")} />}
+			trigger={<ButtonLink onClick={() => {}} iconCode="plus" text={t("workspace.add")} />}
 		>
 			<WorkspaceForm onSave={() => setIsOpen(false)} create />
 		</Modal>

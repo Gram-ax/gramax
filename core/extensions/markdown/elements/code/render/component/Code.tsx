@@ -1,12 +1,12 @@
 import Icon from "@components/Atoms/Icon";
 import Tooltip from "@components/Atoms/Tooltip";
+import t from "@ext/localization/locale/translate";
 import { useState } from "react";
-import useLocalize from "../../../../../localization/useLocalize";
 
 export default function Code({ children }: { children: string }) {
 	const [copped, setCopped] = useState(false);
-	const clickToCopyText = useLocalize("clickToCopy");
-	const copiedText = useLocalize("copied");
+	const clickToCopyText = t("click-to-copy");
+	const copiedText = t("copied");
 
 	return (
 		<span
@@ -22,7 +22,7 @@ export default function Code({ children }: { children: string }) {
 			<code>{"\u00A0" + children + "\u00A0"}</code>
 			<Tooltip content={!copped ? clickToCopyText : copiedText}>
 				<span className="copy">
-					<Icon code={!copped ? "copy" : "check"}/>
+					<Icon code={!copped ? "copy" : "check"} />
 				</span>
 			</Tooltip>
 		</span>

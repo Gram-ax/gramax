@@ -1,11 +1,15 @@
 import Input from "@components/Atoms/Input";
 import ButtonsLayout from "@components/Layouts/ButtonLayout";
 import ModalLayoutDark from "@components/Layouts/ModalLayoutDark";
+import debounceFunction from "@core-ui/debounceFunction";
+import t from "@ext/localization/locale/translate";
 import Button from "@ext/markdown/core/edit/components/Menu/Button";
 import getFocusNode from "@ext/markdown/elementsUtils/getFocusNode";
 import { Editor } from "@tiptap/core";
 import { Node } from "prosemirror-model";
 import { ChangeEvent, useEffect, useState } from "react";
+
+const PATH_UPDATE_SYMBOL = Symbol();
 
 const VideoMenu = ({ editor }: { editor: Editor }) => {
 	const [node, setNode] = useState<Node>(null);
@@ -27,7 +31,13 @@ const VideoMenu = ({ editor }: { editor: Editor }) => {
 
 	const handlePathChange = (e: ChangeEvent<HTMLInputElement>) => {
 		setPath(e.target.value);
-		editor.commands.updateAttributes(node.type, { path: e.target.value });
+		debounceFunction(
+			PATH_UPDATE_SYMBOL,
+			() => {
+				editor.commands.updateAttributes(node.type, { path: e.target.value });
+			},
+			1000,
+		);
 	};
 
 	const handleTitleChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -44,11 +54,11 @@ const VideoMenu = ({ editor }: { editor: Editor }) => {
 	return (
 		<ModalLayoutDark>
 			<ButtonsLayout>
-				<Input placeholder="Ссылка на видео" value={path} onChange={handlePathChange} />
+				<Input placeholder={t("editor.video.link")} value={path} onChange={handlePathChange} />
 				<div className="divider" />
-				<Input placeholder="Подпись" value={title} onChange={handleTitleChange} />
+				<Input placeholder={t("signature")} value={title} onChange={handleTitleChange} />
 				<div className="divider" />
-				<Button icon={"trash"} tooltipText={"Удалить"} onClick={handleDelete} />
+				<Button icon={"trash"} tooltipText={t("signature")} onClick={handleDelete} />
 			</ButtonsLayout>
 		</ModalLayoutDark>
 	);

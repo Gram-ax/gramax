@@ -1,7 +1,7 @@
 import { ReactNode } from "react";
 import DiagramType from "../../../../../../logic/components/Diagram/DiagramType";
 import DiagramData from "../../../../elements/diagrams/component/DiagramData";
-import HTMLComponents from "./HTMLComponents";
+import HTMLComponents, { unSupportedElements } from "./HTMLComponents";
 
 import Icon from "../../../../elements/icon/render/components/Icon";
 import Image from "../../../../elements/image/render/components/Image";
@@ -35,6 +35,7 @@ import Video from "../../../../elements/video/render/components/Video";
 import When from "../../../../elements/whowhen/render/When";
 import Who from "../../../../elements/whowhen/render/Who";
 import ParserContext from "../../../Parser/ParserContext/ParserContext";
+import Alert from "@ext/markdown/elements/alert/render/component/Alert";
 
 export default function getComponents(): { [name: string]: (...props: any) => ReactNode } {
 	return {
@@ -63,6 +64,7 @@ export default function getComponents(): { [name: string]: (...props: any) => Re
 		OpenApi,
 		Fn,
 		Note,
+		Alert,
 		Tabs,
 		Tab,
 		Video,
@@ -86,19 +88,20 @@ export const getComponentsHTML = (requestURL?: string, context?: ParserContext) 
 	if (!context) return components;
 
 	const htmlComponents: HTMLComponents = new HTMLComponents(requestURL, context);
+	components.Link = htmlComponents.getLink();
 	components.Code = htmlComponents.getCode();
 	components.Image = htmlComponents.getImg();
-	components.Video = htmlComponents.getNull();
-	components.Drawio = htmlComponents.getNull();
-	components.Mermaid = htmlComponents.getNull();
-	components["Plant-uml"] = htmlComponents.getNull();
-	components["C4-diagram"] = htmlComponents.getNull();
-	components["Ts-diagram"] = htmlComponents.getNull();
-	components["Db-diagram"] = htmlComponents.getNull();
-	// components.Drawio = htmlComponents.getDrawio();
+	components.Drawio = htmlComponents.getDrawio();
+	components.Tab = htmlComponents.getNullComponent(unSupportedElements.tab);
+	components.Tabs = htmlComponents.getTabs();
+	components.Mermaid = htmlComponents.getNullComponent(unSupportedElements.mermaid);
+	components.OpenApi = htmlComponents.getNullComponent(unSupportedElements.openApi);
+	components["Plant-uml"] = htmlComponents.getPlantUmlDiagram();
+	components["C4-diagram"] = htmlComponents.getNullComponent(unSupportedElements["c4-diagram"]);
+	components["Ts-diagram"] = htmlComponents.getNullComponent(unSupportedElements["ts-diagram"]);
+	components["Db-diagram"] = htmlComponents.getNullComponent(unSupportedElements["db-diagram"]);
 	// components["Db-diagram"] = htmlComponents.getDiagramdb();
 	// components.Mermaid = htmlComponents.getDiagramRendererImage(DiagramType.mermaid);
-	// components["Plant-uml"] = htmlComponents.getDiagramRendererImage(DiagramType["plant-uml"]);
 	// components["C4-diagram"] = htmlComponents.getDiagramRendererImage(DiagramType["c4-diagram"]);
 	// components["Ts-diagram"] = htmlComponents.getDiagramRendererImage(DiagramType["ts-diagram"]);
 	return components;

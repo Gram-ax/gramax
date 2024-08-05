@@ -1,11 +1,11 @@
 import { ListItem } from "@components/List/Item";
 import styled from "@emotion/styled";
+import t from "@ext/localization/locale/translate";
 import { useEffect, useState } from "react";
 import Button from "../../../../../components/Atoms/Button/Button";
 import Checkbox from "../../../../../components/Atoms/Checkbox";
 import SmallFence from "../../../../../components/Labels/SmallFence";
 import ListLayout from "../../../../../components/List/ListLayout";
-import useLocalize from "../../../../localization/useLocalize";
 
 const MergeBranches = styled(
 	({
@@ -51,18 +51,18 @@ const MergeBranches = styled(
 
 		return (
 			<div className={className}>
-				<legend>{useLocalize("mergeBranches")}</legend>
+				<legend>{t("git.merge.branches")}</legend>
 				<div className="form-group">
 					<div className="picker">
 						<label className="control-label picker-text">
-							<span>{useLocalize("mergeCurrentBranch")}</span>
+							<span>{t("git.merge.current-branch")}</span>
 							&nbsp;{currentBranchElement}&nbsp;
-							<span>{useLocalize("inBranch").toLowerCase()}</span>
+							<span>{t("in-branch").toLowerCase()}</span>
 						</label>
 						<ListLayout
 							isLoadingData={isLoadingData}
 							items={branches}
-							placeholder={useLocalize("findBranch")}
+							placeholder={t("find-branch")}
 							onSearchClick={() => setBranchToMergeInTo("")}
 							onItemClick={(branch) => setBranchToMergeInTo(branch)}
 						/>
@@ -71,15 +71,15 @@ const MergeBranches = styled(
 				<div className="control-label delete-after-merge-checkbox">
 					<Checkbox overflow="hidden" onClick={(value) => setDeleteAfterMerge(value)}>
 						<div className="control-label picker-text" data-qa="qa-clickable">
-							<span>{useLocalize("deleteBranch")}</span>
+							<span>{t("delete-branch")}</span>
 							&nbsp;{currentBranchElement}&nbsp;
-							<span>{useLocalize("afterMerge").toLowerCase()}</span>
+							<span>{t("git.merge.after-merge").toLowerCase()}</span>
 						</div>
 					</Checkbox>
 				</div>
 				<div className="buttons">
 					<Button disabled={!branchToMergeInTo} onClick={onClick}>
-						{useLocalize("merge")}
+						{t("git.merge.merge")}
 					</Button>
 				</div>
 			</div>

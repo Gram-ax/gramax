@@ -2,6 +2,7 @@ import FetchService from "@core-ui/ApiServices/FetchService";
 import MimeTypes from "@core-ui/ApiServices/Types/MimeTypes";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import ArticlePropsService from "@core-ui/ContextServices/ArticleProps";
+import ArticleRefService from "@core-ui/ContextServices/ArticleRef";
 import IsEditService from "@core-ui/ContextServices/IsEdit";
 import { ItemType } from "@core/FileStructue/Item/ItemType";
 import styled from "@emotion/styled";
@@ -48,138 +49,139 @@ const ExportLevNavDragTree = ({ items, closeNavigation }: { items: ItemLink[]; c
 	);
 };
 
-const LevNavDragTree = styled(
-	({
-		items,
-		onDrop,
-		closeNavigation,
-		canDrag = true,
-		className,
-	}: {
-		items: NodeModel<ItemLink>[];
-		onDrop?: (draggedItemPath: string, data: NodeModel<ItemLink>[]) => void;
-		closeNavigation?: () => void;
-		canDrag?: boolean;
-		className?: string;
-	}) => {
-		const [initialOpen, setInitialOpen] = useState(new Set<number | string>(getOpenItemsIds(items)));
-		const [draggedItemPath, setDraggedItemPath] = useState<string>();
-		const onDropHandler = useCallback(
-			(tree: NodeModel<ItemLink>[]) => {
-				onDrop(draggedItemPath, tree);
-				setDraggedItemPath(undefined);
-			},
-			[draggedItemPath],
-		);
+interface LevNavDragTreeProps {
+	items: NodeModel<ItemLink>[];
+	onDrop?: (draggedItemPath: string, data: NodeModel<ItemLink>[]) => void;
+	closeNavigation?: () => void;
+	canDrag?: boolean;
+	className?: string;
+}
 
-		const handleCanDrop = (_, { dropTarget, dragSource, dropTargetId }: DropOptions<ItemLink>) => {
-			if (!canDrag) false;
-			const flag =
-				((dropTargetId == 0 || dragSource?.parent === dropTargetId || dropTarget?.droppable) ?? false) &&
-				dragSource?.id !== dropTargetId;
-			return flag;
-		};
+const LevNavDragTree = styled((props: LevNavDragTreeProps) => {
+	const { items = [], onDrop, closeNavigation, canDrag = true, className } = props;
+	const articleElement = ArticleRefService.value.current;
+	const [initialOpen, setInitialOpen] = useState(new Set<number | string>(getOpenItemsIds(items)));
+	const [draggedItemPath, setDraggedItemPath] = useState<string>();
+	const onDropHandler = useCallback(
+		(tree: NodeModel<ItemLink>[]) => {
+			onDrop(draggedItemPath, tree);
+			setDraggedItemPath(undefined);
+		},
+		[draggedItemPath],
+	);
 
-		return (
-			<>
-				<CssBaseline />
-				<DndProvider backend={MultiBackend} options={getBackendOptions()}>
-					<div className={className}>
-						<Tree<ItemLink>
-							tree={items}
-							rootId={DragTreeTransformer.getRootId()}
-							sort={false}
-							insertDroppableFirst={false}
-							dropTargetOffset={10}
-							onDrop={onDropHandler}
-							canDrop={handleCanDrop}
-							canDrag={() => canDrag}
-							onDragStart={(tree) => setDraggedItemPath(tree.data.ref.path)}
-							initialOpen={Array.from(initialOpen)}
-							render={(node, { depth, isOpen, onToggle, containerRef }) => {
-								const [thisItem, setThisItem] = useState(node.data);
-								const [isHover, setIsHover] = useState(false);
+	const handleCanDrop = (_, { dropTarget, dragSource, dropTargetId }: DropOptions<ItemLink>) => {
+		if (!canDrag) false;
+		const flag =
+			((dropTargetId == 0 || dragSource?.parent === dropTargetId || dropTarget?.droppable) ?? false) &&
+			dragSource?.id !== dropTargetId;
+		return flag;
+	};
 
-								const isActive = thisItem.isCurrentLink;
-								const existsContent =
-									thisItem.type === ItemType.category
-										? (thisItem as CategoryLink).existContent
-										: true;
+	return (
+		<>
+			<CssBaseline />
+			<DndProvider backend={MultiBackend} options={getBackendOptions()}>
+				<div className={className}>
+					<Tree<ItemLink>
+						tree={items}
+						rootId={DragTreeTransformer.getRootId()}
+						sort={false}
+						insertDroppableFirst={false}
+						dropTargetOffset={10}
+						onDrop={onDropHandler}
+						canDrop={handleCanDrop}
+						canDrag={() => canDrag}
+						onDragStart={(tree) => setDraggedItemPath(tree.data.ref.path)}
+						initialOpen={Array.from(initialOpen)}
+						render={(node, { depth, isOpen, onToggle, containerRef }) => {
+							const [thisItem, setThisItem] = useState(node.data);
+							const [isHover, setIsHover] = useState(false);
 
-								const updateAlwaysIsOpen = () => {
-									if (isOpen) initialOpen.delete(node.id);
-									else initialOpen.add(node.id);
-									setInitialOpen(new Set(initialOpen));
-								};
+							const isActive = thisItem.isCurrentLink;
+							const existsContent =
+								thisItem.type === ItemType.category ? (thisItem as CategoryLink).existContent : true;
 
-								const currentOnToggle = () => {
-									onToggle();
-									updateAlwaysIsOpen();
-								};
+							const updateAlwaysIsOpen = () => {
+								if (isOpen) initialOpen.delete(node.id);
+								else initialOpen.add(node.id);
+								setInitialOpen(new Set(initialOpen));
+							};
 
-								useEffect(() => {
-									setThisItem(node.data);
-								}, [node.data]);
+							const currentOnToggle = () => {
+								onToggle();
+								updateAlwaysIsOpen();
+							};
 
-								useEffect(() => {
-									if ((node.data as CategoryLink).isExpanded && !isOpen) {
-										currentOnToggle();
-										containerRef.current.scrollIntoView({
-											behavior: "auto",
-											inline: "center",
-											block: "center",
+							useEffect(() => {
+								setThisItem(node.data);
+							}, [node.data]);
+
+							useEffect(() => {
+								if ((node.data as CategoryLink)?.isExpanded && !isOpen) currentOnToggle();
+							}, [(node.data as CategoryLink)?.isExpanded]);
+
+							useEffect(() => {
+								if (!node.data.isCurrentLink) return;
+								containerRef.current?.scrollIntoView({
+									behavior: "auto",
+									inline: "center",
+									block: "center",
+								});
+							}, []);
+
+							return (
+								<NavigationItem
+									level={depth}
+									isOpen={isOpen}
+									item={thisItem}
+									isHover={isHover}
+									isDroppable={node.droppable}
+									isActive={isActive}
+									onToggle={currentOnToggle}
+									dragOverProps={useDragOver(node.id, isOpen, onToggle)} //авторазворачивание
+									onClick={() => {
+										closeNavigation?.();
+										articleElement?.scrollTo({
+											top: 0,
+											left: 0,
+											behavior: "smooth",
 										});
-									}
-								}, [(node.data as CategoryLink).isExpanded]);
-
-								return (
-									<NavigationItem
-										level={depth}
-										isOpen={isOpen}
-										item={thisItem}
-										isHover={isHover}
-										isDroppable={node.droppable}
-										isActive={isActive}
-										onToggle={currentOnToggle}
-										dragOverProps={useDragOver(node.id, isOpen, onToggle)} //авторазворачивание
-										onClick={() => {
-											closeNavigation?.();
-											if (!onToggle) return;
-											if (!existsContent || isActive) currentOnToggle();
-											else if (!isOpen) return currentOnToggle();
-										}}
-										leftExtensions={[
-											<IconExtension key={0} item={thisItem} />,
-											<CommentCountNavExtension key={1} item={thisItem} />,
-										]}
-										rightExtensions={[
-											<EditMenu
-												key={0}
-												itemLink={thisItem}
-												isCategory={node.droppable}
-												setItemLink={setThisItem}
-												onOpen={() => setIsHover(true)}
-												onClose={() => setIsHover(false)}
-											/>,
-											<CreateArticle key={1} item={thisItem} />,
-										]}
-									/>
-								);
-							}}
-							placeholderRender={(node, { depth }) => <div className={"placeholder depth-" + depth} />}
-							classes={{
-								root: "tree-root",
-								draggingSource: "dragging-source",
-								placeholder: "placeholder-container",
-								// dropTarget: "drop-target", подсветка
-							}}
-						/>
-					</div>
-				</DndProvider>
-			</>
-		);
-	},
-)`
+										if (!onToggle) return;
+										if (!existsContent || isActive) currentOnToggle();
+										else if (!isOpen) return currentOnToggle();
+									}}
+									leftExtensions={[
+										<IconExtension key={0} item={thisItem} />,
+										<CommentCountNavExtension key={1} item={thisItem} />,
+									]}
+									rightExtensions={[
+										<EditMenu
+											key={0}
+											itemLink={thisItem}
+											isCategory={node.droppable}
+											setItemLink={setThisItem}
+											onOpen={() => setIsHover(true)}
+											onClose={() => setIsHover(false)}
+										/>,
+										<CreateArticle key={1} item={thisItem} />,
+									]}
+								/>
+							);
+						}}
+						placeholderRender={(node, { depth }) => <div className={"placeholder depth-" + depth} />}
+						classes={{
+							root: "tree-root",
+							draggingSource: "dragging-source",
+							placeholder: "placeholder-container",
+							// dropTarget: "drop-target", подсветка
+						}}
+					/>
+				</div>
+			</DndProvider>
+		</>
+	);
+})`
 	height: 100%;
 
 	* {

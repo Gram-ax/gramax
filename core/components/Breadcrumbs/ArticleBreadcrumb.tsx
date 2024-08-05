@@ -87,6 +87,7 @@ export default styled(
 		font-size: 10px;
 		font-weight: 600;
 		margin-left: 0.2rem;
+		white-space: nowrap;
 	}
 
 	.article-breadcrumb {

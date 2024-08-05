@@ -11,12 +11,14 @@ import SearchQueryService from "@core-ui/ContextServices/SearchQuery";
 import debounceFunction from "@core-ui/debounceFunction";
 import { cssMedia } from "@core-ui/utils/cssUtils";
 import { useRouter } from "@core/Api/useRouter";
+import Path from "@core/FileProvider/Path/Path";
+import RouterPathProvider from "@core/RouterPath/RouterPathProvider";
 import styled from "@emotion/styled";
+import t from "@ext/localization/locale/translate";
 import { CatalogLink, CategoryLink, ItemLink } from "@ext/navigation/NavigationLinks";
 import useMediaQuery from "@mui/material/useMediaQuery";
 import { Fragment, useEffect, useRef, useState } from "react";
 import { SearchItem } from "../../../../plugins/target/search/src/Searcher";
-import useLocalize from "../../../extensions/localization/useLocalize";
 import IsOpenModalService from "../../../ui-logic/ContextServices/IsOpenMpdal";
 import Checkbox from "../../Atoms/Checkbox";
 import Icon from "../../Atoms/Icon";
@@ -106,14 +108,14 @@ const Search = (props: SearchProps) => {
 
 	if (data && data.length) {
 		if (isHomePage) {
-			// data.forEach((d) => {
-			// 	const url = new Path(d.url);
-			// 	const isNewPath = RouterPathProvider.isNewPath(url);
-			// 	const catalogName = isNewPath
-			// 		? RouterPathProvider.parsePath(url).catalogName
-			// 		: RouterPathProvider.parseItemLogicPath(url).catalogName;
-			// 	homePageBreadcrumbDatas.push(catalogLinks.find((link) => link.name === catalogName));
-			// });
+			data.forEach((d) => {
+				const url = new Path(d.url);
+				const isNewPath = RouterPathProvider.isNewPath(url);
+				const catalogName = isNewPath
+					? RouterPathProvider.parsePath(url).catalogName
+					: RouterPathProvider.parseItemLogicPath(url).catalogName;
+				homePageBreadcrumbDatas.push(catalogLinks.find((link) => link.name === catalogName));
+			});
 		} else {
 			data.forEach((d) => {
 				const search = (itemLinks: ItemLink[], catLinks: CategoryLink[]) => {
@@ -135,6 +137,20 @@ const Search = (props: SearchProps) => {
 			});
 		}
 	}
+
+	const loadData = async (query: string) => {
+		if (!query) return;
+		const res = await FetchService.fetch<{ data: SearchItem[] }>(
+			apiUrlCreator.getSearchDataUrl(),
+			JSON.stringify({
+				query,
+				catalogName: searchAll ? null : catalogName,
+			}),
+			MimeTypes.json,
+		);
+		if (!res.ok) return;
+		setData((await res.json()).data);
+	};
 
 	useEffect(() => {
 		setHeight();
@@ -166,7 +182,7 @@ const Search = (props: SearchProps) => {
 				<ButtonLink
 					iconCode="search"
 					textSize={isHomePage ? TextSize.XS : TextSize.L}
-					text={isHomePage ? useLocalize("search") : null}
+					text={isHomePage ? t("search.name") : null}
 				/>
 			}
 		>
@@ -185,25 +201,10 @@ const Search = (props: SearchProps) => {
 										const query = e.target.value;
 										SearchQueryService.value = query;
 										setData(null);
-										debounceFunction(
-											SEARCH_SYMBOL,
-											async () => {
-												const res = await FetchService.fetch<{ data: SearchItem[] }>(
-													apiUrlCreator.getSearchDataUrl(),
-													JSON.stringify({
-														query,
-														catalogName: searchAll ? null : catalogName,
-													}),
-													MimeTypes.json,
-												);
-												if (!res.ok) return;
-												setData((await res.json()).data);
-											},
-											DEBOUNCE_DELAY,
-										);
+										debounceFunction(SEARCH_SYMBOL, () => loadData(query), DEBOUNCE_DELAY);
 									}}
-									placeholder={useLocalize("searchPlaceholder")}
-									data-qa={useLocalize("searchPlaceholder")}
+									placeholder={t("search.placeholder")}
+									data-qa={t("search.placeholder")}
 								/>
 								{!query ? null : (
 									<a
@@ -227,7 +228,7 @@ const Search = (props: SearchProps) => {
 										<div className="article">
 											<p
 												dangerouslySetInnerHTML={{
-													__html: useLocalize("searchOptions"),
+													__html: t("search.desc"),
 												}}
 											/>
 										</div>
@@ -238,12 +239,12 @@ const Search = (props: SearchProps) => {
 									{!data ? (
 										<div className="msg loading">
 											<Icon isLoading style={{ marginRight: "var(--distance-i-span)" }} />
-											<span>{useLocalize("loading")}</span>
+											<span>{t("loading")}</span>
 										</div>
 									) : !data.length ? (
 										<div className="msg empty">
 											<Icon code="circle-slash-2" />
-											<span>{useLocalize("articlesNotFound")}</span>
+											<span>{t("search.articles-not-found")}</span>
 										</div>
 									) : (
 										<div ref={itemsResponseRef}>
@@ -259,7 +260,11 @@ const Search = (props: SearchProps) => {
 													className={`item ${focusId === id ? "item-active" : ""}`}
 												>
 													<div style={{ overflow: "hidden" }}>
-														{d.count > 1 && <span className="count">{d.count} шт.</span>}
+														{d.count > 1 && (
+															<span className="count">
+																{d.count} {t("values")}.
+															</span>
+														)}
 
 														<div className="item-title" data-qa="qa-clickable">
 															<div className="title-text">
@@ -323,9 +328,13 @@ const Search = (props: SearchProps) => {
 								<Checkbox
 									className="all-catalogs-checkbox"
 									checked={searchAll}
-									onChange={(isChecked) => setSearchAll(isChecked)}
+									onChange={(isChecked) => {
+										setData(null);
+										loadData(query);
+										setSearchAll(isChecked);
+									}}
 								>
-									<p>{useLocalize("searchInAllCatalogs")}</p>
+									<p>{t("search.all-catalogs")}</p>
 								</Checkbox>
 							</div>
 						)}
@@ -341,11 +350,11 @@ const Search = (props: SearchProps) => {
 									<span className="cmd">
 										<Icon code="corner-down-left" />
 									</span>
-									<p>{useLocalize("toNavigate")}</p>
+									<p>{t("to-navigate")}</p>
 								</div>
 								<div className={"text"}>
 									<span className="cmd">Esc</span>
-									<p>{useLocalize("close")}</p>
+									<p>{t("close")}</p>
 								</div>
 							</>
 						)}
@@ -354,7 +363,7 @@ const Search = (props: SearchProps) => {
 							<div className={"text"} style={{ flex: 1, display: "flex", justifyContent: "flex-end" }}>
 								<span className="cmd">{isMac ? <Icon code="command" /> : "Ctrl"}</span>+
 								<span className="cmd">/</span>
-								<p>{useLocalize("openSearch")}</p>
+								<p>{t("search.open")}</p>
 							</div>
 						)}
 					</div>
@@ -372,7 +381,7 @@ const Search = (props: SearchProps) => {
 };
 
 export default styled(Search)`
-	height: 230px;
+	height: 180px;
 	transition: all 0.3s;
 
 	.layer-two {
@@ -465,8 +474,12 @@ export default styled(Search)`
 					gap: 0.5rem;
 					display: flex;
 					font-weight: 400;
+					align-items: center;
 					margin-bottom: 0.3em;
-					align-items: baseline;
+
+					.article-breadcrumb {
+						margin-top: 0;
+					}
 				}
 
 				.excerpt {

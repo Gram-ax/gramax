@@ -1,7 +1,9 @@
 import { ResponseKind } from "@app/types/ResponseKind";
 import { AuthorizeMiddleware } from "@core/Api/middleware/AuthorizeMiddleware";
+import { NetworkConnectMiddleWare } from "@core/Api/middleware/NetworkConntectMiddleware";
 import { SilentMiddleware } from "@core/Api/middleware/SilentMiddleware";
 import type Context from "@core/Context/Context";
+import t from "@ext/localization/locale/translate";
 import { Command } from "../../types/Command";
 
 const getAllSyncCount: Command<
@@ -12,7 +14,7 @@ const getAllSyncCount: Command<
 
 	kind: ResponseKind.json,
 
-	middlewares: [new AuthorizeMiddleware(), new SilentMiddleware()],
+	middlewares: [new NetworkConnectMiddleWare(), new AuthorizeMiddleware(), new SilentMiddleware()],
 
 	async do({ ctx, shouldFetch }) {
 		const { rp, wm } = this._app;
@@ -28,7 +30,7 @@ const getAllSyncCount: Command<
 					if (shouldFetch) {
 						const data = rp.getSourceData(ctx.cookie, await entry.repo.storage.getSourceName());
 						if (!data) {
-							res[name] = { errorMessage: "storageNotConnected" };
+							res[name] = { errorMessage: t("storage-not-connected") };
 							return;
 						}
 

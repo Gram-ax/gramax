@@ -96,6 +96,7 @@ impl<C: Creds> Repo<C> {
     };
 
     let repo = Self(repo, creds);
+    repo.ensure_head_exists()?;
     Ok(repo)
   }
 
@@ -288,6 +289,20 @@ impl<C: Creds> Repo<C> {
         std::fs::remove_dir_all(parent)?;
       }
     }
+    Ok(())
+  }
+
+  pub(crate) fn ensure_head_exists(&self) -> Result<()> {
+    let Err(err) = self.0.head() else { return Ok(()) };
+
+    if !(err.code() == ErrorCode::UnbornBranch && err.class() == ErrorClass::Reference) {
+      return Err(err.into());
+    }
+
+    let sig = self.1.signature()?;
+    let tree = self.0.treebuilder(None)?.write()?;
+    self.0.commit(Some("HEAD"), &sig, &sig, "init", &self.0.find_tree(tree)?, &[])?;
+
     Ok(())
   }
 

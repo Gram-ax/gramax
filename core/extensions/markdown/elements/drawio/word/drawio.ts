@@ -5,9 +5,13 @@ import { WordBlockChild } from "../../../../wordExport/options/WordTypes";
 import { WordFontStyles, diagramString } from "@ext/wordExport/options/wordExportSettings";
 import { errorWordLayout } from "@ext/wordExport/error";
 
-export const drawioWordLayout: WordBlockChild = async ({ tag, resourceManager, parserContext }) => {
+export const drawioWordLayout: WordBlockChild = async ({ tag, addOptions, resourceManager, parserContext }) => {
 	try {
-		const image = await WordExportHelper.getImageFromSvgPath(new Path(tag.attributes.src), resourceManager);
+		const image = await WordExportHelper.getImageFromSvgPath(
+			new Path(tag.attributes.src),
+			resourceManager,
+			addOptions?.maxPictureWidth,
+		);
 		const paragraphs = [new Paragraph({ children: [image], style: WordFontStyles.picture })];
 
 		if (tag.attributes.title) {

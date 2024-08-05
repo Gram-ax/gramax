@@ -1,15 +1,13 @@
 import { classNames } from "@components/libs/classNames";
 import Welcome from "@components/Welcome";
-import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
-import registerMetric from "@core-ui/yandexMetric";
 import { ArticlePageData } from "@core/SitePresenter/SitePresenter";
 import styled from "@emotion/styled";
 import CreateFirstArticle from "@ext/artilce/actions/CreateFirstArticle";
-import useLocalize from "@ext/localization/useLocalize";
+import t from "@ext/localization/locale/translate";
 import { ContentEditorId } from "@ext/markdown/core/edit/components/ContentEditor";
-import ThemeService from "../../extensions/Theme/components/ThemeService";
 import interceptPrintShortkeys from "../../extensions/artilce/actions/SaveAsPdf/interceptPrintShortkeys";
 import NextPrevious from "../../extensions/navigation/NextPrevious";
+import ThemeService from "../../extensions/Theme/components/ThemeService";
 import IsMacService from "../../ui-logic/ContextServices/IsMac";
 import Article from "../Article/Article";
 import ArticleExtensions from "../Article/ArticleExtensions";
@@ -18,10 +16,6 @@ import Breadcrumb from "../Breadcrumbs/ArticleBreadcrumb";
 const ArticlePage = ({ data, className }: { data: ArticlePageData; className?: string }) => {
 	const theme = ThemeService.value;
 	const isMac = IsMacService.value;
-	const isLogged = PageDataContextService.value.isLogged;
-	const IsServerApp = PageDataContextService.value.conf.isServerApp;
-	const isProduction = PageDataContextService.value.conf.isProduction;
-	if (IsServerApp && isProduction) registerMetric(data.catalogProps.name, isLogged);
 
 	interceptPrintShortkeys(isMac, theme);
 
@@ -29,8 +23,8 @@ const ArticlePage = ({ data, className }: { data: ArticlePageData; className?: s
 		return (
 			<Welcome
 				article
-				title={useLocalize("soFarItsEmpty")}
-				body={<span>{useLocalize("createNewArticleDesc")}</span>}
+				title={t("so-far-its-empty")}
+				body={<span>{t("article.create.body")}</span>}
 				actions={<CreateFirstArticle />}
 			/>
 		);

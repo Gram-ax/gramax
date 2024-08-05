@@ -3,6 +3,7 @@ import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import CatalogFetchTimersService from "@core-ui/ContextServices/CatalogFetchTimers";
 import IsOfflineService from "@core-ui/ContextServices/IsOfflineService";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
+import WorkspaceService from "@core-ui/ContextServices/Workspace";
 import { createContext, ReactElement, useContext, useEffect, useState } from "react";
 
 type CatalogSyncValue = {
@@ -24,14 +25,16 @@ export default abstract class CatalogSyncService {
 		const pageDataContext = PageDataContextService.value;
 		const shouldDisplay = !pageDataContext.conf.isReadOnly;
 		const shouldFetch = !IsOfflineService.value && shouldDisplay;
+		const key = `${WorkspaceService.current()?.name}_all`;
+		const hasWorkspace = WorkspaceService.hasActive();
 
 		const [syncCount, setSyncCount] = useState<CatalogSyncValues>();
 
 		const fetchInBackground = async () => {
-			if (!shouldFetch || !CatalogFetchTimersService.canFetch("_all")) return;
+			if (!hasWorkspace || !shouldFetch || !CatalogFetchTimersService.canFetch(key)) return;
 			const updatedRes = await FetchService.fetch(apiUrlCreator.getAllSyncCountUrl(true));
 			setSyncCount(await updatedRes.json());
-			CatalogFetchTimersService.setTimer("_all");
+			CatalogFetchTimersService.setTimer(key);
 		};
 
 		useEffect(() => {

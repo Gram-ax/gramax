@@ -1,8 +1,8 @@
 import StatusBarElement from "@components/Layouts/StatusBar/StatusBarElement";
 import styled from "@emotion/styled";
 import PullPushCounter from "@ext/git/actions/Sync/components/PullPushCounter";
+import t from "@ext/localization/locale/translate";
 import { CSSProperties } from "react";
-import useLocalize from "../../../../localization/useLocalize";
 
 const SyncLayout = styled(
 	({
@@ -29,11 +29,7 @@ const SyncLayout = styled(
 					iconCode="refresh-cw"
 					iconStrokeWidth="1.6"
 					iconClassName={"rotate-icon" + (syncProccess ? " rotate" : "")}
-					tooltipText={
-						syncProccess
-							? useLocalize("synchronization")
-							: `${useLocalize("sync")} ${useLocalize("catalog2")}`
-					}
+					tooltipText={syncProccess ? t("synchronization") : `${t("sync")} ${t("catalog.name")}`}
 					disable={syncProccess}
 				>
 					<PullPushCounter pullCounter={pullCounter} pushCounter={pushCounter} />

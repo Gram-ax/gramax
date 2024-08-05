@@ -1,6 +1,6 @@
 import { Field } from "../../../../../logic/components/tableDB/table";
 import { AddOptionsWord } from "../../../../wordExport/options/WordTypes";
-import { IRunOptions, Table, TableCell, TableRow } from "docx";
+import { IRunOptions, Table, TableCell, TableRow, WidthType } from "docx";
 import { Table as TableDB } from "../../../../../logic/components/tableDB/table";
 import {
 	wordFontSizes,
@@ -15,7 +15,9 @@ import { createParagraph } from "@ext/wordExport/createParagraph";
 import { createContent } from "@ext/wordExport/TextWordGenerator";
 
 export class DbTableRenderer {
-	static renderDbTable(table: TableDB) {
+	private readonly _defaultWidths = [2500, 2000, 2000];
+
+	renderDbTable(table: TableDB) {
 		return [
 			createParagraph(
 				[
@@ -29,28 +31,29 @@ export class DbTableRenderer {
 			),
 			...(table.subtitle ? [createParagraph([createContent(table.subtitle)], WordFontStyles.normal)] : []),
 			new Table({
-				rows: [DbTableRenderer.createFirstRow(), ...DbTableRenderer.createOtherRows(table)],
+				rows: [this._createFirstRow(), ...this._createOtherRows(table)],
 				margins: wordMarginsType[WordBlockType.table],
+				columnWidths: this._defaultWidths,
 			}),
 		];
 	}
 
-	static createOtherRows(table: TableDB) {
+	private _createOtherRows(table: TableDB) {
 		return [
 			...table.fields.map(
 				(field) =>
 					new TableRow({
 						children: [
-							DbTableRenderer.createFirstCell(field, { style: WordFontStyles.code }),
-							DbTableRenderer.createSecondCell(field, { style: WordFontStyles.code }),
-							DbTableRenderer.createThirdCell(field),
+							this._createFirstCell(field, { style: WordFontStyles.code }),
+							this._createSecondCell(field, { style: WordFontStyles.code }),
+							this._createThirdCell(field),
 						],
 					}),
 			),
 		];
 	}
 
-	static createFirstRow() {
+	private _createFirstRow() {
 		const cells = ["field", "type", "description"].map(
 			(text) =>
 				new TableCell({
@@ -61,7 +64,7 @@ export class DbTableRenderer {
 		return new TableRow({ children: cells });
 	}
 
-	static createFirstCell(field: Field, addOptions: IRunOptions) {
+	private _createFirstCell(field: Field, addOptions: IRunOptions) {
 		const texts = [
 			createContent(
 				NON_BREAKING_SPACE + field.code + (field.nullable ? NON_BREAKING_SPACE : ""),
@@ -99,26 +102,34 @@ export class DbTableRenderer {
 					  ]
 					: []),
 			],
+			width: {
+				size: this._defaultWidths[0],
+				type: WidthType.DXA,
+			},
 		});
 	}
 
-	static createSecondCell(field: Field, addOptions: IRunOptions) {
+	private _createSecondCell(field: Field, addOptions: IRunOptions) {
 		return new TableCell({
 			children: [
 				createParagraph(
 					[
 						createContent(
-							NON_BREAKING_SPACE + field.sqlType ? field.sqlType : "" + NON_BREAKING_SPACE,
+							NON_BREAKING_SPACE + (field.sqlType ?? "") + NON_BREAKING_SPACE,
 							addOptions as AddOptionsWord,
 						),
 					],
 					WordFontStyles.normal,
 				),
 			],
+			width: {
+				size: this._defaultWidths[1],
+				type: WidthType.DXA,
+			},
 		});
 	}
 
-	static createThirdCell(field: Field) {
+	private _createThirdCell(field: Field) {
 		return new TableCell({
 			children: [
 				createParagraph(
@@ -130,6 +141,10 @@ export class DbTableRenderer {
 					WordFontStyles.normal,
 				),
 			],
+			width: {
+				size: this._defaultWidths[2],
+				type: WidthType.DXA,
+			},
 		});
 	}
 }

@@ -1,49 +1,39 @@
 import Button from "@components/Atoms/Button/Button";
 import FileInput from "@components/Atoms/FileInput/FileInput";
+import getCodeLensDefaultText from "@components/Atoms/FileInput/getCodeLenseDefaultText";
 import getFileInputDefaultLanguage from "@components/Atoms/FileInput/getFileInputDefaultLanguage";
 import SpinnerLoader from "@components/Atoms/SpinnerLoader";
 import LeftNavViewContent from "@components/Layouts/LeftNavViewContent/LeftNavViewContent";
 import Sidebar from "@components/Layouts/Sidebar";
-import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import FileInputMergeConflict, {
 	CodeLensText,
 } from "@ext/git/actions/MergeConflictHandler/Monaco/logic/FileInputMergeConflict";
 import { GitMarkers } from "@ext/git/actions/MergeConflictHandler/Monaco/logic/mergeConflictParser";
-import reverseMergeConflict from "@ext/git/actions/MergeConflictHandler/error/logic/reverseMergeConflict";
+import getCodeLensReversedText from "@ext/git/actions/MergeConflictHandler/error/logic/getCodeLensReversedText";
 import reverseMergeStatus from "@ext/git/actions/MergeConflictHandler/logic/GitMergeStatusReverse";
 import GitMergeStatus from "@ext/git/actions/MergeConflictHandler/model/GitMergeStatus";
-import Language from "@ext/localization/core/model/Language";
-import useBareLocalize from "@ext/localization/useLocalize/useBareLocalize";
+import t from "@ext/localization/locale/translate";
 import { editor } from "monaco-editor";
 import type * as monaco from "monaco-editor/esm/vs/editor/editor.api";
 import { useEffect, useRef, useState } from "react";
-import useLocalize from "../../../../localization/useLocalize";
 import SidebarArticleLink from "../../Publish/components/SidebarArticleLink";
 import { GitMergeResultContent } from "../model/GitMergeResultContent";
+import haveConflictWithFileDelete from "@ext/git/actions/MergeConflictHandler/logic/haveConflictWithFileDelete";
 
 interface MergeFileModel {
 	mergeFile: GitMergeResultContent;
 	haveMerges: boolean;
-	reverseMerge: boolean;
 	editorState: {
 		textModel: editor.IModel;
 		viewState: editor.ICodeEditorViewState;
 	};
 }
 
-const haveConflictWithFileDelete = (gitMergeStatus: GitMergeStatus): boolean =>
-	[
-		GitMergeStatus.AddedByUs,
-		GitMergeStatus.AddedByThem,
-		GitMergeStatus.DeletedByUs,
-		GitMergeStatus.DeletedByThem,
-	].includes(gitMergeStatus);
-
 const makeDeleteConflictContent = (content: string): string => {
 	return `${GitMarkers.startHeader} Deleted content\n\n${GitMarkers.splitter}\n${content}\n${GitMarkers.endFooter} Added content`;
 };
 
-const initMergeFilesModel = (mergeFiles: GitMergeResultContent[], reverseMerge: boolean): MergeFileModel[] => {
+const initMergeFilesModel = (mergeFiles: GitMergeResultContent[]): MergeFileModel[] => {
 	return mergeFiles
 		.filter((f) => f.status !== GitMergeStatus.BothDeleted)
 		.map((f) => {
@@ -52,42 +42,37 @@ const initMergeFilesModel = (mergeFiles: GitMergeResultContent[], reverseMerge: 
 			return {
 				mergeFile: { ...f, content },
 				haveMerges: true,
-				reverseMerge,
 				editorState: { textModel: null, viewState: null },
 			};
 		});
 };
 
-const getCodeLensText = (
-	defaultCodeLensText: CodeLensText,
-	lang: Language,
-	type: GitMergeStatus,
-	reverseMerge: boolean,
-): CodeLensText => {
+const getCodeLensText = (type: GitMergeStatus, reverseMerge: boolean): CodeLensText => {
 	type = reverseMerge ? reverseMergeStatus(type) : type;
+	const codeLensText = reverseMerge ? getCodeLensReversedText() : getCodeLensDefaultText();
 	switch (type) {
 		case GitMergeStatus.AddedByThem:
 			return {
-				...defaultCodeLensText,
-				mergeWithDeletionHeader: useBareLocalize("mergeConflictAddedByThem", lang),
+				...codeLensText,
+				mergeWithDeletionHeader: t("git.merge.conflict.added-by-them"),
 			};
 		case GitMergeStatus.AddedByUs:
 			return {
-				...defaultCodeLensText,
-				mergeWithDeletionHeader: useBareLocalize("mergeConflictAddedByUs", lang),
+				...codeLensText,
+				mergeWithDeletionHeader: t("git.merge.conflict.added-by-us"),
 			};
 		case GitMergeStatus.DeletedByThem:
 			return {
-				...defaultCodeLensText,
-				mergeWithDeletionHeader: useBareLocalize("mergeConflictDeletedByThem", lang),
+				...codeLensText,
+				mergeWithDeletionHeader: t("git.merge.conflict.deleted-by-them"),
 			};
 		case GitMergeStatus.DeletedByUs:
 			return {
-				...defaultCodeLensText,
-				mergeWithDeletionHeader: useBareLocalize("mergeConflictDeletedByUs", lang),
+				...codeLensText,
+				mergeWithDeletionHeader: t("git.merge.conflict.deleted-by-us"),
 			};
 		default:
-			return defaultCodeLensText;
+			return codeLensText;
 	}
 };
 
@@ -100,11 +85,9 @@ const MergeConflictHandler = ({
 	onMerge: (result: GitMergeResultContent[]) => void;
 	reverseMerge: boolean;
 }) => {
-	const confirmText = useLocalize("confirm");
-	const [mergeFilesModel] = useState<MergeFileModel[]>(() => initMergeFilesModel(rawFiles, reverseMerge));
+	const [mergeFilesModel] = useState<MergeFileModel[]>(() => initMergeFilesModel(rawFiles));
 	const currentIdx = useRef(0);
 
-	const lang = PageDataContextService.value.lang;
 	const editorRef = useRef<editor.IStandaloneCodeEditor>(null);
 	const monacoRef = useRef<typeof monaco>(null);
 	const fileInputMergeConflictRef = useRef<FileInputMergeConflict>(null);
@@ -126,19 +109,6 @@ const MergeConflictHandler = ({
 		};
 	}, [isAllMergesResolved]);
 
-	const reverseMergeInModel = (mergeFileModel: MergeFileModel) => {
-		const mergeConflictDescriptor = fileInputMergeConflictRef.current?.mergeConfilctDescriptor ?? [];
-		const modelToReverse = monacoRef.current.editor.createModel(mergeFileModel.mergeFile.content);
-		reverseMergeConflict(modelToReverse, mergeConflictDescriptor);
-
-		const reversedConflictText = modelToReverse.getValue();
-		editorRef.current.setValue(reversedConflictText);
-		fileInputMergeConflictRef.current?.onChange();
-
-		mergeFileModel.reverseMerge = false;
-		mergeFileModel.mergeFile.content = reversedConflictText;
-	};
-
 	return (
 		<LeftNavViewContent
 			onLeftSidebarClick={(idx) => {
@@ -153,14 +123,10 @@ const MergeConflictHandler = ({
 				if (fileInputMergeConflictRef.current) {
 					const isConflictWithFileDelete = haveConflictWithFileDelete(currentMergeModel.mergeFile.status);
 					fileInputMergeConflictRef.current.haveConflictWithFileDelete = isConflictWithFileDelete;
-					if (isConflictWithFileDelete) {
-						fileInputMergeConflictRef.current.codeLensText = getCodeLensText(
-							fileInputMergeConflictRef.current.codeLensText,
-							lang,
-							currentMergeModel.mergeFile.status,
-							currentMergeModel.reverseMerge,
-						);
-					}
+					fileInputMergeConflictRef.current.codeLensText = getCodeLensText(
+						currentMergeModel.mergeFile.status,
+						reverseMerge,
+					);
 				}
 
 				if (currentMergeModel.editorState.textModel) {
@@ -178,11 +144,6 @@ const MergeConflictHandler = ({
 				editorRef.current.setModel(currentMergeModel.editorState.textModel);
 				editorRef.current.focus();
 				fileInputMergeConflictRef.current?.onChange();
-
-				if (currentMergeModel.reverseMerge) {
-					reverseMergeInModel(currentMergeModel);
-					return;
-				}
 			}}
 			elements={mergeFilesModel.map((model) => {
 				return {
@@ -220,23 +181,18 @@ const MergeConflictHandler = ({
 								mergeFilesModel[0].mergeFile.status,
 							);
 							fileInputMergeConflictRef.current.haveConflictWithFileDelete = isConflictWithFileDelete;
-							if (isConflictWithFileDelete) {
-								fileInputMergeConflictRef.current.codeLensText = getCodeLensText(
-									fileInputMergeConflictRef.current.codeLensText,
-									lang,
-									mergeFilesModel[0].mergeFile.status,
-									mergeFilesModel[0].reverseMerge,
-								);
-							}
+							fileInputMergeConflictRef.current.codeLensText = getCodeLensText(
+								mergeFilesModel[0].mergeFile.status,
+								reverseMerge,
+							);
 						}
-						if (mergeFilesModel[0].reverseMerge) reverseMergeInModel(mergeFilesModel[0]);
 					}}
 				/>
 			}
 			sideBarBottom={
 				<div style={{ padding: "1rem" }}>
 					<Button fullWidth disabled={!isAllMergesResolved} onClick={currentOnMerge}>
-						<span>{confirmText}</span>
+						<span>{t("confirm")}</span>
 					</Button>
 				</div>
 			}

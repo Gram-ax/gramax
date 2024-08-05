@@ -5,6 +5,8 @@ import CatalogPropsService from "@core-ui/ContextServices/CatalogProps";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import { CatalogErrorGroups } from "@core/FileStructue/Catalog/CatalogErrorGroups";
 import styled from "@emotion/styled";
+import { CatalogError, CatalogErrors } from "@ext/healthcheck/logic/Healthcheck";
+import t from "@ext/localization/locale/translate";
 import { CategoryLink, ItemLink } from "@ext/navigation/NavigationLinks";
 import { useEffect, useState } from "react";
 import GoToArticle from "../../../components/Actions/GoToArticle";
@@ -13,9 +15,7 @@ import Icon from "../../../components/Atoms/Icon";
 import Tooltip from "../../../components/Atoms/Tooltip";
 import Breadcrumb from "../../../components/Breadcrumbs/ArticleBreadcrumb";
 import ModalLayout from "../../../components/Layouts/Modal";
-import useLocalize from "../../localization/useLocalize";
 import Code from "../../markdown/elements/code/render/component/Code";
-import { CatalogError, CatalogErrors } from "@ext/healthcheck/logic/Healthcheck";
 
 interface ResourceError {
 	title: string;
@@ -59,7 +59,7 @@ const Healthcheck = styled(
 				setGlobalsStyles={true}
 			>
 				<div className={`${className} modal article  block-elevation-2`} data-qa={`catalog-healthcheck-modal`}>
-					<h2>{useLocalize("healthcheck")}</h2>
+					<h2>{t("healthcheck")}</h2>
 					{saveData ? (
 						Object.values(CatalogErrorGroups).map((errorGroups, key) => {
 							return (
@@ -217,14 +217,14 @@ const ResourceErrorComponent = ({
 		<div className="errors">
 			<h3>
 				{getIcons(data.length)}
-				{useLocalize(("check" + errorGroup.type) as any)}
+				{t(("check-" + errorGroup.type) as any)}
 			</h3>
 			{resourceErrors.length ? (
 				<table style={{ overflow: "visible" }}>
 					<thead>
 						<tr>
-							<th>{useLocalize("article2")}</th>
-							<th className="flex">{useLocalize((errorGroup.title) as any)}</th>
+							<th>{t("article2")}</th>
+							<th className="flex">{t(errorGroup.title as any)}</th>
 						</tr>
 					</thead>
 					<tbody>
@@ -255,7 +255,7 @@ const ResourceErrorComponent = ({
 												<a target="_blank" href={resourceError.editorLink} rel="noreferrer">
 													<Tooltip
 														distance={5}
-														content={<span>{`${useLocalize("editOn")} Gramax`}</span>}
+														content={<span>{`${t("edit-on")} Gramax`}</span>}
 													>
 														<span>
 															<Icon code="pencil" isAction={true} />

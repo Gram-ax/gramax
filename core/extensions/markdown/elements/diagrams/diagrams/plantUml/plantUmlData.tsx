@@ -2,7 +2,6 @@ export const startPlantUmlText = `@startuml
 Bob -> Alice : hello
 @enduml`;
 
-export const plantUmlTooltipText = "Диаграмма plantUml";
 export const plantUmlIcon = (
 	<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
 		<path d="M10.1525 8.936L13.58 11.209L10.86 12.7465L7.4305 10.4995L10.1525 8.936Z" fill="#1C0A42" />
