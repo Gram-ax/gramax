@@ -1,42 +1,58 @@
-import ArticlePropsService from "@core-ui/ContextServices/ArticleProps";
 import styled from "@emotion/styled";
-import Image from "@ext/markdown/elements/image/edit/components/Image";
-import { ReactElement, useState } from "react";
-import getDrawioID from "../../edit/logic/getDrawioID";
-import OnLoadResourceService from "@ext/markdown/elements/copyArticles/onLoadResourceService";
-import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
+import { ReactElement, useRef } from "react";
 import DiagramError from "@ext/markdown/elements/diagrams/component/DiagramError";
 import t from "@ext/localization/locale/translate";
+import Image from "@components/Atoms/Image/Image";
 
 interface DrawioProps {
+	id: string;
+	realSrc: string;
 	src: string;
 	title: string;
+	openEditor?: () => void;
 	className?: string;
 }
 
 const Drawio = (props: DrawioProps): ReactElement => {
-	const { src, title, className } = props;
-	const articleProps = ArticlePropsService.value;
-	const apiUrlCreator = ApiUrlCreatorService.value;
+	const { id, realSrc, src, title, className, openEditor } = props;
 
-	const [isError, setIsError] = useState(false);
+	const ref = useRef<HTMLImageElement>(null);
 
-	if (!src) return null;
+	if (!src) return <DiagramError error={{ message: t("diagram.error.cannot-get-data") }} diagramName="Drawio" />;
 
-	OnLoadResourceService.useGetContent(src, apiUrlCreator, (buffer) => {
-		if (!buffer.byteLength) setIsError(true);
-	});
-
-	return isError ? (
-		<DiagramError error={{ message: t("diagram.error.cannot-get-data") }} diagramName="Drawio" />
-	) : (
-		<Image src={src} id={getDrawioID(src, articleProps.logicPath)} className={className} title={title} />
+	return (
+		<div>
+			<div className={"drawio " + className} data-focusable="true">
+				<Image
+					ref={ref}
+					id={id}
+					realSrc={realSrc}
+					modalTitle={title}
+					src={src}
+					modalEdit={openEditor}
+					modalStyle={{
+						backgroundColor: "var(--color-diagram-bg)",
+						borderRadius: "var(--radius-large)",
+						padding: "20px",
+					}}
+				/>
+			</div>
+			{title && <em>{title}</em>}
+		</div>
 	);
 };
 
 export default styled(Drawio)`
-	max-width: 90% !important;
-	max-height: none !important;
-	border-radius: var(--radius-normal);
-	background: var(--color-diagram-bg);
+	display: flex;
+	justify-content: center;
+	width: 100%;
+	margin: 0.5em 0;
+	background-color: var(--color-diagram-bg);
+	border-radius: var(--radius-large);
+	padding: 20px;
+
+	> img {
+		background-color: unset;
+		box-shadow: unset !important;
+	}
 `;

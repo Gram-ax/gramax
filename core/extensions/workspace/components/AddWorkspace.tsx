@@ -13,7 +13,9 @@ const AddWorkspace = () => {
 			isOpen={isOpen}
 			onOpen={() => setIsOpen(true)}
 			onClose={() => setIsOpen(false)}
-			trigger={<ButtonLink onClick={() => {}} iconCode="plus" text={t("workspace.add")} />}
+			trigger={
+				<ButtonLink onClick={() => {}} iconViewBox="3 3 18 18" iconCode="plus" text={t("workspace.add")} />
+			}
 		>
 			<WorkspaceForm onSave={() => setIsOpen(false)} create />
 		</Modal>

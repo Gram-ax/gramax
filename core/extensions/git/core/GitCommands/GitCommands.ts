@@ -7,6 +7,7 @@ import GitErrorCode from "@ext/git/core/GitCommands/errors/model/GitErrorCode";
 import getUrlFromGitStorageData from "@ext/git/core/GitStorage/utils/getUrlFromGitStorageData";
 import t from "@ext/localization/locale/translate";
 import PersistentLogger from "@ext/loggers/PersistentLogger";
+import { parse } from "ini";
 import Path from "../../../../logic/FileProvider/Path/Path";
 import FileProvider from "../../../../logic/FileProvider/model/FileProvider";
 import { VersionControlInfo } from "../../../VersionControl/model/VersionControlInfo";
@@ -299,12 +300,6 @@ export class GitCommands {
 
 	async fetch(data: GitSourceData): Promise<void> {
 		return await this._logWrapper("fetch", "Fetching", async () => {
-			const currentBranch = await this.getCurrentBranch(data);
-			const isLocal = !currentBranch.getData().remoteName;
-			if (isLocal) {
-				this._log("Can't fetch on local branch", "fetch");
-				return;
-			}
 			try {
 				await this._impl.fetch(data);
 			} catch (e) {
@@ -383,10 +378,6 @@ export class GitCommands {
 		return await this._logWrapper("getRemoteUrl", "Getting remote url", () => this._impl.getRemoteUrl());
 	}
 
-	async getFixedSubmodulePaths(): Promise<Path[]> {
-		return this._impl.getFixedSubmodulePaths();
-	}
-
 	async getParentCommit(commitOid: GitVersion): Promise<GitVersion> {
 		return await this._logWrapper(
 			"getParentCommit",
@@ -403,7 +394,28 @@ export class GitCommands {
 	}
 
 	async getSubmodulesData(): Promise<SubmoduleData[]> {
-		return this._impl.getSubmodulesData();
+		const gitModulesPath = this._repoPath.join(new Path(".gitmodules"));
+		if (!(await this._fp.exists(gitModulesPath))) return [];
+		try {
+			// temp? Нужно вытаскивать из конфига
+			const submodules = parse(await this._fp.read(gitModulesPath));
+			return Object.values(submodules).map((submodule) => ({
+				path: new Path(submodule.path),
+				url: submodule.url,
+				branch: submodule.branch,
+			}));
+		} catch {
+			return [];
+		}
+	}
+
+	async isSubmoduleExist(relativeSubmodulePath: Path): Promise<boolean> {
+		const fullSubmodulePath = this._repoPath.join(relativeSubmodulePath);
+		return (
+			(await this._fp.exists(fullSubmodulePath)) &&
+			(await this._fp.isFolder(fullSubmodulePath)) &&
+			(await this._fp.exists(fullSubmodulePath.join(new Path(".git"))))
+		);
 	}
 
 	async restore(staged: boolean, filePaths: Path[]): Promise<void> {

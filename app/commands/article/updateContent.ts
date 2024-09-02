@@ -5,6 +5,7 @@ import ReloadConfirmMiddleware from "@core/Api/middleware/ReloadConfirmMiddlewar
 import Context from "@core/Context/Context";
 import Path from "@core/FileProvider/Path/Path";
 import type { Article } from "@core/FileStructue/Article/Article";
+import { convertContentToUiLanguage } from "@ext/localization/locale/translate";
 import { JSONContent } from "@tiptap/core";
 
 const updateContent: Command<{ ctx: Context; articlePath: Path; catalogName: string; editTree: JSONContent }, void> =
@@ -24,7 +25,12 @@ const updateContent: Command<{ ctx: Context; articlePath: Path; catalogName: str
 			const article = catalog.findItemByItemPath<Article>(articlePath);
 			if (!article) return;
 
-			const context = parserContextFactory.fromArticle(article, catalog, ctx.lang, ctx.user.isLogged);
+			const context = parserContextFactory.fromArticle(
+				article,
+				catalog,
+				convertContentToUiLanguage(ctx.contentLanguage || catalog.props.language),
+				ctx.user.isLogged,
+			);
 			const markdown = await formatter.render(editTree, context);
 			await article.updateContent(markdown);
 			article.parsedContent = await parser.parse(article.content, context);

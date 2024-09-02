@@ -1,11 +1,14 @@
 // в tauri заменяем fs-extra на TauriFs(tauri/vite.config.ts); в wasm на wasmfs
+import { getExecutingEnvironment } from "@app/resolveModule/env";
 import { ItemRef } from "@core/FileStructue/Item/ItemRef";
 import * as fs from "fs-extra";
-import { ItemStatus } from "../../../extensions/Watchers/model/ItemStatus";
+import { type ItemRefStatus } from "../../../extensions/Watchers/model/ItemStatus";
 import Watcher from "../../../extensions/Watchers/model/Watcher";
 import Path from "../Path/Path";
 import FileInfo from "../model/FileInfo";
 import FileProvider from "../model/FileProvider";
+
+const isDesktop = getExecutingEnvironment() == "tauri";
 
 export default class DiskFileProvider implements FileProvider {
 	private _rootPath: Path;
@@ -67,7 +70,13 @@ export default class DiskFileProvider implements FileProvider {
 		} as FileInfo);
 	}
 
-	async delete(path: Path) {
+	async delete(path: Path, preferTrash?: boolean) {
+		if (preferTrash && isDesktop) {
+			try {
+				return await (fs as any).moveToTrash(this._toAbsolute(path));
+			} catch {}
+		}
+
 		if (await this.isFolder(path)) await this._deleteFolder(path);
 		else await this._deleteFile(path);
 	}
@@ -142,7 +151,7 @@ export default class DiskFileProvider implements FileProvider {
 		);
 	}
 
-	watch(callback: (changeItems: ItemStatus[]) => void) {
+	watch(callback: (changeItems: ItemRefStatus[]) => void) {
 		this._watcher?.watch(callback);
 	}
 

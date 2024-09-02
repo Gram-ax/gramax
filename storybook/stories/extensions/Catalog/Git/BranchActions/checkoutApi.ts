@@ -52,7 +52,24 @@ const checkoutApi = [
 	{
 		path: "/api/versionControl/branch/checkout",
 		delay: 1000,
-		errorMessage: "checkout error",
+		// errorMessage: "checkout error",
+	},
+	{
+		path: "/api/versionControl/branch/get",
+		delay: 100,
+		response: { name: "test_branch" },
+		// errorMessage: "checkout error",
+	},
+	{
+		path: "/api/versionControl/branch/getBranchToCheckout",
+		delay: 1000,
+		response: "test_branch",
+		// errorMessage: "getBranchToCheckout error",
+	},
+	{
+		path: "/api/versionControl/branch/abortCheckoutState",
+		delay: 1000,
+		// errorMessage: "abortCheckoutState error",
 	},
 	{
 		path: "/api/versionControl/branch/create",

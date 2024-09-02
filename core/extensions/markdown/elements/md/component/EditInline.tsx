@@ -11,7 +11,7 @@ const EditInline = ({ node, getPos }: NodeViewProps) => {
 	const focusPosition = useContext(FocusPositionContext);
 	return (
 		<NodeViewWrapper as={"span"} contentEditable={false}>
-			<Focus position={getPos()} isMd>
+			<Focus getPos={getPos} isMd>
 				<Tooltip
 					visible={focusPosition == getPos()}
 					content={
@@ -22,7 +22,7 @@ const EditInline = ({ node, getPos }: NodeViewProps) => {
 						</span>
 					}
 				>
-					<div style={{ display: "inline", borderRadius: "var(--radius-normal)" }} data-focusable="true">
+					<div style={{ display: "inline", borderRadius: "var(--radius-x-small)" }} data-focusable="true">
 						{Renderer(node.attrs.tag, { components: getComponents() })}
 					</div>
 				</Tooltip>

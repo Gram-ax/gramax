@@ -23,7 +23,7 @@ const TopBarContent = ({ data, className }: { data: ArticlePageData; className?:
 };
 
 export default styled(TopBarContent)`
-	gap: 1rem;
+	gap: 14px;
 	width: 100%;
 	display: flex;
 	align-items: center;

@@ -1,15 +1,15 @@
+import type { ItemRefStatus } from "@ext/Watchers/model/ItemStatus";
 import chokidar from "chokidar";
 import Path from "../../logic/FileProvider/Path/Path";
 import FileProvider from "../../logic/FileProvider/model/FileProvider";
 import ItemExtensions from "../../logic/FileStructue/Item/ItemExtensions";
 import { FileStatus } from "./model/FileStatus";
-import { ItemStatus } from "./model/ItemStatus";
 import Watcher from "./model/Watcher";
 
 export default class ChokidarWatcher implements Watcher {
-	private _onChanges: ((changes: ItemStatus[]) => void)[] = [];
+	private _onChanges: ((changes: ItemRefStatus[]) => void)[] = [];
 	private _cache: { event: string; path: string }[] = [];
-	private _changeItems: ItemStatus[] = [];
+	private _changeItems: ItemRefStatus[] = [];
 	private _watcher: chokidar.FSWatcher;
 	private _ignoredRegExp = /(^|[/\\])\.git/;
 	private _semaphore = 0;
@@ -25,7 +25,7 @@ export default class ChokidarWatcher implements Watcher {
 		this._start(fp);
 	}
 
-	watch(onChange: (changes: ItemStatus[]) => void) {
+	watch(onChange: (changes: ItemRefStatus[]) => void) {
 		this._onChanges.push(onChange);
 	}
 
@@ -69,8 +69,8 @@ export default class ChokidarWatcher implements Watcher {
 				...this._cache.map(({ event, path }) => {
 					const subDirectory = new Path(fp.rootPath.subDirectory(new Path(path)).value);
 					return {
-						itemRef: fp.getItemRef(subDirectory),
-						type: this._changeTypes[event],
+						ref: fp.getItemRef(subDirectory),
+						status: this._changeTypes[event],
 					};
 				}),
 				...this._changeItems,

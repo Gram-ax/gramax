@@ -33,6 +33,8 @@ import ParserContext from "../../../Parser/ParserContext/ParserContext";
 import { Schema } from "../Markdoc";
 import { image } from "@ext/markdown/elements/image/render/image";
 import { alert } from "@ext/markdown/elements/alert/render/model/alert";
+import { unsupported } from "@ext/markdown/elements/unsupported/render/model/unsupported";
+import { html } from "@ext/markdown/elements/html/render/models/html";
 
 function getContextTagElementRenderModels(context: ParserContext): Record<string, Schema> {
 	return {
@@ -67,6 +69,8 @@ export default function getTagElementRenderModels(context?: ParserContext): Reco
 		video,
 		note,
 		alert,
+		unsupported,
+		html,
 		alfa,
 		beta,
 		when,

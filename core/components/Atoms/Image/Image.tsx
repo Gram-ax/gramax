@@ -1,9 +1,10 @@
 import {
+	CSSProperties,
 	DetailedHTMLProps,
 	forwardRef,
 	Fragment,
 	ImgHTMLAttributes,
-	LegacyRef,
+	MutableRefObject,
 	ReactEventHandler,
 	useState,
 } from "react";
@@ -11,26 +12,34 @@ import Lightbox from "./modalImage/Lightbox";
 import { ImageObject } from "@ext/markdown/elements/image/edit/model/imageEditorTypes";
 
 interface ImageProps extends DetailedHTMLProps<ImgHTMLAttributes<HTMLImageElement>, HTMLImageElement> {
-	realSrc: string;
+	realSrc?: string;
 	objects?: ImageObject[];
 	onLoad?: ReactEventHandler<HTMLImageElement>;
 	onError?: ReactEventHandler<HTMLImageElement>;
+	modalEdit?: () => void;
+	modalTitle?: string;
+	modalStyle?: CSSProperties;
 }
 
-const Image = forwardRef((props: ImageProps, ref?: LegacyRef<HTMLImageElement>) => {
+const Image = forwardRef((props: ImageProps, ref?: MutableRefObject<HTMLImageElement>) => {
 	const [isOpen, setOpen] = useState(false);
-	const { id, src, alt, title, className, realSrc, objects, onLoad, onError } = props;
+	const { id, src, alt, title, className, realSrc, objects, modalStyle, modalTitle, modalEdit, onLoad, onError } =
+		props;
 
 	return (
 		<Fragment>
 			<span className="lightbox">
 				{isOpen && (
 					<Lightbox
-						large={src}
-						realSrc={realSrc}
+						id={id}
+						src={src}
+						title={modalTitle}
+						downloadSrc={realSrc}
 						objects={objects ?? []}
+						modalEdit={modalEdit}
 						onClose={() => setOpen(false)}
-						noneShadow={false}
+						openedElement={ref}
+						modalStyle={modalStyle}
 					/>
 				)}
 			</span>
@@ -42,7 +51,6 @@ const Image = forwardRef((props: ImageProps, ref?: LegacyRef<HTMLImageElement>) 
 				onError={onError}
 				src={src}
 				className={className}
-				data-focusable="true"
 				onClick={() => setOpen(true)}
 			/>
 			{title && <em>{title}</em>}

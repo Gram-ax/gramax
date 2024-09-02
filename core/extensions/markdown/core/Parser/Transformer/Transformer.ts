@@ -83,6 +83,37 @@ class Transformer {
 		}
 		return tokens;
 	}
+
+	htmlTransform(tokens: Token[]) {
+		let idx = 0;
+		while (idx < tokens.length) {
+			const token = tokens[idx];
+			if (token.type === "tag_open" && token.info === "html") {
+				let text = "";
+				let nextID = idx + 1;
+
+				while (nextID < tokens.length) {
+					const nextToken = tokens[nextID];
+
+					if (nextToken.type === "fence") text += nextToken.content;
+					else if (nextToken.type === "tag_close" && nextToken.info === "/html") break;
+					nextID++;
+				}
+
+				(tokens as any).splice(idx, nextID - idx + 1, {
+					type: "tag",
+					tag: "",
+					meta: {
+						tag: "html",
+						attributes: [{ type: "attribute", name: "content", value: text }],
+					},
+				});
+			}
+
+			idx++;
+		}
+		return tokens;
+	}
 }
 
 export default Transformer;

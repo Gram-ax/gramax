@@ -1,4 +1,3 @@
-import Icon from "@components/Atoms/Icon";
 import styled from "@emotion/styled";
 import React from "react";
 
@@ -30,7 +29,7 @@ const Header = (props: HeaderProps) => {
 						void navigator.clipboard.writeText(clipboardLink);
 					}}
 				>
-					<Icon code="link" />
+					<i className="link-icon chain-icon" />
 				</a>
 			)}
 		</>
@@ -45,13 +44,12 @@ export default styled(Header)`
 	}
 	:hover > a.anchor:hover {
 		opacity: 1;
+		text-decoration: none;
 	}
 
 	> a.anchor {
 		opacity: 0;
-		font-size: 0.9em;
 		line-height: inherit;
-		margin-left: var(--distance-i-span);
 		color: var(--color-article-text) !important;
 	}
 

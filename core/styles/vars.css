@@ -18,12 +18,14 @@
 	--color-link-dark-theme: hsl(205deg 79% 52%);
 	--color-article-text-dark-theme: #abb2d4;
 
-	--radius-small: 3px;
-	--radius-normal: 4px;
-	--radius-large: 5px;
-	--radius-x-large: 8px;
+	--radius-x-small: 2px;
+	--radius-small: 4px;
+	--radius-medium: 6px;
+	--radius-large: 8px;
+	--radius-x-large: 10px;
+	--radius-xx-large: 12px;
 
-	--top-bar-height: 64px;
+	--top-bar-height: 48px;
 	--bottom-bar-height: 42px;
 	--scroll-width: 7px;
 	--big-icon-size: 20px;

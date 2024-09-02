@@ -4,6 +4,7 @@ import OPEN_API_NAME from "@ext/markdown/elements/openApi/name";
 export type Attrs = { level: Level; notFirstInList?: boolean };
 
 export type NodeType =
+	| "html"
 	| "heading"
 	| "paragraph"
 	| "blockquote"

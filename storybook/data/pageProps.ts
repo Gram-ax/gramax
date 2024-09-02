@@ -1,5 +1,6 @@
 import PageDataContext from "@core/Context/PageDataContext";
 import { ArticlePageData, HomePageData } from "@core/SitePresenter/SitePresenter";
+import UiLanguage, { ContentLanguage } from "@ext/localization/core/model/Language";
 
 export default {
 	data: {
@@ -16,7 +17,6 @@ export default {
 			},
 			title: "",
 			description: "",
-			tags: [],
 			tocItems: [],
 			errorCode: null,
 		},
@@ -36,10 +36,11 @@ export default {
 			},
 			docroot: "",
 			relatedLinks: null,
+			language: null,
 			contactEmail: null,
 			name: "doc-reader",
 			title: "DocReader",
-			languages: ["ru", "en"],
+			supportedLanguages: [ContentLanguage.ru],
 			readOnly: false,
 			repositoryName: "doc-reader",
 			storageType: "GitHub",
@@ -47,6 +48,7 @@ export default {
 			sourceName: "GitHub",
 			userInfo: null,
 		},
+		leftNavItemLinks: [],
 		itemLinks: [
 			{
 				ref: {
@@ -754,7 +756,10 @@ export default {
 		currentWorkspace: "default-workspace",
 		domain: "http://localhost:3000",
 		isArticle: true,
-		lang: "ru",
+		language: {
+			ui: UiLanguage.ru,
+			content: ContentLanguage.ru,
+		},
 		theme: "dark",
 		isLogged: true,
 		userInfo: {

@@ -1,6 +1,6 @@
 import Context from "@core/Context/Context";
 import { Article } from "@core/FileStructue/Article/Article";
-import { ArticleFilter, Catalog, ChangeCatalog } from "@core/FileStructue/Catalog/Catalog";
+import { ArticleFilter, Catalog, type CatalogFilesUpdated } from "@core/FileStructue/Catalog/Catalog";
 import { Category } from "@core/FileStructue/Category/Category";
 import { ArticleType, PApplication, PArticle, PCatalog, PCategory, PChangeCatalog } from "@core/Plugin";
 import PluginsCache from "@core/Plugin/logic/PluginsCache";
@@ -35,19 +35,18 @@ export default class PApplicationProvider {
 					return res;
 				},
 				onUpdate: (callback) => {
-					this._wm.addOnChangeRule((changeCatalogs) => {
-						void callback(changeCatalogs.map((c) => this._getChangeCatalog(c, filters)));
+					this._wm.onCatalogChange((update) => {
+						void callback(this._convertCatalogFilesUpdate(update, filters));
 					});
 				},
 			},
 		};
 	}
 
-	private _getChangeCatalog(changeCatalog: ChangeCatalog, filters?: ArticleFilter[]): PChangeCatalog {
+	private _convertCatalogFilesUpdate(update: CatalogFilesUpdated, filters?: ArticleFilter[]): PChangeCatalog {
 		return {
-			catalog: this._getCatalog(changeCatalog.catalog, filters),
-			articleId: itemRefConverter.toId(changeCatalog.itemRef),
-			type: changeCatalog.type,
+			catalog: this._getCatalog(update.catalog, filters),
+			items: update.items.map((item) => ({ articleId: itemRefConverter.toId(item.ref), status: item.status })),
 		};
 	}
 

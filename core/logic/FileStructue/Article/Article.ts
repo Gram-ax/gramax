@@ -11,7 +11,9 @@ import { TocItem } from "../../../extensions/navigation/article/logic/createTocI
 import ResourceManager from "../../Resource/ResourceManager";
 import { ClientArticleProps } from "../../SitePresenter/SitePresenter";
 import { Category } from "../Category/Category";
-import { Item, type ItemProps } from "../Item/Item";
+import { Item, type ItemEvents, type ItemProps } from "../Item/Item";
+
+export type ArticleEvents = ItemEvents;
 
 export type ArticleInitProps<P extends ItemProps> = {
 	ref: ItemRef;
@@ -46,6 +48,10 @@ export class Article<P extends ArticleProps = ArticleProps> extends Item<P> {
 		this._fs = init.fs;
 	}
 
+	get events() {
+		return super.events;
+	}
+
 	set parsedContent(parsedContent: Content) {
 		this._parsedContent = parsedContent;
 	}
@@ -76,12 +82,6 @@ export class Article<P extends ArticleProps = ArticleProps> extends Item<P> {
 		await this._save();
 	}
 
-	async updateProps(props: ClientArticleProps, resourceUpdater: ResourceUpdater) {
-		await this._updateProps(props);
-		await this._updateArticleFileName(props.fileName, resourceUpdater);
-		return this;
-	}
-
 	async checkLastModified(lastModified: number): Promise<boolean> {
 		const result = this._lastModified !== lastModified;
 		if (result) {
@@ -98,7 +98,7 @@ export class Article<P extends ArticleProps = ArticleProps> extends Item<P> {
 		return this._ref.path.name;
 	}
 
-	protected async _updateProps(props: ClientArticleProps) {
+	protected override async _updateProps(props: ClientArticleProps) {
 		this._props.title = props.title;
 		if (props.description !== "") this._props.description = props.description;
 		await this._save();
@@ -110,12 +110,13 @@ export class Article<P extends ArticleProps = ArticleProps> extends Item<P> {
 
 	protected async _save() {
 		delete this._props.welcome;
+		if (this._props.title) delete this._props.external;
 		const stat = await this._fs.saveArticle(this);
 		this._lastModified = stat.mtimeMs;
-		this._watcherFuncs.map((f) => f([{ itemRef: this._ref, type: FileStatus.modified }]));
+		await this.events.emit("item-changed", { item: this, status: FileStatus.modified });
 	}
 
-	private async _updateArticleFileName(fileName: string, resourceUpdater: ResourceUpdater) {
+	protected override async _updateFilename(fileName: string, resourceUpdater: ResourceUpdater) {
 		if (this.getFileName() == fileName) return;
 		let path = this._ref.path.getNewName(fileName);
 		if (await this._fs.fp.exists(path)) {
@@ -129,7 +130,9 @@ export class Article<P extends ArticleProps = ArticleProps> extends Item<P> {
 		await this._fs.moveArticle(this, path);
 		const newArticle = this._getUpdateArticleByProps(path);
 		await resourceUpdater.update(this, newArticle);
-		Object.assign(this, newArticle);
+		this._logicPath = newArticle.logicPath;
+		this._ref = newArticle.ref;
+
 		return this;
 	}
 

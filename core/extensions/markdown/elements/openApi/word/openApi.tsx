@@ -18,16 +18,14 @@ export const openApiWordLayout: WordBlockChild = async ({ tag, addOptions, resou
 	const size = WordExportHelper.getSvgDimensions(innerHTML, addOptions?.maxPictureWidth);
 	const diagramImage = await WordExportHelper.svgToPngBlob(innerHTML, size);
 
-	const dimensions = await WordExportHelper.getImageSizeFromImageData(diagramImage);
-
 	return [
 		new Paragraph({
 			children: [
 				new ImageRun({
 					data: await diagramImage.arrayBuffer(),
 					transformation: {
-						width: dimensions.width,
-						height: dimensions.height,
+						width: size.width,
+						height: size.height,
 					},
 				}),
 			],

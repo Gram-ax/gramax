@@ -4,6 +4,7 @@ import Context from "@core/Context/Context";
 import { Article } from "@core/FileStructue/Article/Article";
 import { CatalogErrorGroups } from "@core/FileStructue/Catalog/CatalogErrorGroups";
 import RouterPathProvider from "@core/RouterPath/RouterPathProvider";
+import { RenderableTreeNode } from "@ext/markdown/core/render/logic/Markdoc";
 import RuleProvider from "@ext/rules/RuleProvider";
 import Path from "../../../logic/FileProvider/Path/Path";
 import FileProvider from "../../../logic/FileProvider/model/FileProvider";
@@ -33,7 +34,7 @@ class Healthcheck {
 
 	async checkCatalog(): Promise<CatalogErrors> {
 		if (!this._catalog) return {};
-		this._errors = { icons: [], links: [], images: [], diagrams: [], fs: [] };
+		this._errors = { icons: [], links: [], images: [], diagrams: [], fs: [], unsupported: [] };
 		const rp = new RuleProvider(this._ctx);
 		const filters = rp.getItemFilters();
 
@@ -51,7 +52,11 @@ class Healthcheck {
 			for (const iconCode of item.parsedContent.icons) {
 				await this._checkIcons(item, iconCode);
 			}
+
+			await this._checkUnsupported(item, item.parsedContent.renderTree);
 		}
+
+		this._errors.unsupported = this.groupAndRename(this._errors.unsupported);
 
 		const categories = this._catalog.getCategories();
 		for (const category of categories) {
@@ -108,7 +113,7 @@ class Healthcheck {
 		if (await this._pathExists(item, resource)) return;
 
 		const refCatalogError = this._getRefCatalogError({
-			value: decodeURIComponent(resource.value),
+			value: resource.value,
 			logicPath: item.logicPath,
 			title: item.getTitle(),
 			editorLink: await this._getErrorLink(this._catalog, item),
@@ -117,8 +122,7 @@ class Healthcheck {
 		if (ResourceExtensions.diagrams.includes(resource.extension))
 			return this._errors.diagrams.push(refCatalogError);
 
-		if (ResourceExtensions.images.includes(resource.extension))
-			return this._errors.images.push(refCatalogError);
+		if (ResourceExtensions.images.includes(resource.extension)) return this._errors.images.push(refCatalogError);
 
 		return this._errors.fs.push(refCatalogError);
 	};
@@ -137,6 +141,46 @@ class Healthcheck {
 				editorLink: await this._getErrorLink(this._catalog, item),
 			}),
 		);
+	}
+
+	private _checkUnsupported = async (item: Article, tree: RenderableTreeNode) => {
+		if (!tree || typeof tree === "string") return;
+
+		if (tree.name == "Unsupported") {
+			this._errors.unsupported.push(
+				this._getRefCatalogError({
+					value: tree?.attributes?.type,
+					logicPath: item.logicPath,
+					title: item.getTitle(),
+					editorLink: await this._getErrorLink(this._catalog, item),
+				}),
+			);
+		}
+
+		if (tree.children) {
+			await Promise.all(tree.children.map((n) => this._checkUnsupported(item, n)));
+		}
+	};
+
+	private groupAndRename(arr: CatalogError[]): CatalogError[] {
+		const grouped: { [key: string]: CatalogError & { count: number } } = {};
+
+		arr.forEach((item) => {
+			const key = `${item.args.value}_${item.args.logicPath}`;
+			if (!grouped[key]) {
+				grouped[key] = { ...item, count: 1 };
+			} else {
+				grouped[key].count += 1;
+			}
+		});
+
+		return Object.values(grouped).map((item) => {
+			if (item.count > 0) {
+				item.args.value = `${item.args.value} (${item.count})`;
+			}
+			delete item.count;
+			return item;
+		});
 	}
 }
 

@@ -1,28 +1,28 @@
 import Icon from "@components/Atoms/Icon";
 import SpinnerLoader from "@components/Atoms/SpinnerLoader";
 import { getLocalizedString } from "@components/libs/utils";
+import LanguageService from "@core-ui/ContextServices/Language";
 import styled from "@emotion/styled";
 import t from "@ext/localization/locale/translate";
+import DiagramError from "@ext/markdown/elements/diagrams/component/DiagramError";
 import { useState } from "react";
 import Popup from "reactjs-popup";
 import { Table, TableWithRefs } from "../../../../../logic/components/tableDB/table";
-import Language from "../../../../localization/core/model/Language";
-import DiagramError from "@ext/markdown/elements/diagrams/component/DiagramError";
 
 const TableDB = styled(
 	({
 		object,
-		lang,
 		error,
 		isLogged,
 		className,
 	}: {
 		object: Table | TableWithRefs;
-		lang: Language;
 		error?: { message: string; stack: string };
 		isLogged: boolean;
 		className?: string;
 	}) => {
+		const lang = LanguageService.currentUi();
+
 		if (error)
 			return (
 				<DiagramError error={error} title={t("diagram.error.tabledb-render-failed")} diagramName="Db-table" />
@@ -42,7 +42,7 @@ const TableDB = styled(
 					<Popup defaultOpen onClose={() => setPopup(null)} lockScroll={false}>
 						<div className={className}>
 							<div className="scroll article">
-								<TableDB object={popup} lang={lang} isLogged={isLogged} />
+								<TableDB object={popup} isLogged={isLogged} />
 							</div>
 						</div>
 					</Popup>
@@ -53,7 +53,9 @@ const TableDB = styled(
 				<div className="subtitle" dangerouslySetInnerHTML={{ __html: object.subtitle }} />
 				<div
 					className="description"
-					dangerouslySetInnerHTML={{ __html: getLocalizedString(object.description, lang) }}
+					dangerouslySetInnerHTML={{
+						__html: getLocalizedString(object.description, lang),
+					}}
 				/>
 				<table className="fields">
 					<thead>
@@ -141,38 +143,47 @@ const TableDB = styled(
 		margin-left: 5px;
 		vertical-align: 2px;
 	}
+
 	.pk {
 		font-family: "Roboto Mono", Consolas, monospace;
 		display: inline-block;
 		margin-left: 0.5em;
 		color: var(--color-article-text);
-		border-radius: var(--radius-normal);
+		border-radius: var(--radius-small);
 		background: var(--color-code-bg);
 		padding: 2px 6px;
+
 		.icon {
 			margin-right: 0.3em;
 			vertical-align: 1px;
 			font-size: 12px;
 		}
 	}
+
 	.fk {
 		margin-left: 1.5em;
 		margin-top: 0.5em;
+
 		code {
 			margin-left: 0.3em;
 		}
 	}
+
 	h3 {
 		margin-top: 0;
 	}
+
 	h3 code {
 		font-size: 17px;
+
 		.icon {
 			vertical-align: baseline;
 		}
 	}
+
 	.title {
 	}
+
 	.description {
 		font-size: 0.9em;
 	}
@@ -185,9 +196,11 @@ const TableDB = styled(
 		background: var(--color-article-bg);
 		box-shadow: var(--shadows-changeable-deeplight);
 	}
+
 	.refTable {
 		cursor: pointer;
 	}
+
 	.refTable:hover {
 		text-decoration: underline;
 	}

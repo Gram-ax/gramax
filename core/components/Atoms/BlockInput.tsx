@@ -56,7 +56,7 @@ const BlockInput = styled(
 
 			return (
 				<div className={className + (isCode ? " article ProseMirror" : "")}>
-					{icon ? <Icon code={icon}/> : null}
+					{icon ? <Icon code={icon} /> : null}
 					{React.createElement(
 						isCode ? "pre" : "div",
 						{
@@ -101,7 +101,7 @@ const BlockInput = styled(
 		padding: 6px 12px;
 		font-size: 0.8rem;
 		line-height: 20px;
-		border-radius: var(--radius-normal);
+		border-radius: var(--radius-small);
 		color: var(--color-fence-text);
 		background: var(--color-code-bg);
 	}

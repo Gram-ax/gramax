@@ -1,0 +1,8 @@
+[core]
+	repositoryformatversion = 0
+	filemode = false
+	bare = true
+	symlinks = false
+	ignorecase = true
+[remote "origin"]
+	url = C:/Users/danil.kazanov/Desktop/dr-browser/core/extensions/git/test/fixtures/remoteRep_submodule1

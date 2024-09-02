@@ -4,7 +4,7 @@ import ModalLayoutLight from "@components/Layouts/ModalLayoutLight";
 import t from "@ext/localization/locale/translate";
 import Form from "@rjsf/core";
 import { ReactElement, useState } from "react";
-import Fence from "../../fence/render/component/Fence";
+import CodeBlock from "@ext/markdown/elements/codeBlockLowlight/render/component/CodeBlock";
 import fnProperties from "../logic/fnProperties";
 
 const Fn = ({ code, defaultValues }: { code: string; defaultValues?: string }): ReactElement => {
@@ -70,7 +70,7 @@ const Fn = ({ code, defaultValues }: { code: string; defaultValues?: string }): 
 									{outputJsonSchema?.properties[key]?.description}
 								</label>
 								<div className="field">
-									<Fence
+									<CodeBlock
 										lang={"json"}
 										value={
 											typeof response[key] === "string"

@@ -1,5 +1,6 @@
 import LeftNavigationIsOpenService from "@core-ui/ContextServices/LeftNavigationIsOpen";
 import { cssMedia } from "@core-ui/utils/cssUtils";
+import type { ArticlePageData } from "@core/SitePresenter/SitePresenter";
 import useIsStorageInitialized from "@ext/storage/logic/utils/useIsStorageIniziliate";
 import { useMediaQuery } from "@mui/material";
 import CreateArticle from "../../../../extensions/artilce/actions/CreateArticle";
@@ -9,7 +10,7 @@ import ExtensionBarLayout from "../../ExtensionBarLayout";
 import ArticleStatusBar from "../../StatusBar/Extensions/ArticleStatusBar";
 import PinToggleArrowIcon from "./PinToggleArrowIcon";
 
-const LeftNavigationBottom = ({ closeNavigation }: { closeNavigation?: () => void }) => {
+const LeftNavigationBottom = ({ data, closeNavigation }: { data: ArticlePageData; closeNavigation?: () => void }) => {
 	const catalogProps = CatalogPropsService.value;
 	const readOnlyCatalog = catalogProps.readOnly;
 	const isCatalogExist = !!catalogProps.name;
@@ -28,9 +29,9 @@ const LeftNavigationBottom = ({ closeNavigation }: { closeNavigation?: () => voi
 	};
 
 	const getHeight = (): number => {
-		if (leftNavIsOpen) return 42;
-		if (!leftNavIsOpen && leftNavTrEndIsOpen) return 42;
-		if (!leftNavIsOpen && !leftNavTrEndIsOpen) return 42 + 70;
+		if (leftNavIsOpen) return 34;
+		if (!leftNavIsOpen && leftNavTrEndIsOpen) return 34;
+		if (!leftNavIsOpen && !leftNavTrEndIsOpen) return 34 + 70;
 	};
 
 	return (
@@ -39,10 +40,12 @@ const LeftNavigationBottom = ({ closeNavigation }: { closeNavigation?: () => voi
 				height={getHeight()}
 				padding={{
 					top: getPaddingTop(),
-					left: leftNavIsOpen ? "20px" : "0",
-					right: leftNavIsOpen ? "20px" : "6px",
+					left: leftNavIsOpen ? "14px" : "0",
+					right: leftNavIsOpen ? "14px" : "6px",
 				}}
-				leftExtensions={isCatalogExist ? [<CreateArticle key={0} onCreate={closeNavigation} />] : null}
+				leftExtensions={
+					isCatalogExist ? [<CreateArticle root={data.rootRef} key={0} onCreate={closeNavigation} />] : null
+				}
 				rightExtensions={mediumMedia ? null : [<PinToggleArrowIcon key={0} />]}
 			/>
 			{!readOnlyCatalog && neededToBeLogged && isCatalogExist && (

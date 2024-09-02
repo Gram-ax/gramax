@@ -16,6 +16,11 @@ export type PreviewVideoProps = Omit<RenderVideoProps, "setIsError"> &
 const agent = typeof window !== "undefined" && window.navigator?.userAgent;
 const isCredentiallessUnsupported = getExecutingEnvironment() == "browser" && !agent.includes("Chrome");
 
+const rutubeUrlReplacer = (url: string): string => {
+	if (url.includes("video/private")) return url.replace("video/private", "play/embed");
+	return url.replace("video", "play/embed");
+};
+
 const SupportedVideoHostings: {
 	[key: string]: (url: string, setIsError: (isError: boolean) => void) => JSX.Element;
 } = {
@@ -60,7 +65,7 @@ const SupportedVideoHostings: {
 		isCredentiallessUnsupported ? (
 			<PreviewVideo url={url} previewUrl={"/images/rutube.png"} />
 		) : (
-			<IFrameVideo url={url.replace("video", "play/embed")} setIsError={setIsError} />
+			<IFrameVideo url={rutubeUrlReplacer(url)} setIsError={setIsError} />
 		),
 	// "sharepoint.com": (link) => <VideoTag link={link.replace(/\?e=.*?$/, "?download=1")} />,
 };

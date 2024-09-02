@@ -1,4 +1,5 @@
 import type { MergeResult, UpstreamCountFileChanges } from "@ext/git/core/GitCommands/LibGit2IntermediateCommands";
+import GitStash from "@ext/git/core/model/GitStash";
 import Path from "../../../../../logic/FileProvider/Path/Path";
 import { VersionControlInfo } from "../../../../VersionControl/model/VersionControlInfo";
 import SourceData from "../../../../storage/logic/SourceDataProvider/model/SourceData";
@@ -7,8 +8,6 @@ import { GitStatus } from "../../GitWatcher/model/GitStatus";
 import GitProgressEvent from "../../model/GitProgressEvent";
 import GitSourceData from "../../model/GitSourceData.schema";
 import { GitVersion } from "../../model/GitVersion";
-import SubmoduleData from "../../model/SubmoduleData";
-import GitStash from "@ext/git/core/model/GitStash";
 
 interface GitCommandsModel {
 	init(data: SourceData): Promise<void>;
@@ -58,8 +57,6 @@ interface GitCommandsModel {
 	hasRemote(): Promise<boolean>;
 	showFileContent(filePath: Path, ref?: GitVersion | GitStash): Promise<string>;
 	getParentCommit(commitOid: string): Promise<string>;
-	getFixedSubmodulePaths(): Promise<Path[]>;
-	getSubmodulesData(): Promise<SubmoduleData[]>;
 }
 
 export default GitCommandsModel;

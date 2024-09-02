@@ -7,20 +7,24 @@ import EditWorkspace from "@ext/workspace/components/EditWorkspace";
 const SwitchWorkspace = () => {
 	return (
 		<PopupMenuLayout trigger={<ButtonLink iconCode="layers" text={WorkspaceService.current().name} />}>
+			<AddWorkspace />
+			<div className="divider" />
 			<>
-				<AddWorkspace />
-				<div className="divider" />
-				{WorkspaceService.workspaces().map((workspace, idx) => (
-					<ButtonLink
-						key={idx}
-						fullWidth
-						onClick={() => WorkspaceService.setActive(workspace.path)}
-						iconCode={workspace.icon}
-						text={workspace.name}
-						maxLength={20}
-						rightActions={[<EditWorkspace key={0} workspace={workspace} />]}
-					/>
-				))}
+				{WorkspaceService.workspaces().map((workspace) => {
+					const { name, path, icon } = workspace;
+					const workspaceName = name?.length > 20 ? name.slice(0, 20) + "..." : name;
+
+					return (
+						<ButtonLink
+							key={path}
+							fullWidth
+							onClick={() => WorkspaceService.setActive(path)}
+							iconCode={icon}
+							text={workspaceName}
+							rightActions={[<EditWorkspace key={0} workspace={workspace} />]}
+						/>
+					);
+				})}
 			</>
 		</PopupMenuLayout>
 	);

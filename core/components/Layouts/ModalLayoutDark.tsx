@@ -21,8 +21,15 @@ export default styled(ModalLayoutDark)`
 	font-size: 12px;
 	width: fit-content;
 	color: var(--color-article-bg);
-	border-radius: var(--radius-x-large);
+	border-radius: var(--radius-large);
 	background: var(--color-tooltip-background);
+
+	.custom-action i {
+		color: var(--color-primary-general-inverse) !important;
+		&:hover {
+			color: var(--color-primary-inverse) !important;
+		}
+	}
 
 	@media print {
 		display: none !important;

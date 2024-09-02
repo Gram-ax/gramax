@@ -3,7 +3,7 @@ import Path from "../../../../../logic/FileProvider/Path/Path";
 import { Article } from "../../../../../logic/FileStructue/Article/Article";
 import { Catalog } from "../../../../../logic/FileStructue/Catalog/Catalog";
 import { TableDB } from "../../../../../logic/components/tableDB/table";
-import Language from "../../../../localization/core/model/Language";
+import UiLanguage from "../../../../localization/core/model/Language";
 import UserRepository from "../../../../security/logic/UserRepository";
 import MarkdownFormatter from "../../edit/logic/Formatter/Formatter";
 import MarkdownParser from "../Parser";
@@ -20,7 +20,7 @@ class ParserContextFactory {
 		private _ur?: UserRepository,
 	) {}
 
-	fromArticle(article: Article, catalog: Catalog, language: Language, isLogged: boolean): ParserContext {
+	fromArticle(article: Article, catalog: Catalog, language: UiLanguage, isLogged: boolean): ParserContext {
 		return new ArticleContext(
 			article,
 			catalog,

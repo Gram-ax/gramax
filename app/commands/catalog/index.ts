@@ -1,3 +1,4 @@
+import language from "@app/commands/catalog/language";
 import create from "./create";
 import getBrotherFileNames from "./getBrotherFileNames";
 import getLogo from "./getLogo";
@@ -24,6 +25,7 @@ const catalog = {
 	getBrotherFileNames,
 	updateNavigation,
 	updateProps,
+	language,
 };
 
 export default catalog;

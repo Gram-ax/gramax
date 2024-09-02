@@ -1,12 +1,15 @@
 import ShareData from "@ext/catalog/actions/share/model/ShareData";
 import type { ClientWorkspaceConfig, WorkspacePath } from "@ext/workspace/WorkspaceConfig";
 import Theme from "../../extensions/Theme/Theme";
-import Language from "../../extensions/localization/core/model/Language";
+import UiLanguage, { type ContentLanguage } from "../../extensions/localization/core/model/Language";
 import UserInfo from "../../extensions/security/logic/User/UserInfo2";
 import SourceData from "../../extensions/storage/logic/SourceDataProvider/model/SourceData";
 
 interface PageDataContext {
-	lang: Language;
+	language: {
+		content: ContentLanguage;
+		ui: UiLanguage;
+	};
 	theme: Theme;
 	isLogged: boolean;
 	userInfo: UserInfo;

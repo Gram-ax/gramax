@@ -2,6 +2,7 @@ import { ContextFactory } from "@core/Context/ContextFactory";
 import Path from "@core/FileProvider/Path/Path";
 import Hash from "@core/Hash/Hash";
 import PluginProvider from "@core/Plugin/logic/PluginProvider";
+import type ResourceUpdaterFactory from "@core/Resource/ResourceUpdaterFactory";
 import CustomArticlePresenter from "@core/SitePresenter/CustomArticlePresenter";
 import SitePresenterFactory from "@core/SitePresenter/SitePresenterFactory";
 import { TableDB } from "@core/components/tableDB/table";
@@ -16,12 +17,10 @@ import MarkdownParser from "@ext/markdown/core/Parser/Parser";
 import ParserContextFactory from "@ext/markdown/core/Parser/ParserContext/ParserContextFactory";
 import MarkdownFormatter from "@ext/markdown/core/edit/logic/Formatter/Formatter";
 import AuthManager from "@ext/security/logic/AuthManager";
-import Sso from "@ext/security/logic/AuthProviders/Sso";
 import { TicketManager } from "@ext/security/logic/TicketManager/TicketManager";
 import type WorkspaceManager from "@ext/workspace/WorkspaceManager";
 
 interface Application {
-	sso: Sso;
 	wm: WorkspaceManager;
 	cache: Cache;
 	hashes: Hash;
@@ -36,10 +35,11 @@ interface Application {
 	rp: GitRepositoryProvider;
 	formatter: MarkdownFormatter;
 	ticketManager: TicketManager;
-	contextFactory: ContextFactory;
 	pluginProvider: PluginProvider;
+	contextFactory: ContextFactory;
 	parserContextFactory: ParserContextFactory;
 	sitePresenterFactory: SitePresenterFactory;
+	resourceUpdaterFactory: ResourceUpdaterFactory;
 	customArticlePresenter: CustomArticlePresenter;
 	conf: {
 		basePath: Path;

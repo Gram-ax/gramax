@@ -1,0 +1,6 @@
+[submodule "docs/submodule1"]
+	path = docs/submodule1
+	url = http://localhost:8174/remoteRep_submodule1.git
+[submodule "docs/submodule2"]
+	path = docs/submodule2
+	url = http://localhost:8174/remoteRep_submodule2.git

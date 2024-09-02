@@ -331,7 +331,7 @@ export class MarkdownSerializerState {
 	/// have special meaning only at the start of the line.
 	esc(str: string, startOfLine = false) {
 		// eslint-disable-next-line no-useless-escape
-		str = str.replace(/[`*\\~\[\]_]/g, (m, i) =>
+		str = str.replace(/[`*\\~\[\]_\$]/g, (m, i) =>
 			m == "_" && i > 0 && i + 1 < str.length && str[i - 1].match(/\w/) && str[i + 1].match(/\w/) ? m : "\\" + m,
 		);
 		if (startOfLine) str = str.replace(/^[#\-*+>]/, "\\$&").replace(/^(\s*\d+)\./, "$1\\.");

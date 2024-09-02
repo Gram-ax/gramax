@@ -138,22 +138,26 @@ const Heading = Node.create<HeadingOptions>({
 									if (!node.marks) return;
 									newTr.removeMark(offset, offset + node.nodeSize);
 								});
+								if (tr.doc.firstChild.attrs.level !== 1) newTr.setNodeAttribute(0, "level", 1);
 							}
 						});
 					});
 					return newTr;
 				},
 				filterTransaction(tr) {
-					if (!tr.docChanged) return true;
-					let allowTr = true;
-					tr.steps.forEach((step) => {
-						if (step instanceof AddMarkStep) {
-							const resolvedPos = tr.doc.resolve(step.from);
-							if (resolvedPos.parent === tr.doc.firstChild) allowTr = false;
-						}
-					});
+					if (tr.docChanged) {
+						let allowTr = true;
+						tr.steps.forEach((step) => {
+							if (step instanceof AddMarkStep) {
+								const resolvedPos = tr.doc.resolve(step.from);
+								if (resolvedPos.parent === tr.doc.firstChild) allowTr = false;
+							}
+						});
 
-					return allowTr;
+						return allowTr;
+					}
+
+					return true;
 				},
 			}),
 		];

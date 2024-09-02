@@ -7,7 +7,7 @@ export default abstract class FocusService {
 		this._setFocusPosition = setFocusPosition;
 	}
 
-	public static setFocusPosition(IsOpenMpdal: number) {
-		this._setFocusPosition(IsOpenMpdal);
+	public static setFocusPosition(position: number) {
+		this._setFocusPosition(position);
 	}
 }

@@ -36,11 +36,10 @@ export const transformNodeToModel = async (node: any, context: ParserContext): P
 
 export const transformModelToNode = (model: CommentBlock): JSONContent => {
 	if (!model?.comment) return null;
+	if (!Array.isArray(model.answers)) model.answers = [];
 
 	const node = _getNodeFromComment(model.comment, true);
-	const answerNodes = model?.answers
-		? model.answers.map((answer: Comment) => _getNodeFromComment(answer, false))
-		: [];
+	const answerNodes = model.answers.map((answer: Comment) => _getNodeFromComment(answer, false));
 	node.content.push(...answerNodes);
 	return node;
 };

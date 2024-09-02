@@ -2,7 +2,9 @@ import { ResponseKind } from "@app/types/ResponseKind";
 import type UserSettings from "@app/types/UserSettings";
 import Context from "@core/Context/Context";
 import Path from "@core/FileProvider/Path/Path";
+import DefaultError from "@ext/errorHandlers/logic/DefaultError";
 import { makeSourceApi } from "@ext/git/actions/Source/makeSourceApi";
+import t from "@ext/localization/locale/translate";
 import { ClientWorkspaceConfig } from "@ext/workspace/WorkspaceConfig";
 import { Command } from "../../types/Command";
 
@@ -13,6 +15,16 @@ const userSettings: Command<{ ctx: Context; userSettings: UserSettings }, void> 
 
 	async do({ ctx, userSettings }) {
 		const { wm } = this._app;
+
+		if (userSettings.isNotEditor) {
+			throw new DefaultError(
+				t("enterprise.check-if-user-editor-warning"),
+				null,
+				{},
+				true,
+				t("enterprise.access-restricted"),
+			);
+		}
 
 		if (
 			userSettings.workspace &&
@@ -26,8 +38,8 @@ const userSettings: Command<{ ctx: Context; userSettings: UserSettings }, void> 
 			await this._commands.workspace.create.do({ config: workspace });
 		}
 
-		if (userSettings.storageData) {
-			const sourceData = userSettings.storageData;
+		if (userSettings.source) {
+			const sourceData = userSettings.source;
 
 			if (sourceData.error) return console.log(sourceData.error);
 			if (!(await makeSourceApi(sourceData, wm.current().config().services?.auth?.url).isCredentialsValid()))

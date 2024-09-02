@@ -24,7 +24,7 @@ class ResourceManager {
 		return this._resources;
 	}
 
-	setNewBasePath(newBasePath: Path): ResourceMovements {
+	setNewBasePath(newBasePath: Path, ignoredResources?: Path[]): ResourceMovements {
 		if (newBasePath.compare(this._basePath)) {
 			return { oldResources: this._resources, newResources: this._resources };
 		}
@@ -32,6 +32,8 @@ class ResourceManager {
 		const absoluteNewBasePath = this._rootPath ? this._rootPath.join(newBasePath) : newBasePath;
 		const newResources = this._resources.map((resource) => {
 			const absoluteResource = this.getAbsolutePath(resource);
+			if (ignoredResources?.some((ignoredResource) => ignoredResource.compare(absoluteResource))) return resource;
+
 			const relativePath = absoluteNewBasePath.getRelativePath(absoluteResource);
 			return relativePath;
 		});
@@ -88,7 +90,7 @@ class ResourceManager {
 
 	async delete(path: Path) {
 		if (!(await this._fp.exists(this.getAbsolutePath(path)))) return;
-		return await this._fp.delete(this.getAbsolutePath(path));
+		return await this._fp.delete(this.getAbsolutePath(path), true);
 	}
 
 	async deleteAll() {

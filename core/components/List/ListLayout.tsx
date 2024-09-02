@@ -39,7 +39,9 @@ interface ConfigProps {
 	customOutsideClick?: boolean;
 	selectAllOnFocus?: boolean;
 	disableSearch?: boolean;
+	keepFullWidth?: boolean;
 	isLoadingData?: boolean;
+	disableCancelAction?: boolean;
 	place?: Placement;
 	appendTo?: TippyProps["appendTo"];
 }
@@ -52,6 +54,7 @@ export interface ListLayoutProps extends ConfigProps {
 	maxItems?: number;
 	tabIndex?: number;
 	onSearchClick?: () => void;
+	onCancelClick?: () => void;
 	onSearchChange?: (value: string) => void;
 	onItemClick?: (
 		labelField: string,
@@ -64,12 +67,10 @@ export interface ListLayoutProps extends ConfigProps {
 	filterItems?: (items: ItemContent[], input: string) => ItemContent[];
 	containerRef?: MutableRefObject<any>;
 	addWidth?: number;
-	keepFullWidth?: boolean;
 }
 
 const StyledDiv = styled.div<ConfigProps>`
 	width: 100%;
-	border-radius: 4px 4px 0 0;
 	pointer-events: ${(props) => (props.disable ? "none" : "auto")};
 	color: ${(props) => (props.isCode ? "var(--color-prism-text)" : "inherit")};
 `;
@@ -97,7 +98,7 @@ const getStrValue = (value: ItemContent) => {
 
 const ListLayout = forwardRef((props: ListLayoutProps, ref: ForwardedRef<ListLayoutElement>) => {
 	const { items = [], buttons = [], item = "", filterItems = defaultFilterItems } = props;
-	const { onSearchClick, onSearchChange, onItemClick, onFocus } = props;
+	const { onSearchClick, onSearchChange, onItemClick, onFocus, onCancelClick } = props;
 
 	const {
 		disabledOutsideClick = false,
@@ -107,6 +108,7 @@ const ListLayout = forwardRef((props: ListLayoutProps, ref: ForwardedRef<ListLay
 		isLoadingData = false,
 		disable = false,
 		isCode = true,
+		disableCancelAction = false,
 		place = "bottom",
 		appendTo,
 	} = props;
@@ -146,18 +148,18 @@ const ListLayout = forwardRef((props: ListLayoutProps, ref: ForwardedRef<ListLay
 		},
 	}));
 
-	!disabledOutsideClick &&
-		useOutsideClick<HTMLDivElement | HTMLInputElement>(
-			[itemsRef.current, searchRef.current?.inputRef, searchRef.current?.chevronRef],
-			(e) => {
-				if (!customOutsideClick) return setIsOpen(false);
-				const haveListeners = eventEmitter.listeners("ListLayoutOutsideClick").length > 0;
-				if (!haveListeners) return setIsOpen(false);
+	useOutsideClick<HTMLDivElement | HTMLInputElement>(
+		[itemsRef.current, searchRef.current?.inputRef, searchRef.current?.chevronRef],
+		(e) => {
+			if (!customOutsideClick) return setIsOpen(false);
+			const haveListeners = eventEmitter.listeners("ListLayoutOutsideClick").length > 0;
+			if (!haveListeners) return setIsOpen(false);
 
-				const callback = () => setIsOpen(false);
-				eventEmitter.emit("ListLayoutOutsideClick", { e, callback });
-			},
-		);
+			const callback = () => setIsOpen(false);
+			eventEmitter.emit("ListLayoutOutsideClick", { e, callback });
+		},
+		!disabledOutsideClick,
+	);
 
 	const filteredItems = useMemo(() => filterItems(items, getStrValue(value)), [value, items]);
 
@@ -259,9 +261,11 @@ const ListLayout = forwardRef((props: ListLayoutProps, ref: ForwardedRef<ListLay
 					title={getStrValue(value)}
 					value={getStrValue(value)}
 					setValue={setValueHandler}
+					setIsOpen={setIsOpen}
 					ref={searchRef}
 					icon={icon}
 					isCode={isCode}
+					disableCancelAction={disableCancelAction}
 					isOpen={isOpen}
 					tabIndex={tabIndex}
 					disable={disableSearch}
@@ -271,6 +275,7 @@ const ListLayout = forwardRef((props: ListLayoutProps, ref: ForwardedRef<ListLay
 					onFocus={onFocusHandler}
 					onSearchChange={onSearchChange}
 					onClick={onSearchClickHandler}
+					onCancelClick={onCancelClick}
 					onChevronClick={onChevronClickHandler}
 				/>
 			</StyledDiv>

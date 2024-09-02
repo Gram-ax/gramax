@@ -37,6 +37,7 @@ const icons = {
 	плюс: ".lucide-plus",
 	коммент: ".lucide-message-square",
 	"блок кода": ".lucide-code-xml",
+	html: ".lucide-file-code",
 	сниппеты: '[data-qa="qa-snippets"]',
 	вкладка: ".lucide-app-window",
 	"нумерованный список": ".lucide-list-ordered",

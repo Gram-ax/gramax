@@ -11,9 +11,7 @@ import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import t from "@ext/localization/locale/translate";
 import { useCallback, useState } from "react";
 
-const FileEditor = ({ trigger, shouldRender }: { trigger: JSX.Element; shouldRender?: boolean }) => {
-	if (!shouldRender) return null;
-
+const FileEditor = ({ trigger }: { trigger: JSX.Element }) => {
 	const [value, setValue] = useState(null);
 	const [isOpen, setIsOpen] = useState(false);
 	const apiUrlCreator = ApiUrlCreatorService.value;

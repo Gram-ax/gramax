@@ -113,7 +113,6 @@ export default class LunrSearcher implements Searcher {
 			this.ref("path");
 			this.field("content");
 			this.field("title", { boost: 10 });
-			this.field("tags", { boost: 8 });
 
 			this.tokenizer(tokenizer);
 			this.pipeline.add(customPipeline);

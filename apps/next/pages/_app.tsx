@@ -1,4 +1,5 @@
 import "../../../core/styles/ProseMirror.css";
+import "../../../core/styles/chain-icon.css";
 import "../../../core/styles/admonition.css";
 import "../../../core/styles/article-alfabeta.css";
 import "../../../core/styles/article.css";

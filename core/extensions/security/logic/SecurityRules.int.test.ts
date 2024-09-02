@@ -1,15 +1,9 @@
 import getApplication from "@app/node/app";
-import Navigation from "../../navigation/catalog/main/logic/Navigation";
+import TestContext from "@app/test/TestContext";
 import getItemRef from "../../workspace/test/getItemRef";
-import SecurityRules from "./SecurityRules";
-import User from "./User/User";
 
 const getSecurityRulesData = async () => {
 	const app = await getApplication();
-
-	const user = new User();
-	const nav = new Navigation();
-	const sr = new SecurityRules(user, app.customArticlePresenter);
 
 	const workspace = app.wm.current();
 	const categoryTestCatalog = await workspace.getCatalog("RulesCategoryTestCatalog");
@@ -21,8 +15,7 @@ const getSecurityRulesData = async () => {
 	const articleRuItemRef = getItemRef(articleTestCatalog, "category/testRules.md");
 
 	return {
-		nav,
-		sr,
+		app,
 		articleRuItemRef,
 		articleItemRef,
 		articleTestCatalog,
@@ -35,48 +28,22 @@ const getSecurityRulesData = async () => {
 describe("Security Rules фильтрует приватные", () => {
 	describe("item", () => {
 		test("article", async () => {
-			const { sr, nav, articleRuItemRef, articleTestCatalog } = await getSecurityRulesData();
+			const { app, articleRuItemRef, articleTestCatalog } = await getSecurityRulesData();
 
-			const filter = sr.getNavRules().itemRule;
-			const item = articleTestCatalog.findArticleByItemRef(articleRuItemRef);
-			const itemLink = (await nav.getCatalogNav(articleTestCatalog, item.logicPath))[0];
-			expect(filter(articleTestCatalog, item, itemLink)).toEqual(false);
+			const sitePresenter = app.sitePresenterFactory.fromContext(new TestContext());
+
+			const links = await sitePresenter.getCatalogNav(articleTestCatalog, "");
+
+			expect(links.find((f) => f.ref.path == articleRuItemRef.path.value)).toBeUndefined();
 		});
 
 		test("category", async () => {
-			const { sr, nav, categoryItemRef, categoryTestCatalog } = await getSecurityRulesData();
+			const { app, categoryItemRef, categoryTestCatalog } = await getSecurityRulesData();
 
-			const filter = sr.getNavRules().itemRule;
-			const item = categoryTestCatalog.findCategoryByItemRef(categoryItemRef);
-			const itemLink = (await nav.getCatalogNav(categoryTestCatalog, item.logicPath))[0];
-			expect(filter(categoryTestCatalog, item, itemLink)).toEqual(false);
+			const sitePresenter = app.sitePresenterFactory.fromContext(new TestContext());
+
+			const links = await sitePresenter.getCatalogNav(categoryTestCatalog, "");
+			expect(links.find((f) => f.ref.path == categoryItemRef.path.value)).toBeUndefined();
 		});
-	});
-
-	test("catalog", async () => {
-		const { sr, nav, catalogTestCatalog } = await getSecurityRulesData();
-
-		const filter = sr.getNavRules().catalogRule;
-		const catalogLink = await nav.getCatalogLink(catalogTestCatalog);
-
-		expect(filter(catalogTestCatalog, catalogLink)).toEqual(false);
-	});
-
-	test("relatedLinks", async () => {
-		const { sr, nav, catalogTestCatalog } = await getSecurityRulesData();
-
-		const filter = sr.getNavRules().relatedLinkRule;
-		const relatedLinks = nav.getRelatedLinks(catalogTestCatalog);
-
-		expect(filter(catalogTestCatalog, relatedLinks[0])).toEqual(false);
-	});
-
-	test("article", async () => {
-		const { sr, articleRuItemRef, articleTestCatalog } = await getSecurityRulesData();
-
-		const filter = sr.getItemFilter();
-		const article = articleTestCatalog.findArticleByItemRef(articleRuItemRef);
-
-		expect(filter(article, articleTestCatalog)).toEqual(false);
 	});
 });

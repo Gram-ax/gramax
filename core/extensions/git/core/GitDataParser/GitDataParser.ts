@@ -1,5 +1,4 @@
 import SourceType from "@ext/storage/logic/SourceDataProvider/model/SourceType";
-import git from "isomorphic-git";
 import Path from "../../../../logic/FileProvider/Path/Path";
 import { FileStatus } from "../../../Watchers/model/FileStatus";
 import { GitStatus } from "../GitWatcher/model/GitStatus";
@@ -14,7 +13,7 @@ export class GitDataParser {
 			if (split.length === 3) {
 				changeFiles.push({
 					path: new Path(split[2]),
-					type: FileStatus.new,
+					status: FileStatus.new,
 					isUntracked,
 				});
 			}
@@ -24,37 +23,14 @@ export class GitDataParser {
 			if (cht == "A") type = FileStatus.new;
 			changeFiles.push({
 				path: new Path(split[1]),
-				type: type,
+				status: type,
 				isUntracked,
 			});
 		});
 		return changeFiles;
 	}
 
-	getFileStatus(status: Awaited<ReturnType<typeof git.status>>, filePath: Path): GitStatus {
-		const fileStatusMapping = new Map<
-			Awaited<ReturnType<typeof git.status>>,
-			{ type: FileStatus; isUntracked: boolean }
-		>([
-			["ignored", null],
-			["unmodified", { type: FileStatus.current, isUntracked: null }],
-			["*modified", { type: FileStatus.modified, isUntracked: true }],
-			["*deleted", { type: FileStatus.delete, isUntracked: true }],
-			["*added", { type: FileStatus.new, isUntracked: true }],
-			["absent", null], // ?
-			["modified", { type: FileStatus.modified, isUntracked: false }],
-			["deleted", { type: FileStatus.delete, isUntracked: false }],
-			["added", { type: FileStatus.new, isUntracked: false }],
-			["*unmodified", { type: FileStatus.new, isUntracked: true }], // complex value
-			["*absent", { type: FileStatus.delete, isUntracked: false }], // complex value
-			["*undeleted", { type: FileStatus.delete, isUntracked: true }], // complex value
-			["*undeletemodified", { type: FileStatus.modified, isUntracked: true }], // complex value
-		]);
-		const fileStatus = fileStatusMapping.get(status);
-		if (!fileStatus) return;
-		const { type, isUntracked } = fileStatus;
-		return { path: filePath, type, isUntracked };
-	}
+	
 
 	getEditFileLink(
 		sourceName: string,

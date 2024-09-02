@@ -4,6 +4,7 @@ enum GitErrorCode {
 	NetworkConntectionError = "NetworkConntectionError",
 	MergeNotSupportedError = "MergeNotSupportedError",
 	CantGetConflictedFiles = "CantGetConflictedFiles",
+	CheckoutSubmoduleError = "CheckoutSubmoduleError",
 	CheckoutConflictError = "CheckoutConflictError",
 	DeleteCurrentBranch = "DeleteCurrentBranch",
 	MergeConflictError = "MergeConflictError",

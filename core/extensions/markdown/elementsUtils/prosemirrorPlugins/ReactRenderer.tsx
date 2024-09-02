@@ -14,13 +14,17 @@ class ReactRenderer {
 	}
 
 	public destroy(element) {
-		this._parentElement.removeChild(element);
+		this._parentElement?.removeChild(element);
 		this._root.unmount();
 	}
 
 	protected _initialization(element: HTMLElement) {
 		this._root = createRoot(element);
 		this._parentElement.appendChild(element);
+	}
+
+	protected getProps() {
+		return this.props;
 	}
 
 	protected updateProps(newProps: object) {

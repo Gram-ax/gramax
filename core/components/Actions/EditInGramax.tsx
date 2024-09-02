@@ -70,9 +70,7 @@ const editInGramaxComponents = {
 	browser: EditInDesktop,
 };
 
-const EditInGramax = ({ shouldRender }: { shouldRender: boolean }) => {
-	if (!shouldRender) return null;
-
+const EditInGramax = () => {
 	return editInGramaxComponents[getExecutingEnvironment()]();
 };
 

@@ -1,13 +1,6 @@
+import createAwaiter from "@core-ui/utils/createAwaiter";
 import { ArticlePageData } from "@core/SitePresenter/SitePresenter";
 import { useEffect, useRef } from "react";
-
-const awaiter = (callback: () => boolean) => {
-	let attempt = 0;
-	const interval = setInterval(() => {
-		if (attempt >= 9 || callback()) return clearInterval(interval);
-		attempt++;
-	}, 20);
-};
 
 const useScrollToArticleAnchor = (data: ArticlePageData) => {
 	const _data = useRef<ArticlePageData>();
@@ -20,7 +13,7 @@ const useScrollToArticleAnchor = (data: ArticlePageData) => {
 			if (data === _data.current) return;
 			_data.current = data;
 
-			awaiter(() => {
+			createAwaiter(20, () => {
 				const anchor = document.getElementById(decodeURI(anchorId));
 				if (!anchor) return false;
 

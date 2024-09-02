@@ -33,8 +33,8 @@ const selectNodes = (editor: Editor): boolean => {
 	const { $from } = selection;
 	const isFirstNode = editor.state.doc.firstChild === $from.parent;
 	const firstNodeSize = doc.firstChild.nodeSize;
-	const from = isFirstNode ? 1 : firstNodeSize + (!doc.maybeChild(1)?.isTextblock ? 2 : 1);
-	const to = isFirstNode ? 1 + editor.state.doc.firstChild.nodeSize : doc.content.size;
+	const from = isFirstNode ? 1 : firstNodeSize;
+	const to = isFirstNode ? 1 + doc.firstChild.content.size : doc.content.size;
 
 	editor.commands.setTextSelection({
 		from: from,
@@ -54,6 +54,9 @@ const CopyArticles = Extension.create({
 		return {
 			"Mod-a": () => selectNodes(this.editor),
 			"Mod-A": () => selectNodes(this.editor),
+			"Mod-Z": () => this.editor.commands.undo(),
+			"Mod-Y": () => this.editor.commands.redo(),
+			"Shift-Mod-Z": () => this.editor.commands.redo(),
 		};
 	},
 
@@ -71,6 +74,9 @@ const CopyArticles = Extension.create({
 
 							copyArticleResource(view, event, true);
 						},
+					},
+					transformPastedHTML(html) {
+						return html.replaceAll("[object Object]", "");
 					},
 				},
 				appendTransaction: (transactions: Transaction[]) => {

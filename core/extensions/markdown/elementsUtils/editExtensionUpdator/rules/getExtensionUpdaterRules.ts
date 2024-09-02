@@ -9,6 +9,8 @@ import getArticlePropsRule from "./extensionRules/articleProps";
 import isMacInfoRule from "./extensionRules/isMac";
 import getPageDataContextRule from "./extensionRules/pageDataContext";
 import getThemeRule from "./extensionRules/theme";
+import ArticleRefService from "@core-ui/ContextServices/ArticleRef";
+import getArticleRefRule from "@ext/markdown/elementsUtils/editExtensionUpdator/rules/extensionRules/articleRef";
 
 export const getExtensionUpdaterRules = (
 	theme: Theme,
@@ -17,6 +19,7 @@ export const getExtensionUpdaterRules = (
 	catalogProps: ClientCatalogProps,
 	apiUrlCreator: ApiUrlCreator,
 	pageDataContext: PageDataContext,
+	articleRef: ArticleRefService,
 ): ExtensionUpdaterRules[] => {
 	return [
 		getThemeRule(theme),
@@ -25,5 +28,6 @@ export const getExtensionUpdaterRules = (
 		getCatalogPropsRule(catalogProps),
 		getApiUrlCreatorRule(apiUrlCreator),
 		getPageDataContextRule(pageDataContext),
+		getArticleRefRule(articleRef),
 	];
 };

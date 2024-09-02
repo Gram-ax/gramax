@@ -4,6 +4,8 @@
 
 import getApp from "@app/node/app";
 import TestContext from "@app/test/TestContext";
+import Path from "@core/FileProvider/Path/Path";
+import GitCommands from "@ext/git/core/GitCommands/GitCommands";
 import util from "util";
 import DiskFileProvider from "../../../../../logic/FileProvider/DiskFileProvider/DiskFileProvider";
 import { FileStatus } from "../../../../Watchers/model/FileStatus";
@@ -23,17 +25,18 @@ const getGitDiffItemCreatorData = async () => {
 	const fp = workspace.getFileProvider();
 	const sitePresenter = sitePresenterFactory.fromContext(new TestContext());
 	const gitDiffItemCreator = new GitDiffItemCreator(catalog, fp as DiskFileProvider, sitePresenter, fs);
+	const git = new GitCommands(dfp, new Path());
 
-	return { catalog, dfp, gitDiffItemCreator, fs, fp, rp };
+	return { catalog, dfp, gitDiffItemCreator, fs, fp, rp, git };
 };
 
 describe("GitDiffItemCreator ", () => {
 	describe("выдаёт DiffItems", () => {
 		afterEach(async () => {
-			const { dfp } = await getGitDiffItemCreatorData();
-			await repTestUtils.clearChanges(dfp, TEST_GIT_CATALOG_PATH);
-			await repTestUtils.clearRenameChanges(dfp, TEST_GIT_CATALOG_PATH);
-			await repTestUtils.clearResourceChanges(dfp, TEST_GIT_CATALOG_PATH);
+			const { dfp, git } = await getGitDiffItemCreatorData();
+			await repTestUtils.clearChanges(dfp, git);
+			await repTestUtils.clearRenameChanges(dfp, git);
+			await repTestUtils.clearResourceChanges(dfp, git);
 		});
 		test("без изменения ресурсов", async () => {
 			const { catalog, dfp, gitDiffItemCreator, rp } = await getGitDiffItemCreatorData();

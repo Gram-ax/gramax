@@ -5,7 +5,6 @@ import getFocusNode from "@ext/markdown/elementsUtils/getFocusNode";
 import getExtensionOptions from "@ext/markdown/logic/getExtensionOptions";
 import { Editor, mergeAttributes, Node } from "@tiptap/core";
 import { ReactNodeViewRenderer } from "@tiptap/react";
-import { splitBlock } from "prosemirror-commands";
 import noneBackspace from "../../logic/noneBackspace";
 import { Plugin, PluginKey } from "@tiptap/pm/state";
 import { EditorView } from "prosemirror-view";
@@ -52,26 +51,18 @@ const Tab = Node.create({
 				const { $from, $to } = editor.view.state.selection;
 				const { node: curTab } = getFocusNode(editor.state, (node) => node.type.name === this.type.name);
 				const { node: parent, position } = getFocusNode(editor.state, (node) => node.type.name === "tabs");
-				const { node: curBlock } = getFocusNode(editor.state);
+				const curElement = $from.parent;
 
-				if (
-					curTab?.type?.name === this.type.name &&
-					$from.pos === $to.pos &&
-					curBlock.type.name === "paragraph"
-				) {
-					const lastChild = curTab.child(curTab.content.childCount - 1);
-					if (lastChild === curBlock && curBlock.textContent.length === 0) {
-						const insertPosition = position + parent.nodeSize - curBlock.nodeSize;
-						return editor
-							.chain()
-							.deleteCurrentNode()
-							.insertContentAt(insertPosition, { type: "paragraph", content: [] })
-							.focus()
-							.run();
-					} else return splitBlock(editor.view.state, editor.view.dispatch);
-				}
+				if (!parent || $from.pos !== $to.pos || !curTab || curElement.type.name !== "paragraph") return false;
+				if ($from.depth >= 4 || curElement.textContent) return false;
 
-				return false;
+				const insertPosition = position + parent.content.size;
+				return editor
+					.chain()
+					.deleteCurrentNode()
+					.insertContentAt(insertPosition, { type: "paragraph", content: [] })
+					.focus()
+					.run();
 			},
 
 			Backspace: noneBackspace(this.type.name),

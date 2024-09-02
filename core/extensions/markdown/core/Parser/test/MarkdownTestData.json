@@ -18,26 +18,6 @@
 			"html": "<p><code>text</code></p>"
 		}
 	],
-	"Fence": [
-		{
-			"text": "```\ntext\n```",
-			"renderTree": { "$$mdtype": "Tag", "name": "Fence", "attributes": { "value": "text\n" }, "children": [] },
-			"html": "<pre class=\"prism-code language-undefined css-1uvdwg0\" style=\"color:#403f53;background-color:#FBFBFB;position:relative\"><div style=\"overflow:auto;padding:0px\"><div class=\"token-line\" style=\"color:#403f53\"><span class=\"token plain\">text</span></div></div></pre>"
-		},
-		{
-			"text": "```plant-uml:title\n@startuml\nBob -> Alice : hello@enduml\n```",
-			"renderTree": {
-				"$$mdtype": "Tag",
-				"name": "Plant-uml",
-				"attributes": {
-					"content": "@startuml\nBob -> Alice : hello@enduml\n",
-					"title": "title"
-				},
-				"children": []
-			},
-			"html": "<plant-uml title=\"title\">@startuml\nBob -&gt; Alice : hello@enduml\n</plant-uml>"
-		}
-	],
 	"Plant-uml": [
 		{
 			"text": "[plant-uml:./plantUmlTest.puml]",
@@ -49,7 +29,7 @@
 				},
 				"children": []
 			},
-			"html": "<plant-uml src=\"requestURL.com/testBasePath/api/catalogs/MarkdownCatalog/articles/MarkdownCatalog%2Fcategory%2FemptyArticle.md/resources/.%2FplantUmlTest.puml\"></plant-uml>"
+			"html": "<plant-uml src=\"requestURL.com/testBasePath/api/catalogs/MarkdownCatalog/articles/category%2FemptyArticle/resources/.%2FplantUmlTest.puml\"></plant-uml>"
 		}
 	],
 	"Cmd": [
@@ -87,7 +67,7 @@
 		{
 			"text": "[issue:DR-1]",
 			"renderTree": { "$$mdtype": "Tag", "name": "Issue", "attributes": { "id": "DR-1" }, "children": [] },
-			"html": "<a class=\"issueLink\" href=\"https://support.ics-it.ru/issue/DR-1\" data-id=\"DR-1\" target=\"_blank\" rel=\"noopener\">DR-1<span style=\"white-space:nowrap;padding:0\" data-mdignore=\"true\">﻿<i class=\"linkIcon css-15fiha7\"><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"1em\" height=\"1em\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"max(0.075em, 1.3px)\" stroke-linecap=\"round\" stroke-linejoin=\"round\" class=\"lucide lucide-external-link \"><path d=\"M15 3h6v6\"></path><path d=\"M10 14 21 3\"></path><path d=\"M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6\"></path></svg></i></span></a>"
+			"html": "<a class=\"issueLink\" href=\"https://support.ics-it.ru/issue/DR-1\" data-id=\"DR-1\" target=\"_blank\" rel=\"noopener\">DR-1<span style=\"white-space:nowrap;padding:0\" data-mdignore=\"true\">﻿<i class=\"link-icon css-15fiha7\"><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"1em\" height=\"1em\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"max(0.075em, 1.3px)\" stroke-linecap=\"round\" stroke-linejoin=\"round\" class=\"lucide lucide-external-link \"><path d=\"M15 3h6v6\"></path><path d=\"M10 14 21 3\"></path><path d=\"M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6\"></path></svg></i></span></a>"
 		}
 	],
 	"Module": [
@@ -132,7 +112,7 @@
 				"children": ["Header "],
 				"name": "Heading"
 			},
-			"html": "<h2 id=\"my-id\" class=\"css-1kqvq6\">Header <a href=\"#my-id\" class=\"anchor\" data-mdignore=\"true\" contenteditable=\"false\"><i class=\"css-15fiha7\"><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"1em\" height=\"1em\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"max(0.075em, 1.3px)\" stroke-linecap=\"round\" stroke-linejoin=\"round\" class=\"lucide lucide-link \"><path d=\"M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71\"></path><path d=\"M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71\"></path></svg></i></a></h2>"
+			"html": "<h2 id=\"my-id\" class=\"css-17aq9c\">Header <a href=\"#my-id\" class=\"anchor\" data-mdignore=\"true\" contenteditable=\"false\"><i class=\"link-icon chain-icon\"></i></a></h2>"
 		}
 	],
 	"Image": [
@@ -154,6 +134,7 @@
 								"x": 0,
 								"y": 0
 							},
+							"scale": null,
 							"objects": []
 						},
 						"children": [],
@@ -162,7 +143,7 @@
 				],
 				"name": "p"
 			},
-			"html": "<p><div><img src=\"requestURL.com/testBasePath/api/catalogs/MarkdownCatalog/articles/MarkdownCatalog%2Fcategory%2FemptyArticle.md/resources/.%2Fimage.png\"/><em>someTitle</em></div></p>"
+			"html": "<p><div><img src=\"requestURL.com/testBasePath/api/catalogs/MarkdownCatalog/articles/category%2FemptyArticle/resources/.%2Fimage.png\"/><em>someTitle</em></div></p>"
 		}
 	],
 	"Video": [
@@ -330,7 +311,7 @@
 				"children": [],
 				"name": "Drawio"
 			},
-			"html": "<div><img src=\"requestURL.com/testBasePath/api/catalogs/MarkdownCatalog/articles/MarkdownCatalog%2Fcategory%2FemptyArticle.md/resources/.%2Fdrawio.svg\"/><em>someTitle</em></div>"
+			"html": "<div><img src=\"requestURL.com/testBasePath/api/catalogs/MarkdownCatalog/articles/category%2FemptyArticle/resources/.%2Fdrawio.svg\"/><em>someTitle</em></div>"
 		}
 	],
 	"Formula": [
@@ -815,7 +796,7 @@
 				],
 				"name": "p"
 			},
-			"html": "<p><a href=\"requestURL.com/testBasePath/api/catalogs/MarkdownCatalog/articles/MarkdownCatalog%2Fcategory%2FemptyArticle.md/resources/.%2F1718261246743-2.log\">Очень важный файл</a></p>"
+			"html": "<p><a href=\"requestURL.com/testBasePath/api/catalogs/MarkdownCatalog/articles/category%2FemptyArticle/resources/.%2F1718261246743-2.log\">Очень важный файл</a></p>"
 		}
 	]
 }

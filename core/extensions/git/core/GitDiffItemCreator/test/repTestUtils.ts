@@ -1,5 +1,4 @@
-import fs from "fs-extra";
-import git from "isomorphic-git";
+import GitCommands from "@ext/git/core/GitCommands/GitCommands";
 import DiskFileProvider from "../../../../../logic/FileProvider/DiskFileProvider/DiskFileProvider";
 import Path from "../../../../../logic/FileProvider/Path/Path";
 
@@ -13,14 +12,8 @@ const repTestUtils = {
 		await dfp.write(new Path("category/articleTest.md"), "new aritcleTest content");
 		await dfp.write(new Path("category/articleTest2.md"), "articleTest2 file content");
 	},
-	clearChanges: async (dfp: DiskFileProvider, path: string) => {
-		await git.checkout({
-			fs,
-			dir: path,
-			ref: "master",
-			force: true,
-		});
-
+	clearChanges: async (dfp: DiskFileProvider, git: GitCommands) => {
+		await git.hardReset();
 		await dfp.delete(new Path("4.md"));
 		await dfp.delete(new Path("category/articleTest2.md"));
 	},
@@ -31,13 +24,8 @@ const repTestUtils = {
 		await dfp.move(new Path("imgs/2_1.png"), new Path("imgs/2.png"));
 		await dfp.move(new Path("imgs/4.png"), new Path("imgs/3.png"));
 	},
-	clearResourceChanges: async (dfp: DiskFileProvider, path: string) => {
-		await git.checkout({
-			fs,
-			dir: path,
-			ref: "master",
-			force: true,
-		});
+	clearResourceChanges: async (dfp: DiskFileProvider, git: GitCommands) => {
+		await git.hardReset();
 		await dfp.delete(new Path("imgs/3.png"));
 	},
 
@@ -49,13 +37,8 @@ const repTestUtils = {
 		newContent[0] = "new content";
 		await dfp.write(new Path("_index2.md"), newContent.join("\n"));
 	},
-	clearRenameChanges: async (dfp: DiskFileProvider, path: string) => {
-		await git.checkout({
-			fs,
-			dir: path,
-			ref: "master",
-			force: true,
-		});
+	clearRenameChanges: async (dfp: DiskFileProvider, git: GitCommands) => {
+		await git.hardReset();
 		await dfp.delete(new Path("_index2.md"));
 	},
 };

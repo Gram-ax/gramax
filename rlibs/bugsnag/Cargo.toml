@@ -1,0 +1,15 @@
+[package]
+name = "bugsnag"
+edition = "2021"
+
+[dependencies]
+backtrace = "^0.3"
+os_info = "^3.8"
+reqwest = { version = "^0.12", features = ["blocking"] }
+chrono = { version = "^0.4", default-features = false, features = ["now"] }
+machine-uid = "^0.5"
+
+log = { workspace = true }
+
+serde = { workspace = true }
+serde_json = { workspace = true }

@@ -56,15 +56,23 @@ const ItemInput = (props: ItemInputProps) => {
 				disableSearch={scheme.readOnly ?? false}
 				items={(scheme.enum as string[]).map((v) => ({
 					labelField: v,
-					element: t(`${translation}.${v}` as any),
+					element: translation ? t(`${translation}.${v}` as any) : v,
 				}))}
 				item={{
 					labelField: (value as string) ?? (scheme.default as string) ?? "",
-					element: hasTranslation(`${translation}.${value}` as any)
-						? t(`${translation}.${value}` as any)
-						: scheme.default
-						? t(`${translation}.${scheme.default as string}` as any)
-						: "",
+					element: (() => {
+						if (translation) {
+							return value
+								? hasTranslation(`${translation}.${value}` as any)
+									? t(`${translation}.${value}` as any)
+									: value
+								: hasTranslation(`${translation}.${scheme.default as string}` as any)
+								? t(`${translation}.${scheme.default as string}` as any)
+								: value;
+						}
+
+						return value ?? scheme.default;
+					})(),
 				}}
 				onItemClick={(_, __, idx) => {
 					onChange?.((scheme.enum as string[])[idx]);

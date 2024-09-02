@@ -2,7 +2,7 @@ import { Catalog } from "@core/FileStructue/Catalog/Catalog";
 import RouterPathProvider from "@core/RouterPath/RouterPathProvider";
 import PathnameData from "@core/RouterPath/model/PathnameData";
 import GitStorage from "@ext/git/core/GitStorage/GitStorage";
-import SourceType from "@ext/storage/logic/SourceDataProvider/model/SourceType";
+import isGitSourceType from "@ext/storage/logic/SourceDataProvider/logic/isGitSourceType";
 import Storage from "@ext/storage/logic/Storage";
 import type { Workspace } from "@ext/workspace/Workspace";
 
@@ -36,9 +36,10 @@ const getPageDataByPathname = async (
 
 	if (!catalog) return { type: PageDataType.home };
 	const { storage } = catalog.repo;
+
 	if (!storage) return { type: PageDataType.notFound };
 
-	const isGit = (await storage.getType()) === SourceType.gitLab || (await storage.getType()) === SourceType.gitHub;
+	const isGit = isGitSourceType(await storage.getType());
 	if (await isDataReal(isGit, storage, pathnameData)) {
 		return { type: PageDataType.article, itemLogicPath };
 	} else return { type: PageDataType.notFound };

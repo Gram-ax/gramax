@@ -10,7 +10,7 @@ const fetchCmd: Command<{ ctx: Context; catalogName: string }, void> = Command.c
 
 	kind: ResponseKind.none,
 
-	middlewares: [new NetworkConnectMiddleWare(), new AuthorizeMiddleware(), new SilentMiddleware()],
+	middlewares: [new SilentMiddleware(), new NetworkConnectMiddleWare(), new AuthorizeMiddleware()],
 
 	async do({ ctx, catalogName }) {
 		const { logger, rp, wm } = this._app;

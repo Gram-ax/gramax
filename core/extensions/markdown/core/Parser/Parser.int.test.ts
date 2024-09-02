@@ -1,5 +1,5 @@
 import LanguageService from "@core-ui/ContextServices/Language";
-import Language from "@ext/localization/core/model/Language";
+import UiLanguage from "@ext/localization/core/model/Language";
 import { RenderableTreeNode } from "../render/logic/Markdoc";
 import MarkdownTestData from "./test/MarkdownTestData.json";
 import { getParserTestData } from "./test/getParserTestData";
@@ -11,7 +11,7 @@ jest.mock("react", () => ({
 
 describe("MarkdownParser", () => {
 	beforeAll(() => {
-		LanguageService.setUiLanguage(Language.ru);
+		LanguageService.setUiLanguage(UiLanguage.ru);
 	});
 
 	describe("правильно преобразует компонент", () => {

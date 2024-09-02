@@ -10,11 +10,10 @@ import styled from "@emotion/styled";
 import t from "@ext/localization/locale/translate";
 import { ItemLink } from "@ext/navigation/NavigationLinks";
 import TableOfContents from "@ext/navigation/article/render/TableOfContents";
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import Actions from "../../../Actions";
 import ArticleActions from "../../../Actions/ArticleActions";
 import CatalogActions from "../../../Actions/CatalogActions";
-import Tags from "../../../Tags";
 import Links from "../../layoutComponents";
 
 export default styled(({ itemLinks, className }: { itemLinks: ItemLink[]; className?: string }): JSX.Element => {
@@ -24,6 +23,8 @@ export default styled(({ itemLinks, className }: { itemLinks: ItemLink[]; classN
 	const showArticleActions = !(articleProps?.errorCode && articleProps.errorCode !== 500);
 	const articleLinks = useGetArticleLinks();
 	const { isNext } = usePlatform();
+	const [isArticleActionsVisible, setArticleActionsVisibility] = useState(false);
+	const [isCatalogActionsVisible, setCatalogActionsVisibility] = useState(false);
 
 	return (
 		<div
@@ -37,10 +38,22 @@ export default styled(({ itemLinks, className }: { itemLinks: ItemLink[]; classN
 				<Links
 					articleLinks={showArticleActions ? articleLinks : []}
 					catalogLinks={getCatalogLinks()}
-					articleChildren={<ArticleActions isCatalogExist={isCatalogExist} />}
-					catalogChildren={isCatalogExist ? <CatalogActions itemLinks={itemLinks} /> : null}
+					articleChildren={
+						<ArticleActions
+							isCatalogExist={isCatalogExist}
+							hasRenderableActions={setArticleActionsVisibility}
+						/>
+					}
+					isArticleActionsVisible={isArticleActionsVisible}
+					catalogChildren={
+						<CatalogActions
+							isCatalogExist={isCatalogExist}
+							itemLinks={itemLinks}
+							hasRenderableActions={setCatalogActionsVisibility}
+						/>
+					}
+					isCatalogActionsVisible={isCatalogActionsVisible}
 				/>
-				{showArticleActions && <Tags tags={articleProps.tags} />}
 			</aside>
 			{isNext && (
 				<div className={"gramax-link"}>

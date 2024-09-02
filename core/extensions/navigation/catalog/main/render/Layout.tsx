@@ -3,7 +3,6 @@ import styled from "@emotion/styled";
 export default styled(({ children, className }: { children: JSX.Element; className?: string }) => {
 	return <div className={className}>{children}</div>;
 })`
-	padding-top: 10px;
 	margin-bottom: 1.5rem;
 
 	> div > ul > li {

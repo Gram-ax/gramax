@@ -52,7 +52,7 @@ const History = styled(({ className }: { className?: string }) => {
 	const getIsFileNew = async () => {
 		const res = await FetchService.fetch<GitStatus>(apiUrlCreator.getVersionControlFileStatus());
 		const gitStatus = await res.json();
-		setIsFileNew(!gitStatus || gitStatus.type == FileStatus.new);
+		setIsFileNew(!gitStatus || gitStatus.status == FileStatus.new);
 	};
 
 	useEffect(() => {
@@ -100,6 +100,13 @@ const History = styled(({ className }: { className?: string }) => {
 									<div className={className}>
 										<div style={{ padding: "1rem" }}>
 											<User name={model.author} date={model.date} />
+											<div className="file-path">
+												<DiffContent
+													showDiff={showDiff}
+													isCode={false}
+													changes={model.filePath.diff ?? [{ value: model.filePath.path }]}
+												/>
+											</div>
 										</div>
 									</div>
 								),
@@ -140,7 +147,7 @@ const History = styled(({ className }: { className?: string }) => {
 		display: flex;
 		font-size: 13px;
 		max-height: 70px;
-		border-radius: var(--radius-normal);
+		border-radius: var(--radius-small);
 		padding-left: 15px;
 		padding-bottom: 10px;
 		padding-top: 10px;
@@ -165,6 +172,12 @@ const History = styled(({ className }: { className?: string }) => {
 	.user-data .date {
 		font-weight: 400;
 		color: var(--color-input-active-text) !important;
+	}
+
+	.file-path {
+		font-size: 13px;
+		font-weight: 300;
+		word-break: break-all;
 	}
 `;
 

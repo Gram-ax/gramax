@@ -3,7 +3,7 @@ import FileProvider from "@core/FileProvider/model/FileProvider";
 import Cookie from "@ext/cookie/Cookie";
 import GitVersionControl from "@ext/git/core/GitVersionControl/GitVersionControl";
 import Repository from "@ext/git/core/Repository/Repository";
-import { RepState } from "@ext/git/core/Repository/model/RepostoryState";
+import RepositoryStateFile from "@ext/git/core/RepositoryStateFile/RepositorySettingsFile";
 import UserInfo from "@ext/security/logic/User/UserInfo2";
 import SourceDataProvider from "@ext/storage/logic/SourceDataProvider/logic/SourceDataProvider";
 import SourceData from "@ext/storage/logic/SourceDataProvider/model/SourceData";
@@ -43,11 +43,12 @@ export default class RepositoryProvider {
 		return this._sdp.setData(cookie, data);
 	}
 
-	async getRepositoryByPath(path: Path, fp: FileProvider, state?: RepState): Promise<Repository> {
-		if (!(await GitVersionControl.hasInit(fp, path))) return new Repository(path, fp, null, null);
+	async getRepositoryByPath(path: Path, fp: FileProvider): Promise<Repository> {
+		const repStateFile = new RepositoryStateFile(path, fp);
+		if (!(await GitVersionControl.hasInit(fp, path))) return new Repository(path, fp, null, null, repStateFile);
 		const gvc = new GitVersionControl(path, fp);
 		const storage = await this._sp.getStorageByPath(path, fp);
-		return new Repository(path, fp, gvc, storage, state);
+		return new Repository(path, fp, gvc, storage, repStateFile);
 	}
 
 	async updateRepository(rep: Repository, fp: FileProvider, newPath: Path): Promise<void> {
@@ -57,9 +58,10 @@ export default class RepositoryProvider {
 	}
 
 	async initNewRepository(path: Path, fp: FileProvider, data: StorageData): Promise<Repository> {
+		const repStateFile = new RepositoryStateFile(path, fp);
 		const gvc = await GitVersionControl.init(fp, path, data.source);
 		const storage = await this._sp.initNewStorage(fp, path, data);
-		return new Repository(path, fp, gvc, storage);
+		return new Repository(path, fp, gvc, storage, repStateFile);
 	}
 
 	async cloneNewRepository(fp: FileProvider, path: Path, data: StorageData, recursive = true, branch?: string) {

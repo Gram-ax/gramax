@@ -21,9 +21,6 @@ export default class GitStashConflictResolver extends GitBaseConflictResolver {
 		}
 		const stashHash = new GitStash(state.data.stashHash);
 		await this._repo.gvc.applyStash(stashHash);
-		await this._repo.gvc.deleteStash(stashHash);
-		const status = (await this._repo.gvc.getChanges()).map((x) => x.path);
-		await this._repo.gvc.restore(true, status);
 	}
 
 	async resolveConflictedFiles(
@@ -32,7 +29,7 @@ export default class GitStashConflictResolver extends GitBaseConflictResolver {
 		_data: SourceData,
 	): Promise<void> {
 		await super.resolveConflictedFiles(files, state);
-		
+
 		// to remove conflicted files in status
 		await this._repo.gvc.add();
 		const status = await this._repo.gvc.getChanges();

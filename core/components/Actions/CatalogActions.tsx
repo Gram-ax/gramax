@@ -15,7 +15,15 @@ import useIsStorageInitialized from "../../extensions/storage/logic/utils/useIsS
 import IsEditService from "../../ui-logic/ContextServices/IsEdit";
 import IsReadOnlyHOC from "../../ui-logic/HigherOrderComponent/IsReadOnlyHOC";
 
-const CatalogActions = ({ itemLinks }: { itemLinks: ItemLink[] }): JSX.Element => {
+const CatalogActions = ({
+	isCatalogExist,
+	itemLinks,
+	hasRenderableActions,
+}: {
+	isCatalogExist: boolean;
+	itemLinks: ItemLink[];
+	hasRenderableActions: (hasActionsToRender: boolean) => void;
+}): JSX.Element => {
 	const isEdit = IsEditService.value;
 	const isErrorArticle = ArticlePropsService.value.errorCode;
 	const isLogged = PageDataContextService.value.isLogged;
@@ -24,30 +32,48 @@ const CatalogActions = ({ itemLinks }: { itemLinks: ItemLink[] }): JSX.Element =
 	const storageInitialized = useIsStorageInitialized();
 	const isReview = useIsReview();
 
-	if (!isLogged) return null;
+	if (!isLogged || !isCatalogExist) return null;
 
-	return (
-		<>
-			<Healthcheck itemLinks={itemLinks} trigger={<ListItem text={t("healthcheck")} iconCode="heart-pulse" />} />
-			{conf.isServerApp && (
-				<GetSharedTicket trigger={<ListItem text={t("share.name")} iconCode="external-link" />} />
-			)}
-			<IsReadOnlyHOC>
-				<li>
-					<ItemExport fileName={catalogProps.name} />
-				</li>
-				<Share
-					shouldRender={!isReview && storageInitialized && !isErrorArticle}
-					trigger={<ListItem text={t("share.name")} iconCode="external-link" />}
-				/>
-				<CatalogEditAction
-					shouldRender={!isReview && isEdit}
-					trigger={<ListItem text={t("catalog.configure")} iconCode="square-pen" />}
-				/>
-			</IsReadOnlyHOC>
-			{isLogged && <DeleteCatalog />}
-		</>
+	const actions = [];
+
+	actions.push(
+		<Healthcheck
+			key="healthcheck"
+			itemLinks={itemLinks}
+			trigger={<ListItem text={t("healthcheck")} iconCode="heart-pulse" />}
+		/>,
 	);
+
+	if (conf.isServerApp) {
+		actions.push(
+			<GetSharedTicket
+				key="shared-ticket"
+				trigger={<ListItem text={t("share.name")} iconCode="external-link" />}
+			/>,
+		);
+	}
+
+	actions.push(
+		<IsReadOnlyHOC>
+			<li>
+				<ItemExport fileName={catalogProps.name} />
+			</li>
+			<Share
+				shouldRender={!isReview && storageInitialized && !isErrorArticle}
+				trigger={<ListItem text={t("share.name")} iconCode="external-link" />}
+			/>
+			<CatalogEditAction
+				shouldRender={!isReview && isEdit}
+				trigger={<ListItem text={t("catalog.configure")} iconCode="square-pen" />}
+			/>
+		</IsReadOnlyHOC>,
+	);
+
+	actions.push(<DeleteCatalog key="delete-catalog" />);
+
+	hasRenderableActions(actions.length > 0);
+
+	return <>{actions}</>;
 };
 
 export default CatalogActions;

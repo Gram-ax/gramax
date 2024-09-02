@@ -1,4 +1,5 @@
 import noteNodeTransformer from "@ext/markdown/elements/note/logic/transformer/noteNodeTransformer";
+import unsupportedNodeTransformer from "@ext/markdown/elements/unsupported/logic/unsupportedNodeTransformer";
 import ParserContext from "./ParserContext/ParserContext";
 
 import Markdoc, {
@@ -40,6 +41,7 @@ import Transformer from "./Transformer/Transformer";
 
 import ParseError from "@ext/markdown/core/Parser/Error/ParseError";
 import MarkdownFormatter from "../edit/logic/Formatter/Formatter";
+import htmlTokenTransformer from "@ext/markdown/elements/html/edit/logic/htmlTokenTransformer";
 
 const katexPlugin = import("@traptitech/markdown-it-katex");
 
@@ -131,8 +133,9 @@ export default class MarkdownParser {
 	private _getTokens(content: string, schemes?: Schemes) {
 		const mdParser = new MdParser({ tags: schemes.tags });
 		const parseDoc = mdParser.preParse(content);
-		const tockens = this._getTokenizer().tokenize(parseDoc);
-		return new Transformer().tableTransform(tockens);
+		const tokens = this._getTokenizer().tokenize(parseDoc);
+		const transformer = new Transformer();
+		return transformer.htmlTransform(transformer.tableTransform(tokens));
 	}
 
 	private _getTokenizer() {
@@ -162,9 +165,11 @@ export default class MarkdownParser {
 				inlineCutNodeTransformer,
 				diagramsNodeTransformer,
 				noteNodeTransformer,
+				unsupportedNodeTransformer,
 				commentNodeTransformer,
 			],
 			[
+				htmlTokenTransformer,
 				tableTokenTransformer,
 				cutTokenTransformer,
 				imageTokenTransformer,

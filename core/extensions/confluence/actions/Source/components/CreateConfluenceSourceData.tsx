@@ -1,6 +1,5 @@
 import { getExecutingEnvironment } from "@app/resolveModule/env";
-import Button from "@components/Atoms/Button/Button";
-import Icon from "@components/Atoms/Icon";
+import Button, { TextSize } from "@components/Atoms/Button/Button";
 import SpinnerLoader from "@components/Atoms/SpinnerLoader";
 import Query, { parserQuery } from "@core/Api/Query";
 import ConfluenceAPI, { ConfluenceInstance } from "@ext/confluence/ConfluenceAPI";
@@ -14,6 +13,8 @@ import createChildWindow from "../../../../../ui-logic/ChildWindow/createChildWi
 import PageDataContextService from "../../../../../ui-logic/ContextServices/PageDataContext";
 import SourceType from "../../../../storage/logic/SourceDataProvider/model/SourceType";
 import ConfluenceSourceData from "../model/ConfluenceSourceData";
+import ButtonLink from "@components/Molecules/ButtonLink";
+import { ButtonStyle } from "@components/Atoms/Button/ButtonStyle";
 
 const CreateConfluenceSourceData = ({ onSubmit }: { onSubmit?: (editProps: ConfluenceSourceData) => void }) => {
 	const page = PageDataContextService.value;
@@ -65,9 +66,14 @@ const CreateConfluenceSourceData = ({ onSubmit }: { onSubmit?: (editProps: Confl
 						)}
 					</div>
 				) : (
-					<Button
+					<ButtonLink
 						fullWidth
 						className="input-lable"
+						buttonStyle={ButtonStyle.default}
+						textSize={TextSize.M}
+						iconFw={false}
+						iconCode="confluence"
+						text={t("confluence.log-in")}
 						onClick={async () => {
 							if (token) return;
 							createChildWindow(
@@ -80,12 +86,7 @@ const CreateConfluenceSourceData = ({ onSubmit }: { onSubmit?: (editProps: Confl
 
 							if (getExecutingEnvironment() == "browser") setToken(parserQuery(await waitForTempToken()));
 						}}
-					>
-						<div>
-							<Icon code="confluence" />
-							<span>{t("confluence.log-in")}</span>
-						</div>
-					</Button>
+					/>
 				)}
 			</div>
 			<div className="buttons">

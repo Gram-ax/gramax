@@ -4,8 +4,6 @@ import { DesktopModeMiddleware } from "@core/Api/middleware/DesktopModeMiddlewar
 import ReloadConfirmMiddleware from "@core/Api/middleware/ReloadConfirmMiddleware";
 import Context from "@core/Context/Context";
 import Path from "@core/FileProvider/Path/Path";
-import ResourceUpdater from "@core/Resource/ResourceUpdater";
-import { defaultLanguage } from "@ext/localization/core/model/Language";
 import { Command } from "../../types/Command";
 
 const create: Command<{ ctx: Context; catalogName: string; parentPath?: Path }, string> = Command.create({
@@ -16,7 +14,7 @@ const create: Command<{ ctx: Context; catalogName: string; parentPath?: Path }, 
 	middlewares: [new AuthorizeMiddleware(), new DesktopModeMiddleware(), new ReloadConfirmMiddleware()],
 
 	async do({ ctx, catalogName, parentPath }) {
-		const { formatter, parser, parserContextFactory, wm } = this._app;
+		const { resourceUpdaterFactory, wm } = this._app;
 		const workspace = wm.current();
 
 		const catalog = await workspace.getCatalog(catalogName);
@@ -25,9 +23,8 @@ const create: Command<{ ctx: Context; catalogName: string; parentPath?: Path }, 
 
 		const markdown = "\n\n";
 		const article = await catalog.createArticle(
-			new ResourceUpdater(ctx, catalog, parser, parserContextFactory, formatter),
+			resourceUpdaterFactory.withContext(ctx),
 			markdown,
-			ctx.lang ?? defaultLanguage,
 			parentPath ? parentRef : null,
 		);
 

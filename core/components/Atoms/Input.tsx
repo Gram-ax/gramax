@@ -25,7 +25,6 @@ const Input = forwardRef((props: InputProps, ref?: MutableRefObject<HTMLInputEle
 		className,
 		errorText,
 		showErrorText = true,
-		isCode,
 		...otherProps
 	} = props;
 
@@ -76,7 +75,7 @@ export default styled(Input)`
 		display: block;
 		font-size: 14px;
 		padding: 6px 12px;
-		border-radius: var(--radius-normal);
+		border-radius: var(--radius-medium);
 		background: var(--color-code-bg);`}
 
 		${(p) =>

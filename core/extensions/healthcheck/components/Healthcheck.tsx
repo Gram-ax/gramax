@@ -1,5 +1,5 @@
-import Fetcher from "@core-ui/ApiServices/Types/Fetcher";
-import UseSWRService from "@core-ui/ApiServices/UseSWRService";
+import SpinnerLoader from "@components/Atoms/SpinnerLoader";
+import FetchService from "@core-ui/ApiServices/FetchService";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import CatalogPropsService from "@core-ui/ContextServices/CatalogProps";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
@@ -8,9 +8,8 @@ import styled from "@emotion/styled";
 import { CatalogError, CatalogErrors } from "@ext/healthcheck/logic/Healthcheck";
 import t from "@ext/localization/locale/translate";
 import { CategoryLink, ItemLink } from "@ext/navigation/NavigationLinks";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import GoToArticle from "../../../components/Actions/GoToArticle";
-import ApiNoData from "../../../components/ApiNoData";
 import Icon from "../../../components/Atoms/Icon";
 import Tooltip from "../../../components/Atoms/Tooltip";
 import Breadcrumb from "../../../components/Breadcrumbs/ArticleBreadcrumb";
@@ -32,17 +31,14 @@ const Healthcheck = styled(
 
 		const apiUrlCreator = ApiUrlCreatorService.value;
 		const [isOpen, setIsOpen] = useState(false);
-		const [getData, setGetData] = useState(false);
-		const [saveData, setSaveData] = useState<CatalogErrors>(null);
+		const [data, setData] = useState<CatalogErrors>(null);
 
-		const healthcheckUrl = apiUrlCreator.getHealthcheckUrl();
-		const { data, error } = UseSWRService.getData<CatalogErrors>(healthcheckUrl, Fetcher.json, getData);
-
-		useEffect(() => {
-			if (!data) return;
-			setSaveData(data);
-			setGetData(false);
-		});
+		const loadData = async () => {
+			const healthcheckUrl = apiUrlCreator.getHealthcheckUrl();
+			const res = await FetchService.fetch<CatalogErrors>(healthcheckUrl);
+			if (!res?.ok) return;
+			setData(await res?.json?.());
+		};
 
 		return (
 			<ModalLayout
@@ -53,27 +49,27 @@ const Healthcheck = styled(
 					setIsOpen(false);
 				}}
 				onOpen={() => {
+					loadData();
 					setIsOpen(true);
-					setGetData(true);
 				}}
 				setGlobalsStyles={true}
 			>
 				<div className={`${className} modal article  block-elevation-2`} data-qa={`catalog-healthcheck-modal`}>
 					<h2>{t("healthcheck")}</h2>
-					{saveData ? (
+					{data ? (
 						Object.values(CatalogErrorGroups).map((errorGroups, key) => {
 							return (
 								<ResourceErrorComponent
 									key={key}
 									errorGroup={errorGroups}
-									data={saveData?.[errorGroups.type] ?? []}
+									data={data[errorGroups.type] ?? []}
 									itemLinks={itemLinks}
 									goToArticleOnClick={() => setIsOpen(false)}
 								/>
 							);
 						})
 					) : (
-						<ApiNoData error={error} />
+						<SpinnerLoader fullScreen />
 					)}
 				</div>
 			</ModalLayout>

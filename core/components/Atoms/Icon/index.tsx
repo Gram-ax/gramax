@@ -2,7 +2,7 @@ import { classNames } from "@components/libs/classNames";
 import { CSSProperties, MouseEvent, ReactNode } from "react";
 import SpinnerLoader from "../SpinnerLoader";
 import Tooltip from "../Tooltip";
-
+import { Placement } from "tippy.js";
 import styled from "@emotion/styled";
 import LucideIcon from "./LucideIcon";
 
@@ -20,6 +20,7 @@ export interface IconProps {
 	onMouseUp?: (event?: MouseEvent<HTMLElement>) => void;
 	onClickCapture?: (event?: MouseEvent<HTMLElement>) => void;
 	fw?: boolean;
+	tooltipPlace?: Placement;
 }
 
 const Icon = (props: IconProps) => {
@@ -34,6 +35,7 @@ const Icon = (props: IconProps) => {
 		isLoading = false,
 		fw,
 		viewBox,
+		tooltipPlace: TooltipPlace,
 		...otherProps
 	} = props;
 
@@ -49,7 +51,7 @@ const Icon = (props: IconProps) => {
 	if (!IconComponent) return <Icon {...props} tooltipContent="Unknown icon" code="circle-help" />;
 
 	return (
-		<Tooltip content={tooltipContent}>
+		<Tooltip content={tooltipContent} place={TooltipPlace}>
 			<i
 				style={style}
 				className={classNames(className, { "action-icon": isAction, "li-fw": fw })}

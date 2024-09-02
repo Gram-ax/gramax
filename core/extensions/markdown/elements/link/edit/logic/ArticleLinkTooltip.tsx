@@ -1,3 +1,4 @@
+import MiniArticle from "@components/Article/MiniArticle";
 import Tooltip from "@components/Atoms/Tooltip";
 import { classNames } from "@components/libs/classNames";
 import ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
@@ -10,10 +11,7 @@ import { useDebounce } from "@core-ui/hooks/useDebounce";
 import PageDataContext from "@core/Context/PageDataContext";
 import { ClientArticleProps, ClientCatalogProps } from "@core/SitePresenter/SitePresenter";
 import styled from "@emotion/styled";
-import getComponents from "@ext/markdown/core/render/components/getComponents/getComponents";
-import Renderer from "@ext/markdown/core/render/components/Renderer";
 import { RenderableTreeNodes } from "@ext/markdown/core/render/logic/Markdoc";
-import Header from "@ext/markdown/elements/heading/render/component/Header";
 import { Mark } from "@tiptap/pm/model";
 import { ReactNode, useCallback, useEffect, useRef, useState } from "react";
 import { useLocation } from "wouter";
@@ -32,6 +30,7 @@ type TooltipContent = {
 	close: () => void;
 	position: string;
 	className?: string;
+	hash?: string;
 };
 
 type TooltipProviderProps = {
@@ -56,6 +55,7 @@ const ArticleLinkTooltip = (props: LinkTooltipProps) => {
 	const [isVisible, setIsVisible] = useState(false);
 	const [canClose, setCanClose] = useState(true);
 	const [data, setData] = useState<dataType>(null);
+	const [hash, setHash] = useState<string>(null);
 	const [elementOnMount] = useState(element);
 	const [tooltipPlace, setTooltipPlace] = useState("top");
 
@@ -73,7 +73,8 @@ const ArticleLinkTooltip = (props: LinkTooltipProps) => {
 	}, [isVisible]);
 
 	const fetchData = useCallback(async () => {
-		const combinedResourcePath = getMark()?.attrs?.resourcePath || resourcePath;
+		const mark = getMark();
+		const combinedResourcePath = mark?.attrs?.resourcePath || resourcePath;
 		if (!combinedResourcePath) return;
 
 		const url = apiUrlCreator.getArticleContentByRelativePath(combinedResourcePath);
@@ -83,6 +84,8 @@ const ArticleLinkTooltip = (props: LinkTooltipProps) => {
 		if (!res || !res.ok) return;
 
 		const data = await res.json();
+		if (mark.attrs?.hash && mark.attrs?.hash !== hash) setHash(mark.attrs.hash);
+
 		setData(data);
 	}, [apiUrlCreator, getMark, resourcePath]);
 
@@ -153,6 +156,7 @@ const ArticleLinkTooltip = (props: LinkTooltipProps) => {
 						clear={clearHandler}
 						close={closeHandler}
 						data={data}
+						hash={hash}
 					/>
 				</TooltipProvider>
 			}
@@ -181,7 +185,7 @@ const TooltipProvider = (props: TooltipProviderProps) => {
 };
 
 const TooltipContent = (props: TooltipContent) => {
-	const { data, start, clear, close, className, position } = props;
+	const { data, start, clear, close, className, hash } = props;
 	const ref = useRef(null);
 	const [location] = useLocation();
 	const test = useRef(location);
@@ -209,90 +213,22 @@ const TooltipContent = (props: TooltipContent) => {
 
 	if (!data) return null;
 
+	useEffect(() => {
+		if (!hash) return;
+		const anchor = document.querySelector(`.tooltip-article [id="${hash.slice(1)}"]`);
+		if (!anchor) return;
+
+		anchor.scrollIntoView();
+	}, [ref?.current]);
+
 	return (
-		<div ref={ref} className={position === "top" ? "tooltip-top" : "tooltip-bottom"}>
+		<div ref={ref}>
 			<div className={className}>
-				<div className={classNames("article", {}, ["tooltip-size"])}>
-					<Header
-						level={1}
-						className={classNames("article-title", {}, ["link-popup-title"])}
-						copyLinkIcon={false}
-					>
-						{data.title}
-					</Header>
-					<MinimizedArticleStyle>
-						<div className={classNames("article-body", {}, ["popup-article"])}>
-							{Renderer(data.content, { components: getComponents() })}
-						</div>
-					</MinimizedArticleStyle>
-				</div>
+				<MiniArticle title={data.title} content={data.content} />
 			</div>
 		</div>
 	);
 };
-
-const MinimizedArticleStyle = styled(({ className, children }: { className?: string; children: ReactNode }) => {
-	return <div className={className}>{children}</div>;
-})`
-	h2 {
-		font-size: 1.2em !important;
-	}
-
-	h3 {
-		font-size: 1.1em !important;
-	}
-
-	h4,
-	h5,
-	h6 {
-		font-size: 1em !important;
-	}
-
-	h2,
-	h3,
-	h4,
-	h5,
-	h6 {
-		margin-top: 0.5em !important;
-		margin-bottom: 0.25em !important;
-	}
-
-	blockquote {
-		margin: 0.575em 0 !important;
-	}
-
-	table {
-		padding: 0.5rem 0 !important;
-	}
-
-	.admonition {
-		margin: 0.5em 0 !important;
-	}
-
-	img {
-		margin: 0.5em auto !important;
-		pointer-events: none !important;
-	}
-
-	ol > li::before {
-		top: 0.23em !important;
-		width: 18px !important;
-		padding: 4px 0 !important;
-	}
-
-	pre,
-	code,
-	.diagram-background {
-		margin: 1em 0 !important;
-	}
-
-	ol,
-	ul,
-	p {
-		margin: 0 0 0.35em !important;
-		line-height: 1.5em !important;
-	}
-`;
 
 export default styled(ArticleLinkTooltip)`
 	&.tooltip-wrapper {
@@ -301,13 +237,10 @@ export default styled(ArticleLinkTooltip)`
 		line-height: 1.4 !important;
 		background: transparent !important;
 		color: var(--color-article-text) !important;
-		background: var(--color-article-bg) !important;
 	}
 
 	&.tooltip-open {
-		box-shadow: var(--menu-tooltip-shadow);
 		animation: TooltipAppend 50ms linear forwards;
-		border-radius: var(--radius-normal) !important;
 	}
 
 	&.tooltip-closed {
@@ -345,20 +278,11 @@ export default styled(ArticleLinkTooltip)`
 		overflow: scroll;
 	}
 
-	.tooltip-top {
-		margin-bottom: -0.75rem;
-		padding-bottom: 0.75rem;
-	}
-
-	.tooltip-bottom {
-		margin-top: -0.75rem;
-		padding-top: 0.75rem;
-	}
-
 	.tooltip-article {
-		overflow: hidden;
 		padding: 0 !important;
-		border-radius: var(--radius-normal) !important;
+		box-shadow: var(--menu-tooltip-shadow);
+		border-radius: var(--radius-x-large);
+		overflow: hidden;
 	}
 
 	.link-popup-title {

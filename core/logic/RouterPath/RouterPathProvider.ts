@@ -1,15 +1,19 @@
 import Path from "@core/FileProvider/Path/Path";
 import PathnameData from "@core/RouterPath/model/PathnameData";
+import { ContentLanguage } from "@ext/localization/core/model/Language";
 
 export default class RouterPathProvider {
 	private static readonly _separator = "-";
 
-	static parsePath(path: string[] | Path): PathnameData {
+	static parsePath(path: string[] | string | Path): PathnameData {
 		const currentPath = this._getArrayOfStrings(path);
-		const [sourceName, group, repName, branch, dir, ...filePath] = currentPath.map((p) =>
+		const [sourceName, group, repName, branch, dir, maybeLanguage, ...filePath] = currentPath.map((p) =>
 			p === this._separator ? undefined : p,
 		);
-		const normalizedFilePath = filePath?.map((x) => decodeURIComponent(x));
+
+		const language = ContentLanguage[maybeLanguage];
+		maybeLanguage && filePath.unshift(maybeLanguage);
+		const normalizedFilePath = filePath.map((x) => decodeURIComponent(x));
 		const catalogName = dir ?? repName;
 		const itemLogicPath = [catalogName, ...normalizedFilePath];
 		const repNameItemLogicPath = repName ? [repName, ...normalizedFilePath] : undefined;
@@ -22,6 +26,7 @@ export default class RouterPathProvider {
 			repName,
 			branch: branch ? decodeURIComponent(branch) : undefined,
 			catalogName,
+			language,
 			filePath: normalizedFilePath,
 			itemLogicPath,
 			repNameItemLogicPath,
@@ -60,14 +65,19 @@ export default class RouterPathProvider {
 		return { catalogName, filePath, fullPath };
 	}
 
-	static isNewPath(path: string[] | Path): boolean {
+	static isEditorPathname(path: string[] | Path): boolean {
 		const currentPath = this._getArrayOfStrings(path);
-		return currentPath[0].includes(".") || currentPath[0] == this._separator;
+		return currentPath[0]?.includes(".") || currentPath[0] == this._separator;
 	}
 
-	static updatePathnameData(basePathname: PathnameData | string[] | Path, newPathnameData: PathnameData): Path {
+	static updatePathnameData(
+		basePathname: PathnameData | string[] | string | Path,
+		newPathnameData: PathnameData,
+	): Path {
 		const pathnameData =
-			basePathname instanceof Array || basePathname instanceof Path ? this.parsePath(basePathname) : basePathname;
+			basePathname instanceof Array || basePathname instanceof Path || typeof basePathname === "string"
+				? this.parsePath(basePathname)
+				: basePathname;
 		return this.getPathname({ ...pathnameData, ...newPathnameData });
 	}
 
@@ -79,7 +89,12 @@ export default class RouterPathProvider {
 		return !pathdata.sourceName && !pathdata.group && !pathdata.repName;
 	}
 
-	private static _getArrayOfStrings(path: string[] | Path): string[] {
-		return path instanceof Array ? path : path.value.split("/");
+	private static _getArrayOfStrings(path: string[] | string | Path): string[] {
+		return path instanceof Array
+			? path
+			: path
+					.toString()
+					.split("/")
+					.filter((f) => f !== "");
 	}
 }

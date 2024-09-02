@@ -8,17 +8,15 @@ import ModalToOpen from "@core-ui/ContextServices/ModalToOpenService/model/Modal
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import { refreshPage } from "@core-ui/ContextServices/RefreshPageContext";
 import SyncIconService from "@core-ui/ContextServices/SyncIconService";
-import MergeConflictConfirm from "@ext/git/actions/MergeConflictHandler/error/components/MergeConflictConfirm";
+import MergeConflictConfirm from "@ext/git/actions/MergeConflictHandler/components/MergeConflictConfirm";
 import SyncLayout from "@ext/git/actions/Sync/components/SyncLayout";
 import SyncService from "@ext/git/actions/Sync/logic/SyncService";
 import { ComponentProps, CSSProperties, useEffect } from "react";
 import { SWRResponse } from "swr";
-import useIsReview from "../../../../storage/logic/utils/useIsReview";
 
 const Sync = ({ style }: { style?: CSSProperties }) => {
 	const apiUrlCreator = ApiUrlCreatorService.value;
 	const syncProccess = SyncIconService.value;
-	const isReview = useIsReview();
 	const pageDataContext = PageDataContextService.value;
 	const disableFetch = IsOfflineService.value || pageDataContext.conf.isReadOnly || !pageDataContext.userInfo;
 
@@ -57,7 +55,7 @@ const Sync = ({ style }: { style?: CSSProperties }) => {
 			pullCounter={syncCount?.pull}
 			pushCounter={syncCount?.push}
 			syncProccess={syncProccess}
-			onClick={() => SyncService.sync(apiUrlCreator, isReview)}
+			onClick={() => SyncService.sync(apiUrlCreator)}
 			style={style}
 		/>
 	);

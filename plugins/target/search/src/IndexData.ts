@@ -3,5 +3,4 @@ export interface IndexData {
 	pathname: string;
 	title: string;
 	content: string;
-	tags: string;
 }

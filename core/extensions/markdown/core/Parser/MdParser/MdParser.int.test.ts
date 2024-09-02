@@ -219,16 +219,90 @@ someMoreChildrenText
 				expect(testParseStr).toEqual(parsedStr);
 			});
 
+			test("image в note", async () => {
+				const mdParser = await getMdParser();
+				const str = `
+				:::
+				[image:./src.png:::0,0,100,100::]
+				:::
+				`;
+				const parsedStr = `
+				{%note type="" title="" collapsed="false" %}
+				{%image src="./src.png" alt="" title="" crop="0,0,100,100" scale="" objects="" /%}
+				{%/note%}
+				`;
+
+				const testParseStr = mdParser.preParse(str);
+
+				expect(testParseStr).toEqual(parsedStr);
+			});
+
 			test("без note в image", async () => {
 				const mdParser = await getMdParser();
 				const str = `
-				[image:./src.png:::0,0,100,100:]
-				[image:./src.png:::0,0,100,100:]
+				[image:./src.png:::0,0,100,100::]
+				[image:./src.png:::0,0,100,100::]
 				`;
 				const parsedStr = `
-				{%image src="./src.png" alt="" title="" crop="0,0,100,100" objects="" /%}
-				{%image src="./src.png" alt="" title="" crop="0,0,100,100" objects="" /%}
+				{%image src="./src.png" alt="" title="" crop="0,0,100,100" scale="" objects="" /%}
+				{%image src="./src.png" alt="" title="" crop="0,0,100,100" scale="" objects="" /%}
 				`;
+
+				const testParseStr = mdParser.preParse(str);
+
+				expect(testParseStr).toEqual(parsedStr);
+			});
+
+
+			test("note в списке", async () => {
+				const mdParser = await getMdParser();
+
+				const str = `test
+
+-  test test test test test test test test test
+
+   :::tip test test test test test
+
+   test test test test test test test test test test
+
+   :::
+
+test test test test test test
+
+:::tip test test test test test test
+
+test test test test test test
+
+:::
+
+test test test test`;
+
+				const parsedStr = `test
+
+-  test test test test test test test test test
+
+   {%note type="tip" title="test test test test test" collapsed="false" %}
+
+   test test test test test test test test test test
+
+   {%/note%}
+
+test test test test test test
+
+{%note type="tip" title="test test test test test test" collapsed="false" %}
+
+test test test test test test
+
+{%/note%}
+
+test test test test`;
+				mdParser.use({
+					render: "Test",
+					attributes: {
+						attr1: { type: String },
+						attr2: { type: String },
+					},
+				});
 
 				const testParseStr = mdParser.preParse(str);
 
@@ -736,5 +810,51 @@ someMoreChildrenText
 		const testParseStr = mdParser.backParse(str);
 
 		expect(testParseStr).toEqual(parsedStr);
+	});
+	describe("html теги", () => {
+		describe("без атрибутов", () => {
+			test("инлайн", async () => {
+				const mdParser = await getMdParser();
+
+				const str = "[html] <tag></tag> [/html]";
+				const parsedStr = `{%html %}\n\`\`\`\n <tag></tag> \n\`\`\`\n{%/html%}`;
+
+				const testParseStr = mdParser.preParse(str);
+
+				expect(testParseStr).toEqual(parsedStr);
+			});
+			test("блочный", async () => {
+				const mdParser = await getMdParser();
+
+				const str = "[html]\n<tag></tag>\n[/html]";
+				const parsedStr = `{%html %}\n\`\`\`\n\n<tag></tag>\n\n\`\`\`\n{%/html%}`;
+
+				const testParseStr = mdParser.preParse(str);
+
+				expect(testParseStr).toEqual(parsedStr);
+			});
+		});
+		describe("с атрибутами", () => {
+			test("инлайн", async () => {
+				const mdParser = await getMdParser();
+
+				const str = `[html] <tag attr1="1" attr2="2"></tag> [/html]`;
+				const parsedStr = `{%html %}\n\`\`\`\n <tag attr1="1" attr2="2"></tag> \n\`\`\`\n{%/html%}`;
+
+				const testParseStr = mdParser.preParse(str);
+
+				expect(testParseStr).toEqual(parsedStr);
+			});
+			test("блочный", async () => {
+				const mdParser = await getMdParser();
+
+				const str = `[html]\n<tag attr1="1" attr2="2"></tag>\n[/html]`;
+				const parsedStr = `{%html %}\n\`\`\`\n\n<tag attr1="1" attr2="2"></tag>\n\n\`\`\`\n{%/html%}`;
+
+				const testParseStr = mdParser.preParse(str);
+
+				expect(testParseStr).toEqual(parsedStr);
+			});
+		});
 	});
 });

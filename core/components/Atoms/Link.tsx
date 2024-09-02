@@ -1,8 +1,6 @@
 import resolveModule from "@app/resolveModule/frontend";
-import { defaultLanguage } from "@ext/localization/core/model/Language";
 import { BaseLink } from "@ext/navigation/NavigationLinks";
 import { HTMLAttributes, ReactNode, RefObject, forwardRef } from "react";
-import localizer from "../../extensions/localization/core/Localizer";
 
 interface LinkProps extends HTMLAttributes<HTMLAnchorElement> {
 	href: BaseLink;
@@ -17,9 +15,10 @@ const Link = forwardRef((props: LinkProps, ref: RefObject<HTMLAnchorElement>) =>
 		...props,
 		href: {
 			...props.href,
-			pathname: localizer.addPrefix(props.href.pathname, defaultLanguage),
+			pathname: "/" + props.href.pathname,
 		},
 	};
+
 	return <ExternalLink {...newProps} ref={ref} />;
 });
 

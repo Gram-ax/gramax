@@ -1,49 +1,55 @@
-import Language, { defaultLanguage } from "./model/Language";
+import RouterPathProvider from "@core/RouterPath/RouterPathProvider";
+import { ContentLanguage } from "./model/Language";
 
-export class Localizer {
-	constructor(private _primary: Language) {}
+export type AddLanguagePath = {
+	logicPath: string;
+	target: ContentLanguage;
+	current: ContentLanguage;
+	primaryLanguage?: ContentLanguage;
+};
 
-	extract(path: string): Language {
-		if (!path) return this._primary;
-		const [, maybeLanguage] = path.split("/", 2);
-		return Language[maybeLanguage] ?? this._primary;
+export type AddLanguagePathname = {
+	pathname: string;
+} & AddLanguagePath;
+
+class Localizer {
+	extract(path: string): ContentLanguage {
+		if (!path) return;
+		const [, , maybeLanguage] = path.split("/", 3);
+		return ContentLanguage[maybeLanguage];
 	}
 
-	addPrefix(path: string, target: Language): string {
-		const current = this._extract(path);
-		if (target == this._primary) return this.trim(path);
-		if (current == target) return this._sanitize(path);
-		return this._sanitize(target + this.trim(path));
+	addPathname({ logicPath, pathname, target, current, primaryLanguage }: AddLanguagePathname): string {
+		const split = logicPath?.split("/") || [""];
+		split.shift();
+		if (ContentLanguage[split.at(0)] == current) split.shift();
+
+		const path = RouterPathProvider.updatePathnameData(pathname.split("/") || [], {
+			filePath: !primaryLanguage || target == primaryLanguage ? [...split] : [target, ...split],
+		}).value;
+		return path;
 	}
 
-	trim(path: string): string {
-		if (!path) return "/";
-		const [, maybeLanguage, ...rest] = this._sanitize(path).split("/");
-		if (maybeLanguage in Language) return this._sanitize(rest.join("/"));
-		return this._sanitize(maybeLanguage + (rest.length > 0 ? "/" + rest.join("/") : ""));
+	addPath({ logicPath, target, current, primaryLanguage }: AddLanguagePath) {
+		const [name, maybeLanguage, ...rest] = logicPath.split("/").filter((x) => x);
+
+		let path: string;
+		if (primaryLanguage == current) path = ["", name, target, maybeLanguage, ...rest].join("/");
+		else if (primaryLanguage == target) path = ["", name, ...rest].join("/");
+		else path = ["", name, target, ...rest].join("/");
+
+		return path;
 	}
 
-	sanitizePrefix(path: string, prev: string): string {
-		const prevLang = this._extract(prev) ?? this._primary;
-		const lang = this._extract(path);
-		if (lang && prevLang != lang) return lang == this._primary ? this.trim(path) : path;
-		if (prevLang == this._primary) return this.trim(path);
-		return this._sanitize(prevLang + this.trim(path));
+	trim(logicPath: string, supportedLanguages: ContentLanguage[]) {
+		const split = logicPath.split("/");
+		if (supportedLanguages.includes(ContentLanguage[split.at(1)])) split.splice(1, 1);
+		return split.join("/");
 	}
 
-	getSanitizePrefixRule() {
-		return (path: string, prev: string) => this.sanitizePrefix(path, prev);
-	}
-
-	private _sanitize(path: string): string {
-		return path[0] == "/" ? path : "/" + path;
-	}
-
-	private _extract(path: string): Language {
-		return Language[path.split("/", 2)[1]];
+	sanitize(path: string): string {
+		return (path[0] == "/" ? path : "/" + path).replaceAll("//", "/");
 	}
 }
 
-const localizer = new Localizer(defaultLanguage);
-
-export default localizer;
+export default new Localizer();

@@ -73,7 +73,7 @@ export default class FuseSearcher implements Searcher {
 
 	private async _initFuses(catalogName: string) {
 		this._fuses[catalogName] = new Fuse(await this._indexDataProvider.getCatalogValue(catalogName), {
-			keys: [{ name: "path" }, { name: "logicPath" }, { name: "title" }, { name: "content" }, { name: "tags" }],
+			keys: [{ name: "path" }, { name: "logicPath" }, { name: "title" }, { name: "content" }],
 			useExtendedSearch: true,
 			includeScore: true,
 			includeMatches: true,
@@ -116,6 +116,7 @@ export default class FuseSearcher implements Searcher {
 				merged.push(currentInterval);
 
 				for (let i = 0; i < merged.length; i++) {
+					if (!merged[i]) continue;
 					const beginTargetIndex = merged[i][0];
 					const endTargetIndexRaw = merged[i][1];
 					const tempEndTargetIndex = endTargetIndexRaw + 1;
@@ -180,6 +181,7 @@ export default class FuseSearcher implements Searcher {
 			if (match.key === "content") {
 				merged.forEach((matchIndex) => {
 					for (let i = 0; i < queryArray.length; i++) {
+						if (!matchIndex) return;
 						const paragraph = this._getMatchingParagraph(content, matchIndex, queryArray[i]);
 						if (paragraph) {
 							paragraphs.push(paragraph);

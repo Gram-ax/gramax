@@ -26,7 +26,7 @@ const MainMenu = styled(({ editor, className }: { editor?: Editor; className?: s
 		</div>
 	);
 })`
-	border-radius: var(--radius-x-large);
+	border-radius: var(--radius-large);
 
 	> div > div {
 		flex-wrap: wrap;

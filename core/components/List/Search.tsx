@@ -1,9 +1,19 @@
 import Button, { TextSize } from "@components/Atoms/Button/Button";
 import { ButtonStyle } from "@components/Atoms/Button/ButtonStyle";
 import { classNames } from "@components/libs/classNames";
+import { useDebounce } from "@core-ui/hooks/useDebounce";
 import styled from "@emotion/styled";
 import t from "@ext/localization/locale/translate";
-import { ChangeEventHandler, ForwardedRef, HTMLProps, forwardRef, useEffect, useImperativeHandle, useRef } from "react";
+import {
+	ChangeEventHandler,
+	ForwardedRef,
+	HTMLProps,
+	forwardRef,
+	useEffect,
+	useImperativeHandle,
+	useRef,
+	useState,
+} from "react";
 import Icon from "../Atoms/Icon";
 import Input from "../Atoms/Input";
 
@@ -17,23 +27,28 @@ interface ConfigProps {
 	disable?: boolean;
 	isCode?: boolean;
 	isErrorValue?: boolean;
+	disableCancelAction?: boolean;
 }
 
 interface SearchProps extends ConfigProps, HTMLProps<HTMLInputElement> {
 	onSearchChange?: (value: string) => void;
 	setValue: (value: string) => void;
 	onChevronClick?: () => void;
+	setIsOpen: (value: boolean) => void;
 	value: string;
 	icon?: string;
 	errorText?: string;
+	onCancelClick?: () => void;
 	showErrorText?: boolean;
 	tabIndex?: number;
 }
 
 const Search = forwardRef((props: SearchProps, ref: ForwardedRef<SearchElement>) => {
-	const { isOpen, value, icon, disable, tabIndex, errorText, showErrorText, className } = props;
+	const { isOpen, value, icon, disable, tabIndex, errorText, showErrorText, disableCancelAction, className } = props;
 	const { placeholder, title = t("search.placeholder") } = props;
-	const { onClick, onChevronClick, onSearchChange, setValue, onFocus } = props;
+	const { onClick, onChevronClick, onSearchChange, setValue, setIsOpen, onCancelClick, onFocus } = props;
+	const [instantFocus, setInstantFocus] = useState(false);
+	const instantFocusDriver = useDebounce(() => setInstantFocus(false), 150);
 
 	const inputRef = useRef<HTMLInputElement>(null);
 	const searchRef = useRef<HTMLDivElement>(null);
@@ -56,6 +71,28 @@ const Search = forwardRef((props: SearchProps, ref: ForwardedRef<SearchElement>)
 	const onChangeHandler: ChangeEventHandler<HTMLInputElement> = (e) => {
 		setValue(e.target.value);
 		onSearchChange?.(e.target.value);
+
+		if (value.length === 0 && !isOpen) {
+			setIsOpen(true);
+		}
+	};
+
+	const onCancelHandler = () => {
+		onCancelClick?.();
+		setValue("");
+		onSearchChange?.("");
+		instantFocusDriver.cancel();
+
+		if (instantFocus) {
+			inputRef.current?.focus();
+			setIsOpen(true);
+		} else {
+			inputRef.current?.focus();
+		}
+	};
+
+	const onFocusHandler: React.FocusEventHandler<HTMLInputElement> = (e) => {
+		onFocus(e);
 	};
 
 	return (
@@ -78,11 +115,26 @@ const Search = forwardRef((props: SearchProps, ref: ForwardedRef<SearchElement>)
 						value={value}
 						onChange={onChangeHandler}
 						placeholder={placeholder}
-						onFocus={onFocus}
+						onFocus={onFocusHandler}
+						onBlur={() => {
+							setInstantFocus(true);
+							instantFocusDriver.start();
+						}}
 					/>
 				</div>
-				<div className={"chevron-icon"} onClick={onChevronClick} ref={chevronRef}>
-					<Button textSize={TextSize.S} buttonStyle={ButtonStyle.transparentInverse}>
+				{!disableCancelAction && (
+					<div
+						className={classNames("x-icon", { isValue: Boolean(value), isOpen }, ["custom-action"])}
+						onClick={onCancelHandler}
+						ref={chevronRef}
+					>
+						<Button textSize={TextSize.XS} buttonStyle={ButtonStyle.transparent}>
+							<Icon code={"x"} />
+						</Button>
+					</div>
+				)}
+				<div className={"custom-action"} onClick={onChevronClick} ref={chevronRef}>
+					<Button textSize={TextSize.S} buttonStyle={ButtonStyle.transparent}>
 						<Icon code={`chevron-${isOpen ? "up" : "down"}`} />
 					</Button>
 				</div>
@@ -104,7 +156,7 @@ export default styled(Search)`
 	font-size: 14px;
 	font-weight: 300;
 	padding: 6px 12px;
-	border-radius: var(--radius-normal);
+	border-radius: var(--radius-medium);
 	background: var(--color-code-bg);
 	color: var(--color-article-heading-text);`
 			: ""}
@@ -113,6 +165,8 @@ export default styled(Search)`
 		display: flex;
 		align-items: center;
 		width: 100%;
+		flex-direction: row;
+		gap: 6px;
 
 		.left-icon i {
 			padding-right: 8px;
@@ -123,11 +177,25 @@ export default styled(Search)`
 			width: 100%;
 			font-size: 14px;
 		}
+
+		:hover {
+			.x-icon {
+				opacity: 1;
+			}
+		}
+
+		.isOpen {
+			opacity: 1;
+		}
+
+		.x-icon:not(.isValue) {
+			opacity: 0;
+			cursor: default;
+			pointer-events: none;
+		}
 	}
 
-	.chevron-icon {
-		i:hover {
-			font-weight: 800 !important;
-		}
+	.x-icon {
+		opacity: 0;
 	}
 `;

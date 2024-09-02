@@ -26,9 +26,9 @@ const FetchService = {
 			);
 		} else {
 			try {
-				error = await res?.json();
+				error = await res.json();
 			} catch (e) {
-				error = e;
+				console.log(`Command ${trimRoutePrefix(url)} does not have correct error!`);
 			}
 		}
 

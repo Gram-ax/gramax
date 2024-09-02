@@ -8,6 +8,7 @@ use tauri_plugin_dialog::DialogExt;
 use crate::build_main_window;
 use crate::platform::desktop::open_help_docs;
 use crate::platform::desktop::updater::Updater;
+use crate::AppHandleExt;
 
 pub trait MenuBuilder {
   fn setup_menu(&self) -> Result<()>;
@@ -23,8 +24,7 @@ impl<R: Runtime> MenuBuilder for tauri::App<R> {
 
 impl<R: Runtime> MenuBuilder for tauri::WebviewWindow<R> {
   fn setup_menu(&self) -> Result<()> {
-    let window = self.get_window(self.label()).expect("no window found");
-    make_menu(self.app_handle())?.set_as_window_menu(&window)?;
+    self.set_menu(make_menu(self.app_handle())?)?;
     self.on_menu_event(|w, e| on_menu_event(w.app_handle(), e));
     Ok(())
   }
@@ -88,17 +88,17 @@ fn on_menu_event<R: Runtime>(app: &AppHandle<R>, event: MenuEvent) {
       }
     }
     Id::ToggleInspector => {
-      if let Some(window) = app.get_focused_window().and_then(|w| w.webviews().into_iter().next()) {
+      if let Some(window) = app.get_focused_webview() {
         window.open_devtools();
       }
     }
     Id::Reload => {
-      if let Some(focused) = app.get_focused_window() {
+      if let Some(focused) = app.get_focused_webview() {
         app.emit_to(EventTarget::webview_window(focused.label()), "reload", ()).unwrap();
       }
     }
     Id::Refresh => {
-      if let Some(focused) = app.get_focused_window() {
+      if let Some(focused) = app.get_focused_webview() {
         app.emit_to(EventTarget::webview_window(focused.label()), "refresh", ()).unwrap();
       }
     }
@@ -109,23 +109,23 @@ fn on_menu_event<R: Runtime>(app: &AppHandle<R>, event: MenuEvent) {
       std::thread::spawn(move || build_main_window(&app).unwrap());
     }
     Id::CloseWindow => {
-      std::thread::spawn(move || app.get_focused_window().map(|w| w.close()));
+      std::thread::spawn(move || app.get_focused_webview().map(|w| w.close()));
     }
     #[cfg(target_family = "unix")]
     Id::ZoomIn => {
-      if let Some(focused) = app.get_focused_window() {
+      if let Some(focused) = app.get_focused_webview() {
         app.emit_to(EventTarget::webview_window(focused.label()), "zoom-in", ()).unwrap();
       }
     }
     #[cfg(target_family = "unix")]
     Id::ZoomOut => {
-      if let Some(focused) = app.get_focused_window() {
+      if let Some(focused) = app.get_focused_webview() {
         app.emit_to(EventTarget::webview_window(focused.label()), "zoom-out", ()).unwrap();
       }
     }
     #[cfg(target_family = "unix")]
     Id::ActualSize => {
-      if let Some(focused) = app.get_focused_window() {
+      if let Some(focused) = app.get_focused_webview() {
         app.emit_to(EventTarget::webview_window(focused.label()), "actual-size", ()).unwrap();
       }
     }

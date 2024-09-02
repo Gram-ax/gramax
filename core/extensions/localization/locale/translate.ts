@@ -1,6 +1,6 @@
 import LanguageService from "@core-ui/ContextServices/Language";
 import { getContext } from "../../../../apps/next/logic/Context/getContext";
-import Language, { defaultLanguage } from "../core/model/Language";
+import UiLanguage, { defaultLanguage, type ContentLanguage } from "../core/model/Language";
 import en from "./locale.en";
 import ru from "./locale.ru";
 
@@ -12,13 +12,13 @@ export type FormDefinition = {
 	};
 };
 
-export type Locale = typeof ru;
-export type DefaultLocaleType = typeof defaultLocale;
+export type Locale = typeof en;
+export type DefaultLocale = typeof defaultLocale;
 
-type TranslationKey = ObjectDotNotation<Omit<DefaultLocaleType, "forms"> & { forms: FormDefinition }>;
+type TranslationKey = ObjectDotNotation<Omit<DefaultLocale, "forms"> & { forms: FormDefinition }>;
 
-const defaultLocale = ru;
-const locales = { [Language.ru]: ru, [Language.en]: en };
+const defaultLocale = en;
+const locales = { [UiLanguage.ru]: ru, [UiLanguage.en]: en };
 
 type BreakDownObject<O, R = void> = {
 	[K in keyof O as string]: K extends string
@@ -34,13 +34,13 @@ type ObjectDotNotation<O, R = void> = O extends string
 		: never
 	: BreakDownObject<O, R>[keyof BreakDownObject<O, R>];
 
-const resolveLanguage = (): Language => {
+const resolveLanguage = (): UiLanguage => {
 	return getContext()?.ui ?? LanguageService.currentUi() ?? defaultLanguage;
 };
 
-const resolveTranslationMap = (language: Language) => locales[language] ?? defaultLocale;
+const resolveTranslationMap = (language: UiLanguage) => locales[language] ?? defaultLocale;
 
-const t = (key: TranslationKey, forceLanguage?: Language) => {
+const t = (key: TranslationKey, forceLanguage?: UiLanguage) => {
 	if (!key) return;
 	const language = forceLanguage ?? resolveLanguage();
 	const locale = resolveTranslationMap(language);
@@ -59,5 +59,8 @@ const t = (key: TranslationKey, forceLanguage?: Language) => {
 };
 
 export const hasTranslation = (key: TranslationKey): boolean => t(key, defaultLanguage) != key;
+
+export const convertContentToUiLanguage = (l: ContentLanguage): UiLanguage =>
+	UiLanguage[l] || LanguageService.currentUi() || defaultLanguage;
 
 export default t;

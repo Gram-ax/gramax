@@ -4,15 +4,18 @@ import type ApiResponse from "@core/Api/ApiResponse";
 import { apiUtils } from "@core/Api/apiUtils";
 import { MainMiddleware } from "@core/Api/middleware/MainMiddleware";
 import Path from "@core/FileProvider/Path/Path";
-import { Article } from "@core/FileStructue/Article/Article";
 import isAccess from "@ext/publicApi/isAccess";
 import { ApplyApiMiddleware } from "apps/next/logic/Api/ApplyMiddleware";
 
 export default ApplyApiMiddleware(
 	async function (req: ApiRequest, res: ApiResponse) {
 		const context = this.app.contextFactory.from(req, res);
-		const catalog = await this.app.wm.current().getCatalog(req.query.catalogId as string);
-		const article: Article = catalog.findItemByItemPath(new Path(req.query.articleId));
+		const dataProvider = this.app.sitePresenterFactory.fromContext(context);
+		const catalogName = req.query.catalogId as string;
+		const { article, catalog } = await dataProvider.getArticleByPathOfCatalog([
+			catalogName,
+			req.query.articleId as string,
+		]);
 
 		if (!isAccess(context, article, catalog)) {
 			res.statusCode = 404;
@@ -24,8 +27,8 @@ export default ApplyApiMiddleware(
 		const { mime, hashItem } = await this.commands.article.resource.get.do({
 			src: new Path(src),
 			ctx: context,
-			articlePath: new Path(req.query.articleId),
-			catalogName: req.query.catalogId as string,
+			articlePath: article.ref.path,
+			catalogName: catalogName,
 			ifNotExistsErrorText: null,
 			mimeType: null,
 		});

@@ -1,7 +1,7 @@
 import getApplication from "@app/node/app";
 import HiddenRules from "../../../../../logic/FileStructue/Rules/HiddenRules/HiddenRule";
-import { defaultLanguage } from "../../../../localization/core/model/Language";
-import LocalizationRules from "../../../../localization/core/rules/LocalizationRules";
+import { ContentLanguage } from "../../../../localization/core/model/Language";
+import LocalizationRules from "../../../../localization/core/events/LocalizationEvents";
 import SecurityRules from "../../../../security/logic/SecurityRules";
 import User from "../../../../security/logic/User/User";
 import getItemRef from "../../../../workspace/test/getItemRef";
@@ -14,13 +14,13 @@ const getNavigationData = async () => {
 
 	const user = new User();
 	const hr = new HiddenRules(errorArticlesProvider);
-	const lr = new LocalizationRules(defaultLanguage, errorArticlesProvider);
+	const lr = new LocalizationRules(ContentLanguage.ru, errorArticlesProvider);
 	const sr = new SecurityRules(user, errorArticlesProvider);
 
-	nav.addRules(hr.getNavRules());
-	nav.addRules(lr.getNavRules());
-	nav.addRules(sr.getNavRules());
-	
+	hr.mountNavEvents(nav);
+	lr.mountNavEvents(nav);
+	sr.mountNavEvents(nav);
+
 	const navCatalogEntries = app.wm.current().getCatalogEntries();
 
 	const navIndexArticleTestCatalog = await app.wm.current().getCatalog("NavigationIndexCatalog");
@@ -29,7 +29,14 @@ const getNavigationData = async () => {
 	const navIndexArticleItemRef = getItemRef(navIndexArticleTestCatalog, "category/_index.md");
 	const navEmptyCategoryItemRef = getItemRef(navTestCatalog, "normalArticle.md");
 
-	return { nav, navIndexArticleTestCatalog, navIndexArticleItemRef, navTestCatalog, navEmptyCategoryItemRef, navCatalogEntries };
+	return {
+		nav,
+		navIndexArticleTestCatalog,
+		navIndexArticleItemRef,
+		navTestCatalog,
+		navEmptyCategoryItemRef,
+		navCatalogEntries,
+	};
 };
 
 describe("Navigation правильно", () => {
@@ -56,7 +63,7 @@ describe("Navigation правильно", () => {
 	test("возвращает каталоги в правильном порядке", async () => {
 		const { nav, navCatalogEntries } = await getNavigationData();
 
-		const catalogLinks = await nav.getCatalogsLink(navCatalogEntries);
+		const catalogLinks = await nav.getCatalogsLink(Array.from(navCatalogEntries.values()));
 
 		expect(catalogLinks.map((cl) => cl.title)).toEqual([
 			"Многоуровневый каталог",

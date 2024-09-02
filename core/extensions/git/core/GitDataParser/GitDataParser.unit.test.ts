@@ -9,7 +9,7 @@ R072\tdocs/log/.category.yml\tdocs/.category.yml
 D\tdocs/video.ts`;
 
 			const changeItems = gitDataParser.getDiffChanges(gitDiff, false).map((c) => {
-				return { absolutePath: c.path.value, type: c.type };
+				return { absolutePath: c.path.value, type: c.status };
 			});
 
 			expect(changeItems).toEqual([

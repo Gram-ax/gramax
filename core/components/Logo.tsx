@@ -26,7 +26,7 @@ export default styled(Logo)`
 	font-size: 20px;
 	line-height: 28px;
 	align-items: center;
-	max-width: calc(100% - 72px);
+	max-width: calc(100% - 60px);
 
 	> a {
 		width: 100%;
@@ -57,6 +57,6 @@ export default styled(Logo)`
 	}
 
 	${cssMedia.narrow} {
-		max-width: calc(100vw - 148px);
+		max-width: calc(100vw - 136px);
 	}
 `;

@@ -1,7 +1,7 @@
 import Context from "@core/Context/Context";
 import Theme from "@ext/Theme/Theme";
 import Cookie from "@ext/cookie/Cookie";
-import Language from "@ext/localization/core/model/Language";
+import UiLanguage, { ContentLanguage } from "@ext/localization/core/model/Language";
 import User from "@ext/security/logic/User/User";
 
 class TestContext implements Context {
@@ -19,15 +19,15 @@ class TestContext implements Context {
 	}
 
 	get ui() {
-		return Language.ru;
+		return UiLanguage.ru;
 	}
 
 	get theme(): Theme {
 		return Theme.dark;
 	}
 
-	get lang(): Language {
-		return Language.ru;
+	get contentLanguage(): ContentLanguage {
+		return ContentLanguage.ru;
 	}
 
 	get domain(): string {

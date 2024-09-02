@@ -56,20 +56,28 @@ import useUrlImage from "../../core/components/Atoms/Image/useUrlImage";
 import Method from "../../core/ui-logic/ApiServices/Types/Method";
 import MimeTypes from "../../core/ui-logic/ApiServices/Types/MimeTypes";
 import Url from "../../core/ui-logic/ApiServices/Types/Url";
+import Localizer from "@ext/localization/core/Localizer";
+
 
 modules = {
 	Link: NextLink,
 	Router: NextRouter,
 	Fetcher: async <T = any>(url: Url, body?: BodyInit, mime?: MimeTypes, method?: Method) => {
+		const l = Localizer.extract(window.location.pathname);
+
 		const res = (await fetch(
 			url.toString(),
 			body
 				? {
 						method,
 						body,
-						headers: { "Content-type": mime, "x-gramax-ui-language": LanguageService.currentUi() },
+						headers: {
+							"Content-type": mime,
+							"x-gramax-ui-language": LanguageService.currentUi(),
+							"x-gramax-language": l,
+						},
 				  }
-				: { headers: { "x-gramax-ui-language": LanguageService.currentUi() } },
+				: { headers: { "x-gramax-ui-language": LanguageService.currentUi(), "x-gramax-language": l } },
 		)) as FetchResponse<T>;
 		res.buffer = async () => Buffer.from(await res.arrayBuffer());
 		return res;

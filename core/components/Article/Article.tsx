@@ -23,47 +23,44 @@ const ARTICLE_UPDATE_SYMBOL = Symbol();
 const ARTICLE_TITLE_UPDATE_SYMBOL = Symbol();
 
 const Article = ({ data }: { data: ArticlePageData }) => {
-	// const articleRef = ArticleRefService.value;
+	const router = useRouter();
 	const articleProps = ArticlePropsService.value;
 	const apiUrlCreator = ApiUrlCreatorService.value;
-	const router = useRouter();
-
 	const [actualData, setActualData] = useState(data);
-	// const [scrollPosition, setScrollPosition] = useState(0);
 
 	useCtrlKeyLinkHandler(); // Для открытия ссылок в tauri
-
 	useScrollToArticleAnchor(data); // Для скрола до заголовка в статье
 
 	useEffect(() => {
 		setActualData(data);
-		ArticlePropsService.set(data.articleProps);
 	}, [data]);
 
 	const onUpdate = (newData: ArticlePageData) => {
 		setActualData(newData);
-		// setScrollPosition(articleRef?.current?.scrollTop ?? 0);
 		ArticlePropsService.set(newData.articleProps);
 	};
 
-	const onTitleUpdate = async (title: string) => {
+	const onTitleUpdate = async (title: string, fileName?: string) => {
 		articleProps.title = title;
+		articleProps.fileName = fileName ? fileName : articleProps.fileName;
 		ArticlePropsService.set(articleProps);
-
-		const maybeKebabName =
-			title && NEW_ARTICLE_REGEX.test(articleProps.fileName)
-				? transliterate(articleProps.title, { kebab: true, maxLength: 50 })
-				: undefined;
-
-		if (maybeKebabName) articleProps.fileName = maybeKebabName;
 
 		const url = apiUrlCreator.updateItemProps();
 		const res = await FetchService.fetch(url, JSON.stringify(articleProps), MimeTypes.json);
 
-		if (maybeKebabName && res.ok) {
+		if (fileName && res.ok) {
 			const pathname = await res.text();
 			pathname && router.pushPath(pathname);
 		}
+	};
+
+	const titleUpdate = ({ newTitle }: { newTitle: string }) => {
+		const maybeKebabName =
+			newTitle && NEW_ARTICLE_REGEX.test(articleProps.fileName)
+				? transliterate(newTitle, { kebab: true, maxLength: 50 })
+				: undefined;
+
+		if (maybeKebabName) onTitleUpdate(newTitle, maybeKebabName);
 	};
 
 	const handleUpdate = ({ editor }: { editor: Editor }) => {
@@ -76,21 +73,14 @@ const Article = ({ data }: { data: ArticlePageData }) => {
 			debounceFunction(ARTICLE_TITLE_UPDATE_SYMBOL, () => onTitleUpdate(afterHeaderText), 500);
 	};
 
-	const onCreate = () => {
-		// if (!articleRef?.current) return;
-		// setTimeout(() => articleRef.current?.scrollTo({ top: scrollPosition, behavior: "auto" }), 50);
-	};
-
 	const handlePaste = (view: EditorView, event: ClipboardEvent) => {
 		if (event.clipboardData.files.length !== 0) return imageHandlePaste(view, event, articleProps, apiUrlCreator);
 
-		return pasteArticleResource(view, event, articleProps, apiUrlCreator);
+		return pasteArticleResource({ view, event, articleProps, apiUrlCreator });
 	};
 
-	const onBlur = () => {
-		// { editor }: { editor: Editor }
-		// actualData.articleContentEdit = JSON.stringify(editor.getJSON());
-		// setActualData({ ...actualData });
+	const onBlur = ({ editor }: { editor: Editor }) => {
+		titleUpdate({ newTitle: editor.state.doc.firstChild.textContent });
 	};
 
 	const onContentUpdate = ({ editor }: { editor: Editor }) => {
@@ -115,16 +105,14 @@ const Article = ({ data }: { data: ArticlePageData }) => {
 
 	return (
 		<ArticleUpdater data={actualData} onUpdate={onUpdate}>
-			<>
-				<ArticleRenderer
-					data={actualData}
-					onCreate={onCreate}
-					handlePaste={handlePaste}
-					onBlur={onBlur}
-					onUpdate={handleUpdate.bind(this)}
-					onSelectionUpdate={onSelectionUpdate}
-				/>
-			</>
+			<ArticleRenderer
+				data={actualData}
+				handlePaste={handlePaste}
+				onBlur={onBlur}
+				onTitleLoseFocus={titleUpdate}
+				onUpdate={handleUpdate.bind(this)}
+				onSelectionUpdate={onSelectionUpdate}
+			/>
 		</ArticleUpdater>
 	);
 };

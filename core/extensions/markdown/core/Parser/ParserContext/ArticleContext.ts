@@ -5,7 +5,7 @@ import { Catalog } from "../../../../../logic/FileStructue/Catalog/Catalog";
 import { Item } from "../../../../../logic/FileStructue/Item/Item";
 import ResourceManager from "../../../../../logic/Resource/ResourceManager";
 import { TableDB } from "../../../../../logic/components/tableDB/table";
-import Language from "../../../../localization/core/model/Language";
+import UiLanguage from "../../../../localization/core/model/Language";
 import UserInfo from "../../../../security/logic/User/UserInfo2";
 import MarkdownFormatter from "../../edit/logic/Formatter/Formatter";
 import MarkdownParser from "../Parser";
@@ -20,7 +20,7 @@ export default class ArticleContext extends BaseContext implements ParserContext
 		private _article: Article,
 		private _catalog: Catalog,
 		private _basePath: Path,
-		private _language: Language,
+		private _language: UiLanguage,
 		private _isLogged: boolean,
 		private _diagramRendererServerUrl: string,
 		private _tablesManager: TableDB,

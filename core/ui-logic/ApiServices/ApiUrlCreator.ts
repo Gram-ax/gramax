@@ -3,7 +3,7 @@ import { Router } from "@core/Api/Router";
 import CustomArticle from "@core/SitePresenter/customArticles/model/CustomArticle";
 import DiagramType from "@core/components/Diagram/DiagramType";
 import Theme from "@ext/Theme/Theme";
-import Language from "@ext/localization/core/model/Language";
+import { type ContentLanguage } from "@ext/localization/core/model/Language";
 import type { WorkspacePath } from "@ext/workspace/WorkspaceConfig";
 import MimeTypes from "./Types/MimeTypes";
 import Url from "./Types/Url";
@@ -11,8 +11,6 @@ import Url from "./Types/Url";
 export default class ApiUrlCreator {
 	constructor(
 		private _basePath: string,
-		private _lang?: Language,
-		private _theme?: Theme,
 		private _isLogged?: boolean,
 		private _catalogName?: string,
 		private _articlePath?: string,
@@ -23,14 +21,7 @@ export default class ApiUrlCreator {
 	}
 
 	fromNewArticlePath(articlePath: string) {
-		return new ApiUrlCreator(
-			this._basePath,
-			this._lang,
-			this._theme,
-			this._isLogged,
-			this._catalogName,
-			articlePath,
-		);
+		return new ApiUrlCreator(this._basePath, this._isLogged, this._catalogName, articlePath);
 	}
 
 	public getLogo(theme: Theme) {
@@ -89,6 +80,13 @@ export default class ApiUrlCreator {
 			articleRelativePath,
 			catalogName: this._catalogName,
 			articlePath: this._articlePath,
+		});
+	}
+
+	public getArticleRenderDataByLogicPath(logicPath: string) {
+		return Url.fromBasePath(`/api/article/features/getRenderContentByLogicPath`, this._basePath, {
+			catalogName: this._catalogName,
+			logicPath,
 		});
 	}
 
@@ -160,7 +158,6 @@ export default class ApiUrlCreator {
 			tags: tags,
 			draw: draw,
 			primary: primary,
-			lang: this._lang,
 			catalogName: this._catalogName,
 			articlePath: this._articlePath,
 		});
@@ -191,10 +188,10 @@ export default class ApiUrlCreator {
 		});
 	}
 
-	public getLogoUrl(catalogName: string, theme?: Theme) {
+	public getLogoUrl(catalogName: string, theme: Theme) {
 		return Url.fromBasePath(`/api/catalog/logo`, this._basePath, {
 			catalogName,
-			theme: theme ?? this._theme,
+			theme,
 		});
 	}
 
@@ -202,30 +199,23 @@ export default class ApiUrlCreator {
 		return domain + (this._basePath ?? "") + "/openGraph/logo.png";
 	}
 
-	public getAuthUrl(router: Router, ssoServerUrl?: string) {
+	public getAuthUrl(router: Router) {
 		const from = encodeURIComponent(router?.basePath + router?.path);
-		if (ssoServerUrl) {
-			return Url.from({
-				pathname: `${ssoServerUrl}/${this._isLogged ? "logout" : "login"}?from=${from}&isDocportal=true`,
-			});
-		}
 		return Url.fromBasePath(this._isLogged ? `/api/auth/logout` : `/api/auth/login`, this._basePath, {
-			from: from,
-			isDocportal: "true",
+			from,
 		});
-	}
-
-	public getAuthSsoUrl(data: string, sign: string, from: string) {
-		return Url.fromBasePath(`api/auth/sso`, this._basePath, { data, sign, from });
 	}
 
 	public getUserSettingsUrl(userSettings: string) {
 		return Url.fromBasePath(`api/auth/userSettings`, this._basePath, { userSettings });
 	}
 
+	public getAuthSsoUrl(data: string, sign: string, from: string) {
+		return Url.fromBasePath(`api/auth/sso`, this._basePath, { data, sign, from });
+	}
+
 	public getWordSaveUrl(isCategory: boolean, itemPath?: string) {
 		return Url.fromBasePath(`/api/word`, this._basePath, {
-			l: this._lang,
 			itemPath,
 			catalogName: this._catalogName,
 			isCategory: isCategory ? "true" : "false",
@@ -271,11 +261,10 @@ export default class ApiUrlCreator {
 		return Url.fromBasePath(`/api/storage/getAllSyncCount`, this._basePath, { fetch: shouldFetch.toString() });
 	}
 
-	public getStoragePublishUrl(message: string, recursive?: boolean) {
+	public getStoragePublishUrl(message: string) {
 		return Url.fromBasePath(`/api/storage/publish`, this._basePath, {
 			catalogName: this._catalogName,
 			commitMessage: message,
-			recursive: recursive.toString(),
 		});
 	}
 
@@ -316,10 +305,9 @@ export default class ApiUrlCreator {
 		});
 	}
 
-	public getStorageSyncUrl(recursive?: boolean) {
+	public getStorageSyncUrl() {
 		return Url.fromBasePath(`/api/storage/sync`, this._basePath, {
 			catalogName: this._catalogName,
-			recursive: recursive.toString(),
 			articlePath: this._articlePath,
 		});
 	}
@@ -354,6 +342,18 @@ export default class ApiUrlCreator {
 			catalogName: this._catalogName,
 			cached: cached.toString(),
 			onlyName: onlyName.toString(),
+		});
+	}
+
+	public getVersionControlBranchToCheckoutUrl() {
+		return Url.fromBasePath(`/api/versionControl/branch/getBranchToCheckout`, this._basePath, {
+			catalogName: this._catalogName,
+		});
+	}
+
+	public getVersionControlAbortCheckoutStateUrl() {
+		return Url.fromBasePath(`/api/versionControl/branch/abortCheckoutState`, this._basePath, {
+			catalogName: this._catalogName,
 		});
 	}
 
@@ -420,8 +420,8 @@ export default class ApiUrlCreator {
 		});
 	}
 
-	public getFilesToMerge() {
-		return Url.fromBasePath(`/api/versionControl/mergeConflict/getFiles`, this._basePath, {
+	public getMergeData() {
+		return Url.fromBasePath(`/api/versionControl/mergeConflict/getMergeData`, this._basePath, {
 			catalogName: this._catalogName,
 		});
 	}
@@ -476,6 +476,20 @@ export default class ApiUrlCreator {
 		});
 	}
 
+	public addCatalogLanguage(code: ContentLanguage) {
+		return Url.fromBasePath(`/api/catalog/language/add`, this._basePath, {
+			catalogName: this._catalogName,
+			code,
+		});
+	}
+
+	public removeCatalogLanguage(code: ContentLanguage) {
+		return Url.fromBasePath(`/api/catalog/language/remove`, this._basePath, {
+			catalogName: this._catalogName,
+			code,
+		});
+	}
+
 	public updateCatalogProps() {
 		return Url.fromBasePath(`/api/catalog/updateProps`, this._basePath, {
 			catalogName: this._catalogName,
@@ -497,7 +511,6 @@ export default class ApiUrlCreator {
 
 	public createArticle(parentPath?: string) {
 		return Url.fromBasePath(`/api/article/create`, this._basePath, {
-			lang: this._lang,
 			catalogName: this._catalogName,
 			parentPath,
 		});

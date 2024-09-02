@@ -6,11 +6,20 @@ import {
 	SquareObject,
 } from "@ext/markdown/elements/image/edit/model/imageEditorTypes";
 
-export const parse = (crop: string, objects: string): { crop: Crop; objects: ImageObject[] } => {
+export const parse = (
+	crop: string,
+	scale: string,
+	objects: string,
+): { crop: Crop; objects: ImageObject[]; scale?: number } => {
+	const scaleIsObjects = isObjects(scale);
 	const newCrop = transfromToCrop(crop);
-	const newObjects = transformToObjects(objects);
+	const newObjects = transformToObjects((scaleIsObjects ? scale : objects) ?? "[]");
 
-	return { crop: newCrop, objects: newObjects };
+	return { crop: newCrop, objects: newObjects, scale: (!scaleIsObjects && scale !== null ? +scale : null) ?? null };
+};
+
+const isObjects = (objects: string): boolean => {
+	return objects?.length > 3;
 };
 
 const transfromToCrop = (crop: string): Crop => {
@@ -61,14 +70,15 @@ const transformToObjects = (objects: string): ImageObject[] => {
 	return newObjects;
 };
 
-export const format = (crop: Crop, objects: ImageObject[]): string => {
+export const format = (crop: Crop, objects: ImageObject[], scale?: number): string => {
 	return (
 		Object.values(crop).join(",") +
+		(scale ? ":" + scale : "") +
 		":" +
 		(typeof objects === "object"
 			? objects?.map((data: any, index: number) => {
 					if (data.type) return (index !== 0 ? "&" : "") + Object.values(data).join(",");
-				})
+			  })
 			: "")
 	);
 };

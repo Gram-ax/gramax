@@ -8,7 +8,6 @@ import { GitBranch } from "../GitBranch/GitBranch";
 import { GitStatus } from "../GitWatcher/model/GitStatus";
 import GitSourceData from "../model/GitSourceData.schema";
 import { GitVersion } from "../model/GitVersion";
-import SubmoduleData from "../model/SubmoduleData";
 import * as git from "./LibGit2IntermediateCommands";
 import GitCommandsModel from "./model/GitCommandsModel";
 
@@ -46,7 +45,7 @@ class LibGit2Commands implements GitCommandsModel {
 		return (
 			status?.map((s) => ({
 				path: new Path(s.path),
-				type: FileStatus[s.status],
+				status: FileStatus[s.status],
 				isUntracked: true,
 			})) ?? []
 		);
@@ -56,7 +55,7 @@ class LibGit2Commands implements GitCommandsModel {
 		const status = await git.statusFile({ repoPath: this._repoPath, filePath: filePath.value });
 		return {
 			path: filePath,
-			type: FileStatus[status],
+			status: FileStatus[status],
 			isUntracked: true,
 		};
 	}
@@ -87,7 +86,7 @@ class LibGit2Commands implements GitCommandsModel {
 		const statuses = await git.diff({ repoPath: this._repoPath, old: oldTree, new: newTree });
 		return statuses.map((s) => ({
 			path: new Path(s.path),
-			type: FileStatus[s.status],
+			status: FileStatus[s.status],
 			isUntracked: true,
 		}));
 	}
@@ -204,14 +203,6 @@ class LibGit2Commands implements GitCommandsModel {
 
 	showFileContent(path: Path, hash?: GitVersion): Promise<string> {
 		return git.getContent({ repoPath: this._repoPath, path: path.value, oid: hash ? hash.toString() : undefined });
-	}
-
-	getFixedSubmodulePaths(): Promise<Path[]> {
-		return Promise.resolve([]);
-	}
-
-	getSubmodulesData(): Promise<SubmoduleData[]> {
-		return Promise.resolve([]);
 	}
 
 	getRemoteName(): Promise<string> {

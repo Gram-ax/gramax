@@ -5,18 +5,23 @@ import { ReactElement } from "react";
 import Focus from "../../../../elementsUtils/wrappers/Focus";
 
 const ImageComponent = (props: NodeViewProps): ReactElement => {
-	const { node, getPos } = props;
+	const { editor, node, getPos, selected } = props;
+
+	const updateAttributes = (attributes: Record<string, any>) => {
+		const tr = editor.view.state.tr;
+		const pos = getPos();
+
+		Object.keys(attributes).forEach((key) => {
+			tr.setNodeAttribute(pos, key, attributes[key]);
+		});
+
+		editor.view.dispatch(tr);
+	};
 
 	return (
-		<NodeViewWrapper as={"div"}>
-			<Focus position={getPos()}>
-				<Image
-					src={node.attrs.src}
-					alt={node.attrs.alt}
-					title={node.attrs.title}
-					crop={node.attrs.crop}
-					objects={node.attrs.objects}
-				/>
+		<NodeViewWrapper draggable={true} data-drag-handle>
+			<Focus getPos={getPos}>
+				<Image editor={editor} updateAttributes={updateAttributes} selected={selected} node={node} />
 			</Focus>
 		</NodeViewWrapper>
 	);

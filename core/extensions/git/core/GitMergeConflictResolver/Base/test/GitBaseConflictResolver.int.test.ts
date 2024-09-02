@@ -2,9 +2,11 @@
  * @jest-environment node
  */
 
+import GitMergeStatus from "@ext/git/actions/MergeConflictHandler/model/GitMergeStatus";
 import GitStorage from "@ext/git/core/GitStorage/GitStorage";
 import Repository from "@ext/git/core/Repository/Repository";
 import { RepMergeConflictState } from "@ext/git/core/Repository/model/RepostoryState";
+import RepositoryStateFile from "@ext/git/core/RepositoryStateFile/RepositorySettingsFile";
 import SourceData from "@ext/storage/logic/SourceDataProvider/model/SourceData";
 import SourceType from "@ext/storage/logic/SourceDataProvider/model/SourceType";
 import DiskFileProvider from "../../../../../../logic/FileProvider/DiskFileProvider/DiskFileProvider";
@@ -56,7 +58,8 @@ describe("GitBaseConflictResolver", () => {
 		await commit(gvc, { "1.txt": "init" });
 		await gvc.createNewBranch("conflict");
 		const storage = new GitStorage(path("testRep"), dfp);
-		const repo = new Repository(path("testRep"), dfp, gvc, storage);
+		const repStateFile = new RepositoryStateFile(path("testRep"), dfp);
+		const repo = new Repository(path("testRep"), dfp, gvc, storage, repStateFile);
 		resolver = new GitBaseConflictResolver(repo, dfp, path("testRep"));
 	});
 
@@ -95,5 +98,71 @@ describe("GitBaseConflictResolver", () => {
 			resolver.resolveConflictedFiles(resolvedMergeFiles, mockState, mockUserData),
 		).resolves.toBeUndefined();
 		expect(await dfp.read(repPath("1.txt"))).toBe("conflict content ours and theirs :)");
+	});
+
+	describe("Валидирует мерж стейт", () => {
+		describe("конфликт без удалений", () => {
+			test("конфликт eсть во всех файлах", async () => {
+				await dfp.write(repPath("1.txt"), CONFLICT_CONTENT);
+				await dfp.write(repPath("2.txt"), CONFLICT_CONTENT);
+
+				expect(
+					await resolver.isMergeStateValidate([
+						{ path: "1.txt", status: GitMergeStatus.BothModified },
+						{ path: "1.txt", status: GitMergeStatus.BothModified },
+					]),
+				).toBeTruthy();
+			});
+
+			test("конфликта нет в одном из файлов", async () => {
+				await dfp.write(repPath("1.txt"), "no conflict");
+				await dfp.write(repPath("2.txt"), CONFLICT_CONTENT);
+
+				expect(
+					await resolver.isMergeStateValidate([
+						{ path: "1.txt", status: GitMergeStatus.BothModified },
+						{ path: "2.txt", status: GitMergeStatus.BothModified },
+					]),
+				).toBeFalsy();
+			});
+		});
+		describe("конфликт с удалениями", () => {
+			describe("конфликт есть", () => {
+				test("один из файлов с удалением", async () => {
+					await dfp.write(repPath("1.txt"), "deleted in some version");
+					await dfp.write(repPath("2.txt"), CONFLICT_CONTENT);
+
+					expect(
+						await resolver.isMergeStateValidate([
+							{ path: "1.txt", status: GitMergeStatus.DeletedByUs },
+							{ path: "2.txt", status: GitMergeStatus.BothModified },
+						]),
+					).toBeTruthy();
+				});
+				test("все файлы с удалением", async () => {
+					await dfp.write(repPath("1.txt"), "deleted in some version");
+					await dfp.write(repPath("2.txt"), "deleted in some version too");
+
+					expect(
+						await resolver.isMergeStateValidate([
+							{ path: "1.txt", status: GitMergeStatus.DeletedByUs },
+							{ path: "2.txt", status: GitMergeStatus.DeletedByUs },
+						]),
+					).toBeTruthy();
+				});
+			});
+
+			test("конфликта нет", async () => {
+				await dfp.write(repPath("1.txt"), "deleted in some version");
+				await dfp.write(repPath("2.txt"), "no conflct");
+
+				expect(
+					await resolver.isMergeStateValidate([
+						{ path: "1.txt", status: GitMergeStatus.DeletedByUs },
+						{ path: "2.txt", status: GitMergeStatus.BothModified },
+					]),
+				).toBeFalsy();
+			});
+		});
 	});
 });

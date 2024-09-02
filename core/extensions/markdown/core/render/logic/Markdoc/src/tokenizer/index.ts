@@ -2,6 +2,7 @@ import MarkdownIt from "markdown-it/lib";
 import { Token } from "../types";
 import annotations from "./plugins/annotations";
 import frontmatter from "./plugins/frontmatter";
+import disableencodeuri from "./plugins/disableencodeuri";
 
 export default class Tokenizer {
 	private parser: MarkdownIt;
@@ -9,6 +10,7 @@ export default class Tokenizer {
 	constructor(config: MarkdownIt.Options & { allowIndentation?: boolean } = {}) {
 		this.parser = new MarkdownIt(config);
 		this.parser.use(annotations, "annotations", {});
+		this.parser.use(disableencodeuri, "disableencodeuri", {});
 		this.parser.use(frontmatter, "frontmatter", {});
 		this.parser.disable("lheading");
 	}

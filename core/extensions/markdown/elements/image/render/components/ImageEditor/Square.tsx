@@ -145,6 +145,8 @@ const Square = (props: SquareObjectProps): ReactElement => {
 export default styled(Square)`
 	position: absolute;
 	border: 3px solid #fc2847;
+	-webkit-print-color-adjust: exact; 
+	print-color-adjust: exact;
 	border-radius: 4px;
 	pointer-events: auto !important;
 	${(p) => p.editable && "cursor: grab;"}

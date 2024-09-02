@@ -30,7 +30,7 @@ const LogsLayout = styled(
 	width: 100%;
 	max-height: 100%;
 	background: var(--color-menu-bg);
-	border-radius: var(--radius-normal);
+	border-radius: var(--radius-x-large);
 	padding: 1rem;
 	overflow: auto;
 

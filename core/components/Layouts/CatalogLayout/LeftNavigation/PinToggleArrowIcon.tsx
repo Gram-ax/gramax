@@ -1,15 +1,17 @@
+import { TextSize } from "@components/Atoms/Button/Button";
+import ButtonLink from "@components/Molecules/ButtonLink";
 import LeftNavigationIsOpenService from "@core-ui/ContextServices/LeftNavigationIsOpen";
 import SidebarsIsPinService from "@core-ui/ContextServices/SidebarsIsPin";
 import styled from "@emotion/styled";
-import Icon from "../../../Atoms/Icon";
 
 const PinToggleArrowIcon = styled(({ className }: { className?: string }) => {
 	const isPin = SidebarsIsPinService.value;
 	return (
 		<div className={className}>
-			<Icon
-				isAction
-				code={isPin ? "arrow-left-from-line" : "arrow-right-from-line"}
+			<ButtonLink
+				iconFw={false}
+				textSize={TextSize.L}
+				iconCode={isPin ? "arrow-left-from-line" : "arrow-right-from-line"}
 				onClick={() => {
 					if (isPin) SidebarsIsPinService.value = false;
 					else {
@@ -24,7 +26,6 @@ const PinToggleArrowIcon = styled(({ className }: { className?: string }) => {
 	width: 100%;
 	display: flex;
 	align-items: center;
-	font-size: var(--big-icon-size);
 `;
 
 export default PinToggleArrowIcon;

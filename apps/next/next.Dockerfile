@@ -1,6 +1,6 @@
 ARG CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX=docker.io
 
-FROM --platform=$BUILDPLATFORM ${CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX}/node:22-bookworm-slim AS deps
+FROM --platform=$BUILDPLATFORM gitlab.ics-it.ru:4567/ics/doc-reader:base-image AS deps
 
 WORKDIR /app
 
@@ -18,26 +18,26 @@ RUN npm ci
 # RUN cargo install cargo-chef && \
 #   cargo chef cook --release --recipe-path recipe.json -p next-gramax-git
 
-FROM --platform=$TARGETPLATFORM gitlab.ics-it.ru:4567/ics/doc-reader:base-image AS build
+FROM deps AS build
 
 WORKDIR /app
 
 ARG BUGSNAG_API_KEY \
-  PRODUCTION 
+  PRODUCTION
 
 ENV BUGSNAG_API_KEY=${BUGSNAG_API_KEY} \
   PRODUCTION=${PRODUCTION} \
   ROOT_PATH=/app/data
 
-COPY --from=deps /app .
 COPY . .
 
-RUN ./install-deps.sh --ci --build-plugins --node && \
+RUN echo ${CARGO_BUILD_JOBS} && \
+  ./install-deps.sh --ci --build-plugins --node && \
   npm --prefix apps/next run build && \
   rm -rf .npm && \
   git gc --aggressive && \
   git prune && \
-  rm -fr ./target ./apps/next/.next/cache 
+  rm -fr ./target ./apps/next/.next/cache
 
 FROM --platform=$TARGETPLATFORM ${CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX}/node:21-bookworm-slim AS run
 
@@ -74,4 +74,4 @@ COPY --from=build /app .
 
 STOPSIGNAL SIGTERM
 
-CMD ["npm", "--prefix", "apps/next", "run", "start"]
+ENTRYPOINT ["npm", "--prefix", "apps/next", "run", "start"]

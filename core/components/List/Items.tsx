@@ -51,7 +51,7 @@ interface ItemsProps extends HTMLAttributes<HTMLDivElement>, ConfigProps {
 const StyleDiv = styled.div<ConfigProps>`
 	z-index: 1;
 	width: 100%;
-	border-radius: var(--radius-normal);
+	border-radius: var(--radius-medium);
 	box-shadow: var(--shadows-deeplight);
 	background: var(--color-code-copy-bg);
 	${(p) => (p.isCode ? "" : "left: 5.5px;")}

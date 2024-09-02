@@ -5,7 +5,7 @@ import { Catalog } from "../../../../../logic/FileStructue/Catalog/Catalog";
 import { Item } from "../../../../../logic/FileStructue/Item/Item";
 import ResourceManager from "../../../../../logic/Resource/ResourceManager";
 import { TableDB } from "../../../../../logic/components/tableDB/table";
-import Language from "../../../../localization/core/model/Language";
+import UiLanguage from "../../../../localization/core/model/Language";
 import UserInfo from "../../../../security/logic/User/UserInfo2";
 import MarkdownFormatter from "../../edit/logic/Formatter/Formatter";
 import MarkdownParser from "../Parser";
@@ -21,7 +21,7 @@ export default interface ParserContext {
 	getRootPath(): Path;
 	getBasePath(): Path;
 	getIsLogged(): boolean;
-	getLanguage(): Language;
+	getLanguage(): UiLanguage;
 	getDiagramRendererServerUrl(): string;
 	getProp(propName: string): any;
 	getTablesManager(): TableDB;

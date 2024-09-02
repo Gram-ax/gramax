@@ -31,9 +31,8 @@ export interface PCatalog {
 }
 
 export interface PChangeCatalog {
-	articleId: string;
 	catalog: PCatalog;
-	type: FileStatus;
+	items: { articleId: string; status: FileStatus }[];
 }
 
 export interface PStorage {
@@ -46,7 +45,7 @@ export interface PStorage {
 export interface PCatalogs {
 	get(name: string): Promise<PCatalog>;
 	getAll(): Promise<PCatalog[]>;
-	onUpdate(callback: (catalogChanges: PChangeCatalog[]) => void | Promise<void>): void;
+	onUpdate(callback: (catalogChanges: PChangeCatalog) => void | Promise<void>): void;
 }
 
 export interface PApplication {

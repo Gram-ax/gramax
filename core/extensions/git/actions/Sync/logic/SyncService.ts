@@ -21,9 +21,9 @@ export default class SyncService {
 		_onSyncError = onSyncError;
 	}
 
-	public static async sync(apiUrlCreator: ApiUrlCreator, isReview: boolean) {
+	public static async sync(apiUrlCreator: ApiUrlCreator) {
 		await _onStartSync?.();
-		const { ok, mergeData } = await SyncService._sync(apiUrlCreator, isReview);
+		const { ok, mergeData } = await SyncService._sync(apiUrlCreator);
 		if (!ok) {
 			await _onSyncError?.();
 			return;
@@ -31,11 +31,8 @@ export default class SyncService {
 		await _onFinishSync?.(mergeData);
 	}
 
-	private static async _sync(
-		apiUrlCreator: ApiUrlCreator,
-		isReview: boolean,
-	): Promise<{ ok: boolean; mergeData: MergeData }> {
-		const res = await FetchService.fetch<MergeData>(apiUrlCreator.getStorageSyncUrl(!isReview));
+	private static async _sync(apiUrlCreator: ApiUrlCreator): Promise<{ ok: boolean; mergeData: MergeData }> {
+		const res = await FetchService.fetch<MergeData>(apiUrlCreator.getStorageSyncUrl());
 		return { ok: res.ok, mergeData: await res.json() };
 	}
 }

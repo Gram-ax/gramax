@@ -11,42 +11,36 @@ describe("FuseSearcher", () => {
 						pathname: "1",
 						title: "Пример документа1",
 						content: "Это содержимое @example.com документа с специальными символами",
-						tags: "Это содержимое документа с специальными символами: ",
 					},
 					{
 						path: "2",
 						pathname: "2",
 						title: "Пример документа2",
 						content: "Это содержимое $$$ @papupe.com документа с $ специальными символами: ",
-						tags: "aa",
 					},
 					{
 						path: "3",
 						pathname: "3",
 						title: "Другой документ1 papupe",
 						content: "aaaaaaaaaaaaaaaa",
-						tags: "aa",
 					},
 					{
 						path: "4",
 						pathname: "4",
 						title: "Другой документ2",
 						content: "Содержимое другого <документа специальных .;..%alasd;asfi< символов",
-						tags: "aa",
 					},
 					{
 						path: "5",
 						pathname: "5",
 						title: "Другой документ3",
 						content: "Содержимое другого документа Без специальных символов asdfasdfasdfasdfasdfasdfasd",
-						tags: "aa",
 					},
 					{
 						path: "6",
 						pathname: "6",
 						title: "Другой документ3.com",
 						content: "Содержимое документа, asdfasdfasdfasdfasdfasdfasd выперается",
-						tags: "aa",
 					},
 				];
 				return indexData;
@@ -123,28 +117,24 @@ describe("FuseSearcher", () => {
 						pathname: "1",
 						title: "Текст",
 						content: 'Имеем подходящее слово "текст"',
-						tags: "Тег",
 					},
 					{
 						path: "2",
 						pathname: "2",
 						title: "Текст",
 						content: "Не имеем подходящего слова",
-						tags: "Тег",
 					},
 					{
 						path: "3",
 						pathname: "3",
 						title: "Тексд",
 						content: "Не имеем подходящего слова",
-						tags: "Тег",
 					},
 					{
 						path: "4",
 						pathname: "4",
 						title: "Тексд",
 						content: 'Имеем подходящее слово "Тексд"',
-						tags: "Тег",
 					},
 				];
 				return indexData;

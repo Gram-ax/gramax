@@ -17,7 +17,7 @@ import ErrorConfirmService from "@ext/errorHandlers/client/ErrorConfirmService";
 import DefaultError from "@ext/errorHandlers/logic/DefaultError";
 import t from "@ext/localization/locale/translate";
 import PersistentLogger from "@ext/loggers/PersistentLogger";
-import Fence from "@ext/markdown/elements/fence/render/component/Fence";
+import CodeBlock from "@ext/markdown/elements/codeBlockLowlight/render/component/CodeBlock";
 import EditorService from "@ext/markdown/elementsUtils/ContextServices/EditorService";
 import { Editor, JSONContent } from "@tiptap/core";
 import { useCallback, useEffect, useState } from "react";
@@ -74,15 +74,22 @@ const BugsnagBody = ({ setIsOpen, className }: { setIsOpen: (v: boolean) => void
 	const sendLogsHandler = useCallback(
 		(comment) => {
 			const logs = { comment, ...getDetails({ editor, context: data }) };
-			void sendBug(new Error("Пользовательская ошибка"), (e) => {
-				// TODO Нужно как то отлавливать, дошел ли контент до багснега и если нет, то бросать ошибку.
-				e.addMetadata("props", logs);
-			}).catch((e) => {
+			void sendBug(
+				new Error("Пользовательская ошибка"),
+				(e) => {
+					// TODO Нужно как то отлавливать, дошел ли контент до багснега и если нет, то бросать ошибку.
+					e.addMetadata("props", logs);
+				},
+				false,
+			).catch((e) => {
 				console.error(e);
 				ErrorConfirmService.notify(
 					new DefaultError(
-						t("bug-report.error.cannot-send-feedback"),
-						new Error(t("bug-report.error.check-internet-or-adblocker")),
+						t("bug-report.error.cannot-send-feedback.message"),
+						null,
+						null,
+						false,
+						t("bug-report.error.cannot-send-feedback.title"),
 					),
 				);
 			});
@@ -165,7 +172,7 @@ const UserDetails = styled((props: { className?: string; details: string }) => {
 					{t("bug-report.what-will-be-sent")}
 					<span style={{ whiteSpace: "nowrap", padding: 0 }} data-mdignore={true}>
 						&#65279;
-						<Icon className="linkIcon" code="external-link" />
+						<Icon className="link-icon" code="external-link" />
 					</span>
 				</a>
 			}
@@ -179,7 +186,7 @@ const UserDetails = styled((props: { className?: string; details: string }) => {
 					<>
 						<legend>{t("bug-report.view-tech-details")}</legend>
 						<div className={classNames("form-group", {}, ["code_wrapper"])}>
-							<Fence lang="javascript" value={details} />
+							<CodeBlock lang={"javascript"} value={details} />
 						</div>
 					</>
 				</FormStyle>

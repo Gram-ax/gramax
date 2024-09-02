@@ -1,3 +1,4 @@
+import isURL from "@core-ui/utils/isURL";
 import Path from "../../../../../../../logic/FileProvider/Path/Path";
 import getCommentFormatter from "../../../../../elements/comment/edit/logic/getCommentFormatter";
 import ParserContext from "../../../../Parser/ParserContext/ParserContext";
@@ -15,10 +16,10 @@ const getMarkFormatters = (context?: ParserContext): { [mark: string]: MarkSeria
 		},
 		close(_state, mark, parent, index) {
 			const isFile = mark.attrs?.isFile ?? false;
-			const resourcePath =
-				mark.attrs.resourcePath && mark.attrs.resourcePath != "" ? new Path(mark.attrs.resourcePath) : null;
+			const resourcePath = mark.attrs.resourcePath && mark.attrs.resourcePath != "" ? new Path(mark.attrs.resourcePath) : null;
+			const isUrl = isURL(resourcePath.value);
 
-			const link: string = isFile
+			const link: string = isFile || isUrl
 				? resourcePath.value
 				: (resourcePath?.stripExtension ?? mark.attrs.href) + (mark.attrs.hash ?? "");
 			return isPlainURL(mark, parent, index, -1) ? ">" : `](${link.includes(" ") ? `<${link}>` : link})`;

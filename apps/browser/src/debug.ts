@@ -4,6 +4,7 @@ import { env } from "@app/resolveModule/env";
 import MimeTypes from "@core-ui/ApiServices/Types/MimeTypes";
 import { downloadFile } from "@core-ui/downloadResource";
 import Path from "@core/FileProvider/Path/Path";
+import RouterPathProvider from "@core/RouterPath/RouterPathProvider";
 import * as git from "@ext/git/core/GitCommands/LibGit2IntermediateCommands";
 import ConsoleLogger from "@ext/loggers/ConsoleLogger";
 import { LogLevel } from "@ext/loggers/Logger";
@@ -43,6 +44,8 @@ export const items = async () => {
 	await showFiles(Path.empty, 0);
 	console.log(str);
 };
+
+export { RouterPathProvider };
 
 export const download = async (name: string) => {
 	const JSZip = await import("jszip");

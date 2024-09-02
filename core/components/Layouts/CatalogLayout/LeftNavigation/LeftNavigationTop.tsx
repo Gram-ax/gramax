@@ -13,12 +13,17 @@ const LeftNavigationTop = ({ data, className }: { data: ArticlePageData; classNa
 	const narrowMedia = useMediaQuery(cssMedia.narrow);
 
 	const getPadding = () => {
-		if (narrowMedia) return "0 20px";
-		return leftNavIsOpen ? "0 20px" : "0 30px";
+		if (narrowMedia) return "0 14px";
+		return leftNavIsOpen ? "0 14px" : "0 30px";
 	};
 
 	return (
-		<BarLayout className={className} height={64} padding={getPadding()} gap={narrowMedia ? "1rem" : 0}>
+		<BarLayout
+			className={className}
+			padding={getPadding()}
+			gap={narrowMedia ? "14px" : 0}
+			height={"var(--top-bar-height)"}
+		>
 			<>
 				{narrowMedia && (
 					<ButtonLink
@@ -38,5 +43,9 @@ const LeftNavigationTop = ({ data, className }: { data: ArticlePageData; classNa
 export default styled(LeftNavigationTop)`
 	i {
 		width: 1em !important;
+	}
+
+	${cssMedia.narrow} {
+		border-bottom: 0.5px var(--color-line) solid;
 	}
 `;

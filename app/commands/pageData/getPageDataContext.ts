@@ -15,7 +15,10 @@ const getPageDataContext = ({
 	userInfo?: UserInfo;
 }): PageDataContext => {
 	return {
-		lang: ctx.lang,
+		language: {
+			content: ctx.contentLanguage ?? null,
+			ui: ctx.ui ?? null,
+		},
 		theme: ctx.theme,
 		domain: ctx.domain,
 		userInfo: userInfo ?? ctx.user.info ?? null,

@@ -3,7 +3,6 @@ import { AuthorizeMiddleware } from "@core/Api/middleware/AuthorizeMiddleware";
 import { DesktopModeMiddleware } from "@core/Api/middleware/DesktopModeMiddleware";
 import ReloadConfirmMiddleware from "@core/Api/middleware/ReloadConfirmMiddleware";
 import Context from "@core/Context/Context";
-import ResourceUpdater from "@core/Resource/ResourceUpdater";
 import { ItemLink } from "@ext/navigation/NavigationLinks";
 import DragTree from "@ext/navigation/catalog/drag/logic/DragTree";
 import DragTreeTransformer from "@ext/navigation/catalog/drag/logic/DragTreeTransformer";
@@ -28,19 +27,18 @@ const updateNavigation: Command<
 	middlewares: [new AuthorizeMiddleware(), new DesktopModeMiddleware(), new ReloadConfirmMiddleware()],
 
 	async do({ ctx, draggedItemPath, logicPath, catalogName, newLevNav, oldLevNav }) {
-		const { wm, formatter, parser, parserContextFactory, rp, sitePresenterFactory } = this._app;
+		const { wm, resourceUpdaterFactory, rp, sitePresenterFactory } = this._app;
 		const workspace = wm.current();
 
 		const catalog = await workspace.getCatalog(catalogName);
 		const fp = workspace.getFileProvider();
 		const sitePresenter = sitePresenterFactory.fromContext(ctx);
-		const ru = new ResourceUpdater(ctx, catalog, parser, parserContextFactory, formatter);
-		const dragTree = new DragTree(fp, ru, rp);
+		const dragTree = new DragTree(fp, resourceUpdaterFactory.withContext(ctx), rp, ctx);
 		const ancestors = dragTree.findOrderingAncestors(newLevNav, draggedItemPath, catalog);
 		if (!ancestors) return;
 		const prev = ancestors.prev != ancestors.parent ? ancestors.prev : null;
 		await ancestors.dragged.setOrderAfter(ancestors.parent, prev);
-		await dragTree.drag(oldLevNav, newLevNav, catalog);
+		await dragTree.drag(oldLevNav, newLevNav, catalog, sitePresenter.parseAllItems.bind(sitePresenter));
 		await ancestors.parent.sortItems();
 		return DragTreeTransformer.getRenderDragNav(await sitePresenter.getCatalogNav(catalog, logicPath));
 	},

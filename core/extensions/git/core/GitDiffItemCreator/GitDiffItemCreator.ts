@@ -129,18 +129,20 @@ export default class GitDiffItemCreator {
 	}
 
 	private async _getDiffResource(changeFile: GitStatus): Promise<DiffResource> {
-		const isNew = changeFile.type === FileStatus.new;
-		const isDelete = changeFile.type === FileStatus.delete;
+		const isNew = changeFile.status === FileStatus.new;
+		const isDelete = changeFile.status === FileStatus.delete;
+		const isFolder = await this._fp.isFolder(this._catalog.getItemRefPath(changeFile.path));
 		return {
-			changeType: changeFile.type,
+			changeType: changeFile.status,
 			type: "resource",
 			isChanged: true,
 			filePath: { path: changeFile.path.value },
 			title: changeFile.path.nameWithExtension,
-			content: await this._getNewContent(changeFile.path),
-			diff: ResourceExtensions.images.includes(changeFile.path.extension)
-				? null
-				: await this._getDiffByPath(changeFile.path, isNew, isDelete),
+			content: isFolder ? "" : await this._getNewContent(changeFile.path),
+			diff:
+				ResourceExtensions.images.includes(changeFile.path.extension) || isFolder
+					? null
+					: await this._getDiffByPath(changeFile.path, isNew, isDelete),
 		};
 	}
 	private async _getDiffItems(
@@ -149,7 +151,7 @@ export default class GitDiffItemCreator {
 	): Promise<{ items: DiffItem[]; resources: GitStatus[] }> {
 		const diffItems: DiffItem[] = [];
 		for (const c of changeFiles) {
-			if (c.type === FileStatus.delete) {
+			if (c.status === FileStatus.delete) {
 				const oldContent = await this._getOldContent(c.path);
 				diffItems.push({
 					type: "item",
@@ -173,7 +175,7 @@ export default class GitDiffItemCreator {
 			diffItems.push(
 				await this._getDiffItemByItem({
 					item,
-					isNew: c.type === FileStatus.new,
+					isNew: c.status === FileStatus.new,
 					isChanged: true,
 				}),
 			);

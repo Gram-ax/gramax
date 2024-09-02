@@ -4,9 +4,9 @@ import Path from "@core/FileProvider/Path/Path";
 import RuleProvider from "@ext/rules/RuleProvider";
 import buildDocumentTree from "@ext/wordExport/DocumentTree/buildDocumentTree";
 import { exportedKeys } from "@ext/wordExport/layouts";
-import { Command } from "../../types/Command";
 import { MainWordExport } from "@ext/wordExport/WordExport";
 import { ExportType } from "../../../core/extensions/wordExport/ExportType";
+import { Command } from "../../types/Command";
 
 const docx = import("docx");
 

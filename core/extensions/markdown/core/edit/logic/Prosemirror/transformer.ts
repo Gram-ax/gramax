@@ -101,13 +101,17 @@ export class Transformer {
 		this._tokenTransformerFuncs.unshift(this._variableTokenTransformer);
 		this._tokenTransformerFuncs.unshift(this._annotationTokenTransformer);
 
-		tokens = this._filterTokens(tokens.map((t, idx) => this._transformToken(t, idx == 0 ? null : tokens[idx - 1])));
+		tokens = this._filterTokens(
+			tokens.map((t, idx) => this._transformToken(tokens, idx, t, idx == 0 ? null : tokens[idx - 1])),
+		);
 
 		this._tokenTransformerFuncs = duplicate;
 		this._tokenTransformerFuncs.unshift(this._openCloseTokenTransformer);
 		this._tokenTransformerFuncs.push(this._inlineTokenTransformer);
 
-		tokens = this._filterTokens(tokens.map((t, idx) => this._transformToken(t, idx == 0 ? null : tokens[idx - 1])));
+		tokens = this._filterTokens(
+			tokens.map((t, idx) => this._transformToken(tokens, idx, t, idx == 0 ? null : tokens[idx - 1])),
+		);
 
 		return tokens;
 	}
@@ -217,9 +221,15 @@ export class Transformer {
 		}
 	};
 
-	private _transformToken(token: Token, previous?: Token, parent?: Token): Token | Token[] {
+	private _transformToken(
+		tokens: Token[],
+		id: number,
+		token: Token,
+		previous?: Token,
+		parent?: Token,
+	): Token | Token[] {
 		for (const transformFunc of this._tokenTransformerFuncs) {
-			const result = transformFunc({ token, previous, parent, transformer: this });
+			const result = transformFunc({ id, tokens, token, previous, parent, transformer: this });
 			if (result !== undefined) {
 				token = result;
 				return token;
@@ -229,7 +239,13 @@ export class Transformer {
 		if (token?.children) {
 			token.children = this._filterTokens(
 				token.children.map((childToken, idx) =>
-					this._transformToken(childToken, idx === 0 ? null : token.children[idx - 1], token),
+					this._transformToken(
+						token.children,
+						idx,
+						childToken,
+						idx === 0 ? null : token.children[idx - 1],
+						token,
+					),
 				),
 			);
 		}

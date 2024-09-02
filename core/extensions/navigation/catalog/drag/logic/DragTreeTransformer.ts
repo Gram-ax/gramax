@@ -46,12 +46,21 @@ abstract class DragTreeTransformer {
 				icon: item.icon,
 				query: item.query,
 				title: item.title,
+				external: item.external,
 				pathname: item.pathname,
 				isCurrentLink: item.isCurrentLink,
 				isExpanded: (item as CategoryLink)?.isExpanded ?? false,
 				existContent: (item as CategoryLink)?.existContent ?? false,
 			} as any,
 		};
+	}
+
+	static isModified(draggedItemPath: string, oldNav: NodeModel<ItemLink>[], newNav: NodeModel<ItemLink>[]) {
+		const draggedNodeParent = oldNav.find((item) => item.data?.ref.path == draggedItemPath).parent;
+		const newItemsWithSameParent = newNav.filter((i) => i.parent == draggedNodeParent);
+		const oldItemsWithSameParent = oldNav.filter((i) => i.parent == draggedNodeParent);
+		if (newItemsWithSameParent.length !== oldItemsWithSameParent.length) return true;
+		return newItemsWithSameParent.some((item, i) => item.id !== oldItemsWithSameParent[i].id);
 	}
 
 	private static _getNodeId(item: ItemLink): number | string {

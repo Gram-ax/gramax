@@ -28,6 +28,7 @@ const get: Command<
 
 		const mime = mimeType ?? MimeTypes?.[src.extension] ?? `application/${src.extension}`;
 		const catalog = await workspace.getCatalog(catalogName);
+
 		if (!catalog) return;
 		const article = catalog.findItemByItemPath<Article>(articlePath);
 		if (!article) return;

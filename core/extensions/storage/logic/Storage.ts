@@ -8,7 +8,7 @@ import SourceType from "./SourceDataProvider/model/SourceType";
 
 export default interface Storage {
 	pull(source: SourceData, recursive?: boolean): Promise<void>;
-	push(source: SourceData, recursive?: boolean): Promise<void>;
+	push(source: SourceData): Promise<void>;
 	fetch(source: SourceData): Promise<void>;
 	update(): Promise<void>;
 	getSourceName(): Promise<string>;

@@ -1,4 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
+import { MergeConflictParser } from "@ext/git/actions/MergeConflictHandler/Monaco/logic/mergeConflictParser";
+import haveConflictWithFileDelete from "@ext/git/actions/MergeConflictHandler/logic/haveConflictWithFileDelete";
 import GitMergeResult from "@ext/git/actions/MergeConflictHandler/model/GitMergeResult";
 import Repository from "@ext/git/core/Repository/Repository";
 import { RepState } from "@ext/git/core/Repository/model/RepostoryState";
@@ -45,6 +47,18 @@ export default class GitBaseConflictResolver {
 				else await this._fp.delete(this._toRootPath(file.path));
 			}),
 		);
+	}
+
+	async isMergeStateValidate(files: GitMergeResult[]): Promise<boolean> {
+		if (!files.length) return false;
+		const fileContents: string[] = [];
+		for (const file of files) {
+			if (haveConflictWithFileDelete(file.status)) continue;
+			if (!(await this._fp.exists(this._toRootPath(file.path)))) continue;
+			fileContents.push(await this._fp.read(this._toRootPath(file.path)));
+		}
+		if (!fileContents.length) return true;
+		return fileContents.every((c) => MergeConflictParser.containsConflict(c));
 	}
 
 	private _toRootPath(path: string): Path {

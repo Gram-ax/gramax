@@ -11,13 +11,13 @@ const ModalLayoutLight = styled(({ children, className }: { children: ReactNode;
 	max-height: 100%;
 	align-items: center;
 	flex-direction: column;
-	border-radius: var(--radius-normal);
+	border-radius: var(--radius-x-large);
 	background: var(--color-contextmenu-bg);
 
 	.form {
 		width: 100%;
 		padding: 1rem;
-		border-radius: var(--radius-normal);
+		border-radius: var(--radius-x-large);
 		background: var(--color-article-bg);
 	}
 

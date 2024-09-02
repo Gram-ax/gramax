@@ -32,5 +32,13 @@ export default class LastVisited {
 		const visited = {};
 		Object.entries(lastVisited).forEach(([k, v]) => catalogNames.includes(k) && (visited[k] = v));
 		this._cached = visited;
+		this._ctx.cookie.set(LAST_VISITED_COOKIE_NAME, JSON.stringify(this._cached));
+	}
+
+	remove(catalogName: string) {
+		const lastVisited = this.getLastVisitedArticles();
+		delete lastVisited[catalogName];
+		this._cached = lastVisited;
+		this._ctx.cookie.set(LAST_VISITED_COOKIE_NAME, JSON.stringify(lastVisited));
 	}
 }

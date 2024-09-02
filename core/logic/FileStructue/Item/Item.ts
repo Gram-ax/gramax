@@ -1,14 +1,19 @@
+import { createEventEmitter, Event } from "@core/Event/EventEmitter";
 import { roundedOrderAfter } from "@core/FileStructue/Item/ItemOrderUtils";
 import { ItemRef } from "@core/FileStructue/Item/ItemRef";
 import { ItemType } from "@core/FileStructue/Item/ItemType";
 import ResourceUpdater from "@core/Resource/ResourceUpdater";
-import { ItemStatus } from "@ext/Watchers/model/ItemStatus";
-import type { FSLocalizationProps } from "@ext/localization/core/rules/FSLocalizationRules";
+import type { FSLocalizationProps } from "@ext/localization/core/events/FSLocalizationEvents";
 import t from "@ext/localization/locale/translate";
+import type { FileStatus } from "@ext/Watchers/model/FileStatus";
 import IPermission from "../../../extensions/security/logic/Permission/IPermission";
 import Permission from "../../../extensions/security/logic/Permission/Permission";
 import { ClientArticleProps } from "../../SitePresenter/SitePresenter";
-import { Category } from "../Category/Category";
+import { Category, type CategoryProps } from "../Category/Category";
+
+export type ItemEvents = Event<"item-order-updated", { item: Item }> &
+	Event<"item-saved", { item: Item }> &
+	Event<"item-changed", { item: Item; status: FileStatus }>;
 
 export type ItemProps = FSLocalizationProps & {
 	title?: string;
@@ -20,13 +25,14 @@ export type ItemProps = FSLocalizationProps & {
 
 	hidden?: boolean;
 	private?: string[];
+	external?: string;
 };
 
 export const ORDERING_MAX_PRECISION = 6;
 
 export abstract class Item<P extends ItemProps = ItemProps> {
+	protected _events = createEventEmitter<ItemEvents>();
 	private _neededPermission: IPermission = null;
-	protected _watcherFuncs: WatcherFunc[] = [];
 
 	constructor(
 		protected _ref: ItemRef,
@@ -35,6 +41,10 @@ export abstract class Item<P extends ItemProps = ItemProps> {
 		protected _logicPath: string,
 	) {
 		this._neededPermission = new Permission(this._props.private);
+	}
+
+	get events() {
+		return this._events;
 	}
 
 	get logicPath(): string {
@@ -66,13 +76,10 @@ export abstract class Item<P extends ItemProps = ItemProps> {
 		return this.props.title?.length ? this.props.title : t("article.no-name");
 	}
 
-	watch(w: WatcherFunc): void {
-		this._watcherFuncs.push(w);
-	}
-
-	async setOrder(order: number) {
+	async setOrder(order: number, silent = false) {
 		if (this._props.order == order) return;
 		this._props.order = order;
+		if (!silent) await this.events.emit("item-order-updated", { item: this });
 		await this._save();
 	}
 
@@ -80,6 +87,7 @@ export abstract class Item<P extends ItemProps = ItemProps> {
 		if (parent.items.map((i) => i.order).some(isNaN)) await parent.sortItems(true);
 		const categoryItemOrders = parent.items.map((i) => i.order);
 		this._props.order = roundedOrderAfter(categoryItemOrders, item?.order ?? 0);
+		await this.events.emit("item-order-updated", { item: this });
 		await this._save();
 	}
 
@@ -87,6 +95,7 @@ export abstract class Item<P extends ItemProps = ItemProps> {
 		const items = this.parent.items;
 		if (items.length == 0) this.props.order = 1;
 		else this.props.order = +items[items.length - 1].props.order + 1;
+		await this.events.emit("item-order-updated", { item: this });
 		await this._save();
 	}
 
@@ -96,17 +105,34 @@ export abstract class Item<P extends ItemProps = ItemProps> {
 		await this._save();
 	}
 
+	async saveTree() {
+		await this.save();
+		let target = this.parent;
+		while (target?.parent) {
+			await target.save();
+			target = target.parent;
+		}
+	}
+
 	abstract get type(): ItemType;
 
-	abstract updateProps(
+	abstract save(): Promise<void>;
+
+	async updateProps(
 		props: ClientArticleProps,
 		resourceUpdater: ResourceUpdater,
-		rootCategoryProps?: any,
-	): Promise<Item<P>>;
+		rootCategoryProps?: CategoryProps,
+		fileNameOnly = false,
+	): Promise<Item<P>> {
+		!fileNameOnly && (await this._updateProps(props));
+		props.fileName && (await this._updateFilename(props.fileName, resourceUpdater, rootCategoryProps));
+		return this;
+	}
+
+	protected abstract _updateFilename(filename: string, ru: ResourceUpdater, rootProps?: CategoryProps): Promise<this>;
+	protected abstract _updateProps(props: ClientArticleProps): Promise<void>;
 
 	abstract getFileName(): string;
 
 	protected abstract _save(): Promise<void>;
 }
-
-type WatcherFunc = (changes: ItemStatus[]) => void;

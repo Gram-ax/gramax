@@ -1,7 +1,7 @@
 import resolveModule from "@app/resolveModule/frontend";
-import localizer from "../../extensions/localization/core/Localizer";
 import { Router } from "./Router";
+import Localizer from "@ext/localization/core/Localizer";
 
-const rules = [localizer.sanitizePrefix.bind(localizer)];
+const rules = [Localizer.sanitize.bind(Localizer)];
 
 export const useRouter = (): Router => resolveModule("Router").use(rules);

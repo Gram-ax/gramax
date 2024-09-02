@@ -11,27 +11,31 @@ import GitStashConflictResolver from "@ext/git/core/GitMergeConflictResolver/Sta
 import GitStorage from "@ext/git/core/GitStorage/GitStorage";
 import GitVersionControl from "@ext/git/core/GitVersionControl/GitVersionControl";
 import {
-	RepDefaultState,
+	RepCheckoutState,
 	RepMergeConflictState,
 	RepStashConflictState,
 	RepState,
 } from "@ext/git/core/Repository/model/RepostoryState";
+import RepositoryStateFile from "@ext/git/core/RepositoryStateFile/RepositorySettingsFile";
 import GitSourceData from "@ext/git/core/model/GitSourceData.schema";
+import { GitVersion } from "@ext/git/core/model/GitVersion";
+import isGitSourceType from "@ext/storage/logic/SourceDataProvider/logic/isGitSourceType";
 import SourceData from "@ext/storage/logic/SourceDataProvider/model/SourceData";
-import SourceType from "@ext/storage/logic/SourceDataProvider/model/SourceType";
 import Storage from "@ext/storage/logic/Storage";
 
 export default class Repository {
 	private _stashConflictResolver: GitStashConflictResolver;
 	private _mergeConflictResolver: GitMergeConflictResolver;
+
+	private _isFirstLoadState = true;
+
 	constructor(
 		private _repoPath: Path,
 		private _fp: FileProvider,
 		private _gvc: GitVersionControl,
 		private _storage: Storage,
-		private _state: RepState = null,
+		private _repStateFile: RepositoryStateFile,
 	) {
-		if (!_state) this._restoreStateToDefault();
 		this._stashConflictResolver = new GitStashConflictResolver(this, this._fp, this._repoPath);
 		this._mergeConflictResolver = new GitMergeConflictResolver(this, this._fp, this._repoPath);
 	}
@@ -55,7 +59,6 @@ export default class Repository {
 		message,
 		filePaths,
 		data,
-		recursive,
 		onAdd,
 		onCommit,
 		onPush,
@@ -63,7 +66,6 @@ export default class Repository {
 		message: string;
 		filePaths: Path[];
 		data: SourceData;
-		recursive?: boolean;
 		onAdd?: () => void;
 		onCommit?: () => void;
 		onPush?: () => void;
@@ -73,21 +75,42 @@ export default class Repository {
 		await this.gvc.commit(message, data);
 		onCommit?.();
 		await this.storage.updateSyncCount();
-		await this._push({ recursive, data, onPush });
+		await this._push({ data, onPush });
 		await this.gvc.update();
 	}
 
 	async sync({
 		data,
-		recursive,
+		recursivePull,
 		onPull,
 		onPush,
 	}: {
 		data: SourceData;
-		recursive?: boolean;
+		recursivePull?: boolean;
 		onPull?: () => void;
 		onPush?: () => void;
 	}): Promise<GitMergeResultContent[]> {
+		if (recursivePull) {
+			await this.gvc.checkoutSubGitVersionControls();
+			const beforePullVersion = await this.gvc.getCurrentVersion();
+			const subRepoBeforePullVerisons = await this._getSubmoduleCheckChangesData();
+
+			await this._pull({ recursive: recursivePull, data, onPull });
+
+			await this.gvc.update();
+
+			const afterPullVersion = await this.gvc.getCurrentVersion();
+			const subRepoAfterPullVersions = await this._getSubmoduleCheckChangesData();
+
+			await this.gvc.recursiveCheckChanges(
+				beforePullVersion,
+				afterPullVersion,
+				subRepoBeforePullVerisons,
+				subRepoAfterPullVersions,
+			);
+			return [];
+		}
+
 		let toPush = (await this.storage.getSyncCount()).push;
 		if (toPush > 0) {
 			// TODO:
@@ -95,7 +118,7 @@ export default class Repository {
 		}
 
 		const beforePullVersion = await this.gvc.getCurrentVersion();
-		const stashMergeResult = await this._pull({ recursive, data, onPull });
+		const stashMergeResult = await this._pull({ recursive: recursivePull, data, onPull });
 
 		await this.gvc.update();
 		const afterPullVersion = await this.gvc.getCurrentVersion();
@@ -103,7 +126,8 @@ export default class Repository {
 		toPush = (await this.storage.getSyncCount()).push;
 
 		await this.gvc.checkChanges(beforePullVersion, afterPullVersion);
-		if (toPush > 0) await this._push({ recursive, data, onPush });
+
+		if (toPush > 0) await this._push({ data, onPush });
 		return stashMergeResult;
 	}
 
@@ -122,28 +146,38 @@ export default class Repository {
 		const oldBranch = await this.gvc.getCurrentBranch();
 		const allBranches = (await this.gvc.getAllBranches()).map((b) => b.getData().remoteName ?? b.getData().name);
 		const haveInternet = haveInternetAccess();
+
+		const state: RepCheckoutState = { value: "checkout", data: { to: branch } };
+		await this._repStateFile.saveState(state);
+
 		if (haveInternet && !allBranches.includes(branch)) await this.storage.fetch(data);
 		await this.gvc.checkoutToBranch(branch);
+		onCheckout?.(branch);
+
 		let mergeFiles: GitMergeResultContent[] = [];
 
 		if (haveInternet) {
 			try {
 				mergeFiles = await this._pull({ data });
+				onPull?.();
 			} catch (e) {
 				await this.gvc.checkoutToBranch(oldBranch.toString());
+				await this._restoreStateToDefault();
 				throw e;
 			}
 		}
-
-		onCheckout?.(branch);
-		haveInternet && onPull?.();
 
 		await this.gvc.update();
 		const newVersion = await this.gvc.getCurrentVersion();
 
 		await this.gvc.checkChanges(oldVersion, newVersion);
-
+		await this._restoreStateToDefault();
 		return mergeFiles;
+	}
+
+	async abortCheckoutState() {
+		if ((await this.getState()).value !== "checkout") return;
+		return this._restoreStateToDefault();
 	}
 
 	async haveToPull({ data, onFetch }: { data: SourceData; onFetch?: () => void }): Promise<boolean> {
@@ -179,7 +213,7 @@ export default class Repository {
 			return [];
 		}
 
-		(this._state as RepMergeConflictState) = {
+		const state: RepMergeConflictState = {
 			value: "mergeConflict",
 			data: {
 				branchNameBefore,
@@ -189,33 +223,58 @@ export default class Repository {
 				reverseMerge: true,
 			},
 		};
+		await this._repStateFile.saveState(state);
 
 		return this._mergeConflictResolver.convertToMergeResultContent(mergeResult);
 	}
 
-	get state(): RepState {
-		return this._state;
+	async getState(): Promise<RepState> {
+		const repState = await this._repStateFile.getState();
+		if (!this._isFirstLoadState) return repState;
+
+		this._isFirstLoadState = false;
+
+		if (repState.value === "checkout") {
+			await this._restoreStateToDefault();
+			return this._repStateFile.getState();
+		}
+
+		return repState;
 	}
 
-	async resolveMerge(files: GitMergeResultContent[], data: SourceData) {
-		if (this._state.value !== "mergeConflict" && this._state.value !== "stashConflict") return;
-		if (this._state.value === "mergeConflict") {
-			const mergeState = this._state as RepMergeConflictState;
+	async resolveMerge(files: { path: string; content: string }[], data: SourceData) {
+		const state = await this.getState();
+		if (state.value !== "mergeConflict" && state.value !== "stashConflict") return;
+		if (state.value === "mergeConflict") {
+			const mergeState = state as RepMergeConflictState;
 			await this._mergeConflictResolver.resolveConflictedFiles(files, mergeState, data);
 			if (mergeState.data.deleteAfterMerge) await this._deleteBranch(mergeState.data.theirs, data);
-		} else if (this._state.value === "stashConflict")
-			await this._stashConflictResolver.resolveConflictedFiles(files, this._state as RepStashConflictState, data);
-		this._restoreStateToDefault();
+		} else if (state.value === "stashConflict")
+			await this._stashConflictResolver.resolveConflictedFiles(files, state as RepStashConflictState, data);
+		await this._restoreStateToDefault();
 	}
 
 	async abortMerge(data: SourceData) {
-		if (this._state.value !== "mergeConflict" && this._state.value !== "stashConflict") return;
-		if (this._state.value === "mergeConflict")
-			await this._mergeConflictResolver.abortMerge(this._state as RepMergeConflictState, data);
-		else if (this._state.value === "stashConflict")
-			await this._stashConflictResolver.abortMerge(this._state as RepStashConflictState, data);
+		const state = await this.getState();
 
-		this._restoreStateToDefault();
+		if (state.value !== "mergeConflict" && state.value !== "stashConflict") return;
+		if (state.value === "mergeConflict")
+			await this._mergeConflictResolver.abortMerge(state as RepMergeConflictState, data);
+		else if (state.value === "stashConflict")
+			await this._stashConflictResolver.abortMerge(state as RepStashConflictState, data);
+
+		await this._restoreStateToDefault();
+	}
+
+	async isMergeStateValid(): Promise<boolean> {
+		const state = await this.getState();
+		if (state.value === "mergeConflict" || state.value === "stashConflict") {
+			const isValid = await this._mergeConflictResolver.isMergeStateValidate(
+				(state as RepMergeConflictState | RepStashConflictState).data.conflictFiles,
+			);
+			if (!isValid) await this._restoreStateToDefault();
+			return isValid;
+		}
 	}
 
 	async convertToMergeResultContent(
@@ -228,8 +287,7 @@ export default class Repository {
 	private async _deleteBranch(branchName: string, data: SourceData) {
 		const branch = await this.gvc.getBranch(branchName);
 		const branchRemoteName = branch.getData().remoteName;
-		const storageType = await this.storage.getType();
-		const isGit = [SourceType.git, SourceType.gitHub, SourceType.gitLab].includes(storageType);
+		const isGit = isGitSourceType(await this.storage.getType());
 
 		if (branchRemoteName && isGit)
 			await (this.storage as GitStorage).deleteRemoteBranch(branchRemoteName, data as GitSourceData);
@@ -237,21 +295,20 @@ export default class Repository {
 		await this.gvc.deleteLocalBranch(branchName);
 	}
 
-	private _restoreStateToDefault() {
-		(this._state as RepDefaultState) = { value: "default" };
+	private async _getSubmoduleCheckChangesData(): Promise<{
+		[path: string]: { version: GitVersion; subGvc: GitVersionControl };
+	}> {
+		const subGvcs = await this.gvc.getSubGitVersionControls();
+		const versions: { [path: string]: { version: GitVersion; subGvc: GitVersionControl } } = {};
+		for (const gvc of subGvcs) {
+			versions[gvc.getPath().value] = { subGvc: gvc, version: await gvc.getHeadCommit() };
+		}
+		return versions;
 	}
 
-	private async _push({
-		data,
-		recursive = true,
-		onPush,
-	}: {
-		data: SourceData;
-		recursive?: boolean;
-		onPush?: () => void;
-	}): Promise<void> {
+	private async _push({ data, onPush }: { data: SourceData; onPush?: () => void }): Promise<void> {
 		try {
-			await this.storage.push(data, recursive);
+			await this.storage.push(data);
 		} catch (e) {
 			await this.gvc.restoreRepositoryState();
 			await this.storage.updateSyncCount();
@@ -269,6 +326,12 @@ export default class Repository {
 		recursive?: boolean;
 		onPull?: () => void;
 	}): Promise<GitMergeResultContent[]> {
+		if (recursive) {
+			await this.storage.pull(data, recursive);
+			onPull?.();
+			return [];
+		}
+
 		let stashResult: GitMergeResult[] = [];
 		const commitHeadBefore = await this.gvc.getCurrentVersion();
 		const stashOid = (await this.gvc.getChanges()).length > 0 ? await this.gvc.stash(data) : undefined;
@@ -277,20 +340,20 @@ export default class Repository {
 			await this.storage.pull(data, recursive);
 		} catch (e) {
 			await this.gvc.hardReset(commitHeadBefore);
-			if (stashOid) {
-				await this.gvc.applyStash(stashOid);
-				await this.gvc.deleteStash(stashOid);
-			}
+			if (stashOid) await this.gvc.applyStash(stashOid);
 			throw e;
 		}
 
-		if (stashOid) stashResult = await this.gvc.applyStash(stashOid);
+		if (stashOid) stashResult = await this.gvc.applyStash(stashOid, { deleteAfterApply: false });
 
 		onPull?.();
 
-		if (!stashResult.length) return [];
+		if (!stashResult.length) {
+			if (stashOid) await this.gvc.deleteStash(stashOid);
+			return [];
+		}
 
-		(this._state as RepStashConflictState) = {
+		const state: RepStashConflictState = {
 			value: "stashConflict",
 			data: {
 				commitHeadBefore: commitHeadBefore.toString(),
@@ -300,6 +363,12 @@ export default class Repository {
 			},
 		};
 
+		await this._repStateFile.saveState(state);
+
 		return this._stashConflictResolver.convertToMergeResultContent(stashResult);
+	}
+
+	private async _restoreStateToDefault() {
+		await this._repStateFile.saveState({ value: "default" });
 	}
 }

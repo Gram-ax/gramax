@@ -94,7 +94,7 @@ const CommentBlockComponent = (props: CommentBlockProps): ReactElement => {
 						onEdit={commentOnEdit}
 					/>
 				</div>
-				{(currentCommentBlock?.answers ?? []).map((answer, idx) => (
+				{currentCommentBlock.answers.map((answer, idx) => (
 					<CommentComponent
 						key={idx}
 						editorId={idx}
@@ -129,7 +129,7 @@ export default styled(CommentBlockComponent)`
 		top: 0;
 		z-index: 1;
 		padding-top: 1rem;
-		border-radius: var(--radius-normal) var(--radius-normal) 0 0;
+		border-radius: var(--radius-small) var(--radius-small) 0 0;
 		background: var(--color-comments-bg);
 	}
 
@@ -138,6 +138,6 @@ export default styled(CommentBlockComponent)`
 		left: 0 !important;
 		width: 100% !important;
 		height: 100% !important;
-		border-radius: var(--radius-normal);
+		border-radius: var(--radius-small);
 	}
 `;

@@ -45,18 +45,28 @@ const Links = (props: {
 	articleLinks?: TitledLink[];
 	catalogLinks?: TitledLink[];
 	articleChildren?: JSX.Element;
+	isArticleActionsVisible?: boolean;
 	catalogChildren?: JSX.Element;
+	isCatalogActionsVisible?: boolean;
 	className?: string;
 }) => {
-	const { articleLinks = [], articleChildren, catalogLinks = [], catalogChildren, className } = props;
+	const {
+		articleLinks = [],
+		articleChildren,
+		isArticleActionsVisible,
+		catalogLinks = [],
+		catalogChildren,
+		isCatalogActionsVisible,
+		className,
+	} = props;
 	return (
 		<ul className={className}>
-			{articleLinks?.length || articleChildren ? <Divider /> : null}
+			{articleLinks?.length || isArticleActionsVisible ? <Divider /> : null}
 			<ul className={className}>
 				<RenderTitledLinks isCatalog={false} links={articleLinks} />
 				{articleChildren}
 			</ul>
-			{catalogLinks?.length || catalogChildren ? <Divider /> : null}
+			{catalogLinks?.length || isCatalogActionsVisible ? <Divider /> : null}
 			<ul className={className}>
 				<RenderTitledLinks isCatalog={true} links={catalogLinks} />
 				{catalogChildren}

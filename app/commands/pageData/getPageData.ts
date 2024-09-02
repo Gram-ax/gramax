@@ -22,7 +22,7 @@ const getPageData: Command<
 		if (!path || path == "/") return getHomePageData();
 
 		const splittedPath = path.split("/").filter((x) => x);
-		if (!RouterPathProvider.isNewPath(splittedPath)) return getArticlePageData(splittedPath, path);
+		if (!RouterPathProvider.isEditorPathname(splittedPath)) return getArticlePageData(splittedPath, path);
 
 		const pathnameData = RouterPathProvider.parsePath(splittedPath);
 

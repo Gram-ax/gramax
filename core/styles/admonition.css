@@ -7,8 +7,8 @@
 	overflow: hidden;
 	padding: 1em var(--distance-admonition);
 	border-left: solid 0.125em transparent;
-	border-top-right-radius: 0.5em;
-	border-bottom-right-radius: 0.5em;
+	border-top-right-radius: var(--radius-large);
+	border-bottom-right-radius: var(--radius-large);
 }
 
 .admonition .title {
@@ -28,10 +28,6 @@
 	--distance-admonition: 1em;
 	flex-direction: column;
 	align-items: flex-start;
-}
-
-.admonition-column .admonition-content {
-	padding-left: 1.75em;
 }
 
 .admonition-row .admonition-heading {

@@ -13,7 +13,7 @@ let fp: FileProvider;
 let workspace: Workspace;
 
 const p = (s: string) => new Path(s);
-const ru = (catalog: Catalog) =>
+const makeResourceUpdater = (catalog: Catalog) =>
 	new ResourceUpdater(
 		app.contextFactory.fromBrowser("ru" as any, {}),
 		catalog,
@@ -22,7 +22,7 @@ const ru = (catalog: Catalog) =>
 		app.formatter,
 	);
 
-describe("Catalog", () => {
+describe("Каталог", () => {
 	beforeAll(async () => {
 		process.env.ROOT_PATH = resolve(__dirname, "tests");
 		const dfp = new DiskFileProvider(p(process.env.ROOT_PATH));
@@ -47,11 +47,12 @@ describe("Catalog", () => {
 
 	afterAll(async () => {
 		await fp.delete(p("."));
+		delete global.app;
 	});
 
 	test("перемещает внутрь папки", async () => {
 		const catalog = await workspace.getCatalog("x");
-		await catalog.updateProps(ru(catalog), app.rp, { docroot: "r", title: "x", url: "x" });
+		await catalog.updateProps(makeResourceUpdater, app.rp, { docroot: "r", title: "x", url: "x" });
 		await expect(fp.exists(p("x/r/.doc-root.yaml"))).resolves.toBe(true);
 		await expect(fp.exists(p("x/r/b/_index.md"))).resolves.toBe(true);
 		await expect(fp.exists(p("x/r/b/c.md"))).resolves.toBe(true);
@@ -61,7 +62,7 @@ describe("Catalog", () => {
 
 	test("перемещает из папки в другую папку", async () => {
 		const catalog = await workspace.getCatalog("y");
-		await catalog.updateProps(ru(catalog), app.rp, { docroot: "z", title: "y", url: "y" });
+		await catalog.updateProps(makeResourceUpdater, app.rp, { docroot: "z", title: "y", url: "y" });
 
 		await expect(fp.exists(p("y/z"))).resolves.toBe(true);
 
@@ -75,7 +76,7 @@ describe("Catalog", () => {
 
 	test("перемещает с ресурсом", async () => {
 		const catalog = await workspace.getCatalog("res");
-		await catalog.updateProps(ru(catalog), app.rp, { docroot: "f", title: "res", url: "res" });
+		await catalog.updateProps(makeResourceUpdater, app.rp, { docroot: "f", title: "res", url: "res" });
 
 		await expect(fp.exists(p("res/f/a.md"))).resolves.toBe(true);
 		await expect(fp.exists(p("res/f/b.md"))).resolves.toBe(true);

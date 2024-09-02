@@ -123,7 +123,7 @@ export default styled(TitleItemsShouldRender)`
 		padding: 0;
 		position: relative;
 		max-height: 182px;
-		border-radius: var(--radius-normal);
+		border-radius: var(--radius-large);
 		box-shadow: var(--shadows-deeplight);
 		background: var(--color-code-copy-bg);
 		overflow-y: auto;

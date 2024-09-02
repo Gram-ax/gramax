@@ -29,11 +29,12 @@ const Comment = (props: CommentProps) => {
 	}, [mark?.attrs?.count]);
 
 	if (mark?.attrs?.comment) {
+		if (!Array.isArray(mark.attrs.answers)) (mark.attrs as CommentBlock).answers = [];
 		return (
 			<div className={className} data-comment={true}>
 				<CommentBlockComponent
 					maxHeight="50vh"
-					commentBlock={mark.attrs as any}
+					commentBlock={mark.attrs as CommentBlock}
 					onUpdate={onUpdate}
 					onDeleteComment={onDelete}
 				/>
@@ -58,7 +59,8 @@ const Comment = (props: CommentProps) => {
 export default styled(Comment)`
 	z-index: 1;
 	transition: all var(--transition-time) ease-in-out;
-	border-radius: var(--radius-normal);
+	border-radius: var(--radius-x-large);
+	overflow: hidden;
 	background: var(--color-comments-bg);
 	box-shadow: var(--comment-tooltip-shadow);
 

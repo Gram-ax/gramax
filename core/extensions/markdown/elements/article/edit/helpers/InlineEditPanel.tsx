@@ -6,13 +6,15 @@ import TextMenuGroup from "@ext/markdown/core/edit/components/Menu/Groups/Text";
 import { Editor } from "@tiptap/core";
 import { useRef, useState, useEffect } from "react";
 
-const InlineEditPanel = ({ editor, closeHandler }: { editor: Editor; closeHandler: () => void }) => {
+const InlineEditPanel = (props: { editor: Editor; closeHandler: () => void; onMountCallback: () => void }) => {
+	const { editor, closeHandler, onMountCallback } = props;
 	const [isReady, setIsReady] = useState(false);
 	const editPanelRef = useRef<HTMLDivElement>(null);
 
 	useOutsideClick([editPanelRef.current], closeHandler, isReady);
 
 	useEffect(() => {
+		onMountCallback();
 		setIsReady(true);
 	}, []);
 

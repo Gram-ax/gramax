@@ -19,7 +19,7 @@ import MergeBranches from "@ext/git/actions/Branch/components/MergeBranches";
 import getNewBranchNameErrorLocalization from "@ext/git/actions/Branch/components/logic/getNewBranchNameErrorLocalization";
 import validateBranchError from "@ext/git/actions/Branch/components/logic/validateBranchError";
 import ClientGitBranchData from "@ext/git/actions/Branch/model/ClientGitBranchData";
-import type MergeConflictConfirm from "@ext/git/actions/MergeConflictHandler/error/components/MergeConflictConfirm";
+import type MergeConflictConfirm from "@ext/git/actions/MergeConflictHandler/components/MergeConflictConfirm";
 import type MergeData from "@ext/git/actions/MergeConflictHandler/model/MergeData";
 import t from "@ext/localization/locale/translate";
 import { useEffect, useRef, useState, type ComponentProps } from "react";

@@ -2,18 +2,18 @@ import Form from "@components/Form/Form";
 import ModalLayout from "@components/Layouts/Modal";
 import ModalLayoutLight from "@components/Layouts/ModalLayoutLight";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
+import ErrorConfirmService from "@ext/errorHandlers/client/ErrorConfirmService";
+import DefaultError from "@ext/errorHandlers/logic/DefaultError";
+import t from "@ext/localization/locale/translate";
 import { JSONSchema7 } from "json-schema";
 import { useState } from "react";
 import SignInEnterpriseLayoutProps from "./SignInEnterpriseLayoutProps.schema";
 import Schema from "./SignInEnterpriseLayoutProps.schema.json";
-import ErrorConfirmService from "@ext/errorHandlers/client/ErrorConfirmService";
-import DefaultError from "@ext/errorHandlers/logic/DefaultError";
-import t from "@ext/localization/locale/translate";
 
 const SignInEnterprise = ({ trigger }: { trigger: JSX.Element }) => {
 	const [isOpen, setIsOpen] = useState(false);
 	const glsUrl = PageDataContextService.value.conf.glsUrl;
-	const incorrectEmail = t("enterprise.incorrect-email");
+	const incorrectEmail = t("error-mail");
 	const enterpriseUserNotFound = t("enterprise.user-not-found");
 
 	return (
@@ -46,7 +46,11 @@ const SignInEnterprise = ({ trigger }: { trigger: JSX.Element }) => {
 
 						const gesUrl = await req.text();
 						localStorage.setItem("gesUrl", gesUrl);
-						window.location.replace(`${gesUrl}/sso/login`);
+						const from = encodeURIComponent(window.location.href);
+						const redirect = encodeURIComponent(`${gesUrl}/enterprise/user-settings`);
+						const url = `${gesUrl}/sso/login?redirect=${redirect}&from=${from}`;
+						console.log({ url });
+						window.location.replace(url);
 					}}
 					validate={(props) => {
 						if (!/.*@.*\..+/.test(props.email)) return { email: incorrectEmail };
@@ -55,7 +59,7 @@ const SignInEnterprise = ({ trigger }: { trigger: JSX.Element }) => {
 					}}
 					submitText={t("sing-in")}
 				/>
-			</ModalLayoutLight> 
+			</ModalLayoutLight>
 		</ModalLayout>
 	);
 };

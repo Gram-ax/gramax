@@ -14,7 +14,7 @@ import ApiMiddleware from "@core/Api/middleware/ApiMiddleware";
 import Middleware from "@core/Api/middleware/Middleware";
 import buildMiddleware from "@core/Api/middleware/buildMiddleware";
 import type HashResourceManager from "@core/Hash/HashItems/HashResourceManager";
-import localizer from "@ext/localization/core/Localizer";
+import RouterPathProvider from "@core/RouterPath/RouterPathProvider";
 import PersistentLogger from "@ext/loggers/PersistentLogger";
 import BrowserApiResponse from "./BrowserApiResponse";
 
@@ -41,7 +41,10 @@ const fetchSelf = async (url: Url, body?: BodyInit): Promise<FetchResponse> => {
 	const req: ApiRequest = { headers: {}, query: url.query, body: parseBody(body) };
 
 	const process: Middleware = new ApiMiddleware(async (req, res) => {
-		const ctx = app.contextFactory.fromBrowser(localizer.extract(location.pathname), {});
+		const ctx = app.contextFactory.fromBrowser(
+			RouterPathProvider.parsePath(window.location.pathname)?.language,
+			{},
+		);
 		const params = command.params(ctx, req.query as Query, req.body);
 		PersistentLogger.info(`executing command ${route}`, "cmd", { ...req.query });
 		const result = await command.do(params);

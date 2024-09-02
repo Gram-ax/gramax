@@ -1,0 +1,24 @@
+@font-face {
+    font-family: 'chain-icon';
+    src: url('fonts/chain-icon.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
+    font-display: block;
+  }
+  
+  i[class^="chain-icon"], i[class*=" chain-icon"] {
+    font-family: 'chain-icon' !important;
+    font-style: normal;
+    font-weight: normal !important;
+    font-variant: normal;
+    text-transform: none;
+    line-height: 1;
+  
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  
+  i.chain-icon:before {
+    content: "\e900";
+  }
+  

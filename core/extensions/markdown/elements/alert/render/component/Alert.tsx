@@ -1,6 +1,6 @@
 import Icon from "@components/Atoms/Icon";
 import styled from "@emotion/styled";
-import { ReactElement, useEffect, useRef } from "react";
+import { useEffect, useRef, ReactNode } from "react";
 
 export enum AlertType {
 	warning = "warning",
@@ -10,11 +10,11 @@ export enum AlertType {
 interface AlertProps {
 	type?: AlertType;
 	title?: string;
-	children?: ReactElement;
+	children: ReactNode;
 	className?: string;
 }
 
-const Alert = styled((props: AlertProps): ReactElement => {
+const Alert = styled((props: AlertProps) => {
 	const { type = AlertType.warning, title, children, className } = props;
 	const alertRef = useRef<HTMLDivElement>(null);
 
@@ -39,7 +39,7 @@ const Alert = styled((props: AlertProps): ReactElement => {
 	);
 })`
 	&.alert-warning {
-		border-radius: 0.5em;
+		border-radius: var(--radius-large);
 		border: 0.063em solid;
 		border-color: var(--color-alert-warning-border);
 		background: var(--color-admonition-note-bg);
@@ -50,7 +50,7 @@ const Alert = styled((props: AlertProps): ReactElement => {
 	}
 
 	&.alert-error {
-		border-radius: 0.5em;
+		border-radius: var(--radius-large);
 		border: 0.063em solid;
 		border-color: var(--color-alert-error-border);
 		background: var(--color-admonition-danger-bg);
@@ -58,6 +58,10 @@ const Alert = styled((props: AlertProps): ReactElement => {
 
 	&.alert-error .admonition-heading * {
 		color: var(--color-admonition-danger-br-h);
+	}
+
+	&.admonition-column .admonition-content {
+		padding-left: 1.5em;
 	}
 
 	.admonition-content {
@@ -77,8 +81,8 @@ const Alert = styled((props: AlertProps): ReactElement => {
 		font-weight: 400;
 	}
 
-	.admonition-content .admonition-icon {
-		width: 0.8em;
+	.admonition-content .admonition-icon i {
+		margin-inline: -2px;
 	}
 `;
 

@@ -1,4 +1,7 @@
+import Path from "@core/FileProvider/Path/Path";
+import { ItemRef } from "@core/FileStructue/Item/ItemRef";
 import ResourceMovements from "@core/Resource/models/ResourceMovements";
+import { convertContentToUiLanguage } from "@ext/localization/locale/translate";
 import { JSONContent } from "@tiptap/core";
 import MarkdownParser from "../../extensions/markdown/core/Parser/Parser";
 import ParserContextFactory from "../../extensions/markdown/core/Parser/ParserContext/ParserContextFactory";
@@ -8,7 +11,7 @@ import { Article } from "../FileStructue/Article/Article";
 import parseContent from "../FileStructue/Article/parseContent";
 import { Catalog } from "../FileStructue/Catalog/Catalog";
 
-class ResourceUpdater {
+export default class ResourceUpdater {
 	constructor(
 		private _rc: Context,
 		private _catalog: Catalog,
@@ -17,7 +20,41 @@ class ResourceUpdater {
 		private _formatter: MarkdownFormatter,
 	) {}
 
-	async update(oldArticle: Article, newArticle: Article) {
+	async updateOtherArticles(oldPath: Path, absoluteNewBasePath: Path) {
+		for (const item of this._catalog.getContentItems()) {
+			const oldResources: Path[] = [];
+			const newResources: Path[] = [];
+
+			if (!item.parsedContent)
+				await parseContent(item, this._catalog, this._rc, this._parser, this._parserContextFactory, false);
+
+			const parsedContent = item.parsedContent;
+			parsedContent.linkManager.resources.map((resource) => {
+				const absolutePath = parsedContent.linkManager.getAbsolutePath(resource);
+
+				if (absolutePath.value !== oldPath.value) return;
+				oldResources.push(resource);
+				newResources.push(item.ref.path.getRelativePath(absoluteNewBasePath));
+			});
+			if (!oldResources.length) continue;
+
+			const newEditTree = this._updateEditTree(parsedContent.editTree, { oldResources, newResources });
+			parsedContent.editTree = newEditTree;
+			this._updateInInlineMdComponent(newEditTree, { oldResources, newResources });
+
+			const context = this._parserContextFactory.fromArticle(
+				item,
+				this._catalog,
+				convertContentToUiLanguage(this._rc.contentLanguage),
+				this._rc.user.isLogged,
+			);
+			const markdown = await this._formatter.render(newEditTree, context);
+			await item.updateContent(markdown);
+			item.parsedContent = parsedContent;
+		}
+	}
+
+	async update(oldArticle: Article, newArticle: Article, innerRefs?: ItemRef[]) {
 		await parseContent(oldArticle, this._catalog, this._rc, this._parser, this._parserContextFactory, false);
 		if (!oldArticle?.parsedContent) return;
 
@@ -31,7 +68,10 @@ class ResourceUpdater {
 			newResources: (await resourceManager.move(oldArticle.ref.path, newArticle.ref.path)).newResources,
 		};
 
-		const linkMovements = linkManager.setNewBasePath(newResourceBasePath);
+		const linkMovements = linkManager.setNewBasePath(
+			newResourceBasePath,
+			innerRefs?.map((pathToMove) => pathToMove.path),
+		);
 
 		const allMovements = {
 			oldResources: [...resourceMovements.oldResources, ...linkMovements.oldResources],
@@ -44,7 +84,7 @@ class ResourceUpdater {
 		const context = this._parserContextFactory.fromArticle(
 			newArticle,
 			this._catalog,
-			this._rc.lang,
+			convertContentToUiLanguage(this._rc.contentLanguage || this._catalog.props.language),
 			this._rc.user.isLogged,
 		);
 		const markdown = await this._formatter.render(newEditTree, context);
@@ -76,4 +116,3 @@ class ResourceUpdater {
 	}
 }
 
-export default ResourceUpdater;

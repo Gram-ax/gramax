@@ -1,14 +1,17 @@
+import type { HasEvents } from "@core/Event/EventEmitter";
 import { ItemFilter } from "@core/FileStructue/Catalog/Catalog";
 import CustomArticlePresenter from "@core/SitePresenter/CustomArticlePresenter";
-import { NavRules } from "@ext/navigation/catalog/main/logic/Navigation";
-import Rules from "@ext/rules/Rule";
+import { type NavigationEvents } from "@ext/navigation/catalog/main/logic/Navigation";
+import type RuleCollection from "@ext/rules/RuleCollection";
 import { Item } from "../../../logic/FileStructue/Item/Item";
 import IPermission from "./Permission/IPermission";
 import Permission from "./Permission/Permission";
 import User from "./User/User";
 
-export default class SecurityRules implements Rules {
+export default class SecurityRules implements RuleCollection {
 	constructor(private _currentUser: User, private _customArticlePresenter?: CustomArticlePresenter) {}
+
+	mountWorkspaceEvents(): void {}
 
 	getItemFilter() {
 		const rule: ItemFilter = (article, catalog) => {
@@ -17,29 +20,27 @@ export default class SecurityRules implements Rules {
 		};
 
 		if (this._customArticlePresenter) {
-			(rule as any).errorArticle = this._customArticlePresenter.getArticle("403");
+			(rule as any).getErrorArticle = () => this._customArticlePresenter.getArticle("403");
 		}
 		return rule;
 	}
 
-	getNavRules(): NavRules {
-		return {
-			itemRule: (catalog, item, itemLink) => {
-				if (this._isPrivate(item)) itemLink.icon = "lock-open";
-				return (
-					this._canRead(item?.neededPermission, catalog.getName()) &&
-					this._canRead(item?.parent?.neededPermission, catalog.getName())
-				);
-			},
+	mountNavEvents(nav: HasEvents<NavigationEvents>) {
+		nav.events.on("filter-item", ({ catalog, item, link }) => {
+			if (this._isPrivate(item)) link.icon = "lock-open";
+			return (
+				this._canRead(item?.neededPermission, catalog.getName()) &&
+				this._canRead(item?.parent?.neededPermission, catalog.getName())
+			);
+		});
 
-			catalogRule: (catalog) => {
-				return this._canRead(catalog.perms, catalog.getName());
-			},
+		nav.events.on("filter-catalog", ({ entry }) => this._canRead(entry.perms, entry.getName()));
 
-			relatedLinkRule: (catalog, relatedLinks) => {
-				return this._canRead(new Permission(relatedLinks.private), catalog.getName());
-			},
-		};
+		nav.events.on("filter-related-links", ({ catalog, mutableLinks }) => {
+			mutableLinks.links = mutableLinks.links.filter((link) =>
+				this._canRead(new Permission(link.private), catalog.getName()),
+			);
+		});
 	}
 
 	private _canReadItem(item: Item, catalogName: string): boolean {

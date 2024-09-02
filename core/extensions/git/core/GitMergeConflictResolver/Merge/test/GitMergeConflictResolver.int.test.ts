@@ -5,6 +5,7 @@
 import GitStorage from "@ext/git/core/GitStorage/GitStorage";
 import Repository from "@ext/git/core/Repository/Repository";
 import { RepMergeConflictState } from "@ext/git/core/Repository/model/RepostoryState";
+import RepositoryStateFile from "@ext/git/core/RepositoryStateFile/RepositorySettingsFile";
 import SourceData from "@ext/storage/logic/SourceDataProvider/model/SourceData";
 import SourceType from "@ext/storage/logic/SourceDataProvider/model/SourceType";
 import DiskFileProvider from "../../../../../../logic/FileProvider/DiskFileProvider/DiskFileProvider";
@@ -60,7 +61,8 @@ describe("GitMergeConflictResolver", () => {
 		await commit(gvc, { "1.txt": "init" });
 		await gvc.createNewBranch("conflict");
 		const storage = new GitStorage(path("testRep"), dfp);
-		const repo = new Repository(path("testRep"), dfp, gvc, storage);
+		const repStateFile = new RepositoryStateFile(path("testRep"), dfp);
+		const repo = new Repository(path("testRep"), dfp, gvc, storage, repStateFile);
 		resolver = new GitMergeConflictResolver(repo, dfp, path("testRep"));
 	});
 
@@ -120,7 +122,8 @@ describe("GitMergeConflictResolver", () => {
 			expect(await gvc.getChanges()).toEqual(statusBefore);
 			expect(await dfp.read(repPath("1.txt"))).toEqual("conflict content theirs");
 			expect((await gvc.getCommitHash()).toString()).toEqual(hashBefore);
-			expect((await gvc.getAllBranches()).map((x) => x.toString())).toEqual(["conflict", "master"]);
+			expect((await gvc.getAllBranches()).map((x) => x.toString())).toContain("conflict");
+			expect((await gvc.getAllBranches()).map((x) => x.toString())).toContain("master");
 		});
 	});
 

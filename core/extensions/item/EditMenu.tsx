@@ -61,7 +61,7 @@ const EditMenu = ({
 				offset={[0, 10]}
 				tooltipText={t("edit3")}
 				onOpen={() => {
-					if (onOpen) onOpen();
+					onOpen?.();
 					if (!isCurrentItem) setItemPropsData();
 					setBrotherFileNamesData();
 				}}

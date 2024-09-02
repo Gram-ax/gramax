@@ -1,9 +1,10 @@
 import { CATEGORY_ROOT_REGEXP, DOC_ROOT_FILENAME, DOC_ROOT_REGEXP } from "@app/config/const";
+import { createEventEmitter, type Event, type EventArgs } from "@core/Event/EventEmitter";
 import Path from "@core/FileProvider/Path/Path";
 import FileInfo from "@core/FileProvider/model/FileInfo";
 import FileProvider from "@core/FileProvider/model/FileProvider";
 import { Article, type ArticleProps } from "@core/FileStructue/Article/Article";
-import { Catalog, type CatalogProps } from "@core/FileStructue/Catalog/Catalog";
+import { Catalog, type CatalogEvents, type CatalogProps } from "@core/FileStructue/Catalog/Catalog";
 import CatalogEntry from "@core/FileStructue/Catalog/CatalogEntry";
 import { Category, type CategoryProps } from "@core/FileStructue/Category/Category";
 import { Item } from "@core/FileStructue/Item/Item";
@@ -19,6 +20,17 @@ export type FSFilterRule = (parent: Category, catalogProps: FSProps, item: Item)
 export type FSSaveRule = (catalogProps: CatalogProps) => CatalogProps;
 export type FSArticleSaveRule = (articleProps: ArticleProps) => ArticleProps;
 export type FSLazyLoadCatalog = (entry: CatalogEntry) => Promise<Catalog>;
+
+export type FSEvents = Event<"catalog-entry-read", { entry: CatalogEntry }> &
+	Event<"catalog-read", { fs: FileStructure; catalog: Catalog }> &
+	Event<"item-filter", { fs: FileStructure; item: Item; parent: Category; catalogProps: CatalogProps }> &
+	Event<"item-save", { item: Item }> &
+	Event<"catalog-save", { catalog: Catalog }> &
+	Event<"item-moved", EventArgs<CatalogEvents, "item-moved">> &
+	Event<"item-deleted", EventArgs<CatalogEvents, "item-deleted">> &
+	Event<"item-created", EventArgs<CatalogEvents, "item-created">> &
+	Event<"item-order-updated", EventArgs<CatalogEvents, "item-order-updated">> &
+	Event<"item-props-updated", EventArgs<CatalogEvents, "item-props-updated">>;
 
 export type FSProps = { [key: string]: any };
 
@@ -36,13 +48,17 @@ export const FS_EXCLUDE_CATALOG_NAMES = [
 export default class FileStructure {
 	private _rules: FSRule[] = [];
 	private _saveRules: FSSaveRule[] = [];
-	private _filterRules: FSFilterRule[] = [];
 	private _articleSaveRules: FSArticleSaveRule[] = [];
+	private _events = createEventEmitter<FSEvents>();
 
 	constructor(private _fp: FileProvider, private _isServerApp: boolean) {}
 
 	get fp() {
 		return this._fp;
+	}
+
+	get events() {
+		return this._events;
 	}
 
 	addSaveRule(rule: FSSaveRule) {
@@ -51,10 +67,6 @@ export default class FileStructure {
 
 	addArticleSaveRule(rule: FSArticleSaveRule) {
 		this._articleSaveRules.push(rule);
-	}
-
-	addFilterRule(rule: FSFilterRule) {
-		this._filterRules.push(rule);
 	}
 
 	addRule(rule: FSRule) {
@@ -109,7 +121,7 @@ export default class FileStructure {
 		const name = path.name;
 
 		const ref = this._fp.getItemRef(docroot ?? path.join(new Path(DOC_ROOT_FILENAME)));
-		return new CatalogEntry({
+		const entry = new CatalogEntry({
 			name,
 			rootCaterogyRef: ref,
 			basePath: path,
@@ -118,6 +130,10 @@ export default class FileStructure {
 			load: (entry) => this.getCatalogByEntry(entry),
 			isServerApp: this._isServerApp,
 		});
+
+		await this._events.emit("catalog-entry-read", { entry });
+
+		return entry;
 	}
 
 	async getCatalogByEntry(entry: CatalogEntry): Promise<Catalog> {
@@ -130,8 +146,6 @@ export default class FileStructure {
 			content: null,
 			props: {
 				...entry.props,
-				title: entry.props.title,
-				logicPath: "",
 				order: 0,
 			},
 			items: [],
@@ -142,6 +156,7 @@ export default class FileStructure {
 		});
 
 		this._rules.forEach((rule) => rule(category, entry.props, true));
+
 		await this._readCategoryItems(entry.getRootCategoryPath(), category, entry.props, entry.errors);
 
 		const catalog = new Catalog({
@@ -155,6 +170,15 @@ export default class FileStructure {
 			fp: this._fp,
 			isServerApp: this._isServerApp,
 		});
+
+		catalog.events.on("item-moved", (args) => this.events.emit("item-moved", args));
+		catalog.events.on("item-created", (args) => this.events.emit("item-created", args));
+		catalog.events.on("item-deleted", (args) => this.events.emit("item-deleted", args));
+		catalog.events.on("item-props-updated", (args) => this.events.emit("item-props-updated", args));
+		catalog.events.on("item-order-updated", (args) => this.events.emit("item-order-updated", args));
+
+		await this.events.emit("catalog-read", { fs: this, catalog });
+
 		return catalog;
 	}
 
@@ -173,11 +197,11 @@ export default class FileStructure {
 	async createCategory(
 		path: Path,
 		parent: Category,
-		article: Article,
+		article?: Article,
 		props?: CatalogProps,
 		errors?: CatalogErrors,
 	): Promise<Category> {
-		await this._fp.write(path, this._serializeArticle(article));
+		await this._fp.write(path, article ? this._serializeArticle(article) : "");
 		const category = await this.makeCategory(path.parentDirectoryPath, parent, props, errors, path);
 		return category;
 	}
@@ -372,10 +396,17 @@ export default class FileStructure {
 			),
 		);
 
-		categories.forEach((category) => {
-			if (this._filterRules.every((r) => r(parentCategory, catalogProps, category)))
-				parentCategory.items.push(category);
-		});
+		for (const category of categories) {
+			const filter = await this._events.emit("item-filter", {
+				fs: this,
+				item: category,
+				parent: parentCategory,
+				catalogProps,
+			});
+
+			if (!filter) continue;
+			parentCategory.items.push(category);
+		}
 	}
 
 	private async _readCategoryItems(
@@ -390,8 +421,15 @@ export default class FileStructure {
 				.filter((f) => !f.isDirectory() && f.name.match(/\.md$/) && !FileStructure.isCategory(f.name))
 				.map(async (f) => {
 					const article = await this._makeArticle(f.path, category, catalogProps, catalogErrors);
-					if (article && this._filterRules.every((r) => r(category, catalogProps, article)))
-						category.items.push(article);
+					if (!article) return;
+					const filter = await this.events.emit("item-filter", {
+						fs: this,
+						catalogProps,
+						parent: category,
+						item: article,
+					});
+					if (!filter) return;
+					category.items.push(article);
 				}),
 		);
 
@@ -426,6 +464,7 @@ export default class FileStructure {
 		queue: { path: Path; depth: number }[],
 		explored: Set<string>,
 		depth: number,
+		collectAll = false,
 	): Promise<Path> {
 		if (explored.has(target.value)) return;
 		explored.add(target.value);
@@ -438,7 +477,10 @@ export default class FileStructure {
 			if (explored.has(path.value)) continue;
 
 			const stat = await this._fp.getStat(path).catch(() => undefined);
-			if (!stat) return;
+			if (!stat) {
+				if (collectAll) continue;
+				else return;
+			}
 
 			if (stat.isDirectory()) {
 				queue.push({ path, depth: depth + 1 });

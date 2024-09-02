@@ -57,12 +57,13 @@ export default function ContextProviders({
 
 	const apiUrlCreator = new ApiUrlCreator(
 		basePath,
-		pageProps.context.lang,
-		pageProps.context.theme,
 		pageProps.context.isLogged,
 		isArticlePage ? pageProps.data.catalogProps.name : null,
 		isArticlePage ? pageProps.data.articleProps.ref.path : null,
 	);
+
+	if (isArticlePage && !pageProps.context.language.content)
+		pageProps.context.language.content = pageProps.data.catalogProps.language;
 
 	const isServerApp = pageProps.context.conf.isServerApp;
 	const isProduction = pageProps.context.conf.isProduction;
@@ -83,23 +84,20 @@ export default function ContextProviders({
 												<IsOpenModalService.Provider>
 													<ScrollWebkitService.Provider>
 														<SidebarsIsPinService.Provider>
-															<ModalToOpenService.Provider>
-																<>
-																	{isArticlePage ? (
-																		<OnLoadResourceService.Provider>
-																			<IsMenuBarOpenService.Provider>
-																				<ArticleRefService.Provider>
-																					<ArticlePropsService.Provider
+															<>
+																{isArticlePage ? (
+																	<OnLoadResourceService.Provider>
+																		<IsMenuBarOpenService.Provider>
+																			<ArticleRefService.Provider>
+																				<ArticlePropsService.Provider
+																					value={pageProps.data.articleProps}
+																				>
+																					<CatalogPropsService.Provider
 																						value={
-																							pageProps.data.articleProps
+																							pageProps.data.catalogProps
 																						}
 																					>
-																						<CatalogPropsService.Provider
-																							value={
-																								pageProps.data
-																									.catalogProps
-																							}
-																						>
+																						<ModalToOpenService.Provider>
 																							<CurrentTabsTagService.Provider>
 																								<IsEditService.Provider>
 																									<ArticleTooltipService.Provider>
@@ -137,12 +135,14 @@ export default function ContextProviders({
 																									</ArticleTooltipService.Provider>
 																								</IsEditService.Provider>
 																							</CurrentTabsTagService.Provider>
-																						</CatalogPropsService.Provider>
-																					</ArticlePropsService.Provider>
-																				</ArticleRefService.Provider>
-																			</IsMenuBarOpenService.Provider>
-																		</OnLoadResourceService.Provider>
-																	) : (
+																						</ModalToOpenService.Provider>
+																					</CatalogPropsService.Provider>
+																				</ArticlePropsService.Provider>
+																			</ArticleRefService.Provider>
+																		</IsMenuBarOpenService.Provider>
+																	</OnLoadResourceService.Provider>
+																) : (
+																	<ModalToOpenService.Provider>
 																		<IsFirstLoadService.Provider
 																			value={isFirstLoad}
 																		>
@@ -150,9 +150,9 @@ export default function ContextProviders({
 																				{children}
 																			</OnUpdateAppFuncs>
 																		</IsFirstLoadService.Provider>
-																	)}
-																</>
-															</ModalToOpenService.Provider>
+																	</ModalToOpenService.Provider>
+																)}
+															</>
 														</SidebarsIsPinService.Provider>
 													</ScrollWebkitService.Provider>
 												</IsOpenModalService.Provider>

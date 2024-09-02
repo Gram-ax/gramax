@@ -1,5 +1,5 @@
 import styled from "@emotion/styled";
-import React, { useEffect, useRef, useState } from "react";
+import React, { ReactEventHandler, useEffect, useRef, useState } from "react";
 
 export const GifImage = styled(
 	({
@@ -8,13 +8,14 @@ export const GifImage = styled(
 		title,
 		className,
 		noplay,
+		onError,
 	}: {
 		src: string;
 		alt?: string;
 		title?: string;
 		className?: string;
 		noplay?: boolean;
-		props?: React.ImgHTMLAttributes<HTMLElement>;
+		onError?: ReactEventHandler<HTMLImageElement>;
 	}) => {
 		const gif = useRef<HTMLImageElement>();
 		const button = useRef<HTMLDivElement>();
@@ -46,6 +47,7 @@ export const GifImage = styled(
 					<div className="ff-button" ref={button} />
 					<canvas className="ff-canvas" ref={canvas} />
 					<img
+						onError={onError}
 						src={src}
 						data-focusable="true"
 						className="ff-gif"

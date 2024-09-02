@@ -74,19 +74,20 @@ pub fn reopen_dumped_windows<R: Runtime>(active_window: &mut WebviewWindow<R>) -
   let content_json = std::fs::read(&path)?;
   std::fs::remove_file(&path)?;
 
-  let Ok(DumpedWindows { focused_url, window_urls }) = serde_json::from_slice(content_json.as_slice()) else {
+  let Ok(DumpedWindows { focused_url, mut window_urls }) = serde_json::from_slice(content_json.as_slice())
+  else {
     return Ok(());
   };
+
+  if let Some(focused_url) = focused_url.or_else(|| window_urls.pop()) {
+    _ = active_window
+      .eval(&format!("window.location.replace('/{}')", focused_url.as_str().trim_start_matches('/')));
+  }
 
   for path in window_urls {
     if let Err(err) = build_main_window_with_path(active_window.app_handle(), path) {
       error!("unable to open window: {}", err);
     }
-  }
-
-  if let Some(focused_url) = focused_url {
-    _ = active_window
-      .eval(&format!("window.location.replace('/{}')", focused_url.as_str().trim_start_matches('/')));
   }
 
   _ = active_window.show();

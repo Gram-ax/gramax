@@ -8,6 +8,7 @@ import ThemeService from "../../../Theme/components/ThemeService";
 import attributeUpdaterExtension from "./attributeUpdaterExtension";
 import { ExtensionFilter } from "./rules/ExtensionFilter";
 import { getExtensionUpdaterRules } from "./rules/getExtensionUpdaterRules";
+import ArticleRefService from "@core-ui/ContextServices/ArticleRef";
 
 export default abstract class ExtensionUpdater {
 	static getUpdatedExtension(extensions: Extensions): Extensions {
@@ -17,6 +18,7 @@ export default abstract class ExtensionUpdater {
 		const catalogProps = CatalogPropsService.value;
 		const apiUrlCreator = ApiUrlCreatorService.value;
 		const pageDataContext = PageDataContextService.value;
+		const articleRef = ArticleRefService.value;
 		const extensionUpdatersRules = getExtensionUpdaterRules(
 			theme,
 			isMac,
@@ -24,6 +26,7 @@ export default abstract class ExtensionUpdater {
 			catalogProps,
 			apiUrlCreator,
 			pageDataContext,
+			articleRef,
 		);
 
 		const result = {};

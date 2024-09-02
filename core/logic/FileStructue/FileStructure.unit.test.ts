@@ -3,7 +3,6 @@ import Path from "@core/FileProvider/Path/Path";
 import { Catalog } from "@core/FileStructue/Catalog/Catalog";
 import FileStructure from "@core/FileStructue/FileStructure";
 import { ItemType } from "@core/FileStructue/Item/ItemType";
-import Language from "@ext/localization/core/model/Language";
 import { resolve } from "path";
 
 const path = (p: string) => new Path(p);
@@ -132,7 +131,7 @@ describe("FileStructure", () => {
 
 		test("статью", async () => {
 			const catalog = await fs.getCatalogByPath(path("test1"));
-			const article = await catalog.createArticle(null, "", Language.ru);
+			const article = await catalog.createArticle(null, "");
 			expect(article.getFileName()).toEqual("new-article");
 			expect(fp.exists(path("test1/new-article.md")));
 		});

@@ -15,6 +15,5 @@ export const getIconFromString = async (icon: string) => {
 	return await WordExportHelper.getImageFromSvgString(
 		ReactDOMServer.renderToString(React.createElement(svgIcon)),
 		ICON_SIZE,
-		ICON_SIZE,
 	);
 };

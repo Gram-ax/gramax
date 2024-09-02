@@ -29,7 +29,7 @@ export const toListItem = ({ code, svg, category }: IconListProps, inverse?: boo
 									padding: `0 var(--radius-large)`,
 									width: "max-content",
 									outline: `1px solid var(--color-block-hover${inverse ? "-inverse" : ""})`,
-									borderRadius: "var(--radius-x-large)",
+									borderRadius: "var(--radius-large)",
 								}}
 							>
 								{category}

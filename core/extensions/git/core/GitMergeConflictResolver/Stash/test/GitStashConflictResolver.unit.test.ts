@@ -5,6 +5,7 @@
 import GitStorage from "@ext/git/core/GitStorage/GitStorage";
 import Repository from "@ext/git/core/Repository/Repository";
 import { RepStashConflictState } from "@ext/git/core/Repository/model/RepostoryState";
+import RepositoryStateFile from "@ext/git/core/RepositoryStateFile/RepositorySettingsFile";
 import SourceData from "@ext/storage/logic/SourceDataProvider/model/SourceData";
 import SourceType from "@ext/storage/logic/SourceDataProvider/model/SourceType";
 import DiskFileProvider from "../../../../../../logic/FileProvider/DiskFileProvider/DiskFileProvider";
@@ -58,7 +59,8 @@ describe("GitStashConflictResolver", () => {
 		gvc = new GitVersionControl(path("testRep"), dfp);
 		await commit(gvc, { "1.txt": "init" });
 		const storage = new GitStorage(path("testRep"), dfp);
-		const repo = new Repository(path("testRep"), dfp, gvc, storage);
+		const repStateFile = new RepositoryStateFile(path("testRep"), dfp);
+		const repo = new Repository(path("testRep"), dfp, gvc, storage, repStateFile);
 		resolver = new GitStashConflictResolver(repo, dfp, path("testRep"));
 	});
 
@@ -72,11 +74,10 @@ describe("GitStashConflictResolver", () => {
 		const hashBefore = (await gvc.getCommitHash()).toString();
 		await writeFile("1.txt", "conflict content theirs");
 		const statusBefore = await gvc.getChanges();
-		await gvc.add();
 		const stashHash = await gvc.stash(mockUserData);
 
 		await commit(gvc, { "1.txt": "conflict content ours" });
-		await gvc.applyStash(stashHash);
+		await gvc.applyStash(stashHash, { deleteAfterApply: false });
 		expect(await dfp.read(repPath("1.txt"))).toEqual(CONFLICT_CONTENT);
 
 		const state: RepStashConflictState = {
@@ -100,11 +101,10 @@ describe("GitStashConflictResolver", () => {
 		const resolvedMergeFiles = [{ path: "1.txt", content: "conflict content ours and theirs :)" }];
 		await writeFile("1.txt", "conflict content theirs");
 		const hashBefore = (await gvc.getCommitHash()).toString();
-		await gvc.add();
 		const stashHash = await gvc.stash(mockUserData);
 
 		await commit(gvc, { "1.txt": "conflict content ours" });
-		await gvc.applyStash(stashHash);
+		await gvc.applyStash(stashHash, { deleteAfterApply: false });
 		expect(await dfp.read(repPath("1.txt"))).toEqual(CONFLICT_CONTENT);
 
 		const state: RepStashConflictState = {

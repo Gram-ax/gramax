@@ -6,8 +6,8 @@ import Video from "../../render/components/Video";
 
 const EditVideo = ({ node, getPos }: NodeViewProps): ReactElement => {
 	return (
-		<NodeViewWrapper>
-			<Focus position={getPos()}>
+		<NodeViewWrapper draggable={true} data-drag-handle>
+			<Focus getPos={getPos}>
 				<Video path={node.attrs.path} title={node.attrs.title} />
 			</Focus>
 		</NodeViewWrapper>

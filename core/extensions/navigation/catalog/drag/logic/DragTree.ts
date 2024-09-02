@@ -1,9 +1,10 @@
+import type Context from "@core/Context/Context";
 import FileProvider from "@core/FileProvider/model/FileProvider";
 import type { Category } from "@core/FileStructue/Category/Category";
+import type { MakeResourceUpdater } from "@core/Resource/ResourceUpdaterFactory";
 import RepositoryProvider from "@ext/git/core/Repository/RepositoryProvider";
 import { NodeModel } from "@minoru/react-dnd-treeview";
 import { Catalog } from "../../../../../logic/FileStructue/Catalog/Catalog";
-import ResourceUpdater from "../../../../../logic/Resource/ResourceUpdater";
 import itemRefUtils from "../../../../../logic/utils/itemRefUtils";
 import { ItemLink } from "../../../NavigationLinks";
 import DragTreeTransformer from "./DragTreeTransformer";
@@ -12,8 +13,9 @@ import getMovements from "./Movement/getMovements";
 class DragTree {
 	constructor(
 		private _fp: FileProvider,
-		private _resourceUpdater: ResourceUpdater,
+		private _makeResourceUpdater: MakeResourceUpdater,
 		private _rp: RepositoryProvider,
+		private _ctx: Context,
 	) {}
 
 	public findOrderingAncestors(newNav: NodeModel<ItemLink>[], draggedItemPath: string, catalog: Catalog) {
@@ -58,10 +60,13 @@ class DragTree {
 		oldLevNav: NodeModel<ItemLink>[],
 		newLevNav: NodeModel<ItemLink>[],
 		catalog: Catalog,
+		parseAllItems: (catalog: Catalog, initChildLinks?: boolean) => Promise<Catalog>,
 	): Promise<boolean> {
 		const rootItem = DragTreeTransformer.getRootItem();
 		const movements = getMovements<ItemLink>([rootItem, ...oldLevNav], [rootItem, ...newLevNav]);
 		if (!movements.length) return false;
+		await parseAllItems(catalog, false);
+
 		for (const movement of movements) {
 			const { moveItem, newList, oldList } = movement;
 			const newParentItem = newList[newList.length - 2];
@@ -69,14 +74,16 @@ class DragTree {
 			if (oldParentItem.id == newParentItem.id) continue;
 
 			const moveItemRef = this._getItemRef(moveItem, catalog);
+			const item = catalog.findItemByItemRef(moveItemRef);
+
 			const newParentItemRef = this._getItemRef(newParentItem, catalog);
 			const newBrowsersRef = catalog.findCategoryByItemRef(newParentItemRef)?.items?.map((i) => i.ref) ?? [];
-
-			const item = catalog.findItemByItemRef(moveItemRef);
 			const newItemRef = itemRefUtils.move(newParentItemRef, moveItemRef, item.type, newBrowsersRef);
-			await catalog.moveItem(moveItemRef, newItemRef, this._resourceUpdater, this._rp);
+
+			await catalog.moveItem(moveItemRef, newItemRef, this._makeResourceUpdater, this._rp);
 		}
 		await this._fp.deleteEmptyFolders(catalog.getRootCategoryRef().path.parentDirectoryPath);
+		await catalog.update(this._rp);
 		return true;
 	}
 

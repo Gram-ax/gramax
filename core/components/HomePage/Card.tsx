@@ -48,7 +48,7 @@ export default styled(Card)`
 
 	.card {
 		cursor: pointer;
-		border-radius: 10px;
+		border-radius: var(--radius-large);
 		overflow: hidden;
 	}
 

@@ -27,7 +27,6 @@ export interface DbDiagramData {
 
 const DbDiagram = styled(
 	({ src, className, tags, primary }: { src: string; className?: string; tags: string; primary?: string }) => {
-		const lang = PageDataContextService.value.lang;
 		const isLogged = PageDataContextService.value.isLogged;
 		const apiUrlCreator = ApiUrlCreatorService.value;
 		const [data, setData] = useState<DbDiagramData>(null);
@@ -57,7 +56,7 @@ const DbDiagram = styled(
 						<Popup defaultOpen onClose={() => setPopup(null)} lockScroll={false}>
 							<div className={className}>
 								<div className="scroll article">
-									<TableDB object={popup} className="" lang={lang} isLogged={isLogged} />
+									<TableDB object={popup} className="" isLogged={isLogged} />
 								</div>
 							</div>
 						</Popup>
@@ -224,7 +223,7 @@ const DbDiagram = styled(
 		max-height: 600px;
 		color: var(--color-article-text);
 		background: var(--color-article-bg);
-		border-radius: var(--radius-normal);
+		border-radius: var(--radius-small);
 		box-shadow: 0 0 4px var(--color-shadows-scroll);
 	}
 `;

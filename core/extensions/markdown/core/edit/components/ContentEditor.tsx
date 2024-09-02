@@ -1,14 +1,14 @@
 import CommentCounterService from "@core-ui/ContextServices/CommentCounter";
 import ArticleMat from "@ext/markdown/core/edit/components/ArticleMat";
+import OnTitleLoseFocus from "@ext/markdown/elements/article/edit/OnTitleLoseFocus";
 import { Editor } from "@tiptap/core";
 import { Mark } from "@tiptap/pm/model";
 import { EditorContent, Extensions, JSONContent, useEditor } from "@tiptap/react";
 import { Node, Slice } from "prosemirror-model";
 import { EditorView } from "prosemirror-view";
-import { DependencyList, useEffect } from "react";
+import { useEffect } from "react";
 import ApiUrlCreatorService from "../../../../../ui-logic/ContextServices/ApiUrlCreator";
 import ArticlePropsService from "../../../../../ui-logic/ContextServices/ArticleProps";
-import IsMacService from "../../../../../ui-logic/ContextServices/IsMac";
 import PageDataContextService from "../../../../../ui-logic/ContextServices/PageDataContext";
 import SelectionMenu from "../../../elements/article/edit/helpers/SelectionMenu";
 import addComments from "../../../elements/comment/edit/logic/addCommet";
@@ -30,18 +30,16 @@ export const ContentEditorId = "ContentEditorId";
 interface ContentEditorProps {
 	content: string;
 	extensions: Extensions;
-	onCreate: () => void;
 	onBlur: ({ editor }: { editor: Editor }) => void;
+	onTitleLoseFocus: ({ newTitle }: { newTitle: string }) => void;
 	onUpdate: ({ editor }: { editor: Editor }) => void;
 	onSelectionUpdate: ({ editor }: { editor: Editor }) => void;
 	handlePaste: (view: EditorView, event: ClipboardEvent, slice: Slice) => boolean | void;
-	deps?: DependencyList;
 }
 
 const ContentEditor = (props: ContentEditorProps) => {
-	const { content, extensions, onCreate, onBlur, onUpdate, onSelectionUpdate, handlePaste, deps } = props;
+	const { content, extensions, onBlur, onTitleLoseFocus, onUpdate, onSelectionUpdate, handlePaste } = props;
 
-	const isMac = IsMacService.value;
 	const comments = CommentCounterService.value;
 	const articleProps = ArticlePropsService.value;
 	const apiUrlCreator = ApiUrlCreatorService.value;
@@ -73,17 +71,17 @@ const ContentEditor = (props: ContentEditorProps) => {
 				OnDeleteNode.configure({ onDeleteNodes }),
 				OnAddMark.configure({ onAddMarks }),
 				OnDeleteMark.configure({ onDeleteMarks }),
+				OnTitleLoseFocus.configure({ onTitleLoseFocus }),
 				...isEditExtensions,
 			]),
 			injectCSS: false,
 			editorProps: { handlePaste },
-			onCreate,
 			onUpdate,
 			onSelectionUpdate,
 			onBlur,
 			editable: articleIsEdit,
 		},
-		[content, isMac, apiUrlCreator, pageDataContext, articleProps.ref.path, ...deps],
+		[content, apiUrlCreator, pageDataContext, articleProps.ref.path],
 	);
 
 	useEffect(() => {

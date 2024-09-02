@@ -1,6 +1,9 @@
 import { classNames } from "@components/libs/classNames";
+import ArticlePropsService from "@core-ui/ContextServices/ArticleProps";
 import IsEditService from "@core-ui/ContextServices/IsEdit";
 import { ArticlePageData } from "@core/SitePresenter/SitePresenter";
+import t from "@ext/localization/locale/translate";
+import ArticleMat from "@ext/markdown/core/edit/components/ArticleMat";
 import { Editor } from "@tiptap/core";
 import { Slice } from "@tiptap/pm/model";
 import { EditorView } from "prosemirror-view";
@@ -10,20 +13,18 @@ import getExtensions from "../../extensions/markdown/core/edit/logic/getExtensio
 import Renderer from "../../extensions/markdown/core/render/components/Renderer";
 import getComponents from "../../extensions/markdown/core/render/components/getComponents/getComponents";
 import Header from "../../extensions/markdown/elements/heading/render/component/Header";
-import ArticlePropsService from "@core-ui/ContextServices/ArticleProps";
-import t from "@ext/localization/locale/translate";
 
 interface ArticleRendererProps {
 	data: ArticlePageData;
-	onCreate: () => void;
 	onBlur: ({ editor }: { editor: Editor }) => void;
 	onUpdate: ({ editor }: { editor: Editor }) => void;
 	onSelectionUpdate: ({ editor }: { editor: Editor }) => void;
+	onTitleLoseFocus: ({ newTitle }: { newTitle: string }) => void;
 	handlePaste: (view: EditorView, event: ClipboardEvent, slice: Slice) => boolean;
 }
 
 const ArticleRenderer = (props: ArticleRendererProps) => {
-	const { data, onCreate, onBlur, onUpdate, onSelectionUpdate, handlePaste } = props;
+	const { data, onBlur, onTitleLoseFocus, onUpdate, onSelectionUpdate, handlePaste } = props;
 	const isEdit = IsEditService.value;
 	const articleProps = ArticlePropsService.value;
 
@@ -34,12 +35,11 @@ const ArticleRenderer = (props: ArticleRendererProps) => {
 					<ContentEditor
 						content={data.articleContentEdit}
 						extensions={getExtensions()}
-						onCreate={onCreate}
 						onBlur={onBlur}
+						onTitleLoseFocus={onTitleLoseFocus}
 						onUpdate={onUpdate}
 						handlePaste={handlePaste}
 						onSelectionUpdate={onSelectionUpdate}
-						deps={[data.articleProps.ref.path]}
 					/>
 				) : (
 					<>
@@ -52,6 +52,7 @@ const ArticleRenderer = (props: ArticleRendererProps) => {
 							</Header>
 						)}
 						{Renderer(JSON.parse(data.articleContentRender), { components: getComponents() })}
+						<ArticleMat />
 					</>
 				)}
 			</ErrorHandler>

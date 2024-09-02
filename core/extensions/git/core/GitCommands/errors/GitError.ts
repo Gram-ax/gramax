@@ -19,19 +19,23 @@ export default class GitError extends DefaultError {
 	) {
 		const currentCaller = GitError._getCaller(caller, _defaultError);
 		const currentProps = { ...props, caller: currentCaller, errorCode: _errorCode, errorData: _defaultError?.data };
-		const { message, title: gitErrorTitle } = GitError._getMessage(
-			_errorCode,
-			_defaultError,
-			currentCaller,
-			currentProps,
-		);
+		const {
+			message,
+			title: gitErrorTitle,
+			showMessage,
+		} = GitError._getMessage(_errorCode, _defaultError, currentCaller, currentProps);
 		super(message, _defaultError, currentProps, isWarninig, title ?? gitErrorTitle);
+		this.props.html = true;
 		this._caller = currentCaller;
+		if (showMessage) {
+			this.props.showCause = true;
+			this.cause = { stack: this._defaultError.message, name: this.name, message: this._defaultError.message };
+		}
 	}
 
 	setProps(props: { [key: string]: any }): void {
 		this._props = { ...this.props, ...props };
-		const { message, title: gitErrorTitle } = GitError._getMessage(
+		const { message, title: gitErrorTitle, showMessage } = GitError._getMessage(
 			this._errorCode,
 			this._defaultError,
 			this._caller,
@@ -39,6 +43,10 @@ export default class GitError extends DefaultError {
 		);
 		this.message = message;
 		this.title = props.title ?? gitErrorTitle;
+		if (showMessage) {
+			this.props.showCause = true;
+			this.cause = { stack: this._defaultError.message, name: this.name, message: this._defaultError.message };
+		}
 	}
 
 	get props(): GitErrorProps {

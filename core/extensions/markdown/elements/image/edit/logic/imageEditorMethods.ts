@@ -1,3 +1,5 @@
+import { resolveImageKind } from "@components/Atoms/Image/resolveImageKind";
+import OnLoadResourceService from "@ext/markdown/elements/copyArticles/onLoadResourceService";
 import { Crop } from "@ext/markdown/elements/image/edit/model/imageEditorTypes";
 import { MouseEventHandler } from "react";
 
@@ -29,14 +31,12 @@ interface getCanvasProps {
 	imageContainer: HTMLDivElement;
 	imgElement: HTMLImageElement;
 	crop: Crop;
-	src: string;
+	realSrc: string;
 	setSrc?: (newSrc: Blob) => void;
 }
 
 export function getCroppedCanvas(props: getCanvasProps) {
-	const { imageContainer, imgElement, crop = { x: 0, y: 0, w: 100, h: 100 }, src, setSrc } = props;
-
-	if (crop.w === 100 && crop.h === 100) return;
+	const { imageContainer, imgElement, crop = { x: 0, y: 0, w: 100, h: 100 }, realSrc, setSrc } = props;
 
 	const imageContainerRect = imageContainer.getBoundingClientRect();
 	const x = (crop.x / 100) * imageContainerRect.width;
@@ -51,7 +51,8 @@ export function getCroppedCanvas(props: getCanvasProps) {
 
 	if (context) {
 		const image = new Image();
-		image.src = src ?? imgElement.src;
+		const buffer = OnLoadResourceService.getBuffer(realSrc) || Buffer.from("");
+		image.src = "data:" + resolveImageKind(buffer) + ";base64," + buffer.toString("base64");
 
 		image.onload = () => {
 			const scaleX = image.naturalWidth / imageContainerRect.width;

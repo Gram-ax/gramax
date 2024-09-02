@@ -1,9 +1,10 @@
 import { classNames } from "@components/libs/classNames";
+import useElementExistence from "@core-ui/hooks/useElementExistence";
 import { cssMedia } from "@core-ui/utils/cssUtils";
 import styled from "@emotion/styled";
 import { useMediaQuery } from "@mui/material";
 import Tippy, { TippyProps } from "@tippyjs/react";
-import { ReactNode, forwardRef, useState, useEffect, Ref } from "react";
+import { ReactNode, forwardRef, useState, useEffect, useRef, RefObject } from "react";
 import { Placement } from "tippy.js";
 
 interface TooltipProps extends TippyProps {
@@ -25,7 +26,7 @@ interface TooltipContentProps extends Omit<TooltipProps, "children"> {
 	children: ReactNode;
 }
 
-const Tooltip = forwardRef((props: TooltipProps, ref?: Ref<Element>) => {
+const Tooltip = forwardRef((props: TooltipProps, ref?: RefObject<Element>) => {
 	const {
 		children,
 		content,
@@ -39,33 +40,38 @@ const Tooltip = forwardRef((props: TooltipProps, ref?: Ref<Element>) => {
 		customStyle = false,
 		hideOnClick = false,
 		setPlaceCallback = () => {},
-		appendTo = () => document.body,
 		interactive = false,
 		delay = 0,
 		inverseStyle,
+		appendTo = () => document.body,
 		...otherProps
 	} = props;
 
+	const tooltipRef = ref ?? useRef();
+	const exists = useElementExistence(tooltipRef);
 	const [finalPlace, setFinalPlace] = useState<Placement>(place);
+	const isNarrow = useMediaQuery(cssMedia.narrow)
 
 	useEffect(() => {
 		setPlaceCallback(finalPlace);
 	}, [finalPlace]);
 
-	if (!content || (hideInMobile && useMediaQuery(cssMedia.narrow))) return children;
+	if (!content || (hideInMobile && isNarrow )) return children;
 
 	return (
 		<Tippy
 			content={
-				<TooltipContent
-					className={contentClassName}
-					inverseStyle={inverseStyle}
-					place={finalPlace}
-					arrow={arrow}
-					customStyle={customStyle}
-				>
-					{content}
-				</TooltipContent>
+				exists && (
+					<TooltipContent
+						className={contentClassName}
+						inverseStyle={inverseStyle}
+						place={finalPlace}
+						arrow={arrow}
+						customStyle={customStyle}
+					>
+						{content}
+					</TooltipContent>
+				)
 			}
 			duration={0}
 			trigger={trigger}
@@ -76,7 +82,7 @@ const Tooltip = forwardRef((props: TooltipProps, ref?: Ref<Element>) => {
 			onMount={(instance) => {
 				setFinalPlace(instance.popperInstance.state.placement);
 			}}
-			ref={ref}
+			ref={tooltipRef}
 			appendTo={appendTo}
 			interactive={interactive}
 			delay={delay}
@@ -91,6 +97,8 @@ const TooltipContent = styled((props: TooltipContentProps) => {
 	const { children, customStyle, inverseStyle, className } = props;
 	return <div className={classNames(className, { defaultStyle: !customStyle, inverseStyle })}>{children}</div>;
 })`
+	border-radius: var(--radius-small);
+
 	&.defaultStyle {
 		font-size: 10.5px;
 		font-weight: 300;
@@ -101,7 +109,6 @@ const TooltipContent = styled((props: TooltipContentProps) => {
 		padding: 6px;
 		color: var(--color-tooltip-text);
 		background: var(--color-tooltip-background);
-		border-radius: 3px;
 	}
 
 	&.inverseStyle {

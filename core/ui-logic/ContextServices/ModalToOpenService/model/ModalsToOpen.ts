@@ -2,6 +2,8 @@ enum ModalToOpen {
 	MergeConfirm = "MergeConfirm",
 	MergeResolver = "MergeResolver",
 
+	Publish = "Publish",
+
 	ShareTicketHandler = "ShareTicketHandler",
 	ReviewTicketHandler = "ReviewTicketHandler",
 
@@ -13,6 +15,11 @@ enum ModalToOpen {
 	SnippetAlreadyUseWarn = "SnippetAlreadyUseWarn",
 
 	Loading = "Loading",
+
+	MultilangActionConfirm = "MultilangActionConfirm",
+
+	DiagramEditor = "DiagramEditor",
+	DrawioEditor = "DrawioEditor",
 }
 
 export default ModalToOpen;

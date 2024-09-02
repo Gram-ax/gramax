@@ -1,6 +1,6 @@
 import { ItemRef } from "@core/FileStructue/Item/ItemRef";
 import { Buffer } from "buffer";
-import { ItemStatus } from "../../../extensions/Watchers/model/ItemStatus";
+import { type ItemRefStatus } from "../../../extensions/Watchers/model/ItemStatus";
 import Path from "../Path/Path";
 import FileInfo from "./FileInfo";
 
@@ -10,7 +10,7 @@ export default interface FileProvider {
 
 	getItems: (path: Path) => Promise<FileInfo[]>;
 	exists: (path: Path) => Promise<boolean>;
-	delete: (path: Path) => Promise<void>;
+	delete: (path: Path, preferTrash?: boolean) => Promise<void>;
 	getStat: (path: Path, lstat?: boolean) => Promise<FileInfo>;
 	deleteEmptyFolders: (path: Path) => Promise<void>;
 	write: (path: Path, data: string | Buffer) => Promise<void>;
@@ -24,7 +24,7 @@ export default interface FileProvider {
 	readlink: (path: Path) => Promise<string>;
 	readdir: (path: Path) => Promise<string[]>;
 	symlink: (target: Path, path: Path) => Promise<void>;
-	watch: (onChange: (changeItems: ItemStatus[]) => void) => void;
+	watch: (onChange: (changeItems: ItemRefStatus[]) => void) => void;
 	startWatch: () => void;
 	stopWatch: () => void;
 	createRootPathIfNeed: () => Promise<void>;

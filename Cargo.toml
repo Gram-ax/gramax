@@ -12,8 +12,8 @@ members = [
   "rlibs/git",
   "rlibs/fs",
 
-  "rbins/warp-spa",
   "rlibs/test-utils",
+  "rlibs/bugsnag",
 ]
 
 [workspace.package]
@@ -23,23 +23,21 @@ description = "Gramax"
 edition = "2021"
 
 [workspace.dependencies]
-tauri = { version = "^2.0.0-beta", features = [
+tauri = { version = "^2.0.0-rc.0", features = [
   "macos-private-api",
-  "unstable",
   "devtools",
 ] }
-tauri-plugin = { version = "^2.0.0-beta", features = ["build"] }
-tauri-build = "^2.0.0-beta"
+tauri-plugin = { version = "^2.0.0-rc.0", features = ["build"] }
+tauri-build = "^2.0.0-rc.0"
 
-tauri-plugin-deep-link = "2.0.0-beta"
-tauri-plugin-dialog = "^2.0.0-beta"
-tauri-plugin-log = "^2.0.0-beta"
-tauri-plugin-updater = { version = "^2.0.0-beta", features = ["zip"] }
-tauri-plugin-shell = "^2.0.0-beta"
+tauri-plugin-deep-link = "2.0.0-rc.0"
+tauri-plugin-dialog = "^2.0.0-rc.0"
+tauri-plugin-log = "^2.0.0-rc.0"
+tauri-plugin-updater = { version = "^2.0.0-rc.0", features = ["zip"] }
+tauri-plugin-shell = "^2.0.0-rc.0"
 
 serde = { version = "^1.0", features = ["derive"] }
 serde_json = "^1.0"
-
 log = "^0.4"
 
 [profile.release]

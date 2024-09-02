@@ -6,14 +6,18 @@
 	// "rust-analyzer.cargo.target": "aarch64-linux-android",
 	// "rust-analyzer.cargo.target": "aarch64-apple-ios",
 
-	"rust-analyzer.check.allTargets": true,
-	"rust-analyzer.check.features": "all",
+	// "rust-analyzer.check.allTargets": true,
+	// "rust-analyzer.check.features": "all",
 
 	"editor.tabCompletion": "on",
 
 	"search.exclude": {
 		"./**/.next": true,
 		"./**/node_modules": true
+	},
+
+	"rust-analyzer.cargo.extraEnv": {
+		"BUGSNAG_API_KEY": ""
 	},
 
 	"search.searchEditor.reusePriorSearchConfiguration": true,

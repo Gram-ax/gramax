@@ -15,9 +15,13 @@ interface StashconflictData {
 	commitHeadBefore: string;
 }
 
+interface CheckoutData {
+	to: string;
+}
+
 export interface RepState {
-	value: "default" | "mergeConflict" | "stashConflict";
-	data?: MergeConflictData | StashconflictData;
+	value: "default" | "mergeConflict" | "stashConflict" | "checkout";
+	data?: MergeConflictData | StashconflictData | CheckoutData;
 }
 
 export interface RepDefaultState extends RepState {
@@ -32,4 +36,9 @@ export interface RepMergeConflictState extends RepState {
 export interface RepStashConflictState extends RepState {
 	value: "stashConflict";
 	data: StashconflictData;
+}
+
+export interface RepCheckoutState extends RepState {
+	value: "checkout";
+	data: CheckoutData;
 }

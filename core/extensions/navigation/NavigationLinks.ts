@@ -25,6 +25,7 @@ export interface ItemLink extends BaseLink {
 	icon: string;
 	isCurrentLink: boolean;
 	ref: ClientItemRef;
+	external?: string;
 }
 
 export interface CategoryLink extends ItemLink {

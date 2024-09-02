@@ -13,35 +13,67 @@
     И нажимаем на клавиши "Control+A Control+C Control+V"
     Тогда разметка текущей статьи содержит
       """
-      
-      
       -  абрикос
       
       -  мандаринчик
+      """
+
+  Сценарий: Копирование вложенного списка
+    Пусть находимся в новой статье
+    И смотрим на редактор
+    И заполняем документ
+      """
+      -  Узел намбер ван
+      
+      1. Нумерованный дочерний узел намбер ван
+      
+          1. Нумерованный дочерний узел намбер эй1
+      
+              1. Нумерованный дочерний узел намбер тхри
+      
+                  1. Нумерованный дочерний узел намбер эй2(*)
+      """
+    Когда нажимаем на клавиши "Shift+ArrowUp Shift+ArrowUp Shift+ArrowUp Shift+ArrowUp Shift+ArrowRight Control+C"
+    И очищаем документ
+    И нажимаем на клавиши "Control+V"
+    Тогда разметка текущей статьи содержит
+      """
+      Нумерованный дочерний узел намбер ван
+      
+      1. Нумерованный дочерний узел намбер эй1
+      
+         1. Нумерованный дочерний узел намбер тхри
+      
+            1. Нумерованный дочерний узел намбер эй2
+      """
+
+  Сценарий: Копирование и вставка в код блока
+    Пусть смотрим на редактор
+    И очищаем документ
+    Когда заполняем документ
+      """
+      (*)const createTableFragment = (content: Fragment, schema: Schema<any, any>): CreatedFragment => { const tableFragment = content.firstChild.type.name === «table» ? content : Fragment.empty.addToStart(schema.nodes.table.create(null, content)); return { fragment: tableFragment, plainText: tableFragment.textBetween(0, tableFragment.size, "\n"), }; };
+      """
+    И нажимаем на клавиши "Control+A Control+X"
+    И нажимаем на иконку редактора "блок кода"
+    И нажимаем на клавишу "Control+V"
+    Тогда разметка текущей статьи содержит
+      """
+      ```
+      const createTableFragment = (content: Fragment, schema: Schema<any, any>): CreatedFragment => { const tableFragment = content.firstChild.type.name === «table» ? content : Fragment.empty.addToStart(schema.nodes.table.create(null, content)); return { fragment: tableFragment, plainText: tableFragment.textBetween(0, tableFragment.size, "\n"), }; };
+      ```
       """
 
   Сценарий: Копирование диаграммы
     Пусть смотрим на "редактор"
     И очищаем документ
     И наводим мышку
-    И вводим "text"
-    И разметка текущей статьи содержит
-      """
-      text
-      """
+    Когда вводим "text"
     И наводимся на иконку редактора "диаграммы"
     И нажимаем на иконку редактора "диаграмма draw.io"
-    И разметка текущей статьи содержит
-      """
-      text
-      
-      [drawio:./new-article-2.svg:]
-      """
     И нажимаем на клавиши "Control+KeyA Control+KeyC Control+KeyV"
     Тогда разметка текущей статьи содержит
       """
-      
-      
       text
       
       [drawio:./new-article.svg:]

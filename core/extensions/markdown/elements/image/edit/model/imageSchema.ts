@@ -7,7 +7,8 @@ const imageSchema = {
 		alt: { default: null },
 		crop: { default: null },
 		title: { default: null },
-		objects: { default: null },
+		scale: { default: null },
+		objects: { default: [] },
 	},
 };
 

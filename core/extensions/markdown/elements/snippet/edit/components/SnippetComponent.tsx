@@ -24,8 +24,8 @@ const SnippetComponent = ({ node, getPos, editor }: NodeViewProps): ReactElement
 	}, []);
 
 	return (
-		<NodeViewWrapper as={"div"}>
-			<Focus position={getPos()}>
+		<NodeViewWrapper as={"div"} draggable={true} data-drag-handle>
+			<Focus getPos={getPos}>
 				<div
 					onClick={() => {
 						if (!content) return;

@@ -4,9 +4,9 @@ import mediaGroup from "@ext/markdown/elements/attachment/confluence/mediaGroup"
 import mediaInline from "@ext/markdown/elements/attachment/confluence/mediaInline";
 import mediaSingle from "@ext/markdown/elements/attachment/confluence/mediaSingle";
 import blockquote from "@ext/markdown/elements/blockquote/confluence/blockquote";
+import codeBlock from "@ext/markdown/elements/codeBlockLowlight/confluence";
 import extensionConverters from "@ext/markdown/elements/extension/confluence/extensionConverters";
 import stubConverters from "@ext/markdown/elements/extension/confluence/stubConverters";
-import codeBlock from "@ext/markdown/elements/fence/confluence/codeBlock";
 import heading from "@ext/markdown/elements/heading/confluence/heading";
 import blockCard from "@ext/markdown/elements/link/confluence/blockCard";
 import inlineCard from "@ext/markdown/elements/link/confluence/inlineCard";

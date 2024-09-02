@@ -15,8 +15,8 @@ const IconLink = (props: IconLinkProps) => {
 	return (
 		<PureLink className={className} linkTheme={LinkTheme.INHERIT} {...pureLinkProps}>
 			{afterIconCode && <Icon fw code={afterIconCode} />}
-			{text}
-			{isExternal && <Icon code={"external-link"} className={"text_xx_small"} />}
+			<span className={"icon-link-text"}>{text}</span>
+			<span>{isExternal && <Icon code={"external-link"} className={"link-icon"} />}</span>
 		</PureLink>
 	);
 };
@@ -26,9 +26,7 @@ export default styled(IconLink)`
 	align-items: center;
 	line-height: 1em;
 
-	gap: var(--distance-i-span);
-
-	.text_xx_small {
-		font-size: 0.6rem;
+	.icon-link-text {
+		padding-left: var(--distance-i-span);
 	}
 `;

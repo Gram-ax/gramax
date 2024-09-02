@@ -4,8 +4,8 @@ import IsMenuBarOpenService from "@core-ui/ContextServices/IsMenuBarOpenService"
 import IsSelectedOneNodeService from "@core-ui/ContextServices/IsSelected";
 import { cssMedia } from "@core-ui/utils/cssUtils";
 import styled from "@emotion/styled";
-import CodeBlockMenu from "@ext/markdown/elements/code/edit/components/CodeBlockMenu";
-import DiagramsMenu from "@ext/markdown/elements/diagrams/edit/components/DiagramsEditButton";
+import CodeBlockMenu from "@ext/markdown/elements/codeBlockLowlight/edit/component/CodeBlockMenu";
+import DiagramsMenu from "@ext/markdown/elements/diagrams/edit/components/DiagramsMenu";
 import DrawioMenu from "@ext/markdown/elements/drawio/edit/components/DrawioMenu";
 import ImageMenu from "@ext/markdown/elements/image/edit/components/ImageMenu";
 import NoteMenu from "@ext/markdown/elements/note/edit/components/NoteMenu";
@@ -15,6 +15,7 @@ import VideoMenu from "@ext/markdown/elements/video/edit/components/VideoMenu";
 import { Editor } from "@tiptap/react";
 import { useEffect, useState } from "react";
 import MainMenu from "./Menus/Main";
+import HTMLMenu from "@ext/markdown/elements/html/edit/components/HTMLEditButton";
 
 const Menu = styled(({ editor, id, className }: { editor: Editor; id: string; className?: string }) => {
 	const [isOpen, setIsOpen] = useState(true);
@@ -41,6 +42,7 @@ const Menu = styled(({ editor, id, className }: { editor: Editor; id: string; cl
 					<ButtonStateService.Provider editor={editor}>
 						<OpenApiMenu editor={editor} />
 						<DiagramsMenu editor={editor} />
+						<HTMLMenu editor={editor} />
 						<DrawioMenu editor={editor} />
 						<ImageMenu editor={editor} />
 						<VideoMenu editor={editor} />

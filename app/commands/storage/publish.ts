@@ -16,7 +16,7 @@ const publish: Command<
 
 	middlewares: [new NetworkConnectMiddleWare(), new AuthorizeMiddleware(), new ReloadConfirmMiddleware()],
 
-	async do({ ctx, catalogName, message, filePaths, recursive }) {
+	async do({ ctx, catalogName, message, filePaths }) {
 		const { logger, rp, wm } = this._app;
 		const workspace = wm.current();
 
@@ -28,7 +28,6 @@ const publish: Command<
 		await catalog.repo.publish({
 			message,
 			filePaths: filePaths.map((p) => new Path(p)),
-			recursive,
 			data,
 			onAdd: () =>
 				logger.logTrace(`Added in catalog "${catalogName}". Files: "${filePaths.map((p) => p).join('", "')}"`),
@@ -42,7 +41,6 @@ const publish: Command<
 			ctx,
 			message: q.commitMessage,
 			catalogName: q.catalogName,
-			recursive: q.recursive === "true",
 			filePaths: body as string[],
 		};
 	},

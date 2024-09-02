@@ -1,4 +1,4 @@
-import Language from "@ext/localization/core/model/Language";
+import UiLanguage from "@ext/localization/core/model/Language";
 import { errorWordLayout } from "@ext/wordExport/error";
 import { WordFontStyles, diagramString } from "@ext/wordExport/options/wordExportSettings";
 import { ImageRun, Paragraph, TextRun } from "docx";
@@ -6,10 +6,10 @@ import Path from "../../../../../logic/FileProvider/Path/Path";
 import ResourceManager from "../../../../../logic/Resource/ResourceManager";
 import DiagramType from "../../../../../logic/components/Diagram/DiagramType";
 import Diagrams from "../../../../../logic/components/Diagram/Diagrams";
-import { ImageDimensions, WordExportHelper } from "../../../../wordExport/WordExportHelpers";
+import { WordExportHelper } from "../../../../wordExport/WordExportHelpers";
 import { Tag } from "../../../core/render/logic/Markdoc";
 import C4Data from "../diagrams/c4Diagram/C4Data";
-import { AddOptionsWord } from "@ext/wordExport/options/WordTypes";
+import { AddOptionsWord, ImageDimensions } from "@ext/wordExport/options/WordTypes";
 
 export class WordDiagramRenderer {
 	static async renderSimpleDiagram(
@@ -17,7 +17,7 @@ export class WordDiagramRenderer {
 		addOptions: AddOptionsWord,
 		diagramType: DiagramType,
 		resourceManager: ResourceManager,
-		language: Language,
+		language: UiLanguage,
 		diagramRendererServerUrl?: string,
 	) {
 		if (tag.attributes.src && tag.attributes.content) return;
@@ -28,11 +28,8 @@ export class WordDiagramRenderer {
 			const diagram = await new Diagrams(diagramRendererServerUrl).getDiagram(diagramType, diagramContent);
 			const size = WordExportHelper.getSvgDimensions(diagram, addOptions?.maxPictureWidth);
 			const diagramImage = await WordExportHelper.svgToPngBlob(diagram, size);
-			const dimensions = await WordExportHelper.getImageSizeFromImageData(diagramImage, size.width, size.height);
 
-			const paragraphs = [
-				WordDiagramRenderer._getParagraphWithImage(await diagramImage.arrayBuffer(), dimensions),
-			];
+			const paragraphs = [WordDiagramRenderer._getParagraphWithImage(await diagramImage.arrayBuffer(), size)];
 
 			if (tag.attributes.title)
 				paragraphs.push(
@@ -53,7 +50,7 @@ export class WordDiagramRenderer {
 		addOptions: AddOptionsWord,
 		diagramType: DiagramType,
 		resourceManager: ResourceManager,
-		language: Language,
+		language: UiLanguage,
 		diagramRendererServerUrl: string,
 	) {
 		if (tag.attributes.src && tag.attributes.content) return;
@@ -69,8 +66,7 @@ export class WordDiagramRenderer {
 				diagramJson.viz.map(async (viz) => {
 					const size = WordExportHelper.getSvgDimensions(viz.svg, addOptions?.maxPictureWidth);
 					const diagramImage = await WordExportHelper.svgToPngBlob(viz.svg, size);
-					const dimensions = await WordExportHelper.getImageSizeFromImageData(diagramImage);
-					return WordDiagramRenderer._getParagraphWithImage(await diagramImage.arrayBuffer(), dimensions);
+					return WordDiagramRenderer._getParagraphWithImage(await diagramImage.arrayBuffer(), size);
 				}),
 			);
 
@@ -82,20 +78,20 @@ export class WordDiagramRenderer {
 
 	private static _getParagraphWithImage(
 		diagramImage: string | Buffer | Uint8Array | ArrayBuffer,
-		dimensions: ImageDimensions,
+		size: ImageDimensions,
 	) {
 		return new Paragraph({
-			children: [this._getImageRun(diagramImage, dimensions)],
+			children: [this._getImageRun(diagramImage, size)],
 			style: WordFontStyles.picture,
 		});
 	}
 
-	private static _getImageRun(diagramImage: string | Buffer | Uint8Array | ArrayBuffer, dimensions: ImageDimensions) {
+	private static _getImageRun(diagramImage: string | Buffer | Uint8Array | ArrayBuffer, size: ImageDimensions) {
 		return new ImageRun({
 			data: diagramImage,
 			transformation: {
-				height: dimensions.height,
-				width: dimensions.width,
+				height: size.height,
+				width: size.width,
 			},
 		});
 	}

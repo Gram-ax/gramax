@@ -110,7 +110,7 @@ const Search = (props: SearchProps) => {
 		if (isHomePage) {
 			data.forEach((d) => {
 				const url = new Path(d.url);
-				const isNewPath = RouterPathProvider.isNewPath(url);
+				const isNewPath = RouterPathProvider.isEditorPathname(url);
 				const catalogName = isNewPath
 					? RouterPathProvider.parsePath(url).catalogName
 					: RouterPathProvider.parseItemLogicPath(url).catalogName;
@@ -394,7 +394,7 @@ export default styled(Search)`
 			flex-direction: row;
 			align-items: center;
 			gap: var(--distance-i-span);
-			border-radius: var(--radius-normal);
+			border-radius: var(--radius-small);
 
 			input {
 				width: 100%;
@@ -425,7 +425,7 @@ export default styled(Search)`
 		.response {
 			width: 100%;
 			overflow-y: auto;
-			border-radius: var(--radius-normal);
+			border-radius: var(--radius-small);
 
 			.msg {
 				margin: 2em 20px;

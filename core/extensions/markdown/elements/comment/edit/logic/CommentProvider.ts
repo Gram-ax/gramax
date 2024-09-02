@@ -44,11 +44,10 @@ class CommentProvider {
 
 	private async _parse(strCommentBlock: CommentBlock<string>, context: ParserContext): Promise<CommentBlock> {
 		if (!strCommentBlock) return;
+		if (!Array.isArray(strCommentBlock.answers)) strCommentBlock.answers = [];
 		return {
 			comment: await this._parseComment(strCommentBlock.comment, context),
-			answers: await Promise.all(
-				(strCommentBlock?.answers ?? []).map(async (a) => await this._parseComment(a, context)),
-			),
+			answers: await Promise.all(strCommentBlock.answers.map(async (a) => await this._parseComment(a, context))),
 		};
 	}
 
@@ -57,11 +56,10 @@ class CommentProvider {
 	}
 
 	private async _stringify(commentBlock: CommentBlock, context: ParserContext): Promise<CommentBlock<string>> {
+		if (!Array.isArray(commentBlock.answers)) commentBlock.answers = [];
 		return {
 			comment: await this._stringifyComment(commentBlock.comment, context),
-			answers: await Promise.all(
-				(commentBlock?.answers ?? []).map(async (a) => await this._stringifyComment(a, context)),
-			),
+			answers: await Promise.all(commentBlock.answers.map(async (a) => await this._stringifyComment(a, context))),
 		};
 	}
 

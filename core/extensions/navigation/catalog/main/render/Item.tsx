@@ -4,81 +4,70 @@ import Url from "@core-ui/ApiServices/Types/Url";
 import ArticlePropsService from "@core-ui/ContextServices/ArticleProps";
 import { ItemType } from "@core/FileStructue/Item/ItemType";
 import styled from "@emotion/styled";
-import { DragOverProps } from "@minoru/react-dnd-treeview";
+import { HTMLAttributes } from "react";
 import { CategoryLink, ItemLink } from "../../../NavigationLinks";
 
-const LevNavItem = styled(
-	({
-		level,
-		item,
-		isOpen,
-		isDroppable = false,
-		dragOverProps,
-		rightExtensions,
-		leftExtensions,
-		onClick,
-		onToggle,
-		className,
-	}: {
-		level: number;
-		item?: ItemLink;
-		isOpen?: boolean;
-		isHover?: boolean;
-		isActive?: boolean;
-		isDroppable?: boolean;
-		dragOverProps?: DragOverProps;
-		rightExtensions?: JSX.Element | JSX.Element[];
-		leftExtensions?: JSX.Element | JSX.Element[];
-		onClick?: () => void;
-		onToggle?: () => void;
-		className?: string;
-	}) => {
-		const articleProps = ArticlePropsService.value;
-		const title = item ? (articleProps?.ref?.path == item?.ref?.path ? articleProps?.title : item?.title) : null;
-		const existsContent = item?.type === ItemType.category ? (item as CategoryLink)?.existContent : true;
+interface LevNavItemProps extends HTMLAttributes<HTMLDivElement> {
+	level: number;
+	item?: ItemLink;
+	isOpen?: boolean;
+	isHover?: boolean;
+	isActive?: boolean;
+	isDroppable?: boolean;
+	isDragStarted?: boolean;
+	rightExtensions?: JSX.Element | JSX.Element[];
+	leftExtensions?: JSX.Element | JSX.Element[];
+	onToggle?: () => void;
+	className?: string;
+}
 
-		const Item = (
-			<div
-				// onContextMenu={(e) => e.preventDefault()}
-				className={className + " depth-" + level + (!isOpen && isDroppable ? " a-drop-target" : "")}
-				data-qa={`catalog-navigation-${isDroppable ? "category" : "article"}-link-level-${level}`}
-				onClick={onClick}
-				{...dragOverProps}
-			>
-				{isDroppable && (
-					<Icon
-						code={isOpen ? "chevron-down" : "chevron-right"}
-						viewBox="3 3 18 18"
-						isAction
-						className="angle"
-						onClick={onToggle}
-						onClickCapture={(e) => e.preventDefault()}
-					/>
-				)}
-				<div className="text" data-qa="qa-clickable">
-					<span>{title}</span>
-					{leftExtensions}
-				</div>
-				{rightExtensions && (
-					<div className="right-extensions" onClickCapture={(e) => e.preventDefault()}>
-						{rightExtensions}
-					</div>
-				)}
+const LevNavItem = (props: LevNavItemProps) => {
+	const { level, item, isOpen, isDroppable, rightExtensions, leftExtensions, onToggle, className, ...other } = props;
+	const articleProps = ArticlePropsService.value;
+	const title = item ? (articleProps?.ref?.path == item?.ref?.path ? articleProps?.title : item?.title) : null;
+	const existsContent = item?.type === ItemType.category ? (item as CategoryLink)?.existContent : true;
+
+	const Item = (
+		<div
+			className={className + " depth-" + level + (!isOpen && isDroppable ? " a-drop-target" : "")}
+			data-qa={`catalog-navigation-${isDroppable ? "category" : "article"}-link-level-${level}`}
+			{...other}
+		>
+			{isDroppable && (
+				<Icon
+					code={isOpen ? "chevron-down" : "chevron-right"}
+					viewBox="3 3 18 18"
+					isAction
+					className="angle"
+					onClick={onToggle}
+					onClickCapture={(e) => e.preventDefault()}
+				/>
+			)}
+			<div className="text" data-qa="qa-clickable">
+				<span title={title}>{item?.external || title}</span>
+				{leftExtensions}
 			</div>
-		);
+			{rightExtensions && (
+				<div className="right-extensions" onClickCapture={(e) => e.preventDefault()}>
+					{rightExtensions}
+				</div>
+			)}
+		</div>
+	);
 
-		if (!item || articleProps?.ref?.path == item?.ref?.path || !existsContent) return Item;
-		return <Link href={Url.from(item)}>{Item}</Link>;
-	},
-)`
+	if (!item || articleProps?.ref?.path == item?.ref?.path || !existsContent) return Item;
+	return <Link href={Url.from(item)}>{Item}</Link>;
+};
+
+export default styled(LevNavItem)`
 	display: flex;
 	padding: 5px 0;
 	cursor: pointer;
 	font-weight: 300;
 	align-items: center;
-	padding-right: 20px !important;
+	padding-right: 14px !important;
 	padding-left: var(--left-padding) !important;
-	color: var(--color-primary-general) !important;
+	${(p) => (p.item.external ? "color: var(--color-primary-general-inverse)" : "color: var(--color-primary-general)")};
 
 	${(p) =>
 		p.level !== 0
@@ -96,15 +85,6 @@ const LevNavItem = styled(
 		display: inline-flex !important;
 	}
 `}
-
-
-	:hover {
-		background: var(--color-lev-sidebar-hover);
-
-		.right-extensions {
-			display: inline-flex;
-		}
-	}
 
 	${(p) =>
 		!(p.isActive ?? false)
@@ -161,6 +141,17 @@ const LevNavItem = styled(
 			font-size: 14px !important;
 		}
 	}
-`;
 
-export default LevNavItem;
+	${(p) =>
+		p.isDragStarted
+			? ``
+			: `
+	:hover {
+		background: var(--color-lev-sidebar-hover);
+
+		.right-extensions {
+			display: inline-flex;
+		}
+	}
+	`}
+`;

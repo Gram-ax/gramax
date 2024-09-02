@@ -28,9 +28,8 @@ export class IndexDataProvider {
 	}
 
 	private _getOnChangeRule() {
-		return async (changeItems: PChangeCatalog[]): Promise<void> => {
-			const catalogNames = [...new Set(changeItems.map((item) => item.catalog.getName()))];
-			await Promise.all(catalogNames.map((catalogName) => this._getAndCreateIndexData(catalogName)));
+		return async (update: PChangeCatalog): Promise<void> => {
+			await this._getAndCreateIndexData(update.catalog.getName());
 		};
 	}
 
@@ -46,7 +45,6 @@ export class IndexDataProvider {
 				pathname: await article.getPathname(),
 				title: article.getProp("title"),
 				content: content ?? "",
-				tags: article.getProp("tags")?.join(" "),
 			};
 		});
 
@@ -59,7 +57,8 @@ export class IndexDataProvider {
 
 	private async _getIndexDataFromStorage(catalogName: string): Promise<IndexData[]> {
 		try {
-			return this._storage.get(catalogName).then((data) => JSON.parse(data));
+			const data = await this._storage.get(catalogName);
+			return JSON.parse(data);
 		} catch (e) {
 			console.log(e);
 			return this._getAndCreateIndexData(catalogName);

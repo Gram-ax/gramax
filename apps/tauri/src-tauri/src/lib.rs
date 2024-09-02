@@ -9,6 +9,7 @@ extern crate rstest;
 extern crate rust_i18n;
 
 mod commands;
+mod error;
 mod http_server;
 mod platform;
 
@@ -32,10 +33,23 @@ trait AppBuilder {
   fn attach_commands(self) -> Self;
 }
 
+trait AppHandleExt<R: Runtime> {
+  fn get_focused_webview(&self) -> Option<WebviewWindow<R>>;
+}
+
+impl<R: Runtime> AppHandleExt<R> for AppHandle<R> {
+  fn get_focused_webview(&self) -> Option<WebviewWindow<R>> {
+    self.webview_windows().values().find(|wv| wv.is_focused().unwrap_or_default()).cloned()
+  }
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
+  crate::error::setup_bugsnag_and_panic_hook(
+    option_env!("BUGSNAG_API_KEY").unwrap_or_default().to_string(),
+  );
+  set_locale();
   start_ping_server();
-  rust_i18n::set_locale(&sys_locale::get_locale().unwrap_or("en".to_string()));
 
   let builder = Builder::default().init().attach_commands().attach_plugins();
   let context = tauri::generate_context!();
@@ -108,6 +122,11 @@ impl<R: Runtime> AppBuilder for Builder<R> {
   fn attach_commands(self) -> Self {
     commands::generate_handler(self)
   }
+}
+
+fn set_locale() {
+  let locale = &sys_locale::get_locale().unwrap_or("en".to_string());
+  rust_i18n::set_locale(locale.split_once("-").map(|l| l.0).unwrap_or(locale));
 }
 
 pub fn build_main_window<R: Runtime>(app: &AppHandle<R>) -> Result<WebviewWindow<R>> {

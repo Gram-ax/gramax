@@ -26,6 +26,7 @@ const mergeInto: Command<
 
 		const sourceData = rp.getSourceData(ctx.cookie, await storage.getSourceName());
 		const mergeResult = await catalog.repo.mergeInto(branchName, deleteAfterMerge, sourceData);
+		const state = await catalog.repo.getState();
 		if (!mergeResult.length) {
 			await catalog.update(rp);
 		}
@@ -36,7 +37,7 @@ const mergeInto: Command<
 			: {
 					ok: false,
 					mergeFiles: mergeResult,
-					reverseMerge: (catalog.repo.state as RepMergeConflictState).data.reverseMerge,
+					reverseMerge: (state as RepMergeConflictState).data.reverseMerge,
 					caller: MergeConflictCaller.Branch,
 			  };
 	},

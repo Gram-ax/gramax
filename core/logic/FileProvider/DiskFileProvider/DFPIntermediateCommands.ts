@@ -1,3 +1,4 @@
+import resolveModule from "@app/resolveModule/backend";
 import call from "@app/resolveModule/fscall";
 import FileInfo from "@core/FileProvider/model/FileInfo";
 import { Buffer } from "buffer";
@@ -49,3 +50,5 @@ export const rm = async (path: string, opts?: { recursive?: boolean; force?: boo
 		if (!opts?.force) throw err;
 	}
 };
+
+export const moveToTrash = (path: string) => resolveModule("moveToTrash")(path);

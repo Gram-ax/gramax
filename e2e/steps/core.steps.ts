@@ -28,18 +28,22 @@ Given("смотрим на редактор", { timeout: config.timeouts.short }
 	this.page().search().reset();
 	const editor = await this.page().search().lookup("editor", null, true);
 	if ((await editor.count()) > 0) {
-		await editor.locator(":nth-child(1)").locator(":nth-child(1)").first().click({ clickCount: 1, delay: 200 });
+		await editor.locator(":nth-child(1)").locator(":nth-child(1)").first().focus();
 	} else {
 		this.page().search().reset();
 		const articleEditor = await this.page().search().lookup("article-editor", null, true);
-		if ((await articleEditor.count()) > 0) {
-			await articleEditor
-				.locator(":nth-child(1)")
-				.locator(":nth-child(2)")
-				.first()
-				.click({ clickCount: 1, delay: 200 });
-		}
+		if ((await articleEditor.count()) > 0) await articleEditor.press("ArrowDown");
 	}
+});
+
+Given("смотрим на редактор Monaco", { timeout: config.timeouts.short }, async function (this: E2EWorld) {
+	const monaco = this.page().inner().locator("div.view-lines.monaco-mouse-cursor-text").last();
+	await monaco.click();
+	await monaco.focus();
+});
+
+Then("видим текст {string} на странице", async function (this: E2EWorld, text: string) {
+	expect(await this.page().inner().getByText(text).textContent()).toEqual(text);
 });
 
 Given("смотрим на редактор заголовка", { timeout: config.timeouts.short }, async function (this: E2EWorld) {
@@ -62,6 +66,10 @@ Given("ждём {float} секунд(ы)(у)", { timeout: 1000000 }, async funct
 
 When("смотрим на подсказку", async function (this: E2EWorld) {
 	await this.page().search().reset().scope(".tippy-content", "find");
+});
+
+When("смотрим на вложенную подсказку", async function (this: E2EWorld) {
+	await this.page().search().scope(".tippy-content", "find");
 });
 
 When("нажимаем на кнопку {string}", { timeout: config.timeouts.medium }, async function (this: E2EWorld, text: string) {
@@ -169,7 +177,7 @@ Then("папка/файл/путь {string} не существует", async fu
 Then("разметка текущей статьи содержит", async function (this: E2EWorld, text: string) {
 	await sleep(10);
 	if (text.includes("(*)")) await this.page().keyboard().type("(*)");
-	const content = (await this.page().asArticle().getContent()).replace("(\\*)", "(*)");
+	const content = (await this.page().asArticle().getContent())?.replace("(\\*)", "(*)");
 	expect(content).toEqual(text);
 });
 

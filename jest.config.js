@@ -33,6 +33,9 @@ module.exports = {
 	],
 	reporters: ["default", ["jest-junit", { suiteName: "jest tests" }]],
 	moduleNameMapper: {
+		"react-dnd": "<rootDir>/app/test/__mocks__/react-dnd.js",
+		"^lowlight$": "<rootDir>/app/test/__mocks__/lowlight.js",
+		"^hast-util-to-jsx-runtime$": "<rootDir>/app/test/__mocks__/lowlight.js",
 		viteenv: "<rootDir>/app/test/__mocks__/mermaid.js",
 		"\\.(css|scss)$": "identity-obj-proxy",
 		"^lodash-es(/(.*)|$)": "lodash$1",

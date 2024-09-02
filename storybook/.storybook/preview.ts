@@ -22,6 +22,12 @@ initialize(
 		rest.get("/api/comments/getNavigationUnresolvedCommentsCount", (_req, res, ctx) => {
 			return res(ctx.status(200), ctx.json({ "": 0 }));
 		}),
+		rest.get("/api/plugin/addLocals", (_req, res, ctx) => {
+			return res(ctx.status(200));
+		}),
+		rest.get("/api/plugin/init", (_req, res, ctx) => {
+			return res(ctx.status(200));
+		}),
 	],
 );
 

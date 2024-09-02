@@ -17,11 +17,11 @@ export enum unSupportedElements {
 class HTMLComponents {
 	private _publicApiUrlCreator: PublicApiUrlCreator;
 
-	constructor(private _requestUrl: string, private _context: ParserContext) {
+	constructor(private _requestUrl: string, context: ParserContext) {
 		this._publicApiUrlCreator = new PublicApiUrlCreator(
-			encodeURIComponent(_context.getCatalog()?.getName()),
-			encodeURIComponent(_context.getArticle()?.ref.path.value),
-			_context.getBasePath().value,
+			encodeURIComponent(context.getCatalog()?.getName()),
+			context.getArticle()?.logicPath,
+			context.getBasePath().value,
 		);
 	}
 
@@ -56,7 +56,7 @@ class HTMLComponents {
 			const newHref = resourcePath
 				? isFile
 					? this._getApiArticleResource(resourcePath)
-					: this._getArticleLink(resourcePath, hash)
+					: this._getApiArticle(href, hash)
 				: href;
 			return <a href={newHref}>{children}</a>;
 		};
@@ -95,13 +95,8 @@ class HTMLComponents {
 		);
 	};
 
-	private _getArticleLink(path: string, hash: string) {
-		const modifiedLink = this._context.getLinkManager().getAbsolutePath(new Path(path));
-		return this._getApiArticle(modifiedLink.toString(), hash);
-	}
-
 	private _getApiArticle(link: string, hash?: string) {
-		const url = this._publicApiUrlCreator.getApiArticle(link, hash);
+		const url = this._publicApiUrlCreator.getApiArticle(link.replace(hash, ""), hash);
 		return this._addRequestUrl(url.toString());
 	}
 

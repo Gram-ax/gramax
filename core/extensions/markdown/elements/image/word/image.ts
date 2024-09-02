@@ -6,7 +6,11 @@ import { Tag } from "@ext/markdown/core/render/logic/Markdoc";
 import ResourceManager from "@core/Resource/ResourceManager";
 import { errorWordLayout } from "@ext/wordExport/error";
 import ParserContext from "@ext/markdown/core/Parser/ParserContext/ParserContext";
-import { AddOptionsWord } from "@ext/wordExport/options/WordTypes";
+import { AddOptionsWord, WordBlockChild } from "@ext/wordExport/options/WordTypes";
+
+export const renderImageWordLayout: WordBlockChild = async ({ tag, addOptions, resourceManager, parserContext }) => {
+	return imageWordLayout(tag, addOptions, resourceManager, parserContext);
+};
 
 export const imageWordLayout = async (
 	tag: Tag,
@@ -19,6 +23,9 @@ export const imageWordLayout = async (
 			new Path(tag.attributes.src),
 			resourceManager,
 			addOptions?.maxPictureWidth,
+			undefined,
+			tag.attributes.crop,
+			tag.attributes.objects,
 		);
 
 		const paragraphs = [

@@ -5,6 +5,7 @@ import Path from "@core/FileProvider/Path/Path";
 import Hash from "@core/Hash/Hash";
 import PluginImporterType from "@core/Plugin/PluginImporter/logic/PluginImporterType";
 import PluginProvider from "@core/Plugin/logic/PluginProvider";
+import ResourceUpdaterFactory from "@core/Resource/ResourceUpdaterFactory";
 import CustomArticlePresenter from "@core/SitePresenter/CustomArticlePresenter";
 import SitePresenterFactory from "@core/SitePresenter/SitePresenterFactory";
 import { TableDB } from "@core/components/tableDB/table";
@@ -17,7 +18,7 @@ import ThemeManager from "@ext/Theme/ThemeManager";
 import BlankWatcher from "@ext/Watchers/BlankWatcher";
 import RepositoryProvider from "@ext/git/core/Repository/RepositoryProvider";
 import HtmlParser from "@ext/html/HtmlParser";
-import FSLocalizationRules from "@ext/localization/core/rules/FSLocalizationRules";
+import { mountFSEvents } from "@ext/localization/core/events/FSLocalizationEvents";
 import BugsnagLogger from "@ext/loggers/BugsnagLogger";
 import ConsoleLogger from "@ext/loggers/ConsoleLogger";
 import Logger, { LogLevel } from "@ext/loggers/Logger";
@@ -40,13 +41,11 @@ const _init = async (config: AppConfig): Promise<Application> => {
 
 	const watcher = new BlankWatcher(); // config.isProduction ? new ChokidarWatcher() :
 
-	const sso = new Sso(config.services.sso.url);
-
 	const rp = new RepositoryProvider();
 
 	const wm = new WorkspaceManager(
 		(path) => new DiskFileProvider(new Path(path), watcher),
-		(fs) => FSLocalizationRules.bind(fs),
+		(fs) => mountFSEvents(fs),
 		rp,
 		config,
 		YamlFileConfig.dummy(),
@@ -57,7 +56,6 @@ const _init = async (config: AppConfig): Promise<Application> => {
 
 	const formatter = new MarkdownFormatter();
 
-	const envAuth = new EnvAuth(config.paths.base, config.admin.login, config.admin.password);
 	const encoder = new Encoder();
 
 	const ticketManager = new TicketManager(wm, encoder, config.tokens.share);
@@ -75,7 +73,12 @@ const _init = async (config: AppConfig): Promise<Application> => {
 	const mp: MailProvider = new MailProvider(config.mail);
 
 	const tm = new ThemeManager();
-	const am = new AuthManager(envAuth, ticketManager);
+	const am = new AuthManager(
+		config.services.sso.url
+			? new Sso(config.services.sso.url, config.services.sso.publicKey)
+			: new EnvAuth(config.paths.base, config.admin.login, config.admin.password),
+		ticketManager,
+	);
 	const contextFactory = new ContextFactory(tm, config.tokens.cookie, am, config.isServerApp);
 	const sitePresenterFactory = new SitePresenterFactory(wm, parser, parserContextFactory, rp, customArticlePresenter);
 
@@ -83,12 +86,12 @@ const _init = async (config: AppConfig): Promise<Application> => {
 	await cacheFileProvider.createRootPathIfNeed();
 	const cache = new Cache(cacheFileProvider);
 	const pluginProvider = new PluginProvider(wm, htmlParser, cache, PluginImporterType.next);
+	const resourceUpdaterFactory = new ResourceUpdaterFactory(parser, parserContextFactory, formatter);
 
 	return {
 		tm,
 		am,
 		mp,
-		sso,
 		rp,
 		wm,
 		vur,
@@ -105,6 +108,7 @@ const _init = async (config: AppConfig): Promise<Application> => {
 		sitePresenterFactory,
 		pluginProvider,
 		customArticlePresenter,
+		resourceUpdaterFactory,
 		conf: {
 			glsUrl: config.glsUrl,
 			isRelease: config.isRelease,

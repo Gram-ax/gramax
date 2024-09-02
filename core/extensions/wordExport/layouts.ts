@@ -3,13 +3,13 @@ import { blockquoteWordLayout } from "@ext/markdown/elements/blockquote/word/blo
 import { brWordLayout } from "@ext/markdown/elements/br/word/br";
 import { cmdWordLayout } from "@ext/markdown/elements/cmd/word/cmd";
 import { codeWordLayout } from "@ext/markdown/elements/code/word/code";
+import { fenceWordLayout } from "@ext/markdown/elements/codeBlockLowlight/word";
 import { colorWordLayout } from "@ext/markdown/elements/color/word/color";
 import { cutBlockWordLayout } from "@ext/markdown/elements/cut/word/cutBlock";
 import { cutInlineWordLayout } from "@ext/markdown/elements/cut/word/cutInline";
 import { mermaidWordLayout } from "@ext/markdown/elements/diagrams/diagrams/mermaid/word/mermaid";
 import { drawioWordLayout } from "@ext/markdown/elements/drawio/word/drawio";
 import { emWordLayout } from "@ext/markdown/elements/em/word/em";
-import { fenceWordLayout } from "@ext/markdown/elements/fence/word/fence";
 import { headingWordLayout } from "@ext/markdown/elements/heading/word/heading";
 import { hrWordLayout } from "@ext/markdown/elements/hr/word/hr";
 import { includeWordLayout } from "@ext/markdown/elements/include/word/include";
@@ -35,11 +35,12 @@ import { snippetWordLayout } from "@ext/markdown/elements/snippet/word/snippet";
 import { tabledbWordlayout } from "../markdown/elements/tabledb/word/tabledb";
 import { videoWordLayout } from "../markdown/elements/video/word/video";
 import { iconWordLayout } from "@ext/markdown/elements/icon/render/word/icon";
+import { tableLayout } from "@ext/markdown/elements/table/word/transformer/getTableChilds";
+import { strikeWordLayout } from "@ext/markdown/elements/strikethrough/word/strike";
+import { renderImageWordLayout } from "@ext/markdown/elements/image/word/image";
 // import { imagesWordLayout } from "@ext/markdown/elements/imgs/word/imgs";
 // import { seeWordLayout } from "@ext/markdown/elements/see/word/see";
 // import { formulaWordLayout } from "../markdown/elements/formula/word/formula";
-import { tableLayout } from "@ext/markdown/elements/table/word/transformer/getTableChilds";
-import { strikeWordLayout } from "@ext/markdown/elements/strikethrough/word/strike";
 
 export const inlineLayouts = {
 	strong: strongWordLayout,
@@ -83,6 +84,7 @@ export const blockLayouts = {
 	Tabs: tabsWordLayout,
 	Snippet: snippetWordLayout,
 	Video: videoWordLayout,
+	Image: renderImageWordLayout,
 	"Plant-uml": plantUMLWordLayout,
 	"Db-diagram": diagramdbWordLayout,
 	"Ts-diagram": tsDiagramWordLayout,
@@ -98,6 +100,5 @@ export const exportedKeys = new Set<string>([
 	...Object.keys(blockLayouts),
 	...Object.keys(tableLayout),
 	"Tab",
-	"Image",
 	undefined,
 ]);

@@ -6,7 +6,7 @@ import type { CatalogLink } from "@ext/navigation/NavigationLinks";
 const CatalogFetchNotification = ({ catalogLink }: { catalogLink: CatalogLink }) => {
 	const syncCount = CatalogSyncService.getSyncCount(catalogLink.name);
 
-	if (!syncCount || !syncCount.hasChanges) return null;
+	if (!(syncCount && (syncCount.errorMessage || syncCount.hasChanges))) return null;
 
 	const pull = syncCount.pull > 0 ? syncCount.pull : syncCount.hasChanges && "";
 	const message = syncCount.errorMessage ? "!" : pull;

@@ -4,7 +4,7 @@
 	color: white;
 	font-size: 12px;
 	padding: 1px 3px;
-	border-radius: var(--radius-normal);
+	border-radius: var(--radius-small);
 }
 
 .article-body .alfa:before {

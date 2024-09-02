@@ -1,6 +1,5 @@
 export default `<svg
 	xmlns="http://www.w3.org/2000/svg"
-	style="background-color: rgb(255, 255, 255);"
 	xmlns:xlink="http://www.w3.org/1999/xlink"
 	version="1.1"
 	width="211px"
@@ -9,7 +8,6 @@ export default `<svg
 	content='&lt;mxfile host="gram.ax" modified="2024-07-18T06:51:07.562Z" agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:128.0) Gecko/20100101 Firefox/128.0" etag="PmIRaG0YGf4FPfd893Q0" version="24.3.1" type="embed" scale="1" border="0"&gt;&#xA;  &lt;diagram id="0UfPkyyqbAn2JO725Rxe" name="Page-1"&gt;&#xA;    &lt;mxGraphModel dx="1814" dy="914" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0"&gt;&#xA;      &lt;root&gt;&#xA;        &lt;mxCell id="0" /&gt;&#xA;        &lt;mxCell id="1" parent="0" /&gt;&#xA;        &lt;mxCell id="-t71Qm6tdKJA_Hh_hk4v-2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" parent="1" source="-t71Qm6tdKJA_Hh_hk4v-1" edge="1"&gt;&#xA;          &lt;mxGeometry relative="1" as="geometry"&gt;&#xA;            &lt;mxPoint x="520" y="440" as="targetPoint" /&gt;&#xA;          &lt;/mxGeometry&gt;&#xA;        &lt;/mxCell&gt;&#xA;        &lt;mxCell id="-t71Qm6tdKJA_Hh_hk4v-5" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" parent="1" source="-t71Qm6tdKJA_Hh_hk4v-1" edge="1"&gt;&#xA;          &lt;mxGeometry relative="1" as="geometry"&gt;&#xA;            &lt;mxPoint x="520" y="500" as="targetPoint" /&gt;&#xA;          &lt;/mxGeometry&gt;&#xA;        &lt;/mxCell&gt;&#xA;        &lt;mxCell id="-t71Qm6tdKJA_Hh_hk4v-1" value="" style="rounded=1;whiteSpace=wrap;html=1;" parent="1" vertex="1"&gt;&#xA;          &lt;mxGeometry x="350" y="440" width="120" height="60" as="geometry" /&gt;&#xA;        &lt;/mxCell&gt;&#xA;        &lt;mxCell id="-t71Qm6tdKJA_Hh_hk4v-3" value="" style="rhombus;whiteSpace=wrap;html=1;" parent="1" vertex="1"&gt;&#xA;          &lt;mxGeometry x="520" y="420" width="40" height="40" as="geometry" /&gt;&#xA;        &lt;/mxCell&gt;&#xA;        &lt;mxCell id="-t71Qm6tdKJA_Hh_hk4v-6" value="" style="rhombus;whiteSpace=wrap;html=1;" parent="1" vertex="1"&gt;&#xA;          &lt;mxGeometry x="520" y="480" width="40" height="40" as="geometry" /&gt;&#xA;        &lt;/mxCell&gt;&#xA;      &lt;/root&gt;&#xA;    &lt;/mxGraphModel&gt;&#xA;  &lt;/diagram&gt;&#xA;&lt;/mxfile&gt;&#xA;'
 >
 	<defs />
-	<rect fill="#ffffff" width="100%" height="100%" x="0" y="0" />
 	<g>
 		<g>
 			<path

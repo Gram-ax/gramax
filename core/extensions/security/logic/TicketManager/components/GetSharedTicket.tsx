@@ -4,15 +4,13 @@ import Modal from "@components/Layouts/Modal";
 import ModalLayoutLight from "@components/Layouts/ModalLayoutLight";
 import ListLayout from "@components/List/ListLayout";
 import FetchService from "@core-ui/ApiServices/FetchService";
-import Fetcher from "@core-ui/ApiServices/Types/Fetcher";
-import UseSWRService from "@core-ui/ApiServices/UseSWRService";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import styled from "@emotion/styled";
 import t from "@ext/localization/locale/translate";
-import Fence from "@ext/markdown/elements/fence/render/component/Fence";
+import CodeBlock from "@ext/markdown/elements/codeBlockLowlight/render/component/CodeBlock";
 import Form from "@rjsf/core";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 const jsonScheme = {
 	type: "object",
@@ -32,12 +30,21 @@ const GetSharedTicket = styled((props: { trigger: JSX.Element; className?: strin
 
 	const [date, setDate] = useState<string>("01.01.9999");
 	const [group, setGroup] = useState<string>(null);
+	const [groups, setGroups] = useState<string[]>(null);
 	const [ticket, setTicket] = useState<string>(null);
 	const [showData, setShowDate] = useState(false);
 
 	const sharedLinkUrl = apiUrlCreator.getShareTicket(group, date);
-	const permissionValuesUrl = apiUrlCreator.getPermissionValuesUrl();
-	const { data: groups } = UseSWRService.getData<string[]>(permissionValuesUrl, Fetcher.json);
+
+	useEffect(() => {
+		const loadGroups = async () => {
+			const permissionValuesUrl = apiUrlCreator.getPermissionValuesUrl();
+			const res = await FetchService.fetch<string[]>(permissionValuesUrl);
+			if (!res.ok) return;
+			setGroups(await res?.json?.());
+		};
+		loadGroups();
+	}, [apiUrlCreator]);
 
 	jsonScheme.properties.date.default = date;
 
@@ -104,11 +111,11 @@ const GetSharedTicket = styled((props: { trigger: JSX.Element; className?: strin
 							className="article bottom-content res"
 							style={ticket ? { transform: "translateY(0%)" } : { padding: 0 }}
 						>
-							{ticket ? (
+							{ticket && (
 								<div className="field small-code">
-									<Fence value={ticket} />
+									<CodeBlock value={ticket} />
 								</div>
-							) : null}
+							)}
 						</div>
 					</>
 				</FormStyle>

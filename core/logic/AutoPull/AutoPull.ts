@@ -27,7 +27,7 @@ const autoPull = (app: Application) => {
 			if (await catalog.repo.haveToPull({ data: sourceData })) {
 				await catalog.repo.sync({
 					data: sourceData,
-					recursive: true,
+					recursivePull: true,
 					onPull: () => logger.logInfo(`Auto-pulled catalog "${catalogName}".`),
 				});
 			}

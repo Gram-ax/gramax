@@ -12,7 +12,10 @@ export default class ArticlePageContext extends PageContext {
 		const path = this._parsePath(this.url());
 		await this.forceSave();
 		return await this._page.evaluate(async ([path1, path2]) => {
-			const ctx = window.app.contextFactory.fromBrowser("ru" as any, {});
+			const ctx = window.app.contextFactory.fromBrowser(
+				window.debug?.RouterPathProvider?.parsePath(window.location.pathname)?.language || "ru",
+				{},
+			);
 			const presenter = window.app.sitePresenterFactory.fromContext(ctx);
 			return (
 				(await presenter.getArticleByPathOfCatalog(path1)).article?.content ??

@@ -3,21 +3,21 @@ import resolveModule from "@app/resolveModule/backend";
 import { getExecutingEnvironment } from "@app/resolveModule/env";
 import type FileProvider from "@core/FileProvider/model/FileProvider";
 import Path from "@core/FileProvider/Path/Path";
-import type { ChangeCatalog } from "@core/FileStructue/Catalog/Catalog";
+import type { CatalogFilesUpdated } from "@core/FileStructue/Catalog/Catalog";
 import CatalogEntry from "@core/FileStructue/Catalog/CatalogEntry";
 import FileStructure from "@core/FileStructue/FileStructure";
 import mergeObjects from "@core/utils/mergeObjects";
 import { uniqueName } from "@core/utils/uniqueName";
 import YamlFileConfig from "@core/utils/YamlFileConfig";
 import RepositoryProvider from "@ext/git/core/Repository/RepositoryProvider";
+import t from "@ext/localization/locale/translate";
 import NoActiveWorkspace from "@ext/workspace/error/NoActiveWorkspaceError";
 import WorkspaceMissingPath from "@ext/workspace/error/UnknownWorkspace";
-import t from "@ext/localization/locale/translate";
 import { Workspace } from "@ext/workspace/Workspace";
 import type { WorkspaceConfig, WorkspacePath } from "@ext/workspace/WorkspaceConfig";
 
 export type FSCreatedCallback = (fs: FileStructure) => void;
-export type CatalogChangedCallback = (items: ChangeCatalog[]) => void | Promise<void>;
+export type CatalogChangedCallback = (change: CatalogFilesUpdated) => void | Promise<void>;
 export type FSCatalogsInitializedCallback = (fp: FileProvider, catalogs: CatalogEntry[]) => void;
 export type FSFileProviderFactory = (path: WorkspacePath) => FileProvider;
 
@@ -49,7 +49,7 @@ export default class WorkspaceManager {
 		const fs = new FileStructure(fp, this._config.isServerApp);
 		this._callback(fs);
 		this._current = await Workspace.init({ fs, rp: this._rp, path, config: init });
-		this._rules?.forEach(this._current.addOnChangeRule.bind(this._current));
+		this._rules?.forEach((fn) => this._current.events.on("catalog-changed", fn));
 
 		this._workspacesConfig.set("latest-workspace", this._current.path());
 
@@ -119,7 +119,7 @@ export default class WorkspaceManager {
 	async removeWorkspace(path: WorkspacePath) {
 		const fp = this._makeFileProvider(path);
 		if (getExecutingEnvironment() == "browser") await fp.delete(Path.empty);
-		else await fp.delete(WORKSPACE_CONFIG_FILENAME);
+		else await fp.delete(WORKSPACE_CONFIG_FILENAME, true);
 		this._workspaces.delete(path);
 		await this.saveWorkspaces();
 		if (this.current().path() == path) await this.setWorkspace(this.workspaces()[0].path);
@@ -154,16 +154,16 @@ export default class WorkspaceManager {
 		return this.maybeCurrent();
 	}
 
-	addOnChangeRule(callback: CatalogChangedCallback) {
+	onCatalogChange(callback: CatalogChangedCallback) {
 		this._rules.push(callback);
-		this.maybeCurrent()?.addOnChangeRule(callback);
+		this.maybeCurrent()?.events.on("catalog-changed", callback);
 	}
 
 	private async readWorkspace(fp: FileProvider, config?: WorkspaceConfig) {
 		const yaml = await YamlFileConfig.readFromFile(fp, WORKSPACE_CONFIG_FILENAME, {
 			name: config?.name || t(DEFAULT_WORKSPACE_NAME),
 			icon: config?.icon || DEFAULT_WORKSPACE_ICON,
-			groups: config?.groups,
+			groups: config?.groups ?? null,
 			isEnterprise: config?.isEnterprise ?? false,
 			services: mergeObjects<ServicesConfig>(this._config.services, config?.services ?? {}),
 		});

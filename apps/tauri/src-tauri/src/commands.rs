@@ -1,5 +1,8 @@
 use rust_i18n::locale;
+use std::path::Path;
+use std::sync::OnceLock;
 use tauri::*;
+use tauri_plugin_dialog::DialogExt;
 
 use std::collections::HashMap;
 
@@ -15,9 +18,38 @@ pub fn generate_handler<R: Runtime>(builder: Builder<R>) -> Builder<R> {
     quit,
     read_env,
     request_delete_config,
+    move_to_trash,
     #[cfg(target_os = "macos")]
     show_print
   ])
+}
+
+#[tauri::command]
+pub(crate) fn move_to_trash<R: Runtime>(window: Window<R>, path: &Path) -> std::result::Result<(), String> {
+  static DIALOG_DID_SHOWED: OnceLock<()> = OnceLock::new();
+
+  let Err(err) = trash::delete(path) else { return Ok(()) };
+  if DIALOG_DID_SHOWED.get().is_some() {
+    return Err(err.to_string());
+  }
+
+  _ = DIALOG_DID_SHOWED.set(());
+
+  let message = match &err {
+    trash::Error::CouldNotAccess { target: _ } => t!("trash.no-permissions", path = path.display()),
+    err => t!("trash.fail", path = path.display(), err = err.to_string()),
+  };
+
+  window
+    .dialog()
+    .message(message)
+    .title(t!("trash.title"))
+    .kind(tauri_plugin_dialog::MessageDialogKind::Error)
+    .parent(&window)
+    .ok_button_label(t!("etc.ok"))
+    .show(|_| {});
+
+  Err(err.to_string())
 }
 
 #[tauri::command]

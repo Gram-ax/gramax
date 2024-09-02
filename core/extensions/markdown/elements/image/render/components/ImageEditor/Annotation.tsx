@@ -3,6 +3,7 @@ import styled from "@emotion/styled";
 import { objectMove } from "@ext/markdown/elements/image/edit/logic/imageEditorMethods";
 import { RefObject, useEffect, useRef, useState } from "react";
 import { AnnotationObject } from "../../../edit/model/imageEditorTypes";
+import { cssMedia } from "@core-ui/utils/cssUtils";
 
 interface AnnotationObjectProps extends AnnotationObject {
 	parentRef: RefObject<HTMLDivElement>;
@@ -79,6 +80,8 @@ export default styled(Annotation)`
 	justify-content: center;
 	align-items: center;
 	background-color: #fc2847;
+	-webkit-print-color-adjust: exact;
+	print-color-adjust: exact;
 	width: 22px;
 	height: 22px;
 	border-radius: 50%;
@@ -99,5 +102,15 @@ export default styled(Annotation)`
 		margin: 0 !important;
 		user-select: none;
 		pointer-events: none;
+	}
+
+	${cssMedia.narrow} {
+		::before {
+			content: "";
+			position: absolute;
+			inset: -12px;
+			border-radius: 50%;
+			background-color: transparent;
+		}
 	}
 `;

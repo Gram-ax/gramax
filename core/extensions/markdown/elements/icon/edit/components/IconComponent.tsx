@@ -9,8 +9,8 @@ const IconComponent = ({ node, getPos }: NodeViewProps): ReactElement => {
 
 	return (
 		<NodeViewWrapper as={"span"}>
-			<Focus position={getPos()} isMd>
-				<span data-focusable="true" style={{ borderRadius: "var(--radius-normal)" }}>
+			<Focus getPos={getPos} isMd>
+				<span data-focusable="true" style={{ borderRadius: "var(--radius-small)" }}>
 					<Icon {...{ code, svg, color }} />
 				</span>
 			</Focus>

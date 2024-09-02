@@ -1,3 +1,5 @@
+import type { ContentLanguage } from "@ext/localization/core/model/Language";
+
 interface BasePathnameData {
 	sourceName: string;
 	group: string;
@@ -5,6 +7,7 @@ interface BasePathnameData {
 	branch: string;
 	catalogName: string;
 	filePath: string[];
+	language: ContentLanguage;
 	hash: string;
 	itemLogicPath: string[];
 	repNameItemLogicPath: string[];

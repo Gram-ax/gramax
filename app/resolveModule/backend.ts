@@ -2,6 +2,7 @@ interface DynamicModules {
 	Cookie: typeof BrowserCookie | typeof NextCookie;
 	initWasm: (corsProxy: string) => Promise<void>;
 	requestDeleteOldConfig: () => Promise<void>;
+	moveToTrash: (path: string) => Promise<void>;
 }
 
 let modules: DynamicModules;
@@ -15,6 +16,7 @@ modules = {
 	Cookie: BrowserCookie,
 	initWasm: initWasm,
 	requestDeleteOldConfig: () => Promise.resolve(),
+	moveToTrash: () => Promise.resolve(),
 };
 
 /// #endif
@@ -28,6 +30,7 @@ modules = {
 	Cookie: NextCookie,
 	initWasm: () => Promise.resolve(),
 	requestDeleteOldConfig: () => Promise.resolve(),
+	moveToTrash: () => Promise.resolve(),
 };
 
 // #v-endif
@@ -36,12 +39,13 @@ modules = {
 /// #if VITE_ENVIRONMENT == "tauri"
 // #v-ifdef VITE_ENVIRONMENT=tauri
 import TauriCookie from "../../apps/browser/src/logic/BrowserCookie";
-import { requestDeleteOldConfig } from "../../apps/tauri/src/window/commands";
+import { moveToTrash, requestDeleteOldConfig } from "../../apps/tauri/src/window/commands";
 
 modules = {
 	Cookie: TauriCookie,
 	initWasm: () => Promise.resolve(),
 	requestDeleteOldConfig: requestDeleteOldConfig,
+	moveToTrash: moveToTrash,
 };
 
 // #v-endif;
@@ -55,6 +59,7 @@ modules = {
 	Cookie: JestCookie,
 	initWasm: () => Promise.resolve(),
 	requestDeleteOldConfig: () => Promise.resolve(),
+	moveToTrash: () => Promise.resolve(),
 };
 
 // #v-endif;

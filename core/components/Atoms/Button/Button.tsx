@@ -59,14 +59,13 @@ const Button = forwardRef((props: ButtonProps, ref?: MutableRefObject<HTMLDivEle
 
 export default styled(Button)`
 	${(p) => (p.disabled ? `pointer-events: none; opacity: 0.4;` : ``)}
-
 	.fullWidth {
 		width: 100% !important;
 	}
 
 	.content {
 		width: fit-content;
-		padding: 0.33${(p) => (p.isEmUnits ? "em" : "rem")} 0.88${(p) => (p.isEmUnits ? "em" : "rem")};
+		padding: ${(p) => (p.isEmUnits ? "0.33em" : "0.33rem")} ${(p) => (p.isEmUnits ? "0.88em" : "0.88rem")};
 		display: flex;
 		align-items: center;
 		justify-content: center;
@@ -76,7 +75,7 @@ export default styled(Button)`
 	}
 
 	.default {
-		border-radius: var(--radius-normal);
+		border-radius: var(--radius-medium);
 		background: var(--color-code-bg);
 		color: var(--color-article-heading-text);
 		border: 1px solid var(--color-article-heading-text);
@@ -92,7 +91,7 @@ export default styled(Button)`
 		background: var(--color-btn-bg);
 		color: var(--color-text-accent);
 		border: 1px solid var(--color-text-accent);
-		border-radius: var(--radius-normal);
+		border-radius: var(--radius-medium);
 
 		&:hover {
 			color: white;
@@ -135,7 +134,7 @@ export default styled(Button)`
 	.purple {
 		background: var(--merger-bottom-primary);
 		color: white;
-		border-radius: var(--radius-normal);
+		border-radius: var(--radius-medium);
 
 		&:hover {
 			color: #d338f8;
@@ -146,7 +145,7 @@ export default styled(Button)`
 	.blue {
 		background: var(--merger-top-primary);
 		color: white;
-		border-radius: var(--radius-normal);
+		border-radius: var(--radius-medium);
 
 		&:hover {
 			color: #3a9ffb;

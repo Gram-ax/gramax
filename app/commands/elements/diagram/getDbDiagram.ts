@@ -16,7 +16,6 @@ const getDbDiagram: Command<
 		articlePath: Path;
 		catalogName: string;
 		tags: string;
-		lang: string;
 		primary: string;
 		shouldDraw: boolean;
 	},
@@ -26,7 +25,7 @@ const getDbDiagram: Command<
 
 	kind: ResponseKind.blob,
 
-	async do({ ctx, path, articlePath, catalogName, tags, lang, primary, shouldDraw }) {
+	async do({ ctx, path, articlePath, catalogName, tags, primary, shouldDraw }) {
 		const { wm, tablesManager } = this._app;
 		const workspace = wm.current();
 
@@ -42,7 +41,7 @@ const getDbDiagram: Command<
 		const key = diagramRef.path.value + diagramRef.storageId;
 
 		const hashItem = new HashItemContent(key, async () => {
-			await diagram.addDiagram(diagramRef, tags, lang, resourceManager.rootPath, primary);
+			await diagram.addDiagram(diagramRef, tags, ctx.ui, resourceManager.rootPath, primary);
 			return shouldDraw ? diagram.draw() : JSON.stringify(diagram.getData());
 		});
 
@@ -55,7 +54,6 @@ const getDbDiagram: Command<
 	params(ctx, query) {
 		return {
 			ctx,
-			lang: query.lang,
 			tags: query.tags ?? "",
 			primary: query.primary,
 			path: new Path(query.path),

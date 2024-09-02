@@ -2,16 +2,17 @@ import ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
 import { ClientArticleProps } from "@core/SitePresenter/SitePresenter";
 import OnLoadResourceService from "@ext/markdown/elements/copyArticles/onLoadResourceService";
 import initArticleResource from "@ext/markdown/elementsUtils/AtricleResource/initArticleResource";
-import { Attrs, DOMSerializer, Fragment, Mark, Node, Schema } from "@tiptap/pm/model";
-import { TextSelection } from "@tiptap/pm/state";
+import { Attrs, DOMSerializer, Fragment, Mark, Node, Schema, Slice } from "@tiptap/pm/model";
+import { NodeSelection, Transaction } from "@tiptap/pm/state";
 import { EditorView } from "prosemirror-view";
 
 interface CreateProps {
 	node: Node;
-	position: number;
 	view: EditorView;
+	event: ClipboardEvent;
 	articleProps: ClientArticleProps;
 	apiUrlCreator: ApiUrlCreator;
+	tr: Transaction;
 }
 interface FilterProps {
 	view: EditorView;
@@ -19,6 +20,18 @@ interface FilterProps {
 	attrs: [] | Attrs;
 	apiUrlCreator: ApiUrlCreator;
 	articleProps: ClientArticleProps;
+}
+
+interface PasteProps {
+	view: EditorView;
+	event: ClipboardEvent;
+	articleProps: ClientArticleProps;
+	apiUrlCreator: ApiUrlCreator;
+}
+
+interface CreatedFragment {
+	fragment: Fragment;
+	plainText: string;
 }
 
 const handleCommentary = (view: EditorView, marks: Mark[] | readonly Mark[]): Mark[] | readonly Mark[] => {
@@ -59,8 +72,8 @@ const createResource = async (node: Node, apiUrlCreator: ApiUrlCreator, articleP
 		articleProps,
 		apiUrlCreator,
 		Buffer.from(attrs.resource.src),
-		splitted[1],
-		splitted[0],
+		splitted[splitted.length - 1],
+		splitted[splitted.length - 2].slice(1, splitted[splitted.length - 2].length),
 	);
 	if (!newName) return;
 	attrs.resource = null;
@@ -98,9 +111,27 @@ const filterMarks = async (props: FilterProps): Promise<Node> => {
 };
 
 const createNodes = async (props: CreateProps) => {
-	const { position, view, node, apiUrlCreator, articleProps } = props;
+	const { event, view, node, apiUrlCreator, articleProps } = props;
+	const { $from, $to } = view.state.selection;
 	const attrs = await createResource(node, apiUrlCreator, articleProps);
 	if (!attrs.nodeName) return;
+	const tr = view.state.tr;
+	const parent = $from?.parent;
+
+	if (parent && parent.type.spec.code) {
+		const text = new Slice(
+			Fragment.from(view.state.schema.text(event.clipboardData.getData("text/plain").replace(/\r\n?/g, "\n"))),
+			0,
+			0,
+		);
+
+		tr.replaceSelection(text);
+		tr.setMeta("paste", true);
+		tr.setMeta("uiEvent", "paste");
+		view.dispatch(tr);
+
+		return;
+	}
 
 	let newNode: Node;
 
@@ -109,18 +140,14 @@ const createNodes = async (props: CreateProps) => {
 		newNode = view.state.schema.text(node.text, newMarks);
 	} else newNode = await filterMarks({ view, node, attrs, apiUrlCreator, articleProps });
 
-	const { tr } = view.state;
+	tr.replaceSelection(newNode.slice(0, newNode.content.size));
+	if (!newNode.firstChild.isTextblock && !newNode.firstChild.isText && newNode.firstChild.childCount === 0)
+		if (($to.parentOffset === 0 && $to.parent.isTextblock) || $to.parent.type.name === "doc")
+			tr.setSelection(NodeSelection.create(tr.doc, Math.min(Math.max($to.pos - 1, 0), tr.doc.content.size)));
+		else tr.setSelection(NodeSelection.create(tr.doc, Math.min(Math.max($to.pos + 1, 0), tr.doc.content.size)));
 
-	tr.replaceSelectionWith(newNode);
-
-	let i = 0;
-	for (let childNode = newNode.lastChild; childNode.lastChild && !(childNode.isText || childNode.isTextblock); i++)
-		childNode = childNode.lastChild;
-	const endPos = position + newNode.content.size - i;
-
-	if (endPos <= tr.doc.content.size) tr.setSelection(TextSelection.create(tr.doc, endPos));
-	else tr.setSelection(TextSelection.create(tr.doc, tr.doc.content.size));
-
+	tr.setMeta("paste", true);
+	tr.setMeta("uiEvent", "paste");
 	view.dispatch(tr);
 };
 
@@ -136,7 +163,8 @@ const createNodesJSON = (editor: EditorView, fragment: Fragment): string[] => {
 
 		if (node.attrs.src) {
 			attrs.resource = {
-				name: attrs.src.slice(2),
+				...attrs,
+				name: attrs.src,
 				src: OnLoadResourceService.getBuffer(attrs.src),
 			};
 		}
@@ -163,7 +191,7 @@ const createNodesJSON = (editor: EditorView, fragment: Fragment): string[] => {
 	return nodes;
 };
 
-const createTableFragment = (content: Fragment, schema: Schema<any, any>) => {
+const createTableFragment = (content: Fragment, schema: Schema<any, any>): CreatedFragment => {
 	const tableFragment =
 		content.firstChild.type.name === "table"
 			? content
@@ -174,28 +202,31 @@ const createTableFragment = (content: Fragment, schema: Schema<any, any>) => {
 	};
 };
 
-const createFragment = (
-	view: EditorView,
-): {
-	fragment: Fragment;
-	plainText: string;
-} => {
+const createFragment = (view: EditorView): CreatedFragment => {
 	const { $from, $to, ranges } = view.state.selection;
 	const { doc, schema } = view.state;
-	const parent = $from.node($from.depth - 1);
+	const parent = $from.node($from.depth - 2);
 	const parentName = parent?.type?.name;
+	const slice = doc.slice($from.pos, $to.pos);
 
-	if ((parentName === "tableRow" || parentName === "tableHeader") && ranges.length > 1)
+	if (parentName === "table" && ranges.length > 1)
 		return createTableFragment(view.state.selection.content().content, schema);
 
-	const slice = doc.slice($from.pos, $to.pos);
-	if (slice.content?.firstChild?.type?.name !== "list_item")
-		return { fragment: slice.content, plainText: window.getSelection().toString() };
+	if (parentName === "doc" && $from.pos === doc.firstChild.nodeSize && $to.pos === doc.content.size)
+		return {
+			fragment: doc.slice(doc.firstChild.nodeSize, doc.content.size, true).content,
+			plainText: window.getSelection().toString(),
+		};
 
-	return {
-		fragment: Fragment.from(parent.type.create(null, slice.content)),
-		plainText: window.getSelection().toString(),
-	};
+	if (slice.content?.firstChild?.type?.name === "list_item") {
+		const parent = (parentName === "doc" && $from.node($from.depth - 1)) || $from.node($from.depth - 2);
+		return {
+			fragment: Fragment.from(parent.copy(slice.content)),
+			plainText: window.getSelection().toString(),
+		};
+	}
+
+	return { fragment: slice.content, plainText: window.getSelection().toString() };
 };
 
 const copyArticleResource = (view: EditorView, event: ClipboardEvent, isCut?: boolean) => {
@@ -221,19 +252,12 @@ const copyArticleResource = (view: EditorView, event: ClipboardEvent, isCut?: bo
 	}
 };
 
-const pasteArticleResource = (
-	view: EditorView,
-	event: ClipboardEvent,
-	articleProps: ClientArticleProps,
-	apiUrlCreator: ApiUrlCreator,
-) => {
+const pasteArticleResource = (props: PasteProps) => {
+	const { view, event, articleProps, apiUrlCreator } = props;
 	const { tr } = view.state;
-	const { from, to } = view.state.selection;
-	tr.deleteRange(from, to);
-	view.dispatch(tr);
 
 	const gramaxText = event.clipboardData.getData("text/gramax");
-	if (gramaxText.length == 0) return false;
+	if (gramaxText.length === 0) return false;
 	try {
 		const nodes = [];
 		const json = JSON.parse(gramaxText);
@@ -243,8 +267,8 @@ const pasteArticleResource = (
 			nodes.push(Node.fromJSON(view.state.schema.nodes?.[jsonNode.type].schema, jsonNode));
 		}
 
-		const doc = view.state.schema.nodes.doc.create([], nodes);
-		void createNodes({ node: doc, position: from, view, articleProps, apiUrlCreator });
+		const node = view.state.schema.nodes.doc.create(null, nodes);
+		void createNodes({ node, event, view, articleProps, apiUrlCreator, tr });
 		return true;
 	} catch {
 		return false;

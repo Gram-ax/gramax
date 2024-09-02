@@ -5,6 +5,7 @@ import Path from "@core/FileProvider/Path/Path";
 import Hash from "@core/Hash/Hash";
 import PluginImporterType from "@core/Plugin/PluginImporter/logic/PluginImporterType";
 import PluginProvider from "@core/Plugin/logic/PluginProvider";
+import ResourceUpdaterFactory from "@core/Resource/ResourceUpdaterFactory";
 import CustomArticlePresenter from "@core/SitePresenter/CustomArticlePresenter";
 import SitePresenterFactory from "@core/SitePresenter/SitePresenterFactory";
 import { TableDB } from "@core/components/tableDB/table";
@@ -16,7 +17,7 @@ import MailProvider from "@ext/MailProvider";
 import ThemeManager from "@ext/Theme/ThemeManager";
 import RepositoryProvider from "@ext/git/core/Repository/RepositoryProvider";
 import HtmlParser from "@ext/html/HtmlParser";
-import FSLocalizationRules from "@ext/localization/core/rules/FSLocalizationRules";
+import { mountFSEvents } from "@ext/localization/core/events/FSLocalizationEvents";
 import BugsnagLogger from "@ext/loggers/BugsnagLogger";
 import ConsoleLogger from "@ext/loggers/ConsoleLogger";
 import Logger from "@ext/loggers/Logger";
@@ -24,7 +25,6 @@ import MarkdownParser from "@ext/markdown/core/Parser/Parser";
 import ParserContextFactory from "@ext/markdown/core/Parser/ParserContext/ParserContextFactory";
 import MarkdownFormatter from "@ext/markdown/core/edit/logic/Formatter/Formatter";
 import AuthManager from "@ext/security/logic/AuthManager";
-import Sso from "@ext/security/logic/AuthProviders/Sso";
 import { TicketManager } from "@ext/security/logic/TicketManager/TicketManager";
 import WorkspaceManager from "@ext/workspace/WorkspaceManager";
 import { AppConfig, getConfig, type AppGlobalConfig } from "../config/AppConfig";
@@ -34,7 +34,6 @@ const _init = async (config: AppConfig): Promise<Application> => {
 	const am: AuthManager = null;
 	const mp: MailProvider = null;
 	const vur: VideoUrlRepository = null;
-	const sso: Sso = null;
 
 	await resolveModule("initWasm")?.(config.services.cors.url);
 
@@ -47,7 +46,7 @@ const _init = async (config: AppConfig): Promise<Application> => {
 
 	const wm = new WorkspaceManager(
 		(path) => new DiskFileProvider(path),
-		(fs) => FSLocalizationRules.bind(fs),
+		(fs) => mountFSEvents(fs),
 		rp,
 		config,
 		fileConfig,
@@ -68,6 +67,7 @@ const _init = async (config: AppConfig): Promise<Application> => {
 	const htmlParser = new HtmlParser(parser, parserContextFactory);
 	const logger: Logger = config.isProduction ? new BugsnagLogger(config) : new ConsoleLogger();
 	const sitePresenterFactory = new SitePresenterFactory(wm, parser, parserContextFactory, rp, customArticlePresenter);
+	const resourceUpdaterFactory = new ResourceUpdaterFactory(parser, parserContextFactory, formatter);
 
 	const contextFactory = new ContextFactory(tm, config.tokens.cookie);
 
@@ -78,7 +78,6 @@ const _init = async (config: AppConfig): Promise<Application> => {
 		am,
 		tm,
 		mp,
-		sso,
 		wm,
 		vur,
 		rp,
@@ -93,6 +92,7 @@ const _init = async (config: AppConfig): Promise<Application> => {
 		contextFactory,
 		sitePresenterFactory,
 		parserContextFactory,
+		resourceUpdaterFactory,
 		pluginProvider,
 		customArticlePresenter,
 		conf: {

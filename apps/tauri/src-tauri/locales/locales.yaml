@@ -83,6 +83,30 @@ file-download:
       The application does not have access to the %{path} directory.
       Choose another one.
 
+trash:
+  title:
+    ru: Не удалось переместить файл в корзину
+    en: Could not move file to recycle bin
+
+  fail:
+    ru: |
+      Не удалось переместить файл %{path} в корзину.
+
+      Подробная ошибка: %{err}
+
+    en: |
+      Could not move file %{path} to recycle bin.
+
+      Error: %{err}
+
+  no-permissions:
+    ru: |
+      У приложения нет доступа к корзине.
+      Файл %{path} будет удалён насовсем.
+    en: |
+      The application does not have access to recycle bin.
+      File %{path} will be deleted permanently.
+
 etc:
   ok:
     ru: 'Понятно'

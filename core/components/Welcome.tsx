@@ -64,13 +64,12 @@ const WelcomeStyled = styled(Welcome)`
 		`.form-layout {
 		  background: var(--color-contextmenu-bg);
 	}`}
-
 	.form-layout {
 		padding: 2rem;
 	}
 
 	> div {
-		border-radius: var(--radius-normal);
+		border-radius: var(--radius-small);
 		border: 1px solid rgba(0, 0, 0, 0.1);
 		overflow: hidden;
 		margin: auto;
@@ -83,6 +82,7 @@ const WelcomeStyled = styled(Welcome)`
 
 	${cssMedia.medium} {
 		min-width: 0;
+
 		> div {
 			width: 100%;
 		}

@@ -1,16 +1,15 @@
 import { PCatalogs, PChangeCatalog, PStorage } from "@core/Plugin";
 import lunr from "lunr";
+import htmlToString from "plugins/target/search/src/utils/htmlToString";
 import Searcher, { SearchItem } from "../Searcher";
 import customPipeline from "./tokenizer/customPipeline";
 import tokenizer from "./tokenizer/tokenizer";
-import htmlToString from "plugins/target/search/src/utils/htmlToString";
 
 interface IndexData {
 	title: string;
 	id: string;
 	logicPath: string;
 	content: string;
-	tags: string;
 }
 
 export default class LunrSearcher implements Searcher {
@@ -127,7 +126,6 @@ export default class LunrSearcher implements Searcher {
 			this.ref("path");
 			this.field("content");
 			this.field("title", { boost: 10 });
-			this.field("tags", { boost: 8 });
 
 			this.tokenizer(tokenizer);
 			this.pipeline.add(customPipeline);
@@ -158,7 +156,6 @@ export default class LunrSearcher implements Searcher {
 				id: article.id,
 				// logicPath: await catalog.getPathname(article),
 				logicPath: "",
-				tags: article.getProp("tags")?.join(" "),
 				content: content ?? "",
 			});
 		}
@@ -174,13 +171,8 @@ export default class LunrSearcher implements Searcher {
 	}
 
 	private _getOnUpdate() {
-		return async (changeItems: PChangeCatalog[]): Promise<void> => {
-			const catalogNames: string[] = [];
-			changeItems.forEach((item) => {
-				const catalogName = item.catalog.getName();
-				if (!catalogNames.includes(catalogName)) catalogNames.push(catalogName);
-			});
-			await Promise.all(catalogNames.map((catalogName) => this._resetCatalog(catalogName)));
+		return async (change: PChangeCatalog): Promise<void> => {
+			await this._resetCatalog(change.catalog.getName());
 		};
 	}
 }

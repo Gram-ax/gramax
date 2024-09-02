@@ -1,6 +1,9 @@
 [net]
 git-fetch-with-cli = true
 
+[env]
+CARGO_WORKSPACE_DIR = { value = "", relative = true }
+
 [target.wasm32-unknown-emscripten]
 rustflags = [
   "-Ctarget-feature=+atomics,+bulk-memory",

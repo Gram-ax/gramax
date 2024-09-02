@@ -12,8 +12,8 @@ const useServer = !(process.argv.includes("--no-server") || process.argv.include
 if (!useServer) process.argv = process.argv.filter((argv) => argv !== "--no-server" && argv !== "-n");
 
 if (useServer) {
-	testGitCatalogUtils.initGit();
 	execSync("npx git-http-mock-server start", { cwd: FIXTURES_PATH });
+	testGitCatalogUtils.initGit();
 }
 
 let jestArgs = ["--reporters=default", "--reporters=jest-junit", "--ci", "--runInBand", "--forceExit", "-u"];

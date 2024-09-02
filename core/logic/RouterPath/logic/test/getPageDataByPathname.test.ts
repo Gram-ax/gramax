@@ -111,11 +111,11 @@ describe("getPageDataByPathname", () => {
 			const invalidSourceName = "gitaaahub.com/user/default_repName/master/-";
 			const invalidGroup = "github.com/useeer/default_repName/master/-";
 			const invalidRepName = "github.com/user/default_catalooooog/master/default_repName";
-			const noCatalogName = "github.com/user/-/master/default_repName";
+			const noCatalogName = "github.com/user/-/master/default_repName/-";
+			expect(await getDataType(invalidRepName)).toEqual({ type: PageDataType.notFound });
 
 			expect(await getDataType(invalidSourceName)).toEqual({ type: PageDataType.notFound });
 			expect(await getDataType(invalidGroup)).toEqual({ type: PageDataType.notFound });
-			expect(await getDataType(invalidRepName)).toEqual({ type: PageDataType.notFound });
 			expect(await getDataType(noCatalogName)).toEqual({ type: PageDataType.notFound });
 		});
 	});

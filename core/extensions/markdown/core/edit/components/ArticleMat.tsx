@@ -2,7 +2,7 @@ import { classNames } from "@components/libs/classNames";
 import styled from "@emotion/styled";
 import { Editor } from "@tiptap/core";
 
-const ArticleMat = ({ editor, className }: { editor: Editor; className?: string }) => {
+const ArticleMat = ({ editor, className }: { editor?: Editor; className?: string }) => {
 	const onClickHandler = () => {
 		const doc = editor.state.doc;
 		const lastChild = doc.lastChild;
@@ -26,7 +26,12 @@ const ArticleMat = ({ editor, className }: { editor: Editor; className?: string 
 		}
 	};
 
-	return <div className={classNames("mat-under-article", {}, [className])} onClick={onClickHandler} />;
+	return (
+		<div
+			className={classNames("mat-under-article", {}, [className])}
+			onClick={editor ? onClickHandler : undefined}
+		/>
+	);
 };
 
 export const getMat = () => {

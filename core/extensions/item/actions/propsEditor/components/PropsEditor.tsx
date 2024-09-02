@@ -10,6 +10,7 @@ import FetchService from "@core-ui/ApiServices/FetchService";
 import MimeTypes from "@core-ui/ApiServices/Types/MimeTypes";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import ArticlePropsService from "@core-ui/ContextServices/ArticleProps";
+import CatalogPropsService from "@core-ui/ContextServices/CatalogProps";
 import IsEditService from "@core-ui/ContextServices/IsEdit";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import { transliterate } from "@core-ui/languageConverter/transliterate";
@@ -17,6 +18,7 @@ import { Router } from "@core/Api/Router";
 import { useRouter } from "@core/Api/useRouter";
 import { ClientArticleProps } from "@core/SitePresenter/SitePresenter";
 import { uniqueName } from "@core/utils/uniqueName";
+import ActionWarning from "@ext/localization/actions/ActionWarning";
 import t from "@ext/localization/locale/translate";
 import EditorService from "@ext/markdown/elementsUtils/ContextServices/EditorService";
 import { ItemLink } from "@ext/navigation/NavigationLinks";
@@ -35,6 +37,7 @@ const PropsEditor = (props: PropsEditorProps) => {
 	const { item, itemLink, setItemLink, isCategory, isCurrentItem, brotherFileNames } = props;
 	const domain = PageDataContextService.value.domain;
 	const articleProps = ArticlePropsService.value;
+	const catalogProps = CatalogPropsService.value;
 	const isEdit = IsEditService.value;
 	const router = useRouter();
 	const apiUrlCreator = ApiUrlCreatorService.value;
@@ -103,10 +106,10 @@ const PropsEditor = (props: PropsEditorProps) => {
 
 	return (
 		<ModalLayout
+			closeOnCmdEnter
 			isOpen={isOpen}
 			trigger={<ButtonLink iconCode="pencil" text={t("configure")} />}
 			contentWidth={"S"}
-			onCmdEnter={save}
 			onOpen={() => setIsOpen(true)}
 			onClose={onClose}
 		>
@@ -133,7 +136,7 @@ const PropsEditor = (props: PropsEditorProps) => {
 									}
 									setItemProps({ ...newItemProps });
 								}}
-								placeholder="Enter value"
+								placeholder={t("enter") + " " + t("value")}
 							/>
 						</div>
 						<label className="control-label">
@@ -154,13 +157,15 @@ const PropsEditor = (props: PropsEditorProps) => {
 									newItemProps.fileName = e.target.value ?? "";
 									setItemProps({ ...newItemProps });
 								}}
-								placeholder="Enter value"
+								placeholder={t("enter") + " " + t("value")}
 							/>
 						</div>
 						<div className="buttons">
-							<Button buttonStyle={ButtonStyle.default} onClick={save} disabled={!!getErrorText()}>
-								<span>{t("save")}</span>
-							</Button>
+							<ActionWarning catalogProps={catalogProps} action={save}>
+								<Button buttonStyle={ButtonStyle.default} disabled={!!getErrorText()}>
+									<span>{t("save")}</span>
+								</Button>
+							</ActionWarning>
 						</div>
 					</>
 				</FormStyle>

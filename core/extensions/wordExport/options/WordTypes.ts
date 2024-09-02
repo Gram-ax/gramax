@@ -56,3 +56,8 @@ export interface TableMaxWidth {
 export interface MaxPictureWidth {
 	maxPictureWidth?: number;
 }
+
+export interface ImageDimensions {
+	width: number;
+	height: number;
+}

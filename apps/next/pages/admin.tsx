@@ -23,7 +23,7 @@ export function getServerSideProps({ req, res, query }) {
 		const ctx = this.app.contextFactory.from(req, res, query);
 
 		const data = await this.commands.page.getPageData.do({
-			path: localizer.trim(articlePath),
+			path: articlePath,
 			ctx,
 		});
 

@@ -9,7 +9,7 @@ When("заполняем документ", async function (this: E2EWorld, text
 });
 
 When("очищаем документ", async function (this: E2EWorld) {
-	await this.page().keyboard().press("Control+A Backspace Delete");
+	await this.page().keyboard().press("Control+A Backspace");
 	await this.page().asArticle().forceSave();
 	expect(await this.page().asArticle().getContent()).toEqual("\n");
 });

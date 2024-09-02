@@ -47,10 +47,10 @@ const getServices = (): ServicesConfig => {
 			publicKey: env("SSO_SERVICE_PUBLIC_KEY") ?? null,
 		},
 		cors: {
-			url: env("CORS_PROXY_SERVICE_URL") ?? "https://dev.gram.ax/-server/cors-proxy",
+			url: env("CORS_PROXY_SERVICE_URL") ?? "https://gram.ax/cors-proxy",
 		},
 		auth: {
-			url: env("AUTH_SERVICE_URL") ?? "https://app.gram.ax/-server/auth",
+			url: env("AUTH_SERVICE_URL") ?? "https://gram.ax/auth",
 		},
 		diagramRenderer: {
 			url: env("DIAGRAM_RENDERER_SERVICE_URL") ?? null,

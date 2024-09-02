@@ -1,7 +1,7 @@
 import { cssMedia } from "@core-ui/utils/cssUtils";
 import styled from "@emotion/styled";
-import { useMediaQuery } from "@mui/material";
 import { ItemLink } from "@ext/navigation/NavigationLinks";
+import { useMediaQuery } from "@mui/material";
 import RightNavigation from "./RightNavigation";
 
 const RightNavigationLayout = styled(({ itemLinks, className }: { itemLinks: ItemLink[]; className?: string }) => {
@@ -24,7 +24,7 @@ const RightNavigationLayout = styled(({ itemLinks, className }: { itemLinks: Ite
 		padding: 20px 12px 20px 20px;
 		overflow-y: scroll;
 		height: 100%;
-		${() => (useMediaQuery(cssMedia.narrow) ? "padding-top: 84px;" : "")}
+		${() => (useMediaQuery(cssMedia.narrow) ? "padding-top: calc(16px + var(--top-bar-height));" : "")}
 	}
 
 	@media print {

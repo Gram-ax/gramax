@@ -1,21 +1,23 @@
+import { createEventEmitter, type Event } from "@core/Event/EventEmitter";
 import gitMergeConverter from "@ext/git/actions/MergeConflictHandler/logic/GitMergeConverter";
 import GitMergeResult from "@ext/git/actions/MergeConflictHandler/model/GitMergeResult";
+import GitError from "@ext/git/core/GitCommands/errors/GitError";
+import GitErrorCode from "@ext/git/core/GitCommands/errors/model/GitErrorCode";
 import GitStash from "@ext/git/core/model/GitStash";
 import Path from "../../../../logic/FileProvider/Path/Path";
 import FileProvider from "../../../../logic/FileProvider/model/FileProvider";
 import { FileStatus } from "../../../Watchers/model/FileStatus";
-import { ItemStatus } from "../../../Watchers/model/ItemStatus";
 import SourceData from "../../../storage/logic/SourceDataProvider/model/SourceData";
 import { GitBranch } from "../GitBranch/GitBranch";
 import { GitCommands } from "../GitCommands/GitCommands";
-import convertToChangeItem from "../GitWatcher/ConvertToChangeItem";
 import GitWatcher from "../GitWatcher/GitWatcher";
 import { GitStatus } from "../GitWatcher/model/GitStatus";
 import { GitVersion } from "../model/GitVersion";
 import SubmoduleData from "../model/SubmoduleData";
 
+export type GitVersionControlEvents = Event<"files-changed", { items: GitStatus[] }>;
+
 export default class GitVersionControl {
-	private _watcherFunc: ((changes: ItemStatus[]) => Promise<void>)[];
 	private _currentVersion: GitVersion;
 	private _currentBranch: GitBranch;
 	private _currentBranchName: string;
@@ -24,17 +26,17 @@ export default class GitVersionControl {
 	private _submodulesData: SubmoduleData[];
 	private _gitWatcher: GitWatcher;
 	private _gitRepository: GitCommands;
+	private _events = createEventEmitter<GitVersionControlEvents>();
+	private _relativeToParentPath: Path;
 
-	constructor(private _path: Path, private _fp: FileProvider) {
+	constructor(private _path: Path, private _fp: FileProvider, relativeToParentPath: Path = new Path()) {
+		this._relativeToParentPath = relativeToParentPath;
 		this._gitRepository = new GitCommands(this._fp, this._path);
-		this._gitWatcher = new GitWatcher(this._gitRepository);
-		this._gitWatcher.watch(this._onChange.bind(this));
-		this._watcherFunc = [];
+		this._gitWatcher = new GitWatcher(this);
+		this._gitWatcher.watch(async (items) => {
+			await this.events.emit("files-changed", { items });
+		});
 		void this._initSubGitVersionControls();
-	}
-
-	watch(w: (changeFiles: ItemStatus[]) => Promise<void>): void {
-		this._watcherFunc.push(w);
 	}
 
 	static hasInit(fp: FileProvider, path: Path): Promise<boolean> {
@@ -46,8 +48,16 @@ export default class GitVersionControl {
 		return new GitVersionControl(path, fp);
 	}
 
+	get events() {
+		return this._events;
+	}
+
 	getPath(): Path {
 		return this._path;
+	}
+
+	get relativeToParentPath() {
+		return this._relativeToParentPath;
 	}
 
 	async getCurrentBranch(cached = true): Promise<GitBranch> {
@@ -94,8 +104,23 @@ export default class GitVersionControl {
 		return this._gitRepository.stash(data);
 	}
 
-	async applyStash(stashHash: GitStash): Promise<GitMergeResult[]> {
-		return gitMergeConverter(await this._gitRepository.applyStash(stashHash));
+	async applyStash(
+		stashHash: GitStash,
+		{
+			restoreAfterStash = true,
+			deleteAfterApply = true,
+		}: { restoreAfterStash?: boolean; deleteAfterApply?: boolean } = {
+			restoreAfterStash: true,
+			deleteAfterApply: true,
+		},
+	): Promise<GitMergeResult[]> {
+		const gitMergeResult = gitMergeConverter(await this._gitRepository.applyStash(stashHash));
+		if (restoreAfterStash) {
+			const status = (await this.getChanges()).map((x) => x.path);
+			await this.restore(true, status);
+		}
+		if (deleteAfterApply) await this.deleteStash(stashHash);
+		return gitMergeResult;
 	}
 
 	async deleteStash(stashHash: GitStash): Promise<void> {
@@ -135,21 +160,35 @@ export default class GitVersionControl {
 	async discard(filePaths: Path[]): Promise<void> {
 		const storagesAndItsFiles = await this._getVersionControlsAndItsFiles(filePaths);
 		for (const [storage, paths] of Array.from(storagesAndItsFiles)) {
+			await storage.restore(true, paths);
 			await storage.restore(false, paths);
 		}
-		const gitChangeFiles: GitStatus[] = filePaths.map((path) => ({ path, type: FileStatus.modified }));
-		await this._onChange(gitChangeFiles);
+		const items: GitStatus[] = filePaths.map((path) => ({ path, status: FileStatus.modified }));
+		await this._events.emit("files-changed", { items });
 	}
 
 	async checkChanges(oldVersion: GitVersion, newVersion: GitVersion): Promise<void> {
 		await this._gitWatcher.checkChanges(oldVersion, newVersion);
 	}
 
+	async recursiveCheckChanges(
+		oldVersion: GitVersion,
+		newVersion: GitVersion,
+		subOldVersions: { [path: string]: { version: GitVersion; subGvc: GitVersionControl } },
+		subNewVersions: { [path: string]: { version: GitVersion; subGvc: GitVersionControl } },
+	) {
+		return this._gitWatcher.recursiveCheckChanges(oldVersion, newVersion, subOldVersions, subNewVersions);
+	}
+
+	async diff(oldVersion: GitVersion | GitBranch, newVersion: GitVersion | GitBranch): Promise<GitStatus[]> {
+		return this._gitRepository.diff(oldVersion, newVersion);
+	}
+
 	async commit(message: string, userData: SourceData, parents?: (string | GitBranch)[]): Promise<void> {
-		const subModules = await this._getSubGitVersionControls();
-		for (const s of subModules) {
-			if ((await s.getChanges()).length > 0) await s.commit(message, userData);
-		}
+		// const subModules = await this._getSubGitVersionControls();
+		// for (const s of subModules) {
+		// 	if ((await s.getChanges()).length > 0) await s.commit(message, userData);
+		// }
 		await this._gitRepository.commit(message, userData, parents);
 	}
 
@@ -174,20 +213,21 @@ export default class GitVersionControl {
 
 	async getChanges(recursive = true): Promise<GitStatus[]> {
 		const changeFiles = await this._gitRepository.status();
-		if (!recursive) return changeFiles;
-		const subGitVersionControls = await this._getSubGitVersionControls();
-		const subGitVersionControlChanges: GitStatus[][] = await Promise.all(
-			subGitVersionControls.map(async (s) => {
-				const relativeSubmodulePath = await this._getRelativeSubmodulePath(s.getPath());
-				const submoduleChanges = (await s.getChanges()).map(({ path, isUntracked, type }) => ({
-					path: relativeSubmodulePath.join(path),
-					isUntracked,
-					type,
-				}));
-				return submoduleChanges;
-			}),
-		);
-		return [...changeFiles, ...subGitVersionControlChanges.flat()];
+		if (recursive) {
+			// const subGitVersionControls = await this._getSubGitVersionControls();
+			// const subGitVersionControlChanges: GitStatus[][] = await Promise.all(
+			// 	subGitVersionControls.map(async (s) => {
+			// 		const relativeSubmodulePath = await this._getRelativeSubmodulePath(s.getPath());
+			// 		const submoduleChanges = (await s.getChanges()).map(({ path, ...rest }) => ({
+			// 			path: relativeSubmodulePath.join(path),
+			// 			...rest,
+			// 		}));
+			// 		return submoduleChanges;
+			// 	}),
+			// );
+			// return [...changeFiles, ...subGitVersionControlChanges.flat()];
+		}
+		return changeFiles;
 	}
 
 	async getFileStatus(filePath: Path): Promise<GitStatus> {
@@ -216,7 +256,7 @@ export default class GitVersionControl {
 	async getGitVersionControlContainsItem(
 		path: Path,
 	): Promise<{ gitVersionControl: GitVersionControl; relativePath: Path }> {
-		const submodules = await this._getSubGitVersionControls();
+		const submodules = await this.getSubGitVersionControls();
 		for (const submodule of submodules) {
 			const relativeSubmodulePath = await this._getRelativeSubmodulePath(submodule.getPath());
 			if (path.startsWith(relativeSubmodulePath)) {
@@ -238,6 +278,35 @@ export default class GitVersionControl {
 
 	async restore(staged: boolean, filePaths: Path[]): Promise<void> {
 		return this._gitRepository.restore(staged, filePaths);
+	}
+
+	async checkoutSubGitVersionControls(): Promise<void> {
+		const subGitVersionControls = await this.getSubGitVersionControls();
+		const submodulesData = await this._getSubmodulesData();
+		for (let i = 0; i < subGitVersionControls.length; i++) {
+			const gvc = subGitVersionControls[i];
+			const submoduleData = submodulesData[i];
+			if (submoduleData.branch) {
+				await gvc.checkoutToBranch(submoduleData.branch);
+				continue;
+			}
+			try {
+				await gvc.checkoutToBranch("master");
+			} catch {
+				try {
+					await gvc.checkoutToBranch("main");
+				} catch {
+					throw new GitError(GitErrorCode.CheckoutSubmoduleError, null, {
+						submodulePath: submoduleData.path,
+					});
+				}
+			}
+		}
+	}
+
+	async getSubGitVersionControls(): Promise<GitVersionControl[]> {
+		if (!this._subGitVersionControls) await this._initSubGitVersionControls();
+		return this._subGitVersionControls;
 	}
 
 	private async _getRelativeSubmodulePath(submodulePath: Path): Promise<Path> {
@@ -269,15 +338,6 @@ export default class GitVersionControl {
 		return this._submodulesData;
 	}
 
-	private async _onChange(changeFiles: GitStatus[]): Promise<void> {
-		for (const f of this._watcherFunc) await f(convertToChangeItem(changeFiles, this._fp));
-	}
-
-	private async _getSubGitVersionControls(): Promise<GitVersionControl[]> {
-		if (!this._subGitVersionControls) await this._initSubGitVersionControls();
-		return this._subGitVersionControls;
-	}
-
 	private async _initCurrentVersion() {
 		this._currentVersion = await this._gitRepository.getHeadCommit();
 	}
@@ -295,18 +355,15 @@ export default class GitVersionControl {
 	}
 
 	private async _initSubGitVersionControls(): Promise<void> {
-		this._subGitVersionControls = await this._getFixedSubVersionControls();
-	}
+		const getSubmodulesData = await this._getSubmodulesData();
 
-	private async _getFixedSubVersionControls(): Promise<GitVersionControl[]> {
-		try {
-			return (await this._gitRepository.getFixedSubmodulePaths()).map((path) => {
-				const subGitStorage = new GitVersionControl(path, this._fp);
-				return subGitStorage;
-			});
-		} catch {
-			return [];
-		}
+		this._subGitVersionControls = await Promise.all(
+			getSubmodulesData.map(async (data) => {
+				const fullSubmodulePath = this._path.join(data.path);
+				if (await this._gitRepository.isSubmoduleExist(data.path))
+					return new GitVersionControl(fullSubmodulePath, this._fp, data.path);
+			}),
+		).then((x) => x.filter((x) => x));
 	}
 
 	private async _initSubmodulesData() {

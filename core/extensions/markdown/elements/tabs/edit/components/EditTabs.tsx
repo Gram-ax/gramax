@@ -115,7 +115,7 @@ export default styled(EditTabs)`
 
 	:hover,
 	&.hover {
-		border-radius: var(--radius-large);
+		border-radius: var(--radius-medium);
 		border: 1px dashed var(--color-line);
 	}
 `;

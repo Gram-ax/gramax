@@ -39,7 +39,7 @@ pub fn window_event_handler<R: Runtime>(window: &Window<R>, event: &WindowEvent)
     return;
   };
 
-  if window.app_handle().windows().iter().filter(|w| w.0.contains("main")).nth(1).is_some() {
+  if window.app_handle().webview_windows().iter().filter(|w| w.0.contains("main")).nth(1).is_some() {
     return;
   }
 

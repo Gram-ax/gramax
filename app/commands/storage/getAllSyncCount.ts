@@ -14,7 +14,7 @@ const getAllSyncCount: Command<
 
 	kind: ResponseKind.json,
 
-	middlewares: [new NetworkConnectMiddleWare(), new AuthorizeMiddleware(), new SilentMiddleware()],
+	middlewares: [new SilentMiddleware(), new NetworkConnectMiddleWare(), new AuthorizeMiddleware()],
 
 	async do({ ctx, shouldFetch }) {
 		const { rp, wm } = this._app;
@@ -40,7 +40,7 @@ const getAllSyncCount: Command<
 
 					res[name] = await entry.repo.storage.getSyncCount();
 				} catch (err) {
-					res[name] = { errorMessage: err.toString() };
+					res[name] = { errorMessage: t("unable-to-get-sync-count") };
 				}
 			};
 			promises.push(promise());

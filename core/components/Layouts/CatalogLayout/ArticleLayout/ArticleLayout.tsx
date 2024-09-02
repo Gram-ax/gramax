@@ -19,6 +19,7 @@ export interface ArticleLayoutProps {
 
 const ArticleLayout = (props: ArticleLayoutProps) => {
 	const articleRef = ArticleRefService.value;
+
 	const {
 		article,
 		rightNav,

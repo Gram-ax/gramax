@@ -1,95 +1,118 @@
 /**
  * @jest-environment node
  */
-import fs from "fs-extra";
-import { setTimeout } from "timers/promises";
+
+import GitCommands from "@ext/git/core/GitCommands/GitCommands";
+import GitSourceData from "@ext/git/core/model/GitSourceData.schema";
+import { TEST_GIT_FIXTURES_PATH } from "@ext/git/test/testGitFixturesPath";
+import SourceType from "@ext/storage/logic/SourceDataProvider/model/SourceType";
 import DiskFileProvider from "../../../../../logic/FileProvider/DiskFileProvider/DiskFileProvider";
 import Path from "../../../../../logic/FileProvider/Path/Path";
-import TestGitRepository, { RemoteNames } from "../../../test/TestGitRepository";
 import GitStorage from "../GitStorage";
 
-const rep = new TestGitRepository(__dirname, "rep");
-const dfp = new DiskFileProvider(__dirname);
+const gitCommandsFetchMock = jest.spyOn(GitCommands.prototype, "fetch").mockImplementation(() => {
+	return Promise.resolve();
+});
+
+const dfp = new DiskFileProvider(TEST_GIT_FIXTURES_PATH);
+
+const repNameWithSubmodules = "remoteRep_local_for_test";
+const repNameWithoutSubmodules = "remoteRep_local_no_submodules_for_test";
+
+const submodule1Path = repNameWithSubmodules + "/docs/submodule1";
+const submodule2Path = repNameWithSubmodules + "/docs/submodule2";
 
 let storage: GitStorage;
+let git: GitCommands;
+const subGits: GitCommands[] = [];
+
+const mockUserData: GitSourceData = {
+	sourceType: SourceType.git,
+	userEmail: "test-email@email.com",
+	userName: "test user",
+	domain: "http://localhost:8173",
+	token: "",
+};
 
 describe("GitStorage", () => {
-	beforeAll(async () => {
-		await rep.init(true);
-		storage = new GitStorage(new Path(rep.repDir), dfp);
+	beforeEach(() => {
+		gitCommandsFetchMock.mockClear();
 	});
-	afterAll(async () => {
-		await fs.rm(__dirname + "/testClone", { recursive: true, force: true, maxRetries: 5 });
-	});
+	describe("Репозиторий с сабмодулями", () => {
+		beforeEach(async () => {
+			await dfp.copy(new Path("remoteRep_local"), new Path(repNameWithSubmodules));
+			git = new GitCommands(dfp, new Path(repNameWithSubmodules));
+			subGits.push(new GitCommands(dfp, new Path(submodule1Path)));
+			subGits.push(new GitCommands(dfp, new Path(submodule2Path)));
+			storage = new GitStorage(new Path(repNameWithSubmodules), dfp);
 
-	beforeEach(async () => {
-		await rep.init(true);
-	});
-	afterEach(async () => {
-		await setTimeout(100);
-		rep.clear();
-	});
+			await subGits[0].checkout("master");
+			await subGits[0].hardReset(await subGits[0].getParentCommit(await subGits[0].getHeadCommit()));
 
-	// it("Рекурсивно клонирует репозиторий с подмодулем", async () => {
-	// 	await GitStorage.clone({
-	// 		repositoryPath: new Path("testClone"),
-	// 		fp: dfp,
-	// 		source: rep.source,
-	// 		url: `http://localhost:8174/${RemoteNames.Push}`,
-	// 	});
+			await subGits[1].checkout("master");
+			await subGits[1].hardReset(await subGits[1].getParentCommit(await subGits[1].getHeadCommit()));
 
-	// 	expect(await fs.exists(__dirname + "/testClone/.git")).toBeTruthy();
-	// 	expect(await fs.exists(__dirname + "/testClone/subModule")).toBeTruthy();
-	// 	expect((await fs.readdir(__dirname + "/testClone/subModule")).length).not.toBe(0);
-	// });
-	describe("Pull", () => {
-		describe("Без конфликта", () => {
-			test("Обычный репозиторий", async () => {
-				await rep.setRemote(RemoteNames.Pull);
-				expect(await fs.exists(__dirname + "/rep/file_to_pull.md")).toBeFalsy();
-
-				await storage.pull(rep.source);
-
-				expect(await fs.exists(__dirname + "/rep/file_to_pull.md")).toBeTruthy();
-			});
-			// it("Репозиторий с подмодулем", async () => {
-			// 	await rep.submodule.setRemote(RemoteNames.SubModulePull);
-			// 	expect(await fs.exists(__dirname + "/rep/subModule/file_to_pull_submodule.md")).toBeFalsy();
-
-			// 	await storage.pull(rep.source);
-
-			// 	expect(await fs.exists(__dirname + "/rep/subModule/file_to_pull_submodule.md")).toBeTruthy();
-			// });
+			await git.hardReset(await git.getParentCommit(await git.getHeadCommit()));
+		});
+		afterEach(async () => {
+			await dfp.delete(new Path(repNameWithSubmodules));
 		});
 
-		// TODO: пофиксить; тест падает, потому что либгит2(и гит) не считает такое конфликтом, поскольку тег добавлен вручную
-		// describe("С конфликтом", () => {
-		// 	describe("Обычный репозиторий", () => {
-		// 		test("С нескольколькими изменениями", async () => {
-		// 			await rep.setRemote(RemoteNames.Pull);
-		// 			await fs.writeFile(__dirname + "/rep/1.md", "conflict\n");
-		// 			await fs.writeFile(__dirname + "/rep/2.md", "2\n");
-		// 			await fs.writeFile(__dirname + "/rep/3.md", "3\n");
-		// 			const conflict = `<<<<<<< master\ncontent 0001\n=======\nconflict\n>>>>>>> stash_from`;
+		test("рекурсивный pull", async () => {
+			const hashBefore = (await git.getHeadCommit()).toString();
+			const submodule1HashBefore = (await subGits[0].getHeadCommit()).toString();
+			const submodule2HashBefore = (await subGits[1].getHeadCommit()).toString();
 
-		// 			await expect(async () => {
-		// 				await storage.pull(rep.source);
-		// 			}).rejects.toThrowError(GitError);
+			await storage.pull(mockUserData);
 
-		// 			const statusNow = await rep.getStatus();
-		// 			expect((await fs.readFile(__dirname + "/rep/1.md", "utf-8")).includes(conflict)).toBeTruthy();
-		// 			expect(await fs.exists(__dirname + "/rep/file_to_pull.md")).toBeTruthy();
-		// 			expect(JSON.stringify(statusNow).includes('["2.md",1,2,1],["3.md",0,2,0]')).toBeTruthy();
-		// 		});
-		// 	});
-		// });
+			expect((await git.getHeadCommit()).toString()).not.toBe(hashBefore);
+			expect((await subGits[0].getHeadCommit()).toString()).not.toBe(submodule1HashBefore);
+			expect((await subGits[1].getHeadCommit()).toString()).not.toBe(submodule2HashBefore);
+		});
 	});
-	describe("Push", () => {
-		it("Пушит обычный репозиторий", async () => {
-			await rep.setRemote(RemoteNames.Push);
-			await rep.commit({ "commit.md": "commit.md" });
 
-			await expect(storage.push(rep.source)).resolves.toBeUndefined();
+	describe("Репозиторий без сабмодулей", () => {
+		beforeEach(async () => {
+			await dfp.copy(new Path("remoteRep_local_no_submodules"), new Path(repNameWithoutSubmodules));
+			git = new GitCommands(dfp, new Path(repNameWithoutSubmodules));
+			storage = new GitStorage(new Path(repNameWithoutSubmodules), dfp);
+
+			await git.hardReset(await git.getParentCommit(await git.getHeadCommit()));
+		});
+		afterEach(async () => {
+			await dfp.delete(new Path(repNameWithoutSubmodules));
+		});
+
+		describe("pull", () => {
+			test("без конфилктов", async () => {
+				const hashBefore = (await git.getHeadCommit()).toString();
+
+				await storage.pull(mockUserData);
+
+				expect((await git.getHeadCommit()).toString()).not.toBe(hashBefore);
+			});
+
+			test("с конфилктом", async () => {
+				const hashBefore = (await git.getHeadCommit()).toString();
+				await dfp.write(new Path([repNameWithoutSubmodules, "main.txt"]), "new change");
+				await git.add(), await git.commit("", mockUserData);
+
+				await storage.pull(mockUserData);
+
+				const newContent = await dfp.read(new Path([repNameWithoutSubmodules, "main.txt"]));
+				expect((await git.getHeadCommit()).toString()).not.toBe(hashBefore);
+				expect(newContent).toContain("<<<<<<<");
+				expect(newContent).toContain("=======");
+				expect(newContent).toContain(">>>>>>>");
+			});
+		});
+		test("push", async () => {
+			const hashBefore = (await git.getHeadCommit()).toString();
+			await dfp.write(new Path([repNameWithoutSubmodules, "new_file.txt"]), "new file content");
+			await git.add(), await git.commit("", mockUserData);
+
+			await expect(storage.push(mockUserData)).resolves.not.toThrow();
+			expect((await git.getHeadCommit()).toString()).not.toBe(hashBefore);
 		});
 	});
 });

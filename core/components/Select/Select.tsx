@@ -41,7 +41,7 @@ export default styled(Select)`
 		border: none;
 		font-weight: 300;
 		padding: 6px 12px;
-		border-radius: var(--radius-normal);
+		border-radius: var(--radius-small);
 		box-shadow: none !important;
 		background: var(--color-code-bg);
 	}
@@ -81,7 +81,7 @@ export default styled(Select)`
 
 	.react-dropdown-select-dropdown {
 		border: none;
-		border-radius: var(--radius-normal);
+		border-radius: var(--radius-small);
 		background: var(--color-code-copy-bg);
 
 		.react-dropdown-select-item:hover,

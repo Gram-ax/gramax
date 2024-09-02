@@ -10,7 +10,7 @@ const haveToPull: Command<{ ctx: Context; catalogName: string }, boolean> = Comm
 
 	kind: ResponseKind.json,
 
-	middlewares: [new NetworkConnectMiddleWare(), new AuthorizeMiddleware(), new SilentMiddleware()],
+	middlewares: [new SilentMiddleware(), new NetworkConnectMiddleWare(), new AuthorizeMiddleware()],
 
 	async do({ ctx, catalogName }) {
 		const { wm, logger, rp } = this._app;

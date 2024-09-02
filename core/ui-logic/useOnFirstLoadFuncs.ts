@@ -6,10 +6,8 @@ import useReviewHandler from "@ext/catalog/actions/review/logic/useReviewHandler
 import useShareHandler from "@ext/catalog/actions/share/logic/useShareHandler";
 import useRemoveExpiredSources from "@ext/git/actions/Source/logic/useRemoveExpariedSources";
 import { saveTempTokenIfPresent } from "@ext/git/actions/Source/tempToken";
-import usePathnameCheckoutHandler from "@ext/git/core/GitPathnameHandler/checkout/logic/usePathnameCheckoutHandler";
 import usePathnameCloneHandler from "@ext/git/core/GitPathnameHandler/clone/logic/usePathnameCloneHandler";
-import usePathnamePullHandler from "@ext/git/core/GitPathnameHandler/pull/logic/usePathnamePullHandler";
-import useSsoHandler from "@ext/sso/useSsoHandler";
+import usePathnameHandler from "@ext/git/core/GitPathnameHandler/usePathnameHandler";
 import useUserSettingsHandler from "@ext/sso/useUserSettingsHandler";
 
 const closeIfChild = () => {
@@ -38,11 +36,9 @@ const useOnFirstLoadFuncs = () => {
 	useRemoveQueryT(isFirstLoad);
 	useReviewHandler(isFirstLoad);
 	useShareHandler(isFirstLoad);
-	useSsoHandler(isFirstLoad);
 	useUserSettingsHandler(isFirstLoad);
-	usePathnamePullHandler(isFirstLoad);
 	usePathnameCloneHandler(isFirstLoad);
-	usePathnameCheckoutHandler(isFirstLoad);
+	usePathnameHandler(isFirstLoad);
 };
 
 export default useOnFirstLoadFuncs;

@@ -4,13 +4,15 @@ use tauri::*;
 use url::Url;
 
 use crate::config::OpenUrl;
+use crate::AppHandleExt;
 
 pub fn on_open_asked<R: Runtime>(app: &AppHandle<R>, urls: Vec<Url>) {
   let Some(url) = urls.first().and_then(|url| url.as_str().split_once("://").map(|u| u.1)) else {
     return;
   };
 
-  let Some(window) = app.get_focused_window().or_else(|| app.windows().values().next().cloned()) else {
+  let Some(window) = app.get_focused_webview().or_else(|| app.webview_windows().values().next().cloned())
+  else {
     if let Some(state) = app.try_state::<OpenUrl>().as_deref() {
       state.0.lock().unwrap().replace(url.to_string());
     } else {
@@ -19,8 +21,8 @@ pub fn on_open_asked<R: Runtime>(app: &AppHandle<R>, urls: Vec<Url>) {
     return;
   };
 
-  let webviews = window.webviews();
-  let Some(webview) = webviews.first() else { return };
+  let webviews = app.webview_windows();
+  let Some(webview) = webviews.values().next() else { return };
 
   let Err(err) = webview.eval(&format!("window.location.replace('/{}')", url.trim_start_matches('/'))) else {
     info!("open url: {}", url);

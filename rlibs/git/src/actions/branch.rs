@@ -138,6 +138,7 @@ impl<C: ActualCreds> RemoteBranch for Repo<C> {
     let mut cbs = RemoteCallbacks::new();
     cbs.credentials(make_credentials_callback(&self.1));
     cbs.certificate_check(ssl_callback);
+    cbs.push_update_reference(push_update_reference_callback);
     let mut push_opts = PushOptions::new();
     push_opts.remote_callbacks(cbs);
 

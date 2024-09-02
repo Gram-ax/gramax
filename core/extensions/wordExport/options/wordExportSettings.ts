@@ -1,14 +1,14 @@
-import Language from "@ext/localization/core/model/Language";
+import UiLanguage from "@ext/localization/core/model/Language";
 import t from "@ext/localization/locale/translate";
 import { BorderStyle, HeadingLevel } from "docx";
 
 export const NON_BREAKING_SPACE = "\u00A0";
 export const ICON_SIZE = 11;
 
-export const diagramString = (language: Language) => t("word.diagram", language);
-export const imageString = (language: Language) => t("word.picture", language);
-export const tableDbString = (language: Language) => t("word.tabledb", language);
-export const snippetString = (language: Language) => t("word.snippet", language);
+export const diagramString = (language: UiLanguage) => t("word.diagram", language);
+export const imageString = (language: UiLanguage) => t("word.picture", language);
+export const tableDbString = (language: UiLanguage) => t("word.tabledb", language);
+export const snippetString = (language: UiLanguage) => t("word.snippet", language);
 
 export const wordFontSizes = {
 	list: 24,

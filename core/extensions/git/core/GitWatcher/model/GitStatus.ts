@@ -3,6 +3,6 @@ import { FileStatus } from "../../../../Watchers/model/FileStatus";
 
 export interface GitStatus {
 	path: Path;
-	type: FileStatus;
+	status: FileStatus;
 	isUntracked?: boolean;
 }

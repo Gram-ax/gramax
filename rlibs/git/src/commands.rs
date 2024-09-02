@@ -83,12 +83,14 @@ pub fn branch_list(repo_path: &Path) -> Result<Vec<BranchInfo>> {
   let mut res: Vec<BranchInfo> = vec![];
 
   for branch in repo.branches(None)? {
-    let branch = branch?;
-    let short_info = repo.resolve_branch_entry(branch)?.short_info()?;
-    if short_info.name == "HEAD" || res.iter().any(|b| short_info.name == b.name) {
+    let short_info = repo.resolve_branch_entry(branch?)?.short_info()?;
+    if short_info.name == "HEAD" {
       continue;
     }
-    res.push(short_info);
+    match res.iter_mut().find(|b| short_info.name == b.name) {
+      Some(found) => _ = std::mem::replace(found, short_info),
+      None => res.push(short_info),
+    };
   }
 
   Ok(res)

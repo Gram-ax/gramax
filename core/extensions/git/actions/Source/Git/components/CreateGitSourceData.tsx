@@ -28,7 +28,7 @@ const CreateGitSourceData = ({
 }) => {
 	const [thisProps, setThisProps] = useState(props);
 	const invalidMailText = t("error-mail");
-	const invalidURLText = t("invalid") + " " + t("value");
+	const invalidDomainText = t("invalid") + " " + t("value");
 
 	const submit = (data: GitSourceData) => {
 		if (onSubmit) onSubmit(data);
@@ -65,7 +65,7 @@ const CreateGitSourceData = ({
 				return {
 					url:
 						data.url && (!domain || !protocol) && protocol !== "http" && protocol !== "https"
-							? invalidURLText
+							? invalidDomainText
 							: null,
 					userEmail: isErrorEmail ? invalidMailText : null,
 				};

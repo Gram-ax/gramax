@@ -2,7 +2,7 @@ import LanguageService from "@core-ui/ContextServices/Language";
 import ThemeManager from "../../extensions/Theme/ThemeManager";
 import Cookie from "../../extensions/cookie/Cookie";
 import CookieFactory from "../../extensions/cookie/CookieFactory";
-import Language, { defaultLanguage } from "../../extensions/localization/core/model/Language";
+import UiLanguage, { ContentLanguage, defaultLanguage } from "../../extensions/localization/core/model/Language";
 import AuthManager from "../../extensions/security/logic/AuthManager";
 import User from "../../extensions/security/logic/User/User";
 import localUser from "../../extensions/security/logic/User/localUser";
@@ -28,6 +28,7 @@ export class ContextFactory {
 
 		const ui = cookie.get("ui");
 		const reqUi = req.headers["x-gramax-ui-language"];
+		if (!query.l) query.l = ContentLanguage[req.headers["x-gramax-language"]];
 		if (!!reqUi && reqUi != cookie.get("ui")) {
 			cookie.set("ui", reqUi);
 			query.ui = reqUi;
@@ -43,7 +44,7 @@ export class ContextFactory {
 		});
 	}
 
-	fromBrowser(language: Language, query: Query): Context {
+	fromBrowser(language: string, query: Query): Context {
 		const cookie = this._cookieFactory.from(this._cookieSecret);
 		if (!query) query = {};
 		query.l = language;
@@ -71,9 +72,9 @@ export class ContextFactory {
 			user,
 			domain,
 			cookie,
+			contentLanguage: query?.l as ContentLanguage,
+			ui: (query?.ui || defaultLanguage) as UiLanguage,
 			theme: this._tm?.getTheme(cookie),
-			lang: (query?.l || defaultLanguage) as Language,
-			ui: (query?.ui || defaultLanguage) as Language,
 		};
 	}
 }

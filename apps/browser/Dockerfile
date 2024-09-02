@@ -26,7 +26,7 @@ ARG BUGSNAG_API_KEY \
     CORS_PROXY_SERVICE_URL \
     PRODUCTION \
     DIAGRAM_RENDERER_SERVICE_URL \
-    GLS_URL=https://gram.ax/license\
+    GLS_URL=https://gram.ax/license \
     AUTH_SERVICE_URL
 ENV NODE_OPTIONS=--max_old_space_size=8192 \
     BUGSNAG_API_KEY=${BUGSNAG_API_KEY} \

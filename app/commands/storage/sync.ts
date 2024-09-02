@@ -11,57 +11,56 @@ import { AuthorizeMiddleware } from "../../../core/logic/Api/middleware/Authoriz
 import Context from "../../../core/logic/Context/Context";
 import { Command } from "../../types/Command";
 
-const sync: Command<{ ctx: Context; catalogName: string; articlePath: Path; recursive?: boolean }, MergeData> =
-	Command.create({
-		path: "storage/sync",
+const sync: Command<{ ctx: Context; catalogName: string; articlePath: Path }, MergeData> = Command.create({
+	path: "storage/sync",
 
-		kind: ResponseKind.json,
+	kind: ResponseKind.json,
 
-		middlewares: [new NetworkConnectMiddleWare(), new AuthorizeMiddleware(), new ReloadConfirmMiddleware()],
+	middlewares: [new NetworkConnectMiddleWare(), new AuthorizeMiddleware(), new ReloadConfirmMiddleware()],
 
-		async do({ ctx, catalogName, articlePath, recursive }) {
-			const { wm, rp, logger, sitePresenterFactory } = this._app;
-			const workspace = wm.current();
+	async do({ ctx, catalogName, articlePath }) {
+		const { wm, rp, logger, sitePresenterFactory } = this._app;
+		const workspace = wm.current();
 
-			const catalog = await workspace.getCatalog(catalogName);
-			if (!catalog) return;
-			const storage = catalog.repo.storage;
-			if (!storage) return;
-			const sourceData = rp.getSourceData(ctx.cookie, await storage.getSourceName());
-			const mergeResult = await catalog.repo.sync({
-				recursive,
-				data: sourceData,
-				onPull: () => logger.logTrace(`Pulled in catalog "${catalogName}".`),
-				onPush: () => logger.logTrace(`Pushed in catalog "${catalogName}".`),
-			});
+		const catalog = await workspace.getCatalog(catalogName);
+		if (!catalog) return;
+		const storage = catalog.repo.storage;
+		if (!storage) return;
+		const sourceData = rp.getSourceData(ctx.cookie, await storage.getSourceName());
+		const mergeResult = await catalog.repo.sync({
+			recursivePull: this._app.conf.isServerApp,
+			data: sourceData,
+			onPull: () => logger.logTrace(`Pulled in catalog "${catalogName}".`),
+			onPush: () => logger.logTrace(`Pushed in catalog "${catalogName}".`),
+		});
+		const state = await catalog.repo.getState();
 
-			const article = catalog.findItemByItemPath<Article>(articlePath);
-			if (!article) {
-				const dataProvider = sitePresenterFactory.fromContext(ctx);
-				const lastVisited = new LastVisited(ctx);
-				const articleData = await dataProvider.getArticlePageDataByPath([catalogName]);
-				lastVisited.setLastVisitedArticle(catalog, articleData.articleProps);
-			}
+		const article = catalog.findItemByItemPath<Article>(articlePath);
+		if (!article) {
+			const dataProvider = sitePresenterFactory.fromContext(ctx);
+			const lastVisited = new LastVisited(ctx);
+			const articleData = await dataProvider.getArticlePageDataByPath([catalogName]);
+			lastVisited.setLastVisitedArticle(catalog, articleData.articleProps);
+		}
 
-			const isOk = !mergeResult.length;
-			return isOk
-				? { ok: true }
-				: {
-						ok: false,
-						mergeFiles: mergeResult,
-						reverseMerge: (catalog.repo.state as RepStashConflictState).data.reverseMerge,
-						caller: MergeConflictCaller.Sync,
-				  };
-		},
+		const isOk = !mergeResult.length;
+		return isOk
+			? { ok: true }
+			: {
+					ok: false,
+					mergeFiles: mergeResult,
+					reverseMerge: (state as RepStashConflictState).data.reverseMerge,
+					caller: MergeConflictCaller.Sync,
+			  };
+	},
 
-		params(ctx, q) {
-			return {
-				ctx,
-				catalogName: q.catalogName,
-				articlePath: new Path(q.articlePath),
-				recursive: q.recursive === "true",
-			};
-		},
-	});
+	params(ctx, q) {
+		return {
+			ctx,
+			catalogName: q.catalogName,
+			articlePath: new Path(q.articlePath),
+		};
+	},
+});
 
 export default sync;

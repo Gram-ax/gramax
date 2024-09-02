@@ -1,7 +1,9 @@
 @import "vars.css";
+@import "code-block.css";
 
 .article {
 	line-height: 1.8;
+	word-wrap: break-word;
 	color: var(--color-article-text);
 	background: var(--color-article-bg);
 }
@@ -11,7 +13,7 @@
 	cursor: pointer;
 	font-weight: 300;
 	margin-top: 1rem;
-	border-radius: var(--radius-normal);
+	border-radius: var(--radius-small);
 	width: fit-content;
 	align-items: center;
 	text-decoration: none;
@@ -19,6 +21,11 @@
 	background: var(--color-code-bg);
 	color: var(--color-article-heading-text);
 	border: 1px solid var(--color-article-heading-text);
+}
+
+.article .monochrome-code-block,
+.article .monochrome-code-block span {
+	color: var(--color-fence-text);
 }
 
 .article.global .btn:hover {
@@ -206,6 +213,10 @@ samp {
 	color: var(--color-article-heading-text);
 }
 
+.article .article-body ol::before {
+	counter-reset: listitem;
+}
+
 .article .article-body ol > li::before,
 .article .article-body ol > li > ol > li > ol > li > ol > li::before,
 .article .article-body ol > li > ol > li > ol > li > ol > li > ol > li > ol > li > ol > li::before {
@@ -271,12 +282,16 @@ samp {
 	overflow: auto;
 	padding: 2px 6px;
 	background: var(--color-code-bg);
-	border-radius: var(--radius-normal);
 	color: var(--color-article-heading-text);
 }
 
+.article code {
+	border-radius: var(--radius-small);
+}
+
 .article pre {
-	padding: 1.375em 1.625em !important;
+	border-radius: var(--radius-large);
+	padding: 1.375em 1.625em;
 }
 
 .article td pre {
@@ -304,7 +319,7 @@ samp {
 .article .cmd {
 	box-shadow: 0 1px 0 var(--color-menu-bg);
 	white-space: nowrap;
-	border-radius: 0.2em;
+	border-radius: var(--radius-small);
 	background: var(--color-code-bg);
 	padding: 3px 6px;
 	font-weight: 400;
@@ -335,7 +350,7 @@ samp {
 	background: var(--color-code-bg);
 	font-size: 85%;
 	box-shadow: inset 0 -1px 0 var(--color-menu-bg);
-	border-radius: var(--radius-normal);
+	border-radius: var(--radius-small);
 	text-shadow: 0 1px 0 var(--color-article-text) / 60%;
 }
 
@@ -361,6 +376,7 @@ samp {
 }
 
 .article img {
+	border-radius: var(--radius-small);
 	box-shadow: var(--shadows-deeplight);
 	max-width: 100%;
 	border: 0;
@@ -368,6 +384,7 @@ samp {
 }
 
 .article img + em,
+.article .drawio + em,
 .article .img + em,
 .article .video-js + em,
 .article .error-video + em,
@@ -473,7 +490,7 @@ samp {
 .article .issueLink {
 	padding: 2px 5px;
 	background: var(--color-code-bg);
-	border-radius: 3px;
+	border-radius: var(--radius-small);
 	font-size: 0.85em;
 	white-space: nowrap;
 }
@@ -550,7 +567,7 @@ samp {
 .article code,
 .article pre.prism-code {
 	font-family: "Roboto Mono", Consolas, monospace;
-	font-size: 13px;
+	font-size: 0.813em;
 	font-weight: normal;
 }
 
@@ -613,9 +630,9 @@ samp {
 	float: left;
 	width: 4px;
 	height: 4px;
-	-moz-border-radius: 2px;
-	-webkit-border-radius: 2px;
-	border-radius: 2px;
+	-moz-border-radius: var(--radius-x-small);
+	-webkit-border-radius: var(--radius-x-small);
+	border-radius: var(--radius-x-small);
 	background: #fff;
 	box-shadow: -1px -1px 2px var(--color-shadows-guidance);
 }
@@ -626,7 +643,7 @@ samp {
 }
 
 .article .inline-code code {
-	padding: 2px 0;
+	padding: 0.125em 0;
 	cursor: pointer;
 }
 
@@ -640,11 +657,11 @@ samp {
 
 .article .inline-code .copy {
 	display: none;
-	font-size: 13px;
-	margin-top: 4px;
-	padding: 2.5px 4.5px;
 	position: absolute;
-	border-radius: var(--radius-normal);
+	font-size: 0.813em;
+	margin-top: 0.25em;
+	padding: 0.15625em 0.28125em;
+	border-radius: var(--radius-small);
 	background: var(--color-article-bg);
 }
 
@@ -653,7 +670,7 @@ samp {
 	padding: 20px;
 	margin: 2em 0;
 	position: relative;
-	border-radius: var(--radius-normal);
+	border-radius: var(--radius-large);
 	background-color: var(--color-diagram-bg);
 }
 
@@ -666,7 +683,7 @@ samp {
 	cursor: pointer;
 	font-size: 17px;
 	padding: 0 2px;
-	border-radius: 3px;
+	border-radius: var(--radius-medium);
 	position: absolute;
 	align-items: center;
 	justify-content: center;

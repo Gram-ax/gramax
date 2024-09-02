@@ -41,6 +41,11 @@ describe("GitFileHistory", () => {
 					{ value: "3", type: "new" },
 					{ value: " \n", type: undefined },
 				],
+				filePath: {
+					path: "file-with-history.md",
+					oldPath: "file-with-history.md",
+					diff: undefined,
+				},
 			},
 			{
 				version: "983c0f7872b3cd3821a3eb97c499f6d44e452059",
@@ -52,6 +57,11 @@ describe("GitFileHistory", () => {
 					{ value: "2", type: "new" },
 					{ value: " \n", type: undefined },
 				],
+				filePath: {
+					path: "file-with-history.md",
+					oldPath: "file-with-history.md",
+					diff: undefined,
+				},
 			},
 			{
 				version: "f0a85a100163564ffbe8bf8ac8daf5e1696cab82",
@@ -61,6 +71,11 @@ describe("GitFileHistory", () => {
 					{ value: "content 1 \n", type: "new" },
 					{ value: "", type: undefined },
 				],
+				filePath: {
+					path: "file-with-history.md",
+					oldPath: "",
+					diff: undefined,
+				},
 			},
 		]);
 	});

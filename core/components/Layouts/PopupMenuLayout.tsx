@@ -1,12 +1,13 @@
+import ButtonLink from "@components/Molecules/ButtonLink";
+import useElementExistence from "@core-ui/hooks/useElementExistence";
 import styled from "@emotion/styled";
 import { Placement } from "@popperjs/core";
 import Tippy from "@tippyjs/react";
-import { ReactNode, createElement, useCallback, useEffect, useState } from "react";
-import Icon from "../Atoms/Icon";
+import { ReactNode, createElement, useCallback, useEffect, useRef, useState, ReactElement } from "react";
 import Tooltip from "../Atoms/Tooltip";
 
 export interface PopupMenuLayoutProps {
-	children: JSX.Element | JSX.Element[];
+	children: ReactElement<any> | ReactElement<any>[];
 	trigger?: JSX.Element | JSX.Element[];
 	openTrigger?: string;
 	appendTo?: Element | "parent" | ((ref: Element) => Element);
@@ -65,9 +66,13 @@ const PopupMenuLayout = (props: PopupMenuLayoutProps) => {
 		disabled,
 		openTrigger = "click",
 	} = props;
+
+	const ref = useRef<Element>();
+	const exists = useElementExistence(ref);
+
 	const [isOpen, setIsOpen] = useState(false);
 
-	const IconElement = trigger ?? <Icon code="ellipsis" svgStyle={{ fill: "currentColor" }} isAction />;
+	const IconElement = trigger ?? <ButtonLink iconCode="ellipsis" />;
 
 	const closeHandler = () => {
 		setIsOpen(false);
@@ -78,8 +83,13 @@ const PopupMenuLayout = (props: PopupMenuLayoutProps) => {
 		onOpen();
 	};
 
+	useEffect(() => {
+		if (isOpen) setIsOpen(exists);
+	}, [exists]);
+
 	return (
 		<Tippy
+			ref={ref}
 			onAfterUpdate={(instance) => {
 				if (!isOpen) instance.hide();
 			}}
@@ -136,7 +146,7 @@ export default styled(PopupMenuLayout)`
 	min-width: 0;
 	font-size: 13px;
 	overflow: hidden;
-	border-radius: 0.34rem;
+	border-radius: var(--radius-large);
 	background: var(--color-article-bg);
 	left: 0 !important;
 	box-shadow: var(--menu-tooltip-shadow) !important;

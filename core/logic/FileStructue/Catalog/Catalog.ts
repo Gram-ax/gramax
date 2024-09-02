@@ -1,29 +1,74 @@
 import { CATEGORY_ROOT_FILENAME } from "@app/config/const";
+import { createEventEmitter, type Event } from "@core/Event/EventEmitter";
 import ArticleParser from "@core/FileStructue/Article/ArticleParser";
 import CatalogEntry from "@core/FileStructue/Catalog/CatalogEntry";
 import FileStructure from "@core/FileStructue/FileStructure";
-import { ItemStatus } from "@ext/Watchers/model/ItemStatus";
+import type { MakeResourceUpdater } from "@core/Resource/ResourceUpdaterFactory";
+import type { ClientArticleProps } from "@core/SitePresenter/SitePresenter";
+import itemRefUtils from "@core/utils/itemRefUtils";
+import { ItemStatus, type ItemRefStatus } from "@ext/Watchers/model/ItemStatus";
 import CatalogEditProps from "@ext/catalog/actions/propsEditor/model/CatalogEditProps.schema";
 import Repository from "@ext/git/core/Repository/Repository";
 import RepositoryProvider from "@ext/git/core/Repository/RepositoryProvider";
 import { CatalogErrors } from "@ext/healthcheck/logic/Healthcheck";
-import type { FSLocalizationProps } from "@ext/localization/core/rules/FSLocalizationRules";
 import IconProvider from "@ext/markdown/elements/icon/logic/IconProvider";
 import SnippetProvider from "@ext/markdown/elements/snippet/logic/SnippetProvider";
 import TabsTags from "@ext/markdown/elements/tabs/model/TabsTags";
 import type { TitledLink } from "@ext/navigation/NavigationLinks";
 import { FileStatus } from "../../../extensions/Watchers/model/FileStatus";
-import Language, { defaultLanguage } from "../../../extensions/localization/core/model/Language";
 import IPermission from "../../../extensions/security/logic/Permission/IPermission";
 import Path from "../../FileProvider/Path/Path";
 import FileProvider from "../../FileProvider/model/FileProvider";
-import ResourceUpdater from "../../Resource/ResourceUpdater";
-import itemRefUtils from "../../utils/itemRefUtils";
 import { Article } from "../Article/Article";
 import { Category } from "../Category/Category";
 import { Item } from "../Item/Item";
 import { ItemRef } from "../Item/ItemRef";
 import { ItemType } from "../Item/ItemType";
+import type { FSLocalizationProps } from "@ext/localization/core/events/FSLocalizationEvents";
+
+export type CatalogEvents = Event<"item-order-updated", { catalog: Catalog; item: Item }> &
+	Event<"resolve-category", { catalog: Catalog; mutableCategory: { category: Category } }> &
+	Event<"files-changed", CatalogFilesUpdated> &
+	Event<"before-set-name", { catalog: Catalog; mutableName: { name: string } }> &
+	Event<"set-name", { catalog: Catalog; prev: string }> &
+	Event<
+		"item-moved",
+		{
+			catalog: Catalog;
+			from: ItemRef;
+			to: ItemRef;
+			makeResourceUpdater: MakeResourceUpdater;
+			rp?: RepositoryProvider;
+		}
+	> &
+	Event<"item-deleted", { catalog: Catalog; ref: ItemRef; parser?: ArticleParser }> &
+	Event<"item-created", { catalog: Catalog; makeResourceUpdater: MakeResourceUpdater; parentRef?: ItemRef }> &
+	Event<
+		"item-props-updated",
+		{
+			catalog: Catalog;
+			item: Item;
+			ref: ItemRef;
+			props: ClientArticleProps;
+			makeResourceUpdater: MakeResourceUpdater;
+		}
+	>;
+
+export type CatalogItemsUpdated = {
+	catalog: Catalog;
+	items: ItemStatus[];
+};
+
+export type CatalogFilesUpdated = {
+	catalog: Catalog;
+	items: ItemRefStatus[];
+};
+
+export type ItemFilter = ((item: Item, catalog: Catalog) => boolean) & {
+	getErrorArticle?: (pathname: string) => Article;
+};
+export type ArticleFilter = (article: Article, catalog: Catalog) => boolean;
+export type CategoryFilter = (category: Category, catalog: Catalog) => boolean;
 
 export type CatalogInitProps = {
 	name: string;
@@ -58,15 +103,14 @@ export type CatalogProps = FSLocalizationProps & {
 export const EXCLUDED_PROPS = ["url", "docroot"];
 
 export class Catalog extends CatalogEntry {
-	private _rootCategory: Category;
-	private _rootPath: Path;
-	private _fp: FileProvider;
-	private _fs: FileStructure;
+	protected _rootCategory: Category;
+	protected _rootPath: Path;
+	protected _fp: FileProvider;
+	protected _fs: FileStructure;
 
-	private _watcherFuncs: WatcherFunc[] = [];
-	private _onUpdateNameFuncs: ((oldName: string, catalog: Catalog) => Promise<void>)[] = [];
 	private _snippetProvider: SnippetProvider;
 	private _iconProvider: IconProvider;
+	private _events = createEventEmitter<CatalogEvents>();
 	protected declare _repo: Repository;
 
 	constructor(init: CatalogInitProps) {
@@ -89,12 +133,21 @@ export class Catalog extends CatalogEntry {
 		this._fp = init.fp;
 		this._fs = init.fs;
 
-		const items = this._getItems(this._rootCategory);
-		items.forEach((i) => i.watch(this._onChange.bind(this)));
+		for (const item of this.getItems()) {
+			item.events.on("item-changed", this._onItemChanged.bind(this));
+			item.events.on(
+				"item-order-updated",
+				async (args) => await this.events.emit("item-order-updated", { catalog: this, ...args }),
+			);
+		}
 
 		this._snippetProvider = new SnippetProvider(this._fp, this._fs, this);
 
 		this._iconProvider = new IconProvider(this._fp, this._fs, this);
+	}
+
+	get events() {
+		return this._events;
 	}
 
 	load() {
@@ -120,17 +173,22 @@ export class Catalog extends CatalogEntry {
 	setRepo(repo: Repository, rp: RepositoryProvider) {
 		super.setRepo(repo, rp);
 		if (!this._repo.gvc) return;
-		this._repo.gvc.watch(async (items) => {
+		this._repo.gvc.events.on("files-changed", async ({ items }) => {
 			await this.update(rp);
-			await this._onChange(items);
+
+			await this._onFileChanged(
+				items.map((item) => ({
+					ref: this._fp.getItemRef(item.path),
+					status: item.status,
+				})),
+			);
 		});
 	}
 
-	getRelativeRepPath(itemRef: Path | ItemRef): Path {
-		if (itemRef instanceof Path) {
-			return this._basePath.subDirectory(itemRef)?.removeExtraSymbols; // TODO: remove `?`
-		}
-		return this._basePath.subDirectory(itemRef.path)?.removeExtraSymbols; // TODO: remove `?`
+	getRelativeRepPath(ref: Path | ItemRef): Path {
+		return ref instanceof Path
+			? this._basePath.subDirectory(ref)?.removeExtraSymbols // TODO: remove `?`
+			: this._basePath.subDirectory(ref.path)?.removeExtraSymbols; // TODO: remove `?`
 	}
 
 	getItemRefPath(relativeRepPath: Path): Path {
@@ -141,126 +199,89 @@ export class Catalog extends CatalogEntry {
 		return this._basePath;
 	}
 
-	async deleteItem(itemRef: ItemRef, articleParser?: ArticleParser) {
-		const item = this.findItemByItemRef<Article>(itemRef);
-		const index = item.parent.items.findIndex((i) => i.ref.path.compare(item?.ref?.path));
-		if (index == -1) return;
-		item.parent.items.splice(index, 1);
-
-		if (await this._fp.exists(item.ref.path)) {
-			if (item.content && articleParser) {
-				await articleParser.parse(item, this);
-				await item.parsedContent.resourceManager.deleteAll();
-			}
-
-			if (item.type == ItemType.category) {
-				const items = this._getItems(item as Category);
-				if (articleParser) {
-					await Promise.all(
-						items.map(async (item: Article) => {
-							await articleParser.parse(item, this);
-							await item.parsedContent.resourceManager.deleteAll();
-						}),
-					);
-				}
-				await this._fp.delete(itemRef.path.parentDirectoryPath);
-			} else await this._fp.delete(itemRef.path);
-		}
-
-		void this._onChange([{ itemRef, type: FileStatus.delete }]);
-	}
-
-	hasItems() {
-		return this._rootCategory.items?.length > 0;
+	async deleteItem(ref: ItemRef, parser?: ArticleParser, silent?: boolean) {
+		await this._deleteItem(ref, parser);
+		if (!silent) await this.events.emit("item-deleted", { catalog: this, ref, parser });
 	}
 
 	async createArticle(
-		resourceUpdater: ResourceUpdater,
+		makeResourceUpdater: MakeResourceUpdater,
 		markdown: string,
-		lang: Language,
 		parentRef?: ItemRef,
+		silent?: boolean,
 	): Promise<Article> {
 		const parentItem = parentRef
-			? this.findItemByItemRef<Category>(parentRef) ?? this._rootCategory
-			: this._rootCategory;
+			? this.findItemByItemRef<Category>(parentRef) ?? this._resolveRootCategory()
+			: this._resolveRootCategory();
 
-		if (parentItem.type == ItemType.article)
-			return await this.createCategoryByArticle(resourceUpdater, lang, markdown, parentItem as Article);
+		if (parentItem.type == ItemType.article) {
+			const category = await this._createCategoryByArticle(makeResourceUpdater, parentItem as Article);
+			if (!silent) await this.events.emit("item-created", { catalog: this, makeResourceUpdater, parentRef });
+			return await this.createArticle(makeResourceUpdater, markdown, category.ref, true);
+		}
 
-		const itemRef: ItemRef = itemRefUtils.create(
+		const ref: ItemRef = itemRefUtils.create(
 			parentItem.ref,
 			parentItem.items.map((i) => i.ref),
 		);
-		const path = new Path(lang == defaultLanguage ? itemRef.path.value : itemRef.path.value + "_" + lang);
-		await this._fp.write(path, markdown);
-		const article = await this._fs.createArticle(path, parentItem, this._props, this._errors);
+
+		await this._fp.write(ref.path, markdown);
+		const article = await this._fs.createArticle(ref.path, parentItem, this._props, this._errors);
 		await article.setLastPosition();
 		parentItem.items.push(article);
-		article.watch(this._onChange.bind(this));
-		void this._onChange([{ itemRef: article.ref, type: FileStatus.new }]);
+		article.events.on("item-changed", this._onItemChanged.bind(this));
+		article.events.on(
+			"item-order-updated",
+			async (args) => await this.events.emit("item-order-updated", { catalog: this, ...args }),
+		);
+
+		await this._onItemChanged({ item: article, status: FileStatus.new });
+		if (!silent) await this.events.emit("item-created", { catalog: this, makeResourceUpdater, parentRef });
 		return article;
 	}
 
-	async createCategoryByArticle(
-		resourceUpdater: ResourceUpdater,
-		lang: Language,
-		markdown: string,
-		parentArticle: Article,
-	) {
-		const dir = parentArticle.ref.path.parentDirectoryPath.join(new Path(parentArticle.getFileName()));
-		const path = dir.join(new Path(CATEGORY_ROOT_FILENAME));
+	async createCategory(name: string, parentRef?: ItemRef): Promise<Category> {
+		const parentItem = parentRef
+			? this.findItemByItemRef<Category>(parentRef) ?? this._resolveRootCategory()
+			: this._resolveRootCategory();
 
-		const index = parentArticle.parent.items.findIndex((i) => i.ref.path.compare(parentArticle.ref.path));
-		await this.deleteItem(parentArticle.ref);
-		if (index === -1) return parentArticle;
+		if (parentItem.type == ItemType.article)
+			throw new Error(`Cannot create category: parent item is article; ref: ${parentItem.ref.path.value}`);
 
-		const newCategory = await this._fs.createCategory(
-			path,
-			parentArticle.parent,
-			parentArticle,
+		const category = await this._fs.createCategory(
+			parentItem.folderPath.join(new Path([name, CATEGORY_ROOT_FILENAME])),
+			parentItem,
+			null,
 			this._props,
 			this._errors,
 		);
-		await resourceUpdater.update(parentArticle, newCategory);
-		newCategory.watch(this._onChange.bind(this));
-		void this._onChange([{ itemRef: newCategory.ref, type: FileStatus.new }]);
 
-		parentArticle.parent.items.splice(index, 0, newCategory);
-		return this.createArticle(resourceUpdater, markdown, lang, newCategory.ref);
-	}
-
-	async moveItem(oldItemRef: ItemRef, newItemRef: ItemRef, resourceUpdater: ResourceUpdater, rp: RepositoryProvider) {
-		const item = this.findItemByItemRef<Article>(oldItemRef);
-		if (!item) return;
-
-		if (item.type == ItemType.category) {
-			for (const i of (item as Category).items) {
-				const childNewBasePath = newItemRef.path.parentDirectoryPath.join(
-					item.ref.path.parentDirectoryPath.subDirectory(i.ref.path),
-				);
-				const childNewItemRef = { path: childNewBasePath, storageId: i.ref.storageId };
-				await this.moveItem(i.ref, childNewItemRef, resourceUpdater, rp);
-			}
-		}
-
-		await this._fp.move(item.ref.path, newItemRef.path);
-
-		await this.update(rp);
-		const newItem = this.findItemByItemRef<Article>(newItemRef);
-		await resourceUpdater.update(item, newItem);
+		category.events.on("item-changed", this._onItemChanged.bind(this));
+		category.events.on(
+			"item-order-updated",
+			async (args) => await this.events.emit("item-order-updated", { catalog: this, ...args }),
+		);
+		await this._onItemChanged({ item: category, status: FileStatus.new });
+		return category;
 	}
 
 	async update(rp: RepositoryProvider) {
 		const catalog = await this._fs.getCatalogByPath(this._basePath);
-		this._name = catalog._name;
-		this._props = catalog._props;
-		this._errors = catalog._errors;
-		this._rootPath = catalog._rootPath;
-		this._basePath = catalog._basePath;
-		this._rootCategory = catalog._rootCategory;
+		this._update(catalog);
+
+		if (!rp) return;
 		await rp.updateRepository(this._repo, this._fp, this._basePath);
 		this.setRepo(this._repo, rp);
 		this._repo?.storage?.setSyncSearchInPath(this._props.docroot ?? "");
+	}
+
+	async updateItemProps(props: ClientArticleProps, makeResourceUpdater: MakeResourceUpdater) {
+		const item: Item = this.findArticle(props.logicPath, []);
+		if (!item) return;
+		const ref = { ...item.ref };
+		await item.updateProps(props, makeResourceUpdater(this), this._resolveRootCategory().props);
+		await this.events.emit("item-props-updated", { catalog: this, ref, item, props, makeResourceUpdater });
+		return item;
 	}
 
 	getNeededPermission(): IPermission {
@@ -273,51 +294,54 @@ export class Catalog extends CatalogEntry {
 		await this._fs.saveCatalog(this);
 	}
 
-	async updateProps(ru: ResourceUpdater, rp: RepositoryProvider, props: CatalogEditProps) {
+	async updateProps(
+		makeResourceUpdater: MakeResourceUpdater,
+		rp: RepositoryProvider,
+		props: CatalogEditProps | CatalogProps,
+	) {
 		Object.keys(props)
 			.filter((k) => !EXCLUDED_PROPS.includes(k))
 			.forEach((k) => (this._props[k] = props[k]));
 		await this._fs.saveCatalog(this);
-		await this._moveRootCategoryIfNeed(new Path(props.docroot), ru, rp);
+		await this._moveRootCategoryIfNeed(new Path(props.docroot), makeResourceUpdater, rp);
 		await this.update(rp);
-		if (props.url !== this._name) return this.updateName(props.url, rp);
+		if (props.url && props.url !== this._name) return this.updateName(props.url, rp);
 		return this;
 	}
 
-	onUpdateName(onUpdateName: (oldName: string, catalog: Catalog) => Promise<void>) {
-		this._onUpdateNameFuncs.push(onUpdateName);
-	}
+	async updateName(name: string, rp: RepositoryProvider) {
+		const mutableName = { name };
+		const prev = this._name;
+		await this.events.emit("before-set-name", { catalog: this, mutableName });
 
-	async updateName(newName: string, rp: RepositoryProvider) {
-		const newBasePath = this._basePath.getNewName(newName);
-		const oldName = this._name;
+		const newBasePath = this._basePath.getNewName(mutableName.name);
 		await this._fp.move(this._basePath, newBasePath);
 		this._basePath = newBasePath;
 		await this.update(rp);
-		await Promise.all(this._onUpdateNameFuncs.map((f) => f(oldName, this)));
+
+		await this.events.emit("set-name", { catalog: this, prev });
+
 		return this;
 	}
 
-	async getTransformedItems<T>(transformer: (item: Item) => Promise<T> | T): Promise<T[]> {
+	async getTransformedItems<T>(root: Category, transformer: (item: Item) => Promise<T> | T): Promise<T[]> {
 		const transformedItems: T[] = [];
-		for (const item of this._rootCategory.items) {
-			transformedItems.push(await transformer(item));
-		}
+		for (const item of root.items) transformedItems.push(await transformer(item));
 		const items = transformedItems.filter((l) => l);
 		return items;
 	}
 
 	findItemByItemPath<T extends Item = Item>(itemPath: Path): T {
-		return this._findItem(this._rootCategory, [], [(a) => a.ref.path.compare(itemPath)]) as T;
+		return this._findItem(this._resolveRootCategory(), [], [(a) => a.ref.path.compare(itemPath)]) as T;
 	}
 
 	findItemByItemRef<T extends Item = Item>(itemRef: ItemRef): T {
-		return this._findItem(this._rootCategory, [], [(a) => a.ref.path.compare(itemRef.path)]) as T;
+		return this._findItem(this._resolveRootCategory(), [], [(a) => a.ref.path.compare(itemRef.path)]) as T;
 	}
 
 	findArticleByItemRef(itemRef: ItemRef): Article {
 		return this._findItem(
-			this._rootCategory,
+			this._resolveRootCategory(),
 			[],
 			[(a) => a.ref.path.compare(itemRef.path) && a.type === ItemType.article],
 		) as Article;
@@ -325,14 +349,14 @@ export class Catalog extends CatalogEntry {
 
 	findCategoryByItemRef(itemRef: ItemRef): Category {
 		return this._findItem(
-			this._rootCategory,
+			this._resolveRootCategory(),
 			[],
 			[(a) => a.ref.path.compare(itemRef.path) && a.type === ItemType.category],
 		) as Category;
 	}
 
-	findArticle(logicPath: string, filters: ArticleFilter[]): Article {
-		const item = this._findItemByLogicPath(this._rootCategory, logicPath, filters);
+	findArticle(logicPath: string, filters: ArticleFilter[], root?: Category): Article {
+		const item = this._findItemByLogicPath(root || this._resolveRootCategory(), logicPath, filters);
 		if (!item) return null;
 		if (item.type === ItemType.category && (item as Category).parent) return item as Article;
 		if (item.type === ItemType.article) return item as Article;
@@ -357,34 +381,169 @@ export class Catalog extends CatalogEntry {
 	}
 
 	getItems(filters: ArticleFilter[] = []): Item[] {
-		return this._getItems(this._rootCategory, filters);
+		return this._getItems(this._resolveRootCategory(), filters);
 	}
 
 	getArticles(filters?: ArticleFilter[]): Article[] {
 		if (!filters) filters = [];
 		filters.push((item: Item) => item.type == ItemType.article);
-		return this._getItems(this._rootCategory, filters) as Article[];
+		return this._getItems(this._resolveRootCategory(), filters) as Article[];
 	}
 
 	getCategories(filters?: CategoryFilter[]): Category[] {
 		if (!filters) filters = [];
 		filters.push((item: Item) => item.type == ItemType.category);
-		return [this._rootCategory, ...(this._getItems(this._rootCategory, filters) as Category[])];
+		const root = this._resolveRootCategory();
+		return [root, ...(this._getItems(root, filters) as Category[])];
 	}
 
 	getContentItems(filters?: ArticleFilter[]): Article[] {
 		if (!filters) filters = [];
 		filters.push((article: Article) => !!article.content);
-		return this._getItems(this._rootCategory, filters) as Article[];
+		return this._getItems(this._resolveRootCategory(), filters) as Article[];
 	}
 
-	watch(w: WatcherFunc): void {
-		this._watcherFuncs.push(w);
+	async moveItem(
+		from: ItemRef,
+		to: ItemRef,
+		makeResourceUpdater: MakeResourceUpdater,
+		rp: RepositoryProvider,
+		silent?: boolean,
+	) {
+		const item = this.findItemByItemRef<Article>(from);
+		if (!item) throw new Error(`Item '${from.path.value}' wasn't found in catalog ${this._basePath.value}`);
+
+		if (item.type == ItemType.category) await this._moveCategoryItems(<Category>item, to, rp, makeResourceUpdater);
+
+		const movedItem = await this._moveArticleItem(item, to);
+
+		const resourceUpdater = makeResourceUpdater(this);
+		const innerRefs = (<Category>item).items?.map((item) => item.ref) || [];
+		await resourceUpdater.update(item, movedItem, [item.ref, ...innerRefs]);
+
+		if (!silent) await this.events.emit("item-moved", { catalog: this, from, to, makeResourceUpdater, rp });
+
+		await resourceUpdater.updateOtherArticles(from.path, to.path);
 	}
 
-	private async _onChange(changeItem: ItemStatus[]): Promise<void> {
-		const changeCatalog = this._convertToChangeCatalog(changeItem);
-		for (const f of this._watcherFuncs) await f(changeCatalog);
+	private _resolveRootCategory() {
+		return this._rootCategory;
+	}
+
+	private async _moveArticleItem(item: Article, to: ItemRef) {
+		await this._fp.move(item.ref.path, to.path);
+
+		const movedItem =
+			item.type == ItemType.category
+				? await this._fs.makeCategory(
+						to.path.parentDirectoryPath,
+						this._rootCategory,
+						this.props,
+						this.errors,
+						to.path,
+				  )
+				: await this._fs.createArticle(to.path, this._rootCategory, this.props, this.errors);
+
+		return movedItem;
+	}
+
+	private async _moveCategoryItems(
+		item: Category,
+		to: ItemRef,
+		rp: RepositoryProvider,
+		makeResourceUpdater: MakeResourceUpdater,
+	) {
+		for (const i of item.items) {
+			const childNewBasePath = to.path.parentDirectoryPath.join(
+				item.ref.path.parentDirectoryPath.subDirectory(i.ref.path),
+			);
+			const childNewItemRef = { path: childNewBasePath, storageId: i.ref.storageId };
+			await this.moveItem(i.ref, childNewItemRef, makeResourceUpdater, rp, true);
+		}
+	}
+
+	protected async _deleteItem(ref: ItemRef, parser?: ArticleParser) {
+		const item = this.findItemByItemRef<Article>(ref);
+		if (!item) return;
+
+		const index = item.parent.items.findIndex((i) => i.ref.path.compare(item?.ref?.path));
+		if (index == -1) return;
+		item.parent.items.splice(index, 1);
+
+		if (await this._fp.exists(item.ref.path)) {
+			if (item.content && parser) {
+				await parser.parse(item, this);
+				await item.parsedContent.resourceManager.deleteAll();
+			}
+
+			if (item.type == ItemType.category) {
+				const items = this._getItems(item as Category);
+				if (parser) {
+					await Promise.all(
+						items.map(async (item: Article) => {
+							await parser.parse(item, this);
+							await item.parsedContent.resourceManager.deleteAll();
+						}),
+					);
+				}
+				await this._fp.delete(ref.path.parentDirectoryPath, true);
+			} else await this._fp.delete(ref.path, true);
+		}
+
+		await this._onItemChanged({ item, status: FileStatus.delete });
+	}
+
+	private async _createCategoryByArticle(
+		makeResourceUpdater: MakeResourceUpdater,
+		parentArticle: Article,
+	): Promise<Category> {
+		const dir = parentArticle.ref.path.parentDirectoryPath.join(new Path(parentArticle.getFileName()));
+		const path = dir.join(new Path(CATEGORY_ROOT_FILENAME));
+
+		const index = parentArticle.parent.items.findIndex((i) => i.ref.path.compare(parentArticle.ref.path));
+		await this._deleteItem(parentArticle.ref);
+		if (index === -1 || parentArticle.type == ItemType.category) return parentArticle as Category;
+
+		const category = await this._fs.createCategory(
+			path,
+			parentArticle.parent,
+			parentArticle,
+			this._props,
+			this._errors,
+		);
+
+		await makeResourceUpdater(this).update(parentArticle, category);
+		category.events.on("item-changed", this._onItemChanged.bind(this));
+		category.events.on(
+			"item-order-updated",
+			async (args) => await this.events.emit("item-order-updated", { catalog: this, ...args }),
+		);
+		await this._onItemChanged({ item: category, status: FileStatus.new });
+
+		parentArticle.parent.items.splice(index, 0, category);
+		return category;
+	}
+
+	private _update(catalog: Catalog) {
+		this._name = catalog._name;
+		this._props = catalog._props;
+		this._errors = catalog._errors;
+		this._rootPath = catalog._rootPath;
+		this._basePath = catalog._basePath;
+		this._rootCategory = catalog._rootCategory;
+	}
+
+	private async _onItemChanged(update: ItemStatus | ItemStatus[]) {
+		const items = Array.isArray(update) ? update : [update];
+
+		await this.events.emit("files-changed", {
+			catalog: this,
+			items: items.map((i) => ({ ref: i.item.ref, status: i.status })),
+		});
+	}
+
+	private async _onFileChanged(update: ItemRefStatus | ItemRefStatus[]) {
+		await this.events.emit("files-changed", { catalog: this, items: Array.isArray(update) ? update : [update] });
 	}
 
 	private _getItems(category: Category, filters?: ItemFilter[]): Item[] {
@@ -398,7 +557,11 @@ export class Catalog extends CatalogEntry {
 		return items;
 	}
 
-	private async _moveRootCategoryIfNeed(rootRelative: Path, ru: ResourceUpdater, rp: RepositoryProvider) {
+	private async _moveRootCategoryIfNeed(
+		rootRelative: Path,
+		makeResourceUpdater: MakeResourceUpdater,
+		rp: RepositoryProvider,
+	) {
 		if (this.getRelativeRootCategoryPath().compare(rootRelative)) return;
 
 		const root = this.getRootCategory();
@@ -412,13 +575,11 @@ export class Catalog extends CatalogEntry {
 			await this.update(rp);
 		}
 
-		await Promise.all(
-			root.items?.map((item) => {
-				const path = to.parentDirectoryPath.join(root.ref.path.parentDirectoryPath.subDirectory(item.ref.path));
-				const ref = this._fp.getItemRef(path);
-				return this.moveItem(item.ref, ref, ru, rp);
-			}),
-		);
+		for (const item of root.items || []) {
+			const path = to.parentDirectoryPath.join(root.ref.path.parentDirectoryPath.subDirectory(item.ref.path));
+			const ref = this._fp.getItemRef(path);
+			await this.moveItem(item.ref, ref, makeResourceUpdater, rp, null);
+		}
 
 		await this._fp.move(rootPath, to);
 		await this.update(rp);
@@ -496,31 +657,11 @@ export class Catalog extends CatalogEntry {
 	}
 
 	private _findErrorArticle(article: Article, filters: ArticleFilter[]) {
-		const filter = filters.find((f) => !f(article, this) && (f as any).errorArticle);
-		if (filter) return (filter as any).errorArticle as Article;
+		const filter = filters.find((f) => !f(article, this) && (f as any).getErrorArticle);
+		if (filter) return (filter as any).getErrorArticle(article.logicPath) as Article;
 	}
 
 	private _testArticle(article: Article, filters: ArticleFilter[]) {
 		return !filters || filters.every((f) => f(article, this));
 	}
-
-	private _convertToChangeCatalog(items: ItemStatus[]): ChangeCatalog[] {
-		return items.map((item) => ({
-			catalog: this,
-			type: item.type,
-			itemRef: item.itemRef,
-		}));
-	}
 }
-
-export type ItemFilter = (item: Item, catalog: Catalog) => boolean;
-export type ArticleFilter = (article: Article, catalog: Catalog) => boolean;
-export type CategoryFilter = (category: Category, catalog: Catalog) => boolean;
-
-export interface ChangeCatalog {
-	catalog: Catalog;
-	itemRef: ItemRef;
-	type: FileStatus;
-}
-
-type WatcherFunc = (changes: ChangeCatalog[]) => Promise<void>;

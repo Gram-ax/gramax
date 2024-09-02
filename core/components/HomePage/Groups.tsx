@@ -38,7 +38,7 @@ export default styled(Groups)`
 
 	.catalog-background {
 		width: 100%;
-		border-radius: 10px;
+		border-radius: var(--radius-large);
 		background: var(--color-block);
 	}
 

@@ -1,55 +1,92 @@
 import SpinnerLoader from "@components/Atoms/SpinnerLoader";
 import styled from "@emotion/styled";
 import DiagramError from "@ext/markdown/elements/diagrams/component/DiagramError";
-import { forwardRef, MutableRefObject } from "react";
+import { forwardRef, MutableRefObject, useEffect, useState } from "react";
 import DiagramType from "../../../../../logic/components/Diagram/DiagramType";
+import Lightbox from "@components/Atoms/Image/modalImage/Lightbox";
+import { classNames } from "@components/libs/classNames";
 
-const DiagramRender = styled(
-	forwardRef(
-		(
-			{
-				data,
-				error,
-				diagramName,
-				className,
-				background = true,
-				dataFocusable = true,
-			}: {
-				data?: string;
-				error?: Error;
-				diagramName: DiagramType;
-				className?: string;
-				isFull?: boolean;
-				background?: boolean;
-				dataFocusable?: boolean;
-			},
-			ref?: MutableRefObject<HTMLDivElement>,
-		) => {
-			if (!data && !error)
-				return (
-					<div className={`${className} diagram-image`}>
-						<SpinnerLoader width={75} height={75} />
-					</div>
-				);
+interface DiagramProps {
+	data?: string;
+	error?: Error;
+	diagramName: DiagramType;
+	openEditor?: () => void;
+	className?: string;
+	isFull?: boolean;
+	background?: boolean;
+	dataFocusable?: boolean;
+	title?: string;
+	downloadSrc?: string;
+}
 
-			if (error) return <DiagramError error={error} diagramName={diagramName} />;
+const DiagramRender = forwardRef((props: DiagramProps, ref?: MutableRefObject<HTMLDivElement>) => {
+	const {
+		data,
+		error,
+		diagramName,
+		className,
+		background = true,
+		dataFocusable = true,
+		title,
+		downloadSrc,
+		openEditor,
+	} = props;
 
-			return (
-				<div
-					className={`${className} ${background ? "diagram-background" : ""} diagram-image`}
-					data-focusable={`${dataFocusable}`}
-				>
-					<div
-						ref={ref}
-						className={`${className} ${diagramName}-diagram`}
-						contentEditable={false}
-						dangerouslySetInnerHTML={{ __html: data }}
-					/>
-				</div>
-			);
-		},
-	),
-)`
+	const [imageSrc, setImageSrc] = useState<string>(null);
+	const [isOpen, setOpen] = useState(false);
+
+	const setSrc = (newSrc: Blob) => {
+		if (imageSrc) URL.revokeObjectURL(imageSrc);
+		setImageSrc(URL.createObjectURL(newSrc));
+	};
+
+	useEffect(() => {
+		setSrc(new Blob([data], { type: "image/svg+xml" }));
+	}, [data]);
+
+	if (!data && !error)
+		return (
+			<div className={`${className} diagram-image`}>
+				<SpinnerLoader width={75} height={75} />
+			</div>
+		);
+
+	if (error) return <DiagramError error={error} diagramName={diagramName} />;
+	return (
+		<div
+			className={classNames(`${className} diagram-image`, { "diagram-background": background })}
+			data-focusable={`${dataFocusable}`}
+		>
+			{isOpen && (
+				<Lightbox
+					id={diagramName}
+					src={imageSrc}
+					title={title}
+					onClose={() => setOpen(false)}
+					openedElement={ref}
+					downloadSrc={downloadSrc}
+					modalEdit={openEditor}
+					modalStyle={{
+						display: "flex",
+						justifyContent: "center",
+						backgroundColor: diagramName === DiagramType.mermaid ? "var(--color-diagram-bg)" : "none",
+						borderRadius: diagramName === DiagramType.mermaid ? "var(--radius-large)" : "none",
+						width: diagramName === DiagramType.mermaid ? "50em" : "auto",
+					}}
+				/>
+			)}
+			<div
+				ref={ref}
+				className={`${className} ${diagramName}-diagram`}
+				contentEditable={false}
+				onClick={() => setOpen(true)}
+				dangerouslySetInnerHTML={{ __html: data }}
+			/>
+		</div>
+	);
+});
+
+export default styled(DiagramRender)`
 	display: flex;
 	width: 100%;
 	margin: 1rem 0;
@@ -63,15 +100,7 @@ const DiagramRender = styled(
 			}
 			`
 			: p.diagramName == DiagramType.mermaid
-			? ` 
-	div {
-		width: 100%;
-		height: 100%;
-		font-size: 15px;
-		align-items: center;
-		display: flex !important;
-		justify-content: space-around;
-	}`
+			? ``
 			: "";
 	}}
 
@@ -82,5 +111,3 @@ const DiagramRender = styled(
 		max-height: 100% !important;
 	}
 `;
-
-export default DiagramRender;

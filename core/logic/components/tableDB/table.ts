@@ -52,7 +52,7 @@ export class TableDB {
 
 	constructor(parser: MarkdownParser, private _wm: WorkspaceManager) {
 		this._parseToHtml = parser.parseToHtml.bind(parser);
-		this._wm.addOnChangeRule(this._onChange.bind(this));
+		this._wm.onCatalogChange(this._onChange.bind(this));
 	}
 
 	private _onChange(): void {

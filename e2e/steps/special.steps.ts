@@ -108,3 +108,30 @@ Then("проверка API", async function (this: E2EWorld) {
 	const content = Buffer.from(arrayBuffer).toString().replaceAll("\r", "");
 	expect(content).toEqual("@startuml\nBob -> Alice : hello\n@enduml");
 });
+
+Then("ошибки {string} содержат", async function (this: E2EWorld, errorTitle: string, errorBlock: string) {
+	const expectedErrors = errorBlock
+		.trim()
+		.split("\n")
+		.map((line) => {
+			const [articleName, errors] = line.split(":").map((part) => part.trim());
+			return { articleName, errors };
+		});
+
+	const errorDivLocator = await this.page().search().find(`.errors:has(h3:has-text("${errorTitle}"))`);
+	await errorDivLocator.waitFor();
+	const rowsLocator = errorDivLocator.locator("table tbody tr");
+	const rowCount = await rowsLocator.count();
+	expect(rowCount).toEqual(expectedErrors.length);
+
+	for (let i = 0; i < rowCount; i++) {
+		const currentRow = rowsLocator.nth(i);
+		const currentExpectedErrors = expectedErrors[i];
+		const articleName = await currentRow.locator(".article-name").textContent();
+		expect(articleName).toEqual(currentExpectedErrors.articleName);
+
+		const errorsLocator = currentRow.locator(".inline-code code");
+		const errors = (await errorsLocator.allTextContents()).map((error) => error.trim()).join(", ");
+		expect(errors).toEqual(currentExpectedErrors.errors);
+	}
+});

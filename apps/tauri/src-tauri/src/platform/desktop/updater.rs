@@ -13,6 +13,8 @@ use tauri_plugin_updater as updater;
 use semver::Prerelease;
 use semver::Version;
 
+use crate::AppHandleExt;
+
 use super::menu::search_menu;
 use super::menu::MenuItemId;
 
@@ -179,7 +181,7 @@ impl<R: Runtime> Updater<R> {
   }
 
   fn get_menu_item(&self) -> Option<MenuItem<R>> {
-    let menu = self.app.menu().or_else(|| self.app.get_focused_window().and_then(|w| w.menu()))?;
+    let menu = self.app.menu().or_else(|| self.app.get_focused_webview().and_then(|w| w.menu()))?;
     let item = search_menu(&menu, MenuItemId::CheckUpdate)?;
     item.as_menuitem().cloned()
   }
@@ -245,7 +247,6 @@ impl<'u, R: Runtime> UpdateInstaller<'u, R> {
     super::config::dump_opened_windows(self.app)?;
     update.install(bytes)?;
     restart(&self.app.env());
-    Ok(())
   }
 }
 

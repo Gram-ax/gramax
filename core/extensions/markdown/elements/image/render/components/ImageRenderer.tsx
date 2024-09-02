@@ -4,79 +4,96 @@ import Image from "@components/Atoms/Image/Image";
 import Path from "@core/FileProvider/Path/Path";
 import styled from "@emotion/styled";
 import t from "@ext/localization/locale/translate";
+import ImageResizer from "@ext/markdown/elements/image/edit/components/ImageResizer";
 import { getCroppedCanvas } from "@ext/markdown/elements/image/edit/logic/imageEditorMethods";
 import { Crop, ImageObject } from "@ext/markdown/elements/image/edit/model/imageEditorTypes";
 import UnifiedComponent from "@ext/markdown/elements/image/render/components/ImageEditor/Unified";
-import { ReactElement, useEffect, useRef, useState } from "react";
+import { CSSProperties, ReactElement, ReactEventHandler, useEffect, useRef, useState } from "react";
 
 interface ImageProps {
 	realSrc: string;
 	src: string;
+	openEditor?: () => void;
+	selected?: boolean;
 	setSrc?: (newSrc: Blob) => void;
 	alt?: string;
 	title?: string;
 	crop?: Crop;
 	objects?: ImageObject[];
 	id?: string;
+	style?: CSSProperties;
+	scale?: number;
 	className?: string;
+	onError?: ReactEventHandler<HTMLImageElement>;
+	updateAttributes?: (attributes: Record<string, any>) => void;
 }
 
 const ImageR = (props: ImageProps): ReactElement => {
-	const { src, realSrc, className, title, alt, crop, objects, id, setSrc } = props;
+	const { src, realSrc, scale, className, title, alt, crop } = props;
+	const { objects, id, setSrc, selected, updateAttributes, openEditor, onError } = props;
 
 	const imageContainerRef = useRef<HTMLDivElement>(null);
+	const mainContainerRef = useRef<HTMLDivElement>(null);
 	const imgElementRef = useRef<HTMLImageElement>(null);
 
-	const [elements, setElements] = useState<ImageObject[]>([]);
 	const [isLoaded, setIsLoaded] = useState<boolean>(false);
 
-	const [error, setError] = useState<boolean>(false);
-
 	useEffect(() => {
-		setElements(objects ?? []);
-	}, [objects]);
-
-	useEffect(() => {
-		if (isLoaded && !error) {
+		if (isLoaded) {
 			const imgElement = imgElementRef.current;
 			const imageContainer = imageContainerRef.current;
-			getCroppedCanvas({ imageContainer, imgElement, crop: crop ?? { x: 0, y: 0, w: 100, h: 100 }, src, setSrc });
+			getCroppedCanvas({
+				imageContainer,
+				imgElement,
+				crop: crop ?? { x: 0, y: 0, w: 100, h: 100 },
+				realSrc,
+				setSrc,
+			});
 		}
-	}, [crop, isLoaded, error]);
+	}, [crop, isLoaded]);
 
-	const onErrorHandler = () => {
-		setError(true);
+	const saveResize = (resize: number) => {
+		updateAttributes({ scale: resize });
 	};
 
-	return error ? (
-		<AlertError title={t("alert.image.unavailable")} error={{ message: t("alert.image.path") }} />
-	) : (
+	return (
 		<div className={className}>
-			<div className="main__container">
-				<div ref={imageContainerRef} className="image__container">
-					<Image
-						ref={imgElementRef}
-						id={id}
-						onLoad={() => !isLoaded && setIsLoaded(true)}
-						onError={onErrorHandler}
-						src={src}
-						alt={alt}
-						objects={objects}
-						realSrc={realSrc}
-					/>
-					{elements.map((data: ImageObject, index: number) => (
-						<UnifiedComponent
-							key={index}
-							index={index}
-							parentRef={imageContainerRef}
-							{...data}
-							editable={false}
-							type={data.type}
-							drawIndexes={elements.length > 1}
+			<div ref={mainContainerRef} className="main__container">
+				<div className="resizer__container" data-focusable="true">
+					<div ref={imageContainerRef} className="image__container">
+						<Image
+							ref={imgElementRef}
+							id={id}
+							modalEdit={openEditor}
+							onLoad={() => !isLoaded && setIsLoaded(true)}
+							onError={onError}
+							src={src}
+							alt={alt}
+							objects={objects}
+							realSrc={realSrc}
 						/>
-					))}
+						{objects?.map?.((data: ImageObject, index: number) => (
+							<UnifiedComponent
+								key={index}
+								index={index}
+								parentRef={imageContainerRef}
+								{...data}
+								editable={false}
+								type={data.type}
+								drawIndexes={objects.length > 1}
+							/>
+						))}
+					</div>
+					<ImageResizer
+						saveResize={saveResize}
+						imageRef={imgElementRef}
+						containerRef={mainContainerRef}
+						selected={selected}
+						scale={scale}
+					/>
 				</div>
 			</div>
+
 			{title && <em>{title}</em>}
 		</div>
 	);
@@ -87,10 +104,13 @@ const StyledImageR = styled(ImageR)`
 		display: flex;
 		justify-content: center;
 		margin: 0.5em auto 0.5em auto;
+		max-width: calc(100% - 1.5em);
 	}
 
-	.image__container {
+	.resizer__container {
+		display: flex;
 		position: relative;
+		border-radius: var(--radius-small);
 	}
 
 	em {
@@ -102,30 +122,26 @@ const StyledImageR = styled(ImageR)`
 		color: var(--color-image-title);
 	}
 
-	.article img {
+	img {
 		user-select: none;
+		${(p) => (p.selected ? "pointer-events: auto !important;" : "pointer-events: none !important;")}
 	}
 `;
 
 const ImageRenderer = (props: ImageProps): ReactElement => {
-	const { src, realSrc, alt, title, crop, objects, id, className, setSrc } = props;
+	const { src, realSrc, title } = props;
+	const [error, setError] = useState<boolean>(false);
+	const isGif = new Path(realSrc).extension == "gif";
 
-	if (new Path(src).extension == "gif") return <GifImage src={src} title={title} alt={title} />;
-	return (
-		<>
-			<StyledImageR
-				id={id}
-				setSrc={setSrc}
-				realSrc={realSrc}
-				src={src}
-				alt={alt}
-				title={title}
-				crop={crop}
-				objects={objects}
-				className={className}
+	if (error)
+		return (
+			<AlertError
+				title={t(`alert.${isGif ? "gif" : "image"}.unavailable`)}
+				error={{ message: t("alert.image.path") }}
 			/>
-		</>
-	);
+		);
+	if (isGif) return <GifImage src={src} title={title} alt={title} onError={() => setError(true)} />;
+	return <StyledImageR onError={() => setError(true)} {...props} />;
 };
 
 export default ImageRenderer;

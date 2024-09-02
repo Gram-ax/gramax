@@ -3,6 +3,7 @@ import WorkspaceService from "@core-ui/ContextServices/Workspace";
 import HasWorkspaceHOC from "@core-ui/HigherOrderComponent/HasWorkspaceHOC";
 import { cssMedia } from "@core-ui/utils/cssUtils";
 import styled from "@emotion/styled";
+import SwitchContentLanguage from "@ext/localization/actions/SwitchContentLanguage";
 import SwitchUiLanguage from "@ext/localization/actions/SwitchUiLanguage";
 import SwitchTabsTag from "@ext/markdown/elements/tabs/components/SwitchTabsTag";
 import { CatalogLink } from "@ext/navigation/NavigationLinks";
@@ -22,7 +23,7 @@ export default styled(
 		isHomePage?: boolean;
 		className?: string;
 	}) => {
-		const isLogged = PageDataContextService.value.isLogged;
+		const pageProps = PageDataContextService.value;
 		const isServerApp = PageDataContextService.value.conf.isServerApp;
 
 		return (
@@ -31,11 +32,11 @@ export default styled(
 				<HasWorkspaceHOC>
 					{isHomePage && <Search isHomePage={isHomePage} catalogLinks={catalogLinks} />}
 				</HasWorkspaceHOC>
-				<SwitchUiLanguage />
+				{pageProps.isArticle ? <SwitchContentLanguage /> : <SwitchUiLanguage />}
 				<ThemeToggle />
 				<HasWorkspaceHOC>
-					{isHomePage && isLogged && <AddCatalogMenu />}
-					<SingInOut />
+					{isHomePage && pageProps?.isLogged && <AddCatalogMenu />}
+					{<SingInOut />}
 					{!isHomePage && <SwitchTabsTag />}
 				</HasWorkspaceHOC>
 			</div>

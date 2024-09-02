@@ -86,7 +86,7 @@ export default styled(TooltipListLayout)`
 	left: 0;
 	margin-top: 4px;
 	min-width: 238px;
-	border-radius: var(--radius-x-large);
+	border-radius: var(--radius-large);
 	background: var(--color-tooltip-background);
 
 	.item {

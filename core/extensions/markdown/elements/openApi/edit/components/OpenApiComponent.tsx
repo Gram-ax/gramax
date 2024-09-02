@@ -5,8 +5,8 @@ import Focus from "../../../../elementsUtils/wrappers/Focus";
 
 const OpenApiComponent = ({ node, getPos }: NodeViewProps): ReactElement => {
 	return (
-		<NodeViewWrapper as={"div"}>
-			<Focus position={getPos()}>
+		<NodeViewWrapper as={"div"} draggable={true} data-drag-handle>
+			<Focus getPos={getPos}>
 				<OpenApi {...node.attrs} />
 			</Focus>
 		</NodeViewWrapper>

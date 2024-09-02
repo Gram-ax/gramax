@@ -72,17 +72,17 @@ export default class ServicesSearcher implements Searcher {
 	}
 
 	private _getOnChangeRule() {
-		return async (changeItems: PChangeCatalog[]): Promise<void> => {
-			const deleteObjectIDs: string[] = changeItems
-				.filter((changeItem) => changeItem.type === FileStatus.delete)
+		return async (changeItems: PChangeCatalog): Promise<void> => {
+			const deleteObjectIDs: string[] = changeItems.items
+				.filter((changeItem) => changeItem.status === FileStatus.delete)
 				.map((changeItem) => hash(changeItem.articleId));
 			await this._connection.deleteData(deleteObjectIDs);
 			const algoliaDatas: SaveServiceData[] = (
 				await Promise.all(
-					changeItems.map(async (changeItem) => {
-						const item = changeItem.catalog.getArticleById(changeItem.articleId);
+					changeItems.items.map(async (changeItem) => {
+						const item = changeItems.catalog.getArticleById(changeItem.articleId);
 						if (!item || item.type !== ArticleType.article) return null;
-						else return await this._getArticleData(item, changeItem.catalog);
+						else return await this._getArticleData(item, changeItems.catalog);
 					}),
 				)
 			).filter((article) => article);

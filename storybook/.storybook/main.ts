@@ -27,9 +27,14 @@ const config: StorybookConfig = {
 		return mergeConfig(config, {
 			base: process.env.NODE_ENV == "development" ? "" : "/storybook/",
 			resolve: {
-				alias: {
-					storybook: resolve(__dirname, "../"),
-				},
+				alias: [
+					{ find: "storybook", replacement: resolve(__dirname, "../") },
+					{ find: "next/link", replacement: resolve(__dirname, "./StorybookLink") },
+					{
+						find: /.*?next\/logic\/Api\/NextRouter/,
+						replacement: resolve(__dirname, "./StorybookRouter"),
+					},
+				],
 			},
 			server: {
 				hmr: false,

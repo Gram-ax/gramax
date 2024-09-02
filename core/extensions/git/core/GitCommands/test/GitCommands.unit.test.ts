@@ -110,9 +110,9 @@ describe("GitCommands", () => {
 		await dfp.delete(repPath("wouldBeDeleted"));
 
 		expect(await git.status()).toEqual([
-			{ isUntracked: true, path: path("newFile"), type: FileStatus.new },
-			{ isUntracked: true, path: path("wouldBeDeleted"), type: FileStatus.delete },
-			{ isUntracked: true, path: path("wouldBeModified"), type: FileStatus.modified },
+			{ isUntracked: true, path: path("newFile"), status: FileStatus.new },
+			{ isUntracked: true, path: path("wouldBeDeleted"), status: FileStatus.delete },
+			{ isUntracked: true, path: path("wouldBeModified"), status: FileStatus.modified },
 		]);
 	});
 
@@ -159,9 +159,13 @@ describe("GitCommands", () => {
 		const status = await git.status();
 
 		expect(status.length).toBe(3);
-		expect(status).toContainEqual({ isUntracked: true, path: path("wouldBeAdded"), type: FileStatus.new });
-		expect(status).toContainEqual({ isUntracked: true, path: path("wouldBeDeleted"), type: FileStatus.delete });
-		expect(status).toContainEqual({ isUntracked: true, path: path("wouldBeModified"), type: FileStatus.modified });
+		expect(status).toContainEqual({ isUntracked: true, path: path("wouldBeAdded"), status: FileStatus.new });
+		expect(status).toContainEqual({ isUntracked: true, path: path("wouldBeDeleted"), status: FileStatus.delete });
+		expect(status).toContainEqual({
+			isUntracked: true,
+			path: path("wouldBeModified"),
+			status: FileStatus.modified,
+		});
 	});
 	describe("Показывает контент файла по его пути", () => {
 		test("в последнем коммите", async () => {

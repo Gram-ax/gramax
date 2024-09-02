@@ -11,7 +11,7 @@ const EditBlock = ({ node, getPos }: NodeViewProps) => {
 	const focusPosition = useContext(FocusPositionContext);
 	return (
 		<NodeViewWrapper as={"div"} contentEditable={false}>
-			<Focus position={getPos()} isMd>
+			<Focus getPos={getPos} isMd>
 				<Tooltip
 					visible={focusPosition == getPos()}
 					content={

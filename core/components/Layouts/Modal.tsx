@@ -163,6 +163,7 @@ export default styled(ModalLayout)`
 	display: flex;
 
 	.outer-modal {
+		border-radius: var(--radius-x-large);
 		height: 80%;
 		margin: auto;
 		width: ${(p) => {
@@ -249,7 +250,7 @@ export default styled(ModalLayout)`
 		width: 100%;
 		overflow-y: hidden;
 		transition: all 0.3s;
-		border-radius: var(--radius-normal);
+		border-radius: var(--radius-medium);
 
 		.new-branch-form {
 			margin: 1rem;

@@ -4,6 +4,7 @@ import br from "@ext/markdown/elements/br/edit/model/brSchema";
 import comment from "@ext/markdown/elements/comment/edit/model/commentSchema";
 import answer from "@ext/markdown/elements/comment/legacy/answer/edit/answerSchema";
 import comment_old from "@ext/markdown/elements/comment/legacy/comment/commentShema";
+import unsupported from "@ext/markdown/elements/unsupported/edit/model/unsupportedSchema";
 import cut from "@ext/markdown/elements/cut/edit/model/cutSchema";
 import inlineCut_component from "@ext/markdown/elements/cut/edit/model/inlineCutSchema";
 import c4Diagram from "@ext/markdown/elements/diagrams/diagrams/c4Diagram/c4DiagramSchema";
@@ -13,7 +14,7 @@ import tsDiagram from "@ext/markdown/elements/diagrams/diagrams/tsDiagram/tsDiag
 import diagrams from "@ext/markdown/elements/diagrams/edit/models/diagramsSchema";
 import drawio from "@ext/markdown/elements/drawio/edit/model/drawioSchema";
 import error from "@ext/markdown/elements/error/editor/model/errorSchema";
-import code_block from "@ext/markdown/elements/fence/edit/model/codeBlockSchema";
+import code_block from "@ext/markdown/elements/codeBlockLowlight/edit/model/schema";
 import heading from "@ext/markdown/elements/heading/edit/model/headingSchema";
 import horizontal_rule from "@ext/markdown/elements/hr/edit/model/hrSchema";
 import icon from "@ext/markdown/elements/icon/edit/model/iconSchema";
@@ -33,6 +34,7 @@ import tabSchema from "@ext/markdown/elements/tabs/edit/model/tab/tabSchema";
 import tabsSchema from "@ext/markdown/elements/tabs/edit/model/tabs/tabsSchema";
 import video from "@ext/markdown/elements/video/edit/model/videoSchema";
 import { Schema } from "prosemirror-model";
+import html from "@ext/markdown/elements/html/edit/models/htmlSchema";
 
 export const schema = new Schema({
 	nodes: {
@@ -68,6 +70,8 @@ export const schema = new Schema({
 		icon,
 		cut,
 		note,
+		unsupported,
+		html,
 		style_wrapper,
 		code_block,
 		blockquote,

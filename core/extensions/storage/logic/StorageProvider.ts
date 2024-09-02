@@ -1,5 +1,6 @@
 import ConfluenceStorage from "@ext/confluence/core/logic/ConfluenceStorage";
 import ConfluenceStorageData from "@ext/confluence/core/model/ConfluenceStorageData";
+import isGitSourceType from "@ext/storage/logic/SourceDataProvider/logic/isGitSourceType";
 import Path from "../../../logic/FileProvider/Path/Path";
 import FileProvider from "../../../logic/FileProvider/model/FileProvider";
 import GitStorage from "../../git/core/GitStorage/GitStorage";
@@ -23,14 +24,14 @@ export default class StorageProvider {
 	}
 
 	async initNewStorage(fp: FileProvider, path: Path, data: StorageData) {
-		if (this._isCorrectStorageType(data.source.sourceType)) {
+		if (isGitSourceType(data.source.sourceType)) {
 			await GitStorage.init(path, fp, data as GitStorageData);
 		}
 		return await this.getStorageByPath(path, fp);
 	}
 
 	async cloneNewStorage(fp: FileProvider, path: Path, data: StorageData, recursive = true, branch?: string) {
-		if (this._isCorrectStorageType(data.source.sourceType)) {
+		if (isGitSourceType(data.source.sourceType)) {
 			await GitStorage.clone({
 				fp,
 				branch,
@@ -60,9 +61,5 @@ export default class StorageProvider {
 		return ((p: Progress) => {
 			this._progressData.set(path.toString(), { ...p, percent: Math.ceil((p.loaded / p.total) * 100) });
 		}).bind(this);
-	}
-
-	private _isCorrectStorageType(storageType: SourceType): boolean {
-		return storageType === SourceType.gitLab || storageType === SourceType.gitHub || storageType === SourceType.git;
 	}
 }

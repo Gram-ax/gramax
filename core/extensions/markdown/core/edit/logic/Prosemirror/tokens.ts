@@ -1,3 +1,5 @@
+import fenceToken from "@ext/markdown/elements/codeBlockLowlight/edit/logic/token";
+import codeBlockToken from "@ext/markdown/elements/codeBlockLowlight/edit/model/token";
 import commentToken from "../../../../elements/comment/edit/model/commentToken";
 import c4DiagramToken from "../../../../elements/diagrams/diagrams/c4Diagram/c4DiagramToken";
 import mermaidToken from "../../../../elements/diagrams/diagrams/mermaid/mermaidToken";
@@ -10,7 +12,6 @@ import comment_old from "../../../../elements/comment/legacy/comment/commentToke
 import openApiToken from "@ext/markdown/elements/openApi/edit/models/openApiToken";
 import diagramsToken from "../../../../elements/diagrams/edit/models/diagramsToken";
 import drawioToken from "../../../../elements/drawio/edit/model/drawioToken";
-import codeBlockToken from "../../../../elements/fence/edit/model/codeBlockToken";
 import imageToken from "../../../../elements/image/edit/model/imageToken";
 import linkToken from "../../../../elements/link/edit/model/linkToken";
 import video from "../../../../elements/video/edit/model/videoToken";
@@ -21,7 +22,9 @@ import noteToken from "@ext/markdown/elements/note/edit/model/noteToken";
 import snippetToken from "@ext/markdown/elements/snippet/edit/model/snippetToken";
 import tabToken from "@ext/markdown/elements/tabs/edit/model/tab/tabToken";
 import tabsToken from "@ext/markdown/elements/tabs/edit/model/tabs/tabsToken";
+import unsupportedToken from "@ext/markdown/elements/unsupported/edit/model/unsupportedToken";
 import { ParseSpec } from "./from_markdown";
+import htmlToken from "@ext/markdown/elements/html/edit/models/htmlToken";
 
 function listIsTight(tokens, i) {
 	while (++i < tokens.length) if (tokens[i].type != "list_item_open") return tokens[i].hidden;
@@ -42,13 +45,16 @@ export const getTokens = (context?: ParserContext): { [name: string]: ParseSpec 
 		link: linkToken(context),
 		tab: tabToken,
 		note: noteToken,
+		unsupported: unsupportedToken,
 		tabs: tabsToken,
 		image: imageToken(),
+		fence: fenceToken(),
 		drawio: drawioToken(),
 		openapi: openApiToken,
 		code_block: codeBlockToken,
 		mermaid: mermaidToken,
 		diagrams: diagramsToken,
+		html: htmlToken,
 		"plant-uml": plantUmlToken,
 		"c4-diagram": c4DiagramToken,
 		"ts-diagram": tsDiagramToken,
@@ -81,7 +87,6 @@ export const getTokens = (context?: ParserContext): { [name: string]: ParseSpec 
 		},
 		heading: { block: "heading", getAttrs: (tok) => ({ level: +tok.tag.slice(1) }) },
 
-		fence: { block: "code_block", getAttrs: (tok) => ({ params: tok.info || "" }), noCloseToken: true },
 		hr: { node: "horizontal_rule" },
 
 		hardbreak: { node: "hard_break" },

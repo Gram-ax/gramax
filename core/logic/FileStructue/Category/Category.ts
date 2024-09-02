@@ -1,21 +1,23 @@
+import { type Event, type EventEmitter } from "@core/Event/EventEmitter";
+import { Catalog, ItemFilter } from "@core/FileStructue/Catalog/Catalog";
 import { digitsAfterDot } from "@core/FileStructue/Item/ItemOrderUtils";
-import ResourceUpdater from "@core/Resource/ResourceUpdater";
 import createNewFilePathUtils from "@core/utils/createNewFilePathUtils";
 import Path from "../../FileProvider/Path/Path";
-import { ClientArticleProps } from "../../SitePresenter/SitePresenter";
-import { Article, ArticleInitProps, type ArticleProps } from "../Article/Article";
+import { Article, ArticleInitProps, type ArticleEvents, type ArticleProps } from "../Article/Article";
 import { FSProps } from "../FileStructure";
-import { Item, ORDERING_MAX_PRECISION } from "../Item/Item";
+import { Item, ORDERING_MAX_PRECISION, type ItemEvents } from "../Item/Item";
 import { ItemRef } from "../Item/ItemRef";
 import { ItemType } from "../Item/ItemType";
-import { Catalog, ItemFilter } from "@core/FileStructue/Catalog/Catalog";
+
+export type CategoryEvents = ItemEvents &
+	Event<"before-sort", { category: Category; force: boolean; asc: boolean }> &
+	Event<"sorted", { category: Category; force: boolean; asc: boolean }>;
 
 export type CategoryInitProps = ArticleInitProps<CategoryProps> & {
 	directory: Path;
 	items: Item[];
 	content?: string;
-};
-
+}
 export type CategoryProps = {
 	orderAsc?: boolean;
 	refs?: string[];
@@ -29,6 +31,10 @@ export class Category extends Article<CategoryProps> {
 		super(init);
 		this._items = items;
 		this._directory = directory;
+	}
+
+	get events() {
+		return super.events as EventEmitter<CategoryEvents> & EventEmitter<ArticleEvents>;
 	}
 
 	get items() {
@@ -46,6 +52,8 @@ export class Category extends Article<CategoryProps> {
 	async sortItems(force?: boolean) {
 		const isAsc = this._isAscOrder();
 
+		await this.events.emit("before-sort", { category: this, force: !!force, asc: isAsc });
+
 		if (force || this.items.some((i) => digitsAfterDot(i.order) > ORDERING_MAX_PRECISION)) {
 			let order = isAsc ? 1 : this.items.length;
 			for (const item of this.items) {
@@ -56,6 +64,7 @@ export class Category extends Article<CategoryProps> {
 		}
 
 		this._items.sort((x, y) => ((x.props.order ?? 0) - (y.props.order ?? 0)) * (isAsc ? 1 : -1));
+		await this.events.emit("sorted", { category: this, force: !!force, asc: isAsc });
 	}
 
 	getFilteredItems(filters: ItemFilter[], catalog: Catalog): Item[] {
@@ -75,13 +84,7 @@ export class Category extends Article<CategoryProps> {
 		return this._ref.path.parentDirectoryPath.nameWithExtension;
 	}
 
-	override async updateProps(props: ClientArticleProps, _: ResourceUpdater, rootCategoryProps?: FSProps) {
-		await this._updateProps(props);
-		await this._updateFolderName(props.fileName, rootCategoryProps);
-		return this;
-	}
-
-	private async _updateFolderName(fileName: string, rootCategoryProps?: FSProps) {
+	protected override async _updateFilename(fileName: string, rootCategoryProps?: FSProps) {
 		if (this.getFileName() == fileName) return;
 		let path = this._ref.path.parentDirectoryPath.parentDirectoryPath.join(new Path(fileName));
 		if (await this._fs.fp.exists(path)) {
@@ -95,7 +98,9 @@ export class Category extends Article<CategoryProps> {
 		}
 		await this._fs.moveCategory(this, path);
 		const newCategory = await this._updateCategory(rootCategoryProps, path);
-		Object.assign(this, newCategory);
+		this._logicPath = newCategory.logicPath;
+		this._ref = newCategory._ref;
+		this._directory = newCategory._directory;
 		return this;
 	}
 

@@ -4,16 +4,16 @@ import { FocusPositionContext } from "../../core/edit/components/ContextWrapper"
 
 interface FocusProps {
 	children: JSX.Element;
-	position: number;
+	getPos: () => number;
 	isMd?: boolean;
 	className?: string;
 }
 
-const Focus = ({ children, position, isMd, className }: FocusProps) => {
+const Focus = ({ children, getPos, isMd, className }: FocusProps) => {
 	const focusPosition = useContext(FocusPositionContext);
 	const [isFocus, setIsFocus] = useState(false);
 	useEffect(() => {
-		setIsFocus(focusPosition === position);
+		setIsFocus(focusPosition === getPos());
 	}, [focusPosition]);
 
 	if (isMd) {

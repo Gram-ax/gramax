@@ -22,7 +22,7 @@ const FormStyle = styled(
 	height: ${(p) => p.height ?? "100%"};
 	width: 100%;
 	max-height: 100%;
-	border-radius: 0.3rem;
+	border-radius: var(--radius-x-large);
 	background: var(--color-article-bg);
 	color: var(--color-article-heading-text);
 	padding: ${(p) => p.padding ?? "1rem"};

@@ -52,8 +52,8 @@ const LeftNavigationComponent = ({
 				mediumMedia={mediumMedia}
 				hideScroll={hideScroll}
 				leftNavigationTop={<LeftNavigationTop data={data} />}
-				leftNavigationContent={<LeftNavigationContent itemLinks={data.itemLinks} />}
-				leftNavigationBottom={<LeftNavigationBottom />}
+				leftNavigationContent={<LeftNavigationContent itemLinks={data.leftNavItemLinks} />}
+				leftNavigationBottom={<LeftNavigationBottom data={data} />}
 				onMouseEnter={() =>
 					setTimeout(() => {
 						if (!isLeftNavHover.current || unpinAnimation.current) return;

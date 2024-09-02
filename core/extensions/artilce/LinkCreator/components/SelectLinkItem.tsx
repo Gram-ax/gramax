@@ -236,7 +236,7 @@ const SelectLinkItem = (props: SelectLinkItemProps) => {
 export default styled(SelectLinkItem)`
 	margin-top: 4px;
 
-	border-radius: var(--radius-x-large);
+	border-radius: var(--radius-large);
 	background: var(--color-tooltip-background);
 
 	.item,

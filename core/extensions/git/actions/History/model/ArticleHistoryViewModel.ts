@@ -5,4 +5,9 @@ export interface ArticleHistoryViewModel {
 	author: string;
 	date: string;
 	content: Change[];
+	filePath: {
+		path: string;
+		oldPath?: string;
+		diff?: Change[];
+	};
 }

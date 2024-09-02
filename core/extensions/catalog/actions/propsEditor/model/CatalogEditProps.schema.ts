@@ -1,4 +1,5 @@
 import Style from "@components/HomePage/Cards/model/Style";
+import type { ContentLanguage } from "@ext/localization/core/model/Language";
 
 /**
  * @see catalog-edit-props
@@ -8,6 +9,10 @@ export interface CatalogEditProps {
 	url: string;
 	docroot?: string;
 	description?: string;
+	/**
+	 * @see language
+	 */
+	language?: ContentLanguage;
 	/**
 	 * @see catalog.style
 	 */

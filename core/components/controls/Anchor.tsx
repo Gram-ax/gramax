@@ -43,7 +43,7 @@ const Anchor = (Props: AnchorProps) => {
 				{children}
 				<span style={{ whiteSpace: "nowrap", padding: 0 }} data-mdignore={true}>
 					&#65279;
-					<Icon className="linkIcon" code="external-link" />
+					<Icon className="link-icon" code="external-link" />
 				</span>
 			</a>
 		);

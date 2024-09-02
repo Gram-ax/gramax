@@ -33,7 +33,7 @@ export default class GitlabSourceAPI extends GitSourceApi {
 
 	async getUser(): Promise<SourceUser> {
 		const res = await this._api(`user`);
-		if (res && !res.ok) return null;
+		if (!res || !res?.ok) return null;
 		const user = await res.json();
 		return { name: user.name, email: user.email, username: user.username, avatarUrl: user.avatar_url };
 	}
@@ -86,13 +86,13 @@ export default class GitlabSourceAPI extends GitSourceApi {
 
 	async getDefaultBranch(data: GitStorageData): Promise<string> {
 		const res = await this._api(`projects/${encodeURIComponent(`${data.group}/${data.name}`)}`);
-		if (res && !res.ok) return null;
+		if (!res || !res.ok) return null;
 		return (await res.json()).default_branch;
 	}
 
 	async getAllBranches(data: GitStorageData, field?: string): Promise<any[]> {
 		const res = await this._api(`projects/${encodeURIComponent(`${data.group}/${data.name}`)}/repository/branches`);
-		if (res && !res.ok) return [];
+		if (!res || !res.ok) return [];
 		return (await res.json()).map((branch) => branch?.[field] ?? branch?.name);
 	}
 
@@ -104,7 +104,7 @@ export default class GitlabSourceAPI extends GitSourceApi {
 		const id = encodeURIComponent(`${data.group}/${data.name}`);
 		const url = `projects/${id}/search?scope=blobs&search=${fileName}&ref=${branch.toString()}`;
 		const res = await this._api(url);
-		if (res && !res.ok) return [];
+		if (!res || !res.ok) return [];
 		const search = await res.json();
 		if (!search || !search.length) return [];
 		return search;
@@ -113,14 +113,14 @@ export default class GitlabSourceAPI extends GitSourceApi {
 	private async _paginationApi(url: string, init?: RequestInit, perPage?: number): Promise<Response[]> {
 		const result: Response[] = [];
 		const res = await this._api(`${url}${perPage ? `?per_page=${perPage}` : ""}`, init);
-		if (res && !res.ok) return [];
+		if (!res || !res.ok) return [];
 		result.push(res);
 		const responseTotalPages = parseInt(res.headers.get("x-total-pages"));
 		if (responseTotalPages > 1) {
 			const responses = await Promise.all(
 				Array.from([...Array(responseTotalPages - 1).keys()]).map(async (page): Promise<Response> => {
 					const res = await this._api(`${url}?${perPage ? `per_page=${perPage}&` : ""}page=${page + 2}`);
-					if (res && !res.ok) return null;
+					if (!res || !res.ok) return null;
 					return res;
 				}),
 			);

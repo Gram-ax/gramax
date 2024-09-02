@@ -29,8 +29,8 @@ export const fromRaw = (klass: number, code: number): GitErrorCode => {
 		case eq(19, 20):
 			return GitErrorCode.MergeConflictError;
 
-		case eq(22, 9):
-			return GitErrorCode.PushRejectedError;
+		case eq(12, 19):
+			return GitErrorCode.GitPushError;
 
 		case eq(4, 4):
 			return GitErrorCode.AlreadyExistsError;

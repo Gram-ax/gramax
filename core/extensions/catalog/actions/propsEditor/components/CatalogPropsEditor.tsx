@@ -9,6 +9,7 @@ import ModalLayoutLight from "@components/Layouts/ModalLayoutLight";
 import MimeTypes from "@core-ui/ApiServices/Types/MimeTypes";
 import ArticlePropsService from "@core-ui/ContextServices/ArticleProps";
 import CatalogPropsService from "@core-ui/ContextServices/CatalogProps";
+import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import { transliterate } from "@core-ui/languageConverter/transliterate";
 import openNewTab from "@core-ui/utils/openNewTab";
 import { useRouter } from "@core/Api/useRouter";
@@ -51,6 +52,7 @@ const CatalogPropsEditor = ({
 	useEffect(() => setIsOpen(props.isOpen), [props.isOpen]);
 
 	const router = useRouter();
+	const pageProps = PageDataContextService.value;
 	const articleProps = ArticlePropsService.value;
 	const catalogProps = CatalogPropsService.value;
 	const [generatedUrl, setGeneratedUrl] = useState<string>(catalogProps.name);
@@ -73,7 +75,7 @@ const CatalogPropsEditor = ({
 
 		const basePathName = new Path(newCatalogProps.link.pathname);
 		const { filePath } = RouterPathProvider.parseItemLogicPath(new Path(articleProps.logicPath));
-		const isNewPath = RouterPathProvider.isNewPath(new Path(router.path).removeExtraSymbols);
+		const isNewPath = RouterPathProvider.isEditorPathname(new Path(router.path).removeExtraSymbols);
 
 		router.pushPath(
 			isNewPath
@@ -192,6 +194,7 @@ const CatalogPropsEditor = ({
 									title: Schema.properties.title,
 									url: Schema.properties.url,
 									docroot: Schema.properties.docroot,
+									language: Schema.properties.language,
 									_h2: t("display-on-homepage"),
 									description: Schema.properties.description,
 									style: Schema.properties.style,
@@ -199,6 +202,9 @@ const CatalogPropsEditor = ({
 									// __h2: "Приватность",
 									// private: Schema.properties.private,
 								} as any;
+								(schema.properties.docroot as any).readOnly =
+									pageProps.language.content != catalogProps.language;
+								(schema.properties.language as any).readOnly = !!catalogProps.language;
 								(schema.properties.url as any).readOnly = !!sourceType;
 							}}
 						/>

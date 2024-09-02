@@ -71,7 +71,7 @@ const CreateSourceData = (props: CreateSourceDataProps) => {
 				placeholderSuffix: localizedStorage2,
 				legendLabel: localizedAddNewStorage,
 				controlLabel: localizedStorage,
-				filter: (v) => v !== SourceType.confluence,
+				filter: (v) => v !== SourceType.confluence && (forClone === undefined ? v !== SourceType.git : true),
 			},
 		}),
 		[],

@@ -23,6 +23,14 @@ class LinkFocusTooltip extends BaseMark {
 		this.update(view);
 		this._editor.view.dom.addEventListener("mousedown", () => (this._lastInputMethod = "mouse"));
 		this._editor.view.dom.addEventListener("keydown", () => (this._lastInputMethod = "keyboard"));
+		this._editor.view.dom.addEventListener("keydown", (e) => {
+			const isCtrlK = e.ctrlKey && ["k", "л"].includes(e.key);
+			const isCmdK = e.metaKey && ["k", "л"].includes(e.key);
+			if (isCtrlK || isCmdK) {
+				this._lastInputMethod = "mouse";
+				this.update(view);
+			}
+		});
 	}
 
 	update(view: EditorView, lastState?: EditorState) {

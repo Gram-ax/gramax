@@ -1,6 +1,6 @@
+import ArticlePublishTrigger from "@ext/git/actions/Publish/components/ArticlePublishTrigger";
 import mock from "storybook/data/mock";
 import publishApi from "storybook/stories/extensions/Catalog/Git/Publish/publishApi";
-import PublishSrc from "../../../../../../core/extensions/git/actions/Publish/components/Publish";
 import BlockDecorator from "../../../../../styles/decorators/BlockDecorator";
 
 const PublishData = {
@@ -27,7 +27,7 @@ const PublishData = {
 };
 
 export const Publish = () => {
-	return <PublishSrc />;
+	return <ArticlePublishTrigger />;
 };
 
 export default PublishData;

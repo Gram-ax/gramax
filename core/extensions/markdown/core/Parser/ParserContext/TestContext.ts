@@ -5,7 +5,7 @@ import { Article } from "../../../../../logic/FileStructue/Article/Article";
 import { Catalog } from "../../../../../logic/FileStructue/Catalog/Catalog";
 import ResourceManager from "../../../../../logic/Resource/ResourceManager";
 import { TableDB } from "../../../../../logic/components/tableDB/table";
-import Language from "../../../../localization/core/model/Language";
+import UiLanguage from "../../../../localization/core/model/Language";
 import UserInfo from "../../../../security/logic/User/UserInfo2";
 import MarkdownFormatter from "../../edit/logic/Formatter/Formatter";
 import MarkdownParser from "../Parser";
@@ -71,8 +71,8 @@ export default class TestContext extends BaseContext implements ParserContext {
 		return true;
 	}
 
-	getLanguage(): Language {
-		return Language.ru;
+	getLanguage(): UiLanguage {
+		return UiLanguage.ru;
 	}
 
 	getTablesManager(): TableDB {

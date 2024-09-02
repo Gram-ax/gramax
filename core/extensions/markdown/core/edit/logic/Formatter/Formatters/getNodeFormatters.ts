@@ -1,20 +1,19 @@
+import codeBlockFormatter from "@ext/markdown/elements/codeBlockLowlight/edit/logic/codeBlockFormatter";
 import noteFormatter from "@ext/markdown/elements/note/logic/noteFormatter";
 import { NodeSerializerSpec } from "../../Prosemirror/to_markdown";
-
 import ParserContext from "@ext/markdown/core/Parser/ParserContext/ParserContext";
 import DiagramsFormatter from "@ext/markdown/elements/diagrams/logic/DiagramsFormatter";
-import codeBlockFormatter from "@ext/markdown/elements/fence/edit/logic/codeBlockFormatter";
 import IconFormatter from "@ext/markdown/elements/icon/logic/IconFormatter";
-import { format } from "@ext/markdown/elements/image/render/logic/imageTransformer";
 import OpenApiFormatter from "@ext/markdown/elements/openApi/edit/logic/OpenApiFormatter";
 import SnippetFormatter from "@ext/markdown/elements/snippet/edit/logic/SnippetFormatter";
 import TabFormatter from "@ext/markdown/elements/tabs/logic/TabFormatter";
 import TabsFormatter from "@ext/markdown/elements/tabs/logic/TabsFormatter";
 import screenSymbols from "@ext/markdown/logic/screenSymbols";
 import TableUtils from "../Utils/Table";
+import unsupportedFormatter from "@ext/markdown/elements/unsupported/logic/unsupportedFormatter";
+import imageNodeFormatter from "@ext/markdown/elements/image/edit/logic/transformer/imageNodeFormatter";
+import htmlNodeFormatter from "@ext/markdown/elements/html/edit/logic/htmlNodeFormatter";
 const blocks = ["Db-diagram", "Db-table", "Snippet"];
-
-const CLEAR_CROP = { x: 0, y: 0, w: 100, h: 100 };
 
 const getNodeFormatters = (context?: ParserContext): { [node: string]: NodeSerializerSpec } => ({
 	code_block: codeBlockFormatter,
@@ -25,34 +24,9 @@ const getNodeFormatters = (context?: ParserContext): { [node: string]: NodeSeria
 	tabs: TabsFormatter,
 	tab: TabFormatter,
 	note: noteFormatter,
-	image: (state, node) => {
-		const str = format(node.attrs?.crop ?? CLEAR_CROP, node.attrs?.objects ?? []);
-		const newFormat =
-			(node.attrs?.crop &&
-				typeof node.attrs.crop !== "string" &&
-				(node.attrs.crop.w !== 100 || node.attrs.crop.h !== 100)) ||
-			node.attrs?.objects?.length > 0;
-
-		state.write(
-			newFormat
-				? "[image:" +
-						node.attrs.src +
-						":" +
-						(node.attrs?.alt ?? "") +
-						":" +
-						(node.attrs?.title ?? "") +
-						":" +
-						str +
-						"]"
-				: "![" +
-						state.esc(node.attrs.alt || "") +
-						"](" +
-						(node.attrs.src?.includes?.(" ") ? `<${node.attrs.src}>` : node.attrs.src) +
-						(node.attrs.title ? ' "' + node.attrs.title.replace(/"/g, '\\"') + '"' : "") +
-						")\n",
-		);
-		state.closeBlock(node);
-	},
+	html: htmlNodeFormatter,
+	unsupported: unsupportedFormatter,
+	image: imageNodeFormatter,
 
 	inlineMd_component: (state, node) => {
 		const isBlock = blocks.includes(node.attrs.tag?.[0]?.name);

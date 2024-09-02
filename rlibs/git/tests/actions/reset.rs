@@ -50,3 +50,36 @@ fn restore(sandbox: TempDir, #[with(&sandbox)] repo: Repo<TestCreds>) -> Result 
 
   Ok(())
 }
+
+#[rstest]
+fn restore_staged(sandbox: TempDir, #[with(&sandbox)] repo: Repo<TestCreds>) -> Result {
+  let root = sandbox.path();
+  fs::write(root.join("file-1"), "123")?;
+  repo.add_glob(["*"].iter())?;
+  repo.commit("1")?;
+
+  fs::write(root.join("file-1"), "321")?;
+  fs::write(root.join("file-2"), "qwerty")?;
+
+  repo.add("file-1")?;
+
+  let index = repo.repo().index()?;
+
+  assert!(index.get_path(Path::new("file-1"), 0).is_some());
+  assert!(index.get_path(Path::new("file-2"), 0).is_none());
+  assert_eq!(fs::read_to_string(root.join("file-1"))?, "321");
+  assert_eq!(fs::read_to_string(root.join("file-2"))?, "qwerty");
+
+  repo.restore(["file-1", "file-2", "non-existing"].iter(), true)?;
+
+  assert_eq!(fs::read_to_string(root.join("file-1"))?, "321");
+  assert_eq!(fs::read_to_string(root.join("file-2"))?, "qwerty");
+  assert!(index.get_path(Path::new("file-1"), 0).is_some());
+  assert!(index.get_path(Path::new("file-2"), 0).is_none());
+
+  let status = repo.repo().status_file(Path::new("file-1"))?;
+  assert!(!status.is_index_modified());
+  assert!(status.is_wt_modified());
+
+  Ok(())
+}

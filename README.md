@@ -15,7 +15,7 @@ Gramax — это бесплатный текстовый редактор со 
 
 Чтобы развернуть портал для читателей на своем домене, вам потребуется:
 - Docker (версии 20.04 или выше).
-- sh (если вы используете Linux или macOS).
+- sh или bash (если вы используете Linux или macOS).
 
 #### На Linux или macOS
 
@@ -27,7 +27,7 @@ curl -O https://gram.ax/docker-compose.yaml; docker compose up
 
 #### На Windows
 
-Откройте powershell и выполните команду:
+Откройте PowerShell и выполните команду:
 
 ```powershell
 Invoke-WebRequest -Uri "https://gram.ax/docker-compose.yaml" -OutFile "docker-compose.yaml"; docker compose up
@@ -71,11 +71,11 @@ Invoke-WebRequest -Uri "https://gram.ax/docker-compose.yaml" -OutFile "docker-co
         npm run start
         ```
 
-      Или используйте команду
+    Или используйте команду
 
-      ```bash
-      npm run run 
-      ```
+    ```bash
+    npm run run 
+    ```
 
 ## Как использовать
 

@@ -32,6 +32,20 @@ pub fn make_credentials_callback<C: Creds>(creds: &C) -> CredentialsCallback {
   })
 }
 
+pub fn push_update_reference_callback(
+  refname: &str,
+  status: Option<&str>,
+) -> std::result::Result<(), git2::Error> {
+  if let Some(status) = status {
+    return Err(git2::Error::new(
+      ErrorCode::Invalid,
+      ErrorClass::Net,
+      format!("Failed to push {}: {}", refname, status),
+    ));
+  }
+  Ok(())
+}
+
 #[cfg(not(target_family = "wasm"))]
 fn resolve_identity_from_config(url: &str) -> Option<PathBuf> {
   use ssh2_config::ParseRule;

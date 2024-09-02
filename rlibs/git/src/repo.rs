@@ -7,6 +7,7 @@ use std::path::Path;
 use crate::actions::branch::*;
 
 use crate::creds::*;
+use crate::remote_callback::push_update_reference_callback;
 use crate::remote_callback::ssl_callback;
 
 use crate::error::Error;
@@ -155,6 +156,7 @@ impl<C: Creds> Repo<C> {
     let mut opts = FetchOptions::new();
     cbs.credentials(make_credentials_callback(&self.1));
     cbs.certificate_check(ssl_callback);
+    cbs.push_update_reference(push_update_reference_callback);
     opts.remote_callbacks(cbs);
     opts.prune(FetchPrune::On);
 
@@ -165,10 +167,10 @@ impl<C: Creds> Repo<C> {
   }
 
   pub fn push(&self) -> Result<()> {
-    info!(target: TAG, "pushing..");
     let mut cbs = RemoteCallbacks::new();
     cbs.credentials(make_credentials_callback(&self.1));
     cbs.certificate_check(ssl_callback);
+    cbs.push_update_reference(push_update_reference_callback);
     let mut push_opts = PushOptions::new();
     push_opts.remote_callbacks(cbs);
 
@@ -176,6 +178,8 @@ impl<C: Creds> Repo<C> {
     let mut remote = self.0.find_remote("origin")?;
     self.ensure_remote_has_postfix(&remote)?;
     let refspec = head.name().ok_or(Error::Utf8)?;
+
+    info!(target: TAG, "pushing refspec {}", refspec);
 
     remote.push(&[refspec], Some(&mut push_opts))?;
     if let Ok(mut branch) = self.0.find_branch(head.shorthand().ok_or(Error::Utf8)?, BranchType::Local) {
@@ -230,13 +234,41 @@ impl<C: Creds> Repo<C> {
   }
 
   pub fn restore<I: Iterator<Item = P>, P: AsRef<Path>>(&self, paths: I, staged: bool) -> Result<()> {
-    info!(target: TAG, "restore");
+    info!(target: TAG, "restore{}", if staged { " staged" } else { "" });
+
     let mut index = self.0.index()?;
     let tree = self.0.head()?.peel_to_tree()?;
     let workdir = self.0.workdir().unwrap_or_else(|| self.0.path());
     for path in paths {
       if staged {
-        _ = index.remove_path(path.as_ref());
+        match tree.get_path(path.as_ref()) {
+          Ok(entry) => {
+            let filemode = entry.filemode();
+            let entry = entry.to_object(&self.0)?;
+            let entry = entry.as_blob().unwrap();
+
+            let index_entry = IndexEntry {
+              ctime: IndexTime::new(0, 0),
+              mtime: IndexTime::new(0, 0),
+              dev: 0,
+              file_size: entry.size() as u32,
+              flags: 0,
+              ino: 0,
+              mode: filemode as u32,
+              uid: 0,
+              gid: 0,
+              id: entry.id(),
+              flags_extended: 0,
+              path: path.as_ref().as_os_str().as_encoded_bytes().to_vec(),
+            };
+
+            index.add_frombuffer(&index_entry, entry.content())?;
+          }
+          Err(_) => {
+            index.remove_path(path.as_ref())?;
+          }
+        }
+
         continue;
       }
 
@@ -257,8 +289,9 @@ impl<C: Creds> Repo<C> {
         Err(err) => return Err(err.into()),
       }
     }
+
     index.write()?;
-    self.add_glob(["."].iter())?;
+
     Ok(())
   }
 }

@@ -1,4 +1,5 @@
 import call from "@app/resolveModule/gitcall";
+import Path from "@core/FileProvider/Path/Path";
 import { VersionControlInfo } from "@ext/VersionControl/model/VersionControlInfo";
 import GitBranchData from "@ext/git/core/GitBranch/model/GitBranchData";
 import GitProgressEvent from "@ext/git/core/model/GitProgressEvent";
@@ -26,9 +27,9 @@ export type UpstreamCountFileChanges = {
 };
 
 export type MergeResult = {
-  ours?: string,
-  theirs?: string,
-  ancestor?: string
+	ours?: string;
+	theirs?: string;
+	ancestor?: string;
 }[];
 
 export const clone = async (
@@ -52,7 +53,9 @@ export const fileHistory = async (args: Args & { filePath: string; count: number
 			version: i.commitOid as string,
 			author: i.authorName as string,
 			date: new Date(i.date).toISOString(),
+			path: new Path(i.path as string),
 			content: i.content as string,
+			parentPath: new Path(i.parentPath as string),
 			parentContent: i.parentContent as string,
 		}),
 	);

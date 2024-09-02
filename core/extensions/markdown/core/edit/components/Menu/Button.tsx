@@ -91,7 +91,7 @@ const ButtonTooltipContent = styled((props: { tooltipText?: string; hotKey?: str
 	align-items: center;
 
 	span.cmd {
-		border-radius: 2px;
+		border-radius: var(--radius-x-small);
 		color: var(--color-article-text);
 		background: var(--color-article-bg) !important;
 	}
@@ -103,6 +103,7 @@ const StyledDiv = styled.div<ButtonProps>`
 		align-items: center;
 		line-height: 100%;
 		padding: 6.5px 7px;
+
 		i {
 			font-size: 12.5px;
 		}
@@ -111,7 +112,7 @@ const StyledDiv = styled.div<ButtonProps>`
 	.button {
 		cursor: pointer;
 		font-size: 12px;
-		border-radius: var(--radius-normal);
+		border-radius: var(--radius-small);
 	}
 
 	.button:hover:not(.disabled),

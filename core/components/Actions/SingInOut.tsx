@@ -12,7 +12,7 @@ const SingInOut = styled(({ className }: { className?: string }) => {
 	const isLogged = PageDataContextService.value.isLogged;
 	const isServerApp = PageDataContextService.value.conf.isServerApp;
 	const ssoServerUrl = PageDataContextService.value.conf.ssoServerUrl;
-	const authUrl = apiUrlCreator.getAuthUrl(router, ssoServerUrl).toString();
+	const authUrl = apiUrlCreator.getAuthUrl(router).toString();
 	const glsUrl = PageDataContextService.value.conf.glsUrl;
 	const showEnterpriseSignIn = glsUrl && !isServerApp;
 

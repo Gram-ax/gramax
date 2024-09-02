@@ -41,7 +41,8 @@ export default class CatalogEntry {
 	protected _isServerApp: boolean;
 
 	constructor(init: CatalogEntryProps) {
-		(this._name = init.name), (this._rootCaterogyRef = init.rootCaterogyRef);
+		this._name = init.name;
+		this._rootCaterogyRef = init.rootCaterogyRef;
 		this._rootCaterogyPath = init.rootCaterogyRef.path.parentDirectoryPath;
 		this._basePath = init.basePath;
 		this._props = init.props;
@@ -54,6 +55,7 @@ export default class CatalogEntry {
 	withOnLoad(callback: CatalogOnLoad): void {
 		this._onLoad = callback;
 	}
+
 	get repo() {
 		return this._repo;
 	}
@@ -77,10 +79,10 @@ export default class CatalogEntry {
 
 		// TEMP:
 
-		// const storageType = await this.repo.storage.getType();
+		// const sourceType = await this.repo.storage.getType();
 
 		// const group =
-		// 	storageType === SourceType.gitHub || storageType === SourceType.gitLab // что делать с enterprise?
+		// 	isGitSourceType(sourceType) // что делать с enterprise?
 		// 		? await (this.repo.storage as GitStorage).getGroup()
 		// 		: undefined;
 		const group = await (this.repo.storage as GitStorage).getGroup();

@@ -1,3 +1,5 @@
+use std::path::PathBuf;
+
 use git2::*;
 
 use serde::Serialize;
@@ -24,7 +26,9 @@ pub struct FileDiff {
   author_email: String,
   commit_oid: String,
   date: i64,
+  path: PathBuf,
   content: Option<String>,
+  parent_path: Option<PathBuf>,
   parent_content: Option<String>,
   pub has_changes: bool,
 }
@@ -42,7 +46,9 @@ impl FileDiff {
     repo: &Repository,
     commit: &Commit,
     lhs: Option<&Blob>,
+    lhs_path: PathBuf,
     rhs: Option<&Blob>,
+    rhs_path: PathBuf,
     opts: Option<&mut DiffOptions>,
   ) -> Result<Self> {
     let signature = commit.author();
@@ -69,7 +75,9 @@ impl FileDiff {
       author_email: signature.email().ok_or(Error::Utf8)?.into(),
       commit_oid: commit.id().to_string(),
       date: commit.time().seconds() * 1000,
+      path: rhs_path,
       content: rhs,
+      parent_path: lhs.as_ref().map(|_| lhs_path),
       parent_content: lhs,
       has_changes,
     };

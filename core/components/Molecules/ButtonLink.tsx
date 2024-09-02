@@ -4,14 +4,18 @@ import Icon from "@components/Atoms/Icon";
 import { classNames } from "@components/libs/classNames";
 import styled from "@emotion/styled";
 import { MutableRefObject, ReactNode, forwardRef } from "react";
+import { Placement } from "tippy.js";
 
 export interface ButtonLinkProps extends Omit<ButtonProps, "children" | "style"> {
 	iconCode?: string;
 	text?: string;
 	fullWidth?: boolean;
-	maxLength?: number;
+	iconFw?: boolean;
 	iconViewBox?: string;
+	iconIsLoading?: boolean;
 	rightActions?: ReactNode[];
+	iconContent?: ReactNode;
+	iconPlace?: Placement;
 }
 
 const ButtonLink = forwardRef((props: ButtonLinkProps, ref?: MutableRefObject<HTMLDivElement>) => {
@@ -20,24 +24,33 @@ const ButtonLink = forwardRef((props: ButtonLinkProps, ref?: MutableRefObject<HT
 		iconCode,
 		fullWidth = false,
 		onClick,
+		iconFw = true,
 		iconViewBox,
+		iconIsLoading,
 		text,
-		maxLength,
 		rightActions,
 		className,
+		iconContent,
+		iconPlace,
+		disabled,
 		...otherProps
 	} = props;
 
 	return (
-		<div ref={ref} onClick={onClick} className={classNames(className, { fullWidth })}>
-			<Button buttonStyle={ButtonStyle.transparent} textSize={textSize} {...otherProps}>
-				{iconCode && <Icon className="button_icon" code={iconCode} viewBox={iconViewBox} />}
-				{text && (
-					<span>
-						{maxLength ? (text.length > maxLength ? text.slice(0, maxLength) + "..." : text) : text}
-					</span>
+		<div ref={ref} onClick={disabled ? null : onClick} className={classNames(className, { fullWidth })}>
+			<Button disabled={disabled} buttonStyle={ButtonStyle.transparent} textSize={textSize} {...otherProps}>
+				{iconCode && (
+					<Icon
+						fw={iconFw}
+						code={iconCode}
+						viewBox={iconViewBox}
+						isLoading={iconIsLoading}
+						tooltipContent={iconContent}
+						tooltipPlace={iconPlace}
+					/>
 				)}
-				{rightActions && <div className="right-actions">{rightActions}</div>}	
+				{text && <span>{text}</span>}
+				{rightActions && <div className="right-actions">{rightActions}</div>}
 			</Button>
 		</div>
 	);
@@ -50,11 +63,6 @@ export default styled(ButtonLink)`
 	&.fullWidth > div,
 	&.fullWidth > div > div {
 		width: 100%;
-	}
-
-	.button_icon {
-		width: 1.25em;
-		text-align: center;
 	}
 
 	.right-actions {

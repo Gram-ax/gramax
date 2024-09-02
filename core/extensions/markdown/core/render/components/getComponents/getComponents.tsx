@@ -1,3 +1,4 @@
+import Fence from "@ext/markdown/elements/codeBlockLowlight/render/component/CodeBlock";
 import { ReactNode } from "react";
 import DiagramType from "../../../../../../logic/components/Diagram/DiagramType";
 import DiagramData from "../../../../elements/diagrams/component/DiagramData";
@@ -12,7 +13,6 @@ import Color from "../../../../elements/color/render/Color";
 import Cut from "../../../../elements/cut/render/component/Cut";
 import DbDiagram from "../../../../elements/diagramdb/render/DbDiagram";
 import Drawio from "../../../../elements/drawio/render/component/Drawio";
-import Fence from "../../../../elements/fence/render/component/Fence";
 import Fn from "../../../../elements/fn/render/Fn";
 import Formula from "../../../../elements/formula/render/Formula";
 import Header from "../../../../elements/heading/render/component/Header";
@@ -36,6 +36,8 @@ import When from "../../../../elements/whowhen/render/When";
 import Who from "../../../../elements/whowhen/render/Who";
 import ParserContext from "../../../Parser/ParserContext/ParserContext";
 import Alert from "@ext/markdown/elements/alert/render/component/Alert";
+import Unsupported from "@ext/markdown/elements/unsupported/render/component/Unsupported";
+import Html from "@ext/markdown/elements/html/render/components/HTML";
 
 export default function getComponents(): { [name: string]: (...props: any) => ReactNode } {
 	return {
@@ -57,6 +59,7 @@ export default function getComponents(): { [name: string]: (...props: any) => Re
 		Who,
 		When,
 		Kbd,
+		Html,
 		Image,
 		"Img-h": Images,
 		"Img-v": Images,
@@ -65,6 +68,7 @@ export default function getComponents(): { [name: string]: (...props: any) => Re
 		Fn,
 		Note,
 		Alert,
+		Unsupported,
 		Tabs,
 		Tab,
 		Video,

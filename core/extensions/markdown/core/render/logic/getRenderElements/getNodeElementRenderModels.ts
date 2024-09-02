@@ -1,10 +1,10 @@
 import ParserContext from "../../../Parser/ParserContext/ParserContext";
 import { Schema } from "../Markdoc";
 
+import { fence } from "@ext/markdown/elements/codeBlockLowlight/render/model/codeBlock";
 import { article } from "../../../../elements/article/render/article";
 import { code } from "../../../../elements/code/render/model/code";
 import { em } from "../../../../elements/em/render/em";
-import { fence } from "../../../../elements/fence/render/model/fence";
 import { heading } from "../../../../elements/heading/render/model/heading";
 import { hr } from "../../../../elements/hr/render/hr";
 import { image } from "../../../../elements/image/render/image";

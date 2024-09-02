@@ -4,14 +4,15 @@
 	"local": true,
 	"windows": ["main_*"],
 	"permissions": [
+		"core:webview:allow-set-webview-zoom",
+		"core:webview:allow-print",
+		"core:event:allow-listen",
+		"core:event:default",
 		"plugin-gramax-fs:default",
 		"plugin-gramax-git:default",
 		"dialog:default",
-		"event:default",
-		"event:allow-listen",
 		"dialog:allow-open",
 		"dialog:allow-confirm",
-		"webview:allow-set-webview-zoom",
 		"shell:allow-open"
 	]
 }

@@ -45,7 +45,7 @@
 
 .ProseMirror comment-react-component {
 	cursor: pointer;
-	border-radius: var(--radius-normal);
+	border-radius: var(--radius-small);
 	background: var(--color-comment-bg);
 }
 
@@ -76,7 +76,7 @@
 .ProseMirror .color:before {
 	background-color: var(--color);
 	border: 1px solid rgba(128, 128, 128, 0.3);
-	border-radius: 2px;
+	border-radius: var(--radius-x-small);
 	content: " ";
 	display: inline-block;
 	height: 1em;

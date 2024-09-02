@@ -1,4 +1,5 @@
 use std::path::Path;
+use std::path::PathBuf;
 
 use git2::*;
 
@@ -6,11 +7,27 @@ use crate::creds::*;
 use crate::prelude::*;
 use crate::Result;
 
+pub trait CommitExt {
+  fn get_blob<'a>(&self, repo: &'a Repository, path: &Path) -> Result<Option<Blob<'a>>>;
+}
+
+impl CommitExt for Commit<'_> {
+  fn get_blob<'a>(&self, repo: &'a Repository, path: &Path) -> Result<Option<Blob<'a>>> {
+    let blob = self
+      .tree()?
+      .get_path(path.as_ref())
+      .and_then(|entry| entry.to_object(repo))
+      .ok()
+      .and_then(|o| o.into_blob().ok());
+    Ok(blob)
+  }
+}
+
 pub trait RepoExt {
   fn get_content<P: AsRef<Path>>(&self, path: P, commit_oid: Option<Oid>) -> Result<String>;
   fn get_tree_by_branch_name(&self, branch: &str) -> Result<Oid>;
-  fn history<P: AsRef<Path>>(&self, path: P, max: usize) -> Result<Vec<FileDiff>>;
   fn parent_of(&self, oid: Oid) -> Result<Option<Oid>>;
+  fn history<P: AsRef<Path>>(&self, path: P, max: usize) -> Result<Vec<FileDiff>>;
   fn graph_head_upstream_files<P: AsRef<Path>>(&self, search_in: P) -> Result<UpstreamCountChangedFiles>;
 }
 
@@ -40,49 +57,86 @@ impl<C: Creds> RepoExt for crate::repo::Repo<C> {
     Ok(oid)
   }
 
-  fn history<P: AsRef<Path>>(&self, path: P, count: usize) -> Result<Vec<FileDiff>> {
+  fn history<P: AsRef<Path>>(&self, path: P, max: usize) -> Result<Vec<FileDiff>> {
     let mut diffs = vec![];
-    let convert_to_blob = |commit: &Commit| -> Result<Option<Blob>> {
-      let blob = commit
-        .tree()?
-        .get_path(path.as_ref())
-        .and_then(|entry| entry.to_object(&self.0))
-        .ok()
-        .and_then(|o| o.into_blob().ok());
-      Ok(blob)
-    };
+    let mut remain = max;
+    let mut tracked_path = path.as_ref().to_path_buf();
+
+    let lookup_for_rename =
+      |commit: &Commit, parent_commit: &Commit, tracked_path: &mut PathBuf| -> Result<Option<Blob>> {
+        let mut diff = self.0.diff_tree_to_tree(Some(&parent_commit.tree()?), Some(&commit.tree()?), None)?;
+
+        let mut find_opts = DiffFindOptions::new();
+        find_opts.renames(true);
+        diff.find_similar(Some(&mut find_opts))?;
+
+        let diff_file = diff
+          .deltas()
+          .find(|delta| delta.new_file().path().is_some_and(|path| path.eq(tracked_path.as_path())));
+
+        if let Some(diff_file) = diff_file {
+          *tracked_path = diff_file.old_file().path().unwrap_or(tracked_path).to_path_buf();
+          return parent_commit.get_blob(&self.0, tracked_path);
+        }
+
+        Ok(None)
+      };
 
     let mut revwalk = self.0.revwalk()?;
     revwalk.push_head()?;
-    let mut count = count;
+
     for oid in revwalk {
-      let oid = oid?;
-      let commit = self.0.find_commit(oid)?;
-      if count == 0 {
+      if remain < 1 {
         break;
       }
+
+      let oid = oid?;
+      let commit = self.0.find_commit(oid)?;
+      let has_parents = commit.parent_count() > 0;
 
       if commit.parent_count() > 1 {
         continue;
       }
 
-      let blob = convert_to_blob(&commit)?;
-      let has_parent = commit.parent_count() > 0;
-      let parent_blob = if has_parent { convert_to_blob(&commit.parent(0)?)? } else { None };
+      let path = tracked_path.clone();
 
-      if matches!((&blob, &parent_blob), (Some(o), Some(p_o)) if o.id() == p_o.id()) {
+      let commit_blob = commit.get_blob(&self.0, &tracked_path)?;
+
+      let parent_blob = if has_parents {
+        let parent_commit = commit.parent(0)?;
+        let blob = parent_commit.get_blob(&self.0, &tracked_path)?;
+
+        if let Some(blob) = blob {
+          Some(blob)
+        } else {
+          lookup_for_rename(&commit, &parent_commit, &mut tracked_path)?
+        }
+      } else {
+        None
+      };
+
+      if matches!((&commit_blob, &parent_blob), (Some(o), Some(p_o)) if o.id() == p_o.id()) {
         continue;
       }
 
       let mut opts = DiffOptions::new();
       opts.force_text(true).context_lines(u32::MAX);
-      let diff =
-        FileDiff::from_blobs(&self.0, &commit, parent_blob.as_ref(), blob.as_ref(), Some(&mut opts))?;
+      let diff = FileDiff::from_blobs(
+        &self.0,
+        &commit,
+        parent_blob.as_ref(),
+        tracked_path.clone(),
+        commit_blob.as_ref(),
+        path,
+        Some(&mut opts),
+      )?;
+
       if diff.has_changes {
-        count -= 1;
         diffs.push(diff);
+        remain -= 1;
       }
     }
+
     Ok(diffs)
   }
 

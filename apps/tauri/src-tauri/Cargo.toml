@@ -20,6 +20,7 @@ tauri-plugin-deep-link = { workspace = true }
 
 plugin-gramax-fs = { path = "../plugins/plugin-gramax-fs" }
 plugin-gramax-git = { path = "../plugins/plugin-gramax-git" }
+bugsnag = { path = "../../../rlibs/bugsnag" }
 
 dotenvy = "0.15.7"
 tiny_http = "0.12.0"
@@ -30,8 +31,10 @@ log = "0.4.20"
 semver = { version = "1.0.18", features = ["serde"] }
 strum = { version = "0.26.0", features = ["derive"] }
 rfd = { version = "^0.14", default-features = false, features = ["gtk3"] }
+trash = "5.1.0"
 rust-i18n = "3.0.1"
 sys-locale = "0.3.1"
+
 
 [target.'cfg(any(target_os = "windows", target_os = "macos", target_os = "linux"))'.dependencies]
 notify-rust = "4.10.0"

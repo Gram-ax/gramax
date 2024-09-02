@@ -53,7 +53,7 @@ export default styled(memo(TextArea))`
 
 		color: var(--color-article-heading-text);
 		background: var(--color-code-bg);
-		border-radius: var(--radius-normal);
+		border-radius: var(--radius-medium);
 
 		max-height: 400px;
 		line-height: 1.6;

@@ -55,16 +55,17 @@ class LinkCreator {
 		let isFile = false;
 		if (hrefPath.extension !== articleExtension) {
 			isFile = true;
-			href = new ApiUrlCreator(basePath, null, null, null, catalog.getName(), articlePath.value)
+			href = new ApiUrlCreator(basePath, null, catalog.getName(), articlePath.value)
 				.getArticleResource(relativeHrefPath.value)
 				.toString();
 		} else {
 			const item = context.getItemByPath(hrefPath);
-			if (!item) href = "";
-			else {
+			if (item) {
 				const link = await context.getCatalog().getPathname(item);
 				resourcePath = articlePath.getRelativePath(item.ref.path);
 				href = link ? link : hrefPath?.stripExtension ?? "";
+			} else {
+				href = `${context.getCatalog().getName()}/${href}`;
 			}
 		}
 

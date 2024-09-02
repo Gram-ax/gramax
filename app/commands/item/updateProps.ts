@@ -3,8 +3,6 @@ import { AuthorizeMiddleware } from "@core/Api/middleware/AuthorizeMiddleware";
 import { DesktopModeMiddleware } from "@core/Api/middleware/DesktopModeMiddleware";
 import ReloadConfirmMiddleware from "@core/Api/middleware/ReloadConfirmMiddleware";
 import Context from "@core/Context/Context";
-import Path from "@core/FileProvider/Path/Path";
-import ResourceUpdater from "@core/Resource/ResourceUpdater";
 import { ClientArticleProps } from "@core/SitePresenter/SitePresenter";
 import { Command } from "../../types/Command";
 
@@ -16,15 +14,12 @@ const updateProps: Command<{ ctx: Context; catalogName: string; props: ClientArt
 	middlewares: [new AuthorizeMiddleware(), new DesktopModeMiddleware(), new ReloadConfirmMiddleware()],
 
 	async do({ ctx, catalogName, props }) {
-		const { wm, parser, parserContextFactory, formatter } = this._app;
+		const { wm, resourceUpdaterFactory } = this._app;
 		const workspace = wm.current();
 
 		const catalog = await workspace.getCatalog(catalogName);
-		const item = catalog.findItemByItemPath(new Path(props.ref.path));
-		if (!item) return;
+		const newItem = await catalog.updateItemProps(props, resourceUpdaterFactory.withContext(ctx));
 
-		const resourceUpdater = new ResourceUpdater(ctx, catalog, parser, parserContextFactory, formatter);
-		const newItem = await item.updateProps(props, resourceUpdater, catalog.getRootCategory().props);
 		return await catalog.getPathname(newItem);
 	},
 

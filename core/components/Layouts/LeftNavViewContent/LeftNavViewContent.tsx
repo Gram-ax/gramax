@@ -80,7 +80,7 @@ export default styled(LeftNavViewContent)`
 	height: 80vh;
 	display: flex;
 	position: relative;
-	border-radius: var(--radius-normal);
+	border-radius: var(--radius-x-large);
 	color: var(--color-article-text);
 	background: var(--color-article-bg);
 	overflow: hidden;

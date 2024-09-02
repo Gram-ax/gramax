@@ -1,6 +1,5 @@
 import { getExecutingEnvironment } from "@app/resolveModule/env";
-import Button from "@components/Atoms/Button/Button";
-import Icon from "@components/Atoms/Icon";
+import Button, { TextSize } from "@components/Atoms/Button/Button";
 import SpinnerLoader from "@components/Atoms/SpinnerLoader";
 import { parserQuery } from "@core/Api/Query";
 import { waitForTempToken } from "@ext/git/actions/Source/tempToken";
@@ -12,6 +11,8 @@ import PageDataContextService from "../../../../../../ui-logic/ContextServices/P
 import SourceType from "../../../../../storage/logic/SourceDataProvider/model/SourceType";
 import { makeSourceApi } from "../../makeSourceApi";
 import GitHubSourceData from "../logic/GitHubSourceData";
+import ButtonLink from "@components/Molecules/ButtonLink";
+import { ButtonStyle } from "@components/Atoms/Button/ButtonStyle";
 
 const CreateGitHubSourceData = ({ onSubmit }: { onSubmit?: (editProps: GitHubSourceData) => void }) => {
 	const page = PageDataContextService.value;
@@ -45,9 +46,14 @@ const CreateGitHubSourceData = ({ onSubmit }: { onSubmit?: (editProps: GitHubSou
 						)}
 					</div>
 				) : (
-					<Button
+					<ButtonLink
 						fullWidth
 						className="input-lable"
+						buttonStyle={ButtonStyle.default}
+						textSize={TextSize.M}
+						iconFw={false}
+						iconCode="github"
+						text={t("log-in.github")}
 						onClick={async () => {
 							if (token) return;
 							createChildWindow(
@@ -60,12 +66,7 @@ const CreateGitHubSourceData = ({ onSubmit }: { onSubmit?: (editProps: GitHubSou
 
 							if (getExecutingEnvironment() !== "tauri") setToken(parserQuery(await waitForTempToken()));
 						}}
-					>
-						<div>
-							<Icon code="github" />
-							<span>{t("log-in.github")}</span>
-						</div>
-					</Button>
+					/>
 				)}
 			</div>
 			<div className="buttons">

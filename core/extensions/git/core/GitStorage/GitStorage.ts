@@ -5,7 +5,6 @@ import Path from "../../../../logic/FileProvider/Path/Path";
 import FileProvider from "../../../../logic/FileProvider/model/FileProvider";
 import parseStorageUrl from "../../../../logic/utils/parseStorageUrl";
 import Branch from "../../../VersionControl/model/branch/Branch";
-import { FileStatus } from "../../../Watchers/model/FileStatus";
 import SourceType from "../../../storage/logic/SourceDataProvider/model/SourceType";
 import Storage from "../../../storage/logic/Storage";
 import getPartGitSourceDataByStorageName from "../../../storage/logic/utils/getPartSourceDataByStorageName";
@@ -51,21 +50,21 @@ export default class GitStorage implements Storage {
 				if (!((e as GitError).props?.errorCode === GitErrorCode.AlreadyExistsError)) throw e;
 			}
 			if (recursive) {
-				const submodulesData = await gitRepository.getSubmodulesData();
-				await Promise.all(
-					submodulesData.map(async (d) => {
-						const submodulePath = repositoryPath.join(d.path);
-						await GitStorage.clone({
-							fp,
-							source,
-							url: d.url,
-							branch: d.branch,
-							repositoryPath: submodulePath,
-							recursive: true,
-							onProgress,
-						});
-					}),
-				);
+				// const submodulesData = await gitRepository.getSubmodulesData();
+				// await Promise.all(
+				// 	submodulesData.map(async (d) => {
+				// 		const submodulePath = repositoryPath.join(d.path);
+				// 		await GitStorage.clone({
+				// 			fp,
+				// 			source,
+				// 			url: d.url,
+				// 			branch: d.branch,
+				// 			repositoryPath: submodulePath,
+				// 			recursive: true,
+				// 			onProgress,
+				// 		});
+				// 	}),
+				// );
 			}
 		} finally {
 			fp?.startWatch();
@@ -131,8 +130,8 @@ export default class GitStorage implements Storage {
 		if (getStorageNameByData(data) !== (await this.getSourceName())) return;
 		await this._gitRepository.push(data);
 		if (recursive) {
-			const subModules = await this._getSubGitStorages();
-			for (const s of subModules) await s.push(data);
+			// const subModules = await this.getSubGitStorages();
+			// for (const s of subModules) await s.push(data);
 		}
 		await this.updateSyncCount();
 	}
@@ -150,18 +149,18 @@ export default class GitStorage implements Storage {
 		return this._gitRepository.getRemoteName();
 	}
 
-	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	async pull(data: GitSourceData, recursive = true) {
-		// const oldSubmodulDatas = await this._getSubmodulesData();
 		this._fp.stopWatch();
 		try {
 			const remoteName = (await this._gitRepository.getCurrentBranch()).getData().remoteName;
 			if (remoteName) await this._gitRepository.pull(data);
 
-			// if (recursive) {
-			// 	const newSubmodulDatas = await this._getSubmodulesData();
-			// 	await this._updateSubmodules(oldSubmodulDatas, newSubmodulDatas, data);
-			// }
+			if (recursive) {
+				await this._initSubGitStorages();
+				for (const storage of await this.getSubGitStorages()) {
+					await storage.pull(data);
+				}
+			}
 		} finally {
 			await this.update();
 			this._fp?.startWatch();
@@ -180,7 +179,7 @@ export default class GitStorage implements Storage {
 	}
 
 	async getStorageContainsItem(path: Path): Promise<{ storage: GitStorage; relativePath: Path }> {
-		const submodules = await this._getSubGitStorages();
+		const submodules = await this.getSubGitStorages();
 		for (const submodule of submodules) {
 			const relativeSubmodulePath = await this._getRelativeSubmodulePath(submodule.getPath());
 			if (path.startsWith(relativeSubmodulePath)) {
@@ -208,59 +207,9 @@ export default class GitStorage implements Storage {
 		return this._gitRepository.deleteBranch(branch, true, data);
 	}
 
-	private async _updateSubmodules(
-		oldSubmoduleDatas: SubmoduleData[],
-		newSubmoduleDatas: SubmoduleData[],
-		source: GitSourceData,
-	): Promise<void> {
-		const submoduleData = this._getSubmoduleDatasForSubmodulePath(oldSubmoduleDatas, newSubmoduleDatas);
-		for (const [path, datas] of submoduleData.entries()) {
-			const submodulePath = this._getFullSubmodulePath(new Path(path));
-			const subGitStorage = (await this._getSubGitStorages()).find((x) => x.getPath().compare(submodulePath));
-			const action = this._getSubmoduleAction(datas.old, datas.new);
-			switch (action) {
-				case FileStatus.new:
-					await GitStorage.clone({
-						source,
-						fp: this._fp,
-						url: datas.new.url,
-						branch: datas.new.branch,
-						repositoryPath: submodulePath,
-					});
-					break;
-				case FileStatus.delete:
-					await this._fp.delete(submodulePath);
-					break;
-				case FileStatus.modified:
-					if (!subGitStorage) {
-						await GitStorage.clone({
-							source,
-							fp: this._fp,
-							url: datas.new.url,
-							branch: datas.new.branch,
-							repositoryPath: submodulePath,
-						});
-						break;
-					}
-					if (await this._tryReCloneSubmodule(submodulePath, datas.old, datas.new, source)) break;
-					await this._checkoutSubmodule(subGitStorage, datas.old, datas.new);
-					await subGitStorage.pull(source);
-					break;
-				case FileStatus.current:
-					if (!subGitStorage) {
-						await GitStorage.clone({
-							source,
-							fp: this._fp,
-							url: datas.new.url,
-							branch: datas.new.branch,
-							repositoryPath: submodulePath,
-						});
-						break;
-					}
-					await subGitStorage.pull(source);
-					break;
-			}
-		}
+	async getSubGitStorages(): Promise<GitStorage[]> {
+		if (!this._subGitStorages) await this._initSubGitStorages();
+		return this._subGitStorages;
 	}
 
 	private async _initRepositoryUrl() {
@@ -274,95 +223,23 @@ export default class GitStorage implements Storage {
 		}
 	}
 
-	private _getFullSubmodulePath(submodulePath: Path): Path {
-		return this.getPath().join(submodulePath);
-	}
-
 	private async _getSubmodulesData() {
 		if (!this._submodulesData) await this._initSubmodulesData();
 		return this._submodulesData;
 	}
 
-	private async _getSubGitStorages(): Promise<GitStorage[]> {
-		if (!this._subGitStorages) await this._initSubGitStorages();
-		return this._subGitStorages;
-	}
-
 	private async _initSubGitStorages(): Promise<void> {
-		this._subGitStorages = await this._getFixedSubGitStorages();
-	}
-
-	private async _getFixedSubGitStorages(): Promise<GitStorage[]> {
-		try {
-			return (await this._gitRepository.getFixedSubmodulePaths()).map((path) => {
-				const subGitStorage = new GitStorage(path, this._fp);
-				return subGitStorage;
-			});
-		} catch {
-			return [];
-		}
+		const getSubmodulesData = await this._getSubmodulesData();
+		this._subGitStorages = await Promise.all(
+			getSubmodulesData.map(async (data) => {
+				const fullSubmodulePath = this._path.join(data.path);
+				if (await this._gitRepository.isSubmoduleExist(data.path))
+					return new GitStorage(fullSubmodulePath, this._fp);
+			}),
+		).then((x) => x.filter((x) => x));
 	}
 
 	private async _initSubmodulesData() {
 		this._submodulesData = await this._gitRepository.getSubmodulesData();
-	}
-
-	private async _tryReCloneSubmodule(
-		submodulePath: Path,
-		oldData: SubmoduleData,
-		newData: SubmoduleData,
-		source: GitSourceData,
-	): Promise<boolean> {
-		if (oldData.url === newData.url) return false;
-		await this._fp.delete(submodulePath);
-		await GitStorage.clone({
-			source,
-			fp: this._fp,
-			url: newData.url,
-			branch: newData.branch,
-			repositoryPath: submodulePath,
-		});
-		return true;
-	}
-
-	private async _checkoutSubmodule(
-		subGitStorage: GitStorage,
-		oldData: SubmoduleData,
-		newData: SubmoduleData,
-	): Promise<boolean> {
-		if (oldData.branch === newData.branch) return false;
-		await subGitStorage._gitRepository.checkout(newData.branch);
-		return true;
-	}
-
-	private _getSubmoduleAction(oldData: SubmoduleData, newData: SubmoduleData): FileStatus {
-		const equal = (data1: SubmoduleData, data2: SubmoduleData) =>
-			data1.path.compare(data2.path) && data1.branch === data2.branch && data1.url === data2.url;
-
-		if (!oldData) return FileStatus.new;
-		else if (!newData) return FileStatus.delete;
-		else if (equal(oldData, newData)) return FileStatus.current;
-		return FileStatus.modified;
-	}
-
-	private _getSubmoduleDatasForSubmodulePath(
-		oldSubmodulDatas: SubmoduleData[],
-		newSubmodulDatas: SubmoduleData[],
-	): Map<string, { old: SubmoduleData; new: SubmoduleData }> {
-		const result = new Map<string, { old: SubmoduleData; new: SubmoduleData }>();
-
-		oldSubmodulDatas.forEach((data) => {
-			result.set(data.path.removeExtraSymbols.value, { old: data, new: null });
-		});
-		newSubmodulDatas.forEach((data) => {
-			const path = data.path.removeExtraSymbols.value;
-			if (result.has(path)) {
-				result.set(path, { old: result.get(path).old, new: data });
-			} else {
-				result.set(path, { old: null, new: data });
-			}
-		});
-
-		return result;
 	}
 }

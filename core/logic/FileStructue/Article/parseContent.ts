@@ -1,4 +1,5 @@
 import { Category } from "@core/FileStructue/Category/Category";
+import { convertContentToUiLanguage } from "@ext/localization/locale/translate";
 import RuleProvider from "@ext/rules/RuleProvider";
 import MarkdownParser from "../../../extensions/markdown/core/Parser/Parser";
 import ParserContextFactory from "../../../extensions/markdown/core/Parser/ParserContext/ParserContextFactory";
@@ -32,7 +33,12 @@ async function parseContent(
 		return;
 	}
 
-	const context = parserContextFactory.fromArticle(article, catalog, ctx.lang, ctx.user?.isLogged);
+	const context = parserContextFactory.fromArticle(
+		article,
+		catalog,
+		convertContentToUiLanguage(ctx.contentLanguage || catalog?.props?.language),
+		ctx.user?.isLogged,
+	);
 	const filters = new RuleProvider(ctx).getItemFilters();
 	const content =
 		article.type == ItemType.category && !article.content.trim()
