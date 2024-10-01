@@ -8,7 +8,12 @@ exclude = ["gramax-git.node"]
 crate-type = ["cdylib"]
 
 [dependencies]
-neon = { version = "^1.0.0", features = ["napi-8"] }
-neon-serde = { git = "https://github.com/pashokitsme/neon-serde.git", branch = "1.0.0-alpha" }
 gramax-git = { path = "../../../../rlibs/git" }
 env_logger = "0.11.3"
+napi = { version = "2.12.2", default-features = false, features = ["napi4"] }
+napi-derive = "2.12.2"
+serde_json.workspace = true
+serde = { workspace = true, features = ["derive"] }
+
+[build-dependencies]
+napi-build = "2.0.1"

@@ -223,7 +223,7 @@ export default class ApiUrlCreator {
 	}
 
 	public getErrorWordElementsUrl(isCategory: boolean, itemPath?: string) {
-		return Url.fromBasePath(`api/word/getErrorElements`, this._basePath, {
+		return Url.fromBasePath(`/api/word/getErrorElements`, this._basePath, {
 			itemPath,
 			catalogName: this._catalogName,
 			isCategory: isCategory ? "true" : "false",
@@ -312,12 +312,18 @@ export default class ApiUrlCreator {
 		});
 	}
 
-	public getStorageCloneUrl(path: string, recursive = true, skipCheck?: boolean, branch?: string) {
-		return Url.fromBasePath(`/api/storage/clone`, this._basePath, {
+	public getStorageStartCloneUrl(path: string, recursive = true, skipCheck?: boolean, branch?: string) {
+		return Url.fromBasePath(`/api/storage/startClone`, this._basePath, {
 			recursive: recursive.toString(),
 			branch,
 			skipCheck: skipCheck.toString(),
 			path,
+		});
+	}
+
+	public getRemoveCloneCatalogUrl(name: string) {
+		return Url.fromBasePath(`/api/storage/removeCloneCatalog`, this._basePath, {
+			catalogName: name,
 		});
 	}
 
@@ -401,8 +407,11 @@ export default class ApiUrlCreator {
 		});
 	}
 
-	public getSearchDataUrl() {
-		return Url.fromBasePath(`/api/plugin/plugins/search/searchCommand`, this._basePath);
+	public getSearchDataUrl(query: string, catalogName: string) {
+		return Url.fromBasePath(`/api/search/searchCommand`, this._basePath, {
+			query,
+			catalogName,
+		});
 	}
 
 	public getVersionControlFileHistoryUrl() {
@@ -605,14 +614,6 @@ export default class ApiUrlCreator {
 		});
 	}
 
-	public pluginsAddLocals() {
-		return Url.fromBasePath(`/api/plugin/addLocals`, this._basePath);
-	}
-
-	public pluginsInit() {
-		return Url.fromBasePath(`/api/plugin/init`, this._basePath);
-	}
-
 	public getSnippetsListData() {
 		return Url.fromBasePath(`/api/elements/snippet/getListData`, this._basePath, {
 			catalogName: this._catalogName,
@@ -661,6 +662,23 @@ export default class ApiUrlCreator {
 	public getCustomIconsList() {
 		return Url.fromBasePath(`/api/elements/icon/getIconsList`, this._basePath, {
 			catalogName: this._catalogName,
+		});
+	}
+
+	public createResourceFromPath(resourcePath: string, resourceName: string) {
+		return Url.fromBasePath(`/api/article/resource/createFromPath`, this._basePath, {
+			articlePath: this._articlePath,
+			catalogName: this._catalogName,
+			resourcePath,
+			resourceName,
+		});
+	}
+
+	public getAddedCounters(curArticlePath: string) {
+		return Url.fromBasePath(`/api/catalog/actionEditorProperties/getAddedCounters`, this._basePath, {
+			articlePath: this._articlePath,
+			catalogName: this._catalogName,
+			curArticlePath,
 		});
 	}
 }

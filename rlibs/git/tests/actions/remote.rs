@@ -17,13 +17,28 @@ fn add_remote(_sandbox: TempDir, #[with(&_sandbox)] repo: Repo<TestCreds>) -> Re
 #[rstest]
 #[case("https://github.com/gram-ax/gramax-catalog-template")]
 fn clone(sandbox: TempDir, #[case] url: &str) -> Result {
-  let mut objects = 0;
-  Repo::clone(url, sandbox.path(), None, TestCreds, |_, _| {
-    objects += 1;
-    true
-  })?;
+  use std::cell::RefCell;
+  use std::rc::Rc;
+
+  let sideband_calls = Rc::new(RefCell::new(0));
+  let transfer_calls = Rc::new(RefCell::new(0));
+  let sideband_calls_clone = Rc::clone(&sideband_calls);
+  let transfer_calls_clone = Rc::clone(&transfer_calls);
+  Repo::clone(
+    TestCreds,
+    CloneOptions { url: url.to_string(), to: sandbox.path().to_path_buf(), branch: None, depth: None },
+    Box::new(move |progress| match progress {
+      CloneProgress::Sideband { .. } => {
+        *sideband_calls_clone.borrow_mut() += 1;
+      }
+      CloneProgress::ChunkedTransfer { .. } => {
+        *transfer_calls_clone.borrow_mut() += 1;
+      }
+    }),
+  )?;
   assert!(sandbox.path().join(".git").exists());
-  assert!(objects > 0);
+  assert!(*sideband_calls.borrow() > 0);
+  assert!(*transfer_calls.borrow() > 0);
   Ok(())
 }
 
@@ -31,8 +46,16 @@ fn clone(sandbox: TempDir, #[case] url: &str) -> Result {
 fn clone_empty(sandbox: TempDir) -> Result {
   let path = sandbox.path();
   git2::Repository::init(path.join("remote"))?;
-  let repo =
-    Repo::clone(path.join("remote").to_str().unwrap(), path.join("clone"), None, TestCreds, |_, _| true)?;
+  let repo = Repo::clone(
+    TestCreds,
+    CloneOptions {
+      url: path.join("remote").to_str().unwrap().to_string(),
+      to: path.join("clone"),
+      branch: None,
+      depth: None,
+    },
+    Box::new(|_| {}),
+  )?;
   assert!(repo.repo().branches(Some(BranchType::Local))?.count() == 1);
   assert_eq!(repo.repo().head()?.name().unwrap(), "refs/heads/master");
   Ok(())

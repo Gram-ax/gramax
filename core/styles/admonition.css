@@ -32,6 +32,11 @@
 
 .admonition-row .admonition-heading {
 	margin-bottom: 0 !important;
+    width: var(--heading-row-width-admonition);
+}
+
+.admonition-row .admonition-content {
+	width: calc(100% - var(--heading-row-width-admonition));
 }
 
 .admonition-heading {
@@ -70,7 +75,7 @@
 
 .admonition-content {
 	width: 100%;
-	overflow: hidden;
+	overflow: visible;
 }
 
 .admonition-content-ml {

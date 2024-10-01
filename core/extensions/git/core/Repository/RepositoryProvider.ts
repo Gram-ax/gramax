@@ -15,8 +15,11 @@ export default class RepositoryProvider {
 	private _sp: StorageProvider;
 
 	constructor() {
-		this._sdp = new SourceDataProvider();
 		this._sp = new StorageProvider();
+	}
+
+	addSourceDataProvider(sdp: SourceDataProvider) {
+		this._sdp = sdp;
 	}
 
 	getSourceDatas(cookie: Cookie): SourceData[] {
@@ -64,8 +67,15 @@ export default class RepositoryProvider {
 		return new Repository(path, fp, gvc, storage, repStateFile);
 	}
 
-	async cloneNewRepository(fp: FileProvider, path: Path, data: StorageData, recursive = true, branch?: string) {
-		return this._sp.cloneNewStorage(fp, path, data, recursive, branch);
+	async cloneNewRepository(
+		fp: FileProvider,
+		path: Path,
+		data: StorageData,
+		recursive = true,
+		branch?: string,
+		onCloneFinish?: (path: Path) => Promise<void>,
+	) {
+		return this._sp.cloneNewStorage({ fp, path, data, recursive, branch, onCloneFinish });
 	}
 
 	getCloneProgress(path: Path) {

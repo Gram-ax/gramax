@@ -31,9 +31,7 @@ abstract class Shape {
 	}
 
 	protected _findX1(x2: number, y1: number, y2: number): number {
-		if (y1 === 0) {
-			throw new Error(t("word.error.divide-by-zero-error"));
-		}
+		if (y2 === 0) throw new Error(t("word.error.divide-by-zero-error"));
 		return (x2 * y1) / y2;
 	}
 

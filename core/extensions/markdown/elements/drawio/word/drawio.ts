@@ -1,15 +1,15 @@
+import { errorWordLayout } from "@ext/wordExport/error";
+import { WordFontStyles, diagramString } from "@ext/wordExport/options/wordExportSettings";
 import { Paragraph, TextRun } from "docx";
 import Path from "../../../../../logic/FileProvider/Path/Path";
-import { WordExportHelper } from "../../../../wordExport/WordExportHelpers";
+import { WordImageProcessor } from "../../image/word/WordImageProcessor";
 import { WordBlockChild } from "../../../../wordExport/options/WordTypes";
-import { WordFontStyles, diagramString } from "@ext/wordExport/options/wordExportSettings";
-import { errorWordLayout } from "@ext/wordExport/error";
 
-export const drawioWordLayout: WordBlockChild = async ({ tag, addOptions, resourceManager, parserContext }) => {
+export const drawioWordLayout: WordBlockChild = async ({ tag, addOptions, wordRenderContext }) => {
 	try {
-		const image = await WordExportHelper.getImageFromSvgPath(
+		const image = await WordImageProcessor.getImageFromSvgPath(
 			new Path(tag.attributes.src),
-			resourceManager,
+			wordRenderContext.parserContext.getResourceManager(),
 			addOptions?.maxPictureWidth,
 		);
 		const paragraphs = [new Paragraph({ children: [image], style: WordFontStyles.picture })];
@@ -25,6 +25,6 @@ export const drawioWordLayout: WordBlockChild = async ({ tag, addOptions, resour
 
 		return paragraphs;
 	} catch (error) {
-		return errorWordLayout(diagramString(parserContext.getLanguage()), parserContext.getLanguage());
+		return errorWordLayout(diagramString(wordRenderContext.parserContext.getLanguage()), wordRenderContext.parserContext.getLanguage());
 	}
 };

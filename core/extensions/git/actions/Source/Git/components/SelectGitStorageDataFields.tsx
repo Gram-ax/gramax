@@ -4,20 +4,21 @@ import GitSourceData from "@ext/git/core/model/GitSourceData.schema";
 import t from "@ext/localization/locale/translate";
 import { useState } from "react";
 import GitStorageData from "../../../../core/model/GitStorageData";
+import Mode from "@ext/git/actions/Clone/model/Mode";
 
 interface SelectGitStorageDataFieldsProps {
 	source: GitSourceData;
-	forClone?: boolean;
+	mode?: Mode;
 	onChange?: (data: GitStorageData) => void;
 }
 
 const SelectGitStorageDataFields = (props: SelectGitStorageDataFieldsProps) => {
-	const { source, forClone, onChange } = props;
+	const { source, mode, onChange } = props;
 
 	const [isErrorLink, setIsErrorLink] = useState(false);
 	const exampleLink = `${source.protocol ?? "https"}://${source.domain}/<group-name>/<repository-name>`;
 
-	if (!forClone) return null;
+	if (mode !== Mode.clone) return null;
 	return (
 		<div className="form-group field field-string row">
 			<label className="control-label">{t("git.clone.repo-link")}</label>
@@ -35,9 +36,7 @@ const SelectGitStorageDataFields = (props: SelectGitStorageDataFieldsProps) => {
 						}
 						if (!source.protocol) source.protocol = "https";
 						const { group, name, protocol } = parseStorageUrl(url);
-						const testGroup = url.split(source.domain)?.[1]?.split?.("/")?.[1];
-						const testName = url.split(source.domain)?.[1]?.split?.("/")?.[2]?.split(".")?.[0];
-						if (protocol === source.protocol && group && name && testName === name && testGroup === group) {
+						if (protocol === source.protocol && group && name) {
 							setIsErrorLink(false);
 							onChange({ source, group, name });
 							return;

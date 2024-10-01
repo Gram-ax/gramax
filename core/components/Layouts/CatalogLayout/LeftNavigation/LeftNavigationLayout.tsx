@@ -65,7 +65,7 @@ const LeftNavigationLayout = styled(
 	},
 )`
 	height: 100%;
-	z-index: 102;
+	z-index: var(--z-index-nav-layout);
 	position: absolute;
 	width: var(--left-nav-width);
 	background: var(--color-menu-bg);

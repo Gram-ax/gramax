@@ -1,12 +1,11 @@
 import { NodeViewProps, NodeViewWrapper } from "@tiptap/react";
 import { ReactElement } from "react";
-import Focus from "../../../../elementsUtils/wrappers/Focus";
 import DiagramData from "../../component/DiagramData";
 import ModalToOpenService from "@core-ui/ContextServices/ModalToOpenService/ModalToOpenService";
 import ModalToOpen from "@core-ui/ContextServices/ModalToOpenService/model/ModalsToOpen";
 import OnLoadResourceService from "@ext/markdown/elements/copyArticles/onLoadResourceService";
 
-const DiagramComponent = ({ node, getPos, editor }: NodeViewProps): ReactElement => {
+const DiagramComponent = ({ node, editor }: NodeViewProps): ReactElement => {
 	const openEditor = () => {
 		ModalToOpenService.setValue(ModalToOpen.DiagramEditor, {
 			editor,
@@ -18,10 +17,8 @@ const DiagramComponent = ({ node, getPos, editor }: NodeViewProps): ReactElement
 	};
 
 	return (
-		<NodeViewWrapper as={"div"} draggable={true} data-drag-handle>
-			<Focus getPos={getPos}>
-				<DiagramData openEditor={openEditor} {...node.attrs} diagramName={node.attrs.diagramName} />
-			</Focus>
+		<NodeViewWrapper as={"div"} draggable={true} data-drag-handle className="focus-pointer-events">
+			<DiagramData openEditor={openEditor} {...node.attrs} diagramName={node.attrs.diagramName} />
 		</NodeViewWrapper>
 	);
 };

@@ -1,3 +1,4 @@
+import Tooltip from "@components/Atoms/Tooltip";
 import PopupMenuLayout from "@components/Layouts/PopupMenuLayout";
 import ButtonLink from "@components/Molecules/ButtonLink";
 import FetchService from "@core-ui/ApiServices/FetchService";
@@ -31,19 +32,30 @@ const AddContentLanguage = ({ onChange, setIsLoading }: AddContentLanguageProps)
 				</div>
 			}
 		>
-			{Object.values(ContentLanguage).map((code, idx) => (
-				<ButtonLink
-					key={idx}
-					text={t(`language.${code}`)}
-					onClick={async () => {
-						setIsLoading(true);
-						const res = await FetchService.fetch(apiUrlCreator.addCatalogLanguage(code));
-						if (res.ok) onChange(code);
-						else setIsLoading(false);
-					}}
-					disabled={code == props.language || props.supportedLanguages?.includes(code)}
-				/>
-			))}
+			{Object.values(ContentLanguage).map((code, idx) => {
+				const disabled = code == props.language || props.supportedLanguages?.includes(code);
+				const button = (
+					<ButtonLink
+						key={idx}
+						text={t(`language.${code}`)}
+						onClick={async () => {
+							setIsLoading(true);
+							const res = await FetchService.fetch(apiUrlCreator.addCatalogLanguage(code));
+							if (res.ok) onChange(code);
+							else setIsLoading(false);
+						}}
+						disabled={disabled}
+					/>
+				);
+
+				return disabled ? (
+					<Tooltip place="auto" hideOnClick hideInMobile content={t("multilang.error.cannot-add-language")}>
+						{button}
+					</Tooltip>
+				) : (
+					button
+				);
+			})}
 		</PopupMenuLayout>
 	);
 };

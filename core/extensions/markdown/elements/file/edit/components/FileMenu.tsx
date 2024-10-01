@@ -3,6 +3,7 @@ import ModalLayoutDark from "@components/Layouts/ModalLayoutDark";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import downloadResource from "@core-ui/downloadResource";
 import Path from "@core/FileProvider/Path/Path";
+import { StyledButton } from "@ext/artilce/LinkCreator/components/SelectLinkItem";
 import t from "@ext/localization/locale/translate";
 import Button from "@ext/markdown/core/edit/components/Menu/Button";
 
@@ -22,12 +23,7 @@ const FileMenu = ({ onDelete, resourcePath }: { onDelete: () => void; resourcePa
 						style={{ color: "var(--color-article-bg)", width: "100%", textDecoration: "none" }}
 						onClick={anchorClickHandler}
 					>
-						<Button
-							icon={"file"}
-							title={path.nameWithExtension}
-							className={"buttonView"}
-							text={path.nameWithExtension}
-						/>
+						<StyledButton icon={"file"} title={path.nameWithExtension} text={path.nameWithExtension} />
 					</a>
 
 					<div className="divider" />

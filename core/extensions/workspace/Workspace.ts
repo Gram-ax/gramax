@@ -83,12 +83,18 @@ export class Workspace {
 		return this.getFileStructure().fp;
 	}
 
-	async removeCatalog(name: string) {
-		const catalog = await this.getCatalog(name);
-		const fp = this.getFileProvider();
-		const path = FileStructure.getCatalogPath(catalog);
-		await fp.delete(path, true);
+	async removeCatalog(name: string, deleteFromFs = true) {
+		if (deleteFromFs) {
+			const catalog = await this.getCatalog(name);
+			const fp = this.getFileProvider();
+			const path = FileStructure.getCatalogPath(catalog);
+			await fp.delete(path, true);
+		}
 		this._entries.delete(name);
+	}
+
+	addCatalogEntry(catalogEntry: CatalogEntry): void {
+		this._entries.set(catalogEntry.getName(), catalogEntry);
 	}
 
 	async addCatalog(catalog: Catalog): Promise<void> {

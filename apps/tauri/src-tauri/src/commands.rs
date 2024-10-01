@@ -6,6 +6,7 @@ use tauri_plugin_dialog::DialogExt;
 
 use std::collections::HashMap;
 
+use crate::http_req;
 use crate::http_server::oauth_listen_once;
 use crate::platform::commands::*;
 
@@ -17,8 +18,8 @@ pub fn generate_handler<R: Runtime>(builder: Builder<R>) -> Builder<R> {
     open_directory,
     quit,
     read_env,
-    request_delete_config,
     move_to_trash,
+    http_req::http_request,
     #[cfg(target_os = "macos")]
     show_print
   ])

@@ -1,6 +1,7 @@
 import { RIGHT_NAV_CLASS } from "@app/config/const";
 import { classNames } from "@components/libs/classNames";
 import ArticleRefService from "@core-ui/ContextServices/ArticleRef";
+import ArticleViewService from "@core-ui/ContextServices/views/articleView/ArticleViewService";
 import { cssMedia } from "@core-ui/utils/cssUtils";
 import styled from "@emotion/styled";
 
@@ -19,6 +20,7 @@ export interface ArticleLayoutProps {
 
 const ArticleLayout = (props: ArticleLayoutProps) => {
 	const articleRef = ArticleRefService.value;
+	const useArticleDefaultStyles = ArticleViewService.useArticleDefaultStyles;
 
 	const {
 		article,
@@ -31,7 +33,7 @@ const ArticleLayout = (props: ArticleLayoutProps) => {
 	} = props;
 
 	return (
-		<div className={classNames("article", {}, [className])} ref={articleRef}>
+		<div className={classNames(className, { article: useArticleDefaultStyles })} ref={articleRef}>
 			<div
 				className="article-content-wrapper"
 				onMouseEnter={onArticleMouseEnter}
@@ -41,7 +43,7 @@ const ArticleLayout = (props: ArticleLayoutProps) => {
 				<div className="article-content">{article}</div>
 			</div>
 			<div
-				className={RIGHT_NAV_CLASS}
+				className={classNames("article", {}, [RIGHT_NAV_CLASS])}
 				onMouseEnter={onRightNavMouseEnter}
 				onMouseLeave={onRightNavMouseLeave}
 				onTouchEnd={onRightNavMouseEnter}
@@ -53,6 +55,11 @@ const ArticleLayout = (props: ArticleLayoutProps) => {
 };
 
 export default styled(ArticleLayout)`
+	.right-nav-layout {
+		z-index: var(--z-index-nav-layout);
+		height: 100%;
+	}
+
 	${(p) =>
 		p.narrowMedia
 			? `display: flex;
@@ -83,7 +90,6 @@ export default styled(ArticleLayout)`
 	.right-nav-layout {
 		top: 0;
 		right: 0;
-		height: 100%;
 
 		position: fixed;
 		--transition-time: 0.3s;
@@ -136,14 +142,13 @@ export default styled(ArticleLayout)`
 	.right-nav-layout {
 		--transition-time: 0.3s;
 		transition: var(--navigation-transition);
-		height: 100%;
 
 		${
 			p.isRightNavPin
 				? `
 		top: 0;
-	    position: sticky;
-        transform: translateX(0px);
+		position: sticky;
+		transform: translateX(0px);
                 `
 				: `
                 position: absolute;

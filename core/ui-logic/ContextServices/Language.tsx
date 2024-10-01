@@ -1,6 +1,6 @@
 import { refreshPage } from "@core-ui/ContextServices/RefreshPageContext";
 import UiLanguage, { defaultLanguage } from "@ext/localization/core/model/Language";
-import { ReactElement, useEffect } from "react";
+import { ReactElement, useLayoutEffect } from "react";
 
 const DEFAULT_SELECTED_LANGUAGE: UiLanguage =
 	typeof window === "undefined"
@@ -13,12 +13,14 @@ export default abstract class LanguageService {
 	private static _current = DEFAULT_SELECTED_LANGUAGE;
 
 	static Provider({ children }: { children: ReactElement }): ReactElement {
-		useEffect(() => {
-			LanguageService._current =
-				UiLanguage[window.localStorage.getItem(LOCAL_STORAGE_UI_LANGUAGE_KEY)] ?? DEFAULT_SELECTED_LANGUAGE;
-		}, []);
+		useLayoutEffect(() => LanguageService.setupLanguage(), []);
 
 		return children;
+	}
+
+	static setupLanguage() {
+		LanguageService._current =
+			UiLanguage[typeof window != "undefined" && window.localStorage?.getItem(LOCAL_STORAGE_UI_LANGUAGE_KEY)];
 	}
 
 	static setUiLanguage(language: UiLanguage) {
@@ -32,3 +34,5 @@ export default abstract class LanguageService {
 		return LanguageService._current ?? DEFAULT_SELECTED_LANGUAGE;
 	}
 }
+
+LanguageService.setupLanguage();

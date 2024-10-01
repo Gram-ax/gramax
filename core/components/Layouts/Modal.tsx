@@ -10,7 +10,7 @@ export interface ModalLayoutProps {
 	children: JSX.Element;
 	trigger?: JSX.Element;
 	onOpen?: () => void;
-	onClose?: (closeModal: () => void) => void;
+	onClose?: (closeModal: (isSimple?: boolean) => void) => void;
 	onEnter?: () => void;
 	onCmdEnter?: (e: KeyboardEvent) => void;
 	isOpen?: boolean;
@@ -50,10 +50,11 @@ const ModalLayout = (props: ModalLayoutProps) => {
 	};
 
 	const tryClose = () => {
-		onClose?.(() => {
-			shouldAbortOnClose.current = true;
+		onClose?.((isSimple) => {
+			if (!isSimple) shouldAbortOnClose.current = true;
 			closeModal();
 		});
+
 		if (preventClose) return;
 		setIsOpen(false);
 	};

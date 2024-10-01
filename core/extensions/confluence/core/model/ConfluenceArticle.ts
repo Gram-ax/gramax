@@ -1,14 +1,12 @@
-import { JSONContent } from "@tiptap/core";
-
 export interface ConfluenceArticle {
 	domain: string;
 	id: string;
 	linkUi: string;
-	position: number;
+	position?: number;
 	title: string;
-	content: JSONContent;
-	parentId: string | null;
-	parentType: string | null;
+	content: string;
+	parentId?: string;
+	parentType?: string;
 }
 export interface ConfluenceArticleTree extends ConfluenceArticle {
 	children: ConfluenceArticleTree[];

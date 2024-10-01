@@ -10,6 +10,7 @@ import getShareLinkData from "./share/getShareLinkData";
 import getShareTicket from "./share/getShareTicket";
 import updateNavigation from "./updateNavigation";
 import updateProps from "./updateProps";
+import getAddedCounters from "./properties/getAddedCounters";
 
 const catalog = {
 	review: {
@@ -23,6 +24,7 @@ const catalog = {
 	remove,
 	getLogo,
 	getBrotherFileNames,
+	getAddedCounters,
 	updateNavigation,
 	updateProps,
 	language,

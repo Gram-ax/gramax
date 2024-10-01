@@ -2,20 +2,25 @@
 #[macro_export]
 macro_rules! define_c_api {
   {$($mod: ident fn $fn_name:ident($($arg:ident: $arg_t:ty),*) -> $ret:ty $body:block)*} => {
-      use std::ffi::c_void;
-      use serde::Deserialize;
-
       $(#[no_mangle]
-      pub unsafe extern "C" fn $fn_name(len: usize, ptr: *mut u8) -> *const c_void {
-        #[derive(Deserialize)]
-        #[serde(rename_all = "camelCase")]
-        struct Args { $($arg: $arg_t),* }
+        pub unsafe extern "C" fn $fn_name(len: usize, ptr: *mut u8) -> $crate::threading::JobCallbackId {
+          let ptr = ptr as usize;
 
-        #[inline(always)]
-        fn inner($($arg: $arg_t),*) -> Result<$ret> $body
-        let vec = Vec::from_raw_parts(ptr, len, len);
-        let val = serde_json::from_slice::<Args>(&vec).expect("couldn't deserialize json args");
-        $crate::ret!($mod inner($(val.$arg),*) => $ret).boxed()
+          $crate::threading::run(move || {
+            #[derive(serde::Deserialize)]
+            #[serde(rename_all = "camelCase")]
+            struct Args { $($arg: $arg_t),* }
+
+          #[inline(always)]
+          fn inner($($arg: $arg_t),*) -> Result<$ret> $body
+
+          let vec = Vec::from_raw_parts(ptr as *mut u8, len, len);
+          let val = serde_json::from_slice::<Args>(&vec);
+          match val {
+            Ok(val) => $crate::ret!($mod inner($(val.$arg),*) => $ret),
+            Err(err) => $crate::ret!(json Err(err.to_string()) => String)
+          }
+        })
       })*
   }
 }

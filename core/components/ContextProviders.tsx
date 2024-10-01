@@ -18,6 +18,7 @@ import SearchQueryService from "@core-ui/ContextServices/SearchQuery";
 import SidebarsIsPinService from "@core-ui/ContextServices/SidebarsIsPin";
 import SyncIconService from "@core-ui/ContextServices/SyncIconService";
 import ArticleViewService from "@core-ui/ContextServices/views/articleView/ArticleViewService";
+import LeftNavViewContentService from "@core-ui/ContextServices/views/leftNavView/LeftNavViewContentService";
 import WorkspaceService from "@core-ui/ContextServices/Workspace";
 import useIsFirstLoad from "@core-ui/useIsFirstLoad";
 import yandexMetric from "@core-ui/yandexMetric";
@@ -180,5 +181,9 @@ interface ViewContextProviderProps {
 }
 
 const ViewContextProvider = ({ articlePageData, children }: ViewContextProviderProps) => {
-	return <ArticleViewService.Provider articlePageData={articlePageData}>{children}</ArticleViewService.Provider>;
+	return (
+		<ArticleViewService.Provider articlePageData={articlePageData}>
+			<LeftNavViewContentService.Provider>{children}</LeftNavViewContentService.Provider>
+		</ArticleViewService.Provider>
+	);
 };

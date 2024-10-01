@@ -39,7 +39,7 @@ const Tabs = ({
 	return (
 		<div className={className}>
 			{visibleChildAttrs.length == 1 && !isEdit ? null : (
-				<div className="switch" contentEditable={false}>
+				<div className="switch" contentEditable="false">
 					{visibleChildAttrs.map(({ name, icon, idx }, key) => {
 						return (
 							<div

@@ -1,49 +1,31 @@
 import { NodeViewProps, NodeViewWrapper } from "@tiptap/react";
-import { ReactElement, useState } from "react";
-import Focus from "../../../../elementsUtils/wrappers/Focus";
+import { ReactElement } from "react";
 import Drawio from "../../render/component/Drawio";
-import OnLoadResourceService from "@ext/markdown/elements/copyArticles/onLoadResourceService";
-import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
-import { resolveImageKind } from "@components/Atoms/Image/resolveImageKind";
 import ArticlePropsService from "@core-ui/ContextServices/ArticleProps";
 import getDrawioID from "@ext/markdown/elements/drawio/edit/logic/getDrawioID";
 import ModalToOpenService from "@core-ui/ContextServices/ModalToOpenService/ModalToOpenService";
 import ModalToOpen from "@core-ui/ContextServices/ModalToOpenService/model/ModalsToOpen";
 
-const DrawioComponent = ({ node, getPos }: NodeViewProps): ReactElement => {
-	const apiUrlCreator = ApiUrlCreatorService.value;
+const DrawioComponent = ({ node }: NodeViewProps): ReactElement => {
+	const nodeSrc: string = node.attrs.src;
 	const articleProps = ArticlePropsService.value;
-	const [imageSrc, setImageSrc] = useState<string>(null);
-
-	const setSrc = (newSrc: Blob) => {
-		if (imageSrc) URL.revokeObjectURL(imageSrc);
-		setImageSrc(URL.createObjectURL(newSrc));
-	};
-
-	OnLoadResourceService.useGetContent(node.attrs.src, apiUrlCreator, (buffer) => {
-		if (!buffer.byteLength) return;
-		setSrc(new Blob([buffer], { type: resolveImageKind(buffer) }));
-	});
 
 	const openEditor = () => {
 		ModalToOpenService.setValue(ModalToOpen.DrawioEditor, {
-			src: node.attrs.src,
+			src: nodeSrc,
 			logicPath: articleProps.logicPath,
 		});
 	};
-
 	return (
-		<NodeViewWrapper as={"div"} draggable={true} data-drag-handle>
-			<Focus getPos={getPos}>
-				<Drawio
-					id={getDrawioID(node.attrs.src, articleProps.logicPath)}
-					openEditor={openEditor}
-					realSrc={node.attrs.src}
-					src={imageSrc}
-					title={node.attrs.title}
-				/>
-			</Focus>
+		<NodeViewWrapper as={"div"} draggable={true} data-drag-handle className="focus-pointer-events">
+			<Drawio
+				id={getDrawioID(nodeSrc, articleProps.logicPath)}
+				openEditor={openEditor}
+				src={nodeSrc}
+				title={node.attrs.title}
+			/>
 		</NodeViewWrapper>
 	);
 };
+
 export default DrawioComponent;

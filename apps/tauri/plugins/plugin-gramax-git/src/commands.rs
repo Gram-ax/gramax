@@ -11,7 +11,7 @@ use std::path::Path;
 use std::path::PathBuf;
 
 #[command(async)]
-pub(crate) fn file_history(repo_path: &Path, file_path: &Path, count: usize) -> Result<Vec<FileDiff>> {
+pub(crate) fn file_history(repo_path: &Path, file_path: &Path, count: usize) -> Result<HistoryInfo> {
   git::file_history(repo_path, file_path, count)
 }
 
@@ -83,15 +83,10 @@ pub(crate) fn checkout(repo_path: &Path, ref_name: &str, force: bool) -> Result<
 #[command(async)]
 pub(crate) fn clone<R: Runtime>(
   window: Window<R>,
-  repo_path: &Path,
   creds: AccessTokenCreds,
-  remote_url: &str,
-  branch: Option<&str>,
+  opts: CloneOptions,
 ) -> Result<()> {
-  git::clone(repo_path, creds, remote_url, branch, |chunk| {
-    _ = window.emit_to(window.label(), "clone-progress", chunk);
-    true
-  })
+  git::clone(creds, opts, Box::new(move |chunk| _ = window.emit("clone-progress", chunk)))
 }
 
 #[command(async)]
@@ -153,7 +148,11 @@ pub(crate) fn get_remote(repo_path: &Path) -> Result<Option<String>> {
 }
 
 #[command(async)]
-pub(crate) fn stash(repo_path: &Path, message: Option<&str>, creds: AccessTokenCreds) -> Result<String> {
+pub(crate) fn stash(
+  repo_path: &Path,
+  message: Option<&str>,
+  creds: AccessTokenCreds,
+) -> Result<Option<String>> {
   git::stash(repo_path, message, creds)
 }
 

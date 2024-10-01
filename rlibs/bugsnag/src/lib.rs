@@ -97,9 +97,13 @@ impl BugsnagNotification {
   pub fn blocking_send(self) -> bool {
     let client = reqwest::blocking::Client::new();
 
+    let mut headers = reqwest::header::HeaderMap::new();
+    headers.insert("Bugsnag-Api-Key", self.api_key.parse().unwrap());
+    headers.insert("Bugsnag-Payload-Version", "5".parse().unwrap());
+
     log::info!("bugsnag data: {:#?}", &self);
 
-    match client.post(BUGSNAG_API_ENDPOINT).headers(make_bugsnag_headers(&self.api_key)).json(&self).send() {
+    match client.post(BUGSNAG_API_ENDPOINT).headers(headers).json(&self).send() {
       Ok(res) => {
         log::info!("sent notification to bugsnag; status: {}", res.status());
         true
@@ -110,11 +114,4 @@ impl BugsnagNotification {
       }
     }
   }
-}
-
-fn make_bugsnag_headers(api_key: &str) -> reqwest::header::HeaderMap {
-  let mut headers = reqwest::header::HeaderMap::new();
-  headers.insert("Bugsnag-Api-Key", api_key.parse().unwrap());
-  headers.insert("Bugsnag-Payload-Version", "5".parse().unwrap());
-  headers
 }

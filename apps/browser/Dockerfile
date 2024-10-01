@@ -17,7 +17,7 @@ COPY . .
 
 RUN rm -r services
 
-RUN ["./install-deps.sh", "--ci", "--build-plugins"]
+RUN ["./install-deps.sh", "--ci"]
 
 ARG BUGSNAG_API_KEY \
     BRANCH \

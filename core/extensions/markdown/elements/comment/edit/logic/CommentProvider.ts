@@ -3,6 +3,7 @@ import * as yaml from "js-yaml";
 import Path from "../../../../../../logic/FileProvider/Path/Path";
 import FileProvider from "../../../../../../logic/FileProvider/model/FileProvider";
 import ParserContext from "../../../../core/Parser/ParserContext/ParserContext";
+import generateUniqueID from "@core/utils/generateUniqueID";
 
 class CommentProvider {
 	constructor(private _fp: FileProvider, private _articlePath: Path) {}
@@ -12,7 +13,7 @@ class CommentProvider {
 	}
 
 	getCount(): string {
-		return this._generateGUID();
+		return generateUniqueID();
 	}
 
 	async getComment(count: string, context: ParserContext): Promise<CommentBlock> {
@@ -31,15 +32,6 @@ class CommentProvider {
 		delete allComment[count];
 		if (Object.keys(allComment).length) await this._write(allComment);
 		else await this._delete();
-	}
-
-	private _generateGUID(): string {
-		const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-		let randomKey = "";
-		for (let i = 0; i < 5; i++) {
-			randomKey += characters.charAt(Math.floor(Math.random() * characters.length));
-		}
-		return randomKey;
 	}
 
 	private async _parse(strCommentBlock: CommentBlock<string>, context: ParserContext): Promise<CommentBlock> {

@@ -1,3 +1,5 @@
+import { getExecutingEnvironment } from "@app/resolveModule/env";
+import { assertDesktopOpened } from "@components/Actions/EditInGramax";
 import ModalLayout from "@components/Layouts/Modal";
 import ModalLayoutLight from "@components/Layouts/ModalLayoutLight";
 import { useRouter } from "@core/Api/useRouter";
@@ -34,8 +36,10 @@ const CloneHandler = ({ shareData }: { shareData: ShareData }) => {
 				<ModalLayoutLight>
 					<CloneWithShareData
 						shareData={shareData}
-						onCloneError={cancel}
-						onCloneFinish={close}
+						onCloneStart={() => {
+							close();
+							router.pushPath("");
+						}}
 						onCreateSourceDataClose={(success) => {
 							if (!success) close();
 						}}
@@ -51,7 +55,18 @@ const CloneHandler = ({ shareData }: { shareData: ShareData }) => {
 					}}
 					isWarning={true}
 				>
-					<span>{t("git.clone.not-cloned.body")}</span>
+					<div>{t("git.clone.not-cloned.body")}</div>
+					{getExecutingEnvironment() == "browser" && (
+						<div>
+							<a
+								onClick={assertDesktopOpened}
+								href={`gramax://${window.location.pathname}`}
+								style={{ outline: 0 }}
+							>
+								{t("git.clone.open-in-app")}
+							</a>
+						</div>
+					)}
 				</InfoModalForm>
 			)}
 		</ModalLayout>

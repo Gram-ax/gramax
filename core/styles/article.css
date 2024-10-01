@@ -8,6 +8,12 @@
 	background: var(--color-article-bg);
 }
 
+.article suggestion {
+	cursor: pointer;
+	text-decoration: var(--color-danger) wavy underline;
+	-webkit-text-decoration: var(--color-danger) wavy underline;
+}
+
 .article.global .btn {
 	display: flex;
 	cursor: pointer;
@@ -32,6 +38,15 @@
 	opacity: 0.8;
 	color: var(--color-article-bg);
 	background: var(--color-article-heading-text);
+}
+
+.search-highlight {
+	background-color: var(--color-article-hotkey-search-bg);
+	color: var(--color-article-hotkey-search-text);
+}
+
+.search-highlight-active {
+	background-color: var(--color-article-hotkey-search-bg-active);
 }
 
 .docportal-sidebar {
@@ -143,6 +158,10 @@ samp {
 
 .article li {
 	line-height: 1.6em;
+}
+
+.article li::marker {
+	user-select: none;
 }
 
 .article .attr {
@@ -375,6 +394,7 @@ samp {
 	height: 100%;
 }
 
+.article .ff-canvas,
 .article img {
 	border-radius: var(--radius-small);
 	box-shadow: var(--shadows-deeplight);
@@ -391,7 +411,7 @@ samp {
 .article .diagram-image + em,
 .article .img-v + p > em:first-of-type,
 .article .img-h + p > em:first-of-type,
-.article span.react-renderer.node-image + em {
+.article .node-image em {
 	display: block;
 	font-size: 13px;
 	margin-top: -4px;
@@ -643,7 +663,6 @@ samp {
 }
 
 .article .inline-code code {
-	padding: 0.125em 0;
 	cursor: pointer;
 }
 
@@ -668,7 +687,7 @@ samp {
 .article .diagram-background {
 	width: 100%;
 	padding: 20px;
-	margin: 2em 0;
+	margin: 0.5em 0;
 	position: relative;
 	border-radius: var(--radius-large);
 	background-color: var(--color-diagram-bg);
@@ -697,23 +716,6 @@ samp {
 
 .article .hover-right-button > i {
 	padding-left: 0 !important;
-}
-
-.buttonView .button .iconFrame {
-	display: flex;
-}
-
-.buttonView .button .iconFrame span {
-	white-space: nowrap;
-	overflow: hidden;
-	text-overflow: ellipsis;
-	max-width: 170px;
-}
-
-.buttonView .button .iconFrame i {
-	align-items: flex-start;
-	justify-content: center;
-	display: flex;
 }
 
 @media print {

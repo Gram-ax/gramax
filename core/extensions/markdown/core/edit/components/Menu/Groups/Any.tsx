@@ -6,13 +6,11 @@ import TableMenuButton from "@ext/markdown/elements/table/edit/components/TableM
 import { Editor } from "@tiptap/core";
 import DiagramsMenuGroup from "./Diagrams";
 import FilesMenuGroup from "./Files";
-import HTMLMenuButton from "@ext/markdown/elements/html/edit/components/HTMLMenuButton";
 
 const AnyMenuGroup = ({ editor }: { editor?: Editor }) => {
 	return (
 		<ButtonsLayout>
 			<CodeMenuButton editor={editor} />
-			<HTMLMenuButton editor={editor} />
 			<NoteMenuButton editor={editor} />
 			<TableMenuButton editor={editor} />
 			<SemiBlocks editor={editor} />

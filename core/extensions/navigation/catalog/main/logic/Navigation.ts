@@ -1,5 +1,4 @@
 import { createEventEmitter, Event, type HasEvents } from "@core/Event/EventEmitter";
-import Path from "@core/FileProvider/Path/Path";
 import CatalogEntry from "@core/FileStructue/Catalog/CatalogEntry";
 import { ItemType } from "@core/FileStructue/Item/ItemType";
 import RouterPathProvider from "@core/RouterPath/RouterPathProvider";
@@ -64,6 +63,7 @@ export default class Navigation implements HasEvents<NavigationEvents> {
 			style: catalog.props[navProps.style] ?? null,
 			description: catalog.props[navProps.description] ?? null,
 			order: catalog.props[navProps.order] ?? 999999,
+			isCloning: catalog.props?.isCloning ?? false,
 		};
 
 		const filter = await this.events.emit("filter-catalog", { entry: catalog, link });
@@ -116,9 +116,7 @@ export default class Navigation implements HasEvents<NavigationEvents> {
 			const categoryLink = link as CategoryLink;
 			categoryLink.items = [];
 			categoryLink.existContent = true;
-			const cataegoryLinkItemLogicPath = RouterPathProvider.isEditorPathname(new Path(categoryLink.pathname))
-				? new Path(RouterPathProvider.parsePath(new Path(categoryLink.pathname)).itemLogicPath).value
-				: categoryLink.pathname;
+			const cataegoryLinkItemLogicPath = RouterPathProvider.getLogicPath(categoryLink.pathname);
 			categoryLink.isExpanded =
 				currentItemLogicPaths.some((part) => part === cataegoryLinkItemLogicPath) ||
 				catalog.getRootCategoryPath().compare(item.parent.folderPath);

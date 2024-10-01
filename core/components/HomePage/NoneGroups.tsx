@@ -11,6 +11,7 @@ import CreateCatalog from "../../extensions/catalog/actions/CreateCatalog";
 import Clone from "../../extensions/git/actions/Clone/components/Clone";
 import Button from "../Atoms/Button/Button";
 import Icon from "../Atoms/Icon";
+import Mode from "@ext/git/actions/Clone/model/Mode";
 
 const NoneGroups = (props: HTMLAttributes<HTMLDivElement>) => {
 	const isReadOnly = PageDataContextService.value.conf.isReadOnly;
@@ -47,7 +48,7 @@ const NoneGroups = (props: HTMLAttributes<HTMLDivElement>) => {
 												await refreshPage();
 											}}
 										>
-											{t("edit3")}
+											{t("actions")}
 										</a>
 									</span>
 								</p>
@@ -74,7 +75,7 @@ const NoneGroups = (props: HTMLAttributes<HTMLDivElement>) => {
 									<span>{`${t("catalog.clone")}`}</span>
 								</Button>
 							}
-							forClone={true}
+							mode={Mode.clone}
 						/>
 						<IsReadOnlyHOC>
 							<Clone
@@ -84,7 +85,7 @@ const NoneGroups = (props: HTMLAttributes<HTMLDivElement>) => {
 										<span>{`${t("catalog.import")}`}</span>
 									</Button>
 								}
-								forClone={false}
+								mode={Mode.import}
 							/>
 						</IsReadOnlyHOC>
 					</>

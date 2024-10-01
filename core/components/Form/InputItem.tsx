@@ -2,12 +2,15 @@ import Tooltip from "@components/Atoms/Tooltip";
 import type { FormSchema } from "@components/Form/Form";
 import t, { hasTranslation } from "@ext/localization/locale/translate";
 import { JSONSchema7 } from "json-schema";
-import { MutableRefObject, useEffect, useRef } from "react";
+import { MutableRefObject, useEffect, useRef, useState } from "react";
 import Checkbox from "../Atoms/Checkbox";
 import Input from "../Atoms/Input";
 import ListLayout from "../List/ListLayout";
 import Select from "../Select/Select";
 import { Validate } from "./ValidateObject";
+import ArrayItems from "@ext/properties/components/ArrayItems";
+import CatalogEditProps from "@ext/catalog/actions/propsEditor/components/CatalogEditProps";
+import { Property } from "@ext/properties/models";
 
 interface ItemInputProps {
 	tabIndex: number;
@@ -15,8 +18,8 @@ interface ItemInputProps {
 	validate: Validate;
 	formTranslationKey: string;
 	translationKey: string;
-	value: string | string[] | boolean;
-	onChange?: (value: string | string[] | boolean) => void;
+	value: string | string[] | boolean | Property[];
+	onChange?: (value: string | string[] | boolean | Property[]) => void;
 	onFocus?: () => void;
 	showErrorText?: boolean;
 	focus?: boolean;
@@ -34,10 +37,13 @@ const ItemInput = (props: ItemInputProps) => {
 		focus = false,
 		formTranslationKey: form,
 		translationKey,
+		dataQa,
 	} = props;
 	let { value } = props;
 
 	const ref = useRef<HTMLElement>();
+	const [isOpen, setIsOpen] = useState<boolean>(false);
+	const [editData, setEditData] = useState<Property>(null);
 
 	useEffect(() => {
 		if (!focus || !ref?.current) return;
@@ -63,8 +69,8 @@ const ItemInput = (props: ItemInputProps) => {
 					element: (() => {
 						if (translation) {
 							return value
-								? hasTranslation(`${translation}.${value}` as any)
-									? t(`${translation}.${value}` as any)
+								? hasTranslation(`${translation}.${value as string}` as any)
+									? t(`${translation}.${value as string}` as any)
 									: value
 								: hasTranslation(`${translation}.${scheme.default as string}` as any)
 								? t(`${translation}.${scheme.default as string}` as any)
@@ -78,18 +84,19 @@ const ItemInput = (props: ItemInputProps) => {
 					onChange?.((scheme.enum as string[])[idx]);
 				}}
 				placeholder={t(`forms.${form}.props.${translationKey}.placeholder`)}
+				dataQa={dataQa}
 			/>
 		);
 	}
 
-	if (scheme.type === "array" && (scheme.items as JSONSchema7).type == "string") {
+	if (scheme.type === "array" && (scheme.items as JSONSchema7)?.type === "string") {
 		return (
 			<Tooltip content={validate}>
 				<div>
 					<Select
 						create
 						// disable={value.readOnly ?? false}
-						placeholder={scheme.format}
+						placeholder={scheme.format ?? t(`forms.${form}.props.${translationKey}.placeholder`)}
 						addPlaceholder={scheme.format ?? ""}
 						createNewLabel={t("add-value") + " {search}"}
 						values={(value as string[])?.map((value) => ({ value, label: value }))}
@@ -102,6 +109,41 @@ const ItemInput = (props: ItemInputProps) => {
 					/>
 				</div>
 			</Tooltip>
+		);
+	}
+
+	if (scheme.type === "array" && (scheme.items as JSONSchema7)?.type === "object") {
+		const change = (prop: Property, isDelete: boolean = false) => {
+			const newProps = [...(value as Property[])];
+			const index = (value as Property[]).findIndex((obj: Property) => obj.id === prop.id);
+			if (index === -1) {
+				newProps.push(prop);
+				onChange?.(newProps);
+				return;
+			}
+
+			if (isDelete) newProps.splice(index, 1);
+			else newProps[index] = prop;
+			onChange?.(newProps);
+		};
+
+		const toggleModal = (index?: number) => {
+			if (index === undefined) {
+				setIsOpen(false);
+				setEditData(null);
+				return;
+			}
+
+			setEditData(value?.[index]);
+			setIsOpen(true);
+		};
+
+		return (
+			<ArrayItems newIcon="plus" otherIcon="pencil" values={value as Property[]} onClick={toggleModal}>
+				{isOpen && (
+					<CatalogEditProps data={editData} isOpen={isOpen} closeModal={toggleModal} onSubmit={change} />
+				)}
+			</ArrayItems>
 		);
 	}
 
@@ -127,7 +169,7 @@ const ItemInput = (props: ItemInputProps) => {
 	return (
 		<Input
 			isCode
-			dataQa={props.dataQa}
+			dataQa={dataQa}
 			disabled={scheme.readOnly}
 			tabIndex={tabIndex}
 			hidden={(scheme as any).private}

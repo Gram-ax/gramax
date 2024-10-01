@@ -24,6 +24,24 @@
 	margin: 0 !important;
 }
 
+.ProseMirror .focus-pointer-events {
+	user-select: none;
+	-ms-user-select: none;
+	-webkit-user-select: none;
+	pointer-events: none;
+}
+
+.ProseMirror-selectednode {
+	.focus-pointer-events {
+		pointer-events: auto !important;
+	}
+
+	*[data-focusable="true"] {
+		outline: 2px solid var(--color-focus);
+		outline-offset: -2px;
+	}
+}
+
 .ProseMirror a {
 	cursor: text !important;
 }

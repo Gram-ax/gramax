@@ -4,6 +4,7 @@ import t from "@ext/localization/locale/translate";
 import IsReadOnlyHOC from "../../../ui-logic/HigherOrderComponent/IsReadOnlyHOC";
 import Clone from "../../git/actions/Clone/components/Clone";
 import CreateCatalog from "./CreateCatalog";
+import Mode from "@ext/git/actions/Clone/model/Mode";
 
 const AddCatalogMenu = () => {
 	return (
@@ -14,10 +15,10 @@ const AddCatalogMenu = () => {
 				/>
 			</IsReadOnlyHOC>
 
-			<Clone trigger={<ButtonLink iconCode="cloud-download" text={t("catalog.clone-2")} />} forClone={true} />
+			<Clone trigger={<ButtonLink iconCode="cloud-download" text={t("catalog.clone-2")} />} mode={Mode.clone} />
 
 			<IsReadOnlyHOC>
-				<Clone trigger={<ButtonLink iconCode="import" text={t("catalog.import")} />} forClone={false} />
+				<Clone trigger={<ButtonLink iconCode="import" text={t("catalog.import")} />} mode={Mode.import} />
 			</IsReadOnlyHOC>
 		</PopupMenuLayout>
 	);

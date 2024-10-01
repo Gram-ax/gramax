@@ -3,8 +3,8 @@ import { useState } from "react";
 export type Trigger = any;
 
 const useTrigger = (): [Trigger, () => void] => {
-	const [trigger, setTrigger] = useState<number>(null);
-	return [trigger, () => setTrigger((prev) => prev + 1)];
+	const [triggerValue, setTrigger] = useState<boolean>(null);
+	return [triggerValue, () => setTrigger((prev) => !prev)];
 };
 
 export default useTrigger;

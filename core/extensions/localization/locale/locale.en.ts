@@ -23,7 +23,7 @@ const locale = {
 				language: {
 					name: "Main language",
 					placeholder: "English",
-					description: "Main language of the catalog",
+					description: "Main language of the catalog. Cannot be changed after selection",
 				},
 				description: {
 					name: "Description",
@@ -36,6 +36,44 @@ const locale = {
 				code: {
 					name: "Short Name",
 					placeholder: "PN",
+				},
+				properties: {
+					name: "Properties",
+				},
+			},
+		},
+		"catalog-create-props": {
+			name: "Props settings",
+			props: {
+				name: {
+					name: "Name",
+					placeholder: "Enter a name for the property",
+				},
+				type: {
+					name: "Type",
+					placeholder: "Counter",
+					description: "Cannot be changed after save",
+				},
+				style: {
+					name: "Syle",
+					placeholder: "Blue",
+				},
+				values: {
+					name: "Values",
+					placeholder: "Value",
+				},
+			},
+		},
+		"article-create-props": {
+			name: "Props settings",
+			props: {
+				id: {
+					name: "Prop",
+					placeholder: "Change exist prop",
+				},
+				value: {
+					name: "Value",
+					placeholder: "Change value",
 				},
 			},
 		},
@@ -73,7 +111,7 @@ const locale = {
 				token: {
 					name: "Token",
 					placeholder: "glpat-aq6PK8sz1eQeKhTy-Dm5",
-					description: "Token for reading and modifying repositories in the storage.",
+					description: "Token for reading and modifying repositories in the storage",
 				},
 				createDate: {
 					name: "Creation Time",
@@ -133,6 +171,35 @@ const locale = {
 					name: "Email",
 					description: "Will be displayed in the change history",
 					placeholder: "john.doe@mail.com",
+				},
+			},
+		},
+		"confluence-server-source-data": {
+			props: {
+				sourceType: {
+					name: "Тип",
+				},
+				domain: {
+					name: "Confluence server URL",
+					placeholder: "https://confluence.domain.com",
+					description: "Copy the URL of your Confluence server",
+				},
+				password: {
+					name: "Password",
+					placeholder: "opxsdk_tvdg",
+					description: "Enter the Confluence account password",
+				},
+				userName: {
+					name: "Username",
+					placeholder: "John",
+					description: "Enter the Confluence account username",
+				},
+				token: {
+					name: "Токен",
+					description: `Enter the Confluence account token. <a ${
+						getExecutingEnvironment() === "tauri" ? "" : "target='_blank'"
+					} href='https://confluence.atlassian.com/enterprise/using-personal-access-tokens-1026032365.html'>Подробнее</a>`,
+					placeholder: "NzIzNTYyNTQ3NjQxOva29fNcHrLYMGH77/YuEAKpqy+Q",
 				},
 			},
 		},
@@ -205,10 +272,11 @@ const locale = {
 			},
 		},
 		"sign-in-enterprise": {
-			name: "Enterprise Sign-In",
+			name: "Sign in to Your Business Account",
 			props: {
 				email: {
-					name: "Email",
+					name: "Sign in to your Gramax Enterprise Server account",
+					description: "Use your work email to connect to your organization's workspace.",
 					placeholder: "Enter your email",
 				},
 			},
@@ -228,6 +296,12 @@ const locale = {
 				body: '<p>Reload the page and try again.</p><p>We will receive a problem report and try to fix it quickly. If the error blocks your work — report it in our <a href="https://t.me/gramax_chat">Telegram chat</a>.</p>',
 			},
 			"something-went-wrong": "Something went wrong",
+		},
+		"continue-in-browser": {
+			title: "Opened in Gramax application",
+			description:
+				"The catalog is already open in the Gramax desktop application. Do you want to continue in the browser?",
+			action: "Continue in browser",
 		},
 	},
 	language: {
@@ -249,6 +323,14 @@ const locale = {
 		pl: "Polski",
 		sv: "Svenska",
 		cs: "Čeština",
+	},
+	"style-guide": {
+		"check-with-style-guide": "Check with style guide",
+		"set-up-connection-and-style-guide": "Set up connection and style guide",
+		"check-article": "Check current article",
+		"set-up-style-guide": "Set up style guide settings",
+		"set-up-connection": "Set up connection",
+		"style-guide-settings": "Style guide settings",
 	},
 	workspace: {
 		name: "Workspace",
@@ -278,6 +360,8 @@ const locale = {
 		"remove-localization": "Delete language",
 		error: {
 			"no-selected-language": "You need to select main language in «Configure catalog»",
+			"cannot-switch-to-self": "You cannot delete or switch to the same language",
+			"cannot-add-language": "You cannot add already added language",
 		},
 	},
 	article: {
@@ -306,23 +390,14 @@ const locale = {
 		},
 		custom: {
 			"404": {
-				body: `---
-title: {{what}}
----
-
-[alert:warning:Please check if the path is correct]
-
-{{pathname}}
-
-[/alert]`,
-				article: {
-					name: `Article not found`,
-					body: `\`{{pathname}}\``,
+				title: {
+					article: "Article not found",
+					catalog: "Catalog not found",
 				},
-				catalog: {
-					name: `Catalog not found`,
-					body: `\`{{pathname}}\``,
-				},
+				"alert-title": "Check that the path is correct",
+				pathname: "Please ensure that the path `{{pathname}}` actually exists",
+				"open-in-desktop":
+					"You can also [open this path in Gramax desktop app](gramax://{{pathname}}) to edit on your computer",
 			},
 			"403": `---
 title: 403
@@ -453,7 +528,7 @@ Add storage to confirm the link.`,
 		"all-catalogs": "Search all catalogs",
 	},
 	list: {
-		"no-items-found": "No matches found for <strong>&quot;{{value}}&quot;</strong>.",
+		"no-items-found": "No matches found for <strong style='color: inherit'>&quot;{{value}}&quot;</strong>.",
 		"search-articles": "Link or search for articles",
 	},
 	git: {
@@ -473,6 +548,7 @@ Add storage to confirm the link.`,
 				title: "Load catalog?",
 				body: "The link leads to a catalog that has not been loaded yet. To view and edit, load it from storage.",
 			},
+			"open-in-app": "You also can open that catalog in Gramax desktop app",
 			error: {
 				"cannot-clone": "Unable to load catalog",
 				"already-exist": "A catalog with this name already exists {{path}}",
@@ -613,6 +689,8 @@ Add storage to confirm the link.`,
 		error: {
 			"ext-not-supported": "Extension not supported:",
 			http: "HTTP Error:",
+			"couldnt-find-file": "Could not find file name:",
+			"couldnt-find-fileId": "Could not find attachment with fileId:",
 			"http-2": "HTTP Error while loading file:",
 			"cannot-import": {
 				title: "Failed to import element from Confluence",
@@ -721,11 +799,12 @@ Add storage to confirm the link.`,
 			"file-not-found-error": "File not found at path.",
 			"wrong-object-type": "Error, no such object type.",
 			"divide-by-zero-error": "Divide by zero error.",
+			"delete-failed-error": "Failed to delete the file",
 		},
 	},
 	enterprise: {
 		"user-not-found":
-			"User not found. Please provide a different email or continue using the app without authentication.",
+			"This email isn't set up for Gramax Enterprise Server. You can continue using the full features of the free version or contact your admin for further assistance.",
 		"workspace-exit-warning": "Exiting the workspace will delete all directories and local changes will be lost.",
 		"workspace-exit": "Exit Workspace",
 		"check-if-user-editor-warning": "Make sure you have been issued an editor license.",
@@ -764,7 +843,7 @@ Add storage to confirm the link.`,
 	description: "Description",
 	discard: "Discard changes",
 	edit2: "Edit",
-	edit3: "Actions",
+	actions: "Actions",
 	edit: "Edit",
 	editing: "Editing",
 	element: "Element",
@@ -777,6 +856,12 @@ Add storage to confirm the link.`,
 	field: "Field",
 	file: "File",
 	find: "Search",
+	find2: "Find",
+	replace: "Replace",
+	replaceAll: "Replace all",
+	caseSensitive: "Case sensitive",
+	wholeWord: "Whole word",
+	filter: "Filter",
 	fn: "Functional blocks",
 	formula: "Formulas",
 	group2: "groups",
@@ -791,9 +876,11 @@ Add storage to confirm the link.`,
 	invalid: "Invalid",
 	link2: "Link",
 	link: "Link",
+	clickToViewDetails: "Click to view details",
 	load: "Load",
 	loading2: "Loading...",
 	loading: "Loading...",
+	loadWait: "Waiting for download",
 	local: "Locally",
 	mail: "Email",
 	more: "More",
@@ -899,6 +986,7 @@ Add storage to confirm the link.`,
 	"clone-error-desc2": "Also, make sure you have the rights to edit it.",
 	"clone-fail": "Failed to load catalog",
 	"close-comment": "Close comment",
+	"exit-edit-mode": "Are you sure you want to exit edit mode?",
 	"close-with-changes": "Are you sure you want to close the image editing window? Unsaved changes will be lost.",
 	"comments-to-article": "Comment to article",
 	"commit-message": "Comment",
@@ -942,6 +1030,7 @@ Add storage to confirm the link.`,
 	"enter-snippet-text": "Enter snippet text",
 	"error-expand": "Show details",
 	"error-mail": "The email provided is incorrect.",
+	"error-sing-in": "Ошибка входа",
 	"error-occured": "An error occurred while displaying the documentation.",
 	"export-catalog-docx": "Export catalog to DOCX",
 	"file-content": "File content",
@@ -966,6 +1055,8 @@ Add storage to confirm the link.`,
 	"info-text": "Information",
 	"init-git-version-control": "Initialize Git",
 	"invalid-index": "Index does not meet the requirements!",
+	"invalid-credentials-title": "Failed to connect",
+	"invalid-credentials-text": "Please check the accuracy of the entered information.",
 	"lab-text": "Note",
 	"leads-to-the-branch": "You are following a link that leads to a different branch.",
 	"leave-comment": "Leave a comment",
@@ -988,6 +1079,11 @@ Add storage to confirm the link.`,
 	"numbero-of-unsolved-comments": "Number of unresolved comments",
 	"on-the-same-version": "Is on the same version as this branch",
 	"open-api": "OpenAPI",
+	OpenApi: "OpenAPI",
+	Html: "HTML",
+	"Img-v": "Vertical group of images",
+	"Img-h": "Horizontal group of images",
+	Formula: "Formula",
 	"other-version": "Other version",
 	"publish-changes": "Publish changes",
 	"quote-text": "Quote",
@@ -1039,8 +1135,9 @@ Add storage to confirm the link.`,
 		"Gramax does not support specific Confluence elements. For example: Jira tasks, charts, reports. You can manually transfer data from them.",
 	"unsupported-elements-confluence2": "List of pages with unsupported elements",
 	"unsupported-elements-title": "Unsupported elements",
-	"unsupported-elements-warning1": "DOCX does not support special Gramax elements:",
-	"unsupported-elements-warning2": "The file will be saved without them.",
+	"unsupported-elements-warning1":
+		"DOCX does not support some elements of Gramax. The file will be saved without them.",
+	"unsupported-elements-warning2": "List of articles with unsupported elements",
 	"update-branches": "Update branches list",
 	"users-group": "Which group to give permissions",
 	"view-usage": "View usage",
@@ -1050,6 +1147,10 @@ Add storage to confirm the link.`,
 	"your-branch": "Your branch",
 	"edit-html": "Edit HTML",
 	"do-not-show-again": "Do not show again",
+	properties: "Properties",
+	"add-new": "Add new",
+	manage: "Manage",
+	change: "Change",
 };
 
 export default locale;

@@ -10,7 +10,7 @@ import elements from "./elements";
 import healthcheck from "./healthcheck";
 import item from "./item";
 import page from "./pageData";
-import plugin from "./plugin";
+import search from "./search";
 import storage from "./storage";
 import setTheme from "./theme/setTheme";
 import versionControl from "./versionControl";
@@ -32,7 +32,7 @@ const commands = {
 	versionControl,
 	word,
 	debug,
-	plugin,
+	search,
 	workspace,
 };
 

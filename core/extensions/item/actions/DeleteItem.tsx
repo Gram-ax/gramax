@@ -5,11 +5,17 @@ import CatalogPropsService from "@core-ui/ContextServices/CatalogProps";
 import { refreshPage } from "@core-ui/ContextServices/RefreshPageContext";
 import { useRouter } from "@core/Api/useRouter";
 import ErrorConfirmService from "@ext/errorHandlers/client/ErrorConfirmService";
-import ActionWarning from "@ext/localization/actions/ActionWarning";
+import ActionWarning, { shouldShowActionWarning } from "@ext/localization/actions/ActionWarning";
 import t from "@ext/localization/locale/translate";
 import Path from "../../../logic/FileProvider/Path/Path";
 
-const DeleteItem = (props: { isCategory: boolean; itemPath: string; itemLink: string }) => {
+export type DeleteItemProps = {
+	isCategory: boolean;
+	itemPath: string;
+	itemLink: string;
+};
+
+const DeleteItem = (props: DeleteItemProps) => {
 	const { isCategory, itemPath, itemLink } = props;
 	const router = useRouter();
 	const apiUrlCreator = ApiUrlCreatorService.value;
@@ -17,7 +23,7 @@ const DeleteItem = (props: { isCategory: boolean; itemPath: string; itemLink: st
 	const deleteConfirmText = t(isCategory ? "confirm-category-delete" : "confirm-article-delete");
 
 	const onClickHandler = async () => {
-		if (!(await confirm(deleteConfirmText))) return;
+		if (!shouldShowActionWarning(catalogProps) && !(await confirm(deleteConfirmText))) return;
 		ErrorConfirmService.stop();
 		await FetchService.fetch(apiUrlCreator.removeItem(itemPath));
 		ErrorConfirmService.start();

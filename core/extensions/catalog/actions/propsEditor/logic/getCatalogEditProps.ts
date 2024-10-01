@@ -9,6 +9,7 @@ const getCatalogEditProps = (props: ClientCatalogProps): CatalogEditProps => {
 		title: props.title,
 		description: props.link?.description,
 		style: props.link?.style,
+		properties: props.properties,
 		language: props.language,
 		// private: props.private,
 	};

@@ -24,7 +24,7 @@ const locale: DefaultLocale = {
 				language: {
 					name: "Основной язык",
 					placeholder: "Русский",
-					description: "Основной язык каталога",
+					description: "Основной язык каталога. Нельзя изменить после выбора",
 				},
 				description: {
 					name: "Описание",
@@ -37,6 +37,44 @@ const locale: DefaultLocale = {
 				code: {
 					name: "Краткое название",
 					placeholder: "PN",
+				},
+				properties: {
+					name: "Свойства",
+				},
+			},
+		},
+		"catalog-create-props": {
+			name: "Настройки свойства",
+			props: {
+				name: {
+					name: "Название",
+					placeholder: "Введите название для свойства",
+				},
+				type: {
+					name: "Тип",
+					placeholder: "Counter",
+					description: "Нельзя изменить после сохранения",
+				},
+				style: {
+					name: "Стиль",
+					placeholder: "Синий",
+				},
+				values: {
+					name: "Значения",
+					placeholder: "Введите значение",
+				},
+			},
+		},
+		"article-create-props": {
+			name: "Настройки свойства",
+			props: {
+				id: {
+					name: "Свойство",
+					placeholder: "Выберите существующее свойство",
+				},
+				value: {
+					name: "Значение",
+					placeholder: "Выберите значение",
 				},
 			},
 		},
@@ -74,7 +112,7 @@ const locale: DefaultLocale = {
 				token: {
 					name: "Токен",
 					placeholder: "glpat-aq6PK8sz1eQeKhTy-Dm5",
-					description: "Токен для чтения и изменения репозиториев в хранилище.",
+					description: "Токен для чтения и изменения репозиториев в хранилище",
 				},
 				createDate: {
 					name: "Время создания",
@@ -115,7 +153,7 @@ const locale: DefaultLocale = {
 				url: {
 					name: "URL сервера GitLab",
 					placeholder: "https://gitlab.com",
-					description: "Войдите в GitLab и скопируйте URL с главной страницы.",
+					description: "Войдите в GitLab и скопируйте URL с главной страницы",
 				},
 				createDate: {
 					name: "Время создания",
@@ -136,6 +174,35 @@ const locale: DefaultLocale = {
 					name: "Почта",
 					description: "Будет отображаться в истории изменений",
 					placeholder: "ivan.ivanov@mail.ru",
+				},
+			},
+		},
+		"confluence-server-source-data": {
+			props: {
+				sourceType: {
+					name: "Тип",
+				},
+				domain: {
+					name: "URL сервера Confluence",
+					placeholder: "https://confluence.domain.com",
+					description: "Скопируйте URL вашего Confluence сервера",
+				},
+				password: {
+					name: "Пароль",
+					placeholder: "opxsdk_tvdg",
+					description: "Введите пароль аккаунта Confluence",
+				},
+				userName: {
+					name: "Имя пользователя",
+					placeholder: "Ivanov",
+					description: "Введите имя пользователя аккаунта Confluence",
+				},
+				token: {
+					name: "Токен",
+					placeholder: "NzIzNTYyNTQ3NjQxOva29fNcHrLYMGH77/YuEAKpqy+Q",
+					description: `Введите токен аккаунта Confluence. <a ${
+						getExecutingEnvironment() === "tauri" ? "" : "target='_blank'"
+					} href='https://confluence.atlassian.com/enterprise/using-personal-access-tokens-1026032365.html'>Подробнее</a>`,
 				},
 			},
 		},
@@ -208,10 +275,12 @@ const locale: DefaultLocale = {
 			},
 		},
 		"sign-in-enterprise": {
-			name: "Вход для бизнеса",
+			name: "Вход в бизнес-аккаунт",
 			props: {
 				email: {
-					name: "Почта",
+					name: "Войдите в ваш корпоративный аккаунт Gramax Enterprise Server",
+					description:
+						"Используйте корпоративный email, чтобы подключиться к пространству вашей организации.",
 					placeholder: "Введите свою почту",
 				},
 			},
@@ -231,6 +300,11 @@ const locale: DefaultLocale = {
 				body: `<p>Перезагрузите страницу и попробуйте еще раз.</p><p>Мы получим сообщение о проблеме и постараемся ее быстро исправить. Если ошибка блокирует работу — напишите об этом в нашем <a href="https://t.me/gramax_chat">Telegram-чате</a>.</p>`,
 			},
 			"something-went-wrong": "Что-то пошло не так",
+		},
+		"continue-in-browser": {
+			title: "Открыто в приложении Gramax",
+			description: "Каталог уже открыт в десктопном приложении Gramax. Хотите продолжить в браузере?",
+			action: "Продолжить в браузере",
 		},
 	},
 	language: {
@@ -252,6 +326,14 @@ const locale: DefaultLocale = {
 		pl: "Polski",
 		sv: "Svenska",
 		cs: "Čeština",
+	},
+	"style-guide": {
+		"check-with-style-guide": "Проверить по стайлгайду",
+		"set-up-connection-and-style-guide": "Настройте подключение и правила",
+		"check-article": "Проверить текущую статью",
+		"set-up-style-guide": "Правила по стайлгайду",
+		"set-up-connection": "Подключение к LLM",
+		"style-guide-settings": "Правила по стайлгайду",
 	},
 	workspace: {
 		name: "Пространство",
@@ -281,6 +363,8 @@ const locale: DefaultLocale = {
 		"add-localization": "Добавить язык",
 		error: {
 			"no-selected-language": "Необходимо выбрать основной язык в «Настройках каталога»",
+			"cannot-switch-to-self": "Нельзя удалить или переключиться на текущий язык",
+			"cannot-add-language": "Нельзя добавить уже добавленный язык",
 		},
 	},
 	article: {
@@ -309,22 +393,14 @@ const locale: DefaultLocale = {
 		},
 		custom: {
 			"404": {
-				body: `---
-title: {{what}}
----
-		
-[alert:warning:Проверьте, что ссылка указана верно]
-{{pathname}}
-
-[/alert]`,
-				article: {
-					name: "Статья не найдена",
-					body: `\`{{pathname}}\``,
+				title: {
+					article: "Статья не найдена",
+					catalog: "Каталог не найден",
 				},
-				catalog: {
-					name: "Каталог не найден",
-					body: `\`{{pathname}}\``,
-				},
+				"alert-title": "Проверьте, что ссылка указана верно",
+				pathname: "Проверьте, что путь `{{pathname}}` действительно существует",
+				"open-in-desktop":
+					"Вы также можете [открыть этот путь в десктопном приложении Gramax](gramax://{{pathname}}) для редактирования на вашем компьютере",
 			},
 			"403": `---
 title: 403
@@ -456,7 +532,8 @@ title: Каталог уже связан с репозиторием
 		"all-catalogs": "Искать по всем каталогам",
 	},
 	list: {
-		"no-items-found": "По запросу <strong>&quot;{{value}}&quot;</strong> совпадений не найдено.",
+		"no-items-found":
+			"По запросу <strong style='color: inherit'>&quot;{{value}}&quot;</strong> совпадений не найдено.",
 		"search-articles": "Ссылка или поиск по статьям",
 	},
 	git: {
@@ -475,6 +552,7 @@ title: Каталог уже связан с репозиторием
 				title: "Загрузить каталог?",
 				body: "Ссылка ведет на каталог, который еще не загружен. Для просмотра и изменения нужно загрузить его из хранилища.",
 			},
+			"open-in-app": "Вы также можете открыть этот каталог в десктопном приложении Gramax",
 			error: {
 				"cannot-clone": "Не удалось загрузить каталог",
 				"already-exist": "Каталог с таким названием уже существует {{path}}",
@@ -612,6 +690,8 @@ title: Каталог уже связан с репозиторием
 		error: {
 			"ext-not-supported": "Расширение не поддерживается:",
 			http: "Ошибка HTTP:",
+			"couldnt-find-file": "Не удалось найти имя файла:",
+			"couldnt-find-fileId": "Не удалось найти вложение с fileId:",
 			"http-2": "Ошибка HTTP при загрузке файла:",
 			"cannot-import": {
 				title: "Не удалось импортировать элемент из Confluence",
@@ -722,11 +802,12 @@ title: Каталог уже связан с репозиторием
 			"file-not-found-error": "Файл не найден по указанному пути.",
 			"wrong-object-type": "Ошибка, такого типа объекта нет.",
 			"divide-by-zero-error": "Ошибка деления на ноль.",
+			"delete-failed-error": "Не удалось удалить файл",
 		},
 	},
 	enterprise: {
 		"user-not-found":
-			"Пользователь не найден. Укажите другую почту или продолжите использовать приложение без авторизации.",
+			"Эта почта не подключена к Gramax Enterprise Server. Вы можете продолжить работу в бесплатной версии приложения или обратиться к вашему администратору за помощью.",
 		"workspace-exit-warning":
 			"При выходе из рабочего пространства будут удалены все каталоги и будут потеряны локальные изменения.",
 		"workspace-exit": "Выход из рабочего пространства",
@@ -758,6 +839,7 @@ title: Каталог уже связан с репозиторием
 	configure: "Настроить",
 	confirm: "Подтвердить",
 	continue: "Продолжить",
+	filter: "Фильтр",
 	copied: "Скопировано",
 	copy: "Скопировать",
 	creating: "Создание",
@@ -766,7 +848,7 @@ title: Каталог уже связан с репозиторием
 	description: "Описание",
 	discard: "Отменить изменения",
 	edit2: "Редактировать",
-	edit3: "Изменить",
+	actions: "Действия",
 	edit: "Отредактировать",
 	editing: "Редактирование",
 	element: "Элемент",
@@ -779,6 +861,11 @@ title: Каталог уже связан с репозиторием
 	field: "Поле",
 	file: "Файл",
 	find: "Поиск",
+	find2: "Найти",
+	replace: "Заменить",
+	replaceAll: "Заменить все",
+	caseSensitive: "С учетом регистра",
+	wholeWord: "Слово целиком",
 	fn: "Функциональные блоки",
 	formula: "Формулы",
 	group2: "группы",
@@ -793,9 +880,11 @@ title: Каталог уже связан с репозиторием
 	invalid: "Некорректное",
 	link2: "Ссылку",
 	link: "Ссылка",
+	clickToViewDetails: "Кликните, чтобы посмотреть детали",
 	load: "Загрузить",
 	loading2: "Загружаем...",
 	loading: "Загрузка...",
+	loadWait: "Ожидает загрузки",
 	local: "Локально",
 	mail: "Почта",
 	more: "Подробнее",
@@ -903,6 +992,7 @@ title: Каталог уже связан с репозиторием
 	"close-comment": "Закрыть комментарий",
 	"close-with-changes":
 		"Вы уверены, что хотите закрыть окно редактирования изображения? Несохраненные изменения будут потеряны.",
+	"exit-edit-mode": "Вы уверены, что хотите выйти из режима редактирования?",
 	"comments-to-article": "Замечание к статье",
 	"commit-message": "Комментарий",
 	"confirm-answer-delete": "Удалить комментарий?",
@@ -947,6 +1037,7 @@ title: Каталог уже связан с репозиторием
 	"enter-snippet-text": "Введите текст сниппета",
 	"error-expand": "Показать детали",
 	"error-mail": "Указана некорректная почта",
+	"error-sing-in": "Ошибка входа",
 	"error-occured": "К сожалению, при отображении документации возникла ошибка.",
 	"export-catalog-docx": "Экспортировать каталог в DOCX",
 	"file-content": "Контент файла",
@@ -971,6 +1062,8 @@ title: Каталог уже связан с репозиторием
 	"info-text": "Информация",
 	"init-git-version-control": "Инициализировать Git",
 	"invalid-index": "Индекс не соответствует требованиям!",
+	"invalid-credentials-title": "Не удалось подключиться",
+	"invalid-credentials-text": "Пожалуйста, проверьте правильность введённых данных.",
 	"lab-text": "Примечание",
 	"leads-to-the-branch": "Вы переходите по ссылке, которая ведет на другую ветку.",
 	"leave-comment": "Оставить комментарий",
@@ -993,6 +1086,11 @@ title: Каталог уже связан с репозиторием
 	"numbero-of-unsolved-comments": "Кол-во нерешенных комментариев",
 	"on-the-same-version": "Находится на одной версии с этой веткой",
 	"open-api": "OpenAPI",
+	OpenApi: "OpenAPI",
+	Html: "HTML",
+	"Img-v": "Вертикальная группа картинок",
+	"Img-h": "Горизонтальная группа картинок",
+	Formula: "Формула",
 	"other-version": "Другая версия",
 	"publish-changes": "Опубликовать изменения",
 	"quote-text": "Цитата",
@@ -1044,8 +1142,8 @@ title: Каталог уже связан с репозиторием
 		"Gramax не поддерживает специфичные элементы из Confluence. Например: задачи из Jira, графики, отчеты. Данные из них вы можете перенести вручную.",
 	"unsupported-elements-confluence2": "Список страниц с неподдерживаемыми элементами",
 	"unsupported-elements-title": "Неподдерживаемые элементы",
-	"unsupported-elements-warning1": "DOCX не поддерживает специальные элементы Gramax:",
-	"unsupported-elements-warning2": "Файл сохранится без них.",
+	"unsupported-elements-warning1": "DOCX не поддерживает некоторые элементы Gramax. Файл будет сохранен без них.",
+	"unsupported-elements-warning2": "Список статей с неподдерживаемыми элементами",
 	"update-branches": "Обновить список веток",
 	"users-group": "От какой группы дать права",
 	"view-usage": "Посмотреть использования",
@@ -1055,6 +1153,10 @@ title: Каталог уже связан с репозиторием
 	"your-branch": "Ваша ветка",
 	"edit-html": "Редактировать HTML",
 	"do-not-show-again": "Больше не показывать",
+	properties: "Свойства",
+	"add-new": "Добавить новое",
+	manage: "Управлять",
+	change: "Изменить",
 };
 
 export default locale;

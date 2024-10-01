@@ -17,6 +17,17 @@ export const openChildWindow = async ({ url, redirect }: { url: string; redirect
 
 export const openDirectory = () => invoke<string>("open_directory");
 
-export const requestDeleteOldConfig = () => invoke<void>("request_delete_config");
+type HttpResponseBody = { type: "text"; data: string } | { type: "binary"; data: Array<number> };
+export const httpFetch = (req: {
+	url: string;
+	body?: string;
+	method?: string;
+	auth?: { token?: string } | { login?: string; password?: string };
+}): Promise<{
+	body?: HttpResponseBody;
+	status: number;
+}> => {
+	return invoke("http_request", { req });
+};
 
 export const moveToTrash = (path: string) => invoke<void>("move_to_trash", { path });

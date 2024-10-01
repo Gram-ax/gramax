@@ -5,7 +5,7 @@ import CatalogPropsService from "@core-ui/ContextServices/CatalogProps";
 import IsOfflineService from "@core-ui/ContextServices/IsOfflineService";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import SyncIconService from "@core-ui/ContextServices/SyncIconService";
-import useIsStorageInitialized from "@ext/storage/logic/utils/useIsStorageIniziliate";
+import useIsStorageInitialized from "@ext/storage/logic/utils/useIsStorageInitialized";
 import { useEffect, useRef } from "react";
 
 const useFetchCatalog = () => {

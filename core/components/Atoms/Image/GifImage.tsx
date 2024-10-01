@@ -45,7 +45,7 @@ export const GifImage = styled(
 			<div className={className}>
 				<div className={"ff-container ff-" + (isPlaying ? "active" : "inactive")}>
 					<div className="ff-button" ref={button} />
-					<canvas className="ff-canvas" ref={canvas} />
+					<canvas className="ff-canvas" ref={canvas} data-focusable="true" />
 					<img
 						onError={onError}
 						src={src}

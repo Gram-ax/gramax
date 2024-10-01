@@ -1,4 +1,4 @@
-import NodeConverter from "@ext/confluence/actions/Import/logic/NodeConverter";
+import NodeConverter from "@ext/confluence/core/cloud/model/NodeConverter";
 import excerpt from "@ext/markdown/elements/extension/confluence/extensions/excerpt";
 import include from "@ext/markdown/elements/extension/confluence/extensions/include";
 import jira from "@ext/markdown/elements/extension/confluence/extensions/jira";

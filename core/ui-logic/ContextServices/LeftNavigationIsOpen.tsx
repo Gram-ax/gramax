@@ -11,17 +11,21 @@ abstract class LeftNavigationIsOpenService {
 	static Provider({ children }: { children: ReactElement }): ReactElement {
 		const isMedium = useMediaQuery(cssMedia.JSmedium);
 
-		const [value, setValue] = useState(true);
-		const [transitionEndValue, setTransitionEndValue] = useState(true);
+		const [value, setValue] = useState(false);
+		const [transitionEndValue, setTransitionEndValue] = useState(false);
 
 		useEffect(() => {
-			if (SidebarsIsPinService.localStorageValue) setValue(!isMedium);
-		}, [isMedium]);
-
-		useEffect(() => {
+			if (isMedium) return;
 			setValue(SidebarsIsPinService.localStorageValue);
 			setTransitionEndValue(SidebarsIsPinService.localStorageValue);
 		}, []);
+
+		useEffect(() => {
+			if (SidebarsIsPinService.localStorageValue) {
+				setValue(!isMedium);
+				setTransitionEndValue(!isMedium);
+			}
+		}, [isMedium]);
 
 		_setValue = setValue;
 		_setTransitionEndValue = setTransitionEndValue;

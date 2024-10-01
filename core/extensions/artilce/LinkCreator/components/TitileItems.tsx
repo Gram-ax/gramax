@@ -137,7 +137,7 @@ export default styled(TitleItemsShouldRender)`
 		height: 30px;
 
 		span {
-			text-wrap: nowrap;
+			white-space: nowrap;
 			overflow: hidden;
 			text-overflow: ellipsis;
 		}

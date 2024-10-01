@@ -1,7 +1,7 @@
 import { Tag } from "@ext/markdown/core/render/logic/Markdoc";
 import { createParagraphAfterTable } from "@ext/wordExport/createParagraph";
 import {
-	STANDART_PAGE_WIDTH,
+	STANDARD_PAGE_WIDTH,
 	WordBlockType,
 	wordBordersType,
 	wordMarginsType,
@@ -20,7 +20,7 @@ export const createBlock = async (
 	blockType: WordBlockType,
 	style: string,
 ) => {
-	const maxWidth = (addOptions?.maxTableWidth ?? STANDART_PAGE_WIDTH) - INNER_BLOCK_WIDTH_DIFFERENCE;
+	const maxWidth = (addOptions?.maxTableWidth ?? STANDARD_PAGE_WIDTH) - INNER_BLOCK_WIDTH_DIFFERENCE;
 
 	const fileChildren = [
 		await createBlockTitle(tag, blockType),
@@ -49,7 +49,7 @@ export const createBlockChild = async (
 	addOptions: AddOptionsWord,
 ) => {
 	const width = {
-		size: addOptions?.maxTableWidth ?? STANDART_PAGE_WIDTH,
+		size: addOptions?.maxTableWidth ?? STANDARD_PAGE_WIDTH,
 		type: WidthType.DXA,
 	};
 	const cell = new TableCell({ children: fileChildren, borders: wordBordersType[blockType], width });

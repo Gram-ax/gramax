@@ -16,7 +16,7 @@ export interface ServicesConfig {
 	auth: { url: string };
 	review: { url: string };
 	diagramRenderer: { url: string };
-	sso: { url: string; publicKey: string };
+	sso: { url: string; key: string };
 }
 
 export type AppConfig = {
@@ -44,7 +44,7 @@ const getServices = (): ServicesConfig => {
 	return {
 		sso: {
 			url: env("SSO_SERVICE_URL") ?? null,
-			publicKey: env("SSO_SERVICE_PUBLIC_KEY") ?? null,
+			key: env("SSO_SERVICE_ENCRYPTION_KEY") ?? null,
 		},
 		cors: {
 			url: env("CORS_PROXY_SERVICE_URL") ?? "https://gram.ax/cors-proxy",

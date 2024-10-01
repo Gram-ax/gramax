@@ -12,7 +12,6 @@ import Path from "../../../../logic/FileProvider/Path/Path";
 import FileProvider from "../../../../logic/FileProvider/model/FileProvider";
 import { VersionControlInfo } from "../../../VersionControl/model/VersionControlInfo";
 import SourceData from "../../../storage/logic/SourceDataProvider/model/SourceData";
-import Progress from "../../../storage/models/Progress";
 import { GitBranch } from "../GitBranch/GitBranch";
 import { GitStatus } from "../GitWatcher/model/GitStatus";
 import GitSourceData from "../model/GitSourceData.schema";
@@ -21,7 +20,7 @@ import GitStorageData from "../model/GitStorageData";
 import { GitVersion } from "../model/GitVersion";
 import SubmoduleData from "../model/SubmoduleData";
 import GitError from "./errors/GitError";
-import GitCommandsModel from "./model/GitCommandsModel";
+import GitCommandsModel, { type CloneProgress } from "./model/GitCommandsModel";
 
 export class GitCommands {
 	private _impl: GitCommandsModel;
@@ -198,7 +197,8 @@ export class GitCommands {
 		url: string,
 		source: GitSourceData,
 		branch?: string,
-		onProgress?: (progress: Progress) => void,
+		depth?: number,
+		onProgress?: (progress: CloneProgress) => void,
 	): Promise<void> {
 		url = url.endsWith(".git") ? url : url + ".git";
 		return this._logWrapper("clone", `Cloning url: '${url}', path: '${this._repoPath}'`, async () => {
@@ -211,7 +211,7 @@ export class GitCommands {
 				);
 			}
 			try {
-				await this._impl.clone(url, source, branch, onProgress);
+				await this._impl.clone(url, source, branch, depth, onProgress);
 			} catch (e) {
 				await this._logWrapper("delete", `Deleting path: '${this._repoPath}'`, async () => {
 					if (await this._fp.exists(this._repoPath)) await this._fp.delete(this._repoPath);
@@ -249,7 +249,10 @@ export class GitCommands {
 	}
 
 	async stash(data: SourceData): Promise<GitStash> {
-		return await this._logWrapper("stash", "Stashing", async () => new GitStash(await this._impl.stash(data)));
+		return await this._logWrapper("stash", "Stashing", async () => {
+			const res = await this._impl.stash(data);
+			return res && new GitStash(res);
+		});
 	}
 
 	async applyStash(stashOid: GitStash): Promise<MergeResult> {
@@ -399,11 +402,13 @@ export class GitCommands {
 		try {
 			// temp? Нужно вытаскивать из конфига
 			const submodules = parse(await this._fp.read(gitModulesPath));
-			return Object.values(submodules).map((submodule) => ({
-				path: new Path(submodule.path),
-				url: submodule.url,
-				branch: submodule.branch,
-			}));
+			return Object.values(submodules)
+				.map((submodule) => ({
+					path: new Path(submodule.path),
+					url: submodule.url,
+					branch: submodule.branch,
+				}))
+				.filter((submoduleData) => submoduleData.path?.value && submoduleData.url);
 		} catch {
 			return [];
 		}
@@ -412,6 +417,7 @@ export class GitCommands {
 	async isSubmoduleExist(relativeSubmodulePath: Path): Promise<boolean> {
 		const fullSubmodulePath = this._repoPath.join(relativeSubmodulePath);
 		return (
+			relativeSubmodulePath?.value &&
 			(await this._fp.exists(fullSubmodulePath)) &&
 			(await this._fp.isFolder(fullSubmodulePath)) &&
 			(await this._fp.exists(fullSubmodulePath.join(new Path(".git"))))

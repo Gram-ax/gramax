@@ -1,6 +1,7 @@
 import SideBarData from "../model/SideBarData";
 
 const getAllFilePaths = (sideBarData: SideBarData[], includeRenames = true): string[] => {
+	if (!sideBarData) return [];
 	const filePaths: string[] = [];
 	sideBarData
 		.filter((x) => x)

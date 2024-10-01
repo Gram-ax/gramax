@@ -6,10 +6,10 @@ import ModalLayoutLight from "@components/Layouts/ModalLayoutLight";
 import FetchService from "@core-ui/ApiServices/FetchService";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import LanguageService from "@core-ui/ContextServices/Language";
-import { useRouter } from "@core/Api/useRouter";
-import UnsupportedElements from "@ext/confluence/actions/Import/model/UnsupportedElements";
-import UnsupportedElementsModal from "@ext/confluence/components/UnsupportedElementsModal";
-import CloneProgressbar from "@ext/git/actions/Clone/components/CloneProgressbar";
+import UnsupportedElementsModal from "@ext/confluence/core/components/UnsupportedElementsModal";
+import UnsupportedElements from "@ext/confluence/core/model/UnsupportedElements";
+import cloneHandler from "@ext/git/actions/Clone/logic/cloneHandler";
+import Mode from "@ext/git/actions/Clone/model/Mode";
 import t from "@ext/localization/locale/translate";
 import { useMemo, useState } from "react";
 import SelectStorageDataForm from "../../../../storage/components/SelectStorageDataForm";
@@ -19,7 +19,16 @@ enum CloneStage {
 	AskForStorage,
 	LoadUnsupportedElements,
 	AskToImport,
-	Cloning,
+}
+
+interface SelectStorageFormProps {
+	onSetStorage: (data: StorageData) => void;
+	startClone: () => void;
+	disabled: boolean;
+	mode: Mode;
+	title: string;
+	buttonText: string;
+	loadUnsupportedElements: () => void;
 }
 
 const LoadingLayout = ({ title, children }: { title?: string; children: React.ReactNode }) => (
@@ -31,29 +40,24 @@ const LoadingLayout = ({ title, children }: { title?: string; children: React.Re
 	</FormStyle>
 );
 
-const SelectStorageForm = (props: {
-	onSetStorage: (data: StorageData) => void;
-	startClone: () => void;
-	disabled: boolean;
-	forClone?: boolean;
-	title: string;
-	buttonText: string;
-	loadUnsupportedElements: () => void;
-}) => (
-	<SelectStorageDataForm forClone={props.forClone} onChange={props.onSetStorage} title={props.title}>
-		<div className="buttons">
-			<Button
-				disabled={props.disabled}
-				onClick={props.forClone ? props.startClone : props.loadUnsupportedElements}
-			>
-				{props.buttonText}
-			</Button>
-		</div>
-	</SelectStorageDataForm>
-);
+const SelectStorageForm = (props: SelectStorageFormProps) => {
+	const actions = {
+		[Mode.clone]: props.startClone,
+		[Mode.import]: props.loadUnsupportedElements,
+	};
 
-const Clone = ({ trigger, forClone }: { trigger: JSX.Element; forClone?: boolean }) => {
-	const router = useRouter();
+	return (
+		<SelectStorageDataForm mode={props.mode} onChange={props.onSetStorage} title={props.title}>
+			<div className="buttons">
+				<Button disabled={props.disabled} onClick={actions[props.mode]}>
+					{props.buttonText}
+				</Button>
+			</div>
+		</SelectStorageDataForm>
+	);
+};
+
+const Clone = ({ trigger, mode }: { trigger: JSX.Element; mode: Mode }) => {
 	const [stage, setStage] = useState(CloneStage.AskForStorage);
 	const [isOpen, setIsOpen] = useState(false);
 	const [storageData, setStorageData] = useState<StorageData>(null);
@@ -68,10 +72,24 @@ const Clone = ({ trigger, forClone }: { trigger: JSX.Element; forClone?: boolean
 		setStorageData(null);
 	};
 
-	const startClone = () => setStage(CloneStage.Cloning);
+	const startClone = () => {
+		void cloneHandler({
+			storageData,
+			apiUrlCreator,
+			skipCheck: true,
+			onError: () => {
+				refreshPage();
+				closeForm();
+			},
+			onStart: () => {
+				refreshPage();
+				closeForm();
+			},
+		});
+	};
 
-	const storageConfig = useMemo(
-		() => ({
+	const { title, buttonText } = useMemo(() => {
+		const modeConfigs = {
 			import: {
 				title: `${t("catalog.import")} ${t("catalog.name")}`,
 				buttonText: t("catalog.import"),
@@ -80,11 +98,10 @@ const Clone = ({ trigger, forClone }: { trigger: JSX.Element; forClone?: boolean
 				title: `${t("catalog.clone")} ${t("existing")} ${t("catalog.name")}`,
 				buttonText: t("catalog.clone"),
 			},
-		}),
-		[LanguageService.currentUi()],
-	);
+		};
 
-	const mode = forClone ? storageConfig.clone : storageConfig.import;
+		return modeConfigs[mode];
+	}, [LanguageService.currentUi()]);
 
 	const loadUnsupportedElements = async () => {
 		setStage(CloneStage.LoadUnsupportedElements);
@@ -115,9 +132,9 @@ const Clone = ({ trigger, forClone }: { trigger: JSX.Element; forClone?: boolean
 						<SelectStorageForm
 							onSetStorage={setStorageData}
 							disabled={disable}
-							forClone={forClone}
-							title={mode.title}
-							buttonText={mode.buttonText}
+							mode={mode}
+							title={title}
+							buttonText={buttonText}
 							startClone={startClone}
 							loadUnsupportedElements={loadUnsupportedElements}
 						/>
@@ -135,20 +152,6 @@ const Clone = ({ trigger, forClone }: { trigger: JSX.Element; forClone?: boolean
 							onCancelClick={() => setStage(CloneStage.AskForStorage)}
 							unsupportedNodes={unsupportedElements}
 						/>
-					)}
-
-					{stage === CloneStage.Cloning && (
-						<LoadingLayout>
-							<CloneProgressbar
-								triggerClone={true}
-								storageData={storageData}
-								skipCheck={true}
-								onFinish={(path) => {
-									router.pushPath(path);
-								}}
-								onError={closeForm}
-							/>
-						</LoadingLayout>
 					)}
 				</ModalLayoutLight>
 			</ModalLayout>

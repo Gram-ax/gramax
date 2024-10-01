@@ -1,11 +1,11 @@
 import { ITableRowPropertiesOptions, Table, TableCell, TableRow, WidthType } from "docx";
 import { FileChild } from "docx/build/file/file-child";
 import { WordSerializerState } from "@ext/wordExport/WordExportState";
-import { TableAddOptionsWord, WordTableChilds } from "./WordTableExportTypes";
+import { TableAddOptionsWord, WordTableChildren } from "./WordTableExportTypes";
 import { tableLayout } from "./getTableChilds";
 import { Tag } from "@ext/markdown/core/render/logic/Markdoc";
 import {
-	STANDART_PAGE_WIDTH,
+	STANDARD_PAGE_WIDTH,
 	WordBlockType,
 	wordBordersType,
 	WordFontStyles,
@@ -14,12 +14,13 @@ import {
 import { AddOptionsWord } from "@ext/wordExport/options/WordTypes";
 
 export class WordTableExport {
-	private readonly _defaultWidth = 2000;
-	private readonly _defaultWidthCoefficient = 15;
-	private readonly _innerBlockWidthDifference = 470;
+	public static readonly defaultWidth = 2000;
+	public static readonly defaultWidthCoefficient = 15;
+	public static readonly innerBlockWidthDifference = 470;
+
 	private _addOptions: AddOptionsWord;
 	private _sumColumnsWidth = 0;
-	private _tableConfig: WordTableChilds = tableLayout;
+	private _tableConfig: WordTableChildren = tableLayout;
 
 	constructor(private _wordSerializerState: WordSerializerState) {}
 
@@ -29,7 +30,7 @@ export class WordTableExport {
 			removeWhiteSpace: true,
 			style: isTableHeader ? WordFontStyles.tableTitle : WordFontStyles.normal,
 			bold: isTableHeader,
-			maxPictureWidth: maxWidth / this._defaultWidthCoefficient,
+			maxPictureWidth: maxWidth / WordTableExport.defaultWidthCoefficient,
 			maxTableWidth: maxWidth,
 		});
 	}
@@ -37,8 +38,8 @@ export class WordTableExport {
 	async renderCell(parent: Tag, isTableHeader = false): Promise<TableCell> {
 		const size = this._getCellWidth(
 			parent.attributes.colwidth
-				? parent.attributes.colwidth[0] * this._defaultWidthCoefficient
-				: this._defaultWidth,
+				? parent.attributes.colwidth[0] * WordTableExport.defaultWidthCoefficient
+				: WordTableExport.defaultWidth,
 			this._getCellContractionCoefficient(this._sumColumnsWidth),
 		);
 
@@ -50,7 +51,7 @@ export class WordTableExport {
 						return await this.renderCellContent(
 							child,
 							isTableHeader,
-							size - this._innerBlockWidthDifference,
+							size - WordTableExport.innerBlockWidthDifference,
 						);
 					}),
 				)
@@ -132,8 +133,8 @@ export class WordTableExport {
 				for (const cell of child.children) {
 					if (cell && typeof cell !== "string") {
 						result += cell.attributes.colwidth
-							? cell.attributes.colwidth[0] * this._defaultWidthCoefficient
-							: this._defaultWidth;
+							? cell.attributes.colwidth[0] * WordTableExport.defaultWidthCoefficient
+							: WordTableExport.defaultWidth;
 					}
 				}
 				break;
@@ -144,8 +145,8 @@ export class WordTableExport {
 	}
 
 	private _getCellContractionCoefficient(sum: number) {
-		return sum > (this._addOptions?.maxTableWidth ?? STANDART_PAGE_WIDTH)
-			? (this._addOptions?.maxTableWidth ?? STANDART_PAGE_WIDTH) / sum
+		return sum > (this._addOptions?.maxTableWidth ?? STANDARD_PAGE_WIDTH)
+			? (this._addOptions?.maxTableWidth ?? STANDARD_PAGE_WIDTH) / sum
 			: 1;
 	}
 
@@ -164,8 +165,8 @@ export class WordTableExport {
 				for (const cell of child.children) {
 					const width =
 						cell && typeof cell !== "string" && cell.attributes.colwidth
-							? cell.attributes.colwidth[0] * this._defaultWidthCoefficient
-							: this._defaultWidth;
+							? cell.attributes.colwidth[0] * WordTableExport.defaultWidthCoefficient
+							: WordTableExport.defaultWidth;
 
 					result.push(this._getCellWidth(width, coefficient));
 				}

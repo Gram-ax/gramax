@@ -14,7 +14,7 @@ const SmallCard = ({ link, className }: { link: CatalogLink; className?: string 
 
 	return (
 		<Link className={className} href={Url.from(link)}>
-			<div className={`catalog-background background-${link.style}`}>
+			<div className={`catalog-background background`}>
 				<div className="catalog">
 					<div className="catalog-title-logo" style={logo && { backgroundImage: `url(${logo})` }} />
 					<div title={link.description} className="catalog-texts">
@@ -30,6 +30,10 @@ const SmallCard = ({ link, className }: { link: CatalogLink; className?: string 
 export default styled(SmallCard)`
 	width: 100%;
 	position: relative;
+
+	.background {
+		background-color: ${(p) => (p.link.style ? `var(--color-style-background-${p.link.style})` : null)};
+	}
 
 	.catalog {
 		height: 8rem;

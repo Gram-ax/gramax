@@ -61,12 +61,7 @@ const Alert = styled((props: AlertProps) => {
 	}
 
 	&.admonition-column .admonition-content {
-		padding-left: 1.5em;
-	}
-
-	.admonition-content {
-		width: 100%;
-		overflow-x: auto;
+		padding-left: var(--heading-row-width-admonition);
 	}
 
 	.admonition-note,

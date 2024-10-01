@@ -71,12 +71,11 @@ const CopyArticles = Extension.create({
 						},
 						cut: (view: EditorView, event: ClipboardEvent) => {
 							event.preventDefault();
-
-							copyArticleResource(view, event, true);
+							copyArticleResource(view, event, view.editable);
 						},
 					},
 					transformPastedHTML(html) {
-						return html.replaceAll("[object Object]", "");
+						return html?.replaceAll("[object Object]", "");
 					},
 				},
 				appendTransaction: (transactions: Transaction[]) => {

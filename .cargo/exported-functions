@@ -41,3 +41,5 @@ _getstat
 _rmfile
 _write_file
 _graph_head_upstream_files
+_store
+_get_store

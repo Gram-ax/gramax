@@ -5,11 +5,12 @@ import { ItemType } from "@core/FileStructue/Item/ItemType";
 import ResourceUpdater from "@core/Resource/ResourceUpdater";
 import type { FSLocalizationProps } from "@ext/localization/core/events/FSLocalizationEvents";
 import t from "@ext/localization/locale/translate";
-import type { FileStatus } from "@ext/Watchers/model/FileStatus";
+import { FileStatus } from "@ext/Watchers/model/FileStatus";
 import IPermission from "../../../extensions/security/logic/Permission/IPermission";
 import Permission from "../../../extensions/security/logic/Permission/Permission";
 import { ClientArticleProps } from "../../SitePresenter/SitePresenter";
 import { Category, type CategoryProps } from "../Category/Category";
+import { PropertyValue } from "@ext/properties/models";
 
 export type ItemEvents = Event<"item-order-updated", { item: Item }> &
 	Event<"item-saved", { item: Item }> &
@@ -20,6 +21,7 @@ export type ItemProps = FSLocalizationProps & {
 	description?: string;
 	tags?: string[];
 	order?: number;
+	properties?: PropertyValue[];
 
 	logicPath?: string;
 
@@ -124,15 +126,20 @@ export abstract class Item<P extends ItemProps = ItemProps> {
 		rootCategoryProps?: CategoryProps,
 		fileNameOnly = false,
 	): Promise<Item<P>> {
-		!fileNameOnly && (await this._updateProps(props));
-		props.fileName && (await this._updateFilename(props.fileName, resourceUpdater, rootCategoryProps));
+		!fileNameOnly && this._updateProps(props);
+
+		const previousFilename = this.getFileName();
+		const shouldUpdateFilename = props.fileName && previousFilename != props.fileName;
+		if (props.fileName) await this._updateFilename(props.fileName, resourceUpdater, rootCategoryProps);
+		if (shouldUpdateFilename) await this.events.emit("item-changed", { item: this, status: FileStatus.delete });
+		await this._save(shouldUpdateFilename);
 		return this;
 	}
 
 	protected abstract _updateFilename(filename: string, ru: ResourceUpdater, rootProps?: CategoryProps): Promise<this>;
-	protected abstract _updateProps(props: ClientArticleProps): Promise<void>;
+	protected abstract _updateProps(props: ClientArticleProps): void;
 
 	abstract getFileName(): string;
 
-	protected abstract _save(): Promise<void>;
+	protected abstract _save(renamed?: boolean): Promise<void>;
 }

@@ -1,11 +1,13 @@
 import type GitlabSourceData from "@ext/git/actions/Source/GitLab/logic/GitlabSourceData";
 import GitSourceApi from "@ext/git/actions/Source/GitSourceApi";
+import { GitRepData, GitRepsPageData } from "@ext/git/actions/Source/model/GitRepsApiData";
 import { SourceUser } from "@ext/git/actions/Source/SourceAPI";
 import type GitSourceData from "@ext/git/core/model/GitSourceData.schema";
 import Branch from "../../../../../VersionControl/model/branch/Branch";
 import GitStorageData from "../../../../core/model/GitStorageData";
 
 export default class GitlabSourceAPI extends GitSourceApi {
+	private readonly _allProjectsUrl = "projects?order_by=last_activity_at&simple=true&membership=true";
 	constructor(data: GitlabSourceData, private _authServiceUrl: string) {
 		super(data);
 	}
@@ -40,17 +42,39 @@ export default class GitlabSourceAPI extends GitSourceApi {
 
 	async getProjectsByGroup(group: string, field = "name"): Promise<string[]> {
 		const user = await this.getUser();
-		const url = `${user.username == group ? "users" : "groups"}/${group}/projects`;
+		const url = `${user.username == group ? "users" : "groups"}/${encodeURIComponent(group)}/projects`;
 		return await Promise.all(
 			(await this._paginationApi(url)).map(async (res) => (await res.json()).map((g) => g[field])),
 		).then((x) => x.flat());
 	}
 
-	async getAllProjects() {
-		const projects: string[][] = await Promise.all(
-			(await this.getAllGroups()).map(async (g) => await this.getProjectsByGroup(g, "path_with_namespace")),
+	async getPageProjects(
+		fromPage: number,
+		toPage: number,
+		perPage = this._defaultPerPage,
+	): Promise<GitRepsPageData[]> {
+		const responses = await this._paginationFromTo(this._allProjectsUrl, fromPage, toPage, perPage);
+
+		return Promise.all(
+			responses.map(async (res): Promise<GitRepsPageData> => {
+				return {
+					repDatas: (await res.json()).map(
+						(p): GitRepData => ({ path: p.path_with_namespace, lastActivity: p.last_activity_at }),
+					),
+					page: parseInt(res.headers.get("x-page")),
+					totalPages: parseInt(res.headers.get("x-total-pages")),
+					totalPathsCount: parseInt(res.headers.get("x-total")),
+				};
+			}),
 		);
-		return Array.from(new Set(projects.flat()));
+	}
+
+	async getAllProjects(): Promise<GitRepData[]> {
+		const responses = await this._paginationApi(this._allProjectsUrl);
+		return (await Promise.all(responses.map(async (res) => await res.json()))).flat().map((project) => ({
+			path: project.path_with_namespace,
+			lastActivity: project.last_activity_at,
+		}));
 	}
 
 	async getAllGroups(): Promise<string[]> {
@@ -61,7 +85,7 @@ export default class GitlabSourceAPI extends GitSourceApi {
 			...(await Promise.all(
 				(
 					await this._paginationApi("groups")
-				).map(async (res): Promise<string[]> => (await res.json()).map((g) => g.path)),
+				).map(async (res): Promise<string[]> => (await res.json()).map((g) => g.full_path)),
 			)),
 		);
 		return groups.flat();
@@ -110,27 +134,42 @@ export default class GitlabSourceAPI extends GitSourceApi {
 		return search;
 	}
 
-	private async _paginationApi(url: string, init?: RequestInit, perPage?: number): Promise<Response[]> {
+	protected async _paginationApi(url: string, init?: RequestInit, perPage = this._defaultPerPage): Promise<Response[]> {
 		const result: Response[] = [];
-		const res = await this._api(`${url}${perPage ? `?per_page=${perPage}` : ""}`, init);
+		const concatChar = this._getConcatChar(url);
+		const res = await this._api(`${url}${perPage ? `${concatChar}per_page=${perPage}` : ""}`, init);
 		if (!res || !res.ok) return [];
+
 		result.push(res);
+
 		const responseTotalPages = parseInt(res.headers.get("x-total-pages"));
-		if (responseTotalPages > 1) {
-			const responses = await Promise.all(
-				Array.from([...Array(responseTotalPages - 1).keys()]).map(async (page): Promise<Response> => {
-					const res = await this._api(`${url}?${perPage ? `per_page=${perPage}&` : ""}page=${page + 2}`);
-					if (!res || !res.ok) return null;
-					return res;
-				}),
-			);
-			result.push(...responses.filter((x) => x));
-		}
+		if (responseTotalPages < 2) return result;
+
+		result.push(...(await this._paginationFromTo(url, 2, responseTotalPages, perPage)));
 
 		return result;
 	}
 
-	private async _api(url: string, init?: RequestInit): Promise<Response> {
+	protected async _paginationFromTo(
+		url: string,
+		fromPage: number,
+		toPage: number,
+		perPage: number,
+	): Promise<Response[]> {
+		this._validatePages(fromPage, toPage)
+		
+		const resPromises: Promise<Response>[] = [];
+		for (let page = fromPage; page < toPage + 1; page++) {
+			const res = this._api(
+				`${url}${this._getConcatChar(url)}${perPage ? `per_page=${perPage}&` : ""}page=${page}`,
+			);
+			resPromises.push(res);
+		}
+
+		return (await Promise.all(resPromises)).filter((res) => res && res.ok);
+	}
+
+	protected async _api(url: string, init?: RequestInit): Promise<Response> {
 		try {
 			const res = await fetch(`${this._data.protocol ?? "https"}://${this._data.domain}/api/v4/${url}`, {
 				...init,

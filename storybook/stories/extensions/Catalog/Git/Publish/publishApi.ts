@@ -1,5 +1,5 @@
 import { MockedAPIEndpoint } from "storybook/data/mock";
-import publishApiData from "storybook/stories/extensions/Catalog/Git/Publish/publishApiData";
+import { publishApiData } from "storybook/stories/extensions/Catalog/Git/Publish/publishApiData";
 
 const publishApi: MockedAPIEndpoint[] = [
 	{

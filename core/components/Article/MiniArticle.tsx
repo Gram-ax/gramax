@@ -6,7 +6,7 @@ import type { RenderableTreeNodes } from "@ext/markdown/core/render/logic/Markdo
 import Header from "@ext/markdown/elements/heading/render/component/Header";
 import type { ReactNode } from "react";
 
-const MinimizedArticleStyled = styled(({ className, children }: { className?: string; children: ReactNode }) => {
+export const MinimizedArticleStyled = styled(({ className, children }: { className?: string; children: ReactNode }) => {
 	return <div className={className}>{children}</div>;
 })`
 	h2 {

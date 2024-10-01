@@ -1,5 +1,4 @@
 use git2::build::CheckoutBuilder;
-use git2::build::RepoBuilder;
 use git2::*;
 
 use std::path::Path;
@@ -53,52 +52,6 @@ impl<C: Creds> Repo<C> {
     }
 
     Ok(Self(repo, creds))
-  }
-
-  pub fn clone<S: AsRef<str>, P: AsRef<Path>, F: FnMut(usize, usize) -> bool>(
-    remote_url: S,
-    into: P,
-    branch_name: Option<&str>,
-    creds: C,
-    mut on_progress: F,
-  ) -> Result<Self> {
-    info!(
-      target: TAG,
-      "cloning {} into {}; branch {}",
-      remote_url.as_ref(),
-      into.as_ref().display(),
-      branch_name.unwrap_or("default")
-    );
-    let mut cbs = RemoteCallbacks::new();
-    cbs.credentials(make_credentials_callback(&creds));
-    cbs.certificate_check(ssl_callback);
-    cbs.transfer_progress(|progress| {
-      on_progress(
-        progress.received_objects()
-          + progress.indexed_deltas()
-          + progress.indexed_objects()
-          + progress.local_objects(),
-        progress.total_objects() + progress.total_objects() / 3,
-      )
-    });
-
-    let mut fetch_opts = FetchOptions::new();
-    fetch_opts.remote_callbacks(cbs).download_tags(AutotagOption::None);
-    let mut checkout_opts = CheckoutBuilder::new();
-    checkout_opts.force();
-
-    let repo = {
-      let mut builder = RepoBuilder::new();
-      builder.fetch_options(fetch_opts).with_checkout(checkout_opts);
-      if let Some(branch) = branch_name {
-        builder.branch(branch);
-      }
-      builder.clone(remote_url.as_ref(), into.as_ref())?
-    };
-
-    let repo = Self(repo, creds);
-    repo.ensure_head_exists()?;
-    Ok(repo)
   }
 
   pub fn add_glob<I: Iterator<Item = S>, S: IntoCString>(&self, patterns: I) -> Result<()> {

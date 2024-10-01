@@ -334,7 +334,7 @@ export default class Repository {
 
 		let stashResult: GitMergeResult[] = [];
 		const commitHeadBefore = await this.gvc.getCurrentVersion();
-		const stashOid = (await this.gvc.getChanges()).length > 0 ? await this.gvc.stash(data) : undefined;
+		const stashOid = await this.gvc.stash(data);
 
 		try {
 			await this.storage.pull(data, recursive);

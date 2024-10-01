@@ -1,30 +1,30 @@
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
+import GitPaginatedProjectList from "@ext/git/actions/Source/Git/logic/GitPaginatedProjectList";
 import type GitlabSourceData from "@ext/git/actions/Source/GitLab/logic/GitlabSourceData";
+import GitSourceApi from "@ext/git/actions/Source/GitSourceApi";
+import { makeSourceApi } from "@ext/git/actions/Source/makeSourceApi";
+import { useMemo } from "react";
 import GitStorageData from "../../../../core/model/GitStorageData";
 import CloneFields from "../../components/CloneFields";
-import GitlabSourceAPI from "../logic/GitlabSourceAPI";
 import ConnectFields from "./ConnectFields";
+import Mode from "@ext/git/actions/Clone/model/Mode";
 
 interface SelectGitLabStorageDataFieldsProps {
 	source: GitlabSourceData;
-	forClone?: boolean;
+	mode: Mode;
 	onChange?: (data: GitStorageData) => void;
 }
 
 const SelectGitLabStorageDataFields = (props: SelectGitLabStorageDataFieldsProps) => {
-	const { source, forClone, onChange } = props;
+	const { source, mode, onChange } = props;
 	const authServiceUrl = PageDataContextService.value.conf.authServiceUrl;
+	const gitPaginatedProjectList = useMemo(
+		() => new GitPaginatedProjectList(makeSourceApi(source, authServiceUrl) as GitSourceApi),
+		[source, authServiceUrl],
+	);
 
-	return forClone ? (
-		<CloneFields
-			onChange={onChange}
-			source={source}
-			getLoadProjects={async (source) => {
-				if (!source) return;
-				const gitLabApi = new GitlabSourceAPI(source as GitlabSourceData, authServiceUrl);
-				return await gitLabApi.getAllProjects();
-			}}
-		/>
+	return mode === Mode.clone ? (
+		<CloneFields onChange={onChange} source={source} gitPaginatedProjectList={gitPaginatedProjectList} />
 	) : (
 		<ConnectFields onChange={onChange} source={source} />
 	);

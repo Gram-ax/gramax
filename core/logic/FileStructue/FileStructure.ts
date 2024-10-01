@@ -109,10 +109,10 @@ export default class FileStructure {
 		return await entry.load();
 	}
 
-	async getCatalogEntryByPath(path: Path): Promise<CatalogEntry> {
+	async getCatalogEntryByPath(path: Path, checkIsExists = true, initProps = {}): Promise<CatalogEntry> {
 		const docroot = await this._search(path, DOC_ROOT_REGEXP);
 
-		if (!(docroot || (await this.fp.exists(path)))) return;
+		if (!(docroot || (await this.fp.exists(path))) && checkIsExists) return;
 
 		const errors: CatalogErrors = {};
 		const props = docroot
@@ -125,7 +125,7 @@ export default class FileStructure {
 			name,
 			rootCaterogyRef: ref,
 			basePath: path,
-			props,
+			props: { ...initProps, ...props },
 			errors,
 			load: (entry) => this.getCatalogByEntry(entry),
 			isServerApp: this._isServerApp,

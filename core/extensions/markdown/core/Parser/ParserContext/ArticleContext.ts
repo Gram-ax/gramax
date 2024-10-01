@@ -1,3 +1,4 @@
+import LinkResourceManager from "@core/Link/LinkResourceManager";
 import Path from "../../../../../logic/FileProvider/Path/Path";
 import FileProvider from "../../../../../logic/FileProvider/model/FileProvider";
 import { Article } from "../../../../../logic/FileStructue/Article/Article";
@@ -13,7 +14,7 @@ import MarkdownParser from "../Parser";
 import ParserContext, { BaseContext } from "./ParserContext";
 
 export default class ArticleContext extends BaseContext implements ParserContext {
-	private _linkManager: ResourceManager;
+	private _linkManager: LinkResourceManager;
 	private _resourceManager: ResourceManager;
 
 	constructor(
@@ -33,7 +34,7 @@ export default class ArticleContext extends BaseContext implements ParserContext
 		const rootPath = this._catalog?.getRootCategoryRef().path.parentDirectoryPath;
 		const basePath = rootPath?.subDirectory(this._article.ref.path.parentDirectoryPath);
 
-		this._linkManager = new ResourceManager(fp, basePath, rootPath);
+		this._linkManager = new LinkResourceManager(fp, basePath, rootPath);
 		this._resourceManager = new ResourceManager(fp, basePath, rootPath);
 	}
 
@@ -45,7 +46,7 @@ export default class ArticleContext extends BaseContext implements ParserContext
 		return this._resourceManager;
 	}
 
-	getLinkManager(): ResourceManager {
+	getLinkManager(): LinkResourceManager {
 		return this._linkManager;
 	}
 

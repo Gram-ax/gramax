@@ -1,9 +1,9 @@
-import NodeConverter from "@ext/confluence/actions/Import/logic/NodeConverter";
+import NodeConverter from "@ext/confluence/core/cloud/model/NodeConverter";
 
 const rule: NodeConverter = () => {
 	return {
-        type: "horizontal_rule",
-    };
+		type: "horizontal_rule",
+	};
 };
 
 export default rule;

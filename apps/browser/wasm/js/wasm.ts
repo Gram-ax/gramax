@@ -7,27 +7,34 @@ import setWorkerProxy from "../../src/logic/setWorkerProxy";
 const notSupported = () => new DefaultError(undefined, undefined, { errorCode: "wasmInitTimeout" });
 
 const assertSupported = () => {
-	const supported = typeof window !== "undefined" && window.SharedArrayBuffer && window.WebAssembly && window.Worker;
+	const supported =
+		typeof window !== "undefined" &&
+		window.navigator.storage &&
+		window.SharedArrayBuffer &&
+		window.WebAssembly &&
+		window.Worker;
 	if (!supported) throw notSupported();
+};
+
+const assertPersisted = async () => {
+	if (await window.navigator.storage.persisted()) return;
+	await window.navigator.storage.persist();
 };
 
 export const initWasm = async (corsProxy: string) => {
 	assertSupported();
+	await assertPersisted();
 	const w = window as any;
 	w.wasm = new Worker(new URL("./wasm.worker.ts", import.meta.url), { type: "module" });
 	await new Promise((resolve, reject) => {
+		setTimeout(() => reject(notSupported()), 20000);
 		w.wasm.onerror = (err) => reject(err);
 		w.wasm.addEventListener("message", (ev) => {
 			if (ev.data.type == "fs-call") onFSWasmCallback(ev);
 			if (ev.data.type == "git-call") onGitWasmCallback(ev);
 			if (ev.data.type == "clone-progress") {
 				const payload = ev.data.progress;
-				onCloneProgress?.({
-					phase: "receiving-objects",
-					percent: (payload.received / payload.total) * 100,
-					loaded: payload.received as number,
-					total: payload.total as number,
-				});
+				onCloneProgress?.(payload);
 			}
 
 			if (ev.data.type == "ready") resolve(w.wasm);

@@ -20,7 +20,7 @@ const InfoModalForm = ({
 }: {
 	title: string;
 	children: ReactNode;
-	onCancelClick: () => void;
+	onCancelClick?: () => void;
 	isWarning?: boolean;
 	icon?: { color?: Property.Color; code: string };
 	actionButton?: { text: string; onClick: () => void };
@@ -45,12 +45,14 @@ const InfoModalForm = ({
 					<div className="form-group field field-string" />
 					{!noButtons && (
 						<div className="buttons">
-							<Button
-								onClick={onCancelClick}
-								buttonStyle={actionButton ? ButtonStyle.underline : ButtonStyle.default}
-							>
-								{closeButton?.text ?? (actionButton ? cancelText : closeText)}
-							</Button>
+							{onCancelClick && (
+								<Button
+									onClick={onCancelClick}
+									buttonStyle={actionButton ? ButtonStyle.underline : ButtonStyle.default}
+								>
+									{closeButton?.text ?? (actionButton ? cancelText : closeText)}
+								</Button>
+							)}
 							{secondButton && (
 								<Button
 									buttonStyle={ButtonStyle.underline}

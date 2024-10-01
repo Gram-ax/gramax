@@ -1,9 +1,10 @@
-import FormStyle from "@components/Form/FormStyle";
 import SmallFence from "@components/Labels/SmallFence";
+import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import convertShareLinkDataToStorageData from "@ext/catalog/actions/share/logic/convertShareLinkDataToStorageData";
 import ShareData from "@ext/catalog/actions/share/model/ShareData";
 import InfoModalForm from "@ext/errorHandlers/client/components/ErrorForm";
+import cloneHandler from "@ext/git/actions/Clone/logic/cloneHandler";
 import GitShareData from "@ext/git/core/model/GitShareData";
 import t from "@ext/localization/locale/translate";
 import CreateSourceData from "@ext/storage/logic/SourceDataProvider/components/CreateSourceData";
@@ -13,29 +14,29 @@ import getPartGitSourceDataByStorageName from "@ext/storage/logic/utils/getPartS
 import getSourceDataByStorageName from "@ext/storage/logic/utils/getSourceDataByStorageName";
 import getStorageNameByData from "@ext/storage/logic/utils/getStorageNameByData";
 import { useEffect, useRef, useState } from "react";
-import CloneProgressbar from "../../../../git/actions/Clone/components/CloneProgressbar";
 
 const CloneWithShareData = ({
 	shareData,
 	onCloneError,
-	onCloneFinish,
+	onCloneStart,
 	onCreateSourceDataClose,
 }: {
 	shareData: ShareData;
+	onCloneStart?: VoidFunction;
 	onCloneError?: VoidFunction;
-	onCloneFinish?: VoidFunction;
 	onCreateSourceDataClose?: (success: boolean) => void;
 }) => {
+	const apiUrlCreator = ApiUrlCreatorService.value;
 	const [sourceData, setSourceData] = useState<SourceData>(null);
 	const [hasStorageInitialized, setHasStorageInitialized] = useState(false);
 	const hasStorageInitializedRef = useRef(false);
 	const [partSourceData, setPartSourceData] = useState<Partial<SourceData>>(null);
 	const [createSourceDataStep, setCreateSourceDataStep] = useState<"warning" | "create">("warning");
-	const loadingText = t("loading2");
+	const hasStartCloning = useRef(false);
 
 	const pageProps = PageDataContextService.value;
 
-	const getStorageData = () => convertShareLinkDataToStorageData(sourceData, shareData);
+	const storageData = convertShareLinkDataToStorageData(sourceData, shareData);
 
 	const getBranch = () => {
 		if (shareData.sourceType === SourceType.gitHub || shareData.sourceType === SourceType.gitLab) {
@@ -112,24 +113,25 @@ const CloneWithShareData = ({
 		return () => window.removeEventListener("keydown", keydownHandler);
 	}, [createSourceDataStep]);
 
-	return hasStorageInitialized ? (
-		<FormStyle>
-			<>
-				<legend>{loadingText}</legend>
-				<CloneProgressbar
-					triggerClone={getStorageData()}
-					branch={getBranch()}
-					filePath={shareData.filePath}
-					storageData={getStorageData()}
-					onError={onCloneError}
-					onFinish={onCloneFinish}
-					recursive={false}
-				/>
-			</>
-		</FormStyle>
-	) : (
-		partSourceData && getCreateSourceDataStep
-	);
+	useEffect(() => {
+		if (!hasStorageInitialized || !storageData || hasStartCloning.current) return;
+		hasStartCloning.current = true;
+		void cloneHandler({
+			storageData,
+			branch: getBranch(),
+			apiUrlCreator,
+			skipCheck: true,
+			recursive: false,
+			onStart: () => {
+				refreshPage();
+				onCloneStart?.();
+			},
+			onError: onCloneError,
+		});
+	}, [hasStorageInitialized, storageData]);
+
+	if (hasStorageInitialized) return null;
+	return partSourceData && getCreateSourceDataStep;
 };
 
 export default CloneWithShareData;

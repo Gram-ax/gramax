@@ -1,16 +1,17 @@
 import { ResponseKind } from "@app/types/ResponseKind";
 import Context from "@core/Context/Context";
 import Path from "@core/FileProvider/Path/Path";
+import { resolveRootCategory } from "@ext/localization/core/catalogExt";
 import RuleProvider from "@ext/rules/RuleProvider";
 import buildDocumentTree from "@ext/wordExport/DocumentTree/buildDocumentTree";
+import { ExportType } from "@ext/wordExport/ExportType";
 import { exportedKeys } from "@ext/wordExport/layouts";
 import { MainWordExport } from "@ext/wordExport/WordExport";
-import { ExportType } from "../../../core/extensions/wordExport/ExportType";
 import { Command } from "../../types/Command";
 
 const docx = import("docx");
 
-const getAsWordDocument: Command<{ ctx: Context; itemPath?: Path; isCategory: boolean; catalogName: string }, Blob> =
+const getAsWordDocument: Command<{ ctx: Context; itemPath?: Path; isCategory: boolean; catalogName: string }, Buffer> =
 	Command.create({
 		path: "word",
 		kind: ResponseKind.file,
@@ -20,8 +21,10 @@ const getAsWordDocument: Command<{ ctx: Context; itemPath?: Path; isCategory: bo
 			const workspace = wm.current();
 			const catalog = await workspace.getCatalog(catalogName);
 			const isCatalog = itemPath.toString() === "";
-			const item = isCatalog ? catalog.getRootCategory() : catalog.findItemByItemPath(itemPath);
-			const wordExport = new MainWordExport(workspace.getFileProvider(), ExportType.withoutTableOfContents);
+			const item = isCatalog
+				? resolveRootCategory(catalog, ctx.contentLanguage)
+				: catalog.findItemByItemPath(itemPath);
+			const wordExport = new MainWordExport(ExportType.withoutTableOfContents, ctx.domain);
 			const filters = new RuleProvider(ctx).getItemFilters();
 			const documentTree = await buildDocumentTree(
 				isCategory,
@@ -35,9 +38,7 @@ const getAsWordDocument: Command<{ ctx: Context; itemPath?: Path; isCategory: bo
 				filters,
 			);
 
-			const document = await wordExport.getDocument(documentTree);
-
-			return await (await docx).Packer.toBlob(document);
+			return await (await docx).Packer.toBuffer(await wordExport.getDocument(documentTree));
 		},
 
 		params(ctx, q) {

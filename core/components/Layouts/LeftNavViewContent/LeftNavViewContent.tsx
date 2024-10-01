@@ -1,18 +1,19 @@
+import LeftNavView from "@components/Layouts/LeftNavViewContent/LeftNavView";
+import useWatch from "@core-ui/hooks/useWatch";
 import styled from "@emotion/styled";
-import { useEffect, useRef, useState } from "react";
-import LeftSidebar from "../LeftSidebar/LeftSidebar";
+import { Attributes, useRef, useState } from "react";
 
 export type ViewContent = {
 	leftSidebar: JSX.Element;
 	content?: JSX.Element;
 	clickable?: boolean;
-};
+} & Pick<Attributes, "key">;
 
 const LeftNavViewContent = ({
 	elements,
 	sideBarTop,
 	sideBarBottom,
-	currentIdx = 0,
+	currentIdx,
 	commonContent,
 	elementClassName = "log-entry",
 	focusElementClassName = "log-entry active",
@@ -30,45 +31,35 @@ const LeftNavViewContent = ({
 	onLeftSidebarClick?: (idx: number) => void;
 }) => {
 	const contentRef = useRef<HTMLDivElement>(null);
-	const [currentElementIdx, setCurrentElementIdx] = useState(currentIdx);
+	const [currentElementIdx, setCurrentElementIdx] = useState(currentIdx ?? 0);
 
-	useEffect(() => {
-		if (!elements[currentElementIdx]) setCurrentElementIdx(elements.length - 1);
-	}, [currentElementIdx, elements.length]);
+	useWatch(() => {
+		if (typeof currentIdx !== "number") return;
+		setCurrentElementIdx(currentIdx);
+	}, [currentIdx]);
+
+	const getKey = (idx: number) => {
+		return elements[idx]?.key ?? idx;
+	};
 
 	if (elements.length == 0) return null;
+
 	return (
 		<div className={className} data-qa={`article-git-modal`}>
-			<div className="left-sidebar">
-				<LeftSidebar sidebarTop={sideBarTop} sidebarBottom={sideBarBottom}>
-					<div className={"sidebar"}>
-						<div className="sidebar-content hover-scrollbar">
-							{elements.map((c, idx) => (
-								<div
-									className={
-										c.clickable === false
-											? null
-											: idx == currentElementIdx
-											? focusElementClassName
-											: elementClassName
-									}
-									key={idx}
-									onClick={() => {
-										if (c.clickable === false) return;
-										onLeftSidebarClick?.(idx);
-										setCurrentElementIdx(idx);
-										contentRef.current.scrollTo(0, 0);
-									}}
-									data-qa="qa-clickable"
-								>
-									{c.leftSidebar}
-								</div>
-							))}
-						</div>
-					</div>
-				</LeftSidebar>
-			</div>
-			<div className="content" ref={contentRef} key={commonContent ? undefined : currentElementIdx}>
+			<LeftNavView
+				elements={elements}
+				currentIdx={currentElementIdx}
+				elementClassName={elementClassName}
+				focusElementClassName={focusElementClassName}
+				onLeftSidebarClick={(idx) => {
+					if (typeof currentIdx !== "number") setCurrentElementIdx(idx);
+					contentRef.current.scrollTo(0, 0);
+					onLeftSidebarClick?.(idx);
+				}}
+				sideBarTop={sideBarTop}
+				sideBarBottom={sideBarBottom}
+			/>
+			<div className="content" ref={contentRef} key={commonContent ? undefined : getKey(currentElementIdx)}>
 				{commonContent ?? elements[currentElementIdx]?.content}
 			</div>
 		</div>
@@ -96,18 +87,5 @@ export default styled(LeftNavViewContent)`
 		height: 100%;
 		overflow-y: auto;
 		overflow-x: hidden;
-	}
-
-	.log-entry {
-		cursor: pointer;
-		color: var(--color-primary-general);
-	}
-
-	.log-entry:hover {
-		background: var(--color-lev-sidebar-hover);
-	}
-
-	.log-entry.active {
-		background: var(--color-article-bg);
 	}
 `;

@@ -45,7 +45,6 @@ const PropsEditor = (props: PropsEditorProps) => {
 
 	const [isOpen, setIsOpen] = useState(false);
 	const [itemProps, setItemProps] = useState<ClientArticleProps>();
-
 	const [generatedFileName, setGeneratedFileName] = useState<string>();
 
 	useEffect(() => {
@@ -117,56 +116,58 @@ const PropsEditor = (props: PropsEditorProps) => {
 				<FormStyle>
 					<>
 						<legend>{isCategory ? t("category.configure") : t("article.configure")}</legend>
-						<label className="control-label">{t("title")}</label>
-						<div className="form-group field field-string">
-							<Input
-								dataQa={t("title")}
-								isCode
-								value={itemProps?.title}
-								onChange={(e) => {
-									const newItemProps = { ...itemProps };
-									newItemProps.title = e.target.value ?? "";
-									if (newItemProps.title && NEW_ARTICLE_REGEX.test(newItemProps.fileName)) {
-										setGeneratedFileName(
-											uniqueName(
-												transliterate(newItemProps.title, { kebab: true, maxLength: 50 }),
-												brotherFileNames,
-											),
-										);
-									}
-									setItemProps({ ...newItemProps });
-								}}
-								placeholder={t("enter") + " " + t("value")}
-							/>
-						</div>
-						<label className="control-label">
-							{"URL"}
-							<span className="required">*</span>
-						</label>
-						<div className="form-group field field-string">
-							<Input
-								dataQa="URL"
-								isCode
-								value={generatedFileName ?? itemProps?.fileName}
-								startText={parentCategoryLink}
-								endText={"/"}
-								errorText={getErrorText()}
-								onChange={(e) => {
-									const newItemProps = { ...itemProps };
-									setGeneratedFileName(undefined);
-									newItemProps.fileName = e.target.value ?? "";
-									setItemProps({ ...newItemProps });
-								}}
-								placeholder={t("enter") + " " + t("value")}
-							/>
-						</div>
-						<div className="buttons">
-							<ActionWarning catalogProps={catalogProps} action={save}>
-								<Button buttonStyle={ButtonStyle.default} disabled={!!getErrorText()}>
-									<span>{t("save")}</span>
-								</Button>
-							</ActionWarning>
-						</div>
+						<fieldset>
+							<label className="control-label">{t("title")}</label>
+							<div className="form-group field field-string">
+								<Input
+									dataQa={t("title")}
+									isCode
+									value={itemProps?.title}
+									onChange={(e) => {
+										const newItemProps = { ...itemProps };
+										newItemProps.title = e.target.value ?? "";
+										if (newItemProps.title && NEW_ARTICLE_REGEX.test(newItemProps.fileName)) {
+											setGeneratedFileName(
+												uniqueName(
+													transliterate(newItemProps.title, { kebab: true, maxLength: 50 }),
+													brotherFileNames,
+												),
+											);
+										}
+										setItemProps({ ...newItemProps });
+									}}
+									placeholder={t("enter") + " " + t("value")}
+								/>
+							</div>
+							<label className="control-label">
+								{"URL"}
+								<span className="required">*</span>
+							</label>
+							<div className="form-group field field-string">
+								<Input
+									dataQa="URL"
+									isCode
+									value={generatedFileName ?? itemProps?.fileName}
+									startText={parentCategoryLink}
+									endText={"/"}
+									errorText={getErrorText()}
+									onChange={(e) => {
+										const newItemProps = { ...itemProps };
+										setGeneratedFileName(undefined);
+										newItemProps.fileName = e.target.value ?? "";
+										setItemProps({ ...newItemProps });
+									}}
+									placeholder={t("enter") + " " + t("value")}
+								/>
+							</div>
+							<div className="buttons">
+								<ActionWarning catalogProps={catalogProps} action={save}>
+									<Button buttonStyle={ButtonStyle.default} disabled={!!getErrorText()}>
+										<span>{t("save")}</span>
+									</Button>
+								</ActionWarning>
+							</div>
+						</fieldset>
 					</>
 				</FormStyle>
 			</ModalLayoutLight>

@@ -13,6 +13,7 @@ export interface ButtonProps {
 	textSize?: TextSize;
 	className?: string;
 	isEmUnits?: boolean;
+	title?: string;
 }
 
 export enum TextSize {
@@ -41,6 +42,8 @@ const Button = forwardRef((props: ButtonProps, ref?: MutableRefObject<HTMLDivEle
 		className,
 		children,
 		isEmUnits,
+		// eslint-disable-next-line @typescript-eslint/no-unused-vars
+		disabled,
 		...otherProps
 	} = props;
 

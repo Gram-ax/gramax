@@ -1,13 +1,16 @@
 import type GitHubSourceData from "@ext/git/actions/Source/GitHub/logic/GitHubSourceData";
 import GithubInstallation from "@ext/git/actions/Source/GitHub/model/GithubInstallation";
 import GitSourceApi from "@ext/git/actions/Source/GitSourceApi";
+import { GitRepData, GitRepsPageData } from "@ext/git/actions/Source/model/GitRepsApiData";
 import { SourceUser } from "@ext/git/actions/Source/SourceAPI";
-import getTotalPages from "@ext/git/actions/Storage/GitHub/logic/utils/getTotalPages";
+import parseGithubLink from "@ext/git/actions/Storage/GitHub/logic/utils/getTotalPages";
 import type GitSourceData from "@ext/git/core/model/GitSourceData.schema";
 import Branch from "../../../../../VersionControl/model/branch/Branch";
 import GitStorageData from "../../../../core/model/GitStorageData";
 
 export default class GithubSourceAPI extends GitSourceApi {
+	private readonly _allProjectsUrl = "user/repos?sort=updated";
+
 	constructor(data: GitHubSourceData, private _authServiceUrl: string) {
 		super(data);
 	}
@@ -40,12 +43,34 @@ export default class GithubSourceAPI extends GitSourceApi {
 		};
 	}
 
-	async getAllProjects(): Promise<string[]> {
+	async getAllProjects(): Promise<GitRepData[]> {
 		return Promise.all(
 			(await this._paginationApi("user/repos", { method: "GET" }, 10)).map(
-				async (res): Promise<string[]> => (await res.json()).map((g) => g.full_name),
+				async (res): Promise<GitRepData[]> =>
+					(await res.json()).map((g): GitRepData => ({ path: g.full_name, lastActivity: g.updated_at })),
 			),
 		).then((x) => x.flat());
+	}
+
+	async getPageProjects(
+		fromPage: number,
+		toPage: number,
+		perPage = this._defaultPerPage,
+	): Promise<GitRepsPageData[]> {
+		const responses = await this._paginationFromTo(this._allProjectsUrl, fromPage, toPage, perPage);
+		return Promise.all(
+			responses.map(async (res, idx): Promise<GitRepsPageData> => {
+				const totalPages = parseGithubLink(res.headers.get("link"));
+				return {
+					repDatas: (await res.json()).map(
+						(p): GitRepData => ({ path: p.full_name, lastActivity: p.updated_at }),
+					),
+					page: fromPage + idx,
+					totalPages,
+					totalPathsCount: undefined,
+				};
+			}),
+		);
 	}
 
 	async getBranchWithFile(fileName: string, data: GitStorageData): Promise<string> {
@@ -110,26 +135,42 @@ export default class GithubSourceAPI extends GitSourceApi {
 		return mails.find((mail) => mail.primary).email ?? mails[0].email;
 	}
 
-	private async _paginationApi(url: string, init?: RequestInit, perPage?: number): Promise<Response[]> {
+	protected async _paginationApi(url: string, init?: RequestInit, perPage?: number): Promise<Response[]> {
 		const result: Response[] = [];
-		const res = await this._api(`${url}${perPage ? `?per_page=${perPage}` : ""}`, init);
-		if (!res.ok) return [];
+		const concatChar = this._getConcatChar(url);
+		const res = await this._api(`${url}${perPage ? `${concatChar}per_page=${perPage}` : ""}`, init);
+		if (!res || !res.ok) return [];
+
 		result.push(res);
-		const totalPages = getTotalPages(res.headers.get("link"));
-		if (totalPages > 1) {
-			const responses = await Promise.all(
-				Array.from([...Array(totalPages - 1).keys()]).map(async (page): Promise<Response> => {
-					const res = await this._api(`${url}?${perPage ? `per_page=${perPage}&` : ""}page=${page + 2}`);
-					if (!res.ok) return null;
-					return res;
-				}),
-			);
-			result.push(...responses.filter((x) => x));
-		}
+
+		const responseTotalPages = parseGithubLink(res.headers.get("link"));
+		if (responseTotalPages < 2) return result;
+
+		result.push(...(await this._paginationFromTo(url, 2, responseTotalPages, perPage)));
+
 		return result;
 	}
 
-	private async _api(url: string, init?: RequestInit): Promise<Response> {
+	protected async _paginationFromTo(
+		url: string,
+		fromPage: number,
+		toPage: number,
+		perPage: number,
+	): Promise<Response[]> {
+		this._validatePages(fromPage, toPage);
+
+		const resPromises: Promise<Response>[] = [];
+		for (let page = fromPage; page < toPage + 1; page++) {
+			const res = this._api(
+				`${url}${this._getConcatChar(url)}${perPage ? `per_page=${perPage}&` : ""}page=${page}`,
+			);
+			resPromises.push(res);
+		}
+
+		return (await Promise.all(resPromises)).filter((res) => res && res.ok);
+	}
+
+	protected async _api(url: string, init?: RequestInit): Promise<Response> {
 		const res = await fetch(`https://api.github.com/${url}`, {
 			...init,
 			headers: { ...(init?.headers ?? {}), Authorization: `token ${this._data.token}` },

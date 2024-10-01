@@ -8,13 +8,14 @@ import styled from "@emotion/styled";
 import { CatalogError, CatalogErrors } from "@ext/healthcheck/logic/Healthcheck";
 import t from "@ext/localization/locale/translate";
 import { CategoryLink, ItemLink } from "@ext/navigation/NavigationLinks";
-import { useState } from "react";
+import { useState, Fragment } from "react";
 import GoToArticle from "../../../components/Actions/GoToArticle";
 import Icon from "../../../components/Atoms/Icon";
 import Tooltip from "../../../components/Atoms/Tooltip";
 import Breadcrumb from "../../../components/Breadcrumbs/ArticleBreadcrumb";
 import ModalLayout from "../../../components/Layouts/Modal";
 import Code from "../../markdown/elements/code/render/component/Code";
+import RouterPathProvider from "@core/RouterPath/RouterPathProvider";
 
 interface ResourceError {
 	title: string;
@@ -95,6 +96,7 @@ const Healthcheck = styled(
 		gap: var(--distance-i-span);
 
 		.breadcrumb {
+			max-width: 100%;
 			line-height: 100%;
 			margin-top: 0 !important;
 		}
@@ -128,12 +130,13 @@ const Healthcheck = styled(
 
 			> th:first-of-type,
 			> td:first-of-type {
-				flex: 0.6;
+				max-width: 37.5%;
+				min-width: 37.5%;
 			}
 
 			> th.flex,
 			> td.flex {
-				flex: 1;
+				width: 62.5%;
 				display: flex;
 				align-items: center;
 				justify-content: space-between;
@@ -195,13 +198,16 @@ const ResourceErrorComponent = ({
 
 	const search = (itemLinks: ItemLink[], catLinks: CategoryLink[], logicPath: string) => {
 		itemLinks.forEach((link) => {
-			if (logicPath.includes(link.pathname)) {
-				if (!(link as CategoryLink).items) {
+			const linkLogicPath = RouterPathProvider.getLogicPath(link.pathname);
+			if (logicPath.includes(linkLogicPath)) {
+				if (logicPath == linkLogicPath) {
 					articleBreadcrumbDatas[logicPath] = {
 						titles: catLinks.map((l) => l.title),
 						links: catLinks,
 					};
-				} else search((link as CategoryLink).items, [...catLinks, link as CategoryLink], logicPath);
+				} else
+					(link as CategoryLink).items &&
+						search((link as CategoryLink).items, [...catLinks, link as CategoryLink], logicPath);
 			}
 		});
 	};
@@ -240,10 +246,10 @@ const ResourceErrorComponent = ({
 									<td className="flex">
 										<div>
 											{resourceError.values.map((link) => (
-												<>
+												<Fragment key={link}>
 													<Code>{link}</Code>
 													<br />
-												</>
+												</Fragment>
 											))}
 										</div>
 										{IsServerApp && (

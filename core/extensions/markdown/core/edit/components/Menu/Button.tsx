@@ -5,7 +5,7 @@ import { classNames } from "@components/libs/classNames";
 import ButtonStateService from "@core-ui/ContextServices/ButtonStateService/ButtonStateService";
 import { NodeValues } from "@core-ui/ContextServices/ButtonStateService/hooks/types";
 import styled from "@emotion/styled";
-import { CSSProperties, ForwardedRef, HTMLAttributes, forwardRef } from "react";
+import { ForwardedRef, HTMLAttributes, forwardRef, CSSProperties } from "react";
 
 export interface ButtonProps extends HTMLAttributes<HTMLDivElement> {
 	isActive?: boolean;

@@ -1,6 +1,7 @@
 import type { HasEvents } from "@core/Event/EventEmitter";
-import { ItemFilter } from "@core/FileStructue/Catalog/Catalog";
+import { ItemFilter, type Catalog } from "@core/FileStructue/Catalog/Catalog";
 import type { Category } from "@core/FileStructue/Category/Category";
+import type { Item } from "@core/FileStructue/Item/Item";
 import { ItemType } from "@core/FileStructue/Item/ItemType";
 import CustomArticlePresenter from "@core/SitePresenter/CustomArticlePresenter";
 import type RuleCollection from "@ext/rules/RuleCollection";
@@ -53,7 +54,16 @@ export default class LocalizationRules implements RuleCollection {
 	}
 
 	getItemFilter() {
-		const rule: ItemFilter = () => {
+		const rule: ItemFilter = (item: Item, catalog: Catalog) => {
+			if (!catalog.props.language) return true;
+
+			if (item.type == ItemType.category) {
+				const maybeItemLanguage = ContentLanguage[item.getFileName()];
+				return catalog.props.supportedLanguages.includes(maybeItemLanguage)
+					? this._currentLanguage == maybeItemLanguage
+					: true;
+			}
+
 			return true;
 		};
 

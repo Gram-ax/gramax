@@ -24,6 +24,7 @@ import Path from "../FileProvider/Path/Path";
 import { Article } from "../FileStructue/Article/Article";
 import parseContent from "../FileStructue/Article/parseContent";
 import { ArticleFilter, Catalog, ItemFilter } from "../FileStructue/Catalog/Catalog";
+import { Property, PropertyValue } from "@ext/properties/models";
 
 export type ClientCatalogProps = {
 	name: string;
@@ -33,6 +34,7 @@ export type ClientCatalogProps = {
 	contactEmail: string;
 	language: ContentLanguage;
 	supportedLanguages: ContentLanguage[];
+	properties?: Property[];
 	tabsTags?: TabsTags;
 	sourceName: string;
 	userInfo: UserInfo;
@@ -51,6 +53,7 @@ export type ClientArticleProps = {
 	tocItems: TocItem[];
 	errorCode: number;
 	welcome?: boolean;
+	properties?: PropertyValue[];
 };
 
 export type ClientItemRef = {
@@ -142,6 +145,7 @@ export default class SitePresenter {
 		await parseContent(article, catalog, this._context, this._parser, this._parserContextFactory);
 
 		const itemLinks = catalog ? await this._nav.getCatalogNav(catalog, article.logicPath) : [];
+
 		return {
 			articleContentEdit: getArticleAsString(article.props.title, article.parsedContent.editTree),
 			articleContentRender: JSON.stringify(article.parsedContent.renderTree),
@@ -236,6 +240,7 @@ export default class SitePresenter {
 			title: article.props.title ?? "",
 			description: article.props["description"] ?? "",
 			tocItems: article?.parsedContent?.tocItems ?? [],
+			properties: article.props.properties ?? [],
 			errorCode: article.errorCode ?? null,
 			welcome: article.props.welcome ?? null,
 		};
@@ -256,6 +261,7 @@ export default class SitePresenter {
 				userInfo: null,
 				language: ContentLanguage[defaultLanguage],
 				supportedLanguages: [ContentLanguage[defaultLanguage]],
+				properties: [],
 				docroot: "",
 			};
 		}
@@ -271,6 +277,7 @@ export default class SitePresenter {
 			title: catalog.props.title ?? "",
 			readOnly: catalog.props.readOnly ?? false,
 			language: catalog.props.language,
+			properties: Array.from(catalog.props.properties || []),
 			repositoryName: catalog.getName(),
 			sourceName: (await storage?.getSourceName()) ?? null,
 			userInfo: this._grp.getSourceUserInfo(this._context.cookie, await storage?.getSourceName()),

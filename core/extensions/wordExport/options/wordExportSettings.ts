@@ -10,6 +10,10 @@ export const imageString = (language: UiLanguage) => t("word.picture", language)
 export const tableDbString = (language: UiLanguage) => t("word.tabledb", language);
 export const snippetString = (language: UiLanguage) => t("word.snippet", language);
 
+export const MAX_WIDTH = 595;
+export const MAX_HEIGHT = 842;
+export const SCALE = 4;
+
 export const wordFontSizes = {
 	list: 24,
 	tableDBHeading: { 3: 32 },
@@ -168,4 +172,4 @@ export const wordBordersType = {
 	},
 } as const;
 
-export const STANDART_PAGE_WIDTH = 9353;
+export const STANDARD_PAGE_WIDTH = 9353;

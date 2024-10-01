@@ -4,7 +4,7 @@ import type ApiResponse from "@core/Api/ApiResponse";
 import { apiUtils } from "@core/Api/apiUtils";
 import { MainMiddleware } from "@core/Api/middleware/MainMiddleware";
 import Path from "@core/FileProvider/Path/Path";
-import isAccess from "@ext/publicApi/isAccess";
+import ExceptionsResponse from "@ext/publicApi/ExceptionsResponse";
 import { ApplyApiMiddleware } from "apps/next/logic/Api/ApplyMiddleware";
 
 export default ApplyApiMiddleware(
@@ -12,16 +12,12 @@ export default ApplyApiMiddleware(
 		const context = this.app.contextFactory.from(req, res);
 		const dataProvider = this.app.sitePresenterFactory.fromContext(context);
 		const catalogName = req.query.catalogId as string;
-		const { article, catalog } = await dataProvider.getArticleByPathOfCatalog([
-			catalogName,
-			req.query.articleId as string,
-		]);
+		const articleId = req.query.articleId as string;
+		const { article, catalog } = await dataProvider.getArticleByPathOfCatalog([catalogName, articleId], []);
+		const exceptionsResponse = new ExceptionsResponse(res, context);
 
-		if (!isAccess(context, article, catalog)) {
-			res.statusCode = 404;
-			res.end();
-			return;
-		}
+		if (exceptionsResponse.checkArticleAvailability(catalog, catalogName, article, articleId)) return;
+
 		const src = req.query.resourcePath as string;
 
 		const { mime, hashItem } = await this.commands.article.resource.get.do({
@@ -32,6 +28,11 @@ export default ApplyApiMiddleware(
 			ifNotExistsErrorText: null,
 			mimeType: null,
 		});
+
+		if (!(await hashItem.getContent())) {
+			exceptionsResponse.getResourceException(catalogName, articleId, src);
+			return;
+		}
 
 		if (mime) res.setHeader("Content-Type", mime);
 		if (mime == MimeTypes.xml || mime == MimeTypes.xls || MimeTypes.xlsx)

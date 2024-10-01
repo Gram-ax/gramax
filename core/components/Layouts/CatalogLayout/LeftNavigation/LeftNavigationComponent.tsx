@@ -1,11 +1,16 @@
 import LeftNavigationIsOpenService from "@core-ui/ContextServices/LeftNavigationIsOpen";
 import SidebarsIsPinService from "@core-ui/ContextServices/SidebarsIsPin";
-import { useRef, useState } from "react";
+import LeftNavViewContentContainer from "@core-ui/ContextServices/views/leftNavView/LeftNavViewContainer";
+import useWatch from "@core-ui/hooks/useWatch";
+import { useRef, useState, useEffect } from "react";
 import { ArticlePageData } from "../../../../logic/SitePresenter/SitePresenter";
 import LeftNavigationBottom from "./LeftNavigationBottom";
-import LeftNavigationContent from "./LeftNavigationContent";
 import LeftNavigationLayout from "./LeftNavigationLayout";
 import LeftNavigationTop from "./LeftNavigationTop";
+import EditorService from "@ext/markdown/elementsUtils/ContextServices/EditorService";
+import stopOpeningPanels from "@core-ui/utils/stopOpeningPanels ";
+
+const navsSymbol = Symbol();
 
 const LeftNavigationComponent = ({
 	data,
@@ -22,25 +27,34 @@ const LeftNavigationComponent = ({
 	const [prevIsPin, setPrevIsPin] = useState<boolean>(undefined);
 
 	const isOpen = LeftNavigationIsOpenService.value;
-	const [prevIsOpen, setPrevIsOpen] = useState<boolean>(undefined);
 
 	const transitionEndIsOpen = LeftNavigationIsOpenService.transitionEndIsOpen;
+	const editor = EditorService?.getEditor();
+
+	useEffect(() => {
+		const onSelectionChange = () => stopOpeningPanels(navsSymbol, editor.view);
+
+		editor?.on("selectionUpdate", onSelectionChange);
+		return () => {
+			editor?.off("selectionUpdate", onSelectionChange);
+		};
+	}, [editor]);
 
 	const isLeftNavHover = useRef(false);
 	const unpinAnimation = useRef(false);
 
-	if (prevIsPin !== isPin) {
+	useWatch(() => {
 		if (prevIsPin && !isPin) {
 			LeftNavigationIsOpenService.value = false;
 			unpinAnimation.current = true;
+			setHideScroll(true);
 		}
 		setPrevIsPin(isPin);
-	}
+	}, [isPin]);
 
-	if (prevIsOpen !== isOpen) {
-		setPrevIsOpen(isOpen);
+	useWatch(() => {
 		if (!isOpen) setHideScroll(true);
-	}
+	}, [isOpen]);
 
 	return (
 		<div
@@ -52,7 +66,7 @@ const LeftNavigationComponent = ({
 				mediumMedia={mediumMedia}
 				hideScroll={hideScroll}
 				leftNavigationTop={<LeftNavigationTop data={data} />}
-				leftNavigationContent={<LeftNavigationContent itemLinks={data.leftNavItemLinks} />}
+				leftNavigationContent={<LeftNavViewContentContainer itemLinks={data.leftNavItemLinks} />}
 				leftNavigationBottom={<LeftNavigationBottom data={data} />}
 				onMouseEnter={() =>
 					setTimeout(() => {

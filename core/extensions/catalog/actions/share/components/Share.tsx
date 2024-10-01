@@ -16,6 +16,13 @@ import CodeBlock from "@ext/markdown/elements/codeBlockLowlight/render/component
 import Icon from "@ext/markdown/elements/icon/render/components/Icon";
 import { useRef, useState } from "react";
 
+const IconWithText = ({ iconCode, text }: { iconCode: string; text: string }) => (
+	<span style={{ display: "flex", alignItems: "center", gap: "0.25em" }}>
+		<Icon code={iconCode} />
+		{text}
+	</span>
+);
+
 const Share = ({ trigger, shouldRender = true }: { trigger: JSX.Element; shouldRender?: boolean }) => {
 	if (!shouldRender) return null;
 
@@ -28,13 +35,6 @@ const Share = ({ trigger, shouldRender = true }: { trigger: JSX.Element; shouldR
 	const logicPath = new Path(router.path).removeExtraSymbols;
 	const { branch } = RouterPathProvider.parsePath(logicPath);
 	const domain = CatalogPropsService.value;
-
-	const IconWithText = ({ iconCode, text }: { iconCode: string; text: string }) => (
-		<span style={{ display: "flex", alignItems: "center", gap: "0.25em" }}>
-			<Icon code={iconCode} />
-			{text}
-		</span>
-	);
 
 	return (
 		<ModalLayout trigger={trigger} isOpen={isOpen} onOpen={() => setIsOpen(true)} onClose={() => setIsOpen(false)}>

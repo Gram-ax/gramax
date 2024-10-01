@@ -3,24 +3,19 @@ import type ApiResponse from "@core/Api/ApiResponse";
 import { apiUtils } from "@core/Api/apiUtils";
 import { MainMiddleware } from "@core/Api/middleware/MainMiddleware";
 import parseContent from "@core/FileStructue/Article/parseContent";
-import isAccess from "@ext/publicApi/isAccess";
+import ExceptionsResponse from "@ext/publicApi/ExceptionsResponse";
 import { ApplyApiMiddleware } from "apps/next/logic/Api/ApplyMiddleware";
 
 export default ApplyApiMiddleware(
 	async function (req: ApiRequest, res: ApiResponse) {
 		const context = this.app.contextFactory.from(req, res);
 		const catalogName = req.query.catalogId as string;
+		const articleId = req.query.articleId as string;
 		const dataProvider = this.app.sitePresenterFactory.fromContext(context);
-		const { article, catalog } = await dataProvider.getArticleByPathOfCatalog([
-			catalogName,
-			req.query.articleId as string,
-		]);
+		const { article, catalog } = await dataProvider.getArticleByPathOfCatalog([catalogName, articleId], []);
 
-		if (!isAccess(context, article, catalog)) {
-			res.statusCode = 404;
-			res.end();
+		if (new ExceptionsResponse(res, context).checkArticleAvailability(catalog, catalogName, article, articleId))
 			return;
-		}
 
 		await parseContent(
 			article,

@@ -41,7 +41,7 @@ With error message:
   );
 
   rfd::MessageDialog::new()
-    .set_title("Gramax was crashed (panicked)")
+    .set_title("Gramax was crashed")
     .set_level(rfd::MessageLevel::Error)
     .set_description(message)
     .set_buttons(rfd::MessageButtons::Ok)

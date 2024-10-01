@@ -20,25 +20,25 @@ describe("Localization", () => {
 		test("должен вернуть правильный pathname, когда primaryLanguage совпадает с current", () => {
 			const params: AddLanguagePathname = {
 				logicPath: "catalog/some/path",
-				pathname: "git/group/catalog/master/-/some/path",
+				pathname: ".git/group/catalog/master/-/some/path",
 				target: ContentLanguage.en,
 				current: ContentLanguage.ru,
 				primaryLanguage: ContentLanguage.ru,
 			};
 
 			const result = Localizer.addPathname(params);
-			expect(result).toBe("git/group/catalog/master/-/en/some/path");
+			expect(result).toBe(".git/group/catalog/master/-/en/some/path");
 		});
 
 		test("должен вернуть правильный pathname, когда primaryLanguage не совпадает с current", () => {
 			const params: AddLanguagePathname = {
 				logicPath: "catalog/some/path",
-				pathname: "git/group/catalog/master/-/fr/some/path",
+				pathname: ".git/group/catalog/master/-/fr/some/path",
 				target: ContentLanguage.ru,
 				current: ContentLanguage.fr,
 				primaryLanguage: ContentLanguage.ru,
 			};
-			expect(Localizer.addPathname(params)).toBe("git/group/catalog/master/-/some/path");
+			expect(Localizer.addPathname(params)).toBe(".git/group/catalog/master/-/some/path");
 		});
 	});
 

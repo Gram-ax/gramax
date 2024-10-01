@@ -5,8 +5,7 @@ import ActionListItem from "@components/List/ActionListItem";
 import { ButtonItem } from "@components/List/Item";
 import ListLayout from "@components/List/ListLayout";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
-import SelectConfluenceStorageDataFields from "@ext/confluence/actions/Source/components/SelectConfluenceStorageDataFields";
-import ConfluenceSourceData from "@ext/confluence/actions/Source/model/ConfluenceSourceData";
+import SelectConfluenceStorageDataFields from "@ext/confluence/core/components/SelectConfluenceStorageDataFields";
 import SelectGitStorageDataFields from "@ext/git/actions/Source/Git/components/SelectGitStorageDataFields";
 import GitHubSourceData from "@ext/git/actions/Source/GitHub/logic/GitHubSourceData";
 import GitlabSourceData from "@ext/git/actions/Source/GitLab/logic/GitlabSourceData";
@@ -21,48 +20,53 @@ import SourceType from "../logic/SourceDataProvider/model/SourceType";
 import getStorageNameByData from "../logic/utils/getStorageNameByData";
 import StorageData from "../models/StorageData";
 import SourceListItem from "./SourceListItem";
+import Mode from "@ext/git/actions/Clone/model/Mode";
+import ConfluenceSourceData from "@ext/confluence/core/model/ConfluenceSourceData";
+import LanguageService from "@core-ui/ContextServices/Language";
 
 interface SelectStorageDataFormProps {
 	title: string;
 	children?: JSX.Element;
-	forClone?: boolean;
+	mode?: Mode;
 	onChange?: (data: StorageData) => void;
 }
 
 const SelectStorageDataForm = (props: SelectStorageDataFormProps) => {
-	const { title, children, forClone, onChange } = props;
+	const { title, children, mode, onChange } = props;
 	const pageProps = PageDataContextService.value;
-	const localizedSource2 = t("source2").toLowerCase();
-	const localizedSource = t("source");
-	const localizedAddNewSource = t("add-new-source");
-	const localizedStorage2 = t("storage2");
-	const localizedStorage = t("storage");
-	const localizedAddNewStorage = t("add-new-storage");
+	const [childrenCloseHandler, setChildrenCloseHandler] = useState<(value: boolean) => void>(() => () => {});
 
-	const storageConfig = useMemo(
-		() => ({
+	const sharedConfig = {
+		placeholderSuffix: t("storage2"),
+		controlLable: t("storage"),
+		sideBarTitle: t("add-new-storage"),
+		filter: (data: SourceData) =>
+			data.sourceType === SourceType.git ||
+			data.sourceType === SourceType.gitHub ||
+			data.sourceType === SourceType.gitLab,
+	};
+
+	const { placeholderSuffix, controlLable, sideBarTitle, filter } = useMemo(() => {
+		const modeConfigs = {
 			import: {
-				placeholderSuffix: localizedSource2,
-				controlLable: localizedSource,
-				sideBarTitle: localizedAddNewSource,
-				filter: (data: SourceData) => data.sourceType === SourceType.confluence,
+				placeholderSuffix: t("source2").toLowerCase(),
+				controlLable: t("source"),
+				sideBarTitle: t("add-new-source"),
+				filter: (data: SourceData) =>
+					data.sourceType === SourceType.confluenceCloud || data.sourceType === SourceType.confluenceServer,
 			},
 			clone: {
-				placeholderSuffix: localizedStorage2,
-				controlLable: localizedStorage,
-				sideBarTitle: localizedAddNewStorage,
-				filter: (data: SourceData) =>
-					data.sourceType === SourceType.git ||
-					data.sourceType === SourceType.gitHub ||
-					data.sourceType === SourceType.gitLab,
+				...sharedConfig,
 			},
-		}),
-		[],
-	);
+			init: {
+				...sharedConfig,
+			},
+		};
 
-	const mode = forClone ?? true ? storageConfig.clone : storageConfig.import;
+		return modeConfigs[mode];
+	}, [LanguageService.currentUi()]);
 
-	const filteredSourceDatas = pageProps.sourceDatas.filter(mode.filter);
+	const filteredSourceDatas = pageProps.sourceDatas.filter(filter);
 
 	const [sourceDatas, setStorageDatas] = useState<SourceData[]>(filteredSourceDatas);
 	const [selectSourceData, setSelectStorageData] = useState<SourceData>(null);
@@ -71,20 +75,21 @@ const SelectStorageDataForm = (props: SelectStorageDataFormProps) => {
 	const addNewStorageListItem: ButtonItem = {
 		element: (
 			<CreateSourceData
-				forClone={forClone}
+				mode={mode}
 				externalIsOpen={externalIsOpen}
 				trigger={
 					<div style={{ width: "100%" }}>
 						<ActionListItem>
 							<div style={{ width: "100%", padding: "6px 11px" }}>
 								<Sidebar
-									title={mode.sideBarTitle + "..."}
+									title={sideBarTitle + "..."}
 									leftActions={[<Icon code="plus" viewBox="3 3 18 18" key={0} />]}
 								/>
 							</div>
 						</ActionListItem>
 					</div>
 				}
+				onOpen={() => childrenCloseHandler(false)}
 				onCreate={(data) => {
 					setSelectStorageData(data);
 					setStorageDatas([...sourceDatas, data]);
@@ -108,10 +113,10 @@ const SelectStorageDataForm = (props: SelectStorageDataFormProps) => {
 				</legend>
 				<fieldset>
 					<div className="form-group field field-string row">
-						<label className="control-label">{mode.controlLable}</label>
+						<label className="control-label">{controlLable}</label>
 						<div className="input-lable">
 							<ListLayout
-								placeholder={`${t("find")} ${mode.placeholderSuffix}`}
+								placeholder={`${t("find")} ${placeholderSuffix}`}
 								item={
 									selectSourceData
 										? {
@@ -126,8 +131,9 @@ const SelectStorageDataForm = (props: SelectStorageDataFormProps) => {
 										: ""
 								}
 								buttons={[addNewStorageListItem]}
+								provideCloseHandler={setChildrenCloseHandler}
 								items={sourceDatas.map((d) => {
-									const disable = !forClone && d.sourceType === SourceType.git;
+									const disable = mode !== Mode.clone && d.sourceType === SourceType.git;
 									return {
 										isTitle: disable,
 										disable: disable,
@@ -147,29 +153,31 @@ const SelectStorageDataForm = (props: SelectStorageDataFormProps) => {
 						<SelectGitStorageDataFields
 							source={selectSourceData as GitSourceData}
 							onChange={onChange}
-							forClone={forClone}
+							mode={mode}
 						/>
 					)}
 					{selectSourceData?.sourceType === SourceType.gitLab && (
 						<SelectGitLabStorageDataFields
 							source={selectSourceData as GitlabSourceData}
 							onChange={onChange}
-							forClone={forClone}
+							mode={mode}
 						/>
 					)}
 					{selectSourceData?.sourceType === SourceType.gitHub && (
 						<SelectGitHubStorageDataFields
 							source={selectSourceData as GitHubSourceData}
 							onChange={onChange}
-							forClone={forClone}
+							mode={mode}
 						/>
 					)}
-					{selectSourceData?.sourceType === SourceType.confluence && (
+					{(selectSourceData?.sourceType === SourceType.confluenceCloud ||
+						selectSourceData?.sourceType === SourceType.confluenceServer) && (
 						<SelectConfluenceStorageDataFields
 							source={selectSourceData as ConfluenceSourceData}
 							onChange={onChange}
 						/>
 					)}
+
 					{children}
 				</fieldset>
 			</>

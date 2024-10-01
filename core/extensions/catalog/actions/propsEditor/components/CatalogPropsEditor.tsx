@@ -9,7 +9,6 @@ import ModalLayoutLight from "@components/Layouts/ModalLayoutLight";
 import MimeTypes from "@core-ui/ApiServices/Types/MimeTypes";
 import ArticlePropsService from "@core-ui/ContextServices/ArticleProps";
 import CatalogPropsService from "@core-ui/ContextServices/CatalogProps";
-import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import { transliterate } from "@core-ui/languageConverter/transliterate";
 import openNewTab from "@core-ui/utils/openNewTab";
 import { useRouter } from "@core/Api/useRouter";
@@ -24,12 +23,13 @@ import GitShareData from "@ext/git/core/model/GitShareData";
 import t from "@ext/localization/locale/translate";
 import getPartGitSourceDataByStorageName from "@ext/storage/logic/utils/getPartSourceDataByStorageName";
 import { JSONSchema7 } from "json-schema";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import FetchService from "../../../../../ui-logic/ApiServices/FetchService";
 import ApiUrlCreatorService from "../../../../../ui-logic/ContextServices/ApiUrlCreator";
 import ErrorHandler from "../../../../errorHandlers/client/components/ErrorHandler";
 import CatalogEditProps from "../model/CatalogEditProps.schema";
 import Schema from "../model/CatalogEditProps.schema.json";
+import useWatch from "@core-ui/hooks/useWatch";
 
 const CatalogPropsEditor = ({
 	trigger,
@@ -49,16 +49,16 @@ const CatalogPropsEditor = ({
 	const [isOpen, setIsOpen] = useState(props.isOpen);
 	const [allCatalogNames, setAllCatalogNames] = useState<string[]>([]);
 
-	useEffect(() => setIsOpen(props.isOpen), [props.isOpen]);
+	useWatch(() => setIsOpen(props.isOpen), [props.isOpen]);
 
 	const router = useRouter();
-	const pageProps = PageDataContextService.value;
 	const articleProps = ArticlePropsService.value;
 	const catalogProps = CatalogPropsService.value;
 	const [generatedUrl, setGeneratedUrl] = useState<string>(catalogProps.name);
 	const [editProps, setEditProps] = useState(getCatalogEditProps(catalogProps));
 	const [saveProcess, setSaveProcess] = useState(false);
 
+	useWatch(() => setEditProps(getCatalogEditProps(catalogProps)), [catalogProps]);
 	const { sourceType } = getPartGitSourceDataByStorageName(catalogProps.sourceName);
 
 	const onSubmit = async (props: CatalogEditProps) => {
@@ -84,6 +84,7 @@ const CatalogPropsEditor = ({
 		);
 
 		onSubmitParent?.(props);
+		setEditProps(getCatalogEditProps(newCatalogProps));
 	};
 
 	const onChange = (props: CatalogEditProps) => {
@@ -148,6 +149,7 @@ const CatalogPropsEditor = ({
 				<ModalLayoutLight>
 					<ErrorHandler>
 						<Form<CatalogEditProps>
+							fieldDirection="row"
 							leftButton={
 								<>
 									{!!sourceType && (
@@ -178,7 +180,6 @@ const CatalogPropsEditor = ({
 							}
 							schema={Schema as JSONSchema7}
 							props={editProps}
-							fieldDirection="row"
 							validateDeps={[allCatalogNames]}
 							validate={({ url, description, code }) => {
 								return {
@@ -199,11 +200,7 @@ const CatalogPropsEditor = ({
 									description: Schema.properties.description,
 									style: Schema.properties.style,
 									code: Schema.properties.code,
-									// __h2: "Приватность",
-									// private: Schema.properties.private,
 								} as any;
-								(schema.properties.docroot as any).readOnly =
-									pageProps.language.content != catalogProps.language;
 								(schema.properties.language as any).readOnly = !!catalogProps.language;
 								(schema.properties.url as any).readOnly = !!sourceType;
 							}}

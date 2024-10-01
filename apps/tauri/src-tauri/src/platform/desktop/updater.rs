@@ -17,6 +17,7 @@ use crate::AppHandleExt;
 
 use super::menu::search_menu;
 use super::menu::MenuItemId;
+use super::save_windows::SaveWindowsExt;
 
 pub trait UpdaterBuilder<R: Runtime> {
   fn setup_updater(&self) -> updater::Result<()>;
@@ -244,7 +245,7 @@ impl<'u, R: Runtime> UpdateInstaller<'u, R> {
   }
 
   fn install(&self, update: &Update, bytes: Vec<u8>) -> updater::Result<()> {
-    super::config::dump_opened_windows(self.app)?;
+    self.app.save_windows()?;
     update.install(bytes)?;
     restart(&self.app.env());
   }

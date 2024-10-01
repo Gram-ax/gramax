@@ -9,6 +9,10 @@ jest.mock("react", () => ({
 	useLayoutEffect: jest.requireActual("react").useEffect,
 }));
 
+jest.mock('next/router', () => ({
+	useRouter: jest.fn()
+}))
+
 describe("MarkdownParser", () => {
 	beforeAll(() => {
 		LanguageService.setUiLanguage(UiLanguage.ru);

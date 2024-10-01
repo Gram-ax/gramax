@@ -1,4 +1,4 @@
-import ConfluenceSourceData from "@ext/confluence/actions/Source/model/ConfluenceSourceData";
+import ConfluenceSourceData from "@ext/confluence/core/model/ConfluenceSourceData";
 import StorageData from "@ext/storage/models/StorageData";
 
 interface ConfluenceStorageData extends StorageData {

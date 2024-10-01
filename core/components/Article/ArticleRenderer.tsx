@@ -18,13 +18,12 @@ interface ArticleRendererProps {
 	data: ArticlePageData;
 	onBlur: ({ editor }: { editor: Editor }) => void;
 	onUpdate: ({ editor }: { editor: Editor }) => void;
-	onSelectionUpdate: ({ editor }: { editor: Editor }) => void;
 	onTitleLoseFocus: ({ newTitle }: { newTitle: string }) => void;
 	handlePaste: (view: EditorView, event: ClipboardEvent, slice: Slice) => boolean;
 }
 
 const ArticleRenderer = (props: ArticleRendererProps) => {
-	const { data, onBlur, onTitleLoseFocus, onUpdate, onSelectionUpdate, handlePaste } = props;
+	const { data, onBlur, onTitleLoseFocus, onUpdate, handlePaste } = props;
 	const isEdit = IsEditService.value;
 	const articleProps = ArticlePropsService.value;
 
@@ -39,7 +38,6 @@ const ArticleRenderer = (props: ArticleRendererProps) => {
 						onTitleLoseFocus={onTitleLoseFocus}
 						onUpdate={onUpdate}
 						handlePaste={handlePaste}
-						onSelectionUpdate={onSelectionUpdate}
 					/>
 				) : (
 					<>

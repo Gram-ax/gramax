@@ -32,7 +32,17 @@ pub fn repo(#[default(&sandbox())] sandbox: &TempDir, #[default("")] url: &str) 
   if url.is_empty() {
     Repo::init(sandbox.path(), TestCreds).unwrap()
   } else {
-    Repo::clone(url, sandbox.path(), Some("master"), TestCreds, |_, _| true).unwrap()
+    Repo::clone(
+      TestCreds,
+      CloneOptions {
+        url: url.to_string(),
+        to: sandbox.path().to_path_buf(),
+        branch: Some("master".to_string()),
+        depth: None,
+      },
+      Box::new(|_| {}),
+    )
+    .unwrap()
   }
 }
 
@@ -53,8 +63,17 @@ pub fn repos(#[default(&sandbox())] sandbox: &TempDir) -> Repos {
 
   let remote = Repo::init(&remote_path, TestCreds).unwrap();
   remote.repo().config().unwrap().set_bool("core.bare", true).unwrap();
-  let local =
-    Repo::clone(remote_path.to_string_lossy(), &local_path, Some("master"), TestCreds, |_, _| true).unwrap();
+  let local = Repo::clone(
+    TestCreds,
+    CloneOptions {
+      url: remote_path.to_string_lossy().to_string(),
+      to: local_path.to_path_buf(),
+      branch: Some("master".to_string()),
+      depth: None,
+    },
+    Box::new(|_| {}),
+  )
+  .unwrap();
 
   Repos { local, local_path, remote, remote_path }
 }

@@ -1,4 +1,5 @@
 import { ItemRef } from "@core/FileStructue/Item/ItemRef";
+import LinkResourceManager from "@core/Link/LinkResourceManager";
 import Path from "../../../../../logic/FileProvider/Path/Path";
 import FileProvider from "../../../../../logic/FileProvider/model/FileProvider";
 import { Article } from "../../../../../logic/FileStructue/Article/Article";
@@ -12,7 +13,7 @@ import MarkdownParser from "../Parser";
 import ParserContext, { BaseContext } from "./ParserContext";
 
 export default class TestContext extends BaseContext implements ParserContext {
-	private _linkManager: ResourceManager;
+	private _linkManager: LinkResourceManager;
 	private _resourceManager: ResourceManager;
 
 	constructor(
@@ -23,7 +24,7 @@ export default class TestContext extends BaseContext implements ParserContext {
 		readonly formatter: MarkdownFormatter,
 	) {
 		super();
-		this._linkManager = new ResourceManager(fp, this._itemRef.path);
+		this._linkManager = new LinkResourceManager(fp, this._itemRef.path);
 		this._resourceManager = new ResourceManager(fp, this._itemRef.path);
 	}
 
@@ -35,7 +36,7 @@ export default class TestContext extends BaseContext implements ParserContext {
 		return this._resourceManager;
 	}
 
-	getLinkManager(): ResourceManager {
+	getLinkManager(): LinkResourceManager {
 		return this._linkManager;
 	}
 

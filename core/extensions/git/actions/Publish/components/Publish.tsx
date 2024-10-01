@@ -1,10 +1,7 @@
-import ArticleUpdaterService from "@components/Article/ArticleUpdater/ArticleUpdaterService";
-import Button from "@components/Atoms/Button/Button";
-import Checkbox from "@components/Atoms/Checkbox";
 import DiffContent from "@components/Atoms/DiffContent";
 import Divider from "@components/Atoms/Divider";
-import Input from "@components/Atoms/Input";
 import SpinnerLoader from "@components/Atoms/SpinnerLoader";
+import LeftNavView from "@components/Layouts/LeftNavViewContent/LeftNavView";
 import LeftNavViewContent, { ViewContent } from "@components/Layouts/LeftNavViewContent/LeftNavViewContent";
 import LogsLayout from "@components/Layouts/LogsLayout";
 import ModalLayout from "@components/Layouts/Modal";
@@ -12,98 +9,154 @@ import FetchService from "@core-ui/ApiServices/FetchService";
 import MimeTypes from "@core-ui/ApiServices/Types/MimeTypes";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import ArticlePropsService from "@core-ui/ContextServices/ArticleProps";
-import CatalogPropsService from "@core-ui/ContextServices/CatalogProps";
-import { refreshPage } from "@core-ui/ContextServices/RefreshPageContext";
-import { useRouter } from "@core/Api/useRouter";
+import useWatch from "@core-ui/hooks/useWatch";
+import { Trigger } from "@core-ui/triggers/useTrigger";
+import useWatchTrigger from "@core-ui/triggers/useWatchTrigger";
 import Path from "@core/FileProvider/Path/Path";
 import styled from "@emotion/styled";
+import DiffItem from "@ext/VersionControl/model/DiffItem";
+import DiffResource from "@ext/VersionControl/model/DiffResource";
+import CommitMsg from "@ext/git/actions/Publish/components/CommitMsg";
+import SelectAllCheckbox from "@ext/git/actions/Publish/components/SelectAllCheckbox";
 import SideBarResource from "@ext/git/actions/Publish/components/SideBarResource";
+import findArticleIdx from "@ext/git/actions/Publish/logic/findArticleIdx";
 import formatComment from "@ext/git/actions/Publish/logic/formatComment";
+import getSideBarData from "@ext/git/actions/Publish/logic/getSideBarData";
+import getSideBarElementByModelIdx from "@ext/git/actions/Publish/logic/getSideBarElementByModelIdx";
 import { useResourceView } from "@ext/git/actions/Publish/logic/useResourceView";
-import t from "@ext/localization/locale/translate";
-import { useEffect, useRef, useState } from "react";
-import DiffItem from "../../../../VersionControl/model/DiffItem";
-import DiffResource from "../../../../VersionControl/model/DiffResource";
-import Discard from "../../Discard/Discard";
+import SideBarResourceData from "@ext/git/actions/Publish/model/SideBarResourceData";
+import { MouseEvent, useEffect, useMemo, useRef, useState } from "react";
 import deleteSideBarDataItem from "../logic/deleteSideBarDataItems";
-import findArticleIdx from "../logic/findArticleIdx";
 import getAllFilePaths from "../logic/getAllFilePaths";
-import getSideBarData from "../logic/getSideBarData";
 import SideBarData from "../model/SideBarData";
 import SideBarArticleActions from "./SideBarArticleActions";
+interface PublishProps {
+	renderLeftSidebarOnly?: boolean;
+	onSideBarDataLoadStart?: () => void;
+	onSideBarDataLoadEnd?: () => void;
+	onSideBarDataLoadError?: () => void;
+	onStartPublish?: () => void;
+	onStopPublish?: () => void;
+	onErrorPublish?: () => void;
+	onStartDiscard?: (paths: string[]) => void;
+	onEndDiscard?: (paths: string[], hasDeleted: boolean) => void;
+	onSideBarDataChange?: (newSideBarData: SideBarData[]) => void;
+	goToArticleOnClick?: (e: MouseEvent) => void;
+	onOpenIdChange?: (idx: number, sideBarElement: SideBarData | SideBarResourceData) => void;
+	tryPublishTrigger?: Trigger;
+	className?: string;
+}
 
-const Publish = styled(
-	({
+const Publish = (props: PublishProps) => {
+	const {
+		renderLeftSidebarOnly = false,
+		onSideBarDataLoadStart,
+		onSideBarDataLoadEnd,
+		onSideBarDataLoadError,
+		onStartPublish,
+		onStopPublish,
+		onErrorPublish,
+		onStartDiscard,
+		onEndDiscard,
+		onSideBarDataChange,
+		goToArticleOnClick,
+		onOpenIdChange,
+		tryPublishTrigger,
 		className,
-		onOpen,
-		onClose,
-	}: {
-		className?: string;
-		onOpen?: () => void;
-		onClose?: (hasPublished: boolean) => void;
-	}) => {
-		const [hasDiscard, setHasDiscard] = useState(false);
-		const [commitMessage, setCommitMessage] = useState<string>(undefined);
-		const [publishProcess, setPublishProcess] = useState(false);
-		const [discardProcess, setDiscardProcess] = useState(false);
-		const [contentEditable, setContentEditable] = useState(true);
+	} = props;
 
-		const [openId, setOpenId] = useState(0);
-		const [isOpen, setIsOpen] = useState(true);
+	const [sideBarData, setSideBarData] = useState<SideBarData[]>(null);
+	const [commitMessage, setCommitMessage] = useState<string>(undefined);
+	const [openId, setOpenId] = useState(0);
 
-		const [logicPaths, setLogicPaths] = useState<string[]>(null);
-		const [sideBarData, setSideBarData] = useState<SideBarData[]>(null);
+	const [publishProcess, setPublishProcess] = useState(false);
+	const [discardProcess, setDiscardProcess] = useState(false);
 
-		const [fileCountToShow, setFileCountToShow] = useState<number>(0);
-		const [filePaths, setFilePaths] = useState<string[]>([]);
+	const fileCountToShow = useMemo(() => getAllFilePaths(sideBarData, false).length, [sideBarData]);
+	const filePaths = useMemo(() => getAllFilePaths(sideBarData), [sideBarData]);
 
-		const [checkAll, setCheckAll] = useState(true);
+	const commitMessagePlaceholder = useMemo(() => formatComment(sideBarData), [sideBarData]);
+	const placeholder = commitMessagePlaceholder.split("\n\n")[0];
 
-		const inputRef = useRef<HTMLInputElement>(null);
-		const [hasFocused, setHasFocused] = useState(false);
+	const [checkAll, setCheckAll] = useState(true);
 
-		const articleProps = ArticlePropsService.value;
-		const catalogProps = CatalogPropsService.value;
-		const apiUrlCreator = ApiUrlCreatorService.value;
+	const inputRef = useRef<HTMLInputElement>(null);
+	const hasFocused = useRef(false);
 
-		const publishText = t("publish");
-		const selectAllText = t("select-all");
-		const [commitMessagePlaceholder, setCommitMessagePlaceholder] = useState("");
-		const placeholder = commitMessagePlaceholder.split("\n\n")[0];
+	const apiUrlCreator = ApiUrlCreatorService.value;
+	const articleProps = ArticlePropsService.value;
 
-		const router = useRouter();
-		const diffItemsUrl = apiUrlCreator.getVersionControlDiffItemsUrl();
+	const canPublish = !publishProcess && fileCountToShow && commitMessage != "";
 
-		const hasPublished = useRef(false);
+	const setOpenIdWrapper = (idx: number, sideBarData: SideBarData[]) => {
+		const { idx: newIdx, sideBarDataElement } = getSideBarElementByModelIdx(idx, sideBarData);
+		setOpenId(newIdx);
+		onOpenIdChange?.(newIdx, sideBarDataElement);
+	};
 
-		const canPublish = !publishProcess && fileCountToShow && commitMessage != "";
+	const setSideBarDataWrapper = (newSideBarData: SideBarData[]) => {
+		setSideBarData(newSideBarData);
+		onSideBarDataChange?.(newSideBarData);
+	};
 
-		const publish = async () => {
-			setContentEditable(false);
-			const publishUrl = apiUrlCreator.getStoragePublishUrl(
-				commitMessage?.length > 0 ? commitMessage : commitMessagePlaceholder,
-			);
-			setPublishProcess(true);
-			const response = await FetchService.fetch(publishUrl, JSON.stringify(filePaths), MimeTypes.json);
-			setPublishProcess(false);
-			if (!response.ok) {
-				setContentEditable(true);
-				return;
-			}
-			hasPublished.current = true;
-			setIsOpen(false);
-		};
+	const onStartDiscardWrapper = (paths: string[]) => {
+		setDiscardProcess(true);
+		onStartDiscard?.(paths);
+	};
+	const onEndDiscardWrapper = (paths: string[], hasDeleted: boolean) => {
+		setDiscardProcess(false);
+		onEndDiscard?.(paths, hasDeleted);
+	};
 
+	const publish = async () => {
+		const publishUrl = apiUrlCreator.getStoragePublishUrl(
+			commitMessage?.length > 0 ? commitMessage : commitMessagePlaceholder,
+		);
+		setPublishProcess(true);
+		onStartPublish?.();
+		const response = await FetchService.fetch(publishUrl, JSON.stringify(filePaths), MimeTypes.json);
+		setPublishProcess(false);
+		if (!response.ok) return onErrorPublish?.();
+		onStopPublish?.();
+	};
+
+	useWatch(() => {
+		if (!sideBarData) return;
+
+		setCheckAll(
+			sideBarData
+				.filter((x) => x)
+				.map((x) => x.data.isChecked)
+				.every((x) => x),
+		);
+
+		if (sideBarData.length && (!sideBarData[0] || !sideBarData[sideBarData.length - 1]))
+			setSideBarDataWrapper(sideBarData.filter((x) => x));
+	}, [sideBarData]);
+
+	useWatchTrigger(() => {
+		if (canPublish) void publish();
+	}, tryPublishTrigger);
+
+	useEffect(() => {
+		if (!sideBarData || hasFocused.current) return;
+		inputRef.current?.focus();
+		hasFocused.current = true;
+	}, [sideBarData]);
+
+	useEffect(() => {
 		const getDiffItemsData = async () => {
-			const response = await FetchService.fetch<{ items: DiffItem[]; resources: DiffResource[] }>(diffItemsUrl);
-			if (!response.ok) {
-				setIsOpen(false);
-				return;
-			}
+			onSideBarDataLoadStart?.();
+			const response = await FetchService.fetch<{ items: DiffItem[]; resources: DiffResource[] }>(
+				apiUrlCreator.getVersionControlDiffItemsUrl(),
+			);
+
+			if (!response.ok) return onSideBarDataLoadError?.();
 
 			const diffItemsData = await response.json();
-			const itemDiffs = getSideBarData(diffItemsData?.items ?? [], checkAll);
-			const anyFileDiffs = getSideBarData(diffItemsData?.resources ?? [], checkAll);
+			onSideBarDataLoadEnd?.();
+			const itemDiffs = getSideBarData(diffItemsData?.items ?? [], true);
+			const anyFileDiffs = getSideBarData(diffItemsData?.resources ?? [], true);
 			const currentSideBarData: SideBarData[] = [];
 
 			if (itemDiffs.length && anyFileDiffs.length) {
@@ -114,300 +167,171 @@ const Publish = styled(
 			}
 
 			const currentLogicPaths = itemDiffs.map((sideBarItem) => sideBarItem.data.logicPath);
-			setLogicPaths(currentLogicPaths);
-			setSideBarData(currentSideBarData);
-			setOpenId(findArticleIdx(articleProps.pathname, currentLogicPaths));
+			setSideBarDataWrapper(currentSideBarData);
+			setOpenIdWrapper(findArticleIdx(articleProps.pathname, currentLogicPaths), currentSideBarData);
+		};
+		void getDiffItemsData();
+	}, []);
+
+	const spinnerLoader = (
+		<LogsLayout style={{ overflow: "hidden" }}>
+			<SpinnerLoader fullScreen />
+		</LogsLayout>
+	);
+
+	if (!sideBarData) return spinnerLoader;
+
+	const sideBarTop = (
+		<SelectAllCheckbox
+			className="sidebar-top-element"
+			checked={checkAll}
+			onCheckboxClick={(isChecked) => {
+				const newSideBarData = [...sideBarData];
+				newSideBarData.forEach((item) => {
+					if (!item) return;
+					item.data.isChecked = isChecked;
+				});
+				setSideBarDataWrapper(newSideBarData);
+			}}
+			onCheckboxChange={(isChecked) => setCheckAll(isChecked)}
+			showDiscardAllButton={fileCountToShow > 0}
+			filePathsToDiscard={filePaths}
+			onStartDiscard={(paths) => onStartDiscardWrapper(paths)}
+			onEndDiscard={(paths) => {
+				onEndDiscardWrapper(paths, true);
+				if (!paths.length) return;
+				const filteredSideBarData = sideBarData.filter((d) =>
+					!d ? true : !paths.includes(d.data.filePath.path),
+				);
+				setSideBarDataWrapper(filteredSideBarData);
+				setOpenIdWrapper(openId, filteredSideBarData);
+			}}
+		/>
+	);
+
+	const sideBarBottom = (
+		<CommitMsg
+			className="sidebar-bottom-element"
+			commitMessagePlaceholder={placeholder}
+			commitMessageValue={commitMessage ?? placeholder}
+			disableCommitInput={!canPublish}
+			disablePublishButton={!canPublish}
+			fileCount={fileCountToShow}
+			onCommitMessageChange={(msg) => setCommitMessage(msg)}
+			onPublishClick={publish}
+		/>
+	);
+
+	const emptyElement: ViewContent[] = [{ leftSidebar: <div></div>, clickable: false, content: <div></div> }];
+
+	const sideBarDataElements: ViewContent[] = sideBarData.flatMap((x, idx) => {
+		if (!x) {
+			return {
+				leftSidebar: (
+					<div className="left-sidebar-divider">
+						<Divider />
+					</div>
+				),
+				clickable: false,
+			};
+		}
+		const item: ViewContent = {
+			leftSidebar: (
+				<SideBarArticleActions
+					{...x.data}
+					checked={x.data.isChecked}
+					addedCounter={x.diff?.added}
+					removedCounter={x.diff?.removed}
+					onChangeCheckbox={(isChecked) => {
+						const newSideBarData = [...sideBarData];
+						newSideBarData[idx].data.isChecked = isChecked;
+						setSideBarDataWrapper(newSideBarData);
+					}}
+					onStartDiscard={(paths) => onStartDiscardWrapper(paths)}
+					onEndDiscard={(paths) => {
+						const { sideBarData: editedSideBarData, hasDeleted } = deleteSideBarDataItem(
+							sideBarData,
+							paths,
+						);
+						onEndDiscardWrapper(paths, hasDeleted);
+						setSideBarDataWrapper(editedSideBarData);
+						setOpenIdWrapper(idx, editedSideBarData);
+					}}
+					goToArticleOnClick={goToArticleOnClick}
+				/>
+			),
+			content: (
+				<div className={className}>
+					<div className="diff-content">
+						<DiffContent showDiff={true} changes={x.diff?.changes ?? []} />
+					</div>
+				</div>
+			),
 		};
 
-		useEffect(() => {
-			if (!sideBarData) return;
-			if (!hasFocused) {
-				inputRef.current?.focus();
-				setHasFocused(true);
-			}
+		const resourceApi = apiUrlCreator.fromArticle(x.data.filePath.path);
+		const relativeTo = new Path(x.data.filePath.path);
+		return x.data.resources
+			? [
+					item,
+					...x.data.resources.map((resource, id) => ({
+						leftSidebar: (
+							<div style={{ padding: "1rem 1rem 1rem 0" }}>
+								<SideBarResource changeType={x.data.changeType} title={resource.title} />
+							</div>
+						),
+						content: <>{useResourceView(id, resourceApi, resource, relativeTo)}</>,
+					})),
+			  ]
+			: item;
+	});
 
-			setFilePaths(getAllFilePaths(sideBarData));
-			setFileCountToShow(getAllFilePaths(sideBarData, false).length);
-			setCommitMessagePlaceholder(formatComment(sideBarData));
+	const elements = sideBarData.length ? sideBarDataElements : emptyElement;
 
-			setCheckAll(
-				sideBarData
-					.filter((x) => x)
-					.map((x) => x.data.isChecked)
-					.every((x) => x),
-			);
-		}, [sideBarData]);
+	return (
+		<>
+			<ModalLayout isOpen={publishProcess || discardProcess}>{spinnerLoader}</ModalLayout>
+			<div className={className}>
+				{renderLeftSidebarOnly ? (
+					<LeftNavView
+						elements={elements}
+						sideBarTop={sideBarTop}
+						sideBarBottom={sideBarBottom}
+						currentIdx={openId}
+						onLeftSidebarClick={(idx) => {
+							setOpenIdWrapper(idx, sideBarData);
+						}}
+					/>
+				) : (
+					<LeftNavViewContent
+						elements={elements}
+						sideBarTop={sideBarTop}
+						sideBarBottom={sideBarBottom}
+						currentIdx={openId}
+						onLeftSidebarClick={(idx) => {
+							setOpenIdWrapper(idx, sideBarData);
+						}}
+					/>
+				)}
+			</div>
+		</>
+	);
+};
 
-		useEffect(() => {
-			if (!articleProps.logicPath || !logicPaths) return;
-			setOpenId(findArticleIdx(articleProps.logicPath, logicPaths));
-		}, [articleProps.logicPath]);
+export default styled(Publish)`
+	height: 100%;
 
-		useEffect(() => {
-			if (!sideBarData) return;
-			if (!sideBarData[0] || !sideBarData[sideBarData.length - 1]) setSideBarData(sideBarData.filter((x) => x));
-			if (sideBarData.filter((x) => x).length === 0 && hasDiscard) setIsOpen(false);
-		}, [sideBarData?.length, hasDiscard]);
-
-		useEffect(() => {
-			setIsOpen(true);
-			getDiffItemsData();
-			onOpen?.();
-		}, []);
-
-		const spinnerLoader = (
-			<LogsLayout style={{ overflow: "hidden" }}>
-				<SpinnerLoader fullScreen />
-			</LogsLayout>
-		);
-
-		return (
-			<ModalLayout
-				isOpen={isOpen}
-				onClose={async () => {
-					if (hasDiscard) {
-						refreshPage();
-						await ArticleUpdaterService.update(apiUrlCreator);
-						router.pushPath(catalogProps.link.pathname);
-					}
-					onClose?.(hasPublished.current);
-					setContentEditable(true);
-					setPublishProcess(false);
-					setHasFocused(false);
-					setCommitMessage(undefined);
-					setSideBarData(null);
-					setHasDiscard(false);
-					setIsOpen(false);
-					setCheckAll(true);
-					hasPublished.current = false;
-				}}
-				onCmdEnter={() => {
-					if (canPublish) publish();
-				}}
-				className={"commit-modal " + className}
-				contentWidth={sideBarData ? "L" : null}
-			>
-				<>
-					<ModalLayout isOpen={publishProcess || discardProcess}>{spinnerLoader}</ModalLayout>
-					{sideBarData === null ? (
-						spinnerLoader
-					) : (
-						<div>
-							<LeftNavViewContent
-								elements={sideBarData.flatMap((x, idx) => {
-									if (!x) {
-										return {
-											leftSidebar: (
-												<div style={{ padding: "1rem" }}>
-													<Divider />
-												</div>
-											),
-											clickable: false,
-										};
-									}
-									const item: ViewContent = {
-										leftSidebar: (
-											<SideBarArticleActions
-												{...x.data}
-												checked={x.data.isChecked}
-												addedCounter={x.diff?.added}
-												removedCounter={x.diff?.removed}
-												onChangeCheckbox={(isChecked) => {
-													const newSideBarData = [...sideBarData];
-													newSideBarData[idx].data.isChecked = isChecked;
-													setSideBarData(newSideBarData);
-												}}
-												onStartDiscard={() => setDiscardProcess(true)}
-												onEndDiscard={(paths) => {
-													setDiscardProcess(false);
-													const { sideBarData: editedSideBarData, hasDeleted } =
-														deleteSideBarDataItem(sideBarData, paths);
-													setSideBarData(editedSideBarData);
-													setHasDiscard(hasDeleted);
-												}}
-												goToArticleOnClick={() => setIsOpen(false)}
-											/>
-										),
-										content: (
-											<div className={className}>
-												<div className="diff-content">
-													<DiffContent showDiff={true} changes={x.diff?.changes ?? []} />
-												</div>
-											</div>
-										),
-									};
-
-									const resourceApi = apiUrlCreator.fromArticle(x.data.filePath.path);
-									const relativeTo = new Path(x.data.filePath.path);
-									return x.data.resources
-										? [
-												item,
-												...x.data.resources.map((resource, id) => ({
-													leftSidebar: (
-														<div style={{ padding: "1rem 1rem 1rem 0" }}>
-															<SideBarResource
-																changeType={x.data.changeType}
-																title={resource.title}
-															/>
-														</div>
-													),
-													content: (
-														<>{useResourceView(id, resourceApi, resource, relativeTo)}</>
-													),
-												})),
-										  ]
-										: item;
-								})}
-								sideBarTop={
-									<div className="select-all" data-qa="qa-clickable">
-										<div className="select-all-checkbox">
-											<Checkbox
-												checked={checkAll}
-												onClick={(isChecked) => {
-													const newSideBarData = [...sideBarData];
-													newSideBarData.forEach((item) => {
-														if (!item) return;
-														item.data.isChecked = isChecked;
-													});
-													setSideBarData(newSideBarData);
-												}}
-												onChange={(isChecked) => setCheckAll(isChecked)}
-											>
-												<p className="select-all-text" style={{ userSelect: "none" }}>
-													{selectAllText}
-												</p>
-											</Checkbox>
-											{fileCountToShow > 0 && (
-												<div className="discard-all">
-													<Discard
-														paths={filePaths}
-														selectedText
-														onStartDiscard={() => setDiscardProcess(true)}
-														onEndDiscard={(paths) => {
-															setDiscardProcess(false);
-															if (!paths.length) return;
-															setSideBarData(
-																sideBarData.filter((d) =>
-																	!d ? true : !paths.includes(d.data.filePath.path),
-																),
-															);
-															setHasDiscard(true);
-														}}
-													/>
-												</div>
-											)}
-										</div>
-										<div className="divider">
-											<Divider />
-										</div>
-									</div>
-								}
-								sideBarBottom={
-									<div className="commit-action">
-										<Input
-											ref={inputRef}
-											isCode
-											value={commitMessage ?? placeholder}
-											onFocus={(e) => {
-												if (e.currentTarget.value == placeholder) e.currentTarget.select();
-											}}
-											onChange={(e) => {
-												setCommitMessage(
-													e.currentTarget.value == placeholder
-														? undefined
-														: e.currentTarget.value,
-												);
-											}}
-											disabled={!contentEditable}
-											placeholder={t("commit-message")}
-										/>
-										<div className="commit-button">
-											<Button onClick={publish} disabled={!canPublish} fullWidth>
-												{publishText}
-												{fileCountToShow > 0 && ` (${fileCountToShow})`}
-											</Button>
-										</div>
-									</div>
-								}
-								currentIdx={openId}
-							/>
-						</div>
-					)}
-				</>
-			</ModalLayout>
-		);
-	},
-)`
 	.diff-content {
 		padding: 20px;
 	}
 
-	.commit-button {
-		margin-top: 1rem;
-	}
-
-	.divider {
-		padding-top: 1rem;
-	}
-
-	.commit-action,
-	.select-all {
-		padding: 1rem;
+	.sidebar-top-element,
+	.sidebar-bottom-element {
 		background: var(--color-menu-bg);
+		padding: 1rem;
 	}
 
-	.select-all {
-		border-radius: 4px 0px 0px 0px;
-	}
-
-	.select-all-checkbox {
-		display: flex;
-		min-width: 100%;
-		width: fit-content;
-		flex-direction: row;
-		justify-content: space-between;
-		color: var(--color-primary-general);
-	}
-
-	.discard-all a {
-		color: var(--color-primary-general);
-		:hover {
-			color: var(--color-primary);
-		}
-	}
-
-	.commit-action {
-		border-radius: 0px 0px 0px 4px;
-
-		input {
-			word-wrap: break-word;
-		}
-	}
-
-	.no-changes-text {
-		color: var(--color-article-text);
-		text-align: center;
-	}
-
-	.select-all-text {
-		color: var(--color-primary-general);
-	}
-
-	.select-all-text:hover {
-		color: var(--color-primary);
-	}
-
-	.select-all-checkbox {
-		a {
-			font-weight: 300;
-			color: var(--color-primary-general);
-			text-decoration: none;
-		}
-
-		a:hover {
-			color: var(--color-primary);
-		}
+	.left-sidebar-divider {
+		padding: 1rem;
 	}
 `;
-
-export default Publish;

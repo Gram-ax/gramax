@@ -2,23 +2,23 @@ import { classNames } from "@components/libs/classNames";
 import { cssMedia } from "@core-ui/utils/cssUtils";
 import styled from "@emotion/styled";
 
-const FormStyle = styled(
-	({
-		className,
-		children,
-	}: {
-		padding?: string;
-		overflow?: boolean;
-		height?: string;
-		className?: string;
-		formDirection?: "row" | "column";
-		children?: JSX.Element;
-	}) => (
-		<div className={classNames("form-layout", {}, [className])}>
-			<div style={{ height: "100%" }}>{children}</div>
-		</div>
-	),
-)`
+interface FormStyleProps {
+	padding?: string;
+	overflow?: boolean;
+	height?: string;
+	className?: string;
+	formDirection?: "row" | "column";
+	fieldDirection?: "row" | "column";
+	children?: JSX.Element;
+}
+
+const FormStyle = ({ className, children }: FormStyleProps) => (
+	<div className={classNames("form-layout", {}, [className])}>
+		<div style={{ height: "100%" }}>{children}</div>
+	</div>
+);
+
+export default styled(FormStyle)`
 	height: ${(p) => p.height ?? "100%"};
 	width: 100%;
 	max-height: 100%;
@@ -124,7 +124,7 @@ const FormStyle = styled(
 				}
 
 				> div:last-child {
-					flex: 0.6;
+					flex: ${(p) => (!p?.fieldDirection || p?.fieldDirection === "row" ? "0.6" : "1")};
 					font-size: 12px;
 					color: var(--color-text-main);
 
@@ -171,5 +171,3 @@ const FormStyle = styled(
 		text-decoration: underline;
 	}
 `;
-
-export default FormStyle;

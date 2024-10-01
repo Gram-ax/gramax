@@ -1,10 +1,10 @@
 import doc from "@ext/markdown/elements/article/edit/doc";
 import blockquote from "@ext/markdown/elements/blockquote/editor/model/blockquoteSchema";
 import br from "@ext/markdown/elements/br/edit/model/brSchema";
+import code_block from "@ext/markdown/elements/codeBlockLowlight/edit/model/schema";
 import comment from "@ext/markdown/elements/comment/edit/model/commentSchema";
 import answer from "@ext/markdown/elements/comment/legacy/answer/edit/answerSchema";
 import comment_old from "@ext/markdown/elements/comment/legacy/comment/commentShema";
-import unsupported from "@ext/markdown/elements/unsupported/edit/model/unsupportedSchema";
 import cut from "@ext/markdown/elements/cut/edit/model/cutSchema";
 import inlineCut_component from "@ext/markdown/elements/cut/edit/model/inlineCutSchema";
 import c4Diagram from "@ext/markdown/elements/diagrams/diagrams/c4Diagram/c4DiagramSchema";
@@ -14,9 +14,9 @@ import tsDiagram from "@ext/markdown/elements/diagrams/diagrams/tsDiagram/tsDiag
 import diagrams from "@ext/markdown/elements/diagrams/edit/models/diagramsSchema";
 import drawio from "@ext/markdown/elements/drawio/edit/model/drawioSchema";
 import error from "@ext/markdown/elements/error/editor/model/errorSchema";
-import code_block from "@ext/markdown/elements/codeBlockLowlight/edit/model/schema";
 import heading from "@ext/markdown/elements/heading/edit/model/headingSchema";
 import horizontal_rule from "@ext/markdown/elements/hr/edit/model/hrSchema";
+import html from "@ext/markdown/elements/html/edit/models/htmlSchema";
 import icon from "@ext/markdown/elements/icon/edit/model/iconSchema";
 import imageSchema from "@ext/markdown/elements/image/edit/model/imageSchema";
 import link from "@ext/markdown/elements/link/edit/model/linkSchema";
@@ -32,9 +32,10 @@ import * as table_simple from "@ext/markdown/elements/table/edit/model/simpleTab
 import * as table from "@ext/markdown/elements/table/edit/model/tableSchema";
 import tabSchema from "@ext/markdown/elements/tabs/edit/model/tab/tabSchema";
 import tabsSchema from "@ext/markdown/elements/tabs/edit/model/tabs/tabsSchema";
+import unsupported from "@ext/markdown/elements/unsupported/edit/model/unsupportedSchema";
 import video from "@ext/markdown/elements/video/edit/model/videoSchema";
+import suggestion from "@ext/StyleGuide/extension/suggestionSchema";
 import { Schema } from "prosemirror-model";
-import html from "@ext/markdown/elements/html/edit/models/htmlSchema";
 
 export const schema = new Schema({
 	nodes: {
@@ -87,6 +88,7 @@ export const schema = new Schema({
 	marks: {
 		link,
 		comment,
+		suggestion,
 		s: {},
 		em: {},
 		code: {},

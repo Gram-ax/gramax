@@ -59,7 +59,7 @@ const ImageEditor = (props: EditorProps & { className?: string; style?: CSSPrope
 		saveChanges: t("save-changes"),
 		dontSave: t("dont-save"),
 		unsavedChanges: t("unsaved-changes"),
-		closeWithChanges: t("close-with-changes"),
+		exitEditMode: t("exit-edit-mode"),
 		apply: t("apply"),
 		saveAndExit: t("save-and-exit"),
 	};
@@ -524,7 +524,7 @@ const ImageEditor = (props: EditorProps & { className?: string; style?: CSSPrope
 							actionButton={{ onClick: () => saveData(true), text: messages.saveChanges }}
 							closeButton={{ text: messages.cancel }}
 						>
-							<span>{messages.closeWithChanges}</span>
+							<span>{messages.exitEditMode}</span>
 						</InfoModalForm>
 					</div>
 				</div>

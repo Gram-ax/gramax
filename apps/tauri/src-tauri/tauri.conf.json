@@ -65,11 +65,12 @@
 			"allowDowngrades": true,
 			"certificateThumbprint": null,
 			"digestAlgorithm": null,
-			"nsis": null,
-			"signCommand": null,
+			"nsis": {
+				"installerIcon": "icons/icon.ico"
+			},
+			"signCommand": "sign.sh --win %1",
 			"timestampUrl": null,
-			"tsp": false,
-			"webviewFixedRuntimePath": null,
+			"tsp": true,
 			"webviewInstallMode": {
 				"type": "embedBootstrapper",
 				"silent": false

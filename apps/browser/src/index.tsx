@@ -7,12 +7,19 @@ import "../../../core/styles/swagger-ui-theme.css";
 import "../../../core/styles/vars.css";
 
 import { createRoot } from "react-dom/client";
-import App from "./App";
+import { AppDesktopGuard } from "./AppDesktopGuard";
 import * as debug from "./debug";
+
+declare global {
+	interface Window {
+		desktopOpened?: boolean;
+	}
+}
 
 (window as any).debug = debug;
 
 const container = document.getElementById("root");
 
 const root = createRoot(container);
-root.render(<App />);
+
+root.render(<AppDesktopGuard />);

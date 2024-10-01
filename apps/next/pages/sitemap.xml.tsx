@@ -1,35 +1,34 @@
-import fs from "fs";
-import { GetServerSideProps } from "next";
-import Error from "next/error";
-import path from "path";
+import { MainMiddleware } from "@core/Api/middleware/MainMiddleware";
+import HiddenRules from "@core/FileStructue/Rules/HiddenRules/HiddenRule";
+import SEOGenerator from "@core/Sitemap/SEOGenerator";
+import SecurityRules from "@ext/security/logic/SecurityRules";
+import { ApplyApiMiddleware } from "apps/next/logic/Api/ApplyMiddleware";
 
-const Sitemap = ({ notFound }: { notFound: boolean }) => {
-	if (notFound) {
-		return <Error statusCode={404} />;
-	}
+const Sitemap = () => {
 	return null;
 };
 
-// eslint-disable-next-line @typescript-eslint/require-await
-export const getServerSideProps: GetServerSideProps = async ({ res }) => {
-	const filePath = path.join(process.cwd(), "../../public", "sitemap.xml");
-
-	if (!fs.existsSync(filePath)) {
-		res.statusCode = 404;
-		return {
-			props: { notFound: true },
-		};
-	}
-
-	const sitemap = fs.readFileSync(filePath, "utf8");
-
-	res.setHeader("Content-Type", "application/xml");
-	res.write(sitemap);
-	res.end();
+export async function getServerSideProps({ req, res }) {
+	await ApplyApiMiddleware(
+		async function (req, res: any) {
+			const ctx = this.app.contextFactory.from(req, res, req.query);
+			const filters = [new HiddenRules().getItemFilter(), new SecurityRules(ctx.user).getItemFilter()];
+			const basePath = this.app.conf.basePath ?? "";
+			const workspace = this.app.wm.current();
+			const sitemapIndex = await new SEOGenerator(workspace, filters).generateSitemapIndex(
+				`${ctx.domain}${basePath}/api/sitemap`,
+			);
+			res.setHeader("Content-Type", "application/xml; charset=utf-8");
+			res.setHeader("Access-Control-Allow-Origin", "*");
+			res.write(sitemapIndex);
+			res.end();
+		},
+		[new MainMiddleware()],
+	)(req, res);
 
 	return {
-		props: { notFound: false },
+		props: {},
 	};
-};
+}
 
 export default Sitemap;

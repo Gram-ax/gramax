@@ -1,7 +1,6 @@
 import { ContextFactory } from "@core/Context/ContextFactory";
 import Path from "@core/FileProvider/Path/Path";
 import Hash from "@core/Hash/Hash";
-import PluginProvider from "@core/Plugin/logic/PluginProvider";
 import type ResourceUpdaterFactory from "@core/Resource/ResourceUpdaterFactory";
 import CustomArticlePresenter from "@core/SitePresenter/CustomArticlePresenter";
 import SitePresenterFactory from "@core/SitePresenter/SitePresenterFactory";
@@ -18,6 +17,7 @@ import ParserContextFactory from "@ext/markdown/core/Parser/ParserContext/Parser
 import MarkdownFormatter from "@ext/markdown/core/edit/logic/Formatter/Formatter";
 import AuthManager from "@ext/security/logic/AuthManager";
 import { TicketManager } from "@ext/security/logic/TicketManager/TicketManager";
+import Searcher from "@ext/serach/Searcher";
 import type WorkspaceManager from "@ext/workspace/WorkspaceManager";
 
 interface Application {
@@ -28,6 +28,7 @@ interface Application {
 	am: AuthManager;
 	tm: ThemeManager;
 	mp: MailProvider;
+	searcher: Searcher;
 	parser: MarkdownParser;
 	htmlParser: HtmlParser;
 	tablesManager: TableDB;
@@ -35,7 +36,6 @@ interface Application {
 	rp: GitRepositoryProvider;
 	formatter: MarkdownFormatter;
 	ticketManager: TicketManager;
-	pluginProvider: PluginProvider;
 	contextFactory: ContextFactory;
 	parserContextFactory: ParserContextFactory;
 	sitePresenterFactory: SitePresenterFactory;

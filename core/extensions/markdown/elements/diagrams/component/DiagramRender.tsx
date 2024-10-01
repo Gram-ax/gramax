@@ -17,6 +17,7 @@ interface DiagramProps {
 	dataFocusable?: boolean;
 	title?: string;
 	downloadSrc?: string;
+	isFrozen?: boolean;
 }
 
 const DiagramRender = forwardRef((props: DiagramProps, ref?: MutableRefObject<HTMLDivElement>) => {
@@ -25,6 +26,7 @@ const DiagramRender = forwardRef((props: DiagramProps, ref?: MutableRefObject<HT
 		error,
 		diagramName,
 		className,
+		isFrozen,
 		background = true,
 		dataFocusable = true,
 		title,
@@ -52,6 +54,7 @@ const DiagramRender = forwardRef((props: DiagramProps, ref?: MutableRefObject<HT
 		);
 
 	if (error) return <DiagramError error={error} diagramName={diagramName} />;
+
 	return (
 		<div
 			className={classNames(`${className} diagram-image`, { "diagram-background": background })}
@@ -77,7 +80,7 @@ const DiagramRender = forwardRef((props: DiagramProps, ref?: MutableRefObject<HT
 			)}
 			<div
 				ref={ref}
-				className={`${className} ${diagramName}-diagram`}
+				className={classNames(className, { isFrozen }, [`${diagramName}-diagram`])}
 				contentEditable={false}
 				onClick={() => setOpen(true)}
 				dangerouslySetInnerHTML={{ __html: data }}
@@ -103,6 +106,10 @@ export default styled(DiagramRender)`
 			? ``
 			: "";
 	}}
+
+	.isFrozen {
+		opacity: 0.4;
+	}
 
 	svg {
 		background: none !important;

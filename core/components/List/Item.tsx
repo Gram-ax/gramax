@@ -1,6 +1,8 @@
+import SpinnerLoader from "@components/Atoms/SpinnerLoader";
 import { classNames } from "@components/libs/classNames";
 import styled from "@emotion/styled";
-import { ForwardedRef, HTMLAttributes, MouseEventHandler, ReactNode, forwardRef, ReactElement } from "react";
+import t from "@ext/localization/locale/translate";
+import { ForwardedRef, forwardRef, HTMLAttributes, MouseEventHandler, ReactElement, ReactNode } from "react";
 
 export type ItemContent = ListItem | ButtonItem | string;
 
@@ -11,6 +13,7 @@ export interface ListItem {
 	tooltipDisabledContent?: ReactNode;
 	isTitle?: boolean;
 	value?: string;
+	loading?: boolean;
 }
 
 export interface ButtonItem extends ListItem {
@@ -23,16 +26,29 @@ interface ItemProps extends Omit<HTMLAttributes<HTMLDivElement>, "content"> {
 	content: ItemContent;
 	disable?: boolean;
 	isActive?: boolean;
+	isLoading?: boolean;
 	onHover?: () => void;
 	onClick?: MouseEventHandler<HTMLDivElement>;
 }
 
 const Item = forwardRef((props: ItemProps, ref: ForwardedRef<HTMLDivElement>) => {
-	const { disable = false, className, isActive, content, onHover, onClick, ...otherProps } = props;
+	const { disable = false, isLoading, className, isActive, content, onHover, onClick, ...otherProps } = props;
 
 	const mods = {
 		active: isActive,
 		disable,
+	};
+
+	const getContent = () => {
+		if (isLoading)
+			return (
+				<div className="loading-element">
+					<SpinnerLoader width={14} height={14} />
+					&nbsp;
+					<span>{t("loading")}</span>
+				</div>
+			);
+		return typeof content === "string" ? content : content.element;
 	};
 
 	return (
@@ -44,7 +60,7 @@ const Item = forwardRef((props: ItemProps, ref: ForwardedRef<HTMLDivElement>) =>
 			className={classNames("item", mods, [className])}
 			{...otherProps}
 		>
-			{typeof content === "string" ? content : content.element}
+			{getContent()}
 		</div>
 	);
 });
@@ -56,12 +72,29 @@ export default styled(Item)`
 	line-height: 20px;
 	font-size: 14px;
 	color: var(--color-article-heading-text);
-	${(p) => (typeof p.content === "string" || typeof p.content?.element === "string" ? "padding: 6px 12px;" : "")}
+	${(p) =>
+		typeof p.content === "string" ||
+		typeof p.content?.element === "string" ||
+		(typeof p.content !== "string" && p.content.loading)
+			? "padding: 6px 12px;"
+			: ""}
 
-	${(p) => (p.isActive ? "cursor: pointer; background: var(--color-lev-sidebar-hover);" : "")}
-	
+	&.active {
+		cursor: pointer;
+		background: var(--color-lev-sidebar-hover);
+	}
+
 	&.disable {
 		cursor: unset;
 		pointer-events: none;
+	}
+
+	.loading-element {
+		display: flex;
+		align-items: center;
+
+		span {
+			line-height: normal;
+		}
 	}
 `;

@@ -8,6 +8,7 @@ import Tooltip from "@components/Atoms/Tooltip";
 import ButtonsLayout from "@components/Layouts/ButtonLayout";
 import ModalLayoutDark from "@components/Layouts/ModalLayoutDark";
 import { useState } from "react";
+import HTMLMenuButton from "@ext/markdown/elements/html/edit/components/HTMLMenuButton";
 
 const SemiBlocks = ({ editor }: { editor?: Editor }) => {
 	const tabs = ButtonStateService.useCurrentAction({ action: "tabs" });
@@ -34,6 +35,7 @@ const SemiBlocks = ({ editor }: { editor?: Editor }) => {
 					<ButtonsLayout>
 						<TabsMenuButton editor={editor} />
 						<SnippetsButton editor={editor} onClose={() => setIsOpen(false)} />
+						<HTMLMenuButton editor={editor} />
 					</ButtonsLayout>
 				</ModalLayoutDark>
 			}

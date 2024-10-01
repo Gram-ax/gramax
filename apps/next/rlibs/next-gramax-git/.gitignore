@@ -1,5 +1,6 @@
 target
-gramax-git.node
+index.js
+index.*.node
 **/node_modules
 **/.DS_Store
 npm-debug.log*

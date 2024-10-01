@@ -2,6 +2,7 @@ import Path from "@core/FileProvider/Path/Path";
 import type FileStructure from "@core/FileStructue/FileStructure";
 import { ItemRef } from "@core/FileStructue/Item/ItemRef";
 import { ItemType } from "@core/FileStructue/Item/ItemType";
+import LinkResourceManager from "@core/Link/LinkResourceManager";
 import ResourceUpdater from "@core/Resource/ResourceUpdater";
 import createNewFilePathUtils from "@core/utils/createNewFilePathUtils";
 import { FileStatus } from "@ext/Watchers/model/FileStatus";
@@ -98,22 +99,24 @@ export class Article<P extends ArticleProps = ArticleProps> extends Item<P> {
 		return this._ref.path.name;
 	}
 
-	protected override async _updateProps(props: ClientArticleProps) {
+	protected override _updateProps(props: ClientArticleProps) {
 		this._props.title = props.title;
+		if (props.properties?.length) this._props.properties = props.properties;
+		else delete this._props.properties;
+
 		if (props.description !== "") this._props.description = props.description;
-		await this._save();
 	}
 
 	save() {
 		return this._save();
 	}
 
-	protected async _save() {
+	protected async _save(renamed?: boolean) {
 		delete this._props.welcome;
 		if (this._props.title) delete this._props.external;
 		const stat = await this._fs.saveArticle(this);
 		this._lastModified = stat.mtimeMs;
-		await this.events.emit("item-changed", { item: this, status: FileStatus.modified });
+		await this.events.emit("item-changed", { item: this, status: renamed ? FileStatus.new : FileStatus.modified });
 	}
 
 	protected override async _updateFilename(fileName: string, resourceUpdater: ResourceUpdater) {
@@ -132,6 +135,7 @@ export class Article<P extends ArticleProps = ArticleProps> extends Item<P> {
 		await resourceUpdater.update(this, newArticle);
 		this._logicPath = newArticle.logicPath;
 		this._ref = newArticle.ref;
+		this._content = newArticle._content;
 
 		return this;
 	}
@@ -159,6 +163,6 @@ export interface Content {
 	renderTree: RenderableTreeNode;
 	snippets: Set<string>;
 	icons: Set<string>;
-	linkManager: ResourceManager;
+	linkManager: LinkResourceManager;
 	resourceManager: ResourceManager;
 }

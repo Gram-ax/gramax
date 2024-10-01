@@ -29,6 +29,7 @@ const ImageMenu = ({ editor }: { editor: Editor }) => {
 	}, [editor.state.selection]);
 
 	if (!editor.isActive("image")) return null;
+	const isGif = node?.attrs?.src.includes(".gif");
 
 	const handleTitleChange = (event) => {
 		setTitle(event.target.value);
@@ -75,7 +76,7 @@ const ImageMenu = ({ editor }: { editor: Editor }) => {
 			<ButtonsLayout>
 				<Input placeholder={t("signature")} value={title} onChange={handleTitleChange} />
 				<div className="divider" />
-				<Button icon={"pen"} tooltipText={messages[0]} onClick={handleEdit} />
+				{!isGif && <Button icon={"pen"} tooltipText={messages[0]} onClick={handleEdit} />}
 				<Button icon={"trash"} tooltipText={messages[1]} onClick={handleDelete} />
 			</ButtonsLayout>
 		</ModalLayoutDark>

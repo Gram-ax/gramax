@@ -16,7 +16,7 @@ import useOnPathnameUpdateBranch from "@ext/git/core/GitPathnameHandler/checkout
 import PullHandler from "@ext/git/core/GitPathnameHandler/pull/components/PullHandler";
 import getPathnamePullData from "@ext/git/core/GitPathnameHandler/pull/logic/getPathnamePullData";
 import t from "@ext/localization/locale/translate";
-import useIsStorageInitialized from "@ext/storage/logic/utils/useIsStorageIniziliate";
+import useIsStorageInitialized from "@ext/storage/logic/utils/useIsStorageInitialized";
 import { ComponentProps, useEffect } from "react";
 
 const usePathnameHandler = (isFirstLoad: boolean) => {

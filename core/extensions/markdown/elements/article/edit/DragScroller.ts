@@ -87,6 +87,10 @@ class DragScroller {
 const DragScrollerExt = Extension.create({
 	name: "DragScroller",
 
+	addOptions() {
+		return {};
+	},
+
 	addProseMirrorPlugins() {
 		return [
 			new Plugin({

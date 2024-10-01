@@ -53,36 +53,45 @@ const EditMenu = ({
 		setBrotherFileName(data);
 	};
 
-	if (!isEdit) return null;
+	const renderExportToDocxOrPdf = () => (
+		<ExportToDocxOrPdf
+			isCategory={isCategory}
+			fileName={itemProps?.fileName}
+			pathname={itemProps?.pathname}
+			itemRefPath={itemProps?.ref?.path}
+		/>
+	);
+
 	return (
 		<span onClick={(e) => e.stopPropagation()}>
 			<PopupMenuLayout
 				isInline
 				offset={[0, 10]}
-				tooltipText={t("edit3")}
+				tooltipText={t("actions")}
 				onOpen={() => {
 					onOpen?.();
 					if (!isCurrentItem) setItemPropsData();
-					setBrotherFileNamesData();
+					if (isEdit) setBrotherFileNamesData();
 				}}
 				onClose={onClose}
 				appendTo={() => document.body}
 			>
-				<PropsEditor
-					item={itemProps}
-					itemLink={itemLink}
-					isCategory={isCategory}
-					isCurrentItem={isCurrentItem}
-					brotherFileNames={brotherFileNames}
-					setItemLink={setItemLink}
-				/>
-				<ExportToDocxOrPdf
-					isCategory={isCategory}
-					fileName={itemProps?.fileName}
-					pathname={itemProps?.pathname}
-					itemRefPath={itemProps?.ref?.path}
-				/>
-				<DeleteItem isCategory={isCategory} itemPath={itemLink.ref.path} itemLink={itemLink.pathname} />
+				{isEdit ? (
+					<>
+						<PropsEditor
+							item={itemProps}
+							itemLink={itemLink}
+							isCategory={isCategory}
+							isCurrentItem={isCurrentItem}
+							brotherFileNames={brotherFileNames}
+							setItemLink={setItemLink}
+						/>
+						{renderExportToDocxOrPdf()}
+						<DeleteItem isCategory={isCategory} itemPath={itemLink.ref.path} itemLink={itemLink.pathname} />
+					</>
+				) : (
+					renderExportToDocxOrPdf()
+				)}
 			</PopupMenuLayout>
 		</span>
 	);

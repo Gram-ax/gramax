@@ -84,6 +84,10 @@ impl FileDiff {
 
     Ok(diff)
   }
+
+  pub fn has_changes(&self) -> bool {
+    self.has_changes || !self.parent_path.as_ref().map(|p| p == &self.path).unwrap_or(true)
+  }
 }
 
 impl<C: Creds> Diff for Repo<C> {

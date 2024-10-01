@@ -1,17 +1,36 @@
+import type Context from "@core/Context/Context";
 import { Catalog } from "@core/FileStructue/Catalog/Catalog";
 import { Category } from "@core/FileStructue/Category/Category";
 import { Item } from "@core/FileStructue/Item/Item";
+import { ItemType } from "@core/FileStructue/Item/ItemType";
+import { resolveRootCategory } from "@ext/localization/core/catalogExt";
+import RuleProvider from "@ext/rules/RuleProvider";
 import Path from "../../../../logic/FileProvider/Path/Path";
 import LinkItem from "../models/LinkItem";
 
 class LinkItemCreator {
-	constructor(private _catalog: Catalog) {}
+	constructor(private _ctx: Context, private _catalog: Catalog) {}
 
 	async getLinkItems(articlePath: Path): Promise<LinkItem[]> {
 		if (!this._catalog) return [];
-		const items = this._catalog.getItems();
-		const itemsTree = this._catalog.getRootCategory().items;
-		return Promise.all(items.map((i) => this._toItemLink(this._catalog, i, itemsTree, articlePath)));
+		const filters = new RuleProvider(this._ctx).getItemFilters();
+		const root = resolveRootCategory(this._catalog, this._ctx.contentLanguage);
+
+		const getAllItems = (item: Item): Item[] => {
+			const items: Item[] = [item];
+			if (item.type === ItemType.category) {
+				(item as Category).items.forEach((subItem) => {
+					items.push(...getAllItems(subItem));
+				});
+			}
+			return items;
+		};
+
+		const items = getAllItems(root).slice(1);
+
+		const itemTree = root.getFilteredItems(filters, this._catalog);
+
+		return Promise.all(items.map((i) => this._toItemLink(this._catalog, i, itemTree, articlePath)));
 	}
 
 	private async _toItemLink(catalog: Catalog, item: Item, itemsTree: Item[], articlePath: Path): Promise<LinkItem> {

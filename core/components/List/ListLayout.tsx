@@ -1,25 +1,26 @@
 import { classNames } from "@components/libs/classNames";
 import { useOutsideClick } from "@core-ui/hooks/useOutsideClick";
+import multiLayoutSearcher from "@core-ui/languageConverter/multiLayoutSearcher";
 import eventEmitter from "@core/utils/eventEmmiter";
 import styled from "@emotion/styled";
+import { TippyProps } from "@tippyjs/react";
 import {
 	ForwardedRef,
 	forwardRef,
-	useEffect,
-	useImperativeHandle,
-	useMemo,
-	useRef,
-	useState,
 	MouseEventHandler,
 	MutableRefObject,
+	useEffect,
+	useImperativeHandle,
+	useRef,
+	useState,
+	useMemo,
 } from "react";
 import { Placement } from "tippy.js";
 import Tooltip from "../Atoms/Tooltip";
 import { ButtonItem, ItemContent } from "./Item";
 import Items, { OnItemClick } from "./Items";
 import Search, { SearchElement } from "./Search";
-import { TippyProps } from "@tippyjs/react";
-import multiLayoutSearcher from "@core-ui/languageConverter/multiLayoutSearcher";
+import useWatch from "@core-ui/hooks/useWatch";
 
 export interface ListLayoutElement {
 	searchRef: SearchElement;
@@ -31,6 +32,7 @@ interface ConfigProps {
 	disabledOutsideClick?: boolean;
 	openByDefault?: boolean;
 	placeholder?: string;
+	dataQa?: string;
 	disable?: boolean;
 	isCode?: boolean;
 	errorText?: string;
@@ -52,6 +54,7 @@ export interface ListLayoutProps extends ConfigProps {
 	item?: ItemContent;
 	icon?: string;
 	maxItems?: number;
+	provideCloseHandler?: (handler: (value: boolean) => void) => void;
 	tabIndex?: number;
 	onSearchClick?: () => void;
 	onCancelClick?: () => void;
@@ -75,20 +78,24 @@ const StyledDiv = styled.div<ConfigProps>`
 	color: ${(props) => (props.isCode ? "var(--color-prism-text)" : "inherit")};
 `;
 
+export const filter = (input: string) => {
+	return (value: string) => value.toLowerCase().includes(input.toLowerCase());
+};
+
 const defaultFilterItems = (items: ItemContent[], input: string) => {
 	const filterItems = (input: string) => {
-		const filter = (item: string): boolean => {
-			if (input.endsWith(" ")) return item.endsWith(input.trim());
-			return item.toLowerCase().includes(input.toLowerCase());
-		};
+		const currentFilter = filter(input);
 
 		const result = items?.filter((item) => {
-			if (typeof item === "string") return filter(item);
-			if (typeof item?.element === "string") return filter(item.element);
-			else return item?.labelField ? filter(item.labelField) : false;
+			if (typeof item === "string") return currentFilter(item);
+			if (typeof item?.element === "string") return currentFilter(item.element);
+			if (item?.loading) return !input;
+			return item?.labelField ? currentFilter(item.labelField) : false;
 		});
+
 		return result.length > 0 ? result : null;
 	};
+
 	return multiLayoutSearcher<ItemContent[]>(filterItems, true)(input);
 };
 
@@ -122,19 +129,23 @@ const ListLayout = forwardRef((props: ListLayoutProps, ref: ForwardedRef<ListLay
 		icon,
 		tabIndex,
 		placeholder,
+		dataQa,
 		className,
 		itemsClassName,
 		containerRef,
 		addWidth = 0,
 		keepFullWidth = false,
+		provideCloseHandler,
 	} = props;
 
+	const [selectedItem, setSelectedItem] = useState<ItemContent>("");
 	const [filteredWidth, setFilteredWidth] = useState<number>();
 	const [isOpen, setIsOpen] = useState<boolean>(openByDefault);
 	const [value, setValue] = useState<ItemContent>(item);
 	const listRef = useRef<HTMLDivElement>(null);
 	const searchRef = useRef<SearchElement>(null);
 	const itemsRef = useRef<HTMLDivElement>(null);
+	const [showFilteredItems, setShowFilteredItems] = useState(false);
 
 	useImperativeHandle(ref, () => ({
 		get searchRef(): SearchElement {
@@ -151,6 +162,7 @@ const ListLayout = forwardRef((props: ListLayoutProps, ref: ForwardedRef<ListLay
 	useOutsideClick<HTMLDivElement | HTMLInputElement>(
 		[itemsRef.current, searchRef.current?.inputRef, searchRef.current?.chevronRef],
 		(e) => {
+			setValue(item !== "" ? item : selectedItem);
 			if (!customOutsideClick) return setIsOpen(false);
 			const haveListeners = eventEmitter.listeners("ListLayoutOutsideClick").length > 0;
 			if (!haveListeners) return setIsOpen(false);
@@ -161,7 +173,15 @@ const ListLayout = forwardRef((props: ListLayoutProps, ref: ForwardedRef<ListLay
 		!disabledOutsideClick,
 	);
 
+	useEffect(() => {
+		provideCloseHandler?.(() => setIsOpen);
+	}, [provideCloseHandler]);
+
 	const filteredItems = useMemo(() => filterItems(items, getStrValue(value)), [value, items]);
+
+	useWatch(() => {
+		if (isOpen && getStrValue(selectedItem) == getStrValue(value)) setShowFilteredItems(false);
+	}, [isOpen]);
 
 	const focusInInput = () => {
 		if (searchRef.current) searchRef.current.inputRef.focus();
@@ -176,12 +196,14 @@ const ListLayout = forwardRef((props: ListLayoutProps, ref: ForwardedRef<ListLay
 	};
 
 	const itemClickHandler: OnItemClick = (value, e, idx) => {
-		const index = items.indexOf(filteredItems[idx]);
+		const index = showFilteredItems ? items.indexOf(filteredItems[idx]) : idx;
 		onItemClick?.(getStrValue(value), e, index !== -1 ? index : idx);
+		setSelectedItem(value);
 		setValue(value);
 	};
 
 	const setValueHandler = (v: string) => {
+		setShowFilteredItems(true);
 		if (typeof value === "string") return setValue(v);
 		if (typeof value.element === "string") return setValue({ ...value, element: v });
 		return setValue({ ...value, labelField: v });
@@ -214,7 +236,7 @@ const ListLayout = forwardRef((props: ListLayoutProps, ref: ForwardedRef<ListLay
 				filteredWidth={filteredWidth}
 				maxItems={maxItems}
 				hideScrollbar={hideScrollbar}
-				items={filteredItems}
+				items={showFilteredItems ? filteredItems : items}
 				onItemClick={itemClickHandler}
 				isOpen={isOpen}
 				searchRef={searchRef}
@@ -277,6 +299,7 @@ const ListLayout = forwardRef((props: ListLayoutProps, ref: ForwardedRef<ListLay
 					onClick={onSearchClickHandler}
 					onCancelClick={onCancelClick}
 					onChevronClick={onChevronClickHandler}
+					data-qa={dataQa}
 				/>
 			</StyledDiv>
 		</Tooltip>

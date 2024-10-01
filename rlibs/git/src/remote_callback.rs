@@ -80,6 +80,6 @@ fn resolve_identities() -> Option<impl Iterator<Item = PathBuf>> {
 }
 
 #[cfg(target_family = "wasm")]
-fn resolve_identity_from_config(url: &str) -> Option<PathBuf> {
+fn resolve_identity_from_config(_url: &str) -> Option<PathBuf> {
   None
 }

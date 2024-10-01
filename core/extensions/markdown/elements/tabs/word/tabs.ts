@@ -1,7 +1,7 @@
 import { Tag } from "@ext/markdown/core/render/logic/Markdoc";
 import { WordBlockChild } from "@ext/wordExport/options/WordTypes";
 import {
-	STANDART_PAGE_WIDTH,
+	STANDARD_PAGE_WIDTH,
 	WordBlockType,
 	wordBordersType,
 	WordFontStyles,
@@ -25,9 +25,9 @@ export const tabsWordLayout: WordBlockChild = async ({ state, tag, addOptions })
 							state.renderBlock(child as Tag, {
 								...addOptions,
 								maxPictureWidth:
-									(addOptions?.maxPictureWidth ?? STANDART_PAGE_WIDTH) - INNER_BLOCK_WIDTH_DIFFERENCE,
+									(addOptions?.maxPictureWidth ?? STANDARD_PAGE_WIDTH) - INNER_BLOCK_WIDTH_DIFFERENCE,
 								maxTableWidth:
-									(addOptions?.maxTableWidth ?? STANDART_PAGE_WIDTH) - INNER_BLOCK_WIDTH_DIFFERENCE,
+									(addOptions?.maxTableWidth ?? STANDARD_PAGE_WIDTH) - INNER_BLOCK_WIDTH_DIFFERENCE,
 							}),
 						),
 					)
@@ -43,7 +43,7 @@ export const tabsWordLayout: WordBlockChild = async ({ state, tag, addOptions })
 	return [
 		new Table({
 			rows,
-			width: { size: addOptions?.maxTableWidth ?? STANDART_PAGE_WIDTH, type: WidthType.DXA },
+			width: { size: addOptions?.maxTableWidth ?? STANDARD_PAGE_WIDTH, type: WidthType.DXA },
 			borders: wordBordersType[WordBlockType.tabs],
 			margins: wordMarginsType[WordBlockType.tabs],
 			style: WordBlockType.tabs,

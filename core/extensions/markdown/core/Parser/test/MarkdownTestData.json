@@ -1,4 +1,19 @@
 {
+	"CodeBlock": [
+		{
+			"text": "```ts\ntext\n```",
+			"renderTree": {
+				"$$mdtype": "Tag",
+				"attributes": {
+					"lang": "ts",
+					"value": "text\n"
+				},
+				"name": "Fence",
+				"children": []
+			},
+			"html": "<div>Error rendering component Fence</div>"
+		}
+	],
 	"Code": [
 		{
 			"text": "`text`",

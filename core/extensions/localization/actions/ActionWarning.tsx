@@ -8,9 +8,10 @@ import t from "@ext/localization/locale/translate";
 import { cloneElement, useState } from "react";
 
 const DO_NOT_SHOW_AGAIN = "languages.skip-warn";
+const localStorage = typeof window !== "undefined" ? window.localStorage : null;
 
 export const shouldShowActionWarning = (catalogProps: ClientCatalogProps) =>
-	catalogProps?.supportedLanguages?.length > 1 && !localStorage.getItem(DO_NOT_SHOW_AGAIN);
+	catalogProps?.supportedLanguages?.length > 1 && !localStorage?.getItem(DO_NOT_SHOW_AGAIN);
 
 export type ActionWarningProps = {
 	children?: JSX.Element;
@@ -22,20 +23,20 @@ export type ActionWarningProps = {
 	className?: string;
 };
 
-const WarningUnstyled = ({ isDelete, className }: { isDelete?: boolean; className?: string }) => {
+const WarningUnstyled = ({
+	isDelete,
+	className,
+	setDoNotShowAgain,
+}: {
+	isDelete?: boolean;
+	className?: string;
+	setDoNotShowAgain: (flag: boolean) => void;
+}) => {
 	return (
 		<div className={className}>
 			<p>{isDelete ? t("multilang.warning.delete.body") : t("multilang.warning.action.body")}</p>
 			<p>
-				<Checkbox
-					onChange={(checked) =>
-						checked
-							? localStorage.setItem(DO_NOT_SHOW_AGAIN, "1")
-							: localStorage.removeItem(DO_NOT_SHOW_AGAIN)
-					}
-				>
-					{t("do-not-show-again")}
-				</Checkbox>
+				<Checkbox onChange={setDoNotShowAgain}>{t("do-not-show-again")}</Checkbox>
 			</p>
 		</div>
 	);
@@ -57,6 +58,7 @@ const ActionWarning = ({
 	className,
 }: ActionWarningProps) => {
 	const [isOpen, setIsOpen] = useState(initialIsOpen);
+	const [doNotShowAgain, setDoNotShowAgain] = useState(!!localStorage?.getItem(DO_NOT_SHOW_AGAIN));
 
 	if (!shouldShowActionWarning(catalogProps)) {
 		if (!children) {
@@ -89,12 +91,15 @@ const ActionWarning = ({
 						onClick: () => {
 							setIsOpen(false);
 							action();
+							doNotShowAgain
+								? localStorage?.setItem(DO_NOT_SHOW_AGAIN, "1")
+								: localStorage?.removeItem(DO_NOT_SHOW_AGAIN);
 						},
 					}}
 					closeButton={{ text: t("cancel") }}
 					icon={{ code: "alert-circle", color: "var(--color-warning)" }}
 				>
-					<Warning isDelete={isDelete} />
+					<Warning isDelete={isDelete} setDoNotShowAgain={setDoNotShowAgain} />
 				</InfoModalForm>
 			</ModalLayoutLight>
 		</Modal>

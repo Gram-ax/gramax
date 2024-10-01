@@ -16,7 +16,10 @@ const getMermaidDiagram = async (diagramContent) => {
 	} catch (error) {
 		console.error("Mermaid diagram render error: ", error);
 
-		if (error.message.includes("error loading dynamically imported module"))
+		if (
+			error.message.includes("error loading dynamically imported module") ||
+			error.message.includes("Failed to fetch dynamically imported module")
+		)
 			throw new Error(t("diagram.error.no-internet"));
 
 		throw new Error(t("diagram.error.invalid-syntax"), { cause: error.message });

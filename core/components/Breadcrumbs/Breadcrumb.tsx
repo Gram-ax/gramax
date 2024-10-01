@@ -43,7 +43,9 @@ const Breadcrumb = (props: BreadcrumbProps): ReactElement => {
 						)}
 						{isFirst && correctLength && middleDots && (
 							<>
-								<span key={i + "dots"}>...</span>
+								<span key={i + "dots"} className="dots">
+									...
+								</span>
 								<span key={i + "divider-2"} className="divider">
 									{"/"}
 								</span>
@@ -71,6 +73,7 @@ export default styled(Breadcrumb)`
 	}
 
 	a {
+		max-width: 100%;
 		display: flex;
 		align-items: baseline;
 		color: var(--color-primary-general) !important;
@@ -98,6 +101,10 @@ export default styled(Breadcrumb)`
 
 	.divider {
 		padding: 0 0.26rem;
+	}
+
+	.dots {
+		word-break: normal;
 	}
 
 	${cssMedia.narrow} {

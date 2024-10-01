@@ -1,5 +1,5 @@
-import NodeConverter from "@ext/confluence/actions/Import/logic/NodeConverter";
-import convertUnsupportedNode from "@ext/confluence/actions/Import/logic/convertUnsupportedNode";
+import NodeConverter from "@ext/confluence/core/cloud/model/NodeConverter";
+import convertUnsupportedNode from "@ext/confluence/core/cloud/logic/convertUnsupportedNode";
 
 const inlineCard: NodeConverter = (inlineCardNode, ctx) => {
 	if (!inlineCardNode?.attrs?.url) return convertUnsupportedNode(inlineCardNode, ctx.confluencePageUrl);

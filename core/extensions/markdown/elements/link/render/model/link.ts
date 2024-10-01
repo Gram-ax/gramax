@@ -19,7 +19,7 @@ export function link(context?: ParserContext): Schema {
 			const { href, resourcePath, isFile, hash } = await linkCreator.getLink(node.attributes.href, context);
 			if (resourcePath) {
 				if (isFile) context.getResourceManager().set(resourcePath);
-				else context.getLinkManager().set(resourcePath);
+				else context.getLinkManager().set(resourcePath, hash);
 			}
 			return new Tag(
 				"Link",

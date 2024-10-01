@@ -1,6 +1,7 @@
 import Icon from "@components/Atoms/Icon";
 import Link from "@components/Atoms/Link";
 import UiUrlUtils from "@components/libs/UiUrlUtils";
+import ArticleRefService from "@core-ui/ContextServices/ArticleRef";
 import styled from "@emotion/styled";
 import { ItemLink } from "./NavigationLinks";
 
@@ -21,10 +22,22 @@ const NextPrevious = ({ itemLinks }: { itemLinks: ItemLink[] }) => {
 export default NextPrevious;
 
 const Arrow = styled(({ next, link, className }: { next: boolean; link: ItemLink; className?: string }) => {
+	const articleElement = ArticleRefService.value.current;
+
 	return (
 		<div className={className}>
 			{link && (
-				<Link href={link} dataQa={"jump-to-" + (next ? "next" : "prev")}>
+				<Link
+					href={link}
+					onClick={() =>
+						articleElement?.scrollTo({
+							top: 0,
+							left: 0,
+							behavior: "smooth",
+						})
+					}
+					dataQa={"jump-to-" + (next ? "next" : "prev")}
+				>
 					<Icon code={next ? "arrow-right" : "arrow-left"} />
 					<span>{link.title}</span>
 				</Link>

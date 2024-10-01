@@ -1,9 +1,12 @@
 import AlertError from "@components/AlertError";
 import { GifImage } from "@components/Atoms/Image/GifImage";
 import Image from "@components/Atoms/Image/Image";
+import { resolveImageKind } from "@components/Atoms/Image/resolveImageKind";
+import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import Path from "@core/FileProvider/Path/Path";
 import styled from "@emotion/styled";
 import t from "@ext/localization/locale/translate";
+import OnLoadResourceService from "@ext/markdown/elements/copyArticles/onLoadResourceService";
 import ImageResizer from "@ext/markdown/elements/image/edit/components/ImageResizer";
 import { getCroppedCanvas } from "@ext/markdown/elements/image/edit/logic/imageEditorMethods";
 import { Crop, ImageObject } from "@ext/markdown/elements/image/edit/model/imageEditorTypes";
@@ -12,7 +15,7 @@ import { CSSProperties, ReactElement, ReactEventHandler, useEffect, useRef, useS
 
 interface ImageProps {
 	realSrc: string;
-	src: string;
+	src?: string;
 	openEditor?: () => void;
 	selected?: boolean;
 	setSrc?: (newSrc: Blob) => void;
@@ -40,11 +43,9 @@ const ImageR = (props: ImageProps): ReactElement => {
 
 	useEffect(() => {
 		if (isLoaded) {
-			const imgElement = imgElementRef.current;
 			const imageContainer = imageContainerRef.current;
 			getCroppedCanvas({
 				imageContainer,
-				imgElement,
 				crop: crop ?? { x: 0, y: 0, w: 100, h: 100 },
 				realSrc,
 				setSrc,
@@ -65,6 +66,7 @@ const ImageR = (props: ImageProps): ReactElement => {
 							ref={imgElementRef}
 							id={id}
 							modalEdit={openEditor}
+							modalTitle={title}
 							onLoad={() => !isLoaded && setIsLoaded(true)}
 							onError={onError}
 							src={src}
@@ -113,25 +115,27 @@ const StyledImageR = styled(ImageR)`
 		border-radius: var(--radius-small);
 	}
 
-	em {
-		display: block;
-		font-size: 13px;
-		font-weight: 300;
-		line-height: 1.4em;
-		text-align: center;
-		color: var(--color-image-title);
-	}
-
 	img {
 		user-select: none;
-		${(p) => (p.selected ? "pointer-events: auto !important;" : "pointer-events: none !important;")}
 	}
 `;
 
 const ImageRenderer = (props: ImageProps): ReactElement => {
-	const { src, realSrc, title } = props;
+	const { realSrc, title } = props;
 	const [error, setError] = useState<boolean>(false);
 	const isGif = new Path(realSrc).extension == "gif";
+	const apiUrlCreator = ApiUrlCreatorService.value;
+	const [imageSrc, setImageSrc] = useState<string>(null);
+
+	const setSrc = (newSrc: Blob) => {
+		if (imageSrc) URL.revokeObjectURL(imageSrc);
+		setImageSrc(URL.createObjectURL(newSrc));
+	};
+
+	OnLoadResourceService.useGetContent(realSrc, apiUrlCreator, (buffer: Buffer) => {
+		if (!buffer) return;
+		setSrc(new Blob([buffer], { type: resolveImageKind(buffer) }));
+	});
 
 	if (error)
 		return (
@@ -140,8 +144,8 @@ const ImageRenderer = (props: ImageProps): ReactElement => {
 				error={{ message: t("alert.image.path") }}
 			/>
 		);
-	if (isGif) return <GifImage src={src} title={title} alt={title} onError={() => setError(true)} />;
-	return <StyledImageR onError={() => setError(true)} {...props} />;
+	if (isGif) return <GifImage src={imageSrc} title={title} alt={title} onError={() => setError(true)} />;
+	return <StyledImageR onError={() => setError(true)} {...props} src={imageSrc} setSrc={setSrc} />;
 };
 
 export default ImageRenderer;

@@ -1,34 +1,31 @@
-import fs from "fs";
-import { GetServerSideProps } from "next";
-import Error from "next/error";
-import path from "path";
+import { MainMiddleware } from "@core/Api/middleware/MainMiddleware";
+import SEOGenerator from "@core/Sitemap/SEOGenerator";
+import { ApplyApiMiddleware } from "apps/next/logic/Api/ApplyMiddleware";
 
-const Robots = ({ notFound }: { notFound: boolean }) => {
-	if (notFound) return <Error statusCode={404} />;
-
+const Robots = () => {
 	return null;
 };
 
-// eslint-disable-next-line @typescript-eslint/require-await
-export const getServerSideProps: GetServerSideProps = async ({ res }) => {
-	const filePath = path.join(process.cwd(), "../../public", "robots.txt");
+export async function getServerSideProps({ req, res }) {
+	await ApplyApiMiddleware(
+		function (req, res: any) {
+			const ctx = this.app.contextFactory.from(req, res, req.query);
+			const basePath = this.app.conf.basePath ?? "";
+			const workspace = this.app.wm.current();
+			const sg = new SEOGenerator(workspace);
+			const robots = sg.generateRobots(`${ctx.domain}${basePath}/sitemap.xml`);
 
-	if (!fs.existsSync(filePath)) {
-		res.statusCode = 404;
-		return {
-			props: { notFound: true },
-		};
-	}
-
-	const sitemap = fs.readFileSync(filePath, "utf8");
-
-	res.setHeader("Content-Type", "text/plain");
-	res.write(sitemap);
-	res.end();
+			res.setHeader("Content-Type", "text/plain");
+			res.setHeader("Access-Control-Allow-Origin", "*");
+			res.write(robots);
+			res.end();
+		},
+		[new MainMiddleware()],
+	)(req, res);
 
 	return {
-		props: { notFound: false },
+		props: {},
 	};
-};
+}
 
 export default Robots;

@@ -1,3 +1,4 @@
+use std::ffi::CString;
 use std::path::Path;
 use std::path::PathBuf;
 
@@ -7,13 +8,25 @@ use gramaxgit::commands::Result;
 use gramaxgit::creds::AccessTokenCreds;
 
 use crate::define_c_api;
+use crate::emscripten_run_script;
+
+fn on_clone_progress(progress: CloneProgress) {
+  unsafe {
+    let script = format!(
+      "self.postMessage({{ type: 'clone-progress', progress: {} }})",
+      serde_json::to_string(&progress).unwrap()
+    );
+    let script_cstr = CString::new(script).unwrap().into_raw() as *const u8;
+    emscripten_run_script(script_cstr);
+  }
+}
 
 define_c_api! {
   noreturn fn init_new(repo_path: String, creds: AccessTokenCreds) -> () {
     git::init_new(Path::new(&repo_path), creds)
   }
 
-  json fn file_history(repo_path: String, file_path: String, count: usize) -> Vec<FileDiff> {
+  json fn file_history(repo_path: String, file_path: String, count: usize) -> HistoryInfo {
     git::file_history(Path::new(&repo_path), Path::new(&file_path), count)
   }
 
@@ -61,8 +74,8 @@ define_c_api! {
     git::fetch(Path::new(&repo_path), creds)
   }
 
-  noreturn fn clone(repo_path: String, creds: AccessTokenCreds, remote_url: String, branch: Option<String>) -> () {
-    git::clone(Path::new(&repo_path), creds, &remote_url, branch.as_deref(), |_| true)
+  noreturn fn clone(creds: AccessTokenCreds, opts: CloneOptions) -> () {
+    git::clone(creds, opts, Box::new(on_clone_progress))
   }
 
   noreturn fn add(repo_path: String, patterns: Vec<PathBuf>) -> () {
@@ -105,7 +118,7 @@ define_c_api! {
     git::get_remote(Path::new(&repo_path))
   }
 
-  json fn stash(repo_path: String, message: Option<String>, creds: AccessTokenCreds) -> String {
+  json fn stash(repo_path: String, message: Option<String>, creds: AccessTokenCreds) -> Option<String> {
     git::stash(Path::new(&repo_path), message.as_deref(), creds)
   }
 

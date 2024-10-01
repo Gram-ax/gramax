@@ -5,7 +5,6 @@ import ListLayout from "@components/List/ListLayout";
 import FetchService from "@core-ui/ApiServices/FetchService";
 import MimeTypes from "@core-ui/ApiServices/Types/MimeTypes";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
-import CreateConfluenceSourceData from "@ext/confluence/actions/Source/components/CreateConfluenceSourceData";
 import CreateGitSourceData from "@ext/git/actions/Source/Git/components/CreateGitSourceData";
 import t from "@ext/localization/locale/translate";
 import { useEffect, useMemo, useState } from "react";
@@ -15,6 +14,11 @@ import CreateGitLabSourceData from "../../../../git/actions/Source/GitLab/compon
 import SourceListItem from "../../../components/SourceListItem";
 import SourceData from "../model/SourceData";
 import SourceType from "../model/SourceType";
+import Mode from "@ext/git/actions/Clone/model/Mode";
+import CreateConfluenceCloudSourceData from "@ext/confluence/core/cloud/components/CreateConfluenceCloudSourceData";
+import CreateConfluenceServerSourceData from "@ext/confluence/core/server/components/CreateConfluenceServerSourceData";
+import { getExecutingEnvironment } from "@app/resolveModule/env";
+import LanguageService from "@core-ui/ContextServices/Language";
 
 interface CreateSourceDataProps {
 	trigger?: JSX.Element;
@@ -22,8 +26,9 @@ interface CreateSourceDataProps {
 	defaultSourceData?: Partial<SourceData>;
 	onCreate?: (data: SourceData) => void;
 	onClose?: () => void;
+	onOpen?: () => void;
 	externalIsOpen?: boolean;
-	forClone?: boolean;
+	mode?: Mode;
 }
 
 const CreateSourceData = (props: CreateSourceDataProps) => {
@@ -33,8 +38,9 @@ const CreateSourceData = (props: CreateSourceDataProps) => {
 		defaultSourceType,
 		defaultSourceData,
 		onClose = () => {},
+		onOpen,
 		externalIsOpen,
-		forClone,
+		mode = Mode.init,
 	} = props;
 	const [isOpen, setIsOpen] = useState(!trigger);
 	const [sourceType, setSourceType] = useState<SourceType>(defaultSourceType ?? null);
@@ -51,40 +57,45 @@ const CreateSourceData = (props: CreateSourceDataProps) => {
 		if (externalIsOpen) setIsOpen(externalIsOpen);
 	}, [externalIsOpen]);
 
-	const localizedSource2 = t("source2").toLowerCase();
-	const localizedAddNewSource = t("add-new-source");
-	const localizedSource = t("source");
-	const localizedStorage2 = t("storage2");
-	const localizedAddNewStorage = t("add-new-storage");
-	const localizedStorage = t("storage");
-	const localizedFind = t("find");
+	const sharedConfig = {
+		placeholderSuffix: t("storage2"),
+		legendLabel: t("add-new-storage"),
+		controlLabel: t("storage"),
+	};
 
-	const config = useMemo(
-		() => ({
+	const { placeholderSuffix, legendLabel, controlLabel, filter } = useMemo(() => {
+		const modeConfigs = {
 			import: {
-				placeholderSuffix: localizedSource2,
-				legendLabel: localizedAddNewSource,
-				controlLabel: localizedSource,
-				filter: (v) => v === SourceType.confluence,
+				placeholderSuffix: t("source2").toLowerCase(),
+				legendLabel: t("add-new-source"),
+				controlLabel: t("source"),
+				filter: (v) =>
+					v === SourceType.confluenceCloud ||
+					(getExecutingEnvironment() === "tauri" && v === SourceType.confluenceServer),
 			},
 			clone: {
-				placeholderSuffix: localizedStorage2,
-				legendLabel: localizedAddNewStorage,
-				controlLabel: localizedStorage,
-				filter: (v) => v !== SourceType.confluence && (forClone === undefined ? v !== SourceType.git : true),
+				...sharedConfig,
+				filter: (v) => v !== SourceType.confluenceCloud && v !== SourceType.confluenceServer,
 			},
-		}),
-		[],
-	);
+			init: {
+				...sharedConfig,
+				filter: (v) =>
+					v !== SourceType.confluenceCloud && v !== SourceType.git && v !== SourceType.confluenceServer,
+			},
+		};
 
-	const mode = forClone ?? true ? config.clone : config.import;
+		return modeConfigs[mode];
+	}, [LanguageService.currentUi()]);
 
 	return (
 		<ModalLayout
 			trigger={trigger}
 			isOpen={isOpen}
 			closeOnCmdEnter={false}
-			onOpen={() => setIsOpen(true)}
+			onOpen={() => {
+				setIsOpen(true);
+				onOpen?.();
+			}}
 			onClose={() => {
 				setIsOpen(false);
 				onClose();
@@ -94,19 +105,19 @@ const CreateSourceData = (props: CreateSourceDataProps) => {
 				<ErrorHandler>
 					<FormStyle>
 						<>
-							<legend>{mode.legendLabel}</legend>
+							<legend>{legendLabel}</legend>
 							<fieldset>
 								<div className="form-group field field-string row">
-									<label className="control-label">{mode.controlLabel}</label>
+									<label className="control-label">{controlLabel}</label>
 									<div className="input-lable">
 										<ListLayout
 											disable={!!defaultSourceType}
 											disableSearch={!!defaultSourceType}
 											openByDefault={!defaultSourceType}
 											item={defaultSourceType ?? ""}
-											placeholder={`${localizedFind} ${mode.placeholderSuffix}`}
+											placeholder={`${t("find")} ${placeholderSuffix}`}
 											items={Object.values(SourceType)
-												.filter(mode.filter)
+												.filter(filter)
 												.map((v) => ({
 													element: <SourceListItem code={v.toLowerCase()} text={v} />,
 													labelField: v,
@@ -149,8 +160,22 @@ const CreateSourceData = (props: CreateSourceDataProps) => {
 								{sourceType == SourceType.gitHub && (
 									<CreateGitHubSourceData onSubmit={createStorageUserData} />
 								)}
-								{sourceType == SourceType.confluence && (
-									<CreateConfluenceSourceData onSubmit={createStorageUserData} />
+								{sourceType == SourceType.confluenceCloud && (
+									<CreateConfluenceCloudSourceData onSubmit={createStorageUserData} />
+								)}
+								{sourceType == SourceType.confluenceServer && (
+									<CreateConfluenceServerSourceData
+										props={{
+											sourceType: sourceType as any,
+											domain: null,
+											token: null,
+											userName: "empty",
+											userEmail: "empty",
+											...defaultSourceData,
+										}}
+										onSubmit={createStorageUserData}
+										readOnlyProps={defaultSourceData}
+									/>
 								)}
 							</fieldset>
 						</>

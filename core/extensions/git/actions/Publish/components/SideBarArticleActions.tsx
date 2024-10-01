@@ -3,7 +3,7 @@ import Checkbox from "@components/Atoms/Checkbox";
 import Icon from "@components/Atoms/Icon";
 import Sidebar from "@components/Layouts/Sidebar";
 import { FileStatus } from "@ext/Watchers/model/FileStatus";
-import { useState } from "react";
+import { MouseEvent, useState } from "react";
 import DiffItem from "../../../../VersionControl/model/DiffItem";
 import Discard from "../../Discard/Discard";
 import SideBarResourceData from "../model/SideBarResourceData";
@@ -18,10 +18,10 @@ interface SideBarArticleActionsProps extends Pick<DiffItem, "filePath"> {
 	onStartDiscard: (paths: string[]) => void;
 	onEndDiscard: (paths: string[]) => void;
 	onChangeCheckbox: (isChecked: boolean) => void;
-	goToArticleOnClick: () => void;
 	addedCounter: number;
 	removedCounter: number;
 	logicPath?: string;
+	goToArticleOnClick?: (e: MouseEvent) => void;
 }
 const SideBarArticleActions = (props: SideBarArticleActionsProps) => {
 	const { checked, changeType, title, resources, filePath, addedCounter, removedCounter, logicPath } = props;

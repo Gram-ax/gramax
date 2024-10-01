@@ -7,7 +7,6 @@ import { useEffect, useState } from "react";
 import FetchService from "../../../../../ui-logic/ApiServices/FetchService";
 import MimeTypes from "../../../../../ui-logic/ApiServices/Types/MimeTypes";
 import ApiUrlCreatorService from "../../../../../ui-logic/ContextServices/ApiUrlCreator";
-import CloneProgressbar from "../../../../git/actions/Clone/components/CloneProgressbar";
 
 const ReviewTicketHandler = ({ ticket }: { ticket: string }) => {
 	const apiUrlCreator = ApiUrlCreatorService.value;
@@ -50,14 +49,6 @@ const ReviewTicketHandler = ({ ticket }: { ticket: string }) => {
 				<FormStyle>
 					<>
 						<legend>{t("loading2")}</legend>
-						<CloneProgressbar
-							triggerClone={reviewData}
-							filePath={reviewData?.filePath}
-							storageData={reviewData}
-							onFinish={() => setIsOpen(false)}
-							onError={() => setIsOpen(false)}
-							recursive={false}
-						/>
 					</>
 				</FormStyle>
 			</ModalLayoutLight>

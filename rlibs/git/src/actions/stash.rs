@@ -11,7 +11,7 @@ use super::merge::MergeResult;
 const TAG: &str = "git:stash";
 
 pub trait StashSave {
-  fn stash(&mut self, message: Option<&str>) -> Result<Oid>;
+  fn stash(&mut self, message: Option<&str>) -> Result<Option<Oid>>;
 }
 
 pub trait Stash {
@@ -20,16 +20,24 @@ pub trait Stash {
 }
 
 impl<C: ActualCreds> StashSave for Repo<C> {
-  fn stash(&mut self, message: Option<&str>) -> Result<Oid> {
-    info!(target: TAG, "created stash with message {:?}", message);
+  fn stash(&mut self, message: Option<&str>) -> Result<Option<Oid>> {
+    info!(target: TAG, "creating stash with message {:?}", message);
     let signature = self.creds().signature()?.to_owned();
-    let oid = self.0.stash_save2(
+    match self.0.stash_save2(
       &signature,
       message,
       Some(StashFlags::DEFAULT | StashFlags::INCLUDE_IGNORED | StashFlags::INCLUDE_UNTRACKED),
-    )?;
-    info!(target: TAG, "created stash with oid {}", oid);
-    Ok(oid)
+    ) {
+      Ok(oid) => {
+        info!(target: TAG, "created stash with oid {}", oid);
+        Ok(Some(oid))
+      }
+      Err(e) if e.code() == ErrorCode::NotFound && e.class() == ErrorClass::Stash => {
+        info!(target: TAG, "tried to stash but there is nothing to stash");
+        Ok(None)
+      }
+      Err(e) => Err(e.into()),
+    }
   }
 }
 

@@ -9,16 +9,15 @@ use crate::ShortInfo;
 
 use std::path::Path;
 use std::path::PathBuf;
-use std::time::SystemTime;
 
 use git2::BranchType;
 use serde::Serialize;
 
 #[derive(Serialize, Debug)]
 pub struct GitError {
-  message: String,
-  class: Option<i32>,
-  code: Option<i32>,
+  pub message: String,
+  pub class: Option<i32>,
+  pub code: Option<i32>,
 }
 
 impl From<Error> for GitError {
@@ -58,7 +57,7 @@ fn with_dummy_creds(path: &Path) -> Result<Repo<DummyCreds>> {
   Ok(repo)
 }
 
-pub fn file_history(repo_path: &Path, file_path: &Path, count: usize) -> Result<Vec<FileDiff>> {
+pub fn file_history(repo_path: &Path, file_path: &Path, count: usize) -> Result<HistoryInfo> {
   let repo = with_dummy_creds(repo_path)?;
   let history = repo.history(file_path, count)?;
   Ok(history)
@@ -87,6 +86,7 @@ pub fn branch_list(repo_path: &Path) -> Result<Vec<BranchInfo>> {
     if short_info.name == "HEAD" {
       continue;
     }
+
     match res.iter_mut().find(|b| short_info.name == b.name) {
       Some(found) => _ = std::mem::replace(found, short_info),
       None => res.push(short_info),
@@ -167,24 +167,8 @@ pub fn checkout(repo_path: &Path, ref_name: &str, force: bool) -> Result<()> {
   Ok(())
 }
 
-pub fn clone<F: Fn(CloneProgress) -> bool>(
-  repo_path: &Path,
-  creds: AccessTokenCreds,
-  remote_url: &str,
-  branch: Option<&str>,
-  on_chunk: F,
-) -> Result<()> {
-  let mut last_event = SystemTime::now();
-  let cloned_repo = Repo::clone(remote_url, repo_path, branch, creds, |received, total| {
-    let now = SystemTime::now();
-    let elapsed = now.duration_since(last_event);
-    if elapsed.is_err() || elapsed.unwrap().as_secs() > 3 {
-      last_event = now;
-      return on_chunk(CloneProgress { received, total });
-    }
-
-    true
-  });
+pub fn clone(creds: AccessTokenCreds, opts: CloneOptions, callback: CloneProgressCallback) -> Result<()> {
+  let cloned_repo = Repo::clone(creds, opts, callback);
   if let Err(err) = cloned_repo {
     println!("{:?}", err);
     return Err(err.into());
@@ -268,10 +252,10 @@ pub fn get_remote(repo_path: &Path) -> Result<Option<String>> {
   Ok(remote)
 }
 
-pub fn stash(repo_path: &Path, message: Option<&str>, creds: AccessTokenCreds) -> Result<String> {
+pub fn stash(repo_path: &Path, message: Option<&str>, creds: AccessTokenCreds) -> Result<Option<String>> {
   let mut repo = with_creds(repo_path, creds)?;
   let oid = repo.stash(message)?;
-  Ok(oid.to_string())
+  Ok(oid.map(|oid| oid.to_string()))
 }
 
 pub fn stash_apply(repo_path: &Path, oid: &str) -> Result<MergeResult> {

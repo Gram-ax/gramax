@@ -14,10 +14,16 @@ const NextLink = (props: NextLinkProps, ref: RefObject<HTMLAnchorElement>) => {
 	const url = href ? Url.from({ pathname: href?.pathname, query: href?.query }) : null;
 
 	return (
-		<Link href={decodeURI(url.toString())} scroll={true} passHref>
-			<a ref={ref} onClick={onClick} data-qa={dataQa} {...otherProps}>
-				{children}
-			</a>
+		<Link
+			ref={ref}
+			href={decodeURI(url.toString())}
+			scroll={true}
+			passHref
+			onClick={onClick}
+			data-qa={dataQa}
+			{...otherProps}
+		>
+			{children}
 		</Link>
 	);
 };

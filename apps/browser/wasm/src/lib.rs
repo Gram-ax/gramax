@@ -1,13 +1,14 @@
 #![allow(clippy::missing_safety_doc)]
 #![cfg(target_family = "wasm")]
 
+mod ffi;
 mod fs;
 mod git;
 mod macros;
+mod threading;
+mod kvstore;
 
-use std::alloc::Layout;
-use std::ffi::*;
-
+use ffi::*;
 use log::info;
 
 #[repr(C)]
@@ -22,7 +23,7 @@ impl Buffer {
     Self { len: 0, ptr: std::ptr::null(), err: false }
   }
 
-  pub unsafe fn boxed(self) -> *const c_void {
+  pub unsafe fn boxed(self) -> *const std::ffi::c_void {
     Box::into_raw(Box::new(self)).cast()
   }
 
@@ -42,43 +43,23 @@ impl<E: serde::Serialize> From<Result<Vec<u8>, E>> for Buffer {
 
 impl From<Vec<u8>> for Buffer {
   fn from(value: Vec<u8>) -> Self {
-    if value.len() == 0 {
+    if value.is_empty() {
       return Self::null();
     }
     Self { len: value.len(), ptr: value.leak().as_ptr(), err: false }
   }
 }
 
-extern "C" {
-  fn wasmfs_create_opfs_backend() -> *const c_void;
-  fn wasmfs_create_directory(mnt: *const c_char, mode: u16, backend: *const c_void) -> i32;
-  fn emscripten_run_script(script: *const c_char);
-}
-
-pub fn run_js_script<T: AsRef<str>>(script: T) {
-  let script = CString::new(script.as_ref()).unwrap().into_raw();
-  unsafe { emscripten_run_script(script) }
-}
-
-#[no_mangle]
-pub unsafe extern "C" fn main() -> i32 {
+unsafe fn main() -> i32 {
   _ = simple_logger::init_with_level(log::Level::Info);
-  let mountpoint = CString::new("/mnt").unwrap().into_raw();
+
+  let mountpoint = std::ffi::CString::new("/mnt").unwrap().into_raw();
   let backend = wasmfs_create_opfs_backend();
-  info!("opfs backend created");
+
   assert!(!backend.is_null());
   let create_status = wasmfs_create_directory(mountpoint, 0o777, backend);
+
   info!("opfs was mounted on /mnt");
   assert_eq!(create_status, 0);
   0
-}
-
-#[no_mangle]
-pub unsafe extern "C" fn ralloc(len: usize) -> *mut u8 {
-  std::alloc::alloc(Layout::from_size_align_unchecked(len, 4))
-}
-
-#[no_mangle]
-pub unsafe extern "C" fn rfree(ptr: *mut c_void, len: usize) {
-  std::alloc::dealloc(ptr.cast(), Layout::from_size_align_unchecked(len, 4));
 }

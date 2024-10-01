@@ -37,8 +37,13 @@ export default function render(node: RenderableTreeNodes, { components = {} } = 
 
 	let output = "";
 	if (components?.[name]) {
-		const component = React.createElement(components[name], attributes, Renderer(children, { components }));
-		output = renderToString(component);
+		try {
+			const component = React.createElement(components[name], attributes, Renderer(children, { components }));
+			output = renderToString(component);
+		} catch (error) {
+			console.error(`Error rendering component ${name}:`, error);
+			output = `<div>Error rendering component ${name}</div>`;
+		}
 	} else {
 		output = `<${name}`;
 		for (const [k, v] of Object.entries(attributes ?? {})) output += ` ${k}="${escapeHtml(String(v))}"`;

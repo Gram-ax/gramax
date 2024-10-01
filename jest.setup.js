@@ -17,6 +17,7 @@ if (!process.env.DEBUG_JEST) {
 		info: jest.fn(),
 		warn: jest.fn(),
 		error: jest.fn(),
+		disabled: true,
 	};
 }
 

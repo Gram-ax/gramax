@@ -1,5 +1,6 @@
 import Sidebar from "@components/Layouts/Sidebar";
 import { ListItem } from "@components/List/Item";
+import { filter } from "@components/List/ListLayout";
 import camelToKebabCase from "@core-ui/camelToKebabCase";
 import multiLayoutSearcher from "@core-ui/languageConverter/multiLayoutSearcher";
 import { IconEditorProps } from "@ext/markdown/elements/icon/logic/IconProvider";
@@ -69,21 +70,18 @@ export const iconFilter = (customIconsList?: IconEditorProps[], inverse?: boolea
 		(items: ListItem[], input: string): ListItem[] => {
 			const filterItems = (input: string) => {
 				if (!input) return items;
-				const filter = (item: string): boolean => {
-					if (input.endsWith(" ")) return item.endsWith(input.trim());
-					return item.toLowerCase().includes(input.toLowerCase());
-				};
+				const currentFilter = filter(input);
 
 				const filteredItemsByCode: ListItem[] = [];
 
 				const filteredItemsByCategory: IconListProps[] = [];
 				items?.map((item) => {
-					if (item.isTitle || (item ? filter(item.labelField) : false)) {
+					if (item.isTitle || (item ? currentFilter(item.labelField) : false)) {
 						filteredItemsByCode.push(item);
 						return;
 					}
 					if (categories && !customIconsList?.some((icon) => icon.code === item.labelField)) {
-						const category = categories[item.labelField]?.find((c) => filter(c));
+						const category = categories[item.labelField]?.find((c) => currentFilter(c));
 						category && filteredItemsByCategory.push({ code: item.labelField, category });
 					}
 				});

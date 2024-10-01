@@ -1,7 +1,7 @@
 import LeftNavigationIsOpenService from "@core-ui/ContextServices/LeftNavigationIsOpen";
 import { cssMedia } from "@core-ui/utils/cssUtils";
 import type { ArticlePageData } from "@core/SitePresenter/SitePresenter";
-import useIsStorageInitialized from "@ext/storage/logic/utils/useIsStorageIniziliate";
+import useIsStorageInitialized from "@ext/storage/logic/utils/useIsStorageInitialized";
 import { useMediaQuery } from "@mui/material";
 import CreateArticle from "../../../../extensions/artilce/actions/CreateArticle";
 import CatalogPropsService from "../../../../ui-logic/ContextServices/CatalogProps";

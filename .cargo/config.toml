@@ -4,10 +4,27 @@ git-fetch-with-cli = true
 [env]
 CARGO_WORKSPACE_DIR = { value = "", relative = true }
 
+[profile.dev]
+opt-level = 1
+strip = "debuginfo"
+
+[profile.dev.package."*"]
+opt-level = 3
+strip = "debuginfo"
+
+[profile.dev.build-override]
+opt-level = 2
+codegen-units = 256
+
+[profile.release.build-override]
+opt-level = 2
+codegen-units = 256
+debug = false
+
 [target.wasm32-unknown-emscripten]
 rustflags = [
   "-Ctarget-feature=+atomics,+bulk-memory",
-  "-Clink-args=-pthread -sPTHREAD_POOL_SIZE=6",
+  "-Clink-args=-pthread -sPTHREAD_POOL_SIZE=8",
   "-Clink-args=--post-js apps/browser/wasm/js/post.js -o apps/browser/wasm/dist/gramax-wasm.js",
   "-Clink-args=-sASSERTIONS=0 -sWASM=1 -sWASMFS=1 -sUSE_ZLIB=1 -sEXPORT_ES6=1 -sMALLOC=emmalloc -sEXPORTED_RUNTIME_METHODS=FS,wasmMemory -sALLOW_MEMORY_GROWTH=1 -sMAXIMUM_MEMORY=4gb -sINITIAL_MEMORY=1024mb -sSTACK_SIZE=15mb",
   "-Clink-args=-sDEFAULT_LIBRARY_FUNCS_TO_INCLUDE=$writeArrayToMemory",

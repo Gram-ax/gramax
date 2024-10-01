@@ -24,6 +24,8 @@ export default class MdParser {
 	private _backArrowRegExp: RegExp;
 
 	private _listWithAnEmptyItem: RegExp;
+	private _table: RegExp;
+	private _emptyTableCell: RegExp;
 
 	constructor(preParserOptions: MdParserOptions = null) {
 		this._tags = preParserOptions?.tags ?? {};
@@ -45,8 +47,11 @@ export default class MdParser {
 		this._brRegExp = this._createIgnoreRegExp(String.raw`(<br>|<br\/>)`);
 		this._backDashRegExp = this._createIgnoreRegExp(String.raw`(—)`);
 		this._backArrowRegExp = this._createIgnoreRegExp(String.raw`(→)`);
-		this._listWithAnEmptyItem = new RegExp(String.raw`^[ \t]*(?:\d+\.|-|\*)[ \t]*$`, "gm");
-		this._findHtmlRegExp = new RegExp(String.raw`\[html]([\s\S]*?)\[\/html\]`, "gm");
+		this._listWithAnEmptyItem = new RegExp(String.raw`^[ \t]*(?:\d+\.|-)[ \t]*$`, "gm");
+		this._table = new RegExp(String.raw`{% table %}([\s\S]*?){% \/table %}`, "gm");
+		this._emptyTableCell = new RegExp(String.raw`^(?:\*)[ \t]*$`, "gm");
+
+		this._findHtmlRegExp = new RegExp(String.raw`(^[^\n]*)\[html.*]([\s\S]*?)\[\/html\]`, "gm");
 	}
 
 	use(tag: Schema) {
@@ -64,8 +69,8 @@ export default class MdParser {
 		content = this._formulaParser(content);
 		content = this._brParser(content);
 		content = this._emptyParagraphParser(content);
+		content = this._tableParser(content);
 		content = this._htmlParser(content);
-		content = this._htmlCodeParser(content);
 		return content;
 	}
 
@@ -73,6 +78,14 @@ export default class MdParser {
 		content = this._backdashArrowParser(content);
 		content = this._listParser(content);
 		return content;
+	}
+
+	private _tableParser(content: string) {
+		return content.replaceAll(this._table, (table: string) => {
+			return table.replaceAll(this._emptyTableCell, (cell: string) => {
+				return cell + "\u00A0";
+			});
+		});
 	}
 
 	private _listParser(content: string): string {
@@ -157,10 +170,6 @@ export default class MdParser {
 		});
 	}
 
-	private _htmlCodeParser(content: string): string {
-		return content.replace(/{%html %}/g, "{%html %}\n```\n").replace(/{%\/html%}/g, "\n```\n{%/html%}");
-	}
-
 	private _idParser(content: string): string {
 		return content.replaceAll(this._idRegExp, (str: string, match: string) => {
 			if (!match) return str;
@@ -179,8 +188,13 @@ export default class MdParser {
 	}
 
 	private _htmlParser(content: string): string {
-		return content.replaceAll(this._findHtmlRegExp, (_: string, firstGroup: string) => {
-			return `{%html %}${firstGroup}{%/html%}`;
+		return content.replaceAll(this._findHtmlRegExp, (_: string, firstGroup: string, secondGroup: string) => {
+			const group = secondGroup;
+			if (!group) return `{%html %}${secondGroup}{%/html%}`;
+			const space = " ".repeat(firstGroup.length);
+			return `${firstGroup}{%html mode="${
+				/\[html:(.*?)\]/.exec(_)?.[1] || "iframe"
+			}" %}\n${space}\`\`\`\n${secondGroup}\n${space}\`\`\`\n${space}{%/html%}`;
 		});
 	}
 
@@ -209,7 +223,7 @@ export default class MdParser {
 
 	private _createIgnoreRegExp(reg: string): RegExp {
 		return new RegExp(
-			"`{1,2}[^`].*?`{1,2}|```[^(```)]*?```[^(```)]*?```\n\r?```|```[\\s\\S]*?```[s]?|\\\\.|\\[html][\\s\\S]*?\\[\\/html\\]|" +
+			"`{1,2}[^`].*?`{1,2}|```[^(```)]*?```[^(```)]*?```\n\r?```|```[\\s\\S]*?```[s]?|\\\\.|\\[html.*][\\s\\S]*?\\[\\/html\\]|" +
 				reg,
 			"gm",
 		);

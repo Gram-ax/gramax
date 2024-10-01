@@ -15,5 +15,4 @@ core/extensions/security/logic/AuthProviders/dropbox.ts
 .gitlab-ci.yml
 **/target
 
-!plugins/target
 !apps/browser/wasm/dist/**/*

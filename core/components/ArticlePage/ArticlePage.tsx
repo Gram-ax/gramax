@@ -1,5 +1,4 @@
 import ArticlePreview from "@components/Article/ArticlePreview";
-import { classNames } from "@components/libs/classNames";
 import Welcome from "@components/Welcome";
 import CatalogPropsService from "@core-ui/ContextServices/CatalogProps";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
@@ -15,12 +14,17 @@ import IsMacService from "../../ui-logic/ContextServices/IsMac";
 import Article from "../Article/Article";
 import ArticleExtensions from "../Article/ArticleExtensions";
 import Breadcrumb from "../Breadcrumbs/ArticleBreadcrumb";
+import Properties from "@ext/properties/components/Properties";
+import { classNames } from "@components/libs/classNames";
+import { useState } from "react";
+import getIsDevMode from "@core-ui/utils/getIsDevMode";
 
 const ArticlePage = ({ data, className }: { data: ArticlePageData; className?: string }) => {
 	const theme = ThemeService.value;
 	const isMac = IsMacService.value;
 	const pageProps = PageDataContextService.value;
 	const props = CatalogPropsService.value;
+	const [isDevMode] = useState(() => getIsDevMode());
 
 	const shouldShowPreview =
 		!pageProps.conf.isServerApp &&
@@ -41,14 +45,15 @@ const ArticlePage = ({ data, className }: { data: ArticlePageData; className?: s
 		);
 
 	return (
-		<>
-			<Breadcrumb itemLinks={data.itemLinks} />
+		<div className={className}>
+			<div className="article-breadcrumb-container">
+				<Breadcrumb itemLinks={data.itemLinks} />
+				{isDevMode && <Properties />}
+			</div>
 			<div
-				className={classNames(
-					className,
-					{ "lang-style": pageProps.language.content && props.language != pageProps.language.content },
-					["article-page-wrapper"],
-				)}
+				className={classNames("article-page-wrapper", {
+					["lang-style"]: pageProps.language.content && props.language != pageProps.language.content,
+				})}
 			>
 				<div className="main-article">
 					<Article data={data} />
@@ -57,15 +62,29 @@ const ArticlePage = ({ data, className }: { data: ArticlePageData; className?: s
 			</div>
 			<NextPrevious itemLinks={data.itemLinks} />
 			<ArticleExtensions id={ContentEditorId} />
-		</>
+		</div>
 	);
 };
 
 export default styled(ArticlePage)`
-	flex: 1 1 0px;
 	display: flex;
-	flex-direction: row;
-	justify-content: space-between;
+	flex-direction: column;
+	height: 100%;
+
+	.article-page-wrapper {
+		flex: 1 1 0px;
+		display: flex;
+		flex-direction: row;
+		justify-content: space-between;
+	}
+
+	.article-breadcrumb-container {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		margin-top: -0.6rem;
+		height: 1.5em;
+	}
 
 	div.main-article {
 		width: 100%;

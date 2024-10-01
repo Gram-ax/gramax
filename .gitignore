@@ -7,9 +7,6 @@ Cargo.lock
 target
 .ci/github-private-key
 
-# expection for plugins -> target
-!plugins/target
-
 #services
 !services/target
 
@@ -54,9 +51,6 @@ yarn-error.log*
 # testing
 /coverage
 
-# plugins
-/core/public/plugins
-
 # mix
 .DS_Store
 .DS_Store?
@@ -69,8 +63,6 @@ Thumbs.db
 junit*.xml
 .idea/
 
-
-gramax-git.node
 
 !apps/browser/wasm/dist
 

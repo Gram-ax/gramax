@@ -1,7 +1,5 @@
 import { ParagraphChild, TextRun } from "docx";
 import { FileChild } from "docx/build/file/file-child";
-import FileProvider from "../../logic/FileProvider/model/FileProvider";
-import ResourceManager from "../../logic/Resource/ResourceManager";
 import ParserContext from "../markdown/core/Parser/ParserContext/ParserContext";
 import { Tag } from "../markdown/core/render/logic/Markdoc";
 import { AddOptionsWord, WordBlockChildren, WordInlineChildren } from "./options/WordTypes";
@@ -14,8 +12,7 @@ export class WordSerializerState {
 	constructor(
 		private _inlineConfig: WordInlineChildren,
 		private _blockConfig: WordBlockChildren,
-		private _resourceManager: ResourceManager,
-		private _fileProvider: FileProvider,
+		private readonly _domain: string,
 		private _parserContext: ParserContext,
 		private _exportType: ExportType,
 	) {}
@@ -36,9 +33,11 @@ export class WordSerializerState {
 					state: this,
 					tag: child,
 					addOptions,
-					resourceManager: this._resourceManager,
-					fileProvider: this._fileProvider,
-					exportType: this._exportType,
+					wordRenderContext: {
+						parserContext: this._parserContext,
+						exportType: this._exportType,
+						domain: this._domain,
+					},
 				});
 			}),
 		);
@@ -72,10 +71,11 @@ export class WordSerializerState {
 			state: this,
 			tag: block,
 			addOptions,
-			resourceManager: this._resourceManager,
-			fileProvider: this._fileProvider,
-			parserContext: this._parserContext,
-			exportType: this._exportType,
+			wordRenderContext: {
+				parserContext: this._parserContext,
+				exportType: this._exportType,
+				domain: this._domain,
+			},
 		});
 	}
 }

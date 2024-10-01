@@ -9,7 +9,7 @@ const env = {
 	PRODUCTION: null,
 	SERVER_APP: null,
 	SSO_SERVICE_URL: null,
-	SSO_SERVICE_PUBLIC_KEY: null,
+	SSO_SERVICE_ENCRYPTION_KEY: null,
 	BUGSNAG_CLIENT_KEY: null,
 	BRANCH: null,
 	COOKIE_SECRET: null,

@@ -372,6 +372,7 @@ export class MarkdownSerializerState {
 
 export const formatTable = (table: string) => {
 	table = new MdParser().backParse(table);
+	const space = table.match(/^\s*/)[0];
 	const lines = table.trim().split("\n");
 
 	const headers = lines[0]
@@ -398,7 +399,7 @@ export const formatTable = (table: string) => {
 	});
 
 	const formattedTable =
-		`| ${formattedHeaders} |\n|-${separator}-|\n` + formattedRows.map((row) => `| ${row} |`).join("\n");
-
+		`${space}| ${formattedHeaders} |\n${space}|-${separator}-|\n` +
+		formattedRows.map((row) => `${space}| ${row} |`).join("\n");
 	return formattedTable;
 };

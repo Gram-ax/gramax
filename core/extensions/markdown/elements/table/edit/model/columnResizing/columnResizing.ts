@@ -14,7 +14,8 @@ import {
 
 import { CellAttrs } from "@ext/markdown/elements/table/edit/model/columnResizing/CellAttrs";
 import { updateColumnsOnResize } from "@ext/markdown/elements/table/edit/model/columnResizing/updateColumns";
-import { LEFT_NAV_CLASS, RIGHT_NAV_CLASS } from "@app/config/const";
+import stopOpeningPanels from "@core-ui/utils/stopOpeningPanels ";
+const navsSymbol = Symbol();
 
 type ColumnResizingOptions = {
 	handleWidth?: number;
@@ -22,8 +23,6 @@ type ColumnResizingOptions = {
 	lastColumnResizable?: boolean;
 	View?: typeof TableView;
 };
-
-let resizing = false;
 
 export function columnResizing({
 	handleWidth = 5,
@@ -110,20 +109,11 @@ function handleMouseLeave(view: EditorView): void {
 	if (pluginState && pluginState.activeHandle > -1 && !pluginState.dragging) updateHandle(view, -1);
 }
 
-function updatePanelsStyle(set?: boolean) {
-	const panels = [RIGHT_NAV_CLASS, LEFT_NAV_CLASS].map((className) =>
-		document.querySelector<HTMLElement>(`.${className}`),
-	);
-	panels.map((panel) => (panel.style.pointerEvents = set ? "none" : ""));
-}
-
 function handleMouseDown(view: EditorView, event: MouseEvent, cellMinWidth: number): boolean {
 	const win = view.dom.ownerDocument.defaultView ?? window;
 	const pluginState = columnResizingPluginKey.getState(view.state);
 	if (!pluginState || pluginState.activeHandle == -1 || pluginState.dragging) return false;
-
-	resizing = true;
-	updatePanelsStyle(true);
+	const updatePanels = () => stopOpeningPanels(navsSymbol, view, true);
 
 	const cell = view.state.doc.nodeAt(pluginState.activeHandle);
 	const width = currentColWidth(view, pluginState.activeHandle, cell.attrs);
@@ -141,13 +131,10 @@ function handleMouseDown(view: EditorView, event: MouseEvent, cellMinWidth: numb
 			updateColumnWidth(view, pluginState.activeHandle, draggedWidth(pluginState.dragging, event, cellMinWidth));
 			view.dispatch(view.state.tr.setMeta(columnResizingPluginKey, { setDragging: null }));
 		}
-		resizing = false;
-		setTimeout(() => {
-			!resizing && updatePanelsStyle();
-		}, 500);
 	}
 
 	function move(event: MouseEvent): void {
+		updatePanels();
 		if (!event.which) return finish(event);
 		const pluginState = columnResizingPluginKey.getState(view.state);
 		if (!pluginState) return;

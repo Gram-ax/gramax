@@ -62,7 +62,6 @@
 		"./e2e/**/*",
 		"./scripts/**/*",
 		"./**/*.config.ts",
-		"./plugins/**/*"
 	],
 
 	"exclude": [

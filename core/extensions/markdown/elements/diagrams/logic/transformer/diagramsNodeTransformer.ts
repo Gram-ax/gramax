@@ -4,8 +4,8 @@ import getDiagramDataByLang from "../getDiagramDataByLang";
 import isDiagramName from "../isDiagramName";
 
 const diagramsNodeTransformer: NodeTransformerFunc = (node) => {
-	if (node?.type === "code_block" && isDiagramName(node?.attrs?.params)) {
-		const { name, title } = getDiagramDataByLang(node?.attrs?.params);
+	if (node?.type === "code_block" && isDiagramName(node?.attrs?.language)) {
+		const { name, title } = getDiagramDataByLang(node?.attrs?.language);
 		node = {
 			type: "diagrams",
 			attrs: { content: node.content[0].text, diagramName: DiagramType[name], title },

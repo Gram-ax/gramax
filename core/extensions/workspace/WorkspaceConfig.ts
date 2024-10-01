@@ -5,13 +5,13 @@ export type WorkspaceGroup = {
 	style: "big" | "small";
 };
 
-export type WorkspaceConfig = {
+export interface WorkspaceConfig {
 	name: string;
 	icon?: string;
 	groups?: WorkspaceGroup[];
 	isEnterprise?: boolean;
 	services?: ServicesConfig;
-};
+}
 
 export type WorkspacePath = string;
 

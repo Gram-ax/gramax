@@ -7,7 +7,7 @@ import LangList from "@ext/markdown/elements/codeBlockLowlight/edit/logic/LangLi
 import lowlight from "@ext/markdown/elements/codeBlockLowlight/edit/logic/Lowlight";
 import ExtendedCodeBlockLowlight from "@ext/markdown/elements/codeBlockLowlight/edit/model/codeBlockLowlight";
 import { toJsxRuntime } from "hast-util-to-jsx-runtime";
-import { FC, HTMLAttributes, useState } from "react";
+import { HTMLAttributes, useState } from "react";
 import { Fragment, jsx, jsxs } from "react/jsx-runtime";
 
 interface CodeBlockProps {
@@ -18,7 +18,7 @@ interface CodeBlockProps {
 	withoutHighlight?: boolean;
 }
 
-const CodeBlock: FC<CodeBlockProps> = (props) => {
+const CodeBlock = (props: CodeBlockProps) => {
 	const { languageClassPrefix, monochromeClassName } = ExtendedCodeBlockLowlight.options;
 	const { lang = "", value = "", withoutHighlight, className, style } = props;
 	const [coppedIsExpanded, setCoppedIsExpanded] = useState(false);

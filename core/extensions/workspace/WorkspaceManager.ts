@@ -1,5 +1,4 @@
 import type { AppConfig, ServicesConfig } from "@app/config/AppConfig";
-import resolveModule from "@app/resolveModule/backend";
 import { getExecutingEnvironment } from "@app/resolveModule/env";
 import type FileProvider from "@core/FileProvider/model/FileProvider";
 import Path from "@core/FileProvider/Path/Path";
@@ -205,7 +204,6 @@ export default class WorkspaceManager {
 			return false;
 
 		await this.addWorkspace(path, init);
-		await resolveModule("requestDeleteOldConfig")?.();
 		await this.saveWorkspaces();
 	}
 

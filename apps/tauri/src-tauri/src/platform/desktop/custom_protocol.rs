@@ -3,7 +3,7 @@ use std::sync::Mutex;
 use tauri::*;
 use url::Url;
 
-use crate::config::OpenUrl;
+use crate::init::OpenUrl;
 use crate::AppHandleExt;
 
 pub fn on_open_asked<R: Runtime>(app: &AppHandle<R>, urls: Vec<Url>) {

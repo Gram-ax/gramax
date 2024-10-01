@@ -3,8 +3,6 @@ import { ContextFactory } from "@core/Context/ContextFactory";
 import DiskFileProvider from "@core/FileProvider/DiskFileProvider/DiskFileProvider";
 import Path from "@core/FileProvider/Path/Path";
 import Hash from "@core/Hash/Hash";
-import PluginImporterType from "@core/Plugin/PluginImporter/logic/PluginImporterType";
-import PluginProvider from "@core/Plugin/logic/PluginProvider";
 import ResourceUpdaterFactory from "@core/Resource/ResourceUpdaterFactory";
 import CustomArticlePresenter from "@core/SitePresenter/CustomArticlePresenter";
 import SitePresenterFactory from "@core/SitePresenter/SitePresenterFactory";
@@ -26,6 +24,10 @@ import ParserContextFactory from "@ext/markdown/core/Parser/ParserContext/Parser
 import MarkdownFormatter from "@ext/markdown/core/edit/logic/Formatter/Formatter";
 import AuthManager from "@ext/security/logic/AuthManager";
 import { TicketManager } from "@ext/security/logic/TicketManager/TicketManager";
+import FuseSearcher from "@ext/serach/Fuse/FuseSearcher";
+import { IndexDataProvider } from "@ext/serach/IndexDataProvider";
+import Searcher from "@ext/serach/Searcher";
+import SourceDataProvider from "@ext/storage/logic/SourceDataProvider/logic/SourceDataProvider";
 import WorkspaceManager from "@ext/workspace/WorkspaceManager";
 import { AppConfig, getConfig, type AppGlobalConfig } from "../config/AppConfig";
 import Application from "../types/Application";
@@ -37,13 +39,12 @@ const _init = async (config: AppConfig): Promise<Application> => {
 
 	await resolveModule("initWasm")?.(config.services.cors.url);
 
-	const rp = new RepositoryProvider();
-
 	const fileConfig = await YamlFileConfig.readFromFile<AppGlobalConfig>(
 		new DiskFileProvider(config.paths.data),
 		new Path("config.yaml"),
 	);
 
+	const rp = new RepositoryProvider();
 	const wm = new WorkspaceManager(
 		(path) => new DiskFileProvider(path),
 		(fs) => mountFSEvents(fs),
@@ -51,6 +52,8 @@ const _init = async (config: AppConfig): Promise<Application> => {
 		config,
 		fileConfig,
 	);
+	const sdp = new SourceDataProvider(wm);
+	rp.addSourceDataProvider(sdp);
 
 	await wm.readWorkspaces();
 
@@ -72,7 +75,8 @@ const _init = async (config: AppConfig): Promise<Application> => {
 	const contextFactory = new ContextFactory(tm, config.tokens.cookie);
 
 	const cache = new Cache(new DiskFileProvider(config.paths.data));
-	const pluginProvider = new PluginProvider(wm, htmlParser, cache, PluginImporterType.browser);
+	const indexDataProvider = new IndexDataProvider(wm, cache, parser, parserContextFactory);
+	const searcher: Searcher = new FuseSearcher(indexDataProvider);
 
 	return {
 		am,
@@ -85,6 +89,7 @@ const _init = async (config: AppConfig): Promise<Application> => {
 		logger,
 		parser,
 		hashes,
+		searcher,
 		formatter,
 		htmlParser,
 		tablesManager,
@@ -93,7 +98,6 @@ const _init = async (config: AppConfig): Promise<Application> => {
 		sitePresenterFactory,
 		parserContextFactory,
 		resourceUpdaterFactory,
-		pluginProvider,
 		customArticlePresenter,
 		conf: {
 			glsUrl: config.glsUrl,

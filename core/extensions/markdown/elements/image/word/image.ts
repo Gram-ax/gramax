@@ -1,46 +1,37 @@
-import { Paragraph, TextRun } from "docx";
-import Path from "../../../../../logic/FileProvider/Path/Path";
-import { WordExportHelper } from "../../../../wordExport/WordExportHelpers";
+import { Paragraph } from "docx";
+import Path from "@core/FileProvider/Path/Path";
+import { WordImageProcessor } from "./WordImageProcessor";
 import { WordFontStyles, imageString } from "@ext/wordExport/options/wordExportSettings";
 import { Tag } from "@ext/markdown/core/render/logic/Markdoc";
-import ResourceManager from "@core/Resource/ResourceManager";
 import { errorWordLayout } from "@ext/wordExport/error";
 import ParserContext from "@ext/markdown/core/Parser/ParserContext/ParserContext";
 import { AddOptionsWord, WordBlockChild } from "@ext/wordExport/options/WordTypes";
+import AnnotationText from "@ext/markdown/elements/image/word/imageEditor/AnnotationText";
 
-export const renderImageWordLayout: WordBlockChild = async ({ tag, addOptions, resourceManager, parserContext }) => {
-	return imageWordLayout(tag, addOptions, resourceManager, parserContext);
+export const renderImageWordLayout: WordBlockChild = async ({ tag, addOptions, wordRenderContext }) => {
+	return imageWordLayout(tag, addOptions, wordRenderContext.parserContext);
 };
 
-export const imageWordLayout = async (
-	tag: Tag,
-	addOptions: AddOptionsWord,
-	resourceManager: ResourceManager,
-	parserContext: ParserContext,
-) => {
+export const imageWordLayout = async (tag: Tag, addOptions: AddOptionsWord, parserContext: ParserContext) => {
 	try {
-		const image = await WordExportHelper.getImageByPath(
-			new Path(tag.attributes.src),
-			resourceManager,
-			addOptions?.maxPictureWidth,
-			undefined,
-			tag.attributes.crop,
-			tag.attributes.objects,
-		);
+		return [
+			new Paragraph({
+				children: [
+					await WordImageProcessor.getImageByPath(
+						new Path(tag.attributes.src),
+						parserContext.getResourceManager(),
+						addOptions?.maxPictureWidth,
+						undefined,
+						tag.attributes.crop,
+						tag.attributes.objects,
+						tag.attributes.scale,
+					),
+				],
+				style: WordFontStyles.picture,
+			}),
 
-		const paragraphs = [
-			new Paragraph({ children: [image], style: WordFontStyles.picture }),
-			...(tag.attributes.title
-				? [
-						new Paragraph({
-							children: [new TextRun({ text: tag.attributes.title })],
-							style: WordFontStyles.pictureTitle,
-						}),
-				  ]
-				: []),
+			...AnnotationText.getText(tag.attributes.title, tag.attributes.objects),
 		];
-
-		return paragraphs;
 	} catch (error) {
 		return errorWordLayout(imageString(parserContext.getLanguage()), parserContext.getLanguage());
 	}

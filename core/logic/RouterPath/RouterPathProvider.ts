@@ -5,8 +5,18 @@ import { ContentLanguage } from "@ext/localization/core/model/Language";
 export default class RouterPathProvider {
 	private static readonly _separator = "-";
 
+	static getLogicPath(pathname: string) {
+		return this.isEditorPathname(pathname)
+			? new Path(this.parsePath(new Path(pathname)).itemLogicPath).value
+			: pathname;
+	}
+
 	static parsePath(path: string[] | string | Path): PathnameData {
-		const currentPath = this._getArrayOfStrings(path);
+		const pathSegments = this._getArrayOfStrings(path);
+		const currentPath = this.isEditorPathname(pathSegments)
+			? pathSegments
+			: this._getArrayOfStrings(this.getPathname({ itemLogicPath: pathSegments }));
+
 		const [sourceName, group, repName, branch, dir, maybeLanguage, ...filePath] = currentPath.map((p) =>
 			p === this._separator ? undefined : p,
 		);
@@ -22,7 +32,7 @@ export default class RouterPathProvider {
 
 		return {
 			sourceName,
-			group,
+			group: group ? decodeURIComponent(group) : undefined,
 			repName,
 			branch: branch ? decodeURIComponent(branch) : undefined,
 			catalogName,
@@ -47,7 +57,7 @@ export default class RouterPathProvider {
 
 		return new Path([
 			data.sourceName ?? this._separator,
-			data.group ?? this._separator,
+			data.group ? encodeURIComponent(data.group) : this._separator,
 			data.repName ?? this._separator,
 			data.branch ? encodeURIComponent(data.branch) : this._separator,
 			catalogName,
@@ -65,7 +75,7 @@ export default class RouterPathProvider {
 		return { catalogName, filePath, fullPath };
 	}
 
-	static isEditorPathname(path: string[] | Path): boolean {
+	static isEditorPathname(path: string[] | string | Path): boolean {
 		const currentPath = this._getArrayOfStrings(path);
 		return currentPath[0]?.includes(".") || currentPath[0] == this._separator;
 	}

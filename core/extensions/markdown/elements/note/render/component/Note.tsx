@@ -27,21 +27,30 @@ interface NoteProps {
 	title?: string;
 	collapsed?: string | boolean;
 	children?: ReactElement;
+	className?: string;
+	collapseCallback?: (collapse: boolean) => void;
 }
 
 const Note = (props: NoteProps): ReactElement => {
-	const { type = NoteType.note, title, children, collapsed } = props;
+	const { type = NoteType.note, title, className, children, collapseCallback, collapsed } = props;
 	const [expanded, dispatchExpanded] = useState(!collapsed);
 
 	const toggleExpanded = (e: MouseEvent<HTMLElement>) => {
 		e.preventDefault();
+		collapseCallback?.(!expanded);
 		dispatchExpanded((p) => !p);
 	};
 
 	const clickable = !expanded || collapsed;
 
 	return (
-		<div className={`admonition admonition-${type} admonition-${title ? "column" : "row"}`}>
+		<div
+			className={classNames("admonition", {}, [
+				`admonition-${type}`,
+				`admonition-${title ? "column" : "row"}`,
+				className,
+			])}
+		>
 			<div
 				className={classNames("admonition-heading", { expanded: !expanded })}
 				onClick={clickable ? toggleExpanded : null}

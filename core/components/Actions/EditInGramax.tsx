@@ -8,7 +8,7 @@ import DefaultError from "@ext/errorHandlers/logic/DefaultError";
 import t from "@ext/localization/locale/translate";
 import useEditUrl from "./useEditUrl";
 
-const DESKTOP_APP_LISTENING_ADDRESS = "http://localhost:52055";
+const DESKTOP_APP_LISTENING_ADDRESS = "http://127.0.0.1:52055";
 
 const EditInGramaxButton = ({
 	text,
@@ -35,7 +35,7 @@ const EditInGramaxButton = ({
 	);
 };
 
-const assertDesktopAvailable = async () => {
+export const assertDesktopOpened = async () => {
 	let attempts = 3;
 	await new Promise((resolve) => setTimeout(resolve, 200));
 	while (attempts--) {
@@ -47,18 +47,16 @@ const assertDesktopAvailable = async () => {
 
 	ErrorConfirmService.notify(
 		new DefaultError(
-			t("open-in.error.cannot-open-desktop.title"),
+			t("open-in.error.cannot-open-desktop.desc"),
 			null,
 			{ html: true },
 			true,
-			t("open-in.error.cannot-open-desktop.desc"),
+			t("open-in.error.cannot-open-desktop.title"),
 		),
 	);
 };
 
-const EditInDesktop = () => (
-	<EditInGramaxButton targetSelf text={t("open-in.desktop")} onClick={assertDesktopAvailable} />
-);
+const EditInDesktop = () => <EditInGramaxButton targetSelf text={t("open-in.desktop")} onClick={assertDesktopOpened} />;
 
 const EditInWeb = () => !PageDataContextService.value?.conf.isRelease && <EditInGramaxButton text={t("open-in.web")} />;
 

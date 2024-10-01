@@ -44,11 +44,9 @@ const ImageResizer = (props: ImageResizerProps): ReactElement => {
 					const adjustedWidth = minWidth * aspectRatio;
 					container.style.width = `${adjustedWidth}px`;
 					object.style.width = `${adjustedWidth}px`;
-					object.style.height = `${minWidth}px`;
 				} else {
 					container.style.width = `${newWidth}px`;
 					object.style.width = `${newWidth}px`;
-					object.style.height = `${newHeight}px`;
 				}
 			};
 
@@ -91,7 +89,7 @@ const ImageResizer = (props: ImageResizerProps): ReactElement => {
 		return () => {
 			window.removeEventListener("resize", resize);
 		};
-	}, [scale]);
+	}, [scale, containerRef?.current]);
 
 	if (!selected) return <></>;
 	return (

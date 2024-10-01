@@ -76,6 +76,7 @@ describe("Navigation правильно", () => {
 			"Test-catalog",
 			"Test-catalog",
 			"Test-catalog",
+			"Test-catalog",
 			"Последний каталог",
 		]);
 	});

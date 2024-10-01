@@ -18,8 +18,13 @@ const Group = ({
 		<div className={className}>
 			<div className="group-header">{groupData.title !== "null" && t(groupData.title as any)}</div>
 			<div className="group-container">
-				{groupData.catalogLinks.map((link, i) => (
-					<Card key={i} link={link} style={groupData.style} onClick={() => setIsAnyCardLoading(true)} />
+				{groupData.catalogLinks.map((link) => (
+					<Card
+						key={link.name}
+						link={link}
+						style={groupData.style}
+						onClick={() => setIsAnyCardLoading(true)}
+					/>
 				))}
 			</div>
 		</div>

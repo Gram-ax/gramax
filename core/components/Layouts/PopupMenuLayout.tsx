@@ -3,7 +3,7 @@ import useElementExistence from "@core-ui/hooks/useElementExistence";
 import styled from "@emotion/styled";
 import { Placement } from "@popperjs/core";
 import Tippy from "@tippyjs/react";
-import { ReactNode, createElement, useCallback, useEffect, useRef, useState, ReactElement } from "react";
+import { ReactElement, ReactNode, createElement, useCallback, useEffect, useRef, useState } from "react";
 import Tooltip from "../Atoms/Tooltip";
 
 export interface PopupMenuLayoutProps {
@@ -156,6 +156,9 @@ export default styled(PopupMenuLayout)`
 		height: 0;
 		border-bottom: 0.5px solid var(--color-line);
 		opacity: 0.5;
+	}
+	div.disabled:hover {
+		background: none;
 	}
 
 	> div,

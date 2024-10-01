@@ -13,3 +13,4 @@ serde = { workspace = true }
 serde_json = { workspace = true }
 simple_logger = { version = "5.0.0", default-features = false }
 log = "0.4.21"
+threadpool = "1.8.1"

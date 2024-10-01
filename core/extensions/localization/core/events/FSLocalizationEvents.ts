@@ -1,4 +1,5 @@
 import { CATEGORY_ROOT_FILENAME } from "@app/config/const";
+import { getExecutingEnvironment } from "@app/resolveModule/env";
 import type { EventArgs } from "@core/Event/EventEmitter";
 import Path from "@core/FileProvider/Path/Path";
 import type { Catalog } from "@core/FileStructue/Catalog/Catalog";
@@ -24,6 +25,21 @@ export const mountFSEvents = (fs: FileStructure) => {
 	fs.events.on("item-moved", onItemMoved);
 	fs.events.on("item-props-updated", onItemPropsUpdated);
 	fs.events.on("item-order-updated", onItemOrderUpdated);
+	fs.events.on("item-filter", onItemFilter);
+};
+
+const onItemFilter = ({ catalogProps, item }: EventArgs<FSEvents, "item-filter">) => {
+	if (!catalogProps.language || getExecutingEnvironment() != "next") return true;
+
+	if (item.props.external && item.type == ItemType.article) return false;
+	if (item.props.external && item.type == ItemType.category) {
+		const hasAnyTranslatedArticle = (category: Category) =>
+			category.items.some((item) => item.type == ItemType.article && !item.props.external) ||
+			category.items.filter((i) => i.type == ItemType.category).some(hasAnyTranslatedArticle);
+		return hasAnyTranslatedArticle(item as Category);
+	}
+
+	return true;
 };
 
 const onCatalogEntryRead = ({ entry: { props } }: EventArgs<FSEvents, "catalog-entry-read">) => {
@@ -82,7 +98,14 @@ const onItemCreated = async ({ catalog, makeResourceUpdater, parentRef }: EventA
 	});
 };
 
-const onItemMoved = async ({ catalog, from, to, rp, makeResourceUpdater }: EventArgs<FSEvents, "item-moved">) => {
+const onItemMoved = async ({
+	catalog,
+	from,
+	to,
+	rp,
+	makeResourceUpdater,
+	innerRefs,
+}: EventArgs<FSEvents, "item-moved">) => {
 	if (!catalog.props.language) return;
 
 	const froms = [];
@@ -99,7 +122,7 @@ const onItemMoved = async ({ catalog, from, to, rp, makeResourceUpdater }: Event
 	assert(froms.length == tos.length, "`froms` & `tos` length must be equal");
 
 	for (let i = 0; i < froms.length; i++) {
-		await catalog.moveItem(froms[i], tos[i], makeResourceUpdater, rp, true);
+		await catalog.moveItem(froms[i], tos[i], makeResourceUpdater, rp, innerRefs, true);
 	}
 };
 

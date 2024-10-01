@@ -1,7 +1,5 @@
 import { IParagraphOptions, IRunPropertiesOptions, ParagraphChild } from "docx";
 import { FileChild } from "docx/build/file/file-child";
-import FileProvider from "../../../logic/FileProvider/model/FileProvider";
-import ResourceManager from "../../../logic/Resource/ResourceManager";
 import ParserContext from "../../markdown/core/Parser/ParserContext/ParserContext";
 import { RenderableTreeNode, Tag } from "../../markdown/core/render/logic/Markdoc";
 import { WordSerializerState } from "../WordExportState";
@@ -9,14 +7,17 @@ import { ExportType } from "@ext/wordExport/ExportType";
 
 export type WordBlockChildren = Record<string, WordBlockChild>;
 
+export type WordRenderContext = {
+	parserContext?: ParserContext;
+	exportType?: ExportType;
+	domain: string;
+};
+
 export type WordBlockChild = (params: {
 	state: WordSerializerState;
 	tag: Tag;
 	addOptions: AddOptionsWord;
-	resourceManager?: ResourceManager;
-	fileProvider?: FileProvider;
-	parserContext?: ParserContext;
-	exportType?: ExportType;
+	wordRenderContext: WordRenderContext;
 }) => Promise<FileChild[]>;
 
 export type WordInlineChildren = Record<string, WordInlineChild>;
@@ -25,9 +26,7 @@ export type WordInlineChild = (params: {
 	state: WordSerializerState;
 	tag: Tag;
 	addOptions: AddOptionsWord;
-	resourceManager: ResourceManager;
-	fileProvider: FileProvider;
-	exportType?: ExportType;
+	wordRenderContext: WordRenderContext;
 }) => Promise<ParagraphChild[]>;
 
 export type AddOptionsWord = IRunPropertiesOptions &
@@ -42,7 +41,6 @@ export type TextRunOptions = { readonly break?: number; removeWhiteSpace?: boole
 export interface Article {
 	title: string;
 	content: RenderableTreeNode;
-	resourceManager: ResourceManager;
 }
 
 export interface CodeOptions {

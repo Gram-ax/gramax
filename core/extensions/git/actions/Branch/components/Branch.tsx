@@ -18,9 +18,9 @@ const Branch = () => {
 	const [branchName, setBranchName] = useState<string>(null);
 
 	useEffect(() => {
-		const onUpdateBranch = (branch: string) => {
+		const onUpdateBranch = (branch: string, caller: OnBranchUpdateCaller) => {
 			setBranchName(branch);
-			if (getExecutingEnvironment() !== "next") refreshPage();
+			if (getExecutingEnvironment() !== "next" || caller === OnBranchUpdateCaller.Checkout) refreshPage();
 		};
 
 		BranchUpdaterService.addListener(onUpdateBranch);

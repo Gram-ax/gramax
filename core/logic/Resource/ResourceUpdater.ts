@@ -10,6 +10,7 @@ import Context from "../Context/Context";
 import { Article } from "../FileStructue/Article/Article";
 import parseContent from "../FileStructue/Article/parseContent";
 import { Catalog } from "../FileStructue/Catalog/Catalog";
+import ParseError from "@ext/markdown/core/Parser/Error/ParseError";
 
 export default class ResourceUpdater {
 	constructor(
@@ -20,13 +21,20 @@ export default class ResourceUpdater {
 		private _formatter: MarkdownFormatter,
 	) {}
 
-	async updateOtherArticles(oldPath: Path, absoluteNewBasePath: Path) {
-		for (const item of this._catalog.getContentItems()) {
+	async updateOtherArticles(oldPath: Path, absoluteNewBasePath: Path, innerRefs?: ItemRef[]) {
+		for (const item of this._catalog
+			.getContentItems()
+			.filter((item) => !innerRefs?.some((ref) => ref.path.compare(item.ref.path)))) {
 			const oldResources: Path[] = [];
 			const newResources: Path[] = [];
 
 			if (!item.parsedContent)
-				await parseContent(item, this._catalog, this._rc, this._parser, this._parserContextFactory, false);
+				try {
+					await parseContent(item, this._catalog, this._rc, this._parser, this._parserContextFactory, false);
+				} catch (e) {
+					if (e instanceof ParseError) return;
+					throw e;
+				}
 
 			const parsedContent = item.parsedContent;
 			parsedContent.linkManager.resources.map((resource) => {
@@ -55,7 +63,13 @@ export default class ResourceUpdater {
 	}
 
 	async update(oldArticle: Article, newArticle: Article, innerRefs?: ItemRef[]) {
-		await parseContent(oldArticle, this._catalog, this._rc, this._parser, this._parserContextFactory, false);
+		try {
+			await parseContent(oldArticle, this._catalog, this._rc, this._parser, this._parserContextFactory, false);
+		} catch (e) {
+			if (e instanceof ParseError) return;
+			throw e;
+		}
+
 		if (!oldArticle?.parsedContent) return;
 
 		const { resourceManager, linkManager } = oldArticle.parsedContent;
@@ -115,4 +129,3 @@ export default class ResourceUpdater {
 		}
 	}
 }
-

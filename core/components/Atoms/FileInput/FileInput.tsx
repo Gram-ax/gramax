@@ -11,7 +11,8 @@ import ThemeService from "../../../extensions/Theme/components/ThemeService";
 
 const DEFAULT_LANGAUGE = getFileInputDefaultLanguage();
 
-const FileInput = ({ value, language, onChange, onMount, options, height = "60vh", ...props }: FileInputProps) => {
+const FileInput = (props: FileInputProps) => {
+	const { value, className, language, onChange, onMount, options, height = "60vh", ...otherProps } = props;
 	const readOnly = options?.readOnly ?? false;
 	const theme = ThemeService.value;
 	const ref = useRef<HTMLDivElement>(null);
@@ -27,7 +28,7 @@ const FileInput = ({ value, language, onChange, onMount, options, height = "60vh
 	}, []);
 
 	return (
-		<div style={{ padding: "1rem 0", height }}>
+		<div className={className} style={{ padding: "1rem 0", height }}>
 			<div ref={ref} style={{ height: "100%" }}>
 				<MergeConflictStyles style={{ height: "100%" }}>
 					<FileInput
@@ -60,7 +61,7 @@ const FileInput = ({ value, language, onChange, onMount, options, height = "60vh
 							);
 							onMount?.(editor, monaco, fileInputMergeConflict.current);
 						}}
-						{...props}
+						{...otherProps}
 					/>
 				</MergeConflictStyles>
 			</div>

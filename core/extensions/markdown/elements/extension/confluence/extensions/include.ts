@@ -1,6 +1,6 @@
-import ConfluenceAPI from "@ext/confluence/ConfluenceAPI";
-import NodeConverter from "@ext/confluence/actions/Import/logic/NodeConverter";
-import convertUnsupportedNode from "@ext/confluence/actions/Import/logic/convertUnsupportedNode";
+import ConfluenceAPI from "@ext/confluence/core/api/model/ConfluenceAPI";
+import NodeConverter from "@ext/confluence/core/cloud/model/NodeConverter";
+import convertUnsupportedNode from "@ext/confluence/core/cloud/logic/convertUnsupportedNode";
 import ConfluenceStorageData from "@ext/confluence/core/model/ConfluenceStorageData";
 import { makeSourceApi } from "@ext/git/actions/Source/makeSourceApi";
 import { JSONContent } from "@tiptap/core";

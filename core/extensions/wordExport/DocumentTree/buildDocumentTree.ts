@@ -4,12 +4,12 @@ import parseContent from "@core/FileStructue/Article/parseContent";
 import { Catalog, ItemFilter } from "@core/FileStructue/Catalog/Catalog";
 import { Category } from "@core/FileStructue/Category/Category";
 import { Item } from "@core/FileStructue/Item/Item";
+import { ItemType } from "@core/FileStructue/Item/ItemType";
 import { defaultLanguage } from "@ext/localization/core/model/Language";
 import MarkdownParser from "@ext/markdown/core/Parser/Parser";
 import ParserContextFactory from "@ext/markdown/core/Parser/ParserContext/ParserContextFactory";
-import MarkdownProcessor from "@ext/wordExport/MarkdownProcessor";
+import MarkdownElementsFilter from "@ext/wordExport/MarkdownElementsFilter";
 import { DocumentTree } from "./DocumentTree";
-import { ItemType } from "@core/FileStructue/Item/ItemType";
 
 const buildDocumentTree = async (
 	isCategory: boolean,
@@ -24,13 +24,13 @@ const buildDocumentTree = async (
 	level: number = 0,
 	number: string = "",
 ) => {
-	const markdownProcessor = new MarkdownProcessor(exportedKeys);
+	const filter = new MarkdownElementsFilter(exportedKeys);
 
 	if (!isCatalog) await parseContent(item as Article, catalog, ctx, parser, parserContextFactory, false);
 
 	const heading: DocumentTree = {
-		name: item.getTitle(),
-		content: !isCatalog ? markdownProcessor.getSupportedTree((item as Article).parsedContent?.renderTree) : "",
+		name: isCatalog ? catalog.props.title : item.getTitle() || catalog.getName(),
+		content: !isCatalog ? filter.getSupportedTree((item as Article).parsedContent?.renderTree) : "",
 		resourceManager: !isCatalog ? (item as Article).parsedContent?.resourceManager : undefined,
 		level: level,
 		number: number,

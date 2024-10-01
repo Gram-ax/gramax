@@ -5,10 +5,10 @@ use tauri::menu::*;
 use tauri::*;
 use tauri_plugin_dialog::DialogExt;
 
-use crate::build_main_window;
 use crate::platform::desktop::open_help_docs;
 use crate::platform::desktop::updater::Updater;
 use crate::AppHandleExt;
+use crate::MainWindowBuilder;
 
 pub trait MenuBuilder {
   fn setup_menu(&self) -> Result<()>;
@@ -106,7 +106,7 @@ fn on_menu_event<R: Runtime>(app: &AppHandle<R>, event: MenuEvent) {
       async_runtime::spawn(async move { app.state::<Updater<R>>().check_and_ask().await });
     }
     Id::NewWindow => {
-      std::thread::spawn(move || build_main_window(&app).unwrap());
+      std::thread::spawn(move || MainWindowBuilder::default().build(&app).unwrap());
     }
     Id::CloseWindow => {
       std::thread::spawn(move || app.get_focused_webview().map(|w| w.close()));

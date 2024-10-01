@@ -1,8 +1,18 @@
-import { ImageObject } from "@ext/markdown/elements/image/edit/model/imageEditorTypes";
-import { CSSProperties, MouseEventHandler, MutableRefObject, ReactElement, useCallback, useEffect, useRef, useState } from "react";
-import styled from "@emotion/styled";
 import Header from "@components/Atoms/Image/modalImage/Header";
 import Image from "@components/Atoms/Image/modalImage/Image";
+import { getCanMoves, getClampedValues, getLimits } from "@components/Atoms/Image/modalImage/modalFunctions";
+import styled from "@emotion/styled";
+import { ImageObject } from "@ext/markdown/elements/image/edit/model/imageEditorTypes";
+import {
+	CSSProperties,
+	MouseEventHandler,
+	MutableRefObject,
+	ReactElement,
+	useCallback,
+	useEffect,
+	useRef,
+	useState,
+} from "react";
 
 interface LightboxProps {
 	id: string;
@@ -16,18 +26,6 @@ interface LightboxProps {
 	modalStyle?: CSSProperties;
 	modalEdit?: () => void;
 }
-
-const getLimits = (element: HTMLElement) => {
-	const currentHeight = element.offsetHeight;
-	const computed = getComputedStyle(element);
-	const computedMaxHeight = parseFloat(computed.maxHeight);
-	const computedMinHeight = parseFloat(computed.minHeight);
-
-	return {
-		max: (computedMaxHeight / currentHeight) * 2,
-		min: computedMinHeight / currentHeight,
-	};
-};
 
 const Lightbox = (props: LightboxProps): ReactElement => {
 	const { id, className, objects, src, downloadSrc, openedElement, modalStyle, modalEdit, title, onClose } = props;
@@ -56,49 +54,44 @@ const Lightbox = (props: LightboxProps): ReactElement => {
 	const zoomImage = useCallback((deltaY: number, mouseX?: number, mouseY?: number) => {
 		const container = containerRef.current;
 		const delta = Math.min(Math.max(deltaY, -25), 25);
+
 		const { max, min } = getLimits(container);
 		const previousScale = +container.style.scale || 1;
 		const newScale = Math.min(Math.max(previousScale - delta * 0.01, min || 0.25), max || 1.7);
-
 		container.style.scale = newScale.toString();
 
-		if (mouseX && mouseY) {
-			if (newScale < 1) {
-				container.style.transition = "left 0.3s ease, top 0.3s ease";
-				container.style.left = "0px";
-				container.style.top = "0px";
-				return;
-			}
+		if (!mouseX || !mouseY) return;
 
-			container.style.transition = "unset";
+		const rect = container.getBoundingClientRect();
+		const { left, right, top, bottom } = getCanMoves(rect);
+		const scaleFactor = newScale / previousScale;
 
-			const rect = container.getBoundingClientRect();
-
+		if (left && right) {
 			const containerCenterX = rect.left + rect.width / 2;
-			const containerCenterY = rect.top + rect.height / 2;
-
-			const offsetX = mouseX - containerCenterX;
-			const offsetY = mouseY - containerCenterY;
-
-			const scaleFactor = newScale / previousScale;
-
+			const offsetX = deltaY < 0 ? mouseX - containerCenterX : 0;
 			const newOffsetX = offsetX * scaleFactor;
-			const newOffsetY = offsetY * scaleFactor;
-
 			const currentLeft = parseFloat(getComputedStyle(container).left) || 0;
-			const currentTop = parseFloat(getComputedStyle(container).top) || 0;
-
 			const dx = newOffsetX - offsetX;
-			const dy = newOffsetY - offsetY;
-
 			container.style.left = `${currentLeft - dx}px`;
-			container.style.top = `${currentTop - dy}px`;
-			return;
 		}
 
-		container.style.transition = "left 0.3s ease, top 0.3s ease";
-		container.style.left = "0px";
-		container.style.top = "0px";
+		if (top && bottom) {
+			const containerCenterY = rect.top + rect.height / 2;
+			const offsetY = deltaY < 0 ? mouseY - containerCenterY : 0;
+			const newOffsetY = offsetY * scaleFactor;
+			const currentTop = parseFloat(getComputedStyle(container).top) || 0;
+			const dy = newOffsetY - offsetY;
+			container.style.top = `${currentTop - dy}px`;
+		}
+		const { minWidth, maxWidth, minHeight, maxHeight } = getClampedValues({
+			width: rect.width,
+			height: rect.height,
+		});
+
+		if (left && !right) container.style.left = `${minWidth}px`;
+		if (!left && right) container.style.left = `${maxWidth}px`;
+		if (top && !bottom) container.style.top = `${minHeight}px`;
+		if (!top && bottom) container.style.top = `${maxHeight}px`;
 	}, []);
 
 	useEffect(() => {
@@ -129,7 +122,6 @@ const Lightbox = (props: LightboxProps): ReactElement => {
 				startPos={openedElement.current.getBoundingClientRect()}
 				modalStyle={modalStyle}
 			/>
-
 			{title && <em>{title}</em>}
 		</div>
 	);
@@ -148,21 +140,6 @@ export default styled(Lightbox)`
 	opacity: 0;
 	background-color: var(--color-modal-overlay-style-bg);
 
-	> em {
-		pointer-events: auto !important;
-		position: absolute;
-		left: 50%;
-		top: 97%;
-		color: rgb(123, 124, 125) !important;
-		transform: translateX(-50%);
-		font-size: 1em !important;
-		transition: 0.25s;
-
-		:hover {
-			color: var(--color-active-white-hover) !important;
-		}
-	}
-
 	@keyframes open {
 		0% {
 			opacity: 0;
@@ -179,5 +156,16 @@ export default styled(Lightbox)`
 		100% {
 			opacity: 0;
 		}
+	}
+
+	em {
+		position: absolute;
+		bottom: 5%;
+		left: 50%;
+		transform: translateX(-50%);
+		text-align: center;
+		margin-top: 1em;
+		color: var(--color-active-white) !important;
+		font-size: 1em !important;
 	}
 `;

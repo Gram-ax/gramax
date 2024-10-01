@@ -1,9 +1,9 @@
+import { classNames } from "@components/libs/classNames";
 import ScrollWebkitService from "@core-ui/ContextServices/ScrollWebkit";
+import useScrolling from "@core-ui/hooks/useScrolling";
 import scrollUtils from "@core-ui/utils/scrollUtils";
 import styled from "@emotion/styled";
-import React, { forwardRef, MutableRefObject, ReactNode, useEffect, useRef, useState } from "react";
-import useScrolling from "@core-ui/hooks/useScrolling";
-import { classNames } from "@components/libs/classNames";
+import { forwardRef, MutableRefObject, ReactNode, useEffect, useLayoutEffect, useRef, useState } from "react";
 
 interface ScrollableProps {
 	children: ReactNode;
@@ -24,7 +24,7 @@ const Scrollable = forwardRef((props: ScrollableProps, ref: MutableRefObject<HTM
 	const useDefaultScrollBar = ScrollWebkitService.value;
 	const hover = !useDefaultScrollBar && currentHasScroll && isHover;
 
-	useEffect(() => {
+	useLayoutEffect(() => {
 		setContainerWidth(containerRef.current?.getBoundingClientRect().width);
 	}, []);
 
@@ -72,11 +72,15 @@ export default styled(Scrollable)`
 	height: inherit;
 	position: relative;
 	overflow-x: hidden;
-	overflow-y: scroll;
+	overflow-y: auto;
+
+	.scrolling-content {
+		height: 100%;
+	}
 
 	${(p) =>
 		ScrollWebkitService.value
-			? ""
+			? `${p.hideScroll ? "overflow: hidden;" : ""}`
 			: `
 ::-webkit-scrollbar {
 	height: 0;

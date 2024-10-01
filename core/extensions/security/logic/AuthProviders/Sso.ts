@@ -7,10 +7,14 @@ import Permission from "@ext/security/logic/Permission/Permission";
 import User from "@ext/security/logic/User/User";
 import UserInfo from "@ext/security/logic/User/UserInfo2";
 import { UserRepositoryProvider } from "@ext/security/logic/UserRepository";
-import { KEYUTIL, KJUR } from "jsrsasign";
+import crypto from "crypto";
 
 class Sso implements UserRepositoryProvider, AuthProvider {
-	constructor(private _ssoServerUrl: string, private _publicKey: string) {}
+	private _key: Buffer;
+	constructor(private _ssoServerUrl: string, ssoServerKey: string) {
+		if (!ssoServerKey) throw new Error("Decryption key not set");
+		this._key = Buffer.from(ssoServerKey, "hex");
+	}
 
 	async getUser(idOrMail: string): Promise<UserInfo> {
 		return JSON.parse(await (await fetch(`${this._ssoServerUrl}?userOrMail=${idOrMail}`)).text());
@@ -52,26 +56,27 @@ class Sso implements UserRepositoryProvider, AuthProvider {
 		setUser: (cookie: Cookie, user: User) => void,
 	): Promise<void> | void {
 		const from = req.query.from as string;
-		const sign = req.query.sign as string;
 		const data = req.query.data as string;
 
-		const publicKey = KEYUTIL.getKey(this._publicKey);
+		const parts = data.split(":");
+		const iv = Buffer.from(parts[0], "hex");
 
-		const userData = Buffer.from(decodeURIComponent(data.replace("\\", "/")), "base64");
-		const decodedUserData = userData.toString();
+		const encrypted = parts[1];
 
-		const signature = decodeURIComponent(sign);
-		const sig = new KJUR.crypto.Signature({ alg: "SHA256withRSA" });
+		try {
+			const decipher = crypto.createDecipheriv("aes-256-cbc", this._key, iv);
+			let decrypted = decipher.update(encrypted, "hex", "utf8");
+			decrypted += decipher.final("utf8");
 
-		sig.init(publicKey);
-		sig.updateString(decodedUserData);
+			const userInfo = JSON.parse(decrypted);
+			const user = new User(true, userInfo.userInfo, new Permission(userInfo.globalPermission));
 
-		if (!sig.verify(signature)) return console.error("Signature verification failed.");
-
-		const userInfo = JSON.parse(decodedUserData);
-		const user = new User(true, userInfo.userInfo, new Permission(userInfo.globalPermission));
-		setUser(cookie, user);
-		res.redirect(from ?? "/");
+			setUser(cookie, user);
+			res.redirect(from || "/");
+		} catch (e) {
+			console.log({ data, iv });
+			throw new Error("DecryptUserData error", { cause: e });
+		}
 	}
 }
 

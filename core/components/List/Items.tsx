@@ -135,6 +135,17 @@ const Items = (props: ItemsProps) => {
 	const useVirtuoso = itemsWithButtons.length > maxItems;
 	const virtuosoRef = useRef<VirtuosoHandle>(null);
 
+	let scrollTop: number;
+
+	virtuosoRef.current?.getState((e) => {
+		scrollTop = e.scrollTop;
+	});
+
+	useEffect(() => {
+		if (!scrollTop || !virtuosoRef.current) return;
+		virtuosoRef.current.scrollTo({ top: scrollTop });
+	}, [items]);
+
 	const moveActiveIdx = useCallback(
 		(n: number) => {
 			const isNextLarger = n > 0;
@@ -158,16 +169,22 @@ const Items = (props: ItemsProps) => {
 		[itemsWithButtons.length],
 	);
 
-	const handleMouseMove: MouseEventHandler<HTMLDivElement> = useCallback((e) => {
-		const menuItems = ref?.current?.children;
-		for (let i = 0; i < menuItems.length; i++) {
-			const item = menuItems[i] as HTMLElement;
-			if (item.contains(e.target as Node)) {
-				setActiveIdx(+(item.dataset.index ?? i));
-				break;
+	const handleMouseMove: MouseEventHandler<HTMLDivElement> = useCallback(
+		(e) => {
+			const menuItems = ref?.current?.children;
+			for (let i = 0; i < menuItems.length; i++) {
+				const htmlItem = menuItems[i] as HTMLElement;
+				if (htmlItem.contains(e.target as Node)) {
+					const absoluteIdx = +(htmlItem.dataset.index ?? i);
+					const item = items?.[absoluteIdx];
+					if (item && typeof item !== "string" && (item.disable || item.loading)) continue;
+					setActiveIdx(absoluteIdx);
+					break;
+				}
 			}
-		}
-	}, []);
+		},
+		[items],
+	);
 
 	const itemClickHandler = useCallback(
 		({ item, e, idx }) => {
@@ -190,17 +207,17 @@ const Items = (props: ItemsProps) => {
 				},
 			}[e.key];
 
-			if (action && focusRef.current) {
-				e.preventDefault();
-				action();
+			if (action) {
+				if (focusRef.current) {
+					e.preventDefault();
+					action();
+				}
+			} else {
+				moveActiveIdx(-activeIdx);
 			}
 		},
 		[moveActiveIdx, onItemClick, items, activeIdx, maxItems, blurInInput],
 	);
-
-	useEffect(() => {
-		moveActiveIdx(-activeIdx);
-	}, [buttons, items]);
 
 	useEffect(() => {
 		const inputRef = searchRef?.current?.inputRef;
@@ -236,6 +253,8 @@ const Items = (props: ItemsProps) => {
 		const tooltipDisabledContent =
 			typeof item !== "string" && item.disable ? item.tooltipDisabledContent : undefined;
 
+		const isLoading = typeof item !== "string" && item.loading === true;
+
 		return (
 			<Tooltip content={tooltipDisabledContent} key={idx}>
 				<Item
@@ -250,8 +269,9 @@ const Items = (props: ItemsProps) => {
 						blurInInput();
 					}}
 					ref={idx === activeIdx ? focusRef : null}
-					isActive={(typeof item === "string" || !item.isTitle) && idx === activeIdx}
-					disable={typeof item === "string" ? null : item?.disable}
+					isActive={!isLoading && (typeof item === "string" || !item.isTitle) && idx === activeIdx}
+					disable={isLoading || (typeof item !== "string" && item?.disable)}
+					isLoading={isLoading}
 				/>
 			</Tooltip>
 		);

@@ -16,6 +16,7 @@ const getAllFilePaths = (data: SideBarData[]) => {
 };
 
 const formatComment = (data: SideBarData[]) => {
+	if (!data) return "";
 	const paths = getAllFilePaths(data);
 	if (paths.length == 1) return `Update file: ${paths[0].path}`;
 	return `Update ${paths.length} files\n\n${paths.map((d) => `${d.prefix}${d.path}`).join("\n")}`;

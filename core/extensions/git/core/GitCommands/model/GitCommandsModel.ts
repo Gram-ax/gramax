@@ -1,3 +1,4 @@
+import DefaultError from "@ext/errorHandlers/logic/DefaultError";
 import type { MergeResult, UpstreamCountFileChanges } from "@ext/git/core/GitCommands/LibGit2IntermediateCommands";
 import GitStash from "@ext/git/core/model/GitStash";
 import Path from "../../../../../logic/FileProvider/Path/Path";
@@ -5,9 +6,20 @@ import { VersionControlInfo } from "../../../../VersionControl/model/VersionCont
 import SourceData from "../../../../storage/logic/SourceDataProvider/model/SourceData";
 import { GitBranch } from "../../GitBranch/GitBranch";
 import { GitStatus } from "../../GitWatcher/model/GitStatus";
-import GitProgressEvent from "../../model/GitProgressEvent";
 import GitSourceData from "../../model/GitSourceData.schema";
 import { GitVersion } from "../../model/GitVersion";
+
+export type TransferProgress =
+	| { type: "indexingDeltas"; data: { indexed: number; total: number } }
+	| { type: "receivingObjects"; data: { received: number; indexed: number; total: number } };
+
+export type CloneProgress =
+	| { type: "wait"; data: { path: string } }
+	| { type: "started"; data: { path: string } }
+	| { type: "finish"; data: { path: string } }
+	| { type: "error"; data: { path: string; error: DefaultError } }
+	| { type: "sideband"; data: { remote_text: string } }
+	| { type: "chunkedTransfer"; data: { transfer: TransferProgress; bytes: number; download_speed_bytes: number } };
 
 interface GitCommandsModel {
 	init(data: SourceData): Promise<void>;
@@ -15,7 +27,8 @@ interface GitCommandsModel {
 		url: string,
 		source: GitSourceData,
 		branch?: string,
-		onProgress?: (progress: GitProgressEvent) => void,
+		depth?: number,
+		onProgress?: (progress: CloneProgress) => void,
 	): Promise<void>;
 	commit(message: string, data: SourceData, parents?: string[]): Promise<GitVersion>;
 	add(paths?: Path[]): Promise<void>;

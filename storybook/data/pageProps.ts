@@ -33,6 +33,7 @@ export default {
 				style: "red",
 				description: "Предназначен для ведения документации.",
 				order: 999999,
+				isCloning: false,
 			},
 			docroot: "",
 			relatedLinks: null,
@@ -776,7 +777,7 @@ export default {
 			enterpriseServerUrl: "",
 
 			isSso: false,
-			ssoServerUrl: "",
+			isSsoEnabled: false,
 
 			isRelease: false,
 			isReadOnly: false,

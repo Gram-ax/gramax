@@ -5,6 +5,7 @@
 	"type": "module",
 	"scripts": {
 		"build": "next build",
+		"build:standalone": "NEXT_OUTPUT_TYPE='standalone' next build",
 		"start": "next start -p ${PORT}",
 		"run": "npm run build && npm run start",
 		"dev": "next dev -p ${PORT}",
@@ -13,9 +14,12 @@
 		"analyze": "cross-env ANALYZE=true next build"
 	},
 	"dependencies": {
-		"next": "^12.3.4",
+		"eslint-config-next": "^14.2.12",
+		"next": "^14.2.12",
 		"nookies": "^2.5.2",
-		"prom-client": "^15.1.0"
+		"prom-client": "^15.1.0",
+		"sharp": "^0.33.5",
+		"xmldom": "^0.6.0"
 	},
 	"devDependencies": {
 		"@next/bundle-analyzer": "^13.4.4",

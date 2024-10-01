@@ -13,9 +13,6 @@ const withBundleAnalyzer = NextBundleAnalyzer({
 
 const dirname = path.dirname(fileURLToPath(import.meta.url));
 
-// Неочевидно, надо переделать, вынести в отдельную функцию
-const pluginCachePath = path.resolve(process.env.USER_DATA_PATH ?? process.env.ROOT_PATH, ".storage/plugins");
-
 const isProduction = process.env.PRODUCTION === "true";
 const bugsnagOptions = {
 	apiKey: process.env.BUGSNAG_API_KEY,
@@ -25,10 +22,20 @@ const bugsnagOptions = {
 if (isProduction) console.log("Build in production mode");
 
 export default withBundleAnalyzer({
-	experimental: { externalDir: true },
+	experimental: {
+		externalDir: true,
+		// turbotrace: {
+		// 	contextDirectory: path.join(dirname, '../../'),
+		// 	logLevel: "info",
+		// 	logAll: true,
+		// 	logDetail: true
+		// }
+	},
 	eslint: { dirs: ["../../"] },
 	pageExtensions: ["tsx"],
 	basePath: process.env.BASE_PATH ?? "",
+	output: process.env.NEXT_OUTPUT_TYPE,
+	// outputFileTracingRoot: process.env.NEXT_OUTPUT_TYPE ? path.join(dirname, '../../') : null,
 
 	webpack: (config, _) => {
 		if (isProduction) config.plugins.push(new NextSourceMapUploader(bugsnagOptions));
@@ -54,7 +61,6 @@ export default withBundleAnalyzer({
 			"@core-ui": path.resolve(dirname, "../../../core/ui-logic"),
 			"@components": path.resolve(dirname, "../../core/components"),
 			"@public": path.resolve(dirname, "../../core/public"),
-			"@pluginCache": pluginCachePath,
 			"@core": path.resolve(dirname, "../../core/logic"),
 			"@ext": path.resolve(dirname, "../../core/extensions"),
 			"@app": path.resolve(dirname, "../../app"),

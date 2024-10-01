@@ -33,7 +33,6 @@ const ShareTicketHandler = ({ ticket }: { ticket: string }) => {
 				<CloneWithShareData
 					shareData={shareLinkData}
 					onCloneError={close}
-					onCloneFinish={close}
 					onCreateSourceDataClose={close}
 				/>
 			</ModalLayoutLight>

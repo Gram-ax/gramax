@@ -13,4 +13,4 @@ export type WordTableChild = (
 
 export type TableAddOptionsWord = AddOptionsWord & ITableRowPropertiesOptions;
 
-export type WordTableChilds = Record<string, WordTableChild>;
+export type WordTableChildren = Record<string, WordTableChild>;

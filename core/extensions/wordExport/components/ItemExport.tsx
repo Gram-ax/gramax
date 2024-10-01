@@ -1,3 +1,4 @@
+import { getExecutingEnvironment } from "@app/resolveModule/env";
 import SpinnerLoader from "@components/Atoms/SpinnerLoader";
 import FormStyle from "@components/Form/FormStyle";
 import ModalLayout from "@components/Layouts/Modal";
@@ -8,9 +9,12 @@ import MimeTypes from "@core-ui/ApiServices/Types/MimeTypes";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import { downloadFile } from "@core-ui/downloadResource";
 import { CancelableFunction } from "@core/utils/CancelableFunction";
-import InfoModalForm from "@ext/errorHandlers/client/components/ErrorForm";
+import UnsupportedElements from "@ext/confluence/core/model/UnsupportedElements";
 import t from "@ext/localization/locale/translate";
 import { useMemo, useState } from "react";
+import CommonUnsupportedElementsModal from "@ext/confluence/core/components/CommonUnsupportedElementsModal";
+import PureLink from "@components/Atoms/PureLink";
+import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 
 interface ItemExportProps {
 	fileName: string;
@@ -22,7 +26,7 @@ const ItemExport = ({ fileName, itemRefPath, isCategory }: ItemExportProps) => {
 	const [isOpen, setIsOpen] = useState(false);
 	const [isLoading, setIsLoading] = useState(true);
 	const [isDownloading, setIsDownloading] = useState(false);
-	const [errorWordElements, setErrorWordElements] = useState<string[]>([]);
+	const [errorWordElements, setErrorWordElements] = useState<UnsupportedElements[]>([]);
 	const apiUrlCreator = ApiUrlCreatorService.value;
 
 	const cancelableFunction = useMemo(
@@ -30,7 +34,11 @@ const ItemExport = ({ fileName, itemRefPath, isCategory }: ItemExportProps) => {
 			new CancelableFunction(async (signal) => {
 				const res = await FetchService.fetch(apiUrlCreator.getWordSaveUrl(isCategory, itemRefPath));
 				if (!res.ok || signal.aborted) return;
-				downloadFile(res.body, MimeTypes.docx, fileName + ".docx");
+				downloadFile(
+					getExecutingEnvironment() === "next" ? await res.buffer() : res.body,
+					MimeTypes.docx,
+					fileName,
+				);
 			}),
 		[fileName],
 	);
@@ -47,7 +55,9 @@ const ItemExport = ({ fileName, itemRefPath, isCategory }: ItemExportProps) => {
 
 	const onOpen = async () => {
 		setIsLoading(true);
-		const res = await FetchService.fetch<string[]>(apiUrlCreator.getErrorWordElementsUrl(isCategory, itemRefPath));
+		const res = await FetchService.fetch<UnsupportedElements[]>(
+			apiUrlCreator.getErrorWordElementsUrl(isCategory, itemRefPath),
+		);
 		if (!res.ok) {
 			setIsOpen(false);
 			return;
@@ -70,31 +80,26 @@ const ItemExport = ({ fileName, itemRefPath, isCategory }: ItemExportProps) => {
 		</FormStyle>
 	);
 
-	const info = (
-		<InfoModalForm
+	const domain = PageDataContextService.value.domain;
+	const unsupportedElementsModal = (
+		<CommonUnsupportedElementsModal
 			title={t("unsupported-elements-title")}
-			icon={{ code: "circle-alert", color: "var(--color-admonition-note-br-h)" }}
-			isWarning={false}
-			actionButton={{
-				onClick: startDownload,
-				text: t("continue"),
-			}}
+			description={t("unsupported-elements-warning1")}
+			noteTitle={t("unsupported-elements-warning2")}
+			firstColumnTitle={t("article2")}
+			unsupportedNodes={errorWordElements}
+			actionButtonText={t("continue")}
+			iconColor="var(--color-admonition-note-br-h)"
+			onActionClick={startDownload}
 			onCancelClick={() => setIsOpen(false)}
-		>
-			<div className="article">
-				<p>{t("unsupported-elements-warning1")}</p>
-				<div style={{ overflowX: "hidden", overflowY: "auto", maxHeight: "50vh" }}>
-					<ul style={{ marginTop: 0 }}>
-						{errorWordElements.map((elem, idx) => (
-							<li key={idx}>
-								<p>{t(elem as any)}</p>
-							</li>
-						))}
-					</ul>
-				</div>
-				<p>{t("unsupported-elements-warning2")}</p>
-			</div>
-		</InfoModalForm>
+			renderArticleLink={(article) =>
+				getExecutingEnvironment() !== "tauri" ? (
+					<PureLink href={domain + "/" + article.link}>{article.title}</PureLink>
+				) : (
+					<p>{article.title}</p>
+				)
+			}
+		/>
 	);
 
 	return (
@@ -117,7 +122,7 @@ const ItemExport = ({ fileName, itemRefPath, isCategory }: ItemExportProps) => {
 				/>
 			}
 		>
-			<ModalLayoutLight>{!isLoading ? info : loading}</ModalLayoutLight>
+			<ModalLayoutLight>{!isLoading ? unsupportedElementsModal : loading}</ModalLayoutLight>
 		</ModalLayout>
 	);
 };

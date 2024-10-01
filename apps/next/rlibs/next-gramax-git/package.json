@@ -2,14 +2,11 @@
 	"name": "next-gramax-git",
 	"version": "0.0.0",
 	"description": "",
-	"main": "gramax-git.node",
+	"main": "index.node",
 	"scripts": {
-		"build": "cargo-cp-artifact -ac next_gramax_git gramax-git.node -- cargo build --release --message-format=json-render-diagnostics",
-		"build-debug": "npm run build --",
-		"build-release": "npm run build -- --release",
-		"test": "cargo test"
+		"build": "napi build --no-dts-header --release --platform --strip"
 	},
-	"devDependencies": {
-		"cargo-cp-artifact": "^0.1"
+	"dependencies": {
+		"@napi-rs/cli": "^2.18.4"
 	}
 }

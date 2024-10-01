@@ -1,3 +1,5 @@
+#![cfg(not(target_family = "wasm"))]
+
 #[macro_use]
 extern crate log;
 
@@ -10,14 +12,15 @@ extern crate rust_i18n;
 
 mod commands;
 mod error;
+mod http_req;
 mod http_server;
 mod platform;
 
+use std::path::PathBuf;
 use std::sync::atomic::AtomicUsize;
 use std::sync::atomic::Ordering;
 
 use http_server::start_ping_server;
-use platform::config::init_env;
 
 use platform::*;
 
@@ -45,11 +48,8 @@ impl<R: Runtime> AppHandleExt<R> for AppHandle<R> {
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
-  crate::error::setup_bugsnag_and_panic_hook(
-    option_env!("BUGSNAG_API_KEY").unwrap_or_default().to_string(),
-  );
+  crate::error::setup_bugsnag_and_panic_hook(option_env!("BUGSNAG_API_KEY").unwrap_or_default().to_string());
   set_locale();
-  start_ping_server();
 
   let builder = Builder::default().init().attach_commands().attach_plugins();
   let context = tauri::generate_context!();
@@ -58,6 +58,9 @@ pub fn run() {
   let builder = builder.on_window_event(platform::window_event_handler);
 
   let app = builder.build(context).expect("Can't build app");
+
+  let ping_server_app_handle = app.handle().clone();
+  start_ping_server(move |req| handle_ping_server(req, &ping_server_app_handle));
 
   #[cfg(desktop)]
   {
@@ -71,11 +74,7 @@ pub fn run() {
 
 impl<R: Runtime> AppBuilder for Builder<R> {
   fn init(self) -> Self {
-    self.setup(|app| {
-      let mut window = build_main_window(app.handle())?;
-      init_env(app.handle(), &mut window);
-      Ok(())
-    })
+    self.setup(init::init_app)
   }
 
   #[allow(clippy::let_and_return)]
@@ -84,7 +83,8 @@ impl<R: Runtime> AppBuilder for Builder<R> {
       .plugin(plugin_gramax_fs::init())
       .plugin(plugin_gramax_git::init())
       .plugin(tauri_plugin_dialog::init())
-      .plugin(tauri_plugin_deep_link::init());
+      .plugin(tauri_plugin_deep_link::init())
+      .plugin(tauri_plugin_window_state::Builder::new().with_filename("gramax-windows-state").build());
 
     #[cfg(desktop)]
     let app = app
@@ -100,6 +100,7 @@ impl<R: Runtime> AppBuilder for Builder<R> {
         Builder::default()
           .targets([
             Target::new(TargetKind::Stdout),
+            Target::new(TargetKind::Webview),
             Target::new(TargetKind::LogDir { file_name: Some("gramax".into()) }),
           ])
           .level(LevelFilter::Info)
@@ -129,45 +130,83 @@ fn set_locale() {
   rust_i18n::set_locale(locale.split_once("-").map(|l| l.0).unwrap_or(locale));
 }
 
-pub fn build_main_window<R: Runtime>(app: &AppHandle<R>) -> Result<WebviewWindow<R>> {
-  build_main_window_with_path(app, "index.html")
-}
-
-pub fn build_main_window_with_path<R: Runtime, P: AsRef<str>>(
-  app: &AppHandle<R>,
-  path: P,
-) -> Result<WebviewWindow<R>> {
-  static NEXT_ID: AtomicUsize = AtomicUsize::new(0);
-
-  let builder = WebviewWindowBuilder::new(
-    app,
-    format!("main_{}", NEXT_ID.fetch_add(1, Ordering::Relaxed)),
-    WebviewUrl::App(std::path::PathBuf::from(path.as_ref())),
-  )
-  .auto_resize()
-  .zoom_hotkeys_enabled(true)
-  .disable_drag_drop_handler()
-  .initialization_script(include_str!("init.js"))
-  .on_navigation(on_navigation);
-
-  #[cfg(desktop)]
-  let builder = {
-    let callback = download_callback::DownloadCallback::new();
-    builder.on_download(move |w, e| callback.on_download(w, e))
+fn handle_ping_server<R: Runtime>(req: &tiny_http::Request, app: &AppHandle<R>) {
+  let path = req.url();
+  if path.is_empty() || path == "/" {
+    return;
   };
 
-  #[cfg(target_os = "macos")]
-  let builder = builder.initialization_script(include_str!("platform/desktop/macos.js"));
+  let window = app.get_focused_webview().or_else(|| app.webview_windows().values().next().cloned());
 
-  #[cfg(desktop)]
-  let builder = builder
-    .title(app.package_info().name.clone())
-    .maximized(true)
-    .enable_clipboard_access()
-    .inner_size(900.0, 600.0);
+  if let Some(window) = window {
+    _ = window.set_focus();
+    _ = window.eval(&dbg!(format!("window.location.replace('/{}')", path.trim_start_matches('/'))));
+  } else {
+    _ = MainWindowBuilder::default().url(path).build(app);
+  }
+}
 
-  let window = builder.build()?;
+#[derive(Default)]
+pub struct MainWindowBuilder {
+  label: Option<String>,
+  path: Option<PathBuf>,
+}
 
-  window_post_init(&window)?;
-  Ok(window)
+impl MainWindowBuilder {
+  pub fn label(mut self, label: String) -> Self {
+    self.label = Some(label);
+    self
+  }
+
+  pub fn url<S: Into<PathBuf>>(mut self, path: S) -> Self {
+    self.path = Some(path.into());
+    self
+  }
+
+  pub fn build<R: Runtime, M: Manager<R>>(self, manager: &M) -> Result<WebviewWindow<R>> {
+    let label = self.get_unique_label(manager);
+
+    let builder = WebviewWindowBuilder::new(manager, label.clone(), WebviewUrl::App(self.get_url()))
+      .auto_resize()
+      .zoom_hotkeys_enabled(true)
+      .disable_drag_drop_handler()
+      .initialization_script(include_str!("init.js"))
+      .on_navigation(on_navigation);
+
+    #[cfg(desktop)]
+    let builder = {
+      let callback = download_callback::DownloadCallback::new();
+      builder.on_download(move |w, e| callback.on_download(w, e))
+    };
+
+    #[cfg(target_os = "macos")]
+    let builder = builder.initialization_script(include_str!("platform/desktop/macos.js"));
+
+    #[cfg(desktop)]
+    let builder = builder.title("Gramax").enable_clipboard_access().inner_size(1000.0, 700.0);
+
+    let window = builder.build()?;
+
+    window_post_init(&window)?;
+    Ok(window)
+  }
+
+  fn get_unique_label<R: Runtime, M: Manager<R>>(&self, manager: &M) -> String {
+    static COUNTER: AtomicUsize = AtomicUsize::new(0);
+
+    if let Some(label) = self.label.clone() {
+      return label;
+    }
+
+    let mut label = format!("gramax-window-{}", COUNTER.fetch_add(1, Ordering::SeqCst));
+    while manager.webview_windows().contains_key(&label) {
+      label = format!("gramax-window-{}", COUNTER.fetch_add(1, Ordering::SeqCst));
+    }
+
+    label
+  }
+
+  fn get_url(&self) -> PathBuf {
+    self.path.clone().unwrap_or_else(|| PathBuf::from("index.html"))
+  }
 }

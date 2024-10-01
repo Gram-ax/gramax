@@ -1,5 +1,0 @@
-{
-	"extends": "../../tsconfig.json",
-	"include": ["src/**/*.ts", "src/index.ts"], // Пути к исходным файлам TypeScript
-	"exclude": ["node_modules"] // Исключаем директорию node_modules
-}

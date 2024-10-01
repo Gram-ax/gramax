@@ -13,7 +13,7 @@ export type EnvironmentVariable = {
 
 	// Services
 	AUTH_SERVICE_URL: string;
-	SSO_SERVICE_PUBLIC_KEY: string;
+	SSO_SERVICE_ENCRYPTION_KEY: string;
 	SSO_SERVICE_URL: string;
 	DIAGRAM_RENDERER_SERVICE_URL: string;
 	REVIEW_SERVICE_URL: string;

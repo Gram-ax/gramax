@@ -1,16 +1,9 @@
 import LeftNavigationIsOpenService from "@core-ui/ContextServices/LeftNavigationIsOpen";
-import type { NodeModel } from "@minoru/react-dnd-treeview";
-import { ItemLink } from "../../../../extensions/navigation/NavigationLinks";
+import { LeftNavViewContentComponent } from "@core-ui/ContextServices/views/leftNavView/LeftNavViewContentService";
 import LevNavDragTree from "../../../../extensions/navigation/catalog/drag/render/DragTree";
 import Layout from "../../../../extensions/navigation/catalog/main/render/Layout";
 
-const LeftNavigationContent = ({
-	itemLinks,
-	closeNavigation,
-}: {
-	itemLinks: NodeModel<ItemLink>[];
-	closeNavigation?: () => void;
-}) => {
+const LeftNavigationContent: LeftNavViewContentComponent = ({ itemLinks, closeNavigation }) => {
 	const isOpen = LeftNavigationIsOpenService.value;
 
 	return (

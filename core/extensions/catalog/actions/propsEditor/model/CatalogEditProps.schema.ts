@@ -1,4 +1,5 @@
 import Style from "@components/HomePage/Cards/model/Style";
+import { Property } from "@ext/properties/models";
 import type { ContentLanguage } from "@ext/localization/core/model/Language";
 
 /**
@@ -18,6 +19,10 @@ export interface CatalogEditProps {
 	 */
 	style?: Style;
 	code?: string;
+	/**
+	 * @see catalog.properties
+	 */
+	properties?: Property[];
 	// /**
 	//  * @title Кому доступно
 	//  * @format Почта или группа

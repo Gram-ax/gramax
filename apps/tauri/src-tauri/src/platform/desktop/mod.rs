@@ -4,9 +4,11 @@ use tauri::*;
 use crate::ALLOWED_DOMAINS;
 
 pub mod commands;
-pub mod config;
 pub mod download_callback;
+pub mod init;
 pub mod menu;
+pub mod save_windows;
+mod updater;
 
 #[cfg(target_os = "macos")]
 mod custom_protocol;
@@ -14,7 +16,7 @@ mod custom_protocol;
 pub use menu::MenuBuilder;
 pub use updater::UpdaterBuilder;
 
-mod updater;
+use save_windows::SaveWindowsExt;
 
 #[allow(unused)]
 pub fn window_post_init<R: Runtime>(window: &WebviewWindow<R>) -> Result<()> {
@@ -35,11 +37,11 @@ pub fn on_navigation(url: &url::Url) -> bool {
 
 #[cfg(target_os = "macos")]
 pub fn window_event_handler<R: Runtime>(window: &Window<R>, event: &WindowEvent) {
-  if !window.label().contains("main") {
+  if !window.label().contains("gramax-window") {
     return;
   };
 
-  if window.app_handle().webview_windows().iter().filter(|w| w.0.contains("main")).nth(1).is_some() {
+  if window.app_handle().webview_windows().iter().filter(|w| w.0.contains("gramax-window")).nth(1).is_some() {
     return;
   }
 
@@ -51,13 +53,19 @@ pub fn window_event_handler<R: Runtime>(window: &Window<R>, event: &WindowEvent)
 
 #[cfg(target_os = "macos")]
 pub fn on_run_event<R: Runtime>(app: &AppHandle<R>, ev: RunEvent) {
-  if let RunEvent::Opened { urls } = ev {
-    custom_protocol::on_open_asked(app, urls)
+  match ev {
+    RunEvent::Opened { urls } => custom_protocol::on_open_asked(app, urls),
+    RunEvent::Exit => _ = app.save_windows(),
+    _ => (),
   }
 }
 
 #[cfg(not(target_os = "macos"))]
-pub fn on_run_event<R: Runtime>(_: &AppHandle<R>, _: RunEvent) {}
+pub fn on_run_event<R: Runtime>(app: &AppHandle<R>, ev: RunEvent) {
+  if let RunEvent::Exit = ev {
+    _ = app.save_windows();
+  }
+}
 
 fn open_help_docs() -> Result<()> {
   open::that("https://gram.ax/resources/docs")?;

@@ -37,6 +37,7 @@ Given("смотрим на редактор", { timeout: config.timeouts.short }
 });
 
 Given("смотрим на редактор Monaco", { timeout: config.timeouts.short }, async function (this: E2EWorld) {
+	this.page().search().reset();
 	const monaco = this.page().inner().locator("div.view-lines.monaco-mouse-cursor-text").last();
 	await monaco.click();
 	await monaco.focus();
@@ -115,6 +116,7 @@ When(
 	async function (this: E2EWorld, text: string) {
 		const elem = this.page().search().clickable(text);
 		await elem.click();
+		this.page().search().reset();
 		await this.page().waitForLoad();
 	},
 );

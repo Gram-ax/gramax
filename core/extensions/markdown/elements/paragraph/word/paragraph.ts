@@ -3,15 +3,9 @@ import { WordBlockChild } from "../../../../wordExport/options/WordTypes";
 import { Tag } from "@ext/markdown/core/render/logic/Markdoc";
 import { imageWordLayout } from "@ext/markdown/elements/image/word/image";
 
-export const paragraphWordLayout: WordBlockChild = async ({
-	state,
-	tag,
-	addOptions,
-	resourceManager,
-	parserContext,
-}) => {
+export const paragraphWordLayout: WordBlockChild = async ({ state, tag, addOptions, wordRenderContext }) => {
 	const tagChild = tag.children[0] as Tag;
-	if (tagChild?.name === "Image") return imageWordLayout(tagChild, addOptions, resourceManager, parserContext);
+	if (tagChild?.name === "Image") return imageWordLayout(tagChild, addOptions, wordRenderContext.parserContext);
 
 	return [
 		new Paragraph({

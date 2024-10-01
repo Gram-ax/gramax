@@ -8,7 +8,7 @@ import SideBarResourceData from "@ext/git/actions/Publish/model/SideBarResourceD
 import DiagramData from "@ext/markdown/elements/diagrams/component/DiagramData";
 import Image from "@ext/markdown/elements/image/render/components/Image";
 
-const IMG_FILE_TYPES = ["png", "jpg", "jpeg", "bmp", "svg"];
+const IMG_FILE_TYPES = ["png", "jpg", "jpeg", "bmp", "svg", "gif"];
 const DIAGRAM_FILE_TYPES = {
 	mermaid: DiagramType.mermaid,
 	puml: DiagramType["plant-uml"],

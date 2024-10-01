@@ -11,7 +11,7 @@ const SingInOut = styled(({ className }: { className?: string }) => {
 	const apiUrlCreator = ApiUrlCreatorService.value;
 	const isLogged = PageDataContextService.value.isLogged;
 	const isServerApp = PageDataContextService.value.conf.isServerApp;
-	const ssoServerUrl = PageDataContextService.value.conf.ssoServerUrl;
+	const isSsoEnabled = PageDataContextService.value.conf.isSsoEnabled;
 	const authUrl = apiUrlCreator.getAuthUrl(router).toString();
 	const glsUrl = PageDataContextService.value.conf.glsUrl;
 	const showEnterpriseSignIn = glsUrl && !isServerApp;
@@ -33,7 +33,7 @@ const SingInOut = styled(({ className }: { className?: string }) => {
 		);
 	}
 
-	if (isServerApp && ssoServerUrl) {
+	if (isServerApp && isSsoEnabled) {
 		return (
 			<div>
 				<a href={authUrl} data-qa="qa-clickable">

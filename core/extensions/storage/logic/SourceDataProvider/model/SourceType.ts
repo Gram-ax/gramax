@@ -2,7 +2,8 @@ enum SourceType {
 	git = "Git",
 	gitLab = "GitLab",
 	gitHub = "GitHub",
-	confluence = "Confluence",
+	confluenceCloud = "Confluence Cloud",
+	confluenceServer = "Confluence self-hosted server",
 }
 
 export default SourceType;

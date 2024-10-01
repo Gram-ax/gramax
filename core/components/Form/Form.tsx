@@ -1,7 +1,7 @@
 import Field from "@components/Form/Field";
 import t, { hasTranslation } from "@ext/localization/locale/translate";
 import { JSONSchema7 } from "json-schema";
-import { DependencyList, useEffect, useState } from "react";
+import { DependencyList, ReactElement, useEffect, useState } from "react";
 import Button from "../Atoms/Button/Button";
 import FormStyle from "./FormStyle";
 import ValidateObject from "./ValidateObject";
@@ -25,6 +25,7 @@ const Form = <Type,>({
 	disableSubmit: parentDisableSubmit,
 	fieldDirection = "column",
 	formDirection = "column",
+	children,
 }: {
 	props: Type;
 	schema: FormSchema;
@@ -42,6 +43,7 @@ const Form = <Type,>({
 	disableSubmit?: boolean;
 	fieldDirection?: "row" | "column";
 	formDirection?: "row" | "column";
+	children?: ReactElement;
 }) => {
 	const [editedSchema, setEditedSchema] = useState<FormSchema>(schema);
 	const [focusInput, setFocusInput] = useState(-1);
@@ -54,7 +56,7 @@ const Form = <Type,>({
 		if (!editedSchema?.required) return [];
 		let required = editedSchema.required;
 		Object.entries(editedSchema.properties as { [key: string]: FormSchema }).forEach(([key, value]) => {
-			if (value.readOnly) required = required.filter((x) => x != key);
+			if (value?.readOnly) required = required.filter((x) => x != key);
 		});
 		return required;
 	};
@@ -137,6 +139,7 @@ const Form = <Type,>({
 						/>
 					);
 				})}
+				{children}
 			</fieldset>
 			{onSubmit && (
 				<div className="buttons">
@@ -149,7 +152,7 @@ const Form = <Type,>({
 		</>
 	);
 	return initStyles ? (
-		<FormStyle padding={padding} overflow={overflow} formDirection={formDirection}>
+		<FormStyle padding={padding} overflow={overflow} formDirection={formDirection} fieldDirection={fieldDirection}>
 			{formControl}
 		</FormStyle>
 	) : (

@@ -1,3 +1,4 @@
+import LinkResourceManager from "@core/Link/LinkResourceManager";
 import Path from "../../../../../logic/FileProvider/Path/Path";
 import FileProvider from "../../../../../logic/FileProvider/model/FileProvider";
 import { Article } from "../../../../../logic/FileStructue/Article/Article";
@@ -13,7 +14,7 @@ import MarkdownParser from "../Parser";
 export default interface ParserContext {
 	getItemByPath(itemPath: Path): Item;
 	getResourceManager(): ResourceManager;
-	getLinkManager(): ResourceManager;
+	getLinkManager(): LinkResourceManager;
 	getRootLogicPath(): Path;
 	getArticle(): Article;
 	getCatalog(): Catalog;

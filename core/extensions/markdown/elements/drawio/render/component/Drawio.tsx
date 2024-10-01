@@ -1,12 +1,14 @@
 import styled from "@emotion/styled";
-import { ReactElement, useRef } from "react";
+import { ReactElement, useRef, useState } from "react";
 import DiagramError from "@ext/markdown/elements/diagrams/component/DiagramError";
 import t from "@ext/localization/locale/translate";
 import Image from "@components/Atoms/Image/Image";
+import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
+import OnLoadResourceService from "@ext/markdown/elements/copyArticles/onLoadResourceService";
+import { resolveImageKind } from "@components/Atoms/Image/resolveImageKind";
 
 interface DrawioProps {
 	id: string;
-	realSrc: string;
 	src: string;
 	title: string;
 	openEditor?: () => void;
@@ -14,11 +16,26 @@ interface DrawioProps {
 }
 
 const Drawio = (props: DrawioProps): ReactElement => {
-	const { id, realSrc, src, title, className, openEditor } = props;
+	const { id, src, title, className, openEditor } = props;
+	const apiUrlCreator = ApiUrlCreatorService.value;
 
 	const ref = useRef<HTMLImageElement>(null);
 
-	if (!src) return <DiagramError error={{ message: t("diagram.error.cannot-get-data") }} diagramName="Drawio" />;
+	const [imageSrc, setImageSrc] = useState<string>(null);
+	const [isError, setIsError] = useState<boolean>(false);
+
+	const setSrc = (newSrc: Blob) => {
+		if (imageSrc) URL.revokeObjectURL(imageSrc);
+		setImageSrc(URL.createObjectURL(newSrc));
+	};
+
+	OnLoadResourceService.useGetContent(src, apiUrlCreator, (buffer) => {
+		if (!buffer.byteLength) return setIsError(true);
+		setSrc(new Blob([buffer], { type: resolveImageKind(buffer) }));
+	});
+
+	if (!src || isError)
+		return <DiagramError error={{ message: t("diagram.error.cannot-get-data") }} diagramName="diagrams.net" />;
 
 	return (
 		<div>
@@ -26,9 +43,9 @@ const Drawio = (props: DrawioProps): ReactElement => {
 				<Image
 					ref={ref}
 					id={id}
-					realSrc={realSrc}
+					realSrc={src}
 					modalTitle={title}
-					src={src}
+					src={imageSrc}
 					modalEdit={openEditor}
 					modalStyle={{
 						backgroundColor: "var(--color-diagram-bg)",

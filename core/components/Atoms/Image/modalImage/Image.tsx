@@ -5,13 +5,13 @@ import {
 	useRef,
 	CSSProperties,
 	MouseEvent as ReactMouseEvent,
-	ReactEventHandler,
 	useCallback,
 } from "react";
 import UnifiedComponent from "@ext/markdown/elements/image/render/components/ImageEditor/Unified";
 import { ImageObject } from "@ext/markdown/elements/image/edit/model/imageEditorTypes";
 import styled from "@emotion/styled";
 import { keyframes } from "@emotion/react";
+import { calculateTransform, getCanMoves, getClampedValues } from "@components/Atoms/Image/modalImage/modalFunctions";
 
 interface ImageProps {
 	id: string;
@@ -24,31 +24,6 @@ interface ImageProps {
 	modalStyle?: CSSProperties;
 	html?: string | TrustedHTML;
 }
-
-const calculateTransform = (startPos: DOMRect, width: number, height: number) => `
-	translate3d(
-		${startPos.left - (window.innerWidth - startPos.width) / 2}px,
-		${startPos.top - (window.innerHeight - startPos.height) / 2}px,
-		0
-	) scale(${startPos.width / width}, ${startPos.height / height})
-`;
-
-const getClampedValues = (realSize: { width: number; height: number }): { [key: string]: number } => {
-	const maxWidth = (realSize.width - window.innerWidth) / 2;
-	const maxHeight = (realSize.height - window.innerHeight) / 2;
-
-	return { minWidth: -maxWidth, maxWidth, maxHeight, minHeight: -maxHeight };
-};
-
-const getCanMoves = (targetRect: DOMRect): { horizontal: boolean; vertical: boolean } => {
-	const viewportWidth = window.innerWidth;
-	const viewportHeight = window.innerHeight;
-
-	return {
-		horizontal: targetRect.left < 0 || targetRect.right > viewportWidth,
-		vertical: targetRect.top < 0 || targetRect.bottom > viewportHeight,
-	};
-};
 
 const Image = forwardRef((props: ImageProps, ref?: MutableRefObject<HTMLImageElement>) => {
 	const { id, zoomImage, isClosing, className, src, objects = [], modalStyle, startPos } = props;
@@ -71,15 +46,15 @@ const Image = forwardRef((props: ImageProps, ref?: MutableRefObject<HTMLImageEle
 			height: imgRect.height,
 		});
 
-		const { horizontal, vertical } = getCanMoves(target.getBoundingClientRect());
+		const { left, right, top, bottom } = getCanMoves(target.getBoundingClientRect());
 		const newLeft = parseFloat(target.style.left) + -event.deltaX;
 		const newTop = parseFloat(target.style.top) + -event.deltaY;
 
 		const clampedLeft = Math.min(Math.max(newLeft, minWidth), maxWidth);
 		const clampedTop = Math.min(Math.max(newTop, minHeight), maxHeight);
 
-		if (horizontal) target.style.left = clampedLeft + "px";
-		if (vertical) target.style.top = clampedTop + "px";
+		if (left && right) target.style.left = clampedLeft + "px";
+		if (top && bottom) target.style.top = clampedTop + "px";
 	}, []);
 
 	const onKeyDown = (event: KeyboardEvent) => {
@@ -97,14 +72,16 @@ const Image = forwardRef((props: ImageProps, ref?: MutableRefObject<HTMLImageEle
 		event.preventDefault();
 		event.stopPropagation();
 
-		const target = (event.target as HTMLElement).parentElement;
+		const target = event.target as HTMLElement;
 		const startX = event.clientX;
 		const startY = event.clientY;
 
 		const initialLeft = parseFloat(target.style.left) || 0;
 		const initialTop = parseFloat(target.style.top) || 0;
 
+		target.style.transition = "none";
 		document.body.style.cursor = "grabbing";
+
 		const imgRect = target.getBoundingClientRect();
 		const { minWidth, maxWidth, minHeight, maxHeight } = getClampedValues({
 			width: imgRect.width,
@@ -112,32 +89,27 @@ const Image = forwardRef((props: ImageProps, ref?: MutableRefObject<HTMLImageEle
 		});
 
 		const onMouseMove = (moveEvent: MouseEvent) => {
-			const { horizontal, vertical } = getCanMoves(imgRect);
+			const { left, right, top, bottom } = getCanMoves(imgRect);
 			const newLeft = initialLeft + (moveEvent.clientX - startX);
 			const newTop = initialTop + (moveEvent.clientY - startY);
 
 			const clampedLeft = Math.min(Math.max(newLeft, minWidth), maxWidth);
 			const clampedTop = Math.min(Math.max(newTop, minHeight), maxHeight);
 
-			if (horizontal) target.style.left = clampedLeft + "px";
-			if (vertical) target.style.top = clampedTop + "px";
+			if (left && right) target.style.left = clampedLeft + "px";
+			if (top && bottom) target.style.top = clampedTop + "px";
 		};
 
 		const onMouseUp = () => {
 			document.removeEventListener("mousemove", onMouseMove);
 			document.removeEventListener("mouseup", onMouseUp);
-			document.body.style.cursor = "unset";
+			document.body.style.removeProperty("cursor");
+			target.style.removeProperty("transition");
 		};
 
 		document.addEventListener("mousemove", onMouseMove);
 		document.addEventListener("mouseup", onMouseUp);
 	}, []);
-
-	const onLoad: ReactEventHandler<HTMLImageElement> = (event) => {
-		const target = event.target as HTMLElement;
-		if (window.innerHeight < target.clientHeight)
-			target.parentElement.style.scale = (window.innerHeight / target.clientHeight).toString();
-	};
 
 	useEffect(() => {
 		window.addEventListener("wheel", onWheel, { passive: false });
@@ -149,7 +121,22 @@ const Image = forwardRef((props: ImageProps, ref?: MutableRefObject<HTMLImageEle
 		};
 	}, [src]);
 
-	const moveInImage = keyframes`
+	useEffect(() => {
+		const image = document.createElement("img");
+		image.src = src;
+		image.onload = () => {
+			const container = ref.current;
+			const scaleWidth = ((window.innerWidth / 100) * 80) / container.offsetWidth;
+			const scaleHeight = ((window.innerHeight / 100) * 80) / container.offsetHeight;
+			const newScale = scaleWidth < scaleHeight ? scaleWidth : scaleHeight;
+
+			container.style.scale = `${newScale}`;
+			container.setAttribute("data-scale", `${newScale}`);
+			image.remove();
+		};
+	}, []);
+
+	const moveInImage = () => keyframes`
 		0% {
 		transform: ${calculateTransform(startPos, window.innerWidth, window.innerHeight)};
 		}
@@ -158,17 +145,21 @@ const Image = forwardRef((props: ImageProps, ref?: MutableRefObject<HTMLImageEle
 		}
 	`;
 
-	const moveOutImage = keyframes`
+	const moveOutImage = () => keyframes`
 		0% {
-		transform: translate3d(1px, 1px, 0);
+		left: ${ref.current.style.left};
+		top: ${ref.current.style.top};
+		transform: translate3d(1px, 1px, 0) scale(${ref.current.style.scale});
 		}
 		100% {
+		left: auto;
+		top: auto;
 		transform: ${calculateTransform(startPos, window.innerWidth, window.innerHeight)};
 		}
 	`;
 
 	const AnimatedDiv = styled.div`
-		animation: ${() => (!isClosing ? moveInImage : moveOutImage)} 200ms forwards;
+		animation: ${() => (!isClosing ? moveInImage() : moveOutImage())} 200ms forwards;
 	`;
 
 	return (
@@ -177,10 +168,13 @@ const Image = forwardRef((props: ImageProps, ref?: MutableRefObject<HTMLImageEle
 				<div
 					ref={ref}
 					onMouseDownCapture={onMouseDown}
-					style={{ ...modalStyle, scale: 1 }}
+					style={{
+						...modalStyle,
+						scale: 1,
+					}}
 					className="object__container"
 				>
-					<img ref={imgRef} onLoad={onLoad} id={id} draggable="false" src={src} alt="" />
+					<img ref={imgRef} id={id} draggable="false" src={src} alt="" />
 
 					{objects.length > 0 && (
 						<div ref={parentRef}>
@@ -209,8 +203,10 @@ export default styled(Image)`
 
 	.object__container {
 		display: flex;
+		flex-direction: column;
 		position: relative;
 		max-width: 90vw;
+		transition: left 0.2s, top 0.2s, scale 0.2s;
 	}
 
 	.object__container img {

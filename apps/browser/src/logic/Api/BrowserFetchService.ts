@@ -57,6 +57,7 @@ const fetchSelf = async (url: Url, body?: BodyInit): Promise<FetchResponse> => {
 };
 
 const parseBody = (body: BodyInit) => {
+	if (body === "") return body;
 	if (!body) return;
 	if (typeof body != "string") return body;
 	try {

@@ -11,9 +11,10 @@ const ErrorModal = ({ error, setError }: { error: DefaultError; setError: Dispat
 		setIsOpen(!!error);
 	}, [error]);
 
-	const onClose = () => {
+	const onClose = (close?: (v: boolean) => void) => {
 		setError(null);
 		setIsOpen(false);
+		if (close && typeof close === "function") close(true);
 	};
 
 	if (error?.props?.errorCode === "silent") return null;
@@ -25,9 +26,9 @@ const ErrorModal = ({ error, setError }: { error: DefaultError; setError: Dispat
 				setIsOpen(true);
 				if (ErrorConfirmService.onModalOpen) await ErrorConfirmService.onModalOpen();
 			}}
-			onClose={async () => {
+			onClose={async (close) => {
 				if (ErrorConfirmService.onModalClose) await ErrorConfirmService.onModalClose();
-				onClose();
+				onClose(close);
 			}}
 		>
 			<GetErrorComponent error={error} onCancelClick={onClose} />

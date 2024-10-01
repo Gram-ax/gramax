@@ -4,6 +4,7 @@ import Context from "@core/Context/Context";
 import Path from "@core/FileProvider/Path/Path";
 import DefaultError from "@ext/errorHandlers/logic/DefaultError";
 import { makeSourceApi } from "@ext/git/actions/Source/makeSourceApi";
+import GitStorageData from "@ext/git/core/model/GitStorageData";
 import t from "@ext/localization/locale/translate";
 import { ClientWorkspaceConfig } from "@ext/workspace/WorkspaceConfig";
 import { Command } from "../../types/Command";
@@ -41,11 +42,20 @@ const userSettings: Command<{ ctx: Context; userSettings: UserSettings }, void> 
 		if (userSettings.source) {
 			const sourceData = userSettings.source;
 
-			if (sourceData.error) return console.log(sourceData.error);
 			if (!(await makeSourceApi(sourceData, wm.current().config().services?.auth?.url).isCredentialsValid()))
 				throw Error("Invalid creds");
 
 			await this._commands.storage.setSourceData.do({ ctx, ...sourceData });
+		}
+
+		if (userSettings.workspace.source && userSettings.source) {
+			for (const repo of userSettings.workspace.source.repos) {
+				const [group, name] = repo.split("/");
+				await this._commands.storage.startClone.do({
+					path: new Path(name),
+					data: { source: userSettings.source, group, name } as GitStorageData,
+				});
+			}
 		}
 
 		return;

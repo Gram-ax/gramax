@@ -53,6 +53,7 @@ const Search = forwardRef((props: SearchProps, ref: ForwardedRef<SearchElement>)
 	const inputRef = useRef<HTMLInputElement>(null);
 	const searchRef = useRef<HTMLDivElement>(null);
 	const chevronRef = useRef<HTMLDivElement>(null);
+	const dataQa = props["data-qa"];
 
 	useImperativeHandle(ref, () => ({
 		get inputRef(): HTMLInputElement {
@@ -107,7 +108,7 @@ const Search = forwardRef((props: SearchProps, ref: ForwardedRef<SearchElement>)
 					<Input
 						style={{ paddingRight: "2px" }}
 						title={title}
-						dataQa={placeholder}
+						dataQa={dataQa ?? placeholder}
 						tabIndex={tabIndex}
 						showErrorText={showErrorText}
 						errorText={errorText}

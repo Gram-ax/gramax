@@ -29,14 +29,13 @@ interface cropImageProps {
 
 interface getCanvasProps {
 	imageContainer: HTMLDivElement;
-	imgElement: HTMLImageElement;
 	crop: Crop;
 	realSrc: string;
 	setSrc?: (newSrc: Blob) => void;
 }
 
 export function getCroppedCanvas(props: getCanvasProps) {
-	const { imageContainer, imgElement, crop = { x: 0, y: 0, w: 100, h: 100 }, realSrc, setSrc } = props;
+	const { imageContainer, crop = { x: 0, y: 0, w: 100, h: 100 }, realSrc, setSrc } = props;
 
 	const imageContainerRect = imageContainer.getBoundingClientRect();
 	const x = (crop.x / 100) * imageContainerRect.width;
@@ -51,8 +50,8 @@ export function getCroppedCanvas(props: getCanvasProps) {
 
 	if (context) {
 		const image = new Image();
-		const buffer = OnLoadResourceService.getBuffer(realSrc) || Buffer.from("");
-		image.src = "data:" + resolveImageKind(buffer) + ";base64," + buffer.toString("base64");
+		const buffer = OnLoadResourceService.getBuffer(realSrc) || null;
+		image.src = buffer ? "data:" + resolveImageKind(buffer) + ";base64," + buffer.toString("base64") : realSrc;
 
 		image.onload = () => {
 			const scaleX = image.naturalWidth / imageContainerRect.width;
@@ -73,10 +72,7 @@ export function getCroppedCanvas(props: getCanvasProps) {
 				canvas.height,
 			);
 
-			canvas.toBlob(
-				(blob) => (setSrc ? setSrc(blob) : (imgElement.src = URL.createObjectURL(blob))),
-				"image/png",
-			);
+			canvas.toBlob((blob) => setSrc(blob), "image/png");
 		};
 	}
 }

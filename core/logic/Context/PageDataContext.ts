@@ -30,8 +30,8 @@ interface PageDataContext {
 		isReadOnly: boolean;
 		isServerApp: boolean;
 		isProduction: boolean;
+		isSsoEnabled: boolean;
 		glsUrl: string;
-		ssoServerUrl: string;
 		authServiceUrl: string;
 		bugsnagApiKey: string;
 		yandexMetricCounter: string;

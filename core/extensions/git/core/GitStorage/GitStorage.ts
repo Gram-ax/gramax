@@ -45,7 +45,7 @@ export default class GitStorage implements Storage {
 			const gitRepository = new GitCommands(fp, repositoryPath);
 			const currentUrl = url ?? getUrlFromGitStorageData(data);
 			try {
-				await gitRepository.clone(getHttpsRepositoryUrl(currentUrl), source, branch, onProgress);
+				await gitRepository.clone(getHttpsRepositoryUrl(currentUrl), source, branch, null, onProgress);
 			} catch (e) {
 				if (!((e as GitError).props?.errorCode === GitErrorCode.AlreadyExistsError)) throw e;
 			}

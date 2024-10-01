@@ -22,7 +22,7 @@ const getListOfCatalogs = (homePageData: HomePageData): CatalogList => {
 	return { data: catalogRefs };
 };
 
-const getNavigation = (catalogName, itemLinks: ItemLink[]): CatalogNavigation => {
+const getNavigation = (catalogName: string, itemLinks: ItemLink[]): CatalogNavigation => {
 	const excludeKeys = (children: ItemLink[]) =>
 		children.map((item) =>
 			Object.keys(item).reduce(

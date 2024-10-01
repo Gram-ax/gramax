@@ -11,7 +11,6 @@ import { useRouter } from "@core/Api/useRouter";
 import { ArticlePageData } from "@core/SitePresenter/SitePresenter";
 import { pasteArticleResource } from "@ext/markdown/elements/copyArticles/copyPasteArticleResource";
 import imageHandlePaste from "@ext/markdown/elements/image/edit/logic/imageHandlePaste";
-import FocusService from "@ext/markdown/elementsUtils/ContextServices/FocusService";
 import getTocItems, { getLevelTocItemsByJSONContent } from "@ext/navigation/article/logic/createTocItems";
 import { Editor } from "@tiptap/core";
 import { EditorView } from "prosemirror-view";
@@ -74,6 +73,7 @@ const Article = ({ data }: { data: ArticlePageData }) => {
 	};
 
 	const handlePaste = (view: EditorView, event: ClipboardEvent) => {
+		if (!event.clipboardData) return false;
 		if (event.clipboardData.files.length !== 0) return imageHandlePaste(view, event, articleProps, apiUrlCreator);
 
 		return pasteArticleResource({ view, event, articleProps, apiUrlCreator });
@@ -99,10 +99,6 @@ const Article = ({ data }: { data: ArticlePageData }) => {
 		ArticlePropsService.tocItems = tocItems;
 	};
 
-	const onSelectionUpdate = ({ editor }: { editor: Editor }) => {
-		FocusService.setFocusPosition(editor.state.selection.anchor);
-	};
-
 	return (
 		<ArticleUpdater data={actualData} onUpdate={onUpdate}>
 			<ArticleRenderer
@@ -111,7 +107,6 @@ const Article = ({ data }: { data: ArticlePageData }) => {
 				onBlur={onBlur}
 				onTitleLoseFocus={titleUpdate}
 				onUpdate={handleUpdate.bind(this)}
-				onSelectionUpdate={onSelectionUpdate}
 			/>
 		</ArticleUpdater>
 	);

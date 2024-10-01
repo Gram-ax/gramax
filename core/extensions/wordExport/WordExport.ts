@@ -3,7 +3,6 @@ import { Tag } from "@ext/markdown/core/render/logic/Markdoc";
 import DocumentTree from "@ext/wordExport/DocumentTree/DocumentTree";
 import { createContent } from "@ext/wordExport/TextWordGenerator";
 import { Document, ISectionOptions, Paragraph, TableOfContents } from "docx";
-import FileProvider from "../../logic/FileProvider/model/FileProvider";
 import { WordSerializerState } from "./WordExportState";
 import { getBlockChildren } from "./getBlockChildren";
 import { getInlineChildren } from "./getInlineChildren";
@@ -17,7 +16,7 @@ import { ExportType } from "@ext/wordExport/ExportType";
 const MAX_HEADING_LEVEL = 9;
 
 abstract class WordExport {
-	constructor(protected _fileProvider: FileProvider, protected _exportType: ExportType) {}
+	constructor(private _exportType: ExportType, private readonly _domain) {}
 
 	async getDocument(documentTree: DocumentTree) {
 		const sections = await this._getDocumentSections(documentTree);
@@ -75,8 +74,7 @@ abstract class WordExport {
 		const state = new WordSerializerState(
 			getInlineChildren(),
 			getBlockChildren(),
-			article.resourceManager,
-			this._fileProvider,
+			this._domain,
 			article.parserContext,
 			this._exportType,
 		);

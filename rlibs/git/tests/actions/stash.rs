@@ -12,7 +12,7 @@ fn stash_without_conflict(sandbox: TempDir, #[with(&sandbox)] mut repo: Repo<Tes
   fs::write(path.join("file"), "test\n123\n123\ntest\ntest")?;
   repo.add("file")?;
 
-  let oid = repo.stash(None)?;
+  let oid = repo.stash(None)?.unwrap();
   let apply_result = repo.stash_apply(oid)?;
   assert!(matches!(apply_result, MergeResult::Ok));
 
@@ -32,7 +32,7 @@ fn conflict(sandbox: TempDir, #[with(&sandbox)] mut repo: Repo<TestCreds>) -> Re
   fs::write(&file, "222")?;
   repo.add("file")?;
 
-  let stash = repo.stash(None)?;
+  let stash = repo.stash(None)?.unwrap();
   fs::write(&file, "444")?;
   repo.add("file")?;
   repo.commit("f")?;
@@ -62,7 +62,7 @@ fn rename_file(sandbox: TempDir, #[with(&sandbox)] mut repo: Repo<TestCreds>) ->
   assert!(!file.exists());
   assert!(file_renamed.exists());
 
-  let stash = repo.stash(None)?;
+  let stash = repo.stash(None)?.unwrap();
   assert!(file.exists());
   assert!(!file_renamed.exists());
 
@@ -89,7 +89,7 @@ fn get_parent(sandbox: TempDir, #[with(&sandbox)] mut repo: Repo<TestCreds>) -> 
   fs::write(file, "content")?;
   let commit = repo.repo().head()?.peel_to_commit()?.id();
   repo.add("file")?;
-  let stash = repo.stash(None)?;
+  let stash = repo.stash(None)?.unwrap();
   let parent = repo.parent_of(stash)?;
 
   assert_eq!(Some(commit), parent);
@@ -107,7 +107,7 @@ fn move_n_modify(sandbox: TempDir, #[with(&sandbox)] mut repo: Repo<TestCreds>) 
   fs::write(path.join("file-moved"), "test\nfff\ntest\ntest\ntest")?;
   repo.add("file")?;
   repo.add("file-moved")?;
-  let oid = repo.stash(None)?;
+  let oid = repo.stash(None)?.unwrap();
   fs::write(path.join("file"), "ffffdsafsdafa\ntest\ntest\ntest\ntest")?;
   repo.add("file")?;
   repo.commit("2")?;
@@ -123,7 +123,7 @@ fn add_same_file(sandbox: TempDir, #[with(&sandbox)] mut repo: Repo<TestCreds>) 
   let path = sandbox.path();
   fs::write(path.join("file"), "test\ntest\ntest\ntest\ntest")?;
   repo.add("file")?;
-  let oid = repo.stash(None)?;
+  let oid = repo.stash(None)?.unwrap();
 
   fs::write(path.join("file"), "fff\nfff\nfff\nttt\nttt")?;
   repo.add("file")?;
@@ -140,5 +140,12 @@ fn add_same_file(sandbox: TempDir, #[with(&sandbox)] mut repo: Repo<TestCreds>) 
 
   assert_eq!(fs::read_to_string(path.join("file"))?, "<<<<<<< Updated upstream\nfff\nfff\nfff\nttt\nttt\n=======\ntest\ntest\ntest\ntest\ntest\n>>>>>>> Stashed changes\n");
 
+  Ok(())
+}
+
+#[rstest]
+fn no_stash(_sandbox: TempDir, #[with(&_sandbox)] mut repo: Repo<TestCreds>) -> Result {
+  let res = repo.stash(None);
+  assert!(matches!(res, Ok(None)));
   Ok(())
 }

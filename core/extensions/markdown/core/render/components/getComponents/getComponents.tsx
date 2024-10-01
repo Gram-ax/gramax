@@ -1,12 +1,13 @@
-import Fence from "@ext/markdown/elements/codeBlockLowlight/render/component/CodeBlock";
 import { ReactNode } from "react";
 import DiagramType from "../../../../../../logic/components/Diagram/DiagramType";
 import DiagramData from "../../../../elements/diagrams/component/DiagramData";
 import HTMLComponents, { unSupportedElements } from "./HTMLComponents";
 
-import Icon from "../../../../elements/icon/render/components/Icon";
-import Image from "../../../../elements/image/render/components/Image";
 import Error from "@components/Error";
+import Alert from "@ext/markdown/elements/alert/render/component/Alert";
+import Fence from "@ext/markdown/elements/codeBlockLowlight/render/component/CodeBlock";
+import Html from "@ext/markdown/elements/html/render/components/HTML";
+import Unsupported from "@ext/markdown/elements/unsupported/render/component/Unsupported";
 import Cmd from "../../../../elements/cmd/render/Cmd";
 import Code from "../../../../elements/code/render/component/Code";
 import Color from "../../../../elements/color/render/Color";
@@ -16,6 +17,8 @@ import Drawio from "../../../../elements/drawio/render/component/Drawio";
 import Fn from "../../../../elements/fn/render/Fn";
 import Formula from "../../../../elements/formula/render/Formula";
 import Header from "../../../../elements/heading/render/component/Header";
+import Icon from "../../../../elements/icon/render/components/Icon";
+import Image from "../../../../elements/image/render/components/Image";
 import Images from "../../../../elements/imgs/render/Images";
 import Include from "../../../../elements/include/render/Include";
 import Issue from "../../../../elements/issue/render/Issue";
@@ -35,9 +38,6 @@ import Video from "../../../../elements/video/render/components/Video";
 import When from "../../../../elements/whowhen/render/When";
 import Who from "../../../../elements/whowhen/render/Who";
 import ParserContext from "../../../Parser/ParserContext/ParserContext";
-import Alert from "@ext/markdown/elements/alert/render/component/Alert";
-import Unsupported from "@ext/markdown/elements/unsupported/render/component/Unsupported";
-import Html from "@ext/markdown/elements/html/render/components/HTML";
 
 export default function getComponents(): { [name: string]: (...props: any) => ReactNode } {
 	return {

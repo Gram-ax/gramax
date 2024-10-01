@@ -35,7 +35,7 @@ const useCheckCatalogMergeConflicts = () => {
 			const res = await FetchService.fetch<MergeData>(apiUrlCreator.getMergeData());
 			if (!res.ok) return;
 			const mergeData = await res.json();
-			if (mergeData.ok) return;
+			if (!mergeData || mergeData.ok) return;
 			ModalToOpenService.setValue<ComponentProps<typeof MergeConflictConfirm>>(ModalToOpen.MergeConfirm, {
 				mergeData,
 				errorText: t("git.merge.confirm.catalog-conflict-state"),

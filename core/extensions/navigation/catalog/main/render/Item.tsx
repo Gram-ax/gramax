@@ -6,6 +6,7 @@ import { ItemType } from "@core/FileStructue/Item/ItemType";
 import styled from "@emotion/styled";
 import { HTMLAttributes } from "react";
 import { CategoryLink, ItemLink } from "../../../NavigationLinks";
+/* eslint-disable @typescript-eslint/no-unused-vars */
 
 interface LevNavItemProps extends HTMLAttributes<HTMLDivElement> {
 	level: number;
@@ -22,7 +23,20 @@ interface LevNavItemProps extends HTMLAttributes<HTMLDivElement> {
 }
 
 const LevNavItem = (props: LevNavItemProps) => {
-	const { level, item, isOpen, isDroppable, rightExtensions, leftExtensions, onToggle, className, ...other } = props;
+	const {
+		level,
+		item,
+		isOpen,
+		isDroppable,
+		rightExtensions,
+		leftExtensions,
+		onToggle,
+		className,
+		isDragStarted,
+		isHover,
+		isActive,
+		...other
+	} = props;
 	const articleProps = ArticlePropsService.value;
 	const title = item ? (articleProps?.ref?.path == item?.ref?.path ? articleProps?.title : item?.title) : null;
 	const existsContent = item?.type === ItemType.category ? (item as CategoryLink)?.existContent : true;

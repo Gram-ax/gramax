@@ -1,0 +1,10 @@
+title: Test-catalog
+variables:
+    overlap: "doc-root overlap"
+    docRootVariable: "doc root value"
+terms:
+    md:
+        title: test title
+        summary: test summary
+        description: test description
+        url: test url

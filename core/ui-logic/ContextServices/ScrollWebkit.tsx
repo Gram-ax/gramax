@@ -1,5 +1,5 @@
 import { useMediaQuery } from "@mui/material";
-import { createContext, ReactElement, useContext, useEffect, useState } from "react";
+import { createContext, ReactElement, useContext, useEffect, useMemo } from "react";
 import { cssMedia } from "../utils/cssUtils";
 import IsMacService from "./IsMac";
 
@@ -7,9 +7,9 @@ const ScrollWebkitContext = createContext<boolean>(undefined);
 
 abstract class ScrollWebkitService {
 	static Provider({ children }: { children: ReactElement }): ReactElement {
-		const [useDefaultScrollBar, setUseDefaultScrollBar] = useState(false);
 		const narrowMedia = useMediaQuery(cssMedia.JSnarrow);
 		const isMac = IsMacService.value;
+		const useDefaultScrollBar = useMemo(() => isMac || narrowMedia, [isMac, narrowMedia]);
 
 		useEffect(() => {
 			if (window) {
@@ -17,10 +17,6 @@ abstract class ScrollWebkitService {
 				else document.body.className = "";
 			}
 		}, [useDefaultScrollBar]);
-
-		useEffect(() => {
-			setUseDefaultScrollBar(isMac || narrowMedia);
-		}, [isMac, narrowMedia]);
 
 		return <ScrollWebkitContext.Provider value={useDefaultScrollBar}>{children}</ScrollWebkitContext.Provider>;
 	}

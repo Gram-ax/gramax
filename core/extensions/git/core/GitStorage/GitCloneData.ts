@@ -1,6 +1,6 @@
+import type { CloneProgress } from "@ext/git/core/GitCommands/model/GitCommandsModel";
 import Path from "../../../../logic/FileProvider/Path/Path";
 import FileProvider from "../../../../logic/FileProvider/model/FileProvider";
-import Progress from "../../../storage/models/Progress";
 import GitSourceData from "../model/GitSourceData.schema";
 import GitStorageData from "../model/GitStorageData";
 
@@ -12,7 +12,7 @@ interface GitCloneData {
 	branch?: string;
 	recursive?: boolean;
 	data?: GitStorageData;
-	onProgress?: (p: Progress) => void;
+	onProgress?: (p: CloneProgress) => void;
 }
 
 export default GitCloneData;

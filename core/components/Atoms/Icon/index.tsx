@@ -1,5 +1,5 @@
 import { classNames } from "@components/libs/classNames";
-import { CSSProperties, MouseEvent, ReactNode } from "react";
+import { CSSProperties, MouseEvent, ReactNode, forwardRef, ForwardedRef } from "react";
 import SpinnerLoader from "../SpinnerLoader";
 import Tooltip from "../Tooltip";
 import { Placement } from "tippy.js";
@@ -23,7 +23,7 @@ export interface IconProps {
 	tooltipPlace?: Placement;
 }
 
-const Icon = (props: IconProps) => {
+const Icon = forwardRef((props: IconProps, ref: ForwardedRef<HTMLElement>) => {
 	const {
 		code,
 		className,
@@ -54,6 +54,7 @@ const Icon = (props: IconProps) => {
 		<Tooltip content={tooltipContent} place={TooltipPlace}>
 			<i
 				style={style}
+				ref={ref}
 				className={classNames(className, { "action-icon": isAction, "li-fw": fw })}
 				{...otherProps}
 			>
@@ -67,7 +68,7 @@ const Icon = (props: IconProps) => {
 			</i>
 		</Tooltip>
 	);
-};
+});
 
 export default styled(Icon)`
 	&.li-fw {

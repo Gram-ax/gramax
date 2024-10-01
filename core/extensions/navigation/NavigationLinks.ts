@@ -11,6 +11,7 @@ export interface CatalogLink extends BaseLink {
 	group: string;
 	order: number;
 	description: string;
+	isCloning: boolean;
 }
 
 export interface BaseLink {

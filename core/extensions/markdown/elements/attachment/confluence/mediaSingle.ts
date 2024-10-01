@@ -1,9 +1,9 @@
-import NodeConverter from "@ext/confluence/actions/Import/logic/NodeConverter";
-import convertUnsupportedNode from "@ext/confluence/actions/Import/logic/convertUnsupportedNode";
+import NodeConverter from "@ext/confluence/core/cloud/model/NodeConverter";
+import convertUnsupportedNode from "@ext/confluence/core/cloud/logic/convertUnsupportedNode";
 
 const mediaSingle: NodeConverter = async (mediaSingleNode, ctx) => {
 	const articleId = mediaSingleNode?.content[0]?.attrs?.collection?.replace("contentId-", "");
-	const resourceName = await ctx.save(ctx.articlePath, mediaSingleNode?.content[0]?.attrs?.id, articleId);
+	const resourceName = await ctx.save(mediaSingleNode?.content[0]?.attrs?.id, articleId);
 	if (!resourceName) return convertUnsupportedNode(mediaSingleNode, ctx.confluencePageUrl);
 
 	return {

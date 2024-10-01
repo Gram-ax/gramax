@@ -5,13 +5,7 @@ import { Tag } from "../../../core/render/logic/Markdoc";
 import { WordFontStyles } from "@ext/wordExport/options/wordExportSettings";
 import { imageWordLayout } from "@ext/markdown/elements/image/word/image";
 
-export const listItemWordLayout: WordBlockChild = async ({
-	state,
-	tag,
-	addOptions,
-	resourceManager,
-	parserContext,
-}) => {
+export const listItemWordLayout: WordBlockChild = async ({ state, tag, addOptions, wordRenderContext }) => {
 	const filteredChildren = transformerToNormalTag(tag).children.filter(
 		(child) => child && typeof child !== "string",
 	) as Tag[];
@@ -34,9 +28,7 @@ export const listItemWordLayout: WordBlockChild = async ({
 					paragraph = [];
 				}
 
-				listElements.push(
-					await imageWordLayout(child.children[0] as Tag, addOptions, resourceManager, parserContext),
-				);
+				listElements.push(await imageWordLayout(child.children[0] as Tag, addOptions, wordRenderContext.parserContext));
 			} else {
 				const inlineElements = await state.renderInline(child);
 

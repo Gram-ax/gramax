@@ -15,6 +15,19 @@ export interface LevelTocItem {
 	items: TocItem[];
 }
 
+export const collapseTocItems = (tocItems: TocItem[]) => {
+	const result = [];
+	const stack = [...tocItems];
+
+	while (stack.length) {
+		const item = stack.pop();
+		result.push({ ...item, items: [] });
+		if (item.items.length) item.items.forEach((i) => stack.push(i));
+	}
+
+	return result;
+};
+
 const getTocItems = (tocItems: LevelTocItem[]): TocItem[] => {
 	const stack: LevelTocItem[] = [];
 	const result: LevelTocItem[] = [];

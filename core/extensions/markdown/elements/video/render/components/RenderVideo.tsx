@@ -125,9 +125,14 @@ const RawVideo = ({ url, setIsError: setIsError }: RenderVideoProps) => {
 	);
 };
 
-const RenderVideo = ({ url, setIsError: setIsError }: RenderVideoProps) =>
-	Object.entries(SupportedVideoHostings).find(([name]) => url.includes(name))?.[1](url, setIsError) ?? (
-		<RawVideo url={url} setIsError={setIsError} />
+const RenderVideo = ({ url, setIsError: setIsError }: RenderVideoProps) => {
+	if (url.includes("embed")) return <IFrameVideo url={url} setIsError={setIsError} />;
+
+	return (
+		Object.entries(SupportedVideoHostings).find(([name]) => url.includes(name))?.[1](url, setIsError) ?? (
+			<RawVideo url={url} setIsError={setIsError} />
+		)
 	);
+};
 
 export default RenderVideo;

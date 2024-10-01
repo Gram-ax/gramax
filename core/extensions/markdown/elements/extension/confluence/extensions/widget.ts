@@ -1,5 +1,5 @@
-import NodeConverter from "@ext/confluence/actions/Import/logic/NodeConverter";
-import convertUnsupportedNode from "@ext/confluence/actions/Import/logic/convertUnsupportedNode";
+import convertUnsupportedNode from "@ext/confluence/core/cloud/logic/convertUnsupportedNode";
+import NodeConverter from "@ext/confluence/core/cloud/model/NodeConverter";
 
 const widget: NodeConverter = (widgetNode, ctx) => {
 	const url = widgetNode.attrs?.parameters?.macroParams?.url?.value;

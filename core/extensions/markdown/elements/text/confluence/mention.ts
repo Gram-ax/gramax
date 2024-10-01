@@ -1,5 +1,5 @@
-import ConfluenceAPI from "@ext/confluence/ConfluenceAPI";
-import NodeConverter from "@ext/confluence/actions/Import/logic/NodeConverter";
+import ConfluenceAPI from "@ext/confluence/core/api/model/ConfluenceAPI";
+import NodeConverter from "@ext/confluence/core/cloud/model/NodeConverter";
 import { makeSourceApi } from "@ext/git/actions/Source/makeSourceApi";
 
 const mention: NodeConverter = async (mentionNode, ctx) => {

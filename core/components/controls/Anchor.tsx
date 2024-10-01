@@ -1,10 +1,10 @@
+import { getExecutingEnvironment } from "@app/resolveModule/env";
 import Url from "@core-ui/ApiServices/Types/Url";
 import ArticleTooltipService from "@core-ui/ContextServices/ArticleTooltip";
 import { useRouter } from "@core/Api/useRouter";
 import { ReactNode } from "react";
 import Icon from "../Atoms/Icon";
 import Link from "../Atoms/Link";
-import { getExecutingEnvironment } from "@app/resolveModule/env";
 
 interface AnchorProps {
 	href: string;
@@ -22,7 +22,7 @@ const Anchor = (Props: AnchorProps) => {
 	const basePathLength = useRouter()?.basePath?.length ?? basePath?.length ?? 0;
 	const setLink = ArticleTooltipService.value;
 	const executingEnvironment = getExecutingEnvironment();
-	const target = executingEnvironment === "tauri" ? "_self" : propTarget;
+	const target = executingEnvironment === "tauri" || props.href?.startsWith("gramax://") ? "_self" : propTarget;
 
 	if (!isAnchor && props.href != null && props.href.slice(basePathLength + 1, basePathLength + 4) != "api") {
 		const isExternal = props.href?.match(/^\w+:/);

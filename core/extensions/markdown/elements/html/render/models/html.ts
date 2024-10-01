@@ -4,6 +4,7 @@ import Tag from "../../../../core/render/logic/Markdoc/src/ast/tag";
 export const html: Schema = {
 	render: "Html",
 	attributes: {
+		mode: { type: String },
 		content: { type: String },
 	},
 	selfClosing: false,

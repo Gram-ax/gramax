@@ -3,7 +3,8 @@ import { ClientArticleProps } from "@core/SitePresenter/SitePresenter";
 import OnLoadResourceService from "@ext/markdown/elements/copyArticles/onLoadResourceService";
 import initArticleResource from "@ext/markdown/elementsUtils/AtricleResource/initArticleResource";
 import { Attrs, DOMSerializer, Fragment, Mark, Node, Schema, Slice } from "@tiptap/pm/model";
-import { NodeSelection, Transaction } from "@tiptap/pm/state";
+import { Transaction } from "@tiptap/pm/state";
+import { handlePaste } from "prosemirror-tables";
 import { EditorView } from "prosemirror-view";
 
 interface CreateProps {
@@ -112,7 +113,7 @@ const filterMarks = async (props: FilterProps): Promise<Node> => {
 
 const createNodes = async (props: CreateProps) => {
 	const { event, view, node, apiUrlCreator, articleProps } = props;
-	const { $from, $to } = view.state.selection;
+	const { $from } = view.state.selection;
 	const attrs = await createResource(node, apiUrlCreator, articleProps);
 	if (!attrs.nodeName) return;
 	const tr = view.state.tr;
@@ -140,12 +141,10 @@ const createNodes = async (props: CreateProps) => {
 		newNode = view.state.schema.text(node.text, newMarks);
 	} else newNode = await filterMarks({ view, node, attrs, apiUrlCreator, articleProps });
 
-	tr.replaceSelection(newNode.slice(0, newNode.content.size));
-	if (!newNode.firstChild.isTextblock && !newNode.firstChild.isText && newNode.firstChild.childCount === 0)
-		if (($to.parentOffset === 0 && $to.parent.isTextblock) || $to.parent.type.name === "doc")
-			tr.setSelection(NodeSelection.create(tr.doc, Math.min(Math.max($to.pos - 1, 0), tr.doc.content.size)));
-		else tr.setSelection(NodeSelection.create(tr.doc, Math.min(Math.max($to.pos + 1, 0), tr.doc.content.size)));
+	const slice = newNode.slice(0, newNode.content.size);
+	if (handlePaste(view, null, slice)) return;
 
+	tr.replaceSelection(slice);
 	tr.setMeta("paste", true);
 	tr.setMeta("uiEvent", "paste");
 	view.dispatch(tr);

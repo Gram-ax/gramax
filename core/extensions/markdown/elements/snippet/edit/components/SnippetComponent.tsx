@@ -9,9 +9,8 @@ import onSnippetEdit from "@ext/markdown/elements/snippet/edit/logic/onSnippetEd
 import Snippet from "@ext/markdown/elements/snippet/render/components/Snippet";
 import { NodeViewProps, NodeViewWrapper } from "@tiptap/react";
 import { ReactElement, useEffect, useState } from "react";
-import Focus from "../../../../elementsUtils/wrappers/Focus";
 
-const SnippetComponent = ({ node, getPos, editor }: NodeViewProps): ReactElement => {
+const SnippetComponent = ({ node, editor }: NodeViewProps): ReactElement => {
 	const [content, setContent] = useState(node.attrs.content);
 	const apiUrlCreator = ApiUrlCreatorService.value;
 	const snippetDeleteConfirmText = `${t("delete-snippet-confirm-not-use")}. ${t("delete-snippet-confirm")}`;
@@ -24,27 +23,25 @@ const SnippetComponent = ({ node, getPos, editor }: NodeViewProps): ReactElement
 	}, []);
 
 	return (
-		<NodeViewWrapper as={"div"} draggable={true} data-drag-handle>
-			<Focus getPos={getPos}>
-				<div
-					onClick={() => {
-						if (!content) return;
-						onSnippetEdit({
-							snippetId: node.attrs.id,
-							apiUrlCreator,
-							snippetDeleteConfirmText,
-							onDelete: (usedInArticles) => {
-								onSnippetDeleteCallback(usedInArticles, currentArticlePathname);
-							},
-							onClose: () => {
-								editor.commands.focus(editor.state.selection.anchor);
-							},
-						});
-					}}
-				>
-					<Snippet>{Renderer(content, { components: getComponents() })}</Snippet>
-				</div>
-			</Focus>
+		<NodeViewWrapper as={"div"} draggable={true} data-drag-handle className="focus-pointer-events">
+			<div
+				onClick={() => {
+					if (!content) return;
+					onSnippetEdit({
+						snippetId: node.attrs.id,
+						apiUrlCreator,
+						snippetDeleteConfirmText,
+						onDelete: (usedInArticles) => {
+							onSnippetDeleteCallback(usedInArticles, currentArticlePathname);
+						},
+						onClose: () => {
+							editor.commands.focus(editor.state.selection.anchor);
+						},
+					});
+				}}
+			>
+				<Snippet>{Renderer(content, { components: getComponents() })}</Snippet>
+			</div>
 		</NodeViewWrapper>
 	);
 };

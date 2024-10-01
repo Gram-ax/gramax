@@ -8,7 +8,7 @@ import { ArticleFilter, Catalog } from "../Catalog/Catalog";
 import { ItemType } from "../Item/ItemType";
 import { Article } from "./Article";
 
-const getChildLinks = (category: Category, catalog: Catalog, filters: ArticleFilter[]) => {
+export const getChildLinks = (category: Category, catalog: Catalog, filters: ArticleFilter[]) => {
 	return category.items
 		.filter((i) => !filters || filters.every((f) => f(i as Article, catalog)))
 		.map((i) => {

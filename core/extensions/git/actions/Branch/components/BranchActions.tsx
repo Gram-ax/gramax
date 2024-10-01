@@ -13,8 +13,8 @@ import ModalToOpen from "@core-ui/ContextServices/ModalToOpenService/model/Modal
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import IsReadOnlyHOC from "@core-ui/HigherOrderComponent/IsReadOnlyHOC";
 import AddNewBranchListItem from "@ext/git/actions/Branch/components/AddNewBranchListItem";
-import BranchSideBar from "@ext/git/actions/Branch/components/BranchSideBar";
 import DisableTooltipContent from "@ext/git/actions/Branch/components/DisableTooltipContent";
+import GitDateSideBar from "@ext/git/actions/Branch/components/GitDateSideBar";
 import MergeBranches from "@ext/git/actions/Branch/components/MergeBranches";
 import getNewBranchNameErrorLocalization from "@ext/git/actions/Branch/components/logic/getNewBranchNameErrorLocalization";
 import validateBranchError from "@ext/git/actions/Branch/components/logic/validateBranchError";
@@ -183,8 +183,8 @@ const BranchActions = (props: BranchActionsProps) => {
 			const disable = disableBranchesSameAsHead ? b.branchHashSameAsHead : false;
 			return {
 				element: (
-					<BranchSideBar
-						name={b.name}
+					<GitDateSideBar
+						title={b.name}
 						iconCode={b.remoteName ? "cloud" : "monitor"}
 						tooltipContent={b.remoteName ? t("remote") : t("local")}
 						data={{ lastCommitAuthor: b.lastCommitAuthor, lastCommitModify: b.lastCommitModify }}

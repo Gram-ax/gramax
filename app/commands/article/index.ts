@@ -16,6 +16,7 @@ import get from "./resource/get";
 import remove from "./resource/remove";
 import set from "./resource/set";
 import updateContent from "./updateContent";
+import createFromPath from "@app/commands/article/resource/createFromPath";
 
 const article = {
 	features: {
@@ -35,6 +36,7 @@ const article = {
 	resource: {
 		get,
 		set,
+		createFromPath,
 		remove,
 		getBrotherNames,
 	},

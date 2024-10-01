@@ -21,12 +21,3 @@ pub fn open_directory() -> Option<PathBuf> {
 pub fn show_print<R: Runtime>(window: WebviewWindow<R>) -> Result<()> {
   window.print()
 }
-
-#[command]
-pub fn request_delete_config<R: Runtime>(app: AppHandle<R>) -> Result<()> {
-  let path = super::config::config_path(&app);
-  if let Err(err) = std::fs::remove_file(path) {
-    warn!("old config file not deleted: {err:?}")
-  };
-  Ok(())
-}

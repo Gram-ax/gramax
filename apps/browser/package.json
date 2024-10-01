@@ -6,7 +6,8 @@
 	"scripts": {
 		"dev": "vite",
 		"build": "vite build",
-		"build:wasm": "cargo +nightly build --target wasm32-unknown-emscripten --release -Zbuild-std --manifest-path wasm/Cargo.toml",
+		"build:post-js": "bun build wasm/js/post.ts --minify --outfile=wasm/js/post.js",
+		"build:wasm": "cargo +nightly build --target wasm32-unknown-emscripten --release -Zbuild-std --manifest-path wasm/Cargo.toml && node ./postbuild.js",
 		"start": "warp-spa dist",
 		"run": "npm run build && npm run start",
 		"analyze": "vite-bundle-visualizer",

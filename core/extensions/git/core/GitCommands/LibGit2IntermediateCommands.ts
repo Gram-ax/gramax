@@ -2,7 +2,7 @@ import call from "@app/resolveModule/gitcall";
 import Path from "@core/FileProvider/Path/Path";
 import { VersionControlInfo } from "@ext/VersionControl/model/VersionControlInfo";
 import GitBranchData from "@ext/git/core/GitBranch/model/GitBranchData";
-import GitProgressEvent from "@ext/git/core/model/GitProgressEvent";
+import type { CloneProgress } from "@ext/git/core/GitCommands/model/GitCommandsModel";
 
 export let onCloneProgress = undefined;
 
@@ -12,13 +12,13 @@ export type Args = {
 	repoPath: string;
 };
 
-export type CredsArgs = Args & {
-	creds: {
-		authorName: string;
-		authorEmail: string;
-		accessToken: string;
-	};
+export type Creds = {
+	authorName: string;
+	authorEmail: string;
+	accessToken: string;
 };
+
+export type CredsArgs = Args & { creds: Creds };
 
 export type UpstreamCountFileChanges = {
 	pull: number;
@@ -33,8 +33,8 @@ export type MergeResult = {
 }[];
 
 export const clone = async (
-	args: CredsArgs & { remoteUrl: string; branch?: string },
-	onProgress?: (progress: GitProgressEvent) => void,
+	args: { creds: Creds; opts: { url: string; to: string; branch?: string; depth?: number } },
+	onProgress?: (progress: CloneProgress) => void,
 ) => {
 	onCloneProgress = onProgress;
 	try {
@@ -93,7 +93,7 @@ export const addRemote = (args: Args & { name: string; url: string }) => call<vo
 
 export const hasRemotes = (args: Args) => call<boolean>("has_remotes", args);
 
-export const stash = (args: Args & CredsArgs & { message: string }) => call<Oid>("stash", args);
+export const stash = (args: CredsArgs & { message: string }) => call<Oid>("stash", args);
 
 export const stashApply = (args: Args & { oid: Oid }) => call<MergeResult>("stash_apply", args);
 

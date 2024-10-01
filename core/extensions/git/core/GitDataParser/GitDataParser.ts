@@ -30,8 +30,6 @@ export class GitDataParser {
 		return changeFiles;
 	}
 
-	
-
 	getEditFileLink(
 		sourceName: string,
 		group: string,
@@ -42,7 +40,8 @@ export class GitDataParser {
 	): string {
 		const links: Record<SourceType, string> = {
 			Git: "",
-			Confluence: "",
+			"Confluence Cloud": "",
+			"Confluence self-hosted server": "",
 			GitHub: `https://${sourceName}/${group}/${repName}/edit/${branch}/${filePath.value}`,
 			GitLab: `https://${sourceName}/-/ide/project/${group}/${repName}/blob/${branch}/-/${filePath.value}`,
 		};

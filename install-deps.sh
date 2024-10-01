@@ -8,7 +8,6 @@ CI_MODE=false
 SHOULD_COMPILE_WASM=false
 SHOULD_COMPILE_NODE=false
 SHOULD_COMPILE_WARP=false
-SHOULD_BUILD_PLUGINS=false
 
 for arg in "$@"; do
 	case "$arg" in
@@ -17,9 +16,6 @@ for arg in "$@"; do
 		;;
 	"--ci")
 		CI_MODE=true
-		;;
-	"--build-plugins")
-		SHOULD_BUILD_PLUGINS=true
 		;;
 	"--wasm")
 		SHOULD_COMPILE_WASM=true
@@ -35,7 +31,6 @@ for arg in "$@"; do
 		SHOULD_COMPILE_WASM=true
 		SHOULD_COMPILE_NODE=true
 		SHOULD_COMPILE_WARP=true
-		SHOULD_BUILD_PLUGINS=true
 		;;
 	esac
 done
@@ -77,9 +72,6 @@ if ! "$SHOULD_SKIP_NPM"; then
 	if [ -f "services/package.json" ]; then
 		install "services"
 	fi
-	if [ -f "plugins/package.json" ]; then
-		install "plugins"
-	fi
 fi
 
 echo "Github API rate limit: $(fetch_gh_ratelimit)"
@@ -103,18 +95,3 @@ npm run build:schemes 2>&1 || {
 	echo "Failed to compile schemes"
 	exit 1
 }
-
-if $SHOULD_BUILD_PLUGINS; then
-	echo "Building plugins"
-	mkdir -p plugins/target
-
-	if [[ -n "${ROOT_PATH-}" ]]; then
-		mkdir -p "$ROOT_PATH"/.storage/plugins
-		echo "Created plugin storage in" "$ROOT_PATH"
-	fi
-
-	npm run build:plugins 2>&1 || {
-		echo "Failed to build plugins"
-		exit 1
-	}
-fi

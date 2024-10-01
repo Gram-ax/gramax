@@ -3,7 +3,7 @@ import { HTMLAttributes } from "react";
 export type CustomIcon = (props: HTMLAttributes<SVGElement>) => JSX.Element;
 
 const customIcons: { [K: string]: CustomIcon } = {
-	confluence: (props) => {
+	"confluence cloud": (props) => {
 		return (
 			<svg xmlns="http://www.w3.org/2000/svg" {...props} viewBox="0 0 255.376 245.387">
 				<defs>
@@ -43,6 +43,7 @@ const customIcons: { [K: string]: CustomIcon } = {
 			</svg>
 		);
 	},
+	"confluence self-hosted server": (props) => customIcons["confluence cloud"](props),
 	gramax: (props) => {
 		return (
 			<svg xmlns="http://www.w3.org/2000/svg" {...props} viewBox="0 0 30 30" fill="none">
@@ -70,9 +71,9 @@ const customIcons: { [K: string]: CustomIcon } = {
 	git: (props) => {
 		return (
 			<svg viewBox="0 0 24 24" {...props} fill="none" stroke="currentColor" xmlns="http://www.w3.org/2000/svg">
-				<path d="M11.9912 8.32959L11.992 15.6298" stroke-linecap="square" />
-				<path d="M13.2529 7.78076L16.2069 10.7347" stroke-linecap="square" />
-				<path d="M9.08301 3.60596L10.8275 5.35047" stroke-linecap="square" />
+				<path d="M11.9912 8.32959L11.992 15.6298" strokeLinecap="square" />
+				<path d="M13.2529 7.78076L16.2069 10.7347" strokeLinecap="square" />
+				<path d="M9.08301 3.60596L10.8275 5.35047" strokeLinecap="square" />
 				<path d="M13.559 6.60811C13.559 7.47224 12.8585 8.17275 11.9943 8.17275C11.1302 8.17275 10.4297 7.47224 10.4297 6.60811C10.4297 5.74397 11.1302 5.04346 11.9943 5.04346C12.8585 5.04346 13.559 5.74397 13.559 6.60811Z" />
 				<path d="M18.9428 11.9714C18.9428 12.8355 18.2423 13.536 17.3781 13.536C16.514 13.536 15.8135 12.8355 15.8135 11.9714C15.8135 11.1073 16.514 10.4067 17.3781 10.4067C18.2423 10.4067 18.9428 11.1073 18.9428 11.9714Z" />
 				<path d="M13.5629 17.3864C13.5629 18.2506 12.8624 18.9511 11.9983 18.9511C11.1341 18.9511 10.4336 18.2506 10.4336 17.3864C10.4336 16.5223 11.1341 15.8218 11.9983 15.8218C12.8624 15.8218 13.5629 16.5223 13.5629 17.3864Z" />

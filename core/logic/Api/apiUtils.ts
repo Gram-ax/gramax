@@ -28,8 +28,12 @@ export const apiUtils = {
 	},
 
 	getProtocolHost(req: ApiRequest) {
-		if (!req.headers.referer)
-			return { protocol: "http", host: req.headers["x-forwarded-host"] ?? req.headers["host"] };
+		if (!req.headers.referer) {
+			return {
+				protocol: req.headers["x-forwarded-proto"] ?? "http",
+				host: req.headers["x-forwarded-host"] ?? req.headers["host"],
+			};
+		}
 		const [, protocol = "http", host] = /^(?:(https?):\/\/)?([^/]+)/.exec(req.headers.referer);
 		return { protocol, host };
 	},

@@ -8,9 +8,11 @@ import type { ClientArticleProps } from "@core/SitePresenter/SitePresenter";
 import itemRefUtils from "@core/utils/itemRefUtils";
 import { ItemStatus, type ItemRefStatus } from "@ext/Watchers/model/ItemStatus";
 import CatalogEditProps from "@ext/catalog/actions/propsEditor/model/CatalogEditProps.schema";
+import { Property } from "@ext/properties/models";
 import Repository from "@ext/git/core/Repository/Repository";
 import RepositoryProvider from "@ext/git/core/Repository/RepositoryProvider";
 import { CatalogErrors } from "@ext/healthcheck/logic/Healthcheck";
+import type { FSLocalizationProps } from "@ext/localization/core/events/FSLocalizationEvents";
 import IconProvider from "@ext/markdown/elements/icon/logic/IconProvider";
 import SnippetProvider from "@ext/markdown/elements/snippet/logic/SnippetProvider";
 import TabsTags from "@ext/markdown/elements/tabs/model/TabsTags";
@@ -24,7 +26,6 @@ import { Category } from "../Category/Category";
 import { Item } from "../Item/Item";
 import { ItemRef } from "../Item/ItemRef";
 import { ItemType } from "../Item/ItemType";
-import type { FSLocalizationProps } from "@ext/localization/core/events/FSLocalizationEvents";
 
 export type CatalogEvents = Event<"item-order-updated", { catalog: Catalog; item: Item }> &
 	Event<"resolve-category", { catalog: Catalog; mutableCategory: { category: Category } }> &
@@ -39,6 +40,7 @@ export type CatalogEvents = Event<"item-order-updated", { catalog: Catalog; item
 			to: ItemRef;
 			makeResourceUpdater: MakeResourceUpdater;
 			rp?: RepositoryProvider;
+			innerRefs: ItemRef[];
 		}
 	> &
 	Event<"item-deleted", { catalog: Catalog; ref: ItemRef; parser?: ArticleParser }> &
@@ -91,6 +93,7 @@ export type CatalogProps = FSLocalizationProps & {
 	readOnly?: boolean;
 	tabsTags?: TabsTags;
 	contactEmail?: string;
+	properties?: Property[];
 
 	relatedLinks?: TitledLink[];
 	private?: string[];
@@ -98,6 +101,8 @@ export type CatalogProps = FSLocalizationProps & {
 	refs?: string[];
 
 	sharePointDirectory?: string;
+
+	isCloning?: boolean;
 };
 
 export const EXCLUDED_PROPS = ["url", "docroot"];
@@ -303,7 +308,7 @@ export class Catalog extends CatalogEntry {
 			.filter((k) => !EXCLUDED_PROPS.includes(k))
 			.forEach((k) => (this._props[k] = props[k]));
 		await this._fs.saveCatalog(this);
-		await this._moveRootCategoryIfNeed(new Path(props.docroot), makeResourceUpdater, rp);
+		if (props.docroot) await this._moveRootCategoryIfNeed(new Path(props.docroot), makeResourceUpdater, rp);
 		await this.update(rp);
 		if (props.url && props.url !== this._name) return this.updateName(props.url, rp);
 		return this;
@@ -380,8 +385,8 @@ export class Catalog extends CatalogEntry {
 		return root.rootDirectory?.subDirectory(root);
 	}
 
-	getItems(filters: ArticleFilter[] = []): Item[] {
-		return this._getItems(this._resolveRootCategory(), filters);
+	getItems(filters: ArticleFilter[] = [], root?: Category): Item[] {
+		return this._getItems(root || this._resolveRootCategory(), filters);
 	}
 
 	getArticles(filters?: ArticleFilter[]): Article[] {
@@ -408,22 +413,24 @@ export class Catalog extends CatalogEntry {
 		to: ItemRef,
 		makeResourceUpdater: MakeResourceUpdater,
 		rp: RepositoryProvider,
+		innerRefs?: ItemRef[],
 		silent?: boolean,
 	) {
 		const item = this.findItemByItemRef<Article>(from);
 		if (!item) throw new Error(`Item '${from.path.value}' wasn't found in catalog ${this._basePath.value}`);
 
-		if (item.type == ItemType.category) await this._moveCategoryItems(<Category>item, to, rp, makeResourceUpdater);
+		if (item.type == ItemType.category)
+			await this._moveCategoryItems(<Category>item, to, rp, makeResourceUpdater, innerRefs);
 
 		const movedItem = await this._moveArticleItem(item, to);
 
 		const resourceUpdater = makeResourceUpdater(this);
-		const innerRefs = (<Category>item).items?.map((item) => item.ref) || [];
-		await resourceUpdater.update(item, movedItem, [item.ref, ...innerRefs]);
+		await resourceUpdater.update(item, movedItem, innerRefs);
 
-		if (!silent) await this.events.emit("item-moved", { catalog: this, from, to, makeResourceUpdater, rp });
+		if (!silent)
+			await this.events.emit("item-moved", { catalog: this, from, to, makeResourceUpdater, rp, innerRefs });
 
-		await resourceUpdater.updateOtherArticles(from.path, to.path);
+		await resourceUpdater.updateOtherArticles(from.path, to.path, innerRefs);
 	}
 
 	private _resolveRootCategory() {
@@ -452,13 +459,14 @@ export class Catalog extends CatalogEntry {
 		to: ItemRef,
 		rp: RepositoryProvider,
 		makeResourceUpdater: MakeResourceUpdater,
+		innerRefs: ItemRef[],
 	) {
 		for (const i of item.items) {
 			const childNewBasePath = to.path.parentDirectoryPath.join(
 				item.ref.path.parentDirectoryPath.subDirectory(i.ref.path),
 			);
 			const childNewItemRef = { path: childNewBasePath, storageId: i.ref.storageId };
-			await this.moveItem(i.ref, childNewItemRef, makeResourceUpdater, rp, true);
+			await this.moveItem(i.ref, childNewItemRef, makeResourceUpdater, rp, innerRefs, true);
 		}
 	}
 
@@ -518,9 +526,8 @@ export class Catalog extends CatalogEntry {
 			"item-order-updated",
 			async (args) => await this.events.emit("item-order-updated", { catalog: this, ...args }),
 		);
-		await this._onItemChanged({ item: category, status: FileStatus.new });
-
 		parentArticle.parent.items.splice(index, 0, category);
+		await this._onItemChanged({ item: category, status: FileStatus.new });
 		return category;
 	}
 
@@ -547,12 +554,12 @@ export class Catalog extends CatalogEntry {
 	}
 
 	private _getItems(category: Category, filters?: ItemFilter[]): Item[] {
-		let items: Item[] = [];
+		const items: Item[] = [];
+		const filter = (i: Item) => filters && filters.every((f) => f(i, this));
 		category.items.forEach((i) => {
-			if (i.type == ItemType.category) items.push(i, ...this._getItems(i as Category, filters));
-			else items.push(i);
+			if (filter(i)) items.push(i);
+			if (i.type == ItemType.category) items.push(...this._getItems(i as Category, filters));
 		});
-		if (filters) items = items.filter((i) => filters.every((f) => f(i, this)));
 
 		return items;
 	}
@@ -578,7 +585,7 @@ export class Catalog extends CatalogEntry {
 		for (const item of root.items || []) {
 			const path = to.parentDirectoryPath.join(root.ref.path.parentDirectoryPath.subDirectory(item.ref.path));
 			const ref = this._fp.getItemRef(path);
-			await this.moveItem(item.ref, ref, makeResourceUpdater, rp, null);
+			await this.moveItem(item.ref, ref, makeResourceUpdater, rp, [], true);
 		}
 
 		await this._fp.move(rootPath, to);

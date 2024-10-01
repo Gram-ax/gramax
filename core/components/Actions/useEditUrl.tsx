@@ -9,9 +9,9 @@ import { useEffect, useState } from "react";
 const useEditUrlInDesktop = () => "gramax://" + window.location.pathname;
 
 const useEditUrlInWeb = () =>
-	PageDataContextService.value?.conf.isRelease
-		? "https://app.gram.ax"
-		: "https://dev.gram.ax" + window.location.pathname;
+	(PageDataContextService.value?.conf.isRelease ? "https://app.gram.ax" : "https://dev.gram.ax") +
+	window.location.pathname +
+	"/?web";
 
 const useEditUrlInWebFromDocPortal = () => {
 	const [editInGramaxUrl, setEditInGramaxUrl] = useState<string>();

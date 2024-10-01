@@ -24,14 +24,14 @@ const Field = (props: FieldProps) => {
 	const { scheme, value, tabIndex, validate, input, formTranslationKey, translationKey } = props;
 	const { onChange, onFocus } = props;
 
-	const isCheckbox = scheme.type == "boolean";
+	const isCheckbox = scheme?.type == "boolean";
 
 	if (typeof scheme === "string") {
 		if (scheme === "separator") return <div className="separator" />;
 		return <h3>{scheme}</h3>;
 	}
 
-  const translatedName = t(`forms.${formTranslationKey}.props.${translationKey}.name`);
+	const translatedName = t(`forms.${formTranslationKey}.props.${translationKey}.name`);
 
 	return (
 		<div className="form-group">
@@ -41,7 +41,7 @@ const Field = (props: FieldProps) => {
 						<div style={{ display: "flex" }}>
 							<span
 								dangerouslySetInnerHTML={{
-									__html:translatedName,
+									__html: translatedName,
 								}}
 							/>
 							{required && <span className="required">*</span>}
@@ -70,7 +70,7 @@ const Field = (props: FieldProps) => {
 			</div>
 			{hasTranslation(`forms.${formTranslationKey}.props.${translationKey}.description`) && (
 				<div className={`input-lable-description ${isCheckbox ? "full-width" : ""}`}>
-					{!isCheckbox && <div />}
+					{!isCheckbox && fieldDirection === "row" && <div />}
 					<div
 						className="article"
 						dangerouslySetInnerHTML={{

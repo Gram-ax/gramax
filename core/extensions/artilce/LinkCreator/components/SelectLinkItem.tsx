@@ -12,7 +12,7 @@ import parseStorageUrl from "@core/utils/parseStorageUrl";
 import styled from "@emotion/styled";
 import LinkItemSidebar from "@ext/artilce/LinkCreator/components/LinkItemSidebar";
 import t from "@ext/localization/locale/translate";
-import Button from "@ext/markdown/core/edit/components/Menu/Button";
+import Button, { ButtonProps } from "@ext/markdown/core/edit/components/Menu/Button";
 import LinkFocusTooltip from "@ext/markdown/elements/link/edit/logic/LinkFocusTooltip";
 import { Dispatch, RefObject, SetStateAction, useEffect, useMemo, useRef, useState } from "react";
 import LinkItem from "../models/LinkItem";
@@ -54,6 +54,29 @@ const renderItem = (item) => {
 	};
 };
 
+interface StyledButtonProps extends ButtonProps {
+	isTauri?: boolean;
+}
+
+export const StyledButton = styled(Button)<StyledButtonProps>`
+	.button .iconFrame {
+		display: flex;
+	}
+
+	.button .iconFrame span {
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		max-width: ${(p) => (p.isTauri ? 203 : 168)}px;
+	}
+
+	.button .iconFrame i {
+		align-items: flex-start;
+		justify-content: center;
+		display: flex;
+	}
+`;
+
 const ButtonView = ({ href, icon, itemName, setButton, isExternalLink }: ButtonViewProps) => {
 	const { isCtrlPressed } = useCtrlKey();
 	const { isTauri } = usePlatform();
@@ -68,7 +91,7 @@ const ButtonView = ({ href, icon, itemName, setButton, isExternalLink }: ButtonV
 
 	const commonStyle = { color: "var(--color-article-bg)", width: "100%", textDecoration: "none" };
 
-	const ButtonContent = <Button className={"buttonView"} title={itemName} icon={icon} text={itemName} />;
+	const ButtonContent = <StyledButton title={itemName} icon={icon} text={itemName} isTauri={isTauri} />;
 
 	const hashHatch = LinkFocusTooltip.getLinkToHeading(href);
 	const isCurrentLink = typeof window !== "undefined" ? window.location.pathname === hashHatch?.[1] : false;
@@ -159,7 +182,7 @@ const SelectLinkItem = (props: SelectLinkItemProps) => {
 	);
 
 	const icon = !item ? "globe" : item.type == ItemType.article ? "file" : "folder";
-	const [button, setButton] = useState<boolean>(!!item || isExternalLink);
+	const [isButton, setIsButton] = useState<boolean>(!!item || isExternalLink);
 	const [isEdit, setIsEdit] = useState(false);
 	const [itemName, setItemName] = useState("");
 	const listRef = useRef<ListLayoutElement>();
@@ -207,12 +230,12 @@ const SelectLinkItem = (props: SelectLinkItemProps) => {
 	}, [isEdit]);
 
 	const setButtonHandler = (value) => {
-		setButton(value);
+		setIsButton(value);
 		setName(false);
 		setIsEdit(true);
 	};
 
-	return button ? (
+	return isButton ? (
 		<ButtonView
 			isExternalLink={isExternalLink}
 			href={href}

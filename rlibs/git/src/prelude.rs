@@ -1,5 +1,7 @@
 pub use crate::actions::branch::*;
+pub use crate::actions::clone::*;
 pub use crate::actions::diff::*;
+pub use crate::actions::history::*;
 pub use crate::actions::merge::*;
 pub use crate::actions::remote::*;
 pub use crate::actions::stash::*;

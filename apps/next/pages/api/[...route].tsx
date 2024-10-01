@@ -66,9 +66,7 @@ const respond = async (app: Application, req: ApiRequest, res: ApiResponse, kind
 	}
 
 	if (kind == ResponseKind.file) {
-		res.setHeader("Content-type", "application/octet-stream");
-		res.setHeader("Content-Disposition", `attachment; filename="${commandResult.filename}.docx"`);
-		return res.send(commandResult.body);
+		return res.end(commandResult);
 	}
 
 	if (kind == ResponseKind.redirect) {

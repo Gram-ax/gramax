@@ -1,6 +1,6 @@
 import Url from "@core-ui/ApiServices/Types/Url";
 import t from "@ext/localization/locale/translate";
-import { HTMLAttributes, ReactNode, useEffect, useRef } from "react";
+import { HTMLAttributes, MouseEvent, ReactNode, useEffect, useRef } from "react";
 import Link from "../Atoms/Link";
 import Tooltip from "../Atoms/Tooltip";
 
@@ -8,7 +8,7 @@ interface GoToArticleProps extends HTMLAttributes<HTMLAnchorElement> {
 	trigger: ReactNode;
 	href: string;
 	distance?: number;
-	onClick?: () => void;
+	onClick?: (e: MouseEvent) => void;
 }
 
 const GoToArticle = (props: GoToArticleProps) => {

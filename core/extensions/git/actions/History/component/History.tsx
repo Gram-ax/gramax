@@ -16,7 +16,7 @@ import { FileStatus } from "@ext/Watchers/model/FileStatus";
 import { GitStatus } from "@ext/git/core/GitWatcher/model/GitStatus";
 import t from "@ext/localization/locale/translate";
 import useHasRemoteStorage from "@ext/storage/logic/utils/useHasRemoteStorage";
-import useIsStorageInitialized from "@ext/storage/logic/utils/useIsStorageIniziliate";
+import useIsStorageInitialized from "@ext/storage/logic/utils/useIsStorageInitialized";
 import { useEffect, useState } from "react";
 import User from "../../../../security/components/User/User";
 import { ArticleHistoryViewModel } from "../model/ArticleHistoryViewModel";

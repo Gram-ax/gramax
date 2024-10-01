@@ -1,4 +1,4 @@
-import BranchSideBar from "../../../../../../core/extensions/git/actions/Branch/components/BranchSideBar";
+import GitDateSideBar from "../../../../../../core/extensions/git/actions/Branch/components/GitDateSideBar";
 import InlineDecorator from "../../../../../styles/decorators/InlineDecorator";
 
 const BranchData = {
@@ -19,8 +19,8 @@ const BranchData = {
 export const Branch = (args: { title: string }) => {
 	const date = new Date().getTime() - 360000;
 	return (
-		<BranchSideBar
-			name={args.title}
+		<GitDateSideBar
+			title={args.title}
 			tooltipContent={"123123"}
 			iconCode={"monitor"}
 			data={{ lastCommitAuthor: "Test Author (ICS)", lastCommitModify: new Date(date).toJSON() }}

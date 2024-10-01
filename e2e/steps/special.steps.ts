@@ -127,11 +127,23 @@ Then("ошибки {string} содержат", async function (this: E2EWorld, e
 	for (let i = 0; i < rowCount; i++) {
 		const currentRow = rowsLocator.nth(i);
 		const currentExpectedErrors = expectedErrors[i];
-		const articleName = await currentRow.locator(".article-name").textContent();
+		const articleName = await currentRow.locator(".article-name span").last().textContent();
 		expect(articleName).toEqual(currentExpectedErrors.articleName);
 
 		const errorsLocator = currentRow.locator(".inline-code code");
 		const errors = (await errorsLocator.allTextContents()).map((error) => error.trim()).join(", ");
 		expect(errors).toEqual(currentExpectedErrors.errors);
 	}
+});
+
+When("вставляем html", async function (this: E2EWorld, text: string) {
+	await this.page()
+		.inner()
+		.evaluate(async (text) => {
+			await window.navigator.clipboard.write([
+				new ClipboardItem({ "text/html": new Blob([text], { type: "text/html" }) }),
+			]);
+		}, text);
+
+	await this.page().keyboard().press("Control+V");
 });

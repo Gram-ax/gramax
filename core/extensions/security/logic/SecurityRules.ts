@@ -20,7 +20,7 @@ export default class SecurityRules implements RuleCollection {
 		};
 
 		if (this._customArticlePresenter) {
-			(rule as any).getErrorArticle = () => this._customArticlePresenter.getArticle("403");
+			rule.getErrorArticle = () => this._customArticlePresenter.getArticle("403");
 		}
 		return rule;
 	}

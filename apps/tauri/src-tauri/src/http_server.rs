@@ -18,9 +18,9 @@ pub fn oauth_listen_once<F: FnOnce(&Request) + Send + Sync + 'static>(redirect: 
   });
 }
 
-pub fn start_ping_server() {
+pub fn start_ping_server<F: Fn(&Request) + Send + Sync + 'static>(on_request: F) {
   async_runtime::spawn(async move {
-    if let Err(err) = serve_ping() {
+    if let Err(err) = serve_ping(on_request) {
       error!("ping server died with error: {:?}", err);
     }
   });
@@ -44,15 +44,18 @@ fn serve_oauth<F: FnOnce(&Request)>(redirect: &str, on_request: F) -> Result<(),
   Ok(())
 }
 
-fn serve_ping() -> Result<(), Error> {
+fn serve_ping<F: Fn(&Request) + Send + Sync + 'static>(on_request: F) -> Result<(), Error> {
   let server = Server::http(HTTP_PING_SERVER_ADDRESS)?;
   info!("ping-http-server started at {HTTP_PING_SERVER_ADDRESS}");
 
   while let Ok(req) = server.recv() {
+    on_request(&req);
+
     let res = Response::empty(StatusCode(200)).with_header(Header {
       field: "access-control-allow-origin".parse().unwrap(),
       value: "*".parse().unwrap(),
     });
+
     req.respond(res)?;
   }
 

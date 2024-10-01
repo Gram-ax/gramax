@@ -1,23 +1,31 @@
 import styled from "@emotion/styled";
 import t from "@ext/localization/locale/translate";
-import { FocusPositionContext } from "@ext/markdown/core/edit/components/ContextWrapper";
 import TabAttrs from "@ext/markdown/elements/tabs/model/TabAttrs";
 import Tabs from "@ext/markdown/elements/tabs/render/component/Tabs";
+import { Editor } from "@tiptap/core";
 import { TextSelection } from "@tiptap/pm/state";
 import { NodeViewContent, NodeViewProps, NodeViewWrapper } from "@tiptap/react";
-import { ReactElement, useCallback, useContext, useEffect, useState } from "react";
+import { ReactElement, useCallback, useEffect, useState } from "react";
 
 const EditTabs = (props: { className?: string } & NodeViewProps): ReactElement => {
 	const { node, editor, className, getPos, updateAttributes } = props;
 	const tabText = t("editor.tabs.name");
-	const position = useContext(FocusPositionContext);
 	const [activeHoverStyle, setActiveHoverStyle] = useState(false);
 
 	useEffect(() => {
+		editor.on("selectionUpdate", changeFocus);
+
+		return () => {
+			editor.off("selectionUpdate", changeFocus);
+		};
+	}, []);
+
+	const changeFocus = ({ editor }: { editor: Editor }) => {
+		const position = editor.state.selection.to;
 		const from = getPos();
 		const to = getPos() + node.nodeSize;
 		setActiveHoverStyle(from < position && position < to);
-	}, [position]);
+	};
 
 	const onNameUpdate = useCallback(
 		(value: string, idx: number) => {
@@ -109,10 +117,7 @@ export default styled(EditTabs)`
 	margin: -4px -8px;
 	border: 1px dashed #ffffff0f;
 
-	&.no-hover:hover {
-		border: 1px dashed #ffffff0f;
-	}
-
+	:focus,
 	:hover,
 	&.hover {
 		border-radius: var(--radius-medium);

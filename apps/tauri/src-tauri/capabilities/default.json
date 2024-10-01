@@ -2,7 +2,7 @@
 	"identifier": "default",
 	"description": "",
 	"local": true,
-	"windows": ["main_*"],
+	"windows": ["gramax-window-*"],
 	"permissions": [
 		"core:webview:allow-set-webview-zoom",
 		"core:webview:allow-print",

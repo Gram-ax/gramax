@@ -63,4 +63,7 @@ export const hasTranslation = (key: TranslationKey): boolean => t(key, defaultLa
 export const convertContentToUiLanguage = (l: ContentLanguage): UiLanguage =>
 	UiLanguage[l] || LanguageService.currentUi() || defaultLanguage;
 
+export const tString = (key: string) =>
+	t(key as TranslationKey);
+
 export default t;

@@ -19,7 +19,7 @@ export default function Code({ children }: { children: string }) {
 				setCopped(false);
 			}}
 		>
-			<code>{"\u00A0" + children + "\u00A0"}</code>
+			<code>{children}</code>
 			<Tooltip content={!copped ? clickToCopyText : copiedText}>
 				<span className="copy">
 					<Icon code={!copped ? "copy" : "check"} />

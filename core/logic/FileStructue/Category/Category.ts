@@ -17,7 +17,7 @@ export type CategoryInitProps = ArticleInitProps<CategoryProps> & {
 	directory: Path;
 	items: Item[];
 	content?: string;
-}
+};
 export type CategoryProps = {
 	orderAsc?: boolean;
 	refs?: string[];
@@ -68,9 +68,7 @@ export class Category extends Article<CategoryProps> {
 	}
 
 	getFilteredItems(filters: ItemFilter[], catalog: Catalog): Item[] {
-		return (
-			filters?.reduce((items, filter) => items.filter((item) => filter(item, catalog)), [...this._items]) || []
-		);
+		return this.items.filter((item) => filters.every((filter) => filter(item, catalog)));
 	}
 
 	getCategoryPathRef(): ItemRef {
@@ -101,6 +99,7 @@ export class Category extends Article<CategoryProps> {
 		this._logicPath = newCategory.logicPath;
 		this._ref = newCategory._ref;
 		this._directory = newCategory._directory;
+		this._items = newCategory.items;
 		return this;
 	}
 

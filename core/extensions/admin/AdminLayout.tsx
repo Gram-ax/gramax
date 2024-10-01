@@ -15,15 +15,15 @@ const AdminLoginLayout = styled(
 	({ className, redirectCallback }: { className?: string; redirectCallback: () => void }) => {
 		const apiUrlCreator = ApiUrlCreatorService.value;
 		const isLogged = PageDataContextService.value.isLogged;
-		const ssoServerUrl = PageDataContextService.value.conf.ssoServerUrl;
+		const isSsoEnabled = PageDataContextService.value.conf.isSsoEnabled;
 		const router = useRouter();
 		useEffect(() => {
-			if (isLogged || ssoServerUrl) redirectCallback();
+			if (isLogged || isSsoEnabled) redirectCallback();
 		}, []);
 
 		return (
 			!isLogged &&
-			!ssoServerUrl && (
+			!isSsoEnabled && (
 				<div className={className}>
 					<div className="container">
 						<Form<AdminLayoutProps>

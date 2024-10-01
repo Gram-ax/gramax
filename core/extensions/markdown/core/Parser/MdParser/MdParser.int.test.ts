@@ -253,7 +253,6 @@ someMoreChildrenText
 				expect(testParseStr).toEqual(parsedStr);
 			});
 
-
 			test("note в списке", async () => {
 				const mdParser = await getMdParser();
 
@@ -807,17 +806,35 @@ test test test test`;
 
 {% /table %}`;
 
-		const testParseStr = mdParser.backParse(str);
+		const testParseStr = mdParser.preParse(str);
 
 		expect(testParseStr).toEqual(parsedStr);
 	});
+
+	test("нет ошибочного срабатывания при парсинге таблиц", async () => {
+		const mdParser = await getMdParser();
+
+		const str = `
+*
+
+    *`;
+		const parsedStr = `
+*
+
+    *`;
+
+		const testParseStr = mdParser.preParse(str);
+
+		expect(testParseStr).toEqual(parsedStr);
+	});
+
 	describe("html теги", () => {
 		describe("без атрибутов", () => {
 			test("инлайн", async () => {
 				const mdParser = await getMdParser();
 
-				const str = "[html] <tag></tag> [/html]";
-				const parsedStr = `{%html %}\n\`\`\`\n <tag></tag> \n\`\`\`\n{%/html%}`;
+				const str = "[html:iframe] <tag></tag> [/html]";
+				const parsedStr = `{%html mode="iframe" %}\n\`\`\`\n <tag></tag> \n\`\`\`\n{%/html%}`;
 
 				const testParseStr = mdParser.preParse(str);
 
@@ -826,8 +843,8 @@ test test test test`;
 			test("блочный", async () => {
 				const mdParser = await getMdParser();
 
-				const str = "[html]\n<tag></tag>\n[/html]";
-				const parsedStr = `{%html %}\n\`\`\`\n\n<tag></tag>\n\n\`\`\`\n{%/html%}`;
+				const str = "[html:iframe]\n<tag></tag>\n[/html]";
+				const parsedStr = `{%html mode="iframe" %}\n\`\`\`\n\n<tag></tag>\n\n\`\`\`\n{%/html%}`;
 
 				const testParseStr = mdParser.preParse(str);
 
@@ -838,8 +855,8 @@ test test test test`;
 			test("инлайн", async () => {
 				const mdParser = await getMdParser();
 
-				const str = `[html] <tag attr1="1" attr2="2"></tag> [/html]`;
-				const parsedStr = `{%html %}\n\`\`\`\n <tag attr1="1" attr2="2"></tag> \n\`\`\`\n{%/html%}`;
+				const str = `[html:iframe] <tag attr1="1" attr2="2"></tag> [/html]`;
+				const parsedStr = `{%html mode="iframe" %}\n\`\`\`\n <tag attr1="1" attr2="2"></tag> \n\`\`\`\n{%/html%}`;
 
 				const testParseStr = mdParser.preParse(str);
 
@@ -848,13 +865,23 @@ test test test test`;
 			test("блочный", async () => {
 				const mdParser = await getMdParser();
 
-				const str = `[html]\n<tag attr1="1" attr2="2"></tag>\n[/html]`;
-				const parsedStr = `{%html %}\n\`\`\`\n\n<tag attr1="1" attr2="2"></tag>\n\n\`\`\`\n{%/html%}`;
+				const str = `[html:iframe]\n<tag attr1="1" attr2="2"></tag>\n[/html]`;
+				const parsedStr = `{%html mode="iframe" %}\n\`\`\`\n\n<tag attr1="1" attr2="2"></tag>\n\n\`\`\`\n{%/html%}`;
 
 				const testParseStr = mdParser.preParse(str);
 
 				expect(testParseStr).toEqual(parsedStr);
 			});
+		});
+		test("несколько подряд", async () => {
+			const mdParser = await getMdParser();
+
+			const str = `[html:iframe]\n<tag attr1="1" attr2="2"></tag>\n[/html]\n[html:unsafe]\n<tag attr1="1" attr2="2"></tag>\n[/html]`;
+			const parsedStr = `{%html mode="iframe" %}\n\`\`\`\n\n<tag attr1="1" attr2="2"></tag>\n\n\`\`\`\n{%/html%}\n{%html mode="unsafe" %}\n\`\`\`\n\n<tag attr1="1" attr2="2"></tag>\n\n\`\`\`\n{%/html%}`;
+
+			const testParseStr = mdParser.preParse(str);
+
+			expect(testParseStr).toEqual(parsedStr);
 		});
 	});
 });

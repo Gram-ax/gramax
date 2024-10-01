@@ -66,7 +66,7 @@ class DragTree {
 		const movements = getMovements<ItemLink>([rootItem, ...oldLevNav], [rootItem, ...newLevNav]);
 		if (!movements.length) return false;
 		await parseAllItems(catalog, false);
-
+		const innerRefs = movements.map((movement) => itemRefUtils.parseRef(movement.moveItem.data.ref));
 		for (const movement of movements) {
 			const { moveItem, newList, oldList } = movement;
 			const newParentItem = newList[newList.length - 2];
@@ -80,7 +80,7 @@ class DragTree {
 			const newBrowsersRef = catalog.findCategoryByItemRef(newParentItemRef)?.items?.map((i) => i.ref) ?? [];
 			const newItemRef = itemRefUtils.move(newParentItemRef, moveItemRef, item.type, newBrowsersRef);
 
-			await catalog.moveItem(moveItemRef, newItemRef, this._makeResourceUpdater, this._rp);
+			await catalog.moveItem(moveItemRef, newItemRef, this._makeResourceUpdater, this._rp, innerRefs);
 		}
 		await this._fp.deleteEmptyFolders(catalog.getRootCategoryRef().path.parentDirectoryPath);
 		await catalog.update(this._rp);

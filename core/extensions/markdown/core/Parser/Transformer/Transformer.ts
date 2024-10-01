@@ -88,14 +88,15 @@ class Transformer {
 		let idx = 0;
 		while (idx < tokens.length) {
 			const token = tokens[idx];
-			if (token.type === "tag_open" && token.info === "html") {
+			if (token.type === "tag_open" && token.meta.tag === "html") {
 				let text = "";
 				let nextID = idx + 1;
+				const mode = token.meta.attributes[0].value;
 
 				while (nextID < tokens.length) {
 					const nextToken = tokens[nextID];
 
-					if (nextToken.type === "fence") text += nextToken.content;
+					if (nextToken.type === "fence") text += nextToken.content.trim();
 					else if (nextToken.type === "tag_close" && nextToken.info === "/html") break;
 					nextID++;
 				}
@@ -105,7 +106,10 @@ class Transformer {
 					tag: "",
 					meta: {
 						tag: "html",
-						attributes: [{ type: "attribute", name: "content", value: text }],
+						attributes: [
+							{ type: "attribute", name: "content", value: text },
+							{ type: "attribute", name: "mode", value: mode },
+						],
 					},
 				});
 			}

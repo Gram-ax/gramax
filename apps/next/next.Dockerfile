@@ -32,7 +32,7 @@ ENV BUGSNAG_API_KEY=${BUGSNAG_API_KEY} \
 COPY . .
 
 RUN echo ${CARGO_BUILD_JOBS} && \
-  ./install-deps.sh --ci --build-plugins --node && \
+  ./install-deps.sh --ci --node && \
   npm --prefix apps/next run build && \
   rm -rf .npm && \
   git gc --aggressive && \

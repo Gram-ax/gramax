@@ -1,6 +1,7 @@
 import CommentCounterService from "@core-ui/ContextServices/CommentCounter";
 import ArticleMat from "@ext/markdown/core/edit/components/ArticleMat";
 import OnTitleLoseFocus from "@ext/markdown/elements/article/edit/OnTitleLoseFocus";
+import EditorService from "@ext/markdown/elementsUtils/ContextServices/EditorService";
 import { Editor } from "@tiptap/core";
 import { Mark } from "@tiptap/pm/model";
 import { EditorContent, Extensions, JSONContent, useEditor } from "@tiptap/react";
@@ -22,7 +23,6 @@ import OnDeleteMark from "../../../elements/onDocChange/OnDeleteMark";
 import OnDeleteNode from "../../../elements/onDocChange/OnDeleteNode";
 import deleteOpenApi from "../../../elements/openApi/edit/logic/deleteOpenApi";
 import ExtensionUpdater from "../../../elementsUtils/editExtensionUpdator/ExtensionUpdater";
-import ContextWrapper from "./ContextWrapper";
 import Menu from "./Menu/Menu";
 
 export const ContentEditorId = "ContentEditorId";
@@ -33,12 +33,11 @@ interface ContentEditorProps {
 	onBlur: ({ editor }: { editor: Editor }) => void;
 	onTitleLoseFocus: ({ newTitle }: { newTitle: string }) => void;
 	onUpdate: ({ editor }: { editor: Editor }) => void;
-	onSelectionUpdate: ({ editor }: { editor: Editor }) => void;
 	handlePaste: (view: EditorView, event: ClipboardEvent, slice: Slice) => boolean | void;
 }
 
 const ContentEditor = (props: ContentEditorProps) => {
-	const { content, extensions, onBlur, onTitleLoseFocus, onUpdate, onSelectionUpdate, handlePaste } = props;
+	const { content, extensions, onBlur, onTitleLoseFocus, onUpdate, handlePaste } = props;
 
 	const comments = CommentCounterService.value;
 	const articleProps = ArticlePropsService.value;
@@ -77,7 +76,6 @@ const ContentEditor = (props: ContentEditorProps) => {
 			injectCSS: false,
 			editorProps: { handlePaste },
 			onUpdate,
-			onSelectionUpdate,
 			onBlur,
 			editable: articleIsEdit,
 		},
@@ -85,15 +83,15 @@ const ContentEditor = (props: ContentEditorProps) => {
 	);
 
 	useEffect(() => {
+		if (!editor) return;
 		if (editor && !editor.state.doc.textContent) editor.commands.focus();
+		if (editor) EditorService.bindEditor(editor);
 	}, [editor]);
 
 	return (
 		<>
-			<ContextWrapper editor={editor}>
-				{articleIsEdit && <Menu editor={editor} id={ContentEditorId} />}
-				<EditorContent editor={editor} data-qa="article-editor" />
-			</ContextWrapper>
+			{articleIsEdit && <Menu editor={editor} id={ContentEditorId} />}
+			<EditorContent editor={editor} data-qa="article-editor" />
 			<ArticleMat editor={editor} />
 		</>
 	);

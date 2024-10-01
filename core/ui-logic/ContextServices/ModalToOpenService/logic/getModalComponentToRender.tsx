@@ -1,6 +1,7 @@
 import ModalLoading from "@components/ModalLoading";
 import MergeConflictConfirm from "@ext/git/actions/MergeConflictHandler/components/MergeConflictConfirm";
 import MergeResolver from "@ext/git/actions/MergeConflictHandler/components/MergeResolver";
+import PublishModal from "@ext/git/actions/Publish/components/PublishModal";
 import CheckoutHandler from "@ext/git/core/GitPathnameHandler/checkout/components/CheckoutHandler";
 import CloneHandler from "@ext/git/core/GitPathnameHandler/clone/components/CloneHandler";
 import PullHandler from "@ext/git/core/GitPathnameHandler/pull/components/PullHandler";
@@ -13,7 +14,6 @@ import { ReactNode } from "react";
 import ReviewTicketHandler from "../../../../extensions/catalog/actions/review/components/ReviewTicketHandler";
 import ShareTicketHandler from "../../../../extensions/catalog/actions/share/components/ShareTicketHandler";
 import ModalToOpen from "../model/ModalsToOpen";
-import Publish from "@ext/git/actions/Publish/components/Publish";
 
 const getModalComponentToRender: {
 	[type in ModalToOpen]: (args: { [name: string]: any }) => ReactNode;
@@ -21,7 +21,7 @@ const getModalComponentToRender: {
 	[ModalToOpen.MergeConfirm]: MergeConflictConfirm,
 	[ModalToOpen.MergeResolver]: MergeResolver,
 
-	[ModalToOpen.Publish]: Publish,
+	[ModalToOpen.Publish]: PublishModal,
 
 	[ModalToOpen.ShareTicketHandler]: ShareTicketHandler,
 	[ModalToOpen.ReviewTicketHandler]: ReviewTicketHandler,

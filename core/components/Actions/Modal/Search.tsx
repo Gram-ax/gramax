@@ -2,7 +2,6 @@ import { TextSize } from "@components/Atoms/Button/Button";
 import Input from "@components/Atoms/Input";
 import ButtonLink from "@components/Molecules/ButtonLink";
 import FetchService from "@core-ui/ApiServices/FetchService";
-import MimeTypes from "@core-ui/ApiServices/Types/MimeTypes";
 import Url from "@core-ui/ApiServices/Types/Url";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import CatalogPropsService from "@core-ui/ContextServices/CatalogProps";
@@ -18,7 +17,7 @@ import t from "@ext/localization/locale/translate";
 import { CatalogLink, CategoryLink, ItemLink } from "@ext/navigation/NavigationLinks";
 import useMediaQuery from "@mui/material/useMediaQuery";
 import { Fragment, useEffect, useRef, useState } from "react";
-import { SearchItem } from "../../../../plugins/target/search/src/Searcher";
+import { SearchItem } from "../../../extensions/serach/Searcher";
 import IsOpenModalService from "../../../ui-logic/ContextServices/IsOpenMpdal";
 import Checkbox from "../../Atoms/Checkbox";
 import Icon from "../../Atoms/Icon";
@@ -140,16 +139,11 @@ const Search = (props: SearchProps) => {
 
 	const loadData = async (query: string) => {
 		if (!query) return;
-		const res = await FetchService.fetch<{ data: SearchItem[] }>(
-			apiUrlCreator.getSearchDataUrl(),
-			JSON.stringify({
-				query,
-				catalogName: searchAll ? null : catalogName,
-			}),
-			MimeTypes.json,
+		const res = await FetchService.fetch<SearchItem[]>(
+			apiUrlCreator.getSearchDataUrl(query, searchAll ? null : catalogName),
 		);
 		if (!res.ok) return;
-		setData((await res.json()).data);
+		setData(await res.json());
 	};
 
 	useEffect(() => {

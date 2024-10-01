@@ -1,7 +1,7 @@
-import NodeConverter from "@ext/confluence/actions/Import/logic/NodeConverter";
+import NodeConverter from "@ext/confluence/core/cloud/model/NodeConverter";
 
 const livesearch: NodeConverter = (_, ctx) => {
-	const link = `${ ctx.data.domain}/wiki/search`;
+	const link = `${ctx.data.domain}/wiki/search`;
 	return {
 		type: "paragraph",
 		content: [

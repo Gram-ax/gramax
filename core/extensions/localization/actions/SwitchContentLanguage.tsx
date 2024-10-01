@@ -1,3 +1,4 @@
+import { getExecutingEnvironment } from "@app/resolveModule/env";
 import Tooltip from "@components/Atoms/Tooltip";
 import PopupMenuLayout from "@components/Layouts/PopupMenuLayout";
 import ButtonLink from "@components/Molecules/ButtonLink";
@@ -59,9 +60,11 @@ const SwitchContentLanguage = () => {
 
 	if (!props.language)
 		return (
-			<Tooltip content={t("multilang.error.no-selected-language")}>
-				<ButtonLink disabled iconCode="languages" text={t("language.name")} />
-			</Tooltip>
+			getExecutingEnvironment() !== "next" && (
+				<Tooltip content={t("multilang.error.no-selected-language")}>
+					<ButtonLink disabled iconCode="languages" text={t("language.name")} />
+				</Tooltip>
+			)
 		);
 
 	return (
@@ -82,26 +85,38 @@ const SwitchContentLanguage = () => {
 					</>
 				)}
 
-				{Object.values(props.supportedLanguages).map((code, idx) => (
-					<ButtonLink
-						key={idx}
-						disabled={code == currentLanguage}
-						onClick={() => switchLanguage(code)}
-						text={t(`language.${ContentLanguage[code]}`)}
-						fullWidth={props.language != code}
-						rightActions={
-							!isServerApp &&
-							props.language != code && [
-								<RemoveContentLanguage
-									key={0}
-									setIsLoading={setIsLoading}
-									disabled={code == currentLanguage}
-									targetCode={code}
-								/>,
-							]
-						}
-					/>
-				))}
+				{Object.values(props.supportedLanguages).map((code, idx) => {
+					const canSwitch = code != currentLanguage;
+					const canDelete = !isServerApp && props.language != code;
+
+					const button = (
+						<ButtonLink
+							key={idx}
+							disabled={!canSwitch}
+							onClick={() => switchLanguage(code)}
+							text={t(`language.${ContentLanguage[code]}`)}
+							fullWidth={props.language != code}
+							rightActions={
+								canDelete && [
+									<RemoveContentLanguage
+										key={0}
+										setIsLoading={setIsLoading}
+										disabled={!canSwitch}
+										targetCode={code}
+									/>,
+								]
+							}
+						/>
+					);
+
+					return canSwitch ? (
+						button
+					) : (
+						<Tooltip hideInMobile hideOnClick content={t("multilang.error.cannot-switch-to-self")}>
+							{button}
+						</Tooltip>
+					);
+				})}
 			</>
 		</PopupMenuLayout>
 	);

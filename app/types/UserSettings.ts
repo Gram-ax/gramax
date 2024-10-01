@@ -1,11 +1,20 @@
 import type GitSourceData from "@ext/git/core/model/GitSourceData.schema";
+import SourceType from "@ext/storage/logic/SourceDataProvider/model/SourceType";
 import { WorkspaceConfig } from "@ext/workspace/WorkspaceConfig";
 
-export type UserSettingsSourceData = GitSourceData & { error: string; errorMessage: string; errorDescription: string };
+interface WorkspaceSource {
+	type: SourceType;
+	url: string;
+	repos: string[];
+}
+
+interface UserSettingsWorkspace extends WorkspaceConfig {
+	source: WorkspaceSource;
+}
 
 interface UserSettings {
-	source: UserSettingsSourceData;
-	workspace: WorkspaceConfig;
+	source: GitSourceData;
+	workspace: UserSettingsWorkspace;
 	from: string;
 	isNotEditor?: boolean;
 }

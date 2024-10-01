@@ -1,5 +1,6 @@
 import Context from "@core/Context/Context";
 import PageDataContext from "@core/Context/PageDataContext";
+import isSsoEnabled from "@core/utils/isSsoEnabled";
 import UserInfo from "@ext/security/logic/User/UserInfo2";
 import Application from "../../types/Application";
 
@@ -41,9 +42,9 @@ const getPageDataContext = ({
 			isProduction: app.conf.isProduction,
 			bugsnagApiKey: app.conf.bugsnagApiKey,
 			glsUrl: app.conf.glsUrl,
-			ssoServerUrl: app.wm.maybeCurrent()?.config?.()?.services?.sso?.url,
 			authServiceUrl: app.wm.maybeCurrent()?.config?.()?.services?.auth?.url,
 			yandexMetricCounter: app.conf.yandexMetricCounter,
+			isSsoEnabled: isSsoEnabled(app.wm.maybeCurrent()?.config?.()?.services?.sso),
 		},
 	};
 };

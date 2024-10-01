@@ -10,7 +10,6 @@ export class LibGit2Error extends Error {
 		super(message);
 		this.code = fromRaw(klass, code);
 		this.data = makeData(this.code, message);
-		console.log(this.code);
 	}
 }
 

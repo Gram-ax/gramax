@@ -1,6 +1,5 @@
 import getFirstPatentByName from "@core-ui/utils/getFirstPatentByName";
 import eventEmitter from "@core/utils/eventEmitter";
-import { getMat } from "@ext/markdown/core/edit/components/ArticleMat";
 import getFocusMarkFromSelection from "@ext/markdown/elementsUtils/getFocusMarkFromSelection";
 import getMarkByPos from "@ext/markdown/elementsUtils/getMarkByPos";
 import getMarkPosition from "@ext/markdown/elementsUtils/getMarkPosition";
@@ -61,31 +60,7 @@ class CommentFocusTooltip extends BaseMark {
 		this._tooltip.remove();
 	}
 
-	protected _setTooltipPosition = (element: HTMLElement) => {
-		const tooltipWidth = +element.style.width;
-		const tooltipHeight = document.documentElement.clientHeight / 2;
-		const rect = element.getBoundingClientRect();
-		const domReact = this._view.dom.parentElement.getBoundingClientRect();
-		const mat = getMat();
-		const matHeight = (mat?.getBoundingClientRect().height ?? 0) + 12;
-
-		this._tooltip.style.top = this._tooltip.style.bottom = null;
-		const top = rect.top - domReact.top;
-
-		if (tooltipHeight > domReact.height) this._tooltip.style.top = top + rect.height + "px";
-		else {
-			if (top + tooltipHeight > domReact.height) {
-				this._tooltip.style.bottom = domReact.height + matHeight - top + "px";
-			} else this._tooltip.style.top = top + rect.height + "px";
-		}
-
-		this._tooltip.style.left = this._tooltip.style.right = null;
-		const left = rect.left - domReact.left;
-
-		if (left + tooltipWidth > domReact.width + 200) {
-			this._tooltip.style.right = domReact.width - (left + rect.width) + "px";
-		} else this._tooltip.style.left = left + "px";
-
+	protected _setTooltipPosition = () => {
 		this._tooltip.style.fontSize = "14px";
 		this._tooltip.style.zIndex = "100";
 	};
@@ -93,11 +68,12 @@ class CommentFocusTooltip extends BaseMark {
 	private _commentClick = (element: HTMLElement, mark: Mark, markPosition: MarkRange) => {
 		this._oldMark = mark;
 		this._oldMarkPosition = markPosition;
-		this._setTooltipPosition(element);
+		this._setTooltipPosition();
 		this._setComponent(
 			<ThemeService.Provide value={this._theme}>
 				<PageDataContextService.Provider value={this._pageDataContext}>
 					<Comment
+						view={this._view}
 						mark={mark}
 						element={element}
 						onDelete={() => this._delete(this._oldMarkPosition)}

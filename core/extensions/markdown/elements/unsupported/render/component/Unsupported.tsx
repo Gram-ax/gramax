@@ -13,7 +13,11 @@ interface UnsupportedProps {
 
 const Unsupported = ({ url, code }: UnsupportedProps): ReactElement => {
 	return (
-		<Alert title={t("confluence.error.cannot-import.title")} type={AlertType.warning}>
+		<Alert
+			className={"focus-pointer-events"}
+			title={t("confluence.error.cannot-import.title")}
+			type={AlertType.warning}
+		>
 			<span>
 				{`${t("confluence.error.cannot-import.desc")} `}
 				<Anchor href={url}>{url}</Anchor>

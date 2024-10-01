@@ -30,7 +30,7 @@ const RemoveContentLanguage = ({ targetCode, disabled, setIsLoading }: RemoveCon
 	};
 
 	return (
-		<Tooltip hideOnClick content={t("multilang.remove-localization")}>
+		<Tooltip hideOnClick hideInMobile place="auto" content={t("multilang.remove-localization")}>
 			<Button onClick={removeLanguage} disabled={disabled} buttonStyle={ButtonStyle.transparent}>
 				<Icon code="trash" />
 			</Button>

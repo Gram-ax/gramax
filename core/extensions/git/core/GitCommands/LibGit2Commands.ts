@@ -1,5 +1,4 @@
 import getGitError from "@ext/git/core/GitCommands/errors/logic/getGitError";
-import GitProgressEvent from "@ext/git/core/model/GitProgressEvent";
 import Path from "../../../../logic/FileProvider/Path/Path";
 import { VersionControlInfo } from "../../../VersionControl/model/VersionControlInfo";
 import { FileStatus } from "../../../Watchers/model/FileStatus";
@@ -9,7 +8,7 @@ import { GitStatus } from "../GitWatcher/model/GitStatus";
 import GitSourceData from "../model/GitSourceData.schema";
 import { GitVersion } from "../model/GitVersion";
 import * as git from "./LibGit2IntermediateCommands";
-import GitCommandsModel from "./model/GitCommandsModel";
+import GitCommandsModel, { type CloneProgress } from "./model/GitCommandsModel";
 
 class LibGit2Commands implements GitCommandsModel {
 	private _repoPath: string;
@@ -26,10 +25,11 @@ class LibGit2Commands implements GitCommandsModel {
 		url: string,
 		source: GitSourceData,
 		branch?: string,
-		onProgress?: (progress: GitProgressEvent) => void,
+		depth?: number,
+		onProgress?: (progress: CloneProgress) => void,
 	) {
 		await git.clone(
-			{ repoPath: this._repoPath, creds: this._intoCreds(source), remoteUrl: url, branch },
+			{ creds: this._intoCreds(source), opts: { to: this._repoPath, url, branch, depth } },
 			onProgress,
 		);
 	}
@@ -176,7 +176,7 @@ class LibGit2Commands implements GitCommandsModel {
 	}
 
 	stash(data: SourceData): Promise<string> {
-		return git.stash({ repoPath: this._repoPath, message: "", creds: this._intoCreds(data) });
+		return git.stash({ repoPath: this._repoPath, creds: this._intoCreds(data), message: "" });
 	}
 
 	async stashParent(stashOid: string): Promise<GitVersion> {

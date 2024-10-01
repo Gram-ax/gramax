@@ -21,6 +21,8 @@ const Input = forwardRef((props: InputProps, ref?: MutableRefObject<HTMLInputEle
 		icon,
 		hidden,
 		endText,
+		// eslint-disable-next-line @typescript-eslint/no-unused-vars
+		isCode,
 		startText,
 		className,
 		errorText,

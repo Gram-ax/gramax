@@ -1,4 +1,4 @@
-import NodeConverter from "@ext/confluence/actions/Import/logic/NodeConverter";
+import NodeConverter from "@ext/confluence/core/cloud/model/NodeConverter";
 
 const codeBlockLowlight: NodeConverter = (node) => {
 	node.type = "code_block";

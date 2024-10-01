@@ -115,3 +115,10 @@ export const logs = (filter?: RegExp, max = 9999) => {
 export const clearLogs = PersistentLogger.clearLogs.bind(this);
 
 logger.setLogLevel(LogLevel.error);
+
+const devModeItemName = "is_dev_mode";
+export const devMode = {
+	check: () => window.localStorage.getItem(devModeItemName) === "true",
+	enable: () => window.localStorage.setItem(devModeItemName, "true"),
+	disable: () => window.localStorage.setItem(devModeItemName, "false"),
+};

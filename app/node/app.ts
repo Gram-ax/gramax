@@ -3,14 +3,13 @@ import { ContextFactory } from "@core/Context/ContextFactory";
 import DiskFileProvider from "@core/FileProvider/DiskFileProvider/DiskFileProvider";
 import Path from "@core/FileProvider/Path/Path";
 import Hash from "@core/Hash/Hash";
-import PluginImporterType from "@core/Plugin/PluginImporter/logic/PluginImporterType";
-import PluginProvider from "@core/Plugin/logic/PluginProvider";
 import ResourceUpdaterFactory from "@core/Resource/ResourceUpdaterFactory";
 import CustomArticlePresenter from "@core/SitePresenter/CustomArticlePresenter";
 import SitePresenterFactory from "@core/SitePresenter/SitePresenterFactory";
 import { TableDB } from "@core/components/tableDB/table";
 import VideoUrlRepository from "@core/components/video/videoUrlRepository";
 import YamlFileConfig from "@core/utils/YamlFileConfig";
+import isSsoEnabled from "@core/utils/isSsoEnabled";
 import Cache from "@ext/Cache";
 import { Encoder } from "@ext/Encoder/Encoder";
 import MailProvider from "@ext/MailProvider";
@@ -28,6 +27,10 @@ import MarkdownFormatter from "@ext/markdown/core/edit/logic/Formatter/Formatter
 import AuthManager from "@ext/security/logic/AuthManager";
 import Sso from "@ext/security/logic/AuthProviders/Sso";
 import { TicketManager } from "@ext/security/logic/TicketManager/TicketManager";
+import FuseSearcher from "@ext/serach/Fuse/FuseSearcher";
+import { IndexDataProvider } from "@ext/serach/IndexDataProvider";
+import Searcher from "@ext/serach/Searcher";
+import SourceDataProvider from "@ext/storage/logic/SourceDataProvider/logic/SourceDataProvider";
 import WorkspaceManager from "@ext/workspace/WorkspaceManager";
 import EnvAuth from "../../core/extensions/security/logic/AuthProviders/EnvAuth";
 import { AppConfig, getConfig } from "../config/AppConfig";
@@ -42,7 +45,6 @@ const _init = async (config: AppConfig): Promise<Application> => {
 	const watcher = new BlankWatcher(); // config.isProduction ? new ChokidarWatcher() :
 
 	const rp = new RepositoryProvider();
-
 	const wm = new WorkspaceManager(
 		(path) => new DiskFileProvider(new Path(path), watcher),
 		(fs) => mountFSEvents(fs),
@@ -50,6 +52,8 @@ const _init = async (config: AppConfig): Promise<Application> => {
 		config,
 		YamlFileConfig.dummy(),
 	);
+	const sdp = new SourceDataProvider(wm);
+	rp.addSourceDataProvider(sdp);
 
 	const workspace = await wm.addWorkspace(config.paths.root.value, { name: "Gramax", icon: "layers" });
 	await wm.setWorkspace(workspace);
@@ -74,8 +78,8 @@ const _init = async (config: AppConfig): Promise<Application> => {
 
 	const tm = new ThemeManager();
 	const am = new AuthManager(
-		config.services.sso.url
-			? new Sso(config.services.sso.url, config.services.sso.publicKey)
+		isSsoEnabled(config.services.sso)
+			? new Sso(config.services.sso.url, config.services.sso.key)
 			: new EnvAuth(config.paths.base, config.admin.login, config.admin.password),
 		ticketManager,
 	);
@@ -85,8 +89,10 @@ const _init = async (config: AppConfig): Promise<Application> => {
 	const cacheFileProvider = new DiskFileProvider(config.paths.data);
 	await cacheFileProvider.createRootPathIfNeed();
 	const cache = new Cache(cacheFileProvider);
-	const pluginProvider = new PluginProvider(wm, htmlParser, cache, PluginImporterType.next);
 	const resourceUpdaterFactory = new ResourceUpdaterFactory(parser, parserContextFactory, formatter);
+
+	const indexDataProvider = new IndexDataProvider(wm, cache, parser, parserContextFactory);
+	const searcher: Searcher = new FuseSearcher(indexDataProvider);
 
 	return {
 		tm,
@@ -99,6 +105,7 @@ const _init = async (config: AppConfig): Promise<Application> => {
 		parser,
 		logger,
 		hashes,
+		searcher,
 		formatter,
 		htmlParser,
 		ticketManager,
@@ -106,7 +113,6 @@ const _init = async (config: AppConfig): Promise<Application> => {
 		contextFactory,
 		parserContextFactory,
 		sitePresenterFactory,
-		pluginProvider,
 		customArticlePresenter,
 		resourceUpdaterFactory,
 		conf: {
