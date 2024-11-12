@@ -7,10 +7,10 @@ export default abstract class Cookie {
 	abstract exist(name: string): boolean;
 	abstract getAllNames(): string[];
 
-	private _secret: string
+	private _secret: string;
 
 	constructor(secret: string) {
-		this._secret = secret ?? "."
+		this._secret = secret ?? ".";
 	}
 
 	protected _encrypt(value: string): string {

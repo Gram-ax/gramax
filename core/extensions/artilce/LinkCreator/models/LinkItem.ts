@@ -6,6 +6,7 @@ interface LinkItem {
 	pathname: string;
 	relativePath: string;
 	breadcrumb: string[];
+	isCurrent?: boolean;
 }
 
 export default LinkItem;

@@ -14,6 +14,7 @@ const FetchService = {
 		body?: BodyInit,
 		mime = MimeTypes.text,
 		method = Method.POST,
+		notifyError = true,
 	): Promise<FetchResponse<T>> => {
 		const res = await resolveModule("Fetcher")(url, body, mime, method);
 		if (res.ok) return res;
@@ -32,7 +33,7 @@ const FetchService = {
 			}
 		}
 
-		(await ErrorConfirmService).default.notify(error);
+		if (notifyError) (await ErrorConfirmService).default.notify(error);
 		return res;
 	},
 };

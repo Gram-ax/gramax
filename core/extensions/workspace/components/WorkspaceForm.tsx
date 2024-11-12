@@ -14,6 +14,7 @@ import { clearData } from "@core-ui/ContextServices/RefreshPageContext";
 import WorkspaceService from "@core-ui/ContextServices/Workspace";
 import { uniqueName } from "@core/utils/uniqueName";
 import styled from "@emotion/styled";
+import AdminLink from "@ext/enterprise/AdminLink";
 import t from "@ext/localization/locale/translate";
 import { ClientWorkspaceConfig } from "@ext/workspace/WorkspaceConfig";
 import { useMemo, useState } from "react";
@@ -184,8 +185,8 @@ const WorkspaceForm = ({
 						)}
 					</fieldset>
 					<div className="buttons">
-						{!create && workspaces.length > 1 && (
-							<div className="left-buttons">
+						<div className="left-buttons">
+							{!create && workspaces.length > 1 && (
 								<Button
 									disabled={deleteInProgress}
 									buttonStyle={ButtonStyle.underline}
@@ -198,8 +199,9 @@ const WorkspaceForm = ({
 									)}
 									<span>{t("delete")}</span>
 								</Button>
-							</div>
-						)}
+							)}
+							<AdminLink workspace={workspace} />
+						</div>
 						<Button
 							buttonStyle={ButtonStyle.default}
 							disabled={!canSave}

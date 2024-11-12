@@ -1,71 +1,65 @@
 import styled from "@emotion/styled";
 import React, { ReactEventHandler, useEffect, useRef, useState } from "react";
 
-export const GifImage = styled(
-	({
-		src,
-		alt,
-		title,
-		className,
-		noplay,
-		onError,
-	}: {
-		src: string;
-		alt?: string;
-		title?: string;
-		className?: string;
-		noplay?: boolean;
-		onError?: ReactEventHandler<HTMLImageElement>;
-	}) => {
-		const gif = useRef<HTMLImageElement>();
-		const button = useRef<HTMLDivElement>();
-		const canvas = useRef<HTMLCanvasElement>();
-		const [isPlaying, setIsplaying] = useState(false);
+interface GifImageProps {
+	src: string;
+	alt?: string;
+	title?: string;
+	className?: string;
+	noplay?: boolean;
+	onError?: ReactEventHandler<HTMLImageElement>;
+}
 
-		useEffect(() => {
-			if (!gif?.current || !button?.current) return;
-			fetch(src)
-				.then((r) => r.blob())
-				.then(() => {
-					if (noplay) return;
+const GifImage = ({ src, alt, title, className, noplay, onError }: GifImageProps) => {
+	const gif = useRef<HTMLImageElement>();
+	const button = useRef<HTMLDivElement>();
+	const canvas = useRef<HTMLCanvasElement>();
+	const [isPlaying, setIsplaying] = useState(false);
 
-					if (gif?.current)
-						gif.current.onclick = () => {
-							setIsplaying(false);
-						};
+	useEffect(() => {
+		if (!gif?.current || !button?.current) return;
+		fetch(src)
+			.then((r) => r.blob())
+			.then(() => {
+				if (noplay) return;
 
-					if (button?.current)
-						button.current.onclick = () => {
-							setIsplaying(true);
-						};
-				});
-		}, [gif?.current, button?.current]);
+				if (gif?.current)
+					gif.current.onclick = () => {
+						setIsplaying(false);
+					};
 
-		return (
-			<div className={className}>
-				<div className={"ff-container ff-" + (isPlaying ? "active" : "inactive")}>
-					<div className="ff-button" ref={button} />
-					<canvas className="ff-canvas" ref={canvas} data-focusable="true" />
-					<img
-						onError={onError}
-						src={src}
-						data-focusable="true"
-						className="ff-gif"
-						alt={alt}
-						ref={gif}
-						loading="lazy"
-						onLoad={() => {
-							const w = (canvas.current.width = gif.current.width);
-							const h = (canvas.current.height = gif.current.height);
-							canvas.current.getContext("2d").drawImage(gif.current, 0, 0, w, h);
-						}}
-					/>
-					{title && <em>{title}</em>}
-				</div>
+				if (button?.current)
+					button.current.onclick = () => {
+						setIsplaying(true);
+					};
+			});
+	}, [gif?.current, button?.current]);
+
+	return (
+		<div className={className}>
+			<div className={"ff-container ff-" + (isPlaying ? "active" : "inactive")}>
+				<div className="ff-button" ref={button} />
+				<canvas className="ff-canvas" ref={canvas} data-focusable="true" />
+				<img
+					onError={onError}
+					src={src}
+					data-focusable="true"
+					className="ff-gif"
+					alt={alt}
+					ref={gif}
+					loading="lazy"
+					onLoad={() => {
+						const w = (canvas.current.width = gif.current.width);
+						const h = (canvas.current.height = gif.current.height);
+						canvas.current.getContext("2d").drawImage(gif.current, 0, 0, w, h);
+					}}
+				/>
+				{title && <em>{title}</em>}
 			</div>
-		);
-	},
-)`
+		</div>
+	);
+};
+export default styled(GifImage)`
 	display: flex;
 	justify-content: center;
 
@@ -83,7 +77,7 @@ export const GifImage = styled(
 		}
 	}
 	.ff-inactive .ff-gif {
-		z-index: -1;
+		z-index: var(--z-index-background);
 	}
 
 	.ff-container {
@@ -100,7 +94,7 @@ export const GifImage = styled(
 			right: 0%;
 			bottom: 0%;
 			margin: auto;
-			z-index: 100;
+			z-index: var(--z-index-base);
 			cursor: pointer;
 			max-width: 94px;
 			max-height: 94px;

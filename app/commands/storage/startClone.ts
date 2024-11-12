@@ -5,36 +5,38 @@ import Path from "@core/FileProvider/Path/Path";
 import StorageData from "@ext/storage/models/StorageData";
 import { Command } from "../../types/Command";
 
-const startClone: Command<{ path: Path; data: StorageData; recursive?: boolean; branch?: string }, void> =
-	Command.create({
-		path: "storage/startClone",
+const startClone: Command<
+	{ path: Path; data: StorageData; recursive?: boolean; branch?: string; isBare?: boolean },
+	void
+> = Command.create({
+	path: "storage/startClone",
 
-		middlewares: [new NetworkConnectMiddleWare(), new AuthorizeMiddleware(), new ReloadConfirmMiddleware()],
+	middlewares: [new NetworkConnectMiddleWare(), new AuthorizeMiddleware(), new ReloadConfirmMiddleware()],
 
-		async do({ path, data, recursive, branch }) {
-			const workspace = await this._app.wm.currentOrDefault();
-			const { rp } = this._app;
+	async do({ path, data, recursive, branch, isBare }) {
+		const workspace = await this._app.wm.currentOrDefault();
+		const { rp } = this._app;
 
-			const fs = workspace.getFileStructure();
-			const fp = workspace.getFileProvider();
+		const fs = workspace.getFileStructure();
 
-			const entry = await fs.getCatalogEntryByPath(path, false, { isCloning: true });
-			if (workspace.getCatalogEntry(entry.getName())) return;
+		const entry = await fs.getCatalogEntryByPath(path, false, { isCloning: true });
+		if (await workspace.getCatalogEntry(entry.getName())) return;
 
-			workspace.addCatalogEntry(entry);
-			void rp.cloneNewRepository(fp, path, data, recursive, branch, async () => {
-				await workspace.refreshCatalog(path.toString());
-			});
-		},
+		workspace.addCatalogEntry(entry);
+		void rp.cloneNewRepository(fs, path, data, recursive, isBare, branch, async () => {
+			await workspace.addCatalog(await fs.getCatalogByPath(path));
+		});
+	},
 
-		params(_, q, body) {
-			return {
-				path: new Path(q.path),
-				data: body,
-				recursive: q.recursive ? q.recursive === "true" : null,
-				branch: q.branch ? q.branch : null,
-			};
-		},
-	});
+	params(_, q, body) {
+		return {
+			path: new Path(q.path),
+			data: body,
+			recursive: q.recursive ? q.recursive === "true" : null,
+			branch: q.branch ? q.branch : null,
+			isBare: q.isBare ? q.isBare === "true" : false,
+		};
+	},
+});
 
 export default startClone;

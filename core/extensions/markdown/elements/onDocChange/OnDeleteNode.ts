@@ -14,7 +14,7 @@ const OnDeleteNode = Extension.create({
 							transaction.steps.forEach((step) => {
 								if (step instanceof ReplaceStep || step instanceof ReplaceAroundStep) {
 									const { from, to } = step;
-									let gapTo, gapFrom;
+									let gapTo: number, gapFrom: number;
 
 									if (step instanceof ReplaceAroundStep) {
 										gapTo = step.gapTo;

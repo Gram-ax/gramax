@@ -140,7 +140,7 @@
 	bottom: 0;
 	pointer-events: none;
 	position: absolute;
-	z-index: 2;
+	z-index: var(--z-index-selected-cell);
 }
 
 .ProseMirror table .column-resize-handle {
@@ -195,4 +195,35 @@
 		cursor: auto;
 		background: none;
 	}
+}
+
+
+/* temp styles below */
+.removed-text {
+	background-color: rgba(255, 0, 0, 0.3);
+	text-decoration: line-through;
+}
+
+.removed-text-block {
+	outline: 2px solid rgba(255, 0, 0, 0.3);
+}
+
+.added-text {
+	background-color: rgba(0, 255, 0, 0.3);
+}
+
+.added-text-block {
+	outline: 2px solid rgba(0, 255, 0, 0.3);
+}
+
+.changed-context {
+	background-color: rgba(133, 39, 255, 0.3);
+}
+.changed-context-block {
+	outline: 2px solid rgba(133, 39, 255, 0.3);
+}
+
+
+.added-text.changed-context {
+	background-color: rgba(0, 143, 38, 0.348)
 }

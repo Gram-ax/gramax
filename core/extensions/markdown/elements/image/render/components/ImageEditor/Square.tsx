@@ -145,7 +145,7 @@ const Square = (props: SquareObjectProps): ReactElement => {
 export default styled(Square)`
 	position: absolute;
 	border: 3px solid #fc2847;
-	-webkit-print-color-adjust: exact; 
+	-webkit-print-color-adjust: exact;
 	print-color-adjust: exact;
 	border-radius: 4px;
 	pointer-events: auto !important;
@@ -204,7 +204,7 @@ export default styled(Square)`
 		height: 30px;
 		border: 2px solid #1476ff;
 		user-select: none;
-		z-index: 100;
+		z-index: var(--z-index-base);
 		transition: all 0.3s ease;
 		opacity: 0;
 	}

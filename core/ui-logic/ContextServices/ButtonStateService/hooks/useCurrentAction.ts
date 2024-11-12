@@ -3,7 +3,7 @@ import { useContext } from "react";
 import { ActionContext } from "../ButtonStateService";
 import { Attrs, ButtonState, Mark, NodeType, NodeValues } from "./types";
 
-const Block = ["heading", "ordered_list", "bullet_list"];
+const Block = ["heading", "ordered_list", "bullet_list", "task_list"];
 const BlockPlus = ["table", "cut", "note", "tab", "tabs", "blockquote"];
 const BlockOutContent = ["drawio", "diagrams", "image", "video", "code_block", "snippet", OPEN_API_NAME];
 
@@ -20,6 +20,7 @@ const disabledMarkRule: Record<Mark, Mark[]> = {
 const disableBlockRule = {
 	ordered_list: (buttonNode) => ["heading", ...BlockPlus].includes(buttonNode),
 	bullet_list: (buttonNode) => ["heading", ...BlockPlus].includes(buttonNode),
+	task_list: (buttonNode) => ["heading", ...BlockPlus].includes(buttonNode),
 };
 
 const disabledMarkByAction = {

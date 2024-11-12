@@ -55,7 +55,12 @@ fn handle_req(req: Request<Vec<u8>>) -> Response<Vec<u8>> {
   let res = match *req.method() {
     Method::GET => read_file(path.as_ref()).into_response(),
     Method::POST => write_file(path.as_ref(), req.body()).map(|_| vec![]).into_response(),
-    _ => Response::builder().status(405).body(vec![]).unwrap(),
+    _ => Response::builder()
+      .status(405)
+      .header("access-control-allow-origin", "*")
+      .header("content-type", "application/json")
+      .body(vec![])
+      .unwrap(),
   };
   res
 }
@@ -66,7 +71,7 @@ tauri::ios_plugin_binding!(init_plugin_gramaxfs);
 pub fn init<R: Runtime>() -> TauriPlugin<R> {
   use commands::*;
 
-  let builder = Builder::new("plugin-gramax-fs")
+  Builder::new("plugin-gramax-fs")
     .setup(|_app, _api| {
       #[cfg(target_os = "ios")]
       _api.register_ios_plugin(init_plugin_gramaxfs)?;
@@ -87,15 +92,7 @@ pub fn init<R: Runtime>() -> TauriPlugin<R> {
       exists,
       copy,
       mv
-    ]);
-
-  #[cfg(not(target_os = "linux"))]
-  let builder = builder.register_asynchronous_uri_scheme_protocol("gramax-fs-stream", |_, req, responder| {
-    tauri::async_runtime::spawn(async move { responder.respond(handle_req(req)) });
-  });
-
-  #[cfg(target_os = "linux")]
-  let builder = builder.register_uri_scheme_protocol("gramax-fs-stream", |_, req| handle_req(req));
-
-  builder.build()
+    ])
+    .register_uri_scheme_protocol("gramax-fs-stream", |_, req| handle_req(req))
+    .build()
 }

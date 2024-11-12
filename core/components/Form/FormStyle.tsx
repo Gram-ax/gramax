@@ -117,7 +117,20 @@ export default styled(FormStyle)`
 
 			.input-lable-description {
 				display: flex;
+				margin-top: 0.2em;
 				flex-direction: row;
+
+				.article {
+					line-height: 150%;
+
+					p {
+						margin: 0 0 0.15em !important;
+					}
+
+					li {
+						margin-bottom: 0;
+					}
+				}
 
 				> div:first-of-type {
 					flex: 0.4;
@@ -148,7 +161,7 @@ export default styled(FormStyle)`
 
 		.buttons {
 			display: flex;
-			padding-top: 1rem;
+			padding-top: 2rem;
 			align-items: center;
 			flex-direction: row;
 			justify-content: flex-end;

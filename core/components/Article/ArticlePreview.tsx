@@ -2,6 +2,7 @@ import MiniArticle from "@components/Article/MiniArticle";
 import ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
 import FetchService from "@core-ui/ApiServices/FetchService";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
+import ArticleTooltipService from "@core-ui/ContextServices/ArticleTooltip";
 import CatalogPropsService from "@core-ui/ContextServices/CatalogProps";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import styled from "@emotion/styled";
@@ -36,7 +37,9 @@ const ArticlePreview = ({ logicPath, className }: ArticlePreviewProps) => {
 					new ApiUrlCreator(pageProps.conf.basePath, pageProps.isLogged, catalogProps.name, data.articlePath)
 				}
 			>
-				<MiniArticle title={data.title} content={data.content} />
+				<ArticleTooltipService.Provider>
+					<MiniArticle title={data.title} content={data.content} />
+				</ArticleTooltipService.Provider>
 			</ApiUrlCreatorService.Provider>
 		</div>
 	);
@@ -48,4 +51,9 @@ export default styled(ArticlePreview)`
 	min-width: 30%;
 	font-size: 10px;
 	overflow-y: auto;
+	transition: opacity 0.3s linear;
+
+	:hover {
+		opacity: 1;
+	}
 `;

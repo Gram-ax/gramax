@@ -1,13 +1,13 @@
 import { CATEGORY_ROOT_FILENAME } from "@app/config/const";
 import { getExecutingEnvironment } from "@app/resolveModule/env";
-import type { EventArgs } from "@core/Event/EventEmitter";
+import type { EventArgs, HasEvents } from "@core/Event/EventEmitter";
+import type { EventHandlerCollection } from "@core/Event/EventHandlerProvider";
 import Path from "@core/FileProvider/Path/Path";
 import type { Catalog } from "@core/FileStructue/Catalog/Catalog";
 import type { Category } from "@core/FileStructue/Category/Category";
 import type { Item } from "@core/FileStructue/Item/Item";
 import type { ItemRef } from "@core/FileStructue/Item/ItemRef";
 import { ItemType } from "@core/FileStructue/Item/ItemType";
-import type { ClientArticleProps } from "@core/SitePresenter/SitePresenter";
 import assert from "assert";
 import FileStructure, { type FSEvents } from "../../../../logic/FileStructue/FileStructure";
 import { ContentLanguage } from "../model/Language";
@@ -17,16 +17,20 @@ export type FSLocalizationProps = {
 	supportedLanguages?: ContentLanguage[];
 };
 
-export const mountFSEvents = (fs: FileStructure) => {
-	fs.events.on("catalog-entry-read", onCatalogEntryRead);
-	fs.events.on("catalog-read", onCatalogRead);
-	fs.events.on("item-created", onItemCreated);
-	fs.events.on("item-deleted", onItemDeleted);
-	fs.events.on("item-moved", onItemMoved);
-	fs.events.on("item-props-updated", onItemPropsUpdated);
-	fs.events.on("item-order-updated", onItemOrderUpdated);
-	fs.events.on("item-filter", onItemFilter);
-};
+export default class FSLocalizationEvents implements EventHandlerCollection<FSEvents> {
+	constructor(private _fs: FileStructure) {}
+
+	mount(fs: HasEvents<FSEvents>): void {
+		fs.events.on("catalog-entry-read", onCatalogEntryRead);
+		fs.events.on("catalog-read", onCatalogRead);
+		fs.events.on("item-created", onItemCreated);
+		fs.events.on("item-deleted", onItemDeleted);
+		fs.events.on("item-moved", onItemMoved);
+		fs.events.on("item-props-updated", onItemPropsUpdated);
+		fs.events.on("item-order-updated", onItemOrderUpdated);
+		fs.events.on("item-filter", onItemFilter);
+	}
+}
 
 const onItemFilter = ({ catalogProps, item }: EventArgs<FSEvents, "item-filter">) => {
 	if (!catalogProps.language || getExecutingEnvironment() != "next") return true;
@@ -102,7 +106,6 @@ const onItemMoved = async ({
 	catalog,
 	from,
 	to,
-	rp,
 	makeResourceUpdater,
 	innerRefs,
 }: EventArgs<FSEvents, "item-moved">) => {
@@ -122,7 +125,7 @@ const onItemMoved = async ({
 	assert(froms.length == tos.length, "`froms` & `tos` length must be equal");
 
 	for (let i = 0; i < froms.length; i++) {
-		await catalog.moveItem(froms[i], tos[i], makeResourceUpdater, rp, innerRefs, true);
+		await catalog.moveItem(froms[i], tos[i], makeResourceUpdater, innerRefs, true);
 	}
 };
 
@@ -144,9 +147,14 @@ const onItemPropsUpdated = async ({
 		}
 
 		item.props.order = originalItem.order;
+		if (!item.props.title?.trim()) item.props.external = originalItem.props.title;
 
 		await item.updateProps(
-			{ ...props, title: item.props.title, description: item.props.description } as ClientArticleProps,
+			{
+				...props,
+				title: item.props.title,
+				description: item.props.description,
+			},
 			makeResourceUpdater(catalog),
 			catalog.getRootCategory(),
 			true,

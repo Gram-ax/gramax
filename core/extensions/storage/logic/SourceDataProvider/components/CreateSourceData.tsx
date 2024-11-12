@@ -8,7 +8,6 @@ import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import CreateGitSourceData from "@ext/git/actions/Source/Git/components/CreateGitSourceData";
 import t from "@ext/localization/locale/translate";
 import { useEffect, useMemo, useState } from "react";
-import ErrorHandler from "../../../../errorHandlers/client/components/ErrorHandler";
 import CreateGitHubSourceData from "../../../../git/actions/Source/GitHub/components/CreateGitHubSourceData";
 import CreateGitLabSourceData from "../../../../git/actions/Source/GitLab/components/CreateGitLabSourceData";
 import SourceListItem from "../../../components/SourceListItem";
@@ -102,7 +101,6 @@ const CreateSourceData = (props: CreateSourceDataProps) => {
 			}}
 		>
 			<ModalLayoutLight>
-				<ErrorHandler>
 					<FormStyle>
 						<>
 							<legend>{legendLabel}</legend>
@@ -180,7 +178,6 @@ const CreateSourceData = (props: CreateSourceDataProps) => {
 							</fieldset>
 						</>
 					</FormStyle>
-				</ErrorHandler>
 			</ModalLayoutLight>
 		</ModalLayout>
 	);

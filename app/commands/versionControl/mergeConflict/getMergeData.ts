@@ -3,7 +3,6 @@ import { ResponseKind } from "@app/types/ResponseKind";
 import { AuthorizeMiddleware } from "@core/Api/middleware/AuthorizeMiddleware";
 import MergeConflictCaller from "@ext/git/actions/MergeConflictHandler/model/MergeConflictCaller";
 import MergeData from "@ext/git/actions/MergeConflictHandler/model/MergeData";
-import { RepMergeConflictState, RepStashConflictState } from "@ext/git/core/Repository/model/RepostoryState";
 import { Command } from "../../../types/Command";
 
 const getMergeData: Command<{ catalogName: string }, MergeData> = Command.create({
@@ -20,17 +19,20 @@ const getMergeData: Command<{ catalogName: string }, MergeData> = Command.create
 		if (!storage) return;
 		const fs = workspace.getFileStructure();
 		const state = await catalog.repo.getState();
+
 		const isTauri = getExecutingEnvironment() === "tauri";
 
-		if (state.value === "mergeConflict" || state.value === "stashConflict") {
-			const mergeState = state as RepMergeConflictState | RepStashConflictState;
-			const isValid = isTauri ? await catalog.repo.isMergeStateValid() : true;
+		if (state.inner.value === "mergeConflict" || state.inner.value === "stashConflict") {
+			const isValid = isTauri ? await state.isMergeStateValid() : true;
 			if (!isValid) return { ok: true };
 			return {
 				ok: false,
-				caller: mergeState.value === "mergeConflict" ? MergeConflictCaller.Branch : MergeConflictCaller.Sync,
-				mergeFiles: await catalog.repo.convertToMergeResultContent(mergeState.data.conflictFiles, fs),
-				reverseMerge: mergeState.data.reverseMerge,
+				caller: state.inner.value === "mergeConflict" ? MergeConflictCaller.Branch : MergeConflictCaller.Sync,
+				mergeFiles: await state.mergeConflictResolver.convertToMergeResultContent(
+					state.inner.data.conflictFiles,
+					fs,
+				),
+				reverseMerge: state.inner.data.reverseMerge,
 			};
 		}
 		return { ok: true };

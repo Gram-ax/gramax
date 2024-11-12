@@ -1,8 +1,8 @@
+import EnterpriseUser from "@ext/enterprise/EnterpriseUser";
 import ApiRequest from "../../../logic/Api/ApiRequest";
 import ApiResponse from "../../../logic/Api/ApiResponse";
 import Cookie from "../../cookie/Cookie";
 import { AuthProvider } from "./AuthProviders/AuthProvider";
-import Permission from "./Permission/Permission";
 import { TicketManager } from "./TicketManager/TicketManager";
 import User from "./User/User";
 
@@ -10,7 +10,7 @@ const COOKIE_USER = "user";
 const QUERY_TICKET = "t";
 
 export default class AuthManager {
-	constructor(private _ap: AuthProvider, private _ticketManager: TicketManager) {}
+	constructor(private _ap: AuthProvider, private _ticketManager: TicketManager, private _gesUrl: string) {}
 
 	getUser(cookie: Cookie, query: any): User {
 		let user: User = this._getUser(cookie);
@@ -27,7 +27,7 @@ export default class AuthManager {
 	}
 
 	getMailLoginTicket(mail: string) {
-		const user: User = new User(true, { mail, name: mail, id: mail }, new Permission(mail));
+		const user: User = new User(true, { mail, name: mail, id: mail });
 		return this._ticketManager.getUserTicket(user);
 	}
 
@@ -49,8 +49,15 @@ export default class AuthManager {
 	}
 
 	private _getUser(cookie: Cookie): User {
-		const user = cookie.get(COOKIE_USER);
-		if (!user) return new User();
-		return User.initInJSON(JSON.parse(user));
+		const userData = cookie.get(COOKIE_USER);
+		if (!userData) {
+			if (!this._gesUrl) return new User();
+			const user = new EnterpriseUser(false, undefined, undefined, undefined, this._gesUrl);
+			this._setUser(cookie, user);
+			return user;
+		}
+		const json = JSON.parse(userData);
+		if (json.type === "enterprise") return EnterpriseUser.initInJSON(json);
+		return User.initInJSON(json);
 	}
 }

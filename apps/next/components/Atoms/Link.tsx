@@ -13,6 +13,7 @@ const NextLink = (props: NextLinkProps, ref: RefObject<HTMLAnchorElement>) => {
 	const { href, children, onClick, dataQa, ...otherProps } = props;
 	const url = href ? Url.from({ pathname: href?.pathname, query: href?.query }) : null;
 
+
 	return (
 		<Link
 			ref={ref}

@@ -1,3 +1,4 @@
+import ArticlePageActions from "@components/Article/ArticlePageActions";
 import Button, { TextSize } from "@components/Atoms/Button/Button";
 import { ButtonStyle } from "@components/Atoms/Button/ButtonStyle";
 import IconLink from "@components/Molecules/IconLink";
@@ -7,24 +8,26 @@ import { getCatalogLinks, useGetArticleLinks } from "@core-ui/getRigthSidebarLin
 import { usePlatform } from "@core-ui/hooks/usePlatform";
 import { cssMedia } from "@core-ui/utils/cssUtils";
 import styled from "@emotion/styled";
+import SwitchContentLanguage from "@ext/localization/actions/SwitchContentLanguage";
 import t from "@ext/localization/locale/translate";
 import { ItemLink } from "@ext/navigation/NavigationLinks";
 import TableOfContents from "@ext/navigation/article/render/TableOfContents";
+import SwitchVersion from "@ext/versioning/components/SwitchVersion";
 import { useRef, useState } from "react";
-import Actions from "../../../Actions";
 import ArticleActions from "../../../Actions/ArticleActions";
 import CatalogActions from "../../../Actions/CatalogActions";
 import Links from "../../layoutComponents";
 
-export default styled(({ itemLinks, className }: { itemLinks: ItemLink[]; className?: string }): JSX.Element => {
+const RightNavigation = ({ itemLinks, className }: { itemLinks: ItemLink[]; className?: string }): JSX.Element => {
 	const ref = useRef<HTMLDivElement>(null);
-	const isCatalogExist = !!CatalogPropsService.value.name;
 	const articleProps = ArticlePropsService.value;
+	const catalogProps = CatalogPropsService.value;
+	const isCatalogExist = !!catalogProps.name;
 	const showArticleActions = !(articleProps?.errorCode && articleProps.errorCode !== 500);
 	const articleLinks = useGetArticleLinks();
 	const { isNext } = usePlatform();
-	const [isArticleActionsVisible, setArticleActionsVisibility] = useState(false);
 	const [isCatalogActionsVisible, setCatalogActionsVisibility] = useState(false);
+	const [isArticleActionsVisible, setArticleActionsVisibility] = useState(false);
 
 	return (
 		<div
@@ -33,7 +36,19 @@ export default styled(({ itemLinks, className }: { itemLinks: ItemLink[]; classN
 			style={{ display: "flex", flexDirection: "column", flexGrow: "1" }}
 		>
 			<aside className={className}>
-				<Actions />
+				<ArticlePageActions />
+				<Links
+					catalogChildren={
+						<>
+							<li style={{ listStyleType: "none", width: "fit-content" }}>
+								<SwitchContentLanguage />
+							</li>
+							<li style={{ listStyleType: "none", width: "fit-content" }}>
+								<SwitchVersion />
+							</li>
+						</>
+					}
+				/>
 				{showArticleActions && <TableOfContents />}
 				<Links
 					articleLinks={showArticleActions ? articleLinks : []}
@@ -44,7 +59,6 @@ export default styled(({ itemLinks, className }: { itemLinks: ItemLink[]; classN
 							hasRenderableActions={setArticleActionsVisibility}
 						/>
 					}
-					isArticleActionsVisible={isArticleActionsVisible}
 					catalogChildren={
 						<CatalogActions
 							isCatalogExist={isCatalogExist}
@@ -52,6 +66,7 @@ export default styled(({ itemLinks, className }: { itemLinks: ItemLink[]; classN
 							hasRenderableActions={setCatalogActionsVisibility}
 						/>
 					}
+					isArticleActionsVisible={isArticleActionsVisible}
 					isCatalogActionsVisible={isCatalogActionsVisible}
 				/>
 			</aside>
@@ -69,7 +84,9 @@ export default styled(({ itemLinks, className }: { itemLinks: ItemLink[]; classN
 			)}
 		</div>
 	);
-})`
+};
+
+export default styled(RightNavigation)`
 	width: 100%;
 	color: var(--color-primary-general);
 	background-color: var(--color-contextmenu-bg);

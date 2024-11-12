@@ -4,22 +4,22 @@
 
 import GitMergeStatus from "@ext/git/actions/MergeConflictHandler/model/GitMergeStatus";
 import GitStorage from "@ext/git/core/GitStorage/GitStorage";
-import Repository from "@ext/git/core/Repository/Repository";
-import { RepMergeConflictState } from "@ext/git/core/Repository/model/RepostoryState";
-import RepositoryStateFile from "@ext/git/core/RepositoryStateFile/RepositorySettingsFile";
+import WorkdirRepository from "@ext/git/core/Repository/WorkdirRepository";
+import type { RepositoryMergeConflictState } from "@ext/git/core/Repository/state/RepositoryState";
 import SourceData from "@ext/storage/logic/SourceDataProvider/model/SourceData";
 import SourceType from "@ext/storage/logic/SourceDataProvider/model/SourceType";
 import DiskFileProvider from "../../../../../../logic/FileProvider/DiskFileProvider/DiskFileProvider";
 import Path from "../../../../../../logic/FileProvider/Path/Path";
 import GitVersionControl from "../../../GitVersionControl/GitVersionControl";
 import GitBaseConflictResolver from "../GitBaseConflictResolver";
+import RepositoryProvider from "@ext/git/core/Repository/RepositoryProvider";
 
 const mockUserData: SourceData = {
 	sourceType: SourceType.gitHub,
 	userEmail: "test-email@email.com",
 	userName: "test user",
 };
-const mockState: RepMergeConflictState = { value: "mergeConflict", data: null };
+const mockState: RepositoryMergeConflictState = { value: "mergeConflict", data: null };
 
 const path = (path: string) => new Path(path);
 const repPath = (path: string) => new Path(["testRep", path]);
@@ -58,13 +58,13 @@ describe("GitBaseConflictResolver", () => {
 		await commit(gvc, { "1.txt": "init" });
 		await gvc.createNewBranch("conflict");
 		const storage = new GitStorage(path("testRep"), dfp);
-		const repStateFile = new RepositoryStateFile(path("testRep"), dfp);
-		const repo = new Repository(path("testRep"), dfp, gvc, storage, repStateFile);
+		const repo = new WorkdirRepository(path("testRep"), dfp, gvc, storage);
 		resolver = new GitBaseConflictResolver(repo, dfp, path("testRep"));
 	});
 
 	afterEach(async () => {
 		await dfp.delete(path("testRep"));
+		await RepositoryProvider.invalidateRepoCache([]);
 		resolver = null;
 		gvc = null;
 	});

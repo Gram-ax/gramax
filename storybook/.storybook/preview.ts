@@ -4,6 +4,8 @@ import "../../core/styles/article-alfabeta.css";
 import "../../core/styles/article.css";
 import "../../core/styles/global.css";
 import "../../core/styles/swagger-ui-theme.css";
+import "../../core/styles/base.css";
+import "../../core/styles/vars.css";
 
 import type { Preview } from "@storybook/react";
 import { rest } from "msw";
@@ -22,7 +24,7 @@ initialize(
 	[
 		rest.get("/api/comments/getNavigationUnresolvedCommentsCount", (_req, res, ctx) => {
 			return res(ctx.status(200), ctx.json({ "": 0 }));
-		})
+		}),
 	],
 );
 

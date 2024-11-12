@@ -1,14 +1,14 @@
-import ButtonStateService from "@core-ui/ContextServices/ButtonStateService/ButtonStateService";
-import Button from "@ext/markdown/core/edit/components/Menu/Button";
-import SnippetsButton from "@ext/markdown/elements/snippet/edit/components/SnippetsButton";
-import TabsMenuButton from "@ext/markdown/elements/tabs/edit/components/TabsMenuButton";
-import { Editor } from "@tiptap/core";
-
 import Tooltip from "@components/Atoms/Tooltip";
 import ButtonsLayout from "@components/Layouts/ButtonLayout";
 import ModalLayoutDark from "@components/Layouts/ModalLayoutDark";
-import { useState } from "react";
+import ButtonStateService from "@core-ui/ContextServices/ButtonStateService/ButtonStateService";
+import Button from "@ext/markdown/core/edit/components/Menu/Button";
 import HTMLMenuButton from "@ext/markdown/elements/html/edit/components/HTMLMenuButton";
+import SnippetsButton from "@ext/markdown/elements/snippet/edit/components/SnippetsButton";
+import TabsMenuButton from "@ext/markdown/elements/tabs/edit/components/TabsMenuButton";
+import ViewMenuButton from "@ext/markdown/elements/view/edit/components/ViewMenuButton";
+import { Editor } from "@tiptap/core";
+import { useState } from "react";
 
 const SemiBlocks = ({ editor }: { editor?: Editor }) => {
 	const tabs = ButtonStateService.useCurrentAction({ action: "tabs" });
@@ -36,6 +36,7 @@ const SemiBlocks = ({ editor }: { editor?: Editor }) => {
 						<TabsMenuButton editor={editor} />
 						<SnippetsButton editor={editor} onClose={() => setIsOpen(false)} />
 						<HTMLMenuButton editor={editor} />
+						<ViewMenuButton editor={editor} />
 					</ButtonsLayout>
 				</ModalLayoutDark>
 			}

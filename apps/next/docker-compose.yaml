@@ -14,6 +14,9 @@ services:
             - PORT=${PORT}
             - ADMIN_LOGIN=${ADMIN_LOGIN:-admin}
             - ADMIN_PASSWORD=${ADMIN_PASSWORD:-password}
+            - LOGO_IMAGE_URL=${LOGO_IMAGE_URL}
+            - LOGO_LINK_URL=${LOGO_LINK_URL}
+            - LOGO_LINK_TITLE=${LOGO_LINK_TITLE}
         volumes:
             - ${ROOT_PATH:-./gramax}:/app/data
             # - ./robots.txt:/app/public/robots.txt

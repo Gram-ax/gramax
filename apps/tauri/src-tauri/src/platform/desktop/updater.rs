@@ -95,8 +95,7 @@ impl<R: Runtime> Updater<R> {
       .dialog()
       .message(t!("updates.new-version.body"))
       .title(t!("updates.new-version.title"))
-      .ok_button_label(t!("updates.update-now"))
-      .cancel_button_label(t!("etc.later"))
+      .buttons(tauri_plugin_dialog::MessageDialogButtons::OkCancelCustom(t!("updates.update-now").to_string(), t!("etc.later").to_string()))
       .blocking_show()
   }
 
@@ -139,7 +138,7 @@ impl<R: Runtime> Updater<R> {
           .dialog()
           .message(t!("updates.you-have-actual-ver.body"))
           .title(t!("updates.you-have-actual-ver.title"))
-          .ok_button_label(t!("etc.ok"))
+          .buttons(tauri_plugin_dialog::MessageDialogButtons::OkCustom(t!("etc.ok").to_string()))
           .blocking_show();
         Ok(())
       }
@@ -159,8 +158,7 @@ impl<R: Runtime> Updater<R> {
         .dialog()
         .message(t!("updates.newer-update-found"))
         .title(t!("updates.new-version.title"))
-        .ok_button_label(t!("updates.update-now"))
-        .cancel_button_label(t!("etc.later"))
+        .buttons(tauri_plugin_dialog::MessageDialogButtons::OkCancelCustom(t!("updates.update-now").to_string(), t!("etc.later").to_string()))
         .blocking_show();
       return Ok(Some(update));
     }

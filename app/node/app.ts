@@ -1,7 +1,9 @@
 import autoPull from "@core/AutoPull/AutoPull";
 import { ContextFactory } from "@core/Context/ContextFactory";
 import DiskFileProvider from "@core/FileProvider/DiskFileProvider/DiskFileProvider";
+import MountFileProvider from "@core/FileProvider/MountFileProvider/MountFileProvider";
 import Path from "@core/FileProvider/Path/Path";
+import FileStructureEventHandlers from "@core/FileStructue/events/FileStuctureEventHandlers";
 import Hash from "@core/Hash/Hash";
 import ResourceUpdaterFactory from "@core/Resource/ResourceUpdaterFactory";
 import CustomArticlePresenter from "@core/SitePresenter/CustomArticlePresenter";
@@ -9,7 +11,6 @@ import SitePresenterFactory from "@core/SitePresenter/SitePresenterFactory";
 import { TableDB } from "@core/components/tableDB/table";
 import VideoUrlRepository from "@core/components/video/videoUrlRepository";
 import YamlFileConfig from "@core/utils/YamlFileConfig";
-import isSsoEnabled from "@core/utils/isSsoEnabled";
 import Cache from "@ext/Cache";
 import { Encoder } from "@ext/Encoder/Encoder";
 import MailProvider from "@ext/MailProvider";
@@ -17,7 +18,6 @@ import ThemeManager from "@ext/Theme/ThemeManager";
 import BlankWatcher from "@ext/Watchers/BlankWatcher";
 import RepositoryProvider from "@ext/git/core/Repository/RepositoryProvider";
 import HtmlParser from "@ext/html/HtmlParser";
-import { mountFSEvents } from "@ext/localization/core/events/FSLocalizationEvents";
 import BugsnagLogger from "@ext/loggers/BugsnagLogger";
 import ConsoleLogger from "@ext/loggers/ConsoleLogger";
 import Logger, { LogLevel } from "@ext/loggers/Logger";
@@ -25,7 +25,7 @@ import MarkdownParser from "@ext/markdown/core/Parser/Parser";
 import ParserContextFactory from "@ext/markdown/core/Parser/ParserContext/ParserContextFactory";
 import MarkdownFormatter from "@ext/markdown/core/edit/logic/Formatter/Formatter";
 import AuthManager from "@ext/security/logic/AuthManager";
-import Sso from "@ext/security/logic/AuthProviders/Sso";
+import EnterpriseAuth from "@ext/security/logic/AuthProviders/EnterpriseAuth";
 import { TicketManager } from "@ext/security/logic/TicketManager/TicketManager";
 import FuseSearcher from "@ext/serach/Fuse/FuseSearcher";
 import { IndexDataProvider } from "@ext/serach/IndexDataProvider";
@@ -37,7 +37,7 @@ import { AppConfig, getConfig } from "../config/AppConfig";
 import Application from "../types/Application";
 
 const _init = async (config: AppConfig): Promise<Application> => {
-	if (!config.isServerApp && !config.paths.data) throw new Error(`USER_DATA_PATH not specified`);
+	if (!config.isReadOnly && !config.paths.data) throw new Error(`USER_DATA_PATH not specified`);
 
 	const logger: Logger = config.isProduction ? new BugsnagLogger(config) : new ConsoleLogger();
 	logger.setLogLevel(LogLevel.trace);
@@ -46,8 +46,8 @@ const _init = async (config: AppConfig): Promise<Application> => {
 
 	const rp = new RepositoryProvider();
 	const wm = new WorkspaceManager(
-		(path) => new DiskFileProvider(new Path(path), watcher),
-		(fs) => mountFSEvents(fs),
+		(path) => MountFileProvider.fromDefault(new Path(path), watcher),
+		(fs) => new FileStructureEventHandlers(fs).mount(fs),
 		rp,
 		config,
 		YamlFileConfig.dummy(),
@@ -78,12 +78,13 @@ const _init = async (config: AppConfig): Promise<Application> => {
 
 	const tm = new ThemeManager();
 	const am = new AuthManager(
-		isSsoEnabled(config.services.sso)
-			? new Sso(config.services.sso.url, config.services.sso.key)
+		config.enterprise.gesUrl
+			? new EnterpriseAuth(config.enterprise.gesUrl)
 			: new EnvAuth(config.paths.base, config.admin.login, config.admin.password),
 		ticketManager,
+		config.enterprise.gesUrl,
 	);
-	const contextFactory = new ContextFactory(tm, config.tokens.cookie, am, config.isServerApp);
+	const contextFactory = new ContextFactory(tm, config.tokens.cookie, am, config.isReadOnly);
 	const sitePresenterFactory = new SitePresenterFactory(wm, parser, parserContextFactory, rp, customArticlePresenter);
 
 	const cacheFileProvider = new DiskFileProvider(config.paths.data);
@@ -116,18 +117,21 @@ const _init = async (config: AppConfig): Promise<Application> => {
 		customArticlePresenter,
 		resourceUpdaterFactory,
 		conf: {
-			glsUrl: config.glsUrl,
-			isRelease: config.isRelease,
 			basePath: config.paths.base,
+			disableSeo: config.disableSeo,
 
+			isRelease: config.isRelease,
 			isReadOnly: config.isReadOnly,
-			isServerApp: config.isServerApp,
 			isProduction: config.isProduction,
 
 			version: config.version,
 			buildVersion: config.buildVersion,
 			bugsnagApiKey: config.bugsnagApiKey,
 			yandexMetricCounter: config.yandexMetricCounter,
+			services: config.services,
+			enterprise: config.enterprise,
+
+			logo: config.logo,
 		},
 	};
 };

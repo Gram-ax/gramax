@@ -5,7 +5,7 @@ import styled from "@emotion/styled";
 import Link from "./Atoms/Link";
 import { CatalogLogo } from "./CatalogLogo";
 
-const Logo = ({ className }: { className?: string }) => {
+const Logo = ({ className }: { className?: string; imageUrl?: string }) => {
 	const catalogProps = CatalogPropsService.value;
 
 	return (
@@ -33,12 +33,23 @@ export default styled(Logo)`
 		display: flex;
 		max-width: 100%;
 		align-items: center;
-	}
-	> a:hover {
-		text-decoration: none;
-		.title {
-			color: var(--color-primary);
-		}
+		${(p) =>
+			p.imageUrl
+				? `
+        img:hover {
+          transform: scale(1.05);
+          transition: transform 0.2s;
+        }
+
+        .title:hover {
+          color: var(--color-primary);
+        }
+      `
+				: `
+        &:hover .title {
+          color: var(--color-primary);
+        }
+      `}
 	}
 
 	.title {
@@ -53,7 +64,8 @@ export default styled(Logo)`
 		vertical-align: middle;
 		display: inline-block;
 		max-height: 1.625rem;
-		margin-right: 10px;
+		padding-right: 10px;
+		transform: translateZ(0);
 	}
 
 	${cssMedia.narrow} {

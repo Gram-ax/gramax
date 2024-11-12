@@ -5,7 +5,7 @@ import { ApplyApiMiddleware } from "../../../logic/Api/ApplyMiddleware";
 
 export default ApplyApiMiddleware(
 	async function (req: ApiRequest, res: ApiResponse) {
-		const ctx = this.app.contextFactory.from(req, res);
+		const ctx = await this.app.contextFactory.from(req, res);
 		await this.app.am.logout(ctx.cookie, req, res);
 	},
 	[new MainMiddleware()],

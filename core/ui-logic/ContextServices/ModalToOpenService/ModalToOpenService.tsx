@@ -2,8 +2,8 @@ import { Dispatch, ReactElement, SetStateAction, useState } from "react";
 import getModalComponentToRender from "./logic/getModalComponentToRender";
 import ModalToOpen from "./model/ModalsToOpen";
 
-let _setIsOpenModal: Dispatch<SetStateAction<ModalToOpen>>;
-let _setArgs: Dispatch<SetStateAction<{ [name: string]: any }>>;
+let _setIsOpenModal: Dispatch<SetStateAction<ModalToOpen>> = () => {};
+let _setArgs: Dispatch<SetStateAction<{ [name: string]: any }>> = () => {};
 
 export default abstract class ModalToOpenService {
 	private static _value: ModalToOpen = null;

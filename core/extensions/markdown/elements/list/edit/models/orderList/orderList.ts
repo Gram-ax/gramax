@@ -64,9 +64,9 @@ const OrderedList = Node.create<OrderedListOptions>({
 		return {
 			toggleOrderedList:
 				() =>
-				({ commands, state, dispatch }) => {
+				({ commands, editor, dispatch }) => {
 					const mainToggle = commands.toggleList(this.name, this.options.itemTypeName);
-					const secondToggle = toggleList({ state, dispatch, listName: this.name });
+					const secondToggle = toggleList({ editor, dispatch, listName: this.name });
 
 					return mainToggle || secondToggle;
 				},

@@ -44,6 +44,9 @@ export const fromRaw = (klass: number, code: number): GitErrorCode => {
 		case eq(2, 0):
 			return GitErrorCode.NetworkConntectionError;
 
+		case eq(14, 1):
+			return GitErrorCode.FileNotFoundError;
+
 		case eq(JSErrorClass, 19):
 			return GitErrorCode.NetworkConntectionError;
 

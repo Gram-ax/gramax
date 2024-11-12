@@ -9,6 +9,7 @@ interface ImageDataProps {
 	crop?: Crop;
 	objects?: ImageObject[];
 	id?: string;
+	readFromHead?: boolean;
 }
 
 const Image = (props: ImageDataProps): ReactElement => {

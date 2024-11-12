@@ -25,8 +25,8 @@ export const noteIcons: { [note in NoteType]: string } = {
 interface NoteProps {
 	type?: NoteType;
 	title?: string;
-	collapsed?: string | boolean;
 	children?: ReactElement;
+	collapsed?: string | boolean;
 	className?: string;
 	collapseCallback?: (collapse: boolean) => void;
 }
@@ -69,7 +69,9 @@ const Note = (props: NoteProps): ReactElement => {
 					<div className={classNames("title", { clickable })}>{title}</div>
 				</div>
 			</div>
-			<div className="admonition-content">{expanded && <div className="paragraph">{children}</div>}</div>
+			<div className="admonition-content">
+				<div className={classNames("paragraph", { "content-hide": !expanded })}>{children}</div>
+			</div>
 		</div>
 	);
 };

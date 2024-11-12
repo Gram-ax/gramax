@@ -1,8 +1,8 @@
+import HomePageActions from "@components/HomePage/HomePageActions";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import styled from "@emotion/styled";
 import ThemeService from "../../extensions/Theme/components/ThemeService";
 import { CatalogLink } from "../../extensions/navigation/NavigationLinks";
-import Actions from "../Actions";
 import useUrlImage from "../Atoms/Image/useUrlImage";
 
 const TopMenu = styled(({ catalogLinks, className }: { catalogLinks: CatalogLink[]; className?: string }) => {
@@ -13,7 +13,7 @@ const TopMenu = styled(({ catalogLinks, className }: { catalogLinks: CatalogLink
 		<div className={className}>
 			<div className="top-menucontainer">
 				<img src={useUrlImage(apiUrlCreator.getLogo(theme))} style={{ width: "5.5rem" }} />
-				<Actions isHomePage={true} catalogLinks={catalogLinks} />
+				<HomePageActions catalogLinks={catalogLinks} />
 			</div>
 		</div>
 	);

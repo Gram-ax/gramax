@@ -1,8 +1,7 @@
-import type Context from "@core/Context/Context";
 import FileProvider from "@core/FileProvider/model/FileProvider";
 import type { Category } from "@core/FileStructue/Category/Category";
+import { ItemType } from "@core/FileStructue/Item/ItemType";
 import type { MakeResourceUpdater } from "@core/Resource/ResourceUpdaterFactory";
-import RepositoryProvider from "@ext/git/core/Repository/RepositoryProvider";
 import { NodeModel } from "@minoru/react-dnd-treeview";
 import { Catalog } from "../../../../../logic/FileStructue/Catalog/Catalog";
 import itemRefUtils from "../../../../../logic/utils/itemRefUtils";
@@ -11,14 +10,9 @@ import DragTreeTransformer from "./DragTreeTransformer";
 import getMovements from "./Movement/getMovements";
 
 class DragTree {
-	constructor(
-		private _fp: FileProvider,
-		private _makeResourceUpdater: MakeResourceUpdater,
-		private _rp: RepositoryProvider,
-		private _ctx: Context,
-	) {}
+	constructor(private _fp: FileProvider, private _makeResourceUpdater: MakeResourceUpdater) {}
 
-	public findOrderingAncestors(newNav: NodeModel<ItemLink>[], draggedItemPath: string, catalog: Catalog) {
+	public async findOrderingAncestors(newNav: NodeModel<ItemLink>[], draggedItemPath: string, catalog: Catalog) {
 		const items = [DragTreeTransformer.getRootItem(), ...newNav];
 
 		const draggedNodeIndex = items.findIndex((item) => item.data?.ref.path == draggedItemPath);
@@ -49,11 +43,19 @@ class DragTree {
 
 		if (!draggedItem || !parent) return;
 
+		if (parent.type === ItemType.article) parent = await this._getCategoryByArticle(catalog, parent, newNav);
+
 		return {
 			dragged: draggedItem,
 			prev: prevItem,
 			parent,
 		};
+	}
+
+	private async _getCategoryByArticle(catalog: Catalog, parent: Category, newNav: NodeModel<ItemLink>[]) {
+		const newParent = await catalog.createCategoryByArticle(this._makeResourceUpdater, parent);
+		newNav.find((i) => i.data.ref.path === parent.ref.path.value).data.ref.path = newParent.ref.path.value;
+		return newParent;
 	}
 
 	public async drag(
@@ -80,10 +82,10 @@ class DragTree {
 			const newBrowsersRef = catalog.findCategoryByItemRef(newParentItemRef)?.items?.map((i) => i.ref) ?? [];
 			const newItemRef = itemRefUtils.move(newParentItemRef, moveItemRef, item.type, newBrowsersRef);
 
-			await catalog.moveItem(moveItemRef, newItemRef, this._makeResourceUpdater, this._rp, innerRefs);
+			await catalog.moveItem(moveItemRef, newItemRef, this._makeResourceUpdater, innerRefs);
 		}
 		await this._fp.deleteEmptyFolders(catalog.getRootCategoryRef().path.parentDirectoryPath);
-		await catalog.update(this._rp);
+		await catalog.update();
 		return true;
 	}
 

@@ -103,7 +103,7 @@ supportedLanguages:
 
 	describe("перемещает статьи во всех языках", () => {
 		const doTest = async (useInner: boolean, from: string, to: string) => {
-			const { wm, fp, app, makeResourceUpdater } = await makeApp();
+			const { wm, fp, makeResourceUpdater } = await makeApp();
 
 			const catalog = await wm.getCatalog("catalog");
 
@@ -116,9 +116,8 @@ supportedLanguages:
 				useInner ? itemEn.ref : item.ref,
 				fp.getItemRef(item.ref.path.getNewName(to)),
 				makeResourceUpdater,
-				app.rp,
 			);
-			await catalog.update(app.rp);
+			await catalog.update();
 
 			expect(catalog.findArticle("catalog/" + from, [])).toBeNull();
 			expect(catalog.findArticle("catalog/en/" + from, [])).toBeNull();
@@ -140,7 +139,7 @@ supportedLanguages:
 
 	describe("перемещает категории в основном и дочернем каталогах", () => {
 		const doTest = async (useInner: boolean) => {
-			const { wm, fp, app, makeResourceUpdater } = await makeApp();
+			const { wm, fp, makeResourceUpdater } = await makeApp();
 
 			const catalog = await wm.getCatalog("catalog");
 
@@ -155,9 +154,8 @@ supportedLanguages:
 					item.ref.path.parentDirectoryPath.getNewName("category-moved").join(new Path("_index.md")),
 				),
 				makeResourceUpdater,
-				app.rp,
 			);
-			await catalog.update(app.rp);
+			await catalog.update();
 
 			expect(catalog.findArticle("catalog/en/1category", [])).toBeNull();
 			expect(catalog.findArticle("catalog/1category", [])).toBeNull();

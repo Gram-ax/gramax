@@ -1,23 +1,25 @@
 {
 	// "rust-analyzer.cargo.target": "x86_64-pc-windows-msvc",
 	// "rust-analyzer.cargo.target": "x86_64-apple-darwin",
-	// "rust-analyzer.cargo.target": "aarch64-apple-darwin",
+	"rust-analyzer.cargo.target": "aarch64-apple-darwin",
 	// "rust-analyzer.cargo.target": "wasm32-unknown-emscripten",
 	// "rust-analyzer.cargo.target": "aarch64-linux-android",
 	// "rust-analyzer.cargo.target": "aarch64-apple-ios",
 
-	// "rust-analyzer.check.allTargets": true,
-	// "rust-analyzer.check.features": "all",
+	"rust-analyzer.check.allTargets": true,
+	"rust-analyzer.check.targets": ["aarch64-apple-darwin"],
+	// "rust-analyzer.check.targets": ["wasm32-unknown-emscripten"],
+	// "rust-analyzer.check.features": [],
+	// "rust-analyzer.cargo.features": [],
+	"rust-analyzer.cargo.extraEnv": {
+		"BUGSNAG_API_KEY": ""
+	},
 
 	"editor.tabCompletion": "on",
 
 	"search.exclude": {
 		"./**/.next": true,
 		"./**/node_modules": true
-	},
-
-	"rust-analyzer.cargo.extraEnv": {
-		"BUGSNAG_API_KEY": ""
 	},
 
 	"search.searchEditor.reusePriorSearchConfiguration": true,
@@ -66,5 +68,6 @@
 	"typescript.tsserver.experimental.enableProjectDiagnostics": true,
 
 	"cSpell.words": ["katex", "Markdoc", "prosemirror", "Renderable", "tiptap", "traptitech", "Bugsnag"],
-	"typescript.tsdk": "node_modules/typescript/lib"
+	"typescript.tsdk": "node_modules/typescript/lib",
+	"ansible.python.interpreterPath": "/sbin/python3.13"
 }

@@ -62,7 +62,7 @@ class CommentFocusTooltip extends BaseMark {
 
 	protected _setTooltipPosition = () => {
 		this._tooltip.style.fontSize = "14px";
-		this._tooltip.style.zIndex = "100";
+		this._tooltip.style.zIndex = "var(--z-index-base)";
 	};
 
 	private _commentClick = (element: HTMLElement, mark: Mark, markPosition: MarkRange) => {

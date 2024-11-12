@@ -1,6 +1,8 @@
 import LeftNavigationIsOpenService from "@core-ui/ContextServices/LeftNavigationIsOpen";
 import { cssMedia } from "@core-ui/utils/cssUtils";
 import type { ArticlePageData } from "@core/SitePresenter/SitePresenter";
+import PermissionService from "@ext/security/logic/Permission/components/PermissionService";
+import { configureCatalogPermission } from "@ext/security/logic/Permission/Permissions";
 import useIsStorageInitialized from "@ext/storage/logic/utils/useIsStorageInitialized";
 import { useMediaQuery } from "@mui/material";
 import CreateArticle from "../../../../extensions/artilce/actions/CreateArticle";
@@ -21,6 +23,7 @@ const LeftNavigationBottom = ({ data, closeNavigation }: { data: ArticlePageData
 	const leftNavTrEndIsOpen = LeftNavigationIsOpenService.transitionEndIsOpen;
 	const mediumMedia = useMediaQuery(cssMedia.JSmedium);
 	const isStorageInitialized = useIsStorageInitialized();
+	const canConfigureCatalog = PermissionService.useCheckPermission(configureCatalogPermission, catalogProps.name);
 
 	const getPaddingTop = (): string => {
 		if (leftNavIsOpen) return "0";
@@ -48,7 +51,7 @@ const LeftNavigationBottom = ({ data, closeNavigation }: { data: ArticlePageData
 				}
 				rightExtensions={mediumMedia ? null : [<PinToggleArrowIcon key={0} />]}
 			/>
-			{!readOnlyCatalog && neededToBeLogged && isCatalogExist && (
+			{canConfigureCatalog && !readOnlyCatalog && neededToBeLogged && isCatalogExist && (
 				<ArticleStatusBar
 					isStorageInitialized={isStorageInitialized}
 					padding={leftNavIsOpen ? "0 6px" : "0 31px"}

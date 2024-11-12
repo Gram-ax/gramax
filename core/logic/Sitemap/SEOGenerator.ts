@@ -23,14 +23,12 @@ class SEOGenerator {
 		return sitemap;
 	}
 
-	generateRobots(sitemapUrl: string): string {
-		const robots =
-			`User-agent: *\n` +
-			`Disallow: /admin/\n` +
-			`Disallow: /api/*\n` +
-			`Allow: /api/sitemap/*\n\n` +
-			`Sitemap: ${sitemapUrl}\n`;
-		return robots;
+	generateRobots(sitemapUrl: string, disableSeo: boolean): string {
+		return `User-agent: *\n${
+			disableSeo
+				? "Disallow: /*\n"
+				: `Disallow: /admin/\nDisallow: /api/*\nAllow: /api/sitemap/*\n\nSitemap: ${sitemapUrl}\n`
+		}`;
 	}
 
 	async generateCatalogSitemap(domain: string, catalogName: string): Promise<string> {

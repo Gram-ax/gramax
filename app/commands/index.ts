@@ -1,4 +1,5 @@
 import auth from "@app/commands/auth";
+import setLanguage from "@app/commands/language/set";
 import workspace from "@app/commands/workspace";
 import Application from "../types/Application";
 import { Command } from "../types/Command";
@@ -14,18 +15,17 @@ import search from "./search";
 import storage from "./storage";
 import setTheme from "./theme/setTheme";
 import versionControl from "./versionControl";
-import vscode from "./vscode";
 import word from "./word";
 
 const commands = {
 	auth,
 	setTheme,
+	setLanguage,
 	article,
 	catalog,
 	elements,
 	healthcheck,
 	download,
-	vscode,
 	item,
 	page,
 	storage,

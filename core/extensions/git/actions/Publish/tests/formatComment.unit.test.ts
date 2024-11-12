@@ -6,6 +6,7 @@ describe("Комментарий для коммита автоматическ�
 	test("изменён 1 файл", () => {
 		const data: SideBarData[] = [
 			{
+				isResource: false,
 				data: {
 					changeType: FileStatus.modified,
 					filePath: { path: "a/b/c.md", oldPath: "a/b/c.md" },
@@ -25,6 +26,7 @@ describe("Комментарий для коммита автоматическ�
 	test("изменёны 2 файла, но выбран 1", () => {
 		const data: SideBarData[] = [
 			{
+				isResource: false,
 				data: {
 					changeType: FileStatus.modified,
 					filePath: { path: "a/b/c.md", oldPath: "a/b/c.md" },
@@ -35,6 +37,7 @@ describe("Комментарий для коммита автоматическ�
 				},
 			},
 			{
+				isResource: false,
 				data: {
 					changeType: FileStatus.modified,
 					filePath: { path: "a/b/c1.md", oldPath: "a/b/c1.md" },
@@ -54,6 +57,7 @@ describe("Комментарий для коммита автоматическ�
 	test("изменёны 2 файла", () => {
 		const data: SideBarData[] = [
 			{
+				isResource: false,
 				data: {
 					changeType: FileStatus.modified,
 					filePath: { path: "a/b/c.md", oldPath: "a/b/c.md" },
@@ -64,6 +68,7 @@ describe("Комментарий для коммита автоматическ�
 				},
 			},
 			{
+				isResource: false,
 				data: {
 					changeType: FileStatus.modified,
 					filePath: { path: "a/b/c1.md", oldPath: "a/b/c1.md" },
@@ -83,6 +88,7 @@ describe("Комментарий для коммита автоматическ�
 	test("статья переименована", () => {
 		const data: SideBarData[] = [
 			{
+				isResource: false,
 				data: {
 					changeType: FileStatus.modified,
 					filePath: { path: "a/b/c.md", oldPath: "a/b/d.md" },
@@ -102,6 +108,7 @@ describe("Комментарий для коммита автоматическ�
 	test("изменён ресурс статьи", () => {
 		const data: SideBarData[] = [
 			{
+				isResource: false,
 				data: {
 					changeType: FileStatus.current,
 					filePath: { path: "a/b/c.md", oldPath: "a/b/c.md" },
@@ -109,8 +116,12 @@ describe("Комментарий для коммита автоматическ�
 					isChecked: true,
 					resources: [
 						{
-							filePath: { path: "a/b/r", oldPath: "a/b/r" },
-							title: "R",
+							isResource: true,
+							data: {
+								filePath: { path: "a/b/r", oldPath: "a/b/r" },
+								title: "R",
+								changeType: FileStatus.current,
+							},
 						},
 					],
 					title: "Title",
@@ -126,6 +137,7 @@ describe("Комментарий для коммита автоматическ�
 	test("ресурс статьи удалён", () => {
 		const data: SideBarData[] = [
 			{
+				isResource: false,
 				data: {
 					changeType: FileStatus.current,
 					filePath: { path: "a/b/c.md", oldPath: "a/b/c.md" },
@@ -133,8 +145,12 @@ describe("Комментарий для коммита автоматическ�
 					isChecked: true,
 					resources: [
 						{
-							filePath: { path: null, oldPath: "a/b/r" },
-							title: "R",
+							isResource: true,
+							data: {
+								changeType: FileStatus.delete,
+								filePath: { path: null, oldPath: "a/b/r" },
+								title: "R",
+							},
 						},
 					],
 					title: "Title",

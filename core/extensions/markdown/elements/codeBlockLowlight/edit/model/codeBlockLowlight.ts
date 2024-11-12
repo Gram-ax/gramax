@@ -6,6 +6,7 @@ import addShortcuts from "@ext/markdown/elementsUtils/keyboardShortcuts/addShort
 import getExtensionOptions from "@ext/markdown/logic/getExtensionOptions";
 import { TextSelection } from "prosemirror-state";
 import CodeBlockLowlight, { CodeBlockLowlightOptions } from "@tiptap/extension-code-block-lowlight";
+import getBackspaceShortcuts from "@ext/markdown/elements/codeBlockLowlight/edit/logic/keys/Backspace";
 
 interface CodeBlockOptions extends CodeBlockLowlightOptions {
 	monochromeClassName: string;
@@ -75,7 +76,7 @@ const ExtendedCodeBlockLowlight = CodeBlockLowlight.extend<CodeBlockOptions>({
 	addKeyboardShortcuts() {
 		return {
 			...(this.parent?.() || []),
-			...addShortcuts([getShiftTabShortcuts(), getTabShortcuts()], this.name),
+			...addShortcuts([getShiftTabShortcuts(), getTabShortcuts(), getBackspaceShortcuts()], this.name),
 		};
 	},
 });

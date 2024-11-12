@@ -7,17 +7,13 @@ export type EnvironmentVariable = {
 	GRAMAX_VERSION: string;
 	COOKIE_SECRET: string;
 
-	READ_ONLY: Bool;
-	SERVER_APP: Bool;
 	PRODUCTION: Bool;
 
 	// Services
 	AUTH_SERVICE_URL: string;
-	SSO_SERVICE_ENCRYPTION_KEY: string;
-	SSO_SERVICE_URL: string;
 	DIAGRAM_RENDERER_SERVICE_URL: string;
 	REVIEW_SERVICE_URL: string;
-	CORS_PROXY_SERVICE_URL: string;
+	GIT_PROXY_SERVICE_URL: string;
 
 	// AutoPull
 	AUTO_PULL_TOKEN: string;
@@ -60,8 +56,16 @@ export type EnvironmentVariable = {
 	ADMIN_PASSWORD: string;
 
 	// Enterprise
-	WORKSPACE_PATH: string;
-	GLS_URL: string;
+	GEPS_URL: string;
+	GES_URL: string;
+
+	// SEO
+	DISABLE_SEO: Bool;
+
+	// Logo
+	LOGO_IMAGE_URL: string;
+	LOGO_LINK_URL: string;
+	LOGO_LINK_TITLE: string;
 };
 
 export const defaultVariables: Partial<EnvironmentVariable> = {

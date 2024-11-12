@@ -5,6 +5,7 @@ import { Placement } from "@popperjs/core";
 import Tippy from "@tippyjs/react";
 import { ReactElement, ReactNode, createElement, useCallback, useEffect, useRef, useState } from "react";
 import Tooltip from "../Atoms/Tooltip";
+import { Instance, Props } from "tippy.js";
 
 export interface PopupMenuLayoutProps {
 	children: ReactElement<any> | ReactElement<any>[];
@@ -16,9 +17,10 @@ export interface PopupMenuLayoutProps {
 	placement?: Placement;
 	tooltipText?: string;
 	onOpen?: () => void;
-	onClose?: () => void;
+	onClose?: (instance: Instance<Props>) => void;
 	className?: string;
 	disabled?: boolean;
+	hideOnClick?: boolean;
 }
 
 interface PopupProps {
@@ -65,6 +67,7 @@ const PopupMenuLayout = (props: PopupMenuLayoutProps) => {
 		className,
 		disabled,
 		openTrigger = "click",
+		hideOnClick = true,
 	} = props;
 
 	const ref = useRef<Element>();
@@ -81,6 +84,10 @@ const PopupMenuLayout = (props: PopupMenuLayoutProps) => {
 	const openHandler = () => {
 		setIsOpen(true);
 		onOpen();
+	};
+
+	const handlePopupClick = () => {
+		if (hideOnClick) closeHandler();
 	};
 
 	useEffect(() => {
@@ -103,12 +110,17 @@ const PopupMenuLayout = (props: PopupMenuLayoutProps) => {
 			maxWidth="none"
 			offset={offset}
 			onShow={openHandler}
-			onHide={() => {
+			onHide={(instance) => {
 				closeHandler();
-				onClose();
+				onClose(instance);
 			}}
 			content={
-				<Popup onClick={closeHandler} onClickCapture={closeHandler} isOpen={isOpen} className={className}>
+				<Popup
+					onClick={handlePopupClick}
+					onClickCapture={handlePopupClick}
+					isOpen={isOpen}
+					className={className}
+				>
 					{children}
 				</Popup>
 			}
@@ -150,7 +162,10 @@ export default styled(PopupMenuLayout)`
 	background: var(--color-article-bg);
 	left: 0 !important;
 	box-shadow: var(--menu-tooltip-shadow) !important;
+	max-height: 40vh;
+	overflow-y: auto;
 
+	white-space: nowrap;
 	.divider {
 		padding: 0;
 		height: 0;
@@ -175,16 +190,6 @@ export default styled(PopupMenuLayout)`
 		padding: 0.46rem 0.9rem;
 		color: var(--color-primary-general);
 		margin: 0 !important;
-	}
-
-	> div:hover,
-	.popup-button:hover {
-		background: var(--color-menu-bg);
-
-		i,
-		span {
-			user-select: none;
-			color: var(--color-primary);
-		}
+		white-space: nowrap;
 	}
 `;

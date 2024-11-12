@@ -2,7 +2,6 @@ import { getExecutingEnvironment } from "@app/resolveModule/env";
 import { assertDesktopOpened } from "@components/Actions/EditInGramax";
 import ModalLayout from "@components/Layouts/Modal";
 import ModalLayoutLight from "@components/Layouts/ModalLayoutLight";
-import { useRouter } from "@core/Api/useRouter";
 import CloneWithShareData from "@ext/catalog/actions/share/components/CloneWithShareData";
 import ShareData from "@ext/catalog/actions/share/model/ShareData";
 import InfoModalForm from "@ext/errorHandlers/client/components/ErrorForm";
@@ -10,21 +9,15 @@ import t from "@ext/localization/locale/translate";
 import { useState } from "react";
 
 const CloneHandler = ({ shareData }: { shareData: ShareData }) => {
-	const router = useRouter();
-	const [isOpen, setIsOpen] = useState(true);
 	const [clone, setClone] = useState(false);
+	const [isOpen, setIsOpen] = useState(true);
 
 	const close = () => setIsOpen(false);
-
-	const cancel = () => {
-		close();
-		router.pushPath("");
-	};
 
 	return (
 		<ModalLayout
 			isOpen={isOpen}
-			onClose={cancel}
+			onClose={close}
 			onCmdEnter={(e) => {
 				if (!clone) {
 					e.stopPropagation();
@@ -36,10 +29,7 @@ const CloneHandler = ({ shareData }: { shareData: ShareData }) => {
 				<ModalLayoutLight>
 					<CloneWithShareData
 						shareData={shareData}
-						onCloneStart={() => {
-							close();
-							router.pushPath("");
-						}}
+						onCloneStart={close}
 						onCreateSourceDataClose={(success) => {
 							if (!success) close();
 						}}
@@ -47,7 +37,7 @@ const CloneHandler = ({ shareData }: { shareData: ShareData }) => {
 				</ModalLayoutLight>
 			) : (
 				<InfoModalForm
-					onCancelClick={cancel}
+					onCancelClick={close}
 					title={t("git.clone.not-cloned.title")}
 					actionButton={{
 						text: t("catalog.clone"),

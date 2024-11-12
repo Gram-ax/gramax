@@ -4,7 +4,7 @@ import PathnameData from "@core/RouterPath/model/PathnameData";
 import GitStorage from "@ext/git/core/GitStorage/GitStorage";
 import isGitSourceType from "@ext/storage/logic/SourceDataProvider/logic/isGitSourceType";
 import Storage from "@ext/storage/logic/Storage";
-import type { Workspace } from "@ext/workspace/Workspace";
+import type WorkspaceManager from "@ext/workspace/WorkspaceManager";
 
 export enum PageDataType {
 	article = "article",
@@ -14,10 +14,12 @@ export enum PageDataType {
 
 const getPageDataByPathname = async (
 	pathnameData: PathnameData,
-	workspace: Workspace,
+	wm: WorkspaceManager,
 ): Promise<{ type: PageDataType; itemLogicPath?: string[] }> => {
+	if (!wm.maybeCurrent()) return { type: PageDataType.home, itemLogicPath: pathnameData.itemLogicPath };
+
 	if (RouterPathProvider.isLocal(pathnameData)) {
-		if (await workspace.getCatalog(pathnameData.catalogName))
+		if (await wm.getCatalogOrFindAtAnyWorkspace(pathnameData.catalogName))
 			return { type: PageDataType.article, itemLogicPath: pathnameData.itemLogicPath };
 		else return { type: PageDataType.notFound };
 	}
@@ -26,11 +28,11 @@ const getPageDataByPathname = async (
 	let itemLogicPath: string[];
 	let catalog: Catalog;
 
-	if (await workspace.getCatalog(pathnameData.catalogName)) {
-		catalog = await workspace.getCatalog(pathnameData.catalogName);
+	if (await wm.getCatalogOrFindAtAnyWorkspace(pathnameData.catalogName)) {
+		catalog = await wm.getCatalogOrFindAtAnyWorkspace(pathnameData.catalogName);
 		itemLogicPath = pathnameData.itemLogicPath;
-	} else if (await workspace.getCatalog(pathnameData.repName)) {
-		catalog = await workspace.getCatalog(pathnameData.repName);
+	} else if (await wm.getCatalogOrFindAtAnyWorkspace(pathnameData.repo)) {
+		catalog = await wm.getCatalogOrFindAtAnyWorkspace(pathnameData.repo);
 		itemLogicPath = pathnameData.repNameItemLogicPath;
 	}
 
@@ -49,7 +51,7 @@ const isDataReal = async (isGit: boolean, storage: Storage, pathnameData: Pathna
 	return (
 		(await storage.getSourceName()) === pathnameData.sourceName &&
 		(isGit ? (await (storage as GitStorage).getGroup()) === pathnameData.group : true) &&
-		(await storage.getName()) == pathnameData.repName
+		(await storage.getName()) == pathnameData.repo
 	);
 };
 

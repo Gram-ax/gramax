@@ -1,7 +1,7 @@
 import Context from "@core/Context/Context";
 import PageDataContext from "@core/Context/PageDataContext";
-import isSsoEnabled from "@core/utils/isSsoEnabled";
-import UserInfo from "@ext/security/logic/User/UserInfo2";
+import getClientPermissions from "@ext/enterprise/getClientPermissions";
+import UserInfo from "@ext/security/logic/User/UserInfo";
 import Application from "../../types/Application";
 
 const getPageDataContext = ({
@@ -9,12 +9,17 @@ const getPageDataContext = ({
 	app,
 	isArticle,
 	userInfo,
+	isReadOnly,
 }: {
 	ctx: Context;
 	app: Application;
 	isArticle: boolean;
 	userInfo?: UserInfo;
+	isReadOnly?: boolean;
 }): PageDataContext => {
+	const conf = app.conf;
+	const workspace = app.wm.maybeCurrent();
+	const workspaceConfig = workspace?.config?.();
 	return {
 		language: {
 			content: ctx.contentLanguage ?? null,
@@ -22,30 +27,31 @@ const getPageDataContext = ({
 		},
 		theme: ctx.theme,
 		domain: ctx.domain,
-		userInfo: userInfo ?? ctx.user.info ?? null,
 		isLogged: ctx.user.isLogged,
 		sourceDatas: app.rp.getSourceDatas(ctx.cookie) ?? [],
 		isArticle,
 		workspace: {
 			workspaces: app.wm.workspaces(),
-			current: app.wm.maybeCurrent()?.path(),
+			current: workspace?.path(),
 			defaultPath: app.wm.defaultPath().value,
-			isEnterprise: app.wm.maybeCurrent()?.config().isEnterprise,
+			isEnterprise: workspaceConfig?.isEnterprise,
 		},
 		conf: {
-			isRelease: app.conf.isRelease,
-			version: app.conf.version,
-			buildVersion: app.conf.buildVersion,
-			basePath: app.conf.basePath.value,
-			isReadOnly: app.conf.isReadOnly,
-			isServerApp: app.conf.isServerApp,
-			isProduction: app.conf.isProduction,
-			bugsnagApiKey: app.conf.bugsnagApiKey,
-			glsUrl: app.conf.glsUrl,
-			authServiceUrl: app.wm.maybeCurrent()?.config?.()?.services?.auth?.url,
-			yandexMetricCounter: app.conf.yandexMetricCounter,
-			isSsoEnabled: isSsoEnabled(app.wm.maybeCurrent()?.config?.()?.services?.sso),
+			isReadOnly,
+			version: conf.version,
+			isRelease: conf.isRelease,
+			basePath: conf.basePath.value,
+			buildVersion: conf.buildVersion,
+			isProduction: conf.isProduction,
+			bugsnagApiKey: conf.bugsnagApiKey,
+			yandexMetricCounter: conf.yandexMetricCounter,
+			authServiceUrl: workspaceConfig?.services?.auth?.url || conf.services.auth.url,
+			diagramsServiceUrl: workspaceConfig?.services?.diagramRenderer?.url || conf.services.diagramRenderer.url,
+			enterprise: conf.enterprise,
+			logo: app.conf.logo,
 		},
+		userInfo: userInfo ?? ctx.user.info ?? null,
+		permissions: getClientPermissions(ctx.user),
 	};
 };
 

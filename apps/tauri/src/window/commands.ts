@@ -25,6 +25,7 @@ export const httpFetch = (req: {
 	auth?: { token?: string } | { login?: string; password?: string };
 }): Promise<{
 	body?: HttpResponseBody;
+	contentType?: string;
 	status: number;
 }> => {
 	return invoke("http_request", { req });

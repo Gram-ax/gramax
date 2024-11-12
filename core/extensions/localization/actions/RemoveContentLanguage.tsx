@@ -1,7 +1,4 @@
-import Button from "@components/Atoms/Button/Button";
-import { ButtonStyle } from "@components/Atoms/Button/ButtonStyle";
-import Icon from "@components/Atoms/Icon";
-import Tooltip from "@components/Atoms/Tooltip";
+import ButtonLink from "@components/Molecules/ButtonLink";
 import FetchService from "@core-ui/ApiServices/FetchService";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import type { ContentLanguage } from "@ext/localization/core/model/Language";
@@ -29,13 +26,7 @@ const RemoveContentLanguage = ({ targetCode, disabled, setIsLoading }: RemoveCon
 		refreshPage();
 	};
 
-	return (
-		<Tooltip hideOnClick hideInMobile place="auto" content={t("multilang.remove-localization")}>
-			<Button onClick={removeLanguage} disabled={disabled} buttonStyle={ButtonStyle.transparent}>
-				<Icon code="trash" />
-			</Button>
-		</Tooltip>
-	);
+	return <ButtonLink iconCode="trash" text={t("delete")} onClick={removeLanguage} disabled={disabled} />;
 };
 
 export default RemoveContentLanguage;

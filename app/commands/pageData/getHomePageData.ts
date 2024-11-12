@@ -20,7 +20,12 @@ const getHomePageData: Command<{ ctx: Context }, { data: HomePageData; context: 
 		const workspace = wm.current();
 		const dataProvider = sitePresenterFactory.fromContext(ctx);
 		const data = await dataProvider.getHomePageData(workspace.config());
-		const context = getPageDataContext({ ctx, app: this._app, isArticle: false });
+		const context = getPageDataContext({
+			ctx,
+			app: this._app,
+			isArticle: false,
+			isReadOnly: this._app.conf.isReadOnly,
+		});
 
 		return {
 			data,

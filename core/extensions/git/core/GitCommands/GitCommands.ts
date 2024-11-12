@@ -20,7 +20,13 @@ import GitStorageData from "../model/GitStorageData";
 import { GitVersion } from "../model/GitVersion";
 import SubmoduleData from "../model/SubmoduleData";
 import GitError from "./errors/GitError";
-import GitCommandsModel, { type CloneProgress } from "./model/GitCommandsModel";
+import GitCommandsModel, {
+	type CloneProgress,
+	type DirEntry,
+	type FileStat,
+	type RefInfo,
+	type TreeReadScope,
+} from "./model/GitCommandsModel";
 
 export class GitCommands {
 	private _impl: GitCommandsModel;
@@ -29,23 +35,24 @@ export class GitCommands {
 		this._impl = new LibGit2Commands(this._fp.rootPath.join(_repoPath));
 	}
 
+	get repoPath() {
+		return this._repoPath;
+	}
+
 	inner() {
 		return this._impl;
 	}
 
-	async hasInit(): Promise<boolean> {
-		try {
-			await this._impl.hasRemote();
-		} catch {
-			return false;
-		}
-
-		return true;
+	isInit(): Promise<boolean> {
+		return this._impl.isInit();
 	}
 
-	async hasRemote(): Promise<boolean> {
-		if (!(await this.hasInit())) return false;
-		return await this._impl.hasRemote();
+	async isBare(): Promise<boolean> {
+		return await this._impl.isBare();
+	}
+
+	hasRemote(): Promise<boolean> {
+		return this._impl.hasRemote();
 	}
 
 	async init(data: SourceData) {
@@ -180,6 +187,10 @@ export class GitCommands {
 		);
 	}
 
+	async setHead(refname: string) {
+		return await this._logWrapper("setHead", `Setting head to ${refname}`, () => this._impl.setHead(refname));
+	}
+
 	async checkout(
 		ref: GitVersion | GitBranch | string,
 		{ force, caller }: { force?: boolean; caller?: Caller } = {},
@@ -198,6 +209,7 @@ export class GitCommands {
 		source: GitSourceData,
 		branch?: string,
 		depth?: number,
+		isBare?: boolean,
 		onProgress?: (progress: CloneProgress) => void,
 	): Promise<void> {
 		url = url.endsWith(".git") ? url : url + ".git";
@@ -211,7 +223,7 @@ export class GitCommands {
 				);
 			}
 			try {
-				await this._impl.clone(url, source, branch, depth, onProgress);
+				await this._impl.clone(url, source, branch, depth, isBare, onProgress);
 			} catch (e) {
 				await this._logWrapper("delete", `Deleting path: '${this._repoPath}'`, async () => {
 					if (await this._fp.exists(this._repoPath)) await this._fp.delete(this._repoPath);
@@ -301,10 +313,10 @@ export class GitCommands {
 		});
 	}
 
-	async fetch(data: GitSourceData): Promise<void> {
+	async fetch(data: GitSourceData, force = false): Promise<void> {
 		return await this._logWrapper("fetch", "Fetching", async () => {
 			try {
-				await this._impl.fetch(data);
+				await this._impl.fetch(data, force);
 			} catch (e) {
 				throw getGitError(e, { repositoryPath: this._repoPath.value }, "fetch");
 			}
@@ -442,6 +454,36 @@ export class GitCommands {
 	getRemoteName(): Promise<string> {
 		const REMOTE = "origin";
 		return Promise.resolve(REMOTE);
+	}
+
+	readFile(filePath: Path, scope: TreeReadScope): Promise<ArrayBuffer> {
+		return this._impl.readFile(this._truncatePath(filePath), scope);
+	}
+
+	readDir(dirPath: Path, scope: TreeReadScope): Promise<DirEntry[]> {
+		return this._impl.readDir(this._truncatePath(dirPath), scope);
+	}
+
+	fileStat(filePath: Path, scope: TreeReadScope): Promise<FileStat> {
+		return this._impl.fileStat(this._truncatePath(filePath), scope);
+	}
+
+	fileExists(filePath: Path, scope: TreeReadScope): Promise<boolean> {
+		return this._impl.fileExists(this._truncatePath(filePath), scope);
+	}
+
+	getReferencesByGlob(patterns: string[]): Promise<RefInfo[]> {
+		return this._impl.getReferencesByGlob(patterns);
+	}
+
+	// todo: оптимизировать
+	private _truncatePath(path: Path): Path {
+		if (!path.startsWith(new Path(this.repoPath.nameWithExtension))) return path;
+		const parts = path.value.split("/").filter(Boolean);
+		if (parts.length > 0) parts.shift();
+		path = new Path(parts.join("/"));
+
+		return path;
 	}
 
 	private _log(msg: string, command: string, error?: Error) {

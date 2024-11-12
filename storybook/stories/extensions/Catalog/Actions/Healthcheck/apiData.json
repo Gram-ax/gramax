@@ -6,8 +6,7 @@
 			"args": {
 				"linkTo": ".../.../modules/dblog",
 				"logicPath": "mdt/updates/v28",
-				"title": "MDT v.28 от 19.07.2022",
-				"editorLink": "/api/redirect/vscode/mdt/docs/updates/v28/_index.md"
+				"title": "MDT v.28 от 19.07.2022"
 			}
 		},
 		{
@@ -16,8 +15,7 @@
 			"args": {
 				"linkTo": ".../install/instanceConfiguration",
 				"logicPath": "mdt/updates/v27",
-				"title": "MDT v.27  от 2022.04.13",
-				"editorLink": "/api/redirect/vscode/mdt/docs/updates/v27/_index.md"
+				"title": "MDT v.27  от 2022.04.13"
 			}
 		},
 		{
@@ -26,8 +24,7 @@
 			"args": {
 				"linkTo": "../../content/form/expressions/_index.md",
 				"logicPath": "mdt/updates/v27",
-				"title": "MDT v.27  от 2022.04.13",
-				"editorLink": "/api/redirect/vscode/mdt/docs/updates/v27/_index.md"
+				"title": "MDT v.27  от 2022.04.13"
 			}
 		},
 		{
@@ -36,8 +33,7 @@
 			"args": {
 				"linkTo": ".../dev/css/_index.md",
 				"logicPath": "mdt/updates/v22",
-				"title": "MDT v.22 от 2021.09.08",
-				"editorLink": "/api/redirect/vscode/mdt/docs/updates/v22/_index.md"
+				"title": "MDT v.22 от 2021.09.08"
 			}
 		},
 		{
@@ -46,8 +42,7 @@
 			"args": {
 				"linkTo": ".../.../dev/fulltext/_index.md",
 				"logicPath": "mdt/updates/archive/v15-20201001",
-				"title": "MDT v.15 от 2020.10.01",
-				"editorLink": "/api/redirect/vscode/mdt/docs/updates/archive/v15-20201001.md"
+				"title": "MDT v.15 от 2020.10.01"
 			}
 		},
 		{
@@ -56,8 +51,7 @@
 			"args": {
 				"linkTo": ".../.../content/form/expressions/_index.md",
 				"logicPath": "mdt/updates/archive/v14-20200901",
-				"title": "MDT v.14 от 2020.09.01",
-				"editorLink": "/api/redirect/vscode/mdt/docs/updates/archive/v14-20200901.md"
+				"title": "MDT v.14 от 2020.09.01"
 			}
 		},
 		{
@@ -66,8 +60,7 @@
 			"args": {
 				"linkTo": ".../install/instanceConfiguration.md",
 				"logicPath": "mdt/install/logging",
-				"title": "Настройка логирования",
-				"editorLink": "/api/redirect/vscode/mdt/docs/install/logging/_index.md"
+				"title": "Настройка логирования"
 			}
 		},
 		{
@@ -76,8 +69,7 @@
 			"args": {
 				"linkTo": ".../.../modules/dblog",
 				"logicPath": "mdt/install/logging",
-				"title": "Настройка логирования",
-				"editorLink": "/api/redirect/vscode/mdt/docs/install/logging/_index.md"
+				"title": "Настройка логирования"
 			}
 		},
 		{
@@ -86,8 +78,7 @@
 			"args": {
 				"linkTo": "/defaultValue",
 				"logicPath": "mdt/content/form/jsonExpressions",
-				"title": "Механизм JSON-выражений",
-				"editorLink": "/api/redirect/vscode/mdt/docs/content/form/jsonExpressions/_index.md"
+				"title": "Механизм JSON-выражений"
 			}
 		},
 		{
@@ -96,8 +87,7 @@
 			"args": {
 				"linkTo": "../../run/_index.md",
 				"logicPath": "mdt/dev/e2e/dev/steps",
-				"title": "Разработка новых шагов",
-				"editorLink": "/api/redirect/vscode/mdt/docs/dev/e2e/dev/steps/_index.md"
+				"title": "Разработка новых шагов"
 			}
 		},
 		{
@@ -106,8 +96,7 @@
 			"args": {
 				"linkTo": "docs.ics-it.ru/mdt/modules/bpmn/install",
 				"logicPath": "mdt/modules/bpmn/docs/bpmn/develop",
-				"title": "Для разработчиков",
-				"editorLink": "/api/redirect/vscode/mdt/docs/modules/bpmn/docs/bpmn/develop.md"
+				"title": "Для разработчиков"
 			}
 		},
 		{
@@ -116,8 +105,7 @@
 			"args": {
 				"linkTo": ".../.../dev/logging",
 				"logicPath": "mdt/modules/dblog",
-				"title": "Логирование в интерфейсе",
-				"editorLink": "/api/redirect/vscode/mdt/docs/modules/dblog/_index.md"
+				"title": "Логирование в интерфейсе"
 			}
 		},
 		{
@@ -126,8 +114,7 @@
 			"args": {
 				"linkTo": ".../.../.../content/form/expressions/_index.md",
 				"logicPath": "mdt/modules/docgen/template",
-				"title": "Настройка шаблона",
-				"editorLink": "/api/redirect/vscode/mdt/docs/modules/docgen/template/_index.md"
+				"title": "Настройка шаблона"
 			}
 		}
 	],
@@ -138,8 +125,7 @@
 			"args": {
 				"linkTo": "(.../data/activeflag/_index.md)",
 				"logicPath": "mdt/updates/v23",
-				"title": "MDT v.23 от 2021.10.11",
-				"editorLink": "/api/redirect/vscode/mdt/docs/updates/v23/_index.md"
+				"title": "MDT v.23 от 2021.10.11"
 			}
 		},
 		{
@@ -148,8 +134,7 @@
 			"args": {
 				"linkTo": "./Ping%20MDT%20API.xml",
 				"logicPath": "mdt/install/troubleshooting",
-				"title": "Возможные ошибки",
-				"editorLink": "/api/redirect/vscode/mdt/docs/install/troubleshooting/_index.md"
+				"title": "Возможные ошибки"
 			}
 		},
 		{
@@ -158,8 +143,7 @@
 			"args": {
 				"linkTo": "files/buidl.cmd",
 				"logicPath": "mdt/dev/_internal/local_ui",
-				"title": "Локальное развертывание MDT UI",
-				"editorLink": "/api/redirect/vscode/mdt/docs/dev/_internal/local_ui/_index.md"
+				"title": "Локальное развертывание MDT UI"
 			}
 		}
 	],
@@ -170,8 +154,7 @@
 			"args": {
 				"linkTo": "../../stepnotfound.png",
 				"logicPath": "mdt/dev/e2e",
-				"title": "Автоматическое тестирование",
-				"editorLink": "/api/redirect/vscode/mdt/docs/dev/e2e/_index.md"
+				"title": "Автоматическое тестирование"
 			}
 		}
 	]

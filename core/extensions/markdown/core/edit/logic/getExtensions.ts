@@ -1,9 +1,10 @@
 import Br from "@ext/markdown/elements/br/edit/br";
 import ExtendedCodeBlockLowlight from "@ext/markdown/elements/codeBlockLowlight/edit/model/codeBlockLowlight";
 import ArticleSearch from "@ext/markdown/elements/find/edit/models/ArticleSearch";
+import TaskItem from "@ext/markdown/elements/list/edit/models/taskItem/model/taskItem";
+import TaskList from "@ext/markdown/elements/list/edit/models/taskList/model/taskList";
 import { Extensions } from "@tiptap/react";
 
-import DropCursor from "@ext/markdown/elementsUtils/tiptapPlugins/dropcursor";
 import Document from "@tiptap/extension-document";
 import History from "@tiptap/extension-history";
 import TableCell from "@tiptap/extension-table-cell";
@@ -22,11 +23,12 @@ import CopyMsO from "@ext/markdown/elements/copyMsO/copyMsO";
 import InlineCutComponent from "@ext/markdown/elements/cut/edit/model/inlineCut";
 import Diagrams from "@ext/markdown/elements/diagrams/edit/models/diagrams";
 import Drawio from "@ext/markdown/elements/drawio/edit/model/drawio";
+import { Dropcursor } from "@ext/markdown/elements/dropCursor";
 import Em from "@ext/markdown/elements/em/edit/em";
 import File from "@ext/markdown/elements/file/edit/model/file";
 import Heading from "@ext/markdown/elements/heading/edit/model/heading";
 import HorizontalRule from "@ext/markdown/elements/hr/edit/horizontalRule";
-import html from "@ext/markdown/elements/html/edit/models/html";
+import Html from "@ext/markdown/elements/html/edit/models/html";
 import Icon from "@ext/markdown/elements/icon/edit/model/icon";
 import Image from "@ext/markdown/elements/image/edit/model/image";
 import { joinLists } from "@ext/markdown/elements/joinLists/joinLists";
@@ -44,7 +46,6 @@ import Placeholder from "@ext/markdown/elements/placeholder/placeholder";
 import Snippet from "@ext/markdown/elements/snippet/edit/model/snippet";
 import Strike from "@ext/markdown/elements/strikethrough/edit/strike";
 import Strong from "@ext/markdown/elements/strong/edit/strong";
-import StyleWrapper from "@ext/markdown/elements/styleWrapper/model/styleWrapper";
 import CustomTable from "@ext/markdown/elements/table/edit/model/customTable";
 import TableKeyboardShortcuts from "@ext/markdown/elements/table/edit/model/TableKeyboardShortcuts";
 import Tab from "@ext/markdown/elements/tabs/edit/model/tab/tab";
@@ -52,6 +53,7 @@ import Tabs from "@ext/markdown/elements/tabs/edit/model/tabs/tabs";
 import Typography from "@ext/markdown/elements/typography/typography";
 import UnsupportedComponent from "@ext/markdown/elements/unsupported/edit/model/unsupported";
 import VideoComponent from "@ext/markdown/elements/video/edit/model/video";
+import View from "@ext/markdown/elements/view/edit/models/view";
 import { Suggestion } from "@ext/StyleGuide/extension/Suggestion";
 import SmileReplacer from "../../../elements/smilieReplacer/smileReplacer";
 
@@ -66,13 +68,12 @@ const getExtensions = (): Extensions => [
 	ArticleSearch,
 	UnsupportedComponent,
 	LinkComponent,
-	StyleWrapper,
 	Placeholder,
 	ArrowsMove,
 	joinLists,
 	ExtendedCodeBlockLowlight,
-	DropCursor,
 	DragScroller,
+	Dropcursor,
 	Diagrams,
 	OpenApi,
 	Drawio,
@@ -111,7 +112,8 @@ export const getSimpleExtensions = (): Extensions => [
 	Strong,
 	Strike,
 	Code,
-	html,
+	Html,
+	View,
 	Text,
 	Em,
 
@@ -119,7 +121,9 @@ export const getSimpleExtensions = (): Extensions => [
 
 	OrderedList,
 	BulletList,
+	TaskList,
 	ListItem,
+	TaskItem,
 
 	Comment,
 ];

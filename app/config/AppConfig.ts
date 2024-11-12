@@ -12,22 +12,24 @@ interface AppConfigPaths {
 }
 
 export interface ServicesConfig {
-	cors: { url: string };
+	gitProxy: { url: string };
 	auth: { url: string };
 	review: { url: string };
 	diagramRenderer: { url: string };
-	sso: { url: string; key: string };
+}
+
+export interface EnterpriseConfig {
+	gesUrl: string;
 }
 
 export type AppConfig = {
 	version: string;
 	buildVersion: string;
 
-	glsUrl: string;
 	isRelease: boolean;
 	isReadOnly: boolean;
-	isServerApp: boolean;
 	isProduction: boolean;
+	disableSeo: boolean;
 
 	bugsnagApiKey: string;
 	yandexMetricCounter: string;
@@ -36,18 +38,16 @@ export type AppConfig = {
 	mail: { user: string; password: string };
 	admin: { login: string; password: string };
 	tokens: { share: string; cookie: string };
-	enterprise: { workspacePath: string };
 	services: ServicesConfig;
+	enterprise: EnterpriseConfig;
+
+	logo: { imageUrl: string; linkUrl: string; linkTitle: string };
 };
 
 const getServices = (): ServicesConfig => {
 	return {
-		sso: {
-			url: env("SSO_SERVICE_URL") ?? null,
-			key: env("SSO_SERVICE_ENCRYPTION_KEY") ?? null,
-		},
-		cors: {
-			url: env("CORS_PROXY_SERVICE_URL") ?? "https://gram.ax/cors-proxy",
+		gitProxy: {
+			url: env("GIT_PROXY_SERVICE_URL") ?? "https://develop.gram.ax/git-proxy",
 		},
 		auth: {
 			url: env("AUTH_SERVICE_URL") ?? "https://gram.ax/auth",
@@ -88,15 +88,15 @@ export const getConfig = (): AppConfig => {
 	global.config = {
 		paths: getPaths(),
 		services: getServices(),
+		isReadOnly: getExecutingEnvironment() === "next",
 
 		version: env("GRAMAX_VERSION") ?? null,
 		buildVersion: env("BUILD_VERSION") ?? null,
 
-		glsUrl: env("GLS_URL") ?? null,
-		isReadOnly: env("READ_ONLY") === "true",
-		isServerApp: env("SERVER_APP") === "true",
+		glsUrl: env("GEPS_URL") ?? null,
 		isProduction: env("PRODUCTION") === "true",
 		isRelease: (env("BRANCH") ?? "develop") == "master",
+		disableSeo: env("DISABLE_SEO") === "true",
 
 		bugsnagApiKey: env("BUGSNAG_API_KEY") ?? null,
 		yandexMetricCounter: env("YANDEX_METRIC_COUNTER") ?? null,
@@ -117,7 +117,13 @@ export const getConfig = (): AppConfig => {
 		},
 
 		enterprise: {
-			workspacePath: env("WORKSPACE_PATH"),
+			gesUrl: env("GES_URL"),
+		},
+
+		logo: {
+			imageUrl: env("LOGO_IMAGE_URL"),
+			linkUrl: env("LOGO_LINK_URL") ?? "/",
+			linkTitle: env("LOGO_LINK_TITLE"),
 		},
 	} as AppConfig;
 

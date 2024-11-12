@@ -3,22 +3,22 @@ import { PageDataContextContext } from "@core-ui/ContextServices/PageDataContext
 import React, { ReactNode } from "react";
 import PageDataContext from "../../../../logic/Context/PageDataContext";
 import sendBug from "../../../bugsnag/logic/sendBug";
-import AlertError from "@components/AlertError";
 
-interface ErrorHandlerProps {
+export interface ErrorHandlerProps {
 	children: ReactNode;
-	isAlert?: boolean;
-	alertTitle?: string;
 }
 
 interface ErrorHandlerState {
 	error: Error;
 }
 
-class ErrorHandler extends React.Component<ErrorHandlerProps, ErrorHandlerState> {
-	constructor(props: ErrorHandlerProps) {
+class ErrorHandler<
+	P extends ErrorHandlerProps = ErrorHandlerProps,
+	S extends ErrorHandlerState = ErrorHandlerState,
+> extends React.Component<P, S> {
+	constructor(props: P) {
 		super(props);
-		this.state = { error: null };
+		this.state = { error: null } as S;
 	}
 	static override contextType = PageDataContextContext;
 
@@ -30,13 +30,14 @@ class ErrorHandler extends React.Component<ErrorHandlerProps, ErrorHandlerState>
 		sendBug(error);
 	}
 
+	renderError() {
+		return <Error error={this.state.error} isLogged={(this?.context as PageDataContext)?.isLogged ?? false} />;
+	}
+
 	override render() {
-		if (this.state.error)
-			return this.props.isAlert ? (
-				<AlertError title={this.props.alertTitle} error={this.state.error} />
-			) : (
-				<Error error={this.state.error} isLogged={(this?.context as PageDataContext)?.isLogged ?? false} />
-			);
+		if (this.state.error) {
+			return this.renderError();
+		}
 		return this.props.children;
 	}
 }

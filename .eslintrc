@@ -25,13 +25,14 @@
 
 		"node_modules",
 		"docs",
-		"services/**/TSClassDiagram/files",
+		"services/**/Services/TSClassDiagram/files",
 		"core/extensions/markdown/core/edit/logic/Prosemirror",
 		"core/extensions/markdown/core/render/logic/Markdoc",
 		"**/*.js",
 
 		"**/dist/**/*",
-		"apps/tauri/target"
+		"apps/tauri/target",
+		"apps/next/crates/next-gramax-git"
 	],
 	"plugins": ["@typescript-eslint", "react", "react-hooks", "promise"],
 	"settings": {

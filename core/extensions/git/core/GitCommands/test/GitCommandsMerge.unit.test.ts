@@ -6,6 +6,7 @@ import DiskFileProvider from "@core/FileProvider/DiskFileProvider/DiskFileProvid
 import Path from "@core/FileProvider/Path/Path";
 import GitCommands from "@ext/git/core/GitCommands/GitCommands";
 import GitVersionControl from "@ext/git/core/GitVersionControl/GitVersionControl";
+import RepositoryProvider from "@ext/git/core/Repository/RepositoryProvider";
 import SourceData from "@ext/storage/logic/SourceDataProvider/model/SourceData";
 import SourceType from "@ext/storage/logic/SourceDataProvider/model/SourceType";
 
@@ -42,6 +43,7 @@ describe("GitCommands", () => {
 
 	afterEach(async () => {
 		await dfp.delete(path("testRep"));
+		await RepositoryProvider.invalidateRepoCache([]);
 		git = null;
 	});
 

@@ -2,9 +2,10 @@ import { cssMedia } from "@core-ui/utils/cssUtils";
 import styled from "@emotion/styled";
 import { useEffect, useRef, useState } from "react";
 import Popup from "reactjs-popup";
-import ErrorHandler from "../../extensions/errorHandlers/client/components/ErrorHandler";
+import ModalErrorHandler from "@ext/errorHandlers/client/components/ModalErrorHandler";
 import IsOpenModalService from "../../ui-logic/ContextServices/IsOpenMpdal";
 import Icon from "../Atoms/Icon";
+import { classNames } from "@components/libs/classNames";
 
 export interface ModalLayoutProps {
 	children: JSX.Element;
@@ -41,6 +42,7 @@ const ModalLayout = (props: ModalLayoutProps) => {
 	const [isOpen, setIsOpen] = useState(isParentOpen ?? false);
 	const [closeOnDocumentClick, setCloseOnDocumentClick] = useState(true);
 	const [mouseDownOnModal, setMouseDownOnModal] = useState(false);
+	const [isError, setIsError] = useState(false);
 	const shouldAbortOnClose = useRef(false);
 	const needToCallOnClose = useRef(true);
 
@@ -93,6 +95,10 @@ const ModalLayout = (props: ModalLayoutProps) => {
 		else tryClose();
 	}, [isParentOpen]);
 
+	const handleError = () => {
+		setIsError(true);
+	};
+
 	return (
 		<Popup
 			open={isOpen}
@@ -138,7 +144,7 @@ const ModalLayout = (props: ModalLayoutProps) => {
 					/>
 				</div>
 				<div
-					className="outer-modal"
+					className={classNames("outer-modal", { "is-error": isError })}
 					onMouseEnter={() => {
 						setCloseOnDocumentClick(false);
 					}}
@@ -149,9 +155,9 @@ const ModalLayout = (props: ModalLayoutProps) => {
 						setCloseOnDocumentClick(false);
 					}}
 				>
-					<ErrorHandler>
+					<ModalErrorHandler onError={handleError} onClose={closeModal}>
 						<>{children}</>
-					</ErrorHandler>
+					</ModalErrorHandler>
 					<div style={{ height: "100%" }} onClick={tryClose} />
 				</div>
 			</div>
@@ -184,6 +190,10 @@ export default styled(ModalLayout)`
 		${cssMedia.narrow} {
 			width: 98% !important;
 		}
+	}
+
+	.outer-modal.is-error {
+		width: var(--default-form-width);
 	}
 
 	.x-mark {

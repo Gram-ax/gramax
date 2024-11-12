@@ -24,7 +24,7 @@ const autoPull = (app: Application) => {
 				token: process.env.AUTO_PULL_TOKEN,
 			};
 
-			if (await catalog.repo.haveToPull({ data: sourceData })) {
+			if (await catalog.repo.isShouldSync({ data: sourceData })) {
 				await catalog.repo.sync({
 					data: sourceData,
 					recursivePull: true,

@@ -20,6 +20,7 @@ use std::path::PathBuf;
 use std::sync::atomic::AtomicUsize;
 use std::sync::atomic::Ordering;
 
+use error::ShowError;
 use http_server::start_ping_server;
 
 use platform::*;
@@ -54,10 +55,15 @@ pub fn run() {
   let builder = Builder::default().init().attach_commands().attach_plugins();
   let context = tauri::generate_context!();
 
-  #[cfg(target_os = "macos")]
-  let builder = builder.on_window_event(platform::window_event_handler);
-
   let app = builder.build(context).expect("Can't build app");
+
+  #[cfg(any(target_os = "linux", target_os = "windows"))]
+  {
+    use tauri_plugin_deep_link::DeepLinkExt;
+    if !app.deep_link().is_registered("gramax").unwrap_or(false) {
+      _ = app.deep_link().register("gramax").or_show();
+    }
+  };
 
   let ping_server_app_handle = app.handle().clone();
   start_ping_server(move |req| handle_ping_server(req, &ping_server_app_handle));
@@ -65,7 +71,7 @@ pub fn run() {
   #[cfg(desktop)]
   {
     #[cfg(target_family = "unix")]
-    app.setup_menu().expect("unable to setup menu");
+    app.handle().setup_menu().expect("unable to setup menu");
     app.setup_updater().expect("unable to setup updater");
   }
 
@@ -127,7 +133,13 @@ impl<R: Runtime> AppBuilder for Builder<R> {
 
 fn set_locale() {
   let locale = &sys_locale::get_locale().unwrap_or("en".to_string());
-  rust_i18n::set_locale(locale.split_once("-").map(|l| l.0).unwrap_or(locale));
+  let locale = locale.split_once("-").map(|l| l.0).unwrap_or(locale);
+  if ["ru", "en"].contains(&locale) {
+    rust_i18n::set_locale(locale);
+  } else {
+    warn!("unsupported locale: {} ({:?}); using default 'en'", locale, sys_locale::get_locale());
+    rust_i18n::set_locale("en");
+  }
 }
 
 fn handle_ping_server<R: Runtime>(req: &tiny_http::Request, app: &AppHandle<R>) {
@@ -139,10 +151,21 @@ fn handle_ping_server<R: Runtime>(req: &tiny_http::Request, app: &AppHandle<R>) 
   let window = app.get_focused_webview().or_else(|| app.webview_windows().values().next().cloned());
 
   if let Some(window) = window {
-    _ = window.set_focus();
-    _ = window.eval(&dbg!(format!("window.location.replace('/{}')", path.trim_start_matches('/'))));
+    _ = window.eval(&format!("window.location.replace('/{}')", path.trim_start_matches('/'))).or_show();
+    _ = window.request_user_attention(Some(UserAttentionType::Informational));
+    _ = window.show().or_show();
+    _ = window.unminimize().or_show();
+    #[cfg(target_os = "macos")]
+    std::thread::sleep(std::time::Duration::from_millis(300));
+    _ = window.set_focus().or_show();
   } else {
-    _ = MainWindowBuilder::default().url(path).build(app);
+    let window = MainWindowBuilder::default()
+      .url(path)
+      .build(app)
+      .or_show_with_message(t!("etc.error.build-window").as_ref())
+      .unwrap();
+
+    _ = window.set_focus().or_show();
   }
 }
 
@@ -187,7 +210,6 @@ impl MainWindowBuilder {
 
     let window = builder.build()?;
 
-    window_post_init(&window)?;
     Ok(window)
   }
 

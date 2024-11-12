@@ -73,6 +73,7 @@ class LinkHoverTooltip extends TooltipBase {
 	};
 
 	setComponent(element: HTMLElement) {
+		if (!element) return this.closeComponent();
 		if (!this.isMounted) {
 			this.setTooltipPosition(element);
 		}

@@ -1,12 +1,16 @@
 import type { Category } from "@core/FileStructue/Category/Category";
 import CustomArticlePresenter from "@core/SitePresenter/CustomArticlePresenter";
 import LastVisited from "@core/SitePresenter/LastVisited";
+import type { RefInfo } from "@ext/git/core/GitCommands/model/GitCommandsModel";
 import GitRepositoryProvider from "@ext/git/core/Repository/RepositoryProvider";
 import { catalogHasItems, isLanguageCategory, resolveRootCategory } from "@ext/localization/core/catalogExt";
 import { convertContentToUiLanguage } from "@ext/localization/locale/translate";
 import getArticleAsString from "@ext/markdown/elements/article/edit/logic/getArticleAsString";
 import TabsTags from "@ext/markdown/elements/tabs/model/TabsTags";
 import DragTreeTransformer from "@ext/navigation/catalog/drag/logic/DragTreeTransformer";
+import NavigationEventHandlers from "@ext/navigation/events/NavigationEventHandlers";
+import getAllCatalogProperties from "@ext/properties/logic/getAllCatalogProps";
+import { Property, PropertyValue } from "@ext/properties/models";
 import RuleProvider from "@ext/rules/RuleProvider";
 import type { Workspace } from "@ext/workspace/Workspace";
 import type { WorkspaceConfig } from "@ext/workspace/WorkspaceConfig";
@@ -18,13 +22,12 @@ import ParserContextFactory from "../../extensions/markdown/core/Parser/ParserCo
 import { CatalogLink, ItemLink, TitledLink } from "../../extensions/navigation/NavigationLinks";
 import { TocItem } from "../../extensions/navigation/article/logic/createTocItems";
 import Navigation from "../../extensions/navigation/catalog/main/logic/Navigation";
-import UserInfo from "../../extensions/security/logic/User/UserInfo2";
+import UserInfo from "../../extensions/security/logic/User/UserInfo";
 import Context from "../Context/Context";
 import Path from "../FileProvider/Path/Path";
 import { Article } from "../FileStructue/Article/Article";
 import parseContent from "../FileStructue/Article/parseContent";
 import { ArticleFilter, Catalog, ItemFilter } from "../FileStructue/Catalog/Catalog";
-import { Property, PropertyValue } from "@ext/properties/models";
 
 export type ClientCatalogProps = {
 	name: string;
@@ -41,6 +44,9 @@ export type ClientCatalogProps = {
 	link: CatalogLink;
 	readOnly?: boolean;
 	relatedLinks?: TitledLink[];
+	versions?: string[];
+	resolvedVersions?: RefInfo[];
+	resolvedVersion?: RefInfo;
 };
 
 export type ClientArticleProps = {
@@ -73,9 +79,15 @@ export type HomePageData = {
 	catalogLinks: CatalogsLinks;
 };
 
+export type GetArticlePageDataOptions = {
+	editableContent?: boolean;
+	markdown?: boolean;
+};
+
 export type ArticlePageData = {
-	articleContentEdit: string;
-	articleContentRender: string;
+	markdown?: string;
+	articleContentRender?: string;
+	articleContentEdit?: string;
 	articleProps: ClientArticleProps;
 	catalogProps: ClientCatalogProps;
 	itemLinks: ItemLink[];
@@ -100,9 +112,8 @@ export default class SitePresenter {
 		private _customArticlePresenter: CustomArticlePresenter,
 		private _context: Context,
 	) {
-		const rp = new RuleProvider(_context, _customArticlePresenter);
-		rp.mountNavEvents(this._nav);
-		this._filters = rp.getItemFilters();
+		new NavigationEventHandlers(_context, _customArticlePresenter).mount(this._nav);
+		this._filters = new RuleProvider(_context, _customArticlePresenter).getItemFilters();
 	}
 
 	async getHomePageData(workspace: WorkspaceConfig): Promise<HomePageData> {
@@ -141,14 +152,22 @@ export default class SitePresenter {
 		return { catalogLinks };
 	}
 
-	async getArticlePageData(article: Article, catalog: Catalog): Promise<ArticlePageData> {
+	async getArticlePageData(
+		article: Article,
+		catalog: Catalog,
+		{ editableContent, markdown }: GetArticlePageDataOptions = {},
+	): Promise<ArticlePageData> {
 		await parseContent(article, catalog, this._context, this._parser, this._parserContextFactory);
 
 		const itemLinks = catalog ? await this._nav.getCatalogNav(catalog, article.logicPath) : [];
 
 		return {
-			articleContentEdit: getArticleAsString(article.props.title, article.parsedContent.editTree),
-			articleContentRender: JSON.stringify(article.parsedContent.renderTree),
+			markdown: markdown ? article.content : null,
+			articleContentRender: editableContent ? null : JSON.stringify(article.parsedContent.renderTree),
+			articleContentEdit: editableContent
+				? getArticleAsString(article.props.title, article.parsedContent.editTree)
+				: null,
+
 			articleProps: this.serializeArticleProps(article, await catalog?.getPathname(article)),
 			catalogProps: await this.serializeCatalogProps(catalog),
 			rootRef: catalog ? await this._nav.getRootItemLink(catalog) : null,
@@ -157,7 +176,11 @@ export default class SitePresenter {
 		};
 	}
 
-	async getArticlePageDataByPath(path: string[], pathname?: string): Promise<ArticlePageData> {
+	async getArticlePageDataByPath(
+		path: string[],
+		pathname?: string,
+		options: GetArticlePageDataOptions = {},
+	): Promise<ArticlePageData> {
 		const data = await this.getArticleByPathOfCatalog(path);
 		if (!data.catalog) return null;
 		if (!data.article) {
@@ -165,7 +188,7 @@ export default class SitePresenter {
 				? this._customArticlePresenter.getArticle("Article404", { pathname })
 				: this._customArticlePresenter.getArticle("welcome");
 		}
-		return await this.getArticlePageData(data.article, data.catalog);
+		return await this.getArticlePageData(data.article, data.catalog, options);
 	}
 
 	async getCatalogNav(catalog: Catalog, currentItemLogicPath: string): Promise<ItemLink[]> {
@@ -277,12 +300,15 @@ export default class SitePresenter {
 			title: catalog.props.title ?? "",
 			readOnly: catalog.props.readOnly ?? false,
 			language: catalog.props.language,
-			properties: Array.from(catalog.props.properties || []),
+			properties: getAllCatalogProperties(catalog),
 			repositoryName: catalog.getName(),
 			sourceName: (await storage?.getSourceName()) ?? null,
 			userInfo: this._grp.getSourceUserInfo(this._context.cookie, await storage?.getSourceName()),
 			docroot: catalog.getRelativeRootCategoryPath()?.value,
 			supportedLanguages: Array.from(catalog.props.supportedLanguages || []),
+			versions: catalog.props.versions,
+			resolvedVersion: catalog.props.resolvedVersion,
+			resolvedVersions: catalog.props.resolvedVersions,
 		};
 	}
 
@@ -290,8 +316,7 @@ export default class SitePresenter {
 		path: string[],
 		filters = this._filters,
 	): Promise<{ article: Article; catalog: Catalog }> {
-		const catalogName = path[0];
-		const catalog = await this._workspace.getCatalog(catalogName);
+		const catalog = await this._workspace.getCatalog(path[0]);
 		if (!catalog) return { article: null, catalog: null };
 		const itemLogicPath = Path.join(...path);
 		const root = resolveRootCategory(catalog, this._context.contentLanguage || catalog.props.language);
@@ -308,8 +333,6 @@ export default class SitePresenter {
 				article = (article as Category).items[0] as Article;
 			else article = catalog.getRootCategory().items.find((i) => !isLanguageCategory(catalog, i)) as Article;
 		}
-
-		if (article?.props.external) await article.saveTree();
 
 		return { article, catalog };
 	}

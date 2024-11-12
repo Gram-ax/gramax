@@ -35,11 +35,17 @@ Object.assign(Module, {
 		const proxy = getStore(1);
 		const token = getStore(2);
 		const gitServerUsername = getStore(3) || "git";
+		const protocol = getStore(4);
 
 		const xhr = new XMLHttpRequest();
-		xhr.open(method, proxy + url.replace(/https?:\/\//, `/${gitServerUsername}:$token$@`), false);
+		xhr.open(
+			method,
+			proxy && proxy !== "null" ? proxy + url.replace(/https?:\/\//, `/${gitServerUsername}:$token$@`) : url,
+			false,
+		);
 		xhr.responseType = "arraybuffer";
-		xhr.setRequestHeader("PRIVATE-TOKEN", token);
+		xhr.setRequestHeader("x-private-token", token);
+		if (protocol) xhr.setRequestHeader("x-protocol", protocol);
 
 		if (headers) Object.keys(headers).forEach((header) => xhr.setRequestHeader(header, headers[header]));
 

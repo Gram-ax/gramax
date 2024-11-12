@@ -1,9 +1,9 @@
 import useWatch from "@core-ui/hooks/useWatch";
 import styled from "@emotion/styled";
+import { CustomDecorations } from "@ext/markdown/elements/find/edit/components/ArticleSearchHotkeyView";
 import { Editor } from "@tiptap/core";
 import { FC, useEffect, useRef, useState } from "react";
 import FindReplaceModal from "./FindReplaceModal";
-import { Decoration } from "prosemirror-view";
 
 declare module "@tiptap/core" {
 	interface Commands<ReturnType> {
@@ -18,7 +18,7 @@ interface ArticleSearchProps {
 	editor: Editor;
 	closeHandle: () => void;
 	openHandle: () => void;
-	decorations: Decoration[];
+	decorations: CustomDecorations[];
 	className?: string;
 }
 
@@ -101,7 +101,7 @@ const StyledArticleSearch = styled(ArticleSearchComponent)`
 	right: 24px;
 	top: 24px;
 	position: absolute;
-	z-index: 110;
+	z-index: var(--z-index-article-search);
 	padding: 0 10px;
 
 	font-size: 0.875rem;

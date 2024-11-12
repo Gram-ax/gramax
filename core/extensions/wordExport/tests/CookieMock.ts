@@ -7,7 +7,7 @@ class CookieMock extends Cookie {
 		super(secret);
 	}
 
-	set(name: string, value: string, expires?: number) {
+	set(name: string, value: string) {
 		this.cookies[name] = super._encrypt(value);
 	}
 

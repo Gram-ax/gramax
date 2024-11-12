@@ -1,5 +1,6 @@
 import ButtonsLayout from "@components/Layouts/ButtonLayout";
 import ModalLayoutDark from "@components/Layouts/ModalLayoutDark";
+import { useExternalLink } from "@core-ui/hooks/useExternalLink";
 import { usePlatform } from "@core-ui/hooks/usePlatform";
 import parseStorageUrl from "@core/utils/parseStorageUrl";
 import styled from "@emotion/styled";
@@ -26,7 +27,7 @@ interface CopyButtonProps extends ButtonProps {
 const StyledDiv = styled.div`
 	display: flex;
 	gap: 4px;
-	width: 300px;
+	width: 330px;
 	align-items: center;
 `;
 
@@ -44,6 +45,8 @@ const LinkMenu = (props: LinkMenuProps) => {
 	const [isReady, setIsReady] = useState(false);
 	const [isCopied, setIsCopied] = useState(false);
 	const [isCopyShow, setIsCopyShow] = useState(false);
+
+	const [isExternalLink] = useExternalLink(href);
 
 	const { isTauri } = usePlatform();
 
@@ -70,7 +73,7 @@ const LinkMenu = (props: LinkMenuProps) => {
 	};
 
 	useEffect(() => {
-		setIsCopyShow(href && href !== "/" && !isTauri);
+		setIsCopyShow(href !== "/" && (!isTauri || isExternalLink));
 		if (href !== oldHref) setIsReady(false);
 		setOldHref(href);
 	}, [href]);

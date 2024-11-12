@@ -1,4 +1,4 @@
-import { getExecutingEnvironment } from "@app/resolveModule/env";
+import Icon from "@components/Atoms/Icon";
 import Tooltip from "@components/Atoms/Tooltip";
 import PopupMenuLayout from "@components/Layouts/PopupMenuLayout";
 import ButtonLink from "@components/Molecules/ButtonLink";
@@ -7,7 +7,7 @@ import CatalogPropsService from "@core-ui/ContextServices/CatalogProps";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import { useRouter } from "@core/Api/useRouter";
 import AddContentLanguage from "@ext/localization/actions/AddContentLanguage";
-import RemoveContentLanguage from "@ext/localization/actions/RemoveContentLanguage";
+import ContentLanguageActions from "@ext/localization/actions/ContentLanguageActions";
 import Localizer from "@ext/localization/core/Localizer";
 import { ContentLanguage } from "@ext/localization/core/model/Language";
 import t from "@ext/localization/locale/translate";
@@ -15,7 +15,7 @@ import { useEffect, useState } from "react";
 
 const SwitchContentLanguage = () => {
 	const router = useRouter();
-	const isServerApp = PageDataContextService.value.conf.isServerApp;
+	const isReadOnly = PageDataContextService.value.conf.isReadOnly;
 
 	const articleProps = ArticlePropsService.value;
 	const props = CatalogPropsService.value;
@@ -32,10 +32,10 @@ const SwitchContentLanguage = () => {
 		if (props.language && !props.supportedLanguages.includes(currentLanguage)) switchLanguage(props.language);
 	}, []);
 
-	if (!articleProps || !articleProps?.pathname) return null;
+	if (!articleProps || !props || !articleProps?.pathname || articleProps.welcome || !props.language) return null;
 
 	const switchLanguage = (code: ContentLanguage) => {
-		if (isServerApp) {
+		if (isReadOnly) {
 			router.pushPath(
 				Localizer.addPath({
 					current: currentLanguage,
@@ -58,27 +58,21 @@ const SwitchContentLanguage = () => {
 		);
 	};
 
-	if (!props.language)
-		return (
-			getExecutingEnvironment() !== "next" && (
-				<Tooltip content={t("multilang.error.no-selected-language")}>
-					<ButtonLink disabled iconCode="languages" text={t("language.name")} />
-				</Tooltip>
-			)
-		);
-
 	return (
 		<PopupMenuLayout
+			hideOnClick={false}
 			trigger={
 				<ButtonLink
+					dataQa="switch-content-language"
 					iconCode="languages"
 					text={t(`language.${ContentLanguage[currentLanguage]}`)}
 					iconIsLoading={isLoading}
+					rightActions={[<Icon key={0} code="chevron-down" />]}
 				/>
 			}
 		>
 			<>
-				{!isServerApp && (
+				{!isReadOnly && (
 					<>
 						<AddContentLanguage setIsLoading={setIsLoading} onChange={switchLanguage} />
 						<div className="divider" />
@@ -87,21 +81,22 @@ const SwitchContentLanguage = () => {
 
 				{Object.values(props.supportedLanguages).map((code, idx) => {
 					const canSwitch = code != currentLanguage;
-					const canDelete = !isServerApp && props.language != code;
+					const showActions = !isReadOnly && props.language != code;
 
 					const button = (
 						<ButtonLink
 							key={idx}
-							disabled={!canSwitch}
-							onClick={() => switchLanguage(code)}
+							onClick={canSwitch ? () => switchLanguage(code) : undefined}
 							text={t(`language.${ContentLanguage[code]}`)}
 							fullWidth={props.language != code}
+							iconCode={!canSwitch ? "check" : null}
+							iconIsLoading={isLoading}
 							rightActions={
-								canDelete && [
-									<RemoveContentLanguage
+								showActions && [
+									<ContentLanguageActions
 										key={0}
+										canSwitch={canSwitch}
 										setIsLoading={setIsLoading}
-										disabled={!canSwitch}
 										targetCode={code}
 									/>,
 								]
@@ -112,7 +107,7 @@ const SwitchContentLanguage = () => {
 					return canSwitch ? (
 						button
 					) : (
-						<Tooltip hideInMobile hideOnClick content={t("multilang.error.cannot-switch-to-self")}>
+						<Tooltip hideInMobile hideOnClick content={t("multilang.current")}>
 							{button}
 						</Tooltip>
 					);

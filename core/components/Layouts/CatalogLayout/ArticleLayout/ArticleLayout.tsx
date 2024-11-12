@@ -56,7 +56,7 @@ const ArticleLayout = (props: ArticleLayoutProps) => {
 
 export default styled(ArticleLayout)`
 	.right-nav-layout {
-		z-index: var(--z-index-nav-layout);
+		${(p) => !p.isRightNavPin && `z-index: var(--z-index-nav-layout);`}
 		height: 100%;
 	}
 
@@ -97,7 +97,7 @@ export default styled(ArticleLayout)`
 
 		${
 			p.isRightNavPin
-				? `z-index: 1000; transform: translateX(0px);`
+				? `z-index: var(--z-index-popover); transform: translateX(0px);`
 				: `transform: translateX(calc(var(--narrow-nav-width) - 20px));`
 		}
 

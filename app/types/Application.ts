@@ -1,3 +1,4 @@
+import { ServicesConfig } from "@app/config/AppConfig";
 import { ContextFactory } from "@core/Context/ContextFactory";
 import Path from "@core/FileProvider/Path/Path";
 import Hash from "@core/Hash/Hash";
@@ -43,17 +44,27 @@ interface Application {
 	customArticlePresenter: CustomArticlePresenter;
 	conf: {
 		basePath: Path;
-
 		version: string;
 		buildVersion: string;
-		glsUrl: string;
+
 		isRelease: boolean;
 		isReadOnly: boolean;
-		isServerApp: boolean;
 		isProduction: boolean;
+		disableSeo: boolean;
 
 		bugsnagApiKey: string;
 		yandexMetricCounter: string;
+
+		services: ServicesConfig;
+		enterprise: {
+			gesUrl: string;
+		};
+
+		logo: {
+			imageUrl: string;
+			linkUrl: string;
+			linkTitle: string;
+		};
 	};
 }
 

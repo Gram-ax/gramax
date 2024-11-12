@@ -1,12 +1,12 @@
 import { NodeViewContent, NodeViewProps, NodeViewWrapper } from "@tiptap/react";
-import TableWrapper from "@ext/markdown/elements/table/render/component/TableWrapper";
+import WidthWrapper from "@components/WidthWrapper/WidthWrapper";
 
 const TableComponent = ({ node }: NodeViewProps) => {
 	const content = node.firstChild;
 
 	return (
 		<NodeViewWrapper>
-			<TableWrapper>
+			<WidthWrapper>
 				<NodeViewContent as="table" style={{ display: "block ruby" }}>
 					<colgroup>
 						{Array.from({ length: content.childCount }, (_, i) => {
@@ -29,7 +29,7 @@ const TableComponent = ({ node }: NodeViewProps) => {
 						})}
 					</colgroup>
 				</NodeViewContent>
-			</TableWrapper>
+			</WidthWrapper>
 		</NodeViewWrapper>
 	);
 };

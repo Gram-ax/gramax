@@ -29,7 +29,8 @@ export default class GramaxApi {
 
 	private async _api(url: string): Promise<Response> {
 		const fetchUrl = `${this._instanceUrl}/${url}`;
-		const res = await fetch(fetchUrl, { method: "GET" });
+		console.log(process.env.GX_E2E_USER);
+		const res = await fetch(fetchUrl, { method: "GET", headers: { Cookie: `user=${process.env.GX_E2E_USER}` } });
 		if (!res.ok) throw this._generateError(res, (await res.json()).message);
 		return res;
 	}

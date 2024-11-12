@@ -1,6 +1,5 @@
 import LanguageService from "@core-ui/ContextServices/Language";
 import styled from "@emotion/styled";
-import Theme from "@ext/Theme/Theme";
 import ThemeService from "@ext/Theme/components/ThemeService";
 import InfoModalForm from "@ext/errorHandlers/client/components/ErrorForm";
 import t from "@ext/localization/locale/translate";
@@ -10,7 +9,7 @@ import App from "./App";
 const ContinueInBrowserUnstyled = ({ onClick, ...props }: { onClick: () => void } & HTMLAttributes<HTMLDivElement>) => {
 	return (
 		<LanguageService.Provider>
-			<ThemeService.Provider value={Theme.light}>
+			<ThemeService.Provider>
 				<div {...props}>
 					<div className="container">
 						<InfoModalForm

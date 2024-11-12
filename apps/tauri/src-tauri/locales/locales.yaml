@@ -1,29 +1,121 @@
 _version: 2
 
 menu:
-  new-window:
-    ru: 'Новое окно'
-    en: 'New Window'
+  file:
+    ru: 'Файл'
+    en: 'File'
 
-  close-window:
-    ru: 'Закрыть окно'
-    en: 'Close Window'
+    new-window:
+      ru: 'Новое окно'
+      en: 'New Window'
 
-  quit:
-    ru: 'Закрыть'
-    en: 'Quit'
+    close-window:
+      ru: 'Закрыть окно'
+      en: 'Close Window'
 
-  hide:
-    ru: 'Скрыть'
-    en: 'Hide'
+    quit:
+      ru: 'Выход'
+      en: 'Quit'
 
-  about:
-    ru: 'О программе'
-    en: 'About'
+    hide:
+      ru: 'Скрыть'
+      en: 'Hide'
+
+    about:
+      ru: 'О программе'
+      en: 'About'
+
+  edit:
+    ru: 'Правка'
+    en: 'Edit'
+
+    undo:
+      ru: 'Отменить'
+      en: 'Undo'
+
+    redo:
+      ru: 'Повторить'
+      en: 'Redo'
+
+    cut:
+      ru: 'Вырезать'
+      en: 'Cut'
+
+    copy:
+      ru: 'Копировать'
+      en: 'Copy'
+
+    paste:
+      ru: 'Вставить'
+      en: 'Paste'
+
+    select-all:
+      ru: 'Выделить всё'
+      en: 'Select All'
+
+  window:
+    ru: 'Окно'
+    en: 'Window'
+
+    maximize:
+      ru: 'Развернуть'
+      en: 'Maximize'
+
+    minimize:
+      ru: 'Свернуть'
+      en: 'Minimize'
+
+    toggle-inspector:
+      ru: 'Открыть инспектор'
+      en: 'Show Inspector'
+
+    refresh:
+      ru: 'Обновить'
+      en: 'Refresh'
+
+    reload:
+      ru: 'Перезагрузить'
+      en: 'Reload'
+
+    fullscreen:
+      ru: 'Полноэкранный режим'
+      en: 'Fullscreen'
+
+  view:
+    ru: 'Вид'
+    en: 'View'
+
+    zoom-in:
+      ru: 'Увеличить масштаб'
+      en: 'Zoom In'
+
+    zoom-out:
+      ru: 'Уменьшить масштаб'
+      en: 'Zoom Out'
+
+    actual-size:
+      ru: 'Сбросить масштаб'
+      en: 'Actual Size'
 
   help:
-    ru: 'Справка'
+    ru: 'Помощь'
     en: 'Help'
+
+    visit-docs:
+      ru: 'Документация Gramax'
+      en: 'Visit Gramax docs'
+
+    visit-github:
+      ru: 'Репозиторий на GitHub'
+      en: 'Visit GitHub repository'
+
+    telegram-news:
+      ru: 'Новостной канал в Telegram'
+      en: 'Follow news channel on Telegram'
+
+    telegram-chat:
+      ru: 'Чат в Telegram'
+      en: 'Join community chat on Telegram'
 
 updates:
   you-have-actual-ver:
@@ -108,6 +200,25 @@ trash:
       File %{path} will be deleted permanently.
 
 etc:
+  error:
+    title:
+      ru: 'Что-то пошло не так'
+      en: 'Something went wrong'
+
+    open-url:
+      ru: |
+        Не удалось открыть внешний url
+        %{url}
+      en: |
+        Failed to open external url
+        %{url}
+    
+    build-window:
+      ru: |
+        Не удалось открыть окно
+      en: |
+        Failed to open window
+
   ok:
     ru: 'Понятно'
     en: 'Ok'

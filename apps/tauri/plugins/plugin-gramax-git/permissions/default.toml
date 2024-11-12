@@ -27,5 +27,14 @@ permissions = [
   "allow-restore",
   "allow-get-parent",
   "allow-get-content",
-  "allow-graph-head-upstream-files"
+  "allow-graph-head-upstream-files",
+  "allow-git-read-file",
+  "allow-git-read-dir",
+  "allow-git-file-stat",
+  "allow-git-file-exists",
+  "allow-find-refs-by-globs",
+  "allow-is-bare",
+  "allow-is-init",
+  "allow-set-head",
+  "allow-invalidate-repo-cache",
 ]

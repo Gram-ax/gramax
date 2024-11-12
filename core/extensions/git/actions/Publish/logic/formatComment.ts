@@ -10,7 +10,7 @@ const getAllFilePaths = (data: SideBarData[]) => {
 	data.filter((x) => x).forEach(({ data }) => {
 		if (!data.isChecked) return;
 		res.push({ path: formatPath(data.filePath), prefix: " - " });
-		data.resources.forEach((resource) => res.push({ path: formatPath(resource.filePath), prefix: "   - " }));
+		data.resources.forEach((resource) => res.push({ path: formatPath(resource.data.filePath), prefix: "   - " }));
 	});
 	return res.filter((x) => x);
 };

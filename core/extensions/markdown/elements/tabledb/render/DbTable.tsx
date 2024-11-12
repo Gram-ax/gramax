@@ -25,7 +25,7 @@ const TableDB = styled(
 
 		if (error)
 			return (
-				<DiagramError error={error} title={t("diagram.error.tabledb-render-failed")} diagramName="Db-table" />
+				<DiagramError error={error} title={t("diagram.error.tabledb-render-failed")} diagramName="Db-Table" />
 			);
 
 		if (!object) return <SpinnerLoader width={75} height={75} />;

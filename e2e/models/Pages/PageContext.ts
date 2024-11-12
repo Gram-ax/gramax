@@ -64,6 +64,17 @@ export default class PageContext {
 		return new ArticlePageContext(this._page, this._alias, this._aliases, this._info);
 	}
 
+	// FIX ME IF YOU CAN 
+	async getCatalogProps() {
+		if (this.kind() == "home") throw new Error("Not an catalog");
+		return await this._page.evaluate(async () => {
+			const currentCatalog = await window.app.wm
+				.current()
+				.getCatalog(window.debug?.RouterPathProvider.parsePath(window.location.pathname).catalogName);
+			return currentCatalog.props;
+		});
+	}
+
 	search() {
 		return new SearcherContext(this._alias, this._aliases, this._info);
 	}

@@ -3,6 +3,7 @@ import gitMergeConverter from "@ext/git/actions/MergeConflictHandler/logic/GitMe
 import GitMergeResult from "@ext/git/actions/MergeConflictHandler/model/GitMergeResult";
 import GitError from "@ext/git/core/GitCommands/errors/GitError";
 import GitErrorCode from "@ext/git/core/GitCommands/errors/model/GitErrorCode";
+import type { RefInfo } from "@ext/git/core/GitCommands/model/GitCommandsModel";
 import GitStash from "@ext/git/core/model/GitStash";
 import Path from "../../../../logic/FileProvider/Path/Path";
 import FileProvider from "../../../../logic/FileProvider/model/FileProvider";
@@ -38,9 +39,12 @@ export default class GitVersionControl {
 		});
 		void this._initSubGitVersionControls();
 	}
+	isInit(): Promise<boolean> {
+		return this._gitRepository.isInit();
+	}
 
-	static hasInit(fp: FileProvider, path: Path): Promise<boolean> {
-		return new GitCommands(fp, path).hasInit();
+	isBare(): Promise<boolean> {
+		return this._gitRepository.isBare();
 	}
 
 	static async init(fp: FileProvider, path: Path, userData: SourceData): Promise<GitVersionControl> {
@@ -58,6 +62,10 @@ export default class GitVersionControl {
 
 	get relativeToParentPath() {
 		return this._relativeToParentPath;
+	}
+
+	getReferencesByGlob(patterns: string[]): Promise<RefInfo[]> {
+		return this._gitRepository.getReferencesByGlob(patterns);
 	}
 
 	async getCurrentBranch(cached = true): Promise<GitBranch> {
@@ -190,6 +198,10 @@ export default class GitVersionControl {
 		// 	if ((await s.getChanges()).length > 0) await s.commit(message, userData);
 		// }
 		await this._gitRepository.commit(message, userData, parents);
+	}
+
+	async setHead(refname: string) {
+		await this._gitRepository.setHead(refname);
 	}
 
 	async checkoutToBranch(branch: GitBranch | string) {

@@ -7,6 +7,7 @@ import { useRef, useState } from "react";
 import DiagramType from "../../../../../logic/components/Diagram/DiagramType";
 import C4Render from "./C4Render";
 import DiagramRender from "./DiagramRender";
+import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 
 const DIAGRAM_FUNCTIONS = {
 	[DiagramType.mermaid]: getMermaidDiagram,
@@ -19,10 +20,12 @@ export default function DiagramData(props: {
 	src?: string;
 	title?: string;
 	content?: string;
+	readFromHead?: boolean;
 }) {
-	const { src, title, content, diagramName, openEditor } = props;
+	const { src, title, content, diagramName, openEditor, readFromHead } = props;
 	const isC4Diagram = diagramName == DiagramType["c4-diagram"];
 	const apiUrlCreator = ApiUrlCreatorService.value;
+	const diagramsServiceUrl = PageDataContextService.value.conf.diagramsServiceUrl;
 
 	const ref = useRef<HTMLDivElement | HTMLImageElement>();
 	const [data, setData] = useState(null);
@@ -41,7 +44,7 @@ export default function DiagramData(props: {
 			try {
 				setError(null);
 				const diagramData = DIAGRAM_FUNCTIONS?.[diagramName]
-					? await DIAGRAM_FUNCTIONS?.[diagramName](buffer.toString())
+					? await DIAGRAM_FUNCTIONS?.[diagramName](buffer.toString(), diagramsServiceUrl)
 					: await getAnyDiagrams(buffer.toString());
 				setData(diagramData);
 			} catch (err) {
@@ -49,6 +52,7 @@ export default function DiagramData(props: {
 			}
 		},
 		content,
+		readFromHead,
 	);
 
 	return (

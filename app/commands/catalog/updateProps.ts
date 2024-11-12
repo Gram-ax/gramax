@@ -16,13 +16,13 @@ const updateProps: Command<{ ctx: Context; catalogName: string; props: CatalogEd
 		middlewares: [new AuthorizeMiddleware(), new DesktopModeMiddleware(), new ReloadConfirmMiddleware()],
 
 		async do({ ctx, catalogName, props }) {
-			const { wm, sitePresenterFactory, resourceUpdaterFactory, rp } = this._app;
+			const { wm, sitePresenterFactory, resourceUpdaterFactory } = this._app;
 			const workspace = wm.current();
 
 			const catalog = await workspace.getCatalog(catalogName);
 			if (!catalog) return;
 
-			const newCatalog = await catalog.updateProps(resourceUpdaterFactory.withContext(ctx), rp, props);
+			const newCatalog = await catalog.updateProps(resourceUpdaterFactory.withContext(ctx), props);
 			return sitePresenterFactory.fromContext(ctx).serializeCatalogProps(newCatalog);
 		},
 

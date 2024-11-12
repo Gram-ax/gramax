@@ -4,14 +4,15 @@ import type { Category } from "@core/FileStructue/Category/Category";
 import type { Item } from "@core/FileStructue/Item/Item";
 import { ItemType } from "@core/FileStructue/Item/ItemType";
 import CustomArticlePresenter from "@core/SitePresenter/CustomArticlePresenter";
-import type RuleCollection from "@ext/rules/RuleCollection";
+import type RuleCollection from "@ext/events/RuleCollection";
 import { type NavigationEvents } from "../../../navigation/catalog/main/logic/Navigation";
 import { ContentLanguage } from "../model/Language";
+import type { EventHandlerCollection } from "@core/Event/EventHandlerProvider";
 
-export default class LocalizationRules implements RuleCollection {
+export default class LocalizationRules implements RuleCollection, EventHandlerCollection<NavigationEvents> {
 	constructor(private _currentLanguage?: ContentLanguage, private _customArticlePresenter?: CustomArticlePresenter) {}
 
-	mountNavEvents(nav: HasEvents<NavigationEvents>): void {
+	mount(nav: HasEvents<NavigationEvents>): void {
 		nav.events.on("filter-item", ({ catalog, item }) => {
 			if (item.parent.parent || !catalog.props.language) return true;
 

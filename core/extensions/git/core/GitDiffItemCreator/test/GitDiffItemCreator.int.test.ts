@@ -24,7 +24,7 @@ const getGitDiffItemCreatorData = async () => {
 	const fs = workspace.getFileStructure();
 	const fp = workspace.getFileProvider();
 	const sitePresenter = sitePresenterFactory.fromContext(new TestContext());
-	const gitDiffItemCreator = new GitDiffItemCreator(catalog, fp as DiskFileProvider, sitePresenter, fs);
+	const gitDiffItemCreator = new GitDiffItemCreator(catalog, fp, sitePresenter, fs);
 	const git = new GitCommands(dfp, new Path());
 
 	return { catalog, dfp, gitDiffItemCreator, fs, fp, rp, git };
@@ -39,9 +39,9 @@ describe("GitDiffItemCreator ", () => {
 			await repTestUtils.clearResourceChanges(dfp, git);
 		});
 		test("без изменения ресурсов", async () => {
-			const { catalog, dfp, gitDiffItemCreator, rp } = await getGitDiffItemCreatorData();
+			const { catalog, dfp, gitDiffItemCreator } = await getGitDiffItemCreatorData();
 			await repTestUtils.makeChanges(dfp);
-			await catalog.update(rp);
+			await catalog.update();
 
 			const res = await gitDiffItemCreator.getDiffItems();
 
@@ -55,9 +55,9 @@ describe("GitDiffItemCreator ", () => {
 			]);
 		});
 		test("с изменением ресурсов", async () => {
-			const { catalog, dfp, gitDiffItemCreator, rp } = await getGitDiffItemCreatorData();
+			const { catalog, dfp, gitDiffItemCreator } = await getGitDiffItemCreatorData();
 			await repTestUtils.makeResourceChanges(dfp);
-			await catalog.update(rp);
+			await catalog.update();
 
 			const data = await gitDiffItemCreator.getDiffItems();
 			const res = data.items.map((x) => ({
@@ -78,9 +78,9 @@ describe("GitDiffItemCreator ", () => {
 		});
 
 		test("с отдельными ресурсами", async () => {
-			const { catalog, dfp, gitDiffItemCreator, rp } = await getGitDiffItemCreatorData();
+			const { catalog, dfp, gitDiffItemCreator } = await getGitDiffItemCreatorData();
 			await repTestUtils.makeResourceChanges(dfp);
-			await catalog.update(rp);
+			await catalog.update();
 
 			const data = await gitDiffItemCreator.getDiffItems();
 			const res = data.resources.map((x) => ({ path: x.filePath.path, title: x.title }));
@@ -95,9 +95,9 @@ describe("GitDiffItemCreator ", () => {
 		});
 
 		test("с переименованием", async () => {
-			const { catalog, dfp, gitDiffItemCreator, rp } = await getGitDiffItemCreatorData();
+			const { catalog, dfp, gitDiffItemCreator } = await getGitDiffItemCreatorData();
 			await repTestUtils.makeRenameChanges(dfp);
-			await catalog.update(rp);
+			await catalog.update();
 
 			const res = await gitDiffItemCreator.getDiffItems();
 

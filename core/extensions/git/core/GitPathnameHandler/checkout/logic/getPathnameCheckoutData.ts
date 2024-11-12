@@ -9,7 +9,7 @@ const getPathnameCheckoutData = async (
 	routerPath: Path,
 ): Promise<{ haveToCheckout: true; currentBranch: string; branchToCheckout: string } | { haveToCheckout: false }> => {
 	if (!RouterPathProvider.isEditorPathname(routerPath)) return { haveToCheckout: false };
-	const { branch: branchToCheckout } = RouterPathProvider.parsePath(routerPath);
+	const { refname: branchToCheckout } = RouterPathProvider.parsePath(routerPath);
 	if (!branchToCheckout) return { haveToCheckout: false };
 
 	const res = await FetchService.fetch<BranchData>(apiUrlCreator.getVersionControlCurrentBranchUrl());

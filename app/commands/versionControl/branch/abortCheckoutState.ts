@@ -17,7 +17,7 @@ const abortCheckoutState: Command<{ catalogName: string }, void> = Command.creat
 		if (!catalog?.repo?.gvc) return;
 
 		const state = await catalog.repo.getState();
-		if (state.value === "checkout") await catalog.repo.abortCheckoutState();
+		if (state.inner.value === "checkout") await state.abortCheckoutState();
 	},
 
 	params(ctx, q) {

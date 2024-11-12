@@ -8,8 +8,9 @@ import GitCommands from "@ext/git/core/GitCommands/GitCommands";
 import GitStorage from "@ext/git/core/GitStorage/GitStorage";
 import GitVersionControl from "@ext/git/core/GitVersionControl/GitVersionControl";
 import { GitStatus } from "@ext/git/core/GitWatcher/model/GitStatus";
-import Repository from "@ext/git/core/Repository/Repository";
-import RepositoryStateFile from "@ext/git/core/RepositoryStateFile/RepositorySettingsFile";
+import type Repository from "@ext/git/core/Repository/Repository";
+import RepositoryProvider from "@ext/git/core/Repository/RepositoryProvider";
+import WorkdirRepository from "@ext/git/core/Repository/WorkdirRepository";
 import { TEST_GIT_FIXTURES_PATH } from "@ext/git/test/testGitFixturesPath";
 import SourceData from "@ext/storage/logic/SourceDataProvider/model/SourceData";
 import SourceType from "@ext/storage/logic/SourceDataProvider/model/SourceType";
@@ -21,7 +22,6 @@ const pushGitStorageMock = jest.spyOn(GitStorage.prototype, "push").mockImplemen
 const gitCommandsFetchMock = jest.spyOn(GitCommands.prototype, "fetch").mockImplementation(() => {
 	return Promise.resolve();
 });
-
 
 const mockUserData: SourceData = {
 	sourceType: SourceType.gitHub,
@@ -49,24 +49,24 @@ describe("Repository", () => {
 			await GitVersionControl.init(dfp, path("testRep"), mockUserData);
 			gvc = new GitVersionControl(path("testRep"), dfp);
 			const storage = new GitStorage(path("testRep"), dfp);
-			const repStateFile = new RepositoryStateFile(path("testRep"), dfp);
-			rep = new Repository(path("testRep"), dfp, gvc, storage, repStateFile);
+			rep = new WorkdirRepository(path("testRep"), dfp, gvc, storage);
 			await dfp.write(repPath("1.txt"), "111\n222\n333");
-			await rep.publish({ message: "test", data: mockUserData, filePaths: [path("1.txt")] });
+			await rep.publish({ commitMessage: "test", data: mockUserData, filesToPublish: [path("1.txt")] });
 		});
 
 		afterEach(async () => {
 			await dfp.delete(path("testRep"));
+			await RepositoryProvider.invalidateRepoCache([]);
 			rep = null;
 		});
 		beforeEach(async () => {
 			await rep.gvc.createNewBranch("B");
 			await dfp.write(repPath("1.txt"), "111\nBBB\n333");
-			await rep.publish({ message: "test", data: mockUserData, filePaths: [path("1.txt")] });
+			await rep.publish({ commitMessage: "test", data: mockUserData, filesToPublish: [path("1.txt")] });
 			await rep.checkout({ data: mockUserData, branch: "master" });
 			await dfp.write(repPath("1.txt"), "111\nmaster\n333");
-			await rep.publish({ message: "test", data: mockUserData, filePaths: [path("1.txt")] });
-			await rep.mergeInto("B", false, mockUserData);
+			await rep.publish({ commitMessage: "test", data: mockUserData, filesToPublish: [path("1.txt")] });
+			await rep.merge({ targetBranch: "B", deleteAfterMerge: false, data: mockUserData });
 		});
 		test("конфликт", async () => {
 			const state = {
@@ -79,22 +79,24 @@ describe("Repository", () => {
 					reverseMerge: true,
 				},
 			};
-			expect(await rep.getState()).toEqual(state);
+			expect((await rep.getState()).inner).toEqual(state);
 			expect(await dfp.read(repPath(".git/gramax/state.json"))).toBe(JSON.stringify(state));
 		});
 		describe("стандартное", () => {
 			test("при аборте мержа", async () => {
 				const state = { value: "default" };
-				await rep.abortMerge(mockUserData);
+				const s = await rep.getState();
+				await s.abortMerge(mockUserData);
 
-				expect(await rep.getState()).toEqual(state);
+				expect((await rep.getState()).inner).toEqual(state);
 				expect(await dfp.read(repPath(".git/gramax/state.json"))).toBe(JSON.stringify(state));
 			});
 			test("при решении мержа", async () => {
 				const state = { value: "default" };
-				await rep.resolveMerge([{ path: "1.txt", content: "resolved" }], mockUserData);
+				const s = await rep.getState();
+				await s.resolveMerge([{ path: "1.txt", content: "resolved" }], mockUserData);
 
-				expect(await rep.getState()).toEqual(state);
+				expect((await rep.getState()).inner).toEqual(state);
 				expect(await dfp.read(repPath(".git/gramax/state.json"))).toBe(JSON.stringify(state));
 			});
 		});
@@ -109,8 +111,7 @@ describe("Repository", () => {
 
 			gvc = new GitVersionControl(path(repNameWithSubmodules), dfp);
 			const storage = new GitStorage(path(repNameWithSubmodules), dfp);
-			const repStateFile = new RepositoryStateFile(path(repNameWithSubmodules), dfp);
-			rep = new Repository(path(repNameWithSubmodules), dfp, gvc, storage, repStateFile);
+			rep = new WorkdirRepository(path(repNameWithSubmodules), dfp, gvc, storage);
 
 			await gvc.hardReset(await gvc.getParentCommitHash(await gvc.getHeadCommit()));
 			await gvc.checkoutSubGitVersionControls();

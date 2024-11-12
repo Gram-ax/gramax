@@ -7,8 +7,8 @@ edition = "2021"
 crate-type = ['cdylib']
 
 [dependencies]
-gramax-git = { path = "../../../rlibs/git" }
-gramax-fs = { path = "../../../rlibs/fs" }
+gramax-git = { path = "../../../crates/git", features = ["blocking-cache"] }
+gramax-fs = { path = "../../../crates/fs" }
 serde = { workspace = true }
 serde_json = { workspace = true }
 simple_logger = { version = "5.0.0", default-features = false }

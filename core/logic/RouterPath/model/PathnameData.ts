@@ -3,8 +3,8 @@ import type { ContentLanguage } from "@ext/localization/core/model/Language";
 interface BasePathnameData {
 	sourceName: string;
 	group: string;
-	repName: string;
-	branch: string;
+	repo: string;
+	refname: string;
 	catalogName: string;
 	filePath: string[];
 	language: ContentLanguage;

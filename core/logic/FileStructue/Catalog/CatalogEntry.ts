@@ -6,7 +6,7 @@ import { ItemRef } from "@core/FileStructue/Item/ItemRef";
 import RouterPathProvider from "@core/RouterPath/RouterPathProvider";
 import PathnameData from "@core/RouterPath/model/PathnameData";
 import GitStorage from "@ext/git/core/GitStorage/GitStorage";
-import Repository from "@ext/git/core/Repository/Repository";
+import type Repository from "@ext/git/core/Repository/Repository";
 import RepositoryProvider from "@ext/git/core/Repository/RepositoryProvider";
 import { CatalogErrors } from "@ext/healthcheck/logic/Healthcheck";
 import IPermission from "@ext/security/logic/Permission/IPermission";
@@ -23,7 +23,7 @@ type CatalogEntryProps = {
 	props: CatalogProps;
 	errors: CatalogErrors;
 	load: FSLazyLoadCatalog;
-	isServerApp: boolean;
+	isReadOnly: boolean;
 };
 
 export default class CatalogEntry {
@@ -38,7 +38,7 @@ export default class CatalogEntry {
 	protected _props: CatalogProps;
 	protected _errors: CatalogErrors;
 	protected _load: FSLazyLoadCatalog;
-	protected _isServerApp: boolean;
+	protected _isReadOnly: boolean;
 
 	constructor(init: CatalogEntryProps) {
 		this._name = init.name;
@@ -49,7 +49,7 @@ export default class CatalogEntry {
 		this._errors = init.errors;
 		this._load = init.load;
 		this._perms = new Permission(this._props["private"]);
-		this._isServerApp = init.isServerApp;
+		this._isReadOnly = init.isReadOnly;
 	}
 
 	withOnLoad(callback: CatalogOnLoad): void {
@@ -66,7 +66,7 @@ export default class CatalogEntry {
 	}
 
 	async getPathname(item?: Item): Promise<string> {
-		return this._isServerApp
+		return this._isReadOnly
 			? Promise.resolve(item ? item.logicPath : this._name)
 			: RouterPathProvider.getPathname(await this.getPathnameData(item)).value;
 	}
@@ -96,8 +96,8 @@ export default class CatalogEntry {
 		return {
 			sourceName: await this.repo.storage.getSourceName(),
 			group,
-			repName: await this.repo.storage.getName(),
-			branch,
+			repo: await this.repo.storage.getName(),
+			refname: branch,
 			catalogName: this.getName(),
 			itemLogicPath,
 		};

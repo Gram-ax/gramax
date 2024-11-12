@@ -5,12 +5,12 @@ import { ItemType } from "@core/FileStructue/Item/ItemType";
 import ResourceUpdater from "@core/Resource/ResourceUpdater";
 import type { FSLocalizationProps } from "@ext/localization/core/events/FSLocalizationEvents";
 import t from "@ext/localization/locale/translate";
+import { PropertyValue } from "@ext/properties/models";
 import { FileStatus } from "@ext/Watchers/model/FileStatus";
 import IPermission from "../../../extensions/security/logic/Permission/IPermission";
 import Permission from "../../../extensions/security/logic/Permission/Permission";
 import { ClientArticleProps } from "../../SitePresenter/SitePresenter";
 import { Category, type CategoryProps } from "../Category/Category";
-import { PropertyValue } from "@ext/properties/models";
 
 export type ItemEvents = Event<"item-order-updated", { item: Item }> &
 	Event<"item-saved", { item: Item }> &
@@ -29,6 +29,8 @@ export type ItemProps = FSLocalizationProps & {
 	private?: string[];
 	external?: string;
 };
+
+export type UpdateItemProps = (ItemProps & { fileName?: never; logicPath: string }) | ClientArticleProps;
 
 export const ORDERING_MAX_PRECISION = 6;
 
@@ -86,7 +88,12 @@ export abstract class Item<P extends ItemProps = ItemProps> {
 	}
 
 	async setOrderAfter(parent: Category, item?: Item) {
-		if (parent.items.map((i) => i.order).some(isNaN)) await parent.sortItems(true);
+		const orders = parent.items.map((i) => i.order);
+		const hasInvalidOrders = orders.some(isNaN);
+		const hasDuplicates = new Set(orders).size !== orders.length;
+
+		if (hasInvalidOrders || hasDuplicates) await parent.sortItems(true);
+
 		const categoryItemOrders = parent.items.map((i) => i.order);
 		this._props.order = roundedOrderAfter(categoryItemOrders, item?.order ?? 0);
 		await this.events.emit("item-order-updated", { item: this });
@@ -121,7 +128,7 @@ export abstract class Item<P extends ItemProps = ItemProps> {
 	abstract save(): Promise<void>;
 
 	async updateProps(
-		props: ClientArticleProps,
+		props: UpdateItemProps,
 		resourceUpdater: ResourceUpdater,
 		rootCategoryProps?: CategoryProps,
 		fileNameOnly = false,
@@ -137,7 +144,7 @@ export abstract class Item<P extends ItemProps = ItemProps> {
 	}
 
 	protected abstract _updateFilename(filename: string, ru: ResourceUpdater, rootProps?: CategoryProps): Promise<this>;
-	protected abstract _updateProps(props: ClientArticleProps): void;
+	protected abstract _updateProps(props: UpdateItemProps): void;
 
 	abstract getFileName(): string;
 

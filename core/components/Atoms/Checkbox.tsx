@@ -1,104 +1,111 @@
 import { classNames } from "@components/libs/classNames";
 import styled from "@emotion/styled";
 import { Property } from "csstype";
-import { useEffect, useRef, useState, ReactNode } from "react";
+import { ReactNode, useEffect, useRef, useState } from "react";
 
-const Checkbox = styled(
-	({
+interface CheckboxProps {
+	children?: ReactNode;
+	checked?: boolean;
+	disabled?: boolean;
+	interactive?: boolean;
+	indeterminate?: boolean;
+	borderClickArea?: number;
+	onChange?: (isChecked: boolean) => void;
+	onClick?: (isChecked: boolean) => void;
+	overflow?: Property.Overflow;
+	className?: string;
+}
+
+const Checkbox = (props: CheckboxProps) => {
+	const {
 		children,
 		checked,
 		disabled,
 		interactive,
+		indeterminate = false,
 		borderClickArea = 4,
 		onChange,
 		onClick,
 		overflow,
 		className,
-	}: {
-		children?: ReactNode;
-		checked?: boolean;
-		disabled?: boolean;
-		interactive?: boolean;
-		borderClickArea?: number;
-		onChange?: (isChecked: boolean) => void;
-		onClick?: (isChecked: boolean) => void;
-		overflow?: Property.Overflow;
-		className?: string;
-	}) => {
-		const [currentChecked, setCurrentChecked] = useState(checked ?? false);
-		const [checkboxSize, setCheckboxSize] = useState<number>(null);
-		const checkboxRef = useRef<HTMLInputElement>(null);
+	} = props;
+	const [currentChecked, setCurrentChecked] = useState(checked ?? false);
+	const [checkboxSize, setCheckboxSize] = useState<number>(null);
+	const checkboxRef = useRef<HTMLInputElement>(null);
 
-		const currentOnClick = () => {
-			if (disabled) return;
-			if (onClick) onClick(!currentChecked);
-			setCurrentChecked(!currentChecked);
-		};
+	const currentOnClick = () => {
+		if (disabled) return;
+		if (onClick) onClick(!currentChecked);
+		setCurrentChecked(!currentChecked);
+	};
 
-		useEffect(() => {
-			setCheckboxSize(checkboxRef.current.getBoundingClientRect().width);
-		}, []);
+	useEffect(() => {
+		setCheckboxSize(checkboxRef.current.getBoundingClientRect().width);
+	}, []);
 
-		useEffect(() => {
-			if (typeof checked === "boolean") setCurrentChecked(checked);
-		}, [checked]);
+	useEffect(() => {
+		setCurrentChecked(Boolean(checked));
+	}, [checked]);
 
-		useEffect(() => {
-			if (onChange) onChange(currentChecked);
-		}, [currentChecked]);
+	useEffect(() => {
+		if (onChange) onChange(currentChecked);
+	}, [currentChecked]);
 
-		const borderAreaDiv = (
-			<div
-				className="border-click-area"
-				onClick={children ? (interactive ? currentOnClick : null) : currentOnClick}
-				style={{
-					cursor: "pointer",
-					position: "absolute",
-					width: checkboxSize + borderClickArea * 2,
-					height: checkboxSize + borderClickArea * 2,
-					transform: children
-						? `translate(-${borderClickArea}px, 0)`
-						: `translate(-${borderClickArea}px, -${borderClickArea}px)`,
-				}}
-			/>
-		);
+	useEffect(() => {
+		checkboxRef.current.indeterminate = indeterminate;
+	}, [indeterminate]);
 
-		if (!children)
-			return (
-				<span>
-					{borderAreaDiv}
-					<span className={classNames(className, {}, ["checkbox-layout"])}>
-						<input
-							ref={checkboxRef}
-							type="checkbox"
-							className="atom-checkbox"
-							checked={currentChecked}
-							onChange={() => null}
-						/>
-					</span>
-				</span>
-			);
+	const borderAreaDiv = (
+		<div
+			className="border-click-area"
+			onClick={children ? (interactive ? currentOnClick : null) : currentOnClick}
+			style={{
+				cursor: "pointer",
+				position: "absolute",
+				width: checkboxSize + borderClickArea * 2,
+				height: checkboxSize + borderClickArea * 2,
+				transform: children
+					? `translate(-${borderClickArea}px, 0)`
+					: `translate(-${borderClickArea}px, -${borderClickArea}px)`,
+			}}
+		/>
+	);
 
+	if (!children)
 		return (
-			<div className={classNames(className, {}, ["checkbox-layout"])}>
-				<div onClick={interactive ? null : currentOnClick}>
-					{borderAreaDiv}
+			<span>
+				{borderAreaDiv}
+				<span className={classNames(className, {}, ["checkbox-layout"])}>
 					<input
-						disabled={disabled}
+						ref={checkboxRef}
 						type="checkbox"
 						className="atom-checkbox"
 						checked={currentChecked}
-						ref={checkboxRef}
 						onChange={() => null}
 					/>
-					<span style={{ userSelect: interactive ? null : "none", overflow: overflow ?? null }}>
-						{children}
-					</span>
-				</div>
-			</div>
+				</span>
+			</span>
 		);
-	},
-)`
+
+	return (
+		<div className={classNames(className, {}, ["checkbox-layout"])}>
+			<div onClick={interactive ? null : currentOnClick}>
+				{borderAreaDiv}
+				<input
+					disabled={disabled}
+					type="checkbox"
+					className="atom-checkbox"
+					checked={currentChecked}
+					ref={checkboxRef}
+					onChange={() => null}
+				/>
+				<span style={{ userSelect: interactive ? null : "none", overflow }}>{children}</span>
+			</div>
+		</div>
+	);
+};
+
+export default styled(Checkbox)`
 	${(p) => {
 		const style = `display: flex;
 		gap: 0.5rem;
@@ -120,5 +127,3 @@ const Checkbox = styled(
 		background: none;
 	}
 `;
-
-export default Checkbox;

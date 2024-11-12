@@ -17,24 +17,24 @@ export default class RouterPathProvider {
 			? pathSegments
 			: this._getArrayOfStrings(this.getPathname({ itemLogicPath: pathSegments }));
 
-		const [sourceName, group, repName, branch, dir, maybeLanguage, ...filePath] = currentPath.map((p) =>
+		const [sourceName, group, repo, refname, dir, maybeLanguage, ...filePath] = currentPath.map((p) =>
 			p === this._separator ? undefined : p,
 		);
 
 		const language = ContentLanguage[maybeLanguage];
 		maybeLanguage && filePath.unshift(maybeLanguage);
 		const normalizedFilePath = filePath.map((x) => decodeURIComponent(x));
-		const catalogName = dir ?? repName;
+		const catalogName = dir ?? repo;
 		const itemLogicPath = [catalogName, ...normalizedFilePath];
-		const repNameItemLogicPath = repName ? [repName, ...normalizedFilePath] : undefined;
+		const repNameItemLogicPath = repo ? [repo, ...normalizedFilePath] : undefined;
 
 		const hash = catalogName?.match(/^(.+?)(#.+)?$/)?.[2] ?? "";
 
 		return {
-			sourceName,
+			sourceName: sourceName ? decodeURIComponent(sourceName) : undefined,
 			group: group ? decodeURIComponent(group) : undefined,
-			repName,
-			branch: branch ? decodeURIComponent(branch) : undefined,
+			repo: repo,
+			refname: refname ? decodeURIComponent(refname) : undefined,
 			catalogName,
 			language,
 			filePath: normalizedFilePath,
@@ -53,13 +53,13 @@ export default class RouterPathProvider {
 			: hasItemLogicPath
 			? new Path(data.itemLogicPath.slice(1)).value
 			: null;
-		catalogName = catalogName === data.repName ? this._separator : catalogName;
+		catalogName = catalogName === data.repo ? this._separator : catalogName;
 
 		return new Path([
-			data.sourceName ?? this._separator,
+			data.sourceName ? encodeURIComponent(data.sourceName) : this._separator,
 			data.group ? encodeURIComponent(data.group) : this._separator,
-			data.repName ?? this._separator,
-			data.branch ? encodeURIComponent(data.branch) : this._separator,
+			data.repo ?? this._separator,
+			data.refname ? encodeURIComponent(data.refname) : this._separator,
 			catalogName,
 			filePath,
 		]);
@@ -77,7 +77,7 @@ export default class RouterPathProvider {
 
 	static isEditorPathname(path: string[] | string | Path): boolean {
 		const currentPath = this._getArrayOfStrings(path);
-		return currentPath[0]?.includes(".") || currentPath[0] == this._separator;
+		return (currentPath[0]?.includes(".") || currentPath[0] == this._separator) && !currentPath[0]?.includes(":");
 	}
 
 	static updatePathnameData(
@@ -92,11 +92,11 @@ export default class RouterPathProvider {
 	}
 
 	static validate(pathdata: PathnameData): boolean {
-		return !!(pathdata.sourceName && pathdata.group && pathdata.repName);
+		return !!(pathdata.sourceName && pathdata.group && pathdata.repo);
 	}
 
 	static isLocal(pathdata: PathnameData): boolean {
-		return !pathdata.sourceName && !pathdata.group && !pathdata.repName;
+		return !pathdata.sourceName && !pathdata.group && !pathdata.repo;
 	}
 
 	private static _getArrayOfStrings(path: string[] | string | Path): string[] {

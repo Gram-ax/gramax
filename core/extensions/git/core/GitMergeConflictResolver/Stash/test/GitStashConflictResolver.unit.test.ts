@@ -3,15 +3,15 @@
  */
 
 import GitStorage from "@ext/git/core/GitStorage/GitStorage";
-import Repository from "@ext/git/core/Repository/Repository";
-import { RepStashConflictState } from "@ext/git/core/Repository/model/RepostoryState";
-import RepositoryStateFile from "@ext/git/core/RepositoryStateFile/RepositorySettingsFile";
+import WorkdirRepository from "@ext/git/core/Repository/WorkdirRepository";
+import type { RepositoryStashConflictState } from "@ext/git/core/Repository/state/RepositoryState";
 import SourceData from "@ext/storage/logic/SourceDataProvider/model/SourceData";
 import SourceType from "@ext/storage/logic/SourceDataProvider/model/SourceType";
 import DiskFileProvider from "../../../../../../logic/FileProvider/DiskFileProvider/DiskFileProvider";
 import Path from "../../../../../../logic/FileProvider/Path/Path";
 import GitVersionControl from "../../../GitVersionControl/GitVersionControl";
 import GitStashConflictResolver from "../GitStashConflictResolver";
+import RepositoryProvider from "@ext/git/core/Repository/RepositoryProvider";
 
 const mockUserData: SourceData = {
 	sourceType: SourceType.gitHub,
@@ -59,13 +59,13 @@ describe("GitStashConflictResolver", () => {
 		gvc = new GitVersionControl(path("testRep"), dfp);
 		await commit(gvc, { "1.txt": "init" });
 		const storage = new GitStorage(path("testRep"), dfp);
-		const repStateFile = new RepositoryStateFile(path("testRep"), dfp);
-		const repo = new Repository(path("testRep"), dfp, gvc, storage, repStateFile);
+		const repo = new WorkdirRepository(path("testRep"), dfp, gvc, storage);
 		resolver = new GitStashConflictResolver(repo, dfp, path("testRep"));
 	});
 
 	afterEach(async () => {
 		await dfp.delete(path("testRep"));
+		await RepositoryProvider.invalidateRepoCache([]);
 		resolver = null;
 		gvc = null;
 	});
@@ -80,7 +80,7 @@ describe("GitStashConflictResolver", () => {
 		await gvc.applyStash(stashHash, { deleteAfterApply: false });
 		expect(await dfp.read(repPath("1.txt"))).toEqual(CONFLICT_CONTENT);
 
-		const state: RepStashConflictState = {
+		const state: RepositoryStashConflictState = {
 			value: "stashConflict",
 			data: {
 				conflictFiles: null,
@@ -107,7 +107,7 @@ describe("GitStashConflictResolver", () => {
 		await gvc.applyStash(stashHash, { deleteAfterApply: false });
 		expect(await dfp.read(repPath("1.txt"))).toEqual(CONFLICT_CONTENT);
 
-		const state: RepStashConflictState = {
+		const state: RepositoryStashConflictState = {
 			value: "stashConflict",
 			data: {
 				conflictFiles: null,

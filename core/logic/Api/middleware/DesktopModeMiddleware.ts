@@ -8,7 +8,7 @@ export class DesktopModeMiddleware extends Middleware {
 	}
 
 	Process(req: ApiRequest, res: ApiResponse): Promise<void> {
-		if (this._app.conf.isServerApp) throw new Error("Not available in server mode");
+		if (this._app.conf.isReadOnly) throw new Error("Not available in server mode");
 		if (!this._api) return this._next.Process(req, res);
 		else if (this._api(req, res)) return this._next.Process(req, res);
 	}

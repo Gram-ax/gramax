@@ -19,7 +19,7 @@ const ModifiedBackend = (manager) => {
 	listeners.forEach((name) => {
 		const original = backend[name];
 		backend[name] = (event, ...extraArgs) => {
-			if (shouldProcessEvent(event.target)) original(event, ...extraArgs);
+			if (event?.target && shouldProcessEvent(event.target)) original(event, ...extraArgs);
 		};
 	});
 

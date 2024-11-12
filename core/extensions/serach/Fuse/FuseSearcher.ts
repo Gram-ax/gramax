@@ -3,7 +3,7 @@ import Fuse, { FuseResult, RangeTuple } from "fuse.js";
 import stringSimilarity from "string-similarity";
 import { IndexData } from "../IndexData";
 import Searcher, { SearchItem } from "../Searcher";
-import prepareFuseString, { extractWords } from "./prepareFuseString";
+import prepareFuseString, { extractWords, normalizeQuotationMarks } from "./prepareFuseString";
 
 export default class FuseSearcher implements Searcher {
 	private _fuseSearchConfig: {
@@ -39,6 +39,7 @@ export default class FuseSearcher implements Searcher {
 	}
 
 	async search(query: string, catalogName: string, articleIds: string[]): Promise<SearchItem[]> {
+		query = normalizeQuotationMarks(query);
 		const quotesCount = (query.match(/"/g) || []).length;
 
 		if (quotesCount % 2 !== 0) {

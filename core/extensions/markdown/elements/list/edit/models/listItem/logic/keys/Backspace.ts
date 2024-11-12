@@ -1,3 +1,4 @@
+import { listTypes } from "@ext/markdown/elements/list/edit/logic/toggleList";
 import { Node as ProseMirrorNode } from "prosemirror-model";
 import getDeepiestLastChild from "../../../../../../../elementsUtils/getDeepiesLastChild";
 import getFocusNode from "../../../../../../../elementsUtils/getFocusNode";
@@ -15,7 +16,7 @@ const onHighestLevel: KeyboardRule = ({ editor, typeName, node, nodePosition }) 
 	const state = editor.state;
 	const hasSelection = !!getSelectedText(editor.state);
 	const { node: listParentNode, parentNode: listGrandparentNode } = getFocusNode(state, (node) =>
-		isTypeOf(node, ["bullet_list", "ordered_list"]),
+		isTypeOf(node, listTypes),
 	);
 
 	if (!listParentNode || !node) return false;
@@ -68,7 +69,7 @@ const stickToLastListItem: KeyboardRule = ({ editor, node, nodePosition }) => {
 		nodePosition,
 	);
 
-	if (!brotherBefore || !isTypeOf(brotherBefore, ["bullet_list", "ordered_list"])) return;
+	if (!brotherBefore || !isTypeOf(brotherBefore, listTypes)) return;
 
 	const { node: textNode, position: textNodePos } = getDeepiestLastChild(brotherBefore, brotherBeforePosition);
 	const end = textNodePos + textNode.nodeSize;

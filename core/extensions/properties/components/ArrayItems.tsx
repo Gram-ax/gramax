@@ -19,14 +19,14 @@ const ArrayItems = (props: ArrayItemsProps): ReactElement => {
 	return (
 		<>
 			<div className={className}>
-				<Chip index={-1} name={newName || t("add-new")} icon={newIcon} onClick={onClick} />
+				<Chip index={-1} name={newName || t("create-new")} icon={newIcon} onClick={onClick} />
 				{values?.map((val, index) => (
 					<Chip
 						icon={otherIcon}
-						key={val.id}
+						key={val.name}
 						index={index}
 						name={val.name}
-						style={val.style}
+						chipStyle={val.style}
 						onClick={onClick}
 					/>
 				))}

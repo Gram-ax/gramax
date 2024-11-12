@@ -1,11 +1,12 @@
 import StyledArticleSearch from "@ext/markdown/elements/find/edit/components/ArticleSearch";
 import ReactRenderer from "@ext/markdown/elementsUtils/prosemirrorPlugins/ReactRenderer";
 import { Editor } from "@tiptap/core";
-import { Decoration } from "prosemirror-view";
+
+export type CustomDecorations = { start: number; end: number; isActive: boolean };
 
 class ArticleSearchHotkeyView extends ReactRenderer {
 	protected _element: HTMLElement;
-	public decorations: Decoration[] = [];
+	public decorations: CustomDecorations[] = [];
 	private _editor: Editor;
 
 	constructor() {
@@ -25,7 +26,7 @@ class ArticleSearchHotkeyView extends ReactRenderer {
 		this._element.dataset.type = "article-search";
 	}
 
-	public updateDecorations(decorations: Decoration[]) {
+	public updateDecorations(decorations: CustomDecorations[]) {
 		this.decorations = [...decorations];
 		this.updateProps({ decorations: this.decorations });
 	}

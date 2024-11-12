@@ -41,7 +41,9 @@ const SpinnerLoader = styled(
 	position: relative;
 	color: var(--color-article-text);
 	width: ${(p) => `${p.width ?? "100"}px !important`};
+	min-width: ${(p) => `${p.width ?? "100"}px`};
 	height: ${(p) => `${p.height ?? "100"}px !important`};
+	min-height: ${(p) => `${p.height ?? "100"}px`};
 	@keyframes spinner {
 		to {
 			transform: rotate(360deg);

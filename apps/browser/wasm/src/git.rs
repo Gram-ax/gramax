@@ -2,10 +2,11 @@ use std::ffi::CString;
 use std::path::Path;
 use std::path::PathBuf;
 
-use gramaxgit::actions::prelude::*;
 use gramaxgit::commands as git;
 use gramaxgit::commands::Result;
+use gramaxgit::commands::TreeReadScope;
 use gramaxgit::creds::AccessTokenCreds;
+use gramaxgit::prelude::*;
 
 use crate::define_c_api;
 use crate::emscripten_run_script;
@@ -22,6 +23,18 @@ fn on_clone_progress(progress: CloneProgress) {
 }
 
 define_c_api! {
+  json fn is_init(repo_path: String) -> bool {
+    git::is_init(Path::new(&repo_path))
+  }
+
+  json fn is_bare(repo_path: String) -> bool {
+    git::is_bare(Path::new(&repo_path))
+  }
+
+  noreturn fn set_head(repo_path: String, refname: String) -> () {
+    git::set_head(Path::new(&repo_path), &refname)
+  }
+
   noreturn fn init_new(repo_path: String, creds: AccessTokenCreds) -> () {
     git::init_new(Path::new(&repo_path), creds)
   }
@@ -70,8 +83,8 @@ define_c_api! {
     git::checkout(Path::new(&repo_path), &ref_name, force)
   }
 
-  noreturn fn fetch(repo_path: String, creds: AccessTokenCreds) -> () {
-    git::fetch(Path::new(&repo_path), creds)
+  noreturn fn fetch(repo_path: String, creds: AccessTokenCreds, force: bool) -> () {
+    git::fetch(Path::new(&repo_path), creds, force)
   }
 
   noreturn fn clone(creds: AccessTokenCreds, opts: CloneOptions) -> () {
@@ -128,5 +141,29 @@ define_c_api! {
 
   noreturn fn stash_delete(repo_path: String, oid: String) -> () {
     git::stash_delete(Path::new(&repo_path), &oid)
+  }
+
+  json fn find_refs_by_globs(repo_path: String, patterns: Vec<String>) -> Vec<RefInfo> {
+    git::find_refs_by_globs(Path::new(&repo_path), &patterns)
+  }
+
+  json fn git_read_dir(repo_path: String, path: String, scope: TreeReadScope) -> Vec<DirEntry> {
+    git::read_dir(Path::new(&repo_path), scope, Path::new(&path))
+  }
+
+  json fn git_file_stat(repo_path: String, path: String, scope: TreeReadScope) -> Stat {
+    git::file_stat(Path::new(&repo_path), scope, Path::new(&path))
+  }
+
+  json fn git_file_exists(repo_path: String, path: String, scope: TreeReadScope) -> bool {
+    git::file_exists(Path::new(&repo_path), scope, Path::new(&path))
+  }
+
+  bytes fn git_read_file(repo_path: String, path: String, scope: TreeReadScope) -> Vec<u8> {
+    git::read_file(Path::new(&repo_path), scope, Path::new(&path))
+  }
+
+  noreturn fn invalidate_repo_cache(repo_paths: Vec<String>) -> () {
+    git::invalidate_repo_cache(repo_paths.into_iter().map(PathBuf::from).collect())
   }
 }

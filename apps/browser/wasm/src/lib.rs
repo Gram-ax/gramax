@@ -4,9 +4,9 @@
 mod ffi;
 mod fs;
 mod git;
+mod kvstore;
 mod macros;
 mod threading;
-mod kvstore;
 
 use ffi::*;
 use log::info;

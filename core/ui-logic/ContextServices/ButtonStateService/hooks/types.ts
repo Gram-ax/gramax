@@ -5,11 +5,13 @@ export type Attrs = { level: Level; notFirstInList?: boolean };
 
 export type NodeType =
 	| "html"
+	| "view"
 	| "heading"
 	| "paragraph"
 	| "blockquote"
 	| "ordered_list"
 	| "bullet_list"
+	| "task_list"
 	| "table"
 	| "cut"
 	| "note"

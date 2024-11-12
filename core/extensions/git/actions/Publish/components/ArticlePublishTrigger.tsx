@@ -7,16 +7,19 @@ import ModalToOpenService from "@core-ui/ContextServices/ModalToOpenService/Moda
 import ModalToOpen from "@core-ui/ContextServices/ModalToOpenService/model/ModalsToOpen";
 import ArticleViewService from "@core-ui/ContextServices/views/articleView/ArticleViewService";
 import LeftNavViewContentService from "@core-ui/ContextServices/views/leftNavView/LeftNavViewContentService";
+import useTrigger from "@core-ui/triggers/useTrigger";
 import getIsDevMode from "@core-ui/utils/getIsDevMode";
 import { useRouter } from "@core/Api/useRouter";
+import Path from "@core/FileProvider/Path/Path";
 import RouterPathProvider from "@core/RouterPath/RouterPathProvider";
 import Publish from "@ext/git/actions/Publish/components/Publish";
 import PublishLeftNavContentWrapper from "@ext/git/actions/Publish/components/PublishLeftNavContentWrapper";
 import PublishModal from "@ext/git/actions/Publish/components/PublishModal";
+import { SideBarElementData } from "@ext/git/actions/Publish/logic/getSideBarElementByModelIdx";
+import { useResourceView } from "@ext/git/actions/Publish/logic/useResourceView";
 import t from "@ext/localization/locale/translate";
-import { Change } from "@ext/VersionControl/DiffHandler/model/Change";
+import { FileStatus } from "@ext/Watchers/model/FileStatus";
 import { ComponentProps, useEffect, useMemo, useRef, useState } from "react";
-
 
 const ArticlePublishTrigger = ({ changesCount }: { changesCount?: number }) => {
 	const [isDevMode] = useState(() => getIsDevMode());
@@ -37,19 +40,48 @@ const ArticlePublishTrigger = ({ changesCount }: { changesCount?: number }) => {
 		}).value;
 	}, [catalogProps.link.pathname]);
 
-	const resetPublishView = () => {
+	const resetPublishView = async () => {
 		if (!isDevMode) return;
 		LeftNavViewContentService.setDefaultView();
 		ArticleViewService.setDefaultView();
 		setIsPublishView(false);
+		await ArticleUpdaterService.update(apiUrlCreator);
+		refreshPage();
 	};
 
-	const setArticleView = (changes: Change[]) => {
-		ArticleViewService.setView(() => <DiffContent showDiff={true} changes={changes} />, false);
+	const setArticleView = (data: SideBarElementData) => {
+		if (data.sideBarDataElement?.isResource) {
+			const parentPath = data.sideBarDataElement.parentPath;
+			if (!parentPath)
+				return ArticleViewService.setView(() => <DiffContent showDiff={true} changes={[]} />, false);
+
+			const resourceApi = apiUrlCreator.fromArticle(parentPath);
+			const relativeTo = new Path(parentPath);
+			ArticleViewService.setView(
+				() => (
+					<>
+						{useResourceView(
+							data.relativeIdx ?? data.idx,
+							resourceApi,
+							new Path(data.sideBarDataElement.data.filePath.path),
+							data.sideBarDataElement.data.changeType === FileStatus.delete,
+							data.sideBarDataElement.diff,
+							relativeTo,
+						)}
+					</>
+				),
+				false,
+			);
+		} else {
+			ArticleViewService.setView(
+				() => <DiffContent showDiff={true} changes={data.sideBarDataElement?.diff?.changes ?? []} />,
+				false,
+			);
+		}
 	};
 
 	useEffect(() => {
-		return () => resetPublishView();
+		return () => void resetPublishView();
 	}, []);
 
 	return (
@@ -67,31 +99,40 @@ const ArticlePublishTrigger = ({ changesCount }: { changesCount?: number }) => {
 					});
 
 				if (isPublishView) {
-					resetPublishView();
-					await ArticleUpdaterService.update(apiUrlCreator);
-					refreshPage();
-
+					await resetPublishView();
 					if (!hasDiscard.current) return;
 					hasDiscard.current = false;
 					router.pushPath(rootPath);
 				} else {
 					LeftNavViewContentService.setView(() => (
-						<PublishLeftNavContentWrapper>
-							<Publish
-								onEndDiscard={(_, hasDeleted) => {
-									hasDiscard.current = hasDeleted;
-								}}
-								renderLeftSidebarOnly
-								onOpenIdChange={(_, sideBarElement) => {
-									setArticleView(sideBarElement?.diff?.changes ?? []);
-								}}
-								onSideBarDataLoadError={resetPublishView}
-								goToArticleOnClick={(e) => {
-									e.stopPropagation();
-									resetPublishView();
-								}}
-							/>
-						</PublishLeftNavContentWrapper>
+						<PublishViewComponent
+							onEscape={resetPublishView}
+							renderLeftSidebarOnly
+							onEndDiscard={(_, hasDeleted) => {
+								hasDiscard.current = hasDeleted;
+							}}
+							onStopPublish={async () => {
+								await resetPublishView();
+								if (!hasDiscard.current) return;
+								hasDiscard.current = false;
+								router.pushPath(rootPath);
+							}}
+							onOpenIdChange={async (data, sideBarData) => {
+								const isEmpty = sideBarData.filter((x) => x).length === 0;
+								if (isEmpty && hasDiscard.current) {
+									hasDiscard.current = false;
+									await resetPublishView();
+									router.pushPath(rootPath);
+									return;
+								}
+								setArticleView(data);
+							}}
+							onSideBarDataLoadError={resetPublishView}
+							goToArticleOnClick={(e) => {
+								e.stopPropagation();
+								resetPublishView();
+							}}
+						/>
 					));
 					setIsPublishView(true);
 				}
@@ -106,3 +147,29 @@ const ArticlePublishTrigger = ({ changesCount }: { changesCount?: number }) => {
 };
 
 export default ArticlePublishTrigger;
+
+type PublishViewComponentProps = React.ComponentProps<typeof Publish> & {
+	onEscape?: () => void;
+};
+
+const PublishViewComponent = ({  onEscape, ...props }: PublishViewComponentProps) => {
+	const [cmdEnterTriggerValue, cmdEnterTrigger] = useTrigger();
+
+	useEffect(() => {
+		const keydownHandler = (e: KeyboardEvent) => {
+			if (e.key === "Escape") onEscape?.();
+			else if (e.code === "Enter" && (e.ctrlKey || e.metaKey)) {
+				console.log("cmdEnterTrigger");
+				cmdEnterTrigger();
+			}
+		};
+		document.addEventListener("keydown", keydownHandler);
+		return () => document.removeEventListener("keydown", keydownHandler);
+	}, [cmdEnterTrigger]);
+
+	return (
+		<PublishLeftNavContentWrapper>
+			<Publish {...props} tryPublishTrigger={cmdEnterTriggerValue} />
+		</PublishLeftNavContentWrapper>
+	);
+};

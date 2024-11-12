@@ -127,7 +127,7 @@ export default styled(CommentBlockComponent)`
 
 	.first-comment {
 		top: 0;
-		z-index: 1;
+		z-index: var(--z-index-foreground);
 		padding-top: 1rem;
 		border-radius: var(--radius-small) var(--radius-small) 0 0;
 		background: var(--color-comments-bg);

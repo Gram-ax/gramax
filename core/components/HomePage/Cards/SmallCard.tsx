@@ -32,7 +32,7 @@ export default styled(SmallCard)`
 	position: relative;
 
 	.background {
-		background-color: ${(p) => (p.link.style ? `var(--color-style-background-${p.link.style})` : null)};
+		background-color: ${(p) => (p.link.style ? `var(--color-card-bg-${p.link.style})` : null)};
 	}
 
 	.catalog {

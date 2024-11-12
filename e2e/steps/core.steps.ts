@@ -103,9 +103,19 @@ When(
 	"наводимся и нажимаем на элемент {string}",
 	{ timeout: config.timeouts.medium },
 	async function (this: E2EWorld, text: string) {
-		const elem = await this.page().search().lookup(text, undefined);
+		const elem = (await this.page().search().lookup(text, undefined)).first();
 		await elem.hover({ force: true });
 		await elem.click();
+		await this.page().waitForLoad();
+	},
+);
+
+When(
+	"наводимся на элемент {string}",
+	{ timeout: config.timeouts.medium },
+	async function (this: E2EWorld, text: string) {
+		const elem = (await this.page().search().lookup(text, undefined)).first();
+		await elem.hover({ force: true });
 		await this.page().waitForLoad();
 	},
 );
@@ -177,7 +187,7 @@ Then("папка/файл/путь {string} не существует", async fu
 });
 
 Then("разметка текущей статьи содержит", async function (this: E2EWorld, text: string) {
-	await sleep(10);
+	await sleep(20);
 	if (text.includes("(*)")) await this.page().keyboard().type("(*)");
 	const content = (await this.page().asArticle().getContent())?.replace("(\\*)", "(*)");
 	expect(content).toEqual(text);
@@ -190,7 +200,16 @@ Then("разметка текущей статьи ничего не содер�
 Then("свойства текущей статьи содержат", async function (this: E2EWorld, raw: string) {
 	const props = await this.page().asArticle().getProps();
 	for (const [name, val] of raw.split("\n").map((raw) => raw.split(": ", 2).map((s) => s.trim()))) {
-		expect(props[name]?.toString()).toEqual(val);
+		const value = typeof props?.[name] !== "object" ? String(props[name]) : JSON.stringify(props[name]);
+		expect(value).toEqual(val);
+	}
+});
+
+Then("свойства текущего каталога содержат", async function (this: E2EWorld, raw: string) {
+	const props = await this.page().getCatalogProps();
+	for (const [name, val] of raw.split("\n").map((raw) => raw.split(": ", 2).map((s) => s.trim()))) {
+		const value = typeof props?.[name] !== "object" ? String(props[name]) : JSON.stringify(props[name]);
+		expect(value).toEqual(val);
 	}
 });
 

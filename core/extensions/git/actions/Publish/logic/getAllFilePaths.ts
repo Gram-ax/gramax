@@ -9,7 +9,7 @@ const getAllFilePaths = (sideBarData: SideBarData[], includeRenames = true): str
 			if (!data.isChecked) return;
 			filePaths.push(data.filePath.path, includeRenames ? data.filePath.oldPath : null);
 			data.resources.forEach((resource) => {
-				filePaths.push(resource.filePath.path, includeRenames ? resource.filePath.oldPath : null);
+				filePaths.push(resource.data.filePath.path, includeRenames ? resource.data.filePath.oldPath : null);
 			});
 		});
 	return filePaths.filter((x) => x);

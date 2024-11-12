@@ -49,8 +49,9 @@ const StyleGuideCheckSettings = (props: StyleGuideCheckSettingsProps) => {
 									<ChooseFile
 										errorText={errorText}
 										extension=".json"
+										fileName={formSettings?.name ?? null}
 										onChange={async (file) => {
-											setFormSettings(null);
+											setFormSettings({ name: file.name, rules: null });
 											try {
 												const arrayBuffer = await file.arrayBuffer();
 												const json = JSON.parse(Buffer.from(arrayBuffer).toString());
@@ -69,8 +70,8 @@ const StyleGuideCheckSettings = (props: StyleGuideCheckSettingsProps) => {
 										}}
 									/>
 								</div>
-								<div className="input-lable-description article ">
-									<div style={{ flex: 1 }}>
+								<div className="input-lable-description" style={{ marginTop: "0.5rem" }}>
+									<div className="article" style={{ flex: 1 }}>
 										<MinimizedArticleStyled>
 											<p>Чтобы загрузить файл настроек стайлгайдов, выполните следующие шаги:</p>
 											<ol>

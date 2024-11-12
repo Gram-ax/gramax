@@ -35,7 +35,6 @@ const searchCommand: Command<{ ctx: Context; catalogName?: string; query: string
 			const catalogs = Array.from(this._app.wm.current().getCatalogEntries().keys());
 			const catalogArticleIds = {};
 			await Promise.all(catalogs.map(async (c) => (catalogArticleIds[c] = await getCatalogItemsIds(c))));
-
 			const search = async (query: string) => {
 				const result = await this._app.searcher.searchAll(query, catalogArticleIds);
 				return result.length > 0 ? result : null;

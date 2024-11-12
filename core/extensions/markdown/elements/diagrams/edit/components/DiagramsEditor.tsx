@@ -8,7 +8,9 @@ import ModalLayoutLight from "@components/Layouts/ModalLayoutLight";
 import { classNames } from "@components/libs/classNames";
 import FetchService from "@core-ui/ApiServices/FetchService";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
+import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import { useDebounce } from "@core-ui/hooks/useDebounce";
+import useWatch from "@core-ui/hooks/useWatch";
 import { cssMedia } from "@core-ui/utils/cssUtils";
 import DiagramType from "@core/components/Diagram/DiagramType";
 import styled from "@emotion/styled";
@@ -21,9 +23,10 @@ import DiagramRender from "@ext/markdown/elements/diagrams/component/DiagramRend
 import getMermaidDiagram from "@ext/markdown/elements/diagrams/diagrams/mermaid/getMermaidDiagram";
 import getPlantUmlDiagram from "@ext/markdown/elements/diagrams/diagrams/plantUml/getPlantUmlDiagram";
 import Note, { NoteType } from "@ext/markdown/elements/note/render/component/Note";
-import { Editor } from "@tiptap/core";
-import { useEffect, useState, useRef, FC, useCallback, Suspense, lazy } from "react";
 import useMediaQuery from "@mui/material/useMediaQuery";
+import { Editor } from "@tiptap/core";
+import { FC, Suspense, lazy, memo, useCallback, useEffect, useRef, useState } from "react";
+
 const LazySwaggerUI = lazy(() => import("@ext/markdown/elements/openApi/render/SwaggerUI"));
 
 const langs: { [type in DiagramType]: string } = {
@@ -70,6 +73,7 @@ const DiagramsEditor = (props: DiagramsEditorProps) => {
 	const [monacoHeight, setMonacoHeight] = useState(undefined);
 	const [showConfirm, setShowConfirm] = useState(false);
 	const isMobile = useMediaQuery(cssMedia.JSnarrow);
+	const [pendedData, setPendedData] = useState(content ?? "");
 
 	const messages = {
 		dontSave: t("dont-save"),
@@ -128,6 +132,15 @@ const DiagramsEditor = (props: DiagramsEditorProps) => {
 		}
 		setAlertHeight(divHeight);
 	}, []);
+
+	const { start: broadcastData } = useDebounce(() => {
+		setPendedData(contentEditState);
+	}, 1000);
+
+	useWatch(() => {
+		if (diagramName !== DiagramType["plant-uml"]) return setPendedData(contentEditState);
+		broadcastData();
+	}, [contentEditState]);
 
 	const debounceSetHeight = useCallback(() => {
 		setTimeout(calculateHeights, 0);
@@ -238,7 +251,7 @@ const DiagramsEditor = (props: DiagramsEditorProps) => {
 										setError={setError}
 										error={error}
 										diagramName={diagramName}
-										content={contentEditState}
+										content={pendedData}
 									/>
 								</div>
 							</div>
@@ -259,9 +272,10 @@ const DiagramsEditor = (props: DiagramsEditorProps) => {
 	);
 };
 
-const OverloadDiagramRenderer: FC<OverloadRendererProps> = (props) => {
+const OverloadDiagramRenderer: FC<OverloadRendererProps> = memo((props) => {
 	const { diagramName, error, setError, title = "", content = "" } = props;
 	const apiUrlCreator = ApiUrlCreatorService.value;
+	const diagramsServiceUrl = PageDataContextService.value.conf.diagramsServiceUrl;
 
 	const ref = useRef<HTMLDivElement | HTMLImageElement>();
 	const [data, setData] = useState("");
@@ -290,7 +304,7 @@ const OverloadDiagramRenderer: FC<OverloadRendererProps> = (props) => {
 		async (buffer: Buffer) => {
 			let err = null;
 			try {
-				const diagramData = await DIAGRAM_FUNCTIONS?.[diagramName](buffer.toString());
+				const diagramData = await DIAGRAM_FUNCTIONS?.[diagramName](buffer.toString(), diagramsServiceUrl);
 				setData(diagramData);
 			} catch (error) {
 				err = error;
@@ -311,7 +325,7 @@ const OverloadDiagramRenderer: FC<OverloadRendererProps> = (props) => {
 			data={data}
 		/>
 	);
-};
+});
 
 export default styled(DiagramsEditor)`
 	.window {
@@ -338,7 +352,7 @@ export default styled(DiagramsEditor)`
 	}
 
 	.modal-confirm {
-		z-index: 201;
+		z-index: var(--z-index-article-confirm-modal);
 		background-color: #2929298d;
 		position: absolute;
 		left: 0;
@@ -380,7 +394,7 @@ export default styled(DiagramsEditor)`
 		.bottom {
 			width: 99% !important;
 			position: absolute;
-			z-index: 100;
+			z-index: var(--z-index-base);
 			bottom: 0;
 			left: 0;
 

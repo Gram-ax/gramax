@@ -21,6 +21,12 @@ const locale: DefaultLocale = {
 					placeholder: "./",
 					description: "Путь до директории, где будет храниться вся документация в репозитории",
 				},
+				versions: {
+					name: "Версии",
+					placeholder: "releases/**/*",
+					description:
+						"Список версий (веток или тегов), отображаемых в докпортале. Задаются в виде glob-паттернов, например v19.* или release-*",
+				},
 				language: {
 					name: "Основной язык",
 					placeholder: "Русский",
@@ -52,8 +58,12 @@ const locale: DefaultLocale = {
 				},
 				type: {
 					name: "Тип",
-					placeholder: "Counter",
+					placeholder: "Flag",
 					description: "Нельзя изменить после сохранения",
+				},
+				icon: {
+					name: "Иконка",
+					placeholder: "Иконка",
 				},
 				style: {
 					name: "Стиль",
@@ -62,19 +72,6 @@ const locale: DefaultLocale = {
 				values: {
 					name: "Значения",
 					placeholder: "Введите значение",
-				},
-			},
-		},
-		"article-create-props": {
-			name: "Настройки свойства",
-			props: {
-				id: {
-					name: "Свойство",
-					placeholder: "Выберите существующее свойство",
-				},
-				value: {
-					name: "Значение",
-					placeholder: "Выберите значение",
 				},
 			},
 		},
@@ -228,7 +225,7 @@ const locale: DefaultLocale = {
 				},
 				id: {
 					name: "Id",
-					placeholder: "my_Id",
+					placeholder: "my_id",
 				},
 				content: {
 					name: "<p>Содержимое</p>",
@@ -244,7 +241,7 @@ const locale: DefaultLocale = {
 				},
 				id: {
 					name: "Id",
-					placeholder: "my_Id",
+					placeholder: "my_id",
 				},
 				content: {
 					name: "<p>Содержимое</p>",
@@ -348,6 +345,7 @@ const locale: DefaultLocale = {
 		},
 	},
 	multilang: {
+		switch: "Переключить язык",
 		warning: {
 			action: {
 				title: "Будет выполнено также для других языков",
@@ -359,10 +357,9 @@ const locale: DefaultLocale = {
 			},
 		},
 		"delete-confirm": "Вы уверены, что хотите удалить язык?",
-		"remove-localization": "Удалить язык",
 		"add-localization": "Добавить язык",
+		current: "Вы уже просматриваете этот язык",
 		error: {
-			"no-selected-language": "Необходимо выбрать основной язык в «Настройках каталога»",
 			"cannot-switch-to-self": "Нельзя удалить или переключиться на текущий язык",
 			"cannot-add-language": "Нельзя добавить уже добавленный язык",
 		},
@@ -508,7 +505,6 @@ title: Каталог уже связан с репозиторием
 	"open-in": {
 		web: "Открыть в веб-приложении",
 		desktop: "Открыть в приложении",
-		vscode: "Редактировать в VSCode",
 		gramax: "Редактировать в Gramax",
 		generic: "Открыть в",
 		teams: "Открыть в Teams",
@@ -532,9 +528,18 @@ title: Каталог уже связан с репозиторием
 		"all-catalogs": "Искать по всем каталогам",
 	},
 	list: {
-		"no-items-found":
-			"По запросу <strong style='color: inherit'>&quot;{{value}}&quot;</strong> совпадений не найдено.",
+		"no-items-found": "По запросу <strong>&quot;{{value}}&quot;</strong> совпадений не найдено.",
 		"search-articles": "Ссылка или поиск по статьям",
+	},
+	versions: {
+		switch: "Переключить версию",
+		version: "Версия",
+		"current-version": "Вы находитесь на этой версии",
+		"not-actual-warning": {
+			header: "Неактуальная версия",
+			"1": "Вы просматриваете неактуальную версию ",
+			"2": "<a data-qa href='{{link}}'>Переключите версию</a> для просмотра актуальной версии",
+		},
 	},
 	git: {
 		source: {
@@ -581,6 +586,7 @@ title: Каталог уже связан с репозиторием
 			},
 		},
 		branch: {
+			actual: "Актуальная ветка",
 			error: {
 				"deleting-head-branch":
 					"Вы пытаетесь удалить ветку, на которой находитесь. Переключите её и попробуйте ещё раз",
@@ -722,6 +728,7 @@ title: Каталог уже связан с репозиторием
 		"code-block": "Блок кода",
 		"bullet-list": "Маркированый список",
 		"ordered-list": "Нумерованный список",
+		"task-list": "Список задач",
 		note: "Заметка",
 		heading: "Заголовок",
 
@@ -777,8 +784,8 @@ title: Каталог уже связан с репозиторием
 		describe: "Опишите проблему или ошибку",
 		"attach-tech-details": "Приложить технические детали",
 		"this-will-help-us":
-			"Эта информация поможет нам оперативнее решить ошибку. Мы не увидим контент или личные данные.",
-		"view-tech-details": "Посмотреть детали.",
+			"Эта информация поможет нам оперативнее решить ошибку. Мы не увидим контент или личные данные. ",
+		"view-tech-details": "Посмотреть детали",
 		error: {
 			"cannot-send-feedback": {
 				title: "Не удалось отправить отчет об ошибке",
@@ -806,6 +813,7 @@ title: Каталог уже связан с репозиторием
 		},
 	},
 	enterprise: {
+		"admin-panel": "Админ панель",
 		"user-not-found":
 			"Эта почта не подключена к Gramax Enterprise Server. Вы можете продолжить работу в бесплатной версии приложения или обратиться к вашему администратору за помощью.",
 		"workspace-exit-warning":
@@ -813,6 +821,7 @@ title: Каталог уже связан с репозиторием
 		"workspace-exit": "Выход из рабочего пространства",
 		"check-if-user-editor-warning": "Убедитесь, что вам выдана лицензия редактора.",
 		"access-restricted": "Доступ ограничен",
+		"config-not-found": "Проблемы с настройками. Обратитесь к администратору.",
 	},
 	network: {
 		error: {
@@ -852,7 +861,7 @@ title: Каталог уже связан с репозиторием
 	edit: "Отредактировать",
 	editing: "Редактирование",
 	element: "Элемент",
-	enter: "Войти в",
+	"enter-value": "Введите значение",
 	error: "Ошибка",
 	existing: "существующий",
 	exit: "Выход",
@@ -1050,6 +1059,7 @@ title: Каталог уже связан с репозиторием
 	"git-pull": "Git pull",
 	"git-status": "Git status",
 	"go-to-article": "Перейти к статье",
+	"go-to": "Перейти на",
 	"icon-cone": "Код иконки",
 	"img-h": "Вертикальные группы картинок",
 	"img-v": "Горизонтальные группы картинок",
@@ -1153,10 +1163,58 @@ title: Каталог уже связан с репозиторием
 	"your-branch": "Ваша ветка",
 	"edit-html": "Редактировать HTML",
 	"do-not-show-again": "Больше не показывать",
-	properties: "Свойства",
-	"add-new": "Добавить новое",
+	properties: {
+		name: "Свойства",
+		all: "Все",
+		empty: "(пусто)",
+		"select-all": "(выбрать все)",
+		"validation-errors": {
+			"all-parameters-added": "Все параметры добавлены",
+			"prop-creator": "Имя слишком короткое или такое свойство уже существует",
+			"no-groupby": "Выберите поле для группировки",
+			"no-defs": "Выберите хотя бы одно поле для фильтрации",
+			"no-content": "Для выбранных полей нет элементов в каталоге",
+		},
+		system: {
+			hierarchy: {
+				name: "Иерархия",
+				values: {
+					"child-to-current": "Дочерние статьи текущей",
+				},
+			},
+		},
+		warning: {
+			"delete-tag-from-catalog": {
+				title: "Подтверждение удаления свойства",
+				body: "Вы уверены, что хотите удалить свойство? Оно будет удалено со всех статей.",
+			},
+			"delete-value-from-catalog": {
+				title: "Подтверждение удаления значения",
+				body: "Вы уверены, что хотите удалить это значение? Оно будет удалено из всех статей.",
+			},
+		},
+		view: {
+			name: "Представление",
+			"group-by": "Группировка",
+			"order-by": "Сортировка",
+			filter: "Фильтр",
+			select: "Выборка",
+			displays: {
+				name: "Вид",
+				list: "Список",
+				table: "Таблица",
+				kanban: "Доска",
+			},
+		},
+		selected: "Выбрано",
+		"not-selected": "Не выбрано",
+		article: "Статья",
+		archive: "Архивировать",
+	},
+	"create-new": "Создать новое",
 	manage: "Управлять",
 	change: "Изменить",
+	"enter-number": "Введите число",
 };
 
 export default locale;

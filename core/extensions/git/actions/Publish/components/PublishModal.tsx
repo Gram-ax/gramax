@@ -36,7 +36,8 @@ const PublishModal = (props: PublishModalProps) => {
 			<Publish
 				tryPublishTrigger={cmdEnterTiggerValue}
 				onSideBarDataChange={(newSideBarData) => {
-					if (newSideBarData.filter((x) => x).length === 0 && hasDiscard.current) setIsOpen(false);
+					const isEmpty = newSideBarData.filter((x) => x).length === 0;
+					if (isEmpty && hasDiscard.current) setIsOpen(false);
 				}}
 				onSideBarDataLoadEnd={() => setSideBarDataLoaded(true)}
 				onSideBarDataLoadError={() => setIsOpen(false)}

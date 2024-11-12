@@ -14,6 +14,8 @@ import {
 	useRef,
 	useState,
 	useMemo,
+	useCallback,
+	useLayoutEffect,
 } from "react";
 import { Placement } from "tippy.js";
 import Tooltip from "../Atoms/Tooltip";
@@ -40,6 +42,8 @@ interface ConfigProps {
 	hideScrollbar?: boolean;
 	customOutsideClick?: boolean;
 	selectAllOnFocus?: boolean;
+	isHierarchy?: boolean;
+	withBreadcrumbs?: boolean;
 	disableSearch?: boolean;
 	keepFullWidth?: boolean;
 	isLoadingData?: boolean;
@@ -52,6 +56,7 @@ export interface ListLayoutProps extends ConfigProps {
 	buttons?: ButtonItem[];
 	items: ItemContent[];
 	item?: ItemContent;
+	itemIndex?: number | null;
 	icon?: string;
 	maxItems?: number;
 	provideCloseHandler?: (handler: (value: boolean) => void) => void;
@@ -111,6 +116,8 @@ const ListLayout = forwardRef((props: ListLayoutProps, ref: ForwardedRef<ListLay
 		disabledOutsideClick = false,
 		selectAllOnFocus = true,
 		openByDefault = false,
+		isHierarchy = false,
+		withBreadcrumbs = false,
 		customOutsideClick = false,
 		isLoadingData = false,
 		disable = false,
@@ -125,6 +132,7 @@ const ListLayout = forwardRef((props: ListLayoutProps, ref: ForwardedRef<ListLay
 		showErrorText = true,
 		maxItems = 6,
 		hideScrollbar,
+		itemIndex,
 		disableSearch,
 		icon,
 		tabIndex,
@@ -162,12 +170,23 @@ const ListLayout = forwardRef((props: ListLayoutProps, ref: ForwardedRef<ListLay
 	useOutsideClick<HTMLDivElement | HTMLInputElement>(
 		[itemsRef.current, searchRef.current?.inputRef, searchRef.current?.chevronRef],
 		(e) => {
-			setValue(item !== "" ? item : selectedItem);
-			if (!customOutsideClick) return setIsOpen(false);
-			const haveListeners = eventEmitter.listeners("ListLayoutOutsideClick").length > 0;
-			if (!haveListeners) return setIsOpen(false);
+			const secondCallback = () => setValue(item !== "" ? item : selectedItem);
 
-			const callback = () => setIsOpen(false);
+			if (!customOutsideClick) {
+				secondCallback();
+				return setIsOpen(false);
+			}
+
+			if (!(eventEmitter.listeners("ListLayoutOutsideClick").length > 0)) {
+				secondCallback();
+				return setIsOpen(false);
+			}
+
+			const callback = () => {
+				secondCallback();
+				setIsOpen(false);
+			};
+
 			eventEmitter.emit("ListLayoutOutsideClick", { e, callback });
 		},
 		!disabledOutsideClick,
@@ -187,23 +206,26 @@ const ListLayout = forwardRef((props: ListLayoutProps, ref: ForwardedRef<ListLay
 		if (searchRef.current) searchRef.current.inputRef.focus();
 	};
 
-	const blurInInput = () => {
+	const blurInInput = useCallback(() => {
 		if (searchRef.current) searchRef.current.inputRef.blur();
-	};
+	}, []);
 
 	const selectInInput = () => {
 		if (searchRef.current) searchRef.current.inputRef.select();
 	};
 
-	const itemClickHandler: OnItemClick = (value, e, idx) => {
-		const index = showFilteredItems ? items.indexOf(filteredItems[idx]) : idx;
-		onItemClick?.(getStrValue(value), e, index !== -1 ? index : idx);
-		setSelectedItem(value);
-		setValue(value);
-	};
+	const itemClickHandler: OnItemClick = useCallback(
+		(value, e, idx) => {
+			const index = showFilteredItems ? items.indexOf(filteredItems[idx]) : idx;
+			onItemClick?.(getStrValue(value), e, index !== -1 ? index : idx);
+			setSelectedItem(value);
+			setValue(value);
+		},
+		[items, showFilteredItems, filteredItems, onItemClick],
+	);
 
 	const setValueHandler = (v: string) => {
-		setShowFilteredItems(true);
+		setShowFilteredItems(Boolean(v));
 		if (typeof value === "string") return setValue(v);
 		if (typeof value.element === "string") return setValue({ ...value, element: v });
 		return setValue({ ...value, labelField: v });
@@ -229,14 +251,19 @@ const ListLayout = forwardRef((props: ListLayoutProps, ref: ForwardedRef<ListLay
 				setIsOpen={setIsOpen}
 				buttons={buttons}
 				isLoadingData={isLoadingData}
+				isHierarchy={isHierarchy}
+				withBreadcrumbs={withBreadcrumbs}
 				value={getStrValue(value)}
+				filteredWidth={filteredWidth}
 				blurInInput={blurInInput}
 				className={itemsClassName}
 				isCode={isCode}
-				filteredWidth={filteredWidth}
 				maxItems={maxItems}
 				hideScrollbar={hideScrollbar}
-				items={showFilteredItems ? filteredItems : items}
+				itemIndex={itemIndex}
+				items={items}
+				filteredItems={filteredItems}
+				showFilteredItems={showFilteredItems}
 				onItemClick={itemClickHandler}
 				isOpen={isOpen}
 				searchRef={searchRef}
@@ -253,7 +280,7 @@ const ListLayout = forwardRef((props: ListLayoutProps, ref: ForwardedRef<ListLay
 		setValue(item);
 	}, [item]);
 
-	useEffect(() => {
+	useLayoutEffect(() => {
 		const width = containerRef?.current?.clientWidth;
 		setFilteredWidth(width ? width + addWidth : listRef.current?.clientWidth);
 	}, [listRef.current?.clientWidth, containerRef?.current?.clientWidth]);

@@ -7,9 +7,6 @@ const env = {
 	BUILD_VERSION: null,
 	BUGSNAG_API_KEY: null,
 	PRODUCTION: null,
-	SERVER_APP: null,
-	SSO_SERVICE_URL: null,
-	SSO_SERVICE_ENCRYPTION_KEY: null,
 	BUGSNAG_CLIENT_KEY: null,
 	BRANCH: null,
 	COOKIE_SECRET: null,
@@ -17,8 +14,9 @@ const env = {
 	AUTH_SERVICE_URL: null,
 	DIAGRAM_RENDERER_SERVICE_URL: null,
 	REVIEW_SERVICE_URL: null,
-	CORS_PROXY_SERVICE_URL: null,
-	GLS_URL: null,
+	GIT_PROXY_SERVICE_URL: null,
+	GEPS_URL: null,
+	GES_URL: null,
 };
 
 if (!process.env.COOKIE_SECRET) console.warn("WARNING: You need to set COOKIE_SECRET if you run gramax in production.");

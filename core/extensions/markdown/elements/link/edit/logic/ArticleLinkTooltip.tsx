@@ -68,9 +68,12 @@ const ArticleLinkTooltip = (props: LinkTooltipProps) => {
 			debounceClose.start();
 			addClosedClass.start();
 		} else {
+			openDebounce.cancel();
 			closeHandler();
 		}
 	}, [isVisible]);
+
+	const openDebounce = useDebounce(() => setIsVisible(true), 500, true);
 
 	const fetchData = useCallback(async () => {
 		const mark = getMark();
@@ -84,7 +87,7 @@ const ArticleLinkTooltip = (props: LinkTooltipProps) => {
 		if (!res || !res.ok) return;
 
 		const data = await res.json();
-		if (mark.attrs?.hash && mark.attrs?.hash !== hash) setHash(mark.attrs.hash);
+		if (mark?.attrs?.hash && mark.attrs?.hash !== hash) setHash(mark.attrs.hash);
 
 		setData(data);
 	}, [apiUrlCreator, getMark, resourcePath]);
@@ -92,15 +95,14 @@ const ArticleLinkTooltip = (props: LinkTooltipProps) => {
 	const clearHandler = useCallback(() => {
 		debounceClose.cancel();
 		addClosedClass.cancel();
+		openDebounce.cancel();
 		setCanClose(true);
 	}, []);
 
 	useEffect(() => {
-		const debounceOpen = setTimeout(() => setIsVisible(true), 500);
 		const fetchDataTimeout = setTimeout(() => fetchData(), 450);
 
 		return () => {
-			clearTimeout(debounceOpen);
 			clearTimeout(fetchDataTimeout);
 		};
 	}, [fetchData]);
@@ -116,6 +118,7 @@ const ArticleLinkTooltip = (props: LinkTooltipProps) => {
 	useEffect(() => {
 		const handleMouseLeave = () => close();
 		const handleMouseEnter = () => clearHandler();
+		const handleMouseMove = () => openDebounce.start();
 		const handleClick = () => {
 			if (!isVisible) return close();
 
@@ -124,12 +127,14 @@ const ArticleLinkTooltip = (props: LinkTooltipProps) => {
 		};
 
 		element.addEventListener("mouseleave", handleMouseLeave);
+		element.addEventListener("mousemove", handleMouseMove);
 		element.addEventListener("mouseenter", handleMouseEnter);
 		element.addEventListener("click", handleClick);
 
 		return () => {
 			element.removeEventListener("mouseleave", handleMouseLeave);
 			element.removeEventListener("mouseenter", handleMouseEnter);
+			element.removeEventListener("mousemove", handleMouseMove);
 			element.removeEventListener("click", handleClick);
 		};
 	}, [isVisible, close, clearHandler]);
@@ -275,7 +280,8 @@ export default styled(ArticleLinkTooltip)`
 		width: 400px;
 		height: 250px;
 		padding: 1rem;
-		overflow: scroll;
+		overflow-y: scroll;
+		overflow-x: auto;
 	}
 
 	.tooltip-article {

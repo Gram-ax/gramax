@@ -7,6 +7,8 @@ import Popup from "reactjs-popup";
 import { Table } from "../../../../../logic/components/tableDB/table";
 import FetchService from "../../../../../ui-logic/ApiServices/FetchService";
 import TableDB from "../../tabledb/render/DbTable";
+import MimeTypes from "@core-ui/ApiServices/Types/MimeTypes";
+import Method from "@core-ui/ApiServices/Types/Method";
 
 export interface DbDiagramData {
 	tables: {
@@ -36,7 +38,8 @@ const DbDiagram = styled(
 		const [focus, setFocus] = useState(false);
 
 		const load = async (src: string, tags: string, primary?: string) => {
-			const res = await FetchService.fetch<DbDiagramData>(apiUrlCreator.getDbDiagramUrl(src, primary, tags));
+			const url = apiUrlCreator.getDbDiagramUrl(src, primary, tags);
+			const res = await FetchService.fetch<DbDiagramData>(url, null, MimeTypes.text, Method.POST, false);
 			if (res.ok) setData(await res.json());
 			else setError(await res.json());
 		};
@@ -45,7 +48,7 @@ const DbDiagram = styled(
 			load(src, tags, primary);
 		}, [src, tags, primary]);
 
-		if (error || (data && !data?.tables)) return <DiagramError error={error ?? data} diagramName="Db-diagram" />;
+		if (error || (data && !data?.tables)) return <DiagramError error={error ?? data} diagramName="Db-Diagram" />;
 
 		return !data ? (
 			<div data-type="dbdiagram" contentEditable={false} />

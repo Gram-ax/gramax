@@ -27,15 +27,16 @@ const updateNavigation: Command<
 	middlewares: [new AuthorizeMiddleware(), new DesktopModeMiddleware(), new ReloadConfirmMiddleware()],
 
 	async do({ ctx, draggedItemPath, logicPath, catalogName, newLevNav, oldLevNav }) {
-		const { wm, resourceUpdaterFactory, rp, sitePresenterFactory } = this._app;
+		const { wm, resourceUpdaterFactory, sitePresenterFactory } = this._app;
 		const workspace = wm.current();
 
 		const catalog = await workspace.getCatalog(catalogName);
 		const fp = workspace.getFileProvider();
 		const sitePresenter = sitePresenterFactory.fromContext(ctx);
-		const dragTree = new DragTree(fp, resourceUpdaterFactory.withContext(ctx), rp, ctx);
-		const ancestors = dragTree.findOrderingAncestors(newLevNav, draggedItemPath, catalog);
+		const dragTree = new DragTree(fp, resourceUpdaterFactory.withContext(ctx));
+		const ancestors = await dragTree.findOrderingAncestors(newLevNav, draggedItemPath, catalog);
 		if (!ancestors) return;
+
 		const prev = ancestors.prev != ancestors.parent ? ancestors.prev : null;
 		await ancestors.dragged.setOrderAfter(ancestors.parent, prev);
 		await dragTree.drag(oldLevNav, newLevNav, catalog, sitePresenter.parseAllItems.bind(sitePresenter));

@@ -1,3 +1,4 @@
+import { getExecutingEnvironment } from "@app/resolveModule/env";
 import Button from "@components/Atoms/Button/Button";
 import SpinnerLoader from "@components/Atoms/SpinnerLoader";
 import FormStyle from "@components/Form/FormStyle";
@@ -77,6 +78,7 @@ const Clone = ({ trigger, mode }: { trigger: JSX.Element; mode: Mode }) => {
 			storageData,
 			apiUrlCreator,
 			skipCheck: true,
+			isBare: getExecutingEnvironment() === "next", // todo: добавить настройку при клонировании
 			onError: () => {
 				refreshPage();
 				closeForm();

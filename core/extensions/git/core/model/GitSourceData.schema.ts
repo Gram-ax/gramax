@@ -14,6 +14,7 @@ interface GitSourceData extends SourceData {
 	protocol?: string;
 	createDate?: string;
 	refreshToken?: string;
+	isEnterprise?: boolean;
 }
 
 export default GitSourceData;

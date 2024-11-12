@@ -14,7 +14,8 @@ interface LevNavItemProps extends HTMLAttributes<HTMLDivElement> {
 	isOpen?: boolean;
 	isHover?: boolean;
 	isActive?: boolean;
-	isDroppable?: boolean;
+	isCategory?: boolean;
+	isDropTarget?: boolean;
 	isDragStarted?: boolean;
 	rightExtensions?: JSX.Element | JSX.Element[];
 	leftExtensions?: JSX.Element | JSX.Element[];
@@ -23,31 +24,18 @@ interface LevNavItemProps extends HTMLAttributes<HTMLDivElement> {
 }
 
 const LevNavItem = (props: LevNavItemProps) => {
-	const {
-		level,
-		item,
-		isOpen,
-		isDroppable,
-		rightExtensions,
-		leftExtensions,
-		onToggle,
-		className,
-		isDragStarted,
-		isHover,
-		isActive,
-		...other
-	} = props;
+	const { level, item, isOpen, rightExtensions, leftExtensions, onToggle, className, isCategory, ...other } = props;
 	const articleProps = ArticlePropsService.value;
 	const title = item ? (articleProps?.ref?.path == item?.ref?.path ? articleProps?.title : item?.title) : null;
 	const existsContent = item?.type === ItemType.category ? (item as CategoryLink)?.existContent : true;
 
 	const Item = (
 		<div
-			className={className + " depth-" + level + (!isOpen && isDroppable ? " a-drop-target" : "")}
-			data-qa={`catalog-navigation-${isDroppable ? "category" : "article"}-link-level-${level}`}
+			className={className + " depth-" + level + (!isOpen && isCategory ? " a-drop-target" : "")}
+			data-qa={`catalog-navigation-${isCategory ? "category" : "article"}-link-level-${level}`}
 			{...other}
 		>
-			{isDroppable && (
+			{isCategory && (
 				<Icon
 					code={isOpen ? "chevron-down" : "chevron-right"}
 					viewBox="3 3 18 18"
@@ -58,7 +46,7 @@ const LevNavItem = (props: LevNavItemProps) => {
 				/>
 			)}
 			<div className="text" data-qa="qa-clickable">
-				<span title={title}>{item?.external || title}</span>
+				<span title={title}>{item?.external || title || <>&nbsp;</>}</span>
 				{leftExtensions}
 			</div>
 			{rightExtensions && (
@@ -168,4 +156,11 @@ export default styled(LevNavItem)`
 		}
 	}
 	`}
+	${(p) =>
+		p.isDragStarted &&
+		p.isDropTarget &&
+		!p.isCategory &&
+		`
+			background: var(--color-navigation-article-drop-target) !important;
+		`}
 `;

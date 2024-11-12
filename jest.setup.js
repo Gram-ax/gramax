@@ -21,6 +21,6 @@ if (!process.env.DEBUG_JEST) {
 	};
 }
 
-delete process.env.CORS_PROXY_SERVICE_URL;
+delete process.env.GIT_PROXY_SERVICE_URL;
 
 jest.setTimeout(15000);

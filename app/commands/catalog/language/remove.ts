@@ -16,7 +16,7 @@ const remove: Command<{ ctx: Context; code: ContentLanguage; catalogName: string
 	kind: ResponseKind.none,
 
 	async do({ ctx, code, catalogName }) {
-		const { wm, resourceUpdaterFactory, rp } = this._app;
+		const { wm, resourceUpdaterFactory } = this._app;
 
 		if (!code || !ContentLanguage[code]) throw new Error("No content language code provided");
 		const catalog = await wm.current().getCatalog(catalogName);
@@ -33,7 +33,7 @@ const remove: Command<{ ctx: Context; code: ContentLanguage; catalogName: string
 
 		if (languageCategory) await catalog.deleteItem(languageCategory.ref, null, false);
 
-		await catalog.updateProps(resourceUpdaterFactory.withContext(ctx), rp, catalog.props);
+		await catalog.updateProps(resourceUpdaterFactory.withContext(ctx), catalog.props);
 		await wm.current().refreshCatalog(catalogName);
 	},
 

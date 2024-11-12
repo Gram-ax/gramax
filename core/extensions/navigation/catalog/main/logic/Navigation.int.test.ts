@@ -1,7 +1,8 @@
 import getApplication from "@app/node/app";
+import Permission from "@ext/security/logic/Permission/Permission";
 import HiddenRules from "../../../../../logic/FileStructue/Rules/HiddenRules/HiddenRule";
-import { ContentLanguage } from "../../../../localization/core/model/Language";
 import LocalizationRules from "../../../../localization/core/events/LocalizationEvents";
+import { ContentLanguage } from "../../../../localization/core/model/Language";
 import SecurityRules from "../../../../security/logic/SecurityRules";
 import User from "../../../../security/logic/User/User";
 import getItemRef from "../../../../workspace/test/getItemRef";
@@ -12,14 +13,14 @@ const getNavigationData = async () => {
 	const errorArticlesProvider = app.customArticlePresenter;
 	const nav = new Navigation();
 
-	const user = new User();
+	const user = new User(null, null, new Permission(["ReadCatalogContent"]));
 	const hr = new HiddenRules(errorArticlesProvider);
 	const lr = new LocalizationRules(ContentLanguage.ru, errorArticlesProvider);
 	const sr = new SecurityRules(user, errorArticlesProvider);
 
-	hr.mountNavEvents(nav);
-	lr.mountNavEvents(nav);
-	sr.mountNavEvents(nav);
+	hr.mount(nav);
+	lr.mount(nav);
+	sr.mount(nav);
 
 	const navCatalogEntries = app.wm.current().getCatalogEntries();
 
@@ -70,9 +71,11 @@ describe("Navigation правильно", () => {
 			"data",
 			"NavigationArticleCatalog",
 			"NavigationIndexCatalog",
+			"PropertyCatalog",
 			"RefsCatalog",
 			"RulesCategoryTestCatalog",
 			"RulseArticleTestCatalog",
+			"RulseCatalogTestCatalog",
 			"Test-catalog",
 			"Test-catalog",
 			"Test-catalog",

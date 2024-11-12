@@ -1,99 +1,66 @@
+import LinksBreadcrumb from "@components/Breadcrumbs/LinksBreadcrumb";
+import { classNames } from "@components/libs/classNames";
+import ArticlePropsService from "@core-ui/ContextServices/ArticleProps";
+import useWatch from "@core-ui/hooks/useWatch";
 import styled from "@emotion/styled";
-import { ArticleLink, BaseLink, CatalogLink, CategoryLink, ItemLink } from "@ext/navigation/NavigationLinks";
-import { CatalogLogo } from "../CatalogLogo";
-import Breadcrumb from "./Breadcrumb";
+import { ItemLink } from "@ext/navigation/NavigationLinks";
+import Properties from "@ext/properties/components/Properties";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 
-interface BreadcrumbProps {
-	itemLinks?: ItemLink[];
-	catalogLink?: CatalogLink;
-	readyData?: { titles: string[]; links: BaseLink[] };
-	className?: string;
-}
+const ArticleBreadcrumb = ({ className, itemLinks }: { className?: string; itemLinks: ItemLink[] }) => {
+	const linksRef = useRef<HTMLDivElement>(null);
+	const breadcrumbRef = useRef<HTMLDivElement>(null);
+	const articleProps = ArticlePropsService.value;
+	const [isOverflow, setIsOverflow] = useState<boolean>(null);
 
-const ArticleBreadcrumb = (props: BreadcrumbProps) => {
-	const { itemLinks, catalogLink, readyData, className } = props;
-	let titles: string[] = [];
-	let lastIsIndexArticle = false;
-	let categoryLinks: BaseLink[] = [];
+	const resize = useCallback(() => {
+		const breadcrumb = breadcrumbRef.current;
+		const properties = breadcrumb?.lastElementChild as HTMLElement;
+		if (!properties) return;
 
-	const setTitlesAndLinks = (newCategoryLinks: CategoryLink[]) => {
-		titles = newCategoryLinks.map((l) => l.title);
-		categoryLinks = newCategoryLinks;
-	};
+		const width = breadcrumb?.clientWidth - properties.clientWidth - (linksRef.current?.clientWidth || 0);
+		if (linksRef.current?.clientWidth > 0 && width < 20) setIsOverflow(true);
+		else setIsOverflow(false);
+	}, [breadcrumbRef.current]);
 
-	const search = (itemLinks: ItemLink[], catLinks: CategoryLink[]) => {
-		itemLinks.forEach((x) => {
-			if (!(x as CategoryLink).items) {
-				if ((x as ArticleLink).isCurrentLink) {
-					setTitlesAndLinks(catLinks);
-					lastIsIndexArticle = false;
-				}
-			} else {
-				const categoryLink = x as CategoryLink;
-				const newCategoryLinks = [...catLinks, categoryLink];
-				if (categoryLink.isCurrentLink) {
-					setTitlesAndLinks(newCategoryLinks);
-					lastIsIndexArticle = true;
-				} else search(categoryLink.items, newCategoryLinks);
-			}
-		});
-	};
+	const setNull = () => setIsOverflow(null);
 
-	if (itemLinks) search(itemLinks, []);
-	if (lastIsIndexArticle) titles.pop();
-	if (readyData) {
-		titles = readyData.titles;
-		categoryLinks = readyData.links;
-	}
+	useEffect(() => {
+		window.addEventListener("resize", setNull);
+		return () => window.removeEventListener("resize", setNull);
+	}, [itemLinks, articleProps?.properties]);
+
+	useWatch(() => {
+		setNull();
+	}, [itemLinks, articleProps?.properties]);
+
+	useLayoutEffect(() => {
+		resize();
+	}, [isOverflow]);
 
 	return (
-		<div
-			className={className + " breadcrumb"}
-			style={catalogLink || (titles.length && categoryLinks.length) ? {} : { visibility: "hidden" }}
-		>
-			{catalogLink ? (
-				<>
-					<a className="catalog-logo">
-						<CatalogLogo catalogName={catalogLink.name} />
-						<span className="title">{catalogLink.title}</span>
-					</a>
-				</>
-			) : null}
-
-			<div className="article-breadcrumb">
-				{titles.length && categoryLinks.length ? (
-					<Breadcrumb
-						content={titles.map((t, i) => ({
-							text: t,
-							link: categoryLinks[i],
-						}))}
-					/>
-				) : null}
-			</div>
+		<div ref={breadcrumbRef} className={classNames(className, { nextLine: isOverflow })}>
+			<LinksBreadcrumb ref={linksRef} itemLinks={itemLinks} />
+			<Properties properties={articleProps.properties} />
 		</div>
 	);
 };
 
 export default styled(ArticleBreadcrumb)`
+	width: 100%;
 	display: flex;
 	align-items: center;
+	justify-content: space-between;
 
-	img {
-		margin: 0px !important;
-		max-width: 25px !important;
-		max-height: 15px !important;
-		box-shadow: none !important;
-	}
+	&.nextLine {
+		display: block;
 
-	.title {
-		font-size: 10px;
-		font-weight: 600;
-		margin-left: 0.2rem;
-		white-space: nowrap;
-	}
+		> :first-child {
+			margin-bottom: 0.5em;
+		}
 
-	.catalog-logo {
-		display: flex;
-		align-items: center;
+		> :last-child {
+			justify-content: end;
+		}
 	}
 `;

@@ -15,8 +15,7 @@ const sourcesAPI: Record<SourceType, (data: SourceData, authServiceUrl: string) 
 	GitHub: (data, authServiceUrl) => new GithubSourceAPI(data as GitHubSourceData, authServiceUrl),
 	GitLab: (data, authServiceUrl) => new GitlabSourceAPI(data as GitlabSourceData, authServiceUrl),
 	"Confluence self-hosted server": (data) => new ConfluenceServerAPI(data as ConfluenceServerSourceData),
-	"Confluence Cloud": (data, authServiceUrl) =>
-		new ConfluenceCloudAPI(data as ConfluenceCloudSourceData, authServiceUrl),
+	"Confluence Cloud": (data, authServiceUrl) => new ConfluenceCloudAPI(data as ConfluenceCloudSourceData, authServiceUrl),
 };
 
 export default sourcesAPI;

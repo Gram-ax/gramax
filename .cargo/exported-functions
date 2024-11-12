@@ -43,3 +43,12 @@ _write_file
 _graph_head_upstream_files
 _store
 _get_store
+_git_read_dir
+_git_file_stat
+_git_file_exists
+_git_read_file
+_is_bare
+_is_init
+_find_refs_by_globs
+_set_head
+_invalidate_repo_cache

@@ -4,7 +4,7 @@ import getPageDataByPathname, { PageDataType } from "@core/RouterPath/logic/getP
 import SourceType from "@ext/storage/logic/SourceDataProvider/model/SourceType";
 
 const mockLib = {
-	getCatalog: (catalogName: string) => {
+	getCatalogOrFindAtAnyWorkspace: (catalogName: string) => {
 		const catalogs = {
 			exist_in_lib_local: { repo: {} },
 			exist_in_lib_remote: {
@@ -33,6 +33,8 @@ const mockLib = {
 
 		return catalogs[catalogName];
 	},
+
+	maybeCurrent: () => mockLib,
 };
 
 const getDataType = async (pathname: string) =>

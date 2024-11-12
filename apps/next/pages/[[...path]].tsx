@@ -12,15 +12,15 @@ export default function Home({ data, context }: { data: ArticlePageData & HomePa
 
 export function getServerSideProps({ req, res, query }) {
 	return ApplyPageMiddleware(async function ({ req, res, query }) {
-		const articlePath = query?.path ? "/" + query.path.join("/") : "";
+		const articlePath = query?.path ? "/" + query.path.map((p) => p.replaceAll("/", "%2F")).join("/") : "";
 		query.l = Localizer.extract(articlePath);
-		const ctx = this.app.contextFactory.from(req, res, query);
+		const ctx = await this.app.contextFactory.from(req, res, query);
 
 		const props = await withContext(
 			ctx,
 			async () =>
 				await this.commands.page.getPageData.do({
-					path: decodeURIComponent(articlePath),
+					path: articlePath,
 					ctx,
 				}),
 		);

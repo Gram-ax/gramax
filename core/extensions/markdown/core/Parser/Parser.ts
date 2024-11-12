@@ -1,3 +1,5 @@
+import listItemNodeTransformer from "@ext/markdown/elements/list/edit/models/taskItem/logic/listItemNodeTransformer";
+import taskListNodeTransformer from "@ext/markdown/elements/list/edit/models/taskList/logic/taskListNodeTransformer";
 import noteNodeTransformer from "@ext/markdown/elements/note/logic/transformer/noteNodeTransformer";
 import unsupportedNodeTransformer from "@ext/markdown/elements/unsupported/logic/unsupportedNodeTransformer";
 import ParserContext from "./ParserContext/ParserContext";
@@ -21,7 +23,7 @@ import MdParser from "./MdParser/MdParser";
 
 import { Node } from "prosemirror-model";
 import { ProsemirrorMarkdownParser, ProsemirrorTransformer } from "../edit/logic/Prosemirror";
-import { schema } from "../edit/logic/Prosemirror/schema";
+import { getSchema } from "../edit/logic/Prosemirror/schema";
 import { getTokens } from "../edit/logic/Prosemirror/tokens";
 
 import commentTokenTransformer from "@ext/markdown/elements/comment/edit/logic/commentTokenTransformer";
@@ -40,8 +42,8 @@ import paragraphNodeTransformer from "../../elements/paragraph/edit/logic/paragr
 import Transformer from "./Transformer/Transformer";
 
 import ParseError from "@ext/markdown/core/Parser/Error/ParseError";
-import MarkdownFormatter from "../edit/logic/Formatter/Formatter";
 import htmlTokenTransformer from "@ext/markdown/elements/html/edit/logic/htmlTokenTransformer";
+import MarkdownFormatter from "../edit/logic/Formatter/Formatter";
 
 const katexPlugin = import("@traptitech/markdown-it-katex");
 
@@ -154,7 +156,7 @@ export default class MarkdownParser {
 	}
 
 	private async _editParser(tokens: Token[], schemes: Schemes, context?: ParserContext): Promise<JSONContent> {
-		const prosemirrorParser = new ProsemirrorMarkdownParser(schema, this._getTokenizer(), getTokens(context));
+		const prosemirrorParser = new ProsemirrorMarkdownParser(getSchema(), this._getTokenizer(), getTokens(context));
 
 		const transformer = new ProsemirrorTransformer(
 			{ ...schemes.tags, ...schemes.nodes },
@@ -162,6 +164,8 @@ export default class MarkdownParser {
 				fileMarkTransformer,
 				paragraphNodeTransformer,
 				blockMdNodeTransformer(new MarkdownFormatter(), context),
+				listItemNodeTransformer,
+				taskListNodeTransformer,
 				inlineCutNodeTransformer,
 				diagramsNodeTransformer,
 				noteNodeTransformer,
@@ -189,6 +193,7 @@ export default class MarkdownParser {
 			this.parseRenderableTreeNode.bind(this),
 			context,
 		);
+
 		return finalEditTree;
 	}
 }

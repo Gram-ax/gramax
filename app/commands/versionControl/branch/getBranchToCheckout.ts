@@ -1,6 +1,5 @@
 import { ResponseKind } from "@app/types/ResponseKind";
 import { AuthorizeMiddleware } from "@core/Api/middleware/AuthorizeMiddleware";
-import { RepCheckoutState } from "@ext/git/core/Repository/model/RepostoryState";
 import { Command } from "../../../types/Command";
 
 const getBranchToCheckout: Command<{ catalogName: string }, string> = Command.create({
@@ -18,8 +17,8 @@ const getBranchToCheckout: Command<{ catalogName: string }, string> = Command.cr
 		if (!catalog?.repo?.gvc) return;
 
 		const state = await catalog.repo.getState();
-		if (state.value !== "checkout") return;
-		return (state as RepCheckoutState).data.to;
+		if (state.inner.value !== "checkout") return;
+		return state.inner.data.to;
 	},
 
 	params(ctx, q) {

@@ -4,41 +4,59 @@ import t from "@ext/localization/locale/translate";
 import Note, { NoteType } from "../../../note/render/component/Note";
 import ErrorText from "./ErrorText";
 import AlertError from "@components/AlertError";
+import { useEffect, useRef, useState } from "react";
+import scrollUtils from "@core-ui/utils/scrollUtils";
+import { classNames } from "@components/libs/classNames";
 
-const ErrorVideo = styled(
-	({
-		isLink,
-		link,
-		className,
-		isNoneError = false,
-	}: {
-		isLink: boolean;
-		link: string;
-		className?: string;
-		isNoneError?: boolean;
-	}) => {
-		return isNoneError ? (
-			<div className={"error-video " + className}>
-				<video
-					id="my-player"
-					data-focusable="true"
-					className="video-js"
-					controls
-					preload="auto"
-					data-setup="{}"
-					src={link}
-				/>
-				<div className="error-text-parent">
-					<Note type={NoteType.info} title={t("editor.video.will-be-here")}>
-						<ErrorText link={link} isLink={isLink} isNoneError={isNoneError} />
-					</Note>
-				</div>
+interface ErrorVideoProps {
+	isLink: boolean;
+	link: string;
+	className?: string;
+	isNoneError?: boolean;
+}
+
+const ErrorVideo = ({ isLink, link, className, isNoneError = false }: ErrorVideoProps) => {
+	const ref = useRef(null);
+	const [errorTextHasScroll, setErrorTextHasScroll] = useState(false);
+
+	useEffect(() => {
+		const element = ref.current;
+
+		if (element) {
+			const resizeObserver = new ResizeObserver(() => {
+				setErrorTextHasScroll(scrollUtils.hasScroll(element));
+			});
+
+			resizeObserver.observe(element);
+
+			return () => resizeObserver.disconnect();
+		}
+	}, []);
+
+	if (!isNoneError)
+		return <AlertError title={t("alert.video.unavailable")} error={{ message: t("alert.video.path") }} />;
+
+	return (
+		<div className={"error-video " + className}>
+			<video
+				id="my-player"
+				data-focusable="true"
+				className="video-js"
+				controls
+				preload="auto"
+				data-setup="{}"
+				src={link}
+			/>
+			<div ref={ref} className={classNames("error-text-parent", { noScroll: !errorTextHasScroll })}>
+				<Note type={NoteType.info} title={t("editor.video.will-be-here")}>
+					<ErrorText link={link} isLink={isLink} isNoneError={isNoneError} />
+				</Note>
 			</div>
-		) : (
-			<AlertError title={t("alert.video.unavailable")} error={{ message: t("alert.video.path") }} />
-		);
-	},
-)`
+		</div>
+	);
+};
+
+export default styled(ErrorVideo)`
 	position: relative;
 
 	${cssMedia.narrow} {
@@ -46,13 +64,12 @@ const ErrorVideo = styled(
 	}
 
 	.error-text-parent {
+		overflow: auto;
 		position: absolute;
 		top: 0;
 		bottom: 0;
 		right: 0;
 		left: 0;
-		display: flex;
-		align-items: center;
 		justify-content: center;
 
 		> div {
@@ -70,7 +87,10 @@ const ErrorVideo = styled(
 				color: var(--color-link-dark-theme) !important;
 			}
 		}
+
+		&.noScroll {
+			display: flex;
+			align-items: center;
+		}
 	}
 `;
-
-export default ErrorVideo;

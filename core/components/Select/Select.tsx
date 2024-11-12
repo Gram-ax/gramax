@@ -4,19 +4,19 @@ import Icon from "../Atoms/Icon";
 import SpinnerLoader from "../Atoms/SpinnerLoader";
 
 const Select = <T extends { value: string; label: string; [key: string]: string }>(
-	props: SelectProps<T> & { onFocus: any; chevronView?: boolean },
+	props: SelectProps<T> & { onFocus: any; chevronView?: boolean; dataQa?: string },
 ) => {
-	const { onFocus, className, chevronView, ...otherProps } = props;
+	const { onFocus, className, chevronView, dataQa, ...otherProps } = props;
 
 	return (
-		<div className={className} onClickCapture={onFocus}>
+		<div className={className} onClickCapture={onFocus} data-qa={dataQa}>
 			<SelectRDS<T>
 				multi
 				valueField="value"
 				labelField="label"
 				{...otherProps}
 				dropdownHandleRenderer={({ state }) =>
-					!props.options.length || chevronView ? (
+					!props.options?.length && chevronView ? (
 						<div className="custom-icon" style={state.dropdown ? { marginTop: "-2px" } : {}}>
 							<Icon code={`chevron-${!state.dropdown ? "down" : "up"}`} viewBox="3 3 18 18" isAction />
 						</div>
@@ -63,6 +63,10 @@ export default styled(Select)`
 			padding: 0px;
 			font-size: 10px;
 		}
+	}
+
+	input::placeholder {
+		color: var(--color-placeholder);
 	}
 
 	.react-dropdown-select-dropdown-handle {

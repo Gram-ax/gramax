@@ -3,36 +3,32 @@ import { ChangeEventHandler } from "react";
 
 let idCounter = 0;
 
-const InputFile = styled(
-	({
-		children,
-		onChange,
-		className,
-	}: {
-		children: JSX.Element;
-		onChange?: ChangeEventHandler<HTMLInputElement>;
-		className?: string;
-	}) => {
-		const uniqueId = `file-input-${idCounter++}`;
+interface InputFileProps {
+	children: JSX.Element;
+	onChange?: ChangeEventHandler<HTMLInputElement>;
+	className?: string;
+}
 
-		return (
-			<label className={className} htmlFor={uniqueId}>
-				<input type="file" id={uniqueId} onChange={onChange} />
-				{children}
-			</label>
-		);
-	},
-)`
+const InputFile = ({ children, onChange, className }: InputFileProps) => {
+	const uniqueId = `file-input-${idCounter++}`;
+
+	return (
+		<label className={className} htmlFor={uniqueId}>
+			<input type="file" id={uniqueId} onChange={onChange} />
+			{children}
+		</label>
+	);
+};
+
+export default styled(InputFile)`
 	position: relative;
 
 	input[type="file"] {
 		position: absolute;
-		z-index: -1;
+		z-index: var(--z-index-background);
 		opacity: 0;
 		display: block;
 		width: 0;
 		height: 0%;
 	}
 `;
-
-export default InputFile;

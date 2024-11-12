@@ -1,6 +1,8 @@
 import CommentCounterService from "@core-ui/ContextServices/CommentCounter";
+import useWatch from "@core-ui/hooks/useWatch";
 import ArticleMat from "@ext/markdown/core/edit/components/ArticleMat";
 import OnTitleLoseFocus from "@ext/markdown/elements/article/edit/OnTitleLoseFocus";
+import EditorExtensionsService from "@ext/markdown/elements/diff/components/EditorExtensionsService";
 import EditorService from "@ext/markdown/elementsUtils/ContextServices/EditorService";
 import { Editor } from "@tiptap/core";
 import { Mark } from "@tiptap/pm/model";
@@ -62,17 +64,24 @@ const ContentEditor = (props: ContentEditorProps) => {
 	};
 
 	const isEditExtensions = articleIsEdit ? [SelectionMenu] : [];
+
+	const extensionsList = ExtensionUpdater.getUpdatedExtension([
+		...extensions,
+		OnDeleteNode.configure({ onDeleteNodes }),
+		OnAddMark.configure({ onAddMarks }),
+		OnDeleteMark.configure({ onDeleteMarks }),
+		OnTitleLoseFocus.configure({ onTitleLoseFocus }),
+		...isEditExtensions,
+	]);
+
+	useWatch(() => {
+		EditorExtensionsService.value = extensionsList;
+	}, [extensionsList]);
+
 	const editor = useEditor(
 		{
 			content: JSON.parse(content) as JSONContent,
-			extensions: ExtensionUpdater.getUpdatedExtension([
-				...extensions,
-				OnDeleteNode.configure({ onDeleteNodes }),
-				OnAddMark.configure({ onAddMarks }),
-				OnDeleteMark.configure({ onDeleteMarks }),
-				OnTitleLoseFocus.configure({ onTitleLoseFocus }),
-				...isEditExtensions,
-			]),
+			extensions: [...extensionsList],
 			injectCSS: false,
 			editorProps: { handlePaste },
 			onUpdate,

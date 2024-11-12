@@ -36,21 +36,37 @@ interface ButtonViewProps {
 
 interface ListViewProps {
 	focusOnMount: boolean;
-	itemName?: string;
-	listRef: RefObject<ListLayoutElement>;
-	className?: string;
+	items: ListItem[];
 	onSearchChange: (value: string) => void;
 	itemClickHandler: OnItemClick;
-	items: ListItem[];
+	listRef: RefObject<ListLayoutElement>;
+	itemIndex: null | number;
+	itemName?: string;
+	className?: string;
 	inputValue?: string;
 }
 
-const renderItem = (item) => {
-	const { type, title } = item;
+const getBreadcrumb = (breadcrumb: string[], prevBreadcrumb: string[]): string[] | undefined => {
+	if (!breadcrumb || !breadcrumb.length) return;
+	if (breadcrumb.join("") === prevBreadcrumb.join("")) return;
+	if (breadcrumb.length === 1) return breadcrumb.slice();
+	if (breadcrumb.length === 2) return [breadcrumb[0], "/", breadcrumb[1]];
+
+	return [breadcrumb[0], "/", "...", "/", breadcrumb[breadcrumb.length - 1]];
+};
+
+const renderItem = (item: LinkItem, index, arr): ListItem => {
+	const { type, title, breadcrumb } = item;
+
+	const iconCode = type === ItemType.article ? "file" : "folder";
+	const itemBreadcrumb = getBreadcrumb(breadcrumb, arr[index - 1]?.breadcrumb);
+	const itemBreadcrumbLevel = breadcrumb?.length || undefined;
 
 	return {
-		element: <LinkItemSidebar title={title} iconCode={type === "article" ? "file" : "folder"} item={item} />,
+		element: <LinkItemSidebar title={title} iconCode={iconCode} item={item} />,
 		labelField: title,
+		breadcrumb: itemBreadcrumb,
+		breadcrumbLevel: itemBreadcrumbLevel,
 	};
 };
 
@@ -120,7 +136,7 @@ const ButtonView = ({ href, icon, itemName, setButton, isExternalLink }: ButtonV
 };
 
 const ListView = (props: ListViewProps) => {
-	const { listRef, focusOnMount, className, onSearchChange, itemClickHandler, items, itemName } = props;
+	const { listRef, focusOnMount, className, itemIndex, onSearchChange, itemClickHandler, items, itemName } = props;
 	const { parentRef } = LinkTitleContextService.value;
 
 	return (
@@ -130,31 +146,38 @@ const ListView = (props: ListViewProps) => {
 				addWidth={8}
 				itemsClassName={className}
 				openByDefault={focusOnMount}
+				items={items}
 				item={itemName}
+				itemIndex={itemIndex}
 				ref={listRef}
 				isCode={false}
 				placeholder={t("list.search-articles")}
 				onSearchChange={onSearchChange}
 				onItemClick={itemClickHandler}
-				items={items}
 				customOutsideClick
+				withBreadcrumbs
 				keepFullWidth
+				isHierarchy
 			/>
 		</div>
 	);
 };
 
 const getItemByItemLinks = (itemLinks: LinkItem[], value, href) => {
-	const linkToArticle = itemLinks.find((i) => i.relativePath === value);
+	const indexLinkToArticle = itemLinks.findIndex((i) => i.relativePath === value);
+	const linkToArticle = indexLinkToArticle !== -1 ? itemLinks[indexLinkToArticle] : null;
 
-	const linkToHeader = itemLinks.find((i) => {
+	const indexLinkToHeader = itemLinks.findIndex((i) => {
 		const match = LinkFocusTooltip.getLinkToHeading(value);
 		return i.relativePath === (match ? match[1] : href);
 	});
+	const linkToHeader = indexLinkToHeader !== -1 ? itemLinks[indexLinkToHeader] : null;
 
-	if (!linkToHeader && !linkToArticle) return null;
+	if (!linkToHeader && !linkToArticle) return { item: null, index: null };
 
-	return linkToHeader ? linkToHeader : linkToArticle;
+	if (linkToHeader) return { item: linkToHeader, index: indexLinkToHeader };
+
+	return { item: linkToArticle, index: indexLinkToArticle };
 };
 
 type getItemsType = {
@@ -163,7 +186,7 @@ type getItemsType = {
 	externalLink?: string;
 };
 
-const getItemsByItemLinks = (props: getItemsType) => {
+const getItemsByItemLinks = (props: getItemsType): ListItem[] => {
 	const { itemLinks, isExternalLink, externalLink } = props;
 	if (isExternalLink)
 		return [{ element: <LinkItemSidebar title={externalLink} iconCode={"globe"} />, labelField: externalLink }];
@@ -175,14 +198,20 @@ const SelectLinkItem = (props: SelectLinkItemProps) => {
 	const { href, value, onChange, itemLinks, className, focusOnMount } = props;
 	const [isExternalLink, externalLink, setExternalLink] = useExternalLink(href);
 
-	const item = getItemByItemLinks(itemLinks, value, href);
+	const { item } = useMemo(
+		() => getItemByItemLinks(itemLinks, value, href),
+		[value, itemLinks, isExternalLink, href, externalLink],
+	);
+
 	const items = useMemo(
 		() => getItemsByItemLinks({ itemLinks, isExternalLink, externalLink }),
 		[itemLinks, isExternalLink, externalLink],
 	);
 
+	const currentItemIndex = itemLinks.findIndex((item) => item.isCurrent);
+
 	const icon = !item ? "globe" : item.type == ItemType.article ? "file" : "folder";
-	const [isButton, setIsButton] = useState<boolean>(!!item || isExternalLink);
+	const [isButton, setIsButton] = useState(!!item || isExternalLink);
 	const [isEdit, setIsEdit] = useState(false);
 	const [itemName, setItemName] = useState("");
 	const listRef = useRef<ListLayoutElement>();
@@ -224,9 +253,7 @@ const SelectLinkItem = (props: SelectLinkItemProps) => {
 	useEffect(() => {
 		const { domain } = parseStorageUrl(value);
 
-		if (isEdit && domain && domain !== "...") {
-			listRef.current.searchRef.inputRef.select();
-		}
+		if (isEdit && domain && domain !== "...") listRef.current.searchRef.inputRef.select();
 	}, [isEdit]);
 
 	const setButtonHandler = (value) => {
@@ -235,18 +262,23 @@ const SelectLinkItem = (props: SelectLinkItemProps) => {
 		setIsEdit(true);
 	};
 
-	return isButton ? (
-		<ButtonView
-			isExternalLink={isExternalLink}
-			href={href}
-			icon={icon}
-			itemName={itemName}
-			setButton={setButtonHandler}
-		/>
-	) : (
+	if (isButton) {
+		return (
+			<ButtonView
+				isExternalLink={isExternalLink}
+				href={href}
+				icon={icon}
+				itemName={itemName}
+				setButton={setButtonHandler}
+			/>
+		);
+	}
+
+	return (
 		<ListView
 			focusOnMount={focusOnMount}
 			itemName={itemName}
+			itemIndex={currentItemIndex !== -1 ? currentItemIndex : undefined}
 			items={items}
 			listRef={listRef}
 			className={className}

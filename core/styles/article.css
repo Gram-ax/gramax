@@ -6,6 +6,7 @@
 	word-wrap: break-word;
 	color: var(--color-article-text);
 	background: var(--color-article-bg);
+	scrollbar-gutter: stable;
 }
 
 .article suggestion {
@@ -127,7 +128,7 @@ details summary:before {
 	margin-left: -25px;
 	position: absolute;
 	color: var(--color-primary);
-	font-family: "Font Awesome 6 Pro";
+	font-family: "Font Awesome 6 Pro", sans-serif;
 	content: "\2b";
 	font-size: 18px;
 	line-height: 30px;
@@ -197,6 +198,11 @@ samp {
 .article .article-body ol,
 .article .article-body ul {
 	margin-block-start: 0;
+	margin-bottom: 0.7em;
+}
+
+.article .article-body ol > li ol,
+.article .article-body ul > li ul {
 	margin-bottom: 0;
 }
 
@@ -237,60 +243,38 @@ samp {
 }
 
 .article .article-body ol > li::before,
-.article .article-body ol > li > ol > li > ol > li > ol > li::before,
-.article .article-body ol > li > ol > li > ol > li > ol > li > ol > li > ol > li > ol > li::before {
+.article .article-body ol ol ol ol > li::before,
+.article .article-body ol ol ol ol ol ol ol > li::before {
 	content: counter(listitem, decimal);
 }
 
-.article .article-body ol > li > ol > li::before,
-.article .article-body ol > li > ol > li > ol > li > ol > li > ol > li::before,
-.article .article-body ol > li > ol > li > ol > li > ol > li > ol > li > ol > li > ol > li > ol > li::before {
+.article .article-body ol ol > li::before,
+.article .article-body ol ol ol ol ol > li::before,
+.article .article-body ol ol ol ol ol ol ol ol > li::before {
 	content: counter(listitem, lower-latin);
 }
 
-.article .article-body ol > li > ol > li > ol > li::before,
-.article .article-body ol > li > ol > li > ol > li > ol > li > ol > li > ol > li::before,
-.article .article-body ol > li > ol > li > ol > li > ol > li > ol > li > ol > li > ol > li > ol > li > ol > li::before {
+.article .article-body ol ol ol > li::before,
+.article .article-body ol ol ol ol ol ol > li::before,
+.article .article-body ol ol ol ol ol ol ol ol ol > li::before {
 	content: counter(listitem, lower-roman);
 }
 
-.article .article-body ul > li,
-.article .article-body ul > li > ul > li > ul > li > ul > li,
-.article .article-body ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li,
-.article
-	.article-body
-	ul
-	> li
-	> ul
-	> li
-	> ul
-	> li
-	> ul
-	> li
-	> ul
-	> li
-	> ul
-	> li
-	> ul
-	> li
-	> ul
-	> li
-	> ul
-	> li
-	> ul
-	> li {
+.article .article-body ul,
+.article .article-body ul ul ul ul,
+.article .article-body ul ul ul ul ul ul ul {
 	list-style-type: disc;
 }
 
-.article .article-body ul > li > ul > li,
-.article .article-body ul > li > ul > li > ul > li > ul > li > ul > li,
-.article .article-body ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li {
+.article .article-body ul ul,
+.article .article-body ul ul ul ul ul,
+.article .article-body ul ul ul ul ul ul ul ul {
 	list-style-type: circle;
 }
 
-.article .article-body ul > li > ul > li > ul > li,
-.article .article-body ul > li > ul > li > ul > li > ul > li > ul > li > ul > li,
-.article .article-body ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li {
+.article .article-body ul ul ul,
+.article .article-body ul ul ul ul ul ul,
+.article .article-body ul ul ul ul ul ul ul ul ul {
 	list-style-type: square;
 }
 
@@ -361,7 +345,7 @@ samp {
 
 .article kbd {
 	border: 1px solid rgba(0, 0, 0, 0.03);
-	font-family: "Roboto Mono";
+	font-family: "Roboto Mono", sans-serif;
 	color: var(--color-article-text);
 	font-weight: 300;
 	padding: 1px 6px !important;
@@ -411,6 +395,7 @@ samp {
 .article .diagram-image + em,
 .article .img-v + p > em:first-of-type,
 .article .img-h + p > em:first-of-type,
+.article .image-container + em,
 .article .node-image em {
 	display: block;
 	font-size: 13px;

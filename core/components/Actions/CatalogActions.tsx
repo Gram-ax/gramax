@@ -5,6 +5,8 @@ import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import DeleteCatalog from "@ext/catalog/actions/propsEditor/components/DeleteCatalog";
 import t from "@ext/localization/locale/translate";
 import { ItemLink } from "@ext/navigation/NavigationLinks";
+import { configureCatalogPermission } from "@ext/security/logic/Permission/Permissions";
+import PermissionService from "@ext/security/logic/Permission/components/PermissionService";
 import GetSharedTicket from "@ext/security/logic/TicketManager/components/GetSharedTicket";
 import useIsReview from "@ext/storage/logic/utils/useIsReview";
 import ItemExport from "@ext/wordExport/components/ItemExport";
@@ -26,10 +28,10 @@ const CatalogActions: FC<CatalogActionsProps> = ({ isCatalogExist, itemLinks, ha
 	const isEdit = IsEditService.value;
 	const isErrorArticle = ArticlePropsService.value.errorCode;
 	const isLogged = PageDataContextService.value.isLogged;
-	const conf = PageDataContextService.value.conf;
 	const catalogProps = CatalogPropsService.value;
 	const storageInitialized = useIsStorageInitialized();
 	const isReview = useIsReview();
+	const canConfigureCatalog = PermissionService.useCheckPermission(configureCatalogPermission, catalogProps.name);
 
 	useEffect(() => {
 		if (!isCatalogExist) return;
@@ -40,24 +42,27 @@ const CatalogActions: FC<CatalogActionsProps> = ({ isCatalogExist, itemLinks, ha
 
 	return (
 		<>
-			<Healthcheck itemLinks={itemLinks} trigger={<ListItem text={t("healthcheck")} iconCode="heart-pulse" />} />
-			{conf.isServerApp && (
-				<GetSharedTicket trigger={<ListItem text={t("share.name")} iconCode="external-link" />} />
-			)}
-			<li>
+			<li style={{ listStyleType: "none", width: "fit-content" }}>
 				<ItemExport fileName={catalogProps.name} />
 			</li>
 			<IsReadOnlyHOC>
+				<GetSharedTicket trigger={<ListItem text={t("share.name")} iconCode="external-link" />} />
+				<Healthcheck
+					itemLinks={itemLinks}
+					trigger={<ListItem text={t("healthcheck")} iconCode="heart-pulse" />}
+				/>
 				<Share
 					shouldRender={!isReview && storageInitialized && !isErrorArticle}
 					trigger={<ListItem text={t("share.name")} iconCode="external-link" />}
 				/>
-				<CatalogEditAction
-					shouldRender={!isReview && isEdit}
-					trigger={<ListItem text={t("catalog.configure")} iconCode="square-pen" />}
-				/>
+				{canConfigureCatalog && (
+					<CatalogEditAction
+						shouldRender={!isReview && isEdit}
+						trigger={<ListItem text={t("catalog.configure")} iconCode="square-pen" />}
+					/>
+				)}
 			</IsReadOnlyHOC>
-			{isLogged && <DeleteCatalog />}
+			{canConfigureCatalog && isLogged && <DeleteCatalog />}
 		</>
 	);
 };

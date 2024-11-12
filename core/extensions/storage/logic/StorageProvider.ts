@@ -1,3 +1,4 @@
+import type FileStructure from "@core/FileStructue/FileStructure";
 import ConfluenceStorage from "@ext/confluence/core/logic/ConfluenceStorage";
 import ConfluenceStorageData from "@ext/confluence/core/model/ConfluenceStorageData";
 import DefaultError from "@ext/errorHandlers/logic/DefaultError";
@@ -14,11 +15,12 @@ import SourceType from "./SourceDataProvider/model/SourceType";
 import Storage from "./Storage";
 
 interface CloneData {
-	fp: FileProvider;
+	fs: FileStructure;
 	path: Path;
 	data: StorageData;
 	recursive: boolean;
 	branch: string;
+	isBare: boolean;
 	onCloneFinish: (path: Path) => Promise<void> | void;
 }
 export default class StorageProvider {
@@ -57,18 +59,19 @@ export default class StorageProvider {
 	}
 
 	private async _clone(cloneData: CloneData) {
-		const { fp, path, data, recursive, branch, onCloneFinish } = cloneData;
+		const { fs, path, data, recursive, branch, isBare, onCloneFinish } = cloneData;
 		try {
 			this._progressData.set(path.toString(), { type: "started", data: { path: path.toString() } });
 
 			if (isGitSourceType(cloneData.data.source.sourceType)) {
 				await GitStorage.clone({
-					fp,
+					fs,
 					branch,
 					recursive,
 					repositoryPath: path,
 					data: data as GitStorageData,
 					source: data.source as GitSourceData,
+					isBare,
 					onProgress: this._getOnProgress(path),
 				});
 			}
@@ -78,7 +81,7 @@ export default class StorageProvider {
 				data.source.sourceType == SourceType.confluenceServer
 			) {
 				await ConfluenceStorage.clone({
-					fp,
+					fs,
 					data: data as ConfluenceStorageData,
 					catalogPath: path,
 				});

@@ -14,7 +14,7 @@ const canPull: Command<{ catalogName: string }, boolean> = Command.create({
 		const catalog = await workspace.getCatalog(catalogName);
 		const storage = catalog?.repo.storage;
 		if (!storage) return false;
-		return catalog.repo.canPull();
+		return catalog.repo.canSync();
 	},
 
 	params(_, q) {

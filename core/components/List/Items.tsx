@@ -2,6 +2,7 @@ import { parseButton } from "@components/List/ButtonItem";
 import LoadingListItem from "@components/List/LoadingListItem";
 import { SearchElement } from "@components/List/Search";
 import { classNames } from "@components/libs/classNames";
+import useWatch from "@core-ui/hooks/useWatch";
 import styled from "@emotion/styled";
 import {
 	HTMLAttributes,
@@ -14,6 +15,7 @@ import {
 	useMemo,
 	useRef,
 	useState,
+	memo,
 } from "react";
 
 import Tooltip from "@components/Atoms/Tooltip";
@@ -33,105 +35,65 @@ interface ConfigProps {
 	isCode?: boolean;
 	isLoadingData?: boolean;
 	hideScrollbar?: boolean;
+	isHierarchy?: boolean;
+	withBreadcrumbs?: boolean;
 	maxItems?: number;
 	filteredWidth: number;
 }
 
 interface ItemsProps extends HTMLAttributes<HTMLDivElement>, ConfigProps {
 	items: ItemContent[];
+	filteredItems?: ItemContent[];
 	setIsOpen: (v: boolean) => void;
+	itemIndex?: null | number;
 	buttons?: ButtonItem[];
+	isHierarchy?: boolean;
 	value: string;
+	showFilteredItems?: boolean;
 	searchRef?: MutableRefObject<SearchElement>;
 	blurInInput: () => void;
 	onItemClick?: OnItemClick;
 	keepFullWidth?: boolean;
 }
 
-const StyleDiv = styled.div<ConfigProps>`
-	z-index: 1;
-	width: 100%;
-	border-radius: var(--radius-medium);
-	box-shadow: var(--shadows-deeplight);
-	background: var(--color-code-copy-bg);
-	${(p) => (p.isCode ? "" : "left: 5.5px;")}
-	${(p) => `max-width: ${p.filteredWidth ?? 0}px;`}
-	${(p) => (p.isOpen ? `max-height: ${p.maxItems * 32}px;` : "height: 0px;")}
-	overflow-y: ${(p) => (p.hideScrollbar ? "hidden" : "auto")};
-	overflow-x: hidden;
-
-	.disable-with-tooltip {
-		pointer-events: all !important;
-		cursor: default;
-		opacity: 0.4;
-	}
-`;
-
 const getArray = <T,>(array: T[]): T[] => (!Array.isArray(array) || !array.length ? [] : array);
 
-const RequestValueNotFound = ({ value }: { value: string }) => (
-	<Item
-		style={{ display: "flex", justifyContent: "left" }}
-		content={{
-			element: (
-				<span
-					style={{ fontSize: "14px", padding: "6px 12px" }}
-					dangerouslySetInnerHTML={{ __html: t("list.no-items-found").replace("{{value}}", value) }}
-				/>
-			),
-			labelField: "",
-		}}
-	/>
-);
-
-interface StyledVirtuosoProps {
-	height: number;
-	width: number;
-	children: ReactNode;
-	className?: string;
-	keepFullWidth: boolean;
-}
-
-const StyledVirtuoso = styled(({ children, className }: StyledVirtuosoProps) => {
-	return <div className={className}>{children}</div>;
-})`
-	height: ${(p) => p.height}px;
-	${(p) =>
-		p.keepFullWidth &&
-		`
-	[data-testid="virtuoso-scroller"] {
-		overflow-x: hidden;
-	}
-	[data-viewport-type="element"] {
-		width: ${p.width}px !important;
-	}`}
-`;
-
-const Items = (props: ItemsProps) => {
+const Items = memo((props: ItemsProps) => {
 	const {
-		items,
+		items: propsItems,
 		buttons,
+		itemIndex,
 		onItemClick,
 		isOpen,
 		setIsOpen,
+		filteredItems,
+		isHierarchy,
+		withBreadcrumbs,
 		blurInInput,
 		searchRef,
 		className,
 		value,
 		maxItems = 6,
+		filteredWidth,
 		isLoadingData,
+		showFilteredItems,
 		keepFullWidth,
 		...otherProps
 	} = props;
 
 	const ref = useRef<HTMLDivElement>(null);
 	const focusRef = useRef<HTMLDivElement>(null);
-
+	const [isReadyToScroll, setIsReadyToScroll] = useState(false);
 	const [activeIdx, setActiveIdx] = useState<number>(0);
+
+	const items = useMemo(() => {
+		return showFilteredItems ? filteredItems : propsItems;
+	}, [showFilteredItems, filteredItems, propsItems]);
 
 	const itemsWithButtons = useMemo(() => {
 		return [...getArray(buttons), ...getArray(items)];
 	}, [buttons, items]);
+
 	const useVirtuoso = itemsWithButtons.length > maxItems;
 	const virtuosoRef = useRef<VirtuosoHandle>(null);
 
@@ -146,11 +108,23 @@ const Items = (props: ItemsProps) => {
 		virtuosoRef.current.scrollTo({ top: scrollTop });
 	}, [items]);
 
+	const applyIndex = useCallback(
+		(newIndex: number, align?: "center" | "end" | "start", behavior: "auto" | "smooth" = "auto") => {
+			setActiveIdx(newIndex);
+			virtuosoRef.current?.scrollIntoView({
+				index: newIndex,
+				align,
+				behavior,
+			});
+		},
+		[setActiveIdx],
+	);
+
 	const moveActiveIdx = useCallback(
-		(n: number) => {
+		(n: number, align?: "center" | "end" | "start") => {
 			const isNextLarger = n > 0;
-			setActiveIdx((prevActiveIdx) => {
-				let newIndex = prevActiveIdx + n;
+			const getNewIndex = () => {
+				let newIndex = activeIdx + n;
 				if (newIndex < 0) newIndex = 0;
 				else if (newIndex >= itemsWithButtons.length) newIndex = itemsWithButtons.length - 1;
 				const newViewIndex = newIndex;
@@ -159,14 +133,15 @@ const Items = (props: ItemsProps) => {
 						!isNextLarger ? newIndex++ : newIndex--;
 					else isNextLarger ? newIndex++ : newIndex--;
 				}
-				virtuosoRef.current?.scrollIntoView({
-					index: newIndex === prevActiveIdx ? newViewIndex : newIndex,
-					behavior: "auto",
-				});
-				return newIndex;
-			});
+
+				return { newIndex, newViewIndex };
+			};
+
+			const { newIndex, newViewIndex } = getNewIndex();
+
+			applyIndex(newIndex === activeIdx ? newViewIndex : newIndex, align);
 		},
-		[itemsWithButtons.length],
+		[itemsWithButtons.length, activeIdx],
 	);
 
 	const handleMouseMove: MouseEventHandler<HTMLDivElement> = useCallback(
@@ -211,12 +186,12 @@ const Items = (props: ItemsProps) => {
 				if (focusRef.current) {
 					e.preventDefault();
 					action();
+				} else {
+					moveActiveIdx(-activeIdx);
 				}
-			} else {
-				moveActiveIdx(-activeIdx);
 			}
 		},
-		[moveActiveIdx, onItemClick, items, activeIdx, maxItems, blurInInput],
+		[moveActiveIdx, maxItems, blurInInput],
 	);
 
 	useEffect(() => {
@@ -262,6 +237,9 @@ const Items = (props: ItemsProps) => {
 					className={classNames("", {
 						"disable-with-tooltip": !!tooltipDisabledContent,
 					})}
+					isHierarchy={isHierarchy}
+					withBreadcrumbs={withBreadcrumbs}
+					showFilteredItems={showFilteredItems}
 					content={item}
 					onClick={(e) => {
 						itemClickHandler({ item, e, idx: itemIndex });
@@ -277,6 +255,15 @@ const Items = (props: ItemsProps) => {
 		);
 	};
 
+	useWatch(() => {
+		if (itemIndex && isReadyToScroll) {
+			const item = items[itemIndex];
+			const indexToMove = itemsWithButtons.indexOf(item);
+
+			applyIndex(indexToMove, "start");
+		}
+	}, [isReadyToScroll]);
+
 	return (
 		<StyleDiv
 			ref={!useVirtuoso ? ref : null}
@@ -284,16 +271,20 @@ const Items = (props: ItemsProps) => {
 			onMouseMove={handleMouseMove}
 			className={classNames("items", {}, [className])}
 			isOpen={isOpen}
+			filteredWidth={filteredWidth}
 			{...otherProps}
 		>
 			{!useVirtuoso ? (
 				itemsWithButtons.map((_, idx) => itemContent(idx))
 			) : (
-				<StyledVirtuoso height={maxItems * 32} width={otherProps.filteredWidth} keepFullWidth={keepFullWidth}>
+				<StyledVirtuoso height={maxItems * 32} width={filteredWidth} keepFullWidth={keepFullWidth}>
 					<ErrorHandler>
 						<Virtuoso
 							ref={virtuosoRef}
 							totalCount={itemsWithButtons.length}
+							itemsRendered={(items) => {
+								if (items.length && !isReadyToScroll) setIsReadyToScroll(true);
+							}}
 							components={{
 								List: forwardRef(({ children, ...props }, listRef) => {
 									return (
@@ -301,8 +292,6 @@ const Items = (props: ItemsProps) => {
 											ref={(el) => {
 												if (typeof listRef === "function") {
 													listRef(el);
-												} else if (listRef) {
-													listRef.current = el;
 												}
 												ref.current = el;
 											}}
@@ -326,6 +315,63 @@ const Items = (props: ItemsProps) => {
 			)}
 		</StyleDiv>
 	);
-};
+});
 
 export default Items;
+
+const StyleDiv = styled.div<ConfigProps>`
+	z-index: var(--z-index-foreground);
+	width: 100%;
+	border-radius: var(--radius-medium);
+	box-shadow: var(--shadows-deeplight);
+	background: var(--color-code-copy-bg);
+	${(p) => (p.isCode ? "" : "left: 5.5px;")}
+	${(p) => `max-width: ${p.filteredWidth ?? 0}px;`}
+	${(p) => (p.isOpen ? `max-height: ${p.maxItems * 32}px;` : "height: 0px;")}
+	overflow-y: ${(p) => (p.hideScrollbar ? "hidden" : "auto")};
+	overflow-x: hidden;
+
+	.disable-with-tooltip {
+		pointer-events: all !important;
+		cursor: default;
+		opacity: 0.4;
+	}
+`;
+
+const RequestValueNotFound = ({ value }: { value: string }) => (
+	<Item
+		style={{ display: "flex", justifyContent: "left" }}
+		content={{
+			element: (
+				<span
+					style={{ fontSize: "14px", padding: "6px 12px" }}
+					dangerouslySetInnerHTML={{ __html: t("list.no-items-found").replace("{{value}}", value) }}
+				/>
+			),
+			labelField: "",
+		}}
+	/>
+);
+
+interface StyledVirtuosoProps {
+	height: number;
+	width: number;
+	children: ReactNode;
+	className?: string;
+	keepFullWidth: boolean;
+}
+
+const StyledVirtuoso = styled(({ children, className }: StyledVirtuosoProps) => {
+	return <div className={className}>{children}</div>;
+})`
+	height: ${(p) => p.height}px;
+	${(p) =>
+		p.keepFullWidth &&
+		`
+	[data-testid="virtuoso-scroller"] {
+		overflow-x: hidden;
+	}
+	[data-viewport-type="element"] {
+		width: ${p.width}px !important;
+	}`}
+`;

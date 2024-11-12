@@ -1,3 +1,4 @@
+import { listTypes } from "@ext/markdown/elements/list/edit/logic/toggleList";
 import { Editor } from "@tiptap/core";
 import isTypeOf from "../../../../../../../elementsUtils/isTypeOf";
 import KeyboardRule from "../../../../../../../elementsUtils/keyboardShortcuts/model/KeyboardRule";
@@ -12,7 +13,7 @@ const deleteNestedListItem: KeyboardRule = ({ editor, typeName, node, nodePositi
 	if (
 		isFocusBeforeList(editor.state, node, nodePosition) &&
 		node.childCount > 1 &&
-		isTypeOf(node.child(1), ["bullet_list", "ordered_list"]) &&
+		isTypeOf(node.child(1), listTypes) &&
 		node.lastChild.childCount == 1
 	) {
 		return deleteAction(editor, typeName);

@@ -27,13 +27,19 @@ class TransformerMsO {
 		if (!regexp || regexp?.[0] === null) return html;
 		this._changeAttrs(html);
 
-		const doc = new DOMParser().parseFromString(/<body[\s\S]*?>([\s\S]*)<\/body>/.exec(html)?.[0], "text/html");
+		const doc = new DOMParser().parseFromString(html, "text/html");
 		this._lists(doc);
 		this._links(doc);
 
 		if (this._isTauri) {
 			void (async () => {
-				await this._images(doc);
+				await this._images(doc.body, (oldImage, newImage) => {
+					const parentNode =
+						(oldImage.parentNode as HTMLElement).tagName === "SPAN"
+							? oldImage.parentNode.parentElement
+							: oldImage.parentNode;
+					(parentNode as HTMLElement).replaceWith(newImage);
+				});
 				this._insertContent(doc);
 			})();
 
@@ -54,7 +60,7 @@ class TransformerMsO {
 
 		const msoListParagraphs = doc.querySelectorAll("p[style*='mso-list']");
 
-		msoListParagraphs.forEach((p) => {
+		msoListParagraphs.forEach((p, index) => {
 			const styleString = p.getAttribute("style");
 			const matches = styleString.match(/mso-list:\s*[^;]*level(\d+)\s*lfo(\d+)/i);
 			const level = parseInt(matches?.[1], 10);
@@ -68,7 +74,7 @@ class TransformerMsO {
 			while (level !== listStack.length) {
 				if (level > listStack.length) {
 					const listMarkerText = p.querySelector("span > span")?.textContent.trim();
-					const listType = /[·o§]+/.test(listMarkerText) ? "ul" : "ol";
+					const listType = /^(\d+\.)|([a-zA-Z]\.)/.test(listMarkerText) ? "ol" : "ul";
 
 					const newList = document.createElement(listType);
 
@@ -91,37 +97,34 @@ class TransformerMsO {
 
 			li.innerHTML = innerHTML.trim();
 			listStack[listStack.length - 1].appendChild(li);
+
+			const nextSibling = p.nextElementSibling;
+			const nextInList = msoListParagraphs[index + 1];
+
 			p.parentNode.replaceChild(listStack[0], p);
+
+			if (!nextSibling || nextSibling !== nextInList) {
+				listStack.splice(0, listStack.length);
+			}
 		});
 
 		return doc;
 	};
 
-	private _images = async (doc: Document) => {
-		const imgs = doc.querySelectorAll("img");
+	private _images = async (
+		element: HTMLElement,
+		callback: (oldImage: HTMLImageElement, newImage: HTMLImageElement) => void,
+	) => {
+		const imgs = element.querySelectorAll("img");
 		if (!imgs.length) return;
-		const resourcePath = /file:\/\/\/(.*\/)/.exec(imgs[0].src)?.[1];
-		if (!resourcePath) return;
+
+		const src = imgs?.[0].parentElement.childNodes?.[0].textContent.match(/file:\/\/\/([^"]+)/)?.[0] || imgs[0].src;
+		const isBlob = src.startsWith("blob:");
+		const resourcePath = /file:\/\/\/(.*\/)/.exec(src)?.[1];
+		if (!isBlob && !resourcePath) return;
 
 		for (let index = 0; index < imgs.length; index++) {
-			const element = imgs[index];
-			const res = await FetchService.fetch(
-				this._apiUrlCreator.createResourceFromPath(
-					resourcePath,
-					`${/([^\\/]+)\.(jpg|png|jpeg|gif)/.exec(element.src)?.[0]}`,
-				),
-			);
-
-			if (!res.ok) continue;
-
-			const newElement = document.createElement("image-react-component");
-			newElement.setAttribute("src", (await res.json())?.newName);
-
-			const parentNode =
-				(element.parentNode as HTMLElement).tagName === "SPAN"
-					? element.parentNode.parentElement
-					: element.parentNode;
-			(parentNode as HTMLElement).replaceWith(newElement);
+			callback(imgs[index], await this._handleImage(imgs[index], resourcePath));
 		}
 	};
 
@@ -159,6 +162,24 @@ class TransformerMsO {
 		});
 
 		return doc;
+	};
+
+	private _handleImage = async (image: HTMLImageElement, resourcePath?: string) => {
+		const element = image.parentElement.childNodes?.[0];
+		const isBlob = image.src.startsWith("blob:");
+		const res = await FetchService.fetch(
+			this._apiUrlCreator.createResourceFromPath(
+				isBlob ? image.src : resourcePath,
+				isBlob ? image.src : `${/([^\\/]+)\.(jpg|png|jpeg|gif)/.exec(element.textContent)?.[0]}`,
+			),
+		);
+
+		if (!res.ok) return;
+
+		const newElement = document.createElement("image-react-component");
+		newElement.setAttribute("src", (await res.json())?.newName);
+
+		return newElement as HTMLImageElement;
 	};
 
 	private _insertContent(doc: Document) {

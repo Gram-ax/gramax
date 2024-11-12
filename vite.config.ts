@@ -11,6 +11,8 @@ if (!process.env.VITE_ENVIRONMENT) process.env.VITE_ENVIRONMENT = "next";
 
 const isProduction = process.env.PRODUCTION === "true";
 const ipv4 = networkInterfaces()?.en0?.[1]?.address ?? "localhost";
+import { createHtmlPlugin } from "vite-plugin-html";
+import fs from "fs";
 
 // https://github.com/vitejs/vite/issues/15012
 const muteWarningsPlugin = (warningsToIgnore: string[][]): Plugin => {
@@ -55,7 +57,23 @@ export default (): UserConfig => ({
 			protocolImports: true,
 			exclude: ["buffer"],
 		}),
-		isProduction && ViteSourceMapUploader(),
+		isProduction && process.env.BUGSNAG_API_KEY && process.env.BUILD_VERSION && ViteSourceMapUploader(),
+		createHtmlPlugin({
+			inject: {
+				data: {
+					criticalStyle: `<style>${readFileAsString("core/styles/base.css")}</style>`,
+					vars: `<style>${readFileAsString("core/styles/vars.css")}</style>`,
+					themes: `<style>${readFileAsString("core/styles/themes.css")}</style>`,
+					bodyDatasetInjector: `<script>${readFileAsString(
+						"scripts/browser/bodyDatasetInjector.js",
+					)}</script>`,
+					tryOpenInDesktop: `<script>${readFileAsString("scripts/browser/tryOpenInDesktop.js")}</script>`,
+				},
+			},
+
+			minify: false,
+			entry: "",
+		}),
 	],
 
 	clearScreen: false,
@@ -113,3 +131,7 @@ export default (): UserConfig => ({
 		sourcemap: isProduction,
 	},
 });
+
+function readFileAsString(filePath: string) {
+	return fs.readFileSync(path.resolve(__dirname, filePath), "utf-8");
+}

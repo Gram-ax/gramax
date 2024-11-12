@@ -9,6 +9,7 @@ import ModalLayoutLight from "@components/Layouts/ModalLayoutLight";
 import MimeTypes from "@core-ui/ApiServices/Types/MimeTypes";
 import ArticlePropsService from "@core-ui/ContextServices/ArticleProps";
 import CatalogPropsService from "@core-ui/ContextServices/CatalogProps";
+import useWatch from "@core-ui/hooks/useWatch";
 import { transliterate } from "@core-ui/languageConverter/transliterate";
 import openNewTab from "@core-ui/utils/openNewTab";
 import { useRouter } from "@core/Api/useRouter";
@@ -26,10 +27,8 @@ import { JSONSchema7 } from "json-schema";
 import { useState } from "react";
 import FetchService from "../../../../../ui-logic/ApiServices/FetchService";
 import ApiUrlCreatorService from "../../../../../ui-logic/ContextServices/ApiUrlCreator";
-import ErrorHandler from "../../../../errorHandlers/client/components/ErrorHandler";
 import CatalogEditProps from "../model/CatalogEditProps.schema";
 import Schema from "../model/CatalogEditProps.schema.json";
-import useWatch from "@core-ui/hooks/useWatch";
 
 const CatalogPropsEditor = ({
 	trigger,
@@ -147,65 +146,64 @@ const CatalogPropsEditor = ({
 				}}
 			>
 				<ModalLayoutLight>
-					<ErrorHandler>
-						<Form<CatalogEditProps>
-							fieldDirection="row"
-							leftButton={
-								<>
-									{!!sourceType && (
-										<Button
-											style={{ margin: 0 }}
-											buttonStyle={ButtonStyle.underline}
-											onClick={() => {
-												const pathnameData = RouterPathProvider.parsePath(
-													new Path(catalogProps.link.pathname),
-												);
-												const gitShareData: GitShareData = {
-													sourceType: getPartGitSourceDataByStorageName(
-														pathnameData.sourceName,
-													).sourceType,
-													domain: pathnameData.sourceName,
-													group: pathnameData.group,
-													branch: pathnameData.branch,
-													name: pathnameData.repName,
-													filePath: "",
-												};
-												openNewTab(getRepUrl(gitShareData).href);
-											}}
-										>
-											{t("open-in.generic") + " " + sourceType}
-										</Button>
-									)}
-								</>
-							}
-							schema={Schema as JSONSchema7}
-							props={editProps}
-							validateDeps={[allCatalogNames]}
-							validate={({ url, description, code }) => {
-								return {
-									url: validateUrl(allCatalogNames, url, suchCatalogExists, noEncodingSymbolsInUrl),
-									description: description?.length > 50 ? maxLength + 50 : null,
-									code: code?.length > 4 ? maxLength + 4 : null,
-								};
-							}}
-							onChange={onChange}
-							onSubmit={submit}
-							onMount={(_, schema) => {
-								schema.properties = {
-									title: Schema.properties.title,
-									url: Schema.properties.url,
-									docroot: Schema.properties.docroot,
-									language: Schema.properties.language,
-									_h2: t("display-on-homepage"),
-									description: Schema.properties.description,
-									style: Schema.properties.style,
-									code: Schema.properties.code,
-								} as any;
-								(schema.properties.language as any).readOnly = !!catalogProps.language;
-								(schema.properties.url as any).readOnly = !!sourceType;
-							}}
-						/>
-					</ErrorHandler>
+					<Form<CatalogEditProps>
+						fieldDirection="row"
+						leftButton={
+							<>
+								{!!sourceType && (
+									<Button
+										style={{ margin: 0 }}
+										buttonStyle={ButtonStyle.underline}
+										onClick={() => {
+											const pathnameData = RouterPathProvider.parsePath(
+												new Path(catalogProps.link.pathname),
+											);
+											const gitShareData: GitShareData = {
+												sourceType: getPartGitSourceDataByStorageName(pathnameData.sourceName)
+													.sourceType,
+												domain: pathnameData.sourceName,
+												group: pathnameData.group,
+												branch: pathnameData.refname,
+												name: pathnameData.repo,
+												filePath: "",
+											};
+											openNewTab(getRepUrl(gitShareData).href);
+										}}
+									>
+										{t("open-in.generic") + " " + sourceType}
+									</Button>
+								)}
+							</>
+						}
+						schema={Schema as JSONSchema7}
+						props={editProps}
+						validateDeps={[allCatalogNames]}
+						validate={({ url, description, code }) => {
+							return {
+								url: validateUrl(allCatalogNames, url, suchCatalogExists, noEncodingSymbolsInUrl),
+								description: description?.length > 50 ? maxLength + 50 : null,
+								code: code?.length > 4 ? maxLength + 4 : null,
+							};
+						}}
+						onChange={onChange}
+						onSubmit={submit}
+						onMount={(_, schema) => {
+							schema.properties = {
+								title: Schema.properties.title,
+								url: Schema.properties.url,
+								docroot: Schema.properties.docroot,
+								language: Schema.properties.language,
+								versions: Schema.properties.versions,
+								_h2: t("display-on-homepage"),
+								description: Schema.properties.description,
+								style: Schema.properties.style,
+								code: Schema.properties.code,
+							} as any;
+							(schema.properties.versions as any).readOnly = !!sourceType;
+							(schema.properties.language as any).readOnly = !!catalogProps.language;
+							(schema.properties.url as any).readOnly = !!sourceType;
+						}}
+					/>
 				</ModalLayoutLight>
 			</ModalLayout>
 		</>

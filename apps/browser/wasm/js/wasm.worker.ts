@@ -3,7 +3,7 @@ import { callGit } from "@app/resolveModule/gitcall/wasm.worker";
 import WasmModule from "../dist/gramax-wasm";
 import { ptr2bytes, ptr2str, str2ptr } from "./utils";
 
-const RAW_BYTES_COMMANDS = ["read_file"];
+const RAW_BYTES_COMMANDS = ["read_file", "git_read_file"];
 const decoder = new TextDecoder();
 const CORS_PROXY_KEY = 1;
 

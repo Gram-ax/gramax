@@ -12,5 +12,4 @@ import { call as TauriCall } from "./tauri";
 call = TauriCall;
 // #v-endif
 /// #endif
-
 export default call;

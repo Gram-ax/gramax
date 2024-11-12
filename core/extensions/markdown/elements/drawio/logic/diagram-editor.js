@@ -37,7 +37,7 @@ function DiagramEditor(config, ui, done, initialized, urlParams, olCB) {
 /**
  * Static method to edit the diagram in the given img or object.
  */
-DiagramEditor.editElement = function (elt, sCB, olCB, config, ui, done, urlParams) {
+DiagramEditor.editElement = function (dsu, elt, sCB, olCB, config, ui, done, urlParams) {
 	if (!elt.diagramEditorStarting) {
 		elt.diagramEditorStarting = true;
 
@@ -50,7 +50,7 @@ DiagramEditor.editElement = function (elt, sCB, olCB, config, ui, done, urlParam
 			},
 			urlParams,
 			olCB,
-		).editElement(elt, sCB);
+		).editElement(dsu, elt, sCB);
 	}
 };
 
@@ -72,12 +72,6 @@ DiagramEditor.prototype.saveCallBack = null;
  * Global configuration.
  */
 DiagramEditor.prototype.config = null;
-
-/**
- * Protocol and domain to use.
- */
-DiagramEditor.prototype.drawDomain = "https://gram.ax/drawio/";
-
 /**
  * UI theme to be use.
  */
@@ -106,7 +100,7 @@ DiagramEditor.prototype.frameStyle = "position:absolute;border:0;width:100%;heig
 /**
  * Adds the iframe and starts editing.
  */
-DiagramEditor.prototype.editElement = function (elem, sCB) {
+DiagramEditor.prototype.editElement = function (dsu, elem, sCB) {
 	this.saveCallBack = sCB;
 	var src = this.getElementData(elem);
 	this.startElement = elem;
@@ -118,7 +112,7 @@ DiagramEditor.prototype.editElement = function (elem, sCB) {
 		fmt = "xmlsvg";
 	}
 
-	this.startEditing(src, fmt);
+	this.startEditing(dsu, src, fmt);
 
 	return this;
 };
@@ -150,14 +144,14 @@ DiagramEditor.prototype.setElementData = function (elem, data) {
 /**
  * Starts the editor for the given data.
  */
-DiagramEditor.prototype.startEditing = function (data, format, title) {
+DiagramEditor.prototype.startEditing = function (dsu, data, format, title) {
 	if (this.frame == null) {
 		window.addEventListener("message", this.handleMessageEvent);
 		this.format = format != null ? format : this.format;
 		this.title = title != null ? title : this.title;
 		this.data = data;
 
-		this.frame = this.createFrame(this.getFrameUrl(), this.getFrameStyle());
+		this.frame = this.createFrame(this.getFrameUrl(dsu), this.getFrameStyle());
 		document.body.appendChild(this.frame);
 		this.setWaiting(true);
 	}
@@ -243,8 +237,11 @@ DiagramEditor.prototype.getFrameStyle = function () {
 /**
  * Returns the URL for the iframe.
  */
-DiagramEditor.prototype.getFrameUrl = function () {
-	var url = this.drawDomain + "?embed=1&proto=json&spin=1";
+DiagramEditor.prototype.getFrameUrl = function (dsu) {
+	/**
+	 * Protocol and domain to use.
+	 */
+	var url = (dsu ?? "https://gram.ax") + "/drawio/?embed=1&proto=json&spin=1";
 
 	if (this.ui != null) {
 		url += "&ui=" + this.ui;

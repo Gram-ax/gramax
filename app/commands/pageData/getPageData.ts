@@ -21,12 +21,15 @@ const getPageData: Command<
 
 		if (!path || path == "/") return getHomePageData();
 
+		const workspace = this._app.wm.maybeCurrent();
+
 		const splittedPath = path.split("/").filter((x) => x);
-		if (!RouterPathProvider.isEditorPathname(splittedPath)) return getArticlePageData(splittedPath, path);
+		if (!RouterPathProvider.isEditorPathname(splittedPath))
+			return workspace ? getArticlePageData(splittedPath, path) : getHomePageData();
 
 		const pathnameData = RouterPathProvider.parsePath(splittedPath);
 
-		const { type: pageDataType, itemLogicPath } = await getPageDataByPathname(pathnameData, this._app.wm.current());
+		const { type: pageDataType, itemLogicPath } = await getPageDataByPathname(pathnameData, this._app.wm);
 
 		if (pageDataType === PageDataType.article) return getArticlePageData(itemLogicPath, path);
 		else if (pageDataType === PageDataType.notFound)

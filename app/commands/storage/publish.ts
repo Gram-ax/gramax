@@ -26,8 +26,8 @@ const publish: Command<
 		if (!storage) return;
 		const data = rp.getSourceData(ctx.cookie, await storage.getSourceName());
 		await catalog.repo.publish({
-			message,
-			filePaths: filePaths.map((p) => new Path(p)),
+			commitMessage: message,
+			filesToPublish: filePaths.map((p) => new Path(p)),
 			data,
 			onAdd: () =>
 				logger.logTrace(`Added in catalog "${catalogName}". Files: "${filePaths.map((p) => p).join('", "')}"`),

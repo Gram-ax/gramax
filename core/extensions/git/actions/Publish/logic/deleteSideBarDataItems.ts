@@ -18,7 +18,7 @@ const deleteSideBarDataItem = (
 			else {
 				const resources = sideBarDataItem.data.resources;
 				resources.forEach((resource, resourceIdx) => {
-					if (resource.filePath.path === path) {
+					if (resource.data.filePath.path === path) {
 						resources[resourceIdx] = undefined;
 					}
 				});

@@ -27,6 +27,12 @@ export default class MdParser {
 	private _table: RegExp;
 	private _emptyTableCell: RegExp;
 
+	private _findInlineCodeToIgnore = "`{1,2}[^`].*?`{1,2}";
+	private _findBlockCodeToIgnore = "```[^(```)]*?```[^(```)]*?```\n\r?```|```[\\s\\S]*?```[s]?|\\\\.";
+	private _findHtmlToIgnore = "\\[html.*][\\s\\S]*?\\[\\/html\\]";
+	private _findImageToIgnore = String.raw`!\[[^\]]*\]\(.*?\)`;
+	private _findBracesAndSquareBracketsToIgnore = String.raw`[\[{][^]*?[\]}]`;
+
 	constructor(preParserOptions: MdParserOptions = null) {
 		this._tags = preParserOptions?.tags ?? {};
 		this._escapeDoubleQuotesRegExp = this._createIgnoreRegExp(String.raw`.*?[^\\](").*?`);
@@ -37,7 +43,11 @@ export default class MdParser {
 			String.raw`{\s?.*?\s?}|(\${1}[^\$].*?\${1})|(\${2}[^\$].*?\${2})`,
 		);
 		this._squareRegExp = this._createIgnoreRegExp(String.raw`\[(.*?)\]`);
-		this._quotesRegExp = this._createIgnoreRegExp(String.raw`[\[({].*?"[^]*?"[\])}].*?|("[^\[\]{}()]*?")`);
+		this._quotesRegExp = this._createIgnoreRegExp(
+			String.raw`("[^]*?")`,
+			this._findImageToIgnore,
+			this._findBracesAndSquareBracketsToIgnore,
+		);
 		this._arrowRegExp = this._createIgnoreRegExp(String.raw`\\-->|[^\\\r\n]?(-->)`);
 		this._noteRegExp = this._createIgnoreRegExp(
 			String.raw`:::([^\s:]*)(?::(true|false))? *([^\r\n]*)\r?\n([\s\S]*?\n[\t\s]*?):::|image:\S*?:::.*?:`,
@@ -221,12 +231,16 @@ export default class MdParser {
 		return content.replaceAll(`|//`, `://`);
 	}
 
-	private _createIgnoreRegExp(reg: string): RegExp {
-		return new RegExp(
-			"`{1,2}[^`].*?`{1,2}|```[^(```)]*?```[^(```)]*?```\n\r?```|```[\\s\\S]*?```[s]?|\\\\.|\\[html.*][\\s\\S]*?\\[\\/html\\]|" +
-				reg,
-			"gm",
-		);
+	private _createIgnoreRegExp(reg: string, ...additionalIgnore: string[]): RegExp {
+		const commonString = [
+			this._findInlineCodeToIgnore,
+			this._findBlockCodeToIgnore,
+			this._findHtmlToIgnore,
+			...additionalIgnore,
+			reg,
+		].join("|");
+
+		return new RegExp(commonString, "gm");
 	}
 
 	private _removeComments(content: string): string {

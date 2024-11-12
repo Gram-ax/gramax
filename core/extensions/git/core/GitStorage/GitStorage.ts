@@ -3,7 +3,7 @@ import GithubStorageData from "@ext/git/actions/Source/GitHub/model/GithubStorag
 import getUrlFromGitStorageData from "@ext/git/core/GitStorage/utils/getUrlFromGitStorageData";
 import Path from "../../../../logic/FileProvider/Path/Path";
 import FileProvider from "../../../../logic/FileProvider/model/FileProvider";
-import parseStorageUrl from "../../../../logic/utils/parseStorageUrl";
+import parseStorageUrl, { type StorageUrl } from "../../../../logic/utils/parseStorageUrl";
 import Branch from "../../../VersionControl/model/branch/Branch";
 import SourceType from "../../../storage/logic/SourceDataProvider/model/SourceType";
 import Storage from "../../../storage/logic/Storage";
@@ -28,6 +28,7 @@ export default class GitStorage implements Storage {
 	private _gitRepository: GitCommands;
 	private _syncCount: { pull: number; push: number; hasChanges: boolean };
 	private _syncSearchInPath = "";
+	private _parsedUrl: StorageUrl;
 	private static _gitDataParser: GitDataParser = gitDataParser;
 
 	constructor(private _path: Path, private _fp: FileProvider) {
@@ -35,17 +36,28 @@ export default class GitStorage implements Storage {
 		void this._initSubGitStorages();
 	}
 
-	static hasInit(fp: FileProvider, path: Path): Promise<boolean> {
-		return new GitCommands(fp, path).hasRemote();
+	static async hasInit(fp: FileProvider, path: Path): Promise<boolean> {
+		const git = new GitCommands(fp, path);
+		return (await git.isInit()) && (await git.hasRemote());
 	}
 
-	static async clone({ fp, url, data, source, branch, recursive = true, onProgress, repositoryPath }: GitCloneData) {
-		fp.stopWatch();
+	static async clone({
+		fs,
+		url,
+		data,
+		source,
+		branch,
+		recursive = true,
+		isBare = false,
+		onProgress,
+		repositoryPath,
+	}: GitCloneData) {
+		fs.fp.stopWatch();
 		try {
-			const gitRepository = new GitCommands(fp, repositoryPath);
+			const gitRepository = new GitCommands(fs.fp.default(), repositoryPath);
 			const currentUrl = url ?? getUrlFromGitStorageData(data);
 			try {
-				await gitRepository.clone(getHttpsRepositoryUrl(currentUrl), source, branch, null, onProgress);
+				await gitRepository.clone(getHttpsRepositoryUrl(currentUrl), source, branch, null, isBare, onProgress);
 			} catch (e) {
 				if (!((e as GitError).props?.errorCode === GitErrorCode.AlreadyExistsError)) throw e;
 			}
@@ -67,7 +79,7 @@ export default class GitStorage implements Storage {
 				// );
 			}
 		} finally {
-			fp?.startWatch();
+			fs.fp?.startWatch();
 		}
 	}
 
@@ -86,15 +98,23 @@ export default class GitStorage implements Storage {
 	}
 
 	async getName(): Promise<string> {
-		return parseStorageUrl(await this.getUrl()).name;
+		const parsedUrl = await this.getParsedUrl();
+		return parsedUrl.name;
 	}
 
 	async getGroup() {
-		return parseStorageUrl(await this.getUrl()).group;
+		const parsedUrl = await this.getParsedUrl();
+		return parsedUrl.group;
 	}
 
 	async getSourceName() {
-		return parseStorageUrl(await this.getUrl()).domain;
+		const parsedUrl = await this.getParsedUrl();
+		return parsedUrl.domain;
+	}
+
+	private async getParsedUrl() {
+		if (!this._parsedUrl) this._parsedUrl = parseStorageUrl(await this.getUrl());
+		return this._parsedUrl;
 	}
 
 	async getType() {
@@ -191,8 +211,8 @@ export default class GitStorage implements Storage {
 		return { storage: this, relativePath: path };
 	}
 
-	async fetch(data: GitSourceData) {
-		await this._gitRepository.fetch(data);
+	async fetch(data: GitSourceData, force = false) {
+		await this._gitRepository.fetch(data, force);
 		await this.updateSyncCount();
 	}
 

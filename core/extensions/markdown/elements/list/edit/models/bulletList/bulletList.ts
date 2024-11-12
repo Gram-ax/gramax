@@ -31,7 +31,12 @@ const BulletList = Node.create<BulletListOptions>({
 	},
 
 	parseHTML() {
-		return [{ tag: "ul" }];
+		return [
+			{
+				tag: "ul",
+				getAttrs: (node) => node.getAttribute("data-task-list") !== "true" && null,
+			},
+		];
 	},
 
 	renderHTML({ HTMLAttributes }) {
@@ -42,9 +47,9 @@ const BulletList = Node.create<BulletListOptions>({
 		return {
 			toggleBulletList:
 				() =>
-				({ commands, state, dispatch }) => {
+				({ commands, editor, dispatch }) => {
 					const mainToggle = commands.toggleList(this.name, this.options.itemTypeName);
-					const secondToggle = toggleList({ state, dispatch, listName: this.name });
+					const secondToggle = toggleList({ editor, dispatch, listName: this.name });
 
 					return mainToggle || secondToggle;
 				},

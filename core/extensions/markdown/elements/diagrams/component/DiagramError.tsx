@@ -1,12 +1,8 @@
 import AlertError from "@components/AlertError";
 import t from "@ext/localization/locale/translate";
 
-interface OptionalNameError extends Omit<Error, "name"> {
-	name?: string;
-}
-
 interface DiagramErrorProps {
-	error: OptionalNameError;
+	error: Omit<Error, "name">;
 	title?: string;
 	diagramName?: string;
 }

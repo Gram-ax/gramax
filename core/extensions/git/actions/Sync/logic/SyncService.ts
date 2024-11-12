@@ -23,16 +23,19 @@ export default class SyncService {
 
 	public static async sync(apiUrlCreator: ApiUrlCreator) {
 		await _onStartSync?.();
-		const { ok, mergeData } = await SyncService._sync(apiUrlCreator);
-		if (!ok) {
+		const data = await SyncService._sync(apiUrlCreator);
+		if (!data.resOk) {
 			await _onSyncError?.();
 			return;
 		}
-		await _onFinishSync?.(mergeData);
+		await _onFinishSync?.(data.mergeData);
 	}
 
-	private static async _sync(apiUrlCreator: ApiUrlCreator): Promise<{ ok: boolean; mergeData: MergeData }> {
+	private static async _sync(
+		apiUrlCreator: ApiUrlCreator,
+	): Promise<{ resOk: true; mergeData: MergeData } | { resOk: false }> {
 		const res = await FetchService.fetch<MergeData>(apiUrlCreator.getStorageSyncUrl());
-		return { ok: res.ok, mergeData: await res.json() };
+		if (!res.ok) return { resOk: false };
+		return { resOk: true, mergeData: await res.json() };
 	}
 }

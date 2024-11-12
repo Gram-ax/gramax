@@ -1,9 +1,9 @@
-import FileProvider from "@core/FileProvider/model/FileProvider";
-import ConfluenceStorageData from "@ext/confluence/core/model/ConfluenceStorageData";
 import Path from "@core/FileProvider/Path/Path";
+import type FileStructure from "@core/FileStructue/FileStructure";
+import ConfluenceStorageData from "@ext/confluence/core/model/ConfluenceStorageData";
 
 interface ConfluenceImportData {
-	fp: FileProvider;
+	fs: FileStructure;
 	catalogPath: Path;
 	data?: ConfluenceStorageData;
 }

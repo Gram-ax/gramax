@@ -90,7 +90,7 @@ const Comment = (props: CommentProps) => {
 };
 
 export default styled(Comment)`
-	z-index: 1;
+	z-index: var(--z-index-foreground);
 	transition: all var(--transition-time) ease-in-out;
 	border-radius: var(--radius-x-large);
 	overflow: hidden;

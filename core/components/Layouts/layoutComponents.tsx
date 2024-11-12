@@ -1,7 +1,7 @@
 import ButtonLink from "@components/Molecules/ButtonLink";
 import styled from "@emotion/styled";
 import { TitledLink } from "@ext/navigation/NavigationLinks";
-import { ReactNode, Fragment } from "react";
+import { Fragment, ReactNode } from "react";
 import Divider from "../Atoms/Divider";
 import Anchor from "../controls/Anchor";
 

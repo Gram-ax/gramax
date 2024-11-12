@@ -1,25 +1,32 @@
 import parsePermissionFromJSON from "@ext/security/logic/Permission/logic/PermissionParser";
 import IPermission from "../Permission/IPermission";
 import PermissionJSONData from "../Permission/model/PermissionJSONData";
-import UserInfo from "./UserInfo2";
+import UserInfo from "./UserInfo";
 import UserJSONData from "./UserJSONData";
 
+export type UserType = "base" | "enterprise";
+export type CatalogsPermission = { [catalogName: string]: IPermission };
+
 export default class User {
-	private _info: UserInfo;
-	private _isLogged: boolean;
-	private _globalPermission: IPermission;
-	private _catalogPermissions: { [catalogName: string]: IPermission };
+	protected _info: UserInfo;
+	protected _isLogged: boolean;
+	protected _globalPermission: IPermission;
+	protected _catalogPermissions: CatalogsPermission;
 
 	constructor(
 		isLogged = false,
 		info?: UserInfo,
 		globalPermission?: IPermission,
-		catalogPermissions?: { [catalogName: string]: IPermission },
+		catalogPermissions?: CatalogsPermission,
 	) {
 		this._info = info;
 		this._isLogged = isLogged;
 		this._globalPermission = globalPermission;
 		this._catalogPermissions = catalogPermissions ?? {};
+	}
+
+	get type(): UserType {
+		return "base";
 	}
 
 	get info(): UserInfo {
@@ -30,37 +37,30 @@ export default class User {
 		return this._isLogged;
 	}
 
-	getGlobalPermission(): IPermission {
-		return this._globalPermission;
-	}
-
 	getCatalogPermission(catalogName: string): IPermission {
 		return this._catalogPermissions?.[catalogName] ?? null;
 	}
 
-	getCatalogPermissions(): { [catalogName: string]: IPermission } {
+	getCatalogPermissions(): CatalogsPermission {
 		return this._catalogPermissions;
-	}
-
-	setGlobalPermission(permission: IPermission): void {
-		this._globalPermission = permission;
 	}
 
 	setCatalogPermission(catalogName: string, permission: IPermission): void {
 		this._catalogPermissions[catalogName] = permission;
 	}
 
-	setCatalogPermissions(catalogPermissions: { [catalogName: string]: IPermission }): void {
-		this._catalogPermissions = catalogPermissions;
+	getGlobalPermission(): IPermission {
+		return this._globalPermission;
 	}
 
 	toJSON(): UserJSONData {
 		const cp: Record<string, PermissionJSONData> = {};
-		Object.keys(this._catalogPermissions).forEach((catalogName) => {
+		Object.keys(this._catalogPermissions ?? {}).forEach((catalogName) => {
 			cp[catalogName] = this._catalogPermissions[catalogName]?.toJSON?.();
 		});
 		return {
 			info: this._info,
+			type: this.type,
 			isLogged: this._isLogged,
 			globalPermission: this._globalPermission?.toJSON?.(),
 			catalogPermissions: cp,
@@ -68,9 +68,8 @@ export default class User {
 	}
 
 	static initInJSON(json: UserJSONData): User {
-		if (!json?.catalogPermissions) return new User();
-		const cp: { [catalogName: string]: IPermission } = {};
-		Object.keys(json.catalogPermissions).forEach((catalogName) => {
+		const cp: CatalogsPermission = {};
+		Object.keys(json.catalogPermissions ?? {}).forEach((catalogName) => {
 			cp[catalogName] = parsePermissionFromJSON(json.catalogPermissions[catalogName]);
 		});
 		return new User(json.isLogged, json.info, parsePermissionFromJSON(json.globalPermission), cp);

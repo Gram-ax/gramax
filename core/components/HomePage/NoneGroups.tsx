@@ -5,18 +5,21 @@ import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import IsReadOnlyHOC from "@core-ui/HigherOrderComponent/IsReadOnlyHOC";
 import styled from "@emotion/styled";
+import Mode from "@ext/git/actions/Clone/model/Mode";
 import t from "@ext/localization/locale/translate";
+import PermissionService from "@ext/security/logic/Permission/components/PermissionService";
+import { configureWorkspacePermission } from "@ext/security/logic/Permission/Permissions";
 import { type HTMLAttributes } from "react";
 import CreateCatalog from "../../extensions/catalog/actions/CreateCatalog";
 import Clone from "../../extensions/git/actions/Clone/components/Clone";
 import Button from "../Atoms/Button/Button";
 import Icon from "../Atoms/Icon";
-import Mode from "@ext/git/actions/Clone/model/Mode";
 
 const NoneGroups = (props: HTMLAttributes<HTMLDivElement>) => {
 	const isReadOnly = PageDataContextService.value.conf.isReadOnly;
 	const apiUrlCreator = ApiUrlCreatorService.value;
 	const hasWorkspace = !!PageDataContextService.value.workspace.current;
+	const canConfigureWorkspace = PermissionService.useCheckPermission(configureWorkspacePermission);
 
 	return (
 		<div {...props}>
@@ -57,38 +60,40 @@ const NoneGroups = (props: HTMLAttributes<HTMLDivElement>) => {
 					)
 				}
 				actions={
-					<>
-						<IsReadOnlyHOC>
-							<CreateCatalog
-								trigger={
-									<Button>
-										<Icon code="plus" viewBox="3 3 18 18" />
-										<span>{t("catalog.new")}</span>
-									</Button>
-								}
-							/>
-						</IsReadOnlyHOC>
-						<Clone
-							trigger={
-								<Button>
-									<Icon code="cloud-download" />
-									<span>{`${t("catalog.clone")}`}</span>
-								</Button>
-							}
-							mode={Mode.clone}
-						/>
-						<IsReadOnlyHOC>
+					canConfigureWorkspace ? (
+						<>
+							<IsReadOnlyHOC>
+								<CreateCatalog
+									trigger={
+										<Button>
+											<Icon code="plus" viewBox="3 3 18 18" />
+											<span>{t("catalog.new")}</span>
+										</Button>
+									}
+								/>
+							</IsReadOnlyHOC>
 							<Clone
 								trigger={
 									<Button>
-										<Icon code="import" />
-										<span>{`${t("catalog.import")}`}</span>
+										<Icon code="cloud-download" />
+										<span>{`${t("catalog.clone")}`}</span>
 									</Button>
 								}
-								mode={Mode.import}
+								mode={Mode.clone}
 							/>
-						</IsReadOnlyHOC>
-					</>
+							<IsReadOnlyHOC>
+								<Clone
+									trigger={
+										<Button>
+											<Icon code="import" />
+											<span>{`${t("catalog.import")}`}</span>
+										</Button>
+									}
+									mode={Mode.import}
+								/>
+							</IsReadOnlyHOC>
+						</>
+					) : null
 				}
 			/>
 		</div>

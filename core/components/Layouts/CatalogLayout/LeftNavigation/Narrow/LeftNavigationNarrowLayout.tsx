@@ -40,12 +40,12 @@ const LeftNavigationNarrowLayout = styled(
 	.header-navigation {
 		width: 100%;
 		background: var(--color-menu-bg);
-		z-index: 103;
+		z-index: var(--z-index-header-navigation);
 	}
 
 	.left-sidebar-content {
 		top: var(--top-bar-height);
-		z-index: 102;
+		z-index: var(--z-index-nav-layout);
 		height: calc(100dvh - var(--top-bar-height));
 		width: var(--left-nav-width);
 		background: var(--color-menu-bg);

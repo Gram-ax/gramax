@@ -33,7 +33,7 @@ export default styled(({ data, className }: { data: HomePageData; className?: st
 		margin-right: auto;
 		max-width: 86.8rem;
 		padding-left: 1rem;
-		font-family: Roboto;
+		font-family: Roboto, sans-serif;
 		padding-right: 1rem;
 		flex-direction: column;
 		align-items: flex-start;

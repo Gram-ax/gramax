@@ -1,11 +1,11 @@
+import TokenTransformerFunc from "@ext/markdown/core/edit/logic/Prosemirror/TokenTransformerFunc";
 import { JSONContent } from "@tiptap/core";
 import { ParserOptions } from "../../../Parser/Parser";
 import ParserContext from "../../../Parser/ParserContext/ParserContext";
 import { RenderableTreeNodes, Schema, SchemaType, Tag } from "../../../render/logic/Markdoc";
-import NodeTransformerFunc from "./NodeTransformerFunc";
-import TokenTransformerFunc from "@ext/markdown/core/edit/logic/Prosemirror/TokenTransformerFunc";
-import { schema } from "./schema";
 import { getSquareFormatter } from "../Formatter/Formatters/getSquareFormatter";
+import NodeTransformerFunc from "./NodeTransformerFunc";
+import { getSchema } from "./schema";
 
 type Token = any;
 
@@ -138,7 +138,11 @@ export class Transformer {
 	private _openCloseTokenTransformer: TokenTransformerFunc = ({ token, previous }) => {
 		if (token && token?.type?.includes("_close") && previous?.type?.includes("_open")) {
 			const tokenTypeName = token.type.match(/(.*?)_close/)?.[1];
-			if (tokenTypeName && tokenTypeName === previous.type.match(/(.*?)_open/)?.[1]) {
+			if (
+				tokenTypeName &&
+				tokenTypeName !== "tableRow" &&
+				tokenTypeName === previous.type.match(/(.*?)_open/)?.[1]
+			) {
 				return [{ type: "paragraph_open", tag: "p" }, { type: "paragraph_close", tag: "p" }, token];
 			}
 		}
@@ -165,6 +169,7 @@ export class Transformer {
 				attrs,
 			};
 
+			const schema = getSchema();
 			if (!schema.nodes?.[newNode.type] && !schema.marks?.[newNode.type]) {
 				const nodeSchema = transformer._schemes[newNode.type];
 				const formatter = getSquareFormatter(nodeSchema);

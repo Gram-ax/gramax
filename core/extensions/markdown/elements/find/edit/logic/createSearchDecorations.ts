@@ -1,4 +1,6 @@
-import ArticleSearchHotkeyView from "@ext/markdown/elements/find/edit/components/ArticleSearchHotkeyView";
+import ArticleSearchHotkeyView, {
+	CustomDecorations,
+} from "@ext/markdown/elements/find/edit/components/ArticleSearchHotkeyView";
 import { Decoration, DecorationSet } from "prosemirror-view";
 import { Node } from "prosemirror-model";
 
@@ -16,6 +18,7 @@ const createSearchDecorations = (
 		return DecorationSet.empty;
 	}
 	const decorations: Decoration[] = [];
+	const items: CustomDecorations[] = [];
 
 	let flags = "g";
 	if (!caseSensitive) flags += "i";
@@ -31,6 +34,7 @@ const createSearchDecorations = (
 				const end = start + match[0].length;
 				const isActive = decorations.length === activeElementIndex;
 
+				items.push({ start, end, isActive });
 				decorations.push(
 					Decoration.inline(start, end, {
 						class: isActive ? "search-highlight search-highlight-active" : "search-highlight",
@@ -40,7 +44,8 @@ const createSearchDecorations = (
 		}
 	});
 
-	SearchView.updateDecorations(decorations);
+	SearchView.updateDecorations(items);
+
 	return DecorationSet.create(doc, decorations);
 };
 

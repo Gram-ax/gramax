@@ -1,12 +1,16 @@
 import Path from "@core/FileProvider/Path/Path";
 import FileProvider from "@core/FileProvider/model/FileProvider";
+import type FileStructure from "@core/FileStructue/FileStructure";
 import Cookie from "@ext/cookie/Cookie";
+import { invalidateRepoCache } from "@ext/git/core/GitCommands/LibGit2IntermediateCommands";
 import GitVersionControl from "@ext/git/core/GitVersionControl/GitVersionControl";
-import Repository from "@ext/git/core/Repository/Repository";
-import RepositoryStateFile from "@ext/git/core/RepositoryStateFile/RepositorySettingsFile";
-import UserInfo from "@ext/security/logic/User/UserInfo2";
+import BareRepository from "@ext/git/core/Repository/BareRepository";
+import type Repository from "@ext/git/core/Repository/Repository";
+import WorkdirRepository from "@ext/git/core/Repository/WorkdirRepository";
+import UserInfo from "@ext/security/logic/User/UserInfo";
 import SourceDataProvider from "@ext/storage/logic/SourceDataProvider/logic/SourceDataProvider";
 import SourceData from "@ext/storage/logic/SourceDataProvider/model/SourceData";
+import Storage from "@ext/storage/logic/Storage";
 import StorageProvider from "@ext/storage/logic/StorageProvider";
 import StorageData from "@ext/storage/models/StorageData";
 
@@ -16,6 +20,10 @@ export default class RepositoryProvider {
 
 	constructor() {
 		this._sp = new StorageProvider();
+	}
+
+	static invalidateRepoCache(paths: string[]) {
+		return invalidateRepoCache({ repoPaths: paths });
 	}
 
 	addSourceDataProvider(sdp: SourceDataProvider) {
@@ -47,38 +55,47 @@ export default class RepositoryProvider {
 	}
 
 	async getRepositoryByPath(path: Path, fp: FileProvider): Promise<Repository> {
-		const repStateFile = new RepositoryStateFile(path, fp);
-		if (!(await GitVersionControl.hasInit(fp, path))) return new Repository(path, fp, null, null, repStateFile);
 		const gvc = new GitVersionControl(path, fp);
+		if (!(await gvc.isInit())) return this._makeRepository(path, fp, null, null);
 		const storage = await this._sp.getStorageByPath(path, fp);
-		return new Repository(path, fp, gvc, storage, repStateFile);
+		return this._makeRepository(path, fp, gvc, storage);
 	}
 
-	async updateRepository(rep: Repository, fp: FileProvider, newPath: Path): Promise<void> {
+	async update(rep: Repository, fp: FileProvider, newPath: Path): Promise<void> {
 		const gvc = new GitVersionControl(newPath, fp);
 		const storage = await this._sp.getStorageByPath(newPath, fp);
 		rep.update(newPath, gvc, storage, fp);
 	}
 
-	async initNewRepository(path: Path, fp: FileProvider, data: StorageData): Promise<Repository> {
-		const repStateFile = new RepositoryStateFile(path, fp);
+	async initNew(path: Path, fp: FileProvider, data: StorageData): Promise<Repository> {
 		const gvc = await GitVersionControl.init(fp, path, data.source);
 		const storage = await this._sp.initNewStorage(fp, path, data);
-		return new Repository(path, fp, gvc, storage, repStateFile);
+		return this._makeRepository(path, fp, gvc, storage);
 	}
 
 	async cloneNewRepository(
-		fp: FileProvider,
+		fs: FileStructure,
 		path: Path,
 		data: StorageData,
 		recursive = true,
+		isBare = false,
 		branch?: string,
 		onCloneFinish?: (path: Path) => Promise<void>,
 	) {
-		return this._sp.cloneNewStorage({ fp, path, data, recursive, branch, onCloneFinish });
+		return this._sp.cloneNewStorage({ fs, path, data, recursive, isBare, branch, onCloneFinish });
 	}
 
 	getCloneProgress(path: Path) {
 		return this._sp.getCloneProgress(path);
+	}
+
+	private async _makeRepository(
+		path: Path,
+		fp: FileProvider,
+		gvc: GitVersionControl,
+		storage: Storage,
+	): Promise<Repository> {
+		if (await gvc?.isBare()) return new BareRepository(path, fp, gvc, storage);
+		return new WorkdirRepository(path, fp, gvc, storage);
 	}
 }

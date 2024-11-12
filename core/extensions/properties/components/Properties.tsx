@@ -6,26 +6,53 @@ import MimeTypes from "@core-ui/ApiServices/Types/MimeTypes";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import ArticlePropsService from "@core-ui/ContextServices/ArticleProps";
 import CatalogPropsService from "@core-ui/ContextServices/CatalogProps";
-import { ClientCatalogProps } from "@core/SitePresenter/SitePresenter";
 import styled from "@emotion/styled";
-import CreateProps from "@ext/catalog/actions/propsEditor/components/CatalogEditProps";
-import { Property, PropertyTypes } from "@ext/properties/models";
+import {
+	getInputType,
+	isHasValue,
+	Property as PropertyType,
+	PropertyTypes,
+	PropertyValue,
+	SystemProperties,
+} from "@ext/properties/models";
 import t from "@ext/localization/locale/translate";
-import { useCallback, useMemo, useState } from "react";
-import { usePlatform } from "@core-ui/hooks/usePlatform";
+import { useCallback, useMemo, useState, MouseEvent, KeyboardEvent, CSSProperties } from "react";
+import Input from "@components/Atoms/Input";
+import CatalogEditProperty from "@ext/properties/components/Modals/CatalogEditProperty";
+import { ClientCatalogProps } from "@core/SitePresenter/SitePresenter";
+import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
+import Icon from "@components/Atoms/Icon";
+import PropertyArticle from "@ext/properties/components/Helpers/PropertyArticle";
+import sortMapByName from "@ext/markdown/elements/view/render/logic/sortMap";
 
-const Properties = ({ className }: { className?: string }) => {
+interface PropertiesProps {
+	properties: PropertyValue[];
+	className?: string;
+	style?: CSSProperties;
+}
+
+const Properties = ({ className, style, properties }: PropertiesProps) => {
 	const articleProps = ArticlePropsService.value;
 	const catalogProps = CatalogPropsService.value;
 	const apiUrlCreator = ApiUrlCreatorService.value;
-	const { isNext } = usePlatform();
+	const pageData = PageDataContextService.value;
+	const isReadOnly = pageData?.conf.isReadOnly;
 
 	const [isOpen, setOpen] = useState<boolean>(false);
-	const [openID, setOpenID] = useState<number>(null);
+	const [data, setData] = useState<PropertyType>(null);
+
+	const catalogProperties = useMemo(
+		() =>
+			new Map(
+				catalogProps.properties.filter((prop) => !SystemProperties[prop.name]).map((prop) => [prop.name, prop]),
+			),
+		[catalogProps],
+	);
+
 	const articleProperties = useMemo(() => {
-		return articleProps.properties
+		return properties
 			?.map((prop) => {
-				const originalProp = catalogProps.properties.find((catProp) => catProp.id === prop.id);
+				const originalProp = catalogProperties.get(prop.name);
 
 				if (!originalProp) return null;
 
@@ -35,27 +62,38 @@ const Properties = ({ className }: { className?: string }) => {
 				};
 			})
 			.filter(Boolean);
-	}, [articleProps?.properties, catalogProps?.properties]);
-
-	const catalogProperties = catalogProps.properties.filter(
-		(property) =>
-			property.type !== PropertyTypes.counter &&
-			property.type !== PropertyTypes["counter-link"] &&
-			!articleProperties.find((val) => val.id === property.id),
-	);
+	}, [properties, catalogProperties, articleProps]);
 
 	const saveCatalogProperties = useCallback(
-		async (value: Property, isDelete: boolean = false) => {
+		async (property: PropertyType, isDelete: boolean = false, saveValue?: boolean) => {
 			const newProps = { ...catalogProps };
-			const index = newProps.properties.findIndex((obj: Property) => obj.id === value.id);
-			if (index === -1) newProps.properties = [...newProps.properties, value];
+			const index = newProps.properties.findIndex((obj) => obj.name === property.name);
+			if (index === -1) newProps.properties = [...newProps.properties, property];
 			else {
-				if (isDelete) newProps.properties = newProps.properties.filter((_, propIndex) => propIndex !== index);
-				else {
+				if (isDelete && !saveValue) {
+					newProps.properties = newProps.properties.filter((_, propIndex) => propIndex !== index);
+					const res = await FetchService.fetch(apiUrlCreator.removePropertyFromArticles(property.name));
+
+					if (res.ok) ArticlePropsService.set({ ...articleProps, properties: await res.json() });
+				} else {
+					const deletedValues = !saveValue
+						? newProps.properties?.[index]?.values
+								?.filter((value) => !property.values.includes(value))
+								.toString()
+						: "";
+
 					newProps.properties = [...newProps.properties];
 					newProps.properties[index] = {
-						...value,
+						...property,
 					};
+
+					if (deletedValues) {
+						const res = await FetchService.fetch(
+							apiUrlCreator.removePropertyFromArticles(property.name, deletedValues),
+						);
+
+						if (res.ok) ArticlePropsService.set({ ...articleProps, properties: await res.json() });
+					}
 				}
 			}
 
@@ -73,13 +111,13 @@ const Properties = ({ className }: { className?: string }) => {
 	);
 
 	const deleteProperty = useCallback(
-		(index: number) => {
-			const property = articleProperties[index];
+		(id: string) => {
+			const property = catalogProperties.get(id);
 			if (!property) return;
 
 			const newProps = {
 				...articleProps,
-				properties: [...articleProps.properties.filter((_, propIndex) => propIndex !== index)],
+				properties: [...properties.filter((prop) => prop.name !== id)],
 			};
 			ArticlePropsService.set(newProps);
 			FetchService.fetch(apiUrlCreator.updateItemProps(), JSON.stringify(newProps), MimeTypes.json);
@@ -88,100 +126,143 @@ const Properties = ({ className }: { className?: string }) => {
 	);
 
 	const updateProperty = useCallback(
-		(index: number, valID?: number, isExists: boolean = false) => {
-			const property = isExists ? articleProperties[index] : catalogProperties[index];
-			if (!property || (property.type === PropertyTypes.enum && valID === undefined)) return;
+		(id: string, value?: string) => {
+			const property = catalogProperties.get(id);
+			if (!property || (isHasValue[property.type] && value === undefined)) return;
 
 			const newProps = { ...articleProps };
-			const existedPropertyIndex = newProps.properties.findIndex((prop) => prop.id === property.id);
+			const existedPropertyIndex = newProps.properties.findIndex((prop) => prop.name === property.name);
 
-			if (existedPropertyIndex === -1)
+			const newValue = property.values && value ? value : value ?? null;
+
+			if (existedPropertyIndex === -1) {
 				newProps.properties = [
 					...newProps.properties,
-					{ id: property.id, value: valID !== undefined ? valID : null },
+					{
+						name: property.name,
+						...(newValue !== null && { value: Array.isArray(newValue) ? newValue : [newValue] }),
+					},
 				];
-			else {
+			} else {
 				const updatedProperties = [...newProps.properties];
 				updatedProperties[existedPropertyIndex] = {
 					...updatedProperties[existedPropertyIndex],
-					value: valID,
+					...(newValue !== null && { value: Array.isArray(newValue) ? newValue : [newValue] }),
 				};
 				newProps.properties = updatedProperties;
 			}
 
+			const keys = Array.from(catalogProperties.keys());
+			newProps.properties = sortMapByName(keys, newProps.properties as PropertyType[]);
 			ArticlePropsService.set(newProps);
 			FetchService.fetch(apiUrlCreator.updateItemProps(), JSON.stringify(newProps), MimeTypes.json);
 		},
 		[articleProperties, catalogProperties],
 	);
 
-	const toggleModal = (id?: number) => {
+	const toggleModal = (id?: string) => {
 		if (typeof id === "undefined") {
 			setOpen(false);
-			setOpenID(null);
+			setData(null);
 			return;
 		}
 
-		setOpenID(id);
+		setData(catalogProperties.get(id));
 		setOpen(true);
 	};
 
+	const hideTippy = (e: MouseEvent, id?: string) => {
+		toggleModal(id);
+		const target = e.target as any;
+		target?.parentNode?.parentNode?.parentNode?.offsetParent._tippy?.hide();
+		e.stopPropagation();
+		e.preventDefault();
+	};
+
+	const handleClick = (e: MouseEvent | KeyboardEvent, id: string, value: string) => {
+		const target = e.target as any;
+		target.offsetParent?.parentElement.offsetParent?._tippy?.hide();
+		target.offsetParent?._tippy?.hide();
+		updateProperty(id, value);
+	};
+
+	const onKeyDown = (e: KeyboardEvent, id: string) => {
+		const target = e.target as HTMLInputElement;
+		if (e.code === "Enter" && target.value.length) handleClick(e, id, target.value);
+	};
+
+	const updateNumeric = (id: string, instance: any) => {
+		const value = instance.popper.getElementsByTagName("input")[0].value;
+
+		if (value) {
+			updateProperty(id, value);
+			instance.popper.getElementsByTagName("input")[0].value = "";
+		}
+	};
+
+	const articleRenderedProperties = useMemo(() => {
+		return articleProperties.map((property) => (
+			<PropertyArticle
+				key={property.name}
+				isReadOnly={isReadOnly}
+				property={property}
+				updateNumeric={updateNumeric}
+				deleteProperty={deleteProperty}
+				handleClick={handleClick}
+				onKeyDown={onKeyDown}
+			/>
+		));
+	}, [articleProperties]);
+
 	return (
-		<div className={className}>
-			{articleProperties.map((property, index) => (
+		<div className={className} style={style}>
+			{articleRenderedProperties}
+			{!isReadOnly && (
 				<PopupMenuLayout
-					key={property.name}
 					isInline
+					offset={[0, 10]}
+					tooltipText={t("properties.name")}
+					hideOnClick={false}
 					trigger={
-						<Chip
-							name={`${property.name}${
-								property.value !== null
-									? ": " + ((property.values && property.values[property.value]) || property.value)
-									: ""
-							}`}
-							index={index}
-							style={property.style}
-						/>
+						<Chip icon="list-plus" chipStyle="none" dataQa="qa-add-property" style={{ height: "2.25em" }} />
 					}
 					appendTo={() => document.body}
 				>
-					{property.values && (
-						<PropertyItem
-							id={index}
-							values={property.values}
-							name={t("change")}
-							icon="pencil"
-							onClick={(index, valID) => updateProperty(index, valID, true)}
-						/>
-					)}
-					<PropertyItem id={index} name={t("manage")} icon="wrench" onClick={toggleModal} />
-					<PropertyItem id={index} name={t("delete")} icon="trash" onClick={deleteProperty} />
-				</PopupMenuLayout>
-			))}
-			{!isNext && (
-				<PopupMenuLayout
-					isInline
-					trigger={<Chip icon="list-plus" index={-1} style="none" />}
-					appendTo={() => document.body}
-				>
 					<>
-						{catalogProperties.map((property, index) => (
+						{Array.from(catalogProperties.values()).map((property) => (
 							<PropertyItem
-								id={index}
-								key={property.id}
+								id={property.name}
+								key={property.name}
 								name={property.name}
+								icon={property.icon}
 								values={property.values}
-								onClick={updateProperty}
-							/>
+								onClick={(e: MouseEvent, id, value) => handleClick(e, id, value)}
+								closeOnSelection={false}
+								rightActions={<Icon isAction code="pen" onClick={(e) => hideTippy(e, property.name)} />}
+								onHide={(instance) =>
+									property.type === PropertyTypes.numeric && updateNumeric(property.name, instance)
+								}
+							>
+								{getInputType[property.type] && (
+									<Input
+										type={getInputType[property.type]}
+										placeholder={t("enter-number")}
+										onKeyDown={(e) =>
+											e.code === "Enter" &&
+											handleClick(e, property.name, (e.target as HTMLInputElement).value)
+										}
+									/>
+								)}
+							</PropertyItem>
 						))}
 					</>
-					{catalogProperties.length > 0 && <div className="divider" />}
-					<PropertyItem id={-1} name={t("add-new")} icon="plus" onClick={toggleModal} />
+					{catalogProperties.size > 0 && <div className="divider" />}
+					<PropertyItem name={t("create-new")} icon="plus" onClick={(e) => hideTippy(e, null)} />
 				</PopupMenuLayout>
 			)}
-			{isOpen && !isNext && (
-				<CreateProps
-					data={articleProperties[openID]}
+			{isOpen && !isReadOnly && (
+				<CatalogEditProperty
+					data={data}
 					closeModal={toggleModal}
 					isOpen={isOpen}
 					onSubmit={saveCatalogProperties}
@@ -195,5 +276,5 @@ export default styled(Properties)`
 	display: flex;
 	align-items: center;
 	gap: 0.5em;
-	font-size: 12px;
+	font-size: 0.7em;
 `;

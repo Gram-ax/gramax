@@ -14,7 +14,7 @@ const getLogo: Command<{ catalogName: string; themeName: string }, { hashItem: H
 
 		async do({ catalogName, themeName: theme }) {
 			const workspace = this._app.wm.current();
-			const catalog = workspace.getCatalogEntry(catalogName);
+			const catalog = await workspace.getCatalogEntry(catalogName);
 			if (!catalog) return;
 			const logo =
 				Theme[theme] == Theme.light

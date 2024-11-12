@@ -22,7 +22,7 @@ import IsOpenModalService from "../../../ui-logic/ContextServices/IsOpenMpdal";
 import Checkbox from "../../Atoms/Checkbox";
 import Icon from "../../Atoms/Icon";
 import Link from "../../Atoms/Link";
-import Breadcrumb from "../../Breadcrumbs/ArticleBreadcrumb";
+import Breadcrumb from "../../Breadcrumbs/LinksBreadcrumb";
 import ModalLayout from "../../Layouts/Modal";
 import ModalLayoutLight from "../../Layouts/ModalLayoutLight";
 // import Path from "../../../logic/FileProvider/Path/Path";

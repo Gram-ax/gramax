@@ -1,5 +1,5 @@
-import userSettings from "@app/commands/auth/userSettings";
+import initEnterprise from "@app/commands/auth/initEnterprise";
 
-const auth = { userSettings };
+const auth = { initEnterprise };
 
 export default auth;

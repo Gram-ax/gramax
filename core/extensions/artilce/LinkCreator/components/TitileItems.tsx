@@ -119,7 +119,6 @@ export default styled(TitleItemsShouldRender)`
 	flex-direction: column;
 
 	&.items {
-		z-index: 2;
 		padding: 0;
 		position: relative;
 		max-height: 182px;
@@ -161,6 +160,6 @@ export default styled(TitleItemsShouldRender)`
 		padding: 6px 10px;
 		line-height: 15px;
 		height: 32px;
-		color: var(--color-input-disabled-text) !important;
+		color: var(--color-primary-general-inverse) !important;
 	}
 `;

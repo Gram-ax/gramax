@@ -29,6 +29,12 @@ class Transformer {
 			}
 			if (isOpen) {
 				if (token.type === "hr") {
+					if (tokens[idx + 1].type === "hr") {
+						(tokens as any).splice(idx, 0, { type: "tr_open", tag: "tr", nesting: 1 });
+						idx++;
+						(tokens as any).splice(idx, 0, { type: "tr_close", tag: "tr", nesting: -1 });
+						idx++;
+					}
 					tokens.splice(idx, 1);
 					idx--;
 				}

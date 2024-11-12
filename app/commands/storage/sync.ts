@@ -6,7 +6,7 @@ import { Article } from "@core/FileStructue/Article/Article";
 import LastVisited from "@core/SitePresenter/LastVisited";
 import MergeConflictCaller from "@ext/git/actions/MergeConflictHandler/model/MergeConflictCaller";
 import MergeData from "@ext/git/actions/MergeConflictHandler/model/MergeData";
-import { RepStashConflictState } from "@ext/git/core/Repository/model/RepostoryState";
+import type { RepositoryMergeConflictState } from "@ext/git/core/Repository/state/RepositoryState";
 import { AuthorizeMiddleware } from "../../../core/logic/Api/middleware/AuthorizeMiddleware";
 import Context from "../../../core/logic/Context/Context";
 import { Command } from "../../types/Command";
@@ -28,7 +28,7 @@ const sync: Command<{ ctx: Context; catalogName: string; articlePath: Path }, Me
 		if (!storage) return;
 		const sourceData = rp.getSourceData(ctx.cookie, await storage.getSourceName());
 		const mergeResult = await catalog.repo.sync({
-			recursivePull: this._app.conf.isServerApp,
+			recursivePull: this._app.conf.isReadOnly,
 			data: sourceData,
 			onPull: () => logger.logTrace(`Pulled in catalog "${catalogName}".`),
 			onPush: () => logger.logTrace(`Pushed in catalog "${catalogName}".`),
@@ -49,7 +49,7 @@ const sync: Command<{ ctx: Context; catalogName: string; articlePath: Path }, Me
 			: {
 					ok: false,
 					mergeFiles: mergeResult,
-					reverseMerge: (state as RepStashConflictState).data.reverseMerge,
+					reverseMerge: (state.inner as RepositoryMergeConflictState).data.reverseMerge,
 					caller: MergeConflictCaller.Sync,
 			  };
 	},
@@ -57,7 +57,7 @@ const sync: Command<{ ctx: Context; catalogName: string; articlePath: Path }, Me
 	params(ctx, q) {
 		return {
 			ctx,
-			catalogName: q.catalogName,
+			catalogName: q.catalogName?.split("/")[0],
 			articlePath: new Path(q.articlePath),
 		};
 	},

@@ -27,73 +27,79 @@ import note from "@ext/markdown/elements/note/edit/model/noteSchema";
 import openapi from "@ext/markdown/elements/openApi/edit/models/openApiSchema";
 import paragraphSchema from "@ext/markdown/elements/paragraph/editor/model/paragraphSchema";
 import snippetSchema from "@ext/markdown/elements/snippet/edit/model/snippetSchema";
-import style_wrapper from "@ext/markdown/elements/styleWrapper/model/styleWrapperSchema";
 import * as table_simple from "@ext/markdown/elements/table/edit/model/simpleTableSchema";
 import * as table from "@ext/markdown/elements/table/edit/model/tableSchema";
 import tabSchema from "@ext/markdown/elements/tabs/edit/model/tab/tabSchema";
 import tabsSchema from "@ext/markdown/elements/tabs/edit/model/tabs/tabsSchema";
 import unsupported from "@ext/markdown/elements/unsupported/edit/model/unsupportedSchema";
 import video from "@ext/markdown/elements/video/edit/model/videoSchema";
+import viewSchema from "@ext/markdown/elements/view/edit/models/viewSchema";
 import suggestion from "@ext/StyleGuide/extension/suggestionSchema";
 import { Schema } from "prosemirror-model";
 
-export const schema = new Schema({
-	nodes: {
-		doc,
+export const getSchema = (additionalSchema?: { nodes?: Record<string, any>; marks?: Record<string, any> }) => {
+	const schema: { nodes: Record<string, any>; marks: Record<string, any> } = {
+		nodes: {
+			doc,
 
-		tab: tabSchema,
-		tabs: tabsSchema,
+			tab: tabSchema,
+			tabs: tabsSchema,
 
-		heading,
-		paragraph: paragraphSchema,
-		text: { group: "inline" },
+			heading,
+			paragraph: paragraphSchema,
+			text: { group: "inline" },
 
-		br,
-		horizontal_rule,
-		hard_break: { inline: true, group: "inline", selectable: false },
+			br,
+			horizontal_rule,
+			hard_break: { inline: true, group: "inline", selectable: false },
 
-		...table,
-		...table_simple,
-		...listSchema,
+			...table,
+			...table_simple,
+			...listSchema,
 
-		openapi,
-		snippet: snippetSchema,
-		diagrams,
-		mermaid,
-		"plant-uml": plantUml,
-		"c4-diagram": c4Diagram,
-		"ts-diagram": tsDiagram,
+			openapi,
+			snippet: snippetSchema,
+			diagrams,
+			mermaid,
+			"plant-uml": plantUml,
+			"c4-diagram": c4Diagram,
+			"ts-diagram": tsDiagram,
 
-		video,
-		image: imageSchema,
-		drawio,
+			video,
+			image: imageSchema,
+			drawio,
 
-		icon,
-		cut,
-		note,
-		unsupported,
-		html,
-		style_wrapper,
-		code_block,
-		blockquote,
+			icon,
+			cut,
+			note,
+			unsupported,
+			html,
+			view: viewSchema,
+			code_block,
+			blockquote,
 
-		error,
-		answer,
-		comment_old,
+			error,
+			answer,
+			comment_old,
 
-		...blockMd,
-		inlineMd_component,
-		inlineCut_component,
-	},
-	marks: {
-		link,
-		comment,
-		suggestion,
-		s: {},
-		em: {},
-		code: {},
-		strong: {},
-		inlineMd: {},
-		inlineCut: { attrs: inlineCut_component.attrs },
-	},
-});
+			...blockMd,
+			inlineMd_component,
+			inlineCut_component,
+			...(additionalSchema?.nodes ?? {}),
+		},
+		marks: {
+			link,
+			comment,
+			suggestion,
+			s: {},
+			em: {},
+			code: {},
+			strong: {},
+			inlineMd: {},
+			inlineCut: { attrs: inlineCut_component.attrs },
+			...(additionalSchema?.marks ?? {}),
+		},
+	};
+
+	return new Schema(schema);
+};

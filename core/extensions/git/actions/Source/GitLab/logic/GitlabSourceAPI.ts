@@ -134,7 +134,11 @@ export default class GitlabSourceAPI extends GitSourceApi {
 		return search;
 	}
 
-	protected async _paginationApi(url: string, init?: RequestInit, perPage = this._defaultPerPage): Promise<Response[]> {
+	protected async _paginationApi(
+		url: string,
+		init?: RequestInit,
+		perPage = this._defaultPerPage,
+	): Promise<Response[]> {
 		const result: Response[] = [];
 		const concatChar = this._getConcatChar(url);
 		const res = await this._api(`${url}${perPage ? `${concatChar}per_page=${perPage}` : ""}`, init);
@@ -156,8 +160,8 @@ export default class GitlabSourceAPI extends GitSourceApi {
 		toPage: number,
 		perPage: number,
 	): Promise<Response[]> {
-		this._validatePages(fromPage, toPage)
-		
+		this._validatePages(fromPage, toPage);
+
 		const resPromises: Promise<Response>[] = [];
 		for (let page = fromPage; page < toPage + 1; page++) {
 			const res = this._api(
@@ -170,14 +174,18 @@ export default class GitlabSourceAPI extends GitSourceApi {
 	}
 
 	protected async _api(url: string, init?: RequestInit): Promise<Response> {
+		const isEnterprise = this._data.isEnterprise;
 		try {
-			const res = await fetch(`${this._data.protocol ?? "https"}://${this._data.domain}/api/v4/${url}`, {
-				...init,
-				headers: {
-					...(init?.headers ?? {}),
-					...(this._data.token && { Authorization: `Bearer ${this._data.token}` }),
+			const res = await fetch(
+				`${this._data.protocol ?? "https"}://${this._data.domain}${isEnterprise ? "/api" : ""}/api/v4/${url}`,
+				{
+					...init,
+					headers: {
+						...(init?.headers ?? {}),
+						...(this._data.token && { Authorization: `Bearer ${this._data.token}` }),
+					},
 				},
-			});
+			);
 			return res;
 		} catch (e) {
 			console.error(e);

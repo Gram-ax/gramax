@@ -13,7 +13,7 @@ const edit: Command<{ data: ClientWorkspaceConfig }, void> = Command.create({
 	async do({ data }) {
 		const wm = this._app.wm;
 		const { path, ...init } = data;
-		const config = wm.getWorkspaceConfig(path);
+		const { config } = wm.getWorkspaceConfig(path);
 		config.update(init);
 		await config.save();
 	},

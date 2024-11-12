@@ -2,11 +2,13 @@ import Portal from "@components/Portal";
 import ButtonStateService from "@core-ui/ContextServices/ButtonStateService/ButtonStateService";
 import IsMenuBarOpenService from "@core-ui/ContextServices/IsMenuBarOpenService";
 import IsSelectedOneNodeService from "@core-ui/ContextServices/IsSelected";
+import useWatch from "@core-ui/hooks/useWatch";
 import { cssMedia } from "@core-ui/utils/cssUtils";
 import styled from "@emotion/styled";
 import CodeBlockMenu from "@ext/markdown/elements/codeBlockLowlight/edit/component/CodeBlockMenu";
 import DiagramsMenu from "@ext/markdown/elements/diagrams/edit/components/DiagramsMenu";
 import DrawioMenu from "@ext/markdown/elements/drawio/edit/components/DrawioMenu";
+import HTMLMenu from "@ext/markdown/elements/html/edit/components/HTMLEditButton";
 import ImageMenu from "@ext/markdown/elements/image/edit/components/ImageMenu";
 import NoteMenu from "@ext/markdown/elements/note/edit/components/NoteMenu";
 import OpenApiMenu from "@ext/markdown/elements/openApi/edit/components/OpenApiEditButton";
@@ -15,13 +17,12 @@ import VideoMenu from "@ext/markdown/elements/video/edit/components/VideoMenu";
 import { Editor } from "@tiptap/react";
 import { useEffect, useState } from "react";
 import MainMenu from "./Menus/Main";
-import HTMLMenu from "@ext/markdown/elements/html/edit/components/HTMLEditButton";
 
 const Menu = styled(({ editor, id, className }: { editor: Editor; id: string; className?: string }) => {
 	const [isOpen, setIsOpen] = useState(true);
 	const isMenuBarOpenContext = IsMenuBarOpenService.value;
 
-	useEffect(() => {
+	useWatch(() => {
 		setIsOpen(isMenuBarOpenContext);
 	}, [isMenuBarOpenContext]);
 

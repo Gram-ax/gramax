@@ -1,24 +1,22 @@
 import ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
 import FetchService from "@core-ui/ApiServices/FetchService";
-import { createContext, Dispatch, ReactElement, SetStateAction, useContext, useEffect, useState } from "react";
+import { createContext, Dispatch, ReactElement, SetStateAction, useContext, useState, useLayoutEffect } from "react";
 import Theme from "../Theme";
 
 const ThemeContext = createContext<Theme>(undefined);
-let _setTheme: Dispatch<SetStateAction<Theme>>;
+let _setTheme: Dispatch<SetStateAction<Theme>> = () => {};
 
 abstract class ThemeService {
-	static Provider({ children, value }: { children: ReactElement; value: Theme }): ReactElement {
-		const [theme, setTheme] = useState<Theme>(value);
+	static Provider({ children, value }: { children: ReactElement; value?: Theme }): ReactElement {
+		const [theme, setTheme] = useState<Theme>();
 		_setTheme = setTheme;
 
-		useEffect(() => {
-			ThemeService.setTheme(value);
-		}, [value]);
+		useLayoutEffect(() => {
+			const theme = ThemeService.getTheme();
+			const verifyValue = ThemeService.checkTheme(value);
+			const valueToChange = value && theme !== verifyValue ? verifyValue : theme;
 
-		useEffect(() => {
-			if (theme) return;
-			const isDarkTheme = window.matchMedia("(prefers-color-scheme:dark)").matches;
-			ThemeService.setTheme(isDarkTheme ? Theme.dark : Theme.light);
+			ThemeService.changeTheme(valueToChange);
 		}, []);
 
 		return <ThemeContext.Provider value={theme}>{children}</ThemeContext.Provider>;
@@ -32,24 +30,35 @@ abstract class ThemeService {
 		return useContext(ThemeContext);
 	}
 
-	public static async setTheme(theme: Theme, apiUrlCreator?: ApiUrlCreator) {
-		_setTheme(theme);
+	static setTheme(theme: Theme, apiUrlCreator?: undefined): void;
+	static setTheme(theme: Theme, apiUrlCreator: ApiUrlCreator): Promise<void>;
+	public static async setTheme(theme: Theme, apiUrlCreator: ApiUrlCreator) {
 		if (apiUrlCreator) await FetchService.fetch(apiUrlCreator.getSetThemeURL(theme));
 		ThemeService.changeTheme(theme);
 	}
 
 	public static changeTheme(theme: Theme) {
-		document.documentElement.className = ThemeService._getThemeClassName(theme);
-	}
+		const verifyTheme = ThemeService.checkTheme(theme);
+		_setTheme(verifyTheme);
 
+		document.body.dataset.theme = verifyTheme;
+	}
+	public static getTheme() {
+		const body = document?.body;
+		if (!body || !body.dataset) return Theme.dark;
+		const bodyTheme = ThemeService.checkTheme(body.dataset.theme);
+
+		return bodyTheme === Theme.dark ? Theme.dark : Theme.light;
+	}
 	public static async toggleTheme(apiUrlCreator: ApiUrlCreator) {
-		const dark = ThemeService._getThemeClassName(Theme.dark);
-		const next = document.documentElement.className == dark ? Theme.light : Theme.dark;
-		await ThemeService.setTheme(next, apiUrlCreator);
+		const nextTheme = ThemeService.getTheme() === Theme.dark ? Theme.light : Theme.dark;
+		await ThemeService.setTheme(nextTheme, apiUrlCreator);
 	}
 
-	private static _getThemeClassName(theme: Theme) {
-		return "theme-" + theme;
+	static checkTheme(data: string): Theme {
+		if (data in Theme) return data as Theme;
+
+		return Theme.dark;
 	}
 }
 

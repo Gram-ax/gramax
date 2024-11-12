@@ -1,6 +1,8 @@
 use std::path::Path;
 use tauri::*;
 
+use crate::error::ShowError;
+
 use crate::ALLOWED_DOMAINS;
 
 pub mod commands;
@@ -13,49 +15,43 @@ mod updater;
 #[cfg(target_os = "macos")]
 mod custom_protocol;
 
+#[cfg(target_family = "unix")]
 pub use menu::MenuBuilder;
 pub use updater::UpdaterBuilder;
 
 use save_windows::SaveWindowsExt;
-
-#[allow(unused)]
-pub fn window_post_init<R: Runtime>(window: &WebviewWindow<R>) -> Result<()> {
-  #[cfg(target_os = "windows")]
-  window.setup_menu()?;
-
-  Ok(())
-}
 
 pub fn on_navigation(url: &url::Url) -> bool {
   if url.scheme() == "blob" || url.domain().is_some_and(|domain| ALLOWED_DOMAINS.contains(&domain)) {
     return true;
   }
 
-  open::that(url.as_str()).unwrap();
+  _ = open::that(url.as_str()).or_show_with_message(&t!("etc.error.open-url", url = url.as_str()));
   false
 }
 
 #[cfg(target_os = "macos")]
-pub fn window_event_handler<R: Runtime>(window: &Window<R>, event: &WindowEvent) {
-  if !window.label().contains("gramax-window") {
-    return;
-  };
-
-  if window.app_handle().webview_windows().iter().filter(|w| w.0.contains("gramax-window")).nth(1).is_some() {
-    return;
-  }
-
-  if let WindowEvent::CloseRequested { api, .. } = event {
-    window.app_handle().hide().unwrap();
-    api.prevent_close();
-  }
-}
-
-#[cfg(target_os = "macos")]
 pub fn on_run_event<R: Runtime>(app: &AppHandle<R>, ev: RunEvent) {
+  use crate::MainWindowBuilder;
+
   match ev {
     RunEvent::Opened { urls } => custom_protocol::on_open_asked(app, urls),
-    RunEvent::Exit => _ = app.save_windows(),
+    RunEvent::Reopen { .. } => {
+      if let Some((_, window)) =
+        app.webview_windows().iter().find(|(label, _)| label.starts_with("gramax-window"))
+      {
+        _ = window.show().or_show();
+        _ = window.unminimize().or_show();
+        std::thread::sleep(std::time::Duration::from_millis(300));
+        _ = window.set_focus().or_show();
+      } else {
+        _ = MainWindowBuilder::default().build(app).or_show_with_message(&t!("etc.error.build-window"));
+      }
+    }
+    RunEvent::ExitRequested { api, .. } => {
+      _ = app.save_windows().or_show();
+      api.prevent_exit();
+    }
     _ => (),
   }
 }
@@ -63,13 +59,8 @@ pub fn on_run_event<R: Runtime>(app: &AppHandle<R>, ev: RunEvent) {
 #[cfg(not(target_os = "macos"))]
 pub fn on_run_event<R: Runtime>(app: &AppHandle<R>, ev: RunEvent) {
   if let RunEvent::Exit = ev {
-    _ = app.save_windows();
+    _ = app.save_windows().or_show();
   }
-}
-
-fn open_help_docs() -> Result<()> {
-  open::that("https://gram.ax/resources/docs")?;
-  Ok(())
 }
 
 fn assert_can_write<P: AsRef<Path>>(path: P) -> Result<()> {

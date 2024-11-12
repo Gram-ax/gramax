@@ -23,7 +23,7 @@ const Notification = ({ tooltip, className, ...props }: NotificationProps) => {
 
 export default styled(Notification)`
 	top: -0.5rem;
-	z-index: 100;
+	z-index: var(--z-index-base);
 	right: -0.5rem;
 	height: 1.05rem;
 	padding: 0 0.2rem;

@@ -8,7 +8,8 @@ links = "plugin-gramax-git"
 [dependencies]
 tauri = { workspace = true }
 serde = { workspace = true }
-gramax-git = { path = "../../../../rlibs/git" }
+serde_json = { workspace = true }
+gramax-git = { path = "../../../../crates/git" }
 
 [build-dependencies]
 tauri-plugin = { workspace = true }

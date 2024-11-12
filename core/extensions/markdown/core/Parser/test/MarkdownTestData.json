@@ -535,7 +535,7 @@
 				],
 				"name": "Table"
 			},
-			"html": "<div class=\"css-ufqlq9 expanded\"><div class=\"scrollableСontent\"><table><thead><tr><th align=\"left\"><p>Столбец 1</p></th><th align=\"left\"><p>Столбец 2</p></th><th align=\"left\"><p>Столбец 3</p></th></tr></thead><tbody><tr><td align=\"left\"><p>Строка 1</p></td><td align=\"left\"><p>Строка 1</p></td><td align=\"left\"><p>Строка 1</p></td></tr><tr><td align=\"left\"><p>Строка 2</p></td><td align=\"left\"><p>Строка 2</p></td><td align=\"left\"><p>Строка 2</p></td></tr></tbody></table></div></div>"
+			"html": "<div class=\"css-qml9hb\"><div class=\"scrollableContent\"><table><thead><tr><th align=\"left\"><p>Столбец 1</p></th><th align=\"left\"><p>Столбец 2</p></th><th align=\"left\"><p>Столбец 3</p></th></tr></thead><tbody><tr><td align=\"left\"><p>Строка 1</p></td><td align=\"left\"><p>Строка 1</p></td><td align=\"left\"><p>Строка 1</p></td></tr><tr><td align=\"left\"><p>Строка 2</p></td><td align=\"left\"><p>Строка 2</p></td><td align=\"left\"><p>Строка 2</p></td></tr></tbody></table></div></div>"
 		},
 		{
 			"text": "{% table %}\n\n---\n\n*  {% colspan=2 %}\n\n   Объединённая ячейка по горизонтали\n\n*  Строка 1 Ячейка 2\n\n---\n\n*  Строка 2 Ячейка 1\n\n*  Строка 2 Ячейка 2\n\n*  {% rowspan=2 %}\n\n   Строка 2 Ячейка 3\n\n   -  Объединённая\n\n   -  ячейка\n\n   -  по вертикали\n\n---\n\n*  Строка 3 Ячейка 1\n\n*  Строка 3 Ячейка 2\n\n{% /table %}",
@@ -723,7 +723,7 @@
 				],
 				"name": "Table"
 			},
-			"html": "<div class=\"css-ufqlq9 expanded\"><div class=\"scrollableСontent\"><table><tbody><tr><td colspan=\"2\"><p>Объединённая ячейка по горизонтали</p></td><td><p>Строка 1 Ячейка 2</p></td></tr><tr><td><p>Строка 2 Ячейка 1</p></td><td><p>Строка 2 Ячейка 2</p></td><td rowspan=\"2\"><p>Строка 2 Ячейка 3</p><ul depth=\"0\"><li depth=\"0\"><p>Объединённая</p></li><li depth=\"0\"><p>ячейка</p></li><li depth=\"0\"><p>по вертикали</p></li></ul></td></tr><tr><td><p>Строка 3 Ячейка 1</p></td><td><p>Строка 3 Ячейка 2</p></td></tr></tbody></table></div></div>"
+			"html": "<div class=\"css-qml9hb\"><div class=\"scrollableContent\"><table><tbody><tr><td colspan=\"2\"><p>Объединённая ячейка по горизонтали</p></td><td><p>Строка 1 Ячейка 2</p></td></tr><tr><td><p>Строка 2 Ячейка 1</p></td><td><p>Строка 2 Ячейка 2</p></td><td rowspan=\"2\"><p>Строка 2 Ячейка 3</p><ul depth=\"0\"><li depth=\"0\"><p>Объединённая</p></li><li depth=\"0\"><p>ячейка</p></li><li depth=\"0\"><p>по вертикали</p></li></ul></td></tr><tr><td><p>Строка 3 Ячейка 1</p></td><td><p>Строка 3 Ячейка 2</p></td></tr></tbody></table></div></div>"
 		}
 	],
 	"Note": [
@@ -767,7 +767,7 @@
 				],
 				"name": "Note"
 			},
-			"html": "<div class=\"admonition admonition-danger admonition-column\"><div class=\"admonition-heading expanded\"><div class=\"admonition-icon\"><i style=\"cursor:pointer;user-select:none\" class=\"css-15fiha7\"><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"1em\" height=\"1em\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"max(0.075em, 1.3px)\" stroke-linecap=\"round\" stroke-linejoin=\"round\" class=\"lucide lucide-chevron-right \"><path d=\"m9 18 6-6-6-6\"></path></svg></i></div><div contenteditable=\"false\" class=\"titleWrapper\"><div class=\"title clickable\">Предупреждение</div></div></div><div class=\"admonition-content\"></div></div>"
+			"html": "<div class=\"admonition admonition-danger admonition-column\"><div class=\"admonition-heading expanded\"><div class=\"admonition-icon\"><i style=\"cursor:pointer;user-select:none\" class=\"css-15fiha7\"><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"1em\" height=\"1em\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"max(0.075em, 1.3px)\" stroke-linecap=\"round\" stroke-linejoin=\"round\" class=\"lucide lucide-chevron-right \"><path d=\"m9 18 6-6-6-6\"></path></svg></i></div><div contenteditable=\"false\" class=\"titleWrapper\"><div class=\"title clickable\">Предупреждение</div></div></div><div class=\"admonition-content\"><div class=\"paragraph content-hide\"><p>Текст заметки</p></div></div></div>"
 		}
 	],
 	"Link": [

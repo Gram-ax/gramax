@@ -6,9 +6,9 @@ const gitErrorLocalization: GitErrorLocalization = {
 		props?.caller == "pull"
 			? { message: t("git.sync.error.local-changes-present") }
 			: { message: t("git.sync.error.local-changes-present") },
-	CheckoutSubmoduleError: (props) => (
-		{ message: t("git.checkout.submodule.error").replace("{{path}}", props.error.props.submodulePath) }
-	),
+	CheckoutSubmoduleError: (props) => ({
+		message: t("git.checkout.submodule.error").replace("{{path}}", props.error.props.submodulePath),
+	}),
 	DeleteCurrentBranch: () => ({ message: t("git.branch.error.deleting-head-branch") }),
 	WorkingDirNotEmpty: () => ({ message: t("git.merge.error.workdir-not-empty") }),
 	PushRejectedError: (props) => ({
@@ -72,6 +72,7 @@ const gitErrorLocalization: GitErrorLocalization = {
 	},
 	CloneError: () => ({ message: t("git.clone.error.generic") }),
 	NetworkConntectionError: () => ({ message: t("git.error.network.message"), title: t("git.error.network.title") }),
+	FileNotFoundError: () => ({ message: t("not-found") }),
 };
 
 export default gitErrorLocalization;

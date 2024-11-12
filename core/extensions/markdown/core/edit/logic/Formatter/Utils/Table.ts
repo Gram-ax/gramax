@@ -1,9 +1,9 @@
 // import { CliPrettify } from "markdown-table-prettify";  "markdown-table-prettify": "^3.6.0",
+import ParserContext from "@ext/markdown/core/Parser/ParserContext/ParserContext";
 import { Node } from "prosemirror-model";
-import { ProsemirrorMarkdownSerializer, schema } from "../../Prosemirror";
+import { ProsemirrorMarkdownSerializer, getSchema } from "../../Prosemirror";
 import getMarkFormatters from "../Formatters/getMarkFormatters";
 import getNodeFormatters from "../Formatters/getNodeFormatters";
-import ParserContext from "@ext/markdown/core/Parser/ParserContext/ParserContext";
 
 const TableUtils = {
 	async getSimpleTable(node: Node, delim: string, context: ParserContext): Promise<string> {
@@ -22,7 +22,7 @@ const TableUtils = {
 		}
 		return TableUtils.prettifySimpleTable(
 			await new ProsemirrorMarkdownSerializer(getNodeFormatters(context), getMarkFormatters(context)).serialize(
-				Node.fromJSON(schema, { type: "doc", content: [table] }),
+				Node.fromJSON(getSchema(), { type: "doc", content: [table] }),
 				{},
 				delim,
 			),

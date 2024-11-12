@@ -81,7 +81,7 @@ export default styled(ImageCropper)`
 	left: 0px;
 	width: 100%;
 	height: 100%;
-	z-index: 100;
+	z-index: var(--z-index-base);
 	padding: 8px;
 	outline: 2px solid #808080;
 	cursor: grab;
@@ -95,7 +95,6 @@ export default styled(ImageCropper)`
 		top: 0;
 		width: 100%;
 		height: 100%;
-		z-index: 50;
 		box-shadow: 2px 2px 0 2000px var(--color-modal-overlay-style-bg);
 		pointer-events: none;
 	}
@@ -106,7 +105,7 @@ export default styled(ImageCropper)`
 		height: 30px;
 		border: 2px solid #1476ff;
 		user-select: none;
-		z-index: 100;
+		z-index: var(--z-index-base);
 	}
 
 	.top-left {

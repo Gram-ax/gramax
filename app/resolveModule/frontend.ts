@@ -68,6 +68,10 @@ modules = {
 	Router: NextRouter,
 	Fetcher: async <T = any>(url: Url, body?: BodyInit, mime?: MimeTypes, method?: Method) => {
 		const l = Localizer.extract(window.location.pathname);
+		const headers = {
+			"x-gramax-ui-language": LanguageService.currentUi(),
+			"x-gramax-language": l,
+		};
 
 		const res = (await fetch(
 			url.toString(),
@@ -77,11 +81,10 @@ modules = {
 						body,
 						headers: {
 							"Content-type": mime,
-							"x-gramax-ui-language": LanguageService.currentUi(),
-							"x-gramax-language": l,
+							...headers,
 						},
 				  }
-				: { headers: { "x-gramax-ui-language": LanguageService.currentUi(), "x-gramax-language": l } },
+				: { headers },
 		)) as FetchResponse<T>;
 		res.buffer = async () => Buffer.from(await res.arrayBuffer());
 		return res;
@@ -98,7 +101,6 @@ modules = {
 
 // #v-endif
 /// #endif
-// #v-endif
 
 /// #if VITE_ENVIRONMENT == "jest"
 // #v-ifdef VITE_ENVIRONMENT=jest

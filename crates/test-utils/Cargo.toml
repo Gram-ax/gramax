@@ -1,0 +1,16 @@
+[package]
+name = "test-utils"
+version = { workspace = true }
+authors = { workspace = true }
+description = { workspace = true }
+edition = { workspace = true }
+
+[dependencies]
+env_logger = "^0.10"
+gramax-git = { path = "../git", optional = true }
+log = { workspace = true }
+rstest = "0.23.0"
+tempdir = "0.3.7"
+
+[features]
+git = ["gramax-git"]

@@ -1,18 +1,16 @@
 import { Command } from "@app/types/Command";
 import { ResponseKind } from "@app/types/ResponseKind";
-import { AuthorizeMiddleware } from "@core/Api/middleware/AuthorizeMiddleware";
-import { DesktopModeMiddleware } from "@core/Api/middleware/DesktopModeMiddleware";
 import ReloadConfirmMiddleware from "@core/Api/middleware/ReloadConfirmMiddleware";
 import Path from "@core/FileProvider/Path/Path";
 import { Article } from "@core/FileStructue/Article/Article";
-import { Property, PropertyTypes } from "@ext/properties/models";
+import { Property } from "@ext/properties/models";
 
 const getAddedCounters: Command<{ catalogName: string; articlePath: Path }, Property[]> = Command.create({
 	path: "catalog/actionEditorProperties/getAddedCounters",
 
 	kind: ResponseKind.json,
 
-	middlewares: [new AuthorizeMiddleware(), new DesktopModeMiddleware(), new ReloadConfirmMiddleware()],
+	middlewares: [new ReloadConfirmMiddleware()],
 
 	async do({ catalogName, articlePath }) {
 		const { wm } = this._app;
@@ -31,10 +29,9 @@ const getAddedCounters: Command<{ catalogName: string; articlePath: Path }, Prop
 
 				return article.props.properties
 					?.map((prop) => {
-						const originalProp = allProps.find((catProp) => catProp.id === prop.id);
+						const originalProp = allProps.find((catProp) => catProp.name === prop.name);
 
 						if (!originalProp) return null;
-						if (originalProp.type !== PropertyTypes.counter) return null;
 
 						return {
 							...originalProp,

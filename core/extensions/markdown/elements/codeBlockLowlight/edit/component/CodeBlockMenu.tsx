@@ -39,6 +39,7 @@ const CodeBlockMenu = ({ editor, className }: { editor: Editor; className?: stri
 	};
 
 	const handleCopy = () => {
+		const { node } = getFocusNode(editor.state, (node) => node.type.name === "code_block");
 		void navigator.clipboard.writeText(node.textContent);
 		setIsCoped(true);
 	};

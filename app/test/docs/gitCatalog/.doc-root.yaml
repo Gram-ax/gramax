@@ -1,4 +1,6 @@
 title: Test-catalog
+versions:
+    - 'tags/*'
 variables:
     overlap: "doc-root overlap"
     docRootVariable: "doc root value"

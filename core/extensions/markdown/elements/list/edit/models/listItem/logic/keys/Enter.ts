@@ -16,7 +16,7 @@ const getListItem = ($from) => {
 
 	for (let i = $from.depth; i >= 0; i--) {
 		const node = $from.node(i);
-		if (node.type.name !== "list_item") continue;
+		if (!["list_item", "task_item"].includes(node.type.name)) continue;
 		listItem = node;
 		i = -1;
 	}
@@ -26,10 +26,11 @@ const getListItem = ($from) => {
 
 const splitListItem: KeyboardRule = ({ editor, node: { attrs: itemAttrs }, typeName }) => {
 	if (insideCodeBlock({ editor })) return false;
+	const withoutAttr = typeName === "task_item";
 
 	const { state, view } = editor;
 	const { dispatch } = view;
-	const itemType = state.schema.nodes.list_item;
+	const itemType = state.schema.nodes[typeName];
 	const { $from, $to, node, empty } = state.selection as NodeSelection;
 
 	if ((node && node.isBlock) || $from.depth < 2 || !$from.sameParent($to)) return false;
@@ -84,6 +85,7 @@ const splitListItem: KeyboardRule = ({ editor, node: { attrs: itemAttrs }, typeN
 			if (sel > -1) tr.setSelection(Selection.near(tr.doc.resolve(sel)));
 			dispatch(tr.scrollIntoView());
 		}
+
 		return true;
 	}
 
@@ -100,10 +102,14 @@ const splitListItem: KeyboardRule = ({ editor, node: { attrs: itemAttrs }, typeN
 	const nextType = $to.pos == $from.end() ? grandParent.contentMatchAt(0).defaultType : null;
 	const tr = state.tr.delete($from.pos, $to.pos);
 
-	const types = nextType ? [itemAttrs ? { type: itemType, attrs: itemAttrs } : null, { type: nextType }] : undefined;
+	const types = nextType
+		? [itemAttrs ? { type: itemType, attrs: withoutAttr ? {} : itemAttrs } : null, { type: nextType }]
+		: undefined;
+
 	if (!canSplit(tr.doc, $from.pos, 2, types)) return false;
 
 	if (dispatch) dispatch(tr.split($from.pos, 2, types).scrollIntoView());
+
 	return true;
 };
 

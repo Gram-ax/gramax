@@ -1,6 +1,9 @@
 import Tooltip from "@components/Atoms/Tooltip";
 import type { FormSchema } from "@components/Form/Form";
 import t, { hasTranslation } from "@ext/localization/locale/translate";
+import ArrayItems from "@ext/properties/components/ArrayItems";
+import CatalogEditProperty from "@ext/properties/components/Modals/CatalogEditProperty";
+import { Property } from "@ext/properties/models";
 import { JSONSchema7 } from "json-schema";
 import { MutableRefObject, useEffect, useRef, useState } from "react";
 import Checkbox from "../Atoms/Checkbox";
@@ -8,9 +11,6 @@ import Input from "../Atoms/Input";
 import ListLayout from "../List/ListLayout";
 import Select from "../Select/Select";
 import { Validate } from "./ValidateObject";
-import ArrayItems from "@ext/properties/components/ArrayItems";
-import CatalogEditProps from "@ext/catalog/actions/propsEditor/components/CatalogEditProps";
-import { Property } from "@ext/properties/models";
 
 interface ItemInputProps {
 	tabIndex: number;
@@ -105,7 +105,9 @@ const ItemInput = (props: ItemInputProps) => {
 							value = values.map((value) => value.value);
 							onChange?.(value);
 						}}
+						chevronView={false}
 						onFocus={onFocus}
+						dataQa={dataQa}
 					/>
 				</div>
 			</Tooltip>
@@ -115,7 +117,7 @@ const ItemInput = (props: ItemInputProps) => {
 	if (scheme.type === "array" && (scheme.items as JSONSchema7)?.type === "object") {
 		const change = (prop: Property, isDelete: boolean = false) => {
 			const newProps = [...(value as Property[])];
-			const index = (value as Property[]).findIndex((obj: Property) => obj.id === prop.id);
+			const index = (value as Property[]).findIndex((obj: Property) => obj.name === prop.name);
 			if (index === -1) {
 				newProps.push(prop);
 				onChange?.(newProps);
@@ -141,7 +143,7 @@ const ItemInput = (props: ItemInputProps) => {
 		return (
 			<ArrayItems newIcon="plus" otherIcon="pencil" values={value as Property[]} onClick={toggleModal}>
 				{isOpen && (
-					<CatalogEditProps data={editData} isOpen={isOpen} closeModal={toggleModal} onSubmit={change} />
+					<CatalogEditProperty data={editData} isOpen={isOpen} closeModal={toggleModal} onSubmit={change} />
 				)}
 			</ArrayItems>
 		);

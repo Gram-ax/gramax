@@ -1,6 +1,10 @@
-import { CATEGORY_ROOT_FILENAME, NEW_ARTICLE_FILENAME, UNIQUE_NAME_SEPARATOR, UNIQUE_NAME_START_IDX } from "@app/config/const";
+import {
+	CATEGORY_ROOT_FILENAME,
+	NEW_ARTICLE_FILENAME,
+	UNIQUE_NAME_SEPARATOR,
+	UNIQUE_NAME_START_IDX,
+} from "@app/config/const";
 import Path from "../FileProvider/Path/Path";
-
 
 const createNewFilePathUtils = {
 	create(basePath: Path, brothers: Path[], baseFileName = NEW_ARTICLE_FILENAME, extension = ".md"): Path {
@@ -22,7 +26,11 @@ const createNewFilePathUtils = {
 		extension = ".md",
 	): Path {
 		let path = basePath.parentDirectoryPath.join(
-			new Path(isFolder ? oldPath.parentDirectoryPath.name + `/${folderFileName}` : oldPath.nameWithExtension),
+			new Path(
+				isFolder
+					? oldPath.parentDirectoryPath.nameWithExtension + `/${folderFileName}`
+					: oldPath.nameWithExtension,
+			),
 		);
 
 		if (brothers) {
@@ -35,7 +43,7 @@ const createNewFilePathUtils = {
 			path ??
 			basePath.parentDirectoryPath.join(
 				isFolder
-					? new Path(oldPath.parentDirectoryPath.name).join(new Path(oldPath.nameWithExtension))
+					? new Path(oldPath.parentDirectoryPath.nameWithExtension).join(new Path(oldPath.nameWithExtension))
 					: new Path(oldPath.nameWithExtension),
 			)
 		);

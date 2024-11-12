@@ -1,4 +1,4 @@
-import UserInfo from "./User/UserInfo2";
+import UserInfo from "./User/UserInfo";
 
 export interface UserRepositoryProvider {
 	getUser(idOrMail: string): Promise<UserInfo>;

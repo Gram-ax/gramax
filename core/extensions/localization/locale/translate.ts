@@ -12,10 +12,18 @@ export type FormDefinition = {
 	};
 };
 
+export type SystemProperty = {
+	[name: string]: {
+		name: string;
+		values: { [key: string]: string };
+	};
+};
+
 export type Locale = typeof en;
 export type DefaultLocale = typeof defaultLocale;
-
-type TranslationKey = ObjectDotNotation<Omit<DefaultLocale, "forms"> & { forms: FormDefinition }>;
+type TranslationKey = ObjectDotNotation<
+	Omit<typeof defaultLocale, "forms" | "properties.system"> & { forms: FormDefinition; properties: SystemProperty }
+>;
 
 const defaultLocale = en;
 const locales = { [UiLanguage.ru]: ru, [UiLanguage.en]: en };
@@ -63,7 +71,6 @@ export const hasTranslation = (key: TranslationKey): boolean => t(key, defaultLa
 export const convertContentToUiLanguage = (l: ContentLanguage): UiLanguage =>
 	UiLanguage[l] || LanguageService.currentUi() || defaultLanguage;
 
-export const tString = (key: string) =>
-	t(key as TranslationKey);
+export const tString = (key: string) => t(key as TranslationKey);
 
 export default t;

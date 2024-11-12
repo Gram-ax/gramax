@@ -7,14 +7,19 @@ import styled from "@emotion/styled";
 import Search from "../../Actions/Modal/Search";
 import Link from "../../Atoms/Link";
 import Logo from "../../Logo";
+import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 
 const TopBarContent = ({ data, className }: { data: ArticlePageData; className?: string }) => {
+	const logoImageUrl = PageDataContextService.value.conf.logo.imageUrl;
+
 	return (
 		<div className={className}>
-			<Link className="home" href={Url.fromRouter(useRouter(), { pathname: "/" })} dataQa="home-page-button">
-				<ButtonLink  textSize={TextSize.L} iconCode="grip" />
-			</Link>
-			<Logo />
+			{!logoImageUrl && (
+				<Link className="home" href={Url.fromRouter(useRouter(), { pathname: "/" })} dataQa="home-page-button">
+					<ButtonLink textSize={TextSize.L} iconCode="grip" />
+				</Link>
+			)}
+			<Logo imageUrl={logoImageUrl} />
 			<div className="iconWrapper">
 				<Search isHomePage={false} catalogLinks={[data.catalogProps.link]} itemLinks={data.itemLinks} />
 			</div>

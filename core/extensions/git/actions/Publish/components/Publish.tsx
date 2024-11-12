@@ -16,15 +16,17 @@ import Path from "@core/FileProvider/Path/Path";
 import styled from "@emotion/styled";
 import DiffItem from "@ext/VersionControl/model/DiffItem";
 import DiffResource from "@ext/VersionControl/model/DiffResource";
+import { FileStatus } from "@ext/Watchers/model/FileStatus";
 import CommitMsg from "@ext/git/actions/Publish/components/CommitMsg";
 import SelectAllCheckbox from "@ext/git/actions/Publish/components/SelectAllCheckbox";
 import SideBarResource from "@ext/git/actions/Publish/components/SideBarResource";
 import findArticleIdx from "@ext/git/actions/Publish/logic/findArticleIdx";
 import formatComment from "@ext/git/actions/Publish/logic/formatComment";
 import getSideBarData from "@ext/git/actions/Publish/logic/getSideBarData";
-import getSideBarElementByModelIdx from "@ext/git/actions/Publish/logic/getSideBarElementByModelIdx";
+import getSideBarElementByModelIdx, {
+	SideBarElementData,
+} from "@ext/git/actions/Publish/logic/getSideBarElementByModelIdx";
 import { useResourceView } from "@ext/git/actions/Publish/logic/useResourceView";
-import SideBarResourceData from "@ext/git/actions/Publish/model/SideBarResourceData";
 import { MouseEvent, useEffect, useMemo, useRef, useState } from "react";
 import deleteSideBarDataItem from "../logic/deleteSideBarDataItems";
 import getAllFilePaths from "../logic/getAllFilePaths";
@@ -42,7 +44,7 @@ interface PublishProps {
 	onEndDiscard?: (paths: string[], hasDeleted: boolean) => void;
 	onSideBarDataChange?: (newSideBarData: SideBarData[]) => void;
 	goToArticleOnClick?: (e: MouseEvent) => void;
-	onOpenIdChange?: (idx: number, sideBarElement: SideBarData | SideBarResourceData) => void;
+	onOpenIdChange?: (data: SideBarElementData, sideBarData: SideBarData[]) => void;
 	tryPublishTrigger?: Trigger;
 	className?: string;
 }
@@ -89,9 +91,9 @@ const Publish = (props: PublishProps) => {
 	const canPublish = !publishProcess && fileCountToShow && commitMessage != "";
 
 	const setOpenIdWrapper = (idx: number, sideBarData: SideBarData[]) => {
-		const { idx: newIdx, sideBarDataElement } = getSideBarElementByModelIdx(idx, sideBarData);
-		setOpenId(newIdx);
-		onOpenIdChange?.(newIdx, sideBarDataElement);
+		const data = getSideBarElementByModelIdx(idx, sideBarData);
+		setOpenId(data.idx);
+		onOpenIdChange?.(data, sideBarData);
 	};
 
 	const setSideBarDataWrapper = (newSideBarData: SideBarData[]) => {
@@ -155,8 +157,8 @@ const Publish = (props: PublishProps) => {
 
 			const diffItemsData = await response.json();
 			onSideBarDataLoadEnd?.();
-			const itemDiffs = getSideBarData(diffItemsData?.items ?? [], true);
-			const anyFileDiffs = getSideBarData(diffItemsData?.resources ?? [], true);
+			const itemDiffs = getSideBarData(diffItemsData?.items ?? [], true, false);
+			const anyFileDiffs = getSideBarData(diffItemsData?.resources ?? [], true, true);
 			const currentSideBarData: SideBarData[] = [];
 
 			if (itemDiffs.length && anyFileDiffs.length) {
@@ -166,7 +168,10 @@ const Publish = (props: PublishProps) => {
 				if (anyFileDiffs.length) currentSideBarData.push(...anyFileDiffs);
 			}
 
-			const currentLogicPaths = itemDiffs.map((sideBarItem) => sideBarItem.data.logicPath);
+			const currentLogicPaths = itemDiffs.flatMap((sideBarItem) => [
+				sideBarItem.data.logicPath,
+				...sideBarItem.data.resources.map(() => null),
+			]);
 			setSideBarDataWrapper(currentSideBarData);
 			setOpenIdWrapper(findArticleIdx(articleProps.pathname, currentLogicPaths), currentSideBarData);
 		};
@@ -214,7 +219,7 @@ const Publish = (props: PublishProps) => {
 			className="sidebar-bottom-element"
 			commitMessagePlaceholder={placeholder}
 			commitMessageValue={commitMessage ?? placeholder}
-			disableCommitInput={!canPublish}
+			disableCommitInput={!!publishProcess}
 			disablePublishButton={!canPublish}
 			fileCount={fileCountToShow}
 			onCommitMessageChange={(msg) => setCommitMessage(msg)}
@@ -269,19 +274,33 @@ const Publish = (props: PublishProps) => {
 			),
 		};
 
-		const resourceApi = apiUrlCreator.fromArticle(x.data.filePath.path);
-		const relativeTo = new Path(x.data.filePath.path);
 		return x.data.resources
 			? [
 					item,
-					...x.data.resources.map((resource, id) => ({
-						leftSidebar: (
-							<div style={{ padding: "1rem 1rem 1rem 0" }}>
-								<SideBarResource changeType={x.data.changeType} title={resource.title} />
-							</div>
-						),
-						content: <>{useResourceView(id, resourceApi, resource, relativeTo)}</>,
-					})),
+					...x.data.resources.map((resource, id) => {
+						const parentPath = resource.parentPath;
+						const resourceApi = apiUrlCreator.fromArticle(parentPath);
+						const relativeTo = new Path(parentPath);
+						return {
+							leftSidebar: (
+								<div style={{ padding: "1rem 1rem 1rem 0" }}>
+									<SideBarResource changeType={x.data.changeType} title={resource.data.title} />
+								</div>
+							),
+							content: (
+								<>
+									{useResourceView(
+										id,
+										resourceApi,
+										new Path(resource.data.filePath.path),
+										resource.data.changeType === FileStatus.delete,
+										x.diff,
+										relativeTo,
+									)}
+								</>
+							),
+						};
+					}),
 			  ]
 			: item;
 	});

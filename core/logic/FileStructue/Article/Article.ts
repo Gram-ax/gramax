@@ -10,9 +10,8 @@ import { JSONContent } from "@tiptap/core";
 import { RenderableTreeNode } from "../../../extensions/markdown/core/render/logic/Markdoc";
 import { TocItem } from "../../../extensions/navigation/article/logic/createTocItems";
 import ResourceManager from "../../Resource/ResourceManager";
-import { ClientArticleProps } from "../../SitePresenter/SitePresenter";
 import { Category } from "../Category/Category";
-import { Item, type ItemEvents, type ItemProps } from "../Item/Item";
+import { Item, UpdateItemProps, type ItemEvents, type ItemProps } from "../Item/Item";
 
 export type ArticleEvents = ItemEvents;
 
@@ -99,7 +98,7 @@ export class Article<P extends ArticleProps = ArticleProps> extends Item<P> {
 		return this._ref.path.name;
 	}
 
-	protected override _updateProps(props: ClientArticleProps) {
+	protected override _updateProps(props: UpdateItemProps) {
 		this._props.title = props.title;
 		if (props.properties?.length) this._props.properties = props.properties;
 		else delete this._props.properties;
@@ -113,7 +112,7 @@ export class Article<P extends ArticleProps = ArticleProps> extends Item<P> {
 
 	protected async _save(renamed?: boolean) {
 		delete this._props.welcome;
-		if (this._props.title) delete this._props.external;
+		if (this._props.title?.trim()) delete this._props.external;
 		const stat = await this._fs.saveArticle(this);
 		this._lastModified = stat.mtimeMs;
 		await this.events.emit("item-changed", { item: this, status: renamed ? FileStatus.new : FileStatus.modified });
@@ -136,6 +135,7 @@ export class Article<P extends ArticleProps = ArticleProps> extends Item<P> {
 		this._logicPath = newArticle.logicPath;
 		this._ref = newArticle.ref;
 		this._content = newArticle._content;
+		this.parsedContent = newArticle.parsedContent;
 
 		return this;
 	}

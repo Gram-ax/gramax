@@ -13,26 +13,26 @@ import ThemeService from "../../extensions/Theme/components/ThemeService";
 import IsMacService from "../../ui-logic/ContextServices/IsMac";
 import Article from "../Article/Article";
 import ArticleExtensions from "../Article/ArticleExtensions";
-import Breadcrumb from "../Breadcrumbs/ArticleBreadcrumb";
-import Properties from "@ext/properties/components/Properties";
 import { classNames } from "@components/libs/classNames";
-import { useState } from "react";
-import getIsDevMode from "@core-ui/utils/getIsDevMode";
+import ArticleBreadcrumb from "@components/Breadcrumbs/ArticleBreadcrumb";
+import OnLoadResourceService from "@ext/markdown/elements/copyArticles/onLoadResourceService";
+import NotActualVersionWarning from "@ext/versioning/components/NotActualVersionWarning";
 
 const ArticlePage = ({ data, className }: { data: ArticlePageData; className?: string }) => {
 	const theme = ThemeService.value;
 	const isMac = IsMacService.value;
 	const pageProps = PageDataContextService.value;
 	const props = CatalogPropsService.value;
-	const [isDevMode] = useState(() => getIsDevMode());
 
 	const shouldShowPreview =
-		!pageProps.conf.isServerApp &&
+		!pageProps.conf.isReadOnly &&
 		pageProps.language.content &&
 		props.language &&
 		pageProps.language.content != props.language;
 
 	interceptPrintShortkeys(isMac, theme);
+
+	OnLoadResourceService.clear();
 
 	if (data.articleProps.welcome)
 		return (
@@ -46,10 +46,8 @@ const ArticlePage = ({ data, className }: { data: ArticlePageData; className?: s
 
 	return (
 		<div className={className}>
-			<div className="article-breadcrumb-container">
-				<Breadcrumb itemLinks={data.itemLinks} />
-				{isDevMode && <Properties />}
-			</div>
+			{data.catalogProps.resolvedVersion && <NotActualVersionWarning />}
+			<ArticleBreadcrumb itemLinks={data.itemLinks} />
 			<div
 				className={classNames("article-page-wrapper", {
 					["lang-style"]: pageProps.language.content && props.language != pageProps.language.content,
@@ -76,14 +74,7 @@ export default styled(ArticlePage)`
 		display: flex;
 		flex-direction: row;
 		justify-content: space-between;
-	}
-
-	.article-breadcrumb-container {
-		display: flex;
-		align-items: center;
-		justify-content: space-between;
-		margin-top: -0.6rem;
-		height: 1.5em;
+		margin-top: -0.1rem;
 	}
 
 	div.main-article {

@@ -3,7 +3,7 @@ import { Router } from "@core/Api/Router";
 import CustomArticle from "@core/SitePresenter/customArticles/model/CustomArticle";
 import DiagramType from "@core/components/Diagram/DiagramType";
 import Theme from "@ext/Theme/Theme";
-import { type ContentLanguage } from "@ext/localization/core/model/Language";
+import UiLanguage, { type ContentLanguage } from "@ext/localization/core/model/Language";
 import type { WorkspacePath } from "@ext/workspace/WorkspaceConfig";
 import MimeTypes from "./Types/MimeTypes";
 import Url from "./Types/Url";
@@ -51,12 +51,13 @@ export default class ApiUrlCreator {
 		return Url.fromBasePath(`/api/workspace/setDefaultPath`, this._basePath, { path });
 	}
 
-	public getArticleResource(src: string, mimeType?: MimeTypes) {
+	public getArticleResource(src: string, mimeType?: MimeTypes, readFromHead?: boolean) {
 		return Url.fromBasePath(`/api/article/resource/get`, this._basePath, {
 			articlePath: this._articlePath,
 			catalogName: this._catalogName,
 			mimeType,
 			src,
+			readFromHead: readFromHead?.toString(),
 		});
 	}
 
@@ -170,10 +171,6 @@ export default class ApiUrlCreator {
 		});
 	}
 
-	public getRedirectVScodeUrl() {
-		return Url.fromBasePath("/api/vscode", this._basePath, { path: this._articlePath });
-	}
-
 	public getEditOnSourceLink(articlePath: string) {
 		return Url.fromBasePath("/api/article/editOn/source", this._basePath, {
 			catalogName: this._catalogName,
@@ -206,8 +203,8 @@ export default class ApiUrlCreator {
 		});
 	}
 
-	public getUserSettingsUrl(userSettings: string) {
-		return Url.fromBasePath(`api/auth/userSettings`, this._basePath, { userSettings });
+	public getInitEnterpriseUrl(token: string) {
+		return Url.fromBasePath(`api/auth/initEnterprise`, this._basePath, { token });
 	}
 
 	public getAuthSsoUrl(data: string, sign: string, from: string) {
@@ -312,12 +309,19 @@ export default class ApiUrlCreator {
 		});
 	}
 
-	public getStorageStartCloneUrl(path: string, recursive = true, skipCheck?: boolean, branch?: string) {
+	public getStorageStartCloneUrl(
+		path: string,
+		recursive = true,
+		isBare = false,
+		skipCheck?: boolean,
+		branch?: string,
+	) {
 		return Url.fromBasePath(`/api/storage/startClone`, this._basePath, {
 			recursive: recursive.toString(),
 			branch,
 			skipCheck: skipCheck.toString(),
 			path,
+			isBare: isBare.toString(),
 		});
 	}
 
@@ -473,6 +477,10 @@ export default class ApiUrlCreator {
 
 	public getSetThemeURL(theme: string) {
 		return Url.fromBasePath("/api/theme/set", this._basePath, { theme });
+	}
+
+	public getSetLanguageURL(language: UiLanguage) {
+		return Url.fromBasePath("/api/language/set", this._basePath, { language });
 	}
 
 	public createCatalog() {
@@ -679,6 +687,31 @@ export default class ApiUrlCreator {
 			articlePath: this._articlePath,
 			catalogName: this._catalogName,
 			curArticlePath,
+		});
+	}
+
+	public getViewRenderData() {
+		return Url.fromBasePath(`/api/catalog/view/getRenderData`, this._basePath, {
+			catalogName: this._catalogName,
+			articlePath: this._articlePath,
+		});
+	}
+
+	public updateArticleProperty(articlePath: string, propertyName: string, newValue: string) {
+		return Url.fromBasePath(`/api/article/property/update`, this._basePath, {
+			catalogName: this._catalogName,
+			articlePath,
+			propertyName,
+			newValue,
+		});
+	}
+
+	public removePropertyFromArticles(propertyName: string, value?: string) {
+		return Url.fromBasePath(`/api/article/property/remove`, this._basePath, {
+			catalogName: this._catalogName,
+			articlePath: this._articlePath,
+			propertyName,
+			value,
 		});
 	}
 }

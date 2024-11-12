@@ -5,6 +5,7 @@ import Context from "@core/Context/Context";
 import Path from "@core/FileProvider/Path/Path";
 import parseContent from "@core/FileStructue/Article/parseContent";
 import HashResourceManager from "@core/Hash/HashItems/HashResourceManager";
+import GitTreeFileProvider from "@ext/versioning/GitTreeFileProvider";
 import { Article } from "../../../../core/logic/FileStructue/Article/Article";
 
 const get: Command<
@@ -15,6 +16,7 @@ const get: Command<
 		catalogName: string;
 		mimeType: MimeTypes;
 		ifNotExistsErrorText: { title: string; message: string };
+		readFromHead?: boolean;
 	},
 	{ mime: MimeTypes; hashItem: HashResourceManager }
 > = Command.create({
@@ -22,14 +24,20 @@ const get: Command<
 
 	kind: ResponseKind.blob,
 
-	async do({ src, mimeType, catalogName, articlePath, ifNotExistsErrorText, ctx }) {
+	async do({ src, mimeType, catalogName, articlePath, ifNotExistsErrorText, readFromHead, ctx }) {
 		const { parser, parserContextFactory, wm } = this._app;
 		const workspace = wm.current();
 
 		const mime = mimeType ?? MimeTypes?.[src.extension] ?? `application/${src.extension}`;
-		const catalog = await workspace.getCatalog(catalogName);
-
+		let catalog = await workspace.getCatalog(catalogName);
 		if (!catalog) return;
+
+		if (readFromHead) {
+			catalog = await catalog.getHeadVersion();
+			if (!catalog) return;
+			articlePath = GitTreeFileProvider.scoped(articlePath, null);
+		}
+
 		const article = catalog.findItemByItemPath<Article>(articlePath);
 		if (!article) return;
 		await parseContent(article, catalog, ctx, parser, parserContextFactory);
@@ -45,7 +53,8 @@ const get: Command<
 		const mimeType = q.mimeType as MimeTypes;
 		const catalogName = q.catalogName;
 		const articlePath = new Path(q.articlePath);
-		return { ctx, src, mimeType, catalogName, articlePath, ifNotExistsErrorText: body };
+		const readFromHead = q.readFromHead === "true";
+		return { ctx, src, mimeType, catalogName, articlePath, ifNotExistsErrorText: body, readFromHead };
 	},
 });
 

@@ -10,6 +10,7 @@ class TestContext implements Context {
 	constructor() {
 		this._user = new User();
 	}
+
 	get cookie(): Cookie {
 		throw new Error("Method not implemented.");
 	}

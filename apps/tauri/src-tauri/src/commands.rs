@@ -20,6 +20,8 @@ pub fn generate_handler<R: Runtime>(builder: Builder<R>) -> Builder<R> {
     read_env,
     move_to_trash,
     http_req::http_request,
+    #[cfg(desktop)]
+    set_language,
     #[cfg(target_os = "macos")]
     show_print
   ])
@@ -47,7 +49,7 @@ pub(crate) fn move_to_trash<R: Runtime>(window: Window<R>, path: &Path) -> std::
     .title(t!("trash.title"))
     .kind(tauri_plugin_dialog::MessageDialogKind::Error)
     .parent(&window)
-    .ok_button_label(t!("etc.ok"))
+    .buttons(tauri_plugin_dialog::MessageDialogButtons::OkCustom(t!("etc.ok").to_string()))
     .show(|_| {});
 
   Err(err.to_string())

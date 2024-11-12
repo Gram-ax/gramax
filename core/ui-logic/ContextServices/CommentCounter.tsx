@@ -17,7 +17,7 @@ abstract class CommentCounterService {
 		const { isLogged, conf } = PageDataContextService.value;
 
 		useEffect(() => {
-			if (!isLogged || conf.isServerApp) return;
+			if (!isLogged || conf.isReadOnly) return;
 			CommentCounterService.load(apiUrlCreator);
 		}, deps ?? []);
 

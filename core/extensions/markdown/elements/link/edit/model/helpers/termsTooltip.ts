@@ -67,14 +67,16 @@ export function hoverTooltip(
 			handleDOMEvents: {
 				mouseover: (view, event) => {
 					const target = event.target as HTMLElement;
-					if (target.tagName === "A" && target.closest(".ProseMirror")) {
+					const linkElement = target.closest("a");
+
+					if (linkElement && linkElement.closest(".ProseMirror")) {
 						const { clientX, clientY } = event;
 
 						const markWithPosition = getLinkMarkByView(view, clientX, clientY);
 						if (!markWithPosition.mark) return;
 
 						linkHoverTooltip.setMarkData(markWithPosition);
-						linkHoverTooltip.setComponent(target);
+						linkHoverTooltip.setComponent(linkElement);
 					}
 				},
 			},

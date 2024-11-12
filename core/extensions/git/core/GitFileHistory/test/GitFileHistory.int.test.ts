@@ -73,7 +73,7 @@ describe("GitFileHistory", () => {
 				],
 				filePath: {
 					path: "file-with-history.md",
-					oldPath: "",
+					oldPath: "file-with-history.md",
 					diff: undefined,
 				},
 			},
@@ -81,9 +81,9 @@ describe("GitFileHistory", () => {
 	});
 
 	it("Возвращает пустой массив, если файла не существует в git", async () => {
-		const { dfp, gitFileHistory, catalog, rp } = await getGitFileHistoryData();
+		const { dfp, gitFileHistory, catalog } = await getGitFileHistoryData();
 		await dfp.write(new Path("new.md"), "new file content");
-		await catalog.update(rp);
+		await catalog.update();
 		const itemRef = dfp.getItemRef(new Path("gitCatalog/new.md"));
 
 		const res = await gitFileHistory.getArticleHistoryInfo(itemRef);

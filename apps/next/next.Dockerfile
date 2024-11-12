@@ -1,6 +1,6 @@
 ARG CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX=docker.io
 
-FROM --platform=$BUILDPLATFORM gitlab.ics-it.ru:4567/ics/doc-reader:base-image AS deps
+FROM --platform=$BUILDPLATFORM gitlab.ics-it.ru:4567/ics/doc-reader:base-image-${BRANCH:-"develop"} AS deps
 
 WORKDIR /app
 
@@ -8,7 +8,8 @@ COPY ./package.json ./package-lock.json ./
 COPY ./apps/browser/package.json ./apps/browser/
 COPY ./apps/tauri/package.json ./apps/tauri/
 COPY ./apps/next/package.json ./apps/next/
-COPY ./apps/next/rlibs/next-gramax-git/package.json ./apps/next/rlibs/next-gramax-git/
+COPY ./e2e/package.json ./e2e/package-lock.json ./e2e/
+COPY ./apps/next/crates/next-gramax-git/package.json ./apps/next/crates/next-gramax-git/
 
 RUN npm ci
 
@@ -56,9 +57,8 @@ ARG BRANCH \
 ENV PORT=80 \
   DIAGRAM_RENDERER_SERVICE_URL=http://gramax-diagram-renderer:80 \
   PRODUCTION=${PRODUCTION} \
-  SERVER_APP=true \
-  READ_ONLY=true \
   ROOT_PATH=/app/data \
+  ENTERPRISE_CONFIG_PATH=/app/config \
   BRANCH=${BRANCH} \
   BUGSNAG_API_KEY=${BUGSNAG_API_KEY} \
   AUTO_PULL_INTERVAL=180 \
@@ -71,6 +71,9 @@ ENV PORT=80 \
 
 RUN mkdir -p $ROOT_PATH
 COPY --from=build /app .
+
+# TODO: temp solution; delete in future
+RUN git config --global url."https://gitlab.ics-it.ru/".insteadOf git@gitlab.ics-it.ru:
 
 STOPSIGNAL SIGTERM
 

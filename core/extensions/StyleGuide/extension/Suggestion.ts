@@ -100,10 +100,11 @@ export const Suggestion = Mark.create({
 
 							const pos = view.posAtDOM(target, 0);
 							const resolvedPos = view.state.doc.resolve(pos);
-							suggestionTooltip.setTooltip(
-								target,
-								{ name, replaceText, description },
-								(replaceText, closeFunc) => {
+							suggestionTooltip.setTooltip(target, {
+								name,
+								replaceText,
+								description,
+								onClick: (replaceText) => {
 									let tr = view.state.tr;
 									const newNode = getNodeByHTMLText(replaceText, this.editor);
 									tr = tr.replaceWith(
@@ -112,9 +113,9 @@ export const Suggestion = Mark.create({
 										newNode.child(0).content,
 									);
 									view.dispatch(tr);
-									closeFunc();
+									suggestionTooltip.removeTooltip();
 								},
-							);
+							});
 						},
 					},
 				},

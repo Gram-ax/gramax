@@ -20,13 +20,15 @@ const resolve: Command<{ ctx: Context; catalogName: string; files: GitMergeResul
 		const storage = catalog?.repo.storage;
 		if (!storage) return;
 		const sourceData = rp.getSourceData(ctx.cookie, await storage.getSourceName());
+		const state = await catalog.repo.getState();
+
 		try {
-			await catalog.repo.resolveMerge(files, sourceData);
+			await state.resolveMerge(files, sourceData);
 		} catch (e) {
-			await catalog.repo.abortMerge(sourceData);
+			await state.abortMerge(sourceData);
 			throw e;
 		} finally {
-			await catalog.update(rp);
+			await catalog.update();
 		}
 	},
 

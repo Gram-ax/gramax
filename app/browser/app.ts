@@ -1,7 +1,9 @@
 import resolveModule from "@app/resolveModule/backend";
 import { ContextFactory } from "@core/Context/ContextFactory";
 import DiskFileProvider from "@core/FileProvider/DiskFileProvider/DiskFileProvider";
+import MountFileProvider from "@core/FileProvider/MountFileProvider/MountFileProvider";
 import Path from "@core/FileProvider/Path/Path";
+import FileStructureEventHandlers from "@core/FileStructue/events/FileStuctureEventHandlers";
 import Hash from "@core/Hash/Hash";
 import ResourceUpdaterFactory from "@core/Resource/ResourceUpdaterFactory";
 import CustomArticlePresenter from "@core/SitePresenter/CustomArticlePresenter";
@@ -15,7 +17,6 @@ import MailProvider from "@ext/MailProvider";
 import ThemeManager from "@ext/Theme/ThemeManager";
 import RepositoryProvider from "@ext/git/core/Repository/RepositoryProvider";
 import HtmlParser from "@ext/html/HtmlParser";
-import { mountFSEvents } from "@ext/localization/core/events/FSLocalizationEvents";
 import BugsnagLogger from "@ext/loggers/BugsnagLogger";
 import ConsoleLogger from "@ext/loggers/ConsoleLogger";
 import Logger from "@ext/loggers/Logger";
@@ -37,7 +38,7 @@ const _init = async (config: AppConfig): Promise<Application> => {
 	const mp: MailProvider = null;
 	const vur: VideoUrlRepository = null;
 
-	await resolveModule("initWasm")?.(config.services.cors.url);
+	await resolveModule("initWasm")?.(config.services.gitProxy.url);
 
 	const fileConfig = await YamlFileConfig.readFromFile<AppGlobalConfig>(
 		new DiskFileProvider(config.paths.data),
@@ -46,8 +47,8 @@ const _init = async (config: AppConfig): Promise<Application> => {
 
 	const rp = new RepositoryProvider();
 	const wm = new WorkspaceManager(
-		(path) => new DiskFileProvider(path),
-		(fs) => mountFSEvents(fs),
+		(path) => MountFileProvider.fromDefault(new Path(path)),
+		(fs) => new FileStructureEventHandlers(fs).mount(fs),
 		rp,
 		config,
 		fileConfig,
@@ -100,18 +101,22 @@ const _init = async (config: AppConfig): Promise<Application> => {
 		resourceUpdaterFactory,
 		customArticlePresenter,
 		conf: {
-			glsUrl: config.glsUrl,
-			isRelease: config.isRelease,
 			basePath: config.paths.base,
+			disableSeo: config.disableSeo,
 
+			isRelease: config.isRelease,
 			isReadOnly: config.isReadOnly,
-			isServerApp: config.isServerApp,
 			isProduction: config.isProduction,
 
 			version: config.version,
 			buildVersion: config.buildVersion,
 			bugsnagApiKey: config.bugsnagApiKey,
 			yandexMetricCounter: config.yandexMetricCounter,
+			
+			services: config.services,
+			enterprise: config.enterprise,
+			
+			logo: config.logo,
 		},
 	};
 };

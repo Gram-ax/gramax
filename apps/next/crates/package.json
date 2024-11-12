@@ -1,0 +1,9 @@
+{
+	"name": "crates",
+	"workspaces": [
+		"next-gramax-git"
+	],
+	"dependencies": {
+		"@napi-rs/cli": "^2.18.4"
+	}
+}

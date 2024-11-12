@@ -2,6 +2,38 @@ use std::panic::PanicInfo;
 
 use bugsnag::BugsnagNotificationBuilder;
 
+pub trait ShowError<T, E: std::error::Error> {
+  fn or_show_with_message(self, message: &str) -> Result<T, E>;
+  fn or_show(self) -> Result<T, E>;
+}
+
+impl<T, E: std::error::Error> ShowError<T, E> for Result<T, E> {
+  fn or_show_with_message(self, message: &str) -> Result<T, E> {
+    if let Err(ref err) = self {
+      rfd::MessageDialog::new()
+        .set_level(rfd::MessageLevel::Error)
+        .set_title(t!("etc.error.title"))
+        .set_description(format!("{}\n\n{}", message, err))
+        .set_buttons(rfd::MessageButtons::OkCustom(t!("etc.ok").to_string()))
+        .show();
+    }
+    self
+  }
+
+  fn or_show(self) -> Result<T, E> {
+    if let Err(ref err) = self {
+      rfd::MessageDialog::new()
+        .set_level(rfd::MessageLevel::Error)
+        .set_title(t!("etc.error.title"))
+        .set_description(err.to_string())
+        .set_buttons(rfd::MessageButtons::OkCustom(t!("etc.ok").to_string()))
+        .show();
+    }
+
+    self
+  }
+}
+
 pub fn setup_bugsnag_and_panic_hook(api_key: String) -> BugsnagNotificationBuilder {
   let webview_version = tauri::webview_version().unwrap_or("unknown".to_string());
 
@@ -11,7 +43,7 @@ pub fn setup_bugsnag_and_panic_hook(api_key: String) -> BugsnagNotificationBuild
   bugsnag
 }
 
-fn panic_hook(bugsnag: &BugsnagNotificationBuilder, panic_info: &PanicInfo) {
+fn panic_hook(#[allow(unused_variables)] bugsnag: &BugsnagNotificationBuilder, panic_info: &PanicInfo) {
   let payload = panic_info.payload();
   let panic_message = if let Some(payload) = payload.downcast_ref::<String>() {
     payload.to_owned()
@@ -21,8 +53,11 @@ fn panic_hook(bugsnag: &BugsnagNotificationBuilder, panic_info: &PanicInfo) {
     "<no message>".to_string()
   };
 
-  let notification = bugsnag.from_panic(panic_info);
-  notification.blocking_send();
+  #[cfg(not(debug_assertions))]
+  {
+    let notification = bugsnag.from_panic(panic_info);
+    notification.blocking_send();
+  }
 
   let message = format!(
     r#"

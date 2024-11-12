@@ -21,21 +21,20 @@ import ConfluenceCloudSourceData from "@ext/confluence/core/cloud/model/Confluen
 export default class ConfluenceStorage {
 	static position: number = 0;
 
-	static async clone({ fp, data, catalogPath }: ConfluenceImportData) {
-		fp.stopWatch();
+	static async clone({ fs, data, catalogPath }: ConfluenceImportData) {
+		fs.fp.stopWatch()
 		const formatter = new MarkdownFormatter();
-		const fs = new FileStructure(fp, false);
-		const converter = makeConfluenceConvertor[data.source.sourceType](data.source, fp);
+		const converter = makeConfluenceConvertor[data.source.sourceType](data.source, fs.fp);
 		try {
-			if (await fp?.exists(catalogPath)) {
+			if (await fs.fp?.exists(catalogPath)) {
 				return;
 			}
-			await fp.write(catalogPath.join(new Path(DOC_ROOT_FILENAME)), `title: ${data.displayName}`);
+			await fs.fp.write(catalogPath.join(new Path(DOC_ROOT_FILENAME)), `title: ${data.displayName}`);
 			const blogs: ConfluenceArticle[] = await this.getConfluenceBlogs(data);
 			const articles: ConfluenceArticleTree[] = await this.getConfluenceArticlesTree(data);
-			await this.createArticles(articles, blogs, catalogPath, formatter, converter, fs, fp);
+			await this.createArticles(articles, blogs, catalogPath, formatter, converter, fs, fs.fp);
 		} finally {
-			fp?.startWatch();
+			fs.fp?.startWatch();
 		}
 	}
 

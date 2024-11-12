@@ -11,6 +11,7 @@ import getShareTicket from "./share/getShareTicket";
 import updateNavigation from "./updateNavigation";
 import updateProps from "./updateProps";
 import getAddedCounters from "./properties/getAddedCounters";
+import getViewRenderData from "@app/commands/catalog/properties/getViewRenderData";
 
 const catalog = {
 	review: {
@@ -24,6 +25,7 @@ const catalog = {
 	remove,
 	getLogo,
 	getBrotherFileNames,
+	getViewRenderData,
 	getAddedCounters,
 	updateNavigation,
 	updateProps,

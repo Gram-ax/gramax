@@ -12,9 +12,7 @@ const app: Command<{ catalogName: string; articlePath: Path }, string> = Command
 		const workspace = this._app.wm.current();
 		const catalog = await workspace.getCatalog(catalogName);
 		if (!catalog) return;
-		const fp = workspace.getFileProvider();
-		const itemRef = fp.getItemRef(articlePath);
-		const item = catalog.findArticleByItemRef(itemRef);
+		const item = catalog.findItemByItemPath(articlePath);
 		return RouterPathProvider.getPathname(await catalog.getPathnameData(item)).value;
 	},
 

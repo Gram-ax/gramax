@@ -1,10 +1,12 @@
 import styled from "@emotion/styled";
 import { ReactNode } from "react";
 
-const ModalLayoutLight = styled(({ children, className }: { children: ReactNode; className?: string }): JSX.Element => {
+const ModalLayoutLight = ({ children, className }: { children: ReactNode; className?: string }): JSX.Element => {
 	return <div className={className}>{children}</div>;
-})`
-	z-index: 1;
+};
+
+export default styled(ModalLayoutLight)`
+	z-index: var(--z-index-foreground);
 	width: 100%;
 	display: flex;
 	font-size: 1rem;
@@ -25,5 +27,3 @@ const ModalLayoutLight = styled(({ children, className }: { children: ReactNode;
 		display: none !important;
 	}
 `;
-
-export default ModalLayoutLight;

@@ -22,7 +22,7 @@ const useOnPathnameUpdateBranch = () => {
 
 			const newPath = RouterPathProvider.updatePathnameData(
 				pathnameData,
-				fromInit ? { branch } : { branch, filePath: null, itemLogicPath: null },
+				fromInit ? { refname: branch } : { refname: branch, filePath: null, itemLogicPath: null },
 			).value;
 
 			router.pushPath(newPath);

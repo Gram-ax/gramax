@@ -3,7 +3,7 @@ import mermaid from "mermaid";
 
 let diagramCounter = 0;
 
-const getMermaidDiagram = async (diagramContent) => {
+const getMermaidDiagram = async (diagramContent: string) => {
 	if (!diagramContent) throw new Error(t("diagram.error.cannot-get-data"));
 
 	const diagramId = `mermaid-diagram-${diagramCounter++}`;

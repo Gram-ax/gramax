@@ -1,0 +1,20 @@
+properties: 
+  - name: Important 
+    type: Flag 
+    values: null 
+    style: green
+  - name: Assignee 
+    type: Enum 
+    style: purple
+    values:
+      - EZ
+      - NV
+      - SF
+      - SY
+  - name: PO 
+    type: Enum 
+    style: blue
+    values:
+      - AL
+      - AM
+      - EP

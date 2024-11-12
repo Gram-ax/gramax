@@ -44,11 +44,11 @@ export default styled(BigCard)`
 	}
 
 	.gradient {
-		background-image: ${(p) => (p.link.style ? `var(--color-style-gradient-${p.link.style})` : null)};
+		background-image: ${(p) => (p.link.style ? `var(--color-card-gradient-${p.link.style})` : null)};
 	}
 
 	.background {
-		background-color: ${(p) => (p.link.style ? `var(--color-style-background-${p.link.style})` : null)};
+		background-color: ${(p) => (p.link.style ? `var(--color-card-bg-${p.link.style})` : null)};
 	}
 
 	.catalog-titles {

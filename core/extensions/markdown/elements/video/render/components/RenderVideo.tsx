@@ -1,5 +1,5 @@
 import { getExecutingEnvironment } from "@app/resolveModule/env";
-import { GifImage } from "@components/Atoms/Image/GifImage";
+import GifImage from "@components/Atoms/Image/GifImage";
 import styled from "@emotion/styled";
 import { type HTMLAttributes } from "react";
 
@@ -126,6 +126,7 @@ const RawVideo = ({ url, setIsError: setIsError }: RenderVideoProps) => {
 };
 
 const RenderVideo = ({ url, setIsError: setIsError }: RenderVideoProps) => {
+	if (typeof url !== "string") return;
 	if (url.includes("embed")) return <IFrameVideo url={url} setIsError={setIsError} />;
 
 	return (

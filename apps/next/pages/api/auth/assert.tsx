@@ -5,7 +5,7 @@ import { ApplyApiMiddleware } from "../../../logic/Api/ApplyMiddleware";
 
 export default ApplyApiMiddleware(
 	async function (req: ApiRequest, res: ApiResponse) {
-		const cookie = this.app.contextFactory.from(req, res).cookie;
+		const cookie = (await this.app.contextFactory.from(req, res)).cookie;
 		await this.app.am.assert(req, res, cookie);
 	},
 	[new MainMiddleware()],

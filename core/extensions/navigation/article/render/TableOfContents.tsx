@@ -79,7 +79,7 @@ const Scrollspy = forwardRef((props: ScrollspyProps, articleElementRef: MutableR
 
 const Tree = ({ items, level }: { items: TocItem[]; level: number }) => {
 	return (
-		<ul style={{ margin: "0.7em 0 0 0" }}>
+		<ul style={{ margin: "1em 0 0 0" }}>
 			{items.map((x, i) => (
 				<li key={i}>
 					{!x.items?.length ? (
@@ -153,6 +153,10 @@ const TableOfContents = styled(({ className }: { className?: string }) => {
 		</Scrollspy>
 	);
 })`
+	.group-header {
+		margin-bottom: -0.5em;
+	}
+
 	.group-header:hover {
 		cursor: pointer;
 		color: var(--color-primary) !important;
@@ -161,9 +165,11 @@ const TableOfContents = styled(({ className }: { className?: string }) => {
 	a {
 		display: inline-block;
 		text-decoration: none;
+		line-height: 1.2;
 	}
 
 	ul {
+		margin-top: 0px;
 		margin-left: -20px !important;
 	}
 

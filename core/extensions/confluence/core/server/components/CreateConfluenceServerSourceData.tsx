@@ -1,13 +1,13 @@
-import ConfluenceServerSourceData from "@ext/confluence/core/server/model/ConfluenceServerSourceData.schema";
-import t from "@ext/localization/locale/translate";
-import Schema from "../../../core/server/model/ConfluenceServerSourceData.schema.json";
 import Form from "@components/Form/Form";
-import { JSONSchema7 } from "json-schema";
-import { useState } from "react";
-import ConfluenceServerAPI from "@ext/confluence/core/api/ConfluenceServerAPI";
 import parseStorageUrl from "@core/utils/parseStorageUrl";
+import ConfluenceServerAPI from "@ext/confluence/core/api/ConfluenceServerAPI";
+import ConfluenceServerSourceData from "@ext/confluence/core/server/model/ConfluenceServerSourceData.schema";
 import ErrorConfirmService from "@ext/errorHandlers/client/ErrorConfirmService";
 import DefaultError from "@ext/errorHandlers/logic/DefaultError";
+import t from "@ext/localization/locale/translate";
+import { JSONSchema7 } from "json-schema";
+import { useState } from "react";
+import Schema from "../../../core/server/model/ConfluenceServerSourceData.schema.json";
 
 Schema.properties = {
 	_: "separator",
@@ -39,10 +39,10 @@ const CreateConfluenceServerSourceData = ({
 	};
 
 	const onChange = (data: ConfluenceServerSourceData) => {
-		const { domain, protocol } = parseStorageUrl(data.domain.trim());
+		const { origin } = parseStorageUrl(data.domain.trim());
 
-		if (domain && protocol) {
-			data.domain = `${protocol}://${domain}`;
+		if (origin) {
+			data.domain = origin;
 			setThisProps({ ...data });
 		}
 	};
@@ -63,12 +63,10 @@ const CreateConfluenceServerSourceData = ({
 			fieldDirection="row"
 			submitText={t("add")}
 			validate={(data) => {
-				const { protocol, domain } = parseStorageUrl(data.domain);
+				const { origin } = parseStorageUrl(data.domain);
+
 				return {
-					domain:
-						data.domain && (!domain || !protocol) && protocol !== "http" && protocol !== "https"
-							? invalidDomainText
-							: null,
+					domain: data.domain && !origin ? invalidDomainText : null,
 				};
 			}}
 		/>

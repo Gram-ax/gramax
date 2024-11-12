@@ -18,9 +18,9 @@ const haveToPull: Command<{ ctx: Context; catalogName: string }, boolean> = Comm
 
 		const catalog = await workspace.getCatalog(catalogName);
 		const storage = catalog?.repo.storage;
-		if (!storage) return false;
+		if (!storage || catalog.repo.isBare) return false;
 		const data = rp.getSourceData(ctx.cookie, await storage.getSourceName());
-		return catalog.repo.haveToPull({
+		return catalog.repo.isShouldSync({
 			data,
 			onFetch: () => logger.logTrace(`Fetched in catalog "${catalogName}".`),
 		});

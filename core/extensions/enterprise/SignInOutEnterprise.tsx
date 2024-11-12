@@ -1,8 +1,13 @@
 import ButtonLink from "@components/Molecules/ButtonLink";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
+import styled from "@emotion/styled";
 import SignInEnterprise from "@ext/enterprise/SignInEnterprise";
 import SignOutEnterprise from "@ext/enterprise/SignOutEnterprise";
 import t from "@ext/localization/locale/translate";
+
+const StyledLink = styled.a`
+	white-space: nowrap;
+`;
 
 const SignInOutEnterprise = () => {
 	const workspaceContext = PageDataContextService.value.workspace;
@@ -11,13 +16,13 @@ const SignInOutEnterprise = () => {
 		(workspaceConfig) => workspaceConfig.path === currentWorkspaceName,
 	);
 
-	if (workspaceConfig.isEnterprise)
+	if (workspaceConfig?.isEnterprise)
 		return (
 			<SignOutEnterprise
 				trigger={
-					<a data-qa="qa-clickable">
+					<StyledLink data-qa="qa-clickable">
 						<ButtonLink iconCode="log-in" text={t("sing-out")} />
-					</a>
+					</StyledLink>
 				}
 				workspaceConfig={workspaceConfig}
 			/>
@@ -26,9 +31,9 @@ const SignInOutEnterprise = () => {
 	return (
 		<SignInEnterprise
 			trigger={
-				<a data-qa="qa-clickable">
+				<StyledLink data-qa="qa-clickable">
 					<ButtonLink iconCode="log-in" text={t("sing-in")} />
-				</a>
+				</StyledLink>
 			}
 		/>
 	);

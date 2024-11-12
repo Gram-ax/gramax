@@ -1,3 +1,4 @@
+import { listTypes } from "@ext/markdown/elements/list/edit/logic/toggleList";
 import getDeepiestLastChild from "../../../../../../../elementsUtils/getDeepiesLastChild";
 import getFocusNode from "../../../../../../../elementsUtils/getFocusNode";
 import getNodeByPos from "../../../../../../../elementsUtils/getNodeByPos";
@@ -16,14 +17,14 @@ const moveInListBefore: KeyboardRule = ({ editor, node, nodePosition }) => {
 	const getListBeforeLastListItem = () => {
 		const listBefore = getNodeByPos(parentNode.position - 1, editor.state.doc);
 		if (!listBefore?.node) return;
-		if (!isTypeOf(listBefore.node, ["bullet_list", "ordered_list"])) return;
+		if (!isTypeOf(listBefore.node, listTypes)) return;
 		const listBeforeDeepiestChildPos = getDeepiestLastChild(listBefore.node, listBefore.position).position;
 		return getNodeByPos(listBeforeDeepiestChildPos, editor.state.doc, (node) => node === listBefore.node.lastChild);
 	};
 
 	const { tr } = editor.view.state;
 	const focusOffset = editor.state.selection.anchor - nodePosition;
-	const parentNode = getFocusNode(editor.state, (node) => isTypeOf(node, ["bullet_list", "ordered_list"]));
+	const parentNode = getFocusNode(editor.state, (node) => isTypeOf(node, listTypes));
 	const isFocusOnFirstListItem = parentNode.node.firstChild.eq(node);
 	if (!isFocusOnFirstListItem) return;
 	const listBeforeLastListItem = getListBeforeLastListItem();

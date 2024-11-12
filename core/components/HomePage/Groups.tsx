@@ -52,7 +52,7 @@ export default styled(Groups)`
 
 	.catalog-title {
 		text-transform: lowercase;
-		font-family: Montserrat;
+		font-family: Montserrat, sans-serif;
 		font-size: 2.3rem;
 	}
 

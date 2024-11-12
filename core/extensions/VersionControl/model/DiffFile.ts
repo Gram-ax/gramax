@@ -1,6 +1,12 @@
 import { FileStatus } from "../../Watchers/model/FileStatus";
 import { Change } from "../DiffHandler/model/Change";
 
+export interface DiffChanges {
+	changes: Change[];
+	added: number;
+	removed: number;
+}
+
 export default interface DiffFile {
 	type: "resource" | "item";
 	changeType: FileStatus;
@@ -12,9 +18,5 @@ export default interface DiffFile {
 	title: string;
 	isChanged: boolean;
 	content?: string;
-	diff?: {
-		changes: Change[];
-		added: number;
-		removed: number;
-	};
+	diff?: DiffChanges;
 }

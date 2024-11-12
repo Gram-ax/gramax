@@ -55,16 +55,20 @@ export class IndexDataProvider {
 			const oldData = (await this._getIndexDataFromStorage(catalog.getName())).filter((d) =>
 				catalog.findItemByItemPath(new Path(d.path)),
 			);
-			const newData = await Promise.all(
-				items.map(async (a) => {
-					const article = catalog.findItemByItemRef<Article>(a.ref);
-					if (!article) {
-						if (a.status !== FileStatus.delete) return { data: null, status: a.status };
-						else return { data: { path: a.ref.path.value }, status: a.status };
-					}
-					return { data: await this._getArticleIndexData(catalog, article, true), status: a.status };
-				}),
-			);
+			const newData = (
+				await Promise.all(
+					items.map(async (a) => {
+						const article = catalog.findItemByItemRef<Article>(a.ref);
+						if (!article) {
+							if (a.status !== FileStatus.delete) return { data: null, status: a.status };
+							else return { data: { path: a.ref.path.value }, status: a.status };
+						}
+						const data = await this._getArticleIndexData(catalog, article, true);
+						if (!data) return null;
+						return { data, status: a.status };
+					}),
+				)
+			).filter((a) => a);
 
 			newData.forEach((iid) => {
 				if (iid.status === FileStatus.delete) {
@@ -87,26 +91,33 @@ export class IndexDataProvider {
 	private async _getIndexData(catalogName: string): Promise<IndexData[]> {
 		const catalog = await this._wm.current().getCatalog(catalogName);
 		const contentItems = catalog.getItems();
-		return Promise.all(contentItems.map(async (a) => this._getArticleIndexData(catalog, a as Article)));
+		return (
+			await Promise.all(contentItems.map(async (a) => this._getArticleIndexData(catalog, a as Article)))
+		).filter((a) => a);
 	}
 
 	private async _getArticleIndexData(catalog: Catalog, article: Article, forceParse = false): Promise<IndexData> {
-		const context = this._parserContextFactory.fromArticle(article, catalog, defaultLanguage, true);
-		const content = article.content
-			? article.content
-			: article.type === ItemType.category
-			? getChildLinks(article as Category, catalog, [])
-			: "";
+		try {
+			const context = this._parserContextFactory.fromArticle(article, catalog, defaultLanguage, true);
+			const content = article.content
+				? article.content
+				: article.type === ItemType.category
+				? getChildLinks(article as Category, catalog, [])
+				: "";
 
-		const html = article.parsedContent && !forceParse
-				? article.parsedContent.htmlValue
-				: await this._parser.parseToHtml(content, context);
-		return {
-			path: article.ref.path.value,
-			pathname: await catalog.getPathname(article),
-			title: article.props.title ?? "",
-			content: htmlToString(html) ?? "",
-		};
+			const html =
+				article.parsedContent && !forceParse
+					? article.parsedContent.htmlValue
+					: await this._parser.parseToHtml(content, context);
+			return {
+				path: article.ref.path.value,
+				pathname: await catalog.getPathname(article),
+				title: article.props.title ?? "",
+				content: htmlToString(html) ?? "",
+			};
+		} catch {
+			return null;
+		}
 	}
 
 	private _setIndexDataInStorage(catalogName: string, indexData: IndexData[]): Promise<void> {

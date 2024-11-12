@@ -8,7 +8,7 @@ import Button from "@ext/markdown/core/edit/components/Menu/Button";
 import { Editor } from "@tiptap/core";
 import createImages from "../logic/createImages";
 
-const ImageMenuButton = styled(({ editor, className }: { editor: Editor; className?: string }) => {
+const ImageMenuButton = ({ editor, className }: { editor: Editor; className?: string }) => {
 	const articleProps = ArticlePropsService.value;
 	const apiUrlCreator = ApiUrlCreatorService.value;
 
@@ -38,13 +38,15 @@ const ImageMenuButton = styled(({ editor, className }: { editor: Editor; classNa
 			</label>
 		</Button>
 	);
-})`
+};
+
+export default styled(ImageMenuButton)`
 	position: relative;
 	display: inline-block;
 
 	input[type="file"] {
 		position: absolute;
-		z-index: -1;
+		z-index: var(--z-index-background);
 		opacity: 0;
 		display: block;
 		width: 0;
@@ -55,5 +57,3 @@ const ImageMenuButton = styled(({ editor, className }: { editor: Editor; classNa
 		color: var(--color-article-bg);
 	}
 `;
-
-export default ImageMenuButton;

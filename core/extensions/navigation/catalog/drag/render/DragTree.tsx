@@ -22,6 +22,13 @@ import IconExtension from "../../main/render/IconExtension";
 import NavigationItem from "../../main/render/Item";
 import DragTreeTransformer from "../logic/DragTreeTransformer";
 import getOpenItemsIds from "../logic/getOpenItemsIds";
+import useWatch from "@core-ui/hooks/useWatch";
+
+type handleOnDropType = (
+	draggedItemPath: string,
+	newTree: NodeModel<ItemLink>[],
+	fetchComplete: () => void,
+) => Promise<void> | void;
 
 const ExportLevNavDragTree = ({
 	items,
@@ -41,7 +48,7 @@ const ExportLevNavDragTree = ({
 		setTreeData(items);
 	}, [items]);
 
-	const handleOnDrop = async (draggedItemPath: string, newTree: NodeModel<ItemLink>[]) => {
+	const handleOnDrop: handleOnDropType = async (draggedItemPath, newTree, fetchComplete) => {
 		if (!DragTreeTransformer.isModified(draggedItemPath, treeData, newTree)) return;
 		setDragged(false);
 
@@ -49,6 +56,7 @@ const ExportLevNavDragTree = ({
 		const body = JSON.stringify({ draggedItemPath, old: treeData, new: newTree });
 		const res = await FetchService.fetch<NodeModel<ItemLink>[]>(url, body, MimeTypes.json);
 		if (!res.ok) return;
+		fetchComplete();
 		setTreeData(await res.json());
 		setDragged(true);
 	};
@@ -81,7 +89,7 @@ const ExportLevNavDragTree = ({
 
 interface LevNavDragTreeProps {
 	items: NodeModel<ItemLink>[];
-	onDrop?: (draggedItemPath: string, data: NodeModel<ItemLink>[]) => void;
+	onDrop?: handleOnDropType;
 	closeNavigation?: () => void;
 	canDrag?: boolean;
 	className?: string;
@@ -93,8 +101,12 @@ const LevNavDragTree = styled((props: LevNavDragTreeProps) => {
 	const [initialOpen, setInitialOpen] = useState(new Set<number | string>(getOpenItemsIds(items)));
 	const [draggedItemPath, setDraggedItemPath] = useState<string>();
 	const onDropHandler = useCallback(
-		(tree: NodeModel<ItemLink>[]) => {
-			onDrop(draggedItemPath, tree);
+		(tree: NodeModel<ItemLink>[], { dropTargetId }: DropOptions<ItemLink>) => {
+			const addToInitialOpen = () => {
+				initialOpen.add(dropTargetId);
+				setInitialOpen(new Set(initialOpen));
+			};
+			void onDrop(draggedItemPath, tree, addToInitialOpen);
 			setDraggedItemPath(undefined);
 		},
 		[draggedItemPath],
@@ -113,20 +125,21 @@ const LevNavDragTree = styled((props: LevNavDragTreeProps) => {
 					rootId={DragTreeTransformer.getRootId()}
 					sort={false}
 					insertDroppableFirst={false}
-					dropTargetOffset={10}
+					dropTargetOffset={6}
 					onDrop={onDropHandler}
 					canDrop={handleCanDrop}
 					canDrag={() => canDrag}
 					onDragEnd={() => setDraggedItemPath(undefined)}
 					onDragStart={(tree) => setDraggedItemPath(tree.data.ref.path)}
 					initialOpen={Array.from(initialOpen)}
-					render={(node, { depth, isOpen, onToggle, containerRef }) => {
+					render={(node, { depth, isOpen, onToggle, containerRef, isDropTarget }) => {
 						const [thisItem, setThisItem] = useState(node.data);
 						const [isHover, setIsHover] = useState(false);
 
 						const isActive = thisItem.isCurrentLink;
 						const existsContent =
 							thisItem.type === ItemType.category ? (thisItem as CategoryLink).existContent : true;
+						const isCategory = !!(thisItem as CategoryLink).items?.length;
 
 						const updateAlwaysIsOpen = () => {
 							if (isOpen) initialOpen.delete(node.id);
@@ -147,8 +160,16 @@ const LevNavDragTree = styled((props: LevNavDragTreeProps) => {
 							if ((node.data as CategoryLink)?.isExpanded && !isOpen) currentOnToggle();
 						}, [(node.data as CategoryLink)?.isExpanded]);
 
+						useWatch(() => {
+							if (!isActive) return;
+							containerRef.current?.scrollIntoView({
+								behavior: "smooth",
+								block: "nearest",
+							});
+						}, [isActive]);
+
 						useEffect(() => {
-							if (!node.data.isCurrentLink) return;
+							if (!isActive) return;
 							containerRef.current?.scrollIntoView({
 								behavior: "auto",
 								inline: "center",
@@ -161,7 +182,7 @@ const LevNavDragTree = styled((props: LevNavDragTreeProps) => {
 								<EditMenu
 									key={0}
 									itemLink={thisItem}
-									isCategory={node.droppable}
+									isCategory={isCategory}
 									setItemLink={setThisItem}
 									onOpen={() => setIsHover(true)}
 									onClose={() => setIsHover(false)}
@@ -178,9 +199,10 @@ const LevNavDragTree = styled((props: LevNavDragTreeProps) => {
 								isDragStarted={!!draggedItemPath}
 								item={thisItem}
 								isHover={isHover}
-								isDroppable={node.droppable}
 								isActive={isActive}
+								isCategory={isCategory}
 								onToggle={currentOnToggle}
+								isDropTarget={isDropTarget}
 								onClick={() => {
 									closeNavigation?.();
 									if (node.data.isCurrentLink)
@@ -198,16 +220,17 @@ const LevNavDragTree = styled((props: LevNavDragTreeProps) => {
 									<CommentCountNavExtension key={1} item={thisItem} />,
 								]}
 								rightExtensions={rightExtensions}
-								{...useDragOver(node.id, isOpen, onToggle)} //авторазворачивание
+								{...useDragOver(node.id, isOpen, currentOnToggle)} //авторазворачивание
 							/>
 						);
 					}}
-					placeholderRender={(_, { depth }) => <div className={"placeholder depth-" + depth} />}
+					placeholderRender={(_, { depth }) => {
+						return <div className={"placeholder depth-" + depth} />;
+					}}
 					classes={{
 						root: "tree-root",
 						draggingSource: "dragging-source",
 						placeholder: "placeholder-container",
-						// dropTarget: "drop-target", //подсветка
 					}}
 				/>
 			</div>
@@ -242,11 +265,6 @@ const LevNavDragTree = styled((props: LevNavDragTreeProps) => {
 
 	.dragging-source {
 		opacity: 0.3;
-	}
-	.drop-target {
-		.a-drop-target {
-			background-color: #e8f0fe;
-		}
 	}
 
 	.placeholder-container {

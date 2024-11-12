@@ -15,6 +15,10 @@
 	cursor: default;
 }
 
+.admonition .content-hide {
+	display: none;
+}
+
 .admonition .title.clickable {
 	cursor: pointer;
 }
@@ -32,7 +36,7 @@
 
 .admonition-row .admonition-heading {
 	margin-bottom: 0 !important;
-    width: var(--heading-row-width-admonition);
+	width: var(--heading-row-width-admonition);
 }
 
 .admonition-row .admonition-content {

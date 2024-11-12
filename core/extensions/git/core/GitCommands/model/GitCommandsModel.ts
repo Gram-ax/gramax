@@ -13,6 +13,31 @@ export type TransferProgress =
 	| { type: "indexingDeltas"; data: { indexed: number; total: number } }
 	| { type: "receivingObjects"; data: { received: number; indexed: number; total: number } };
 
+export type TreeReadScope = { commit: string } | { reference: string } | null;
+
+export type RefInfo =
+	| {
+			kind: "tag";
+			name: string;
+			encodedName: string;
+			oid: GitVersion;
+			isLightweight: boolean;
+			author?: string | null;
+			date?: Date;
+	  }
+	| { kind: "branch"; name: string; encodedName: string; date?: Date };
+
+export type DirEntry = {
+	name: string;
+	isDir: boolean;
+};
+
+export type FileStat = {
+	size: number;
+	isDir: boolean;
+	isBinary: boolean;
+};
+
 export type CloneProgress =
 	| { type: "wait"; data: { path: string } }
 	| { type: "started"; data: { path: string } }
@@ -22,21 +47,25 @@ export type CloneProgress =
 	| { type: "chunkedTransfer"; data: { transfer: TransferProgress; bytes: number; download_speed_bytes: number } };
 
 interface GitCommandsModel {
+	isInit(): Promise<boolean>;
+	isBare(): Promise<boolean>;
 	init(data: SourceData): Promise<void>;
 	clone(
 		url: string,
 		source: GitSourceData,
 		branch?: string,
 		depth?: number,
+		isBare?: boolean,
 		onProgress?: (progress: CloneProgress) => void,
 	): Promise<void>;
+	setHead(refname: string): Promise<void>;
 	commit(message: string, data: SourceData, parents?: string[]): Promise<GitVersion>;
 	add(paths?: Path[]): Promise<void>;
 	status(): Promise<GitStatus[]>;
 	fileStatus(filePath: Path): Promise<GitStatus>;
 
 	push(data: GitSourceData): Promise<void>;
-	fetch(data: GitSourceData): Promise<void>;
+	fetch(data: GitSourceData, force?: boolean): Promise<void>;
 	checkout(ref: string, force?: boolean): Promise<void>;
 	merge(data: SourceData, theirs: string): Promise<MergeResult>;
 	restore(staged: boolean, filePaths: Path[]): Promise<void>;
@@ -70,6 +99,12 @@ interface GitCommandsModel {
 	hasRemote(): Promise<boolean>;
 	showFileContent(filePath: Path, ref?: GitVersion | GitStash): Promise<string>;
 	getParentCommit(commitOid: string): Promise<string>;
+	getReferencesByGlob(patterns: string[]): Promise<RefInfo[]>;
+
+	readFile(filePath: Path, scope: TreeReadScope): Promise<ArrayBuffer>;
+	readDir(dirPath: Path, scope: TreeReadScope): Promise<DirEntry[]>;
+	fileStat(filePath: Path, scope: TreeReadScope): Promise<FileStat>;
+	fileExists(filePath: Path, scope: TreeReadScope): Promise<boolean>;
 }
 
 export default GitCommandsModel;

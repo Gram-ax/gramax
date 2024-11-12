@@ -11,7 +11,7 @@ const Sitemap = () => {
 export async function getServerSideProps({ req, res }) {
 	await ApplyApiMiddleware(
 		async function (req, res: any) {
-			const ctx = this.app.contextFactory.from(req, res, req.query);
+			const ctx = await this.app.contextFactory.from(req, res, req.query);
 			const filters = [new HiddenRules().getItemFilter(), new SecurityRules(ctx.user).getItemFilter()];
 			const basePath = this.app.conf.basePath ?? "";
 			const workspace = this.app.wm.current();

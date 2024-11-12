@@ -56,8 +56,19 @@ function handleAttrs(token: Token, type: string) {
 			}
 			return { align };
 		}
-		default:
+		case "item": {
+			const attrs = Array.isArray(token?.attrs) ? token.attrs : [];
+
+			const cortege = attrs.find((item) => item[0] === "checked") || [];
+			if (!cortege.length) return {};
+
+			const [, value] = cortege;
+
+			return { isTaskItem: ["true", "false"].includes(value), checked: value === "true" };
+		}
+		default: {
 			return {};
+		}
 	}
 }
 

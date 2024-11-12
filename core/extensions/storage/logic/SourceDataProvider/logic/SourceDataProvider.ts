@@ -16,6 +16,7 @@ export default class SourceDataProvider {
 	}
 
 	getDatas(cookie: Cookie): SourceData[] {
+		if (!this._wm.hasWorkspace()) return [];
 		this._migrateOldStoragesToNewFormat(cookie);
 		const allCookieNames = cookie.getAllNames();
 		const cookieNames = allCookieNames.filter((d) => d.endsWith(this._getNamePostfix()));
@@ -25,7 +26,7 @@ export default class SourceDataProvider {
 			.filter((d) => sourceTypes.includes(d.sourceType));
 	}
 
-	existData(cookie: Cookie, storageName: string): boolean {
+	existData(cookie: Cookie, storageName: string) {
 		return cookie.exist(this._getName(storageName));
 	}
 
@@ -78,7 +79,7 @@ export default class SourceDataProvider {
 	}
 
 	private _getNamePostfix(workspaceId?: string) {
-		return this._oldNamePostfix + (workspaceId ?? this._getWorkspaceId(this._wm.current().path()));
+		return this._oldNamePostfix + (workspaceId ?? this._getWorkspaceId(this._wm.maybeCurrent()?.path()));
 	}
 
 	private _getWorkspaceId(workspacePath: string) {

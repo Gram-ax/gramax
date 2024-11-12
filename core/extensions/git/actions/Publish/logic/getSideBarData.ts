@@ -3,7 +3,11 @@ import DiffResource from "../../../../VersionControl/model/DiffResource";
 import SideBarData from "../model/SideBarData";
 import SideBarResourceData from "../model/SideBarResourceData";
 
-const getSideBarData = (diffFiles: (DiffItem | DiffResource)[], isChecked: boolean): SideBarData[] => {
+const getSideBarData = (
+	diffFiles: (DiffItem | DiffResource)[],
+	isChecked: boolean,
+	isResource: boolean,
+): SideBarData[] => {
 	const sideBarData: SideBarData[] = [];
 	diffFiles.map((diffFile) => {
 		const { title, filePath, isChanged, changeType } = diffFile;
@@ -14,17 +18,26 @@ const getSideBarData = (diffFiles: (DiffItem | DiffResource)[], isChecked: boole
 			resources = diffFile.resources
 				? diffFile.resources
 						.filter((x) => x)
-						.map(({ title, diff, filePath }) => {
+						.map(({ title, diff, filePath, changeType, parentPath }) => {
 							return {
-								filePath,
-								title,
+								parentPath,
+								isResource: true,
+								data: {
+									changeType,
+									filePath,
+									title,
+								},
 								diff,
 							};
 						})
 				: [];
 		}
 
+		let parentPath: string;
+		if (isResource) parentPath = (diffFile as DiffResource).parentPath;
 		sideBarData.push({
+			parentPath,
+			isResource,
 			data: {
 				title,
 				filePath,

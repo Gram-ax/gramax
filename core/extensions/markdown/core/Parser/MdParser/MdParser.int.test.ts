@@ -131,14 +131,53 @@ describe("MdParser корректно парсит", () => {
 			});
 		});
 
-		test("ковычки", async () => {
-			const mdParser = await getMdParser();
-			const str = `aaaaa"aaa"bbb"aaa"aaaaaa`;
-			const parsedStr = `aaaaa«aaa»bbb«aaa»aaaaaa`;
+		describe("ковычки", () => {
+			describe("парсит", () => {
+				test("в обычном тексте", async () => {
+					const mdParser = await getMdParser();
+					const str = `aaaaa"aaa"bbb"aaa"aaaaaa`;
+					const parsedStr = `aaaaa«aaa»bbb«aaa»aaaaaa`;
 
-			const testParseStr = mdParser.preParse(str);
+					const testParseStr = mdParser.preParse(str);
 
-			expect(testParseStr).toEqual(parsedStr);
+					expect(testParseStr).toEqual(parsedStr);
+				});
+				test("в скобках", async () => {
+					const mdParser = await getMdParser();
+					const str = `aaaaa("aaa")bbb(qwerty "aaa"qwerty)aaaaaa`;
+					const parsedStr = `aaaaa(«aaa»)bbb(qwerty «aaa»qwerty)aaaaaa`;
+
+					const testParseStr = mdParser.preParse(str);
+
+					expect(testParseStr).toEqual(parsedStr);
+				});
+				test("со скобками внутри", async () => {
+					const mdParser = await getMdParser();
+					const str = `aaa "bbb [](){} ccc" ddd`;
+					const parsedStr = `aaa «bbb [](){} ccc» ddd`;
+
+					const testParseStr = mdParser.preParse(str);
+
+					expect(testParseStr).toEqual(parsedStr);
+
+				})
+			});
+			describe("игнорирует", () => {
+				test("внутри фигурных или квадратных скобок", async () => {
+					const mdParser = await getMdParser();
+					const str = `aaa [qwerty "aaa" qwerty] bbb {qwerty "aaa" qwerty} ccc`;
+					const testParseStr = mdParser.preParse(str);
+
+					expect(testParseStr).toEqual(str);
+				});
+				test("внутри тега картинок", async () => {
+					const mdParser = await getMdParser();
+					const str = `![](./src.png "title")`;
+					const testParseStr = mdParser.preParse(str);
+
+					expect(testParseStr).toEqual(str);
+				});
+			});
 		});
 		describe("формулы", () => {
 			test("простая строка", async () => {

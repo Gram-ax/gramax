@@ -1,7 +1,7 @@
 import SpinnerLoader from "@components/Atoms/SpinnerLoader";
 import styled from "@emotion/styled";
 import DiagramError from "@ext/markdown/elements/diagrams/component/DiagramError";
-import { forwardRef, MutableRefObject, useEffect, useState } from "react";
+import { forwardRef, MutableRefObject, useState } from "react";
 import DiagramType from "../../../../../logic/components/Diagram/DiagramType";
 import Lightbox from "@components/Atoms/Image/modalImage/Lightbox";
 import { classNames } from "@components/libs/classNames";
@@ -34,17 +34,7 @@ const DiagramRender = forwardRef((props: DiagramProps, ref?: MutableRefObject<HT
 		openEditor,
 	} = props;
 
-	const [imageSrc, setImageSrc] = useState<string>(null);
 	const [isOpen, setOpen] = useState(false);
-
-	const setSrc = (newSrc: Blob) => {
-		if (imageSrc) URL.revokeObjectURL(imageSrc);
-		setImageSrc(URL.createObjectURL(newSrc));
-	};
-
-	useEffect(() => {
-		setSrc(new Blob([data], { type: "image/svg+xml" }));
-	}, [data]);
 
 	if (!data && !error)
 		return (
@@ -63,7 +53,7 @@ const DiagramRender = forwardRef((props: DiagramProps, ref?: MutableRefObject<HT
 			{isOpen && (
 				<Lightbox
 					id={diagramName}
-					src={imageSrc}
+					svg={data}
 					title={title}
 					onClose={() => setOpen(false)}
 					openedElement={ref}

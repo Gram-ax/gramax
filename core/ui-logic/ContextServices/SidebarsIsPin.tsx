@@ -19,11 +19,6 @@ abstract class SidebarsIsPinService {
 			setValue(SidebarsIsPinService.localStorageValue);
 		}, []);
 
-		useEffect(() => {
-			if (SidebarsIsPinService._mediumMedia) return;
-			SidebarsIsPinService.localStorageValue = value;
-		}, [value]);
-
 		return <SidebarsIsPinContext.Provider value={value}>{children}</SidebarsIsPinContext.Provider>;
 	}
 
@@ -34,7 +29,10 @@ abstract class SidebarsIsPinService {
 
 	static set value(isPin: boolean) {
 		if (SidebarsIsPinService._mediumMedia) return;
-		if (_setValue) _setValue(isPin);
+		if (_setValue) {
+			_setValue(isPin);
+			SidebarsIsPinService.localStorageValue = isPin;
+		}
 	}
 
 	static get localStorageValue(): boolean {

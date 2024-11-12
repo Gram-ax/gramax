@@ -1,7 +1,7 @@
 import { Dispatch, ReactElement, SetStateAction, createContext, useContext, useState } from "react";
 
 const IsOpenModalContext = createContext<boolean>(undefined);
-let _setIsOpenModal: Dispatch<SetStateAction<boolean>>;
+let _setIsOpenModal: Dispatch<SetStateAction<boolean>> = () => {};
 
 abstract class IsOpenModalService {
 	static Provider({ children }: { children: ReactElement }): ReactElement {

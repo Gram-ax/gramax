@@ -1,8 +1,10 @@
 import styled from "@emotion/styled";
 
-export default styled(({ children, className }: { children: JSX.Element; className?: string }) => {
+const Layout = ({ children, className }: { children: JSX.Element; className?: string }) => {
 	return <div className={className}>{children}</div>;
-})`
+};
+
+export default styled(Layout)`
 	margin-bottom: 1.5rem;
 
 	> div > ul > li {
@@ -11,6 +13,9 @@ export default styled(({ children, className }: { children: JSX.Element; classNa
 		font-weight: 500;
 		align-items: center;
 		text-transform: uppercase;
+		&.placeholder-container {
+			margin-top: 10px;
+		}
 	}
 
 	ul {

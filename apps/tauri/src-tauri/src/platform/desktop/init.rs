@@ -9,10 +9,11 @@ use super::save_windows::SaveWindowsExt;
 
 pub struct OpenUrl(pub Mutex<Option<String>>);
 
-
 type InitResult = std::result::Result<(), Box<dyn std::error::Error>>;
 
 pub fn init_app<R: Runtime>(app: &mut App<R>) -> InitResult {
+  app.on_menu_event(super::menu::on_menu_event);
+
   std::env::remove_var("ROOT_PATH");
 
   let window = match app.handle().reopen_windows()? {

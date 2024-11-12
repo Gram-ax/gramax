@@ -4,8 +4,11 @@ import Sidebar from "@components/Layouts/Sidebar";
 import ActionListItem from "@components/List/ActionListItem";
 import { ButtonItem } from "@components/List/Item";
 import ListLayout from "@components/List/ListLayout";
+import LanguageService from "@core-ui/ContextServices/Language";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import SelectConfluenceStorageDataFields from "@ext/confluence/core/components/SelectConfluenceStorageDataFields";
+import ConfluenceSourceData from "@ext/confluence/core/model/ConfluenceSourceData";
+import Mode from "@ext/git/actions/Clone/model/Mode";
 import SelectGitStorageDataFields from "@ext/git/actions/Source/Git/components/SelectGitStorageDataFields";
 import GitHubSourceData from "@ext/git/actions/Source/GitHub/logic/GitHubSourceData";
 import GitlabSourceData from "@ext/git/actions/Source/GitLab/logic/GitlabSourceData";
@@ -20,9 +23,6 @@ import SourceType from "../logic/SourceDataProvider/model/SourceType";
 import getStorageNameByData from "../logic/utils/getStorageNameByData";
 import StorageData from "../models/StorageData";
 import SourceListItem from "./SourceListItem";
-import Mode from "@ext/git/actions/Clone/model/Mode";
-import ConfluenceSourceData from "@ext/confluence/core/model/ConfluenceSourceData";
-import LanguageService from "@core-ui/ContextServices/Language";
 
 interface SelectStorageDataFormProps {
 	title: string;

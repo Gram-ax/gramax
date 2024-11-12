@@ -51,7 +51,7 @@ export default styled(Header)`
 	padding-right: 1.2em;
 	height: 5vh;
 	gap: 1em;
-	z-index: 200;
+	z-index: var(--z-index-article-modal);
 
 	> i,
 	> a > i {

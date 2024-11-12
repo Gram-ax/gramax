@@ -16,7 +16,8 @@ import {
 
 interface LightboxProps {
 	id: string;
-	src: string;
+	src?: string;
+	svg?: string;
 	openedElement: MutableRefObject<HTMLImageElement | HTMLDivElement>;
 	onClose: () => void;
 	downloadSrc?: string;
@@ -28,7 +29,8 @@ interface LightboxProps {
 }
 
 const Lightbox = (props: LightboxProps): ReactElement => {
-	const { id, className, objects, src, downloadSrc, openedElement, modalStyle, modalEdit, title, onClose } = props;
+	const { id, className, objects, src, svg, downloadSrc, openedElement, modalStyle, modalEdit, title, onClose } =
+		props;
 	const containerRef = useRef<HTMLImageElement>();
 	const mainContainerRef = useRef<HTMLDivElement>();
 	const [isClosing, setClosing] = useState<boolean>(false);
@@ -100,7 +102,7 @@ const Lightbox = (props: LightboxProps): ReactElement => {
 		return () => {
 			window.removeEventListener("keydown", onKeyDown);
 		};
-	}, [src]);
+	}, [src, svg]);
 
 	return (
 		<div
@@ -117,6 +119,7 @@ const Lightbox = (props: LightboxProps): ReactElement => {
 				ref={containerRef}
 				id={id}
 				src={src}
+				svg={svg}
 				isClosing={isClosing}
 				objects={objects}
 				startPos={openedElement.current.getBoundingClientRect()}
@@ -128,7 +131,7 @@ const Lightbox = (props: LightboxProps): ReactElement => {
 };
 
 export default styled(Lightbox)`
-	z-index: 200;
+	z-index: var(--z-index-article-modal);
 	position: fixed;
 	display: flex;
 	justify-content: center;

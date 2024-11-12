@@ -2,10 +2,11 @@ import t from "@ext/localization/locale/translate";
 
 const PlantUmlEncoder = import("plantuml-encoder");
 
-async function getPlantUmlDiagram(diagramContent: string) {
+async function getPlantUmlDiagram(diagramContent: string, diagramRendererUrl: string) {
 	if (!diagramContent) throw Error(t("diagram.error.cannot-get-data"));
 
-	const url = `https://www.plantuml.com/plantuml/svg/${(await PlantUmlEncoder).encode(diagramContent)}`;
+	const instanceUrl = diagramRendererUrl ? `${diagramRendererUrl}/plantuml` : "https://www.plantuml.com/plantuml";
+	const url = `${instanceUrl}/svg/${(await PlantUmlEncoder).encode(diagramContent)}`;
 	const diagramResponse = await fetch(url).catch(() => {
 		throw Error(t("diagram.error.no-internet"));
 	});

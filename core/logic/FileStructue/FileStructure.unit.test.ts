@@ -1,4 +1,4 @@
-import DiskFileProvider from "@core/FileProvider/DiskFileProvider/DiskFileProvider";
+import MountFileProvider from "@core/FileProvider/MountFileProvider/MountFileProvider";
 import Path from "@core/FileProvider/Path/Path";
 import { Catalog } from "@core/FileStructue/Catalog/Catalog";
 import FileStructure from "@core/FileStructue/FileStructure";
@@ -8,7 +8,7 @@ import { resolve } from "path";
 const path = (p: string) => new Path(p);
 
 describe("FileStructure", () => {
-	const fp = new DiskFileProvider(resolve(__dirname, "catalogs"));
+	const fp = MountFileProvider.fromDefault(new Path(resolve(__dirname, "catalogs")));
 	const fs = new FileStructure(fp, false);
 
 	beforeAll(async () => {
@@ -47,7 +47,7 @@ describe("FileStructure", () => {
 		});
 
 		test("каталоги (их нет)", async () => {
-			const fp = new DiskFileProvider(resolve(__dirname, "catalogs", "empty"));
+			const fp = MountFileProvider.fromDefault(new Path(resolve(__dirname, "catalogs", "empty")));
 			const fs = new FileStructure(fp, false);
 			const catalogs = await fs.getCatalogEntries();
 			expect(catalogs).toHaveLength(0);

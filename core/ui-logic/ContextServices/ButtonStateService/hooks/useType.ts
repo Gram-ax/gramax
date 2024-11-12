@@ -1,11 +1,79 @@
+import useWatch from "@core-ui/hooks/useWatch";
 import { Editor } from "@tiptap/core";
 import { Mark } from "@tiptap/pm/model";
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { Attrs, Mark as MarkType, NodeType } from "./types";
 
 const markList: MarkType[] = ["link", "strong", "em", "code", "file", "comment", "s"];
 
 type State = { actions: NodeType[]; marks: MarkType[]; attrs: Attrs };
+
+export const getNodeNameFromCursor = (editor: Editor) => {
+	const { selection } = editor.state;
+	const { from, to, empty } = selection;
+	let { $anchor } = selection;
+	let headingLevel = null;
+
+	const nodeStack = [];
+	let ignoreList = false;
+
+	const addRules = {
+		bullet_list: () => {
+			if (!ignoreList) nodeStack.push("bullet_list");
+			ignoreList = true;
+		},
+		ordered_list: () => {
+			if (!ignoreList) nodeStack.push("ordered_list");
+			ignoreList = true;
+		},
+		task_list: () => {
+			if (!ignoreList) nodeStack.push("task_list");
+			ignoreList = true;
+		},
+		heading: (node) => {
+			nodeStack.push("heading");
+			headingLevel = node.attrs?.level;
+		},
+	};
+
+	while ($anchor) {
+		const name = $anchor.parent.type.name;
+
+		if (addRules[name]) {
+			addRules[name]($anchor.parent);
+		} else {
+			nodeStack.push(name);
+		}
+
+		$anchor = $anchor.node($anchor.depth - 1) ? $anchor.doc.resolve($anchor.before($anchor.depth)) : null;
+	}
+
+	if (!nodeStack.some((nodeName) => ["paragraph", "heading", "code_block"].includes(nodeName))) {
+		const cursor = editor.state.selection.$from;
+		nodeStack.unshift(cursor.nodeAfter?.type?.name || cursor.nodeBefore?.type?.name);
+	}
+
+	if (!empty) {
+		editor.state.doc.nodesBetween(from, to, (node) => {
+			const name = node.type.name;
+
+			if (nodeStack.includes(name)) return;
+
+			if (addRules[name]) {
+				addRules[name](node);
+			} else {
+				nodeStack.push(name);
+			}
+		});
+	}
+
+	return {
+		actions: nodeStack.filter(
+			(elem) => !["doc", "text", "list_item", "task_item", "tableHeader", "tableCell", "tableRow"].includes(elem),
+		),
+		headingLevel,
+	};
+};
 
 const useType = (editor: Editor) => {
 	const mirror = useRef<State>({
@@ -19,65 +87,6 @@ const useType = (editor: Editor) => {
 		marks: [],
 		attrs: { level: null, notFirstInList: false },
 	});
-
-	const getNodeNameFromCursor = () => {
-		const { selection } = editor.state;
-		const { from, to, empty } = selection;
-		let { $anchor } = selection;
-
-		const nodeStack = [];
-		let ignoreList = false;
-
-		const addRules = {
-			bullet_list: () => {
-				if (!ignoreList) nodeStack.push("bullet_list");
-				ignoreList = true;
-			},
-			ordered_list: () => {
-				if (!ignoreList) nodeStack.push("ordered_list");
-				ignoreList = true;
-			},
-			heading: (node) => {
-				nodeStack.push("heading");
-				mirror.current.attrs.level = node.attrs?.level;
-			},
-		};
-
-		while ($anchor) {
-			const name = $anchor.parent.type.name;
-
-			if (addRules[name]) {
-				addRules[name]($anchor.parent);
-			} else {
-				nodeStack.push(name);
-			}
-
-			$anchor = $anchor.node($anchor.depth - 1) ? $anchor.doc.resolve($anchor.before($anchor.depth)) : null;
-		}
-
-		if (!nodeStack.some((nodeName) => ["paragraph", "heading", "code_block"].includes(nodeName))) {
-			const cursor = editor.state.selection.$from;
-			nodeStack.unshift(cursor.nodeAfter?.type?.name || cursor.nodeBefore?.type?.name);
-		}
-
-		if (!empty) {
-			editor.state.doc.nodesBetween(from, to, (node) => {
-				const name = node.type.name;
-
-				if (nodeStack.includes(name)) return;
-
-				if (addRules[name]) {
-					addRules[name](node);
-				} else {
-					nodeStack.push(name);
-				}
-			});
-		}
-
-		return nodeStack.filter(
-			(elem) => !["doc", "text", "list_item", "tableHeader", "tableCell", "tableRow"].includes(elem),
-		);
-	};
 
 	const getMarksAction = () => {
 		const node = editor.state.selection.$from.node();
@@ -107,8 +116,10 @@ const useType = (editor: Editor) => {
 		return marks;
 	};
 
-	useEffect(() => {
-		const actions = getNodeNameFromCursor();
+	useWatch(() => {
+		const { actions, headingLevel } = getNodeNameFromCursor(editor);
+		if (headingLevel) mirror.current.attrs.level = headingLevel;
+
 		const marks = getMarksAction();
 
 		const deepDifference =

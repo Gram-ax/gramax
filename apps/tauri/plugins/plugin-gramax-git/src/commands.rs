@@ -1,4 +1,5 @@
 use gramaxgit::actions::merge::MergeResult;
+use gramaxgit::commands::TreeReadScope;
 use gramaxgit::creds::*;
 use tauri::*;
 
@@ -9,6 +10,16 @@ use gramaxgit::commands::Result;
 
 use std::path::Path;
 use std::path::PathBuf;
+
+#[command]
+pub(crate) fn is_init(repo_path: &Path) -> Result<bool> {
+  git::is_init(repo_path)
+}
+
+#[command]
+pub(crate) fn is_bare(repo_path: &Path) -> Result<bool> {
+  git::is_bare(repo_path)
+}
 
 #[command(async)]
 pub(crate) fn file_history(repo_path: &Path, file_path: &Path, count: usize) -> Result<HistoryInfo> {
@@ -26,8 +37,13 @@ pub(crate) fn branch_list(repo_path: &Path) -> Result<Vec<BranchInfo>> {
 }
 
 #[command(async)]
-pub(crate) fn fetch(repo_path: &Path, creds: AccessTokenCreds) -> Result<()> {
-  git::fetch(repo_path, creds)
+pub(crate) fn fetch(repo_path: &Path, creds: AccessTokenCreds, force: bool) -> Result<()> {
+  git::fetch(repo_path, creds, force)
+}
+
+#[command(async)]
+pub(crate) fn set_head(repo_path: &Path, refname: &str) -> Result<()> {
+  git::set_head(repo_path, refname)
 }
 
 #[command(async)]
@@ -164,4 +180,29 @@ pub(crate) fn stash_apply(repo_path: &Path, oid: &str) -> Result<MergeResult> {
 #[command(async)]
 pub(crate) fn stash_delete(repo_path: &Path, oid: &str) -> Result<()> {
   git::stash_delete(repo_path, oid)
+}
+
+#[command(async)]
+pub(crate) fn git_read_dir(repo_path: &Path, path: &Path, scope: TreeReadScope) -> Result<Vec<DirEntry>> {
+  git::read_dir(repo_path, scope, path)
+}
+
+#[command(async)]
+pub(crate) fn git_file_stat(repo_path: &Path, path: &Path, scope: TreeReadScope) -> Result<Stat> {
+  git::file_stat(repo_path, scope, path)
+}
+
+#[command(async)]
+pub(crate) fn git_file_exists(repo_path: &Path, path: &Path, scope: TreeReadScope) -> Result<bool> {
+  git::file_exists(repo_path, scope, path)
+}
+
+#[command(async)]
+pub(crate) fn find_refs_by_globs(repo_path: &Path, patterns: Vec<String>) -> Result<Vec<RefInfo>> {
+  git::find_refs_by_globs(repo_path, &patterns)
+}
+
+#[command(async)]
+pub(crate) fn invalidate_repo_cache(repo_paths: Vec<PathBuf>) -> Result<()> {
+  git::invalidate_repo_cache(repo_paths)
 }

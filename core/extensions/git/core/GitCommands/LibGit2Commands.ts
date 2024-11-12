@@ -8,13 +8,27 @@ import { GitStatus } from "../GitWatcher/model/GitStatus";
 import GitSourceData from "../model/GitSourceData.schema";
 import { GitVersion } from "../model/GitVersion";
 import * as git from "./LibGit2IntermediateCommands";
-import GitCommandsModel, { type CloneProgress } from "./model/GitCommandsModel";
+import GitCommandsModel, {
+	type CloneProgress,
+	type DirEntry,
+	type FileStat,
+	type RefInfo,
+	type TreeReadScope,
+} from "./model/GitCommandsModel";
 
 class LibGit2Commands implements GitCommandsModel {
 	private _repoPath: string;
 
 	constructor(repoPath: Path) {
 		this._repoPath = repoPath.value;
+	}
+
+	isInit(): Promise<boolean> {
+		return git.isInit({ repoPath: this._repoPath });
+	}
+
+	isBare(): Promise<boolean> {
+		return git.isBare({ repoPath: this._repoPath });
 	}
 
 	async init(data: SourceData): Promise<void> {
@@ -26,10 +40,11 @@ class LibGit2Commands implements GitCommandsModel {
 		source: GitSourceData,
 		branch?: string,
 		depth?: number,
+		isBare?: boolean,
 		onProgress?: (progress: CloneProgress) => void,
 	) {
 		await git.clone(
-			{ creds: this._intoCreds(source), opts: { to: this._repoPath, url, branch, depth } },
+			{ creds: this._intoCreds(source), opts: { to: this._repoPath, url, branch, depth, isBare } },
 			onProgress,
 		);
 	}
@@ -64,12 +79,16 @@ class LibGit2Commands implements GitCommandsModel {
 		await git.push({ repoPath: this._repoPath, creds: this._intoCreds(data) });
 	}
 
-	async fetch(data: GitSourceData): Promise<void> {
-		await git.fetch({ repoPath: this._repoPath, creds: this._intoCreds(data) });
+	async fetch(data: GitSourceData, force = false): Promise<void> {
+		await git.fetch({ repoPath: this._repoPath, creds: this._intoCreds(data), force });
 	}
 
 	async checkout(ref: string, force?: boolean): Promise<void> {
 		await git.checkout({ repoPath: this._repoPath, refName: ref, force: force ?? false });
+	}
+
+	async setHead(refname: string): Promise<void> {
+		await git.setHead({ repoPath: this._repoPath, refname });
 	}
 
 	async merge(data: GitSourceData, theirs: string): Promise<git.MergeResult> {
@@ -210,12 +229,52 @@ class LibGit2Commands implements GitCommandsModel {
 		return Promise.resolve(REMOTE);
 	}
 
+	readFile(filePath: Path, scope: TreeReadScope): Promise<ArrayBuffer> {
+		return git.readFile({ repoPath: this._repoPath, scope, path: filePath.value });
+	}
+
+	readDir(dirPath: Path, scope: TreeReadScope): Promise<DirEntry[]> {
+		return git.readDir({ repoPath: this._repoPath, scope, path: dirPath.value });
+	}
+
+	fileStat(filePath: Path, scope: TreeReadScope): Promise<FileStat> {
+		return git.fileStat({ repoPath: this._repoPath, scope, path: filePath.value });
+	}
+
+	fileExists(filePath: Path, scope: TreeReadScope): Promise<boolean> {
+		return git.fileExists({ repoPath: this._repoPath, scope, path: filePath.value });
+	}
+
+	async getReferencesByGlob(patterns: string[]): Promise<RefInfo[]> {
+		const refs = await git.getRefsByGlobs({ repoPath: this._repoPath, patterns });
+		return refs.map((r) => {
+			if (r.kind === "tag") {
+				return {
+					kind: r.kind,
+					name: r.name,
+					encodedName: encodeURIComponent(r.name),
+					oid: new GitVersion(r.oid),
+					isLightweight: !!r.isLightweight,
+					author: r.author,
+					date: new Date(r.date),
+				};
+			}
+			return {
+				kind: r.kind,
+				name: r.name,
+				encodedName: encodeURIComponent(r.name),
+				date: new Date(r.date),
+			};
+		});
+	}
+
 	private _intoCreds(data: SourceData) {
 		return {
 			authorName: data.userName,
 			authorEmail: data.userEmail,
 			accessToken: "token" in data ? (data.token as string) : "",
 			gitServerUsername: "gitServerUsername" in data ? (data.gitServerUsername as string) : "",
+			protocol: "protocol" in data ? (data.protocol as string) : null,
 		};
 	}
 }

@@ -40,6 +40,7 @@ class LinkItemCreator {
 			pathname: `/${await catalog.getPathname(item)}`,
 			breadcrumb: this._getBreadcrumb(itemsTree, [], item.logicPath) ?? [],
 			relativePath: articlePath.getRelativePath(item.ref.path).value,
+			isCurrent: articlePath.value === item.ref.path.value,
 		};
 	}
 

@@ -103,6 +103,13 @@ const PropsEditor = (props: PropsEditorProps) => {
 		setIsOpen(false);
 	};
 
+	const isOnlyTitleChanged =
+		itemProps &&
+		Object.keys(itemProps).every((key) => {
+			if (key === "title") return itemProps.title !== item.title;
+			return itemProps[key] === item[key];
+		});
+
 	return (
 		<ModalLayout
 			closeOnCmdEnter
@@ -136,7 +143,7 @@ const PropsEditor = (props: PropsEditorProps) => {
 										}
 										setItemProps({ ...newItemProps });
 									}}
-									placeholder={t("enter") + " " + t("value")}
+									placeholder={t("enter-value")}
 								/>
 							</div>
 							<label className="control-label">
@@ -157,15 +164,25 @@ const PropsEditor = (props: PropsEditorProps) => {
 										newItemProps.fileName = e.target.value ?? "";
 										setItemProps({ ...newItemProps });
 									}}
-									placeholder={t("enter") + " " + t("value")}
+									placeholder={t("enter-value")}
 								/>
 							</div>
 							<div className="buttons">
-								<ActionWarning catalogProps={catalogProps} action={save}>
-									<Button buttonStyle={ButtonStyle.default} disabled={!!getErrorText()}>
+								{!isOnlyTitleChanged ? (
+									<ActionWarning catalogProps={catalogProps} action={save}>
+										<Button buttonStyle={ButtonStyle.default} disabled={!!getErrorText()}>
+											<span>{t("save")}</span>
+										</Button>
+									</ActionWarning>
+								) : (
+									<Button
+										buttonStyle={ButtonStyle.default}
+										onClick={save}
+										disabled={!!getErrorText()}
+									>
 										<span>{t("save")}</span>
 									</Button>
-								</ActionWarning>
+								)}
 							</div>
 						</fieldset>
 					</>

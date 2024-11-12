@@ -33,7 +33,7 @@ const Share = ({ trigger, shouldRender = true }: { trigger: JSX.Element; shouldR
 	const { isBrowser } = usePlatform();
 
 	const logicPath = new Path(router.path).removeExtraSymbols;
-	const { branch } = RouterPathProvider.parsePath(logicPath);
+	const { refname: branch } = RouterPathProvider.parsePath(logicPath);
 	const domain = CatalogPropsService.value;
 
 	return (

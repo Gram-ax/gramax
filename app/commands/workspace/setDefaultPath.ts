@@ -2,8 +2,8 @@ import { getExecutingEnvironment } from "@app/resolveModule/env";
 import { ResponseKind } from "@app/types/ResponseKind";
 import { DesktopModeMiddleware } from "@core/Api/middleware/DesktopModeMiddleware";
 import Path from "@core/FileProvider/Path/Path";
-import { Command } from "../../types/Command";
 import setWorkerProxy from "../../../apps/browser/src/logic/setWorkerProxy";
+import { Command } from "../../types/Command";
 
 const setDefaultPath: Command<{ path: Path }, void> = Command.create({
 	path: "workspace/setDefaultPath",
@@ -18,7 +18,7 @@ const setDefaultPath: Command<{ path: Path }, void> = Command.create({
 		if (!workspacePath) return this._app.wm.setDefaultPath(path);
 		await wm.setWorkspace(workspacePath);
 		// TODO: Remove if
-		if (getExecutingEnvironment() == "browser") setWorkerProxy(wm.current().config().services?.cors?.url);
+		if (getExecutingEnvironment() == "browser") setWorkerProxy(wm.current().config().services?.gitProxy?.url);
 	},
 
 	params(ctx, q) {

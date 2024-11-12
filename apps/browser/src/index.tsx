@@ -4,7 +4,6 @@ import "../../../core/styles/article-alfabeta.css";
 import "../../../core/styles/article.css";
 import "../../../core/styles/global.css";
 import "../../../core/styles/swagger-ui-theme.css";
-import "../../../core/styles/vars.css";
 
 import { createRoot } from "react-dom/client";
 import { AppDesktopGuard } from "./AppDesktopGuard";

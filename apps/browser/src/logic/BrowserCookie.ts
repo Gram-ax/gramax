@@ -5,16 +5,20 @@ export default class BrowserCookie extends Cookie {
 		super(secret);
 	}
 
-	set(name: string, value: string): void {
-		localStorage.setItem(name, this._encrypt(value));
+	set(name: string, value: string, expires?: number, options?: { encrypt: boolean }): void;
+	set(name, value, expired, options = { encrypt: true }) {
+		const storageValue = options.encrypt ? this._encrypt(value) : value;
+		localStorage.setItem(name, storageValue);
 	}
 
 	remove(name: string): void {
 		localStorage.removeItem(name);
 	}
 
-	get(name: string): string {
-		return this._decrypt(localStorage.getItem(name));
+	get(name: string, decrypt?: boolean): string;
+	get(name, decrypt = true) {
+		const item = localStorage.getItem(name);
+		return decrypt ? this._decrypt(item) : item;
 	}
 
 	exist(name: string): boolean {

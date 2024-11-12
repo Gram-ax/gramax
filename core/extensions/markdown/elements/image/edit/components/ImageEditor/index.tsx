@@ -634,7 +634,7 @@ const ImageEditor = (props: EditorProps & { className?: string; style?: CSSPrope
 };
 
 export default styled(ImageEditor)`
-	z-index: 200;
+	z-index: var(--z-index-article-modal);
 	position: fixed;
 	width: 100vw;
 	height: 100vh;
@@ -652,7 +652,7 @@ export default styled(ImageEditor)`
 	}
 
 	.modal__confirm {
-		z-index: 201;
+		z-index: var(--z-index-article-confirm-modal);
 		background-color: #2929298d;
 		position: fixed;
 		width: 100vw;
@@ -715,18 +715,6 @@ export default styled(ImageEditor)`
 		position: relative;
 	}
 
-	.toolbar {
-		position: absolute;
-		display: flex;
-		flex-direction: column;
-		justify-content: center;
-		align-items: center;
-		gap: 4px;
-		left: 50%;
-		z-index: 100;
-		transform: translateX(-50%);
-	}
-
 	.toolbar__dropdown__top {
 		position: absolute;
 		bottom: 4px;
@@ -748,7 +736,6 @@ export default styled(ImageEditor)`
 		bottom: 1rem;
 		transform: translateX(-50%);
 		gap: 4px;
-		z-index: 50;
 		margin-top: 0.5rem;
 	}
 

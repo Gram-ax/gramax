@@ -66,7 +66,8 @@
 			"certificateThumbprint": null,
 			"digestAlgorithm": null,
 			"nsis": {
-				"installerIcon": "icons/icon.ico"
+				"installerIcon": "icons/icon.ico",
+				"installMode": "both"
 			},
 			"signCommand": "sign.sh --win %1",
 			"timestampUrl": null,
@@ -84,7 +85,7 @@
 			"endpoints": ["https://localhost/public/docreader/dev/updates.json"],
 			"pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDVBQzhGRjE3NzMxODk0OTgKUldTWWxCaHpGLy9JV2dVMzBVbUdURDMwV3NBcGJGK1EzYUtJTkY0Vzl5cFNONjJiWGJ3TzloTzQK",
 			"windows": {
-				"installMode": "quiet"
+				"installMode": "passive"
 			}
 		},
 		"deep-link": {

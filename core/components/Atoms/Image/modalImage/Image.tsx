@@ -15,18 +15,19 @@ import { calculateTransform, getCanMoves, getClampedValues } from "@components/A
 
 interface ImageProps {
 	id: string;
-	src: string;
 	isClosing: boolean;
 	objects: ImageObject[];
 	startPos: DOMRect;
 	zoomImage: (count: number, mouseX?: number, mouseY?: number) => void;
+	src?: string;
+	svg?: string;
 	className?: string;
 	modalStyle?: CSSProperties;
 	html?: string | TrustedHTML;
 }
 
 const Image = forwardRef((props: ImageProps, ref?: MutableRefObject<HTMLImageElement>) => {
-	const { id, zoomImage, isClosing, className, src, objects = [], modalStyle, startPos } = props;
+	const { id, zoomImage, isClosing, className, src, svg, objects = [], modalStyle, startPos } = props;
 	const parentRef = useRef<HTMLDivElement>();
 	const imgRef = useRef<HTMLImageElement>();
 
@@ -119,12 +120,10 @@ const Image = forwardRef((props: ImageProps, ref?: MutableRefObject<HTMLImageEle
 			window.removeEventListener("wheel", onWheel);
 			window.removeEventListener("keydown", onKeyDown);
 		};
-	}, [src]);
+	}, [src, svg]);
 
 	useEffect(() => {
-		const image = document.createElement("img");
-		image.src = src;
-		image.onload = () => {
+		const maxScale = () => {
 			const container = ref.current;
 			const scaleWidth = ((window.innerWidth / 100) * 80) / container.offsetWidth;
 			const scaleHeight = ((window.innerHeight / 100) * 80) / container.offsetHeight;
@@ -132,9 +131,17 @@ const Image = forwardRef((props: ImageProps, ref?: MutableRefObject<HTMLImageEle
 
 			container.style.scale = `${newScale}`;
 			container.setAttribute("data-scale", `${newScale}`);
-			image.remove();
 		};
-	}, []);
+
+		const element = document.createElement(svg ? "div" : "img");
+		if (src) {
+			(element as HTMLImageElement).src = src;
+			element.onload = () => maxScale;
+		} else {
+			(element as HTMLDivElement).innerHTML = svg;
+			maxScale();
+		}
+	}, [src, svg]);
 
 	const moveInImage = () => keyframes`
 		0% {
@@ -174,7 +181,11 @@ const Image = forwardRef((props: ImageProps, ref?: MutableRefObject<HTMLImageEle
 					}}
 					className="object__container"
 				>
-					<img ref={imgRef} id={id} draggable="false" src={src} alt="" />
+					{svg ? (
+						<div ref={imgRef} id={id} draggable={false} dangerouslySetInnerHTML={{ __html: svg }} />
+					) : (
+						<img ref={imgRef} id={id} draggable="false" src={src} alt="" />
+					)}
 
 					{objects.length > 0 && (
 						<div ref={parentRef}>
@@ -207,6 +218,7 @@ export default styled(Image)`
 		position: relative;
 		max-width: 90vw;
 		transition: left 0.2s, top 0.2s, scale 0.2s;
+		font-size: 0;
 	}
 
 	.object__container img {

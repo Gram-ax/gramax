@@ -9,7 +9,7 @@ links = "plugin-gramax-fs"
 tauri = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
-gramax-fs = { path = "../../../../rlibs/fs" }
+gramax-fs = { path = "../../../../crates/fs" }
 
 urlencoding = "^2.1"
 

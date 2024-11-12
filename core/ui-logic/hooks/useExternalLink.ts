@@ -3,10 +3,18 @@ import { useCallback, useState } from "react";
 
 const regex = /^(?!:\/\/)(?:(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,}|localhost)(?:\/.*)?$/;
 
-export const useExternalLink = (href: string): [boolean, string, (v: string) => void] => {
+const isExternalLink = (href: string) => {
 	const isUrl = isURL(href);
 	const isDomain = regex.test(href);
-	const [isExternalLink, setIsExternalLink] = useState(isUrl || isDomain);
+
+	const isExternal = isUrl || isDomain;
+
+	return { isDomain, isUrl, isExternal };
+};
+
+const useExternalLink = (href: string): [boolean, string, (v: string) => void] => {
+	const { isExternal, isDomain } = isExternalLink(href);
+	const [isExternalLinkState, setIsExternalLink] = useState(isExternal);
 	const [externalLink, setExternalLink] = useState(isDomain ? `https://${href}` : href);
 
 	const updateLink: (v: string) => void = useCallback((value) => {
@@ -16,5 +24,7 @@ export const useExternalLink = (href: string): [boolean, string, (v: string) => 
 		setIsExternalLink(isUrl || isDomain);
 	}, []);
 
-	return [isExternalLink, externalLink, updateLink];
+	return [isExternalLinkState, externalLink, updateLink];
 };
+
+export { useExternalLink, isExternalLink };

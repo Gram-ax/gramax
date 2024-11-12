@@ -7,11 +7,11 @@ title: ${t("article.custom.404.title.article")}
 ---
 
 [alert:warning:${t("article.custom.404.alert-title")}]
-${t("article.custom.404.pathname").replaceAll("{{pathname}}", props.pathname)}
+${t("article.custom.404.pathname").replaceAll("{{pathname}}", decodeURIComponent(props.pathname))}
 
 ${
 	getExecutingEnvironment() === "browser"
-		? t("article.custom.404.open-in-desktop").replaceAll("{{pathname}}", props.pathname)
+		? t("article.custom.404.open-in-desktop").replaceAll("{{pathname}}", decodeURIComponent(props.pathname))
 		: ""
 }
 [/alert]

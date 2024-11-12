@@ -64,10 +64,14 @@ export const blockquote: Schema = {
 
 export const item: Schema = {
 	render: "li",
+	attributes: {
+		checked: { type: Boolean },
+		isTaskItem: { type: Boolean },
+	},
 	children: ["inline", "heading", "paragraph", "image", "table", "tag", "fence", "blockquote", "list", "hr"],
 	async transform(node, config, parent) {
 		node.attributes.depth = parent.attributes.depth;
-		return new Tag(`li`, { depth: node.attributes.depth }, await node.transformChildren(config));
+		return new Tag(`li`, { ...node.attributes }, await node.transformChildren(config));
 	},
 };
 

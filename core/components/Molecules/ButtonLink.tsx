@@ -8,7 +8,7 @@ import { Placement } from "tippy.js";
 
 export interface ButtonLinkProps extends Omit<ButtonProps, "children" | "style"> {
 	iconCode?: string;
-	text?: string;
+	text?: ReactNode;
 	fullWidth?: boolean;
 	iconFw?: boolean;
 	iconViewBox?: string;
@@ -16,6 +16,7 @@ export interface ButtonLinkProps extends Omit<ButtonProps, "children" | "style">
 	rightActions?: ReactNode[];
 	iconContent?: ReactNode;
 	iconPlace?: Placement;
+	dataQa?: string;
 }
 
 const ButtonLink = forwardRef((props: ButtonLinkProps, ref?: MutableRefObject<HTMLDivElement>) => {
@@ -33,11 +34,17 @@ const ButtonLink = forwardRef((props: ButtonLinkProps, ref?: MutableRefObject<HT
 		iconContent,
 		iconPlace,
 		disabled,
+		dataQa,
 		...otherProps
 	} = props;
 
 	return (
-		<div ref={ref} onClick={disabled ? null : onClick} className={classNames(className, { fullWidth })}>
+		<div
+			data-qa={dataQa}
+			ref={ref}
+			onClick={disabled ? null : onClick}
+			className={classNames(className, { fullWidth })}
+		>
 			<Button disabled={disabled} buttonStyle={ButtonStyle.transparent} textSize={textSize} {...otherProps}>
 				{iconCode && (
 					<Icon

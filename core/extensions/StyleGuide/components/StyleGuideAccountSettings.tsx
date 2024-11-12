@@ -4,21 +4,18 @@ import Input from "@components/Atoms/Input";
 import FormStyle from "@components/Form/FormStyle";
 import Modal from "@components/Layouts/Modal";
 import ModalLayoutLight from "@components/Layouts/ModalLayoutLight";
+import { ListItem } from "@components/List/Item";
 import ListLayout from "@components/List/ListLayout";
 import useWatch from "@core-ui/hooks/useWatch";
 import t from "@ext/localization/locale/translate";
 import { StyleGuideChecker } from "gx-ai";
 import { GroqLlmModel } from "gx-ai/dist/gpt/llm/groq/groqLlm";
 import { LlmApiKey } from "gx-ai/dist/gpt/llm/llm";
-import { LlmProvider } from "gx-ai/dist/gpt/llm/llmFactory";
-import { useState } from "react";
-
-const Providers = ["OpenAI", "Anthropic"];
-const OpenAiModels = ["gpt-4o", "chatgpt-4o-latest", "gpt-4o-mini", "gpt-4o-2024-08-06"];
-const AnthropicModels = ["claude-3-5-sonnet-20240620"];
+import { LlmProviderName } from "gx-ai/dist/gpt/llm/llmFactory";
+import { useEffect, useState } from "react";
 
 export interface AccountSettings {
-	provider: LlmProvider;
+	provider: LlmProviderName;
 	model: GroqLlmModel;
 	token: LlmApiKey;
 }
@@ -33,11 +30,42 @@ const StyleGuideAccountSettings = (props: StyleGuideAccountSettingsProps) => {
 	const { settings, trigger, setSettings } = props;
 	const [isOpen, setIsOpen] = useState(false);
 	const [formSettings, setFormSettings] = useState(settings);
-	const [errorText, setErrorText] = useState(settings?.token ? null : "Введите токен");
+	const [errorText, setErrorText] = useState<string>(null);
+
+	const [providers, setProviders] = useState<LlmProviderName[]>([]);
+	const [models, setModels] = useState<{ [key: string]: ListItem[] }>();
 
 	useWatch(() => {
 		setFormSettings(settings);
 	}, [settings]);
+
+	useWatch(() => {
+		if (!formSettings?.provider || !models?.[formSettings?.provider] || formSettings.model) return;
+		setFormSettings({
+			...formSettings,
+			model: (models?.[formSettings?.provider]?.[0]?.value as GroqLlmModel) ?? null,
+		});
+	}, [models, formSettings?.provider]);
+
+	const loadProviders = async () => {
+		const providers = (await StyleGuideChecker.getAvailableProviders()).map((provider) => provider.name);
+		const models = {};
+		await Promise.all(
+			providers.map(async (provider) => {
+				const m: ListItem[] = (await StyleGuideChecker.getModelsByProvider(provider)).map((m, i) => ({
+					element: i === 0 ? m.name + " (Рекомендуемая)" : m.name,
+					value: m.name,
+				}));
+				models[provider] = m;
+			}),
+		);
+		setProviders(providers);
+		setModels(models);
+	};
+
+	useEffect(() => {
+		loadProviders();
+	}, []);
 
 	return (
 		<Modal isOpen={isOpen} trigger={trigger} onOpen={() => setIsOpen(true)} onClose={() => setIsOpen(false)}>
@@ -57,12 +85,12 @@ const StyleGuideAccountSettings = (props: StyleGuideAccountSettingsProps) => {
 									</label>
 									<div className="input-lable">
 										<ListLayout
-											items={Providers}
+											items={providers}
 											item={formSettings?.provider}
 											onItemClick={(value) =>
 												setFormSettings({
 													...formSettings,
-													provider: value as LlmProvider,
+													provider: value as LlmProviderName,
 													model: null,
 													token: null,
 												})
@@ -71,8 +99,10 @@ const StyleGuideAccountSettings = (props: StyleGuideAccountSettingsProps) => {
 									</div>
 								</div>
 							</div>
+
 							{formSettings?.provider && (
 								<>
+									<div className="separator" />
 									<div className="form-group">
 										<div className="field field-string row">
 											<label className="control-label">
@@ -99,7 +129,7 @@ const StyleGuideAccountSettings = (props: StyleGuideAccountSettingsProps) => {
 												/>
 											</div>
 										</div>
-										<div className="input-lable-description ">
+										<div className="input-lable-description">
 											<div></div>
 											<div className="article">
 												Ваш токен остается на вашем устройстве и не передается на наши серверы.
@@ -116,26 +146,22 @@ const StyleGuideAccountSettings = (props: StyleGuideAccountSettingsProps) => {
 												</label>
 												<div className="input-lable">
 													<ListLayout
-														items={
-															formSettings?.provider === "OpenAI"
-																? OpenAiModels
-																: AnthropicModels
+														items={models?.[formSettings.provider] ?? []}
+														item={
+															models?.[formSettings.provider]?.find(
+																(m) => m.value === formSettings?.model,
+															) ??
+															models?.[formSettings.provider]?.[0] ??
+															""
 														}
-														item={formSettings?.model ?? ""}
-														onItemClick={(value) =>
+														onItemClick={(_, __, idx) =>
 															setFormSettings({
 																...formSettings,
-																model: value as GroqLlmModel,
+																model: models?.[formSettings.provider]?.[idx]
+																	.value as GroqLlmModel,
 															})
 														}
 													/>
-												</div>
-											</div>
-											<div className="input-lable-description ">
-												<div></div>
-												<div className="article">
-													Если значение не выбрано, то используется рекомендуемая нами модель
-													для этого провайдера LLM.
 												</div>
 											</div>
 										</div>
@@ -144,7 +170,12 @@ const StyleGuideAccountSettings = (props: StyleGuideAccountSettingsProps) => {
 							)}
 							<div className="buttons">
 								<Button
-									disabled={!formSettings?.provider || !formSettings?.token || !formSettings?.model}
+									disabled={
+										!formSettings?.provider ||
+										!formSettings?.token ||
+										!formSettings?.model ||
+										!!errorText
+									}
 									onClick={() => {
 										setIsOpen(false);
 										setSettings(formSettings);

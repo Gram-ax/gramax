@@ -7,7 +7,7 @@ import { Item } from "../../../../../logic/FileStructue/Item/Item";
 import ResourceManager from "../../../../../logic/Resource/ResourceManager";
 import { TableDB } from "../../../../../logic/components/tableDB/table";
 import UiLanguage from "../../../../localization/core/model/Language";
-import UserInfo from "../../../../security/logic/User/UserInfo2";
+import UserInfo from "../../../../security/logic/User/UserInfo";
 import MarkdownFormatter from "../../edit/logic/Formatter/Formatter";
 import MarkdownParser from "../Parser";
 

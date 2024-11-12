@@ -3,6 +3,7 @@ import Path from "@core/FileProvider/Path/Path";
 import fixMerge from "@ext/git/actions/MergeConflictHandler/logic/FixConflictLibgit2";
 import GitCommands from "@ext/git/core/GitCommands/GitCommands";
 import GitVersionControl from "@ext/git/core/GitVersionControl/GitVersionControl";
+import RepositoryProvider from "@ext/git/core/Repository/RepositoryProvider";
 import SourceData from "@ext/storage/logic/SourceDataProvider/model/SourceData";
 import SourceType from "@ext/storage/logic/SourceDataProvider/model/SourceType";
 
@@ -31,6 +32,7 @@ describe("Fix Addition Conflict Libgit2 фиксит конфликт", () => {
 
 	afterEach(async () => {
 		await dfp.delete(path("testRep"));
+		await RepositoryProvider.invalidateRepoCache([]);
 		git = null;
 	});
 

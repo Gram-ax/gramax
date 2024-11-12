@@ -29,7 +29,7 @@ const ArticleNotFoundErrorComponent = (args: ComponentProps<typeof GetErrorCompo
 					if (!res.ok) return;
 					const branch = (await res.json())?.name;
 					const path = RouterPathProvider.updatePathnameData(new Path(catalogProps.link.pathname), {
-						branch,
+						refname: branch,
 					});
 					router.pushPath(path.value);
 					args.onCancelClick();

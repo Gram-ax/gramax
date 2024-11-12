@@ -20,6 +20,12 @@ const locale = {
 					placeholder: "./",
 					description: "Path to the directory where all documentation will be stored in the repository",
 				},
+				versions: {
+					name: "Versions",
+					placeholder: "releases/**/*",
+					description:
+						"List of versions (branches or tags) displayed in the docportal. Specified as glob-patterns, for example v19.* or release-*",
+				},
 				language: {
 					name: "Main language",
 					placeholder: "English",
@@ -51,8 +57,12 @@ const locale = {
 				},
 				type: {
 					name: "Type",
-					placeholder: "Counter",
+					placeholder: "Flag",
 					description: "Cannot be changed after save",
+				},
+				icon: {
+					name: "Icon",
+					placeholder: "Icon",
 				},
 				style: {
 					name: "Syle",
@@ -61,19 +71,6 @@ const locale = {
 				values: {
 					name: "Values",
 					placeholder: "Value",
-				},
-			},
-		},
-		"article-create-props": {
-			name: "Props settings",
-			props: {
-				id: {
-					name: "Prop",
-					placeholder: "Change exist prop",
-				},
-				value: {
-					name: "Value",
-					placeholder: "Change value",
 				},
 			},
 		},
@@ -217,7 +214,7 @@ const locale = {
 			},
 		},
 		"snippet-editor": {
-			name: "$TYPE Snippet",
+			name: "Snippet editor",
 			props: {
 				title: {
 					name: "Title",
@@ -225,7 +222,7 @@ const locale = {
 				},
 				id: {
 					name: "Id",
-					placeholder: "my_Id",
+					placeholder: "my_id",
 				},
 				content: {
 					name: "<p>Content</p>",
@@ -233,15 +230,15 @@ const locale = {
 			},
 		},
 		"snippet-add": {
-			name: "Create Snippet",
+			name: "Create snippet",
 			props: {
 				title: {
 					name: "Title",
-					placeholder: "My Snippet",
+					placeholder: "My snippet",
 				},
 				id: {
 					name: "Id",
-					placeholder: "my_Id",
+					placeholder: "my_id",
 				},
 				content: {
 					name: "<p>Content</p>",
@@ -345,23 +342,23 @@ const locale = {
 		},
 	},
 	multilang: {
+		switch: "Switch language",
 		warning: {
 			action: {
-				title: "This action will affect all languages",
-				body: "You are about to modify the structure of a catalog that supports multiple languages. To ensure the catalog functions properly, the file structure must be consistent across all languages.",
+				title: "Changes will apply to all languages",
+				body: "You're about to update the structure of a multi-language catalog. To keep everything working smoothly, the structure needs to stay the same across all languages.",
 			},
 			delete: {
-				title: "Delete versions in other languages?",
-				body: "You are about to delete content that exists in multiple languages. Since the catalog structure must be the same across all languages, this deletion will also apply to the corresponding content in other languages.",
+				title: "Delete content in all languages?",
+				body: "You're about to delete content that exists in multiple languages. Since the catalog structure must stay the same across all languages, this will remove the same content in all other languages too.",
 			},
 		},
 		"delete-confirm": "Are you sure you want to delete language?",
 		"add-localization": "Add language",
-		"remove-localization": "Delete language",
+		current: "You're already viewing this language",
 		error: {
-			"no-selected-language": "You need to select main language in «Configure catalog»",
-			"cannot-switch-to-self": "You cannot delete or switch to the same language",
-			"cannot-add-language": "You cannot add already added language",
+			"cannot-switch-to-self": "You can't delete or switch to the language you're currently using",
+			"cannot-add-language": "This language is already added",
 		},
 	},
 	article: {
@@ -372,8 +369,8 @@ const locale = {
 		title: "Article Title",
 		"no-name": "Untitled",
 		placeholder: "Article text",
-		"add-child": "Add child article",
-		"add-root": "Add root article",
+		"add-child": "Add a sub-article",
+		"add-root": "Add a root article",
 		configure: "Article settings",
 		"edit-markdown": "Edit Markdown",
 		error: {
@@ -504,7 +501,6 @@ Add storage to confirm the link.`,
 	"open-in": {
 		web: "Open in web app",
 		desktop: "Open in app",
-		vscode: "Edit in VSCode",
 		gramax: "Edit in Gramax",
 		generic: "Open in",
 		teams: "Open in Teams",
@@ -523,13 +519,23 @@ Add storage to confirm the link.`,
 		name: "Search",
 		open: "Open search",
 		placeholder: "Enter query",
-		desc: '<ul><li>For exact matches use <code>"</code>. For example:&nbsp;<code><nobr>"word"</nobr></code> or <code><nobr>"search phrase"</nobr></code>.</li><li>To exclude from search use <code>-</code>. For example:&nbsp;<code><nobr>-word</nobr></code> or <code><nobr>-"excluded phrase"</nobr></code>.</li></ul>',
+		desc: '<ul><li>Use <code>"</code> for exact matches. Example:&nbsp;<code><nobr>"word"</nobr></code> or <code><nobr>"search phrase"</nobr></code>.</li><li>Use <code>-</code> to exclude. Example:&nbsp;<code><nobr>-word</nobr></code> or <code><nobr>-"excluded phrase"</nobr></code>.</li></ul>',
 		"articles-not-found": "No articles found",
 		"all-catalogs": "Search all catalogs",
 	},
 	list: {
-		"no-items-found": "No matches found for <strong style='color: inherit'>&quot;{{value}}&quot;</strong>.",
+		"no-items-found": "No matches found for <strong>&quot;{{value}}&quot;</strong>.",
 		"search-articles": "Link or search for articles",
+	},
+	versions: {
+		switch: "Switch version",
+		version: "Version",
+		"current-version": "You're currently viewing this version",
+		"not-actual-warning": {
+			header: "Outdated version",
+			"1": "You are viewing an outdated version ",
+			"2": "Switch to the <a data-qa href='{{link}}'>latest version</a> to view the actual version",
+		},
 	},
 	git: {
 		source: {
@@ -576,6 +582,7 @@ Add storage to confirm the link.`,
 			},
 		},
 		branch: {
+			actual: "Actual branch",
 			error: {
 				"deleting-head-branch":
 					"You are trying to delete the branch you are on. Switch to another branch and try again",
@@ -720,6 +727,7 @@ Add storage to confirm the link.`,
 		"code-block": "Code block",
 		"bullet-list": "Bullet list",
 		"ordered-list": "Numbered list",
+		"task-list": "Task list",
 		note: "Note",
 		heading: "Heading",
 
@@ -774,8 +782,8 @@ Add storage to confirm the link.`,
 		describe: "Describe the issue or bug",
 		"attach-tech-details": "Attach technical details",
 		"this-will-help-us":
-			"This information will help us fix the bug faster. We will not see your content or personal data.",
-		"view-tech-details": "View details.",
+			"This information will help us fix the bug faster. We will not see your content or personal data. ",
+		"view-tech-details": "View details",
 		error: {
 			"cannot-send-feedback": {
 				title: "Failed to send a feedback",
@@ -803,12 +811,14 @@ Add storage to confirm the link.`,
 		},
 	},
 	enterprise: {
+		"admin-panel": "Admin panel",
 		"user-not-found":
 			"This email isn't set up for Gramax Enterprise Server. You can continue using the full features of the free version or contact your admin for further assistance.",
 		"workspace-exit-warning": "Exiting the workspace will delete all directories and local changes will be lost.",
 		"workspace-exit": "Exit Workspace",
 		"check-if-user-editor-warning": "Make sure you have been issued an editor license.",
 		"access-restricted": "Access restricted",
+		"config-not-found": "Configuration issues. Contact your administrator.",
 	},
 	network: {
 		error: {
@@ -847,7 +857,7 @@ Add storage to confirm the link.`,
 	edit: "Edit",
 	editing: "Editing",
 	element: "Element",
-	enter: "Enter",
+	"enter-value": "Enter value",
 	error: "Error",
 	existing: "existing",
 	exit: "Exit",
@@ -1043,6 +1053,7 @@ Add storage to confirm the link.`,
 	"git-pull": "Git pull",
 	"git-status": "Git status",
 	"go-to-article": "Go to article",
+	"go-to": "Go to",
 	"icon-cone": "Icon code",
 	"img-h": "Vertical image groups",
 	"img-v": "Horizontal image groups",
@@ -1128,7 +1139,7 @@ Add storage to confirm the link.`,
 	"today-at": "Today at ",
 	"top-left-pointer": "Top left annotation",
 	"top-right-pointer": "Top right annotation",
-	"unable-to-get-sync-count": "Unable to get synchronization changes",
+	"unable-to-get-sync-count": "Unable to retrieve changes",
 	"unsaved-changes": "Save changes?",
 	"unsupported-elements-confluence-title": "Some elements will not be transferred",
 	"unsupported-elements-confluence1":
@@ -1147,10 +1158,58 @@ Add storage to confirm the link.`,
 	"your-branch": "Your branch",
 	"edit-html": "Edit HTML",
 	"do-not-show-again": "Do not show again",
-	properties: "Properties",
-	"add-new": "Add new",
+	properties: {
+		name: "Properties",
+		all: "All",
+		empty: "(empty)",
+		"select-all": "(select all)",
+		"validation-errors": {
+			"all-parameters-added": "All parameters added",
+			"prop-creator": "Property with this name already exists or name is too short",
+			"no-groupby": "Select a field for grouping",
+			"no-defs": "Select at least one field for filtering",
+			"no-content": "For selected fields, there are no items in the catalog",
+		},
+		system: {
+			hierarchy: {
+				name: "Hierarchy",
+				values: {
+					"child-to-current": "Child to current article",
+				},
+			},
+		},
+		warning: {
+			"delete-tag-from-catalog": {
+				title: "Confirm Property Deletion",
+				body: "Are you sure you want to delete this property? It will be removed from all articles.",
+			},
+			"delete-value-from-catalog": {
+				title: "Confirm Value Deletion",
+				body: "Are you sure you want to delete this value? It will be removed from all articles.",
+			},
+		},
+		view: {
+			name: "View",
+			"group-by": "Group by",
+			"order-by": "Order by",
+			filter: "Filter",
+			select: "Select",
+			displays: {
+				name: "View",
+				list: "List",
+				table: "Table",
+				kanban: "Kanban",
+			},
+		},
+		selected: "Selected",
+		"not-selected": "Not selected",
+		article: "Article",
+		archive: "Archive",
+	},
+	"create-new": "Create new",
 	manage: "Manage",
 	change: "Change",
+	"enter-number": "Enter number",
 };
 
 export default locale;

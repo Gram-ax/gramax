@@ -3,6 +3,7 @@ import t from "@ext/localization/locale/translate";
 import type WorkspaceManager from "@ext/workspace/WorkspaceManager";
 import yaml from "js-yaml";
 import MarkdownParser from "../../../extensions/markdown/core/Parser/Parser";
+import SilentError from "@ext/errorHandlers/silent/SilentError";
 
 export type LocalizedString = { [lang: string]: string; default: string };
 
@@ -116,7 +117,7 @@ export class TableDB {
 		try {
 			content = await fp.read(ref.path);
 		} catch {
-			throw new Error(`${t("diagram.error.tabledb-file-not-found")}: "${ref.path}"`);
+			throw new SilentError(`${t("diagram.error.tabledb-file-not-found")}: "${ref.path}"`);
 		}
 		const file = yaml.load(content);
 		const fields = new Map<string, Field>();

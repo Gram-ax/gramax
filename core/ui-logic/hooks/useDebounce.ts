@@ -1,9 +1,9 @@
 import { useCallback, useRef, useEffect } from "react";
 
-type CallbackFunction = () => void;
+type CallbackFunction<T> = (args?: T) => void;
 
-/* TODO надо понять зачем */
-function useDebounce(callback: CallbackFunction, delay: number, canCancel = true) {
+// типы писал серега))
+function useDebounce<K>(callback: CallbackFunction<K>, delay: number, canCancel = true) {
 	const timeoutIdRef = useRef<NodeJS.Timeout | null>(null);
 
 	const cancel = useCallback(() => {
@@ -13,12 +13,15 @@ function useDebounce(callback: CallbackFunction, delay: number, canCancel = true
 		}
 	}, []);
 
-	const start = useCallback(() => {
-		cancel();
-		timeoutIdRef.current = setTimeout(() => {
-			callback();
-		}, delay);
-	}, [callback, delay]);
+	const start = useCallback(
+		(...args: K[]) => {
+			cancel();
+			timeoutIdRef.current = setTimeout(() => {
+				callback(...args);
+			}, delay);
+		},
+		[callback, delay],
+	);
 
 	useEffect(() => {
 		return () => cancel();

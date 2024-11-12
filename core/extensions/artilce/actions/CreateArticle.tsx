@@ -23,7 +23,7 @@ interface CreateArticleProps {
 	onCreate?: () => void;
 }
 
-const isDeepestCatalog = (path: string) =>
+export const isDeepestArticle = (path: string) =>
 	path && path.replace(`/${CATEGORY_ROOT_FILENAME}`, "").split("/").length > MAX_CATALOG_DEPTH;
 
 const CreateArticle = (props: CreateArticleProps) => {
@@ -31,7 +31,7 @@ const CreateArticle = (props: CreateArticleProps) => {
 
 	const catalogProps = CatalogPropsService.value;
 
-	if (isDeepestCatalog(item?.ref?.path)) return null;
+	if (isDeepestArticle(item?.ref?.path)) return null;
 
 	const [isLoading, setIsLoading] = useState(false);
 	const content = item ? t("article.add-child") : t("article.add-root");

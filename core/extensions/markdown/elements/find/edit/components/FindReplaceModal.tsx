@@ -6,6 +6,7 @@ import ButtonLink from "@components/Molecules/ButtonLink";
 import { useDebounce } from "@core-ui/hooks/useDebounce";
 import useWatch from "@core-ui/hooks/useWatch";
 import styled from "@emotion/styled";
+import { CustomDecorations } from "@ext/markdown/elements/find/edit/components/ArticleSearchHotkeyView";
 import { isElementNearEdges } from "@ext/markdown/elements/find/edit/logic/elementNearEdges";
 import {
 	replaceSpecificHighlightedText,
@@ -16,7 +17,6 @@ import React, { useState, useRef, useEffect, useCallback, ChangeEvent, RefObject
 import { Editor } from "@tiptap/core";
 import { EditorView } from "prosemirror-view";
 import t from "@ext/localization/locale/translate";
-import { Decoration } from "prosemirror-view";
 
 interface FindReplaceModalProps {
 	onClose: () => void;
@@ -30,7 +30,7 @@ interface FindReplaceModalProps {
 	className?: string;
 	selectionText?: string;
 	initialFindText?: string;
-	decorations: Decoration[];
+	decorations: CustomDecorations[];
 	parentRef?: RefObject<HTMLDivElement>;
 }
 
@@ -63,13 +63,36 @@ const FindReplaceModal: React.FC<FindReplaceModalProps> = (props) => {
 	const [counterWidth, setCounterWidth] = useState(20);
 	const [configIsOpen, setConfigIsOpen] = useState(false);
 	const [replaceIsOpen, setReplaceIsOpen] = useState(false);
+	const firstSearch = useRef(true);
+	const disableScroll = useRef(true);
+
+	const setElemIndex = (index: number, direction?: "up" | "down") => {
+		let newIndex = index;
+
+		if (direction === "down") {
+			newIndex = index + 1;
+			if (newIndex >= decorations.length) newIndex = 0;
+		}
+
+		if (direction === "up") {
+			newIndex = index - 1;
+			if (newIndex < 0) newIndex = decorations.length - 1;
+		}
+
+		setElementIndex(newIndex);
+	};
 
 	const handleDownElement = () => {
-		const nextIndex = activeElementIndex + 1;
-
-		if (nextIndex < decorations.length) setElementIndex(nextIndex);
-		else setElementIndex(0);
+		setElemIndex(activeElementIndex, "down");
 	};
+
+	const handleUpElement = () => {
+		setElemIndex(activeElementIndex, "up");
+	};
+
+	useWatch(() => {
+		if (decorations.length === 0 || decorations.length < activeElementIndex) setElemIndex(0);
+	}, [decorations]);
 
 	const handleOpenConfig = () => {
 		if (!configIsOpen && replaceIsOpen) setReplaceIsOpen(false);
@@ -83,13 +106,6 @@ const FindReplaceModal: React.FC<FindReplaceModalProps> = (props) => {
 		start();
 	};
 
-	const handleUpElement = () => {
-		const prevIndex = activeElementIndex - 1;
-
-		if (activeElementIndex === 0) setElementIndex(decorations.length - 1);
-		else setElementIndex(prevIndex);
-	};
-
 	const handleReplaceOpen = () => {
 		if (!replaceIsOpen) setConfigIsOpen(false);
 		setReplaceIsOpen(!replaceIsOpen);
@@ -98,6 +114,7 @@ const FindReplaceModal: React.FC<FindReplaceModalProps> = (props) => {
 	const handleOnReplaceChange = (e: ChangeEvent<HTMLInputElement>) => {
 		setReplaceText(e.target.value);
 	};
+
 	const handleReplace = () => {
 		replaceSpecificHighlightedText(
 			editor.view,
@@ -108,12 +125,14 @@ const FindReplaceModal: React.FC<FindReplaceModalProps> = (props) => {
 			wholeWord,
 		);
 	};
+
 	const handleReplaceAll = () => {
 		replaceHighlightedText(editor.view, findText, replaceText, caseSensitive, wholeWord);
 	};
 
 	const updateSearch = useCallback(
 		(
+			searchPlugin,
 			searchTerm: string,
 			isActiveHighlight: boolean,
 			view: EditorView,
@@ -140,11 +159,19 @@ const FindReplaceModal: React.FC<FindReplaceModalProps> = (props) => {
 				view.updateState(newState);
 			} catch (e) {}
 		},
-		[searchPlugin],
+		[],
 	);
 
 	useWatch(() => {
-		updateSearch(findText, isActiveHighlight, editor.view, activeElementIndex, caseSensitive, wholeWord);
+		updateSearch(
+			searchPlugin,
+			findText,
+			isActiveHighlight,
+			editor.view,
+			activeElementIndex,
+			caseSensitive,
+			wholeWord,
+		);
 	}, [updateSearch, isActiveHighlight, findText, activeElementIndex, caseSensitive, wholeWord]);
 
 	useWatch(() => {
@@ -162,11 +189,15 @@ const FindReplaceModal: React.FC<FindReplaceModalProps> = (props) => {
 	}, [openKey]);
 
 	useWatch(() => {
-		if (decorations.length === 0) setElementIndex(0);
-		else if (decorations.length < activeElementIndex) {
-			setElementIndex(0);
+		if (!decorations.length && !activeElementIndex) return;
+		if (firstSearch.current) {
+			const { from, to } = editor.view.state.selection;
+			const index = decorations.findIndex(({ start, end }) => start >= from && end <= to);
+			if (index !== -1) setElemIndex(index);
+			firstSearch.current = false;
+			disableScroll.current = true;
 		}
-	}, [decorations.length]);
+	}, [decorations, activeElementIndex]);
 
 	useWatch(() => {
 		const length = decorations.length;
@@ -183,8 +214,14 @@ const FindReplaceModal: React.FC<FindReplaceModalProps> = (props) => {
 		const elementsCollection = editor.view.dom.getElementsByClassName("search-highlight-active");
 		const item = elementsCollection.item(0) as HTMLElement;
 		if (!item) return;
+
+		if (disableScroll.current) {
+			disableScroll.current = false;
+			return;
+		}
+
 		if (isElementNearEdges(item)) item.scrollIntoView({ block: "center", behavior: "instant" });
-	}, [activeElementIndex, isActiveHighlight]);
+	}, [activeElementIndex, isActiveHighlight, firstSearch.current]);
 
 	useEffect(() => {
 		if (findText) inputRef.current.select();
@@ -201,7 +238,7 @@ const FindReplaceModal: React.FC<FindReplaceModalProps> = (props) => {
 	}, [counterText, findText]);
 
 	useEffect(() => {
-		return () => updateSearch("", true, editor.view, activeElementIndex, caseSensitive, wholeWord);
+		return () => updateSearch(searchPlugin, "", true, editor.view, activeElementIndex, caseSensitive, wholeWord);
 	}, []);
 
 	useEffect(() => {

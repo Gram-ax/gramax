@@ -1,8 +1,9 @@
 import type { AppConfig, ServicesConfig } from "@app/config/AppConfig";
 import { getExecutingEnvironment } from "@app/resolveModule/env";
 import type FileProvider from "@core/FileProvider/model/FileProvider";
+import type MountFileProvider from "@core/FileProvider/MountFileProvider/MountFileProvider";
 import Path from "@core/FileProvider/Path/Path";
-import type { CatalogFilesUpdated } from "@core/FileStructue/Catalog/Catalog";
+import type { Catalog, CatalogFilesUpdated } from "@core/FileStructue/Catalog/Catalog";
 import CatalogEntry from "@core/FileStructue/Catalog/CatalogEntry";
 import FileStructure from "@core/FileStructue/FileStructure";
 import mergeObjects from "@core/utils/mergeObjects";
@@ -18,9 +19,14 @@ import type { WorkspaceConfig, WorkspacePath } from "@ext/workspace/WorkspaceCon
 export type FSCreatedCallback = (fs: FileStructure) => void;
 export type CatalogChangedCallback = (change: CatalogFilesUpdated) => void | Promise<void>;
 export type FSCatalogsInitializedCallback = (fp: FileProvider, catalogs: CatalogEntry[]) => void;
-export type FSFileProviderFactory = (path: WorkspacePath) => FileProvider;
+export type FSFileProviderFactory = (path: WorkspacePath) => MountFileProvider;
 
 export type WorkspaceManagerConfig = { "latest-workspace"?: WorkspacePath; workspaces?: WorkspacePath[] };
+
+export type WorkspaceConfigWithCatalogs = {
+	catalogNames: string[];
+	config: YamlFileConfig<WorkspaceConfig>;
+};
 
 const WORKSPACE_CONFIG_FILENAME = new Path("workspace.yaml");
 const DEFAULT_WORKSPACE_NAME = "workspace.default-name";
@@ -28,7 +34,7 @@ const DEFAULT_WORKSPACE_ICON = "layers";
 
 export default class WorkspaceManager {
 	private _current: Workspace;
-	private _workspaces: Map<WorkspacePath, YamlFileConfig<WorkspaceConfig>> = new Map();
+	private _workspaces: Map<WorkspacePath, WorkspaceConfigWithCatalogs> = new Map();
 	private _rules: CatalogChangedCallback[] = [];
 
 	constructor(
@@ -41,11 +47,11 @@ export default class WorkspaceManager {
 
 	async setWorkspace(path: WorkspacePath) {
 		if (!path) throw new Error(`Invalid workspace path ${path}`);
-		const init = this._workspaces.get(path);
+		const { config: init } = this._workspaces.get(path);
 		if (!init) throw new Error(`There is no workspace with id '${path}'`);
 		const fp = this._makeFileProvider(path);
 		await fp.createRootPathIfNeed();
-		const fs = new FileStructure(fp, this._config.isServerApp);
+		const fs = new FileStructure(fp, this._config.isReadOnly);
 		this._callback(fs);
 		this._current = await Workspace.init({ fs, rp: this._rp, path, config: init });
 		this._rules?.forEach((fn) => this._current.events.on("catalog-changed", fn));
@@ -73,6 +79,7 @@ export default class WorkspaceManager {
 
 		const latest = this._workspacesConfig.get("latest-workspace");
 		const path = this._workspaces.get(latest) ? latest : this.workspaces()[0].path;
+
 		path && (await this.setWorkspace(path));
 	}
 
@@ -134,7 +141,7 @@ export default class WorkspaceManager {
 
 	workspaces() {
 		return Array.from(this._workspaces.entries())
-			.map(([path, val]) => ({ path, ...val.inner() }))
+			.map(([path, val]) => ({ path, ...val.config.inner() }))
 			.sort((a, b) =>
 				a.name.localeCompare(b.name, undefined, { sensitivity: "variant", ignorePunctuation: true }),
 			);
@@ -142,6 +149,23 @@ export default class WorkspaceManager {
 
 	hasWorkspace() {
 		return !!this._current;
+	}
+
+	async getCatalogOrFindAtAnyWorkspace(catalogName: string): Promise<Catalog> {
+		const current = this.maybeCurrent();
+
+		if (!current) return null;
+		const catalog = await current.getCatalog(catalogName);
+		if (catalog) return catalog;
+
+		for (const [path, { catalogNames }] of this._workspaces.entries()) {
+			if (catalogNames.includes(catalogName)) {
+				await this.setWorkspace(path);
+				return this.current().getCatalog(catalogName);
+			}
+		}
+
+		return null;
 	}
 
 	maybeCurrent() {
@@ -158,11 +182,12 @@ export default class WorkspaceManager {
 		this.maybeCurrent()?.events.on("catalog-changed", callback);
 	}
 
-	private async readWorkspace(fp: FileProvider, config?: WorkspaceConfig) {
+	private async readWorkspace(fp: FileProvider, config?: WorkspaceConfig): Promise<WorkspaceConfigWithCatalogs> {
 		const yaml = await YamlFileConfig.readFromFile(fp, WORKSPACE_CONFIG_FILENAME, {
 			name: config?.name || t(DEFAULT_WORKSPACE_NAME),
 			icon: config?.icon || DEFAULT_WORKSPACE_ICON,
 			groups: config?.groups ?? null,
+			gesUrl: config?.gesUrl ?? null,
 			isEnterprise: config?.isEnterprise ?? false,
 			services: mergeObjects<ServicesConfig>(this._config.services, config?.services ?? {}),
 		});
@@ -179,7 +204,9 @@ export default class WorkspaceManager {
 		);
 
 		if (yaml.get("name") != name) await yaml.save();
-		return yaml;
+
+		const catalogNames = await FileStructure.getCatalogDirs(fp);
+		return { catalogNames: catalogNames.map((i) => i.name), config: yaml };
 	}
 
 	private removeInvalidWorkspaces() {

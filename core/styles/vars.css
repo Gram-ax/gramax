@@ -74,124 +74,19 @@
 
 	--article-max-width: 780px;
 
-	--color-style-gradient-1: linear-gradient(90deg, #0070d8, #25cae0);
-	--color-style-background-1: rgba(0, 112, 216, 0.05);
-
-	--color-style-gradient-blue: linear-gradient(90deg, #0070d8, #25cae0);
-	--color-style-background-blue: rgba(0, 112, 216, 0.05);
-
-	--color-style-gradient-2: linear-gradient(90deg, #fd9a25, #ffdd00);
-	--color-style-background-2: rgba(253, 156, 37, 0.05);
-
-	--color-style-gradient-bright-orange: linear-gradient(90deg, #fd9a25, #ffdd00);
-	--color-style-background-bright-orange: rgba(253, 156, 37, 0.05);
-
-	--color-style-gradient-3: linear-gradient(60deg, #ff4e00 0%, #ec9f05 74%);
-	--color-style-background-3: rgba(255, 94, 0, 0.05);
-
-	--color-style-gradient-dark-orange: linear-gradient(60deg, #ff4e00 0%, #ec9f05 74%);
-	--color-style-background-dark-orange: rgba(255, 94, 0, 0.05);
-
-	--color-style-gradient-4: linear-gradient(90deg, #8a42ff, #e240a3);
-	--color-style-background-4: #8a42ff0d;
-
-	--color-style-gradient-purple: linear-gradient(90deg, #8a42ff, #e240a3);
-	--color-style-background-purple: #8a42ff0d;
-
-	--color-style-gradient-5: linear-gradient(90deg, #00b09b, #96c93d);
-	--color-style-background-5: rgba(0, 183, 18, 0.05);
-
-	--color-style-gradient-green: linear-gradient(90deg, #00b09b, #96c93d);
-	--color-style-background-green: rgba(0, 183, 18, 0.05);
-
-	--color-style-gradient-6: linear-gradient(90deg, #ff041f, #c70e00);
-	--color-style-background-6: hsla(354, 100%, 51%, 0.05);
-
-	--color-style-gradient-red: linear-gradient(90deg, #ff041f, #c70e00);
-	--color-style-background-red: hsla(354, 100%, 51%, 0.05);
-
-	--color-style-gradient-7: linear-gradient(90deg, #f64f59, #c471ed, #12c2e9);
-	--color-style-background-7: hsl(0deg 65% 97% / 5%);
-
-	--color-style-gradient-pink-blue: linear-gradient(90deg, #f64f59, #c471ed, #12c2e9);
-	--color-style-background-pink-blue: hsl(0deg 65% 97% / 5%);
-
-	--color-style-gradient-8: linear-gradient(90deg, #ff5334, #fb1caf, #c41bff);
-	--color-style-background-8: hsl(282deg 100% 47.9% / 5%);
-
-	--color-style-gradient-pink-purple: linear-gradient(90deg, #ff5334, #fb1caf, #c41bff);
-	--color-style-background-pink-purple: hsl(282deg 100% 47.9% / 5%);
-
-	--color-style-gradient-9: linear-gradient(90deg, #ff8d07, #cfdf18, #57eb4a);
-	--color-style-background-9: hsl(168deg 65% 97% / 5%);
-
-	--color-style-gradient-orange-green: linear-gradient(90deg, #ff8d07, #cfdf18, #57eb4a);
-	--color-style-background-orange-green: hsl(168deg 65% 97% / 5%);
-
-	--color-style-gradient-10: linear-gradient(90deg, #bc02ff, #00e0ff);
-	--color-style-background-10: hsl(168deg 65% 97% / 5%);
-
-	--color-style-gradient-purple-blue: linear-gradient(90deg, #bc02ff, #00e0ff);
-	--color-style-background-purple-blue: hsl(168deg 65% 97% / 5%);
-
-	--color-style-gradient-11: linear-gradient(90deg, #ff013e, #fc7c61, #ffa800);
-	--color-style-background-11: hsl(168deg 65% 97% / 5%);
-
-	--color-style-gradient-red-orange: linear-gradient(90deg, #ff013e, #fc7c61, #ffa800);
-	--color-style-background-red-orange: hsl(168deg 65% 97% / 5%);
-
-	--color-style-gradient-12: linear-gradient(90deg, #0094c7, #00db72);
-	--color-style-background-12: rgba(0, 199, 199, 0.05);
-
-	--color-style-gradient-blue-green: linear-gradient(90deg, #0094c7, #00db72);
-	--color-style-background-blue-green: rgba(0, 199, 199, 0.05);
-
-	--color-style-gradient-13: linear-gradient(90deg, #f4b206, #fe8955, #ff38b7);
-	--color-style-background-13: hsl(168deg 65% 97% / 5%);
-
-	--color-style-gradient-orange-red: linear-gradient(90deg, #f4b206, #fe8955, #ff38b7);
-	--color-style-background-orange-red: hsl(168deg 65% 97% / 5%);
-
-	--color-style-gradient-14: linear-gradient(90deg, #08dd04, #ffb800);
-	--color-style-background-14: hsl(168deg 65% 97% / 5%);
-
-	--color-style-gradient-green-orange: linear-gradient(90deg, #08dd04, #ffb800);
-	--color-style-background-green-orange: hsl(168deg 65% 97% / 5%);
-
-	--color-style-gradient-15: linear-gradient(90deg, #017fff, #ff8ade);
-	--color-style-background-15: hsl(168deg 65% 97% / 5%);
-
-	--color-style-gradient-blue-pink: linear-gradient(90deg, #017fff, #ff8ade);
-	--color-style-background-blue-pink: hsl(168deg 65% 97% / 5%);
-
-	--color-style-gradient-16: linear-gradient(90deg, #f05053, #f5ce00, #99db00);
-	--color-style-background-16: hsl(168deg 65% 97% / 5%);
-
-	--color-style-gradient-red-green: linear-gradient(90deg, #f05053, #f5ce00, #99db00);
-	--color-style-background-red-green: hsl(168deg 65% 97% / 5%);
-
-	--color-style-gradient-17: linear-gradient(90deg, #6083ff, #c023f8);
-	--color-style-background-17: hsl(168deg 65% 97% / 5%);
-
-	--color-style-gradient-blue-purple: linear-gradient(90deg, #6083ff, #c023f8);
-	--color-style-background-blue-purple: hsl(168deg 65% 97% / 5%);
-
-	--color-style-gradient-18: linear-gradient(90deg, #943ff9, #ff7800);
-	--color-style-background-18: hsl(168deg 65% 97% / 5%);
-
-	--color-style-gradient-purple-orange: linear-gradient(90deg, #943ff9, #ff7800);
-	--color-style-background-purple-orange: hsl(168deg 65% 97% / 5%);
-
-	--color-style-gradient-19: linear-gradient(246.66deg, #8a939d 7.94%, #121315 93.7%);
-	--color-style-background-19: hsl(0deg 0% 0% / 5%);
-
-	--color-style-gradient-black: linear-gradient(246.66deg, #8a939d 7.94%, #121315 93.7%);
-	--color-style-background-black: hsl(0deg 0% 0% / 5%);
-
+	--z-index-background: -1;
+	--z-index-foreground: 1;
+	--z-index-selected-cell: 2;
+	--z-index-base: 100;
+	--z-index-article-modal: 200;
+	--z-index-article-confirm-modal: 300;
+	--z-index-popover: 1000;
 	--z-index-nav-layout: 102;
+	--z-index-header-navigation: 103;
+	--z-index-article-search: 110;
 }
 
-:root.theme-light {
+[data-theme="light"] {
 	--color-lev-sidebar-hover: #ffffffa3;
 
 	--color-block: hsl(0deg 0% 98%);
@@ -234,6 +129,11 @@
 	--color-article-hotkey-search-bg-active: #ffa800ef;
 
 	--color-placeholder: #a9a9a9;
+
+	--color-property-bg-border: #e4e4e7;
+	--color-property-bg-main: #f8fafc;
+	--color-property-text-name: #1e293b;
+	--filter-property: 95%;
 
 	--color-link: #126199;
 	--color-code-text: #944c4c;
@@ -296,7 +196,7 @@
 	--color-text-main: #686868;
 	--color-text-secondary: #969696;
 
-	--color-input-disabled-text: #cfcfcf;
+	--color-input-disabled-text: #4e526366;
 
 	--color-btn-stroke: var(--color-text-accent);
 
@@ -314,9 +214,11 @@
 	--color-resolve-comment-text: #a4a4a4;
 
 	--content-file-plus: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" style="color: rgb(18, 97, 153)" width="23" height="16" viewBox="1 1 22 22" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-file-plus"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M9 15h6"/><path d="M12 18v-6"/></svg>');
+
+	--color-navigation-article-drop-target: #e2e8f0;
 }
 
-:root.theme-dark {
+[data-theme="dark"] {
 	--color-primary: white;
 	--color-primary-inverse: black;
 	--color-block: #182b39cf;
@@ -356,7 +258,12 @@
 	--color-article-search-bg: #313547;
 
 	/* --color-placeholder: #5c5d64; */
-	--color-placeholder: #abb2d480;
+	--color-placeholder: #abb2d4cc;
+
+	--color-property-bg-border: #27272a;
+	--color-property-bg-main: #020617;
+	--color-property-text-name: #e2e8f0;
+	--filter-property: 80%;
 
 	--color-link: var(--color-link-dark-theme);
 	--color-code-text: hsl(0deg 40% 60%);
@@ -439,4 +346,6 @@
 	--color-added-text-opacity: rgb(100 206 112 / 60%);
 
 	--content-file-plus: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" style="color: rgb(36, 149, 229)" width="23" height="16" viewBox="1 1 22 22" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-file-plus"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M9 15h6"/><path d="M12 18v-6"/></svg>');
+
+	--color-navigation-article-drop-target: #334155;
 }

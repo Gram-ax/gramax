@@ -3,12 +3,10 @@
 **/.next/
 **/dist/
 services/
-storybook/
 **/*.dockerignore
 **/*.Dockerfile
 deploy/
 docs/
-e2e/
 .ci/
 core/extensions/security/logic/AuthProviders/dropbox.ts
 **/*.cem

@@ -1,4 +1,4 @@
-import { Editor } from "@tiptap/core";
+import { Editor } from "@tiptap/react";
 
 export default abstract class EditorService {
 	private static _editor: Editor;

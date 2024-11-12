@@ -12,6 +12,7 @@ const isDesktop = getExecutingEnvironment() == "tauri";
 
 export default class DiskFileProvider implements FileProvider {
 	private _rootPath: Path;
+	private _mountPath: Path;
 
 	constructor(rootPath: Path | string, private _watcher?: Watcher) {
 		if (typeof rootPath === "string") this._rootPath = new Path(rootPath);
@@ -20,11 +21,23 @@ export default class DiskFileProvider implements FileProvider {
 	}
 
 	get storageId(): string {
-		return `Disk@${this._rootPath.value}`;
+		return `Disk@${this._toAbsolute(Path.empty)}`;
 	}
 
 	get rootPath(): Path {
-		return this._rootPath;
+		return new Path(this._toAbsolute(Path.empty));
+	}
+
+	get isReadOnly(): boolean {
+		return false;
+	}
+
+	get isFallbackOnRoot(): boolean {
+		return false;
+	}
+
+	withMountPath(path: Path) {
+		this._mountPath = path;
 	}
 
 	getItemRef(path: Path): ItemRef {
@@ -211,7 +224,7 @@ export default class DiskFileProvider implements FileProvider {
 	private async _copyFile(oldFilePath: Path, newFilePath: Path) {
 		this._watcher?.stop();
 		try {
-			const content = await this.read(oldFilePath);
+			const content = await this.readAsBinary(oldFilePath);
 			if (!(await this.exists(oldFilePath))) return;
 			await this.write(newFilePath, content);
 		} finally {
@@ -224,6 +237,13 @@ export default class DiskFileProvider implements FileProvider {
 	}
 
 	private _toAbsolute(path: Path): string {
-		return this._rootPath.join(path).value;
+		if (!this._mountPath && !this._rootPath) throw new Error("Mount path nor root path are not set");
+
+		if (this._mountPath) {
+			if (this._rootPath) return this._mountPath.join(this._rootPath, path).value;
+			return this._mountPath.join(path).value;
+		}
+
+		return this._rootPath ? this._rootPath.join(path).value : path.value;
 	}
 }

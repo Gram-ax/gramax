@@ -26,6 +26,15 @@ const COMMANDS: &[&str] = &[
   "get_parent",
   "get_content",
   "graph_head_upstream_files",
+  "find_refs_by_globs",
+  "is_init",
+  "is_bare",
+  "set_head",
+  "git_read_dir",
+  "git_file_stat",
+  "git_file_exists",
+  "git_read_file",
+  "invalidate_repo_cache",
 ];
 
 fn main() {

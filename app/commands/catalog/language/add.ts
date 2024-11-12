@@ -18,7 +18,7 @@ const add: Command<{ ctx: Context; code: ContentLanguage; catalogName: string },
 	kind: ResponseKind.none,
 
 	async do({ ctx, code, catalogName }) {
-		const { wm, resourceUpdaterFactory, rp } = this._app;
+		const { wm, resourceUpdaterFactory } = this._app;
 
 		if (!code || !ContentLanguage[code]) throw new Error("No content language code provided");
 		const catalog = await wm.current().getCatalog(catalogName);
@@ -33,7 +33,7 @@ const add: Command<{ ctx: Context; code: ContentLanguage; catalogName: string },
 		let languageCategory = catalog.findArticle(`${catalogName}/${code}`, [filter]) as Category;
 		if (!languageCategory) languageCategory = await catalog.createCategory(code);
 
-		await catalog.updateProps(resourceUpdaterFactory.withContext(ctx), rp, catalog.props);
+		await catalog.updateProps(resourceUpdaterFactory.withContext(ctx), catalog.props);
 
 		addExternalItems(
 			catalog.getRootCategory(),

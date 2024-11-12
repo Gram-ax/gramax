@@ -1,7 +1,7 @@
-import { ItemType } from "@core/FileStructue/Item/ItemType";
 import { NodeModel } from "@minoru/react-dnd-treeview";
 import hash from "object-hash";
 import { CategoryLink, ItemLink } from "../../../NavigationLinks";
+import { isDeepestArticle } from "@ext/artilce/actions/CreateArticle";
 
 abstract class DragTreeTransformer {
 	static getRootId() {
@@ -12,12 +12,14 @@ abstract class DragTreeTransformer {
 		const dragNavItems: NodeModel<ItemLink>[] = [];
 
 		const func = (item: ItemLink, parentId?: number | string) => {
-			if (item.type === ItemType.article) dragNavItems.push(this.getDragNavItem(item, false, parentId));
-			else {
-				const droppable = (item as CategoryLink).items.length !== 0;
-				dragNavItems.push(this.getDragNavItem(item, droppable, parentId));
-				if (droppable) (item as CategoryLink).items.forEach((i) => func(i, this._getNodeId(item)));
-			}
+			dragNavItems.push(
+				this.getDragNavItem(
+					item,
+					!!(item as CategoryLink).items?.length || !isDeepestArticle(item.ref.path),
+					parentId,
+				),
+			);
+			(item as CategoryLink).items?.forEach((i) => func(i, this._getNodeId(item)));
 		};
 
 		items.forEach((i) => func(i, this.getRootId()));
@@ -49,6 +51,7 @@ abstract class DragTreeTransformer {
 				external: item.external,
 				pathname: item.pathname,
 				isCurrentLink: item.isCurrentLink,
+				items: (item as CategoryLink).items,
 				isExpanded: (item as CategoryLink)?.isExpanded ?? false,
 				existContent: (item as CategoryLink)?.existContent ?? false,
 			} as any,

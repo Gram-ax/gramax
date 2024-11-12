@@ -11,6 +11,7 @@ abstract class IPermission {
 
 	enough(permissions: IPermission, isFull?: boolean): boolean {
 		if (!permissions || !this) return false;
+		if (!permissions.isWorked() || !this.isWorked()) return false;
 		return this._enough(permissions, isFull) || permissions._enough(this, isFull);
 	}
 

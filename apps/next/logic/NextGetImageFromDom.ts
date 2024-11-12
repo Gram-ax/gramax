@@ -2,7 +2,7 @@ import { ImageDimensionsFinder } from "@ext/markdown/elements/image/word/ImageDi
 import { MAX_WIDTH, SCALE } from "@ext/wordExport/options/wordExportSettings";
 import NextSvgToPng from "./NextSvgToPng";
 
-const getImageFromDom = async (tag: string, fitContent: boolean) => {
+const getImageFromDom = async (tag: string) => {
 	return NextSvgToPng(tag, ImageDimensionsFinder.getSvgDimensions(tag, MAX_WIDTH), SCALE);
 };
 

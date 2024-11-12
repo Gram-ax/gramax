@@ -21,7 +21,7 @@ export default class Diagrams {
 	getDiagram(type: DiagramType, content: string, count?: number): Promise<string> {
 		switch (type) {
 			case DiagramType["plant-uml"]:
-				return getPlantUmlDiagram(content);
+				return getPlantUmlDiagram(content, this._diagramRendererServerUrl);
 			case DiagramType.mermaid:
 				return getMermaidDiagram(content);
 			case DiagramType["c4-diagram"]:

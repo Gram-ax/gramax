@@ -17,11 +17,12 @@ const fetchCmd: Command<{ ctx: Context; catalogName: string }, void> = Command.c
 		const workspace = wm.current();
 
 		const catalog = await workspace.getCatalog(catalogName);
+
 		const storage = catalog?.repo.storage;
 		if (!storage) return;
 		const data = rp.getSourceData(ctx.cookie, await storage.getSourceName());
 		if (!data) return;
-		await storage.fetch(data);
+		await storage.fetch(data, catalog.repo.isBare);
 
 		logger.logTrace(`Fetched in catalog "${catalogName}".`);
 	},

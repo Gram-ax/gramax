@@ -35,11 +35,11 @@ const CreateGitSourceData = ({
 	};
 
 	const onChange = (data: GitSourceFormData) => {
-		const { domain, protocol } = parseStorageUrl(data.url);
+		const { domain, protocol, origin } = parseStorageUrl(data.url);
 		if (domain && protocol) {
 			data.domain = domain;
 			data.protocol = protocol;
-			data.url = `${protocol}://${domain}`;
+			data.url = origin;
 			setThisProps({ ...data });
 		}
 	};

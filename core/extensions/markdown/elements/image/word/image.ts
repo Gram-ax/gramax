@@ -28,8 +28,8 @@ export const imageWordLayout = async (tag: Tag, addOptions: AddOptionsWord, pars
 					),
 				],
 				style: WordFontStyles.picture,
+				keepNext: true,
 			}),
-
 			...AnnotationText.getText(tag.attributes.title, tag.attributes.objects),
 		];
 	} catch (error) {

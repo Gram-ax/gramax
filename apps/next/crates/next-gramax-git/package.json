@@ -1,0 +1,10 @@
+{
+	"name": "next-gramax-git",
+	"version": "0.0.0",
+	"description": "",
+	"types": "index.d.ts",
+	"main": "index.node",
+	"scripts": {
+		"build": "napi build --release --strip && mv index.node gramax-git.node"
+	}
+}

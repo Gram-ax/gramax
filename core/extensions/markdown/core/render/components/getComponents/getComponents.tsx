@@ -1,3 +1,4 @@
+import ReadonlyListItem from "@ext/markdown/elements/list/render/ReadonlyListItem";
 import { ReactNode } from "react";
 import DiagramType from "../../../../../../logic/components/Diagram/DiagramType";
 import DiagramData from "../../../../elements/diagrams/component/DiagramData";
@@ -38,6 +39,7 @@ import Video from "../../../../elements/video/render/components/Video";
 import When from "../../../../elements/whowhen/render/When";
 import Who from "../../../../elements/whowhen/render/Who";
 import ParserContext from "../../../Parser/ParserContext/ParserContext";
+import View from "@ext/markdown/elements/view/render/components/View";
 
 export default function getComponents(): { [name: string]: (...props: any) => ReactNode } {
 	return {
@@ -60,10 +62,12 @@ export default function getComponents(): { [name: string]: (...props: any) => Re
 		When,
 		Kbd,
 		Html,
+		View,
 		Image,
 		"Img-h": Images,
 		"Img-v": Images,
 		See,
+		Li: ReadonlyListItem,
 		OpenApi,
 		Fn,
 		Note,

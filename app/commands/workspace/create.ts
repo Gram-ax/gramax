@@ -1,8 +1,8 @@
-import setWorkerProxy from "../../../apps/browser/src/logic/setWorkerProxy";
 import { getExecutingEnvironment } from "@app/resolveModule/env";
 import { ResponseKind } from "@app/types/ResponseKind";
 import { DesktopModeMiddleware } from "@core/Api/middleware/DesktopModeMiddleware";
 import type { ClientWorkspaceConfig } from "@ext/workspace/WorkspaceConfig";
+import setWorkerProxy from "../../../apps/browser/src/logic/setWorkerProxy";
 import { Command } from "../../types/Command";
 
 const create: Command<{ config: ClientWorkspaceConfig }, void> = Command.create({
@@ -18,7 +18,7 @@ const create: Command<{ config: ClientWorkspaceConfig }, void> = Command.create(
 		const id = await wm.addWorkspace(path, init, true);
 		await wm.setWorkspace(id);
 		// TODO: Remove if
-		if (getExecutingEnvironment() == "browser") setWorkerProxy(wm.current().config().services?.cors?.url);
+		if (getExecutingEnvironment() == "browser") setWorkerProxy(wm.current().config().services?.gitProxy?.url);
 	},
 
 	params(ctx, q, body) {

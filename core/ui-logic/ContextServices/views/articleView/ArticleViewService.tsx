@@ -1,9 +1,8 @@
 import ArticlePage from "@components/ArticlePage/ArticlePage";
 import IsFirstLoadService from "@core-ui/ContextServices/IsFirstLoadService";
 import ArticleLoadingView from "@core-ui/ContextServices/views/articleView/ArticleLoadingView";
-import useWatch from "@core-ui/hooks/useWatch";
 import { ArticlePageData } from "@core/SitePresenter/SitePresenter";
-import { createContext, ReactElement, ReactNode, useContext, useEffect, useState } from "react";
+import { createContext, ReactElement, ReactNode, useContext, useEffect, useLayoutEffect, useState } from "react";
 
 type ArticleViewComponent = (data: ArticlePageData) => ReactNode;
 
@@ -32,7 +31,7 @@ abstract class ArticleViewService {
 		_setArticleView = setArticleView;
 		_setUseArticleDefaultStyles = setUseArticleDefaultStyles;
 
-		useWatch(() => {
+		useLayoutEffect(() => {
 			ArticleViewService._articlePageData = articlePageData;
 			const currentComponent = ArticleViewService._currentComponent
 				? ArticleViewService._currentComponent(articlePageData)

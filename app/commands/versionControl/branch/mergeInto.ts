@@ -2,7 +2,7 @@ import { ResponseKind } from "@app/types/ResponseKind";
 import ReloadConfirmMiddleware from "@core/Api/middleware/ReloadConfirmMiddleware";
 import MergeConflictCaller from "@ext/git/actions/MergeConflictHandler/model/MergeConflictCaller";
 import MergeData from "@ext/git/actions/MergeConflictHandler/model/MergeData";
-import { RepMergeConflictState } from "@ext/git/core/Repository/model/RepostoryState";
+import type { RepositoryMergeConflictState } from "@ext/git/core/Repository/state/RepositoryState";
 import { AuthorizeMiddleware } from "../../../../core/logic/Api/middleware/AuthorizeMiddleware";
 import Context from "../../../../core/logic/Context/Context";
 import { Command } from "../../../types/Command";
@@ -25,11 +25,9 @@ const mergeInto: Command<
 		if (!storage) return;
 
 		const sourceData = rp.getSourceData(ctx.cookie, await storage.getSourceName());
-		const mergeResult = await catalog.repo.mergeInto(branchName, deleteAfterMerge, sourceData);
+		const mergeResult = await catalog.repo.merge({ data: sourceData, targetBranch: branchName, deleteAfterMerge });
 		const state = await catalog.repo.getState();
-		if (!mergeResult.length) {
-			await catalog.update(rp);
-		}
+		if (!mergeResult.length) await catalog.update();
 
 		const isOk = !mergeResult.length;
 		return isOk
@@ -37,7 +35,7 @@ const mergeInto: Command<
 			: {
 					ok: false,
 					mergeFiles: mergeResult,
-					reverseMerge: (state as RepMergeConflictState).data.reverseMerge,
+					reverseMerge: (state.inner as RepositoryMergeConflictState).data.reverseMerge,
 					caller: MergeConflictCaller.Branch,
 			  };
 	},

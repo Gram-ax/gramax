@@ -10,7 +10,7 @@ import { makeSourceApi } from "../makeSourceApi";
 const removeExpiredSources = async (apiUrlCreator: ApiUrlCreator, pageProperties: PageDataContext) => {
 	for (const source of pageProperties.sourceDatas) {
 		const sourceApi = makeSourceApi(source, pageProperties.conf.authServiceUrl);
-		if (!sourceApi) return;
+		if (!sourceApi) continue;
 		const sourceToRemove = await sourceApi.removeExpiredCredentials(apiUrlCreator);
 		if (!sourceToRemove) continue;
 		pageProperties.sourceDatas = pageProperties.sourceDatas.filter(

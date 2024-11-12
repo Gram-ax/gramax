@@ -75,6 +75,7 @@ const Annotation = (props: AnnotationObjectProps) => {
 };
 
 export default styled(Annotation)`
+	font-size: 1em;
 	position: absolute;
 	display: flex;
 	justify-content: center;
@@ -88,6 +89,9 @@ export default styled(Annotation)`
 	pointer-events: auto !important;
 	${(p) => `border-${p.direction}-radius: 4px;`}
 	${(p) => p.editable && "cursor: grab;"}
+	${(p) => !p.editable && p.direction === "bottom-left" && "margin-left: -0.75em; margin-top: -0.75em;"}
+	${(p) => !p.editable && p.direction === "bottom-right" && "margin-left: -0.75em; margin-top: -0.75em;"}
+	${(p) => !p.editable && p.direction === "top-right" && "margin-left: -0.75em;"}
 
 	:active {
 		${(p) => p.editable && "cursor: grabbing;"}

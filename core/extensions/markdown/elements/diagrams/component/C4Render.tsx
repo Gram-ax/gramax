@@ -145,7 +145,7 @@ const C4Render = styled(
 		margin: 0px;
 		display: flex;
 		flex-direction: column;
-		z-index: 5000;
+		z-index: var(--z-index-popover);
 
 		> div:last-child {
 			height: 100%;

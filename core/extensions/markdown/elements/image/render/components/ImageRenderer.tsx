@@ -1,5 +1,5 @@
 import AlertError from "@components/AlertError";
-import { GifImage } from "@components/Atoms/Image/GifImage";
+import GifImage from "@components/Atoms/Image/GifImage";
 import Image from "@components/Atoms/Image/Image";
 import { resolveImageKind } from "@components/Atoms/Image/resolveImageKind";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
@@ -26,6 +26,7 @@ interface ImageProps {
 	id?: string;
 	style?: CSSProperties;
 	scale?: number;
+	readFromHead?: boolean;
 	className?: string;
 	onError?: ReactEventHandler<HTMLImageElement>;
 	updateAttributes?: (attributes: Record<string, any>) => void;
@@ -59,9 +60,9 @@ const ImageR = (props: ImageProps): ReactElement => {
 
 	return (
 		<div className={className}>
-			<div ref={mainContainerRef} className="main__container">
-				<div className="resizer__container" data-focusable="true">
-					<div ref={imageContainerRef} className="image__container">
+			<div ref={mainContainerRef} className="image-container">
+				<div className="resizer-container" data-focusable="true">
+					<div ref={imageContainerRef}>
 						<Image
 							ref={imgElementRef}
 							id={id}
@@ -102,14 +103,13 @@ const ImageR = (props: ImageProps): ReactElement => {
 };
 
 const StyledImageR = styled(ImageR)`
-	.main__container {
+	.image-container {
 		display: flex;
 		justify-content: center;
 		margin: 0.5em auto 0.5em auto;
-		max-width: calc(100% - 1.5em);
 	}
 
-	.resizer__container {
+	.resizer-container {
 		display: flex;
 		position: relative;
 		border-radius: var(--radius-small);
@@ -121,7 +121,7 @@ const StyledImageR = styled(ImageR)`
 `;
 
 const ImageRenderer = (props: ImageProps): ReactElement => {
-	const { realSrc, title } = props;
+	const { realSrc, title, readFromHead } = props;
 	const [error, setError] = useState<boolean>(false);
 	const isGif = new Path(realSrc).extension == "gif";
 	const apiUrlCreator = ApiUrlCreatorService.value;
@@ -132,10 +132,16 @@ const ImageRenderer = (props: ImageProps): ReactElement => {
 		setImageSrc(URL.createObjectURL(newSrc));
 	};
 
-	OnLoadResourceService.useGetContent(realSrc, apiUrlCreator, (buffer: Buffer) => {
-		if (!buffer) return;
-		setSrc(new Blob([buffer], { type: resolveImageKind(buffer) }));
-	});
+	OnLoadResourceService.useGetContent(
+		realSrc,
+		apiUrlCreator,
+		(buffer: Buffer) => {
+			if (!buffer) return;
+			setSrc(new Blob([buffer], { type: resolveImageKind(buffer) }));
+		},
+		undefined,
+		readFromHead,
+	);
 
 	if (error)
 		return (

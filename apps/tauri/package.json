@@ -7,12 +7,14 @@
 		"dev": "vite --host",
 		"build": "vite build",
 		"preview": "vite preview",
-		"tauri": "tauri"
+		"tauri": "tauri",
+		"tauri:cli": "cargo install tauri-cli",
+		"tauri:dev": "cargo tauri dev"
 	},
 	"dependencies": {
-		"@tauri-apps/api": "^2.0.0-beta.0",
-		"@tauri-apps/plugin-dialog": "^2.0.0-beta.0",
-		"@tauri-apps/plugin-log": "^2.0.0-beta.0"
+		"@tauri-apps/api": "^2.0.0",
+		"@tauri-apps/plugin-dialog": "^2.0.0",
+		"@tauri-apps/plugin-log": "^2.0.0"
 	},
 	"devDependencies": {
 		"internal-ip": "^8.0.0",

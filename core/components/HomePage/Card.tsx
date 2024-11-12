@@ -15,17 +15,14 @@ import t from "@ext/localization/locale/translate";
 import { CatalogLink } from "@ext/navigation/NavigationLinks";
 import { useState } from "react";
 
-const Card = ({
-	link,
-	style,
-	className,
-	onClick,
-}: {
+interface CardProps {
 	link: CatalogLink;
 	style?: "big" | "small";
 	onClick?: () => void;
 	className?: string;
-}) => {
+}
+
+const Card = ({ link, style, className, onClick }: CardProps) => {
 	const apiUrlCreator = ApiUrlCreatorService.value;
 	const { isCloning, isWait, error } = useCloneProgress(link.isCloning, link.name);
 	const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -106,7 +103,7 @@ export default styled(Card)`
 	.spinner-loader {
 		height: 100%;
 		width: 100%;
-		z-index: 100;
+		z-index: var(--z-index-base);
 		display: flex;
 		align-items: end;
 		justify-content: right;

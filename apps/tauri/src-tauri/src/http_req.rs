@@ -1,8 +1,11 @@
+use std::collections::HashMap;
+
 use serde::Deserialize;
 use serde::Serialize;
 
 use tauri::*;
 
+use reqwest::header::*;
 use reqwest::Method;
 
 #[derive(Deserialize)]
@@ -21,17 +24,21 @@ pub enum ResponseBody {
 }
 
 #[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct Request {
   url: String,
   body: Option<String>,
   method: Option<String>,
+  headers: Option<HashMap<String, String>>,
   auth: Option<Auth>,
 }
 
 #[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct Response {
   body: ResponseBody,
   status: u16,
+  content_type: Option<String>,
 }
 
 #[derive(Serialize)]
@@ -62,19 +69,29 @@ pub async fn http_request(req: Request) -> std::result::Result<Response, Request
     None => request,
   };
 
+  let request = match req.headers {
+    Some(headers) => {
+      let mut header_map = HeaderMap::new();
+      for (name, value) in headers {
+        let Ok(name) = HeaderName::from_lowercase(name.to_lowercase().as_bytes()) else { continue };
+        let Ok(value) = HeaderValue::from_str(&value) else { continue };
+        header_map.insert(name, value);
+      }
+      request.headers(header_map)
+    }
+    None => request,
+  };
+
   let response = request.send().await?;
   let status = response.status().as_u16();
-  let is_text = response
-    .headers()
-    .get("Content-Type")
-    .and_then(|v| v.to_str().ok())
-    .map(|v| v.contains("application/json") || v.contains("text"))
-    .unwrap_or(false);
+  let content_type = response.headers().get("Content-Type").and_then(|v| v.to_str().ok().map(String::from));
+
+  let is_text = matches!(content_type.as_deref(), Some("application/json") | Some("text") | None);
 
   let body = match is_text {
     true => ResponseBody::Text(response.text().await?),
     false => ResponseBody::Binary(response.bytes().await?.to_vec()),
   };
 
-  Ok(Response { status, body })
+  Ok(Response { status, content_type, body })
 }

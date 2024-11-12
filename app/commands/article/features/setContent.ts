@@ -5,7 +5,7 @@ import ReloadConfirmMiddleware from "@core/Api/middleware/ReloadConfirmMiddlewar
 import Context from "@core/Context/Context";
 import Path from "@core/FileProvider/Path/Path";
 import { Article } from "@core/FileStructue/Article/Article";
-import { ArticlePageData } from "@core/SitePresenter/SitePresenter";
+import { ArticlePageData, GetArticlePageDataOptions } from "@core/SitePresenter/SitePresenter";
 import { Command } from "../../../types/Command";
 
 const setContent: Command<{ ctx: Context; catalogName: string; articlePath: Path; content: string }, ArticlePageData> =
@@ -24,7 +24,13 @@ const setContent: Command<{ ctx: Context; catalogName: string; articlePath: Path
 			const article = catalog.findItemByItemPath<Article>(articlePath);
 			if (!article) return;
 			await article.updateContent(content ?? "");
-			return await sitePresenterFactory.fromContext(ctx).getArticlePageData(article, catalog);
+
+			const opts: GetArticlePageDataOptions = {
+				editableContent: !this._app.conf.isReadOnly,
+				markdown: this._app.conf.isReadOnly,
+			};
+
+			return await sitePresenterFactory.fromContext(ctx).getArticlePageData(article, catalog, opts);
 		},
 
 		params(ctx, q, body) {

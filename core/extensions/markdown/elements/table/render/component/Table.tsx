@@ -1,5 +1,5 @@
 import { ReactElement, useEffect, useRef } from "react";
-import TableWrapper, { CELL_MIN_WIDTH } from "@ext/markdown/elements/table/render/component/TableWrapper";
+import WidthWrapper, { CELL_MIN_WIDTH } from "@components/WidthWrapper/WidthWrapper";
 
 const setTableCellsWidth = (table: HTMLTableElement) => {
 	const tds = table.getElementsByTagName("td");
@@ -30,13 +30,13 @@ const Table = ({ children }: { children?: any }): ReactElement => {
 	});
 
 	return (
-		<TableWrapper>
+		<WidthWrapper>
 			{typeof children === "string" ? (
 				<table ref={ref} dangerouslySetInnerHTML={{ __html: children }} suppressHydrationWarning={true} />
 			) : (
 				<table ref={ref}>{children}</table>
 			)}
-		</TableWrapper>
+		</WidthWrapper>
 	);
 };
 

@@ -11,7 +11,7 @@ export class ApiRedirectMiddleware extends Middleware {
 	}
 
 	async Process(req: ApiRequest, res: ApiResponse): Promise<void> {
-		if (this._app.conf.isServerApp) return await this._next.Process(req, res);
+		if (this._app.conf.isReadOnly) return await this._next.Process(req, res);
 		const url = { pathname: redirectServerURL + this._apiRoute, query: req.query as { [name: string]: string } };
 		res.statusCode = 302;
 		res.setHeader("Location", Url.from(url).toString());

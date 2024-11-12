@@ -31,7 +31,7 @@ services:
     restart: unless-stopped
     depends_on:
       - api-gateway
-      - cors-proxy
+      - git-proxy
     environment:
       - PORT=80
       - PRODUCTION=true
@@ -52,12 +52,12 @@ services:
         ports: [9001:80]
         <<: *common-settings
 
-    cors-proxy:
+    git-proxy:
         build:
-            dockerfile: ./services/target/cors-proxy/Dockerfile
+            dockerfile: ./services/target/git-proxy/Dockerfile
             args:
                 <<: *common-args
-        container_name: gramax-cors-proxy
+        container_name: gramax-git-proxy
         depends_on: [api-gateway]
         environment: [PORT=80]
         ports: [9002:80]
@@ -115,7 +115,7 @@ services:
             - ENTERPRISE_SOURCE_USER=gramax
             - ENTERPRISE_SOURCE_TYPE=gitea
             - ENTERPRISE_SOURCE_DOMAIN=${GRAMAX_SITE_URL:-localhost}/-server/storage
-            - ENTERPRISE_SOURCE_ADMIN_TOKEN=${GRAMAX_SERVICE_GITEA_ADMIN_TOKEN:-f283c0cc7e77aa703d29f70882938db0f440ab05}
+            - ENTERPRISE_GIT_SERVER_TOKEN=${GRAMAX_SERVICE_GITEA_ADMIN_TOKEN:-f283c0cc7e77aa703d29f70882938db0f440ab05}
             - ENTERPRISE_SOURCE_REVIEWER_TOKEN=${GRAMAX_SERVICE_GITEA_REVIEWER_TOKEN:-05edb9997484d55a04b59405fdc9fa49b06e5ec1}
         ports: [9007:80]
         <<: *common-settings

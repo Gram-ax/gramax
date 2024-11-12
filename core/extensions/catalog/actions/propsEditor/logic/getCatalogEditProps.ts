@@ -11,6 +11,7 @@ const getCatalogEditProps = (props: ClientCatalogProps): CatalogEditProps => {
 		style: props.link?.style,
 		properties: props.properties,
 		language: props.language,
+		versions: props.versions,
 		// private: props.private,
 	};
 };

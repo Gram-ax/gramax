@@ -22,7 +22,7 @@ export type EventFn<P, R> = (payload: P) => R;
 
 export type Event<N extends string, Args extends object = object> = FilterNever<EventInner<N, Args>>;
 
-export type EventListener<E extends EventPlaceholder> = Omit<EventEmitter<E>, "emit">;
+export type EventListener<E extends EventPlaceholder> = Omit<EventEmitter<E>, "emit" | "emitSync">;
 
 export type UnsubscribeToken = { key: WeakKey };
 

@@ -200,6 +200,7 @@ export const publishApiData: { items: DiffItem[]; resources: DiffResource[] } = 
 
 export const publishSideBarData: SideBarData[] = [
 	{
+		isResource: false,
 		data: {
 			title: "Статья 2 уровня",
 			filePath: {
@@ -227,6 +228,7 @@ export const publishSideBarData: SideBarData[] = [
 		},
 	},
 	{
+		isResource: false,
 		data: {
 			title: "123",
 			filePath: {
@@ -249,6 +251,7 @@ export const publishSideBarData: SideBarData[] = [
 		},
 	},
 	{
+		isResource: false,
 		data: {
 			title: "Статья 2 уровня 2",
 			filePath: {
@@ -258,10 +261,15 @@ export const publishSideBarData: SideBarData[] = [
 			logicPath: "testCatalog/catalog/category/FirstLevel/FirstLevelArticle2",
 			resources: [
 				{
-					filePath: {
-						path: "docs/catalog/category/FirstLevel/FirstLevelArticle2.md/resource.res",
+					isResource: true,
+					data: {
+						changeType: FileStatus.modified,
+						filePath: {
+							path: "docs/catalog/category/FirstLevel/FirstLevelArticle2.md/resource.res",
+						},
+						title: "Ресурс",
 					},
-					title: "Ресурс",
+
 					diff: {
 						changes: [
 							{
@@ -303,6 +311,7 @@ export const publishSideBarData: SideBarData[] = [
 		},
 	},
 	{
+		isResource: false,
 		data: {
 			title: "123 2",
 			filePath: {
@@ -350,6 +359,7 @@ export const publishSideBarData: SideBarData[] = [
 		},
 	},
 	{
+		isResource: false,
 		data: {
 			title: "Статья на русском 2",
 			filePath: {
@@ -376,27 +386,31 @@ export const publishSideBarData: SideBarData[] = [
 			logicPath: "testCatalog/multilang/lang2",
 			resources: [
 				{
-					filePath: {
-						oldPath: "docs/catalog/category/FirstLevel/FirstLevelArticle2.md/resource2.res",
-						path: "docs/category/FirstLevel/FirstLevelArticle2.md/resource2.res",
-						diff: [
-							{
-								value: "docs/",
-							},
-							{
-								value: "catalog",
-								type: FileStatus.delete,
-							},
-							{
-								value: "category",
-								type: FileStatus.new,
-							},
-							{
-								value: "/FirstLevel/FirstLevelArticle2.md/resource2.res",
-							},
-						],
+					isResource: true,
+					data: {
+						changeType: FileStatus.modified,
+						filePath: {
+							oldPath: "docs/catalog/category/FirstLevel/FirstLevelArticle2.md/resource2.res",
+							path: "docs/category/FirstLevel/FirstLevelArticle2.md/resource2.res",
+							diff: [
+								{
+									value: "docs/",
+								},
+								{
+									value: "catalog",
+									type: FileStatus.delete,
+								},
+								{
+									value: "category",
+									type: FileStatus.new,
+								},
+								{
+									value: "/FirstLevel/FirstLevelArticle2.md/resource2.res",
+								},
+							],
+						},
+						title: "Переименованный ресурс",
 					},
-					title: "Переименованный ресурс",
 					diff: {
 						changes: [
 							{
@@ -439,6 +453,7 @@ export const publishSideBarData: SideBarData[] = [
 	},
 	null,
 	{
+		isResource: false,
 		data: {
 			title: "file.map",
 			filePath: {
@@ -479,6 +494,7 @@ export const publishSideBarData: SideBarData[] = [
 		},
 	},
 	{
+		isResource: false,
 		data: {
 			title: "deleted_file.map",
 			filePath: {
@@ -501,6 +517,7 @@ export const publishSideBarData: SideBarData[] = [
 		},
 	},
 	{
+		isResource: false,
 		data: {
 			title: "added_file.map",
 			filePath: {

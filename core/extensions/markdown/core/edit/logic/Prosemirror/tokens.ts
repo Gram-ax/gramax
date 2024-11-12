@@ -1,5 +1,9 @@
 import fenceToken from "@ext/markdown/elements/codeBlockLowlight/edit/logic/token";
 import codeBlockToken from "@ext/markdown/elements/codeBlockLowlight/edit/model/token";
+import { bullet_list } from "@ext/markdown/elements/list/edit/models/bulletList/bulletListToken";
+import { list_item } from "@ext/markdown/elements/list/edit/models/listItem/model/listItemToken";
+import { task_item } from "@ext/markdown/elements/list/edit/models/taskItem/model/taskItemToken";
+import { task_list } from "@ext/markdown/elements/list/edit/models/taskList/model/taskListToken";
 import commentToken from "../../../../elements/comment/edit/model/commentToken";
 import c4DiagramToken from "../../../../elements/diagrams/diagrams/c4Diagram/c4DiagramToken";
 import mermaidToken from "../../../../elements/diagrams/diagrams/mermaid/mermaidToken";
@@ -25,6 +29,7 @@ import tabsToken from "@ext/markdown/elements/tabs/edit/model/tabs/tabsToken";
 import unsupportedToken from "@ext/markdown/elements/unsupported/edit/model/unsupportedToken";
 import { ParseSpec } from "./from_markdown";
 import htmlToken from "@ext/markdown/elements/html/edit/models/htmlToken";
+import viewToken from "@ext/markdown/elements/view/edit/models/viewToken";
 
 function listIsTight(tokens, i) {
 	while (++i < tokens.length) if (tokens[i].type != "list_item_open") return tokens[i].hidden;
@@ -55,6 +60,7 @@ export const getTokens = (context?: ParserContext): { [name: string]: ParseSpec 
 		mermaid: mermaidToken,
 		diagrams: diagramsToken,
 		html: htmlToken,
+		view: viewToken,
 		"plant-uml": plantUmlToken,
 		"c4-diagram": c4DiagramToken,
 		"ts-diagram": tsDiagramToken,
@@ -76,8 +82,10 @@ export const getTokens = (context?: ParserContext): { [name: string]: ParseSpec 
 		blockquote: { block: "blockquote" },
 		paragraph: { block: "paragraph" },
 		error: { block: "error" },
-		list_item: { block: "list_item" },
-		bullet_list: { block: "bullet_list", getAttrs: (_, tokens, i) => ({ tight: listIsTight(tokens, i) }) },
+		list_item,
+		task_item,
+		task_list,
+		bullet_list,
 		ordered_list: {
 			block: "ordered_list",
 			getAttrs: (tok, tokens, i) => ({

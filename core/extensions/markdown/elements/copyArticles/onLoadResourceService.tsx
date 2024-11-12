@@ -33,11 +33,12 @@ abstract class OnLoadResourceService {
 		apiUrlCreator: ApiUrlCreator,
 		callback: (buffer: Buffer) => void,
 		content?: string,
+		readFromHead?: boolean,
 	) {
 		const data = this.value;
 
-		const loadData = async (src: string) => {
-			const url = apiUrlCreator.getArticleResource(src);
+		const loadData = async (src: string, readFromHead?: boolean) => {
+			const url = apiUrlCreator.getArticleResource(src, undefined, readFromHead);
 			const res = await FetchService.fetch(url);
 			if (!res.ok) return;
 
@@ -51,8 +52,13 @@ abstract class OnLoadResourceService {
 		useEffect(() => {
 			if (content) callback(Buffer.from(content));
 			else if (data?.[src]) callback(data[src]);
-			else loadData(src);
+			else loadData(src, readFromHead);
 		}, [src, data?.[src], content]);
+	}
+
+	static clear() {
+		_data = {};
+		_setData({});
 	}
 
 	static update(src: string, buffer: Buffer) {

@@ -1,0 +1,42 @@
+html,
+body,
+div#__next,
+div#root {
+	margin: 0 !important;
+	padding: 0 !important;
+	height: 100dvh !important;
+	font-size: 16px !important;
+	line-height: 1.6 !important;
+	font-weight: 300 !important;
+	letter-spacing: normal !important;
+	scroll-behavior: smooth !important;
+	background-color: var(--color-menu-bg);
+	-webkit-font-smoothing: subpixel-antialiased !important;
+	font-family: -apple-system, BlinkMacSystemFont, Roboto, Helvetica Neue, sans-serif !important;
+}
+
+* {
+	margin: 0;
+	padding: 0;
+	box-sizing: border-box;
+	font-display: swap !important;
+}
+
+*::-webkit-scrollbar-corner {
+	background: var(--color-scroll-bg);
+}
+
+*::-webkit-scrollbar-thumb {
+	background: var(--color-scroll);
+	border-radius: 3px;
+}
+
+input,
+select {
+	font-family: "Roboto", sans-serif;
+	font-weight: 300;
+}
+
+body {
+	overflow: hidden;
+}

@@ -7,8 +7,7 @@ import { Article } from "@core/FileStructue/Article/Article";
 import parseContent from "@core/FileStructue/Article/parseContent";
 import HashResourceManager from "@core/Hash/HashItems/HashResourceManager";
 import { Command } from "../../../types/Command";
-import DiskFileProvider from "@core/FileProvider/DiskFileProvider/DiskFileProvider";
-import fileNameUtils from "@core-ui/fileNameUtils";
+import createImage from "@ext/markdown/elements/copyMsO/createImage";
 
 const createFromPath: Command<
 	{ resourcePath: Path; resourceName: string; catalogName: string; articlePath: Path; ctx: Context },
@@ -28,23 +27,11 @@ const createFromPath: Command<
 		const itemRef = fp.getItemRef(articlePath);
 		const article = catalog.findItemByItemPath<Article>(itemRef.path);
 		if (!article) return;
-
-		const fs = new DiskFileProvider(resourcePath);
-		const img = await fs.readAsBinary(new Path(resourceName));
-		if (!img) return;
-		const items = await fp.getItems(articlePath.parentDirectoryPath);
-		const splitted = resourceName.split(".");
-		const newName = new Path(
-			fileNameUtils.getNewName(
-				items.map((i) => "./" + i.name),
-				splitted[splitted.length - 2],
-				splitted[splitted.length - 1],
-			),
-		);
+		const { newName, data } = await createImage(article, fp, articlePath, resourcePath, resourceName);
 
 		await parseContent(article, catalog, ctx, parser, parserContextFactory);
 		const hashItem = new HashResourceManager(newName, article.parsedContent.resourceManager);
-		await article.parsedContent.resourceManager.setContent(newName, img);
+		await article.parsedContent.resourceManager.setContent(newName, data);
 		hashes.deleteHash(hashItem);
 		return { newName: newName.toString() };
 	},

@@ -11,7 +11,7 @@ let _env: (name: keyof EnvironmentVariable) => string;
 
 executing = "browser";
 
-_env = () => undefined;
+_env = (window as any)?.getEnv ?? (() => undefined);
 
 /// #endif
 // #v-endif

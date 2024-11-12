@@ -7,11 +7,11 @@ import SourceType from "@ext/storage/logic/SourceDataProvider/model/SourceType";
 const getShareDataFromPathnameData = (pathnameData: PathnameData, sourceType: SourceType): ShareData => {
 	let shareData: ShareData = {
 		filePath: pathnameData.filePath.join("/"),
-		name: pathnameData.repName,
+		name: pathnameData.repo,
 		sourceType,
 	};
 	if (isGitSourceType(sourceType)) {
-		const { sourceName: domain, group, branch } = pathnameData;
+		const { sourceName: domain, group, refname: branch } = pathnameData;
 		(shareData as GitShareData) = { ...shareData, domain, group, branch, sourceType: sourceType as SourceType.git };
 	}
 	return shareData;

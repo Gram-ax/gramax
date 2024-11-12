@@ -9,6 +9,7 @@ export interface CloneHandlerProps {
 	skipCheck?: boolean;
 	recursive?: boolean;
 	branch?: string;
+	isBare?: boolean;
 	onStart?: VoidFunction;
 	onFinish?: (path: string) => void;
 	onError?: VoidFunction;
@@ -19,6 +20,7 @@ const cloneHandler = async ({
 	apiUrlCreator,
 	skipCheck = false,
 	recursive = true,
+	isBare = false,
 	branch,
 	onStart = () => {},
 	onError = () => {},
@@ -26,7 +28,7 @@ const cloneHandler = async ({
 	if (!storageData) return;
 
 	const res = await FetchService.fetch(
-		apiUrlCreator.getStorageStartCloneUrl(storageData.name, recursive, skipCheck, branch),
+		apiUrlCreator.getStorageStartCloneUrl(storageData.name, recursive, isBare, skipCheck, branch),
 		JSON.stringify(storageData),
 		MimeTypes.json,
 	);

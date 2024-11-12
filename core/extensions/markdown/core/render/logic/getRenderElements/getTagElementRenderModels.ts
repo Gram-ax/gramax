@@ -35,6 +35,7 @@ import { image } from "@ext/markdown/elements/image/render/image";
 import { alert } from "@ext/markdown/elements/alert/render/model/alert";
 import { unsupported } from "@ext/markdown/elements/unsupported/render/model/unsupported";
 import { html } from "@ext/markdown/elements/html/render/models/html";
+import { view } from "@ext/markdown/elements/view/render/models/view";
 
 function getContextTagElementRenderModels(context: ParserContext): Record<string, Schema> {
 	return {
@@ -71,6 +72,7 @@ export default function getTagElementRenderModels(context?: ParserContext): Reco
 		alert,
 		unsupported,
 		html,
+		view,
 		alfa,
 		beta,
 		when,

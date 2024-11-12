@@ -15,7 +15,7 @@ const Link = forwardRef((props: LinkProps, ref: RefObject<HTMLAnchorElement>) =>
 		...props,
 		href: {
 			...props.href,
-			pathname: "/" + props.href.pathname,
+			pathname: props.href.pathname.startsWith("/") ? props.href.pathname : "/" + props.href.pathname,
 		},
 	};
 

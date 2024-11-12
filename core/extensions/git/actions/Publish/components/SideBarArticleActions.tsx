@@ -49,7 +49,7 @@ const SideBarArticleActions = (props: SideBarArticleActionsProps) => {
 					rightActions={
 						hover
 							? [
-									logicPath ? (
+									logicPath && changeType !== FileStatus.delete ? (
 										<GoToArticle
 											key={1}
 											distance={5}
@@ -68,7 +68,7 @@ const SideBarArticleActions = (props: SideBarArticleActionsProps) => {
 										paths={[
 											filePath.path,
 											filePath.oldPath,
-											...resources.map((r) => r.filePath.path),
+											...resources.map((r) => r.data.filePath.path),
 										].filter((x) => x)}
 										onStartDiscard={onStartDiscard}
 										onEndDiscard={onEndDiscard}

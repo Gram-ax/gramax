@@ -3,19 +3,20 @@ import FetchService from "@core-ui/ApiServices/FetchService";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import CatalogPropsService from "@core-ui/ContextServices/CatalogProps";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
+import IsReadOnlyHOC from "@core-ui/HigherOrderComponent/IsReadOnlyHOC";
 import { CatalogErrorGroups } from "@core/FileStructue/Catalog/CatalogErrorGroups";
+import RouterPathProvider from "@core/RouterPath/RouterPathProvider";
 import styled from "@emotion/styled";
 import { CatalogError, CatalogErrors } from "@ext/healthcheck/logic/Healthcheck";
 import t from "@ext/localization/locale/translate";
 import { CategoryLink, ItemLink } from "@ext/navigation/NavigationLinks";
-import { useState, Fragment } from "react";
+import { Fragment, useState } from "react";
 import GoToArticle from "../../../components/Actions/GoToArticle";
 import Icon from "../../../components/Atoms/Icon";
 import Tooltip from "../../../components/Atoms/Tooltip";
-import Breadcrumb from "../../../components/Breadcrumbs/ArticleBreadcrumb";
+import Breadcrumb from "../../../components/Breadcrumbs/LinksBreadcrumb";
 import ModalLayout from "../../../components/Layouts/Modal";
 import Code from "../../markdown/elements/code/render/component/Code";
-import RouterPathProvider from "@core/RouterPath/RouterPathProvider";
 
 interface ResourceError {
 	title: string;
@@ -176,8 +177,6 @@ const ResourceErrorComponent = ({
 	itemLinks: ItemLink[];
 	goToArticleOnClick: () => void;
 }) => {
-	const IsServerApp = PageDataContextService.value.conf.isServerApp;
-
 	const resourceErrors: ResourceError[] = [];
 	const articleBreadcrumbDatas: { [logicPath: string]: { titles: string[]; links: CategoryLink[] } } = {};
 
@@ -252,7 +251,7 @@ const ResourceErrorComponent = ({
 												</Fragment>
 											))}
 										</div>
-										{IsServerApp && (
+										<IsReadOnlyHOC>
 											<div>
 												<a target="_blank" href={resourceError.editorLink} rel="noreferrer">
 													<Tooltip
@@ -265,7 +264,7 @@ const ResourceErrorComponent = ({
 													</Tooltip>
 												</a>
 											</div>
-										)}
+										</IsReadOnlyHOC>
 									</td>
 								</tr>
 							);

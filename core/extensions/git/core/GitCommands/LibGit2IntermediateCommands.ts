@@ -2,11 +2,22 @@ import call from "@app/resolveModule/gitcall";
 import Path from "@core/FileProvider/Path/Path";
 import { VersionControlInfo } from "@ext/VersionControl/model/VersionControlInfo";
 import GitBranchData from "@ext/git/core/GitBranch/model/GitBranchData";
-import type { CloneProgress } from "@ext/git/core/GitCommands/model/GitCommandsModel";
+import type {
+	CloneProgress,
+	DirEntry,
+	FileStat,
+	TreeReadScope,
+} from "@ext/git/core/GitCommands/model/GitCommandsModel";
 
 export let onCloneProgress = undefined;
 
 type Oid = string;
+export type TagInfo = {
+	name: string;
+	oid: string;
+	author: string;
+	date: number;
+};
 
 export type Args = {
 	repoPath: string;
@@ -16,7 +27,13 @@ export type Creds = {
 	authorName: string;
 	authorEmail: string;
 	accessToken: string;
+	gitServerUsername?: string;
+	protocol?: string;
 };
+
+export type RefInfo =
+	| { kind: "tag"; name: string; oid: string; isLightweight: boolean; author?: string | null; date?: number }
+	| { kind: "branch"; name: string; date?: number };
 
 export type CredsArgs = Args & { creds: Creds };
 
@@ -33,7 +50,7 @@ export type MergeResult = {
 }[];
 
 export const clone = async (
-	args: { creds: Creds; opts: { url: string; to: string; branch?: string; depth?: number } },
+	args: { creds: Creds; opts: { url: string; to: string; branch?: string; depth?: number; isBare?: boolean } },
 	onProgress?: (progress: CloneProgress) => void,
 ) => {
 	onCloneProgress = onProgress;
@@ -65,7 +82,7 @@ export const status = (args: Args) => call<[{ path: string; status: string }]>("
 
 export const statusFile = (args: Args & { filePath: string }) => call<string>("status_file", args);
 
-export const fetch = (args: CredsArgs) => call<void>("fetch", args);
+export const fetch = (args: CredsArgs & { force: boolean }) => call<void>("fetch", args);
 export const merge = (args: CredsArgs & { theirs: string }) => call<MergeResult>("merge", args);
 export const push = (args: CredsArgs) => call<void>("push", args);
 
@@ -115,6 +132,26 @@ export const getParent = (args: Args & { oid: string }) => call<string>("get_par
 export const getRemoteUrl = (args: Args) => call<string>("get_remote", args);
 
 export const restore = (args: Args & { staged: boolean; paths: string[] }) => call<void>("restore", args);
+
+export const readFile = (args: Args & { path: string; scope: TreeReadScope }) =>
+	call<ArrayBuffer>("git_read_file", args);
+
+export const readDir = (args: Args & { path: string; scope: TreeReadScope }) => call<DirEntry[]>("git_read_dir", args);
+
+export const fileStat = (args: Args & { path: string; scope: TreeReadScope }) => call<FileStat>("git_file_stat", args);
+
+export const fileExists = (args: Args & { path: string; scope: TreeReadScope }) =>
+	call<boolean>("git_file_exists", args);
+
+export const setHead = (args: Args & { refname: string }) => call<void>("set_head", args);
+
+export const isInit = (args: Args) => call<boolean>("is_init", args);
+
+export const isBare = (args: Args) => call<boolean>("is_bare", args);
+
+export const getRefsByGlobs = (args: Args & { patterns: string[] }) => call<RefInfo[]>("find_refs_by_globs", args);
+
+export const invalidateRepoCache = (args: { repoPaths: string[] }) => call<void>("invalidate_repo_cache", args);
 
 const intoGitBranchData = (data: any): GitBranchData & { lastCommitOid: string } => {
 	return {

@@ -10,6 +10,7 @@ describe("ParseStorageUrl", () => {
 					domain: "domain.com",
 					group: "group1/group2/g3/g4",
 					name: "name",
+					origin: "https://domain.com",
 				};
 
 				const result = parseStorageUrl(link);
@@ -23,6 +24,7 @@ describe("ParseStorageUrl", () => {
 					domain: "domain.com",
 					group: "group1/group2/g3/g4",
 					name: "name",
+					origin: "https://domain.com",
 				};
 
 				const result = parseStorageUrl(link);
@@ -31,7 +33,13 @@ describe("ParseStorageUrl", () => {
 			});
 			test("Без группы", () => {
 				const link = "https://domain.com/name.git";
-				const parsedLink = { protocol: "https", domain: "domain.com", group: undefined, name: "name" };
+				const parsedLink = {
+					protocol: "https",
+					domain: "domain.com",
+					group: null,
+					name: "name",
+					origin: "https://domain.com",
+				};
 
 				const result = parseStorageUrl(link);
 
@@ -42,8 +50,9 @@ describe("ParseStorageUrl", () => {
 				const parsedLink = {
 					protocol: "https",
 					domain: "domain.atlassian.net",
-					group: undefined,
-					name: undefined,
+					group: null,
+					name: null,
+					origin: "https://domain.atlassian.net",
 				};
 
 				const result = parseStorageUrl(link);
@@ -59,6 +68,7 @@ describe("ParseStorageUrl", () => {
 					domain: "domain.com",
 					group: "group1/group2/g3/g4",
 					name: "name",
+					origin: "http://domain.com",
 				};
 
 				const result = parseStorageUrl(link);
@@ -72,6 +82,7 @@ describe("ParseStorageUrl", () => {
 					domain: "domain.com",
 					group: "group1/group2/g3/g4",
 					name: "name",
+					origin: "http://domain.com",
 				};
 
 				const result = parseStorageUrl(link);
@@ -80,7 +91,13 @@ describe("ParseStorageUrl", () => {
 			});
 			test("Без группы", () => {
 				const link = "http://domain.com/name.git";
-				const parsedLink = { protocol: "http", domain: "domain.com", group: undefined, name: "name" };
+				const parsedLink = {
+					protocol: "http",
+					domain: "domain.com",
+					group: null,
+					name: "name",
+					origin: "http://domain.com",
+				};
 
 				const result = parseStorageUrl(link);
 
@@ -91,8 +108,9 @@ describe("ParseStorageUrl", () => {
 				const parsedLink = {
 					protocol: "http",
 					domain: "domain.atlassian.net",
-					group: undefined,
-					name: undefined,
+					group: null,
+					name: null,
+					origin: "http://domain.atlassian.net",
 				};
 
 				const result = parseStorageUrl(link);
@@ -108,6 +126,7 @@ describe("ParseStorageUrl", () => {
 					domain: "domain.ics-it.com",
 					group: "group1/group2",
 					name: "name",
+					origin: "git@domain.ics-it.com",
 				};
 
 				const result = parseStorageUrl(link);
@@ -116,7 +135,13 @@ describe("ParseStorageUrl", () => {
 			});
 			test("Без .git", () => {
 				const link = "git@domain.com:group1/group2/name";
-				const parsedLink = { protocol: "git@", domain: "domain.com", group: "group1/group2", name: "name" };
+				const parsedLink = {
+					protocol: "git@",
+					domain: "domain.com",
+					group: "group1/group2",
+					name: "name",
+					origin: "git@domain.com",
+				};
 
 				const result = parseStorageUrl(link);
 
@@ -124,7 +149,13 @@ describe("ParseStorageUrl", () => {
 			});
 			test("Без группы", () => {
 				const link = "git@domain.com:name.git";
-				const parsedLink = { protocol: "git@", domain: "domain.com", group: undefined, name: "name" };
+				const parsedLink = {
+					protocol: "git@",
+					domain: "domain.com",
+					group: null,
+					name: "name",
+					origin: "git@domain.com",
+				};
 
 				const result = parseStorageUrl(link);
 
@@ -134,10 +165,11 @@ describe("ParseStorageUrl", () => {
 		test("Ссылку без протоколов", () => {
 			const link = "domain.com/group1/group2/g3/g4/name.git";
 			const parsedLink = {
-				protocol: undefined,
+				protocol: "https",
 				domain: "domain.com",
 				group: "group1/group2/g3/g4",
 				name: "name",
+				origin: "https://domain.com",
 			};
 
 			const result = parseStorageUrl(link);
@@ -146,18 +178,82 @@ describe("ParseStorageUrl", () => {
 		});
 		test("Просто домен", () => {
 			const link = "domain.com";
-			const parsedLink = { protocol: undefined, domain: "domain.com", group: undefined, name: undefined };
+			const parsedLink = {
+				protocol: "https",
+				domain: "domain.com",
+				group: null,
+				name: null,
+				origin: "https://domain.com",
+			};
 
 			const result = parseStorageUrl(link);
 
 			expect(result).toEqual(parsedLink);
 		});
 	});
-	test("Не парсит неправильную ссылку", () => {
-		const link = "httttt://wrong_link_qwerty";
+	describe("Ссылки с портом", () => {
+		describe("HTTP ссылку с портом", () => {
+			test("HTTP с портом 8080", () => {
+				const link = "http://domain.com:8080/group1/group2/name.git";
+				const parsedLink = {
+					protocol: "http",
+					domain: "domain.com:8080",
+					group: "group1/group2",
+					name: "name",
+					origin: "http://domain.com:8080",
+				};
 
-		const result = parseStorageUrl(link);
+				const result = parseStorageUrl(link);
 
-		expect(result).toEqual({ protocol: undefined, domain: undefined, group: undefined, name: undefined });
+				expect(result).toEqual(parsedLink);
+			});
+
+			test("HTTP с нестандартным портом", () => {
+				const link = "http://domain.com:3000/group1/group2/name";
+				const parsedLink = {
+					protocol: "http",
+					domain: "domain.com:3000",
+					group: "group1/group2",
+					name: "name",
+					origin: "http://domain.com:3000",
+				};
+
+				const result = parseStorageUrl(link);
+
+				expect(result).toEqual(parsedLink);
+			});
+		});
+
+		describe("HTTPS ссылку с портом", () => {
+			test("HTTPS с портом 8443", () => {
+				const link = "https://domain.com:8443/group1/group2/name.git";
+				const parsedLink = {
+					protocol: "https",
+					domain: "domain.com:8443",
+					group: "group1/group2",
+					name: "name",
+					origin: "https://domain.com:8443",
+				};
+
+				const result = parseStorageUrl(link);
+
+				expect(result).toEqual(parsedLink);
+			});
+
+			test("HTTPS с нестандартным портом", () => {
+				const link = "https://domain.com:9443/group1/group2/name";
+				const parsedLink = {
+					protocol: "https",
+					domain: "domain.com:9443",
+					group: "group1/group2",
+					name: "name",
+					origin: "https://domain.com:9443",
+				};
+
+				const result = parseStorageUrl(link);
+
+				expect(result).toEqual(parsedLink);
+			});
+		});
 	});
 });

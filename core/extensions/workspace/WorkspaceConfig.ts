@@ -9,8 +9,9 @@ export interface WorkspaceConfig {
 	name: string;
 	icon?: string;
 	groups?: WorkspaceGroup[];
-	isEnterprise?: boolean;
 	services?: ServicesConfig;
+	isEnterprise?: boolean;
+	gesUrl?: string;
 }
 
 export type WorkspacePath = string;

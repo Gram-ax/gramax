@@ -1,7 +1,9 @@
+import { UserType } from "@ext/security/logic/User/User";
 import PermissionJSONData from "../Permission/model/PermissionJSONData";
-import UserInfo from "./UserInfo2";
+import UserInfo from "./UserInfo";
 
 interface UserJSONData {
+	type: UserType;
 	info?: UserInfo;
 	isLogged: boolean;
 	globalPermission?: PermissionJSONData;

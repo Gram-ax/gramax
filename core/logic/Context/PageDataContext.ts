@@ -1,8 +1,9 @@
 import ShareData from "@ext/catalog/actions/share/model/ShareData";
+import ClientPermissions from "@ext/security/logic/Permission/model/ClientPermissions";
 import type { ClientWorkspaceConfig, WorkspacePath } from "@ext/workspace/WorkspaceConfig";
 import Theme from "../../extensions/Theme/Theme";
 import UiLanguage, { type ContentLanguage } from "../../extensions/localization/core/model/Language";
-import UserInfo from "../../extensions/security/logic/User/UserInfo2";
+import UserInfo from "../../extensions/security/logic/User/UserInfo";
 import SourceData from "../../extensions/storage/logic/SourceDataProvider/model/SourceData";
 
 interface PageDataContext {
@@ -28,14 +29,21 @@ interface PageDataContext {
 		basePath: string;
 		isRelease: boolean;
 		isReadOnly: boolean;
-		isServerApp: boolean;
 		isProduction: boolean;
-		isSsoEnabled: boolean;
-		glsUrl: string;
 		authServiceUrl: string;
+		diagramsServiceUrl: string;
 		bugsnagApiKey: string;
 		yandexMetricCounter: string;
+		enterprise: {
+			gesUrl: string;
+		};
+		logo: {
+			imageUrl: string;
+			linkUrl: string;
+			linkTitle: string;
+		};
 	};
+	permissions: string;
 	shareData?: ShareData;
 }
 

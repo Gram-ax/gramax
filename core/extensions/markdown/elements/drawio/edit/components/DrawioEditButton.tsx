@@ -12,6 +12,7 @@ import DiagramEditor from "@ext/markdown/elements/drawio/logic/diagram-editor";
 import LanguageService from "@core-ui/ContextServices/Language";
 import Button from "@ext/markdown/core/edit/components/Menu/Button";
 import t from "@ext/localization/locale/translate";
+import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 
 interface DrawioEditButtonProps {
 	src: string;
@@ -22,6 +23,7 @@ interface DrawioEditButtonProps {
 const DrawioEditButton = ({ src, trigger = false, logicPath }: DrawioEditButtonProps) => {
 	const [isLoading, setIsLoading] = useState(!trigger ? true : false);
 	const apiUrlCreator = ApiUrlCreatorService.value;
+	const pageDataContext = PageDataContextService.value;
 
 	const getImgTag = useCallback(
 		() => (document.getElementById(getDrawioID(src, logicPath)) ?? {}) as HTMLImageElement,
@@ -55,6 +57,7 @@ const DrawioEditButton = ({ src, trigger = false, logicPath }: DrawioEditButtonP
 		setImgData();
 		setIsLoading(true);
 		const de = DiagramEditor.editElement(
+			pageDataContext.conf.diagramsServiceUrl,
 			getImgTag(),
 			saveCallBack,
 			() => setIsLoading(false),

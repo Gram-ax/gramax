@@ -1,4 +1,5 @@
 import LanguageService from "@core-ui/ContextServices/Language";
+import EnterpriseUser from "@ext/enterprise/EnterpriseUser";
 import ThemeManager from "../../extensions/Theme/ThemeManager";
 import Cookie from "../../extensions/cookie/Cookie";
 import CookieFactory from "../../extensions/cookie/CookieFactory";
@@ -19,29 +20,20 @@ export class ContextFactory {
 		private _tm: ThemeManager,
 		private _cookieSecret: string,
 		private _am?: AuthManager,
-		private _isServerApp?: boolean,
+		private _isReadOnly?: boolean,
 	) {}
 
-	from(req: ApiRequest, res: ApiResponse, query?: { [key: string]: string | string[] }): Context {
+	async from(req: ApiRequest, res: ApiResponse, query?: { [key: string]: string | string[] }): Promise<Context> {
 		const cookie = this._cookieFactory.from(this._cookieSecret, req, res);
 		if (!query) query = {};
 
-		const ui = cookie.get("ui");
-		const reqUi = req.headers["x-gramax-ui-language"];
+		query.ui = cookie.get("ui");
 		if (!query.l) query.l = ContentLanguage[req.headers["x-gramax-language"]];
-		if (!!reqUi && reqUi != cookie.get("ui")) {
-			cookie.set("ui", reqUi);
-			query.ui = reqUi;
-		} else {
-			query.ui = ui;
-		}
 
-		return this._getContext({
-			cookie,
-			domain: apiUtils.getDomain(req),
-			user: this._isServerApp ? this._am?.getUser(cookie, query) : localUser,
-			query,
-		});
+		const user = this._isReadOnly ? this._am?.getUser(cookie, query) : localUser;
+		if (user.type === "enterprise") await (user as EnterpriseUser).updatePermissions();
+
+		return this._getContext({ cookie, user, query, domain: apiUtils.getDomain(req) });
 	}
 
 	fromBrowser(language: string, query: Query): Context {
@@ -75,6 +67,7 @@ export class ContextFactory {
 			contentLanguage: query?.l as ContentLanguage,
 			ui: (query?.ui || defaultLanguage) as UiLanguage,
 			theme: this._tm?.getTheme(cookie),
+			refname: query?.refname as string,
 		};
 	}
 }

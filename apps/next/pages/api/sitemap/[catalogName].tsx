@@ -8,7 +8,7 @@ import { ApplyApiMiddleware } from "apps/next/logic/Api/ApplyMiddleware";
 
 export default ApplyApiMiddleware(
 	async function (req: ApiRequest, res: ApiResponse) {
-		const ctx = this.app.contextFactory.from(req, res, req.query);
+		const ctx = await this.app.contextFactory.from(req, res, req.query);
 		const filters = [new HiddenRules().getItemFilter(), new SecurityRules(ctx.user).getItemFilter()];
 		const basePath = this.app.conf.basePath ?? "";
 		const catalogName = req.query.catalogName as string;

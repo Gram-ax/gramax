@@ -1,7 +1,7 @@
 export const GRAMAX_EDITOR_URL = "https://app.gram.ax";
 
 export const DOC_ROOT_FILENAME = ".doc-root.yaml";
-export const DOC_ROOT_REGEXP = /.(doc-)?root.yaml/;
+export const DOC_ROOT_REGEXP = /.(doc-)?root.ya?ml/;
 
 export const NEW_CATALOG_NAME = "new-catalog";
 

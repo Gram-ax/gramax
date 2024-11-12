@@ -1,9 +1,11 @@
 import PageDataContext from "@core/Context/PageDataContext";
 import { ArticlePageData, HomePageData } from "@core/SitePresenter/SitePresenter";
 import UiLanguage, { ContentLanguage } from "@ext/localization/core/model/Language";
+import PermissionType from "@ext/security/logic/Permission/model/PermissionType";
 
 export default {
 	data: {
+		markdown: "",
 		catalogLinks: {},
 		articleContentEdit: '{"type":"doc","content":[{"type":"paragraph"}]}',
 		articleContentRender: '{"$$mdtype":"Tag","name":"article","attributes":{},"children":[]}',
@@ -747,6 +749,10 @@ export default {
 		description: "",
 	},
 	context: {
+		permissions: JSON.stringify({
+			global: { type: PermissionType.plain, permissions: "" },
+			enterprise: {},
+		}),
 		workspace: {
 			current: "f",
 			workspaces: [],
@@ -769,25 +775,31 @@ export default {
 			mail: "danil.kazanov@ics-it.ru",
 		},
 		conf: {
-			glsUrl: "",
 			basePath: "",
 			bugsnagApiKey: "",
 			authServiceUrl: "",
 			yandexMetricCounter: "",
-			enterpriseServerUrl: "",
+			diagramsServiceUrl: "",
 
 			isSso: false,
-			isSsoEnabled: false,
 
 			isRelease: false,
 			isReadOnly: false,
-			isServerApp: false,
 			isProduction: false,
 
 			version: "0.0.0@storybook",
 			buildVersion: "0.0.0@storybook",
+			enterprise: {
+				gepsUrl: "",
+				gesUrl: "",
+			},
+			logo: {
+				imageUrl: "",
+				linkUrl: "",
+				linkTitle: "",
+			},
 		},
-		isServerApp: false,
+		isReadOnly: false,
 		isProduction: false,
 		version: "2023.5.4",
 		sourceDatas: [],

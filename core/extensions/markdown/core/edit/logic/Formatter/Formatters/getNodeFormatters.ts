@@ -1,4 +1,9 @@
 import codeBlockFormatter from "@ext/markdown/elements/codeBlockLowlight/edit/logic/codeBlockFormatter";
+import bullet_list from "@ext/markdown/elements/list/edit/models/bulletList/logic/bulletListFormatter";
+import list_item from "@ext/markdown/elements/list/edit/models/listItem/logic/listItemFormatter";
+import ordered_list from "@ext/markdown/elements/list/edit/models/orderList/logic/orderListFormatter";
+import task_item from "@ext/markdown/elements/list/edit/models/taskItem/logic/taskItemFormatter";
+import task_list from "@ext/markdown/elements/list/edit/models/taskList/logic/taskListFormatter";
 import noteFormatter from "@ext/markdown/elements/note/logic/noteFormatter";
 import { NodeSerializerSpec } from "../../Prosemirror/to_markdown";
 import ParserContext from "@ext/markdown/core/Parser/ParserContext/ParserContext";
@@ -13,6 +18,7 @@ import TableUtils from "../Utils/Table";
 import unsupportedFormatter from "@ext/markdown/elements/unsupported/logic/unsupportedFormatter";
 import imageNodeFormatter from "@ext/markdown/elements/image/edit/logic/transformer/imageNodeFormatter";
 import htmlNodeFormatter from "@ext/markdown/elements/html/edit/logic/htmlNodeFormatter";
+import viewNodeFormatter from "@ext/markdown/elements/view/edit/logic/viewNodeFormatter";
 const blocks = ["Db-diagram", "Db-table", "Snippet"];
 
 const getNodeFormatters = (context?: ParserContext): { [node: string]: NodeSerializerSpec } => ({
@@ -25,8 +31,14 @@ const getNodeFormatters = (context?: ParserContext): { [node: string]: NodeSeria
 	tab: TabFormatter,
 	note: noteFormatter,
 	html: htmlNodeFormatter,
+	view: viewNodeFormatter,
 	unsupported: unsupportedFormatter,
 	image: imageNodeFormatter,
+	task_item: task_item,
+	task_list: task_list,
+	ordered_list: ordered_list,
+	bullet_list: bullet_list,
+	list_item: list_item,
 
 	inlineMd_component: (state, node) => {
 		const isBlock = blocks.includes(node.attrs.tag?.[0]?.name);
@@ -122,30 +134,6 @@ const getNodeFormatters = (context?: ParserContext): { [node: string]: NodeSeria
 	},
 	style_wrapper: async (state, node) => {
 		await state.renderContent(node);
-	},
-	bullet_list: async (state, node) => {
-		await state.renderList(
-			node,
-			() => "   ",
-			() => (node.attrs.bullet || "-") + "  ",
-		);
-	},
-	ordered_list: async (state, node) => {
-		const start: number = node.attrs.order || 1;
-		await state.renderList(
-			node,
-			(i) => {
-				const idx = String(start + i);
-				return idx.length == 1 ? "   " : "    ";
-			},
-			(i) => {
-				const idx = String(start + i);
-				return idx + ". ";
-			},
-		);
-	},
-	list_item: async (state, node) => {
-		await state.renderInline(node);
 	},
 	paragraph: async (state, node) => {
 		if (node.content?.size) await state.renderInline(node);

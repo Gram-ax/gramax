@@ -34,8 +34,8 @@ export default async (req: ApiRequest, res: ApiResponse) => {
 	}
 
 	const process: Middleware = new ApiMiddleware(async (req, res) => {
-		const ctx = app.contextFactory.from(req, res);
-		const params = command.params(ctx, req.query as Query, req.body);
+		const ctx = await app.contextFactory.from(req, res);
+		const params = command.params(ctx, req.query as Query, parseBody(req.body));
 		PersistentLogger.info(`executing command ${path}`, "cmd", { ...req.query });
 
 		const result = await withContext(ctx, async () => await command.do(params));
@@ -43,6 +43,17 @@ export default async (req: ApiRequest, res: ApiResponse) => {
 	});
 
 	await buildMiddleware(app, commands, command.middlewares, process).Process(req, res);
+};
+
+const parseBody = (body: BodyInit) => {
+	if (body === "") return body;
+	if (!body) return;
+	if (typeof body != "string") return body;
+	try {
+		return JSON.parse(body);
+	} catch {
+		return body;
+	}
 };
 
 const respond = async (app: Application, req: ApiRequest, res: ApiResponse, kind: ResponseKind, commandResult: any) => {
