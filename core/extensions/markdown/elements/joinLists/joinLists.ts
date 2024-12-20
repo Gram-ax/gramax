@@ -1,7 +1,8 @@
-import { listTypes } from "@ext/markdown/elements/list/edit/logic/toggleList";
 import { Extension } from "@tiptap/core";
 import { Node } from "prosemirror-model";
 import { Plugin, PluginKey, Transaction } from "prosemirror-state";
+
+export const listTypes = ["orderedList", "bulletList", "taskList"];
 
 function mergeAdjacentLists(tr: Transaction, node: Node, parentOffset = 0): Transaction {
 	let state = true;

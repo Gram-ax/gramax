@@ -2,7 +2,7 @@ import NodeConverter from "@ext/confluence/core/cloud/model/NodeConverter";
 
 const orderedList: NodeConverter = (orderedListNode) => {
 	return {
-		type: "ordered_list",
+		type: "orderedList",
 		attrs: { tight: false },
 		content: orderedListNode.content,
 	};

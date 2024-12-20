@@ -24,29 +24,29 @@ FROM deps AS build
 WORKDIR /app
 
 ARG BUGSNAG_API_KEY \
-  PRODUCTION
+  PRODUCTION \
+  IS_OPEN_SOURCE_DOCPORTAL
 
 ENV BUGSNAG_API_KEY=${BUGSNAG_API_KEY} \
   PRODUCTION=${PRODUCTION} \
-  ROOT_PATH=/app/data
+  ROOT_PATH=/app/data \
+  IS_OPEN_SOURCE_DOCPORTAL=${IS_OPEN_SOURCE_DOCPORTAL}
 
 COPY . .
 
-RUN echo ${CARGO_BUILD_JOBS} && \
-  ./install-deps.sh --ci --node && \
+RUN ./install-deps.sh --ci --node && \
+  node ./scripts/generateVersion.mjs && \
   npm --prefix apps/next run build && \
-  rm -rf .npm && \
-  git gc --aggressive && \
-  git prune && \
-  rm -fr ./target ./apps/next/.next/cache
+  rm -fr .npm ./target ./apps/next/.next/cache ./.git
 
-FROM --platform=$TARGETPLATFORM ${CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX}/node:21-bookworm-slim AS run
+FROM --platform=$TARGETPLATFORM ${CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX}/node:23-bookworm-slim AS run
 
 WORKDIR /app
 
-RUN apt-get update && \
+RUN apt-get update && apt-get upgrade -y && \
   apt-get install -y git bash && \
-  apt-get clean
+  apt-get clean && \
+  rm -rf /var/lib/apt/lists/*
 
 ARG BRANCH \
   BUGSNAG_API_KEY \
@@ -55,7 +55,6 @@ ARG BRANCH \
   COOKIE_SECRET="."
 
 ENV PORT=80 \
-  DIAGRAM_RENDERER_SERVICE_URL=http://gramax-diagram-renderer:80 \
   PRODUCTION=${PRODUCTION} \
   ROOT_PATH=/app/data \
   ENTERPRISE_CONFIG_PATH=/app/config \
@@ -77,4 +76,6 @@ RUN git config --global url."https://gitlab.ics-it.ru/".insteadOf git@gitlab.ics
 
 STOPSIGNAL SIGTERM
 
-ENTRYPOINT ["npm", "--prefix", "apps/next", "run", "start"]
+WORKDIR /app/apps/next
+
+ENTRYPOINT ["npm", "run", "start"]

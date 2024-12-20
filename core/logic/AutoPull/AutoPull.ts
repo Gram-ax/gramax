@@ -1,5 +1,5 @@
 import type Application from "@app/types/Application";
-import type CatalogEntry from "@core/FileStructue/Catalog/CatalogEntry";
+import type BaseCatalog from "@core/FileStructue/Catalog/BaseCatalog";
 import type Logger from "@ext/loggers/Logger";
 import type { Workspace } from "@ext/workspace/Workspace";
 
@@ -12,9 +12,9 @@ const autoPull = (app: Application) => {
 	const pullInterval = (Number(process.env.AUTO_PULL_INTERVAL) ?? DEFAULT_AUTO_PULL_INTERVAL) * 1000;
 	logger.logInfo(`Enabled auto-pull with pulling interval: ${pullInterval}`);
 
-	const pullCatalog = async (catalog: CatalogEntry, logger: Logger) => {
+	const pullCatalog = async (catalog: BaseCatalog, logger: Logger) => {
 		try {
-			const catalogName = catalog.getName();
+			const catalogName = catalog.name;
 			if (!catalog || !catalog.repo.storage) return;
 
 			const sourceData = {
@@ -32,12 +32,12 @@ const autoPull = (app: Application) => {
 				});
 			}
 		} catch (error) {
-			console.log(Error(`Error occurred while auto-pulling in "${catalog.getName()}" catalog: ${error}`));
+			console.log(Error(`Error occurred while auto-pulling in "${catalog.name}" catalog: ${error}`));
 		}
 	};
 
 	const pullCatalogs = async (lib: Workspace) => {
-		const catalogEntries = Array.from(lib.getCatalogEntries().values());
+		const catalogEntries = Array.from(lib.getAllCatalogs().values());
 		await Promise.all(catalogEntries.map((catalogEntry) => pullCatalog(catalogEntry, logger)));
 		setTimeout(() => void pullCatalogs(app.wm.current()), pullInterval);
 	};

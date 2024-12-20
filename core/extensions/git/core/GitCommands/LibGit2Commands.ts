@@ -1,3 +1,4 @@
+import { LibGit2BaseCommands } from "@ext/git/core/GitCommands/LibGit2BaseCommands";
 import getGitError from "@ext/git/core/GitCommands/errors/logic/getGitError";
 import Path from "../../../../logic/FileProvider/Path/Path";
 import { VersionControlInfo } from "../../../VersionControl/model/VersionControlInfo";
@@ -11,16 +12,15 @@ import * as git from "./LibGit2IntermediateCommands";
 import GitCommandsModel, {
 	type CloneProgress,
 	type DirEntry,
+	type DirStat,
 	type FileStat,
 	type RefInfo,
 	type TreeReadScope,
 } from "./model/GitCommandsModel";
 
-class LibGit2Commands implements GitCommandsModel {
-	private _repoPath: string;
-
+class LibGit2Commands extends LibGit2BaseCommands implements GitCommandsModel {
 	constructor(repoPath: Path) {
-		this._repoPath = repoPath.value;
+		super(repoPath.value);
 	}
 
 	isInit(): Promise<boolean> {
@@ -241,6 +241,10 @@ class LibGit2Commands implements GitCommandsModel {
 		return git.fileStat({ repoPath: this._repoPath, scope, path: filePath.value });
 	}
 
+	readDirStats(dirPath: Path, scope: TreeReadScope): Promise<DirStat[]> {
+		return git.readDirStats({ repoPath: this._repoPath, scope, path: dirPath.value });
+	}
+
 	fileExists(filePath: Path, scope: TreeReadScope): Promise<boolean> {
 		return git.fileExists({ repoPath: this._repoPath, scope, path: filePath.value });
 	}
@@ -266,16 +270,6 @@ class LibGit2Commands implements GitCommandsModel {
 				date: new Date(r.date),
 			};
 		});
-	}
-
-	private _intoCreds(data: SourceData) {
-		return {
-			authorName: data.userName,
-			authorEmail: data.userEmail,
-			accessToken: "token" in data ? (data.token as string) : "",
-			gitServerUsername: "gitServerUsername" in data ? (data.gitServerUsername as string) : "",
-			protocol: "protocol" in data ? (data.protocol as string) : null,
-		};
 	}
 }
 

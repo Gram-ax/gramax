@@ -87,8 +87,22 @@ export default class GitTreeFileProvider implements ReadOnlyFileProvider {
 	}
 
 	async getItems(path: Path): Promise<FileInfo[]> {
-		const items = await this._git.readDir(...this._resolveScope(path));
-		return Promise.all(items.map(async (item) => this.getStat(path.join(new Path(item.name)))));
+		const items = await this._git.readDirStats(...this._resolveScope(path));
+		return items.map((stat) => ({
+			name: stat.name,
+			path: path.join(new Path(stat.name)),
+			size: stat.size,
+			isDirectory: () => stat.isDir,
+			isFile: () => !stat.isDir,
+			isSymbolicLink: () => false,
+			ino: 0,
+			mode: 0,
+			mtimeMs: 0,
+			ctimeMs: 0,
+			uid: 0,
+			gid: 0,
+			type: stat.isDir ? "dir" : "file",
+		}));
 	}
 
 	getItemRef(path: Path): ItemRef {
@@ -117,6 +131,9 @@ export default class GitTreeFileProvider implements ReadOnlyFileProvider {
 		if (name?.includes(":") && data && data !== "HEAD") scope = { reference: decodeURIComponent(data) };
 		if (data?.startsWith("commit-")) scope = { commit: decodeURIComponent(data.slice("commit-".length)) };
 
-		return [scope && data ? root.subDirectory(path) : path, scope];
+		return [
+			scope && data && (!root.compare(path) || path.value.startsWith(":")) ? root.subDirectory(path) : path,
+			scope,
+		];
 	}
 }

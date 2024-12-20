@@ -28,17 +28,21 @@ const HomePageActions = ({ catalogLinks, ...props }: HomePageActionsProps) => {
 			<SwitchUiLanguage />
 			<ThemeToggle />
 			{canConfigureWorkspace && hasWorkspace && pageProps?.isLogged && <AddCatalogMenu />}
-			{hasWorkspace && <SingInOut />}
+			{hasWorkspace && <SingInOut isHomePage />}
 		</div>
 	);
 };
 
 export default styled(HomePageActions)`
 	display: flex;
-	align-items: center;
+	align-items: start;
 	flex-direction: row;
 	gap: var(--distance-actions);
 	justify-content: space-between;
+
+	> * {
+		z-index: var(--z-index-base);
+	}
 
 	${cssMedia.narrow} {
 		i + span {

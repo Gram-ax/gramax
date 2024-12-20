@@ -12,7 +12,7 @@ const create: Command<{ catalogName: string; branch: string }, string> = Command
 
 	async do({ catalogName, branch }) {
 		const workspace = this._app.wm.current();
-		const catalog = await workspace.getCatalog(catalogName);
+		const catalog = await workspace.getContextlessCatalog(catalogName);
 		if (!catalog) return;
 		const vc = catalog.repo.gvc;
 		await vc.createNewBranch(branch);

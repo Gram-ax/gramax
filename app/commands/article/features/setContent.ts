@@ -20,7 +20,7 @@ const setContent: Command<{ ctx: Context; catalogName: string; articlePath: Path
 			const { sitePresenterFactory, wm } = this._app;
 			const workspace = wm.current();
 
-			const catalog = await workspace.getCatalog(catalogName);
+			const catalog = await workspace.getCatalog(catalogName, ctx);
 			const article = catalog.findItemByItemPath<Article>(articlePath);
 			if (!article) return;
 			await article.updateContent(content ?? "");

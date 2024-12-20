@@ -2,7 +2,6 @@ import ButtonsLayout from "@components/Layouts/ButtonLayout";
 import ModalLayoutDark from "@components/Layouts/ModalLayoutDark";
 import ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
-import ArticlePropsService from "@core-ui/ContextServices/ArticleProps";
 import ButtonStateService from "@core-ui/ContextServices/ButtonStateService/ButtonStateService";
 import IsMacService from "@core-ui/ContextServices/IsMac";
 import IsSelectedOneNodeService from "@core-ui/ContextServices/IsSelected";
@@ -11,11 +10,10 @@ import { ClientArticleProps } from "@core/SitePresenter/SitePresenter";
 import InlineEditPanel from "@ext/markdown/elements/article/edit/helpers/InlineEditPanel";
 import TooltipBase from "@ext/markdown/elementsUtils/prosemirrorPlugins/TooltipBase";
 import { Editor, Extension } from "@tiptap/core";
+import { EditorState } from "@tiptap/pm/state";
 import { Plugin, PluginKey } from "prosemirror-state";
 import { EditorView } from "prosemirror-view";
-import React from "react";
 import PageDataContext from "../../../../../../logic/Context/PageDataContext";
-import { EditorState } from "@tiptap/pm/state";
 
 interface SelectionMenuProps {
 	articleProps: ClientArticleProps;
@@ -27,28 +25,26 @@ interface SelectionMenuProps {
 }
 
 const SelectionMenuComponent = (props: SelectionMenuProps) => {
-	const { articleProps, pageDataContext, apiUrlCreator, editor, closeHandler, onMountCallback } = props;
+	const { pageDataContext, apiUrlCreator, editor, closeHandler, onMountCallback } = props;
 	return (
 		<IsMacService.Provider>
-			<ArticlePropsService.Provider value={articleProps}>
-				<ApiUrlCreatorService.Provider value={apiUrlCreator}>
-					<PageDataContextService.Provider value={pageDataContext}>
-						<ModalLayoutDark>
-							<ButtonsLayout>
-								<IsSelectedOneNodeService.Provider editor={editor}>
-									<ButtonStateService.Provider editor={editor}>
-										<InlineEditPanel
-											editor={editor}
-											closeHandler={closeHandler}
-											onMountCallback={onMountCallback}
-										/>
-									</ButtonStateService.Provider>
-								</IsSelectedOneNodeService.Provider>
-							</ButtonsLayout>
-						</ModalLayoutDark>
-					</PageDataContextService.Provider>
-				</ApiUrlCreatorService.Provider>
-			</ArticlePropsService.Provider>
+			<ApiUrlCreatorService.Provider value={apiUrlCreator}>
+				<PageDataContextService.Provider value={pageDataContext}>
+					<ModalLayoutDark>
+						<ButtonsLayout>
+							<IsSelectedOneNodeService.Provider editor={editor}>
+								<ButtonStateService.Provider editor={editor}>
+									<InlineEditPanel
+										editor={editor}
+										closeHandler={closeHandler}
+										onMountCallback={onMountCallback}
+									/>
+								</ButtonStateService.Provider>
+							</IsSelectedOneNodeService.Provider>
+						</ButtonsLayout>
+					</ModalLayoutDark>
+				</PageDataContextService.Provider>
+			</ApiUrlCreatorService.Provider>
 		</IsMacService.Provider>
 	);
 };

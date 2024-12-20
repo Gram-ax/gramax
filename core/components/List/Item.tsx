@@ -195,12 +195,11 @@ export default styled(Item)`
 				text-overflow: ellipsis;
 				white-space: nowrap;
 				min-width: 0.275rem;
+				color: var(--color-primary-general-inverse);
 
 				span {
-					line-height: 1rem;
-					color: var(--color-primary-general-inverse);
-					text-overflow: ellipsis;
-					white-space: nowrap;
+					line-height: inherit;
+					color: inherit;
 				}
 			}
 		}

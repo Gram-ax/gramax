@@ -1,10 +1,9 @@
 import { ItemRef } from "@core/FileStructue/Item/ItemRef";
 import Path from "../../../../../logic/FileProvider/Path/Path";
-import { Catalog } from "../../../../../logic/FileStructue/Catalog/Catalog";
-
-const convertToSharePointDir = (catalog: Catalog, articleRef: ItemRef, path: string): Path => {
+import type { ReadonlyCatalog } from "@core/FileStructue/Catalog/ReadonlyCatalog";
+const convertToSharePointDir = (catalog: ReadonlyCatalog, articleRef: ItemRef, path: string): Path => {
 	if (!path) return Path.empty;
-	const sharePointDirectory = catalog?.props.sharePointDirectory ?? catalog?.getName() ?? "";
+	const sharePointDirectory = catalog?.props.sharePointDirectory ?? catalog?.name ?? "";
 
 	const sharePointPathParts =
 		catalog

@@ -58,7 +58,7 @@ Then("заново смотрим на/в {string}", async function (this: E2EWo
 
 Given("заново смотрим на редактор", { timeout: config.timeouts.short }, async function (this: E2EWorld) {
 	await lookAt.bind(this)("редактор", true);
-	await this.page().inner().locator(".ProseMirror > h1:first-child + *").first().click({ clickCount: 1, delay: 200 });
+	await this.page().inner().locator(".ProseMirror > p:first-child + *").first().click({ clickCount: 1, delay: 200 });
 });
 
 Given("ждём {float} секунд(ы)(у)", { timeout: 1000000 }, async function (this: E2EWorld, secs: number) {
@@ -203,6 +203,11 @@ Then("свойства текущей статьи содержат", async func
 		const value = typeof props?.[name] !== "object" ? String(props[name]) : JSON.stringify(props[name]);
 		expect(value).toEqual(val);
 	}
+});
+
+Then("свойства текущей статьи ничего не содержат", async function (this: E2EWorld) {
+	const props = await this.page().asArticle().getProps();
+	expect(props).toEqual({});
 });
 
 Then("свойства текущего каталога содержат", async function (this: E2EWorld, raw: string) {

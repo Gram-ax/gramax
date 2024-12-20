@@ -1,7 +1,7 @@
 import MimeTypes from "@core-ui/ApiServices/Types/MimeTypes";
 import DefaultError from "../../extensions/errorHandlers/logic/DefaultError";
 import Path from "../FileProvider/Path/Path";
-import Hash from "../Hash/Hash";
+import HashItemProvider from "../Hash/HashItemProvider";
 import HashItem from "../Hash/HashItems/HashItem";
 import ApiRequest from "./ApiRequest";
 import ApiResponse from "./ApiResponse";
@@ -48,12 +48,17 @@ export const apiUtils = {
 		return domain + basePath;
 	},
 
-	async sendWithETag(req: ApiRequest, res: ApiResponse, hashItem: HashItem, hashes: Hash) {
+	async sendWithETag(req: ApiRequest, res: ApiResponse, hashItem: HashItem, hashes: HashItemProvider) {
 		if (!(await apiUtils.trySetETag(req, res, hashItem, hashes))) res.end();
 		else res.end(await hashItem.getContentAsBinary());
 	},
 
-	async trySetETag(req: ApiRequest, res: ApiResponse, hashItem: HashItem, hashes: Hash): Promise<boolean> {
+	async trySetETag(
+		req: ApiRequest,
+		res: ApiResponse,
+		hashItem: HashItem,
+		hashes: HashItemProvider,
+	): Promise<boolean> {
 		const etag = req.headers["if-none-match"];
 		const hash = await hashes.getHash(hashItem);
 		if (etag && etag == hash) {

@@ -8,12 +8,16 @@ import Field from "@components/Form/Field";
 import Button from "@components/Atoms/Button/Button";
 import { ButtonStyle } from "@components/Atoms/Button/ButtonStyle";
 import t from "@ext/localization/locale/translate";
-import { Property } from "@ext/properties/models";
+import { Property, PropertyTypes } from "@ext/properties/models";
 import CatalogPropsService from "@core-ui/ContextServices/CatalogProps";
 import CatalogCreateProps from "@ext/properties/models/schemas/CatalogCreateProps.schema";
 import ActionWarning from "@ext/properties/components/Modals/ActionWarning";
 import ListLayout from "@components/List/ListLayout";
 import lucideIconList, { iconFilter, toListItem } from "@components/Atoms/Icon/lucideIconList";
+import ValueHandler from "@ext/properties/components/Helpers/ValueHandler";
+import { DndProvider } from "react-dnd";
+import ModifiedBackend from "@ext/navigation/catalog/drag/logic/ModifiedBackend";
+import Icon from "@components/Atoms/Icon";
 
 interface CreatePropsModal {
 	data: Property;
@@ -48,6 +52,12 @@ const CatalogEditProperty = ({ isOpen, closeModal, onSubmit, data }: CreateProps
 		if (!data?.name?.length && catalogProps.properties.some((prop) => prop.name.toLowerCase() === lowerName))
 			return false;
 		return true;
+	};
+	const addValue = () => {
+		setEditProps((prevProps) => ({
+			...prevProps,
+			values: [...(prevProps.values || []), ""],
+		}));
 	};
 
 	return (
@@ -114,11 +124,31 @@ const CatalogEditProperty = ({ isOpen, closeModal, onSubmit, data }: CreateProps
 									setEditProps(newProps);
 								}}
 							/>
-							{editProps?.type === "Enum" && (
+							{(editProps?.type === PropertyTypes.enum || editProps?.type === PropertyTypes.many) && (
 								<Field
 									translationKey={"values"}
+									fieldDirection="column"
 									formTranslationKey={"catalog-create-props"}
 									scheme={Schema.properties.values as FormSchema}
+									actionButtons={
+										<Icon
+											code="plus"
+											isAction
+											tooltipContent={t("add")}
+											dataQa="qa-add-value"
+											onClick={addValue}
+										/>
+									}
+									input={
+										<DndProvider backend={ModifiedBackend}>
+											<div className="tree-root">
+												<ValueHandler
+													data={editProps.values}
+													onChange={(values) => setEditProps({ ...editProps, values })}
+												/>
+											</div>
+										</DndProvider>
+									}
 									value={editProps?.values}
 									tabIndex={5}
 									onChange={(values: string[]) => {
@@ -134,6 +164,8 @@ const CatalogEditProperty = ({ isOpen, closeModal, onSubmit, data }: CreateProps
 							action={(saveValue?: boolean) => submit(visibleWarning === 1, saveValue)}
 							isCatalog={visibleWarning === 1}
 							onClose={onCloseWarning}
+							data={data}
+							editData={editProps}
 							isOpen={true}
 						/>
 					)}

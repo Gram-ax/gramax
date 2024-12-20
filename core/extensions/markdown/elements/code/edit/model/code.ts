@@ -69,6 +69,7 @@ const Code = Mark.create<CodeOptions>({
 			[
 				{ key: "Space", focusShouldBeInsideNode: false, rules: [space("toggleCode")] },
 				{ key: "ArrowRight", focusShouldBeInsideNode: false, rules: [arrowRight("toggleCode")] },
+				{ key: "Mod-l", focusShouldBeInsideNode: false, rules: [({ editor }) => editor.commands.toggleCode()] },
 				{ key: "Mod-L", focusShouldBeInsideNode: false, rules: [({ editor }) => editor.commands.toggleCode()] },
 			],
 			this.type.name,

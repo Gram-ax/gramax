@@ -46,6 +46,11 @@ const locale = {
 				properties: {
 					name: "Properties",
 				},
+				group: {
+					name: "Group",
+					placeholder: "Group",
+					description: "Group on the main page where it will be displayed",
+				},
 			},
 		},
 		"catalog-create-props": {
@@ -107,7 +112,7 @@ const locale = {
 				},
 				token: {
 					name: "Token",
-					placeholder: "glpat-aq6PK8sz1eQeKhTy-Dm5",
+					placeholder: "glpat-aq6PK8sz1eQeKhTy-Dm5", // # gitleaks:allow
 					description: "Token for reading and modifying repositories in the storage",
 				},
 				createDate: {
@@ -139,7 +144,7 @@ const locale = {
 				},
 				token: {
 					name: "GitLab Token",
-					placeholder: "glpat-aq6PK8sz1eQeKhTy-Dm5",
+					placeholder: "glpat-aq6PK8sz1eQeKhTy-Dm5", // # gitleaks:allow
 					description: `Token for reading and modifying repositories in storage. Specify the token permissions: api, read_repository, write_repository. <a ${
 						getExecutingEnvironment() === "tauri" ? "" : "target='_blank'"
 					} href='https://docs.gitlab.com/ee/user/profile/personal_access_tokens.html'>Learn more</a>`,
@@ -328,6 +333,60 @@ const locale = {
 		"set-up-style-guide": "Set up style guide settings",
 		"set-up-connection": "Set up connection",
 		"style-guide-settings": "Style guide settings",
+		"delete-text": "Suggested to delete a fragment",
+		"replace-text": "Suggestion for replacement",
+		"LLM-provider": "LLM Provider",
+		"enter-token": "Enter token",
+		"verifying-token": "Verifying token",
+		"invalid-token": "Invalid token",
+		recommended: "Recommended",
+		"settings-file": "Settings file",
+		"invalid-file-format": "Invalid file format",
+		"select-file": "Select a file",
+		"no-file-selected": "No file selected",
+		"token-descriprion":
+			"Your token remains on your device and is not transmitted to our servers. Please keep your token secure and do not share it with others.",
+		"settings-description": `<p>To upload a style guide configuration file, follow these steps:</p>
+<ol>
+	<li>
+		<p>
+			Go to
+			<a
+				target="_blank"
+				href="https://check.gram.ax"
+				rel="noreferrer"
+			>
+				check.gram.ax
+			</a>
+			and navigate to "Settings".
+		</p>
+	</li>
+	<li>
+		<p>
+			Set up the connection tokens for your chosen LLM provider (e.g., OpenAI, Anthropic, etc.).
+		</p>
+	</li>
+	<li>
+		<p>Create rules and test their functionality.</p>
+	</li>
+	<li>
+		<p>Export the configuration file.</p>
+	</li>
+	<li>
+		<p>Upload the resulting file in this form.</p>
+	</li>
+</ol>
+<p>
+	For more details, refer to the
+	<a
+		target="_blank"
+		rel="noreferrer"
+		href="https://gram.ax/resources/docs/review/comments"
+	>
+		documentation
+	</a>
+	.
+</p>`,
 	},
 	workspace: {
 		name: "Workspace",
@@ -340,6 +399,14 @@ const locale = {
 			desktop: "Delete workspace? Working directory will remain on your computer",
 			web: "Delete workspace? All catalogs in it will also be deleted",
 		},
+		"edit-style": "Edit style",
+		"editing-css": "Editing CSS-styles",
+		"css-style": "CSS-style",
+		logo: "Logo",
+		appearance: "Appearance",
+		"for-dark-theme-logo": "For dark theme",
+		"edit-css-styles": "Edit CSS-styles",
+		"upload-logo": "Upload logo",
 	},
 	multilang: {
 		switch: "Switch language",
@@ -504,6 +571,8 @@ Add storage to confirm the link.`,
 		gramax: "Edit in Gramax",
 		generic: "Open in",
 		teams: "Open in Teams",
+		finder: "Show in Finder",
+		explorer: "Show in Explorer",
 
 		error: {
 			"cannot-open-desktop": {
@@ -512,9 +581,7 @@ Add storage to confirm the link.`,
 			},
 		},
 	},
-	"log-in": {
-		github: "Log in to GitHub",
-	},
+	"log-in": "Log in to ",
 	search: {
 		name: "Search",
 		open: "Open search",
@@ -524,7 +591,7 @@ Add storage to confirm the link.`,
 		"all-catalogs": "Search all catalogs",
 	},
 	list: {
-		"no-items-found": "No matches found for <strong>&quot;{{value}}&quot;</strong>.",
+		"no-results-found": "No results found",
 		"search-articles": "Link or search for articles",
 	},
 	versions: {
@@ -568,6 +635,7 @@ Add storage to confirm the link.`,
 			},
 		},
 		checkout: {
+			"change-branch": "Change branch",
 			conflict:
 				"The current branch has unpublished changes that conflict with changes in another branch. Please publish or revert them.",
 			"pathname-desc":
@@ -593,14 +661,17 @@ Add storage to confirm the link.`,
 					local: "Could not determine the current branch",
 					remote: "Failed to find remote branch for local branch {{branch}}",
 				},
+				"not-found-reload": "Could not determine the current branch. Reload the page.",
 				"already-exist": "Unable to create new branch. Branch {{branch}} already exists",
 			},
 		},
 		merge: {
+			"instant-merge": "Instant merge",
 			merge: "Combine",
 			branches: "Merge branches",
+			"after-merge": "After the merge",
 			"current-branch": "Merge the current branch",
-			"after-merge": "After the merger",
+			"delete-branch-after-merge": "Delete branch after merge",
 			conflict: {
 				"abort-confirm": {
 					title: {
@@ -645,7 +716,10 @@ Add storage to confirm the link.`,
 				sync: "Failed to synchronize changes",
 				generic: "Failed to merge branches",
 				branches: "Failed to merge branches",
-				"workdir-not-empty": "You have local changes. Revert them and try again",
+				"workdir-not-empty": {
+					title: "You have local changes",
+					body: "Publish or discard local changes. After that, merge the branches.",
+				},
 				"not-supported": "Merge error. We cannot resolve such conflicts yet",
 				"conflict-occured": "Could not automatically resolve merge conflict",
 				"conflicts-not-found": "Failed to get conflicting files",
@@ -654,7 +728,10 @@ Add storage to confirm the link.`,
 		},
 		publish: {
 			error: {
-				"non-fast-forward": "Your catalog version is outdated. Please synchronize it, then publish the changes",
+				"non-fast-forward": {
+					title: "Outdated catalog version",
+					body: "Synchronize the catalog to get your colleagues' changes. After that, publish your changes.",
+				},
 				unknown: "Unknown error when publishing. Error message -",
 				protected: "Branch protected from publishing",
 				http: "HTTP Error: {{status}}",
@@ -675,6 +752,12 @@ Add storage to confirm the link.`,
 			"seletected-confirm":
 				"Discard selected changes? The articles will revert to their previous state, and the added media files will be deleted.",
 		},
+		warning: {
+			"no-changes": {
+				title: "No changes",
+				body: "There are no changes in the current catalog to publish.",
+			},
+		},
 		error: {
 			"not-found": {
 				branch: "Failed to find branch {{what}}",
@@ -687,24 +770,111 @@ Add storage to confirm the link.`,
 				message:
 					"Publishing, synchronizing, changing branches, and other operations with Git storage require internet. Reconnect and try again.",
 			},
+			"source-api": {
+				title: "Error when requesting Git storage",
+			},
+		},
+		"merge-requests": {
+			approvedCountTooltip: "{{approvedCount}} of {{approvedTotal}} approvals",
+			changes: "Changes",
+			back: "Back",
+			create: "Create merge request",
+			"create-request": "Create request",
+			by: "By",
+			into: "into",
+			you: "You",
+			name: "Merge Request",
+			assignees: "Reviewers",
+			comments: {
+				zero: "No comments",
+				one: "comment",
+				few: "comments",
+				many: "comments",
+			},
+			approval: {
+				approved: "Approved",
+				unapproved: "Pending review",
+			},
+			status: {
+				draft: "Draft",
+				"draft-tooltip": "Waiting for merge request to be pushed to remote",
+				"in-progress": "In progress",
+				"in-progress-tooltip": "Waiting for review and approval",
+				approved: "Approved",
+				"approved-tooltip": "Approved by all reviewers and ready to merge",
+			},
+			"disable-button-reason": {
+				"has-conflicts": "Conflicts need to be resolved before merging branches",
+				draft: "Can't merge a draft",
+				"not-approved": "All reviewers need to approve",
+				"not-author": "You are not the author of this merge request",
+			},
+			confirm: {
+				title: "Merge branches?",
+				body: {
+					"delete-branch-after-merge":
+						"<p>Changes from the <code>{{sourceBranch}}</code> branch will be merged into the <code>{{targetBranch}}</code> branch, and branch <code>{{sourceBranch}}</code> will be deleted. This action cannot be undone.</p>",
+					"not-delete-branch-after-merge":
+						"<p>Changes from the <code>{{sourceBranch}}</code> branch will be merged into the <code>{{targetBranch}}</code> branch. This action cannot be undone.</p>",
+				},
+			},
+			warning: {
+				"no-changes": {
+					title: "No changes",
+					body: "There are no changes in branches to merge.",
+				},
+			},
 		},
 	},
 	confluence: {
 		blogs: "Blogs",
 		"link-board": "Link to board",
-		"log-in": "Log in to Confluence",
 		error: {
 			"ext-not-supported": "Extension not supported:",
 			http: "HTTP Error:",
 			"couldnt-find-file": "Could not find file name:",
 			"couldnt-find-fileId": "Could not find attachment with fileId:",
 			"http-2": "HTTP Error while loading file:",
+		},
+	},
+	import: {
+		error: {
+			"ext-not-supported": "Extension not supported:",
 			"cannot-import": {
-				title: "Failed to import element from Confluence",
+				title: "Failed to import element from ",
 				desc: "You can manually transfer it from the page",
 			},
 		},
 	},
+	"yandex-disk": {
+		"log-in": "Log in to Yandex.Disk",
+	},
+	"unsupported-elements": {
+		confluence: {
+			title: "Some elements will not be migrated",
+			description:
+				"Gramax does not support specific elements from Confluence, such as Jira tasks, graphs, and reports. You can migrate data from them manually.",
+			noteTitle: "List of pages with unsupported elements",
+		},
+		notion: {
+			title: "Some elements will not be migrated",
+			description:
+				"Gramax does not support specific elements from Notion, such as buttons, breadcrumbs. You can migrate data from them manually.",
+			noteTitle: "List of pages with unsupported elements",
+			"region-restricted": {
+				title: "Access restricted",
+				message:
+					"Unfortunately, your request cannot be processed because access to Notion is restricted for your region.",
+			},
+		},
+		default: {
+			title: "Some elements will not be migrated",
+			description:
+				"Gramax does not support certain elements from the data source. You can migrate data from them manually.",
+			noteTitle: "List of unsupported elements",
+		},
+	},
+
 	alert: {
 		details: "Details",
 		image: {
@@ -811,14 +981,21 @@ Add storage to confirm the link.`,
 		},
 	},
 	enterprise: {
-		"admin-panel": "Admin panel",
 		"user-not-found":
 			"This email isn't set up for Gramax Enterprise Server. You can continue using the full features of the free version or contact your admin for further assistance.",
 		"workspace-exit-warning": "Exiting the workspace will delete all directories and local changes will be lost.",
 		"workspace-exit": "Exit Workspace",
 		"check-if-user-editor-warning": "Make sure you have been issued an editor license.",
 		"access-restricted": "Access restricted",
-		"config-not-found": "Configuration issues. Contact your administrator.",
+		"config-error": "Configuration issues. Contact your administrator.",
+		"workspace-exists": "Enterprise workspace already exists.",
+		"check-article": "Checking article",
+		"ges-settings": "GES login settings",
+		"init-repo": {
+			error: "Error creating repository",
+			forbidden: "Insufficient permissions to create repository",
+			"already-exists": "Repository with this name already exists",
+		},
 	},
 	network: {
 		error: {
@@ -833,6 +1010,7 @@ Add storage to confirm the link.`,
 	article3: "article",
 	article4: "articles",
 	branch: "Branch",
+	branches: "Branches",
 	cancel: "Cancel",
 	category2: "section",
 	category3: "section",
@@ -935,6 +1113,8 @@ Add storage to confirm the link.`,
 	version: "Version",
 	warning: "Warning",
 	who: "Who",
+	forward: "Forward",
+	backward: "Backward",
 	"add-account": "Add account",
 	"add-annotation": "Add annotation",
 	"add-new-branch": "Add new branch",
@@ -979,7 +1159,6 @@ Add storage to confirm the link.`,
 	"catalog-icons-title": "Catalog icons",
 	"category-to-docx": "Section to DOCX",
 	"change-and-sync": "Change and synchronize",
-	"change-branch": "Change branch",
 	"check-diagrams": "Diagrams",
 	"check-file-path": "Check if the file path is correct",
 	"check-fs": "File Structure",
@@ -1079,7 +1258,6 @@ Add storage to confirm the link.`,
 	"must-be-not-empty": "This field cannot be empty.",
 	"no-access-to-storage": "No access to storage",
 	"no-branch-found": "No branches found",
-	"no-changes-in-catalog": "No changes in the current catalog",
 	"no-encoding-symbols-in-url": "URL can only contain Latin letters, numbers, and the symbols '-', '_'",
 	"no-headers": "(No headers)",
 	"no-schemas-block": "Do not display “Schemas” block",
@@ -1141,10 +1319,6 @@ Add storage to confirm the link.`,
 	"top-right-pointer": "Top right annotation",
 	"unable-to-get-sync-count": "Unable to retrieve changes",
 	"unsaved-changes": "Save changes?",
-	"unsupported-elements-confluence-title": "Some elements will not be transferred",
-	"unsupported-elements-confluence1":
-		"Gramax does not support specific Confluence elements. For example: Jira tasks, charts, reports. You can manually transfer data from them.",
-	"unsupported-elements-confluence2": "List of pages with unsupported elements",
 	"unsupported-elements-title": "Unsupported elements",
 	"unsupported-elements-warning1":
 		"DOCX does not support some elements of Gramax. The file will be saved without them.",
@@ -1201,15 +1375,30 @@ Add storage to confirm the link.`,
 				kanban: "Kanban",
 			},
 		},
+		types: {
+			Numeric: "Number",
+			Flag: "Flag",
+			Date: "Date",
+			Enum: "One from the list",
+			Many: "Several from the list",
+			Text: "Text",
+		},
 		selected: "Selected",
 		"not-selected": "Not selected",
 		article: "Article",
 		archive: "Archive",
+		"update-affected-articles": "articles will be affected",
+		"add-property": "Add property",
+		"no-values": "No values",
 	},
 	"create-new": "Create new",
 	manage: "Manage",
 	change: "Change",
 	"enter-number": "Enter number",
+	"enter-text": "Enter text",
+	reset: "Reset",
+	model: "Model",
+	"goto-original": "Go to original",
 };
 
 export default locale;

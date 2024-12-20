@@ -1,3 +1,4 @@
+import { createEventEmitter, Event } from "@core/Event/EventEmitter";
 import Path from "@core/FileProvider/Path/Path";
 import FileProvider from "@core/FileProvider/model/FileProvider";
 import type FileStructure from "@core/FileStructue/FileStructure";
@@ -5,6 +6,7 @@ import Cookie from "@ext/cookie/Cookie";
 import { invalidateRepoCache } from "@ext/git/core/GitCommands/LibGit2IntermediateCommands";
 import GitVersionControl from "@ext/git/core/GitVersionControl/GitVersionControl";
 import BareRepository from "@ext/git/core/Repository/BareRepository";
+import NullRepository from "@ext/git/core/Repository/NullRepository";
 import type Repository from "@ext/git/core/Repository/Repository";
 import WorkdirRepository from "@ext/git/core/Repository/WorkdirRepository";
 import UserInfo from "@ext/security/logic/User/UserInfo";
@@ -14,9 +16,12 @@ import Storage from "@ext/storage/logic/Storage";
 import StorageProvider from "@ext/storage/logic/StorageProvider";
 import StorageData from "@ext/storage/models/StorageData";
 
+export type RepositoryProviderEvents = Event<"connect-repository", { repo: Repository }>;
+
 export default class RepositoryProvider {
 	private _sdp: SourceDataProvider;
 	private _sp: StorageProvider;
+	private _events = createEventEmitter<RepositoryProviderEvents>();
 
 	constructor() {
 		this._sp = new StorageProvider();
@@ -24,6 +29,10 @@ export default class RepositoryProvider {
 
 	static invalidateRepoCache(paths: string[]) {
 		return invalidateRepoCache({ repoPaths: paths });
+	}
+
+	get events() {
+		return this._events;
 	}
 
 	addSourceDataProvider(sdp: SourceDataProvider) {
@@ -61,6 +70,10 @@ export default class RepositoryProvider {
 		return this._makeRepository(path, fp, gvc, storage);
 	}
 
+	static null() {
+		return NullRepository.instance;
+	}
+
 	async update(rep: Repository, fp: FileProvider, newPath: Path): Promise<void> {
 		const gvc = new GitVersionControl(newPath, fp);
 		const storage = await this._sp.getStorageByPath(newPath, fp);
@@ -70,7 +83,9 @@ export default class RepositoryProvider {
 	async initNew(path: Path, fp: FileProvider, data: StorageData): Promise<Repository> {
 		const gvc = await GitVersionControl.init(fp, path, data.source);
 		const storage = await this._sp.initNewStorage(fp, path, data);
-		return this._makeRepository(path, fp, gvc, storage);
+		const repo = await this._makeRepository(path, fp, gvc, storage);
+		await this._events.emit("connect-repository", { repo });
+		return repo;
 	}
 
 	async cloneNewRepository(

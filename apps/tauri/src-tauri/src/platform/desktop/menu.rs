@@ -40,6 +40,7 @@ pub enum MenuItemId {
   Reload,
   Refresh,
   ToggleInspector,
+  EnterpriseConfigure,
   Unknown,
   #[cfg(target_family = "unix")]
   ZoomIn,
@@ -52,6 +53,7 @@ pub enum MenuItemId {
 impl MenuItemId {
   fn translated(&self) -> Cow<str> {
     match self {
+      MenuItemId::EnterpriseConfigure => t!("menu.file.configure"),
       MenuItemId::NewWindow => t!("menu.file.new-window"),
       MenuItemId::CloseWindow => t!("menu.file.close-window"),
       MenuItemId::CheckUpdate => t!("updates.check"),
@@ -109,6 +111,11 @@ pub fn on_menu_event<R: Runtime>(app: &AppHandle<R>, event: MenuEvent) {
       std::thread::spawn(move || {
         MainWindowBuilder::default().build(&app).or_show_with_message(&t!("etc.error.build-window"))
       });
+    }
+    Id::EnterpriseConfigure => {
+      if let Some(window) = app.get_focused_webview() {
+        app.emit_to(EventTarget::webview_window(window.label()), "enterprise-configure", ()).unwrap();
+      }
     }
     Id::CloseWindow => {
       std::thread::spawn(move || app.get_focused_webview().map(|w| w.close()));
@@ -184,6 +191,7 @@ fn make_menu<R: Runtime>(app: &AppHandle<R>) -> Result<Menu<R>> {
   main_sub.append_items(&[
     &build_item(Id::NewWindow, Some("CmdOrControl+T"))?,
     &build_item(Id::CheckUpdate, None)?,
+    &build_item(Id::EnterpriseConfigure, None)?,
     &PredefinedMenuItem::about(app, Some(&t!("menu.file.about")), Some(about_metadata(app)))?,
     &PredefinedMenuItem::separator(app)?,
     &build_item(Id::CloseWindow, Some("CmdOrControl+W"))?,

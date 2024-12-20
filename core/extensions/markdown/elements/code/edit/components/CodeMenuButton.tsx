@@ -10,7 +10,7 @@ const CodeMenuButton = ({ editor }: { editor: Editor }) => {
 			onClick={() => editor.chain().focus().toggleCode().run()}
 			icon={"code-xml"}
 			tooltipText={isSelected ? t("editor.code") : t("editor.code-block")}
-			hotKey={"Mod-Shift-L"}
+			hotKey={"Mod-L"}
 			nodeValues={isSelected ? { mark: "code" } : { action: "code_block" }}
 		/>
 	);

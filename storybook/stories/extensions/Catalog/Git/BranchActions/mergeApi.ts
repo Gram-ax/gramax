@@ -1,7 +1,7 @@
 import MergeConflictCaller from "@ext/git/actions/MergeConflictHandler/model/MergeConflictCaller";
 import MergeData from "@ext/git/actions/MergeConflictHandler/model/MergeData";
 import { MockedAPIEndpoint } from "../../../../../data/mock";
-import { files as testMergeFiles } from "../MergeConflictHandler/data";
+import { files as testMergeFiles } from "../Merge/data";
 
 export const mergeBranchData = {
 	ok: false,
@@ -39,6 +39,11 @@ const mergeApi = [
 		delay: 1000,
 		response: mergeBranchData,
 		// errorMessage: "getFiles error",
+	},
+	{
+		path: "/api/versionControl/mergeRequests/create",
+		delay: 1000,
+		// errorMessage: "create merge request error",
 	},
 ] as MockedAPIEndpoint[];
 

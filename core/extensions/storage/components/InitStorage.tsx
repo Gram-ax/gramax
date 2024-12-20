@@ -4,6 +4,8 @@ import FormStyle from "@components/Form/FormStyle";
 import ModalLayout from "@components/Layouts/Modal";
 import ModalLayoutLight from "@components/Layouts/ModalLayoutLight";
 import { useRouter } from "@core/Api/useRouter";
+import OnNetworkApiErrorService from "@ext/errorHandlers/client/OnNetworkApiErrorService";
+import Mode from "@ext/git/actions/Clone/model/Mode";
 import t from "@ext/localization/locale/translate";
 import { useState } from "react";
 import FetchService from "../../../ui-logic/ApiServices/FetchService";
@@ -12,7 +14,6 @@ import ApiUrlCreatorService from "../../../ui-logic/ContextServices/ApiUrlCreato
 import CatalogPropsService from "../../../ui-logic/ContextServices/CatalogProps";
 import StorageData from "../models/StorageData";
 import SelectStorageDataForm from "./SelectStorageDataForm";
-import Mode from "@ext/git/actions/Clone/model/Mode";
 
 const InitStorage = ({ trigger }: { trigger: JSX.Element }) => {
 	const catalogProps = CatalogPropsService.value;
@@ -36,21 +37,27 @@ const InitStorage = ({ trigger }: { trigger: JSX.Element }) => {
 		<ModalLayout trigger={trigger} isOpen={isOpen} onOpen={() => setIsOpen(true)} onClose={() => setIsOpen(false)}>
 			<ModalLayoutLight>
 				{!load ? (
-					<SelectStorageDataForm title={t("connect-storage")} onChange={setStorageData} mode={Mode.init}>
-						<div className="buttons">
-							<Button
-								disabled={
-									!storageData ||
-									Object.keys(storageData)
-										.filter((n) => n != "name")
-										.some((n) => !storageData[n])
-								}
-								onClick={() => onSelect({ ...storageData, name: catalogProps.name })}
-							>
-								{t("select")}
-							</Button>
-						</div>
-					</SelectStorageDataForm>
+					<OnNetworkApiErrorService.Provider
+						callback={() => {
+							setIsOpen(false);
+						}}
+					>
+						<SelectStorageDataForm title={t("connect-storage")} onChange={setStorageData} mode={Mode.init}>
+							<div className="buttons">
+								<Button
+									disabled={
+										!storageData ||
+										Object.keys(storageData)
+											.filter((n) => n != "name")
+											.some((n) => !storageData[n])
+									}
+									onClick={() => onSelect({ ...storageData, name: catalogProps.name })}
+								>
+									{t("select")}
+								</Button>
+							</div>
+						</SelectStorageDataForm>
+					</OnNetworkApiErrorService.Provider>
 				) : (
 					<FormStyle>
 						<SpinnerLoader fullScreen />

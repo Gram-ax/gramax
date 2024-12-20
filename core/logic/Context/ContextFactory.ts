@@ -1,5 +1,4 @@
 import LanguageService from "@core-ui/ContextServices/Language";
-import EnterpriseUser from "@ext/enterprise/EnterpriseUser";
 import ThemeManager from "../../extensions/Theme/ThemeManager";
 import Cookie from "../../extensions/cookie/Cookie";
 import CookieFactory from "../../extensions/cookie/CookieFactory";
@@ -30,8 +29,7 @@ export class ContextFactory {
 		query.ui = cookie.get("ui");
 		if (!query.l) query.l = ContentLanguage[req.headers["x-gramax-language"]];
 
-		const user = this._isReadOnly ? this._am?.getUser(cookie, query) : localUser;
-		if (user.type === "enterprise") await (user as EnterpriseUser).updatePermissions();
+		const user = this._isReadOnly ? await this._am?.getUser(cookie, query) : localUser;
 
 		return this._getContext({ cookie, user, query, domain: apiUtils.getDomain(req) });
 	}

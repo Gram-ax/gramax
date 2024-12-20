@@ -62,6 +62,11 @@ export type EnvironmentVariable = {
 	// SEO
 	DISABLE_SEO: Bool;
 
+	// MATOMO
+	MATOMO_SITE_ID: string;
+	MATOMO_URL: string;
+	MATOMO_CONTAINER_URL: string;
+
 	// Logo
 	LOGO_IMAGE_URL: string;
 	LOGO_LINK_URL: string;

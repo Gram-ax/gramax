@@ -20,12 +20,12 @@ const getGitDiffItemCreatorData = async () => {
 	const { wm, rp, sitePresenterFactory } = await getApp();
 	const dfp = new DiskFileProvider(TEST_GIT_CATALOG_PATH);
 	const workspace = wm.current();
-	const catalog = await workspace.getCatalog("gitCatalog");
+	const catalog = await workspace.getContextlessCatalog("gitCatalog");
 	const fs = workspace.getFileStructure();
 	const fp = workspace.getFileProvider();
 	const sitePresenter = sitePresenterFactory.fromContext(new TestContext());
-	const gitDiffItemCreator = new GitDiffItemCreator(catalog, fp, sitePresenter, fs);
 	const git = new GitCommands(dfp, new Path());
+	const gitDiffItemCreator = new GitDiffItemCreator(catalog, sitePresenter, fs);
 
 	return { catalog, dfp, gitDiffItemCreator, fs, fp, rp, git };
 };

@@ -1,15 +1,26 @@
 export type DiffItemType = "added" | "deleted" | "changedContext";
 
-export interface DiffItemDiffContent {
-	from: number;
-	to: number;
-	type: DiffItemType;
-}
+export type DiffNode = AddedDiffNode | DeletedDiffNode | ChangedContextDiffNode;
 
-export type DiffNode = {
+type AnyDiffNode = {
 	path: string;
 	block: boolean;
 	diffType: DiffItemType;
 	relativeFrom?: number;
 	relativeTo?: number;
 };
+
+export interface AddedDiffNode extends AnyDiffNode {
+	diffType: "added";
+	deletedDiffNode?: DeletedDiffNode;
+}
+
+export interface DeletedDiffNode extends AnyDiffNode {
+	diffType: "deleted";
+	addedDiffNode?: AddedDiffNode;
+}
+
+export interface ChangedContextDiffNode extends AnyDiffNode {
+	diffType: "changedContext";
+	oldContentPath?: string;
+}

@@ -29,7 +29,7 @@ const getDbDiagram: Command<
 		const { wm, tablesManager } = this._app;
 		const workspace = wm.current();
 
-		const catalog = await workspace.getCatalog(catalogName);
+		const catalog = await workspace.getCatalog(catalogName, ctx);
 		const fp = workspace.getFileProvider();
 		const diagram = new DbDiagram(tablesManager, fp);
 

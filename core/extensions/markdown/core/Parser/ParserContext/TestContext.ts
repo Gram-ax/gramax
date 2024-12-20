@@ -11,6 +11,7 @@ import UserInfo from "../../../../security/logic/User/UserInfo";
 import MarkdownFormatter from "../../edit/logic/Formatter/Formatter";
 import MarkdownParser from "../Parser";
 import ParserContext, { BaseContext } from "./ParserContext";
+import type ContextualCatalog from "@core/FileStructue/Catalog/ContextualCatalog";
 
 export default class TestContext extends BaseContext implements ParserContext {
 	private _linkManager: LinkResourceManager;
@@ -18,7 +19,7 @@ export default class TestContext extends BaseContext implements ParserContext {
 
 	constructor(
 		private _itemRef: ItemRef,
-		private _catalog: Catalog,
+		private _catalog: ContextualCatalog,
 		readonly fp: FileProvider,
 		readonly parser: MarkdownParser,
 		readonly formatter: MarkdownFormatter,
@@ -48,7 +49,7 @@ export default class TestContext extends BaseContext implements ParserContext {
 		return this._catalog.findArticleByItemRef(this._itemRef);
 	}
 
-	getCatalog(): Catalog {
+	getCatalog() {
 		return this._catalog;
 	}
 

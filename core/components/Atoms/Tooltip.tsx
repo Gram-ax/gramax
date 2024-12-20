@@ -19,7 +19,7 @@ interface TooltipProps extends TippyProps {
 	contentClassName?: string;
 	interactive?: boolean;
 	inverseStyle?: boolean;
-	delay?: number;
+	delay?: number | [number, number];
 }
 
 interface TooltipContentProps extends Omit<TooltipProps, "children"> {
@@ -50,13 +50,13 @@ const Tooltip = forwardRef((props: TooltipProps, ref?: RefObject<Element>) => {
 	const tooltipRef = ref ?? useRef();
 	const exists = useElementExistence(tooltipRef);
 	const [finalPlace, setFinalPlace] = useState<Placement>(place);
-	const isNarrow = useMediaQuery(cssMedia.narrow)
+	const isNarrow = useMediaQuery(cssMedia.narrow);
 
 	useEffect(() => {
 		setPlaceCallback(finalPlace);
 	}, [finalPlace]);
 
-	if (!content || (hideInMobile && isNarrow )) return children;
+	if (!content || (hideInMobile && isNarrow)) return children;
 
 	return (
 		<Tippy

@@ -1,5 +1,4 @@
 import { resolveImageKind } from "@components/Atoms/Image/resolveImageKind";
-import OnLoadResourceService from "@ext/markdown/elements/copyArticles/onLoadResourceService";
 import { Crop } from "@ext/markdown/elements/image/edit/model/imageEditorTypes";
 import { MouseEventHandler } from "react";
 
@@ -8,14 +7,17 @@ const getPixels = (num: number, percent: number) => {
 };
 
 export const calculateScale = (imageContainer: HTMLDivElement, imageSize: { w: number; h: number }, crop: Crop) => {
-	const containerWidth = imageContainer.clientWidth;
-	const containerHeight = imageContainer.clientHeight;
+	const windowWidth = window.innerWidth;
+	const windowHeight = window.innerHeight;
+
+	const maxContainerWidth = windowWidth * 0.8;
+	const maxContainerHeight = windowHeight * 0.8;
 
 	const cropWidth = getPixels(imageSize.w, crop.w);
 	const cropHeight = getPixels(imageSize.h, crop.h);
 
-	const scaleX = containerWidth / cropWidth;
-	const scaleY = containerHeight / cropHeight;
+	const scaleX = maxContainerWidth / cropWidth;
+	const scaleY = maxContainerHeight / cropHeight;
 
 	return Math.min(scaleX, scaleY);
 };
@@ -27,17 +29,17 @@ interface cropImageProps {
 	scale?: number;
 }
 
-interface getCanvasProps {
-	imageContainer: HTMLDivElement;
-	crop: Crop;
-	realSrc: string;
-	setSrc?: (newSrc: Blob) => void;
-}
+export const getCroppedCanvas = async (
+	imageContainer: HTMLDivElement,
+	crop: Crop,
+	realSrc: string,
+	originalBuffer: Buffer,
+): Promise<Blob> => {
+	if (crop.x === 0 && crop.y === 0 && crop.w === 100 && crop.h === 100) return;
 
-export function getCroppedCanvas(props: getCanvasProps) {
-	const { imageContainer, crop = { x: 0, y: 0, w: 100, h: 100 }, realSrc, setSrc } = props;
+	const imageContainerRect = imageContainer?.getBoundingClientRect();
+	if (!imageContainerRect) return;
 
-	const imageContainerRect = imageContainer.getBoundingClientRect();
 	const x = (crop.x / 100) * imageContainerRect.width;
 	const y = (crop.y / 100) * imageContainerRect.height;
 	const width = (crop.w / 100) * imageContainerRect.width;
@@ -50,32 +52,35 @@ export function getCroppedCanvas(props: getCanvasProps) {
 
 	if (context) {
 		const image = new Image();
-		const buffer = OnLoadResourceService.getBuffer(realSrc) || null;
+		const buffer = originalBuffer || null;
 		image.src = buffer ? "data:" + resolveImageKind(buffer) + ";base64," + buffer.toString("base64") : realSrc;
 
-		image.onload = () => {
-			const scaleX = image.naturalWidth / imageContainerRect.width;
-			const scaleY = image.naturalHeight / imageContainerRect.height;
+		return new Promise((resolve) => {
+			image.onload = () => {
+				const scaleX = image.naturalWidth / imageContainerRect.width;
+				const scaleY = image.naturalHeight / imageContainerRect.height;
 
-			canvas.width = width * scaleX;
-			canvas.height = height * scaleY;
+				canvas.width = width * scaleX;
+				canvas.height = height * scaleY;
 
-			context.drawImage(
-				image,
-				x * scaleX,
-				y * scaleY,
-				canvas.width,
-				canvas.height,
-				0,
-				0,
-				canvas.width,
-				canvas.height,
-			);
+				context.drawImage(
+					image,
+					x * scaleX,
+					y * scaleY,
+					canvas.width,
+					canvas.height,
+					0,
+					0,
+					canvas.width,
+					canvas.height,
+				);
 
-			canvas.toBlob((blob) => setSrc(blob), "image/png");
-		};
+				canvas.toBlob((blob) => resolve(blob), "image/png");
+			};
+		});
 	}
-}
+	return;
+};
 
 export function cropImage(props: cropImageProps) {
 	const { image, imageSize, crop = { x: 0, y: 0, w: 100, h: 100 }, scale = 1 } = props;
@@ -120,7 +125,7 @@ interface HandleMoveProps {
 	parentRef: React.RefObject<HTMLDivElement>;
 	mainRef: React.MutableRefObject<HTMLDivElement>;
 	setHover?: React.Dispatch<React.SetStateAction<boolean>>;
-	onMouseUpCallback?: () => void;
+	onMouseUpCallback?: (newX: number, newY: number, newWidth?: number, newHeight?: number) => void;
 	onMouseDownCallback?: () => boolean;
 }
 
@@ -143,10 +148,20 @@ export const handleMove = (props: HandleMoveProps) => {
 		const imageContainerRect = imageContainer.getBoundingClientRect();
 		const cropperStyle = window.getComputedStyle(main);
 
+		const computedStyle = getComputedStyle(main);
+		const marginTop = parseFloat(computedStyle.marginTop);
+		const marginLeft = parseFloat(computedStyle.marginLeft);
+
+		main.style.marginTop = "0px";
+		main.style.marginLeft = "0px";
+
 		const startWidth = (parseFloat(cropperStyle.width) / imageContainerRect.width) * 100;
 		const startHeight = (parseFloat(cropperStyle.height) / imageContainerRect.height) * 100;
 		const startLeft = (parseFloat(cropperStyle.left) / imageContainerRect.width) * 100;
 		const startTop = (parseFloat(cropperStyle.top) / imageContainerRect.height) * 100;
+
+		main.style.left = `calc(${main.style.left} + ${marginLeft}px)`;
+		main.style.top = `calc(${main.style.top} + ${marginTop}px)`;
 
 		const startX = event.clientX;
 		const startY = event.clientY;
@@ -204,7 +219,19 @@ export const handleMove = (props: HandleMoveProps) => {
 			document.removeEventListener("mousemove", onMouseMove);
 			document.removeEventListener("mouseup", onMouseUp);
 
-			if (onMouseUpCallback) onMouseUpCallback();
+			main.style.left = `calc(${main.style.left} - ${marginLeft}px)`;
+			main.style.top = `calc(${main.style.top} - ${marginTop}px)`;
+
+			const computedStyle = getComputedStyle(main);
+			const leftPercent = +((parseInt(computedStyle.left) / imageContainerRect.width) * 100).toFixed(2);
+			const topPercent = +((parseInt(computedStyle.top) / imageContainerRect.height) * 100).toFixed(2);
+			const widthPercent = +parseInt(main.style.width).toFixed(2);
+			const heightPercent = +parseInt(main.style.height).toFixed(2);
+
+			main.style.marginTop = `${marginTop}px`;
+			main.style.marginLeft = `${marginLeft}px`;
+
+			if (onMouseUpCallback) onMouseUpCallback(leftPercent, topPercent, widthPercent, heightPercent);
 		};
 
 		document.addEventListener("mousemove", onMouseMove);
@@ -225,11 +252,20 @@ export const objectMove = (props: ObjectMoveProps) => {
 		if (isDraggable) return;
 
 		const object = mainRef.current;
+		const computedStyle = getComputedStyle(object);
+		const marginTop = parseFloat(computedStyle.marginTop);
+		const marginLeft = parseFloat(computedStyle.marginLeft);
+
+		object.style.marginTop = "0px";
+		object.style.marginLeft = "0px";
 
 		if (object !== event.target) return;
 
 		if (onMouseDownCallback && !onMouseDownCallback()) return;
 		setDraggable(true);
+
+		object.style.left = `calc(${object.style.left} + ${marginLeft}px)`;
+		object.style.top = `calc(${object.style.top} + ${marginTop}px)`;
 
 		const offsetX = event.clientX - object.getBoundingClientRect().left;
 		const offsetY = event.clientY - object.getBoundingClientRect().top;
@@ -253,7 +289,19 @@ export const objectMove = (props: ObjectMoveProps) => {
 			document.removeEventListener("mousemove", onMouseMove);
 			document.removeEventListener("mouseup", onMouseUp);
 			setDraggable(false);
-			if (onMouseUpCallback) onMouseUpCallback();
+			object.style.left = `calc(${object.style.left} - ${marginLeft}px)`;
+			object.style.top = `calc(${object.style.top} - ${marginTop}px)`;
+
+			const computedStyle = getComputedStyle(object);
+			const leftPercent = +((parseInt(computedStyle.left) / containerRect.width) * 100).toFixed(2);
+			const topPercent = +((parseInt(computedStyle.top) / containerRect.height) * 100).toFixed(2);
+			const widthPercent = +parseInt(object.style.width).toFixed(2);
+			const heightPercent = +parseInt(object.style.height).toFixed(2);
+
+			object.style.marginTop = `${marginTop}px`;
+			object.style.marginLeft = `${marginLeft}px`;
+
+			if (onMouseUpCallback) onMouseUpCallback(leftPercent, topPercent, widthPercent, heightPercent);
 		};
 
 		document.addEventListener("mousemove", onMouseMove);

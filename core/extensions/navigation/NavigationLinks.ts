@@ -1,6 +1,7 @@
 import Style from "@components/HomePage/Cards/model/Style";
 import { ItemType } from "@core/FileStructue/Item/ItemType";
 import { ClientItemRef } from "@core/SitePresenter/SitePresenter";
+import type { FileStatus } from "@ext/Watchers/model/FileStatus";
 
 export interface CatalogLink extends BaseLink {
 	name: string;
@@ -27,6 +28,7 @@ export interface ItemLink extends BaseLink {
 	isCurrentLink: boolean;
 	ref: ClientItemRef;
 	external?: string;
+	status?: FileStatus;
 }
 
 export interface CategoryLink extends ItemLink {

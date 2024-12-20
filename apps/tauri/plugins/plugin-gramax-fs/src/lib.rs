@@ -71,7 +71,7 @@ tauri::ios_plugin_binding!(init_plugin_gramaxfs);
 pub fn init<R: Runtime>() -> TauriPlugin<R> {
   use commands::*;
 
-  Builder::new("plugin-gramax-fs")
+  let builder = Builder::new("plugin-gramax-fs")
     .setup(|_app, _api| {
       #[cfg(target_os = "ios")]
       _api.register_ios_plugin(init_plugin_gramaxfs)?;
@@ -91,8 +91,14 @@ pub fn init<R: Runtime>() -> TauriPlugin<R> {
       getstat,
       exists,
       copy,
-      mv
-    ])
-    .register_uri_scheme_protocol("gramax-fs-stream", |_, req| handle_req(req))
-    .build()
+      read_dir_stats
+    ]);
+
+  #[cfg(not(target_os = "linux"))]
+  let builder = builder.register_asynchronous_uri_scheme_protocol("gramax-fs-stream", |_, req, responder| responder.respond(handle_req(req)));
+
+  #[cfg(target_os = "linux")]
+  let builder = builder.register_uri_scheme_protocol("gramax-fs-stream", |_, req| handle_req(req));
+
+  builder.build()
 }

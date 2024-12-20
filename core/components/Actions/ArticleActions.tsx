@@ -1,4 +1,5 @@
 import EditInGramax from "@components/Actions/EditInGramax";
+import ShowInExplorer from "@components/Actions/ShowInExplorer";
 import ListItem from "@components/Layouts/CatalogLayout/RightNavigation/ListItem";
 import ArticlePropsService from "@core-ui/ContextServices/ArticleProps";
 import CatalogPropsService from "@core-ui/ContextServices/CatalogProps";
@@ -6,8 +7,8 @@ import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import IsReadOnlyHOC from "@core-ui/HigherOrderComponent/IsReadOnlyHOC";
 import getIsDevMode from "@core-ui/utils/getIsDevMode";
 import BugsnagLogsModal from "@ext/bugsnag/components/BugsnagLogsModal";
+import EnterpriseCheckStyleGuide from "@ext/enterprise/components/EnterpriseCheckStyleGuide";
 import t from "@ext/localization/locale/translate";
-import IsDiffModeNav from "@ext/markdown/elements/diff/components/IsDiffModeNav";
 import StyleGuideMenu from "@ext/StyleGuide/components/StyleGuideMenu";
 import { FC, useEffect, useState } from "react";
 import FileEditor from "../../extensions/artilce/actions/FileEditor";
@@ -28,10 +29,10 @@ const ArticleActions: FC<ArticleActionsProps> = ({ isCatalogExist, hasRenderable
 	const isArticleExist = !!articleProps.fileName;
 
 	useEffect(() => {
-		if (!isCatalogExist) return;
+		if (!isCatalogExist) return hasRenderableActions(true);
 		if ((isLogged || !isReadOnly) && !!catalogProps.sourceName) return hasRenderableActions(true);
-		if (isLogged) return hasRenderableActions(true);
-		if (!isLogged) return hasRenderableActions(false);
+		if (isReadOnly && !isDevMode) return;
+		return hasRenderableActions(isLogged);
 	});
 
 	if (!isCatalogExist)
@@ -55,8 +56,9 @@ const ArticleActions: FC<ArticleActionsProps> = ({ isCatalogExist, hasRenderable
 				/>
 			</IsReadOnlyHOC>
 			{(isLogged || !isReadOnly) && !!catalogProps.sourceName && <EditInGramax key="edit-gramax" />}
-			{isDevMode && <StyleGuideMenu />}
-			{isDevMode && <IsDiffModeNav />}
+			<ShowInExplorer />
+			<EnterpriseCheckStyleGuide />
+			{/* {isDevMode && <StyleGuideMenu />} */}
 		</>
 	);
 };

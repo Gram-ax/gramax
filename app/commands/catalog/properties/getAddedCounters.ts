@@ -1,22 +1,23 @@
 import { Command } from "@app/types/Command";
 import { ResponseKind } from "@app/types/ResponseKind";
 import ReloadConfirmMiddleware from "@core/Api/middleware/ReloadConfirmMiddleware";
+import type Context from "@core/Context/Context";
 import Path from "@core/FileProvider/Path/Path";
 import { Article } from "@core/FileStructue/Article/Article";
 import { Property } from "@ext/properties/models";
 
-const getAddedCounters: Command<{ catalogName: string; articlePath: Path }, Property[]> = Command.create({
+const getAddedCounters: Command<{ ctx: Context; catalogName: string; articlePath: Path }, Property[]> = Command.create({
 	path: "catalog/actionEditorProperties/getAddedCounters",
 
 	kind: ResponseKind.json,
 
 	middlewares: [new ReloadConfirmMiddleware()],
 
-	async do({ catalogName, articlePath }) {
+	async do({ ctx, catalogName, articlePath }) {
 		const { wm } = this._app;
 		const workspace = wm.current();
 
-		const catalog = await workspace.getCatalog(catalogName);
+		const catalog = await workspace.getCatalog(catalogName, ctx);
 		const fp = workspace.getFileProvider();
 		const itemRef = fp.getItemRef(articlePath);
 		const curArticle = catalog.findItemByItemPath<Article>(itemRef.path);

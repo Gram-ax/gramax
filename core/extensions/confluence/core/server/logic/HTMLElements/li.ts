@@ -2,7 +2,7 @@ import HTMLNodeConverter from "@ext/confluence/core/server/model/HTMLNodeConvert
 
 const li: HTMLNodeConverter = () => {
 	return {
-		type: "list_item",
+		type: "listItem",
 	};
 };
 

@@ -62,7 +62,7 @@ const CheckoutHandler = ({
 				) : (
 					<InfoModalForm
 						onCancelClick={onCancel}
-						title={t("change-branch") + "?"}
+						title={t("git.checkout.change-branch") + "?"}
 						actionButton={{ text: t("change-and-sync"), onClick: onActionButtonClick }}
 						isWarning={true}
 					>
@@ -71,7 +71,7 @@ const CheckoutHandler = ({
 							<br />
 							{t("git.checkout.pathname-desc")}
 							<br />
-							{t("change-branch")} <BranchElement branchName={currentBranchName} />{" "}
+							{t("git.checkout.change-branch")} <BranchElement branchName={currentBranchName} />{" "}
 							{t("to-branch").toLowerCase()} <BranchElement branchName={branchToCheckout} />{" "}
 							{t("and-sync-catalog").toLowerCase()}
 						</span>

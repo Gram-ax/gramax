@@ -59,5 +59,7 @@ export declare function git_read_dir(repoPath: string, scope: TreeReadScope, pat
 export declare function git_file_stat(repoPath: string, scope: TreeReadScope, path: string): Output
 export declare function git_file_exists(repoPath: string, scope: TreeReadScope, path: string): Output
 export declare function git_read_file(repoPath: string, scope: TreeReadScope, path: string): Buffer
+export declare function git_read_dir_stats(repoPath: string, scope: TreeReadScope, path: string): Output
+export declare function list_merge_requests(repoPath: string): Output
 export declare function find_refs_by_globs(repoPath: string, pattern: Array<string>): Output
 export declare function invalidate_repo_cache(repoPaths: Array<string>): Output

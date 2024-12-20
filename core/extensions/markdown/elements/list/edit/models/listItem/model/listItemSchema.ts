@@ -1,5 +1,5 @@
-export const list_item = {
-	group: "list_item",
+export const listItem = {
+	group: "listItem",
 	content: "paragraph block*",
 	defining: true,
 	attrs: {

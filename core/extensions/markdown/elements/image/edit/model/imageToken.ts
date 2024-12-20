@@ -8,6 +8,8 @@ function imageToken() {
 				tok.attrs.crop ?? "0,0,100,100",
 				tok.attrs.scale ?? null,
 				tok.attrs.objects ?? "[]",
+				tok.attrs.width,
+				tok.attrs.height,
 			);
 
 			return {
@@ -17,6 +19,8 @@ function imageToken() {
 				crop: crop,
 				scale: scale,
 				objects: objects,
+				width: tok?.attrGet ? tok.attrGet("width") : tok.attrs.width,
+				height: tok?.attrGet ? tok.attrGet("height") : tok.attrs.height,
 			};
 		},
 	};

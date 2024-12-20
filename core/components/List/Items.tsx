@@ -54,6 +54,7 @@ interface ItemsProps extends HTMLAttributes<HTMLDivElement>, ConfigProps {
 	blurInInput: () => void;
 	onItemClick?: OnItemClick;
 	keepFullWidth?: boolean;
+	useVirtuoso?: boolean;
 }
 
 const getArray = <T,>(array: T[]): T[] => (!Array.isArray(array) || !array.length ? [] : array);
@@ -78,6 +79,7 @@ const Items = memo((props: ItemsProps) => {
 		isLoadingData,
 		showFilteredItems,
 		keepFullWidth,
+		useVirtuoso: hasVirtuoso,
 		...otherProps
 	} = props;
 
@@ -94,7 +96,7 @@ const Items = memo((props: ItemsProps) => {
 		return [...getArray(buttons), ...getArray(items)];
 	}, [buttons, items]);
 
-	const useVirtuoso = itemsWithButtons.length > maxItems;
+	const useVirtuoso = hasVirtuoso && itemsWithButtons.length > maxItems;
 	const virtuosoRef = useRef<VirtuosoHandle>(null);
 
 	let scrollTop: number;
@@ -186,16 +188,18 @@ const Items = memo((props: ItemsProps) => {
 				if (focusRef.current) {
 					e.preventDefault();
 					action();
-				} else {
-					moveActiveIdx(-activeIdx);
 				}
 			}
 		},
 		[moveActiveIdx, maxItems, blurInInput],
 	);
 
+	useWatch(() => {
+		moveActiveIdx(-activeIdx);
+	}, [value]);
+
 	useEffect(() => {
-		const inputRef = searchRef?.current?.inputRef;
+		const inputRef = searchRef.current?.inputRef;
 		inputRef?.addEventListener("keydown", keydownHandler);
 
 		return () => inputRef?.removeEventListener("keydown", keydownHandler);
@@ -310,7 +314,7 @@ const Items = memo((props: ItemsProps) => {
 			{!getArray(items).length && (
 				<>
 					{isLoadingData && <Item content={LoadingListItem} />}
-					{value && !isLoadingData && <RequestValueNotFound value={value} />}
+					{value && !isLoadingData && <RequestValueNotFound />}
 				</>
 			)}
 		</StyleDiv>
@@ -338,16 +342,11 @@ const StyleDiv = styled.div<ConfigProps>`
 	}
 `;
 
-const RequestValueNotFound = ({ value }: { value: string }) => (
+const RequestValueNotFound = () => (
 	<Item
-		style={{ display: "flex", justifyContent: "left" }}
+		style={{ color: "var(--color-primary-general-inverse)" }}
 		content={{
-			element: (
-				<span
-					style={{ fontSize: "14px", padding: "6px 12px" }}
-					dangerouslySetInnerHTML={{ __html: t("list.no-items-found").replace("{{value}}", value) }}
-				/>
-			),
+			element: <span style={{ fontSize: "14px", padding: "6px 12px" }}>{t("list.no-results-found")}</span>,
 			labelField: "",
 		}}
 	/>

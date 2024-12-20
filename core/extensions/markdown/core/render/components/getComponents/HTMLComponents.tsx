@@ -19,7 +19,7 @@ class HTMLComponents {
 
 	constructor(private _requestUrl: string, context: ParserContext) {
 		this._publicApiUrlCreator = new PublicApiUrlCreator(
-			encodeURIComponent(context.getCatalog()?.getName()),
+			encodeURIComponent(context.getCatalog()?.name),
 			context.getArticle()?.logicPath,
 			context.getBasePath().value,
 		);

@@ -10,6 +10,7 @@ const COMMANDS: &[&str] = &[
   "exists",
   "copy",
   "mv",
+  "read_dir_stats",
 ];
 
 fn main() {

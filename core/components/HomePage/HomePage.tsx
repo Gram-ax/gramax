@@ -38,8 +38,8 @@ export default styled(({ data, className }: { data: HomePageData; className?: st
 		flex-direction: column;
 		align-items: flex-start;
 		justify-content: flex-start;
-		color: var(--color-primary);
-		background: var(--color-menu-bg);
+		color: var(--color-home-text);
+		background: var(--color-home-bg);
 	}
 
 	.container img {
@@ -53,12 +53,13 @@ export default styled(({ data, className }: { data: HomePageData; className?: st
 
 	a {
 		font-weight: 300;
-		color: var(--color-primary-general);
+		color: var(--color-home-card-link);
 		text-decoration: none;
 		display: inline-block;
 		position: relative;
+
 		&:hover {
-			color: var(--color-primary) !important;
+			color: var(--color-home-card-link-hover) !important;
 		}
 	}
 	${cssMedia.narrow} {

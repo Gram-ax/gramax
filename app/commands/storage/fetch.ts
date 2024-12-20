@@ -16,7 +16,7 @@ const fetchCmd: Command<{ ctx: Context; catalogName: string }, void> = Command.c
 		const { logger, rp, wm } = this._app;
 		const workspace = wm.current();
 
-		const catalog = await workspace.getCatalog(catalogName);
+		const catalog = await workspace.getContextlessCatalog(catalogName);
 
 		const storage = catalog?.repo.storage;
 		if (!storage) return;

@@ -22,7 +22,7 @@ describe("CatalogEntryAttach", () => {
 		rp = new RepositoryProvider();
 		wm = new WorkspaceManager(
 			(path) => MountFileProvider.fromDefault(new Path(path)),
-			(fs) => new FileStructureEventHandlers(fs).mount(fs),
+			(fs) => new FileStructureEventHandlers(fs).mount(),
 			rp,
 			{} as AppConfig,
 			YamlFileConfig.dummy(),
@@ -54,7 +54,7 @@ describe("CatalogEntryAttach", () => {
 		await fp.write(repoPath.join(new Path(".git/config")), f);
 
 		await wm.setWorkspace(workspacePath);
-		const entries = wm.current().getCatalogEntries();
+		const entries = wm.current().getAllCatalogs();
 		const repo = await rp.getRepositoryByPath(repoPath, wm.current().getFileProvider());
 
 		expect(repo).toBeInstanceOf(BareRepository);
@@ -74,7 +74,7 @@ describe("CatalogEntryAttach", () => {
 		});
 
 		await wm.setWorkspace(workspacePath);
-		const entries = wm.current().getCatalogEntries();
+		const entries = wm.current().getAllCatalogs();
 		const repo = await rp.getRepositoryByPath(repoPath, wm.current().getFileProvider());
 
 		expect(repo).toBeInstanceOf(WorkdirRepository);

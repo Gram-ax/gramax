@@ -8,7 +8,7 @@ export type WorkspaceGroup = {
 export interface WorkspaceConfig {
 	name: string;
 	icon?: string;
-	groups?: WorkspaceGroup[];
+	groups?: Record<string, WorkspaceGroup>;
 	services?: ServicesConfig;
 	isEnterprise?: boolean;
 	gesUrl?: string;

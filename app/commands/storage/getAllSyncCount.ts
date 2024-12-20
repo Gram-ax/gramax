@@ -23,7 +23,7 @@ const getAllSyncCount: Command<
 		const res = {};
 		const promises = [];
 
-		for (const [name, entry] of workspace.getCatalogEntries().entries()) {
+		for (const [name, entry] of workspace.getAllCatalogs().entries()) {
 			if (!entry.repo?.storage) continue;
 			const promise = async () => {
 				try {

@@ -1,5 +1,6 @@
 import Button, { TextSize } from "@components/Atoms/Button/Button";
 import { ButtonStyle } from "@components/Atoms/Button/ButtonStyle";
+import IconWithText from "@components/Atoms/Icon/IconWithText";
 import FormStyle from "@components/Form/FormStyle";
 import ModalLayout from "@components/Layouts/Modal";
 import ModalLayoutLight from "@components/Layouts/ModalLayoutLight";
@@ -13,15 +14,7 @@ import RouterPathProvider from "@core/RouterPath/RouterPathProvider";
 import { getClientDomain } from "@core/utils/getClientDomain";
 import t from "@ext/localization/locale/translate";
 import CodeBlock from "@ext/markdown/elements/codeBlockLowlight/render/component/CodeBlock";
-import Icon from "@ext/markdown/elements/icon/render/components/Icon";
 import { useRef, useState } from "react";
-
-const IconWithText = ({ iconCode, text }: { iconCode: string; text: string }) => (
-	<span style={{ display: "flex", alignItems: "center", gap: "0.25em" }}>
-		<Icon code={iconCode} />
-		{text}
-	</span>
-);
 
 const Share = ({ trigger, shouldRender = true }: { trigger: JSX.Element; shouldRender?: boolean }) => {
 	if (!shouldRender) return null;

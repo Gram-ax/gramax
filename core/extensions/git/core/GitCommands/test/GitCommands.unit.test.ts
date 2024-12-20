@@ -196,4 +196,25 @@ describe("GitCommands", () => {
 			expect(await git.getFileHistory(fileA)).toEqual([]);
 		});
 	});
+	test("Получает diff между двумя коммитами", async () => {
+		const addedFile = await writeFile("add", "add content");
+		const wouldBeDeleted = await writeFile("wouldBeDeleted", "wouldBeDeleted content");
+		const wouldBeModified = await writeFile("wouldBeModified", "wouldBeModified content");
+		await git.add([addedFile, wouldBeDeleted, wouldBeModified]);
+		const oldCommit = await git.commit("", mockUserData);
+
+		const addedNewFile = await writeFile("added-new-file", "added-new-file content");
+		await writeFile("wouldBeModified", "wouldBeModified new content");
+		await dfp.delete(repPath("wouldBeDeleted"));
+
+		await git.add([addedNewFile, wouldBeDeleted, wouldBeModified]);
+		const newCommit = await git.commit("", mockUserData);
+
+		const diff = await git.diff(oldCommit, newCommit);
+
+		expect(diff.length).toBe(3);
+		expect(diff).toContainEqual({ isUntracked: true, path: path("added-new-file"), status: FileStatus.new });
+		expect(diff).toContainEqual({ isUntracked: true, path: path("wouldBeDeleted"), status: FileStatus.delete });
+		expect(diff).toContainEqual({ isUntracked: true, path: path("wouldBeModified"), status: FileStatus.modified });
+	});
 });

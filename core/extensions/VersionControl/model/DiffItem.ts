@@ -6,5 +6,6 @@ export default interface DiffItem extends DiffFile {
 	type: "item";
 	resources: DiffResource[];
 	logicPath?: string;
-	headEditTree?: JSONContent;
+	newEditTree?: JSONContent;
+	oldEditTree?: JSONContent;
 }

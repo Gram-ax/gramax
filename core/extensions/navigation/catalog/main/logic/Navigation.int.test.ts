@@ -14,18 +14,18 @@ const getNavigationData = async () => {
 	const nav = new Navigation();
 
 	const user = new User(null, null, new Permission(["ReadCatalogContent"]));
-	const hr = new HiddenRules(errorArticlesProvider);
-	const lr = new LocalizationRules(ContentLanguage.ru, errorArticlesProvider);
-	const sr = new SecurityRules(user, errorArticlesProvider);
+	const hr = new HiddenRules(nav, errorArticlesProvider);
+	const lr = new LocalizationRules(nav, ContentLanguage.ru, errorArticlesProvider);
+	const sr = new SecurityRules(user, nav, errorArticlesProvider);
 
-	hr.mount(nav);
-	lr.mount(nav);
-	sr.mount(nav);
+	hr.mount();
+	lr.mount();
+	sr.mount();
 
-	const navCatalogEntries = app.wm.current().getCatalogEntries();
+	const navCatalogEntries = app.wm.current().getAllCatalogs();
 
-	const navIndexArticleTestCatalog = await app.wm.current().getCatalog("NavigationIndexCatalog");
-	const navTestCatalog = await app.wm.current().getCatalog("NavigationArticleCatalog");
+	const navIndexArticleTestCatalog = await app.wm.current().getContextlessCatalog("NavigationIndexCatalog");
+	const navTestCatalog = await app.wm.current().getContextlessCatalog("NavigationArticleCatalog");
 
 	const navIndexArticleItemRef = getItemRef(navIndexArticleTestCatalog, "category/_index.md");
 	const navEmptyCategoryItemRef = getItemRef(navTestCatalog, "normalArticle.md");
@@ -67,10 +67,10 @@ describe("Navigation правильно", () => {
 		const catalogLinks = await nav.getCatalogsLink(Array.from(navCatalogEntries.values()));
 
 		expect(catalogLinks.map((cl) => cl.title)).toEqual([
-			"Многоуровневый каталог",
-			"data",
 			"NavigationArticleCatalog",
 			"NavigationIndexCatalog",
+			"Многоуровневый каталог",
+			"data",
 			"PropertyCatalog",
 			"RefsCatalog",
 			"RulesCategoryTestCatalog",

@@ -12,27 +12,62 @@ import ModalToOpenService from "@core-ui/ContextServices/ModalToOpenService/Moda
 import ModalToOpen from "@core-ui/ContextServices/ModalToOpenService/model/ModalsToOpen";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import IsReadOnlyHOC from "@core-ui/HigherOrderComponent/IsReadOnlyHOC";
+import getIsDevMode from "@core-ui/utils/getIsDevMode";
 import AddNewBranchListItem from "@ext/git/actions/Branch/components/AddNewBranchListItem";
 import DisableTooltipContent from "@ext/git/actions/Branch/components/DisableTooltipContent";
 import GitDateSideBar from "@ext/git/actions/Branch/components/GitDateSideBar";
-import MergeBranches from "@ext/git/actions/Branch/components/MergeBranches";
 import getNewBranchNameErrorLocalization from "@ext/git/actions/Branch/components/logic/getNewBranchNameErrorLocalization";
 import validateBranchError from "@ext/git/actions/Branch/components/logic/validateBranchError";
+import MergeBranches from "@ext/git/actions/Branch/components/MergeBranches";
 import ClientGitBranchData from "@ext/git/actions/Branch/model/ClientGitBranchData";
 import type MergeConflictConfirm from "@ext/git/actions/MergeConflictHandler/components/MergeConflictConfirm";
 import type MergeData from "@ext/git/actions/MergeConflictHandler/model/MergeData";
 import t from "@ext/localization/locale/translate";
-import { useEffect, useRef, useState, type ComponentProps } from "react";
+import { useEffect, useMemo, useRef, useState, type ComponentProps } from "react";
 
 interface BranchActionsProps {
 	currentBranch: string;
 	trigger: JSX.Element;
 	onNewBranch?: () => void;
 	onStopMerge?: (haveConflict: boolean) => void;
+	onMergeRequestCreate?: () => void;
 }
 
+const getBranchListItems = (
+	disableBranchesSameAsHead: boolean,
+	branches: ClientGitBranchData[],
+	currentBranch: string,
+	closeList: () => void,
+	onMergeRequestCreate?: () => void,
+): ListItem[] => {
+	return branches.map((b): ListItem => {
+		const disable = disableBranchesSameAsHead ? b.branchHashSameAsHead : false;
+		return {
+			element: (
+				<GitDateSideBar
+					currentBranchName={currentBranch}
+					isLocal={!b.remoteName}
+					mergeRequest={b.mergeRequest}
+					title={b.name}
+					iconCode={b.remoteName ? "cloud" : "monitor"}
+					tooltipContent={b.remoteName ? t("remote") : t("local")}
+					data={{ lastCommitAuthor: b.lastCommitAuthor, lastCommitModify: b.lastCommitModify }}
+					disable={disable}
+					showBranchMenu
+					closeList={closeList}
+					onMergeRequestCreate={onMergeRequestCreate}
+				/>
+			),
+			labelField: b.name,
+			disable,
+			tooltipDisabledContent: <DisableTooltipContent branch={currentBranch} />,
+		};
+	});
+};
+
 const BranchActions = (props: BranchActionsProps) => {
-	const { currentBranch, trigger, onNewBranch = () => {}, onStopMerge = () => {} } = props;
+	const { currentBranch, trigger, onNewBranch = () => {}, onStopMerge = () => {}, onMergeRequestCreate } = props;
+	const [isDevMode] = useState(() => getIsDevMode());
 	const apiUrlCreator = ApiUrlCreatorService.value;
 	const readOnly = PageDataContextService.value.conf.isReadOnly;
 	const addNewBranchText = t("add-new-branch");
@@ -178,26 +213,6 @@ const BranchActions = (props: BranchActionsProps) => {
 		  ]
 		: undefined;
 
-	const getBranchListItems = (disableBranchesSameAsHead: boolean): ListItem[] => [
-		...branches.map((b): ListItem => {
-			const disable = disableBranchesSameAsHead ? b.branchHashSameAsHead : false;
-			return {
-				element: (
-					<GitDateSideBar
-						title={b.name}
-						iconCode={b.remoteName ? "cloud" : "monitor"}
-						tooltipContent={b.remoteName ? t("remote") : t("local")}
-						data={{ lastCommitAuthor: b.lastCommitAuthor, lastCommitModify: b.lastCommitModify }}
-						disable={disable}
-					/>
-				),
-				labelField: b.name,
-				disable,
-				tooltipDisabledContent: <DisableTooltipContent branch={currentBranch} />,
-			};
-		}),
-	];
-
 	const modalOnCloseHandler = () => {
 		setIsInitNewBranch(false);
 		setDisplayedBranch("");
@@ -220,6 +235,15 @@ const BranchActions = (props: BranchActionsProps) => {
 		setIsOpen(true);
 		void getNewBranches();
 	};
+
+	const closeList = () => {
+		setIsOpen(false);
+	};
+
+	const items = useMemo(
+		() => getBranchListItems(false, branches, currentBranch, closeList, onMergeRequestCreate),
+		[branches, currentBranch],
+	);
 
 	if (apiProcess) {
 		return (
@@ -255,7 +279,7 @@ const BranchActions = (props: BranchActionsProps) => {
 			<ModalLayoutLight>
 				<FormStyle>
 					<>
-						<legend>{t("change-branch")}</legend>
+						<legend>{t("branches")}</legend>
 						<fieldset>
 							<div className="form-group field field-string">
 								<ListLayout
@@ -271,7 +295,7 @@ const BranchActions = (props: BranchActionsProps) => {
 									}}
 									item={isInitNewBranch ? t("add-new-branch") : undefined}
 									buttons={addNewBranchListItem}
-									items={getBranchListItems(false)}
+									items={items}
 									onItemClick={(elem) => {
 										setDisplayedBranch(elem ?? currentBranch);
 									}}
@@ -303,18 +327,19 @@ const BranchActions = (props: BranchActionsProps) => {
 									{t(isInitNewBranch ? "add" : "switch")}
 								</Button>
 							</div>
-
-							<IsReadOnlyHOC>
-								<MergeBranches
-									onClick={mergeBranches}
-									onCanMergeChange={(value) => setCanMerge(value)}
-									onBranchToMergeInToChange={(value) => setBranchToMergeInTo(value)}
-									onDeleteAfterMergeChange={(value) => setDeleteAfterMerge(value)}
-									currentBranch={currentBranch}
-									isLoadingData={isLoadingData}
-									branches={getBranchListItems(true)}
-								/>
-							</IsReadOnlyHOC>
+							{!isDevMode && (
+								<IsReadOnlyHOC>
+									<MergeBranches
+										onClick={mergeBranches}
+										onCanMergeChange={(value) => setCanMerge(value)}
+										onBranchToMergeInToChange={(value) => setBranchToMergeInTo(value)}
+										onDeleteAfterMergeChange={(value) => setDeleteAfterMerge(value)}
+										currentBranch={currentBranch}
+										isLoadingData={isLoadingData}
+										branches={getBranchListItems(true, branches, currentBranch, closeList)}
+									/>
+								</IsReadOnlyHOC>
+							)}
 						</fieldset>
 					</>
 				</FormStyle>

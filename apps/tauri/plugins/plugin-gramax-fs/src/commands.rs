@@ -1,6 +1,7 @@
 #![allow(dead_code)]
 
 use gramaxfs::commands as fs;
+use gramaxfs::DirStat;
 use std::path::{Path, PathBuf};
 
 use tauri::command;
@@ -56,4 +57,9 @@ pub(crate) fn copy(from: &Path, to: &Path) -> Result<()> {
 #[command]
 pub(crate) fn mv(from: &Path, to: &Path) -> Result<()> {
   fs::mv(from, to)
+}
+
+#[command]
+pub(crate) fn read_dir_stats(path: &Path) -> Result<Vec<DirStat>> {
+  fs::read_dir_stats(path)
 }

@@ -159,8 +159,7 @@ describe("MdParser корректно парсит", () => {
 					const testParseStr = mdParser.preParse(str);
 
 					expect(testParseStr).toEqual(parsedStr);
-
-				})
+				});
 			});
 			describe("игнорирует", () => {
 				test("внутри фигурных или квадратных скобок", async () => {
@@ -922,5 +921,15 @@ test test test test`;
 
 			expect(testParseStr).toEqual(parsedStr);
 		});
+	});
+	test("скобки внутри изображений", async () => {
+		const mdParser = await getMdParser();
+
+		const str = `paragraph1\n![image](https://test.com/image.png "title (brackets text)")\nparagraph2\n"Ковычки"`;
+		const parsedStr = `paragraph1\n!{%image  /%}(https://test.com/image.png "title (brackets text)")\nparagraph2\n«Ковычки»`;
+
+		const testParseStr = mdParser.preParse(str);
+
+		expect(testParseStr).toEqual(parsedStr);
 	});
 });

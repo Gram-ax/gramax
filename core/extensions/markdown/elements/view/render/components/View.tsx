@@ -1,9 +1,9 @@
 import FetchService from "@core-ui/ApiServices/FetchService";
 import ViewRenderContent from "@ext/markdown/elements/view/render/components/ViewRenderContent";
 import { PropertyValue, ViewRenderGroup } from "@ext/properties/models";
+import { Display } from "@ext/properties/models/displays";
 import { useCallback, useState } from "react";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
-import { Display } from "@ext/properties/models/displays";
 import useWatch from "@core-ui/hooks/useWatch";
 
 interface ViewProps {
@@ -12,8 +12,8 @@ interface ViewProps {
 	groupby: string[];
 	select: string[];
 	display: Display;
-	updateArticle?: (articlePath: string, property: string, value: string) => void;
 	disabled?: boolean;
+	updateArticle?: (articlePath: string, property: string, value: string, isDelete?: boolean) => void;
 }
 
 const View = (props: ViewProps) => {
@@ -58,8 +58,8 @@ const View = (props: ViewProps) => {
 			select={select}
 			content={content}
 			display={display}
-			updateArticle={updateArticle}
 			disabled={disabled}
+			updateArticle={updateArticle}
 		/>
 	);
 };

@@ -22,7 +22,7 @@ const sync: Command<{ ctx: Context; catalogName: string; articlePath: Path }, Me
 		const { wm, rp, logger, sitePresenterFactory } = this._app;
 		const workspace = wm.current();
 
-		const catalog = await workspace.getCatalog(catalogName);
+		const catalog = await workspace.getContextlessCatalog(catalogName);
 		if (!catalog) return;
 		const storage = catalog.repo.storage;
 		if (!storage) return;

@@ -10,11 +10,11 @@ describe("Трансформирование в список задач", () => 
 
 function getInitialData() {
 	return {
-		type: "bullet_list",
+		type: "bulletList",
 		attrs: { tight: false, containTaskList: true },
 		content: [
 			{
-				type: "task_item",
+				type: "taskItem",
 				attrs: {
 					checked: false,
 				},
@@ -31,7 +31,7 @@ function getInitialData() {
 				],
 			},
 			{
-				type: "task_item",
+				type: "taskItem",
 				attrs: { checked: true },
 				content: [{ type: "paragraph", content: [{ type: "text", text: "second" }] }],
 			},
@@ -41,11 +41,11 @@ function getInitialData() {
 
 function getExpectedData() {
 	return {
-		type: "task_list",
+		type: "taskList",
 		attrs: {},
 		content: [
 			{
-				type: "task_item",
+				type: "taskItem",
 				attrs: {
 					checked: false,
 				},
@@ -62,7 +62,7 @@ function getExpectedData() {
 				],
 			},
 			{
-				type: "task_item",
+				type: "taskItem",
 				attrs: {
 					checked: true,
 				},

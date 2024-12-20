@@ -8,7 +8,7 @@ const commit: Command<{ catalogName: string; msg?: string }, void> = Command.cre
 		const { wm } = this._app;
 		const workspace = wm.current();
 
-		const catalog = await workspace.getCatalog(catalogName);
+		const catalog = await workspace.getContextlessCatalog(catalogName);
 		if (!catalog) throw new Error("no catalog found");
 		const fp = workspace.getFileProvider();
 

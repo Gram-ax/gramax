@@ -8,6 +8,8 @@ import ModalToOpen from "@core-ui/ContextServices/ModalToOpenService/model/Modal
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import { refreshPage } from "@core-ui/ContextServices/RefreshPageContext";
 import SyncIconService from "@core-ui/ContextServices/SyncIconService";
+import BranchUpdaterService from "@ext/git/actions/Branch/BranchUpdaterService/logic/BranchUpdaterService";
+import OnBranchUpdateCaller from "@ext/git/actions/Branch/BranchUpdaterService/model/OnBranchUpdateCaller";
 import MergeConflictConfirm from "@ext/git/actions/MergeConflictHandler/components/MergeConflictConfirm";
 import SyncLayout from "@ext/git/actions/Sync/components/SyncLayout";
 import SyncService from "@ext/git/actions/Sync/logic/SyncService";
@@ -35,6 +37,7 @@ const Sync = ({ style }: { style?: CSSProperties }) => {
 			},
 			onFinishSync: async (mergeData) => {
 				SyncIconService.stop();
+				BranchUpdaterService.updateBranch(apiUrlCreator, OnBranchUpdateCaller.MergeRequest);
 				if (!mergeData.ok) {
 					ModalToOpenService.setValue<ComponentProps<typeof MergeConflictConfirm>>(ModalToOpen.MergeConfirm, {
 						mergeData: { ...mergeData },

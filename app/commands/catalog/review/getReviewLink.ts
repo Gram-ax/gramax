@@ -21,7 +21,7 @@ const getReviewLink: Command<
 		const { rp, wm } = this._app;
 		const workspace = wm.current();
 
-		const catalog = await workspace.getCatalog(catalogName);
+		const catalog = await workspace.getContextlessCatalog(catalogName);
 		const storage = catalog.repo.storage;
 		const source = rp.getSourceData(ctx.cookie, await storage.getSourceName());
 		const baseStorageData = await storage.getStorageData(source);

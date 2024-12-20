@@ -14,6 +14,8 @@ import {
 	useState,
 } from "react";
 
+export const DATA_QA_LIGHTBOX = "qa-lightbox";
+
 interface LightboxProps {
 	id: string;
 	src?: string;
@@ -108,6 +110,7 @@ const Lightbox = (props: LightboxProps): ReactElement => {
 		<div
 			key={downloadSrc}
 			ref={mainContainerRef}
+			data-qa={DATA_QA_LIGHTBOX}
 			data-close="true"
 			className={className}
 			style={{ animation: isClosing ? "close 200ms forwards" : "open 200ms forwards" }}

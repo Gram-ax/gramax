@@ -1,7 +1,7 @@
+import { isDeepestArticle } from "@ext/artilce/actions/CreateArticle";
 import { NodeModel } from "@minoru/react-dnd-treeview";
 import hash from "object-hash";
 import { CategoryLink, ItemLink } from "../../../NavigationLinks";
-import { isDeepestArticle } from "@ext/artilce/actions/CreateArticle";
 
 abstract class DragTreeTransformer {
 	static getRootId() {
@@ -51,6 +51,7 @@ abstract class DragTreeTransformer {
 				external: item.external,
 				pathname: item.pathname,
 				isCurrentLink: item.isCurrentLink,
+				status: item.status,
 				items: (item as CategoryLink).items,
 				isExpanded: (item as CategoryLink)?.isExpanded ?? false,
 				existContent: (item as CategoryLink)?.existContent ?? false,
@@ -67,7 +68,7 @@ abstract class DragTreeTransformer {
 	}
 
 	private static _getNodeId(item: ItemLink): number | string {
-		return hash({ id: item.pathname + item.title });
+		return hash({ id: item.ref.path + item.title });
 	}
 }
 

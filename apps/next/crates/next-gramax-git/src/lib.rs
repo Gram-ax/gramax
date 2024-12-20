@@ -77,15 +77,20 @@ impl From<TreeReadScope> for gramaxgit::commands::TreeReadScope {
     let name = val.reference.unwrap_or_default();
     match val.object_type {
       TreeReadScopeObjectType::Head => TreeReadScope::Head,
-      TreeReadScopeObjectType::Commit => TreeReadScope::Commit { oid: name },
-      TreeReadScopeObjectType::Reference => TreeReadScope::Reference { name },
+      TreeReadScopeObjectType::Commit => TreeReadScope::Commit { commit: name },
+      TreeReadScopeObjectType::Reference => TreeReadScope::Reference { reference: name },
     }
   }
 }
 
 impl From<AccessTokenCreds> for gramaxgit::creds::AccessTokenCreds {
   fn from(val: AccessTokenCreds) -> Self {
-    gramaxgit::creds::AccessTokenCreds::new(&val.author_name, &val.author_email, &val.access_token, val.protocol.as_deref())
+    gramaxgit::creds::AccessTokenCreds::new(
+      &val.author_name,
+      &val.author_email,
+      &val.access_token,
+      val.protocol.as_deref(),
+    )
   }
 }
 
@@ -284,6 +289,16 @@ pub fn read_file(repo_path: String, scope: TreeReadScope, path: String) -> Resul
       .map_err(|e| Error::from_reason(e.to_string()))
       .and_then(|e| Err(Error::from_reason(e))),
   }
+}
+
+#[napi(js_name = "git_read_dir_stats")]
+pub fn read_dir_stats(repo_path: String, scope: TreeReadScope, path: String) -> Output {
+  git::read_dir_stats(Path::new(&repo_path), scope.into(), Path::new(&path)).json()
+}
+
+#[napi(js_name = "list_merge_requests")]
+pub fn list_merge_requests(repo_path: String) -> Output {
+  git::list_merge_requests(Path::new(&repo_path)).json()
 }
 
 #[napi(js_name = "find_refs_by_globs")]

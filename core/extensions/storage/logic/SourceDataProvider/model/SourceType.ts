@@ -4,6 +4,8 @@ enum SourceType {
 	gitHub = "GitHub",
 	confluenceCloud = "Confluence Cloud",
 	confluenceServer = "Confluence self-hosted server",
+	yandexDisk = "Yandex.Disk",
+	notion = "Notion",
 }
 
 export default SourceType;

@@ -8,10 +8,10 @@ import { ListItem } from "@components/List/Item";
 import ListLayout from "@components/List/ListLayout";
 import useWatch from "@core-ui/hooks/useWatch";
 import t from "@ext/localization/locale/translate";
-import { StyleGuideChecker } from "gx-ai";
-import { GroqLlmModel } from "gx-ai/dist/gpt/llm/groq/groqLlm";
-import { LlmApiKey } from "gx-ai/dist/gpt/llm/llm";
-import { LlmProviderName } from "gx-ai/dist/gpt/llm/llmFactory";
+import { StyleGuideChecker } from "@ics/gx-ai";
+import type { GroqLlmModel } from "@ics/gx-ai/dist/llm/groq/groqLlm";
+import type { LlmApiKey } from "@ics/gx-ai/dist/llm/llm";
+import type { LlmProviderName } from "@ics/gx-ai/dist/llm/llmFactory";
 import { useEffect, useState } from "react";
 
 export interface AccountSettings {
@@ -53,7 +53,7 @@ const StyleGuideAccountSettings = (props: StyleGuideAccountSettingsProps) => {
 		await Promise.all(
 			providers.map(async (provider) => {
 				const m: ListItem[] = (await StyleGuideChecker.getModelsByProvider(provider)).map((m, i) => ({
-					element: i === 0 ? m.name + " (Рекомендуемая)" : m.name,
+					element: i === 0 ? m.name + ` (${t("style-guide.recommended")})` : m.name,
 					value: m.name,
 				}));
 				models[provider] = m;
@@ -80,7 +80,7 @@ const StyleGuideAccountSettings = (props: StyleGuideAccountSettingsProps) => {
 							<div className="form-group">
 								<div className="field field-string row">
 									<label className="control-label">
-										{"Провайдер LLM"}
+										{t("style-guide.LLM-provider")}
 										<span className="required">*</span>
 									</label>
 									<div className="input-lable">
@@ -106,7 +106,7 @@ const StyleGuideAccountSettings = (props: StyleGuideAccountSettingsProps) => {
 									<div className="form-group">
 										<div className="field field-string row">
 											<label className="control-label">
-												{"Токен"}
+												{t("token")}
 												<span className="required">*</span>
 											</label>
 											<div className="input-lable">
@@ -117,13 +117,14 @@ const StyleGuideAccountSettings = (props: StyleGuideAccountSettingsProps) => {
 													onChange={async (e) => {
 														const token = e.target.value;
 														setFormSettings({ ...formSettings, token });
-														if (!token) return setErrorText("Введите токен");
-														setErrorText("Проверяем токен");
+														if (!token) return setErrorText(t("style-guide.enter-token"));
+														setErrorText(t("style-guide.verifying-token"));
 														const result = await StyleGuideChecker.isKeyValid({
 															provider: formSettings.provider,
 															apiKey: token,
 														});
-														if (!result.isValid) setErrorText("Неверный токен");
+														if (!result.isValid)
+															setErrorText(t("style-guide.invalid-token"));
 														else setErrorText(null);
 													}}
 												/>
@@ -131,17 +132,14 @@ const StyleGuideAccountSettings = (props: StyleGuideAccountSettingsProps) => {
 										</div>
 										<div className="input-lable-description">
 											<div></div>
-											<div className="article">
-												Ваш токен остается на вашем устройстве и не передается на наши серверы.
-												Пожалуйста, храните ваш токен в безопасности и не делитесь им с другими.
-											</div>
+											<div className="article">{t("style-guide.token-descriprion")}</div>
 										</div>
 									</div>
 									{formSettings?.token && !errorText && (
 										<div className="form-group">
 											<div className="field field-string row">
 												<label className="control-label">
-													{"Модель"}
+													{t("model")}
 													<span className="required">*</span>
 												</label>
 												<div className="input-lable">

@@ -1,3 +1,4 @@
+import { JSONContent } from "@tiptap/core";
 import DiffItem from "../../../../VersionControl/model/DiffItem";
 import DiffResource from "../../../../VersionControl/model/DiffResource";
 import SideBarData from "../model/SideBarData";
@@ -34,7 +35,14 @@ const getSideBarData = (
 		}
 
 		let parentPath: string;
+		let newEditTree: JSONContent;
+		let oldEditTree: JSONContent;
 		if (isResource) parentPath = (diffFile as DiffResource).parentPath;
+		else {
+			newEditTree = (diffFile as DiffItem).newEditTree;
+			oldEditTree = (diffFile as DiffItem).oldEditTree;
+		}
+
 		sideBarData.push({
 			parentPath,
 			isResource,
@@ -46,6 +54,10 @@ const getSideBarData = (
 				resources,
 				changeType,
 				isChecked,
+				newEditTree,
+				oldEditTree,
+				oldContent: diffFile.oldContent,
+				content: diffFile.content,
 			},
 			diff: diffFile.diff,
 		});

@@ -2,8 +2,8 @@ import listIsTight from "../../logic/listIsTight";
 
 export const CONTAINS_TASK_LIST = "contains-task-list";
 
-export const bullet_list = {
-	block: "bullet_list",
+export const bulletList = {
+	block: "bulletList",
 	getAttrs: (token, tokens, i) => {
 		const attrs = Array.isArray(token?.attrs) ? token.attrs : [];
 

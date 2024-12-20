@@ -12,9 +12,9 @@ import parseStorageUrl from "@core/utils/parseStorageUrl";
 import styled from "@emotion/styled";
 import LinkItemSidebar from "@ext/artilce/LinkCreator/components/LinkItemSidebar";
 import t from "@ext/localization/locale/translate";
-import Button, { ButtonProps } from "@ext/markdown/core/edit/components/Menu/Button";
+import Button from "@ext/markdown/core/edit/components/Menu/Button";
 import LinkFocusTooltip from "@ext/markdown/elements/link/edit/logic/LinkFocusTooltip";
-import { Dispatch, RefObject, SetStateAction, useEffect, useMemo, useRef, useState } from "react";
+import { Dispatch, RefObject, SetStateAction, useEffect, useMemo, useRef, useState, CSSProperties } from "react";
 import LinkItem from "../models/LinkItem";
 
 interface SelectLinkItemProps {
@@ -46,20 +46,19 @@ interface ListViewProps {
 	inputValue?: string;
 }
 
-const getBreadcrumb = (breadcrumb: string[], prevBreadcrumb: string[]): string[] | undefined => {
+const getBreadcrumb = (breadcrumb: string[]): string[] | undefined => {
 	if (!breadcrumb || !breadcrumb.length) return;
-	if (breadcrumb.join("") === prevBreadcrumb.join("")) return;
 	if (breadcrumb.length === 1) return breadcrumb.slice();
 	if (breadcrumb.length === 2) return [breadcrumb[0], "/", breadcrumb[1]];
 
 	return [breadcrumb[0], "/", "...", "/", breadcrumb[breadcrumb.length - 1]];
 };
 
-const renderItem = (item: LinkItem, index, arr): ListItem => {
+const renderItem = (item: LinkItem): ListItem => {
 	const { type, title, breadcrumb } = item;
 
 	const iconCode = type === ItemType.article ? "file" : "folder";
-	const itemBreadcrumb = getBreadcrumb(breadcrumb, arr[index - 1]?.breadcrumb);
+	const itemBreadcrumb = getBreadcrumb(breadcrumb);
 	const itemBreadcrumbLevel = breadcrumb?.length || undefined;
 
 	return {
@@ -70,20 +69,17 @@ const renderItem = (item: LinkItem, index, arr): ListItem => {
 	};
 };
 
-interface StyledButtonProps extends ButtonProps {
-	isTauri?: boolean;
-}
-
-export const StyledButton = styled(Button)<StyledButtonProps>`
+export const StyledButton = styled(Button)`
 	.button .iconFrame {
+		padding: 4.5px 7px;
 		display: flex;
 	}
 
 	.button .iconFrame span {
 		white-space: nowrap;
 		overflow: hidden;
+		line-height: 1.2;
 		text-overflow: ellipsis;
-		max-width: ${(p) => (p.isTauri ? 203 : 168)}px;
 	}
 
 	.button .iconFrame i {
@@ -105,13 +101,17 @@ const ButtonView = ({ href, icon, itemName, setButton, isExternalLink }: ButtonV
 		setButton(false);
 	};
 
-	const commonStyle = { color: "var(--color-article-bg)", width: "100%", textDecoration: "none" };
-
-	const ButtonContent = <StyledButton title={itemName} icon={icon} text={itemName} isTauri={isTauri} />;
+	const commonStyle: CSSProperties = {
+		color: "var(--color-article-bg)",
+		flex: 1,
+		overflow: "hidden",
+		textDecoration: "none",
+	};
 
 	const hashHatch = LinkFocusTooltip.getLinkToHeading(href);
 	const isCurrentLink = typeof window !== "undefined" ? window.location.pathname === hashHatch?.[1] : false;
 	const isHashLink = hashHatch?.[2] && isCurrentLink;
+
 	return (
 		<>
 			{target === "_blank" || isHashLink ? (
@@ -121,11 +121,15 @@ const ButtonView = ({ href, icon, itemName, setButton, isExternalLink }: ButtonV
 					rel="noopener noreferrer"
 					href={isHashLink ? hashHatch?.[2] : href}
 				>
-					{ButtonContent}
+					{<StyledButton title={itemName} icon={icon} text={itemName} />}
 				</a>
 			) : (
 				<div style={commonStyle}>
-					<GoToArticle style={commonStyle} href={href} trigger={ButtonContent} />
+					<GoToArticle
+						style={commonStyle}
+						href={href}
+						trigger={<StyledButton title={itemName} icon={icon} text={itemName} />}
+					/>
 				</div>
 			)}
 

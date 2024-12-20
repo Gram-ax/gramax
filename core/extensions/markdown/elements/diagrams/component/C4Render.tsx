@@ -86,7 +86,6 @@ const C4Render = styled(
 						diagramName={DiagramType["c4-diagram"]}
 						isFull={isFull}
 						background={false}
-						dataFocusable={false}
 					/>
 				</div>
 			</div>

@@ -14,6 +14,7 @@ import tsDiagram from "@ext/markdown/elements/diagrams/diagrams/tsDiagram/tsDiag
 import diagrams from "@ext/markdown/elements/diagrams/edit/models/diagramsSchema";
 import drawio from "@ext/markdown/elements/drawio/edit/model/drawioSchema";
 import error from "@ext/markdown/elements/error/editor/model/errorSchema";
+import file from "@ext/markdown/elements/file/edit/model/fileSchema";
 import heading from "@ext/markdown/elements/heading/edit/model/headingSchema";
 import horizontal_rule from "@ext/markdown/elements/hr/edit/model/hrSchema";
 import html from "@ext/markdown/elements/html/edit/models/htmlSchema";
@@ -96,6 +97,7 @@ export const getSchema = (additionalSchema?: { nodes?: Record<string, any>; mark
 			code: {},
 			strong: {},
 			inlineMd: {},
+			file,
 			inlineCut: { attrs: inlineCut_component.attrs },
 			...(additionalSchema?.marks ?? {}),
 		},

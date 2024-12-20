@@ -13,6 +13,7 @@ const convertUnsupportedNode = (unsupportedNode: JSONContent, currentPageUrl: st
 						? unsupportedNode.attrs.extensionKey
 						: unsupportedNode.type,
 				code: JSON.stringify(unsupportedNode, null, 1),
+				source: "Confluence",
 			},
 		},
 	];

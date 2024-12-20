@@ -1,5 +1,6 @@
 use crate::actions::prelude::*;
 use crate::creds::*;
+use crate::ext::prelude::*;
 use crate::prelude::*;
 
 use crate::error::Error;
@@ -48,10 +49,10 @@ pub enum TreeReadScope {
   #[default]
   Head,
   Commit {
-    oid: String,
+    commit: String,
   },
   Reference {
-    name: String,
+    reference: String,
   },
 }
 
@@ -59,8 +60,8 @@ impl TreeReadScope {
   pub fn with<C: Creds>(self, repo: &Repo<C>) -> Result<RepoTreeScope<C>> {
     let tree = match self {
       TreeReadScope::Head => repo.read_tree_head()?,
-      TreeReadScope::Commit { oid } => repo.read_tree_commit(oid.parse().map_err(Error::from)?)?,
-      TreeReadScope::Reference { name } => repo.read_tree_reference(&name)?,
+      TreeReadScope::Commit { commit } => repo.read_tree_commit(commit.parse().map_err(Error::from)?)?,
+      TreeReadScope::Reference { reference } => repo.read_tree_reference(&reference)?,
     };
     Ok(tree)
   }
@@ -132,7 +133,9 @@ pub fn delete_branch(
   creds: Option<AccessTokenCreds>,
 ) -> Result<()> {
   match creds {
-    Some(creds) if remote => Repo::execute_with_creds(repo_path, creds, |repo| Ok(repo.delete_branch_remote(name)?))?,
+    Some(creds) if remote => {
+      Repo::execute_with_creds(repo_path, creds, |repo| Ok(repo.delete_branch_remote(name)?))?
+    }
     _ => Repo::execute_without_creds(repo_path, |repo| Ok(repo.delete_branch_local(name)?))?,
   };
   Ok(())
@@ -276,6 +279,10 @@ pub fn read_dir(repo_path: &Path, scope: TreeReadScope, path: &Path) -> Result<V
   Repo::execute_without_creds(repo_path, |repo| Ok(scope.with(&repo)?.read_dir(path)?))
 }
 
+pub fn read_dir_stats(repo_path: &Path, scope: TreeReadScope, path: &Path) -> Result<Vec<DirStat>> {
+  Repo::execute_without_creds(repo_path, |repo| Ok(scope.with(&repo)?.read_dir_stats(path)?))
+}
+
 pub fn file_stat(repo_path: &Path, scope: TreeReadScope, path: &Path) -> Result<Stat> {
   Repo::execute_without_creds(repo_path, |repo| Ok(scope.with(&repo)?.stat(path)?))
 }
@@ -290,6 +297,22 @@ pub fn is_init(repo_path: &Path) -> Result<bool> {
 
 pub fn is_bare(repo_path: &Path) -> Result<bool> {
   Repo::execute_without_creds(repo_path, |repo| Ok(repo.0.is_bare() || repo.0.workdir().is_none()))
+}
+
+pub fn list_merge_requests(repo_path: &Path) -> Result<Vec<MergeRequest>> {
+  Repo::execute_without_creds(repo_path, |repo| Ok(repo.list_merge_requests()?))
+}
+
+pub fn create_or_update_merge_request(
+  repo_path: &Path,
+  merge_request: CreateMergeRequest,
+  creds: AccessTokenCreds,
+) -> Result<()> {
+  Repo::execute_with_creds(repo_path, creds, |repo| Ok(repo.create_or_update_merge_request(merge_request)?))
+}
+
+pub fn get_draft_merge_request(repo_path: &Path) -> Result<Option<MergeRequest>> {
+  Repo::execute_without_creds(repo_path, |repo| Ok(repo.get_draft_merge_request()?))
 }
 
 pub fn invalidate_repo_cache(repo_paths: Vec<PathBuf>) -> Result<()> {

@@ -1,40 +1,47 @@
 import { ClientCatalogProps } from "@core/SitePresenter/SitePresenter";
 import ViewButton from "@ext/markdown/elements/view/edit/components/Helpers/ViewButton";
-import PropertyItem from "@ext/properties/components/PropertyItem";
 import { Property, PropertyTypes, PropertyValue, SystemProperties } from "@ext/properties/models";
 import { ReactNode, useCallback, useMemo } from "react";
-import t from "@ext/localization/locale/translate";
-import PropertyButton from "@ext/properties/components/PropertyButton";
+import FilterMenu from "@ext/markdown/elements/view/edit/components/Helpers/FilterMenu";
 
 interface AddFilterProps {
-	name: ReactNode;
+	icon: string;
 	attributeName: string;
 	catalogProps: ClientCatalogProps;
 	properties: PropertyValue[] | string[];
 	updateAttributes: (attributes: Record<string, any>) => void;
 	tooltipText?: string;
 	availableValues?: boolean;
+	customPropertyMenu?: (
+		property: Property,
+		updateData: (name: string, value: string | string[]) => void,
+	) => ReactNode;
 	oneValue?: boolean;
+	allowAddAll?: boolean;
+	specialValues?: boolean;
 	allowSystemProperties?: boolean;
 	closeOnSelection?: boolean;
 }
 
-interface PropertyFilter extends Property {
+export interface PropertyFilter extends Property {
 	selected?: boolean;
 }
 
 const AddFilter = (props: AddFilterProps) => {
 	const {
-		name,
+		icon,
 		attributeName,
 		catalogProps,
 		properties,
 		updateAttributes,
+		customPropertyMenu,
 		availableValues = true,
 		oneValue = false,
 		tooltipText,
 		allowSystemProperties = true,
 		closeOnSelection = true,
+		specialValues = false,
+		allowAddAll = false,
 	} = props;
 	const noAssignedProperties: PropertyFilter[] = useMemo(() => {
 		return catalogProps.properties
@@ -60,17 +67,18 @@ const AddFilter = (props: AddFilterProps) => {
 	}, [catalogProps?.properties, properties]);
 
 	const addFilter = useCallback(
-		(name: string, val?: string) => {
+		(name: string, val?: string | string[]) => {
 			const property = catalogProps.properties.find((prop) => prop.name === name);
 			if (!property) return;
 
 			let newValue: string[] = [];
 
-			if (availableValues && !oneValue) {
+			if (Array.isArray(val)) newValue = val;
+			else if (availableValues && !oneValue) {
 				if (val === "all")
 					newValue =
 						property.type === PropertyTypes.flag ? ["yes", "none"] : [...(property.values || []), "none"];
-				else if (val) newValue = [val];
+				else if (typeof val === "string") newValue = [val];
 			} else if (oneValue) newValue = [name];
 
 			updateAttributes({
@@ -104,9 +112,10 @@ const AddFilter = (props: AddFilterProps) => {
 	);
 
 	const filterProps = useCallback(
-		(prop: string | PropertyValue, values: string[], val: string): string[] => {
+		(prop: string | PropertyValue, values: string[], val: string | string[]): string[] => {
 			let newValues = values;
-			if (newValues.includes(val)) {
+			if (Array.isArray(val)) newValues = val;
+			else if (newValues.includes(val)) {
 				newValues = newValues.filter((v) => v !== val);
 				if (newValues.length === 0) {
 					removeProperty(prop);
@@ -119,7 +128,7 @@ const AddFilter = (props: AddFilterProps) => {
 	);
 
 	const updateFilter = useCallback(
-		(name: string, val?: string) => {
+		(name: string, val?: string | string[]) => {
 			const originalProperty = catalogProps.properties.find((prop) => prop.name === name);
 			if (!originalProperty) return;
 
@@ -160,42 +169,16 @@ const AddFilter = (props: AddFilterProps) => {
 
 	return (
 		<div className="view-filter-row">
-			<ViewButton name={name} tooltipText={tooltipText} closeOnSelection={closeOnSelection}>
-				{noAssignedProperties.map((property) => {
-					const isNotENum = property.type !== PropertyTypes.enum;
-					return (
-						<PropertyItem
-							canMany
-							hasAllProperty
-							hasNoneProperty={!isNotENum}
-							id={property.name}
-							icon={property.selected && "check"}
-							key={property.name}
-							name={property.name}
-							value={property.value}
-							values={availableValues ? property.values ?? ["yes"] : undefined}
-							onClick={(_, name: string, value) => updateFilter(name, value)}
-							closeOnSelection={closeOnSelection}
-						>
-							{isNotENum && availableValues && (
-								<>
-									<PropertyButton
-										name={t("properties.selected")}
-										canMany
-										checked={!property?.value?.includes("yes")}
-										onClick={() => updateFilter?.(property.name, "yes")}
-									/>
-									<PropertyButton
-										name={t("properties.not-selected")}
-										canMany
-										checked={!property?.value?.includes("none")}
-										onClick={() => updateFilter?.(property.name, "none")}
-									/>
-								</>
-							)}
-						</PropertyItem>
-					);
-				})}
+			<ViewButton icon={icon} tooltipText={tooltipText} closeOnSelection={closeOnSelection}>
+				<FilterMenu
+					allowAddAll={allowAddAll}
+					noAssignedProperties={noAssignedProperties}
+					updateFilter={updateFilter}
+					customPropertyMenu={customPropertyMenu}
+					closeOnSelection={closeOnSelection}
+					specialValues={specialValues}
+					availableValues={availableValues}
+				/>
 			</ViewButton>
 		</div>
 	);

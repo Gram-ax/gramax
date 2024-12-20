@@ -15,7 +15,7 @@ const resolve: Command<{ ctx: Context; catalogName: string; files: GitMergeResul
 	async do({ ctx, catalogName, files }) {
 		const { rp, wm } = this._app;
 		const workspace = wm.current();
-		const catalog = await workspace.getCatalog(catalogName);
+		const catalog = await workspace.getContextlessCatalog(catalogName);
 		if (!catalog) return;
 		const storage = catalog?.repo.storage;
 		if (!storage) return;

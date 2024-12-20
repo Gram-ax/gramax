@@ -4,6 +4,7 @@ import downloadResource from "@core-ui/downloadResource";
 import Path from "@core/FileProvider/Path/Path";
 import { ReactElement } from "react";
 import styled from "@emotion/styled";
+import { ZOOM_COUNT } from "@components/Atoms/Image/modalImage/modalFunctions";
 
 interface HeaderProps {
 	onClose: (immediately?: boolean) => void;
@@ -29,8 +30,8 @@ const Header = (props: HeaderProps): ReactElement => {
 					}}
 				/>
 			)}
-			<Icon code="zoom-in" onClick={() => zoomImage(-20)} />
-			<Icon code="zoom-out" onClick={() => zoomImage(20)} />
+			<Icon code="zoom-in" onClick={() => zoomImage(-ZOOM_COUNT)} />
+			<Icon code="zoom-out" onClick={() => zoomImage(ZOOM_COUNT)} />
 			{downloadSrc && (
 				<a onClick={() => downloadResource(apiUrlCreator, new Path(downloadSrc))}>
 					<Icon code="download" />

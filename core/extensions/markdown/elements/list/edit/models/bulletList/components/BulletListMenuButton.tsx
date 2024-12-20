@@ -9,7 +9,7 @@ const BulletListMenuButton = ({ editor }: { editor: Editor }) => {
 			icon={"list"}
 			tooltipText={t("editor.bullet-list")}
 			hotKey={"Mod-Shift-8"}
-			nodeValues={{ action: "bullet_list" }}
+			nodeValues={{ action: "bulletList" }}
 		/>
 	);
 };

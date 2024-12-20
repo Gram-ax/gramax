@@ -9,6 +9,8 @@ const imageSchema = {
 		title: { default: null },
 		scale: { default: null },
 		objects: { default: [] },
+		width: { default: null },
+		height: { default: null },
 	},
 };
 

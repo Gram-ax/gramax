@@ -4,6 +4,7 @@ import annotations from "./plugins/annotations";
 import frontmatter from "./plugins/frontmatter";
 import disableencodeuri from "./plugins/disableencodeuri";
 import taskListPlugin from "./plugins/taskListPlugin";
+import imgSizePlugin from "@ext/markdown/core/render/logic/Markdoc/src/tokenizer/plugins/imgSizePlugin";
 
 export default class Tokenizer {
 	private parser: MarkdownIt;
@@ -11,6 +12,7 @@ export default class Tokenizer {
 	constructor(config: MarkdownIt.Options & { allowIndentation?: boolean } = {}) {
 		this.parser = new MarkdownIt(config);
 		this.parser.use(taskListPlugin);
+		this.parser.use(imgSizePlugin, "imgSizePlugin", {});
 		this.parser.use(annotations, "annotations", {});
 		this.parser.use(disableencodeuri, "disableencodeuri", {});
 		this.parser.use(frontmatter, "frontmatter", {});

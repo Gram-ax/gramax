@@ -19,7 +19,7 @@ const getShareTicket: Command<{ ctx: Context; catalogName: string; path: Path; d
 			const { wm, ticketManager } = this._app;
 			const workspace = wm.current();
 
-			const catalog = await workspace.getCatalog(catalogName);
+			const catalog = await workspace.getContextlessCatalog(catalogName);
 			const article = catalog.findItemByItemPath(path);
 			const catalogPermission = catalog?.getNeededPermission();
 

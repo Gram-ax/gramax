@@ -7,7 +7,7 @@ import EditDrawio from "../components/DrawioComponent";
 declare module "@tiptap/core" {
 	interface Commands<ReturnType> {
 		drawio: {
-			setDrawio: (options: { src: string }) => ReturnType;
+			setDrawio: (options: { src: string; width?: string; height?: string }) => ReturnType;
 		};
 	}
 }

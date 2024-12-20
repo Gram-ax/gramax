@@ -12,7 +12,7 @@ const getBrotherFileNames: Command<{ catalogName: string }, string[]> = Command.
 
 	async do({ catalogName }) {
 		const workspace = await this._app.wm.currentOrDefault();
-		return Array.from(workspace.getCatalogEntries().keys()).filter((n) => n !== catalogName);
+		return Array.from(workspace.getAllCatalogs().keys()).filter((n) => n !== catalogName);
 	},
 
 	params(ctx, q) {

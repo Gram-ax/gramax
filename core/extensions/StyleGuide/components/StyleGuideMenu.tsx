@@ -9,7 +9,7 @@ import { getSuggestionItems } from "@ext/StyleGuide/logic/getSuggestionItems";
 import settingsStorage from "@ext/StyleGuide/logic/settingsStorage";
 import t from "@ext/localization/locale/translate";
 import EditorService from "@ext/markdown/elementsUtils/ContextServices/EditorService";
-import { ParagraphsMerger, StyleGuideChecker } from "gx-ai";
+import { ParagraphsMerger, StyleGuideChecker } from "@ics/gx-ai";
 import { useEffect, useState } from "react";
 import StyleGuideAccountSettings, { AccountSettings } from "./StyleGuideAccountSettings";
 import StyleGuideCheckSettings, { CheckSettings } from "./StyleGuideCheckSettings";

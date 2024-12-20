@@ -1,21 +1,21 @@
 import getApplication from "@app/node/app";
-import { MainWordExport } from "@ext/wordExport/WordExport";
+import t from "@ext/localization/locale/translate";
+import RuleProvider from "@ext/rules/RuleProvider";
 import buildDocumentTree from "@ext/wordExport/DocumentTree/buildDocumentTree";
-import { exportedKeys } from "@ext/wordExport/layouts";
 import { ExportType } from "@ext/wordExport/ExportType";
+import { exportedKeys } from "@ext/wordExport/layouts";
+import ctx from "@ext/wordExport/tests/ContextMock";
+import { MainWordExport } from "@ext/wordExport/WordExport";
 import getItemRef from "@ext/workspace/test/getItemRef";
+import docx from "docx";
 import * as fs from "fs";
 import JSZip from "jszip";
-import RuleProvider from "@ext/rules/RuleProvider";
 import path from "path";
-import docx from "docx";
-import t from "@ext/localization/locale/translate";
-import ctx from "@ext/wordExport/tests/ContextMock";
 
 const generatedFiles: string[] = [];
 
 const getExportData = async (path: string, isCategory: boolean): Promise<Buffer> => {
-	const catalog = await (await getApplication()).wm.current().getCatalog("ExportCatalog");
+	const catalog = await (await getApplication()).wm.current().getContextlessCatalog("ExportCatalog");
 	const isCatalog = path === "";
 
 	const documentTree = await buildDocumentTree(
@@ -31,7 +31,7 @@ const getExportData = async (path: string, isCategory: boolean): Promise<Buffer>
 		(
 			await getApplication()
 		).parserContextFactory,
-		new RuleProvider(ctx).getItemFilters(),
+		new RuleProvider(ctx, null).getItemFilters(),
 	);
 
 	return docx.Packer.toBuffer(

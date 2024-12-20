@@ -102,7 +102,7 @@ impl<C: Creds> Repo<C> {
   }
 }
 
-impl<'r, C: Creds> Drop for RepositoryGuard<'r, C> {
+impl<C: Creds> Drop for RepositoryGuard<'_, C> {
   fn drop(&mut self) {
     *self.cache_entry = self.repo.take().map(|r| r.0);
   }

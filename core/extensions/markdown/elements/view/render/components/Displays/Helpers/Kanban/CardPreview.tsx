@@ -4,6 +4,10 @@ import { Property as PropertyType, PropertyTypes } from "@ext/properties/models"
 import Property from "@ext/properties/components/Property";
 import t from "@ext/localization/locale/translate";
 import { classNames } from "@components/libs/classNames";
+import ButtonLink from "@components/Molecules/ButtonLink";
+import PropertyArticle from "@ext/properties/components/Helpers/PropertyArticle";
+import AddProperty from "@ext/properties/components/Helpers/AddProperty";
+import PropertyServiceProvider from "@ext/properties/components/PropertyService";
 
 interface CardProps {
 	otherProps: PropertyType[];
@@ -11,23 +15,28 @@ interface CardProps {
 	className?: string;
 	style?: CSSProperties;
 	dragging?: boolean;
+	isReadOnly?: boolean;
 	onDragStart?: (e: DragEvent) => void;
 	onMouseEnter?: (e: MouseEvent) => void;
 	onDoubleClick?: (e: MouseEvent) => void;
 	onMouseDown?: (e: MouseEvent) => void;
+	onSubmit?: (propertyName: string, value: string, isDelete?: boolean) => void;
 }
 
 const CardPreview = forwardRef<HTMLDivElement, CardProps>((props, ref) => {
+	const catalogProperties = PropertyServiceProvider.value?.properties;
 	const {
 		title = t("article.no-name"),
 		otherProps,
 		className,
 		style,
 		dragging,
+		isReadOnly,
 		onDragStart,
 		onMouseEnter,
 		onDoubleClick,
 		onMouseDown,
+		onSubmit,
 	} = props;
 
 	const properties = useMemo(
@@ -35,13 +44,21 @@ const CardPreview = forwardRef<HTMLDivElement, CardProps>((props, ref) => {
 			otherProps.map((property) => {
 				const isFlag = property.type === PropertyTypes.flag;
 				return (
-					<Property
+					<PropertyArticle
 						key={property.name}
-						type={property.type}
-						icon={property.icon}
-						propertyStyle={property.style}
-						name={property.name}
-						value={!isFlag ? property.value : property.name}
+						isReadOnly={dragging || isReadOnly}
+						property={property}
+						onSubmit={onSubmit}
+						trigger={
+							<Property
+								key={property.name}
+								type={property.type}
+								icon={property.icon}
+								propertyStyle={property.style}
+								name={property.name}
+								value={!isFlag ? property.value : property.name}
+							/>
+						}
 					/>
 				);
 			}),
@@ -60,10 +77,21 @@ const CardPreview = forwardRef<HTMLDivElement, CardProps>((props, ref) => {
 			onDragStart={onDragStart}
 			onMouseEnter={onMouseEnter}
 		>
-			<div className="title">{title}</div>
+			<div className="card-title">{title}</div>
 			{properties.length > 0 && (
-				<div className="content">
-					<div className="chips">{properties}</div>
+				<div className="card-content">
+					<div className="chips">
+						{properties}
+						{!dragging && !isReadOnly && (
+							<AddProperty
+								properties={otherProps}
+								isReadOnly={dragging || isReadOnly}
+								catalogProperties={catalogProperties}
+								onSubmit={onSubmit}
+								trigger={<ButtonLink iconCode="plus" dataQa="kanban-add-property" />}
+							/>
+						)}
+					</div>
 				</div>
 			)}
 		</div>
@@ -85,10 +113,6 @@ export default styled(CardPreview)`
 		text-decoration: none !important;
 	}
 
-	:active {
-		animation: rotate 0.15s ease-in forwards;
-	}
-
 	&.dragging {
 		box-shadow: var(--comment-tooltip-shadow);
 	}
@@ -98,7 +122,7 @@ export default styled(CardPreview)`
 		box-shadow: 0px 0px 12px -5px rgb(0 0 0 / 25%);
 	}
 
-	.title {
+	.card-title {
 		text-decoration: none !important;
 		cursor: pointer;
 		line-height: 1.3em !important;
@@ -115,7 +139,7 @@ export default styled(CardPreview)`
 		pointer-events: none;
 	}
 
-	.content {
+	.card-content {
 		margin-top: 0.25rem;
 		display: flex;
 		flex-direction: column;

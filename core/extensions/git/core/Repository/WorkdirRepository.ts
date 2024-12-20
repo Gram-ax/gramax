@@ -7,6 +7,7 @@ import GitError from "@ext/git/core/GitCommands/errors/GitError";
 import GitErrorCode from "@ext/git/core/GitCommands/errors/model/GitErrorCode";
 import GitStorage from "@ext/git/core/GitStorage/GitStorage";
 import GitVersionControl from "@ext/git/core/GitVersionControl/GitVersionControl";
+import type { GitStatus } from "@ext/git/core/GitWatcher/model/GitStatus";
 import Repository, {
 	type CheckoutOptions,
 	type IsShouldSyncOptions,
@@ -34,6 +35,10 @@ export default class WorkdirRepository extends Repository {
 		this._state = new RepositoryStateProvider(this, this._repoPath, this._fp);
 	}
 
+	checkoutIfCurrentBranchNotExist(): Promise<{ hasCheckout: boolean }> {
+		return Promise.resolve({ hasCheckout: false });
+	}
+
 	async publish({ commitMessage, filesToPublish, data, onAdd, onCommit, onPush }: PublishOptions): Promise<void> {
 		await this.gvc.add(filesToPublish);
 		onAdd?.();
@@ -41,6 +46,7 @@ export default class WorkdirRepository extends Repository {
 		onCommit?.();
 		await this.storage.updateSyncCount();
 		await this._push({ data, onPush });
+		await this._events.emit("publish", { repo: this });
 		await this.gvc.update();
 	}
 
@@ -51,15 +57,22 @@ export default class WorkdirRepository extends Repository {
 		return !status.length;
 	}
 
-	async isShouldSync({ data, onFetch }: IsShouldSyncOptions): Promise<boolean> {
+	async isShouldSync({ data, shouldFetch, onFetch }: IsShouldSyncOptions): Promise<boolean> {
 		let toPull = (await this.storage.getSyncCount()).pull;
 		if (toPull > 0) return true;
 
-		await this.storage.fetch(data);
-		onFetch?.();
+		if (shouldFetch) {
+			await this.storage.fetch(data);
+			onFetch?.();
+		}
 
 		toPull = (await this.storage.getSyncCount()).pull;
 		return toPull > 0;
+	}
+
+	async status(): Promise<GitStatus[]> {
+		if (!this._cachedStatus) this._cachedStatus = await this.gvc.getChanges();
+		return this._cachedStatus;
 	}
 
 	async sync({ data, recursivePull, onPull, onPush }: SyncOptions): Promise<GitMergeResultContent[]> {
@@ -75,6 +88,10 @@ export default class WorkdirRepository extends Repository {
 			const afterPullVersion = await this.gvc.getCurrentVersion();
 			const subRepoAfterPullVersions = await this._getSubmoduleCheckChangesData();
 
+			await this._events.emit("sync", {
+				repo: this,
+				isVersionChanged: !beforePullVersion.compare(afterPullVersion),
+			});
 			await this.gvc.recursiveCheckChanges(
 				beforePullVersion,
 				afterPullVersion,
@@ -97,10 +114,19 @@ export default class WorkdirRepository extends Repository {
 		const afterPullVersion = await this.gvc.getCurrentVersion();
 
 		toPush = (await this.storage.getSyncCount()).push;
+		if (toPush > 0) {
+			await this._push({ data, onPush });
+			await this.gvc.update();
+		}
+
+		const afterPushVersion = await this.gvc.getCurrentVersion();
+
+		await this._events.emit("sync", {
+			repo: this,
+			isVersionChanged: !beforePullVersion.compare(afterPushVersion),
+		});
 
 		await this.gvc.checkChanges(beforePullVersion, afterPullVersion);
-
-		if (toPush > 0) await this._push({ data, onPush });
 		return stashMergeResult;
 	}
 
@@ -133,14 +159,25 @@ export default class WorkdirRepository extends Repository {
 		await this.gvc.update();
 		const newVersion = await this.gvc.getCurrentVersion();
 
+		await this._events.emit("checkout", { repo: this, branch });
 		await this.gvc.checkChanges(oldVersion, newVersion);
+
 		await this._state.resetState();
 		return mergeFiles;
 	}
 
-	async merge({ data, targetBranch, deleteAfterMerge }: MergeOptions): Promise<GitMergeResultContent[]> {
+	async validateMerge(): Promise<void> {
 		if ((await this.gvc.getChanges(false)).length > 0)
 			throw new GitError(GitErrorCode.WorkingDirNotEmpty, null, { repositoryPath: this.gvc.getPath().value });
+	}
+
+	async merge({
+		data,
+		targetBranch,
+		deleteAfterMerge,
+		validateMerge = true,
+	}: MergeOptions): Promise<GitMergeResultContent[]> {
+		if (validateMerge) await this.validateMerge();
 
 		const branchNameBefore = (await this.gvc.getCurrentBranch()).toString();
 		await this.checkout({ data, branch: targetBranch });
@@ -172,9 +209,9 @@ export default class WorkdirRepository extends Repository {
 		const repState = this._state;
 		await repState.getState();
 		if (!this._getRepositoryStateFirstly) return repState;
-    
+
 		this._getRepositoryStateFirstly = false;
-    
+
 		if (repState.inner.value === "checkout") {
 			await this._state.resetState();
 			return this._state;

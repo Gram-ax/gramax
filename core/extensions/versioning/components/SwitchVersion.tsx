@@ -6,7 +6,6 @@ import ButtonLink from "@components/Molecules/ButtonLink";
 import FetchService from "@core-ui/ApiServices/FetchService";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import CatalogPropsService from "@core-ui/ContextServices/CatalogProps";
-import DateUtils from "@core-ui/utils/dateUtils";
 import { useRouter } from "@core/Api/useRouter";
 import styled from "@emotion/styled";
 import type GitBranchData from "@ext/git/core/GitBranch/model/GitBranchData";
@@ -46,7 +45,7 @@ const SwitchVersion = () => {
 	useEffect(() => {
 		const f = async () => {
 			const branchR = await FetchService.fetch(apiUrlCreator.getVersionControlCurrentBranchUrl());
-			setBranch(await branchR.json());
+			if (branchR.ok) setBranch(await branchR.json());
 		};
 		void f();
 	}, []);
@@ -57,7 +56,9 @@ const SwitchVersion = () => {
 
 	const router = useRouter();
 
-	if (!catalogProps.resolvedVersions?.length || !branch) return null;
+	if (!catalogProps.resolvedVersions?.length) return null;
+
+	const isActualVersion = !catalogProps.resolvedVersion;
 
 	const onSwitch = (name?: string) => {
 		setIsLoading(true);
@@ -74,37 +75,46 @@ const SwitchVersion = () => {
 					iconFw
 					text={
 						<TruncatedText>
-							{catalogProps.resolvedVersion ? catalogProps.resolvedVersion.name : t("versions.switch")}
+							{isActualVersion ? branch?.name || t("versions.switch") : catalogProps.resolvedVersion.name}
 						</TruncatedText>
 					}
 					rightActions={[<Icon key={0} code="chevron-down" />]}
 				/>
 			}
 		>
-			{catalogProps.resolvedVersions
-				?.filter((version) => version.name !== branch.name)
-				.map((version, idx) => {
-					const disabled = version.name === catalogProps.resolvedVersion?.name;
-					return (
-						<Tooltip
-							key={idx}
-							hideOnClick
-							hideInMobile
-							content={disabled ? t("versions.current-version") : null}
-						>
-							<ButtonLink
-								onClick={disabled ? undefined : () => onSwitch(version.name)}
-								key={`button-${idx}`}
-								iconCode={disabled ? "check" : version.kind === "tag" ? "tag" : "git-branch"}
-								iconContent={
-									version.date ? DateUtils.getRelativeDateTime(version.date.toString()) : null
-								}
-								iconFw
-								text={<TruncatedText>{version.name}</TruncatedText>}
-							/>
-						</Tooltip>
-					);
-				})}
+			<>
+				<Tooltip hideOnClick hideInMobile content={isActualVersion ? t("versions.current-version") : null}>
+					<ButtonLink
+						onClick={isActualVersion ? undefined : () => onSwitch()}
+						iconFw
+						fullWidth={isActualVersion}
+						text={<TruncatedText>{branch?.name}</TruncatedText>}
+						rightActions={isActualVersion ? [<Icon key={0} code="check" />] : null}
+					/>
+				</Tooltip>
+				{catalogProps.resolvedVersions
+					?.filter((version) => version.name !== branch?.name)
+					.map((version, idx) => {
+						const disabled = version.name === catalogProps.resolvedVersion?.name;
+						return (
+							<Tooltip
+								key={idx}
+								hideOnClick
+								hideInMobile
+								content={disabled ? t("versions.current-version") : null}
+							>
+								<ButtonLink
+									onClick={disabled ? undefined : () => onSwitch(version.name)}
+									key={`button-${idx}`}
+									iconFw
+									fullWidth={disabled}
+									text={<TruncatedText>{version.name}</TruncatedText>}
+									rightActions={disabled ? [<Icon key={0} code="check" />] : null}
+								/>
+							</Tooltip>
+						);
+					})}
+			</>
 		</PopupMenuLayout>
 	);
 };

@@ -42,6 +42,16 @@ export const copy = (from: string, to: string) => call<void>("copy", { from, to 
 
 export const move = (from: string, to: string) => call<void>("mv", { from, to });
 
+export const readDirStats = async (path: string) => {
+	const stats = await call<({ name: string } & FileInfo)[]>("read_dir_stats", { path });
+	return stats.map((stat) => ({
+		...stat,
+		isDirectory: () => stat.type == "dir",
+		isFile: () => stat.type == "file",
+		isSymbolicLink: () => false,
+	}));
+};
+
 export const rm = async (path: string, opts?: { recursive?: boolean; force?: boolean }) => {
 	try {
 		const stats = await stat(path);

@@ -14,7 +14,7 @@ const abort: Command<{ ctx: Context; catalogName: string }, void> = Command.crea
 	async do({ ctx, catalogName }) {
 		const { rp, wm } = this._app;
 		const workspace = wm.current();
-		const catalog = await workspace.getCatalog(catalogName);
+		const catalog = await workspace.getContextlessCatalog(catalogName);
 		if (!catalog) return;
 		const storage = catalog.repo.storage;
 		if (!storage) return;

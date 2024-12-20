@@ -4,6 +4,7 @@ import CustomArticle from "@core/SitePresenter/customArticles/model/CustomArticl
 import DiagramType from "@core/components/Diagram/DiagramType";
 import Theme from "@ext/Theme/Theme";
 import UiLanguage, { type ContentLanguage } from "@ext/localization/core/model/Language";
+import SourceType from "@ext/storage/logic/SourceDataProvider/model/SourceType";
 import type { WorkspacePath } from "@ext/workspace/WorkspaceConfig";
 import MimeTypes from "./Types/MimeTypes";
 import Url from "./Types/Url";
@@ -45,6 +46,30 @@ export default class ApiUrlCreator {
 
 	public createWorkspace() {
 		return Url.fromBasePath(`/api/workspace/create`, this._basePath, {});
+	}
+
+	public getCustomStyleAsset(workspacePath: WorkspacePath) {
+		return Url.fromBasePath(`/api/workspace/assets/getCustomStyle`, this._basePath, { workspacePath });
+	}
+
+	public updateHomeLogo(workspacePath: WorkspacePath, theme: Theme) {
+		return Url.fromBasePath("/api/workspace/assets/homeLogo/update", this._basePath, {
+			theme,
+			path: workspacePath,
+		});
+	}
+	public deleteHomeLogo(workspacePath: WorkspacePath, theme: Theme) {
+		return Url.fromBasePath("/api/workspace/assets/homeLogo/delete", this._basePath, {
+			theme,
+			path: workspacePath,
+		});
+	}
+	public getHomeLogo(workspacePath: WorkspacePath, theme: Theme) {
+		return Url.fromBasePath("/api/workspace/assets/homeLogo/get", this._basePath, { theme, path: workspacePath });
+	}
+
+	public setCustomStyleAsset(workspacePath: WorkspacePath) {
+		return Url.fromBasePath(`/api/workspace/assets/setCustomStyle`, this._basePath, { workspacePath });
 	}
 
 	public setDefaultPath(path: string) {
@@ -122,8 +147,8 @@ export default class ApiUrlCreator {
 		});
 	}
 
-	public getNavigationUnresolvedCommentsCount() {
-		return Url.fromBasePath(`/api/comments/getNavigationUnresolvedCommentsCount`, this._basePath, {
+	public getCommentsByAuthors() {
+		return Url.fromBasePath(`/api/comments/getCommentsByAuthors`, this._basePath, {
 			catalogName: this._catalogName,
 		});
 	}
@@ -203,8 +228,12 @@ export default class ApiUrlCreator {
 		});
 	}
 
-	public getInitEnterpriseUrl(token: string) {
-		return Url.fromBasePath(`api/auth/initEnterprise`, this._basePath, { token });
+	public getAddEnterpriseWorkspaceUrl(token: string) {
+		return Url.fromBasePath(`api/enterprise/addWorkspace`, this._basePath, { token });
+	}
+
+	public getCloneEnterpriseCatalogsUrl(token: string) {
+		return Url.fromBasePath(`api/enterprise/cloneCatalogs`, this._basePath, { token });
 	}
 
 	public getAuthSsoUrl(data: string, sign: string, from: string) {
@@ -227,9 +256,10 @@ export default class ApiUrlCreator {
 		});
 	}
 
-	public getUnsupportedElementsUrl(storageDataName: string) {
-		return Url.fromBasePath(`/api/storage/confluence/getUnsupportedElements`, this._basePath, {
+	public getUnsupportedElementsUrl(storageDataName: string, sourceType: SourceType) {
+		return Url.fromBasePath(`/api/storage/import/getUnsupportedElements`, this._basePath, {
 			storageDataName,
+			sourceType,
 		});
 	}
 
@@ -290,9 +320,10 @@ export default class ApiUrlCreator {
 		});
 	}
 
-	public getStorageHaveToPull() {
+	public getStorageHaveToPull(shouldFetch = true) {
 		return Url.fromBasePath(`/api/storage/haveToPull`, this._basePath, {
 			catalogName: this._catalogName,
+			shouldFetch: shouldFetch.toString(),
 		});
 	}
 
@@ -341,17 +372,22 @@ export default class ApiUrlCreator {
 		return Url.fromBasePath("/api/storage/getUrl", this._basePath, { catalogName: this._catalogName });
 	}
 
-	public getVersionControlCurrentBranchUrl({
-		onlyName = true,
-		cached = true,
-	}: {
-		onlyName?: boolean;
-		cached?: boolean;
-	} = {}) {
+	public getVersionControlCurrentBranchUrl(
+		{
+			onlyName = true,
+			cached = true,
+			cachedMergeRequests = true,
+		}: {
+			onlyName?: boolean;
+			cached?: boolean;
+			cachedMergeRequests?: boolean;
+		} = { cached: true, cachedMergeRequests: true, onlyName: true },
+	) {
 		return Url.fromBasePath(`/api/versionControl/branch/get`, this._basePath, {
 			catalogName: this._catalogName,
 			cached: cached.toString(),
 			onlyName: onlyName.toString(),
+			cachedMergeRequests: cachedMergeRequests.toString(),
 		});
 	}
 
@@ -448,6 +484,28 @@ export default class ApiUrlCreator {
 	public resolveMerge() {
 		return Url.fromBasePath(`/api/versionControl/mergeConflict/resolve`, this._basePath, {
 			catalogName: this._catalogName,
+		});
+	}
+
+	public createMergeRequest() {
+		return Url.fromBasePath(`/api/mergeRequests/create`, this._basePath, {
+			catalogName: this._catalogName,
+		});
+	}
+
+	public mergeRequestMerge(targetBranch: string, deleteAfterMerge: boolean) {
+		return Url.fromBasePath(`/api/mergeRequests/merge`, this._basePath, {
+			catalogName: this._catalogName,
+			targetBranch,
+			deleteAfterMerge: deleteAfterMerge.toString(),
+		});
+	}
+
+	public mergeRequestDiffItems(sourceBranch: string, targetBranch: string) {
+		return Url.fromBasePath(`/api/mergeRequests/diffItems`, this._basePath, {
+			catalogName: this._catalogName,
+			sourceBranch,
+			targetBranch,
 		});
 	}
 
@@ -697,12 +755,22 @@ export default class ApiUrlCreator {
 		});
 	}
 
-	public updateArticleProperty(articlePath: string, propertyName: string, newValue: string) {
+	public getPropertyUsages(propertyName: string, value: string) {
+		return Url.fromBasePath(`/api/article/property/get`, this._basePath, {
+			catalogName: this._catalogName,
+			propertyName,
+			value,
+			articlePath: this._articlePath,
+		});
+	}
+
+	public updateArticleProperty(articlePath: string, propertyName: string, newValue: string, isDelete?: string) {
 		return Url.fromBasePath(`/api/article/property/update`, this._basePath, {
 			catalogName: this._catalogName,
 			articlePath,
 			propertyName,
 			newValue,
+			isDelete,
 		});
 	}
 
@@ -712,6 +780,19 @@ export default class ApiUrlCreator {
 			articlePath: this._articlePath,
 			propertyName,
 			value,
+		});
+	}
+
+	public getDraftMergeRequest() {
+		return Url.fromBasePath(`/api/mergeRequests/getDraft`, this._basePath, {
+			catalogName: this._catalogName,
+		});
+	}
+
+	public setMergeRequestApproval(approve: boolean) {
+		return Url.fromBasePath(`/api/mergeRequests/setApproval`, this._basePath, {
+			catalogName: this._catalogName,
+			approve: approve.toString(),
 		});
 	}
 }

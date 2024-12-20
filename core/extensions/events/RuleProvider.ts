@@ -12,9 +12,9 @@ class RuleProvider {
 	constructor(ctx: Context, customArticlePresenter?: CustomArticlePresenter) {
 		this._rules = [
 			new ShowHomePageRules(),
-			new HiddenRules(customArticlePresenter),
-			new LocalizationRules(ctx.contentLanguage, customArticlePresenter),
-			new SecurityRules(ctx.user, customArticlePresenter),
+			new HiddenRules(null, customArticlePresenter),
+			new LocalizationRules(null, ctx.contentLanguage, customArticlePresenter),
+			new SecurityRules(ctx.user, null, customArticlePresenter),
 		];
 	}
 

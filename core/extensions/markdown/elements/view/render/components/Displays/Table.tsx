@@ -8,9 +8,10 @@ interface TableProps {
 	content: ViewRenderGroup[];
 	className?: string;
 	groupby: string[];
+	select: string[];
 }
 
-const Table = ({ content, className, groupby }: TableProps) => {
+const Table = ({ content, className, groupby, select }: TableProps) => {
 	return (
 		<div className={className}>
 			<TableComponent>
@@ -22,9 +23,14 @@ const Table = ({ content, className, groupby }: TableProps) => {
 							</th>
 						))}
 						<th scope="col">{t("properties.article")}</th>
+						{select.map((name) => (
+							<th key={name} scope="col">
+								{name}
+							</th>
+						))}
 					</tr>
 					{content?.map((group) => (
-						<Group key={group.group?.[0]} group={group} />
+						<Group key={group.group?.[0]} group={group} select={select} />
 					))}
 				</tbody>
 			</TableComponent>
@@ -48,7 +54,7 @@ export default styled(Table)`
 
 	th,
 	td {
-		max-width: max-content !important;
+		max-width: 25vw !important;
 	}
 
 	.row {

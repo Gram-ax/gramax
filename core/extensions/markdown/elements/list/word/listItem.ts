@@ -1,9 +1,9 @@
-import { Paragraph, TextRun } from "docx";
-import { WordBlockChild } from "../../../../wordExport/options/WordTypes";
-import { getBlockChildren } from "../../../../wordExport/getBlockChildren";
-import { Tag } from "../../../core/render/logic/Markdoc";
-import { WordFontStyles } from "@ext/wordExport/options/wordExportSettings";
 import { imageWordLayout } from "@ext/markdown/elements/image/word/image";
+import { WordFontStyles } from "@ext/wordExport/options/wordExportSettings";
+import { Paragraph, TextRun } from "docx";
+import { getBlockChildren } from "../../../../wordExport/getBlockChildren";
+import { WordBlockChild } from "../../../../wordExport/options/WordTypes";
+import { Tag } from "../../../core/render/logic/Markdoc";
 
 export const listItemWordLayout: WordBlockChild = async ({ state, tag, addOptions, wordRenderContext }) => {
 	const filteredChildren = transformerToNormalTag(tag).children.filter(
@@ -28,7 +28,9 @@ export const listItemWordLayout: WordBlockChild = async ({ state, tag, addOption
 					paragraph = [];
 				}
 
-				listElements.push(await imageWordLayout(child.children[0] as Tag, addOptions, wordRenderContext.parserContext));
+				listElements.push(
+					await imageWordLayout(child.children[0] as Tag, addOptions, wordRenderContext.parserContext),
+				);
 			} else {
 				const inlineElements = await state.renderInline(child);
 

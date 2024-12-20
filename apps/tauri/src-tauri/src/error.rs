@@ -1,4 +1,4 @@
-use std::panic::PanicInfo;
+use std::panic::PanicHookInfo;
 
 use bugsnag::BugsnagNotificationBuilder;
 
@@ -39,11 +39,11 @@ pub fn setup_bugsnag_and_panic_hook(api_key: String) -> BugsnagNotificationBuild
 
   let bugsnag = BugsnagNotificationBuilder::new(api_key, webview_version);
   let bugsnag_hook = bugsnag.clone();
-  std::panic::set_hook(Box::new(move |info: &PanicInfo| panic_hook(&bugsnag_hook, info)));
+  std::panic::set_hook(Box::new(move |info: &PanicHookInfo| panic_hook(&bugsnag_hook, info)));
   bugsnag
 }
 
-fn panic_hook(#[allow(unused_variables)] bugsnag: &BugsnagNotificationBuilder, panic_info: &PanicInfo) {
+fn panic_hook(#[allow(unused_variables)] bugsnag: &BugsnagNotificationBuilder, panic_info: &PanicHookInfo) {
   let payload = panic_info.payload();
   let panic_message = if let Some(payload) = payload.downcast_ref::<String>() {
     payload.to_owned()
@@ -53,11 +53,7 @@ fn panic_hook(#[allow(unused_variables)] bugsnag: &BugsnagNotificationBuilder, p
     "<no message>".to_string()
   };
 
-  #[cfg(not(debug_assertions))]
-  {
-    let notification = bugsnag.from_panic(panic_info);
-    notification.blocking_send();
-  }
+  error!("panic:\n{}", panic_message);
 
   let message = format!(
     r#"
@@ -81,4 +77,10 @@ With error message:
     .set_description(message)
     .set_buttons(rfd::MessageButtons::Ok)
     .show();
+
+  #[cfg(not(debug_assertions))]
+  {
+    let notification = bugsnag.from_panic(panic_info);
+    notification.blocking_send();
+  }
 }

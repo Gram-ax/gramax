@@ -5,10 +5,15 @@ import { type HTMLAttributes } from "react";
 
 export type RenderVideoProps = {
 	url: string;
-	setIsError: (isError: boolean) => void;
+	onLoad: () => void;
+	onError: () => void;
+	setIsError?: (isError: boolean) => void;
+	setIsLoaded?: (isLoaded: boolean) => void;
 };
 
-export type PreviewVideoProps = Omit<RenderVideoProps, "setIsError"> &
+type RenderVideoPropsWithoutLoad = Omit<RenderVideoProps, "onLoad" | "onError">;
+
+export type PreviewVideoProps = Omit<RenderVideoProps, "onLoad" | "onError"> &
 	HTMLAttributes<HTMLAnchorElement> & {
 		previewUrl: string;
 	};
@@ -22,50 +27,51 @@ const rutubeUrlReplacer = (url: string): string => {
 };
 
 const SupportedVideoHostings: {
-	[key: string]: (url: string, setIsError: (isError: boolean) => void) => JSX.Element;
+	[key: string]: (url: string, onLoad: () => void, onError: () => void) => JSX.Element;
 } = {
-	"youtube.com": (url, setIsError) => {
+	"youtube.com": (url, onLoad, onError) => {
 		const id = url.match(/v=([^&]+)/)?.[1];
 		return isCredentiallessUnsupported ? (
 			<PreviewVideo url={url} previewUrl={`https://img.youtube.com/vi/${id}/maxresdefault.jpg`} />
 		) : (
-			<IFrameVideo url={`https://www.youtube-nocookie.com/embed/${id}`} setIsError={setIsError} />
+			<IFrameVideo url={`https://www.youtube-nocookie.com/embed/${id}`} onLoad={onLoad} onError={onError} />
 		);
 	},
-	"youtu.be": (url, setIsError) => {
+	"youtu.be": (url, onLoad, onError) => {
 		const rel = url.match(/youtu\.be\/(.*)/)?.[1].replace("?t=", "?start=");
 		if (!rel) return null;
 		const videoId = rel.match(/(.*)\?/)?.[1];
 		return isCredentiallessUnsupported ? (
 			<PreviewVideo url={url} previewUrl={`https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`} />
 		) : (
-			<IFrameVideo url={`https://www.youtube-nocookie.com/embed/${rel}`} setIsError={setIsError} />
+			<IFrameVideo url={`https://www.youtube-nocookie.com/embed/${rel}`} onLoad={onLoad} onError={onError} />
 		);
 	},
-	"drive.google.com": (url, setIsError) => {
+	"drive.google.com": (url, onLoad, onError) => {
 		return isCredentiallessUnsupported ? (
 			<PreviewVideo url={url} previewUrl={"/images/gdrive.png"} />
 		) : (
-			<IFrameVideo url={url.replace("view", "preview")} setIsError={setIsError} />
+			<IFrameVideo url={url.replace("view", "preview")} onLoad={onLoad} onError={onError} />
 		);
 	},
-	"mega.nz": (url, setIsError) =>
+	"mega.nz": (url, onLoad, onError) =>
 		isCredentiallessUnsupported ? (
 			<PreviewVideo url={url} previewUrl={"/images/meganz.png"} />
 		) : (
-			<IFrameVideo url={url.replace(`/file/`, `/embed/`)} setIsError={setIsError} />
+			<IFrameVideo url={url.replace(`/file/`, `/embed/`)} onLoad={onLoad} onError={onError} />
 		),
-	"dropbox.com": (url, setIsError) => (
+	"dropbox.com": (url, onLoad, onError) => (
 		<IFrameVideo
 			url={url.replace(url.includes("?dl=0") ? "?dl=0" : "&dl=0", url.includes("?dl=0") ? "?raw=1" : "&raw=1")}
-			setIsError={setIsError}
+			onLoad={onLoad}
+			onError={onError}
 		/>
 	),
-	"rutube.ru": (url, setIsError) =>
+	"rutube.ru": (url, onLoad, onError) =>
 		isCredentiallessUnsupported ? (
 			<PreviewVideo url={url} previewUrl={"/images/rutube.png"} />
 		) : (
-			<IFrameVideo url={rutubeUrlReplacer(url)} setIsError={setIsError} />
+			<IFrameVideo url={rutubeUrlReplacer(url)} onLoad={onLoad} onError={onError} />
 		),
 	// "sharepoint.com": (link) => <VideoTag link={link.replace(/\?e=.*?$/, "?download=1")} />,
 };
@@ -85,7 +91,7 @@ const PreviewVideo = styled(PreviewVideoUnstyled)`
 	height: fit-content;
 `;
 
-const IFrameVideo = ({ url, setIsError: setIsError }: RenderVideoProps) => {
+const IFrameVideo = ({ url, onLoad: onLoad, onError }: RenderVideoProps) => {
 	const props = {
 		credentialless: "true",
 		width: "640",
@@ -96,19 +102,18 @@ const IFrameVideo = ({ url, setIsError: setIsError }: RenderVideoProps) => {
 
 	return (
 		<iframe
-			onError={() => {
-				setIsError(true);
-			}}
-			data-focusable="true"
-			className="video-js"
+			onError={onError}
+			onLoad={onLoad}
+			className="video-js focus-pointer-events"
 			style={{ border: "none" }}
+			data-focusable="true"
 			src={url}
 			{...props}
 		/>
 	);
 };
 
-const RawVideo = ({ url, setIsError: setIsError }: RenderVideoProps) => {
+const RawVideo = ({ url, onLoad, onError }: RenderVideoProps) => {
 	return (
 		<video
 			id="my-player"
@@ -118,20 +123,27 @@ const RawVideo = ({ url, setIsError: setIsError }: RenderVideoProps) => {
 			preload="auto"
 			data-setup="{}"
 			src={url}
-			onError={() => {
-				setIsError(true);
-			}}
+			onLoad={onLoad}
+			onError={onError}
 		/>
 	);
 };
 
-const RenderVideo = ({ url, setIsError: setIsError }: RenderVideoProps) => {
+const RenderVideo = ({ url, setIsError, setIsLoaded }: RenderVideoPropsWithoutLoad) => {
+	const onError = () => {
+		setIsError(true);
+	};
+
+	const onLoad = () => {
+		setIsLoaded(true);
+	};
+
 	if (typeof url !== "string") return;
-	if (url.includes("embed")) return <IFrameVideo url={url} setIsError={setIsError} />;
+	if (url.includes("embed")) return <IFrameVideo url={url} onLoad={onLoad} onError={onError} />;
 
 	return (
-		Object.entries(SupportedVideoHostings).find(([name]) => url.includes(name))?.[1](url, setIsError) ?? (
-			<RawVideo url={url} setIsError={setIsError} />
+		Object.entries(SupportedVideoHostings).find(([name]) => url.includes(name))?.[1](url, onLoad, onError) ?? (
+			<RawVideo url={url} onLoad={onLoad} onError={onError} />
 		)
 	);
 };

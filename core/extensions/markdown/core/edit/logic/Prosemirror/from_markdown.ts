@@ -98,7 +98,7 @@ async function attrs(spec: ParseSpec, token: Token, tokens: Token[], i: number) 
 
 // Code content is represented as a single token with a `content`
 // property in Markdown-it.
-const nodesWithoutCloseToken = ["code_inline", "code_block", "fence", "task_item"];
+const nodesWithoutCloseToken = ["code_inline", "code_block", "fence", "taskItem"];
 function noCloseToken(spec: ParseSpec, type: string) {
 	return spec.noCloseToken || nodesWithoutCloseToken.includes(type);
 }

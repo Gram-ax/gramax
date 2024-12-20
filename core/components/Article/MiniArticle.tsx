@@ -4,11 +4,13 @@ import getComponents from "@ext/markdown/core/render/components/getComponents/ge
 import Renderer from "@ext/markdown/core/render/components/Renderer";
 import type { RenderableTreeNodes } from "@ext/markdown/core/render/logic/Markdoc";
 import Header from "@ext/markdown/elements/heading/render/component/Header";
-import type { ReactNode } from "react";
+import { useMemo, type ReactNode } from "react";
 
-export const MinimizedArticleStyled = styled(({ className, children }: { className?: string; children: ReactNode }) => {
+const MinimizedArticle = ({ className, children }: { className?: string; children: ReactNode }) => {
 	return <div className={className}>{children}</div>;
-})`
+};
+
+export const MinimizedArticleStyled = styled(MinimizedArticle)`
 	h2 {
 		font-size: 1.2em !important;
 	}
@@ -76,15 +78,14 @@ export type MiniArticleProps = {
 };
 
 const MiniArticle = ({ title, content, className }: MiniArticleProps) => {
+	const renderedContent = useMemo(() => Renderer(content, { components: getComponents() }), [content]);
 	return (
 		<div className={classNames("article", {}, ["tooltip-size", className])}>
 			<Header level={1} className={classNames("article-title", {}, ["link-popup-title"])} copyLinkIcon={false}>
 				{title}
 			</Header>
 			<MinimizedArticleStyled>
-				<div className={classNames("article-body", {}, ["popup-article"])}>
-					{Renderer(content, { components: getComponents() })}
-				</div>
+				<div className={classNames("article-body", {}, ["popup-article"])}>{renderedContent}</div>
 			</MinimizedArticleStyled>
 		</div>
 	);

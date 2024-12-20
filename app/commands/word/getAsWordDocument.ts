@@ -19,10 +19,10 @@ const getAsWordDocument: Command<{ ctx: Context; itemPath?: Path; isCategory: bo
 		async do({ ctx, catalogName, isCategory, itemPath }) {
 			const { wm, parser, parserContextFactory } = this._app;
 			const workspace = wm.current();
-			const catalog = await workspace.getCatalog(catalogName);
+			const catalog = await workspace.getCatalog(catalogName, ctx);
 			const isCatalog = itemPath.toString() === "";
 			const item = isCatalog
-				? resolveRootCategory(catalog, ctx.contentLanguage)
+				? resolveRootCategory(catalog, catalog.props, ctx.contentLanguage)
 				: catalog.findItemByItemPath(itemPath);
 			const wordExport = new MainWordExport(ExportType.withoutTableOfContents, ctx.domain);
 			const filters = new RuleProvider(ctx).getItemFilters();

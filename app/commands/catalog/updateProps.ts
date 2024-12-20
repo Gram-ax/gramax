@@ -19,10 +19,10 @@ const updateProps: Command<{ ctx: Context; catalogName: string; props: CatalogEd
 			const { wm, sitePresenterFactory, resourceUpdaterFactory } = this._app;
 			const workspace = wm.current();
 
-			const catalog = await workspace.getCatalog(catalogName);
+			const catalog = await workspace.getCatalog(catalogName, ctx);
 			if (!catalog) return;
 
-			const newCatalog = await catalog.updateProps(resourceUpdaterFactory.withContext(ctx), props);
+			const newCatalog = await catalog.updateProps(props, resourceUpdaterFactory);
 			return sitePresenterFactory.fromContext(ctx).serializeCatalogProps(newCatalog);
 		},
 

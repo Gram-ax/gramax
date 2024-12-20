@@ -4,6 +4,7 @@ import Tag from "../../../../core/render/logic/Markdoc/src/ast/tag";
 export const unsupported: Schema = {
 	render: "Unsupported",
 	attributes: {
+		source: { type: String },
 		url: { type: String },
 		type: { type: String },
 		code: { type: String },

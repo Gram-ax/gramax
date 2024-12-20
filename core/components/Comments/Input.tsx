@@ -3,9 +3,18 @@ import styled from "@emotion/styled";
 import UserCircle from "../Atoms/UserCircle";
 
 import Editor, { EditorProps } from "./CommentEditor";
+import { useEffect } from "react";
 
-const Input = styled(({ className, ...props }: EditorProps) => {
+interface InputProps extends EditorProps {
+	onLoaded?: () => void;
+}
+
+const Input = styled(({ className, ...props }: InputProps) => {
 	const userName = PageDataContextService.value.userInfo;
+
+	useEffect(() => {
+		props.onLoaded?.();
+	}, []);
 
 	return (
 		<div className={className}>
@@ -27,6 +36,7 @@ const Input = styled(({ className, ...props }: EditorProps) => {
 	}
 
 	.editer {
+		width: 100%;
 		padding-top: 0.35em;
 	}
 

@@ -2,7 +2,7 @@ import HTMLNodeConverter from "@ext/confluence/core/server/model/HTMLNodeConvert
 
 const ul: HTMLNodeConverter = () => {
 	return {
-		type: "bullet_list",
+		type: "bulletList",
 	};
 };
 

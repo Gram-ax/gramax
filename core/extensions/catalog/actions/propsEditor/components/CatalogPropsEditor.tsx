@@ -6,9 +6,12 @@ import Form from "@components/Form/Form";
 import LogsLayout from "@components/Layouts/LogsLayout";
 import ModalLayout from "@components/Layouts/Modal";
 import ModalLayoutLight from "@components/Layouts/ModalLayoutLight";
+import ListLayout from "@components/List/ListLayout";
 import MimeTypes from "@core-ui/ApiServices/Types/MimeTypes";
 import ArticlePropsService from "@core-ui/ContextServices/ArticleProps";
 import CatalogPropsService from "@core-ui/ContextServices/CatalogProps";
+import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
+import WorkspaceService from "@core-ui/ContextServices/Workspace";
 import useWatch from "@core-ui/hooks/useWatch";
 import { transliterate } from "@core-ui/languageConverter/transliterate";
 import openNewTab from "@core-ui/utils/openNewTab";
@@ -44,6 +47,7 @@ const CatalogPropsEditor = ({
 	const suchCatalogExists = t("catalog.error.already-exist");
 	const noEncodingSymbolsInUrl = t("no-encoding-symbols-in-url");
 
+	const workspace = WorkspaceService.current();
 	const apiUrlCreator = ApiUrlCreatorService.value;
 	const [isOpen, setIsOpen] = useState(props.isOpen);
 	const [allCatalogNames, setAllCatalogNames] = useState<string[]>([]);
@@ -58,6 +62,8 @@ const CatalogPropsEditor = ({
 	const [saveProcess, setSaveProcess] = useState(false);
 
 	useWatch(() => setEditProps(getCatalogEditProps(catalogProps)), [catalogProps]);
+
+	const gesUrl = PageDataContextService.value.conf.enterprise.gesUrl;
 	const { sourceType } = getPartGitSourceDataByStorageName(catalogProps.sourceName);
 
 	const onSubmit = async (props: CatalogEditProps) => {
@@ -150,7 +156,7 @@ const CatalogPropsEditor = ({
 						fieldDirection="row"
 						leftButton={
 							<>
-								{!!sourceType && (
+								{!!sourceType && !gesUrl && (
 									<Button
 										style={{ margin: 0 }}
 										buttonStyle={ButtonStyle.underline}
@@ -203,7 +209,42 @@ const CatalogPropsEditor = ({
 							(schema.properties.language as any).readOnly = !!catalogProps.language;
 							(schema.properties.url as any).readOnly = !!sourceType;
 						}}
-					/>
+					>
+						{workspace.groups && (
+							<div className="form-group">
+								<div className="field field-string row">
+									<label className="control-label">
+										{t("forms.catalog-edit-props.props.group.name")}
+									</label>
+									<div className="input-lable">
+										<ListLayout
+											items={Object.entries(workspace.groups).map(([key, group]) => ({
+												labelField: key,
+												element: group.title,
+											}))}
+											item={{
+												labelField: editProps.group ?? "",
+												element: workspace.groups[editProps.group]?.title ?? "",
+											}}
+											placeholder={t("forms.catalog-edit-props.props.group.placeholder")}
+											onItemClick={(_, __, idx) =>
+												setEditProps({
+													...editProps,
+													group: Object.entries(workspace.groups)[idx][0],
+												})
+											}
+										/>
+									</div>
+								</div>
+								<div className="input-lable-description">
+									<div />
+									<div className="article">
+										{t("forms.catalog-edit-props.props.group.description")}
+									</div>
+								</div>
+							</div>
+						)}
+					</Form>
 				</ModalLayoutLight>
 			</ModalLayout>
 		</>

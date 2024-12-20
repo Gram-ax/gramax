@@ -6,21 +6,22 @@ import { ReactNode } from "react";
 
 interface FieldProps {
 	scheme: FormSchema;
+	translationKey: string;
+	formTranslationKey: string;
 	value?: string | string[] | boolean;
 	tabIndex?: number;
 	required?: boolean;
 	isFocused?: boolean;
 	fieldDirection?: "row" | "column";
-	formTranslationKey: string;
-	translationKey: string;
 	validate?: Validate;
+	actionButtons?: ReactNode;
 	input?: ReactNode;
 	onFocus?: () => void;
 	onChange?: (v: string | string[]) => void;
 }
 
 const Field = (props: FieldProps) => {
-	const { required = false, isFocused = false, fieldDirection = "row" } = props;
+	const { required = false, isFocused = false, fieldDirection = "row", actionButtons } = props;
 	const { scheme, value, tabIndex, validate, input, formTranslationKey, translationKey } = props;
 	const { onChange, onFocus } = props;
 
@@ -46,6 +47,7 @@ const Field = (props: FieldProps) => {
 							/>
 							{required && <span className="required">*</span>}
 						</div>
+						{actionButtons && <div className="actions">{actionButtons}</div>}
 					</label>
 				)}
 				<div className={`input-lable ${isCheckbox ? "fill-width" : ""}`}>

@@ -19,7 +19,14 @@ enum ModalToOpen {
 	MultilangActionConfirm = "MultilangActionConfirm",
 
 	DiagramEditor = "DiagramEditor",
-	DrawioEditor = "DrawioEditor",
+	HTMLEditor = "HTMLEditor",
+
+	Merge = "Merge",
+	MergeRequest = "MergeRequest",
+	MergeRequestConfirm = "MergeRequestConfirm",
+	CreateSourceData = "CreateSourceData",
+
+	EditEnterpriseConfig = "EditEnterpriseConfig",
 }
 
 export default ModalToOpen;

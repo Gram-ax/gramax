@@ -1,14 +1,20 @@
+import type Context from "@core/Context/Context";
 import { createEventEmitter, Event, type EventArgs } from "@core/Event/EventEmitter";
 import Path from "@core/FileProvider/Path/Path";
 import type FileProvider from "@core/FileProvider/model/FileProvider";
-import type { Catalog, CatalogEvents, CatalogFilesUpdated } from "@core/FileStructue/Catalog/Catalog";
+import type BaseCatalog from "@core/FileStructue/Catalog/BaseCatalog";
+import type { Catalog } from "@core/FileStructue/Catalog/Catalog";
 import type CatalogEntry from "@core/FileStructue/Catalog/CatalogEntry";
+import type CatalogEvents from "@core/FileStructue/Catalog/CatalogEvents";
+import type { CatalogFilesUpdated } from "@core/FileStructue/Catalog/CatalogEvents";
+import type ContextualCatalog from "@core/FileStructue/Catalog/ContextualCatalog";
 import FileStructure from "@core/FileStructue/FileStructure";
 import ItemExtensions from "@core/FileStructue/Item/ItemExtensions";
 import type YamlFileConfig from "@core/utils/YamlFileConfig";
 import { FileStatus } from "@ext/Watchers/model/FileStatus";
 import type { ItemRefStatus } from "@ext/Watchers/model/ItemStatus";
 import RepositoryProvider from "@ext/git/core/Repository/RepositoryProvider";
+import WorkspaceAssets from "@ext/workspace/WorkspaceAssets";
 import { WorkspaceConfig, type WorkspacePath } from "@ext/workspace/WorkspaceConfig";
 import type { FSCatalogsInitializedCallback } from "@ext/workspace/WorkspaceManager";
 import WorkspaceEventHandlers from "@ext/workspace/events/WorkspaceEventHandlers";
@@ -18,7 +24,7 @@ export type WorkspaceEvents = Event<"add-catalog", { catalog: Catalog }> &
 	Event<"resolve-category", EventArgs<CatalogEvents, "resolve-category">> &
 	Event<"catalog-changed", CatalogFilesUpdated> &
 	Event<"on-catalog-resolve", { mutableCatalog: { catalog: Catalog }; name: string; metadata: string }> &
-	Event<"on-catalog-entry-resolve", { mutableEntry: { entry: CatalogEntry }; name: string; metadata: string }>;
+	Event<"on-catalog-entry-resolve", { mutableEntry: { entry: BaseCatalog }; name: string; metadata: string }>;
 
 export type WorkspaceInitProps = {
 	fs: FileStructure;
@@ -26,10 +32,11 @@ export type WorkspaceInitProps = {
 	path: WorkspacePath;
 	config: YamlFileConfig<WorkspaceConfig>;
 	rules?: FSCatalogsInitializedCallback[];
+	assets: WorkspaceAssets;
 };
 
 export class Workspace {
-	private _entries = new Map<string, CatalogEntry>();
+	private _entries = new Map<string, BaseCatalog>();
 	private _events = createEventEmitter<WorkspaceEvents>();
 
 	private constructor(
@@ -37,14 +44,15 @@ export class Workspace {
 		private _config: YamlFileConfig<WorkspaceConfig>,
 		private _fs: FileStructure,
 		private _rp: RepositoryProvider,
+		private _assets: WorkspaceAssets,
 	) {
-		new WorkspaceEventHandlers(this, this._rp).mount(this);
+		new WorkspaceEventHandlers(this, this._rp).mount();
 	}
 
-	static async init({ fs, rp, rules, path, config }: WorkspaceInitProps) {
+	static async init({ fs, rp, rules, path, config, assets }: WorkspaceInitProps) {
 		const entries = await fs.getCatalogEntries();
 		rules?.forEach((rule) => rule(fs.fp, entries));
-		const workspace = new this(path, config, fs, rp);
+		const workspace = new this(path, config, fs, rp, assets);
 		fs.fp.watch(workspace._onItemChanged.bind(this));
 		await workspace._initRepositories(entries, fs.fp);
 		return workspace;
@@ -62,9 +70,14 @@ export class Workspace {
 		return this._config.inner();
 	}
 
-	async getCatalog(name: string): Promise<Catalog> {
+	async getCatalog(name: string, ctx: Context): Promise<ContextualCatalog> {
+		const catalog = await this.getContextlessCatalog(name);
+		return catalog?.ctx(ctx);
+	}
+
+	async getContextlessCatalog(name: string): Promise<Catalog> {
 		const [n, metadata] = name?.split(":") ?? [name];
-		const catalog = await this._entries.get(n)?.load();
+		const catalog = await this._entries.get(n)?.upgrade("catalog", true);
 		const mutableCatalog = { catalog };
 		await this.events.emit("on-catalog-resolve", {
 			mutableCatalog,
@@ -75,13 +88,13 @@ export class Workspace {
 	}
 
 	async refreshCatalog(name: string) {
-		const catalog = await this.getCatalog(name);
-		const entry = await this._fs.getCatalogByPath(catalog.getBasePath());
+		const catalog = await this.getContextlessCatalog(name);
+		const entry = await this._fs.getCatalogByPath(catalog.basePath);
 		this._entries.set(name, entry);
 		await this._initRepositories([entry], this._fs.fp);
 	}
 
-	async getCatalogEntry(name: string): Promise<CatalogEntry> {
+	async getBaseCatalog(name: string): Promise<BaseCatalog> {
 		const [n, metadata] = name?.split(":") ?? [name];
 		const entry = this._entries.get(n);
 		const mutableEntry = { entry };
@@ -89,7 +102,7 @@ export class Workspace {
 		return mutableEntry.entry;
 	}
 
-	getCatalogEntries(): Map<string, CatalogEntry> {
+	getAllCatalogs(): Map<string, BaseCatalog> {
 		return this._entries;
 	}
 
@@ -101,12 +114,16 @@ export class Workspace {
 		return this.getFileStructure().fp;
 	}
 
+	getAssets() {
+		return this._assets;
+	}
+
 	async removeCatalog(name: string, deleteFromFs = true) {
 		if (deleteFromFs) {
-			const catalog = await this.getCatalog(name);
+			const catalog = await this.getContextlessCatalog(name);
 			const fp = this.getFileProvider();
 			const path = FileStructure.getCatalogPath(catalog);
-			await fp.delete(path, true);
+			await fp.delete(path, false);
 		}
 		this._entries.delete(name);
 		await this._invalidateRepoCache();
@@ -114,14 +131,14 @@ export class Workspace {
 	}
 
 	addCatalogEntry(catalogEntry: CatalogEntry): void {
-		this._entries.set(catalogEntry.getName(), catalogEntry);
+		this._entries.set(catalogEntry.name, catalogEntry);
 	}
 
 	async addCatalog(catalog: Catalog): Promise<void> {
-		this._entries.set(catalog.getName(), catalog);
-		const basePath = catalog.getBasePath();
+		this._entries.set(catalog.name, catalog);
+		const basePath = catalog.basePath;
 		const fp = this.getFileProvider();
-		catalog.setRepo(await this._rp.getRepositoryByPath(basePath, fp), this._rp);
+		catalog.setRepository(await this._rp.getRepositoryByPath(basePath, fp));
 
 		catalog.events.on("files-changed", (update) => this.events.emit("catalog-changed", update));
 
@@ -132,7 +149,7 @@ export class Workspace {
 
 		catalog.events.on("resolve-category", (args) => this.events.emitSync("resolve-category", args));
 		catalog.events.on("update", async (arg) => {
-			const entry = await this._fs.getCatalogByPath(catalog.getBasePath());
+			const entry = await this._fs.getCatalogByPath(catalog.basePath);
 			arg.catalog = entry;
 			await this.addCatalog(entry);
 		});
@@ -140,12 +157,13 @@ export class Workspace {
 		await this._events.emit("add-catalog", { catalog });
 	}
 
-	private async _initRepositories(entries: CatalogEntry[], fp: FileProvider): Promise<void> {
+	private async _initRepositories(entries: BaseCatalog[], fp: FileProvider): Promise<void> {
 		await Promise.all(
 			entries.map(async (entry) => {
-				entry.withOnLoad((catalog) => this.addCatalog(catalog));
-				entry.setRepo(await this._rp.getRepositoryByPath(new Path(entry.getName()), fp), this._rp);
-				this._entries.set(entry.getName(), entry);
+				const maybeEntry = entry.upgrade("entry");
+				if (maybeEntry) maybeEntry.setLoadCallback((catalog) => this.addCatalog(catalog));
+				entry.setRepository(await this._rp.getRepositoryByPath(new Path(entry.name), fp));
+				this._entries.set(entry.name, entry);
 			}),
 		);
 
@@ -153,7 +171,7 @@ export class Workspace {
 	}
 
 	private async _onItemChanged(items: ItemRefStatus[]): Promise<void> {
-		const catalogs = this.getCatalogEntries();
+		const catalogs = this.getAllCatalogs();
 
 		const updated = new Map<Catalog, ItemRefStatus[]>();
 
@@ -163,7 +181,7 @@ export class Workspace {
 			if (isCatalogRemoved || !catalogs.size) await this._addCatalogIfNeed(item);
 			if (isCatalogRemoved) continue;
 
-			const catalog = await catalogs.get(name).load();
+			const catalog = await catalogs.get(name).upgrade("catalog", true);
 
 			if (!(catalog && ItemExtensions.includes(item.ref.path.extension))) continue;
 
@@ -178,7 +196,7 @@ export class Workspace {
 		if (!FileStructure.isCatalog(ref.path) || (status !== FileStatus.new && status !== FileStatus.modified)) return;
 		const fs = this.getFileStructure();
 		const catalog = await fs.getCatalogEntryByPath(ref.path.rootDirectory);
-		if (!catalog || this._entries.has(catalog.getName())) return;
+		if (!catalog || this._entries.has(catalog.name)) return;
 		await this.addCatalog(await catalog.load());
 	}
 
@@ -195,7 +213,7 @@ export class Workspace {
 		return RepositoryProvider.invalidateRepoCache(
 			Array.from(this._entries.values())
 				.filter((e) => e.repo?.gvc)
-				.map((e) => this.getFileProvider().rootPath.join(e.getBasePath()).value),
+				.map((e) => this.getFileProvider().rootPath.join(e.basePath).value),
 		);
 	}
 }

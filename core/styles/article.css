@@ -71,6 +71,7 @@
 .article h4,
 .article h5,
 .article h6 {
+	font-weight: var(--font-weight-article-heading);
 	margin-top: 1em;
 	margin-bottom: 0.5em;
 	color: var(--color-article-heading-text);
@@ -165,6 +166,32 @@ samp {
 	user-select: none;
 }
 
+.article ul[data-type="taskList"] {
+	list-style-type: none !important;
+	padding: 0 !important;
+
+	li {
+		display: flex;
+		align-items: flex-start;
+		gap: 0.35rem;
+		margin-bottom: 0 !important;
+
+		label {
+			line-height: 1.8em;
+		}
+
+		> div {
+			flex: 1 1 auto;
+		}
+
+		> p {
+			margin: unset;
+			margin-bottom: 0.4em !important;
+			min-width: 1em;
+		}
+	}
+}
+
 .article .attr {
 	white-space: nowrap;
 	font-size: 15px;
@@ -222,16 +249,16 @@ samp {
 }
 
 .article .article-body ol > li::before {
-	top: 4.3px;
-	left: -32px;
-	width: 20px;
-	font-size: 10px;
-	padding: 5px 0;
+	top: 0.3em;
+	left: -3em;
+	width: 2em;
+	font-size: 0.625em;
+	padding: 0.5em 0;
 	font-weight: 600;
-	line-height: 10px;
+	line-height: 1em;
 	position: absolute;
 	text-align: center;
-	border-radius: 10px;
+	border-radius: 100%;
 	content: counter(listitem);
 	counter-increment: listitem 1;
 	background: var(--color-li-num-bg);
@@ -281,7 +308,7 @@ samp {
 .article code,
 .article pre {
 	tab-size: 4;
-	margin: 2em 0;
+	margin: 1em 0;
 	overflow: auto;
 	padding: 2px 6px;
 	background: var(--color-code-bg);
@@ -374,6 +401,14 @@ samp {
 	width: 100%;
 }
 
+.article [data-type="video"] iframe {
+	display: flex;
+}
+
+.article [data-type="video"] {
+	margin-bottom: 0.5em;
+}
+
 .article video {
 	height: 100%;
 }
@@ -392,7 +427,8 @@ samp {
 .article .img + em,
 .article .video-js + em,
 .article .error-video + em,
-.article .diagram-image + em,
+.article [data-qa="qa-diagram-data"] > em,
+.article [data-qa="qa-drawio"] > em,
 .article .img-v + p > em:first-of-type,
 .article .img-h + p > em:first-of-type,
 .article .image-container + em,
@@ -672,9 +708,9 @@ samp {
 .article .diagram-background {
 	width: 100%;
 	padding: 20px;
-	margin: 0.5em 0;
 	position: relative;
 	border-radius: var(--radius-large);
+	margin: 0.5em 0;
 	background-color: var(--color-diagram-bg);
 }
 

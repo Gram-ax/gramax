@@ -15,6 +15,7 @@ import {
 import { CellAttrs } from "@ext/markdown/elements/table/edit/model/columnResizing/CellAttrs";
 import { updateColumnsOnResize } from "@ext/markdown/elements/table/edit/model/columnResizing/updateColumns";
 import stopOpeningPanels from "@core-ui/utils/stopOpeningPanels ";
+import { DATA_QA_LIGHTBOX as LIGHTBOX_DATA_QA } from "@components/Atoms/Image/modalImage/Lightbox";
 const navsSymbol = Symbol();
 
 type ColumnResizingOptions = {
@@ -167,9 +168,11 @@ function currentColWidth(view: EditorView, cellPos: number, { colspan, colwidth 
 }
 
 function domCellAround(target: HTMLElement | null): HTMLElement | null {
-	while (target && target.nodeName != "TD" && target.nodeName != "TH")
+	while (target && target.nodeName != "TD" && target.nodeName != "TH") {
+		if (target.dataset.qa == LIGHTBOX_DATA_QA) return null;
 		target =
 			target.classList && target.classList.contains("ProseMirror") ? null : (target.parentNode as HTMLElement);
+	}
 	return target;
 }
 

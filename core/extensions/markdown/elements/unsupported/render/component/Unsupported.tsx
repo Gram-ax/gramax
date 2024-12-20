@@ -9,17 +9,18 @@ import { ReactElement } from "react";
 interface UnsupportedProps {
 	url?: string;
 	code?: string;
+	source?: string;
 }
 
-const Unsupported = ({ url, code }: UnsupportedProps): ReactElement => {
+const Unsupported = ({ url, code, source }: UnsupportedProps): ReactElement => {
 	return (
 		<Alert
 			className={"focus-pointer-events"}
-			title={t("confluence.error.cannot-import.title")}
+			title={t("import.error.cannot-import.title") + source}
 			type={AlertType.warning}
 		>
 			<span>
-				{`${t("confluence.error.cannot-import.desc")} `}
+				{`${t("import.error.cannot-import.desc")} `}
 				<Anchor href={url}>{url}</Anchor>
 			</span>
 			<Note title={t("alert.details")} type={NoteType.note} collapsed>

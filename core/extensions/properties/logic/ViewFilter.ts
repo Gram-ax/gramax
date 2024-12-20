@@ -1,12 +1,11 @@
 import { Article } from "@core/FileStructue/Article/Article";
-import { Catalog } from "@core/FileStructue/Catalog/Catalog";
+import type { ReadonlyCatalog } from "@core/FileStructue/Catalog/ReadonlyCatalog";
 import { Category } from "@core/FileStructue/Category/Category";
-import { ItemType } from "@core/FileStructue/Item/ItemType";
 import sortMapByName from "@ext/markdown/elements/view/render/logic/sortMap";
 import getAllCatalogProperties from "@ext/properties/logic/getAllCatalogProps";
+import getDisplayValue from "@ext/properties/logic/getDisplayValue";
 import { Property, PropertyValue, SystemProperties, ViewRenderGroup } from "@ext/properties/models";
 import { Display } from "@ext/properties/models/displays";
-import astToParagraphs from "@ext/StyleGuide/logic/astToParagraphs";
 
 interface ProcessedArticle {
 	title: string;
@@ -17,40 +16,21 @@ interface ProcessedArticle {
 	groupValues: (string | string[])[];
 }
 
-interface PreProcessedArticle extends ProcessedArticle {
-	extendedProperties: Property[];
-}
+export type OrderValue = { name: string; value: string[] };
 
 class ViewFilter {
-	private _defs: PropertyValue[];
-	private _orderby: string[];
-	private _groupby: string[];
-	private _select: string[];
-	private _articles: Article[];
-	private _catalog: Catalog;
-	private _curArticle: Article;
-	private _display: Display = Display.List;
 	private _catalogPropMap: Map<string, Property>;
-	private _catalogPropMapKeys: string[];
+
 	constructor(
-		defs: PropertyValue[],
-		orderby: string[],
-		groupby: string[],
-		select: string[],
-		articles: Article[],
-		curArticle: Article,
-		catalog: Catalog,
-		display?: Display,
-	) {
-		this._defs = defs;
-		this._orderby = orderby;
-		this._groupby = groupby;
-		this._select = select;
-		this._articles = articles;
-		this._curArticle = curArticle;
-		this._catalog = catalog;
-		this._display = display;
-	}
+		private _defs: PropertyValue[],
+		private _orderby: OrderValue[],
+		private _groupby: string[],
+		private _select: string[],
+		private _articles: Article[],
+		private _curArticle: Article,
+		private _catalog: ReadonlyCatalog,
+		private _display: Display = Display.List,
+	) {}
 
 	public async getFilteredArticles(): Promise<ViewRenderGroup[]> {
 		const groups = this._group(await this._filter());
@@ -59,19 +39,11 @@ class ViewFilter {
 
 	private async _filter(): Promise<ProcessedArticle[]> {
 		this._catalogPropMap = new Map(getAllCatalogProperties(this._catalog).map((prop) => [prop.name, prop]));
-		this._catalogPropMapKeys = Array.from(this._catalogPropMap.keys());
 
 		const processedArticles = [];
+		const uniqueArticles = new Set<string>();
 
-		if (!this._defs.find((prop) => prop.name === (SystemProperties.hierarchy as string)))
-			processedArticles.push(
-				...(await this._handleDynamicProperty(
-					this._curArticle,
-					this._catalogPropMap.get(SystemProperties.hierarchy),
-				)),
-			);
-
-		this._defs = this._defs.filter((val) => !SystemProperties[val.name.toLowerCase()]);
+		processedArticles.push(...(await this._handleSystemProperty(uniqueArticles)));
 		processedArticles.push(
 			...(await Promise.all(
 				this._articles
@@ -81,37 +53,15 @@ class ViewFilter {
 							if (articleProp && defProp?.value?.some((val) => articleProp.value?.includes(val)))
 								return false;
 
-							if (defProp.value.includes("yes")) return !articleProp;
-							if (defProp.value.includes("none")) return !!articleProp;
+							if (defProp?.value?.includes("yes")) return !articleProp;
+							if (defProp?.value?.includes("none")) return !!articleProp;
+							if (uniqueArticles.has(article?.ref?.path?.value)) return false;
 
 							return true;
 						}),
 					)
-
 					.map(async (article) => {
-						const resourcePath = this._curArticle.ref.path.getRelativePath(article.ref.path).value;
-						const extendedProperties =
-							(article.props?.properties?.map((prop) => {
-								const catalogProp = this._catalogPropMap.get(prop.name);
-								return catalogProp ? { ...catalogProp, ...prop } : prop;
-							}) as Property[]) ?? [];
-
-						return {
-							title: article.props.title,
-							resourcePath,
-							itemPath: article.ref.path.value,
-							linkPath: await this._catalog.getPathname(article),
-							groupValues: this._groupby.map((groupProp) => {
-								const prop = extendedProperties.find((p) => p.name === groupProp);
-								return prop?.value ?? prop?.name ?? null;
-							}),
-							otherProps: sortMapByName(
-								Array.from(this._catalogPropMap.keys()),
-								this._filterProps(extendedProperties),
-							),
-
-							extendedProperties,
-						};
+						return await this._proccessArticle(article, (refPath) => uniqueArticles.add(refPath));
 					}),
 			)),
 		);
@@ -120,17 +70,102 @@ class ViewFilter {
 	}
 
 	private _filterProps(props: Property[]): Property[] {
-		return props.filter((prop) => this._catalogPropMap.has(prop.name) && this._select.includes(prop.name));
+		return props
+			.filter((prop) => this._catalogPropMap.has(prop.name) && this._select.includes(prop.name))
+			.map((prop) => {
+				if (!prop.value) return prop;
+				return { ...prop, value: Array.isArray(prop.value) ? [...prop.value] : prop.value };
+			});
 	}
 
-	private _order(articles: ProcessedArticle[]): ProcessedArticle[] {
-		const orderPropMap = new Map(this._orderby.map((prop) => [prop, true]));
+	private async _proccessArticle(article: Article, callback: (refPath: string) => void): Promise<ProcessedArticle> {
+		const resourcePath = this._curArticle.ref.path.getRelativePath(article.ref.path).value;
+		const extendedProperties =
+			(article.props?.properties?.map((prop) => {
+				const catalogProp = this._catalogPropMap.get(prop.name);
+				return catalogProp ? { ...catalogProp, ...prop } : prop;
+			}) as Property[]) ?? [];
 
-		return articles.sort((a, b) => {
-			const aHasOrderProps = a.otherProps.some((p) => orderPropMap.has(p.name));
-			const bHasOrderProps = b.otherProps.some((p) => orderPropMap.has(p.name));
+		callback(article.ref.path.value);
 
-			if (aHasOrderProps !== bHasOrderProps) return aHasOrderProps ? -1 : 1;
+		return {
+			title: article.props.title,
+			resourcePath,
+			itemPath: article.ref.path.value,
+			linkPath: await this._catalog.getPathname(article),
+			groupValues: this._groupby.map((groupProp) => {
+				const prop = extendedProperties.find((p) => p.name === groupProp);
+				return prop?.value ?? prop?.name ?? null;
+			}),
+			otherProps: sortMapByName(Array.from(this._catalogPropMap.keys()), this._filterProps(extendedProperties)),
+		};
+	}
+
+	private _orderArticles(articles: ProcessedArticle[]): ProcessedArticle[] {
+		let sortedArticles = articles;
+		for (const orderProp of this._orderby) {
+			const { name, value: orderValues } = orderProp;
+			sortedArticles = sortedArticles.sort((a, b) => {
+				const aProp = a.otherProps.find((prop) => prop.name === name);
+				const bProp = b.otherProps.find((prop) => prop.name === name);
+
+				if (aProp?.name !== name && bProp?.name !== name) return 0;
+				if (aProp?.name !== name) return 1;
+				if (bProp?.name !== name) return -1;
+
+				if (!aProp && !bProp) return 0;
+				if (!aProp) return 1;
+				if (!bProp) return -1;
+
+				if (!aProp.value?.length && !bProp.value?.length) return 0;
+				if (!aProp.value?.length) return 1;
+				if (!bProp.value?.length) return -1;
+
+				const aValue = Array.isArray(aProp.value)
+					? aProp.value.find((v) => orderValues.includes(v))
+					: aProp.value;
+				const bValue = Array.isArray(bProp.value)
+					? bProp.value.find((v) => orderValues.includes(v))
+					: bProp.value;
+
+				if (!aValue && !bValue) return 0;
+				if (!aValue) return 1;
+				if (!bValue) return -1;
+
+				const aIndex = orderValues.indexOf(aValue);
+				const bIndex = orderValues.indexOf(bValue);
+
+				if (aIndex !== bIndex) {
+					const comparison = aIndex - bIndex;
+					if (comparison !== 0) return comparison;
+				}
+
+				return 0;
+			});
+		}
+
+		return sortedArticles;
+	}
+
+	private _orderGroup(groups: ViewRenderGroup[], groupProp: string): ViewRenderGroup[] {
+		return groups.sort((a, b) => {
+			const prop = this._orderby.find((order) => order.name === groupProp);
+			if (!prop) return 0;
+			const aName = a.group?.[0];
+			const bName = b.group?.[0];
+
+			if (!aName && !bName) return 0;
+			if (!aName) return 1;
+			if (!bName) return -1;
+
+			const aIndex = prop.value.indexOf(aName);
+			const bIndex = prop.value.indexOf(bName);
+
+			if (aIndex === bIndex) return 0;
+			if (aIndex !== bIndex) {
+				const comparison = aIndex - bIndex;
+				if (comparison !== 0) return comparison;
+			}
 
 			return 0;
 		});
@@ -141,20 +176,26 @@ class ViewFilter {
 			return [
 				{
 					group: null,
-					articles: this._order(articles).map(({ title, resourcePath, linkPath, itemPath, otherProps }) => ({
-						title,
-						resourcePath,
-						itemPath,
-						linkPath,
-						otherProps,
-					})),
+					articles: this._orderArticles(articles).map(
+						({ title, resourcePath, linkPath, itemPath, otherProps }) => ({
+							title,
+							resourcePath,
+							itemPath,
+							linkPath,
+							otherProps,
+						}),
+					),
 				},
 			];
 		}
 
 		let groupedArticles = articles.reduce((acc, article) => {
 			const groupValue = article.groupValues[groupIndex];
-			const key = groupValue !== null && groupValue !== undefined ? String(groupValue) : "ungrouped";
+			const groupValueType = this._catalogPropMap.get(this._groupby[groupIndex])?.type;
+			const key =
+				groupValue !== null && groupValue !== undefined
+					? getDisplayValue(groupValueType, groupValue)
+					: "ungrouped";
 			(acc[key] ??= []).push(article);
 			return acc;
 		}, {} as Record<string, ProcessedArticle[]>);
@@ -180,11 +221,13 @@ class ViewFilter {
 			groupedArticles = sortedGroupedArticles;
 		}
 
-		return Object.entries(groupedArticles).map(([groupKey, groupArticles]) => ({
-			group: groupKey === "ungrouped" ? null : [groupKey],
+		const groups = Object.entries(groupedArticles).map(([groupKey, groupArticles]) => ({
+			group: groupKey === "ungrouped" ? [null] : [groupKey],
 			articles: [],
-			subgroups: this._group(this._order(groupArticles), groupIndex + 1),
+			subgroups: this._group(this._orderArticles(groupArticles), groupIndex + 1),
 		}));
+
+		return this._orderGroup(groups, this._groupby[groupIndex]);
 	}
 
 	private _flattenGroups(groups: ViewRenderGroup[]): ViewRenderGroup[] {
@@ -192,7 +235,7 @@ class ViewFilter {
 			if (group?.subgroups?.length === 0) {
 				return {
 					...group,
-					articles: this._order(group.articles as ProcessedArticle[]),
+					articles: this._orderArticles(group.articles as ProcessedArticle[]),
 				};
 			}
 
@@ -205,44 +248,27 @@ class ViewFilter {
 		});
 	}
 
-	private async _handleDynamicProperty(
-		article: Article | Category,
-		prop: PropertyValue,
-	): Promise<PreProcessedArticle[]> {
-		if (prop?.name === (SystemProperties.hierarchy as string)) {
-			if (article.type !== ItemType.category) return [];
-			const processedItems = await Promise.all(
-				(article as Category)?.items?.map(async (article: Article) => {
-					const resourcePath = this._curArticle.ref.path.getRelativePath(article.ref.path).value;
-					const extendedProperties =
-						(article.props?.properties?.map((prop) => {
-							const catalogProp = this._catalogPropMap.get(prop.name);
-							return catalogProp ? { ...catalogProp, ...prop } : prop;
-						}) as Property[]) ?? [];
-
-					return {
-						title: article.props.title,
-						resourcePath,
-						itemPath: article.ref.path.value,
-						content: article.parsedContent?.editTree
-							? astToParagraphs(article.parsedContent.editTree).slice(0, 5)
-							: undefined,
-						linkPath: await this._catalog.getPathname(article),
-						groupValues: this._groupby.map((groupProp) => {
-							const prop = extendedProperties.find((p) => p.name === groupProp);
-							return prop?.value ?? prop?.name ?? null;
+	private async _handleSystemProperty(uniqueArticles: Set<string>): Promise<ProcessedArticle[]> {
+		const hierarchyDef = this._defs.find((property) => SystemProperties[property.name]);
+		if (hierarchyDef) {
+			if (!hierarchyDef.value.includes("child-to-current"))
+				return await Promise.all(
+					((this._curArticle as Category)?.items || [])
+						?.filter((article) => !uniqueArticles.has(article.ref.path.value))
+						?.map(async (article) => {
+							return await this._proccessArticle(article as Article, (refPath) =>
+								uniqueArticles.add(refPath),
+							);
 						}),
-						otherProps: sortMapByName(
-							Array.from(this._catalogPropMap.keys()),
-							this._filterProps(extendedProperties),
-						),
-						extendedProperties,
-					};
-				}),
-			);
-
-			return processedItems;
+				);
+			else {
+				(this._curArticle as Category)?.items?.map((article) => {
+					uniqueArticles.add(article.ref.path.value);
+				});
+			}
 		}
+
+		return [];
 	}
 }
 

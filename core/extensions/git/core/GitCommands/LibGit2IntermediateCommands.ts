@@ -5,13 +5,16 @@ import GitBranchData from "@ext/git/core/GitBranch/model/GitBranchData";
 import type {
 	CloneProgress,
 	DirEntry,
+	DirStat,
 	FileStat,
 	TreeReadScope,
 } from "@ext/git/core/GitCommands/model/GitCommandsModel";
+import type { CreateMergeRequest, MergeRequest } from "@ext/git/core/GitMergeRequest/model/MergeRequest";
 
 export let onCloneProgress = undefined;
 
 type Oid = string;
+
 export type TagInfo = {
 	name: string;
 	oid: string;
@@ -78,6 +81,29 @@ export const fileHistory = async (args: Args & { filePath: string; count: number
 	);
 };
 
+export const listMergeRequests = async (args: Args): Promise<MergeRequest[]> => {
+	const mrs = await call<any[]>("list_merge_requests", args);
+	return mrs.map(intoMergeRequest);
+};
+
+export const createOrUpdateMergeRequest = async (args: CredsArgs & { mergeRequest: CreateMergeRequest }) => {
+	if (args.mergeRequest.createdAt) (args.mergeRequest.createdAt as any) = formatTime(args.mergeRequest.createdAt);
+
+	if (args.mergeRequest.assignees) {
+		args.mergeRequest.assignees = args.mergeRequest.assignees.map((assignee) => ({
+			signature: `${assignee.name} <${assignee.email}>`,
+			approvedAt: formatTime(assignee.approvedAt),
+		})) as any;
+	}
+
+	await call<void>("create_or_update_merge_request", args);
+};
+
+export const getDraftMergeRequest = async (args: Args) => {
+	const data = await call<MergeRequest | undefined>("get_draft_merge_request", args);
+	return data ? intoMergeRequest(data) : undefined;
+};
+
 export const status = (args: Args) => call<[{ path: string; status: string }]>("status", args);
 
 export const statusFile = (args: Args & { filePath: string }) => call<string>("status_file", args);
@@ -140,6 +166,9 @@ export const readDir = (args: Args & { path: string; scope: TreeReadScope }) => 
 
 export const fileStat = (args: Args & { path: string; scope: TreeReadScope }) => call<FileStat>("git_file_stat", args);
 
+export const readDirStats = (args: Args & { path: string; scope: TreeReadScope }) =>
+	call<DirStat[]>("git_read_dir_stats", args);
+
 export const fileExists = (args: Args & { path: string; scope: TreeReadScope }) =>
 	call<boolean>("git_file_exists", args);
 
@@ -161,4 +190,38 @@ const intoGitBranchData = (data: any): GitBranchData & { lastCommitOid: string }
 		remoteName: data.remoteName,
 		lastCommitOid: data.lastCommitOid,
 	};
+};
+
+const intoMergeRequest = (data: any): MergeRequest => {
+	return {
+		...data,
+		author: intoSignatureInfo(data.author),
+		createdAt: timeFromUtc(data.createdAt),
+		updatedAt: timeFromUtc(data.updatedAt),
+		assignees: data.assignees.map((a: any) => ({
+			approvedAt: timeFromUtc(a.approvedAt),
+			...intoSignatureInfo(a.signature),
+		})),
+	};
+};
+
+const intoSignatureInfo = (data: string) => {
+	if (!data) return;
+	return {
+		name: data.slice(0, data.indexOf("<")).trim(),
+		email: data.slice(data.indexOf("<") + 1, data.lastIndexOf(">")).trim(),
+	};
+};
+
+const tz = new Date().getTimezoneOffset() / 60;
+const timeFromUtc = (time: Date | string) => {
+	if (!time) return null;
+	const utc = time instanceof Date ? time : new Date(time.replace(" ", "T"));
+	utc.setHours(utc.getHours() - tz);
+	return utc;
+};
+
+export const formatTime = (time: Date) => {
+	if (!time) return null;
+	return time.toISOString().slice(0, 19).replace("T", " ");
 };

@@ -9,12 +9,12 @@ const source: Command<{ catalogName: string; articlePath: Path }, string> = Comm
 
 	async do({ catalogName, articlePath }) {
 		const workspace = this._app.wm.current();
-		const catalog = await workspace.getCatalog(catalogName);
+		const catalog = await workspace.getContextlessCatalog(catalogName);
 		if (!catalog) return;
-		if (!articlePath.startsWith(catalog.getBasePath())) return;
+		if (!articlePath.startsWith(catalog.basePath)) return;
 		const fp = workspace.getFileProvider();
 		const itemRef = fp.getItemRef(articlePath);
-		const path = catalog.getRelativeRepPath(itemRef);
+		const path = catalog.getRepositoryRelativePath(itemRef);
 		const { gitVersionControl } = await catalog.repo.gvc.getGitVersionControlContainsItem(path);
 
 		return await catalog.repo.storage.getFileLink(path, await gitVersionControl.getCurrentBranch());

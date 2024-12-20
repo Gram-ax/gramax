@@ -6,7 +6,9 @@ const unsupportedFormatter: NodeSerializerSpec = (state, node) => {
 		.map((line: string) => state.delim + line)
 		.join("\n");
 
-	state.write(`[unsupported:${node.attrs.url ?? ""}${node.attrs.type ? `:${node.attrs.type}` : ""}]\n\n`);
+	state.write(
+		`[unsupported:${node.attrs.source}:${node.attrs.url ?? ""}${node.attrs.type ? `:${node.attrs.type}` : ""}]\n\n`,
+	);
 	state.write("```JSON\n" + `${formattedCode}\n`);
 	state.write("```\n\n");
 	state.write(`[/unsupported]`);

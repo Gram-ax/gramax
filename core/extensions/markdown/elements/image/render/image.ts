@@ -14,16 +14,20 @@ export function image(context: ParserContext): Schema {
 			crop: { type: String },
 			scale: { type: String },
 			objects: { type: String },
+			width: { type: String },
+			height: { type: String },
 		},
 		type: SchemaType.block,
 		transform: async (node: Node, config: Config) => {
 			if (!linkCreator.isExternalLink(node.attributes.src))
 				context.getResourceManager().set(new Path(node.attributes.src));
 
-			const { crop, objects, scale } = parse(
+			const { crop, objects, scale, width, height } = parse(
 				node.attributes.crop ?? "0,0,100,100",
 				node.attributes.scale ?? null,
 				node.attributes.objects ?? "[]",
+				node.attributes.width,
+				node.attributes.height,
 			);
 			return new Tag(
 				"Image",
@@ -34,6 +38,8 @@ export function image(context: ParserContext): Schema {
 					objects: objects,
 					scale: scale,
 					crop: crop,
+					width: width,
+					height: height,
 				},
 				await node.transformChildren(config),
 			);

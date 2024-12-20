@@ -1,6 +1,6 @@
-export const bullet_list = {
+export const bulletList = {
 	group: "block list",
-	content: "list_item+",
+	content: "listItem+",
 	attrs: {
 		tight: { default: false },
 		containTaskList: { default: false },

@@ -16,16 +16,14 @@ const healthcheck: Command<{ ctx: Context; catalogName: string }, CatalogErrors>
 		const { wm, sitePresenterFactory } = this._app;
 		const workspace = wm.current();
 
-		const catalog = await workspace.getCatalog(catalogName);
+		const catalog = await workspace.getCatalog(catalogName, ctx);
 		const fp = workspace.getFileProvider();
 
 		if (!catalog) return;
 
-		const healthcheck = new Healthcheck(
-			fp,
-			ctx,
-			await sitePresenterFactory.fromContext(ctx).parseAllItems(catalog),
-		);
+		await sitePresenterFactory.fromContext(ctx).parseAllItems(catalog);
+
+		const healthcheck = new Healthcheck(fp, catalog);
 
 		const errors = await healthcheck.checkCatalog();
 

@@ -1,15 +1,15 @@
-import { ServicesConfig } from "@app/config/AppConfig";
+import { ServicesConfig, type MetricsConfig } from "@app/config/AppConfig";
 import { ContextFactory } from "@core/Context/ContextFactory";
 import Path from "@core/FileProvider/Path/Path";
-import Hash from "@core/Hash/Hash";
+import Hash from "@core/Hash/HashItemProvider";
 import type ResourceUpdaterFactory from "@core/Resource/ResourceUpdaterFactory";
 import CustomArticlePresenter from "@core/SitePresenter/CustomArticlePresenter";
 import SitePresenterFactory from "@core/SitePresenter/SitePresenterFactory";
 import { TableDB } from "@core/components/tableDB/table";
 import VideoUrlRepository from "@core/components/video/videoUrlRepository";
-import Cache from "@ext/Cache";
 import MailProvider from "@ext/MailProvider";
 import ThemeManager from "@ext/Theme/ThemeManager";
+import EnterpriseManager from "@ext/enterprise/EnterpriseManager";
 import GitRepositoryProvider from "@ext/git/core/Repository/RepositoryProvider";
 import HtmlParser from "@ext/html/HtmlParser";
 import Logger from "@ext/loggers/Logger";
@@ -23,7 +23,7 @@ import type WorkspaceManager from "@ext/workspace/WorkspaceManager";
 
 interface Application {
 	wm: WorkspaceManager;
-	cache: Cache;
+	em: EnterpriseManager;
 	hashes: Hash;
 	logger: Logger;
 	am: AuthManager;
@@ -53,12 +53,10 @@ interface Application {
 		disableSeo: boolean;
 
 		bugsnagApiKey: string;
-		yandexMetricCounter: string;
 
 		services: ServicesConfig;
-		enterprise: {
-			gesUrl: string;
-		};
+
+		metrics: MetricsConfig;
 
 		logo: {
 			imageUrl: string;

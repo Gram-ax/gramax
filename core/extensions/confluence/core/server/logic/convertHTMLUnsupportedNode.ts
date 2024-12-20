@@ -14,6 +14,7 @@ const convertHTMLUnsupportedNode = (unsupportedNode: HTMLElement, currentPageUrl
 				url: currentPageUrl,
 				type: tagName?.replace(":", "-"),
 				code: unsupportedNode.outerHTML,
+				source: "Confluence",
 			},
 		},
 	];

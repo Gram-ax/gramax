@@ -7,6 +7,7 @@ import parseContent from "@core/FileStructue/Article/parseContent";
 import HashResourceManager from "@core/Hash/HashItems/HashResourceManager";
 import GitTreeFileProvider from "@ext/versioning/GitTreeFileProvider";
 import { Article } from "../../../../core/logic/FileStructue/Article/Article";
+import type { ReadonlyCatalog } from "@core/FileStructue/Catalog/ReadonlyCatalog";
 
 const get: Command<
 	{
@@ -29,7 +30,7 @@ const get: Command<
 		const workspace = wm.current();
 
 		const mime = mimeType ?? MimeTypes?.[src.extension] ?? `application/${src.extension}`;
-		let catalog = await workspace.getCatalog(catalogName);
+		let catalog: ReadonlyCatalog = await workspace.getCatalog(catalogName, ctx);
 		if (!catalog) return;
 
 		if (readFromHead) {

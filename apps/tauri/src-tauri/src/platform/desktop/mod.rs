@@ -48,6 +48,9 @@ pub fn on_run_event<R: Runtime>(app: &AppHandle<R>, ev: RunEvent) {
         _ = MainWindowBuilder::default().build(app).or_show_with_message(&t!("etc.error.build-window"));
       }
     }
+    RunEvent::WindowEvent { event: WindowEvent::CloseRequested { .. }, .. } => {
+      _ = app.save_windows().or_show();
+    }
     RunEvent::ExitRequested { api, .. } => {
       _ = app.save_windows().or_show();
       api.prevent_exit();
@@ -58,8 +61,12 @@ pub fn on_run_event<R: Runtime>(app: &AppHandle<R>, ev: RunEvent) {
 
 #[cfg(not(target_os = "macos"))]
 pub fn on_run_event<R: Runtime>(app: &AppHandle<R>, ev: RunEvent) {
-  if let RunEvent::Exit = ev {
-    _ = app.save_windows().or_show();
+  match ev {
+    RunEvent::WindowEvent { event: WindowEvent::CloseRequested { .. }, .. } => {
+      _ = app.save_windows().or_show()
+    }
+    RunEvent::Exit => _ = app.save_windows().or_show(),
+    _ => (),
   }
 }
 

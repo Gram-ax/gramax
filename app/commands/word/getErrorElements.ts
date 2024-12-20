@@ -5,7 +5,7 @@ import { Article } from "@core/FileStructue/Article/Article";
 import parseContent from "@core/FileStructue/Article/parseContent";
 import { Category } from "@core/FileStructue/Category/Category";
 import { Item } from "@core/FileStructue/Item/Item";
-import UnsupportedElements from "@ext/confluence/core/model/UnsupportedElements";
+import UnsupportedElements from "@ext/import/model/UnsupportedElements";
 import { Tag } from "@ext/markdown/core/render/logic/Markdoc";
 import MarkdownElementsFilter from "@ext/wordExport/MarkdownElementsFilter";
 import { exportedKeys } from "@ext/wordExport/layouts";
@@ -25,7 +25,7 @@ const getErrorElements: Command<
 		const { wm, parser, parserContextFactory } = this._app;
 		const workspace = wm.current();
 		const itemFilters = new RuleProvider(ctx).getItemFilters();
-		const catalog = await workspace.getCatalog(catalogName);
+		const catalog = await workspace.getCatalog(catalogName, ctx);
 		const markdownElementsFilter = new MarkdownElementsFilter(exportedKeys);
 		const unsupportedElements: UnsupportedElements[] = [];
 		const isCatalog = itemPath.toString() === "";
@@ -61,7 +61,7 @@ const getErrorElements: Command<
 				return finishedItem ? [finishedItem] : [];
 			}
 			if (isCatalog) {
-				const rootCategory = resolveRootCategory(catalog, ctx.contentLanguage);
+				const rootCategory = resolveRootCategory(catalog, catalog.props, ctx.contentLanguage);
 				return rootCategory instanceof Category ? rootCategory.getFilteredItems(itemFilters, catalog) : [];
 			}
 			const finishedItem = catalog.findItemByItemPath<Article>(itemPath);

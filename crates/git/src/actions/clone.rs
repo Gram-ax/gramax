@@ -12,6 +12,7 @@ use crate::remote_callback::*;
 
 use crate::error::Result;
 use crate::prelude::Repo;
+use crate::time_now;
 
 const TAG: &str = "git:clone";
 const CHUNK_TIME_SPAN: Duration = Duration::from_secs(1);
@@ -127,14 +128,14 @@ impl<C: ActualCreds> Clone<C> for Repo<C> {
       true
     });
 
-    let mut last_transfer_callack = now() - CHUNK_TIME_SPAN;
+    let mut last_transfer_callack = time_now() - CHUNK_TIME_SPAN;
     let mut last_transfer_bytes = 0;
     cbs.transfer_progress(|progress| {
-      if now() - last_transfer_callack < CHUNK_TIME_SPAN {
+      if time_now() - last_transfer_callack < CHUNK_TIME_SPAN {
         return true;
       }
 
-      last_transfer_callack = now();
+      last_transfer_callack = time_now();
       let received_bytes = progress.received_bytes();
       let progress = CloneProgress::transfer_progress(progress, last_transfer_bytes);
       callback(progress);
@@ -174,18 +175,4 @@ impl<C: ActualCreds> Clone<C> for Repo<C> {
     repo.ensure_crlf_configured()?;
     Ok(repo)
   }
-}
-
-#[cfg(target_family = "wasm")]
-fn now() -> Duration {
-  extern "C" {
-    fn emscripten_get_now() -> f64;
-  }
-  Duration::from_millis(unsafe { emscripten_get_now() as u64 })
-}
-
-#[cfg(not(target_family = "wasm"))]
-fn now() -> Duration {
-  use std::time::SystemTime;
-  SystemTime::now().duration_since(SystemTime::UNIX_EPOCH).unwrap()
 }

@@ -21,6 +21,7 @@ export interface IconProps {
 	onClickCapture?: (event?: MouseEvent<HTMLElement>) => void;
 	fw?: boolean;
 	tooltipPlace?: Placement;
+	dataQa?: string;
 }
 
 const Icon = forwardRef((props: IconProps, ref: ForwardedRef<HTMLElement>) => {
@@ -36,6 +37,7 @@ const Icon = forwardRef((props: IconProps, ref: ForwardedRef<HTMLElement>) => {
 		fw,
 		viewBox,
 		tooltipPlace: TooltipPlace,
+		dataQa,
 		...otherProps
 	} = props;
 
@@ -56,6 +58,7 @@ const Icon = forwardRef((props: IconProps, ref: ForwardedRef<HTMLElement>) => {
 				style={style}
 				ref={ref}
 				className={classNames(className, { "action-icon": isAction, "li-fw": fw })}
+				data-qa={dataQa}
 				{...otherProps}
 			>
 				<IconComponent
@@ -74,6 +77,10 @@ export default styled(Icon)`
 	&.li-fw {
 		width: 1.25em;
 		text-align: center;
+	}
+
+	svg {
+		stroke: currentColor;
 	}
 
 	vertical-align: middle;

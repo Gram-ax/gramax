@@ -39,15 +39,25 @@ export default styled(Groups)`
 	.catalog-background {
 		width: 100%;
 		border-radius: var(--radius-large);
-		background: var(--color-block);
+		background: var(--color-home-card-bg);
+
+		border-width: 1px;
+		border-style: solid;
+		border-color: var(--color-home-card-border);
+
+		transition: border-color var(--transition-time);
+
+		:hover {
+			border-color: var(--color-home-card-border-hover);
+		}
 	}
 
 	.catalog {
-		transition: background-color 0.3s, box-shadow 0.3s !important;
+		transition: background-color var(--transition-time), box-shadow var(--transition-time) !important;
 	}
 
 	.catalog:hover {
-		background-color: var(--color-block-hover) !important;
+		background-color: var(--color-home-card-bg-hover) !important;
 	}
 
 	.catalog-title {
@@ -61,12 +71,14 @@ export default styled(Groups)`
 		margin-top: 1rem;
 		flex-direction: column;
 	}
+
 	.catalog-text-logo {
 		font-size: 16px;
 		line-height: 23px;
 		font-weight: normal;
 		letter-spacing: 0.01em;
 	}
+
 	.catalog-text {
 		font-size: 12px;
 		font-weight: 300;

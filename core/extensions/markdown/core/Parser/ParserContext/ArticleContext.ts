@@ -2,7 +2,6 @@ import LinkResourceManager from "@core/Link/LinkResourceManager";
 import Path from "../../../../../logic/FileProvider/Path/Path";
 import FileProvider from "../../../../../logic/FileProvider/model/FileProvider";
 import { Article } from "../../../../../logic/FileStructue/Article/Article";
-import { Catalog } from "../../../../../logic/FileStructue/Catalog/Catalog";
 import { Item } from "../../../../../logic/FileStructue/Item/Item";
 import ResourceManager from "../../../../../logic/Resource/ResourceManager";
 import { TableDB } from "../../../../../logic/components/tableDB/table";
@@ -10,7 +9,7 @@ import UiLanguage from "../../../../localization/core/model/Language";
 import UserInfo from "../../../../security/logic/User/UserInfo";
 import MarkdownFormatter from "../../edit/logic/Formatter/Formatter";
 import MarkdownParser from "../Parser";
-
+import type { ReadonlyCatalog } from "@core/FileStructue/Catalog/ReadonlyCatalog";
 import ParserContext, { BaseContext } from "./ParserContext";
 
 export default class ArticleContext extends BaseContext implements ParserContext {
@@ -19,7 +18,7 @@ export default class ArticleContext extends BaseContext implements ParserContext
 
 	constructor(
 		private _article: Article,
-		private _catalog: Catalog,
+		private _catalog: ReadonlyCatalog,
 		private _basePath: Path,
 		private _language: UiLanguage,
 		private _isLogged: boolean,
@@ -67,7 +66,7 @@ export default class ArticleContext extends BaseContext implements ParserContext
 	}
 
 	getRootLogicPath() {
-		return new Path(this._catalog?.getName());
+		return new Path(this._catalog?.name);
 	}
 
 	getRootPath() {

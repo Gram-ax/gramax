@@ -1,6 +1,6 @@
 import { NodeSerializerSpec } from "@ext/markdown/core/edit/logic/Prosemirror/to_markdown";
 
-const task_item: NodeSerializerSpec = async (state, node) => {
+const taskItem: NodeSerializerSpec = async (state, node) => {
 	const { attrs } = node;
 	const checked = attrs?.checked;
 
@@ -8,4 +8,4 @@ const task_item: NodeSerializerSpec = async (state, node) => {
 	await state.renderInline(node);
 };
 
-export default task_item;
+export default taskItem;

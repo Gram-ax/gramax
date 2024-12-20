@@ -1,11 +1,13 @@
+import type ContextualCatalog from "@core/FileStructue/Catalog/ContextualCatalog";
 import type { Category } from "@core/FileStructue/Category/Category";
 import CustomArticlePresenter from "@core/SitePresenter/CustomArticlePresenter";
 import LastVisited from "@core/SitePresenter/LastVisited";
+import type { FileStatus } from "@ext/Watchers/model/FileStatus";
 import type { RefInfo } from "@ext/git/core/GitCommands/model/GitCommandsModel";
 import GitRepositoryProvider from "@ext/git/core/Repository/RepositoryProvider";
 import { catalogHasItems, isLanguageCategory, resolveRootCategory } from "@ext/localization/core/catalogExt";
 import { convertContentToUiLanguage } from "@ext/localization/locale/translate";
-import getArticleAsString from "@ext/markdown/elements/article/edit/logic/getArticleAsString";
+import getArticleWithTitle from "@ext/markdown/elements/article/edit/logic/getArticleWithTitle";
 import TabsTags from "@ext/markdown/elements/tabs/model/TabsTags";
 import DragTreeTransformer from "@ext/navigation/catalog/drag/logic/DragTreeTransformer";
 import NavigationEventHandlers from "@ext/navigation/events/NavigationEventHandlers";
@@ -28,6 +30,7 @@ import Path from "../FileProvider/Path/Path";
 import { Article } from "../FileStructue/Article/Article";
 import parseContent from "../FileStructue/Article/parseContent";
 import { ArticleFilter, Catalog, ItemFilter } from "../FileStructue/Catalog/Catalog";
+import type { ReadonlyBaseCatalog, ReadonlyCatalog } from "../FileStructue/Catalog/ReadonlyCatalog";
 
 export type ClientCatalogProps = {
 	name: string;
@@ -59,6 +62,7 @@ export type ClientArticleProps = {
 	tocItems: TocItem[];
 	errorCode: number;
 	welcome?: boolean;
+	status?: FileStatus;
 	properties?: PropertyValue[];
 };
 
@@ -112,14 +116,14 @@ export default class SitePresenter {
 		private _customArticlePresenter: CustomArticlePresenter,
 		private _context: Context,
 	) {
-		new NavigationEventHandlers(_context, _customArticlePresenter).mount(this._nav);
-		this._filters = new RuleProvider(_context, _customArticlePresenter).getItemFilters();
+		new NavigationEventHandlers(this._nav, this._context, this._customArticlePresenter).mount();
+		this._filters = new RuleProvider(this._context, this._nav, this._customArticlePresenter).getItemFilters();
 	}
 
 	async getHomePageData(workspace: WorkspaceConfig): Promise<HomePageData> {
 		const groups = workspace?.groups && Object.keys(workspace.groups);
 		const catalogLinks: CatalogsLinks = {};
-		const catalogs = this._workspace.getCatalogEntries();
+		const catalogs = this._workspace.getAllCatalogs();
 
 		groups?.forEach((group) => {
 			catalogLinks[group] = {
@@ -154,20 +158,19 @@ export default class SitePresenter {
 
 	async getArticlePageData(
 		article: Article,
-		catalog: Catalog,
+		catalog: ReadonlyCatalog,
 		{ editableContent, markdown }: GetArticlePageDataOptions = {},
 	): Promise<ArticlePageData> {
 		await parseContent(article, catalog, this._context, this._parser, this._parserContextFactory);
 
-		const itemLinks = catalog ? await this._nav.getCatalogNav(catalog, article.logicPath) : [];
+		const itemLinks = catalog ? await this._nav.getCatalogNav(catalog, article.ref.path.value) : [];
 
 		return {
 			markdown: markdown ? article.content : null,
-			articleContentRender: editableContent ? null : JSON.stringify(article.parsedContent.renderTree),
+			articleContentRender: JSON.stringify(article.parsedContent.renderTree),
 			articleContentEdit: editableContent
-				? getArticleAsString(article.props.title, article.parsedContent.editTree)
+				? JSON.stringify(getArticleWithTitle(article.props.title, article.parsedContent.editTree))
 				: null,
-
 			articleProps: this.serializeArticleProps(article, await catalog?.getPathname(article)),
 			catalogProps: await this.serializeCatalogProps(catalog),
 			rootRef: catalog ? await this._nav.getRootItemLink(catalog) : null,
@@ -191,7 +194,7 @@ export default class SitePresenter {
 		return await this.getArticlePageData(data.article, data.catalog, options);
 	}
 
-	async getCatalogNav(catalog: Catalog, currentItemLogicPath: string): Promise<ItemLink[]> {
+	async getCatalogNav(catalog: ReadonlyCatalog, currentItemLogicPath: string): Promise<ItemLink[]> {
 		return (await this._nav.getCatalogNav(catalog, currentItemLogicPath)) ?? [];
 	}
 
@@ -233,7 +236,7 @@ export default class SitePresenter {
 		};
 	}
 
-	async parseAllItems(catalog: Catalog, initChildLinks = true): Promise<Catalog> {
+	async parseAllItems(catalog: ReadonlyCatalog, initChildLinks = true): Promise<ReadonlyCatalog> {
 		for (const article of catalog.getContentItems()) {
 			try {
 				await parseContent(
@@ -260,7 +263,7 @@ export default class SitePresenter {
 				path: article.ref.path.value,
 				storageId: article.ref.storageId,
 			},
-			title: article.props.title ?? "",
+			title: article.getTitle(),
 			description: article.props["description"] ?? "",
 			tocItems: article?.parsedContent?.tocItems ?? [],
 			properties: article.props.properties ?? [],
@@ -269,7 +272,7 @@ export default class SitePresenter {
 		};
 	}
 
-	async serializeCatalogProps(catalog: Catalog): Promise<ClientCatalogProps> {
+	async serializeCatalogProps(catalog: ReadonlyBaseCatalog): Promise<ClientCatalogProps> {
 		if (!catalog) {
 			return {
 				relatedLinks: null,
@@ -296,12 +299,12 @@ export default class SitePresenter {
 			relatedLinks: await this._nav.getRelatedLinks(catalog),
 			contactEmail: catalog.props.contactEmail ?? null,
 			tabsTags: catalog.props.tabsTags ?? null,
-			name: catalog.getName() ?? null,
+			name: catalog.name ?? null,
 			title: catalog.props.title ?? "",
 			readOnly: catalog.props.readOnly ?? false,
 			language: catalog.props.language,
 			properties: getAllCatalogProperties(catalog),
-			repositoryName: catalog.getName(),
+			repositoryName: catalog.name,
 			sourceName: (await storage?.getSourceName()) ?? null,
 			userInfo: this._grp.getSourceUserInfo(this._context.cookie, await storage?.getSourceName()),
 			docroot: catalog.getRelativeRootCategoryPath()?.value,
@@ -315,11 +318,15 @@ export default class SitePresenter {
 	async getArticleByPathOfCatalog(
 		path: string[],
 		filters = this._filters,
-	): Promise<{ article: Article; catalog: Catalog }> {
-		const catalog = await this._workspace.getCatalog(path[0]);
+	): Promise<{ article: Article; catalog: ContextualCatalog }> {
+		const catalog = await this._workspace.getCatalog(path[0], this._context);
 		if (!catalog) return { article: null, catalog: null };
 		const itemLogicPath = Path.join(...path);
-		const root = resolveRootCategory(catalog, this._context.contentLanguage || catalog.props.language);
+		const root = resolveRootCategory(
+			catalog,
+			catalog.props,
+			this._context.contentLanguage || catalog.props.language,
+		);
 		let article = catalog.findArticle(
 			itemLogicPath,
 			!root.parent ? [(i) => !isLanguageCategory(catalog, i), ...filters] : filters,
@@ -341,7 +348,7 @@ export default class SitePresenter {
 		return this._context.user?.isLogged ?? false;
 	}
 
-	private _getLang(catalog: Catalog): UiLanguage {
+	private _getLang(catalog: ReadonlyCatalog): UiLanguage {
 		return convertContentToUiLanguage(this._context.contentLanguage || catalog.props.language);
 	}
 }

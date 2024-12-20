@@ -1,8 +1,8 @@
+import getAttrs from "@ext/markdown/elements/diagrams/logic/getAttrs";
+
 const getEditToken = (name: string) => ({
 	node: name,
-	getAttrs: (tok) => {
-		return { src: tok?.attrs?.path ?? "", title: tok?.attrs?.title ?? "" };
-	},
+	getAttrs: (tok) => getAttrs(tok.attrs),
 });
 
 export default getEditToken;

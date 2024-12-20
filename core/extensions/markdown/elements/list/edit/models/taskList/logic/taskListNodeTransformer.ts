@@ -1,9 +1,9 @@
 import NodeTransformerFunc from "@ext/markdown/core/edit/logic/Prosemirror/NodeTransformerFunc";
 
 const taskListNodeTransformer: NodeTransformerFunc = (node) => {
-	if (node && node.type === "bullet_list") {
+	if (node && node.type === "bulletList") {
 		if (node.attrs.containTaskList) {
-			node.type = "task_list";
+			node.type = "taskList";
 			node.attrs = {};
 
 			return { isSet: true, value: node };

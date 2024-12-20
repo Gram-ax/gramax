@@ -1,21 +1,33 @@
 import { cssMedia } from "@core-ui/utils/cssUtils";
 import styled from "@emotion/styled";
-import { ItemLink } from "@ext/navigation/NavigationLinks";
 import { useMediaQuery } from "@mui/material";
-import RightNavigation from "./RightNavigation";
+import { ReactNode } from "react";
 
-const RightNavigationLayout = styled(({ itemLinks, className }: { itemLinks: ItemLink[]; className?: string }) => {
+interface RightNavigationLayoutProps {
+	rightNavigationContent: ReactNode;
+	onRightNavMouseEnter?: () => void;
+	onRightNavMouseLeave?: () => void;
+	className?: string;
+}
+
+const RightNavigationLayout = (props: RightNavigationLayoutProps) => {
+	const { rightNavigationContent, onRightNavMouseEnter, onRightNavMouseLeave, className } = props;
 	return (
-		<div className={className}>
-			<div className="right-nav">
-				<RightNavigation itemLinks={itemLinks} />
-			</div>
+		<div
+			className={className}
+			onMouseEnter={onRightNavMouseEnter}
+			onMouseLeave={onRightNavMouseLeave}
+			onTouchEnd={onRightNavMouseEnter}
+		>
+			<div className="right-nav">{rightNavigationContent}</div>
 		</div>
 	);
-})`
+};
+
+export default styled(RightNavigationLayout)`
 	height: 100%;
 	width: var(--narrow-nav-width);
-	background: var(--color-contextmenu-bg);
+	background: var(--color-right-nav-bg);
 	color: var(--color-primary-general);
 
 	.right-nav {
@@ -31,5 +43,3 @@ const RightNavigationLayout = styled(({ itemLinks, className }: { itemLinks: Ite
 		display: none !important;
 	}
 `;
-
-export default RightNavigationLayout;

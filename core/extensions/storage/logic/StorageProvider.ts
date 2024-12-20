@@ -13,6 +13,10 @@ import GitStorageData from "../../git/core/model/GitStorageData";
 import StorageData from "../models/StorageData";
 import SourceType from "./SourceDataProvider/model/SourceType";
 import Storage from "./Storage";
+import NotionStorage from "@ext/notion/logic/NotionStorage";
+import NotionStorageData from "@ext/notion/model/NotionStorageData";
+import YandexDiskStorage from "@ext/yandexDisk/api/logic/YandexDiskStorage";
+import YandexStorageData from "@ext/yandexDisk/model/YandexDiskStorageData";
 
 interface CloneData {
 	fs: FileStructure;
@@ -86,9 +90,27 @@ export default class StorageProvider {
 					catalogPath: path,
 				});
 			}
+
+			if (data.source.sourceType === SourceType.yandexDisk) {
+				await YandexDiskStorage.clone({
+					fs,
+					data: data as YandexStorageData,
+					catalogPath: path,
+				});
+			}
+
+			if (data.source.sourceType === SourceType.notion) {
+				await NotionStorage.clone({
+					fs,
+					data: data as NotionStorageData,
+					catalogPath: path,
+				});
+			}
+
 			this._finishClone(path);
 			await onCloneFinish?.(path);
 		} catch (e) {
+			if (await fs.fp.exists(path)) await fs.fp.delete(path);
 			if (e instanceof DefaultError) {
 				this._errorClone(path, e);
 			} else {

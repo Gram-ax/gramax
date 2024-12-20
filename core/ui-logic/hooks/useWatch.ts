@@ -1,12 +1,15 @@
 import { useRef } from "react";
 
-function refreshPrevStates<T extends () => void>(ref: { current: unknown[] }, newState: unknown[], callback: T) {
+type Callback = () => Promise<void> | void;
+
+function refreshPrevStates<T extends Callback>(ref: { current: unknown[] }, newState: unknown[], callback: T) {
 	ref.current = [...newState];
-	callback();
+	void callback();
 }
 
-function useWatch<T extends () => void>(callback: T, state: unknown[]): void {
-	const prevStates = useRef<unknown[]>(Array(state.length));
+function useWatch<T extends Callback>(callback: T, state: unknown[]): void {
+	const prevStates = useRef<unknown[] | undefined>(undefined);
+	if (!prevStates.current) refreshPrevStates<T>(prevStates, state, callback);
 
 	for (let i = 0; i < state.length; i++) {
 		if (Object.is(prevStates.current[i], state[i])) continue;

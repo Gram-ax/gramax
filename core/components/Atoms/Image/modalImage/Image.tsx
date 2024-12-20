@@ -7,11 +7,16 @@ import {
 	MouseEvent as ReactMouseEvent,
 	useCallback,
 } from "react";
-import UnifiedComponent from "@ext/markdown/elements/image/render/components/ImageEditor/Unified";
 import { ImageObject } from "@ext/markdown/elements/image/edit/model/imageEditorTypes";
 import styled from "@emotion/styled";
 import { keyframes } from "@emotion/react";
-import { calculateTransform, getCanMoves, getClampedValues } from "@components/Atoms/Image/modalImage/modalFunctions";
+import {
+	calculateTransform,
+	getCanMoves,
+	getClampedValues,
+	ZOOM_COUNT,
+} from "@components/Atoms/Image/modalImage/modalFunctions";
+import ObjectRenderer from "@ext/markdown/elements/image/render/components/ObjectRenderer";
 
 interface ImageProps {
 	id: string;
@@ -28,34 +33,38 @@ interface ImageProps {
 
 const Image = forwardRef((props: ImageProps, ref?: MutableRefObject<HTMLImageElement>) => {
 	const { id, zoomImage, isClosing, className, src, svg, objects = [], modalStyle, startPos } = props;
-	const parentRef = useRef<HTMLDivElement>();
 	const imgRef = useRef<HTMLImageElement>();
 
 	const onWheel = (event: WheelEvent) => {
 		const isCtrl = event.ctrlKey || event.metaKey;
+		const target = imgRef.current.parentElement;
 		event.preventDefault();
 
+		target.style.transition = "none";
 		if (!isCtrl) return moveImage(event);
 		zoomImage(event.deltaY, event.clientX, event.clientY);
+		target.style.removeProperty("transition");
 	};
 
 	const moveImage = useCallback((event: WheelEvent) => {
 		const target = imgRef.current.parentElement;
 		const imgRect = target.getBoundingClientRect();
+		target.style.transition = "none";
 		const { minWidth, maxWidth, minHeight, maxHeight } = getClampedValues({
 			width: imgRect.width,
 			height: imgRect.height,
 		});
 
 		const { left, right, top, bottom } = getCanMoves(target.getBoundingClientRect());
-		const newLeft = parseFloat(target.style.left) + -event.deltaX;
-		const newTop = parseFloat(target.style.top) + -event.deltaY;
+		const newLeft = (parseFloat(target.style.left) || 0) + -event.deltaX;
+		const newTop = (parseFloat(target.style.top) || 0) + -event.deltaY;
 
 		const clampedLeft = Math.min(Math.max(newLeft, minWidth), maxWidth);
 		const clampedTop = Math.min(Math.max(newTop, minHeight), maxHeight);
 
 		if (left && right) target.style.left = clampedLeft + "px";
 		if (top && bottom) target.style.top = clampedTop + "px";
+		target.style.removeProperty("transition");
 	}, []);
 
 	const onKeyDown = (event: KeyboardEvent) => {
@@ -65,7 +74,7 @@ const Image = forwardRef((props: ImageProps, ref?: MutableRefObject<HTMLImageEle
 		const isZoomOut = event.key === "-";
 
 		if (!isZoomIn && !isZoomOut) return;
-		zoomImage((isZoomIn && -20) || 20);
+		zoomImage((isZoomIn && -ZOOM_COUNT) || ZOOM_COUNT);
 		event.preventDefault();
 	};
 
@@ -125,18 +134,32 @@ const Image = forwardRef((props: ImageProps, ref?: MutableRefObject<HTMLImageEle
 	useEffect(() => {
 		const maxScale = () => {
 			const container = ref.current;
-			const scaleWidth = ((window.innerWidth / 100) * 80) / container.offsetWidth;
-			const scaleHeight = ((window.innerHeight / 100) * 80) / container.offsetHeight;
-			const newScale = scaleWidth < scaleHeight ? scaleWidth : scaleHeight;
+			const view = container.firstElementChild as HTMLElement;
+			const viewRect = view.getBoundingClientRect();
+			const windowWidth = window.innerWidth;
+			const windowHeight = window.innerHeight;
 
-			container.style.scale = `${newScale}`;
-			container.setAttribute("data-scale", `${newScale}`);
+			if (view.nodeName !== "DIV" && viewRect.width < windowWidth * 0.3 && viewRect.height < windowHeight * 0.3) {
+				container.style.scale = "1";
+				container.setAttribute("data-scale", "1");
+				return;
+			}
+
+			const scaleWidth = ((window.innerWidth / 100) * 80) / view.offsetWidth;
+			const scaleHeight = ((window.innerHeight / 100) * 80) / view.offsetHeight;
+			const newScale = Math.min(scaleWidth, scaleHeight);
+
+			const minScale = 0.5;
+			const finalScale = Math.max(newScale, minScale);
+
+			container.style.scale = `${finalScale}`;
+			container.setAttribute("data-scale", `${finalScale}`);
 		};
 
 		const element = document.createElement(svg ? "div" : "img");
 		if (src) {
 			(element as HTMLImageElement).src = src;
-			element.onload = () => maxScale;
+			element.onload = () => maxScale();
 		} else {
 			(element as HTMLDivElement).innerHTML = svg;
 			maxScale();
@@ -145,7 +168,7 @@ const Image = forwardRef((props: ImageProps, ref?: MutableRefObject<HTMLImageEle
 
 	const moveInImage = () => keyframes`
 		0% {
-		transform: ${calculateTransform(startPos, window.innerWidth, window.innerHeight)};
+		transform: ${calculateTransform(startPos)};
 		}
 		100% {
 		transform: translate3d(1px, 1px, 0);
@@ -161,7 +184,7 @@ const Image = forwardRef((props: ImageProps, ref?: MutableRefObject<HTMLImageEle
 		100% {
 		left: auto;
 		top: auto;
-		transform: ${calculateTransform(startPos, window.innerWidth, window.innerHeight)};
+		transform: ${calculateTransform(startPos)};
 		}
 	`;
 
@@ -171,7 +194,7 @@ const Image = forwardRef((props: ImageProps, ref?: MutableRefObject<HTMLImageEle
 
 	return (
 		<div key={src} className={className}>
-			<AnimatedDiv data-close="true" className="image__container">
+			<AnimatedDiv data-close="true">
 				<div
 					ref={ref}
 					onMouseDownCapture={onMouseDown}
@@ -179,7 +202,7 @@ const Image = forwardRef((props: ImageProps, ref?: MutableRefObject<HTMLImageEle
 						...modalStyle,
 						scale: 1,
 					}}
-					className="object__container"
+					className="image-container"
 				>
 					{svg ? (
 						<div ref={imgRef} id={id} draggable={false} dangerouslySetInnerHTML={{ __html: svg }} />
@@ -187,21 +210,9 @@ const Image = forwardRef((props: ImageProps, ref?: MutableRefObject<HTMLImageEle
 						<img ref={imgRef} id={id} draggable="false" src={src} alt="" />
 					)}
 
-					{objects.length > 0 && (
-						<div ref={parentRef}>
-							{objects.map((data, index) => (
-								<UnifiedComponent
-									parentRef={parentRef}
-									key={index}
-									index={index}
-									{...data}
-									editable={false}
-									type={data.type}
-									drawIndexes={objects.length > 1}
-								/>
-							))}
-						</div>
-					)}
+					<div className="object-container">
+						<ObjectRenderer imageRef={imgRef} objects={objects} editable={false} parentRef={ref} />
+					</div>
 				</div>
 			</AnimatedDiv>
 		</div>
@@ -212,16 +223,17 @@ export default styled(Image)`
 	position: absolute;
 	transform: translate3d(1, 1, 0) scale(1);
 
-	.object__container {
+	.image-container {
 		display: flex;
 		flex-direction: column;
 		position: relative;
 		max-width: 90vw;
 		transition: left 0.2s, top 0.2s, scale 0.2s;
-		font-size: 0;
+		margin: unset;
 	}
 
-	.object__container img {
+	.image-container img,
+	.image-container div:first-of-type {
 		pointer-events: none;
 		box-shadow: unset !important;
 	}

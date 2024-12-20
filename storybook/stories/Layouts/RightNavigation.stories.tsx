@@ -1,4 +1,4 @@
-import RightNavigationLayout from "@components/Layouts/CatalogLayout/RightNavigation/RightNavigationLayout";
+import RightNavigationComponent from "@components/Layouts/CatalogLayout/RightNavigation/RightNavigationComponent";
 import pageProps from "../../data/pageProps";
 
 const RightNavigationData = {
@@ -14,7 +14,7 @@ const RightNavigationData = {
 
 export const RightNavigation = () => {
 	const data = pageProps.data as any;
-	return <RightNavigationLayout itemLinks={data.itemLinks} />;
+	return <RightNavigationComponent itemLinks={data.itemLinks} />;
 };
 
 export default RightNavigationData;

@@ -51,8 +51,8 @@ describe("Каталог", () => {
 	});
 
 	test("перемещает внутрь папки", async () => {
-		const catalog = await workspace.getCatalog("x");
-		await catalog.updateProps(makeResourceUpdater, { docroot: "r", title: "x", url: "x" });
+		const catalog = await workspace.getContextlessCatalog("x");
+		await catalog.updateProps({ docroot: "r", title: "x", url: "x" }, makeResourceUpdater);
 		await expect(fp.exists(p("x/r/.doc-root.yaml"))).resolves.toBe(true);
 		await expect(fp.exists(p("x/r/b/_index.md"))).resolves.toBe(true);
 		await expect(fp.exists(p("x/r/b/c.md"))).resolves.toBe(true);
@@ -61,8 +61,8 @@ describe("Каталог", () => {
 	});
 
 	test("перемещает из папки в другую папку", async () => {
-		const catalog = await workspace.getCatalog("y");
-		await catalog.updateProps(makeResourceUpdater, { docroot: "z", title: "y", url: "y" });
+		const catalog = await workspace.getContextlessCatalog("y");
+		await catalog.updateProps({ docroot: "z", title: "y", url: "y" }, makeResourceUpdater);
 
 		await expect(fp.exists(p("y/z"))).resolves.toBe(true);
 
@@ -75,8 +75,8 @@ describe("Каталог", () => {
 	});
 
 	test("перемещает с ресурсом", async () => {
-		const catalog = await workspace.getCatalog("res");
-		await catalog.updateProps(makeResourceUpdater, { docroot: "f", title: "res", url: "res" });
+		const catalog = await workspace.getContextlessCatalog("res");
+		await catalog.updateProps({ docroot: "f", title: "res", url: "res" }, makeResourceUpdater);
 
 		await expect(fp.exists(p("res/f/a.md"))).resolves.toBe(true);
 		await expect(fp.exists(p("res/f/b.md"))).resolves.toBe(true);

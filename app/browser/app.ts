@@ -4,7 +4,8 @@ import DiskFileProvider from "@core/FileProvider/DiskFileProvider/DiskFileProvid
 import MountFileProvider from "@core/FileProvider/MountFileProvider/MountFileProvider";
 import Path from "@core/FileProvider/Path/Path";
 import FileStructureEventHandlers from "@core/FileStructue/events/FileStuctureEventHandlers";
-import Hash from "@core/Hash/Hash";
+import HashItemProvider from "@core/Hash/HashItemProvider";
+import { XxHash } from "@core/Hash/Hasher";
 import ResourceUpdaterFactory from "@core/Resource/ResourceUpdaterFactory";
 import CustomArticlePresenter from "@core/SitePresenter/CustomArticlePresenter";
 import SitePresenterFactory from "@core/SitePresenter/SitePresenterFactory";
@@ -15,7 +16,9 @@ import Cache from "@ext/Cache";
 import { Encoder } from "@ext/Encoder/Encoder";
 import MailProvider from "@ext/MailProvider";
 import ThemeManager from "@ext/Theme/ThemeManager";
+import EnterpriseManager from "@ext/enterprise/EnterpriseManager";
 import RepositoryProvider from "@ext/git/core/Repository/RepositoryProvider";
+import RepositoryProviderEventHandlers from "@ext/git/core/Repository/events/RepositoryProviderEventHandlers";
 import HtmlParser from "@ext/html/HtmlParser";
 import BugsnagLogger from "@ext/loggers/BugsnagLogger";
 import ConsoleLogger from "@ext/loggers/ConsoleLogger";
@@ -30,6 +33,7 @@ import { IndexDataProvider } from "@ext/serach/IndexDataProvider";
 import Searcher from "@ext/serach/Searcher";
 import SourceDataProvider from "@ext/storage/logic/SourceDataProvider/logic/SourceDataProvider";
 import WorkspaceManager from "@ext/workspace/WorkspaceManager";
+import setWorkerProxy from "../../apps/browser/src/logic/setWorkerProxy";
 import { AppConfig, getConfig, type AppGlobalConfig } from "../config/AppConfig";
 import Application from "../types/Application";
 
@@ -39,6 +43,7 @@ const _init = async (config: AppConfig): Promise<Application> => {
 	const vur: VideoUrlRepository = null;
 
 	await resolveModule("initWasm")?.(config.services.gitProxy.url);
+	await XxHash.init();
 
 	const fileConfig = await YamlFileConfig.readFromFile<AppGlobalConfig>(
 		new DiskFileProvider(config.paths.data),
@@ -46,19 +51,28 @@ const _init = async (config: AppConfig): Promise<Application> => {
 	);
 
 	const rp = new RepositoryProvider();
+
+	const em = new EnterpriseManager(config.enterprise, fileConfig);
+
 	const wm = new WorkspaceManager(
 		(path) => MountFileProvider.fromDefault(new Path(path)),
-		(fs) => new FileStructureEventHandlers(fs).mount(fs),
+		(fs) => {
+			new FileStructureEventHandlers(fs).mount();
+			new RepositoryProviderEventHandlers(fs, rp).mount();
+		},
 		rp,
 		config,
 		fileConfig,
 	);
+
 	const sdp = new SourceDataProvider(wm);
 	rp.addSourceDataProvider(sdp);
 
 	await wm.readWorkspaces();
+	const services = wm.maybeCurrent()?.config()?.services ?? config.services;
+	setWorkerProxy(services.gitProxy.url);
 
-	const hashes = new Hash();
+	const hashes = new HashItemProvider();
 	const tm = new ThemeManager();
 	const encoder = new Encoder();
 	const ticketManager = new TicketManager(wm, encoder, config.tokens.share);
@@ -84,9 +98,9 @@ const _init = async (config: AppConfig): Promise<Application> => {
 		tm,
 		mp,
 		wm,
-		vur,
+		em,
 		rp,
-		cache,
+		vur,
 		logger,
 		parser,
 		hashes,
@@ -101,6 +115,9 @@ const _init = async (config: AppConfig): Promise<Application> => {
 		resourceUpdaterFactory,
 		customArticlePresenter,
 		conf: {
+			services,
+			logo: config.logo,
+
 			basePath: config.paths.base,
 			disableSeo: config.disableSeo,
 
@@ -108,15 +125,10 @@ const _init = async (config: AppConfig): Promise<Application> => {
 			isReadOnly: config.isReadOnly,
 			isProduction: config.isProduction,
 
+			metrics: config.metrics,
 			version: config.version,
 			buildVersion: config.buildVersion,
 			bugsnagApiKey: config.bugsnagApiKey,
-			yandexMetricCounter: config.yandexMetricCounter,
-			
-			services: config.services,
-			enterprise: config.enterprise,
-			
-			logo: config.logo,
 		},
 	};
 };

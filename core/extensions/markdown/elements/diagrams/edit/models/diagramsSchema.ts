@@ -6,6 +6,8 @@ const diagrams = {
 		title: { default: null },
 		content: { default: null },
 		diagramName: { default: null },
+		width: { default: null },
+		height: { default: null },
 	},
 };
 

@@ -1,7 +1,7 @@
 import ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
 import { ClientArticleProps } from "@core/SitePresenter/SitePresenter";
 import { copyArticleResource } from "@ext/markdown/elements/copyArticles/copyPasteArticleResource";
-import OnLoadResourceService from "@ext/markdown/elements/copyArticles/onLoadResourceService";
+import { OnLoadResource } from "@ext/markdown/elements/copyArticles/onLoadResourceService";
 import initArticleResource from "@ext/markdown/elementsUtils/AtricleResource/initArticleResource";
 import { Editor, Extension } from "@tiptap/core";
 import { Node } from "@tiptap/pm/model";
@@ -9,20 +9,26 @@ import { Plugin, Transaction } from "@tiptap/pm/state";
 import { ReplaceAroundStep, ReplaceStep } from "@tiptap/pm/transform";
 import { EditorView } from "prosemirror-view";
 
-const processNode = (childNode: Node, articleProps: ClientArticleProps, apiUrlCreator: ApiUrlCreator) => {
+const processNode = (
+	childNode: Node,
+	articleProps: ClientArticleProps,
+	apiUrlCreator: ApiUrlCreator,
+	onLoadResource: OnLoadResource,
+) => {
 	if (!childNode.isText && Object.keys(childNode.attrs).length !== 0 && childNode.attrs.src) {
 		const splitted = childNode.attrs.src.slice(2).split(".");
 		void initArticleResource(
 			articleProps,
 			apiUrlCreator,
-			OnLoadResourceService.getBuffer(childNode.attrs.src),
+			onLoadResource,
+			onLoadResource.getBuffer(childNode.attrs.src),
 			splitted[1],
 			splitted[0],
 		);
 	}
 
 	for (let index = 0; index < childNode.content.childCount; index++) {
-		processNode(childNode.content.child(index), articleProps, apiUrlCreator);
+		processNode(childNode.content.child(index), articleProps, apiUrlCreator, onLoadResource);
 	}
 };
 
@@ -67,11 +73,11 @@ const CopyArticles = Extension.create({
 					handleDOMEvents: {
 						copy: (view: EditorView, event: ClipboardEvent) => {
 							event.preventDefault();
-							copyArticleResource(view, event);
+							copyArticleResource(view, event, this.options.onLoadResource);
 						},
 						cut: (view: EditorView, event: ClipboardEvent) => {
 							event.preventDefault();
-							copyArticleResource(view, event, view.editable);
+							copyArticleResource(view, event, this.options.onLoadResource, view.editable);
 						},
 					},
 					transformPastedHTML(html) {
@@ -85,7 +91,12 @@ const CopyArticles = Extension.create({
 						tr.steps.forEach((step) => {
 							if (step instanceof ReplaceStep || step instanceof ReplaceAroundStep) {
 								step.slice.content.forEach((node: Node) => {
-									processNode(node, this.options.articleProps, this.options.apiUrlCreator);
+									processNode(
+										node,
+										this.options.articleProps,
+										this.options.apiUrlCreator,
+										this.options.onLoadResource,
+									);
 								});
 							}
 						});

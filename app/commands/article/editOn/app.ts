@@ -10,7 +10,7 @@ const app: Command<{ catalogName: string; articlePath: Path }, string> = Command
 
 	async do({ catalogName, articlePath }) {
 		const workspace = this._app.wm.current();
-		const catalog = await workspace.getCatalog(catalogName);
+		const catalog = await workspace.getContextlessCatalog(catalogName);
 		if (!catalog) return;
 		const item = catalog.findItemByItemPath(articlePath);
 		return RouterPathProvider.getPathname(await catalog.getPathnameData(item)).value;

@@ -19,7 +19,7 @@ export default class CatalogVersionCollection {
 		if (!refname) return this._default;
 
 		const entry = this._versions.get(refname);
-		if (!entry) throw new Error(`Version of catalog ${this._default.getName()} with refname ${refname} not found`);
+		if (!entry) throw new Error(`Version of catalog ${this._default.name} with refname ${refname} not found`);
 		return await entry.load();
 	}
 }

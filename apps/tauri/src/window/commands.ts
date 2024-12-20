@@ -22,6 +22,7 @@ export const httpFetch = (req: {
 	url: string;
 	body?: string;
 	method?: string;
+	headers?: { [name: string]: string };
 	auth?: { token?: string } | { login?: string; password?: string };
 }): Promise<{
 	body?: HttpResponseBody;
@@ -32,3 +33,5 @@ export const httpFetch = (req: {
 };
 
 export const moveToTrash = (path: string) => invoke<void>("move_to_trash", { path });
+
+export const openInExplorer = (path: string) => invoke<void>("open_in_explorer", { path });

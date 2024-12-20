@@ -1,4 +1,4 @@
-import getUnsupportedElements from "@app/commands/storage/confluence/getUnsupportedElements";
+import getUnsupportedElements from "@app/commands/storage/import/getUnsupportedElements";
 import getAllSyncCount from "@app/commands/storage/getAllSyncCount";
 import canPull from "./canPull";
 import fetchCmd from "./fetch";
@@ -14,7 +14,7 @@ import startClone from "./startClone";
 import sync from "./sync";
 
 const storage = {
-	confluence: { getUnsupportedElements },
+	import: { getUnsupportedElements },
 	sync,
 	fetchCmd,
 	startClone,

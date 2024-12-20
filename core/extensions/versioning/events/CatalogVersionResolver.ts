@@ -1,28 +1,24 @@
 import { getExecutingEnvironment } from "@app/resolveModule/env";
-import type { HasEvents } from "@core/Event/EventEmitter";
 import type { EventHandlerCollection } from "@core/Event/EventHandlerProvider";
 import Path from "@core/FileProvider/Path/Path";
 import { Catalog } from "@core/FileStructue/Catalog/Catalog";
 import type CatalogEntry from "@core/FileStructue/Catalog/CatalogEntry";
-import { type FSEvents } from "@core/FileStructue/FileStructure";
 import GitCommands from "@ext/git/core/GitCommands/GitCommands";
 import type RepositoryProvider from "@ext/git/core/Repository/RepositoryProvider";
 import GitTreeFileProvider from "@ext/versioning/GitTreeFileProvider";
-import type { Workspace, WorkspaceEvents } from "@ext/workspace/Workspace";
+import type { Workspace } from "@ext/workspace/Workspace";
 
 const VERSION_LIMIT = 32;
 
-export default class CatalogVersionResolver
-	implements EventHandlerCollection<WorkspaceEvents>, EventHandlerCollection<FSEvents>
-{
+export default class CatalogVersionResolver implements EventHandlerCollection, EventHandlerCollection {
 	private _catalogs = new WeakMap<Catalog, Map<string, CatalogEntry>>();
 
 	constructor(private _workspace: Workspace, private _rp: RepositoryProvider) {}
 
-	mount({ events }: HasEvents<WorkspaceEvents>): void {
+	mount(): void {
 		if (getExecutingEnvironment() !== "next") return; // todo: добавить поддержку в редакторе
 
-		events.on("on-catalog-resolve", async ({ mutableCatalog, metadata }) => {
+		this._workspace.events.on("on-catalog-resolve", async ({ mutableCatalog, metadata }) => {
 			const refname = metadata;
 			if (!refname) return;
 
@@ -39,13 +35,13 @@ export default class CatalogVersionResolver
 			}
 		});
 
-		events.on("on-catalog-entry-resolve", async ({ mutableEntry, name, metadata }) => {
+		this._workspace.events.on("on-catalog-entry-resolve", async ({ mutableEntry, name, metadata }) => {
 			const refname = metadata;
 			if (!refname) return;
 
 			if (!mutableEntry.entry) {
 				const split = name?.split("/");
-				if (split?.length == 2) mutableEntry.entry = await this._workspace.getCatalog(split[0]);
+				if (split?.length == 2) mutableEntry.entry = await this._workspace.getContextlessCatalog(split[0]);
 			}
 
 			const gvc = mutableEntry.entry?.repo?.gvc;
@@ -54,28 +50,26 @@ export default class CatalogVersionResolver
 
 			// Версии каталога загружаются только если сам каталог загружен.
 			// Пока Catalog.load() возвращает this и ссылка будет одной и той же, это будет работать
-			const versions = this._catalogs.get(await mutableEntry.entry.load());
+			const versions = this._catalogs.get(mutableEntry.entry.upgrade("catalog"));
 			if (versions) {
 				const catalog = versions.get(refname);
 				if (catalog) mutableEntry.entry = catalog;
 			}
 		});
 
-		events.on("add-catalog", async ({ catalog }) => {
+		this._workspace.events.on("add-catalog", async ({ catalog }) => {
 			if (!catalog?.repo?.gvc || !catalog.props.versions) return;
 
 			if ((await catalog.repo.gvc.getSubGitVersionControls()).length > 0) {
 				console.warn(
-					`skipping version resolving for catalog ${
-						catalog.getBasePath().value
-					}; submodules aren't currently supported for bare repositories`,
+					`skipping version resolving for catalog ${catalog.basePath.value}; submodules aren't currently supported for bare repositories`,
 				);
 			}
 
-			let gitfp = this._workspace.getFileProvider().at(catalog.getBasePath());
+			let gitfp = this._workspace.getFileProvider().at(catalog.basePath);
 			if (!(gitfp instanceof GitTreeFileProvider))
 				gitfp = new GitTreeFileProvider(
-					new GitCommands(this._workspace.getFileProvider().default(), catalog.getBasePath()),
+					new GitCommands(this._workspace.getFileProvider().default(), catalog.basePath),
 				);
 
 			const entries = new Map();
@@ -85,7 +79,7 @@ export default class CatalogVersionResolver
 			const fs = this._workspace.getFileStructure();
 
 			for (const resolvedVersion of catalog.props.resolvedVersions) {
-				const basePath = catalog.getBasePath();
+				const basePath = catalog.basePath;
 				const path = basePath.value + `:${resolvedVersion.encodedName}`;
 				fs.fp.mount(new Path(path), gitfp);
 
@@ -94,10 +88,10 @@ export default class CatalogVersionResolver
 					versions: catalog.props.versions,
 					resolvedVersions: catalog.props.resolvedVersions,
 				});
-				entry.setRepo(catalog.repo, this._rp);
-				entry.withOnLoad((c) => {
+				entry.setRepository(catalog.repo);
+				entry.setLoadCallback((c) => {
 					c.events.on("update", () => catalog.update());
-					c.setRepo(catalog.repo, this._rp);
+					c.setRepository(catalog.repo);
 					entries.set(resolvedVersion.encodedName, c);
 				});
 				entries.set(resolvedVersion.encodedName, entry);

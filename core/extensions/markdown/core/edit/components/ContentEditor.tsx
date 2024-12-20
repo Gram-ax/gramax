@@ -2,13 +2,17 @@ import CommentCounterService from "@core-ui/ContextServices/CommentCounter";
 import useWatch from "@core-ui/hooks/useWatch";
 import ArticleMat from "@ext/markdown/core/edit/components/ArticleMat";
 import OnTitleLoseFocus from "@ext/markdown/elements/article/edit/OnTitleLoseFocus";
+import CopyArticles from "@ext/markdown/elements/copyArticles/copyArticles";
+import OnLoadResourceService from "@ext/markdown/elements/copyArticles/onLoadResourceService";
 import EditorExtensionsService from "@ext/markdown/elements/diff/components/EditorExtensionsService";
-import EditorService from "@ext/markdown/elementsUtils/ContextServices/EditorService";
-import { Editor } from "@tiptap/core";
+import EditorService, {
+	BaseEditorContext,
+	EditorContext,
+	EditorPasteHandler,
+} from "@ext/markdown/elementsUtils/ContextServices/EditorService";
 import { Mark } from "@tiptap/pm/model";
 import { EditorContent, Extensions, JSONContent, useEditor } from "@tiptap/react";
-import { Node, Slice } from "prosemirror-model";
-import { EditorView } from "prosemirror-view";
+import { Node } from "prosemirror-model";
 import { useEffect } from "react";
 import ApiUrlCreatorService from "../../../../../ui-logic/ContextServices/ApiUrlCreator";
 import ArticlePropsService from "../../../../../ui-logic/ContextServices/ArticleProps";
@@ -32,10 +36,10 @@ export const ContentEditorId = "ContentEditorId";
 interface ContentEditorProps {
 	content: string;
 	extensions: Extensions;
-	onBlur: ({ editor }: { editor: Editor }) => void;
-	onTitleLoseFocus: ({ newTitle }: { newTitle: string }) => void;
-	onUpdate: ({ editor }: { editor: Editor }) => void;
-	handlePaste: (view: EditorView, event: ClipboardEvent, slice: Slice) => boolean | void;
+	onBlur: (editorContext: EditorContext) => void;
+	onTitleLoseFocus: (props: { newTitle: string } & BaseEditorContext) => void;
+	onUpdate: (editorContext: EditorContext) => void;
+	handlePaste: EditorPasteHandler;
 }
 
 const ContentEditor = (props: ContentEditorProps) => {
@@ -44,8 +48,8 @@ const ContentEditor = (props: ContentEditorProps) => {
 	const comments = CommentCounterService.value;
 	const articleProps = ArticlePropsService.value;
 	const apiUrlCreator = ApiUrlCreatorService.value;
+	const onLoadResource = OnLoadResourceService.value;
 	const pageDataContext = PageDataContextService.value;
-	const articleIsEdit = !articleProps.errorCode;
 
 	const onDeleteNodes = (nodes: Node[]): void => {
 		deleteImages(nodes, apiUrlCreator);
@@ -60,33 +64,39 @@ const ContentEditor = (props: ContentEditorProps) => {
 	};
 
 	const onAddMarks = (marks: Mark[]): void => {
-		addComments(marks, articleProps.pathname, comments);
+		addComments(marks, articleProps.pathname, comments, pageDataContext.userInfo);
 	};
-
-	const isEditExtensions = articleIsEdit ? [SelectionMenu] : [];
 
 	const extensionsList = ExtensionUpdater.getUpdatedExtension([
 		...extensions,
 		OnDeleteNode.configure({ onDeleteNodes }),
 		OnAddMark.configure({ onAddMarks }),
+		CopyArticles.configure({ onLoadResource }),
 		OnDeleteMark.configure({ onDeleteMarks }),
-		OnTitleLoseFocus.configure({ onTitleLoseFocus }),
-		...isEditExtensions,
+		OnTitleLoseFocus.configure({
+			onTitleLoseFocus: ({ newTitle }) => onTitleLoseFocus({ newTitle, apiUrlCreator, articleProps }),
+		}),
+		SelectionMenu,
 	]);
 
 	useWatch(() => {
 		EditorExtensionsService.value = extensionsList;
-	}, [extensionsList]);
+		EditorService.bindOnUpdate(onUpdate);
+		EditorService.bindOnBlur(onBlur);
+		EditorService.bindHandlePaste(handlePaste);
+	}, [extensionsList, onUpdate, onBlur, handlePaste]);
 
 	const editor = useEditor(
 		{
 			content: JSON.parse(content) as JSONContent,
 			extensions: [...extensionsList],
 			injectCSS: false,
-			editorProps: { handlePaste },
-			onUpdate,
-			onBlur,
-			editable: articleIsEdit,
+			editorProps: {
+				handlePaste: (view, event, slice) => handlePaste(view, event, slice, apiUrlCreator, articleProps),
+			},
+			onUpdate: ({ editor }) => onUpdate({ editor, apiUrlCreator, articleProps }),
+			onBlur: ({ editor }) => onBlur({ editor, apiUrlCreator, articleProps }),
+			editable: true,
 		},
 		[content, apiUrlCreator, pageDataContext, articleProps.ref.path],
 	);
@@ -97,10 +107,17 @@ const ContentEditor = (props: ContentEditorProps) => {
 		if (editor) EditorService.bindEditor(editor);
 	}, [editor]);
 
+	useEffect(() => {
+		if (editor) {
+			const copyArticlesExtension = editor.extensionManager.extensions.find((ext) => ext.name === "copyArticles");
+			if (copyArticlesExtension) copyArticlesExtension.options.onLoadResource = onLoadResource;
+		}
+	}, [onLoadResource.data]);
+
 	return (
 		<>
-			{articleIsEdit && <Menu editor={editor} id={ContentEditorId} />}
-			<EditorContent editor={editor} data-qa="article-editor" />
+			<Menu editor={editor} id={ContentEditorId} />
+			<EditorContent editor={editor} data-qa="article-editor" data-iseditable={true} />
 			<ArticleMat editor={editor} />
 		</>
 	);

@@ -49,7 +49,7 @@ describe("LocalizationEvents", () => {
 		await dfp.write(p("catalog/.doc-root.yaml"), "");
 		const { wm } = await app();
 
-		const catalog = await wm.getCatalog("catalog");
+		const catalog = await wm.getContextlessCatalog("catalog");
 		expect(catalog.findArticle("catalog/a", [])?.content).toBe("ru");
 		expect(catalog.findArticle("catalog/en/a", [])?.content).toBe("en");
 		expect(catalog.findArticle("catalog/fr/a", [])?.content).toBe("fr");
@@ -66,7 +66,7 @@ describe("LocalizationEvents", () => {
 		);
 		const { wm } = await app();
 
-		const catalog = await wm.getCatalog("catalog");
+		const catalog = await wm.getContextlessCatalog("catalog");
 		expect(catalog.findArticle("catalog/a", [])?.content).toBe("ru");
 		expect(catalog.findArticle("catalog/en/a", [])?.content).toBe("en");
 		expect(catalog.findArticle("catalog/fr/a", [])?.content).toBe("fr");
@@ -82,7 +82,7 @@ supportedLanguages:
 		);
 		const { wm } = await app();
 
-		const catalog = await wm.getCatalog("catalog");
+		const catalog = await wm.getContextlessCatalog("catalog");
 
 		expect(catalog.props.supportedLanguages).toContain("ru");
 		expect(catalog.props.supportedLanguages).not.toContain("zh");

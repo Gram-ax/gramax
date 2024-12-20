@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use std::time::Duration;
 
 use serde::Deserialize;
 use serde::Serialize;
@@ -6,6 +7,7 @@ use serde::Serialize;
 use tauri::*;
 
 use reqwest::header::*;
+use reqwest::Client;
 use reqwest::Method;
 
 #[derive(Deserialize)]
@@ -44,18 +46,20 @@ pub struct Response {
 #[derive(Serialize)]
 pub struct RequestError {
   message: String,
-  status: u16,
+  status: Option<u16>,
 }
 
 impl From<reqwest::Error> for RequestError {
   fn from(error: reqwest::Error) -> Self {
-    RequestError { message: error.to_string(), status: error.status().unwrap_or_default().as_u16() }
+    RequestError { message: error.to_string(), status: error.status().map(|s| s.as_u16()) }
   }
 }
 
 #[command]
 pub async fn http_request(req: Request) -> std::result::Result<Response, RequestError> {
-  let client = reqwest::Client::new();
+  let client = Client::builder();
+  let client = client.connect_timeout(Duration::from_secs(10)).timeout(Duration::from_secs(30)).build()?;
+
   let request = client.request(req.method.and_then(|m| m.parse().ok()).unwrap_or(Method::GET), req.url);
 
   let request = match req.auth {
@@ -65,7 +69,7 @@ pub async fn http_request(req: Request) -> std::result::Result<Response, Request
   };
 
   let request = match req.body {
-    Some(body) => request.body(body),
+    Some(body) => request.header(CONTENT_TYPE, "application/json").body(body),
     None => request,
   };
 
@@ -86,11 +90,11 @@ pub async fn http_request(req: Request) -> std::result::Result<Response, Request
   let status = response.status().as_u16();
   let content_type = response.headers().get("Content-Type").and_then(|v| v.to_str().ok().map(String::from));
 
-  let is_text = matches!(content_type.as_deref(), Some("application/json") | Some("text") | None);
-
-  let body = match is_text {
-    true => ResponseBody::Text(response.text().await?),
-    false => ResponseBody::Binary(response.bytes().await?.to_vec()),
+  let body = match content_type.as_deref() {
+    Some(v) if v.contains("application/json") || v.contains("text") => {
+      ResponseBody::Text(response.text().await?)
+    }
+    _ => ResponseBody::Binary(response.bytes().await?.to_vec()),
   };
 
   Ok(Response { status, content_type, body })

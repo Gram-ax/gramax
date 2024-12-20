@@ -1,10 +1,10 @@
-import { CatalogFilesUpdated } from "@core/FileStructue/Catalog/Catalog";
 import Cache from "@ext/Cache";
 import WorkspaceManager from "@ext/workspace/WorkspaceManager";
 import lunr from "lunr";
 import Searcher, { SearchItem } from "../Searcher";
 import customPipeline from "./tokenizer/customPipeline";
 import tokenizer from "./tokenizer/tokenizer";
+import type { CatalogFilesUpdated } from "@core/FileStructue/Catalog/CatalogEvents";
 
 interface IndexData {
 	title: string;
@@ -172,7 +172,7 @@ export default class LunrSearcher implements Searcher {
 
 	private _getOnUpdate() {
 		return async (change: CatalogFilesUpdated): Promise<void> => {
-			await this._resetCatalog(change.catalog.getName());
+			await this._resetCatalog(change.catalog.name);
 		};
 	}
 }

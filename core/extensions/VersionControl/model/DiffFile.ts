@@ -18,5 +18,6 @@ export default interface DiffFile {
 	title: string;
 	isChanged: boolean;
 	content?: string;
+	oldContent?: string;
 	diff?: DiffChanges;
 }

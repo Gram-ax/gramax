@@ -4,6 +4,7 @@ import Path from "@core/FileProvider/Path/Path";
 import RouterPathProvider from "@core/RouterPath/RouterPathProvider";
 import BranchUpdaterService from "@ext/git/actions/Branch/BranchUpdaterService/logic/BranchUpdaterService";
 import OnBranchUpdateCaller from "@ext/git/actions/Branch/BranchUpdaterService/model/OnBranchUpdateCaller";
+import type GitBranchData from "@ext/git/core/GitBranch/model/GitBranchData";
 import { useEffect } from "react";
 
 const useOnPathnameUpdateBranch = () => {
@@ -11,7 +12,9 @@ const useOnPathnameUpdateBranch = () => {
 	const { isReadOnly } = PageDataContextService.value.conf;
 
 	useEffect(() => {
-		const onUpdateBranch = (branch: string, caller: OnBranchUpdateCaller) => {
+		const onUpdateBranch = (branch: GitBranchData, caller: OnBranchUpdateCaller) => {
+			if (caller === OnBranchUpdateCaller.MergeRequest) return;
+
 			const routerPath = new Path(router.path + router.hash).removeExtraSymbols;
 			if (isReadOnly || !RouterPathProvider.isEditorPathname(routerPath)) return;
 
@@ -22,7 +25,7 @@ const useOnPathnameUpdateBranch = () => {
 
 			const newPath = RouterPathProvider.updatePathnameData(
 				pathnameData,
-				fromInit ? { refname: branch } : { refname: branch, filePath: null, itemLogicPath: null },
+				fromInit ? { refname: branch?.name } : { refname: branch?.name, filePath: null, itemLogicPath: null },
 			).value;
 
 			router.pushPath(newPath);

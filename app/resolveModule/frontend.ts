@@ -1,3 +1,4 @@
+import type DiffFileInput from "@components/Atoms/FileInput/DiffFileInput/DiffFileInputProps";
 import type FileInput from "@components/Atoms/FileInput/FileInputProps";
 import type ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
 import type { Router } from "@core/Api/Router";
@@ -10,7 +11,9 @@ interface DynamicModules {
 	Fetcher: typeof FetchService.fetch;
 	useImage: typeof useUrlImage;
 	FileInput: FileInput;
+	DiffFileInput: DiffFileInput;
 	openDirectory: () => string | Promise<string>;
+	openInExplorer: (path: string) => void | Promise<void>;
 	enterpriseLogin: (url: string, apiUrlCreator: ApiUrlCreator, router: Router) => Promise<void>;
 	openChildWindow: ({
 		url,
@@ -29,7 +32,8 @@ interface DynamicModules {
 let modules: DynamicModules;
 
 /// #if VITE_ENVIRONMENT == "browser"
-// #v-ifdef VITE_ENVIRONMENT=browser
+// #v-ifdef VITE_ENVIRONMENT='browser'
+import BrowserLazyDiffFileInput from "@components/Atoms/FileInput/DiffFileInput/LazyDiffFileInput";
 import BrowserLazyFileInput from "@components/Atoms/FileInput/LazyFileInput";
 import BrowserLink from "../../apps/browser/src/components/Atoms/Link";
 import useUrlObjectImage from "../../apps/browser/src/hooks/useUrlObjectImage";
@@ -45,14 +49,17 @@ modules = {
 	enterpriseLogin: () => null,
 	openDirectory: () => "",
 	FileInput: BrowserLazyFileInput,
+	DiffFileInput: BrowserLazyDiffFileInput,
 	httpFetch: () => undefined,
+	openInExplorer: () => undefined,
 };
 
 /// #endif
 // #v-endif
 
 /// #if VITE_ENVIRONMENT == "next"
-// #v-ifdef VITE_ENVIRONMENT=next
+// #v-ifdef VITE_ENVIRONMENT='next'
+import DiffFileInputCdn from "@components/Atoms/FileInput/DiffFileInput/DiffFileInputCdn";
 import FileInputCdn from "@components/Atoms/FileInput/FileInputCdn";
 import LanguageService from "@core-ui/ContextServices/Language";
 import Localizer from "@ext/localization/core/Localizer";
@@ -96,14 +103,17 @@ modules = {
 		typeof window === "undefined" ? undefined : window.open(params.url, params.name, params.features),
 	openDirectory: () => "",
 	FileInput: FileInputCdn,
+	DiffFileInput: DiffFileInputCdn,
 	httpFetch: () => undefined,
+	openInExplorer: () => undefined,
 };
 
 // #v-endif
 /// #endif
 
 /// #if VITE_ENVIRONMENT == "jest"
-// #v-ifdef VITE_ENVIRONMENT=jest
+// #v-ifdef VITE_ENVIRONMENT='jest'
+import DiffFileInputCdnJest from "@components/Atoms/FileInput/DiffFileInput/DiffFileInputCdn";
 import FileInputCdnJest from "@components/Atoms/FileInput/FileInputCdn";
 import NextLinkJest from "../../apps/next/components/Atoms/Link";
 import NextRouterJest from "../../apps/next/logic/Api/NextRouter";
@@ -123,21 +133,24 @@ modules = {
 		typeof window === "undefined" ? undefined : window.open(params.url, params.name, params.features),
 	openDirectory: () => "",
 	FileInput: FileInputCdnJest,
+	DiffFileInput: DiffFileInputCdnJest,
 	httpFetch: () => undefined,
+	openInExplorer: () => undefined,
 };
 
 // #v-endif
 /// #endif
 
 /// #if VITE_ENVIRONMENT == "tauri"
-// #v-ifdef VITE_ENVIRONMENT=tauri
+// #v-ifdef VITE_ENVIRONMENT='tauri'
+import LazyDiffFileInputTauri from "@components/Atoms/FileInput/DiffFileInput/LazyDiffFileInput";
 import LazyFileInputTauri from "@components/Atoms/FileInput/LazyFileInput";
 import FetchResponse from "@core-ui/ApiServices/Types/FetchResponse";
 import TauriLink from "../../apps/browser/src/components/Atoms/Link";
 import useUrlObjectImage2 from "../../apps/browser/src/hooks/useUrlObjectImage";
 import TauriFetcher from "../../apps/browser/src/logic/Api/BrowserFetchService";
 import TauriRouter from "../../apps/browser/src/logic/Api/BrowserRouter";
-import { httpFetch, openChildWindow, openDirectory } from "../../apps/tauri/src/window/commands";
+import { httpFetch, openChildWindow, openDirectory, openInExplorer } from "../../apps/tauri/src/window/commands";
 import enterpriseLogin from "../../apps/tauri/src/window/enterpriseLogin";
 
 modules = {
@@ -148,8 +161,10 @@ modules = {
 	openChildWindow,
 	enterpriseLogin,
 	FileInput: LazyFileInputTauri,
+	DiffFileInput: LazyDiffFileInputTauri,
 	openDirectory,
 	httpFetch,
+	openInExplorer,
 };
 
 // #v-endif

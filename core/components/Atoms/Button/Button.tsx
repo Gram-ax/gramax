@@ -25,7 +25,7 @@ export enum TextSize {
 	XL = "text_x_large",
 }
 
-const TextKeys = {
+export const TextKeys = {
 	text_xx_small: 0.6,
 	text_x_small: 0.75,
 	text_small: 0.875,
@@ -74,19 +74,19 @@ export default styled(Button)`
 		justify-content: center;
 		cursor: pointer;
 		user-select: none;
-		font-weight: 300;
+		font-weight: var(--font-weight-default);
 	}
 
 	.default {
 		border-radius: var(--radius-medium);
-		background: var(--color-code-bg);
-		color: var(--color-article-heading-text);
-		border: 1px solid var(--color-article-heading-text);
+		background: var(--color-btn-default-bg);
+		color: var(--color-btn-default-text);
+		border: var(--border-btn-default);
 
 		&:hover {
-			opacity: 0.8;
-			color: var(--color-article-bg);
-			background: var(--color-article-heading-text);
+			opacity: var(--opacity-btn-default-bg-hover);
+			color: var(--color-btn-default-text-hover);
+			background: var(--color-btn-default-bg-hover);
 		}
 	}
 
@@ -103,20 +103,22 @@ export default styled(Button)`
 	}
 
 	.underline {
-		color: var(--color-primary-general);
-		font-weight: 300;
-		padding: 0;
-		margin: 0 0.6em;
+		border-radius: var(--radius-medium);
+		color: var(--color-btn-underline-text);
+		font-weight: var(--font-weight-btn-underline);
+		padding: var(--padding-btn-underline);
+		margin: var(--margin-btn-underline);
 
 		&:hover {
-			color: var(--color-primary);
-			text-decoration: underline;
+			color: var(--color-btn-underline-text-hover);
+			text-decoration: var(--text-decoration-btn-underline-hover);
+			background-color: var(--color-btn-underline-bg-hover);
 		}
 	}
 
 	.transparent {
 		color: var(--color-primary-general);
-		font-weight: 300;
+		font-weight: var(--font-weight-default);
 		padding: 0;
 
 		&:hover {
@@ -126,7 +128,7 @@ export default styled(Button)`
 
 	.transparentInverse {
 		color: var(--color-primary-general-inverse);
-		font-weight: 300;
+		font-weight: var(--font-weight-default);
 		padding: 0;
 
 		&:hover {

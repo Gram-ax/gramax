@@ -3,6 +3,7 @@ import _switch from "./switch";
 import remove from "./remove";
 import edit from "./edit";
 import setDefaultPath from "./setDefaultPath";
+import assets from "./assets/index";
 
 export default {
 	switch: _switch,
@@ -10,4 +11,5 @@ export default {
 	remove,
 	edit,
 	setDefaultPath,
+	assets,
 };

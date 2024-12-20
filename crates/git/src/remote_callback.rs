@@ -12,20 +12,24 @@ pub trait AddCredentialsHeaders {
 
 impl AddCredentialsHeaders for FetchOptions<'_> {
   fn add_credentials_headers<C: Creds>(&mut self, creds: &C) {
-    self.custom_headers(&[&format!("x-private-token: {}", creds.access_token())]);
+    let private_token = format!("x-private-token: {}", creds.access_token());
 
     if let Some(protocol) = creds.protocol() {
-      self.custom_headers(&[&format!("x-protocol: {}", protocol)]);
+      self.custom_headers(&[&private_token, &format!("x-protocol: {}", protocol)]);
+    } else {
+      self.custom_headers(&[&private_token]);
     }
   }
 }
 
 impl AddCredentialsHeaders for PushOptions<'_> {
   fn add_credentials_headers<C: Creds>(&mut self, creds: &C) {
-    self.custom_headers(&[&format!("x-private-token: {}", creds.access_token())]);
+    let private_token = format!("x-private-token: {}", creds.access_token());
 
     if let Some(protocol) = creds.protocol() {
-      self.custom_headers(&[&format!("x-protocol: {}", protocol)]);
+      self.custom_headers(&[&private_token, &format!("x-protocol: {}", protocol)]);
+    } else {
+      self.custom_headers(&[&private_token]);
     }
   }
 }

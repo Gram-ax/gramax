@@ -2,8 +2,9 @@ import { CommentBlock } from "@core-ui/CommentBlock";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import styled from "@emotion/styled";
 import t from "@ext/localization/locale/translate";
+import { GlobalEditorIsEditable } from "@ext/markdown/elements/comment/edit/logic/CommentFocusTooltip";
 import { JSONContent } from "@tiptap/react";
-import { ReactElement, useEffect, useRef, useState } from "react";
+import { ReactElement, useContext, useEffect, useRef, useState } from "react";
 import CommentComponent from "./Comment";
 import CommentBlockInput from "./CommentBlockInput";
 
@@ -12,11 +13,12 @@ interface CommentBlockProps {
 	maxHeight: string;
 	onUpdate: (commentBlock: CommentBlock) => void;
 	onDeleteComment?: () => void;
+	onLoaded?: () => void;
 	className?: string;
 }
 
 const CommentBlockComponent = (props: CommentBlockProps): ReactElement => {
-	const { commentBlock, onUpdate, onDeleteComment, className } = props;
+	const { commentBlock, onUpdate, onDeleteComment, onLoaded, className } = props;
 	const confirmAnswerDelelteText = t("confirm-answer-delete");
 	const confirmCommentDeleteText = t("confirm-comment-delete");
 
@@ -27,6 +29,7 @@ const CommentBlockComponent = (props: CommentBlockProps): ReactElement => {
 	const firstCommentRef = useRef<HTMLDivElement>(null);
 	const inputRef = useRef<HTMLDivElement>(null);
 	const user = PageDataContextService.value.userInfo;
+	const globalEditorIsEditable = useContext(GlobalEditorIsEditable);
 
 	const currentOnDeleteComment = async () => {
 		if (!(await confirm(confirmCommentDeleteText))) return;
@@ -62,6 +65,7 @@ const CommentBlockComponent = (props: CommentBlockProps): ReactElement => {
 		setTimeout(() => {
 			if (!commentBlockRef.current?.scrollTo) return;
 
+			onLoaded?.();
 			commentBlockRef.current.scrollTo({
 				top: commentBlockRef.current.scrollHeight,
 				behavior: "smooth",
@@ -110,7 +114,7 @@ const CommentBlockComponent = (props: CommentBlockProps): ReactElement => {
 					/>
 				))}
 			</div>
-			{user && (
+			{globalEditorIsEditable && user && (
 				<CommentBlockInput editorId={-2} setFocusId={setFocusId} ref={inputRef} onAddComment={addAnswer} />
 			)}
 		</div>

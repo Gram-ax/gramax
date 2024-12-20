@@ -6,10 +6,12 @@ import { useEffect, useRef, useState } from "react";
 interface PublishModalProps {
 	onOpen?: () => void;
 	onClose?: (hasDiscard: boolean, hasPublished: boolean) => void | Promise<void>;
+	onEndDiscard?: () => void;
+	onStopPublish?: () => void;
 }
 
 const PublishModal = (props: PublishModalProps) => {
-	const { onClose, onOpen } = props;
+	const { onClose, onOpen, onEndDiscard, onStopPublish } = props;
 
 	const [isOpen, setIsOpen] = useState(true);
 	const [sideBarDataLoaded, setSideBarDataLoaded] = useState(false);
@@ -43,12 +45,14 @@ const PublishModal = (props: PublishModalProps) => {
 				onSideBarDataLoadError={() => setIsOpen(false)}
 				onEndDiscard={(_, hasDeleted) => {
 					hasDiscard.current = hasDeleted;
+					if (hasDeleted) onEndDiscard?.();
 				}}
 				onStartPublish={() => {
 					hasPublished.current = true;
 				}}
 				onStopPublish={() => {
 					setIsOpen(false);
+					onStopPublish?.();
 				}}
 				goToArticleOnClick={() => setIsOpen(false)}
 			/>

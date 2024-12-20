@@ -18,7 +18,7 @@ const remove: Command<{ src: Path; articlePath: Path; catalogName: string; ctx: 
 		const { parser, parserContextFactory, wm } = this._app;
 		const workspace = wm.current();
 
-		const catalog = await workspace.getCatalog(catalogName);
+		const catalog = await workspace.getCatalog(catalogName, ctx);
 		const fp = workspace.getFileProvider();
 		const itemRef = fp.getItemRef(articlePath);
 		const article = catalog.findItemByItemRef<Article>(itemRef);

@@ -42,6 +42,8 @@ export class GitDataParser {
 			Git: "",
 			"Confluence Cloud": "",
 			"Confluence self-hosted server": "",
+			Notion: "",
+			"Yandex.Disk": "",
 			GitHub: `https://${sourceName}/${group}/${repName}/edit/${branch}/${filePath.value}`,
 			GitLab: `https://${sourceName}/-/ide/project/${group}/${repName}/blob/${branch}/-/${filePath.value}`,
 		};

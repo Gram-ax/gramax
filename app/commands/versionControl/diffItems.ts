@@ -24,7 +24,7 @@ const diffItems: Command<{ catalogName: string; ctx: Context }, { items: DiffIte
 			const { sitePresenterFactory, wm, parser, parserContextFactory } = this._app;
 			const workspace = wm.current();
 
-			const catalog = await workspace.getCatalog(catalogName);
+			const catalog = await workspace.getContextlessCatalog(catalogName);
 
 			if (!catalog) return;
 			const fs = workspace.getFileStructure();
@@ -32,11 +32,17 @@ const diffItems: Command<{ catalogName: string; ctx: Context }, { items: DiffIte
 			const articleParser = new ArticleParser(ctx, parser, parserContextFactory);
 			const gitDiffItemCreator = IS_DEV_MODE
 				? new GitDiffItemCreatorNew(catalog, sitePresenterFactory.fromContext(ctx), fs, articleParser)
-				: new GitDiffItemCreator(catalog, fs.fp, sitePresenterFactory.fromContext(ctx), fs);
+				: new GitDiffItemCreator(catalog, sitePresenterFactory.fromContext(ctx), fs);
 
 			const diffItems = await gitDiffItemCreator.getDiffItems();
 			if (diffItems.items.length == 0 && diffItems.resources.length == 0) {
-				throw new DefaultError(t("no-changes-in-catalog"), null, null, true);
+				throw new DefaultError(
+					t("git.warning.no-changes.body"),
+					null,
+					null,
+					true,
+					t("git.warning.no-changes.title"),
+				);
 			}
 			return diffItems;
 		},

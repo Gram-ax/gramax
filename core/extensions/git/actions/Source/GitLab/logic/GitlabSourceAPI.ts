@@ -1,3 +1,4 @@
+import NetworkApiError from "@ext/errorHandlers/network/NetworkApiError";
 import type GitlabSourceData from "@ext/git/actions/Source/GitLab/logic/GitlabSourceData";
 import GitSourceApi from "@ext/git/actions/Source/GitSourceApi";
 import { GitRepData, GitRepsPageData } from "@ext/git/actions/Source/model/GitRepsApiData";
@@ -8,34 +9,35 @@ import GitStorageData from "../../../../core/model/GitStorageData";
 
 export default class GitlabSourceAPI extends GitSourceApi {
 	private readonly _allProjectsUrl = "projects?order_by=last_activity_at&simple=true&membership=true";
-	constructor(data: GitlabSourceData, private _authServiceUrl: string) {
-		super(data);
-	}
-
-	async isCredentialsValid() {
-		try {
-			const res = await this._api(`user`);
-			if ((res && res.status == 401) || res.status == 403) return false;
-		} catch {}
-		return true;
+	constructor(
+		data: GitlabSourceData,
+		private _authServiceUrl: string,
+		protected _onError?: (error: NetworkApiError) => void,
+	) {
+		super(data, _onError);
 	}
 
 	async refreshAccessToken(): Promise<GitSourceData> {
 		const url = `${this._authServiceUrl}/gitlab-refresh?refreshToken=${this._data.refreshToken}`;
 		const res = await fetch(url);
-		if (!res?.ok) return null;
 		return (await res.json()) ?? null;
 	}
 
 	async isRepositoryExists(data: GitStorageData): Promise<boolean> {
-		const res = await this._api(`projects/${encodeURIComponent(`${data.group}/${data.name}`)}`, { method: "GET" });
-		if (res && res.ok && (await res.json().then((j) => j.id))) return true;
-		return false;
+		try {
+			const res = await this._api(`projects/${encodeURIComponent(`${data.group}/${data.name}`)}`, {
+				method: "GET",
+			});
+			if (await res.json().then((j) => j.id)) return true;
+			return false;
+		} catch (e) {
+			if (e instanceof NetworkApiError && e.props.status === 404) return false;
+			throw e;
+		}
 	}
 
 	async getUser(): Promise<SourceUser> {
 		const res = await this._api(`user`);
-		if (!res || !res?.ok) return null;
 		const user = await res.json();
 		return { name: user.name, email: user.email, username: user.username, avatarUrl: user.avatar_url };
 	}
@@ -110,13 +112,11 @@ export default class GitlabSourceAPI extends GitSourceApi {
 
 	async getDefaultBranch(data: GitStorageData): Promise<string> {
 		const res = await this._api(`projects/${encodeURIComponent(`${data.group}/${data.name}`)}`);
-		if (!res || !res.ok) return null;
 		return (await res.json()).default_branch;
 	}
 
 	async getAllBranches(data: GitStorageData, field?: string): Promise<any[]> {
 		const res = await this._api(`projects/${encodeURIComponent(`${data.group}/${data.name}`)}/repository/branches`);
-		if (!res || !res.ok) return [];
 		return (await res.json()).map((branch) => branch?.[field] ?? branch?.name);
 	}
 
@@ -128,7 +128,6 @@ export default class GitlabSourceAPI extends GitSourceApi {
 		const id = encodeURIComponent(`${data.group}/${data.name}`);
 		const url = `projects/${id}/search?scope=blobs&search=${fileName}&ref=${branch.toString()}`;
 		const res = await this._api(url);
-		if (!res || !res.ok) return [];
 		const search = await res.json();
 		if (!search || !search.length) return [];
 		return search;
@@ -142,7 +141,6 @@ export default class GitlabSourceAPI extends GitSourceApi {
 		const result: Response[] = [];
 		const concatChar = this._getConcatChar(url);
 		const res = await this._api(`${url}${perPage ? `${concatChar}per_page=${perPage}` : ""}`, init);
-		if (!res || !res.ok) return [];
 
 		result.push(res);
 
@@ -170,25 +168,22 @@ export default class GitlabSourceAPI extends GitSourceApi {
 			resPromises.push(res);
 		}
 
-		return (await Promise.all(resPromises)).filter((res) => res && res.ok);
+		return Promise.all(resPromises);
 	}
 
 	protected async _api(url: string, init?: RequestInit): Promise<Response> {
 		const isEnterprise = this._data.isEnterprise;
-		try {
-			const res = await fetch(
-				`${this._data.protocol ?? "https"}://${this._data.domain}${isEnterprise ? "/api" : ""}/api/v4/${url}`,
-				{
-					...init,
-					headers: {
-						...(init?.headers ?? {}),
-						...(this._data.token && { Authorization: `Bearer ${this._data.token}` }),
-					},
+		const res = await fetch(
+			`${this._data.protocol ?? "https"}://${this._data.domain}${isEnterprise ? "/api" : ""}/api/v4/${url}`,
+			{
+				...init,
+				headers: {
+					...(init?.headers ?? {}),
+					...(this._data.token && { Authorization: `Bearer ${this._data.token}` }),
 				},
-			);
-			return res;
-		} catch (e) {
-			console.error(e);
-		}
+			},
+		);
+		await this._validateResponse(res);
+		return res;
 	}
 }

@@ -2,7 +2,7 @@ FROM gitlab.ics-it.ru:4567/ics/doc-reader:base-image-${BRANCH:-"develop"} AS dep
 WORKDIR /src
 COPY . .
 RUN rm -r services/*
-RUN ./install-deps.sh --ci --wasm
+RUN ./install-deps.sh --ci
 
 FROM deps AS build
 ENV NODE_OPTIONS=--max_old_space_size=4096

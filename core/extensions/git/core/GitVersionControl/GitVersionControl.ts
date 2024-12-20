@@ -98,6 +98,10 @@ export default class GitVersionControl {
 		return gitRepository.showFileContent(relativePath);
 	}
 
+	async showFileContent(filePath: Path, revision: GitVersion): Promise<string> {
+		return this._gitRepository.showFileContent(filePath, revision);
+	}
+
 	async createNewBranch(newBranchName: string) {
 		await this._gitRepository.createNewBranch(newBranchName);
 		await this.update();

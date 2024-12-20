@@ -1,4 +1,4 @@
-import LeftNavigationIsOpenService from "@core-ui/ContextServices/LeftNavigationIsOpen";
+import SidebarsIsOpenService from "@core-ui/ContextServices/Sidebars/SidebarsIsOpenContext";
 import LeftNavViewContentContainer from "@core-ui/ContextServices/views/leftNavView/LeftNavViewContainer";
 import { useCallback } from "react";
 import { ArticlePageData } from "../../../../../logic/SitePresenter/SitePresenter";
@@ -7,11 +7,11 @@ import LeftNavigationTop from "../LeftNavigationTop";
 import LeftNavigationNarrowLayout from "./LeftNavigationNarrowLayout";
 
 const LeftNavigationNarrowComponent = ({ data }: { data: ArticlePageData }) => {
-	const closeNavigation = useCallback(() => (LeftNavigationIsOpenService.value = false), []);
+	const closeNavigation = useCallback(() => (SidebarsIsOpenService.value = { left: false }), []);
 
 	return (
 		<LeftNavigationNarrowLayout
-			isOpen={LeftNavigationIsOpenService.value}
+			isOpen={SidebarsIsOpenService.value.left}
 			leftNavigationTop={<LeftNavigationTop data={data} />}
 			leftNavigationContent={
 				<LeftNavViewContentContainer itemLinks={data.leftNavItemLinks} closeNavigation={closeNavigation} />

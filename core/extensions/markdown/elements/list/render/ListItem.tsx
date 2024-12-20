@@ -28,17 +28,7 @@ const TaskItemView: FC<ListItemProps> = (props) => {
 	);
 };
 
-const DefaultListItem = ({ children, className }: ListItemProps) => {
-	return <li className={className}>{children}</li>;
-};
-
-const ListItem: FC<ListItemProps> = (props) => {
-	const Tag = props?.isTaskItem ? TaskItemView : DefaultListItem;
-
-	return <Tag {...props} />;
-};
-
-export default styled(ListItem)`
+const StyledTaskItemView = styled(TaskItemView)`
 	&.task-item {
 		list-style-type: none !important;
 		position: relative;
@@ -69,3 +59,15 @@ export default styled(ListItem)`
 		top: unset;
 	}
 `;
+
+const DefaultListItem = ({ children, className }: ListItemProps) => {
+	return <li className={className}>{children}</li>;
+};
+
+const ListItem: FC<ListItemProps> = (props) => {
+	const Tag = props?.isTaskItem ? StyledTaskItemView : DefaultListItem;
+
+	return <Tag {...props} />;
+};
+
+export default ListItem;

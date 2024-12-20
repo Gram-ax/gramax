@@ -1,26 +1,45 @@
-import { Category } from "@core/FileStructue/Category/Category";
+import type { ReadonlyCatalog } from "@core/FileStructue/Catalog/ReadonlyCatalog";
 import { convertContentToUiLanguage } from "@ext/localization/locale/translate";
-import RuleProvider from "@ext/rules/RuleProvider";
 import MarkdownParser from "../../../extensions/markdown/core/Parser/Parser";
 import ParserContextFactory from "../../../extensions/markdown/core/Parser/ParserContext/ParserContextFactory";
 import Context from "../../Context/Context";
-import { ArticleFilter, Catalog } from "../Catalog/Catalog";
 import { ItemType } from "../Item/ItemType";
 import { Article } from "./Article";
 
-export const getChildLinks = (category: Category, catalog: Catalog, filters: ArticleFilter[]) => {
-	return category.items
-		.filter((i) => !filters || filters.every((f) => f(i as Article, catalog)))
-		.map((i) => {
-			const link = `./${category.ref.path.parentDirectoryPath.subDirectory(i.ref.path).value}`;
-			return `- [${i.getTitle()}](${link.includes(" ") ? `<${link}>` : link})`;
-		})
-		.join("\n\n");
+export const getChildLinks = () => {
+	return "[view:hierarchy=none::::List]";
+};
+
+const tryExtractHeader = (article: Article) => {
+	let header: string = null;
+
+	if (article.parsedContent.editTree) {
+		const content = article.parsedContent.editTree.content;
+		if (content && content[0] && content[0].type == "heading" && content[0].attrs.level == 1) {
+			header = content[0].text;
+			content.splice(0, 1);
+		}
+	}
+
+	if (article.parsedContent.renderTree && typeof article.parsedContent.renderTree == "object") {
+		const content = article.parsedContent.renderTree.children;
+		if (
+			content?.[0] &&
+			typeof content[0] == "object" &&
+			content[0].name == "Heading" &&
+			content[0].attributes.level == 1
+		) {
+			header = content[0].attributes.title;
+			content.splice(0, 1);
+		}
+	}
+
+	if (header) article.props.title = header;
 };
 
 async function parseContent(
 	article: Article,
-	catalog: Catalog,
+	catalog: ReadonlyCatalog,
 	ctx: Context,
 	parser: MarkdownParser,
 	parserContextFactory: ParserContextFactory,
@@ -29,7 +48,7 @@ async function parseContent(
 ) {
 	if (!article) return;
 	if (article.type == ItemType.article && !!article.parsedContent && initChildLinks) return;
-	if (article.type == ItemType.category && !!article.parsedContent && !!article.content.trim() && initChildLinks) {
+	if (article.type == ItemType.category && !!article.parsedContent && !!article.content?.trim?.() && initChildLinks) {
 		return;
 	}
 
@@ -39,14 +58,14 @@ async function parseContent(
 		convertContentToUiLanguage(ctx.contentLanguage || catalog?.props?.language),
 		ctx.user?.isLogged,
 	);
-	const filters = new RuleProvider(ctx).getItemFilters();
 	const content =
-		article.type == ItemType.category && !article.content.trim()
+		article.type == ItemType.category && !article.content?.trim?.()
 			? initChildLinks
-				? getChildLinks(article as Category, catalog, filters)
+				? getChildLinks()
 				: ""
 			: article.content;
 	article.parsedContent = await parser.parse(content, context, requestUrl);
+	tryExtractHeader(article);
 }
 
 export default parseContent;

@@ -21,7 +21,7 @@ const add: Command<{ ctx: Context; code: ContentLanguage; catalogName: string },
 		const { wm, resourceUpdaterFactory } = this._app;
 
 		if (!code || !ContentLanguage[code]) throw new Error("No content language code provided");
-		const catalog = await wm.current().getCatalog(catalogName);
+		const catalog = await wm.current().getCatalog(catalogName, ctx);
 		if (!catalog) throw new Error(`Catalog '${catalogName} not found`);
 		if (!catalog.props.language) throw new Error(`Catalog '${catalogName}' hasn't main language set`);
 		if (catalog.props.supportedLanguages.includes(code))
@@ -33,9 +33,9 @@ const add: Command<{ ctx: Context; code: ContentLanguage; catalogName: string },
 		let languageCategory = catalog.findArticle(`${catalogName}/${code}`, [filter]) as Category;
 		if (!languageCategory) languageCategory = await catalog.createCategory(code);
 
-		await catalog.updateProps(resourceUpdaterFactory.withContext(ctx), catalog.props);
+		await catalog.updateProps(catalog.props, resourceUpdaterFactory);
 
-		addExternalItems(
+		await addExternalItems(
 			catalog.getRootCategory(),
 			languageCategory,
 			catalog.getRootCategory().folderPath,
@@ -43,21 +43,6 @@ const add: Command<{ ctx: Context; code: ContentLanguage; catalogName: string },
 			wm.current().getFileStructure(),
 			catalog.props.supportedLanguages,
 		);
-
-		const saveAll = async (category: Category) => {
-			await category.save();
-
-			for (const item of category.items) {
-				if (item.type == ItemType.category) {
-					await (item as Category).updateContent("");
-					await saveAll(item as Category);
-				} else {
-					await item.save();
-				}
-			}
-		};
-
-		await saveAll(languageCategory);
 
 		await wm.current().refreshCatalog(catalogName);
 	},

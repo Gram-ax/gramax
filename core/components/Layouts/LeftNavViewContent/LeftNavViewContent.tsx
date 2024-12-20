@@ -79,7 +79,7 @@ export default styled(LeftNavViewContent)`
 	> .left-sidebar {
 		height: 100%;
 		width: var(--narrow-nav-width);
-		background: var(--color-menu-bg);
+		background: var(--color-nav-menu-bg);
 	}
 
 	.content {

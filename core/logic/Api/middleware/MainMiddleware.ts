@@ -38,9 +38,10 @@ export class MainMiddleware extends Middleware {
 
 	private _getPathError(e: Error): Error {
 		if (!this._path) return e;
-		const command = `Command:${this._path}`;
+		const command = this._path;
 		const error = new Error(`${command} ${e.message}`);
-		error.stack = e.stack.replace("Error:", `Error: ${command}`);
+		if (error.stack?.includes("Error:")) error.stack = e.stack.replace("Error:", `Error: ${command}`);
+		else error.stack = `Command: ${command}\nMessage: ${e.message}\n\n${e.stack}`;
 		return error;
 	}
 }

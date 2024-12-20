@@ -1,3 +1,4 @@
+import NetworkApiError from "@ext/errorHandlers/network/NetworkApiError";
 import type GitHubSourceData from "@ext/git/actions/Source/GitHub/logic/GitHubSourceData";
 import GithubInstallation from "@ext/git/actions/Source/GitHub/model/GithubInstallation";
 import GitSourceApi from "@ext/git/actions/Source/GitSourceApi";
@@ -5,35 +6,34 @@ import { GitRepData, GitRepsPageData } from "@ext/git/actions/Source/model/GitRe
 import { SourceUser } from "@ext/git/actions/Source/SourceAPI";
 import parseGithubLink from "@ext/git/actions/Storage/GitHub/logic/utils/getTotalPages";
 import type GitSourceData from "@ext/git/core/model/GitSourceData.schema";
+import t from "@ext/localization/locale/translate";
 import Branch from "../../../../../VersionControl/model/branch/Branch";
 import GitStorageData from "../../../../core/model/GitStorageData";
 
 export default class GithubSourceAPI extends GitSourceApi {
 	private readonly _allProjectsUrl = "user/repos?sort=updated";
 
-	constructor(data: GitHubSourceData, private _authServiceUrl: string) {
-		super(data);
-	}
-
-	async isCredentialsValid(): Promise<boolean> {
-		try {
-			const res = await this._api(`user`);
-			if (res.status == 401 || res.status == 403) return false;
-		} catch {
-			/* empty */
-		}
-		return true;
+	constructor(
+		data: GitHubSourceData,
+		private _authServiceUrl: string,
+		protected _onError?: (error: NetworkApiError) => void,
+	) {
+		super(data, _onError);
 	}
 
 	async isRepositoryExists(data: GitStorageData): Promise<boolean> {
-		const res = await this._api(`repos/${data.group}/${data.name}`, { method: "GET" });
-		if (await res.json().then((j) => j.id)) return true;
-		return false;
+		try {
+			const res = await this._api(`repos/${data.group}/${data.name}`, { method: "GET" });
+			if (await res.json().then((j) => j.id)) return true;
+			return false;
+		} catch (e) {
+			if (e instanceof NetworkApiError && e.props.status === 404) return false;
+			throw e;
+		}
 	}
 
 	async getUser(): Promise<SourceUser> {
 		const res = await this._api("user");
-		if (!res.ok) return null;
 		const user = await res.json();
 		return {
 			name: user.login as string,
@@ -90,25 +90,21 @@ export default class GithubSourceAPI extends GitSourceApi {
 
 	async getDefaultBranch(data: GitStorageData): Promise<string> {
 		const res = await this._api(`repos/${data.group}/${data.name}`);
-		if (!res.ok) return null;
 		return (await res.json()).default_branch;
 	}
 
 	async getAllBranches(data: GitStorageData, field?: string): Promise<any[]> {
 		const res = await this._api(`repos/${data.group}/${data.name}/branches`);
-		if (!res.ok) return [];
 		return (await res.json()).map((branch) => branch?.[field] ?? branch?.name);
 	}
 
 	async getFileTree(data: GitStorageData, branch: Branch, field?: string): Promise<any[]> {
 		const res = await this._api(`repos/${data.group}/${data.name}/git/trees/${branch.toString()}?recursive=1`);
-		if (!res.ok) return [];
 		return (await res.json()).tree.map((file) => file?.[field] ?? file?.path);
 	}
 
 	async getInstallations(): Promise<GithubInstallation[]> {
 		const res = await this._api("user/installations");
-		if (!res.ok) return null;
 		const installations = await res.json();
 		return installations.installations.map(
 			(i): GithubInstallation => ({
@@ -123,14 +119,12 @@ export default class GithubSourceAPI extends GitSourceApi {
 	async refreshAccessToken(): Promise<GitSourceData> {
 		const url = `${this._authServiceUrl}/github-refresh?refreshToken=${this._data.refreshToken}`;
 		const res = await fetch(url);
-		if (!res.ok) return null;
 		this._data.token = await res?.text();
 		return this._data ?? null;
 	}
 
 	private async _getUserMail(): Promise<string> {
 		const res = await this._api("user/emails");
-		if (!res.ok) return null;
 		const mails = (await res.json()) as any[];
 		return mails.find((mail) => mail.primary).email ?? mails[0].email;
 	}
@@ -139,7 +133,6 @@ export default class GithubSourceAPI extends GitSourceApi {
 		const result: Response[] = [];
 		const concatChar = this._getConcatChar(url);
 		const res = await this._api(`${url}${perPage ? `${concatChar}per_page=${perPage}` : ""}`, init);
-		if (!res || !res.ok) return [];
 
 		result.push(res);
 
@@ -167,7 +160,7 @@ export default class GithubSourceAPI extends GitSourceApi {
 			resPromises.push(res);
 		}
 
-		return (await Promise.all(resPromises)).filter((res) => res && res.ok);
+		return Promise.all(resPromises);
 	}
 
 	protected async _api(url: string, init?: RequestInit): Promise<Response> {
@@ -176,9 +169,20 @@ export default class GithubSourceAPI extends GitSourceApi {
 			headers: { ...(init?.headers ?? {}), Authorization: `token ${this._data.token}` },
 		});
 		if (res.headers.get("x-ratelimit-remaining") === "0") {
-			console.error("Github request limit has been exceeded");
-			return { ok: false } as any;
+			const error = new NetworkApiError(
+				"Github request limit has been exceeded",
+				{
+					url: res.url,
+					errorJson: await res.json(),
+					status: res.status,
+				},
+				t("git.error.source-api.title"),
+			);
+
+			this._onError?.(error);
+			throw error;
 		}
+		await this._validateResponse(res);
 		return res;
 	}
 }

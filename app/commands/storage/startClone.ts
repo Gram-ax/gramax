@@ -20,7 +20,7 @@ const startClone: Command<
 		const fs = workspace.getFileStructure();
 
 		const entry = await fs.getCatalogEntryByPath(path, false, { isCloning: true });
-		if (await workspace.getCatalogEntry(entry.getName())) return;
+		if (await workspace.getBaseCatalog(entry.name)) return;
 
 		workspace.addCatalogEntry(entry);
 		void rp.cloneNewRepository(fs, path, data, recursive, isBare, branch, async () => {

@@ -11,8 +11,8 @@ import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import { downloadFile } from "@core-ui/downloadResource";
 import { CancelableFunction } from "@core/utils/CancelableFunction";
-import CommonUnsupportedElementsModal from "@ext/confluence/core/components/CommonUnsupportedElementsModal";
-import UnsupportedElements from "@ext/confluence/core/model/UnsupportedElements";
+import CommonUnsupportedElementsModal from "@ext/import/components/CommonUnsupportedElementsModal";
+import UnsupportedElements from "@ext/import/model/UnsupportedElements";
 import t from "@ext/localization/locale/translate";
 import { useMemo, useState } from "react";
 

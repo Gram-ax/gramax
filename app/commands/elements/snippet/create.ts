@@ -2,27 +2,28 @@ import { Command } from "@app/types/Command";
 import { ResponseKind } from "@app/types/ResponseKind";
 import { DesktopModeMiddleware } from "@core/Api/middleware/DesktopModeMiddleware";
 import ReloadConfirmMiddleware from "@core/Api/middleware/ReloadConfirmMiddleware";
+import type Context from "@core/Context/Context";
 import SnippetEditData from "@ext/markdown/elements/snippet/model/SnippetEditData";
 
-const create: Command<{ catalogName: string; snippetEditData: SnippetEditData }, void> = Command.create({
+const create: Command<{ ctx: Context; catalogName: string; snippetEditData: SnippetEditData }, void> = Command.create({
 	path: "elements/snippet/create",
 
 	kind: ResponseKind.none,
 
 	middlewares: [new DesktopModeMiddleware(), new ReloadConfirmMiddleware()],
 
-	async do({ catalogName, snippetEditData }) {
+	async do({ ctx, catalogName, snippetEditData }) {
 		const { wm, formatter } = this._app;
 		const workspace = wm.current();
 
-		const catalog = await workspace.getCatalog(catalogName);
+		const catalog = await workspace.getCatalog(catalogName, ctx);
 		if (!catalog) return;
 		return catalog.snippetProvider.create(snippetEditData, formatter);
 	},
 
-	params(_, q, body) {
+	params(ctx, q, body) {
 		const catalogName = q.catalogName;
-		return { catalogName, snippetEditData: body };
+		return { ctx, catalogName, snippetEditData: body };
 	},
 });
 

@@ -1,6 +1,6 @@
 import { NodeSerializerSpec } from "@ext/markdown/core/edit/logic/Prosemirror/to_markdown";
 
-const ordered_list: NodeSerializerSpec = async (state, node) => {
+const orderedList: NodeSerializerSpec = async (state, node) => {
 	const start: number = node.attrs.order || 1;
 	await state.renderList(
 		node,
@@ -15,4 +15,4 @@ const ordered_list: NodeSerializerSpec = async (state, node) => {
 	);
 };
 
-export default ordered_list;
+export default orderedList;

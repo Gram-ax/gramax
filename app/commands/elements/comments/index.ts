@@ -1,11 +1,11 @@
+import getCommentsByAuthors from "@app/commands/elements/comments/getCommentsByAuthors";
 import deleteComment from "./deleteComment";
 import getCommentsCount from "./getCommentCount";
-import getNavigationUnresolvedCommentsCount from "./getNavigationUnresolvedCommentsCount";
 
 const comments = {
 	deleteComment,
 	getCommentsCount,
-	getNavigationUnresolvedCommentsCount,
+	getCommentsByAuthors,
 };
 
 export default comments;

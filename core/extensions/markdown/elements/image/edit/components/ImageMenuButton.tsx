@@ -7,10 +7,12 @@ import t from "@ext/localization/locale/translate";
 import Button from "@ext/markdown/core/edit/components/Menu/Button";
 import { Editor } from "@tiptap/core";
 import createImages from "../logic/createImages";
+import OnLoadResourceService from "@ext/markdown/elements/copyArticles/onLoadResourceService";
 
 const ImageMenuButton = ({ editor, className }: { editor: Editor; className?: string }) => {
 	const articleProps = ArticlePropsService.value;
 	const apiUrlCreator = ApiUrlCreatorService.value;
+	const onLoadResource = OnLoadResourceService.value;
 
 	const { disabled } = ButtonStateService.useCurrentAction({ action: "image" });
 
@@ -31,7 +33,13 @@ const ImageMenuButton = ({ editor, className }: { editor: Editor; className?: st
 					id="image"
 					accept="image/*"
 					onChange={(event) =>
-						createImages([...event.currentTarget.files], editor.view, articleProps, apiUrlCreator)
+						createImages(
+							[...event.currentTarget.files],
+							editor.view,
+							articleProps,
+							apiUrlCreator,
+							onLoadResource,
+						)
 					}
 				/>
 				<Button icon="image" />

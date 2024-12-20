@@ -46,7 +46,7 @@ impl StatusInfo {
   }
 }
 
-impl<'s> From<git2::StatusEntry<'s>> for StatusInfoEntry {
+impl From<git2::StatusEntry<'_>> for StatusInfoEntry {
   fn from(value: git2::StatusEntry) -> Self {
     Self { path: PathBuf::from(value.path().unwrap_or_default()), status: value.status().into() }
   }
@@ -111,6 +111,7 @@ impl<C: Creds> Status for Repo<C> {
   }
 
   fn status_file<P: AsRef<Path>>(&self, path: P) -> Result<StatusEntry> {
+    info!(target: TAG, "status file {}", path.as_ref().display());
     Ok(self.0.status_file(path.as_ref())?.into())
   }
 }

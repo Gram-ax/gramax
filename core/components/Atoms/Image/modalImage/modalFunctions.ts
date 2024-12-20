@@ -1,9 +1,12 @@
-export const calculateTransform = (startPos: DOMRect, width: number, height: number): string => `
+export const ZOOM_COUNT = 10;
+
+export const calculateTransform = (startPos: DOMRect): string =>
+	`
 	translate3d(
 		${startPos.left - (window.innerWidth - startPos.width) / 2}px,
 		${startPos.top - (window.innerHeight - startPos.height) / 2}px,
 		0
-	) scale(${startPos.width / width}, ${startPos.height / height})
+	) scale(0.5, 0.5);
 `;
 
 export const getClampedValues = (realSize: { width: number; height: number }): { [key: string]: number } => {
@@ -18,10 +21,10 @@ export const getCanMoves = (targetRect: DOMRect): { left: boolean; right: boolea
 	const viewportHeight = window.innerHeight;
 
 	return {
-		left: targetRect.left <= 1,
-		right: targetRect.right > viewportWidth,
-		top: targetRect.top <= 1,
-		bottom: targetRect.bottom > viewportHeight,
+		left: targetRect.left - 1 <= 1,
+		right: targetRect.right > viewportWidth - 1,
+		top: targetRect.top - 1 <= 1,
+		bottom: targetRect.bottom > viewportHeight - 1,
 	};
 };
 

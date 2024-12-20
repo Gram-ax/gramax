@@ -1,4 +1,6 @@
+import getArticleRefRule from "@ext/markdown/elementsUtils/editExtensionUpdator/rules/extensionRules/articleRef";
 import getCatalogPropsRule from "@ext/markdown/elementsUtils/editExtensionUpdator/rules/extensionRules/catalogProps";
+import { MutableRefObject } from "react";
 import PageDataContext from "../../../../../logic/Context/PageDataContext";
 import { ClientArticleProps, ClientCatalogProps } from "../../../../../logic/SitePresenter/SitePresenter";
 import ApiUrlCreator from "../../../../../ui-logic/ApiServices/ApiUrlCreator";
@@ -9,8 +11,6 @@ import getArticlePropsRule from "./extensionRules/articleProps";
 import isMacInfoRule from "./extensionRules/isMac";
 import getPageDataContextRule from "./extensionRules/pageDataContext";
 import getThemeRule from "./extensionRules/theme";
-import ArticleRefService from "@core-ui/ContextServices/ArticleRef";
-import getArticleRefRule from "@ext/markdown/elementsUtils/editExtensionUpdator/rules/extensionRules/articleRef";
 
 export const getExtensionUpdaterRules = (
 	theme: Theme,
@@ -19,7 +19,7 @@ export const getExtensionUpdaterRules = (
 	catalogProps: ClientCatalogProps,
 	apiUrlCreator: ApiUrlCreator,
 	pageDataContext: PageDataContext,
-	articleRef: ArticleRefService,
+	articleRef: MutableRefObject<HTMLDivElement>,
 ): ExtensionUpdaterRules[] => {
 	return [
 		getThemeRule(theme),

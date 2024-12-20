@@ -14,28 +14,30 @@ import { clearData } from "@core-ui/ContextServices/RefreshPageContext";
 import WorkspaceService from "@core-ui/ContextServices/Workspace";
 import { uniqueName } from "@core/utils/uniqueName";
 import styled from "@emotion/styled";
-import AdminLink from "@ext/enterprise/AdminLink";
 import t from "@ext/localization/locale/translate";
+import EditCustomTheme from "@ext/workspace/components/EditCustomTheme";
+import { useWorkspaceLogo } from "@ext/workspace/components/useWorkspaceLogo";
+import { useWorkspaceStyle } from "@ext/workspace/components/useWorkspaceStyle";
 import { ClientWorkspaceConfig } from "@ext/workspace/WorkspaceConfig";
 import { useMemo, useState } from "react";
 
-const WorkspaceForm = ({
-	onSave,
-	workspace,
-	create = false,
-	className,
-}: {
+export interface WorkspaceFormProps {
 	create?: boolean;
 	workspace?: ClientWorkspaceConfig;
 	onSave?: () => void;
 	className?: string;
-}) => {
+}
+
+const WorkspaceForm = (Props: WorkspaceFormProps) => {
+	const { onSave, workspace, create = false, className } = Props;
+
 	const apiUrlCreator = ApiUrlCreatorService.value;
-
-	const askPath = getExecutingEnvironment() == "tauri";
-
 	const workspaces = WorkspaceService.workspaces();
 	const pathPlaceholder = WorkspaceService.defaultPath();
+	const askPath = getExecutingEnvironment() == "tauri";
+
+	const { confirmChanges: confirmLogo, ...workspaceLogoProps } = useWorkspaceLogo(workspace?.path);
+	const { confirmChanges: confirmStyle, ...workspaceStyleProps } = useWorkspaceStyle(workspace?.path);
 
 	const [deleteInProgress, setDeleteInProgress] = useState(false);
 
@@ -83,6 +85,8 @@ const WorkspaceForm = ({
 			create ? apiUrlCreator.createWorkspace() : apiUrlCreator.editWorkspace(),
 			JSON.stringify(props),
 		);
+		await confirmLogo();
+		await confirmStyle();
 		await refreshPage();
 	};
 
@@ -143,6 +147,7 @@ const WorkspaceForm = ({
 								</div>
 							</div>
 						</div>
+
 						{askPath && (
 							<div className="form-group">
 								<div className="field field-string row">
@@ -175,6 +180,7 @@ const WorkspaceForm = ({
 										)}
 									</div>
 								</div>
+
 								<div className={`input-lable-description `}>
 									<div />
 									<div className="article">
@@ -184,6 +190,7 @@ const WorkspaceForm = ({
 							</div>
 						)}
 					</fieldset>
+					{workspace?.path && <EditCustomTheme {...workspaceStyleProps} {...workspaceLogoProps} />}
 					<div className="buttons">
 						<div className="left-buttons">
 							{!create && workspaces.length > 1 && (
@@ -200,7 +207,6 @@ const WorkspaceForm = ({
 									<span>{t("delete")}</span>
 								</Button>
 							)}
-							<AdminLink workspace={workspace} />
 						</div>
 						<Button
 							buttonStyle={ButtonStyle.default}
@@ -224,5 +230,40 @@ export default styled(WorkspaceForm)`
 
 	.spinner-container {
 		margin-right: 0.1rem;
+	}
+
+	.second_header {
+		margin-top: 1.5rem;
+		margin-bottom: 0.5em;
+		font-size: 22px;
+	}
+
+	.assets_row_item {
+		.row {
+			align-items: start !important;
+		}
+		.control-label {
+			margin-top: 7.4px;
+		}
+	}
+
+	.hide_text {
+		span {
+			width: 0;
+			opacity: 0;
+			padding: 0 !important;
+		}
+	}
+
+	.secondary_logo_action {
+		display: flex;
+		flex-direction: column;
+		gap: 0.6rem;
+	}
+
+	.change_logo_actions {
+		display: flex;
+		flex-direction: column;
+		gap: 0.5rem;
 	}
 `;

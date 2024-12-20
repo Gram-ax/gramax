@@ -1,8 +1,9 @@
 import Tooltip from "@components/Atoms/Tooltip";
 import styled from "@emotion/styled";
 import { handleMove, objectMove } from "@ext/markdown/elements/image/edit/logic/imageEditorMethods";
-import { ReactElement, RefObject, useEffect, useRef, useState } from "react";
+import { CSSProperties, ReactElement, RefObject, useRef, useState } from "react";
 import { SquareObject } from "../../../edit/model/imageEditorTypes";
+import { classNames } from "@components/libs/classNames";
 
 interface SquareObjectProps extends SquareObject {
 	parentRef: RefObject<HTMLDivElement>;
@@ -11,6 +12,7 @@ interface SquareObjectProps extends SquareObject {
 	selected: boolean;
 	className?: string;
 	drawIndexes?: boolean;
+	style?: CSSProperties;
 }
 
 const Square = (props: SquareObjectProps): ReactElement => {
@@ -29,14 +31,10 @@ const Square = (props: SquareObjectProps): ReactElement => {
 		changeData,
 		parentRef,
 		className,
+		style,
 	} = props;
-	const [isSelected, setSelected] = useState<boolean>(Boolean(selected));
-	const [isDraggable, setDraggable] = useState<boolean>(false);
-	const [isTooltipHover, setTooltipHover] = useState<boolean>(false);
-	const [curIndex, setCurIndex] = useState<number>(null);
-	const [tooltipText, setTooltipText] = useState<string>(text);
-
 	const mainRef = useRef<HTMLDivElement>(null);
+	const [isDraggable, setDraggable] = useState<boolean>(false);
 
 	const mainMouseDown = objectMove({
 		isDraggable,
@@ -45,21 +43,15 @@ const Square = (props: SquareObjectProps): ReactElement => {
 		setDraggable,
 		onMouseDownCallback: () => {
 			if (!editable) return false;
-			if (onClick) onClick(curIndex);
+			onClick?.(index);
 			return true;
 		},
-		onMouseUpCallback: function (): void {
-			const main = mainRef.current;
-			const newX = parseFloat(main.style.left);
-			const newY = parseFloat(main.style.top);
-			const newW = parseFloat(main.style.width);
-			const newH = parseFloat(main.style.height);
+		onMouseUpCallback: function (newX, newY, newW, newH): void {
+			const isNotEqual =
+				Math.round(newX) !== x || Math.round(newY) !== y || Math.round(newW) !== w || Math.round(newH) !== h;
 
-			if (
-				changeData &&
-				(Math.round(newX) !== x || Math.round(newY) !== y || Math.round(newW) !== w || Math.round(newH) !== h)
-			) {
-				changeData(curIndex, {
+			if (changeData && isNotEqual) {
+				changeData(index, {
 					x: newX,
 					y: newY,
 					w: newW,
@@ -75,21 +67,15 @@ const Square = (props: SquareObjectProps): ReactElement => {
 		mainRef,
 		onMouseDownCallback: () => {
 			if (!editable) return false;
-			if (onClick) onClick(curIndex);
+			onClick?.(index);
 			return true;
 		},
-		onMouseUpCallback: () => {
-			const main = mainRef.current;
-			const newX = parseFloat(main.style.left);
-			const newY = parseFloat(main.style.top);
-			const newW = parseFloat(main.style.width);
-			const newH = parseFloat(main.style.height);
+		onMouseUpCallback: (newX, newY, newW, newH) => {
+			const isNotEqual =
+				Math.round(newX) !== x || Math.round(newY) !== y || Math.round(newW) !== w || Math.round(newH) !== h;
 
-			if (
-				changeData &&
-				(Math.round(newX) !== x || Math.round(newY) !== y || Math.round(newW) !== w || Math.round(newH) !== h)
-			) {
-				changeData(curIndex, {
+			if (changeData && isNotEqual) {
+				changeData(index, {
 					x: newX,
 					y: newY,
 					w: newW,
@@ -99,37 +85,26 @@ const Square = (props: SquareObjectProps): ReactElement => {
 		},
 	});
 
-	useEffect(() => {
-		setCurIndex(index);
-		setSelected(selected);
-		setTooltipText(text);
-	}, [selected, index, text]);
-
 	return (
-		<Tooltip
-			hideInMobile={false}
-			visible={tooltipText.length > 0 && isTooltipHover}
-			content={<span>{tooltipText}</span>}
-		>
+		<Tooltip hideInMobile={false} disabled={isDraggable} trigger="mouseenter focus" content={text}>
 			<div
 				id={"object/" + index}
 				ref={mainRef}
-				onMouseEnter={() => !isDraggable && setTooltipHover(true)}
-				onMouseLeave={() => setTooltipHover(false)}
 				onMouseDown={mainMouseDown}
 				style={{
+					...style,
 					left: x + "%",
 					top: y + "%",
 					width: w + "%",
 					height: h + "%",
 				}}
-				className={className + (isSelected ? " selected" : "")}
+				className={classNames(className, { selected })}
 			>
 				{drawIndexes && (
-					<div className={`annotation annotation-${direction}`}>{curIndex < 9 && <p>{curIndex + 1}</p>}</div>
+					<div className={`annotation annotation-${direction}`}>{index < 9 && <p>{index + 1}</p>}</div>
 				)}
 
-				{editable && isSelected && (
+				{editable && selected && (
 					<div>
 						<div onMouseDown={onMouseDown} id="top-left" className="handle top-left"></div>
 						<div onMouseDown={onMouseDown} id="top-right" className="handle top-right"></div>
@@ -161,8 +136,8 @@ export default styled(Square)`
 		justify-content: center;
 		align-items: center;
 		background-color: #fc2847;
-		width: 22px;
-		height: 22px;
+		width: 1.4em;
+		height: 1.4em;
 		border-radius: 50%;
 		pointer-events: auto !important;
 	}
@@ -190,7 +165,7 @@ export default styled(Square)`
 	.annotation p {
 		color: #fff;
 		line-height: normal;
-		font-size: 14px;
+		font-size: 0.8em;
 		font-weight: 600;
 		padding: 0;
 		margin: 0 !important;
@@ -200,8 +175,10 @@ export default styled(Square)`
 
 	.handle {
 		position: absolute;
-		width: 30px;
-		height: 30px;
+		width: 50%;
+		height: 50%;
+		max-width: 30px;
+		max-height: 30px;
 		border: 2px solid #1476ff;
 		user-select: none;
 		z-index: var(--z-index-base);

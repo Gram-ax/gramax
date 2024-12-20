@@ -10,12 +10,20 @@ export const parse = (
 	crop: string,
 	scale: string,
 	objects: string,
-): { crop: Crop; objects: ImageObject[]; scale?: number } => {
+	width: number,
+	height: number,
+): { crop: Crop; objects: ImageObject[]; scale?: number; width: number; height: number } => {
 	const scaleIsObjects = isObjects(scale);
 	const newCrop = transfromToCrop(crop);
 	const newObjects = transformToObjects((scaleIsObjects ? scale : objects) ?? "[]");
 
-	return { crop: newCrop, objects: newObjects, scale: (!scaleIsObjects && scale !== null ? +scale : null) ?? null };
+	return {
+		crop: newCrop,
+		objects: newObjects,
+		scale: (!scaleIsObjects && scale !== null ? +scale : null) ?? null,
+		width: width,
+		height: height,
+	};
 };
 
 const isObjects = (objects: string): boolean => {
@@ -70,15 +78,19 @@ const transformToObjects = (objects: string): ImageObject[] => {
 	return newObjects;
 };
 
-export const format = (crop: Crop, objects: ImageObject[], scale?: number): string => {
+export const format = (width: number, height: number, crop: Crop, objects: ImageObject[], scale?: number): string => {
+	const hasSize = width && height;
 	return (
 		Object.values(crop).join(",") +
-		(scale ? ":" + scale : "") +
 		":" +
-		(typeof objects === "object"
+		(scale || "") +
+		":" +
+		(Array.isArray(objects)
 			? objects?.map((data: any, index: number) => {
 					if (data.type) return (index !== 0 ? "&" : "") + Object.values(data).join(",");
 			  })
-			: "")
+			: ":") +
+		":" +
+		(hasSize ? width + ":" + height : "")
 	);
 };

@@ -20,11 +20,13 @@ const getArticlePageData: Command<
 
 		const catalogName = path[0];
 		const catalog = await wm.getCatalogOrFindAtAnyWorkspace(catalogName);
+		if (catalog) await catalog.parseEveryArticle(ctx, this._app.parser, this._app.parserContextFactory);
 
 		const workspace = wm.current(); // `wm.getCatalogAtAnyWorkspace` can change workspace
 
 		const isReadOnly =
-			this._app.conf.isReadOnly || workspace.getFileProvider().at(catalog.getBasePath()).isReadOnly;
+			this._app.conf.isReadOnly ||
+			(catalog?.basePath && workspace.getFileProvider().at(catalog.basePath).isReadOnly);
 
 		const opts: GetArticlePageDataOptions = {
 			editableContent: !isReadOnly,

@@ -1,5 +1,5 @@
+import type { RequestParagraphModel } from "@ics/gx-ai/dist/styleGuideCheck/styleGuideGptRequest";
 import { JSONContent } from "@tiptap/react";
-import { RequestParagraphModel } from "gx-ai/dist/gpt/styleGuideGpt/styleGuideGptRequest";
 
 function extractSentences(text: string): string[] {
 	const texts = text.split(/(\.+\s+)/).reduce((acc: string[], part: string) => {
@@ -38,7 +38,7 @@ function astToParagraphs(ast: JSONContent): RequestParagraphModel[] {
 			extractSentences(text).forEach((s) => {
 				result.push({
 					text: s.trim(),
-					type: node.type === "paragraph" ? "Обычный текст" : "Заголовок",
+					type: node.type === "paragraph" ? "plainText" : "heading",
 					id: idx++,
 				});
 			});

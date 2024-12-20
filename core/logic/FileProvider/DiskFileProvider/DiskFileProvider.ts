@@ -7,6 +7,7 @@ import Watcher from "../../../extensions/Watchers/model/Watcher";
 import Path from "../Path/Path";
 import FileInfo from "../model/FileInfo";
 import FileProvider from "../model/FileProvider";
+import type * as DFPIntermediateCommands from "./DFPIntermediateCommands";
 
 const isDesktop = getExecutingEnvironment() == "tauri";
 
@@ -45,6 +46,17 @@ export default class DiskFileProvider implements FileProvider {
 	}
 
 	async getItems(path: Path): Promise<FileInfo[]> {
+		// В next не используется кастомная реализация fs; По сути этот if - оптимизация количества вызовов команд
+		if (getExecutingEnvironment() != "next") {
+			const stats = await (fs as unknown as typeof DFPIntermediateCommands).readDirStats(this._toAbsolute(path));
+			return stats.map((stat) =>
+				Object.assign(stat, {
+					type: (stat.isFile() ? "file" : "dir") as any,
+					path: path.join(new Path(stat.name)),
+				} as FileInfo),
+			);
+		}
+
 		try {
 			const files = await fs.readdir(this._toAbsolute(path));
 			return (

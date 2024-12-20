@@ -9,7 +9,7 @@ const TaskListMenuButton = ({ editor }: { editor: Editor }) => {
 			icon={"list-todo"}
 			tooltipText={t("editor.task-list")}
 			hotKey={"Mod-Shift-9"}
-			nodeValues={{ action: "task_list" }}
+			nodeValues={{ action: "taskList" }}
 		/>
 	);
 };

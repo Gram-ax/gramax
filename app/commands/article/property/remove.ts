@@ -20,9 +20,9 @@ const remove: Command<
 	async do({ articlePath, catalogName, value, propertyName, ctx }) {
 		const { wm, resourceUpdaterFactory } = this._app;
 		const workspace = wm.current();
-		const catalog = await workspace.getCatalog(catalogName);
+		const catalog = await workspace.getCatalog(catalogName, ctx);
 		if (!catalog) return;
-		return await new CatalogProperty(catalog, ctx, resourceUpdaterFactory).remove(articlePath, propertyName, value);
+		return await new CatalogProperty(catalog, resourceUpdaterFactory).remove(articlePath, propertyName, value);
 	},
 
 	params(ctx, q) {

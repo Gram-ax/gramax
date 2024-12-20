@@ -66,6 +66,32 @@ const t = (key: TranslationKey, forceLanguage?: UiLanguage) => {
 	return locale[key] ?? key;
 };
 
+export const pluralize = (
+	count: number,
+	forms: {
+		zero?: string;
+		one: string;
+		few: string;
+		many: string;
+	},
+	prefix: string = "",
+) => {
+	const lastDigit = count % 10;
+	const lastTwoDigits = count % 100;
+
+	if (count === 0 && forms.zero) {
+		return forms.zero;
+	} else if (lastTwoDigits >= 11 && lastTwoDigits <= 19) {
+		return prefix + count + " " + forms.many;
+	} else if (lastDigit === 1) {
+		return prefix + count + " " + forms.one;
+	} else if (lastDigit >= 2 && lastDigit <= 4) {
+		return prefix + count + " " + forms.few;
+	} else {
+		return prefix + count + " " + forms.many;
+	}
+};
+
 export const hasTranslation = (key: TranslationKey): boolean => t(key, defaultLanguage) != key;
 
 export const convertContentToUiLanguage = (l: ContentLanguage): UiLanguage =>

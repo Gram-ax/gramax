@@ -17,8 +17,7 @@
       
       
       
-      ![](./pictures.png)
-      
+      ![](./pictures.png){width=2559px height=1440px}
       """
 
   Сценарий: Отмена изменений

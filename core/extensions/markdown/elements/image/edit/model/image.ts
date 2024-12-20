@@ -1,8 +1,8 @@
+import imageSchema from "@ext/markdown/elements/image/edit/model/imageSchema";
+import getExtensionOptions from "@ext/markdown/logic/getExtensionOptions";
 import { mergeAttributes, Node } from "@tiptap/core";
 import { ReactNodeViewRenderer } from "@tiptap/react";
 import ImageComponent from "../components/ImageComponent";
-import getExtensionOptions from "@ext/markdown/logic/getExtensionOptions";
-import imageSchema from "@ext/markdown/elements/image/edit/model/imageSchema";
 
 declare module "@tiptap/core" {
 	interface Commands<ReturnType> {

@@ -5,6 +5,7 @@ import ArticleRefService from "@core-ui/ContextServices/ArticleRef";
 import ArticleTooltipService from "@core-ui/ContextServices/ArticleTooltip";
 import CatalogPropsService from "@core-ui/ContextServices/CatalogProps";
 import CommentCounterService from "@core-ui/ContextServices/CommentCounter";
+import WorkspaceAssetsService from "@core-ui/ContextServices/WorkspaceAssetsService";
 import IsEditService from "@core-ui/ContextServices/IsEdit";
 import IsFirstLoadService from "@core-ui/ContextServices/IsFirstLoadService";
 import IsMacService from "@core-ui/ContextServices/IsMac";
@@ -15,11 +16,12 @@ import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import RefreshPageService from "@core-ui/ContextServices/RefreshPageContext";
 import ScrollWebkitService from "@core-ui/ContextServices/ScrollWebkit";
 import SearchQueryService from "@core-ui/ContextServices/SearchQuery";
-import SidebarsIsPinService from "@core-ui/ContextServices/SidebarsIsPin";
+import SidebarsIsPinService from "@core-ui/ContextServices/Sidebars/SidebarsIsPin";
 import SyncIconService from "@core-ui/ContextServices/SyncIconService";
 import ArticleViewService from "@core-ui/ContextServices/views/articleView/ArticleViewService";
 import LeftNavViewContentService from "@core-ui/ContextServices/views/leftNavView/LeftNavViewContentService";
 import WorkspaceService from "@core-ui/ContextServices/Workspace";
+import matomoMetric from "@core-ui/matomoMetric";
 import useIsFirstLoad from "@core-ui/useIsFirstLoad";
 import yandexMetric from "@core-ui/yandexMetric";
 import { useRouter } from "@core/Api/useRouter";
@@ -27,6 +29,7 @@ import { ArticlePageData, HomePageData } from "@core/SitePresenter/SitePresenter
 import OnLoadResourceService from "@ext/markdown/elements/copyArticles/onLoadResourceService";
 import EditorExtensionsService from "@ext/markdown/elements/diff/components/EditorExtensionsService";
 import CurrentTabsTagService from "@ext/markdown/elements/tabs/components/CurrentTabsTagService";
+import PropertyService from "@ext/properties/components/PropertyService";
 import PermissionService from "@ext/security/logic/Permission/components/PermissionService";
 import ThemeService from "../extensions/Theme/components/ThemeService";
 import PageDataContext from "../logic/Context/PageDataContext";
@@ -70,8 +73,9 @@ export default function ContextProviders({
 
 	const isReadOnly = pageProps.context.conf.isReadOnly;
 	const isProduction = pageProps.context.conf.isProduction;
-	const yandexMetricCounter = pageProps.context.conf.yandexMetricCounter;
-	if (isReadOnly && isProduction) yandexMetric(yandexMetricCounter);
+	const metrics = pageProps.context.conf.metrics;
+	if (isReadOnly && isProduction) matomoMetric(metrics.matomo);
+	if (isReadOnly && isProduction) yandexMetric(metrics.yandex.metricCounter);
 
 	return (
 		<IsOfflineService.Provider>
@@ -83,91 +87,95 @@ export default function ContextProviders({
 								<ThemeService.Provider value={pageProps.context.theme}>
 									<IsMacService.Provider>
 										<WorkspaceService.Provider>
-											<SearchQueryService.Provider>
-												<SyncIconService.Provider>
-													<IsOpenModalService.Provider>
-														<ScrollWebkitService.Provider>
-															<SidebarsIsPinService.Provider>
-																<>
-																	{isArticlePage ? (
-																		<EditorExtensionsService.Provider>
-																			<OnLoadResourceService.Provider>
-																				<IsMenuBarOpenService.Provider>
-																					<ArticleRefService.Provider>
-																						<ArticlePropsService.Provider
-																							value={
-																								pageProps.data
-																									.articleProps
-																							}
-																						>
-																							<CatalogPropsService.Provider
+											<WorkspaceAssetsService.Provider>
+												<SearchQueryService.Provider>
+													<SyncIconService.Provider>
+														<IsOpenModalService.Provider>
+															<ScrollWebkitService.Provider>
+																<SidebarsIsPinService.Provider>
+																	<>
+																		{isArticlePage ? (
+																			<EditorExtensionsService.Provider>
+																				<OnLoadResourceService.Provider>
+																					<IsMenuBarOpenService.Provider>
+																						<ArticleRefService.Provider>
+																							<ArticlePropsService.Provider
 																								value={
 																									pageProps.data
-																										.catalogProps
+																										.articleProps
 																								}
 																							>
-																								<ModalToOpenService.Provider>
-																									<CurrentTabsTagService.Provider>
-																										<IsEditService.Provider>
-																											<ArticleTooltipService.Provider>
-																												<IsFirstLoadService.Provider
-																													value={
-																														isFirstLoad
-																													}
-																												>
-																													<ViewContextProvider
-																														articlePageData={
-																															pageProps.data
-																														}
-																													>
-																														<OnUpdateAppFuncs>
-																															<>
-																																{pageProps
-																																	.context
-																																	.isLogged ? (
-																																	<CommentCounterService.Provider
-																																		deps={[
-																																			pageProps,
-																																		]}
-																																	>
-																																		{
+																								<CatalogPropsService.Provider
+																									value={
+																										pageProps.data
+																											.catalogProps
+																									}
+																								>
+																									<PropertyService.Provider>
+																										<ModalToOpenService.Provider>
+																											<CurrentTabsTagService.Provider>
+																												<IsEditService.Provider>
+																													<ArticleTooltipService.Provider>
+																														<IsFirstLoadService.Provider
+																															value={
+																																isFirstLoad
+																															}
+																														>
+																															<ViewContextProvider
+																																articlePageData={
+																																	pageProps.data
+																																}
+																															>
+																																<OnUpdateAppFuncs>
+																																	<>
+																																		{pageProps
+																																			.context
+																																			.isLogged ? (
+																																			<CommentCounterService.Provider
+																																				deps={[
+																																					pageProps,
+																																				]}
+																																			>
+																																				{
+																																					children
+																																				}
+																																			</CommentCounterService.Provider>
+																																		) : (
 																																			children
-																																		}
-																																	</CommentCounterService.Provider>
-																																) : (
-																																	children
-																																)}
-																															</>
-																														</OnUpdateAppFuncs>
-																													</ViewContextProvider>
-																												</IsFirstLoadService.Provider>
-																											</ArticleTooltipService.Provider>
-																										</IsEditService.Provider>
-																									</CurrentTabsTagService.Provider>
-																								</ModalToOpenService.Provider>
-																							</CatalogPropsService.Provider>
-																						</ArticlePropsService.Provider>
-																					</ArticleRefService.Provider>
-																				</IsMenuBarOpenService.Provider>
-																			</OnLoadResourceService.Provider>
-																		</EditorExtensionsService.Provider>
-																	) : (
-																		<ModalToOpenService.Provider>
-																			<IsFirstLoadService.Provider
-																				value={isFirstLoad}
-																			>
-																				<OnUpdateAppFuncs>
-																					{children}
-																				</OnUpdateAppFuncs>
-																			</IsFirstLoadService.Provider>
-																		</ModalToOpenService.Provider>
-																	)}
-																</>
-															</SidebarsIsPinService.Provider>
-														</ScrollWebkitService.Provider>
-													</IsOpenModalService.Provider>
-												</SyncIconService.Provider>
-											</SearchQueryService.Provider>
+																																		)}
+																																	</>
+																																</OnUpdateAppFuncs>
+																															</ViewContextProvider>
+																														</IsFirstLoadService.Provider>
+																													</ArticleTooltipService.Provider>
+																												</IsEditService.Provider>
+																											</CurrentTabsTagService.Provider>
+																										</ModalToOpenService.Provider>
+																									</PropertyService.Provider>
+																								</CatalogPropsService.Provider>
+																							</ArticlePropsService.Provider>
+																						</ArticleRefService.Provider>
+																					</IsMenuBarOpenService.Provider>
+																				</OnLoadResourceService.Provider>
+																			</EditorExtensionsService.Provider>
+																		) : (
+																			<ModalToOpenService.Provider>
+																				<IsFirstLoadService.Provider
+																					value={isFirstLoad}
+																				>
+																					<OnUpdateAppFuncs>
+																						{children}
+																					</OnUpdateAppFuncs>
+																				</IsFirstLoadService.Provider>
+																			</ModalToOpenService.Provider>
+																		)}
+																	</>
+																</SidebarsIsPinService.Provider>
+															</ScrollWebkitService.Provider>
+														</IsOpenModalService.Provider>
+													</SyncIconService.Provider>
+												</SearchQueryService.Provider>
+											</WorkspaceAssetsService.Provider>
 										</WorkspaceService.Provider>
 									</IsMacService.Provider>
 								</ThemeService.Provider>

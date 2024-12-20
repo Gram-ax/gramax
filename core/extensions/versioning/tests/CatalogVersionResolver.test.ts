@@ -19,7 +19,7 @@ describe("CatalogVersionResolver", () => {
 		rp = new RepositoryProvider();
 		wm = new WorkspaceManager(
 			(path) => MountFileProvider.fromDefault(new Path(path)),
-			(fs) => new FileStructureEventHandlers(fs).mount(fs),
+			(fs) => new FileStructureEventHandlers(fs).mount(),
 			rp,
 			{} as AppConfig,
 			YamlFileConfig.dummy(),
@@ -30,36 +30,36 @@ describe("CatalogVersionResolver", () => {
 	});
 
 	it("читает gitCatalog как WorkdirRepository и распознаёт его версии", async () => {
-		const catalog = await wm.current().getCatalog("gitCatalog");
+		const catalog = await wm.current().getContextlessCatalog("gitCatalog");
 		expect(catalog.repo).toBeInstanceOf(WorkdirRepository);
-		expect(wm.current().getFileProvider().at(catalog.getBasePath())).toBeInstanceOf(DiskFileProvider);
+		expect(wm.current().getFileProvider().at(catalog.basePath)).toBeInstanceOf(DiskFileProvider);
 		expect(catalog.props.versions).toEqual(["tags/*"]);
 		expect(catalog.props.resolvedVersions).toBeDefined();
 		expect(catalog.props.resolvedVersions?.length).toBe(1);
 	});
 
 	it("читает версии каталога gitCatalog:tag1", async () => {
-		const catalog = await wm.current().getCatalog("gitCatalog:tag1");
+		const catalog = await wm.current().getContextlessCatalog("gitCatalog:tag1");
 		expect(catalog.repo).toBeInstanceOf(WorkdirRepository);
-		expect(wm.current().getFileProvider().at(catalog.getBasePath())).toBeInstanceOf(GitTreeFileProvider);
+		expect(wm.current().getFileProvider().at(catalog.basePath)).toBeInstanceOf(GitTreeFileProvider);
 		expect(catalog.props.versions).toEqual(["tags/*"]);
 		expect(catalog.props.resolvedVersions?.length).toBe(1);
 	});
 
 	describe("версионированный каталог имеет тот же инстанс Repository, что и основной каталог", () => {
 		it("изначально", async () => {
-			const catalog = await wm.current().getCatalog("gitCatalog");
-			const catalogVer = await wm.current().getCatalog("gitCatalog:tag1");
+			const catalog = await wm.current().getContextlessCatalog("gitCatalog");
+			const catalogVer = await wm.current().getContextlessCatalog("gitCatalog:tag1");
 			expect(catalog.repo).toBeInstanceOf(WorkdirRepository);
 			expect(catalogVer.repo).toBeInstanceOf(WorkdirRepository);
 			expect(catalog.repo).toBe(catalogVer.repo);
 		});
 
 		it("после обновления", async () => {
-			const catalog = await wm.current().getCatalog("gitCatalog");
+			const catalog = await wm.current().getContextlessCatalog("gitCatalog");
 			await catalog.update();
 
-			const catalogVer = await wm.current().getCatalog("gitCatalog:tag1");
+			const catalogVer = await wm.current().getContextlessCatalog("gitCatalog:tag1");
 			expect(catalog.repo).toBeInstanceOf(WorkdirRepository);
 			expect(catalogVer.repo).toBeInstanceOf(WorkdirRepository);
 			expect(catalog.repo).toBe(catalogVer.repo);
@@ -67,13 +67,13 @@ describe("CatalogVersionResolver", () => {
 	});
 
 	it("каталог не забывает свои версии после обновления", async () => {
-		const catalog = await wm.current().getCatalog("gitCatalog");
+		const catalog = await wm.current().getContextlessCatalog("gitCatalog");
 		expect(catalog.props.resolvedVersions?.[0]?.name).toBe("tag1");
 		await catalog.update();
 
 		expect(catalog.props.resolvedVersions?.[0]?.name).toBe("tag1");
 
-		const otherCatalog = await wm.current().getCatalog("gitCatalog");
+		const otherCatalog = await wm.current().getContextlessCatalog("gitCatalog");
 		expect(otherCatalog.props.resolvedVersions?.[0]?.name).toBe("tag1");
 	});
 });

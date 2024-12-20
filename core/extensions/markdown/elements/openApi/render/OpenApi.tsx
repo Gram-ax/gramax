@@ -1,10 +1,10 @@
 import SpinnerLoader from "@components/Atoms/SpinnerLoader";
 import styled from "@emotion/styled";
-import OnLoadResourceService from "@ext/markdown/elements/copyArticles/onLoadResourceService";
 import { Suspense, lazy, useState } from "react";
 import ApiUrlCreatorService from "../../../../../ui-logic/ContextServices/ApiUrlCreator";
 import t from "@ext/localization/locale/translate";
 import DiagramError from "@ext/markdown/elements/diagrams/component/DiagramError";
+import OnLoadResourceService from "@ext/markdown/elements/copyArticles/onLoadResourceService";
 const LazySwaggerUI = lazy(() => import("./SwaggerUI"));
 
 interface OpenApiProps {
@@ -18,11 +18,12 @@ const OpenApi = (props: OpenApiProps) => {
 	const [data, setData] = useState<string>();
 	const [isError, setIsError] = useState(false);
 	const apiUrlCreator = ApiUrlCreatorService.value;
+	const onLoadResource = OnLoadResourceService.value;
 
-	if (typeof window === "undefined" || !apiUrlCreator || !OnLoadResourceService.value) return null;
+	if (typeof window === "undefined" || !apiUrlCreator || !onLoadResource) return null;
 
-	OnLoadResourceService.useGetContent(src, apiUrlCreator, (buffer: Buffer) => {
-		if (!buffer.byteLength) setIsError(true);
+	onLoadResource.useGetContent(src, apiUrlCreator, (buffer: Buffer) => {
+		if (!buffer?.byteLength) setIsError(true);
 		setData(buffer.toString());
 	});
 

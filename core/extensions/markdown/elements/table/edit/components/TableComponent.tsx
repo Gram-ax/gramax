@@ -1,13 +1,14 @@
 import { NodeViewContent, NodeViewProps, NodeViewWrapper } from "@tiptap/react";
 import WidthWrapper from "@components/WidthWrapper/WidthWrapper";
+import styled from "@emotion/styled";
 
-const TableComponent = ({ node }: NodeViewProps) => {
+const TableComponent = ({ node, className }: NodeViewProps & { className: string }) => {
 	const content = node.firstChild;
 
 	return (
 		<NodeViewWrapper>
-			<WidthWrapper>
-				<NodeViewContent as="table" style={{ display: "block ruby" }}>
+			<WidthWrapper className={className}>
+				<NodeViewContent as="table" className="tableComponent">
 					<colgroup>
 						{Array.from({ length: content.childCount }, (_, i) => {
 							const columnAttrs = content.child(i).attrs;
@@ -34,4 +35,10 @@ const TableComponent = ({ node }: NodeViewProps) => {
 	);
 };
 
-export default TableComponent;
+export default styled(TableComponent)`
+	@media not print {
+		.tableComponent {
+			display: block ruby;
+		}
+	}
+`;

@@ -7,9 +7,9 @@ import ConfluenceServerSourceData from "@ext/confluence/core/server/model/Conflu
 import ConfluenceSourceData from "@ext/confluence/core/model/ConfluenceSourceData";
 import SourceType from "@ext/storage/logic/SourceDataProvider/model/SourceType";
 
-type ExcludeTypes<T> = T extends SourceType.git | SourceType.gitLab | SourceType.gitHub ? never : T;
+type IncludeTypes<T> = T extends SourceType.confluenceCloud | SourceType.confluenceServer ? T : never;
 
-type ConfluenceSourceType = ExcludeTypes<SourceType>;
+type ConfluenceSourceType = IncludeTypes<SourceType>;
 
 const makeConfluenceConvertor: Record<
 	ConfluenceSourceType,

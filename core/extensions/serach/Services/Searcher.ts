@@ -15,7 +15,7 @@ export default class ServicesSearcher implements Searcher {
 	async resetAllCatalogs(): Promise<void> {
 		let resetDataFlag = true;
 		const catalogs = await Promise.all(
-			Array.from(this._wm.current().getCatalogEntries().values()).map((c) => c.load()),
+			Array.from(this._wm.current().getAllCatalogs().values()).map((c) => c.upgrade("catalog", true)),
 		);
 		const serviseDatas: SaveServiceData[] = (
 			await Promise.all(

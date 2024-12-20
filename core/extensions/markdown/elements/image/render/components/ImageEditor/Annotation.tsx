@@ -1,9 +1,10 @@
 import Tooltip from "@components/Atoms/Tooltip";
 import styled from "@emotion/styled";
 import { objectMove } from "@ext/markdown/elements/image/edit/logic/imageEditorMethods";
-import { RefObject, useEffect, useRef, useState } from "react";
+import { CSSProperties, RefObject, useRef, useState } from "react";
 import { AnnotationObject } from "../../../edit/model/imageEditorTypes";
 import { cssMedia } from "@core-ui/utils/cssUtils";
+import { classNames } from "@components/libs/classNames";
 
 interface AnnotationObjectProps extends AnnotationObject {
 	parentRef: RefObject<HTMLDivElement>;
@@ -12,25 +13,14 @@ interface AnnotationObjectProps extends AnnotationObject {
 	selected: boolean;
 	className?: string;
 	drawIndexes?: boolean;
+	style?: CSSProperties;
 }
 
 const Annotation = (props: AnnotationObjectProps) => {
-	const { index, drawIndexes, text, x, y, editable, selected, onClick, changeData, parentRef, className } = props;
+	const { index, drawIndexes, text, x, y, editable, selected, onClick, changeData, parentRef, className, style } =
+		props;
 	const mainRef = useRef<HTMLDivElement>(null);
-
-	const [position, setPosition] = useState({ left: 0, top: 0 });
-	const [isHover, setHover] = useState<boolean>(false);
 	const [isDraggable, setDraggable] = useState<boolean>(false);
-	const [isSelected, setSelected] = useState<boolean>(false);
-	const [curIndex, setCurIndex] = useState<number>(null);
-	const [tooltipText, setTooltipText] = useState<string>(text);
-
-	useEffect(() => {
-		setPosition({ left: x, top: y });
-		setCurIndex(index);
-		setSelected(selected);
-		setTooltipText(text);
-	}, [x, y, selected, index, text]);
 
 	const mainMouseDown = objectMove({
 		isDraggable,
@@ -39,36 +29,29 @@ const Annotation = (props: AnnotationObjectProps) => {
 		setDraggable,
 		onMouseDownCallback: () => {
 			if (!editable) return false;
-			if (onClick) onClick(curIndex);
+			onClick?.(index);
 			return true;
 		},
-		onMouseUpCallback: function (): void {
-			const main = mainRef.current;
-			const x = parseFloat(main.style.left);
-			const y = parseFloat(main.style.top);
-
-			if (changeData && (Math.round(x) !== position.left || Math.round(y) !== position.top)) {
-				changeData(curIndex, { x: x, y: y });
-			}
+		onMouseUpCallback: (newX, newY) => {
+			const isNotEqual = Math.round(newX) !== x || Math.round(newY) !== y;
+			if (changeData && isNotEqual) changeData(index, { x: newX, y: newY });
 		},
 	});
 
 	return (
-		<Tooltip
-			hideInMobile={false}
-			visible={tooltipText && tooltipText.length > 0 && isHover}
-			content={<span>{tooltipText}</span>}
-		>
+		<Tooltip hideInMobile={false} disabled={isDraggable} trigger="mouseenter focus" content={text}>
 			<div
-				id={"object/" + curIndex}
+				id={"object/" + index}
 				ref={mainRef}
-				onMouseEnter={() => !isDraggable && setHover(true)}
-				onMouseLeave={() => setHover(false)}
 				onMouseDown={mainMouseDown}
-				className={className + (isSelected ? " selected" : "")}
-				style={{ left: position.left + "%", top: position.top + "%" }}
+				className={classNames(className, { selected })}
+				style={{
+					...style,
+					left: x + "%",
+					top: y + "%",
+				}}
 			>
-				{drawIndexes && curIndex < 9 && <p>{curIndex + 1}</p>}
+				{drawIndexes && index < 9 && <p>{index + 1}</p>}
 			</div>
 		</Tooltip>
 	);
@@ -83,15 +66,12 @@ export default styled(Annotation)`
 	background-color: #fc2847;
 	-webkit-print-color-adjust: exact;
 	print-color-adjust: exact;
-	width: 22px;
-	height: 22px;
+	width: 1.4em;
+	height: 1.4em;
 	border-radius: 50%;
 	pointer-events: auto !important;
 	${(p) => `border-${p.direction}-radius: 4px;`}
 	${(p) => p.editable && "cursor: grab;"}
-	${(p) => !p.editable && p.direction === "bottom-left" && "margin-left: -0.75em; margin-top: -0.75em;"}
-	${(p) => !p.editable && p.direction === "bottom-right" && "margin-left: -0.75em; margin-top: -0.75em;"}
-	${(p) => !p.editable && p.direction === "top-right" && "margin-left: -0.75em;"}
 
 	:active {
 		${(p) => p.editable && "cursor: grabbing;"}
@@ -100,7 +80,7 @@ export default styled(Annotation)`
 	p {
 		color: #fff;
 		line-height: normal;
-		font-size: 14px;
+		font-size: 0.8em;
 		font-weight: 600;
 		padding: 0;
 		margin: 0 !important;

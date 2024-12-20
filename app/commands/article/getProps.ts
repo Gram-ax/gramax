@@ -14,7 +14,7 @@ const getProps: Command<{ catalogName: string; articlePath: Path; ctx: Context }
 		const { sitePresenterFactory, wm } = this._app;
 		const workspace = wm.current();
 
-		const catalog = await workspace.getCatalog(catalogName);
+		const catalog = await workspace.getCatalog(catalogName, ctx);
 		const fp = workspace.getFileProvider();
 		const itemRef = fp.getItemRef(articlePath);
 		const article = catalog.findItemByItemRef<Article>(itemRef);

@@ -75,7 +75,7 @@ supportedLanguages:
 	describe("переименовывает файлы статей на всех языках", () => {
 		const doTest = async (useInner: boolean) => {
 			const { wm, makeResourceUpdater } = await makeApp();
-			const catalog = await wm.getCatalog("catalog");
+			const catalog = await wm.getContextlessCatalog("catalog");
 
 			expect(catalog.findArticle("catalog/article", [])).not.toBeNull();
 			expect(catalog.findArticle("catalog/en/article", [])).not.toBeNull();
@@ -105,7 +105,7 @@ supportedLanguages:
 		const doTest = async (useInner: boolean, from: string, to: string) => {
 			const { wm, fp, makeResourceUpdater } = await makeApp();
 
-			const catalog = await wm.getCatalog("catalog");
+			const catalog = await wm.getContextlessCatalog("catalog");
 
 			const item = catalog.findArticle("catalog/" + from, []);
 			expect(item).not.toBeNull();
@@ -141,7 +141,7 @@ supportedLanguages:
 		const doTest = async (useInner: boolean) => {
 			const { wm, fp, makeResourceUpdater } = await makeApp();
 
-			const catalog = await wm.getCatalog("catalog");
+			const catalog = await wm.getContextlessCatalog("catalog");
 
 			const item = catalog.findArticle("catalog/1category", []);
 			expect(item).not.toBeNull();
@@ -179,7 +179,7 @@ supportedLanguages:
 		const doTest = async (useInner: boolean) => {
 			const { wm, app, fp } = await makeApp();
 
-			const catalog = await wm.getCatalog("catalog");
+			const catalog = await wm.getContextlessCatalog("catalog");
 			const articleParser = new ArticleParser(
 				app.contextFactory.fromBrowser(null, null),
 				app.parser,
@@ -211,7 +211,7 @@ supportedLanguages:
 		const doTest = async (useInner: boolean) => {
 			const { wm, fp, makeResourceUpdater } = await makeApp();
 
-			const catalog = await wm.getCatalog("catalog");
+			const catalog = await wm.getContextlessCatalog("catalog");
 			const parent = useInner
 				? catalog.findArticle("catalog/en/article", [])?.ref
 				: catalog.findArticle("catalog/article", [])?.ref;

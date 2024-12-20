@@ -27,7 +27,7 @@ interface CatalogActionsProps {
 const CatalogActions: FC<CatalogActionsProps> = ({ isCatalogExist, itemLinks, hasRenderableActions }) => {
 	const isEdit = IsEditService.value;
 	const isErrorArticle = ArticlePropsService.value.errorCode;
-	const isLogged = PageDataContextService.value.isLogged;
+	const { isLogged, conf } = PageDataContextService.value;
 	const catalogProps = CatalogPropsService.value;
 	const storageInitialized = useIsStorageInitialized();
 	const isReview = useIsReview();
@@ -45,8 +45,10 @@ const CatalogActions: FC<CatalogActionsProps> = ({ isCatalogExist, itemLinks, ha
 			<li style={{ listStyleType: "none", width: "fit-content" }}>
 				<ItemExport fileName={catalogProps.name} />
 			</li>
-			<IsReadOnlyHOC>
+			{canConfigureCatalog && isLogged && conf.isReadOnly && (
 				<GetSharedTicket trigger={<ListItem text={t("share.name")} iconCode="external-link" />} />
+			)}
+			<IsReadOnlyHOC>
 				<Healthcheck
 					itemLinks={itemLinks}
 					trigger={<ListItem text={t("healthcheck")} iconCode="heart-pulse" />}

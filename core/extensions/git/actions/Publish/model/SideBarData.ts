@@ -1,3 +1,4 @@
+import { JSONContent } from "@tiptap/core";
 import DiffFile from "../../../../VersionControl/model/DiffFile";
 import SideBarResourceData from "./SideBarResourceData";
 
@@ -10,6 +11,10 @@ interface SideBarData extends Pick<DiffFile, "diff"> {
 		resources: SideBarResourceData[];
 		isChecked: boolean;
 		logicPath?: string;
+		newEditTree?: JSONContent;
+		oldEditTree?: JSONContent;
+		oldContent?: string;
+		content?: string;
 	} & Pick<DiffFile, "filePath" | "changeType">;
 }
 

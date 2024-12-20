@@ -19,7 +19,7 @@ const remove: Command<{ ctx: Context; code: ContentLanguage; catalogName: string
 		const { wm, resourceUpdaterFactory } = this._app;
 
 		if (!code || !ContentLanguage[code]) throw new Error("No content language code provided");
-		const catalog = await wm.current().getCatalog(catalogName);
+		const catalog = await wm.current().getCatalog(catalogName, ctx);
 		if (!catalog) throw new Error(`Catalog '${catalogName} not found`);
 		if (!catalog.props.language) throw new Error(`Catalog '${catalogName}' hasn't main language set`);
 		if (!catalog.props.supportedLanguages.includes(code))
@@ -33,7 +33,7 @@ const remove: Command<{ ctx: Context; code: ContentLanguage; catalogName: string
 
 		if (languageCategory) await catalog.deleteItem(languageCategory.ref, null, false);
 
-		await catalog.updateProps(resourceUpdaterFactory.withContext(ctx), catalog.props);
+		await catalog.updateProps(catalog.props, resourceUpdaterFactory);
 		await wm.current().refreshCatalog(catalogName);
 	},
 

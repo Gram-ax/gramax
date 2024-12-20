@@ -1,4 +1,4 @@
-import LeftNavigationIsOpenService from "@core-ui/ContextServices/LeftNavigationIsOpen";
+import SidebarsIsOpenService from "@core-ui/ContextServices/Sidebars/SidebarsIsOpenContext";
 import { cssMedia } from "@core-ui/utils/cssUtils";
 import type { ArticlePageData } from "@core/SitePresenter/SitePresenter";
 import PermissionService from "@ext/security/logic/Permission/components/PermissionService";
@@ -19,8 +19,8 @@ const LeftNavigationBottom = ({ data, closeNavigation }: { data: ArticlePageData
 	const isLogged = PageDataContextService.value.isLogged;
 	const isReadOnly = PageDataContextService.value.conf.isReadOnly;
 	const neededToBeLogged = (isLogged && isReadOnly) || !isReadOnly;
-	const leftNavIsOpen = LeftNavigationIsOpenService.value;
-	const leftNavTrEndIsOpen = LeftNavigationIsOpenService.transitionEndIsOpen;
+	const leftNavIsOpen = SidebarsIsOpenService.value.left;
+	const leftNavTrEndIsOpen = SidebarsIsOpenService.transitionEndIsLeftOpen;
 	const mediumMedia = useMediaQuery(cssMedia.JSmedium);
 	const isStorageInitialized = useIsStorageInitialized();
 	const canConfigureCatalog = PermissionService.useCheckPermission(configureCatalogPermission, catalogProps.name);

@@ -60,7 +60,7 @@ pub struct BranchInfo {
   pub remote_name: Option<String>,
 }
 
-impl<'b> ShortInfo<'_, BranchInfo> for BranchEntry<'b> {
+impl ShortInfo<'_, BranchInfo> for BranchEntry<'_> {
   fn short_info(&self) -> Result<BranchInfo> {
     let remote_name = match self.kind {
       BranchType::Local => match self.upstream() {

@@ -63,6 +63,10 @@ abstract class ArticleViewService {
 		return useContext(UseArticleDefaultStylesContext);
 	}
 
+	static set useArticleDefaultStyles(value: boolean) {
+		_setUseArticleDefaultStyles(value);
+	}
+
 	static setView(component: ArticleViewComponent, useArticleDefaultStyles = true) {
 		ArticleViewService._currentComponent = component;
 		_setUseArticleDefaultStyles(useArticleDefaultStyles);

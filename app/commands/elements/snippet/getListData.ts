@@ -1,23 +1,24 @@
 import { Command } from "@app/types/Command";
 import { ResponseKind } from "@app/types/ResponseKind";
+import type Context from "@core/Context/Context";
 import SnippetEditorProps from "@ext/markdown/elements/snippet/edit/model/SnippetEditorProps.schema";
 
-const getListData: Command<{ catalogName: string }, SnippetEditorProps[]> = Command.create({
+const getListData: Command<{ ctx: Context; catalogName: string }, SnippetEditorProps[]> = Command.create({
 	path: "elements/snippet/getListData",
 
 	kind: ResponseKind.json,
 
 	middlewares: [],
 
-	async do({ catalogName }) {
+	async do({ ctx, catalogName }) {
 		const workspace = this._app.wm.current();
-		const catalog = await workspace.getCatalog(catalogName);
+		const catalog = await workspace.getCatalog(catalogName, ctx);
 		if (!catalog) return;
 		return catalog.snippetProvider.getListData();
 	},
 
-	params(_, q) {
-		return { catalogName: q.catalogName };
+	params(ctx, q) {
+		return { ctx, catalogName: q.catalogName };
 	},
 });
 

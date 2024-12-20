@@ -32,9 +32,13 @@ permissions = [
   "allow-git-read-dir",
   "allow-git-file-stat",
   "allow-git-file-exists",
+  "allow-git-read-dir-stats",
   "allow-find-refs-by-globs",
   "allow-is-bare",
   "allow-is-init",
   "allow-set-head",
   "allow-invalidate-repo-cache",
+  "allow-list-merge-requests",
+  "allow-create-or-update-merge-request",
+  "allow-get-draft-merge-request",
 ]

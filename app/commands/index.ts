@@ -1,4 +1,4 @@
-import auth from "@app/commands/auth";
+import enterprise from "@app/commands/enterprise";
 import setLanguage from "@app/commands/language/set";
 import workspace from "@app/commands/workspace";
 import Application from "../types/Application";
@@ -10,6 +10,7 @@ import download from "./download";
 import elements from "./elements";
 import healthcheck from "./healthcheck";
 import item from "./item";
+import mergeRequests from "./mergeRequests";
 import page from "./pageData";
 import search from "./search";
 import storage from "./storage";
@@ -18,7 +19,7 @@ import versionControl from "./versionControl";
 import word from "./word";
 
 const commands = {
-	auth,
+	enterprise,
 	setTheme,
 	setLanguage,
 	article,
@@ -30,6 +31,7 @@ const commands = {
 	page,
 	storage,
 	versionControl,
+	mergeRequests,
 	word,
 	debug,
 	search,

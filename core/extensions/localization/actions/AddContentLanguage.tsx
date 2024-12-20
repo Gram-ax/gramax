@@ -6,6 +6,7 @@ import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import CatalogPropsService from "@core-ui/ContextServices/CatalogProps";
 import { ContentLanguage } from "@ext/localization/core/model/Language";
 import t from "@ext/localization/locale/translate";
+import ExportButton from "@ext/wordExport/components/ExportButton";
 import { useRef } from "react";
 
 export type AddContentLanguageProps = {
@@ -22,15 +23,11 @@ const AddContentLanguage = ({ onChange, setIsLoading }: AddContentLanguageProps)
 	return (
 		<PopupMenuLayout
 			appendTo={() => ref.current}
-			offset={[10, 5]}
+			offset={[10, -5]}
 			className="wrapper"
 			placement="left-start"
 			openTrigger="mouseenter focus"
-			trigger={
-				<div className="export-button" ref={ref}>
-					<ButtonLink iconCode="plus" text={t("multilang.add-localization")} />
-				</div>
-			}
+			trigger={<ExportButton ref={ref} iconCode="plus" text={t("multilang.add-localization")} />}
 		>
 			{Object.values(ContentLanguage).map((code, idx) => {
 				const disabled = code == props.language || props.supportedLanguages?.includes(code);

@@ -1,4 +1,5 @@
 import { getExecutingEnvironment } from "@app/resolveModule/env";
+import Icon from "@components/Atoms/Icon";
 import PopupMenuLayout from "@components/Layouts/PopupMenuLayout";
 import ButtonLink from "@components/Molecules/ButtonLink";
 import FetchService from "@core-ui/ApiServices/FetchService";
@@ -19,10 +20,18 @@ const SwitchUiLanguage = () => {
 		[apiUrlCreator],
 	);
 
+	const current = LanguageService.currentUi();
+
 	return (
 		<PopupMenuLayout trigger={<ButtonLink iconCode="globe" text={t("current")} />}>
 			{Object.values(UiLanguage).map((l, idx) => (
-				<ButtonLink key={idx} onClick={() => setLanguage(l)} text={t("current", l)} />
+				<ButtonLink
+					key={idx}
+					onClick={l == current ? null : () => setLanguage(l)}
+					text={t("current", l)}
+					fullWidth={current == l}
+					rightActions={[current == l ? <Icon key={0} code="check" /> : null]}
+				/>
 			))}
 		</PopupMenuLayout>
 	);

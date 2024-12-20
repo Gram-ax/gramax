@@ -1,40 +1,30 @@
-import { getExecutingEnvironment } from "@app/resolveModule/env";
 import ArticleUpdaterService from "@components/Article/ArticleUpdater/ArticleUpdaterService";
-import { refreshPage } from "@core-ui/ContextServices/RefreshPageContext";
-import OnBranchUpdateCaller from "@ext/git/actions/Branch/BranchUpdaterService/model/OnBranchUpdateCaller";
 import BranchActions from "@ext/git/actions/Branch/components/BranchActions";
+import type GitBranchData from "@ext/git/core/GitBranch/model/GitBranchData";
 import t from "@ext/localization/locale/translate";
-import { useEffect, useState } from "react";
 import SpinnerLoader from "../../../../../components/Atoms/SpinnerLoader";
 import StatusBarElement from "../../../../../components/Layouts/StatusBar/StatusBarElement";
 import ApiUrlCreatorService from "../../../../../ui-logic/ContextServices/ApiUrlCreator";
 import useIsReview from "../../../../storage/logic/utils/useIsReview";
 import BranchUpdaterService from "../BranchUpdaterService/logic/BranchUpdaterService";
 
-const Branch = () => {
+const Branch = ({ branch, onMergeRequestCreate }: { branch: GitBranchData; onMergeRequestCreate?: () => void }) => {
 	const isReview = useIsReview();
 	const apiUrlCreator = ApiUrlCreatorService.value;
 
-	const [branchName, setBranchName] = useState<string>(null);
-
-	useEffect(() => {
-		const onUpdateBranch = (branch: string, caller: OnBranchUpdateCaller) => {
-			setBranchName(branch);
-			if (getExecutingEnvironment() !== "next" || caller === OnBranchUpdateCaller.Checkout) refreshPage();
-		};
-
-		BranchUpdaterService.addListener(onUpdateBranch);
-		BranchUpdaterService.updateBranch(apiUrlCreator, OnBranchUpdateCaller.Init);
-
-		return () => BranchUpdaterService.removeListener(onUpdateBranch);
-	}, []);
+	const branchName = branch?.name;
 
 	return (
 		<div data-qa="qa-clickable" style={{ pointerEvents: isReview ? "none" : "all" }}>
 			<BranchActions
 				currentBranch={branchName}
+				onMergeRequestCreate={onMergeRequestCreate}
 				trigger={
-					<StatusBarElement tooltipText={t("change-branch")} iconCode="git-branch" iconStrokeWidth="1.6">
+					<StatusBarElement
+						tooltipText={t("git.checkout.change-branch")}
+						iconCode="git-branch"
+						iconStrokeWidth="1.6"
+					>
 						<span>{branchName ? branchName : <SpinnerLoader width={12} height={12} />}</span>
 					</StatusBarElement>
 				}

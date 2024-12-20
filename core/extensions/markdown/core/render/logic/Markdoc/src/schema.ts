@@ -71,7 +71,7 @@ export const item: Schema = {
 	children: ["inline", "heading", "paragraph", "image", "table", "tag", "fence", "blockquote", "list", "hr"],
 	async transform(node, config, parent) {
 		node.attributes.depth = parent.attributes.depth;
-		return new Tag(`li`, { ...node.attributes }, await node.transformChildren(config));
+		return new Tag(`Li`, { ...node.attributes }, await node.transformChildren(config));
 	},
 };
 

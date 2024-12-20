@@ -3,13 +3,21 @@ import { format } from "@ext/markdown/elements/image/render/logic/imageTransform
 const CLEAR_CROP = { x: 0, y: 0, w: 100, h: 100 };
 
 const imageNodeTransformer: NodeSerializerSpec = (state, node) => {
-	const str = format(node.attrs?.crop ?? CLEAR_CROP, node.attrs?.objects ?? [], node.attrs?.scale);
+	const str = format(
+		node.attrs?.width,
+		node.attrs?.height,
+		node.attrs?.crop ?? CLEAR_CROP,
+		node.attrs?.objects ?? [],
+		node.attrs?.scale,
+	);
 	const newFormat =
 		(node.attrs?.crop &&
 			typeof node.attrs.crop !== "string" &&
 			(node.attrs.crop.w !== 100 || node.attrs.crop.h !== 100)) ||
 		node.attrs?.objects?.length > 0 ||
 		node.attrs?.scale;
+
+	const hasSize = node.attrs?.width && node.attrs?.height;
 
 	state.write(
 		newFormat
@@ -27,7 +35,8 @@ const imageNodeTransformer: NodeSerializerSpec = (state, node) => {
 					"](" +
 					(node.attrs.src?.includes?.(" ") ? `<${node.attrs.src}>` : node.attrs.src) +
 					(node.attrs.title ? ' "' + node.attrs.title.replace(/"/g, '\\"') + '"' : "") +
-					")\n",
+					")" +
+					(hasSize ? `{width=${node.attrs.width} height=${node.attrs.height}}` : ""),
 	);
 	state.closeBlock(node);
 };

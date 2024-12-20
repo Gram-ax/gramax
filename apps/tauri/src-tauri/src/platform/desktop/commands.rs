@@ -1,5 +1,7 @@
+use std::path::Path;
 use std::path::PathBuf;
 
+use crate::error::ShowError;
 use crate::platform::desktop::menu::MenuBuilder;
 use tauri::*;
 
@@ -15,6 +17,13 @@ pub fn close_current_window<R: Runtime>(app: AppHandle<R>, window: WebviewWindow
 #[command(async)]
 pub fn open_directory() -> Option<PathBuf> {
   rfd::FileDialog::new().pick_folder()
+}
+
+#[command]
+pub fn open_in_explorer(path: &Path) -> Result<()> {
+  _ = path.metadata()?;
+  _ = open::that(path).or_show_with_message(&t!("etc.error.open-path", path = path.to_string_lossy()));
+  Ok(())
 }
 
 #[cfg(target_os = "macos")]

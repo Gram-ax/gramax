@@ -1,17 +1,19 @@
 :root {
+	--color-black: #000000;
+	--color-white: #ffffff;
 	--color-info: #cef;
 	--color-gray: #f3f3f3;
 	--color-danger: #ff3131;
 	--color-warning: #ffba00cc;
 	--color-secondary: #41dd92;
 	--color-lightgray: #f9f7fb;
-	--color-search-text: black;
+	--color-search-text: var(--color-black);
 	--color-lightprimary: #0c77af;
 	--color-secondary-dark: #23ba72;
 	--color-active-white: #ffffff99;
 	--color-active-white-hover: white;
 	--color-breadcrumb-text: #00000099;
-	--color-breadcrumb-text-hover: black;
+	--color-breadcrumb-text-hover: var(--color-black);
 	--color-loader: #9a9a9a;
 	--color-focus: #0563d6;
 
@@ -56,6 +58,10 @@
 	--color-removed-bg-opacity: rgba(248, 164, 164, 0.14);
 	--color-modal-overlay-style-bg: rgba(19, 19, 19, 0.75);
 
+	--color-status-new: #4dbb5f;
+	--color-status-modified: #307fff;
+	--color-status-deleted: rgb(244, 92, 74);
+
 	--merger-top-primary: rgba(13, 153, 255, 1);
 	--merger-top-bg: rgba(13, 153, 255, 0.25);
 	--merger-top-bg-opacity: rgba(13, 153, 255, 0.15);
@@ -64,11 +70,15 @@
 	--merger-bottom-bg: rgba(151, 71, 255, 0.25);
 	--merger-bottom-bg-opacity: rgba(151, 71, 255, 0.15);
 
+	--merge-branch-code-bg: rgb(191, 219, 254);
+	--merge-branch-code-text: rgb(7, 89, 133);
+
 	--version-control-primary: rgb(0, 122, 204);
 	--version-control-primary-opacity: rgb(0, 122, 204, 0.25);
 	--status-bar-height: 22px;
 
 	--transition-time: 0.3s;
+	--transition-time-fast: 0.15s;
 	--navigation-transition: transform var(--transition-time) ease 0s, width var(--transition-time) ease 0s,
 		padding var(--transition-time) ease 0s, padding-right var(--transition-time) ease 0s;
 
@@ -88,12 +98,13 @@
 
 [data-theme="light"] {
 	--color-lev-sidebar-hover: #ffffffa3;
+	--color-skeleton-bg: 222 47% 11%;
 
 	--color-block: hsl(0deg 0% 98%);
 	--color-block-hover: #ffffff;
 	--color-block-hover-inverse: hsl(206deg 40% 20%);
 
-	--color-primary: black;
+	--color-primary: var(--color-black);
 	--color-primary-inverse: white;
 	--color-line: #a4a4a4;
 	--color-scroll: #a4a4a4;
@@ -137,13 +148,13 @@
 
 	--color-link: #126199;
 	--color-code-text: #944c4c;
-	--color-prism-text: black;
+	--color-prism-text: var(--color-black);
 	--color-search-code: #0000000d;
 	--color-prism-number-text: rgb(9, 134, 88);
 	--color-prism-punctuation-text: #393a34;
-	--color-article-text: black;
-	--color-article-heading-text: black;
-	--color-article-strong-text: black;
+	--color-article-text: var(--color-black);
+	--color-article-heading-text: var(--color-black);
+	--color-article-strong-text: var(--color-black);
 	--color-article-hotkey-search-text: var(--color-article-text);
 
 	--color-shadows: #00000020;
@@ -215,15 +226,16 @@
 
 	--content-file-plus: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" style="color: rgb(18, 97, 153)" width="23" height="16" viewBox="1 1 22 22" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-file-plus"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M9 15h6"/><path d="M12 18v-6"/></svg>');
 
-	--color-navigation-article-drop-target: #e2e8f0;
+	--color-nav-article-drop-target: #e2e8f0;
 }
 
 [data-theme="dark"] {
 	--color-primary: white;
-	--color-primary-inverse: black;
+	--color-primary-inverse: var(--color-black);
 	--color-block: #182b39cf;
 	--color-block-hover: hsl(206deg 40% 20%);
 	--color-block-hover-inverse: #ffffff;
+	--color-skeleton-bg: 210 40% 98%;
 
 	--color-line: hsl(230deg 15% 35%);
 	--color-scroll: hsl(230deg 15% 35% / 50%);
@@ -274,7 +286,7 @@
 	--color-article-text: var(--color-article-text-dark-theme);
 	--color-article-heading-text: hsl(230deg 32% 90%);
 	--color-article-strong-text: hsl(230deg 32% 88%);
-	--color-article-hotkey-search-text: black;
+	--color-article-hotkey-search-text: var(--color-black);
 
 	--color-shadows: hsl(0deg 0% 100% / 0%);
 	--color-shadows-scroll: #ffffff2b;
@@ -347,5 +359,59 @@
 
 	--content-file-plus: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" style="color: rgb(36, 149, 229)" width="23" height="16" viewBox="1 1 22 22" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-file-plus"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M9 15h6"/><path d="M12 18v-6"/></svg>');
 
-	--color-navigation-article-drop-target: #334155;
+	--color-nav-article-drop-target: #334155;
+}
+
+body {
+	--app-font-famaly: -apple-system, BlinkMacSystemFont, Roboto, Helvetica Neue;
+	--color-home-text: var(--color-primary);
+	--color-home-card-link: var(--color-primary-general);
+	--color-home-card-link-hover: var(--color-primary);
+
+	--color-nav-menu-bg: var(--color-menu-bg);
+	--color-right-nav-bg: var(--color-contextmenu-bg);
+
+	--color-home-bg: var(--color-menu-bg);
+	--color-home-card-bg: var(--color-block);
+	--color-home-card-bg-hover: var(--color-block-hover);
+
+	--color-nav-item-selected: var(--color-primary);
+	--color-nav-item: var(--color-primary-general);
+
+	--font-weight-default: 300;
+
+	/* Logos */
+	--width-image-lodaer: 20rem;
+	--gap-app-loader: 0;
+	--mb-app-lodaer: 10%;
+
+	/* Right sidebar */
+	--font-weight-right-nav-top-item: 500;
+	--font-weight-right-nav-active-item: 400;
+	--font-weight-article-heading: 400;
+
+	--color-home-card-border: transparent;
+	--color-home-card-border-hover: transparent;
+
+	/* ADMONITION */
+
+	--color-admonition-quote-border: var(--color-admonition-hotfixes-br-h);
+	--color-admonition-quote-bg: var(--color-admonition-hotfixes-bg);
+	--color-admonition-text: var(--color-admonition-hotfixes-br-h);
+	--font-weight-admonition: 500;
+
+	--color-btn-default-bg: var(--color-code-bg);
+	--color-btn-default-text: var(--color-article-heading-text);
+	--border-btn-default: 1px solid var(--color-article-heading-text);
+	--opacity-btn-default-bg-hover: 0.8;
+	--color-btn-default-text-hover: var(--color-article-bg);
+	--color-btn-default-bg-hover: var(--color-article-heading-text);
+
+	--color-btn-underline-text: var(--color-primary-general);
+	--font-weight-btn-underline: var(--font-weight-default);
+	--padding-btn-underline: 0;
+	--margin-btn-underline: 0 0.6em;
+	--color-btn-underline-text-hover: var(--color-primary);
+	--text-decoration-btn-underline-hover: underline;
+	--color-btn-underline-bg-hover: transparent;
 }

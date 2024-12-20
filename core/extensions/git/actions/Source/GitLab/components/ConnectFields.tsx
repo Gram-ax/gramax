@@ -1,8 +1,10 @@
 import ListLayout from "@components/List/ListLayout";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
+import useWatch from "@core-ui/hooks/useWatch";
 import type GitlabSourceData from "@ext/git/actions/Source/GitLab/logic/GitlabSourceData";
+import { useMakeSourceApi } from "@ext/git/actions/Source/makeSourceApi";
 import t from "@ext/localization/locale/translate";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import GitStorageData from "../../../../core/model/GitStorageData";
 import GitlabSourceAPI from "../logic/GitlabSourceAPI";
 
@@ -17,21 +19,21 @@ const ConnectFields = ({
 	const [group, setGroup] = useState<string>(null);
 	const [groups, setGroups] = useState<string[]>([]);
 	const [isLoadingData, setIsLoadingData] = useState(false);
+	const sourceApi = useMakeSourceApi(source, authServiceUrl) as GitlabSourceAPI;
 
-	const loadGroups = async (source: GitlabSourceData) => {
-		if (!source) return;
+	const loadGroups = async () => {
 		setIsLoadingData(true);
-		const gitLabApi = new GitlabSourceAPI(source, authServiceUrl);
-		setGroups(await gitLabApi.getAllGroups());
+		setGroups(await sourceApi.getAllGroups());
 		setIsLoadingData(false);
 	};
 
-	useEffect(() => {
-		void loadGroups(source);
+	useWatch(() => {
+		if (!source) return;
+		void loadGroups();
 	}, [source]);
 
-	useEffect(() => {
-		if (onChange) onChange({ source, group, name: null });
+	useWatch(() => {
+		onChange?.({ source, group, name: null });
 	}, [group]);
 
 	return (

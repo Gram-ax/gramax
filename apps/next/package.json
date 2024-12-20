@@ -14,12 +14,12 @@
 		"analyze": "cross-env ANALYZE=true next build"
 	},
 	"dependencies": {
+		"@xmldom/xmldom": "^0.9.6",
 		"eslint-config-next": "^14.2.12",
 		"next": "^14.2.12",
 		"nookies": "^2.5.2",
 		"prom-client": "^15.1.0",
-		"sharp": "^0.33.5",
-		"xmldom": "^0.6.0"
+		"sharp": "^0.33.5"
 	},
 	"devDependencies": {
 		"@next/bundle-analyzer": "^13.4.4",

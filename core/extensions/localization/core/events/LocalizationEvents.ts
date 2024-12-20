@@ -1,19 +1,22 @@
-import type { HasEvents } from "@core/Event/EventEmitter";
+import type { EventHandlerCollection } from "@core/Event/EventHandlerProvider";
 import { ItemFilter, type Catalog } from "@core/FileStructue/Catalog/Catalog";
 import type { Category } from "@core/FileStructue/Category/Category";
 import type { Item } from "@core/FileStructue/Item/Item";
 import { ItemType } from "@core/FileStructue/Item/ItemType";
 import CustomArticlePresenter from "@core/SitePresenter/CustomArticlePresenter";
 import type RuleCollection from "@ext/events/RuleCollection";
-import { type NavigationEvents } from "../../../navigation/catalog/main/logic/Navigation";
+import Navigation from "../../../navigation/catalog/main/logic/Navigation";
 import { ContentLanguage } from "../model/Language";
-import type { EventHandlerCollection } from "@core/Event/EventHandlerProvider";
 
-export default class LocalizationRules implements RuleCollection, EventHandlerCollection<NavigationEvents> {
-	constructor(private _currentLanguage?: ContentLanguage, private _customArticlePresenter?: CustomArticlePresenter) {}
+export default class LocalizationRules implements RuleCollection, EventHandlerCollection {
+	constructor(
+		private _nav: Navigation,
+		private _currentLanguage?: ContentLanguage,
+		private _customArticlePresenter?: CustomArticlePresenter,
+	) {}
 
-	mount(nav: HasEvents<NavigationEvents>): void {
-		nav.events.on("filter-item", ({ catalog, item }) => {
+	mount(): void {
+		this._nav.events.on("filter-item", ({ catalog, item }) => {
 			if (item.parent.parent || !catalog.props.language) return true;
 
 			if (item.type == ItemType.category) {
@@ -28,23 +31,23 @@ export default class LocalizationRules implements RuleCollection, EventHandlerCo
 			}
 		});
 
-		nav.events.on("before-build-nav-tree", ({ catalog, mutableRoot }) => {
+		this._nav.events.on("before-build-nav-tree", ({ catalog, mutableRoot }) => {
 			if (!catalog.props.language) return;
 			if (!this._currentLanguage || this._currentLanguage == catalog.props.language) return;
 
-			const root = catalog.findArticle(`${catalog.getName()}/${this._currentLanguage}`, [
+			const root = catalog.findArticle(`${catalog.name}/${this._currentLanguage}`, [
 				(i) => i.type == ItemType.category,
 			]);
 
 			mutableRoot.root = <Category>root || mutableRoot.root;
 		});
 
-		nav.events.on("resolve-root-category", ({ catalog, mutableRef }) => {
+		this._nav.events.on("resolve-root-category", ({ catalog, mutableRef }) => {
 			if (!catalog.props.language) return;
 			if (!this._currentLanguage || this._currentLanguage == catalog.props.language) return;
 
 			const article = catalog.findArticle(
-				`${catalog.getName()}/${this._currentLanguage}`,
+				`${catalog.name}/${this._currentLanguage}`,
 				[(i) => i.type == ItemType.category],
 				catalog.getRootCategory(),
 			);

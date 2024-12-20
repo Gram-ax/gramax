@@ -1,9 +1,9 @@
 import fenceToken from "@ext/markdown/elements/codeBlockLowlight/edit/logic/token";
 import codeBlockToken from "@ext/markdown/elements/codeBlockLowlight/edit/model/token";
-import { bullet_list } from "@ext/markdown/elements/list/edit/models/bulletList/bulletListToken";
-import { list_item } from "@ext/markdown/elements/list/edit/models/listItem/model/listItemToken";
-import { task_item } from "@ext/markdown/elements/list/edit/models/taskItem/model/taskItemToken";
-import { task_list } from "@ext/markdown/elements/list/edit/models/taskList/model/taskListToken";
+import { bulletList } from "@ext/markdown/elements/list/edit/models/bulletList/bulletListToken";
+import { listItem } from "@ext/markdown/elements/list/edit/models/listItem/model/listItemToken";
+import { taskItem } from "@ext/markdown/elements/list/edit/models/taskItem/model/taskItemToken";
+import { taskList } from "@ext/markdown/elements/list/edit/models/taskList/model/taskListToken";
 import commentToken from "../../../../elements/comment/edit/model/commentToken";
 import c4DiagramToken from "../../../../elements/diagrams/diagrams/c4Diagram/c4DiagramToken";
 import mermaidToken from "../../../../elements/diagrams/diagrams/mermaid/mermaidToken";
@@ -82,12 +82,12 @@ export const getTokens = (context?: ParserContext): { [name: string]: ParseSpec 
 		blockquote: { block: "blockquote" },
 		paragraph: { block: "paragraph" },
 		error: { block: "error" },
-		list_item,
-		task_item,
-		task_list,
-		bullet_list,
+		list_item: listItem,
+		task_item: taskItem,
+		task_list: taskList,
+		bullet_list: bulletList,
 		ordered_list: {
-			block: "ordered_list",
+			block: "orderedList",
 			getAttrs: (tok, tokens, i) => ({
 				order: +tok.attrGet("start") || 1,
 				tight: listIsTight(tokens, i),

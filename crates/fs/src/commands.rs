@@ -3,6 +3,7 @@ use std::path::Path;
 use std::path::PathBuf;
 
 use crate::error::Result;
+use crate::DirStat;
 use crate::FileInfo;
 
 pub fn read_dir<P: AsRef<Path>>(path: P) -> Result<Vec<String>> {
@@ -50,6 +51,17 @@ pub fn getstat<P: AsRef<Path>>(path: P, follow_link: bool) -> Result<FileInfo> {
   }
 
   FileInfo::new(meta)
+}
+
+pub fn read_dir_stats<P: AsRef<Path>>(path: P) -> Result<Vec<DirStat>> {
+  let mut res = Vec::new();
+  for entry in fs::read_dir(path)? {
+    let entry = entry?;
+    let stat = getstat(entry.path(), false)?;
+    res.push(DirStat { name: entry.file_name().to_string_lossy().into_owned(), stat });
+  }
+
+  Ok(res)
 }
 
 pub fn rmfile<P: AsRef<Path>>(path: P) -> Result<()> {

@@ -1,4 +1,5 @@
 pub use gramaxgit::prelude::*;
+pub use gramaxgit::ext::*;
 
 use std::fs;
 use std::path::PathBuf;

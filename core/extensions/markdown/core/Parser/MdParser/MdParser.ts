@@ -30,7 +30,7 @@ export default class MdParser {
 	private _findInlineCodeToIgnore = "`{1,2}[^`].*?`{1,2}";
 	private _findBlockCodeToIgnore = "```[^(```)]*?```[^(```)]*?```\n\r?```|```[\\s\\S]*?```[s]?|\\\\.";
 	private _findHtmlToIgnore = "\\[html.*][\\s\\S]*?\\[\\/html\\]";
-	private _findImageToIgnore = String.raw`!\[[^\]]*\]\(.*?\)`;
+	private _findImageToIgnore = String.raw`!\[[^\]]*\]\(.*\)`;
 	private _findBracesAndSquareBracketsToIgnore = String.raw`[\[{][^]*?[\]}]`;
 
 	constructor(preParserOptions: MdParserOptions = null) {

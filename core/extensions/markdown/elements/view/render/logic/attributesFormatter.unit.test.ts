@@ -63,7 +63,7 @@ describe("AttributeFormatter", () => {
 						{ name: "c", value: ["3"] },
 					],
 				}),
-			).toEqual({ defs: "a=1,b,c=3", orderby: "", groupby: "", select: "" });
+			).toEqual({ defs: "a=1,b,c=3" });
 		});
 
 		test("orderby", () => {
@@ -71,7 +71,7 @@ describe("AttributeFormatter", () => {
 				formatter.stringify({
 					orderby: ["a", "b", "c"],
 				}),
-			).toEqual({ defs: "", orderby: "a,b,c", groupby: "", select: "" });
+			).toEqual({ orderby: "a,b,c" });
 		});
 
 		test("groupby", () => {
@@ -79,7 +79,7 @@ describe("AttributeFormatter", () => {
 				formatter.stringify({
 					groupby: ["a", "b", "c"],
 				}),
-			).toEqual({ defs: "", orderby: "", groupby: "a,b,c", select: "" });
+			).toEqual({ groupby: "a,b,c" });
 		});
 
 		test("select", () => {
@@ -87,7 +87,7 @@ describe("AttributeFormatter", () => {
 				formatter.stringify({
 					select: ["a", "b", "c"],
 				}),
-			).toEqual({ defs: "", orderby: "", groupby: "", select: "a,b,c" });
+			).toEqual({ select: "a,b,c" });
 		});
 
 		test("все атрибуты вместе", () => {

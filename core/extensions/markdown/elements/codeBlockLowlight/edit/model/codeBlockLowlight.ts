@@ -7,6 +7,8 @@ import getExtensionOptions from "@ext/markdown/logic/getExtensionOptions";
 import { TextSelection } from "prosemirror-state";
 import CodeBlockLowlight, { CodeBlockLowlightOptions } from "@tiptap/extension-code-block-lowlight";
 import getBackspaceShortcuts from "@ext/markdown/elements/codeBlockLowlight/edit/logic/keys/Backspace";
+import { ReactNodeViewRenderer } from "@tiptap/react";
+import CodeBlockComponent from "@ext/markdown/elements/codeBlockLowlight/edit/component/CodeBlockComponent";
 
 interface CodeBlockOptions extends CodeBlockLowlightOptions {
 	monochromeClassName: string;
@@ -34,6 +36,10 @@ const ExtendedCodeBlockLowlight = CodeBlockLowlight.extend<CodeBlockOptions>({
 			languageClassPrefix: "language-",
 			HTMLAttributes: {},
 		};
+	},
+
+	addNodeView() {
+		return ReactNodeViewRenderer(CodeBlockComponent);
 	},
 
 	addCommands() {

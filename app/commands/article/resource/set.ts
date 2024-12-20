@@ -20,7 +20,7 @@ const set: Command<{ data: any; src: Path; catalogName: string; articlePath: Pat
 			const { hashes, wm, parser, parserContextFactory } = this._app;
 			const workspace = wm.current();
 
-			const catalog = await workspace.getCatalog(catalogName);
+			const catalog = await workspace.getCatalog(catalogName, ctx);
 			const fp = workspace.getFileProvider();
 			const itemRef = fp.getItemRef(articlePath);
 			const article = catalog.findItemByItemPath<Article>(itemRef.path);

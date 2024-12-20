@@ -2,9 +2,10 @@ import { Command } from "@app/types/Command";
 import { ResponseKind } from "@app/types/ResponseKind";
 import { DesktopModeMiddleware } from "@core/Api/middleware/DesktopModeMiddleware";
 import ReloadConfirmMiddleware from "@core/Api/middleware/ReloadConfirmMiddleware";
+import type Context from "@core/Context/Context";
 import SnippetEditData from "@ext/markdown/elements/snippet/model/SnippetEditData";
 
-const edit: Command<{ oldSnippetId: string; snippetEditData: SnippetEditData; catalogName: string }, void> =
+const edit: Command<{ ctx: Context; oldSnippetId: string; snippetEditData: SnippetEditData; catalogName: string }, void> =
 	Command.create({
 		path: "elements/snippet/edit",
 
@@ -12,19 +13,19 @@ const edit: Command<{ oldSnippetId: string; snippetEditData: SnippetEditData; ca
 
 		middlewares: [new DesktopModeMiddleware(), new ReloadConfirmMiddleware()],
 
-		async do({ oldSnippetId, snippetEditData, catalogName }) {
+		async do({ ctx, oldSnippetId, snippetEditData, catalogName }) {
 			const { wm, formatter } = this._app;
 			const workspace = wm.current();
 
-			const catalog = await workspace.getCatalog(catalogName);
+			const catalog = await workspace.getCatalog(catalogName, ctx);
 			if (!catalog) return;
 			return catalog.snippetProvider.edit(oldSnippetId, snippetEditData, formatter);
 		},
 
-		params(_, q, body) {
+		params(ctx, q, body) {
 			const catalogName = q.catalogName;
 			const oldSnippetId = q.oldSnippetId;
-			return { catalogName, oldSnippetId, snippetEditData: body };
+			return { ctx, catalogName, oldSnippetId, snippetEditData: body };
 		},
 	});
 

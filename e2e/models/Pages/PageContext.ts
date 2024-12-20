@@ -70,7 +70,7 @@ export default class PageContext {
 		return await this._page.evaluate(async () => {
 			const currentCatalog = await window.app.wm
 				.current()
-				.getCatalog(window.debug?.RouterPathProvider.parsePath(window.location.pathname).catalogName);
+				.getContextlessCatalog(window.debug?.RouterPathProvider.parsePath(window.location.pathname).catalogName);
 			return currentCatalog.props;
 		});
 	}

@@ -1,17 +1,22 @@
 import LinksBreadcrumb from "@components/Breadcrumbs/LinksBreadcrumb";
 import { classNames } from "@components/libs/classNames";
-import ArticlePropsService from "@core-ui/ContextServices/ArticleProps";
-import useWatch from "@core-ui/hooks/useWatch";
 import styled from "@emotion/styled";
 import { ItemLink } from "@ext/navigation/NavigationLinks";
 import Properties from "@ext/properties/components/Properties";
+import { Property, PropertyValue } from "@ext/properties/models";
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 
-const ArticleBreadcrumb = ({ className, itemLinks }: { className?: string; itemLinks: ItemLink[] }) => {
+interface ArticleBreadcrumbProps {
+	className?: string;
+	itemLinks: ItemLink[];
+	hasPreview: boolean;
+}
+
+const ArticleBreadcrumb = ({ className, itemLinks }: ArticleBreadcrumbProps) => {
 	const linksRef = useRef<HTMLDivElement>(null);
 	const breadcrumbRef = useRef<HTMLDivElement>(null);
-	const articleProps = ArticlePropsService.value;
 	const [isOverflow, setIsOverflow] = useState<boolean>(null);
+	const [properties, setProperties] = useState<Property[] | PropertyValue[]>([]);
 
 	const resize = useCallback(() => {
 		const breadcrumb = breadcrumbRef.current;
@@ -28,11 +33,11 @@ const ArticleBreadcrumb = ({ className, itemLinks }: { className?: string; itemL
 	useEffect(() => {
 		window.addEventListener("resize", setNull);
 		return () => window.removeEventListener("resize", setNull);
-	}, [itemLinks, articleProps?.properties]);
+	}, [itemLinks, properties]);
 
-	useWatch(() => {
+	useEffect(() => {
 		setNull();
-	}, [itemLinks, articleProps?.properties]);
+	}, [itemLinks, properties]);
 
 	useLayoutEffect(() => {
 		resize();
@@ -41,7 +46,7 @@ const ArticleBreadcrumb = ({ className, itemLinks }: { className?: string; itemL
 	return (
 		<div ref={breadcrumbRef} className={classNames(className, { nextLine: isOverflow })}>
 			<LinksBreadcrumb ref={linksRef} itemLinks={itemLinks} />
-			<Properties properties={articleProps.properties} />
+			<Properties properties={properties} setProperties={setProperties} />
 		</div>
 	);
 };
@@ -51,15 +56,16 @@ export default styled(ArticleBreadcrumb)`
 	display: flex;
 	align-items: center;
 	justify-content: space-between;
+	${(p) => p.hasPreview && `& {width: 70%;}`}
 
 	&.nextLine {
 		display: block;
 
-		> :first-child {
+		> :first-of-type {
 			margin-bottom: 0.5em;
 		}
 
-		> :last-child {
+		> :last-of-type {
 			justify-content: end;
 		}
 	}

@@ -30,7 +30,7 @@ const updateNavigation: Command<
 		const { wm, resourceUpdaterFactory, sitePresenterFactory } = this._app;
 		const workspace = wm.current();
 
-		const catalog = await workspace.getCatalog(catalogName);
+		const catalog = await workspace.getContextlessCatalog(catalogName);
 		const fp = workspace.getFileProvider();
 		const sitePresenter = sitePresenterFactory.fromContext(ctx);
 		const dragTree = new DragTree(fp, resourceUpdaterFactory.withContext(ctx));

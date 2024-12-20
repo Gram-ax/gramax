@@ -13,7 +13,7 @@ const abortCheckoutState: Command<{ catalogName: string }, void> = Command.creat
 		const { wm } = this._app;
 		const workspace = wm.current();
 
-		const catalog = await workspace.getCatalog(catalogName);
+		const catalog = await workspace.getContextlessCatalog(catalogName);
 		if (!catalog?.repo?.gvc) return;
 
 		const state = await catalog.repo.getState();

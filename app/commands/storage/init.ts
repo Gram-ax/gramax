@@ -1,5 +1,6 @@
 import { ResponseKind } from "@app/types/ResponseKind";
 import Path from "@core/FileProvider/Path/Path";
+import { initEnterpriseStorage } from "@ext/enterprise/utils/initEnterpriseStorage";
 import { makeSourceApi } from "@ext/git/actions/Source/makeSourceApi";
 import StorageData from "@ext/storage/models/StorageData";
 import { Command } from "../../types/Command";
@@ -10,16 +11,18 @@ const init: Command<{ catalogName: string; articlePath: Path; data: StorageData 
 	kind: ResponseKind.plain,
 
 	async do({ catalogName, articlePath, data }) {
-		const { rp, wm } = this._app;
+		const { rp, wm, em } = this._app;
 		const workspace = wm.current();
 
-		const catalog = await workspace.getCatalog(catalogName);
+		const catalog = await workspace.getContextlessCatalog(catalogName);
 		if (!catalog) return;
+
+		await initEnterpriseStorage(em.getConfig().gesUrl, data);
 
 		await makeSourceApi(data.source, workspace.config().services?.auth?.url).assertStorageExist(data);
 		const fp = workspace.getFileProvider();
-		const repo = await rp.initNew(catalog.getBasePath(), fp, data);
-		catalog.setRepo(repo, rp);
+		const repo = await rp.initNew(catalog.basePath, fp, data);
+		catalog.setRepository(repo);
 		const item = catalog.findItemByItemPath(articlePath);
 		return await catalog.getPathname(item);
 	},

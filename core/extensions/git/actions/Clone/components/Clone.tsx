@@ -7,11 +7,13 @@ import ModalLayoutLight from "@components/Layouts/ModalLayoutLight";
 import FetchService from "@core-ui/ApiServices/FetchService";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import LanguageService from "@core-ui/ContextServices/Language";
-import UnsupportedElementsModal from "@ext/confluence/core/components/UnsupportedElementsModal";
-import UnsupportedElements from "@ext/confluence/core/model/UnsupportedElements";
+import OnNetworkApiErrorService from "@ext/errorHandlers/client/OnNetworkApiErrorService";
 import cloneHandler from "@ext/git/actions/Clone/logic/cloneHandler";
 import Mode from "@ext/git/actions/Clone/model/Mode";
+import UnsupportedElementsModal from "@ext/import/components/UnsupportedElementsModal";
+import UnsupportedElements from "@ext/import/model/UnsupportedElements";
 import t from "@ext/localization/locale/translate";
+import SourceType from "@ext/storage/logic/SourceDataProvider/model/SourceType";
 import { useMemo, useState } from "react";
 import SelectStorageDataForm from "../../../../storage/components/SelectStorageDataForm";
 import StorageData from "../../../../storage/models/StorageData";
@@ -106,11 +108,20 @@ const Clone = ({ trigger, mode }: { trigger: JSX.Element; mode: Mode }) => {
 	}, [LanguageService.currentUi()]);
 
 	const loadUnsupportedElements = async () => {
+		if (storageData.source.sourceType === SourceType.yandexDisk) {
+			startClone();
+			return;
+		}
+
 		setStage(CloneStage.LoadUnsupportedElements);
 		const res = await FetchService.fetch<UnsupportedElements[]>(
-			apiUrlCreator.getUnsupportedElementsUrl(storageData.name),
+			apiUrlCreator.getUnsupportedElementsUrl(storageData.name, storageData.source.sourceType),
 			JSON.stringify(storageData),
 		);
+		if (!res.ok) {
+			closeForm();
+			return;
+		}
 		const elements = await res.json();
 		if (!elements?.length) {
 			startClone();
@@ -129,33 +140,36 @@ const Clone = ({ trigger, mode }: { trigger: JSX.Element; mode: Mode }) => {
 				onCmdEnter={startClone}
 				trigger={<div>{trigger}</div>}
 			>
-				<ModalLayoutLight>
-					{stage === CloneStage.AskForStorage && (
-						<SelectStorageForm
-							onSetStorage={setStorageData}
-							disabled={disable}
-							mode={mode}
-							title={title}
-							buttonText={buttonText}
-							startClone={startClone}
-							loadUnsupportedElements={loadUnsupportedElements}
-						/>
-					)}
+				<OnNetworkApiErrorService.Provider callback={() => closeForm()}>
+					<ModalLayoutLight>
+						{stage === CloneStage.AskForStorage && (
+							<SelectStorageForm
+								onSetStorage={setStorageData}
+								disabled={disable}
+								mode={mode}
+								title={title}
+								buttonText={buttonText}
+								startClone={startClone}
+								loadUnsupportedElements={loadUnsupportedElements}
+							/>
+						)}
 
-					{stage === CloneStage.LoadUnsupportedElements && (
-						<LoadingLayout title={t("checking") + "..."}>
-							<SpinnerLoader height={100} width={100} fullScreen />
-						</LoadingLayout>
-					)}
+						{stage === CloneStage.LoadUnsupportedElements && (
+							<LoadingLayout title={t("checking") + "..."}>
+								<SpinnerLoader height={100} width={100} fullScreen />
+							</LoadingLayout>
+						)}
 
-					{stage === CloneStage.AskToImport && (
-						<UnsupportedElementsModal
-							startClone={startClone}
-							onCancelClick={() => setStage(CloneStage.AskForStorage)}
-							unsupportedNodes={unsupportedElements}
-						/>
-					)}
-				</ModalLayoutLight>
+						{stage === CloneStage.AskToImport && (
+							<UnsupportedElementsModal
+								startClone={startClone}
+								onCancelClick={() => setStage(CloneStage.AskForStorage)}
+								unsupportedNodes={unsupportedElements}
+								sourceType={storageData.source.sourceType}
+							/>
+						)}
+					</ModalLayoutLight>
+				</OnNetworkApiErrorService.Provider>
 			</ModalLayout>
 		</>
 	);

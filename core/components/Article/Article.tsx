@@ -7,13 +7,14 @@ import ErrorHandler from "@ext/errorHandlers/client/components/ErrorHandler";
 import t from "@ext/localization/locale/translate";
 
 const Article = ({ data }: { data: ArticlePageData }) => {
+	const { articleProps } = data;
 	const pageDataContext = PageDataContextService.value;
 	useCtrlKeyLinkHandler(); // Для открытия ссылок в tauri
 	useScrollToArticleAnchor(data); // Для скрола до заголовка в статье
 
 	return (
 		<ErrorHandler alertTitle={t("article.error.render-failed")} isAlert>
-			{pageDataContext.conf.isReadOnly ? (
+			{pageDataContext.conf.isReadOnly || articleProps.errorCode ? (
 				<ArticleReadRenderer data={data} />
 			) : (
 				<ArticleEditRenderer data={data} />
@@ -21,4 +22,5 @@ const Article = ({ data }: { data: ArticlePageData }) => {
 		</ErrorHandler>
 	);
 };
+
 export default Article;

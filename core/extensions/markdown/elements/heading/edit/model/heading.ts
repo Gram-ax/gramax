@@ -3,7 +3,7 @@ import { mergeAttributes, Node, textblockTypeInputRule } from "@tiptap/core";
 import getChildTextId from "@ext/markdown/elements/heading/logic/getChildTextId";
 import { selecInsideSingleParagraph } from "@ext/markdown/elementsUtils/selecInsideSingleParagraph";
 import { Plugin, PluginKey } from "@tiptap/pm/state";
-import { AddMarkStep, ReplaceAroundStep, ReplaceStep } from "@tiptap/pm/transform";
+import { ReplaceAroundStep, ReplaceStep } from "@tiptap/pm/transform";
 // import updateId from "@ext/markdown/elements/heading/edit/plugins/updateId";
 
 export type Level = 1 | 2 | 3 | 4 | 5 | 6;
@@ -29,7 +29,7 @@ const Heading = Node.create<HeadingOptions>({
 	defining: true,
 
 	addOptions() {
-		return { levels: [1, 2, 3, 4] };
+		return { levels: [2, 3, 4] };
 	},
 
 	addAttributes() {
@@ -41,13 +41,11 @@ const Heading = Node.create<HeadingOptions>({
 	},
 
 	parseHTML() {
-		const levels = [...this.options.levels];
-		levels.shift();
 		return [
 			{ tag: `h1`, attrs: { level: 2 } },
 			{ tag: `h5`, attrs: { level: 4 } },
 			{ tag: `h6`, attrs: { level: 4 } },
-			...levels.map((level: Level) => {
+			...this.options.levels.map((level: Level) => {
 				return { tag: `h${level}`, attrs: { level } };
 			}),
 		];
@@ -57,7 +55,7 @@ const Heading = Node.create<HeadingOptions>({
 		const id = node.attrs.isCustomId ? node.attrs.id : getChildTextId(node.textContent);
 		const hasLevel = this.options.levels.includes(node.attrs.level);
 		const level = hasLevel ? node.attrs.level : this.options.levels[0];
-		return [`h${level === 1 && id === "article-title" ? 1 : level}`, mergeAttributes({ id }), 0];
+		return [`h${level}`, mergeAttributes({ id }), 0];
 	},
 
 	addCommands() {
@@ -83,10 +81,8 @@ const Heading = Node.create<HeadingOptions>({
 	},
 
 	addKeyboardShortcuts() {
-		const levels = [...this.options.levels];
-		levels.shift();
 		return {
-			...levels.reduce(
+			...this.options.levels.reduce(
 				(items, level) => ({
 					...items,
 					...{
@@ -112,9 +108,7 @@ const Heading = Node.create<HeadingOptions>({
 	},
 
 	addInputRules() {
-		const levels = [...this.options.levels];
-		levels.shift();
-		return levels.map((level) => {
+		return this.options.levels.map((level) => {
 			return textblockTypeInputRule({
 				find: new RegExp(`^(#{1,${level}})\\s$`),
 				type: this.type,
@@ -126,9 +120,9 @@ const Heading = Node.create<HeadingOptions>({
 	addProseMirrorPlugins() {
 		return [
 			new Plugin({
-				key: new PluginKey("handleHeadings"),
+				key: new PluginKey("updateArticleTitle"),
 				appendTransaction(transactions, oldState, newState) {
-					if (oldState.doc.firstChild.textContent === newState.doc.firstChild.textContent) return null;
+					if (oldState.doc.firstChild.childCount === newState.doc.firstChild.childCount) return null;
 					const newTr = newState.tr;
 					transactions.forEach((tr) => {
 						if (!tr.docChanged) return;
@@ -136,28 +130,12 @@ const Heading = Node.create<HeadingOptions>({
 							if (step instanceof ReplaceStep || step instanceof ReplaceAroundStep) {
 								tr.doc.firstChild.content.forEach((node, offset) => {
 									if (!node.marks) return;
-									newTr.removeMark(offset, offset + node.nodeSize);
+									newTr.removeMark(offset, offset + node.nodeSize + 1);
 								});
-								if (tr.doc.firstChild.attrs.level !== 1) newTr.setNodeAttribute(0, "level", 1);
 							}
 						});
 					});
 					return newTr;
-				},
-				filterTransaction(tr) {
-					if (tr.docChanged) {
-						let allowTr = true;
-						tr.steps.forEach((step) => {
-							if (step instanceof AddMarkStep) {
-								const resolvedPos = tr.doc.resolve(step.from);
-								if (resolvedPos.parent === tr.doc.firstChild) allowTr = false;
-							}
-						});
-
-						return allowTr;
-					}
-
-					return true;
 				},
 			}),
 		];

@@ -4,6 +4,7 @@ enum ErrorType {
 	Git = "Git",
 	Silent = "Silent",
 	Parse = "Parse",
+	NetworkApi = "NetworkApi",
 }
 
 export default ErrorType;

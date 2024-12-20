@@ -14,7 +14,6 @@ import {
 	cropImage,
 	restoreImage,
 } from "@ext/markdown/elements/image/edit/logic/imageEditorMethods";
-import UnifiedComponent from "@ext/markdown/elements/image/render/components/ImageEditor/Unified";
 import { CSSProperties, MouseEventHandler, ReactEventHandler, useEffect, useRef, useState } from "react";
 import {
 	AdditionData,
@@ -28,6 +27,7 @@ import {
 	SquareObject,
 } from "../../model/imageEditorTypes";
 import ImageCropper from "./ImageCropper";
+import ObjectRenderer from "@ext/markdown/elements/image/render/components/ObjectRenderer";
 
 const ImageEditor = (props: EditorProps & { className?: string; style?: CSSProperties }) => {
 	const { crop, src, objects, handleSave, handleToggle, className, style } = props;
@@ -40,6 +40,7 @@ const ImageEditor = (props: EditorProps & { className?: string; style?: CSSPrope
 	const [prevCrop, setPrevCrop] = useState(null);
 	const [additions, setAdditions] = useState<AdditionData[]>([]);
 	const [showWarning, setShowWarning] = useState<boolean>(false);
+	const [isLoaded, setIsLoaded] = useState<boolean>(false);
 
 	const [tooltipText, setTooltipText] = useState<string>(null);
 	const [curDirection, setCurDirection] = useState<DirectionType>(null);
@@ -500,6 +501,7 @@ const ImageEditor = (props: EditorProps & { className?: string; style?: CSSPrope
 			});
 			resetUpdateArea();
 		}
+		setIsLoaded(true);
 	};
 
 	return (
@@ -554,20 +556,17 @@ const ImageEditor = (props: EditorProps & { className?: string; style?: CSSPrope
 						style={style}
 						alt=""
 					/>
-					{elements.map((data: ImageObject, index: number) => (
-						<UnifiedComponent
-							index={index}
-							key={index}
+					{isLoaded && (
+						<ObjectRenderer
+							objects={elements}
+							imageRef={imgRef}
 							parentRef={imageContainerRef}
-							type={data.type}
-							{...data}
-							onClick={(index: number) => selectElement(index)}
+							editable={true}
+							onClick={selectElement}
 							selectedIndex={selectedIndex}
 							changeData={setElementData}
-							editable={true}
-							drawIndexes={elements.length > 1}
 						/>
-					))}
+					)}
 				</div>
 			</div>
 
@@ -696,12 +695,11 @@ export default styled(ImageEditor)`
 		position: relative;
 		top: 50%;
 		left: 50%;
-		border: solid #bdbdbd 1px;
-		max-width: 75%;
-		max-height: 85%;
+		max-width: 90vw;
+		max-height: 90vh;
 		transform: translate(-50%, -50%);
-		width: fit-content;
-		height: fit-content;
+		width: max-content;
+		height: max-content;
 	}
 
 	.modal__container__image {

@@ -18,7 +18,7 @@ import makeConfluenceConvertor from "@ext/confluence/core/logic/makeConfluenceCo
 import ConfluenceCloudAPI from "@ext/confluence/core/api/ConfluenceCloudAPI";
 import ConfluenceCloudSourceData from "@ext/confluence/core/cloud/model/ConfluenceCloudSourceData";
 
-export default class ConfluenceStorage {
+export default class ConfluenceStorage { 
 	static position: number = 0;
 
 	static async clone({ fs, data, catalogPath }: ConfluenceImportData) {

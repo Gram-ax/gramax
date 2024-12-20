@@ -1,16 +1,12 @@
 import getApp from "@app/browser/app";
 import getCommands from "@app/browser/commands";
 import { env } from "@app/resolveModule/env";
-import MimeTypes from "@core-ui/ApiServices/Types/MimeTypes";
-import { downloadFile } from "@core-ui/downloadResource";
 import Path from "@core/FileProvider/Path/Path";
 import RouterPathProvider from "@core/RouterPath/RouterPathProvider";
 import * as git from "@ext/git/core/GitCommands/LibGit2IntermediateCommands";
 import ConsoleLogger from "@ext/loggers/ConsoleLogger";
 import { LogLevel } from "@ext/loggers/Logger";
 import PersistentLogger from "@ext/loggers/PersistentLogger";
-import { Buffer } from "buffer";
-import type { FsPromisesApi } from "memfs/lib/node/types/FsPromisesApi";
 
 export const clear = async () => {
 	console.log("Delete all");
@@ -46,34 +42,6 @@ export const items = async () => {
 };
 
 export { RouterPathProvider };
-
-export const download = async (name: string) => {
-	const JSZip = await import("jszip");
-	const FsaNodeFs = (await import("memfs/lib/fsa-to-node")).FsaNodeFs;
-	const zip = new JSZip.default();
-	const memFp: FsPromisesApi = new FsaNodeFs((await window.navigator.storage.getDirectory()) as any).promises;
-
-	const app = await getApp();
-	const fp = app.wm.current().getFileProvider();
-	const addFiles = async (path: Path) => {
-		const dir = await fp.getItems(path);
-		for (const file of dir) {
-			if (file.isFile()) {
-				let fileBuffer: Buffer;
-				try {
-					fileBuffer = (await memFp.readFile(`docs/${file.path.value}`)) as Buffer;
-				} catch (e) {
-					console.error(e);
-					fileBuffer = await fp.readAsBinary(file.path);
-				}
-				zip.file(file.path.value, fileBuffer);
-			} else await addFiles(file.path);
-		}
-	};
-	await addFiles(intoPath(name));
-	const content = await zip.generateAsync({ type: "blob" });
-	downloadFile(content, MimeTypes.zip, name);
-};
 
 export const app = async () => await getApp();
 
@@ -121,4 +89,12 @@ export const devMode = {
 	check: () => window.localStorage.getItem(devModeItemName) === "true",
 	enable: () => window.localStorage.setItem(devModeItemName, "true"),
 	disable: () => window.localStorage.setItem(devModeItemName, "false"),
+};
+
+export const addAssignee = (name: string, email: string) => {
+	const assignees = window.localStorage.getItem("assignees") ?? [];
+	window.localStorage.setItem(
+		"assignees",
+		JSON.stringify([...assignees, { value: `${name} (${email})`, label: `${name} (${email})`, name, email }]),
+	);
 };

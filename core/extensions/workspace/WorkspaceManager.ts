@@ -3,8 +3,9 @@ import { getExecutingEnvironment } from "@app/resolveModule/env";
 import type FileProvider from "@core/FileProvider/model/FileProvider";
 import type MountFileProvider from "@core/FileProvider/MountFileProvider/MountFileProvider";
 import Path from "@core/FileProvider/Path/Path";
-import type { Catalog, CatalogFilesUpdated } from "@core/FileStructue/Catalog/Catalog";
+import type { Catalog } from "@core/FileStructue/Catalog/Catalog";
 import CatalogEntry from "@core/FileStructue/Catalog/CatalogEntry";
+import type { CatalogFilesUpdated } from "@core/FileStructue/Catalog/CatalogEvents";
 import FileStructure from "@core/FileStructue/FileStructure";
 import mergeObjects from "@core/utils/mergeObjects";
 import { uniqueName } from "@core/utils/uniqueName";
@@ -14,6 +15,7 @@ import t from "@ext/localization/locale/translate";
 import NoActiveWorkspace from "@ext/workspace/error/NoActiveWorkspaceError";
 import WorkspaceMissingPath from "@ext/workspace/error/UnknownWorkspace";
 import { Workspace } from "@ext/workspace/Workspace";
+import WorkspaceAssets from "@ext/workspace/WorkspaceAssets";
 import type { WorkspaceConfig, WorkspacePath } from "@ext/workspace/WorkspaceConfig";
 
 export type FSCreatedCallback = (fs: FileStructure) => void;
@@ -53,7 +55,13 @@ export default class WorkspaceManager {
 		await fp.createRootPathIfNeed();
 		const fs = new FileStructure(fp, this._config.isReadOnly);
 		this._callback(fs);
-		this._current = await Workspace.init({ fs, rp: this._rp, path, config: init });
+		this._current = await Workspace.init({
+			fs,
+			rp: this._rp,
+			path,
+			config: init,
+			assets: this.getWorkspaceAssets(path),
+		});
 		this._rules?.forEach((fn) => this._current.events.on("catalog-changed", fn));
 
 		this._workspacesConfig.set("latest-workspace", this._current.path());
@@ -117,6 +125,14 @@ export default class WorkspaceManager {
 		return this._workspaces.get(path);
 	}
 
+	getWorkspaceAssets(path: WorkspacePath) {
+		if (!path || path === this._current?.path()) return this._current.getAssets();
+
+		if (!this._workspaces.get(path)) throw new Error(`Workspace with path ${path} not found`);
+		const fp = this._makeFileProvider(new Path([path, ".workspace", "assets"]).value);
+		return new WorkspaceAssets(fp);
+	}
+
 	async saveWorkspaces() {
 		this._workspacesConfig.set("workspaces", Array.from(this._workspaces.keys()));
 		await this._workspacesConfig.save();
@@ -155,13 +171,13 @@ export default class WorkspaceManager {
 		const current = this.maybeCurrent();
 
 		if (!current) return null;
-		const catalog = await current.getCatalog(catalogName);
+		const catalog = await current.getContextlessCatalog(catalogName);
 		if (catalog) return catalog;
 
 		for (const [path, { catalogNames }] of this._workspaces.entries()) {
 			if (catalogNames.includes(catalogName)) {
 				await this.setWorkspace(path);
-				return this.current().getCatalog(catalogName);
+				return this.current().getContextlessCatalog(catalogName);
 			}
 		}
 
@@ -203,6 +219,7 @@ export default class WorkspaceManager {
 			),
 		);
 
+		if (!yaml.get("isEnterprise")) yaml.set("services", this._config.services);
 		if (yaml.get("name") != name) await yaml.save();
 
 		const catalogNames = await FileStructure.getCatalogDirs(fp);

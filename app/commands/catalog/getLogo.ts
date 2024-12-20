@@ -14,7 +14,7 @@ const getLogo: Command<{ catalogName: string; themeName: string }, { hashItem: H
 
 		async do({ catalogName, themeName: theme }) {
 			const workspace = this._app.wm.current();
-			const catalog = await workspace.getCatalogEntry(catalogName);
+			const catalog = await workspace.getBaseCatalog(catalogName);
 			if (!catalog) return;
 			const logo =
 				Theme[theme] == Theme.light
@@ -22,7 +22,7 @@ const getLogo: Command<{ catalogName: string; themeName: string }, { hashItem: H
 					: catalog.props["logo_" + theme] ?? catalog.props["logo"];
 			if (!logo) return;
 
-			const path = catalog.getRootCategoryPath().join(new Path(logo));
+			const path = catalog.getRootCategoryDirectoryPath().join(new Path(logo));
 			const itemRef: ItemRef = { path, storageId: catalog.getRootCategoryRef().storageId };
 
 			if (!(await workspace.getFileProvider().exists(itemRef.path))) return;

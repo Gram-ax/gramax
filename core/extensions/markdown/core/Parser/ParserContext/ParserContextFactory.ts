@@ -1,7 +1,7 @@
+import type { ReadonlyCatalog } from "@core/FileStructue/Catalog/ReadonlyCatalog";
 import type WorkspaceManager from "@ext/workspace/WorkspaceManager";
 import Path from "../../../../../logic/FileProvider/Path/Path";
 import { Article } from "../../../../../logic/FileStructue/Article/Article";
-import { Catalog } from "../../../../../logic/FileStructue/Catalog/Catalog";
 import { TableDB } from "../../../../../logic/components/tableDB/table";
 import UiLanguage from "../../../../localization/core/model/Language";
 import UserRepository from "../../../../security/logic/UserRepository";
@@ -20,7 +20,7 @@ class ParserContextFactory {
 		private _ur?: UserRepository,
 	) {}
 
-	fromArticle(article: Article, catalog: Catalog, language: UiLanguage, isLogged: boolean): ParserContext {
+	fromArticle(article: Article, catalog: ReadonlyCatalog, language: UiLanguage, isLogged: boolean): ParserContext {
 		return new ArticleContext(
 			article,
 			catalog,

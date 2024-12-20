@@ -18,16 +18,16 @@ export const getNodeNameFromCursor = (editor: Editor) => {
 	let ignoreList = false;
 
 	const addRules = {
-		bullet_list: () => {
-			if (!ignoreList) nodeStack.push("bullet_list");
+		bulletList: () => {
+			if (!ignoreList) nodeStack.push("bulletList");
 			ignoreList = true;
 		},
-		ordered_list: () => {
-			if (!ignoreList) nodeStack.push("ordered_list");
+		orderedList: () => {
+			if (!ignoreList) nodeStack.push("orderedList");
 			ignoreList = true;
 		},
-		task_list: () => {
-			if (!ignoreList) nodeStack.push("task_list");
+		taskList: () => {
+			if (!ignoreList) nodeStack.push("taskList");
 			ignoreList = true;
 		},
 		heading: (node) => {
@@ -69,7 +69,7 @@ export const getNodeNameFromCursor = (editor: Editor) => {
 
 	return {
 		actions: nodeStack.filter(
-			(elem) => !["doc", "text", "list_item", "task_item", "tableHeader", "tableCell", "tableRow"].includes(elem),
+			(elem) => !["doc", "text", "listItem", "taskItem", "tableHeader", "tableCell", "tableRow"].includes(elem),
 		),
 		headingLevel,
 	};

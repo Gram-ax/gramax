@@ -1,17 +1,20 @@
 import { Command } from "@app/types/Command";
 import { ResponseKind } from "@app/types/ResponseKind";
 import ReloadConfirmMiddleware from "@core/Api/middleware/ReloadConfirmMiddleware";
+import Context from "@core/Context/Context";
 import Path from "@core/FileProvider/Path/Path";
 import { Article } from "@core/FileStructue/Article/Article";
-import ViewFilter from "@ext/properties/logic/ViewFilter";
+import ViewFilter, { OrderValue } from "@ext/properties/logic/ViewFilter";
 import { PropertyValue, ViewRenderGroup } from "@ext/properties/models";
 import { Display } from "@ext/properties/models/displays";
+import RuleProvider from "@ext/rules/RuleProvider";
 
 const getViewRenderData: Command<
 	{
+		ctx: Context;
 		catalogName: string;
 		defs: PropertyValue[];
-		orderby: string[];
+		orderby: OrderValue[];
 		groupby: string[];
 		select: string[];
 		display: Display;
@@ -25,12 +28,13 @@ const getViewRenderData: Command<
 
 	middlewares: [new ReloadConfirmMiddleware()],
 
-	async do({ display, catalogName, defs, orderby, groupby, select, articlePath }) {
+	async do({ display, catalogName, defs, orderby, groupby, select, articlePath, ctx }) {
 		const { wm } = this._app;
 		const workspace = wm.current();
-		const catalog = await workspace.getCatalog(catalogName);
+		const catalog = await workspace.getCatalog(catalogName, ctx);
 		if (!catalog) return [];
-		const allArticles = catalog.getItems() as Article[];
+		const itemFilters = new RuleProvider(ctx).getItemFilters();
+		const allArticles = catalog.deref.getItems(itemFilters) as Article[];
 
 		return await new ViewFilter(
 			defs,

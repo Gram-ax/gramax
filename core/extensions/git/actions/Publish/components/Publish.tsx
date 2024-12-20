@@ -278,7 +278,7 @@ const Publish = (props: PublishProps) => {
 			? [
 					item,
 					...x.data.resources.map((resource, id) => {
-						const parentPath = resource.parentPath;
+						const parentPath = x.data.filePath.path;
 						const resourceApi = apiUrlCreator.fromArticle(parentPath);
 						const relativeTo = new Path(parentPath);
 						return {

@@ -1,5 +1,5 @@
-import { MAX_HEIGHT } from "@ext/wordExport/options/wordExportSettings";
 import resolveModule from "@app/resolveModule/backend";
+import { MAX_HEIGHT } from "@ext/wordExport/options/wordExportSettings";
 import { ImageDimensions } from "@ext/wordExport/options/WordTypes";
 
 export class ImageDimensionsFinder {

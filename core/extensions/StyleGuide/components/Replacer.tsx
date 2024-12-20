@@ -1,6 +1,7 @@
 import Button from "@components/Atoms/Button/Button";
 import ModalLayoutLight from "@components/Layouts/ModalLayoutLight";
 import styled from "@emotion/styled";
+import t from "@ext/localization/locale/translate";
 
 export interface ReplacerProps {
 	name: string;
@@ -11,26 +12,32 @@ export interface ReplacerProps {
 }
 
 const Replacer = (props: ReplacerProps) => {
-	const { name, replaceText, onClick, className } = props;
+	const { name, replaceText, onClick, description, className } = props;
 	return (
 		<ModalLayoutLight>
 			<div className={className}>
 				<div className="name">{name}</div>
-				<div className="replace-text">
-					{replaceText ? (
-						<>
-							<div>Предложение по замене</div>
-							<pre>{replaceText}</pre>
-						</>
-					) : (
-						<div>Предложено удалить фрагмент</div>
-					)}
-				</div>
-				<div className="buttons-layout">
-					<Button isEmUnits onClick={() => onClick(replaceText)}>
-						{replaceText ? "Заменить" : "Удалить"}
-					</Button>
-				</div>
+				<p className="description">{description}</p>
+				{replaceText !== null && (
+					<>
+						<div className="replace-text">
+							{replaceText ? (
+								<>
+									<div>{t("style-guide.replace-text")}</div>
+									<pre>{replaceText}</pre>
+								</>
+							) : (
+								<div>{t("style-guide.delete-text")}</div>
+							)}
+						</div>
+
+						<div className="buttons-layout">
+							<Button isEmUnits onClick={() => onClick(replaceText)}>
+								{t(replaceText ? "replace" : "delete")}
+							</Button>
+						</div>
+					</>
+				)}
 			</div>
 		</ModalLayoutLight>
 	);
@@ -44,6 +51,11 @@ export default styled(Replacer)`
 
 	.name {
 		font-weight: 500;
+	}
+
+	.description {
+		font-weight: 400;
+		margin-bottom: 0;
 	}
 
 	.replace-text {

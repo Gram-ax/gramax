@@ -1,6 +1,6 @@
 import { ViewRenderData } from "@ext/properties/models";
 import { useDrag } from "react-dnd";
-import { CSSProperties, useEffect, useMemo } from "react";
+import { CSSProperties, MouseEvent, useEffect, useMemo, useRef } from "react";
 import { getEmptyImage } from "react-dnd-html5-backend";
 import CardPreview from "@ext/markdown/elements/view/render/components/Displays/Helpers/Kanban/CardPreview";
 import { DragItems } from "@ext/properties/models/kanban";
@@ -18,10 +18,12 @@ interface CardProps extends ViewRenderData {
 	columnID: number;
 	cardID: number;
 	disabled?: boolean;
+	updateProperty: (columnID: number, cardID: number, property: string, value: string, isDelete?: boolean) => void;
 }
 
-const Card = ({ columnID, cardID, linkPath, title, otherProps, resourcePath, disabled }: CardProps) => {
+const Card = ({ columnID, cardID, linkPath, title, otherProps, resourcePath, disabled, updateProperty }: CardProps) => {
 	const previewImage = useMemo(() => getEmptyImage(), []);
+	const cardRef = useRef<HTMLDivElement>(null);
 	const setLink = ArticleTooltipService.value;
 	const router = useRouter();
 	const [{ isDragging }, drag, preview] = useDrag({
@@ -37,17 +39,38 @@ const Card = ({ columnID, cardID, linkPath, title, otherProps, resourcePath, dis
 		preview(previewImage, { captureDraggingState: true });
 	}, []);
 
+	const styles = useMemo(() => getStyles(isDragging), [isDragging]);
+
+	const onMouseEnter = (e: MouseEvent) => {
+		const target = e.target as HTMLElement;
+		if (target.closest(".chips")) return;
+		setLink(cardRef.current as HTMLElement, resourcePath);
+	};
+
+	const onDoubleClick = (e: MouseEvent) => {
+		const target = e.target as HTMLElement;
+		if (target.closest(".chips")) return;
+		linkPath && router.pushPath(linkPath);
+	};
+
+	const onSubmit = (propertyName: string, value: string, isDelete?: boolean) => {
+		updateProperty(columnID, cardID, propertyName, value, isDelete);
+	};
+
 	return (
 		<CardPreview
 			title={title}
 			otherProps={otherProps}
+			isReadOnly={disabled}
+			onSubmit={onSubmit}
 			onDragStart={() => setLink(null, null)}
 			onMouseDown={() => setLink(null, null)}
-			onMouseEnter={(e) => setLink(e.target as HTMLElement, resourcePath)}
-			onDoubleClick={() => linkPath && router.pushPath(linkPath)}
-			style={getStyles(isDragging)}
+			onMouseEnter={onMouseEnter}
+			onDoubleClick={onDoubleClick}
+			style={styles}
 			ref={(el) => {
 				drag(el);
+				cardRef.current = el;
 			}}
 		/>
 	);

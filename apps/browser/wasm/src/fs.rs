@@ -3,6 +3,7 @@ use std::path::PathBuf;
 
 use gramaxfs::error::Result;
 use gramaxfs::FileInfo;
+use gramaxfs::DirStat;
 
 use crate::define_c_api;
 
@@ -38,6 +39,10 @@ define_c_api! {
 
   json fn getstat(path: String, follow_link: bool) -> FileInfo {
     fs::getstat(path, follow_link)
+  }
+
+  json fn read_dir_stats(path: String) -> Vec<DirStat> {
+    fs::read_dir_stats(path)
   }
 
   noreturn fn rmfile(path: String) -> () {

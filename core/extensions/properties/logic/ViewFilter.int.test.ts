@@ -1,14 +1,14 @@
 import getApplication from "@app/node/app";
 import { Article } from "@core/FileStructue/Article/Article";
 import { Catalog } from "@core/FileStructue/Catalog/Catalog";
-import ViewFilter from "@ext/properties/logic/ViewFilter";
+import ViewFilter, { OrderValue } from "@ext/properties/logic/ViewFilter";
 import { PropertyValue } from "@ext/properties/models";
 
 const getCatalogData = async () => {
 	const app = await getApplication();
 
 	const workspace = app.wm.current();
-	const propertiesTestCatalog = await workspace.getCatalog("PropertyCatalog");
+	const propertiesTestCatalog = await workspace.getContextlessCatalog("PropertyCatalog");
 	const allArticles = propertiesTestCatalog.getItems() as Article[];
 	const curArticle = allArticles[0];
 	return {
@@ -20,7 +20,7 @@ const getCatalogData = async () => {
 
 const getResult = async (
 	defs: PropertyValue[],
-	sortBy: string[],
+	sortBy: OrderValue[],
 	groupBy: string[],
 	select: string[],
 	allArticles: Article[],
@@ -34,7 +34,7 @@ describe("ViewFilter фильтрует по свойствам", () => {
 		const { propertiesTestCatalog, allArticles, curArticle } = await getCatalogData();
 
 		const defs = [{ name: "Assignee", value: ["EZ", "SF"] }];
-		const sortBy = ["Important"];
+		const sortBy = [{ name: "Important", value: [] }];
 		const groupBy = ["PO"];
 		const select = ["Assignee", "PO", "Important"];
 

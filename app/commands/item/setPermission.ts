@@ -4,17 +4,18 @@ import ReloadConfirmMiddleware from "@core/Api/middleware/ReloadConfirmMiddlewar
 import Path from "@core/FileProvider/Path/Path";
 import Permission from "@ext/security/logic/Permission/Permission";
 import { Command } from "../../types/Command";
+import type Context from "@core/Context/Context";
 
-const setPermission: Command<{ catalogName: string; path?: Path; permissions: Permission }, void> = Command.create({
+const setPermission: Command<{ ctx: Context; catalogName: string; path?: Path; permissions: Permission }, void> = Command.create({
 	path: "item/setPermission",
 
 	kind: ResponseKind.json,
 
 	middlewares: [new AuthorizeMiddleware(), new ReloadConfirmMiddleware()],
 
-	async do({ catalogName, path, permissions }) {
+	async do({ ctx, catalogName, path, permissions }) {
 		const workspace = this._app.wm.current();
-		const catalog = await workspace.getCatalog(catalogName);
+		const catalog = await workspace.getCatalog(catalogName, ctx);
 
 		if (!path) return catalog.updateNeededPermission(permissions);
 

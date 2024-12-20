@@ -13,7 +13,8 @@ interface PropertyItemProps {
 	id?: string;
 	value?: string[];
 	values?: string[] | number[];
-	icon?: string;
+	startIcon?: string;
+	endIcon?: string;
 	onHide?: (instance: Instance<Props>) => void;
 	onClick?: (e: MouseEvent, id: string, value?: string) => void;
 	className?: string;
@@ -21,6 +22,7 @@ interface PropertyItemProps {
 	hasAllProperty?: boolean;
 	children?: ReactNode;
 	canMany?: boolean;
+	allowAddAll?: boolean;
 	rightActions?: ReactNode;
 	closeOnSelection?: boolean;
 	invertChecked?: boolean;
@@ -31,7 +33,8 @@ const PropertyItem = (props: PropertyItemProps) => {
 		id,
 		name,
 		values,
-		icon,
+		startIcon,
+		endIcon,
 		onClick,
 		className,
 		hasNoneProperty,
@@ -43,6 +46,7 @@ const PropertyItem = (props: PropertyItemProps) => {
 		closeOnSelection,
 		onHide,
 		rightActions,
+		allowAddAll = false,
 	} = props;
 	const ref = useRef<HTMLDivElement>(null);
 	const valueLength = value?.length ?? 0;
@@ -61,14 +65,19 @@ const PropertyItem = (props: PropertyItemProps) => {
 			placement="right-start"
 			openTrigger="mouseenter focus"
 			trigger={
-				<div className={className}>
-					<div className="icon-space">{icon && <Icon code={icon} />}</div>
+				<div className={className} onClick={(e) => allowAddAll && onClick?.(e, id, "all")}>
+					{startIcon && (
+						<div className="icon-space">
+							<Icon code={startIcon} />
+						</div>
+					)}
 					<div className="name">
 						<ButtonLink ref={ref} text={translatedName} />
-						<div className="right">
-							{rightActions}
-							<Icon code="chevron-right" className="icon-size" />
-						</div>
+					</div>
+					{endIcon && <div className="icon-space icon-space-right">{<Icon code={endIcon} />}</div>}
+					<div className="right">
+						{rightActions}
+						<Icon code="chevron-right" className="icon-size" />
 					</div>
 				</div>
 			}
@@ -83,7 +92,7 @@ const PropertyItem = (props: PropertyItemProps) => {
 						onClick={(e) => onClick?.(e, id, "all")}
 					/>
 				)}
-				{hasNoneProperty && !isSystem && (
+				{hasNoneProperty && (
 					<PropertyButton
 						canMany={canMany}
 						name={t("properties.empty")}
@@ -106,10 +115,19 @@ const PropertyItem = (props: PropertyItemProps) => {
 		</PopupMenuLayout>
 	) : (
 		<div className={className} onClick={(e) => onClick?.(e, id)}>
-			<div className="icon-space">{icon && <Icon code={icon} />}</div>
+			{startIcon && (
+				<div className="icon-space">
+					<Icon code={startIcon} />
+				</div>
+			)}
 			<div className="name">
 				<ButtonLink text={translatedName} />
 			</div>
+			{endIcon && (
+				<div className="icon-space icon-space-right">
+					<Icon code={endIcon} />
+				</div>
+			)}
 			{rightActions && (
 				<div className="right">
 					{rightActions}
@@ -133,7 +151,13 @@ export default styled(PropertyItem)`
 		display: inline-flex;
 		align-items: center;
 		justify-content: center;
-		visibility: ${({ icon }) => (icon ? "visible" : "hidden")};
+		visibility: ${({ startIcon: icon }) => (icon ? "visible" : "hidden")};
+	}
+
+	.icon-space-right {
+		margin-right: 0;
+		margin-left: 0.65em;
+		visibility: ${({ endIcon: icon }) => (icon ? "visible" : "hidden")};
 	}
 
 	.icon-size {
@@ -144,7 +168,7 @@ export default styled(PropertyItem)`
 		display: flex;
 		gap: 0.25em;
 		margin-right: -6px;
-		margin-left: 10px;
+		margin-left: ${({ endIcon }) => (endIcon ? "0" : "1.15em")};
 	}
 
 	.name {

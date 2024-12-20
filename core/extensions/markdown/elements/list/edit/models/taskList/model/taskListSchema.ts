@@ -1,5 +1,5 @@
-export const task_list = {
+export const taskList = {
 	group: "block list",
-	content: "task_item+",
+	content: "taskItem+",
 	attrs: {},
 };

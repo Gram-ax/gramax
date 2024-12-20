@@ -24,9 +24,9 @@ export default mergeConfig(baseConfig(), {
 		},
 	},
 
-	server: {
-		hmr: false,
-	},
+	// server: {
+	// 	hmr: false,
+	// },
 
 	publicDir: "../../core/public",
 	envDir: "../..",

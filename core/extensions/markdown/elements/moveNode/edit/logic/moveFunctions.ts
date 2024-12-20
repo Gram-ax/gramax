@@ -1,3 +1,4 @@
+import { listTypes } from "@ext/markdown/elements/joinLists/joinLists";
 import getNodeByPos from "@ext/markdown/elementsUtils/getNodeByPos";
 import KeyboardRulesProps from "@ext/markdown/elementsUtils/keyboardShortcuts/model/KeyboardRulesProps";
 import KeyboardShortcut from "@ext/markdown/elementsUtils/keyboardShortcuts/model/KeyboardShortcut";
@@ -5,11 +6,11 @@ import { Editor } from "@tiptap/core";
 import { TextSelection, Transaction } from "@tiptap/pm/state";
 import { Node } from "prosemirror-model";
 
-const listTypes = ["bullet_list", "ordered_list"];
-
 type NodesWithParent = { node: Node; pos: number; parent: Node }[];
 
 type NodesWithoutChildren = { node: Node; pos: number }[];
+
+const itemTypes = ["listItem", "taskItem"];
 
 interface MoveProps {
 	editor: Editor;
@@ -143,7 +144,7 @@ function getChildNodesAndParent(parent: Node) {
 	const childLists: NodesWithParent = [];
 
 	parent.descendants((node, pos, parent) => {
-		if (node.type.name === "list_item") childNodes.push({ node, pos, parent });
+		if (itemTypes.includes(node.type.name)) childNodes.push({ node, pos, parent });
 		if (listTypes.includes(node.type.name)) childLists.push({ node, pos, parent });
 	});
 
@@ -230,7 +231,7 @@ const swap = ({ editor, isUp }: { isUp: boolean; editor: Editor }) => {
 	const { position } = getNodeByPos(anchor, doc, (_, parentNode): boolean => parentNode === doc);
 	const props = { editor, isUp, anchor, doc, tr: editor.state.tr };
 
-	const isList = cursor.depth >= 3 ? cursor.node(-1).type.name === "list_item" : false;
+	const isList = cursor.depth >= 3 ? itemTypes.includes(cursor.node(-1).type.name) : false;
 	const firstListNode = position + markerDifference < anchor;
 
 	const tr = isList && firstListNode ? swapListItem(props) : swapNode(props);

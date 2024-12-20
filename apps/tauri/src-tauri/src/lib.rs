@@ -203,10 +203,14 @@ impl MainWindowBuilder {
     };
 
     #[cfg(target_os = "macos")]
-    let builder = builder.initialization_script(include_str!("platform/desktop/macos.js"));
+    let builder = builder
+      .initialization_script(include_str!("platform/desktop/macos.js"))
+      .hidden_title(true)
+      .title_bar_style(TitleBarStyle::Overlay);
 
     #[cfg(desktop)]
-    let builder = builder.title("Gramax").enable_clipboard_access().inner_size(1000.0, 700.0);
+    let builder =
+      builder.title("Gramax").enable_clipboard_access().inner_size(1000.0, 700.0).accept_first_mouse(true);
 
     let window = builder.build()?;
 

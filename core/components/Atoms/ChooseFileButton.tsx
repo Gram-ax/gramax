@@ -1,6 +1,7 @@
 import Tooltip from "@components/Atoms/Tooltip";
 import useWatch from "@core-ui/hooks/useWatch";
 import styled from "@emotion/styled";
+import t from "@ext/localization/locale/translate";
 import { useState } from "react";
 
 interface ChooseFileProps {
@@ -23,7 +24,7 @@ const ChooseFile = (props: ChooseFileProps) => {
 		<Tooltip visible={!!errorText} content={<span>{errorText}</span>}>
 			<div className={className + (errorText ? " error-file" : "")}>
 				<span>
-					{fileName ? "Файл" : "Выберите файл"}: {fileName ?? "Файл не выбран"}
+					{t(fileName ? "file" : "style-guide.select-file")}: {fileName ?? t("style-guide.no-file-selected")}
 				</span>
 				<input
 					onChange={(e) => {

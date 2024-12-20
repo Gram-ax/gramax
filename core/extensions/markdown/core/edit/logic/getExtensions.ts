@@ -1,8 +1,6 @@
 import Br from "@ext/markdown/elements/br/edit/br";
 import ExtendedCodeBlockLowlight from "@ext/markdown/elements/codeBlockLowlight/edit/model/codeBlockLowlight";
 import ArticleSearch from "@ext/markdown/elements/find/edit/models/ArticleSearch";
-import TaskItem from "@ext/markdown/elements/list/edit/models/taskItem/model/taskItem";
-import TaskList from "@ext/markdown/elements/list/edit/models/taskList/model/taskList";
 import { Extensions } from "@tiptap/react";
 
 import Document from "@tiptap/extension-document";
@@ -11,6 +9,10 @@ import TableCell from "@tiptap/extension-table-cell";
 import TableHeader from "@tiptap/extension-table-header";
 import TableRow from "@tiptap/extension-table-row";
 import Text from "@tiptap/extension-text";
+import BulletList from "@tiptap/extension-bullet-list";
+import OrderedList from "@tiptap/extension-ordered-list";
+import ListItem from "@tiptap/extension-list-item";
+import TaskList from "@tiptap/extension-task-list";
 
 import DocKeyboardShortcuts from "@ext/markdown/elements/article/edit/DocKeyboardShortcuts";
 import DragScroller from "@ext/markdown/elements/article/edit/DragScroller";
@@ -18,7 +20,6 @@ import HardBreak from "@ext/markdown/elements/br/edit/hardBreak";
 import Code from "@ext/markdown/elements/code/edit/model/code";
 import ColorHighlighter from "@ext/markdown/elements/colorHighlighter/colorHighlighter";
 import Comment from "@ext/markdown/elements/comment/edit/model/comment";
-import CopyArticles from "@ext/markdown/elements/copyArticles/copyArticles";
 import CopyMsO from "@ext/markdown/elements/copyMsO/copyMsO";
 import InlineCutComponent from "@ext/markdown/elements/cut/edit/model/inlineCut";
 import Diagrams from "@ext/markdown/elements/diagrams/edit/models/diagrams";
@@ -33,9 +34,6 @@ import Icon from "@ext/markdown/elements/icon/edit/model/icon";
 import Image from "@ext/markdown/elements/image/edit/model/image";
 import { joinLists } from "@ext/markdown/elements/joinLists/joinLists";
 import LinkComponent from "@ext/markdown/elements/link/edit/model/link";
-import BulletList from "@ext/markdown/elements/list/edit/models/bulletList/bulletList";
-import ListItem from "@ext/markdown/elements/list/edit/models/listItem/model/listItem";
-import OrderedList from "@ext/markdown/elements/list/edit/models/orderList/orderList";
 import BlockMdComponent from "@ext/markdown/elements/md/model/blockMd";
 import InlineMdComponent from "@ext/markdown/elements/md/model/inlineMd";
 import ArrowsMove from "@ext/markdown/elements/moveNode/model/ArrowsMove";
@@ -56,6 +54,8 @@ import VideoComponent from "@ext/markdown/elements/video/edit/model/video";
 import View from "@ext/markdown/elements/view/edit/models/view";
 import { Suggestion } from "@ext/StyleGuide/extension/Suggestion";
 import SmileReplacer from "../../../elements/smilieReplacer/smileReplacer";
+import LineBreakers from "@ext/markdown/elements/lineBreakers/lineBreakers";
+import customTaskItem from "@ext/markdown/elements/list/edit/models/taskItem/model/taskItem";
 
 const getExtensions = (): Extensions => [
 	DocKeyboardShortcuts,
@@ -92,16 +92,16 @@ const getExtensions = (): Extensions => [
 	TableHeader,
 	TableKeyboardShortcuts,
 	CustomTable,
-	CopyArticles,
 
 	...getSimpleExtensions(),
 	Document.extend({
-		content: "heading block+",
+		content: "paragraph block+",
 	}),
 ];
 
 export const getSimpleExtensions = (): Extensions => [
 	ColorHighlighter,
+	LineBreakers,
 	CopyMsO,
 	SmileReplacer,
 	Typography,
@@ -123,7 +123,7 @@ export const getSimpleExtensions = (): Extensions => [
 	BulletList,
 	TaskList,
 	ListItem,
-	TaskItem,
+	customTaskItem,
 
 	Comment,
 ];

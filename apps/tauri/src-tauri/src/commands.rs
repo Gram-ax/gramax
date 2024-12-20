@@ -20,6 +20,7 @@ pub fn generate_handler<R: Runtime>(builder: Builder<R>) -> Builder<R> {
     read_env,
     move_to_trash,
     http_req::http_request,
+    open_in_explorer,
     #[cfg(desktop)]
     set_language,
     #[cfg(target_os = "macos")]

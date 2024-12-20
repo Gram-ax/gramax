@@ -1,9 +1,9 @@
 import OnBranchUpdateCaller from "@ext/git/actions/Branch/BranchUpdaterService/model/OnBranchUpdateCaller";
+import type GitBranchData from "@ext/git/core/GitBranch/model/GitBranchData";
 import ApiUrlCreator from "../../../../../../ui-logic/ApiServices/ApiUrlCreator";
 import FetchService from "../../../../../../ui-logic/ApiServices/FetchService";
-import BranchData from "../../../../../VersionControl/model/branch/BranchData";
 
-type OnBranchUpdateListener = (branch: string, caller: OnBranchUpdateCaller) => void | Promise<void>;
+type OnBranchUpdateListener = (branch: GitBranchData, caller: OnBranchUpdateCaller) => void | Promise<void>;
 
 export default class BranchUpdaterService {
 	private static _listeners = new Set<OnBranchUpdateListener>();
@@ -20,15 +20,17 @@ export default class BranchUpdaterService {
 		apiUrlCreator: ApiUrlCreator,
 		caller: OnBranchUpdateCaller = OnBranchUpdateCaller.Checkout,
 	) {
-		const branchName = await BranchUpdaterService._getBranch(apiUrlCreator);
-		if (!branchName) return;
+		const branch = await BranchUpdaterService._getBranch(apiUrlCreator);
+		if (!branch) return;
 		// eslint-disable-next-line @typescript-eslint/no-misused-promises
-		this._listeners.forEach((l) => l(branchName, caller));
+		this._listeners.forEach((l) => l(branch, caller));
 	}
 
-	private static async _getBranch(apiUrlCreator: ApiUrlCreator): Promise<string> {
-		const res = await FetchService.fetch<BranchData>(apiUrlCreator.getVersionControlCurrentBranchUrl());
+	private static async _getBranch(apiUrlCreator: ApiUrlCreator): Promise<GitBranchData> {
+		const res = await FetchService.fetch<GitBranchData>(
+			apiUrlCreator.getVersionControlCurrentBranchUrl({ onlyName: false, cachedMergeRequests: false }),
+		);
 		if (!res.ok) return;
-		return (await res.json())?.name;
+		return await res.json();
 	}
 }

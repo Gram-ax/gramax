@@ -4,10 +4,10 @@ import HiddenRules from "./HiddenRule";
 
 const getHiddenRuleData = async () => {
 	const app = await getApplication();
-	const hr = new HiddenRules(app.customArticlePresenter);
+	const hr = new HiddenRules(null, app.customArticlePresenter);
 
-	const categoryTestCatalog = await app.wm.current().getCatalog("RulesCategoryTestCatalog");
-	const articleTestCatalog = await app.wm.current().getCatalog("RulseArticleTestCatalog");
+	const categoryTestCatalog = await app.wm.current().getContextlessCatalog("RulesCategoryTestCatalog");
+	const articleTestCatalog = await app.wm.current().getContextlessCatalog("RulseArticleTestCatalog");
 
 	const categoryItemRef = getItemRef(categoryTestCatalog, "category/_index.md");
 	const articleItemRef = getItemRef(articleTestCatalog, "category/testRules_en.md");

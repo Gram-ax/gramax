@@ -4,7 +4,7 @@ import { classNames } from "@components/libs/classNames";
 import ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
 import FetchService from "@core-ui/ApiServices/FetchService";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
-import ArticlePropsService from "@core-ui/ContextServices/ArticleProps";
+import ArticleRefService from "@core-ui/ContextServices/ArticleRef";
 import CatalogPropsService from "@core-ui/ContextServices/CatalogProps";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import { useDebounce } from "@core-ui/hooks/useDebounce";
@@ -12,6 +12,7 @@ import PageDataContext from "@core/Context/PageDataContext";
 import { ClientArticleProps, ClientCatalogProps } from "@core/SitePresenter/SitePresenter";
 import styled from "@emotion/styled";
 import { RenderableTreeNodes } from "@ext/markdown/core/render/logic/Markdoc";
+import OnLoadResourceService from "@ext/markdown/elements/copyArticles/onLoadResourceService";
 import { Mark } from "@tiptap/pm/model";
 import { ReactNode, useCallback, useEffect, useRef, useState } from "react";
 import { useLocation } from "wouter";
@@ -178,20 +179,22 @@ const TooltipProvider = (props: TooltipProviderProps) => {
 
 	return (
 		<ApiUrlCreatorService.Provider value={apiUrlCreator.fromNewArticlePath(data.path)}>
-			<PageDataContextService.Provider value={pageDataContext}>
-				<CatalogPropsService.Provider value={catalogProps}>
-					<ArticlePropsService.Provider value={data.articleProps}>
-						<>{children}</>
-					</ArticlePropsService.Provider>
-				</CatalogPropsService.Provider>
-			</PageDataContextService.Provider>
+			<OnLoadResourceService.Provider>
+				<PageDataContextService.Provider value={pageDataContext}>
+					<CatalogPropsService.Provider value={catalogProps}>
+						<ArticleRefService.Provider>
+							<>{children}</>
+						</ArticleRefService.Provider>
+					</CatalogPropsService.Provider>
+				</PageDataContextService.Provider>
+			</OnLoadResourceService.Provider>
 		</ApiUrlCreatorService.Provider>
 	);
 };
 
 const TooltipContent = (props: TooltipContent) => {
 	const { data, start, clear, close, className, hash } = props;
-	const ref = useRef(null);
+	const articleRef = ArticleRefService.value;
 	const [location] = useLocation();
 	const test = useRef(location);
 
@@ -203,15 +206,15 @@ const TooltipContent = (props: TooltipContent) => {
 		const handleMouseLeave = () => start();
 		const handleMouseEnter = () => clear();
 
-		if (ref.current) {
-			ref.current.addEventListener("mouseleave", handleMouseLeave);
-			ref.current.addEventListener("mouseenter", handleMouseEnter);
+		if (articleRef.current) {
+			articleRef.current.addEventListener("mouseleave", handleMouseLeave);
+			articleRef.current.addEventListener("mouseenter", handleMouseEnter);
 		}
 
 		return () => {
-			if (ref.current) {
-				ref.current.removeEventListener("mouseleave", handleMouseLeave);
-				ref.current.removeEventListener("mouseenter", handleMouseEnter);
+			if (articleRef.current) {
+				articleRef.current.removeEventListener("mouseleave", handleMouseLeave);
+				articleRef.current.removeEventListener("mouseenter", handleMouseEnter);
 			}
 		};
 	}, [start, clear]);
@@ -224,10 +227,10 @@ const TooltipContent = (props: TooltipContent) => {
 		if (!anchor) return;
 
 		anchor.scrollIntoView();
-	}, [ref?.current]);
+	}, [articleRef?.current]);
 
 	return (
-		<div ref={ref}>
+		<div ref={articleRef}>
 			<div className={className}>
 				<MiniArticle title={data.title} content={data.content} />
 			</div>

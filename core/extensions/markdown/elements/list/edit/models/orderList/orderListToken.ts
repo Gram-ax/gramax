@@ -1,11 +1,11 @@
 import listIsTight from "../../logic/listIsTight";
 
-const ordered_list = {
-	block: "ordered_list",
+const orderedList = {
+	block: "orderedList",
 	getAttrs: (tok, tokens, i) => ({
 		order: +tok.attrGet("start") || 1,
 		tight: listIsTight(tokens, i),
 	}),
 };
 
-export default ordered_list;
+export default orderedList;

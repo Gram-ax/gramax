@@ -20,7 +20,7 @@ const ErrorText = ({ isLink, isNoneError, link }: { isLink: boolean; isNoneError
 				{isNoneError ? (
 					<>
 						{t("editor.video.error.none-2")}
-						<Anchor href={"https://gram.ax/resources/docs/key-functions/video"}>
+						<Anchor href={"https://gram.ax/resources/docs/article/editor/video"}>
 							{t("editor.video.error.none-2-link")}
 						</Anchor>
 						.
@@ -30,7 +30,7 @@ const ErrorText = ({ isLink, isNoneError, link }: { isLink: boolean; isNoneError
 				) : (
 					<>
 						{t("editor.video.error.generic-2")}
-						<Anchor href="https://gram.ax/resources/docs/key-functions/video">
+						<Anchor href="https://gram.ax/resources/docs/article/editor/video">
 							{t("editor.video.error.generic-2-link")}
 						</Anchor>
 						.

@@ -1,4 +1,5 @@
 import ArticlePropsService from "@core-ui/ContextServices/ArticleProps";
+import ArticleRefService from "@core-ui/ContextServices/ArticleRef";
 import CatalogPropsService from "@core-ui/ContextServices/CatalogProps";
 import IsMacService from "@core-ui/ContextServices/IsMac";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
@@ -8,7 +9,6 @@ import ThemeService from "../../../Theme/components/ThemeService";
 import attributeUpdaterExtension from "./attributeUpdaterExtension";
 import { ExtensionFilter } from "./rules/ExtensionFilter";
 import { getExtensionUpdaterRules } from "./rules/getExtensionUpdaterRules";
-import ArticleRefService from "@core-ui/ContextServices/ArticleRef";
 
 export default abstract class ExtensionUpdater {
 	static getUpdatedExtension(extensions: Extensions): Extensions {
@@ -19,6 +19,7 @@ export default abstract class ExtensionUpdater {
 		const apiUrlCreator = ApiUrlCreatorService.value;
 		const pageDataContext = PageDataContextService.value;
 		const articleRef = ArticleRefService.value;
+
 		const extensionUpdatersRules = getExtensionUpdaterRules(
 			theme,
 			isMac,

@@ -5,6 +5,7 @@ import { Plugin } from "@tiptap/pm/state";
 
 const CopyMsO = Extension.create({
 	name: "copyMsO",
+	priority: 1000,
 	addOptions() {
 		return {};
 	},

@@ -1,7 +1,6 @@
 import type Context from "@core/Context/Context";
-import type CatalogEntry from "@core/FileStructue/Catalog/CatalogEntry";
+import type { ReadonlyBaseCatalog } from "@core/FileStructue/Catalog/ReadonlyCatalog";
 import type { ClientArticleProps } from "@core/SitePresenter/SitePresenter";
-
 const LAST_VISITED_COOKIE_NAME = "last-visited";
 
 export default class LastVisited {
@@ -16,14 +15,14 @@ export default class LastVisited {
 		return this._cached;
 	}
 
-	getLastVisitedArticle(catalog: CatalogEntry) {
-		return this.getLastVisitedArticles()?.[catalog?.getName()];
+	getLastVisitedArticle(catalog: ReadonlyBaseCatalog) {
+		return this.getLastVisitedArticles()?.[catalog?.name];
 	}
 
-	setLastVisitedArticle(catalog: CatalogEntry, article: ClientArticleProps) {
+	setLastVisitedArticle(catalog: ReadonlyBaseCatalog, article: ClientArticleProps) {
 		if (!catalog || article.errorCode || article.welcome) return;
 		const lastVisited = this.getLastVisitedArticles();
-		lastVisited[catalog.getName()] = article.pathname;
+		lastVisited[catalog.name] = article.pathname;
 		this._ctx.cookie.set(LAST_VISITED_COOKIE_NAME, JSON.stringify(lastVisited));
 	}
 

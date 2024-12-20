@@ -46,7 +46,7 @@ export class TicketManager {
 	}
 
 	private _checkExternalTicket(ticket: string): { catalogName: string; permission: IPermission }[] {
-		const catalogs = Array.from(this._wm.current().getCatalogEntries().values());
+		const catalogs = Array.from(this._wm.current().getAllCatalogs().values());
 		const catalogsPermissions = [];
 		catalogs.forEach((c) => {
 			const auth: AuthProp = c.props[authProp];
@@ -58,7 +58,7 @@ export class TicketManager {
 			const intTimeExpired = Number.parseInt(timeExpired, 10);
 			if (intTimeExpired && Date.now() < intTimeExpired) {
 				catalogsPermissions.push({
-					catalogName: c.getName(),
+					catalogName: c.name,
 					permission: new Permission(auth.groups ?? []),
 				});
 			}

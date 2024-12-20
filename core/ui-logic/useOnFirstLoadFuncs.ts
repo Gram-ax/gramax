@@ -2,7 +2,7 @@ import { getExecutingEnvironment } from "@app/resolveModule/env";
 import IsFirstLoadService from "@core-ui/ContextServices/IsFirstLoadService";
 import useRemoveQueryT from "@core-ui/useRemoveQueryT";
 import useShareHandler from "@ext/catalog/actions/share/logic/useShareHandler";
-import useEnterpriseTokenHandler from "@ext/enterprise/useEnterpriseTokenHandler";
+import useEnterpriseTokenHandler from "@ext/enterprise/utils/useEnterpriseTokenHandler";
 import useRemoveExpiredSources from "@ext/git/actions/Source/logic/useRemoveExpariedSources";
 import { saveTempTokenIfPresent } from "@ext/git/actions/Source/tempToken";
 import usePathnameCloneHandler from "@ext/git/core/GitPathnameHandler/clone/logic/usePathnameCloneHandler";

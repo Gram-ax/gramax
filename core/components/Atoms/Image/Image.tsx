@@ -6,6 +6,7 @@ import {
 	ImgHTMLAttributes,
 	MutableRefObject,
 	ReactEventHandler,
+	useCallback,
 	useState,
 } from "react";
 import Lightbox from "./modalImage/Lightbox";
@@ -26,6 +27,14 @@ const Image = forwardRef((props: ImageProps, ref?: MutableRefObject<HTMLImageEle
 	const { id, src, alt, title, className, realSrc, objects, modalStyle, modalTitle, modalEdit, onLoad, onError } =
 		props;
 
+	const onClose = useCallback(() => {
+		setOpen(false);
+	}, []);
+
+	const onClick = useCallback(() => {
+		setOpen(true);
+	}, []);
+
 	return (
 		<Fragment>
 			<span className="lightbox">
@@ -37,7 +46,7 @@ const Image = forwardRef((props: ImageProps, ref?: MutableRefObject<HTMLImageEle
 						downloadSrc={realSrc}
 						objects={objects ?? []}
 						modalEdit={modalEdit}
-						onClose={() => setOpen(false)}
+						onClose={onClose}
 						openedElement={ref}
 						modalStyle={modalStyle}
 					/>
@@ -51,7 +60,7 @@ const Image = forwardRef((props: ImageProps, ref?: MutableRefObject<HTMLImageEle
 				onError={onError}
 				src={src}
 				className={className}
-				onClick={() => setOpen(true)}
+				onDoubleClick={onClick}
 			/>
 			{title && <em>{title}</em>}
 		</Fragment>

@@ -86,9 +86,7 @@ export default class ConfluenceServerConverter implements ConfluenceConverter {
 			const { fileNameWithoutExtension, extension } = getConfluenceExtension(attachment.title);
 
 			if (!extension)
-				throw new Error(
-					`${t("confluence.error.ext-not-supported")} ${(attachment.title, attachment.mediaType)}`,
-				);
+				throw new Error(`${t("import.error.ext-not-supported")} ${(attachment.title, attachment.mediaType)}`);
 
 			const blob = await api.downloadAttachment(attachment.downloadLink);
 			const newName = fileNameUtils.getNewName(this._allFileNames, fileNameWithoutExtension, extension);

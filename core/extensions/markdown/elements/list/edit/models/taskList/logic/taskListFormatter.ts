@@ -1,6 +1,6 @@
 import { NodeSerializerSpec } from "@ext/markdown/core/edit/logic/Prosemirror/to_markdown";
 
-const task_list: NodeSerializerSpec = async (state, node) => {
+const taskList: NodeSerializerSpec = async (state, node) => {
 	await state.renderList(
 		node,
 		() => "   ",
@@ -8,4 +8,4 @@ const task_list: NodeSerializerSpec = async (state, node) => {
 	);
 };
 
-export default task_list;
+export default taskList;

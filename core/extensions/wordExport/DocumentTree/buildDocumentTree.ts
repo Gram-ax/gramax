@@ -1,7 +1,8 @@
 import Context from "@core/Context/Context";
 import { Article } from "@core/FileStructue/Article/Article";
 import parseContent from "@core/FileStructue/Article/parseContent";
-import { Catalog, ItemFilter } from "@core/FileStructue/Catalog/Catalog";
+import { ItemFilter } from "@core/FileStructue/Catalog/Catalog";
+import type { ReadonlyCatalog } from "@core/FileStructue/Catalog/ReadonlyCatalog";
 import { Category } from "@core/FileStructue/Category/Category";
 import { Item } from "@core/FileStructue/Item/Item";
 import { ItemType } from "@core/FileStructue/Item/ItemType";
@@ -16,7 +17,7 @@ const buildDocumentTree = async (
 	isCatalog: boolean,
 	item: Item,
 	exportedKeys: Set<string>,
-	catalog: Catalog,
+	catalog: ReadonlyCatalog,
 	ctx: Context,
 	parser: MarkdownParser,
 	parserContextFactory: ParserContextFactory,
@@ -29,7 +30,7 @@ const buildDocumentTree = async (
 	if (!isCatalog) await parseContent(item as Article, catalog, ctx, parser, parserContextFactory, false);
 
 	const heading: DocumentTree = {
-		name: isCatalog ? catalog.props.title : item.getTitle() || catalog.getName(),
+		name: isCatalog ? catalog.props.title : item.getTitle() || catalog.name,
 		content: !isCatalog ? filter.getSupportedTree((item as Article).parsedContent?.renderTree) : "",
 		resourceManager: !isCatalog ? (item as Article).parsedContent?.resourceManager : undefined,
 		level: level,

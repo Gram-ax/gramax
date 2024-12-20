@@ -1,24 +1,24 @@
-import codeBlockFormatter from "@ext/markdown/elements/codeBlockLowlight/edit/logic/codeBlockFormatter";
-import bullet_list from "@ext/markdown/elements/list/edit/models/bulletList/logic/bulletListFormatter";
-import list_item from "@ext/markdown/elements/list/edit/models/listItem/logic/listItemFormatter";
-import ordered_list from "@ext/markdown/elements/list/edit/models/orderList/logic/orderListFormatter";
-import task_item from "@ext/markdown/elements/list/edit/models/taskItem/logic/taskItemFormatter";
-import task_list from "@ext/markdown/elements/list/edit/models/taskList/logic/taskListFormatter";
-import noteFormatter from "@ext/markdown/elements/note/logic/noteFormatter";
-import { NodeSerializerSpec } from "../../Prosemirror/to_markdown";
 import ParserContext from "@ext/markdown/core/Parser/ParserContext/ParserContext";
+import codeBlockFormatter from "@ext/markdown/elements/codeBlockLowlight/edit/logic/codeBlockFormatter";
 import DiagramsFormatter from "@ext/markdown/elements/diagrams/logic/DiagramsFormatter";
+import htmlNodeFormatter from "@ext/markdown/elements/html/edit/logic/htmlNodeFormatter";
 import IconFormatter from "@ext/markdown/elements/icon/logic/IconFormatter";
+import imageNodeFormatter from "@ext/markdown/elements/image/edit/logic/transformer/imageNodeFormatter";
+import bulletList from "@ext/markdown/elements/list/edit/models/bulletList/logic/bulletListFormatter";
+import orderedList from "@ext/markdown/elements/list/edit/models/orderList/logic/orderListFormatter";
+import taskItem from "@ext/markdown/elements/list/edit/models/taskItem/logic/taskItemFormatter";
+import taskList from "@ext/markdown/elements/list/edit/models/taskList/logic/taskListFormatter";
+import noteFormatter from "@ext/markdown/elements/note/logic/noteFormatter";
 import OpenApiFormatter from "@ext/markdown/elements/openApi/edit/logic/OpenApiFormatter";
 import SnippetFormatter from "@ext/markdown/elements/snippet/edit/logic/SnippetFormatter";
 import TabFormatter from "@ext/markdown/elements/tabs/logic/TabFormatter";
 import TabsFormatter from "@ext/markdown/elements/tabs/logic/TabsFormatter";
-import screenSymbols from "@ext/markdown/logic/screenSymbols";
-import TableUtils from "../Utils/Table";
 import unsupportedFormatter from "@ext/markdown/elements/unsupported/logic/unsupportedFormatter";
-import imageNodeFormatter from "@ext/markdown/elements/image/edit/logic/transformer/imageNodeFormatter";
-import htmlNodeFormatter from "@ext/markdown/elements/html/edit/logic/htmlNodeFormatter";
 import viewNodeFormatter from "@ext/markdown/elements/view/edit/logic/viewNodeFormatter";
+import screenSymbols from "@ext/markdown/logic/screenSymbols";
+import { NodeSerializerSpec } from "../../Prosemirror/to_markdown";
+import TableUtils from "../Utils/Table";
+import listItemFormatter from "@ext/markdown/elements/list/edit/models/listItem/logic/listItemFormatter";
 const blocks = ["Db-diagram", "Db-table", "Snippet"];
 
 const getNodeFormatters = (context?: ParserContext): { [node: string]: NodeSerializerSpec } => ({
@@ -34,11 +34,11 @@ const getNodeFormatters = (context?: ParserContext): { [node: string]: NodeSeria
 	view: viewNodeFormatter,
 	unsupported: unsupportedFormatter,
 	image: imageNodeFormatter,
-	task_item: task_item,
-	task_list: task_list,
-	ordered_list: ordered_list,
-	bullet_list: bullet_list,
-	list_item: list_item,
+	taskItem: taskItem,
+	taskList: taskList,
+	orderedList: orderedList,
+	bulletList: bulletList,
+	listItem: listItemFormatter,
 
 	inlineMd_component: (state, node) => {
 		const isBlock = blocks.includes(node.attrs.tag?.[0]?.name);
@@ -59,7 +59,11 @@ const getNodeFormatters = (context?: ParserContext): { [node: string]: NodeSeria
 		state.closeBlock(node);
 	},
 	drawio: (state, node) => {
-		state.write(`[drawio:${node.attrs.src ?? ""}:${screenSymbols(node.attrs.title) ?? ""}]`);
+		state.write(
+			`[drawio:${node.attrs.src ?? ""}:${screenSymbols(node.attrs.title) ?? ""}:${node.attrs.width ?? ""}:${
+				node.attrs.height ?? ""
+			}]`,
+		);
 		state.closeBlock(node);
 	},
 	inlineCut_component: async (state, node) => {
@@ -155,7 +159,7 @@ const getNodeFormatters = (context?: ParserContext): { [node: string]: NodeSeria
 			}
 	},
 	text: (state, node) => {
-		state.text(node.marks ? node.text : node.text.trim());
+		state.text((node.marks ? node.text : node.text.trim()).replaceAll(" ", " "));
 	},
 });
 

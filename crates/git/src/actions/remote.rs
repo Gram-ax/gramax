@@ -1,7 +1,4 @@
-use git2::*;
-
 use crate::creds::Creds;
-use crate::error::Error;
 use crate::error::Result;
 use crate::prelude::Repo;
 
@@ -16,14 +13,8 @@ pub trait Remote {
 impl<C: Creds> Remote for Repo<C> {
   fn add_remote<S: AsRef<str>, U: AsRef<str>>(&self, name: S, url: U) -> Result<()> {
     info!(target: TAG, "create remote {} pointing to url {}", name.as_ref(), url.as_ref());
-    let refspec = &format!("+refs/heads/*:refs/remotes/{}/*", name.as_ref());
-    self.0.remote_add_fetch(name.as_ref(), refspec)?;
-    self.0.remote_add_push(name.as_ref(), refspec)?;
-    self.0.remote_set_url(name.as_ref(), url.as_ref())?;
-
-    let head = self.0.head()?;
-    let mut branch = self.0.find_branch(head.shorthand().ok_or(Error::Utf8)?, BranchType::Local)?;
-    Ok(branch.set_upstream(Some(head.shorthand().ok_or(Error::Utf8)?))?)
+    self.0.remote(name.as_ref(), url.as_ref())?;
+    Ok(())
   }
 
   fn get_remote(&self) -> Result<Option<String>> {

@@ -4,7 +4,7 @@ import FetchService from "@core-ui/ApiServices/FetchService";
 const getPathnamePullData = async (
 	apiUrlCreator: ApiUrlCreator,
 ): Promise<{ haveToPull: boolean; canPull: boolean }> => {
-	let res = await FetchService.fetch<boolean>(apiUrlCreator.getStorageHaveToPull());
+	let res = await FetchService.fetch<boolean>(apiUrlCreator.getStorageHaveToPull(false));
 	if (!res.ok) return { haveToPull: false, canPull: false };
 
 	const haveToPull = await res.json();

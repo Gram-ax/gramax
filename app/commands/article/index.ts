@@ -19,6 +19,7 @@ import set from "./resource/set";
 import updateContent from "./updateContent";
 import update from "@app/commands/article/property/update";
 import removeProperty from "@app/commands/article/property/remove";
+import getProperty from "@app/commands/article/property/get";
 
 const article = {
 	features: {
@@ -43,6 +44,7 @@ const article = {
 		getBrotherNames,
 	},
 	property: {
+		getProperty,
 		update,
 		removeProperty,
 	},

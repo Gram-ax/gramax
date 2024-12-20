@@ -2,7 +2,7 @@ import NodeConverter from "@ext/confluence/core/cloud/model/NodeConverter";
 
 const listItem: NodeConverter = (listItemNode) => {
 	return {
-		type: "list_item",
+		type: "listItem",
 		content: listItemNode.content,
 	};
 };

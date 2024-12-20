@@ -13,7 +13,7 @@ const searchCommand: Command<{ ctx: Context; catalogName?: string; query: string
 	async do({ ctx, query, catalogName }) {
 		const filters = new RuleProvider(ctx).getItemFilters();
 		const getCatalogItemsIds = async (catalogName: string) => {
-			const catalog = await this._app.wm.current().getCatalog(catalogName);
+			const catalog = await this._app.wm.current().getCatalog(catalogName, ctx);
 			const articles = catalog?.getItems() ?? [];
 			return articles.filter((a) => filters.every((f) => f(a, catalog))).map((a) => a.ref.path.value);
 		};
@@ -32,7 +32,7 @@ const searchCommand: Command<{ ctx: Context; catalogName?: string; query: string
 		};
 
 		const getAllSearchData = async (query: string) => {
-			const catalogs = Array.from(this._app.wm.current().getCatalogEntries().keys());
+			const catalogs = Array.from(this._app.wm.current().getAllCatalogs().keys());
 			const catalogArticleIds = {};
 			await Promise.all(catalogs.map(async (c) => (catalogArticleIds[c] = await getCatalogItemsIds(c))));
 			const search = async (query: string) => {

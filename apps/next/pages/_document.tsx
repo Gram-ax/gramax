@@ -46,7 +46,7 @@ class MyDocument extends Document<MyDocumentProps> {
 				<Head>
 					<style dangerouslySetInnerHTML={{ __html: this.props.cssContent }} />
 				</Head>
-				<body data-theme={this.props.theme}>
+				<body id="custom-style" data-theme={this.props.theme}>
 					<Main />
 					<NextScript />
 				</body>

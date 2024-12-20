@@ -24,7 +24,7 @@ const getArticleHeadersByRelativePath: Command<
 		const workspace = wm.current();
 
 		const path = articlePath.parentDirectoryPath.join(articleRelativePath);
-		const catalog = await workspace.getCatalog(catalogName);
+		const catalog = await workspace.getCatalog(catalogName, ctx);
 		const article: Article = catalog.findItemByItemPath(path);
 		if (!article) return [];
 

@@ -7,4 +7,5 @@ export interface Column {
 
 export enum DragItems {
 	Card = "Card",
+	Value = "Value",
 }

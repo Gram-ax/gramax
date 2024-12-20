@@ -1,5 +1,6 @@
 /* global process */
 import child_process from "child_process";
+import * as fs from 'node:fs';
 const { execSync } = child_process;
 
 const env = {
@@ -19,20 +20,33 @@ const env = {
 	GES_URL: null,
 };
 
-if (!process.env.COOKIE_SECRET) console.warn("WARNING: You need to set COOKIE_SECRET if you run gramax in production.");
+if (process.env.PRODUCTION && !process.env.COOKIE_SECRET) console.warn("WARNING: You need to set COOKIE_SECRET if you run gramax in production.");
 
 const getBuiltInVariables = () => Object.keys(env).reduce((obj, x) => ({ ...obj, [x]: process.env[x] ?? env[x] }), {});
 
-const getVersionData = () => {
+const getVersionData = (filePath = "./gramaxVersionData.json") => {
+	if (process.env.PRODUCTION && fs.existsSync(filePath)) return JSON.parse(fs.readFileSync(filePath))
+
 	const commitCount = execSync('git rev-list --count --date=local --after="$(date +"%Y-%m-01T00:00:00")" HEAD', {
 		shell: "bash",
-	});
-	const currentDate = execSync("date +%Y.%-m.%-d", { shell: "bash" });
-	return { commitCount, currentDate };
+	}).toString();
+	const currentDate = execSync("date +%Y.%-m.%-d", { shell: "bash" }).toString();
+
+	const versionData = { commitCount, currentDate };
+	if (process.env.PRODUCTION) fs.writeFileSync(filePath, JSON.stringify(versionData))
+
+	return versionData;
 };
+
+const generateVersion = (platform, filePath) => {
+	const { commitCount, currentDate } = getVersionData(filePath);
+	const version = `${currentDate}-${platform}.${commitCount}`.replaceAll("\n", "");
+	return version;
+}
+
 const setVersion = (platform) => {
-	const { commitCount, currentDate } = getVersionData();
-	process.env.GRAMAX_VERSION = `${currentDate}-${platform}.${commitCount}`.replaceAll("\n", "");
+	const version = generateVersion(platform);
+	process.env.GRAMAX_VERSION = version;
 };
 
 const setBuildVersion = (platform) => {
@@ -40,4 +54,4 @@ const setBuildVersion = (platform) => {
 	process.env.BUILD_VERSION = `${currentDate}-${platform}.${commitCount}`.replaceAll("\n", "");
 };
 
-export default { getBuiltInVariables, setVersion, setBuildVersion };
+export default { getBuiltInVariables, setVersion, setBuildVersion, generateVersion };

@@ -1,15 +1,50 @@
+import useWatch from "@core-ui/hooks/useWatch";
 import styled from "@emotion/styled";
 import renderGroup from "@ext/markdown/elements/view/render/components/Displays/Helpers/List/Group";
+import updateListData from "@ext/markdown/elements/view/render/logic/updateListData";
+import PropertyServiceProvider from "@ext/properties/components/PropertyService";
 import { ViewRenderGroup } from "@ext/properties/models";
-import { Fragment, ReactNode } from "react";
+import { Fragment, ReactNode, useCallback, useState } from "react";
 
-const List = ({ content, className }: { content: ViewRenderGroup[]; className?: string }): ReactNode => {
+interface ListProps {
+	content: ViewRenderGroup[];
+	groupby: string[];
+	className?: string;
+	disabled?: boolean;
+	updateArticle?: (articlePath: string, property: string, value: string, isDelete?: boolean) => void;
+}
+
+const List = ({ content, groupby, className, disabled, updateArticle }: ListProps): ReactNode => {
+	const catalogProperties = PropertyServiceProvider.value?.properties;
 	if (!content.length) return null;
+	const [data, setData] = useState<ViewRenderGroup[]>(content);
+
+	useWatch(() => {
+		setData(content);
+	}, [content]);
+
+	const onSubmit = useCallback(
+		(articlePath: string, groups: string[], propertyName: string, value: string, isDelete?: boolean) => {
+			const newData = updateListData(
+				data,
+				articlePath,
+				groups,
+				groupby,
+				catalogProperties,
+				propertyName,
+				value,
+				isDelete,
+			);
+			setData(newData);
+			updateArticle?.(articlePath, propertyName, value, isDelete);
+		},
+		[data, disabled],
+	);
 
 	return (
 		<ul className={className} data-focusable="true">
-			{content.map((group: ViewRenderGroup) => (
-				<Fragment key={group.group?.[0]}>{renderGroup(group)}</Fragment>
+			{data.map((group: ViewRenderGroup) => (
+				<Fragment key={group.group?.[0]}>{renderGroup(group, disabled, onSubmit)}</Fragment>
 			))}
 		</ul>
 	);

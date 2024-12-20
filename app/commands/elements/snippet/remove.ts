@@ -15,7 +15,7 @@ const remove: Command<{ catalogName: string; snippetId: string; ctx: Context }, 
 		const { wm, sitePresenterFactory } = this._app;
 		const workspace = wm.current();
 
-		const catalog = await workspace.getCatalog(catalogName);
+		const catalog = await workspace.getCatalog(catalogName, ctx);
 		if (!catalog) return;
 		const sp = sitePresenterFactory.fromContext(ctx);
 		return catalog.snippetProvider.remove(snippetId, sp);

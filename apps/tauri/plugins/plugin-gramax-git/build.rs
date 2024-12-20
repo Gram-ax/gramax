@@ -34,6 +34,10 @@ const COMMANDS: &[&str] = &[
   "git_file_stat",
   "git_file_exists",
   "git_read_file",
+  "git_read_dir_stats",
+  "list_merge_requests",
+  "create_or_update_merge_request",
+  "get_draft_merge_request",
   "invalidate_repo_cache",
 ];
 

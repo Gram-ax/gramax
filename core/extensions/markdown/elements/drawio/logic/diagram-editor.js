@@ -63,7 +63,6 @@ DiagramEditor.prototype.stopEditing = function () {
 		document.body.removeChild(this.frame);
 		this.setActive(false);
 		this.frame = null;
-		setTimeout(this.saveCallBack, 500);
 	}
 };
 
@@ -241,7 +240,7 @@ DiagramEditor.prototype.getFrameUrl = function (dsu) {
 	/**
 	 * Protocol and domain to use.
 	 */
-	var url = (dsu ?? "https://gram.ax") + "/drawio/?embed=1&proto=json&spin=1";
+	var url = (dsu ?? "https://app.gram.ax/-server/diagram-renderer") + "/drawio/?embed=1&proto=json&spin=1";
 
 	if (this.ui != null) {
 		url += "&ui=" + this.ui;
@@ -297,6 +296,7 @@ DiagramEditor.prototype.handleMessage = function (msg) {
 		this.save(msg.xml, true, this.startElement);
 	} else if (msg.event == "export") {
 		this.setElementData(this.startElement, msg.data);
+		setTimeout(() => this.saveCallBack(msg.data), 500);
 		this.stopEditing();
 		this.xml = null;
 	} else if (msg.event == "save") {
@@ -369,7 +369,6 @@ DiagramEditor.prototype.save = function (data, draft, elt) {
  */
 DiagramEditor.prototype.done = function () {
 	// hook for subclassers
-	setTimeout(this.saveCallBack, 500);
 };
 
 /**

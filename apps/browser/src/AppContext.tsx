@@ -51,11 +51,7 @@ const AppContext = ({ children }: { children: (data: any) => JSX.Element }) => {
 	useEffect(() => void refresh(), [refresh]);
 
 	if (!data)
-		return (
-			<ThemeService.Provider>
-				{error ? <AppError error={error} /> : <AppLoader delayBeforeShow={500} />}
-			</ThemeService.Provider>
-		);
+		return <ThemeService.Provider>{error ? <AppError error={error} /> : <AppLoader />}</ThemeService.Provider>;
 
 	return (
 		<ContextProviders

@@ -6,9 +6,9 @@ const getSecurityRulesData = async () => {
 	const app = await getApplication();
 
 	const workspace = app.wm.current();
-	const categoryTestCatalog = await workspace.getCatalog("RulesCategoryTestCatalog");
-	const catalogTestCatalog = await workspace.getCatalog("RulseCatalogTestCatalog");
-	const articleTestCatalog = await workspace.getCatalog("RulseArticleTestCatalog");
+	const categoryTestCatalog = await workspace.getContextlessCatalog("RulesCategoryTestCatalog");
+	const catalogTestCatalog = await workspace.getContextlessCatalog("RulseCatalogTestCatalog");
+	const articleTestCatalog = await workspace.getContextlessCatalog("RulseArticleTestCatalog");
 
 	const categoryItemRef = getItemRef(categoryTestCatalog, "category/_index.md");
 	const articleItemRef = getItemRef(articleTestCatalog, "category/testRules_en.md");

@@ -1,7 +1,8 @@
 import ApiResponse from "@core/Api/ApiResponse";
 import Context from "@core/Context/Context";
 import { Article } from "@core/FileStructue/Article/Article";
-import { Catalog, ItemFilter } from "@core/FileStructue/Catalog/Catalog";
+import { ItemFilter } from "@core/FileStructue/Catalog/Catalog";
+import type { ReadonlyCatalog } from "@core/FileStructue/Catalog/ReadonlyCatalog";
 import HiddenRules from "@core/FileStructue/Rules/HiddenRules/HiddenRule";
 import SecurityRules from "@ext/security/logic/SecurityRules";
 
@@ -15,11 +16,11 @@ class ExceptionsResponse {
 	private _securityFilter: ItemFilter;
 
 	constructor(private _res: ApiResponse, _context: Context) {
-		this._hidenFilter = new HiddenRules().getItemFilter();
+		this._hidenFilter = new HiddenRules(null).getItemFilter();
 		this._securityFilter = new SecurityRules(_context.user).getItemFilter();
 	}
 
-	checkCatalogAvailability(catalog: Catalog, catalogId: string) {
+	checkCatalogAvailability(catalog: ReadonlyCatalog, catalogId: string) {
 		if (!catalog || !this._hidenFilter(catalog.getRootCategory(), catalog)) {
 			this._res.statusCode = 404;
 			const response = {
@@ -41,7 +42,7 @@ class ExceptionsResponse {
 		}
 	}
 
-	checkArticleAvailability(catalog: Catalog, catalogId: string, article: Article, articleId: string) {
+	checkArticleAvailability(catalog: ReadonlyCatalog, catalogId: string, article: Article, articleId: string) {
 		if (this.checkCatalogAvailability(catalog, catalogId)) return true;
 
 		if (!article || !this._hidenFilter(article, catalog)) {

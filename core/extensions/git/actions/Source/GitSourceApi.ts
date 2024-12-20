@@ -2,17 +2,19 @@ import type ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
 import FetchService from "@core-ui/ApiServices/FetchService";
 import MimeTypes from "@core-ui/ApiServices/Types/MimeTypes";
 import type Branch from "@ext/VersionControl/model/branch/Branch";
+import NetworkApiError from "@ext/errorHandlers/network/NetworkApiError";
 import type { SourceAPI, SourceUser } from "@ext/git/actions/Source/SourceAPI";
 import { GitRepData, GitRepsPageData } from "@ext/git/actions/Source/model/GitRepsApiData";
 import type GitSourceData from "@ext/git/core/model/GitSourceData.schema";
 import GitStorageData from "@ext/git/core/model/GitStorageData";
+import t from "@ext/localization/locale/translate";
 import getStorageNameByData from "@ext/storage/logic/utils/getStorageNameByData";
 import CatalogExistsError from "@ext/storage/models/CatalogExistsError";
 import type StorageData from "@ext/storage/models/StorageData";
 
 abstract class GitSourceApi implements SourceAPI {
 	protected readonly _defaultPerPage = 100;
-	constructor(protected _data: GitSourceData) {}
+	constructor(protected _data: GitSourceData, protected _onError?: (error: NetworkApiError) => void) {}
 
 	get defaultPerPage() {
 		return this._defaultPerPage;
@@ -43,8 +45,19 @@ abstract class GitSourceApi implements SourceAPI {
 		}
 	}
 
+	async isCredentialsValid(): Promise<boolean> {
+		try {
+			await this.getUser();
+		} catch (e) {
+			if (e instanceof NetworkApiError && (e.props.status == 401 || e.props.status == 403)) {
+				return false;
+			}
+			console.error(e);
+		}
+		return true;
+	}
+
 	abstract refreshAccessToken(): Promise<GitSourceData>;
-	abstract isCredentialsValid(): Promise<boolean>;
 	abstract getUser(): Promise<SourceUser>;
 	abstract isRepositoryExists(data: StorageData): Promise<boolean>;
 	abstract getAllProjects(): Promise<GitRepData[]>;
@@ -71,6 +84,22 @@ abstract class GitSourceApi implements SourceAPI {
 	protected _validatePages(from: number, to: number): void {
 		if (from < 0 || to < 0) throw new Error("Value can't be less than zero");
 		if (from > to) throw new Error(`"from" page can't be bigger that "to" page`);
+	}
+
+	protected async _validateResponse(res: Response): Promise<void> {
+		if (res.ok) return;
+		const errorJson = (await res.json()) as { message: string; status: string; documentation_url: string };
+		const error = new NetworkApiError(
+			errorJson.message,
+			{
+				url: res.url,
+				errorJson,
+				status: res.status,
+			},
+			t("git.error.source-api.title"),
+		);
+		this._onError?.(error);
+		throw error;
 	}
 }
 

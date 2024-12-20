@@ -1,4 +1,3 @@
-import SpinnerLoader from "@components/Atoms/SpinnerLoader";
 import styled from "@emotion/styled";
 import DiagramError from "@ext/markdown/elements/diagrams/component/DiagramError";
 import { forwardRef, MutableRefObject, useState } from "react";
@@ -14,41 +13,22 @@ interface DiagramProps {
 	className?: string;
 	isFull?: boolean;
 	background?: boolean;
-	dataFocusable?: boolean;
 	title?: string;
 	downloadSrc?: string;
 	isFrozen?: boolean;
 }
 
 const DiagramRender = forwardRef((props: DiagramProps, ref?: MutableRefObject<HTMLDivElement>) => {
-	const {
-		data,
-		error,
-		diagramName,
-		className,
-		isFrozen,
-		background = true,
-		dataFocusable = true,
-		title,
-		downloadSrc,
-		openEditor,
-	} = props;
+	const { data, error, diagramName, className, isFrozen, background = true, title, downloadSrc, openEditor } = props;
 
 	const [isOpen, setOpen] = useState(false);
-
-	if (!data && !error)
-		return (
-			<div className={`${className} diagram-image`}>
-				<SpinnerLoader width={75} height={75} />
-			</div>
-		);
 
 	if (error) return <DiagramError error={error} diagramName={diagramName} />;
 
 	return (
 		<div
 			className={classNames(`${className} diagram-image`, { "diagram-background": background })}
-			data-focusable={`${dataFocusable}`}
+			data-focusable="true"
 		>
 			{isOpen && (
 				<Lightbox
@@ -62,9 +42,9 @@ const DiagramRender = forwardRef((props: DiagramProps, ref?: MutableRefObject<HT
 					modalStyle={{
 						display: "flex",
 						justifyContent: "center",
-						backgroundColor: diagramName === DiagramType.mermaid ? "var(--color-diagram-bg)" : "none",
-						borderRadius: diagramName === DiagramType.mermaid ? "var(--radius-large)" : "none",
-						width: diagramName === DiagramType.mermaid ? "50em" : "auto",
+						backgroundColor: "var(--color-diagram-bg)",
+						borderRadius: "var(--radius-large)",
+						width: diagramName === DiagramType.mermaid ? "30em" : "auto",
 					}}
 				/>
 			)}
@@ -72,7 +52,7 @@ const DiagramRender = forwardRef((props: DiagramProps, ref?: MutableRefObject<HT
 				ref={ref}
 				className={classNames(className, { isFrozen }, [`${diagramName}-diagram`])}
 				contentEditable={false}
-				onClick={() => setOpen(true)}
+				onDoubleClick={() => setOpen(true)}
 				dangerouslySetInnerHTML={{ __html: data }}
 			/>
 		</div>
@@ -102,6 +82,7 @@ export default styled(DiagramRender)`
 	}
 
 	svg {
+		user-select: none;
 		background: none !important;
 		height: ${(p) => (p.isFull ? "100%" : "auto")} !important;
 		max-width: 100%;

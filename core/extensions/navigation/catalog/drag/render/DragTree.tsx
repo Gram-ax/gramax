@@ -7,6 +7,7 @@ import CatalogPropsService from "@core-ui/ContextServices/CatalogProps";
 import IsEditService from "@core-ui/ContextServices/IsEdit";
 import ModalToOpenService from "@core-ui/ContextServices/ModalToOpenService/ModalToOpenService";
 import ModalToOpen from "@core-ui/ContextServices/ModalToOpenService/model/ModalsToOpen";
+import useWatch from "@core-ui/hooks/useWatch";
 import { ItemType } from "@core/FileStructue/Item/ItemType";
 import styled from "@emotion/styled";
 import type ActionWarning from "@ext/localization/actions/ActionWarning";
@@ -22,7 +23,6 @@ import IconExtension from "../../main/render/IconExtension";
 import NavigationItem from "../../main/render/Item";
 import DragTreeTransformer from "../logic/DragTreeTransformer";
 import getOpenItemsIds from "../logic/getOpenItemsIds";
-import useWatch from "@core-ui/hooks/useWatch";
 
 type handleOnDropType = (
 	draggedItemPath: string,

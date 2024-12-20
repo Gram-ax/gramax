@@ -2,16 +2,16 @@ import "../../core/styles/ProseMirror.css";
 import "../../core/styles/admonition.css";
 import "../../core/styles/article-alfabeta.css";
 import "../../core/styles/article.css";
+import "../../core/styles/base.css";
 import "../../core/styles/global.css";
 import "../../core/styles/swagger-ui-theme.css";
-import "../../core/styles/base.css";
 import "../../core/styles/vars.css";
 
 import type { Preview } from "@storybook/react";
-import { rest } from "msw";
+import { http, HttpResponse } from "msw";
 import { initialize, mswDecorator } from "msw-storybook-addon";
-import GlobalContext from "../styles/decorators/GlobalContext";
 import ErrorBoundaryDecorator from "storybook/styles/decorators/ErrorBoundaryDecorator";
+import GlobalContext from "../styles/decorators/GlobalContext";
 
 initialize(
 	{
@@ -22,8 +22,11 @@ initialize(
 		onUnhandledRequest: "bypass",
 	},
 	[
-		rest.get("/api/comments/getNavigationUnresolvedCommentsCount", (_req, res, ctx) => {
-			return res(ctx.status(200), ctx.json({ "": 0 }));
+		http.get("/api/comments/getNavigationUnresolvedCommentsCount", () => {
+			return HttpResponse.json(`{"":0}`, { status: 200 });
+		}),
+		http.get("/api/workspace/assets/getCustomStyle", () => {
+			return HttpResponse.json(`{}`, { status: 200 });
 		}),
 	],
 );

@@ -65,22 +65,16 @@ const CommentEditor = styled(
 			editor.commands.blur();
 		};
 
-		const focus = (): void => {
-			const contentElement = getContentElement();
-			contentElement.focus();
-		};
-
 		useEffect(() => {
 			if (!editor) return;
-
 			const contentElement = getContentElement();
 			if (isFirstOpenFlag && isEditable && contentElement) {
 				setIsFirstOpenFlag(false);
-				focus();
+				editor.commands.focus("start", { scrollIntoView: false });
 			}
 
 			setIsActive(isEditable);
-		});
+		}, [editor, isFirstOpenFlag, isEditable]);
 
 		useEffect(() => {
 			if (!isEditable) setIsFirstOpenFlag(true);
@@ -158,7 +152,7 @@ const CommentEditor = styled(
 	},
 )`
 	flex: 1;
-	width: 25em;
+	width: 100%;
 	color: var(--color-article-text);
 	background: none;
 

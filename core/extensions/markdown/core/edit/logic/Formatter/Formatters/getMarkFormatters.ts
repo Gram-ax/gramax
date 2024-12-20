@@ -38,6 +38,7 @@ const getMarkFormatters = (context?: ParserContext): { [mark: string]: MarkSeria
 			return backticksFor(parent.child(index - 1), 1);
 		},
 		escape: false,
+		expelEnclosingWhitespace: true,
 	},
 });
 

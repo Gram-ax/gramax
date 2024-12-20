@@ -1,70 +1,62 @@
+import { usePlatform } from "@core-ui/hooks/usePlatform";
+import useWatch from "@core-ui/hooks/useWatch";
 import styled from "@emotion/styled";
 import Theme from "@ext/Theme/Theme";
 import ThemeService from "@ext/Theme/components/ThemeService";
 import t from "@ext/localization/locale/translate";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import DarkLogo from "../../../../../core/public/images/gramax-logo-dark.svg";
 import LightLogo from "../../../../../core/public/images/gramax-logo-light.svg";
 
-const AppLoader = ({ className, delayBeforeShow = 0 }: { className?: string; delayBeforeShow?: number }) => {
-	const theme = ThemeService.value;
-	const [dotsCount, setDotsCount] = useState(0);
-	const [show, setShow] = useState(false);
+const AppLoader = ({ className }: { className?: string }) => {
+	const { isTauri } = usePlatform();
+	const logo = ThemeService.value === Theme.light ? LightLogo : DarkLogo;
 
-	useEffect(() => {
-		const interval = setInterval(() => setDotsCount((prev) => (prev < 3 ? prev + 1 : 1)), 500);
-		if (delayBeforeShow) setTimeout(() => setShow(true), delayBeforeShow);
-		else setShow(true);
-		return () => clearInterval(interval);
+	const [show, setShow] = useState(!isTauri);
+
+	useWatch(() => {
+		if (isTauri) setTimeout(() => setShow(true), 500);
 	}, []);
+
+	if (!show) return null;
 
 	return (
 		<div className={className}>
 			<div className={className} data-qa="loader">
-				{show && (
-					<>
-						<div className="logo-container">
-							<img src={theme == Theme.light ? LightLogo : DarkLogo} />
-						</div>
-						<div className="text">
-							<span>{t("app.loading")}</span>
-							<span className="dots">{".".repeat(dotsCount)}</span>
-						</div>
-					</>
-				)}
+				<div className="logo-container">
+					<img src={logo} alt={"logo"} />
+				</div>
+				<div className="text">
+					<span>{t("app.loading")}</span>
+					<span className="dots" />
+				</div>
 			</div>
 		</div>
 	);
 };
 
 const AppLoaderStyled = styled(AppLoader)`
-	--size: 20rem;
-	--max-size: 21rem;
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	align-items: center;
 
-	@keyframes pulsate {
-		0% {
-			height: var(--size);
-			width: var(--size);
-		}
-		50% {
-			height: var(--max-size);
-			width: var(--max-size);
-		}
-		100% {
-			height: var(--size);
-			width: var(--size);
-		}
-	}
+	margin-bottom: var(--mb-app-lodaer);
+	height: 100%;
+	width: 100%;
+	gap: var(--gap-app-loader);
 
 	.logo-container {
-		height: 6rem;
-		width: var(--max-size);
 		display: flex;
 		justify-content: center;
 		align-items: center;
+
+		max-width: 20rem;
 	}
 
 	img {
+		transform: scale(0.95);
+		width: var(--width-image-lodaer);
 		animation: pulsate 3s ease;
 		animation-iteration-count: infinite;
 	}
@@ -84,17 +76,38 @@ const AppLoaderStyled = styled(AppLoader)`
 
 		.dots {
 			text-align: left;
-			width: 0px;
+			width: 0;
+		}
+
+		.dots::after {
+			content: "";
+			animation: dots 1.5s steps(3, end) infinite;
 		}
 	}
 
-	display: flex;
-	flex-direction: column;
-	justify-content: center;
-	align-items: center;
-	margin-bottom: 10%;
-	height: 100%;
-	width: 100%;
+	@keyframes pulsate {
+		0% {
+			transform: scale(0.95);
+		}
+		50% {
+			transform: scale(1);
+		}
+		100% {
+			transform: scale(0.95);
+		}
+	}
+
+	@keyframes dots {
+		0% {
+			content: ".";
+		}
+		50% {
+			content: "..";
+		}
+		100% {
+			content: "...";
+		}
+	}
 `;
 
 export default AppLoaderStyled;

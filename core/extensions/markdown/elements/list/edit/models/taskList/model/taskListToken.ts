@@ -1,3 +1,3 @@
-export const task_list = {
-	block: "task_list",
+export const taskList = {
+	block: "taskList",
 };

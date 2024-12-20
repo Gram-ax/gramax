@@ -1,8 +1,8 @@
+import type { ReadonlyCatalog } from "@core/FileStructue/Catalog/ReadonlyCatalog";
 import LinkResourceManager from "@core/Link/LinkResourceManager";
 import Path from "../../../../../logic/FileProvider/Path/Path";
 import FileProvider from "../../../../../logic/FileProvider/model/FileProvider";
 import { Article } from "../../../../../logic/FileStructue/Article/Article";
-import { Catalog } from "../../../../../logic/FileStructue/Catalog/Catalog";
 import { Item } from "../../../../../logic/FileStructue/Item/Item";
 import ResourceManager from "../../../../../logic/Resource/ResourceManager";
 import { TableDB } from "../../../../../logic/components/tableDB/table";
@@ -17,7 +17,7 @@ export default interface ParserContext {
 	getLinkManager(): LinkResourceManager;
 	getRootLogicPath(): Path;
 	getArticle(): Article;
-	getCatalog(): Catalog;
+	getCatalog(): ReadonlyCatalog;
 	getStorageId(): string;
 	getRootPath(): Path;
 	getBasePath(): Path;

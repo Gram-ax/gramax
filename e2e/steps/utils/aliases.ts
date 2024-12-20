@@ -5,6 +5,7 @@ const aliases = {
 	"редактор заголовка": ".article-title > div > div",
 	публикация: '[data-qa="article-git-modal"]',
 	комментарий: '[data-qa="qa-comment"]',
+	"загружающийся каталог": '.spinner-loader div[data-qa="loader"]',
 	"левую навигацию": ".left-navigation-layout .scrolling-content .tree-root",
 	"левую панель": ".left-navigation-layout, .left-sidebar",
 	"нижнюю панель": `[data-qa="qa-status-bar"]`,
@@ -15,7 +16,7 @@ const aliases = {
 	"история изменений": '[data-qa="article-git-modal"]',
 	"окно добавления комментария": '[data-qa="qa-add-comment"]',
 	"панель действий статьи": ".right-extensions",
-	"объединение веток": ".picker",
+	"слияние веток": ".picker",
 	"верхнюю часть конфликта": ".top-part-conflict",
 	"нижнюю часть конфликта": ".bottom-part-conflict",
 	"добавление вкладки": '[data-qa="qa-add-tab"]',
@@ -24,6 +25,8 @@ const aliases = {
 	"переключатель языка контента": '[data-qa="switch-content-language"]',
 	"добавление свойств": '[data-qa="qa-add-property"]',
 	свойство: '[data-qa="qa-property"]',
+	"диаграмма draw.io": '[data-qa="qa-drawio"]',
+	"html блок": '[data-qa="qa-html"]',
 
 	"%token%": process.env.GX_E2E_GITLAB_TOKEN,
 	"%url%": process.env.GX_E2E_GITLAB_URL,
@@ -32,6 +35,7 @@ const aliases = {
 	"%url_new%": process.env.GX_E2E_GITLAB_URL_NEW,
 	"%push-repo%": process.env.GX_E2E_GITLAB_PUSH_REPO,
 	"%test-repo%": process.env.GX_E2E_GITLAB_TEST_REPO,
+	"%test-repo-no-index%": process.env.GX_E2E_GITLAB_TEST_REPO_NO_INDEX,
 
 	"%next-login%": process.env.ADMIN_LOGIN,
 	"%next-password%": process.env.ADMIN_PASSWORD,
@@ -65,6 +69,7 @@ const icons = {
 	"зачёркнутого облачка": ".lucide-cloud-off",
 	отмена: ".lucide-reply",
 	лупы: ".lucide-search",
+	галочка: ".lucide-check",
 };
 
 export type Aliases = { [key: string]: string };

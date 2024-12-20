@@ -37,18 +37,20 @@ const RightNavigation = ({ itemLinks, className }: { itemLinks: ItemLink[]; clas
 		>
 			<aside className={className}>
 				<ArticlePageActions />
-				<Links
-					catalogChildren={
-						<>
-							<li style={{ listStyleType: "none", width: "fit-content" }}>
-								<SwitchContentLanguage />
-							</li>
-							<li style={{ listStyleType: "none", width: "fit-content" }}>
-								<SwitchVersion />
-							</li>
-						</>
-					}
-				/>
+				{showArticleActions && (
+					<Links
+						catalogChildren={
+							<>
+								<li style={{ listStyleType: "none", width: "fit-content" }}>
+									<SwitchVersion />
+								</li>
+								<li style={{ listStyleType: "none", width: "fit-content" }}>
+									<SwitchContentLanguage />
+								</li>
+							</>
+						}
+					/>
+				)}
 				{showArticleActions && <TableOfContents />}
 				<Links
 					articleLinks={showArticleActions ? articleLinks : []}
@@ -89,7 +91,7 @@ const RightNavigation = ({ itemLinks, className }: { itemLinks: ItemLink[]; clas
 export default styled(RightNavigation)`
 	width: 100%;
 	color: var(--color-primary-general);
-	background-color: var(--color-contextmenu-bg);
+	background-color: var(--color-right-nav-bg);
 
 	i {
 		font-size: 13px;

@@ -4,7 +4,7 @@ import FuseSearcher from "./FuseSearcher";
 describe("FuseSearcher", () => {
 	describe("находит", () => {
 		const mockIndexDataProvider = {
-			getCatalogValue: () => {
+			getIndexData: () => {
 				const indexData: IndexData[] = [
 					{
 						path: "1",
@@ -45,9 +45,7 @@ describe("FuseSearcher", () => {
 				];
 				return indexData;
 			},
-			deleteCatalogs: () => {},
-			setCatalog: () => {},
-			onDataChange: () => {},
+			clear: () => {},
 		};
 
 		const fuseSearcher = new FuseSearcher(mockIndexDataProvider as any);
@@ -111,7 +109,7 @@ describe("FuseSearcher", () => {
 
 	describe("сортирует", () => {
 		const mockIndexDataProvider = {
-			getCatalogValue: () => {
+			getIndexData: () => {
 				const indexData: IndexData[] = [
 					{
 						path: "1",
@@ -140,8 +138,7 @@ describe("FuseSearcher", () => {
 				];
 				return indexData;
 			},
-			deleteCatalogs: () => {},
-			setCatalog: () => {},
+			clear: () => {},
 		};
 
 		const fuseSearcher = new FuseSearcher(mockIndexDataProvider as any);

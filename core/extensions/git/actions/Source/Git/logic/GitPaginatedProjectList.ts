@@ -56,10 +56,7 @@ export default class GitPaginatedProjectList {
 	}
 
 	private _triggerOnChange(data: CallbackData) {
-		const filteredModel = this._filter
-			? this._model.filter((x) => x && this._filter(x))
-			: this._model.filter(Boolean);
-
+		const filteredModel = this._filter ? this._model.filter(this._filter) : this._model;
 		this._callback(filteredModel, this._state, data);
 	}
 }

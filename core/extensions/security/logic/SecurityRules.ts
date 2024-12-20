@@ -1,33 +1,36 @@
-import type { HasEvents } from "@core/Event/EventEmitter";
 import type { EventHandlerCollection } from "@core/Event/EventHandlerProvider";
 import { ItemFilter } from "@core/FileStructue/Catalog/Catalog";
 import CustomArticlePresenter from "@core/SitePresenter/CustomArticlePresenter";
 import EnterpriseUser from "@ext/enterprise/EnterpriseUser";
 import type RuleCollection from "@ext/events/RuleCollection";
-import { type NavigationEvents } from "@ext/navigation/catalog/main/logic/Navigation";
+import Navigation from "@ext/navigation/catalog/main/logic/Navigation";
 import { readPermission } from "@ext/security/logic/Permission/Permissions";
 import { Item } from "../../../logic/FileStructue/Item/Item";
 import IPermission from "./Permission/IPermission";
 import Permission from "./Permission/Permission";
 import User from "./User/User";
 
-export default class SecurityRules implements RuleCollection, EventHandlerCollection<NavigationEvents> {
-	constructor(private _currentUser: User, private _customArticlePresenter?: CustomArticlePresenter) {}
+export default class SecurityRules implements RuleCollection, EventHandlerCollection {
+	constructor(
+    private _currentUser: User,
+		private _nav?: Navigation,
+		private _customArticlePresenter?: CustomArticlePresenter,
+	) {}
 
-	mount(nav: HasEvents<NavigationEvents>): void {
-		nav.events.on("filter-item", ({ catalog, item, link }) => {
+	mount(): void {
+		this._nav.events.on("filter-item", ({ catalog, item, link }) => {
 			if (this._isPrivate(item)) link.icon = "lock-open";
 			return (
-				this._canRead(item?.neededPermission, catalog.getName()) &&
-				this._canRead(item?.parent?.neededPermission, catalog.getName())
+				this._canRead(item?.neededPermission, catalog.name) &&
+				this._canRead(item?.parent?.neededPermission, catalog.name)
 			);
 		});
 
-		nav.events.on("filter-catalog", ({ entry }) => this._canRead(entry.perms, entry.getName()));
+		this._nav.events.on("filter-catalog", ({ entry }) => this._canRead(entry.perms, entry.name));
 
-		nav.events.on("filter-related-links", ({ catalog, mutableLinks }) => {
+		this._nav.events.on("filter-related-links", ({ catalog, mutableLinks }) => {
 			mutableLinks.links = mutableLinks.links.filter((link) =>
-				this._canRead(new Permission(link.private), catalog.getName()),
+				this._canRead(new Permission(link.private), catalog.name),
 			);
 		});
 	}
@@ -36,7 +39,7 @@ export default class SecurityRules implements RuleCollection, EventHandlerCollec
 
 	getItemFilter() {
 		const rule: ItemFilter = (article, catalog) => {
-			const catalogName = catalog.getName();
+			const catalogName = catalog.name;
 			return this._canReadItem(article, catalogName);
 		};
 

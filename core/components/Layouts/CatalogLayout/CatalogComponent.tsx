@@ -1,4 +1,5 @@
-import LeftNavigationIsOpenService from "@core-ui/ContextServices/LeftNavigationIsOpen";
+import RightNavigationComponent from "@components/Layouts/CatalogLayout/RightNavigation/RightNavigationComponent";
+import SidebarsIsOpenService from "@core-ui/ContextServices/Sidebars/SidebarsIsOpenContext";
 import { cssMedia } from "@core-ui/utils/cssUtils";
 import { ArticlePageData } from "@core/SitePresenter/SitePresenter";
 import { useMediaQuery } from "@mui/material";
@@ -6,7 +7,6 @@ import ArticleComponent from "./ArticleLayout/ArticleComponent";
 import CatalogLayout from "./CatalogLayout";
 import LeftNavigationComponent from "./LeftNavigation/LeftNavigationComponent";
 import LeftNavigationNarrowComponent from "./LeftNavigation/Narrow/LeftNavigationNarrowComponent";
-import RightNavigationLayout from "./RightNavigation/RightNavigationLayout";
 
 const OPEN_DELAY_MS = 50;
 
@@ -15,7 +15,7 @@ const CatalogComponent = ({ data, children }: { data: ArticlePageData; children:
 	const mediumMedia = useMediaQuery(cssMedia.JSmedium);
 
 	return (
-		<LeftNavigationIsOpenService.Provider>
+		<SidebarsIsOpenService.Provider>
 			<CatalogLayout
 				catalogNav={
 					narrowMedia ? (
@@ -27,12 +27,11 @@ const CatalogComponent = ({ data, children }: { data: ArticlePageData; children:
 				article={
 					<ArticleComponent
 						article={children}
-						delay={OPEN_DELAY_MS}
-						rightNav={<RightNavigationLayout itemLinks={data.itemLinks} />}
+						rightNav={<RightNavigationComponent itemLinks={data.itemLinks} delay={OPEN_DELAY_MS} />}
 					/>
 				}
 			/>
-		</LeftNavigationIsOpenService.Provider>
+		</SidebarsIsOpenService.Provider>
 	);
 };
 

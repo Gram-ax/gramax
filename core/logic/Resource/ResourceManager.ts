@@ -1,3 +1,5 @@
+import type Hasher from "@core/Hash/Hasher";
+import type { Hashable } from "@core/Hash/Hasher";
 import assertMaxFileSize from "@core/Resource/assertMaxFileSize";
 import ResourceMovements from "@core/Resource/models/ResourceMovements";
 import createNewFilePathUtils from "@core/utils/createNewFilePathUtils";
@@ -6,8 +8,9 @@ import { Buffer } from "buffer";
 import Path from "../FileProvider/Path/Path";
 import FileProvider from "../FileProvider/model/FileProvider";
 
-class ResourceManager {
+class ResourceManager implements Hashable {
 	private _resources: Path[];
+
 	constructor(private _fp: FileProvider, private _basePath: Path, private _rootPath?: Path) {
 		this._resources = [];
 	}
@@ -86,6 +89,11 @@ class ResourceManager {
 		try {
 			return await this._fp.readAsBinary(this.getAbsolutePath(path));
 		} catch {}
+	}
+
+	async hash(hash: Hasher) {
+		await Promise.all(this._resources.map(async (resource) => hash.hash(await this.getContent(resource))));
+		return hash;
 	}
 
 	async delete(path: Path) {

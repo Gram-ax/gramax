@@ -1,5 +1,5 @@
-export const task_item = {
-	group: "task_item",
+export const taskItem = {
+	group: "taskItem",
 	content: "paragraph block*",
 	defining: true,
 	attrs: { checked: { default: false } },

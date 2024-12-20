@@ -38,6 +38,8 @@ export type FileStat = {
 	isBinary: boolean;
 };
 
+export type DirStat = { name: string } & FileStat;
+
 export type CloneProgress =
 	| { type: "wait"; data: { path: string } }
 	| { type: "started"; data: { path: string } }
@@ -45,7 +47,6 @@ export type CloneProgress =
 	| { type: "error"; data: { path: string; error: DefaultError } }
 	| { type: "sideband"; data: { remote_text: string } }
 	| { type: "chunkedTransfer"; data: { transfer: TransferProgress; bytes: number; download_speed_bytes: number } };
-
 interface GitCommandsModel {
 	isInit(): Promise<boolean>;
 	isBare(): Promise<boolean>;
@@ -103,6 +104,7 @@ interface GitCommandsModel {
 
 	readFile(filePath: Path, scope: TreeReadScope): Promise<ArrayBuffer>;
 	readDir(dirPath: Path, scope: TreeReadScope): Promise<DirEntry[]>;
+	readDirStats(dirPath: Path, scope: TreeReadScope): Promise<DirStat[]>;
 	fileStat(filePath: Path, scope: TreeReadScope): Promise<FileStat>;
 	fileExists(filePath: Path, scope: TreeReadScope): Promise<boolean>;
 }

@@ -1,7 +1,7 @@
 import listItemNodeTransformer from "@ext/markdown/elements/list/edit/models/taskItem/logic/listItemNodeTransformer";
 
 describe("Трансформирование в пункт списка задач", () => {
-	test("Трансформирование list_item в task_item", async () => {
+	test("Трансформирование listItem в taskItem", async () => {
 		const resultData = await listItemNodeTransformer(getInitialData());
 
 		expect(JSON.stringify(getExpectedData())).toBe(JSON.stringify(resultData.value));
@@ -10,7 +10,7 @@ describe("Трансформирование в пункт списка зада
 
 function getInitialData() {
 	return {
-		type: "list_item",
+		type: "listItem",
 		attrs: {
 			isTaskItem: true,
 		},
@@ -30,7 +30,7 @@ function getInitialData() {
 
 function getExpectedData() {
 	return {
-		type: "task_item",
+		type: "taskItem",
 		attrs: {
 			checked: true,
 		},

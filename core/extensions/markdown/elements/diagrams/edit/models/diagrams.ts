@@ -7,7 +7,7 @@ import diagrams from "@ext/markdown/elements/diagrams/edit/models/diagramsSchema
 declare module "@tiptap/core" {
 	interface Commands<ReturnType> {
 		diagrams: {
-			setDiagrams: (options: { src?: string; content?: string; diagramName: string }) => ReturnType;
+			setDiagrams: (options: { src: string; diagramName: string; width?: string; height?: string }) => ReturnType;
 		};
 	}
 }

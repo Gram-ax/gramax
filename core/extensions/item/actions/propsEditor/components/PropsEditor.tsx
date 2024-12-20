@@ -74,15 +74,15 @@ const PropsEditor = (props: PropsEditorProps) => {
 			JSON.stringify(itemProps),
 			MimeTypes.json,
 		);
-		const logicPath = await response.text();
-		updateNavigation(isCurrentItem, router, logicPath, articleProps.logicPath, itemProps.logicPath);
+		const { pathname } = await response.json();
+		updateNavigation(isCurrentItem, router, pathname, articleProps.logicPath, itemProps.logicPath);
 		const editor = EditorService.getEditor();
 		itemLink.title = itemProps.title;
 		setItemLink({ ...itemLink });
 
 		if (editor) {
-			const hr = editor.view.dom.firstChild as HTMLHeadingElement;
-			if (hr && isCurrentItem) hr.innerText = itemProps.title;
+			const header = editor.view.dom.firstChild as HTMLParagraphElement;
+			if (header && isCurrentItem) header.innerText = itemProps.title;
 		}
 
 		setIsOpen(false);

@@ -1,4 +1,4 @@
-import { RequestParagraphModel } from "gx-ai/dist/gpt/styleGuideGpt/styleGuideGptRequest";
+import type { RequestParagraphModel } from "@ics/gx-ai/dist/styleGuideCheck/styleGuideGptRequest";
 import { SuggestionItem } from "../extension/Suggestion";
 
 export function getSuggestionItems(

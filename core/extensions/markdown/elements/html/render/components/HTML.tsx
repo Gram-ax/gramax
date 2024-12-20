@@ -52,9 +52,10 @@ const Html = ({ mode, content, className }: { mode: string; content: string; cla
 	}, [content, mode, rootRef?.current]);
 
 	return (
-		<div ref={ref} className={className} data-focusable="true">
+		<div ref={ref} className={`${className} focus-pointer-events`} data-focusable="true">
 			{mode === "iframe" && (
 				<iframe
+					data-hover-target="true"
 					ref={rootRef}
 					onLoad={resizeIframe}
 					width="100%"

@@ -27,19 +27,19 @@ class EnvAuth implements AuthProvider {
 		res.redirect(url);
 	}
 
-	assertEndpoint(
+	async assertEndpoint(
 		req: ApiRequest,
 		res: ApiResponse,
 		cookie: Cookie,
-		setUser: (cookie: Cookie, user: User) => void,
-	): void | Promise<void> {
+		setUser: (cookie: Cookie, user: User) => Promise<void>,
+	): Promise<void> {
 		if (req.body.login !== this._login || req.body.password !== this._password) {
 			apiUtils.sendError(res, new DefaultError("Wrong login or password"), 401);
 			return;
 		}
 
 		const user = new User(true, { name: "admin", id: "admin", mail: "admin" }, new AllPermission());
-		setUser(cookie, user);
+		await setUser(cookie, user);
 		res.send({});
 	}
 }

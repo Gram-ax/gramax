@@ -1,18 +1,17 @@
 import ListLayout from "@components/List/ListLayout";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
+import Mode from "@ext/git/actions/Clone/model/Mode";
 import GitPaginatedProjectList from "@ext/git/actions/Source/Git/logic/GitPaginatedProjectList";
 import GitHubSourceData from "@ext/git/actions/Source/GitHub/logic/GitHubSourceData";
 import GithubStorageData from "@ext/git/actions/Source/GitHub/model/GithubStorageData";
-import GitSourceApi from "@ext/git/actions/Source/GitSourceApi";
 import t from "@ext/localization/locale/translate";
 import User2 from "@ext/security/components/User/User2";
 import { useEffect, useMemo, useState } from "react";
 import parseStorageUrl from "../../../../../../logic/utils/parseStorageUrl";
 import createChildWindow from "../../../../../../ui-logic/ChildWindow/createChildWindow";
 import CloneFields from "../../components/CloneFields";
-import { makeSourceApi } from "../../makeSourceApi";
+import { useMakeSourceApi } from "../../makeSourceApi";
 import GithubSourceAPI from "../logic/GithubSourceAPI";
-import Mode from "@ext/git/actions/Clone/model/Mode";
 
 type SelectProps = {
 	source: GitHubSourceData;
@@ -25,6 +24,7 @@ const SelectGitHubStorageDataFields = ({ source, mode, onChange }: SelectProps) 
 	const [installation, setInstallation] = useState(null);
 	const [installations, setInstallations] = useState(null);
 	const [isLoadingData, setIsLoadingData] = useState(false);
+	const sourceApi = useMakeSourceApi(source, authServiceUrl) as GithubSourceAPI;
 
 	const type = installation?.type;
 	const group = installation?.htmlUrl ? parseStorageUrl(installation.htmlUrl).name : null;
@@ -32,18 +32,17 @@ const SelectGitHubStorageDataFields = ({ source, mode, onChange }: SelectProps) 
 	const gitPaginatedProjectList = useMemo(
 		() =>
 			group &&
-			new GitPaginatedProjectList(
-				makeSourceApi(source, authServiceUrl) as GitSourceApi,
-				(modelItem) => modelItem.path.split("/")[0] === group,
-			),
-		[source, authServiceUrl, group],
+			new GitPaginatedProjectList(sourceApi, (modelItem) => {
+				if (modelItem === null) return true;
+				return modelItem && modelItem.path.split("/")[0] === group;
+			}),
+		[sourceApi, group],
 	);
 
 	const loadInstallations = async () => {
 		if (!source?.token) return;
 		setIsLoadingData(true);
-		const gitHubApi = new GithubSourceAPI(source, authServiceUrl);
-		setInstallations(await gitHubApi.getInstallations());
+		setInstallations(await sourceApi.getInstallations());
 		setIsLoadingData(false);
 	};
 

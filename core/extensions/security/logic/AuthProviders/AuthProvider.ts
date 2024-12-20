@@ -10,6 +10,6 @@ export interface AuthProvider {
 		req: ApiRequest,
 		res: ApiResponse,
 		cookie: Cookie,
-		setUser: (cookie: Cookie, user: User) => void,
+		setUser: (cookie: Cookie, user: User) => Promise<void>,
 	): Promise<void> | void;
 }

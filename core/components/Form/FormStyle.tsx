@@ -67,7 +67,13 @@ export default styled(FormStyle)`
 			}
 
 			.control-label {
+				display: flex;
+				align-items: center;
 				font-weight: 400;
+
+				:has(> .actions) {
+					justify-content: space-between;
+				}
 			}
 
 			.field {

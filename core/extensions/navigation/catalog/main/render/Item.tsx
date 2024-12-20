@@ -1,9 +1,11 @@
 import Icon from "@components/Atoms/Icon";
 import Link from "@components/Atoms/Link";
+import { classNames } from "@components/libs/classNames";
 import Url from "@core-ui/ApiServices/Types/Url";
 import ArticlePropsService from "@core-ui/ContextServices/ArticleProps";
 import { ItemType } from "@core/FileStructue/Item/ItemType";
 import styled from "@emotion/styled";
+import { FileStatus } from "@ext/Watchers/model/FileStatus";
 import { HTMLAttributes } from "react";
 import { CategoryLink, ItemLink } from "../../../NavigationLinks";
 /* eslint-disable @typescript-eslint/no-unused-vars */
@@ -24,14 +26,35 @@ interface LevNavItemProps extends HTMLAttributes<HTMLDivElement> {
 }
 
 const LevNavItem = (props: LevNavItemProps) => {
-	const { level, item, isOpen, rightExtensions, leftExtensions, onToggle, className, isCategory, ...other } = props;
+	const {
+		level,
+		item,
+		isOpen,
+		rightExtensions,
+		leftExtensions,
+		onToggle,
+		className,
+		isCategory,
+		isDragStarted,
+		isDropTarget,
+		isActive,
+		isHover,
+		...other
+	} = props;
 	const articleProps = ArticlePropsService.value;
 	const title = item ? (articleProps?.ref?.path == item?.ref?.path ? articleProps?.title : item?.title) : null;
 	const existsContent = item?.type === ItemType.category ? (item as CategoryLink)?.existContent : true;
 
+	let status = FileStatus[item.status];
+	if (articleProps?.ref?.path == item?.ref?.path && articleProps.status && status != FileStatus.new)
+		status = FileStatus[articleProps.status];
+
 	const Item = (
 		<div
-			className={className + " depth-" + level + (!isOpen && isCategory ? " a-drop-target" : "")}
+			className={classNames(`${className} depth-${level}`, {
+				"a-drop-target": !isOpen && isCategory,
+				[status]: !!status,
+			})}
 			data-qa={`catalog-navigation-${isCategory ? "category" : "article"}-link-level-${level}`}
 			{...other}
 		>
@@ -63,13 +86,33 @@ const LevNavItem = (props: LevNavItemProps) => {
 
 export default styled(LevNavItem)`
 	display: flex;
+	position: relative;
 	padding: 5px 0;
 	cursor: pointer;
-	font-weight: 300;
+	font-weight: var(--font-weight-default);
 	align-items: center;
 	padding-right: 14px !important;
 	padding-left: var(--left-padding) !important;
-	${(p) => (p.item.external ? "color: var(--color-primary-general-inverse)" : "color: var(--color-primary-general)")};
+	${(p) => (p.item.external ? "color: var(--color-primary-general-inverse)" : "color: var(--color-nav-item)")};
+
+	&.modified::after {
+		background-color: var(--color-status-modified);
+	}
+
+	&.new::after {
+		background-color: var(--color-status-new);
+	}
+
+	&::after {
+		content: "";
+		display: flex;
+		align-items: center;
+		position: absolute;
+		left: 0;
+		top: 10%;
+		width: 3px;
+		height: 80%;
+	}
 
 	${(p) =>
 		p.level !== 0
@@ -93,8 +136,8 @@ export default styled(LevNavItem)`
 			? ""
 			: `
 	background: var(--color-article-bg);    
-    color: var(--color-primary);
-	font-weight: 400;
+    color: var(--color-nav-item-selected);
+	font-weight: var(--font-weight-right-nav-active-item);
 
 	.right-extensions {
 		display: inline-flex !important;
@@ -161,6 +204,6 @@ export default styled(LevNavItem)`
 		p.isDropTarget &&
 		!p.isCategory &&
 		`
-			background: var(--color-navigation-article-drop-target) !important;
+			background: var(--color-nav-article-drop-target) !important;
 		`}
 `;

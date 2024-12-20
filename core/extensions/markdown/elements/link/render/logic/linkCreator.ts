@@ -55,7 +55,7 @@ class LinkCreator {
 		let isFile = false;
 		if (hrefPath.extension !== articleExtension) {
 			isFile = true;
-			href = new ApiUrlCreator(basePath, null, catalog.getName(), articlePath.value)
+			href = new ApiUrlCreator(basePath, null, catalog.name, articlePath.value)
 				.getArticleResource(relativeHrefPath.value)
 				.toString();
 		} else {
@@ -65,7 +65,7 @@ class LinkCreator {
 				resourcePath = articlePath.getRelativePath(item.ref.path);
 				href = link ? link : hrefPath?.stripExtension ?? "";
 			} else {
-				href = `${context.getCatalog().getName()}/${href}`;
+				href = `${context.getCatalog().name}/${href}`;
 			}
 		}
 

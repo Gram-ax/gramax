@@ -42,11 +42,17 @@ export default class NextRouter extends Router {
 	}
 
 	static use(rules: RouterRule[]) {
-		const router = new NextRouter(useDefaultNextRouter(), rules);
+		let router = null;
+
+		try {
+			router = new NextRouter(useDefaultNextRouter(), rules);
+		} catch (e) {
+			console.log(e);
+		}
 
 		useEffect(() => {
-			if (typeof window !== "undefined") router._hash = window.location.hash;
-		}, [...rules, router.path, router.query]);
+			if (router && typeof window !== "undefined") router._hash = window.location.hash;
+		}, [...rules, router?.path, router?.query]);
 
 		return router;
 	}

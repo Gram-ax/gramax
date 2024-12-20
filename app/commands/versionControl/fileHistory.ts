@@ -19,7 +19,7 @@ const fileHistory: Command<{ catalogName: string; filePath: string }, ArticleHis
 		const { wm } = this._app;
 		const workspace = wm.current();
 
-		const catalog = await workspace.getCatalog(catalogName);
+		const catalog = await workspace.getContextlessCatalog(catalogName);
 		if (!catalog) return;
 		const fp = workspace.getFileProvider();
 		const itemRef = fp.getItemRef(new Path(filePath));

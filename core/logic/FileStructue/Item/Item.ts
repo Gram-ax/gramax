@@ -1,7 +1,10 @@
+import { NEW_ARTICLE_REGEX } from "@app/config/const";
 import { createEventEmitter, Event } from "@core/Event/EventEmitter";
 import { roundedOrderAfter } from "@core/FileStructue/Item/ItemOrderUtils";
 import { ItemRef } from "@core/FileStructue/Item/ItemRef";
 import { ItemType } from "@core/FileStructue/Item/ItemType";
+import type Hasher from "@core/Hash/Hasher";
+import type { Hashable } from "@core/Hash/Hasher";
 import ResourceUpdater from "@core/Resource/ResourceUpdater";
 import type { FSLocalizationProps } from "@ext/localization/core/events/FSLocalizationEvents";
 import t from "@ext/localization/locale/translate";
@@ -28,13 +31,15 @@ export type ItemProps = FSLocalizationProps & {
 	hidden?: boolean;
 	private?: string[];
 	external?: string;
+
+	shouldBeCreated?: boolean;
 };
 
 export type UpdateItemProps = (ItemProps & { fileName?: never; logicPath: string }) | ClientArticleProps;
 
 export const ORDERING_MAX_PRECISION = 6;
 
-export abstract class Item<P extends ItemProps = ItemProps> {
+export abstract class Item<P extends ItemProps = ItemProps> implements Hashable {
 	protected _events = createEventEmitter<ItemEvents>();
 	private _neededPermission: IPermission = null;
 
@@ -77,7 +82,13 @@ export abstract class Item<P extends ItemProps = ItemProps> {
 	}
 
 	getTitle(): string {
-		return this.props.title?.length ? this.props.title : t("article.no-name");
+		if (this.props.external) return this.props.external;
+		const isNewArticle = NEW_ARTICLE_REGEX.test(this.getFileName());
+		return this.props.title?.length
+			? this.props.title
+			: isNewArticle
+			? t("article.no-name")
+			: this.getFileName() || t("article.no-name");
 	}
 
 	async setOrder(order: number, silent = false) {
@@ -121,6 +132,14 @@ export abstract class Item<P extends ItemProps = ItemProps> {
 			await target.save();
 			target = target.parent;
 		}
+	}
+
+	async hash(hash: Hasher) {
+		hash.hash(this.props.title);
+		hash.hash(this.props.description);
+		hash.hash(this.props.order);
+		hash.hash(this.props.private);
+		return Promise.resolve(hash);
 	}
 
 	abstract get type(): ItemType;

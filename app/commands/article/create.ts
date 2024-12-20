@@ -17,16 +17,12 @@ const create: Command<{ ctx: Context; catalogName: string; parentPath?: Path }, 
 		const { resourceUpdaterFactory, wm } = this._app;
 		const workspace = wm.current();
 
-		const catalog = await workspace.getCatalog(catalogName);
+		const catalog = await workspace.getCatalog(catalogName, ctx);
 		const fp = workspace.getFileProvider();
 		const parentRef = fp.getItemRef(parentPath);
 
 		const markdown = "\n\n";
-		const article = await catalog.createArticle(
-			resourceUpdaterFactory.withContext(ctx),
-			markdown,
-			parentPath ? parentRef : null,
-		);
+		const article = await catalog.createArticle(resourceUpdaterFactory, markdown, parentPath ? parentRef : null);
 
 		return await catalog.getPathname(article);
 	},

@@ -8,7 +8,7 @@ import Context from "../../../../core/logic/Context/Context";
 import { Command } from "../../../types/Command";
 
 const mergeInto: Command<
-	{ ctx: Context; catalogName: string; branchName: string; deleteAfterMerge: boolean },
+	{ ctx: Context; catalogName: string; branchName: string; deleteAfterMerge: boolean; validateMerge?: boolean },
 	MergeData
 > = Command.create({
 	path: "versionControl/branch/mergeInto",
@@ -17,15 +17,20 @@ const mergeInto: Command<
 
 	middlewares: [new AuthorizeMiddleware(), new ReloadConfirmMiddleware()],
 
-	async do({ ctx, catalogName, branchName, deleteAfterMerge }) {
+	async do({ ctx, catalogName, branchName, deleteAfterMerge, validateMerge }) {
 		const { rp, wm } = this._app;
 		const workspace = wm.current();
-		const catalog = await workspace.getCatalog(catalogName);
+		const catalog = await workspace.getContextlessCatalog(catalogName);
 		const storage = catalog?.repo.storage;
 		if (!storage) return;
 
 		const sourceData = rp.getSourceData(ctx.cookie, await storage.getSourceName());
-		const mergeResult = await catalog.repo.merge({ data: sourceData, targetBranch: branchName, deleteAfterMerge });
+		const mergeResult = await catalog.repo.merge({
+			data: sourceData,
+			targetBranch: branchName,
+			deleteAfterMerge,
+			validateMerge,
+		});
 		const state = await catalog.repo.getState();
 		if (!mergeResult.length) await catalog.update();
 

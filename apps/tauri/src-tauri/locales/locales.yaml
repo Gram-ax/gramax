@@ -2,170 +2,174 @@ _version: 2
 
 menu:
   file:
-    ru: 'Файл'
-    en: 'File'
+    ru: "Файл"
+    en: "File"
 
     new-window:
-      ru: 'Новое окно'
-      en: 'New Window'
+      ru: "Новое окно"
+      en: "New Window"
+
+    configure:
+      ru: "Настроить GES"
+      en: "Configure GES"
 
     close-window:
-      ru: 'Закрыть окно'
-      en: 'Close Window'
+      ru: "Закрыть окно"
+      en: "Close Window"
 
     quit:
-      ru: 'Выход'
-      en: 'Quit'
+      ru: "Выход"
+      en: "Quit"
 
     hide:
-      ru: 'Скрыть'
-      en: 'Hide'
+      ru: "Скрыть"
+      en: "Hide"
 
     about:
-      ru: 'О программе'
-      en: 'About'
+      ru: "О программе"
+      en: "About"
 
   edit:
-    ru: 'Правка'
-    en: 'Edit'
+    ru: "Правка"
+    en: "Edit"
 
     undo:
-      ru: 'Отменить'
-      en: 'Undo'
+      ru: "Отменить"
+      en: "Undo"
 
     redo:
-      ru: 'Повторить'
-      en: 'Redo'
+      ru: "Повторить"
+      en: "Redo"
 
     cut:
-      ru: 'Вырезать'
-      en: 'Cut'
+      ru: "Вырезать"
+      en: "Cut"
 
     copy:
-      ru: 'Копировать'
-      en: 'Copy'
+      ru: "Копировать"
+      en: "Copy"
 
     paste:
-      ru: 'Вставить'
-      en: 'Paste'
+      ru: "Вставить"
+      en: "Paste"
 
     select-all:
-      ru: 'Выделить всё'
-      en: 'Select All'
+      ru: "Выделить всё"
+      en: "Select All"
 
   window:
-    ru: 'Окно'
-    en: 'Window'
+    ru: "Окно"
+    en: "Window"
 
     maximize:
-      ru: 'Развернуть'
-      en: 'Maximize'
+      ru: "Развернуть"
+      en: "Maximize"
 
     minimize:
-      ru: 'Свернуть'
-      en: 'Minimize'
+      ru: "Свернуть"
+      en: "Minimize"
 
     toggle-inspector:
-      ru: 'Открыть инспектор'
-      en: 'Show Inspector'
+      ru: "Открыть инспектор"
+      en: "Show Inspector"
 
     refresh:
-      ru: 'Обновить'
-      en: 'Refresh'
+      ru: "Обновить"
+      en: "Refresh"
 
     reload:
-      ru: 'Перезагрузить'
-      en: 'Reload'
+      ru: "Перезагрузить"
+      en: "Reload"
 
     fullscreen:
-      ru: 'Полноэкранный режим'
-      en: 'Fullscreen'
+      ru: "Полноэкранный режим"
+      en: "Fullscreen"
 
   view:
-    ru: 'Вид'
-    en: 'View'
+    ru: "Вид"
+    en: "View"
 
     zoom-in:
-      ru: 'Увеличить масштаб'
-      en: 'Zoom In'
+      ru: "Увеличить масштаб"
+      en: "Zoom In"
 
     zoom-out:
-      ru: 'Уменьшить масштаб'
-      en: 'Zoom Out'
+      ru: "Уменьшить масштаб"
+      en: "Zoom Out"
 
     actual-size:
-      ru: 'Сбросить масштаб'
-      en: 'Actual Size'
+      ru: "Сбросить масштаб"
+      en: "Actual Size"
 
   help:
-    ru: 'Помощь'
-    en: 'Help'
+    ru: "Помощь"
+    en: "Help"
 
     visit-docs:
-      ru: 'Документация Gramax'
-      en: 'Visit Gramax docs'
+      ru: "Документация Gramax"
+      en: "Visit Gramax docs"
 
     visit-github:
-      ru: 'Репозиторий на GitHub'
-      en: 'Visit GitHub repository'
+      ru: "Репозиторий на GitHub"
+      en: "Visit GitHub repository"
 
     telegram-news:
-      ru: 'Новостной канал в Telegram'
-      en: 'Follow news channel on Telegram'
+      ru: "Новостной канал в Telegram"
+      en: "Follow news channel on Telegram"
 
     telegram-chat:
-      ru: 'Чат в Telegram'
-      en: 'Join community chat on Telegram'
+      ru: "Чат в Telegram"
+      en: "Join community chat on Telegram"
 
 updates:
   you-have-actual-ver:
     title:
-      ru: 'У вас актуальная версия!'
-      en: 'You have actual version!'
+      ru: "У вас актуальная версия!"
+      en: "You have actual version!"
     body:
-      ru: 'Мы сообщим, когда выйдет новая.'
+      ru: "Мы сообщим, когда выйдет новая."
       en: "We'll let you know when a new one is available."
 
   new-version:
     title:
-      ru: 'Gramax стал лучше!'
-      en: 'Gramax just got better!'
+      ru: "Gramax стал лучше!"
+      en: "Gramax just got better!"
     body:
-      ru: 'Нажмите «Обновить сейчас» и приложение перезапустится.'
-      en: 'Click «Update Now» and the application will restart.'
+      ru: "Нажмите «Обновить сейчас» и приложение перезапустится."
+      en: "Click «Update Now» and the application will restart."
 
   update-now:
-    ru: 'Обновить сейчас'
-    en: 'Update Now'
+    ru: "Обновить сейчас"
+    en: "Update Now"
 
   check:
-    ru: 'Проверить обновления...'
-    en: 'Check for updates...'
+    ru: "Проверить обновления..."
+    en: "Check for updates..."
 
   check-in-progress:
-    ru: 'Проверяем...'
-    en: 'Checking...'
+    ru: "Проверяем..."
+    en: "Checking..."
 
   download-in-progress:
-    ru: 'Загружаем...'
-    en: 'Downloading...'
+    ru: "Загружаем..."
+    en: "Downloading..."
 
   newer-update-found:
-    ru: 'Найдена более новая версия приложения. Оно будет скачано в фоновом режиме, после чего приложение перезапустится.'
-    en: 'Newer update was found. It will be downloaded in the background, after which the application will restart.'
+    ru: "Найдена более новая версия приложения. Оно будет скачано в фоновом режиме, после чего приложение перезапустится."
+    en: "Newer update was found. It will be downloaded in the background, after which the application will restart."
 
   error-occured:
-    ru: 'Не удалось обновить приложение'
-    en: 'Failed to update the application'
+    ru: "Не удалось обновить приложение"
+    en: "Failed to update the application"
 
 file-download:
   fail:
-    ru: 'Не удалось сохранить файл'
-    en: 'Failed to save file'
+    ru: "Не удалось сохранить файл"
+    en: "Failed to save file"
 
   fail-desc:
-    ru: 'Не удалось сохранить файл %{name}'
-    en: 'Failed to save file %{name}'
+    ru: "Не удалось сохранить файл %{name}"
+    en: "Failed to save file %{name}"
 
   no-permissions:
     ru: |
@@ -202,8 +206,8 @@ trash:
 etc:
   error:
     title:
-      ru: 'Что-то пошло не так'
-      en: 'Something went wrong'
+      ru: "Что-то пошло не так"
+      en: "Something went wrong"
 
     open-url:
       ru: |
@@ -212,7 +216,15 @@ etc:
       en: |
         Failed to open external url
         %{url}
-    
+
+    open-path:
+      ru: |
+        Не удалось открыть путь
+        %{path}
+      en: |
+        Failed to open path
+        %{path}
+
     build-window:
       ru: |
         Не удалось открыть окно
@@ -220,13 +232,13 @@ etc:
         Failed to open window
 
   ok:
-    ru: 'Понятно'
-    en: 'Ok'
+    ru: "Понятно"
+    en: "Ok"
 
   later:
-    ru: 'Позже'
-    en: 'Later'
+    ru: "Позже"
+    en: "Later"
 
   try-later:
-    ru: 'Попробуйте позже'
-    en: 'Please try again later'
+    ru: "Попробуйте позже"
+    en: "Please try again later"

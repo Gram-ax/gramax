@@ -1,5 +1,5 @@
 import MimeTypes from "@core-ui/ApiServices/Types/MimeTypes";
-import { DefaultBodyType, PathParams, ResponseComposition, RestContext, RestRequest, rest } from "msw";
+import { HttpResponse, delay, http } from "msw";
 
 export type MockedAPIEndpoint = {
 	path: string;
@@ -11,23 +11,29 @@ export type MockedAPIEndpoint = {
 };
 
 const mock = (data: MockedAPIEndpoint[]) => {
-	const resolver = ({ response, delay, mimeType = MimeTypes.json, errorMessage, errorProps }: MockedAPIEndpoint) => {
-		return (
-			_req: RestRequest<never, PathParams<string>>,
-			res: ResponseComposition<DefaultBodyType>,
-			ctx: RestContext,
-		) => {
-			const mockedResponse = mimeType === MimeTypes.json ? ctx.json(response) : ctx.body(response as string);
+	const resolver = ({
+		response,
+		delay: delayMs,
+		mimeType = MimeTypes.json,
+		errorMessage,
+		errorProps,
+	}: MockedAPIEndpoint) => {
+		return async () => {
+			await delay(delayMs);
+			const mockedResponse =
+				mimeType === MimeTypes.json
+					? HttpResponse.json(response, { headers: { "Content-Type": mimeType }, status: 200 })
+					: HttpResponse.text(response as string, { headers: { "Content-Type": mimeType }, status: 200 });
+
 			return errorMessage || errorProps
-				? res(
-						ctx.delay(delay),
-						ctx.status(500),
-						ctx.json({ message: errorMessage, stack: "stack", props: { ...errorProps } }),
+				? HttpResponse.json(
+						{ message: errorMessage, stack: "stack", props: { ...errorProps } },
+						{ status: 500 },
 				  )
-				: res(ctx.delay(delay), mockedResponse, ctx.set("Content-Type", mimeType));
+				: mockedResponse;
 		};
 	};
-	return [...data.map((d) => rest.get(d.path, resolver(d))), ...data.map((d) => rest.post(d.path, resolver(d)))];
+	return [...data.map((d) => http.get(d.path, resolver(d))), ...data.map((d) => http.post(d.path, resolver(d)))];
 };
 
 export default mock;

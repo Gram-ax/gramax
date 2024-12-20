@@ -7,6 +7,9 @@ import { PropertyTypes } from "@ext/properties/models";
 export interface CatalogCreateProps {
 	name: string;
 	id?: string;
+	/**
+	 * @see properties.types
+	 */
 	type: PropertyTypes;
 	icon?: string;
 	/**

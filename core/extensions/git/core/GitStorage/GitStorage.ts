@@ -162,7 +162,12 @@ export default class GitStorage implements Storage {
 	}
 
 	async updateSyncCount() {
-		this._syncCount = await this._gitRepository.graphHeadUpstreamFilesCount(this._syncSearchInPath);
+		try{
+			this._syncCount = await this._gitRepository.graphHeadUpstreamFilesCount(this._syncSearchInPath);
+		} catch (e) {
+			this._syncCount = { pull: 0, push: 0, hasChanges: false };
+			console.error(e);
+		}
 	}
 
 	getRemoteName(): Promise<string> {

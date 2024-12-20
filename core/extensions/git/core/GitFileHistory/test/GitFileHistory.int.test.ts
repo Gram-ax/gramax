@@ -11,7 +11,7 @@ const getGitFileHistoryData = async () => {
 	const { wm, rp } = await getApp();
 	const dfp = new DiskFileProvider(TEST_GIT_CATALOG_PATH);
 	const workspace = wm.current();
-	const catalog = await workspace.getCatalog("gitCatalog");
+	const catalog = await workspace.getContextlessCatalog("gitCatalog");
 	const fs = workspace.getFileStructure();
 	const fp = workspace.getFileProvider();
 	const gitFileHistory = new GitFileHistory(catalog, fp);

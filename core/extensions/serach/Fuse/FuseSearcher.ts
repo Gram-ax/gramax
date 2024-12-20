@@ -16,15 +16,11 @@ export default class FuseSearcher implements Searcher {
 		paragraphOffset: 60,
 	};
 	private _excludedWordsCount = 0;
-	private _fuses: { [catalogName: string]: Fuse<IndexData> } = {};
 
-	constructor(private _indexDataProvider: IndexDataProvider) {
-		this._indexDataProvider.onDataChange?.(this._initFuses.bind(this));
-	}
+	constructor(private _indexDataProvider: IndexDataProvider) {}
 
 	async resetAllCatalogs() {
-		await this._indexDataProvider.deleteCatalogs();
-		this._fuses = {};
+		await this._indexDataProvider.clear();
 	}
 
 	async searchAll(query: string, ids: { [catalogName: string]: string[] }): Promise<SearchItem[]> {
@@ -53,12 +49,12 @@ export default class FuseSearcher implements Searcher {
 			query.match(/-"[^"]*"\s*/g)?.join("") === query || query.match(/-[^ ]*\s*/g)?.join("") === query;
 
 		if (!articleIds?.length || doesQueryHaveOnlyNegativeWords) return [];
-		if (!this._fuses[catalogName]) await this._initFuses(catalogName);
+		const fuse = await this._getFuse(catalogName, articleIds);
 
 		this._excludedWordsCount = 0;
 		query = prepareFuseString(query);
 
-		const searchedArray = this._fuses[catalogName].search(query);
+		const searchedArray = fuse.search(query);
 
 		query = this._removeNegatedPhrases(query);
 		query = this._removeExtraCharacters(query);
@@ -74,8 +70,8 @@ export default class FuseSearcher implements Searcher {
 		});
 	}
 
-	private async _initFuses(catalogName: string, indexData?: IndexData[]) {
-		this._fuses[catalogName] = new Fuse(indexData ?? (await this._indexDataProvider.getCatalogValue(catalogName)), {
+	private async _getFuse(catalogName: string, articleIds: string[]) {
+		return new Fuse(await this._indexDataProvider.getIndexData(catalogName, articleIds), {
 			keys: [{ name: "path" }, { name: "pathname" }, { name: "title" }, { name: "content" }],
 			useExtendedSearch: true,
 			includeScore: true,

@@ -1,5 +1,5 @@
-export const list_item = {
-	block: "list_item",
+export const listItem = {
+	block: "listItem",
 	getAttrs: (token) => {
 		const attrs = Array.isArray(token?.attrs) ? token.attrs : [];
 

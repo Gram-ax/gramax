@@ -18,12 +18,12 @@ const create: Command<{ props: CatalogEditProps; ctx: Context }, ClientCatalogPr
 		const { wm, sitePresenterFactory } = this._app;
 		const workspace = await wm.currentOrDefault();
 
-		if (Array.from(workspace.getCatalogEntries().keys()).includes(props.url)) return;
+		if (Array.from(workspace.getAllCatalogs().keys()).includes(props.url)) return;
 		const fs = workspace.getFileStructure();
 		const catalog = await fs.createCatalog(props);
 		if (!catalog) return null;
 		await workspace.addCatalog(catalog);
-		await this._commands.article.create.do({ ctx, catalogName: catalog.getName() });
+		await this._commands.article.create.do({ ctx, catalogName: catalog.name });
 		return sitePresenterFactory.fromContext(ctx).serializeCatalogProps(catalog);
 	},
 

@@ -14,7 +14,7 @@ pub trait Tags {
 
 pub(crate) struct AnnotatedTag<'t>(pub(crate) &'t str, pub(crate) &'t Commit<'t>);
 
-impl<'t> ShortInfo<'t, TagInfo> for AnnotatedTag<'_> {
+impl ShortInfo<'_, TagInfo> for AnnotatedTag<'_> {
   fn short_info(&self) -> Result<TagInfo> {
     Ok(TagInfo {
       name: self.0.to_string(),
@@ -36,7 +36,7 @@ pub struct TagInfo {
   pub date: Option<i64>,
 }
 
-impl<'t> ShortInfo<'t, TagInfo> for Tag<'_> {
+impl ShortInfo<'_, TagInfo> for Tag<'_> {
   fn short_info(&self) -> Result<TagInfo> {
     let tagger = self.tagger();
     let commit_oid = self.target_id();

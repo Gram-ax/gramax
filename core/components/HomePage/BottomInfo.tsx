@@ -20,10 +20,12 @@ const BottomInfo = styled(({ className }: { className?: string }) => {
 		justify-content: space-between;
 		flex-direction: row;
 		margin-top: 2rem;
-		margin-bottom: 1rem;
+		margin-bottom: 7px;
 		font-size: 14px;
 
 		> div {
+			font-size: 12px;
+			opacity: 0.7;
 			color: var(--color-primary-general);
 		}
 	}

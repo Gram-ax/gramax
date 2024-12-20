@@ -104,6 +104,7 @@ const Tabs = ({
 };
 
 export default styled(Tabs)`
+	margin: ${(p) => (p.isEdit ? "-4px -8px 0.2em -8px" : "0 0 0.2em 0")};
 	.switch {
 		display: flex;
 		flex-direction: row;

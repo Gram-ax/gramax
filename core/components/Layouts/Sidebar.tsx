@@ -7,11 +7,12 @@ interface SidebarProps {
 	rightActions?: ReactNode[];
 	className?: string;
 	title?: string;
+	titleComponent?: ReactNode;
 	disable?: boolean;
 }
 
 const Sidebar = (props: SidebarProps) => {
-	const { title, leftActions, rightActions, className } = props;
+	const { title, leftActions, rightActions, className, titleComponent } = props;
 
 	return (
 		<div className={classNames("sidebar-article-element", {}, [className])}>
@@ -20,6 +21,7 @@ const Sidebar = (props: SidebarProps) => {
 				<div className="title" title={title}>
 					{title}
 				</div>
+				{titleComponent && <span className="title-component">{titleComponent}</span>}
 				{rightActions?.length > 0 && <div className="sidebar-right-actions actions">{rightActions}</div>}
 			</div>
 		</div>

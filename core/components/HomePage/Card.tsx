@@ -20,9 +20,10 @@ interface CardProps {
 	style?: "big" | "small";
 	onClick?: () => void;
 	className?: string;
+	name: string;
 }
 
-const Card = ({ link, style, className, onClick }: CardProps) => {
+const Card = ({ link, style, className, onClick, name }: CardProps) => {
 	const apiUrlCreator = ApiUrlCreatorService.value;
 	const { isCloning, isWait, error } = useCloneProgress(link.isCloning, link.name);
 	const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -70,7 +71,7 @@ const Card = ({ link, style, className, onClick }: CardProps) => {
 					setIsLoading(true);
 				}}
 			>
-				{style === "big" ? <BigCard link={link} /> : <SmallCard link={link} />}
+				{style === "big" ? <BigCard name={name} link={link} /> : <SmallCard name={name} link={link} />}
 			</div>
 		</div>
 	);

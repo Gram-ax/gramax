@@ -70,7 +70,7 @@ export const blockLayouts = {
 	p: paragraphWordLayout,
 	ol: orderListWordLayout,
 	ul: ulListWordLayout,
-	li: listItemWordLayout,
+	Li: listItemWordLayout,
 	Heading: headingWordLayout,
 	Table: tableWordLayout,
 	Note: noteWordLayout,

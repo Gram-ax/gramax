@@ -1,7 +1,7 @@
 import { Extension } from "@tiptap/core";
 import { Plugin, PluginKey } from "prosemirror-state";
 
-const OnTitleLoseFocus = Extension.create({
+const OnTitleLoseFocus = Extension.create<{ onTitleLoseFocus: ({ newTitle }: { newTitle: string }) => void }>({
 	name: "OnTitleLoseFocus",
 
 	addProseMirrorPlugins() {

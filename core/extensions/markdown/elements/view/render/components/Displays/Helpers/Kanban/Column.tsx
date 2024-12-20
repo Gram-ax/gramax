@@ -5,12 +5,13 @@ import { useDrop } from "react-dnd";
 
 interface ColumnProps extends ColumnType {
 	id: number;
-	onCardDrop: (columnID: number, cardID: number, newColumnID: number) => void;
 	disabled?: boolean;
 	className?: string;
+	onCardDrop: (columnID: number, cardID: number, newColumnID: number) => void;
+	updateProperty: (columnID: number, cardID: number, property: string, value: string, isDelete?: boolean) => void;
 }
 
-const Column = ({ id, name, cards, className, onCardDrop, disabled }: ColumnProps) => {
+const Column = ({ id, name, cards, className, onCardDrop, disabled, updateProperty }: ColumnProps) => {
 	const [{ isOver, canDrop }, drop] = useDrop({
 		accept: DragItems.Card,
 		canDrop: (item) => {
@@ -27,7 +28,7 @@ const Column = ({ id, name, cards, className, onCardDrop, disabled }: ColumnProp
 
 	return (
 		<div
-			className={className}
+			className={`${className} column`}
 			ref={(el) => {
 				drop(el);
 			}}
@@ -37,7 +38,14 @@ const Column = ({ id, name, cards, className, onCardDrop, disabled }: ColumnProp
 			</div>
 			<div className="column-cards">
 				{cards?.map((card, index) => (
-					<Card key={card.title + index + id} disabled={disabled} columnID={id} cardID={index} {...card} />
+					<Card
+						key={card.itemPath}
+						disabled={disabled}
+						columnID={id}
+						cardID={index}
+						updateProperty={updateProperty}
+						{...card}
+					/>
 				))}
 				{isOver && canDrop && <div className="empty-card"></div>}
 			</div>

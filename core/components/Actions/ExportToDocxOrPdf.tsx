@@ -6,6 +6,7 @@ import { openPrintView } from "@ext/artilce/actions/SaveAsPdf/OpenPrintView";
 import t from "@ext/localization/locale/translate";
 import { useRef } from "react";
 import ItemExport from "../../extensions/wordExport/components/ItemExport";
+import ExportButton from "@ext/wordExport/components/ExportButton";
 
 interface ExportToDocxOrPdfProps {
 	fileName: string;
@@ -30,15 +31,11 @@ const ExportToDocxOrPdf = (props: ExportToDocxOrPdfProps) => {
 	return (
 		<PopupMenuLayout
 			appendTo={() => ref.current}
-			offset={[10, 5]}
+			offset={[10, -5]}
 			className="wrapper"
 			placement="right-start"
 			openTrigger="mouseenter focus"
-			trigger={
-				<div className="export-button" ref={ref}>
-					<ButtonLink iconCode="file-output" text={t("export")} />
-				</div>
-			}
+			trigger={<ExportButton ref={ref} iconCode="file-output" text={t("export")} />}
 		>
 			{isCategory && <ItemExport fileName={fileName} itemRefPath={itemRefPath} isCategory={isCategory} />}
 			<ItemExport fileName={fileName} itemRefPath={itemRefPath} isCategory={false} />

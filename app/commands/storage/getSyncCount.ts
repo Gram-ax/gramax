@@ -16,7 +16,7 @@ const getSyncCount: Command<
 
 	async do({ catalogName }) {
 		const workspace = this._app.wm.current();
-		const catalog = await workspace.getCatalog(catalogName);
+		const catalog = await workspace.getContextlessCatalog(catalogName);
 		const storage = catalog?.repo.storage;
 		if (!storage) return;
 		return await storage.getSyncCount();

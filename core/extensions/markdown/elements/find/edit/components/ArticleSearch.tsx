@@ -58,6 +58,7 @@ const ArticleSearchComponent: FC<ArticleSearchProps> = (props) => {
 				KeyF: (e: KeyboardEvent) => {
 					if (e.shiftKey) return;
 					if (!e.ctrlKey && !e.metaKey) return;
+					if (e.ctrlKey && e.metaKey) return;
 
 					e.preventDefault();
 					const selectionText = window.getSelection()?.toString() || "";

@@ -4,6 +4,7 @@
 
 import GitMergeStatus from "@ext/git/actions/MergeConflictHandler/model/GitMergeStatus";
 import GitStorage from "@ext/git/core/GitStorage/GitStorage";
+import RepositoryProvider from "@ext/git/core/Repository/RepositoryProvider";
 import WorkdirRepository from "@ext/git/core/Repository/WorkdirRepository";
 import type { RepositoryMergeConflictState } from "@ext/git/core/Repository/state/RepositoryState";
 import SourceData from "@ext/storage/logic/SourceDataProvider/model/SourceData";
@@ -12,7 +13,6 @@ import DiskFileProvider from "../../../../../../logic/FileProvider/DiskFileProvi
 import Path from "../../../../../../logic/FileProvider/Path/Path";
 import GitVersionControl from "../../../GitVersionControl/GitVersionControl";
 import GitBaseConflictResolver from "../GitBaseConflictResolver";
-import RepositoryProvider from "@ext/git/core/Repository/RepositoryProvider";
 
 const mockUserData: SourceData = {
 	sourceType: SourceType.gitHub,

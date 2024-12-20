@@ -10,53 +10,54 @@ export default class AttributeFormatter {
 	private _parse(attrs: Record<string, string>) {
 		return Object.entries(attrs).reduce((result, [key, value]) => {
 			if (!value) return result;
-
-			switch (key) {
-				case "defs":
-					result[key] = value.split(",").map((def) => {
-						const [defKey, defValue] = def.split("=");
-						return {
-							name: defKey.trim(),
-							value: defValue
-								? defValue
-										.trim()
-										.split("&")
-										.map((v) => v.trim())
-								: undefined,
-						};
-					});
-					break;
-				case "orderby":
-				case "groupby":
-				case "select":
-					result[key] = value ? value.split(",").map((item) => item.trim()) : [];
-					break;
-				default:
-					result[key] = value;
-			}
+			if (key === "display") result[key] = value;
+			else if (value.includes("=")) result[key] = this._parseToObject(value);
+			else result[key] = this._parseToArray(value);
 			return result;
 		}, {} as Record<string, any>);
 	}
 
 	private _stringify(attrs: Record<string, any>): { [key: string]: string } {
-		const defs =
-			typeof attrs.defs === "object"
-				? attrs.defs.map((item: { name: string; value?: string[] }) => {
-						return item.value === undefined ? item.name : `${item.name}=${item.value.join("&")}`;
-				  })
-				: [];
+		return Object.entries(attrs).reduce((result, [key, value]) => {
+			if (!value) return result;
+			const stringValue = String(value);
+			const notObject = !stringValue.includes("[object");
 
-		const defsString = defs.join(",");
+			if (notObject && Array.isArray(value)) result[key] = this._stringifyArray(value);
+			else if (typeof value === "string" && notObject) result[key] = value.toString();
+			else result[key] = this._stringifyObject(value);
+			return result;
+		}, {} as Record<string, any>);
+	}
 
-		const orderBy = attrs?.orderby;
-		const orderByString = Array.isArray(orderBy) ? orderBy.join(",") : orderBy || "";
+	private _parseToArray(value: string) {
+		return value ? value.split(",").map((item) => item.trim()) : [];
+	}
 
-		const groupBy = attrs?.groupby;
-		const groupByString = Array.isArray(groupBy) ? groupBy.join(",") : groupBy || "";
+	private _parseToObject(value: string) {
+		return value.split(",").map((def) => {
+			const [defKey, defValue] = def.split("=");
+			return {
+				name: defKey.trim(),
+				value: defValue
+					? defValue
+							.trim()
+							.split("&")
+							.map((v) => v.trim())
+					: undefined,
+			};
+		});
+	}
 
-		const select = attrs?.select;
-		const selectString = Array.isArray(select) ? select.join(",") : select || "";
+	private _stringifyObject(attrs: Record<string, any>): string {
+		return attrs
+			.map((item: { name: string; value?: string[] }) => {
+				return item?.value === undefined ? item.name ?? item : `${item.name}=${item.value.join("&")}`;
+			})
+			.join(",");
+	}
 
-		return { ...attrs, defs: defsString, orderby: orderByString, groupby: groupByString, select: selectString };
+	private _stringifyArray(attrs: Record<string, any>): string {
+		return attrs?.join(",");
 	}
 }

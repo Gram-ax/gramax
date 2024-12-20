@@ -1,28 +1,24 @@
-import Chip from "@components/Atoms/Chip";
+import ActionButton from "@components/controls/HoverController/ActionButton";
 import PopupMenuLayout from "@components/Layouts/PopupMenuLayout";
-import { ReactNode, useState } from "react";
+import { ReactNode } from "react";
 
 export interface ViewButtonProps {
-	name: ReactNode;
+	icon: string;
 	children: ReactNode;
 	tooltipText: string;
 	disabled?: boolean;
 	closeOnSelection?: boolean;
 }
 
-const ViewButton = ({ name, disabled = false, children, tooltipText, closeOnSelection }: ViewButtonProps) => {
-	const [isOpen, setIsOpen] = useState(false);
+const ViewButton = ({ icon, disabled = false, children, tooltipText, closeOnSelection }: ViewButtonProps) => {
 	return (
 		<PopupMenuLayout
 			hideOnClick={closeOnSelection}
 			isInline
-			appendTo={() => document.body}
+			appendTo="parent"
 			disabled={disabled}
-			onOpen={() => setIsOpen(true)}
-			onClose={() => setIsOpen(false)}
 			offset={[0, 15]}
-			tooltipText={tooltipText}
-			trigger={<Chip name={name} focused={isOpen} disabled={disabled} style={{ height: "100%" }} />}
+			trigger={<ActionButton icon={icon} tooltipText={tooltipText} />}
 		>
 			<>{children}</>
 		</PopupMenuLayout>

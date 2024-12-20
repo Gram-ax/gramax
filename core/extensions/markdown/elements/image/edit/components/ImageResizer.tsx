@@ -1,4 +1,5 @@
 import styled from "@emotion/styled";
+import getScale from "@ext/markdown/elements/image/render/logic/getScale";
 import { MutableRefObject, ReactElement, useCallback, useEffect, useState } from "react";
 
 interface ImageResizerProps {
@@ -19,7 +20,6 @@ const ImageResizer = (props: ImageResizerProps): ReactElement => {
 			if (isResizing) return;
 
 			const object = imageRef.current;
-			const container = object.parentElement;
 			const mainContainer = containerRef.current;
 			const nodeViewWrapper = mainContainer.closest("[data-drag-handle]");
 			nodeViewWrapper.removeAttribute("data-drag-handle");
@@ -38,14 +38,11 @@ const ImageResizer = (props: ImageResizerProps): ReactElement => {
 				const newHeight = newWidth / aspectRatio;
 
 				if (newWidth >= maxWidth) {
-					container.style.width = `${maxWidth}px`;
 					object.style.width = `${maxWidth}px`;
 				} else if (newHeight <= minWidth || newWidth <= minWidth) {
 					const adjustedWidth = minWidth * aspectRatio;
-					container.style.width = `${adjustedWidth}px`;
 					object.style.width = `${adjustedWidth}px`;
 				} else {
-					container.style.width = `${newWidth}px`;
 					object.style.width = `${newWidth}px`;
 				}
 			};
@@ -72,9 +69,8 @@ const ImageResizer = (props: ImageResizerProps): ReactElement => {
 		const image = imageRef.current;
 		if (!image || +image.style.width || !scale) return;
 
-		const width = (scale / 100) * parseFloat(getComputedStyle(containerRef.current).width);
+		const width = getScale(scale, parseFloat(getComputedStyle(containerRef.current).width));
 		image.style.width = `${width}px`;
-		image.parentElement.style.width = `${width}px`;
 	}, []);
 
 	useEffect(() => {

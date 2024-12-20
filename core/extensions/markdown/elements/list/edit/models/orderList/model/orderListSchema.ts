@@ -1,6 +1,6 @@
-export const ordered_list = {
+export const orderedList = {
 	group: "block list",
-	content: "list_item+",
+	content: "listItem+",
 	attrs: {
 		order: { default: 1 },
 		tight: { default: false },

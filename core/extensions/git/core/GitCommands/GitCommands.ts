@@ -23,6 +23,7 @@ import GitError from "./errors/GitError";
 import GitCommandsModel, {
 	type CloneProgress,
 	type DirEntry,
+	type DirStat,
 	type FileStat,
 	type RefInfo,
 	type TreeReadScope,
@@ -225,9 +226,6 @@ export class GitCommands {
 			try {
 				await this._impl.clone(url, source, branch, depth, isBare, onProgress);
 			} catch (e) {
-				await this._logWrapper("delete", `Deleting path: '${this._repoPath}'`, async () => {
-					if (await this._fp.exists(this._repoPath)) await this._fp.delete(this._repoPath);
-				});
 				throw new GitError(
 					GitErrorCode.CloneError,
 					e,
@@ -243,7 +241,7 @@ export class GitCommands {
 	async add(filePaths?: Path[]): Promise<void> {
 		return this._logWrapper(
 			"add",
-			`Adding ${filePaths ? `filePaths: '${filePaths.map((p) => p.value)}'` : "."}`,
+			`Adding ${filePaths ? `filePaths: '${filePaths.map((p) => p.value)}'` : "*"}`,
 			() => this._impl.add(filePaths),
 		);
 	}
@@ -405,7 +403,12 @@ export class GitCommands {
 	}
 
 	graphHeadUpstreamFilesCount(searchIn: string): Promise<UpstreamCountFileChanges> {
-		return this._impl.graphHeadUpstreamFilesCount(searchIn);
+		try {
+			return this._impl.graphHeadUpstreamFilesCount(searchIn);
+		} catch (e) {
+			console.error(e);
+			return Promise.resolve({ pull: 0, push: 0, hasChanges: false });
+		}
 	}
 
 	async getSubmodulesData(): Promise<SubmoduleData[]> {
@@ -466,6 +469,10 @@ export class GitCommands {
 
 	fileStat(filePath: Path, scope: TreeReadScope): Promise<FileStat> {
 		return this._impl.fileStat(this._truncatePath(filePath), scope);
+	}
+
+	readDirStats(dirPath: Path, scope: TreeReadScope): Promise<DirStat[]> {
+		return this._impl.readDirStats(this._truncatePath(dirPath), scope);
 	}
 
 	fileExists(filePath: Path, scope: TreeReadScope): Promise<boolean> {

@@ -10,7 +10,7 @@ import ctx from "@ext/wordExport/tests/ContextMock";
 const setupTestEnvironment = async () => {
 	const app = await getApplication();
 	const wm = app.wm;
-	const catalog = await wm.current().getCatalog("ExportCatalog");
+	const catalog = await wm.current().getContextlessCatalog("ExportCatalog");
 	const path = "category/_index.md";
 	const item = catalog.findItemByItemRef(getItemRef(catalog, path));
 

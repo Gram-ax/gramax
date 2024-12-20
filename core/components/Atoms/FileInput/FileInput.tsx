@@ -5,7 +5,7 @@ import getFileInputDefaultLanguage from "@components/Atoms/FileInput/getFileInpu
 import MergeConflictStyles from "@ext/git/actions/MergeConflictHandler/Monaco/components/MergeConflictStyles";
 import FileInputMergeConflict from "@ext/git/actions/MergeConflictHandler/Monaco/logic/FileInputMergeConflict";
 import t from "@ext/localization/locale/translate";
-import { useEffect, useRef, useState } from "react";
+import { useLayoutEffect, useRef, useState } from "react";
 import Theme from "../../../extensions/Theme/Theme";
 import ThemeService from "../../../extensions/Theme/components/ThemeService";
 
@@ -20,7 +20,7 @@ const FileInput = (props: FileInputProps) => {
 	const fileInputMergeConflict = useRef<FileInputMergeConflict>(null);
 	const FileInput = resolveModule("FileInput");
 
-	useEffect(() => {
+	useLayoutEffect(() => {
 		setEditorHeight(ref.current.getBoundingClientRect().height);
 		return () => {
 			fileInputMergeConflict.current?.onUnmount();

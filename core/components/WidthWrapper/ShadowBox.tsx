@@ -29,4 +29,8 @@ export default styled(ScrollableShadow)`
 	top: 0;
 	pointer-events: none;
 	position: absolute;
+
+	@media print {
+		display: none;
+	}
 `;

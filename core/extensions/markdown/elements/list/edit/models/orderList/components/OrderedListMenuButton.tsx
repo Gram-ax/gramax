@@ -9,7 +9,7 @@ const OrderedListMenuButton = ({ editor }: { editor: Editor }) => {
 			icon={"list-ordered"}
 			tooltipText={t("editor.ordered-list")}
 			hotKey={"Mod-Shift-7"}
-			nodeValues={{ action: "ordered_list" }}
+			nodeValues={{ action: "orderedList" }}
 		/>
 	);
 };

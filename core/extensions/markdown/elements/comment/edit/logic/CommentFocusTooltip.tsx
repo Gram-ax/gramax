@@ -6,6 +6,7 @@ import getMarkPosition from "@ext/markdown/elementsUtils/getMarkPosition";
 import { Editor, JSONContent, MarkRange } from "@tiptap/core";
 import { Mark } from "@tiptap/pm/model";
 import { EditorView } from "prosemirror-view";
+import { createContext } from "react";
 import PageDataContext from "../../../../../../logic/Context/PageDataContext";
 import ApiUrlCreator from "../../../../../../ui-logic/ApiServices/ApiUrlCreator";
 import FetchService from "../../../../../../ui-logic/ApiServices/FetchService";
@@ -17,6 +18,7 @@ import BaseMark from "../../../../elementsUtils/prosemirrorPlugins/BaseMark";
 import Comment from "../components/Comment";
 
 const COMMENT_COMPONENT = "COMMENT-REACT-COMPONENT";
+export const GlobalEditorIsEditable = createContext<boolean>(null);
 
 class CommentFocusTooltip extends BaseMark {
 	private _oldMark: Mark;
@@ -61,6 +63,7 @@ class CommentFocusTooltip extends BaseMark {
 	}
 
 	protected _setTooltipPosition = () => {
+		this._tooltip.style.width = "30em";
 		this._tooltip.style.fontSize = "14px";
 		this._tooltip.style.zIndex = "var(--z-index-base)";
 	};
@@ -72,14 +75,16 @@ class CommentFocusTooltip extends BaseMark {
 		this._setComponent(
 			<ThemeService.Provide value={this._theme}>
 				<PageDataContextService.Provider value={this._pageDataContext}>
-					<Comment
-						view={this._view}
-						mark={mark}
-						element={element}
-						onDelete={() => this._delete(this._oldMarkPosition)}
-						onUpdate={(c) => this._updateComment(markPosition, c)}
-						onConfirm={(c) => this._createComment(markPosition, c)}
-					/>
+					<GlobalEditorIsEditable.Provider value={this._editor.isEditable}>
+						<Comment
+							view={this._view}
+							mark={mark}
+							element={element}
+							onDelete={() => this._delete(this._oldMarkPosition)}
+							onUpdate={(c) => this._updateComment(markPosition, c)}
+							onConfirm={(c) => this._createComment(markPosition, c)}
+						/>
+					</GlobalEditorIsEditable.Provider>
 				</PageDataContextService.Provider>
 			</ThemeService.Provide>,
 		);

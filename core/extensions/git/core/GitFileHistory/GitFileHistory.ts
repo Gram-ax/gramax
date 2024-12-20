@@ -17,7 +17,7 @@ export default class GitFileHistory {
 	constructor(private _catalog: Catalog, private _fp: FileProvider) {}
 
 	async getArticleHistoryInfo(itemRef: ItemRef): Promise<ArticleHistoryViewModel[]> {
-		this._filePath = this._catalog.getRelativeRepPath(itemRef);
+		this._filePath = this._catalog.getRepositoryRelativePath(itemRef);
 
 		try {
 			const getFileHistory = await this._getFileHistory();

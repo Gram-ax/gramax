@@ -36,7 +36,8 @@ fn serve_oauth<F: FnOnce(&Request)>(redirect: &str, on_request: F) -> Result<(),
   if let Ok(Some(req)) = server.recv_timeout(HTTP_OAUTH_SERVER_TIMEOUT) {
     on_request(&req);
     let res = Response::new_empty(StatusCode(301))
-      .with_header(Header { field: "Location".parse().unwrap(), value: redirect.parse()? });
+      .with_header(Header { field: "Location".parse().unwrap(), value: redirect.parse()? })
+      .with_header(Header { field: "Cache-Control".parse().unwrap(), value: "no-store, no-cache".parse()? });
     req.respond(res)?;
   }
 

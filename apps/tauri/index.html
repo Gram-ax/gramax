@@ -7,14 +7,14 @@
 			content="width=device-width, user-scalable=no, initial-scale=1, minimum-scale=1, maximum-scale=1"
 		/>
 		<title>Gramax</title>
-		<%- criticalStyle %> <%- vars %>  <%- themes %> 
+		<%- criticalStyle %> <%- vars %> <%- themes %>
 		<script>
 			const global = {};
 		</script>
 		<script defer type="module" src="./src/index.tsx"></script>
 	</head>
 
-	<body>
+	<body id="custom-style">
 		<div id="root"></div>
 	</body>
 	<%- bodyDatasetInjector %>

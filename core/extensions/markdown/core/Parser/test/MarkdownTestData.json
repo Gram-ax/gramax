@@ -56,7 +56,7 @@
 				"attributes": { "text": "text", "icon": "icon" },
 				"children": []
 			},
-			"html": "<span class=\"cmd\" data-icon=\"icon\"><i class=\"css-15fiha7\"><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"1em\" height=\"1em\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"max(0.075em, 1.3px)\" stroke-linecap=\"round\" stroke-linejoin=\"round\" class=\"lucide lucide-circle-help \"><circle cx=\"12\" cy=\"12\" r=\"10\"></circle><path d=\"M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3\"></path><path d=\"M12 17h.01\"></path></svg></i><span>text</span></span>"
+			"html": "<span class=\"cmd\" data-icon=\"icon\"><i class=\"css-10bqnnk\"><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"1em\" height=\"1em\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"max(0.075em, 1.3px)\" stroke-linecap=\"round\" stroke-linejoin=\"round\" class=\"lucide lucide-circle-help \"><circle cx=\"12\" cy=\"12\" r=\"10\"></circle><path d=\"M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3\"></path><path d=\"M12 17h.01\"></path></svg></i><span>text</span></span>"
 		}
 	],
 	"Kbd": [
@@ -75,35 +75,35 @@
 				"attributes": { "code": "code", "color": "green", "svg": null },
 				"children": []
 			},
-			"html": "<i style=\"color:green\" class=\"css-fj9i9q\"><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"1em\" height=\"1em\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"max(0.075em, 1.3px)\" stroke-linecap=\"round\" stroke-linejoin=\"round\" class=\"lucide lucide-code \"><polyline points=\"16 18 22 12 16 6\"></polyline><polyline points=\"8 6 2 12 8 18\"></polyline></svg></i>"
+			"html": "<i style=\"color:green\" class=\"css-8wtm01\"><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"1em\" height=\"1em\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"max(0.075em, 1.3px)\" stroke-linecap=\"round\" stroke-linejoin=\"round\" class=\"lucide lucide-code \"><polyline points=\"16 18 22 12 16 6\"></polyline><polyline points=\"8 6 2 12 8 18\"></polyline></svg></i>"
 		}
 	],
 	"Issue": [
 		{
 			"text": "[issue:DR-1]",
 			"renderTree": { "$$mdtype": "Tag", "name": "Issue", "attributes": { "id": "DR-1" }, "children": [] },
-			"html": "<a class=\"issueLink\" href=\"https://support.ics-it.ru/issue/DR-1\" data-id=\"DR-1\" target=\"_blank\" rel=\"noopener\">DR-1<span style=\"white-space:nowrap;padding:0\" data-mdignore=\"true\">﻿<i class=\"link-icon css-15fiha7\"><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"1em\" height=\"1em\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"max(0.075em, 1.3px)\" stroke-linecap=\"round\" stroke-linejoin=\"round\" class=\"lucide lucide-external-link \"><path d=\"M15 3h6v6\"></path><path d=\"M10 14 21 3\"></path><path d=\"M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6\"></path></svg></i></span></a>"
+			"html": "<a class=\"issueLink\" href=\"https://support.ics-it.ru/issue/DR-1\" data-id=\"DR-1\" target=\"_blank\" rel=\"noopener\">DR-1<span style=\"white-space:nowrap;padding:0\" data-mdignore=\"true\">﻿<i class=\"link-icon css-10bqnnk\"><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"1em\" height=\"1em\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"max(0.075em, 1.3px)\" stroke-linecap=\"round\" stroke-linejoin=\"round\" class=\"lucide lucide-external-link \"><path d=\"M15 3h6v6\"></path><path d=\"M10 14 21 3\"></path><path d=\"M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6\"></path></svg></i></span></a>"
 		}
 	],
 	"Module": [
 		{
 			"text": "[module:id]",
 			"renderTree": { "$$mdtype": "Tag", "name": "Module", "attributes": { "id": "id" }, "children": [] },
-			"html": "<span class=\"module\"><i style=\"padding-right:4px\" class=\"css-15fiha7\"><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"1em\" height=\"1em\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" class=\"lucide lucide-box \"><path d=\"M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z\"></path><path d=\"m3.3 7 8.7 5 8.7-5\"></path><path d=\"M12 22V12\"></path></svg></i>id</span>"
+			"html": "<span class=\"module\"><i style=\"padding-right:4px\" class=\"css-10bqnnk\"><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"1em\" height=\"1em\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" class=\"lucide lucide-box \"><path d=\"M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z\"></path><path d=\"m3.3 7 8.7 5 8.7-5\"></path><path d=\"M12 22V12\"></path></svg></i>id</span>"
 		}
 	],
 	"Who": [
 		{
 			"text": "[who:text]",
 			"renderTree": { "$$mdtype": "Tag", "name": "Who", "attributes": { "text": "text" }, "children": [] },
-			"html": "<span class=\"attr\"><span class=\"delimiter\">/</span><i class=\"css-15fiha7\"><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"1em\" height=\"1em\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"max(0.075em, 1.3px)\" stroke-linecap=\"round\" stroke-linejoin=\"round\" class=\"lucide lucide-circle-user \"><circle cx=\"12\" cy=\"12\" r=\"10\"></circle><circle cx=\"12\" cy=\"10\" r=\"3\"></circle><path d=\"M7 20.662V19a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v1.662\"></path></svg></i><span>text</span></span>"
+			"html": "<span class=\"attr\"><span class=\"delimiter\">/</span><i class=\"css-10bqnnk\"><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"1em\" height=\"1em\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"max(0.075em, 1.3px)\" stroke-linecap=\"round\" stroke-linejoin=\"round\" class=\"lucide lucide-circle-user \"><circle cx=\"12\" cy=\"12\" r=\"10\"></circle><circle cx=\"12\" cy=\"10\" r=\"3\"></circle><path d=\"M7 20.662V19a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v1.662\"></path></svg></i><span>text</span></span>"
 		}
 	],
 	"When": [
 		{
 			"text": "[when:text]",
 			"renderTree": { "$$mdtype": "Tag", "name": "When", "attributes": { "text": "text" }, "children": [] },
-			"html": "<span class=\"attr\"><span class=\"delimiter\">/</span><i class=\"css-15fiha7\"><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"1em\" height=\"1em\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"max(0.075em, 1.3px)\" stroke-linecap=\"round\" stroke-linejoin=\"round\" class=\"lucide lucide-clock \"><circle cx=\"12\" cy=\"12\" r=\"10\"></circle><polyline points=\"12 6 12 12 16 14\"></polyline></svg></i><span>text</span></span>"
+			"html": "<span class=\"attr\"><span class=\"delimiter\">/</span><i class=\"css-10bqnnk\"><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"1em\" height=\"1em\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"max(0.075em, 1.3px)\" stroke-linecap=\"round\" stroke-linejoin=\"round\" class=\"lucide lucide-clock \"><circle cx=\"12\" cy=\"12\" r=\"10\"></circle><polyline points=\"12 6 12 12 16 14\"></polyline></svg></i><span>text</span></span>"
 		}
 	],
 	"Fn": [
@@ -174,7 +174,7 @@
 				"children": [],
 				"name": "Video"
 			},
-			"html": "<div data-type=\"video\"><video id=\"my-player\" data-focusable=\"true\" class=\"video-js\" controls=\"\" preload=\"auto\" data-setup=\"{}\" src=\"sample-mp4-file.mp4\"></video><em>Очень интересное видео</em></div>"
+			"html": "<div data-type=\"video\"><div class=\"css-6msgz3 skeleton\"><video id=\"my-player\" data-focusable=\"true\" class=\"video-js\" controls=\"\" preload=\"auto\" data-setup=\"{}\" src=\"sample-mp4-file.mp4\"></video><em>Очень интересное видео</em></div></div>"
 		}
 	],
 	"Term": [
@@ -535,195 +535,195 @@
 				],
 				"name": "Table"
 			},
-			"html": "<div class=\"css-qml9hb\"><div class=\"scrollableContent\"><table><thead><tr><th align=\"left\"><p>Столбец 1</p></th><th align=\"left\"><p>Столбец 2</p></th><th align=\"left\"><p>Столбец 3</p></th></tr></thead><tbody><tr><td align=\"left\"><p>Строка 1</p></td><td align=\"left\"><p>Строка 1</p></td><td align=\"left\"><p>Строка 1</p></td></tr><tr><td align=\"left\"><p>Строка 2</p></td><td align=\"left\"><p>Строка 2</p></td><td align=\"left\"><p>Строка 2</p></td></tr></tbody></table></div></div>"
+			"html": "<div class=\"css-bo05rx\"><div class=\"scrollableContent\"><table><thead><tr><th align=\"left\"><p>Столбец 1</p></th><th align=\"left\"><p>Столбец 2</p></th><th align=\"left\"><p>Столбец 3</p></th></tr></thead><tbody><tr><td align=\"left\"><p>Строка 1</p></td><td align=\"left\"><p>Строка 1</p></td><td align=\"left\"><p>Строка 1</p></td></tr><tr><td align=\"left\"><p>Строка 2</p></td><td align=\"left\"><p>Строка 2</p></td><td align=\"left\"><p>Строка 2</p></td></tr></tbody></table></div></div>"
 		},
 		{
 			"text": "{% table %}\n\n---\n\n*  {% colspan=2 %}\n\n   Объединённая ячейка по горизонтали\n\n*  Строка 1 Ячейка 2\n\n---\n\n*  Строка 2 Ячейка 1\n\n*  Строка 2 Ячейка 2\n\n*  {% rowspan=2 %}\n\n   Строка 2 Ячейка 3\n\n   -  Объединённая\n\n   -  ячейка\n\n   -  по вертикали\n\n---\n\n*  Строка 3 Ячейка 1\n\n*  Строка 3 Ячейка 2\n\n{% /table %}",
 			"renderTree": {
 				"$$mdtype": "Tag",
+				"name": "Table",
 				"attributes": {},
 				"children": [
 					{
 						"$$mdtype": "Tag",
+						"name": "tbody",
 						"attributes": {},
 						"children": [
 							{
 								"$$mdtype": "Tag",
+								"name": "tr",
 								"attributes": {},
 								"children": [
 									{
 										"$$mdtype": "Tag",
+										"name": "td",
 										"attributes": {
 											"colspan": 2
 										},
 										"children": [
 											{
 												"$$mdtype": "Tag",
+												"name": "p",
 												"attributes": {},
-												"children": ["Объединённая ячейка по горизонтали"],
-												"name": "p"
+												"children": ["Объединённая ячейка по горизонтали"]
 											}
-										],
-										"name": "td"
+										]
 									},
 									{
 										"$$mdtype": "Tag",
+										"name": "td",
 										"attributes": {},
 										"children": [
 											{
 												"$$mdtype": "Tag",
+												"name": "p",
 												"attributes": {},
-												"children": ["Строка 1 Ячейка 2"],
-												"name": "p"
+												"children": ["Строка 1 Ячейка 2"]
 											}
-										],
-										"name": "td"
+										]
 									}
-								],
-								"name": "tr"
+								]
 							},
 							{
 								"$$mdtype": "Tag",
+								"name": "tr",
 								"attributes": {},
 								"children": [
 									{
 										"$$mdtype": "Tag",
+										"name": "td",
 										"attributes": {},
 										"children": [
 											{
 												"$$mdtype": "Tag",
+												"name": "p",
 												"attributes": {},
-												"children": ["Строка 2 Ячейка 1"],
-												"name": "p"
+												"children": ["Строка 2 Ячейка 1"]
 											}
-										],
-										"name": "td"
+										]
 									},
 									{
 										"$$mdtype": "Tag",
+										"name": "td",
 										"attributes": {},
 										"children": [
 											{
 												"$$mdtype": "Tag",
+												"name": "p",
 												"attributes": {},
-												"children": ["Строка 2 Ячейка 2"],
-												"name": "p"
+												"children": ["Строка 2 Ячейка 2"]
 											}
-										],
-										"name": "td"
+										]
 									},
 									{
 										"$$mdtype": "Tag",
+										"name": "td",
 										"attributes": {
 											"rowspan": 2
 										},
 										"children": [
 											{
 												"$$mdtype": "Tag",
+												"name": "p",
 												"attributes": {},
-												"children": ["Строка 2 Ячейка 3"],
-												"name": "p"
+												"children": ["Строка 2 Ячейка 3"]
 											},
 											{
 												"$$mdtype": "Tag",
+												"name": "ul",
 												"attributes": {
 													"depth": 0
 												},
 												"children": [
 													{
 														"$$mdtype": "Tag",
+														"name": "Li",
 														"attributes": {
 															"depth": 0
 														},
 														"children": [
 															{
 																"$$mdtype": "Tag",
+																"name": "p",
 																"attributes": {},
-																"children": ["Объединённая"],
-																"name": "p"
+																"children": ["Объединённая"]
 															}
-														],
-														"name": "li"
+														]
 													},
 													{
 														"$$mdtype": "Tag",
+														"name": "Li",
 														"attributes": {
 															"depth": 0
 														},
 														"children": [
 															{
 																"$$mdtype": "Tag",
+																"name": "p",
 																"attributes": {},
-																"children": ["ячейка"],
-																"name": "p"
+																"children": ["ячейка"]
 															}
-														],
-														"name": "li"
+														]
 													},
 													{
 														"$$mdtype": "Tag",
+														"name": "Li",
 														"attributes": {
 															"depth": 0
 														},
 														"children": [
 															{
 																"$$mdtype": "Tag",
+																"name": "p",
 																"attributes": {},
-																"children": ["по вертикали"],
-																"name": "p"
+																"children": ["по вертикали"]
 															}
-														],
-														"name": "li"
+														]
 													}
-												],
-												"name": "ul"
+												]
 											}
-										],
-										"name": "td"
+										]
 									}
-								],
-								"name": "tr"
+								]
 							},
 							{
 								"$$mdtype": "Tag",
+								"name": "tr",
 								"attributes": {},
 								"children": [
 									{
 										"$$mdtype": "Tag",
+										"name": "td",
 										"attributes": {},
 										"children": [
 											{
 												"$$mdtype": "Tag",
+												"name": "p",
 												"attributes": {},
-												"children": ["Строка 3 Ячейка 1"],
-												"name": "p"
+												"children": ["Строка 3 Ячейка 1"]
 											}
-										],
-										"name": "td"
+										]
 									},
 									{
 										"$$mdtype": "Tag",
+										"name": "td",
 										"attributes": {},
 										"children": [
 											{
 												"$$mdtype": "Tag",
+												"name": "p",
 												"attributes": {},
-												"children": ["Строка 3 Ячейка 2"],
-												"name": "p"
+												"children": ["Строка 3 Ячейка 2"]
 											}
-										],
-										"name": "td"
+										]
 									}
-								],
-								"name": "tr"
+								]
 							}
-						],
-						"name": "tbody"
+						]
 					}
-				],
-				"name": "Table"
+				]
 			},
-			"html": "<div class=\"css-qml9hb\"><div class=\"scrollableContent\"><table><tbody><tr><td colspan=\"2\"><p>Объединённая ячейка по горизонтали</p></td><td><p>Строка 1 Ячейка 2</p></td></tr><tr><td><p>Строка 2 Ячейка 1</p></td><td><p>Строка 2 Ячейка 2</p></td><td rowspan=\"2\"><p>Строка 2 Ячейка 3</p><ul depth=\"0\"><li depth=\"0\"><p>Объединённая</p></li><li depth=\"0\"><p>ячейка</p></li><li depth=\"0\"><p>по вертикали</p></li></ul></td></tr><tr><td><p>Строка 3 Ячейка 1</p></td><td><p>Строка 3 Ячейка 2</p></td></tr></tbody></table></div></div>"
+			"html": "<div class=\"css-bo05rx\"><div class=\"scrollableContent\"><table><tbody><tr><td colspan=\"2\"><p>Объединённая ячейка по горизонтали</p></td><td><p>Строка 1 Ячейка 2</p></td></tr><tr><td><p>Строка 2 Ячейка 1</p></td><td><p>Строка 2 Ячейка 2</p></td><td rowspan=\"2\"><p>Строка 2 Ячейка 3</p><ul depth=\"0\"><li><p>Объединённая</p></li><li><p>ячейка</p></li><li><p>по вертикали</p></li></ul></td></tr><tr><td><p>Строка 3 Ячейка 1</p></td><td><p>Строка 3 Ячейка 2</p></td></tr></tbody></table></div></div>"
 		}
 	],
 	"Note": [
@@ -746,7 +746,7 @@
 				],
 				"name": "Note"
 			},
-			"html": "<div class=\"admonition admonition-quote admonition-column\"><div class=\"admonition-heading\"><div class=\"admonition-icon\"><i class=\"css-15fiha7\"><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"1em\" height=\"1em\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" class=\"lucide lucide-quote \"><path d=\"M3 21c3 0 7-1 7-8V5c0-1.25-.756-2.017-2-2H4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2 1 0 1 0 1 1v1c0 1-1 2-2 2s-1 .008-1 1.031V20c0 1 0 1 1 1z\"></path><path d=\"M15 21c3 0 7-1 7-8V5c0-1.25-.757-2.017-2-2h-4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2h.75c0 2.25.25 4-2.75 4v3c0 1 0 1 1 1z\"></path></svg></i></div><div contenteditable=\"false\" class=\"titleWrapper\"><div class=\"title\">Цитата</div></div></div><div class=\"admonition-content\"><div class=\"paragraph\"><p>Текст заметки</p></div></div></div>"
+			"html": "<div class=\"admonition admonition-quote admonition-column\"><div class=\"admonition-heading\"><div class=\"admonition-icon\"><i class=\"css-10bqnnk\"><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"1em\" height=\"1em\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" class=\"lucide lucide-quote \"><path d=\"M3 21c3 0 7-1 7-8V5c0-1.25-.756-2.017-2-2H4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2 1 0 1 0 1 1v1c0 1-1 2-2 2s-1 .008-1 1.031V20c0 1 0 1 1 1z\"></path><path d=\"M15 21c3 0 7-1 7-8V5c0-1.25-.757-2.017-2-2h-4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2h.75c0 2.25.25 4-2.75 4v3c0 1 0 1 1 1z\"></path></svg></i></div><div contenteditable=\"false\" class=\"titleWrapper\"><div class=\"title\">Цитата</div></div></div><div class=\"admonition-content\"><div class=\"paragraph\"><p>Текст заметки</p></div></div></div>"
 		},
 		{
 			"text": ":::danger:true Предупреждение\n\nТекст заметки\n\n:::",
@@ -767,7 +767,7 @@
 				],
 				"name": "Note"
 			},
-			"html": "<div class=\"admonition admonition-danger admonition-column\"><div class=\"admonition-heading expanded\"><div class=\"admonition-icon\"><i style=\"cursor:pointer;user-select:none\" class=\"css-15fiha7\"><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"1em\" height=\"1em\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"max(0.075em, 1.3px)\" stroke-linecap=\"round\" stroke-linejoin=\"round\" class=\"lucide lucide-chevron-right \"><path d=\"m9 18 6-6-6-6\"></path></svg></i></div><div contenteditable=\"false\" class=\"titleWrapper\"><div class=\"title clickable\">Предупреждение</div></div></div><div class=\"admonition-content\"><div class=\"paragraph content-hide\"><p>Текст заметки</p></div></div></div>"
+			"html": "<div class=\"admonition admonition-danger admonition-column\"><div class=\"admonition-heading expanded\"><div class=\"admonition-icon\"><i style=\"cursor:pointer;user-select:none\" class=\"css-10bqnnk\"><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"1em\" height=\"1em\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"max(0.075em, 1.3px)\" stroke-linecap=\"round\" stroke-linejoin=\"round\" class=\"lucide lucide-chevron-right \"><path d=\"m9 18 6-6-6-6\"></path></svg></i></div><div contenteditable=\"false\" class=\"titleWrapper\"><div class=\"title clickable\">Предупреждение</div></div></div><div class=\"admonition-content\"><div class=\"paragraph content-hide\"><p>Текст заметки</p></div></div></div>"
 		}
 	],
 	"Link": [

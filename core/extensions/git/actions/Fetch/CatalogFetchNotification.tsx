@@ -1,6 +1,6 @@
 import Notification from "@components/Atoms/Notification";
 import CatalogSyncService from "@core-ui/ContextServices/CatalogSync";
-import t from "@ext/localization/locale/translate";
+import t, { pluralize } from "@ext/localization/locale/translate";
 import type { CatalogLink } from "@ext/navigation/NavigationLinks";
 
 const CatalogFetchNotification = ({ catalogLink }: { catalogLink: CatalogLink }) => {
@@ -14,19 +14,12 @@ const CatalogFetchNotification = ({ catalogLink }: { catalogLink: CatalogLink })
 	let tooltip = syncCount.errorMessage;
 
 	if (!tooltip) {
-		const lastDigit = syncCount.pull % 10;
-		const lastTwoDigits = syncCount.pull % 100;
-		if (syncCount.pull == 0) {
-			tooltip = t("sync-something-changed");
-		} else if (lastTwoDigits >= 11 && lastTwoDigits <= 19) {
-			tooltip = syncCount.pull + " " + t("sync-catalog-changed3");
-		} else if (lastDigit === 1) {
-			tooltip = syncCount.pull + " " + t("sync-catalog-changed1");
-		} else if (lastDigit >= 2 && lastDigit <= 4) {
-			tooltip = syncCount.pull + " " + t("sync-catalog-changed2");
-		} else {
-			tooltip = syncCount.pull + " " + t("sync-catalog-changed3");
-		}
+		tooltip = pluralize(syncCount.pull, {
+			zero: t("sync-something-changed"),
+			one: t("sync-catalog-changed1"),
+			few: t("sync-catalog-changed2"),
+			many: t("sync-catalog-changed3"),
+		});
 	} else {
 		console.error(catalogLink.name, syncCount.errorMessage);
 	}

@@ -6,6 +6,8 @@ import { ButtonItem } from "@components/List/Item";
 import ListLayout from "@components/List/ListLayout";
 import LanguageService from "@core-ui/ContextServices/Language";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
+import useWatch from "@core-ui/hooks/useWatch";
+import { transliterate } from "@core-ui/languageConverter/transliterate";
 import SelectConfluenceStorageDataFields from "@ext/confluence/core/components/SelectConfluenceStorageDataFields";
 import ConfluenceSourceData from "@ext/confluence/core/model/ConfluenceSourceData";
 import Mode from "@ext/git/actions/Clone/model/Mode";
@@ -14,7 +16,10 @@ import GitHubSourceData from "@ext/git/actions/Source/GitHub/logic/GitHubSourceD
 import GitlabSourceData from "@ext/git/actions/Source/GitLab/logic/GitlabSourceData";
 import GitSourceData from "@ext/git/core/model/GitSourceData.schema";
 import t from "@ext/localization/locale/translate";
-import { useEffect, useMemo, useState } from "react";
+import NotionSourceData from "@ext/notion/model/NotionSourceData";
+import NotionStorageData from "@ext/notion/model/NotionStorageData";
+import importSourceTypes from "@ext/storage/logic/SourceDataProvider/logic/importSourceType";
+import { useMemo, useState } from "react";
 import SelectGitHubStorageDataFields from "../../git/actions/Source/GitHub/components/SelectGitHubStorageDataFields";
 import SelectGitLabStorageDataFields from "../../git/actions/Source/GitLab/components/SelectGitLabStorageDataFields";
 import CreateSourceData from "../logic/SourceDataProvider/components/CreateSourceData";
@@ -35,25 +40,20 @@ const SelectStorageDataForm = (props: SelectStorageDataFormProps) => {
 	const { title, children, mode, onChange } = props;
 	const pageProps = PageDataContextService.value;
 	const [childrenCloseHandler, setChildrenCloseHandler] = useState<(value: boolean) => void>(() => () => {});
-
 	const sharedConfig = {
 		placeholderSuffix: t("storage2"),
-		controlLable: t("storage"),
+		controlLabel: t("storage"),
 		sideBarTitle: t("add-new-storage"),
-		filter: (data: SourceData) =>
-			data.sourceType === SourceType.git ||
-			data.sourceType === SourceType.gitHub ||
-			data.sourceType === SourceType.gitLab,
+		filter: (data: SourceData) => [SourceType.git, SourceType.gitHub, SourceType.gitLab].includes(data.sourceType),
 	};
 
-	const { placeholderSuffix, controlLable, sideBarTitle, filter } = useMemo(() => {
+	const { placeholderSuffix, controlLabel, sideBarTitle, filter } = useMemo(() => {
 		const modeConfigs = {
 			import: {
 				placeholderSuffix: t("source2").toLowerCase(),
-				controlLable: t("source"),
+				controlLabel: t("source"),
 				sideBarTitle: t("add-new-source"),
-				filter: (data: SourceData) =>
-					data.sourceType === SourceType.confluenceCloud || data.sourceType === SourceType.confluenceServer,
+				filter: (data: SourceData) => importSourceTypes.includes(data.sourceType),
 			},
 			clone: {
 				...sharedConfig,
@@ -65,9 +65,7 @@ const SelectStorageDataForm = (props: SelectStorageDataFormProps) => {
 
 		return modeConfigs[mode];
 	}, [LanguageService.currentUi()]);
-
 	const filteredSourceDatas = pageProps.sourceDatas.filter(filter);
-
 	const [sourceDatas, setStorageDatas] = useState<SourceData[]>(filteredSourceDatas);
 	const [selectSourceData, setSelectStorageData] = useState<SourceData>(null);
 
@@ -91,8 +89,10 @@ const SelectStorageDataForm = (props: SelectStorageDataFormProps) => {
 				}
 				onOpen={() => childrenCloseHandler(false)}
 				onCreate={(data) => {
+					const newSourceDatas = [...sourceDatas, data];
 					setSelectStorageData(data);
-					setStorageDatas([...sourceDatas, data]);
+					setStorageDatas(newSourceDatas);
+					PageDataContextService.value = { ...pageProps, sourceDatas: newSourceDatas };
 				}}
 			/>
 		),
@@ -100,8 +100,19 @@ const SelectStorageDataForm = (props: SelectStorageDataFormProps) => {
 		labelField: "",
 	};
 
-	useEffect(() => {
+	useWatch(() => {
 		if (!selectSourceData) onChange(null);
+		if (selectSourceData?.sourceType === SourceType.notion)
+			onChange({
+				name: transliterate((selectSourceData as NotionSourceData).workspaceName, {
+					kebab: true,
+					maxLength: 50,
+				}),
+				source: selectSourceData,
+			} as NotionStorageData);
+		else if (selectSourceData?.sourceType === SourceType.yandexDisk) {
+			onChange({ name: `YandexDisk`, source: selectSourceData });
+		}
 	}, [selectSourceData]);
 
 	return (
@@ -113,7 +124,7 @@ const SelectStorageDataForm = (props: SelectStorageDataFormProps) => {
 				</legend>
 				<fieldset>
 					<div className="form-group field field-string row">
-						<label className="control-label">{controlLable}</label>
+						<label className="control-label">{controlLabel}</label>
 						<div className="input-lable">
 							<ListLayout
 								placeholder={`${t("find")} ${placeholderSuffix}`}
@@ -177,7 +188,6 @@ const SelectStorageDataForm = (props: SelectStorageDataFormProps) => {
 							onChange={onChange}
 						/>
 					)}
-
 					{children}
 				</fieldset>
 			</>

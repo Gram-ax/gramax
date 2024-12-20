@@ -80,7 +80,7 @@ export default class ConfluenceCloudConverter implements ConfluenceConverter {
 
 			if (!extension) {
 				throw new Error(
-					`${t("confluence.error.ext-not-supported")} ${(foundAttachment.title, foundAttachment.mediaType)}`,
+					`${t("import.error.ext-not-supported")} ${(foundAttachment.title, foundAttachment.mediaType)}`,
 				);
 			}
 

@@ -10,13 +10,17 @@ const gitErrorLocalization: GitErrorLocalization = {
 		message: t("git.checkout.submodule.error").replace("{{path}}", props.error.props.submodulePath),
 	}),
 	DeleteCurrentBranch: () => ({ message: t("git.branch.error.deleting-head-branch") }),
-	WorkingDirNotEmpty: () => ({ message: t("git.merge.error.workdir-not-empty") }),
-	PushRejectedError: (props) => ({
-		message:
-			props.error?.data?.reason === "not-fast-forward"
-				? t("git.publish.error.non-fast-forward")
-				: `${t("git.publish.error.unknown")} ${props.error.message}`,
+	WorkingDirNotEmpty: () => ({
+		message: t("git.merge.error.workdir-not-empty.body"),
+		title: t("git.merge.error.workdir-not-empty.title"),
 	}),
+	PushRejectedError: (props) =>
+		props.error?.data?.reason === "not-fast-forward"
+			? {
+					message: t("git.publish.error.non-fast-forward.body"),
+					title: t("git.publish.error.non-fast-forward.title"),
+			  }
+			: { message: `${t("git.publish.error.unknown")} ${props.error.message}` },
 	GitPushError: (props) => {
 		if (props.caller === "deleteBranch") {
 			if (props.error.props.fromMerge) {

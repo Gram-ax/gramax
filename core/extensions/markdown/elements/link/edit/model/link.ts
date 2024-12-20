@@ -1,6 +1,7 @@
 import ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
 import PageDataContext from "@core/Context/PageDataContext";
 import { ClientCatalogProps } from "@core/SitePresenter/SitePresenter";
+import { linkPastePlugin } from "@ext/markdown/elements/link/edit/logic/linkPastePlugin";
 import { hoverTooltip } from "@ext/markdown/elements/link/edit/model/helpers/termsTooltip";
 import simpleLink from "@ext/markdown/elements/link/edit/model/simpleLink";
 import getSelectedText from "@ext/markdown/elementsUtils/getSelectedText";
@@ -153,6 +154,7 @@ export default Link.extend({
 		const plugins = [];
 
 		plugins.push(editTooltip(this.editor, this.options.apiUrlCreator));
+		plugins.push(linkPastePlugin(this.editor));
 		plugins.push(
 			hoverTooltip(
 				this.editor,

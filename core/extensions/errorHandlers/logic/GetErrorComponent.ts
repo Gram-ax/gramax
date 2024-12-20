@@ -4,6 +4,8 @@ import getFileStructueErrors from "../../../logic/FileStructue/error/logic/getFi
 import getGitErrors from "../../git/error/getGitError";
 import DefaultErrorComponent from "../client/components/DefaultError";
 import DefaultError from "./DefaultError";
+import { NetworkApiErrorCode } from "@ext/errorHandlers/network/NetworkApiError";
+import NetworkApiErrorComponent from "@ext/errorHandlers/network/components/NetworkApiError";
 
 const getComponents = (): {
 	[key: string]: (args: ComponentProps<typeof GetErrorComponent>) => ReactNode;
@@ -11,6 +13,7 @@ const getComponents = (): {
 	...getFileStructueErrors(),
 	...getGitErrors(),
 	...getStorageErrors(),
+	[NetworkApiErrorCode]: NetworkApiErrorComponent,
 });
 
 const GetErrorComponent = (args: { error: DefaultError; onCancelClick: () => void }): ReactNode => {

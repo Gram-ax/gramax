@@ -6,21 +6,23 @@ import {
 	AnnotationObject,
 	SquareObject,
 } from "@ext/markdown/elements/image/edit/model/imageEditorTypes";
-import { RefObject, useEffect, useState } from "react";
+import { CSSProperties, RefObject, useState } from "react";
+import useWatch from "@core-ui/hooks/useWatch";
 
-const UnifiedComponent = (
-	props: ImageObject & {
-		index: number;
-		parentRef: RefObject<HTMLDivElement>;
-		editable: boolean;
-		selectedIndex?: number;
-		drawIndexes?: boolean;
-	},
-) => {
-	const { type, index, parentRef, editable, selectedIndex, ...otherProps } = props;
+interface UnifiedComponentProps extends ImageObject {
+	index: number;
+	parentRef: RefObject<HTMLDivElement>;
+	editable: boolean;
+	selectedIndex?: number;
+	drawIndexes?: boolean;
+	style?: CSSProperties;
+}
+
+const UnifiedComponent = (props: UnifiedComponentProps) => {
+	const { type, index, parentRef, editable, selectedIndex, style, ...otherProps } = props;
 	const [isSelected, setSelected] = useState<boolean>(false);
 
-	useEffect(() => {
+	useWatch(() => {
 		setSelected(selectedIndex === index);
 	}, [selectedIndex, index]);
 
@@ -33,6 +35,7 @@ const UnifiedComponent = (
 					parentRef={parentRef}
 					editable={editable}
 					selected={isSelected}
+					style={style}
 					{...(otherProps as AnnotationObject)}
 				/>
 			);
@@ -44,6 +47,7 @@ const UnifiedComponent = (
 					parentRef={parentRef}
 					editable={editable}
 					selected={isSelected}
+					style={style}
 					{...(otherProps as SquareObject)}
 				/>
 			);

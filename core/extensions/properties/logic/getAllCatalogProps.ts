@@ -1,7 +1,7 @@
-import { Catalog } from "@core/FileStructue/Catalog/Catalog";
+import type { ReadonlyBaseCatalog } from "@core/FileStructue/Catalog/ReadonlyCatalog";
 import { Property, PropertyTypes } from "@ext/properties/models";
 
-const getAllCatalogProperties = (catalog: Catalog): Property[] => {
+const getAllCatalogProperties = (catalog: ReadonlyBaseCatalog): Property[] => {
 	return [
 		{
 			name: "hierarchy",

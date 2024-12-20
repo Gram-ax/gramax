@@ -1,6 +1,6 @@
 import ArticleComponentSrc from "@components/Layouts/CatalogLayout/ArticleLayout/ArticleComponent";
-import RightNavigationLayout from "@components/Layouts/CatalogLayout/RightNavigation/RightNavigationLayout";
-import SidebarsIsPinService from "@core-ui/ContextServices/SidebarsIsPin";
+import RightNavigationComponent from "@components/Layouts/CatalogLayout/RightNavigation/RightNavigationComponent";
+import SidebarsIsPinService from "@core-ui/ContextServices/Sidebars/SidebarsIsPin";
 import { useEffect } from "react";
 import pageProps from "../../../data/pageProps";
 
@@ -21,7 +21,7 @@ const ArticleData = {
 export const Article = ({ isPin }: { isPin: boolean }) => {
 	const data = pageProps.data as any;
 	useEffect(() => {
-		SidebarsIsPinService.value = isPin;
+		SidebarsIsPinService.value = { left: isPin };
 	});
 
 	return (
@@ -62,7 +62,7 @@ export const Article = ({ isPin }: { isPin: boolean }) => {
 					<div>content content content content content</div>
 				</div>
 			}
-			rightNav={<RightNavigationLayout itemLinks={data.itemLinks} />}
+			rightNav={<RightNavigationComponent itemLinks={data.itemLinks} />}
 		/>
 	);
 };

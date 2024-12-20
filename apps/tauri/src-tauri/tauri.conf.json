@@ -66,8 +66,7 @@
 			"certificateThumbprint": null,
 			"digestAlgorithm": null,
 			"nsis": {
-				"installerIcon": "icons/icon.ico",
-				"installMode": "both"
+				"installerIcon": "icons/icon.ico"
 			},
 			"signCommand": "sign.sh --win %1",
 			"timestampUrl": null,

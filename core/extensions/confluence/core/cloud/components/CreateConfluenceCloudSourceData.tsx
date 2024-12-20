@@ -15,7 +15,7 @@ import ConfluenceCloudSourceData from "@ext/confluence/core/cloud/model/Confluen
 import { ConfluenceInstance } from "@ext/confluence/core/api/model/ConfluenceAPITypes";
 import ButtonLink from "@components/Molecules/ButtonLink";
 import { ButtonStyle } from "@components/Atoms/Button/ButtonStyle";
-import ConfluenceCloudAPI from "@ext/confluence/core/api/ConfluenceCloudAPI";
+import ConfluenceCloudAPI from "@ext/confluence/core/api/ConfluenceCloudAPI"; 
 
 const CreateConfluenceCloudSourceData = ({
 	onSubmit,
@@ -78,7 +78,7 @@ const CreateConfluenceCloudSourceData = ({
 						textSize={TextSize.M}
 						iconFw={false}
 						iconCode={SourceType.confluenceCloud.toLowerCase()}
-						text={t("confluence.log-in")}
+						text={t("log-in") + "Confluence"}
 						onClick={async () => {
 							if (token) return;
 							createChildWindow(

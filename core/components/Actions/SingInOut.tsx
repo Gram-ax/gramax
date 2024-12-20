@@ -3,10 +3,10 @@ import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import { useRouter } from "@core/Api/useRouter";
 import styled from "@emotion/styled";
-import SignInOutEnterprise from "@ext/enterprise/SignInOutEnterprise";
+import SignInOutEnterprise from "@ext/enterprise/components/SignInOutEnterprise";
 import t from "@ext/localization/locale/translate";
 
-const SingInOut = styled(({ className }: { className?: string }) => {
+const SingInOut = styled(({ className, isHomePage }: { className?: string; isHomePage?: boolean }) => {
 	const router = useRouter();
 	const apiUrlCreator = ApiUrlCreatorService.value;
 	const isLogged = PageDataContextService.value.isLogged;
@@ -15,7 +15,7 @@ const SingInOut = styled(({ className }: { className?: string }) => {
 	const enterprise = PageDataContextService.value.conf.enterprise;
 	const showEnterpriseSignIn = enterprise.gesUrl && !isReadOnly;
 
-	if (showEnterpriseSignIn)
+	if (showEnterpriseSignIn && isHomePage)
 		return (
 			<div className={className}>
 				<SignInOutEnterprise />

@@ -21,6 +21,7 @@ const Group = ({
 				{groupData.catalogLinks.map((link) => (
 					<Card
 						key={link.name}
+						name={link.name}
 						link={link}
 						style={groupData.style}
 						onClick={() => setIsAnyCardLoading(true)}

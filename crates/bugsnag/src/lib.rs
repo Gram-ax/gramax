@@ -1,6 +1,6 @@
 mod event;
 
-use std::panic::PanicInfo;
+use std::panic::PanicHookInfo;
 
 use app::BugsnagApp;
 use device::BugsnagDevice;
@@ -69,7 +69,7 @@ impl BugsnagNotificationBuilder {
     }
   }
 
-  pub fn from_panic(&self, info: &PanicInfo) -> BugsnagNotification {
+  pub fn from_panic(&self, info: &PanicHookInfo) -> BugsnagNotification {
     let exception = BugsnagException::from(info);
 
     let context = info.location().map(|l| l.to_string()).unwrap_or("unknown".to_string());

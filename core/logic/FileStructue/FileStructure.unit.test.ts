@@ -42,7 +42,7 @@ describe("FileStructure", () => {
 		test("каталоги (они есть)", async () => {
 			const catalogs = await fs.getCatalogEntries();
 			expect(catalogs).toHaveLength(5);
-			const paths = catalogs.map((c) => c.getRootCategoryPath().value);
+			const paths = catalogs.map((c) => c.getRootCategoryDirectoryPath().value);
 			expect(paths).toEqual(["1/2/3/4/5", "3/catalog3", "_1", "catalog1", "catalog2"]);
 		});
 
@@ -121,7 +121,7 @@ describe("FileStructure", () => {
 		test("каталог", async () => {
 			await fs.createCatalog({ title: "test1", url: "test1" });
 			const entries = await fs.getCatalogEntries();
-			const entry = entries.find((x) => x.getName() == "test1");
+			const entry = entries.find((x) => x.name == "test1");
 			expect(entry).toBeDefined();
 			const catalog = await entry.load();
 			expect(catalog).toBeDefined();
@@ -187,7 +187,7 @@ describe("FileStructure", () => {
 		test("каталог с изменёнными пропсами", async () => {
 			const entry = await fs.getCatalogEntryByPath(path("catalog1"));
 			const catalog = await entry.load();
-			catalog["_props"] = { title: "test" };
+			catalog.props.title = "test";
 			await fs.saveCatalog(catalog);
 			const entry2 = await fs.getCatalogEntryByPath(path("catalog1"));
 			expect(entry2.props.title).toEqual("test");
@@ -232,18 +232,18 @@ describe("FileStructure", () => {
 
 		test("имя каталога", async () => {
 			const catalog = await fs.getCatalogEntryByPath(path("catalog1"));
-			expect(catalog.getName()).toEqual("catalog1");
+			expect(catalog.name).toEqual("catalog1");
 		});
 
 		test("имя вложенного каталога", async () => {
 			const catalog = await fs.getCatalogEntryByPath(path("3"));
-			expect(catalog.getName()).toEqual("3");
+			expect(catalog.name).toEqual("3");
 		});
 
 		test("basePath", async () => {
 			const entry = await fs.getCatalogEntryByPath(path("3"));
 			const catalog = await entry.load();
-			expect(catalog.getBasePath().value).toEqual("3");
+			expect(catalog.basePath.value).toEqual("3");
 		});
 	});
 });

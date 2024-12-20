@@ -1,14 +1,14 @@
-import LeftNavigationIsOpenService from "@core-ui/ContextServices/LeftNavigationIsOpen";
-import SidebarsIsPinService from "@core-ui/ContextServices/SidebarsIsPin";
+import SidebarsIsOpenService from "@core-ui/ContextServices/Sidebars/SidebarsIsOpenContext";
+import SidebarsIsPinService from "@core-ui/ContextServices/Sidebars/SidebarsIsPin";
 import LeftNavViewContentContainer from "@core-ui/ContextServices/views/leftNavView/LeftNavViewContainer";
 import useWatch from "@core-ui/hooks/useWatch";
-import { useRef, useState, useEffect } from "react";
+import stopOpeningPanels from "@core-ui/utils/stopOpeningPanels ";
+import EditorService from "@ext/markdown/elementsUtils/ContextServices/EditorService";
+import { useEffect, useRef, useState } from "react";
 import { ArticlePageData } from "../../../../logic/SitePresenter/SitePresenter";
 import LeftNavigationBottom from "./LeftNavigationBottom";
 import LeftNavigationLayout from "./LeftNavigationLayout";
 import LeftNavigationTop from "./LeftNavigationTop";
-import EditorService from "@ext/markdown/elementsUtils/ContextServices/EditorService";
-import stopOpeningPanels from "@core-ui/utils/stopOpeningPanels ";
 
 const navsSymbol = Symbol();
 
@@ -23,12 +23,12 @@ const LeftNavigationComponent = ({
 }) => {
 	const [hideScroll, setHideScroll] = useState(true);
 
-	const isPin = SidebarsIsPinService.value;
+	const isPin = SidebarsIsPinService.value.left;
 	const [prevIsPin, setPrevIsPin] = useState<boolean>(undefined);
 
-	const isOpen = LeftNavigationIsOpenService.value;
+	const isOpen = SidebarsIsOpenService.value.left;
 
-	const transitionEndIsOpen = LeftNavigationIsOpenService.transitionEndIsOpen;
+	const transitionEndIsOpen = SidebarsIsOpenService.transitionEndIsLeftOpen;
 	const editor = EditorService?.getEditor();
 
 	useEffect(() => {
@@ -45,7 +45,7 @@ const LeftNavigationComponent = ({
 
 	useWatch(() => {
 		if (prevIsPin && !isPin) {
-			LeftNavigationIsOpenService.value = false;
+			SidebarsIsOpenService.value = { left: false };
 			unpinAnimation.current = true;
 			setHideScroll(true);
 		}
@@ -71,12 +71,12 @@ const LeftNavigationComponent = ({
 				onMouseEnter={() =>
 					setTimeout(() => {
 						if (!isLeftNavHover.current || unpinAnimation.current) return;
-						LeftNavigationIsOpenService.value = true;
+						SidebarsIsOpenService.value = { left: true };
 						setHideScroll(false);
 					}, delay)
 				}
 				onTransitionEnd={() => {
-					LeftNavigationIsOpenService.transitionEndIsOpen = isOpen;
+					SidebarsIsOpenService.transitionEndIsLeftOpen = isOpen;
 					unpinAnimation.current = false;
 				}}
 				transitionEndIsOpen={transitionEndIsOpen}

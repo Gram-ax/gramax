@@ -11,7 +11,7 @@ interface DynamicModules {
 let modules: DynamicModules;
 
 /// #if VITE_ENVIRONMENT == "browser"
-// #v-ifdef VITE_ENVIRONMENT=browser
+// #v-ifdef VITE_ENVIRONMENT='browser'
 import BrowserCookie from "../../apps/browser/src/logic/BrowserCookie";
 import BrowserSvgToPng from "../../apps/browser/src/logic/BrowserSvgToPng";
 import BrowserGetImageSizeFromImageData from "../../apps/browser/src/logic/BrowserGetImageSizeFromImageData";
@@ -32,12 +32,12 @@ modules = {
 // #v-endif
 
 /// #if VITE_ENVIRONMENT == "next"
-// #v-ifdef VITE_ENVIRONMENT=next
+// #v-ifdef VITE_ENVIRONMENT='next'
 import NextCookie from "../../apps/next/logic/NextCookie";
 import NextSvgToPng from "../../apps/next/logic/NextSvgToPng";
 import NextGetImageSizeFromImageData from "../../apps/next/logic/NextGetImageSizeFromImageData";
 import NextGetImageFromDom from "../../apps/next/logic/NextGetImageFromDom";
-import { DOMParser as NextDOMParser } from "xmldom";
+import { DOMParser as NextDOMParser } from "@xmldom/xmldom";
 
 modules = {
 	Cookie: NextCookie,
@@ -46,14 +46,14 @@ modules = {
 	getImageSizeFromImageData: NextGetImageSizeFromImageData,
 	getImageFromDom: NextGetImageFromDom,
 	moveToTrash: () => Promise.resolve(),
-	getDOMParser: () => new NextDOMParser(),
+	getDOMParser: () => new NextDOMParser() as any,
 };
 
 // #v-endif
 /// #endif
 
 /// #if VITE_ENVIRONMENT == "tauri"
-// #v-ifdef VITE_ENVIRONMENT=tauri
+// #v-ifdef VITE_ENVIRONMENT='tauri'
 import TauriCookie from "../../apps/browser/src/logic/BrowserCookie";
 import TauriSvgToPng from "../../apps/browser/src/logic/BrowserSvgToPng";
 import TauriGetImageSizeFromImageData from "../../apps/browser/src/logic/BrowserGetImageSizeFromImageData";
@@ -74,13 +74,13 @@ modules = {
 /// #endif
 
 /// #if VITE_ENVIRONMENT == "jest"
-// #v-ifdef VITE_ENVIRONMENT=jest
+// #v-ifdef VITE_ENVIRONMENT='jest'
 import JestCookie from "../../apps/browser/src/logic/BrowserCookie";
 import JestSvgToPng from "../../apps/next/logic/NextSvgToPng";
 import JestGetImageSizeFromImageData from "../../apps/next/logic/NextGetImageSizeFromImageData";
 import { ImageDimensions } from "@ext/wordExport/options/WordTypes";
 import JestGetImageFromDom from "../../apps/next/logic/NextGetImageFromDom";
-import { DOMParser as JestDOMParser } from "xmldom";
+import { DOMParser as JestDOMParser } from "@xmldom/xmldom";
 
 modules = {
 	Cookie: JestCookie,
@@ -89,7 +89,7 @@ modules = {
 	getImageSizeFromImageData: JestGetImageSizeFromImageData,
 	getImageFromDom: JestGetImageFromDom,
 	moveToTrash: () => Promise.resolve(),
-	getDOMParser: () => new JestDOMParser(),
+	getDOMParser: () => new JestDOMParser() as any,
 };
 
 // #v-endif;

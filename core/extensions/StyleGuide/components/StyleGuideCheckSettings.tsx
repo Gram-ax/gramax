@@ -43,7 +43,7 @@ const StyleGuideCheckSettings = (props: StyleGuideCheckSettingsProps) => {
 							<div className="form-group">
 								<div className="field field-string row">
 									<label className="control-label" style={{ flex: "1" }}>
-										{"Файл настроек"}
+										{t("style-guide.settings-file")}
 										<span className="required">*</span>
 									</label>
 									<ChooseFile
@@ -56,7 +56,7 @@ const StyleGuideCheckSettings = (props: StyleGuideCheckSettingsProps) => {
 												const arrayBuffer = await file.arrayBuffer();
 												const json = JSON.parse(Buffer.from(arrayBuffer).toString());
 												if (!checkSettingsFileFormat(json)) {
-													setErrorText("Неверный формат файла");
+													setErrorText(t("style-guide.invalid-file-format"));
 													return;
 												}
 												setFormSettings({
@@ -65,7 +65,7 @@ const StyleGuideCheckSettings = (props: StyleGuideCheckSettingsProps) => {
 												});
 												setErrorText(null);
 											} catch {
-												setErrorText("Неверный формат файла");
+												setErrorText(t("style-guide.invalid-file-format"));
 											}
 										}}
 									/>
@@ -73,48 +73,11 @@ const StyleGuideCheckSettings = (props: StyleGuideCheckSettingsProps) => {
 								<div className="input-lable-description" style={{ marginTop: "0.5rem" }}>
 									<div className="article" style={{ flex: 1 }}>
 										<MinimizedArticleStyled>
-											<p>Чтобы загрузить файл настроек стайлгайдов, выполните следующие шаги:</p>
-											<ol>
-												<li>
-													<p>
-														Зайдите на{" "}
-														<a
-															target="_blank"
-															href="https://check.gram.ax"
-															rel="noreferrer"
-														>
-															check.gram.ax
-														</a>{" "}
-														и перейдите в раздел «Настройки».
-													</p>
-												</li>
-												<li>
-													<p>
-														Настройте токены подключения к выбранному провайдеру LLM
-														(например, OpenAI, Anthropic и др.).
-													</p>
-												</li>
-												<li>
-													<p>Создайте правила и протестируйте их работу.</p>
-												</li>
-												<li>
-													<p>Экспортируйте файл настроек.</p>
-												</li>
-												<li>
-													<p>Загрузите полученный файл в эту форму.</p>
-												</li>
-											</ol>
-											<p>
-												Подробнее читайте в{" "}
-												<a
-													target="_blank"
-													rel="noreferrer"
-													href="https://gram.ax/resources/docs/review/comments"
-												>
-													документации
-												</a>
-												.
-											</p>
+											<div
+												dangerouslySetInnerHTML={{
+													__html: t("style-guide.settings-description"),
+												}}
+											/>
 										</MinimizedArticleStyled>
 									</div>
 								</div>

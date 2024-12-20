@@ -1,13 +1,13 @@
 import { TextSize } from "@components/Atoms/Button/Button";
 import ButtonLink from "@components/Molecules/ButtonLink";
 import Url from "@core-ui/ApiServices/Types/Url";
+import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import { useRouter } from "@core/Api/useRouter";
 import { ArticlePageData } from "@core/SitePresenter/SitePresenter";
 import styled from "@emotion/styled";
 import Search from "../../Actions/Modal/Search";
 import Link from "../../Atoms/Link";
 import Logo from "../../Logo";
-import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 
 const TopBarContent = ({ data, className }: { data: ArticlePageData; className?: string }) => {
 	const logoImageUrl = PageDataContextService.value.conf.logo.imageUrl;
@@ -32,6 +32,7 @@ export default styled(TopBarContent)`
 	width: 100%;
 	display: flex;
 	align-items: center;
+	justify-content: space-between;
 
 	.home {
 		display: flex;

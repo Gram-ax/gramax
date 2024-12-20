@@ -12,4 +12,5 @@ permissions = [
   "allow-exists",
   "allow-copy",
   "allow-mv",
+  "allow-read-dir-stats",
 ]

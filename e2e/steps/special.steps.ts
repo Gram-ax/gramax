@@ -147,3 +147,14 @@ When("вставляем html", async function (this: E2EWorld, text: string) {
 
 	await this.page().keyboard().press("Control+V");
 });
+
+Then("вставляем текст {string}", async function (this: E2EWorld, text: string) {
+	await this.page()
+		.inner()
+		.evaluate(async (text) => {
+			const item = new ClipboardItem({ "text/plain": new Blob([text], { type: "text/plain" }) });
+			await window.navigator.clipboard.write([item]);
+		}, text);
+
+	await this.page().keyboard().press("Control+V");
+});

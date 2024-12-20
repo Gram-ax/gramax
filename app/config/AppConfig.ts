@@ -2,7 +2,7 @@ import Path from "@core/FileProvider/Path/Path";
 import type { WorkspaceManagerConfig } from "@ext/workspace/WorkspaceManager";
 import { env, getExecutingEnvironment } from "../resolveModule/env";
 
-export type AppGlobalConfig = WorkspaceManagerConfig;
+export type AppGlobalConfig = WorkspaceManagerConfig & EnterpriseConfig;
 
 interface AppConfigPaths {
 	base: Path;
@@ -22,6 +22,17 @@ export interface EnterpriseConfig {
 	gesUrl: string;
 }
 
+export interface MetricsConfig {
+	yandex: {
+		metricCounter: string;
+	};
+	matomo: {
+		matomoUrl: string;
+		matomoSiteId: string;
+		matomoContainerUrl: string;
+	};
+}
+
 export type AppConfig = {
 	version: string;
 	buildVersion: string;
@@ -32,7 +43,6 @@ export type AppConfig = {
 	disableSeo: boolean;
 
 	bugsnagApiKey: string;
-	yandexMetricCounter: string;
 	paths: AppConfigPaths;
 
 	mail: { user: string; password: string };
@@ -40,6 +50,8 @@ export type AppConfig = {
 	tokens: { share: string; cookie: string };
 	services: ServicesConfig;
 	enterprise: EnterpriseConfig;
+
+	metrics: MetricsConfig;
 
 	logo: { imageUrl: string; linkUrl: string; linkTitle: string };
 };
@@ -93,13 +105,20 @@ export const getConfig = (): AppConfig => {
 		version: env("GRAMAX_VERSION") ?? null,
 		buildVersion: env("BUILD_VERSION") ?? null,
 
-		glsUrl: env("GEPS_URL") ?? null,
 		isProduction: env("PRODUCTION") === "true",
 		isRelease: (env("BRANCH") ?? "develop") == "master",
 		disableSeo: env("DISABLE_SEO") === "true",
 
 		bugsnagApiKey: env("BUGSNAG_API_KEY") ?? null,
-		yandexMetricCounter: env("YANDEX_METRIC_COUNTER") ?? null,
+
+		metrics: {
+			yandex: { metricCounter: env("YANDEX_METRIC_COUNTER") ?? null },
+			matomo: {
+				matomoSiteId: env("MATOMO_SITE_ID") ?? null,
+				matomoUrl: env("MATOMO_URL") ?? null,
+				matomoContainerUrl: env("MATOMO_CONTAINER_URL") ?? null,
+			},
+		},
 
 		admin: {
 			login: env("ADMIN_LOGIN") ?? null,

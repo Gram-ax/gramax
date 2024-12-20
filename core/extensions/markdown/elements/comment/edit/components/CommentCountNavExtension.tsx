@@ -5,9 +5,8 @@ import { ItemLink } from "../../../../../navigation/NavigationLinks";
 
 const CommentCountNavExtension = ({ item }: { item: ItemLink }) => {
 	const isLogged = PageDataContextService.value.isLogged;
-	const comments = CommentCounterService.value;
 	if (!isLogged) return null;
-	return <VersionControlCommentCount count={comments?.[item.pathname] ?? 0} />;
+	return <VersionControlCommentCount count={CommentCounterService.totalByPathname(item.pathname)} />;
 };
 
 export default CommentCountNavExtension;

@@ -755,7 +755,7 @@ export default {
 		}),
 		workspace: {
 			current: "f",
-			workspaces: [],
+			workspaces: [{ path: "f", name: "default workspace" }],
 			defaultPath: "f",
 			readResult: undefined,
 			isEnterprise: false,
@@ -778,7 +778,6 @@ export default {
 			basePath: "",
 			bugsnagApiKey: "",
 			authServiceUrl: "",
-			yandexMetricCounter: "",
 			diagramsServiceUrl: "",
 
 			isSso: false,
@@ -792,6 +791,14 @@ export default {
 			enterprise: {
 				gepsUrl: "",
 				gesUrl: "",
+			},
+			metrics: {
+				yandex: { metricCounter: "" },
+				matomo: {
+					matomoContainerUrl: null,
+					matomoSiteId: null,
+					matomoUrl: null,
+				},
 			},
 			logo: {
 				imageUrl: "",

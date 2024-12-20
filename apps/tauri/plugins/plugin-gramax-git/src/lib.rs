@@ -108,10 +108,14 @@ pub fn init<R: Runtime>() -> TauriPlugin<R> {
       git_read_dir,
       git_file_stat,
       git_file_exists,
+      git_read_dir_stats,
       find_refs_by_globs,
       is_init,
       is_bare,
       set_head,
+      list_merge_requests,
+      create_or_update_merge_request,
+      get_draft_merge_request,
       invalidate_repo_cache
     ])
     .setup(|app, api| {

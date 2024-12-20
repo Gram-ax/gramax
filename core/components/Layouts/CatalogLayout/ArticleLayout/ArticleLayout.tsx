@@ -13,8 +13,7 @@ export interface ArticleLayoutProps {
 	isRightNavOpen: boolean;
 	onArticleMouseEnter?: () => void;
 	onArticleMouseLeave?: () => void;
-	onRightNavMouseEnter?: () => void;
-	onRightNavMouseLeave?: () => void;
+	onRightNavTransitionEnd?: () => void;
 	className?: string;
 }
 
@@ -22,33 +21,27 @@ const ArticleLayout = (props: ArticleLayoutProps) => {
 	const articleRef = ArticleRefService.value;
 	const useArticleDefaultStyles = ArticleViewService.useArticleDefaultStyles;
 
-	const {
-		article,
-		rightNav,
-		onArticleMouseEnter,
-		onArticleMouseLeave,
-		onRightNavMouseEnter,
-		onRightNavMouseLeave,
-		className,
-	} = props;
+	const { article, rightNav, onArticleMouseEnter, onArticleMouseLeave, onRightNavTransitionEnd, className } = props;
 
 	return (
-		<div className={classNames(className, { article: useArticleDefaultStyles })} ref={articleRef}>
+		<div
+			className={classNames(className, { article: useArticleDefaultStyles })}
+			ref={articleRef}
+			onTransitionEnd={onRightNavTransitionEnd}
+		>
 			<div
+				id="article"
 				className="article-content-wrapper"
 				onMouseEnter={onArticleMouseEnter}
 				onMouseLeave={onArticleMouseLeave}
 				onTouchEnd={onArticleMouseEnter}
 			>
-				<div className="article-content">{article}</div>
+				<div className={classNames("article-content", { "article-default-content": useArticleDefaultStyles })}>
+					{article}
+				</div>
 			</div>
-			<div
-				className={classNames("article", {}, [RIGHT_NAV_CLASS])}
-				onMouseEnter={onRightNavMouseEnter}
-				onMouseLeave={onRightNavMouseLeave}
-				onTouchEnd={onRightNavMouseEnter}
-			>
-				{rightNav}
+			<div className={classNames("article", {}, [RIGHT_NAV_CLASS])}>
+				<div style={{ height: "inherit" }}>{rightNav}</div>
 			</div>
 		</div>
 	);
@@ -119,22 +112,26 @@ export default styled(ArticleLayout)`
 	${p.isRightNavPin ? "" : "margin-right: 20px;"}
 
 	.article-content-wrapper {
+		position: relative;
 		height: 100vh;
 		display: flex;
 		padding: 30px;
 		padding-bottom: 0;
 		justify-content: center;
-		width: calc(100% - 260px);
+		width: ${p.isRightNavPin ? "calc(100% - var(--narrow-nav-width))" : "100%"};
 		color: var(--color-article-text);
 		${p.isRightNavPin ? "" : "padding-left: 45px;"}
 	}
 
-	.article-content {
+	.article-content{
 		width: 100%;
+		height: 100%;
+	}
+
+	.article-default-content {
 		display: flex;
 		min-width: 0px;
 		max-width: var(--article-max-width);
-		height: 100%;
 		min-height: 100%;
 		flex-direction: column;
 	}

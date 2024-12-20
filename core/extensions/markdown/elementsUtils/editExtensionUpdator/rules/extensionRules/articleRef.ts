@@ -2,7 +2,7 @@ import ArticleRefService from "@core-ui/ContextServices/ArticleRef";
 import ExtensionUpdaterRules from "../ExtensionUpdaterRules";
 
 const getArticleRefRule = (articleRef: ArticleRefService): ExtensionUpdaterRules => {
-	const filterNames = ["DragScroller"];
+	const filterNames = ["DragScroller", "diff"];
 
 	return {
 		filter: (extension) => filterNames.includes(extension.name),

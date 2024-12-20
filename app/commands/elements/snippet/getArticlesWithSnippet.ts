@@ -18,7 +18,7 @@ const getArticlesWithSnippet: Command<
 		const { wm, sitePresenterFactory } = this._app;
 		const workspace = wm.current();
 
-		const catalog = await workspace.getCatalog(catalogName);
+		const catalog = await workspace.getCatalog(catalogName, ctx);
 		if (!catalog) return;
 		const sp = sitePresenterFactory.fromContext(ctx);
 		const items = await catalog.snippetProvider.getArticlesWithSnippet(snippetId, sp);

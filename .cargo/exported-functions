@@ -31,6 +31,7 @@ _copy
 _exists
 _make_dir
 _make_symlink
+_read_dir_stats
 _mv
 _read_dir
 _read_file
@@ -47,8 +48,12 @@ _git_read_dir
 _git_file_stat
 _git_file_exists
 _git_read_file
+_git_read_dir_stats
 _is_bare
 _is_init
 _find_refs_by_globs
 _set_head
+_list_merge_requests
+_create_or_update_merge_request
+_get_draft_merge_request
 _invalidate_repo_cache

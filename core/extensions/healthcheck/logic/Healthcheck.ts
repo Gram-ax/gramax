@@ -1,15 +1,15 @@
 import { CATEGORY_ROOT_FILENAME, GRAMAX_EDITOR_URL } from "@app/config/const";
 import LucideIcon from "@components/Atoms/Icon/LucideIcon";
-import Context from "@core/Context/Context";
 import { Article } from "@core/FileStructue/Article/Article";
+import type { ReadonlyBaseCatalog } from "@core/FileStructue/Catalog/ReadonlyCatalog";
 import { CatalogErrorGroups } from "@core/FileStructue/Catalog/CatalogErrorGroups";
+import type ContextualCatalog from "@core/FileStructue/Catalog/ContextualCatalog";
 import RouterPathProvider from "@core/RouterPath/RouterPathProvider";
 import { RenderableTreeNode } from "@ext/markdown/core/render/logic/Markdoc";
 import { collapseTocItems } from "@ext/navigation/article/logic/createTocItems";
 import RuleProvider from "@ext/rules/RuleProvider";
 import Path from "../../../logic/FileProvider/Path/Path";
 import FileProvider from "../../../logic/FileProvider/model/FileProvider";
-import { Catalog } from "../../../logic/FileStructue/Catalog/Catalog";
 import { Item } from "../../../logic/FileStructue/Item/Item";
 import ResourceExtensions from "../../../logic/Resource/ResourceExtensions";
 
@@ -30,14 +30,14 @@ export interface CatalogErrorArgs {
 
 class Healthcheck {
 	private _catalogContentItems: Article[];
-	constructor(private _fp: FileProvider, private _ctx: Context, private _catalog: Catalog) {}
+	constructor(private _fp: FileProvider, private _catalog: ContextualCatalog) {}
 
 	private _errors: CatalogErrors;
 
 	async checkCatalog(): Promise<CatalogErrors> {
 		if (!this._catalog) return {};
 		this._errors = { icons: [], links: [], diagrams: [], fs: [], unsupported: [] };
-		const rp = new RuleProvider(this._ctx);
+		const rp = new RuleProvider(this._catalog.ctx);
 		const filters = rp.getItemFilters();
 
 		this._catalogContentItems = this._catalog.getContentItems();
@@ -173,7 +173,7 @@ class Healthcheck {
 		return this._errors.fs.push(refCatalogError);
 	};
 
-	private _getErrorLink = async (catalog: Catalog, item: Item): Promise<string> => {
+	private _getErrorLink = async (catalog: ReadonlyBaseCatalog, item: Item): Promise<string> => {
 		return GRAMAX_EDITOR_URL + "/" + RouterPathProvider.getPathname(await catalog.getPathnameData(item)).value;
 	};
 

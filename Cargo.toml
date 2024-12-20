@@ -1,5 +1,11 @@
 [workspace]
 resolver = "2"
+default-members = [
+  "crates/git",
+  "crates/fs",
+  "crates/bugsnag",
+  "crates/test-utils",
+]
 members = [
   "apps/tauri/plugins/plugin-gramax-fs",
   "apps/tauri/plugins/plugin-gramax-git",
@@ -10,12 +16,6 @@ members = [
   "apps/next/crates/next-gramax-git",
 
   "rbins/warp-spa",
-
-  "crates/git",
-  "crates/fs",
-  "crates/bugsnag",
-
-  "crates/test-utils",
 ]
 
 [workspace.package]
@@ -37,8 +37,9 @@ tauri-plugin-shell = "^2.0.0"
 tauri-plugin-window-state = "^2.0.0"
 
 serde = { version = "^1.0", features = ["derive"] }
+serde_yml = "^0.0"
 serde_json = "^1.0"
-reqwest = { version = "^0.12", features = ["blocking"] }
+reqwest = { version = "^0.12", features = ["blocking", "json"] }
 log = "^0.4"
 
 rstest = "^0.23"
@@ -47,4 +48,13 @@ rstest = "^0.23"
 codegen-units = 1
 lto = true
 incremental = false
-opt-level = "s"
+opt-level = 2
+
+[profile.development]
+inherits = "release"
+incremental = false
+lto = false
+codegen-units = 256
+opt-level = 1
+debug = "full"
+debug-assertions = false

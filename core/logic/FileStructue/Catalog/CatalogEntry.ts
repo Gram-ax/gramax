@@ -1,140 +1,59 @@
 import Path from "@core/FileProvider/Path/Path";
-import { Catalog, type CatalogProps } from "@core/FileStructue/Catalog/Catalog";
-import { FSLazyLoadCatalog } from "@core/FileStructue/FileStructure";
-import { Item } from "@core/FileStructue/Item/Item";
-import { ItemRef } from "@core/FileStructue/Item/ItemRef";
-import RouterPathProvider from "@core/RouterPath/RouterPathProvider";
-import PathnameData from "@core/RouterPath/model/PathnameData";
-import GitStorage from "@ext/git/core/GitStorage/GitStorage";
+import BaseCatalog, { type BaseCatalogInitProps, type CatalogOnLoad } from "@core/FileStructue/Catalog/BaseCatalog";
+import type { Catalog } from "@core/FileStructue/Catalog/Catalog";
+import type { CatalogProps } from "@core/FileStructue/Catalog/CatalogProps";
+import type { FSLazyLoadCatalog } from "@core/FileStructue/FileStructure";
+import type { ItemRef } from "@core/FileStructue/Item/ItemRef";
 import type Repository from "@ext/git/core/Repository/Repository";
-import RepositoryProvider from "@ext/git/core/Repository/RepositoryProvider";
-import { CatalogErrors } from "@ext/healthcheck/logic/Healthcheck";
-import IPermission from "@ext/security/logic/Permission/IPermission";
 import Permission from "@ext/security/logic/Permission/Permission";
-// TEMP:
-// import SourceType from "@ext/storage/logic/SourceDataProvider/model/SourceType";
 
-type CatalogOnLoad = (catalog: Catalog) => void | Promise<void>;
-
-type CatalogEntryProps = {
+export type CatalogEntryInitProps<P extends CatalogProps = CatalogProps> = BaseCatalogInitProps & {
 	name: string;
 	rootCaterogyRef: ItemRef;
 	basePath: Path;
-	props: CatalogProps;
-	errors: CatalogErrors;
+	props: P;
 	load: FSLazyLoadCatalog;
 	isReadOnly: boolean;
 };
 
-export default class CatalogEntry {
-	protected _onLoad?: CatalogOnLoad;
-	protected _perms: IPermission;
-	protected _isLoad = false;
-	protected _name: string;
-	protected _repo: Repository = {} as Repository;
-	private _rootCaterogyRef: ItemRef;
-	private _rootCaterogyPath: Path;
-	protected _basePath: Path;
-	protected _props: CatalogProps;
-	protected _errors: CatalogErrors;
-	protected _load: FSLazyLoadCatalog;
-	protected _isReadOnly: boolean;
+export default class CatalogEntry<P extends CatalogProps = CatalogProps> extends BaseCatalog<P> {
+	protected readonly _type = "entry";
 
-	constructor(init: CatalogEntryProps) {
-		this._name = init.name;
-		this._rootCaterogyRef = init.rootCaterogyRef;
-		this._rootCaterogyPath = init.rootCaterogyRef.path.parentDirectoryPath;
-		this._basePath = init.basePath;
+	private _onCatalogLoadCallback: CatalogOnLoad<Catalog<P>>;
+	private _loadFn: FSLazyLoadCatalog;
+	private _perms: Permission;
+	private _props: P;
+
+	constructor(init: CatalogEntryInitProps<P>) {
+		super(init);
+		this._loadFn = init.load;
+		this._perms = new Permission(init.props.private);
 		this._props = init.props;
-		this._errors = init.errors;
-		this._load = init.load;
-		this._perms = new Permission(this._props["private"]);
-		this._isReadOnly = init.isReadOnly;
 	}
 
-	withOnLoad(callback: CatalogOnLoad): void {
-		this._onLoad = callback;
-	}
-
-	get repo() {
-		return this._repo;
-	}
-
-	// eslint-disable-next-line @typescript-eslint/no-unused-vars
-	setRepo(value: Repository, _rp: RepositoryProvider) {
-		this._repo = value;
-	}
-
-	async getPathname(item?: Item): Promise<string> {
-		return this._isReadOnly
-			? Promise.resolve(item ? item.logicPath : this._name)
-			: RouterPathProvider.getPathname(await this.getPathnameData(item)).value;
-	}
-
-	async getPathnameData(item?: Item): Promise<PathnameData> {
-		const itemLogicPath = item
-			? RouterPathProvider.parseItemLogicPath(new Path(item.logicPath)).fullPath
-			: undefined;
-		if (!this.repo.storage) return { catalogName: this.getName(), itemLogicPath };
-
-		// TEMP:
-
-		// const sourceType = await this.repo.storage.getType();
-
-		// const group =
-		// 	isGitSourceType(sourceType) // что делать с enterprise?
-		// 		? await (this.repo.storage as GitStorage).getGroup()
-		// 		: undefined;
-		const group = await (this.repo.storage as GitStorage).getGroup();
-
-		let branch: string;
-		try {
-			branch = await this.repo.gvc.getCurrentBranchName();
-		} catch (e) {
-			console.error(e);
-		}
-		return {
-			sourceName: await this.repo.storage.getSourceName(),
-			group,
-			repo: await this.repo.storage.getName(),
-			refname: branch,
-			catalogName: this.getName(),
-			itemLogicPath,
-		};
-	}
-
-	getName() {
-		return this._name;
-	}
-
-	getBasePath(): Path {
-		return this._basePath;
-	}
-
-	getRootCategoryRef(): ItemRef {
-		return this._rootCaterogyRef;
-	}
-
-	getRootCategoryPath(): Path {
-		return this._rootCaterogyPath;
-	}
-
-	get props() {
+	get props(): P {
 		return this._props;
 	}
 
-	get errors() {
-		return this._errors;
-	}
-
-	get perms(): IPermission {
+	get perms(): Permission {
 		return this._perms;
 	}
 
+	setRepository(repo: Repository): void {
+		super.repo = repo;
+	}
+
+	getRootCategoryDirectoryPath(): Path {
+		return this.getRootCategoryRef().path.parentDirectoryPath;
+	}
+
+	setLoadCallback(callback: CatalogOnLoad<Catalog<P>>): void {
+		this._onCatalogLoadCallback = callback;
+	}
+
 	async load(): Promise<Catalog> {
-		const catalogEntry = await this._load(this);
-		await this._onLoad?.(catalogEntry);
-		this._isLoad = true;
-		return catalogEntry;
+		const catalog = (await this._loadFn(this as any)) as any;
+		await this._onCatalogLoadCallback?.(catalog);
+		return catalog;
 	}
 }

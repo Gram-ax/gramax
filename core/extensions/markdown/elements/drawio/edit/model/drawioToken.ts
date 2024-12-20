@@ -1,8 +1,10 @@
+import getAttrs from "@ext/markdown/elements/diagrams/logic/getAttrs";
+
 function drawioToken() {
 	return {
 		node: "drawio",
 		getAttrs: (tok) => {
-			return { src: tok?.attrs?.path ?? "", title: tok?.attrs?.title ?? "" };
+			return getAttrs(tok.attrs);
 		},
 	};
 }

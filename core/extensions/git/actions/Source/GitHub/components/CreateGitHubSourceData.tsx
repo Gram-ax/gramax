@@ -1,7 +1,10 @@
 import { getExecutingEnvironment } from "@app/resolveModule/env";
 import Button, { TextSize } from "@components/Atoms/Button/Button";
+import { ButtonStyle } from "@components/Atoms/Button/ButtonStyle";
 import SpinnerLoader from "@components/Atoms/SpinnerLoader";
+import ButtonLink from "@components/Molecules/ButtonLink";
 import { parserQuery } from "@core/Api/Query";
+import OnNetworkApiErrorService from "@ext/errorHandlers/client/OnNetworkApiErrorService";
 import { waitForTempToken } from "@ext/git/actions/Source/tempToken";
 import t from "@ext/localization/locale/translate";
 import User2 from "@ext/security/components/User/User2";
@@ -11,20 +14,20 @@ import PageDataContextService from "../../../../../../ui-logic/ContextServices/P
 import SourceType from "../../../../../storage/logic/SourceDataProvider/model/SourceType";
 import { makeSourceApi } from "../../makeSourceApi";
 import GitHubSourceData from "../logic/GitHubSourceData";
-import ButtonLink from "@components/Molecules/ButtonLink";
-import { ButtonStyle } from "@components/Atoms/Button/ButtonStyle";
 
 const CreateGitHubSourceData = ({ onSubmit }: { onSubmit?: (editProps: GitHubSourceData) => void }) => {
 	const page = PageDataContextService.value;
 	const authServiceUrl = PageDataContextService.value.conf.authServiceUrl;
 	const [user, setUser] = useState(null);
 	const [token, setToken] = useState(null);
+	const onNetworkApiError = OnNetworkApiErrorService.value;
 
 	const loadUser = async (token) => {
 		if (!token || !token?.access_token) return;
 		const api = makeSourceApi(
 			{ sourceType: SourceType.gitHub, token: token.access_token } as GitHubSourceData,
 			authServiceUrl,
+			onNetworkApiError,
 		);
 		setUser(await api.getUser());
 	};
@@ -53,7 +56,7 @@ const CreateGitHubSourceData = ({ onSubmit }: { onSubmit?: (editProps: GitHubSou
 						textSize={TextSize.M}
 						iconFw={false}
 						iconCode="github"
-						text={t("log-in.github")}
+						text={t("log-in") + "GitHub"}
 						onClick={async () => {
 							if (token) return;
 							createChildWindow(

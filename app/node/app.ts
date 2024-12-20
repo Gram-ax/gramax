@@ -4,7 +4,8 @@ import DiskFileProvider from "@core/FileProvider/DiskFileProvider/DiskFileProvid
 import MountFileProvider from "@core/FileProvider/MountFileProvider/MountFileProvider";
 import Path from "@core/FileProvider/Path/Path";
 import FileStructureEventHandlers from "@core/FileStructue/events/FileStuctureEventHandlers";
-import Hash from "@core/Hash/Hash";
+import HashItemProvider from "@core/Hash/HashItemProvider";
+import { XxHash } from "@core/Hash/Hasher";
 import ResourceUpdaterFactory from "@core/Resource/ResourceUpdaterFactory";
 import CustomArticlePresenter from "@core/SitePresenter/CustomArticlePresenter";
 import SitePresenterFactory from "@core/SitePresenter/SitePresenterFactory";
@@ -16,7 +17,9 @@ import { Encoder } from "@ext/Encoder/Encoder";
 import MailProvider from "@ext/MailProvider";
 import ThemeManager from "@ext/Theme/ThemeManager";
 import BlankWatcher from "@ext/Watchers/BlankWatcher";
+import EnterpriseManager from "@ext/enterprise/EnterpriseManager";
 import RepositoryProvider from "@ext/git/core/Repository/RepositoryProvider";
+import RepositoryProviderEventHandlers from "@ext/git/core/Repository/events/RepositoryProviderEventHandlers";
 import HtmlParser from "@ext/html/HtmlParser";
 import BugsnagLogger from "@ext/loggers/BugsnagLogger";
 import ConsoleLogger from "@ext/loggers/ConsoleLogger";
@@ -42,16 +45,24 @@ const _init = async (config: AppConfig): Promise<Application> => {
 	const logger: Logger = config.isProduction ? new BugsnagLogger(config) : new ConsoleLogger();
 	logger.setLogLevel(LogLevel.trace);
 
+	await XxHash.init();
+
 	const watcher = new BlankWatcher(); // config.isProduction ? new ChokidarWatcher() :
+
+	const em = new EnterpriseManager(config.enterprise);
 
 	const rp = new RepositoryProvider();
 	const wm = new WorkspaceManager(
 		(path) => MountFileProvider.fromDefault(new Path(path), watcher),
-		(fs) => new FileStructureEventHandlers(fs).mount(fs),
+		(fs) => {
+			new FileStructureEventHandlers(fs).mount();
+			new RepositoryProviderEventHandlers(fs, rp).mount();
+		},
 		rp,
 		config,
 		YamlFileConfig.dummy(),
 	);
+
 	const sdp = new SourceDataProvider(wm);
 	rp.addSourceDataProvider(sdp);
 
@@ -66,7 +77,7 @@ const _init = async (config: AppConfig): Promise<Application> => {
 
 	const parser = new MarkdownParser();
 
-	const hashes = new Hash();
+	const hashes = new HashItemProvider();
 	const tablesManager = new TableDB(parser, wm);
 	const customArticlePresenter = new CustomArticlePresenter();
 
@@ -78,11 +89,11 @@ const _init = async (config: AppConfig): Promise<Application> => {
 
 	const tm = new ThemeManager();
 	const am = new AuthManager(
-		config.enterprise.gesUrl
-			? new EnterpriseAuth(config.enterprise.gesUrl)
+		em.getConfig()?.gesUrl
+			? new EnterpriseAuth(em.getConfig().gesUrl)
 			: new EnvAuth(config.paths.base, config.admin.login, config.admin.password),
 		ticketManager,
-		config.enterprise.gesUrl,
+		em.getConfig()?.gesUrl,
 	);
 	const contextFactory = new ContextFactory(tm, config.tokens.cookie, am, config.isReadOnly);
 	const sitePresenterFactory = new SitePresenterFactory(wm, parser, parserContextFactory, rp, customArticlePresenter);
@@ -101,8 +112,8 @@ const _init = async (config: AppConfig): Promise<Application> => {
 		mp,
 		rp,
 		wm,
+		em,
 		vur,
-		cache,
 		parser,
 		logger,
 		hashes,
@@ -124,12 +135,11 @@ const _init = async (config: AppConfig): Promise<Application> => {
 			isReadOnly: config.isReadOnly,
 			isProduction: config.isProduction,
 
+			metrics: config.metrics,
 			version: config.version,
 			buildVersion: config.buildVersion,
 			bugsnagApiKey: config.bugsnagApiKey,
-			yandexMetricCounter: config.yandexMetricCounter,
-			services: config.services,
-			enterprise: config.enterprise,
+			services: wm.maybeCurrent()?.config()?.services ?? config.services,
 
 			logo: config.logo,
 		},

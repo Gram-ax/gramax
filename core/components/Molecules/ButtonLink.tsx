@@ -1,12 +1,12 @@
-import Button, { ButtonProps, TextSize } from "@components/Atoms/Button/Button";
+import Button, { ButtonProps, TextSize, TextKeys } from "@components/Atoms/Button/Button";
 import { ButtonStyle } from "@components/Atoms/Button/ButtonStyle";
 import Icon from "@components/Atoms/Icon";
 import { classNames } from "@components/libs/classNames";
 import styled from "@emotion/styled";
-import { MutableRefObject, ReactNode, forwardRef } from "react";
+import { CSSProperties, MutableRefObject, ReactNode, forwardRef } from "react";
 import { Placement } from "tippy.js";
 
-export interface ButtonLinkProps extends Omit<ButtonProps, "children" | "style"> {
+export interface ButtonLinkProps extends Omit<ButtonProps, "children"> {
 	iconCode?: string;
 	text?: ReactNode;
 	fullWidth?: boolean;
@@ -16,7 +16,9 @@ export interface ButtonLinkProps extends Omit<ButtonProps, "children" | "style">
 	rightActions?: ReactNode[];
 	iconContent?: ReactNode;
 	iconPlace?: Placement;
+	unionFontSize?: boolean;
 	dataQa?: string;
+	iconStyle?: CSSProperties;
 }
 
 const ButtonLink = forwardRef((props: ButtonLinkProps, ref?: MutableRefObject<HTMLDivElement>) => {
@@ -31,10 +33,12 @@ const ButtonLink = forwardRef((props: ButtonLinkProps, ref?: MutableRefObject<HT
 		text,
 		rightActions,
 		className,
+		unionFontSize,
 		iconContent,
 		iconPlace,
 		disabled,
 		dataQa,
+		iconStyle,
 		...otherProps
 	} = props;
 
@@ -48,6 +52,7 @@ const ButtonLink = forwardRef((props: ButtonLinkProps, ref?: MutableRefObject<HT
 			<Button disabled={disabled} buttonStyle={ButtonStyle.transparent} textSize={textSize} {...otherProps}>
 				{iconCode && (
 					<Icon
+						style={{ ...iconStyle, fontSize: unionFontSize ? TextKeys[textSize] + "rem" : undefined }}
 						fw={iconFw}
 						code={iconCode}
 						viewBox={iconViewBox}
@@ -56,7 +61,9 @@ const ButtonLink = forwardRef((props: ButtonLinkProps, ref?: MutableRefObject<HT
 						tooltipPlace={iconPlace}
 					/>
 				)}
-				{text && <span>{text}</span>}
+				{text && (
+					<span style={{ fontSize: unionFontSize ? TextKeys[textSize] + "rem" : undefined }}>{text}</span>
+				)}
 				{rightActions && <div className="right-actions">{rightActions}</div>}
 			</Button>
 		</div>

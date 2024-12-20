@@ -1,6 +1,9 @@
 import { type Event, type EventEmitter } from "@core/Event/EventEmitter";
-import { Catalog, ItemFilter } from "@core/FileStructue/Catalog/Catalog";
+import { ItemFilter } from "@core/FileStructue/Catalog/Catalog";
+import type { ReadonlyCatalog } from "@core/FileStructue/Catalog/ReadonlyCatalog";
 import { digitsAfterDot } from "@core/FileStructue/Item/ItemOrderUtils";
+import type Hasher from "@core/Hash/Hasher";
+import type { Hashable } from "@core/Hash/Hasher";
 import createNewFilePathUtils from "@core/utils/createNewFilePathUtils";
 import Path from "../../FileProvider/Path/Path";
 import { Article, ArticleInitProps, type ArticleEvents, type ArticleProps } from "../Article/Article";
@@ -13,7 +16,7 @@ export type CategoryEvents = ItemEvents &
 	Event<"before-sort", { category: Category; force: boolean; asc: boolean }> &
 	Event<"sorted", { category: Category; force: boolean; asc: boolean }>;
 
-export type CategoryInitProps = ArticleInitProps<CategoryProps> & {
+export type CategoryInitProps<P extends CategoryProps = CategoryProps> = ArticleInitProps<P> & {
 	directory: Path;
 	items: Item[];
 	content?: string;
@@ -23,11 +26,11 @@ export type CategoryProps = {
 	refs?: string[];
 } & ArticleProps;
 
-export class Category extends Article<CategoryProps> {
+export class Category<P extends CategoryProps = CategoryProps> extends Article<P> {
 	private _items: Item[];
 	private _directory: Path;
 
-	constructor({ items, directory, ...init }: CategoryInitProps) {
+	constructor({ items, directory, ...init }: CategoryInitProps<P>) {
 		super(init);
 		this._items = items;
 		this._directory = directory;
@@ -49,10 +52,18 @@ export class Category extends Article<CategoryProps> {
 		return ItemType.category;
 	}
 
+	async hash(hash: Hasher, recursive = true): Promise<Hasher> {
+		await super.hash(hash);
+		if (recursive) for (const item of this.items) await (<Hashable>item).hash(hash, recursive);
+		return hash;
+	}
+
 	async sortItems(force?: boolean) {
 		const isAsc = this._isAscOrder();
 
 		await this.events.emit("before-sort", { category: this, force: !!force, asc: isAsc });
+
+		this._items.sort((x, y) => ((x.props.order ?? 0) - (y.props.order ?? 0)) * (isAsc ? 1 : -1));
 
 		if (force || this.items.some((i) => digitsAfterDot(i.order) > ORDERING_MAX_PRECISION)) {
 			let order = isAsc ? 1 : this.items.length;
@@ -61,13 +72,14 @@ export class Category extends Article<CategoryProps> {
 				if (isAsc) order++;
 				else order--;
 			}
+
+			this._items.sort((x, y) => ((x.props.order ?? 0) - (y.props.order ?? 0)) * (isAsc ? 1 : -1));
 		}
 
-		this._items.sort((x, y) => ((x.props.order ?? 0) - (y.props.order ?? 0)) * (isAsc ? 1 : -1));
 		await this.events.emit("sorted", { category: this, force: !!force, asc: isAsc });
 	}
 
-	getFilteredItems(filters: ItemFilter[], catalog: Catalog): Item[] {
+	getFilteredItems(filters: ItemFilter[], catalog: ReadonlyCatalog): Item[] {
 		return this.items.filter((item) => filters.every((filter) => filter(item, catalog)));
 	}
 

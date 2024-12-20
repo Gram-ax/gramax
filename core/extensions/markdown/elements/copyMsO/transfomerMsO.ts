@@ -27,18 +27,18 @@ class TransformerMsO {
 		if (!regexp || regexp?.[0] === null) return html;
 		this._changeAttrs(html);
 
-		const doc = new DOMParser().parseFromString(html, "text/html");
+		const newHTML = this._lineBreakers(html);
+		const doc = new DOMParser().parseFromString(newHTML, "text/html");
+		this._removeTrash(doc);
 		this._lists(doc);
 		this._links(doc);
 
 		if (this._isTauri) {
 			void (async () => {
 				await this._images(doc.body, (oldImage, newImage) => {
-					const parentNode =
-						(oldImage.parentNode as HTMLElement).tagName === "SPAN"
-							? oldImage.parentNode.parentElement
-							: oldImage.parentNode;
-					(parentNode as HTMLElement).replaceWith(newImage);
+					const parentNode = oldImage.closest("p");
+					if (!parentNode) return;
+					parentNode.replaceWith(newImage);
 				});
 				this._insertContent(doc);
 			})();
@@ -49,9 +49,33 @@ class TransformerMsO {
 		return doc.body.innerHTML !== "undefined" && doc.body.innerHTML;
 	};
 
+	public getResourcePath = (src: string) => {
+		return /file:\/\/\/(.*[/\\])/.exec(src)?.[1] || /file:\/\/\/(.*\/)/.exec(src)?.[1];
+	};
+
+	private _lineBreakers = (html: string) => {
+		html = html.replace(/<br\s*\/?>/gi, "</p><p>");
+		html = html.replace(/<p><\/p>/gi, "");
+		html = html.replace(/<p>(.*?)<\/p>/gi, (match, content) => {
+			const boldMatch = content.match(/<b>(.*?)<\/b>/i);
+			if (boldMatch) {
+				return `<p><b>${boldMatch[1]}</b></p>`;
+			}
+			return `<p>${content}</p>`;
+		});
+		html = html.replace(/<p><\/p>/gi, "");
+		html = html.replaceAll(/\u00A0/g, " ");
+
+		return html;
+	};
+
 	private _changeAttrs = (html: string) => {
 		html.replaceAll("colspan", "colSpan");
 		html.replaceAll("rowspan", "rowSpan");
+	};
+
+	private _removeTrash = (doc: Document) => {
+		doc.querySelectorAll("tr[height='0']").forEach((tr) => tr.remove());
 	};
 
 	private _lists = (doc: Document) => {
@@ -120,7 +144,7 @@ class TransformerMsO {
 
 		const src = imgs?.[0].parentElement.childNodes?.[0].textContent.match(/file:\/\/\/([^"]+)/)?.[0] || imgs[0].src;
 		const isBlob = src.startsWith("blob:");
-		const resourcePath = /file:\/\/\/(.*\/)/.exec(src)?.[1];
+		const resourcePath = this.getResourcePath(src);
 		if (!isBlob && !resourcePath) return;
 
 		for (let index = 0; index < imgs.length; index++) {

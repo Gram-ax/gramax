@@ -1,9 +1,9 @@
 import styled from "@emotion/styled";
-import { ReactNode, useState } from "react";
-import Scrollable from "../ScrollableElement";
 import ModifiedBackend from "@ext/navigation/catalog/drag/logic/ModifiedBackend";
 import { getBackendOptions } from "@minoru/react-dnd-treeview";
+import { ReactNode, useState } from "react";
 import { DndProvider } from "react-dnd";
+import Scrollable from "../ScrollableElement";
 
 interface LeftSidebarProps {
 	children: ReactNode;

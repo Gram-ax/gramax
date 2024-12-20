@@ -62,7 +62,7 @@ export const CommentBlockInput = styled(
 	border-top: 0.1px solid var(--color-line-comment);
 
 	.input {
-		width: 24em;
+		width: 100%;
 	}
 `;
 export default CommentBlockInput;

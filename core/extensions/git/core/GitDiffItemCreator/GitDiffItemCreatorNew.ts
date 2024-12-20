@@ -1,9 +1,11 @@
 import FileProvider from "@core/FileProvider/model/FileProvider";
 import { Article } from "@core/FileStructue/Article/Article";
 import ArticleParser from "@core/FileStructue/Article/ArticleParser";
+import type { ReadonlyCatalog } from "@core/FileStructue/Catalog/ReadonlyCatalog";
+import GitDiffItemAliases from "@ext/git/core/GitDiffItemCreator/GitDiffItemAliases";
+import getArticleWithTitle from "@ext/markdown/elements/article/edit/logic/getArticleWithTitle";
 import { JSONContent } from "@tiptap/core";
 import Path from "../../../../logic/FileProvider/Path/Path";
-import { Catalog } from "../../../../logic/FileStructue/Catalog/Catalog";
 import FileStructure from "../../../../logic/FileStructue/FileStructure";
 import ItemExtensions from "../../../../logic/FileStructue/Item/ItemExtensions";
 import ResourceExtensions from "../../../../logic/Resource/ResourceExtensions";
@@ -19,10 +21,10 @@ import { GitStatus } from "../GitWatcher/model/GitStatus";
 export default class GitDiffItemCreatorNew {
 	private _gitVersionControl: GitVersionControl;
 	private _fp: FileProvider;
-	private _catalogHeadVersion: Catalog;
+	private _catalogHeadVersion: ReadonlyCatalog;
 
 	constructor(
-		private _catalog: Catalog,
+		private _catalog: ReadonlyCatalog,
 		private _sp: SitePresenter,
 		private _fs: FileStructure,
 		private _articleParser: ArticleParser,
@@ -42,9 +44,15 @@ export default class GitDiffItemCreatorNew {
 		const { items: diffItems, resources } = await this._getDiffItems(changeFiles.items, changeFiles.resources);
 
 		const renamedDiffItems = this._findRenames(diffItems);
-		if (resources.length === 0) return { items: renamedDiffItems, resources: [] };
+		if (resources.length === 0) {
+			GitDiffItemAliases.applyAliases(renamedDiffItems);
+			return { items: renamedDiffItems, resources: [] };
+		}
 
 		const diffResources = await this._addDiffResources(resources, renamedDiffItems);
+
+		GitDiffItemAliases.applyAliases(renamedDiffItems);
+		GitDiffItemAliases.applyAliases(diffResources);
 
 		return { items: renamedDiffItems, resources: diffResources };
 	}
@@ -76,29 +84,6 @@ export default class GitDiffItemCreatorNew {
 	}
 
 	private _findRenames(items: DiffItem[]): DiffItem[] {
-		function replaceToRenamedDiffItem(
-			diffItems: DiffItem[],
-			removedFile: DiffItem,
-			addedFile: DiffItem,
-		): DiffItem[] {
-			let addedIdx = 0;
-			let removedIdx = 0;
-			diffItems.forEach((diffItem, idx) => {
-				if (!diffItem) return;
-				if (diffItem.filePath.path === addedFile.filePath.path) addedIdx = idx;
-				if (diffItem.filePath.path === removedFile.filePath.path) removedIdx = idx;
-			});
-			const addedDiffItem = diffItems[addedIdx];
-			addedDiffItem.changeType = FileStatus.modified;
-			addedDiffItem.diff = getDiff(removedFile.content, addedFile.content);
-			addedDiffItem.headEditTree = removedFile.headEditTree;
-			addedDiffItem.filePath.diff = getDiff(removedFile.filePath.path, addedDiffItem.filePath.path).changes;
-			addedDiffItem.filePath.oldPath = removedFile.filePath.path;
-			diffItems[addedIdx] = addedDiffItem;
-			diffItems[removedIdx] = null;
-			return diffItems;
-		}
-
 		const THRESHOLD = 50;
 		let arrayWithRenames = [...items];
 		const removedFiles = items.filter((item) => item.changeType === FileStatus.delete && item.content);
@@ -113,10 +98,29 @@ export default class GitDiffItemCreatorNew {
 				matching = { file: addedFile, percent };
 			});
 			if (!matching.file) return;
-			arrayWithRenames = replaceToRenamedDiffItem(arrayWithRenames, removedFile, matching.file);
+			arrayWithRenames = this._replaceToRenamedDiffItem(arrayWithRenames, removedFile, matching.file);
 		});
 
 		return arrayWithRenames.filter((x) => x);
+	}
+
+	private _replaceToRenamedDiffItem(diffItems: DiffItem[], removedFile: DiffItem, addedFile: DiffItem): DiffItem[] {
+		let addedIdx = 0;
+		let removedIdx = 0;
+		diffItems.forEach((diffItem, idx) => {
+			if (!diffItem) return;
+			if (diffItem.filePath.path === addedFile.filePath.path) addedIdx = idx;
+			if (diffItem.filePath.path === removedFile.filePath.path) removedIdx = idx;
+		});
+		const addedDiffItem = diffItems[addedIdx];
+		addedDiffItem.changeType = FileStatus.modified;
+		addedDiffItem.diff = getDiff(removedFile.content, addedFile.content);
+		addedDiffItem.oldEditTree = removedFile.oldEditTree;
+		addedDiffItem.filePath.diff = getDiff(removedFile.filePath.path, addedDiffItem.filePath.path).changes;
+		addedDiffItem.filePath.oldPath = removedFile.filePath.path;
+		diffItems[addedIdx] = addedDiffItem;
+		diffItems[removedIdx] = null;
+		return diffItems;
 	}
 
 	private async _getChangeFiles(): Promise<{
@@ -155,6 +159,7 @@ export default class GitDiffItemCreatorNew {
 				ResourceExtensions.images.includes(changeFile.path.extension) || isFolder
 					? null
 					: await this._getDiffByPath(changeFile.path, isNew, isDelete),
+			oldContent: await this._getOldContent(changeFile.path),
 		};
 	}
 
@@ -209,14 +214,15 @@ export default class GitDiffItemCreatorNew {
 		else if (isDelete) changeType = FileStatus.delete;
 
 		if (changeType === FileStatus.modified) {
-			const relativeRepPath = this._catalog.getRelativeRepPath(article.ref);
+			const relativeRepPath = this._catalog.getRepositoryRelativePath(article.ref);
 			let headEditTree: JSONContent;
+			let editTree: JSONContent;
 			if (isChanged) {
-				if (!headArticle.parsedContent) await this._articleParser.parse(headArticle, this._catalogHeadVersion);
-				headEditTree = headArticle.parsedContent?.editTree;
+				headEditTree = await this._getEditTree(headArticle, this._catalogHeadVersion);
+				editTree = await this._getEditTree(article, this._catalog);
 			} else {
-				if (!article.parsedContent) await this._articleParser.parse(article, this._catalog);
-				headEditTree = article.parsedContent?.editTree;
+				headEditTree = await this._getEditTree(article, this._catalog);
+				editTree = headEditTree;
 			}
 
 			return {
@@ -229,12 +235,12 @@ export default class GitDiffItemCreatorNew {
 				diff: await this._getDiffByPath(relativeRepPath, isNew, isDelete),
 				resources,
 				isChanged,
-				headEditTree,
+				oldEditTree: headEditTree,
+				newEditTree: editTree,
+				oldContent: await this._getOldContent(relativeRepPath),
 			};
 		} else if (changeType === FileStatus.delete) {
-			const relativeRepPath = this._catalogHeadVersion.getRelativeRepPath(headArticle.ref);
-			if (!headArticle.parsedContent) await this._articleParser.parse(headArticle, this._catalogHeadVersion);
-			const headEditTree = headArticle.parsedContent?.editTree;
+			const relativeRepPath = this._catalogHeadVersion.getRepositoryRelativePath(headArticle.ref);
 			return {
 				type: "item",
 				changeType,
@@ -245,10 +251,12 @@ export default class GitDiffItemCreatorNew {
 				diff: await this._getDiffByPath(relativeRepPath, isNew, isDelete),
 				resources,
 				isChanged,
-				headEditTree,
+				oldEditTree: await this._getEditTree(headArticle, this._catalogHeadVersion),
+				oldContent: await this._getOldContent(relativeRepPath),
 			};
 		} else if (changeType === FileStatus.new) {
-			const relativeRepPath = this._catalog.getRelativeRepPath(article.ref);
+			const relativeRepPath = this._catalog.getRepositoryRelativePath(article.ref);
+			const editTree = await this._getEditTree(article, this._catalog);
 			return {
 				type: "item",
 				changeType,
@@ -259,6 +267,8 @@ export default class GitDiffItemCreatorNew {
 				diff: await this._getDiffByPath(relativeRepPath, isNew, isDelete),
 				resources,
 				isChanged,
+				newEditTree: editTree,
+				oldContent: await this._getOldContent(relativeRepPath),
 			};
 		}
 	}
@@ -266,7 +276,7 @@ export default class GitDiffItemCreatorNew {
 	private async _addDiffResources(changeResources: GitStatus[], diffItems: DiffItem[]): Promise<DiffResource[]> {
 		const res: Set<DiffResource> = new Set();
 		this._catalog = await this._sp.parseAllItems(this._catalog);
-		const articles: { article: Article; catalog: Catalog }[] = this._catalog
+		const articles: { article: Article; catalog: ReadonlyCatalog }[] = this._catalog
 			.getContentItems()
 			.map((a) => ({ article: a, catalog: this._catalog }));
 
@@ -289,7 +299,7 @@ export default class GitDiffItemCreatorNew {
 				const resourceManager = article.parsedContent.resourceManager;
 				for (const path of [...resourceManager.resources, ...linkManager.resources]) {
 					if (resourceManager.getAbsolutePath(path).endsWith(changeResource.path)) {
-						parentPath = catalog.getRelativeRepPath(article.ref).value;
+						parentPath = catalog.getRepositoryRelativePath(article.ref).value;
 						const diffResource = await this._getDiffResource(changeResource, parentPath);
 						for (const diffItem of diffItems) {
 							// если ресурс удален, он может быть прикреплен только к удаленной статьи
@@ -327,5 +337,11 @@ export default class GitDiffItemCreatorNew {
 		}
 
 		return Array.from(res);
+	}
+
+	private async _getEditTree(article: Article, catalog: ReadonlyCatalog): Promise<JSONContent> {
+		if (!article.parsedContent) await this._articleParser.parse(article, catalog);
+		const editTree = { ...article.parsedContent?.editTree };
+		return getArticleWithTitle(article.getTitle(), editTree);
 	}
 }

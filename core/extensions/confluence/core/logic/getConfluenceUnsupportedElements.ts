@@ -3,7 +3,7 @@ import getServerConvertors from "@ext/confluence/core/server/logic/getServerConv
 import CONFLUENCE_EXTENSION_TYPES from "@ext/confluence/core/cloud/model/confluenceExtensionTypes";
 import generateConfluenceArticleLink from "@ext/confluence/core/logic/generateConfluenceArticleLink";
 import { ConfluenceArticle, ConfluenceArticleTree } from "@ext/confluence/core/model/ConfluenceArticle";
-import UnsupportedElements from "@ext/confluence/core/model/UnsupportedElements";
+import UnsupportedElements from "@ext/import/model/UnsupportedElements";
 import { JSONContent } from "@tiptap/core";
 import SourceType from "@ext/storage/logic/SourceDataProvider/model/SourceType";
 
@@ -25,11 +25,7 @@ const processUnsupportedNode = (article: ConfluenceArticle, nodeType: string, is
 	const elementArray = articleData.elements;
 
 	const existingElement = elementArray.find((element) => element.name === nodeType);
-	if (existingElement) {
-		existingElement.count += 1;
-	} else {
-		elementArray.push({ name: nodeType, count: 1 });
-	}
+	existingElement ? existingElement.count++ : elementArray.push({ name: nodeType, count: 1 });
 };
 
 const collectUnsupportedNodes = (

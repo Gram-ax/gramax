@@ -2,7 +2,7 @@ import NodeConverter from "@ext/confluence/core/cloud/model/NodeConverter";
 
 const decisionList: NodeConverter = (decisionListNode) => {
 	return {
-		type: "bullet_list",
+		type: "bulletList",
 		attrs: { tight: false },
 		content: decisionListNode.content,
 	};

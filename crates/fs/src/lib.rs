@@ -19,6 +19,14 @@ pub struct FileInfo {
   modified: u128,
 }
 
+#[derive(Serialize, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct DirStat {
+  pub name: String,
+  #[serde(flatten)]
+  pub stat: FileInfo,
+}
+
 impl FileInfo {
   pub fn new(meta: Metadata) -> Result<Self> {
     let kind = if meta.is_file() {

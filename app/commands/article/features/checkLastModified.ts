@@ -19,7 +19,7 @@ const checkLastModified: Command<{ ctx: Context; articlePath: Path; catalogName:
 		async do({ ctx, articlePath, catalogName }) {
 			const { sitePresenterFactory, wm } = this._app;
 			const workspace = wm.current();
-			const catalog = await workspace.getCatalog(catalogName);
+			const catalog = await workspace.getContextlessCatalog(catalogName);
 			if (!catalog || !catalog.getRootCategory().items.length) return;
 
 			const fp = workspace.getFileProvider();
@@ -29,6 +29,7 @@ const checkLastModified: Command<{ ctx: Context; articlePath: Path; catalogName:
 			let res = false;
 
 			try {
+				if (article.props.shouldBeCreated) return null;
 				const stat = await fp.getStat(article.ref.path);
 				res = await article.checkLastModified(stat.mtimeMs);
 			} catch (e) {

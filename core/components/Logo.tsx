@@ -26,7 +26,7 @@ export default styled(Logo)`
 	font-size: 20px;
 	line-height: 28px;
 	align-items: center;
-	max-width: calc(100% - 60px);
+	min-width: 0;
 
 	> a {
 		width: 100%;

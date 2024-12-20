@@ -4,7 +4,7 @@ import Icon from "../Atoms/Icon";
 import SpinnerLoader from "../Atoms/SpinnerLoader";
 
 const Select = <T extends { value: string; label: string; [key: string]: string }>(
-	props: SelectProps<T> & { onFocus: any; chevronView?: boolean; dataQa?: string },
+	props: SelectProps<T> & { onFocus?: any; chevronView?: boolean; dataQa?: string },
 ) => {
 	const { onFocus, className, chevronView, dataQa, ...otherProps } = props;
 

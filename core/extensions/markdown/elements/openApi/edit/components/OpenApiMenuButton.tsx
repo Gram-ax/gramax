@@ -2,6 +2,7 @@ import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import ArticlePropsService from "@core-ui/ContextServices/ArticleProps";
 import Button from "@ext/markdown/core/edit/components/Menu/Button";
 import SvgContainer from "@ext/markdown/core/edit/components/Menu/SvgContainer";
+import OnLoadResourceService from "@ext/markdown/elements/copyArticles/onLoadResourceService";
 import createOpenApi from "@ext/markdown/elements/openApi/edit/logic/createOpenApi";
 import OPEN_API_NAME from "@ext/markdown/elements/openApi/name";
 import { Editor } from "@tiptap/core";
@@ -9,13 +10,14 @@ import { Editor } from "@tiptap/core";
 const OpenApiMenuButton = ({ editor }: { editor: Editor }) => {
 	const articleProps = ArticlePropsService.value;
 	const apiUrlCreator = ApiUrlCreatorService.value;
+	const onLoadResource = OnLoadResourceService.value;
 
 	return (
 		<Button
 			dataQa={`qa-edit-menu-openApi`}
 			tooltipText={"OpenApi"}
 			nodeValues={{ action: OPEN_API_NAME }}
-			onClick={() => void createOpenApi(editor, articleProps, apiUrlCreator)}
+			onClick={() => void createOpenApi(editor, articleProps, apiUrlCreator, onLoadResource)}
 		>
 			<SvgContainer>
 				{

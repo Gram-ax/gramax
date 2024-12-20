@@ -1,4 +1,6 @@
-import EnterpriseUser from "@ext/enterprise/EnterpriseUser";
+import EnterpriseUser, { EnterprisePermissionInfo } from "@ext/enterprise/EnterpriseUser";
+import EnterpriseUserJSONData from "@ext/enterprise/types/EnterpriseUserJSONData";
+import UserJSONData from "@ext/security/logic/User/UserJSONData";
 import ApiRequest from "../../../logic/Api/ApiRequest";
 import ApiResponse from "../../../logic/Api/ApiResponse";
 import Cookie from "../../cookie/Cookie";
@@ -10,10 +12,12 @@ const COOKIE_USER = "user";
 const QUERY_TICKET = "t";
 
 export default class AuthManager {
+	private _usersEnterprisePermissionInfo: Record<string, EnterprisePermissionInfo> = {};
+
 	constructor(private _ap: AuthProvider, private _ticketManager: TicketManager, private _gesUrl: string) {}
 
-	getUser(cookie: Cookie, query: any): User {
-		let user: User = this._getUser(cookie);
+	async getUser(cookie: Cookie, query: any): Promise<User> {
+		let user: User = await this._getUser(cookie);
 		if (!query?.[QUERY_TICKET]) return user;
 		const { catalogPermissions, user: ticketUser } = this._ticketManager.checkTicket(
 			decodeURIComponent(query[QUERY_TICKET]),
@@ -31,8 +35,11 @@ export default class AuthManager {
 		return this._ticketManager.getUserTicket(user);
 	}
 
-	async assert(req: ApiRequest, res: ApiResponse, cookie: Cookie) {
-		return await this._ap.assertEndpoint(req, res, cookie, this._setUser.bind(this));
+	async assert(req: ApiRequest, res: ApiResponse, cookie: Cookie, onSuccess: (user: User) => Promise<void>) {
+		return await this._ap.assertEndpoint(req, res, cookie, async (cookie: Cookie, user: User) => {
+			this._setUser(cookie, user);
+			await onSuccess(user);
+		});
 	}
 
 	async login(req: ApiRequest, res: ApiResponse) {
@@ -48,16 +55,37 @@ export default class AuthManager {
 		cookie.set(COOKIE_USER, JSON.stringify(user.toJSON()), expires);
 	}
 
-	private _getUser(cookie: Cookie): User {
+	private async _getUser(cookie: Cookie): Promise<User> {
 		const userData = cookie.get(COOKIE_USER);
 		if (!userData) {
 			if (!this._gesUrl) return new User();
 			const user = new EnterpriseUser(false, undefined, undefined, undefined, this._gesUrl);
-			this._setUser(cookie, user);
+			user.setPermissionInfo(this._getUsersEnterprisePermissionInfo(user));
+			await this._updateEnterpriseUser(cookie, user);
 			return user;
 		}
-		const json = JSON.parse(userData);
-		if (json.type === "enterprise") return EnterpriseUser.initInJSON(json);
+		const json: UserJSONData = JSON.parse(userData);
+		if (json.type === "enterprise") {
+			const user = EnterpriseUser.initInJSON(json as EnterpriseUserJSONData);
+			user.setPermissionInfo(this._getUsersEnterprisePermissionInfo(user));
+			await this._updateEnterpriseUser(cookie, user);
+			return user;
+		}
 		return User.initInJSON(json);
+	}
+
+	private async _updateEnterpriseUser(cookie: Cookie, user: EnterpriseUser): Promise<void> {
+		await user.updatePermissions((user) => {
+			this._setUsersEnterprisePermissionInfo(user);
+			this._setUser(cookie, user);
+		});
+	}
+
+	private _getUsersEnterprisePermissionInfo(user: EnterpriseUser): EnterprisePermissionInfo {
+		return this._usersEnterprisePermissionInfo[user?.info?.mail ?? ""];
+	}
+
+	private _setUsersEnterprisePermissionInfo(user: EnterpriseUser): void {
+		this._usersEnterprisePermissionInfo[user?.info?.mail ?? ""] = user.getEnterprisePermissionsInfo();
 	}
 }

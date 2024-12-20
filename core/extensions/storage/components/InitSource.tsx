@@ -4,6 +4,7 @@ import CustomArticle from "@components/CustomArticle";
 import FormStyle from "@components/Form/FormStyle";
 import ModalLayout from "@components/Layouts/Modal";
 import ModalLayoutLight from "@components/Layouts/ModalLayoutLight";
+import OnNetworkApiErrorService from "@ext/errorHandlers/client/OnNetworkApiErrorService";
 import t from "@ext/localization/locale/translate";
 import { useState } from "react";
 import CatalogPropsService from "../../../ui-logic/ContextServices/CatalogProps";
@@ -25,15 +26,21 @@ const InitSource = ({ trigger }: { trigger: JSX.Element }) => {
 							<Button buttonStyle={ButtonStyle.underline} onClick={() => setIsOpen(false)}>
 								{t("continue-locally")}
 							</Button>
-							<CreateSourceData
-								defaultSourceData={data}
-								defaultSourceType={sourceType}
-								onCreate={() => {
+							<OnNetworkApiErrorService.Provider
+								callback={() => {
 									setIsOpen(false);
-									refreshPage();
 								}}
-								trigger={<Button>{t("add-storage")}</Button>}
-							/>
+							>
+								<CreateSourceData
+									defaultSourceData={data}
+									defaultSourceType={sourceType}
+									onCreate={() => {
+										setIsOpen(false);
+										refreshPage();
+									}}
+									trigger={<Button>{t("add-storage")}</Button>}
+								/>
+							</OnNetworkApiErrorService.Provider>
 						</div>
 					</>
 				</FormStyle>

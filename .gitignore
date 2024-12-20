@@ -65,4 +65,4 @@ junit*.xml
 
 
 !apps/browser/wasm/dist
-
+apps/next/gramaxVersion.txt

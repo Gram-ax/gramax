@@ -3,7 +3,17 @@ import useElementExistence from "@core-ui/hooks/useElementExistence";
 import styled from "@emotion/styled";
 import { Placement } from "@popperjs/core";
 import Tippy from "@tippyjs/react";
-import { ReactElement, ReactNode, createElement, useCallback, useEffect, useRef, useState } from "react";
+import {
+	ReactElement,
+	ReactNode,
+	RefObject,
+	createElement,
+	forwardRef,
+	useCallback,
+	useEffect,
+	useRef,
+	useState,
+} from "react";
 import Tooltip from "../Atoms/Tooltip";
 import { Instance, Props } from "tippy.js";
 
@@ -18,6 +28,7 @@ export interface PopupMenuLayoutProps {
 	tooltipText?: string;
 	onOpen?: () => void;
 	onClose?: (instance: Instance<Props>) => void;
+	onTippyMount?: (instance: Instance<Props>) => void;
 	className?: string;
 	disabled?: boolean;
 	hideOnClick?: boolean;
@@ -53,7 +64,7 @@ const Popup = ({ className, onClick, isOpen, children }: PopupProps) => {
 	);
 };
 
-const PopupMenuLayout = (props: PopupMenuLayoutProps) => {
+const PopupMenuLayout = forwardRef((props: PopupMenuLayoutProps, ref: RefObject<HTMLDivElement>) => {
 	const {
 		offset,
 		children,
@@ -63,6 +74,7 @@ const PopupMenuLayout = (props: PopupMenuLayoutProps) => {
 		tooltipText,
 		onOpen = () => {},
 		onClose = () => {},
+		onTippyMount,
 		placement = "bottom-start",
 		className,
 		disabled,
@@ -70,8 +82,8 @@ const PopupMenuLayout = (props: PopupMenuLayoutProps) => {
 		hideOnClick = true,
 	} = props;
 
-	const ref = useRef<Element>();
-	const exists = useElementExistence(ref);
+	const currentRef = ref || useRef<Element>();
+	const exists = useElementExistence(currentRef);
 
 	const [isOpen, setIsOpen] = useState(false);
 
@@ -96,7 +108,8 @@ const PopupMenuLayout = (props: PopupMenuLayoutProps) => {
 
 	return (
 		<Tippy
-			ref={ref}
+			ref={currentRef}
+			onMount={onTippyMount}
 			onAfterUpdate={(instance) => {
 				if (!isOpen) instance.hide();
 			}}
@@ -127,7 +140,7 @@ const PopupMenuLayout = (props: PopupMenuLayoutProps) => {
 		>
 			{createElement(
 				isInline ? "span" : "div",
-				{ className: "button" },
+				{ className: "button", style: { display: "flex", alignItems: "center" } },
 				tooltipText ? (
 					<Tooltip content={tooltipText}>
 						<span>{IconElement}</span>
@@ -138,7 +151,7 @@ const PopupMenuLayout = (props: PopupMenuLayoutProps) => {
 			)}
 		</Tippy>
 	);
-};
+});
 
 export default styled(PopupMenuLayout)`
 	${(p) =>

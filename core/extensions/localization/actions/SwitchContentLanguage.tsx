@@ -1,3 +1,4 @@
+import { getExecutingEnvironment } from "@app/resolveModule/env";
 import Icon from "@components/Atoms/Icon";
 import Tooltip from "@components/Atoms/Tooltip";
 import PopupMenuLayout from "@components/Layouts/PopupMenuLayout";
@@ -6,6 +7,7 @@ import ArticlePropsService from "@core-ui/ContextServices/ArticleProps";
 import CatalogPropsService from "@core-ui/ContextServices/CatalogProps";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import { useRouter } from "@core/Api/useRouter";
+import styled from "@emotion/styled";
 import AddContentLanguage from "@ext/localization/actions/AddContentLanguage";
 import ContentLanguageActions from "@ext/localization/actions/ContentLanguageActions";
 import Localizer from "@ext/localization/core/Localizer";
@@ -13,7 +15,7 @@ import { ContentLanguage } from "@ext/localization/core/model/Language";
 import t from "@ext/localization/locale/translate";
 import { useEffect, useState } from "react";
 
-const SwitchContentLanguage = () => {
+const SwitchContentLanguage = ({ className }: { className?: string }) => {
 	const router = useRouter();
 	const isReadOnly = PageDataContextService.value.conf.isReadOnly;
 
@@ -33,6 +35,7 @@ const SwitchContentLanguage = () => {
 	}, []);
 
 	if (!articleProps || !props || !articleProps?.pathname || articleProps.welcome || !props.language) return null;
+	if (getExecutingEnvironment() == "next" && props.supportedLanguages?.length < 2) return null;
 
 	const switchLanguage = (code: ContentLanguage) => {
 		if (isReadOnly) {
@@ -86,21 +89,22 @@ const SwitchContentLanguage = () => {
 					const button = (
 						<ButtonLink
 							key={idx}
+							className={className}
 							onClick={canSwitch ? () => switchLanguage(code) : undefined}
 							text={t(`language.${ContentLanguage[code]}`)}
-							fullWidth={props.language != code}
-							iconCode={!canSwitch ? "check" : null}
+							fullWidth={props.language != code || !canSwitch}
 							iconIsLoading={isLoading}
-							rightActions={
-								showActions && [
+							rightActions={[
+								!canSwitch ? <Icon key={0} code="check" /> : null,
+								showActions ? (
 									<ContentLanguageActions
-										key={0}
+										key={1}
 										canSwitch={canSwitch}
 										setIsLoading={setIsLoading}
 										targetCode={code}
-									/>,
-								]
-							}
+									/>
+								) : null,
+							]}
 						/>
 					);
 
@@ -117,4 +121,10 @@ const SwitchContentLanguage = () => {
 	);
 };
 
-export default SwitchContentLanguage;
+export default styled(SwitchContentLanguage)`
+	.right-actions {
+		display: flex;
+		align-items: center;
+		gap: 0.2rem;
+	}
+`;

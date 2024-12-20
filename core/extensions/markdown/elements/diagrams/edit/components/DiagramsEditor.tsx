@@ -22,6 +22,7 @@ import OnLoadResourceService from "@ext/markdown/elements/copyArticles/onLoadRes
 import DiagramRender from "@ext/markdown/elements/diagrams/component/DiagramRender";
 import getMermaidDiagram from "@ext/markdown/elements/diagrams/diagrams/mermaid/getMermaidDiagram";
 import getPlantUmlDiagram from "@ext/markdown/elements/diagrams/diagrams/plantUml/getPlantUmlDiagram";
+import getNaturalSize from "@ext/markdown/elements/diagrams/logic/getNaturalSize";
 import Note, { NoteType } from "@ext/markdown/elements/note/render/component/Note";
 import useMediaQuery from "@mui/material/useMediaQuery";
 import { Editor } from "@tiptap/core";
@@ -66,6 +67,7 @@ const DiagramsEditor = (props: DiagramsEditorProps) => {
 	const [contentState, setContentState] = useState(content ?? "");
 	const [contentEditState, setContentEditState] = useState(content ?? "");
 	const apiUrlCreator = ApiUrlCreatorService.value;
+	const { update, getBuffer } = OnLoadResourceService.value;
 	const [error, setError] = useState(null);
 	const alertWrapperRef = useRef<HTMLDivElement>(null);
 	const rightItemRef = useRef<HTMLDivElement>(null);
@@ -74,6 +76,7 @@ const DiagramsEditor = (props: DiagramsEditorProps) => {
 	const [showConfirm, setShowConfirm] = useState(false);
 	const isMobile = useMediaQuery(cssMedia.JSnarrow);
 	const [pendedData, setPendedData] = useState(content ?? "");
+	const diagramsServiceUrl = PageDataContextService.value.conf.diagramsServiceUrl;
 
 	const messages = {
 		dontSave: t("dont-save"),
@@ -87,7 +90,7 @@ const DiagramsEditor = (props: DiagramsEditorProps) => {
 	const saveSrc = (newContent = "") => {
 		if (!src) return;
 		void FetchService.fetch(apiUrlCreator.setArticleResource(src), newContent);
-		OnLoadResourceService.update(src, Buffer.from(newContent));
+		update(src, Buffer.from(newContent));
 	};
 
 	const saveContent = (newContent = "") => {
@@ -95,7 +98,13 @@ const DiagramsEditor = (props: DiagramsEditorProps) => {
 		editor.commands.updateAttributes("diagrams", { content: newContent });
 	};
 
-	const save = () => {
+	const getAnyDiagrams = async (content: string, isC4Diagram: boolean) => {
+		const res = await FetchService.fetch(apiUrlCreator.getDiagramByContentUrl(diagramName), content);
+		if (!res.ok) return setError(await res.json());
+		return isC4Diagram ? await res.json() : await res.text();
+	};
+
+	const save = async () => {
 		if (src) saveSrc(contentEditState);
 		else saveContent(contentEditState);
 		setContentState(contentEditState);
@@ -103,6 +112,17 @@ const DiagramsEditor = (props: DiagramsEditorProps) => {
 		setStartContent(contentEditState);
 		onClose?.();
 		setIsOpen(false);
+
+		const diagramData = DIAGRAM_FUNCTIONS?.[diagramName]
+			? await DIAGRAM_FUNCTIONS?.[diagramName](contentEditState, diagramsServiceUrl)
+			: await getAnyDiagrams(contentEditState, diagramName === DiagramType["c4-diagram"]);
+		const newSize = getNaturalSize(diagramData);
+		if (newSize) {
+			editor.commands.updateAttributes("diagrams", {
+				width: newSize.width + "px",
+				height: newSize.height + "px",
+			});
+		}
 	};
 
 	const cancel = () => {
@@ -114,10 +134,11 @@ const DiagramsEditor = (props: DiagramsEditorProps) => {
 
 	const loadContent = (src: string) => {
 		if (!src) return;
-		const cnt = OnLoadResourceService.getBuffer(src).toString();
+		const cnt = getBuffer(src).toString();
 		setContentState(cnt);
 		setStartContent(cnt);
 		setContentEditState(cnt);
+		setPendedData(cnt);
 	};
 
 	const calculateHeights = useCallback(() => {
@@ -276,6 +297,7 @@ const OverloadDiagramRenderer: FC<OverloadRendererProps> = memo((props) => {
 	const { diagramName, error, setError, title = "", content = "" } = props;
 	const apiUrlCreator = ApiUrlCreatorService.value;
 	const diagramsServiceUrl = PageDataContextService.value.conf.diagramsServiceUrl;
+	const { useGetContent } = OnLoadResourceService.value;
 
 	const ref = useRef<HTMLDivElement | HTMLImageElement>();
 	const [data, setData] = useState("");
@@ -298,7 +320,7 @@ const OverloadDiagramRenderer: FC<OverloadRendererProps> = memo((props) => {
 		);
 	}
 
-	OnLoadResourceService.useGetContent(
+	useGetContent(
 		"",
 		apiUrlCreator,
 		async (buffer: Buffer) => {

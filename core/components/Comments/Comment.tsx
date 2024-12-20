@@ -2,8 +2,9 @@ import { Comment } from "@core-ui/CommentBlock";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import styled from "@emotion/styled";
 import t from "@ext/localization/locale/translate";
+import { GlobalEditorIsEditable } from "@ext/markdown/elements/comment/edit/logic/CommentFocusTooltip";
 import { JSONContent } from "@tiptap/react";
-import { Dispatch, ReactElement, SetStateAction, useEffect, useState } from "react";
+import { Dispatch, ReactElement, SetStateAction, useContext, useEffect, useState } from "react";
 import User from "../../extensions/security/components/User/User";
 import Editor from "./CommentEditor";
 import InputTransitionWrapper from "./InputTransitionWrapper";
@@ -33,7 +34,7 @@ const CommentComponent = (props: CommentComponentProps): ReactElement => {
 		onDelete,
 		onEditorInput,
 	} = props;
-
+	const globalEditorIsEditable = useContext(GlobalEditorIsEditable);
 	const [isEditable, setIsEditable] = useState(false);
 	const [isActive, setIsActive] = useState(false);
 	const userInfo = PageDataContextService.value.userInfo;
@@ -115,7 +116,7 @@ const CommentComponent = (props: CommentComponentProps): ReactElement => {
 								/>
 							</div>
 						}
-						actions={<UserInfo />}
+						actions={globalEditorIsEditable && <UserInfo />}
 					/>
 				</div>
 			</div>

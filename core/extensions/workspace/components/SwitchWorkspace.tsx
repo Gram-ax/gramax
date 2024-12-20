@@ -1,6 +1,7 @@
 import PopupMenuLayout from "@components/Layouts/PopupMenuLayout";
 import ButtonLink from "@components/Molecules/ButtonLink";
 import WorkspaceService from "@core-ui/ContextServices/Workspace";
+import EditEnterpriseWorkspace from "@ext/enterprise/components/EditEnterpriseWorkspace";
 import AddWorkspace from "@ext/workspace/components/AddWorkspace";
 import EditWorkspace from "@ext/workspace/components/EditWorkspace";
 
@@ -21,7 +22,13 @@ const SwitchWorkspace = () => {
 							onClick={() => WorkspaceService.setActive(path)}
 							iconCode={icon}
 							text={workspaceName}
-							rightActions={[<EditWorkspace key={0} workspace={workspace} />]}
+							rightActions={[
+								workspace.isEnterprise ? (
+									<EditEnterpriseWorkspace key={1} workspace={workspace} />
+								) : (
+									<EditWorkspace key={0} workspace={workspace} />
+								),
+							]}
 						/>
 					);
 				})}

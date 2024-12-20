@@ -118,6 +118,7 @@ impl<C: Creds> Repo<C> {
     let mut opts = FetchOptions::new();
     opts.remote_callbacks(cbs);
     opts.add_credentials_headers(&self.1);
+    opts.prune(FetchPrune::On);
     opts.download_tags(AutotagOption::All);
 
     let mut remote = self.0.find_remote("origin")?;
@@ -256,7 +257,9 @@ impl<C: Creds> Repo<C> {
             index.add_frombuffer(&index_entry, entry.content())?;
           }
           Err(_) => {
-            index.remove_path(path.as_ref())?;
+            if let Err(err) = index.remove_path(path.as_ref()) {
+              warn!(target: TAG, "failed to remove path {}: {}", path.as_ref().display(), err);
+            }
           }
         }
 

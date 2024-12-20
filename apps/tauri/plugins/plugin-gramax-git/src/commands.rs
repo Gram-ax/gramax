@@ -198,8 +198,29 @@ pub(crate) fn git_file_exists(repo_path: &Path, path: &Path, scope: TreeReadScop
 }
 
 #[command(async)]
+pub(crate) fn git_read_dir_stats(repo_path: &Path, path: &Path, scope: TreeReadScope) -> Result<Vec<DirStat>> {
+  git::read_dir_stats(repo_path, scope, path)
+}
+
+
+#[command(async)]
 pub(crate) fn find_refs_by_globs(repo_path: &Path, patterns: Vec<String>) -> Result<Vec<RefInfo>> {
   git::find_refs_by_globs(repo_path, &patterns)
+}
+
+#[command(async)]
+pub(crate) fn list_merge_requests(repo_path: &Path) -> Result<Vec<MergeRequest>> {
+  git::list_merge_requests(repo_path)
+}
+
+#[command(async)]
+pub(crate) fn create_or_update_merge_request(repo_path: &Path, creds: AccessTokenCreds, merge_request: CreateMergeRequest) -> Result<()> {
+  git::create_or_update_merge_request(repo_path, merge_request, creds)
+}
+
+#[command(async)]
+pub(crate) fn get_draft_merge_request(repo_path: &Path) -> Result<Option<MergeRequest>> {
+  git::get_draft_merge_request(repo_path)
 }
 
 #[command(async)]

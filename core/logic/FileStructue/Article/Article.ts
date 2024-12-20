@@ -2,6 +2,7 @@ import Path from "@core/FileProvider/Path/Path";
 import type FileStructure from "@core/FileStructue/FileStructure";
 import { ItemRef } from "@core/FileStructue/Item/ItemRef";
 import { ItemType } from "@core/FileStructue/Item/ItemType";
+import type Hasher from "@core/Hash/Hasher";
 import LinkResourceManager from "@core/Link/LinkResourceManager";
 import ResourceUpdater from "@core/Resource/ResourceUpdater";
 import createNewFilePathUtils from "@core/utils/createNewFilePathUtils";
@@ -110,7 +111,15 @@ export class Article<P extends ArticleProps = ArticleProps> extends Item<P> {
 		return this._save();
 	}
 
+	async hash(hash: Hasher, recursive = true) {
+		const hasher = await super.hash(hash);
+		hasher.hash(this._content);
+		if (recursive) await this.parsedContent?.resourceManager?.hash(hash);
+		return hasher;
+	}
+
 	protected async _save(renamed?: boolean) {
+		delete this._props.shouldBeCreated;
 		delete this._props.welcome;
 		if (this._props.title?.trim()) delete this._props.external;
 		const stat = await this._fs.saveArticle(this);

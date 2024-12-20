@@ -1,6 +1,6 @@
 import Context from "@core/Context/Context";
 import PageDataContext from "@core/Context/PageDataContext";
-import getClientPermissions from "@ext/enterprise/getClientPermissions";
+import getClientPermissions from "@ext/enterprise/utils/getClientPermissions";
 import UserInfo from "@ext/security/logic/User/UserInfo";
 import Application from "../../types/Application";
 
@@ -44,10 +44,10 @@ const getPageDataContext = ({
 			buildVersion: conf.buildVersion,
 			isProduction: conf.isProduction,
 			bugsnagApiKey: conf.bugsnagApiKey,
-			yandexMetricCounter: conf.yandexMetricCounter,
+			metrics: conf.metrics,
 			authServiceUrl: workspaceConfig?.services?.auth?.url || conf.services.auth.url,
 			diagramsServiceUrl: workspaceConfig?.services?.diagramRenderer?.url || conf.services.diagramRenderer.url,
-			enterprise: conf.enterprise,
+			enterprise: app.em.getConfig(),
 			logo: app.conf.logo,
 		},
 		userInfo: userInfo ?? ctx.user.info ?? null,

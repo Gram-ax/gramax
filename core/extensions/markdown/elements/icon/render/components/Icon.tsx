@@ -20,7 +20,6 @@ export default styled(Icon)`
 	display: inline-block;
 
 	svg {
-		stroke: currentColor;
 		width: 1em;
 		height: 1em;
 	}

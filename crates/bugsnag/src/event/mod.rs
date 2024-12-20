@@ -4,7 +4,7 @@ pub mod device;
 use std::hash::DefaultHasher;
 use std::hash::Hash;
 use std::hash::Hasher;
-use std::panic::PanicInfo;
+use std::panic::PanicHookInfo;
 
 use serde::Deserialize;
 use serde::Serialize;
@@ -79,8 +79,8 @@ impl BugsnagException {
   }
 }
 
-impl From<&PanicInfo<'_>> for BugsnagException {
-  fn from(panic_info: &PanicInfo) -> Self {
+impl From<&PanicHookInfo<'_>> for BugsnagException {
+  fn from(panic_info: &PanicHookInfo) -> Self {
     let payload = panic_info.payload();
     let exception = BugsnagException::new("Thread panicked".to_string());
 

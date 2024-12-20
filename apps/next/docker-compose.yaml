@@ -5,13 +5,14 @@ services:
             dockerfile: ./apps/next/next.Dockerfile
             args:
                 - DOCKER_BUILDKIT=1
+                - PRODUCTION=true
         image: gramax/gramax:latest
         container_name: gramax
         restart: unless-stopped
         ports:
-            - ${PORT:-80}:${PORT}
+            - ${PORT:-80}:${PORT:-80}
         environment:
-            - PORT=${PORT}
+            - PORT=${PORT:-80}
             - ADMIN_LOGIN=${ADMIN_LOGIN:-admin}
             - ADMIN_PASSWORD=${ADMIN_PASSWORD:-password}
             - LOGO_IMAGE_URL=${LOGO_IMAGE_URL}
@@ -25,11 +26,6 @@ services:
             - gramax-network
 
     diagram-renderer:
-        # build:
-        #     context: ../../
-        #     args:
-        #         - DOCKER_BUILDKIT=1
-        #     dockerfile: ./services/target/diagram-renderer/next.Dockerfile
         image: gramax/gramax-diagram-renderer:latest
         container_name: gramax-diagram-renderer
         networks:

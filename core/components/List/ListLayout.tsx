@@ -75,6 +75,7 @@ export interface ListLayoutProps extends ConfigProps {
 	filterItems?: (items: ItemContent[], input: string) => ItemContent[];
 	containerRef?: MutableRefObject<any>;
 	addWidth?: number;
+	useVirtuoso?: boolean;
 }
 
 const StyledDiv = styled.div<ConfigProps>`
@@ -104,6 +105,27 @@ const defaultFilterItems = (items: ItemContent[], input: string) => {
 	return multiLayoutSearcher<ItemContent[]>(filterItems, true)(input);
 };
 
+const getBreadcrumb = (item: ItemContent) => {
+	if (!item || typeof item === "string") return undefined;
+	if (!("breadcrumb" in item)) return undefined;
+	return item.breadcrumb;
+};
+
+const breadcrumbFilter = (items: ItemContent[]) => {
+	if (!items) return items;
+
+	for (let i = items.length - 1; i >= 0; i--) {
+		const item = items[i];
+		if (!item || typeof item === "string" || !("breadcrumb" in item)) continue;
+		const breadcrumb = getBreadcrumb(item);
+		const nextBreadcrumb = getBreadcrumb(items[i - 1]);
+
+		if (breadcrumb?.join("") === nextBreadcrumb?.join("")) delete item.breadcrumb;
+	}
+
+	return items;
+};
+
 const getStrValue = (value: ItemContent) => {
 	return typeof value == "string" ? value : typeof value.element == "string" ? value.element : value.labelField;
 };
@@ -125,6 +147,7 @@ const ListLayout = forwardRef((props: ListLayoutProps, ref: ForwardedRef<ListLay
 		disableCancelAction = false,
 		place = "bottom",
 		appendTo,
+		useVirtuoso = true,
 	} = props;
 
 	const {
@@ -196,7 +219,11 @@ const ListLayout = forwardRef((props: ListLayoutProps, ref: ForwardedRef<ListLay
 		provideCloseHandler?.(() => setIsOpen);
 	}, [provideCloseHandler]);
 
-	const filteredItems = useMemo(() => filterItems(items, getStrValue(value)), [value, items]);
+	const filteredItems = useMemo(() => {
+		let result = filterItems(items, getStrValue(value));
+		if (withBreadcrumbs) breadcrumbFilter(result);
+		return result;
+	}, [value, items, withBreadcrumbs]);
 
 	useWatch(() => {
 		if (isOpen && getStrValue(selectedItem) == getStrValue(value)) setShowFilteredItems(false);
@@ -248,6 +275,7 @@ const ListLayout = forwardRef((props: ListLayoutProps, ref: ForwardedRef<ListLay
 	const TooltipContent = (
 		<div style={{ width: filteredWidth }} ref={itemsRef}>
 			<Items
+				useVirtuoso={useVirtuoso}
 				setIsOpen={setIsOpen}
 				buttons={buttons}
 				isLoadingData={isLoadingData}

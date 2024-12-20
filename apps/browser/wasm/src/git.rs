@@ -155,12 +155,28 @@ define_c_api! {
     git::file_stat(Path::new(&repo_path), scope, Path::new(&path))
   }
 
+  json fn git_read_dir_stats(repo_path: String, path: String, scope: TreeReadScope) -> Vec<DirStat> {
+    git::read_dir_stats(Path::new(&repo_path), scope, Path::new(&path))
+  }
+
   json fn git_file_exists(repo_path: String, path: String, scope: TreeReadScope) -> bool {
     git::file_exists(Path::new(&repo_path), scope, Path::new(&path))
   }
 
   bytes fn git_read_file(repo_path: String, path: String, scope: TreeReadScope) -> Vec<u8> {
     git::read_file(Path::new(&repo_path), scope, Path::new(&path))
+  }
+
+  json fn list_merge_requests(repo_path: String) -> Vec<MergeRequest> {
+    git::list_merge_requests(Path::new(&repo_path))
+  }
+
+  noreturn fn create_or_update_merge_request(repo_path: String, creds: AccessTokenCreds, merge_request: CreateMergeRequest) -> () {
+    git::create_or_update_merge_request(Path::new(&repo_path), merge_request, creds)
+  }
+
+  json fn get_draft_merge_request(repo_path: String) -> Option<MergeRequest> {
+    git::get_draft_merge_request(Path::new(&repo_path))
   }
 
   noreturn fn invalidate_repo_cache(repo_paths: Vec<String>) -> () {
