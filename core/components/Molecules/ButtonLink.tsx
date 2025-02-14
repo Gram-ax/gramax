@@ -1,4 +1,4 @@
-import Button, { ButtonProps, TextSize, TextKeys } from "@components/Atoms/Button/Button";
+import Button, { ButtonProps, TextKeys, TextSize } from "@components/Atoms/Button/Button";
 import { ButtonStyle } from "@components/Atoms/Button/ButtonStyle";
 import Icon from "@components/Atoms/Icon";
 import { classNames } from "@components/libs/classNames";
@@ -39,6 +39,8 @@ const ButtonLink = forwardRef((props: ButtonLinkProps, ref?: MutableRefObject<HT
 		disabled,
 		dataQa,
 		iconStyle,
+		onMouseEnter,
+		onMouseLeave,
 		...otherProps
 	} = props;
 
@@ -46,13 +48,15 @@ const ButtonLink = forwardRef((props: ButtonLinkProps, ref?: MutableRefObject<HT
 		<div
 			data-qa={dataQa}
 			ref={ref}
+			onMouseEnter={onMouseEnter}
+			onMouseLeave={onMouseLeave}
 			onClick={disabled ? null : onClick}
-			className={classNames(className, { fullWidth })}
+			className={classNames(className, { fullWidth }, ["buttonLink"])}
 		>
 			<Button disabled={disabled} buttonStyle={ButtonStyle.transparent} textSize={textSize} {...otherProps}>
 				{iconCode && (
 					<Icon
-						style={{ ...iconStyle, fontSize: unionFontSize ? TextKeys[textSize] + "rem" : undefined }}
+						style={{ fontSize: unionFontSize ? TextKeys[textSize] + "rem" : undefined, ...iconStyle }}
 						fw={iconFw}
 						code={iconCode}
 						viewBox={iconViewBox}

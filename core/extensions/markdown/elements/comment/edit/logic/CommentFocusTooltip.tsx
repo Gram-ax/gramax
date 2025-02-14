@@ -1,5 +1,5 @@
 import getFirstPatentByName from "@core-ui/utils/getFirstPatentByName";
-import eventEmitter from "@core/utils/eventEmitter";
+import commentEventEmitter from "@core/utils/commentEventEmitter";
 import getFocusMarkFromSelection from "@ext/markdown/elementsUtils/getFocusMarkFromSelection";
 import getMarkByPos from "@ext/markdown/elementsUtils/getMarkByPos";
 import getMarkPosition from "@ext/markdown/elementsUtils/getMarkPosition";
@@ -48,8 +48,8 @@ class CommentFocusTooltip extends BaseMark {
 		document.addEventListener("mouseup", this._mouseUpHandler);
 		document.addEventListener("mousedown", this._mouseDownHandler);
 
-		eventEmitter.on("addComment", this._onCreateCommentHandler);
-		eventEmitter.on("onClickComment", this._onCommentClick);
+		commentEventEmitter.on("addComment", this._onCreateCommentHandler);
+		commentEventEmitter.on("onClickComment", this._onCommentClick);
 	}
 	update() {}
 
@@ -57,8 +57,8 @@ class CommentFocusTooltip extends BaseMark {
 		document.removeEventListener("keydown", this._keydownHandlerEvent);
 		document.removeEventListener("mouseup", this._mouseUpHandler);
 		document.addEventListener("mousedown", this._mouseDownHandler);
-		eventEmitter.off("addComment", this._onCreateCommentHandler);
-		eventEmitter.off("onClickComment", this._onCommentClick);
+		commentEventEmitter.off("addComment", this._onCreateCommentHandler);
+		commentEventEmitter.off("onClickComment", this._onCommentClick);
 		this._tooltip.remove();
 	}
 
@@ -140,7 +140,7 @@ class CommentFocusTooltip extends BaseMark {
 			answers: [],
 		} as CommentBlock);
 		this._removeComponent();
-		eventEmitter.emit("addComment", { pos: markPosition.to - 1, view: this._view });
+		commentEventEmitter.emit("addComment", { pos: markPosition.to - 1, view: this._view });
 	}
 
 	private _removeCommentComponent() {

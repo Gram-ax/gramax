@@ -31,6 +31,14 @@ const getPageData: Command<
 
 		const { type: pageDataType, itemLogicPath } = await getPageDataByPathname(pathnameData, this._app.wm);
 
+		// https://support.ics-it.ru/issue/GXS-1938
+		const data =
+			pageDataType === PageDataType.notFound
+				? await getArticlePageData(pathnameData.itemLogicPath, pathnameData.itemLogicPath.join("/"))
+				: null;
+
+		if (data) return data;
+
 		if (pageDataType === PageDataType.article) return getArticlePageData(itemLogicPath, path);
 		else if (pageDataType === PageDataType.notFound)
 			return getNotFoundCatalog(path, Path.join(...pathnameData.itemLogicPath));

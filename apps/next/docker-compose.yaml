@@ -25,19 +25,6 @@ services:
         networks:
             - gramax-network
 
-    diagram-renderer:
-        image: gramax/gramax-diagram-renderer:latest
-        container_name: gramax-diagram-renderer
-        networks:
-            - gramax-network
-        restart: unless-stopped
-
-    c4viz:
-        image: gramax/gramax-c4-server:latest
-        container_name: gramax-c4viz-server
-        networks:
-            - gramax-network
-
 networks:
     gramax-network:
         name: gramax-network

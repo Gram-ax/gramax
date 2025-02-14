@@ -1,35 +1,28 @@
 import { NEW_ARTICLE_REGEX } from "@app/config/const";
 import { classNames } from "@components/libs/classNames";
-import ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
 import FetchService from "@core-ui/ApiServices/FetchService";
 import MimeTypes from "@core-ui/ApiServices/Types/MimeTypes";
+import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import ArticlePropsService from "@core-ui/ContextServices/ArticleProps";
-import debounceFunction from "@core-ui/debounceFunction";
+import { useDebounce } from "@core-ui/hooks/useDebounce";
+import useWatch from "@core-ui/hooks/useWatch";
 import { transliterate } from "@core-ui/languageConverter/transliterate";
-import getIsDevMode from "@core-ui/utils/getIsDevMode";
 import { useRouter } from "@core/Api/useRouter";
 import { ArticlePageData, ClientArticleProps } from "@core/SitePresenter/SitePresenter";
 import ArticleMat from "@ext/markdown/core/edit/components/ArticleMat";
 import { pasteArticleResource } from "@ext/markdown/elements/copyArticles/copyPasteArticleResource";
 import OnLoadResourceService from "@ext/markdown/elements/copyArticles/onLoadResourceService";
 import imageHandlePaste from "@ext/markdown/elements/image/edit/logic/imageHandlePaste";
-import {
-	BaseEditorContext,
-	EditorContext,
-	EditorPasteHandler,
-} from "@ext/markdown/elementsUtils/ContextServices/EditorService";
+import { BaseEditorContext, EditorPasteHandler } from "@ext/markdown/elementsUtils/ContextServices/EditorService";
 import getTocItems, { getLevelTocItemsByJSONContent } from "@ext/navigation/article/logic/createTocItems";
 import { Editor } from "@tiptap/core";
-import { useEffect, useMemo, useState } from "react";
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import ContentEditor from "../../extensions/markdown/core/edit/components/ContentEditor";
 import getExtensions from "../../extensions/markdown/core/edit/logic/getExtensions";
 import Renderer from "../../extensions/markdown/core/render/components/Renderer";
 import getComponents from "../../extensions/markdown/core/render/components/getComponents/getComponents";
 import Header from "../../extensions/markdown/elements/heading/render/component/Header";
 import ArticleUpdater from "./ArticleUpdater/ArticleUpdater";
-
-const ARTICLE_UPDATE_SYMBOL = Symbol();
-const ARTICLE_TITLE_UPDATE_SYMBOL = Symbol();
 
 interface ArticleRendererProps {
 	data: ArticlePageData;
@@ -42,11 +35,20 @@ const ArticleParent = ({ children }: { children: React.ReactNode }) => {
 export const ArticleEditRenderer = (props: ArticleRendererProps) => {
 	const { data } = props;
 
-	const router = useRouter();
 	const onLoadResource = OnLoadResourceService.value;
 	const [actualData, setActualData] = useState(data);
 
+	const router = useRouter();
+	const apiUrlCreator = ApiUrlCreatorService.value;
 	const articleProps = ArticlePropsService.value;
+
+	const apiUrlCreatorRef = useRef(apiUrlCreator);
+	const articlePropsRef = useRef(articleProps);
+
+	useWatch(() => {
+		apiUrlCreatorRef.current = apiUrlCreator;
+		articlePropsRef.current = articleProps;
+	}, [apiUrlCreator, articleProps]);
 
 	useEffect(() => {
 		setActualData(data);
@@ -57,46 +59,64 @@ export const ArticleEditRenderer = (props: ArticleRendererProps) => {
 		ArticlePropsService.set(newData.articleProps);
 	};
 
-	const onTitleUpdate = async (
-		title: string,
-		apiUrlCreator: ApiUrlCreator,
-		articleProps: ClientArticleProps,
-		fileName?: string,
-	) => {
-		articleProps.title = title;
-		articleProps.fileName = fileName ? fileName : articleProps.fileName;
+	const updateContent = useCallback(async (editor: Editor) => {
+		const apiUrlCreator = apiUrlCreatorRef.current;
 
-		const url = apiUrlCreator.updateItemProps();
-		const res = await FetchService.fetch(url, JSON.stringify(articleProps), MimeTypes.json);
-		if (fileName && res.ok) {
-			const { pathname } = await res.json();
-			pathname && router.pushPath(pathname);
-		}
-	};
+		const json = editor.getJSON();
+		json.content.shift();
+		const articleContentEdit = JSON.stringify(json);
+		const url = apiUrlCreator.updateArticleContent();
+		await FetchService.fetch(url, articleContentEdit, MimeTypes.json);
+	}, []);
 
-	const titleUpdate = ({ newTitle, apiUrlCreator, articleProps }: { newTitle: string } & BaseEditorContext) => {
-		const maybeKebabName =
-			newTitle && NEW_ARTICLE_REGEX.test(articleProps.fileName)
-				? transliterate(newTitle, { kebab: true, maxLength: 50 })
-				: undefined;
+	const updateTitle = useCallback(
+		async (title: string, articleProps: ClientArticleProps, fileName?: string) => {
+			articleProps.title = title;
+			articleProps.fileName = fileName ? fileName : articleProps.fileName;
 
-		if (maybeKebabName) onTitleUpdate(newTitle, apiUrlCreator, articleProps, maybeKebabName);
-	};
+			const url = apiUrlCreatorRef.current.updateItemProps();
+			const res = await FetchService.fetch(url, JSON.stringify(articleProps), MimeTypes.json);
 
-	const handleUpdate = ({ editor, apiUrlCreator, articleProps }: EditorContext) => {
-		const beforeHeaderText = articleProps.title;
-		const afterHeaderText = editor.state.doc.firstChild.textContent;
-		onContentUpdate({ editor, apiUrlCreator });
+			if (fileName && res.ok) {
+				const { pathname, ref } = await res.json();
+				articleProps.ref = ref;
+				pathname && router.pushPath(pathname);
+			}
+		},
+		[router],
+	);
 
-		if (beforeHeaderText !== afterHeaderText)
-			debounceFunction(
-				ARTICLE_TITLE_UPDATE_SYMBOL,
-				() => onTitleUpdate(afterHeaderText, apiUrlCreator, articleProps),
-				500,
-			);
-	};
+	const { start: debouncedUpdateContent, cancel: cancelDebouncedUpdateContent } = useDebounce(updateContent, 500);
 
-	const handlePaste: EditorPasteHandler = (view, event, _slice, apiUrlCreator, articleProps) => {
+	const { start: debouncedUpdateTitle, cancel: cancelDebouncedUpdateTitle } = useDebounce(
+		async (newTitle: string, fileName?: string) => {
+			const articleProps = articlePropsRef.current;
+			await updateTitle(newTitle, articleProps, fileName);
+		},
+		500,
+	);
+
+	useEffect(() => {
+		return () => {
+			window.forceSave = null;
+			cancelDebouncedUpdateContent();
+			cancelDebouncedUpdateTitle();
+		};
+	}, [cancelDebouncedUpdateContent, cancelDebouncedUpdateTitle, apiUrlCreator, actualData.articleProps]);
+
+	const onTitleNeedsUpdate = useCallback(
+		({ newTitle, articleProps }: { newTitle: string } & BaseEditorContext) => {
+			const maybeKebabName =
+				newTitle && NEW_ARTICLE_REGEX.test(articleProps.fileName)
+					? transliterate(newTitle, { kebab: true, maxLength: 50 })
+					: undefined;
+
+			if (maybeKebabName || newTitle !== articleProps.title) updateTitle(newTitle, articleProps, maybeKebabName);
+		},
+		[updateTitle, articleProps],
+	);
+
+	const onPaste: EditorPasteHandler = (view, event, _slice, apiUrlCreator, articleProps) => {
 		if (!event.clipboardData) return false;
 		if (event.clipboardData.files.length !== 0)
 			return imageHandlePaste(view, event, articleProps, apiUrlCreator, onLoadResource);
@@ -104,29 +124,16 @@ export const ArticleEditRenderer = (props: ArticleRendererProps) => {
 		return pasteArticleResource({ view, event, articleProps, apiUrlCreator, onLoadResource });
 	};
 
-	const onBlur = ({ editor, apiUrlCreator, articleProps }: EditorContext) => {
-		titleUpdate({ newTitle: editor.state.doc.firstChild.textContent, apiUrlCreator, articleProps });
-	};
-
-	const onContentUpdate = ({ editor, apiUrlCreator }: { editor: Editor; apiUrlCreator: ApiUrlCreator }) => {
-		const f = async () => {
-			const json = editor.getJSON();
-			json.content.shift();
-			const articleContentEdit = JSON.stringify(json);
-			const url = apiUrlCreator.updateArticleContent();
-			const res = await FetchService.fetch(url, articleContentEdit, MimeTypes.json);
-			if (res.ok && getIsDevMode()) {
-				const data = await res.json();
-				articleProps.status = data?.status;
-				ArticlePropsService.set(articleProps);
-			}
-		};
-		window.forceTrollCaller = f;
-		debounceFunction(ARTICLE_UPDATE_SYMBOL, f, 500);
-
+	const onContentUpdate = ({ editor }: { editor: Editor }) => {
 		const tocItems = getTocItems(getLevelTocItemsByJSONContent(editor.state.doc));
-		if (!tocItems) return;
-		ArticlePropsService.tocItems = tocItems;
+		if (tocItems) ArticlePropsService.tocItems = tocItems;
+
+		typeof window !== "undefined" && (window.forceSave = () => updateContent(editor));
+
+		debouncedUpdateContent(editor);
+		if (articleProps.title !== editor.state.doc.firstChild.textContent) {
+			debouncedUpdateTitle(editor.state.doc.firstChild.textContent);
+		}
 	};
 
 	return (
@@ -135,17 +142,16 @@ export const ArticleEditRenderer = (props: ArticleRendererProps) => {
 				<ContentEditor
 					content={actualData.articleContentEdit}
 					extensions={getExtensions()}
-					onBlur={onBlur}
-					onTitleLoseFocus={titleUpdate}
-					onUpdate={handleUpdate.bind(this)}
-					handlePaste={handlePaste}
+					onTitleLoseFocus={onTitleNeedsUpdate}
+					onUpdate={onContentUpdate}
+					handlePaste={onPaste}
 				/>
 			</ArticleParent>
 		</ArticleUpdater>
 	);
 };
 
-export const ArticleReadRenderer = ({ data }: { data: ArticlePageData }) => {
+export const ArticleReadRenderer = memo(({ data }: { data: ArticlePageData }) => {
 	const { articleProps } = data;
 	return (
 		<ArticleParent>
@@ -165,4 +171,4 @@ export const ArticleReadRenderer = ({ data }: { data: ArticlePageData }) => {
 			</>
 		</ArticleParent>
 	);
-};
+});

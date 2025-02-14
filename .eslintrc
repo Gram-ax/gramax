@@ -32,6 +32,7 @@
 
 		"**/dist/**/*",
 		"apps/tauri/target",
+		"apps/tauri/src-tauri",
 		"apps/next/crates/next-gramax-git"
 	],
 	"plugins": ["@typescript-eslint", "react", "react-hooks", "promise"],

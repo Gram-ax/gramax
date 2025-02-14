@@ -1,11 +1,12 @@
+import { classNames } from "@components/libs/classNames";
+import Confirm from "@components/Molecules/Confirm";
 import { cssMedia } from "@core-ui/utils/cssUtils";
 import styled from "@emotion/styled";
+import ModalErrorHandler from "@ext/errorHandlers/client/components/ModalErrorHandler";
 import { useEffect, useRef, useState } from "react";
 import Popup from "reactjs-popup";
-import ModalErrorHandler from "@ext/errorHandlers/client/components/ModalErrorHandler";
 import IsOpenModalService from "../../ui-logic/ContextServices/IsOpenMpdal";
 import Icon from "../Atoms/Icon";
-import { classNames } from "@components/libs/classNames";
 
 export interface ModalLayoutProps {
 	children: JSX.Element;
@@ -20,8 +21,24 @@ export interface ModalLayoutProps {
 	closeOnEscape?: boolean;
 	closeOnCmdEnter?: boolean;
 	setGlobalsStyles?: boolean;
+
+	confirmSaveAction?: () => void;
+	closeConfirm?: () => void;
+	shouldOpenConfirmOnClose?: () => boolean;
+	isOpenConfirm?: boolean;
+
+	confirmTitle?: string;
+	confirmText?: string;
+
 	disabled?: boolean;
 	preventClose?: boolean;
+}
+
+export enum ModalWidth {
+	"S" = "45%",
+	"M" = "60%",
+	"L" = "80%",
+	"default" = "var(--default-form-width)",
 }
 
 const ModalLayout = (props: ModalLayoutProps) => {
@@ -32,13 +49,20 @@ const ModalLayout = (props: ModalLayoutProps) => {
 		onClose,
 		onEnter,
 		onCmdEnter,
+		closeConfirm,
+		confirmSaveAction,
+		isOpenConfirm,
+		shouldOpenConfirmOnClose,
 		isOpen: isParentOpen,
 		className,
 		disabled,
+		confirmText,
+		confirmTitle,
 		closeOnEscape = true,
 		closeOnCmdEnter = true,
 		preventClose = false,
 	} = props;
+
 	const [isOpen, setIsOpen] = useState(isParentOpen ?? false);
 	const [closeOnDocumentClick, setCloseOnDocumentClick] = useState(true);
 	const [mouseDownOnModal, setMouseDownOnModal] = useState(false);
@@ -52,6 +76,9 @@ const ModalLayout = (props: ModalLayoutProps) => {
 	};
 
 	const tryClose = () => {
+		const preventCloseModal = shouldOpenConfirmOnClose?.();
+		if (preventCloseModal) return;
+
 		onClose?.((isSimple) => {
 			if (!isSimple) shouldAbortOnClose.current = true;
 			closeModal();
@@ -81,9 +108,7 @@ const ModalLayout = (props: ModalLayoutProps) => {
 
 	useEffect(() => {
 		document.addEventListener("keydown", keydownHandler, false);
-		return () => {
-			document.removeEventListener("keydown", keydownHandler, false);
-		};
+		return () => document.removeEventListener("keydown", keydownHandler, false);
 	});
 
 	useEffect(() => {
@@ -95,73 +120,73 @@ const ModalLayout = (props: ModalLayoutProps) => {
 		else tryClose();
 	}, [isParentOpen]);
 
-	const handleError = () => {
-		setIsError(true);
-	};
+	const handleError = () => setIsError(true);
 
 	return (
-		<Popup
-			open={isOpen}
-			onOpen={() => {
-				onOpen?.();
-				setIsOpen(true);
-				IsOpenModalService.value = true;
-			}}
-			disabled={disabled}
-			onClose={onCurrentClose}
-			trigger={trigger}
-			overlayStyle={{ backgroundColor: "var(--color-modal-overlay-style-bg)" }}
-			contentStyle={{
-				display: "flex",
-				height: "100%",
-				border: "none",
-				background: "none",
-				width: "100%",
-			}}
-			closeOnEscape={false}
-			closeOnDocumentClick={true}
-			modal
-			nested
-		>
-			<div
-				className={className}
-				onMouseUp={() => {
-					if (closeOnDocumentClick && !mouseDownOnModal) tryClose();
-					setMouseDownOnModal(false);
+		<>
+			<Popup
+				open={isOpen}
+				onOpen={() => {
+					onOpen?.();
+					setIsOpen(true);
+					IsOpenModalService.value = true;
 				}}
-				onMouseDown={() => {
-					if (!closeOnDocumentClick) setMouseDownOnModal(true);
+				disabled={disabled}
+				onClose={onCurrentClose}
+				trigger={trigger}
+				overlayStyle={{ backgroundColor: "var(--color-modal-overlay-style-bg)" }}
+				contentStyle={{
+					display: "flex",
+					height: "100%",
+					border: "none",
+					background: "none",
+					width: "100%",
 				}}
-				data-qa={`modal-layout`}
+				closeOnEscape={false}
+				closeOnDocumentClick={true}
+				modal
+				nested
 			>
-				<div className="x-mark">
-					<Icon
-						code="x"
-						onMouseUp={(e) => {
-							e.stopPropagation();
-							tryClose();
-						}}
-					/>
-				</div>
 				<div
-					className={classNames("outer-modal", { "is-error": isError })}
-					onMouseEnter={() => {
-						setCloseOnDocumentClick(false);
+					className={className}
+					onMouseUp={() => {
+						if (closeOnDocumentClick && !mouseDownOnModal) tryClose();
+						setMouseDownOnModal(false);
 					}}
-					onMouseLeave={() => {
-						setCloseOnDocumentClick(true);
-					}}
-					onMouseDown={() => {
-						setCloseOnDocumentClick(false);
-					}}
+					onMouseDown={() => !closeOnDocumentClick && setMouseDownOnModal(true)}
+					data-qa={`modal-layout`}
 				>
-					<ModalErrorHandler onError={handleError} onClose={closeModal}>
-						<>{children}</>
-					</ModalErrorHandler>
-					<div style={{ height: "100%" }} onClick={tryClose} />
+					<div className={"x-mark"}>
+						<Icon
+							code={"x"}
+							onMouseUp={(e) => {
+								e.stopPropagation();
+								tryClose();
+							}}
+						/>
+					</div>
+					<div
+						className={classNames("outer-modal", { "is-error": isError })}
+						onMouseEnter={() => setCloseOnDocumentClick(false)}
+						onMouseLeave={() => setCloseOnDocumentClick(true)}
+						onMouseDown={() => setCloseOnDocumentClick(false)}
+					>
+						<ModalErrorHandler onError={handleError} onClose={closeModal}>
+							<>{children}</>
+						</ModalErrorHandler>
+						<div style={{ height: "100%" }} onClick={tryClose} />
+					</div>
+					{isOpenConfirm && (
+						<Confirm
+							closeConfirm={closeConfirm}
+							saveConfirm={confirmSaveAction}
+							title={confirmTitle}
+							text={confirmText}
+						/>
+					)}
 				</div>
-			</div>
-		</Popup>
+			</Popup>
+		</>
 	);
 };
 
@@ -174,10 +199,10 @@ export default styled(ModalLayout)`
 		height: 80%;
 		margin: auto;
 		width: ${(p) => {
-			if (!p.contentWidth) return "var(--default-form-width)";
-			if (p.contentWidth === "S") return "45%";
-			if (p.contentWidth === "M") return "60%";
-			if (p.contentWidth === "L") return "80%";
+			if (!p.contentWidth) return ModalWidth.default;
+			if (p.contentWidth === "S") return ModalWidth.S;
+			if (p.contentWidth === "M") return ModalWidth.M;
+			if (p.contentWidth === "L") return ModalWidth.L;
 		}};
 		${cssMedia.mediumest} {
 			width: 70% !important;

@@ -3,26 +3,27 @@ import { transliterate } from "@core-ui/languageConverter/transliterate";
 import Path from "@core/FileProvider/Path/Path";
 import FileProvider from "@core/FileProvider/model/FileProvider";
 import FileStructure from "@core/FileStructue/FileStructure";
-import ConfluenceConverter from "@ext/confluence/core/model/ConfluenceConverter";
+import ConfluenceCloudAPI from "@ext/confluence/core/api/ConfluenceCloudAPI";
 import ConfluenceAPI from "@ext/confluence/core/api/model/ConfluenceAPI";
+import ConfluenceCloudSourceData from "@ext/confluence/core/cloud/model/ConfluenceCloudSourceData";
 import generateConfluenceArticleLink from "@ext/confluence/core/logic/generateConfluenceArticleLink";
+import makeConfluenceConvertor from "@ext/confluence/core/logic/makeConfluenceConvertor";
 import { ConfluenceArticle, ConfluenceArticleTree } from "@ext/confluence/core/model/ConfluenceArticle";
+import ConfluenceConverter from "@ext/confluence/core/model/ConfluenceConverter";
 import ConfluenceImportData from "@ext/confluence/core/model/ConfluenceImportData";
 import ConfluenceStorageData from "@ext/confluence/core/model/ConfluenceStorageData";
 import { makeSourceApi } from "@ext/git/actions/Source/makeSourceApi";
 import t from "@ext/localization/locale/translate";
 import MarkdownFormatter from "@ext/markdown/core/edit/logic/Formatter/Formatter";
+import generateUnsupportedMd from "@ext/markdown/elements/unsupported/logic/generateUnsupportedMd";
 import SourceType from "@ext/storage/logic/SourceDataProvider/model/SourceType";
 import { JSONContent } from "@tiptap/core";
-import makeConfluenceConvertor from "@ext/confluence/core/logic/makeConfluenceConvertor";
-import ConfluenceCloudAPI from "@ext/confluence/core/api/ConfluenceCloudAPI";
-import ConfluenceCloudSourceData from "@ext/confluence/core/cloud/model/ConfluenceCloudSourceData";
 
-export default class ConfluenceStorage { 
+export default class ConfluenceStorage {
 	static position: number = 0;
 
 	static async clone({ fs, data, catalogPath }: ConfluenceImportData) {
-		fs.fp.stopWatch()
+		fs.fp.stopWatch();
 		const formatter = new MarkdownFormatter();
 		const converter = makeConfluenceConvertor[data.source.sourceType](data.source, fs.fp);
 		try {
@@ -72,7 +73,7 @@ export default class ConfluenceStorage {
 			new Path(`${transliteratedTitle}${hasChildren ? `/${CATEGORY_ROOT_FILENAME}` : ".md"}`),
 		);
 
-		const md = await formatter.render(await converter.convert(node, currentPath));
+		const md = await this._processContent(node, currentPath, converter, formatter);
 		const content = fs.serialize({ title: node.title, order: this.position++ }, md);
 
 		await fp.write(currentPath, content);
@@ -101,9 +102,34 @@ export default class ConfluenceStorage {
 			const blogPath = new Path(
 				`${path.value}/blogs/${transliterate(blog.title, { kebab: true, maxLength: 50 })}.md`,
 			);
-			const md = await formatter.render(await converter.convert(blog, blogPath));
+			const md = await this._processContent(blog, blogPath, converter, formatter);
 			const content = fs.serialize({ title: blog.title, order: blogPosition-- }, md);
 			await fp.write(blogPath, content);
+		}
+	}
+
+	private static async _processContent(
+		article: ConfluenceArticle,
+		currentPath: Path,
+		converter: ConfluenceConverter,
+		formatter: MarkdownFormatter,
+	): Promise<string> {
+		let json: JSONContent;
+		try {
+			json = await converter.convert(article, currentPath);
+			return await formatter.render(json);
+		} catch (error) {
+			const jsonString = json ? JSON.stringify(json, null, 2) : null;
+			console.error(t("import.error.page-conversion"), {
+				title: article.title,
+				id: article.id,
+				error: error.message,
+				stack: error.stack,
+				json: jsonString,
+			});
+			const pageUrl = article.domain + article.linkUi;
+
+			return generateUnsupportedMd("Confluence", pageUrl, "page", error.stack, jsonString);
 		}
 	}
 

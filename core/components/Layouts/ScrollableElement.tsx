@@ -1,12 +1,13 @@
+import useDragScrolling from "@core-ui/hooks/useDragScrolling";
 import { classNames } from "@components/libs/classNames";
-import ScrollWebkitService from "@core-ui/ContextServices/ScrollWebkit";
-import useScrolling from "@core-ui/hooks/useScrolling";
 import scrollUtils from "@core-ui/utils/scrollUtils";
 import styled from "@emotion/styled";
 import { forwardRef, MutableRefObject, ReactNode, useEffect, useLayoutEffect, useRef, useState } from "react";
 
 interface ScrollableProps {
 	children: ReactNode;
+	showTopBottomShadow?: boolean;
+	boxShadowStyles?: { top?: string; bottom?: string };
 	hideScroll?: boolean;
 	onScroll?: (isTop: boolean, isBottom: boolean) => void;
 	hasScroll?: (hasScroll: boolean) => void;
@@ -16,51 +17,61 @@ interface ScrollableProps {
 }
 
 const Scrollable = forwardRef((props: ScrollableProps, ref: MutableRefObject<HTMLDivElement>) => {
-	const { children, onScroll, hasScroll, onMouseEnter, onMouseLeave, className } = props;
-	const [containerWidth, setContainerWidth] = useState<number>(0);
-	const [currentHasScroll, setCurrentHasScroll] = useState(false);
-	const [isHover, setIsHover] = useState(false);
+	const { children, onScroll, hasScroll, onMouseEnter, onMouseLeave, className, showTopBottomShadow = true } = props;
+	const [containerWidth, setContainerWidth] = useState(0);
 	const containerRef = ref || useRef<HTMLDivElement>(null);
-	const useDefaultScrollBar = ScrollWebkitService.value;
-	const hover = !useDefaultScrollBar && currentHasScroll && isHover;
+	const [hasElementScroll, setHasElementScroll] = useState(false);
+	const [isBottom, setIsBottom] = useState(false);
+	const [isTop, setIsTop] = useState(true);
 
 	useLayoutEffect(() => {
 		setContainerWidth(containerRef.current?.getBoundingClientRect().width);
 	}, []);
 
 	useEffect(() => {
+		const resizeObserver = new ResizeObserver(() => {
+			setContainerWidth(containerRef.current?.getBoundingClientRect().width);
+		});
+
+		resizeObserver.observe(containerRef.current);
+
+		return () => {
+			resizeObserver.disconnect();
+		};
+	}, [containerRef.current]);
+
+	useEffect(() => {
 		if (!containerRef.current) return;
 		const scroll = scrollUtils.hasScroll(containerRef.current);
-		setCurrentHasScroll(scroll);
-		if (hasScroll) hasScroll(scroll);
+		setHasElementScroll(scroll);
+		hasScroll?.(scroll);
 	}, [children]);
 
-	useScrolling(containerRef);
+	useDragScrolling(containerRef);
 
 	return (
 		<div
 			ref={containerRef}
-			className={classNames(className, { hover })}
+			className={classNames(className, {
+				"has-top-shadow": showTopBottomShadow && hasElementScroll && !isTop,
+				"has-bottom-shadow": showTopBottomShadow && hasElementScroll && !isBottom,
+			})}
 			onMouseEnter={() => {
-				setIsHover(true);
 				if (onMouseEnter) onMouseEnter();
 			}}
 			onMouseLeave={() => {
-				setIsHover(false);
 				if (onMouseLeave) onMouseLeave();
 			}}
 			onScroll={() => {
 				if (!containerRef.current) return;
-				if (!onScroll) return;
 				const isTop = scrollUtils.scrollPositionIsTop(containerRef.current);
 				const isBottom = scrollUtils.scrollPositionIsBottom(containerRef.current);
-				onScroll(isTop, isBottom);
+				onScroll?.(isTop, isBottom);
+				setIsTop(isTop);
+				setIsBottom(isBottom);
 			}}
 		>
-			<div
-				style={useDefaultScrollBar ? null : { width: containerWidth }}
-				className={classNames("scrolling-content", { hover })}
-			>
+			<div style={{ width: containerWidth }} className="scrolling-content">
 				{children}
 			</div>
 		</div>
@@ -71,36 +82,45 @@ export default styled(Scrollable)`
 	width: inherit;
 	height: inherit;
 	position: relative;
-	overflow-x: hidden;
-	overflow-y: auto;
+	overflow: hidden;
 
-	.scrolling-content {
-		height: 100%;
+	&.has-top-shadow {
+		box-shadow: ${({ boxShadowStyles }) =>
+			boxShadowStyles?.top || `0px 6px 5px -5px rgba(225, 225, 225, 0.5) inset`};
 	}
 
-	${(p) =>
-		ScrollWebkitService.value
-			? `${p.hideScroll ? "overflow: hidden;" : ""}`
-			: `
-::-webkit-scrollbar {
-	height: 0;
-	width: 0;
-}
-${
-	p.hideScroll
-		? ""
-		: `
-&.hover {
+	&.has-bottom-shadow {
+		box-shadow: ${({ boxShadowStyles }) =>
+			boxShadowStyles?.bottom || `0px -6px 5px -5px rgba(225, 225, 225, 0.5) inset`};
+	}
+
+	&.has-top-shadow.has-bottom-shadow {
+		box-shadow: ${({ boxShadowStyles }) => `${
+			boxShadowStyles?.top || `0px 6px 5px -5px rgba(225, 225, 225, 0.5) inset`
+		},
+				${boxShadowStyles?.bottom || `0px -6px 5px -5px rgba(225, 225, 225, 0.5) inset`}
+			`};
+	}
+
+	&:hover {
+		overflow-y: auto;
+	}
+
 	::-webkit-scrollbar {
 		height: var(--scroll-width);
 		width: var(--scroll-width);
 	}
-}
 
-.scrolling-content.hover {
-	position: absolute;
-	right: calc(calc(var(--scroll-width) * -1) + 0.25px);
-}`
-}
-`}
+	${(p) =>
+		p.hideScroll &&
+		`
+		::-webkit-scrollbar {
+			height: 0 !important;
+			width: 0 !important;
+		}
+	`}
+
+	.scrolling-content {
+		height: 100%;
+	}
 `;

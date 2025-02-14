@@ -1,6 +1,5 @@
+import type { DiffFilePaths, DiffItem, DiffResource } from "@ext/VersionControl/model/Diff";
 import { JSONContent } from "@tiptap/core";
-import DiffItem from "../../../../VersionControl/model/DiffItem";
-import DiffResource from "../../../../VersionControl/model/DiffResource";
 import SideBarData from "../model/SideBarData";
 import SideBarResourceData from "../model/SideBarResourceData";
 
@@ -11,7 +10,7 @@ const getSideBarData = (
 ): SideBarData[] => {
 	const sideBarData: SideBarData[] = [];
 	diffFiles.map((diffFile) => {
-		const { title, filePath, isChanged, changeType } = diffFile;
+		const { title, filePath, isChanged, status } = diffFile;
 		let logicPath: string;
 		let resources: SideBarResourceData[] = [];
 		if (diffFile.type === "item") {
@@ -19,22 +18,34 @@ const getSideBarData = (
 			resources = diffFile.resources
 				? diffFile.resources
 						.filter((x) => x)
-						.map(({ title, diff, filePath, changeType, parentPath }) => {
-							return {
+						.map(
+							({
+								title,
+								filePath,
+								hunks,
+								status,
 								parentPath,
-								isResource: true,
-								data: {
-									changeType,
-									filePath,
-									title,
-								},
-								diff,
-							};
-						})
+								content,
+								oldContent,
+							}): SideBarResourceData => {
+								return {
+									parentPath,
+									isResource: true,
+									data: {
+										status,
+										filePath,
+										title,
+										content,
+										oldContent,
+									},
+									hunks,
+								};
+							},
+						)
 				: [];
 		}
 
-		let parentPath: string;
+		let parentPath: DiffFilePaths;
 		let newEditTree: JSONContent;
 		let oldEditTree: JSONContent;
 		if (isResource) parentPath = (diffFile as DiffResource).parentPath;
@@ -52,14 +63,16 @@ const getSideBarData = (
 				isChanged,
 				logicPath,
 				resources,
-				changeType,
+				status,
 				isChecked,
 				newEditTree,
 				oldEditTree,
 				oldContent: diffFile.oldContent,
 				content: diffFile.content,
+				added: diffFile.added,
+				deleted: diffFile.deleted,
 			},
-			diff: diffFile.diff,
+			hunks: diffFile.hunks,
 		});
 	});
 

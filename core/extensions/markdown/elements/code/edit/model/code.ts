@@ -25,7 +25,7 @@ const pasteRegex = /(?:^|\s)((?:`)((?:[^`]+))(?:`))/g;
 const Code = Mark.create<CodeOptions>({
 	name: "code",
 	code: true,
-	excludes: "_",
+	excludes: "strong em comment",
 
 	addOptions() {
 		return {

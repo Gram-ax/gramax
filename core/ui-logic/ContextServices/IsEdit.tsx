@@ -6,10 +6,9 @@ import PageDataContextService from "./PageDataContext";
 const IsEditContext = createContext<boolean>(undefined);
 abstract class IsEditService {
 	static Provider({ children }: { children: JSX.Element }): JSX.Element {
-		const catalogProps = CatalogPropsService.value;
 		const articleProps = ArticlePropsService.value;
 		const isReadonly = PageDataContextService.value.conf.isReadOnly;
-		const isEdit = !isReadonly && !catalogProps.readOnly && !articleProps?.errorCode;
+		const isEdit = !isReadonly && !articleProps?.errorCode;
 
 		return <IsEditContext.Provider value={isEdit}>{children}</IsEditContext.Provider>;
 	}

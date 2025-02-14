@@ -4,15 +4,15 @@ import Icon from "@components/Atoms/Icon";
 import Sidebar from "@components/Layouts/Sidebar";
 import { FileStatus } from "@ext/Watchers/model/FileStatus";
 import { MouseEvent, useState } from "react";
-import DiffItem from "../../../../VersionControl/model/DiffItem";
 import Discard from "../../Discard/Discard";
 import SideBarResourceData from "../model/SideBarResourceData";
 import DiffCounter from "./DiffCounter";
 import SidebarArticleLink from "./SidebarArticleLink";
+import type { DiffItem } from "@ext/VersionControl/model/Diff";
 
 interface SideBarArticleActionsProps extends Pick<DiffItem, "filePath"> {
 	checked: boolean;
-	changeType: FileStatus;
+	status: FileStatus;
 	title: string;
 	resources: SideBarResourceData[];
 	onStartDiscard: (paths: string[]) => void;
@@ -24,7 +24,7 @@ interface SideBarArticleActionsProps extends Pick<DiffItem, "filePath"> {
 	goToArticleOnClick?: (e: MouseEvent) => void;
 }
 const SideBarArticleActions = (props: SideBarArticleActionsProps) => {
-	const { checked, changeType, title, resources, filePath, addedCounter, removedCounter, logicPath } = props;
+	const { checked, status, title, resources, filePath, addedCounter, removedCounter, logicPath } = props;
 	const { onStartDiscard, onEndDiscard, onChangeCheckbox, goToArticleOnClick } = props;
 	const [hover, setHover] = useState(false);
 
@@ -49,7 +49,7 @@ const SideBarArticleActions = (props: SideBarArticleActionsProps) => {
 					rightActions={
 						hover
 							? [
-									logicPath && changeType !== FileStatus.delete ? (
+									logicPath && status !== FileStatus.delete ? (
 										<GoToArticle
 											key={1}
 											distance={5}
@@ -77,7 +77,7 @@ const SideBarArticleActions = (props: SideBarArticleActionsProps) => {
 							: [<DiffCounter key={1} added={addedCounter} removed={removedCounter} />]
 					}
 				/>
-				<SidebarArticleLink filePath={filePath} type={changeType} />
+				<SidebarArticleLink filePath={filePath} type={status} />
 			</div>
 		</div>
 	);

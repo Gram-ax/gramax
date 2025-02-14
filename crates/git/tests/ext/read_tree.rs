@@ -13,7 +13,7 @@ use test_utils::*;
 fn read_content(sandbox: TempDir, #[with(&sandbox)] repo: Repo<TestCreds>) -> Result {
   fs::write(sandbox.path().join("file"), "content")?;
   repo.add("file")?;
-  repo.commit("commit")?;
+  repo.commit_debug()?;
 
   let content = repo.read_tree_head()?.read_to_string("file")?;
   assert_eq!(content, "content");
@@ -32,8 +32,8 @@ fn read_dir(sandbox: TempDir, #[with(&sandbox)] repo: Repo<TestCreds>) -> Result
   fs::create_dir_all(sandbox.path().join("dir/dir"))?;
   fs::write(sandbox.path().join("dir/file"), "content")?;
   fs::write(sandbox.path().join("dir/dir/file"), "content2")?;
-  repo.add_glob(["*"].iter())?;
-  repo.commit("commit")?;
+  repo.add_all()?;
+  repo.commit_debug()?;
 
   let dir = repo.read_tree_head()?.read_dir("dir")?.iter().map(|d| d.name.to_string()).collect::<Vec<_>>();
   assert_eq!(dir, ["dir", "file"]);
@@ -50,8 +50,8 @@ fn read_dir_not_exists(_sandbox: TempDir, #[with(&_sandbox)] repo: Repo<TestCred
 #[rstest]
 fn read_dir_file(sandbox: TempDir, #[with(&sandbox)] repo: Repo<TestCreds>) -> Result {
   fs::write(sandbox.path().join("file"), "content")?;
-  repo.add_glob(["*"].iter())?;
-  repo.commit("commit")?;
+  repo.add_all()?;
+  repo.commit_debug()?;
 
   let dir = repo.read_tree_head()?.read_dir("file");
   assert!(dir.is_err());
@@ -61,13 +61,13 @@ fn read_dir_file(sandbox: TempDir, #[with(&sandbox)] repo: Repo<TestCreds>) -> R
 #[rstest]
 fn read_tag(sandbox: TempDir, #[with(&sandbox)] repo: Repo<TestCreds>) -> Result {
   fs::write(sandbox.path().join("file"), "content")?;
-  repo.add_glob(["*"].iter())?;
-  let oid = repo.commit("commit")?;
+  repo.add_all()?;
+  let (oid, _) = repo.commit_debug()?;
   repo.repo().tag("tag", &repo.repo().find_object(oid, None)?, &DummyCreds.signature()?, "commit", true)?;
 
   fs::remove_file(sandbox.path().join("file"))?;
-  repo.add_glob(["*"].iter())?;
-  repo.commit("commit 2")?;
+  repo.add_all()?;
+  repo.commit_debug()?;
 
   assert!(!repo.read_tree_head()?.exists("file")?);
   assert!(repo.read_tree_reference("refs/tags/tag")?.exists("file")?);
@@ -80,8 +80,8 @@ fn read_tag(sandbox: TempDir, #[with(&sandbox)] repo: Repo<TestCreds>) -> Result
 #[rstest]
 fn stat_file(sandbox: TempDir, #[with(&sandbox)] repo: Repo<TestCreds>) -> Result {
   fs::write(sandbox.path().join("file"), "content")?;
-  repo.add_glob(["*"].iter())?;
-  repo.commit("commit")?;
+  repo.add("file")?;
+  repo.commit_debug()?;
 
   let stat = repo.read_tree_head()?.stat("file")?;
   assert_eq!(stat.size, 7);
@@ -94,8 +94,8 @@ fn stat_file(sandbox: TempDir, #[with(&sandbox)] repo: Repo<TestCreds>) -> Resul
 fn stat_dir(sandbox: TempDir, #[with(&sandbox)] repo: Repo<TestCreds>) -> Result {
   fs::create_dir(sandbox.path().join("dir"))?;
   fs::write(sandbox.path().join("dir/file"), "content")?;
-  repo.add_glob(["*"].iter())?;
-  repo.commit("commit")?;
+  repo.add_all()?;
+  repo.commit_debug()?;
 
   let stat = repo.read_tree_head()?.stat("dir")?;
   assert!(stat.is_dir);
@@ -109,8 +109,8 @@ fn read_from_reference(sandbox: TempDir, #[with(&sandbox)] repo: Repo<TestCreds>
   repo.new_branch("dev")?;
 
   fs::write(sandbox.path().join("file"), "content")?;
-  repo.add_glob(["*"].iter())?;
-  let oid = repo.commit("commit")?;
+  repo.add_all()?;
+  let (oid, _) = repo.commit_debug()?;
 
   repo.repo().tag("q", &repo.repo().find_object(oid, None)?, &TestCreds.signature()?, "commit", true)?;
   repo.repo().tag_lightweight("w", &repo.repo().find_object(oid, None)?, true)?;
@@ -138,8 +138,8 @@ fn read_from_short_reference(sandbox: TempDir, #[with(&sandbox)] repo: Repo<Test
   repo.new_branch("dev")?;
 
   fs::write(sandbox.path().join("file"), "content")?;
-  repo.add_glob(["*"].iter())?;
-  let oid = repo.commit("commit")?;
+  repo.add_all()?;
+  let (oid, _) = repo.commit_debug()?;
 
   repo.repo().tag("q", &repo.repo().find_object(oid, None)?, &TestCreds.signature()?, "commit", true)?;
   repo.repo().tag_lightweight("w", &repo.repo().find_object(oid, None)?, true)?;
@@ -167,8 +167,8 @@ fn read_dir_stats(sandbox: TempDir, #[with(&sandbox)] repo: Repo<TestCreds>) -> 
   fs::create_dir_all(sandbox.path().join("dir/dir"))?;
   fs::write(sandbox.path().join("dir/file"), "content")?;
   fs::write(sandbox.path().join("dir/dir/file"), "content2")?;
-  repo.add_glob(["*"].iter())?;
-  repo.commit("commit")?;
+  repo.add_all()?;
+  repo.commit_debug()?;
 
   let stats = repo.read_tree_head()?.read_dir_stats("dir")?;
   assert_eq!(stats.len(), 2);

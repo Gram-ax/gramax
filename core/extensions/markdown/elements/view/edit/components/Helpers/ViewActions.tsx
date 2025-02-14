@@ -67,6 +67,7 @@ const ViewActions = ({ node, updateDisplay, updateAttributes, catalogProps, edit
 							<Menu
 								name={property.name}
 								data={getDataFromAttribute("orderby", property.name)?.value || property.values}
+								defaultData={property.values}
 								updateData={updateData}
 							/>
 						);

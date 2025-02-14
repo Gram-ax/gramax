@@ -3,7 +3,7 @@ import { XxHash } from "./Hasher";
 describe("XxHash", () => {
 	beforeAll(async () => await XxHash.init());
 
-	it("хеширует несколько элементов последовательно с одинаковым результатом", () => {
+	test("хеширует несколько элементов последовательно с одинаковым результатом", () => {
 		const hasher = XxHash.hasher();
 
 		hasher.hash("hello");
@@ -18,7 +18,7 @@ describe("XxHash", () => {
 		expect(hash).toBe(hash2);
 	});
 
-	it("хеширует разные элементы с разным хешем", () => {
+	test("хеширует разные элементы с разным хешем", () => {
 		const hasher = XxHash.hasher();
 		hasher.hash("hello");
 		const hash = hasher.finalize();

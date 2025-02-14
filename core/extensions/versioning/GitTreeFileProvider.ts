@@ -32,13 +32,13 @@ export default class GitTreeFileProvider implements ReadOnlyFileProvider {
 	withMountPath() {}
 
 	async read(path: Path): Promise<string> {
-		const content = await this._git.readFile(...this._resolveScope(path));
+		const content = await this._git.readFile(...GitTreeFileProvider._resolveScope(path));
 		return decoder.decode(content);
 	}
 
 	async readAsBinary(path: Path): Promise<Buffer> {
 		try {
-			const content = await this._git.readFile(...this._resolveScope(path));
+			const content = await this._git.readFile(...GitTreeFileProvider._resolveScope(path));
 			return Buffer.from(content);
 		} catch (e) {
 			if (e instanceof LibGit2Error && e.code === GitErrorCode.FileNotFoundError) return;
@@ -47,11 +47,11 @@ export default class GitTreeFileProvider implements ReadOnlyFileProvider {
 	}
 
 	async readdir(path: Path): Promise<string[]> {
-		return (await this._git.readDir(...this._resolveScope(path))).map((e) => e.name);
+		return (await this._git.readDir(...GitTreeFileProvider._resolveScope(path))).map((e) => e.name);
 	}
 
 	async isFolder(path: Path): Promise<boolean> {
-		const stat = await this._git.fileStat(...this._resolveScope(path));
+		const stat = await this._git.fileStat(...GitTreeFileProvider._resolveScope(path));
 		return stat.isDir;
 	}
 
@@ -60,7 +60,7 @@ export default class GitTreeFileProvider implements ReadOnlyFileProvider {
 	}
 
 	async getStat(path: Path): Promise<FileInfo> {
-		const stat = await this._git.fileStat(...this._resolveScope(path));
+		const stat = await this._git.fileStat(...GitTreeFileProvider._resolveScope(path));
 		return {
 			name: path.nameWithExtension,
 			path,
@@ -79,7 +79,7 @@ export default class GitTreeFileProvider implements ReadOnlyFileProvider {
 	}
 
 	async exists(path: Path): Promise<boolean> {
-		return this._git.fileExists(...this._resolveScope(path));
+		return this._git.fileExists(...GitTreeFileProvider._resolveScope(path));
 	}
 
 	symlink(): Promise<void> {
@@ -87,7 +87,7 @@ export default class GitTreeFileProvider implements ReadOnlyFileProvider {
 	}
 
 	async getItems(path: Path): Promise<FileInfo[]> {
-		const items = await this._git.readDirStats(...this._resolveScope(path));
+		const items = await this._git.readDirStats(...GitTreeFileProvider._resolveScope(path));
 		return items.map((stat) => ({
 			name: stat.name,
 			path: path.join(new Path(stat.name)),
@@ -113,17 +113,48 @@ export default class GitTreeFileProvider implements ReadOnlyFileProvider {
 		return Promise.resolve(true);
 	}
 
-	static scoped(path: Path, scope: TreeReadScope, omitHead = false): Path {
+	static scoped(path: Path, scope: TreeReadScope, omitHead = false, encode = false): Path {
 		if (!path) return Path.empty;
 		if (omitHead && !scope) return path;
 		let scopeValue: string;
-		if (!scope) scopeValue = "HEAD";
+		if (!scope || scope === "HEAD") scopeValue = "HEAD";
 		else if ("reference" in scope) scopeValue = scope.reference;
 		else if ("commit" in scope) scopeValue = `commit-${scope.commit}`;
-		return new Path(addGitTreeScopeToPath(path.value, scopeValue));
+		return new Path(addGitTreeScopeToPath(path.value, encode ? encodeURIComponent(scopeValue) : scopeValue));
 	}
 
-	private _resolveScope(path: Path): [Path, TreeReadScope] {
+	static unscope(scopedPath: Path): { unscoped: Path; scope: TreeReadScope } {
+		const [, scope] = this._resolveScope(scopedPath);
+		const idx = scopedPath.value.indexOf(":");
+		if (idx === -1) return { unscoped: null, scope: null };
+
+		const beforeIdx = scopedPath.value.slice(0, idx);
+
+		if (scope === "HEAD" || scope === null) {
+			return {
+				unscoped: new Path(beforeIdx).join(new Path(scopedPath.value.slice(idx + 5)).removeExtraSymbols),
+				scope: "HEAD",
+			};
+		} else if ("commit" in scope) {
+			const commitLength = scope.commit.length;
+			return {
+				unscoped: new Path(beforeIdx).join(
+					new Path(scopedPath.value.slice(idx + commitLength + 8)).removeExtraSymbols,
+				),
+				scope,
+			};
+		} else if ("reference" in scope) {
+			const referenceLength = encodeURIComponent(scope.reference).length;
+			return {
+				unscoped: new Path(beforeIdx).join(
+					new Path(scopedPath.value.slice(idx + referenceLength + 1)).removeExtraSymbols,
+				),
+				scope,
+			};
+		}
+	}
+
+	private static _resolveScope(path: Path): [Path, TreeReadScope] {
 		const root = path.rootDirectory;
 		const name = root?.nameWithExtension;
 		const data = name?.split(":")?.at(-1);

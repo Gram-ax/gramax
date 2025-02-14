@@ -3,12 +3,15 @@ import DiffContent from "@components/Atoms/DiffContent";
 import StatusBarElement from "@components/Layouts/StatusBar/StatusBarElement";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import CatalogPropsService from "@core-ui/ContextServices/CatalogProps";
+import DiffViewModeService from "@core-ui/ContextServices/DiffViewModeService";
+import GitIndexService from "@core-ui/ContextServices/GitIndexService";
 import ModalToOpenService from "@core-ui/ContextServices/ModalToOpenService/ModalToOpenService";
 import ModalToOpen from "@core-ui/ContextServices/ModalToOpenService/model/ModalsToOpen";
 import SidebarsIsOpenService from "@core-ui/ContextServices/Sidebars/SidebarsIsOpenContext";
 import SidebarsIsPinService from "@core-ui/ContextServices/Sidebars/SidebarsIsPin";
 import ArticleViewService from "@core-ui/ContextServices/views/articleView/ArticleViewService";
 import LeftNavViewContentService from "@core-ui/ContextServices/views/leftNavView/LeftNavViewContentService";
+import useWatch from "@core-ui/hooks/useWatch";
 import useTrigger from "@core-ui/triggers/useTrigger";
 import useSidebarsStates from "@core-ui/useSidebarsStates";
 import getIsDevMode from "@core-ui/utils/getIsDevMode";
@@ -22,22 +25,32 @@ import { SideBarElementData } from "@ext/git/actions/Publish/logic/getSideBarEle
 import { useResourceView } from "@ext/git/actions/Publish/logic/useResourceView";
 import SideBarData from "@ext/git/actions/Publish/model/SideBarData";
 import t from "@ext/localization/locale/translate";
+import OnLoadResourceService from "@ext/markdown/elements/copyArticles/onLoadResourceService";
 import ArticleDiffModeView from "@ext/markdown/elements/diff/components/ArticleDiffModeView";
 import ArticlePropsesCache from "@ext/markdown/elements/diff/logic/ArticlePropsesCache";
 import { FileStatus } from "@ext/Watchers/model/FileStatus";
 import { ComponentProps, useEffect, useMemo, useRef, useState } from "react";
 
 type ArticlePublishTriggerProps = {
-	changesCount?: number;
 	onPublish?: () => void;
 	onDiscard?: () => void;
 };
 
-const ArticlePublishTrigger = ({ changesCount, onPublish, onDiscard }: ArticlePublishTriggerProps) => {
+const ArticlePublishTrigger = ({ onPublish, onDiscard }: ArticlePublishTriggerProps) => {
+	const overview = GitIndexService.getOverview();
+	const totalChanged = overview.added + overview.deleted + overview.modified;
+
 	const [isDevMode] = useState(() => getIsDevMode());
 	const [isPublishView, setIsPublishView] = useState(false);
 
 	const { saveStates: saveSidebarsStates, loadStates: loadSidebarsStates } = useSidebarsStates();
+
+	const diffViewMode = DiffViewModeService.value;
+	const useDefaultStylesRef = useRef(diffViewMode === "wysiwyg");
+
+	useWatch(() => {
+		useDefaultStylesRef.current = diffViewMode === "wysiwyg";
+	}, [diffViewMode]);
 
 	const hasDiscard = useRef(false);
 	const router = useRouter();
@@ -66,26 +79,35 @@ const ArticlePublishTrigger = ({ changesCount, onPublish, onDiscard }: ArticlePu
 	};
 
 	const setEmptyView = () => {
-		ArticleViewService.setView(() => <DiffContent showDiff={true} changes={[]} />, false);
+		ArticleViewService.setView(() => <DiffContent showDiff changes={[]} />, false);
 	};
 
 	const setArticleView = (data: SideBarElementData) => {
 		if (data.sideBarDataElement?.isResource) {
 			const parentPath = data.sideBarDataElement.parentPath;
 
-			const resourceApiUrlCreator = apiUrlCreator.fromArticle(parentPath);
-			const relativeTo = new Path(parentPath);
+			const resourceApiUrlCreator = apiUrlCreator.fromArticle(parentPath.path);
+			const relativeTo = new Path(parentPath.path);
+
+			const resourceView = useResourceView({
+				id: data.relativeIdx ?? data.idx,
+				apiUrlCreator: resourceApiUrlCreator,
+				resourcePath: new Path(data.sideBarDataElement.data.filePath.path),
+				oldContent: data.sideBarDataElement.data.oldContent,
+				newContent: data.sideBarDataElement.data.content,
+				relativeTo,
+				filePath: data.sideBarDataElement.data.filePath,
+			});
 
 			ArticleViewService.setView(
 				() => (
 					<>
-						{useResourceView(
-							data.relativeIdx ?? data.idx,
-							resourceApiUrlCreator,
-							new Path(data.sideBarDataElement.data.filePath.path),
-							data.sideBarDataElement.data.changeType === FileStatus.delete,
-							data.sideBarDataElement.diff,
-							relativeTo,
+						{data.sideBarDataElement.data.status === FileStatus.delete ? (
+							<OnLoadResourceService.Provider scope={"HEAD"}>
+								{resourceView}
+							</OnLoadResourceService.Provider>
+						) : (
+							resourceView
 						)}
 					</>
 				),
@@ -94,19 +116,31 @@ const ArticlePublishTrigger = ({ changesCount, onPublish, onDiscard }: ArticlePu
 		} else {
 			if (!data.sideBarDataElement) return setEmptyView();
 			const sideBarData = data.sideBarDataElement as SideBarData;
-			ArticleViewService.setView(() => (
-				<ArticleDiffModeView
-					key={sideBarData.data.filePath.path}
-					oldEditTree={sideBarData.data.oldEditTree}
-					newEditTree={sideBarData.data.newEditTree}
-					oldContent={sideBarData.data.oldContent}
-					newContent={sideBarData.data.content}
-					changeType={sideBarData.data.changeType}
-					articlePath={sideBarData.data.filePath.path}
-					onWysiwygUpdate={({ editor }) => (sideBarData.data.newEditTree = editor.getJSON())}
-					onViewModeChange={(view) => (ArticleViewService.useArticleDefaultStyles = view === "wysiwyg")}
-				/>
-			));
+			ArticleViewService.setView(
+				() => (
+					<>
+						<ArticleDiffModeView
+							title={sideBarData.data.title}
+							oldRevision={"HEAD"}
+							newRevision={"workdir"}
+							oldScope={"HEAD"}
+							filePath={sideBarData.data.filePath}
+							key={sideBarData.data.filePath.path}
+							oldEditTree={sideBarData.data.oldEditTree}
+							newEditTree={sideBarData.data.newEditTree}
+							oldContent={sideBarData.data.oldContent}
+							newContent={sideBarData.data.content}
+							changeType={sideBarData.data.status}
+							articlePath={sideBarData.data.filePath.path}
+							onWysiwygUpdate={({ editor }) => (sideBarData.data.newEditTree = editor.getJSON())}
+							onViewModeChange={(view) => {
+								ArticleViewService.useArticleDefaultStyles = view === "wysiwyg";
+							}}
+						/>
+					</>
+				),
+				useDefaultStylesRef.current,
+			);
 		}
 	};
 
@@ -180,7 +214,7 @@ const ArticlePublishTrigger = ({ changesCount, onPublish, onDiscard }: ArticlePu
 			iconStyle={{ fontSize: "15px" }}
 			tooltipText={t("publish-changes")}
 		>
-			{changesCount && <span>{changesCount}</span>}
+			{totalChanged > 0 && <span>{totalChanged}</span>}
 		</StatusBarElement>
 	);
 };

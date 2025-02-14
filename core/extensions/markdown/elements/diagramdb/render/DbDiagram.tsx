@@ -1,5 +1,6 @@
+import Method from "@core-ui/ApiServices/Types/Method";
+import MimeTypes from "@core-ui/ApiServices/Types/MimeTypes";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
-import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import styled from "@emotion/styled";
 import DiagramError from "@ext/markdown/elements/diagrams/component/DiagramError";
 import { useEffect, useState } from "react";
@@ -7,8 +8,6 @@ import Popup from "reactjs-popup";
 import { Table } from "../../../../../logic/components/tableDB/table";
 import FetchService from "../../../../../ui-logic/ApiServices/FetchService";
 import TableDB from "../../tabledb/render/DbTable";
-import MimeTypes from "@core-ui/ApiServices/Types/MimeTypes";
-import Method from "@core-ui/ApiServices/Types/Method";
 
 export interface DbDiagramData {
 	tables: {
@@ -29,7 +28,6 @@ export interface DbDiagramData {
 
 const DbDiagram = styled(
 	({ src, className, tags, primary }: { src: string; className?: string; tags: string; primary?: string }) => {
-		const isLogged = PageDataContextService.value.isLogged;
 		const apiUrlCreator = ApiUrlCreatorService.value;
 		const [data, setData] = useState<DbDiagramData>(null);
 		const [error, setError] = useState(null);
@@ -59,7 +57,7 @@ const DbDiagram = styled(
 						<Popup defaultOpen onClose={() => setPopup(null)} lockScroll={false}>
 							<div className={className}>
 								<div className="scroll article">
-									<TableDB object={popup} className="" isLogged={isLogged} />
+									<TableDB object={popup} className="" />
 								</div>
 							</div>
 						</Popup>

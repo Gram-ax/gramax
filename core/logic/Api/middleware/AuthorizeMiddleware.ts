@@ -15,7 +15,7 @@ export class AuthorizeMiddleware extends Middleware {
 		const isNext = getExecutingEnvironment() === "next";
 		const ctx = isNext
 			? await this._app.contextFactory.from(req, res, req.query)
-			: this._app.contextFactory.fromBrowser(defaultLanguage, req.query as Query);
+			: await this._app.contextFactory.fromBrowser(defaultLanguage, req.query as Query);
 		if (!ctx.user.isLogged) {
 			setUnauthorized(res);
 			return;

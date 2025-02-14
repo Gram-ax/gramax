@@ -9,6 +9,10 @@
 	scrollbar-gutter: stable;
 }
 
+.article *:has(> .node-actions) {
+	position: relative;
+}
+
 .article suggestion {
 	cursor: pointer;
 	text-decoration: var(--color-danger) wavy underline;
@@ -151,6 +155,16 @@ samp {
 	font-size: 90%;
 }
 
+article a i.link-icon {
+	display: inline-flex;
+	align-items: center;
+	vertical-align: middle;
+}
+
+article a span.external-link-wrapper {
+	display: inline-flex;
+}
+
 .article p,
 .article ul,
 .article ol {
@@ -169,27 +183,26 @@ samp {
 .article ul[data-type="taskList"] {
 	list-style-type: none !important;
 	padding: 0 !important;
+}
 
-	li {
-		display: flex;
-		align-items: flex-start;
-		gap: 0.35rem;
-		margin-bottom: 0 !important;
+.article ul[data-type="taskList"] li {
+	display: flex;
+	align-items: flex-start;
+	gap: 0.35rem;
+	margin-bottom: 0 !important;
+}
+.article ul[data-type="taskList"] li label {
+	line-height: 1.8em;
+}
 
-		label {
-			line-height: 1.8em;
-		}
+.article ul[data-type="taskList"] li > div {
+	flex: 1 1 auto;
+}
 
-		> div {
-			flex: 1 1 auto;
-		}
-
-		> p {
-			margin: unset;
-			margin-bottom: 0.4em !important;
-			min-width: 1em;
-		}
-	}
+.article ul[data-type="taskList"] li > p {
+	margin: unset;
+	margin-bottom: 0.4em !important;
+	min-width: 1em;
 }
 
 .article .attr {
@@ -333,10 +346,12 @@ samp {
 	background-color: var(--color-code-bg);
 	border-radius: 10px;
 }
+
 .article pre::-webkit-scrollbar-thumb {
 	background: var(--color-scroll);
 	border-radius: 7px;
 }
+
 .article pre .token-line {
 	line-height: 20px;
 }
@@ -392,6 +407,7 @@ samp {
 	border-color: var(--color-image-line);
 	color: var(--color-article-heading-text);
 }
+
 .article kbd.active:hover {
 	background: var(--color-contextmenu-bg);
 }
@@ -431,7 +447,7 @@ samp {
 .article [data-qa="qa-drawio"] > em,
 .article .img-v + p > em:first-of-type,
 .article .img-h + p > em:first-of-type,
-.article .image-container + em,
+.article .main-container + em,
 .article .node-image em {
 	display: block;
 	font-size: 13px;
@@ -547,10 +563,68 @@ samp {
 .article table {
 	width: 100%;
 	max-width: 100%;
-	padding: 1rem 0;
+	padding: 1em 1.5em;
 	border-spacing: 0;
 	border-collapse: collapse;
 	display: block;
+}
+
+.article table .delete {
+	background-color: var(--color-table-action-delete);
+}
+
+.article table .add-row,
+.article table .add-column {
+	opacity: 0.13;
+	background-color: var(--color-table-action-add);
+}
+
+.article table .add-row {
+	position: absolute;
+	top: -3px;
+	left: 0;
+	height: 5px;
+	width: 100%;
+}
+
+.article table[data-header="column"] tbody tr td:first-child,
+.article table[data-header="row"] tbody tr:first-child td,
+.article table tbody tr[data-aggregation] td {
+	font-weight: 500;
+	color: var(--color-article-strong-text);
+}
+
+.article table td[align="center"],
+.article table th[align="center"] {
+	text-align: center;
+}
+
+.article table td[align="right"],
+.article table th[align="right"] {
+	text-align: right;
+}
+
+.article table td[align="left"],
+.article table th[align="left"] {
+	text-align: left;
+}
+
+.article table .add-row.row-end {
+	top: auto;
+	bottom: -3px;
+}
+
+.article table .add-column.column-end {
+	left: auto;
+	right: -3px;
+}
+
+.article table .add-column {
+	position: absolute;
+	top: 0;
+	left: -3px;
+	height: 100%;
+	width: 5px;
 }
 
 .article table > thead > tr > th {

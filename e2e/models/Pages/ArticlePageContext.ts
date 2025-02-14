@@ -12,7 +12,7 @@ export default class ArticlePageContext extends PageContext {
 		const path = this._parsePath(this.url());
 		await this.forceSave();
 		return await this._page.evaluate(async ([path1, path2]) => {
-			const ctx = window.app.contextFactory.fromBrowser(
+			const ctx = await window.app.contextFactory.fromBrowser(
 				window.debug?.RouterPathProvider?.parsePath(window.location.pathname)?.language || "ru",
 				{},
 			);
@@ -25,7 +25,7 @@ export default class ArticlePageContext extends PageContext {
 	}
 
 	async forceSave() {
-		await this._page.evaluate(async () => await window.forceTrollCaller?.());
+		await this._page.evaluate(async () => await window.forceSave?.());
 		return this;
 	}
 
@@ -34,7 +34,7 @@ export default class ArticlePageContext extends PageContext {
 		await this._page.press(".ProseMirror", ".");
 		await this._page.evaluate(
 			async ({ path, content }) => {
-				const ctx = window.app.contextFactory.fromBrowser("ru" as any, {});
+				const ctx = await window.app.contextFactory.fromBrowser("ru" as any, {});
 				const presenter = window.app.sitePresenterFactory.fromContext(ctx);
 				const data =
 					(await presenter.getArticleByPathOfCatalog(path[0], [])).article ??
@@ -60,7 +60,7 @@ export default class ArticlePageContext extends PageContext {
 		const path = this._parsePath(this.url());
 		return await this._page.evaluate(
 			async ({ path }) => {
-				const ctx = window.app.contextFactory.fromBrowser("ru" as any, {});
+				const ctx = await window.app.contextFactory.fromBrowser("ru" as any, {});
 				const presenter = window.app.sitePresenterFactory.fromContext(ctx);
 				const data =
 					(await presenter.getArticleByPathOfCatalog(path[0], [])).article ??

@@ -18,7 +18,8 @@ const discard: Command<{ catalogName: string; filePaths: string[] }, void> = Com
 		const catalog = await workspace.getContextlessCatalog(catalogName);
 		if (!catalog) return;
 
-		await catalog.repo.gvc.discard(filePaths.map((filePath) => new Path(filePath)));
+		await catalog.repo.gvc.discard(filePaths.map((path) => new Path(path)));
+
 		logger.logTrace(
 			`Discarded in catalog: ${catalog.name}. Files: "${filePaths ? filePaths.join('", "') + '"' : "."}`,
 		);

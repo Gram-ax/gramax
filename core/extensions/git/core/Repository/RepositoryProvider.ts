@@ -3,7 +3,7 @@ import Path from "@core/FileProvider/Path/Path";
 import FileProvider from "@core/FileProvider/model/FileProvider";
 import type FileStructure from "@core/FileStructue/FileStructure";
 import Cookie from "@ext/cookie/Cookie";
-import { invalidateRepoCache } from "@ext/git/core/GitCommands/LibGit2IntermediateCommands";
+import { resetRepo } from "@ext/git/core/GitCommands/LibGit2IntermediateCommands";
 import GitVersionControl from "@ext/git/core/GitVersionControl/GitVersionControl";
 import BareRepository from "@ext/git/core/Repository/BareRepository";
 import NullRepository from "@ext/git/core/Repository/NullRepository";
@@ -27,8 +27,8 @@ export default class RepositoryProvider {
 		this._sp = new StorageProvider();
 	}
 
-	static invalidateRepoCache(paths: string[]) {
-		return invalidateRepoCache({ repoPaths: paths });
+	static resetRepo() {
+		return resetRepo();
 	}
 
 	get events() {

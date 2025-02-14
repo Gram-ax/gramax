@@ -14,17 +14,17 @@ const createFile = async (files: File[], view: EditorView, apiUrlCreator: ApiUrl
 	for (const file of files) {
 		const filePath = new Path(file.name);
 		const newName = fileNameUtils.getNewName(names, filePath.name, filePath.extension);
-
 		const res = await FetchService.fetch(
 			apiUrlCreator.setArticleResource(newName),
 			await file.arrayBuffer(),
-			MimeTypes[filePath.extension] ?? filePath.extension,
+			filePath.extension && (MimeTypes[filePath.extension] ?? filePath.extension),
 		);
 
 		if (!res.ok) return;
 		names.push(newName);
 		const { from, to } = view.state.selection;
-		const value = new Path(newName).nameWithExtension;
+		const newFilePath = new Path(newName);
+		const value = newFilePath.extension ? newFilePath.nameWithExtension : newFilePath.name;
 		const mark = view.state.schema.marks.file.create({
 			href: apiUrlCreator.getArticleResource(newName).toString(),
 			value,

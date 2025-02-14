@@ -1,8 +1,8 @@
 import "../../../core/styles/ProseMirror.css";
-import "../../../core/styles/chain-icon.css";
 import "../../../core/styles/admonition.css";
 import "../../../core/styles/article-alfabeta.css";
 import "../../../core/styles/article.css";
+import "../../../core/styles/chain-icon.css";
 import "../../../core/styles/global.css";
 import "../../../core/styles/swagger-ui-theme.css";
 
@@ -33,11 +33,13 @@ export default function App({
 	if (pageProps.error) return <Error statusCode={pageProps.error} />;
 
 	const isArticle = pageProps?.context?.isArticle;
+	const iconPath = (pageProps?.context?.conf?.basePath ?? "") + "/favicon.ico";
 
 	return (
 		<>
 			<Head>
 				<title>{getPageTitle(isArticle, pageProps.data)}</title>
+				<link rel="icon" href={iconPath} />
 			</Head>
 			<Language.Provider>
 				<ContextProviders pageProps={pageProps} refreshPage={defaultRefreshPage}>

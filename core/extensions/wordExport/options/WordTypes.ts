@@ -10,7 +10,9 @@ export type WordBlockChildren = Record<string, WordBlockChild>;
 export type WordRenderContext = {
 	parserContext?: ParserContext;
 	exportType?: ExportType;
-	domain: string;
+	titlesMap: Map<string, TitleInfo>;
+	articleName: string;
+	order?: string;
 };
 
 export type WordBlockChild = (params: {
@@ -58,4 +60,9 @@ export interface MaxPictureWidth {
 export interface ImageDimensions {
 	width: number;
 	height: number;
+}
+
+export interface TitleInfo {
+	title: string;
+	order: string;
 }

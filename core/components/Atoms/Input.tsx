@@ -1,3 +1,4 @@
+import { css } from "@emotion/react";
 import styled from "@emotion/styled";
 import { ChangeEvent, HTMLProps, MutableRefObject, forwardRef } from "react";
 import Icon from "./Icon";
@@ -13,6 +14,7 @@ interface InputProps extends HTMLProps<HTMLInputElement> {
 	errorText?: string;
 	showErrorText?: boolean;
 	tabIndex?: number;
+	isLoading?: boolean;
 }
 
 const Input = forwardRef((props: InputProps, ref?: MutableRefObject<HTMLInputElement>) => {
@@ -27,16 +29,17 @@ const Input = forwardRef((props: InputProps, ref?: MutableRefObject<HTMLInputEle
 		className,
 		errorText,
 		showErrorText = true,
+		isLoading = false,
 		...otherProps
 	} = props;
 
 	return (
 		<div className={className}>
 			{icon && <Icon code={icon} />}
-			{startText && <div className={"startTextContainer"}>{startText}</div>}
+			{startText && <div className="startTextContainer">{startText}</div>}
 			<Tooltip visible={!!errorText && showErrorText} content={<span>{errorText}</span>}>
 				<input
-					className="textInput"
+					className={`textInput ${isLoading ? 'loading' : ''}`}
 					data-qa={dataQa}
 					ref={ref}
 					type={hidden ? "password" : "text"}
@@ -71,14 +74,15 @@ export default styled(Input)`
 		${(p) =>
 			!p.isCode
 				? ""
-				: `
-		width: 100%;
-		height: 34px;
-		display: block;
-		font-size: 14px;
-		padding: 6px 12px;
-		border-radius: var(--radius-medium);
-		background: var(--color-code-bg);`}
+				: css`
+						width: 100%;
+						height: 34px;
+						display: block;
+						font-size: 14px;
+						padding: 0.4em 0.8em;
+						border-radius: var(--radius-medium);
+						background: var(--color-code-bg);
+				  `}
 
 		${(p) =>
 			(p.disabled && "color: var(--color-input-disabled-text);") ||
@@ -93,10 +97,44 @@ export default styled(Input)`
 				: `
 		color: var(--color-admonition-danger-br-h);
 		`}
+		&.loading {
+			position: relative;
+			background: linear-gradient(
+				50deg,
+				var(--color-code-bg) 0%,
+				var(--color-code-bg) 45%,
+				rgba(255, 255, 255, 0.3) 50%,
+				var(--color-code-bg) 55%,
+				var(--color-code-bg) 100%
+			);
+			background-size: 300% 300%;
+			animation: shimmer 1.5s infinite linear;
+			color: transparent;
+			user-select: none;
+			cursor: default;
+
+			&::placeholder {
+				color: transparent;
+			}
+		}
+	}
+
+	@keyframes shimmer {
+		100% {
+			background-position: 0% 0%;
+		}
+		0% {
+			background-position: 100% 100%;
+		}
 	}
 
 	input::placeholder {
 		color: var(--color-placeholder);
+	}
+
+	input[type="text"][disabled] {
+		pointer-events: stroke;
+		user-select: text;
 	}
 
 	.startTextContainer,

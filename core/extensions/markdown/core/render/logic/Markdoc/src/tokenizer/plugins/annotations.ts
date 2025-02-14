@@ -1,10 +1,9 @@
 import type MarkdownIt from "markdown-it/lib";
-import type StateCore from "markdown-it/lib/rules_core/state_core";
 import type StateInline from "markdown-it/lib/rules_inline/state_inline";
 import Function from "../../ast/function";
 import Variable from "../../ast/variable";
 import { parse, type SyntaxError } from "../../grammar/tag";
-import type { AttributeValue, StateBlock, Token } from "../../types";
+import type { StateBlock, Token } from "../../types";
 import { CLOSE, OPEN, findTagEnd, parseTags } from "../../utils";
 
 function createToken(state: StateBlock | StateInline, content: string, contentStart?: number): Token {
@@ -77,40 +76,9 @@ function inline(state: StateInline, silent: boolean): boolean {
 	return true;
 }
 
-function core(state: StateCore) {
-	let token: Token;
-	for (token of state.tokens) {
-		if (token.type !== "fence") continue;
-
-		if (token.info.includes(OPEN)) {
-			const start = token.info.indexOf(OPEN);
-			const end = findTagEnd(token.info, start);
-			const content = token.info.slice(start + OPEN.length, end);
-
-			try {
-				const { meta } = parse(content.trim(), { Variable, Function });
-				token.meta = meta;
-			} catch (error) {
-				if (!(error instanceof SyntaxError)) throw error;
-				if (!token.errors) token.errors = [];
-				token.errors.push({
-					id: "fence-tag-error",
-					level: "error",
-					message: `Syntax error in fence tag: ${(error as SyntaxError).message}`,
-				});
-			}
-		}
-
-		if (token?.meta?.attributes?.find((attr: AttributeValue) => attr.name === "process" && !attr.value)) continue;
-
-		token.children = parseTags(token.content, token.map[0]);
-	}
-}
-
 export default function plugin(md: MarkdownIt /* options */) {
 	md.block.ruler.before("paragraph", "annotations", block, {
 		alt: ["paragraph", "blockquote"],
 	});
 	md.inline.ruler.push("containers", inline);
-	md.core.ruler.push("annotations", core);
 }

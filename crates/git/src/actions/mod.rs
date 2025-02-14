@@ -7,6 +7,8 @@ pub mod stash;
 pub mod status;
 pub mod tags;
 pub mod refs;
+pub mod commit;
+pub mod add;
 
 pub mod prelude {
   pub use crate::actions::branch::*;
@@ -18,4 +20,6 @@ pub mod prelude {
   pub use crate::actions::status::*;
   pub use crate::actions::tags::*;
   pub use crate::actions::refs::*;
+  pub use crate::actions::commit::*;
+  pub use crate::actions::add::*;
 }

@@ -4,7 +4,7 @@ import ShowHomePageRules from "@core/FileStructue/Rules/ShowHomePageRule/ShowHom
 import CustomArticlePresenter from "@core/SitePresenter/CustomArticlePresenter";
 import LocalizationRules from "@ext/localization/core/events/LocalizationEvents";
 import type Navigation from "@ext/navigation/catalog/main/logic/Navigation";
-import RuleCollection from "@ext/rules/RuleCollection";
+import RuleCollection, { ItemFilterOptions } from "@ext/rules/RuleCollection";
 import SecurityRules from "@ext/security/logic/SecurityRules";
 
 class RuleProvider {
@@ -19,8 +19,8 @@ class RuleProvider {
 		];
 	}
 
-	getItemFilters() {
-		return this._rules.map((r) => r.getItemFilter());
+	getItemFilters(options?: ItemFilterOptions) {
+		return this._rules.map((r) => r.getItemFilter(options));
 	}
 }
 

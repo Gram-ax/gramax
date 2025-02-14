@@ -28,6 +28,12 @@ initialize(
 		http.get("/api/workspace/assets/getCustomStyle", () => {
 			return HttpResponse.json(`{}`, { status: 200 });
 		}),
+		http.get("/api/workspace/assets/homeLogo/get", () => {
+			return HttpResponse.text("", { status: 200 });
+		}),
+		http.get("/api/comments/getCommentsByAuthors", () => {
+			return HttpResponse.json(`{}`, { status: 200 });
+		}),
 	],
 );
 

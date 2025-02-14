@@ -41,6 +41,11 @@ export default abstract class BaseCatalog<P extends CatalogProps = CatalogProps,
 		this._rootCategoryRef = init.rootCaterogyRef;
 	}
 
+	static parseName(name: string) {
+		const [n, metadata] = name?.split(":") ?? [name];
+		return { name: n, metadata };
+	}
+
 	get deref() {
 		return this;
 	}

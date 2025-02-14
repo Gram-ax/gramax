@@ -17,15 +17,15 @@ fn with_push_changes(_sandbox: TempDir, #[with(&_sandbox)] repos: Repos) -> Resu
   fs::create_dir(repos.local_path.join("tracked"))?;
   fs::write(repos.local_path.join("tracked/file2"), "tracked-file")?;
 
-  repos.local.add_glob(["*"].iter())?;
-  repos.local.commit("1")?;
+  repos.local.add_all()?;
+  repos.local.commit_debug()?;
   repos.local.repo().head()?.peel_to_commit()?;
 
   fs::write(repos.local_path.join("tracked/file2"), "changes changes changes")?;
   fs::write(repos.local_path.join("tracked/file3"), "fdasfa")?;
 
-  repos.local.add_glob(["*"].iter())?;
-  repos.local.commit("2")?;
+  repos.local.add_all()?;
+  repos.local.commit_debug()?;
 
   let diff = repos.local.graph_head_upstream_files("tracked")?;
   assert_eq!(diff.push, 2);
@@ -43,13 +43,13 @@ fn with_pull_changes(_sandbox: TempDir, #[with(&_sandbox)] repos: Repos) -> Resu
 
   let commit = repos.local.repo().head()?.peel_to_commit()?;
 
-  repos.local.add_glob(["*"].iter())?;
-  repos.local.commit("1")?;
+  repos.local.add_all()?;
+  repos.local.commit_debug()?;
 
   fs::write(repos.local_path.join("tracked/file2"), "fdasfafdsa")?;
 
-  repos.local.add_glob(["*"].iter())?;
-  repos.local.commit("2")?;
+  repos.local.add_all()?;
+  repos.local.commit_debug()?;
   repos.local.push()?;
 
   repos.local.repo().reset(commit.as_object(), git2::ResetType::Hard, None)?;
@@ -68,23 +68,23 @@ fn with_pull_and_push_changes(_sandbox: TempDir, #[with(&_sandbox)] repos: Repos
   fs::create_dir(repos.local_path.join("tracked"))?;
   fs::write(repos.local_path.join("tracked/file2"), "tracked-file")?;
 
-  repos.local.add_glob(["*"].iter())?;
-  repos.local.commit("1")?;
+  repos.local.add_all()?;
+  repos.local.commit_debug()?;
   let commit = repos.local.repo().head()?.peel_to_commit()?;
 
   fs::write(repos.local_path.join("tracked/file2"), "changes changes changes")?;
   fs::write(repos.local_path.join("tracked/file3"), "fdasfa")?;
 
-  repos.local.add_glob(["*"].iter())?;
-  repos.local.commit("2")?;
+  repos.local.add_all()?;
+  repos.local.commit_debug()?;
   repos.local.push()?;
 
   repos.local.repo().reset(commit.as_object(), git2::ResetType::Hard, None)?;
 
   fs::write(repos.local_path.join("tracked/file2"), "qwerqwerqwerwqre")?;
 
-  repos.local.add_glob(["*"].iter())?;
-  repos.local.commit("2")?;
+  repos.local.add_all()?;
+  repos.local.commit_debug()?;
 
   let diff = repos.local.graph_head_upstream_files("tracked")?;
   assert_eq!(diff.push, 1);

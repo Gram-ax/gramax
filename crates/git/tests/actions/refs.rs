@@ -3,7 +3,7 @@ use test_utils::*;
 
 #[rstest]
 fn find_refs(_sandbox: TempDir, #[with(&_sandbox)] repo: Repo<TestCreds>) -> Result {
-  let commit = repo.commit("1")?;
+  let (commit, _) = repo.commit_debug()?;
   let signature = TestCreds.signature()?;
 
   repo.repo().tag("tag-1", &repo.repo().find_object(commit, None)?, &signature, "message", false)?;
@@ -24,10 +24,9 @@ fn find_refs(_sandbox: TempDir, #[with(&_sandbox)] repo: Repo<TestCreds>) -> Res
   Ok(())
 }
 
-
 #[rstest]
 fn find_refs_multiple_globs(_sandbox: TempDir, #[with(&_sandbox)] repo: Repo<TestCreds>) -> Result {
-  let commit = repo.commit("1")?;
+  let (commit, _) = repo.commit_debug()?;
   let signature = TestCreds.signature()?;
 
   repo.repo().tag("tag-1", &repo.repo().find_object(commit, None)?, &signature, "message", false)?;

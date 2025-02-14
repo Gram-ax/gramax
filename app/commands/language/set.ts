@@ -4,10 +4,10 @@ import type { Context } from "vm";
 import { Command } from "../../types/Command";
 
 const setLanguage: Command<{ ctx: Context; language: ContentLanguage }, void> = Command.create({
-	path: "language/set",
+	path: "lang/set",
 
 	do({ ctx, language }) {
-		ctx.cookie.set("ui", language);
+		ctx.cookie.set("ui", language || UiLanguage.en);
 	},
 
 	params(ctx, query) {

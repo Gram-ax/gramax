@@ -17,6 +17,7 @@ import storage from "./storage";
 import setTheme from "./theme/setTheme";
 import versionControl from "./versionControl";
 import word from "./word";
+import pdf from "@app/commands/pdf";
 
 const commands = {
 	enterprise,
@@ -33,6 +34,7 @@ const commands = {
 	versionControl,
 	mergeRequests,
 	word,
+	pdf,
 	debug,
 	search,
 	workspace,

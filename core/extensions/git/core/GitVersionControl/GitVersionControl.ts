@@ -3,7 +3,7 @@ import gitMergeConverter from "@ext/git/actions/MergeConflictHandler/logic/GitMe
 import GitMergeResult from "@ext/git/actions/MergeConflictHandler/model/GitMergeResult";
 import GitError from "@ext/git/core/GitCommands/errors/GitError";
 import GitErrorCode from "@ext/git/core/GitCommands/errors/model/GitErrorCode";
-import type { RefInfo } from "@ext/git/core/GitCommands/model/GitCommandsModel";
+import type { DiffConfig, DiffTree2TreeInfo, RefInfo } from "@ext/git/core/GitCommands/model/GitCommandsModel";
 import GitStash from "@ext/git/core/model/GitStash";
 import Path from "../../../../logic/FileProvider/Path/Path";
 import FileProvider from "../../../../logic/FileProvider/model/FileProvider";
@@ -15,6 +15,7 @@ import GitWatcher from "../GitWatcher/GitWatcher";
 import { GitStatus } from "../GitWatcher/model/GitStatus";
 import { GitVersion } from "../model/GitVersion";
 import SubmoduleData from "../model/SubmoduleData";
+import type { CommitAuthorInfo } from "@ext/git/core/GitCommands/LibGit2IntermediateCommands";
 
 export type GitVersionControlEvents = Event<"files-changed", { items: GitStatus[] }>;
 
@@ -35,7 +36,9 @@ export default class GitVersionControl {
 		this._gitRepository = new GitCommands(this._fp, this._path);
 		this._gitWatcher = new GitWatcher(this);
 		this._gitWatcher.watch(async (items) => {
-			await this.events.emit("files-changed", { items });
+			await this.events.emit("files-changed", {
+				items: items.files.map((f) => ({ path: f.path, status: f.status })),
+			});
 		});
 		void this._initSubGitVersionControls();
 	}
@@ -160,12 +163,12 @@ export default class GitVersionControl {
 		return this._allBranches;
 	}
 
-	async add(filePaths?: Path[]): Promise<void> {
-		if (!filePaths) return this._gitRepository.add();
+	async add(filePaths?: Path[], force = false): Promise<void> {
+		if (!filePaths) return this._gitRepository.add(null, force);
 		const versionContolsAndItsFiles = await this._getVersionControlsAndItsFiles(filePaths);
 		for (const [storage, paths] of Array.from(versionContolsAndItsFiles)) {
 			const gitRepository = new GitCommands(this._fp, storage.getPath());
-			await gitRepository.add(paths);
+			await gitRepository.add(paths, force);
 		}
 	}
 
@@ -192,26 +195,31 @@ export default class GitVersionControl {
 		return this._gitWatcher.recursiveCheckChanges(oldVersion, newVersion, subOldVersions, subNewVersions);
 	}
 
-	async diff(oldVersion: GitVersion | GitBranch, newVersion: GitVersion | GitBranch): Promise<GitStatus[]> {
-		return this._gitRepository.diff(oldVersion, newVersion);
+	async diff(opts: DiffConfig): Promise<DiffTree2TreeInfo> {
+		return this._gitRepository.diff(opts);
 	}
 
-	async commit(message: string, userData: SourceData, parents?: (string | GitBranch)[]): Promise<void> {
+	async commit(
+		message: string,
+		userData: SourceData,
+		parents?: (string | GitBranch)[],
+		filesToPublish?: Path[],
+	): Promise<void> {
 		// const subModules = await this._getSubGitVersionControls();
 		// for (const s of subModules) {
 		// 	if ((await s.getChanges()).length > 0) await s.commit(message, userData);
 		// }
-		await this._gitRepository.commit(message, userData, parents);
+		await this._gitRepository.commit(message, userData, parents, filesToPublish);
 	}
 
 	async setHead(refname: string) {
 		await this._gitRepository.setHead(refname);
 	}
 
-	async checkoutToBranch(branch: GitBranch | string) {
+	async checkoutToBranch(branch: GitBranch | string, force?: boolean) {
 		this._fp.stopWatch();
 		try {
-			await this._gitRepository.checkout(branch);
+			await this._gitRepository.checkout(branch, { force });
 			await this.update();
 		} finally {
 			this._fp?.startWatch();
@@ -227,8 +235,8 @@ export default class GitVersionControl {
 		}
 	}
 
-	async getChanges(recursive = true): Promise<GitStatus[]> {
-		const changeFiles = await this._gitRepository.status();
+	async getChanges(type: "index" | "workdir" = "workdir", recursive = true): Promise<GitStatus[]> {
+		const changeFiles = await this._gitRepository.status(type);
 		if (recursive) {
 			// const subGitVersionControls = await this._getSubGitVersionControls();
 			// const subGitVersionControlChanges: GitStatus[][] = await Promise.all(
@@ -319,6 +327,10 @@ export default class GitVersionControl {
 			}
 		}
 	}
+
+  getCommitAuthors(): Promise<CommitAuthorInfo[]> {
+    return this._gitRepository.getCommitAuthors();
+  }
 
 	async getSubGitVersionControls(): Promise<GitVersionControl[]> {
 		if (!this._subGitVersionControls) await this._initSubGitVersionControls();

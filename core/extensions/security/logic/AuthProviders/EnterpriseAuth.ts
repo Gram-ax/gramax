@@ -6,12 +6,14 @@ import EnterpriseApi from "@ext/enterprise/EnterpriseApi";
 import EnterpriseUser from "@ext/enterprise/EnterpriseUser";
 import { AuthProvider } from "@ext/security/logic/AuthProviders/AuthProvider";
 import Permission from "@ext/security/logic/Permission/Permission";
+import StrictPermissionMap from "@ext/security/logic/PermissionMap/StrictPermissionMap";
 import User from "@ext/security/logic/User/User";
 import UserInfo from "@ext/security/logic/User/UserInfo";
 import { UserRepositoryProvider } from "@ext/security/logic/UserRepository";
+import { Workspace } from "@ext/workspace/Workspace";
 
 class EnterpriseAuth implements UserRepositoryProvider, AuthProvider {
-	constructor(private _gesUrl: string) {}
+	constructor(private _gesUrl: string, private _getCurrentWorkspace: () => Workspace) {}
 
 	async getUser(idOrMail: string): Promise<UserInfo> {
 		try {
@@ -47,11 +49,13 @@ class EnterpriseAuth implements UserRepositoryProvider, AuthProvider {
 			return;
 		}
 
+		const workspacePath = this._getCurrentWorkspace().path();
 		const user = new EnterpriseUser(
 			true,
 			userData.info,
-			new Permission(userData.globalPermission),
 			null,
+			new StrictPermissionMap({ [workspacePath]: new Permission(userData.workspacePermissions) }),
+			new StrictPermissionMap({}),
 			this._gesUrl,
 			token,
 		);

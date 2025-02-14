@@ -10,8 +10,8 @@ const data: ClientGitBranchData[] = [
 		remoteName: "remote1",
 		lastCommitOid: "1234567890",
 		mergeRequest: {
-			assignees: [{ name: "Test", email: "test@example.com" }],
-			author: {
+			approvers: [{ name: "Test", email: "test@example.com" }],
+			creator: {
 				name: "author",
 				email: "author@example.com",
 			},
@@ -30,8 +30,8 @@ const data: ClientGitBranchData[] = [
 		remoteName: "remote1",
 		lastCommitOid: "1234567890",
 		mergeRequest: {
-			assignees: [{ name: "Test", email: "test@example.com" }],
-			author: {
+			approvers: [{ name: "Test", email: "test@example.com" }],
+			creator: {
 				name: "author",
 				email: "author@example.com",
 			},
@@ -50,8 +50,8 @@ const data: ClientGitBranchData[] = [
 		remoteName: "remote1",
 		lastCommitOid: "1234567890",
 		mergeRequest: {
-			assignees: [{ name: "Test", email: "test@example.com" }],
-			author: {
+			approvers: [{ name: "Test", email: "test@example.com" }],
+			creator: {
 				name: "author",
 				email: "author@example.com",
 			},

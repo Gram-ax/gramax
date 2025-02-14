@@ -2,6 +2,7 @@ import ButtonLink from "@components/Molecules/ButtonLink";
 import ModalToOpenService from "@core-ui/ContextServices/ModalToOpenService/ModalToOpenService";
 import ModalToOpen from "@core-ui/ContextServices/ModalToOpenService/model/ModalsToOpen";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
+import { usePlatform } from "@core-ui/hooks/usePlatform";
 import astToParagraphs from "@ext/StyleGuide/logic/astToParagraphs";
 import { getSuggestionItems } from "@ext/StyleGuide/logic/getSuggestionItems";
 import EnterpriseApi from "@ext/enterprise/EnterpriseApi";
@@ -12,6 +13,7 @@ import { useEffect, useState } from "react";
 
 const EnterpriseCheckStyleGuide = () => {
 	const [render, setRender] = useState(false);
+	const { isNext } = usePlatform();
 	const gesUrl = PageDataContextService.value.conf.enterprise.gesUrl;
 
 	const checkArticle = async () => {
@@ -32,7 +34,7 @@ const EnterpriseCheckStyleGuide = () => {
 	};
 
 	useEffect(() => {
-		if (!gesUrl) return;
+		if (!gesUrl || isNext) return;
 		healthcheck(gesUrl);
 	}, []);
 

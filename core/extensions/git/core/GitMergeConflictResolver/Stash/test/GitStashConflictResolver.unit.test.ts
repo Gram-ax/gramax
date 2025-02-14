@@ -36,7 +36,7 @@ const commit = async (
 			await dfp.write(repPath(path), content);
 		}),
 	);
-	await gvc.add(Object.keys(files).map(path));
+	await gvc.add(Object.keys(files).map(path), true);
 	return gvc.commit(message, mockUserData);
 };
 
@@ -65,12 +65,12 @@ describe("GitStashConflictResolver", () => {
 
 	afterEach(async () => {
 		await dfp.delete(path("testRep"));
-		await RepositoryProvider.invalidateRepoCache([]);
+		await RepositoryProvider.resetRepo();
 		resolver = null;
 		gvc = null;
 	});
 
-	it("Прерывает слияние", async () => {
+	test("Прерывает слияние", async () => {
 		const hashBefore = (await gvc.getCommitHash()).toString();
 		await writeFile("1.txt", "conflict content theirs");
 		const statusBefore = await gvc.getChanges();
@@ -97,7 +97,7 @@ describe("GitStashConflictResolver", () => {
 		expect(await dfp.read(repPath("1.txt"))).toEqual("conflict content theirs");
 	});
 
-	it("Решает конфликт слияния", async () => {
+	test("Решает конфликт слияния", async () => {
 		const resolvedMergeFiles = [{ path: "1.txt", content: "conflict content ours and theirs :)" }];
 		await writeFile("1.txt", "conflict content theirs");
 		const hashBefore = (await gvc.getCommitHash()).toString();

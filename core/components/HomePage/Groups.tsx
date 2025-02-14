@@ -64,6 +64,7 @@ export default styled(Groups)`
 		text-transform: lowercase;
 		font-family: Montserrat, sans-serif;
 		font-size: 2.3rem;
+		height: 1.8em;
 	}
 
 	.catalog-texts {
@@ -85,7 +86,7 @@ export default styled(Groups)`
 		line-height: 150%;
 		margin-top: 0.5rem;
 		overflow: hidden;
-		-webkit-line-clamp: 3;
+		-webkit-line-clamp: 2;
 		display: -webkit-box;
 		-webkit-box-orient: vertical;
 	}

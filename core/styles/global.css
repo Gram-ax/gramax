@@ -67,16 +67,6 @@ h4 {
 	line-height: 1.6;
 }
 
-a {
-	color: var(--color-primary);
-	text-decoration: none;
-	font-weight: 400;
-}
-
-a:hover {
-	text-decoration: none;
-}
-
 hr {
 	border: 0;
 	height: 1px;
@@ -89,43 +79,30 @@ ul li {
 	margin-bottom: 0.6em;
 }
 
+a {
+	color: var(--color-primary);
+	text-decoration: none;
+	font-weight: 400;
+}
+
+a:hover {
+	text-decoration: none;
+}
+
 a i.link-icon {
 	font-size: 0.82em;
-	font-weight: 600;
-	padding-left: 0.4em;
+	margin-left: 0.4em;
 	vertical-align: 1px;
 }
 
-.scrollbar-webkit *::-webkit-scrollbar {
+*::-webkit-scrollbar {
 	height: var(--scroll-width);
 	width: var(--scroll-width);
 }
 
-.scrollbar-webkit-all *::-webkit-scrollbar {
-	height: var(--scroll-width);
-	width: var(--scroll-width);
-}
-
-.scrollbar-webkit-all *::-webkit-scrollbar-thumb {
+*::-webkit-scrollbar-thumb {
 	background: var(--color-scroll);
 	border-radius: 3px;
-}
-
-.hover-scrollbar::-webkit-scrollbar {
-	width: 0;
-	height: 0;
-}
-.hover-scrollbar::-webkit-scrollbar-thumb {
-	background: #ffffff00;
-}
-
-.hover-scrollbar:hover::-webkit-scrollbar {
-	background: var(--color-scroll-bg);
-	height: var(--scroll-width);
-	width: var(--scroll-width);
-}
-.hover-scrollbar:hover::-webkit-scrollbar-thumb {
-	background: var(--color-scroll);
 }
 
 a {

@@ -11,7 +11,7 @@ interface CheckboxProps {
 	indeterminate?: boolean;
 	borderClickArea?: number;
 	onChange?: (isChecked: boolean) => void;
-	onClick?: (isChecked: boolean) => void;
+	onClick?: (isChecked: boolean, e: React.MouseEvent<HTMLDivElement>) => void;
 	overflow?: Property.Overflow;
 	className?: string;
 }
@@ -33,9 +33,9 @@ const Checkbox = (props: CheckboxProps) => {
 	const [checkboxSize, setCheckboxSize] = useState<number>(null);
 	const checkboxRef = useRef<HTMLInputElement>(null);
 
-	const currentOnClick = () => {
+	const currentOnClick = (e: React.MouseEvent<HTMLDivElement>) => {
 		if (disabled) return;
-		if (onClick) onClick(!currentChecked);
+		if (onClick) onClick(!currentChecked, e);
 		setCurrentChecked(!currentChecked);
 	};
 

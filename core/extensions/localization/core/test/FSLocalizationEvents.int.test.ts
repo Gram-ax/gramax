@@ -20,15 +20,10 @@ const makeApp = async () => {
 	const app = await getApp();
 	const fp = app.wm.current().getFileProvider();
 	const wm = app.wm.current();
+	const ctx = await app.contextFactory.fromBrowser("ru" as any, {});
 
 	const makeResourceUpdater = (catalog: Catalog) =>
-		new ResourceUpdater(
-			app.contextFactory.fromBrowser("ru" as any, {}),
-			catalog,
-			app.parser,
-			app.parserContextFactory,
-			app.formatter,
-		);
+		new ResourceUpdater(ctx, catalog, app.parser, app.parserContextFactory, app.formatter);
 
 	return { app, fp, wm, makeResourceUpdater };
 };
@@ -181,7 +176,7 @@ supportedLanguages:
 
 			const catalog = await wm.getContextlessCatalog("catalog");
 			const articleParser = new ArticleParser(
-				app.contextFactory.fromBrowser(null, null),
+				await app.contextFactory.fromBrowser(null, null),
 				app.parser,
 				app.parserContextFactory,
 			);
@@ -233,5 +228,40 @@ supportedLanguages:
 
 		test("в основном каталоге", () => doTest(false));
 		test("в дочернем каталоге", () => doTest(true));
+	});
+
+	describe("создает отсутствующую статью при изменении пропсов", () => {
+		test("создает статью на английском при её отсутствии", async () => {
+			const { wm, fp, makeResourceUpdater } = await makeApp();
+
+			await fp.delete(p("catalog/en/test.md"));
+			await fp.write(p("catalog/en/article.md"), "en");
+
+			const catalog = await wm.getContextlessCatalog("catalog");
+
+			const ruArticle = catalog.findArticle("catalog/test", []);
+			expect(ruArticle).not.toBeNull();
+			expect(await fp.exists(p("catalog/test.md"))).toBeTruthy();
+			expect(await fp.exists(p("catalog/en/test.md"))).toBeFalsy();
+
+			await catalog.updateItemProps(
+				{
+					logicPath: "catalog/test",
+					order: 1,
+					description: "123",
+				},
+				makeResourceUpdater,
+			);
+
+			const enArticle = catalog.findArticle("catalog/en/test", []);
+			expect(enArticle).not.toBeNull();
+			expect(await fp.exists(p("catalog/en/test.md"))).toBeTruthy();
+
+			expect(enArticle.content).toBe("");
+
+			const otherArticle = catalog.findArticle("catalog/en/article", []);
+			expect(otherArticle).not.toBeNull();
+			expect(otherArticle.content).toBe("en");
+		});
 	});
 });

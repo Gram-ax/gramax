@@ -1,29 +1,41 @@
 import SidebarsIsOpenService from "@core-ui/ContextServices/Sidebars/SidebarsIsOpenContext";
+import WorkspaceService from "@core-ui/ContextServices/Workspace";
+import { usePlatform } from "@core-ui/hooks/usePlatform";
 import { cssMedia } from "@core-ui/utils/cssUtils";
 import type { ArticlePageData } from "@core/SitePresenter/SitePresenter";
 import PermissionService from "@ext/security/logic/Permission/components/PermissionService";
-import { configureCatalogPermission } from "@ext/security/logic/Permission/Permissions";
+import { configureCatalogPermission, editCatalogContentPermission } from "@ext/security/logic/Permission/Permissions";
 import useIsStorageInitialized from "@ext/storage/logic/utils/useIsStorageInitialized";
 import { useMediaQuery } from "@mui/material";
 import CreateArticle from "../../../../extensions/artilce/actions/CreateArticle";
 import CatalogPropsService from "../../../../ui-logic/ContextServices/CatalogProps";
-import PageDataContextService from "../../../../ui-logic/ContextServices/PageDataContext";
 import ExtensionBarLayout from "../../ExtensionBarLayout";
-import ArticleStatusBar from "../../StatusBar/Extensions/ArticleStatusBar";
+import ArticleStatusBar from "../../StatusBar/Extensions/ArticleStatusBar/ArticleStatusBar";
 import PinToggleArrowIcon from "./PinToggleArrowIcon";
 
 const LeftNavigationBottom = ({ data, closeNavigation }: { data: ArticlePageData; closeNavigation?: () => void }) => {
 	const catalogProps = CatalogPropsService.value;
-	const readOnlyCatalog = catalogProps.readOnly;
 	const isCatalogExist = !!catalogProps.name;
-	const isLogged = PageDataContextService.value.isLogged;
-	const isReadOnly = PageDataContextService.value.conf.isReadOnly;
-	const neededToBeLogged = (isLogged && isReadOnly) || !isReadOnly;
 	const leftNavIsOpen = SidebarsIsOpenService.value.left;
 	const leftNavTrEndIsOpen = SidebarsIsOpenService.transitionEndIsLeftOpen;
 	const mediumMedia = useMediaQuery(cssMedia.JSmedium);
 	const isStorageInitialized = useIsStorageInitialized();
-	const canConfigureCatalog = PermissionService.useCheckPermission(configureCatalogPermission, catalogProps.name);
+	const workspacePath = WorkspaceService.current().path;
+	const { isNext } = usePlatform();
+
+	const canEditContentCatalog = PermissionService.useCheckPermission(
+		editCatalogContentPermission,
+		workspacePath,
+		catalogProps.name,
+	);
+	const canConfigureCatalog = PermissionService.useCheckPermission(
+		configureCatalogPermission,
+		workspacePath,
+		catalogProps.name,
+	);
+
+	const canSeeStatusBar =
+		(isNext && canConfigureCatalog) || (!isNext && (canEditContentCatalog || !catalogProps.sourceName));
 
 	const getPaddingTop = (): string => {
 		if (leftNavIsOpen) return "0";
@@ -51,7 +63,7 @@ const LeftNavigationBottom = ({ data, closeNavigation }: { data: ArticlePageData
 				}
 				rightExtensions={mediumMedia ? null : [<PinToggleArrowIcon key={0} />]}
 			/>
-			{canConfigureCatalog && !readOnlyCatalog && neededToBeLogged && isCatalogExist && (
+			{canSeeStatusBar && isCatalogExist && (
 				<ArticleStatusBar
 					isStorageInitialized={isStorageInitialized}
 					padding={leftNavIsOpen ? "0 6px" : "0 31px"}

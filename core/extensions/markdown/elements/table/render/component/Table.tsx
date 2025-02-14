@@ -1,5 +1,7 @@
 import { ReactElement, useEffect, useRef } from "react";
 import WidthWrapper, { CELL_MIN_WIDTH } from "@components/WidthWrapper/WidthWrapper";
+import { TableHeaderTypes } from "@ext/markdown/elements/table/edit/model/tableTypes";
+import { useAggregation } from "@ext/markdown/elements/table/edit/logic/aggregation";
 
 const setTableCellsWidth = (table: HTMLTableElement) => {
 	const tds = table.getElementsByTagName("td");
@@ -21,7 +23,13 @@ const setCellWidth = (cell: HTMLElement) => {
 	}
 };
 
-const Table = ({ children }: { children?: any }): ReactElement => {
+interface TableProps {
+	children?: any;
+	header?: TableHeaderTypes;
+}
+
+const Table = (props: TableProps): ReactElement => {
+	const { children, header } = props;
 	const ref = useRef<HTMLTableElement>(null);
 
 	useEffect(() => {
@@ -29,12 +37,21 @@ const Table = ({ children }: { children?: any }): ReactElement => {
 		setTableCellsWidth(ref.current);
 	});
 
+	useAggregation(ref);
+
 	return (
-		<WidthWrapper>
+		<WidthWrapper elementRef={ref}>
 			{typeof children === "string" ? (
-				<table ref={ref} dangerouslySetInnerHTML={{ __html: children }} suppressHydrationWarning={true} />
+				<table
+					ref={ref}
+					dangerouslySetInnerHTML={{ __html: children }}
+					suppressHydrationWarning={true}
+					data-header={header}
+				/>
 			) : (
-				<table ref={ref}>{children}</table>
+				<table ref={ref} data-header={header}>
+					{children}
+				</table>
 			)}
 		</WidthWrapper>
 	);

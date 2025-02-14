@@ -3,9 +3,10 @@ import Link from "@components/Atoms/Link";
 import { classNames } from "@components/libs/classNames";
 import Url from "@core-ui/ApiServices/Types/Url";
 import ArticlePropsService from "@core-ui/ContextServices/ArticleProps";
+import GitIndexService from "@core-ui/ContextServices/GitIndexService";
+import ArticleViewService from "@core-ui/ContextServices/views/articleView/ArticleViewService";
 import { ItemType } from "@core/FileStructue/Item/ItemType";
 import styled from "@emotion/styled";
-import { FileStatus } from "@ext/Watchers/model/FileStatus";
 import { HTMLAttributes } from "react";
 import { CategoryLink, ItemLink } from "../../../NavigationLinks";
 /* eslint-disable @typescript-eslint/no-unused-vars */
@@ -45,9 +46,7 @@ const LevNavItem = (props: LevNavItemProps) => {
 	const title = item ? (articleProps?.ref?.path == item?.ref?.path ? articleProps?.title : item?.title) : null;
 	const existsContent = item?.type === ItemType.category ? (item as CategoryLink)?.existContent : true;
 
-	let status = FileStatus[item.status];
-	if (articleProps?.ref?.path == item?.ref?.path && articleProps.status && status != FileStatus.new)
-		status = FileStatus[articleProps.status];
+	const status = GitIndexService.getStatusByPath(item?.ref?.path);
 
 	const Item = (
 		<div
@@ -81,7 +80,11 @@ const LevNavItem = (props: LevNavItemProps) => {
 	);
 
 	if (!item || articleProps?.ref?.path == item?.ref?.path || !existsContent) return Item;
-	return <Link href={Url.from(item)}>{Item}</Link>;
+	return (
+		<Link onClick={ArticleViewService.setDefaultView.bind(null)} href={Url.from(item)}>
+			{Item}
+		</Link>
+	);
 };
 
 export default styled(LevNavItem)`

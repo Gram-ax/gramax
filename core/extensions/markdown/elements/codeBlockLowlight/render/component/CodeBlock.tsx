@@ -19,7 +19,7 @@ interface CodeBlockProps {
 }
 
 const CodeBlock = (props: CodeBlockProps) => {
-	const { languageClassPrefix, monochromeClassName } = ExtendedCodeBlockLowlight.options;
+	const { languageClassPrefix } = ExtendedCodeBlockLowlight.options;
 	const { lang = "", value = "", withoutHighlight, className, style } = props;
 	const [coppedIsExpanded, setCoppedIsExpanded] = useState(false);
 
@@ -48,7 +48,7 @@ const CodeBlock = (props: CodeBlockProps) => {
 
 	return (
 		<pre
-			className={classNames(className, { [monochromeClassName]: !lowlight.registered(language) })}
+			className={className}
 			style={style}
 			onMouseEnter={() => setCoppedIsExpanded(true)}
 			onMouseLeave={() => {
@@ -76,6 +76,9 @@ export default styled(CodeBlock)`
 	position: relative;
 	padding: 0 !important;
 
+	font-size: 0.8em;
+	line-height: 1.5625em;
+
 	.child-wrapper {
 		overflow: auto;
 		padding: 1.375em 1.625em;
@@ -83,12 +86,12 @@ export default styled(CodeBlock)`
 
 	.hover-right-button {
 		top: 8px;
-		width: 35px;
+		width: 2.1875em;
 		right: 8px;
-		height: 35px;
+		height: 2.1875em;
 		display: flex;
 		cursor: pointer;
-		font-size: 17px;
+		font-size: 1.0625em;
 		padding: 0 2px;
 		border-radius: var(--radius-medium);
 		position: absolute;

@@ -1,8 +1,8 @@
 import styled from "@emotion/styled";
 import { ArticleLink, BaseLink, CatalogLink, CategoryLink, ItemLink } from "@ext/navigation/NavigationLinks";
+import { forwardRef, MutableRefObject } from "react";
 import { CatalogLogo } from "../CatalogLogo";
 import Breadcrumb from "./Breadcrumb";
-import { forwardRef, MutableRefObject } from "react";
 
 interface BreadcrumbProps {
 	itemLinks?: ItemLink[];
@@ -47,6 +47,8 @@ const LinksBreadcrumb = forwardRef((props: BreadcrumbProps, ref: MutableRefObjec
 		categoryLinks = readyData.links;
 	}
 
+	if (!titles.length) return <div></div>;
+
 	return (
 		<div
 			ref={ref}
@@ -77,6 +79,7 @@ const LinksBreadcrumb = forwardRef((props: BreadcrumbProps, ref: MutableRefObjec
 });
 
 export default styled(LinksBreadcrumb)`
+	min-width: 0;
 	display: flex;
 	align-items: center;
 
@@ -97,5 +100,9 @@ export default styled(LinksBreadcrumb)`
 	.catalog-logo {
 		display: flex;
 		align-items: center;
+	}
+
+	.article-breadcrumb {
+		max-width: 100%;
 	}
 `;

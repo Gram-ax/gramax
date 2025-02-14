@@ -12,6 +12,7 @@ import updateNavigation from "./updateNavigation";
 import updateProps from "./updateProps";
 import getAddedCounters from "./properties/getAddedCounters";
 import getViewRenderData from "@app/commands/catalog/properties/getViewRenderData";
+import getUserTicket from "@app/commands/catalog/user/getToken";
 
 const catalog = {
 	review: {
@@ -28,6 +29,7 @@ const catalog = {
 	getViewRenderData,
 	getAddedCounters,
 	updateNavigation,
+	getUserTicket,
 	updateProps,
 	language,
 };

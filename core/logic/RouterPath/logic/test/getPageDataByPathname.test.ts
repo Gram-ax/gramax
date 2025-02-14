@@ -43,7 +43,7 @@ const getDataType = async (pathname: string) =>
 describe("getPageDataByPathname", () => {
 	describe("находит", () => {
 		describe("статью по ссылке на каталог", () => {
-			it("локальный", async () => {
+			test("локальный", async () => {
 				const pathname = "-/-/-/-/local_catalog/file";
 
 				expect(await getDataType(pathname)).toEqual({
@@ -78,7 +78,7 @@ describe("getPageDataByPathname", () => {
 				});
 			});
 		});
-		it("главную страницу по валидной ссылке", async () => {
+		test("главную страницу по валидной ссылке", async () => {
 			const pathname = "github.com/user/catalog_not_in_lib/master/-/file";
 
 			expect(await getDataType(pathname)).toEqual({ type: PageDataType.home });
@@ -86,7 +86,7 @@ describe("getPageDataByPathname", () => {
 	});
 	describe("не находит", () => {
 		describe("статью по ссылке на каталог", () => {
-			it("локальный", async () => {
+			test("локальный", async () => {
 				const pathname = "-/-/-/-/local_catalog_not_in_lib";
 
 				expect(await getDataType(pathname)).toEqual({ type: PageDataType.notFound });
@@ -109,7 +109,7 @@ describe("getPageDataByPathname", () => {
 				});
 			});
 		});
-		it("статью по невалидным данным в ссылке", async () => {
+		test("статью по невалидным данным в ссылке", async () => {
 			const invalidSourceName = "gitaaahub.com/user/default_repName/master/-";
 			const invalidGroup = "github.com/useeer/default_repName/master/-";
 			const invalidRepName = "github.com/user/default_catalooooog/master/default_repName";

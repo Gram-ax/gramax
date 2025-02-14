@@ -1,4 +1,4 @@
-import { Property, PropertyTypes } from "@ext/properties/models";
+import { enumTypes, Property } from "@ext/properties/models";
 import { isHasValue } from "@ext/properties/models";
 import PropertyItem from "@ext/properties/components/PropertyItem";
 import PropertyButton from "@ext/properties/components/PropertyButton";
@@ -42,7 +42,7 @@ const FilterMenu = memo((props: FilterMenuProps) => {
 
 	return noAssignedProperties.map((property) => {
 		const customMenu = customPropertyMenu?.(property, updateData) || null;
-		const isNotEnum = property.type !== PropertyTypes.enum;
+		const isNotEnum = !enumTypes.includes(property.type);
 		const values = availableValues && isHasValue[property.type] ? property.values : undefined;
 		const showChildren = (isNotEnum && availableValues && specialValues) || customMenu;
 

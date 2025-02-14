@@ -118,6 +118,7 @@ export class WordImageProcessor {
 		if (crop) {
 			imageBuffer = Buffer.from(await this._cropImageToBuffer(image, crop, size));
 			size = await ImageDimensionsFinder.getImageSizeFromImageData(imageBuffer);
+
 			image = await this._createImageFromBuffer(imageBuffer);
 		}
 		return { imageBuffer, image, size };

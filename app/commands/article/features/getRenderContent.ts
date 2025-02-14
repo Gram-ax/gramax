@@ -4,8 +4,10 @@ import Context from "@core/Context/Context";
 import Path from "@core/FileProvider/Path/Path";
 import { Article } from "@core/FileStructue/Article/Article";
 import parseContent from "@core/FileStructue/Article/parseContent";
+import HiddenRules from "@core/FileStructue/Rules/HiddenRules/HiddenRule";
 import { ClientArticleProps } from "@core/SitePresenter/SitePresenter";
 import { RenderableTreeNodes } from "@ext/markdown/core/render/logic/Markdoc";
+import SecurityRules from "@ext/security/logic/SecurityRules";
 
 const getRenderContent: Command<
 	{ ctx: Context; articlePath: Path; catalogName: string; articleRelativePath: Path },
@@ -23,6 +25,15 @@ const getRenderContent: Command<
 		const catalog = await workspace.getCatalog(catalogName, ctx);
 		const article: Article = catalog.findItemByItemPath(path);
 		if (!article) return null;
+
+		const securityFilter = new SecurityRules(ctx.user).getItemFilter();
+		const securityFilterStatus = securityFilter(article, catalog);
+
+		const filter = new HiddenRules().getItemFilter();
+		const hiddenFilterStatus = filter(article, catalog);
+
+		if (!securityFilterStatus || !hiddenFilterStatus) return null;
+
 		await parseContent(article, catalog, ctx, parser, parserContextFactory);
 		const sp = sitePresenterFactory.fromContext(ctx);
 		return {

@@ -11,6 +11,7 @@ export default interface Storage {
 	push(source: SourceData): Promise<void>;
 	fetch(source: SourceData, force?: boolean): Promise<void>;
 	update(): Promise<void>;
+	getDefaultBranch(source: SourceData): Promise<Branch | null>;
 	getSourceName(): Promise<string>;
 	getStorageData(source: SourceData): Promise<StorageData>;
 	getShareData(source: SourceData, branch: string, filePath: Path): Promise<ShareData>;

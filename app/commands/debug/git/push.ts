@@ -14,7 +14,7 @@ const push: Command<{ catalogName: string }, void> = Command.create({
 
 		const name = await catalog.repo.storage.getSourceName();
 		const sourceData = this._app.rp.getSourceData(
-			this._app.contextFactory.fromBrowser(defaultLanguage, {}).cookie,
+			(await this._app.contextFactory.fromBrowser(defaultLanguage, {})).cookie,
 			name,
 		);
 		const path = catalog.repo.gvc.getPath();

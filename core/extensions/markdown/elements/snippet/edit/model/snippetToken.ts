@@ -6,6 +6,7 @@ const snippetToken = (context?: ParserContext): ParseSpec => {
 	return {
 		node: "snippet",
 		getAttrs: async (tok) => {
+			if (!context) return { content: null, title: null, id: tok.attrs.id };
 			const snippetProvider = context.getCatalog().snippetProvider;
 			let snippetData: SnippetRenderData;
 			try {

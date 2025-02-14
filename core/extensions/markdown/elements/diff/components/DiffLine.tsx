@@ -3,6 +3,7 @@ import Tooltip from "@components/Atoms/Tooltip";
 import { classNames } from "@components/libs/classNames";
 import useWatch from "@core-ui/hooks/useWatch";
 import styled from "@emotion/styled";
+import { TreeReadScope } from "@ext/git/core/GitCommands/model/GitCommandsModel";
 import getExtensions from "@ext/markdown/core/edit/logic/getExtensions";
 import OnLoadResourceService from "@ext/markdown/elements/copyArticles/onLoadResourceService";
 import addDecorations from "@ext/markdown/elements/diff/logic/addDecorations";
@@ -20,6 +21,7 @@ interface DiffLineProps {
 	height: number;
 	left: number | string;
 	type: DiffLineType["type"];
+	oldScope: TreeReadScope;
 	nodeBefore?: NodeBeforeData;
 	className?: string;
 }
@@ -30,7 +32,17 @@ const bgColors: Record<DiffLineType["type"], string> = {
 	modified: "var(--color-status-modified)",
 };
 
-const DiffLine = ({ top, height, left, type, nodeBefore, className }: DiffLineProps) => {
+const DiffLineConteiner = styled.div`
+	width: 100px;
+	position: absolute;
+	opacity: 0.5;
+
+	:hover {
+		opacity: 1;
+	}
+`;
+
+const DiffLine = ({ top, height, left, type, nodeBefore, oldScope, className }: DiffLineProps) => {
 	const [visible, setVisible] = useState(false);
 
 	useWatch(() => {
@@ -40,41 +52,49 @@ const DiffLine = ({ top, height, left, type, nodeBefore, className }: DiffLinePr
 	if (type !== "modified" || !nodeBefore?.content)
 		return (
 			<div className={className}>
-				<div className={"diff-line"} style={{ top, height, left, backgroundColor: bgColors[type] }} />
+				<DiffLineConteiner style={{ top, height, left }}>
+					<div className={"diff-line"} style={{ backgroundColor: bgColors[type] }} />
+				</DiffLineConteiner>
 			</div>
 		);
 
 	return (
 		<div className={className}>
-			<Tooltip
-				visible={visible}
-				content={<TooltipContent nodeBefore={nodeBefore} />}
-				arrow={false}
-				place="top-end"
-				interactive
-				onClickOutside={() => setVisible(false)}
-				contentClassName={classNames("diff-line-tooltip-content", { "has-content": !!nodeBefore?.content }, [
-					className,
-				])}
-			>
-				<div
-					className={"diff-line has-content"}
-					onClick={() => setVisible(true)}
-					style={{ top, height, left, backgroundColor: bgColors[type] }}
-				/>
-			</Tooltip>
+			<DiffLineConteiner style={{ top, height, left }}>
+				<Tooltip
+					visible={visible}
+					content={<TooltipContent nodeBefore={nodeBefore} oldScope={oldScope} />}
+					arrow={false}
+					place="top-end"
+					interactive
+					onClickOutside={() => setVisible(false)}
+					contentClassName={classNames(
+						"diff-line-tooltip-content",
+						{ "has-content": !!nodeBefore?.content },
+						[className],
+					)}
+				>
+					<div style={{ width: "20px" }} onClick={() => setVisible(true)} className="has-content">
+						<div className={"diff-line"} style={{ backgroundColor: bgColors[type] }} />
+					</div>
+				</Tooltip>
+			</DiffLineConteiner>
 		</div>
 	);
 };
 
 export default styled(DiffLine)`
 	.diff-line {
-		width: 5px;
-		position: absolute;
+		width: 4px;
+		border-radius: 3px;
+		height: inherit;
 	}
 
-	.diff-line.has-content:hover {
-		cursor: pointer;
+	.has-content {
+		height: inherit;
+		:hover {
+			cursor: pointer;
+		}
 	}
 
 	&.diff-line-tooltip-content {
@@ -104,9 +124,10 @@ const diffDeletedTextPluginKey = new PluginKey("diff-deleted-text");
 
 interface TooltipContentProps {
 	nodeBefore: NodeBeforeData;
+	oldScope: TreeReadScope;
 }
 
-const TooltipContent = ({ nodeBefore }: TooltipContentProps) => {
+const TooltipContent = ({ nodeBefore, oldScope }: TooltipContentProps) => {
 	const contentBefore = nodeBefore.content;
 	const editor = useEditor(
 		{
@@ -126,7 +147,7 @@ const TooltipContent = ({ nodeBefore }: TooltipContentProps) => {
 	}, [editor, nodeBefore.relativeTo, nodeBefore.relativeFrom]);
 
 	return (
-		<OnLoadResourceService.Provider>
+		<OnLoadResourceService.Provider scope={oldScope}>
 			<div className="tooltip-article">
 				<div className={classNames("article", {}, ["tooltip-size"])}>
 					<MinimizedArticleStyled>

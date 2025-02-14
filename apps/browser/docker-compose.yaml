@@ -1,0 +1,13 @@
+version: "3.8"
+services:
+    gramax-editor:
+        image: gramax/gramax-editor:latest
+        ports:
+            - "3000:80"
+        environment:
+            - GIT_PROXY_SERVICE_URL=http://localhost:3001
+
+    cors-proxy:
+        image: gramax/cors-proxy:latest
+        ports:
+            - "3001:80"

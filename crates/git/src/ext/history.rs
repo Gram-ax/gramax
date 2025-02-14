@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use std::ops::Deref;
 use std::path::Path;
 
@@ -5,37 +6,69 @@ use git2::*;
 
 use serde::Serialize;
 
+use crate::actions::diff::DiffFile;
 use crate::creds::Creds;
-use crate::prelude::*;
 use crate::repo::Repo;
 use crate::Result;
+use crate::ShortInfo;
+use crate::SignatureInfo;
 
 const TAG: &str = "git:history";
 
 #[derive(Serialize, Debug)]
 #[serde(transparent)]
-pub struct HistoryInfo(Vec<FileDiff>);
+pub struct HistoryInfo(Vec<DiffFile>);
 
 impl Deref for HistoryInfo {
-  type Target = Vec<FileDiff>;
+  type Target = Vec<DiffFile>;
 
   fn deref(&self) -> &Self::Target {
     &self.0
   }
 }
 
+#[derive(Serialize, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct CommitAuthorInfo {
+  #[serde(flatten)]
+  pub author: SignatureInfo,
+  pub count: usize,
+}
+
 pub trait History {
   fn history<P: AsRef<Path>>(&self, path: P, max: usize) -> Result<HistoryInfo>;
+  fn get_all_authors(&self) -> Result<Vec<CommitAuthorInfo>>;
 }
 
 impl<C: Creds> History for Repo<C> {
+  fn get_all_authors(&self) -> Result<Vec<CommitAuthorInfo>> {
+    let mut authors = HashMap::new();
+    let mut revwalk = self.0.revwalk()?;
+    revwalk.push_head()?;
+
+    for oid in revwalk {
+      let commit = self.0.find_commit(oid?)?;
+      let author = commit.author();
+
+      let author_email = author.email().unwrap_or("<invalid-utf8>");
+
+      match authors.get_mut(author_email) {
+        Some(count) => *count += 1,
+        None => {
+          authors.insert(author.short_info()?, 1);
+        }
+      }
+    }
+
+    Ok(authors.into_iter().map(|(author, count)| CommitAuthorInfo { author, count }).collect())
+  }
+
   fn history<P: AsRef<Path>>(&self, path: P, max: usize) -> Result<HistoryInfo> {
     let mut remain = max;
     let mut history = vec![];
 
     let mut revwalk = self.0.revwalk()?;
     revwalk.push_head()?;
-    revwalk.simplify_first_parent()?;
 
     let mut revwalk = revwalk.filter_map(|oid| oid.and_then(|oid| self.0.find_commit(oid)).ok());
 
@@ -47,6 +80,11 @@ impl<C: Creds> History for Repo<C> {
     for c in revwalk {
       if remain == 0 {
         break;
+      }
+      
+      // skip merge commits
+      if c.parent_count() > 1 {
+        continue;
       }
 
       inspected += 1;
@@ -69,7 +107,7 @@ impl<C: Creds> History for Repo<C> {
         .next()
       {
         Some(delta) if delta.status() == Delta::Modified => {
-          history.push(FileDiff::from_diff_delta(&self.0, &newer_commit, &delta)?);
+          history.push(DiffFile::from_diff_delta(&self.0, &newer_commit, &delta)?);
           remain -= 1;
           continue;
         }
@@ -88,7 +126,7 @@ impl<C: Creds> History for Repo<C> {
         delta.new_file().path().is_some_and(|p| p.eq(&path))
           && matches!(delta.status(), Delta::Modified | Delta::Renamed)
       }) {
-        let diff = FileDiff::from_diff_delta(&self.0, &newer_commit, &delta)?;
+        let diff = DiffFile::from_diff_delta(&self.0, &newer_commit, &delta)?;
         if let Some(p) = delta.old_file().path() {
           path = p.to_path_buf();
         }
@@ -103,7 +141,7 @@ impl<C: Creds> History for Repo<C> {
       diff.find_similar(Some(&mut find_opts))?;
 
       if let Some(delta) = diff.deltas().find(|delta| delta.new_file().path().is_some_and(|p| p.eq(&path))) {
-        let diff = FileDiff::from_diff_delta(&self.0, &newer_commit, &delta)?;
+        let diff = DiffFile::from_diff_delta(&self.0, &newer_commit, &delta)?;
         if let Some(p) = delta.old_file().path() {
           path = p.to_path_buf();
         }
@@ -118,7 +156,7 @@ impl<C: Creds> History for Repo<C> {
       let diff = self.0.diff_tree_to_tree(None, Some(&older_commit.tree()?), None)?;
 
       if let Some(delta) = diff.deltas().find(|delta| delta.new_file().path().is_some_and(|p| p.eq(&path))) {
-        let diff = FileDiff::from_diff_delta(&self.0, &older_commit, &delta)?;
+        let diff = DiffFile::from_diff_delta(&self.0, &older_commit, &delta)?;
         history.push(diff);
       }
     }

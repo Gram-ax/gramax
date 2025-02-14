@@ -16,7 +16,7 @@ const TableMenuButton = ({ editor }: { editor: Editor }) => {
 
 				editor
 					.chain()
-					.insertTable({ rows: 3, cols: 3, withHeaderRow: true })
+					.insertTable({ rows: 3, cols: 3, withHeaderRow: false })
 					.focus(editor.state.selection.anchor + 2)
 					.run();
 			}}

@@ -7,10 +7,32 @@ class Annotation extends Shape {
 		const x = this._getPixels(size.width, object.x) + this._radius;
 		const y = this._getPixels(size.height, object.y) + this._radius;
 
-		this._drawCircle(ctx, x, y, this._radius);
+		let finalX = x;
+		let finalY = y;
 
-		let arrowX = x;
-		let arrowY = y;
+		switch (object.direction) {
+			case "top-left":
+				finalX = x;
+				finalY = y;
+				break;
+			case "top-right":
+				finalX -= this._radius;
+				finalY = y;
+				break;
+			case "bottom-left":
+				finalX = x;
+				finalY -= this._radius;
+				break;
+			case "bottom-right":
+				finalX -= this._radius;
+				finalY -= this._radius;
+				break;
+		}
+
+		this._drawCircle(ctx, finalX, finalY, this._radius);
+
+		let arrowX = finalX;
+		let arrowY = finalY;
 
 		switch (object.direction) {
 			case "top-left":
@@ -18,16 +40,16 @@ class Annotation extends Shape {
 				arrowY -= this._radius;
 				break;
 			case "top-right":
-				arrowX = x;
+				arrowX = finalX;
 				arrowY -= this._radius;
 				break;
 			case "bottom-left":
 				arrowX -= this._radius;
-				arrowY = y;
+				arrowY = finalY;
 				break;
 			case "bottom-right":
 				arrowX += this._radius;
-				arrowY = y;
+				arrowY = finalY;
 				break;
 		}
 
@@ -42,7 +64,7 @@ class Annotation extends Shape {
 			object.direction,
 		);
 
-		if (isText) this._printText(ctx, text, x, y);
+		if (isText) this._printText(ctx, text, finalX, finalY);
 	}
 
 	private _roundRectOneSide(

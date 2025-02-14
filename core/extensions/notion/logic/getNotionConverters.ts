@@ -1,4 +1,3 @@
-import bookmark from "@ext/markdown/elements/paragraph/notion/bookmark";
 import list from "@ext/markdown/elements/list/notion/bulletList";
 import callout from "@ext/markdown/elements/note/notion/callout";
 import column from "@ext/markdown/elements/table/notion/column";
@@ -57,7 +56,7 @@ const getNotionConvertors = (): Record<string, NotionNodeConverter> => {
 		code,
 		image,
 		video,
-		bookmark,
+		bookmark: embed,
 		column_list: columnList,
 		column,
 		tableRow: gramaxNode,

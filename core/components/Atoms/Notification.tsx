@@ -2,22 +2,26 @@ import Tooltip from "@components/Atoms/Tooltip";
 import styled from "@emotion/styled";
 import type { HTMLAttributes } from "react";
 
-type NotificationProps = { tooltip?: string } & HTMLAttributes<HTMLDivElement>;
+type NotificationProps = { tooltip?: string; size?: number } & HTMLAttributes<HTMLDivElement>;
 
-const Notification = ({ tooltip, className, ...props }: NotificationProps) => {
+const NotificationWrapper = styled.div<{ size?: number }>`
+	font-size: ${({ size }) => size}px;
+`;
+
+const Notification = ({ tooltip, className, size = 12, ...props }: NotificationProps) => {
 	if (tooltip) {
 		return (
 			<Tooltip content={tooltip}>
-				<div className={className}>
+				<NotificationWrapper size={size} className={className}>
 					<div {...props} />
-				</div>
+				</NotificationWrapper>
 			</Tooltip>
 		);
 	}
 	return (
-		<div className={className}>
+		<NotificationWrapper size={size} className={className}>
 			<div {...props} />
-		</div>
+		</NotificationWrapper>
 	);
 };
 
@@ -25,10 +29,9 @@ export default styled(Notification)`
 	top: -0.5rem;
 	z-index: var(--z-index-base);
 	right: -0.5rem;
-	height: 1.05rem;
-	padding: 0 0.2rem;
-	font-size: 0.7rem;
-	min-width: 1.05rem;
+	height: 1.5em;
+	padding: 0 0.2em;
+	min-width: 1.5em;
 	border-radius: 1rem;
 	display: flex;
 	color: white;

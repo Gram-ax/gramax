@@ -7,7 +7,7 @@ import SyncIconService from "@core-ui/ContextServices/SyncIconService";
 import ArticleViewService from "@core-ui/ContextServices/views/articleView/ArticleViewService";
 import { useRouter } from "@core/Api/useRouter";
 import Path from "@core/FileProvider/Path/Path";
-import MergeConflictConfirm from "@ext/git/actions/MergeConflictHandler/components/MergeConflictConfirm";
+import tryOpenMergeConflict from "@ext/git/actions/MergeConflictHandler/logic/tryOpenMergeConflict";
 import MergeData from "@ext/git/actions/MergeConflictHandler/model/MergeData";
 import SyncService from "@ext/git/actions/Sync/logic/SyncService";
 import CheckoutHandler from "@ext/git/core/GitPathnameHandler/checkout/components/CheckoutHandler";
@@ -37,7 +37,7 @@ const usePathnameHandler = (isFirstLoad: boolean) => {
 			const checkoutData = await getPathnameCheckoutData(apiUrlCreator, new Path(router.path).removeExtraSymbols);
 
 			if (!mergeData.ok) {
-				ModalToOpenService.setValue<ComponentProps<typeof MergeConflictConfirm>>(ModalToOpen.MergeConfirm, {
+				tryOpenMergeConflict({
 					mergeData,
 					errorText: checkoutData.haveToCheckout
 						? t("git.merge.confirm.catalog-conflict-state-with-checkout").replace(

@@ -11,11 +11,11 @@ const searchCommand: Command<{ ctx: Context; catalogName?: string; query: string
 	kind: ResponseKind.json,
 
 	async do({ ctx, query, catalogName }) {
-		const filters = new RuleProvider(ctx).getItemFilters();
-		const getCatalogItemsIds = async (catalogName: string) => {
-			const catalog = await this._app.wm.current().getCatalog(catalogName, ctx);
-			const articles = catalog?.getItems() ?? [];
-			return articles.filter((a) => filters.every((f) => f(a, catalog))).map((a) => a.ref.path.value);
+		const getCatalogItemsIds = async (catalogName: string, requireExactLanguageMatch = false) => {
+			const filters = new RuleProvider(ctx).getItemFilters({ requireExactLanguageMatch });
+			const catalog = await this._app.wm.current().getContextlessCatalog(catalogName);
+			const articles = catalog?.getItems(filters) ?? [];
+			return articles.map((a) => a.ref.path.value);
 		};
 
 		const getSearchData = async (query: string, catalogName: string) => {
@@ -23,9 +23,9 @@ const searchCommand: Command<{ ctx: Context; catalogName?: string; query: string
 				const result = await this._app.searcher.search(
 					query,
 					catalogName,
-					await getCatalogItemsIds(catalogName),
+					await getCatalogItemsIds(catalogName, true),
 				);
-				return result.length > 0 ? result : null;
+				return result;
 			};
 
 			return (await multiLayoutSearcher<SearchItem[]>(search)(query)) ?? [];
@@ -37,7 +37,7 @@ const searchCommand: Command<{ ctx: Context; catalogName?: string; query: string
 			await Promise.all(catalogs.map(async (c) => (catalogArticleIds[c] = await getCatalogItemsIds(c))));
 			const search = async (query: string) => {
 				const result = await this._app.searcher.searchAll(query, catalogArticleIds);
-				return result.length > 0 ? result : null;
+				return result;
 			};
 
 			return (await multiLayoutSearcher<SearchItem[]>(search)(query)) ?? [];

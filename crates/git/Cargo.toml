@@ -9,7 +9,6 @@ name = "gramaxgit"
 crate-type = ["staticlib", "rlib"]
 
 [dependencies]
-dashmap = "6.1.0"
 log = { workspace = true }
 serde = { workspace = true }
 serde_yml = { workspace = true }
@@ -19,12 +18,12 @@ dirs = "^5.0.0"
 ssh2-config = { git = "https://github.com/pashokitsme/ssh2-config" }
 
 [target.'cfg(target_family = "wasm")'.dependencies]
-git2 = { git = "https://github.com/pashokitsme/git2-rs.git", branch = "emscripten-updated", default-features = false, features = [
+git2 = { git = "https://github.com/pashokitsme/git2-rs.git", branch = "lib", default-features = false, features = [
   "vendored-libgit2",
 ] }
 
 [target.'cfg(any(target_os = "macos", target_os = "linux"))'.dependencies]
-git2 = { git = "https://github.com/pashokitsme/git2-rs.git", branch = "emscripten-updated", default-features = false, features = [
+git2 = { git = "https://github.com/pashokitsme/git2-rs.git", branch = "lib", default-features = false, features = [
   "https",
   "ssh",
   "vendored-openssl",
@@ -32,7 +31,7 @@ git2 = { git = "https://github.com/pashokitsme/git2-rs.git", branch = "emscripte
 ] }
 
 [target.'cfg(target_os = "windows")'.dependencies]
-git2 = { git = "https://github.com/pashokitsme/git2-rs.git", branch = "emscripten-updated", default-features = false, features = [
+git2 = { git = "https://github.com/pashokitsme/git2-rs.git", branch = "lib", default-features = false, features = [
   "https",
   "ssh",
   "vendored-libgit2",
@@ -42,6 +41,3 @@ git2 = { git = "https://github.com/pashokitsme/git2-rs.git", branch = "emscripte
 test-utils = { path = "../test-utils", features = ["git"] }
 rstest = { workspace = true }
 tempdir = "0.3.7"
-
-[features]
-blocking-cache = []

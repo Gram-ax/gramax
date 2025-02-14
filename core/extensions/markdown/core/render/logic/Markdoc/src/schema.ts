@@ -4,9 +4,6 @@ import type { Schema } from "./types";
 export const document: Schema = {
 	render: "article",
 	children: ["heading", "paragraph", "image", "table", "tag", "fence", "blockquote", "list", "hr"],
-	attributes: {
-		frontmatter: { render: false },
-	},
 };
 
 export const heading: Schema = {

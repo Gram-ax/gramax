@@ -1,3 +1,4 @@
+import { Catalog } from "@core/FileStructue/Catalog/Catalog";
 import type { CatalogProps } from "@core/FileStructue/Catalog/CatalogProps";
 import type { ReadonlyCatalog } from "@core/FileStructue/Catalog/ReadonlyCatalog";
 import type { Category } from "@core/FileStructue/Category/Category";
@@ -20,7 +21,7 @@ export const catalogHasItems = (catalog: ReadonlyCatalog, currentLanguage: Conte
 
 export const resolveRootCategory = (
 	catalog: ReadonlyCatalog,
-  props: CatalogProps,
+	props: CatalogProps,
 	currentLanguage: ContentLanguage,
 ): Category<CatalogProps> => {
 	if (!props.language || !currentLanguage || props.language == currentLanguage)
@@ -34,3 +35,11 @@ export const isLanguageCategory = (catalog: ReadonlyCatalog, item: Item) =>
 	item &&
 	item.type == ItemType.category &&
 	catalog.props.supportedLanguages.includes(ContentLanguage[item.getFileName()]);
+
+export const isExactLanguageMatch = (item: Item, currentLanguage: ContentLanguage) =>
+	currentLanguage === ContentLanguage[item.logicPath.split("/")[1]];
+
+export const isSupportedCategoryLanguage = (item: Item, catalog: Catalog, currentLanguage: ContentLanguage) => {
+	const maybeItemLanguage = ContentLanguage[item.getFileName()];
+	return catalog.props.supportedLanguages.includes(maybeItemLanguage) ? currentLanguage === maybeItemLanguage : true;
+};

@@ -29,6 +29,7 @@ import ParserContextFactory from "@ext/markdown/core/Parser/ParserContext/Parser
 import MarkdownFormatter from "@ext/markdown/core/edit/logic/Formatter/Formatter";
 import AuthManager from "@ext/security/logic/AuthManager";
 import EnterpriseAuth from "@ext/security/logic/AuthProviders/EnterpriseAuth";
+import ServerAuthManager from "@ext/security/logic/ServerAuthManager";
 import { TicketManager } from "@ext/security/logic/TicketManager/TicketManager";
 import FuseSearcher from "@ext/serach/Fuse/FuseSearcher";
 import { IndexDataProvider } from "@ext/serach/IndexDataProvider";
@@ -73,7 +74,7 @@ const _init = async (config: AppConfig): Promise<Application> => {
 
 	const encoder = new Encoder();
 
-	const ticketManager = new TicketManager(wm, encoder, config.tokens.share);
+	const ticketManager = new TicketManager(encoder, config.tokens.share, em.getConfig()?.gesUrl);
 
 	const parser = new MarkdownParser();
 
@@ -88,14 +89,14 @@ const _init = async (config: AppConfig): Promise<Application> => {
 	const mp: MailProvider = new MailProvider(config.mail);
 
 	const tm = new ThemeManager();
-	const am = new AuthManager(
+	const am: AuthManager = new ServerAuthManager(
 		em.getConfig()?.gesUrl
-			? new EnterpriseAuth(em.getConfig().gesUrl)
+			? new EnterpriseAuth(em.getConfig().gesUrl, () => wm.current())
 			: new EnvAuth(config.paths.base, config.admin.login, config.admin.password),
 		ticketManager,
 		em.getConfig()?.gesUrl,
 	);
-	const contextFactory = new ContextFactory(tm, config.tokens.cookie, am, config.isReadOnly);
+	const contextFactory = new ContextFactory(tm, config.tokens.cookie, config.isReadOnly, am);
 	const sitePresenterFactory = new SitePresenterFactory(wm, parser, parserContextFactory, rp, customArticlePresenter);
 
 	const cacheFileProvider = new DiskFileProvider(config.paths.data);
@@ -142,6 +143,8 @@ const _init = async (config: AppConfig): Promise<Application> => {
 			services: wm.maybeCurrent()?.config()?.services ?? config.services,
 
 			logo: config.logo,
+
+			allowedOrigins: config.allowedGramaxUrls,
 		},
 	};
 };

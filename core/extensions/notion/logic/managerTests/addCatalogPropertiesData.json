@@ -1041,26 +1041,21 @@
 	],
 	"expected": [
 		{
-			"name": "Оценка",
-			"type": "Numeric"
-		},
-		{
 			"name": "First database - Описание",
 			"type": "Enum",
 			"values": ["To-do / Not started", "In progress / In progress", "Complete / Done"]
 		},
 		{
+			"name": "Formula",
+			"type": "Text"
+		},
+		{
+			"name": "Phone number",
+			"type": "Text"
+		},
+		{
 			"name": "Rollup",
 			"type": "Text"
-		},
-		{
-			"name": "Third database",
-			"type": "Text"
-		},
-		{
-			"name": "Tags",
-			"type": "Many",
-			"values": ["Съедобно", "Жидкое"]
 		},
 		{
 			"name": "Status",
@@ -1068,7 +1063,12 @@
 			"values": ["To-do / Not started", "In progress / In progress", "Complete / Done"]
 		},
 		{
-			"name": "Phone number",
+			"name": "Tags",
+			"type": "Many",
+			"values": ["Съедобно", "Жидкое"]
+		},
+		{
+			"name": "Third database",
 			"type": "Text"
 		},
 		{
@@ -1076,8 +1076,8 @@
 			"type": "Date"
 		},
 		{
-			"name": "Formula",
-			"type": "Text"
+			"name": "Оценка",
+			"type": "Numeric"
 		}
 	]
 }

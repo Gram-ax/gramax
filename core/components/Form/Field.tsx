@@ -16,12 +16,13 @@ interface FieldProps {
 	validate?: Validate;
 	actionButtons?: ReactNode;
 	input?: ReactNode;
+	isLoading?: boolean;
 	onFocus?: () => void;
 	onChange?: (v: string | string[]) => void;
 }
 
 const Field = (props: FieldProps) => {
-	const { required = false, isFocused = false, fieldDirection = "row", actionButtons } = props;
+	const { required = false, isFocused = false, fieldDirection = "row", actionButtons, isLoading = false } = props;
 	const { scheme, value, tabIndex, validate, input, formTranslationKey, translationKey } = props;
 	const { onChange, onFocus } = props;
 
@@ -66,6 +67,7 @@ const Field = (props: FieldProps) => {
 							value={value}
 							onChange={onChange}
 							onFocus={onFocus}
+							isLoading={isLoading}
 						/>
 					)}
 				</div>

@@ -6,11 +6,17 @@ import SidebarsIsPinService from "@core-ui/ContextServices/Sidebars/SidebarsIsPi
 import useShowMainLangContentPreview from "@core-ui/hooks/useShowMainLangContentPreview";
 import { cssMedia } from "@core-ui/utils/cssUtils";
 import styled from "@emotion/styled";
-import { CSSProperties, useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
+import { CSSProperties, MutableRefObject, useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 
 export const CELL_MIN_WIDTH = "3em";
 
-const WidthWrapper = ({ children, className }: { children: JSX.Element; className?: string }) => {
+interface WidthWrapperProps {
+	children: JSX.Element;
+	elementRef: MutableRefObject<HTMLElement>;
+	className?: string;
+}
+
+const WidthWrapper = ({ children, className, elementRef }: WidthWrapperProps) => {
 	const [rightWidth, setRightWidth] = useState(0);
 	const [leftWidth, setLeftWidth] = useState(0);
 	const [height, setHeight] = useState(0);
@@ -23,25 +29,25 @@ const WidthWrapper = ({ children, className }: { children: JSX.Element; classNam
 
 	const setWidth = useCallback(() => {
 		const scroll = scrollContainerRef.current;
-		if (scroll && scroll.firstElementChild) {
+		if (scroll && elementRef.current) {
 			const containerRect = scroll.getBoundingClientRect();
-			const childRect = scroll.firstElementChild.getBoundingClientRect();
+			const childRect = elementRef.current.getBoundingClientRect();
 			setLeftWidth(containerRect.left - childRect.left);
 			setRightWidth(childRect.right - containerRect.right);
 		}
-	}, [scrollContainerRef.current]);
+	}, [scrollContainerRef.current, elementRef.current]);
 
 	const resizeWrapper = useCallback(() => {
 		const first = articleRef?.current?.firstElementChild;
 		const articleRefWidth = first?.clientWidth;
-		const scrollContentRefWidth = scrollContainerRef?.current?.firstElementChild.clientWidth;
+		const scrollContentRefWidth = elementRef.current?.clientWidth;
 		const editorWidth = first?.firstElementChild.clientWidth;
 		const newWrapperSize = (articleRefWidth - editorWidth) / 2;
 		setWrapperSize(scrollContentRefWidth >= editorWidth - 24 ? newWrapperSize : 0);
-	}, [articleRef, scrollContainerRef.current]);
+	}, [articleRef, elementRef.current]);
 
 	useEffect(() => {
-		if (!scrollContainerRef.current) return;
+		if (!elementRef.current) return;
 		const handleResize = (entries: ResizeObserverEntry[]) => {
 			for (const entry of entries) {
 				setHeight(entry.target.clientHeight);
@@ -51,14 +57,14 @@ const WidthWrapper = ({ children, className }: { children: JSX.Element; classNam
 		};
 
 		const observer = new ResizeObserver(handleResize);
-		observer.observe(scrollContainerRef.current.firstElementChild);
+		observer.observe(elementRef.current);
 		window.addEventListener("resize", resizeWrapper);
 
 		return () => {
 			observer.disconnect();
 			window.removeEventListener("resize", resizeWrapper);
 		};
-	}, [scrollContainerRef.current]);
+	}, [elementRef.current]);
 
 	useLayoutEffect(() => {
 		resizeWrapper();
@@ -121,15 +127,22 @@ export default styled(WidthWrapper)`
 
 	.scrollableContent {
 		overflow-x: auto;
+		overflow-y: hidden;
+		position: relative;
+	}
+
+	&:not(.center) .scrollableContent:has(table) {
+		margin-left: -1.5em;
 	}
 
 	@media not print {
 		table {
 			width: max-content;
 			max-width: none;
+
 			th,
 			td {
-				max-width: 15em;
+				max-width: max-content;
 				min-width: ${CELL_MIN_WIDTH};
 				height: 3.4em;
 			}

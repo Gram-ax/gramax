@@ -1,4 +1,5 @@
 use rust_i18n::locale;
+use tauri_plugin_dialog::MessageDialogButtons;
 use std::path::Path;
 use std::sync::OnceLock;
 use tauri::*;
@@ -23,6 +24,8 @@ pub fn generate_handler<R: Runtime>(builder: Builder<R>) -> Builder<R> {
     open_in_explorer,
     #[cfg(desktop)]
     set_language,
+    #[cfg(desktop)]
+    set_session_data,
     #[cfg(target_os = "macos")]
     show_print
   ])
@@ -32,7 +35,19 @@ pub fn generate_handler<R: Runtime>(builder: Builder<R>) -> Builder<R> {
 pub(crate) fn move_to_trash<R: Runtime>(window: Window<R>, path: &Path) -> std::result::Result<(), String> {
   static DIALOG_DID_SHOWED: OnceLock<()> = OnceLock::new();
 
-  let Err(err) = trash::delete(path) else { return Ok(()) };
+  #[cfg(target_os = "macos")]
+  let trash_result = {
+    use trash::macos::TrashContextExtMacos;
+    let mut trash_ctx = trash::TrashContext::default();
+    trash_ctx.set_delete_method(trash::macos::DeleteMethod::NsFileManager);
+    trash_ctx.delete(path)
+  };
+
+  #[cfg(not(target_os = "macos"))]
+  let trash_result = trash::delete(path);
+
+  let Err(err) = trash_result else { return Ok(()) };
+
   if DIALOG_DID_SHOWED.get().is_some() {
     return Err(err.to_string());
   }
@@ -50,7 +65,7 @@ pub(crate) fn move_to_trash<R: Runtime>(window: Window<R>, path: &Path) -> std::
     .title(t!("trash.title"))
     .kind(tauri_plugin_dialog::MessageDialogKind::Error)
     .parent(&window)
-    .buttons(tauri_plugin_dialog::MessageDialogButtons::OkCustom(t!("etc.ok").to_string()))
+    .buttons(MessageDialogButtons::Ok)
     .show(|_| {});
 
   Err(err.to_string())

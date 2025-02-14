@@ -14,13 +14,12 @@ const ImageCropper = (props: Cropper & { className?: string; parentRef: RefObjec
 		parentRef,
 		setDraggable,
 		mainRef: cropperRef,
-		onMouseUpCallback: function (): void {
-			const cropper = cropperRef.current;
+		onMouseUpCallback: function (newX, newY, newW, newH): void {
 			const rect = {
-				x: parseFloat(cropper.style.left),
-				y: parseFloat(cropper.style.top),
-				w: parseFloat(cropper.style.width),
-				h: parseFloat(cropper.style.height),
+				x: newX,
+				y: newY,
+				w: newW,
+				h: newH,
 			};
 
 			setCrop(rect);
@@ -37,14 +36,12 @@ const ImageCropper = (props: Cropper & { className?: string; parentRef: RefObjec
 		setDraggable,
 		parentRef,
 		mainRef: cropperRef,
-		onMouseUpCallback: function (): void {
-			const cropper = cropperRef.current;
-
+		onMouseUpCallback: function (newX, newY, newW, newH): void {
 			const rect = {
-				x: parseFloat(cropper.style.left),
-				y: parseFloat(cropper.style.top),
-				w: parseFloat(cropper.style.width),
-				h: parseFloat(cropper.style.height),
+				x: newX,
+				y: newY,
+				w: newW,
+				h: newH,
 			};
 
 			setCrop(rect);

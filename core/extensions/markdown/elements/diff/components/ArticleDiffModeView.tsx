@@ -1,9 +1,15 @@
 import DiffFileInput from "@components/Atoms/FileInput/DiffFileInput/DiffFileInput";
+import DiffViewModeService from "@core-ui/ContextServices/DiffViewModeService";
+import useSetupRightNavCloseHandler from "@core-ui/hooks/diff/useSetupRightNavCloseHandler";
+import { TreeReadScope } from "@ext/git/core/GitCommands/model/GitCommandsModel";
+import { DiffViewMode } from "@ext/markdown/elements/diff/components/DiffBottomBar";
 import { DiffModeView } from "@ext/markdown/elements/diff/components/DiffModeView";
+import RenderDiffBottomBarInArticle from "@ext/markdown/elements/diff/components/RenderDiffBottomBarInArticle";
 import { EditorContext } from "@ext/markdown/elementsUtils/ContextServices/EditorService";
+import { DiffFilePaths } from "@ext/VersionControl/model/Diff";
 import { FileStatus } from "@ext/Watchers/model/FileStatus";
 import { JSONContent } from "@tiptap/core";
-import { useEffect, useState } from "react";
+import { useLayoutEffect, useState } from "react";
 
 interface ArticleDiffModeViewProps {
 	oldEditTree: JSONContent;
@@ -12,69 +18,111 @@ interface ArticleDiffModeViewProps {
 	newContent: string;
 	changeType: FileStatus;
 	articlePath: string;
+	oldRevision: string;
+	newRevision: string;
+	title: string;
+	filePath: DiffFilePaths;
+	oldArticlePath?: string;
+	oldScope?: TreeReadScope;
+	newScope?: TreeReadScope;
 	readOnly?: boolean;
 	onWysiwygUpdate?: (editorContext: EditorContext) => void;
 	onMonacoUpdate?: (value: string) => void;
-	onViewModeChange?: (viewMode: "wysiwyg" | "markdown") => void;
+	onViewModeChange?: (diffView: DiffViewMode) => void;
 }
 
 const ArticleDiffModeView = (props: ArticleDiffModeViewProps) => {
 	const {
+		oldRevision,
+		newRevision,
+		filePath,
 		oldEditTree,
 		newEditTree,
 		oldContent,
 		newContent,
 		changeType,
+		title,
 		articlePath,
+		oldArticlePath,
+		oldScope,
+		newScope,
 		readOnly,
 		onWysiwygUpdate,
 		onMonacoUpdate,
 		onViewModeChange,
 	} = props;
 
-	const [viewMode, setViewMode] = useState<"wysiwyg" | "markdown">("wysiwyg");
+	const hasEditTree = (() => {
+		if (changeType === FileStatus.delete) return !!oldEditTree;
+		if (changeType === FileStatus.new) return !!newEditTree;
+		return !!oldEditTree && !!newEditTree;
+	})();
 
-	useEffect(() => {
-		const keydownHandler = (e: KeyboardEvent) => {
-			if (e.code === "KeyS" && (e.ctrlKey || e.metaKey) && e.altKey) {
-				const newValue = viewMode === "wysiwyg" ? "markdown" : "wysiwyg";
-				setViewMode(newValue);
-				onViewModeChange?.(newValue);
-			}
-		};
+	const diffViewService = DiffViewModeService.value;
+	const [diffView, setDiffView] = useState(diffViewService);
 
-		document.addEventListener("keydown", keydownHandler);
-		return () => {
-			document.removeEventListener("keydown", keydownHandler);
-		};
-	}, [viewMode]);
+	useLayoutEffect(() => {
+		if (!hasEditTree && diffView === "wysiwyg") setDiffView("single-panel");
+	}, []);
+
+	useSetupRightNavCloseHandler();
+
+	const setViewModeWrapper = (mode: DiffViewMode) => {
+		setDiffView(mode);
+		DiffViewModeService.value = mode;
+		onViewModeChange?.(mode);
+	};
 
 	return (
-		<div>
-			{viewMode === "wysiwyg" && (
-				<div className="article-body">
+		<div style={{ height: "inherit" }}>
+			{diffView === "wysiwyg" && hasEditTree && (
+				<div className="article-body" style={{ height: "inherit" }}>
 					<DiffModeView
+						oldScope={oldScope}
+						newScope={newScope}
 						readOnly={readOnly}
 						key={articlePath}
 						oldContent={oldEditTree}
 						newContent={newEditTree}
 						changeType={changeType}
 						articlePath={articlePath}
+						oldArticlePath={oldArticlePath}
 						onUpdate={onWysiwygUpdate}
 					/>
 				</div>
 			)}
-			{viewMode === "markdown" && (
+			{(diffView === "single-panel" || diffView === "double-panel") && (
 				<DiffFileInput
 					modified={newContent}
 					original={oldContent}
-					height={"90vh"}
+					height={"100vh"}
+					containerStyles={{ padding: "0" }}
 					onChange={(value) => {
 						onMonacoUpdate?.(value);
 					}}
-					options={{ readOnly: readOnly }}
+					options={{
+						readOnly,
+						renderSideBySide: diffView === "double-panel",
+						useInlineViewWhenSpaceIsLimited: false,
+						renderOverviewRuler: false,
+						glyphMargin: false,
+					}}
+					onMount={(editor) => {
+						// https://github.com/microsoft/monaco-editor/issues/4448
+						editor.getOriginalEditor().updateOptions({ glyphMargin: false });
+					}}
 				/>
 			)}
+			<RenderDiffBottomBarInArticle
+				// title={title}
+				// oldRevision={oldRevision}
+				// newRevision={newRevision}
+				filePath={filePath}
+				type={changeType}
+				diffViewMode={diffView}
+				onDiffViewPick={setViewModeWrapper}
+				hasWysiwyg={hasEditTree}
+			/>
 		</div>
 	);
 };

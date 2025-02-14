@@ -2,6 +2,7 @@ import LinkHoverTooltip from "@ext/markdown/elements/link/edit/logic/LinkHoverTo
 import { ClientCatalogProps } from "@core/SitePresenter/SitePresenter";
 import ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
 import PageDataContext from "@core/Context/PageDataContext";
+import { LinkHoverTooltipManager } from "@ext/markdown/elements/link/edit/logic/LinkHoverTooltipManager";
 import { Plugin, PluginKey } from "prosemirror-state";
 import { EditorView } from "prosemirror-view";
 import { Node } from "prosemirror-model";
@@ -47,19 +48,19 @@ export function hoverTooltip(
 	pageDataContext: PageDataContext,
 	catalogProps: ClientCatalogProps,
 ): Plugin {
-	const linkHoverTooltip = new LinkHoverTooltip(document.body, apiUrlCreator, pageDataContext, catalogProps);
+	const tooltipManager = new LinkHoverTooltipManager(document.body, apiUrlCreator, pageDataContext, catalogProps);
 
 	editor.on("selectionUpdate", (editor) => {
 		const cursorPos = editor.editor.view.state.selection.anchor;
-		linkHoverTooltip.setAnchorPos(cursorPos);
+		tooltipManager.updateAnchorPos(cursorPos);
 	});
 
 	editor.on("blur", () => {
-		linkHoverTooltip.setAnchorPos(null);
+		tooltipManager.updateAnchorPos(null);
 	});
 
 	editor.on("destroy", () => {
-		linkHoverTooltip.unMount();
+		tooltipManager.destroyAll();
 	});
 
 	return new Plugin({
@@ -75,8 +76,11 @@ export function hoverTooltip(
 						const markWithPosition = getLinkMarkByView(view, clientX, clientY);
 						if (!markWithPosition.mark) return;
 
-						linkHoverTooltip.setMarkData(markWithPosition);
-						linkHoverTooltip.setComponent(linkElement);
+						tooltipManager.createTooltip({
+							linkElement,
+							markData: markWithPosition,
+							anchorPos: view.state.selection.anchor,
+						});
 					}
 				},
 			},

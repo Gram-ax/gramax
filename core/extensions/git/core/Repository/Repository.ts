@@ -1,11 +1,13 @@
 import { createEventEmitter, type Event } from "@core/Event/EventEmitter";
 import type FileProvider from "@core/FileProvider/model/FileProvider";
 import type Path from "@core/FileProvider/Path/Path";
+import DefaultError from "@ext/errorHandlers/logic/DefaultError";
 import type { GitMergeResultContent } from "@ext/git/actions/MergeConflictHandler/model/GitMergeResultContent";
 import MergeRequestCommands from "@ext/git/core/GitMergeRequest/MergeRequestCommands";
 import type GitVersionControl from "@ext/git/core/GitVersionControl/GitVersionControl";
 import type { GitStatus } from "@ext/git/core/GitWatcher/model/GitStatus";
 import type RepositoryStateProvider from "@ext/git/core/Repository/state/RepositoryState";
+import ScopedCatalogs from "@ext/git/core/ScopedCatalogs/ScopedCatalogs";
 import type SourceData from "@ext/storage/logic/SourceDataProvider/model/SourceData";
 import Storage from "@ext/storage/logic/Storage";
 
@@ -20,7 +22,7 @@ export type PublishOptions = Credentials & {
 	filesToPublish: Path[];
 	onAdd?: () => void;
 	onCommit?: () => void;
-	onPush?: () => void;
+	onPush?: () => void | Promise<void>;
 };
 
 export type SyncOptions = Credentials & {
@@ -32,6 +34,7 @@ export type SyncOptions = Credentials & {
 export type CheckoutOptions = Credentials & {
 	branch: string;
 	onCheckout?: (branch: string) => void;
+	force?: boolean;
 	onPull?: () => void;
 };
 
@@ -47,6 +50,7 @@ export default abstract class Repository {
 	protected _mergeRequests: MergeRequestCommands;
 	protected _cachedStatus: GitStatus[] = null;
 	protected _events = createEventEmitter<RepositoryEvents>();
+	private _scopedCatalogs = new ScopedCatalogs();
 
 	constructor(
 		protected _repoPath: Path,
@@ -56,6 +60,10 @@ export default abstract class Repository {
 	) {
 		if (!this._fp || !this._repoPath) return;
 		this._mergeRequests = new MergeRequestCommands(this._fp, this._repoPath, this);
+	}
+
+	get scopedCatalogs(): ScopedCatalogs {
+		return this._scopedCatalogs;
 	}
 
 	get gvc(): GitVersionControl {
@@ -89,6 +97,12 @@ export default abstract class Repository {
 		this._cachedStatus = null;
 	}
 
+	async checkoutToDefaultBranch(data: SourceData, force: boolean): Promise<void> {
+		const defaultBranch = await this.storage.getDefaultBranch(data);
+		if (!defaultBranch) throw new DefaultError("Can't find default branch to checkout");
+		await this.checkout({ data, branch: defaultBranch.toString(), force });
+	}
+
 	abstract publish(opts: PublishOptions): Promise<void>;
 	abstract sync(opts: SyncOptions): Promise<GitMergeResultContent[]>;
 	abstract checkout(opts: CheckoutOptions): Promise<GitMergeResultContent[]>;
@@ -99,5 +113,5 @@ export default abstract class Repository {
 	abstract canSync(): Promise<boolean>;
 	abstract deleteBranch(targetBranch: string, data: SourceData): Promise<void>;
 	abstract getState(): Promise<RepositoryStateProvider>;
-	abstract checkoutIfCurrentBranchNotExist(data: SourceData): Promise<{ hasCheckout: boolean }>;
+	abstract checkoutIfCurrentBranchNotExist(data: SourceData, force?: boolean): Promise<{ hasCheckout: boolean }>;
 }

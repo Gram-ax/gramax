@@ -1,7 +1,7 @@
 import { classNames } from "@components/libs/classNames";
 import { useOutsideClick } from "@core-ui/hooks/useOutsideClick";
 import multiLayoutSearcher from "@core-ui/languageConverter/multiLayoutSearcher";
-import eventEmitter from "@core/utils/eventEmmiter";
+import eventEmitter from "@core/utils/eventEmitter";
 import styled from "@emotion/styled";
 import { TippyProps } from "@tippyjs/react";
 import {
@@ -220,7 +220,7 @@ const ListLayout = forwardRef((props: ListLayoutProps, ref: ForwardedRef<ListLay
 	}, [provideCloseHandler]);
 
 	const filteredItems = useMemo(() => {
-		let result = filterItems(items, getStrValue(value));
+		const result = filterItems(items, getStrValue(value));
 		if (withBreadcrumbs) breadcrumbFilter(result);
 		return result;
 	}, [value, items, withBreadcrumbs]);
@@ -332,7 +332,7 @@ const ListLayout = forwardRef((props: ListLayoutProps, ref: ForwardedRef<ListLay
 				isCode={isCode}
 				data-qa="list"
 				ref={listRef}
-				className={classNames("list-layout", {}, [className])}
+				className={classNames("list-layout", { active: isOpen }, [className])}
 			>
 				<Search
 					title={getStrValue(value)}

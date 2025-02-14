@@ -1,10 +1,10 @@
+import SideBarResourceData from "@ext/git/actions/Publish/model/SideBarResourceData";
+import { DiffFile, DiffFilePaths } from "@ext/VersionControl/model/Diff";
 import { JSONContent } from "@tiptap/core";
-import DiffFile from "../../../../VersionControl/model/DiffFile";
-import SideBarResourceData from "./SideBarResourceData";
 
-interface SideBarData extends Pick<DiffFile, "diff"> {
+interface SideBarData extends Pick<DiffFile, "hunks"> {
 	isResource: boolean;
-	parentPath?: string;
+	parentPath?: DiffFilePaths;
 	data: {
 		title: string;
 		isChanged: boolean;
@@ -15,7 +15,9 @@ interface SideBarData extends Pick<DiffFile, "diff"> {
 		oldEditTree?: JSONContent;
 		oldContent?: string;
 		content?: string;
-	} & Pick<DiffFile, "filePath" | "changeType">;
+		added?: number;
+		deleted?: number;
+	} & Pick<DiffFile, "filePath" | "status">;
 }
 
 export default SideBarData;

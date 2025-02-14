@@ -1,20 +1,24 @@
 import styled from "@emotion/styled";
 import { Property } from "csstype";
-import { Change } from "../../extensions/VersionControl/DiffHandler/model/Change";
+import { DiffHunk } from "../../extensions/VersionControl/DiffHandler/model/DiffHunk";
 import { FileStatus } from "../../extensions/Watchers/model/FileStatus";
 import Code from "./Code";
+
 const DiffContent = styled(
 	({
 		showDiff,
 		changes,
 		isCode = true,
 		className,
+		// eslint-disable-next-line @typescript-eslint/no-unused-vars
+		whiteSpace,
 	}: {
 		showDiff: boolean;
-		changes: Change[];
+		changes: DiffHunk[];
 		addedColor?: Partial<{ color: Property.Color; background: Property.Color }>;
 		removedColor?: Partial<{ color: Property.Color; background: Property.Color }>;
 		unchangedColor?: Partial<{ color: Property.Color; background: Property.Color }>;
+		whiteSpace?: Property.WhiteSpace;
 		isCode?: boolean;
 		className?: string;
 	}) => {
@@ -46,11 +50,11 @@ const DiffContent = styled(
 		box-decoration-break: clone;
 		display: inline;
 		padding: 0;
-		white-space: pre-wrap;
+		white-space: ${p.whiteSpace ?? "pre-wrap"};
 	}`
 			: ""}
 
-	.common {
+	.common, .modified {
 		${(p) =>
 			p.unchangedColor
 				? `color: ${p.unchangedColor.color ?? "var(--color-body-text)"}; 

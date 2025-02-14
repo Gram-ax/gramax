@@ -8,7 +8,7 @@ function commentToken(context?: ParserContext): ParseSpec {
 	return {
 		mark: "comment",
 		getAttrs: async (tok) => {
-			if (!tok.attrs.count) return null;
+			if (!tok.attrs.count || !context) return null;
 			const rm = context.getResourceManager();
 			rm.set(rm.rootPath.join(rm.basePath).getRelativePath(commentProvider.getFilePath()));
 			return { ...tok.attrs, ...(await commentProvider.getComment(tok.attrs.count, context)) };

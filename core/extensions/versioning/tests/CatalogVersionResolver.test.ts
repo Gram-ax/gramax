@@ -29,7 +29,7 @@ describe("CatalogVersionResolver", () => {
 		await wm.setWorkspace(workspacePath);
 	});
 
-	it("читает gitCatalog как WorkdirRepository и распознаёт его версии", async () => {
+	test("читает gitCatalog как WorkdirRepository и распознаёт его версии", async () => {
 		const catalog = await wm.current().getContextlessCatalog("gitCatalog");
 		expect(catalog.repo).toBeInstanceOf(WorkdirRepository);
 		expect(wm.current().getFileProvider().at(catalog.basePath)).toBeInstanceOf(DiskFileProvider);
@@ -38,7 +38,7 @@ describe("CatalogVersionResolver", () => {
 		expect(catalog.props.resolvedVersions?.length).toBe(1);
 	});
 
-	it("читает версии каталога gitCatalog:tag1", async () => {
+	test("читает версии каталога gitCatalog:tag1", async () => {
 		const catalog = await wm.current().getContextlessCatalog("gitCatalog:tag1");
 		expect(catalog.repo).toBeInstanceOf(WorkdirRepository);
 		expect(wm.current().getFileProvider().at(catalog.basePath)).toBeInstanceOf(GitTreeFileProvider);
@@ -47,7 +47,7 @@ describe("CatalogVersionResolver", () => {
 	});
 
 	describe("версионированный каталог имеет тот же инстанс Repository, что и основной каталог", () => {
-		it("изначально", async () => {
+		test("изначально", async () => {
 			const catalog = await wm.current().getContextlessCatalog("gitCatalog");
 			const catalogVer = await wm.current().getContextlessCatalog("gitCatalog:tag1");
 			expect(catalog.repo).toBeInstanceOf(WorkdirRepository);
@@ -55,7 +55,7 @@ describe("CatalogVersionResolver", () => {
 			expect(catalog.repo).toBe(catalogVer.repo);
 		});
 
-		it("после обновления", async () => {
+		test("после обновления", async () => {
 			const catalog = await wm.current().getContextlessCatalog("gitCatalog");
 			await catalog.update();
 
@@ -66,7 +66,7 @@ describe("CatalogVersionResolver", () => {
 		});
 	});
 
-	it("каталог не забывает свои версии после обновления", async () => {
+	test("каталог не забывает свои версии после обновления", async () => {
 		const catalog = await wm.current().getContextlessCatalog("gitCatalog");
 		expect(catalog.props.resolvedVersions?.[0]?.name).toBe("tag1");
 		await catalog.update();

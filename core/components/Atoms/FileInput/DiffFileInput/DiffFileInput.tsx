@@ -9,7 +9,7 @@ import { useLayoutEffect, useRef, useState } from "react";
 const DEFAULT_LANGAUGE = getFileInputDefaultLanguage();
 
 const DiffFileInput = (props: DiffFileInputProps) => {
-	const { language, className, height = "60vh", options, onChange, onMount, ...otherProps } = props;
+	const { language, className, height = "60vh", options, onChange, onMount, containerStyles, ...otherProps } = props;
 	const theme = ThemeService.value;
 	const ref = useRef<HTMLDivElement>(null);
 	const [editorHeight, setEditorHeight] = useState(0);
@@ -20,7 +20,7 @@ const DiffFileInput = (props: DiffFileInputProps) => {
 	}, []);
 
 	return (
-		<div className={className} style={{ padding: "1rem 0", height }}>
+		<div className={className} style={{ padding: "1rem 0", height, ...containerStyles }}>
 			<div ref={ref} style={{ height: "100%" }}>
 				<DiffFileInput
 					height={editorHeight}

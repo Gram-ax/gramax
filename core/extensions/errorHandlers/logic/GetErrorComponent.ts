@@ -1,11 +1,12 @@
+import { NetworkApiErrorCode } from "@ext/errorHandlers/network/NetworkApiError";
+import NetworkApiErrorComponent from "@ext/errorHandlers/network/components/NetworkApiError";
+import getMergeRequestErrors from "@ext/git/core/GitMergeRequest/errors/getMergeRequestErrors";
 import getStorageErrors from "@ext/storage/components/getStorageErrors";
 import { ComponentProps, ReactNode } from "react";
 import getFileStructueErrors from "../../../logic/FileStructue/error/logic/getFileStructueErrors";
 import getGitErrors from "../../git/error/getGitError";
 import DefaultErrorComponent from "../client/components/DefaultError";
 import DefaultError from "./DefaultError";
-import { NetworkApiErrorCode } from "@ext/errorHandlers/network/NetworkApiError";
-import NetworkApiErrorComponent from "@ext/errorHandlers/network/components/NetworkApiError";
 
 const getComponents = (): {
 	[key: string]: (args: ComponentProps<typeof GetErrorComponent>) => ReactNode;
@@ -13,6 +14,7 @@ const getComponents = (): {
 	...getFileStructueErrors(),
 	...getGitErrors(),
 	...getStorageErrors(),
+	...getMergeRequestErrors(),
 	[NetworkApiErrorCode]: NetworkApiErrorComponent,
 });
 

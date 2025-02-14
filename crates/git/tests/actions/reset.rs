@@ -6,7 +6,7 @@ fn reset(sandbox: TempDir, #[with(&sandbox)] repo: Repo<TestCreds>) -> Result {
   let file_path = sandbox.path().join("file");
   fs::write(sandbox.path().join("file2"), "contents")?;
   repo.add("file2")?;
-  repo.commit("q")?;
+  repo.commit_debug()?;
 
   fs::write(&file_path, "init")?;
   repo.add("file")?;
@@ -17,7 +17,7 @@ fn reset(sandbox: TempDir, #[with(&sandbox)] repo: Repo<TestCreds>) -> Result {
 
   fs::write(&file_path, "init")?;
   repo.add("file")?;
-  repo.commit("commit_1")?;
+  repo.commit_debug()?;
   fs::write(&file_path, "qwer")?;
 
   repo.reset_all(true, None)?;
@@ -34,8 +34,8 @@ fn restore(sandbox: TempDir, #[with(&sandbox)] repo: Repo<TestCreds>) -> Result 
   let file3 = path.join("file3");
   fs::write(&file1, "123")?;
   fs::write(&file2, "asdf")?;
-  repo.add_glob(["."].iter())?;
-  repo.commit("1234")?;
+  repo.add_all()?;
+  repo.commit_debug()?;
 
   fs::write(&file1, "333")?;
   fs::write(&file2, "123")?;
@@ -55,8 +55,8 @@ fn restore(sandbox: TempDir, #[with(&sandbox)] repo: Repo<TestCreds>) -> Result 
 fn restore_staged(sandbox: TempDir, #[with(&sandbox)] repo: Repo<TestCreds>) -> Result {
   let root = sandbox.path();
   fs::write(root.join("file-1"), "123")?;
-  repo.add_glob(["*"].iter())?;
-  repo.commit("1")?;
+  repo.add_all()?;
+  repo.commit_debug()?;
 
   fs::write(root.join("file-1"), "321")?;
   fs::write(root.join("file-2"), "qwerty")?;

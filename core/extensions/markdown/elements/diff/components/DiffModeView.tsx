@@ -8,11 +8,12 @@ import CatalogPropsService from "@core-ui/ContextServices/CatalogProps";
 import SidebarsIsPinService from "@core-ui/ContextServices/Sidebars/SidebarsIsPin";
 import Path from "@core/FileProvider/Path/Path";
 import { ClientArticleProps } from "@core/SitePresenter/SitePresenter";
+import { TreeReadScope } from "@ext/git/core/GitCommands/model/GitCommandsModel";
 import ArticleMat from "@ext/markdown/core/edit/components/ArticleMat";
 import Menu from "@ext/markdown/core/edit/components/Menu/Menu";
 import { getSimpleExtensions } from "@ext/markdown/core/edit/logic/getExtensions";
-import OnLoadResourceService from "@ext/markdown/elements/copyArticles/onLoadResourceService";
 import EditorExtensionsService from "@ext/markdown/elements/diff/components/EditorExtensionsService";
+import ScopeWrapper from "@ext/markdown/elements/diff/components/ScopeWrapper";
 import ArticlePropsesCache from "@ext/markdown/elements/diff/logic/ArticlePropsesCache";
 import DiffExtension from "@ext/markdown/elements/diff/logic/DiffExtension";
 import useDiff from "@ext/markdown/elements/diff/logic/useDiff";
@@ -28,23 +29,39 @@ interface DiffModeViewProps {
 	newContent: JSONContent;
 	changeType: FileStatus;
 	articlePath: string;
+	oldArticlePath?: string;
+	oldScope?: TreeReadScope;
+	newScope?: TreeReadScope;
 	readOnly?: boolean;
 	onUpdate?: (props: { editor: Editor; apiUrlCreator: ApiUrlCreator; articleProps: ClientArticleProps }) => void;
 }
 
 export const DiffModeView = (props: DiffModeViewProps) => {
-	const { oldContent, newContent, changeType, articlePath, readOnly = false, onUpdate: currentOnUpdate } = props;
+	const {
+		oldContent,
+		newContent,
+		changeType,
+		articlePath,
+		oldArticlePath,
+		oldScope,
+		newScope,
+		readOnly = false,
+		onUpdate: currentOnUpdate,
+	} = props;
 	const extensions = EditorExtensionsService.value;
 
 	const handlePaste = EditorService.getHandlePaste();
 	const onUpdate = EditorService.getOnUpdate();
-	const onBlur = EditorService.getOnBlur();
 	const apiUrlCreator = ApiUrlCreatorService.value;
 	const catalogName = CatalogPropsService.value.name;
 	const diffArticleApiUrlCreator = apiUrlCreator.fromArticle(articlePath);
+	const oldDiffArticleApiUrlCreator = oldArticlePath
+		? apiUrlCreator.fromArticle(oldArticlePath)
+		: diffArticleApiUrlCreator;
 	const articlePropsesCache = ArticlePropsesCache.cache;
 	const [articleProps, setArticleProps] = useState<ClientArticleProps>(articlePropsesCache[articlePath]);
 	const isPin = SidebarsIsPinService.value;
+	const hasChanges = changeType === FileStatus.modified || changeType === FileStatus.rename;
 
 	const setItemPropsData = async () => {
 		const res = await FetchService.fetch<ClientArticleProps>(
@@ -61,7 +78,7 @@ export const DiffModeView = (props: DiffModeViewProps) => {
 	}, []);
 
 	const UpdatedDiffExtension = ExtensionUpdater.getUpdatedExtension([
-		DiffExtension.configure({ isPin }),
+		DiffExtension.configure({ isPin, oldScope, newScope }),
 	])[0] as typeof DiffExtension;
 
 	const getNewEditorExtensions = () => {
@@ -84,7 +101,6 @@ export const DiffModeView = (props: DiffModeViewProps) => {
 				currentOnUpdate?.({ editor, apiUrlCreator: diffArticleApiUrlCreator, articleProps });
 				onUpdate({ editor, apiUrlCreator: diffArticleApiUrlCreator, articleProps });
 			},
-			onBlur: ({ editor }) => onBlur({ editor, apiUrlCreator: diffArticleApiUrlCreator, articleProps }),
 		},
 		[extensions, newContent, articleProps],
 	);
@@ -104,49 +120,58 @@ export const DiffModeView = (props: DiffModeViewProps) => {
 	);
 
 	useEffect(() => {
-		if (!newEditor || !oldContentEditor) return;
+		if (!newEditor?.storage.diff || !oldContentEditor?.storage.diff) return;
 		newEditor.storage.diff.isPin = isPin;
 		oldContentEditor.storage.diff.isPin = isPin;
 	}, [isPin.left, isPin.right]);
 
-	useDiff(
-		changeType === FileStatus.modified
-			? { editor: newEditor, oldContentEditor }
-			: { editor: null, oldContentEditor: null },
-	);
+	useDiff(hasChanges ? { editor: newEditor, oldContentEditor } : { editor: null, oldContentEditor: null });
 
 	if (!articleProps && changeType !== FileStatus.delete) return <SpinnerLoader fullScreen />;
+
+	const mainArticle =
+		changeType === FileStatus.delete ? (
+			<ApiUrlCreatorService.Provider value={oldDiffArticleApiUrlCreator}>
+				<EditorContent editor={oldContentEditor} data-qa="article-editor" data-iseditable={false} />
+			</ApiUrlCreatorService.Provider>
+		) : (
+			<ApiUrlCreatorService.Provider value={diffArticleApiUrlCreator}>
+				<EditorContent editor={newEditor} data-qa="article-editor" data-iseditable={!readOnly} />
+			</ApiUrlCreatorService.Provider>
+		);
 
 	return (
 		<ApiUrlCreatorService.Provider value={diffArticleApiUrlCreator}>
 			<>
 				<ArticleWithPreviewArticle
 					mainArticle={
-						changeType === FileStatus.delete ? (
-							<EditorContent editor={oldContentEditor} data-qa="article-editor" data-iseditable={false} />
-						) : (
-							<EditorContent editor={newEditor} data-qa="article-editor" data-iseditable={true} />
-						)
+						<ScopeWrapper scope={changeType === FileStatus.delete ? oldScope : newScope}>
+							{mainArticle}
+						</ScopeWrapper>
 					}
 					previewArticle={
-						changeType === FileStatus.modified ? (
-							<OnLoadResourceService.Provider>
-								<div style={{ marginLeft: "0.5rem" }}>
-									<EditorContent
-										editor={oldContentEditor}
-										data-qa="article-editor"
-										data-iseditable={false}
-									/>
-								</div>
-							</OnLoadResourceService.Provider>
+						hasChanges ? (
+							<ScopeWrapper scope={oldScope}>
+								<ApiUrlCreatorService.Provider value={oldDiffArticleApiUrlCreator}>
+									<div style={{ marginLeft: "0.5rem" }}>
+										<EditorContent
+											editor={oldContentEditor}
+											data-qa="article-editor"
+											data-iseditable={false}
+										/>
+									</div>
+								</ApiUrlCreatorService.Provider>
+							</ScopeWrapper>
 						) : undefined
 					}
 				/>
-				{!readOnly && (
+				{readOnly ? (
+					<ArticleMat />
+				) : (
 					<>
+						<ArticleMat editor={newEditor} />
 						<Menu editor={newEditor} id={"diff-mode-extensions"} key={"diff-mode-extensions"} />
 						<ArticleExtensions id={"diff-mode-extensions"} />
-						<ArticleMat editor={newEditor} />
 					</>
 				)}
 			</>

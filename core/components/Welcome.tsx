@@ -25,7 +25,7 @@ const Welcome = ({ title, body, actions, ...props }: WelcomeProps) => {
 							{isLogged && (
 								<>
 									{body}
-									<ActionsContainer>{actions}</ActionsContainer>
+									{actions && <ActionsContainer>{actions}</ActionsContainer>}
 								</>
 							)}
 						</>

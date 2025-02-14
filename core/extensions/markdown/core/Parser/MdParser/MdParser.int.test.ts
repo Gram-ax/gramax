@@ -849,6 +849,75 @@ test test test test`;
 		expect(testParseStr).toEqual(parsedStr);
 	});
 
+	test("таблица с дополнительными атрибутами", async () => {
+		const mdParser = await getMdParser();
+
+		const str = `
+{% table %}
+
+---
+
+*  {% isHeader=true align="left" %}
+
+   
+
+   text
+
+*  
+
+   text
+
+*  text
+
+   text
+
+---
+
+*  {% isHeader=true %}
+
+   text
+
+*  text
+
+*  
+
+{% /table %}`;
+		const parsedStr = `
+{% table %}
+
+---
+
+*  {% isHeader=true align="left" %}
+
+   
+
+   text
+
+*  \u00A0
+
+   text
+
+*  text
+
+   text
+
+---
+
+*  {% isHeader=true %}
+
+   text
+
+*  text
+
+*  \u00A0
+
+{% /table %}`;
+
+		const testParseStr = mdParser.preParse(str);
+
+		expect(testParseStr).toEqual(parsedStr);
+	});
+
 	test("нет ошибочного срабатывания при парсинге таблиц", async () => {
 		const mdParser = await getMdParser();
 

@@ -249,6 +249,16 @@ Then(/^(не )?видим иконку "([^"]*)"$/, async function (this: E2EWor
 	negative ? await expect(elem).not.toBeVisible() : await expect(elem).toBeVisible();
 });
 
+Then(
+	/^(не )?видим элемент "([^"]*)"(?:\s+внутри "([^"]*)")?$/,
+	async function (this: E2EWorld, negative: boolean, elementName: string, parentName?: string) {
+		const elem = parentName
+			? (await this.page().search().lookup(parentName, null, true)).locator(`.${elementName}`)
+			: await this.page().search().lookup(elementName, null, true);
+		negative ? await expect(elem).not.toBeVisible() : await expect(elem).toBeVisible();
+	},
+);
+
 Then(/^((не )?ожидаем ошибку)$/, function (this: E2EWorld, negative: boolean) {
 	this.allowErrorModal = !negative;
 });

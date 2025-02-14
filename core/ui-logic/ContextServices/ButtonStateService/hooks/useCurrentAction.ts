@@ -14,7 +14,7 @@ const disabledMarkRule: Record<Mark, Mark[]> = {
 	link: ["file", "comment", "code"],
 	strong: ["code"],
 	em: ["code"],
-	s: ["code"],
+	s: [],
 };
 
 const disableBlockRule = {
@@ -48,7 +48,7 @@ function changeResultByAction(activeNode: NodeType, buttonNode: NodeType, result
 }
 
 function changeResultByAttrs(contextAttrs: Partial<Attrs>, buttonAttrs: Partial<Attrs>, result: ButtonState) {
-	if (Boolean(contextAttrs.level) && Boolean(buttonAttrs?.level)) {
+	if (Boolean(contextAttrs?.level) && Boolean(buttonAttrs?.level)) {
 		if (contextAttrs.level !== buttonAttrs.level) {
 			result.isActive = false;
 		}
@@ -62,7 +62,7 @@ function changeResultByMark(activeNode: NodeType, buttonMark, result: ButtonStat
 }
 
 function getButtonStateByMarks(contextMarks: Mark[], buttonMark: Mark, result: ButtonState) {
-	if (!contextMarks) return;
+	if (!contextMarks || !contextMarks.length) return;
 
 	if (buttonMark) {
 		if (!result.isActive) {
@@ -74,9 +74,15 @@ function getButtonStateByMarks(contextMarks: Mark[], buttonMark: Mark, result: B
 	}
 }
 
-const useCurrentAction = (current: NodeValues) => {
-	const { actions, attrs, marks } = useContext(ActionContext);
+interface ResultByActionDataProps {
+	actions?: NodeType[];
+	attrs?: Partial<Attrs>;
+	marks?: Mark[];
+	currentNode: NodeValues;
+}
 
+export const getResultByActionData = (props: ResultByActionDataProps) => {
+	const { currentNode: current, attrs, marks, actions } = props;
 	const result = { isActive: false, disabled: false };
 
 	actions.forEach((action) => {
@@ -87,6 +93,12 @@ const useCurrentAction = (current: NodeValues) => {
 	});
 
 	return result;
+};
+
+const useCurrentAction = (currentNode: NodeValues) => {
+	const { actions, attrs, marks } = useContext(ActionContext);
+
+	return getResultByActionData({ actions, attrs, marks, currentNode });
 };
 
 export default useCurrentAction;

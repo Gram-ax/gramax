@@ -34,23 +34,16 @@ const TableUtils = {
 	tableIsSimple(node: Node): boolean {
 		if (node.childCount <= 1) return false;
 		let tableIsSimple = true;
-		node.forEach((n, offset, idx) => {
-			if (tableIsSimple && idx == 0 && !TableUtils.rowIsHeader(n)) tableIsSimple = false;
-			if (tableIsSimple && !TableUtils.rowIsSimple(n, idx)) tableIsSimple = false;
+		if (node.attrs.header !== "row") tableIsSimple = false;
+		node.forEach((n) => {
+			if (tableIsSimple && !TableUtils.rowIsSimple(n)) tableIsSimple = false;
 		});
 		return tableIsSimple;
 	},
-	rowIsHeader(node: Node): boolean {
-		let rowIsHeader = true;
-		node.forEach((n) => {
-			if (rowIsHeader && n.type.name !== "tableHeader") rowIsHeader = false;
-		});
-		return rowIsHeader;
-	},
-	rowIsSimple(node: Node, idx: number): boolean {
+	rowIsSimple(node: Node): boolean {
 		let rowIsSimple = true;
 		node.forEach((n) => {
-			if (rowIsSimple && !TableUtils.cellIsSimple(n, idx)) rowIsSimple = false;
+			if (rowIsSimple && !TableUtils.cellIsSimple(n)) rowIsSimple = false;
 		});
 		return rowIsSimple;
 	},
@@ -64,26 +57,32 @@ const TableUtils = {
 		});
 		return hasHardBreak;
 	},
-	cellIsSimple(node: Node, rowIdx: number): boolean {
+	cellIsSimple(node: Node): boolean {
 		if (node.childCount > 1) return false;
 		if (node.firstChild.type.name !== "paragraph") return false;
 		if (this.cellIncludeHardBreak(node.content.firstChild)) return false;
-		if (rowIdx !== 0 && node.type.name === "tableHeader") return false;
-		if (JSON.stringify(node.attrs) !== `{"colspan":1,"rowspan":1,"colwidth":null}`) return false;
+		if (JSON.stringify(node.attrs) !== `{"aggregation":null,"colspan":1,"rowspan":1,"colwidth":null,"align":null}`)
+			return false;
 		let cellIsSimple = true;
 		node.firstChild.forEach((n) => {
 			if (cellIsSimple && !n.isInline) cellIsSimple = false;
 		});
 		return cellIsSimple;
 	},
-	getTableAttributes(attrs: { [name: string]: any }): string {
+	getTableAttributes(attrs: { [name: string]: boolean | string | number }, prefix = ""): string {
 		if (attrs.colspan == 1) attrs.colspan = null;
 		if (attrs.rowspan == 1) attrs.rowspan = null;
 		const attributes = Object.keys(attrs)
-			.map((key) => (attrs[key] ? `${key}=${Array.isArray(attrs[key]) ? `[${attrs[key]}]` : attrs[key]}` : null))
+			.map((key) => {
+				if (!attrs[key]) return null;
+				else if (typeof attrs[key] === "string") return `${key}="${attrs[key]}"`;
+				else if (Array.isArray(attrs[key])) return `${key}=[${attrs[key].join(",")}]`;
+
+				return `${key}=${attrs[key]}`;
+			})
 			.filter((a) => a);
-		if (attributes.length == 0) return "";
-		return `{% ${attributes.join(" ")} %}\n\n`;
+		if (attributes.length == 0) return prefix ? `{% ${prefix} %}\n\n` : "";
+		return `{%${prefix} ${attributes.join(" ")} %}\n\n`;
 	},
 };
 

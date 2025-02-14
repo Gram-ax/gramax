@@ -14,18 +14,22 @@ import { EditorState } from "@tiptap/pm/state";
 import { Plugin, PluginKey } from "prosemirror-state";
 import { EditorView } from "prosemirror-view";
 import PageDataContext from "../../../../../../logic/Context/PageDataContext";
+import { CellSelection, isInTable } from "prosemirror-tables";
+import canDisplayMenu from "@ext/markdown/elements/article/edit/helpers/canDisplayMenu";
 
 interface SelectionMenuProps {
 	articleProps: ClientArticleProps;
 	pageDataContext: PageDataContext;
 	apiUrlCreator: ApiUrlCreator;
 	editor: Editor;
+	isCellSelection: boolean;
+	inTable: boolean;
 	closeHandler: () => void;
 	onMountCallback: () => void;
 }
 
 const SelectionMenuComponent = (props: SelectionMenuProps) => {
-	const { pageDataContext, apiUrlCreator, editor, closeHandler, onMountCallback } = props;
+	const { pageDataContext, apiUrlCreator, editor, closeHandler, onMountCallback, isCellSelection, inTable } = props;
 	return (
 		<IsMacService.Provider>
 			<ApiUrlCreatorService.Provider value={apiUrlCreator}>
@@ -38,6 +42,8 @@ const SelectionMenuComponent = (props: SelectionMenuProps) => {
 										editor={editor}
 										closeHandler={closeHandler}
 										onMountCallback={onMountCallback}
+										isCellSelection={isCellSelection}
+										inTable={inTable}
 									/>
 								</ButtonStateService.Provider>
 							</IsSelectedOneNodeService.Provider>
@@ -51,6 +57,8 @@ const SelectionMenuComponent = (props: SelectionMenuProps) => {
 
 class TextSelectionMenu extends TooltipBase {
 	private _selectPosition: { x: number; y: number };
+	private _inTable = false;
+	private _isCellSelection = false;
 	private _timeoutId: NodeJS.Timeout = null;
 	private _isMount = false;
 
@@ -94,8 +102,12 @@ class TextSelectionMenu extends TooltipBase {
 	}
 
 	public update(view: EditorView, prevState: EditorState) {
-		const { from, to, $from } = view.state.selection;
-		if (prevState && prevState.selection.from === from && prevState.selection.to === to) return;
+		const canDisplay = canDisplayMenu(this._editor);
+		if (canDisplay) return;
+
+		const { from, to } = view.state.selection;
+		this._updateTableSelection();
+		if (prevState && prevState.selection.from === from && prevState.selection.to === to && !this._inTable) return;
 		const selectedText = view.state.doc.textBetween(from, to);
 
 		this.updateProps({
@@ -103,9 +115,11 @@ class TextSelectionMenu extends TooltipBase {
 			pageDataContext: this._pageDataContext,
 			apiUrlCreator: this._apiUrlCreator,
 			editor: this._editor,
+			inTable: this._inTable,
+			isCellSelection: this._isCellSelection,
 		});
 
-		if (selectedText || view.state.doc.firstChild !== $from.parent) {
+		if (selectedText || this._isCellSelection) {
 			if (this._timeoutId) clearTimeout(this._timeoutId);
 			if (this._isMount) return this._setTooltip();
 
@@ -117,7 +131,8 @@ class TextSelectionMenu extends TooltipBase {
 
 	override setTooltipPosition = () => {
 		const yDistance = -45;
-		const tooltipWidth = 384;
+		const isInstanceSelection = this._view.state.selection instanceof CellSelection;
+		const tooltipWidth = isInstanceSelection ? 384 : 124;
 
 		const x = this._selectPosition.x;
 		const y = this._selectPosition.y;
@@ -130,22 +145,56 @@ class TextSelectionMenu extends TooltipBase {
 		this._element.style.left = this._element.style.right = null;
 		if (left + tooltipWidth / 2 > domReact.width) this._element.style.right = "0px";
 		else if (left < tooltipWidth / 2) this._element.style.left = "0px";
-		else this._element.style.left = left - tooltipWidth / 2 + "px";
+		else this._element.style.left = left + "px";
+		this._element.style.zIndex = "var(--z-index-popover)";
 	};
+
+	private _updateTableSelection(): boolean {
+		const selection = this._view.state.selection;
+		const cellInstance = selection instanceof CellSelection;
+		if (cellInstance) {
+			this._isCellSelection = cellInstance;
+			this._inTable = true;
+			return true;
+		}
+
+		const inTable = isInTable(this._view.state);
+		if (inTable) {
+			this._inTable = true;
+			this._isCellSelection = false;
+			return true;
+		}
+
+		this._inTable = false;
+		this._isCellSelection = false;
+		return false;
+	}
 
 	private _setTooltip() {
 		const { from, to, $from } = this._view.state.selection;
-		const selectedText = this._view.state.doc.textBetween(from, to);
-		if (!selectedText || $from.parent.type.name === "doc" || this._view.state.doc.firstChild === $from.parent) {
+		const isInstanceSelection = this._view.state.selection instanceof CellSelection;
+		const inTable = this._inTable;
+		const selectedText = this._view.state.doc.textBetween(from, to) || inTable;
+		if (
+			(!selectedText && !isInstanceSelection) ||
+			$from.parent.type.name === "doc" ||
+			this._view.state.doc.firstChild === $from.parent
+		)
 			return this.closeComponent();
-		}
 
 		const anchor = this._view.coordsAtPos(from);
-		this._selectPosition = { x: anchor.left, y: anchor.top };
+		const icrAnchor = this._view.coordsAtPos(from + 1);
+
+		const needUseIncremented = anchor.top < icrAnchor.top;
+
+		this._selectPosition = needUseIncremented
+			? { x: icrAnchor.left, y: icrAnchor.top }
+			: { x: anchor.left, y: anchor.top };
 
 		this.setTooltipPosition();
 		if (!this.getProps().isOpen) this.updateProps({ isOpen: true });
 	}
+
 	private _setIsMount() {
 		this._isMount = true;
 	}

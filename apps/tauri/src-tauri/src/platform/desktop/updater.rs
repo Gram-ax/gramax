@@ -4,6 +4,7 @@ use process::restart;
 use tauri::menu::MenuItem;
 use tauri::Result;
 use tauri::*;
+use tauri_plugin_dialog::MessageDialogButtons;
 use tauri_plugin_updater::*;
 
 use tauri_plugin_dialog::DialogExt;
@@ -64,13 +65,19 @@ impl<R: Runtime> Updater<R> {
     self.set_menu_enabled(Some(&menu_item), false)?;
 
     if let Err(err) = self.check(installer, UpdateCheckMode::Ask).await {
-      self
+      let dialog = self
         .app
         .dialog()
         .message(format!("{}\n\n{}\n\nError: {:?}", t!("etc.try-later"), err, err))
         .kind(MessageDialogKind::Error)
-        .title(t!("updates.error-occured"))
-        .blocking_show();
+        .title(t!("updates.error-occured"));
+
+      let dialog = match self.app.get_focused_or_default_webview() {
+        Some(w) => dialog.parent(&w),
+        _ => dialog,
+      };
+
+      dialog.blocking_show();
     }
 
     self.set_menu_enabled(Some(&menu_item), true)?;
@@ -90,13 +97,20 @@ impl<R: Runtime> Updater<R> {
   }
 
   fn ask(&self) -> bool {
-    self
+    let dialog = self
       .app
       .dialog()
       .message(t!("updates.new-version.body"))
       .title(t!("updates.new-version.title"))
-      .buttons(tauri_plugin_dialog::MessageDialogButtons::OkCancelCustom(t!("updates.update-now").to_string(), t!("etc.later").to_string()))
-      .blocking_show()
+      .kind(MessageDialogKind::Info)
+      .buttons(MessageDialogButtons::OkCancel);
+
+    let dialog = match self.app.get_focused_or_default_webview() {
+      Some(w) => dialog.parent(&w),
+      _ => dialog,
+    };
+
+    dialog.blocking_show()
   }
 
   fn start_background_check(app: AppHandle<R>, interval: Duration) {
@@ -133,13 +147,19 @@ impl<R: Runtime> Updater<R> {
         Ok(())
       }
       (_, UpdateCheckMode::Ask) => {
-        self
+        let dialog = self
           .app
           .dialog()
           .message(t!("updates.you-have-actual-ver.body"))
           .title(t!("updates.you-have-actual-ver.title"))
-          .buttons(tauri_plugin_dialog::MessageDialogButtons::OkCustom(t!("etc.ok").to_string()))
-          .blocking_show();
+          .buttons(tauri_plugin_dialog::MessageDialogButtons::Ok);
+
+        let dialog = match self.app.get_focused_or_default_webview() {
+          Some(w) => dialog.parent(&w),
+          None => dialog,
+        };
+
+        dialog.blocking_show();
         Ok(())
       }
       _ => Ok(()),
@@ -153,13 +173,19 @@ impl<R: Runtime> Updater<R> {
         return Ok(None);
       };
 
-      self
+      let dialog = self
         .app
         .dialog()
         .message(t!("updates.newer-update-found"))
         .title(t!("updates.new-version.title"))
-        .buttons(tauri_plugin_dialog::MessageDialogButtons::OkCancelCustom(t!("updates.update-now").to_string(), t!("etc.later").to_string()))
-        .blocking_show();
+        .buttons(tauri_plugin_dialog::MessageDialogButtons::OkCancel);
+
+      let dialog = match self.app.get_focused_or_default_webview() {
+        Some(w) => dialog.parent(&w),
+        None => dialog,
+      };
+
+      dialog.blocking_show();
       return Ok(Some(update));
     }
 

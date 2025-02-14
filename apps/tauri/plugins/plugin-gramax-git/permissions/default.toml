@@ -25,6 +25,7 @@ permissions = [
   "allow-commit",
   "allow-merge",
   "allow-restore",
+  "allow-default-branch",
   "allow-get-parent",
   "allow-get-content",
   "allow-graph-head-upstream-files",
@@ -37,8 +38,9 @@ permissions = [
   "allow-is-bare",
   "allow-is-init",
   "allow-set-head",
-  "allow-invalidate-repo-cache",
   "allow-list-merge-requests",
   "allow-create-or-update-merge-request",
   "allow-get-draft-merge-request",
+  "allow-get-all-commit-authors",
+  "allow-reset-repo",
 ]

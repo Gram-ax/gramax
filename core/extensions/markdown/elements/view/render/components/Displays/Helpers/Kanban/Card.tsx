@@ -43,7 +43,7 @@ const Card = ({ columnID, cardID, linkPath, title, otherProps, resourcePath, dis
 
 	const onMouseEnter = (e: MouseEvent) => {
 		const target = e.target as HTMLElement;
-		if (target.closest(".chips")) return;
+		if (target.closest(".chips")) return setLink(null, null);
 		setLink(cardRef.current as HTMLElement, resourcePath);
 	};
 

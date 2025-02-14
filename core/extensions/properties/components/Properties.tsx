@@ -5,7 +5,6 @@ import ArticlePropsService from "@core-ui/ContextServices/ArticleProps";
 import styled from "@emotion/styled";
 import { Property as PropertyType, PropertyValue } from "@ext/properties/models";
 import { useCallback, useMemo, CSSProperties } from "react";
-import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import PropertyArticle from "@ext/properties/components/Helpers/PropertyArticle";
 import combineProperties from "@ext/properties/logic/combineProperties";
 import useWatch from "@core-ui/hooks/useWatch";
@@ -26,8 +25,6 @@ const Properties = ({ className, style, properties, setProperties }: PropertiesP
 	const articleProps = ArticlePropsService.value;
 	const catalogProperties = PropertyServiceProvider.value?.properties;
 	const apiUrlCreator = ApiUrlCreatorService.value;
-	const pageData = PageDataContextService.value;
-	const isReadOnly = pageData?.conf.isReadOnly;
 
 	useWatch(() => {
 		if (catalogProperties?.size > 0)
@@ -79,7 +76,6 @@ const Properties = ({ className, style, properties, setProperties }: PropertiesP
 		return properties?.map((property) => (
 			<PropertyArticle
 				key={property.name}
-				isReadOnly={isReadOnly}
 				property={property}
 				onSubmit={onSubmit}
 				trigger={
@@ -105,7 +101,6 @@ const Properties = ({ className, style, properties, setProperties }: PropertiesP
 				}
 				canAdd
 				properties={properties}
-				isReadOnly={isReadOnly}
 				catalogProperties={catalogProperties}
 				onSubmit={updateHandler}
 				setProperties={setProperties}

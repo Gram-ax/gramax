@@ -98,7 +98,7 @@ const fixMerge = async (
 	const result: MergeResult = [];
 
 	for (const r of promiseResult) result.push(await r);
-	if (filesToAdd.length) await gitCommands.add(filesToAdd);
+	if (filesToAdd.length) await gitCommands.add(filesToAdd, true);
 
 	return result.filter(Boolean);
 };

@@ -13,12 +13,10 @@ const TableDB = styled(
 	({
 		object,
 		error,
-		isLogged,
 		className,
 	}: {
 		object: Table | TableWithRefs;
 		error?: { message: string; stack: string };
-		isLogged: boolean;
 		className?: string;
 	}) => {
 		const lang = LanguageService.currentUi();
@@ -42,7 +40,7 @@ const TableDB = styled(
 					<Popup defaultOpen onClose={() => setPopup(null)} lockScroll={false}>
 						<div className={className}>
 							<div className="scroll article">
-								<TableDB object={popup} isLogged={isLogged} />
+								<TableDB object={popup} />
 							</div>
 						</div>
 					</Popup>
@@ -87,12 +85,14 @@ const TableDB = styled(
 										{field.refObject && (
 											<div className="fk" title={t("foreign-key")}>
 												<Icon code="arrow-right-to-line" />{" "}
-												{table(
-													field.refObject,
-													(object as TableWithRefs).refs
-														? (object as TableWithRefs).refs[field.code]
-														: null,
-												)}
+												<span>
+													{table(
+														field.refObject,
+														(object as TableWithRefs).refs
+															? (object as TableWithRefs).refs[field.code]
+															: null,
+													)}
+												</span>
 											</div>
 										)}
 									</td>
@@ -154,18 +154,25 @@ const TableDB = styled(
 		padding: 2px 6px;
 
 		.icon {
-			margin-right: 0.3em;
+			margin: 0 0.3em 0 0;
 			vertical-align: 1px;
 			font-size: 12px;
 		}
 	}
 
 	.fk {
+		display: flex;
+		flex-direction: row;
+		align-content: center;
+		align-items: center;
 		margin-left: 1.5em;
 		margin-top: 0.5em;
 
 		code {
-			margin-left: 0.3em;
+			margin: 0 0.3em 0 0;
+			display: inline-flex;
+			align-items: center;
+			white-space: nowrap;
 		}
 	}
 

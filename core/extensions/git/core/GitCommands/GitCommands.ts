@@ -1,6 +1,10 @@
 import fixConflictLibgit2 from "@ext/git/actions/MergeConflictHandler/logic/FixConflictLibgit2";
 import LibGit2Commands from "@ext/git/core/GitCommands/LibGit2Commands";
-import type { MergeResult, UpstreamCountFileChanges } from "@ext/git/core/GitCommands/LibGit2IntermediateCommands";
+import type {
+	CommitAuthorInfo,
+	MergeResult,
+	UpstreamCountFileChanges,
+} from "@ext/git/core/GitCommands/LibGit2IntermediateCommands";
 import getGitError from "@ext/git/core/GitCommands/errors/logic/getGitError";
 import { Caller } from "@ext/git/core/GitCommands/errors/model/Caller";
 import GitErrorCode from "@ext/git/core/GitCommands/errors/model/GitErrorCode";
@@ -22,6 +26,8 @@ import SubmoduleData from "../model/SubmoduleData";
 import GitError from "./errors/GitError";
 import GitCommandsModel, {
 	type CloneProgress,
+	type DiffConfig,
+	type DiffTree2TreeInfo,
 	type DirEntry,
 	type DirStat,
 	type FileStat,
@@ -111,6 +117,12 @@ export class GitCommands {
 		});
 	}
 
+	async getDefaultBranch(source: SourceData): Promise<GitBranch | null> {
+		return await this._logWrapper("getDefaultBranch", "Getting default branch", async () => {
+			return await this._impl.getDefaultBranch(source);
+		});
+	}
+
 	async getBranch(branchName: string): Promise<GitBranch> {
 		return await this._logWrapper("getBranch", `Getting branch ${branchName} failed`, async () => {
 			const branch = await this._impl.getBranch(branchName);
@@ -188,6 +200,12 @@ export class GitCommands {
 		);
 	}
 
+	async getCommitAuthors(): Promise<CommitAuthorInfo[]> {
+		return await this._logWrapper("getCommitAuthors", "Getting commit authors", () =>
+			this._impl.getCommitAuthors(),
+		);
+	}
+
 	async setHead(refname: string) {
 		return await this._logWrapper("setHead", `Setting head to ${refname}`, () => this._impl.setHead(refname));
 	}
@@ -238,11 +256,11 @@ export class GitCommands {
 		});
 	}
 
-	async add(filePaths?: Path[]): Promise<void> {
+	async add(filePaths?: Path[], force = false): Promise<void> {
 		return this._logWrapper(
 			"add",
 			`Adding ${filePaths ? `filePaths: '${filePaths.map((p) => p.value)}'` : "*"}`,
-			() => this._impl.add(filePaths),
+			() => this._impl.add(filePaths, force),
 		);
 	}
 
@@ -288,13 +306,12 @@ export class GitCommands {
 		return await this._logWrapper("pull", "Pulling", async () => {
 			try {
 				await this.fetch(data);
+				const remoteBranchName = (await this.getCurrentBranch()).getData().remoteName?.replace("origin/", "");
+				if (!remoteBranchName) return;
 
-				const remoteBranchName =
-					(await this.getRemoteName()) +
-					"/" +
-					(await this.getCurrentBranch()).getData().remoteName.replace("origin/", "");
+				const remoteWithRemoteBranchName = (await this.getRemoteName()) + "/" + remoteBranchName;
 
-				await this.merge(data, remoteBranchName);
+				await this.merge(data, remoteWithRemoteBranchName);
 			} catch (e) {
 				throw e.props ? e : getGitError(e, { repositoryPath: this._repoPath.value }, "pull");
 			}
@@ -343,13 +360,19 @@ export class GitCommands {
 		);
 	}
 
-	async commit(message: string, data: SourceData, parents?: (string | GitBranch)[]): Promise<GitVersion> {
+	async commit(
+		message: string,
+		data: SourceData,
+		parents?: (string | GitBranch)[],
+		files?: Path[],
+	): Promise<GitVersion> {
 		return await this._logWrapper("commit", "Commiting", async () => {
 			try {
 				return await this._impl.commit(
 					message,
 					data,
 					parents?.map((x) => x.toString()),
+					files?.map((x) => x.value),
 				);
 			} catch (e) {
 				throw getGitError(e, { repositoryPath: this._repoPath.value }, "commit");
@@ -357,8 +380,8 @@ export class GitCommands {
 		});
 	}
 
-	async status(): Promise<GitStatus[]> {
-		return await this._logWrapper("status", "Getting status", () => this._impl.status());
+	async status(type: "index" | "workdir" = "workdir"): Promise<GitStatus[]> {
+		return await this._logWrapper("status", "Getting status", () => this._impl.status(type));
 	}
 
 	async fileStatus(filePath: Path): Promise<GitStatus> {
@@ -447,11 +470,9 @@ export class GitCommands {
 		);
 	}
 
-	async diff(oldTree: GitVersion | GitBranch, newTree: GitVersion | GitBranch): Promise<GitStatus[]> {
-		return await this._logWrapper(
-			"diff",
-			`Finding diffs for oldTree: '${oldTree.toString()}' newTree: '${newTree.toString()}'`,
-			() => this._impl.diff(oldTree.toString(), newTree.toString()),
+	async diff(opts: DiffConfig): Promise<DiffTree2TreeInfo> {
+		return await this._logWrapper("diff", `Finding diffs for opts: '${JSON.stringify(opts)}'`, () =>
+			this._impl.diff(opts),
 		);
 	}
 	getRemoteName(): Promise<string> {

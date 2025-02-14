@@ -10,12 +10,14 @@ import GitSourceData from "../model/GitSourceData.schema";
 import { GitVersion } from "../model/GitVersion";
 import * as git from "./LibGit2IntermediateCommands";
 import GitCommandsModel, {
-	type CloneProgress,
-	type DirEntry,
-	type DirStat,
-	type FileStat,
-	type RefInfo,
-	type TreeReadScope,
+  type CloneProgress,
+  type DiffConfig,
+  type DiffTree2TreeInfo,
+  type DirEntry,
+  type DirStat,
+  type FileStat,
+  type RefInfo,
+  type TreeReadScope,
 } from "./model/GitCommandsModel";
 
 class LibGit2Commands extends LibGit2BaseCommands implements GitCommandsModel {
@@ -49,14 +51,18 @@ class LibGit2Commands extends LibGit2BaseCommands implements GitCommandsModel {
 		);
 	}
 
-	async commit(message: string, data: SourceData, parents?: string[]): Promise<GitVersion> {
-		await git.commit({ repoPath: this._repoPath, creds: this._intoCreds(data), message, parents });
+	async commit(message: string, data: SourceData, parents?: string[], paths?: string[]): Promise<GitVersion> {
+		await git.commit({
+			repoPath: this._repoPath,
+			creds: this._intoCreds(data),
+			opts: { message, parentRefs: parents || null, files: paths || null },
+		});
 		const oid = (await this.getHeadCommit("HEAD")).toString();
 		return new GitVersion(oid);
 	}
 
-	async status(): Promise<GitStatus[]> {
-		const status = await git.status({ repoPath: this._repoPath });
+	async status(type: "index" | "workdir"): Promise<GitStatus[]> {
+		const status = await git.status({ repoPath: this._repoPath, index: type === "index" });
 		return (
 			status?.map((s) => ({
 				path: new Path(s.path),
@@ -96,22 +102,40 @@ class LibGit2Commands extends LibGit2BaseCommands implements GitCommandsModel {
 		return res?.length ? res : [];
 	}
 
-	async add(paths?: Path[]) {
-		const patterns = paths?.map((p) => p.value) ?? ["."];
-		await git.add({ repoPath: this._repoPath, patterns });
+	async add(paths?: Path[], force = false) {
+		const patterns = paths?.map((p) => p.value);
+		await git.add({ repoPath: this._repoPath, patterns: patterns?.length ? patterns : ["."], force });
 	}
 
-	async diff(oldTree: string, newTree: string): Promise<GitStatus[]> {
-		const statuses = await git.diff({ repoPath: this._repoPath, old: oldTree, new: newTree });
-		return statuses.map((s) => ({
-			path: new Path(s.path),
+	async diff(opts: DiffConfig): Promise<DiffTree2TreeInfo> {
+		if (opts.compare.type === "tree") {
+			if (opts.compare.old) opts.compare.old = opts.compare.old.toString() as any;
+			if (opts.compare.new) opts.compare.new = opts.compare.new.toString() as any;
+		}
+
+		if (opts.compare.type === "workdir") {
+			if (opts.compare.tree) opts.compare.tree = opts.compare.tree.toString() as any;
+		}
+
+		const info = await git.diff({ repoPath: this._repoPath, opts });
+		if (!info) return;
+		info.files = info.files.map((s) => ({
+			...s,
 			status: FileStatus[s.status],
-			isUntracked: true,
+			oldPath: s.oldPath ? new Path(s.oldPath as unknown as string) : undefined,
+			path: new Path(s.path as unknown as string),
 		}));
+
+		return info;
 	}
 
 	getFileHistory(filePath: Path, count: number): Promise<VersionControlInfo[]> {
 		return git.fileHistory({ repoPath: this._repoPath, filePath: filePath.value, count });
+	}
+
+	async getDefaultBranch(source: GitSourceData): Promise<GitBranch | null> {
+		const branch = await git.defaultBranch({ repoPath: this._repoPath, creds: this._intoCreds(source) });
+		return branch ? new GitBranch(branch) : null;
 	}
 
 	async getCurrentBranch(): Promise<GitBranch> {
@@ -227,6 +251,10 @@ class LibGit2Commands extends LibGit2BaseCommands implements GitCommandsModel {
 	getRemoteName(): Promise<string> {
 		const REMOTE = "origin";
 		return Promise.resolve(REMOTE);
+	}
+
+	getCommitAuthors(): Promise<git.CommitAuthorInfo[]> {
+		return git.getCommitAuthors({ repoPath: this._repoPath });
 	}
 
 	readFile(filePath: Path, scope: TreeReadScope): Promise<ArrayBuffer> {

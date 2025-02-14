@@ -84,7 +84,7 @@ const getNodeFormatters = (context?: ParserContext): { [node: string]: NodeSeria
 			state.write(await TableUtils.getSimpleTable(node, delim, context));
 			state.delim = delim;
 		} else {
-			state.write(`{% table %}\n\n`);
+			state.write(TableUtils.getTableAttributes(node.attrs, " table"));
 			await state.renderContent(node);
 			state.write(`{% /table %}\n`);
 		}
@@ -99,7 +99,7 @@ const getNodeFormatters = (context?: ParserContext): { [node: string]: NodeSeria
 		);
 	},
 	tableHeader: async (state, node) => {
-		state.write(TableUtils.getTableAttributes({ ...node.attrs, isHeader: true }));
+		state.write(TableUtils.getTableAttributes(node.attrs));
 		await state.renderContent(node);
 	},
 	tableCell: async (state, node) => {

@@ -14,7 +14,6 @@ import CatalogPropsService from "@core-ui/ContextServices/CatalogProps";
 import IsEditService from "@core-ui/ContextServices/IsEdit";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import { transliterate } from "@core-ui/languageConverter/transliterate";
-import { Router } from "@core/Api/Router";
 import { useRouter } from "@core/Api/useRouter";
 import { ClientArticleProps } from "@core/SitePresenter/SitePresenter";
 import { uniqueName } from "@core/utils/uniqueName";
@@ -52,30 +51,23 @@ const PropsEditor = (props: PropsEditorProps) => {
 		setItemProps(item);
 	}, [item]);
 
-	const updateNavigation = (
-		isCurrentItem: boolean,
-		router: Router,
-		logicPath: string,
-		articleLogicPath: string,
-		itemLogicPath: string,
-	) => {
-		if (isCurrentItem) return router.pushPath(logicPath);
-		if (articleLogicPath.startsWith(itemLogicPath))
-			return router.pushPath(articleProps.logicPath.replace(itemProps.logicPath, logicPath));
-		return refreshPage();
+	const updateNavigation = (updatedPathname: string, currentArticlePathname: string, itemLogicPath: string) => {
+		if (isCurrentItem) return router.pushPath(updatedPathname);
+		if (!isCurrentItem && currentArticlePathname.startsWith(itemLogicPath))
+			return router.pushPath(articleProps.logicPath.replace(itemProps.logicPath, updatedPathname));
+		refreshPage();
 	};
 
 	const save = async () => {
 		if (getErrorText()) return;
 		if (generatedFileName) itemProps.fileName = generatedFileName;
-		ArticlePropsService.set({ ...itemProps });
 		const response = await FetchService.fetch(
 			apiUrlCreator.updateItemProps(),
 			JSON.stringify(itemProps),
 			MimeTypes.json,
 		);
 		const { pathname } = await response.json();
-		updateNavigation(isCurrentItem, router, pathname, articleProps.logicPath, itemProps.logicPath);
+		updateNavigation(pathname, articleProps.logicPath, itemProps.logicPath);
 		const editor = EditorService.getEditor();
 		itemLink.title = itemProps.title;
 		setItemLink({ ...itemLink });

@@ -79,10 +79,6 @@ export default styled(Icon)`
 		text-align: center;
 	}
 
-	svg {
-		stroke: currentColor;
-	}
-
 	vertical-align: middle;
 	display: inline-block;
 	line-height: 1px;

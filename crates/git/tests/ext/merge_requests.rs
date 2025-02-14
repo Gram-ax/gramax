@@ -12,14 +12,14 @@ fn list_merge_requests(_sandbox: TempDir, #[with(&_sandbox)] repos: Repos) -> Re
       format!(
         r#"
 title: test1
-target: {target}
-author: test <test@test.com>
+targetBranch: {target}
+creator: test <test@test.com>
 createdAt: "1"
 "#,
       ),
     )?;
     local.add(".gramax/mr/open.yaml")?;
-    local.commit("open merge request")?;
+    local.commit_debug()?;
     local.push()?;
 
     Ok(())
@@ -49,10 +49,7 @@ fn create_merge_request_same_branch(_sandbox: TempDir, #[with(&_sandbox)] repos:
   let Err(err) = local.create_or_update_merge_request(CreateMergeRequest {
     title: Some("test1".to_string()),
     target_branch_ref: "master".to_string(),
-    description: None,
-    assignees: None,
-    created_at: None,
-    options: None,
+    ..Default::default()
   }) else {
     panic!("error expected")
   };
@@ -79,10 +76,7 @@ fn create_merge_request_invalid_branch(_sandbox: TempDir, #[with(&_sandbox)] rep
   let Err(err) = local.create_or_update_merge_request(CreateMergeRequest {
     title: Some("test1".to_string()),
     target_branch_ref: "not-exists".to_string(),
-    description: None,
-    assignees: None,
-    created_at: None,
-    options: None,
+    ..Default::default()
   }) else {
     panic!("error expected")
   };
@@ -113,14 +107,11 @@ fn create_merge_request(_sandbox: TempDir, #[with(&_sandbox)] repos: Repos) -> R
   local.create_or_update_merge_request(CreateMergeRequest {
     title: Some("test1".to_string()),
     target_branch_ref: "dev".to_string(),
-    description: None,
-    assignees: None,
-    created_at: None,
-    options: None,
+    ..Default::default()
   })?;
 
   local.add(".gramax/mr/open.yaml")?;
-  local.commit("create merge request")?;
+  local.commit_debug()?;
   local.push()?;
 
   assert!(std::fs::exists(local_path.join(".gramax/mr/open.yaml"))?);
@@ -143,14 +134,11 @@ fn update_merge_request(_sandbox: TempDir, #[with(&_sandbox)] repos: Repos) -> R
   local.create_or_update_merge_request(CreateMergeRequest {
     title: Some("test1".to_string()),
     target_branch_ref: "dev".to_string(),
-    description: None,
-    assignees: None,
-    created_at: None,
-    options: None,
+    ..Default::default()
   })?;
 
   local.add(".gramax/mr/open.yaml")?;
-  local.commit("create merge request")?;
+  local.commit_debug()?;
   local.push()?;
 
   assert!(std::fs::exists(local_path.join(".gramax/mr/open.yaml"))?);
@@ -160,9 +148,7 @@ fn update_merge_request(_sandbox: TempDir, #[with(&_sandbox)] repos: Repos) -> R
     title: Some("test2".to_string()),
     target_branch_ref: "dev".to_string(),
     description: Some("desc".to_string()),
-    assignees: None,
-    options: None,
-    created_at: None,
+    ..Default::default()
   })?;
 
   assert!(std::fs::exists(local_path.join(".gramax/mr/open.yaml"))?);
@@ -172,7 +158,7 @@ fn update_merge_request(_sandbox: TempDir, #[with(&_sandbox)] repos: Repos) -> R
   assert_eq!(draft_mr.description(), Some("desc"));
 
   local.add(".gramax/mr/open.yaml")?;
-  local.commit("update merge request")?;
+  local.commit_debug()?;
   local.push()?;
 
   let mrs = local.list_merge_requests()?;
@@ -199,8 +185,8 @@ fn get_draft_merge_request_no_head(_sandbox: TempDir, #[with(&_sandbox)] repos: 
     local_path.join(".gramax/mr/open.yaml"),
     r#"
 title: test1
-target: develop
-author: test <test@test.com>
+targetBranch: develop
+creator: test <test@test.com>
 createdAt: "1"
 "#,
   )?;
@@ -220,14 +206,14 @@ fn get_draft_merge_request_with_head(_sandbox: TempDir, #[with(&_sandbox)] repos
     local_path.join(".gramax/mr/open.yaml"),
     r#"
 title: test1
-target: dev
-author: test <test@test.com>
+targetBranch: dev
+creator: test <test@test.com>
 createdAt: "1"
 "#,
   )?;
 
   local.add(".gramax/mr/open.yaml")?;
-  local.commit("create draft merge request")?;
+  local.commit_debug()?;
   local.push()?;
 
   let mr = local.get_draft_merge_request()?;
@@ -237,8 +223,8 @@ createdAt: "1"
     local_path.join(".gramax/mr/open.yaml"),
     r#"
 title: test1
-target: dev-2
-author: test <test@test.com>
+targetBranch: dev-2
+creator: test <test@test.com>
 createdAt: "1"
 "#,
   )?;

@@ -16,6 +16,7 @@ type RenderVideoPropsWithoutLoad = Omit<RenderVideoProps, "onLoad" | "onError">;
 export type PreviewVideoProps = Omit<RenderVideoProps, "onLoad" | "onError"> &
 	HTMLAttributes<HTMLAnchorElement> & {
 		previewUrl: string;
+		onLoad: () => void;
 	};
 
 const agent = typeof window !== "undefined" && window.navigator?.userAgent;
@@ -26,13 +27,20 @@ const rutubeUrlReplacer = (url: string): string => {
 	return url.replace("video", "play/embed");
 };
 
+const supportedVideoFormats = ["mp4", "webm", "ogg"];
+
+const isVideoFormatSupported = (url: string): boolean => {
+	const extension = url.split(".").pop()?.toLowerCase();
+	return extension ? supportedVideoFormats.includes(extension) : false;
+};
+
 const SupportedVideoHostings: {
 	[key: string]: (url: string, onLoad: () => void, onError: () => void) => JSX.Element;
 } = {
 	"youtube.com": (url, onLoad, onError) => {
 		const id = url.match(/v=([^&]+)/)?.[1];
 		return isCredentiallessUnsupported ? (
-			<PreviewVideo url={url} previewUrl={`https://img.youtube.com/vi/${id}/maxresdefault.jpg`} />
+			<PreviewVideo url={url} previewUrl={`https://img.youtube.com/vi/${id}/maxresdefault.jpg`} onLoad={onLoad} />
 		) : (
 			<IFrameVideo url={`https://www.youtube-nocookie.com/embed/${id}`} onLoad={onLoad} onError={onError} />
 		);
@@ -42,44 +50,53 @@ const SupportedVideoHostings: {
 		if (!rel) return null;
 		const videoId = rel.match(/(.*)\?/)?.[1];
 		return isCredentiallessUnsupported ? (
-			<PreviewVideo url={url} previewUrl={`https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`} />
+			<PreviewVideo
+				url={url}
+				previewUrl={`https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`}
+				onLoad={onLoad}
+			/>
 		) : (
 			<IFrameVideo url={`https://www.youtube-nocookie.com/embed/${rel}`} onLoad={onLoad} onError={onError} />
 		);
 	},
 	"drive.google.com": (url, onLoad, onError) => {
 		return isCredentiallessUnsupported ? (
-			<PreviewVideo url={url} previewUrl={"/images/gdrive.png"} />
+			<PreviewVideo url={url} previewUrl={"/images/gdrive.png"} onLoad={onLoad} />
 		) : (
 			<IFrameVideo url={url.replace("view", "preview")} onLoad={onLoad} onError={onError} />
 		);
 	},
 	"mega.nz": (url, onLoad, onError) =>
 		isCredentiallessUnsupported ? (
-			<PreviewVideo url={url} previewUrl={"/images/meganz.png"} />
+			<PreviewVideo url={url} previewUrl={"/images/meganz.png"} onLoad={onLoad} />
 		) : (
 			<IFrameVideo url={url.replace(`/file/`, `/embed/`)} onLoad={onLoad} onError={onError} />
 		),
-	"dropbox.com": (url, onLoad, onError) => (
-		<IFrameVideo
-			url={url.replace(url.includes("?dl=0") ? "?dl=0" : "&dl=0", url.includes("?dl=0") ? "?raw=1" : "&raw=1")}
-			onLoad={onLoad}
-			onError={onError}
-		/>
-	),
+	"dropbox.com": (url, onLoad, onError) => {
+		const processedUrl = url.replace(
+			url.includes("?dl=0") ? "?dl=0" : "&dl=0",
+			url.includes("?dl=0") ? "?raw=1" : "&raw=1",
+		);
+
+		return !isVideoFormatSupported(url) ? (
+			<PreviewVideo url={url} previewUrl={"/images/dropbox.png"} onLoad={onLoad} />
+		) : (
+			<IFrameVideo url={processedUrl} onLoad={onLoad} onError={onError} />
+		);
+	},
 	"rutube.ru": (url, onLoad, onError) =>
 		isCredentiallessUnsupported ? (
-			<PreviewVideo url={url} previewUrl={"/images/rutube.png"} />
+			<PreviewVideo url={url} previewUrl={"/images/rutube.png"} onLoad={onLoad} />
 		) : (
 			<IFrameVideo url={rutubeUrlReplacer(url)} onLoad={onLoad} onError={onError} />
 		),
 	// "sharepoint.com": (link) => <VideoTag link={link.replace(/\?e=.*?$/, "?download=1")} />,
 };
 
-const PreviewVideoUnstyled = ({ url, previewUrl, className, ...props }: PreviewVideoProps) => {
+const PreviewVideoUnstyled = ({ url, previewUrl, className, onLoad, ...props }: PreviewVideoProps) => {
 	return (
 		<a {...props} className={"video-js " + className} href={url} target="_blank" rel="noreferrer">
-			<GifImage noplay src={previewUrl} />
+			<GifImage noplay src={previewUrl} onLoad={onLoad} />
 		</a>
 	);
 };

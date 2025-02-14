@@ -7,14 +7,24 @@ import { useCtrlKey } from "@core-ui/hooks/useCtrlKey";
 import { useExternalLink } from "@core-ui/hooks/useExternalLink";
 import { usePlatform } from "@core-ui/hooks/usePlatform";
 import { ItemType } from "@core/FileStructue/Item/ItemType";
-import eventEmitter from "@core/utils/eventEmmiter";
+import eventEmitter from "@core/utils/eventEmitter";
 import parseStorageUrl from "@core/utils/parseStorageUrl";
 import styled from "@emotion/styled";
 import LinkItemSidebar from "@ext/artilce/LinkCreator/components/LinkItemSidebar";
 import t from "@ext/localization/locale/translate";
 import Button from "@ext/markdown/core/edit/components/Menu/Button";
 import LinkFocusTooltip from "@ext/markdown/elements/link/edit/logic/LinkFocusTooltip";
-import { Dispatch, RefObject, SetStateAction, useEffect, useMemo, useRef, useState, CSSProperties } from "react";
+import {
+	Dispatch,
+	RefObject,
+	SetStateAction,
+	useEffect,
+	useMemo,
+	useRef,
+	useState,
+	CSSProperties,
+	useCallback,
+} from "react";
 import LinkItem from "../models/LinkItem";
 
 interface SelectLinkItemProps {
@@ -143,6 +153,10 @@ const ListView = (props: ListViewProps) => {
 	const { listRef, focusOnMount, className, itemIndex, onSearchChange, itemClickHandler, items, itemName } = props;
 	const { parentRef } = LinkTitleContextService.value;
 
+	const cancelClickHandler = useCallback(() => {
+		onSearchChange("");
+	}, [onSearchChange]);
+
 	return (
 		<div ref={parentRef} style={{ padding: "0 5.5px", width: "300px" }}>
 			<ListLayout
@@ -152,6 +166,7 @@ const ListView = (props: ListViewProps) => {
 				openByDefault={focusOnMount}
 				items={items}
 				item={itemName}
+				onCancelClick={cancelClickHandler}
 				itemIndex={itemIndex}
 				ref={listRef}
 				isCode={false}

@@ -40,7 +40,7 @@ describe("CatalogEntryAttach", () => {
 		} catch {}
 	});
 
-	it("маунтит GitTreeFileProvider, если репозиторий bare", async () => {
+	test("маунтит GitTreeFileProvider, если репозиторий bare", async () => {
 		const repoPath = new Path("bare");
 		await new GitCommands(wm.current().getFileProvider(), repoPath).init({
 			sourceType: SourceType.git,
@@ -65,7 +65,7 @@ describe("CatalogEntryAttach", () => {
 		expect(wm.current().getFileProvider().at(new Path("bare"))).toBeInstanceOf(GitTreeFileProvider);
 	});
 
-	it("не маунтит GitTreeFileProvider, если репозиторий не bare", async () => {
+	test("не маунтит GitTreeFileProvider, если репозиторий не bare", async () => {
 		const repoPath = new Path("workdir");
 		await new GitCommands(wm.current().getFileProvider(), repoPath).init({
 			sourceType: SourceType.git,

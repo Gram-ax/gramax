@@ -7,7 +7,7 @@ export default class DefaultError extends Error {
 		protected _props?: { [key: string]: any } & { errorCode?: string },
 		public isWarning = false,
 		public title?: string,
-		public icon?: string
+		public icon?: string,
 	) {
 		if (cause) console.error(cause);
 		super(message ?? cause?.message, { cause });
@@ -15,6 +15,11 @@ export default class DefaultError extends Error {
 
 	setProps(props: { [key: string]: any }): void {
 		this._props = { ...this.props, ...props };
+	}
+
+	setShowCause(showCause: boolean): void {
+		if (!this._props) this._props = { showCause };
+		else this._props.showCause = showCause;
 	}
 
 	get props(): { [key: string]: any } & { errorCode: string } {

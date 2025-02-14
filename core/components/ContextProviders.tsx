@@ -1,11 +1,13 @@
 import ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
+import ArticleDataService from "@core-ui/ContextServices/ArticleData";
 import ArticlePropsService from "@core-ui/ContextServices/ArticleProps";
 import ArticleRefService from "@core-ui/ContextServices/ArticleRef";
 import ArticleTooltipService from "@core-ui/ContextServices/ArticleTooltip";
 import CatalogPropsService from "@core-ui/ContextServices/CatalogProps";
 import CommentCounterService from "@core-ui/ContextServices/CommentCounter";
-import WorkspaceAssetsService from "@core-ui/ContextServices/WorkspaceAssetsService";
+import DiffViewModeService from "@core-ui/ContextServices/DiffViewModeService";
+import GitIndexService from "@core-ui/ContextServices/GitIndexService";
 import IsEditService from "@core-ui/ContextServices/IsEdit";
 import IsFirstLoadService from "@core-ui/ContextServices/IsFirstLoadService";
 import IsMacService from "@core-ui/ContextServices/IsMac";
@@ -14,13 +16,15 @@ import IsOfflineService from "@core-ui/ContextServices/IsOfflineService";
 import LanguageService from "@core-ui/ContextServices/Language";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import RefreshPageService from "@core-ui/ContextServices/RefreshPageContext";
-import ScrollWebkitService from "@core-ui/ContextServices/ScrollWebkit";
 import SearchQueryService from "@core-ui/ContextServices/SearchQuery";
 import SidebarsIsPinService from "@core-ui/ContextServices/Sidebars/SidebarsIsPin";
 import SyncIconService from "@core-ui/ContextServices/SyncIconService";
 import ArticleViewService from "@core-ui/ContextServices/views/articleView/ArticleViewService";
 import LeftNavViewContentService from "@core-ui/ContextServices/views/leftNavView/LeftNavViewContentService";
 import WorkspaceService from "@core-ui/ContextServices/Workspace";
+import WorkspaceAssetsService from "@core-ui/ContextServices/WorkspaceAssetsService";
+import useOnUpdateFuncs from "@core-ui/hooks/onUpdate/useOnUpdateFuncs";
+import { usePlatform } from "@core-ui/hooks/usePlatform";
 import matomoMetric from "@core-ui/matomoMetric";
 import useIsFirstLoad from "@core-ui/useIsFirstLoad";
 import yandexMetric from "@core-ui/yandexMetric";
@@ -35,7 +39,6 @@ import ThemeService from "../extensions/Theme/components/ThemeService";
 import PageDataContext from "../logic/Context/PageDataContext";
 import IsOpenModalService from "../ui-logic/ContextServices/IsOpenMpdal";
 import ModalToOpenService from "../ui-logic/ContextServices/ModalToOpenService/ModalToOpenService";
-import useOnUpdateFuncs from "../ui-logic/useOnUpdateFuncs";
 
 export interface PageProps {
 	data: HomePageData & ArticlePageData;
@@ -57,13 +60,12 @@ export default function ContextProviders({
 }) {
 	const basePath = apiHost ?? useRouter().basePath;
 	const isArticlePage = pageProps?.context?.isArticle;
-	const isFirstLoad = useIsFirstLoad();
+	const [isFirstLoad, resetIsFirstLoad] = useIsFirstLoad();
 
 	if (!pageProps || !pageProps.context) return children;
 
 	const apiUrlCreator = new ApiUrlCreator(
 		basePath,
-		pageProps.context.isLogged,
 		isArticlePage ? pageProps.data.catalogProps.name : null,
 		isArticlePage ? pageProps.data.articleProps.ref.path : null,
 	);
@@ -71,11 +73,11 @@ export default function ContextProviders({
 	if (isArticlePage && !pageProps.context.language.content)
 		pageProps.context.language.content = pageProps.data.catalogProps.language;
 
-	const isReadOnly = pageProps.context.conf.isReadOnly;
+	const { isNext } = usePlatform();
 	const isProduction = pageProps.context.conf.isProduction;
 	const metrics = pageProps.context.conf.metrics;
-	if (isReadOnly && isProduction) matomoMetric(metrics.matomo);
-	if (isReadOnly && isProduction) yandexMetric(metrics.yandex.metricCounter);
+	if (isNext && isProduction) matomoMetric(metrics.matomo);
+	if (isNext && isProduction) yandexMetric(metrics.yandex.metricCounter);
 
 	return (
 		<IsOfflineService.Provider>
@@ -91,87 +93,101 @@ export default function ContextProviders({
 												<SearchQueryService.Provider>
 													<SyncIconService.Provider>
 														<IsOpenModalService.Provider>
-															<ScrollWebkitService.Provider>
-																<SidebarsIsPinService.Provider>
-																	<>
-																		{isArticlePage ? (
-																			<EditorExtensionsService.Provider>
-																				<OnLoadResourceService.Provider>
-																					<IsMenuBarOpenService.Provider>
-																						<ArticleRefService.Provider>
-																							<ArticlePropsService.Provider
-																								value={
-																									pageProps.data
-																										.articleProps
-																								}
-																							>
-																								<CatalogPropsService.Provider
+															<SidebarsIsPinService.Provider>
+																<>
+																	{isArticlePage ? (
+																		<DiffViewModeService.Provider>
+																			<GitIndexService.Provider>
+																				<EditorExtensionsService.Provider>
+																					<OnLoadResourceService.Provider>
+																						<IsMenuBarOpenService.Provider>
+																							<ArticleRefService.Provider>
+																								<ArticleDataService.Provider
 																									value={
 																										pageProps.data
-																											.catalogProps
 																									}
 																								>
-																									<PropertyService.Provider>
-																										<ModalToOpenService.Provider>
-																											<CurrentTabsTagService.Provider>
-																												<IsEditService.Provider>
-																													<ArticleTooltipService.Provider>
-																														<IsFirstLoadService.Provider
-																															value={
-																																isFirstLoad
-																															}
-																														>
-																															<ViewContextProvider
-																																articlePageData={
-																																	pageProps.data
-																																}
-																															>
-																																<OnUpdateAppFuncs>
-																																	<>
-																																		{pageProps
-																																			.context
-																																			.isLogged ? (
-																																			<CommentCounterService.Provider
-																																				deps={[
-																																					pageProps,
-																																				]}
-																																			>
-																																				{
+																									<ArticlePropsService.Provider
+																										value={
+																											pageProps
+																												.data
+																												.articleProps
+																										}
+																									>
+																										<CatalogPropsService.Provider
+																											value={
+																												pageProps
+																													.data
+																													.catalogProps
+																											}
+																										>
+																											<PropertyService.Provider>
+																												<ModalToOpenService.Provider>
+																													<CurrentTabsTagService.Provider>
+																														<IsEditService.Provider>
+																															<ArticleTooltipService.Provider>
+																																<IsFirstLoadService.Provider
+																																	resetIsFirstLoad={
+																																		resetIsFirstLoad
+																																	}
+																																	value={
+																																		isFirstLoad
+																																	}
+																																>
+																																	<ViewContextProvider
+																																		articlePageData={
+																																			pageProps.data
+																																		}
+																																	>
+																																		<OnUpdateAppFuncs>
+																																			<>
+																																				{pageProps
+																																					.context
+																																					.isLogged ? (
+																																					<CommentCounterService.Provider
+																																						deps={[
+																																							pageProps,
+																																						]}
+																																					>
+																																						{
+																																							children
+																																						}
+																																					</CommentCounterService.Provider>
+																																				) : (
 																																					children
-																																				}
-																																			</CommentCounterService.Provider>
-																																		) : (
-																																			children
-																																		)}
-																																	</>
-																																</OnUpdateAppFuncs>
-																															</ViewContextProvider>
-																														</IsFirstLoadService.Provider>
-																													</ArticleTooltipService.Provider>
-																												</IsEditService.Provider>
-																											</CurrentTabsTagService.Provider>
-																										</ModalToOpenService.Provider>
-																									</PropertyService.Provider>
-																								</CatalogPropsService.Provider>
-																							</ArticlePropsService.Provider>
-																						</ArticleRefService.Provider>
-																					</IsMenuBarOpenService.Provider>
-																				</OnLoadResourceService.Provider>
-																			</EditorExtensionsService.Provider>
-																		) : (
-																			<ModalToOpenService.Provider>
-																				<IsFirstLoadService.Provider
-																					value={isFirstLoad}
-																				>
-																					<OnUpdateAppFuncs>
-																						{children}
-																					</OnUpdateAppFuncs>
-																				</IsFirstLoadService.Provider>
-																			</ModalToOpenService.Provider>
-																		)}
-																	</>
-																</SidebarsIsPinService.Provider>
-															</ScrollWebkitService.Provider>
+																																				)}
+																																			</>
+																																		</OnUpdateAppFuncs>
+																																	</ViewContextProvider>
+																																</IsFirstLoadService.Provider>
+																															</ArticleTooltipService.Provider>
+																														</IsEditService.Provider>
+																													</CurrentTabsTagService.Provider>
+																												</ModalToOpenService.Provider>
+																											</PropertyService.Provider>
+																										</CatalogPropsService.Provider>
+																									</ArticlePropsService.Provider>
+																								</ArticleDataService.Provider>
+																							</ArticleRefService.Provider>
+																						</IsMenuBarOpenService.Provider>
+																					</OnLoadResourceService.Provider>
+																				</EditorExtensionsService.Provider>
+																			</GitIndexService.Provider>
+																		</DiffViewModeService.Provider>
+																	) : (
+																		<ModalToOpenService.Provider>
+																			<IsFirstLoadService.Provider
+																				resetIsFirstLoad={resetIsFirstLoad}
+																				value={isFirstLoad}
+																			>
+																				<OnUpdateAppFuncs>
+																					{children}
+																				</OnUpdateAppFuncs>
+																			</IsFirstLoadService.Provider>
+																		</ModalToOpenService.Provider>
+																	)}
+																</>
+															</SidebarsIsPinService.Provider>
 														</IsOpenModalService.Provider>
 													</SyncIconService.Provider>
 												</SearchQueryService.Provider>

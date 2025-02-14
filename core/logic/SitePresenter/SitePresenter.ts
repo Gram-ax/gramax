@@ -45,7 +45,6 @@ export type ClientCatalogProps = {
 	sourceName: string;
 	userInfo: UserInfo;
 	link: CatalogLink;
-	readOnly?: boolean;
 	relatedLinks?: TitledLink[];
 	versions?: string[];
 	resolvedVersions?: RefInfo[];
@@ -136,7 +135,7 @@ export default class SitePresenter {
 		catalogLinks.other = { catalogLinks: [], style: "small", title: "other" };
 		catalogLinks.null = { catalogLinks: [], style: "small", title: null };
 
-		const lastVisited = new LastVisited(this._context);
+		const lastVisited = new LastVisited(this._context, workspace.name);
 		lastVisited.retain(Array.from(catalogs.keys()));
 		(
 			await this._nav.getCatalogsLink(
@@ -282,7 +281,6 @@ export default class SitePresenter {
 				name: null,
 				title: "",
 				repositoryName: null,
-				readOnly: false,
 				sourceName: null,
 				userInfo: null,
 				language: ContentLanguage[defaultLanguage],
@@ -295,13 +293,12 @@ export default class SitePresenter {
 		const storage = catalog.repo.storage;
 
 		return {
-			link: await this._nav.getCatalogLink(catalog, new LastVisited(this._context)),
+			link: await this._nav.getCatalogLink(catalog, new LastVisited(this._context, this._workspace.config().name)),
 			relatedLinks: await this._nav.getRelatedLinks(catalog),
 			contactEmail: catalog.props.contactEmail ?? null,
 			tabsTags: catalog.props.tabsTags ?? null,
 			name: catalog.name ?? null,
 			title: catalog.props.title ?? "",
-			readOnly: catalog.props.readOnly ?? false,
 			language: catalog.props.language,
 			properties: getAllCatalogProperties(catalog),
 			repositoryName: catalog.name,

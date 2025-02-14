@@ -1,10 +1,11 @@
 import type { EventHandlerCollection } from "@core/Event/EventHandlerProvider";
+import BaseCatalog from "@core/FileStructue/Catalog/BaseCatalog";
 import { ItemFilter } from "@core/FileStructue/Catalog/Catalog";
 import CustomArticlePresenter from "@core/SitePresenter/CustomArticlePresenter";
 import EnterpriseUser from "@ext/enterprise/EnterpriseUser";
 import type RuleCollection from "@ext/events/RuleCollection";
 import Navigation from "@ext/navigation/catalog/main/logic/Navigation";
-import { readPermission } from "@ext/security/logic/Permission/Permissions";
+import { configureWorkspacePermission, readPermission } from "@ext/security/logic/Permission/Permissions";
 import { Item } from "../../../logic/FileStructue/Item/Item";
 import IPermission from "./Permission/IPermission";
 import Permission from "./Permission/Permission";
@@ -12,7 +13,7 @@ import User from "./User/User";
 
 export default class SecurityRules implements RuleCollection, EventHandlerCollection {
 	constructor(
-    private _currentUser: User,
+		private _currentUser: User,
 		private _nav?: Navigation,
 		private _customArticlePresenter?: CustomArticlePresenter,
 	) {}
@@ -61,10 +62,11 @@ export default class SecurityRules implements RuleCollection, EventHandlerCollec
 	private _canRead(itemPermission: IPermission, catalogName: string): boolean {
 		if (!this._currentUser) return false;
 		if (this._currentUser.type === "base") return true;
-		const enterpriseUser = this._currentUser as EnterpriseUser;
-		if (readPermission.enough(enterpriseUser.getGlobalPermission())) return true;
-		if (readPermission.enough(enterpriseUser.getEnterprisePermission(catalogName))) return true;
-		if (itemPermission?.enough?.(enterpriseUser.getCatalogPermission(catalogName))) return true;
+		const user = this._currentUser as EnterpriseUser;
+		if (user.workspacePermission.someEnough(configureWorkspacePermission)) return true;
+		const baseCatalogName = BaseCatalog.parseName(catalogName).name;
+		if (user.catalogPermission.enough(baseCatalogName, readPermission)) return true;
+		if (user.catalogPermission.enough(baseCatalogName, itemPermission)) return true;
 		return false;
 	}
 

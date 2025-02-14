@@ -111,9 +111,9 @@ impl<C: ActualCreds> Repo<C> {
       .merge_base(commit.id(), remote_commit.id())
       .and_then(|oid| self.0.find_commit(oid))
     {
-      Ok(commit) => {
-        info!(target: TAG, "merging theirs branch {} (oid {}) into {} (oid {}); ancestor commit oid: {}", theirs, remote_commit.id(), ours, commit.id(), commit.id());
-        commit.tree()?
+      Ok(ancestor) => {
+        info!(target: TAG, "merging theirs branch {} (oid {}) into {} (oid {}); ancestor commit oid: {}", theirs, remote_commit.id(), ours, commit.id(), ancestor.id());
+        ancestor.tree()?
       }
       Err(err) => {
         error!(target: TAG, "tried to merge theirs branch {} (oid {}) into {} (oid {}) but ancestor was not found", theirs, remote_commit.id(), ours, commit.id());

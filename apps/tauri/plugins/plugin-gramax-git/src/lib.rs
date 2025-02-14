@@ -93,6 +93,7 @@ pub fn init<R: Runtime>() -> TauriPlugin<R> {
       new_branch,
       stash_delete,
       delete_branch,
+      default_branch,
       get_remote,
       branch_list,
       diff,
@@ -116,7 +117,8 @@ pub fn init<R: Runtime>() -> TauriPlugin<R> {
       list_merge_requests,
       create_or_update_merge_request,
       get_draft_merge_request,
-      invalidate_repo_cache
+      get_all_commit_authors,
+      reset_repo,
     ])
     .setup(|app, api| {
       #[cfg(mobile)]

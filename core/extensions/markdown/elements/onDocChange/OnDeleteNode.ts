@@ -11,7 +11,13 @@ const OnDeleteNode = Extension.create({
 				appendTransaction: (transactions, oldState) => {
 					transactions.forEach((transaction) => {
 						if (transaction.doc.content.size !== oldState.doc.content.size && transaction.docChanged) {
-							transaction.steps.forEach((step) => {
+							const isDrop = transaction.getMeta("uiEvent") === "drop";
+							if (isDrop) return;
+
+							transaction.steps.forEach((step, index) => {
+								const prevDoc = transaction.docs[index];
+								const postDoc = transaction.docs[index + 1] ?? transaction.doc;
+
 								if (step instanceof ReplaceStep || step instanceof ReplaceAroundStep) {
 									const { from, to } = step;
 									let gapTo: number, gapFrom: number;
@@ -30,22 +36,22 @@ const OnDeleteNode = Extension.create({
 										const removedNodes = [];
 										const addedNodes = [];
 
-										if (oldState && oldState.doc && oldState.doc.content) {
-											const docSize = oldState.doc.content.size;
+										if (prevDoc && prevDoc.content) {
+											const docSize = prevDoc.content.size;
 											const oldFrom = Math.max(Math.min(from, docSize), 0);
 											const oldTo = Math.max(Math.min(to, docSize), 0);
 
-											oldState.doc.content.nodesBetween(oldFrom, oldTo, (node) => {
+											prevDoc.content.nodesBetween(oldFrom, oldTo, (node) => {
 												removedNodes.push(node);
 											});
 										}
 
-										if (transaction.doc && transaction.doc.content) {
-											const docSize = transaction.doc.content.size;
+										if (postDoc && postDoc.content) {
+											const docSize = postDoc.content.size;
 											const oldFrom = Math.max(Math.min(gapFrom ?? from, docSize), 0);
 											const oldTo = Math.max(Math.min(gapTo ?? to, docSize), 0);
 
-											transaction.doc.content.nodesBetween(oldFrom, oldTo, (node) => {
+											postDoc.content.nodesBetween(oldFrom, oldTo, (node) => {
 												addedNodes.push(node);
 											});
 										}

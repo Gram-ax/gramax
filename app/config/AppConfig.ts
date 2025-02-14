@@ -54,6 +54,7 @@ export type AppConfig = {
 	metrics: MetricsConfig;
 
 	logo: { imageUrl: string; linkUrl: string; linkTitle: string };
+	allowedGramaxUrls: string[];
 };
 
 const getServices = (): ServicesConfig => {
@@ -144,6 +145,10 @@ export const getConfig = (): AppConfig => {
 			linkUrl: env("LOGO_LINK_URL") ?? "/",
 			linkTitle: env("LOGO_LINK_TITLE"),
 		},
+
+		allowedGramaxUrls: env("ALLOWED_GRAMAX_URLS")
+			?.split(",")
+			.map((origin) => origin.trim()),
 	} as AppConfig;
 
 	return global.config;

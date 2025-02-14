@@ -1,9 +1,9 @@
 import { Given, Then, When } from "@cucumber/cucumber";
 import { expect } from "playwright/test";
+import GramaxApi from "../models/GramaxApi";
 import E2EWorld from "../models/World";
 import config from "../setup/config";
 import { checkForErrorModal, sleep } from "./utils/utils";
-import GramaxApi from "../models/GramaxApi";
 
 Given("отменяем все изменения", { timeout: config.timeouts.long }, async function (this: E2EWorld) {
 	const search = this.page().search().reset();
@@ -60,23 +60,40 @@ Then("проверяем, что картинка загрузилась", async
 	expect(src).not.toEqual("data:image;base64,");
 });
 
-Then("нажимаем кнопку далее, пока видим её", { timeout: 1000 * 60 * 5 }, async function (this: E2EWorld) {
-	const next = await this.page().search().lookup("jump-to-next", undefined, true);
-	let counter = 0;
+Then(
+	"нажимаем кнопку далее, пока видим её, ожидая что их больше {int}",
+	{ timeout: 1000 * 60 * 5 },
+	async function (this: E2EWorld, min: number) {
+		const next = await this.page().search().lookup("jump-to-next", undefined, true);
 
-	while ((await next.isVisible()) && counter < 5) {
-		counter++;
-		await next.click();
+		let total = 0;
+		while ((await next.count()) > 0) {
+			total++;
+			try {
+				const href = await next.getAttribute("href", { timeout: 500 });
+				console.log(this.page().url(), "->", href);
 
-		const scope = await this.page().search().lookup("редактор");
-		await this.page().waitForLoad(scope);
+				if (this.page().url().endsWith(href)) {
+					await this.page().inner().reload();
+					continue;
+				}
 
-		const failed = await checkForErrorModal(this);
-		if (failed) throw new Error("An error modal found");
-	}
+				await next.click({ timeout: 500 });
+				await this.page().waitForUrl(href);
+			} catch {
+				break;
+			}
 
-	expect(counter).toEqual(5);
-});
+			const scope = await this.page().search().lookup("редактор");
+			await this.page().waitForLoad(scope);
+
+			const failed = await checkForErrorModal(this);
+			if (failed) throw new Error("An error modal found");
+		}
+
+		expect(total).toBeGreaterThanOrEqual(min);
+	},
+);
 
 Then("diff содержит", async function (this: E2EWorld, text: string) {
 	const elem = await this.page().search().find(".diff-content");
@@ -148,13 +165,28 @@ When("вставляем html", async function (this: E2EWorld, text: string) {
 	await this.page().keyboard().press("Control+V");
 });
 
-Then("вставляем текст {string}", async function (this: E2EWorld, text: string) {
+Then("вставляем текст", async function (this: E2EWorld, text: string) {
 	await this.page()
 		.inner()
 		.evaluate(async (text) => {
 			const item = new ClipboardItem({ "text/plain": new Blob([text], { type: "text/plain" }) });
 			await window.navigator.clipboard.write([item]);
 		}, text);
+
+	await this.page().keyboard().press("Control+V");
+});
+
+Then("вставляем изображение", async function (this: E2EWorld) {
+	const screenshotBuffer = await page.screenshot();
+	const screenshotBase64 = screenshotBuffer.toString("base64");
+
+	await this.page()
+		.inner()
+		.evaluate(async (base64) => {
+			const response = await fetch(`data:image/png;base64,${base64}`);
+			const item = new ClipboardItem({ "image/png": await response.blob() });
+			await navigator.clipboard.write([item]);
+		}, screenshotBase64);
 
 	await this.page().keyboard().press("Control+V");
 });

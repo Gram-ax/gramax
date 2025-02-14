@@ -1,18 +1,28 @@
-import * as yaml from "js-yaml";
 import { CATEGORY_ROOT_FILENAME, DOC_ROOT_FILENAME } from "@app/config/const";
 import { transliterate } from "@core-ui/languageConverter/transliterate";
 import FileProvider from "@core/FileProvider/model/FileProvider";
 import Path from "@core/FileProvider/Path/Path";
 import FileStructure from "@core/FileStructue/FileStructure";
 import { uniqueName } from "@core/utils/uniqueName";
+import t from "@ext/localization/locale/translate";
 import MarkdownFormatter from "@ext/markdown/core/edit/logic/Formatter/Formatter";
+import generateUnsupportedMd from "@ext/markdown/elements/unsupported/logic/generateUnsupportedMd";
+import { databaseView } from "@ext/markdown/elements/view/notion/databaseView";
 import NotionAPI from "@ext/notion/api/NotionAPI";
 import NotionConverter from "@ext/notion/logic/NotionConverter";
-import NotionImportData from "@ext/notion/model/NotionImportData";
-import { NotionBlock, NotionPage, NotionProperty, NotionPropertyTypes, PageNode } from "@ext/notion/model/NotionTypes";
 import { NotionPropertyManager } from "@ext/notion/logic/NotionPropertyManager";
+import NotionImportData from "@ext/notion/model/NotionImportData";
+import {
+	NotionBlock,
+	NotionPage,
+	NotionProperty,
+	NotionPropertyTypes,
+	PageNode,
+	PathsMapValue,
+} from "@ext/notion/model/NotionTypes";
 import { PropertyValue } from "@ext/properties/models";
-import { databaseView } from "@ext/markdown/elements/view/notion/databaseView";
+import { JSONContent } from "@tiptap/core";
+import * as yaml from "js-yaml";
 
 export default class NotionStorage {
 	static async clone({ fs, data, catalogPath }: NotionImportData) {
@@ -91,8 +101,7 @@ export default class NotionStorage {
 			if (!pageData) continue;
 
 			const { pagePath } = pageData;
-			const json = await converter.convert(page, pagePath, pathsMap);
-			const md = await formatter.render(json);
+			const md = await this._processContent(page, pagePath, pathsMap, converter, formatter);
 
 			const content = fs.serialize(
 				{ title: page.title, order: pageTree.indexOf(page), properties: articleProperties },
@@ -105,6 +114,30 @@ export default class NotionStorage {
 				const nextBasePath = pagePath.parentDirectoryPath;
 				await this._createArticles(page.children, nextBasePath, formatter, converter, fs, fp, pm);
 			}
+		}
+	}
+
+	private static async _processContent(
+		page: PageNode,
+		pagePath: Path,
+		pathsMap: Map<string, PathsMapValue>,
+		converter: NotionConverter,
+		formatter: MarkdownFormatter,
+	): Promise<string> {
+		let json: JSONContent;
+		try {
+			json = await converter.convert(page, pagePath, pathsMap);
+			return await formatter.render(json);
+		} catch (error) {
+			const jsonString = json ? JSON.stringify(json, null, 2) : null;
+			console.error(t("import.error.page-conversion"), {
+				title: page.title,
+				id: page.id,
+				error: error.message,
+				stack: error.stack,
+				json: jsonString,
+			});
+			return generateUnsupportedMd("Notion", page.url, "page", error.stack, jsonString);
 		}
 	}
 
@@ -176,7 +209,7 @@ export default class NotionStorage {
 
 		pageMap[page.id] = page;
 
-		if (page.type === "page") page.content = await this._getPageContent(item.id, notionApi, pageMap, item.id);
+		page.content = await this._getPageContent(item.id, notionApi, pageMap, item.id);
 
 		return page;
 	}

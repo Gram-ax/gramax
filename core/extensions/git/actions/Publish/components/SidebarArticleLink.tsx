@@ -1,6 +1,6 @@
 import DiffContent from "@components/Atoms/DiffContent";
 import styled from "@emotion/styled";
-import DiffFile from "../../../../VersionControl/model/DiffFile";
+import { DiffFile } from "../../../../VersionControl/model/Diff";
 import { FileStatus } from "../../../../Watchers/model/FileStatus";
 
 const SidebarArticleLink = styled(
@@ -16,7 +16,7 @@ const SidebarArticleLink = styled(
 			<div className={"sidebar-article-link " + className}>
 				<div className="logic-path-change">
 					<DiffContent
-						changes={filePath.diff ?? [{ value: filePath.path, type }]}
+						changes={filePath.hunks ?? [{ value: filePath.path, type }]}
 						unchangedColor={{ color: "var(--color-primary-secondary)" }}
 						isCode={false}
 						showDiff

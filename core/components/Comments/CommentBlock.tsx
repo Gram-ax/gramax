@@ -93,6 +93,7 @@ const CommentBlockComponent = (props: CommentBlockProps): ReactElement => {
 						focusId={focusId}
 						setFocusId={setFocusId}
 						isFirstComment
+						isLastComment={currentCommentBlock.answers.length === 0}
 						comment={currentCommentBlock.comment}
 						onDelete={currentOnDeleteComment}
 						onEdit={commentOnEdit}
@@ -105,6 +106,7 @@ const CommentBlockComponent = (props: CommentBlockProps): ReactElement => {
 						focusId={focusId}
 						setFocusId={setFocusId}
 						comment={answer}
+						isLastComment={idx === currentCommentBlock.answers.length - 1}
 						onDelete={() => {
 							answerOnDelete(idx);
 						}}

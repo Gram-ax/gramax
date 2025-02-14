@@ -14,21 +14,22 @@ class LinkItemCreator {
 		if (!this._catalog) return [];
 		const filters = new RuleProvider(this._ctx).getItemFilters();
 		const root = resolveRootCategory(this._catalog, this._catalog.props, this._ctx.contentLanguage);
-
-		const getAllItems = (item: Item) => {
-			const items = [item];
-			if (item.type === ItemType.category) {
-				(item as Category).items.forEach((subItem) => {
-					items.push(...getAllItems(subItem));
-				});
-			}
-			return items;
-		};
-
-		const items = getAllItems(root).slice(1);
 		const itemTree = root.getFilteredItems(filters, this._catalog);
+		return await this._getAllItems(itemTree, itemTree, articlePath);
+	}
 
-		return Promise.all(items.map((i) => this._toItemLink(i, itemTree, articlePath)));
+	private async _getAllItems(tree: Item[], leaf: Item[], articlePath: Path) {
+		const res = [];
+		for (const item of leaf) {
+			res.push(await this._toItemLink(item, tree, articlePath));
+
+			if (item.type === ItemType.category) {
+				const items = await this._getAllItems(tree, (item as Category).items, articlePath);
+				res.push(...items);
+			}
+		}
+
+		return res;
 	}
 
 	private async _toItemLink(item: Item, itemsTree: Item[], articlePath: Path) {

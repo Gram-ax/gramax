@@ -58,6 +58,7 @@ export type EnvironmentVariable = {
 	// Enterprise
 	GEPS_URL: string;
 	GES_URL: string;
+	ALLOWED_GRAMAX_URLS: string;
 
 	// SEO
 	DISABLE_SEO: Bool;

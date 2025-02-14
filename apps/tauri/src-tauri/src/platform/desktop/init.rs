@@ -1,4 +1,6 @@
 use std::path::Path;
+use std::sync::atomic::AtomicBool;
+use std::sync::atomic::Ordering;
 use std::sync::Mutex;
 
 use tauri::*;
@@ -6,6 +8,8 @@ use tauri::*;
 use crate::MainWindowBuilder;
 
 use super::save_windows::SaveWindowsExt;
+
+pub static INITED: AtomicBool = AtomicBool::new(false);
 
 pub struct OpenUrl(pub Mutex<Option<String>>);
 
@@ -28,7 +32,9 @@ pub fn init_app<R: Runtime>(app: &mut App<R>) -> InitResult {
     .or(std::env::args().nth(1));
   if let Some(ref path) = opened_path {
     let path = path.split_once("://").map(|(_, path)| path).unwrap_or(path.as_str());
-    window.eval(&format!("window.location.replace('/{}')", path.trim_start_matches('/')))?;
+    let script = crate::include_script!("open-url.template.js", url = path.trim_start_matches('/'));
+    debug!("open url in window: {:?}, script: {:?}", window, script);
+    window.eval(&script)?;
   }
 
   std::env::set_var("GRAMAX_VERSION", app.package_info().version.to_string());
@@ -38,6 +44,7 @@ pub fn init_app<R: Runtime>(app: &mut App<R>) -> InitResult {
   let documents_dir = &app.path().document_dir().expect("Documents directory not exists");
   std::env::set_var("GRAMAX_DEFAULT_WORKSPACE_PATH", Path::new(documents_dir).join("Gramax/default"));
 
+  INITED.store(true, Ordering::Relaxed);
   Ok(())
 }
 

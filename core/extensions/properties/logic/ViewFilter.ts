@@ -1,6 +1,8 @@
 import { Article } from "@core/FileStructue/Article/Article";
+import { ItemFilter } from "@core/FileStructue/Catalog/Catalog";
 import type { ReadonlyCatalog } from "@core/FileStructue/Catalog/ReadonlyCatalog";
 import { Category } from "@core/FileStructue/Category/Category";
+import { Item } from "@core/FileStructue/Item/Item";
 import sortMapByName from "@ext/markdown/elements/view/render/logic/sortMap";
 import getAllCatalogProperties from "@ext/properties/logic/getAllCatalogProps";
 import getDisplayValue from "@ext/properties/logic/getDisplayValue";
@@ -17,6 +19,9 @@ interface ProcessedArticle {
 }
 
 export type OrderValue = { name: string; value: string[] };
+type ArticleFilterOptions = {
+	ignoreProps?: string[];
+};
 
 class ViewFilter {
 	private _catalogPropMap: Map<string, Property>;
@@ -30,6 +35,7 @@ class ViewFilter {
 		private _curArticle: Article,
 		private _catalog: ReadonlyCatalog,
 		private _display: Display = Display.List,
+		private _itemFilters: ItemFilter[] = [],
 	) {}
 
 	public async getFilteredArticles(): Promise<ViewRenderGroup[]> {
@@ -42,24 +48,12 @@ class ViewFilter {
 
 		const processedArticles = [];
 		const uniqueArticles = new Set<string>();
-
-		processedArticles.push(...(await this._handleSystemProperty(uniqueArticles)));
+		const systemProperties = (await this._handleSystemProperty(uniqueArticles)) || [];
+		processedArticles.push(...systemProperties);
 		processedArticles.push(
 			...(await Promise.all(
 				this._articles
-					.filter((article) =>
-						this._defs.every((defProp) => {
-							const articleProp = article.props?.properties?.find((p) => p.name === defProp.name);
-							if (articleProp && defProp?.value?.some((val) => articleProp.value?.includes(val)))
-								return false;
-
-							if (defProp?.value?.includes("yes")) return !articleProp;
-							if (defProp?.value?.includes("none")) return !!articleProp;
-							if (uniqueArticles.has(article?.ref?.path?.value)) return false;
-
-							return true;
-						}),
-					)
+					.filter((article) => this._filterArticle(uniqueArticles, article))
 					.map(async (article) => {
 						return await this._proccessArticle(article, (refPath) => uniqueArticles.add(refPath));
 					}),
@@ -67,6 +61,22 @@ class ViewFilter {
 		);
 
 		return processedArticles;
+	}
+
+	private _filterArticle(uniqueArticles: Set<string>, article: Item, options?: ArticleFilterOptions) {
+		return this._defs.every((defProp) => {
+			const articleProp = article.props?.properties?.find((p) => p.name === defProp.name);
+			if (articleProp && defProp?.value?.some((val) => articleProp.value?.includes(val))) return false;
+
+			const ignoreProps = options?.ignoreProps || [];
+			const isIgnoreProp = ignoreProps.includes(defProp.name);
+
+			if (defProp?.value?.includes("yes") && !isIgnoreProp) return !articleProp;
+			if (defProp?.value?.includes("none") && !isIgnoreProp) return !!articleProp;
+			if (uniqueArticles.has(article?.ref?.path?.value)) return false;
+
+			return true;
+		});
 	}
 
 	private _filterProps(props: Property[]): Property[] {
@@ -250,22 +260,24 @@ class ViewFilter {
 
 	private async _handleSystemProperty(uniqueArticles: Set<string>): Promise<ProcessedArticle[]> {
 		const hierarchyDef = this._defs.find((property) => SystemProperties[property.name]);
-		if (hierarchyDef) {
-			if (!hierarchyDef.value.includes("child-to-current"))
-				return await Promise.all(
-					((this._curArticle as Category)?.items || [])
-						?.filter((article) => !uniqueArticles.has(article.ref.path.value))
-						?.map(async (article) => {
-							return await this._proccessArticle(article as Article, (refPath) =>
-								uniqueArticles.add(refPath),
-							);
-						}),
-				);
-			else {
-				(this._curArticle as Category)?.items?.map((article) => {
-					uniqueArticles.add(article.ref.path.value);
-				});
-			}
+		if (!hierarchyDef) return [];
+
+		if (!hierarchyDef.value.includes("child-to-current"))
+			return await Promise.all(
+				((this._curArticle as Category)?.getFilteredItems?.(this._itemFilters, this._catalog) || [])
+					?.filter((article) =>
+						this._filterArticle(uniqueArticles, article, { ignoreProps: [SystemProperties.hierarchy] }),
+					)
+					?.map(async (article) => {
+						return await this._proccessArticle(article as Article, (refPath) =>
+							uniqueArticles.add(refPath),
+						);
+					}),
+			);
+		else {
+			(this._curArticle as Category)?.items?.map((article) => {
+				uniqueArticles.add(article.ref.path.value);
+			});
 		}
 
 		return [];

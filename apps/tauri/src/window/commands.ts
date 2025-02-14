@@ -1,5 +1,6 @@
 import { invoke } from "@tauri-apps/api/core";
 import { once } from "@tauri-apps/api/event";
+import { getAllWebviews } from "@tauri-apps/api/webview";
 
 export const openChildWindow = async ({ url, redirect }: { url: string; redirect: string }): Promise<Window> => {
 	const dummy = { onLoadApp: undefined, focus: () => {} };
@@ -35,3 +36,10 @@ export const httpFetch = (req: {
 export const moveToTrash = (path: string) => invoke<void>("move_to_trash", { path });
 
 export const openInExplorer = (path: string) => invoke<void>("open_in_explorer", { path });
+
+export const setSessionData = (key: string, data: string) => invoke<void>("set_session_data", { key, data });
+
+window.reloadAll = async () => {
+	const webviews = await getAllWebviews();
+	for (const webview of webviews) setTimeout(() => void webview.emit("reload"), 100);
+};

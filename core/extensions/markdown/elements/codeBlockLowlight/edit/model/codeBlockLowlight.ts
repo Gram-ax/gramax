@@ -74,7 +74,7 @@ const ExtendedCodeBlockLowlight = CodeBlockLowlight.extend<CodeBlockOptions>({
 	renderHTML({ node }) {
 		const langClass = lowlight.registered(node.attrs.language)
 			? this.options.languageClassPrefix + node.attrs.language
-			: this.options.monochromeClassName;
+			: "";
 
 		return ["pre", ["div", { class: langClass }, 0]];
 	},

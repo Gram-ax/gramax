@@ -32,6 +32,7 @@ export default class MdParser {
 	private _findHtmlToIgnore = "\\[html.*][\\s\\S]*?\\[\\/html\\]";
 	private _findImageToIgnore = String.raw`!\[[^\]]*\]\(.*\)`;
 	private _findBracesAndSquareBracketsToIgnore = String.raw`[\[{][^]*?[\]}]`;
+	private _findTableCellToIgnore = String.raw`{%[^}]*%}`;
 
 	constructor(preParserOptions: MdParserOptions = null) {
 		this._tags = preParserOptions?.tags ?? {};
@@ -70,6 +71,7 @@ export default class MdParser {
 
 	preParse(content: string): string {
 		content = this._removeComments(content);
+		content = this._tableParser(content);
 		content = this._quotesParser(content);
 		content = this._includeParse(content);
 		content = this._idParser(content);
@@ -79,7 +81,6 @@ export default class MdParser {
 		content = this._formulaParser(content);
 		content = this._brParser(content);
 		content = this._emptyParagraphParser(content);
-		content = this._tableParser(content);
 		content = this._htmlParser(content);
 		return content;
 	}
@@ -233,6 +234,7 @@ export default class MdParser {
 
 	private _createIgnoreRegExp(reg: string, ...additionalIgnore: string[]): RegExp {
 		const commonString = [
+			this._findTableCellToIgnore,
 			this._findInlineCodeToIgnore,
 			this._findBlockCodeToIgnore,
 			this._findHtmlToIgnore,

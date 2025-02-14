@@ -19,9 +19,10 @@ const updateProps: Command<{ ctx: Context; catalogName: string; props: ClientArt
 			const workspace = wm.current();
 
 			const catalog = await workspace.getCatalog(catalogName, ctx);
-			const newItem = await catalog.updateItemProps(props, resourceUpdaterFactory);
+			const updatedItem = await catalog.updateItemProps(props, resourceUpdaterFactory);
 
-			return { pathname: await catalog.getPathname(newItem) };
+			const ref = { path: updatedItem.ref.path.value, storageId: updatedItem.ref.storageId };
+			return { pathname: await catalog.getPathname(updatedItem), ref };
 		},
 
 		params(ctx, q, body) {

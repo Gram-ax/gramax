@@ -11,28 +11,36 @@ const tryParse = (data: any) => {
 };
 
 export const call = <O>(command: string, args?: any): Promise<O> => {
-	if (command == "clone") {
-		args.callback = (val: string) => onCloneProgress(JSON.parse(val));
-	}
+	let stringifiedArgs = null;
+
+	if (command == "clone") args.callback = (val: string) => onCloneProgress(JSON.parse(val));
+	if (command == "diff") stringifiedArgs = JSON.stringify(args);
 
 	if (typeof args.scope !== "undefined") args.scope = intoTreeReadScope(args.scope);
 
 	try {
-		const result = git[command](...Object.values(args).filter((p) => p !== undefined && p !== null));
+		const result = stringifiedArgs
+			? git[command](stringifiedArgs)
+			: git[command](...Object.values(args).filter((p) => p !== undefined && p !== null));
 		if (result.stack) throw result;
 		return Promise.resolve(typeof result === "string" ? JSON.parse(result) : result);
 	} catch (err) {
 		let error = typeof err === "string" ? tryParse(err) : err;
 		error = err.stack ? tryParse(err.message) : error;
 		if ((args as CredsArgs)?.creds?.accessToken) (args as CredsArgs).creds.accessToken = "<redacted>";
-		console.error(`git-command ${command} ${JSON.stringify(args, null, 4)} returned an error`);
-		console.error(error);
-		return Promise.reject(new LibGit2Error(error?.message || error, error.class, error.code));
+		return Promise.reject(
+			new LibGit2Error(
+				`git (${command})`,
+				`${error?.message?.trim() || error}\nArgs: ${JSON.stringify(args, null, 4)}`,
+				error.class,
+				error.code,
+			),
+		);
 	}
 };
 
 const intoTreeReadScope = (data: any) => {
-	if (!data) return { objectType: "Head", reference: null };
+	if (!data || data === "HEAD") return { objectType: "Head", reference: null };
 	if (data.commit) return { objectType: "Commit", reference: data.commit };
 	if (data.reference) return { objectType: "Reference", reference: data.reference };
 };

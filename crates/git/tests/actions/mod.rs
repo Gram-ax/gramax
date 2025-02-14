@@ -7,3 +7,4 @@ pub mod reset;
 pub mod stash;
 pub mod status;
 pub mod tags;
+pub mod diff;

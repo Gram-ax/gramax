@@ -8,8 +8,8 @@ const markList: MarkType[] = ["link", "strong", "em", "code", "file", "comment",
 
 type State = { actions: NodeType[]; marks: MarkType[]; attrs: Attrs };
 
-export const getNodeNameFromCursor = (editor: Editor) => {
-	const { selection } = editor.state;
+export const getNodeNameFromCursor = (state: Editor["state"]) => {
+	const { selection } = state;
 	const { from, to, empty } = selection;
 	let { $anchor } = selection;
 	let headingLevel = null;
@@ -49,12 +49,12 @@ export const getNodeNameFromCursor = (editor: Editor) => {
 	}
 
 	if (!nodeStack.some((nodeName) => ["paragraph", "heading", "code_block"].includes(nodeName))) {
-		const cursor = editor.state.selection.$from;
+		const cursor = state.selection.$from;
 		nodeStack.unshift(cursor.nodeAfter?.type?.name || cursor.nodeBefore?.type?.name);
 	}
 
 	if (!empty) {
-		editor.state.doc.nodesBetween(from, to, (node) => {
+		state.doc.nodesBetween(from, to, (node) => {
 			const name = node.type.name;
 
 			if (nodeStack.includes(name)) return;
@@ -117,7 +117,7 @@ const useType = (editor: Editor) => {
 	};
 
 	useWatch(() => {
-		const { actions, headingLevel } = getNodeNameFromCursor(editor);
+		const { actions, headingLevel } = getNodeNameFromCursor(editor.state);
 		if (headingLevel) mirror.current.attrs.level = headingLevel;
 
 		const marks = getMarksAction();

@@ -1,8 +1,8 @@
-import { Change } from "../model/Change";
+import { DiffHunk } from "../model/DiffHunk";
 import { VersionControlDiff } from "../model/VersionControlDiff";
 import { VersionControlRange } from "../model/VersionControlRange";
 
-const getChanges = (content: string, diffs: VersionControlDiff[]): Change[] => {
+const getChanges = (content: string, diffs: VersionControlDiff[]): DiffHunk[] => {
 	const ranges = splitRanges(diffs.map((diff) => diff.range));
 	return createChanges(content, ranges, diffs);
 };
@@ -28,11 +28,11 @@ const splitRanges = (ranges: VersionControlRange[]): VersionControlRange[] => {
 	return splitRanges;
 };
 
-const createChanges = (content: string, ranges: VersionControlRange[], diffs: VersionControlDiff[]): Change[] => {
+const createChanges = (content: string, ranges: VersionControlRange[], diffs: VersionControlDiff[]): DiffHunk[] => {
 	if (!ranges.length) return [{ value: content }];
 
 	let setDiffIdx: number;
-	const changes: Change[] = [];
+	const changes: DiffHunk[] = [];
 	const setCommentIdxes: number[] = [];
 
 	ranges.forEach((range, idx) => {

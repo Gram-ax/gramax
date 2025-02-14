@@ -18,15 +18,15 @@ import getCatalogEditProps from "@ext/catalog/actions/propsEditor/logic/getCatal
 interface AddPropertyProps {
 	trigger: JSX.Element;
 	properties: Property[] | PropertyValue[];
-	isReadOnly: boolean;
 	catalogProperties: Map<string, Property>;
 	onSubmit: (propertyName: string, value: string) => void;
 	setProperties?: (properties: Property[] | PropertyValue[]) => void;
 	canAdd?: boolean;
+	disabled?: boolean;
 }
 
 const AddProperty = (props: AddPropertyProps) => {
-	const { trigger, canAdd = false, properties, isReadOnly, catalogProperties, onSubmit, setProperties } = props;
+	const { trigger, canAdd = false, properties, catalogProperties, onSubmit, setProperties, disabled } = props;
 	const articleProps = ArticlePropsService.value;
 	const catalogProps = CatalogPropsService.value;
 	const apiUrlCreator = ApiUrlCreatorService.value;
@@ -131,56 +131,53 @@ const AddProperty = (props: AddPropertyProps) => {
 
 	return (
 		<>
-			{!isReadOnly && (
-				<PopupMenuLayout
-					isInline
-					onTippyMount={onTippyMount}
-					offset={[0, 10]}
-					tooltipText={t("properties.name")}
-					hideOnClick={false}
-					trigger={trigger}
-					appendTo={() => document.body}
-				>
-					<>
-						{Array.from(catalogProperties.values()).map((property) => {
-							const InputComponent = getInputComponent[property.type];
-							return (
-								<PropertyItem
-									id={property.name}
-									key={property.name}
-									name={property.name}
-									startIcon={property.icon}
-									values={property.values}
-									onClick={(e: MouseEvent, id, value) => handleClick(e, id, value)}
-									closeOnSelection={false}
-									rightActions={
-										canAdd && (
-											<Icon isAction code="pen" onClick={(e) => hideTippy(e, property.name)} />
-										)
-									}
-									onHide={(instance) =>
-										getInputType[property.type] && updateInput(property.name, instance)
-									}
-								>
-									{InputComponent && (
-										<InputComponent
-											type={getInputType[property.type]}
-											placeholder={t(getPlaceholder[property.type])}
-											onKeyDown={(e) =>
-												e.code === "Enter" &&
-												handleClick(e, property.name, (e.target as HTMLInputElement).value)
-											}
-										/>
-									)}
-								</PropertyItem>
-							);
-						})}
-					</>
-					{catalogProperties.size > 0 && canAdd && <div className="divider" />}
-					{canAdd && <PropertyItem id={null} name={t("create-new")} startIcon="plus" onClick={hideTippy} />}
-				</PopupMenuLayout>
-			)}
-			{isOpen && !isReadOnly && canAdd && (
+			<PopupMenuLayout
+				isInline
+				onTippyMount={onTippyMount}
+				offset={[0, 10]}
+				disabled={disabled}
+				tooltipText={t("properties.name")}
+				hideOnClick={false}
+				trigger={trigger}
+				appendTo={() => document.body}
+			>
+				<>
+					{Array.from(catalogProperties.values()).map((property) => {
+						const InputComponent = getInputComponent[property.type];
+						return (
+							<PropertyItem
+								id={property.name}
+								key={property.name}
+								name={property.name}
+								startIcon={property.icon}
+								values={property.values}
+								onClick={(e: MouseEvent, id, value) => handleClick(e, id, value)}
+								closeOnSelection={false}
+								rightActions={
+									canAdd && <Icon isAction code="pen" onClick={(e) => hideTippy(e, property.name)} />
+								}
+								onHide={(instance) =>
+									getInputType[property.type] && updateInput(property.name, instance)
+								}
+							>
+								{InputComponent && (
+									<InputComponent
+										type={getInputType[property.type]}
+										placeholder={t(getPlaceholder[property.type])}
+										onKeyDown={(e) =>
+											e.code === "Enter" &&
+											handleClick(e, property.name, (e.target as HTMLInputElement).value)
+										}
+									/>
+								)}
+							</PropertyItem>
+						);
+					})}
+				</>
+				{catalogProperties.size > 0 && canAdd && <div className="divider" />}
+				{canAdd && <PropertyItem id={null} name={t("create-new")} startIcon="plus" onClick={hideTippy} />}
+			</PopupMenuLayout>
+			{isOpen && !disabled && canAdd && (
 				<CatalogEditProperty
 					data={data}
 					closeModal={toggleModal}

@@ -14,6 +14,8 @@ const TopBarContentWrapper = styled.div<{ isMacDesktop: boolean }>`
 	padding-top: ${(p) => (p.isMacDesktop ? "1.3rem" : "0")};
 	width: 100%;
 	gap: inherit;
+	display: flex;
+	align-items: center;
 `;
 
 const LeftNavigationTop = ({ data, className }: { data: ArticlePageData; className?: string }) => {

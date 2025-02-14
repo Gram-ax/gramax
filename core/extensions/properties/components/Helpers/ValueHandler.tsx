@@ -99,7 +99,6 @@ const ValueHandler = ({ data, onChange, isActions = true }: ValueHandlerProps) =
 					key={value.text}
 					id={value.id}
 					text={value.text}
-					isEdit={value.text.length === 0}
 					endDrag={endDrag}
 					moveValue={moveValue}
 					findValue={findValue}

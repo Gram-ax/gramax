@@ -1,7 +1,7 @@
 import ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
 import FetchService from "@core-ui/ApiServices/FetchService";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
-import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
+import { usePlatform } from "@core-ui/hooks/usePlatform";
 import UserInfo from "@ext/security/logic/User/UserInfo";
 import { DependencyList, Dispatch, SetStateAction, createContext, useContext, useEffect, useState } from "react";
 
@@ -17,14 +17,13 @@ let _setComments: Dispatch<SetStateAction<AuthoredCommentsByAuthor>>;
 
 abstract class CommentCounterService {
 	public static Provider({ children, deps }: { children: JSX.Element; deps?: DependencyList }): JSX.Element {
+		const { isNext } = usePlatform();
+		const apiUrlCreator = ApiUrlCreatorService.value;
 		const [comments, setComments] = useState<AuthoredCommentsByAuthor>({});
 		_setComments = setComments;
 
-		const apiUrlCreator = ApiUrlCreatorService.value;
-		const { isLogged, conf } = PageDataContextService.value;
-
 		useEffect(() => {
-			if (!isLogged || conf.isReadOnly) return;
+			if (isNext) return;
 			CommentCounterService.load(apiUrlCreator);
 		}, deps ?? []);
 

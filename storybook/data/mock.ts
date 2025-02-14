@@ -1,9 +1,11 @@
 import MimeTypes from "@core-ui/ApiServices/Types/MimeTypes";
 import { HttpResponse, delay, http } from "msw";
 
+type ResponseType = boolean | number | string | symbol | null | undefined | object;
+
 export type MockedAPIEndpoint = {
 	path: string;
-	response?: any;
+	response?: ResponseType | ((query: URLSearchParams, body: any) => Promise<ResponseType> | ResponseType);
 	delay?: number;
 	mimeType?: MimeTypes;
 	errorMessage?: string;
@@ -11,19 +13,21 @@ export type MockedAPIEndpoint = {
 };
 
 const mock = (data: MockedAPIEndpoint[]) => {
-	const resolver = ({
-		response,
-		delay: delayMs,
-		mimeType = MimeTypes.json,
-		errorMessage,
-		errorProps,
-	}: MockedAPIEndpoint) => {
+	const resolver = (
+		{ response, delay: delayMs, mimeType = MimeTypes.json, errorMessage, errorProps }: MockedAPIEndpoint,
+		request: Request,
+	) => {
 		return async () => {
+			const res =
+				typeof response === "function"
+					? await response(new URLSearchParams(request.url), request.body ? await request.json() : null)
+					: response;
+
 			await delay(delayMs);
 			const mockedResponse =
 				mimeType === MimeTypes.json
-					? HttpResponse.json(response, { headers: { "Content-Type": mimeType }, status: 200 })
-					: HttpResponse.text(response as string, { headers: { "Content-Type": mimeType }, status: 200 });
+					? HttpResponse.json(res, { headers: { "Content-Type": mimeType }, status: 200 })
+					: HttpResponse.text(res as string, { headers: { "Content-Type": mimeType }, status: 200 });
 
 			return errorMessage || errorProps
 				? HttpResponse.json(
@@ -33,7 +37,18 @@ const mock = (data: MockedAPIEndpoint[]) => {
 				: mockedResponse;
 		};
 	};
-	return [...data.map((d) => http.get(d.path, resolver(d))), ...data.map((d) => http.post(d.path, resolver(d)))];
+	return [
+		...data.map((d) =>
+			http.get(d.path, async (info) => {
+				return resolver(d, info.request)();
+			}),
+		),
+		...data.map((d) =>
+			http.post(d.path, async (info) => {
+				return resolver(d, info.request)();
+			}),
+		),
+	];
 };
 
 export default mock;

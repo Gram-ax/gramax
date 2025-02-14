@@ -3,9 +3,11 @@ import { ButtonStyle } from "@components/Atoms/Button/ButtonStyle";
 import FileInput from "@components/Atoms/FileInput/FileInput";
 import Icon from "@components/Atoms/Icon";
 import IconWithText from "@components/Atoms/Icon/IconWithText";
+import PureLink, { LinkTheme } from "@components/Atoms/PureLink";
 import FormStyle from "@components/Form/FormStyle";
 import ModalLayout from "@components/Layouts/Modal";
 import ModalLayoutLight from "@components/Layouts/ModalLayoutLight";
+import { usePlatform } from "@core-ui/hooks/usePlatform";
 import styled from "@emotion/styled";
 import t from "@ext/localization/locale/translate";
 import { useCallback, useState, ReactElement } from "react";
@@ -20,6 +22,7 @@ interface EditStylesProps {
 
 const EditStyles = ({ children, customCss, setCustomCss, revertCustomCss, className }: EditStylesProps) => {
 	const [isOpen, setIsOpen] = useState(false);
+	const { isTauri } = usePlatform();
 
 	const closeEditor = useCallback(() => {
 		setIsOpen(false);
@@ -43,7 +46,13 @@ const EditStyles = ({ children, customCss, setCustomCss, revertCustomCss, classN
 							<div className={"edit-css-legend"}>
 								<IconWithText iconCode={"palette"} text={t("workspace.editing-css")} />
 								<div className={"help-wrapper"}>
-									<Icon className={"help-icon"} code={"circle-help"} />
+									<PureLink
+										href={"https://gram.ax/resources/docs/space/css-styles"}
+										target={isTauri ? "_self" : "_blank"}
+										linkTheme={LinkTheme.INHERIT}
+									>
+										<Icon className={"help-icon"} code={"circle-help"} />
+									</PureLink>
 								</div>
 							</div>
 						</legend>

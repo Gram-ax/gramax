@@ -81,3 +81,5 @@ export interface PropertyUsage {
 	resourcePath: string;
 	linkPath: string;
 }
+
+export const enumTypes = [PropertyTypes.enum, PropertyTypes.many];

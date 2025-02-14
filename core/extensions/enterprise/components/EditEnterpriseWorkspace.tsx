@@ -1,5 +1,7 @@
 import Icon from "@components/Atoms/Icon";
+import PureLink from "@components/Atoms/PureLink";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
+import { usePlatform } from "@core-ui/hooks/usePlatform";
 import GitSourceData from "@ext/git/core/model/GitSourceData.schema";
 import { ClientWorkspaceConfig } from "@ext/workspace/WorkspaceConfig";
 import { useEffect, useState } from "react";
@@ -11,6 +13,7 @@ const EditEnterpriseWorkspace = ({ workspace }: { workspace: ClientWorkspaceConf
 	const enterpriseSource = pageDataContext.sourceDatas.find((data) => {
 		return gesUrl?.includes((data as GitSourceData)?.domain);
 	}) as GitSourceData;
+	const { isTauri } = usePlatform();
 
 	const checkConfig = async (workspace: ClientWorkspaceConfig, enterpriseSource: GitSourceData, gesUrl: string) => {
 		if (!enterpriseSource || !workspace?.isEnterprise || !gesUrl) return;
@@ -32,17 +35,15 @@ const EditEnterpriseWorkspace = ({ workspace }: { workspace: ClientWorkspaceConf
 	if (!enterpriseSource) return null;
 	if (!workspace?.isEnterprise) return null;
 
+	const userInfo = encodeURIComponent(enterpriseSource.token);
+	const enterpriseUrl = encodeURIComponent(gesUrl);
 	return (
-		<Icon
-			isAction
-			onClick={() => {
-				if (!enterpriseSource || !gesUrl) return;
-				const userInfo = encodeURIComponent(enterpriseSource.token);
-				const enterpriseUrl = encodeURIComponent(gesUrl);
-				window.open(`${gesUrl}/admin?userInfo=${userInfo}&enterpriseUrl=${enterpriseUrl}`);
-			}}
-			code="pen"
-		/>
+		<PureLink
+			href={`${gesUrl}/admin?userInfo=${userInfo}&enterpriseUrl=${enterpriseUrl}`}
+			target={isTauri ? "_self" : "_blank"}
+		>
+			<Icon isAction code="pen" />
+		</PureLink>
 	);
 };
 

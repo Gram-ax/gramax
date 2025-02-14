@@ -72,7 +72,7 @@ class MarkdownParseState {
 		const top = this.top();
 		const node = type.createAndFill(attrs, content, top ? top.marks : []);
 
-		if (!node) return null;
+		if (!node) throw new Error(`Failed to create node ${type.name}`);
 		this.push(node);
 		return node;
 	}

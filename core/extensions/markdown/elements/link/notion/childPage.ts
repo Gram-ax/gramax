@@ -2,8 +2,10 @@ import { transliterate } from "@core-ui/languageConverter/transliterate";
 import NotionNodeConverter from "@ext/notion/model/NotionNodeConverter";
 
 const childPage: NotionNodeConverter = (childPageNode) => {
-	const title = childPageNode?.[childPageNode.type]?.title || " ";
-	
+	const title = childPageNode?.[childPageNode.type]?.title;
+
+	if (!title) return;
+
 	return {
 		type: "paragraph",
 		content: [

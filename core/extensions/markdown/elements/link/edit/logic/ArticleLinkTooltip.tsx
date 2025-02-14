@@ -44,7 +44,6 @@ type TooltipProviderProps = {
 
 export interface LinkTooltipProps extends Omit<TooltipProviderProps, "children" | "data"> {
 	closeHandler: () => void;
-	openAfter: () => void;
 	className?: string;
 	element: HTMLElement;
 	resourcePath?: string;
@@ -52,12 +51,11 @@ export interface LinkTooltipProps extends Omit<TooltipProviderProps, "children" 
 }
 
 const ArticleLinkTooltip = (props: LinkTooltipProps) => {
-	const { closeHandler, element, openAfter, apiUrlCreator, getMark, resourcePath, className, ...otherProps } = props;
+	const { closeHandler, element, apiUrlCreator, getMark, resourcePath, className, ...otherProps } = props;
 	const [isVisible, setIsVisible] = useState(false);
 	const [canClose, setCanClose] = useState(true);
 	const [data, setData] = useState<dataType>(null);
 	const [hash, setHash] = useState<string>(null);
-	const [elementOnMount] = useState(element);
 	const [tooltipPlace, setTooltipPlace] = useState("top");
 
 	const debounceClose = useDebounce(closeHandler, 200, canClose);
@@ -109,14 +107,6 @@ const ArticleLinkTooltip = (props: LinkTooltipProps) => {
 	}, [fetchData]);
 
 	useEffect(() => {
-		if (elementOnMount !== element) close();
-
-		return () => {
-			if (elementOnMount !== element) openAfter();
-		};
-	}, [element]);
-
-	useEffect(() => {
 		const handleMouseLeave = () => close();
 		const handleMouseEnter = () => clearHandler();
 		const handleMouseMove = () => openDebounce.start();
@@ -154,17 +144,19 @@ const ArticleLinkTooltip = (props: LinkTooltipProps) => {
 			setPlaceCallback={(place) => setTooltipPlace(place)}
 			contentClassName={classNames("tooltip-wrapper", {}, [className])}
 			content={
-				<TooltipProvider data={data} apiUrlCreator={apiUrlCreator} {...otherProps}>
-					<TooltipContent
-						className={classNames("tooltip-article", mods, [className])}
-						start={close}
-						position={tooltipPlace}
-						clear={clearHandler}
-						close={closeHandler}
-						data={data}
-						hash={hash}
-					/>
-				</TooltipProvider>
+				isVisible && (
+					<TooltipProvider data={data} apiUrlCreator={apiUrlCreator} {...otherProps}>
+						<TooltipContent
+							className={classNames("tooltip-article", mods, [className])}
+							start={close}
+							position={tooltipPlace}
+							clear={clearHandler}
+							close={closeHandler}
+							data={data}
+							hash={hash}
+						/>
+					</TooltipProvider>
+				)
 			}
 		>
 			<div style={{ height: "1.25rem" }} />

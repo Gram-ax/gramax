@@ -46,7 +46,7 @@ const CardPreview = forwardRef<HTMLDivElement, CardProps>((props, ref) => {
 				return (
 					<PropertyArticle
 						key={property.name}
-						isReadOnly={dragging || isReadOnly}
+						disabled={dragging || isReadOnly}
 						property={property}
 						onSubmit={onSubmit}
 						trigger={
@@ -77,15 +77,17 @@ const CardPreview = forwardRef<HTMLDivElement, CardProps>((props, ref) => {
 			onDragStart={onDragStart}
 			onMouseEnter={onMouseEnter}
 		>
-			<div className="card-title">{title}</div>
+			<div className="card-title" onMouseEnter={onMouseEnter}>
+				{title}
+			</div>
 			{properties.length > 0 && (
 				<div className="card-content">
-					<div className="chips">
+					<div className="chips" onMouseEnter={onMouseEnter}>
 						{properties}
 						{!dragging && !isReadOnly && (
 							<AddProperty
 								properties={otherProps}
-								isReadOnly={dragging || isReadOnly}
+								disabled={dragging || isReadOnly}
 								catalogProperties={catalogProperties}
 								onSubmit={onSubmit}
 								trigger={<ButtonLink iconCode="plus" dataQa="kanban-add-property" />}
@@ -136,7 +138,6 @@ export default styled(CardPreview)`
 		-webkit-line-clamp: 2;
 		-webkit-box-orient: vertical;
 		max-height: 2.5em;
-		pointer-events: none;
 	}
 
 	.card-content {

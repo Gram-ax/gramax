@@ -43,7 +43,7 @@ describe("GitCommands", () => {
 
 	afterEach(async () => {
 		await dfp.delete(path("testRep"));
-		await RepositoryProvider.invalidateRepoCache([]);
+		await RepositoryProvider.resetRepo();
 		git = null;
 	});
 

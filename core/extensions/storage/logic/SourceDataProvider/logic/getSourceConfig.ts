@@ -21,8 +21,8 @@ const getSourceConfig = (mode) => {
 			controlLabel: t("source"),
 			filter: (source) =>
 				source === SourceType.confluenceCloud ||
-				source === SourceType.notion ||
 				source === SourceType.yandexDisk ||
+				(environment === "tauri" && source === SourceType.notion) ||
 				(environment === "tauri" && source === SourceType.confluenceServer),
 		},
 		clone: {

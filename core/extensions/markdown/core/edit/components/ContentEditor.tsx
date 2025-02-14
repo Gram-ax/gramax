@@ -1,7 +1,7 @@
 import CommentCounterService from "@core-ui/ContextServices/CommentCounter";
 import useWatch from "@core-ui/hooks/useWatch";
 import ArticleMat from "@ext/markdown/core/edit/components/ArticleMat";
-import OnTitleLoseFocus from "@ext/markdown/elements/article/edit/OnTitleLoseFocus";
+import ArticleTitleHelpers from "@ext/markdown/elements/article/edit/ArticleTitleHelpers";
 import CopyArticles from "@ext/markdown/elements/copyArticles/copyArticles";
 import OnLoadResourceService from "@ext/markdown/elements/copyArticles/onLoadResourceService";
 import EditorExtensionsService from "@ext/markdown/elements/diff/components/EditorExtensionsService";
@@ -36,14 +36,13 @@ export const ContentEditorId = "ContentEditorId";
 interface ContentEditorProps {
 	content: string;
 	extensions: Extensions;
-	onBlur: (editorContext: EditorContext) => void;
 	onTitleLoseFocus: (props: { newTitle: string } & BaseEditorContext) => void;
 	onUpdate: (editorContext: EditorContext) => void;
 	handlePaste: EditorPasteHandler;
 }
 
 const ContentEditor = (props: ContentEditorProps) => {
-	const { content, extensions, onBlur, onTitleLoseFocus, onUpdate, handlePaste } = props;
+	const { content, extensions, onTitleLoseFocus, onUpdate, handlePaste } = props;
 
 	const comments = CommentCounterService.value;
 	const articleProps = ArticlePropsService.value;
@@ -73,7 +72,7 @@ const ContentEditor = (props: ContentEditorProps) => {
 		OnAddMark.configure({ onAddMarks }),
 		CopyArticles.configure({ onLoadResource }),
 		OnDeleteMark.configure({ onDeleteMarks }),
-		OnTitleLoseFocus.configure({
+		ArticleTitleHelpers.configure({
 			onTitleLoseFocus: ({ newTitle }) => onTitleLoseFocus({ newTitle, apiUrlCreator, articleProps }),
 		}),
 		SelectionMenu,
@@ -82,9 +81,8 @@ const ContentEditor = (props: ContentEditorProps) => {
 	useWatch(() => {
 		EditorExtensionsService.value = extensionsList;
 		EditorService.bindOnUpdate(onUpdate);
-		EditorService.bindOnBlur(onBlur);
 		EditorService.bindHandlePaste(handlePaste);
-	}, [extensionsList, onUpdate, onBlur, handlePaste]);
+	}, [extensionsList, onUpdate, handlePaste]);
 
 	const editor = useEditor(
 		{
@@ -95,7 +93,6 @@ const ContentEditor = (props: ContentEditorProps) => {
 				handlePaste: (view, event, slice) => handlePaste(view, event, slice, apiUrlCreator, articleProps),
 			},
 			onUpdate: ({ editor }) => onUpdate({ editor, apiUrlCreator, articleProps }),
-			onBlur: ({ editor }) => onBlur({ editor, apiUrlCreator, articleProps }),
 			editable: true,
 		},
 		[content, apiUrlCreator, pageDataContext, articleProps.ref.path],

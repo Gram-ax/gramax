@@ -1,13 +1,14 @@
 import resolveModule from "@app/resolveModule/frontend";
 import ConfluenceServerSourceData from "@ext/confluence/core/server/model/ConfluenceServerSourceData.schema";
-import ConfluenceAPI from "@ext/confluence/core/api/model/ConfluenceAPI";
-import { Space, UserLink } from "@ext/confluence/core/api/model/ConfluenceAPITypes";
+import ConfluenceAPI, { GetSpacesOptions } from "@ext/confluence/core/api/model/ConfluenceAPI";
+import { Space, SpaceData, UserLink } from "@ext/confluence/core/api/model/ConfluenceAPITypes";
 import { ConfluenceArticle } from "@ext/confluence/core/model/ConfluenceArticle";
 import ConfluenceStorageData from "@ext/confluence/core/model/ConfluenceStorageData";
 import { SourceUser } from "@ext/git/actions/Source/SourceAPI";
 import getStorageNameByData from "@ext/storage/logic/utils/getStorageNameByData";
 import ConfluenceAttachment from "@ext/confluence/core/api/model/ConfluenceAttachment";
 import t from "@ext/localization/locale/translate";
+import buildCqlQuery from "@ext/confluence/core/api/buildCqlQuery";
 
 export default class ConfluenceServerAPI implements ConfluenceAPI {
 	constructor(protected _data: ConfluenceServerSourceData) {}
@@ -22,18 +23,27 @@ export default class ConfluenceServerAPI implements ConfluenceAPI {
 		};
 	}
 
-	async getSpaces(): Promise<Space[]> {
-		const data = (await this._paginationApi(`/rest/api/space?`, 10)).flat();
-		return data.map((space: Space) => ({
-			name: space.name,
-			id: space.key,
-			key: space.id,
+	async getSpaces(
+		options: GetSpacesOptions = {
+			type: "space",
+			orderBy: "lastModified",
+			sortDirection: "desc",
+		},
+	): Promise<Space[]> {
+		const cql = buildCqlQuery(options);
+		const url = `/rest/api/search?cql=${cql}`;
+		const data = await this._api(url);
+
+		return data.body?.results?.map((spaceData: SpaceData) => ({
+			name: spaceData.space.name,
+			id: spaceData.space.key,
+			key: spaceData.space.id,
 		}));
 	}
 
 	async getArticles(storageData: ConfluenceStorageData): Promise<any> {
 		const format = "?expand=body.storage,ancestors";
-		const data = await this._paginationApi(`/rest/api/space/${storageData.id}/content/page${format}`, 25);
+		const data = await this._paginationApi(`/rest/api/space/${storageData.id}/content/page${format}`, 50);
 		const articles: ConfluenceArticle[] = data.flat().map((result: any) => ({
 			domain: this._data.domain,
 			id: result.id,
@@ -49,7 +59,7 @@ export default class ConfluenceServerAPI implements ConfluenceAPI {
 
 	async getBlogs(storageData: ConfluenceStorageData): Promise<any> {
 		const format = "?expand=body.storage";
-		const data = await this._paginationApi(`/rest/api/space/${storageData.id}/content/blogpost${format}`, 25);
+		const data = await this._paginationApi(`/rest/api/space/${storageData.id}/content/blogpost${format}`, 50);
 		const blogs: ConfluenceArticle[] = data.flat().map((result: any) => {
 			return {
 				domain: this._data.domain,
@@ -152,7 +162,7 @@ export default class ConfluenceServerAPI implements ConfluenceAPI {
 		let nextPageUrl = json._links?.next;
 
 		while (nextPageUrl) {
-			const res = await this._api(firstPageUrl);
+			const res = await this._api(nextPageUrl);
 			if (res.status !== 200) break;
 			const pageJson = res.body;
 
@@ -172,14 +182,34 @@ export default class ConfluenceServerAPI implements ConfluenceAPI {
 					token: this._data.token,
 				},
 			});
-			const body = res.body.type === "text" ? JSON.parse(res.body.data) : new Uint8Array(res.body.data);
+
+			if (!res.body) {
+				return { status: res.status, body: null };
+			}
+
+			const body = res.body.type === "text" 
+				? this._safeJsonParse(res.body.data) 
+				: new Uint8Array(res.body.data);
+
 			return {
 				status: res.status,
 				body: body,
 			};
 		} catch (e) {
-			console.error(e);
-			return { status: 500, body: "Internal Server Error" };
+			console.error('API request failed:', url, e);
+			return { 
+				status: e.status || 500, 
+				body: e.message || "Internal Server Error" 
+			};
+		}
+	}
+
+	private _safeJsonParse(data: string) {
+		try {
+			return JSON.parse(data);
+		} catch (e) {
+			console.error('Failed to parse JSON response:', e);
+			return null;
 		}
 	}
 }

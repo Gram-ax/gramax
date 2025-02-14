@@ -2,7 +2,7 @@ import { classNames } from "@components/libs/classNames";
 import Item from "@components/List/Item";
 import LoadingListItem from "@components/List/LoadingListItem";
 import { TitleItem } from "@core-ui/ContextServices/LinkTitleTooltip";
-import eventEmitter from "@core/utils/eventEmmiter";
+import eventEmitter from "@core/utils/eventEmitter";
 import styled from "@emotion/styled";
 import t from "@ext/localization/locale/translate";
 import { HTMLAttributes, MouseEventHandler, useCallback, useEffect, useRef, useState } from "react";

@@ -30,6 +30,7 @@ import unsupportedToken from "@ext/markdown/elements/unsupported/edit/model/unsu
 import { ParseSpec } from "./from_markdown";
 import htmlToken from "@ext/markdown/elements/html/edit/models/htmlToken";
 import viewToken from "@ext/markdown/elements/view/edit/models/viewToken";
+import tableTokens from "@ext/markdown/elements/table/edit/model/tableTokens";
 
 function listIsTight(tokens, i) {
 	while (++i < tokens.length) if (tokens[i].type != "list_item_open") return tokens[i].hidden;
@@ -75,10 +76,7 @@ export const getTokens = (context?: ParserContext): { [name: string]: ParseSpec 
 		},
 
 		blockMd: { block: "blockMd" },
-		table: { block: "table" },
-		tableRow: { block: "tableRow" },
-		tableCell: { block: "tableCell", getAttrs: (tok) => tok.attrs },
-		tableHeader: { block: "tableHeader", getAttrs: (tok) => tok.attrs },
+		...tableTokens,
 		blockquote: { block: "blockquote" },
 		paragraph: { block: "paragraph" },
 		error: { block: "error" },

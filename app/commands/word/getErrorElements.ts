@@ -13,20 +13,24 @@ import { Command } from "../../types/Command";
 import { tString } from "@ext/localization/locale/translate";
 import RuleProvider from "@ext/rules/RuleProvider";
 import { resolveRootCategory } from "@ext/localization/core/catalogExt";
+import { ExportFormat } from "@ext/wordExport/components/ItemExport";
+import { pdfExportedKeys } from "@ext/pdfExport/layouts";
 
 const getErrorElements: Command<
-	{ ctx: Context; itemPath: Path; isCategory: boolean; catalogName: string },
+	{ ctx: Context; itemPath: Path; isCategory: boolean; catalogName: string; exportFormat: ExportFormat },
 	UnsupportedElements[]
 > = Command.create({
 	path: "word/getErrorElements",
 	kind: ResponseKind.json,
 
-	async do({ ctx, catalogName, itemPath, isCategory }) {
+	async do({ ctx, catalogName, itemPath, isCategory, exportFormat }) {
 		const { wm, parser, parserContextFactory } = this._app;
 		const workspace = wm.current();
 		const itemFilters = new RuleProvider(ctx).getItemFilters();
 		const catalog = await workspace.getCatalog(catalogName, ctx);
-		const markdownElementsFilter = new MarkdownElementsFilter(exportedKeys);
+		const markdownElementsFilter = new MarkdownElementsFilter(
+			exportFormat === ExportFormat.docx ? exportedKeys : pdfExportedKeys,
+		);
 		const unsupportedElements: UnsupportedElements[] = [];
 		const isCatalog = itemPath.toString() === "";
 
@@ -78,8 +82,9 @@ const getErrorElements: Command<
 		const catalogName = q.catalogName;
 		const itemPath = new Path(q.itemPath);
 		const isCategory = q.isCategory === "true";
+		const exportFormat = q.exportFormat as ExportFormat;
 
-		return { ctx, itemPath, isCategory, catalogName };
+		return { ctx, itemPath, isCategory, catalogName, exportFormat };
 	},
 });
 

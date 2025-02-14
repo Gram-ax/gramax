@@ -1,17 +1,15 @@
 export interface IoErrorBuilder {
 	name: string;
+	code: string;
 	message: string;
 }
 
 export default class IoError extends Error {
 	code: string;
 
-	constructor(err: IoErrorBuilder | string, message?: string) {
-		super(typeof err == "string" ? err : err.message);
-		message && (this.message += "\n" + message);
-		if (typeof err == "string") return;
-
-		this.name = err.name;
-		this.code = err.name;
+	constructor({ name, code, message, cause }: IoErrorBuilder & { cause?: Error }) {
+		super(message, { cause });
+		this.name = name;
+		this.code = code;
 	}
 }

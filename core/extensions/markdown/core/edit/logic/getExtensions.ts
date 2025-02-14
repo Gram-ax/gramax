@@ -5,11 +5,7 @@ import { Extensions } from "@tiptap/react";
 
 import Document from "@tiptap/extension-document";
 import History from "@tiptap/extension-history";
-import TableCell from "@tiptap/extension-table-cell";
-import TableHeader from "@tiptap/extension-table-header";
-import TableRow from "@tiptap/extension-table-row";
 import Text from "@tiptap/extension-text";
-import BulletList from "@tiptap/extension-bullet-list";
 import OrderedList from "@tiptap/extension-ordered-list";
 import ListItem from "@tiptap/extension-list-item";
 import TaskList from "@tiptap/extension-task-list";
@@ -53,9 +49,13 @@ import UnsupportedComponent from "@ext/markdown/elements/unsupported/edit/model/
 import VideoComponent from "@ext/markdown/elements/video/edit/model/video";
 import View from "@ext/markdown/elements/view/edit/models/view";
 import { Suggestion } from "@ext/StyleGuide/extension/Suggestion";
-import SmileReplacer from "../../../elements/smilieReplacer/smileReplacer";
 import LineBreakers from "@ext/markdown/elements/lineBreakers/lineBreakers";
 import customTaskItem from "@ext/markdown/elements/list/edit/models/taskItem/model/taskItem";
+import customTableCell from "@ext/markdown/elements/table/edit/model/tableCell";
+import pasteMarkdown from "@ext/markdown/elements/pasteMarkdown/pasteMarkdown";
+import GapParagraph from "@ext/markdown/elements/gapParagraph/plugin";
+import customTableRow from "@ext/markdown/elements/table/edit/model/customTableRow";
+import customBulletList from "@ext/markdown/elements/list/edit/models/bulletList/model/customBulletList";
 
 const getExtensions = (): Extensions => [
 	DocKeyboardShortcuts,
@@ -87,9 +87,8 @@ const getExtensions = (): Extensions => [
 	Br,
 
 	Snippet,
-	TableRow,
-	TableCell,
-	TableHeader,
+	customTableCell,
+	customTableRow,
 	TableKeyboardShortcuts,
 	CustomTable,
 
@@ -103,7 +102,7 @@ export const getSimpleExtensions = (): Extensions => [
 	ColorHighlighter,
 	LineBreakers,
 	CopyMsO,
-	SmileReplacer,
+	pasteMarkdown,
 	Typography,
 	Paragraph,
 	Document,
@@ -116,11 +115,12 @@ export const getSimpleExtensions = (): Extensions => [
 	View,
 	Text,
 	Em,
+	GapParagraph,
 
 	HardBreak,
 
 	OrderedList,
-	BulletList,
+	customBulletList,
 	TaskList,
 	ListItem,
 	customTaskItem,

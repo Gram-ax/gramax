@@ -30,6 +30,7 @@ const COMMANDS: &[&str] = &[
   "is_init",
   "is_bare",
   "set_head",
+  "default_branch",
   "git_read_dir",
   "git_file_stat",
   "git_file_exists",
@@ -38,7 +39,8 @@ const COMMANDS: &[&str] = &[
   "list_merge_requests",
   "create_or_update_merge_request",
   "get_draft_merge_request",
-  "invalidate_repo_cache",
+  "get_all_commit_authors",
+  "reset_repo",
 ];
 
 fn main() {

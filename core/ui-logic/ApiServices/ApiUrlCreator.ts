@@ -8,21 +8,17 @@ import SourceType from "@ext/storage/logic/SourceDataProvider/model/SourceType";
 import type { WorkspacePath } from "@ext/workspace/WorkspaceConfig";
 import MimeTypes from "./Types/MimeTypes";
 import Url from "./Types/Url";
+import { ExportFormat } from "@ext/wordExport/components/ItemExport";
 
 export default class ApiUrlCreator {
-	constructor(
-		private _basePath: string,
-		private _isLogged?: boolean,
-		private _catalogName?: string,
-		private _articlePath?: string,
-	) {}
+	constructor(private _basePath: string, private _catalogName?: string, private _articlePath?: string) {}
 
 	fromArticle(articlePath: string) {
 		return this.fromNewArticlePath(this._catalogName + "/" + articlePath);
 	}
 
 	fromNewArticlePath(articlePath: string) {
-		return new ApiUrlCreator(this._basePath, this._isLogged, this._catalogName, articlePath);
+		return new ApiUrlCreator(this._basePath, this._catalogName, articlePath);
 	}
 
 	public getLogo(theme: Theme) {
@@ -76,13 +72,12 @@ export default class ApiUrlCreator {
 		return Url.fromBasePath(`/api/workspace/setDefaultPath`, this._basePath, { path });
 	}
 
-	public getArticleResource(src: string, mimeType?: MimeTypes, readFromHead?: boolean) {
+	public getArticleResource(src: string, mimeType?: MimeTypes, catalogName?: string) {
 		return Url.fromBasePath(`/api/article/resource/get`, this._basePath, {
 			articlePath: this._articlePath,
-			catalogName: this._catalogName,
+			catalogName: catalogName ?? this._catalogName,
 			mimeType,
 			src,
-			readFromHead: readFromHead?.toString(),
 		});
 	}
 
@@ -221,15 +216,19 @@ export default class ApiUrlCreator {
 		return domain + (this._basePath ?? "") + "/openGraph/logo.png";
 	}
 
-	public getAuthUrl(router: Router) {
+	public getAuthUrl(router: Router, isLogged: boolean) {
 		const from = encodeURIComponent(router?.basePath + router?.path);
-		return Url.fromBasePath(this._isLogged ? `/api/auth/logout` : `/api/auth/login`, this._basePath, {
+		return Url.fromBasePath(isLogged ? `/api/auth/logout` : `/api/auth/login`, this._basePath, {
 			from,
 		});
 	}
 
 	public getAddEnterpriseWorkspaceUrl(token: string) {
 		return Url.fromBasePath(`api/enterprise/addWorkspace`, this._basePath, { token });
+	}
+
+	public getLogoutEnterpriseUrl(id: WorkspacePath) {
+		return Url.fromBasePath(`api/enterprise/logout`, this._basePath, { id });
 	}
 
 	public getCloneEnterpriseCatalogsUrl(token: string) {
@@ -240,6 +239,14 @@ export default class ApiUrlCreator {
 		return Url.fromBasePath(`api/auth/sso`, this._basePath, { data, sign, from });
 	}
 
+	public getPdfSaveUrl(isCategory: boolean, itemPath?: string) {
+		return Url.fromBasePath(`/api/pdf`, this._basePath, {
+			itemPath,
+			catalogName: this._catalogName,
+			isCategory: isCategory?.toString(),
+		});
+	}
+
 	public getWordSaveUrl(isCategory: boolean, itemPath?: string) {
 		return Url.fromBasePath(`/api/word`, this._basePath, {
 			itemPath,
@@ -248,11 +255,12 @@ export default class ApiUrlCreator {
 		});
 	}
 
-	public getErrorWordElementsUrl(isCategory: boolean, itemPath?: string) {
+	public getErrorWordElementsUrl(isCategory: boolean, itemPath?: string, exportFormat?: ExportFormat) {
 		return Url.fromBasePath(`/api/word/getErrorElements`, this._basePath, {
 			itemPath,
 			catalogName: this._catalogName,
 			isCategory: isCategory ? "true" : "false",
+			exportFormat,
 		});
 	}
 
@@ -301,8 +309,14 @@ export default class ApiUrlCreator {
 		});
 	}
 
-	public getVersionControlDiffItemsUrl() {
-		return Url.fromBasePath(`/api/versionControl/diffItems`, this._basePath, {
+	public getVersionControlDiffTreeUrl() {
+		return Url.fromBasePath(`/api/versionControl/diffTree`, this._basePath, {
+			catalogName: this._catalogName,
+		});
+	}
+
+	public getVersionControlStatuses() {
+		return Url.fromBasePath(`/api/versionControl/statuses`, this._basePath, {
 			catalogName: this._catalogName,
 		});
 	}
@@ -370,6 +384,12 @@ export default class ApiUrlCreator {
 
 	public getStorageUrl() {
 		return Url.fromBasePath("/api/storage/getUrl", this._basePath, { catalogName: this._catalogName });
+	}
+
+	public getGitCommitAuthors() {
+		return Url.fromBasePath("/api/versionControl/getAllCommitAuthors", this._basePath, {
+			catalogName: this._catalogName,
+		});
 	}
 
 	public getVersionControlCurrentBranchUrl(
@@ -461,11 +481,11 @@ export default class ApiUrlCreator {
 		});
 	}
 
-	public mergeInto(branchName: string, deleteAfterMerge: boolean) {
+	public mergeInto(branchName: string, deleteAfterMerge?: boolean) {
 		return Url.fromBasePath(`/api/versionControl/branch/mergeInto`, this._basePath, {
 			catalogName: this._catalogName,
 			branchName,
-			deleteAfterMerge: deleteAfterMerge.toString(),
+			deleteAfterMerge: deleteAfterMerge?.toString(),
 		});
 	}
 
@@ -487,22 +507,45 @@ export default class ApiUrlCreator {
 		});
 	}
 
+	public validateMerge() {
+		return Url.fromBasePath(`/api/versionControl/mergeConflict/validateMerge`, this._basePath, {
+			catalogName: this._catalogName,
+		});
+	}
+
 	public createMergeRequest() {
 		return Url.fromBasePath(`/api/mergeRequests/create`, this._basePath, {
 			catalogName: this._catalogName,
 		});
 	}
 
-	public mergeRequestMerge(targetBranch: string, deleteAfterMerge: boolean) {
+	public mergeRequestMerge(targetBranch: string, deleteAfterMerge: boolean, validateMerge?: boolean) {
 		return Url.fromBasePath(`/api/mergeRequests/merge`, this._basePath, {
 			catalogName: this._catalogName,
 			targetBranch,
-			deleteAfterMerge: deleteAfterMerge.toString(),
+			deleteAfterMerge: deleteAfterMerge?.toString(),
+			validateMerge: validateMerge?.toString(),
 		});
 	}
 
-	public mergeRequestDiffItems(sourceBranch: string, targetBranch: string) {
-		return Url.fromBasePath(`/api/mergeRequests/diffItems`, this._basePath, {
+	public mergeRequestDiffTree(sourceBranch: string, targetBranch: string) {
+		return Url.fromBasePath(`/api/mergeRequests/diffTree`, this._basePath, {
+			catalogName: this._catalogName,
+			sourceBranch,
+			targetBranch,
+		});
+	}
+
+	public cleanupReferencesDiff(sourceBranch: string, targetBranch: string) {
+		return Url.fromBasePath(`/api/mergeRequests/cleanupReferencesDiff`, this._basePath, {
+			catalogName: this._catalogName,
+			sourceBranch,
+			targetBranch,
+		});
+	}
+
+	public mountReferencesDiff(sourceBranch: string, targetBranch: string) {
+		return Url.fromBasePath(`/api/mergeRequests/mountReferencesDiff`, this._basePath, {
 			catalogName: this._catalogName,
 			sourceBranch,
 			targetBranch,
@@ -538,7 +581,7 @@ export default class ApiUrlCreator {
 	}
 
 	public getSetLanguageURL(language: UiLanguage) {
-		return Url.fromBasePath("/api/language/set", this._basePath, { language });
+		return Url.fromBasePath("/api/lang/set", this._basePath, { language });
 	}
 
 	public createCatalog() {
@@ -722,6 +765,12 @@ export default class ApiUrlCreator {
 		return Url.fromBasePath(`/api/elements/snippet/getRenderData`, this._basePath, {
 			catalogName: this._catalogName,
 			snippetId,
+		});
+	}
+
+	public createCustomIcon() {
+		return Url.fromBasePath(`/api/elements/icon/create`, this._basePath, {
+			catalogName: this._catalogName,
 		});
 	}
 

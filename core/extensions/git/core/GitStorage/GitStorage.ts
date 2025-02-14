@@ -29,6 +29,7 @@ export default class GitStorage implements Storage {
 	private _syncCount: { pull: number; push: number; hasChanges: boolean };
 	private _syncSearchInPath = "";
 	private _parsedUrl: StorageUrl;
+	private _cachedDefaultBranch: Branch;
 	private static _gitDataParser: GitDataParser = gitDataParser;
 
 	constructor(private _path: Path, private _fp: FileProvider) {
@@ -107,6 +108,11 @@ export default class GitStorage implements Storage {
 		return parsedUrl.group;
 	}
 
+	async getDefaultBranch(source: GitSourceData): Promise<Branch | null> {
+		if (!this._cachedDefaultBranch) this._cachedDefaultBranch = await this._gitRepository.getDefaultBranch(source);
+		return this._cachedDefaultBranch;
+	}
+
 	async getSourceName() {
 		const parsedUrl = await this.getParsedUrl();
 		return parsedUrl.domain;
@@ -162,7 +168,7 @@ export default class GitStorage implements Storage {
 	}
 
 	async updateSyncCount() {
-		try{
+		try {
 			this._syncCount = await this._gitRepository.graphHeadUpstreamFilesCount(this._syncSearchInPath);
 		} catch (e) {
 			this._syncCount = { pull: 0, push: 0, hasChanges: false };

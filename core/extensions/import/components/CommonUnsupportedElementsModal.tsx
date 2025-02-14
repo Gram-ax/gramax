@@ -49,7 +49,7 @@ const CommonUnsupportedElementsModal = (props: CommonUnsupportedElementsModalPro
 			<div className="article">
 				{description && <p>{description}</p>}
 				<div className={className}>
-					<Note type={NoteType.info} collapsed={true} title={noteTitle}>
+					<Note type={NoteType.info} collapsed={false} title={noteTitle}>
 						<table>
 							<thead>
 								<tr>
@@ -66,7 +66,7 @@ const CommonUnsupportedElementsModal = (props: CommonUnsupportedElementsModalPro
 												{data.elements.map((element, articleIndex) => (
 													<li key={articleIndex}>
 														{element.name}
-														{element.count > 1 ? ` (${element.count})` : ""}
+														{element.count > 1 ? ` (${t("count")}: ${element.count})` : ""}
 													</li>
 												))}
 											</ul>

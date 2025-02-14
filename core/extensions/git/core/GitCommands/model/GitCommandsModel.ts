@@ -1,5 +1,6 @@
+import type { FileStatus } from "@ext/Watchers/model/FileStatus";
 import DefaultError from "@ext/errorHandlers/logic/DefaultError";
-import type { MergeResult, UpstreamCountFileChanges } from "@ext/git/core/GitCommands/LibGit2IntermediateCommands";
+import type { CommitAuthorInfo, MergeResult, UpstreamCountFileChanges } from "@ext/git/core/GitCommands/LibGit2IntermediateCommands";
 import GitStash from "@ext/git/core/model/GitStash";
 import Path from "../../../../../logic/FileProvider/Path/Path";
 import { VersionControlInfo } from "../../../../VersionControl/model/VersionControlInfo";
@@ -9,11 +10,42 @@ import { GitStatus } from "../../GitWatcher/model/GitStatus";
 import GitSourceData from "../../model/GitSourceData.schema";
 import { GitVersion } from "../../model/GitVersion";
 
+export type DiffCompareOptions =
+	| {
+			type: "tree";
+			new: GitVersion | string;
+			old: GitVersion | string;
+	  }
+	| {
+			type: "workdir" | "index";
+			tree?: GitVersion | string;
+	  };
+
+export type DiffConfig = {
+	compare: DiffCompareOptions;
+	renames: boolean;
+};
+
+export type DiffTree2TreeInfo = {
+	hasChanges: boolean;
+	added: number;
+	deleted: number;
+	files: DiffTree2TreeFile[];
+};
+
+export type DiffTree2TreeFile = {
+	path: Path;
+	oldPath: Path;
+	status: FileStatus;
+	added: number;
+	deleted: number;
+};
+
 export type TransferProgress =
 	| { type: "indexingDeltas"; data: { indexed: number; total: number } }
 	| { type: "receivingObjects"; data: { received: number; indexed: number; total: number } };
 
-export type TreeReadScope = { commit: string } | { reference: string } | null;
+export type TreeReadScope = { commit: string } | { reference: string } | "HEAD";
 
 export type RefInfo =
 	| {
@@ -47,6 +79,7 @@ export type CloneProgress =
 	| { type: "error"; data: { path: string; error: DefaultError } }
 	| { type: "sideband"; data: { remote_text: string } }
 	| { type: "chunkedTransfer"; data: { transfer: TransferProgress; bytes: number; download_speed_bytes: number } };
+
 interface GitCommandsModel {
 	isInit(): Promise<boolean>;
 	isBare(): Promise<boolean>;
@@ -60,9 +93,9 @@ interface GitCommandsModel {
 		onProgress?: (progress: CloneProgress) => void,
 	): Promise<void>;
 	setHead(refname: string): Promise<void>;
-	commit(message: string, data: SourceData, parents?: string[]): Promise<GitVersion>;
-	add(paths?: Path[]): Promise<void>;
-	status(): Promise<GitStatus[]>;
+	commit(message: string, data: SourceData, parents?: string[], files?: string[]): Promise<GitVersion>;
+	add(paths?: Path[], force?: boolean): Promise<void>;
+	status(type: "index" | "workdir"): Promise<GitStatus[]>;
 	fileStatus(filePath: Path): Promise<GitStatus>;
 
 	push(data: GitSourceData): Promise<void>;
@@ -70,13 +103,14 @@ interface GitCommandsModel {
 	checkout(ref: string, force?: boolean): Promise<void>;
 	merge(data: SourceData, theirs: string): Promise<MergeResult>;
 	restore(staged: boolean, filePaths: Path[]): Promise<void>;
-	diff(oldTree: string, newTree: string): Promise<GitStatus[]>;
+	diff(opts: DiffConfig): Promise<DiffTree2TreeInfo>;
 
 	stash(data: SourceData): Promise<string>;
 	applyStash(stashOid: string): Promise<MergeResult>;
 	deleteStash(stashOid: string): Promise<void>;
 	stashParent(stashOid: string): Promise<GitVersion>;
 
+	getDefaultBranch(source: SourceData): Promise<GitBranch | null>;
 	getCurrentBranch(data: GitSourceData): Promise<GitBranch>;
 	getCurrentBranchName(): Promise<string>;
 	getAllBranches(): Promise<GitBranch[]>;
@@ -101,6 +135,7 @@ interface GitCommandsModel {
 	showFileContent(filePath: Path, ref?: GitVersion | GitStash): Promise<string>;
 	getParentCommit(commitOid: string): Promise<string>;
 	getReferencesByGlob(patterns: string[]): Promise<RefInfo[]>;
+	getCommitAuthors(): Promise<CommitAuthorInfo[]>;
 
 	readFile(filePath: Path, scope: TreeReadScope): Promise<ArrayBuffer>;
 	readDir(dirPath: Path, scope: TreeReadScope): Promise<DirEntry[]>;

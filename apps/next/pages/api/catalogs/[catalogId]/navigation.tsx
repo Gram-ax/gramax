@@ -1,5 +1,6 @@
 import type ApiRequest from "@core/Api/ApiRequest";
 import type ApiResponse from "@core/Api/ApiResponse";
+import { AllowedOriginsMiddleware } from "@core/Api/middleware/AllowedOriginsMiddleware";
 import { MainMiddleware } from "@core/Api/middleware/MainMiddleware";
 import ExceptionsResponse from "@ext/publicApi/ExceptionsResponse";
 import TransformData from "@ext/publicApi/TransformData";
@@ -22,5 +23,5 @@ export default ApplyApiMiddleware(
 
 		res.send(jsonNavigationTree);
 	},
-	[new MainMiddleware()],
+	[new MainMiddleware(), new AllowedOriginsMiddleware()],
 );

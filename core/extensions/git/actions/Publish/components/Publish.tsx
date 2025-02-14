@@ -14,9 +14,6 @@ import { Trigger } from "@core-ui/triggers/useTrigger";
 import useWatchTrigger from "@core-ui/triggers/useWatchTrigger";
 import Path from "@core/FileProvider/Path/Path";
 import styled from "@emotion/styled";
-import DiffItem from "@ext/VersionControl/model/DiffItem";
-import DiffResource from "@ext/VersionControl/model/DiffResource";
-import { FileStatus } from "@ext/Watchers/model/FileStatus";
 import CommitMsg from "@ext/git/actions/Publish/components/CommitMsg";
 import SelectAllCheckbox from "@ext/git/actions/Publish/components/SelectAllCheckbox";
 import SideBarResource from "@ext/git/actions/Publish/components/SideBarResource";
@@ -27,6 +24,7 @@ import getSideBarElementByModelIdx, {
 	SideBarElementData,
 } from "@ext/git/actions/Publish/logic/getSideBarElementByModelIdx";
 import { useResourceView } from "@ext/git/actions/Publish/logic/useResourceView";
+import type { DiffItemResourceCollection } from "@ext/VersionControl/model/Diff";
 import { MouseEvent, useEffect, useMemo, useRef, useState } from "react";
 import deleteSideBarDataItem from "../logic/deleteSideBarDataItems";
 import getAllFilePaths from "../logic/getAllFilePaths";
@@ -149,8 +147,8 @@ const Publish = (props: PublishProps) => {
 	useEffect(() => {
 		const getDiffItemsData = async () => {
 			onSideBarDataLoadStart?.();
-			const response = await FetchService.fetch<{ items: DiffItem[]; resources: DiffResource[] }>(
-				apiUrlCreator.getVersionControlDiffItemsUrl(),
+			const response = await FetchService.fetch<DiffItemResourceCollection>(
+				apiUrlCreator.getVersionControlDiffTreeUrl(),
 			);
 
 			if (!response.ok) return onSideBarDataLoadError?.();
@@ -162,7 +160,7 @@ const Publish = (props: PublishProps) => {
 			const currentSideBarData: SideBarData[] = [];
 
 			if (itemDiffs.length && anyFileDiffs.length) {
-				currentSideBarData.push(...[...itemDiffs, null, ...anyFileDiffs]);
+				currentSideBarData.push(...itemDiffs, null, ...anyFileDiffs);
 			} else {
 				if (itemDiffs.length) currentSideBarData.push(...itemDiffs);
 				if (anyFileDiffs.length) currentSideBarData.push(...anyFileDiffs);
@@ -245,8 +243,8 @@ const Publish = (props: PublishProps) => {
 				<SideBarArticleActions
 					{...x.data}
 					checked={x.data.isChecked}
-					addedCounter={x.diff?.added}
-					removedCounter={x.diff?.removed}
+					addedCounter={x.data.added}
+					removedCounter={x.data.deleted}
 					onChangeCheckbox={(isChecked) => {
 						const newSideBarData = [...sideBarData];
 						newSideBarData[idx].data.isChecked = isChecked;
@@ -268,7 +266,7 @@ const Publish = (props: PublishProps) => {
 			content: (
 				<div className={className}>
 					<div className="diff-content">
-						<DiffContent showDiff={true} changes={x.diff?.changes ?? []} />
+						<DiffContent showDiff={true} changes={x.hunks ?? []} />
 					</div>
 				</div>
 			),
@@ -284,19 +282,21 @@ const Publish = (props: PublishProps) => {
 						return {
 							leftSidebar: (
 								<div style={{ padding: "1rem 1rem 1rem 0" }}>
-									<SideBarResource changeType={x.data.changeType} title={resource.data.title} />
+									<SideBarResource changeType={resource.data.status} title={resource.data.title} />
 								</div>
 							),
 							content: (
 								<>
-									{useResourceView(
+									{useResourceView({
 										id,
-										resourceApi,
-										new Path(resource.data.filePath.path),
-										resource.data.changeType === FileStatus.delete,
-										x.diff,
+										resourcePath: new Path(resource.data.filePath.path),
+										apiUrlCreator: resourceApi,
+										newContent: resource.data.content,
+										oldContent: resource.data.oldContent,
 										relativeTo,
-									)}
+										filePath: resource.data.filePath,
+										diff: resource.hunks,
+									})}
 								</>
 							),
 						};

@@ -64,12 +64,12 @@ describe("GitBaseConflictResolver", () => {
 
 	afterEach(async () => {
 		await dfp.delete(path("testRep"));
-		await RepositoryProvider.invalidateRepoCache([]);
+		await RepositoryProvider.resetRepo();
 		resolver = null;
 		gvc = null;
 	});
 
-	it("Прерывает слияние", async () => {
+	test("Прерывает слияние", async () => {
 		await commit(gvc, { "1.txt": "conflict content theirs" });
 		await gvc.checkoutToBranch("master");
 		await commit(gvc, { "1.txt": "conflict content ours" });
@@ -86,7 +86,7 @@ describe("GitBaseConflictResolver", () => {
 		expect((await gvc.getAllBranches()).map((x) => x.toString())).toEqual(["conflict", "master"]);
 	});
 
-	it("Решает конфликт слияния", async () => {
+	test("Решает конфликт слияния", async () => {
 		await commit(gvc, { "1.txt": "conflict content theirs" });
 		await gvc.checkoutToBranch("master");
 		await commit(gvc, { "1.txt": "conflict content ours" });

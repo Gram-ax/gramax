@@ -34,8 +34,9 @@ export default class ConfluenceCloudAPI implements ConfluenceAPI {
 
 	async getSpaces(): Promise<Space[]> {
 		if (!this._data.token) return;
+
 		const data = (
-			await this._paginationApi(`ex/confluence/${this._data.cloudId}/wiki/api/v2/spaces?`, null, 10)
+			await this._paginationApi(`ex/confluence/${this._data.cloudId}/wiki/api/v2/spaces?`, null, 100)
 		).flat();
 		return data.map((space: Space) => ({
 			name: space.name,
@@ -49,8 +50,9 @@ export default class ConfluenceCloudAPI implements ConfluenceAPI {
 		const data = await this._paginationApi(
 			`ex/confluence/${this._data.cloudId}/wiki/api/v2/spaces/${storageData.id}/pages${format}`,
 			null,
-			10,
+			50,
 		);
+
 		const articles: ConfluenceArticle[] = data.flat().map((result: any) => ({
 			domain: this._data.domain,
 			id: result.id,
@@ -69,7 +71,7 @@ export default class ConfluenceCloudAPI implements ConfluenceAPI {
 		const data = await this._paginationApi(
 			`ex/confluence/${this._data.cloudId}/wiki/api/v2/spaces/${storageData.id}/blogposts${format}`,
 			null,
-			10,
+			50,
 		);
 		const blogs: ConfluenceArticle[] = data.flat().map((result: any) => ({
 			domain: this._data.domain,
@@ -182,7 +184,13 @@ export default class ConfluenceCloudAPI implements ConfluenceAPI {
 		const result = [];
 		const firstPageUrl = `${url}${limit ? `&limit=${limit}` : ""}`;
 
-		const res = await this._api(firstPageUrl, init);
+		let res = await this._api(firstPageUrl, init);
+
+		if (res.status === 401) {
+			await this._refreshAccessToken();
+			res = await this._api(firstPageUrl, init);
+		}
+
 		if (!res.ok) return [];
 
 		const json = await res.json();

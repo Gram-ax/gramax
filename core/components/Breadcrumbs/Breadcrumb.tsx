@@ -1,4 +1,3 @@
-import { cssMedia } from "@core-ui/utils/cssUtils";
 import styled from "@emotion/styled";
 import { BaseLink } from "@ext/navigation/NavigationLinks";
 import { Fragment, ReactElement } from "react";
@@ -105,9 +104,5 @@ export default styled(Breadcrumb)`
 
 	.dots {
 		word-break: normal;
-	}
-
-	${cssMedia.narrow} {
-		margin-top: 1rem;
 	}
 `;

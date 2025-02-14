@@ -20,7 +20,7 @@ const SignOutEnterprise = ({
 
 	const removeWorkspace = async () => {
 		ModalToOpenService.setValue(ModalToOpen.Loading);
-		await FetchService.fetch(apiUrlCreator.removeWorkspace(workspaceConfig.path));
+		await FetchService.fetch(apiUrlCreator.getLogoutEnterpriseUrl(workspaceConfig.path));
 		ModalToOpenService.resetValue();
 		await refreshPage();
 	};

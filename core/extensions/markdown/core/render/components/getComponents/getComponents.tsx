@@ -40,6 +40,7 @@ import Who from "../../../../elements/whowhen/render/Who";
 import ParserContext from "../../../Parser/ParserContext/ParserContext";
 import View from "@ext/markdown/elements/view/render/components/View";
 import ReadonlyListItem from "@ext/markdown/elements/list/render/ReadonlyListItem";
+import Td from "@ext/markdown/elements/table/render/component/TableCell";
 
 export default function getComponents(): { [name: string]: (...props: any) => ReactNode } {
 	return {
@@ -81,6 +82,7 @@ export default function getComponents(): { [name: string]: (...props: any) => Re
 		Term,
 		Error,
 		Table,
+		Td,
 		Include,
 		"Db-table": DbTable,
 		"Db-diagram": DbDiagram,

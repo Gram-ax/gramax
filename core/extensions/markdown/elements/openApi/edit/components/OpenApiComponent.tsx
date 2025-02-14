@@ -4,8 +4,7 @@ import OpenApi from "@ext/markdown/elements/openApi/render/OpenApi";
 import { NodeViewProps, NodeViewWrapper } from "@tiptap/react";
 import { ReactElement, useRef } from "react";
 
-const OpenApiComponent = ({ node, getPos, selected, editor, updateAttributes }: NodeViewProps): ReactElement => {
-	const isSelected = selected && editor.state.selection.from + 1 === editor.state.selection.to;
+const OpenApiComponent = ({ node, getPos, editor, updateAttributes }: NodeViewProps): ReactElement => {
 	const hoverElement = useRef<HTMLDivElement>(null);
 	const isEditable = editor.isEditable;
 
@@ -15,7 +14,7 @@ const OpenApiComponent = ({ node, getPos, selected, editor, updateAttributes }: 
 				getPos={getPos}
 				updateAttributes={updateAttributes}
 				hoverElementRef={hoverElement}
-				selected={isSelected}
+				selected={false}
 				rightActions={
 					isEditable && (
 						<OpenApiActions

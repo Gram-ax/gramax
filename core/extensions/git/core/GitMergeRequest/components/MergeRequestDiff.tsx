@@ -9,8 +9,7 @@ import styled from "@emotion/styled";
 import SidebarArticleLink from "@ext/git/actions/Publish/components/SidebarArticleLink";
 import getSideBarData from "@ext/git/actions/Publish/logic/getSideBarData";
 import SideBarData from "@ext/git/actions/Publish/model/SideBarData";
-import DiffItem from "@ext/VersionControl/model/DiffItem";
-import DiffResource from "@ext/VersionControl/model/DiffResource";
+import type { DiffItem, DiffResource } from "@ext/VersionControl/model/Diff";
 import { useMemo, useState } from "react";
 
 const MergeRequestDiff = ({
@@ -36,7 +35,7 @@ const MergeRequestDiff = ({
 		const currentSideBarData: SideBarData[] = [];
 
 		if (itemDiffs.length && anyFileDiffs.length) {
-			currentSideBarData.push(...[...itemDiffs, null, ...anyFileDiffs]);
+			currentSideBarData.push(...itemDiffs, null, ...anyFileDiffs);
 		} else {
 			if (itemDiffs.length) currentSideBarData.push(...itemDiffs);
 			if (anyFileDiffs.length) currentSideBarData.push(...anyFileDiffs);
@@ -60,13 +59,13 @@ const MergeRequestDiff = ({
 			leftSidebar: (
 				<div style={{ padding: "1rem" }}>
 					<Sidebar title={x.data.title} />
-					<SidebarArticleLink filePath={x.data.filePath} type={x.data.changeType} />
+					<SidebarArticleLink filePath={x.data.filePath} type={x.data.status} />
 				</div>
 			),
 			content: (
 				<div className={className}>
 					<div className="diff-content">
-						<DiffContent showDiff={true} changes={x.diff?.changes ?? []} />
+						<DiffContent showDiff={true} changes={x.hunks ?? []} />
 					</div>
 				</div>
 			),

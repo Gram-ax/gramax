@@ -31,7 +31,7 @@ export default class GitStashConflictResolver extends GitBaseConflictResolver {
 		await super.resolveConflictedFiles(files, state);
 
 		// to remove conflicted files in status
-		await this._repo.gvc.add();
+		await this._repo.gvc.add(null, true);
 		const status = await this._repo.gvc.getChanges();
 		await this._repo.gvc.restore(
 			true,

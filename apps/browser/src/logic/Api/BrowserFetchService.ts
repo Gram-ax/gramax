@@ -4,6 +4,8 @@ import { findCommand } from "@app/commands";
 import Application from "@app/types/Application";
 import { ResponseKind } from "@app/types/ResponseKind";
 import FetchResponse from "@core-ui/ApiServices/Types/FetchResponse";
+import type Method from "@core-ui/ApiServices/Types/Method";
+import type MimeTypes from "@core-ui/ApiServices/Types/MimeTypes";
 import Url from "@core-ui/ApiServices/Types/Url";
 import trimRoutePrefix from "@core-ui/ApiServices/trimRoutePrefix";
 import ApiRequest from "@core/Api/ApiRequest";
@@ -18,7 +20,15 @@ import RouterPathProvider from "@core/RouterPath/RouterPathProvider";
 import PersistentLogger from "@ext/loggers/PersistentLogger";
 import BrowserApiResponse from "./BrowserApiResponse";
 
-const fetchSelf = async (url: Url, body?: BodyInit): Promise<FetchResponse> => {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const fetchSelf = async (
+	url: Url,
+	body?: BodyInit,
+	_mime?: MimeTypes,
+	_method?: Method,
+	_notifyError?: boolean,
+	onDidCommand?: (command: string, args: object, result: unknown) => void,
+): Promise<FetchResponse> => {
 	const route = trimRoutePrefix(url);
 	const res: ApiResponse = new BrowserApiResponse();
 	const app = await getApp();
@@ -41,13 +51,14 @@ const fetchSelf = async (url: Url, body?: BodyInit): Promise<FetchResponse> => {
 	const req: ApiRequest = { headers: {}, query: url.query, body: parseBody(body) };
 
 	const process: Middleware = new ApiMiddleware(async (req, res) => {
-		const ctx = app.contextFactory.fromBrowser(
+		const ctx = await app.contextFactory.fromBrowser(
 			RouterPathProvider.parsePath(window.location.pathname)?.language,
 			{},
 		);
 		const params = command.params(ctx, req.query as Query, req.body);
 		PersistentLogger.info(`executing command ${route}`, "cmd", { ...req.query });
 		const result = await command.do(params);
+		onDidCommand?.(route, req.query, result);
 		await respond(app, req, res, command.kind, result);
 	});
 

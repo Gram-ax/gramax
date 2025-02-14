@@ -6,6 +6,7 @@ import mergeApi from "storybook/stories/extensions/Catalog/Git/BranchActions/mer
 import SyncSrc from "../../../../../../core/extensions/git/actions/Sync/components/Sync";
 import BlockDecorator from "../../../../../styles/decorators/BlockDecorator";
 import syncApiData from "./syncApiData";
+import checkoutApi from "storybook/stories/extensions/Catalog/Git/BranchActions/checkoutApi";
 
 const meta: Meta = {
 	title: "gx/extensions/Catalog/Git/Sync",
@@ -26,7 +27,7 @@ const meta: Meta = {
 		BlockDecorator,
 	],
 	parameters: {
-		msw: mock([...syncApiData, ...mergeApi]),
+		msw: mock([...syncApiData, ...mergeApi, ...checkoutApi]),
 	},
 };
 

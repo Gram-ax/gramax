@@ -12,14 +12,16 @@ const Discard = ({
 	onStartDiscard,
 	onDiscardError,
 	selectedText = false,
+	discardAll = false,
 }: {
 	paths: string[];
 	onEndDiscard?: (paths: string[]) => void;
 	onStartDiscard?: (paths: string[]) => void;
 	onDiscardError?: () => void;
 	selectedText?: boolean;
+	discardAll?: boolean;
 }) => {
-	const confirmText = t(selectedText ? "git.discard.seletected-confirm" : "git.discard.confirm");
+	const confirmText = t("git.discard.seletected-confirm");
 	const apiUrlCreator = ApiUrlCreatorService.value;
 
 	const currentOnDiscard = async () => {
@@ -40,8 +42,8 @@ const Discard = ({
 		>
 			<a>
 				<Icon
-					tooltipContent={t(selectedText ? "discard-selected" : "discard")}
-					code="reply"
+					tooltipContent={t("git.discard.select-all-arrow-tooltip")}
+					code={discardAll ? "reply-all" : "reply"}
 					style={{ fontSize: "13px", fontWeight: 300 }}
 				/>
 			</a>

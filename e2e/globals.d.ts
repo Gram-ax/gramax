@@ -16,6 +16,6 @@ declare global {
 		app: App;
 		commands: CommandTree;
 		refreshPage: () => Promise<void>;
-		forceTrollCaller: () => Promise<void>;
+		forceSave: () => Promise<void>;
 	}
 }

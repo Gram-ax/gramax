@@ -140,7 +140,7 @@ export class NotionPropertyManager {
 
 			catalogProperties.push(customProperty);
 		}
-		return catalogProperties;
+		return catalogProperties.sort((a, b) => a.name.localeCompare(b.name, "en", { sensitivity: "base" }));
 	}
 
 	private _getRandomStyle(): Style {
@@ -197,7 +197,8 @@ export class NotionPropertyManager {
 				if (!property) return;
 				return { name: catalogProperty.name, value: property.value } as PropertyValue;
 			})
-			.filter((propertyValue): propertyValue is PropertyValue => propertyValue !== undefined);
+			.filter((propertyValue): propertyValue is PropertyValue => propertyValue !== undefined)
+			.sort((a, b) => a.name.localeCompare(b.name, "en", { sensitivity: "base" }));
 	}
 
 	private _findCatalogProperty = (id: string) =>
@@ -251,43 +252,42 @@ export class NotionPropertyManager {
 	}
 
 	private _processTextProperty(value: NotionProperty, catalogProperty: Property) {
-		if (value.type === NotionTypes.Relation) {
-			const textValue = this._getRelationTitles(value);
-			return textValue ? { name: catalogProperty.name, value: [textValue] } : undefined;
+		let textValue: string | string[];
+
+		switch (value.type) {
+			case NotionTypes.Relation:
+				textValue = this._getRelationTitles(value);
+				break;
+
+			case NotionTypes.Rollup:
+				const rollupData = value[value.type];
+				if (rollupData.type === "array") {
+					const values = rollupData[rollupData.type].map((item: any) =>
+						this._propertyTypeHandlers[catalogProperty.type]?.(item, catalogProperty),
+					);
+					textValue = values
+						.map((val: any) => val?.value?.[0])
+						.filter((v) => v !== undefined)
+						.join(", ");
+				} else if (rollupData) {
+					textValue = rollupData[rollupData.type];
+				}
+				break;
+
+			case NotionTypes.Formula:
+				const formulaType = value[value.type].type;
+				textValue = value[value.type][formulaType];
+				break;
+
+			case NotionTypes.UniqueID:
+				textValue = `${value[value.type].prefix} - ${value[value.type].number}`;
+				break;
+
+			default:
+				textValue = value[value.type]?.name || value[value.type]?.[0]?.plain_text || value[value.type];
 		}
 
-		if (value.type === NotionTypes.Rollup) {
-			const rollupData = value[value.type];
-			let textValue: string;
-
-			if (rollupData.type === "array") {
-				const values = rollupData[rollupData.type].map((item: any) =>
-					this._propertyTypeHandlers[catalogProperty.type]?.(item, catalogProperty),
-				);
-				textValue = values
-					.map((val: any) => val?.value?.[0])
-					.filter((v) => v !== undefined)
-					.join(", ");
-			} else if (rollupData) {
-				textValue = rollupData[rollupData.type];
-			}
-			return textValue ? { name: catalogProperty.name, value: [textValue] } : undefined;
-		}
-
-		if (value.type === NotionTypes.Formula) {
-			const formulaType = value[value.type].type;
-			const textValue = value[value.type][formulaType];
-			return textValue ? { name: catalogProperty.name, value: [textValue] } : undefined;
-		}
-
-		if (value.type === NotionTypes.UniqueID) {
-			const textValue = `${value[value.type].prefix} - ${value[value.type].number}`;
-			return textValue ? { name: catalogProperty.name, value: [textValue] } : undefined;
-		}
-
-		const textValue = value[value.type]?.name || value[value.type]?.[0]?.plain_text || value[value.type];
-
-		if (!textValue) return;
+		if (!(textValue && textValue.length)) return undefined;
 
 		return { name: catalogProperty.name, value: [textValue] };
 	}

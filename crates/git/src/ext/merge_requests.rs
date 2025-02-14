@@ -14,6 +14,9 @@ const TAG: &str = "git:merge_requests";
 
 pub type RawIsoDateTime = String;
 
+const MERGE_REQUEST_DIR_PATH: &str = ".gramax/mr";
+const MERGE_REQUEST_FILE_PATH: &str = ".gramax/mr/open.yaml";
+
 pub trait MergeRequestExt {
   fn list_merge_requests(&self) -> Result<Vec<MergeRequest>>;
   fn get_draft_merge_request(&self) -> Result<Option<MergeRequest>>;
@@ -37,7 +40,7 @@ fn default_delete_after_merge() -> bool {
 #[derive(Serialize, Deserialize, Clone, PartialEq, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct ApprovalSignature {
-  pub(crate) signature: SinglelineSignature,
+  pub(crate) user: SinglelineSignature,
   #[serde(skip_serializing_if = "Option::is_none")]
   pub(crate) approved_at: Option<String>,
 }
@@ -51,8 +54,8 @@ pub struct MergeRequest {
   pub(crate) title: Option<String>,
   pub(crate) description: Option<String>,
 
-  pub(crate) author: SinglelineSignature,
-  pub(crate) assignees: Vec<ApprovalSignature>,
+  pub(crate) creator: SinglelineSignature,
+  pub(crate) approvers: Vec<ApprovalSignature>,
 
   #[serde(rename = "createdAt")]
   created_at: RawIsoDateTime,
@@ -65,36 +68,40 @@ pub struct MergeRequest {
 #[derive(Serialize, Deserialize, Clone, PartialEq, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct OpenMergeRequest {
-  #[serde(skip_serializing_if = "Option::is_none")]
-  pub(crate) title: Option<String>,
-  #[serde(skip_serializing_if = "Option::is_none")]
-  pub(crate) description: Option<String>,
+  pub(crate) creator: SinglelineSignature,
 
-  #[serde(rename = "target")]
+  #[serde(rename = "targetBranch")]
   pub(crate) target_branch_ref: String,
-
-  pub(crate) author: SinglelineSignature,
-
-  #[serde(default)]
-  pub(crate) assignees: Vec<ApprovalSignature>,
 
   #[serde(rename = "createdAt")]
   #[serde(default)]
   created_at: RawIsoDateTime,
 
+  #[serde(default)]
+  pub(crate) approvers: Vec<ApprovalSignature>,
+
   #[serde(skip_serializing_if = "Option::is_none")]
   pub(crate) options: Option<MergeRequestOptions>,
+
+  #[serde(skip_serializing_if = "Option::is_none")]
+  pub(crate) title: Option<String>,
+
+  #[serde(skip_serializing_if = "Option::is_none")]
+  pub(crate) description: Option<String>,
 }
 
-#[derive(Deserialize, Clone, Debug)]
+#[derive(Deserialize, Default, Clone, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct CreateMergeRequest {
   pub target_branch_ref: String,
-  pub assignees: Option<Vec<ApprovalSignature>>,
+  pub approvers: Option<Vec<ApprovalSignature>>,
   pub title: Option<String>,
   pub description: Option<String>,
   pub created_at: Option<RawIsoDateTime>,
   pub options: Option<MergeRequestOptions>,
+
+  #[serde(default)]
+  pub force_create: bool,
 }
 
 impl MergeRequest {
@@ -104,8 +111,8 @@ impl MergeRequest {
       target_branch_ref: open_mr.target_branch_ref,
       title: open_mr.title,
       description: open_mr.description,
-      author: open_mr.author,
-      assignees: open_mr.assignees,
+      creator: open_mr.creator,
+      approvers: open_mr.approvers,
       created_at: open_mr.created_at.clone(),
       updated_at: open_mr.created_at, // TODO: resolve updated_at & remove .clone()
       options: open_mr.options,
@@ -147,11 +154,10 @@ impl<C: Creds> MergeRequestExt for Repo<C> {
 
       let tree = self.read_tree_reference(branch_ref_raw)?;
 
-      let mr_yaml_bytes = if tree.exists(".gramax/mr/open.yaml")? {
-        tree.read_to_vec(".gramax/mr/open.yaml")?
-      } else if tree.exists(".gramax/mr/open.yml")? {
-        tree.read_to_vec(".gramax/mr/open.yml")?
+      let mr_yaml_bytes = if tree.exists(MERGE_REQUEST_FILE_PATH)? {
+        tree.read_to_vec(MERGE_REQUEST_FILE_PATH)?
       } else {
+        debug!(target: TAG, "no merge-request file found at ref {}", branch_ref_raw);
         continue;
       };
 
@@ -185,12 +191,12 @@ impl<C: Creds> MergeRequestExt for Repo<C> {
     info!(target: TAG, "resolving draft merge-request at HEAD");
 
     let workdir_path = self.0.workdir().ok_or(Error::NoWorkdir)?;
-    if !workdir_path.join(".gramax/mr/open.yaml").exists() {
+    if !workdir_path.join(MERGE_REQUEST_FILE_PATH).exists() {
       info!(target: TAG, "no draft merge-requests found at HEAD; no open.yaml file");
       return Ok(None);
     }
 
-    let mr_bytes = std::fs::read(workdir_path.join(".gramax/mr/open.yaml"))?;
+    let mr_bytes = std::fs::read(workdir_path.join(MERGE_REQUEST_FILE_PATH))?;
     let mr = serde_yml::from_slice::<OpenMergeRequest>(&mr_bytes)?;
 
     Ok(Some(MergeRequest::from_open_dto(self.0.head()?.shorthand().ok_or(Error::Utf8)?.to_string(), mr)))
@@ -218,18 +224,18 @@ impl<C: ActualCreds> MergeRequestManageExt<C> for Repo<C> {
       title: opts.title,
       description: opts.description,
       target_branch_ref: opts.target_branch_ref,
-      author: self.creds().signature()?.short_info()?,
-      assignees: opts.assignees.unwrap_or_default(),
+      creator: self.creds().signature()?.short_info()?,
+      approvers: opts.approvers.unwrap_or_default(),
       created_at: opts.created_at.unwrap_or_default(),
       options: opts.options,
     };
 
     let workdir_path = self.0.workdir().ok_or(Error::NoWorkdir)?;
-    let mr_path = workdir_path.join(".gramax/mr/open.yaml");
+    let mr_path = workdir_path.join(MERGE_REQUEST_FILE_PATH);
 
-    if !mr_path.exists() {
+    if opts.force_create || !mr_path.exists() {
       info!(target: TAG, "creating merge-request HEAD -> {}", mr.target_branch_ref);
-      std::fs::create_dir_all(workdir_path.join(".gramax/mr"))?;
+      std::fs::create_dir_all(workdir_path.join(MERGE_REQUEST_DIR_PATH))?;
       std::fs::write(&mr_path, serde_yml::to_string(&mr)?)?;
       return Ok(());
     }
@@ -240,7 +246,7 @@ impl<C: ActualCreds> MergeRequestManageExt<C> for Repo<C> {
 
     saved_mr.title = mr.title;
     saved_mr.description = mr.description;
-    saved_mr.assignees = mr.assignees;
+    saved_mr.approvers = mr.approvers;
     saved_mr.options = mr.options;
 
     std::fs::write(&mr_path, serde_yml::to_string(&saved_mr)?)?;

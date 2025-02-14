@@ -30,7 +30,7 @@ const Signature = forwardRef<HTMLInputElement, SignatureProps>((props, ref) => {
 
 	const preOnBlur = (e: FocusEvent<HTMLInputElement>) => {
 		e.target.classList.add("no-selection");
-		onLoseFocus(e);
+		if (visible) onLoseFocus(e);
 	};
 
 	return (

@@ -1,12 +1,13 @@
 import PopupMenuLayout from "@components/Layouts/PopupMenuLayout";
-import ButtonLink from "@components/Molecules/ButtonLink";
 import { useRouter } from "@core/Api/useRouter";
 import ThemeService from "@ext/Theme/components/ThemeService";
-import { openPrintView } from "@ext/artilce/actions/SaveAsPdf/OpenPrintView";
 import t from "@ext/localization/locale/translate";
 import { useRef } from "react";
-import ItemExport from "../../extensions/wordExport/components/ItemExport";
+import ItemExport, { ExportFormat } from "../../extensions/wordExport/components/ItemExport";
 import ExportButton from "@ext/wordExport/components/ExportButton";
+import { getExecutingEnvironment } from "@app/resolveModule/env";
+import { openPrintView } from "@ext/artilce/actions/SaveAsPdf/OpenPrintView";
+import ButtonLink from "@components/Molecules/ButtonLink";
 
 interface ExportToDocxOrPdfProps {
 	fileName: string;
@@ -16,13 +17,11 @@ interface ExportToDocxOrPdfProps {
 }
 
 const ExportToDocxOrPdf = (props: ExportToDocxOrPdfProps) => {
-	const { fileName, pathname, itemRefPath, isCategory } = props;
+	const { fileName, itemRefPath, isCategory } = props;
 	const ref = useRef();
-	const router = useRouter();
 	const theme = ThemeService.value;
 
 	const SaveAsPdfHandler = () => {
-		router.pushPath(pathname);
 		setTimeout(() => {
 			openPrintView(theme);
 		}, 1500);
@@ -37,9 +36,47 @@ const ExportToDocxOrPdf = (props: ExportToDocxOrPdfProps) => {
 			openTrigger="mouseenter focus"
 			trigger={<ExportButton ref={ref} iconCode="file-output" text={t("export")} />}
 		>
-			{isCategory && <ItemExport fileName={fileName} itemRefPath={itemRefPath} isCategory={isCategory} />}
-			<ItemExport fileName={fileName} itemRefPath={itemRefPath} isCategory={false} />
-			<ButtonLink className="test" onClick={SaveAsPdfHandler} iconCode="file-text" text={t("article-to-pdf")} />
+			{isCategory && (
+				<ItemExport
+					fileName={fileName}
+					itemRefPath={itemRefPath}
+					isCategory={isCategory}
+					exportFormat={ExportFormat.docx}
+				/>
+			)}
+			<ItemExport
+				fileName={fileName}
+				itemRefPath={itemRefPath}
+				isCategory={false}
+				exportFormat={ExportFormat.docx}
+			/>
+
+			{getExecutingEnvironment() === "next" && (
+				<ButtonLink
+					className="test"
+					onClick={SaveAsPdfHandler}
+					iconCode="file-text"
+					text={t("article-to-pdf")}
+				/>
+			)}
+
+			{getExecutingEnvironment() !== "next" && isCategory && (
+				<ItemExport
+					fileName={fileName}
+					itemRefPath={itemRefPath}
+					isCategory={isCategory}
+					exportFormat={ExportFormat.pdf}
+				/>
+			)}
+
+			{getExecutingEnvironment() !== "next" && (
+				<ItemExport
+					fileName={fileName}
+					itemRefPath={itemRefPath}
+					isCategory={false}
+					exportFormat={ExportFormat.pdf}
+				/>
+			)}
 		</PopupMenuLayout>
 	);
 };

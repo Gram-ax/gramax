@@ -26,6 +26,14 @@ pub fn open_in_explorer(path: &Path) -> Result<()> {
   Ok(())
 }
 
+#[command]
+pub fn set_session_data<R: Runtime>(window: WebviewWindow<R>, key: &str, data: &str) -> Result<()> {
+  use super::save_windows::WindowSessionDataExt;
+
+  window.set_session_data(key, data);
+  Ok(())
+}
+
 #[cfg(target_os = "macos")]
 #[command]
 pub fn show_print<R: Runtime>(window: WebviewWindow<R>) -> Result<()> {

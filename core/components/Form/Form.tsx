@@ -25,6 +25,7 @@ const Form = <Type,>({
 	disableSubmit: parentDisableSubmit,
 	fieldDirection = "column",
 	formDirection = "column",
+	loadingFields,
 	children,
 }: {
 	props: Type;
@@ -43,6 +44,7 @@ const Form = <Type,>({
 	disableSubmit?: boolean;
 	fieldDirection?: "row" | "column";
 	formDirection?: "row" | "column";
+	loadingFields?: { [key: string]: boolean };
 	children?: ReactElement;
 }) => {
 	const [editedSchema, setEditedSchema] = useState<FormSchema>(schema);
@@ -136,6 +138,7 @@ const Form = <Type,>({
 							onFocus={() => setFocusInput(idx)}
 							isFocused={focusInput == idx}
 							fieldDirection={fieldDirection}
+							isLoading={loadingFields?.[key]}
 						/>
 					);
 				})}

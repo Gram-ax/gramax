@@ -23,4 +23,11 @@ export default memo(styled(ActionButtonContainer)`
 	overflow: hidden;
 	max-width: 100%;
 	max-height: 100%;
+	opacity: 0.5;
+	transition: opacity var(--transition-time-fast) ease-in-out;
+
+	&:hover,
+	&:has(.list-layout.active) {
+		opacity: 1;
+	}
 `);

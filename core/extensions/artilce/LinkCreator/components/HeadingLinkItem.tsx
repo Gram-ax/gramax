@@ -4,7 +4,7 @@ import Icon from "@components/Atoms/Icon";
 import Tooltip from "@components/Atoms/Tooltip";
 import Sidebar from "@components/Layouts/Sidebar";
 import LinkTitleContextService, { useFetchArticleHeaders } from "@core-ui/ContextServices/LinkTitleTooltip";
-import eventEmmiter from "@core/utils/eventEmmiter";
+import eventEmmiter from "@core/utils/eventEmitter";
 import styled from "@emotion/styled";
 import LinkItem from "@ext/artilce/LinkCreator/models/LinkItem";
 import t from "@ext/localization/locale/translate";

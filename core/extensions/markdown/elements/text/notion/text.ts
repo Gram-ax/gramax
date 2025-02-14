@@ -34,7 +34,7 @@ const text: NotionNodeConverter = (textNode) => {
 
 	if (textNode.marks) marks.push(...textNode.marks);
 
-	let finalText = textNode.plain_text;
+	let finalText: string = textNode.plain_text;
 
 	if (textNode.type === "mention" && textNode.mention?.type === "date") {
 		const date = new Date(textNode.mention.date?.start);
@@ -53,6 +53,8 @@ const text: NotionNodeConverter = (textNode) => {
 			});
 		}
 	}
+
+	if (finalText === "") return;
 
 	return {
 		type: "text",

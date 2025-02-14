@@ -39,7 +39,7 @@ describe("GitCommands", () => {
 
 	afterEach(async () => {
 		await dfp.delete(path("testRep"));
-		await RepositoryProvider.invalidateRepoCache([]);
+		await RepositoryProvider.resetRepo();
 		git = null;
 	});
 
@@ -100,7 +100,7 @@ describe("GitCommands", () => {
 		});
 	});
 
-	it("получает статус", async () => {
+	test("получает статус", async () => {
 		const wouldBeModified = await writeFile("wouldBeModified", "wouldBeModified content");
 		const wouldBeDeleted = await writeFile("wouldBeDeleted", "wouldBeDeleted content");
 		const unchangedFile = await writeFile("unchangedFile", "unchangedFile content");
@@ -119,18 +119,18 @@ describe("GitCommands", () => {
 	});
 
 	describe("ветки", () => {
-		it("Показывает текущую", async () => {
+		test("Показывает текущую", async () => {
 			const branch = await git.getCurrentBranch();
 
 			expect(branch.toString()).toEqual("master");
 		});
-		it("Создаёт новую", async () => {
+		test("Создаёт новую", async () => {
 			await git.createNewBranch("develop");
 
 			const branch = await git.getCurrentBranch();
 			expect(branch.toString()).toEqual("develop");
 		});
-		it("Переключается на другую", async () => {
+		test("Переключается на другую", async () => {
 			await git.createNewBranch("develop");
 			let branch = await git.getCurrentBranch();
 			expect(branch.toString()).toEqual("develop");
@@ -140,7 +140,7 @@ describe("GitCommands", () => {
 			expect(branch.toString()).toEqual("master");
 		});
 	});
-	it("Отменяет изменения", async () => {
+	test("Отменяет изменения", async () => {
 		const wouldBeDeleted = await writeFile("wouldBeDeleted", "wouldBeDeleted content");
 		const discardDelete = await writeFile("discardDelete", "discardDelete content");
 		const wouldBeModified = await writeFile("wouldBeModified", "wouldBeModified content");
@@ -210,11 +210,25 @@ describe("GitCommands", () => {
 		await git.add([addedNewFile, wouldBeDeleted, wouldBeModified]);
 		const newCommit = await git.commit("", mockUserData);
 
-		const diff = await git.diff(oldCommit, newCommit);
+		const diff = await git.diff({
+			compare: {
+				type: "tree",
+				old: oldCommit,
+				new: newCommit,
+			},
+			renames: true,
+		});
+		const diffFiles = diff.files.map((x) => ({ status: x.status, path: x.path }));
 
-		expect(diff.length).toBe(3);
-		expect(diff).toContainEqual({ isUntracked: true, path: path("added-new-file"), status: FileStatus.new });
-		expect(diff).toContainEqual({ isUntracked: true, path: path("wouldBeDeleted"), status: FileStatus.delete });
-		expect(diff).toContainEqual({ isUntracked: true, path: path("wouldBeModified"), status: FileStatus.modified });
+		expect(diffFiles.length).toBe(3);
+		expect(diffFiles).toContainEqual({ path: path("added-new-file"), status: FileStatus.new });
+		expect(diffFiles).toContainEqual({
+			path: path("wouldBeDeleted"),
+			status: FileStatus.delete,
+		});
+		expect(diffFiles).toContainEqual({
+			path: path("wouldBeModified"),
+			status: FileStatus.modified,
+		});
 	});
 });

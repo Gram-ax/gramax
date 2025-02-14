@@ -36,6 +36,7 @@ import { alert } from "@ext/markdown/elements/alert/render/model/alert";
 import { unsupported } from "@ext/markdown/elements/unsupported/render/model/unsupported";
 import { html } from "@ext/markdown/elements/html/render/models/html";
 import { view } from "@ext/markdown/elements/view/render/models/view";
+import { table, td } from "@ext/markdown/elements/table/render/model/table";
 
 function getContextTagElementRenderModels(context: ParserContext): Record<string, Schema> {
 	return {
@@ -70,6 +71,8 @@ export default function getTagElementRenderModels(context?: ParserContext): Reco
 		video,
 		note,
 		alert,
+		table,
+		td,
 		unsupported,
 		html,
 		view,

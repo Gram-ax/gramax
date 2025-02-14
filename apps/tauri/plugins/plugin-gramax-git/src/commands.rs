@@ -37,6 +37,11 @@ pub(crate) fn branch_list(repo_path: &Path) -> Result<Vec<BranchInfo>> {
 }
 
 #[command(async)]
+pub(crate) fn default_branch(repo_path: &Path, creds: AccessTokenCreds) -> Result<Option<BranchInfo>> {
+  git::default_branch(repo_path, creds)
+}
+
+#[command(async)]
 pub(crate) fn fetch(repo_path: &Path, creds: AccessTokenCreds, force: bool) -> Result<()> {
   git::fetch(repo_path, creds, force)
 }
@@ -72,8 +77,8 @@ pub(crate) fn has_remotes(repo_path: &Path) -> Result<bool> {
 }
 
 #[command(async)]
-pub(crate) fn status(repo_path: &Path) -> Result<StatusInfo> {
-  git::status(repo_path)
+pub(crate) fn status(repo_path: &Path, index: bool) -> Result<StatusInfo> {
+  git::status(repo_path, index)
 }
 
 #[command(async)]
@@ -106,13 +111,13 @@ pub(crate) fn clone<R: Runtime>(
 }
 
 #[command(async)]
-pub(crate) fn add(repo_path: &Path, patterns: Vec<PathBuf>) -> Result<()> {
-  git::add(repo_path, patterns)
+pub(crate) fn add(repo_path: &Path, patterns: Vec<PathBuf>, force: bool) -> Result<()> {
+  git::add(repo_path, patterns, force)
 }
 
 #[command(async)]
-pub(crate) fn diff(repo_path: &Path, old: &str, new: &str) -> Result<StatusInfo> {
-  git::diff(repo_path, old, new)
+pub(crate) fn diff(repo_path: &Path, opts: DiffConfig) -> Result<DiffTree2TreeInfo> {
+  git::diff(repo_path, opts)
 }
 
 #[command(async)]
@@ -121,13 +126,8 @@ pub(crate) fn reset_all(repo_path: &Path, hard: bool, head: Option<&str>) -> Res
 }
 
 #[command(async)]
-pub(crate) fn commit(
-  repo_path: &Path,
-  creds: AccessTokenCreds,
-  message: &str,
-  parents: Option<Vec<String>>,
-) -> Result<()> {
-  git::commit(repo_path, creds, message, parents)
+pub(crate) fn commit(repo_path: &Path, creds: AccessTokenCreds, opts: CommitOptions) -> Result<()> {
+  git::commit(repo_path, creds, opts)
 }
 
 #[command(async)]
@@ -198,10 +198,13 @@ pub(crate) fn git_file_exists(repo_path: &Path, path: &Path, scope: TreeReadScop
 }
 
 #[command(async)]
-pub(crate) fn git_read_dir_stats(repo_path: &Path, path: &Path, scope: TreeReadScope) -> Result<Vec<DirStat>> {
+pub(crate) fn git_read_dir_stats(
+  repo_path: &Path,
+  path: &Path,
+  scope: TreeReadScope,
+) -> Result<Vec<DirStat>> {
   git::read_dir_stats(repo_path, scope, path)
 }
-
 
 #[command(async)]
 pub(crate) fn find_refs_by_globs(repo_path: &Path, patterns: Vec<String>) -> Result<Vec<RefInfo>> {
@@ -214,7 +217,11 @@ pub(crate) fn list_merge_requests(repo_path: &Path) -> Result<Vec<MergeRequest>>
 }
 
 #[command(async)]
-pub(crate) fn create_or_update_merge_request(repo_path: &Path, creds: AccessTokenCreds, merge_request: CreateMergeRequest) -> Result<()> {
+pub(crate) fn create_or_update_merge_request(
+  repo_path: &Path,
+  creds: AccessTokenCreds,
+  merge_request: CreateMergeRequest,
+) -> Result<()> {
   git::create_or_update_merge_request(repo_path, merge_request, creds)
 }
 
@@ -224,6 +231,12 @@ pub(crate) fn get_draft_merge_request(repo_path: &Path) -> Result<Option<MergeRe
 }
 
 #[command(async)]
-pub(crate) fn invalidate_repo_cache(repo_paths: Vec<PathBuf>) -> Result<()> {
-  git::invalidate_repo_cache(repo_paths)
+pub(crate) fn get_all_commit_authors(repo_path: &Path) -> Result<Vec<CommitAuthorInfo>> {
+  git::get_all_commit_authors(repo_path)
+}
+
+#[command]
+pub(crate) fn reset_repo() -> Result<bool> {
+  git::reset_repo();
+  Ok(true)
 }

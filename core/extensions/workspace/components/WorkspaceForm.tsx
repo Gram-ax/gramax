@@ -1,4 +1,3 @@
-import { getExecutingEnvironment } from "@app/resolveModule/env";
 import resolveModule from "@app/resolveModule/frontend";
 import Button from "@components/Atoms/Button/Button";
 import { ButtonStyle } from "@components/Atoms/Button/ButtonStyle";
@@ -12,6 +11,8 @@ import FetchService from "@core-ui/ApiServices/FetchService";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import { clearData } from "@core-ui/ContextServices/RefreshPageContext";
 import WorkspaceService from "@core-ui/ContextServices/Workspace";
+import { usePlatform } from "@core-ui/hooks/usePlatform";
+import useWatch from "@core-ui/hooks/useWatch";
 import { uniqueName } from "@core/utils/uniqueName";
 import styled from "@emotion/styled";
 import t from "@ext/localization/locale/translate";
@@ -19,25 +20,43 @@ import EditCustomTheme from "@ext/workspace/components/EditCustomTheme";
 import { useWorkspaceLogo } from "@ext/workspace/components/useWorkspaceLogo";
 import { useWorkspaceStyle } from "@ext/workspace/components/useWorkspaceStyle";
 import { ClientWorkspaceConfig } from "@ext/workspace/WorkspaceConfig";
-import { useMemo, useState } from "react";
+import { useMemo, useState, useCallback, useEffect } from "react";
 
 export interface WorkspaceFormProps {
 	create?: boolean;
 	workspace?: ClientWorkspaceConfig;
-	onSave?: () => void;
+	setHaveChanges?: (value: boolean) => void;
+	closeCallback: () => void;
+	useSaveWorkspaceCallback?: (callback: () => any) => void;
 	className?: string;
 }
 
 const WorkspaceForm = (Props: WorkspaceFormProps) => {
-	const { onSave, workspace, create = false, className } = Props;
+	const {
+		workspace,
+		setHaveChanges,
+		useSaveWorkspaceCallback = () => {},
+		closeCallback,
+		create = false,
+		className,
+	} = Props;
 
 	const apiUrlCreator = ApiUrlCreatorService.value;
 	const workspaces = WorkspaceService.workspaces();
 	const pathPlaceholder = WorkspaceService.defaultPath();
-	const askPath = getExecutingEnvironment() == "tauri";
+	const { isTauri, isBrowser } = usePlatform();
+	const askPath = isTauri;
 
-	const { confirmChanges: confirmLogo, ...workspaceLogoProps } = useWorkspaceLogo(workspace?.path);
-	const { confirmChanges: confirmStyle, ...workspaceStyleProps } = useWorkspaceStyle(workspace?.path);
+	const {
+		confirmChanges: confirmLogo,
+		haveChanges: haveLogoChanges,
+		...workspaceLogoProps
+	} = useWorkspaceLogo(workspace?.path);
+	const {
+		confirmChanges: confirmStyle,
+		haveChanges: haveStyleChanges,
+		...workspaceStyleProps
+	} = useWorkspaceStyle(workspace?.path);
 
 	const [deleteInProgress, setDeleteInProgress] = useState(false);
 
@@ -71,14 +90,15 @@ const WorkspaceForm = (Props: WorkspaceFormProps) => {
 
 	const canSave = isNameUnique && isPathValid && !deleteInProgress;
 
-	const saveWorkspace = async () => {
+	const saveWorkspace = useCallback(async () => {
 		if (!canSave) return;
 
-		if (!askPath && create)
+		if (!askPath && create) {
 			props.path = uniqueName(
 				pathPlaceholder + "/workspace",
 				workspaces.map((w) => w.path),
 			);
+		}
 
 		clearData();
 		await FetchService.fetch(
@@ -87,20 +107,29 @@ const WorkspaceForm = (Props: WorkspaceFormProps) => {
 		);
 		await confirmLogo();
 		await confirmStyle();
+		setHaveChanges?.(false);
 		await refreshPage();
-	};
 
-	const removeTranslated =
-		getExecutingEnvironment() == "browser" ? t("workspace.delete.web") : t("workspace.delete.desktop");
+		closeCallback();
+	}, [canSave, askPath, create, confirmLogo, confirmStyle, refreshPage, pathPlaceholder, workspaces, props]);
+
+	const removeTranslated = isBrowser ? t("workspace.delete.web") : t("workspace.delete.desktop");
 
 	const removeWorkspace = async () => {
 		if (!(await confirm(removeTranslated))) return;
 		setDeleteInProgress(true);
 		clearData();
 		await FetchService.fetch(apiUrlCreator.removeWorkspace(workspace.path));
-		onSave?.();
+		setHaveChanges?.(false);
 		await refreshPage();
+		closeCallback();
 	};
+
+	useEffect(() => {
+		setHaveChanges?.(haveLogoChanges || haveStyleChanges || !canSave);
+	}, [haveLogoChanges, haveStyleChanges, canSave]);
+
+	useSaveWorkspaceCallback(saveWorkspace);
 
 	return (
 		<ModalLayoutLight className={className}>
@@ -208,14 +237,10 @@ const WorkspaceForm = (Props: WorkspaceFormProps) => {
 								</Button>
 							)}
 						</div>
-						<Button
-							buttonStyle={ButtonStyle.default}
-							disabled={!canSave}
-							onClick={async () => {
-								await saveWorkspace();
-								onSave?.();
-							}}
-						>
+						<Button buttonStyle={ButtonStyle.underline} disabled={!canSave} onClick={closeCallback}>
+							<span>{t("cancel")}</span>
+						</Button>
+						<Button buttonStyle={ButtonStyle.default} disabled={!canSave} onClick={saveWorkspace}>
 							<span>{t("save")}</span>
 						</Button>
 					</div>

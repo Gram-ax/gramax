@@ -7,13 +7,9 @@ const tableTokenTransformer: TokenTransformerFunc = ({ token }) => {
 			token.type = "tableRow" + token.type.slice(2);
 			token.tag = "tableRow";
 		}
-		if (token.tag === "td") {
+		if (token.tag === "td" || token.tag === "th") {
 			token.type = "tableCell" + token.type.slice(2);
 			token.tag = "tableCell";
-		}
-		if (token.tag === "th") {
-			token.type = "tableHeader" + token.type.slice(2);
-			token.tag = "tableHeader";
 		}
 	}
 };

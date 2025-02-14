@@ -63,6 +63,8 @@ interface Application {
 			linkUrl: string;
 			linkTitle: string;
 		};
+
+		allowedOrigins?: string[];
 	};
 }
 

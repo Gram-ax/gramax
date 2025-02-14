@@ -9,28 +9,6 @@ import { CatalogLink } from "@ext/navigation/NavigationLinks";
 import ThemeService from "../../extensions/Theme/components/ThemeService";
 import useUrlImage from "../Atoms/Image/useUrlImage";
 
-const Wrapper = styled.div`
-	width: 100%;
-	display: flex;
-	flex-direction: row;
-	justify-content: space-between;
-	margin-top: 0.5rem;
-
-	.home-icon {
-		display: flex;
-		justify-content: start;
-		align-items: center;
-	}
-
-	.home-icon-wrapper {
-		max-height: 2.5rem;
-	}
-
-	.default-icon {
-		width: 5.5rem;
-	}
-`;
-
 const Logo = () => {
 	const theme = ThemeService.value;
 	const apiUrlCreator = ApiUrlCreatorService.value;
@@ -46,19 +24,42 @@ const Logo = () => {
 			<img
 				src={homeLogo ? homeLogo : useUrlImage(apiUrlCreator.getLogo(theme))}
 				className={classNames("home-icon", { "default-icon": !homeLogo })}
-				alt={"logo"}
+				alt={`logo-${theme}`}
 			/>
 		</div>
 	);
 };
 
-const TopMenu = ({ catalogLinks }: { catalogLinks: CatalogLink[] }) => {
+const TopMenu = ({ catalogLinks, className }: { catalogLinks: CatalogLink[]; className?: string }) => {
+	const isMacDesktop = IsMacService.value && getExecutingEnvironment() == "tauri";
+
 	return (
-		<Wrapper>
+		<div className={className}>
 			<Logo />
-			<HomePageActions catalogLinks={catalogLinks} />
-		</Wrapper>
+			<HomePageActions pin={isMacDesktop} catalogLinks={catalogLinks} />
+		</div>
 	);
 };
 
-export default TopMenu;
+export default styled(TopMenu)`
+	width: 100%;
+	display: flex;
+	flex-direction: row;
+	justify-content: space-between;
+	margin-top: 0.5rem;
+
+	.home-icon {
+		display: flex;
+		border-radius: 0;
+		justify-content: start;
+		align-items: center;
+	}
+
+	.home-icon-wrapper {
+		max-height: 2.5rem;
+	}
+
+	.default-icon {
+		width: 5.5rem;
+	}
+`;

@@ -75,10 +75,13 @@ const AddFilter = (props: AddFilterProps) => {
 
 			if (Array.isArray(val)) newValue = val;
 			else if (availableValues && !oneValue) {
-				if (val === "all")
+				if (val.includes("all")) {
+					const includesNone = !val.includes("none");
 					newValue =
-						property.type === PropertyTypes.flag ? ["yes", "none"] : [...(property.values || []), "none"];
-				else if (typeof val === "string") newValue = [val];
+						property.type === PropertyTypes.flag
+							? ["yes", ...(includesNone ? ["none"] : [])]
+							: [...(property.values || []), ...(includesNone ? ["none"] : [])];
+				} else if (typeof val === "string") newValue = [val];
 			} else if (oneValue) newValue = [name];
 
 			updateAttributes({
@@ -143,17 +146,18 @@ const AddFilter = (props: AddFilterProps) => {
 				return removeProperty(existingProperty);
 			}
 
-			if (val === "all") {
+			if (val.includes("all")) {
+				const includesNone = !val.includes("none");
 				if (existingProperty) {
 					const allValues =
 						originalProperty.type === PropertyTypes.flag
-							? ["yes", "none"]
-							: [...(originalProperty?.values || []), "none"];
+							? ["yes", ...(includesNone ? ["none"] : [])]
+							: [...(originalProperty?.values || []), ...(includesNone ? ["none"] : [])];
 					if (typeof existingProperty !== "string" && existingProperty.value.length === allValues.length)
 						return removeProperty(existingProperty);
 					return updateProperty(propIndex, allValues);
 				}
-				return addFilter(name, "all");
+				return addFilter(name, includesNone ? "all" : "all-none");
 			}
 
 			if (existingProperty && typeof existingProperty !== "string") {

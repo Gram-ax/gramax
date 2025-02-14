@@ -4,6 +4,7 @@ import { NetworkConnectMiddleWare } from "@core/Api/middleware/NetworkConntectMi
 import ReloadConfirmMiddleware from "@core/Api/middleware/ReloadConfirmMiddleware";
 import Context from "@core/Context/Context";
 import Path from "@core/FileProvider/Path/Path";
+import initReviewers from "@ext/enterprise/utils/initReviewers";
 import { Command } from "../../types/Command";
 
 const publish: Command<
@@ -17,7 +18,7 @@ const publish: Command<
 	middlewares: [new NetworkConnectMiddleWare(), new AuthorizeMiddleware(), new ReloadConfirmMiddleware()],
 
 	async do({ ctx, catalogName, message, filePaths }) {
-		const { logger, rp, wm } = this._app;
+		const { logger, rp, wm, em } = this._app;
 		const workspace = wm.current();
 
 		const catalog = await workspace.getContextlessCatalog(catalogName);
@@ -25,6 +26,7 @@ const publish: Command<
 		const storage = catalog.repo.storage;
 		if (!storage) return;
 		const data = rp.getSourceData(ctx.cookie, await storage.getSourceName());
+		const isCreated = await catalog.repo.mergeRequests.isCreated();
 		await catalog.repo.publish({
 			commitMessage: message,
 			filesToPublish: filePaths?.map((p) => new Path(p)),
@@ -36,7 +38,14 @@ const publish: Command<
 					}"`,
 				),
 			onCommit: () => logger.logTrace(`Commited in catalog "${catalogName}". Message: "${message}"`),
-			onPush: () => logger.logInfo(`Pushed in catalog "${catalogName}".`),
+			onPush: async () => {
+				logger.logInfo(`Pushed in catalog "${catalogName}".`);
+				if (!isCreated) return;
+				const branch = await catalog.repo.gvc.getCurrentBranchName();
+				const mr = await catalog.repo.mergeRequests.findBySource(branch, false);
+				if (!mr) return;
+				await initReviewers(em?.getConfig()?.gesUrl, data, storage, mr.approvers, branch);
+			},
 		});
 	},
 

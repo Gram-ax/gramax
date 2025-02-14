@@ -4,6 +4,7 @@ import { cssMedia } from "@core-ui/utils/cssUtils";
 import { useMediaQuery } from "@mui/material";
 import { useRef } from "react";
 import ArticleLayout from "./ArticleLayout";
+import ArticleViewService from "@core-ui/ContextServices/views/articleView/ArticleViewService";
 
 export interface ArticleComponentProps {
 	article: JSX.Element;
@@ -15,6 +16,7 @@ const ArticleComponent = (props: ArticleComponentProps) => {
 	const isSidebarLeftPin = SidebarsIsPinService.value.left;
 	const isSidebarRightPin = SidebarsIsPinService.value.right;
 	const isSidebarRightOpen = SidebarsIsOpenService.value.right;
+	const useArticleDefaultStyles = ArticleViewService.useArticleDefaultStyles;
 
 	const isRightNavHover = useRef(false);
 
@@ -40,6 +42,7 @@ const ArticleComponent = (props: ArticleComponentProps) => {
 			onArticleMouseEnter={onArticleMouseEnterHandler}
 			onRightNavTransitionEnd={onRightNavTransitionEndHandler}
 			rightNav={rightNav}
+			useArticleDefaultStyles={useArticleDefaultStyles}
 		/>
 	);
 };

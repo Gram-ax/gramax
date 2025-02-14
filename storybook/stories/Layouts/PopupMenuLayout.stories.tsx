@@ -1,4 +1,4 @@
-import PopupMenuLayout from "@components/Layouts/PopupMenuLayout";
+import PopupMenuLayout, { PopupMenuElement } from "@components/Layouts/PopupMenuLayout";
 import { Meta } from "@storybook/react";
 
 export default {
@@ -14,4 +14,10 @@ export const Basic = () => (
 			<div>129i21i9e9i1d9iwq9idawd</div>
 		</>
 	</PopupMenuLayout>
+);
+
+export const PopupElement = () => (
+	<div style={{ backgroundColor: "white" }}>
+		<PopupMenuElement tooltipText="tooltip text" IconElement={<div>Icon element</div>}></PopupMenuElement>
+	</div>
 );

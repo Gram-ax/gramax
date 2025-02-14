@@ -1,6 +1,7 @@
 import type ApiRequest from "@core/Api/ApiRequest";
 import type ApiResponse from "@core/Api/ApiResponse";
 import { apiUtils } from "@core/Api/apiUtils";
+import { AllowedOriginsMiddleware } from "@core/Api/middleware/AllowedOriginsMiddleware";
 import { MainMiddleware } from "@core/Api/middleware/MainMiddleware";
 import parseContent from "@core/FileStructue/Article/parseContent";
 import ExceptionsResponse from "@ext/publicApi/ExceptionsResponse";
@@ -33,5 +34,5 @@ export default ApplyApiMiddleware(
 
 		res.send(htmlContent);
 	},
-	[new MainMiddleware()],
+	[new MainMiddleware(), new AllowedOriginsMiddleware()],
 );

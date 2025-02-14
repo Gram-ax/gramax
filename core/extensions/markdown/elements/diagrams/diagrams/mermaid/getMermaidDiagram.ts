@@ -1,12 +1,10 @@
 import t from "@ext/localization/locale/translate";
 import mermaid from "mermaid";
 
-let diagramCounter = 0;
-
 const getMermaidDiagram = async (diagramContent: string) => {
 	if (!diagramContent) throw new Error(t("diagram.error.cannot-get-data"));
 
-	const diagramId = `mermaid-diagram-${diagramCounter++}`;
+	const diagramId = `mermaidGraph-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 	const diagramRenderContainer = document.createElement("div");
 	document.body.appendChild(diagramRenderContainer);
 

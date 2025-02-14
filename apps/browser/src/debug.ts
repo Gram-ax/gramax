@@ -65,7 +65,7 @@ export const fs = {
 };
 
 export const status = async (repoPath: string) => {
-	return await git.status({ repoPath });
+	return await git.status({ repoPath, index: false });
 };
 
 export const commands = async () => getCommands(await app());
@@ -91,10 +91,24 @@ export const devMode = {
 	disable: () => window.localStorage.setItem(devModeItemName, "false"),
 };
 
-export const addAssignee = (name: string, email: string) => {
-	const assignees = window.localStorage.getItem("assignees") ?? [];
-	window.localStorage.setItem(
-		"assignees",
-		JSON.stringify([...assignees, { value: `${name} (${email})`, label: `${name} (${email})`, name, email }]),
-	);
+export const clearLockFiles = async (catalogName: string) => {
+	const app = await getApp();
+	const fp = app.wm.current().getFileProvider();
+	const remotesPath = new Path([catalogName, ".git/refs/remotes/origin"]);
+
+	const deleteLocks = async (path: Path) => {
+		const items = await fp.readdir(path);
+		for (const item of items) {
+			const itemPath = path.join(new Path(item));
+			if (await fp.isFolder(itemPath)) {
+				await deleteLocks(itemPath);
+			} else {
+				if (item.endsWith(".lock")) {
+					await fp.delete(itemPath);
+				}
+			}
+		}
+	};
+
+	await deleteLocks(remotesPath);
 };

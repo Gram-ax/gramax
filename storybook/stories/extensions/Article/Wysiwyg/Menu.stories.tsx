@@ -1,5 +1,4 @@
 import MainMenuSrc from "@ext/markdown/core/edit/components/Menu/Menus/Main";
-import TableMenuSrc from "../../../../../core/extensions/markdown/elements/table/edit/components/TableMenu";
 import BlockDecorator from "../../../../styles/decorators/InlineDecorator";
 
 const MenuData = {
@@ -9,10 +8,6 @@ const MenuData = {
 
 export const Main = () => {
 	return <MainMenuSrc />;
-};
-
-export const Table = () => {
-	return <TableMenuSrc />;
 };
 
 export default MenuData;

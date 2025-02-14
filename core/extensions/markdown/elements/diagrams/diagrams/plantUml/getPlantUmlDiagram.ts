@@ -1,4 +1,5 @@
 import t from "@ext/localization/locale/translate";
+import parseError from "@ext/markdown/elements/diagrams/diagrams/plantUml/parseError";
 
 const PlantUmlEncoder = import("plantuml-encoder");
 
@@ -13,8 +14,12 @@ async function getPlantUmlDiagram(diagramContent: string, diagramRendererUrl: st
 
 	if (diagramResponse.ok) return diagramResponse.text();
 
-	if (diagramResponse.status === 500 || diagramResponse.status === 400)
-		throw new Error(t("diagram.error.invalid-syntax"));
+	if (diagramResponse.status === 400) {
+		const errorText = parseError(await diagramResponse.text());
+		throw new Error(t("diagram.error.invalid-syntax"), { cause: errorText || "" });
+	}
+
+	if (diagramResponse.status === 500) throw new Error(t("diagram.error.invalid-syntax"));
 
 	throw new Error(t("app.error.something-went-wrong"));
 }

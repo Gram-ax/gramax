@@ -1,5 +1,6 @@
 import { ViewContent } from "@components/Layouts/LeftNavViewContent/LeftNavViewContent";
 import LeftSidebar from "@components/Layouts/LeftSidebar/LeftSidebar";
+import ScrollableElement from "@components/Layouts/ScrollableElement";
 import { classNames } from "@components/libs/classNames";
 import styled from "@emotion/styled";
 
@@ -39,23 +40,25 @@ const LeftNavView = (props: LeftNavViewProps) => {
 	return (
 		<div className={classNames(className, {}, ["left-sidebar"])}>
 			<LeftSidebar sidebarTop={sideBarTop} sidebarBottom={sideBarBottom}>
-				<div className={"sidebar"}>
-					<div className="sidebar-content hover-scrollbar">
-						{elements.map((c, idx) => (
-							<div
-								className={getClassName(idx)}
-								key={getKey(idx)}
-								onClick={() => {
-									if (c.clickable === false) return;
-									onLeftSidebarClick?.(idx);
-								}}
-								data-qa="qa-clickable"
-							>
-								{c.leftSidebar}
-							</div>
-						))}
+				<ScrollableElement>
+					<div className={"sidebar"}>
+						<div className="sidebar-content">
+							{elements.map((c, idx) => (
+								<div
+									className={getClassName(idx)}
+									key={getKey(idx)}
+									onClick={() => {
+										if (c.clickable === false) return;
+										onLeftSidebarClick?.(idx);
+									}}
+									data-qa="qa-clickable"
+								>
+									{c.leftSidebar}
+								</div>
+							))}
+						</div>
 					</div>
-				</div>
+				</ScrollableElement>
 			</LeftSidebar>
 		</div>
 	);

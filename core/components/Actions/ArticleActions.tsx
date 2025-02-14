@@ -3,14 +3,15 @@ import ShowInExplorer from "@components/Actions/ShowInExplorer";
 import ListItem from "@components/Layouts/CatalogLayout/RightNavigation/ListItem";
 import ArticlePropsService from "@core-ui/ContextServices/ArticleProps";
 import CatalogPropsService from "@core-ui/ContextServices/CatalogProps";
-import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
+import WorkspaceService from "@core-ui/ContextServices/Workspace";
 import IsReadOnlyHOC from "@core-ui/HigherOrderComponent/IsReadOnlyHOC";
-import getIsDevMode from "@core-ui/utils/getIsDevMode";
+import { usePlatform } from "@core-ui/hooks/usePlatform";
 import BugsnagLogsModal from "@ext/bugsnag/components/BugsnagLogsModal";
 import EnterpriseCheckStyleGuide from "@ext/enterprise/components/EnterpriseCheckStyleGuide";
 import t from "@ext/localization/locale/translate";
-import StyleGuideMenu from "@ext/StyleGuide/components/StyleGuideMenu";
-import { FC, useEffect, useState } from "react";
+import PermissionService from "@ext/security/logic/Permission/components/PermissionService";
+import { editCatalogPermission } from "@ext/security/logic/Permission/Permissions";
+import { FC, useEffect } from "react";
 import FileEditor from "../../extensions/artilce/actions/FileEditor";
 import History from "../../extensions/git/actions/History/component/History";
 
@@ -22,23 +23,26 @@ interface ArticleActionsProps {
 const ArticleActions: FC<ArticleActionsProps> = ({ isCatalogExist, hasRenderableActions }) => {
 	const articleProps = ArticlePropsService.value;
 	const catalogProps = CatalogPropsService.value;
-	const pageData = PageDataContextService.value;
-	const [isDevMode] = useState(() => getIsDevMode());
-	const { isLogged } = pageData;
-	const { isReadOnly } = pageData.conf;
 	const isArticleExist = !!articleProps.fileName;
+	const workspacePath = WorkspaceService.current().path;
+	const { isNext } = usePlatform();
+
+	const canEditCatalog = PermissionService.useCheckPermission(
+		editCatalogPermission,
+		workspacePath,
+		catalogProps.name,
+	);
+
+	const shouldShowEditInGramax = !isNext && (canEditCatalog || !catalogProps.sourceName);
 
 	useEffect(() => {
 		if (!isCatalogExist) return hasRenderableActions(true);
-		if ((isLogged || !isReadOnly) && !!catalogProps.sourceName) return hasRenderableActions(true);
-		if (isReadOnly && !isDevMode) return;
-		return hasRenderableActions(isLogged);
+		if (shouldShowEditInGramax) return hasRenderableActions(true);
 	});
 
 	if (!isCatalogExist)
 		return (
 			<>
-				<EditInGramax />
 				<BugsnagLogsModal />
 			</>
 		);
@@ -55,7 +59,7 @@ const ArticleActions: FC<ArticleActionsProps> = ({ isCatalogExist, hasRenderable
 					}
 				/>
 			</IsReadOnlyHOC>
-			{(isLogged || !isReadOnly) && !!catalogProps.sourceName && <EditInGramax key="edit-gramax" />}
+			{shouldShowEditInGramax && <EditInGramax key="edit-gramax" />}
 			<ShowInExplorer />
 			<EnterpriseCheckStyleGuide />
 			{/* {isDevMode && <StyleGuideMenu />} */}

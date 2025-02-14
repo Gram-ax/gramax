@@ -32,7 +32,7 @@ const AdminLoginLayout = styled(
 							fieldDirection="row"
 							onSubmit={(data) => {
 								FetchService.fetch(
-									apiUrlCreator.getAuthUrl(router),
+									apiUrlCreator.getAuthUrl(router, isLogged),
 									JSON.stringify(data),
 									MimeTypes.json,
 								).then((res) => {

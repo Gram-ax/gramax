@@ -12,7 +12,7 @@ interface ImageDataProps {
 	id?: string;
 	width?: string;
 	height?: string;
-	readFromHead?: boolean;
+	marginBottom?: string;
 }
 
 const Image = (props: ImageDataProps): ReactElement => {

@@ -2,7 +2,6 @@ import { TextSize } from "@components/Atoms/Button/Button";
 import { ButtonStyle } from "@components/Atoms/Button/ButtonStyle";
 import { classNames } from "@components/libs/classNames";
 import ButtonLink from "@components/Molecules/ButtonLink";
-import getIsDevMode from "@core-ui/utils/getIsDevMode";
 import t from "@ext/localization/locale/translate";
 import Theme from "@ext/Theme/Theme";
 import EditStyles from "@ext/workspace/components/EditStyles";
@@ -19,6 +18,8 @@ interface EditWorkspaceAssetsProps {
 	updateDarkLogo?: (data: string) => void;
 	customCss?: string;
 	setCustomCss?: (css: string) => void;
+	isLoadingDark?: boolean;
+	isLoadingLight?: boolean;
 }
 
 const EditWorkspaceAssets = memo((props: EditWorkspaceAssetsProps) => {
@@ -32,37 +33,48 @@ const EditWorkspaceAssets = memo((props: EditWorkspaceAssetsProps) => {
 		darkLogo,
 		setCustomCss,
 		customCss,
+		isLoadingDark,
+		isLoadingLight,
 	} = props;
-
-	const isDev = getIsDevMode();
-
-	if (!isDev) return null;
 
 	return (
 		<>
 			<h3 className={"second_header"}>{t("workspace.appearance")}</h3>
 			<fieldset>
-				<FormRowItem className={"assets_row_item"} label={t("workspace.logo")}>
+				<FormRowItem
+					className={"assets_row_item inverseMargin"}
+					label={t("workspace.logo")}
+					description={t("workspace.default-logo-description")}
+				>
 					<div className={"change_logo_actions"}>
 						<LogoUploader
 							deleteResource={deleteLightLogo}
 							updateResource={updateLightLogo}
 							logo={lightLogo}
+							isLoading={isLoadingLight}
 							imageTheme={Theme.light}
 						/>
-						<div className={"secondary_logo_action"}>
-							<span className={"control-label"}>{t("workspace.for-dark-theme-logo")}</span>
-							<LogoUploader
-								deleteResource={deleteDarkLogo}
-								updateResource={updateDarkLogo}
-								logo={darkLogo}
-								imageTheme={Theme.dark}
-							/>
-						</div>
 					</div>
 				</FormRowItem>
 
-				<FormRowItem className={"assets_row_item"} label={t("workspace.css-style")}>
+				<FormRowItem className={"assets_row_item"} description={t("workspace.dark-logo-description")}>
+					<div className={"secondary_logo_action"}>
+						<span className={"control-label"}>{t("workspace.for-dark-theme")}</span>
+						<LogoUploader
+							deleteResource={deleteDarkLogo}
+							updateResource={updateDarkLogo}
+							logo={darkLogo}
+							isLoading={isLoadingDark}
+							imageTheme={Theme.dark}
+						/>
+					</div>
+				</FormRowItem>
+
+				<FormRowItem
+					className={"assets_row_item"}
+					label={t("workspace.css-style")}
+					description={t("workspace.css-styles-description")}
+				>
 					<EditStyles revertCustomCss={revertCustomCss} setCustomCss={setCustomCss} customCss={customCss}>
 						<ButtonLink
 							isEmUnits
@@ -70,7 +82,7 @@ const EditWorkspaceAssets = memo((props: EditWorkspaceAssetsProps) => {
 							fullWidth
 							iconCode={"palette"}
 							textSize={TextSize.S}
-							text={t("workspace.edit-css-styles")}
+							text={t("edit2")}
 							buttonStyle={ButtonStyle.default}
 						/>
 					</EditStyles>
@@ -80,8 +92,8 @@ const EditWorkspaceAssets = memo((props: EditWorkspaceAssetsProps) => {
 	);
 });
 
-const FormRowItem = (props: { children: ReactElement; label: string; className?: string }) => {
-	const { children, label, className } = props;
+const FormRowItem = (props: { children: ReactElement; label?: string; className?: string; description?: string }) => {
+	const { children, description, label, className } = props;
 
 	return (
 		<div className={classNames("form-group", {}, [className])}>
@@ -89,6 +101,12 @@ const FormRowItem = (props: { children: ReactElement; label: string; className?:
 				<label className="control-label">{label}</label>
 				<div className={`input-lable fullWidth`}>{children}</div>
 			</div>
+			{description && (
+				<div className="input-lable-description ">
+					<div></div>
+					<div className="article">{description}</div>
+				</div>
+			)}
 		</div>
 	);
 };

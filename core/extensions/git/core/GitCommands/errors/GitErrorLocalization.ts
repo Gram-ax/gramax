@@ -52,12 +52,16 @@ const gitErrorLocalization: GitErrorLocalization = {
 				message: t("git.clone.error.already-exist").replace("{{path}}", props.error?.props?.repositoryPath),
 			};
 	},
-	HttpError: (props) => ({
-		message:
-			props.caller === "pull" && props.error.data.statusCode === "401"
-				? t("git.publish.error.no-permission")
-				: t("git.publish.error.http").replace("{{status}}", props.error.data.statusCode),
-	}),
+	HttpError: (props) => {
+		const text = props.error.data?.statusCode ?? ("" as string);
+		if (!(text.includes("status") && text.includes("code")))
+			return { message: t("git.error.http").replace("{{status}}", text) };
+		if (text.includes("401") || text.includes("403")) {
+			if (props.caller === "pull") return { message: t("git.sync.error.no-permission") };
+			if (props.caller === "push") return { message: t("git.publish.error.no-permission") };
+		}
+		return { message: t("git.error.http").replace("{{status}}", text) };
+	},
 	NotFoundError: (props) => {
 		switch (props.caller) {
 			case "resolveRef":

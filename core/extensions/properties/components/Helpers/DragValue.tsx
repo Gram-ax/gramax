@@ -1,10 +1,11 @@
 import Icon from "@components/Atoms/Icon";
 import Input from "@components/Atoms/Input";
 import { classNames } from "@components/libs/classNames";
+import { useDebounce } from "@core-ui/hooks/useDebounce";
 import styled from "@emotion/styled";
 import t from "@ext/localization/locale/translate";
 import { DragItems } from "@ext/properties/models/kanban";
-import { memo, useCallback, useRef, useState } from "react";
+import { memo, useCallback, useRef } from "react";
 import { useDrag, useDrop } from "react-dnd";
 
 interface DragValueProps {
@@ -16,19 +17,17 @@ interface DragValueProps {
 	updateValue: (text: string, id?: number) => void;
 	endDrag: () => void;
 	isActions?: boolean;
-	isEdit?: boolean;
 	className?: string;
 }
 
 const DragValue = memo((props: DragValueProps) => {
-	const { id, text, isEdit, className, findValue, moveValue, onDelete, updateValue, endDrag, isActions } = props;
-	const [isEditable, setIsEditable] = useState<boolean>(isEdit);
+	const { id, text, className, findValue, moveValue, onDelete, updateValue, endDrag, isActions } = props;
 	const inputRef = useRef<HTMLInputElement>(null);
 
 	const [{ isDragging }, drag, preview] = useDrag({
 		type: DragItems.Value,
 		item: { id, text },
-		canDrag: !isEditable,
+		canDrag: true,
 		end: endDrag,
 		collect: (monitor) => ({
 			isDragging: !!monitor.isDragging(),
@@ -56,25 +55,19 @@ const DragValue = memo((props: DragValueProps) => {
 	const handleEdit = useCallback(() => {
 		const newText = inputRef.current?.value;
 		if (newText?.length) updateValue(newText, id);
-		else if (newText?.length === 0) handleDelete();
-		setIsEditable(!isEditable);
-	}, [isEditable, setIsEditable, updateValue]);
+	}, [updateValue, inputRef.current]);
+
+	const updateDebounce = useDebounce(() => handleEdit(), 200);
+	const onChange = useCallback(() => updateDebounce.start(), [updateDebounce.start]);
 
 	return (
-		<div ref={(ref) => void drop(preview(ref))} className={classNames(className, { isDragging, isEditable })}>
+		<div ref={(ref) => void drop(preview(ref))} className={classNames(className, { isDragging })}>
 			<div className="content">
-				<Icon code="ellipsis-vertical" isAction className="drag-icon" ref={(ref) => void drag(ref)} />
-				{isEditable ? <Input type="text" ref={inputRef} defaultValue={text} autoFocus /> : text}
+				<Icon code="grip-vertical" isAction className="drag-icon" ref={(ref) => void drag(ref)} />
+				<Input type="text" ref={inputRef} defaultValue={text} autoFocus onChange={onChange} />
 			</div>
 			{isActions && (
 				<div className="actions">
-					<Icon
-						code={isEditable ? "check" : "pen"}
-						onClick={handleEdit}
-						isAction
-						tooltipContent={isEditable ? t("save") : t("edit")}
-						dataQa={isEditable ? "save-value" : "edit-value"}
-					/>
 					<Icon code="trash-2" onClick={handleDelete} isAction tooltipContent={t("delete")} />
 				</div>
 			)}
@@ -94,10 +87,11 @@ export default styled(DragValue)`
 	.content {
 		display: flex;
 		align-items: center;
+		width: 100%;
+	}
 
-		.drag-icon {
-			cursor: grab;
-		}
+	.drag-icon {
+		cursor: grab;
 	}
 
 	:hover {

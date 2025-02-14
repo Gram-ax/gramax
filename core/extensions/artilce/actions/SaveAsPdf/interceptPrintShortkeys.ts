@@ -14,7 +14,7 @@ const interceptPrintShortkeys = (isMac: boolean, theme: Theme) => {
 		return () => {
 			window.removeEventListener("keydown", handleKeyPress);
 		};
-	}, []);
+	}, [isMac, theme]);
 };
 
 export default interceptPrintShortkeys;

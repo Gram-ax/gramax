@@ -9,4 +9,10 @@ export class GitVersion implements Version {
 		if (!commit) return false;
 		return this._value === commit.toString();
 	}
+
+	static from(value: string | GitVersion) {
+		if (!value) return null;
+		if (typeof value === "string") return new GitVersion(value);
+		return value;
+	}
 }

@@ -41,7 +41,7 @@ export default memo(styled(ActionSearcher)`
 	border: 0;
 	font-size: 0.65em;
 	width: 100%;
-	max-width: 13em;
+	max-width: 14em;
 	margin-right: 0.5em;
 
 	i {
@@ -61,10 +61,6 @@ export default memo(styled(ActionSearcher)`
 		padding: 0.5em 0.75em;
 	}
 
-	> div {
-		width: 100%;
-	}
-
 	input {
 		color: var(--color-primary-general) !important;
 		font-size: 0.85em !important;
@@ -77,5 +73,9 @@ export default memo(styled(ActionSearcher)`
 		height: 5em;
 		border-radius: 0;
 		background-color: transparent;
+	}
+
+	.list-search {
+		gap: 0 !important;
 	}
 `);

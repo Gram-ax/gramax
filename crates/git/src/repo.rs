@@ -18,6 +18,24 @@ pub use git2::BranchType;
 
 const TAG: &str = "git";
 
+#[cfg(not(target_family = "wasm"))]
+#[inline(always)]
+fn set_mwindow_file_limit_once() {
+  const FILE_LIMIT: i32 = 8192;
+
+  static SET_OPT: std::sync::Once = std::sync::Once::new();
+
+  SET_OPT.call_once(|| unsafe {
+    let result = git2::raw::git_libgit2_opts(git2::raw::GIT_OPT_SET_MWINDOW_FILE_LIMIT as i32, FILE_LIMIT);
+
+    if result == 0 {
+      info!("set GIT_OPT_SET_MWINDOW_FILE_LIMIT to {}; result code {}", FILE_LIMIT, result);
+    } else {
+      error!("failed to set GIT_OPT_SET_MWINDOW_FILE_LIMIT to {}; result code {}", FILE_LIMIT, result);
+    }
+  });
+}
+
 pub struct Repo<C: Creds>(pub(crate) git2::Repository, pub(crate) C);
 
 impl<C: Creds> Repo<C> {
@@ -26,6 +44,9 @@ impl<C: Creds> Repo<C> {
   }
 
   pub fn open<P: AsRef<Path>>(path: P, creds: C) -> Result<Self> {
+    #[cfg(not(target_family = "wasm"))]
+    set_mwindow_file_limit_once();
+
     let repo = git2::Repository::open(path)?;
 
     #[cfg(target_family = "wasm")]
@@ -42,7 +63,7 @@ impl<C: Creds> Repo<C> {
     {
       let mut index = repo.index()?;
       let signature = creds.signature()?;
-      index.add_all(["."], IndexAddOption::all(), None)?;
+      index.add_all(["."], IndexAddOption::DEFAULT, None)?;
       index.write()?;
       let oid = index.write_tree()?;
       if let Ok(parent) = repo.head().and_then(|head| head.peel_to_commit()) {
@@ -56,57 +77,6 @@ impl<C: Creds> Repo<C> {
     repo.ensure_trash_ignored()?;
 
     Ok(repo)
-  }
-
-  pub fn add_glob<I: Iterator<Item = S>, S: IntoCString>(&self, patterns: I) -> Result<()> {
-    self.ensure_crlf_configured()?;
-    self.0.index()?.add_all(patterns, IndexAddOption::all(), None)?;
-    self.0.index()?.write()?;
-    Ok(())
-  }
-
-  pub fn add<P: AsRef<Path>>(&self, path: P) -> Result<()> {
-    self.ensure_crlf_configured()?;
-    self.0.index()?.add_path(path.as_ref())?;
-    self.0.index()?.write()?;
-    Ok(())
-  }
-
-  pub fn commit<S: AsRef<str>>(&self, message: S) -> Result<Oid> {
-    info!(target: TAG, "commit: {}", message.as_ref());
-    let signature = self.creds().signature()?;
-    let mut index = self.0.index()?;
-
-    let tree = self.0.find_tree(index.write_tree()?)?;
-    let parent = self.0.head()?.peel_to_commit()?;
-
-    let oid = self.0.commit(Some("HEAD"), &signature, &signature, message.as_ref(), &tree, &[&parent])?;
-    Ok(oid)
-  }
-
-  pub fn commit_with_parents<S: AsRef<str>>(&self, message: S, parents_branches: Vec<String>) -> Result<Oid> {
-    info!(target: TAG, "commit: {} (parents {:?})", message.as_ref(), parents_branches);
-    let signature = self.creds().signature()?;
-    let mut index = self.0.index()?;
-    let tree = self.0.find_tree(index.write_tree()?)?;
-    let mut commits = Vec::with_capacity(parents_branches.len());
-    for shortname in parents_branches {
-      let branch = self
-        .0
-        .find_branch(&shortname, BranchType::Local)
-        .or_else(|_| self.0.find_branch(&shortname, BranchType::Remote))?;
-      commits.push(branch.get().peel_to_commit()?);
-    }
-
-    let oid = self.0.commit(
-      Some("HEAD"),
-      &signature,
-      &signature,
-      message.as_ref(),
-      &tree,
-      &commits.iter().collect::<Vec<_>>(),
-    )?;
-    Ok(oid)
   }
 
   pub fn fetch(&self, force: bool) -> Result<()> {
@@ -235,26 +205,22 @@ impl<C: Creds> Repo<C> {
       if staged {
         match tree.get_path(path.as_ref()) {
           Ok(entry) => {
-            let filemode = entry.filemode();
-            let entry = entry.to_object(&self.0)?;
-            let entry = entry.as_blob().unwrap();
-
             let index_entry = IndexEntry {
-              ctime: IndexTime::new(0, 0),
-              mtime: IndexTime::new(0, 0),
+              id: entry.id(),
+              path: path.as_ref().as_os_str().as_encoded_bytes().to_vec(),
+              mode: entry.filemode() as u32,
+              ctime: git2::IndexTime::new(0, 0),
+              mtime: git2::IndexTime::new(0, 0),
               dev: 0,
-              file_size: entry.size() as u32,
-              flags: 0,
               ino: 0,
-              mode: filemode as u32,
               uid: 0,
               gid: 0,
-              id: entry.id(),
+              file_size: 0,
+              flags: 0,
               flags_extended: 0,
-              path: path.as_ref().as_os_str().as_encoded_bytes().to_vec(),
             };
 
-            index.add_frombuffer(&index_entry, entry.content())?;
+            index.add(&index_entry)?;
           }
           Err(_) => {
             if let Err(err) = index.remove_path(path.as_ref()) {
@@ -275,9 +241,7 @@ impl<C: Creds> Repo<C> {
           }
           std::fs::write(fs_path, blob.content())?;
         }
-        Err(err)
-          if err.code() == ErrorCode::NotFound && err.class() == ErrorClass::Tree && fs_path.exists() =>
-        {
+        Err(err) if matches!((err.class(), err.code()), (ErrorClass::Tree, ErrorCode::NotFound)) => {
           self.remove_path(&fs_path)?;
         }
         Err(err) => return Err(err.into()),
@@ -305,6 +269,11 @@ impl<C: Creds> Repo<C> {
   }
 
   fn remove_path(&self, path: &Path) -> Result<()> {
+    if !path.exists() {
+      warn!(target: TAG, "path {} does not exist", path.display());
+      return Ok(());
+    }
+
     if std::fs::metadata(path)?.is_dir() {
       std::fs::remove_dir_all(path)?;
       return Ok(());

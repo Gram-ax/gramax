@@ -65,7 +65,7 @@ const PropertyItem = (props: PropertyItemProps) => {
 			placement="right-start"
 			openTrigger="mouseenter focus"
 			trigger={
-				<div className={className} onClick={(e) => allowAddAll && onClick?.(e, id, "all")}>
+				<div className={className} onClick={(e) => allowAddAll && onClick?.(e, id, "all-none")}>
 					{startIcon && (
 						<div className="icon-space">
 							<Icon code={startIcon} />

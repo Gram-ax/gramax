@@ -1,26 +1,26 @@
 enum UiLanguage {
-	ru = "ru",
 	en = "en",
+	ru = "ru",
 }
 
 export enum ContentLanguage {
-	ru = "ru",
 	en = "en",
+	ru = "ru",
+	es = "es",
 	zh = "zh",
 	hi = "hi",
-	es = "es",
 	fr = "fr",
 	ar = "ar",
 	pt = "pt",
 	de = "de",
 	ja = "ja",
+	tr = "tr",
 	ko = "ko",
 	it = "it",
-	tr = "tr",
-	nl = "nl",
 	pl = "pl",
-	sv = "sv",
+	nl = "nl",
 	cs = "cs",
+	sv = "sv",
 }
 
 export const defaultLanguage = UiLanguage.ru;

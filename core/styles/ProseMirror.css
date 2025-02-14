@@ -24,6 +24,10 @@
 	margin: 0 !important;
 }
 
+.ProseMirror .scrollableContent:has(.tableComponent) {
+	position: relative;
+}
+
 .ProseMirror .focus-pointer-events {
 	user-select: none;
 	-ms-user-select: none;
@@ -74,7 +78,7 @@
 .ProseMirror pre > div {
 	padding: 0;
 	font-size: 0.8rem;
-	text-wrap: nowrap;
+	white-space: nowrap;
 	line-height: 20px;
 	background: none !important;
 	color: var(--color-fence-text);
@@ -112,7 +116,6 @@
 
 .ProseMirror table {
 	margin: 0;
-	table-layout: fixed;
 	border-collapse: collapse;
 }
 .ProseMirror table td,
@@ -144,13 +147,14 @@
 }
 
 .ProseMirror table .column-resize-handle {
-	background-color: #adf;
-	bottom: -2px;
+	opacity: 0.13;
+	background-color: var(--color-table-actions);
+	bottom: 0;
 	position: absolute;
-	right: -2px;
+	right: -3px;
 	pointer-events: none;
 	top: 0;
-	width: 4px;
+	width: 5px;
 }
 
 .table-actions {
@@ -161,7 +165,8 @@
 	cursor: col-resize;
 }
 
-.ProseMirror p.is-empty::before {
+[data-qa="editor"] > .ProseMirror p.is-empty:first-of-type:last-of-type::before,
+[data-qa="article-editor"] > .ProseMirror p.is-empty::before {
 	content: attr(data-placeholder);
 	pointer-events: none;
 	opacity: 0.4;
@@ -191,7 +196,7 @@
 
 @media print {
 	.ProseMirror pre > div {
-		text-wrap: wrap;
+		white-space: wrap;
 	}
 
 	.ProseMirror code {

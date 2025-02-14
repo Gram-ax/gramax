@@ -44,7 +44,7 @@ FROM --platform=$TARGETPLATFORM ${CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX}/node:2
 WORKDIR /app
 
 RUN apt-get update && apt-get upgrade -y && \
-  apt-get install -y git bash && \
+  apt-get install -y git bash fontconfig && \
   apt-get clean && \
   rm -rf /var/lib/apt/lists/*
 
@@ -57,7 +57,6 @@ ARG BRANCH \
 ENV PORT=80 \
   PRODUCTION=${PRODUCTION} \
   ROOT_PATH=/app/data \
-  ENTERPRISE_CONFIG_PATH=/app/config \
   BRANCH=${BRANCH} \
   BUGSNAG_API_KEY=${BUGSNAG_API_KEY} \
   AUTO_PULL_INTERVAL=180 \

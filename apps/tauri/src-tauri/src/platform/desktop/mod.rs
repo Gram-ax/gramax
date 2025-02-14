@@ -3,6 +3,7 @@ use tauri::*;
 
 use crate::error::ShowError;
 
+use crate::AppHandleExt;
 use crate::ALLOWED_DOMAINS;
 
 pub mod commands;
@@ -55,6 +56,7 @@ pub fn on_run_event<R: Runtime>(app: &AppHandle<R>, ev: RunEvent) {
       _ = app.save_windows().or_show();
       api.prevent_exit();
     }
+    RunEvent::WindowEvent { label, event, .. } => on_window_event(app, label, event),
     _ => (),
   }
 }
@@ -66,7 +68,14 @@ pub fn on_run_event<R: Runtime>(app: &AppHandle<R>, ev: RunEvent) {
       _ = app.save_windows().or_show()
     }
     RunEvent::Exit => _ = app.save_windows().or_show(),
+    RunEvent::WindowEvent { label, event, .. } => on_window_event(app, label, event),
     _ => (),
+  }
+}
+
+fn on_window_event<R: Runtime>(app: &AppHandle<R>, label: String, event: WindowEvent) {
+  if let WindowEvent::Focused(true) = event {
+    app.set_focused_webview(label);
   }
 }
 

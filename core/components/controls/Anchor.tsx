@@ -41,7 +41,11 @@ const Anchor = (Props: AnchorProps) => {
 		return (
 			<a {...props} target={target} rel="noopener">
 				{children}
-				<span style={{ whiteSpace: "nowrap", padding: 0 }} data-mdignore={true}>
+				<span
+					style={{ whiteSpace: "nowrap", padding: 0 }}
+					className={"external-link-wrapper"}
+					data-mdignore={true}
+				>
 					&#65279;
 					<Icon className="link-icon" code="external-link" />
 				</span>

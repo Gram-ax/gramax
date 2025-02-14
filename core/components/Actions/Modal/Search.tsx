@@ -421,6 +421,11 @@ export default styled(Search)`
 			overflow-y: auto;
 			border-radius: var(--radius-small);
 
+			${cssMedia.narrow} {
+				max-height: 75vh;
+				height: fit-content !important;
+			}
+
 			.msg {
 				margin: 2em 20px;
 				text-align: center;
@@ -553,14 +558,18 @@ export default styled(Search)`
 		}
 	}
 
-	// TODO - Сделать изменение стилей от ширины страницы как в site static generator
-
-	@media (max-width: 1024px) {
+	${cssMedia.mediumest} {
 		.cut-content {
 			display: inline !important;
 			white-space: normal !important;
 			overflow: hidden !important;
 			text-overflow: ellipsis !important;
+		}
+	}
+
+	${cssMedia.narrow} {
+		&.modal {
+			height: fit-content !important;
 		}
 	}
 `;

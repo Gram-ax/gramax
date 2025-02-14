@@ -7,7 +7,7 @@ fn stash_without_conflict(sandbox: TempDir, #[with(&sandbox)] mut repo: Repo<Tes
 
   fs::write(path.join("file"), "test\ntest\ntest\ntest\ntest")?;
   repo.add("file")?;
-  repo.commit("1")?;
+  repo.commit_debug()?;
 
   fs::write(path.join("file"), "test\n123\n123\ntest\ntest")?;
   repo.add("file")?;
@@ -27,7 +27,7 @@ fn conflict(sandbox: TempDir, #[with(&sandbox)] mut repo: Repo<TestCreds>) -> Re
   let file = path.join("file");
   fs::write(&file, "content")?;
   repo.add("file")?;
-  repo.commit("1")?;
+  repo.commit_debug()?;
 
   fs::write(&file, "222")?;
   repo.add("file")?;
@@ -35,7 +35,7 @@ fn conflict(sandbox: TempDir, #[with(&sandbox)] mut repo: Repo<TestCreds>) -> Re
   let stash = repo.stash(None)?.unwrap();
   fs::write(&file, "444")?;
   repo.add("file")?;
-  repo.commit("f")?;
+  repo.commit_debug()?;
 
   let MergeResult::Conflicts(conflicts) = repo.stash_apply(stash)? else { panic!("conflict was expected") };
 
@@ -55,10 +55,10 @@ fn rename_file(sandbox: TempDir, #[with(&sandbox)] mut repo: Repo<TestCreds>) ->
   let file_renamed = path.join("file_renamed");
   fs::write(&file, "init content")?;
   repo.add("file")?;
-  repo.commit("init")?;
+  repo.commit_debug()?;
 
   fs::rename(&file, file.with_file_name(&file_renamed))?;
-  repo.add_glob(["*"].iter())?;
+  repo.add_all()?;
   assert!(!file.exists());
   assert!(file_renamed.exists());
 
@@ -67,8 +67,8 @@ fn rename_file(sandbox: TempDir, #[with(&sandbox)] mut repo: Repo<TestCreds>) ->
   assert!(!file_renamed.exists());
 
   fs::remove_file(&file)?;
-  repo.add_glob(["*"].iter())?;
-  repo.commit("2")?;
+  repo.add_all()?;
+  repo.commit_debug()?;
 
   assert!(!file.exists());
   assert!(!file_renamed.exists());
@@ -102,7 +102,7 @@ fn move_n_modify(sandbox: TempDir, #[with(&sandbox)] mut repo: Repo<TestCreds>) 
   let path = sandbox.path();
   fs::write(path.join("file"), "test\ntest\ntest")?;
   repo.add("file")?;
-  repo.commit("1")?;
+  repo.commit_debug()?;
 
   fs::write(path.join("file-moved"), "test\nfff\ntest\ntest\ntest")?;
   repo.add("file")?;
@@ -110,7 +110,7 @@ fn move_n_modify(sandbox: TempDir, #[with(&sandbox)] mut repo: Repo<TestCreds>) 
   let oid = repo.stash(None)?.unwrap();
   fs::write(path.join("file"), "ffffdsafsdafa\ntest\ntest\ntest\ntest")?;
   repo.add("file")?;
-  repo.commit("2")?;
+  repo.commit_debug()?;
 
   assert!(repo.stash_apply(oid).is_ok());
 
@@ -127,7 +127,7 @@ fn add_same_file(sandbox: TempDir, #[with(&sandbox)] mut repo: Repo<TestCreds>) 
 
   fs::write(path.join("file"), "fff\nfff\nfff\nttt\nttt")?;
   repo.add("file")?;
-  repo.commit("1")?;
+  repo.commit_debug()?;
 
   let res = repo.stash_apply(oid)?;
   let expected = MergeResult::Conflicts(Vec::from([MergeConflictInfo {

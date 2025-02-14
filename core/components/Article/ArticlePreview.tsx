@@ -36,9 +36,7 @@ const ArticlePreview = ({ logicPath, className }: ArticlePreviewProps) => {
 	return (
 		<div className={className}>
 			<ApiUrlCreatorService.Provider
-				value={
-					new ApiUrlCreator(pageProps.conf.basePath, pageProps.isLogged, catalogProps.name, data.articlePath)
-				}
+				value={new ApiUrlCreator(pageProps.conf.basePath, catalogProps.name, data.articlePath)}
 			>
 				<OnLoadResourceService.Provider>
 					<ArticleTooltipService.Provider>

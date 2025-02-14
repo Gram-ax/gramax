@@ -61,7 +61,7 @@
 		"./storybook/.storybook/*",
 		"./e2e/**/*",
 		"./scripts/**/*",
-		"./**/*.config.ts",
+		"./**/*.config.ts"
 	],
 
 	"exclude": [
@@ -71,6 +71,7 @@
 		"./apps/tauri/**/target",
 		"./apps/tauri/src-tauri",
 		"./apps/browser/wasm/dist",
-		"./services/**/Services/TSClassDiagram/files"
+		"./services/**/Services/TSClassDiagram/files",
+		"./apps/tauri/src-tauri"
 	]
 }

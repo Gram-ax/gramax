@@ -16,14 +16,12 @@ import DiagramType from "@core/components/Diagram/DiagramType";
 import styled from "@emotion/styled";
 import InfoModalForm from "@ext/errorHandlers/client/components/ErrorForm";
 import t from "@ext/localization/locale/translate";
-import Alert, { AlertType } from "@ext/markdown/elements/alert/render/component/Alert";
-import CodeBlock from "@ext/markdown/elements/codeBlockLowlight/render/component/CodeBlock";
 import OnLoadResourceService from "@ext/markdown/elements/copyArticles/onLoadResourceService";
+import DiagramError from "@ext/markdown/elements/diagrams/component/DiagramError";
 import DiagramRender from "@ext/markdown/elements/diagrams/component/DiagramRender";
 import getMermaidDiagram from "@ext/markdown/elements/diagrams/diagrams/mermaid/getMermaidDiagram";
 import getPlantUmlDiagram from "@ext/markdown/elements/diagrams/diagrams/plantUml/getPlantUmlDiagram";
 import getNaturalSize from "@ext/markdown/elements/diagrams/logic/getNaturalSize";
-import Note, { NoteType } from "@ext/markdown/elements/note/render/component/Note";
 import useMediaQuery from "@mui/material/useMediaQuery";
 import { Editor } from "@tiptap/core";
 import { FC, Suspense, lazy, memo, useCallback, useEffect, useRef, useState } from "react";
@@ -37,9 +35,11 @@ const langs: { [type in DiagramType]: string } = {
 	"Plant-uml": "plant-uml",
 };
 
+type DiagramNames = "OpenApi" | DiagramType;
+
 interface DiagramsEditorProps {
 	editor: Editor;
-	diagramName: DiagramType;
+	diagramName: DiagramNames;
 	src?: string;
 	content?: string;
 	trigger?: JSX.Element;
@@ -99,7 +99,7 @@ const DiagramsEditor = (props: DiagramsEditorProps) => {
 	};
 
 	const getAnyDiagrams = async (content: string, isC4Diagram: boolean) => {
-		const res = await FetchService.fetch(apiUrlCreator.getDiagramByContentUrl(diagramName), content);
+		const res = await FetchService.fetch(apiUrlCreator.getDiagramByContentUrl(diagramName as DiagramType), content);
 		if (!res.ok) return setError(await res.json());
 		return isC4Diagram ? await res.json() : await res.text();
 	};
@@ -113,6 +113,7 @@ const DiagramsEditor = (props: DiagramsEditorProps) => {
 		onClose?.();
 		setIsOpen(false);
 
+		if (diagramName === "OpenApi") return;
 		const diagramData = DIAGRAM_FUNCTIONS?.[diagramName]
 			? await DIAGRAM_FUNCTIONS?.[diagramName](contentEditState, diagramsServiceUrl)
 			: await getAnyDiagrams(contentEditState, diagramName === DiagramType["c4-diagram"]);
@@ -242,25 +243,7 @@ const DiagramsEditor = (props: DiagramsEditorProps) => {
 								{error && (
 									<div className={"bottom"} style={{ height: alertHeight }}>
 										<div ref={alertWrapperRef}>
-											<Alert
-												title={`${t("diagram.error.render-failed")}${
-													diagramName ? ` (${diagramName})` : ""
-												}`}
-												type={AlertType.error}
-											>
-												<div>{error.message}</div>
-												{error.stack && (
-													<Note
-														title={t("alert.details")}
-														collapsed={true}
-														type={NoteType.danger}
-														className={"alert-stack-trace"}
-														collapseCallback={debounceSetHeight}
-													>
-														<CodeBlock value={error.stack} />
-													</Note>
-												)}
-											</Alert>
+											<DiagramError error={error} diagramName={diagramName} />
 										</div>
 									</div>
 								)}
@@ -271,7 +254,7 @@ const DiagramsEditor = (props: DiagramsEditorProps) => {
 									<OverloadDiagramRenderer
 										setError={setError}
 										error={error}
-										diagramName={diagramName}
+										diagramName={diagramName as DiagramType}
 										content={pendedData}
 									/>
 								</div>

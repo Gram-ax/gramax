@@ -19,7 +19,7 @@ describe("RepositorySettingsFile", () => {
 		rsf = null;
 	});
 
-	it("записывает состояние", async () => {
+	test("записывает состояние", async () => {
 		const state = await rsf.getState();
 		await state.saveState({ value: "default", data: "testData" } as any);
 

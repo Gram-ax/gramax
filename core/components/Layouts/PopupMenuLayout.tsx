@@ -1,7 +1,9 @@
+import Tooltip from "@components/Atoms/Tooltip";
+import { classNames } from "@components/libs/classNames";
 import ButtonLink from "@components/Molecules/ButtonLink";
 import useElementExistence from "@core-ui/hooks/useElementExistence";
+import { css } from "@emotion/react";
 import styled from "@emotion/styled";
-import { Placement } from "@popperjs/core";
 import Tippy from "@tippyjs/react";
 import {
 	ReactElement,
@@ -14,7 +16,6 @@ import {
 	useRef,
 	useState,
 } from "react";
-import Tooltip from "../Atoms/Tooltip";
 import { Instance, Props } from "tippy.js";
 
 export interface PopupMenuLayoutProps {
@@ -23,15 +24,17 @@ export interface PopupMenuLayoutProps {
 	openTrigger?: string;
 	appendTo?: Element | "parent" | ((ref: Element) => Element);
 	isInline?: boolean;
-	offset?: [number, number];
-	placement?: Placement;
+	offset?: Props["offset"];
+	placement?: Props["placement"];
 	tooltipText?: string;
 	onOpen?: () => void;
-	onClose?: (instance: Instance<Props>) => void;
+	onClose?: (instance: Instance<Props>) => false | void;
 	onTippyMount?: (instance: Instance<Props>) => void;
+	onClickOutside?: (instance: Instance<Props>, event: Event) => void;
 	className?: string;
 	disabled?: boolean;
 	hideOnClick?: boolean;
+	buttonClassName?: string;
 }
 
 interface PopupProps {
@@ -64,6 +67,28 @@ const Popup = ({ className, onClick, isOpen, children }: PopupProps) => {
 	);
 };
 
+interface PopupMenuElementProps {
+	IconElement: ReactNode;
+	isInline?: boolean;
+	tooltipText?: string;
+	className?: string;
+}
+
+const PopupMenuElementUnstyled = (props: PopupMenuElementProps) => {
+	const { IconElement, isInline = false, tooltipText, className } = props;
+
+	return createElement(
+		isInline ? "span" : "div",
+		{ className: classNames("button", {}, [className]), style: { display: "flex", alignItems: "center" } },
+		<Tooltip content={tooltipText}>
+			<span>{IconElement}</span>
+		</Tooltip>,
+	);
+};
+
+export const PopupMenuElement = styled(PopupMenuElementUnstyled)`
+	${(p) => (p.isInline ? "" : PopupMenuElementStyle)}
+`;
 const PopupMenuLayout = forwardRef((props: PopupMenuLayoutProps, ref: RefObject<HTMLDivElement>) => {
 	const {
 		offset,
@@ -72,14 +97,16 @@ const PopupMenuLayout = forwardRef((props: PopupMenuLayoutProps, ref: RefObject<
 		appendTo,
 		isInline = false,
 		tooltipText,
-		onOpen = () => {},
-		onClose = () => {},
+		onOpen,
+		onClose,
+		onClickOutside,
 		onTippyMount,
 		placement = "bottom-start",
 		className,
 		disabled,
 		openTrigger = "click",
 		hideOnClick = true,
+		buttonClassName,
 	} = props;
 
 	const currentRef = ref || useRef<Element>();
@@ -95,7 +122,7 @@ const PopupMenuLayout = forwardRef((props: PopupMenuLayoutProps, ref: RefObject<
 
 	const openHandler = () => {
 		setIsOpen(true);
-		onOpen();
+		if (onOpen) onOpen();
 	};
 
 	const handlePopupClick = () => {
@@ -105,6 +132,8 @@ const PopupMenuLayout = forwardRef((props: PopupMenuLayoutProps, ref: RefObject<
 	useEffect(() => {
 		if (isOpen) setIsOpen(exists);
 	}, [exists]);
+
+	const element = PopupMenuElementUnstyled({ isInline, tooltipText, IconElement, className: buttonClassName });
 
 	return (
 		<Tippy
@@ -120,12 +149,13 @@ const PopupMenuLayout = forwardRef((props: PopupMenuLayoutProps, ref: RefObject<
 			disabled={disabled}
 			trigger={openTrigger}
 			arrow={false}
+			onClickOutside={onClickOutside}
 			maxWidth="none"
 			offset={offset}
 			onShow={openHandler}
 			onHide={(instance) => {
 				closeHandler();
-				onClose(instance);
+				if (onClose) return onClose(instance);
 			}}
 			content={
 				<Popup
@@ -138,20 +168,26 @@ const PopupMenuLayout = forwardRef((props: PopupMenuLayoutProps, ref: RefObject<
 				</Popup>
 			}
 		>
-			{createElement(
-				isInline ? "span" : "div",
-				{ className: "button", style: { display: "flex", alignItems: "center" } },
-				tooltipText ? (
-					<Tooltip content={tooltipText}>
-						<span>{IconElement}</span>
-					</Tooltip>
-				) : (
-					IconElement
-				),
-			)}
+			{element}
 		</Tippy>
 	);
 });
+
+const PopupMenuElementStyle = css`
+	width: 100%;
+	display: flex;
+	cursor: pointer;
+	font-size: 14px;
+	font-weight: 300;
+	line-height: 120%;
+	-webkit-box-align: center;
+	align-items: center;
+	text-decoration: none;
+	padding: 0.46rem 0.9rem;
+	color: var(--color-primary-general);
+	margin: 0 !important;
+	white-space: nowrap;
+`;
 
 export default styled(PopupMenuLayout)`
 	${(p) =>
@@ -161,7 +197,7 @@ export default styled(PopupMenuLayout)`
 			: `	> div:hover {
 				background: var(--color-menu-bg);
 
-				i,
+				svg,
 				span {
 					user-select: none;
 					color: var(--color-primary);
@@ -170,6 +206,7 @@ export default styled(PopupMenuLayout)`
 	margin: -10px 0px 0px;
 	min-width: 0;
 	font-size: 13px;
+	z-index: var(--z-index-popover);
 	overflow: hidden;
 	border-radius: var(--radius-large);
 	background: var(--color-article-bg);
@@ -191,18 +228,6 @@ export default styled(PopupMenuLayout)`
 
 	> div,
 	.popup-button {
-		width: 100%;
-		display: flex;
-		cursor: pointer;
-		font-size: 14px;
-		font-weight: 300;
-		line-height: 120%;
-		-webkit-box-align: center;
-		align-items: center;
-		text-decoration: none;
-		padding: 0.46rem 0.9rem;
-		color: var(--color-primary-general);
-		margin: 0 !important;
-		white-space: nowrap;
+		${PopupMenuElementStyle}
 	}
 `;

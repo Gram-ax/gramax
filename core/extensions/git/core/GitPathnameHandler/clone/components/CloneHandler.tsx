@@ -2,6 +2,7 @@ import { getExecutingEnvironment } from "@app/resolveModule/env";
 import { assertDesktopOpened } from "@components/Actions/EditInGramax";
 import ModalLayout from "@components/Layouts/Modal";
 import ModalLayoutLight from "@components/Layouts/ModalLayoutLight";
+import ModalToOpenService from "@core-ui/ContextServices/ModalToOpenService/ModalToOpenService";
 import { useRouter } from "@core/Api/useRouter";
 import CloneWithShareData from "@ext/catalog/actions/share/components/CloneWithShareData";
 import ShareData from "@ext/catalog/actions/share/model/ShareData";
@@ -16,7 +17,10 @@ const CloneHandler = ({ shareData }: { shareData: ShareData }) => {
 	const [isOpen, setIsOpen] = useState(true);
 	const [clonePath, setClonePath] = useState("");
 
-	const close = () => setIsOpen(false);
+	const close = () => {
+		setIsOpen(false);
+		ModalToOpenService.resetValue();
+	};
 
 	useEffect(() => {
 		if (!isOpen) return;

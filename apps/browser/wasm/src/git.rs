@@ -31,6 +31,10 @@ define_c_api! {
     git::is_bare(Path::new(&repo_path))
   }
 
+  json fn default_branch(repo_path: String, creds: AccessTokenCreds) -> Option<BranchInfo> {
+    git::default_branch(Path::new(&repo_path), creds)
+  }
+
   noreturn fn set_head(repo_path: String, refname: String) -> () {
     git::set_head(Path::new(&repo_path), &refname)
   }
@@ -67,8 +71,8 @@ define_c_api! {
     git::has_remotes(Path::new(&repo_path))
   }
 
-  json fn status(repo_path: String) -> StatusInfo {
-    git::status(Path::new(&repo_path))
+  json fn status(repo_path: String, index: bool) -> StatusInfo {
+    git::status(Path::new(&repo_path), index)
   }
 
   json fn status_file(repo_path: String, file_path: String) -> StatusEntry {
@@ -91,20 +95,20 @@ define_c_api! {
     git::clone(creds, opts, Box::new(on_clone_progress))
   }
 
-  noreturn fn add(repo_path: String, patterns: Vec<PathBuf>) -> () {
-    git::add(Path::new(&repo_path), patterns)
+  noreturn fn add(repo_path: String, patterns: Vec<PathBuf>, force: bool) -> () {
+    git::add(Path::new(&repo_path), patterns, force)
   }
 
-  json fn diff(repo_path: String, old: String, new: String) -> StatusInfo {
-    git::diff(Path::new(&repo_path), &old, &new)
+  json fn diff(repo_path: String, opts: DiffConfig) -> DiffTree2TreeInfo {
+    git::diff(Path::new(&repo_path), opts)
   }
 
   noreturn fn reset_all(repo_path: String, hard: bool, head: Option<String>) -> () {
     git::reset_all(Path::new(&repo_path), hard, head.as_deref())
   }
 
-  noreturn fn commit(repo_path: String, creds: AccessTokenCreds, message: String, parents: Option<Vec<String>>) -> () {
-    git::commit(Path::new(&repo_path), creds, &message, parents)
+  noreturn fn commit(repo_path: String, creds: AccessTokenCreds, opts: CommitOptions) -> () {
+    git::commit(Path::new(&repo_path), creds, opts)
   }
 
   json fn merge(repo_path: String, creds: AccessTokenCreds, theirs: String) -> MergeResult {
@@ -179,7 +183,12 @@ define_c_api! {
     git::get_draft_merge_request(Path::new(&repo_path))
   }
 
-  noreturn fn invalidate_repo_cache(repo_paths: Vec<String>) -> () {
-    git::invalidate_repo_cache(repo_paths.into_iter().map(PathBuf::from).collect())
+  json fn get_all_commit_authors(repo_path: String) -> Vec<CommitAuthorInfo> {
+    git::get_all_commit_authors(Path::new(&repo_path))
+  }
+
+  json fn reset_repo(_unused: ()) -> bool {
+    git::reset_repo();
+    Ok(true)
   }
 }

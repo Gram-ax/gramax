@@ -27,6 +27,7 @@ import MarkdownParser from "@ext/markdown/core/Parser/Parser";
 import ParserContextFactory from "@ext/markdown/core/Parser/ParserContext/ParserContextFactory";
 import MarkdownFormatter from "@ext/markdown/core/edit/logic/Formatter/Formatter";
 import AuthManager from "@ext/security/logic/AuthManager";
+import ClientAuthManager from "@ext/security/logic/ClientAuthManager";
 import { TicketManager } from "@ext/security/logic/TicketManager/TicketManager";
 import FuseSearcher from "@ext/serach/Fuse/FuseSearcher";
 import { IndexDataProvider } from "@ext/serach/IndexDataProvider";
@@ -38,7 +39,6 @@ import { AppConfig, getConfig, type AppGlobalConfig } from "../config/AppConfig"
 import Application from "../types/Application";
 
 const _init = async (config: AppConfig): Promise<Application> => {
-	const am: AuthManager = null;
 	const mp: MailProvider = null;
 	const vur: VideoUrlRepository = null;
 
@@ -75,7 +75,7 @@ const _init = async (config: AppConfig): Promise<Application> => {
 	const hashes = new HashItemProvider();
 	const tm = new ThemeManager();
 	const encoder = new Encoder();
-	const ticketManager = new TicketManager(wm, encoder, config.tokens.share);
+	const ticketManager = new TicketManager(encoder, config.tokens.share);
 	const parser = new MarkdownParser();
 	const formatter = new MarkdownFormatter();
 	const tablesManager = new TableDB(parser, wm);
@@ -87,7 +87,8 @@ const _init = async (config: AppConfig): Promise<Application> => {
 	const sitePresenterFactory = new SitePresenterFactory(wm, parser, parserContextFactory, rp, customArticlePresenter);
 	const resourceUpdaterFactory = new ResourceUpdaterFactory(parser, parserContextFactory, formatter);
 
-	const contextFactory = new ContextFactory(tm, config.tokens.cookie);
+	const am: AuthManager = config.enterprise.gesUrl ? new ClientAuthManager(config.enterprise.gesUrl) : null;
+	const contextFactory = new ContextFactory(tm, config.tokens.cookie, config.isReadOnly, am);
 
 	const cache = new Cache(new DiskFileProvider(config.paths.data));
 	const indexDataProvider = new IndexDataProvider(wm, cache, parser, parserContextFactory);

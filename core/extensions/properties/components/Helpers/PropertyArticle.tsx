@@ -15,13 +15,13 @@ import useWatch from "@core-ui/hooks/useWatch";
 
 interface PropertyArticleProps {
 	trigger: JSX.Element;
-	isReadOnly: boolean;
 	property: PropertyType;
 	onSubmit: (propertyName: string, value: string, isDelete?: boolean) => void;
+	disabled?: boolean;
 }
 
 const PropertyArticle = memo((props: PropertyArticleProps) => {
-	const { isReadOnly, trigger, property, onSubmit } = props;
+	const { disabled, trigger, property, onSubmit } = props;
 
 	const instanceRef = useRef<Instance<Props>>(null);
 	const [value, setValue] = useState<string[] | string>(property.value);
@@ -101,7 +101,7 @@ const PropertyArticle = memo((props: PropertyArticleProps) => {
 			offset={[0, 10]}
 			onTippyMount={onTippyMount}
 			appendTo={() => document.body}
-			disabled={isReadOnly}
+			disabled={disabled}
 			key={property.name}
 			hideOnClick={false}
 			onClose={onClose}

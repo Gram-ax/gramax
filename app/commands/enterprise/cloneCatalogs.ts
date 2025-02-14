@@ -2,6 +2,7 @@ import { ResponseKind } from "@app/types/ResponseKind";
 import Context from "@core/Context/Context";
 import Path from "@core/FileProvider/Path/Path";
 import UserSettings from "@ext/enterprise/types/UserSettings";
+import DefaultError from "@ext/errorHandlers/logic/DefaultError";
 import { makeSourceApi } from "@ext/git/actions/Source/makeSourceApi";
 import GitStorageData from "@ext/git/core/model/GitStorageData";
 import t from "@ext/localization/locale/translate";
@@ -15,11 +16,13 @@ const cloneCatalogs: Command<{ ctx: Context; userSettings: UserSettings }, void>
 	async do({ ctx, userSettings }) {
 		const { wm } = this._app;
 
-		if (!userSettings.source) throw Error(t("enterprise.config-error"));
+		if (!userSettings.source) throw new DefaultError(t("enterprise.config-error"));
 
 		const sourceData = userSettings.source;
 		const authUrl = wm.current().config().services?.auth?.url;
-		if (!(await makeSourceApi(sourceData, authUrl).isCredentialsValid())) throw Error(t("enterprise.config-error"));
+		if (!(await makeSourceApi(sourceData, authUrl).isCredentialsValid())) {
+			throw new DefaultError(t("enterprise.config-error"));
+		}
 
 		await this._commands.storage.setSourceData.do({ ctx, ...sourceData });
 

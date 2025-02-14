@@ -123,7 +123,7 @@ const Search = forwardRef((props: SearchProps, ref: ForwardedRef<SearchElement>)
 						}}
 					/>
 				</div>
-				{!disableCancelAction && (
+				{!disableCancelAction && typeof onCancelClick === "function" && (
 					<div
 						className={classNames("x-icon", { isValue: Boolean(value), isOpen }, ["custom-action"])}
 						onClick={onCancelHandler}

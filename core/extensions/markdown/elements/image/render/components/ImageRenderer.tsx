@@ -1,7 +1,7 @@
 import AlertError from "@components/AlertError";
 import GifImage from "@components/Atoms/Image/GifImage";
 import Image from "@components/Atoms/Image/Image";
-import Skeleton from "@components/Atoms/Skeleton";
+import Skeleton from "@components/Atoms/ImageSkeleton";
 import HoverableActions from "@components/controls/HoverController/HoverableActions";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import ArticleRefService from "@core-ui/ContextServices/ArticleRef";
@@ -99,8 +99,8 @@ interface ImageProps {
 	objects?: ImageObject[];
 	id?: string;
 	style?: CSSProperties;
+	marginBottom?: string;
 	scale?: number;
-	readFromHead?: boolean;
 	className?: string;
 	onError?: ReactEventHandler<HTMLImageElement>;
 	hoverElementRef?: RefObject<HTMLDivElement>;
@@ -122,7 +122,6 @@ const ImageRenderer = memo((props: ImageProps): ReactElement => {
 		alt,
 		crop,
 		title,
-		readFromHead,
 		className,
 		scale,
 		updateAttributes,
@@ -169,12 +168,12 @@ const ImageRenderer = memo((props: ImageProps): ReactElement => {
 	);
 
 	const cropImg = useCallback(
-		async (buffer: Buffer) => {
+		async (buffer: Buffer, crop: Crop) => {
 			const container = mainContainerRef.current;
 			const croppedBlob = await cropImage(container, crop, realSrc, buffer);
 			setSrc(croppedBlob);
 		},
-		[mainContainerRef.current, crop, realSrc, setSrc],
+		[mainContainerRef.current, realSrc, setSrc],
 	);
 
 	const saveResize = useCallback(
@@ -191,8 +190,14 @@ const ImageRenderer = memo((props: ImageProps): ReactElement => {
 			articleRef.current?.firstElementChild?.firstElementChild?.clientWidth;
 
 		if (!parentWidth) return;
-		const newSize = getAdjustedSize(parseFloat(width), parseFloat(height), parentWidth, scale);
-		setSize({ width: newSize.width + "px", height: newSize.height + "px" });
+		const newWidth = (parseFloat(width) * (crop?.w || 100)) / 100;
+		const newHeight = (parseFloat(height) * (crop?.h || 100)) / 100;
+		const newSize = getAdjustedSize(newWidth, newHeight, parentWidth, scale);
+
+		setSize({
+			width: newSize.width + "px",
+			height: newSize.height + "px",
+		});
 	}, [width, height]);
 
 	useEffect(() => {
@@ -201,27 +206,22 @@ const ImageRenderer = memo((props: ImageProps): ReactElement => {
 
 		if (!buffer) return setError(true);
 		setIsLoaded(false);
-		void cropImg(buffer);
+		void cropImg(buffer, crop);
 	}, [crop]);
 
 	useEffect(() => {
 		const buffer = getBuffer(realSrc);
 		if (!buffer?.byteLength) return;
-		setIsLoaded(false);
-		void cropImg(buffer);
+		if (isLoaded) setIsLoaded(false);
+		void cropImg(buffer, crop);
 	}, []);
 
-	useGetContent(
-		realSrc,
-		apiUrlCreator,
-		(buffer: Buffer) => {
-			if (!buffer || !buffer.byteLength) return setError(true);
-			setIsLoaded(false);
-			void cropImg(buffer);
-		},
-		undefined,
-		readFromHead,
-	);
+	useGetContent(realSrc, apiUrlCreator, (buffer: Buffer) => {
+		if (!buffer || !buffer.byteLength) return setError(true);
+		if (isLoaded) setIsLoaded(false);
+
+		void cropImg(buffer, crop);
+	});
 
 	if (error)
 		return (
@@ -231,7 +231,19 @@ const ImageRenderer = memo((props: ImageProps): ReactElement => {
 			/>
 		);
 
-	if (isGif) return <GifImage src={imageSrc} title={title} alt={title} onError={onError} />;
+	if (isGif)
+		return (
+			<GifImage
+				src={imageSrc}
+				title={noEm ? "" : title}
+				alt={title}
+				onError={onError}
+				hoverElementRef={hoverElementRef}
+				setIsHovered={setIsHovered}
+				isHovered={isHovered}
+				rightActions={rightActions}
+			/>
+		);
 
 	return (
 		<div className={className}>
@@ -287,6 +299,7 @@ export default styled(ImageRenderer)`
 	.main-container {
 		display: flex;
 		width: 100%;
+		margin-bottom: ${({ marginBottom }) => marginBottom || "0.5em"} !important;
 	}
 
 	.resizer-container {
@@ -294,7 +307,7 @@ export default styled(ImageRenderer)`
 		max-width: 100%;
 		position: relative;
 		justify-content: center;
-		margin: 0 auto 0.5em auto;
+		margin: 0 auto;
 		border-radius: var(--radius-small);
 	}
 

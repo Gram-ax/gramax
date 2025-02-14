@@ -152,10 +152,7 @@ export default class FileStructure {
 			ref: this.getItemRef(entry.getRootCategoryRef().path),
 			parent: null,
 			content: null,
-			props: {
-				...entry.props,
-				order: 0,
-			},
+			props: entry.props,
 			items: [],
 			logicPath: entry.name,
 			directory: entry.getRootCategoryDirectoryPath(),
@@ -210,9 +207,14 @@ export default class FileStructure {
 		errors?: CatalogErrors,
 	): Promise<Category> {
 		const shouldWriteIndex =
-			!props?.optionalCategoryIndex || article?.content || Object.values(article?.props).filter(Boolean).length;
+			!props?.optionalCategoryIndex ||
+			article?.content ||
+			(article?.props && Object.values(article.props).filter(Boolean).length);
 
-		if (shouldWriteIndex) await this._fp.write(path, article ? this._serializeArticle(article) : "");
+		shouldWriteIndex
+			? await this._fp.write(path, article ? this._serializeArticle(article) : "")
+			: await this._fp.mkdir(path.parentDirectoryPath);
+
 		return await this.makeCategory(path.parentDirectoryPath, parent, props, errors, shouldWriteIndex ? path : null);
 	}
 

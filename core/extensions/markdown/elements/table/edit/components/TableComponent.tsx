@@ -1,44 +1,35 @@
-import { NodeViewContent, NodeViewProps, NodeViewWrapper } from "@tiptap/react";
-import WidthWrapper from "@components/WidthWrapper/WidthWrapper";
-import styled from "@emotion/styled";
+import ColGroup from "@ext/markdown/elements/table/edit/components/Helpers/ColGroup";
+import TableHelper from "@ext/markdown/elements/table/edit/components/Helpers/TableHelper";
+import { useAggregation } from "@ext/markdown/elements/table/edit/logic/aggregation";
+import { NodeViewProps, NodeViewWrapper, useReactNodeView } from "@tiptap/react";
+import { useLayoutEffect, useRef } from "react";
 
-const TableComponent = ({ node, className }: NodeViewProps & { className: string }) => {
-	const content = node.firstChild;
+const TableComponent = ({ node, getPos, editor }: NodeViewProps) => {
+	const { nodeViewContentRef } = useReactNodeView();
+	const tableRef = useRef<HTMLTableElement>(null);
+	const hoverElementRef = useRef<HTMLTableElement>(null);
+
+	useLayoutEffect(() => {
+		tableRef.current = hoverElementRef.current?.querySelector(".tableComponent");
+	}, [hoverElementRef.current]);
+
+	useAggregation(tableRef, node.content);
+
+	const table = (
+		<table ref={nodeViewContentRef} className="tableComponent" data-header={node.attrs.header}>
+			<ColGroup content={node.firstChild} />
+		</table>
+	);
+
+	if (!editor.isEditable) return <NodeViewWrapper ref={hoverElementRef}>{table}</NodeViewWrapper>;
 
 	return (
-		<NodeViewWrapper>
-			<WidthWrapper className={className}>
-				<NodeViewContent as="table" className="tableComponent">
-					<colgroup>
-						{Array.from({ length: content.childCount }, (_, i) => {
-							const columnAttrs = content.child(i).attrs;
-
-							return Array.from({ length: columnAttrs.colspan }, (_, j) => {
-								const colwidth = columnAttrs.colwidth?.[j];
-								return (
-									<col
-										key={`${i}-${j}`}
-										{...(colwidth && {
-											style: {
-												minWidth: `${colwidth}px`,
-												width: `${colwidth}px`,
-											},
-										})}
-									/>
-								);
-							});
-						})}
-					</colgroup>
-				</NodeViewContent>
-			</WidthWrapper>
+		<NodeViewWrapper ref={hoverElementRef}>
+			<TableHelper tableRef={tableRef} hoverElementRef={hoverElementRef} node={node} getPos={getPos}>
+				{table}
+			</TableHelper>
 		</NodeViewWrapper>
 	);
 };
 
-export default styled(TableComponent)`
-	@media not print {
-		.tableComponent {
-			display: block ruby;
-		}
-	}
-`;
+export default TableComponent;

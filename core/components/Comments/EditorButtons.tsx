@@ -1,7 +1,7 @@
 import { classNames } from "@components/libs/classNames";
 import styled from "@emotion/styled";
 import t from "@ext/localization/locale/translate";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Button, { TextSize } from "../Atoms/Button/Button";
 import { ButtonStyle } from "../Atoms/Button/ButtonStyle";
 
@@ -29,6 +29,23 @@ const EditorButtons = (props: EditorButtonsProps) => {
 		if (isEditing || confirmDisabled) return;
 		setEditing(true);
 	}, [confirmDisabled]);
+
+	const handleKeyPress = useCallback(
+		(event: KeyboardEvent) => {
+			if ((event.ctrlKey || event.metaKey) && event.key === "Enter" && !confirmDisabled) {
+				event.preventDefault();
+				onConfirm();
+			}
+		},
+		[onConfirm, confirmDisabled],
+	);
+
+	useEffect(() => {
+		document.addEventListener("keydown", handleKeyPress);
+		return () => {
+			document.removeEventListener("keydown", handleKeyPress);
+		};
+	}, [handleKeyPress]);
 
 	return (
 		<div className={className}>

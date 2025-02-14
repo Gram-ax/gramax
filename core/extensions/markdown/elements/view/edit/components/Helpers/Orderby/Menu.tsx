@@ -9,11 +9,12 @@ import ButtonLink from "@components/Molecules/ButtonLink";
 interface MenuProps {
 	name: string;
 	data: string[];
+	defaultData: string[];
 	updateData: (name: string, value?: string | string[]) => void;
 	className?: string;
 }
 
-const Menu = memo(({ name, data, updateData, className }: MenuProps) => {
+const Menu = memo(({ name, data, defaultData, updateData, className }: MenuProps) => {
 	const onChange = useCallback(
 		(values: string[]) => {
 			updateData(name, values);
@@ -22,8 +23,9 @@ const Menu = memo(({ name, data, updateData, className }: MenuProps) => {
 	);
 
 	const deleteHandler = useCallback(() => {
+		if (defaultData === data) return;
 		updateData(name);
-	}, [updateData, name]);
+	}, [updateData, name, defaultData, data]);
 
 	return (
 		<DndProvider backend={ModifiedBackend}>

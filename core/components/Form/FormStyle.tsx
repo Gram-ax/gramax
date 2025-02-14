@@ -89,6 +89,10 @@ export default styled(FormStyle)`
 				${(p) => (p?.formDirection ? "flex: 1;" : "")}
 			}
 
+			.form-group.inverseMargin {
+				margin-bottom: -0.5rem;
+			}
+
 			.field.column {
 				gap: 0.4rem;
 				display: flex;

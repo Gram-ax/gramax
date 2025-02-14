@@ -14,7 +14,7 @@ import { paragraph } from "../../../../elements/paragraph/paragraph";
 import { strikethrough } from "../../../../elements/strikethrough/render/strikethrough";
 import { strong } from "../../../../elements/strong/render/strong";
 import { sub } from "../../../../elements/sub/sub";
-import { tbody, thead, tr } from "../../../../elements/table/render/model/table";
+import { table, tbody, thead, tr, td } from "../../../../elements/table/render/model/table";
 
 export default function getNodeElementRenderModels(context?: ParserContext): Record<string, Schema> {
 	const contextelements = context ? getContextNodeElementRenderModels(context) : {};
@@ -26,6 +26,8 @@ export default function getNodeElementRenderModels(context?: ParserContext): Rec
 		heading,
 		strong,
 		fence,
+		table,
+		td,
 		thead,
 		tbody,
 		code,

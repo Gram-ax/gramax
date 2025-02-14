@@ -26,6 +26,7 @@ pub trait Branch {
 
 pub trait RemoteBranch {
   fn delete_branch_remote<S: AsRef<str>>(&self, shorthand: S) -> Result<()>;
+  fn default_branch(&self) -> Result<Option<BranchEntry<'_>>>;
 }
 
 pub struct BranchEntry<'b> {
@@ -150,5 +151,26 @@ impl<C: ActualCreds> RemoteBranch for Repo<C> {
     branch.delete()?;
     remote.push(&[&format!(":refs/heads/{}", shorthand.as_ref())], Some(&mut push_opts))?;
     Ok(())
+  }
+
+  fn default_branch(&self) -> Result<Option<BranchEntry<'_>>> {
+    let mut remote = self.0.find_remote("origin")?;
+    if !remote.connected() {
+      let mut cbs = RemoteCallbacks::new();
+      cbs.credentials(make_credentials_callback(&self.1));
+      cbs.certificate_check(ssl_callback);
+      cbs.push_update_reference(push_update_reference_callback);
+
+      remote.connect_auth(Direction::Fetch, Some(cbs), None)?;
+    }
+
+    let branch_buf = remote.default_branch()?;
+    let Some(branch) = branch_buf.as_str() else {
+      return Ok(None);
+    };
+
+    let shorthand = branch.strip_prefix("refs/heads/").unwrap_or(branch);
+    let branch = self.branch_by_name(shorthand, BranchType::Local)?;
+    Ok(Some(branch))
   }
 }

@@ -1,13 +1,13 @@
-import { Change } from "../../../../VersionControl/DiffHandler/model/Change";
+import { DiffHunk } from "../../../../VersionControl/DiffHandler/model/DiffHunk";
 
 export interface ArticleHistoryViewModel {
 	version: string;
 	author: string;
 	date: string;
-	content: Change[];
+	content: DiffHunk[];
 	filePath: {
 		path: string;
 		oldPath?: string;
-		diff?: Change[];
+		diff?: DiffHunk[];
 	};
 }

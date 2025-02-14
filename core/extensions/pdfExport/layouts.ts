@@ -1,0 +1,95 @@
+import { alfaHandler, betaHandler } from "@ext/markdown/elements/alfaBeta/pdf/alfabeta";
+import { cmdHandler } from "@ext/markdown/elements/cmd/pdf/cmd";
+import { codeHandler } from "@ext/markdown/elements/code/pdf/code";
+import { codeBlockHandler } from "@ext/markdown/elements/codeBlockLowlight/pdf/code";
+import { colorHandler } from "@ext/markdown/elements/color/pdf/color";
+import { cutInlineHandler } from "@ext/markdown/elements/cut/pdf/cutInline";
+import { mermaidHandler } from "@ext/markdown/elements/diagrams/diagrams/mermaid/pdf/mermaid";
+import { plantUmlHandler } from "@ext/markdown/elements/diagrams/diagrams/plantUml/pdf/plantUml";
+import { drawioHandler } from "@ext/markdown/elements/drawio/pdf/drawio";
+import { emHandler } from "@ext/markdown/elements/em/pdf/em";
+import { headingHandler } from "@ext/markdown/elements/heading/pdf/heading";
+import { hrHandler } from "@ext/markdown/elements/hr/pdf/hr";
+import { imageHandler } from "@ext/markdown/elements/image/pdf/image";
+import { includeHandler } from "@ext/markdown/elements/include/pdf/include";
+import { issueHandler } from "@ext/markdown/elements/issue/pdf/issue";
+import { kbdHandler } from "@ext/markdown/elements/kbd/pdf/kbd";
+import { linkHandler } from "@ext/markdown/elements/link/pdf/link";
+import { bulletListHandler } from "@ext/markdown/elements/list/pdf/bulletList";
+import { listItemHandler } from "@ext/markdown/elements/list/pdf/listItem";
+import { orderedListHandler } from "@ext/markdown/elements/list/pdf/orderedList";
+import { moduleHandler } from "@ext/markdown/elements/module/pdf/module";
+import { noteHandler } from "@ext/markdown/elements/note/pdf/note";
+import { paragraphCase } from "@ext/markdown/elements/paragraph/pdf/paragraph";
+import { strikeHandler } from "@ext/markdown/elements/strikethrough/pdf/strike";
+import { strongHandler } from "@ext/markdown/elements/strong/pdf/storng";
+import { tableCase } from "@ext/markdown/elements/table/pdf/table";
+import { tabsHandler } from "@ext/markdown/elements/tabs/pdf/tabs";
+import { termHandler } from "@ext/markdown/elements/term/pdf/term";
+import { videoHandler } from "@ext/markdown/elements/video/pdf/video";
+import { whoHandler } from "@ext/markdown/elements/whowhen/pdf/whoWhen";
+
+export const inlineLayouts = {
+	strong: strongHandler,
+	em: emHandler,
+	Link: linkHandler,
+	Code: codeHandler,
+	Color: colorHandler,
+	Alfa: alfaHandler,
+	Beta: betaHandler,
+	Who: whoHandler,
+	When: whoHandler,
+	Issue: issueHandler,
+	Kbd: kbdHandler,
+	Cmd: cmdHandler,
+	Module: moduleHandler,
+	Cut: cutInlineHandler,
+	Term: termHandler,
+	s: strikeHandler,
+	// Br,
+	// br,
+	// Icon,
+	//Formula,
+	//Fn
+};
+
+export const blockLayouts = {
+	p: paragraphCase,
+	ol: orderedListHandler,
+	ul: bulletListHandler,
+	Li: listItemHandler,
+	Heading: headingHandler,
+	Note: noteHandler,
+	Fence: codeBlockHandler,
+	hr: hrHandler,
+	Video: videoHandler,
+	Image: imageHandler,
+	Drawio: drawioHandler,
+	"Plant-uml": plantUmlHandler,
+	Mermaid: mermaidHandler,
+	Include: includeHandler,
+	Tabs: tabsHandler,
+	Tab: tabsHandler,
+	Table: tableCase,
+	//cut
+	//blockquote
+	//snippet
+	// 	"Db-diagram": diagramdbWordLayout,
+	// 	"Ts-diagram": tsDiagramWordLayout,
+	// 	"C4-diagram": c4DiagramWordLayout,
+	// 	"Db-table": tabledbWordlayout,
+	// 	// "Img-v": imagesWordLayout,
+	// 	// "Img-h": imagesWordLayout,
+	// 	// See: seeWordLayout,
+	// 	// OpenApi: openApiWordLayout,
+};
+
+export const tableLayoutKeys = ["thead", "tbody", "Td", "tr", "th"];
+
+export const pdfExportedKeys = new Set<string>([
+	...Object.keys(inlineLayouts),
+	...Object.keys(blockLayouts),
+	...tableLayoutKeys,
+	"Tab",
+	undefined,
+]);

@@ -1,5 +1,6 @@
 import type ApiRequest from "@core/Api/ApiRequest";
 import type ApiResponse from "@core/Api/ApiResponse";
+import { AllowedOriginsMiddleware } from "@core/Api/middleware/AllowedOriginsMiddleware";
 import { MainMiddleware } from "@core/Api/middleware/MainMiddleware";
 import TransformData from "@ext/publicApi/TransformData";
 import { ApplyApiMiddleware } from "apps/next/logic/Api/ApplyMiddleware";
@@ -14,5 +15,5 @@ export default ApplyApiMiddleware(
 		const сatalogList = TransformData.getListOfCatalogs(catalogs);
 		res.send(сatalogList);
 	},
-	[new MainMiddleware()],
+	[new MainMiddleware(), new AllowedOriginsMiddleware()],
 );

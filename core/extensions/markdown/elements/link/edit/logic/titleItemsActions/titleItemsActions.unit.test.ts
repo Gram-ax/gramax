@@ -5,7 +5,7 @@ import {
 
 describe("titleItemsActions", () => {
 	describe("getTitleItemsByTocItems", () => {
-		it("Проверка функции", () => {
+		test("Проверка функции", () => {
 			const rawTocItems =
 				'[{"level":2,"title":"sasaasa","url":"#sasaasa","items":[{"level":3,"title":"asd","url":"#asd","items":[{"level":4,"title":"dasasdsdasdssd","url":"#dasasdsdasdssd","items":[]}]},{"level":3,"title":"asdsa","url":"#asdsa","items":[]}]},{"level":2,"title":"er","url":"#er","items":[{"level":3,"title":"Test","url":"#test","items":[]}]},{"level":2,"title":"sasa","url":"#sasa","items":[{"level":3,"title":"asd","url":"#asd","items":[{"level":4,"title":"dasasdsdasdssd","url":"#dasasdsdasdssd","items":[]}]},{"level":3,"title":"asdsa","url":"#asdsa","items":[]}]},{"level":2,"title":"er","url":"#er","items":[{"level":3,"title":"RATATA","url":"#ratata","items":[]}]}]';
 			const tocItems = JSON.parse(rawTocItems);
@@ -19,7 +19,7 @@ describe("titleItemsActions", () => {
 		});
 	});
 	describe("flatTitleItems", () => {
-		it("Проверка функции", () => {
+		test("Проверка функции", () => {
 			const rawTitleItems =
 				'[{"title":"sasaasa","url":"#sasaasa","items":[{"title":"asd","url":"#asd","items":[{"title":"dasasdsdasdssd","url":"#dasasdsdasdssd","items":[],"level":0}],"level":0},{"title":"asdsa","url":"#asdsa","items":[],"level":0}],"level":0},{"title":"er","url":"#er","items":[{"title":"Test","url":"#test","items":[],"level":0}],"level":0},{"title":"sasa","url":"#sasa","items":[{"title":"asd","url":"#asd","items":[{"title":"dasasdsdasdssd","url":"#dasasdsdasdssd","items":[],"level":0}],"level":0},{"title":"asdsa","url":"#asdsa","items":[],"level":0}],"level":0},{"title":"er","url":"#er","items":[{"title":"RATATA","url":"#ratata","items":[],"level":0}],"level":0}]';
 			const titleItems = JSON.parse(rawTitleItems);

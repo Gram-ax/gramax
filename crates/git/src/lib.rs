@@ -1,3 +1,4 @@
+use std::borrow::Borrow;
 use std::ops::Deref;
 use std::time::Duration;
 
@@ -44,6 +45,40 @@ impl TryFrom<OidInfo> for ::git2::Oid {
   fn try_from(value: OidInfo) -> std::result::Result<Self, Self::Error> {
     ::git2::Oid::from_str(&value.0).map_err(|_| ::git2::Error::from_str("invalid oid"))
   }
+}
+
+#[derive(serde::Serialize, serde::Deserialize, Clone, PartialEq, Eq, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct SignatureInfo {
+  pub name: String,
+  pub email: String,
+}
+
+impl<'s> From<&'s ::git2::Signature<'s>> for SignatureInfo {
+  fn from(value: &'s ::git2::Signature<'s>) -> Self {
+    SignatureInfo {
+      name: value.name().unwrap_or("<invalid-utf8>").into(),
+      email: value.email().unwrap_or("<invalid-utf8>").into(),
+    }
+  }
+}
+
+impl std::hash::Hash for SignatureInfo {
+  fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+    self.email.hash(state);
+  }
+}
+
+impl ShortInfo<'_, SignatureInfo> for ::git2::Signature<'_> {
+  fn short_info(&'_ self) -> Result<SignatureInfo> {
+    Ok(SignatureInfo::from(self))
+  }
+}
+
+impl Borrow<str> for SignatureInfo {
+    fn borrow(&self) -> &str {
+        &self.email
+    }
 }
 
 impl<'s> From<&'s ::git2::Oid> for OidInfo {

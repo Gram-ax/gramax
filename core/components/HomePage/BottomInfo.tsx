@@ -1,34 +1,49 @@
+import ExperimentalFeatures from "@components/HomePage/ExperimentalFeatures";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import styled from "@emotion/styled";
 import t from "@ext/localization/locale/translate";
 
-const BottomInfo = styled(({ className }: { className?: string }) => {
-	const config = PageDataContextService.value.conf;
-	return (
-		<div className={className}>
-			<div className="bottom-info">
-				<div>{`${t("version")} ${config.version}${config.isRelease ? "" : " dev"}`}</div>
-				<div>{"© Gramax " + new Date().getFullYear()}</div>
-			</div>
-		</div>
-	);
-})`
+const Wrapper = styled.div`
 	width: 100%;
 
-	.bottom-info {
-		display: flex;
-		justify-content: space-between;
-		flex-direction: row;
-		margin-top: 2rem;
-		margin-bottom: 7px;
-		font-size: 14px;
+	display: flex;
+	flex-direction: row;
+	justify-content: space-between;
+	align-items: bottom;
+	margin-top: 2rem;
+	margin-bottom: 7px;
 
-		> div {
-			font-size: 12px;
-			opacity: 0.7;
-			color: var(--color-primary-general);
-		}
+	height: fit-content;
+`;
+
+const Part = styled.div`
+	display: flex;
+	gap: 1.5rem;
+
+	font-size: 12px !important;
+	opacity: 0.7;
+	color: var(--color-primary-general);
+
+	> div:nth-child(2) {
+		padding-top: 0.5px;
 	}
 `;
+
+const BottomInfo = () => {
+	const config = PageDataContextService.value.conf;
+
+	const cred = `© Gramax ${new Date().getFullYear()}`;
+	const ver = `${t("version")} ${config.version} ${config.isRelease ? "" : "dev"}`.trim();
+
+	return (
+		<Wrapper>
+			<Part>{ver}</Part>
+			<Part>
+				<ExperimentalFeatures />
+				<div>{cred}</div>
+			</Part>
+		</Wrapper>
+	);
+};
 
 export default BottomInfo;

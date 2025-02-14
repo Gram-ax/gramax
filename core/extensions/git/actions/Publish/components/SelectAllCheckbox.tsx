@@ -9,9 +9,10 @@ interface SelectAllCheckboxProps {
 	showDiscardAllButton: boolean;
 	filePathsToDiscard: string[];
 	onCheckboxClick: (checked: boolean) => void;
-	onCheckboxChange: (checked: boolean) => void;
 	onStartDiscard: (paths: string[]) => void;
 	onEndDiscard: (paths: string[]) => void;
+	onCheckboxChange?: (checked: boolean) => void;
+	renderDivider?: boolean;
 	className?: string;
 }
 
@@ -24,6 +25,7 @@ const SelectAllCheckboxUnstyled = (props: SelectAllCheckboxProps) => {
 		onCheckboxChange,
 		onStartDiscard,
 		onEndDiscard,
+		renderDivider = true,
 		className,
 	} = props;
 
@@ -43,13 +45,16 @@ const SelectAllCheckboxUnstyled = (props: SelectAllCheckboxProps) => {
 								selectedText
 								onStartDiscard={onStartDiscard}
 								onEndDiscard={onEndDiscard}
+								discardAll
 							/>
 						</div>
 					)}
 				</div>
-				<div className="divider">
-					<Divider />
-				</div>
+				{renderDivider && (
+					<div className="divider">
+						<Divider />
+					</div>
+				)}
 			</div>
 		</div>
 	);

@@ -6,7 +6,7 @@ import Column from "@ext/markdown/elements/view/render/components/Displays/Helpe
 import { CustomDragLayer } from "@ext/markdown/elements/view/render/components/Displays/Helpers/Kanban/CustomDragLayer";
 import ModifiedBackend from "@ext/navigation/catalog/drag/logic/ModifiedBackend";
 import { Property, ViewRenderGroup } from "@ext/properties/models";
-import { useCallback, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { DndProvider } from "react-dnd";
 import PropertyServiceProvider from "@ext/properties/components/PropertyService";
 import { deleteProperty, updateProperty } from "@ext/properties/logic/changeProperty";
@@ -22,14 +22,9 @@ interface KanbanProps {
 const Kanban = (props: KanbanProps) => {
 	const { disabled, content, groupby, className, updateArticle } = props;
 	const catalogProperties = PropertyServiceProvider.value?.properties;
+	const kanbanRef = useRef<HTMLDivElement>(null);
 
 	const noGroup = t("properties.validation-errors.no-groupby");
-	if (!content?.[0]?.subgroups)
-		return (
-			<div className="error-message" data-focusable="true">
-				{noGroup}
-			</div>
-		);
 
 	const [data, setData] = useState<ViewRenderGroup[]>(content);
 
@@ -88,12 +83,19 @@ const Kanban = (props: KanbanProps) => {
 		[catalogProperties, updateArticle, data],
 	);
 
+	if (!content?.[0]?.subgroups)
+		return (
+			<div className="error-message" data-focusable="true">
+				{noGroup}
+			</div>
+		);
+
 	return (
 		<DndProvider backend={ModifiedBackend}>
 			<div className="tree-root">
-				<WidthWrapper>
+				<WidthWrapper elementRef={kanbanRef}>
 					<div className={className} data-focusable="true">
-						<div className="kanban-wrapper">
+						<div className="kanban-wrapper" ref={kanbanRef}>
 							{data.map((group, index) => {
 								if (!group.subgroups) return null;
 								return (

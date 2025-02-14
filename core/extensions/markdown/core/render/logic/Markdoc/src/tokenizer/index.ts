@@ -1,9 +1,9 @@
 import MarkdownIt from "markdown-it/lib";
 import { Token } from "../types";
 import annotations from "./plugins/annotations";
-import frontmatter from "./plugins/frontmatter";
 import disableencodeuri from "./plugins/disableencodeuri";
 import taskListPlugin from "./plugins/taskListPlugin";
+import { gitConflictPlugin } from "./plugins/gitConflictPlugin";
 import imgSizePlugin from "@ext/markdown/core/render/logic/Markdoc/src/tokenizer/plugins/imgSizePlugin";
 
 export default class Tokenizer {
@@ -15,7 +15,7 @@ export default class Tokenizer {
 		this.parser.use(imgSizePlugin, "imgSizePlugin", {});
 		this.parser.use(annotations, "annotations", {});
 		this.parser.use(disableencodeuri, "disableencodeuri", {});
-		this.parser.use(frontmatter, "frontmatter", {});
+		this.parser.use(gitConflictPlugin);
 		this.parser.disable("lheading");
 	}
 

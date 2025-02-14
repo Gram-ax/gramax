@@ -7,6 +7,8 @@ import CustomArticlePresenter from "@core/SitePresenter/CustomArticlePresenter";
 import type RuleCollection from "@ext/events/RuleCollection";
 import Navigation from "../../../navigation/catalog/main/logic/Navigation";
 import { ContentLanguage } from "../model/Language";
+import { isExactLanguageMatch, isSupportedCategoryLanguage } from "@ext/localization/core/catalogExt";
+import { ItemFilterOptions } from "@ext/rules/RuleCollection";
 
 export default class LocalizationRules implements RuleCollection, EventHandlerCollection {
 	constructor(
@@ -57,15 +59,14 @@ export default class LocalizationRules implements RuleCollection, EventHandlerCo
 		});
 	}
 
-	getItemFilter() {
+	getItemFilter(options?: ItemFilterOptions) {
 		const rule: ItemFilter = (item: Item, catalog: Catalog) => {
 			if (!catalog.props.language) return true;
 
+			if (options?.requireExactLanguageMatch) return isExactLanguageMatch(item, this._currentLanguage);
+
 			if (item.type == ItemType.category) {
-				const maybeItemLanguage = ContentLanguage[item.getFileName()];
-				return catalog.props.supportedLanguages.includes(maybeItemLanguage)
-					? this._currentLanguage == maybeItemLanguage
-					: true;
+				return isSupportedCategoryLanguage(item, catalog, this._currentLanguage);
 			}
 
 			return true;

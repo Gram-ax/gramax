@@ -14,6 +14,8 @@ export interface ButtonProps {
 	className?: string;
 	isEmUnits?: boolean;
 	title?: string;
+	onMouseEnter?: (event: MouseEvent<HTMLDivElement>) => void;
+	onMouseLeave?: (event: MouseEvent<HTMLDivElement>) => void;
 }
 
 export enum TextSize {
@@ -44,13 +46,14 @@ const Button = forwardRef((props: ButtonProps, ref?: MutableRefObject<HTMLDivEle
 		isEmUnits,
 		// eslint-disable-next-line @typescript-eslint/no-unused-vars
 		disabled,
+		style,
 		...otherProps
 	} = props;
 
 	return (
 		<div data-qa="qa-clickable" className={className} ref={ref}>
 			<div
-				style={{ fontSize: TextKeys[textSize] + (isEmUnits ? "em" : "rem") }}
+				style={{ ...(style ?? {}), fontSize: TextKeys[textSize] + (isEmUnits ? "em" : "rem") }}
 				className={classNames(buttonStyle, { fullWidth }, ["content"])}
 				{...otherProps}
 			>
@@ -147,14 +150,14 @@ export default styled(Button)`
 		}
 	}
 
-	.blue {
-		background: var(--merger-top-primary);
-		color: white;
+	.git {
+		background: white;
+		color: var(--version-control-primary);
 		border-radius: var(--radius-medium);
 
 		&:hover {
-			color: #3a9ffb;
-			background: white;
+			background: var(--version-control-primary);
+			color: white;
 		}
 	}
 `;

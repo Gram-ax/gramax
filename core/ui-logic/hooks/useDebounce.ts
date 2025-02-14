@@ -1,9 +1,8 @@
-import { useCallback, useRef, useEffect } from "react";
+import { useCallback, useEffect, useRef } from "react";
 
-type CallbackFunction<T> = (args?: T) => void;
+type DebounceCallbackFn<T extends unknown[]> = (...args: T) => void | Promise<void>;
 
-// типы писал серега))
-function useDebounce<K>(callback: CallbackFunction<K>, delay: number, canCancel = true) {
+function useDebounce<T extends unknown[]>(callback: DebounceCallbackFn<T>, delay: number, canCancel = true) {
 	const timeoutIdRef = useRef<NodeJS.Timeout | null>(null);
 
 	const cancel = useCallback(() => {
@@ -14,10 +13,10 @@ function useDebounce<K>(callback: CallbackFunction<K>, delay: number, canCancel 
 	}, []);
 
 	const start = useCallback(
-		(...args: K[]) => {
+		(...args: T) => {
 			cancel();
 			timeoutIdRef.current = setTimeout(() => {
-				callback(...args);
+				void callback(...args);
 			}, delay);
 		},
 		[callback, delay],

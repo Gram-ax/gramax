@@ -23,7 +23,6 @@ const SyncLayout = styled(
 		return (
 			<span className={className} style={style}>
 				<StatusBarElement
-					reverse
 					onClick={onClick}
 					className="sync-icons"
 					iconCode="refresh-cw"

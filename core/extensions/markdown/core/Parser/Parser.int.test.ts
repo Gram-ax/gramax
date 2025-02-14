@@ -9,9 +9,9 @@ jest.mock("react", () => ({
 	useLayoutEffect: jest.requireActual("react").useEffect,
 }));
 
-jest.mock('next/router', () => ({
-	useRouter: jest.fn()
-}))
+jest.mock("next/router", () => ({
+	useRouter: jest.fn(),
+}));
 
 describe("MarkdownParser", () => {
 	beforeAll(() => {
@@ -29,7 +29,7 @@ describe("MarkdownParser", () => {
 
 					test("HTML", async () => {
 						const { html } = await getComponentRenderTreeAndHTML(obj.text);
-						expect(obj.html).toContain(html);
+						expect(html).toEqual(obj.html);
 					});
 				});
 			});

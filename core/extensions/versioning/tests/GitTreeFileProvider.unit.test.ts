@@ -176,4 +176,80 @@ describe("GitTreeFileProvider", () => {
 			await expect(gitfp.getStat(new Path(":master/non-existent"))).rejects.toThrow();
 		});
 	});
+
+	describe("получает scope и путь для", () => {
+		describe("директории с файлом", () => {
+			test("для HEAD", () => {
+				const scopedPath = GitTreeFileProvider.scoped(new Path("dir/file"), "HEAD");
+
+				const res = GitTreeFileProvider.unscope(scopedPath);
+
+				expect(res.unscoped.value).toBe("dir/file");
+				expect(res.scope).toEqual("HEAD");
+			});
+
+			test("для коммита", () => {
+				const scopedPath = GitTreeFileProvider.scoped(new Path("dir/file"), { commit: "123" });
+
+				const res = GitTreeFileProvider.unscope(scopedPath);
+
+				expect(res.unscoped.value).toBe("dir/file");
+				expect(res.scope).toEqual({ commit: "123" });
+			});
+
+			test("для референса", () => {
+				const scopedPath = GitTreeFileProvider.scoped(new Path("dir/file"), { reference: "123" });
+
+				const res = GitTreeFileProvider.unscope(scopedPath);
+
+				expect(res.unscoped.value).toBe("dir/file");
+				expect(res.scope).toEqual({ reference: "123" });
+			});
+		});
+
+		describe("просто директории", () => {
+			test("для HEAD", () => {
+				const scopedPath = GitTreeFileProvider.scoped(new Path("dir"), "HEAD");
+
+				const res = GitTreeFileProvider.unscope(scopedPath);
+
+				expect(res.unscoped.value).toBe("dir");
+				expect(res.scope).toEqual("HEAD");
+			});
+
+			test("для коммита", () => {
+				const scopedPath = GitTreeFileProvider.scoped(new Path("dir"), { commit: "123" });
+
+				const res = GitTreeFileProvider.unscope(scopedPath);
+
+				expect(res.unscoped.value).toBe("dir");
+				expect(res.scope).toEqual({ commit: "123" });
+			});
+
+			test("для референса", () => {
+				const scopedPath = GitTreeFileProvider.scoped(new Path("dir"), { reference: "123" });
+
+				const res = GitTreeFileProvider.unscope(scopedPath);
+
+				expect(res.unscoped.value).toBe("dir");
+				expect(res.scope).toEqual({ reference: "123" });
+			});
+		});
+	});
+
+	describe("не получает путь без scope", () => {
+		test("для директории с файлом", () => {
+			const unscopedPath = new Path("dir/file");
+			const res = GitTreeFileProvider.unscope(unscopedPath);
+			expect(res.unscoped).toBeNull();
+			expect(res.scope).toBeNull();
+		});
+
+		test("для директории", () => {
+			const unscopedPath = new Path("dir");
+			const res = GitTreeFileProvider.unscope(unscopedPath);
+			expect(res.unscoped).toBeNull();
+			expect(res.scope).toBeNull();
+		});
+	});
 });

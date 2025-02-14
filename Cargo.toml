@@ -27,7 +27,7 @@ edition = "2021"
 [workspace.dependencies]
 tauri = { version = "^2.0.0", features = ["macos-private-api", "devtools"] }
 tauri-plugin = { version = "^2.0.0", features = ["build"] }
-tauri-build = "^2.0.0"
+tauri-build = { version = "^2.0.0", features = ["tauri-codegen", "codegen"] }
 
 tauri-plugin-deep-link = "^2.0.0"
 tauri-plugin-dialog = "^2.0.0"

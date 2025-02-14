@@ -5,6 +5,7 @@ import styled from "@emotion/styled";
 import { ImageObject } from "@ext/markdown/elements/image/edit/model/imageEditorTypes";
 import {
 	CSSProperties,
+	memo,
 	MouseEventHandler,
 	MutableRefObject,
 	ReactElement,
@@ -37,23 +38,32 @@ const Lightbox = (props: LightboxProps): ReactElement => {
 	const mainContainerRef = useRef<HTMLDivElement>();
 	const [isClosing, setClosing] = useState<boolean>(false);
 
-	const closeModal = (immediately?: boolean) => {
-		if (immediately) return onClose();
-		setClosing(true);
-		setTimeout(() => {
-			onClose?.();
-		}, 200);
-	};
+	const closeModal = useCallback(
+		(immediately?: boolean) => {
+			if (immediately) return onClose();
+			setClosing(true);
+			setTimeout(() => {
+				onClose?.();
+			}, 200);
+		},
+		[onClose],
+	);
 
-	const onClick: MouseEventHandler<HTMLDivElement> = (event) => {
-		const target = event.target as HTMLElement;
-		if (target.getAttribute("data-close")) return closeModal();
-		if (!mainContainerRef.current.contains(target)) event.stopPropagation();
-	};
+	const onClick: MouseEventHandler<HTMLDivElement> = useCallback(
+		(event) => {
+			const target = event.target as HTMLElement;
+			if (target.getAttribute("data-close")) return closeModal();
+			if (!mainContainerRef.current.contains(target)) event.stopPropagation();
+		},
+		[mainContainerRef.current, closeModal],
+	);
 
-	const onKeyDown = (ev: KeyboardEvent) => {
-		if (ev.key === "Escape") closeModal();
-	};
+	const onKeyDown = useCallback(
+		(ev: KeyboardEvent) => {
+			if (ev.key === "Escape") closeModal();
+		},
+		[closeModal],
+	);
 
 	const zoomImage = useCallback((deltaY: number, mouseX?: number, mouseY?: number) => {
 		const container = containerRef.current;
@@ -133,7 +143,7 @@ const Lightbox = (props: LightboxProps): ReactElement => {
 	);
 };
 
-export default styled(Lightbox)`
+export default styled(memo(Lightbox))`
 	z-index: var(--z-index-article-modal);
 	position: fixed;
 	display: flex;

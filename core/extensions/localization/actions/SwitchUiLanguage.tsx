@@ -13,9 +13,11 @@ const SwitchUiLanguage = () => {
 	const apiUrlCreator = ApiUrlCreatorService.value;
 
 	const setLanguage = useCallback(
-		(language: UiLanguage) => {
-			if (getExecutingEnvironment() == "next") FetchService.fetch(apiUrlCreator.getSetLanguageURL(language));
-			LanguageService.setUiLanguage(language);
+		async (language: UiLanguage) => {
+			if (getExecutingEnvironment() !== "next") return LanguageService.setUiLanguage(language);
+
+			const r = await FetchService.fetch(apiUrlCreator.getSetLanguageURL(language));
+			if (r.ok) LanguageService.setUiLanguage(language);
 		},
 		[apiUrlCreator],
 	);

@@ -35,6 +35,10 @@ function handleAttrs(token: Token, type: string) {
 				? { alt: token.content, src: attrs.src, title: attrs.title, width: attrs.width, height: attrs.height }
 				: { alt: token.content, src: attrs.src, width: attrs.width, height: attrs.height };
 		}
+		case "table": {
+			if (!Array.isArray(token.attrs) && token.attrs) return token.attrs;
+			return {};
+		}
 		case "text":
 		case "code":
 			return { content: (token.meta || {}).variable || token.content };
@@ -73,11 +77,6 @@ function handleAttrs(token: Token, type: string) {
 }
 
 function handleToken(token: Token, nodes: Node[], file?: string, inlineParent?: Node) {
-	if (token.type === "frontmatter") {
-		nodes[0].attributes.frontmatter = token.content;
-		return;
-	}
-
 	if (token.hidden || (token.type === "text" && token.content === "")) return;
 
 	const errors = token.errors || [];

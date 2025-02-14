@@ -10,11 +10,12 @@ const getCatalogNotFoundData: Command<
 	{ data: ArticlePageData; openGraphData: OpenGraphData; context: PageDataContext }
 > = Command.create({
 	async do({ pathname, logicPath, ctx }) {
-		const { customArticlePresenter, logger, sitePresenterFactory } = this._app;
+		const { customArticlePresenter, logger, sitePresenterFactory, wm } = this._app;
 		const dataProvider = sitePresenterFactory.fromContext(ctx);
-		const lastVisited = new LastVisited(ctx);
+		const workspace = wm.maybeCurrent();
+		const lastVisited = new LastVisited(ctx, workspace?.config().name);
 		const catalogName = logicPath.split("/")[0];
-		if (catalogName) lastVisited.remove(catalogName);
+		if (catalogName) workspace ? lastVisited.remove(catalogName) : lastVisited.clear();
 		logger.logTrace(`Article: ${logicPath}`);
 		const errorArticle = customArticlePresenter.getArticle("Catalog404", { pathname });
 		const catalog = undefined;

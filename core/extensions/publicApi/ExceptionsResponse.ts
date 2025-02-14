@@ -15,9 +15,9 @@ class ExceptionsResponse {
 	private _hidenFilter: ItemFilter;
 	private _securityFilter: ItemFilter;
 
-	constructor(private _res: ApiResponse, _context: Context) {
+	constructor(private _res: ApiResponse, context: Context) {
 		this._hidenFilter = new HiddenRules(null).getItemFilter();
-		this._securityFilter = new SecurityRules(_context.user).getItemFilter();
+		this._securityFilter = new SecurityRules(context.user).getItemFilter();
 	}
 
 	checkCatalogAvailability(catalog: ReadonlyCatalog, catalogId: string) {

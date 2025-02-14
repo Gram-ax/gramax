@@ -1,28 +1,25 @@
 import parsePermissionFromJSON from "@ext/security/logic/Permission/logic/PermissionParser";
+import Permission from "@ext/security/logic/Permission/Permission";
+import IPermissionMap from "@ext/security/logic/PermissionMap/IPermissionMap";
+import parsePermissionMapFromJSON from "@ext/security/logic/PermissionMap/parsePermissionMapFromJSON";
+import StrictPermissionMap from "@ext/security/logic/PermissionMap/StrictPermissionMap";
 import IPermission from "../Permission/IPermission";
-import PermissionJSONData from "../Permission/model/PermissionJSONData";
 import UserInfo from "./UserInfo";
 import UserJSONData from "./UserJSONData";
 
 export type UserType = "base" | "enterprise";
-export type CatalogsPermission = { [catalogName: string]: IPermission };
 
 export default class User {
-	protected _info: UserInfo;
-	protected _isLogged: boolean;
-	protected _globalPermission: IPermission;
-	protected _catalogPermissions: CatalogsPermission;
-
 	constructor(
-		isLogged = false,
-		info?: UserInfo,
-		globalPermission?: IPermission,
-		catalogPermissions?: CatalogsPermission,
+		private _isLogged = false,
+		protected _info?: UserInfo,
+		protected _globalPermission?: IPermission,
+		protected _workspacePermission?: IPermissionMap,
+		protected _catalogPermission?: IPermissionMap,
 	) {
-		this._info = info;
-		this._isLogged = isLogged;
-		this._globalPermission = globalPermission;
-		this._catalogPermissions = catalogPermissions ?? {};
+		if (!this._globalPermission) this._globalPermission = new Permission([]);
+		if (!this._workspacePermission) this._workspacePermission = new StrictPermissionMap({});
+		if (!this._catalogPermission) this._catalogPermission = new StrictPermissionMap({});
 	}
 
 	get type(): UserType {
@@ -37,41 +34,40 @@ export default class User {
 		return this._isLogged;
 	}
 
-	getCatalogPermission(catalogName: string): IPermission {
-		return this._catalogPermissions?.[catalogName] ?? null;
+	get catalogPermission(): IPermissionMap {
+		return this._catalogPermission;
 	}
 
-	getCatalogPermissions(): CatalogsPermission {
-		return this._catalogPermissions;
+	get workspacePermission(): IPermissionMap {
+		return this._workspacePermission;
 	}
 
-	setCatalogPermission(catalogName: string, permission: IPermission): void {
-		this._catalogPermissions[catalogName] = permission;
-	}
-
-	getGlobalPermission(): IPermission {
+	get globalPermission(): IPermission {
 		return this._globalPermission;
 	}
 
+	addCatalogPermission(catalogName: string, permission: IPermission) {
+		this._catalogPermission.addPermission(catalogName, permission);
+	}
+
 	toJSON(): UserJSONData {
-		const cp: Record<string, PermissionJSONData> = {};
-		Object.keys(this._catalogPermissions ?? {}).forEach((catalogName) => {
-			cp[catalogName] = this._catalogPermissions[catalogName]?.toJSON?.();
-		});
 		return {
 			info: this._info,
 			type: this.type,
 			isLogged: this._isLogged,
 			globalPermission: this._globalPermission?.toJSON?.(),
-			catalogPermissions: cp,
+			workspacePermission: this._workspacePermission?.toJSON?.(),
+			catalogPermission: this._catalogPermission?.toJSON?.(),
 		};
 	}
 
 	static initInJSON(json: UserJSONData): User {
-		const cp: CatalogsPermission = {};
-		Object.keys(json.catalogPermissions ?? {}).forEach((catalogName) => {
-			cp[catalogName] = parsePermissionFromJSON(json.catalogPermissions[catalogName]);
-		});
-		return new User(json.isLogged, json.info, parsePermissionFromJSON(json.globalPermission), cp);
+		return new User(
+			json.isLogged,
+			json.info,
+			parsePermissionFromJSON(json.globalPermission),
+			parsePermissionMapFromJSON(json.workspacePermission),
+			parsePermissionMapFromJSON(json.catalogPermission),
+		);
 	}
 }

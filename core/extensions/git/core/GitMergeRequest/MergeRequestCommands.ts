@@ -1,5 +1,7 @@
 import type FileProvider from "@core/FileProvider/model/FileProvider";
 import Path from "@core/FileProvider/Path/Path";
+import DefaultError from "@ext/errorHandlers/logic/DefaultError";
+import { MergeRequestErrorCode } from "@ext/git/core/GitMergeRequest/errors/getMergeRequestErrors";
 import LibGit2MergeRequestCommands from "@ext/git/core/GitMergeRequest/LibGit2MergeRequestCommands";
 import type { CreateMergeRequest, MergeRequest } from "@ext/git/core/GitMergeRequest/model/MergeRequest";
 import type { MergeRequestCommandsModel } from "@ext/git/core/GitMergeRequest/model/MergeRequestCommandsModel";
@@ -9,7 +11,6 @@ import assert from "assert";
 
 export default class MergeRequestProvider {
 	private _mergeRequests: MergeRequestCommandsModel;
-
 	private _cachedMergeRequests: MergeRequest[];
 
 	constructor(private _fp: FileProvider, private _repoPath: Path, private _repo: Repository) {
@@ -27,8 +28,24 @@ export default class MergeRequestProvider {
 		return mergeRequests.find((mr) => mr.sourceBranchRef === sourceBranchRef);
 	}
 
+	listArchives(): Promise<MergeRequest[]> {
+		throw new Error("Not Implemented");
+	}
+
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
+	findArchiveBySource(sourceBranchRef: string): Promise<MergeRequest | undefined> {
+		throw new Error("Not Implemented");
+	}
+
 	async tryGetDraft(): Promise<MergeRequest | undefined> {
 		return this._mergeRequests.tryGetDraft();
+	}
+
+	async isCreated(): Promise<boolean> {
+		const sourceRef = await this._getSourceRef();
+		const mr = await this.findBySource(sourceRef);
+		const draft = await this.tryGetDraft();
+		return !mr && !!draft;
 	}
 
 	async create(data: SourceData, mergeRequest: CreateMergeRequest): Promise<void> {
@@ -49,16 +66,16 @@ export default class MergeRequestProvider {
 
 		assert(mergeRequest, "merge request is required to set approval");
 
-		const assignee = mergeRequest.assignees?.find((a) => a.email === data.userEmail);
-		assert(assignee, "you need to be assigned to this merge request");
+		const approver = mergeRequest.approvers?.find((a) => a.email === data.userEmail);
+		assert(approver, "you need to be assigned to this merge request");
 
-		assignee.approvedAt = approve ? new Date() : null;
+		approver.approvedAt = approve ? new Date() : null;
 
 		await this._mergeRequests.createOrUpdate(data, {
 			targetBranchRef: mergeRequest.targetBranchRef,
 			title: mergeRequest.title,
 			description: mergeRequest.description,
-			assignees: mergeRequest.assignees,
+			approvers: mergeRequest.approvers,
 			options: mergeRequest.options,
 		});
 	}
@@ -81,12 +98,26 @@ export default class MergeRequestProvider {
 		return { archiveFileName: filename };
 	}
 
+	async afterSync(prev: MergeRequest, data: SourceData) {
+		if (!prev) return;
+		if (prev.creator.email === data.userEmail) return;
+		if (!prev.approvers || !prev.approvers?.find((a) => a.email === data.userEmail)) return;
+
+		const currentBranch = await this._repo.gvc.getCurrentBranch();
+		const remoteBranchWasDeleted = !currentBranch.getData().remoteName;
+		if (remoteBranchWasDeleted) {
+			await this._repo.checkoutToDefaultBranch(data, true);
+			await this._repo.gvc.deleteLocalBranch(currentBranch.toString());
+			throw new DefaultError(null, null, { errorCode: MergeRequestErrorCode.BranchWasDeleted });
+		}
+	}
+
 	private async _findDraftOrFirstBySource(sourceBranchRef: string): Promise<MergeRequest | undefined> {
 		return (await this.tryGetDraft()) ?? (await this.list()).find((mr) => mr.sourceBranchRef === sourceBranchRef);
 	}
 
 	private async _getSourceRef() {
-		const branch = await this._repo.gvc.getCurrentBranch(true);
+		const branch = await this._repo.gvc.getCurrentBranch();
 		return branch.toString();
 	}
 

@@ -17,7 +17,15 @@ export const callFSWasm = async <O>(command: string, args?: any): Promise<O> => 
 		callbackId,
 	});
 	const data = (await promise) as any;
-	if (!data.ok) throw new IoError(data.res);
+	if (!data.ok) {
+		const err = typeof data.res === "string" ? JSON.parse(data.res) : data.res;
+		throw new IoError({
+			name: `IO (${command})`,
+			code: err.name,
+			message: `${err.name}: ${err.message};\nargs: ${JSON.stringify(args, null, 4)}`,
+		});
+	}
+
 	return data.res;
 };
 

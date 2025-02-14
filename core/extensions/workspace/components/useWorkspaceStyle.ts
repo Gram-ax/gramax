@@ -1,6 +1,6 @@
 import WorkspaceAssetsService, { useWorkspaceAssets } from "@core-ui/ContextServices/WorkspaceAssetsService";
 import useWatch from "@core-ui/hooks/useWatch";
-import { useCallback, useState } from "react";
+import { useCallback, useState, useMemo } from "react";
 
 export const useWorkspaceStyle = (workspacePath: string) => {
 	const { refreshStyle } = WorkspaceAssetsService.value();
@@ -22,7 +22,10 @@ export const useWorkspaceStyle = (workspacePath: string) => {
 		}
 	}, [initialStyle, customCss]);
 
+	const haveChanges = useMemo(() => initialStyle !== customCss, [initialStyle, customCss]);
+
 	return {
+		haveChanges,
 		customCss,
 		revertCustomCss,
 		confirmChanges,

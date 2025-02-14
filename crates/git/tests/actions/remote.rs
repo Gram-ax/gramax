@@ -15,7 +15,7 @@ fn add_remote(_sandbox: TempDir, #[with(&_sandbox)] repo: Repo<TestCreds>) -> Re
 }
 
 #[rstest]
-#[case("https://github.com/gram-ax/gramax-catalog-template")]
+#[case("https://github.com/pashokitsme/android-intent")]
 fn clone(sandbox: TempDir, #[case] url: &str) -> Result {
   use std::cell::RefCell;
   use std::rc::Rc;
@@ -24,7 +24,7 @@ fn clone(sandbox: TempDir, #[case] url: &str) -> Result {
   let transfer_calls = Rc::new(RefCell::new(0));
   let sideband_calls_clone = Rc::clone(&sideband_calls);
   let transfer_calls_clone = Rc::clone(&transfer_calls);
-  Repo::clone(
+  let repo = Repo::clone(
     TestCreds,
     CloneOptions {
       url: url.to_string(),
@@ -45,6 +45,9 @@ fn clone(sandbox: TempDir, #[case] url: &str) -> Result {
   assert!(sandbox.path().join(".git").exists());
   assert!(*sideband_calls.borrow() > 0);
   assert!(*transfer_calls.borrow() > 0);
+
+  assert_eq!(repo.default_branch()?.unwrap().name(), Ok(Some("master")));
+
   Ok(())
 }
 
@@ -79,23 +82,22 @@ fn push(_sandbox: TempDir, #[with(&_sandbox)] repos: Repos) -> Result {
 
   repos.local.new_branch("test")?;
 
-  repos.local.add_glob(["."].iter())?;
-  repos.local.commit("test")?;
+  repos.local.add_all()?;
+  repos.local.commit_debug()?;
   repos.local.push()?;
 
   repos.remote.checkout("test", false)?;
   let commit = repos.remote.repo().head()?.peel_to_commit()?;
 
   commit.tree()?.get_path(Path::new("file"))?;
-  assert_eq!(commit.message().unwrap(), "test");
   Ok(())
 }
 
 #[rstest]
 fn mismatch_history(_sandbox: TempDir, #[with(&_sandbox)] repos: Repos) -> Result {
   fs::write(repos.remote_path.join("file"), "content")?;
-  repos.remote.add_glob(["."].iter())?;
-  repos.remote.commit("remote commit")?;
+  repos.remote.add_all()?;
+  repos.remote.commit_debug()?;
 
   assert!(repos.local.push().is_err());
   Ok(())
@@ -105,8 +107,8 @@ fn mismatch_history(_sandbox: TempDir, #[with(&_sandbox)] repos: Repos) -> Resul
 fn fetch(_sandbox: TempDir, #[with(&_sandbox)] repos: Repos) -> Result {
   fs::write(repos.remote_path.join("file"), "content")?;
   repos.remote.new_branch("test")?;
-  repos.remote.add_glob(["."].iter())?;
-  repos.remote.commit("remote commit")?;
+  repos.remote.add_all()?;
+  repos.remote.commit_debug()?;
 
   assert!(!repos.local.branches(None)?.any(|b| b.unwrap().0.name().unwrap().unwrap() == "origin/test"));
   repos.local.fetch(false)?;
@@ -117,8 +119,12 @@ fn fetch(_sandbox: TempDir, #[with(&_sandbox)] repos: Repos) -> Result {
 }
 
 #[rstest]
-fn auto_add_remote_postfix(_sandbox: TempDir, #[with(&_sandbox)] repo: Repo<TestCreds>) -> Result {
-  let url = "https://github.com/gram-ax/gramax-catalog-template";
+#[case("https://github.com/pashokitsme/android-intent")]
+fn auto_add_remote_postfix(
+  _sandbox: TempDir,
+  #[case] url: &str,
+  #[with(&_sandbox)] repo: Repo<TestCreds>,
+) -> Result {
   repo.add_remote("origin", url)?;
   repo.fetch(false)?;
   assert!(repo.has_remotes()?);

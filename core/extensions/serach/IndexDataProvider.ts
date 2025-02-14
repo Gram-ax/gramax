@@ -1,9 +1,7 @@
 import Path from "@core/FileProvider/Path/Path";
 import { Article } from "@core/FileStructue/Article/Article";
-import { getChildLinks } from "@core/FileStructue/Article/parseContent";
 import { Catalog } from "@core/FileStructue/Catalog/Catalog";
 import type { CatalogFilesUpdated } from "@core/FileStructue/Catalog/CatalogEvents";
-import { ItemType } from "@core/FileStructue/Item/ItemType";
 import Cache from "@ext/Cache";
 import { defaultLanguage } from "@ext/localization/core/model/Language";
 import MarkdownParser from "@ext/markdown/core/Parser/Parser";
@@ -101,11 +99,7 @@ export class IndexDataProvider {
 	private async _getArticleIndexData(catalog: Catalog, article: Article, forceParse = false): Promise<IndexData> {
 		try {
 			const context = this._parserContextFactory.fromArticle(article, catalog, defaultLanguage, true);
-			const content = article.content
-				? article.content
-				: article.type === ItemType.category
-				? getChildLinks()
-				: "";
+			const content = article.content ? article.content : "";
 
 			const html =
 				article.parsedContent && !forceParse

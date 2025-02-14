@@ -17,7 +17,16 @@ export const callGitWasm = async <O>(command: string, args?): Promise<O> => {
 		callbackId,
 	});
 	const data = (await promise) as any;
-	if (!data.ok) throw new LibGit2Error(data.res.message, data.res.class, data.res.code);
+	if (!data.ok) {
+		const message = typeof data.res === "string" ? data.res : data.res.message;
+		if (args?.creds?.accessToken) args.creds.accessToken = "<redacted>";
+		throw new LibGit2Error(
+			`git (${command})`,
+			`${message?.trim()}\nArgs: ${JSON.stringify(args, null, 4)}`,
+			data.res.class,
+			data.res.code,
+		);
+	}
 	return data.res;
 };
 

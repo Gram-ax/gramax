@@ -1,51 +1,54 @@
-import SideBarData from "@ext/git/actions/Publish/model/SideBarData";
-import DiffItem from "@ext/VersionControl/model/DiffItem";
-import DiffResource from "@ext/VersionControl/model/DiffResource";
+import type SideBarData from "@ext/git/actions/Publish/model/SideBarData";
+import type { DiffItemResourceCollection } from "@ext/VersionControl/model/Diff";
 import { FileStatus } from "@ext/Watchers/model/FileStatus";
 
-export const publishApiData: { items: DiffItem[]; resources: DiffResource[] } = {
+export const publishApiData: DiffItemResourceCollection = {
 	resources: [
 		{
 			type: "resource",
 			title: "file.map",
 			filePath: { path: "docs/catalog/category/file.map" },
-			changeType: FileStatus.modified,
-			diff: {
-				changes: [
-					{ value: '--\ntitle: "123"\n---\n\ncontent123\n\n123' },
-					{ value: "000a", type: FileStatus.delete },
-					{ value: "456", type: FileStatus.new },
-					{ value: "zzz" },
-					{ value: "000a", type: FileStatus.delete },
-					{ value: "456", type: FileStatus.new },
-				],
-				added: 2,
-				removed: 2,
-			},
+			status: FileStatus.modified,
+			hunks: [
+				{ value: '--\ntitle: "123"\n---\n\ncontent123\n\n123' },
+				{ value: "000a", type: FileStatus.delete },
+				{ value: "456", type: FileStatus.new },
+				{ value: "zzz" },
+				{ value: "000a", type: FileStatus.delete },
+				{ value: "456", type: FileStatus.new },
+			],
+			added: 2,
+			deleted: 2,
 			isChanged: true,
 		},
 		{
 			type: "resource",
 			title: "deleted_file.map",
 			filePath: { path: "docs/catalog/category/deleted_file.map" },
-			changeType: FileStatus.delete,
-			diff: {
-				changes: [{ value: '--\ntitle: "123"\n---\n\ncontent123\n\n123\n2', type: FileStatus.delete }],
-				added: 0,
-				removed: 1,
-			},
+			status: FileStatus.delete,
+			hunks: [
+				{
+					value: '--\ntitle: "123"\n---\n\ncontent123\n\n123\n2',
+					type: FileStatus.delete,
+				},
+			],
+			added: 0,
+			deleted: 1,
 			isChanged: true,
 		},
 		{
 			type: "resource",
 			title: "added_file.map",
 			filePath: { path: "docs/catalog/category/added_file.map" },
-			changeType: FileStatus.new,
-			diff: {
-				changes: [{ value: '--\ntitle: "123"\n---\n\ncontent123\n\n123\nnew file', type: FileStatus.new }],
-				added: 1,
-				removed: 0,
-			},
+			status: FileStatus.new,
+			hunks: [
+				{
+					value: '--\ntitle: "123"\n---\n\ncontent123\n\n123\nnew file',
+					type: FileStatus.new,
+				},
+			],
+			added: 1,
+			deleted: 0,
 			isChanged: true,
 		},
 	],
@@ -53,30 +56,28 @@ export const publishApiData: { items: DiffItem[]; resources: DiffResource[] } = 
 		{
 			type: "item",
 			title: "Статья 2 уровня",
-			changeType: FileStatus.new,
+			status: FileStatus.new,
 			logicPath: "testCatalog/catalog/category/FirstLevel/FirstLevelArticle",
 			filePath: { path: "docs/catalog/category/FirstLevel/FirstLevelArticle.md" },
-			diff: {
-				changes: [
-					{ value: '--\ntitle: "long article"\n---\n\n', type: FileStatus.new },
-					{ value: [...Array(100).keys()].map(() => "looong title").join("\n"), type: FileStatus.new },
-				],
-				added: 2,
-				removed: 1,
-			},
+			hunks: [
+				{ value: '--\ntitle: "long article"\n---\n\n', type: FileStatus.new },
+				{ value: [...Array(100).keys()].map(() => "looong title").join("\n"), type: FileStatus.new },
+			],
 			resources: [],
+			order: 1,
+			added: 2,
+			deleted: 1,
 			isChanged: true,
 		},
 		{
 			type: "item",
 			title: "123",
 			filePath: { path: "docs/comments/new_article_0.md" },
-			diff: {
-				changes: [{ value: '--\ntitle: "123"\n---\n\ncontent123\n\n123\n2', type: FileStatus.delete }],
-				added: 0,
-				removed: 1,
-			},
-			changeType: FileStatus.delete,
+			hunks: [{ value: '--\ntitle: "123"\n---\n\ncontent123\n\n123\n2', type: FileStatus.delete }],
+			added: 0,
+			deleted: 1,
+			order: 2,
+			status: FileStatus.delete,
 			resources: [],
 			isChanged: true,
 		},
@@ -85,60 +86,56 @@ export const publishApiData: { items: DiffItem[]; resources: DiffResource[] } = 
 			title: "Статья 2 уровня 2",
 			logicPath: "testCatalog/catalog/category/FirstLevel/FirstLevelArticle2",
 			filePath: { path: "docs/catalog/category/FirstLevel/FirstLevelArticle2.md" },
-			changeType: FileStatus.modified,
-			diff: {
-				changes: [
-					{ value: '--\ntitle: "123"\n---\n\ncontent123\n\n123\ntest test test' },
-					{ value: "1", type: FileStatus.delete },
-					{ value: "2", type: FileStatus.new },
-				],
-				added: 1,
-				removed: 1,
-			},
+			status: FileStatus.modified,
+			hunks: [
+				{ value: '--\ntitle: "123"\n---\n\ncontent123\n\n123\ntest test test' },
+				{ value: "1", type: FileStatus.delete },
+				{ value: "2", type: FileStatus.new },
+			],
+			added: 1,
+			deleted: 1,
 			resources: [
 				{
 					title: "Ресурс",
 					filePath: { path: "docs/catalog/category/FirstLevel/FirstLevelArticle2.md/resource.res" },
-					changeType: FileStatus.modified,
-					diff: {
-						changes: [
-							{ value: '--\ntitle: "123"\n---\n\ncontent123\n\n123\ntest test test' },
-							{ value: "old", type: FileStatus.delete },
-							{ value: FileStatus.new, type: FileStatus.new },
-						],
-						added: 1,
-						removed: 1,
-					},
+					status: FileStatus.modified,
+					hunks: [
+						{ value: '--\ntitle: "123"\n---\n\ncontent123\n\n123\ntest test test' },
+						{ value: "old", type: FileStatus.delete },
+						{ value: FileStatus.new, type: FileStatus.new },
+					],
+					added: 1,
+					deleted: 1,
 					isChanged: true,
 					type: "resource",
 				},
 			],
+			order: 1,
 			isChanged: true,
 		},
 		{
 			type: "item",
 			title: "123 2",
 			logicPath: "testCatalog/comments/new_article_02",
-			changeType: FileStatus.modified,
+			status: FileStatus.modified,
 			filePath: {
 				path: "docs/catalog/new/new_article_02.md",
 				oldPath: "docs/comments/new_article_02.md",
-				diff: [
+				hunks: [
 					{ value: "docs/" },
 					{ value: "comments", type: FileStatus.delete },
 					{ value: "catalog/new", type: FileStatus.new },
 					{ value: "/new_article_02.md" },
 				],
 			},
-			diff: {
-				changes: [
-					{ value: '--\ntitle: "123"\n---\n\ncontent123\n\n123\ntest test test' },
-					{ value: "old", type: FileStatus.delete },
-					{ value: FileStatus.new, type: FileStatus.new },
-				],
-				added: 1,
-				removed: 1,
-			},
+			hunks: [
+				{ value: '--\ntitle: "123"\n---\n\ncontent123\n\n123\ntest test test' },
+				{ value: "old", type: FileStatus.delete },
+				{ value: FileStatus.new, type: FileStatus.new },
+			],
+			added: 1,
+			deleted: 1,
+			order: 1,
 			resources: [],
 			isChanged: true,
 		},
@@ -149,50 +146,47 @@ export const publishApiData: { items: DiffItem[]; resources: DiffResource[] } = 
 			filePath: {
 				path: "docs/test/folder/lang123.md2",
 				oldPath: "docs/multilang/lang123.md2",
-				diff: [
+				hunks: [
 					{ value: "docs/" },
 					{ value: "multilang", type: FileStatus.delete },
 					{ value: "test/folder", type: FileStatus.new },
 					{ value: "/lang123.md2" },
 				],
 			},
-			changeType: FileStatus.modified,
-			diff: {
-				changes: [
-					{ value: '--\ntitle: "123"\n---\n\ncontent123\n\n123\ntest test test' },
-					{ value: "111", type: FileStatus.delete },
-					{ value: "222", type: FileStatus.new },
-				],
-				added: 1,
-				removed: 1,
-			},
+			status: FileStatus.modified,
+			hunks: [
+				{ value: '--\ntitle: "123"\n---\n\ncontent123\n\n123\ntest test test' },
+				{ value: "111", type: FileStatus.delete },
+				{ value: "222", type: FileStatus.new },
+			],
+			added: 1,
+			deleted: 1,
 			resources: [
 				{
 					title: "Переименованный ресурс",
-					changeType: FileStatus.modified,
+					status: FileStatus.modified,
 					filePath: {
 						oldPath: "docs/catalog/category/FirstLevel/FirstLevelArticle2.md/resource2.res",
 						path: "docs/category/FirstLevel/FirstLevelArticle2.md/resource2.res",
-						diff: [
+						hunks: [
 							{ value: "docs/" },
 							{ value: "catalog", type: FileStatus.delete },
 							{ value: "category", type: FileStatus.new },
 							{ value: "/FirstLevel/FirstLevelArticle2.md/resource2.res" },
 						],
 					},
-					diff: {
-						changes: [
-							{ value: '--\ntitle: "Ресурс"\n---\n\nтекст ресурса' },
-							{ value: "старый текст", type: FileStatus.delete },
-							{ value: "новый текст", type: FileStatus.new },
-						],
-						added: 1,
-						removed: 1,
-					},
+					hunks: [
+						{ value: '--\ntitle: "Ресурс"\n---\n\nтекст ресурса' },
+						{ value: "старый текст", type: FileStatus.delete },
+						{ value: "новый текст", type: FileStatus.new },
+					],
+					added: 1,
+					deleted: 1,
 					isChanged: true,
 					type: "resource",
 				},
 			],
+			order: 1,
 			isChanged: true,
 		},
 	],
@@ -209,23 +203,19 @@ export const publishSideBarData: SideBarData[] = [
 			isChanged: true,
 			logicPath: "testCatalog/catalog/category/FirstLevel/FirstLevelArticle",
 			resources: [],
-			changeType: FileStatus.new,
+			status: FileStatus.new,
 			isChecked: true,
 		},
-		diff: {
-			changes: [
-				{
-					value: '--\ntitle: "long article"\n---\n\n',
-					type: FileStatus.new,
-				},
-				{
-					value: "looong title\nlooong title\nlooong title\nlooong title\nlooong title\nlooong title\nlooong title\nlooong title\nlooong title\nlooong title\nlooong title\nlooong title\nlooong title\nlooong title\nlooong title\nlooong title\nlooong title\nlooong title\nlooong title\nlooong title\nlooong title\nlooong title\nlooong title\nlooong title\nlooong title\nlooong title\nlooong title\nlooong title\nlooong title\nlooong title\nlooong title\nlooong title\nlooong title\nlooong title\nlooong title\nlooong title\nlooong title\nlooong title\nlooong title\nlooong title\nlooong title\nlooong title\nlooong title\nlooong title\nlooong title\nlooong title\nlooong title\nlooong title\nlooong title\nlooong title\nlooong title\nlooong title\nlooong title\nlooong title\nlooong title\nlooong title\nlooong title\nlooong title\nlooong title\nlooong title\nlooong title\nlooong title\nlooong title\nlooong title\nlooong title\nlooong title\nlooong title\nlooong title\nlooong title\nlooong title\nlooong title\nlooong title\nlooong title\nlooong title\nlooong title\nlooong title\nlooong title\nlooong title\nlooong title\nlooong title\nlooong title\nlooong title\nlooong title\nlooong title\nlooong title\nlooong title\nlooong title\nlooong title\nlooong title\nlooong title\nlooong title\nlooong title\nlooong title\nlooong title\nlooong title\nlooong title\nlooong title\nlooong title\nlooong title\nlooong title",
-					type: FileStatus.new,
-				},
-			],
-			added: 2,
-			removed: 1,
-		},
+		hunks: [
+			{
+				value: '--\ntitle: "long article"\n---\n\n',
+				type: FileStatus.new,
+			},
+			{
+				value: [...Array(100).keys()].map(() => "looong title").join("\n"),
+				type: FileStatus.new,
+			},
+		],
 	},
 	{
 		isResource: false,
@@ -236,19 +226,15 @@ export const publishSideBarData: SideBarData[] = [
 			},
 			isChanged: true,
 			resources: [],
-			changeType: FileStatus.delete,
+			status: FileStatus.delete,
 			isChecked: true,
 		},
-		diff: {
-			changes: [
-				{
-					value: '--\ntitle: "123"\n---\n\ncontent123\n\n123\n2',
-					type: FileStatus.delete,
-				},
-			],
-			added: 0,
-			removed: 1,
-		},
+		hunks: [
+			{
+				value: '--\ntitle: "123"\n---\n\ncontent123\n\n123\n2',
+				type: FileStatus.delete,
+			},
+		],
 	},
 	{
 		isResource: false,
@@ -263,52 +249,44 @@ export const publishSideBarData: SideBarData[] = [
 				{
 					isResource: true,
 					data: {
-						changeType: FileStatus.modified,
+						status: FileStatus.modified,
 						filePath: {
 							path: "docs/catalog/category/FirstLevel/FirstLevelArticle2.md/resource.res",
 						},
 						title: "Ресурс",
 					},
 
-					diff: {
-						changes: [
-							{
-								value: '--\ntitle: "123"\n---\n\ncontent123\n\n123\ntest test test',
-							},
-							{
-								value: "old",
-								type: FileStatus.delete,
-							},
-							{
-								value: FileStatus.new,
-								type: FileStatus.new,
-							},
-						],
-						added: 1,
-						removed: 1,
-					},
+					hunks: [
+						{
+							value: '--\ntitle: "123"\n---\n\ncontent123\n\n123\ntest test test',
+						},
+						{
+							value: "old",
+							type: FileStatus.delete,
+						},
+						{
+							value: FileStatus.new,
+							type: FileStatus.new,
+						},
+					],
 				},
 			],
-			changeType: FileStatus.modified,
+			status: FileStatus.modified,
 			isChecked: true,
 		},
-		diff: {
-			changes: [
-				{
-					value: '--\ntitle: "123"\n---\n\ncontent123\n\n123\ntest test test',
-				},
-				{
-					value: "1",
-					type: FileStatus.delete,
-				},
-				{
-					value: "2",
-					type: FileStatus.new,
-				},
-			],
-			added: 1,
-			removed: 1,
-		},
+		hunks: [
+			{
+				value: '--\ntitle: "123"\n---\n\ncontent123\n\n123\ntest test test',
+			},
+			{
+				value: "1",
+				type: FileStatus.delete,
+			},
+			{
+				value: "2",
+				type: FileStatus.new,
+			},
+		],
 	},
 	{
 		isResource: false,
@@ -317,7 +295,7 @@ export const publishSideBarData: SideBarData[] = [
 			filePath: {
 				path: "docs/catalog/new/new_article_02.md",
 				oldPath: "docs/comments/new_article_02.md",
-				diff: [
+				hunks: [
 					{
 						value: "docs/",
 					},
@@ -337,26 +315,22 @@ export const publishSideBarData: SideBarData[] = [
 			isChanged: true,
 			logicPath: "testCatalog/comments/new_article_02",
 			resources: [],
-			changeType: FileStatus.modified,
+			status: FileStatus.modified,
 			isChecked: true,
 		},
-		diff: {
-			changes: [
-				{
-					value: '--\ntitle: "123"\n---\n\ncontent123\n\n123\ntest test test',
-				},
-				{
-					value: "old",
-					type: FileStatus.delete,
-				},
-				{
-					value: FileStatus.new,
-					type: FileStatus.new,
-				},
-			],
-			added: 1,
-			removed: 1,
-		},
+		hunks: [
+			{
+				value: '--\ntitle: "123"\n---\n\ncontent123\n\n123\ntest test test',
+			},
+			{
+				value: "old",
+				type: FileStatus.delete,
+			},
+			{
+				value: FileStatus.new,
+				type: FileStatus.new,
+			},
+		],
 	},
 	{
 		isResource: false,
@@ -365,7 +339,7 @@ export const publishSideBarData: SideBarData[] = [
 			filePath: {
 				path: "docs/test/folder/lang123.md2",
 				oldPath: "docs/multilang/lang123.md2",
-				diff: [
+				hunks: [
 					{
 						value: "docs/",
 					},
@@ -388,11 +362,11 @@ export const publishSideBarData: SideBarData[] = [
 				{
 					isResource: true,
 					data: {
-						changeType: FileStatus.modified,
+						status: FileStatus.modified,
 						filePath: {
 							oldPath: "docs/catalog/category/FirstLevel/FirstLevelArticle2.md/resource2.res",
 							path: "docs/category/FirstLevel/FirstLevelArticle2.md/resource2.res",
-							diff: [
+							hunks: [
 								{
 									value: "docs/",
 								},
@@ -411,45 +385,37 @@ export const publishSideBarData: SideBarData[] = [
 						},
 						title: "Переименованный ресурс",
 					},
-					diff: {
-						changes: [
-							{
-								value: '--\ntitle: "Ресурс"\n---\n\nтекст ресурса',
-							},
-							{
-								value: "старый текст",
-								type: FileStatus.delete,
-							},
-							{
-								value: "новый текст",
-								type: FileStatus.new,
-							},
-						],
-						added: 1,
-						removed: 1,
-					},
+					hunks: [
+						{
+							value: '--\ntitle: "Ресурс"\n---\n\nтекст ресурса',
+						},
+						{
+							value: "старый текст",
+							type: FileStatus.delete,
+						},
+						{
+							value: "новый текст",
+							type: FileStatus.new,
+						},
+					],
 				},
 			],
-			changeType: FileStatus.modified,
+			status: FileStatus.modified,
 			isChecked: true,
 		},
-		diff: {
-			changes: [
-				{
-					value: '--\ntitle: "123"\n---\n\ncontent123\n\n123\ntest test test',
-				},
-				{
-					value: "111",
-					type: FileStatus.delete,
-				},
-				{
-					value: "222",
-					type: FileStatus.new,
-				},
-			],
-			added: 1,
-			removed: 1,
-		},
+		hunks: [
+			{
+				value: '--\ntitle: "123"\n---\n\ncontent123\n\n123\ntest test test',
+			},
+			{
+				value: "111",
+				type: FileStatus.delete,
+			},
+			{
+				value: "222",
+				type: FileStatus.new,
+			},
+		],
 	},
 	null,
 	{
@@ -461,37 +427,33 @@ export const publishSideBarData: SideBarData[] = [
 			},
 			isChanged: true,
 			resources: [],
-			changeType: FileStatus.modified,
+			status: FileStatus.modified,
 			isChecked: true,
 		},
-		diff: {
-			changes: [
-				{
-					value: '--\ntitle: "123"\n---\n\ncontent123\n\n123',
-				},
-				{
-					value: "000a",
-					type: FileStatus.delete,
-				},
-				{
-					value: "456",
-					type: FileStatus.new,
-				},
-				{
-					value: "zzz",
-				},
-				{
-					value: "000a",
-					type: FileStatus.delete,
-				},
-				{
-					value: "456",
-					type: FileStatus.new,
-				},
-			],
-			added: 2,
-			removed: 2,
-		},
+		hunks: [
+			{
+				value: '--\ntitle: "123"\n---\n\ncontent123\n\n123',
+			},
+			{
+				value: "000a",
+				type: FileStatus.delete,
+			},
+			{
+				value: "456",
+				type: FileStatus.new,
+			},
+			{
+				value: "zzz",
+			},
+			{
+				value: "000a",
+				type: FileStatus.delete,
+			},
+			{
+				value: "456",
+				type: FileStatus.new,
+			},
+		],
 	},
 	{
 		isResource: false,
@@ -502,19 +464,15 @@ export const publishSideBarData: SideBarData[] = [
 			},
 			isChanged: true,
 			resources: [],
-			changeType: FileStatus.delete,
+			status: FileStatus.delete,
 			isChecked: true,
 		},
-		diff: {
-			changes: [
-				{
-					value: '--\ntitle: "123"\n---\n\ncontent123\n\n123\n2',
-					type: FileStatus.delete,
-				},
-			],
-			added: 0,
-			removed: 1,
-		},
+		hunks: [
+			{
+				value: '--\ntitle: "123"\n---\n\ncontent123\n\n123\n2',
+				type: FileStatus.delete,
+			},
+		],
 	},
 	{
 		isResource: false,
@@ -525,18 +483,14 @@ export const publishSideBarData: SideBarData[] = [
 			},
 			isChanged: true,
 			resources: [],
-			changeType: FileStatus.new,
+			status: FileStatus.new,
 			isChecked: true,
 		},
-		diff: {
-			changes: [
-				{
-					value: '--\ntitle: "123"\n---\n\ncontent123\n\n123\nnew file',
-					type: FileStatus.new,
-				},
-			],
-			added: 1,
-			removed: 0,
-		},
+		hunks: [
+			{
+				value: '--\ntitle: "123"\n---\n\ncontent123\n\n123\nnew file',
+				type: FileStatus.new,
+			},
+		],
 	},
 ];

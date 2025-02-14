@@ -1,24 +1,22 @@
 import WorkspaceAssetsService, { useLogoManager } from "@core-ui/ContextServices/WorkspaceAssetsService";
 import useWatch from "@core-ui/hooks/useWatch";
+import CustomLogoDriver from "@core/utils/CustomLogoDriver";
 import Theme from "@ext/Theme/Theme";
-import { useState, useCallback } from "react";
-
-export const logoToBase64 = (data: string) => {
-	if (!data || typeof data !== "string") return "";
-	return `data:image/svg+xml;base64,${btoa(data)}`;
-};
+import { useState, useCallback, useMemo } from "react";
 
 export const useWorkspaceLogo = (workspacePath: string) => {
 	const { refreshHomeLogo } = WorkspaceAssetsService.value();
 	const {
 		deleteLogo: deleteDark,
 		updateLogo: updateDark,
+		isLoading: isLoadingDark,
 		logo: initialDarkLogo,
 	} = useLogoManager(workspacePath, Theme.dark);
 
 	const {
 		deleteLogo: deleteLight,
 		updateLogo: updateLight,
+		isLoading: isLoadingLight,
 		logo: initialLightLogo,
 	} = useLogoManager(workspacePath, Theme.light);
 
@@ -39,12 +37,12 @@ export const useWorkspaceLogo = (workspacePath: string) => {
 	}, []);
 
 	const updateLightLogo = useCallback((logo: string) => {
-		const base64Logo = logoToBase64(logo);
+		const base64Logo = CustomLogoDriver.logoToBase64(logo);
 		setLightLogo(base64Logo);
 	}, []);
 
 	const updateDarkLogo = useCallback((logo: string) => {
-		const base64Logo = logoToBase64(logo);
+		const base64Logo = CustomLogoDriver.logoToBase64(logo);
 		setDarkLogo(base64Logo);
 	}, []);
 
@@ -66,9 +64,17 @@ export const useWorkspaceLogo = (workspacePath: string) => {
 		if (needRefreshLogo) await refreshHomeLogo();
 	}, [initialLightLogo, lightLogo, initialDarkLogo, darkLogo]);
 
+	const haveChanges = useMemo(
+		() => initialDarkLogo !== darkLogo || initialLightLogo !== lightLogo,
+		[initialDarkLogo, darkLogo, initialLightLogo, lightLogo],
+	);
+
 	return {
+		haveChanges,
 		deleteLightLogo,
 		deleteDarkLogo,
+		isLoadingDark,
+		isLoadingLight,
 		lightLogo,
 		darkLogo,
 		updateLightLogo,

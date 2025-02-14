@@ -2,7 +2,7 @@ import { ParagraphChild, TextRun } from "docx";
 import { FileChild } from "docx/build/file/file-child";
 import ParserContext from "../markdown/core/Parser/ParserContext/ParserContext";
 import { Tag } from "../markdown/core/render/logic/Markdoc";
-import { AddOptionsWord, WordBlockChildren, WordInlineChildren } from "./options/WordTypes";
+import { AddOptionsWord, TitleInfo, WordBlockChildren, WordInlineChildren } from "./options/WordTypes";
 import { createContent } from "@ext/wordExport/TextWordGenerator";
 import { createParagraph } from "@ext/wordExport/createParagraph";
 import { NON_BREAKING_SPACE } from "@ext/wordExport/options/wordExportSettings";
@@ -12,9 +12,11 @@ export class WordSerializerState {
 	constructor(
 		private _inlineConfig: WordInlineChildren,
 		private _blockConfig: WordBlockChildren,
-		private readonly _domain: string,
 		private _parserContext: ParserContext,
 		private _exportType: ExportType,
+		private readonly _titlesMap: Map<string, TitleInfo>,
+		private readonly _articleName: string,
+		private readonly _order: string,
 	) {}
 
 	async renderInline(parent: Tag, addOptions?: AddOptionsWord): Promise<ParagraphChild[]> {
@@ -36,7 +38,9 @@ export class WordSerializerState {
 					wordRenderContext: {
 						parserContext: this._parserContext,
 						exportType: this._exportType,
-						domain: this._domain,
+						titlesMap: this._titlesMap,
+						articleName: this._articleName,
+						order: this._order,
 					},
 				});
 			}),
@@ -74,7 +78,9 @@ export class WordSerializerState {
 			wordRenderContext: {
 				parserContext: this._parserContext,
 				exportType: this._exportType,
-				domain: this._domain,
+				titlesMap: this._titlesMap,
+				articleName: this._articleName,
+				order: this._order,
 			},
 		});
 	}

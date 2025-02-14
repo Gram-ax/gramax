@@ -16,11 +16,11 @@ fn init_new(sandbox: TempDir) -> Result {
 #[rstest]
 fn get_content(sandbox: TempDir, #[with(&sandbox)] repo: Repo<TestCreds>) -> Result {
   fs::write(sandbox.path().join("file"), "content")?;
-  repo.add_glob(["."].iter())?;
-  let oid = repo.commit("test")?;
+  repo.add_all()?;
+  let (oid, _) = repo.commit_debug()?;
   fs::write(sandbox.path().join("file"), "content231")?;
-  repo.add_glob(["."].iter())?;
-  repo.commit("test")?;
+  repo.add_all()?;
+  repo.commit_debug()?;
 
   assert_eq!(repo.get_content("file", Some(oid))?, "content");
   assert_eq!(repo.get_content("file", None)?, "content231");

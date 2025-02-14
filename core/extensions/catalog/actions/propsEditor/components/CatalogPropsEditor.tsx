@@ -57,7 +57,7 @@ const CatalogPropsEditor = ({
 	const router = useRouter();
 	const articleProps = ArticlePropsService.value;
 	const catalogProps = CatalogPropsService.value;
-	const [generatedUrl, setGeneratedUrl] = useState<string>(catalogProps.name);
+	const [generatedUrl, setGeneratedUrl] = useState<string>();
 	const [editProps, setEditProps] = useState(getCatalogEditProps(catalogProps));
 	const [saveProcess, setSaveProcess] = useState(false);
 
@@ -68,6 +68,7 @@ const CatalogPropsEditor = ({
 
 	const onSubmit = async (props: CatalogEditProps) => {
 		setSaveProcess(true);
+		setGeneratedUrl(undefined);
 		const result = await FetchService.fetch<ClientCatalogProps>(
 			apiUrlCreator.updateCatalogProps(),
 			JSON.stringify(props),
@@ -94,16 +95,18 @@ const CatalogPropsEditor = ({
 
 	const onChange = (props: CatalogEditProps) => {
 		if (sourceType) return;
-		if (
-			!props.title ||
-			(props.title == catalogProps.title && props.url.includes(NEW_CATALOG_NAME)) ||
-			!catalogProps.name.includes(NEW_CATALOG_NAME) ||
-			props.url != generatedUrl
-		)
-			return;
-		const generated = uniqueName(transliterate(props.title, { kebab: true, maxLength: 50 }), allCatalogNames);
-		setGeneratedUrl(generated);
-		props.url = generated;
+		if (props.url !== editProps.url) setGeneratedUrl(undefined);
+		else if (
+			(generatedUrl && props.title) ||
+			(props.title && props.title !== editProps.title && props.url.startsWith(NEW_CATALOG_NAME))
+		) {
+			const newGeneratedUrl = uniqueName(
+				transliterate(props.title, { kebab: true, maxLength: 50 }),
+				allCatalogNames,
+			);
+			setGeneratedUrl(newGeneratedUrl);
+			props.url = newGeneratedUrl;
+		}
 		setEditProps({ ...props });
 	};
 
@@ -147,7 +150,6 @@ const CatalogPropsEditor = ({
 				onClose={() => {
 					setIsOpen(false);
 					setEditProps(getCatalogEditProps(catalogProps));
-					setGeneratedUrl(undefined);
 					props.onClose?.();
 				}}
 			>
@@ -210,7 +212,7 @@ const CatalogPropsEditor = ({
 							(schema.properties.url as any).readOnly = !!sourceType;
 						}}
 					>
-						{workspace.groups && (
+						{workspace?.groups && (
 							<div className="form-group">
 								<div className="field field-string row">
 									<label className="control-label">
@@ -227,6 +229,7 @@ const CatalogPropsEditor = ({
 												element: workspace.groups[editProps.group]?.title ?? "",
 											}}
 											placeholder={t("forms.catalog-edit-props.props.group.placeholder")}
+											onCancelClick={() => setEditProps({ ...editProps, group: "" })}
 											onItemClick={(_, __, idx) =>
 												setEditProps({
 													...editProps,

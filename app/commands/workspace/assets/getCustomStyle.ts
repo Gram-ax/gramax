@@ -9,6 +9,8 @@ const getCustomStyle: Command<{ workspacePath?: WorkspacePath }, string> = Comma
 
 	async do({ workspacePath }) {
 		const assets = this._app.wm.getWorkspaceAssets(workspacePath);
+		if (!assets) return "";
+
 		return assets.get(PredefinedAssets.customStyle);
 	},
 

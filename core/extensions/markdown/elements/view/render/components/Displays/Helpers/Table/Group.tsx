@@ -9,11 +9,16 @@ const Group = ({ group, select }: { group: ViewRenderGroup; select: string[] }) 
 	return (
 		<>
 			{rows.map((row, index) => (
-				<tr key={"row" + row.length + index}>
-					{row.map((cell) => (
+				<tr key={"row-" + row.length + index}>
+					{row.map((cell, cellIndex) => (
 						<td
 							rowSpan={cell?.rowSpan ?? 1}
-							key={"cell" + (cell?.name !== undefined ? cell.name : cell?.article?.title)}
+							key={
+								"cell-" +
+								(cell?.name !== undefined ? cell.name : cell?.article?.title) +
+								"-" +
+								cellIndex
+							}
 						>
 							{cell?.name}
 							{cell.article && (

@@ -22,7 +22,7 @@ enum ModalToOpen {
 	HTMLEditor = "HTMLEditor",
 
 	Merge = "Merge",
-	MergeRequest = "MergeRequest",
+	CreateMergeRequest = "CreateMergeRequest",
 	MergeRequestConfirm = "MergeRequestConfirm",
 	CreateSourceData = "CreateSourceData",
 

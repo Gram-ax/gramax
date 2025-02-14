@@ -3,12 +3,13 @@ import Welcome from "@components/Welcome";
 import FetchService from "@core-ui/ApiServices/FetchService";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
+import WorkspaceService from "@core-ui/ContextServices/Workspace";
 import IsReadOnlyHOC from "@core-ui/HigherOrderComponent/IsReadOnlyHOC";
 import styled from "@emotion/styled";
 import Mode from "@ext/git/actions/Clone/model/Mode";
 import t from "@ext/localization/locale/translate";
 import PermissionService from "@ext/security/logic/Permission/components/PermissionService";
-import { configureWorkspacePermission } from "@ext/security/logic/Permission/Permissions";
+import { configureWorkspacePermission, editCatalogPermission } from "@ext/security/logic/Permission/Permissions";
 import { type HTMLAttributes } from "react";
 import CreateCatalog from "../../extensions/catalog/actions/CreateCatalog";
 import Clone from "../../extensions/git/actions/Clone/components/Clone";
@@ -19,7 +20,15 @@ const NoneGroups = (props: HTMLAttributes<HTMLDivElement>) => {
 	const isReadOnly = PageDataContextService.value.conf.isReadOnly;
 	const apiUrlCreator = ApiUrlCreatorService.value;
 	const hasWorkspace = !!PageDataContextService.value.workspace.current;
-	const canConfigureWorkspace = PermissionService.useCheckPermission(configureWorkspacePermission);
+	const workspacePath = WorkspaceService?.current()?.path;
+
+	const canEditCatalog = workspacePath
+		? PermissionService.useCheckPermission(editCatalogPermission, workspacePath)
+		: true;
+	const canConfigureWorkspace = workspacePath
+		? PermissionService.useCheckPermission(configureWorkspacePermission, workspacePath)
+		: true;
+	const canAddCatalog = (isReadOnly && canConfigureWorkspace) || (!isReadOnly && canEditCatalog);
 
 	return (
 		<div {...props}>
@@ -60,7 +69,7 @@ const NoneGroups = (props: HTMLAttributes<HTMLDivElement>) => {
 					)
 				}
 				actions={
-					canConfigureWorkspace ? (
+					canAddCatalog ? (
 						<>
 							<IsReadOnlyHOC>
 								<CreateCatalog

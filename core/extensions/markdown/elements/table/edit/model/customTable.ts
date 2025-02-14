@@ -1,13 +1,23 @@
 import TableComponent from "@ext/markdown/elements/table/edit/components/TableComponent";
+import aggregationPlugin from "@ext/markdown/elements/table/edit/model/aggregationPlugin/plugin";
 import { columnResizing } from "@ext/markdown/elements/table/edit/model/columnResizing/columnResizing";
+import decorationPlugin from "@ext/markdown/elements/table/edit/model/decorationPlugin/plugin";
+import { TableHeaderTypes } from "@ext/markdown/elements/table/edit/model/tableTypes";
 import Table from "@tiptap/extension-table";
 import { ReactNodeViewRenderer } from "@tiptap/react";
 import { TableView } from "prosemirror-tables";
 
 const CustomTable = Table.extend({
+	addAttributes() {
+		return {
+			header: { default: TableHeaderTypes.ROW },
+		};
+	},
+
 	addNodeView() {
 		return ReactNodeViewRenderer(TableComponent, {
 			contentDOMElementTag: "tbody",
+			ignoreMutation: () => true,
 		});
 	},
 
@@ -24,6 +34,8 @@ const CustomTable = Table.extend({
 						}),
 				  ]
 				: []),
+			decorationPlugin,
+			aggregationPlugin,
 			...this.parent().filter((plagin: any) => plagin.key !== "tableColumnResizing$"),
 		];
 	},

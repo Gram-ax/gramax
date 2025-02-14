@@ -12,6 +12,7 @@ class LinkHoverTooltip extends TooltipBase {
 	element: HTMLElement;
 	resourcePath?: string;
 	anchorPos: number;
+	onDestroy: () => void;
 	mark: Mark;
 
 	constructor(
@@ -26,7 +27,6 @@ class LinkHoverTooltip extends TooltipBase {
 			apiUrlCreator,
 			pageDataContext,
 			closeHandler: () => this.closeComponent(),
-			openAfter: () => this.setComponentInState(),
 			getMark: () => this.getMark(),
 		};
 
@@ -38,20 +38,21 @@ class LinkHoverTooltip extends TooltipBase {
 	}
 
 	unMount() {
-		if (this.element) {
-			this.closeComponent();
-		}
+		this.closeComponent();
+		this.destroyFunctions();
+	}
+
+	destroyFunctions(delay?: 200) {
 		setTimeout(() => {
 			this.destroy(this._element);
-		}, 20);
+			this.onDestroy();
+		}, delay);
 	}
 
 	canSetComponent() {
 		if (!this.markPosition || !this.anchorPos) return true;
-
 		const { from, to } = this.markPosition;
 
-		// -1 потому что на конце ссылки нельзя открыть тултип редактирования ссылки
 		if (this.anchorPos >= from && this.anchorPos <= to - 1) {
 			return false;
 		}
@@ -59,7 +60,7 @@ class LinkHoverTooltip extends TooltipBase {
 		return true;
 	}
 
-	setAnchorPos(pos: number) {
+	updateAnchorPos(pos: number) {
 		this.anchorPos = pos;
 	}
 
@@ -74,6 +75,7 @@ class LinkHoverTooltip extends TooltipBase {
 
 	setComponent(element: HTMLElement) {
 		if (!element) return this.closeComponent();
+
 		if (!this.isMounted) {
 			this.setTooltipPosition(element);
 		}
@@ -91,10 +93,6 @@ class LinkHoverTooltip extends TooltipBase {
 		this.updateProps({ isOpen: true, element, resourcePath: this.resourcePath });
 	}
 
-	observerCallback() {
-		this.isLeaved = true;
-	}
-
 	setObserver(element: HTMLElement) {
 		element.addEventListener("mouseleave", this._mouseLeave.bind(this));
 		this.isLeaved = false;
@@ -106,20 +104,15 @@ class LinkHoverTooltip extends TooltipBase {
 		}
 	}
 
-	setComponentInState() {
-		if (this.isLeaved || this.isMounted) return;
-		if (this.canSetComponent()) {
-			this.setTooltipPosition(this.element);
-			this.isMounted = true;
-
-			this.updateProps({ isOpen: true, element: this.element });
-		}
-	}
-
 	closeComponent() {
 		this.isMounted = false;
 		this.deleteObserver(this.element);
 		this.updateProps({ isOpen: false });
+		this.destroyFunctions();
+	}
+
+	observerCallback() {
+		this.isLeaved = true;
 	}
 
 	private _mouseLeave = () => this.observerCallback();

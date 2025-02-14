@@ -12,8 +12,13 @@ const imageHandlePaste = (
 	onLoadResource: OnLoadResource,
 ) => {
 	if (event.clipboardData.files.length == 0) return false;
+	const hasPlainText = event.clipboardData.getData("text/plain");
+	const hasHtml = event.clipboardData.getData("text/html");
+	const hasRtf = event.clipboardData.getData("text/rtf");
+
+	if ((hasPlainText && hasHtml) || hasRtf) return false;
+
 	for (const item of event.clipboardData.items) {
-		if (item.type == "text/rtf") return false;
 		if (item.type.startsWith("image")) {
 			const file = item.getAsFile();
 			if (!file) continue;

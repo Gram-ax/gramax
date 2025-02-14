@@ -1,11 +1,14 @@
-import DiffFile from "../../../../VersionControl/model/DiffFile";
-
-interface SideBarResourceData extends Pick<DiffFile, "diff"> {
+import { DiffFile, DiffFilePaths } from "@ext/VersionControl/model/Diff";
+interface SideBarResourceData extends Pick<DiffFile, "hunks"> {
 	isResource: true;
-	parentPath?: string;
+	parentPath?: DiffFilePaths;
 	data: {
 		title: string;
-	} & Pick<DiffFile, "changeType" | "filePath">;
+		added?: number;
+		deleted?: number;
+		content?: string;
+		oldContent?: string;
+	} & Pick<DiffFile, "status" | "filePath">;
 }
 
 export default SideBarResourceData;

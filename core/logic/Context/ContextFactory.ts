@@ -18,8 +18,8 @@ export class ContextFactory {
 	constructor(
 		private _tm: ThemeManager,
 		private _cookieSecret: string,
+		private _isReadOnly: boolean,
 		private _am?: AuthManager,
-		private _isReadOnly?: boolean,
 	) {}
 
 	async from(req: ApiRequest, res: ApiResponse, query?: { [key: string]: string | string[] }): Promise<Context> {
@@ -29,22 +29,20 @@ export class ContextFactory {
 		query.ui = cookie.get("ui");
 		if (!query.l) query.l = ContentLanguage[req.headers["x-gramax-language"]];
 
-		const user = this._isReadOnly ? await this._am?.getUser(cookie, query) : localUser;
+		const user = this._isReadOnly ? await this._am?.getUser(cookie, query, req.headers) : localUser;
 
 		return this._getContext({ cookie, user, query, domain: apiUtils.getDomain(req) });
 	}
 
-	fromBrowser(language: string, query: Query): Context {
+	async fromBrowser(language: string, query: Query): Promise<Context> {
 		const cookie = this._cookieFactory.from(this._cookieSecret);
 		if (!query) query = {};
 		query.l = language;
 		query.ui = LanguageService.currentUi();
-		return this._getContext({
-			cookie,
-			user: localUser,
-			domain: getClientDomain(),
-			query,
-		});
+
+		const user = this._am ? await this._am.getUser(cookie, query) : localUser;
+
+		return this._getContext({ cookie, user, query, domain: getClientDomain() });
 	}
 
 	private _getContext({

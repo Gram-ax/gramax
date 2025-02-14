@@ -8,10 +8,10 @@ import { ButtonItem, ListItem } from "@components/List/Item";
 import ListLayout from "@components/List/ListLayout";
 import FetchService from "@core-ui/ApiServices/FetchService";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
-import ModalToOpenService from "@core-ui/ContextServices/ModalToOpenService/ModalToOpenService";
-import ModalToOpen from "@core-ui/ContextServices/ModalToOpenService/model/ModalsToOpen";
-import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
+import CatalogPropsService from "@core-ui/ContextServices/CatalogProps";
+import WorkspaceService from "@core-ui/ContextServices/Workspace";
 import IsReadOnlyHOC from "@core-ui/HigherOrderComponent/IsReadOnlyHOC";
+import { usePlatform } from "@core-ui/hooks/usePlatform";
 import getIsDevMode from "@core-ui/utils/getIsDevMode";
 import AddNewBranchListItem from "@ext/git/actions/Branch/components/AddNewBranchListItem";
 import DisableTooltipContent from "@ext/git/actions/Branch/components/DisableTooltipContent";
@@ -20,10 +20,12 @@ import getNewBranchNameErrorLocalization from "@ext/git/actions/Branch/component
 import validateBranchError from "@ext/git/actions/Branch/components/logic/validateBranchError";
 import MergeBranches from "@ext/git/actions/Branch/components/MergeBranches";
 import ClientGitBranchData from "@ext/git/actions/Branch/model/ClientGitBranchData";
-import type MergeConflictConfirm from "@ext/git/actions/MergeConflictHandler/components/MergeConflictConfirm";
+import tryOpenMergeConflict from "@ext/git/actions/MergeConflictHandler/logic/tryOpenMergeConflict";
 import type MergeData from "@ext/git/actions/MergeConflictHandler/model/MergeData";
 import t from "@ext/localization/locale/translate";
-import { useEffect, useMemo, useRef, useState, type ComponentProps } from "react";
+import PermissionService from "@ext/security/logic/Permission/components/PermissionService";
+import { editCatalogPermission } from "@ext/security/logic/Permission/Permissions";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 interface BranchActionsProps {
 	currentBranch: string;
@@ -69,7 +71,7 @@ const BranchActions = (props: BranchActionsProps) => {
 	const { currentBranch, trigger, onNewBranch = () => {}, onStopMerge = () => {}, onMergeRequestCreate } = props;
 	const [isDevMode] = useState(() => getIsDevMode());
 	const apiUrlCreator = ApiUrlCreatorService.value;
-	const readOnly = PageDataContextService.value.conf.isReadOnly;
+	const { isNext } = usePlatform();
 	const addNewBranchText = t("add-new-branch");
 
 	const [displayedBranch, setDisplayedBranch] = useState("");
@@ -92,6 +94,14 @@ const BranchActions = (props: BranchActionsProps) => {
 	const [isLoadingData, setIsLoadingData] = useState(false);
 
 	const [newBranchValidationError, setNewBranchValidationError] = useState<string>("");
+	const workspacePath = WorkspaceService.current().path;
+	const catalogProps = CatalogPropsService.value;
+
+	const canEditCatalog = PermissionService.useCheckPermission(
+		editCatalogPermission,
+		workspacePath,
+		catalogProps.name,
+	);
 
 	const mergeData = useRef<MergeData>({ ok: true });
 
@@ -201,17 +211,18 @@ const BranchActions = (props: BranchActionsProps) => {
 		setBranches(newBranches.filter((b) => b.name != currentBranch));
 	}, [newBranches]);
 
-	const addNewBranchListItem: ButtonItem[] = !readOnly
-		? [
-				{
-					element: <AddNewBranchListItem addNewBranchText={addNewBranchText} />,
-					labelField: addNewBranchText,
-					onClick: () => {
-						setIsInitNewBranch(true);
+	const addNewBranchListItem: ButtonItem[] =
+		!isNext && canEditCatalog
+			? [
+					{
+						element: <AddNewBranchListItem addNewBranchText={addNewBranchText} />,
+						labelField: addNewBranchText,
+						onClick: () => {
+							setIsInitNewBranch(true);
+						},
 					},
-				},
-		  ]
-		: undefined;
+			  ]
+			: undefined;
 
 	const modalOnCloseHandler = () => {
 		setIsInitNewBranch(false);
@@ -223,10 +234,7 @@ const BranchActions = (props: BranchActionsProps) => {
 		setInitNewBranchName("");
 		setNewBranchValidationError(null);
 
-		if (!mergeData.current.ok)
-			ModalToOpenService.setValue<ComponentProps<typeof MergeConflictConfirm>>(ModalToOpen.MergeConfirm, {
-				mergeData: { ...mergeData.current },
-			});
+		if (!mergeData.current.ok) tryOpenMergeConflict({ mergeData: { ...mergeData.current } });
 
 		mergeData.current = { ok: true };
 	};

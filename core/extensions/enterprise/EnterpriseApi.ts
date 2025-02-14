@@ -31,22 +31,38 @@ class EnterpriseApi {
 
 			const data = (await res.json()) as {
 				info?: UserInfo;
-				globalPermission?: string[];
-				enterprisePermissions?: { resourceId: string; permissions: string[] }[];
+				workspacePermissions?: string[];
+				catalogsPermissions?: { resourceId: string; permissions: string[]; props: { branches?: string[] } }[];
 			};
 
-			const enterprisePermissions = data.enterprisePermissions;
-			const newEnterprisePermissions: { [catalogName: string]: string[] } = {};
-			enterprisePermissions.forEach(({ resourceId, permissions }) => {
+			const catalogsPermissions = data.catalogsPermissions;
+			const newCatalogsPermissions: { [catalogName: string]: string[] } = {};
+			const newCatalogsProps: { [catalogName: string]: { branches?: string[] } } = {};
+			catalogsPermissions.forEach(({ resourceId, permissions, props }) => {
 				const split = resourceId.split("/");
 				const catalogName = split.pop();
 				if (!catalogName) return;
-				newEnterprisePermissions[catalogName] = permissions;
+				newCatalogsPermissions[catalogName] = permissions;
+				newCatalogsProps[catalogName] = props;
 			});
-			return { ...data, enterprisePermissions: newEnterprisePermissions };
+			return { ...data, catalogsPermissions: newCatalogsPermissions, catalogsProps: newCatalogsProps };
 		} catch (e) {
 			console.log(e);
 		}
+	}
+
+	async getUsers(search: string): Promise<{ name: string; email: string }[]> {
+		if (!search || !search.trim()) return [];
+		const res = await fetch(`${this._gesUrl}/sso/connectors/ldap/getUsers`, {
+			method: "POST",
+			headers: { "Content-Type": "application/json" },
+			body: JSON.stringify({ emailOrCn: search }),
+		});
+		if (!res.ok) {
+			console.error(await res.json());
+			return [];
+		}
+		return res.json();
 	}
 
 	async checkStyleGuide(paragraphs: RequestParagraphModel[]): Promise<StyleGuideGptResponseModel> {
@@ -98,6 +114,23 @@ class EnterpriseApi {
 		if (!res.ok || res.status !== 200) return;
 
 		return await res.json();
+	}
+
+	async addReviews(token: string, resourceId: string, reviewers: string[], branch: string) {
+		if (!this._gesUrl || !token) return;
+
+		const res = await fetch(`${this._gesUrl}/enterprise/config/add-reviews`, {
+			method: "POST",
+			headers: { "Content-Type": "application/json" },
+			body: JSON.stringify({ token, resourceId, reviewers, branch }),
+		});
+
+		if (res.status === 403) throw new DefaultError(t("enterprise.add-reviews.forbidden"));
+		if (res.status === 400) throw new DefaultError(t("enterprise.add-reviews.not-found"));
+
+		const gitRes = await fetch(`${this._gesUrl}/update?token=${encodeURIComponent(token)}`, { method: "POST" });
+
+		return gitRes.ok && res.ok && res.status === 200;
 	}
 }
 

@@ -2,7 +2,7 @@ import t from "@ext/localization/locale/translate";
 import { Tag } from "@ext/markdown/core/render/logic/Markdoc";
 import DocumentTree from "@ext/wordExport/DocumentTree/DocumentTree";
 import { createContent } from "@ext/wordExport/TextWordGenerator";
-import { Document, ISectionOptions, Paragraph, TableOfContents } from "docx";
+import { BookmarkEnd, BookmarkStart, Document, ISectionOptions, Paragraph, TableOfContents } from "docx";
 import { WordSerializerState } from "./WordExportState";
 import { getBlockChildren } from "./getBlockChildren";
 import { getInlineChildren } from "./getInlineChildren";
@@ -12,11 +12,13 @@ import { HeadingStyles, WordFontStyles } from "./options/wordExportSettings";
 import { createParagraph } from "@ext/wordExport/createParagraph";
 import { defaultLanguage } from "@ext/localization/core/model/Language";
 import { ExportType } from "@ext/wordExport/ExportType";
+import { generateBookmarkName } from "@ext/wordExport/generateBookmarkName";
+import { TitleInfo } from "@ext/wordExport/options/WordTypes";
 
 const MAX_HEADING_LEVEL = 9;
 
 abstract class WordExport {
-	constructor(private _exportType: ExportType, private readonly _domain) {}
+	constructor(private _exportType: ExportType, private readonly _titlesMap: Map<string, TitleInfo>) {}
 
 	async getDocument(documentTree: DocumentTree) {
 		const sections = await this._getDocumentSections(documentTree);
@@ -70,13 +72,14 @@ abstract class WordExport {
 
 	private async _parseArticle(article: DocumentTree) {
 		if (!article.content || typeof article.content === "string") return [this._createTitle(article)];
-
 		const state = new WordSerializerState(
 			getInlineChildren(),
 			getBlockChildren(),
-			this._domain,
 			article.parserContext,
 			this._exportType,
+			this._titlesMap,
+			article.name,
+			article.number,
 		);
 
 		const contentPromises = article.content.children.map(async (child) => {
@@ -104,11 +107,15 @@ export class FallbackWordExport extends WordExport {
 }
 
 export class MainWordExport extends WordExport {
-	protected _createTitle = (article: DocumentTree) =>
-		createParagraph(
-			[createContent(article.name)],
+	protected _createTitle = (article: DocumentTree) => {
+		const bookmarkId = 1;
+		const bookmarkName = generateBookmarkName(article.number, article.name);
+
+		return createParagraph(
+			[new BookmarkStart(bookmarkName, bookmarkId), createContent(article.name), new BookmarkEnd(bookmarkId)],
 			HeadingStyles[article.level <= MAX_HEADING_LEVEL ? article.level : MAX_HEADING_LEVEL + 1],
 		);
+	};
 }
 
 export default WordExport;

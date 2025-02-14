@@ -36,7 +36,7 @@ export default styled(BigCard)`
 	width: 100%;
 
 	.catalog-background {
-		background-color: ${(p) => (p.link.style ? `var(--color-card-bg-${p.link.style})` : null)};
+		background: ${(p) => (p.link.style ? `var(--color-card-bg-${p.link.style})` : null)};
 	}
 
 	.catalog {

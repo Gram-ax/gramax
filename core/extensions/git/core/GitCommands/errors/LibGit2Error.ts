@@ -6,8 +6,9 @@ export class LibGit2Error extends Error {
 	code?: GitErrorCode;
 	data?: { [key: string]: string };
 
-	constructor(message: string, klass: number, code: number) {
+	constructor(name: string, message: string, klass: number, code: number) {
 		super(message);
+		this.name = name;
 		this.code = fromRaw(klass, code);
 		this.data = makeData(this.code, message);
 	}

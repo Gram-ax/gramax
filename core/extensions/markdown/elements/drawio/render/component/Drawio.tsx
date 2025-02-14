@@ -6,7 +6,7 @@ import Image from "@components/Atoms/Image/Image";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import { resolveImageKind } from "@components/Atoms/Image/resolveImageKind";
 import OnLoadResourceService from "@ext/markdown/elements/copyArticles/onLoadResourceService";
-import Skeleton from "@components/Atoms/Skeleton";
+import Skeleton from "@components/Atoms/ImageSkeleton";
 import getAdjustedSize from "@core-ui/utils/getAdjustedSize";
 
 interface DrawioProps {

@@ -76,7 +76,7 @@ describe("FuseSearcher", () => {
 		test("пустой результат, если искать пробелы", async () => {
 			const result = await fuseSearcher.search("        ", catalogName, articleIds);
 
-			expect(result).toHaveLength(0);
+			expect(result).toBe(null);
 		});
 
 		test("с точным совпадением", async () => {

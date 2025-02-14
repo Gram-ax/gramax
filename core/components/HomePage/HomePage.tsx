@@ -1,4 +1,3 @@
-import IsMacService from "@core-ui/ContextServices/IsMac";
 import { cssMedia } from "@core-ui/utils/cssUtils";
 import { HomePageData } from "@core/SitePresenter/SitePresenter";
 import styled from "@emotion/styled";
@@ -7,10 +6,8 @@ import Groups from "./Groups";
 import TopMenu from "./TopMenu";
 
 export default styled(({ data, className }: { data: HomePageData; className?: string }) => {
-	const isMac = IsMacService.value;
-
 	return (
-		<div className={className + (isMac ? "" : " scrollbar-webkit")}>
+		<div className={className}>
 			<div className="article container">
 				<TopMenu
 					catalogLinks={Object.values(data.catalogLinks).flatMap(

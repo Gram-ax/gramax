@@ -1,9 +1,9 @@
+import type ContextualCatalog from "@core/FileStructue/Catalog/ContextualCatalog";
 import { ItemRef } from "@core/FileStructue/Item/ItemRef";
 import LinkResourceManager from "@core/Link/LinkResourceManager";
 import Path from "../../../../../logic/FileProvider/Path/Path";
 import FileProvider from "../../../../../logic/FileProvider/model/FileProvider";
 import { Article } from "../../../../../logic/FileStructue/Article/Article";
-import { Catalog } from "../../../../../logic/FileStructue/Catalog/Catalog";
 import ResourceManager from "../../../../../logic/Resource/ResourceManager";
 import { TableDB } from "../../../../../logic/components/tableDB/table";
 import UiLanguage from "../../../../localization/core/model/Language";
@@ -11,7 +11,6 @@ import UserInfo from "../../../../security/logic/User/UserInfo";
 import MarkdownFormatter from "../../edit/logic/Formatter/Formatter";
 import MarkdownParser from "../Parser";
 import ParserContext, { BaseContext } from "./ParserContext";
-import type ContextualCatalog from "@core/FileStructue/Catalog/ContextualCatalog";
 
 export default class TestContext extends BaseContext implements ParserContext {
 	private _linkManager: LinkResourceManager;

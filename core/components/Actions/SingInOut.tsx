@@ -11,7 +11,7 @@ const SingInOut = styled(({ className, isHomePage }: { className?: string; isHom
 	const apiUrlCreator = ApiUrlCreatorService.value;
 	const isLogged = PageDataContextService.value.isLogged;
 	const isReadOnly = PageDataContextService.value.conf.isReadOnly;
-	const authUrl = apiUrlCreator.getAuthUrl(router).toString();
+	const authUrl = apiUrlCreator.getAuthUrl(router, isLogged).toString();
 	const enterprise = PageDataContextService.value.conf.enterprise;
 	const showEnterpriseSignIn = enterprise.gesUrl && !isReadOnly;
 
@@ -34,7 +34,7 @@ const SingInOut = styled(({ className, isHomePage }: { className?: string; isHom
 
 	if (isReadOnly && enterprise.gesUrl) {
 		return (
-			<div>
+			<div className={className}>
 				<a href={authUrl} data-qa="qa-clickable">
 					<ButtonLink iconCode="log-in" text={t("sing-in")} />
 				</a>

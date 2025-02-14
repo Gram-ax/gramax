@@ -1,15 +1,15 @@
+import Skeleton from "@components/Atoms/ImageSkeleton";
 import FetchService from "@core-ui/ApiServices/FetchService";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
+import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
+import getAdjustedSize from "@core-ui/utils/getAdjustedSize";
+import OnLoadResourceService from "@ext/markdown/elements/copyArticles/onLoadResourceService";
 import getMermaidDiagram from "@ext/markdown/elements/diagrams/diagrams/mermaid/getMermaidDiagram";
 import getPlantUmlDiagram from "@ext/markdown/elements/diagrams/diagrams/plantUml/getPlantUmlDiagram";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import DiagramType from "../../../../../logic/components/Diagram/DiagramType";
 import C4Render from "./C4Render";
 import DiagramRender from "./DiagramRender";
-import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
-import OnLoadResourceService from "@ext/markdown/elements/copyArticles/onLoadResourceService";
-import Skeleton from "@components/Atoms/Skeleton";
-import getAdjustedSize from "@core-ui/utils/getAdjustedSize";
 
 const DIAGRAM_FUNCTIONS = {
 	[DiagramType.mermaid]: getMermaidDiagram,
@@ -25,11 +25,10 @@ interface DiagramDataProps {
 	noEm?: boolean;
 	width?: string;
 	height?: string;
-	readFromHead?: boolean;
 }
 
 const DiagramData = (props: DiagramDataProps) => {
-	const { src, title, content, diagramName, openEditor, readFromHead, width, height, noEm } = props;
+	const { src, title, content, diagramName, openEditor, width, height, noEm } = props;
 	const isC4Diagram = diagramName == DiagramType["c4-diagram"];
 	const apiUrlCreator = ApiUrlCreatorService.value;
 	const diagramsServiceUrl = PageDataContextService.value.conf.diagramsServiceUrl;
@@ -84,7 +83,6 @@ const DiagramData = (props: DiagramDataProps) => {
 			setIsLoaded(true);
 		},
 		content,
-		readFromHead,
 	);
 
 	return (

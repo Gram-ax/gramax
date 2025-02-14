@@ -12,6 +12,8 @@ import * as debug from "./debug";
 declare global {
 	interface Window {
 		desktopOpened?: boolean;
+		resetIsFirstLoad?: () => void;
+		navigateTo?: (path: string) => void;
 	}
 }
 

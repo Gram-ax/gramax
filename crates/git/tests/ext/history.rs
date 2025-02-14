@@ -11,13 +11,13 @@ use test_utils::*;
 fn file_history(sandbox: TempDir, #[with(&sandbox)] repo: Repo<TestCreds>) -> Result {
   fs::write(sandbox.path().join("file"), "init")?;
   repo.add("file")?;
-  repo.commit("commit_1")?;
+  repo.commit_debug()?;
   fs::write(sandbox.path().join("file"), "222")?;
-  repo.commit("commit 2")?;
+  repo.commit_debug()?;
   repo.add("file")?;
   fs::write(sandbox.path().join("file_2"), "init")?;
   repo.add("file_2")?;
-  repo.commit("commit 3")?;
+  repo.commit_debug()?;
 
   let diff = repo.history("file", 10)?;
 
@@ -28,39 +28,39 @@ fn file_history(sandbox: TempDir, #[with(&sandbox)] repo: Repo<TestCreds>) -> Re
 #[rstest]
 fn file_history_with_rename(sandbox: TempDir, #[with(&sandbox)] repo: Repo<TestCreds>) -> Result {
   fs::write(sandbox.path().join("file"), "init\ninit\ninit\ninit\ninit")?;
-  repo.add_glob(["*"].iter())?;
-  repo.commit("commit 1")?;
+  repo.add_all()?;
+  repo.commit_debug()?;
 
   fs::write(sandbox.path().join("file"), "init\ninit\ninit\ninit\n123")?;
-  repo.add_glob(["*"].iter())?;
-  repo.commit("commit 2")?;
+  repo.add_all()?;
+  repo.commit_debug()?;
 
   fs::write(sandbox.path().join("file"), "init\ninit\ninit\ninit\n222")?;
-  repo.add_glob(["*"].iter())?;
-  repo.commit("commit 3")?;
+  repo.add_all()?;
+  repo.commit_debug()?;
 
   fs::write(sandbox.path().join("file"), "init\ninit\ninit\ninit\n333")?;
-  repo.add_glob(["*"].iter())?;
-  repo.commit("commit 4")?;
+  repo.add_all()?;
+  repo.commit_debug()?;
 
   fs::write(sandbox.path().join("file_2"), "init\ninit\ninit\ninit\n555")?;
   fs::remove_file(sandbox.path().join("file"))?;
-  repo.add_glob(["*"].iter())?;
-  repo.commit("commit 5")?;
+  repo.add_all()?;
+  repo.commit_debug()?;
 
   fs::write(sandbox.path().join("file_2"), "init\ninit\ninit\ninit\n666")?;
-  repo.add_glob(["*"].iter())?;
-  repo.commit("commit 6")?;
+  repo.add_all()?;
+  repo.commit_debug()?;
 
   fs::write(sandbox.path().join("file_3"), "init\ninit\ninit\ninit\n666")?;
   fs::remove_file(sandbox.path().join("file_2"))?;
-  repo.add_glob(["*"].iter())?;
-  repo.commit("commit 6")?;
+  repo.add_all()?;
+  repo.commit_debug()?;
 
   fs::write(sandbox.path().join("file_4"), "init\ninit\ninit\ninit\n777")?;
   fs::remove_file(sandbox.path().join("file_3"))?;
-  repo.add_glob(["*"].iter())?;
-  repo.commit("commit 7")?;
+  repo.add_all()?;
+  repo.commit_debug()?;
 
   let diff = repo.history("file_4", 10)?;
 

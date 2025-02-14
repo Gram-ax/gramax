@@ -89,10 +89,27 @@ const SelectStorageDataForm = (props: SelectStorageDataFormProps) => {
 				}
 				onOpen={() => childrenCloseHandler(false)}
 				onCreate={(data) => {
-					const newSourceDatas = [...sourceDatas, data];
+					const newSourceDatas = (() => {
+						const existingIndex = sourceDatas.findIndex(
+							(item) =>
+								item.userName === data.userName &&
+								item.userEmail === data.userEmail &&
+								item.sourceType === data.sourceType,
+						);
+
+						if (existingIndex !== -1) {
+							const updated = [...sourceDatas];
+							updated[existingIndex] = data;
+							return updated;
+						} else {
+							return [...sourceDatas, data];
+						}
+					})();
+
 					setSelectStorageData(data);
 					setStorageDatas(newSourceDatas);
-					PageDataContextService.value = { ...pageProps, sourceDatas: newSourceDatas };
+					pageProps.sourceDatas = newSourceDatas;
+					PageDataContextService.value = pageProps;
 				}}
 			/>
 		),

@@ -16,6 +16,7 @@ const ArticleView: ArticleViewComponent = (data) => <ArticlePage data={data} />;
 abstract class ArticleViewService {
 	private static _currentComponent: ArticleViewComponent = null;
 	private static _articlePageData: ArticlePageData;
+	private static _isDefaultView: boolean = false;
 
 	static Provider({
 		children,
@@ -68,13 +69,17 @@ abstract class ArticleViewService {
 	}
 
 	static setView(component: ArticleViewComponent, useArticleDefaultStyles = true) {
+		ArticleViewService._isDefaultView = false;
 		ArticleViewService._currentComponent = component;
 		_setUseArticleDefaultStyles(useArticleDefaultStyles);
 		_setArticleView(component(ArticleViewService._articlePageData));
 	}
 
 	static setDefaultView() {
+		if (ArticleViewService._isDefaultView) return;
+
 		ArticleViewService.setView(ArticleView);
+		ArticleViewService._isDefaultView = true;
 	}
 
 	static setLoadingView() {

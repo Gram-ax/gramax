@@ -2,6 +2,7 @@ import ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import { SidebarsIsPinValue } from "@core-ui/ContextServices/Sidebars/SidebarsIsPin";
 import debounceFunction from "@core-ui/debounceFunction";
+import { TreeReadScope } from "@ext/git/core/GitCommands/model/GitCommandsModel";
 import DiffLine from "@ext/markdown/elements/diff/components/DiffLine";
 import { Editor, Extension, JSONContent } from "@tiptap/core";
 import { PluginView } from "@tiptap/pm/state";
@@ -45,12 +46,16 @@ export interface DiffExtensionProps {
 	articleRef: MutableRefObject<HTMLDivElement>;
 	apiUrlCreator: ApiUrlCreator;
 	isPin: SidebarsIsPinValue;
+	oldScope: TreeReadScope;
+	newScope: TreeReadScope;
 }
 
 export interface DiffExtensionStore {
 	diffLines: DiffLine[];
 	isOldEditor: boolean;
 	isPin: SidebarsIsPinValue;
+	oldScope: TreeReadScope;
+	newScope: TreeReadScope;
 }
 
 declare module "@tiptap/core" {
@@ -67,6 +72,7 @@ class DiffLines implements PluginView {
 	private _articleRef: HTMLDivElement;
 	private static _editorRenderData: Map<Editor, { root: Root; element: HTMLElement }[]> = new Map();
 	private _onEditorDestroyBounded: () => void;
+	private _extensionStore: DiffExtensionStore;
 	constructor(
 		private _editor: Editor,
 		articleRef: MutableRefObject<HTMLDivElement>,
@@ -76,6 +82,7 @@ class DiffLines implements PluginView {
 		this._articleRef = articleRef.current;
 		this._onEditorDestroyBounded = this._onEditorDestroy.bind(this);
 		this._editor.on("destroy", this._onEditorDestroyBounded);
+		this._extensionStore = this._editor.storage.diff;
 	}
 
 	update() {
@@ -88,7 +95,7 @@ class DiffLines implements PluginView {
 
 	private _update() {
 		if (this._editor.isDestroyed) return;
-		const diffLines = (this._editor.storage.diff as DiffExtensionStore).diffLines;
+		const diffLines = this._extensionStore.diffLines;
 		let renderData = this._getRenderData();
 
 		if (diffLines.length > renderData.length) {
@@ -109,6 +116,7 @@ class DiffLines implements PluginView {
 			rootData.root.render(
 				<ApiUrlCreatorService.Provider value={this._apiUrlCreator}>
 					<DiffLine
+						oldScope={this._extensionStore.oldScope}
 						left={left}
 						nodeBefore={diffLine.type === "modified" ? diffLine.nodeBefore : undefined}
 						type={diffLine.type}
@@ -121,7 +129,7 @@ class DiffLines implements PluginView {
 	}
 
 	private _getLeft() {
-		const isPin = this._editor.storage.diff.isPin;
+		const isPin = this._extensionStore.isPin;
 		const leftOffest = "0.5rem";
 		return isPin.left
 			? `calc((${this._article.getBoundingClientRect().left}px - var(--left-nav-width) - ${leftOffest}) * -1)`
@@ -171,11 +179,24 @@ const DiffExtension = Extension.create<DiffExtensionProps, DiffExtensionStore>({
 	name: "diff",
 
 	addOptions() {
-		return { isOldEditor: false, articleRef: null, isPin: { left: true, right: true }, apiUrlCreator: null };
+		return {
+			isOldEditor: false,
+			articleRef: null,
+			isPin: { left: true, right: true },
+			apiUrlCreator: null,
+			oldScope: undefined,
+			newScope: undefined,
+		};
 	},
 
 	addStorage() {
-		return { isOldEditor: this.options.isOldEditor, isPin: this.options.isPin, diffLines: [] };
+		return {
+			isOldEditor: this.options.isOldEditor,
+			isPin: this.options.isPin,
+			diffLines: [],
+			oldScope: this.options.oldScope,
+			newScope: this.options.newScope,
+		};
 	},
 
 	addCommands() {

@@ -2,7 +2,7 @@ import type Context from "@core/Context/Context";
 import { createEventEmitter, Event, type EventArgs } from "@core/Event/EventEmitter";
 import Path from "@core/FileProvider/Path/Path";
 import type FileProvider from "@core/FileProvider/model/FileProvider";
-import type BaseCatalog from "@core/FileStructue/Catalog/BaseCatalog";
+import BaseCatalog from "@core/FileStructue/Catalog/BaseCatalog";
 import type { Catalog } from "@core/FileStructue/Catalog/Catalog";
 import type CatalogEntry from "@core/FileStructue/Catalog/CatalogEntry";
 import type CatalogEvents from "@core/FileStructue/Catalog/CatalogEvents";
@@ -76,7 +76,7 @@ export class Workspace {
 	}
 
 	async getContextlessCatalog(name: string): Promise<Catalog> {
-		const [n, metadata] = name?.split(":") ?? [name];
+		const { name: n, metadata } = BaseCatalog.parseName(name);
 		const catalog = await this._entries.get(n)?.upgrade("catalog", true);
 		const mutableCatalog = { catalog };
 		await this.events.emit("on-catalog-resolve", {
@@ -126,7 +126,6 @@ export class Workspace {
 			await fp.delete(path, false);
 		}
 		this._entries.delete(name);
-		await this._invalidateRepoCache();
 		await this._events.emit("remove-catalog", { name });
 	}
 
@@ -166,8 +165,6 @@ export class Workspace {
 				this._entries.set(entry.name, entry);
 			}),
 		);
-
-		await this._invalidateRepoCache();
 	}
 
 	private async _onItemChanged(items: ItemRefStatus[]): Promise<void> {
@@ -207,13 +204,5 @@ export class Workspace {
 		const catalogIsRemoved = (catalogDirIsRemoved || catalogRootFileIsRemoved) && status == FileStatus.delete;
 		if (catalogIsRemoved && this._entries.has(catalogName)) this._entries.delete(catalogName);
 		return catalogIsRemoved;
-	}
-
-	private _invalidateRepoCache() {
-		return RepositoryProvider.invalidateRepoCache(
-			Array.from(this._entries.values())
-				.filter((e) => e.repo?.gvc)
-				.map((e) => this.getFileProvider().rootPath.join(e.basePath).value),
-		);
 	}
 }

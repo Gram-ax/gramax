@@ -44,7 +44,7 @@ const Annotation = (props: AnnotationObjectProps) => {
 				id={"object/" + index}
 				ref={mainRef}
 				onMouseDown={mainMouseDown}
-				className={classNames(className, { selected })}
+				className={classNames(className, { selected }, ["annotation"])}
 				style={{
 					...style,
 					left: x + "%",
@@ -58,7 +58,6 @@ const Annotation = (props: AnnotationObjectProps) => {
 };
 
 export default styled(Annotation)`
-	font-size: 1em;
 	position: absolute;
 	display: flex;
 	justify-content: center;

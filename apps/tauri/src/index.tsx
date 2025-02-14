@@ -22,7 +22,6 @@ import EditEnterpriseConfig from "@ext/enterprise/components/EditEnterpriseConfi
 import UiLanguage from "@ext/localization/core/model/Language";
 import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
 import { ComponentProps } from "react";
-import ForwardBackward from "./ForwardBackward";
 
 const DragableArea = styled.div`
 	user-select: none;
@@ -36,46 +35,40 @@ const DragableArea = styled.div`
 `;
 
 window.debug = debug;
-const container = document.getElementById("root");
-const current = getCurrentWebviewWindow();
 
-const isMacOS = navigator.userAgent.includes("Mac");
+window.addEventListener("load", async () => {
+	const isMacOS = navigator.userAgent.includes("Mac");
 
-// https://github.com/tauri-apps/tauri/issues/9613
-window.addEventListener("unload", function () {});
+	const current = getCurrentWebviewWindow();
+	await attachConsole();
+	const env = await invoke("read_env");
+	initZoom(current);
+	window.process = { env } as any;
 
-Promise.all([
-	attachConsole(),
-	current.listen("on_language_changed", (ev) =>
-		LanguageService.setUiLanguage(UiLanguage[ev.payload as string], true),
-	),
-	LanguageService.onLanguageChanged((language) => invoke("set_language", { language })),
-	current.listen("reload", () => location.reload()),
-	current.listen("refresh", () => refreshPage()),
+	const languageChanged = (ev: any) => LanguageService.setUiLanguage(UiLanguage[ev.payload as string], true);
+	current.listen("on_language_changed", languageChanged);
+	current.listen("reload", () => location.reload());
+	current.listen("refresh", () => refreshPage());
 	current.listen("enterprise-configure", () => {
 		if (!window?.app?.em) return;
 		ModalToOpenService.setValue<ComponentProps<typeof EditEnterpriseConfig>>(ModalToOpen.EditEnterpriseConfig, {
-			open: true,
 			config: window.app.em.getConfig(),
 			onSave: (config) => {
 				window.app.em.setConfig(config);
 				window.location.reload();
 			},
 		});
-	}),
-	initZoom(current),
-	(async () => {
-		const env = await invoke("read_env");
-		await invoke("set_language", { language: LanguageService.currentUi() });
-		window.process = { env } as any;
-	})(),
-]).then(() => {
+	});
+
+	LanguageService.onLanguageChanged((language) => invoke("set_language", { language }));
+	await invoke("set_language", { language: LanguageService.currentUi() });
+
+	const container = document.getElementById("root");
 	const root = createRoot(container);
 	root.render(
 		<>
-			{isMacOS && <ForwardBackward />}
-			{isMacOS && <DragableArea data-tauri-drag-region />}
 			<App />
+			{isMacOS && <DragableArea data-tauri-drag-region />}
 		</>,
 	);
 });

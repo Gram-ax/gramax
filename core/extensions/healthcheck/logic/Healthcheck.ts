@@ -1,9 +1,9 @@
 import { CATEGORY_ROOT_FILENAME, GRAMAX_EDITOR_URL } from "@app/config/const";
 import LucideIcon from "@components/Atoms/Icon/LucideIcon";
 import { Article } from "@core/FileStructue/Article/Article";
-import type { ReadonlyBaseCatalog } from "@core/FileStructue/Catalog/ReadonlyCatalog";
 import { CatalogErrorGroups } from "@core/FileStructue/Catalog/CatalogErrorGroups";
 import type ContextualCatalog from "@core/FileStructue/Catalog/ContextualCatalog";
+import type { ReadonlyBaseCatalog } from "@core/FileStructue/Catalog/ReadonlyCatalog";
 import RouterPathProvider from "@core/RouterPath/RouterPathProvider";
 import { RenderableTreeNode } from "@ext/markdown/core/render/logic/Markdoc";
 import { collapseTocItems } from "@ext/navigation/article/logic/createTocItems";
@@ -12,6 +12,7 @@ import Path from "../../../logic/FileProvider/Path/Path";
 import FileProvider from "../../../logic/FileProvider/model/FileProvider";
 import { Item } from "../../../logic/FileStructue/Item/Item";
 import ResourceExtensions from "../../../logic/Resource/ResourceExtensions";
+import t from "@ext/localization/locale/translate";
 
 export type CatalogErrors = Record<keyof typeof CatalogErrorGroups, CatalogError[]>;
 
@@ -36,7 +37,7 @@ class Healthcheck {
 
 	async checkCatalog(): Promise<CatalogErrors> {
 		if (!this._catalog) return {};
-		this._errors = { icons: [], links: [], diagrams: [], fs: [], unsupported: [] };
+		this._errors = { icons: [], links: [], images: [], diagrams: [], unsupported: [], content: [] };
 		const rp = new RuleProvider(this._catalog.ctx);
 		const filters = rp.getItemFilters();
 
@@ -44,10 +45,21 @@ class Healthcheck {
 
 		for (const item of this._catalogContentItems) {
 			if (!filters.every((f) => f(item, this._catalog))) continue;
+
+			if (!item.parsedContent) {
+				this._errors.content.push(
+					this._getRefCatalogError({
+						value: t("markdown-error"),
+						logicPath: item.logicPath,
+						title: item.getTitle() ?? new Path(item.logicPath).name,
+						editorLink: await this._getErrorLink(this._catalog, item),
+					}),
+				);
+				continue;
+			}
+
 			const manager = item.parsedContent.linkManager;
 			const { linkResources, resources } = manager;
-
-			if (!item.parsedContent) continue;
 
 			for (const resource of item.parsedContent.resourceManager.resources) {
 				await this._checkResource(item, resource);
@@ -170,7 +182,7 @@ class Healthcheck {
 		if (ResourceExtensions.diagrams.includes(resource.extension))
 			return this._errors.diagrams.push(refCatalogError);
 
-		return this._errors.fs.push(refCatalogError);
+		if (ResourceExtensions.images.includes(resource.extension)) return this._errors.images.push(refCatalogError);
 	};
 
 	private _getErrorLink = async (catalog: ReadonlyBaseCatalog, item: Item): Promise<string> => {

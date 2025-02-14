@@ -7,7 +7,7 @@ import { trWordLayout } from "../tr";
 export const tableLayout = {
 	thead: theadWordLayout,
 	tbody: tbodyWordLayout,
-	td: tdWordLayout,
+	Td: tdWordLayout,
 	tr: trWordLayout,
 	th: thWordLayout,
 };

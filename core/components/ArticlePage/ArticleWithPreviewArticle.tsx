@@ -21,8 +21,8 @@ const ArticleWithPreviewArticle = (props: ArticlePreviewProps) => {
 export default styled(ArticleWithPreviewArticle)`
 	flex: 1 1 0px;
 	display: flex;
+	gap: 1rem;
 	flex-direction: row;
-	justify-content: space-between;
 	margin-top: -0.1rem;
 
 	div.main-article {
@@ -30,15 +30,17 @@ export default styled(ArticleWithPreviewArticle)`
 	}
 
 	&.preview-style > div.main-article {
-		max-width: 69.5%;
-		min-width: 69.5%;
+		width: 67%;
 	}
 
 	div.preview-article {
+		position: sticky;
+		top: 0;
 		opacity: 0.6;
-		max-width: 30%;
-		min-width: 30%;
+		max-width: 28%;
+		min-width: 28%;
 		font-size: 10px;
+		max-height: 100vh;
 		overflow-y: auto;
 		transition: opacity 0.3s linear;
 

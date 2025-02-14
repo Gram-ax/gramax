@@ -55,7 +55,7 @@ class LinkCreator {
 		let isFile = false;
 		if (hrefPath.extension !== articleExtension) {
 			isFile = true;
-			href = new ApiUrlCreator(basePath, null, catalog.name, articlePath.value)
+			href = new ApiUrlCreator(basePath, catalog.name, articlePath.value)
 				.getArticleResource(relativeHrefPath.value)
 				.toString();
 		} else {

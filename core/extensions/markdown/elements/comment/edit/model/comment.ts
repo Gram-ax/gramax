@@ -1,4 +1,4 @@
-import eventEmitter from "@core/utils/eventEmitter";
+import commentEventEmitter from "@core/utils/commentEventEmitter";
 import getSelectedText from "@ext/markdown/elementsUtils/getSelectedText";
 import addShortcuts from "@ext/markdown/elementsUtils/keyboardShortcuts/addShortcuts";
 import space from "@ext/markdown/logic/keys/marks/space";
@@ -25,7 +25,7 @@ const Comment = Mark.create({
 	},
 
 	addAttributes() {
-		return { comment: { default: null }, answers: { default: null }, count: { default: null } };
+		return { comment: { default: null }, answers: { default: null }, count: { default: 0 } };
 	},
 
 	parseHTML() {
@@ -33,6 +33,11 @@ const Comment = Mark.create({
 	},
 
 	renderHTML({ HTMLAttributes }) {
+		if (HTMLAttributes.count && HTMLAttributes.count !== 0 && !HTMLAttributes.comment) {
+			const dom = document.createElement("span");
+			return { dom, contentDOM: dom };
+		}
+
 		const dom = document.createElement("comment-react-component");
 
 		for (const [key, value] of Object.entries(HTMLAttributes)) {
@@ -43,7 +48,7 @@ const Comment = Mark.create({
 
 		dom.addEventListener("click", (e: MouseEvent) => {
 			e.stopPropagation();
-			eventEmitter.emit("onClickComment", { dom });
+			commentEventEmitter.emit("onClickComment", { dom });
 		});
 
 		return { dom, contentDOM: dom };
@@ -57,7 +62,7 @@ const Comment = Mark.create({
 					if (!getSelectedText(state)) return false;
 
 					const callback = () => {
-						eventEmitter.emit("addComment", { pos: editor.state.tr.selection.to - 1, view });
+						commentEventEmitter.emit("addComment", { pos: editor.state.tr.selection.to - 1, view });
 						offEditor();
 					};
 

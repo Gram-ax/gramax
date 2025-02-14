@@ -51,7 +51,7 @@ install() {
         if command -v bun &> /dev/null; then
             if [ "$CI_MODE" = true ]; then
                 echo "Using bun for installation in CI mode${attempt_msg}"
-                bun install --cwd "$1" --no-cache && break || {
+                bun install --cwd "$1" && break || {
                     echo "Failed to install packages for $1 in CI mode using bun"
                     ((retry_count++))
                 }

@@ -27,12 +27,13 @@ describe("Fix Addition Conflict Libgit2 фиксит конфликт", () => {
 		git = new GitCommands(dfp, path("testRep"));
 		await dfp.write(repPath("1.txt"), "init");
 		await dfp.write(repPath("folder/1.txt"), "init");
-		await git.add(), await git.commit("init", mockUserData);
+		await git.add(null, true);
+		await git.commit("init", mockUserData);
 	});
 
 	afterEach(async () => {
 		await dfp.delete(path("testRep"));
-		await RepositoryProvider.invalidateRepoCache([]);
+		await RepositoryProvider.resetRepo();
 		git = null;
 	});
 

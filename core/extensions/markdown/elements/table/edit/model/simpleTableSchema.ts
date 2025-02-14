@@ -1,6 +1,6 @@
 const table_simple = {
 	group: "block",
-	content: "(tableHeader_simple | tableCell_simple)*",
+	content: "tableCell_simple*",
 };
 
 const tableHeaderRow_simple = {

@@ -2,6 +2,7 @@ use std::path::Path;
 use std::path::PathBuf;
 
 use gramaxgit::commands as git;
+use gramaxgit::prelude::*;
 use napi::bindgen_prelude::Buffer;
 use napi::Env;
 use napi::Error;
@@ -28,12 +29,21 @@ impl<T: Serialize, E: Serialize> JsonExt for Result<T, E> {
   }
 }
 
+type Input = String;
+
 #[napi(object, use_nullable = true)]
 pub struct AccessTokenCreds {
   pub author_name: String,
   pub author_email: String,
   pub access_token: String,
   pub protocol: Option<String>,
+}
+
+#[napi(object, use_nullable = true)]
+pub struct CommitOptions {
+  pub message: String,
+  pub parent_refs: Option<Vec<String>>,
+  pub files: Option<Vec<String>>,
 }
 
 #[napi(object, use_nullable = true)]
@@ -53,6 +63,16 @@ impl From<CloneOptions> for gramaxgit::actions::clone::CloneOptions {
       url: val.url,
       to: val.to.into(),
       is_bare: val.is_bare,
+    }
+  }
+}
+
+impl From<CommitOptions> for gramaxgit::actions::commit::CommitOptions {
+  fn from(val: CommitOptions) -> Self {
+    gramaxgit::actions::commit::CommitOptions {
+      message: val.message,
+      parent_refs: val.parent_refs,
+      files: val.files.map(|files| files.into_iter().map(PathBuf::from).collect()),
     }
   }
 }
@@ -124,13 +144,18 @@ pub fn clone(env: Env, creds: AccessTokenCreds, opts: CloneOptions, callback: Js
 }
 
 #[napi]
-pub fn status(repo_path: String) -> Output {
-  git::status(Path::new(&repo_path)).json()
+pub fn status(repo_path: String, index: bool) -> Output {
+  git::status(Path::new(&repo_path), index).json()
 }
 
 #[napi(js_name = "status_file")]
 pub fn status_file(repo_path: String, path: String) -> Output {
   git::status_file(Path::new(&repo_path), Path::new(&path)).json()
+}
+
+#[napi(js_name = "default_branch")]
+pub fn default_branch(repo_path: String, creds: AccessTokenCreds) -> Output {
+  git::default_branch(Path::new(&repo_path), creds.into()).json()
 }
 
 #[napi(js_name = "branch_list")]
@@ -200,24 +225,27 @@ pub fn file_history(repo_path: String, file_path: String, count: u32) -> Output 
 }
 
 #[napi]
-pub fn add(repo_path: String, paths: Vec<String>) -> Output {
+pub fn add(repo_path: String, paths: Vec<String>, force: bool) -> Output {
   let paths: Vec<std::path::PathBuf> = paths.into_iter().map(std::path::PathBuf::from).collect();
-  git::add(Path::new(&repo_path), paths).json()
+  git::add(Path::new(&repo_path), paths, force).json()
 }
 
 #[napi]
-pub fn commit(
-  repo_path: String,
-  creds: AccessTokenCreds,
-  message: String,
-  parents: Option<Vec<String>>,
-) -> Output {
-  git::commit(Path::new(&repo_path), creds.into(), &message, parents).json()
+pub fn commit(repo_path: String, creds: AccessTokenCreds, opts: CommitOptions) -> Output {
+  git::commit(Path::new(&repo_path), creds.into(), opts.into()).json()
 }
 
 #[napi]
-pub fn diff(repo_path: String, old_oid: String, new_oid: String) -> Output {
-  git::diff(Path::new(&repo_path), &old_oid, &new_oid).json()
+pub fn diff(opts: Input) -> Output {
+  #[derive(serde::Deserialize)]
+  #[serde(rename_all = "camelCase")]
+  struct Options {
+    repo_path: String,
+    opts: DiffConfig,
+  }
+
+  let opts = serde_json::from_str::<Options>(&opts).map_err(|e| Error::from_reason(e.to_string()))?;
+  git::diff(Path::new(&opts.repo_path), opts.opts).json()
 }
 
 #[napi]
@@ -306,7 +334,13 @@ pub fn find_refs_by_globs(repo_path: String, pattern: Vec<String>) -> Output {
   git::find_refs_by_globs(Path::new(&repo_path), &pattern).json()
 }
 
-#[napi(js_name = "invalidate_repo_cache")]
-pub fn invalidate_repo_cache(repo_paths: Vec<String>) -> Output {
-  git::invalidate_repo_cache(repo_paths.into_iter().map(PathBuf::from).collect()).json()
+#[napi(js_name = "reset_repo")]
+pub fn reset_repo() -> Result<bool, Error> {
+  git::reset_repo();
+  Ok(true)  
+}
+
+#[napi(js_name = "get_all_commit_authors")]
+pub fn get_all_commit_authors(repo_path: String) -> Output {
+  git::get_all_commit_authors(Path::new(&repo_path)).json()
 }

@@ -5,6 +5,7 @@ import Context from "@core/Context/Context";
 import Path from "@core/FileProvider/Path/Path";
 import { Article } from "@core/FileStructue/Article/Article";
 import ViewFilter, { OrderValue } from "@ext/properties/logic/ViewFilter";
+import ViewLocalizationFilter from "@ext/properties/logic/viewLocalizationFilter";
 import { PropertyValue, ViewRenderGroup } from "@ext/properties/models";
 import { Display } from "@ext/properties/models/displays";
 import RuleProvider from "@ext/rules/RuleProvider";
@@ -33,7 +34,11 @@ const getViewRenderData: Command<
 		const workspace = wm.current();
 		const catalog = await workspace.getCatalog(catalogName, ctx);
 		if (!catalog) return [];
-		const itemFilters = new RuleProvider(ctx).getItemFilters();
+		const itemFilters = [
+			...new RuleProvider(ctx, undefined, undefined).getItemFilters(),
+			new ViewLocalizationFilter().getItemFilter(),
+		];
+
 		const allArticles = catalog.deref.getItems(itemFilters) as Article[];
 
 		return await new ViewFilter(
@@ -45,6 +50,7 @@ const getViewRenderData: Command<
 			catalog.findItemByItemPath(articlePath),
 			catalog,
 			display,
+			itemFilters,
 		).getFilteredArticles();
 	},
 

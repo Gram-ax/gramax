@@ -20,9 +20,15 @@ interface ItemExportProps {
 	fileName: string;
 	itemRefPath?: string;
 	isCategory?: boolean;
+	exportFormat: ExportFormat;
 }
 
-const ItemExport = ({ fileName, itemRefPath, isCategory }: ItemExportProps) => {
+export enum ExportFormat {
+	pdf = "pdf",
+	docx = "docx",
+}
+
+const ItemExport = ({ fileName, itemRefPath, isCategory, exportFormat }: ItemExportProps) => {
 	const [isOpen, setIsOpen] = useState(false);
 	const [isLoading, setIsLoading] = useState(true);
 	const [isDownloading, setIsDownloading] = useState(false);
@@ -32,11 +38,14 @@ const ItemExport = ({ fileName, itemRefPath, isCategory }: ItemExportProps) => {
 	const cancelableFunction = useMemo(
 		() =>
 			new CancelableFunction(async (signal) => {
-				const res = await FetchService.fetch(apiUrlCreator.getWordSaveUrl(isCategory, itemRefPath));
+				const res =
+					exportFormat === ExportFormat.pdf
+						? await FetchService.fetch(apiUrlCreator.getPdfSaveUrl(isCategory, itemRefPath))
+						: await FetchService.fetch(apiUrlCreator.getWordSaveUrl(isCategory, itemRefPath));
 				if (!res.ok || signal.aborted) return;
 				downloadFile(
 					getExecutingEnvironment() === "next" ? await res.buffer() : res.body,
-					MimeTypes.docx,
+					exportFormat === ExportFormat.docx ? MimeTypes.docx : MimeTypes.pdf,
 					fileName,
 				);
 			}),
@@ -53,11 +62,16 @@ const ItemExport = ({ fileName, itemRefPath, isCategory }: ItemExportProps) => {
 		});
 	};
 
+	const getErrorElementsUrl = (format: ExportFormat, isCategory: boolean, itemPath: string) => {
+		return apiUrlCreator.getErrorWordElementsUrl(isCategory, itemPath, exportFormat);
+	};
+
 	const onOpen = async () => {
 		setIsLoading(true);
-		const res = await FetchService.fetch<UnsupportedElements[]>(
-			apiUrlCreator.getErrorWordElementsUrl(isCategory, itemRefPath),
-		);
+
+		const url = getErrorElementsUrl(exportFormat, isCategory, itemRefPath);
+		const res = await FetchService.fetch<UnsupportedElements[]>(url);
+
 		if (!res.ok) {
 			setIsOpen(false);
 			return;
@@ -84,7 +98,11 @@ const ItemExport = ({ fileName, itemRefPath, isCategory }: ItemExportProps) => {
 	const unsupportedElementsModal = (
 		<CommonUnsupportedElementsModal
 			title={t("unsupported-elements-title")}
-			description={t("unsupported-elements-warning1")}
+			description={
+				exportFormat === ExportFormat.pdf
+					? t("unsupported-elements-warning1-pdf")
+					: t("unsupported-elements-warning1")
+			}
 			noteTitle={t("unsupported-elements-warning2")}
 			firstColumnTitle={t("article2")}
 			unsupportedNodes={errorWordElements}
@@ -102,6 +120,19 @@ const ItemExport = ({ fileName, itemRefPath, isCategory }: ItemExportProps) => {
 		/>
 	);
 
+	const getExportText = () => {
+		if (itemRefPath) {
+			return isCategory
+				? exportFormat === ExportFormat.pdf
+					? t("category-to-pdf")
+					: t("category-to-docx")
+				: exportFormat === ExportFormat.pdf
+				? t("article-to-pdf")
+				: t("article-to-docx");
+		}
+		return t("export-catalog-docx");
+	};
+
 	return (
 		<ModalLayout
 			isOpen={isOpen}
@@ -113,14 +144,7 @@ const ItemExport = ({ fileName, itemRefPath, isCategory }: ItemExportProps) => {
 				setIsOpen(false);
 				if (isDownloading) cancelableFunction.abort();
 			}}
-			trigger={
-				<ButtonLink
-					iconCode="file-text"
-					text={t(
-						itemRefPath ? (isCategory ? "category-to-docx" : "article-to-docx") : "export-catalog-docx",
-					)}
-				/>
-			}
+			trigger={<ButtonLink iconCode="file-text" text={getExportText()} />}
 		>
 			<ModalLayoutLight>{!isLoading ? unsupportedElementsModal : loading}</ModalLayoutLight>
 		</ModalLayout>

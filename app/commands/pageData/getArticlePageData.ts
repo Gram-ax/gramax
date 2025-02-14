@@ -3,6 +3,7 @@ import PageDataContext from "@core/Context/PageDataContext";
 import { Article } from "@core/FileStructue/Article/Article";
 import LastVisited from "@core/SitePresenter/LastVisited";
 import { ArticlePageData, OpenGraphData, type GetArticlePageDataOptions } from "@core/SitePresenter/SitePresenter";
+import isReadOnlyBranch from "@ext/enterprise/utils/isReadOnlyBranch";
 import { Command } from "../../types/Command";
 import getPageDataContext from "./getPageDataContext";
 
@@ -26,14 +27,15 @@ const getArticlePageData: Command<
 
 		const isReadOnly =
 			this._app.conf.isReadOnly ||
-			(catalog?.basePath && workspace.getFileProvider().at(catalog.basePath).isReadOnly);
+			(catalog?.basePath && workspace.getFileProvider().at(catalog.basePath).isReadOnly) ||
+			(this._app.em.getConfig().gesUrl && (await isReadOnlyBranch(ctx.user, catalog)));
 
 		const opts: GetArticlePageDataOptions = {
 			editableContent: !isReadOnly,
 			markdown: this._app.conf.isReadOnly,
 		};
 
-		const lastVisited = new LastVisited(ctx);
+		const lastVisited = new LastVisited(ctx, workspace.config().name);
 		try {
 			data = await dataProvider.getArticlePageDataByPath(path, pathname, opts);
 			if (

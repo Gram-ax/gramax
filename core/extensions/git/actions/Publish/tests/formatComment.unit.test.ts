@@ -8,7 +8,7 @@ describe("Комментарий для коммита автоматическ�
 			{
 				isResource: false,
 				data: {
-					changeType: FileStatus.modified,
+					status: FileStatus.modified,
 					filePath: { path: "a/b/c.md", oldPath: "a/b/c.md" },
 					isChanged: true,
 					isChecked: true,
@@ -28,7 +28,7 @@ describe("Комментарий для коммита автоматическ�
 			{
 				isResource: false,
 				data: {
-					changeType: FileStatus.modified,
+					status: FileStatus.modified,
 					filePath: { path: "a/b/c.md", oldPath: "a/b/c.md" },
 					isChanged: true,
 					isChecked: true,
@@ -39,7 +39,7 @@ describe("Комментарий для коммита автоматическ�
 			{
 				isResource: false,
 				data: {
-					changeType: FileStatus.modified,
+					status: FileStatus.modified,
 					filePath: { path: "a/b/c1.md", oldPath: "a/b/c1.md" },
 					isChanged: true,
 					isChecked: false,
@@ -59,7 +59,7 @@ describe("Комментарий для коммита автоматическ�
 			{
 				isResource: false,
 				data: {
-					changeType: FileStatus.modified,
+					status: FileStatus.modified,
 					filePath: { path: "a/b/c.md", oldPath: "a/b/c.md" },
 					isChanged: true,
 					isChecked: true,
@@ -70,7 +70,7 @@ describe("Комментарий для коммита автоматическ�
 			{
 				isResource: false,
 				data: {
-					changeType: FileStatus.modified,
+					status: FileStatus.modified,
 					filePath: { path: "a/b/c1.md", oldPath: "a/b/c1.md" },
 					isChanged: true,
 					isChecked: true,
@@ -90,7 +90,7 @@ describe("Комментарий для коммита автоматическ�
 			{
 				isResource: false,
 				data: {
-					changeType: FileStatus.modified,
+					status: FileStatus.modified,
 					filePath: { path: "a/b/c.md", oldPath: "a/b/d.md" },
 					isChanged: true,
 					isChecked: true,
@@ -110,7 +110,7 @@ describe("Комментарий для коммита автоматическ�
 			{
 				isResource: false,
 				data: {
-					changeType: FileStatus.current,
+					status: FileStatus.current,
 					filePath: { path: "a/b/c.md", oldPath: "a/b/c.md" },
 					isChanged: false,
 					isChecked: true,
@@ -120,7 +120,7 @@ describe("Комментарий для коммита автоматическ�
 							data: {
 								filePath: { path: "a/b/r", oldPath: "a/b/r" },
 								title: "R",
-								changeType: FileStatus.current,
+								status: FileStatus.current,
 							},
 						},
 					],
@@ -139,7 +139,7 @@ describe("Комментарий для коммита автоматическ�
 			{
 				isResource: false,
 				data: {
-					changeType: FileStatus.current,
+					status: FileStatus.current,
 					filePath: { path: "a/b/c.md", oldPath: "a/b/c.md" },
 					isChanged: false,
 					isChecked: true,
@@ -147,7 +147,7 @@ describe("Комментарий для коммита автоматическ�
 						{
 							isResource: true,
 							data: {
-								changeType: FileStatus.delete,
+								status: FileStatus.delete,
 								filePath: { path: null, oldPath: "a/b/r" },
 								title: "R",
 							},

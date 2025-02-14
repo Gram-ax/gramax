@@ -4,6 +4,6 @@ export enum ButtonStyle {
 	underline = "underline",
 	transparent = "transparent",
 	transparentInverse = "transparentInverse",
-	blue = "blue",
+	git = "git",
 	purple = "purple",
 }

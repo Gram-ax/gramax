@@ -36,7 +36,7 @@ const commit = async (
 			await dfp.write(repPath(path), content);
 		}),
 	);
-	await gvc.add(Object.keys(files).map(path));
+	await gvc.add(Object.keys(files).map(path), true);
 	return gvc.commit(message, mockUserData);
 };
 
@@ -67,7 +67,7 @@ describe("GitMergeConflictResolver", () => {
 
 	afterEach(async () => {
 		await dfp.delete(path("testRep"));
-		await RepositoryProvider.invalidateRepoCache([]);
+		await RepositoryProvider.resetRepo();
 		resolver = null;
 		gvc = null;
 	});
@@ -127,7 +127,7 @@ describe("GitMergeConflictResolver", () => {
 		});
 	});
 
-	it("Решает конфликт слияния", async () => {
+	test("Решает конфликт слияния", async () => {
 		await commit(gvc, { "1.txt": "conflict content theirs" });
 		await gvc.checkoutToBranch("master");
 		await commit(gvc, { "1.txt": "conflict content ours" });

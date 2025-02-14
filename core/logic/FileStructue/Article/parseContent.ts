@@ -5,8 +5,13 @@ import ParserContextFactory from "../../../extensions/markdown/core/Parser/Parse
 import Context from "../../Context/Context";
 import { ItemType } from "../Item/ItemType";
 import { Article } from "./Article";
+import { Category } from "@core/FileStructue/Category/Category";
+import { ArticleFilter } from "@core/FileStructue/Catalog/Catalog";
+import RuleProvider from "@ext/rules/RuleProvider";
 
-export const getChildLinks = () => {
+export const getChildLinks = (category: Category, catalog: ReadonlyCatalog, filters: ArticleFilter[]) => {
+	const items = category.items.filter((i) => !filters || filters.every((f) => f(i as Article, catalog)));
+	if (items.length == 0) return "";
 	return "[view:hierarchy=none::::List]";
 };
 
@@ -58,10 +63,12 @@ async function parseContent(
 		convertContentToUiLanguage(ctx.contentLanguage || catalog?.props?.language),
 		ctx.user?.isLogged,
 	);
+
+	const filters = new RuleProvider(ctx).getItemFilters();
 	const content =
 		article.type == ItemType.category && !article.content?.trim?.()
 			? initChildLinks
-				? getChildLinks()
+				? getChildLinks(article as Category, catalog, filters)
 				: ""
 			: article.content;
 	article.parsedContent = await parser.parse(content, context, requestUrl);

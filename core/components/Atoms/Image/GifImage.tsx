@@ -1,5 +1,7 @@
+import PlayButton from "@components/Atoms/Image/PlayButton";
+import HoverableActions from "@components/controls/HoverController/HoverableActions";
 import styled from "@emotion/styled";
-import React, { ReactEventHandler, useEffect, useRef, useState } from "react";
+import React, { ReactEventHandler, ReactNode, useEffect, useRef, useState } from "react";
 
 interface GifImageProps {
 	src: string;
@@ -8,11 +10,18 @@ interface GifImageProps {
 	className?: string;
 	noplay?: boolean;
 	onError?: ReactEventHandler<HTMLImageElement>;
+	onLoad?: () => void;
+	hoverElementRef?: React.RefObject<HTMLDivElement>;
+	setIsHovered?: (isHovered: boolean) => void;
+	isHovered?: boolean;
+	rightActions?: ReactNode;
 }
 
-const GifImage = ({ src, alt, title, className, noplay, onError }: GifImageProps) => {
+const GifImage = (props: GifImageProps) => {
+	const { src, alt, title, className, noplay, onError, onLoad, hoverElementRef, setIsHovered, isHovered, rightActions } =
+		props;
 	const gif = useRef<HTMLImageElement>();
-	const button = useRef<HTMLDivElement>();
+	const button = useRef<SVGSVGElement>();
 	const canvas = useRef<HTMLCanvasElement>();
 	const [isPlaying, setIsplaying] = useState(false);
 
@@ -37,35 +46,42 @@ const GifImage = ({ src, alt, title, className, noplay, onError }: GifImageProps
 
 	return (
 		<div className={className}>
-			<div className={"ff-container ff-" + (isPlaying ? "active" : "inactive")}>
-				<div className="ff-button" ref={button} />
-				<canvas className="ff-canvas" ref={canvas} data-focusable="true" />
-				<img
-					onError={onError}
-					src={src}
-					data-focusable="true"
-					className="ff-gif"
-					alt={alt}
-					ref={gif}
-					loading="lazy"
-					onLoad={() => {
-						const w = (canvas.current.width = gif.current.width);
-						const h = (canvas.current.height = gif.current.height);
-						canvas.current.getContext("2d").drawImage(gif.current, 0, 0, w, h);
-					}}
-				/>
-				{title && <em>{title}</em>}
-			</div>
+			<HoverableActions
+				hoverElementRef={hoverElementRef}
+				isHovered={isHovered}
+				setIsHovered={setIsHovered}
+				rightActions={rightActions}
+			>
+				<div className={"ff-container ff-" + (isPlaying ? "active" : "inactive")}>
+					<PlayButton ref={button} className="ff-button" />
+					<canvas className="ff-canvas" ref={canvas} data-focusable="true" />
+					<img
+						onError={onError}
+						src={src}
+						data-focusable="true"
+						className="ff-gif"
+						alt={alt}
+						ref={gif}
+						onLoad={() => {
+							const w = (canvas.current.width = gif.current.width);
+							const h = (canvas.current.height = gif.current.height);
+							canvas.current.getContext("2d").drawImage(gif.current, 0, 0, w, h);
+							onLoad?.();
+						}}
+					/>
+					{title && <em>{title}</em>}
+				</div>
+			</HoverableActions>
 		</div>
 	);
 };
 export default styled(GifImage)`
 	display: flex;
 	justify-content: center;
+	margin: 0.5em auto 0.5em auto !important;
 
-	img,
-	canvas {
-		margin: 0.5em auto 0.5em auto !important;
+	em {
+		margin-top: 0.5em !important;
 	}
 
 	.ff-active {
@@ -86,6 +102,8 @@ export default styled(GifImage)`
 
 		.ff-canvas {
 			position: absolute;
+			width: 100%;
+			height: 100%;
 		}
 
 		.ff-button {
@@ -96,15 +114,15 @@ export default styled(GifImage)`
 			margin: auto;
 			z-index: var(--z-index-base);
 			cursor: pointer;
-			max-width: 94px;
-			max-height: 94px;
+			max-width: 5.875em;
+			max-height: 5.875em;
 			position: absolute;
 			background-size: contain;
 			background-position: center;
 			background-repeat: no-repeat;
 			-moz-background-size: contain;
 			-webkit-background-size: contain;
-			background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAF4AAABeCAQAAAAA22vlAAAGFklEQVR42t2ce0yVdRjHP9zlKnfQAwoqV80bImCR90tGhJmShVOxVFJBrdSWVmvmnJlSm2ZbWwunlc4ZOf5IV7NJ84KmFpmZioiKigoKyPWct72vJ4dj0Lm8t9Nz/jt/fd73/L6/5/v8fs9z4H8VTjjhjAuu5o8LLtJ3DoEuYnvghS89pY8PnrjjgrPeH0BEd8fbEHRpaVOZqVUQ2m/cLfomGX+8pAfQ8S8gonvglx/TeEToEKbW69vnD6Annrjp9QEevnU/Q0RDmdAp2m6ffSs0DD964KrHBeSEK96EnlgtdBGN5T9kEYQPHvp7AGc8CCCq7ozQTdzdv2U4AXjrTQEueBFGorFN6DaMzZWFU/t2UIAuwhVfIkkSLIiW6lOLfULx1Y8C3PAnmjTBwmg4UTyFQLzx0MMCcieQAaQLlofp1u73B+sjB7gTRCyjBavCWF+xPs2gvQJE+DjGCFZH8+WjuQRrqwB3gm2DF+P+4Z1jJQVotIDsghcEk7H6q4I4/M02TuUHsBNejPa6c2sTemlhImSAF6Pp/M/ZkgJUNREywYtRe3B7mroKkBFetNFXP5vTXz0bLSu8ZKNr/nhDLRstO7xko39Tx0YrAi/G7e+Vt9GKwYs2uqowK0pJE6EgvKSAG7/nK2ejFYaXbPSpkgxlFKACvKSAfR8Pk18BKsELgrGpcovchaRq8IJUSJ5eIqcCVIWXFHBy/1QC5VGA6vCii7i9d+NQOQpJLeBFBTy4vMl+BWgELyng2q95hNijAA3hJQWUPTpKcbV+AWkMLylgzwdDbFOA9vCiAhovb5zQx3oF6AJeUkDVyQXWHqXoBl5SwLF9k6w5TNQVvHSY+K3lh4l6gxcV0FCxIc1gSSGpQ3hJAZWl2QTghVt3+DqFF3+AMwUE4SXt/w4HL5hatoonoZ5db546hheEq3sQ1767Q8I33yKGYOndOx68IDCE3vg4JLypnWRE2+DqgPC3K0glGn+HhC8pIpUoh3zzd24aZpJEJL4OB3+vNnMlExlEON4OJViTUFqWsJwsUulHID1wdhj4C1XZn7KA6aSTQDg+XRsEncHX3lu323k5c3medAYiXlR7OIQ9aG3bfSjobRaQzWRSiMeAv2SL9W/MjpWnrOd1csggnSH049+rIb37+crq3M/JZw7TGEcScRgsu1XUHL6+cfN3riuYzwwmkkIifSw/iNIUvt1Y/EvkWhbxEs/wJE8QTZg1ByAawp/+a9xHLGY2mYxmGAPoZe31g0bw1TUFX5LPPGmVjyCOCFsufjSAf9C0vcTzTV5lJpNJJZG+hNh26awyvNF08PiA91jEyzzLUwyWtkR/W6/7VYX/81JmIUukVT6GYcTQ275GC9Xga2rX7GQZuUxnAsnEE2l/k5cq8M0tRQd7rmKBtMrTGEQUoXK0VigObxIOnxq8jjxeMSf+/oTL1dioMPzFqllbWcocshhDErGWJn7N4evurxftbS4vMpGRJNBH7lZGheDb2vYcChHtrZj4R0mrPEz+/g9F4MvOjtpgtrdPM5T+9FKmfVd2+Gs3874gn7mP7G3Eo/tuJ123rDQ2bdvvISb+GUyy1t5qCm80HTje710WMYuptthbDeHPVTxK/KPNiV+FMQ0Z4O/Urdn1WOKPIFidARk74Vtbd/0YsPqxxB+iXlexXfBHy0d82CnxezpAO+6V6nnbzYl/rPyJX0H4hsbC4g4VvwKJXyF4o7HkSF87Kn4N4csvTNncqeL30m7swuKBl5q7q3ZQwDxeYLztFb/c8LGM/q/xuuaWogO+K3nNXPEPtL3ilxdeGvK6fr479NLTUi0kVvwPD0HDba/45QzzeN2ObV2BV1zL2dahForRYkvsKsyDjZ7TrvzdGfxe/aa9zuKWqFgtZF+YR0oZH7/w4oWO4O3txaWGd1iobC1kX5iHeUkmwy33k68vXWlvF4S6+p/Kxm0gjxyeU7YWsi/MY9TEkUYGOeSxjBXks4jZZHU6BNXZGLt5gJ1exJLMeDKZwUymk8E4RipfC8mB74EfoUSRyHBSSGUkQ4nX4yrv6u17E0AYEUQRTV8MhDjCnzbgaH+X8Q8RGKy7dFBuqQAAAABJRU5ErkJggg==);
+			filter: drop-shadow(0px 0px 2px rgba(0, 0, 0, 0.7));
 		}
 	}
 `;

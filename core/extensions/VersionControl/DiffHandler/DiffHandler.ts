@@ -2,13 +2,13 @@ import * as diff from "diff";
 import { FileStatus } from "../../Watchers/model/FileStatus";
 import Diff from "./diffMatchLib";
 import getChanges from "./logic/DiffConverter";
-import { Change } from "./model/Change";
+import { DiffHunk } from "./model/DiffHunk";
 import { VersionControlDiff } from "./model/VersionControlDiff";
 
 export const getDiff = (
 	oldContent: string,
 	newContent: string,
-): { changes: Change[]; added: number; removed: number } => {
+): { changes: DiffHunk[]; added: number; removed: number } => {
 	oldContent = oldContent ? oldContent.replaceAll("\n", " \n") : "";
 	newContent = newContent ? newContent.replaceAll("\n", " \n") : "";
 	const diff = new Diff();

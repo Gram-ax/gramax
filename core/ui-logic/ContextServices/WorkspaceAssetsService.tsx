@@ -2,12 +2,13 @@ import FetchService from "@core-ui/ApiServices/FetchService";
 import FetchResponse from "@core-ui/ApiServices/Types/FetchResponse";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import WorkspaceService from "@core-ui/ContextServices/Workspace";
-import useWatch from "@core-ui/hooks/useWatch";
-import getIsDevMode from "@core-ui/utils/getIsDevMode";
+import { useWatchClient } from "@core-ui/hooks/useWatch";
+import useTrigger from "@core-ui/triggers/useTrigger";
+import CustomLogoDriver from "@core/utils/CustomLogoDriver";
 import ThemeService from "@ext/Theme/components/ThemeService";
 import Theme from "@ext/Theme/Theme";
 import { WorkspacePath } from "@ext/workspace/WorkspaceConfig";
-import { ReactElement, createContext, useContext, useEffect, useState, useCallback } from "react";
+import { ReactElement, createContext, useContext, useEffect, useState, useCallback, useMemo } from "react";
 
 interface WorkspaceAssetsInterface {
 	updateStyle: (newStyles: string) => void;
@@ -23,10 +24,11 @@ interface LogoManagerType {
 	isLoading: boolean;
 	deleteLogo: () => Promise<FetchResponse<void>>;
 	updateLogo: (logo: any) => Promise<void>;
+	getLogo: () => Promise<string>;
 	refreshLogo: () => Promise<void>;
 }
 
-export const useLogoManager = (workspacePath: WorkspacePath, theme: Theme): LogoManagerType => {
+export const useLogoManager = (workspacePath: WorkspacePath, theme: Theme, ignoreFetch?: boolean): LogoManagerType => {
 	const apiUrlCreator = ApiUrlCreatorService.value;
 	const [logo, setLogo] = useState("");
 	const [isLoading, setIsLoading] = useState(false);
@@ -47,10 +49,8 @@ export const useLogoManager = (workspacePath: WorkspacePath, theme: Theme): Logo
 		setLogo(logo);
 	}, [workspacePath, theme]);
 
-	useWatch(async () => {
-		const isDev = getIsDevMode();
-		if (!isDev) return;
-		if (typeof window === "undefined") return;
+	useWatchClient(async () => {
+		if (ignoreFetch) return;
 		await refreshLogo();
 	}, [getLogo, workspacePath, theme]);
 
@@ -70,6 +70,7 @@ export const useLogoManager = (workspacePath: WorkspacePath, theme: Theme): Logo
 	return {
 		logo,
 		isLoading,
+		getLogo,
 		refreshLogo,
 		deleteLogo,
 		updateLogo,
@@ -121,10 +122,7 @@ export const useWorkspaceAssets = (workspacePath?: string): WorkspaceAssetsType 
 		return res.text();
 	}, [workspacePath]);
 
-	useWatch(async () => {
-		const isDev = getIsDevMode();
-		if (!isDev) return;
-		if (typeof window === "undefined") return;
+	useWatchClient(async () => {
 		const styles = await getCustomStyle();
 		setInitialStyle(styles);
 	}, [workspacePath]);
@@ -145,30 +143,63 @@ export const useWorkspaceAssets = (workspacePath?: string): WorkspaceAssetsType 
 	};
 };
 
+const updateCustomLogo = (path: WorkspacePath) => {
+	const { getLogo: getLightLogo } = useLogoManager(path, Theme.light, true);
+	const { getLogo: getDarkLogo } = useLogoManager(path, Theme.dark, true);
+	const [value, forceUpdate] = useTrigger();
+
+	const updateLogoInLocalStore = useCallback(async () => {
+		const lightLogo = await getLightLogo();
+		const darkLogo = await getDarkLogo();
+		CustomLogoDriver.updateLogo(lightLogo, Theme.light);
+		CustomLogoDriver.updateLogo(darkLogo, Theme.dark);
+	}, [path]);
+
+	const forceUpdateLogo = useCallback(() => {
+		forceUpdate();
+	}, [forceUpdate]);
+
+	useEffect(() => {
+		void updateLogoInLocalStore();
+	}, [updateLogoInLocalStore, value]);
+
+	return { forceUpdateLogoInStorage: forceUpdateLogo };
+};
+
 class WorkspaceAssetsService {
 	static Provider({ children }: { children: ReactElement }): ReactElement {
 		const { updateStyle } = useStyleManager();
 		const workspace = WorkspaceService.current() || { path: undefined };
+		const { forceUpdateLogoInStorage } = updateCustomLogo(workspace.path);
 		const theme = ThemeService.value;
 
-		const { logo, refreshLogo } = useLogoManager(workspace.path, theme);
+		const { logo: logoDark, refreshLogo: refreshDarkLogo } = useLogoManager(workspace.path, Theme.dark);
+		const { logo: logoLight, refreshLogo: refreshLightLogo } = useLogoManager(workspace.path, Theme.light);
 		const { getCustomStyle } = useWorkspaceAssets(workspace.path);
+
+		const logo = useMemo(() => {
+			if (theme === Theme.dark && !logoDark) {
+				return logoLight;
+			}
+			return theme === Theme.light ? logoLight : logoDark;
+		}, [logoDark, logoLight, theme]);
 
 		const refreshStyle = useCallback(async () => {
 			updateStyle(await getCustomStyle());
 		}, [updateStyle, getCustomStyle]);
 
-		useWatch(() => {
-			const isDev = getIsDevMode();
-			if (!isDev) return;
-			if (typeof window === "undefined") return;
+		const refreshHomeLogo = async () => {
+			await refreshDarkLogo();
+			await refreshLightLogo();
+			forceUpdateLogoInStorage();
+		};
+
+		useWatchClient(() => {
 			void refreshStyle();
 		}, [workspace.path]);
 
 		return (
-			<WorkspaceAssetsContext.Provider
-				value={{ refreshHomeLogo: refreshLogo, homeLogo: logo, updateStyle, refreshStyle }}
-			>
+			<WorkspaceAssetsContext.Provider value={{ refreshHomeLogo, homeLogo: logo, updateStyle, refreshStyle }}>
 				{children}
 			</WorkspaceAssetsContext.Provider>
 		);

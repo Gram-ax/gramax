@@ -7,6 +7,7 @@ import CatalogPropsService from "@core-ui/ContextServices/CatalogProps";
 import IsEditService from "@core-ui/ContextServices/IsEdit";
 import ModalToOpenService from "@core-ui/ContextServices/ModalToOpenService/ModalToOpenService";
 import ModalToOpen from "@core-ui/ContextServices/ModalToOpenService/model/ModalsToOpen";
+import useRestoreRightSidebar from "@core-ui/hooks/diff/useRestoreRightSidebar";
 import useWatch from "@core-ui/hooks/useWatch";
 import { ItemType } from "@core/FileStructue/Item/ItemType";
 import styled from "@emotion/styled";
@@ -135,6 +136,7 @@ const LevNavDragTree = styled((props: LevNavDragTreeProps) => {
 					render={(node, { depth, isOpen, onToggle, containerRef, isDropTarget }) => {
 						const [thisItem, setThisItem] = useState(node.data);
 						const [isHover, setIsHover] = useState(false);
+						const restoreRightSidebar = useRestoreRightSidebar();
 
 						const isActive = thisItem.isCurrentLink;
 						const existsContent =
@@ -204,6 +206,7 @@ const LevNavDragTree = styled((props: LevNavDragTreeProps) => {
 								onToggle={currentOnToggle}
 								isDropTarget={isDropTarget}
 								onClick={() => {
+									restoreRightSidebar();
 									closeNavigation?.();
 									if (node.data.isCurrentLink)
 										articleElement?.scrollTo({

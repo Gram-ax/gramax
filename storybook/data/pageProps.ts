@@ -790,7 +790,7 @@ export default {
 			buildVersion: "0.0.0@storybook",
 			enterprise: {
 				gepsUrl: "",
-				gesUrl: "",
+				gesUrl: "https://test-ges-url.com",
 			},
 			metrics: {
 				yandex: { metricCounter: "" },

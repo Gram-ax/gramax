@@ -9,11 +9,11 @@ describe("NotionPropertyManager - addCatalogProperties", () => {
 		manager = new NotionPropertyManager(pageTree as any);
 	});
 
-	it("should correctly process Notion database properties", () => {
+	test("should correctly process Notion database properties", () => {
 		const result = manager.properties.map((property) => ({
 			name: property.name,
 			type: property.type,
-			values: property.values ?? property.values,
+			...(property.values && { values: property.values }),
 		}));
 
 		expect(result).toEqual(data.expected);

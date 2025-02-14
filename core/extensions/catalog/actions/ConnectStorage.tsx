@@ -7,7 +7,13 @@ import InitStorage from "../../storage/components/InitStorage";
 const ConnectStorage = () => {
 	const hasRemoteStorage = useHasRemoteStorage();
 	const trigger = (
-		<StatusBarElement iconCode="cloud-off" iconStyle={{ fontSize: "15px" }} tooltipText={t("connect-storage")} />
+		<div data-qa="qa-connect-storage">
+			<StatusBarElement
+				iconCode="crossed-cloud"
+				iconStyle={{ fontSize: "15px", fill: "white" }}
+				tooltipText={t("connect-storage")}
+			/>
+		</div>
 	);
 
 	return hasRemoteStorage ? <InitSource trigger={trigger} /> : <InitStorage trigger={trigger} />;

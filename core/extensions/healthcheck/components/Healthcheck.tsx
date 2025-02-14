@@ -1,9 +1,8 @@
 import SpinnerLoader from "@components/Atoms/SpinnerLoader";
 import FetchService from "@core-ui/ApiServices/FetchService";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
-import CatalogPropsService from "@core-ui/ContextServices/CatalogProps";
-import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import IsReadOnlyHOC from "@core-ui/HigherOrderComponent/IsReadOnlyHOC";
+import { usePlatform } from "@core-ui/hooks/usePlatform";
 import { CatalogErrorGroups } from "@core/FileStructue/Catalog/CatalogErrorGroups";
 import RouterPathProvider from "@core/RouterPath/RouterPathProvider";
 import styled from "@emotion/styled";
@@ -27,10 +26,7 @@ interface ResourceError {
 
 const Healthcheck = styled(
 	({ itemLinks, className, trigger }: { itemLinks: ItemLink[]; className?: string; trigger: JSX.Element }) => {
-		const isLogged = PageDataContextService.value.isLogged;
-		const catalogProps = CatalogPropsService.value;
-		if (!isLogged || catalogProps.readOnly) return null;
-
+		const { isNext } = usePlatform();
 		const apiUrlCreator = ApiUrlCreatorService.value;
 		const [isOpen, setIsOpen] = useState(false);
 		const [data, setData] = useState<CatalogErrors>(null);
@@ -42,6 +38,7 @@ const Healthcheck = styled(
 			setData(await res?.json?.());
 		};
 
+		if (isNext) return null;
 		return (
 			<ModalLayout
 				contentWidth="M"

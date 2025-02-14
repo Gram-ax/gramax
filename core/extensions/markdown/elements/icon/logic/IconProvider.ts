@@ -2,6 +2,7 @@ import Path from "@core/FileProvider/Path/Path";
 import FileProvider from "@core/FileProvider/model/FileProvider";
 import { Catalog } from "@core/FileStructue/Catalog/Catalog";
 import FileStructure from "@core/FileStructue/FileStructure";
+import { uniqueName } from "@core/utils/uniqueName";
 
 const ICONS_FOLDER = ".icons";
 
@@ -42,5 +43,20 @@ export default class IconProvider {
 			list.push({ code, svg });
 		}
 		return list;
+	}
+
+	async create(iconEditorProps: IconEditorProps) {
+		const { code, svg } = iconEditorProps;
+		const icons = await this.getIconsList();
+
+		const existingIcon = icons.find((i) => i.svg === svg);
+		if (existingIcon) return existingIcon.code;
+
+		const iconNames = icons.map((i) => i.code);
+		const iconName = uniqueName(code, iconNames);
+		await this._fp.write(this._getIconPath(iconName), svg);
+
+		this._cachedIcons.set(code, svg);
+		return iconName;
 	}
 }

@@ -19,6 +19,7 @@ interface CommentComponentProps {
 	onDelete: () => void;
 	onEditorInput?: (content: string) => void;
 	isFirstComment?: boolean;
+	isLastComment?: boolean;
 	className?: string;
 }
 
@@ -29,6 +30,7 @@ const CommentComponent = (props: CommentComponentProps): ReactElement => {
 		setFocusId,
 		comment,
 		isFirstComment = false,
+		isLastComment = false,
 		className,
 		onEdit,
 		onDelete,
@@ -93,7 +95,7 @@ const CommentComponent = (props: CommentComponentProps): ReactElement => {
 			property="padding"
 			duration="0.2s"
 			borderTop={!isFirstComment}
-			borderBottom
+			borderBottom={!isLastComment}
 		>
 			<div className={className}>
 				<div className="comment">

@@ -38,12 +38,14 @@ let gvc: GitVersionControl;
 let rep: Repository;
 
 describe("Repository", () => {
-	beforeEach(() => {
+	beforeEach(async () => {
+		await RepositoryProvider.resetRepo();
 		gitCommandsFetchMock.mockClear();
 	});
 
 	describe("меняет состояние на", () => {
 		beforeEach(async () => {
+			await RepositoryProvider.resetRepo();
 			pushGitStorageMock.mockClear();
 			await dfp.mkdir(path("testRep"));
 			await GitVersionControl.init(dfp, path("testRep"), mockUserData);
@@ -55,11 +57,12 @@ describe("Repository", () => {
 		});
 
 		afterEach(async () => {
+			await RepositoryProvider.resetRepo();
 			await dfp.delete(path("testRep"));
-			await RepositoryProvider.invalidateRepoCache([]);
 			rep = null;
 		});
 		beforeEach(async () => {
+			await RepositoryProvider.resetRepo();
 			await rep.gvc.createNewBranch("B");
 			await dfp.write(repPath("1.txt"), "111\nBBB\n333");
 			await rep.publish({ commitMessage: "test", data: mockUserData, filesToPublish: [path("1.txt")] });
@@ -79,8 +82,8 @@ describe("Repository", () => {
 					reverseMerge: true,
 				},
 			};
-			expect((await rep.getState()).inner).toEqual(state);
 			expect(await dfp.read(repPath(".git/gramax/state.json"))).toBe(JSON.stringify(state));
+			expect((await rep.getState()).inner).toEqual(state);
 		});
 		describe("стандартное", () => {
 			test("при аборте мержа", async () => {
@@ -88,16 +91,16 @@ describe("Repository", () => {
 				const s = await rep.getState();
 				await s.abortMerge(mockUserData);
 
-				expect((await rep.getState()).inner).toEqual(state);
 				expect(await dfp.read(repPath(".git/gramax/state.json"))).toBe(JSON.stringify(state));
+				expect((await rep.getState()).inner).toEqual(state);
 			});
 			test("при решении мержа", async () => {
 				const state = { value: "default" };
 				const s = await rep.getState();
 				await s.resolveMerge([{ path: "1.txt", content: "resolved" }], mockUserData);
 
-				expect((await rep.getState()).inner).toEqual(state);
 				expect(await dfp.read(repPath(".git/gramax/state.json"))).toBe(JSON.stringify(state));
+				expect((await rep.getState()).inner).toEqual(state);
 			});
 		});
 	});

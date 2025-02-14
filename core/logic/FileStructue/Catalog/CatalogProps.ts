@@ -10,7 +10,6 @@ export type CatalogProps = FSLocalizationProps & {
 	description?: string;
 	url?: string;
 	docroot?: string;
-	readOnly?: boolean;
 	tabsTags?: TabsTags;
 	contactEmail?: string;
 	properties?: Property[];

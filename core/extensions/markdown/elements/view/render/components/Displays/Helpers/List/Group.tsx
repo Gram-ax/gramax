@@ -23,7 +23,7 @@ const renderGroup = (
 							onSubmit={(propertyName, value, isDelete) =>
 								onSubmit?.(article.itemPath, parentGroups, propertyName, value, isDelete)
 							}
-							isReadOnly={disabled}
+							disabled={disabled}
 							key={property.name}
 							property={property}
 							trigger={

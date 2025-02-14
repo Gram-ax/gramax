@@ -26,6 +26,8 @@ const sync: Command<{ ctx: Context; catalogName: string; articlePath: Path }, Me
 		if (!catalog) return;
 		const storage = catalog.repo.storage;
 		if (!storage) return;
+		const currentBranchName = await catalog.repo.gvc.getCurrentBranchName();
+		const mrBefore = await catalog.repo.mergeRequests.findBySource(currentBranchName);
 		const sourceData = rp.getSourceData(ctx.cookie, await storage.getSourceName());
 		const mergeResult = await catalog.repo.sync({
 			recursivePull: this._app.conf.isReadOnly,
@@ -33,17 +35,20 @@ const sync: Command<{ ctx: Context; catalogName: string; articlePath: Path }, Me
 			onPull: () => logger.logTrace(`Pulled in catalog "${catalogName}".`),
 			onPush: () => logger.logTrace(`Pushed in catalog "${catalogName}".`),
 		});
+
+		await catalog.repo.mergeRequests.afterSync(mrBefore, sourceData);
+
+		const isOk = !mergeResult.length;
 		const state = await catalog.repo.getState();
 
 		const article = catalog.findItemByItemPath<Article>(articlePath);
 		if (!article) {
 			const dataProvider = sitePresenterFactory.fromContext(ctx);
-			const lastVisited = new LastVisited(ctx);
+			const lastVisited = new LastVisited(ctx, workspace.config().name);
 			const articleData = await dataProvider.getArticlePageDataByPath([catalogName]);
 			lastVisited.setLastVisitedArticle(catalog, articleData.articleProps);
 		}
 
-		const isOk = !mergeResult.length;
 		return isOk
 			? { ok: true }
 			: {

@@ -27,6 +27,7 @@ const aliases = {
 	свойство: '[data-qa="qa-property"]',
 	"диаграмма draw.io": '[data-qa="qa-drawio"]',
 	"html блок": '[data-qa="qa-html"]',
+	"выделить таблицу": '[data-qa="table-select-all"]',
 
 	"%token%": process.env.GX_E2E_GITLAB_TOKEN,
 	"%url%": process.env.GX_E2E_GITLAB_URL,
@@ -60,16 +61,20 @@ const icons = {
 	диаграммы: ".lucide-share2",
 	"диаграмма draw.io": `[data-qa="qa-edit-menu-diagrams.net"]`,
 	"диаграмма mermaid": `[data-qa="qa-edit-menu-Mermaid"]`,
+	"диаграмма plantuml": `[data-qa="qa-edit-menu-Plant-uml"]`,
+	"диаграмма openApi": `[data-qa="qa-edit-menu-openApi"]`,
 	заметка: ".lucide-sticky-note",
 	"удалить форматирование": ".fa-text-slash",
 	ножницы: ".lucide-scissors",
 	"три точки": ".lucide-ellipsis",
 	облачка: ".lucide-cloud",
 	синхронизации: ".lucide-refresh-cw",
-	"зачёркнутого облачка": ".lucide-cloud-off",
+	"зачёркнутого облачка": `[data-qa="qa-connect-storage"]`,
 	отмена: ".lucide-reply",
 	лупы: ".lucide-search",
 	галочка: ".lucide-check",
+	"Вставить строку сверху": `[data-qa="table-add-row-up"]`,
+	"удалить строку": `[data-qa="table-del-row"]`,
 };
 
 export type Aliases = { [key: string]: string };

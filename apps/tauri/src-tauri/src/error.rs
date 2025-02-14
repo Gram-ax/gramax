@@ -39,7 +39,11 @@ pub fn setup_bugsnag_and_panic_hook(api_key: String) -> BugsnagNotificationBuild
 
   let bugsnag = BugsnagNotificationBuilder::new(api_key, webview_version);
   let bugsnag_hook = bugsnag.clone();
-  std::panic::set_hook(Box::new(move |info: &PanicHookInfo| panic_hook(&bugsnag_hook, info)));
+  let hook = std::panic::take_hook();
+  std::panic::set_hook(Box::new(move |info: &PanicHookInfo| {
+    panic_hook(&bugsnag_hook, info);
+    hook(info);
+  }));
   bugsnag
 }
 
@@ -53,18 +57,16 @@ fn panic_hook(#[allow(unused_variables)] bugsnag: &BugsnagNotificationBuilder, p
     "<no message>".to_string()
   };
 
-  error!("panic:\n{}", panic_message);
-
   let message = format!(
     r#"
-Unfortunately, Gramax was crashed (panicked).
-
-Thread {thread_id} ({thread_name}) panicked at:
-{location}
-
-With error message:
-{message}
-"#,
+    Unfortunately, Gramax was crashed (panicked).
+    
+    Thread {thread_id} ({thread_name}) panicked at:
+    {location}
+    
+    With error message:
+    {message}
+    "#,
     thread_id = format!("{:?}", std::thread::current().id()).replace("ThreadId(", "").replace(")", ""),
     thread_name = std::thread::current().name().unwrap_or("<unnamed>"),
     location = &panic_info.location().map(|l| l.to_string()).unwrap_or("unknown location".to_string()),
@@ -77,6 +79,8 @@ With error message:
     .set_description(message)
     .set_buttons(rfd::MessageButtons::Ok)
     .show();
+
+  error!("panic:\n{}", panic_message);
 
   #[cfg(not(debug_assertions))]
   {

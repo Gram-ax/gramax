@@ -40,9 +40,8 @@ export default class WorkdirRepository extends Repository {
 	}
 
 	async publish({ commitMessage, filesToPublish, data, onAdd, onCommit, onPush }: PublishOptions): Promise<void> {
-		await this.gvc.add(filesToPublish);
 		onAdd?.();
-		await this.gvc.commit(commitMessage, data);
+		await this.gvc.commit(commitMessage, data, null, filesToPublish);
 		onCommit?.();
 		await this.storage.updateSyncCount();
 		await this._push({ data, onPush });
@@ -130,7 +129,7 @@ export default class WorkdirRepository extends Repository {
 		return stashMergeResult;
 	}
 
-	async checkout({ data, branch, onCheckout, onPull }: CheckoutOptions): Promise<GitMergeResultContent[]> {
+	async checkout({ data, branch, onCheckout, onPull, force }: CheckoutOptions): Promise<GitMergeResultContent[]> {
 		const oldVersion = await this.gvc.getCurrentVersion();
 		const oldBranch = await this.gvc.getCurrentBranch();
 		const allBranches = (await this.gvc.getAllBranches()).map((b) => b.getData().remoteName ?? b.getData().name);
@@ -140,7 +139,7 @@ export default class WorkdirRepository extends Repository {
 		await this._state.saveState(state);
 
 		if (haveInternet && !allBranches.includes(branch)) await this.storage.fetch(data);
-		await this.gvc.checkoutToBranch(branch);
+		await this.gvc.checkoutToBranch(branch, force);
 		onCheckout?.(branch);
 
 		let mergeFiles: GitMergeResultContent[] = [];
@@ -167,7 +166,7 @@ export default class WorkdirRepository extends Repository {
 	}
 
 	async validateMerge(): Promise<void> {
-		if ((await this.gvc.getChanges(false)).length > 0)
+		if ((await this.gvc.getChanges("workdir", false)).length > 0)
 			throw new GitError(GitErrorCode.WorkingDirNotEmpty, null, { repositoryPath: this.gvc.getPath().value });
 	}
 
@@ -185,7 +184,7 @@ export default class WorkdirRepository extends Repository {
 		const mergeResult = await this.gvc.mergeBranch(data, branchNameBefore);
 
 		if (!mergeResult.length) {
-			await this.storage.push(data);
+			await this._push({ data });
 			if (deleteAfterMerge) await this.deleteBranch(branchNameBefore, data);
 			return [];
 		}
@@ -242,7 +241,7 @@ export default class WorkdirRepository extends Repository {
 		return versions;
 	}
 
-	private async _push({ data, onPush }: { data: SourceData; onPush?: () => void }): Promise<void> {
+	private async _push({ data, onPush }: { data: SourceData; onPush?: () => void | Promise<void> }): Promise<void> {
 		try {
 			await this.storage.push(data);
 		} catch (e) {
@@ -250,7 +249,7 @@ export default class WorkdirRepository extends Repository {
 			await this.storage.updateSyncCount();
 			throw e;
 		}
-		onPush?.();
+		await onPush?.();
 	}
 
 	private async _pull({

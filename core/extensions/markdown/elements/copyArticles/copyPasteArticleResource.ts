@@ -1,15 +1,17 @@
 import { resolveImageKind } from "@components/Atoms/Image/resolveImageKind";
 import ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
+import FetchService from "@core-ui/ApiServices/FetchService";
 import { ClientArticleProps } from "@core/SitePresenter/SitePresenter";
+import createPlainText from "@ext/markdown/elements/copyArticles/createPlainText";
 import { OnLoadResource } from "@ext/markdown/elements/copyArticles/onLoadResourceService";
 import initArticleResource from "@ext/markdown/elementsUtils/AtricleResource/initArticleResource";
-import { Attrs, DOMSerializer, Fragment, Mark, Node, Schema, Slice } from "@tiptap/pm/model";
+import { Attrs, DOMSerializer, Fragment, Mark, Node as ProseMirrorNode, Schema, Slice } from "@tiptap/pm/model";
 import { Transaction } from "@tiptap/pm/state";
 import { handlePaste } from "prosemirror-tables";
 import { EditorView } from "prosemirror-view";
 
 interface CreateProps {
-	node: Node;
+	node: ProseMirrorNode;
 	view: EditorView;
 	event: ClipboardEvent;
 	articleProps: ClientArticleProps;
@@ -19,7 +21,7 @@ interface CreateProps {
 }
 interface FilterProps {
 	view: EditorView;
-	node: Node;
+	node: ProseMirrorNode;
 	attrs: [] | Attrs;
 	apiUrlCreator: ApiUrlCreator;
 	articleProps: ClientArticleProps;
@@ -53,9 +55,9 @@ const handleCommentary = (view: EditorView, marks: Mark[] | readonly Mark[]): Ma
 		}
 
 		let markIsUsed = false;
-		doc.descendants((node: Node) => {
+		doc.descendants((node: ProseMirrorNode) => {
 			if (node.type.name === "paragraph") {
-				node.forEach((childNode: Node) => {
+				node.forEach((childNode: ProseMirrorNode) => {
 					if (childNode.isText && childNode.marks.some((nodeMark) => nodeMark.eq(mark))) {
 						markIsUsed = true;
 					}
@@ -72,12 +74,18 @@ const handleCommentary = (view: EditorView, marks: Mark[] | readonly Mark[]): Ma
 };
 
 const createResource = async (
-	node: Node,
+	node: ProseMirrorNode,
 	apiUrlCreator: ApiUrlCreator,
 	articleProps: ClientArticleProps,
 	onLoadResource: OnLoadResource,
 ) => {
 	const attrs = { ...node.attrs };
+
+	if (node.type.name === "icon" && attrs.svg) {
+		const res = await FetchService.fetch(apiUrlCreator.createCustomIcon(), JSON.stringify(attrs));
+		if (!res.ok) return;
+		attrs.code = await res.json();
+	}
 
 	if (!attrs?.resource?.src) return { ...attrs, nodeName: node.type.name };
 	const splitted = attrs.resource.name ? attrs.resource.name.split(".") : attrs.resource.name.slice(2).split(".");
@@ -95,7 +103,7 @@ const createResource = async (
 	return { ...attrs, src: newName, nodeName: node.type.name };
 };
 
-const filterMarks = async (props: FilterProps): Promise<Node> => {
+const filterMarks = async (props: FilterProps): Promise<ProseMirrorNode> => {
 	const { view, node, attrs, apiUrlCreator, articleProps, onLoadResource } = props;
 	const newChildren = [];
 
@@ -143,7 +151,7 @@ const handleCodeBlock = (event: ClipboardEvent, view: EditorView): Slice => {
 	}
 };
 
-const handleListItem = (event: ClipboardEvent, view: EditorView, node: Node): Slice => {
+const handleListItem = (event: ClipboardEvent, view: EditorView, node: ProseMirrorNode): Slice => {
 	const parent = node.content.firstChild?.firstChild;
 	const selectionNode = view.state.selection.$from.node(view.state.selection.$from.depth - 1);
 	const cursorInListItem = selectionNode?.type?.name === "listItem";
@@ -171,7 +179,7 @@ const handleListItem = (event: ClipboardEvent, view: EditorView, node: Node): Sl
 };
 
 const proceedNodes = async (
-	node: Node,
+	node: ProseMirrorNode,
 	view: EditorView,
 	attrs: Record<string, unknown>,
 	apiUrlCreator: ApiUrlCreator,
@@ -184,13 +192,13 @@ const proceedNodes = async (
 	} else return await filterMarks({ view, node, attrs, apiUrlCreator, articleProps, onLoadResource });
 };
 
-const handleOthers = (view: EditorView, node: Node): Slice => {
+const handleOthers = (view: EditorView, node: ProseMirrorNode): Slice => {
 	const slice = node.slice(0, node.content.size);
 	if (handlePaste(view, null, slice)) return;
 	return slice;
 };
 
-const handleNodes = (event: ClipboardEvent, view: EditorView, node: Node): boolean => {
+const handleNodes = (event: ClipboardEvent, view: EditorView, node: ProseMirrorNode): boolean => {
 	const slice = handleCodeBlock(event, view) || handleListItem(event, view, node);
 	if (slice) {
 		insertSlice(view.state.tr, view, slice);
@@ -213,7 +221,7 @@ const isTitle = (view: EditorView, fragment: Fragment): boolean => {
 	return firstNode === firstFragment;
 };
 
-const createTitleNode = (view: EditorView, fragment: Fragment): Node => {
+const createTitleNode = (view: EditorView, fragment: Fragment): ProseMirrorNode => {
 	const node = fragment.firstChild;
 	if (!node) return null;
 	return view.state.schema.nodes.heading.create(null, node.content);
@@ -242,7 +250,7 @@ const createNodes = async (props: CreateProps) => {
 const createNodesJSON = (editor: EditorView, fragment: Fragment, getBuffer: (src: string) => Buffer): string[] => {
 	const nodes: string[] = [];
 
-	const processNode = (node: Node): Node => {
+	const processNode = (node: ProseMirrorNode): ProseMirrorNode => {
 		const { attrs, content, marks } = {
 			attrs: { ...node.attrs },
 			content: node.content,
@@ -262,7 +270,7 @@ const createNodesJSON = (editor: EditorView, fragment: Fragment, getBuffer: (src
 		} else {
 			const newContent = [];
 			if (content && content.size > 0) {
-				content.forEach((node: Node) => {
+				content.forEach((node: ProseMirrorNode) => {
 					newContent.push(processNode(node));
 				});
 			}
@@ -272,7 +280,7 @@ const createNodesJSON = (editor: EditorView, fragment: Fragment, getBuffer: (src
 		}
 	};
 
-	fragment.forEach((node: Node, index: number) => {
+	fragment.forEach((node: ProseMirrorNode, index: number) => {
 		if (index === 0 && isTitle(editor, fragment)) nodes.push(createTitleNode(editor, fragment).toJSON());
 		else nodes.push(processNode(node).toJSON());
 	});
@@ -297,26 +305,28 @@ const createFragment = (view: EditorView): CreatedFragment => {
 	const parent = $from.node($from.depth - 2);
 	const parentName = parent?.type?.name;
 	const slice = doc.slice($from.pos, $to.pos);
+	const range = window.getSelection()?.getRangeAt(0);
 
+	const text = createPlainText(range);
 	if (parentName === "table" && ranges.length > 1)
 		return createTableFragment(view.state.selection.content().content, schema);
 
 	if (parentName === "doc" && $from.pos === doc.firstChild.nodeSize && $to.pos === doc.content.size)
 		return {
 			fragment: doc.slice(doc.firstChild.nodeSize, doc.content.size, true).content,
-			plainText: window.getSelection().toString(),
+			plainText: text,
 		};
 
 	if (slice.content?.firstChild?.type?.name === "listItem") {
 		const parent = (parentName === "doc" && $from.node($from.depth - 1)) || $from.node($from.depth - 2);
 		return {
 			fragment: Fragment.from(parent.copy(slice.content)),
-			plainText: window.getSelection().toString(),
+			plainText: text,
 			deleteRange: { from: $from.pos - 2, to: $to.pos },
 		};
 	}
 
-	return { fragment: slice.content, plainText: window.getSelection().toString() };
+	return { fragment: slice.content, plainText: text };
 };
 
 const getImageFromFragment = (fragment: Fragment, onLoadResource: OnLoadResource): boolean => {
@@ -379,15 +389,15 @@ const copyArticleResource = (
 	const { tr } = view.state;
 	if (from === to) return;
 
-	const { copyTypes, deleteRange } = getNodesData(view, onLoadResource);
-	if (copyTypes) {
-		Object.entries(copyTypes).forEach(([type, data]) => {
+	const data = getNodesData(view, onLoadResource);
+	if (data) {
+		Object.entries(data.copyTypes).forEach(([type, data]) => {
 			event.clipboardData.setData(type, data);
 		});
 	}
 
 	if (isCut) {
-		if (deleteRange) tr.deleteRange(deleteRange.from, deleteRange.to);
+		if (data?.deleteRange) tr.deleteRange(data.deleteRange.from, data.deleteRange.to);
 		else tr.deleteSelection();
 		view.dispatch(tr);
 	}
@@ -405,7 +415,7 @@ const pasteArticleResource = (props: PasteProps) => {
 
 		for (let index = 0; index < json.length; index++) {
 			const jsonNode = json[index];
-			nodes.push(Node.fromJSON(view.state.schema.nodes?.[jsonNode.type].schema, jsonNode));
+			nodes.push(ProseMirrorNode.fromJSON(view.state.schema.nodes?.[jsonNode.type].schema, jsonNode));
 		}
 
 		const node = view.state.schema.nodes.doc.create(null, nodes);

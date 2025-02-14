@@ -28,7 +28,7 @@ export default class GitMergeConflictResolver extends GitBaseConflictResolver {
 		const gvc = this._repo.gvc;
 
 		const currentBranch = (await gvc.getCurrentBranch()).toString();
-		await gvc.add();
+		await gvc.add(null, true);
 		await gvc.commit(`Merge branch '${state.data.theirs}' into ${currentBranch}`, data, [
 			currentBranch,
 			state.data.theirs,

@@ -4,7 +4,7 @@ import { resolve } from "path";
 
 describe("parseContent", () => {
 	describe("Удаление контента и атрибутов в узлах", () => {
-		it("should remove user data from article nodes", () => {
+		test("should remove user data from article nodes", () => {
 			const dirtyArticle = JSON.parse(readFileSync(resolve(__dirname, "article.json"), "utf-8"));
 			const clearArticle = JSON.parse(readFileSync(resolve(__dirname, "clearArticle.json"), "utf-8"));
 

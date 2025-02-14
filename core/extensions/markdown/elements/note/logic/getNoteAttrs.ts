@@ -12,7 +12,7 @@ const getNoteAttrs = (attrs: { [key: string]: any }) => {
 
 	attrs.collapsed = getBool(collapsed);
 	if (!title && typeof title !== "string") attrs.title = "";
-	if (!type) attrs.type = NoteType.note;
+	if (!type || !(type in NoteType)) attrs.type = NoteType.note;
 
 	return attrs;
 };

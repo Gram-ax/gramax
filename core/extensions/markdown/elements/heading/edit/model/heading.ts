@@ -1,5 +1,7 @@
+import { getResultByActionData } from "@core-ui/ContextServices/ButtonStateService/hooks/useCurrentAction";
+import { getNodeNameFromCursor } from "@core-ui/ContextServices/ButtonStateService/hooks/useType";
 import { stopExecution } from "@ext/markdown/elementsUtils/cursorFunctions";
-import { mergeAttributes, Node, textblockTypeInputRule } from "@tiptap/core";
+import { mergeAttributes, Node, InputRule, callOrReturn } from "@tiptap/core";
 import getChildTextId from "@ext/markdown/elements/heading/logic/getChildTextId";
 import { selecInsideSingleParagraph } from "@ext/markdown/elementsUtils/selecInsideSingleParagraph";
 import { Plugin, PluginKey } from "@tiptap/pm/state";
@@ -109,10 +111,29 @@ const Heading = Node.create<HeadingOptions>({
 
 	addInputRules() {
 		return this.options.levels.map((level) => {
-			return textblockTypeInputRule({
+			return new InputRule({
 				find: new RegExp(`^(#{1,${level}})\\s$`),
-				type: this.type,
-				getAttributes: { level },
+				handler: ({ state, range, match }) => {
+					const $start = state.doc.resolve(range.from);
+					const { actions, headingLevel } = getNodeNameFromCursor(state);
+
+					const { disabled } = getResultByActionData({
+						actions,
+						currentNode: { action: "heading", attrs: { level: headingLevel } },
+					});
+
+					if (disabled) {
+						return null;
+					}
+
+					const attributes = callOrReturn({ level }, undefined, match) || {};
+
+					if (!$start.node(-1).canReplaceWith($start.index(-1), $start.indexAfter(-1), this.type)) {
+						return null;
+					}
+
+					state.tr.delete(range.from, range.to).setBlockType(range.from, range.from, this.type, attributes);
+				},
 			});
 		});
 	},

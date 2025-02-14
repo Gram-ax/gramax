@@ -2,6 +2,7 @@ import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import CatalogPropsService from "@core-ui/ContextServices/CatalogProps";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import LinkHoverTooltip from "@ext/markdown/elements/link/edit/logic/LinkHoverTooltip";
+import { LinkHoverTooltipManager } from "@ext/markdown/elements/link/edit/logic/LinkHoverTooltipManager";
 import { createContext, useContext, useRef, useEffect } from "react";
 
 export const ArticleTooltip = createContext<(link: HTMLElement, resourcePath: string) => void>(() => {});
@@ -11,16 +12,16 @@ abstract class ArticleTooltipService {
 		const catalogProps = CatalogPropsService.value;
 		const apiUrlCreator = ApiUrlCreatorService.value;
 		const pageDataContext = PageDataContextService.value;
-		const linkHoverTooltipRef = useRef<LinkHoverTooltip>(null);
+		const tooltipManager = useRef<LinkHoverTooltipManager>(null);
 
 		useEffect(() => {
 			if (typeof document === "undefined") return;
 
-			if (linkHoverTooltipRef.current !== null) {
-				linkHoverTooltipRef.current.unMount();
+			if (tooltipManager.current !== null) {
+				tooltipManager.current.destroyAll();
 			}
 
-			linkHoverTooltipRef.current = new LinkHoverTooltip(
+			tooltipManager.current = new LinkHoverTooltipManager(
 				document.body,
 				apiUrlCreator,
 				pageDataContext,
@@ -28,9 +29,9 @@ abstract class ArticleTooltipService {
 			);
 
 			return () => {
-				if (linkHoverTooltipRef.current !== null) {
-					linkHoverTooltipRef.current.unMount();
-					linkHoverTooltipRef.current = null;
+				if (tooltipManager.current !== null) {
+					tooltipManager.current.destroyAll();
+					tooltipManager.current = null;
 				}
 			};
 		}, [catalogProps]);
@@ -38,8 +39,7 @@ abstract class ArticleTooltipService {
 		const setLinkHandler = (element: HTMLElement, resourcePath: string) => {
 			if (typeof document === "undefined") return;
 
-			linkHoverTooltipRef.current.setResourcePath(resourcePath);
-			linkHoverTooltipRef.current.setComponent(element);
+			tooltipManager.current?.createTooltip({ linkElement: element, resourcePath });
 		};
 
 		return <ArticleTooltip.Provider value={setLinkHandler}>{children}</ArticleTooltip.Provider>;

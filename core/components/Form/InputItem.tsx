@@ -24,6 +24,7 @@ interface ItemInputProps {
 	showErrorText?: boolean;
 	focus?: boolean;
 	dataQa?: string;
+	isLoading?: boolean;
 }
 
 const ItemInput = (props: ItemInputProps) => {
@@ -38,6 +39,7 @@ const ItemInput = (props: ItemInputProps) => {
 		formTranslationKey: form,
 		translationKey,
 		dataQa,
+		isLoading = false,
 	} = props;
 	let { value } = props;
 
@@ -82,6 +84,9 @@ const ItemInput = (props: ItemInputProps) => {
 				}}
 				onItemClick={(_, __, idx) => {
 					onChange?.((scheme.enum as string[])[idx]);
+				}}
+				onCancelClick={() => {
+					onChange?.("");
 				}}
 				placeholder={t(`forms.${form}.props.${translationKey}.placeholder`)}
 				dataQa={dataQa}
@@ -184,6 +189,7 @@ const ItemInput = (props: ItemInputProps) => {
 			}}
 			placeholder={t(`forms.${form}.props.${translationKey}.placeholder`)}
 			onFocus={onFocus}
+			isLoading={isLoading}
 		/>
 	);
 };

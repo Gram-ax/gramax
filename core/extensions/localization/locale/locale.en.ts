@@ -295,7 +295,8 @@ const locale = {
 			"cannot-load": "Unable to load the application",
 			"command-failed": {
 				title: "Something went wrong",
-				body: '<p>Reload the page and try again.</p><p>We will receive a problem report and try to fix it quickly. If the error blocks your work — report it in our <a href="https://t.me/gramax_chat">Telegram chat</a>.</p>',
+				body: '<p>Reload the page and try again.</p><p>We will receive a problem report and try to fix it quickly. If the error blocks your work — contact us on <a href="https://t.me/gramax_assist_bot">Telegram</a>.</p>',
+				"body-enterprise": '<p>Reload the page and try again. If the error blocks your work — contact support.</p>',
 			},
 			"something-went-wrong": "Something went wrong",
 		},
@@ -404,9 +405,19 @@ const locale = {
 		"css-style": "CSS-style",
 		logo: "Logo",
 		appearance: "Appearance",
-		"for-dark-theme-logo": "For dark theme",
-		"edit-css-styles": "Edit CSS-styles",
-		"upload-logo": "Upload logo",
+		"logo-upload-failed": "Failed to upload the logo",
+		"logo-size-exceeded": "The logo size must not exceed 500KB",
+		"css-styles-description": "Advanced styles settings for your workspace.",
+		"dark-logo-description": "Logo for dark theme. Used only in dark theme.",
+		"for-dark-theme": "For the dark theme",
+		"default-logo-description":
+			"Default logo. Used in the light theme and also in the dark theme if there is no separate dark theme logo.",
+	},
+	modal: {
+		confirm: {
+			"warning-have-changes":
+				"Are you sure you want to exit the style editing mode? Your changes will be discarded",
+		},
 	},
 	multilang: {
 		switch: "Switch language",
@@ -473,7 +484,7 @@ title: 403
 title: Unable to display the article
 ---
 `,
-				body: `[alert:error:\n\nGramax couldn’t read the Markdown structure in the article file]. Fix the error or remove the structure by "Edit Markdown".\n\n[/alert]`,
+				body: `[alert:error:Gramax couldn’t read the Markdown structure in the article file].\n\nFix the error or remove the structure by "Edit Markdown".\n\n[/alert]`,
 			},
 			"init-source": `---
 title: Catalog already linked with repository
@@ -632,6 +643,7 @@ Add storage to confirm the link.`,
 		sync: {
 			error: {
 				"local-changes-present": "Your local changes prevent synchronization",
+				"no-permission": "You don't have permission to synchronize with this catalog",
 			},
 		},
 		checkout: {
@@ -663,6 +675,10 @@ Add storage to confirm the link.`,
 				},
 				"not-found-reload": "Could not determine the current branch. Reload the page.",
 				"already-exist": "Unable to create new branch. Branch {{branch}} already exists",
+				"has-been-deleted": {
+					title: "Branch has been deleted",
+					body: "The branch on which the catalog was located has been deleted. You will be switched to the default branch of the catalog.",
+				},
 			},
 		},
 		merge: {
@@ -727,6 +743,8 @@ Add storage to confirm the link.`,
 			},
 		},
 		publish: {
+			name: "Publish",
+			"to-publish": "Publish",
 			error: {
 				"non-fast-forward": {
 					title: "Outdated catalog version",
@@ -734,8 +752,7 @@ Add storage to confirm the link.`,
 				},
 				unknown: "Unknown error when publishing. Error message -",
 				protected: "Branch protected from publishing",
-				http: "HTTP Error: {{status}}",
-				"no-permission": "You do not have permission to synchronize with this catalog",
+				"no-permission": "You do not have permission to publish in this catalog",
 			},
 		},
 		history: {
@@ -747,10 +764,10 @@ Add storage to confirm the link.`,
 		},
 
 		discard: {
-			confirm:
-				"Discard changes? The article will revert to its previous state, and the added media files will be deleted.",
 			"seletected-confirm":
 				"Discard selected changes? The articles will revert to their previous state, and the added media files will be deleted.",
+			"select-all-arrow-tooltip": "Discard selected changes",
+			"selected-file-arrow-tooltip": "Discard changes",
 		},
 		warning: {
 			"no-changes": {
@@ -773,8 +790,10 @@ Add storage to confirm the link.`,
 			"source-api": {
 				title: "Error when requesting Git storage",
 			},
+			http: "HTTP Error: {{status}}",
 		},
 		"merge-requests": {
+			diff: "Changes",
 			approvedCountTooltip: "{{approvedCount}} of {{approvedTotal}} approvals",
 			changes: "Changes",
 			back: "Back",
@@ -784,13 +803,10 @@ Add storage to confirm the link.`,
 			into: "into",
 			you: "You",
 			name: "Merge Request",
-			assignees: "Reviewers",
-			comments: {
-				zero: "No comments",
-				one: "comment",
-				few: "comments",
-				many: "comments",
-			},
+			approvers: "Reviewers",
+			"no-approvers": "No reviewers",
+			"approved-of": "Approved",
+			of: "of",
 			approval: {
 				approved: "Approved",
 				unapproved: "Pending review",
@@ -798,7 +814,7 @@ Add storage to confirm the link.`,
 			status: {
 				draft: "Draft",
 				"draft-tooltip": "Waiting for merge request to be pushed to remote",
-				"in-progress": "In progress",
+				"in-progress": "Review",
 				"in-progress-tooltip": "Waiting for review and approval",
 				approved: "Approved",
 				"approved-tooltip": "Approved by all reviewers and ready to merge",
@@ -839,6 +855,7 @@ Add storage to confirm the link.`,
 	},
 	import: {
 		error: {
+			"page-conversion": "Error converting page",
 			"ext-not-supported": "Extension not supported:",
 			"cannot-import": {
 				title: "Failed to import element from ",
@@ -848,6 +865,11 @@ Add storage to confirm the link.`,
 	},
 	"yandex-disk": {
 		"log-in": "Log in to Yandex.Disk",
+	},
+	diff: {
+		wysiwyg: "Visual comparison",
+		"single-panel": "Single-panel text",
+		"double-panel": "Two-panel text",
 	},
 	"unsupported-elements": {
 		confluence: {
@@ -915,8 +937,28 @@ Add storage to confirm the link.`,
 				title: "Header column",
 				delete: "Delete entire column",
 			},
+			align: {
+				name: "Alignment",
+				left: "Align to left",
+				center: "Align to center",
+				right: "Align to right",
+			},
 			"join-cells": "Join cells",
 			"split-cells": "Split cells",
+			aggregation: {
+				name: "Aggregation",
+				methods: {
+					sum: { name: "SUM", tooltip: "" },
+					avg: { name: "AVG", tooltip: "" },
+					min: { name: "MIN", tooltip: "" },
+					max: { name: "MAX", tooltip: "" },
+					count: { name: "COUNT", tooltip: "Number of values in the column." },
+					countDistinct: {
+						name: "DISTINCT COUNT",
+						tooltip: "Number of distinct values in the column.",
+					},
+				},
+			},
 		},
 
 		tabs: {
@@ -980,6 +1022,9 @@ Add storage to confirm the link.`,
 			"delete-failed-error": "Failed to delete the file",
 		},
 	},
+	pdf: {
+		"component-parsing-failed": "Failed to process the component",
+	},
 	enterprise: {
 		"user-not-found":
 			"This email isn't set up for Gramax Enterprise Server. You can continue using the full features of the free version or contact your admin for further assistance.",
@@ -996,12 +1041,22 @@ Add storage to confirm the link.`,
 			forbidden: "Insufficient permissions to create repository",
 			"already-exists": "Repository with this name already exists",
 		},
+		"add-reviews": {
+			forbidden: "Insufficient permissions to add reviewers",
+			"not-found": "Failed to find resource",
+			"failed-to-add-title": "Failed to add reviewers",
+			"failed-to-add-message": "Contact your administrator to add reviewers manually.",
+		},
 	},
 	network: {
 		error: {
 			title: "No internet",
 			body: "Reconnect and try again.",
 		},
+	},
+	"experimental-features": {
+		label: "Experimental Features",
+		"learn-more": "Learn more about experimental features",
 	},
 	account: "Account",
 	add: "Add",
@@ -1025,11 +1080,11 @@ Add storage to confirm the link.`,
 	continue: "Continue",
 	copied: "Copied",
 	copy: "Copy",
+	count: "count",
 	creating: "Creating",
 	current: "English",
 	delete: "Delete",
 	description: "Description",
-	discard: "Discard changes",
 	edit2: "Edit",
 	actions: "Actions",
 	edit: "Edit",
@@ -1079,7 +1134,6 @@ Add storage to confirm the link.`,
 	page: "Page",
 	products: "Products and services",
 	projects: "Projects",
-	publish: "Publish",
 	pull: "Pull",
 	refresh: "Refresh",
 	remote: "Published",
@@ -1158,6 +1212,7 @@ Add storage to confirm the link.`,
 	"cant-get-snippet-data": "Check if the path is correct and if the snippet file is in the repository",
 	"catalog-icons-title": "Catalog icons",
 	"category-to-docx": "Section to DOCX",
+	"category-to-pdf": "Section to PDF",
 	"change-and-sync": "Change and synchronize",
 	"check-diagrams": "Diagrams",
 	"check-file-path": "Check if the file path is correct",
@@ -1166,6 +1221,7 @@ Add storage to confirm the link.`,
 	"check-images": "Images",
 	"check-links": "Links",
 	"check-unsupported": "Unsupported elements",
+	"check-content": "Articles",
 	"choose-header": "Choose header",
 	"clarifying-tags": "Clarifying tags",
 	"click-to-copy": "Click to copy",
@@ -1210,7 +1266,6 @@ Add storage to confirm the link.`,
 	"delete-storage-catalog": "The catalog will be deleted only from the app. But you can reload it from storage.",
 	"deleting-snippet-in-use": "Deleting snippet in use",
 	"desktop-settings.target-directory-description": "Folder on the local disk where catalogs for editing are located",
-	"discard-selected": "Discard selected changes",
 	"display-on-homepage": "Display on homepage",
 	"dont-save": "Don't save",
 	"edit-on": "Edit in",
@@ -1242,6 +1297,8 @@ Add storage to confirm the link.`,
 	"incorrects-icons": "Incorrect icons",
 	"incorrects-paths": "Incorrect paths",
 	"incorrects-unsupported": "Elements",
+	"incorrects-content": "Incorrect syntax",
+	"markdown-error": "Markdown error",
 	"info-text": "Information",
 	"init-git-version-control": "Initialize Git",
 	"invalid-index": "Index does not meet the requirements!",
@@ -1273,6 +1330,9 @@ Add storage to confirm the link.`,
 	"Img-v": "Vertical group of images",
 	"Img-h": "Horizontal group of images",
 	Formula: "Formula",
+	Icon: "Icon",
+	Snippet: "Snippet",
+	View: "View",
 	"other-version": "Other version",
 	"publish-changes": "Publish changes",
 	"quote-text": "Quote",
@@ -1322,6 +1382,8 @@ Add storage to confirm the link.`,
 	"unsupported-elements-title": "Unsupported elements",
 	"unsupported-elements-warning1":
 		"DOCX does not support some elements of Gramax. The file will be saved without them.",
+	"unsupported-elements-warning1-pdf":
+		"PDF does not support some elements of Gramax. The file will be saved without them.",
 	"unsupported-elements-warning2": "List of articles with unsupported elements",
 	"update-branches": "Update branches list",
 	"users-group": "Which group to give permissions",
@@ -1399,6 +1461,7 @@ Add storage to confirm the link.`,
 	reset: "Reset",
 	model: "Model",
 	"goto-original": "Go to original",
+	"select-table": "Select table",
 };
 
 export default locale;

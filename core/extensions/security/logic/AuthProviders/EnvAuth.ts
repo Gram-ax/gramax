@@ -1,11 +1,11 @@
 import DefaultError from "@ext/errorHandlers/logic/DefaultError";
+import localUser from "@ext/security/logic/User/localUser";
 import ApiRequest from "../../../../logic/Api/ApiRequest";
 import ApiResponse from "../../../../logic/Api/ApiResponse";
 import { apiUtils } from "../../../../logic/Api/apiUtils";
 import Path from "../../../../logic/FileProvider/Path/Path";
 import ApiUrlCreator from "../../../../ui-logic/ApiServices/ApiUrlCreator";
 import Cookie from "../../../cookie/Cookie";
-import AllPermission from "../Permission/AllPermission";
 import User from "../User/User";
 import { AuthProvider } from "./AuthProvider";
 
@@ -38,8 +38,7 @@ class EnvAuth implements AuthProvider {
 			return;
 		}
 
-		const user = new User(true, { name: "admin", id: "admin", mail: "admin" }, new AllPermission());
-		await setUser(cookie, user);
+		await setUser(cookie, localUser);
 		res.send({});
 	}
 }

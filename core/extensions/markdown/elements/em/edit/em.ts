@@ -14,9 +14,9 @@ declare module "@tiptap/core" {
 }
 
 const starInputRegex = /(?:^|\s)((?:\*)((?:[^*]+))(?:\*))$/;
-const starPasteRegex = /(?:^|\s)((?:\*)((?:[^*]+))(?:\*))/g;
+export const starPasteRegex = /(?:^|\s)((?:\*)((?:[^*]+))(?:\*))/g;
 const underscoreInputRegex = /(?:^|\s)((?:_)((?:[^_]+))(?:_))$/;
-const underscorePasteRegex = /(?:^|\s)((?:_)((?:[^_]+))(?:_))/g;
+export const underscorePasteRegex = /(?:^|\s)((?:_)((?:[^_]+))(?:_))/g;
 
 const Em = Mark.create<ItalicOptions>({
 	name: "em",

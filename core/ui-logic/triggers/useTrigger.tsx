@@ -1,10 +1,15 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 
 export type Trigger = any;
 
 const useTrigger = (): [Trigger, () => void] => {
-	const [triggerValue, setTrigger] = useState<boolean>(null);
-	return [triggerValue, () => setTrigger((prev) => !prev)];
+	const [value, setValue] = useState(false);
+
+	const emitValue = useCallback(() => {
+		setValue((p) => !p);
+	}, []);
+
+	return [value, emitValue];
 };
 
 export default useTrigger;

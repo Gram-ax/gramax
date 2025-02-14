@@ -4,7 +4,7 @@ use test_utils::*;
 
 #[rstest]
 fn find_tag_by_name(_sandbox: TempDir, #[with(&_sandbox)] repo: Repo<TestCreds>) -> Result {
-  let commit = repo.commit("1")?;
+  let (commit, _) = repo.commit_debug()?;
   let signature = TestCreds.signature()?;
 
   repo.repo().tag("tag-1", &repo.repo().find_object(commit, None)?, &signature, "message", false)?;

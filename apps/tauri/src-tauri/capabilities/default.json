@@ -10,6 +10,7 @@
 		"dialog:default",
 		"core:window:allow-start-dragging",
 		"core:webview:allow-set-webview-zoom",
+		"core:webview:allow-print",
 		"plugin-gramax-fs:default",
 		"plugin-gramax-git:default",
 		"shell:allow-open"

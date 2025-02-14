@@ -74,11 +74,11 @@ pub struct CloneProgress {
 }
 
 pub fn file_history(repo_path: &Path, file_path: &Path, count: usize) -> Result<HistoryInfo> {
-  Repo::execute_without_creds(repo_path, |repo| Ok(repo.history(file_path, count)?))
+  Repo::execute_without_creds_try_lock(repo_path, |repo| Ok(repo.history(file_path, count)?))
 }
 
 pub fn branch_info(repo_path: &Path, name: Option<&str>) -> Result<BranchInfo> {
-  Repo::execute_without_creds(repo_path, |repo| {
+  Repo::execute_without_creds_try_lock(repo_path, |repo| {
     let info = if let Some(name) = name {
       repo
         .branch_by_name(name, BranchType::Local)
@@ -92,8 +92,14 @@ pub fn branch_info(repo_path: &Path, name: Option<&str>) -> Result<BranchInfo> {
   })
 }
 
+pub fn default_branch(repo_path: &Path, creds: AccessTokenCreds) -> Result<Option<BranchInfo>> {
+  Repo::execute_with_creds_try_lock(repo_path, creds, |repo| {
+    Ok(repo.default_branch()?.as_ref().map(ShortInfo::short_info).transpose()?)
+  })
+}
+
 pub fn branch_list(repo_path: &Path) -> Result<Vec<BranchInfo>> {
-  Repo::execute_without_creds(repo_path, |repo| {
+  Repo::execute_without_creds_try_lock(repo_path, |repo| {
     let mut res: Vec<BranchInfo> = vec![];
 
     for branch in repo.branches(None)? {
@@ -112,15 +118,15 @@ pub fn branch_list(repo_path: &Path) -> Result<Vec<BranchInfo>> {
 }
 
 pub fn fetch(repo_path: &Path, creds: AccessTokenCreds, force: bool) -> Result<()> {
-  Repo::execute_with_creds(repo_path, creds, |repo| Ok(repo.fetch(force)?))
+  Repo::execute_with_creds_lock(repo_path, creds, |repo| Ok(repo.fetch(force)?))
 }
 
 pub fn set_head(repo_path: &Path, refname: &str) -> Result<()> {
-  Repo::execute_without_creds(repo_path, |repo| Ok(repo.set_head(refname)?))
+  Repo::execute_without_creds_lock(repo_path, |repo| Ok(repo.set_head(refname)?))
 }
 
 pub fn new_branch(repo_path: &Path, name: &str) -> Result<()> {
-  Repo::execute_without_creds(repo_path, |repo| {
+  Repo::execute_without_creds_lock(repo_path, |repo| {
     repo.new_branch(name)?;
     Ok(())
   })
@@ -134,31 +140,31 @@ pub fn delete_branch(
 ) -> Result<()> {
   match creds {
     Some(creds) if remote => {
-      Repo::execute_with_creds(repo_path, creds, |repo| Ok(repo.delete_branch_remote(name)?))?
+      Repo::execute_with_creds_lock(repo_path, creds, |repo| Ok(repo.delete_branch_remote(name)?))?
     }
-    _ => Repo::execute_without_creds(repo_path, |repo| Ok(repo.delete_branch_local(name)?))?,
+    _ => Repo::execute_without_creds_lock(repo_path, |repo| Ok(repo.delete_branch_local(name)?))?,
   };
   Ok(())
 }
 
 pub fn add_remote(repo_path: &Path, name: &str, url: &str) -> Result<()> {
-  Repo::execute_without_creds(repo_path, |repo| Ok(repo.add_remote(name, url)?))
+  Repo::execute_without_creds_lock(repo_path, |repo| Ok(repo.add_remote(name, url)?))
 }
 
 pub fn has_remotes(repo_path: &Path) -> Result<bool> {
-  Repo::execute_without_creds(repo_path, |repo| Ok(repo.has_remotes()?))
+  Repo::execute_without_creds_try_lock(repo_path, |repo| Ok(repo.has_remotes()?))
 }
 
-pub fn status(repo_path: &Path) -> Result<StatusInfo> {
-  Repo::execute_without_creds(repo_path, |repo| Ok(repo.status()?.short_info()?))
+pub fn status(repo_path: &Path, index: bool) -> Result<StatusInfo> {
+  Repo::execute_without_creds_try_lock(repo_path, |repo| Ok(repo.status(index)?.short_info()?))
 }
 
 pub fn status_file(repo_path: &Path, file_path: &Path) -> Result<StatusEntry> {
-  Repo::execute_without_creds(repo_path, |repo| Ok(repo.status_file(file_path)?))
+  Repo::execute_without_creds_try_lock(repo_path, |repo| Ok(repo.status_file(file_path)?))
 }
 
 pub fn push(repo_path: &Path, creds: AccessTokenCreds) -> Result<()> {
-  Repo::execute_with_creds(repo_path, creds, |repo| Ok(repo.push()?))
+  Repo::execute_with_creds_lock(repo_path, creds, |repo| Ok(repo.push()?))
 }
 
 pub fn init_new(repo_path: &Path, creds: AccessTokenCreds) -> Result<()> {
@@ -167,7 +173,7 @@ pub fn init_new(repo_path: &Path, creds: AccessTokenCreds) -> Result<()> {
 }
 
 pub fn checkout(repo_path: &Path, ref_name: &str, force: bool) -> Result<()> {
-  Repo::execute_without_creds(repo_path, |repo| Ok(repo.checkout(ref_name, force)?))
+  Repo::execute_without_creds_lock(repo_path, |repo| Ok(repo.checkout(ref_name, force)?))
 }
 
 pub fn clone(creds: AccessTokenCreds, opts: CloneOptions, callback: CloneProgressCallback) -> Result<()> {
@@ -179,51 +185,43 @@ pub fn clone(creds: AccessTokenCreds, opts: CloneOptions, callback: CloneProgres
   Ok(())
 }
 
-pub fn add(repo_path: &Path, patterns: Vec<PathBuf>) -> Result<()> {
-  Repo::execute_without_creds(repo_path, |repo| Ok(repo.add_glob(patterns.iter())?))
-}
-
-pub fn diff(repo_path: &Path, old: &str, new: &str) -> Result<StatusInfo> {
-  Repo::execute_without_creds(repo_path, |repo| {
-    let old = Oid::from_str(old).or_else(|_| repo.get_tree_by_branch_name(old))?;
-    let new = Oid::from_str(new).or_else(|_| repo.get_tree_by_branch_name(new))?;
-    let statuses = repo.diff(old, new)?;
-    Ok(statuses)
+pub fn add(repo_path: &Path, patterns: Vec<PathBuf>, force: bool) -> Result<()> {
+  Repo::execute_without_creds_lock(repo_path, |repo| {
+    let add_result = if force { repo.add_glob_force(patterns) } else { repo.add_glob(patterns) };
+    let Err(err) = add_result else { return Ok(()) };
+    warn!(target: "git:add", "failed to add: {}", err);
+    Ok(())
   })
 }
 
+pub fn diff(repo_path: &Path, opts: DiffConfig) -> Result<DiffTree2TreeInfo> {
+  Repo::execute_without_creds_try_lock(repo_path, |repo| Ok(repo.diff(opts)?))
+}
+
 pub fn reset_all(repo_path: &Path, hard: bool, head: Option<&str>) -> Result<()> {
-  Repo::execute_without_creds(repo_path, |repo| {
+  Repo::execute_without_creds_lock(repo_path, |repo| {
     let head = if let Some(head) = head { Some(Oid::from_str(head).map_err(Error::from)?) } else { None };
     Ok(repo.reset_all(hard, head)?)
   })
 }
 
-pub fn commit(
-  repo_path: &Path,
-  creds: AccessTokenCreds,
-  message: &str,
-  parents: Option<Vec<String>>,
-) -> Result<()> {
-  Repo::execute_with_creds(repo_path, creds, |repo| {
-    match parents {
-      Some(parents) => repo.commit_with_parents(message, parents)?,
-      _ => repo.commit(message)?,
-    };
+pub fn commit(repo_path: &Path, creds: AccessTokenCreds, opts: CommitOptions) -> Result<()> {
+  Repo::execute_with_creds_lock(repo_path, creds, |repo| {
+    repo.commit(opts)?;
     Ok(())
   })
 }
 
 pub fn graph_head_upstream_files(repo_path: &Path, search_in: &Path) -> Result<UpstreamCountChangedFiles> {
-  Repo::execute_without_creds(repo_path, |repo| Ok(repo.graph_head_upstream_files(search_in)?))
+  Repo::execute_without_creds_try_lock(repo_path, |repo| Ok(repo.graph_head_upstream_files(search_in)?))
 }
 
 pub fn merge(repo_path: &Path, creds: AccessTokenCreds, theirs: &str) -> Result<MergeResult> {
-  Repo::execute_with_creds(repo_path, creds, |repo| Ok(repo.merge(theirs)?))
+  Repo::execute_with_creds_lock(repo_path, creds, |repo| Ok(repo.merge(theirs)?))
 }
 
 pub fn get_content(repo_path: &Path, path: &Path, oid: Option<&str>) -> Result<String> {
-  Repo::execute_without_creds(repo_path, |repo| {
+  Repo::execute_without_creds_try_lock(repo_path, |repo| {
     let oid = if let Some(oid) = oid { Some(Oid::from_str(oid).map_err(Error::from)?) } else { None };
     let content = repo.get_content(path, oid)?;
     Ok(content)
@@ -231,36 +229,36 @@ pub fn get_content(repo_path: &Path, path: &Path, oid: Option<&str>) -> Result<S
 }
 
 pub fn get_parent(repo_path: &Path, oid: &str) -> Result<Option<String>> {
-  Repo::execute_without_creds(repo_path, |repo| {
+  Repo::execute_without_creds_try_lock(repo_path, |repo| {
     let oid = repo.parent_of(Oid::from_str(oid).map_err(Error::from)?)?;
     Ok(oid.map(|oid| oid.to_string()))
   })
 }
 
 pub fn restore(repo_path: &Path, staged: bool, paths: Vec<PathBuf>) -> Result<()> {
-  Repo::execute_without_creds(repo_path, |repo| Ok(repo.restore(paths.iter(), staged)?))
+  Repo::execute_without_creds_lock(repo_path, |repo| Ok(repo.restore(paths.iter(), staged)?))
 }
 
 pub fn get_remote(repo_path: &Path) -> Result<Option<String>> {
-  Repo::execute_without_creds(repo_path, |repo| Ok(repo.get_remote()?))
+  Repo::execute_without_creds_try_lock(repo_path, |repo| Ok(repo.get_remote()?))
 }
 
 pub fn stash(repo_path: &Path, message: Option<&str>, creds: AccessTokenCreds) -> Result<Option<String>> {
-  Repo::execute_with_creds(repo_path, creds, |mut repo| {
+  Repo::execute_with_creds_lock(repo_path, creds, |mut repo| {
     let oid = repo.stash(message)?;
     Ok(oid.map(|oid| oid.to_string()))
   })
 }
 
 pub fn stash_apply(repo_path: &Path, oid: &str) -> Result<MergeResult> {
-  Repo::execute_without_creds(repo_path, |mut repo| {
+  Repo::execute_without_creds_lock(repo_path, |mut repo| {
     let oid = Oid::from_str(oid).map_err(Error::from)?;
     Ok(repo.stash_apply(oid)?)
   })
 }
 
 pub fn stash_delete(repo_path: &Path, oid: &str) -> Result<()> {
-  Repo::execute_without_creds(repo_path, |mut repo| {
+  Repo::execute_without_creds_lock(repo_path, |mut repo| {
     let oid = Oid::from_str(oid).map_err(Error::from)?;
     repo.stash_delete(oid)?;
     Ok(())
@@ -268,27 +266,27 @@ pub fn stash_delete(repo_path: &Path, oid: &str) -> Result<()> {
 }
 
 pub fn find_refs_by_globs(repo_path: &Path, patterns: &[String]) -> Result<Vec<RefInfo>> {
-  Repo::execute_without_creds(repo_path, |repo| Ok(repo.find_refs_by_globs(patterns)?))
+  Repo::execute_without_creds_try_lock(repo_path, |repo| Ok(repo.find_refs_by_globs(patterns)?))
 }
 
 pub fn read_file(repo_path: &Path, scope: TreeReadScope, path: &Path) -> Result<Vec<u8>> {
-  Repo::execute_without_creds(repo_path, |repo| Ok(scope.with(&repo)?.read_to_vec(path)?))
+  Repo::execute_without_creds_try_lock(repo_path, |repo| Ok(scope.with(&repo)?.read_to_vec(path)?))
 }
 
 pub fn read_dir(repo_path: &Path, scope: TreeReadScope, path: &Path) -> Result<Vec<DirEntry>> {
-  Repo::execute_without_creds(repo_path, |repo| Ok(scope.with(&repo)?.read_dir(path)?))
+  Repo::execute_without_creds_try_lock(repo_path, |repo| Ok(scope.with(&repo)?.read_dir(path)?))
 }
 
 pub fn read_dir_stats(repo_path: &Path, scope: TreeReadScope, path: &Path) -> Result<Vec<DirStat>> {
-  Repo::execute_without_creds(repo_path, |repo| Ok(scope.with(&repo)?.read_dir_stats(path)?))
+  Repo::execute_without_creds_try_lock(repo_path, |repo| Ok(scope.with(&repo)?.read_dir_stats(path)?))
 }
 
 pub fn file_stat(repo_path: &Path, scope: TreeReadScope, path: &Path) -> Result<Stat> {
-  Repo::execute_without_creds(repo_path, |repo| Ok(scope.with(&repo)?.stat(path)?))
+  Repo::execute_without_creds_try_lock(repo_path, |repo| Ok(scope.with(&repo)?.stat(path)?))
 }
 
 pub fn file_exists(repo_path: &Path, scope: TreeReadScope, path: &Path) -> Result<bool> {
-  Repo::execute_without_creds(repo_path, |repo| Ok(scope.with(&repo)?.exists(path)?))
+  Repo::execute_without_creds_try_lock(repo_path, |repo| Ok(scope.with(&repo)?.exists(path)?))
 }
 
 pub fn is_init(repo_path: &Path) -> Result<bool> {
@@ -296,11 +294,11 @@ pub fn is_init(repo_path: &Path) -> Result<bool> {
 }
 
 pub fn is_bare(repo_path: &Path) -> Result<bool> {
-  Repo::execute_without_creds(repo_path, |repo| Ok(repo.0.is_bare() || repo.0.workdir().is_none()))
+  Repo::execute_without_creds_try_lock(repo_path, |repo| Ok(repo.0.is_bare() || repo.0.workdir().is_none()))
 }
 
 pub fn list_merge_requests(repo_path: &Path) -> Result<Vec<MergeRequest>> {
-  Repo::execute_without_creds(repo_path, |repo| Ok(repo.list_merge_requests()?))
+  Repo::execute_without_creds_try_lock(repo_path, |repo| Ok(repo.list_merge_requests()?))
 }
 
 pub fn create_or_update_merge_request(
@@ -308,13 +306,19 @@ pub fn create_or_update_merge_request(
   merge_request: CreateMergeRequest,
   creds: AccessTokenCreds,
 ) -> Result<()> {
-  Repo::execute_with_creds(repo_path, creds, |repo| Ok(repo.create_or_update_merge_request(merge_request)?))
+  Repo::execute_with_creds_lock(repo_path, creds, |repo| {
+    Ok(repo.create_or_update_merge_request(merge_request)?)
+  })
 }
 
 pub fn get_draft_merge_request(repo_path: &Path) -> Result<Option<MergeRequest>> {
-  Repo::execute_without_creds(repo_path, |repo| Ok(repo.get_draft_merge_request()?))
+  Repo::execute_without_creds_try_lock(repo_path, |repo| Ok(repo.get_draft_merge_request()?))
 }
 
-pub fn invalidate_repo_cache(repo_paths: Vec<PathBuf>) -> Result<()> {
-  crate::cache::invalidate_cache(repo_paths)
+pub fn get_all_commit_authors(repo_path: &Path) -> Result<Vec<CommitAuthorInfo>> {
+  Repo::execute_without_creds_try_lock(repo_path, |repo| Ok(repo.get_all_authors()?))
+}
+
+pub fn reset_repo() {
+  crate::cache::reset_repo()
 }

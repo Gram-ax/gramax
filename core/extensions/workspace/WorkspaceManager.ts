@@ -1,4 +1,5 @@
 import type { AppConfig, ServicesConfig } from "@app/config/AppConfig";
+import resolveModule from "@app/resolveModule/backend";
 import { getExecutingEnvironment } from "@app/resolveModule/env";
 import type FileProvider from "@core/FileProvider/model/FileProvider";
 import type MountFileProvider from "@core/FileProvider/MountFileProvider/MountFileProvider";
@@ -33,6 +34,7 @@ export type WorkspaceConfigWithCatalogs = {
 const WORKSPACE_CONFIG_FILENAME = new Path("workspace.yaml");
 const DEFAULT_WORKSPACE_NAME = "workspace.default-name";
 const DEFAULT_WORKSPACE_ICON = "layers";
+const LATEST_WORKSPACE_KEY = "latest-workspace";
 
 export default class WorkspaceManager {
 	private _current: Workspace;
@@ -64,8 +66,7 @@ export default class WorkspaceManager {
 		});
 		this._rules?.forEach((fn) => this._current.events.on("catalog-changed", fn));
 
-		this._workspacesConfig.set("latest-workspace", this._current.path());
-
+		this._setLatestWorkspace(this._current.path());
 		await this.saveWorkspaces();
 	}
 
@@ -85,7 +86,7 @@ export default class WorkspaceManager {
 			await this._createDefaultWorkspace();
 		}
 
-		const latest = this._workspacesConfig.get("latest-workspace");
+		const latest = this._getLatestWorkspace();
 		const path = this._workspaces.get(latest) ? latest : this.workspaces()[0].path;
 
 		path && (await this.setWorkspace(path));
@@ -125,8 +126,11 @@ export default class WorkspaceManager {
 		return this._workspaces.get(path);
 	}
 
-	getWorkspaceAssets(path: WorkspacePath) {
-		if (!path || path === this._current?.path()) return this._current.getAssets();
+	getWorkspaceAssets(path: WorkspacePath): WorkspaceAssets | null {
+		if (!path || path === this._current?.path()) {
+			if (this.hasWorkspace()) return this._current.getAssets();
+			return null;
+		}
 
 		if (!this._workspaces.get(path)) throw new Error(`Workspace with path ${path} not found`);
 		const fp = this._makeFileProvider(new Path([path, ".workspace", "assets"]).value);
@@ -260,5 +264,23 @@ export default class WorkspaceManager {
 		const path = this._config.paths.default.value;
 		await this.addWorkspace(path, init, true);
 		await this.saveWorkspaces();
+	}
+
+	private _setLatestWorkspace(path: WorkspacePath) {
+		this._workspacesConfig.set(LATEST_WORKSPACE_KEY, path);
+
+		if (typeof window !== "undefined" && window.sessionStorage)
+			window.sessionStorage.setItem(LATEST_WORKSPACE_KEY, path);
+
+		if (getExecutingEnvironment() == "tauri") void resolveModule("setSessionData")(LATEST_WORKSPACE_KEY, path);
+	}
+
+	private _getLatestWorkspace(): WorkspacePath {
+		const path = this._workspacesConfig.get(LATEST_WORKSPACE_KEY);
+
+		if (typeof window !== "undefined" && window.sessionStorage)
+			return window.sessionStorage.getItem(LATEST_WORKSPACE_KEY) || path;
+
+		return path;
 	}
 }

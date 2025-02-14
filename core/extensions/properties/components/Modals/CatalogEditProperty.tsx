@@ -53,6 +53,7 @@ const CatalogEditProperty = ({ isOpen, closeModal, onSubmit, data }: CreateProps
 			return false;
 		return true;
 	};
+
 	const addValue = () => {
 		setEditProps((prevProps) => ({
 			...prevProps,
@@ -60,9 +61,30 @@ const CatalogEditProperty = ({ isOpen, closeModal, onSubmit, data }: CreateProps
 		}));
 	};
 
+	const shouldOpenConfirm = () => {
+		if (!data?.values) return false;
+
+		const shouldOpen =
+			(data?.values && data?.values?.length < editProps.values.length) ||
+			JSON.stringify(data.values) !== JSON.stringify(editProps.values);
+
+		if (shouldOpen) setVisibleWarning(2);
+		return shouldOpen;
+	};
+
 	return (
 		<>
-			<ModalLayout isOpen={isOpen} closeOnCmdEnter={false} onClose={() => closeModal()}>
+			<ModalLayout
+				isOpen={isOpen}
+				closeOnCmdEnter={false}
+				onClose={() => closeModal()}
+				confirmSaveAction={() => submit()}
+				closeConfirm={() => setVisibleWarning(undefined)}
+				confirmTitle={t("unsaved-changes")}
+				confirmText={t("modal.confirm.warning-have-changes")}
+				isOpenConfirm={visibleWarning === 2}
+				shouldOpenConfirmOnClose={shouldOpenConfirm}
+			>
 				<ModalLayoutLight>
 					<Form<CatalogCreateProps>
 						schema={editSchema as JSONSchema7}
@@ -159,7 +181,7 @@ const CatalogEditProperty = ({ isOpen, closeModal, onSubmit, data }: CreateProps
 							)}
 						</>
 					</Form>
-					{typeof visibleWarning !== "undefined" && (
+					{typeof visibleWarning !== "undefined" && visibleWarning < 2 && (
 						<ActionWarning
 							action={(saveValue?: boolean) => submit(visibleWarning === 1, saveValue)}
 							isCatalog={visibleWarning === 1}

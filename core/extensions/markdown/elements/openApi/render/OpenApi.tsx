@@ -27,23 +27,27 @@ const OpenApi = (props: OpenApiProps) => {
 		setData(buffer.toString());
 	});
 
-	return isError ? (
-		<DiagramError
-			error={{ message: t("diagram.error.cannot-get-data") }}
-			title={t("diagram.error.specification")}
-			diagramName="OpenApi"
-		/>
-	) : (
-		<div data-focusable="true" className={className}>
-			<Suspense
-				fallback={
-					<div className="suspense">
-						<SpinnerLoader width={75} height={75} />
-					</div>
-				}
-			>
-				<LazySwaggerUI key={flag} defaultModelsExpandDepth={flag ? 1 : -1} spec={data} />
-			</Suspense>
+	return (
+		<div data-qa="qa-open-api">
+			{isError ? (
+				<DiagramError
+					error={{ message: t("diagram.error.cannot-get-data") }}
+					title={t("diagram.error.specification")}
+					diagramName="OpenApi"
+				/>
+			) : (
+				<div className={className} data-focusable="true">
+					<Suspense
+						fallback={
+							<div className="suspense">
+								<SpinnerLoader width={75} height={75} />
+							</div>
+						}
+					>
+						<LazySwaggerUI key={flag} defaultModelsExpandDepth={flag ? 1 : -1} spec={data} />
+					</Suspense>
+				</div>
+			)}
 		</div>
 	);
 };

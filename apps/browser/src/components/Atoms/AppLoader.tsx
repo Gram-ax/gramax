@@ -1,5 +1,7 @@
+import { classNames } from "@components/libs/classNames";
 import { usePlatform } from "@core-ui/hooks/usePlatform";
-import useWatch from "@core-ui/hooks/useWatch";
+import { useWatchClient } from "@core-ui/hooks/useWatch";
+import CustomLogoDriver from "@core/utils/CustomLogoDriver";
 import styled from "@emotion/styled";
 import Theme from "@ext/Theme/Theme";
 import ThemeService from "@ext/Theme/components/ThemeService";
@@ -8,23 +10,30 @@ import { useState } from "react";
 import DarkLogo from "../../../../../core/public/images/gramax-logo-dark.svg";
 import LightLogo from "../../../../../core/public/images/gramax-logo-light.svg";
 
+const useCustomLogo = (theme: Theme) => {
+	const defaultLogo = theme === Theme.light ? LightLogo : DarkLogo;
+	const customLogo = CustomLogoDriver.getLogoWithCheckDark(theme);
+
+	return { logo: customLogo || defaultLogo, custom: Boolean(customLogo) };
+};
+
 const AppLoader = ({ className }: { className?: string }) => {
 	const { isTauri } = usePlatform();
-	const logo = ThemeService.value === Theme.light ? LightLogo : DarkLogo;
-
 	const [show, setShow] = useState(!isTauri);
+	const theme = ThemeService.value;
+	const { logo, custom } = useCustomLogo(theme);
 
-	useWatch(() => {
+	useWatchClient(() => {
 		if (isTauri) setTimeout(() => setShow(true), 500);
 	}, []);
 
 	if (!show) return null;
 
 	return (
-		<div className={className}>
+		<div className={classNames(className, { "custom-logo": custom })}>
 			<div className={className} data-qa="loader">
 				<div className="logo-container">
-					<img src={logo} alt={"logo"} />
+					<img src={logo} alt={`logo_${theme}`} />
 				</div>
 				<div className="text">
 					<span>{t("app.loading")}</span>
@@ -45,6 +54,10 @@ const AppLoaderStyled = styled(AppLoader)`
 	height: 100%;
 	width: 100%;
 	gap: var(--gap-app-loader);
+
+	&.custom-logo {
+		--gap-app-loader: 1rem;
+	}
 
 	.logo-container {
 		display: flex;

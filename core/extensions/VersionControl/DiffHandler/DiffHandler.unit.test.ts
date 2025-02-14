@@ -1,13 +1,13 @@
 import { FileStatus } from "../../Watchers/model/FileStatus";
 import { getDiff, getMatchingPercent } from "./DiffHandler";
-import { Change } from "./model/Change";
+import { DiffHunk } from "./model/DiffHunk";
 
 describe("DiffHandler", () => {
 	describe("Находит изменения между двумя файлами", () => {
 		test("находит диапазон текста, который был удален", () => {
 			const newContent = "content";
 			const oldContent = "old content";
-			const output: Change[] = [
+			const output: DiffHunk[] = [
 				{ type: FileStatus.delete, value: "old " },
 				{ value: "content", type: undefined },
 			];
@@ -16,7 +16,7 @@ describe("DiffHandler", () => {
 		test("который был добавлен", () => {
 			const newContent = "new content";
 			const oldContent = "content";
-			const output: Change[] = [
+			const output: DiffHunk[] = [
 				{ type: FileStatus.new, value: "new " },
 				{ value: "content", type: undefined },
 			];
@@ -25,7 +25,7 @@ describe("DiffHandler", () => {
 		test("находит диапазоны текстов, которые был добавлены и удалены", () => {
 			const newContent = "n content";
 			const oldContent = "old content";
-			const output: Change[] = [
+			const output: DiffHunk[] = [
 				{ type: FileStatus.delete, value: "old" },
 				{ type: FileStatus.new, value: "n" },
 				{ value: " content", type: undefined },

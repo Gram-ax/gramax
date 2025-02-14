@@ -15,8 +15,8 @@ export type MergeRequest = {
 	targetBranchRef: string;
 	sourceBranchRef: string;
 	title: string;
-	author: Signature;
-	assignees: ApprovalSignature[];
+	creator: Signature;
+	approvers: ApprovalSignature[];
 	createdAt: Date;
 	updatedAt: Date;
 	description?: string;
@@ -29,7 +29,7 @@ export type OpenMergeRequest = {
 	description?: string;
 	target: string;
 	author: Signature;
-	assignees: ApprovalSignature[];
+	approvers: ApprovalSignature[];
 	createdAt: Date;
 	options?: MergeRequestOptions;
 };
@@ -38,7 +38,8 @@ export type CreateMergeRequest = {
 	targetBranchRef: string;
 	title?: string;
 	description?: string;
-	assignees?: ApprovalSignature[];
+	approvers?: ApprovalSignature[];
 	createdAt?: Date;
 	options?: MergeRequestOptions;
+	forceCreate?: boolean;
 };

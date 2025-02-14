@@ -6,6 +6,8 @@ interface DynamicModules {
 	getImageFromDom: (tag: string, fitContent: boolean) => Promise<Buffer>;
 	moveToTrash: (path: string) => Promise<void>;
 	getDOMParser: () => DOMParser;
+	setSessionData: (key: string, data: string) => Promise<void>;
+	pdfLoadFont: (fontPath: string) => Promise<ArrayBuffer>;
 }
 
 let modules: DynamicModules;
@@ -17,6 +19,7 @@ import BrowserSvgToPng from "../../apps/browser/src/logic/BrowserSvgToPng";
 import BrowserGetImageSizeFromImageData from "../../apps/browser/src/logic/BrowserGetImageSizeFromImageData";
 import BrowserGetImageFromDom from "../../apps/browser/src/logic/BrowserGetImageFromDom";
 import { initWasm } from "../../apps/browser/wasm/js/wasm";
+import { browserLoadFont } from "@ext/pdfExport/fontLoaders/browserLoadFont";
 
 modules = {
 	Cookie: BrowserCookie,
@@ -26,6 +29,8 @@ modules = {
 	getImageFromDom: BrowserGetImageFromDom,
 	moveToTrash: () => Promise.resolve(),
 	getDOMParser: () => new DOMParser(),
+	setSessionData: () => Promise.resolve(),
+	pdfLoadFont: browserLoadFont,
 };
 
 /// #endif
@@ -38,6 +43,7 @@ import NextSvgToPng from "../../apps/next/logic/NextSvgToPng";
 import NextGetImageSizeFromImageData from "../../apps/next/logic/NextGetImageSizeFromImageData";
 import NextGetImageFromDom from "../../apps/next/logic/NextGetImageFromDom";
 import { DOMParser as NextDOMParser } from "@xmldom/xmldom";
+import { loadFontBuffer } from "@ext/pdfExport/fontLoaders/nextLoadFont";
 
 modules = {
 	Cookie: NextCookie,
@@ -47,6 +53,8 @@ modules = {
 	getImageFromDom: NextGetImageFromDom,
 	moveToTrash: () => Promise.resolve(),
 	getDOMParser: () => new NextDOMParser() as any,
+	setSessionData: () => Promise.resolve(),
+	pdfLoadFont: loadFontBuffer,
 };
 
 // #v-endif
@@ -58,7 +66,8 @@ import TauriCookie from "../../apps/browser/src/logic/BrowserCookie";
 import TauriSvgToPng from "../../apps/browser/src/logic/BrowserSvgToPng";
 import TauriGetImageSizeFromImageData from "../../apps/browser/src/logic/BrowserGetImageSizeFromImageData";
 import TauriGetImageFromDom from "../../apps/browser/src/logic/BrowserGetImageFromDom";
-import { moveToTrash } from "../../apps/tauri/src/window/commands";
+import { moveToTrash, setSessionData } from "../../apps/tauri/src/window/commands";
+import { browserLoadFont as tauriLoadFont } from "@ext/pdfExport/fontLoaders/browserLoadFont";
 
 modules = {
 	Cookie: TauriCookie,
@@ -68,6 +77,8 @@ modules = {
 	getImageFromDom: TauriGetImageFromDom,
 	moveToTrash: moveToTrash,
 	getDOMParser: () => new DOMParser(),
+	setSessionData: setSessionData,
+	pdfLoadFont: tauriLoadFont,
 };
 
 // #v-endif;
@@ -90,6 +101,8 @@ modules = {
 	getImageFromDom: JestGetImageFromDom,
 	moveToTrash: () => Promise.resolve(),
 	getDOMParser: () => new JestDOMParser() as any,
+	setSessionData: () => Promise.resolve(),
+	pdfLoadFont: () => Promise.resolve(new ArrayBuffer(0)),
 };
 
 // #v-endif;

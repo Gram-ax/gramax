@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import RenderVideo from "./RenderVideo";
 import ErrorVideo from "@ext/markdown/elements/video/render/components/ErrorVideo";
-import Skeleton from "@components/Atoms/Skeleton";
+import Skeleton from "@components/Atoms/ImageSkeleton";
 
 const Video = ({ path, title, noEm }: { path: string; title: string; noEm?: boolean }) => {
 	const [isError, setIsError] = useState(false);

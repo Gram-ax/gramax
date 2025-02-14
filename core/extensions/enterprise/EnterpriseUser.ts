@@ -1,31 +1,41 @@
 import EnterpriseApi from "@ext/enterprise/EnterpriseApi";
 import EnterpriseUserJSONData from "@ext/enterprise/types/EnterpriseUserJSONData";
 import IPermission from "@ext/security/logic/Permission/IPermission";
+import parsePermissionFromJSON from "@ext/security/logic/Permission/logic/PermissionParser";
+import PermissionJSONData from "@ext/security/logic/Permission/model/PermissionJSONData";
+import PermissionType from "@ext/security/logic/Permission/model/PermissionType";
 import Permission from "@ext/security/logic/Permission/Permission";
-import User, { CatalogsPermission, UserType } from "@ext/security/logic/User/User";
+import IPermissionMap, { PermissionMapType } from "@ext/security/logic/PermissionMap/IPermissionMap";
+import parsePermissionMapFromJSON from "@ext/security/logic/PermissionMap/parsePermissionMapFromJSON";
+import User, { UserType } from "@ext/security/logic/User/User";
 import UserInfo from "@ext/security/logic/User/UserInfo";
 
-export type EnterprisePermissionInfo = {
-	permissions: CatalogsPermission;
+export interface EnterpriseInfo {
+	workspacePermission: IPermissionMap;
+	catalogPermission: IPermissionMap;
 	updateDate: Date;
-};
+	catalogsProps: { [catalogName: string]: { branches?: string[] } };
+}
 
 class EnterpriseUser extends User {
-	private _updateInterval = 1000 * 60 * 60 * 4; // 4 hours
-	private _enterprisePermissionInfo: EnterprisePermissionInfo;
+	private _updateInterval = 1000 * 60 * 10; // 10 minutes
+	private _enterpriseInfo: EnterpriseInfo;
 
 	constructor(
 		isLogged = false,
 		info?: UserInfo,
 		globalPermission?: IPermission,
-		catalogPermissions?: CatalogsPermission,
+		workspacePermission?: IPermissionMap,
+		catalogPermission?: IPermissionMap,
 		private _gesUrl?: string,
 		private _token?: string,
 	) {
-		super(isLogged, info, globalPermission, catalogPermissions);
-		this._enterprisePermissionInfo = {
-			permissions: {},
+		super(isLogged, info, globalPermission, workspacePermission, catalogPermission);
+		this._enterpriseInfo = {
+			workspacePermission: this._workspacePermission,
+			catalogPermission: this._catalogPermission,
 			updateDate: new Date(0),
+			catalogsProps: {},
 		};
 	}
 
@@ -41,40 +51,52 @@ class EnterpriseUser extends User {
 		return this._token;
 	}
 
-	setPermissionInfo(enterprisePermissionInfo: EnterprisePermissionInfo): void {
-		if (!enterprisePermissionInfo) return;
-		this._enterprisePermissionInfo = enterprisePermissionInfo;
+	setEnterpriseInfo(info: EnterpriseInfo): void {
+		if (!info) return;
+		this._enterpriseInfo = info;
+		this._catalogPermission = info.catalogPermission;
+		this._workspacePermission = info.workspacePermission;
 	}
 
-	async updatePermissions(onUpdate: (user: EnterpriseUser) => void): Promise<void> {
-		if (!this._gesUrl || !this._enterprisePermissionInfo?.updateDate) return;
-		if (new Date().getTime() - this._enterprisePermissionInfo.updateDate.getTime() < this._updateInterval) return;
+	getEnterpriseInfo(): EnterpriseInfo {
+		return this._enterpriseInfo;
+	}
 
-		const userData = await new EnterpriseApi(this._gesUrl).getUser(this._token);
-		if (!userData) return;
-
-		const enterprisePermissions: CatalogsPermission = {};
-		for (const catalogName in userData.enterprisePermissions) {
-			enterprisePermissions[catalogName] = new Permission(userData.enterprisePermissions[catalogName]);
+	async updatePermissions(): Promise<EnterpriseUser> {
+		if (!this._gesUrl) return;
+		if (
+			this._enterpriseInfo &&
+			new Date().getTime() - this._enterpriseInfo.updateDate.getTime() < this._updateInterval
+		) {
+			return;
 		}
-		this._enterprisePermissionInfo = {
-			permissions: enterprisePermissions,
+
+		const data = await new EnterpriseApi(this._gesUrl).getUser(this._token);
+		if (!data) {
+			console.log(`User data not found. ${this._gesUrl}`);
+			return;
+		}
+
+		const catalogsPermissions: { [catalogName: string]: PermissionJSONData } = {};
+		for (const catalogName in data.catalogsPermissions) {
+			catalogsPermissions[catalogName] = new Permission(data.catalogsPermissions[catalogName]).toJSON();
+		}
+
+		this._info = data.info;
+		this._workspacePermission.updateAllPermissions(new Permission(data.workspacePermissions));
+
+		this._enterpriseInfo = {
+			workspacePermission: this._workspacePermission,
+			catalogPermission: parsePermissionMapFromJSON({
+				type: this._catalogPermission.type,
+				permissions: catalogsPermissions,
+			}),
+			catalogsProps: data.catalogsProps,
 			updateDate: new Date(),
 		};
-		this._globalPermission = new Permission(userData.globalPermission);
-		onUpdate(this);
-	}
+		this._catalogPermission = this._enterpriseInfo.catalogPermission;
 
-	getEnterprisePermission(catalogName: string): IPermission {
-		return this._enterprisePermissionInfo.permissions?.[catalogName] ?? null;
-	}
-
-	getEnterprisePermissions(): CatalogsPermission {
-		return this._enterprisePermissionInfo.permissions;
-	}
-
-	getEnterprisePermissionsInfo(): EnterprisePermissionInfo {
-		return this._enterprisePermissionInfo;
+		return this;
 	}
 
 	getToken(): string {
@@ -82,25 +104,41 @@ class EnterpriseUser extends User {
 	}
 
 	override toJSON(): EnterpriseUserJSONData {
-		const json = new User(this._isLogged, this._info, this._globalPermission, this._catalogPermissions).toJSON();
 		return {
-			...json,
+			info: this._info,
 			type: this.type,
+			isLogged: this.isLogged,
+			globalPermission: this._globalPermission?.toJSON?.(),
+			catalogPermissionType: this._catalogPermission.type,
+			workspacePermissionType: this._workspacePermission.type,
+			workspacePermissionKeys: this._workspacePermission.keys,
 			token: this._token ?? "",
 			gesUrl: this._gesUrl ?? "",
 		};
 	}
 
 	static override initInJSON(json: EnterpriseUserJSONData): EnterpriseUser {
-		const user = User.initInJSON(json);
-		return new EnterpriseUser(
-			user.isLogged,
-			user.info,
-			user.getGlobalPermission(),
-			user.getCatalogPermissions(),
+		const permissions = {};
+		for (const key of json.workspacePermissionKeys ?? []) {
+			permissions[key] = { permissions: [], type: PermissionType.plain };
+		}
+
+		const user = new EnterpriseUser(
+			json.isLogged,
+			json.info,
+			parsePermissionFromJSON(json.globalPermission),
+			parsePermissionMapFromJSON({
+				type: json.workspacePermissionType ?? PermissionMapType.strict,
+				permissions,
+			}),
+			parsePermissionMapFromJSON({
+				type: json.catalogPermissionType ?? PermissionMapType.strict,
+				permissions: {},
+			}),
 			json.gesUrl,
 			json.token,
 		);
+		return user;
 	}
 }
 

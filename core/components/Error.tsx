@@ -9,10 +9,10 @@ interface ErrorProps {
 }
 
 const Error = (props: ErrorProps): ReactElement => {
-	const { error, className, isLogged = false } = props;
+	const { error, className } = props;
 	const [isExpanded, setExpanded] = useState(false);
 
-	const displayedError = isLogged ? error : { message: t("error-occured"), stack: null };
+	const displayedError = error;
 
 	return (
 		<div className={className}>

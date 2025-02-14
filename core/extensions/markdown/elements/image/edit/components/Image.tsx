@@ -22,7 +22,6 @@ interface ImageDataProps {
 
 const Image = (props: ImageDataProps): ReactElement => {
 	const { node, editor, getPos, hoverElementRef, updateAttributes, selected } = props;
-	const readFromHead = editor.storage.diff?.isOldEditor;
 	const apiUrlCreator = ApiUrlCreatorService.value;
 	const isEditable = editor.isEditable;
 
@@ -30,7 +29,7 @@ const Image = (props: ImageDataProps): ReactElement => {
 	const [hasSignature, setHasSignature] = useState(isEditable && node.attrs?.title?.length > 0);
 	const [isHovered, setIsHovered] = useState(false);
 	const isGif = new Path(node.attrs.src).extension == "gif";
-	const showResizer = isHovered || selected;
+	const showResizer = (isHovered || selected) && isEditable;
 
 	const addSignature = useCallback(() => {
 		if (!hasSignature) setHasSignature(true);
@@ -92,7 +91,6 @@ const Image = (props: ImageDataProps): ReactElement => {
 				openEditor={handleEdit}
 				realSrc={node?.attrs?.src}
 				updateAttributes={updateAttributes}
-				readFromHead={readFromHead}
 				isHovered={isHovered}
 				setIsHovered={setIsHovered}
 				rightActions={

@@ -25,7 +25,6 @@ export type EditorPasteHandler = (
 
 export default abstract class EditorService {
 	private static _editor: Editor;
-	private static onBlur: (editorContext: EditorContext) => void;
 	private static onUpdate: (editorContext: EditorContext) => void;
 	private static handlePaste: EditorPasteHandler;
 
@@ -43,14 +42,6 @@ export default abstract class EditorService {
 
 	public static getOnUpdate(): (editorContext: EditorContext) => void {
 		return this.onUpdate;
-	}
-
-	public static bindOnBlur(onBlur: (editorContext: EditorContext) => void) {
-		this.onBlur = onBlur;
-	}
-
-	public static getOnBlur(): (editorContext: EditorContext) => void {
-		return this.onBlur;
 	}
 
 	public static bindHandlePaste(handlePaste: EditorPasteHandler) {

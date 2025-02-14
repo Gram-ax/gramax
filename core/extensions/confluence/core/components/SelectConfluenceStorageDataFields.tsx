@@ -1,5 +1,4 @@
 import ListLayout from "@components/List/ListLayout";
-import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import { transliterate } from "@core-ui/languageConverter/transliterate";
 import ConfluenceSourceData from "@ext/confluence/core/model/ConfluenceSourceData";
@@ -8,8 +7,12 @@ import { Space } from "@ext/confluence/core/api/model/ConfluenceAPITypes";
 import ConfluenceStorageData from "@ext/confluence/core/model/ConfluenceStorageData";
 import { makeSourceApi } from "@ext/git/actions/Source/makeSourceApi";
 import t from "@ext/localization/locale/translate";
-import { useEffect, useState } from "react";
+import { useState } from "react";
+import debounceFunction from "@core-ui/debounceFunction";
+import useWatch from "@core-ui/hooks/useWatch";
 import SourceType from "@ext/storage/logic/SourceDataProvider/model/SourceType";
+
+const CONFLUENCE_SEARCH_SYMBOL = Symbol();
 
 type SelectProps = {
 	source: ConfluenceSourceData;
@@ -19,32 +22,39 @@ type SelectProps = {
 const SelectConfluenceStorageDataFields = ({ source, onChange }: SelectProps) => {
 	const [spaces, setSpaces] = useState<Space[]>(null);
 	const [isLoadingData, setIsLoadingData] = useState(false);
-	const apiUrlCreator = ApiUrlCreatorService.value;
 	const authServiceUrl = PageDataContextService.value.conf.authServiceUrl;
 
-	const loadSpaces = async () => {
+	const loadSpaces = async (spaceTitle?: string) => {
 		setIsLoadingData(true);
 		const api = makeSourceApi(source, authServiceUrl) as ConfluenceAPI;
 
-		let spaces: Space[] = await api.getSpaces();
-		if (!spaces.length && source.sourceType === SourceType.confluenceCloud) {
-			await api.removeExpiredCredentials(apiUrlCreator);
-			spaces = await api.getSpaces();
-		}
+		const spaces: Space[] = await api.getSpaces({
+			title: spaceTitle,
+			type: "space",
+			orderBy: "lastModified",
+			sortDirection: "desc",
+		});
 
 		setSpaces(spaces);
 		setIsLoadingData(false);
 	};
 
-	useEffect(() => {
-		void loadSpaces();
+	useWatch(() => {
+		loadSpaces();
 	}, [source]);
+
+	const debouncedSearch = (query: string) => {
+		if (source.sourceType === SourceType.confluenceServer) {
+			debounceFunction(CONFLUENCE_SEARCH_SYMBOL, () => void loadSpaces(query), 500);
+		}
+	};
 
 	return (
 		<div className="form-group field field-string row">
 			<div className="control-label">{t("space")}</div>
 			<div className="input-lable">
 				<ListLayout
+					filterItems={(items) => items}
 					isLoadingData={isLoadingData}
 					openByDefault={true}
 					items={spaces?.map((space) => ({
@@ -55,6 +65,7 @@ const SelectConfluenceStorageDataFields = ({ source, onChange }: SelectProps) =>
 						),
 						labelField: space.name,
 					}))}
+					onSearchChange={(query) => debouncedSearch(query)}
 					onItemClick={(_, __, idx) => {
 						onChange({
 							displayName: spaces[idx].name,

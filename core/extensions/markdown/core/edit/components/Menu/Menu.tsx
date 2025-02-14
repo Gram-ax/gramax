@@ -5,10 +5,10 @@ import IsSelectedOneNodeService from "@core-ui/ContextServices/IsSelected";
 import useWatch from "@core-ui/hooks/useWatch";
 import { cssMedia } from "@core-ui/utils/cssUtils";
 import styled from "@emotion/styled";
-import TableMenu from "@ext/markdown/elements/table/edit/components/TableMenu";
 import { Editor } from "@tiptap/react";
 import { useEffect, useState } from "react";
 import MainMenu from "./Menus/Main";
+import canDisplayMenu from "@ext/markdown/elements/article/edit/helpers/canDisplayMenu";
 
 const Menu = styled(({ editor, id, className }: { editor: Editor; id: string; className?: string }) => {
 	const [isOpen, setIsOpen] = useState(true);
@@ -20,10 +20,10 @@ const Menu = styled(({ editor, id, className }: { editor: Editor; id: string; cl
 
 	useEffect(() => {
 		if (!editor) return;
-		const { selection, doc } = editor.view.state;
-		const isFirst = selection.$from.parent === doc.firstChild;
-		if (isOpen && isFirst) setIsOpen(false);
-		if (!isOpen && !isFirst) setIsOpen(true);
+		const canDisplay = canDisplayMenu(editor);
+
+		if (isOpen && canDisplay) setIsOpen(false);
+		if (!isOpen && !canDisplay) setIsOpen(true);
 	}, [editor?.state?.selection]);
 
 	if (!editor) return null;
@@ -33,7 +33,6 @@ const Menu = styled(({ editor, id, className }: { editor: Editor; id: string; cl
 			<div className={className} style={isOpen ? null : { visibility: "hidden" }} data-qa="qa-edit-menu-button">
 				<IsSelectedOneNodeService.Provider editor={editor}>
 					<ButtonStateService.Provider editor={editor}>
-						<TableMenu editor={editor} />
 						<MainMenu editor={editor} />
 					</ButtonStateService.Provider>
 				</IsSelectedOneNodeService.Provider>

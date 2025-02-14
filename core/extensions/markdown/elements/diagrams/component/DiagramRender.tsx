@@ -51,7 +51,6 @@ const DiagramRender = forwardRef((props: DiagramProps, ref?: MutableRefObject<HT
 			<div
 				ref={ref}
 				className={classNames(className, { isFrozen }, [`${diagramName}-diagram`])}
-				contentEditable={false}
 				onDoubleClick={() => setOpen(true)}
 				dangerouslySetInnerHTML={{ __html: data }}
 			/>
@@ -82,6 +81,7 @@ export default styled(DiagramRender)`
 	}
 
 	svg {
+		pointer-events: none;
 		user-select: none;
 		background: none !important;
 		height: ${(p) => (p.isFull ? "100%" : "auto")} !important;

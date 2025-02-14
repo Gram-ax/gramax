@@ -18,18 +18,30 @@ const getData = async (route: string, query: Query) => {
 	const app = await getApp();
 	const commands = getCommands(app);
 	const lang = RouterPathProvider.parsePath(route).language;
-	const ctx = app.contextFactory.fromBrowser(lang, query);
+	const ctx = await app.contextFactory.fromBrowser(lang, query);
 	return commands.page.getPageData.do({ ctx, path: route });
 };
 
 const AppContext = ({ children }: { children: (data: any) => JSX.Element }) => {
-	const [path, , query] = useLocation();
+	const [path, setLocation, query] = useLocation();
 
 	const [data, setData] = useState<{
 		data: HomePageData | ArticlePageData;
 		context: PageDataContext;
 		path: string;
 	}>();
+
+	if (typeof window !== "undefined")
+		window.navigateTo = (url: string) => {
+			window.resetIsFirstLoad();
+			if (url == path) {
+				refresh();
+			} else {
+				setData(null);
+				window.resetIsFirstLoad();
+				setLocation(url);
+			}
+		};
 
 	const [error, setError] = useState<DefaultError>();
 

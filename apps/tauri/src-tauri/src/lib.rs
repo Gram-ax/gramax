@@ -16,16 +16,28 @@ mod http_req;
 mod http_server;
 mod platform;
 
+use std::collections::HashMap;
 use std::path::PathBuf;
-use std::sync::atomic::AtomicUsize;
-use std::sync::atomic::Ordering;
 
 use error::ShowError;
 use http_server::start_ping_server;
 
 use platform::*;
 
+#[cfg(desktop)]
+use platform::save_windows::WindowSessionDataExt;
+
 use tauri::*;
+
+#[macro_export]
+macro_rules! include_script {
+  ($path: literal) => {
+    include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/src/scripts/", $path))
+  };
+  ($path: literal$(, $($args:tt)+)?) => {
+    format!($crate::include_script!($path)$(, $($args)+)?)
+  };
+}
 
 i18n!("locales");
 
@@ -37,13 +49,30 @@ trait AppBuilder {
   fn attach_commands(self) -> Self;
 }
 
+pub struct FocusedWebviewLabel(pub std::sync::Mutex<Option<String>>);
+
 trait AppHandleExt<R: Runtime> {
   fn get_focused_webview(&self) -> Option<WebviewWindow<R>>;
+  fn get_focused_or_default_webview(&self) -> Option<WebviewWindow<R>>;
+  fn set_focused_webview(&self, label: String);
 }
 
 impl<R: Runtime> AppHandleExt<R> for AppHandle<R> {
   fn get_focused_webview(&self) -> Option<WebviewWindow<R>> {
-    self.webview_windows().values().find(|wv| wv.is_focused().unwrap_or_default()).cloned()
+    let last_focused = self.state::<FocusedWebviewLabel>().inner();
+
+    match self.webview_windows().values().find(|wv| wv.is_focused().unwrap_or_default()) {
+      Some(wv) => Some(wv.clone()),
+      None => last_focused.0.lock().unwrap().as_deref().and_then(|label| self.get_webview_window(label)),
+    }
+  }
+
+  fn get_focused_or_default_webview(&self) -> Option<WebviewWindow<R>> {
+    self.get_focused_webview().or_else(|| self.webview_windows().values().next().cloned())
+  }
+
+  fn set_focused_webview(&self, label: String) {
+    self.try_state::<FocusedWebviewLabel>().map(|state| state.inner().0.lock().unwrap().replace(label));
   }
 }
 
@@ -53,7 +82,7 @@ pub fn run() {
   set_locale();
 
   let builder = Builder::default().init().attach_commands().attach_plugins();
-  let context = tauri::generate_context!();
+  let context = tauri::tauri_build_context!();
 
   let app = builder.build(context).expect("Can't build app");
 
@@ -75,6 +104,8 @@ pub fn run() {
     app.setup_updater().expect("unable to setup updater");
   }
 
+  app.manage(crate::FocusedWebviewLabel(std::sync::Mutex::new(None)));
+  
   app.run(platform::on_run_event);
 }
 
@@ -104,6 +135,7 @@ impl<R: Runtime> AppBuilder for Builder<R> {
       use tauri_plugin_log::*;
       app.plugin(
         Builder::default()
+          .max_file_size(1024 * 1024 * 10)
           .targets([
             Target::new(TargetKind::Stdout),
             Target::new(TargetKind::Webview),
@@ -148,10 +180,10 @@ fn handle_ping_server<R: Runtime>(req: &tiny_http::Request, app: &AppHandle<R>) 
     return;
   };
 
-  let window = app.get_focused_webview().or_else(|| app.webview_windows().values().next().cloned());
+  let window = app.get_focused_or_default_webview();
 
   if let Some(window) = window {
-    _ = window.eval(&format!("window.location.replace('/{}')", path.trim_start_matches('/'))).or_show();
+    _ = window.eval(&include_script!("open-url.template.js", url = path.trim_start_matches('/'))).or_show();
     _ = window.request_user_attention(Some(UserAttentionType::Informational));
     _ = window.show().or_show();
     _ = window.unminimize().or_show();
@@ -173,6 +205,7 @@ fn handle_ping_server<R: Runtime>(req: &tiny_http::Request, app: &AppHandle<R>) 
 pub struct MainWindowBuilder {
   label: Option<String>,
   path: Option<PathBuf>,
+  session_data: Option<HashMap<String, String>>,
 }
 
 impl MainWindowBuilder {
@@ -186,6 +219,11 @@ impl MainWindowBuilder {
     self
   }
 
+  pub fn session_data(mut self, data: Option<HashMap<String, String>>) -> Self {
+    self.session_data = data;
+    self
+  }
+
   pub fn build<R: Runtime, M: Manager<R>>(self, manager: &M) -> Result<WebviewWindow<R>> {
     let label = self.get_unique_label(manager);
 
@@ -193,7 +231,7 @@ impl MainWindowBuilder {
       .auto_resize()
       .zoom_hotkeys_enabled(true)
       .disable_drag_drop_handler()
-      .initialization_script(include_str!("init.js"))
+      .initialization_script(include_script!("add-window-close.js"))
       .on_navigation(on_navigation);
 
     #[cfg(desktop)]
@@ -204,7 +242,7 @@ impl MainWindowBuilder {
 
     #[cfg(target_os = "macos")]
     let builder = builder
-      .initialization_script(include_str!("platform/desktop/macos.js"))
+      .initialization_script(include_script!("macos-fixes.js"))
       .hidden_title(true)
       .title_bar_style(TitleBarStyle::Overlay);
 
@@ -214,19 +252,25 @@ impl MainWindowBuilder {
 
     let window = builder.build()?;
 
+    #[cfg(desktop)]
+    if let Some(session_data) = self.session_data.or(window.get_session_data()) {
+      window.eval(&crate::include_script!("restore-session.js", data = session_data))?;
+    }
+
     Ok(window)
   }
 
   fn get_unique_label<R: Runtime, M: Manager<R>>(&self, manager: &M) -> String {
-    static COUNTER: AtomicUsize = AtomicUsize::new(0);
-
     if let Some(label) = self.label.clone() {
       return label;
     }
 
-    let mut label = format!("gramax-window-{}", COUNTER.fetch_add(1, Ordering::SeqCst));
+    let mut counter = 0;
+
+    let mut label = format!("gramax-window-{}", counter);
     while manager.webview_windows().contains_key(&label) {
-      label = format!("gramax-window-{}", COUNTER.fetch_add(1, Ordering::SeqCst));
+      counter += 1;
+      label = format!("gramax-window-{}", counter);
     }
 
     label

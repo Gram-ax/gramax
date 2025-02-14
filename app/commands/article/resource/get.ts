@@ -4,10 +4,10 @@ import MimeTypes from "@core-ui/ApiServices/Types/MimeTypes";
 import Context from "@core/Context/Context";
 import Path from "@core/FileProvider/Path/Path";
 import parseContent from "@core/FileStructue/Article/parseContent";
+import type { ReadonlyCatalog } from "@core/FileStructue/Catalog/ReadonlyCatalog";
 import HashResourceManager from "@core/Hash/HashItems/HashResourceManager";
 import GitTreeFileProvider from "@ext/versioning/GitTreeFileProvider";
 import { Article } from "../../../../core/logic/FileStructue/Article/Article";
-import type { ReadonlyCatalog } from "@core/FileStructue/Catalog/ReadonlyCatalog";
 
 const get: Command<
 	{
@@ -17,7 +17,6 @@ const get: Command<
 		catalogName: string;
 		mimeType: MimeTypes;
 		ifNotExistsErrorText: { title: string; message: string };
-		readFromHead?: boolean;
 	},
 	{ mime: MimeTypes; hashItem: HashResourceManager }
 > = Command.create({
@@ -25,18 +24,24 @@ const get: Command<
 
 	kind: ResponseKind.blob,
 
-	async do({ src, mimeType, catalogName, articlePath, ifNotExistsErrorText, readFromHead, ctx }) {
+	async do({ src, mimeType, catalogName, articlePath, ifNotExistsErrorText, ctx }) {
 		const { parser, parserContextFactory, wm } = this._app;
 		const workspace = wm.current();
+		const fs = workspace.getFileStructure();
 
 		const mime = mimeType ?? MimeTypes?.[src.extension] ?? `application/${src.extension}`;
-		let catalog: ReadonlyCatalog = await workspace.getCatalog(catalogName, ctx);
-		if (!catalog) return;
+		let catalog: ReadonlyCatalog;
+		const { unscoped, scope } = GitTreeFileProvider.unscope(new Path(catalogName));
 
-		if (readFromHead) {
-			catalog = await catalog.getHeadVersion();
+		if (scope) {
+			catalog = await workspace.getCatalog(unscoped.value, ctx);
 			if (!catalog) return;
-			articlePath = GitTreeFileProvider.scoped(articlePath, null);
+			catalog = await catalog.repo.scopedCatalogs.getScopedCatalog(catalog.basePath, fs, scope, false);
+			if (!catalog) return;
+			articlePath = GitTreeFileProvider.scoped(articlePath, scope);
+		} else {
+			catalog = await workspace.getCatalog(catalogName, ctx);
+			if (!catalog) return;
 		}
 
 		const article = catalog.findItemByItemPath<Article>(articlePath);
@@ -54,8 +59,7 @@ const get: Command<
 		const mimeType = q.mimeType as MimeTypes;
 		const catalogName = q.catalogName;
 		const articlePath = new Path(q.articlePath);
-		const readFromHead = q.readFromHead === "true";
-		return { ctx, src, mimeType, catalogName, articlePath, ifNotExistsErrorText: body, readFromHead };
+		return { ctx, src, mimeType, catalogName, articlePath, ifNotExistsErrorText: body };
 	},
 });
 

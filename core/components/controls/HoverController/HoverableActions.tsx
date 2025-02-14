@@ -2,7 +2,8 @@ import ActionButtonContainer from "@components/controls/HoverController/ActionBu
 import { classNames } from "@components/libs/classNames";
 import { useDebounce } from "@core-ui/hooks/useDebounce";
 import styled from "@emotion/styled";
-import { ReactNode, useEffect, RefObject, useCallback, memo, useRef } from "react";
+import { ReactNode, useEffect, RefObject, useCallback, memo, useRef, CSSProperties } from "react";
+import { Instance } from "tippy.js";
 
 interface HoverProps {
 	children: ReactNode;
@@ -11,10 +12,22 @@ interface HoverProps {
 	isHovered: boolean;
 	selected?: boolean;
 	isOver?: boolean;
+	actionsStyle?: CSSProperties;
 	leftActions?: ReactNode;
 	rightActions?: ReactNode;
 	className?: string;
 }
+
+const shouldTippyHide = (target: HTMLElement, parent: HTMLElement) => {
+	const tippyElement = target?.closest("[data-tippy-root]");
+	if (!tippyElement) return false;
+
+	const instance = (tippyElement as any)._tippy as Instance;
+	if (!instance) return false;
+	if (parent.contains(instance.reference)) return true;
+
+	return false;
+};
 
 const HoverableActions = (props: HoverProps) => {
 	const {
@@ -26,6 +39,7 @@ const HoverableActions = (props: HoverProps) => {
 		selected,
 		leftActions,
 		isHovered,
+		actionsStyle,
 		setIsHovered,
 	} = props;
 	if (!setIsHovered) return children;
@@ -42,6 +56,7 @@ const HoverableActions = (props: HoverProps) => {
 		if (actionsElement?.classList.contains("isHovered") && isHovered) return;
 		actionsElement?.classList.add("isHovered");
 		setIsHovered?.(true);
+		debounceHide.cancel();
 	}, [isHovered, actionsRef.current]);
 
 	useEffect(() => {
@@ -53,7 +68,8 @@ const HoverableActions = (props: HoverProps) => {
 		const onMouseLeave = (event?: MouseEvent) => {
 			if (selected) return;
 			const relatedTarget = event?.relatedTarget as HTMLElement;
-			if (relatedTarget && hoverElement.contains(relatedTarget)) return;
+			const isTippyRelated = shouldTippyHide(relatedTarget, hoverElement);
+			if (relatedTarget && (hoverElement.contains(relatedTarget) || isTippyRelated)) return;
 
 			handleHide();
 		};
@@ -68,28 +84,30 @@ const HoverableActions = (props: HoverProps) => {
 			hoverElement.removeEventListener("mousemove", onMouseEnter);
 			hoverElement.removeEventListener("mouseleave", onMouseLeave);
 		};
-	}, [selected]);
+	}, [hoverElementRef.current, selected]);
 
 	return (
-		<div className={className}>
-			<div ref={actionsRef} className={classNames("node-actions", { isOver })} contentEditable={false}>
-				<div className="actions-left">
+		<>
+			<div
+				ref={actionsRef}
+				className={classNames(className, { isOver }, ["node-actions"])}
+				data-drag-handle
+				contentEditable={false}
+			>
+				<div className="actions-left" style={actionsStyle}>
 					{isHovered && leftActions && <ActionButtonContainer>{leftActions}</ActionButtonContainer>}
 				</div>
-				<div className="actions-right">
+				<div className="actions-right" style={actionsStyle}>
 					{isHovered && <ActionButtonContainer>{rightActions}</ActionButtonContainer>}
 				</div>
 			</div>
-			<div>{children}</div>
-		</div>
+			{children}
+		</>
 	);
 };
 
 export default memo(styled(HoverableActions)`
-	position: relative;
-	user-select: none;
-
-	.node-actions {
+	&.node-actions {
 		display: flex;
 		font-size: 0.7em;
 		width: ${(props) => (props.leftActions ? "calc(100% - 1em)" : "auto")};
@@ -108,7 +126,7 @@ export default memo(styled(HoverableActions)`
 		}
 	}
 
-	.isOver {
+	&.isOver {
 		top: -2.5em !important;
 	}
 
@@ -122,7 +140,14 @@ export default memo(styled(HoverableActions)`
 		right: 0;
 	}
 
+	&.isHovered,
 	.isHovered {
 		opacity: 1;
+	}
+
+	@media print {
+		.node-actions {
+			display: none;
+		}
 	}
 `);

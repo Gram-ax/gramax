@@ -1,4 +1,4 @@
-FROM gitlab.ics-it.ru:4567/ics/doc-reader:base-image-${BRANCH:-"develop"} AS deps
+FROM node:20 AS deps
 WORKDIR /src
 COPY . .
 RUN rm -r services/*

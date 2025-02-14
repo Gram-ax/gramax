@@ -72,7 +72,7 @@ export default class BareRepository extends Repository {
 		return Promise.resolve(this._state);
 	}
 
-	async checkoutIfCurrentBranchNotExist(data: SourceData): Promise<{ hasCheckout: boolean }> {
+	async checkoutIfCurrentBranchNotExist(data: SourceData, force?: boolean): Promise<{ hasCheckout: boolean }> {
 		let existInRemote: boolean;
 		try {
 			existInRemote = !!(
@@ -86,16 +86,9 @@ export default class BareRepository extends Repository {
 		if (existInRemote) {
 			return { hasCheckout: false };
 		}
-		try {
-			await this.checkout({ branch: "master", data });
-		} catch (e) {
-			try {
-				await this.checkout({ branch: "main", data });
-			} catch {
-				const branches = (await this._gvc.getAllBranches()).map((b) => b.getData().remoteName);
-				await this.checkout({ branch: branches[0], data });
-			}
-		}
+
+		await this.checkoutToDefaultBranch(data, force);
+
 		return { hasCheckout: true };
 	}
 }

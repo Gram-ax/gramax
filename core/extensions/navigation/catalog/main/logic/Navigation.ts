@@ -1,14 +1,14 @@
 import { createEventEmitter, Event, type HasEvents } from "@core/Event/EventEmitter";
+import Path from "@core/FileProvider/Path/Path";
 import type BaseCatalog from "@core/FileStructue/Catalog/BaseCatalog";
 import CatalogEntry from "@core/FileStructue/Catalog/CatalogEntry";
+import type { ReadonlyBaseCatalog, ReadonlyCatalog } from "@core/FileStructue/Catalog/ReadonlyCatalog";
 import { ItemType } from "@core/FileStructue/Item/ItemType";
 import type LastVisited from "@core/SitePresenter/LastVisited";
 import type { ClientItemRef } from "@core/SitePresenter/SitePresenter";
 import { Category } from "../../../../../logic/FileStructue/Category/Category";
 import { Item } from "../../../../../logic/FileStructue/Item/Item";
 import { ArticleLink, CatalogLink, CategoryLink, ItemLink, TitledLink } from "../../../NavigationLinks";
-import type { ReadonlyBaseCatalog, ReadonlyCatalog } from "@core/FileStructue/Catalog/ReadonlyCatalog";
-import Path from "@core/FileProvider/Path/Path";
 
 export type NavigationEvents = Event<
 	"before-build-nav-tree",
@@ -82,8 +82,8 @@ export default class Navigation implements HasEvents<NavigationEvents> {
 	}
 
 	async getCatalogNav(catalog: ReadonlyCatalog, currentItemPath: string): Promise<ItemLink[]> {
-		const parts = currentItemPath.split("/");
-		const currentPaths = parts.map((_, index) => parts.slice(0, index + 1).join("/"));
+		const parts = currentItemPath?.split("/");
+		const currentPaths = parts?.map((_, index) => parts.slice(0, index + 1).join("/"));
 
 		const mutableRoot = { root: catalog.getRootCategory() };
 		await this.events.emit("before-build-nav-tree", { catalog, mutableRoot });
@@ -91,7 +91,7 @@ export default class Navigation implements HasEvents<NavigationEvents> {
 		const metadata: NavTreeMetadata = {};
 
 		const items = await catalog.deref.getTransformedItems<ItemLink>(mutableRoot.root, (i: Item) =>
-			this._convertToItemLink(catalog, i, currentPaths, metadata),
+			this._convertToItemLink(catalog, i, currentPaths || [], metadata),
 		);
 
 		const mutableTree = { tree: items };

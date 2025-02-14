@@ -1,7 +1,6 @@
 import { RIGHT_NAV_CLASS } from "@app/config/const";
 import { classNames } from "@components/libs/classNames";
 import ArticleRefService from "@core-ui/ContextServices/ArticleRef";
-import ArticleViewService from "@core-ui/ContextServices/views/articleView/ArticleViewService";
 import { cssMedia } from "@core-ui/utils/cssUtils";
 import styled from "@emotion/styled";
 
@@ -11,6 +10,7 @@ export interface ArticleLayoutProps {
 	narrowMedia: boolean;
 	isRightNavPin: boolean;
 	isRightNavOpen: boolean;
+	useArticleDefaultStyles: boolean;
 	onArticleMouseEnter?: () => void;
 	onArticleMouseLeave?: () => void;
 	onRightNavTransitionEnd?: () => void;
@@ -19,9 +19,16 @@ export interface ArticleLayoutProps {
 
 const ArticleLayout = (props: ArticleLayoutProps) => {
 	const articleRef = ArticleRefService.value;
-	const useArticleDefaultStyles = ArticleViewService.useArticleDefaultStyles;
 
-	const { article, rightNav, onArticleMouseEnter, onArticleMouseLeave, onRightNavTransitionEnd, className } = props;
+	const {
+		article,
+		rightNav,
+		onArticleMouseEnter,
+		onArticleMouseLeave,
+		onRightNavTransitionEnd,
+		useArticleDefaultStyles,
+		className,
+	} = props;
 
 	return (
 		<div
@@ -115,12 +122,12 @@ export default styled(ArticleLayout)`
 		position: relative;
 		height: 100vh;
 		display: flex;
-		padding: 30px;
+		${p.useArticleDefaultStyles ? "padding: 30px;" : ""}
 		padding-bottom: 0;
 		justify-content: center;
 		width: ${p.isRightNavPin ? "calc(100% - var(--narrow-nav-width))" : "100%"};
 		color: var(--color-article-text);
-		${p.isRightNavPin ? "" : "padding-left: 45px;"}
+		${!p.useArticleDefaultStyles ? "" : p.isRightNavPin ? "" : "padding-left: 45px;"}
 	}
 
 	.article-content{

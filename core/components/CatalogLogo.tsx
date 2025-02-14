@@ -29,7 +29,7 @@ export const CatalogLogo = ({ catalogName }: { catalogName?: string }) => {
 	const theme = ThemeService.value;
 	const apiUrlCreator = ApiUrlCreatorService.value;
 	const imageSrc = useImage(apiUrlCreator.getLogoUrl(catalogName, theme));
-	if (isError || !imageSrc) return null;
+	if (!catalogName || isError || !imageSrc) return null;
 
 	if (PageDataContextService.value.conf.logo.imageUrl) return <ActionLogo setIsError={setIsError} />;
 

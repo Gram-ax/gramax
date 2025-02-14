@@ -1,11 +1,11 @@
-import ArticleStatusBarSrc from "@components/Layouts/StatusBar/Extensions/ArticleStatusBar";
+import ArticleStatusBarSrc from "@components/Layouts/StatusBar/Extensions/ArticleStatusBar/ArticleStatusBar";
 import { Meta, StoryObj } from "@storybook/react";
 import { ComponentProps } from "react";
 import mock from "storybook/data/mock";
+import publishApi from "storybook/stories/extensions/Catalog/Git/Publish/publishApi";
+import CenterDecorator from "storybook/styles/decorators/CenterDecorator";
 import checkoutApi from "../BranchActions/checkoutApi";
 import syncApiData from "../Sync/syncApiData";
-import CenterDecorator from "storybook/styles/decorators/CenterDecorator";
-import publishApi from "storybook/stories/extensions/Catalog/Git/Publish/publishApi";
 
 type Props = ComponentProps<typeof ArticleStatusBarSrc>;
 

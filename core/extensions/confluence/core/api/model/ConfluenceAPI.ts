@@ -3,8 +3,16 @@ import { Space, UserLink } from "@ext/confluence/core/api/model/ConfluenceAPITyp
 import ConfluenceStorageData from "@ext/confluence/core/model/ConfluenceStorageData";
 import { SourceAPI, SourceUser } from "@ext/git/actions/Source/SourceAPI";
 
+export interface GetSpacesOptions {
+	type?: string;
+	title?: string;
+	spaceKey?: string;
+	orderBy?: string;
+	sortDirection?: "asc" | "desc";
+}
+
 export default interface ConfluenceAPI extends SourceAPI {
-	getSpaces(): Promise<Space[]>;
+	getSpaces(options?: GetSpacesOptions): Promise<Space[]>;
 	getArticles(storageData: ConfluenceStorageData): Promise<any>;
 	getBlogs(storageData: ConfluenceStorageData): Promise<any>;
 	getUserById(accountId: string): Promise<UserLink>;

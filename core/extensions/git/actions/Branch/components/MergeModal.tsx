@@ -6,7 +6,7 @@ import IconWithText from "@components/Atoms/Icon/IconWithText";
 import FormStyle from "@components/Form/FormStyle";
 import Modal from "@components/Layouts/Modal";
 import ModalLayoutLight from "@components/Layouts/ModalLayoutLight";
-import BlueBranch from "@ext/git/actions/Branch/components/BlueBranch";
+import FormattedBranch from "@ext/git/actions/Branch/components/FormattedBranch";
 import { MergeRequestOptions } from "@ext/git/core/GitMergeRequest/model/MergeRequest";
 import t from "@ext/localization/locale/translate";
 import { useState } from "react";
@@ -39,19 +39,16 @@ const MergeModal = ({ sourceBranchRef, targetBranchRef, onSubmit, onClose }: Mer
 				<FormStyle>
 					<fieldset>
 						<legend>
-							<IconWithText
-								iconCode="git-pull-request-arrow"
-								text={t("git.merge.branches")}
-							/>
+							<IconWithText iconCode="git-pull-request-arrow" text={t("git.merge.branches")} />
 						</legend>
 
 						<div className="article field" style={{ display: "flex", alignItems: "baseline", gap: "10px" }}>
 							<span>{t("git.merge.branches")}</span>
-							<BlueBranch name={sourceBranchRef} />
+							<FormattedBranch name={sourceBranchRef} />
 							<span>
 								<Icon code="arrow-right" />
 							</span>
-							<BlueBranch name={targetBranchRef} />
+							<FormattedBranch name={targetBranchRef} />
 						</div>
 
 						<div className="control-label delete-after-merge-checkbox">

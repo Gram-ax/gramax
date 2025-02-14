@@ -9,13 +9,16 @@ class Transformer {
 		for (let idx = 0; idx < tokens.length; idx++) {
 			const token = tokens[idx];
 			// if (token.type === "tag_open" && token.info === "table") {}
-			if (token.type === "tag_open" && token.info === "table") {
-				(tokens as any).splice(
-					idx,
-					1,
-					{ type: "table_open", tag: "table", nesting: 1 },
-					{ type: "tbody_open", tag: "tbody", nesting: 1 },
-				);
+			if (token.type === "tag_open" && (token.info === "table" || token.info.startsWith("table"))) {
+				const tableOpen: any = {
+					type: "table_open",
+					tag: "table",
+					nesting: 1,
+					attrs: {},
+				};
+				if (token?.meta) tableOpen.meta = token.meta;
+				if (token?.meta?.attributes?.[0]?.value) tableOpen.attrs.header = token.meta.attributes[0].value;
+				(tokens as any).splice(idx, 1, tableOpen, { type: "tbody_open", tag: "tbody", nesting: 1 });
 				isOpen = true;
 			}
 			if (token.type === "tag_close" && token.info === "/table") {

@@ -67,10 +67,10 @@ describe("Navigation правильно", () => {
 		const catalogLinks = await nav.getCatalogsLink(Array.from(navCatalogEntries.values()));
 
 		expect(catalogLinks.map((cl) => cl.title)).toEqual([
-			"NavigationArticleCatalog",
-			"NavigationIndexCatalog",
 			"Многоуровневый каталог",
 			"data",
+			"NavigationArticleCatalog",
+			"NavigationIndexCatalog",
 			"PropertyCatalog",
 			"RefsCatalog",
 			"RulesCategoryTestCatalog",

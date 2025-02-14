@@ -56,4 +56,5 @@ _set_head
 _list_merge_requests
 _create_or_update_merge_request
 _get_draft_merge_request
-_invalidate_repo_cache
+_get_all_commit_authors
+_reset_repo

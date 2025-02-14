@@ -19,6 +19,10 @@ export const MinimizedArticleStyled = styled(MinimizedArticle)`
 		font-size: 1.1em !important;
 	}
 
+	.annotation {
+		font-size: 0.875em !important;
+	}
+
 	h4,
 	h5,
 	h6 {
@@ -51,10 +55,8 @@ export const MinimizedArticleStyled = styled(MinimizedArticle)`
 		pointer-events: none !important;
 	}
 
-	ol > li::before {
-		top: 0.23em !important;
-		width: 18px !important;
-		padding: 4px 0 !important;
+	li > p:empty {
+		height: 1.5em;
 	}
 
 	pre,

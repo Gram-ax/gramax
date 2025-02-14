@@ -13,11 +13,11 @@ export interface ViewButtonProps {
 const ViewButton = ({ icon, disabled = false, children, tooltipText, closeOnSelection }: ViewButtonProps) => {
 	return (
 		<PopupMenuLayout
+			appendTo={() => document.body}
 			hideOnClick={closeOnSelection}
 			isInline
-			appendTo="parent"
 			disabled={disabled}
-			offset={[0, 15]}
+			offset={[0, 10]}
 			trigger={<ActionButton icon={icon} tooltipText={tooltipText} />}
 		>
 			<>{children}</>

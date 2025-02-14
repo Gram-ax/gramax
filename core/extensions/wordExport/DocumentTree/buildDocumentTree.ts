@@ -11,6 +11,7 @@ import MarkdownParser from "@ext/markdown/core/Parser/Parser";
 import ParserContextFactory from "@ext/markdown/core/Parser/ParserContext/ParserContextFactory";
 import MarkdownElementsFilter from "@ext/wordExport/MarkdownElementsFilter";
 import { DocumentTree } from "./DocumentTree";
+import { TitleInfo } from "@ext/wordExport/options/WordTypes";
 
 const buildDocumentTree = async (
 	isCategory: boolean,
@@ -22,6 +23,7 @@ const buildDocumentTree = async (
 	parser: MarkdownParser,
 	parserContextFactory: ParserContextFactory,
 	filters: ItemFilter[],
+	titlesMap: Map<string, TitleInfo>,
 	level: number = 0,
 	number: string = "",
 ) => {
@@ -40,6 +42,10 @@ const buildDocumentTree = async (
 			: null,
 		children: [],
 	};
+	const fileName = item.getFileName();
+	if (fileName) {
+		titlesMap.set(fileName, { title: heading.name, order: number });
+	}
 
 	if (!isCategory && !isCatalog) return heading;
 
@@ -56,6 +62,7 @@ const buildDocumentTree = async (
 					parser,
 					parserContextFactory,
 					filters,
+					titlesMap,
 					level + 1,
 					`${number}${index + 1}.`,
 				);

@@ -1,8 +1,14 @@
 import styled from "@emotion/styled";
 
-const SvgContainer = styled(({ children, className }: { children: JSX.Element; className?: string }) => {
+interface SvgContainerProps {
+	children: JSX.Element;
+	className?: string;
+	dataQa?: string;
+}
+
+const SvgContainer = styled(({ children, className, dataQa }: SvgContainerProps) => {
 	return (
-		<div className={className}>
+		<div className={className} data-qa={dataQa}>
 			{children}
 		</div>
 	);

@@ -7,17 +7,7 @@ import t from "@ext/localization/locale/translate";
 import { Property } from "csstype";
 import { ReactNode } from "react";
 
-const InfoModalForm = ({
-	title,
-	children,
-	onCancelClick,
-	isWarning = false,
-	icon,
-	actionButton,
-	secondButton,
-	closeButton,
-	noButtons,
-}: {
+export interface InfoModalFormProps {
 	title: string;
 	children: ReactNode;
 	onCancelClick?: () => void;
@@ -27,9 +17,24 @@ const InfoModalForm = ({
 	secondButton?: { text: string; onClick: () => void };
 	closeButton?: { text: string };
 	noButtons?: boolean;
-}) => {
+}
+
+const InfoModalForm = (props: InfoModalFormProps) => {
+	const {
+		title,
+		children,
+		onCancelClick,
+		isWarning = false,
+		icon,
+		actionButton,
+		secondButton,
+		closeButton,
+		noButtons,
+	} = props;
+
 	const closeText = t("close");
 	const cancelText = t("cancel");
+
 	return (
 		<ModalLayoutLight>
 			<FormStyle>

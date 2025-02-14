@@ -41,9 +41,9 @@ export const Transparent: Story = {
 	},
 };
 
-export const Blue: Story = {
+export const Git: Story = {
 	args: {
-		buttonStyle: ButtonStyle.blue,
+		buttonStyle: ButtonStyle.git,
 	},
 };
 

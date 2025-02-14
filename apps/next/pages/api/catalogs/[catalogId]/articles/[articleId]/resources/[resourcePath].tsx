@@ -2,6 +2,7 @@ import MimeTypes from "@core-ui/ApiServices/Types/MimeTypes";
 import type ApiRequest from "@core/Api/ApiRequest";
 import type ApiResponse from "@core/Api/ApiResponse";
 import { apiUtils } from "@core/Api/apiUtils";
+import { AllowedOriginsMiddleware } from "@core/Api/middleware/AllowedOriginsMiddleware";
 import { MainMiddleware } from "@core/Api/middleware/MainMiddleware";
 import Path from "@core/FileProvider/Path/Path";
 import ExceptionsResponse from "@ext/publicApi/ExceptionsResponse";
@@ -40,5 +41,5 @@ export default ApplyApiMiddleware(
 
 		if (hashItem) await apiUtils.sendWithETag(req, res, hashItem, this.app.hashes);
 	},
-	[new MainMiddleware()],
+	[new MainMiddleware(), new AllowedOriginsMiddleware()],
 );

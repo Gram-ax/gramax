@@ -1,7 +1,8 @@
 import ListItem from "@components/Layouts/CatalogLayout/RightNavigation/ListItem";
 import ArticlePropsService from "@core-ui/ContextServices/ArticleProps";
 import CatalogPropsService from "@core-ui/ContextServices/CatalogProps";
-import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
+import WorkspaceService from "@core-ui/ContextServices/Workspace";
+import { usePlatform } from "@core-ui/hooks/usePlatform";
 import DeleteCatalog from "@ext/catalog/actions/propsEditor/components/DeleteCatalog";
 import t from "@ext/localization/locale/translate";
 import { ItemLink } from "@ext/navigation/NavigationLinks";
@@ -9,7 +10,7 @@ import { configureCatalogPermission } from "@ext/security/logic/Permission/Permi
 import PermissionService from "@ext/security/logic/Permission/components/PermissionService";
 import GetSharedTicket from "@ext/security/logic/TicketManager/components/GetSharedTicket";
 import useIsReview from "@ext/storage/logic/utils/useIsReview";
-import ItemExport from "@ext/wordExport/components/ItemExport";
+import ItemExport, { ExportFormat } from "@ext/wordExport/components/ItemExport";
 import { FC, useEffect } from "react";
 import CatalogEditAction from "../../extensions/catalog/actions/propsEditor/components/CatalogEditAction";
 import Share from "../../extensions/catalog/actions/share/components/Share";
@@ -27,11 +28,16 @@ interface CatalogActionsProps {
 const CatalogActions: FC<CatalogActionsProps> = ({ isCatalogExist, itemLinks, hasRenderableActions }) => {
 	const isEdit = IsEditService.value;
 	const isErrorArticle = ArticlePropsService.value.errorCode;
-	const { isLogged, conf } = PageDataContextService.value;
 	const catalogProps = CatalogPropsService.value;
+	const workspacePath = WorkspaceService.current().path;
 	const storageInitialized = useIsStorageInitialized();
 	const isReview = useIsReview();
-	const canConfigureCatalog = PermissionService.useCheckPermission(configureCatalogPermission, catalogProps.name);
+	const { isNext } = usePlatform();
+	const canConfigureCatalog = PermissionService.useCheckPermission(
+		configureCatalogPermission,
+		workspacePath,
+		catalogProps.name,
+	);
 
 	useEffect(() => {
 		if (!isCatalogExist) return;
@@ -43,9 +49,9 @@ const CatalogActions: FC<CatalogActionsProps> = ({ isCatalogExist, itemLinks, ha
 	return (
 		<>
 			<li style={{ listStyleType: "none", width: "fit-content" }}>
-				<ItemExport fileName={catalogProps.name} />
+				<ItemExport fileName={catalogProps.name} exportFormat={ExportFormat.docx} />
 			</li>
-			{canConfigureCatalog && isLogged && conf.isReadOnly && (
+			{canConfigureCatalog && isNext && (
 				<GetSharedTicket trigger={<ListItem text={t("share.name")} iconCode="external-link" />} />
 			)}
 			<IsReadOnlyHOC>
@@ -64,7 +70,7 @@ const CatalogActions: FC<CatalogActionsProps> = ({ isCatalogExist, itemLinks, ha
 					/>
 				)}
 			</IsReadOnlyHOC>
-			{canConfigureCatalog && isLogged && <DeleteCatalog />}
+			{(canConfigureCatalog || !isNext) && <DeleteCatalog />}
 		</>
 	);
 };
