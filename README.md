@@ -1,107 +1,63 @@
 ![Gramax logo](./logo.svg)
 
-# Gramax
-Gramax — это бесплатный текстовый редактор со встроенным механизмом контроля и сравнения версий. Работает офлайн, не хранит данные в облаке, но даёт возможность поделиться ими в несколько кликов.
+Gramax  is a free, open-source application for creating, editing, and publishing documentation as a code. It stores all data locally in Markdown format, offering flexibility and offline access. Whether you need a product documentation portal, an internal knowledge base, project documentation, or personal notes, Gramax  is a versatile solution.
 
-![Gramax interface](https://gram.ax/data/ru/gramax.png)
+## Features
 
-## Быстрый старт
+-  **Cross-Platform**: Available as a desktop app (Windows, Mac, Linux) and a browser-based version.
 
-### Разворачивание приложения для редактирования
+-  **Local Storage**: Files are stored locally in Markdown, editable in any text editor.
 
-Чтобы начать редактировать документацию, достаточно скачать приложение или открыть его в браузере. Ссылки доступны на нашем [сайте](https://gram.ax).
+-  **Customizable Styles**: Personalize the app and documentation portal appearance.
 
-### Разворачивание портала для читателей
+-  **Multilingual Support**: Create documentation in 17 languages, including English, Spanish, and more.
 
-Чтобы развернуть портал для читателей на своем домене, вам потребуется:
-- Docker (версии 20.04 или выше).
-- sh или bash (если вы используете Linux или macOS).
+-  **Advanced Editing**: Supports tabs, tables, video embedding, code blocks, diagrams (Mermaid, Excalidraw, Diagrams.net), and Swagger API descriptions.
 
-#### На Linux или macOS
+-  **Git Integration**: Connect to Git repositories (GitHub, GitLab, Bitbucket, Gitea, etc.) for version control and collaboration.
 
-Откройте ваш терминал и выполните команду:
+-  **Documentation Portal**: Publish catalogs to a dedicated, customizable website.
 
-```bash
-curl -O https://gram.ax/docker-compose.yaml; docker compose up
-```
+-  **Migration Support**: Import from Confluence and Notion with preserved formatting and hierarchy.
 
-#### На Windows
+## Installation
 
-Откройте PowerShell и выполните команду:
+### Editor app
 
-```powershell
-Invoke-WebRequest -Uri "https://gram.ax/docker-compose.yaml" -OutFile "docker-compose.yaml"; docker compose up
-```
+-  Access it at [app.gram.ax](http://app.gram.ax).
 
-### Запуск для разработки (Vite и Next.js)
+-  Download the app for your OS from [gram.ax](http://gram.ax).
 
-#### Зависимости
+## Usage
 
-- `Node >= v20.11.1`
-- `Rust`
-- `emcc`
+1. **Create a Catalog**: Add a catalog within a workspace to store articles.
 
-#### Запуск
+2. **Edit Articles**: Use the Markdown editor with features like tabs, tables, and multimedia.
 
-Перед запуском необходимо уставновить и скомпилировать все зависимости. Для этого используйте:
+3. **Connect to Git**: Link your catalog to a Git repository for collaboration.
 
-  ```bash
-  ./install-deps.sh --all 
-  ```
+4. **Synchronize Changes**: Pull and push updates via built-in Git commands, resolving conflicts as needed.
 
-Чтобы запустить Next.js, перейдите в папку `apps/next/`. Для запуска Vite перейдите в папку `apps/browser/`.
+5. **Publish**: Share your catalog to the documentation portal.
 
-- Для запуска режима разработчика:
+For more details, see the [official documentation](https://gram.ax/resources/docs/en).
 
-  ```bash
-  npm run dev
-  ```
+## Documentation Portal
 
-- Для запуска продакшн-билда:
+Publish your documentation as a website, hosted on your server or as a static site.
 
-    1. Сбилдите приложение командой:
+### Setup
 
-        ```bash
-        npm run build
-        ```
+-  **Docker**: Deploy with docker-compose.yaml from [gram.ax/docker-compose.yaml](http://gram.ax/docker-compose.yaml).
 
-    2. Затем запустите приложение командой:
+-  **Static Site**:
 
-        ```bash
-        npm run start
-        ```
+   1.   `npm install -g gramax-cli`.
 
-    Или используйте команду
+   2.  `gramax-cli build --source ./content --destination ./output`.
 
-    ```bash
-    npm run run 
-    ```
+See [Setting Up the Documentation Portal](https://gram.ax/resources/docs/en/doc-portal) for instructions.
 
-## Как использовать
+## Contact
 
-Документация для пользователей расположена [тут](https://gram.ax/resources/docs).
-
-## Участие в разработке
-
-Мы рады приветствовать всех, кто хочет внести свой вклад в развитие Gramax. Ваша поддержка и усилия помогают сделать Gramax лучше для всех пользователей.
-
-1. **Тестируйте**. Помогите нам найти и исправить ошибки. Регулярное тестирование новых версий помогает убедиться, что Gramax работает без сбоев.
-
-
-3. **Участвуйте в обсуждениях**. Ваши идеи и отзывы очень важны для нас. Поделитесь в [Telegram-канале](https://t.me/gramax_chat) своими мыслями, как улучшить Gramax.
-
-
-## Контакты
-
-Если есть вопросы или вам нужна помощь, не стесняйтесь писать нам!
-- Обсуждения, вопросы, поддержка - в [Telegram-канал](https://t.me/gramax_chat).
-- Сотрудничество и улучшения - нашему [CPO](https://telegram.im/@krakenkaken).
-
-Также следите за нами в блогах:
-- [Twitter](https://twitter.com/gram_ax).
-- [Habr](https://habr.com/ru/users/krakenkaken/publications/articles/).
-- [VC.ru](https://vc.ru/u/2554759-gramax).
-
-## Лицензия
-
-Проект распространяется под [лицензией GPL-3.0](LICENSE).
+For support or questions, email [info@gram.ax](mailto:info@gram.ax), join our community chat in [Telegram](https://t.me/gramax_community_en) or visit our [GitHub issues page](https://github.com/Gram-ax/gramax/issues).
