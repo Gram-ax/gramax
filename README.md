@@ -1,8 +1,10 @@
 ![Gramax logo](./logo.svg)
 
-Gramax  is a free, open-source application for creating, editing, and publishing documentation as a code. It stores all data locally in Markdown format, offering flexibility and offline access. Whether you need a product documentation portal, an internal knowledge base, project documentation, or personal notes, Gramax  is a versatile solution.
+[Gramax](https://gram.ax)  is a free, open-source application for creating, editing, and publishing docs as code. It stores all data locally in Markdown format, offering flexibility and offline access, and seamlessly integrates with Git for version control and collaboration. Whether you need a product documentation portal, an internal knowledge base, project documentation, or personal notes, Gramax is a versatile solution.
 
 ## Features
+
+-  **Visual Editor**: Makes editing Markdown-files easy for technical and non-technical users.
 
 -  **Cross-Platform**: Available as a desktop app (Windows, Mac, Linux) and a browser-based version.
 
