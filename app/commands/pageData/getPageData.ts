@@ -7,11 +7,16 @@ import getShareDataFromPathnameData from "@core/RouterPath/logic/getShareDataFro
 import { ArticlePageData, HomePageData } from "@core/SitePresenter/SitePresenter";
 import getPartGitSourceDataByStorageName from "@ext/storage/logic/utils/getPartSourceDataByStorageName";
 import { Command } from "../../types/Command";
+import { ResponseKind } from "@app/types/ResponseKind";
 
 const getPageData: Command<
 	{ path: string; ctx: Context },
 	{ data: HomePageData | ArticlePageData; context: PageDataContext }
 > = Command.create({
+	path: "page/getPageData",
+
+	kind: ResponseKind.json,
+
 	async do({ path, ctx }) {
 		const getHomePageData = () => this._commands.page.getHomePageData.do({ ctx });
 		const getArticlePageData = (path: string[], pathname: string) =>
@@ -49,6 +54,11 @@ const getPageData: Command<
 			const { context, data } = await getHomePageData();
 			return { data, context: { ...context, shareData } };
 		}
+	},
+
+	params(ctx, q) {
+		const path = q.articlePath;
+		return { ctx, path };
 	},
 });
 

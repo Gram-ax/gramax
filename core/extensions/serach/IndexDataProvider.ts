@@ -101,10 +101,10 @@ export class IndexDataProvider {
 			const context = this._parserContextFactory.fromArticle(article, catalog, defaultLanguage, true);
 			const content = article.content ? article.content : "";
 
-			const html =
-				article.parsedContent && !forceParse
-					? article.parsedContent.htmlValue
-					: await this._parser.parseToHtml(content, context);
+			const html = await article.parsedContent.read(async (p) => {
+				return p && !forceParse ? p.htmlValue : await this._parser.parseToHtml(content, context);
+			});
+
 			return {
 				path: article.ref.path.value,
 				pathname: await catalog.getPathname(article),

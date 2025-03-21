@@ -8,11 +8,14 @@ import itemRefUtils from "../../../../../logic/utils/itemRefUtils";
 import { ItemLink } from "../../../NavigationLinks";
 import DragTreeTransformer from "./DragTreeTransformer";
 import getMovements from "./Movement/getMovements";
+import { Article } from "@core/FileStructue/Article/Article";
+import { ItemRef } from "@core/FileStructue/Item/ItemRef";
+import RouterPathProvider from "@core/RouterPath/RouterPathProvider";
 
 class DragTree {
 	constructor(private _fp: FileProvider, private _makeResourceUpdater: MakeResourceUpdater) {}
 
-	public async findOrderingAncestors(newNav: NodeModel<ItemLink>[], draggedItemPath: string, catalog: Catalog) {
+	public findOrderingAncestors(newNav: NodeModel<ItemLink>[], draggedItemPath: string, catalog: Catalog) {
 		const items = [DragTreeTransformer.getRootItem(), ...newNav];
 
 		const draggedNodeIndex = items.findIndex((item) => item.data?.ref.path == draggedItemPath);
@@ -43,7 +46,7 @@ class DragTree {
 
 		if (!draggedItem || !parent) return;
 
-		if (parent.type === ItemType.article) parent = await this._getCategoryByArticle(catalog, parent, newNav);
+		if (parent.type === ItemType.article) this._getCategoryByArticle(catalog, parent, newNav);
 
 		return {
 			dragged: draggedItem,
@@ -52,10 +55,9 @@ class DragTree {
 		};
 	}
 
-	private async _getCategoryByArticle(catalog: Catalog, parent: Category, newNav: NodeModel<ItemLink>[]) {
-		const newParent = await catalog.createCategoryByArticle(this._makeResourceUpdater, parent);
-		newNav.find((i) => i.data.ref.path === parent.ref.path.value).data.ref.path = newParent.ref.path.value;
-		return newParent;
+	private _getCategoryByArticle(catalog: Catalog, parent: Category, newNav: NodeModel<ItemLink>[]) {
+		newNav.find((i) => i.data.ref.path === parent.ref.path.value).data.ref.path =
+			catalog.categoryPathByArticle(parent).value;
 	}
 
 	public async drag(
@@ -63,12 +65,15 @@ class DragTree {
 		newLevNav: NodeModel<ItemLink>[],
 		catalog: Catalog,
 		parseAllItems: (catalog: Catalog, initChildLinks?: boolean) => Promise<Catalog>,
-	): Promise<boolean> {
+		parentArticle?: Article,
+	) {
+		const logicPath = RouterPathProvider.getLogicPath(oldLevNav.find((a) => a.data.isCurrentLink).data.pathname);
 		const rootItem = DragTreeTransformer.getRootItem();
 		const movements = getMovements<ItemLink>([rootItem, ...oldLevNav], [rootItem, ...newLevNav]);
-		if (!movements.length) return false;
+		if (!movements.length) return "";
 		await parseAllItems(catalog, false);
 		const innerRefs = movements.map((movement) => itemRefUtils.parseRef(movement.moveItem.data.ref));
+		let draggedItemRef: { oldLogicPath: string; newItemRef: ItemRef };
 		for (const movement of movements) {
 			const { moveItem, newList, oldList } = movement;
 			const newParentItem = newList[newList.length - 2];
@@ -81,12 +86,22 @@ class DragTree {
 			const newParentItemRef = this._getItemRef(newParentItem, catalog);
 			const newBrowsersRef = catalog.findCategoryByItemRef(newParentItemRef)?.items?.map((i) => i.ref) ?? [];
 			const newItemRef = itemRefUtils.move(newParentItemRef, moveItemRef, item.type, newBrowsersRef);
+			if (`${logicPath}/`.startsWith(`${item.logicPath}/`))
+				draggedItemRef = { oldLogicPath: item.logicPath, newItemRef };
 
 			await catalog.moveItem(moveItemRef, newItemRef, this._makeResourceUpdater, innerRefs);
 		}
 		await this._fp.deleteEmptyFolders(catalog.getRootCategoryRef().path.parentDirectoryPath);
+		if (parentArticle) await catalog.createCategoryByArticle(this._makeResourceUpdater, parentArticle);
 		await catalog.update();
-		return true;
+
+		if (draggedItemRef)
+			return logicPath.replace(
+				draggedItemRef.oldLogicPath,
+				catalog.findItemByItemRef(draggedItemRef.newItemRef).logicPath,
+			);
+
+		return logicPath;
 	}
 
 	private _getItemRef = (item: NodeModel<ItemLink>, catalog: Catalog) =>

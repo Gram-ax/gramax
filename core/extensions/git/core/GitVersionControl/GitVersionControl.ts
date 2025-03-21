@@ -1,6 +1,7 @@
 import { createEventEmitter, type Event } from "@core/Event/EventEmitter";
 import gitMergeConverter from "@ext/git/actions/MergeConflictHandler/logic/GitMergeConverter";
 import GitMergeResult from "@ext/git/actions/MergeConflictHandler/model/GitMergeResult";
+import type { CommitAuthorInfo } from "@ext/git/core/GitCommands/LibGit2IntermediateCommands";
 import GitError from "@ext/git/core/GitCommands/errors/GitError";
 import GitErrorCode from "@ext/git/core/GitCommands/errors/model/GitErrorCode";
 import type { DiffConfig, DiffTree2TreeInfo, RefInfo } from "@ext/git/core/GitCommands/model/GitCommandsModel";
@@ -15,17 +16,16 @@ import GitWatcher from "../GitWatcher/GitWatcher";
 import { GitStatus } from "../GitWatcher/model/GitStatus";
 import { GitVersion } from "../model/GitVersion";
 import SubmoduleData from "../model/SubmoduleData";
-import type { CommitAuthorInfo } from "@ext/git/core/GitCommands/LibGit2IntermediateCommands";
 
 export type GitVersionControlEvents = Event<"files-changed", { items: GitStatus[] }>;
 
 export default class GitVersionControl {
-	private _currentVersion: GitVersion;
-	private _currentBranch: GitBranch;
-	private _currentBranchName: string;
-	private _allBranches: GitBranch[];
-	private _subGitVersionControls: GitVersionControl[];
-	private _submodulesData: SubmoduleData[];
+	private _currentVersion: Promise<GitVersion>;
+	private _currentBranch: Promise<GitBranch>;
+	private _currentBranchName: Promise<string>;
+	private _allBranches: Promise<GitBranch[]>;
+	private _subGitVersionControls: Promise<GitVersionControl[]>;
+	private _submodulesData: Promise<SubmoduleData[]>;
 	private _gitWatcher: GitWatcher;
 	private _gitRepository: GitCommands;
 	private _events = createEventEmitter<GitVersionControlEvents>();
@@ -72,17 +72,20 @@ export default class GitVersionControl {
 	}
 
 	async getCurrentBranch(cached = true): Promise<GitBranch> {
-		if (!cached || !this._currentBranch) await this._initCurrentBranch();
+		// eslint-disable-next-line @typescript-eslint/no-misused-promises
+		if (!cached || !this._currentBranch) this._initCurrentBranch();
 		return this._currentBranch;
 	}
 
-	async getCurrentBranchName(cached = true): Promise<string> {
-		if (!cached || !this._currentBranchName) await this._initCurrentBranchName();
+	getCurrentBranchName(cached = true): Promise<string> {
+		// eslint-disable-next-line @typescript-eslint/no-misused-promises
+		if (!cached || !this._currentBranchName) this._initCurrentBranchName();
 		return this._currentBranchName;
 	}
 
 	async getAllBranches(): Promise<GitBranch[]> {
-		if (!this._allBranches) await this._initAllBranches();
+		// eslint-disable-next-line @typescript-eslint/no-misused-promises
+		if (!this._allBranches) this._initAllBranches();
 		return this._allBranches;
 	}
 
@@ -91,7 +94,8 @@ export default class GitVersionControl {
 	}
 
 	async getCurrentVersion(): Promise<GitVersion> {
-		if (!this._currentVersion) await this._initCurrentVersion();
+		// eslint-disable-next-line @typescript-eslint/no-misused-promises
+		if (!this._currentVersion) this._initCurrentVersion();
 		return this._currentVersion;
 	}
 
@@ -107,7 +111,7 @@ export default class GitVersionControl {
 
 	async createNewBranch(newBranchName: string) {
 		await this._gitRepository.createNewBranch(newBranchName);
-		await this.update();
+		this.update();
 	}
 
 	async deleteLocalBranch(branchName: string) {
@@ -159,7 +163,7 @@ export default class GitVersionControl {
 	}
 
 	async resetBranches(): Promise<GitBranch[]> {
-		await this._initAllBranches();
+		this._initAllBranches();
 		return this._allBranches;
 	}
 
@@ -220,7 +224,7 @@ export default class GitVersionControl {
 		this._fp.stopWatch();
 		try {
 			await this._gitRepository.checkout(branch, { force });
-			await this.update();
+			this.update();
 		} finally {
 			this._fp?.startWatch();
 		}
@@ -258,13 +262,13 @@ export default class GitVersionControl {
 		return this._gitRepository.fileStatus(filePath);
 	}
 
-	async update() {
-		await this._initCurrentBranch();
-		await this._initCurrentBranchName();
-		await this._initAllBranches();
-		await this._initCurrentVersion();
-		await this._initSubmodulesData();
-		await this._initSubGitVersionControls();
+	update() {
+		this._initCurrentBranch();
+		this._initCurrentBranchName();
+		this._initAllBranches();
+		this._initCurrentVersion();
+		this._initSubmodulesData();
+		this._initSubGitVersionControls();
 	}
 
 	async restoreRepositoryState(): Promise<void> {
@@ -328,12 +332,13 @@ export default class GitVersionControl {
 		}
 	}
 
-  getCommitAuthors(): Promise<CommitAuthorInfo[]> {
-    return this._gitRepository.getCommitAuthors();
-  }
+	getCommitAuthors(): Promise<CommitAuthorInfo[]> {
+		return this._gitRepository.getCommitAuthors();
+	}
 
 	async getSubGitVersionControls(): Promise<GitVersionControl[]> {
-		if (!this._subGitVersionControls) await this._initSubGitVersionControls();
+		// eslint-disable-next-line @typescript-eslint/no-misused-promises
+		if (!this._subGitVersionControls) this._initSubGitVersionControls();
 		return this._subGitVersionControls;
 	}
 
@@ -361,40 +366,42 @@ export default class GitVersionControl {
 		return versionControlsAndFiles;
 	}
 
-	private async _getSubmodulesData() {
-		if (!this._submodulesData) await this._initSubmodulesData();
+	private async _getSubmodulesData(): Promise<SubmoduleData[]> {
+		// eslint-disable-next-line @typescript-eslint/no-misused-promises
+		if (!this._submodulesData) this._initSubmodulesData();
 		return this._submodulesData;
 	}
 
-	private async _initCurrentVersion() {
-		this._currentVersion = await this._gitRepository.getHeadCommit();
+	private _initCurrentVersion(): void {
+		this._currentVersion = this._gitRepository.getHeadCommit();
 	}
 
-	private async _initCurrentBranch() {
-		this._currentBranch = await this._gitRepository.getCurrentBranch();
+	private _initCurrentBranch(): void {
+		this._currentBranch = this._gitRepository.getCurrentBranch();
 	}
 
-	private async _initCurrentBranchName() {
-		this._currentBranchName = await this._gitRepository.getCurrentBranchName();
+	private _initCurrentBranchName(): void {
+		this._currentBranchName = this._gitRepository.getCurrentBranchName();
 	}
 
-	private async _initAllBranches() {
-		this._allBranches = await this._gitRepository.getAllBranches();
+	private _initAllBranches(): void {
+		this._allBranches = this._gitRepository.getAllBranches();
 	}
 
-	private async _initSubGitVersionControls(): Promise<void> {
-		const getSubmodulesData = await this._getSubmodulesData();
-
-		this._subGitVersionControls = await Promise.all(
-			getSubmodulesData.map(async (data) => {
-				const fullSubmodulePath = this._path.join(data.path);
-				if (await this._gitRepository.isSubmoduleExist(data.path))
-					return new GitVersionControl(fullSubmodulePath, this._fp, data.path);
-			}),
-		).then((x) => x.filter((x) => x));
+	private _initSubGitVersionControls(): void {
+		this._subGitVersionControls = this._getSubmodulesData().then(async (submodulesData) => {
+			const controls = await Promise.all(
+				submodulesData.map(async (data) => {
+					const fullSubmodulePath = this._path.join(data.path);
+					if (await this._gitRepository.isSubmoduleExist(data.path))
+						return new GitVersionControl(fullSubmodulePath, this._fp, data.path);
+				}),
+			);
+			return controls.filter((x) => x);
+		});
 	}
 
-	private async _initSubmodulesData() {
-		this._submodulesData = await this._gitRepository.getSubmodulesData();
+	private _initSubmodulesData(): void {
+		this._submodulesData = this._gitRepository.getSubmodulesData();
 	}
 }

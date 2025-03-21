@@ -4,7 +4,7 @@ import ButtonLink from "@components/Molecules/ButtonLink";
 import FetchService from "@core-ui/ApiServices/FetchService";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import CatalogPropsService from "@core-ui/ContextServices/CatalogProps";
-import IsEditService from "@core-ui/ContextServices/IsEdit";
+import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import { refreshPage } from "@core-ui/ContextServices/RefreshPageContext";
 import { useRouter } from "@core/Api/useRouter";
 import type { ClientItemRef } from "@core/SitePresenter/SitePresenter";
@@ -37,7 +37,7 @@ const CreateArticle = (props: CreateArticleProps) => {
 	const content = item ? t("article.add-child") : t("article.add-root");
 	const router = useRouter();
 
-	const isEdit = IsEditService.value;
+	const isReadOnly = PageDataContextService.value.conf.isReadOnly;
 	const apiUrlCreator = ApiUrlCreatorService.value;
 	const url = apiUrlCreator.createArticle(item ? item.ref.path : root?.path);
 
@@ -52,7 +52,7 @@ const CreateArticle = (props: CreateArticleProps) => {
 		setIsLoading(true);
 	};
 
-	if (!isEdit) return null;
+	if (isReadOnly) return null;
 
 	return (
 		<ActionWarning catalogProps={catalogProps} action={onClickHandler}>

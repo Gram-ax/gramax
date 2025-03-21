@@ -213,36 +213,40 @@ export default class GitDiffItemCreatorLegacy {
 		this._catalog = await this._sp.parseAllItems(this._catalog);
 		for (const changeFile of changeResources) {
 			for (const item of this._catalog.getContentItems()) {
-				if (!item.parsedContent) continue;
-				const linkManager = item.parsedContent.linkManager;
-				const resourceManager = item.parsedContent.resourceManager;
-				for (const path of [...resourceManager.resources, ...linkManager.resources]) {
-					if (resourceManager.getAbsolutePath(path).endsWith(changeFile.path)) {
-						itemResources.push(changeFile);
-						const diffResource = await this._getDiffResource(changeFile);
-						let includes = false;
-						for (const diffItem of diffItems) {
-							const diffItemResourcePaths = diffItem.resources.map((resource) => resource.filePath.path);
-							if (
-								!diffItemResourcePaths.includes(diffResource.filePath.path) &&
-								diffItem.logicPath === (await this._catalog.getPathname(item))
-							) {
-								diffItem.resources.push(diffResource);
-								includes = true;
+				await item.parsedContent.read(async (p) => {
+					if (!p) return;
+					const linkManager = p.linkManager;
+					const resourceManager = p.resourceManager;
+					for (const path of [...resourceManager.resources, ...linkManager.resources]) {
+						if (resourceManager.getAbsolutePath(path).endsWith(changeFile.path)) {
+							itemResources.push(changeFile);
+							const diffResource = await this._getDiffResource(changeFile);
+							let includes = false;
+							for (const diffItem of diffItems) {
+								const diffItemResourcePaths = diffItem.resources.map(
+									(resource) => resource.filePath.path,
+								);
+								if (
+									!diffItemResourcePaths.includes(diffResource.filePath.path) &&
+									diffItem.logicPath === (await this._catalog.getPathname(item))
+								) {
+									diffItem.resources.push(diffResource);
+									includes = true;
+								}
+							}
+
+							if (!includes) {
+								diffItems.push(
+									await this._getDiffItemByItem({
+										item,
+										isChanged: false,
+										resources: [diffResource],
+									}),
+								);
 							}
 						}
-
-						if (!includes) {
-							diffItems.push(
-								await this._getDiffItemByItem({
-									item,
-									isChanged: false,
-									resources: [diffResource],
-								}),
-							);
-						}
 					}
-				}
+				});
 			}
 		}
 		return changeResources.filter((r) => !itemResources.includes(r));

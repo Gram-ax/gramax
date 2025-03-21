@@ -22,7 +22,7 @@ Given("отменяем все изменения", { timeout: config.timeouts.l
 		await search.scope("публикация");
 		await search.scope("левую панель");
 		await search.scope("Выбрать все");
-		await search.icon("отмена").click();
+		await search.icon("отмена всех изменений").click();
 	}
 
 	search.reset();

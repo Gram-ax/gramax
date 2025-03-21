@@ -4,20 +4,34 @@ import type DefaultError from "@ext/errorHandlers/logic/DefaultError";
 import t from "@ext/localization/locale/translate";
 import { HTMLAttributes } from "react";
 
+const errorCodes = {
+	wasmInitTimeout: {
+		title: "app.error.browser-not-supported.title",
+		desc: "app.error.browser-not-supported.desc",
+	},
+	notHttps: {
+		title: "app.error.cannot-load",
+		desc: "app.error.not-https",
+	},
+	generic: {
+		title: "app.error.cannot-load",
+	},
+};
+
 const AppError = ({ error, ...props }: { error: DefaultError } & HTMLAttributes<HTMLDivElement>) => {
-	const isWasmError = error.props?.errorCode == "wasmInitTimeout";
+	const errorInfo = errorCodes[error.props?.errorCode] ?? errorCodes.generic;
 
 	return (
 		<div {...props}>
 			<div className="container">
 				<InfoModalForm
-					title={isWasmError ? t("app.error.browser-not-supported.title") : t("app.error.cannot-load")}
+					title={t(errorInfo.title)}
 					icon={{ code: "circle-x", color: "var(--color-danger)" }}
 					onCancelClick={null}
 					noButtons={true}
 				>
-					{isWasmError ? (
-						<div dangerouslySetInnerHTML={{ __html: t("app.error.browser-not-supported.desc") }}></div>
+					{errorInfo.desc ? (
+						<div dangerouslySetInnerHTML={{ __html: t(errorInfo.desc) }}></div>
 					) : (
 						error?.message ?? t("app.error.unknown-error")
 					)}

@@ -48,9 +48,13 @@ const get: Command<
 		if (!article) return;
 		await parseContent(article, catalog, ctx, parser, parserContextFactory);
 
-		ifNotExistsErrorText && (await article.parsedContent.resourceManager.assertExists(src, ifNotExistsErrorText));
+		ifNotExistsErrorText &&
+			(await article.parsedContent.read((p) => p.resourceManager.assertExists(src, ifNotExistsErrorText)));
 
-		const hashItem = new HashResourceManager(src, article.parsedContent.resourceManager);
+		const hashItem = await article.parsedContent.read((p) => {
+			return new HashResourceManager(src, p.resourceManager);
+		});
+
 		return { hashItem, mime };
 	},
 

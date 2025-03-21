@@ -33,7 +33,7 @@ const useOnFirstLoadFuncs = () => {
 	useRemoveQueryT(isFirstLoad);
 	useShareHandler(isFirstLoad);
 	useEnterpriseTokenHandler(isFirstLoad);
-	usePathnameCloneHandler(isFirstLoad);
+	usePathnameCloneHandler();
 	usePathnameHandler(isFirstLoad);
 	// useReviewHandler(isFirstLoad);
 };

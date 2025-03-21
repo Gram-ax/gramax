@@ -69,11 +69,17 @@ const gitErrorLocalization: GitErrorLocalization = {
 			case "pull":
 				return { message: t("git.error.not-found.remote-branch").replace("{{what}}", props.error.data.what) };
 			case "checkout":
-				return { message: t("git.error.not-found.branch").replace("{{what}}", props.error.data.what) };
+				const branch: string =
+					props.error?.props?.what ?? /reference '(.*)' not found/.exec(props.error.message)?.[1];
+				return { message: t("git.error.not-found.branch").replace("{{what}}", branch ?? "") };
 			case "branch":
 				return { message: t("git.error.not-found.branch").replace("{{what}}", props.error.props.what) };
 			case "readBlob":
 				return { message: t("git.error.not-found.blob").replace("{{path}}", props.error.props.filePath) };
+			case "clone":
+				return {
+					message: t("git.clone.error.branch-not-found").replace("{{branch}}", props.error.props.branchName),
+				};
 			default:
 				return { message: `${t("git.error.not-found.generic")} ${props.error.message}` };
 		}
@@ -81,6 +87,7 @@ const gitErrorLocalization: GitErrorLocalization = {
 	CloneError: () => ({ message: t("git.clone.error.generic") }),
 	NetworkConntectionError: () => ({ message: t("git.error.network.message"), title: t("git.error.network.title") }),
 	FileNotFoundError: () => ({ message: t("not-found") }),
+	CancelledOperation: (props) => ({ message: props.error.message }),
 };
 
 export default gitErrorLocalization;

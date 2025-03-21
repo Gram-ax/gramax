@@ -83,12 +83,19 @@ export default class RevisionDiffItemCreator extends GitDiffItemCreator {
 			let parentPath: string;
 
 			for (const { article, catalog } of articles) {
-				if (!article.parsedContent) continue;
+				const parsedContent = await article.parsedContent.read((p) => {
+					if (!p) return null;
+					return {
+						paths: [...p.resourceManager.resources, ...p.linkManager.resources],
+						resourceManager: p.resourceManager,
+					};
+				});
 
-				const linkManager = article.parsedContent.linkManager;
-				const resourceManager = article.parsedContent.resourceManager;
+				if (!parsedContent) continue;
 
-				for (const path of [...resourceManager.resources, ...linkManager.resources]) {
+				const { paths, resourceManager } = parsedContent;
+
+				for (const path of paths) {
 					if (resourceManager.getAbsolutePath(path).endsWith(resource.path)) {
 						resourcePathAssignees.set(resource.path.value, { article, catalog });
 						parentPath = catalog.getRepositoryRelativePath(article.ref).value;
@@ -236,14 +243,15 @@ export default class RevisionDiffItemCreator extends GitDiffItemCreator {
 
 	private async _getEditTree(article: Article, catalog: ReadonlyCatalog): Promise<JSONContent> {
 		if (!article) return null;
-		if (!article.parsedContent) {
+
+		if (await article.parsedContent.isNull()) {
 			try {
 				await this._articleParser.parse(article, catalog);
 			} catch {
 				return null;
 			}
 		}
-		const editTree = { ...article.parsedContent?.editTree };
+		const editTree = { ...(await article.parsedContent.read((p) => p?.editTree)) };
 		return getArticleWithTitle(article.getTitle(), editTree);
 	}
 }

@@ -5,7 +5,7 @@ use tauri::*;
 use crate::PluginGramaxGit;
 
 #[cfg(target_os = "android")]
-const PLUGIN_IDENTIFIER: &str = "com.ics.gramax.git";
+const PLUGIN_IDENTIFIER: &str = "gramax.app.git";
 
 #[cfg(target_os = "ios")]
 tauri::ios_plugin_binding!(init_plugin_gramaxgit);

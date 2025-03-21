@@ -18,7 +18,7 @@ const DiagramComponent = ({ node, editor, getPos }: NodeViewProps): ReactElement
 	const openEditor = () => {
 		ModalToOpenService.setValue(ModalToOpen.DiagramEditor, {
 			editor,
-			content: node.attrs.content ?? getBuffer(node.attrs.src).toString(),
+			content: node.attrs.content ?? getBuffer(node.attrs.src)?.toString(),
 			src: node.attrs.src,
 			diagramName: node.attrs.diagramName,
 			onClose: () => ModalToOpenService.resetValue(),

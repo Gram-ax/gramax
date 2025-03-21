@@ -4,9 +4,11 @@ import Path from "@core/FileProvider/Path/Path";
 import { resolveRootCategory } from "@ext/localization/core/catalogExt";
 import { Command } from "../../types/Command";
 import { pdfExportedKeys } from "@ext/pdfExport/layouts";
-import buildDocumentTree from "@ext/pdfExport/buildDocumentTree";
 import RuleProvider from "@ext/rules/RuleProvider";
 import PDFExporter from "@ext/pdfExport/PDFExporter";
+import { TitleInfo } from "@ext/wordExport/options/WordTypes";
+import buildDocumentTree from "@ext/wordExport/DocumentTree/buildDocumentTree";
+import ViewLocalizationFilter from "@ext/properties/logic/viewLocalizationFilter";
 
 const getDocument: Command<{ ctx: Context; itemPath?: Path; isCategory: boolean; catalogName: string }, Buffer> =
 	Command.create({
@@ -19,34 +21,34 @@ const getDocument: Command<{ ctx: Context; itemPath?: Path; isCategory: boolean;
 
 			const catalog = await workspace.getCatalog(catalogName, ctx);
 
-			const isCatalog = !itemPath;
+			const isCatalog = !itemPath?.value;
 			const item = isCatalog
 				? resolveRootCategory(catalog, catalog.props, ctx.contentLanguage)
 				: catalog.findItemByItemPath(itemPath);
 
+			const itemFilters = [
+				...new RuleProvider(ctx, undefined, undefined).getItemFilters(),
+				new ViewLocalizationFilter().getItemFilter(),
+			];
+
 			const filters = new RuleProvider(ctx).getItemFilters();
 
-			const titlesMap = new Map();
-			const itemsToProcess = [item];
+			const titlesMap: Map<string, TitleInfo> = new Map();
 
-			const documentTrees = await Promise.all(
-				itemsToProcess.map(async (currentItem) => {
-					return await buildDocumentTree({
-						isCategory,
-						isCatalog,
-						item: currentItem,
-						pdfExportedKeys,
-						catalog,
-						ctx,
-						parser,
-						parserContextFactory,
-						filters,
-						titlesMap,
-					});
-				}),
+			const documentTrees = await buildDocumentTree(
+				isCategory,
+				isCatalog,
+				item,
+				pdfExportedKeys,
+				catalog,
+				ctx,
+				parser,
+				parserContextFactory,
+				filters,
+				titlesMap,
 			);
 
-			const pdf = new PDFExporter(item.getFileName(), documentTrees);
+			const pdf = new PDFExporter(documentTrees, titlesMap, catalog, itemFilters);
 			return pdf.create();
 		},
 

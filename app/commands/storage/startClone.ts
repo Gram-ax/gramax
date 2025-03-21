@@ -23,7 +23,13 @@ const startClone: Command<
 		if (await workspace.getBaseCatalog(entry.name)) return;
 
 		workspace.addCatalogEntry(entry);
-		void rp.cloneNewRepository(fs, path, data, recursive, isBare, branch, async () => {
+
+		void rp.cloneNewRepository(fs, path, data, recursive, isBare, branch, async (_, isCancelled) => {
+			if (isCancelled) {
+				await workspace.removeCatalog(entry.name, false);
+				return;
+			}
+
 			await workspace.addCatalog(await fs.getCatalogByPath(path));
 		});
 	},

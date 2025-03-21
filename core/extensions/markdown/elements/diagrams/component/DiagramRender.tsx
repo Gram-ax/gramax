@@ -61,7 +61,6 @@ const DiagramRender = forwardRef((props: DiagramProps, ref?: MutableRefObject<HT
 export default styled(DiagramRender)`
 	display: flex;
 	width: 100%;
-	margin: 1rem 0;
 	align-items: center;
 	justify-content: center;
 

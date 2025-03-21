@@ -2,6 +2,7 @@ import Path from "@core/FileProvider/Path/Path";
 import { ItemRef } from "@core/FileStructue/Item/ItemRef";
 import ResourceMovements from "@core/Resource/models/ResourceMovements";
 import { convertContentToUiLanguage } from "@ext/localization/locale/translate";
+import ParseError from "@ext/markdown/core/Parser/Error/ParseError";
 import { JSONContent } from "@tiptap/core";
 import MarkdownParser from "../../extensions/markdown/core/Parser/Parser";
 import ParserContextFactory from "../../extensions/markdown/core/Parser/ParserContext/ParserContextFactory";
@@ -10,7 +11,6 @@ import Context from "../Context/Context";
 import { Article } from "../FileStructue/Article/Article";
 import parseContent from "../FileStructue/Article/parseContent";
 import { Catalog } from "../FileStructue/Catalog/Catalog";
-import ParseError from "@ext/markdown/core/Parser/Error/ParseError";
 
 export default class ResourceUpdater {
 	constructor(
@@ -28,7 +28,7 @@ export default class ResourceUpdater {
 			const oldResources: Path[] = [];
 			const newResources: Path[] = [];
 
-			if (!item.parsedContent)
+			if (await item.parsedContent.isNull())
 				try {
 					await parseContent(item, this._catalog, this._rc, this._parser, this._parserContextFactory, false);
 				} catch (e) {
@@ -36,29 +36,30 @@ export default class ResourceUpdater {
 					throw e;
 				}
 
-			const parsedContent = item.parsedContent;
-			parsedContent.linkManager.resources.map((resource) => {
-				const absolutePath = parsedContent.linkManager.getAbsolutePath(resource);
+			await item.parsedContent.write(async (p) => {
+				p.linkManager.resources.map((resource) => {
+					const absolutePath = p.linkManager.getAbsolutePath(resource);
 
-				if (absolutePath.value !== oldPath.value) return;
-				oldResources.push(resource);
-				newResources.push(item.ref.path.getRelativePath(absoluteNewBasePath));
+					if (absolutePath.value !== oldPath.value) return p;
+					oldResources.push(resource);
+					newResources.push(item.ref.path.getRelativePath(absoluteNewBasePath));
+				});
+				if (!oldResources.length) return p;
+
+				const newEditTree = this._updateEditTree(p.editTree, { oldResources, newResources });
+				p.editTree = newEditTree;
+				this._updateInInlineMdComponent(newEditTree, { oldResources, newResources });
+
+				const context = this._parserContextFactory.fromArticle(
+					item,
+					this._catalog,
+					convertContentToUiLanguage(this._rc.contentLanguage),
+					this._rc.user.isLogged,
+				);
+				const markdown = await this._formatter.render(newEditTree, context);
+				await item.updateContent(markdown, false);
+				return p;
 			});
-			if (!oldResources.length) continue;
-
-			const newEditTree = this._updateEditTree(parsedContent.editTree, { oldResources, newResources });
-			parsedContent.editTree = newEditTree;
-			this._updateInInlineMdComponent(newEditTree, { oldResources, newResources });
-
-			const context = this._parserContextFactory.fromArticle(
-				item,
-				this._catalog,
-				convertContentToUiLanguage(this._rc.contentLanguage),
-				this._rc.user.isLogged,
-			);
-			const markdown = await this._formatter.render(newEditTree, context);
-			await item.updateContent(markdown);
-			item.parsedContent = parsedContent;
 		}
 	}
 
@@ -70,39 +71,43 @@ export default class ResourceUpdater {
 			throw e;
 		}
 
-		if (!oldArticle?.parsedContent) return;
+		if (await oldArticle?.parsedContent.isNull()) return;
 
-		const { resourceManager, linkManager } = oldArticle.parsedContent;
-		const newResourceBasePath = this._catalog
-			.getRootCategoryRef()
-			.path.parentDirectoryPath.subDirectory(newArticle.ref.path.parentDirectoryPath);
+		await oldArticle.parsedContent.write(async (p) => {
+			const { resourceManager, linkManager } = p;
 
-		const resourceMovements = {
-			oldResources: resourceManager.setNewBasePath(newResourceBasePath).oldResources,
-			newResources: (await resourceManager.move(oldArticle.ref.path, newArticle.ref.path)).newResources,
-		};
+			const newResourceBasePath = this._catalog
+				.getRootCategoryRef()
+				.path.parentDirectoryPath.subDirectory(newArticle.ref.path.parentDirectoryPath);
 
-		const linkMovements = linkManager.setNewBasePath(
-			newResourceBasePath,
-			innerRefs?.map((pathToMove) => pathToMove.path),
-		);
+			const resourceMovements = {
+				oldResources: resourceManager.setNewBasePath(newResourceBasePath).oldResources,
+				newResources: (await resourceManager.move(oldArticle.ref.path, newArticle.ref.path)).newResources,
+			};
 
-		const allMovements = {
-			oldResources: [...resourceMovements.oldResources, ...linkMovements.oldResources],
-			newResources: [...resourceMovements.newResources, ...linkMovements.newResources],
-		};
+			const linkMovements = linkManager.setNewBasePath(
+				newResourceBasePath,
+				innerRefs?.map((pathToMove) => pathToMove.path),
+			);
 
-		const newEditTree = this._updateEditTree(oldArticle.parsedContent.editTree, allMovements);
-		this._updateInInlineMdComponent(newEditTree, allMovements);
+			const allMovements = {
+				oldResources: [...resourceMovements.oldResources, ...linkMovements.oldResources],
+				newResources: [...resourceMovements.newResources, ...linkMovements.newResources],
+			};
 
-		const context = this._parserContextFactory.fromArticle(
-			newArticle,
-			this._catalog,
-			convertContentToUiLanguage(this._rc.contentLanguage || this._catalog.props.language),
-			this._rc.user.isLogged,
-		);
-		const markdown = await this._formatter.render(newEditTree, context);
-		await newArticle.updateContent(markdown);
+			const newEditTree = this._updateEditTree(p.editTree, allMovements);
+			this._updateInInlineMdComponent(newEditTree, allMovements);
+
+			const context = this._parserContextFactory.fromArticle(
+				newArticle,
+				this._catalog,
+				convertContentToUiLanguage(this._rc.contentLanguage || this._catalog.props.language),
+				this._rc.user.isLogged,
+			);
+			const markdown = await this._formatter.render(newEditTree, context);
+			await newArticle.updateContent(markdown, false);
+			return p;
+		});
 	}
 
 	private _updateEditTree(editTree: JSONContent, moveResources: ResourceMovements) {

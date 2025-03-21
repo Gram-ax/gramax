@@ -17,13 +17,13 @@ const Table = ({ content, className, groupby, select }: TableProps) => {
 			<TableComponent>
 				<tbody data-focusable="true">
 					<tr>
-						{groupby.map((name) => (
+						{groupby?.map((name) => (
 							<th key={name} scope="col">
 								{name}
 							</th>
 						))}
 						<th scope="col">{t("properties.article")}</th>
-						{select.map((name) => (
+						{select?.map((name) => (
 							<th key={name} scope="col">
 								{name}
 							</th>

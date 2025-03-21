@@ -1,3 +1,4 @@
+import { ClientArticleProps } from "@core/SitePresenter/SitePresenter";
 import { FileStatus } from "@ext/Watchers/model/FileStatus";
 import HistorySrc from "@ext/git/actions/History/component/History";
 import { Meta } from "@storybook/react";
@@ -5,7 +6,7 @@ import mock from "storybook/data/mock";
 import BlockDecorator from "storybook/styles/decorators/BlockDecorator";
 
 export const History = () => {
-	return <HistorySrc />;
+	return <HistorySrc item={{ logicPath: "test" } as ClientArticleProps} />;
 };
 
 export default {

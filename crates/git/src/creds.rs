@@ -4,6 +4,7 @@ use serde::Deserialize;
 pub trait Creds {
   fn signature(&self) -> Result<Signature, Error>;
   fn access_token(&self) -> &str;
+  fn username(&self) -> &str;
   fn protocol(&self) -> Option<&str>;
 }
 
@@ -20,6 +21,10 @@ impl Creds for DummyCreds {
     ""
   }
 
+  fn username(&self) -> &str {
+    "git"
+  }
+
   fn protocol(&self) -> Option<&str> {
     None
   }
@@ -31,15 +36,23 @@ pub struct AccessTokenCreds {
   author_name: Box<str>,
   author_email: Box<str>,
   access_token: Box<str>,
+  username: Option<Box<str>>,
   protocol: Option<Box<str>>,
 }
 
 impl AccessTokenCreds {
-  pub fn new(author_name: &str, author_email: &str, access_token: &str, protocol: Option<&str>) -> Self {
+  pub fn new(
+    author_name: &str,
+    author_email: &str,
+    access_token: &str,
+    username: Option<&str>,
+    protocol: Option<&str>,
+  ) -> Self {
     Self {
       author_name: author_name.into(),
       author_email: author_email.into(),
       access_token: access_token.into(),
+      username: username.map(|u| u.into()),
       protocol: protocol.map(|p| p.into()),
     }
   }
@@ -56,6 +69,10 @@ impl Creds for AccessTokenCreds {
 
   fn protocol(&self) -> Option<&str> {
     self.protocol.as_deref()
+  }
+
+  fn username(&self) -> &str {
+    self.username.as_deref().unwrap_or("git")
   }
 }
 

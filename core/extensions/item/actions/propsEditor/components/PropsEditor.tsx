@@ -11,7 +11,6 @@ import MimeTypes from "@core-ui/ApiServices/Types/MimeTypes";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import ArticlePropsService from "@core-ui/ContextServices/ArticleProps";
 import CatalogPropsService from "@core-ui/ContextServices/CatalogProps";
-import IsEditService from "@core-ui/ContextServices/IsEdit";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import { transliterate } from "@core-ui/languageConverter/transliterate";
 import { useRouter } from "@core/Api/useRouter";
@@ -37,7 +36,6 @@ const PropsEditor = (props: PropsEditorProps) => {
 	const domain = PageDataContextService.value.domain;
 	const articleProps = ArticlePropsService.value;
 	const catalogProps = CatalogPropsService.value;
-	const isEdit = IsEditService.value;
 	const router = useRouter();
 	const apiUrlCreator = ApiUrlCreatorService.value;
 	const [parentCategoryLink, setParentCategoryLink] = useState<string>(domain);
@@ -79,8 +77,6 @@ const PropsEditor = (props: PropsEditorProps) => {
 
 		setIsOpen(false);
 	};
-
-	if (!isEdit) return null;
 
 	const getErrorText = () => {
 		const fileName = generatedFileName ?? itemProps?.fileName;

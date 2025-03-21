@@ -14,7 +14,7 @@ export interface EnterpriseInfo {
 	workspacePermission: IPermissionMap;
 	catalogPermission: IPermissionMap;
 	updateDate: Date;
-	catalogsProps: { [catalogName: string]: { branches?: string[] } };
+	catalogsProps: { [catalogName: string]: { branches?: string[]; mainBranch: string } };
 }
 
 class EnterpriseUser extends User {

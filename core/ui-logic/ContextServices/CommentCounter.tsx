@@ -43,7 +43,7 @@ abstract class CommentCounterService {
 	}
 
 	public static delete(comments: AuthoredCommentsByAuthor, pathname: string, author: UserInfo) {
-		if (!comments[author.mail]) return;
+		if (!comments[author?.mail]) return;
 		comments[author.mail].total--;
 		comments[author.mail].pathnames[pathname]--;
 		if (comments[author.mail].pathnames[pathname] === 0) delete comments[author.mail].pathnames[pathname];

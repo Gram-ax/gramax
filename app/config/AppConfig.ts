@@ -60,7 +60,7 @@ export type AppConfig = {
 const getServices = (): ServicesConfig => {
 	return {
 		gitProxy: {
-			url: env("GIT_PROXY_SERVICE_URL") ?? "https://develop.gram.ax/git-proxy",
+			url: env("GIT_PROXY_SERVICE_URL") ?? "https://gram.ax/git-proxy",
 		},
 		auth: {
 			url: env("AUTH_SERVICE_URL") ?? "https://gram.ax/auth",

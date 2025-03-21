@@ -96,7 +96,7 @@ export default styled(Drawio)`
 	margin: 0.5em 0;
 	background-color: var(--color-diagram-bg);
 	border-radius: var(--radius-large);
-	padding: 20px;
+	padding: 0.8em;
 
 	img {
 		background-color: unset;

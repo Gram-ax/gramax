@@ -1,8 +1,9 @@
 import ActionButton from "@components/controls/HoverController/ActionButton";
+import toggleSignature from "@core-ui/toggleSignature";
 import t from "@ext/localization/locale/translate";
 import { Editor } from "@tiptap/core";
 import { Node } from "@tiptap/pm/model";
-import { RefObject } from "react";
+import { Dispatch, SetStateAction, RefObject } from "react";
 
 interface DiagramActionsProps {
 	editor: Editor;
@@ -10,7 +11,7 @@ interface DiagramActionsProps {
 	signatureRef: RefObject<HTMLInputElement>;
 	openEditor: () => void;
 	getPos: () => number;
-	setHasSignature: (value: boolean) => void;
+	setHasSignature: Dispatch<SetStateAction<boolean>>;
 }
 
 const DiagramActions = ({ editor, node, getPos, setHasSignature, signatureRef, openEditor }: DiagramActionsProps) => {
@@ -19,9 +20,12 @@ const DiagramActions = ({ editor, node, getPos, setHasSignature, signatureRef, o
 		editor.commands.deleteRange({ from: position, to: position + node.nodeSize });
 	};
 
+	const updateAttributes = (attributes: Record<string, any>) => {
+		editor.commands.updateAttributes(node.type, attributes);
+	};
+
 	const addSignature = () => {
-		setHasSignature(true);
-		signatureRef.current?.focus();
+		setHasSignature((prev) => toggleSignature(prev, signatureRef.current, updateAttributes));
 	};
 
 	return (

@@ -64,7 +64,11 @@ const CloneHandler = ({ shareData }: { shareData: ShareData }) => {
 					<div>{t("git.clone.not-cloned.body")}</div>
 					{getExecutingEnvironment() == "browser" && (
 						<div>
-							<a onClick={assertDesktopOpened} href={`gramax://${clonePath}`} style={{ outline: 0 }}>
+							<a
+								onClick={() => assertDesktopOpened()}
+								href={`gramax://${clonePath}`}
+								style={{ outline: 0 }}
+							>
 								{t("git.clone.open-in-app")}
 							</a>
 						</div>

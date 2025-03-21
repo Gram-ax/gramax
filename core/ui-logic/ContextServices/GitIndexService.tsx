@@ -121,7 +121,8 @@ export default abstract class GitIndexService {
 	}
 
 	private static async _update() {
-		const endpoint = this._apiUrlCreator.getVersionControlStatuses();
+		const shouldAdd = !(getExecutingEnvironment() === "browser" && this._lastRun === 0);
+		const endpoint = this._apiUrlCreator.getVersionControlStatuses(shouldAdd);
 		const res = await FetchService.fetch<ClientGitStatus[]>(endpoint);
 		const data = await res.json();
 

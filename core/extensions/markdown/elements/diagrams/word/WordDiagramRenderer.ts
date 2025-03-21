@@ -10,7 +10,7 @@ import C4Data from "../diagrams/c4Diagram/C4Data";
 import { WordFontStyles, diagramString } from "@ext/wordExport/options/wordExportSettings";
 import { AddOptionsWord, ImageDimensions } from "@ext/wordExport/options/WordTypes";
 import { ImageDimensionsFinder } from "@ext/markdown/elements/image/word/ImageDimensionsFinder";
-import { WordImageProcessor } from "@ext/markdown/elements/image/word/WordImageProcessor";
+import { BaseImageProcessor } from "@ext/markdown/elements/image/export/BaseImageProcessor";
 
 export class WordDiagramRenderer {
 	static async renderSimpleDiagram(
@@ -28,7 +28,7 @@ export class WordDiagramRenderer {
 			const diagram = await new Diagrams(diagramRendererServerUrl).getDiagram(diagramType, diagramContent);
 			const size = ImageDimensionsFinder.getSvgDimensions(diagram, addOptions?.maxPictureWidth);
 			const paragraphs = [
-				WordDiagramRenderer._getParagraphWithImage(await WordImageProcessor.svgToPng(diagram, size), size),
+				WordDiagramRenderer._getParagraphWithImage(await BaseImageProcessor.svgToPng(diagram, size), size),
 			];
 
 			if (tag.attributes.title)
@@ -73,7 +73,7 @@ export class WordDiagramRenderer {
 				diagramJson.viz.map(async (viz) => {
 					const size = ImageDimensionsFinder.getSvgDimensions(viz.svg, addOptions?.maxPictureWidth);
 					return WordDiagramRenderer._getParagraphWithImage(
-						await WordImageProcessor.svgToPng(viz.svg, size),
+						await BaseImageProcessor.svgToPng(viz.svg, size),
 						size,
 					);
 				}),

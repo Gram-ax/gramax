@@ -4,6 +4,9 @@ import ParserContext from "../../markdown/core/Parser/ParserContext/ParserContex
 import { RenderableTreeNode, Tag } from "../../markdown/core/render/logic/Markdoc";
 import { WordSerializerState } from "../WordExportState";
 import { ExportType } from "@ext/wordExport/ExportType";
+import ContextualCatalog from "@core/FileStructue/Catalog/ContextualCatalog";
+import { CatalogProps } from "@core/FileStructue/Catalog/CatalogProps";
+import { ItemFilter } from "@core/FileStructue/Catalog/Catalog";
 
 export type WordBlockChildren = Record<string, WordBlockChild>;
 
@@ -13,6 +16,8 @@ export type WordRenderContext = {
 	titlesMap: Map<string, TitleInfo>;
 	articleName: string;
 	order?: string;
+	catalog: ContextualCatalog<CatalogProps>;
+	itemsFilter: ItemFilter[];
 };
 
 export type WordBlockChild = (params: {

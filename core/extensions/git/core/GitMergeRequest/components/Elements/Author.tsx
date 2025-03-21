@@ -13,13 +13,16 @@ const Comments = styled(VersionControlCommentCount)`
 `;
 
 const Avatar = styled(UserCircle)`
+	min-width: 2.4em;
 	font-size: 0.65em;
 `;
 
 const Inline = styled.span`
 	display: flex;
 	align-items: center;
-  gap: 0.33em;
+	gap: 0.33em;
+	max-width: 100%;
+	overflow: hidden;
 `;
 
 const Author = ({ author, comments, you }: { author: Signature; comments?: number; you?: boolean }) => {
@@ -38,7 +41,5 @@ const Author = ({ author, comments, you }: { author: Signature; comments?: numbe
 		</Inline>
 	);
 };
-
-
 
 export default Author;

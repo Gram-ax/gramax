@@ -4,9 +4,17 @@ export interface StorageUrl {
 	group?: string;
 	name?: string;
 	origin?: string;
+	pathname?: string[];
 }
 
-const noDataObject: StorageUrl = { protocol: null, domain: null, group: null, name: null, origin: null };
+const noDataObject: StorageUrl = {
+	protocol: null,
+	domain: null,
+	group: null,
+	name: null,
+	origin: null,
+	pathname: [],
+};
 
 const parseStorageUrl = (url: string): StorageUrl => {
 	if (!url) return noDataObject;
@@ -26,7 +34,7 @@ const sshUrlParser = (url: string) => {
 		const group = pathname.length > 1 ? pathname.slice(0, -1).join("/") : null;
 		const name = pathname[pathname.length - 1]?.replace(/\.git$/, "") ?? null;
 
-		return { protocol: "git@", domain, group, name, origin: `git@${domain}` };
+		return { protocol: "git@", domain, group, name, origin: `git@${domain}`, pathname };
 	} catch (error) {
 		console.log("Failed to parse SSH url: ", error);
 		return noDataObject;
@@ -44,7 +52,7 @@ const httpUrlParser = (url: string) => {
 		const group = pathname?.slice(0, -1)?.join("/") || null;
 		const name = pathname?.[pathname.length - 1]?.replace(".git", "") || null;
 
-		return { protocol, domain: urlObject.host, origin: urlObject.origin, group, name };
+		return { protocol, domain: urlObject.host, origin: urlObject.origin, group, name, pathname };
 	} catch (error) {
 		console.log("Failed to parse url: ", error);
 		return noDataObject;

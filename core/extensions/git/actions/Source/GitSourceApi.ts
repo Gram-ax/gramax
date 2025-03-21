@@ -87,6 +87,16 @@ abstract class GitSourceApi implements SourceAPI {
 	}
 
 	protected async _validateResponse(res: Response): Promise<void> {
+		if (!res) {
+			const error = new NetworkApiError(
+				"No response from server",
+				{ url: null, errorJson: null, status: -1 },
+				t("git.error.source-api.title"),
+			);
+			this._onError?.(error);
+			throw error;
+		}
+
 		if (res.ok) return;
 		const errorJson = (await res.json()) as { message: string; status: string; documentation_url: string };
 		const error = new NetworkApiError(

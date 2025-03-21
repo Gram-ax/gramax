@@ -3,48 +3,47 @@ import Tooltip from "@components/Atoms/Tooltip";
 import { classNames } from "@components/libs/classNames";
 import styled from "@emotion/styled";
 import translate from "@ext/localization/locale/translate";
-import LangList from "@ext/markdown/elements/codeBlockLowlight/edit/logic/LangList";
+import { useLowlightActions } from "@ext/markdown/elements/codeBlockLowlight/edit/component/CodeBlockComponent";
 import lowlight from "@ext/markdown/elements/codeBlockLowlight/edit/logic/Lowlight";
-import ExtendedCodeBlockLowlight from "@ext/markdown/elements/codeBlockLowlight/edit/model/codeBlockLowlight";
+import { Lang, getLowerLangName } from "@ext/markdown/elements/codeBlockLowlight/edit/logic/LowlightLangs";
 import { toJsxRuntime } from "hast-util-to-jsx-runtime";
 import { HTMLAttributes, useState } from "react";
 import { Fragment, jsx, jsxs } from "react/jsx-runtime";
 
 interface CodeBlockProps {
 	value: string;
-	lang?: LangList;
+	lang?: Lang;
 	style?: HTMLAttributes<HTMLPreElement>["style"];
 	className?: string;
 	withoutHighlight?: boolean;
 }
 
 const CodeBlock = (props: CodeBlockProps) => {
-	const { languageClassPrefix } = ExtendedCodeBlockLowlight.options;
 	const { lang = "", value = "", withoutHighlight, className, style } = props;
+	const trimVal = value.trim();
 	const [coppedIsExpanded, setCoppedIsExpanded] = useState(false);
+	const lowerLang = getLowerLangName(lang);
+	const { isRegistered } = useLowlightActions({ language: lang });
 
 	const [copped, setCopped] = useState(false);
 
-	const language = lang.replace(languageClassPrefix, "");
 	const clickToCopyText = translate("click-to-copy");
 	const copiedText = translate("copied");
 
 	const coppedText = () => {
 		setCopped(true);
-		void navigator.clipboard.writeText(value.trim());
+		void navigator.clipboard.writeText(trimVal);
 	};
 
 	if (withoutHighlight) {
 		return (
 			<pre className={classNames(className)} style={style}>
-				{value.trim()}
+				{trimVal}
 			</pre>
 		);
 	}
 
-	const tree = lowlight.registered(language)
-		? lowlight.highlight(language, value.trim())
-		: lowlight.highlightAuto(value.trim());
+	const tree = isRegistered ? lowlight.highlight(lowerLang, trimVal) : lowlight.highlight("none", trimVal);
 
 	return (
 		<pre

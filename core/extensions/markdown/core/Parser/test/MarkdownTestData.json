@@ -208,7 +208,7 @@
 				"children": [],
 				"name": "Video"
 			},
-			"html": "<div data-type=\"video\"><div class=\"css-6msgz3 skeleton\"><video id=\"my-player\" data-focusable=\"true\" class=\"video-js\" controls=\"\" preload=\"auto\" data-setup=\"{}\" src=\"sample-mp4-file.mp4\"></video><em>Очень интересное видео</em></div></div>"
+			"html": "<div class=\"css-1rkrvv1\" data-type=\"video\"><div class=\"css-cvlp6m skeleton\"><video id=\"my-player\" data-focusable=\"true\" class=\"video-js\" controls=\"\" preload=\"auto\" data-setup=\"{}\" src=\"sample-mp4-file.mp4\"></video><em>Очень интересное видео</em></div></div>"
 		}
 	],
 	"Term": [
@@ -295,45 +295,13 @@
 					{
 						"$$mdtype": "Tag",
 						"children": ["123"],
-						"attributes": { "color": "red", "isInline": true },
+						"attributes": { "color": "red" },
 						"name": "Color"
 					}
 				],
 				"name": "p"
 			},
-			"html": "<p><span style=\"color:red\">123</span></p>"
-		},
-		{
-			"text": "[color:red]\n\n123\n\n456\n\n789\n[/color]",
-			"renderTree": {
-				"$$mdtype": "Tag",
-				"attributes": {
-					"color": "red",
-					"isInline": false
-				},
-				"children": [
-					{
-						"$$mdtype": "Tag",
-						"attributes": {},
-						"children": ["123"],
-						"name": "p"
-					},
-					{
-						"$$mdtype": "Tag",
-						"attributes": {},
-						"children": ["456"],
-						"name": "p"
-					},
-					{
-						"$$mdtype": "Tag",
-						"attributes": {},
-						"children": ["789"],
-						"name": "p"
-					}
-				],
-				"name": "Color"
-			},
-			"html": "<div style=\"color:red\"><p>123</p><p>456</p><p>789</p></div>"
+			"html": "<p><span data-color=\"red\" style=\"color:red\">123</span></p>"
 		}
 	],
 	"Hr": [

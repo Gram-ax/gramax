@@ -25,6 +25,7 @@ import { GitVersion } from "../model/GitVersion";
 import SubmoduleData from "../model/SubmoduleData";
 import GitError from "./errors/GitError";
 import GitCommandsModel, {
+	type CloneCancelToken,
 	type CloneProgress,
 	type DiffConfig,
 	type DiffTree2TreeInfo,
@@ -214,6 +215,17 @@ export class GitCommands {
 		ref: GitVersion | GitBranch | string,
 		{ force, caller }: { force?: boolean; caller?: Caller } = {},
 	): Promise<void> {
+		try {
+			await this.getBranch(ref.toString());
+		} catch (e) {
+			throw new GitError(
+				GitErrorCode.NotFoundError,
+				e,
+				{ repositoryPath: this._repoPath.value, what: ref.toString() },
+				"checkout",
+			);
+		}
+
 		await this._logWrapper("checkout", `Checkout to ref '${ref.toString()}'`, async () => {
 			try {
 				await this._impl.checkout(ref.toString(), force);
@@ -226,6 +238,7 @@ export class GitCommands {
 	async clone(
 		url: string,
 		source: GitSourceData,
+		cancelToken: CloneCancelToken,
 		branch?: string,
 		depth?: number,
 		isBare?: boolean,
@@ -242,7 +255,7 @@ export class GitCommands {
 				);
 			}
 			try {
-				await this._impl.clone(url, source, branch, depth, isBare, onProgress);
+				await this._impl.clone(url, source, cancelToken, branch, depth, isBare, onProgress);
 			} catch (e) {
 				throw new GitError(
 					GitErrorCode.CloneError,
@@ -254,6 +267,10 @@ export class GitCommands {
 				);
 			}
 		});
+	}
+
+	async cloneCancel(cancelToken: CloneCancelToken): Promise<boolean> {
+		return this._impl.cloneCancel(cancelToken);
 	}
 
 	async add(filePaths?: Path[], force = false): Promise<void> {
@@ -381,7 +398,7 @@ export class GitCommands {
 	}
 
 	async status(type: "index" | "workdir" = "workdir"): Promise<GitStatus[]> {
-		return await this._logWrapper("status", "Getting status", () => this._impl.status(type));
+		return await this._logWrapper("status", `Getting status, type: ${type}`, () => this._impl.status(type));
 	}
 
 	async fileStatus(filePath: Path): Promise<GitStatus> {

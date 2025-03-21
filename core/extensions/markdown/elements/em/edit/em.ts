@@ -69,7 +69,7 @@ const Em = Mark.create<ItalicOptions>({
 	addKeyboardShortcuts() {
 		return addShortcuts(
 			[
-				{ key: "Space", focusShouldBeInsideNode: false, rules: [space("toggleItalic")] },
+				{ key: "Space", focusShouldBeInsideNode: false, rules: [space("toggleItalic", this.type.name)] },
 				{ key: "ArrowRight", focusShouldBeInsideNode: false, rules: [arrowRight("toggleItalic")] },
 				{
 					key: "Mod-i",

@@ -2,29 +2,32 @@ import { ResponseKind } from "@app/types/ResponseKind";
 import CustomArticle from "@core/SitePresenter/customArticles/model/CustomArticle";
 import { Command } from "../../../types/Command";
 
-const getCustomArticle: Command<{ name: CustomArticle }, { title: string; content: string }> = Command.create({
-	path: "article/features/getCustomArticle",
+const getCustomArticle: Command<{ name: CustomArticle; props: any }, { title: string; content: string }> =
+	Command.create({
+		path: "article/features/getCustomArticle",
 
-	kind: ResponseKind.json,
+		kind: ResponseKind.json,
 
-	middlewares: [],
+		middlewares: [],
 
-	async do({ name }) {
-		const { customArticlePresenter, parser } = this._app;
+		async do({ name, props }) {
+			const { customArticlePresenter, parser } = this._app;
 
-		const article = customArticlePresenter.getArticle(name);
-		if (article && !article.parsedContent) article.parsedContent = await parser.parse(article.content);
+			const article = customArticlePresenter.getArticle(name, props);
+			if (article && (await article.parsedContent.isNull())) {
+				await article.parsedContent.write(() => parser.parse(article.content));
+			}
 
-		return {
-			title: article?.getTitle() ?? "None article",
-			content: JSON.stringify(article?.parsedContent?.renderTree ?? {}),
-		};
-	},
+			return {
+				title: article?.getTitle() ?? "None article",
+				content: await article.parsedContent.read((content) => (content ? JSON.stringify(content.renderTree) : "")),
+			};
+		},
 
-	params(ctx, q) {
-		const name = q.name as CustomArticle;
-		return { ctx, name };
-	},
-});
+		params(ctx, q, body) {
+			const name = q.name as CustomArticle;
+			return { ctx, name, props: body };
+		},
+	});
 
 export default getCustomArticle;

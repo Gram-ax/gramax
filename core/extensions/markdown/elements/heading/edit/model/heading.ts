@@ -31,13 +31,13 @@ const Heading = Node.create<HeadingOptions>({
 	defining: true,
 
 	addOptions() {
-		return { levels: [2, 3, 4] };
+		return { levels: [2, 3, 4, 5, 6] };
 	},
 
 	addAttributes() {
 		return {
 			id: {},
-			level: { default: 1, rendered: false },
+			level: { default: 6, rendered: false },
 			isCustomId: { default: false, rendered: false },
 		};
 	},
@@ -45,8 +45,6 @@ const Heading = Node.create<HeadingOptions>({
 	parseHTML() {
 		return [
 			{ tag: `h1`, attrs: { level: 2 } },
-			{ tag: `h5`, attrs: { level: 4 } },
-			{ tag: `h6`, attrs: { level: 4 } },
 			...this.options.levels.map((level: Level) => {
 				return { tag: `h${level}`, attrs: { level } };
 			}),
@@ -84,20 +82,22 @@ const Heading = Node.create<HeadingOptions>({
 
 	addKeyboardShortcuts() {
 		return {
-			...this.options.levels.reduce(
-				(items, level) => ({
-					...items,
-					...{
-						[`Mod-Alt-${level}`]: () => {
-							if (this.editor.state.selection.$from.parent === this.editor.state.doc.firstChild)
-								return false;
-							if (selecInsideSingleParagraph(this.editor.state))
-								return this.editor.commands.toggleHeading({ level });
+			...this.options.levels
+				.filter((level) => level < 5)
+				.reduce(
+					(items, level) => ({
+						...items,
+						...{
+							[`Mod-Alt-${level}`]: () => {
+								if (this.editor.state.selection.$from.parent === this.editor.state.doc.firstChild)
+									return false;
+								if (selecInsideSingleParagraph(this.editor.state))
+									return this.editor.commands.toggleHeading({ level });
+							},
 						},
-					},
-				}),
-				{},
-			),
+					}),
+					{},
+				),
 			Enter: ({ editor }) => {
 				const { $from } = editor.state.selection;
 				if ($from.parent.type.name !== "heading") return false;
@@ -110,7 +110,7 @@ const Heading = Node.create<HeadingOptions>({
 	},
 
 	addInputRules() {
-		return this.options.levels.map((level) => {
+		return this.options.levels.filter((level) => level < 5).map((level) => {
 			return new InputRule({
 				find: new RegExp(`^(#{1,${level}})\\s$`),
 				handler: ({ state, range, match }) => {

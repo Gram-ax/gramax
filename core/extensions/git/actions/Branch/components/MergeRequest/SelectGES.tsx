@@ -4,7 +4,7 @@ import { useDebounce } from "@core-ui/hooks/useDebounce";
 import styled from "@emotion/styled";
 import EnterpriseApi from "@ext/enterprise/EnterpriseApi";
 import { Signature } from "@ext/git/core/GitMergeRequest/model/MergeRequest";
-import { useState } from "react";
+import { useRef, useState } from "react";
 
 const Select = styled(SelectSrc)`
 	.react-dropdown-select-content {
@@ -14,6 +14,7 @@ const Select = styled(SelectSrc)`
 
 interface SelectGESProps {
 	approvers: Signature[];
+	preventSearchAndStartLoading: boolean;
 	onChange: (
 		reviewers: {
 			value: string;
@@ -24,15 +25,17 @@ interface SelectGESProps {
 	) => void;
 }
 
-const SelectGES = ({ approvers, onChange }: SelectGESProps) => {
+const SelectGES = ({ approvers, onChange, preventSearchAndStartLoading }: SelectGESProps) => {
 	const gesUrl = PageDataContextService.value.conf.enterprise.gesUrl;
 	const [options, setOptions] = useState<Signature[]>([]);
-	const [enterpriseApi] = useState(new EnterpriseApi(gesUrl));
+	const [enterpriseApi] = useState(() => new EnterpriseApi(gesUrl));
 	const [isLoading, setIsLoading] = useState(false);
+	const inputRef = useRef<HTMLInputElement>(null);
 
-	const { start } = useDebounce(async (element: HTMLInputElement) => {
+	const { start } = useDebounce(async () => {
+		const value = inputRef.current?.value || "";
 		setIsLoading(true);
-		const users = await enterpriseApi.getUsers(element.value);
+		const users = await enterpriseApi.getUsers(value);
 		setIsLoading(false);
 		setOptions(users);
 	}, 200);
@@ -40,8 +43,15 @@ const SelectGES = ({ approvers, onChange }: SelectGESProps) => {
 	return (
 		<Select
 			handleKeyDownFn={({ event }) => {
-				if (event.location !== 0 || event.key.startsWith("Arrow") || event.key === "Enter") return;
-				start(event.target as HTMLInputElement);
+				inputRef.current = event.target as HTMLInputElement;
+				if (
+					event.location !== 0 ||
+					event.key.startsWith("Arrow") ||
+					event.key === "Enter" ||
+					preventSearchAndStartLoading
+				)
+					return;
+				start();
 			}}
 			backspaceDelete
 			required
@@ -57,7 +67,7 @@ const SelectGES = ({ approvers, onChange }: SelectGESProps) => {
 			}))}
 			placeholder=""
 			onChange={onChange}
-			loading={isLoading}
+			loading={preventSearchAndStartLoading || isLoading}
 			dropdownHeight="200px"
 		/>
 	);

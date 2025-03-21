@@ -22,6 +22,7 @@ pub fn generate_handler<R: Runtime>(builder: Builder<R>) -> Builder<R> {
     move_to_trash,
     http_req::http_request,
     open_in_explorer,
+    open_window_with_url,
     #[cfg(desktop)]
     set_language,
     #[cfg(desktop)]

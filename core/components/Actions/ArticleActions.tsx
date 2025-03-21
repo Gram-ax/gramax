@@ -1,7 +1,5 @@
 import EditInGramax from "@components/Actions/EditInGramax";
 import ShowInExplorer from "@components/Actions/ShowInExplorer";
-import ListItem from "@components/Layouts/CatalogLayout/RightNavigation/ListItem";
-import ArticlePropsService from "@core-ui/ContextServices/ArticleProps";
 import CatalogPropsService from "@core-ui/ContextServices/CatalogProps";
 import WorkspaceService from "@core-ui/ContextServices/Workspace";
 import IsReadOnlyHOC from "@core-ui/HigherOrderComponent/IsReadOnlyHOC";
@@ -11,19 +9,22 @@ import EnterpriseCheckStyleGuide from "@ext/enterprise/components/EnterpriseChec
 import t from "@ext/localization/locale/translate";
 import PermissionService from "@ext/security/logic/Permission/components/PermissionService";
 import { editCatalogPermission } from "@ext/security/logic/Permission/Permissions";
-import { FC, useEffect } from "react";
+import { FC } from "react";
 import FileEditor from "../../extensions/artilce/actions/FileEditor";
 import History from "../../extensions/git/actions/History/component/History";
+import ButtonLink from "@components/Molecules/ButtonLink";
+import { ClientArticleProps } from "@core/SitePresenter/SitePresenter";
+import Share from "@ext/catalog/actions/share/components/Share";
 
 interface ArticleActionsProps {
+	item: ClientArticleProps;
+	editLink: string;
+	isCurrentItem: boolean;
 	isCatalogExist: boolean;
-	hasRenderableActions: (hasActionsToRender: boolean) => void;
 }
 
-const ArticleActions: FC<ArticleActionsProps> = ({ isCatalogExist, hasRenderableActions }) => {
-	const articleProps = ArticlePropsService.value;
+const ArticleActions: FC<ArticleActionsProps> = ({ isCatalogExist, item, isCurrentItem, editLink }) => {
 	const catalogProps = CatalogPropsService.value;
-	const isArticleExist = !!articleProps.fileName;
 	const workspacePath = WorkspaceService.current().path;
 	const { isNext } = usePlatform();
 
@@ -35,33 +36,33 @@ const ArticleActions: FC<ArticleActionsProps> = ({ isCatalogExist, hasRenderable
 
 	const shouldShowEditInGramax = !isNext && (canEditCatalog || !catalogProps.sourceName);
 
-	useEffect(() => {
-		if (!isCatalogExist) return hasRenderableActions(true);
-		if (shouldShowEditInGramax) return hasRenderableActions(true);
-	});
+	if (!item) return null;
 
-	if (!isCatalogExist)
-		return (
-			<>
-				<BugsnagLogsModal />
-			</>
-		);
+	if (!isCatalogExist) return <BugsnagLogsModal itemLogicPath={item.logicPath} />;
 
 	return (
 		<>
+			{!isNext && catalogProps.sourceName && (
+				<Share
+					path={editLink}
+					trigger={<ButtonLink text={t("share.name.article")} iconCode="external-link" />}
+				/>
+			)}
 			<IsReadOnlyHOC>
-				<History key="history" />
-				<BugsnagLogsModal key="bugsnag" />
+				<History key="history" item={item} />
+				<BugsnagLogsModal key="bugsnag" itemLogicPath={item.logicPath} />
 				<FileEditor
 					key="file-editor"
-					trigger={
-						<ListItem disabled={!isArticleExist} iconCode="file-pen" text={t("article.edit-markdown")} />
-					}
+					isCurrentItem={isCurrentItem}
+					item={item}
+					trigger={<ButtonLink iconCode="file-pen" text={t("article.edit-markdown")} />}
 				/>
 			</IsReadOnlyHOC>
-			{shouldShowEditInGramax && <EditInGramax key="edit-gramax" />}
-			<ShowInExplorer />
-			<EnterpriseCheckStyleGuide />
+			{shouldShowEditInGramax && (
+				<EditInGramax pathname={editLink} articlePath={item.ref.path} key="edit-gramax" />
+			)}
+			<ShowInExplorer item={item} />
+			{!item.errorCode && isCurrentItem && <EnterpriseCheckStyleGuide />}
 			{/* {isDevMode && <StyleGuideMenu />} */}
 		</>
 	);

@@ -1,7 +1,7 @@
 import { alfa, beta } from "@ext/markdown/elements/alfaBeta/alfaBeta";
 import { br } from "@ext/markdown/elements/br/render/br";
 import { cmd } from "@ext/markdown/elements/cmd/model/cmd";
-import { color } from "@ext/markdown/elements/color/model/color";
+import { color } from "@ext/markdown/elements/color/render/model/color";
 import { answer } from "@ext/markdown/elements/comment/legacy/answer/render/answer";
 import { comment } from "@ext/markdown/elements/comment/render/comment";
 import { cut } from "@ext/markdown/elements/cut/render/model/cut";

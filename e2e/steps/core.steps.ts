@@ -111,6 +111,16 @@ When(
 );
 
 When(
+	"наводимся на кнопку {string}",
+	{ timeout: config.timeouts.long * 4 },
+	async function (this: E2EWorld, text: string) {
+		const elem = this.page().search().clickable(text);
+		await elem.hover({ force: true });
+		await this.page().waitForLoad();
+	},
+);
+
+When(
 	"наводимся на элемент {string}",
 	{ timeout: config.timeouts.medium },
 	async function (this: E2EWorld, text: string) {

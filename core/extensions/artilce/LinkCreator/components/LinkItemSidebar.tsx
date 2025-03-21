@@ -3,7 +3,7 @@ import Sidebar from "@components/Layouts/Sidebar";
 import LinkItem from "@ext/artilce/LinkCreator/models/LinkItem";
 import HeadingLinkItem from "./HeadingLinkItem";
 
-type LinkItemSidebarProps = {
+export type LinkItemSidebarProps = {
 	title: string;
 	iconCode?: string;
 	item?: LinkItem;

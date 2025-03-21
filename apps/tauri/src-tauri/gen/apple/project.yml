@@ -1,6 +1,6 @@
 name: gramax
 options:
-  bundleIdPrefix: com.ics
+  bundleIdPrefix: gramax
   deploymentTarget:
     iOS: 13.0
 fileGroups: [../../src]
@@ -11,7 +11,7 @@ settingGroups:
   app:
     base:
       PRODUCT_NAME: Gramax
-      PRODUCT_BUNDLE_IDENTIFIER: com.ics.gramax
+      PRODUCT_BUNDLE_IDENTIFIER: gramax.app
       DEVELOPMENT_TEAM: INTELLEKTUALNYE KORPORATIVNYE RESHENIYA, OOO
 targetTemplates:
   app:

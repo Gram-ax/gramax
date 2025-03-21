@@ -7,7 +7,6 @@ import Document from "@tiptap/extension-document";
 import History from "@tiptap/extension-history";
 import Text from "@tiptap/extension-text";
 import OrderedList from "@tiptap/extension-ordered-list";
-import ListItem from "@tiptap/extension-list-item";
 import TaskList from "@tiptap/extension-task-list";
 
 import DocKeyboardShortcuts from "@ext/markdown/elements/article/edit/DocKeyboardShortcuts";
@@ -53,9 +52,11 @@ import LineBreakers from "@ext/markdown/elements/lineBreakers/lineBreakers";
 import customTaskItem from "@ext/markdown/elements/list/edit/models/taskItem/model/taskItem";
 import customTableCell from "@ext/markdown/elements/table/edit/model/tableCell";
 import pasteMarkdown from "@ext/markdown/elements/pasteMarkdown/pasteMarkdown";
+import customListItem from "@ext/markdown/elements/list/edit/models/listItem/model/listItem";
 import GapParagraph from "@ext/markdown/elements/gapParagraph/plugin";
 import customTableRow from "@ext/markdown/elements/table/edit/model/customTableRow";
 import customBulletList from "@ext/markdown/elements/list/edit/models/bulletList/model/customBulletList";
+import Color from "@ext/markdown/elements/color/edit/model/color";
 
 const getExtensions = (): Extensions => [
 	DocKeyboardShortcuts,
@@ -83,6 +84,7 @@ const getExtensions = (): Extensions => [
 	Tabs,
 	Tab,
 	Suggestion,
+	Color,
 
 	Br,
 
@@ -122,8 +124,8 @@ export const getSimpleExtensions = (): Extensions => [
 	OrderedList,
 	customBulletList,
 	TaskList,
-	ListItem,
 	customTaskItem,
+	customListItem,
 
 	Comment,
 ];

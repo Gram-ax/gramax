@@ -1,6 +1,7 @@
 import ActionButtonContainer from "@components/controls/HoverController/ActionButtonContainer";
 import { classNames } from "@components/libs/classNames";
 import { useDebounce } from "@core-ui/hooks/useDebounce";
+import { useOutsideClick } from "@core-ui/hooks/useOutsideClick";
 import styled from "@emotion/styled";
 import { ReactNode, useEffect, RefObject, useCallback, memo, useRef, CSSProperties } from "react";
 import { Instance } from "tippy.js";
@@ -59,6 +60,8 @@ const HoverableActions = (props: HoverProps) => {
 		debounceHide.cancel();
 	}, [isHovered, actionsRef.current]);
 
+	useOutsideClick([hoverElementRef.current], handleHide);
+
 	useEffect(() => {
 		const hoverElement = hoverElementRef.current;
 		let hoverable: Window | Element = hoverElement?.querySelector("[data-hover-target='true']");
@@ -85,6 +88,14 @@ const HoverableActions = (props: HoverProps) => {
 			hoverElement.removeEventListener("mouseleave", onMouseLeave);
 		};
 	}, [hoverElementRef.current, selected]);
+
+	useEffect(() => {
+		window.addEventListener("blur", handleHide);
+
+		return () => {
+			window.removeEventListener("blur", handleHide);
+		};
+	}, [actionsRef.current]);
 
 	return (
 		<>
@@ -120,6 +131,7 @@ export default memo(styled(HoverableActions)`
 		opacity: 0;
 		z-index: var(--z-index-base);
 		transition: opacity var(--transition-time-fast) ease-in-out;
+		user-select: none;
 
 		.iconFrame {
 			padding: 0.33em 0 !important;

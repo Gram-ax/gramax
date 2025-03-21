@@ -9,12 +9,12 @@ export class LibGit2Error extends Error {
 	constructor(name: string, message: string, klass: number, code: number) {
 		super(message);
 		this.name = name;
-		this.code = fromRaw(klass, code);
+		this.code = fromRaw(klass, code, message);
 		this.data = makeData(this.code, message);
 	}
 }
 
-export const fromRaw = (klass: number, code: number): GitErrorCode => {
+export const fromRaw = (klass: number, code: number, message: string): GitErrorCode => {
 	const eq = (targetKlass: number, targetCode: number) => targetKlass == klass && targetCode == code;
 
 	switch (true) {
@@ -35,6 +35,9 @@ export const fromRaw = (klass: number, code: number): GitErrorCode => {
 		case eq(4, 4):
 			return GitErrorCode.AlreadyExistsError;
 
+		case eq(4, 1):
+			return GitErrorCode.NotFoundError;
+
 		case eq(34, 16):
 		case eq(34, 0):
 			return GitErrorCode.HttpError;
@@ -42,11 +45,15 @@ export const fromRaw = (klass: number, code: number): GitErrorCode => {
 		case eq(4, 9):
 			return GitErrorCode.PushRejectedError;
 
-		case eq(2, 0):
+		case eq(2, 0) && !message.includes("file"):
 			return GitErrorCode.NetworkConntectionError;
 
 		case eq(14, 1):
 			return GitErrorCode.FileNotFoundError;
+
+		case (eq(0, 5) || eq(0, 0) || eq(26, 0)) &&
+			(message.includes("no error") || message.includes("-1") || message.includes("aborted")):
+			return GitErrorCode.CancelledOperation;
 
 		case eq(JSErrorClass, 19):
 			return GitErrorCode.NetworkConntectionError;

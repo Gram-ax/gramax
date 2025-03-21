@@ -77,7 +77,7 @@ pub fn init<R: Runtime>() -> TauriPlugin<R> {
       _api.register_ios_plugin(init_plugin_gramaxfs)?;
 
       #[cfg(target_os = "android")]
-      _api.register_android_plugin("com.ics.gramax.fs", "GramaxFS")?;
+      _api.register_android_plugin("gramax.app", "GramaxFS")?;
       Ok(())
     })
     .invoke_handler(tauri::generate_handler![

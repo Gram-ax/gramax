@@ -39,7 +39,6 @@ class LinkHoverTooltip extends TooltipBase {
 
 	unMount() {
 		this.closeComponent();
-		this.destroyFunctions();
 	}
 
 	destroyFunctions(delay?: 200) {

@@ -1,11 +1,18 @@
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import CatalogPropsService from "@core-ui/ContextServices/CatalogProps";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
-import LinkHoverTooltip from "@ext/markdown/elements/link/edit/logic/LinkHoverTooltip";
 import { LinkHoverTooltipManager } from "@ext/markdown/elements/link/edit/logic/LinkHoverTooltipManager";
 import { createContext, useContext, useRef, useEffect } from "react";
 
-export const ArticleTooltip = createContext<(link: HTMLElement, resourcePath: string) => void>(() => {});
+interface ArticleTooltipContext {
+	setLink: (link: HTMLElement, resourcePath: string) => void;
+	removeLink: (resourcePath: string) => void;
+}
+
+export const ArticleTooltip = createContext<ArticleTooltipContext>({
+	setLink: () => {},
+	removeLink: () => {},
+});
 
 abstract class ArticleTooltipService {
 	static Provider({ children }: { children: JSX.Element }): JSX.Element {
@@ -42,10 +49,20 @@ abstract class ArticleTooltipService {
 			tooltipManager.current?.createTooltip({ linkElement: element, resourcePath });
 		};
 
-		return <ArticleTooltip.Provider value={setLinkHandler}>{children}</ArticleTooltip.Provider>;
+		const removeLinkHandler = (resourcePath: string) => {
+			if (typeof document === "undefined") return;
+			const tooltip = tooltipManager.current?.getTooltip(resourcePath);
+			if (tooltip) tooltipManager.current?.removeTooltip(tooltip);
+		};
+
+		return (
+			<ArticleTooltip.Provider value={{ setLink: setLinkHandler, removeLink: removeLinkHandler }}>
+				{children}
+			</ArticleTooltip.Provider>
+		);
 	}
 
-	static get value(): (link: HTMLElement, resourcePath: string) => void {
+	static get value(): ArticleTooltipContext {
 		return useContext(ArticleTooltip);
 	}
 }

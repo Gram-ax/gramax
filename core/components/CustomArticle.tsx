@@ -9,6 +9,7 @@ import ModalLayoutLight from "./Layouts/ModalLayoutLight";
 const CustomArticle = ({ name, setLayout = true }: { name: CustomArticleName; setLayout?: boolean }) => {
 	const apiUrlCreator = ApiUrlCreatorService.value;
 	const { data } = UseSWRService.getData<{ title: string; content: string }>(apiUrlCreator.getCustomArticle(name));
+
 	const article = (
 		<>
 			<Header level={2}>{data?.title}</Header>

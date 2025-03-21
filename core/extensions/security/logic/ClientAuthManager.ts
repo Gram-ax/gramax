@@ -12,7 +12,7 @@ interface EnterpriseInfoData {
 	workspacePermission: PermissionMapJSONData;
 	catalogPermission: PermissionMapJSONData;
 	updateDate: string;
-	catalogsProps: { [catalogName: string]: { branches?: string[] } };
+	catalogsProps: { [catalogName: string]: { branches?: string[]; mainBranch: string } };
 }
 
 export default class ClientAuthManager extends AuthManager {

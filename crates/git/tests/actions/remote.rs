@@ -22,9 +22,11 @@ fn clone(sandbox: TempDir, #[case] url: &str) -> Result {
 
   let sideband_calls = Rc::new(RefCell::new(0));
   let transfer_calls = Rc::new(RefCell::new(0));
+  let checkout_calls = Rc::new(RefCell::new(0));
   let sideband_calls_clone = Rc::clone(&sideband_calls);
   let transfer_calls_clone = Rc::clone(&transfer_calls);
-  let repo = Repo::clone(
+  let checkout_calls_clone = Rc::clone(&checkout_calls);
+  Repo::clone(
     TestCreds,
     CloneOptions {
       url: url.to_string(),
@@ -32,6 +34,7 @@ fn clone(sandbox: TempDir, #[case] url: &str) -> Result {
       branch: None,
       depth: None,
       is_bare: false,
+      cancel_token: 0,
     },
     Box::new(move |progress| match progress {
       CloneProgress::Sideband { .. } => {
@@ -40,11 +43,19 @@ fn clone(sandbox: TempDir, #[case] url: &str) -> Result {
       CloneProgress::ChunkedTransfer { .. } => {
         *transfer_calls_clone.borrow_mut() += 1;
       }
+      CloneProgress::Checkout { .. } => {
+        *checkout_calls_clone.borrow_mut() += 1;
+      }
     }),
   )?;
   assert!(sandbox.path().join(".git").exists());
   assert!(*sideband_calls.borrow() > 0);
   assert!(*transfer_calls.borrow() > 0);
+  assert!(*checkout_calls.borrow() > 0);
+
+  let repo = Repo::open(sandbox.path(), TestCreds)?;
+
+  assert!(repo.has_remotes()?);
 
   assert_eq!(repo.default_branch()?.unwrap().name(), Ok(Some("master")));
 
@@ -55,7 +66,7 @@ fn clone(sandbox: TempDir, #[case] url: &str) -> Result {
 fn clone_empty(sandbox: TempDir) -> Result {
   let path = sandbox.path();
   git2::Repository::init(path.join("remote"))?;
-  let repo = Repo::clone(
+  Repo::clone(
     TestCreds,
     CloneOptions {
       url: path.join("remote").to_str().unwrap().to_string(),
@@ -63,9 +74,11 @@ fn clone_empty(sandbox: TempDir) -> Result {
       branch: None,
       depth: None,
       is_bare: false,
+      cancel_token: 9999,
     },
     Box::new(|_| {}),
   )?;
+  let repo = Repo::open(path.join("clone"), TestCreds).unwrap();
   assert!(repo.repo().branches(Some(BranchType::Local))?.count() == 1);
   assert_eq!(repo.repo().head()?.name().unwrap(), "refs/heads/master");
   Ok(())

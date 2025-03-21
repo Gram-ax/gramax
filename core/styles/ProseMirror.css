@@ -182,6 +182,7 @@
 	margin-top: 0;
 	width: 100%;
 	color: var(--color-article-heading-text);
+	max-width: 95%;
 }
 
 .ProseMirror gr-file {

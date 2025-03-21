@@ -36,25 +36,39 @@ export default class SnippetProvider {
 		const articlesWithSnippet = await this.getArticlesWithSnippet(id, sp);
 		this._snippetsArticles.delete(id);
 		await this._fp.delete(this._getSnippetPath(id));
-		articlesWithSnippet.forEach((a) => (a.parsedContent = null));
+		for (const article of articlesWithSnippet) await article.parsedContent.write(() => null);
 	}
 
 	async getArticlesWithSnippet(snippetId: string, sp: SitePresenter) {
-		return (await sp.parseAllItems(this._catalog))
-			.getContentItems()
-			.filter((i) => i.parsedContent?.snippets.has(snippetId));
+		await sp.parseAllItems(this._catalog);
+		const result = [];
+		for (const item of this._catalog.getContentItems()) {
+			await item.parsedContent.read((p) => {
+				if (p.snippets.has(snippetId)) result.push(item);
+			});
+		}
+
+		return result;
 	}
 
 	async getEditData(id: string, parser: MarkdownParser): Promise<SnippetEditData> {
 		const article = await this._getSnippet(id);
-		if (!article.parsedContent) article.parsedContent = await parser.parse(article.content);
-		return { id, title: article.getTitle(), content: article.parsedContent.editTree };
+		if (await article.parsedContent.isNull())
+			await article.parsedContent.write(() => parser.parse(article.content));
+
+		return await article.parsedContent.read((p) => {
+			return { id, title: article.getTitle(), content: p };
+		});
 	}
 
 	async getRenderData(id: string, parser: MarkdownParser): Promise<SnippetRenderData> {
 		const article = await this._getSnippet(id);
-		if (!article.parsedContent) article.parsedContent = await parser.parse(article.content);
-		return { id, title: article.getTitle(), content: (article.parsedContent.renderTree as Tag).children };
+		if (await article.parsedContent.isNull())
+			await article.parsedContent.write(() => parser.parse(article.content));
+
+		return await article.parsedContent.read((p) => {
+			return { id, title: article.getTitle(), content: (p.renderTree as Tag).children };
+		});
 	}
 
 	async getListData() {

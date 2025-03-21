@@ -31,6 +31,7 @@ import { ParseSpec } from "./from_markdown";
 import htmlToken from "@ext/markdown/elements/html/edit/models/htmlToken";
 import viewToken from "@ext/markdown/elements/view/edit/models/viewToken";
 import tableTokens from "@ext/markdown/elements/table/edit/model/tableTokens";
+import colorToken from "@ext/markdown/elements/color/edit/model/colorToken";
 
 function listIsTight(tokens, i) {
 	while (++i < tokens.length) if (tokens[i].type != "list_item_open") return tokens[i].hidden;
@@ -106,6 +107,7 @@ export const getTokens = (context?: ParserContext): { [name: string]: ParseSpec 
 			},
 		},
 
+		color: colorToken,
 		strong: { mark: "strong" },
 		code_inline: { mark: "code", noCloseToken: true },
 

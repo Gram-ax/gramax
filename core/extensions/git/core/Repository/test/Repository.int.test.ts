@@ -61,8 +61,7 @@ describe("Repository", () => {
 			await dfp.delete(path("testRep"));
 			rep = null;
 		});
-		beforeEach(async () => {
-			await RepositoryProvider.resetRepo();
+		test("конфликт", async () => {
 			await rep.gvc.createNewBranch("B");
 			await dfp.write(repPath("1.txt"), "111\nBBB\n333");
 			await rep.publish({ commitMessage: "test", data: mockUserData, filesToPublish: [path("1.txt")] });
@@ -70,8 +69,6 @@ describe("Repository", () => {
 			await dfp.write(repPath("1.txt"), "111\nmaster\n333");
 			await rep.publish({ commitMessage: "test", data: mockUserData, filesToPublish: [path("1.txt")] });
 			await rep.merge({ targetBranch: "B", deleteAfterMerge: false, data: mockUserData });
-		});
-		test("конфликт", async () => {
 			const state = {
 				value: "mergeConflict",
 				data: {

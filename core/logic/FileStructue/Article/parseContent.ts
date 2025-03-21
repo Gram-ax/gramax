@@ -1,13 +1,13 @@
+import { ArticleFilter } from "@core/FileStructue/Catalog/Catalog";
 import type { ReadonlyCatalog } from "@core/FileStructue/Catalog/ReadonlyCatalog";
+import { Category } from "@core/FileStructue/Category/Category";
 import { convertContentToUiLanguage } from "@ext/localization/locale/translate";
+import RuleProvider from "@ext/rules/RuleProvider";
 import MarkdownParser from "../../../extensions/markdown/core/Parser/Parser";
 import ParserContextFactory from "../../../extensions/markdown/core/Parser/ParserContext/ParserContextFactory";
 import Context from "../../Context/Context";
 import { ItemType } from "../Item/ItemType";
-import { Article } from "./Article";
-import { Category } from "@core/FileStructue/Category/Category";
-import { ArticleFilter } from "@core/FileStructue/Catalog/Catalog";
-import RuleProvider from "@ext/rules/RuleProvider";
+import { Article, type Content } from "./Article";
 
 export const getChildLinks = (category: Category, catalog: ReadonlyCatalog, filters: ArticleFilter[]) => {
 	const items = category.items.filter((i) => !filters || filters.every((f) => f(i as Article, catalog)));
@@ -15,19 +15,19 @@ export const getChildLinks = (category: Category, catalog: ReadonlyCatalog, filt
 	return "[view:hierarchy=none::::List]";
 };
 
-const tryExtractHeader = (article: Article) => {
+const tryExtractHeader = (article: Article, { editTree, renderTree }: Content) => {
 	let header: string = null;
 
-	if (article.parsedContent.editTree) {
-		const content = article.parsedContent.editTree.content;
+	if (editTree) {
+		const content = editTree.content;
 		if (content && content[0] && content[0].type == "heading" && content[0].attrs.level == 1) {
 			header = content[0].text;
 			content.splice(0, 1);
 		}
 	}
 
-	if (article.parsedContent.renderTree && typeof article.parsedContent.renderTree == "object") {
-		const content = article.parsedContent.renderTree.children;
+	if (renderTree && typeof renderTree == "object") {
+		const content = renderTree.children;
 		if (
 			content?.[0] &&
 			typeof content[0] == "object" &&
@@ -51,9 +51,11 @@ async function parseContent(
 	initChildLinks = true,
 	requestUrl?: string,
 ) {
+	const hasContent = !(await article.parsedContent.isNull());
+
 	if (!article) return;
-	if (article.type == ItemType.article && !!article.parsedContent && initChildLinks) return;
-	if (article.type == ItemType.category && !!article.parsedContent && !!article.content?.trim?.() && initChildLinks) {
+	if (article.type == ItemType.article && !!hasContent && initChildLinks) return;
+	if (article.type == ItemType.category && !!hasContent && !!article.content?.trim?.() && initChildLinks) {
 		return;
 	}
 
@@ -64,15 +66,19 @@ async function parseContent(
 		ctx.user?.isLogged,
 	);
 
-	const filters = new RuleProvider(ctx).getItemFilters();
-	const content =
-		article.type == ItemType.category && !article.content?.trim?.()
-			? initChildLinks
-				? getChildLinks(article as Category, catalog, filters)
-				: ""
-			: article.content;
-	article.parsedContent = await parser.parse(content, context, requestUrl);
-	tryExtractHeader(article);
+	await article.parsedContent.write(async () => {
+		const filters = new RuleProvider(ctx).getItemFilters();
+		const content =
+			article.type == ItemType.category && !article.content?.trim?.()
+				? initChildLinks
+					? getChildLinks(article as Category, catalog, filters)
+					: ""
+				: article.content;
+
+		const parsedContent = await parser.parse(content, context, requestUrl);
+		tryExtractHeader(article, parsedContent);
+		return parsedContent;
+	});
 }
 
 export default parseContent;

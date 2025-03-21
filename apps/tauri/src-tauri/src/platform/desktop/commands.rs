@@ -3,6 +3,7 @@ use std::path::PathBuf;
 
 use crate::error::ShowError;
 use crate::platform::desktop::menu::MenuBuilder;
+use crate::MainWindowBuilder;
 use tauri::*;
 
 #[command]
@@ -61,5 +62,11 @@ pub fn set_language<R: Runtime>(app: AppHandle<R>, language: &str) -> Result<()>
 
   app.emit("on_language_changed", language)?;
 
+  Ok(())
+}
+
+#[command(async)]
+pub fn open_window_with_url<R: Runtime>(app: AppHandle<R>, url: Url) -> Result<()> {
+  MainWindowBuilder::default().url(url.path()).build(&app)?;
   Ok(())
 }

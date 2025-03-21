@@ -8,6 +8,7 @@ _branch_info
 _branch_list
 _checkout
 _clone
+_clone_cancel
 _commit
 _delete_branch
 _diff

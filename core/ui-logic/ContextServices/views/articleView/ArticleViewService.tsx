@@ -11,7 +11,7 @@ const UseArticleDefaultStylesContext = createContext<boolean>(undefined);
 let _setArticleView: React.Dispatch<React.SetStateAction<ReactNode>>;
 let _setUseArticleDefaultStyles: React.Dispatch<React.SetStateAction<boolean>>;
 
-const ArticleView: ArticleViewComponent = (data) => <ArticlePage data={data} />;
+const DefaultArticleView: ArticleViewComponent = (data) => <ArticlePage data={data} />;
 
 abstract class ArticleViewService {
 	private static _currentComponent: ArticleViewComponent = null;
@@ -33,6 +33,10 @@ abstract class ArticleViewService {
 		_setUseArticleDefaultStyles = setUseArticleDefaultStyles;
 
 		useLayoutEffect(() => {
+			setArticleView(ArticleLoadingView());
+		}, []);
+
+		useEffect(() => {
 			ArticleViewService._articlePageData = articlePageData;
 			const currentComponent = ArticleViewService._currentComponent
 				? ArticleViewService._currentComponent(articlePageData)
@@ -78,12 +82,16 @@ abstract class ArticleViewService {
 	static setDefaultView() {
 		if (ArticleViewService._isDefaultView) return;
 
-		ArticleViewService.setView(ArticleView);
+		ArticleViewService.setView(DefaultArticleView);
 		ArticleViewService._isDefaultView = true;
 	}
 
 	static setLoadingView() {
 		ArticleViewService.setView(ArticleLoadingView);
+	}
+
+	static isDefaultView(): boolean {
+		return ArticleViewService._isDefaultView;
 	}
 }
 

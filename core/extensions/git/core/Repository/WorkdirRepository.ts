@@ -52,7 +52,7 @@ export default class WorkdirRepository extends Repository {
 	async canSync(): Promise<boolean> {
 		const toPush = (await this.storage.getSyncCount()).push;
 		if (toPush > 0) return false;
-		const status = await this.gvc.getChanges();
+		const status = await this.gvc.getChanges("index");
 		return !status.length;
 	}
 

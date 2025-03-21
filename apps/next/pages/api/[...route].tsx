@@ -67,7 +67,7 @@ const respond = async (app: Application, req: ApiRequest, res: ApiResponse, kind
 		if (!commandResult) return res.end();
 		const { mime, hashItem } = commandResult;
 		if (mime) res.setHeader("Content-Type", mime);
-		if (mime == MimeTypes.xml || mime == MimeTypes.xls || MimeTypes.xlsx)
+		if (mime == MimeTypes.xml || mime == MimeTypes.xls || mime == MimeTypes.xlsx)
 			res.setHeader(
 				"Content-Disposition",
 				`attachment; filename=${encodeURIComponent(req.query?.src as string)}`,

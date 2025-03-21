@@ -1,37 +1,62 @@
-import Button from "@components/Atoms/Button/Button";
 import Input from "@components/Atoms/Input";
 import SpinnerLoader from "@components/Atoms/SpinnerLoader";
-import FormStyle from "@components/Form/FormStyle";
-import ModalLayout from "@components/Layouts/Modal";
-import ModalLayoutLight from "@components/Layouts/ModalLayoutLight";
-import { ButtonItem, ListItem } from "@components/List/Item";
-import ListLayout from "@components/List/ListLayout";
+import ScrollableElement from "@components/Layouts/ScrollableElement";
 import FetchService from "@core-ui/ApiServices/FetchService";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
-import CatalogPropsService from "@core-ui/ContextServices/CatalogProps";
-import WorkspaceService from "@core-ui/ContextServices/Workspace";
-import IsReadOnlyHOC from "@core-ui/HigherOrderComponent/IsReadOnlyHOC";
-import { usePlatform } from "@core-ui/hooks/usePlatform";
-import getIsDevMode from "@core-ui/utils/getIsDevMode";
-import AddNewBranchListItem from "@ext/git/actions/Branch/components/AddNewBranchListItem";
-import DisableTooltipContent from "@ext/git/actions/Branch/components/DisableTooltipContent";
-import GitDateSideBar from "@ext/git/actions/Branch/components/GitDateSideBar";
+import useWatch from "@core-ui/hooks/useWatch";
+import styled from "@emotion/styled";
+import { BranchStatusEnum } from "@ext/git/actions/Branch/components/BranchStatus";
 import getNewBranchNameErrorLocalization from "@ext/git/actions/Branch/components/logic/getNewBranchNameErrorLocalization";
 import validateBranchError from "@ext/git/actions/Branch/components/logic/validateBranchError";
-import MergeBranches from "@ext/git/actions/Branch/components/MergeBranches";
 import ClientGitBranchData from "@ext/git/actions/Branch/model/ClientGitBranchData";
 import tryOpenMergeConflict from "@ext/git/actions/MergeConflictHandler/logic/tryOpenMergeConflict";
 import type MergeData from "@ext/git/actions/MergeConflictHandler/model/MergeData";
 import t from "@ext/localization/locale/translate";
-import PermissionService from "@ext/security/logic/Permission/components/PermissionService";
-import { editCatalogPermission } from "@ext/security/logic/Permission/Permissions";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { RefObject, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { classNames } from "@components/libs/classNames";
+import Button, { TextSize } from "@components/Atoms/Button/Button";
+import Icon from "@components/Atoms/Icon";
+import calculateTabWrapperHeight from "@components/Layouts/StatusBar/Extensions/logic/calculateTabWrapperHeight";
+import BranchItem from "@ext/git/actions/Branch/components/BranchItem";
+import Search from "@ext/git/actions/Branch/components/Search";
+
+const BranchActionsWrapper = styled.div`
+	padding-top: 0.52em;
+	> div {
+		font-size: 12px !important;
+	}
+`;
+
+const NewBranchInputWrapper = styled.div`
+	display: flex;
+	flex-direction: column;
+	align-items: end;
+	height: 0;
+	overflow: hidden;
+	padding-left: 1rem;
+	padding-right: 1rem;
+
+	> div:first-of-type {
+		margin-top: 0.5em;
+		margin-bottom: 0.5em;
+		font-size: 0.9em;
+	}
+
+	&.active {
+		height: auto;
+	}
+`;
 
 interface BranchActionsProps {
+	show: boolean;
+	tabWrapperRef: RefObject<HTMLDivElement>;
 	currentBranch: string;
-	trigger: JSX.Element;
+	isInitNewBranch: boolean;
+	setIsInitNewBranch: (isInitNewBranch: boolean) => void;
+	setShow: (show: boolean) => void;
+	setContentHeight?: (height: number) => void;
+	canEditCatalog?: boolean;
 	onNewBranch?: () => void;
-	onStopMerge?: (haveConflict: boolean) => void;
 	onMergeRequestCreate?: () => void;
 }
 
@@ -40,154 +65,160 @@ const getBranchListItems = (
 	branches: ClientGitBranchData[],
 	currentBranch: string,
 	closeList: () => void,
+	canSwitchBranch: (branchName: string) => boolean,
+	switchBranch: (branchName: string) => void,
 	onMergeRequestCreate?: () => void,
-): ListItem[] => {
-	return branches.map((b): ListItem => {
+) => {
+	return branches.map((b) => {
 		const disable = disableBranchesSameAsHead ? b.branchHashSameAsHead : false;
-		return {
-			element: (
-				<GitDateSideBar
-					currentBranchName={currentBranch}
-					isLocal={!b.remoteName}
-					mergeRequest={b.mergeRequest}
-					title={b.name}
-					iconCode={b.remoteName ? "cloud" : "monitor"}
-					tooltipContent={b.remoteName ? t("remote") : t("local")}
-					data={{ lastCommitAuthor: b.lastCommitAuthor, lastCommitModify: b.lastCommitModify }}
-					disable={disable}
-					showBranchMenu
-					closeList={closeList}
-					onMergeRequestCreate={onMergeRequestCreate}
-				/>
-			),
-			labelField: b.name,
-			disable,
-			tooltipDisabledContent: <DisableTooltipContent branch={currentBranch} />,
-		};
+
+		return (
+			<BranchItem
+				key={b.name}
+				currentBranchName={currentBranch}
+				isLocal={!b.remoteName}
+				mergeRequest={b.mergeRequest}
+				title={b.name}
+				branchStatus={b.remoteName ? BranchStatusEnum.Remote : BranchStatusEnum.Local}
+				data={{
+					lastCommitAuthor: b.lastCommitAuthor,
+					lastCommitModify: b.lastCommitModify,
+					lastCommitAuthorMail: b.lastCommitAuthorMail,
+				}}
+				disable={disable}
+				showBranchMenu
+				closeList={closeList}
+				onMergeRequestCreate={onMergeRequestCreate}
+				switchBranch={switchBranch}
+				canSwitchBranch={canSwitchBranch}
+			/>
+		);
 	});
 };
 
 const BranchActions = (props: BranchActionsProps) => {
-	const { currentBranch, trigger, onNewBranch = () => {}, onStopMerge = () => {}, onMergeRequestCreate } = props;
-	const [isDevMode] = useState(() => getIsDevMode());
+	const {
+		currentBranch,
+		show,
+		setShow,
+		canEditCatalog = false,
+		tabWrapperRef,
+		onNewBranch = () => {},
+		onMergeRequestCreate,
+		setContentHeight,
+		isInitNewBranch,
+		setIsInitNewBranch,
+	} = props;
 	const apiUrlCreator = ApiUrlCreatorService.value;
-	const { isNext } = usePlatform();
-	const addNewBranchText = t("add-new-branch");
-
-	const [displayedBranch, setDisplayedBranch] = useState("");
-	const [isOpen, setIsOpen] = useState(false);
 
 	const [initNewBranchName, setInitNewBranchName] = useState("");
-	const [isInitNewBranch, setIsInitNewBranch] = useState(false);
 	const [isInitNewBranchNameExist, setIsInitNewBranchNameExist] = useState(false);
+
 	const [apiProcess, setApiProcess] = useState(false);
 	const initNewBranchInputRef = useRef<HTMLInputElement>(null);
+	const containerRef = useRef<HTMLDivElement>(null);
 
-	const [isNewBranch, setIsNewBranch] = useState(false);
+	const [allBranches, setAllBranches] = useState<ClientGitBranchData[]>([]);
 	const [branches, setBranches] = useState<ClientGitBranchData[]>([]);
-
 	const [newBranches, setNewBranches] = useState<ClientGitBranchData[]>([]);
 
-	const [branchToMergeInTo, setBranchToMergeInTo] = useState<string>(null);
-	const [deleteAfterMerge, setDeleteAfterMerge] = useState<boolean>(null);
-	const [canMerge, setCanMerge] = useState<boolean>(null);
+	const [searchValue, setSearchValue] = useState("");
 	const [isLoadingData, setIsLoadingData] = useState(false);
 
 	const [newBranchValidationError, setNewBranchValidationError] = useState<string>("");
-	const workspacePath = WorkspaceService.current().path;
-	const catalogProps = CatalogPropsService.value;
-
-	const canEditCatalog = PermissionService.useCheckPermission(
-		editCatalogPermission,
-		workspacePath,
-		catalogProps.name,
-	);
-
 	const mergeData = useRef<MergeData>({ ok: true });
 
 	const canInitNewBranch =
-		isInitNewBranch &&
-		!isNewBranch &&
-		initNewBranchName &&
-		!isInitNewBranchNameExist &&
-		!apiProcess &&
-		!newBranchValidationError;
+		isInitNewBranch && initNewBranchName && !isInitNewBranchNameExist && !apiProcess && !newBranchValidationError;
 
-	const canSwitchBranch =
-		!isInitNewBranch && displayedBranch && !isNewBranch && currentBranch !== displayedBranch && !apiProcess;
-
-	const getNewBranches = async () => {
+	const getNewBranches = useCallback(async () => {
 		setIsLoadingData(true);
+
 		const getBranchUrl = apiUrlCreator.getVersionControlResetBranchesUrl();
 		const response = await FetchService.fetch<ClientGitBranchData[]>(getBranchUrl);
+
 		if (!response.ok) {
-			setIsOpen(false);
+			setShow(false);
 			return;
 		}
+
 		const a = await response.json();
 		setNewBranches(a);
 		setIsLoadingData(false);
-	};
+	}, [apiUrlCreator]);
 
-	const validateBranchName = (value: string): string => {
-		const branchExists = [currentBranch, ...branches.map((otherBranch) => otherBranch.name)];
-		const errorResult = validateBranchError(value, branchExists);
-		const str = getNewBranchNameErrorLocalization(errorResult);
+	const validateBranchName = useCallback(
+		(value: string): string => {
+			const branchExists = [currentBranch, ...branches.map((otherBranch) => otherBranch.name)];
+			const errorResult = validateBranchError(value, branchExists);
+			const str = getNewBranchNameErrorLocalization(errorResult);
 
-		return str;
-	};
+			return str;
+		},
+		[currentBranch, branches],
+	);
 
-	const switchBranch = async () => {
-		if (!displayedBranch) return;
-		const newBranchUrl = apiUrlCreator.getVersionControlCheckoutBranchUrl(displayedBranch);
-		setApiProcess(true);
-		const response = await FetchService.fetch(newBranchUrl);
-		if (!response.ok) {
-			setIsOpen(false);
+	const switchBranch = useCallback(
+		async (branchName: string) => {
+			if (!branchName) return;
+			const newBranchUrl = apiUrlCreator.getVersionControlCheckoutBranchUrl(branchName);
+
+			setApiProcess(true);
+
+			const response = await FetchService.fetch(newBranchUrl);
+			if (!response.ok) {
+				setApiProcess(false);
+				return;
+			}
+
+			onNewBranch();
+			setIsInitNewBranch(true);
+			setShow(false);
 			setApiProcess(false);
-			return;
-		}
-		onNewBranch();
-		setIsNewBranch(true);
-		setIsOpen(false);
-		setApiProcess(false);
-	};
+		},
+		[onNewBranch, apiUrlCreator],
+	);
 
-	const initNewBranch = async () => {
-		const initNewBranchUrl = apiUrlCreator.getVersionControlCreateNewBranchUrl(initNewBranchName);
-		setApiProcess(true);
-		const response = await FetchService.fetch(initNewBranchUrl);
-		if (!response.ok) {
+	const initNewBranch = useCallback(
+		async (branchName: string) => {
+			const initNewBranchUrl = apiUrlCreator.getVersionControlCreateNewBranchUrl(branchName);
+			setApiProcess(true);
+
+			const response = await FetchService.fetch(initNewBranchUrl);
+			if (!response.ok) {
+				setApiProcess(false);
+				return;
+			}
+
+			onNewBranch();
+			setIsInitNewBranch(true);
+			setShow(false);
 			setApiProcess(false);
-			return;
-		}
-		onNewBranch();
-		setIsNewBranch(true);
-		setIsOpen(false);
-		setApiProcess(false);
+		},
+		[onNewBranch, apiUrlCreator],
+	);
+
+	const canSwitchBranch = (branchName: string) => {
+		return !isInitNewBranch && branchName && !isInitNewBranch && currentBranch !== branchName && !apiProcess;
 	};
 
-	const mergeBranches = async () => {
-		const mergeIntoUrl = apiUrlCreator.mergeInto(branchToMergeInTo, deleteAfterMerge);
-		setApiProcess(true);
-		const res = await FetchService.fetch<MergeData>(mergeIntoUrl);
-		setApiProcess(false);
-		if (!res.ok) return setIsOpen(false);
+	const closeList = useCallback(() => {
+		setShow(false);
+	}, []);
 
-		mergeData.current = await res.json();
-		onStopMerge(!mergeData.current.ok);
-		setIsOpen(false);
-	};
-
-	const onCmdEnter = async () => {
-		let action: () => Promise<void>;
-		if (canInitNewBranch) action = initNewBranch;
-		else if (canSwitchBranch) action = switchBranch;
-		if (!action && canMerge) action = mergeBranches;
-		if (!action) return;
-		if ((canInitNewBranch || canSwitchBranch) && canMerge) return;
-		await action();
-	};
+	const items = useMemo(
+		() =>
+			getBranchListItems(
+				false,
+				branches,
+				currentBranch,
+				closeList,
+				canSwitchBranch,
+				switchBranch,
+				onMergeRequestCreate,
+			),
+		[branches, currentBranch, switchBranch, canSwitchBranch],
+	);
 
 	useEffect(() => {
 		setIsInitNewBranchNameExist(
@@ -208,151 +239,102 @@ const BranchActions = (props: BranchActionsProps) => {
 
 	useEffect(() => {
 		if (!newBranches) return;
-		setBranches(newBranches.filter((b) => b.name != currentBranch));
+		if (!newBranches.length) return;
+		const branches = newBranches.filter((b) => b.name != currentBranch);
+		setAllBranches(branches);
+		setBranches(branches);
 	}, [newBranches]);
 
-	const addNewBranchListItem: ButtonItem[] =
-		!isNext && canEditCatalog
-			? [
-					{
-						element: <AddNewBranchListItem addNewBranchText={addNewBranchText} />,
-						labelField: addNewBranchText,
-						onClick: () => {
-							setIsInitNewBranch(true);
-						},
-					},
-			  ]
-			: undefined;
+	useEffect(() => {
+		if (!containerRef.current || !tabWrapperRef.current || !show) return;
+		const mainElement = tabWrapperRef.current;
+		const firstChild = containerRef.current.firstElementChild as HTMLElement;
+		const isSpinner = firstChild.dataset.qa === "loader";
 
-	const modalOnCloseHandler = () => {
+		if (!mainElement && !isSpinner) return;
+		setContentHeight(calculateTabWrapperHeight(mainElement));
+	}, [containerRef.current, apiProcess, items, tabWrapperRef.current, isInitNewBranch]);
+
+	const modalOnCloseHandler = useCallback(() => {
 		setIsInitNewBranch(false);
-		setDisplayedBranch("");
-		setIsNewBranch(false);
+		setIsInitNewBranch(false);
 		setNewBranches([]);
 		setApiProcess(false);
-		setIsOpen(false);
 		setInitNewBranchName("");
 		setNewBranchValidationError(null);
+		setContentHeight(undefined);
 
 		if (!mergeData.current.ok) tryOpenMergeConflict({ mergeData: { ...mergeData.current } });
 
 		mergeData.current = { ok: true };
-	};
+	}, []);
 
-	const modalOnOpenHandler = () => {
-		setIsOpen(true);
+	const modalOnOpenHandler = useCallback(() => {
 		void getNewBranches();
-	};
+	}, [getNewBranches]);
 
-	const closeList = () => {
-		setIsOpen(false);
-	};
+	useWatch(() => {
+		if (show) modalOnOpenHandler();
+		else modalOnCloseHandler();
+	}, [show]);
 
-	const items = useMemo(
-		() => getBranchListItems(false, branches, currentBranch, closeList, onMergeRequestCreate),
-		[branches, currentBranch],
+	const onSearchChange = useCallback(
+		(value: string) => {
+			if (!value.length) return setBranches(allBranches);
+			setBranches(allBranches.filter((b) => b.name.toLowerCase().includes(value.toLowerCase())));
+		},
+		[allBranches],
 	);
 
-	if (apiProcess) {
-		return (
-			<ModalLayout
-				trigger={trigger}
-				isOpen={isOpen}
-				onOpen={modalOnOpenHandler}
-				onClose={modalOnCloseHandler}
-				onCmdEnter={onCmdEnter}
-				setGlobalsStyles
-			>
-				<ModalLayoutLight>
-					<FormStyle>
-						<>
-							<legend>{t("loading2")}</legend>
-							<SpinnerLoader fullScreen />
-						</>
-					</FormStyle>
-				</ModalLayoutLight>
-			</ModalLayout>
-		);
-	}
+	if (apiProcess || isLoadingData) return <SpinnerLoader ref={containerRef} fullScreen />;
 
 	return (
-		<ModalLayout
-			trigger={trigger}
-			isOpen={isOpen}
-			onOpen={modalOnOpenHandler}
-			onClose={modalOnCloseHandler}
-			onCmdEnter={onCmdEnter}
-			setGlobalsStyles
-		>
-			<ModalLayoutLight>
-				<FormStyle>
-					<>
-						<legend>{t("branches")}</legend>
-						<fieldset>
-							<div className="form-group field field-string">
-								<ListLayout
-									openByDefault
-									selectAllOnFocus
-									isLoadingData={isLoadingData}
-									onSearchChange={() => {
-										setIsInitNewBranch(false);
-										setDisplayedBranch("");
-									}}
-									onSearchClick={() => {
-										if (isInitNewBranch) setIsInitNewBranch(false);
-									}}
-									item={isInitNewBranch ? t("add-new-branch") : undefined}
-									buttons={addNewBranchListItem}
-									items={items}
-									onItemClick={(elem) => {
-										setDisplayedBranch(elem ?? currentBranch);
-									}}
-									placeholder={t("find-branch")}
-								/>
-							</div>
-							{isInitNewBranch && (
-								<div className="init-new-branch-input form-group">
-									<Input
-										isCode
-										errorText={newBranchValidationError}
-										type="text"
-										ref={initNewBranchInputRef}
-										style={{ pointerEvents: isNewBranch ? "none" : "auto" }}
-										placeholder={t("enter-branch-name")}
-										onChange={(e) => {
-											const validateBranchNameValue = validateBranchName(e.currentTarget.value);
-											setNewBranchValidationError(validateBranchNameValue);
-											setInitNewBranchName(e.currentTarget.value);
-										}}
-									/>
-								</div>
-							)}
-							<div className="buttons">
-								<Button
-									disabled={isInitNewBranch ? !canInitNewBranch : !canSwitchBranch}
-									onClick={isInitNewBranch ? initNewBranch : switchBranch}
-								>
-									{t(isInitNewBranch ? "add" : "switch")}
-								</Button>
-							</div>
-							{!isDevMode && (
-								<IsReadOnlyHOC>
-									<MergeBranches
-										onClick={mergeBranches}
-										onCanMergeChange={(value) => setCanMerge(value)}
-										onBranchToMergeInToChange={(value) => setBranchToMergeInTo(value)}
-										onDeleteAfterMergeChange={(value) => setDeleteAfterMerge(value)}
-										currentBranch={currentBranch}
-										isLoadingData={isLoadingData}
-										branches={getBranchListItems(true, branches, currentBranch, closeList)}
-									/>
-								</IsReadOnlyHOC>
-							)}
-						</fieldset>
-					</>
-				</FormStyle>
-			</ModalLayoutLight>
-		</ModalLayout>
+		<BranchActionsWrapper ref={containerRef}>
+			<Search
+				dataQa="qa-branch-search"
+				placeholder={t("search.placeholder")}
+				onValueChange={onSearchChange}
+				searchValue={searchValue}
+				setSearchValue={setSearchValue}
+			/>
+			<ScrollableElement
+				dragScrolling={false}
+				style={{ maxHeight: "45vh" }}
+				boxShadowStyles={{
+					top: "0px 6px 5px 0px var(--color-diff-entries-shadow) inset",
+					bottom: "0px -6px 5px 0px var(--color-diff-entries-shadow) inset",
+				}}
+			>
+				{items}
+			</ScrollableElement>
+			{canEditCatalog && (
+				<NewBranchInputWrapper className={classNames("init-new-branch-input", { active: isInitNewBranch })}>
+					<Input
+						dataQa="input-new-branch"
+						isCode
+						errorText={newBranchValidationError}
+						type="text"
+						ref={initNewBranchInputRef}
+						style={{ pointerEvents: isInitNewBranch ? "auto" : "none" }}
+						placeholder={t("enter-branch-name")}
+						onChange={(e) => {
+							const validateBranchNameValue = validateBranchName(e.currentTarget.value);
+							setNewBranchValidationError(validateBranchNameValue);
+							setInitNewBranchName(e.currentTarget.value);
+						}}
+					/>
+					<Button
+						isEmUnits
+						textSize={TextSize.M}
+						onClick={() => initNewBranch(initNewBranchName)}
+						disabled={!canInitNewBranch}
+					>
+						<Icon code="plus" />
+						<span>{t("add-new-branch")}</span>
+					</Button>
+				</NewBranchInputWrapper>
+			)}
+		</BranchActionsWrapper>
 	);
 };
 

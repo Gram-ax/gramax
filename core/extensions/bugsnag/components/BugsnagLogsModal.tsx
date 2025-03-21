@@ -4,10 +4,12 @@ import Checkbox from "@components/Atoms/Checkbox";
 import Icon from "@components/Atoms/Icon";
 import TextArea from "@components/Atoms/TextArea";
 import FormStyle from "@components/Form/FormStyle";
-import ListItem from "@components/Layouts/CatalogLayout/RightNavigation/ListItem";
 import ModalLayout from "@components/Layouts/Modal";
 import ModalLayoutLight from "@components/Layouts/ModalLayoutLight";
 import { classNames } from "@components/libs/classNames";
+import ButtonLink from "@components/Molecules/ButtonLink";
+import FetchService from "@core-ui/ApiServices/FetchService";
+import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import PageDataContext from "@core/Context/PageDataContext";
 import styled from "@emotion/styled";
@@ -18,16 +20,21 @@ import DefaultError from "@ext/errorHandlers/logic/DefaultError";
 import t from "@ext/localization/locale/translate";
 import PersistentLogger from "@ext/loggers/PersistentLogger";
 import CodeBlock from "@ext/markdown/elements/codeBlockLowlight/render/component/CodeBlock";
-import EditorService from "@ext/markdown/elementsUtils/ContextServices/EditorService";
-import { Editor, JSONContent } from "@tiptap/core";
+import { JSONContent } from "@tiptap/core";
 import { useCallback, useEffect, useState } from "react";
 
-const getDetails = (props: { editor?: Editor; context?: PageDataContext }) => {
-	const { editor, context } = props;
+interface BugsnagBodyProps {
+	setIsOpen: (v: boolean) => void;
+	itemLogicPath: string;
+	className?: string;
+}
+
+const getDetails = (props: { editTree: JSONContent; context?: PageDataContext }) => {
+	const { editTree, context } = props;
 	const result: { replacedArticle?: JSONContent; context?: any; gitLogs?: any } = {};
 
-	if (editor) {
-		result.replacedArticle = parseContent(editor.getJSON());
+	if (editTree) {
+		result.replacedArticle = parseContent(editTree);
 	}
 
 	if (context && context.conf) {
@@ -43,45 +50,62 @@ const getDetails = (props: { editor?: Editor; context?: PageDataContext }) => {
 	return result;
 };
 
-const BugsnagLogsModal = ({ className }: { className?: string }) => {
+const BugsnagLogsModal = ({ itemLogicPath, className }: { itemLogicPath: string; className?: string }) => {
 	const [isOpen, setIsOpen] = useState(false);
 
 	return (
 		<ModalLayout
 			className={className}
-			trigger={<ListItem iconCode="bug" text={t("bug-report.name")} />}
+			trigger={<ButtonLink iconCode="bug" text={t("bug-report.name")} />}
 			onOpen={() => setIsOpen(true)}
 			onClose={() => setIsOpen(false)}
 			isOpen={isOpen}
 		>
 			<ModalLayoutLight>
-				<FormStyle>{isOpen && <BugsnagBody setIsOpen={setIsOpen} />}</FormStyle>
+				<FormStyle>{isOpen && <BugsnagBody setIsOpen={setIsOpen} itemLogicPath={itemLogicPath} />}</FormStyle>
 			</ModalLayoutLight>
 		</ModalLayout>
 	);
 };
 
-const BugsnagBody = ({ setIsOpen, className }: { setIsOpen: (v: boolean) => void; className?: string }) => {
+const BugsnagBody = ({ setIsOpen, className, itemLogicPath }: BugsnagBodyProps) => {
 	const [buttonDisabled, setButtonDisabled] = useState(true);
 	const [checked, setChecked] = useState(true);
 	const [comment, setComment] = useState("");
+	const [editTree, setEditTree] = useState<JSONContent>(null);
 	const [isWrongText, setIsWrongText] = useState(false);
 	const requiredParameterText = t("required-parameter");
+	const apiUrlCreator = ApiUrlCreatorService.value;
+
+	const getPageData = useCallback(async () => {
+		const res = await FetchService.fetch(apiUrlCreator.getPageData(itemLogicPath));
+		if (!res.ok) return;
+		const pageData = await res.json();
+		const articleContentEdit = JSON.parse(pageData.data.articleContentEdit);
+		setEditTree(articleContentEdit);
+	}, [itemLogicPath]);
+
+	useEffect(() => {
+		getPageData();
+	}, []);
 
 	const data = PageDataContextService.value;
-	const editor = EditorService.getEditor();
 
 	const sendLogsHandler = useCallback(
-		(comment) => {
-			const logs = { comment, ...getDetails({ editor, context: data }) };
-			void sendBug(
-				new Error("Пользовательская ошибка"),
-				(e) => {
-					// TODO Нужно как то отлавливать, дошел ли контент до багснега и если нет, то бросать ошибку.
-					e.addMetadata("props", logs);
-				},
-				false,
-			).catch((e) => {
+		async (comment) => {
+			const details = getDetails({ editTree, context: data });
+			const logs = { comment, ...details };
+			try {
+				await sendBug(
+					new Error("Пользовательская ошибка"),
+					(e) => {
+						// TODO Нужно как то отлавливать, дошел ли контент до багснега и если нет, то бросать ошибку.
+						e.addMetadata("props", logs);
+					},
+					false,
+				);
+				setIsOpen(false);
+			} catch (e) {
 				console.error(e);
 				ErrorConfirmService.notify(
 					new DefaultError(
@@ -92,8 +116,7 @@ const BugsnagBody = ({ setIsOpen, className }: { setIsOpen: (v: boolean) => void
 						t("bug-report.error.cannot-send-feedback.title"),
 					),
 				);
-			});
-			setIsOpen(false);
+			}
 		},
 		[checked],
 	);
@@ -144,7 +167,7 @@ const BugsnagBody = ({ setIsOpen, className }: { setIsOpen: (v: boolean) => void
 
 				<div className="checkbox__description">
 					<span>{t("bug-report.this-will-help-us")}</span>
-					<UserDetails details={JSON.stringify(getDetails({ editor, context: data }), null, 4)} />
+					<UserDetails details={JSON.stringify(getDetails({ editTree, context: data }), null, 4)} />
 				</div>
 			</CheckboxWrapper>
 

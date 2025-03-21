@@ -26,8 +26,8 @@ const ModifiedBackend = (manager) => {
 	return backend;
 };
 
-const shouldProcessEvent = (target) => {
-	return target.closest(".tree-root") !== null;
+const shouldProcessEvent = (target: any): boolean => {
+	return target instanceof Element && target.closest(".tree-root") !== null;
 };
 
 export default ModifiedBackend;

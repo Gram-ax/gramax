@@ -18,9 +18,11 @@ const Sidebar = (props: SidebarProps) => {
 		<div className={classNames("sidebar-article-element", {}, [className])}>
 			<div className="article-title">
 				{leftActions?.length > 0 && <div className="sidebar-left-actions actions">{leftActions}</div>}
-				<div className="title" title={title}>
-					{title}
-				</div>
+				{title && (
+					<div className="title" title={title}>
+						{title}
+					</div>
+				)}
 				{titleComponent && <span className="title-component">{titleComponent}</span>}
 				{rightActions?.length > 0 && <div className="sidebar-right-actions actions">{rightActions}</div>}
 			</div>
@@ -40,6 +42,7 @@ export default styled(Sidebar)`
 	.article-title,
 	.actions {
 		display: flex;
+		align-items: center;
 	}
 
 	.article-title {
@@ -55,6 +58,7 @@ export default styled(Sidebar)`
 	}
 
 	.actions {
+		position: relative;
 		gap: 0.5rem;
 	}
 

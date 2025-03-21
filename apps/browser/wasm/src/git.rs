@@ -11,6 +11,14 @@ use gramaxgit::prelude::*;
 use crate::define_c_api;
 use crate::emscripten_run_script;
 
+fn register_clone_cancel_token(token: usize) {
+  unsafe {
+    let script = format!("self.cancelToken = {}", token);
+    let script_cstr = CString::new(script).unwrap().into_raw() as *const u8;
+    emscripten_run_script(script_cstr);
+  }
+}
+
 fn on_clone_progress(progress: CloneProgress) {
   unsafe {
     let script = format!(
@@ -92,7 +100,12 @@ define_c_api! {
   }
 
   noreturn fn clone(creds: AccessTokenCreds, opts: CloneOptions) -> () {
+    register_clone_cancel_token(opts.cancel_token);
     git::clone(creds, opts, Box::new(on_clone_progress))
+  }
+
+  json fn clone_cancel(id: usize) -> bool {
+    git::clone_cancel(id)
   }
 
   noreturn fn add(repo_path: String, patterns: Vec<PathBuf>, force: bool) -> () {

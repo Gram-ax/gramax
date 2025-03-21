@@ -6,10 +6,10 @@ plugins {
 
 android {
     compileSdk = 33
-    namespace = "com.ics.gramax"
+    namespace = "gramax.app"
     defaultConfig {
         manifestPlaceholders["usesCleartextTraffic"] = "false"
-        applicationId = "com.ics.gramax"
+        applicationId = "gramax.app"
         minSdk = 24
         targetSdk = 33
         versionCode = 1

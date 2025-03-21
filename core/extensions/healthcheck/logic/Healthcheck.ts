@@ -5,6 +5,7 @@ import { CatalogErrorGroups } from "@core/FileStructue/Catalog/CatalogErrorGroup
 import type ContextualCatalog from "@core/FileStructue/Catalog/ContextualCatalog";
 import type { ReadonlyBaseCatalog } from "@core/FileStructue/Catalog/ReadonlyCatalog";
 import RouterPathProvider from "@core/RouterPath/RouterPathProvider";
+import t from "@ext/localization/locale/translate";
 import { RenderableTreeNode } from "@ext/markdown/core/render/logic/Markdoc";
 import { collapseTocItems } from "@ext/navigation/article/logic/createTocItems";
 import RuleProvider from "@ext/rules/RuleProvider";
@@ -12,7 +13,6 @@ import Path from "../../../logic/FileProvider/Path/Path";
 import FileProvider from "../../../logic/FileProvider/model/FileProvider";
 import { Item } from "../../../logic/FileStructue/Item/Item";
 import ResourceExtensions from "../../../logic/Resource/ResourceExtensions";
-import t from "@ext/localization/locale/translate";
 
 export type CatalogErrors = Record<keyof typeof CatalogErrorGroups, CatalogError[]>;
 
@@ -27,6 +27,7 @@ export interface CatalogErrorArgs {
 	editorLink: string;
 	title: string;
 	logicPath: string;
+	isText?: boolean;
 }
 
 class Healthcheck {
@@ -46,42 +47,45 @@ class Healthcheck {
 		for (const item of this._catalogContentItems) {
 			if (!filters.every((f) => f(item, this._catalog))) continue;
 
-			if (!item.parsedContent) {
-				this._errors.content.push(
-					this._getRefCatalogError({
-						value: t("markdown-error"),
-						logicPath: item.logicPath,
-						title: item.getTitle() ?? new Path(item.logicPath).name,
-						editorLink: await this._getErrorLink(this._catalog, item),
-					}),
-				);
-				continue;
-			}
-
-			const manager = item.parsedContent.linkManager;
-			const { linkResources, resources } = manager;
-
-			for (const resource of item.parsedContent.resourceManager.resources) {
-				await this._checkResource(item, resource);
-			}
-
-			for (const resource of resources) {
-				if (linkResources.length === 0) {
-					await this._checkResourceLink(item, resource);
-					continue;
+			await item.parsedContent.read(async (p) => {
+				if (!p) {
+					this._errors.content.push(
+						this._getRefCatalogError({
+							value: t("markdown-error"),
+							logicPath: item.logicPath,
+							title: item.getTitle() ?? new Path(item.logicPath).name,
+							editorLink: await this._getErrorLink(this._catalog, item),
+							isText: true,
+						}),
+					);
+					return;
 				}
 
-				const linkedResource = linkResources.find((lr) => lr.resource.value === resource.value);
+				const manager = p.linkManager;
+				const { linkResources, resources } = manager;
 
-				if (!linkedResource) await this._checkResourceLink(item, resource);
-				else await this._checkResourceLink(item, linkedResource.resource, linkedResource.hash);
-			}
+				for (const resource of p.resourceManager.resources) {
+					await this._checkResource(item, resource);
+				}
 
-			for (const iconCode of item.parsedContent.icons) {
-				await this._checkIcons(item, iconCode);
-			}
+				for (const resource of resources) {
+					if (linkResources.length === 0) {
+						await this._checkResourceLink(item, resource);
+						continue;
+					}
 
-			await this._checkUnsupported(item, item.parsedContent.renderTree);
+					const linkedResource = linkResources.find((lr) => lr.resource.value === resource.value);
+
+					if (!linkedResource) await this._checkResourceLink(item, resource);
+					else await this._checkResourceLink(item, linkedResource.resource, linkedResource.hash);
+				}
+
+				for (const iconCode of p.icons) {
+					await this._checkIcons(item, iconCode);
+				}
+
+				await this._checkUnsupported(item, p.renderTree);
+			});
 		}
 
 		this._errors.unsupported = this.groupAndRename(this._errors.unsupported);
@@ -123,12 +127,12 @@ class Healthcheck {
 
 	private _pathExists = async (item: Article, resource: Path) => {
 		const path = !resource.extension ? resource.join(new Path(CATEGORY_ROOT_FILENAME)) : resource;
-		return await item.parsedContent.resourceManager.exists(path);
+		return await item.parsedContent.read((p) => p.resourceManager.exists(path));
 	};
 
-	private _getArticleByResourcePath = (item: Article, resource: Path) => {
+	private _getArticleByResourcePath = async (item: Article, resource: Path) => {
 		const path = !resource.extension ? resource.join(new Path(CATEGORY_ROOT_FILENAME)) : resource;
-		const absolutePath = item.parsedContent.resourceManager.getAbsolutePath(path);
+		const absolutePath = await item.parsedContent.read((p) => p.resourceManager.getAbsolutePath(path));
 
 		let index = 0;
 		let article: Article = undefined;
@@ -147,10 +151,11 @@ class Healthcheck {
 	private async _checkResourceLink(item: Article, resource: Path, hash?: string) {
 		const isExist = await this._pathExists(item, resource);
 		const errorValue = hash ? `${resource.value}${hash}` : resource.value;
+		const formattedErrorValue = errorValue.replace(/(?:\.\.\/)+/g, "");
 		const pushError = async () => {
 			this._errors.links.push(
 				this._getRefCatalogError({
-					value: errorValue,
+					value: formattedErrorValue,
 					logicPath: item.logicPath,
 					title: item.getTitle(),
 					editorLink: await this._getErrorLink(this._catalog, item),
@@ -161,10 +166,10 @@ class Healthcheck {
 		if (!isExist) return pushError();
 
 		if (hash) {
-			const article = this._getArticleByResourcePath(item, resource);
+			const article = await this._getArticleByResourcePath(item, resource);
 			if (!article) return pushError();
 
-			const tocItems = collapseTocItems(article.parsedContent.tocItems);
+			const tocItems = collapseTocItems(await article.parsedContent.read((p) => p.tocItems));
 			if (!tocItems.length || !tocItems.some(({ url }) => url === hash)) return pushError();
 		}
 	}

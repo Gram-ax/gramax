@@ -1,4 +1,4 @@
-import { findParentNodeClosestToPos } from "@tiptap/core";
+import getFocusNode from "@ext/markdown/elementsUtils/getFocusNode";
 import { Plugin, PluginKey, Transaction } from "@tiptap/pm/state";
 import { ReplaceAroundStep, ReplaceStep } from "@tiptap/pm/transform";
 
@@ -13,15 +13,13 @@ const aggregationPlugin = new Plugin({
 			if (!transaction.docChanged) return;
 			if (transaction.steps.length !== 1) return;
 
-			const selection = newState.selection;
-			const currentPos = selection.$anchor ? selection.$anchor.pos : selection.$to.pos;
-			const resPos = newState.doc.resolve(currentPos);
-			const data = findParentNodeClosestToPos(resPos, (node) => {
+			const data = getFocusNode(newState, (node) => {
 				return node.type === newState.schema.nodes.table;
 			});
 
-			if (!data?.pos || !data?.node) return;
-			const oldTable = oldState.doc.nodeAt(data.pos);
+			if (!data?.position || !data?.node) return;
+			if (oldState.doc.content.size < data.position) return;
+			const oldTable = oldState.doc.nodeAt(data.position);
 
 			if (!oldTable || oldTable.type !== data.node.type) return;
 			if (oldTable.childCount === data.node.childCount) return;
@@ -34,11 +32,11 @@ const aggregationPlugin = new Plugin({
 					const sliceSizeChange = step.slice.size - (to - from);
 
 					if (sliceSizeChange === 0) return;
-					let newPos = data.pos + 2;
-					let oldPos = data.pos + 2 + data.node.firstChild.nodeSize;
+					let newPos = data.position + 2;
+					let oldPos = data.position + 2 + data.node.firstChild.nodeSize;
 
 					data.node.firstChild.forEach((child, _, index) => {
-						const oldCell = data.node.maybeChild(1)?.child(index);
+						const oldCell = data.node.maybeChild(1)?.maybeChild(index);
 
 						if (oldCell?.attrs?.aggregation && oldCell.attrs.aggregation !== child.attrs.aggregation) {
 							tr.setNodeMarkup(newPos, child.type, { aggregation: oldCell.attrs.aggregation });
@@ -46,7 +44,7 @@ const aggregationPlugin = new Plugin({
 						}
 
 						newPos += child.nodeSize;
-						oldPos += data.node.maybeChild(1)?.child(index).nodeSize;
+						oldPos += data.node.maybeChild(1)?.maybeChild(index)?.nodeSize;
 					});
 				}
 			});

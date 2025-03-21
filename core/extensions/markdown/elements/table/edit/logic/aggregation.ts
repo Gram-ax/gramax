@@ -102,7 +102,11 @@ const updateCellsData = (table: HTMLTableElement, hasHeader: boolean) => {
 
 	for (let i = 0; i < cells.length; i++) {
 		const cell = cells[i] as HTMLTableCellElement;
+		if (!cell) continue;
+
 		const previousCell = table.rows[table.rows.length - 2].cells[i];
+		if (!previousCell) continue;
+
 		cell.setAttribute("align", previousCell.getAttribute("align") || AlignEnumTypes.LEFT);
 		updateCellText(formatter, cell, data[i]?.method, data[i]?.data);
 	}
@@ -122,6 +126,8 @@ export const getCellsColumnData = (cols: HTMLTableCellElement[]): ColumnData => 
 
 	for (let colIndex = 0; colIndex < cols.length; colIndex++) {
 		const cell = cols[colIndex];
+		if (!cell) continue;
+
 		data.push(cell.textContent?.trim() || "");
 	}
 

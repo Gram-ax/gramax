@@ -227,6 +227,7 @@ const DiffEntry = ({
 						</Title>
 
 						<Overview added={entry.overview.added} deleted={entry.overview.removed} />
+						{indent === 1 && discardFileComponent}
 					</Indent>
 				</Highlight>
 			</Wrapper>

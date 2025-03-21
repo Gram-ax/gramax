@@ -4,7 +4,7 @@ plugins {
 }
 
 android {
-    namespace = "com.ics.gramax.git"
+    namespace = "gramax.app.git"
     compileSdk = 34
 
     defaultConfig {

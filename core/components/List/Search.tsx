@@ -151,12 +151,12 @@ export default styled(Search)`
 			? `
 	outline: 0;
 	width: 100%;
-	height: 34px;
+	height: 2.4em;
 	border: none;
 	display: flex;
-	font-size: 14px;
+	font-size: 1em;
 	font-weight: 300;
-	padding: 6px 12px;
+	padding: 0.4em 0.85em;
 	border-radius: var(--radius-medium);
 	background: var(--color-code-bg);
 	color: var(--color-article-heading-text);`
@@ -167,16 +167,16 @@ export default styled(Search)`
 		align-items: center;
 		width: 100%;
 		flex-direction: row;
-		gap: 6px;
+		gap: 0.428em;
 
 		.left-icon i {
-			padding-right: 8px;
-			font-size: 13px;
+			padding-right: 0.57em;
+			font-size: 0.9em;
 		}
 
 		.list-input {
 			width: 100%;
-			font-size: 14px;
+			font-size: 1em;
 		}
 
 		:hover {

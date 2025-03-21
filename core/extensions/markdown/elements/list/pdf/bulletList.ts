@@ -4,15 +4,22 @@ import { getSvgIconFromString } from "@ext/pdfExport/utils/getIcon";
 import { BASE_CONFIG, ICON_SIZE } from "@ext/pdfExport/config";
 import { Content } from "pdfmake/interfaces";
 import { isTag } from "@ext/pdfExport/utils/isTag";
+import { NodeOptions, pdfRenderContext } from "@ext/pdfExport/parseNodesPDF";
 
-export const bulletListHandler = async (node: Tag, level = 0): Promise<Content> => {
+export const bulletListHandler = async (
+	node: Tag,
+	context: pdfRenderContext,
+	options: NodeOptions,
+): Promise<Content> => {
 	const content = node.children || [];
+	const level = options?.level || 0;
+
 	const listItems = await Promise.all(
 		content.map(async (taskItem, index) => {
 			if (!isTag(taskItem)) return null;
 
 			const isTaskItem = taskItem.attributes?.isTaskItem;
-			const itemContent = await listItemHandler(taskItem, level + 1, index === 0);
+			const itemContent = await listItemHandler(taskItem, context, { ...options, level: level + 1 }, index === 0);
 
 			if (!isTaskItem) {
 				return itemContent;

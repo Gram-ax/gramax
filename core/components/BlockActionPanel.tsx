@@ -1,5 +1,6 @@
 import HoverableActions from "@components/controls/HoverController/HoverableActions";
 import Signature from "@components/controls/Signature";
+import useWatch from "@core-ui/hooks/useWatch";
 import EditorService from "@ext/markdown/elementsUtils/ContextServices/EditorService";
 import { FocusEvent, ReactElement, RefObject, useCallback, useState } from "react";
 
@@ -42,13 +43,17 @@ const BlockActionPanel = (props: BlockActionPanelProps) => {
 	const onLoseFocus = useCallback(
 		(e: FocusEvent) => {
 			const target = e.target as HTMLInputElement;
-			if (!hasSignature || target.value.length) return;
+			if (hasSignature || target.value.length) return;
 
 			updateAttributes({ title: "" });
 			return setHasSignature(false);
 		},
 		[updateAttributes, hasSignature],
 	);
+
+	useWatch(() => {
+		if (!hasSignature && signatureText?.length) return setHasSignature(true);
+	}, [signatureText]);
 
 	return (
 		<HoverableActions

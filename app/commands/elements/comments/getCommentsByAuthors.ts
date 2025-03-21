@@ -44,8 +44,11 @@ const getCommentsByAuthors: Command<{ ctx: Context; catalogName: string }, Autho
 
 		const result: AuthoredCommentsByAuthor = {};
 
-		for (const article of articles)
-			countCommentsRecursively(await catalog.getPathname(article), article.parsedContent?.editTree, result);
+		for (const article of articles) {
+			await article.parsedContent.read(async (p) => {
+				countCommentsRecursively(await catalog.getPathname(article), p?.editTree, result);
+			});
+		}
 
 		return result;
 	},

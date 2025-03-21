@@ -161,17 +161,72 @@ export const addColumn = (editor: Editor, cellPosition?: number) => {
 	editor.chain().focus(cellPosition).addColumnBefore().setMeta("removeDecoration", true).run();
 };
 
-export const getHoveredData = (event: MouseEvent): HoveredData => {
-	const target = event.target as HTMLElement;
-	const cell = target.closest("td, th");
-	if (!cell) return { rowIndex: -1, cellIndex: -1 };
+const findCellByPosition = (event: MouseEvent, parent: HTMLElement): HTMLTableCellElement => {
+	const { clientX, clientY } = event;
+	const tableRect = parent.getBoundingClientRect();
+
+	const isAbove = clientY < tableRect.top + 10;
+	const isLeft = clientX < tableRect.left + 50;
+
+	const rows = Array.from(parent.querySelectorAll("tr"));
+	const targetY = isAbove ? tableRect.top : clientY;
+	const targetX = isLeft ? tableRect.left : clientX;
+	let cells = [];
+
+	if (isAbove) cells = Array.from(rows[0].children);
+	if (isLeft) cells = Array.from(rows.map((row) => row.firstElementChild));
+
+	if (!cells.length) return;
+
+	let closestCell: HTMLTableCellElement;
+	let closestDistance = Infinity;
+
+	cells.forEach((cell: HTMLTableCellElement) => {
+		const cellRect = cell.getBoundingClientRect();
+
+		const closestX = Math.max(cellRect.left, Math.min(targetX, cellRect.right));
+		const closestY = Math.max(cellRect.top, Math.min(targetY, cellRect.bottom));
+
+		const distance = Math.sqrt((closestX - targetX) ** 2 + (closestY - targetY) ** 2);
+
+		if (distance < closestDistance) {
+			closestDistance = distance;
+			closestCell = cell;
+		}
+	});
+
+	if (closestCell) {
+		return closestCell;
+	}
+};
+
+const getRowIndex = (clientY: number, rows: HTMLElement[], cell: HTMLElement): number => {
+	for (let i = 0; i < rows.length; i++) {
+		const row = rows[i];
+		const rowRect = row.getBoundingClientRect();
+		if (clientY >= rowRect.top && clientY <= rowRect.bottom) {
+			return i;
+		}
+	}
 
 	const row = cell.closest("tr");
-	const rows = Array.from(row.parentElement.children).filter((child) => child.childElementCount);
-	const rowIndex = rows.indexOf(row);
-	const cellIndex = Array.from(row.children)
-		.filter((child) => child.childElementCount)
-		.indexOf(cell);
+	return rows.indexOf(row);
+};
+
+export const getHoveredData = (event: MouseEvent, parent: HTMLElement): HoveredData => {
+	const target = event.target as HTMLElement;
+	let cell: HTMLTableCellElement = target.closest("td, th");
+
+	if (!cell) cell = findCellByPosition(event, parent);
+	if (!cell) return { rowIndex: -1, cellIndex: -1 };
+
+	const rows = Array.from(cell.closest("tr").parentElement.children) as HTMLElement[];
+	const rowIndex =
+		cell.rowSpan > 1 ? getRowIndex(event.clientY, rows, cell as HTMLElement) : rows.indexOf(cell.closest("tr"));
+	const cellIndex = Math.max(
+		Math.min(Array.from(rows[rowIndex].children).indexOf(cell), rows[rowIndex].childElementCount - 1),
+		0,
+	);
 
 	let offset = 0;
 
@@ -200,25 +255,12 @@ export const getTableSizes = (table: HTMLTableElement): { cols: string[]; rows: 
 		cols.push(child.getBoundingClientRect().width + "px");
 	});
 
-	let ignoreRows = 0;
-	arrayRows.forEach((row: HTMLTableRowElement, index) => {
-		if (ignoreRows > 0) {
-			ignoreRows--;
-			return;
-		}
-
-		const firstTD = row.firstElementChild as HTMLTableColElement;
-		const rowSpan = +firstTD.attributes.getNamedItem("rowspan")?.value || 1;
-		const height =
-			rowSpan > 1
-				? arrayRows
-						.slice(index, index + rowSpan)
-						.reduce((acc, row: HTMLTableRowElement) => acc + row.getBoundingClientRect().height, 0)
-				: row.getBoundingClientRect().height;
-
-		rows.push(height + "px");
-		if (rowSpan > 1) ignoreRows = rowSpan - 1;
-	});
+	arrayRows
+		.filter((row: HTMLTableRowElement) => row.childElementCount)
+		.forEach((row: HTMLTableRowElement) => {
+			const height = row.getBoundingClientRect().height;
+			rows.push(height + "px");
+		});
 
 	return { cols, rows };
 };

@@ -44,6 +44,7 @@ const LevNavItem = (props: LevNavItemProps) => {
 	} = props;
 	const articleProps = ArticlePropsService.value;
 	const title = item ? (articleProps?.ref?.path == item?.ref?.path ? articleProps?.title : item?.title) : null;
+	const currentTitle = articleProps?.ref?.path == item?.ref?.path ? articleProps?.title : null;
 	const existsContent = item?.type === ItemType.category ? (item as CategoryLink)?.existContent : true;
 
 	const status = GitIndexService.getStatusByPath(item?.ref?.path);
@@ -68,7 +69,7 @@ const LevNavItem = (props: LevNavItemProps) => {
 				/>
 			)}
 			<div className="text" data-qa="qa-clickable">
-				<span title={title}>{item?.external || title || <>&nbsp;</>}</span>
+				<span title={title}>{currentTitle || item?.external || title || <>&nbsp;</>}</span>
 				{leftExtensions}
 			</div>
 			{rightExtensions && (

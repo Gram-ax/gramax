@@ -7,7 +7,7 @@ function refreshPrevStates<T extends Callback>(ref: { current: unknown[] }, newS
 	void callback();
 }
 
-function useWatch<T extends Callback>(callback: T, state: unknown[], onlyClient?: boolean): void {
+function useWatchInternal<T extends Callback>(callback: T, state: unknown[], onlyClient?: boolean): void {
 	const prevStates = useRef<unknown[] | undefined>(undefined);
 	if (onlyClient && typeof window === "undefined") return;
 	if (!prevStates.current) refreshPrevStates<T>(prevStates, state, callback);
@@ -21,8 +21,12 @@ function useWatch<T extends Callback>(callback: T, state: unknown[], onlyClient?
 	if (state.length !== prevStates.current.length) refreshPrevStates<T>(prevStates, state, callback);
 }
 
+function useWatch<T extends Callback>(callback: T, state: unknown[]): void {
+	useWatchInternal(callback, state);
+}
+
 export function useWatchClient<T extends Callback>(callback: T, state: unknown[]): void {
-	useWatch(callback, state, true);
+	useWatchInternal(callback, state, true);
 }
 
 export default useWatch;

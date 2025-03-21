@@ -1,4 +1,4 @@
-import { onCloneProgress, type CredsArgs } from "@ext/git/core/GitCommands/LibGit2IntermediateCommands";
+import { cloneProgressCallbacks, type CredsArgs } from "@ext/git/core/GitCommands/LibGit2IntermediateCommands";
 import { LibGit2Error } from "@ext/git/core/GitCommands/errors/LibGit2Error";
 import git from "../../../apps/next/crates/next-gramax-git";
 
@@ -10,19 +10,21 @@ const tryParse = (data: any) => {
 	}
 };
 
-export const call = <O>(command: string, args?: any): Promise<O> => {
+export const call = async <O>(command: string, args?: any): Promise<O> => {
 	let stringifiedArgs = null;
 
-	if (command == "clone") args.callback = (val: string) => onCloneProgress(JSON.parse(val));
+	if (command == "clone")
+		args.callback = (_, val: string) => cloneProgressCallbacks[args.opts.cancelToken]?.(JSON.parse(val));
 	if (command == "diff") stringifiedArgs = JSON.stringify(args);
 
 	if (typeof args.scope !== "undefined") args.scope = intoTreeReadScope(args.scope);
 
 	try {
-		const result = stringifiedArgs
+		const promise = stringifiedArgs
 			? git[command](stringifiedArgs)
 			: git[command](...Object.values(args).filter((p) => p !== undefined && p !== null));
-		if (result.stack) throw result;
+		const result = await promise;
+		if (result?.stack) throw result;
 		return Promise.resolve(typeof result === "string" ? JSON.parse(result) : result);
 	} catch (err) {
 		let error = typeof err === "string" ? tryParse(err) : err;

@@ -1,6 +1,7 @@
 import FetchService from "@core-ui/ApiServices/FetchService";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import useSetArticleDiffView from "@core-ui/hooks/diff/useSetArticleDiffView";
+import useWatch from "@core-ui/hooks/useWatch";
 import { DiffEntries, DiffEntriesLoadStage } from "@ext/git/core/GitMergeRequest/components/Changes/DiffEntries";
 import { Overview } from "@ext/git/core/GitMergeRequest/components/Changes/Overview";
 import ScrollableDiffEntriesLayout from "@ext/git/core/GitMergeRequest/components/Changes/ScrollableDiffEntriesLayout";
@@ -12,12 +13,14 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 export type ChangesProps = {
 	sourceRef: string;
 	targetRef: string;
+	stage: DiffEntriesLoadStage;
+	setStage: (stage: DiffEntriesLoadStage) => void;
 };
 
-export const Changes = ({ targetRef, sourceRef }: ChangesProps) => {
+export const Changes = ({ targetRef, sourceRef, stage, setStage }: ChangesProps) => {
 	const [isCollapsed, setIsCollapsed] = useState(true);
 	const setArticleDiffView = useSetArticleDiffView({ reference: sourceRef }, { reference: targetRef });
-	const { changes, stage, requestChanges } = useDiffEntries(targetRef, sourceRef);
+	const { changes, stage: newStage, requestChanges } = useDiffEntries(targetRef, sourceRef);
 	const apiUrlCreator = ApiUrlCreatorService.value;
 
 	const toggleChanges = useCallback(async () => {
@@ -37,6 +40,10 @@ export const Changes = ({ targetRef, sourceRef }: ChangesProps) => {
 	useEffect(() => {
 		toggleChanges();
 	}, []);
+
+	useWatch(() => {
+		setStage(newStage);
+	}, [newStage]);
 
 	const DiffEntriesCached = useMemo(() => {
 		return changes ? (

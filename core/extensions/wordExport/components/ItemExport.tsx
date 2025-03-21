@@ -88,7 +88,7 @@ const ItemExport = ({ fileName, itemRefPath, isCategory, exportFormat }: ItemExp
 	const loading = (
 		<FormStyle>
 			<>
-				<legend>{t("loading2")}</legend>
+				<legend>{t(exportFormat === ExportFormat.pdf ? "generate-pdf" : "generate-docx")}</legend>
 				<SpinnerLoader height={100} width={100} fullScreen />
 			</>
 		</FormStyle>
@@ -130,7 +130,7 @@ const ItemExport = ({ fileName, itemRefPath, isCategory, exportFormat }: ItemExp
 				? t("article-to-pdf")
 				: t("article-to-docx");
 		}
-		return t("export-catalog-docx");
+		return exportFormat === ExportFormat.pdf ? t("export-catalog-pdf") : t("export-catalog-docx");
 	};
 
 	return (

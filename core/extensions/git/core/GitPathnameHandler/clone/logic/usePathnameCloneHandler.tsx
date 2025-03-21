@@ -5,17 +5,17 @@ import { useRouter } from "@core/Api/useRouter";
 import CloneHandler from "@ext/git/core/GitPathnameHandler/clone/components/CloneHandler";
 import { ComponentProps, useEffect } from "react";
 
-const usePathnameCloneHandler = (isFirstLoad: boolean) => {
+const usePathnameCloneHandler = () => {
 	const router = useRouter();
 	const pageDataContext = PageDataContextService.value;
 	const { isReadOnly } = pageDataContext.conf;
 
 	useEffect(() => {
-		if (!router || !isFirstLoad || !pageDataContext?.shareData || isReadOnly) return;
+		if (!router || !pageDataContext?.shareData || isReadOnly) return;
 		ModalToOpenService.setValue<ComponentProps<typeof CloneHandler>>(ModalToOpen.CloneHandler, {
 			shareData: pageDataContext.shareData,
 		});
-	}, [router, isFirstLoad, pageDataContext?.shareData]);
+	}, [router, pageDataContext?.shareData]);
 };
 
 export default usePathnameCloneHandler;

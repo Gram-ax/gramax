@@ -38,7 +38,7 @@ export class StringRewriter {
 
 	public changeTextLayout(stringToFix: string) {
 		let wrongLayoutQuery = "";
-		stringToFix.toLowerCase();
+		stringToFix = stringToFix.toLowerCase();
 
 		for (let i = 0; i < stringToFix.length; i++) {
 			const letter = stringToFix[i];

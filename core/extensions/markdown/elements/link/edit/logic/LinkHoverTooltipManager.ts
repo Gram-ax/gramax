@@ -56,6 +56,10 @@ export class LinkHoverTooltipManager {
 		this.tooltips.forEach((tooltip) => tooltip.updateAnchorPos(pos));
 	}
 
+	getTooltip(resourcePath: string) {
+		return Array.from(this.tooltips.values()).find((tooltip) => tooltip.resourcePath === resourcePath);
+	}
+
 	destroyAll() {
 		this.tooltips.forEach((tooltip) => tooltip.unMount());
 		this.tooltips.clear();

@@ -11,6 +11,7 @@ interface FieldProps {
 	value?: string | string[] | boolean;
 	tabIndex?: number;
 	required?: boolean;
+	description?: string;
 	isFocused?: boolean;
 	fieldDirection?: "row" | "column";
 	validate?: Validate;
@@ -23,7 +24,7 @@ interface FieldProps {
 
 const Field = (props: FieldProps) => {
 	const { required = false, isFocused = false, fieldDirection = "row", actionButtons, isLoading = false } = props;
-	const { scheme, value, tabIndex, validate, input, formTranslationKey, translationKey } = props;
+	const { description, scheme, value, tabIndex, validate, input, formTranslationKey, translationKey } = props;
 	const { onChange, onFocus } = props;
 
 	const isCheckbox = scheme?.type == "boolean";
@@ -72,13 +73,13 @@ const Field = (props: FieldProps) => {
 					)}
 				</div>
 			</div>
-			{hasTranslation(`forms.${formTranslationKey}.props.${translationKey}.description`) && (
+			{(description || hasTranslation(`forms.${formTranslationKey}.props.${translationKey}.description`)) && (
 				<div className={`input-lable-description ${isCheckbox ? "full-width" : ""}`}>
 					{!isCheckbox && fieldDirection === "row" && <div />}
 					<div
 						className="article"
 						dangerouslySetInnerHTML={{
-							__html: t(`forms.${formTranslationKey}.props.${translationKey}.description`),
+							__html: description || t(`forms.${formTranslationKey}.props.${translationKey}.description`),
 						}}
 					/>
 				</div>

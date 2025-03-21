@@ -67,6 +67,18 @@ h4 {
 	line-height: 1.6;
 }
 
+h5 {
+	font-size: 1em;
+	font-weight: 400;
+	line-height: 1.6;
+}
+
+h6 {
+	font-size: 1em;
+	font-weight: 400;
+	line-height: 1.6;
+}
+
 hr {
 	border: 0;
 	height: 1px;

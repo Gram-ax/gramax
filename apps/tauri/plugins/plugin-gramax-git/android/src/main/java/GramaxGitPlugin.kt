@@ -1,4 +1,4 @@
-package com.ics.gramax.git
+package gramax.app.git
 
 import android.app.Activity
 import app.tauri.annotation.Command

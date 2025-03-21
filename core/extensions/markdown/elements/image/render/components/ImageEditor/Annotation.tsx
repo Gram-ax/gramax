@@ -1,7 +1,7 @@
 import Tooltip from "@components/Atoms/Tooltip";
 import styled from "@emotion/styled";
 import { objectMove } from "@ext/markdown/elements/image/edit/logic/imageEditorMethods";
-import { CSSProperties, RefObject, useRef, useState } from "react";
+import { CSSProperties, RefObject, useEffect, useRef, useState } from "react";
 import { AnnotationObject } from "../../../edit/model/imageEditorTypes";
 import { cssMedia } from "@core-ui/utils/cssUtils";
 import { classNames } from "@components/libs/classNames";
@@ -14,21 +14,52 @@ interface AnnotationObjectProps extends AnnotationObject {
 	className?: string;
 	drawIndexes?: boolean;
 	style?: CSSProperties;
+	isPixels?: boolean;
 }
 
+type AnnotationVector = {
+	x: number;
+	y: number;
+};
+
 const Annotation = (props: AnnotationObjectProps) => {
-	const { index, drawIndexes, text, x, y, editable, selected, onClick, changeData, parentRef, className, style } =
-		props;
+	const {
+		index,
+		drawIndexes,
+		text,
+		x,
+		y,
+		editable,
+		selected,
+		onClick,
+		changeData,
+		parentRef,
+		className,
+		style,
+		isPixels,
+	} = props;
 	const mainRef = useRef<HTMLDivElement>(null);
 	const [isDraggable, setDraggable] = useState<boolean>(false);
+	const [position, setPosition] = useState<AnnotationVector>({ x: 0, y: 0 });
+	const unitType = isPixels ? "px" : "%";
+
+	useEffect(() => {
+		const imageContainer = parentRef.current;
+		const imageContainerRect = imageContainer.getBoundingClientRect();
+
+		setPosition({
+			x: isPixels ? (imageContainerRect.width * x) / 100 : x,
+			y: isPixels ? (imageContainerRect.height * y) / 100 : y,
+		});
+	}, [x, y, isPixels]);
 
 	const mainMouseDown = objectMove({
+		editable,
 		isDraggable,
 		parentRef,
 		mainRef,
 		setDraggable,
 		onMouseDownCallback: () => {
-			if (!editable) return false;
 			onClick?.(index);
 			return true;
 		},
@@ -47,8 +78,8 @@ const Annotation = (props: AnnotationObjectProps) => {
 				className={classNames(className, { selected }, ["annotation"])}
 				style={{
 					...style,
-					left: x + "%",
-					top: y + "%",
+					left: position.x + unitType,
+					top: position.y + unitType,
 				}}
 			>
 				{drawIndexes && index < 9 && <p>{index + 1}</p>}
@@ -88,6 +119,8 @@ export default styled(Annotation)`
 	}
 
 	${cssMedia.narrow} {
+		font-size: 0.8em;
+
 		::before {
 			content: "";
 			position: absolute;

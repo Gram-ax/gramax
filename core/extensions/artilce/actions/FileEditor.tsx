@@ -10,22 +10,29 @@ import FetchService from "@core-ui/ApiServices/FetchService";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import t from "@ext/localization/locale/translate";
 import { useCallback, useState } from "react";
+import { ClientArticleProps } from "@core/SitePresenter/SitePresenter";
 
-const FileEditor = ({ trigger }: { trigger: JSX.Element }) => {
+interface FileEditorProps {
+	trigger: JSX.Element;
+	item: ClientArticleProps;
+	isCurrentItem: boolean;
+}
+
+const FileEditor = ({ trigger, item, isCurrentItem }: FileEditorProps) => {
 	const [value, setValue] = useState(null);
 	const [isOpen, setIsOpen] = useState(false);
 	const apiUrlCreator = ApiUrlCreatorService.value;
 
 	const loadArticleContent = useCallback(async () => {
-		const res = await FetchService.fetch(apiUrlCreator.getArticleContent());
+		const res = await FetchService.fetch(apiUrlCreator.getArticleContent(item.ref.path));
 		if (res.ok) setValue(await res.text());
-	}, [apiUrlCreator]);
+	}, [apiUrlCreator, item.ref.path]);
 
 	const save = useCallback(async () => {
-		const res = await FetchService.fetch(apiUrlCreator.setArticleContent(), value);
-		if (res.ok) ArticleUpdaterService.setUpdateData(await res.json());
+		const res = await FetchService.fetch(apiUrlCreator.setArticleContent(item.ref.path), value);
+		if (res.ok && isCurrentItem) ArticleUpdaterService.setUpdateData(await res.json());
 		setIsOpen(false);
-	}, [value, apiUrlCreator]);
+	}, [value, apiUrlCreator, item.ref.path, isCurrentItem]);
 
 	return (
 		<ModalLayout

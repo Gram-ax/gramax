@@ -1,4 +1,4 @@
-import IsEditService from "@core-ui/ContextServices/IsEdit";
+import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import { DRAG_SCROLL_THRESHOLD } from "@ext/markdown/elements/article/edit/DragScroller";
 import { useEffect, useRef } from "react";
 import { useDragDropManager } from "react-dnd";
@@ -47,7 +47,7 @@ const verticalStrength = ({ y, h, x, w }: Size, point: Point): number => {
 };
 
 const useScrolling = (containerRef: React.MutableRefObject<HTMLDivElement | null>, strengthMultiplier = 30) => {
-	const isEdit = IsEditService.value;
+	const isReadOnly = PageDataContextService.value.conf.isReadOnly;
 	const animationFrameID = useRef<number>(0);
 	const scaleY = useRef<number>(0);
 	const isDragging = useRef<boolean>(false);
@@ -104,7 +104,7 @@ const useScrolling = (containerRef: React.MutableRefObject<HTMLDivElement | null
 	};
 
 	useEffect(() => {
-		if (!isEdit) return;
+		if (isReadOnly) return;
 		const container = containerRef.current;
 		if (!container) return;
 
@@ -126,7 +126,7 @@ const useScrolling = (containerRef: React.MutableRefObject<HTMLDivElement | null
 			unsubscribe();
 			stopScrolling();
 		};
-	}, [dragDropManager, isEdit]);
+	}, [dragDropManager, isReadOnly]);
 };
 
 export default useScrolling;

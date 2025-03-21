@@ -173,17 +173,22 @@ export default class GitlabSourceAPI extends GitSourceApi {
 
 	protected async _api(url: string, init?: RequestInit): Promise<Response> {
 		const isEnterprise = this._data.isEnterprise;
-		const res = await fetch(
-			`${this._data.protocol ?? "https"}://${this._data.domain}${isEnterprise ? "/api" : ""}/api/v4/${url}`,
-			{
-				...init,
-				headers: {
-					...(init?.headers ?? {}),
-					...(this._data.token && { Authorization: `Bearer ${this._data.token}` }),
+		try {
+			const res = await fetch(
+				`${this._data.protocol ?? "https"}://${this._data.domain}${isEnterprise ? "/api" : ""}/api/v4/${url}`,
+				{
+					...init,
+					headers: {
+						...(init?.headers ?? {}),
+						...(this._data.token && { Authorization: `Bearer ${this._data.token}` }),
+					},
 				},
-			},
-		);
-		await this._validateResponse(res);
-		return res;
+			);
+			await this._validateResponse(res);
+			return res;
+		} catch (e) {
+			if (e instanceof NetworkApiError) throw e;
+			await this._validateResponse(null);
+		}
 	}
 }

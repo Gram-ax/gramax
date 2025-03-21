@@ -46,6 +46,15 @@ export const MinimizedArticleStyled = styled(MinimizedArticle)`
 		padding: 0.5rem 0 !important;
 	}
 
+	div:has(> .scrollableContent) {
+		width: unset !important;
+		margin-left: unset !important;
+	}
+
+	div:has(> .scrollableContent) > .scrollableContent {
+		margin-left: unset !important;
+	}
+
 	.admonition {
 		margin: 0.5em 0 !important;
 	}

@@ -1,8 +1,9 @@
 import { classNames } from "@components/libs/classNames";
+import useWatch from "@core-ui/hooks/useWatch";
 import styled from "@emotion/styled";
 import t from "@ext/localization/locale/translate";
 import { Editor } from "@tiptap/core";
-import { FocusEvent, forwardRef, KeyboardEvent } from "react";
+import { FocusEvent, forwardRef, KeyboardEvent, RefObject } from "react";
 
 interface SignatureProps {
 	text: string;
@@ -15,7 +16,7 @@ interface SignatureProps {
 	visible?: boolean;
 }
 
-const Signature = forwardRef<HTMLInputElement, SignatureProps>((props, ref) => {
+const Signature = forwardRef<HTMLInputElement, SignatureProps>((props, ref: RefObject<HTMLInputElement>) => {
 	const { text, autoFocus = true, editor, getPos, onUpdate, onLoseFocus, className, visible = false } = props;
 
 	const onKeyUp = (e: KeyboardEvent<HTMLInputElement>) => {
@@ -32,6 +33,13 @@ const Signature = forwardRef<HTMLInputElement, SignatureProps>((props, ref) => {
 		e.target.classList.add("no-selection");
 		if (visible) onLoseFocus(e);
 	};
+
+	useWatch(() => {
+		const input = ref.current;
+		if (!input) return;
+
+		input.value = text;
+	}, [text]);
 
 	return (
 		<input

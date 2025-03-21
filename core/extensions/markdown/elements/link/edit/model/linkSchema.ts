@@ -7,4 +7,5 @@ const link = {
 	},
 	inclusive: false,
 };
+
 export default link;

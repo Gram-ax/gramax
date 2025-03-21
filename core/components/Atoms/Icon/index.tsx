@@ -5,6 +5,7 @@ import { Placement } from "tippy.js";
 import SpinnerLoader from "../SpinnerLoader";
 import Tooltip from "../Tooltip";
 import LucideIcon from "./LucideIcon";
+import { Props } from "tippy.js";
 
 export interface IconProps {
 	code?: string;
@@ -16,6 +17,8 @@ export interface IconProps {
 	style?: CSSProperties;
 	viewBox?: string;
 	tooltipContent?: ReactNode;
+	tooltipDelay?: Props["delay"];
+	tooltipAppendTo?: Props["appendTo"];
 	onClick?: (event?: MouseEvent<HTMLElement>) => void;
 	onMouseUp?: (event?: MouseEvent<HTMLElement>) => void;
 	onClickCapture?: (event?: MouseEvent<HTMLElement>) => void;
@@ -37,6 +40,8 @@ const Icon = forwardRef((props: IconProps, ref: ForwardedRef<HTMLElement>) => {
 		fw,
 		viewBox,
 		tooltipPlace: TooltipPlace,
+		tooltipDelay,
+		tooltipAppendTo,
 		dataQa,
 		...otherProps
 	} = props;
@@ -53,7 +58,7 @@ const Icon = forwardRef((props: IconProps, ref: ForwardedRef<HTMLElement>) => {
 	if (!IconComponent) return <Icon {...props} tooltipContent="Unknown icon" code="circle-help" />;
 
 	return (
-		<Tooltip content={tooltipContent} place={TooltipPlace}>
+		<Tooltip content={tooltipContent} place={TooltipPlace} delay={tooltipDelay} appendTo={tooltipAppendTo}>
 			<i
 				style={style}
 				ref={ref}

@@ -78,6 +78,12 @@ export default styled(Groups)`
 		line-height: 23px;
 		font-weight: normal;
 		letter-spacing: 0.01em;
+
+		text-overflow: ellipsis;
+		-webkit-line-clamp: 2;
+		-webkit-box-orient: vertical;
+		display: -webkit-box;
+		overflow: hidden;
 	}
 
 	.catalog-text {

@@ -40,6 +40,8 @@ const getViewRenderData: Command<
 		];
 
 		const allArticles = catalog.deref.getItems(itemFilters) as Article[];
+		const currentArticle = catalog.findItemByItemPath<Article>(articlePath);
+		if (!currentArticle) return [];
 
 		return await new ViewFilter(
 			defs,
@@ -47,7 +49,7 @@ const getViewRenderData: Command<
 			groupby,
 			select,
 			allArticles,
-			catalog.findItemByItemPath(articlePath),
+			currentArticle,
 			catalog,
 			display,
 			itemFilters,

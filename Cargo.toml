@@ -20,14 +20,20 @@ members = [
 
 [workspace.package]
 version = "0.0.0"
-authors = ["ics-it"]
+authors = ["gram.ax "]
 description = "Gramax"
 edition = "2021"
 
 [workspace.dependencies]
-tauri = { version = "^2.0.0", features = ["macos-private-api", "devtools"] }
+tauri = { git = "https://github.com/tauri-apps/tauri", rev = "2d029a9f53117f756f9d6783fab74b06a7ab3e8e", features = [
+  "macos-private-api",
+  "devtools",
+] }
 tauri-plugin = { version = "^2.0.0", features = ["build"] }
-tauri-build = { version = "^2.0.0", features = ["tauri-codegen", "codegen"] }
+tauri-build = { git = "https://github.com/tauri-apps/tauri", rev = "2d029a9f53117f756f9d6783fab74b06a7ab3e8e", features = [
+  "tauri-codegen",
+  "codegen",
+] }
 
 tauri-plugin-deep-link = "^2.0.0"
 tauri-plugin-dialog = "^2.0.0"
@@ -58,3 +64,7 @@ codegen-units = 256
 opt-level = 1
 debug = "full"
 debug-assertions = false
+
+[patch.crates-io]
+tauri = { git = "https://github.com/tauri-apps/tauri", rev = "2d029a9f53117f756f9d6783fab74b06a7ab3e8e" }
+tao = { git = "https://github.com/tauri-apps/tao", rev = "c97080cd0d65e0b3b32ba22007047f1f25533f12" }

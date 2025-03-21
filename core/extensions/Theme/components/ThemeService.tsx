@@ -7,6 +7,8 @@ const ThemeContext = createContext<Theme>(undefined);
 let _setTheme: Dispatch<SetStateAction<Theme>> = () => {};
 
 abstract class ThemeService {
+	static defaultTheme = Theme.light;
+
 	static Provider({ children, value }: { children: ReactElement; value?: Theme }): ReactElement {
 		const [theme, setTheme] = useState<Theme>();
 		_setTheme = setTheme;
@@ -43,13 +45,15 @@ abstract class ThemeService {
 
 		document.body.dataset.theme = verifyTheme;
 	}
+
 	public static getTheme() {
 		const body = document?.body;
-		if (!body || !body.dataset) return Theme.dark;
+		if (!body || !body.dataset) return ThemeService.defaultTheme;
 		const bodyTheme = ThemeService.checkTheme(body.dataset.theme);
 
 		return bodyTheme === Theme.dark ? Theme.dark : Theme.light;
 	}
+
 	public static async toggleTheme(apiUrlCreator: ApiUrlCreator) {
 		const nextTheme = ThemeService.getTheme() === Theme.dark ? Theme.light : Theme.dark;
 		await ThemeService.setTheme(nextTheme, apiUrlCreator);
@@ -58,7 +62,7 @@ abstract class ThemeService {
 	static checkTheme(data: string): Theme {
 		if (data in Theme) return data as Theme;
 
-		return Theme.dark;
+		return ThemeService.defaultTheme;
 	}
 }
 

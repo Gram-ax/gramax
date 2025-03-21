@@ -1,3 +1,4 @@
+import WidthWrapper from "@components/WidthWrapper/WidthWrapper";
 import ColGroup from "@ext/markdown/elements/table/edit/components/Helpers/ColGroup";
 import TableHelper from "@ext/markdown/elements/table/edit/components/Helpers/TableHelper";
 import { useAggregation } from "@ext/markdown/elements/table/edit/logic/aggregation";
@@ -21,7 +22,12 @@ const TableComponent = ({ node, getPos, editor }: NodeViewProps) => {
 		</table>
 	);
 
-	if (!editor.isEditable) return <NodeViewWrapper ref={hoverElementRef}>{table}</NodeViewWrapper>;
+	if (!editor.isEditable)
+		return (
+			<NodeViewWrapper ref={hoverElementRef}>
+				<WidthWrapper>{table}</WidthWrapper>
+			</NodeViewWrapper>
+		);
 
 	return (
 		<NodeViewWrapper ref={hoverElementRef}>

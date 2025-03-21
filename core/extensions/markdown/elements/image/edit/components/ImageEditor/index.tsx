@@ -94,7 +94,22 @@ const ImageEditor = (props: EditorProps & { className?: string; style?: CSSPrope
 	};
 
 	const saveData = (exit: boolean) => {
-		handleSave(elements, curCrop);
+		const newElements = elements.map((element: ImageObject) => {
+			const newElement = {
+				...element,
+				x: parseFloat(element.x.toFixed(4)),
+				y: parseFloat(element.y.toFixed(4)),
+			} as unknown as SquareObject;
+
+			if (element.type === ImageObjectTypes.Square) {
+				newElement.w = parseFloat(newElement.w.toFixed(4));
+				newElement.h = parseFloat(newElement.h.toFixed(4));
+			}
+
+			return newElement as ImageObject;
+		});
+
+		handleSave(newElements, curCrop);
 		setAdditions([]);
 
 		if (exit) handleToggle();
@@ -558,6 +573,7 @@ const ImageEditor = (props: EditorProps & { className?: string; style?: CSSPrope
 					/>
 					{isLoaded && (
 						<ObjectRenderer
+							percentToPx
 							objects={elements}
 							imageRef={imgRef}
 							parentRef={imageContainerRef}

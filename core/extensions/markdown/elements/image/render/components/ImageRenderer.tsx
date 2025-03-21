@@ -242,6 +242,9 @@ const ImageRenderer = memo((props: ImageProps): ReactElement => {
 				setIsHovered={setIsHovered}
 				isHovered={isHovered}
 				rightActions={rightActions}
+				width={width}
+				height={height}
+				realSrc={realSrc}
 			/>
 		);
 

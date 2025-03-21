@@ -121,7 +121,7 @@ const TableHelper = (props: TableHelperProps) => {
 
 	const onMouseMove = useCallback(
 		(event: ReactMouseEvent) => {
-			const { cellIndex, rowIndex } = getHoveredData(event);
+			const { cellIndex, rowIndex } = getHoveredData(event, tableRef.current.parentElement);
 			if (cellIndex === -1 || rowIndex === -1) return;
 
 			if (hoveredData.current?.cellIndex === cellIndex && hoveredData.current?.rowIndex === rowIndex) return;
@@ -145,7 +145,7 @@ const TableHelper = (props: TableHelperProps) => {
 	return (
 		<HoverableActions hoverElementRef={hoverElementRef} setIsHovered={setIsHovered} isHovered={isHovered}>
 			<div onMouseMove={onMouseMove}>
-				<WidthWrapper elementRef={tableRef} className={className}>
+				<WidthWrapper className={className}>
 					<>
 						{isHovered && (
 							<Tooltip content={t("select-table")} delay={[1000, 0]}>

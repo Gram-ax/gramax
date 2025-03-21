@@ -1,5 +1,6 @@
-import getUnsupportedElements from "@app/commands/storage/import/getUnsupportedElements";
 import getAllSyncCount from "@app/commands/storage/getAllSyncCount";
+import getUnsupportedElements from "@app/commands/storage/import/getUnsupportedElements";
+import cancelClone from "./cancelClone";
 import canPull from "./canPull";
 import fetchCmd from "./fetch";
 import getCloneProgress from "./getCloneProgress";
@@ -18,6 +19,7 @@ const storage = {
 	sync,
 	fetchCmd,
 	startClone,
+	cancelClone,
 	haveToPull,
 	canPull,
 	getUrl,

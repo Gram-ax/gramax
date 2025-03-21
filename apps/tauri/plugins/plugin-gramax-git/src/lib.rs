@@ -80,6 +80,7 @@ pub fn init<R: Runtime>() -> TauriPlugin<R> {
     .invoke_handler(tauri::generate_handler![
       init_new,
       clone,
+      clone_cancel,
       file_history,
       checkout,
       fetch,

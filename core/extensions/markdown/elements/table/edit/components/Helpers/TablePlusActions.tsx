@@ -74,14 +74,14 @@ const TablePlusActions = (props: TablePlusActionsProps) => {
 	const plusRow = useCallback(
 		(index?: number) => {
 			if (index === node.childCount) {
-				const rowPos = getRowPosition(node, node.childCount, getPos());
+				const rowPos = getRowPosition(node, node.childCount, getPos()) + 1;
 				if (!rowPos) return;
 				return addRowDown(editor, rowPos);
 			}
 
-			const position = getRowPosition(node, index + 1, getPos());
-			if (!position) return;
-			addRow(editor, position);
+			const rowPos = getRowPosition(node, index + 1, getPos()) + 1;
+			if (!rowPos) return;
+			addRow(editor, rowPos);
 		},
 		[editor, node, getPos],
 	);
@@ -133,7 +133,7 @@ const TablePlusActions = (props: TablePlusActionsProps) => {
 						onClick={plusColumn}
 						onMouseEnter={onMouseEnter}
 						onMouseLeave={onMouseLeave}
-						dataQa={`qa-add-column-${tableSizes?.cols?.length}`}
+						dataQa={`qa-add-column-right`}
 						tableRef={tableRef}
 					/>
 				</div>
@@ -169,7 +169,7 @@ const TablePlusActions = (props: TablePlusActionsProps) => {
 						onClick={plusRow}
 						onMouseEnter={onMouseEnter}
 						onMouseLeave={onMouseLeave}
-						dataQa={`qa-add-row-${tableSizes?.rows?.length}`}
+						dataQa={`qa-add-row-down`}
 						tableRef={tableRef}
 					/>
 				</div>

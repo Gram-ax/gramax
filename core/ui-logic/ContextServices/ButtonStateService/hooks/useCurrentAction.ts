@@ -18,9 +18,9 @@ const disabledMarkRule: Record<Mark, Mark[]> = {
 };
 
 const disableBlockRule = {
-	orderedList: (buttonNode) => ["heading", ...BlockPlus].includes(buttonNode),
-	bulletList: (buttonNode) => ["heading", ...BlockPlus].includes(buttonNode),
-	taskList: (buttonNode) => ["heading", ...BlockPlus].includes(buttonNode),
+	orderedList: (buttonNode) => ["heading", "taskList", "code_block", ...BlockPlus].includes(buttonNode),
+	bulletList: (buttonNode) => ["heading", "taskList", "code_block", ...BlockPlus].includes(buttonNode),
+	taskList: (buttonNode) => ["heading", "code_block", ...BlockPlus].includes(buttonNode),
 };
 
 const disabledMarkByAction = {

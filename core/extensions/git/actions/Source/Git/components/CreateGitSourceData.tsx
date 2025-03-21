@@ -27,6 +27,8 @@ const CreateGitSourceData = ({
 	readOnlyProps?: { [key: string]: string };
 }) => {
 	const [thisProps, setThisProps] = useState(props);
+	const [isUrlValid, setIsUrlValid] = useState(true);
+
 	const invalidMailText = t("error-mail");
 	const invalidDomainText = t("invalid") + " " + t("value");
 
@@ -35,17 +37,32 @@ const CreateGitSourceData = ({
 	};
 
 	const onChange = (data: GitSourceFormData) => {
-		const { domain, protocol, origin } = parseStorageUrl(data.url);
-		if (domain && protocol) {
+		const { domain, protocol, origin, pathname } = parseStorageUrl(data.url);
+
+		if (domain && protocol && origin && !domain.startsWith("http") && pathname?.length === 0) {
 			data.domain = domain;
 			data.protocol = protocol;
-			data.url = origin;
-			setThisProps({ ...data });
+			data.gitServerUsername = data.userName;
+			setIsUrlValid(true);
+		} else {
+			setIsUrlValid(false);
 		}
+
+		setThisProps({ ...data });
 	};
 
 	const newSchema = { ...Schema };
 	newSchema.properties = { ...newSchema.properties };
+
+	if (!thisProps.domain || !isUrlValid) {
+		delete newSchema.properties.token;
+	}
+
+	if (!newSchema.properties.token || !thisProps.token) {
+		delete newSchema.properties.userName;
+		delete newSchema.properties.userEmail;
+	}
+
 	Object.keys(readOnlyProps ?? {}).forEach((key) => {
 		if (newSchema.properties?.[key]) newSchema.properties[key] = { readOnly: true, ...newSchema.properties[key] };
 	});
@@ -60,11 +77,16 @@ const CreateGitSourceData = ({
 			fieldDirection="row"
 			submitText={t("add")}
 			validate={(data) => {
-				const { protocol, domain } = parseStorageUrl(data.url);
+				const { protocol, domain, pathname } = parseStorageUrl(data.url);
 				const isErrorEmail = !/.*@.*\..+/.test(data?.userEmail);
 				return {
 					url:
-						data.url && (!domain || !protocol) && protocol !== "http" && protocol !== "https"
+						(data.url &&
+							(!domain || !protocol) &&
+							protocol !== "http" &&
+							protocol !== "https" &&
+							(!domain || domain.startsWith("http"))) ||
+						pathname?.length > 0
 							? invalidDomainText
 							: null,
 					userEmail: isErrorEmail ? invalidMailText : null,

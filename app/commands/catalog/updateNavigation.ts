@@ -8,11 +8,12 @@ import DragTree from "@ext/navigation/catalog/drag/logic/DragTree";
 import DragTreeTransformer from "@ext/navigation/catalog/drag/logic/DragTreeTransformer";
 import { NodeModel } from "@minoru/react-dnd-treeview";
 import { Command } from "../../types/Command";
+import { ItemType } from "@core/FileStructue/Item/ItemType";
 
 const updateNavigation: Command<
 	{
 		ctx: Context;
-		logicPath: string;
+		itemPath: string;
 		catalogName: string;
 		draggedItemPath: string;
 		newLevNav: NodeModel<ItemLink>[];
@@ -26,7 +27,7 @@ const updateNavigation: Command<
 
 	middlewares: [new AuthorizeMiddleware(), new DesktopModeMiddleware(), new ReloadConfirmMiddleware()],
 
-	async do({ ctx, draggedItemPath, logicPath, catalogName, newLevNav, oldLevNav }) {
+	async do({ ctx, draggedItemPath, itemPath, catalogName, newLevNav, oldLevNav }) {
 		const { wm, resourceUpdaterFactory, sitePresenterFactory } = this._app;
 		const workspace = wm.current();
 
@@ -34,22 +35,43 @@ const updateNavigation: Command<
 		const fp = workspace.getFileProvider();
 		const sitePresenter = sitePresenterFactory.fromContext(ctx);
 		const dragTree = new DragTree(fp, resourceUpdaterFactory.withContext(ctx));
-		const ancestors = await dragTree.findOrderingAncestors(newLevNav, draggedItemPath, catalog);
+		const ancestors = dragTree.findOrderingAncestors(newLevNav, draggedItemPath, catalog);
 		if (!ancestors) return;
 
-		const prev = ancestors.prev != ancestors.parent ? ancestors.prev : null;
-		await ancestors.dragged.setOrderAfter(ancestors.parent, prev);
-		await dragTree.drag(oldLevNav, newLevNav, catalog, sitePresenter.parseAllItems.bind(sitePresenter));
-		await ancestors.parent.sortItems();
-		return DragTreeTransformer.getRenderDragNav(await sitePresenter.getCatalogNav(catalog, logicPath));
+		let newLogicPath: string;
+		if (ancestors.parent.type !== ItemType.article) {
+			const prev = ancestors.prev != ancestors.parent ? ancestors.prev : null;
+			await ancestors.dragged.setOrderAfter(ancestors.parent, prev);
+			newLogicPath = await dragTree.drag(
+				oldLevNav,
+				newLevNav,
+				catalog,
+				sitePresenter.parseAllItems.bind(sitePresenter),
+			);
+			await ancestors.parent.sortItems();
+		} else {
+			newLogicPath = await dragTree.drag(
+				oldLevNav,
+				newLevNav,
+				catalog,
+				sitePresenter.parseAllItems.bind(sitePresenter),
+				ancestors.parent,
+			);
+		}
+		return DragTreeTransformer.getRenderDragNav(
+			await sitePresenter.getCatalogNav(
+				catalog,
+				newLogicPath ? catalog.findArticle(newLogicPath, [])?.ref.path.value : itemPath,
+			),
+		);
 	},
 
 	params(ctx, q, body) {
 		const catalogName = q.catalogName;
-		const logicPath = q.logicPath;
+		const itemPath = q.itemPath;
 		const draggedItemPath = body.draggedItemPath;
 		const data = body as { old: NodeModel<ItemLink>[]; new: NodeModel<ItemLink>[] };
-		return { ctx, logicPath, draggedItemPath, catalogName, newLevNav: data.new, oldLevNav: data.old };
+		return { ctx, itemPath, draggedItemPath, catalogName, newLevNav: data.new, oldLevNav: data.old };
 	},
 });
 

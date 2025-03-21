@@ -5,6 +5,9 @@ import { expect } from "playwright/test";
 const MODAL_SELECTOR = ".outer-modal, .form-layout";
 const MODAL_TITLE_SELECTOR = "legend";
 
+const TAB_SELECTOR_ACTIVE = ".tab-wrapper.show";
+const TAB_TITLE_SELECTOR = ".tab-wrapper-title";
+
 Given("смотрим на активную форму", async function (this: E2EWorld) {
 	await this.page().search().reset().scope(MODAL_SELECTOR, "find");
 });
@@ -35,4 +38,19 @@ Then("видим форму {string}", async function (this: E2EWorld, name: str
 Then("видим форму {string} без заголовка", async function (this: E2EWorld, name: string) {
 	const scope = await this.page().search().reset().find(MODAL_SELECTOR);
 	await this.page().search().lookup(name, scope);
+});
+
+Given("смотрим на активную вкладку", async function (this: E2EWorld) {
+	await this.page().search().reset().scope(TAB_SELECTOR_ACTIVE, "find");
+});
+
+When("закрываем активную вкладку", async function (this: E2EWorld) {
+	const elem = await this.page().search().find(".lucide-x", this.page().inner().locator(".x-mark"));
+	await elem.click();
+});
+
+Then("видим вкладку {string}", async function (this: E2EWorld, name: string) {
+	const scope = await this.page().search().reset().find(TAB_SELECTOR_ACTIVE);
+	const title = await this.page().search().find(TAB_TITLE_SELECTOR, scope);
+	await expect(title).toHaveText(name);
 });

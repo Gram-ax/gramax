@@ -2,9 +2,10 @@ import { Editor } from "@tiptap/core";
 
 const canDisplayMenu = (editor: Editor) => {
 	const { selection } = editor.view.state;
-	const isFirst = selection.$from.parent === editor.view.state.doc.firstChild;
+	const doc = editor.view.state.doc;
+	const isFirst = selection.$from.parent === doc.firstChild;
 	const isSelectedFullyDoc =
-		selection.$from.parent.type.name === "doc" && !selection.$from.parent.maybeChild(1).textContent;
+		selection.$from.parent.type.name === "doc" && !doc.maybeChild(1).textContent && doc.childCount === 2;
 
 	return isFirst || isSelectedFullyDoc;
 };

@@ -36,7 +36,7 @@ export const Link = Mark.create<LinkOptions>({
 	...simpleLink,
 
 	inclusive() {
-		return this.options.autolink;
+		return false;
 	},
 
 	addOptions() {
@@ -169,7 +169,7 @@ export default Link.extend({
 	addKeyboardShortcuts() {
 		return addShortcuts(
 			[
-				{ key: "Space", focusShouldBeInsideNode: false, rules: [space("unsetLink")] },
+				{ key: "Space", focusShouldBeInsideNode: false, rules: [space("unsetLink", this.type.name)] },
 				{
 					key: "Mod-k",
 					focusShouldBeInsideNode: false,

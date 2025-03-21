@@ -24,7 +24,7 @@ interface CardProps extends ViewRenderData {
 const Card = ({ columnID, cardID, linkPath, title, otherProps, resourcePath, disabled, updateProperty }: CardProps) => {
 	const previewImage = useMemo(() => getEmptyImage(), []);
 	const cardRef = useRef<HTMLDivElement>(null);
-	const setLink = ArticleTooltipService.value;
+	const { setLink, removeLink } = ArticleTooltipService.value;
 	const router = useRouter();
 	const [{ isDragging }, drag, preview] = useDrag({
 		type: DragItems.Card,
@@ -43,7 +43,7 @@ const Card = ({ columnID, cardID, linkPath, title, otherProps, resourcePath, dis
 
 	const onMouseEnter = (e: MouseEvent) => {
 		const target = e.target as HTMLElement;
-		if (target.closest(".chips")) return setLink(null, null);
+		if (target.closest(".chips")) return removeLink(resourcePath);
 		setLink(cardRef.current as HTMLElement, resourcePath);
 	};
 
@@ -57,14 +57,17 @@ const Card = ({ columnID, cardID, linkPath, title, otherProps, resourcePath, dis
 		updateProperty(columnID, cardID, propertyName, value, isDelete);
 	};
 
+	const removeLinkHandler = () => {
+		removeLink(resourcePath);
+	};
+
 	return (
 		<CardPreview
 			title={title}
 			otherProps={otherProps}
 			isReadOnly={disabled}
 			onSubmit={onSubmit}
-			onDragStart={() => setLink(null, null)}
-			onMouseDown={() => setLink(null, null)}
+			removeLink={removeLinkHandler}
 			onMouseEnter={onMouseEnter}
 			onDoubleClick={onDoubleClick}
 			style={styles}

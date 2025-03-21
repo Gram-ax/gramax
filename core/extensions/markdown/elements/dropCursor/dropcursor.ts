@@ -138,7 +138,7 @@ export class DropCursorView {
 		let disabled =
 			typeof disableDropCursor == "function"
 				? disableDropCursor(this.editorView, pos, event)
-				: disableDropCursor || node?.type.name === "view";
+				: disableDropCursor || node?.type?.name === "view";
 
 		if (pos && !disabled) {
 			let target: number | null = pos.pos;

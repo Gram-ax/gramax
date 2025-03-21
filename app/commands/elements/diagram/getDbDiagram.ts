@@ -35,14 +35,17 @@ const getDbDiagram: Command<
 
 		const article = catalog.findItemByItemPath<Article>(articlePath);
 		await parseContent(article, catalog, ctx, this._app.parser, this._app.parserContextFactory);
-		const resourceManager = article.parsedContent.resourceManager;
-		const diagramRef = fp.getItemRef(resourceManager.getAbsolutePath(path));
 
-		const key = diagramRef.path.value + diagramRef.storageId;
+		const hashItem = await article.parsedContent.read((p) => {
+			const resourceManager = p.resourceManager;
+			const diagramRef = fp.getItemRef(resourceManager.getAbsolutePath(path));
 
-		const hashItem = new HashItemContent(key, async () => {
-			await diagram.addDiagram(diagramRef, tags, ctx.ui, resourceManager.rootPath, primary);
-			return shouldDraw ? diagram.draw() : JSON.stringify(diagram.getData());
+			const key = diagramRef.path.value + diagramRef.storageId;
+
+			return new HashItemContent(key, async () => {
+				await diagram.addDiagram(diagramRef, tags, ctx.ui, resourceManager.rootPath, primary);
+				return shouldDraw ? diagram.draw() : JSON.stringify(diagram.getData());
+			});
 		});
 
 		return {

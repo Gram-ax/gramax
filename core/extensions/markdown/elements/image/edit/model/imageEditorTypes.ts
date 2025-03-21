@@ -9,7 +9,7 @@ export interface Crop {
 }
 
 export interface ImageObject {
-	type: unknown;
+	type: ImageObjectTypes;
 	x: number;
 	y: number;
 	text: string;

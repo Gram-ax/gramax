@@ -31,6 +31,7 @@ export default styled(ArticleWithPreviewArticle)`
 
 	&.preview-style > div.main-article {
 		width: 67%;
+		position: relative;
 	}
 
 	div.preview-article {

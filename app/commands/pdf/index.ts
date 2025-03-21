@@ -1,4 +1,4 @@
-import getDocument from "@app/commands/pdf/getDocumnet";
+import getDocument from "@app/commands/pdf/getDocument";
 
 const pdf = {
 	getDocument,

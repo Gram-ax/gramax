@@ -77,12 +77,18 @@ interface PopupMenuElementProps {
 const PopupMenuElementUnstyled = (props: PopupMenuElementProps) => {
 	const { IconElement, isInline = false, tooltipText, className } = props;
 
+	const Element = tooltipText ? (
+		<Tooltip content={tooltipText}>
+			<span>{IconElement}</span>
+		</Tooltip>
+	) : (
+		IconElement
+	);
+
 	return createElement(
 		isInline ? "span" : "div",
 		{ className: classNames("button", {}, [className]), style: { display: "flex", alignItems: "center" } },
-		<Tooltip content={tooltipText}>
-			<span>{IconElement}</span>
-		</Tooltip>,
+		Element,
 	);
 };
 

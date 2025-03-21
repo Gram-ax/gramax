@@ -31,7 +31,7 @@ const getRenderContentByLogicPath: Command<{ ctx: Context; catalogName: string; 
 
 			return {
 				title: article.getTitle(),
-				content: article.parsedContent.renderTree,
+				content: await article.parsedContent.read((p) => p.renderTree),
 				articlePath: article.ref.path.value,
 			};
 		},

@@ -74,7 +74,7 @@ const GetSharedTicket = styled((props: { trigger: JSX.Element; className?: strin
 			<ModalLayoutLight>
 				<FormStyle>
 					<>
-						<h2>{t("share.name")}</h2>
+						<h2>{t("share.name.catalog")}</h2>
 						<Checkbox
 							className="checkbox"
 							checked={showData}

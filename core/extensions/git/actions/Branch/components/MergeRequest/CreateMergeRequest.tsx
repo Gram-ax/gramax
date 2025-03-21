@@ -7,6 +7,7 @@ import TextArea from "@components/Atoms/TextArea";
 import FormStyle from "@components/Form/FormStyle";
 import Modal from "@components/Layouts/Modal";
 import ModalLayoutLight from "@components/Layouts/ModalLayoutLight";
+import useWatch from "@core-ui/hooks/useWatch";
 import FormattedBranch from "@ext/git/actions/Branch/components/FormattedBranch";
 import SelectGES from "@ext/git/actions/Branch/components/MergeRequest/SelectGES";
 import SelectGitCommitAuthors from "@ext/git/actions/Branch/components/MergeRequest/SelectGitCommitAuthors";
@@ -15,19 +16,23 @@ import t from "@ext/localization/locale/translate";
 import { useState } from "react";
 
 interface MergeRequestModalProps {
-	isEnterprise: boolean;
+	useGesUsersSelect: boolean;
 	sourceBranchRef: string;
 	targetBranchRef: string;
 	onSubmit: (mergeRequest: CreateMergeRequest) => void;
+	onOpen?: () => void;
 	onClose?: () => void;
+	preventSearchAndStartLoading?: boolean;
 }
 
 const CreateMergeRequestModal = ({
+	preventSearchAndStartLoading = false,
 	sourceBranchRef,
 	targetBranchRef,
 	onSubmit,
+	onOpen,
 	onClose,
-	isEnterprise,
+	useGesUsersSelect,
 }: MergeRequestModalProps) => {
 	const [isOpen, setIsOpen] = useState(true);
 	const [approvers, setApprovers] = useState<Signature[]>([]);
@@ -48,15 +53,18 @@ const CreateMergeRequestModal = ({
 		onSubmit(assembleMergeRequest());
 	};
 
+	useWatch(() => {
+		if (isOpen) onOpen?.();
+		else onClose?.();
+	}, [isOpen]);
+
 	const buttonDisabled = !approvers.length;
 
 	return (
 		<Modal
 			isOpen={isOpen}
-			onClose={() => {
-				setIsOpen(false);
-				onClose?.();
-			}}
+			onClose={() => setIsOpen(false)}
+			onOpen={() => setIsOpen(true)}
 			onCmdEnter={onCurrentSubmit}
 		>
 			<ModalLayoutLight>
@@ -86,8 +94,9 @@ const CreateMergeRequestModal = ({
 									<span>{t("git.merge-requests.approvers")}</span>
 									<span className="required">*</span>
 								</label>
-								{isEnterprise ? (
+								{useGesUsersSelect ? (
 									<SelectGES
+										preventSearchAndStartLoading={preventSearchAndStartLoading}
 										approvers={approvers}
 										onChange={(reviewers) => {
 											setApprovers(

@@ -9,6 +9,7 @@ import { exportedKeys } from "@ext/wordExport/layouts";
 import { MainWordExport } from "@ext/wordExport/WordExport";
 import { Command } from "../../types/Command";
 import { TitleInfo } from "@ext/wordExport/options/WordTypes";
+import ViewLocalizationFilter from "@ext/properties/logic/viewLocalizationFilter";
 
 const docx = import("docx");
 
@@ -25,6 +26,10 @@ const getAsWordDocument: Command<{ ctx: Context; itemPath?: Path; isCategory: bo
 			const item = isCatalog
 				? resolveRootCategory(catalog, catalog.props, ctx.contentLanguage)
 				: catalog.findItemByItemPath(itemPath);
+			const itemFilters = [
+				...new RuleProvider(ctx, undefined, undefined).getItemFilters(),
+				new ViewLocalizationFilter().getItemFilter(),
+			];
 			const filters = new RuleProvider(ctx).getItemFilters();
 			const titlesMap: Map<string, TitleInfo> = new Map();
 			const documentTree = await buildDocumentTree(
@@ -39,7 +44,7 @@ const getAsWordDocument: Command<{ ctx: Context; itemPath?: Path; isCategory: bo
 				filters,
 				titlesMap,
 			);
-			const wordExport = new MainWordExport(ExportType.withoutTableOfContents, titlesMap);
+			const wordExport = new MainWordExport(ExportType.withoutTableOfContents, titlesMap, catalog, itemFilters);
 
 			return await (await docx).Packer.toBuffer(await wordExport.getDocument(documentTree));
 		},

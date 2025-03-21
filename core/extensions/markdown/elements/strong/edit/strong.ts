@@ -70,7 +70,7 @@ const Strong = Mark.create<StrongOptions>({
 	addKeyboardShortcuts() {
 		return addShortcuts(
 			[
-				{ key: "Space", focusShouldBeInsideNode: false, rules: [space("toggleStrong")] },
+				{ key: "Space", focusShouldBeInsideNode: false, rules: [space("toggleStrong", this.type.name)] },
 				{ key: "ArrowRight", focusShouldBeInsideNode: false, rules: [arrowRight("toggleStrong")] },
 				{
 					key: "Mod-b",

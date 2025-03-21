@@ -22,19 +22,21 @@ export default class FSCatalogEntryAttachGit implements EventHandlerCollection {
 					const git = new GitCommands(fp, path);
 					const gitfp = new GitTreeFileProvider(git);
 
-					if (await git.isBare()) {
-						const hasSubmodules = await fp.exists(path.join(new Path(".gitmodules")));
+					try {
+						if (await git.isBare()) {
+							const hasSubmodules = await fp.exists(path.join(new Path(".gitmodules")));
 
-						if (hasSubmodules) {
-							const errorMessage = `Repository ${git.repoPath.value} is bare but has submodules; submodules aren't currently supported`;
-							throw new Error(errorMessage);
+							if (hasSubmodules) {
+								const errorMessage = `Repository ${git.repoPath.value} is bare but has submodules; submodules aren't currently supported`;
+								throw new Error(errorMessage);
+							}
+
+							this._fs.fp.mount(path, gitfp);
+						} else {
+							const headScopePath = GitTreeFileProvider.scoped(path, null);
+							this._fs.fp.mount(headScopePath, gitfp);
 						}
-
-						this._fs.fp.mount(path, gitfp);
-					} else {
-						const headScopePath = GitTreeFileProvider.scoped(path, null);
-						this._fs.fp.mount(headScopePath, gitfp);
-					}
+					} catch {}
 				}
 			}
 		});

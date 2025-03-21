@@ -54,8 +54,8 @@ pub fn make_credentials_callback<C: Creds>(creds: &C) -> CredentialsCallback {
         };
         Cred::ssh_key(username.unwrap(), None, &identity, None)
       }
-      allowed if allowed.contains(CredentialType::USERNAME) => Cred::username("git"),
-      _ => Cred::userpass_plaintext("git", creds.access_token()),
+      allowed if allowed.contains(CredentialType::USERNAME) => Cred::username(creds.username()),
+      _ => Cred::userpass_plaintext(creds.username(), creds.access_token()),
     }
   })
 }

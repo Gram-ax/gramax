@@ -1,5 +1,5 @@
 import ArticleUpdaterService from "@components/Article/ArticleUpdater/ArticleUpdaterService";
-import Button from "@components/Atoms/Button/Button";
+import Button, { TextSize } from "@components/Atoms/Button/Button";
 import { ButtonStyle } from "@components/Atoms/Button/ButtonStyle";
 import Icon from "@components/Atoms/Icon";
 import Tooltip from "@components/Atoms/Tooltip";
@@ -71,6 +71,8 @@ const MergeButton = ({ mergeRequest, status }: MergeButtonProps) => {
 	const button = (
 		<div>
 			<Button
+				isEmUnits
+				textSize={TextSize.M}
 				style={{ maxHeight: "29px" }}
 				disabled={disabled}
 				buttonStyle={ButtonStyle.orange}

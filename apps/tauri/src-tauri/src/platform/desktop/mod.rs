@@ -15,6 +15,7 @@ mod updater;
 
 #[cfg(target_os = "macos")]
 mod custom_protocol;
+mod migrate_settings;
 
 #[cfg(target_family = "unix")]
 pub use menu::MenuBuilder;

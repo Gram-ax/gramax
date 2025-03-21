@@ -1,30 +1,33 @@
 import { ContentStack, ContentTable } from "pdfmake/interfaces";
-import { BASE_CONFIG, FONT_SIZE_COEFFICIENT, MAX_WIDTH, NOT_FOUND_IMAGE } from "@ext/pdfExport/config";
+import { BASE_CONFIG, FONT_SIZE_COEFFICIENT, IMAGE_SCALE_FACTOR, MAX_WIDTH } from "@ext/pdfExport/config";
 import { Tag } from "@ext/markdown/core/render/logic/Markdoc";
-import { NodeOptions } from "@ext/pdfExport/parseNodesPDF";
-import { errorCase } from "@ext/pdfExport/utils/getErrorElement";
+import { NodeOptions, pdfRenderContext } from "@ext/pdfExport/parseNodesPDF";
+import Path from "@core/FileProvider/Path/Path";
+import { PDFImageExporter } from "@ext/markdown/elements/image/pdf/PdfImageProcessor";
 
-export function drawioHandler(node: Tag, level?: number, options?: NodeOptions): ContentStack | ContentTable {
-	if (!node.attributes || !node.attributes.src || node.attributes.src === "") {
-		return errorCase(node);
-	}
-
-	if (node.attributes.src.startsWith(NOT_FOUND_IMAGE)) {
-		return errorCase(node);
-	}
-	let originalWidth = parseInt(node.attributes.width) || MAX_WIDTH;
+export async function drawioHandler(
+	node: Tag,
+	context: pdfRenderContext,
+	options?: NodeOptions,
+): Promise<ContentStack | ContentTable> {
+	let originalWidth = parseInt(node.attributes.width) * IMAGE_SCALE_FACTOR || MAX_WIDTH;
 
 	if (options?.colWidth) {
-		originalWidth = Math.min(originalWidth, options.colWidth * 0.9);
-	} else if (originalWidth > MAX_WIDTH) {
-		originalWidth = MAX_WIDTH;
+		originalWidth = Math.min(originalWidth, options.colWidth * IMAGE_SCALE_FACTOR);
 	}
+	originalWidth = Math.min(originalWidth, MAX_WIDTH);
+
+	const { base64, size } = await PDFImageExporter.getImageFromSvgPath(
+		new Path(node.attributes.src),
+		context.parserContext.getResourceManager(),
+		originalWidth,
+	);
 
 	return {
 		stack: [
 			{
-				image: node.attributes.src,
-				width: originalWidth * 0.65,
+				image: base64,
+				width: size.width,
 				margin: [0, 0, 0, BASE_CONFIG.FONT_SIZE * 0.5],
 			},
 			{

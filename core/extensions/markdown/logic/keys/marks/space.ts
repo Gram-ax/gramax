@@ -2,9 +2,11 @@ import { UnionCommands } from "@tiptap/core";
 import getFocusMark from "../../../elementsUtils/getFocusMark";
 import KeyboardRule from "../../../elementsUtils/keyboardShortcuts/model/KeyboardRule";
 
-const space = (toggleCommand: keyof UnionCommands): KeyboardRule => {
+const markCommandsMap = new Map<string, keyof UnionCommands>();
+const space = (toggleCommand: keyof UnionCommands, markName: string): KeyboardRule => {
+	markCommandsMap.set(markName, toggleCommand);
 	return ({ typeName, editor }) => {
-		const { position } = getFocusMark(editor.state, typeName);
+		const { position, marks } = getFocusMark(editor.state, typeName);
 		if (!position) return false;
 
 		const markNode = editor.state.doc.nodeAt(position);
@@ -23,7 +25,11 @@ const space = (toggleCommand: keyof UnionCommands): KeyboardRule => {
 			)
 			.run();
 
-		const toggle = (editor.commands[toggleCommand] as () => boolean)();
+		const toggle = marks.every((mark) => {
+			const command = markCommandsMap.get(mark.type.name);
+			if (!command) return true;
+			return (editor.commands[command] as () => boolean)();
+		});
 
 		const addSpaceAfter = editor
 			.chain()

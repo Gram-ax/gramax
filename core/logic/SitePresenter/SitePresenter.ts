@@ -164,13 +164,18 @@ export default class SitePresenter {
 
 		const itemLinks = catalog ? await this._nav.getCatalogNav(catalog, article.ref.path.value) : [];
 
+		const { edit, render } = await article.parsedContent.read((p) => {
+			return {
+				render: JSON.stringify(p.renderTree),
+				edit: editableContent ? JSON.stringify(getArticleWithTitle(article.props.title, p.editTree)) : null,
+			};
+		});
+
 		return {
 			markdown: markdown ? article.content : null,
-			articleContentRender: JSON.stringify(article.parsedContent.renderTree),
-			articleContentEdit: editableContent
-				? JSON.stringify(getArticleWithTitle(article.props.title, article.parsedContent.editTree))
-				: null,
-			articleProps: this.serializeArticleProps(article, await catalog?.getPathname(article)),
+			articleContentRender: render,
+			articleContentEdit: edit,
+			articleProps: await this.serializeArticleProps(article, await catalog?.getPathname(article)),
 			catalogProps: await this.serializeCatalogProps(catalog),
 			rootRef: catalog ? await this._nav.getRootItemLink(catalog) : null,
 			leftNavItemLinks: catalog ? DragTreeTransformer.getRenderDragNav(itemLinks) : [],
@@ -193,8 +198,8 @@ export default class SitePresenter {
 		return await this.getArticlePageData(data.article, data.catalog, options);
 	}
 
-	async getCatalogNav(catalog: ReadonlyCatalog, currentItemLogicPath: string): Promise<ItemLink[]> {
-		return (await this._nav.getCatalogNav(catalog, currentItemLogicPath)) ?? [];
+	async getCatalogNav(catalog: ReadonlyCatalog, currentItemPath: string): Promise<ItemLink[]> {
+		return (await this._nav.getCatalogNav(catalog, currentItemPath)) ?? [];
 	}
 
 	async getHtml(path: string[], ApiRequestUrl?: string): Promise<string> {
@@ -223,7 +228,7 @@ export default class SitePresenter {
 			await parseContent(article, catalog, this._context, this._parser, this._parserContextFactory);
 		let description =
 			article.props["summary"] ??
-			htmlToText.fromString(article.parsedContent.htmlValue, {
+			htmlToText.fromString(await article.parsedContent.read((p) => p.htmlValue), {
 				ignoreHref: true,
 				ignoreImage: true,
 				selectors: ["h1", "h2", "h3", "h4"].map((v) => ({ selector: v, options: { uppercase: false } })),
@@ -253,7 +258,7 @@ export default class SitePresenter {
 		return catalog;
 	}
 
-	serializeArticleProps(article: Article, pathname: string): ClientArticleProps {
+	async serializeArticleProps(article: Article, pathname: string): Promise<ClientArticleProps> {
 		return {
 			pathname,
 			logicPath: article.logicPath,
@@ -264,7 +269,7 @@ export default class SitePresenter {
 			},
 			title: article.getTitle(),
 			description: article.props["description"] ?? "",
-			tocItems: article?.parsedContent?.tocItems ?? [],
+			tocItems: (await article?.parsedContent.read((p) => p?.tocItems)) ?? [],
 			properties: article.props.properties ?? [],
 			errorCode: article.errorCode ?? null,
 			welcome: article.props.welcome ?? null,
@@ -293,7 +298,10 @@ export default class SitePresenter {
 		const storage = catalog.repo.storage;
 
 		return {
-			link: await this._nav.getCatalogLink(catalog, new LastVisited(this._context, this._workspace.config().name)),
+			link: await this._nav.getCatalogLink(
+				catalog,
+				new LastVisited(this._context, this._workspace.config().name),
+			),
 			relatedLinks: await this._nav.getRelatedLinks(catalog),
 			contactEmail: catalog.props.contactEmail ?? null,
 			tabsTags: catalog.props.tabsTags ?? null,

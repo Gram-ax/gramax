@@ -9,7 +9,7 @@ const CORS_PROXY_KEY = 1;
 
 const self = global.self as typeof global.self & {
 	on_done: (callbackId: number, ptr: number) => void;
-	onCloneProgress: (progress: any) => void;
+	onCloneProgress: (data: any) => void;
 	wasm: typeof WasmModule;
 	store: (key: number, value: string) => Promise<void>;
 	getStore: (key: number) => string;
@@ -56,9 +56,11 @@ self.on_done = (innerCallbackId: number, ptr: number) => {
 	});
 };
 
-self.onCloneProgress = (progress) => {
-	self.postMessage({ type: "clone-progress", progress });
+self.onCloneProgress = (data) => {
+	self.postMessage({ type: "clone-progress", data });
 };
+
+const broadcast = new BroadcastChannel("pthreads-broadcast");
 
 // eslint-disable-next-line @typescript-eslint/no-misused-promises
 self.addEventListener("message", async (ev) => {
@@ -71,6 +73,10 @@ self.addEventListener("message", async (ev) => {
 	if (ev.data.type == "git-call") {
 		const id = await callGit(ev.data.command, ev.data.args);
 		callbacks[id] = { callbackId: ev.data.callbackId, command: ev.data.command, type: ev.data.type };
+
+		if (ev.data.command === "clone_cancel") {
+			broadcast.postMessage({ type: "cancel-clone", id: ev.data.args.id, date: Date.now() });
+		}
 		return;
 	}
 

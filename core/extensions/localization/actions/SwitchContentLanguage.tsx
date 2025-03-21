@@ -63,7 +63,10 @@ const SwitchContentLanguage = ({ className }: { className?: string }) => {
 
 	return (
 		<PopupMenuLayout
+			appendTo={() => document.body}
+			isInline
 			hideOnClick={false}
+			openTrigger="click"
 			trigger={
 				<ButtonLink
 					dataQa="switch-content-language"

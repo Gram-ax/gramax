@@ -1,31 +1,74 @@
 import { ContentStack, ContentTable } from "pdfmake/interfaces";
-import { BASE_CONFIG, FONT_SIZE_COEFFICIENT, MAX_WIDTH, NOT_FOUND_IMAGE } from "@ext/pdfExport/config";
+import { BASE_CONFIG, FONT_SIZE_COEFFICIENT, IMAGE_SCALE_FACTOR, MAX_WIDTH } from "@ext/pdfExport/config";
 import { Tag } from "@ext/markdown/core/render/logic/Markdoc";
-import { NodeOptions } from "@ext/pdfExport/parseNodesPDF";
-import { errorCase } from "@ext/pdfExport/utils/getErrorElement";
+import { NodeOptions, pdfRenderContext } from "@ext/pdfExport/parseNodesPDF";
+import { pdfDiagramRenderer } from "@ext/markdown/elements/diagrams/pdf/pdfDiagramRenderer";
+import DiagramType from "@core/components/Diagram/DiagramType";
+import { getExecutingEnvironment } from "@app/resolveModule/env";
+import { COLOR_CONFIG } from "@ext/pdfExport/config";
 
-export function mermaidHandler(node: Tag, level?: number, options?: NodeOptions): ContentStack | ContentTable {
-	if (!node.attributes || !node.attributes.src || node.attributes.src === "") {
-		return errorCase(node);
+export async function mermaidHandler(
+	node: Tag,
+	context: pdfRenderContext,
+	options?: NodeOptions,
+): Promise<ContentStack | ContentTable> {
+	if (getExecutingEnvironment() === "next") {
+		return createTable(node, context);
 	}
 
-	if (node.attributes.src.startsWith(NOT_FOUND_IMAGE)) {
-		return errorCase(node);
-	}
+	return renderDiagram(node, context, options);
+}
 
+async function createTable(node: Tag, context: pdfRenderContext): Promise<ContentTable> {
+	const textContent = await pdfDiagramRenderer.getDiagramContent(node, context.parserContext.getResourceManager());
+
+	return {
+		table: {
+			dontBreakRows: true,
+			widths: ["*"],
+			body: [
+				[
+					{
+						text: textContent,
+						fontSize: BASE_CONFIG.FONT_SIZE * FONT_SIZE_COEFFICIENT,
+						fillColor: COLOR_CONFIG.codeBlock.fillColor,
+						margin: [
+							BASE_CONFIG.FONT_SIZE * 1.25,
+							BASE_CONFIG.FONT_SIZE * 1.25,
+							BASE_CONFIG.FONT_SIZE * 1.25,
+							BASE_CONFIG.FONT_SIZE * 1.25 - BASE_CONFIG.LINE_HEIGHT_MARGIN,
+						],
+						lineHeight: 1.2,
+						font: "Menlo",
+						color: COLOR_CONFIG.codeBlock.textColor,
+						preserveLeadingSpaces: true,
+					},
+				],
+			],
+		},
+		layout: "noBorders",
+	};
+}
+
+async function renderDiagram(node: Tag, context: pdfRenderContext, options?: NodeOptions): Promise<ContentStack> {
 	let originalWidth = parseInt(node.attributes.width) || MAX_WIDTH;
 
 	if (options?.colWidth) {
-		originalWidth = Math.min(originalWidth, options.colWidth * 0.9);
-	} else if (originalWidth > MAX_WIDTH) {
-		originalWidth = MAX_WIDTH;
+		originalWidth = Math.min(originalWidth, options.colWidth);
 	}
+
+	const { base64, size } = await pdfDiagramRenderer.renderSimpleDiagram(
+		node,
+		DiagramType["mermaid"],
+		context.parserContext.getResourceManager(),
+		originalWidth,
+	);
 
 	return {
 		stack: [
 			{
-				image: node.attributes.src,
-				width: originalWidth * 0.65,
+				image: base64,
+				width: size.width * IMAGE_SCALE_FACTOR,
 				margin: [0, 0, 0, BASE_CONFIG.FONT_SIZE * 0.5],
 			},
 			{

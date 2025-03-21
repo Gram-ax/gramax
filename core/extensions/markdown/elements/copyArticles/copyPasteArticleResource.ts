@@ -42,6 +42,9 @@ interface CreatedFragment {
 	deleteRange?: { from: number; to: number };
 }
 
+type ClipboardItems = {
+	[key: string]: string;
+};
 const IMAGE_MIME_TYPES = ["image/png", "image/jpeg", "image/gif", "image/webp", "image/svg+xml"];
 
 const handleCommentary = (view: EditorView, marks: Mark[] | readonly Mark[]): Mark[] | readonly Mark[] => {
@@ -139,19 +142,16 @@ const filterMarks = async (props: FilterProps): Promise<ProseMirrorNode> => {
 	else return node.type.create(attrs, Fragment.from(newChildren), node.marks);
 };
 
-const handleCodeBlock = (event: ClipboardEvent, view: EditorView): Slice => {
+const handleCodeBlock = (data: ClipboardItems, view: EditorView): Slice => {
 	const { $from } = view.state.selection;
 	const parent = $from?.parent;
-	if (parent && parent.type.spec.code) {
-		return new Slice(
-			Fragment.from(view.state.schema.text(event.clipboardData.getData("text/plain").replace(/\r\n?/g, "\n"))),
-			0,
-			0,
-		);
+	if (parent && parent.type.spec.code && data["text/plain"]) {
+		const plainText = data["text/plain"].replace(/\r\n?/g, "\n");
+		return new Slice(Fragment.from(view.state.schema.text(plainText)), 0, 0);
 	}
 };
 
-const handleListItem = (event: ClipboardEvent, view: EditorView, node: ProseMirrorNode): Slice => {
+const handleListItem = (data: ClipboardItems, view: EditorView, node: ProseMirrorNode): Slice => {
 	const parent = node.content.firstChild?.firstChild;
 	const selectionNode = view.state.selection.$from.node(view.state.selection.$from.depth - 1);
 	const cursorInListItem = selectionNode?.type?.name === "listItem";
@@ -198,8 +198,8 @@ const handleOthers = (view: EditorView, node: ProseMirrorNode): Slice => {
 	return slice;
 };
 
-const handleNodes = (event: ClipboardEvent, view: EditorView, node: ProseMirrorNode): boolean => {
-	const slice = handleCodeBlock(event, view) || handleListItem(event, view, node);
+const handleNodes = (data: ClipboardItems, view: EditorView, node: ProseMirrorNode): boolean => {
+	const slice = handleCodeBlock(data, view) || handleListItem(data, view, node);
 	if (slice) {
 		insertSlice(view.state.tr, view, slice);
 		return true;
@@ -235,12 +235,18 @@ const createTitleHTML = (view: EditorView, fragment: Fragment) => {
 
 const createNodes = async (props: CreateProps) => {
 	const { event, view, node, apiUrlCreator, articleProps, onLoadResource } = props;
+
+	const clipboardData: ClipboardItems = {};
+	Array.from(event.clipboardData.items).forEach((item) => {
+		clipboardData[item.type] = event.clipboardData.getData(item.type);
+	});
+
 	const attrs = await createResource(node, apiUrlCreator, articleProps, onLoadResource);
 	if (!attrs.nodeName) return;
 	const tr = view.state.tr;
 	const newNode = await proceedNodes(node, view, attrs, apiUrlCreator, articleProps, onLoadResource);
 
-	const isPasted = handleNodes(event, view, newNode);
+	const isPasted = handleNodes(clipboardData, view, newNode);
 	if (isPasted) return;
 
 	const pasteSlice = handleOthers(view, newNode);

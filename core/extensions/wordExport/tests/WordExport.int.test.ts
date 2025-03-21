@@ -1,5 +1,6 @@
 import getApplication from "@app/node/app";
 import t from "@ext/localization/locale/translate";
+import ViewLocalizationFilter from "@ext/properties/logic/viewLocalizationFilter";
 import RuleProvider from "@ext/rules/RuleProvider";
 import buildDocumentTree from "@ext/wordExport/DocumentTree/buildDocumentTree";
 import { ExportType } from "@ext/wordExport/ExportType";
@@ -8,7 +9,7 @@ import { TitleInfo } from "@ext/wordExport/options/WordTypes";
 import ctx from "@ext/wordExport/tests/ContextMock";
 import { MainWordExport } from "@ext/wordExport/WordExport";
 import getItemRef from "@ext/workspace/test/getItemRef";
-import docx from "docx";
+import * as docx from "docx";
 import * as fs from "fs";
 import JSZip from "jszip";
 import path from "path";
@@ -16,7 +17,8 @@ import path from "path";
 const generatedFiles: string[] = [];
 
 const getExportData = async (path: string, isCategory: boolean): Promise<Buffer> => {
-	const catalog = await (await getApplication()).wm.current().getContextlessCatalog("ExportCatalog");
+	const catalog = await (await getApplication()).wm.current().getCatalog("ExportCatalog", ctx);
+
 	const isCatalog = path === "";
 	const titlesMap: Map<string, TitleInfo> = new Map();
 
@@ -37,21 +39,30 @@ const getExportData = async (path: string, isCategory: boolean): Promise<Buffer>
 		titlesMap,
 	);
 
+	const itemFilters = [
+		...new RuleProvider(ctx, undefined, undefined).getItemFilters(),
+		new ViewLocalizationFilter().getItemFilter(),
+	];
+
 	return docx.Packer.toBuffer(
-		await new MainWordExport(ExportType.withoutTableOfContents, titlesMap).getDocument(documentTree),
+		await new MainWordExport(ExportType.withoutTableOfContents, titlesMap, catalog, itemFilters).getDocument(
+			documentTree,
+		),
 	);
 };
 
 const saveBufferToFile = async (buffer: Buffer, fileName: string) => {
 	const filePath = path.join(__dirname, fileName);
-	await fs.promises.writeFile(filePath, buffer);
+	await fs.promises.writeFile(filePath, new Uint8Array(buffer));
 	generatedFiles.push(filePath);
 	return filePath;
 };
 
 const extractDocumentXml = async (filePath: string) => {
 	return (
-		(await JSZip.loadAsync(await fs.promises.readFile(filePath))).file("word/document.xml")?.async("string") ?? ""
+		(await JSZip.loadAsync(new Uint8Array(await fs.promises.readFile(filePath))))
+			.file("word/document.xml")
+			?.async("string") ?? ""
 	);
 };
 

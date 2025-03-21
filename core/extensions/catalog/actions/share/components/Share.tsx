@@ -16,18 +16,30 @@ import t from "@ext/localization/locale/translate";
 import CodeBlock from "@ext/markdown/elements/codeBlockLowlight/render/component/CodeBlock";
 import { useRef, useState } from "react";
 
-const Share = ({ trigger, shouldRender = true }: { trigger: JSX.Element; shouldRender?: boolean }) => {
+interface ShareProps {
+	trigger: JSX.Element;
+	shouldRender?: boolean;
+	path?: string;
+	isArticle?: boolean;
+}
+
+const Share = ({ trigger, shouldRender = true, path, isArticle = true }: ShareProps) => {
 	if (!shouldRender) return null;
 
-	const router = useRouter();
 	const [isOpen, setIsOpen] = useState(false);
+
 	const copyBlockRef = useRef<HTMLDivElement>(null);
-	const shareUrl = getClientDomain() + router.path;
+
+	const router = useRouter();
 	const { isBrowser } = usePlatform();
 
-	const logicPath = new Path(router.path).removeExtraSymbols;
+	const newPath = path || router.path;
+	const shareUrl = `${getClientDomain()}/${newPath}`;
+
+	const logicPath = new Path(newPath).removeExtraSymbols;
 	const { refname: branch } = RouterPathProvider.parsePath(logicPath);
 	const domain = CatalogPropsService.value;
+	const legend = isArticle ? t("share.name.article") : t("share.name.catalog");
 
 	return (
 		<ModalLayout trigger={trigger} isOpen={isOpen} onOpen={() => setIsOpen(true)} onClose={() => setIsOpen(false)}>
@@ -35,7 +47,7 @@ const Share = ({ trigger, shouldRender = true }: { trigger: JSX.Element; shouldR
 				<FormStyle>
 					<fieldset>
 						<legend>
-							<IconWithText iconCode="external-link" text={t("share.name")} />
+							<IconWithText iconCode="external-link" text={legend} />
 						</legend>
 						<span className="article">
 							{t("share.copy")}

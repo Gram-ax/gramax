@@ -3,6 +3,7 @@ import { EditorState } from "prosemirror-state";
 
 const getFocusMark = (state: EditorState, typeName: string) => {
 	let mark: Mark = null;
+	let marks: readonly Mark[];
 	let position: number = null;
 	const anchor = state.selection.anchor;
 
@@ -22,6 +23,7 @@ const getFocusMark = (state: EditorState, typeName: string) => {
 		if (anchor >= pos && anchor <= pos + node.nodeSize) {
 			const markIdx = node.marks.findIndex((mark) => mark.type.name === typeName);
 			if (markIdx >= 0) {
+				marks = node.marks;
 				mark = node.marks[markIdx];
 				position = pos;
 				break;
@@ -29,7 +31,7 @@ const getFocusMark = (state: EditorState, typeName: string) => {
 		}
 	} while (stack.length > 0);
 
-	return { mark, position };
+	return { mark, marks, position };
 };
 
 export default getFocusMark;

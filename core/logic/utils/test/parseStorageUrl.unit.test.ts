@@ -14,6 +14,7 @@ describe("ParseStorageUrl", () => {
 				};
 
 				const result = parseStorageUrl(link);
+				delete result.pathname;
 
 				expect(result).toEqual(parsedLink);
 			});
@@ -28,7 +29,7 @@ describe("ParseStorageUrl", () => {
 				};
 
 				const result = parseStorageUrl(link);
-
+				delete result.pathname;
 				expect(result).toEqual(parsedLink);
 			});
 			test("Без группы", () => {
@@ -42,6 +43,7 @@ describe("ParseStorageUrl", () => {
 				};
 
 				const result = parseStorageUrl(link);
+				delete result.pathname;
 
 				expect(result).toEqual(parsedLink);
 			});
@@ -56,6 +58,7 @@ describe("ParseStorageUrl", () => {
 				};
 
 				const result = parseStorageUrl(link);
+				delete result.pathname;
 
 				expect(result).toEqual(parsedLink);
 			});
@@ -72,7 +75,7 @@ describe("ParseStorageUrl", () => {
 				};
 
 				const result = parseStorageUrl(link);
-
+				delete result.pathname;
 				expect(result).toEqual(parsedLink);
 			});
 			test("Без .git", () => {
@@ -86,6 +89,7 @@ describe("ParseStorageUrl", () => {
 				};
 
 				const result = parseStorageUrl(link);
+				delete result.pathname;
 
 				expect(result).toEqual(parsedLink);
 			});
@@ -100,6 +104,7 @@ describe("ParseStorageUrl", () => {
 				};
 
 				const result = parseStorageUrl(link);
+				delete result.pathname;
 
 				expect(result).toEqual(parsedLink);
 			});
@@ -114,6 +119,7 @@ describe("ParseStorageUrl", () => {
 				};
 
 				const result = parseStorageUrl(link);
+				delete result.pathname;
 
 				expect(result).toEqual(parsedLink);
 			});
@@ -130,6 +136,7 @@ describe("ParseStorageUrl", () => {
 				};
 
 				const result = parseStorageUrl(link);
+				delete result.pathname;
 
 				expect(result).toEqual(parsedLink);
 			});
@@ -144,6 +151,7 @@ describe("ParseStorageUrl", () => {
 				};
 
 				const result = parseStorageUrl(link);
+				delete result.pathname;
 
 				expect(result).toEqual(parsedLink);
 			});
@@ -158,6 +166,7 @@ describe("ParseStorageUrl", () => {
 				};
 
 				const result = parseStorageUrl(link);
+				delete result.pathname;
 
 				expect(result).toEqual(parsedLink);
 			});
@@ -173,6 +182,7 @@ describe("ParseStorageUrl", () => {
 			};
 
 			const result = parseStorageUrl(link);
+			delete result.pathname;
 
 			expect(result).toEqual(parsedLink);
 		});
@@ -187,6 +197,7 @@ describe("ParseStorageUrl", () => {
 			};
 
 			const result = parseStorageUrl(link);
+			delete result.pathname;
 
 			expect(result).toEqual(parsedLink);
 		});
@@ -204,6 +215,7 @@ describe("ParseStorageUrl", () => {
 				};
 
 				const result = parseStorageUrl(link);
+				delete result.pathname;
 
 				expect(result).toEqual(parsedLink);
 			});
@@ -219,6 +231,7 @@ describe("ParseStorageUrl", () => {
 				};
 
 				const result = parseStorageUrl(link);
+				delete result.pathname;
 
 				expect(result).toEqual(parsedLink);
 			});
@@ -236,6 +249,7 @@ describe("ParseStorageUrl", () => {
 				};
 
 				const result = parseStorageUrl(link);
+				delete result.pathname;
 
 				expect(result).toEqual(parsedLink);
 			});
@@ -251,7 +265,8 @@ describe("ParseStorageUrl", () => {
 				};
 
 				const result = parseStorageUrl(link);
-
+				delete result.pathname;
+        
 				expect(result).toEqual(parsedLink);
 			});
 		});

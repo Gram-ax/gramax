@@ -1,10 +1,18 @@
 import type FileStructure from "@core/FileStructue/FileStructure";
+import { XxHash } from "@core/Hash/Hasher";
 import ConfluenceStorage from "@ext/confluence/core/logic/ConfluenceStorage";
 import ConfluenceStorageData from "@ext/confluence/core/model/ConfluenceStorageData";
 import DefaultError from "@ext/errorHandlers/logic/DefaultError";
-import type { CloneProgress } from "@ext/git/core/GitCommands/model/GitCommandsModel";
+import type GitError from "@ext/git/core/GitCommands/errors/GitError";
+import GitErrorCode from "@ext/git/core/GitCommands/errors/model/GitErrorCode";
+import type { CloneCancelToken, CloneProgress } from "@ext/git/core/GitCommands/model/GitCommandsModel";
 import t from "@ext/localization/locale/translate";
+import NotionStorage from "@ext/notion/logic/NotionStorage";
+import NotionStorageData from "@ext/notion/model/NotionStorageData";
 import isGitSourceType from "@ext/storage/logic/SourceDataProvider/logic/isGitSourceType";
+import YandexDiskStorage from "@ext/yandexDisk/api/logic/YandexDiskStorage";
+import YandexStorageData from "@ext/yandexDisk/model/YandexDiskStorageData";
+import assert from "assert";
 import Path from "../../../logic/FileProvider/Path/Path";
 import FileProvider from "../../../logic/FileProvider/model/FileProvider";
 import GitStorage from "../../git/core/GitStorage/GitStorage";
@@ -13,27 +21,22 @@ import GitStorageData from "../../git/core/model/GitStorageData";
 import StorageData from "../models/StorageData";
 import SourceType from "./SourceDataProvider/model/SourceType";
 import Storage from "./Storage";
-import NotionStorage from "@ext/notion/logic/NotionStorage";
-import NotionStorageData from "@ext/notion/model/NotionStorageData";
-import YandexDiskStorage from "@ext/yandexDisk/api/logic/YandexDiskStorage";
-import YandexStorageData from "@ext/yandexDisk/model/YandexDiskStorageData";
 
 interface CloneData {
+	url?: string;
 	fs: FileStructure;
 	path: Path;
 	data: StorageData;
 	recursive: boolean;
 	branch: string;
 	isBare: boolean;
-	onCloneFinish: (path: Path) => Promise<void> | void;
+	onCloneFinish: (path: Path, isCancelled: boolean) => Promise<void> | void;
 }
 export default class StorageProvider {
-	private _promiseQueue = Promise.resolve();
-	private _progressData: Map<string, CloneProgress>;
+	private _progressData: Map<string, CloneProgress> = new Map();
+	private _cancelTokens: Map<string, CloneCancelToken> = new Map();
 
-	constructor() {
-		this._progressData = new Map();
-	}
+	constructor() {}
 
 	async getStorageByPath(path: Path, fp: FileProvider): Promise<Storage> {
 		if (await GitStorage.hasInit(fp, path)) return new GitStorage(path, fp);
@@ -48,36 +51,55 @@ export default class StorageProvider {
 	}
 
 	async cloneNewStorage(cloneData: CloneData) {
-		await this._queueCall(this._clone.bind(this), cloneData);
+		await this._clone(cloneData);
+	}
+
+	async cancelClone(path: Path, fs: FileStructure) {
+		const cancelToken = this._cancelTokens.get(path.toString());
+		assert(cancelToken, `clone (${path.value}) cancellation token not found`);
+		return await GitStorage.cloneCancel(cancelToken, fs, path);
 	}
 
 	getCloneProgress(path: Path): CloneProgress {
 		if (!this._progressData.has(path.toString())) return null;
-		return this._progressData.get(path.toString());
-	}
-
-	private async _queueCall(func: (data: CloneData) => Promise<void>, data: CloneData) {
-		this._progressData.set(data.path.toString(), { type: "wait", data: { path: data.path.toString() } });
-		this._promiseQueue = this._promiseQueue.then(() => func(data));
-		return this._promiseQueue;
+		const data = this._progressData.get(path.toString());
+		data.cancellable = this._cancelTokens.has(path.toString());
+		return data;
 	}
 
 	private async _clone(cloneData: CloneData) {
-		const { fs, path, data, recursive, branch, isBare, onCloneFinish } = cloneData;
+		const { fs, path, data, recursive, url, branch, isBare, onCloneFinish } = cloneData;
 		try {
-			this._progressData.set(path.toString(), { type: "started", data: { path: path.toString() } });
+			let isCancelled = false;
+			const pathStr = cloneData.path.toString();
+			this._progressData.set(pathStr, { type: "started", data: { path: pathStr } });
 
 			if (isGitSourceType(cloneData.data.source.sourceType)) {
-				await GitStorage.clone({
-					fs,
-					branch,
-					recursive,
-					repositoryPath: path,
-					data: data as GitStorageData,
-					source: data.source as GitSourceData,
-					isBare,
-					onProgress: this._getOnProgress(path),
-				});
+				const cancelToken = XxHash.hasher().hash(pathStr).finalize();
+				this._cancelTokens.set(pathStr, cancelToken);
+
+				try {
+					await GitStorage.clone({
+						fs,
+						branch,
+						recursive,
+						repositoryPath: path,
+						data: data as GitStorageData,
+						source: data.source as GitSourceData,
+						cancelToken,
+						url,
+						isBare,
+						onProgress: this._getOnProgress(path),
+					});
+				} catch (e) {
+					if ((e as GitError).props?.errorCode === GitErrorCode.CancelledOperation) {
+						isCancelled = true;
+					} else {
+						throw e;
+					}
+				} finally {
+					this._cancelTokens.delete(pathStr);
+				}
 			}
 
 			if (
@@ -107,8 +129,8 @@ export default class StorageProvider {
 				});
 			}
 
-			this._finishClone(path);
-			await onCloneFinish?.(path);
+			await onCloneFinish?.(path, isCancelled);
+			this._finishClone(path, isCancelled);
 		} catch (e) {
 			if (await fs.fp.exists(path)) await fs.fp.delete(path);
 			if (e instanceof DefaultError) {
@@ -125,13 +147,13 @@ export default class StorageProvider {
 		this._progressData.set(path.toString(), { type: "error", data: { path: path.toString(), error } });
 	}
 
-	private _finishClone(path: Path) {
-		this._progressData.set(path.toString(), { type: "finish", data: { path: path.toString() } });
+	private _finishClone(path: Path, isCancelled: boolean) {
+		this._progressData.set(path.toString(), { type: "finish", data: { path: path.toString(), isCancelled } });
 	}
 
 	private _getOnProgress(path: Path) {
 		return ((p: CloneProgress) => {
-			this._progressData.set(path.toString(), p);
+			p && this._progressData.set(path.toString(), p);
 		}).bind(this);
 	}
 }

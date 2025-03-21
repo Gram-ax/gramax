@@ -107,8 +107,8 @@ const CatalogEditProperty = ({ isOpen, closeModal, onSubmit, data }: CreateProps
 						})}
 						onSubmit={() =>
 							data?.values &&
-							data?.values?.length > editProps.values.length &&
-							JSON.stringify(data.values) !== JSON.stringify(editProps.values)
+							data?.values?.length > editProps?.values?.length &&
+							JSON.stringify(data?.values) !== JSON.stringify(editProps?.values)
 								? setVisibleWarning(0)
 								: submit()
 						}

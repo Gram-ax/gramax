@@ -7,6 +7,9 @@ import { createContent } from "@ext/wordExport/TextWordGenerator";
 import { createParagraph } from "@ext/wordExport/createParagraph";
 import { NON_BREAKING_SPACE } from "@ext/wordExport/options/wordExportSettings";
 import { ExportType } from "@ext/wordExport/ExportType";
+import { CatalogProps } from "@core/FileStructue/Catalog/CatalogProps";
+import ContextualCatalog from "@core/FileStructue/Catalog/ContextualCatalog";
+import { ItemFilter } from "@core/FileStructue/Catalog/Catalog";
 
 export class WordSerializerState {
 	constructor(
@@ -17,6 +20,8 @@ export class WordSerializerState {
 		private readonly _titlesMap: Map<string, TitleInfo>,
 		private readonly _articleName: string,
 		private readonly _order: string,
+		private _catalog: ContextualCatalog<CatalogProps>,
+		private _itemsFilter: ItemFilter[],
 	) {}
 
 	async renderInline(parent: Tag, addOptions?: AddOptionsWord): Promise<ParagraphChild[]> {
@@ -41,6 +46,8 @@ export class WordSerializerState {
 						titlesMap: this._titlesMap,
 						articleName: this._articleName,
 						order: this._order,
+						catalog: this._catalog,
+						itemsFilter: this._itemsFilter,
 					},
 				});
 			}),
@@ -81,6 +88,8 @@ export class WordSerializerState {
 				titlesMap: this._titlesMap,
 				articleName: this._articleName,
 				order: this._order,
+				catalog: this._catalog,
+				itemsFilter: this._itemsFilter,
 			},
 		});
 	}

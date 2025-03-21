@@ -2,6 +2,7 @@ import ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
 import FetchService from "@core-ui/ApiServices/FetchService";
 import { ClientArticleProps } from "@core/SitePresenter/SitePresenter";
 import linkCreator from "@ext/markdown/elements/link/render/logic/linkCreator";
+import isVideoSupported from "@ext/markdown/elements/video/logic/isVideoSupported";
 import { EditorView } from "prosemirror-view";
 
 class TransformerMsO {
@@ -169,13 +170,13 @@ class TransformerMsO {
 
 		msoLinks.forEach((link) => {
 			const href = link.getAttribute("href");
+			const isNotOurDomain = link.host.length && window.location.host !== link.host;
+			const isVideo = isVideoSupported(href);
+			const isExternal = linkCreator.isExternalLink(href);
 
-			if (link.host.length && window.location.host !== link.host && link.childElementCount)
-				return this._video(link);
+			if (isNotOurDomain && isVideo && link.childElementCount) return this._video(link);
 			if (!href || href.length < 1) return;
-
-			if (link.host.length && window.location.host !== link.host && linkCreator.isExternalLink(href))
-				return link.setAttribute("href", href);
+			if (isExternal) return link.setAttribute("href", href);
 
 			const startSlice = href.includes(link.baseURI) ? link.baseURI.length + 2 : 2;
 			const newHref = "#" + href.slice(startSlice, startSlice + href.length).toLowerCase();

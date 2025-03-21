@@ -24,7 +24,10 @@ const remove: Command<{ src: Path; articlePath: Path; catalogName: string; ctx: 
 		const article = catalog.findItemByItemRef<Article>(itemRef);
 		if (!article) return;
 		await parseContent(article, catalog, ctx, parser, parserContextFactory);
-		await article.parsedContent.resourceManager.delete(src);
+		await article.parsedContent.write(async (p) => {
+			await p.resourceManager.delete(src);
+			return p;
+		});
 	},
 
 	params(ctx, q) {

@@ -38,6 +38,7 @@ import { iconWordLayout } from "@ext/markdown/elements/icon/render/word/icon";
 import { tableLayout } from "@ext/markdown/elements/table/word/transformer/getTableChilds";
 import { strikeWordLayout } from "@ext/markdown/elements/strikethrough/word/strike";
 import { renderImageWordLayout } from "@ext/markdown/elements/image/word/image";
+import { viewWordLayout } from "@ext/markdown/elements/view/word/view";
 // import { imagesWordLayout } from "@ext/markdown/elements/imgs/word/imgs";
 // import { seeWordLayout } from "@ext/markdown/elements/see/word/see";
 // import { formulaWordLayout } from "../markdown/elements/formula/word/formula";
@@ -90,6 +91,7 @@ export const blockLayouts = {
 	"Ts-diagram": tsDiagramWordLayout,
 	"C4-diagram": c4DiagramWordLayout,
 	"Db-table": tabledbWordlayout,
+	View: viewWordLayout,
 	// "Img-v": imagesWordLayout,
 	// "Img-h": imagesWordLayout,
 	// See: seeWordLayout,

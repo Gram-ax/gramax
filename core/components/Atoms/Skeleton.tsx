@@ -18,9 +18,9 @@ export default styled(Skeleton)`
 	border: 0;
 	display: block;
 	background-color: hsl(var(--color-skeleton-bg) / 0.1);
-	animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+	animation: SkeletonPulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 
-	@keyframes pulse {
+	@keyframes SkeletonPulse {
 		50% {
 			opacity: 0.5;
 		}

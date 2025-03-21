@@ -1,5 +1,7 @@
 import Signature from "@components/controls/Signature";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
+import useWatch from "@core-ui/hooks/useWatch";
+import toggleSignature from "@core-ui/toggleSignature";
 import Path from "@core/FileProvider/Path/Path";
 import ImageActions from "@ext/markdown/elements/image/edit/components/ImageActions";
 import ImageEditor from "@ext/markdown/elements/image/edit/components/ImageEditor";
@@ -31,10 +33,13 @@ const Image = (props: ImageDataProps): ReactElement => {
 	const isGif = new Path(node.attrs.src).extension == "gif";
 	const showResizer = (isHovered || selected) && isEditable;
 
+	useWatch(() => {
+		if (!hasSignature && node.attrs?.title?.length) return setHasSignature(true);
+	}, [node.attrs.title]);
+
 	const addSignature = useCallback(() => {
-		if (!hasSignature) setHasSignature(true);
-		signatureRef.current?.focus();
-	}, [hasSignature]);
+		setHasSignature((prev) => toggleSignature(prev, signatureRef.current, updateAttributes));
+	}, [node, signatureRef, updateAttributes]);
 
 	const handleEdit = useCallback(() => {
 		if (!node) return;
@@ -71,12 +76,12 @@ const Image = (props: ImageDataProps): ReactElement => {
 	const onLoseFocus = useCallback(
 		(e) => {
 			const target = e.target as HTMLInputElement;
-			if (target.value.length) return;
+			if (target.value.length || hasSignature) return;
 
 			updateAttributes({ title: "" });
 			return setHasSignature(false);
 		},
-		[updateAttributes],
+		[updateAttributes, hasSignature],
 	);
 
 	const onUpdate = useCallback((text) => updateAttributes({ title: text }), [updateAttributes]);

@@ -10,10 +10,8 @@ import { transliterate } from "@core-ui/languageConverter/transliterate";
 import { useRouter } from "@core/Api/useRouter";
 import { ArticlePageData, ClientArticleProps } from "@core/SitePresenter/SitePresenter";
 import ArticleMat from "@ext/markdown/core/edit/components/ArticleMat";
-import { pasteArticleResource } from "@ext/markdown/elements/copyArticles/copyPasteArticleResource";
 import OnLoadResourceService from "@ext/markdown/elements/copyArticles/onLoadResourceService";
-import imageHandlePaste from "@ext/markdown/elements/image/edit/logic/imageHandlePaste";
-import { BaseEditorContext, EditorPasteHandler } from "@ext/markdown/elementsUtils/ContextServices/EditorService";
+import EditorService, { BaseEditorContext } from "@ext/markdown/elementsUtils/ContextServices/EditorService";
 import getTocItems, { getLevelTocItemsByJSONContent } from "@ext/navigation/article/logic/createTocItems";
 import { Editor } from "@tiptap/core";
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -44,6 +42,8 @@ export const ArticleEditRenderer = (props: ArticleRendererProps) => {
 
 	const apiUrlCreatorRef = useRef(apiUrlCreator);
 	const articlePropsRef = useRef(articleProps);
+	const editorUpdateContent = EditorService.createOnUpdateCallback();
+	const editorHandlePaste = EditorService.createHandlePasteCallback(onLoadResource);
 
 	useWatch(() => {
 		apiUrlCreatorRef.current = apiUrlCreator;
@@ -60,13 +60,11 @@ export const ArticleEditRenderer = (props: ArticleRendererProps) => {
 	};
 
 	const updateContent = useCallback(async (editor: Editor) => {
-		const apiUrlCreator = apiUrlCreatorRef.current;
-
-		const json = editor.getJSON();
-		json.content.shift();
-		const articleContentEdit = JSON.stringify(json);
-		const url = apiUrlCreator.updateArticleContent();
-		await FetchService.fetch(url, articleContentEdit, MimeTypes.json);
+		await editorUpdateContent({
+			editor,
+			apiUrlCreator: apiUrlCreatorRef.current,
+			articleProps: articlePropsRef.current,
+		});
 	}, []);
 
 	const updateTitle = useCallback(
@@ -116,14 +114,6 @@ export const ArticleEditRenderer = (props: ArticleRendererProps) => {
 		[updateTitle, articleProps],
 	);
 
-	const onPaste: EditorPasteHandler = (view, event, _slice, apiUrlCreator, articleProps) => {
-		if (!event.clipboardData) return false;
-		if (event.clipboardData.files.length !== 0)
-			return imageHandlePaste(view, event, articleProps, apiUrlCreator, onLoadResource);
-
-		return pasteArticleResource({ view, event, articleProps, apiUrlCreator, onLoadResource });
-	};
-
 	const onContentUpdate = ({ editor }: { editor: Editor }) => {
 		const tocItems = getTocItems(getLevelTocItemsByJSONContent(editor.state.doc));
 		if (tocItems) ArticlePropsService.tocItems = tocItems;
@@ -144,7 +134,7 @@ export const ArticleEditRenderer = (props: ArticleRendererProps) => {
 					extensions={getExtensions()}
 					onTitleLoseFocus={onTitleNeedsUpdate}
 					onUpdate={onContentUpdate}
-					handlePaste={onPaste}
+					handlePaste={editorHandlePaste}
 				/>
 			</ArticleParent>
 		</ArticleUpdater>

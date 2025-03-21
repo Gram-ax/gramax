@@ -118,7 +118,7 @@ pub fn branch_list(repo_path: &Path) -> Result<Vec<BranchInfo>> {
 }
 
 pub fn fetch(repo_path: &Path, creds: AccessTokenCreds, force: bool) -> Result<()> {
-  Repo::execute_with_creds_lock(repo_path, creds, |repo| Ok(repo.fetch(force)?))
+  Ok(Repo::open(repo_path, creds)?.fetch(force)?)
 }
 
 pub fn set_head(repo_path: &Path, refname: &str) -> Result<()> {
@@ -177,12 +177,12 @@ pub fn checkout(repo_path: &Path, ref_name: &str, force: bool) -> Result<()> {
 }
 
 pub fn clone(creds: AccessTokenCreds, opts: CloneOptions, callback: CloneProgressCallback) -> Result<()> {
-  let cloned_repo = Repo::clone(creds, opts, callback);
-  if let Err(err) = cloned_repo {
-    println!("{:?}", err);
-    return Err(err.into());
-  }
+  Repo::clone(creds, opts, callback)?;
   Ok(())
+}
+
+pub fn clone_cancel(id: usize) -> Result<bool> {
+  Repo::<AccessTokenCreds>::clone_cancel(id).map_err(Into::into)
 }
 
 pub fn add(repo_path: &Path, patterns: Vec<PathBuf>, force: bool) -> Result<()> {
@@ -213,7 +213,7 @@ pub fn commit(repo_path: &Path, creds: AccessTokenCreds, opts: CommitOptions) ->
 }
 
 pub fn graph_head_upstream_files(repo_path: &Path, search_in: &Path) -> Result<UpstreamCountChangedFiles> {
-  Repo::execute_without_creds_try_lock(repo_path, |repo| Ok(repo.graph_head_upstream_files(search_in)?))
+  Ok(Repo::open(repo_path, DummyCreds)?.graph_head_upstream_files(search_in)?)
 }
 
 pub fn merge(repo_path: &Path, creds: AccessTokenCreds, theirs: &str) -> Result<MergeResult> {

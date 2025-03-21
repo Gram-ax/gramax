@@ -13,7 +13,7 @@ import type {
 } from "@ext/git/core/GitCommands/model/GitCommandsModel";
 import type { CreateMergeRequest, MergeRequest, Signature } from "@ext/git/core/GitMergeRequest/model/MergeRequest";
 
-export let onCloneProgress = undefined;
+export const cloneProgressCallbacks = {};
 
 type Oid = string;
 
@@ -65,16 +65,21 @@ export type CommitOptions = {
 };
 
 export const clone = async (
-	args: { creds: Creds; opts: { url: string; to: string; branch?: string; depth?: number; isBare?: boolean } },
+	args: {
+		creds: Creds;
+		opts: { url: string; to: string; cancelToken: number; branch?: string; depth?: number; isBare?: boolean };
+	},
 	onProgress?: (progress: CloneProgress) => void,
 ) => {
-	onCloneProgress = onProgress;
+	cloneProgressCallbacks[args.opts.cancelToken] = onProgress;
 	try {
 		await call<any>("clone", args);
 	} finally {
-		onProgress = undefined;
+		delete cloneProgressCallbacks[args.opts.cancelToken];
 	}
 };
+
+export const cloneCancel = (id: number) => call<boolean>("clone_cancel", { id });
 
 export const init = (args: CredsArgs) => call<Oid>("init_new", args);
 
@@ -203,6 +208,7 @@ const intoGitBranchData = (data: any): GitBranchData & { lastCommitOid: string }
 	return {
 		name: data.name,
 		lastCommitAuthor: data.lastAuthorName,
+		lastCommitAuthorMail: data.lastAuthorEmail,
 		lastCommitModify: new Date(data.modify * 1000).toISOString(),
 		remoteName: data.remoteName,
 		lastCommitOid: data.lastCommitOid,

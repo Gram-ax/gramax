@@ -8,6 +8,7 @@ interface DynamicModules {
 	getDOMParser: () => DOMParser;
 	setSessionData: (key: string, data: string) => Promise<void>;
 	pdfLoadFont: (fontPath: string) => Promise<ArrayBuffer>;
+	getImageByPath: (options: GetImageByPathOptions) => Promise<GetImageByPathResult>;
 }
 
 let modules: DynamicModules;
@@ -20,6 +21,7 @@ import BrowserGetImageSizeFromImageData from "../../apps/browser/src/logic/Brows
 import BrowserGetImageFromDom from "../../apps/browser/src/logic/BrowserGetImageFromDom";
 import { initWasm } from "../../apps/browser/wasm/js/wasm";
 import { browserLoadFont } from "@ext/pdfExport/fontLoaders/browserLoadFont";
+import { getImageByPath as BrowserGetImageByPath } from "../../apps/browser/src/logic/BrowserGetImageByPath";
 
 modules = {
 	Cookie: BrowserCookie,
@@ -31,6 +33,7 @@ modules = {
 	getDOMParser: () => new DOMParser(),
 	setSessionData: () => Promise.resolve(),
 	pdfLoadFont: browserLoadFont,
+	getImageByPath: BrowserGetImageByPath,
 };
 
 /// #endif
@@ -44,6 +47,7 @@ import NextGetImageSizeFromImageData from "../../apps/next/logic/NextGetImageSiz
 import NextGetImageFromDom from "../../apps/next/logic/NextGetImageFromDom";
 import { DOMParser as NextDOMParser } from "@xmldom/xmldom";
 import { loadFontBuffer } from "@ext/pdfExport/fontLoaders/nextLoadFont";
+import { getImageByPath as NextGetImageByPath } from "../../apps/next/logic/NextGetImageByPath";
 
 modules = {
 	Cookie: NextCookie,
@@ -55,6 +59,7 @@ modules = {
 	getDOMParser: () => new NextDOMParser() as any,
 	setSessionData: () => Promise.resolve(),
 	pdfLoadFont: loadFontBuffer,
+	getImageByPath: NextGetImageByPath,
 };
 
 // #v-endif
@@ -68,6 +73,7 @@ import TauriGetImageSizeFromImageData from "../../apps/browser/src/logic/Browser
 import TauriGetImageFromDom from "../../apps/browser/src/logic/BrowserGetImageFromDom";
 import { moveToTrash, setSessionData } from "../../apps/tauri/src/window/commands";
 import { browserLoadFont as tauriLoadFont } from "@ext/pdfExport/fontLoaders/browserLoadFont";
+import { getImageByPath as TauriGetImageByPath } from "../../apps/browser/src/logic/BrowserGetImageByPath";
 
 modules = {
 	Cookie: TauriCookie,
@@ -79,6 +85,7 @@ modules = {
 	getDOMParser: () => new DOMParser(),
 	setSessionData: setSessionData,
 	pdfLoadFont: tauriLoadFont,
+	getImageByPath: TauriGetImageByPath,
 };
 
 // #v-endif;
@@ -92,6 +99,8 @@ import JestGetImageSizeFromImageData from "../../apps/next/logic/NextGetImageSiz
 import { ImageDimensions } from "@ext/wordExport/options/WordTypes";
 import JestGetImageFromDom from "../../apps/next/logic/NextGetImageFromDom";
 import { DOMParser as JestDOMParser } from "@xmldom/xmldom";
+import { GetImageByPathOptions, GetImageByPathResult } from "@ext/markdown/elements/image/export/NextImageProcessor";
+import { getImageByPath as JestGetImageByPath } from "../../apps/next/logic/NextGetImageByPath";
 
 modules = {
 	Cookie: JestCookie,
@@ -103,6 +112,7 @@ modules = {
 	getDOMParser: () => new JestDOMParser() as any,
 	setSessionData: () => Promise.resolve(),
 	pdfLoadFont: () => Promise.resolve(new ArrayBuffer(0)),
+	getImageByPath: JestGetImageByPath,
 };
 
 // #v-endif;

@@ -65,7 +65,8 @@ export default class Navigation implements HasEvents<NavigationEvents> {
 
 		const link: CatalogLink = {
 			name: catalog.name,
-			pathname: lastVisited?.getLastVisitedArticle(catalog) || (await catalog.getPathname()),
+			pathname: await catalog.getPathname(),
+			lastVisited: lastVisited?.getLastVisitedArticle(catalog),
 			logo: catalog.props[navProps.logo] ?? null,
 			title: catalog.props[navProps.title] ?? catalog.name,
 			query: {},

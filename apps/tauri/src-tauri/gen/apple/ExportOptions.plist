@@ -8,7 +8,7 @@
 	<string>ad-hoc</string>
 	<key>provisioningProfiles</key>
 	<dict>
-		<key>com.ics.gramax</key>
+		<key>gramax.app</key>
 		<string>gramax-adhoc</string>
 	</dict>
 	<key>signingCertificate</key>

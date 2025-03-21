@@ -3,9 +3,10 @@ import { createRoot } from "react-dom/client";
 import SwaggerUI from "swagger-ui-react";
 import "swagger-ui-react/swagger-ui.css";
 import Path from "../../../../../logic/FileProvider/Path/Path";
-import { WordImageProcessor } from "../../image/word/WordImageProcessor";
 import { WordBlockChild } from "../../../../wordExport/options/WordTypes";
 import { ImageDimensionsFinder } from "@ext/markdown/elements/image/word/ImageDimensionsFinder";
+import { WordImageExporter } from "@ext/markdown/elements/image/word/WordImageProcessor";
+import { BaseImageProcessor } from "@ext/markdown/elements/image/export/BaseImageProcessor";
 
 export const openApiWordLayout: WordBlockChild = async ({ tag, addOptions, wordRenderContext }) => {
 	const node = document.createElement("div");
@@ -14,7 +15,7 @@ export const openApiWordLayout: WordBlockChild = async ({ tag, addOptions, wordR
 		<SwaggerUI
 			defaultModelsExpandDepth={1}
 			spec={(
-				await WordImageProcessor.getFileByPath(
+				await WordImageExporter.getFileByPath(
 					new Path(tag.attributes.src),
 					wordRenderContext.parserContext.getResourceManager(),
 				)
@@ -30,7 +31,7 @@ export const openApiWordLayout: WordBlockChild = async ({ tag, addOptions, wordR
 		new Paragraph({
 			children: [
 				new ImageRun({
-					data: await WordImageProcessor.svgToPng(innerHTML, size),
+					data: await BaseImageProcessor.svgToPng(innerHTML, size),
 					transformation: {
 						width: size.width,
 						height: size.height,

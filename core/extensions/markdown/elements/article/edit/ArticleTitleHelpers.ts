@@ -10,6 +10,8 @@ const ArticleTitleHelpers = Extension.create<{ onTitleLoseFocus: ({ newTitle }: 
 			new Plugin({
 				key: new PluginKey("ArticleTitleHelpers"),
 				appendTransaction: (_, oldState, newState) => {
+					const isDiffEditor = this.editor.storage.diff;
+					if(isDiffEditor) return;
 					const { selection: newSelection } = newState;
 					const { selection: oldSelection } = oldState;
 

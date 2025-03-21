@@ -22,18 +22,20 @@ declare module "@tiptap/core" {
 	}
 }
 
+export const languageClassPrefix = "language-";
+
 const ExtendedCodeBlockLowlight = CodeBlockLowlight.extend<CodeBlockOptions>({
 	...getExtensionOptions({ schema: code_block, name: "code_block" }),
 
 	addOptions() {
 		return {
 			...this.parent?.(),
-			lowlight: lowlight,
+			lowlight,
 			defaultLanguage: "none",
 			exitOnTripleEnter: true,
 			exitOnArrowDown: true,
 			monochromeClassName: "monochrome-code-block",
-			languageClassPrefix: "language-",
+			languageClassPrefix: languageClassPrefix,
 			HTMLAttributes: {},
 		};
 	},
@@ -69,14 +71,6 @@ const ExtendedCodeBlockLowlight = CodeBlockLowlight.extend<CodeBlockOptions>({
 					return true;
 				},
 		};
-	},
-
-	renderHTML({ node }) {
-		const langClass = lowlight.registered(node.attrs.language)
-			? this.options.languageClassPrefix + node.attrs.language
-			: "";
-
-		return ["pre", ["div", { class: langClass }, 0]];
 	},
 
 	addKeyboardShortcuts() {

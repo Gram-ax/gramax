@@ -1,3 +1,4 @@
+import resolveModule from "@app/resolveModule/frontend";
 import SpinnerLoader from "@components/Atoms/SpinnerLoader";
 import FetchService from "@core-ui/ApiServices/FetchService";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
@@ -9,19 +10,21 @@ import styled from "@emotion/styled";
 import { CatalogError, CatalogErrors } from "@ext/healthcheck/logic/Healthcheck";
 import t from "@ext/localization/locale/translate";
 import { CategoryLink, ItemLink } from "@ext/navigation/NavigationLinks";
-import { Fragment, useState } from "react";
+import { useState } from "react";
 import GoToArticle from "../../../components/Actions/GoToArticle";
 import Icon from "../../../components/Atoms/Icon";
 import Tooltip from "../../../components/Atoms/Tooltip";
 import Breadcrumb from "../../../components/Breadcrumbs/LinksBreadcrumb";
 import ModalLayout from "../../../components/Layouts/Modal";
 import Code from "../../markdown/elements/code/render/component/Code";
+import { getExecutingEnvironment } from "@app/resolveModule/env";
 
 interface ResourceError {
 	title: string;
 	logicPath: string;
 	editorLink: string;
 	values: string[];
+	isText?: boolean;
 }
 
 const Healthcheck = styled(
@@ -75,7 +78,7 @@ const Healthcheck = styled(
 		);
 	},
 )`
-	padding: 1rem;
+	padding: 1em 0.1em 1em 1em;
 	overflow: auto;
 	max-height: 100%;
 	transition: all 0.3s;
@@ -145,6 +148,17 @@ const Healthcheck = styled(
 	.errors {
 		width: 100%;
 
+		.values-container {
+			display: flex;
+			flex-direction: column;
+			gap: 0.5em;
+		}
+
+		.value-item {
+			line-height: 1.4;
+			font-size: 0.875em;
+		}
+
 		> pre {
 			margin: 0 !important;
 		}
@@ -152,6 +166,10 @@ const Healthcheck = styled(
 			margin-bottom: 0px;
 			display: flex;
 			align-items: center;
+		}
+
+		table {
+			padding: 0 0 0.5em 1.25em;
 		}
 	}
 `;
@@ -183,6 +201,7 @@ const ResourceErrorComponent = ({
 			logicPath: d.args.logicPath,
 			editorLink: d.args.editorLink,
 			values: [d.args.value],
+			isText: d.args.isText,
 		};
 		const index = resourceErrors.findIndex((el) => el.logicPath === errorLink.logicPath);
 		if (index == -1) {
@@ -240,23 +259,40 @@ const ResourceErrorComponent = ({
 										</div>
 									</td>
 									<td className="flex">
-										<div>
+										<div className="values-container">
 											{resourceError.values.map((link) => (
-												<Fragment key={link}>
-													<Code>{link}</Code>
-													<br />
-												</Fragment>
+												<p
+													className="value-item"
+													key={link}
+												>
+													{resourceError.isText ? <span>{link}</span> : <Code>{link}</Code>}
+												</p>
 											))}
 										</div>
 										<IsReadOnlyHOC>
 											<div>
-												<a target="_blank" href={resourceError.editorLink} rel="noreferrer">
+												<a
+													target="_blank"
+													onClick={(ev) => {
+														if (getExecutingEnvironment() === "tauri") {
+															ev.preventDefault();
+															ev.stopPropagation();
+															resolveModule("openWindowWithUrl")(
+																resourceError.editorLink,
+															);
+														}
+													}}
+													{...(getExecutingEnvironment() !== "tauri" && {
+														href: resourceError.editorLink,
+													})}
+													rel="noreferrer"
+												>
 													<Tooltip
 														distance={5}
-														content={<span>{`${t("edit-on")} Gramax`}</span>}
+														content={<span>{`${t("open-in-new-window")}`}</span>}
 													>
 														<span>
-															<Icon code="pencil" isAction={true} />
+															<Icon code="external-link" isAction={true} />
 														</span>
 													</Tooltip>
 												</a>

@@ -30,12 +30,8 @@ const errorCodes: Record<CustomArticle, number> = {
 };
 
 export default class CustomArticlePresenter {
-	private _customArticles: { [name: string]: Article } = {};
-
 	getArticle(name: CustomArticle, props?: Record<string, string>, ref?: ItemRef): Article {
-		if (name == "500") return this._createErrorArticle(name, props, ref);
-		if (!this._customArticles[name] || props) this._customArticles[name] = this._createErrorArticle(name, props);
-		return this._customArticles[name];
+		return this._createErrorArticle(name, props, ref);
 	}
 
 	protected _createErrorArticle(name: CustomArticle, props?: Record<string, string>, ref?: ItemRef): Article {

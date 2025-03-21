@@ -3,7 +3,7 @@ import { ButtonStyle } from "@components/Atoms/Button/ButtonStyle";
 import Icon from "@components/Atoms/Icon";
 import FetchService from "@core-ui/ApiServices/FetchService";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
-import IsEditService from "@core-ui/ContextServices/IsEdit";
+import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import { refreshPage } from "@core-ui/ContextServices/RefreshPageContext";
 import type { ArticlePageData } from "@core/SitePresenter/SitePresenter";
 import t from "@ext/localization/locale/translate";
@@ -20,9 +20,8 @@ const CreateFirstArticle = (props: CreateArticleProps) => {
 	const { className, onCreate } = props;
 	const router = useRouter();
 	const [isLoading, setIsLoading] = useState(false);
-
-	const isEdit = IsEditService.value;
 	const apiUrlCreator = ApiUrlCreatorService.value;
+	const isReadOnly = PageDataContextService.value.conf.isReadOnly;
 	const url = apiUrlCreator.createArticle(props.data.rootRef?.path);
 
 	const onClickHandler = () => {
@@ -35,7 +34,7 @@ const CreateFirstArticle = (props: CreateArticleProps) => {
 		setIsLoading(false);
 	};
 
-	if (!isEdit) return null;
+	if (!isReadOnly) return null;
 
 	return (
 		<Button className={className} buttonStyle={ButtonStyle.default} onClick={onClickHandler}>

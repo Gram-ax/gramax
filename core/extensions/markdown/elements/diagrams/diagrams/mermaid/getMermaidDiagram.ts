@@ -1,7 +1,7 @@
 import t from "@ext/localization/locale/translate";
-import mermaid from "mermaid";
 
 const getMermaidDiagram = async (diagramContent: string) => {
+	const mermaid = await import("mermaid");
 	if (!diagramContent) throw new Error(t("diagram.error.cannot-get-data"));
 
 	const diagramId = `mermaidGraph-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
@@ -9,7 +9,7 @@ const getMermaidDiagram = async (diagramContent: string) => {
 	document.body.appendChild(diagramRenderContainer);
 
 	try {
-		const { svg } = await mermaid.render(diagramId, diagramContent, diagramRenderContainer);
+		const { svg } = await mermaid.default.render(diagramId, diagramContent, diagramRenderContainer);
 		return svg;
 	} catch (error) {
 		console.error("Mermaid diagram render error: ", error);

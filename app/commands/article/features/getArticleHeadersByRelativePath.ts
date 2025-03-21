@@ -34,19 +34,20 @@ const getArticleHeadersByRelativePath: Command<
 			console.warn(e);
 		}
 
-		const { renderTree } = article.parsedContent;
-		if (!renderTree || typeof renderTree === "string") return [];
+		return await article.parsedContent.read((p) => {
+			const { renderTree } = p;
+			if (!renderTree || typeof renderTree === "string") return [];
 
-		const headersTocItem = getLevelTocItemsByRenderableTree(renderTree.children);
-		if (headersTocItem.length === 0) return [];
+			const headersTocItem = getLevelTocItemsByRenderableTree(renderTree.children);
+			if (headersTocItem.length === 0) return [];
 
-		const tocItems = getTocItems(headersTocItem);
-		const titleItems = getTitleItemsByTocItems(tocItems);
+			const tocItems = getTocItems(headersTocItem);
+			const titleItems = getTitleItemsByTocItems(tocItems);
 
-		const flatItems: TitleItem[] = [];
-		flatTitleItems(titleItems, 0, flatItems);
-
-		return flatItems;
+			const flatItems: TitleItem[] = [];
+			flatTitleItems(titleItems, 0, flatItems);
+			return flatItems;
+		});
 	},
 
 	params(ctx, q) {

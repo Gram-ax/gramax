@@ -24,7 +24,7 @@ export const linkWordLayout: WordInlineChild = async ({ state, tag, addOptions, 
 	];
 };
 
-const extractNameAndAnchor = (href: string, titlesMap: Map<string, TitleInfo>) => {
+export const extractNameAndAnchor = (href: string, titlesMap: Map<string, TitleInfo>) => {
 	const segments = href.split("/").pop()?.split("#");
 	const fileName = segments?.[0];
 	const anchor = segments?.[1];

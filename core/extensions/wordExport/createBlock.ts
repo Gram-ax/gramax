@@ -11,8 +11,6 @@ import { WordSerializerState } from "@ext/wordExport/WordExportState";
 import { Paragraph, Table, TableCell, TableRow, TextRun, WidthType } from "docx";
 import { FileChild } from "docx/build/file/file-child";
 
-const INNER_BLOCK_WIDTH_DIFFERENCE = 700;
-
 export const createBlock = async (
 	state: WordSerializerState,
 	tag: Tag,
@@ -20,7 +18,6 @@ export const createBlock = async (
 	blockType: WordBlockType,
 	style: string,
 ) => {
-	const maxWidth = (addOptions?.maxTableWidth ?? STANDARD_PAGE_WIDTH) - INNER_BLOCK_WIDTH_DIFFERENCE;
 
 	const fileChildren = [
 		await createBlockTitle(tag, blockType),
@@ -31,8 +28,6 @@ export const createBlock = async (
 					.map((child) =>
 						state.renderBlock(child, {
 							...addOptions,
-							maxTableWidth: maxWidth,
-							maxPictureWidth: maxWidth,
 						}),
 					),
 			)

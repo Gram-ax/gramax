@@ -27,7 +27,7 @@ export default ApplyApiMiddleware(
 			true,
 			apiUtils.getDomain(req),
 		);
-		const htmlContent = article.parsedContent.htmlValue;
+		const htmlContent = await article.parsedContent.read((p) => p.htmlValue);
 
 		res.setHeader("Content-type", "text/html; charset=utf-8");
 		res.setHeader("Access-Control-Allow-Origin", "*");

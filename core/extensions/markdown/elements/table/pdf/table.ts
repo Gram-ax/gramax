@@ -1,11 +1,12 @@
 import { parseTable } from "@ext/markdown/elements/table/pdf/utils/parseTable";
 import { TableBody } from "./types";
 import { Tag } from "@ext/markdown/core/render/logic/Markdoc";
-import { BASE_CONFIG, COLOR_CONFIG } from "@ext/pdfExport/config";
+import { BASE_CONFIG, TABLE_STYLE } from "@ext/pdfExport/config";
 import { ContentTable } from "pdfmake/interfaces";
 import { isTag } from "@ext/pdfExport/utils/isTag";
+import { NodeOptions, pdfRenderContext } from "@ext/pdfExport/parseNodesPDF";
 
-export async function tableCase(node: Tag): Promise<ContentTable> {
+export async function tableCase(node: Tag, context: pdfRenderContext, options: NodeOptions): Promise<ContentTable> {
 	const content = node.children || [];
 	const thead = content.find((row) => isTag(row) && row.name === "thead") as Tag | undefined;
 	const tbody = content.find((row) => isTag(row) && row.name === "tbody") as Tag | undefined;
@@ -14,16 +15,20 @@ export async function tableCase(node: Tag): Promise<ContentTable> {
 	let widths: (number | string)[] = [];
 
 	if (thead && tbody) {
-		const theadRows = await parseTable((thead.children as Tag[]) || []);
-		const tbodyRows = await parseTable((tbody.children as Tag[]) || []);
+		const theadRows = await parseTable((thead.children as Tag[]) || [], context, options);
+		const tbodyRows = await parseTable((tbody.children as Tag[]) || [], context, options);
 		body = [...theadRows.body, ...tbodyRows.body];
 		widths = [...theadRows.widths];
 	} else if (tbody) {
-		const { body: tbodyRows, widths: tbodyWidths } = await parseTable((tbody.children as Tag[]) || []);
+		const { body: tbodyRows, widths: tbodyWidths } = await parseTable(
+			(tbody.children as Tag[]) || [],
+			context,
+			options,
+		);
 		body = tbodyRows;
 		widths = tbodyWidths;
 	} else {
-		const { body: rowsBody, widths: rowsWidths } = await parseTable(content as Tag[]);
+		const { body: rowsBody, widths: rowsWidths } = await parseTable(content as Tag[], context, options);
 		body = rowsBody;
 		widths = rowsWidths;
 	}
@@ -53,17 +58,6 @@ export async function tableCase(node: Tag): Promise<ContentTable> {
 			body: normalizedBody,
 			widths: normalizedWidths,
 		},
-		layout: {
-			hLineWidth: (rowIndex, _node) =>
-				rowIndex === 0 || (_node.table.body && rowIndex === _node.table.body.length) ? 0 : 0.1,
-			vLineWidth: (colIndex, _node) =>
-				colIndex === 0 || (_node.table.widths && colIndex === _node.table.widths.length) ? 0 : 0.1,
-			hLineColor: () => COLOR_CONFIG.table,
-			vLineColor: () => COLOR_CONFIG.table,
-			paddingLeft: () => 4,
-			paddingRight: () => 4,
-			paddingTop: () => 8,
-			paddingBottom: () => 8,
-		},
+		layout: TABLE_STYLE,
 	};
 }

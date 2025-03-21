@@ -15,6 +15,7 @@ interface DynamicModules {
 	openDirectory: () => string | Promise<string>;
 	openInExplorer: (path: string) => void | Promise<void>;
 	enterpriseLogin: (url: string, apiUrlCreator: ApiUrlCreator, router: Router) => Promise<void>;
+	openWindowWithUrl: (url: string) => void | Promise<void>;
 	openChildWindow: ({
 		url,
 		redirect,
@@ -52,6 +53,7 @@ modules = {
 	DiffFileInput: BrowserLazyDiffFileInput,
 	httpFetch: () => undefined,
 	openInExplorer: () => undefined,
+	openWindowWithUrl: () => undefined,
 };
 
 /// #endif
@@ -106,6 +108,7 @@ modules = {
 	DiffFileInput: DiffFileInputCdn,
 	httpFetch: () => undefined,
 	openInExplorer: () => undefined,
+	openWindowWithUrl: () => undefined,
 };
 
 // #v-endif
@@ -136,6 +139,7 @@ modules = {
 	DiffFileInput: DiffFileInputCdnJest,
 	httpFetch: () => undefined,
 	openInExplorer: () => undefined,
+	openWindowWithUrl: () => undefined,
 };
 
 // #v-endif
@@ -150,7 +154,7 @@ import TauriLink from "../../apps/browser/src/components/Atoms/Link";
 import useUrlObjectImage2 from "../../apps/browser/src/hooks/useUrlObjectImage";
 import TauriFetcher from "../../apps/browser/src/logic/Api/BrowserFetchService";
 import TauriRouter from "../../apps/browser/src/logic/Api/BrowserRouter";
-import { httpFetch, openChildWindow, openDirectory, openInExplorer } from "../../apps/tauri/src/window/commands";
+import { httpFetch, openChildWindow, openDirectory, openInExplorer, openWindowWithUrl } from "../../apps/tauri/src/window/commands";
 import enterpriseLogin from "../../apps/tauri/src/window/enterpriseLogin";
 
 modules = {
@@ -165,6 +169,7 @@ modules = {
 	openDirectory,
 	httpFetch,
 	openInExplorer,
+	openWindowWithUrl,
 };
 
 // #v-endif

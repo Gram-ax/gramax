@@ -12,6 +12,7 @@ import { TreeReadScope } from "@ext/git/core/GitCommands/model/GitCommandsModel"
 import ArticleMat from "@ext/markdown/core/edit/components/ArticleMat";
 import Menu from "@ext/markdown/core/edit/components/Menu/Menu";
 import { getSimpleExtensions } from "@ext/markdown/core/edit/logic/getExtensions";
+import OnLoadResourceService from "@ext/markdown/elements/copyArticles/onLoadResourceService";
 import EditorExtensionsService from "@ext/markdown/elements/diff/components/EditorExtensionsService";
 import ScopeWrapper from "@ext/markdown/elements/diff/components/ScopeWrapper";
 import ArticlePropsesCache from "@ext/markdown/elements/diff/logic/ArticlePropsesCache";
@@ -50,8 +51,9 @@ export const DiffModeView = (props: DiffModeViewProps) => {
 	} = props;
 	const extensions = EditorExtensionsService.value;
 
-	const handlePaste = EditorService.getHandlePaste();
-	const onUpdate = EditorService.getOnUpdate();
+	const onLoadResource = OnLoadResourceService.value;
+	const handlePaste = EditorService.createHandlePasteCallback(onLoadResource);
+	const onUpdate = EditorService.createOnUpdateCallback();
 	const apiUrlCreator = ApiUrlCreatorService.value;
 	const catalogName = CatalogPropsService.value.name;
 	const diffArticleApiUrlCreator = apiUrlCreator.fromArticle(articlePath);
@@ -98,6 +100,7 @@ export const DiffModeView = (props: DiffModeViewProps) => {
 			},
 			editable: !readOnly,
 			onUpdate: ({ editor }) => {
+				if (!editor.isEditable) return;
 				currentOnUpdate?.({ editor, apiUrlCreator: diffArticleApiUrlCreator, articleProps });
 				onUpdate({ editor, apiUrlCreator: diffArticleApiUrlCreator, articleProps });
 			},

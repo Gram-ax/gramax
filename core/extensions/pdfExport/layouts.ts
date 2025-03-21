@@ -1,9 +1,11 @@
 import { alfaHandler, betaHandler } from "@ext/markdown/elements/alfaBeta/pdf/alfabeta";
+import { brHandler } from "@ext/markdown/elements/br/pdf/br";
 import { cmdHandler } from "@ext/markdown/elements/cmd/pdf/cmd";
 import { codeHandler } from "@ext/markdown/elements/code/pdf/code";
 import { codeBlockHandler } from "@ext/markdown/elements/codeBlockLowlight/pdf/code";
 import { colorHandler } from "@ext/markdown/elements/color/pdf/color";
 import { cutInlineHandler } from "@ext/markdown/elements/cut/pdf/cutInline";
+import { diagramdbHandler } from "@ext/markdown/elements/diagramdb/pdf/diagramdb";
 import { mermaidHandler } from "@ext/markdown/elements/diagrams/diagrams/mermaid/pdf/mermaid";
 import { plantUmlHandler } from "@ext/markdown/elements/diagrams/diagrams/plantUml/pdf/plantUml";
 import { drawioHandler } from "@ext/markdown/elements/drawio/pdf/drawio";
@@ -21,12 +23,15 @@ import { orderedListHandler } from "@ext/markdown/elements/list/pdf/orderedList"
 import { moduleHandler } from "@ext/markdown/elements/module/pdf/module";
 import { noteHandler } from "@ext/markdown/elements/note/pdf/note";
 import { paragraphCase } from "@ext/markdown/elements/paragraph/pdf/paragraph";
+import { snippetCase } from "@ext/markdown/elements/snippet/pdf/snippet";
 import { strikeHandler } from "@ext/markdown/elements/strikethrough/pdf/strike";
 import { strongHandler } from "@ext/markdown/elements/strong/pdf/storng";
 import { tableCase } from "@ext/markdown/elements/table/pdf/table";
+import { tabledbHandler } from "@ext/markdown/elements/tabledb/pdf/tabledb";
 import { tabsHandler } from "@ext/markdown/elements/tabs/pdf/tabs";
 import { termHandler } from "@ext/markdown/elements/term/pdf/term";
 import { videoHandler } from "@ext/markdown/elements/video/pdf/video";
+import { viewCase } from "@ext/markdown/elements/view/pdf/view";
 import { whoHandler } from "@ext/markdown/elements/whowhen/pdf/whoWhen";
 
 export const inlineLayouts = {
@@ -46,8 +51,8 @@ export const inlineLayouts = {
 	Cut: cutInlineHandler,
 	Term: termHandler,
 	s: strikeHandler,
-	// Br,
-	// br,
+	Br: brHandler,
+	br: brHandler,
 	// Icon,
 	//Formula,
 	//Fn
@@ -71,17 +76,18 @@ export const blockLayouts = {
 	Tabs: tabsHandler,
 	Tab: tabsHandler,
 	Table: tableCase,
-	//cut
-	//blockquote
-	//snippet
-	// 	"Db-diagram": diagramdbWordLayout,
+	Snippet: snippetCase,
+	"Db-diagram": diagramdbHandler,
+	"Db-table": tabledbHandler,
+	View: viewCase,
+	// cut
+	// blockquote
 	// 	"Ts-diagram": tsDiagramWordLayout,
-	// 	"C4-diagram": c4DiagramWordLayout,
-	// 	"Db-table": tabledbWordlayout,
+	// "C4-diagram": c4DiagramWordLayout,
 	// 	// "Img-v": imagesWordLayout,
 	// 	// "Img-h": imagesWordLayout,
 	// 	// See: seeWordLayout,
-	// 	// OpenApi: openApiWordLayout,
+	// OpenApi: openApiWordLayout,
 };
 
 export const tableLayoutKeys = ["thead", "tbody", "Td", "tr", "th"];

@@ -26,9 +26,13 @@ const set: Command<{ data: any; src: Path; catalogName: string; articlePath: Pat
 			const article = catalog.findItemByItemPath<Article>(itemRef.path);
 			if (!article) return;
 			await parseContent(article, catalog, ctx, parser, parserContextFactory);
-			const hashItem = new HashResourceManager(src, article.parsedContent.resourceManager);
-			await article.parsedContent.resourceManager.setContent(src, data);
-			hashes.deleteHash(hashItem);
+
+			await article.parsedContent.write(async (p) => {
+				const hashItem = new HashResourceManager(src, p.resourceManager);
+				await p.resourceManager.setContent(src, data);
+				hashes.deleteHash(hashItem);
+				return p;
+			});
 		},
 
 		params(ctx, q, body) {

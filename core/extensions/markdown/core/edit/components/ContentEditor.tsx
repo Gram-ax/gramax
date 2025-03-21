@@ -80,9 +80,7 @@ const ContentEditor = (props: ContentEditorProps) => {
 
 	useWatch(() => {
 		EditorExtensionsService.value = extensionsList;
-		EditorService.bindOnUpdate(onUpdate);
-		EditorService.bindHandlePaste(handlePaste);
-	}, [extensionsList, onUpdate, handlePaste]);
+	}, [extensionsList]);
 
 	const editor = useEditor(
 		{

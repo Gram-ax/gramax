@@ -19,6 +19,8 @@ const getRenderContent: Command<
 	async do({ ctx, catalogName, articlePath, articleRelativePath }) {
 		const { parser, parserContextFactory, sitePresenterFactory, wm } = this._app;
 		const workspace = wm.current();
+		let error = null;
+		let errorArticleData = { title: "", content: "" };
 
 		if (!articleRelativePath.value) return null;
 		const path = articlePath.parentDirectoryPath.join(articleRelativePath);
@@ -34,13 +36,26 @@ const getRenderContent: Command<
 
 		if (!securityFilterStatus || !hiddenFilterStatus) return null;
 
-		await parseContent(article, catalog, ctx, parser, parserContextFactory);
 		const sp = sitePresenterFactory.fromContext(ctx);
+
+		try {
+			await parseContent(article, catalog, ctx, parser, parserContextFactory);
+		} catch (e) {
+			error = e;
+			errorArticleData = await this._commands.article.features.getCustomArticle.do({
+				name: "500",
+				props: {
+					type: "Parse",
+				},
+			});
+		}
+
 		return {
 			path: path.value,
-			title: article.getTitle(),
-			content: article.parsedContent.renderTree,
-			articleProps: sp.serializeArticleProps(article, await catalog?.getPathname(article)),
+			title: error ? errorArticleData.title : article.getTitle(),
+			content: error ? errorArticleData.content : await article.parsedContent.read((p) => p.renderTree),
+			articleProps: await sp.serializeArticleProps(article, await catalog?.getPathname(article)),
+			error,
 		};
 	},
 

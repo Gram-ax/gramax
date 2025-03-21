@@ -128,6 +128,7 @@ const Form = <Type,>({
 							formTranslationKey={translation}
 							scheme={value as FormSchema}
 							value={editedProps[key]}
+							description={(value as FormSchema).description}
 							validate={requiredError ? requiredParameterText : validateValues[key]}
 							tabIndex={idx + 1}
 							onChange={(value: string | string[]) => {

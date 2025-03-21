@@ -14,11 +14,19 @@ import { defaultLanguage } from "@ext/localization/core/model/Language";
 import { ExportType } from "@ext/wordExport/ExportType";
 import { generateBookmarkName } from "@ext/wordExport/generateBookmarkName";
 import { TitleInfo } from "@ext/wordExport/options/WordTypes";
+import ContextualCatalog from "@core/FileStructue/Catalog/ContextualCatalog";
+import { CatalogProps } from "@core/FileStructue/Catalog/CatalogProps";
+import { ItemFilter } from "@core/FileStructue/Catalog/Catalog";
 
 const MAX_HEADING_LEVEL = 9;
 
 abstract class WordExport {
-	constructor(private _exportType: ExportType, private readonly _titlesMap: Map<string, TitleInfo>) {}
+	constructor(
+		private _exportType: ExportType,
+		private readonly _titlesMap: Map<string, TitleInfo>,
+		private _catalog: ContextualCatalog<CatalogProps>,
+		private _itemsFilter: ItemFilter[],
+	) {}
 
 	async getDocument(documentTree: DocumentTree) {
 		const sections = await this._getDocumentSections(documentTree);
@@ -80,6 +88,8 @@ abstract class WordExport {
 			this._titlesMap,
 			article.name,
 			article.number,
+			this._catalog,
+			this._itemsFilter,
 		);
 
 		const contentPromises = article.content.children.map(async (child) => {

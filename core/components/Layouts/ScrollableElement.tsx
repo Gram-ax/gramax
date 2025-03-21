@@ -2,27 +2,52 @@ import useDragScrolling from "@core-ui/hooks/useDragScrolling";
 import { classNames } from "@components/libs/classNames";
 import scrollUtils from "@core-ui/utils/scrollUtils";
 import styled from "@emotion/styled";
-import { forwardRef, MutableRefObject, ReactNode, useEffect, useLayoutEffect, useRef, useState } from "react";
+import {
+	CSSProperties,
+	forwardRef,
+	MutableRefObject,
+	ReactNode,
+	useEffect,
+	useLayoutEffect,
+	useRef,
+	useState,
+} from "react";
+import { useMediaQuery } from "@mui/material";
+import { cssMedia } from "@core-ui/utils/cssUtils";
 
 interface ScrollableProps {
 	children: ReactNode;
 	showTopBottomShadow?: boolean;
 	boxShadowStyles?: { top?: string; bottom?: string };
-	hideScroll?: boolean;
 	onScroll?: (isTop: boolean, isBottom: boolean) => void;
 	hasScroll?: (hasScroll: boolean) => void;
 	onMouseEnter?: () => void;
 	onMouseLeave?: () => void;
+	dragScrolling?: boolean;
+	style?: CSSProperties;
 	className?: string;
 }
 
 const Scrollable = forwardRef((props: ScrollableProps, ref: MutableRefObject<HTMLDivElement>) => {
-	const { children, onScroll, hasScroll, onMouseEnter, onMouseLeave, className, showTopBottomShadow = true } = props;
+	const {
+		children,
+		onScroll,
+		hasScroll,
+		onMouseEnter,
+		onMouseLeave,
+		className,
+		showTopBottomShadow = true,
+		dragScrolling = true,
+		style,
+	} = props;
 	const [containerWidth, setContainerWidth] = useState(0);
 	const containerRef = ref || useRef<HTMLDivElement>(null);
 	const [hasElementScroll, setHasElementScroll] = useState(false);
+	const narrowMedia = useMediaQuery(cssMedia.JSnarrow);
+
 	const [isBottom, setIsBottom] = useState(false);
 	const [isTop, setIsTop] = useState(true);
+	const [dragScrollingState] = useState(dragScrolling);
 
 	useLayoutEffect(() => {
 		setContainerWidth(containerRef.current?.getBoundingClientRect().width);
@@ -47,14 +72,16 @@ const Scrollable = forwardRef((props: ScrollableProps, ref: MutableRefObject<HTM
 		hasScroll?.(scroll);
 	}, [children]);
 
-	useDragScrolling(containerRef);
+	if (dragScrollingState) useDragScrolling(containerRef, 30);
 
 	return (
 		<div
+			style={style}
 			ref={containerRef}
 			className={classNames(className, {
 				"has-top-shadow": showTopBottomShadow && hasElementScroll && !isTop,
 				"has-bottom-shadow": showTopBottomShadow && hasElementScroll && !isBottom,
+				"is-mobile": narrowMedia,
 			})}
 			onMouseEnter={() => {
 				if (onMouseEnter) onMouseEnter();
@@ -71,7 +98,7 @@ const Scrollable = forwardRef((props: ScrollableProps, ref: MutableRefObject<HTM
 				setIsBottom(isBottom);
 			}}
 		>
-			<div style={{ width: containerWidth }} className="scrolling-content">
+			<div style={containerWidth ? { width: containerWidth } : {}} className="scrolling-content">
 				{children}
 			</div>
 		</div>
@@ -86,23 +113,24 @@ export default styled(Scrollable)`
 
 	&.has-top-shadow {
 		box-shadow: ${({ boxShadowStyles }) =>
-			boxShadowStyles?.top || `0px 6px 5px -5px rgba(225, 225, 225, 0.5) inset`};
+			boxShadowStyles?.top || `0px 6px 5px 0px var(--color-diff-entries-shadow) inset`};
 	}
 
 	&.has-bottom-shadow {
 		box-shadow: ${({ boxShadowStyles }) =>
-			boxShadowStyles?.bottom || `0px -6px 5px -5px rgba(225, 225, 225, 0.5) inset`};
+			boxShadowStyles?.bottom || `0px -6px 5px -5px var(--color-diff-entries-shadow) inset`};
 	}
 
 	&.has-top-shadow.has-bottom-shadow {
 		box-shadow: ${({ boxShadowStyles }) => `${
-			boxShadowStyles?.top || `0px 6px 5px -5px rgba(225, 225, 225, 0.5) inset`
+			boxShadowStyles?.top || `0px 6px 5px -5px var(--color-diff-entries-shadow) inset`
 		},
-				${boxShadowStyles?.bottom || `0px -6px 5px -5px rgba(225, 225, 225, 0.5) inset`}
+				${boxShadowStyles?.bottom || `0px -6px 5px -5px var(--color-diff-entries-shadow) inset`}
 			`};
 	}
 
-	&:hover {
+	&:hover,
+	&.is-mobile {
 		overflow-y: auto;
 	}
 
@@ -110,15 +138,6 @@ export default styled(Scrollable)`
 		height: var(--scroll-width);
 		width: var(--scroll-width);
 	}
-
-	${(p) =>
-		p.hideScroll &&
-		`
-		::-webkit-scrollbar {
-			height: 0 !important;
-			width: 0 !important;
-		}
-	`}
 
 	.scrolling-content {
 		height: 100%;

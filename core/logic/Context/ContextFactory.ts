@@ -41,7 +41,6 @@ export class ContextFactory {
 		query.ui = LanguageService.currentUi();
 
 		const user = this._am ? await this._am.getUser(cookie, query) : localUser;
-
 		return this._getContext({ cookie, user, query, domain: getClientDomain() });
 	}
 

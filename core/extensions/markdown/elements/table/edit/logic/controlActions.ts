@@ -1,10 +1,10 @@
 import { HoveredData } from "@ext/markdown/elements/table/edit/model/tableTypes";
 
 export const hideOldControls = (containerVertical: Element, containerHorizontal: Element, hoveredData: HoveredData) => {
-	const verticalController = containerVertical.childNodes.item(hoveredData.rowIndex) as HTMLElement;
-	const horizontalController = containerHorizontal.childNodes.item(hoveredData.cellIndex) as HTMLElement;
+	const verticalController = containerVertical?.childNodes?.item(hoveredData.rowIndex) as HTMLElement;
+	const horizontalController = containerHorizontal?.childNodes?.item(hoveredData.cellIndex) as HTMLElement;
 
-	verticalController.childNodes.forEach((child: HTMLElement) => {
+	verticalController?.childNodes?.forEach((child: HTMLElement) => {
 		child.classList.add("hidden");
 	});
 
@@ -29,8 +29,8 @@ export const showNewControls = (
 	rowIndex: number,
 	cellIndex: number,
 ) => {
-	const verticalController = containerVertical.childNodes.item(rowIndex) as HTMLElement;
-	const horizontalController = containerHorizontal.childNodes.item(cellIndex) as HTMLElement;
+	const verticalController = containerVertical?.childNodes?.item(rowIndex) as HTMLElement;
+	const horizontalController = containerHorizontal?.childNodes?.item(cellIndex) as HTMLElement;
 
 	verticalController?.childNodes?.forEach((child: HTMLElement) => {
 		child.classList.remove("hidden");
@@ -40,7 +40,9 @@ export const showNewControls = (
 		child.classList.remove("hidden");
 	});
 
-	const nextVerticalController = containerVertical?.childNodes?.item(rowIndex + 1)?.childNodes.item(0) as HTMLElement;
+	const nextVerticalController = containerVertical?.childNodes
+		?.item(rowIndex + 1)
+		?.childNodes?.item(0) as HTMLElement;
 	if (nextVerticalController) nextVerticalController.classList.remove("hidden");
 
 	const nextHorizontalController = containerHorizontal?.childNodes

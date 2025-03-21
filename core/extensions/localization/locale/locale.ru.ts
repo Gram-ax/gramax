@@ -147,7 +147,9 @@ const locale: DefaultLocale = {
 					name: "GitLab-токен",
 					placeholder: "glpat-aq6PK8sz1eQeKhTy-Dm5", // # gitleaks:allow
 					description:
-						"Токен для чтения и изменения репозиториев в хранилище. Укажите для токена права: `api`, `read_repository`, `write_repository`. " +
+						`<a ${
+							getExecutingEnvironment() === "tauri" ? "" : "target='_blank'"
+						} href='{{create_token_url}}'>Создать токен</a><br>Токен для чтения и изменения репозиториев в хранилище. Укажите для токена права: \`api\`, \`read_repository\`, \`write_repository\`. ` +
 						`<a ${
 							getExecutingEnvironment() === "tauri" ? "" : "target='_blank'"
 						} href='https://docs.gitlab.com/ee/user/profile/personal_access_tokens.html'>Подробнее</a>`,
@@ -293,10 +295,12 @@ const locale: DefaultLocale = {
 		error: {
 			"browser-not-supported": {
 				title: "Этот браузер не поддерживается",
-				desc: "<span>Откройте Gramax в <a href='https://gram.ax/resources/docs/faq'>другом браузере</a> или </span><a href='https://gram.ax'> скачайте приложение</a><span>на компьютер</span>",
+				desc: "<span>Откройте Gramax в <a href='https://gram.ax/resources/docs/app/web-editor'>другом браузере</a> или </span><a href='https://gram.ax'> скачайте приложение</a><span>на компьютер</span>",
 			},
 			"unknown-error": "Неизвестная ошибка",
 			"cannot-load": "Не удалось загрузить приложение",
+			"not-https":
+				"Для работы приложения необходимо HTTPS-подключение и <a href='https://developer.mozilla.org/en-US/docs/Web/API/Window/crossOriginIsolated'>cross-origin isolation</a>",
 			"command-failed": {
 				title: "Что-то пошло не так",
 				body: `<p>Перезагрузите страницу и попробуйте еще раз.</p><p>Мы получим сообщение о проблеме и постараемся ее быстро исправить. Если ошибка блокирует работу — напишите нам в <a href="https://t.me/gramax_assist_bot">Telegram</a>.</p>`,
@@ -544,7 +548,10 @@ title: Каталог уже связан с репозиторием
 		},
 	},
 	share: {
-		name: "Поделиться каталогом",
+		name: {
+			catalog: "Поделиться каталогом",
+			article: "Поделиться статьей",
+		},
 		copy: "Ссылка для доступа к статье и каталогу на ветке ",
 		hint: "Вы также можете скопировать ссылку напрямую из адресной строки браузера.",
 		note: "Примечание:",
@@ -577,6 +584,7 @@ title: Каталог уже связан с репозиторием
 			"tabledb-not-found": "Таблица не найдена",
 			"wrong-name": "Неправильное имя диаграммы",
 			specification: "Не удалось отобразить спецификацию",
+			"mermaid-export-next-error": "Mermaid диаграмма будет выведена в виде контента диаграммы",
 		},
 	},
 	"open-in": {
@@ -629,6 +637,28 @@ title: Каталог уже связан с репозиторием
 			},
 		},
 		clone: {
+			progress: {
+				downloading: "Скачивание",
+				checkout: "Извлечение файлов",
+				wait: "Ожидание сервера",
+				finish: "Завершено",
+				cancel: "Отмена",
+			},
+			etc: {
+				bs: "{bs} Б/с",
+				kbs: "{kbs} КБ/с",
+				mbs: "{mbs} МБ/с",
+				b: "{} Б",
+				kb: "{} КБ",
+				mb: "{} МБ",
+				"eta-s": ", ~{s}с",
+				"eta-m": ", ~{m}м {s}с",
+				"eta-h": ", ~{h}ч {m}м {s}с",
+			},
+			"receiving-objects": "Получено {received} объектов из {total} (проиндексировано {indexed})",
+			"indexing-deltas": "Проиндексировано {indexed} дельт из {total}",
+			checkout: "Извлечено {checkouted} файлов из {total}",
+			cancel: "Отменить",
 			"repo-link": "Ссылка на репозиторий",
 			"not-cloned": {
 				title: "Загрузить каталог?",
@@ -640,6 +670,7 @@ title: Каталог уже связан с репозиторием
 				"already-exist": "Каталог с таким названием уже существует {{path}}",
 				"no-permission": "Нет доступа к репозиторию {{url}}",
 				generic: "Попробуйте обновить страницу и загрузить каталог заново.",
+				"branch-not-found": "Не удалось загрузить каталог на ветке {{branch}}",
 			},
 		},
 		sync: {
@@ -753,9 +784,12 @@ title: Каталог уже связан с репозиторием
 				unknown: "Неизвестная ошибка при публикации. Сообщение ошибки -",
 				protected: "Ветка защищена от публикации",
 				"no-permission": "У вас нет прав для публикации в этот каталог",
+				"main-branch": "Публикация напрямую запрещена.",
+				"main-branch-merge": "Только слияние или запрос на слияние",
 			},
 		},
 		history: {
+			button: "Показать историю",
 			name: "История изменений",
 			error: {
 				"not-found": "Не удалось найти историю файла",
@@ -792,6 +826,8 @@ title: Каталог уже связан с репозиторием
 			http: "Ошибка HTTP: {{status}}",
 		},
 		"merge-requests": {
+			"branch-tab-tooltip": "В этой ветке есть запрос на объединение",
+			"branch-tab-badge": "MR",
 			diff: "Изменения",
 			create: "Создать запрос слияния",
 			approvedCountTooltip: "Утверждено {{approvedCount}} из {{approvedTotal}}",
@@ -1024,6 +1060,7 @@ title: Каталог уже связан с репозиторием
 	},
 	pdf: {
 		"component-parsing-failed": "Не удалось обработать компонент",
+		"kanban-view-export-error": "Представление в режиме Доска будет выгружено в режиме Список",
 	},
 	enterprise: {
 		"user-not-found":
@@ -1111,6 +1148,7 @@ title: Каталог уже связан с репозиторием
 	group2: "группы",
 	group: "Группа",
 	healthcheck: "Проверка на ошибки",
+	"check-errors": "Проверить на ошибки",
 	hide: "Скрыть",
 	icon: "Иконка",
 	image: "Изображение",
@@ -1131,6 +1169,7 @@ title: Каталог уже связан с репозиторием
 	name: "Название",
 	ok: "Понятно",
 	open: "Открыть",
+	"open-in-new-window": "Открыть в новом окне",
 	other: "Прочее",
 	page: "Страница",
 	products: "Продукты и сервисы",
@@ -1190,6 +1229,8 @@ title: Каталог уже связан с репозиторием
 	"article-titles": "Заголовки статьи",
 	"article-to-docx": "Cтатью в DOCX",
 	"article-to-pdf": "Cтатью в PDF",
+	"generate-pdf": "Формируем PDF",
+	"generate-docx": "Формируем DOCX",
 	"authorization-by-mail": "Авторизация по почте",
 	"bottom-left-pointer": "Нижняя левая аннотация",
 	"bottom-right-pointer": "Нижняя правая аннотация",
@@ -1280,7 +1321,8 @@ title: Каталог уже связан с репозиторием
 	"error-mail": "Указана некорректная почта",
 	"error-sing-in": "Ошибка входа",
 	"error-occured": "К сожалению, при отображении документации возникла ошибка.",
-	"export-catalog-docx": "Экспортировать каталог в DOCX",
+	"export-catalog-docx": "Каталог в DOCX",
+	"export-catalog-pdf": "Каталог в PDF",
 	"file-content": "Контент файла",
 	"file-download-error-message": "Возможно, он был перенесен или удален.",
 	"file-download-error-title": "Не удалось скачать файл",
@@ -1302,7 +1344,7 @@ title: Каталог уже связан с репозиторием
 	"incorrects-paths": "Некорректные пути",
 	"incorrects-unsupported": "Элементы",
 	"incorrects-content": "Некорректный синтаксис",
-	"markdown-error": "Ошибка в Markdown-конструкции",
+	"markdown-error": "Некорректная разметка",
 	"info-text": "Информация",
 	"init-git-version-control": "Инициализировать Git",
 	"invalid-index": "Индекс не соответствует требованиям!",
@@ -1363,7 +1405,7 @@ title: Каталог уже связан с репозиторием
 	"so-far-its-empty": "Пока что тут пусто",
 	"storage-not-connected": "Хранилище не подключено",
 	"submit-login-link": "Отправить ссылку для входа",
-	"switch-branch": "Switch branch",
+	"switch-branch": "Переключить ветку",
 	"sync-catalog": "Синхронизировать каталог?",
 	"sync-catalog-changed1": "файл доступен для синхронизации",
 	"sync-catalog-changed2": "файла доступно для синхронизации",

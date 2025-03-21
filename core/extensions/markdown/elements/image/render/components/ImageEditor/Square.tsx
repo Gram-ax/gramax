@@ -1,9 +1,10 @@
 import Tooltip from "@components/Atoms/Tooltip";
 import styled from "@emotion/styled";
 import { handleMove, objectMove } from "@ext/markdown/elements/image/edit/logic/imageEditorMethods";
-import { CSSProperties, ReactElement, RefObject, useRef, useState } from "react";
+import { CSSProperties, ReactElement, RefObject, useEffect, useRef, useState } from "react";
 import { SquareObject } from "../../../edit/model/imageEditorTypes";
 import { classNames } from "@components/libs/classNames";
+import { cssMedia } from "@core-ui/utils/cssUtils";
 
 interface SquareObjectProps extends SquareObject {
 	parentRef: RefObject<HTMLDivElement>;
@@ -13,7 +14,15 @@ interface SquareObjectProps extends SquareObject {
 	className?: string;
 	drawIndexes?: boolean;
 	style?: CSSProperties;
+	isPixels?: boolean;
 }
+
+type SquareVector = {
+	x: number;
+	y: number;
+	w: number;
+	h: number;
+};
 
 const Square = (props: SquareObjectProps): ReactElement => {
 	const {
@@ -32,17 +41,32 @@ const Square = (props: SquareObjectProps): ReactElement => {
 		parentRef,
 		className,
 		style,
+		isPixels,
 	} = props;
 	const mainRef = useRef<HTMLDivElement>(null);
 	const [isDraggable, setDraggable] = useState<boolean>(false);
+	const [position, setPosition] = useState<SquareVector>({ x: 0, y: 0, w: 0, h: 0 });
+	const unitType = isPixels ? "px" : "%";
+
+	useEffect(() => {
+		const imageContainer = parentRef.current;
+		const imageContainerRect = imageContainer.getBoundingClientRect();
+
+		setPosition({
+			x: isPixels ? (imageContainerRect.width * x) / 100 : x,
+			y: isPixels ? (imageContainerRect.height * y) / 100 : y,
+			w: isPixels ? (imageContainerRect.width * w) / 100 : w,
+			h: isPixels ? (imageContainerRect.height * h) / 100 : h,
+		});
+	}, [x, y, w, h, isPixels]);
 
 	const mainMouseDown = objectMove({
+		editable,
 		isDraggable,
 		parentRef,
 		mainRef,
 		setDraggable,
 		onMouseDownCallback: () => {
-			if (!editable) return false;
 			onClick?.(index);
 			return true;
 		},
@@ -62,11 +86,11 @@ const Square = (props: SquareObjectProps): ReactElement => {
 	});
 
 	const onMouseDown = handleMove({
+		editable,
 		setDraggable,
 		parentRef,
 		mainRef,
 		onMouseDownCallback: () => {
-			if (!editable) return false;
 			onClick?.(index);
 			return true;
 		},
@@ -93,10 +117,10 @@ const Square = (props: SquareObjectProps): ReactElement => {
 				onMouseDown={mainMouseDown}
 				style={{
 					...style,
-					left: x + "%",
-					top: y + "%",
-					width: w + "%",
-					height: h + "%",
+					left: position.x + unitType,
+					top: position.y + unitType,
+					width: position.w + unitType,
+					height: position.h + unitType,
 				}}
 				className={classNames(className, { selected })}
 			>
@@ -119,7 +143,7 @@ const Square = (props: SquareObjectProps): ReactElement => {
 
 export default styled(Square)`
 	position: absolute;
-	border: 3px solid #fc2847;
+	border: 0.2em solid #fc2847;
 	-webkit-print-color-adjust: exact;
 	print-color-adjust: exact;
 	border-radius: 4px;
@@ -143,23 +167,23 @@ export default styled(Square)`
 	}
 
 	.annotation-top-left {
-		left: -12px;
-		top: -12px;
+		left: -0.8em;
+		top: -0.8em;
 	}
 
 	.annotation-top-right {
-		right: -12px;
-		top: -12px;
+		right: -0.8em;
+		top: -0.8em;
 	}
 
 	.annotation-bottom-left {
-		left: -12px;
-		bottom: -12px;
+		left: -0.8em;
+		bottom: -0.8em;
 	}
 
 	.annotation-bottom-right {
-		right: -12px;
-		bottom: -12px;
+		right: -0.8em;
+		bottom: -0.8em;
 	}
 
 	.annotation p {
@@ -216,5 +240,9 @@ export default styled(Square)`
 		border-left: none;
 		border-top: none;
 		cursor: nwse-resize;
+	}
+
+	${cssMedia.narrow} {
+		font-size: 0.8em;
 	}
 `;

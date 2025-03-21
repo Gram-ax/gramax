@@ -17,6 +17,7 @@ enum GitErrorCode {
 	MergeError = "MergeError",
 	HttpError = "HttpError",
 	FileNotFoundError = "FileNotFoundError",
+	CancelledOperation = "CancelledOperation",
 }
 
 export default GitErrorCode;

@@ -7,8 +7,16 @@ export const BASE_CONFIG = {
 };
 
 export const ICON_SIZE = 11;
+
 export const MAX_WIDTH = 515;
+export const MAX_HEIGTH = 800;
+export const IMAGE_SCALE_FACTOR = 0.75;
+
 export const FONT_SIZE_COEFFICIENT = 0.625;
+export const LEVEL_WIDTH_REDUCTION = 25;
+export const SCALE = 4;
+
+export const ZERO_WIDTH_SPACE = "\u200B";
 
 export const FONTS = {
 	Roboto: {
@@ -28,6 +36,7 @@ export const FONTS = {
 	},
 	Menlo: {
 		normal: "Menlo-Regular.ttf",
+		bold: "Menlo-Regular.ttf",
 	},
 };
 
@@ -57,7 +66,26 @@ export const FOOTER_CONFIG = {
 	},
 };
 
-export const HEADING_STYLES: Record<string, Style> = {
+export const COLOR_CONFIG = {
+	black: "#000000",
+	table: "#a4a4a4",
+	codeBlock: {
+		fillColor: "#ededed",
+		textColor: "#111111",
+	},
+	hr: {
+		lineColor: "#a4a4a4",
+	},
+	video: {
+		linkColor: "#126199",
+	},
+	link: "#126199",
+	alfa: "#FF0000",
+	beta: "#B8860B",
+	who: "#ededed",
+};
+
+export const STYLES: Record<string, Style> = {
 	H1: {
 		fontSize: BASE_CONFIG.FONT_SIZE * 1.5625,
 		font: "RobotoBold",
@@ -73,6 +101,11 @@ export const HEADING_STYLES: Record<string, Style> = {
 	H4: {
 		fontSize: BASE_CONFIG.FONT_SIZE * 0.875,
 		font: "RobotoRegular",
+	},
+	CODE: {
+		background: COLOR_CONFIG.codeBlock.fillColor,
+		font: "Menlo",
+		color: COLOR_CONFIG.codeBlock.textColor,
 	},
 };
 
@@ -94,25 +127,6 @@ export const HEADING_MARGINS = {
 
 export const NOT_FOUND_IMAGE = "data:text/html;base64,";
 
-export const COLOR_CONFIG = {
-	black: "#000000",
-	table: "#a4a4a4",
-	codeBlock: {
-		fillColor: "#ededed",
-		textColor: "#111111",
-	},
-	hr: {
-		lineColor: "#a4a4a4",
-	},
-	video: {
-		linkColor: "#126199",
-	},
-	link: "#126199",
-	alfa: "#FF0000",
-	beta: "#B8860B",
-	who: "#ededed",
-};
-
 export const NOTE_COLOR_CONFIG = {
 	borderColors: {
 		tip: "#00aaff",
@@ -132,4 +146,17 @@ export const NOTE_COLOR_CONFIG = {
 		hotfixes: "#f4f4f4",
 		quote: "#f4f4f4",
 	},
+};
+
+export const TABLE_STYLE = {
+	hLineWidth: (rowIndex, _node) =>
+		rowIndex === 0 || (_node.table.body && rowIndex === _node.table.body.length) ? 0 : 0.1,
+	vLineWidth: (colIndex, _node) =>
+		colIndex === 0 || (_node.table.widths && colIndex === _node.table.widths.length) ? 0 : 0.1,
+	hLineColor: () => COLOR_CONFIG.table,
+	vLineColor: () => COLOR_CONFIG.table,
+	paddingLeft: () => 4,
+	paddingRight: () => 4,
+	paddingTop: () => 8,
+	paddingBottom: () => 8,
 };

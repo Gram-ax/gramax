@@ -1,4 +1,5 @@
 import SpinnerLoader from "@components/Atoms/SpinnerLoader";
+import calculateTabWrapperHeight from "@components/Layouts/StatusBar/Extensions/logic/calculateTabWrapperHeight";
 import useSetArticleDiffView from "@core-ui/hooks/diff/useSetArticleDiffView";
 import styled from "@emotion/styled";
 import type {
@@ -11,12 +12,14 @@ import { Overview } from "@ext/git/core/GitMergeRequest/components/Changes/Overv
 import ScrollableDiffEntriesLayout from "@ext/git/core/GitMergeRequest/components/Changes/ScrollableDiffEntriesLayout";
 import SelectAll from "@ext/git/core/GitPublish/SelectAll";
 
-import { useCallback } from "react";
+import { RefObject, useCallback, useLayoutEffect, useRef } from "react";
 
 export type PublishChangesProps = {
 	diffTree: DiffTree;
 	overview: TotalOverview;
 	isLoading: boolean;
+	show: boolean;
+	tabWrapperRef: RefObject<HTMLDivElement>;
 	isReady: boolean;
 	isSelectedAll: boolean;
 	selectAll: (checked: boolean) => void;
@@ -26,6 +29,7 @@ export type PublishChangesProps = {
 
 	selectFile: (file: DiffTreeAnyItem, checked: boolean) => void;
 	isFileSelected: (file: DiffTreeAnyItem) => boolean;
+	setContentHeight: (height: number) => void;
 	bottom?: JSX.Element;
 };
 
@@ -36,26 +40,48 @@ const SelectAllWrapper = styled.div`
 export const PublishChanges = (props: PublishChangesProps) => {
 	const {
 		diffTree,
+		show,
 		isLoading,
 		overview,
-		isReady,
 		isSelectedAll,
 		selectAll,
 		onDiscard,
 		canDiscard,
 		selectFile,
 		isFileSelected,
+		tabWrapperRef,
+		setContentHeight,
 	} = props;
-
+	const containerRef = useRef<HTMLDivElement>(null);
 	const setArticleDiffView = useSetArticleDiffView(null, { reference: "HEAD" });
 
 	const onEntryDiscard = useCallback(
 		(entry: DiffTreeAnyItem) => {
 			if (entry.type === "node") return;
-			onDiscard([entry.filepath.new, entry.filepath.old]);
+			const filePaths = [entry.filepath.new, entry.filepath.old];
+			if (entry.type === "item" && entry.childs?.length) {
+				entry.childs.forEach((c) => {
+					if (c.type !== "resource") return;
+					filePaths.push(c.filepath.new, c.filepath.old);
+				});
+			}
+			onDiscard(filePaths);
 		},
 		[onDiscard],
 	);
+
+	useLayoutEffect(() => {
+		if (!containerRef.current || !tabWrapperRef.current || !show) return;
+		const mainElement = tabWrapperRef.current;
+		const firstChild = containerRef.current.firstElementChild as HTMLElement;
+		const isSpinner = firstChild.dataset.qa === "loader";
+
+		if (!mainElement && !isSpinner) return;
+		const height =
+			calculateTabWrapperHeight(mainElement) - parseFloat(getComputedStyle(document.documentElement).fontSize);
+
+		setContentHeight(height);
+	}, [diffTree?.tree, containerRef.current, tabWrapperRef.current, isLoading]);
 
 	return (
 		<>
@@ -73,10 +99,11 @@ export const PublishChanges = (props: PublishChangesProps) => {
 				/>
 			</SelectAllWrapper>
 			<ScrollableDiffEntriesLayout>
-				{isLoading ? (
-					<SpinnerLoader fullScreen />
+				{!diffTree?.tree && isLoading ? (
+					<SpinnerLoader ref={containerRef} fullScreen />
 				) : (
 					<DiffEntries
+						ref={containerRef}
 						changes={diffTree?.tree}
 						selectFile={selectFile}
 						isFileSelected={isFileSelected}

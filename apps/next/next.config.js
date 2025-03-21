@@ -14,7 +14,7 @@ const withBundleAnalyzer = NextBundleAnalyzer({
 const dirname = path.dirname(fileURLToPath(import.meta.url));
 
 const isProduction = process.env.PRODUCTION === "true";
-const isOpenSourceDocportal = process.env.IS_OPEN_SOURCE_DOCPORTAL === "true";
+const uploadSourceMapsToBugsnag = process.env.UPLOAD_SOURCE_MAPS_TO_BUGSNAG === "true";
 
 const bugsnagOptions = {
 	apiKey: process.env.BUGSNAG_API_KEY,
@@ -22,6 +22,7 @@ const bugsnagOptions = {
 };
 
 if (isProduction) console.log("Build in production mode");
+if (isProduction && uploadSourceMapsToBugsnag) console.log("Upload source maps to Bugsnag");
 
 export default withBundleAnalyzer({
 	experimental: {
@@ -40,7 +41,7 @@ export default withBundleAnalyzer({
 	// outputFileTracingRoot: process.env.NEXT_OUTPUT_TYPE ? path.join(dirname, '../../') : null,
 
 	webpack: (config, _) => {
-		if (isProduction && !isOpenSourceDocportal) config.plugins.push(new NextSourceMapUploader(bugsnagOptions));
+		if (isProduction && uploadSourceMapsToBugsnag) config.plugins.push(new NextSourceMapUploader(bugsnagOptions));
 		config.devtool = isProduction ? "source-map" : "eval";
 		config.module.rules.push({
 			test: /\.tsx?$/,

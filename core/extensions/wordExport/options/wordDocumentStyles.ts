@@ -25,7 +25,7 @@ const getNumberFormat = (level: number) => ({
 	text: `%${level + 1}.`,
 });
 
-const getBulletSymbol = (level: number) => ({
+export const getBulletSymbol = (level: number) => ({
 	text: levelText[level % 3],
 	font: levelFont[level % 3],
 });

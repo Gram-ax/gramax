@@ -1,11 +1,6 @@
 import Annotation from "@ext/markdown/elements/image/render/components/ImageEditor/Annotation";
 import Square from "@ext/markdown/elements/image/render/components/ImageEditor/Square";
-import {
-	ImageObject,
-	ImageObjectTypes,
-	AnnotationObject,
-	SquareObject,
-} from "@ext/markdown/elements/image/edit/model/imageEditorTypes";
+import { ImageObject, ImageObjectTypes } from "@ext/markdown/elements/image/edit/model/imageEditorTypes";
 import { CSSProperties, RefObject, useState } from "react";
 import useWatch from "@core-ui/hooks/useWatch";
 
@@ -16,7 +11,14 @@ interface UnifiedComponentProps extends ImageObject {
 	selectedIndex?: number;
 	drawIndexes?: boolean;
 	style?: CSSProperties;
+	isPixels?: boolean;
 }
+
+const Components: Record<ImageObjectTypes, React.FC<any>> = {
+	[ImageObjectTypes.Unknown]: null,
+	[ImageObjectTypes.Annotation]: Annotation,
+	[ImageObjectTypes.Square]: Square,
+};
 
 const UnifiedComponent = (props: UnifiedComponentProps) => {
 	const { type, index, parentRef, editable, selectedIndex, style, ...otherProps } = props;
@@ -26,34 +28,18 @@ const UnifiedComponent = (props: UnifiedComponentProps) => {
 		setSelected(selectedIndex === index);
 	}, [selectedIndex, index]);
 
-	switch (type) {
-		case ImageObjectTypes.Annotation:
-			return (
-				<Annotation
-					type={type}
-					index={index}
-					parentRef={parentRef}
-					editable={editable}
-					selected={isSelected}
-					style={style}
-					{...(otherProps as AnnotationObject)}
-				/>
-			);
-		case ImageObjectTypes.Square:
-			return (
-				<Square
-					type={type}
-					index={index}
-					parentRef={parentRef}
-					editable={editable}
-					selected={isSelected}
-					style={style}
-					{...(otherProps as SquareObject)}
-				/>
-			);
-		default:
-			return null;
-	}
+	const Component = Components[type];
+	return Component ? (
+		<Component
+			editable={editable}
+			selected={isSelected}
+			parentRef={parentRef}
+			style={style}
+			type={type}
+			index={index}
+			{...otherProps}
+		/>
+	) : null;
 };
 
 export default UnifiedComponent;

@@ -20,8 +20,6 @@ const CatalogFetchNotification = ({ catalogLink }: { catalogLink: CatalogLink })
 			few: t("sync-catalog-changed2"),
 			many: t("sync-catalog-changed3"),
 		});
-	} else {
-		console.error(catalogLink.name, syncCount.errorMessage);
 	}
 
 	return <Notification tooltip={tooltip}>{message}</Notification>;

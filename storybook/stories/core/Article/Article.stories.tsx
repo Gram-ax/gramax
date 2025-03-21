@@ -2,7 +2,6 @@ import ArticleComponentSrc from "@components/Layouts/CatalogLayout/ArticleLayout
 import RightNavigationComponent from "@components/Layouts/CatalogLayout/RightNavigation/RightNavigationComponent";
 import SidebarsIsPinService from "@core-ui/ContextServices/Sidebars/SidebarsIsPin";
 import { useEffect } from "react";
-import pageProps from "../../../data/pageProps";
 
 const ArticleData = {
 	title: "gx/core/Article/Article",
@@ -19,7 +18,6 @@ const ArticleData = {
 };
 
 export const Article = ({ isPin }: { isPin: boolean }) => {
-	const data = pageProps.data as any;
 	useEffect(() => {
 		SidebarsIsPinService.value = { left: isPin };
 	});
@@ -62,7 +60,7 @@ export const Article = ({ isPin }: { isPin: boolean }) => {
 					<div>content content content content content</div>
 				</div>
 			}
-			rightNav={<RightNavigationComponent itemLinks={data.itemLinks} />}
+			rightNav={<RightNavigationComponent />}
 		/>
 	);
 };

@@ -6,14 +6,14 @@ import CatalogPropsService from "@core-ui/ContextServices/CatalogProps";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import { useEffect, useState } from "react";
 
-const useEditUrlInDesktop = () => "gramax://" + window.location.pathname;
+const useEditUrlInDesktop = ({ pathname }: { pathname: string }) => "gramax://" + pathname;
 
-const useEditUrlInWeb = () =>
-	(PageDataContextService.value?.conf.isRelease ? "https://app.gram.ax" : "https://dev.gram.ax") +
-	window.location.pathname +
+const useEditUrlInWeb = ({ pathname }: { pathname: string }) =>
+	(PageDataContextService.value?.conf.isRelease ? "https://app.gram.ax/" : "https://dev.gram.ax/") +
+	pathname +
 	"/?web";
 
-const useEditUrlInWebFromDocPortal = () => {
+const useEditUrlInWebFromDocPortal = ({ articlePath }: { articlePath: string }) => {
 	const [editInGramaxUrl, setEditInGramaxUrl] = useState<string>();
 
 	const catalogProps = CatalogPropsService.value;
@@ -22,7 +22,7 @@ const useEditUrlInWebFromDocPortal = () => {
 	const isRelease = PageDataContextService.value?.conf.isRelease;
 
 	const getEditInGramaxLink = async () => {
-		const res = await FetchService.fetch(apiUrlCreator.getEditOnAppUrl(articleProps.ref.path));
+		const res = await FetchService.fetch(apiUrlCreator.getEditOnAppUrl(articlePath));
 		if (!res.ok) return;
 		setEditInGramaxUrl((isRelease ? "https://app.gram.ax/" : "https://dev.gram.ax/") + (await res.text()));
 	};
@@ -40,6 +40,7 @@ const editUrlHooks = {
 	tauri: useEditUrlInWeb,
 };
 
-const useEditUrl = () => editUrlHooks[getExecutingEnvironment()]();
+const useEditUrl = (pathname: string, articlePath: string) =>
+	editUrlHooks[getExecutingEnvironment()]({ pathname, articlePath });
 
 export default useEditUrl;

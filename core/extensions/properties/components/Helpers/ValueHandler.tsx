@@ -2,7 +2,7 @@ import useWatch from "@core-ui/hooks/useWatch";
 import t from "@ext/localization/locale/translate";
 import DragValue from "@ext/properties/components/Helpers/DragValue";
 import { DragItems } from "@ext/properties/models/kanban";
-import { useState, useCallback } from "react";
+import { useState, useCallback, useMemo } from "react";
 import { useDrop } from "react-dnd";
 import React from "react";
 
@@ -90,22 +90,27 @@ const ValueHandler = ({ data, onChange, isActions = true }: ValueHandlerProps) =
 		[values],
 	);
 
+	const dragValues = useMemo(() => {
+		if (!values.length) return <div className="empty-state">{t("properties.no-values")}</div>;
+
+		return values?.map((value) => (
+			<DragValue
+				isActions={isActions}
+				key={value.text}
+				id={value.id}
+				text={value.text}
+				endDrag={endDrag}
+				moveValue={moveValue}
+				findValue={findValue}
+				updateValue={updateValue}
+				onDelete={deleteValue}
+			/>
+		));
+	}, [values.length]);
+
 	return (
 		<div ref={(ref) => void drop(ref)} className="value-handler">
-			{!values.length && <div className="empty-state">{t("properties.no-values")}</div>}
-			{values?.map((value) => (
-				<DragValue
-					isActions={isActions}
-					key={value.text}
-					id={value.id}
-					text={value.text}
-					endDrag={endDrag}
-					moveValue={moveValue}
-					findValue={findValue}
-					updateValue={updateValue}
-					onDelete={deleteValue}
-				/>
-			))}
+			{dragValues}
 		</div>
 	);
 };

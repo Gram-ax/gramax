@@ -15,7 +15,7 @@ export type AddContentLanguageProps = {
 };
 
 const AddContentLanguage = ({ onChange, setIsLoading }: AddContentLanguageProps) => {
-	const ref = useRef();
+	const ref = useRef<HTMLDivElement>(null);
 
 	const props = CatalogPropsService.value;
 	const apiUrlCreator = ApiUrlCreatorService.value;

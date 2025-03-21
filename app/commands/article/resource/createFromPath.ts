@@ -6,8 +6,8 @@ import Path from "@core/FileProvider/Path/Path";
 import { Article } from "@core/FileStructue/Article/Article";
 import parseContent from "@core/FileStructue/Article/parseContent";
 import HashResourceManager from "@core/Hash/HashItems/HashResourceManager";
-import { Command } from "../../../types/Command";
 import createImage from "@ext/markdown/elements/copyMsO/createImage";
+import { Command } from "../../../types/Command";
 
 const createFromPath: Command<
 	{ resourcePath: Path; resourceName: string; catalogName: string; articlePath: Path; ctx: Context },
@@ -30,9 +30,14 @@ const createFromPath: Command<
 		const { newName, data } = await createImage(article, fp, articlePath, resourcePath, resourceName);
 
 		await parseContent(article, catalog, ctx, parser, parserContextFactory);
-		const hashItem = new HashResourceManager(newName, article.parsedContent.resourceManager);
-		await article.parsedContent.resourceManager.setContent(newName, data);
-		hashes.deleteHash(hashItem);
+
+		await article.parsedContent.write(async (p) => {
+			const hashItem = new HashResourceManager(newName, p.resourceManager);
+			await p.resourceManager.setContent(newName, data);
+			hashes.deleteHash(hashItem);
+
+			return p;
+		});
 		return { newName: newName.toString() };
 	},
 

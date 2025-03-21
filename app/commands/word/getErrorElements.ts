@@ -6,15 +6,15 @@ import parseContent from "@core/FileStructue/Article/parseContent";
 import { Category } from "@core/FileStructue/Category/Category";
 import { Item } from "@core/FileStructue/Item/Item";
 import UnsupportedElements from "@ext/import/model/UnsupportedElements";
+import { resolveRootCategory } from "@ext/localization/core/catalogExt";
+import { tString } from "@ext/localization/locale/translate";
 import { Tag } from "@ext/markdown/core/render/logic/Markdoc";
+import { pdfExportedKeys } from "@ext/pdfExport/layouts";
+import RuleProvider from "@ext/rules/RuleProvider";
 import MarkdownElementsFilter from "@ext/wordExport/MarkdownElementsFilter";
+import { ExportFormat } from "@ext/wordExport/components/ItemExport";
 import { exportedKeys } from "@ext/wordExport/layouts";
 import { Command } from "../../types/Command";
-import { tString } from "@ext/localization/locale/translate";
-import RuleProvider from "@ext/rules/RuleProvider";
-import { resolveRootCategory } from "@ext/localization/core/catalogExt";
-import { ExportFormat } from "@ext/wordExport/components/ItemExport";
-import { pdfExportedKeys } from "@ext/pdfExport/layouts";
 
 const getErrorElements: Command<
 	{ ctx: Context; itemPath: Path; isCategory: boolean; catalogName: string; exportFormat: ExportFormat },
@@ -43,9 +43,10 @@ const getErrorElements: Command<
 				link: await catalog.getPathname(item),
 			};
 
-			const elements = markdownElementsFilter.getUnsupportedElements(
-				(item as Article).parsedContent.renderTree as Tag,
-			);
+			const elements = await (item as Article).parsedContent.read((p) => {
+				return markdownElementsFilter.getUnsupportedElements(p.renderTree as Tag);
+			});
+
 			if (elements.size > 0)
 				unsupportedElements.push({
 					article,

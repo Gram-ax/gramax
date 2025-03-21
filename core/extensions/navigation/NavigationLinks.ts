@@ -12,6 +12,7 @@ export interface CatalogLink extends BaseLink {
 	group: string;
 	order: number;
 	description: string;
+	lastVisited?: string;
 	isCloning: boolean;
 }
 
@@ -33,7 +34,7 @@ export interface ItemLink extends BaseLink {
 
 export interface CategoryLink extends ItemLink {
 	type: ItemType.category;
-	items: ItemLink[];
+	items: (ItemLink | CategoryLink)[];
 	isExpanded: boolean;
 	filter?: LinkFilter;
 	existContent?: boolean;

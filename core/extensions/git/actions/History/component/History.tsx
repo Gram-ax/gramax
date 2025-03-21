@@ -2,13 +2,11 @@ import Checkbox from "@components/Atoms/Checkbox";
 import DiffContent from "@components/Atoms/DiffContent";
 import SpinnerLoader from "@components/Atoms/SpinnerLoader";
 import Tooltip from "@components/Atoms/Tooltip";
-import ListItem from "@components/Layouts/CatalogLayout/RightNavigation/ListItem";
 import LeftNavViewContent, { ViewContent } from "@components/Layouts/LeftNavViewContent/LeftNavViewContent";
 import LogsLayout from "@components/Layouts/LogsLayout";
 import ModalLayout from "@components/Layouts/Modal";
 import FetchService from "@core-ui/ApiServices/FetchService";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
-import ArticlePropsService from "@core-ui/ContextServices/ArticleProps";
 import CatalogPropsService from "@core-ui/ContextServices/CatalogProps";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import styled from "@emotion/styled";
@@ -20,10 +18,11 @@ import useIsStorageInitialized from "@ext/storage/logic/utils/useIsStorageInitia
 import { useEffect, useState } from "react";
 import User from "../../../../security/components/User/User";
 import { ArticleHistoryViewModel } from "../model/ArticleHistoryViewModel";
+import ButtonLink from "@components/Molecules/ButtonLink";
+import { ClientArticleProps } from "@core/SitePresenter/SitePresenter";
 
-const History = styled(({ className }: { className?: string }) => {
+const History = styled(({ className, item }: { className?: string; item: ClientArticleProps }) => {
 	const apiUrlCreator = ApiUrlCreatorService.value;
-	const articleProps = ArticlePropsService.value;
 	const catalogProps = CatalogPropsService.value;
 	const pageData = PageDataContextService.value;
 	const { isReadOnly } = pageData.conf;
@@ -40,7 +39,7 @@ const History = styled(({ className }: { className?: string }) => {
 
 	const loadData = async () => {
 		const response = await FetchService.fetch<ArticleHistoryViewModel[]>(
-			apiUrlCreator.getVersionControlFileHistoryUrl(),
+			apiUrlCreator.getVersionControlFileHistoryUrl(item.ref.path),
 		);
 		if (!response.ok) {
 			setIsOpen(false);
@@ -50,7 +49,7 @@ const History = styled(({ className }: { className?: string }) => {
 	};
 
 	const getIsFileNew = async () => {
-		const res = await FetchService.fetch<GitStatus>(apiUrlCreator.getVersionControlFileStatus());
+		const res = await FetchService.fetch<GitStatus>(apiUrlCreator.getVersionControlFileStatus(item.ref.path));
 		const gitStatus = await res.json();
 		setIsFileNew(!gitStatus || gitStatus.status == FileStatus.new);
 	};
@@ -58,7 +57,7 @@ const History = styled(({ className }: { className?: string }) => {
 	useEffect(() => {
 		if (!hasRemoteStorage || !isStorageInitialized || isReadOnly) return;
 		void getIsFileNew();
-	}, [catalogProps.name, articleProps.logicPath, hasRemoteStorage, isStorageInitialized, isReadOnly]);
+	}, [catalogProps.name, item?.logicPath, hasRemoteStorage, isStorageInitialized, isReadOnly]);
 
 	const spinnerLoader = (
 		<LogsLayout style={{ overflow: "hidden" }}>
@@ -82,11 +81,11 @@ const History = styled(({ className }: { className?: string }) => {
 			contentWidth={data ? "L" : null}
 			trigger={
 				<Tooltip content={t(t("git.history.error.need-to-publish"))} disabled={!disabled}>
-					<ListItem
+					<ButtonLink
 						onClick={() => setIsOpen(true)} // без этого не работает
 						disabled={disabled}
 						iconCode="history"
-						text={t("git.history.name")}
+						text={t("git.history.button")}
 					/>
 				</Tooltip>
 			}

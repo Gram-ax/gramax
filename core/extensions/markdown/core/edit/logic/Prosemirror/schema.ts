@@ -2,6 +2,7 @@ import doc from "@ext/markdown/elements/article/edit/doc";
 import blockquote from "@ext/markdown/elements/blockquote/editor/model/blockquoteSchema";
 import br from "@ext/markdown/elements/br/edit/model/brSchema";
 import code_block from "@ext/markdown/elements/codeBlockLowlight/edit/model/schema";
+import color from "@ext/markdown/elements/color/edit/model/colorSchema";
 import comment from "@ext/markdown/elements/comment/edit/model/commentSchema";
 import answer from "@ext/markdown/elements/comment/legacy/answer/edit/answerSchema";
 import comment_old from "@ext/markdown/elements/comment/legacy/comment/commentShema";
@@ -89,6 +90,7 @@ export const getSchema = (additionalSchema?: { nodes?: Record<string, any>; mark
 			...(additionalSchema?.nodes ?? {}),
 		},
 		marks: {
+			color,
 			link,
 			comment,
 			suggestion,

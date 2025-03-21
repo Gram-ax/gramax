@@ -12,7 +12,8 @@ const OnDeleteNode = Extension.create({
 					transactions.forEach((transaction) => {
 						if (transaction.doc.content.size !== oldState.doc.content.size && transaction.docChanged) {
 							const isDrop = transaction.getMeta("uiEvent") === "drop";
-							if (isDrop) return;
+							const isIgnored = transaction.getMeta("ignoreDeleteNode");
+							if (isDrop || isIgnored) return;
 
 							transaction.steps.forEach((step, index) => {
 								const prevDoc = transaction.docs[index];

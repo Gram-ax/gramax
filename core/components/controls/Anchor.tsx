@@ -20,7 +20,7 @@ const Anchor = (Props: AnchorProps) => {
 	const { children, basePath, target: propTarget = "_blank", resourcePath, ...props } = Props;
 	const isAnchor = props.href?.match(/^#/);
 	const basePathLength = useRouter()?.basePath?.length ?? basePath?.length ?? 0;
-	const setLink = ArticleTooltipService.value;
+	const { setLink } = ArticleTooltipService.value;
 	const executingEnvironment = getExecutingEnvironment();
 	const target = executingEnvironment === "tauri" || props.href?.startsWith("gramax://") ? "_self" : propTarget;
 

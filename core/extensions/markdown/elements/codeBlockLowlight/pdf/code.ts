@@ -1,12 +1,12 @@
 import { Tag } from "@ext/markdown/core/render/logic/Markdoc";
-import { BASE_CONFIG, COLOR_CONFIG, FONT_SIZE_COEFFICIENT } from "@ext/pdfExport/config";
+import { BASE_CONFIG, COLOR_CONFIG, FONT_SIZE_COEFFICIENT, MAX_WIDTH } from "@ext/pdfExport/config";
 import { ContentTable } from "pdfmake/interfaces";
 
 export function codeBlockHandler(node: Tag): ContentTable {
 	return {
 		table: {
 			dontBreakRows: true,
-			widths: ["*"],
+			widths: [MAX_WIDTH],
 			body: [
 				[
 					{

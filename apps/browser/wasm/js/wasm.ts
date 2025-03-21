@@ -1,10 +1,11 @@
 import { onFSWasmCallback } from "@app/resolveModule/fscall/wasm";
 import { onGitWasmCallback } from "@app/resolveModule/gitcall/wasm";
 import DefaultError from "@ext/errorHandlers/logic/DefaultError";
-import { onCloneProgress } from "@ext/git/core/GitCommands/LibGit2IntermediateCommands";
+import { cloneProgressCallbacks } from "@ext/git/core/GitCommands/LibGit2IntermediateCommands";
 import setWorkerProxy from "../../src/logic/setWorkerProxy";
 
 const notSupported = () => new DefaultError(undefined, undefined, { errorCode: "wasmInitTimeout" });
+const notHttps = () => new DefaultError(undefined, undefined, { errorCode: "notHttps" });
 
 const assertSupported = () => {
 	const supported =
@@ -16,12 +17,17 @@ const assertSupported = () => {
 	if (!supported) throw notSupported();
 };
 
+const assertHttps = () => {
+	if (!window.isSecureContext || !window.crossOriginIsolated) throw notHttps();
+};
+
 const assertPersisted = async () => {
 	if (await window.navigator.storage.persisted()) return;
 	await window.navigator.storage.persist();
 };
 
 export const initWasm = async (corsProxy: string) => {
+	assertHttps();
 	assertSupported();
 	await assertPersisted();
 	const w = window as any;
@@ -33,8 +39,9 @@ export const initWasm = async (corsProxy: string) => {
 			if (ev.data.type == "fs-call") onFSWasmCallback(ev);
 			if (ev.data.type == "git-call") onGitWasmCallback(ev);
 			if (ev.data.type == "clone-progress") {
-				const payload = ev.data.progress;
-				onCloneProgress?.(payload);
+				const payload = ev.data?.data;
+				if (!payload?.data) return;
+				cloneProgressCallbacks[payload.data.id]?.(payload);
 			}
 
 			if (ev.data.type == "ready") resolve(w.wasm);

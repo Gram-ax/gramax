@@ -9,6 +9,7 @@ const MARGIN_CONFIG: { [key: string]: { top?: number; bottom?: number } } = {
 	p: { bottom: BASE_CONFIG.FONT_SIZE * 0.9375 },
 	ul: { bottom: BASE_CONFIG.FONT_SIZE * 1.25 },
 	ol: { bottom: BASE_CONFIG.FONT_SIZE * 1.25 },
+	View: { top: BASE_CONFIG.FONT_SIZE * 1.25, bottom: BASE_CONFIG.FONT_SIZE * 1 },
 	Fence: { top: BASE_CONFIG.FONT_SIZE * 1, bottom: BASE_CONFIG.FONT_SIZE * 1 },
 	hr: { top: BASE_CONFIG.FONT_SIZE * 2, bottom: BASE_CONFIG.FONT_SIZE * 2 },
 	Note: { top: BASE_CONFIG.FONT_SIZE * 1.125, bottom: BASE_CONFIG.FONT_SIZE * 1.125 },

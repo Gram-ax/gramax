@@ -31,10 +31,20 @@ interface NoteProps {
 	collapsed?: string | boolean;
 	className?: string;
 	collapseCallback?: (collapse: boolean) => void;
+	disableRender?: boolean;
 }
 
 const Note = (props: NoteProps): ReactElement => {
-	const { type = NoteType.note, title, className, children, collapseCallback, collapsed, titleEditor } = props;
+	const {
+		type = NoteType.note,
+		title,
+		className,
+		children,
+		collapseCallback,
+		collapsed,
+		titleEditor,
+		disableRender,
+	} = props;
 	const [expanded, dispatchExpanded] = useState(!collapsed);
 
 	const toggleExpanded = (e: MouseEvent<HTMLElement>) => {
@@ -82,7 +92,9 @@ const Note = (props: NoteProps): ReactElement => {
 				</div>
 			</div>
 			<div className="admonition-content">
-				<div className={classNames("paragraph", { "content-hide": !expanded })}>{children}</div>
+				{(disableRender && !expanded) || (
+					<div className={classNames("paragraph", { "content-hide": !expanded })}>{children}</div>
+				)}
 			</div>
 		</div>
 	);

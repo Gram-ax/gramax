@@ -1,4 +1,4 @@
-const S3_HOST = "https://s3.ics-it.ru/public/docreader";
+const S3_HOST = "https://s3.gram.ax";
 
 const getUrl = async (platform: string, branch: string) => {
 	const versions = await fetch(`${S3_HOST}/${branch}/versions.json`).then((res) => res.json());

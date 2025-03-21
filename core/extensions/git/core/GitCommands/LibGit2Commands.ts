@@ -10,14 +10,15 @@ import GitSourceData from "../model/GitSourceData.schema";
 import { GitVersion } from "../model/GitVersion";
 import * as git from "./LibGit2IntermediateCommands";
 import GitCommandsModel, {
-  type CloneProgress,
-  type DiffConfig,
-  type DiffTree2TreeInfo,
-  type DirEntry,
-  type DirStat,
-  type FileStat,
-  type RefInfo,
-  type TreeReadScope,
+	type CloneCancelToken,
+	type CloneProgress,
+	type DiffConfig,
+	type DiffTree2TreeInfo,
+	type DirEntry,
+	type DirStat,
+	type FileStat,
+	type RefInfo,
+	type TreeReadScope,
 } from "./model/GitCommandsModel";
 
 class LibGit2Commands extends LibGit2BaseCommands implements GitCommandsModel {
@@ -40,15 +41,27 @@ class LibGit2Commands extends LibGit2BaseCommands implements GitCommandsModel {
 	async clone(
 		url: string,
 		source: GitSourceData,
+		cancelToken: CloneCancelToken,
 		branch?: string,
 		depth?: number,
 		isBare?: boolean,
 		onProgress?: (progress: CloneProgress) => void,
 	) {
-		await git.clone(
-			{ creds: this._intoCreds(source), opts: { to: this._repoPath, url, branch, depth, isBare } },
-			onProgress,
-		);
+		try {
+			await git.clone(
+				{
+					creds: this._intoCreds(source),
+					opts: { to: this._repoPath, url, cancelToken, branch, depth, isBare },
+				},
+				onProgress,
+			);
+		} catch (e) {
+			throw getGitError(e, { repositoryPath: this._repoPath, repUrl: url, branchName: branch }, "clone");
+		}
+	}
+
+	cloneCancel(id: number): Promise<boolean> {
+		return git.cloneCancel(id);
 	}
 
 	async commit(message: string, data: SourceData, parents?: string[], paths?: string[]): Promise<GitVersion> {

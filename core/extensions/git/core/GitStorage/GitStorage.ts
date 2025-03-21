@@ -1,5 +1,7 @@
 import { getHttpsRepositoryUrl } from "@components/libs/utils";
+import type FileStructure from "@core/FileStructue/FileStructure";
 import GithubStorageData from "@ext/git/actions/Source/GitHub/model/GithubStorageData";
+import type { CloneCancelToken } from "@ext/git/core/GitCommands/model/GitCommandsModel";
 import getUrlFromGitStorageData from "@ext/git/core/GitStorage/utils/getUrlFromGitStorageData";
 import Path from "../../../../logic/FileProvider/Path/Path";
 import FileProvider from "../../../../logic/FileProvider/model/FileProvider";
@@ -42,12 +44,18 @@ export default class GitStorage implements Storage {
 		return (await git.isInit()) && (await git.hasRemote());
 	}
 
+	static async cloneCancel(cancelToken: CloneCancelToken, fs: FileStructure, repoPath: Path) {
+		const gitRepository = new GitCommands(fs.fp.default(), repoPath);
+		await gitRepository.cloneCancel(cancelToken);
+	}
+
 	static async clone({
 		fs,
 		url,
 		data,
 		source,
 		branch,
+		cancelToken,
 		recursive = true,
 		isBare = false,
 		onProgress,
@@ -58,7 +66,15 @@ export default class GitStorage implements Storage {
 			const gitRepository = new GitCommands(fs.fp.default(), repositoryPath);
 			const currentUrl = url ?? getUrlFromGitStorageData(data);
 			try {
-				await gitRepository.clone(getHttpsRepositoryUrl(currentUrl), source, branch, null, isBare, onProgress);
+				await gitRepository.clone(
+					getHttpsRepositoryUrl(currentUrl),
+					source,
+					cancelToken,
+					branch,
+					null,
+					isBare,
+					onProgress,
+				);
 			} catch (e) {
 				if (!((e as GitError).props?.errorCode === GitErrorCode.AlreadyExistsError)) throw e;
 			}

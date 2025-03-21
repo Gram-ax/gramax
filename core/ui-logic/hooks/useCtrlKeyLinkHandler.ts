@@ -1,19 +1,19 @@
-import IsEditService from "@core-ui/ContextServices/IsEdit";
+import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import { useCtrlKey } from "@core-ui/hooks/useCtrlKey";
 import { usePlatform } from "@core-ui/hooks/usePlatform";
 import parseStorageUrl from "@core/utils/parseStorageUrl";
-import { useRef, useEffect } from "react";
+import { useEffect, useRef } from "react";
 
 export const useCtrlKeyLinkHandler = () => {
 	const { isCtrlPressed } = useCtrlKey();
 	const { isTauri } = usePlatform();
 	const modifiedLinks = useRef<Set<HTMLAnchorElement>>(new Set());
-	const isEdit = IsEditService.value;
+	const isReadOnly = PageDataContextService.value.conf.isReadOnly;
 
 	const isExternalLink = (href) => !!parseStorageUrl(href)?.domain;
 
 	useEffect(() => {
-		if (!isTauri || !isEdit) return;
+		if (!isTauri || isReadOnly) return;
 
 		const handleMouseMove = (event) => {
 			const element = document.elementFromPoint(event.clientX, event.clientY) as HTMLAnchorElement;
@@ -36,5 +36,5 @@ export const useCtrlKeyLinkHandler = () => {
 		}
 
 		return () => document.removeEventListener("mousemove", handleMouseMove);
-	}, [isCtrlPressed, isTauri, isEdit]);
+	}, [isCtrlPressed, isTauri, isReadOnly]);
 };

@@ -1,12 +1,12 @@
 import { Paragraph, TextRun } from "docx";
 import Path from "../../../../../logic/FileProvider/Path/Path";
-import { WordImageProcessor } from "../../image/word/WordImageProcessor";
 import { WordBlockChild } from "../../../../wordExport/options/WordTypes";
+import { WordImageExporter } from "@ext/markdown/elements/image/word/WordImageProcessor";
 
 export const imagesWordLayout: WordBlockChild = async ({ tag, wordRenderContext }) => {
 	const images = await Promise.all(
 		(tag.attributes.images as string[]).map((image) =>
-			WordImageProcessor.getImageByPath(
+			WordImageExporter.getImageByPath(
 				new Path(image),
 				wordRenderContext.parserContext.getResourceManager(),
 				tag.attributes.postfix === "h" ? 600 / tag.attributes.images.length : undefined,

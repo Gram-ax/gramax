@@ -1,17 +1,17 @@
 import { ContentTable, Content } from "pdfmake/interfaces";
-import { parseNodeToPDFContent } from "@ext/pdfExport/parseNodesPDF";
+import { NodeOptions, parseNodeToPDFContent, pdfRenderContext } from "@ext/pdfExport/parseNodesPDF";
 import { getSvgIconFromString } from "@ext/pdfExport/utils/getIcon";
 import { noteIcons } from "@ext/markdown/elements/note/render/component/Note";
 import { BASE_CONFIG, NOTE_COLOR_CONFIG } from "@ext/pdfExport/config";
 import { Tag } from "@ext/markdown/core/render/logic/Markdoc";
 
-export async function noteHandler(node: Tag, level = 0, parseContent = parseNodeToPDFContent): Promise<ContentTable> {
+export async function noteHandler(node: Tag, context: pdfRenderContext, options: NodeOptions): Promise<ContentTable> {
 	const noteType = node.attributes?.type || "note";
 	const borderColor = NOTE_COLOR_CONFIG.borderColors[noteType] || NOTE_COLOR_CONFIG.borderColors.quote;
 	const bgColor = NOTE_COLOR_CONFIG.bgColors[noteType] || "";
 	const svg = getSvgIconFromString(noteIcons[noteType], borderColor);
 
-	const parsedContent = await parseContent(node, level);
+	const parsedContent = await parseNodeToPDFContent(node, context, options);
 
 	const flattenContent = (content: Content | Content[]): Content[] =>
 		Array.isArray(content)

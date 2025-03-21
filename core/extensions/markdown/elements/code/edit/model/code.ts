@@ -25,12 +25,17 @@ const pasteRegex = /(?:^|\s)((?:`)((?:[^`]+))(?:`))/g;
 const Code = Mark.create<CodeOptions>({
 	name: "code",
 	code: true,
+	priority: 1001,
 	excludes: "strong em comment",
 
 	addOptions() {
 		return {
 			HTMLAttributes: {},
 		};
+	},
+
+	inclusive() {
+		return false;
 	},
 
 	parseHTML() {
@@ -67,7 +72,7 @@ const Code = Mark.create<CodeOptions>({
 	addKeyboardShortcuts() {
 		return addShortcuts(
 			[
-				{ key: "Space", focusShouldBeInsideNode: false, rules: [space("toggleCode")] },
+				{ key: "Space", focusShouldBeInsideNode: false, rules: [space("toggleCode", this.type.name)] },
 				{ key: "ArrowRight", focusShouldBeInsideNode: false, rules: [arrowRight("toggleCode")] },
 				{ key: "Mod-l", focusShouldBeInsideNode: false, rules: [({ editor }) => editor.commands.toggleCode()] },
 				{ key: "Mod-L", focusShouldBeInsideNode: false, rules: [({ editor }) => editor.commands.toggleCode()] },

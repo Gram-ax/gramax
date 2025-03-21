@@ -135,8 +135,8 @@ updates:
       ru: "Gramax стал лучше!"
       en: "Gramax just got better!"
     body:
-      ru: "Нажмите «Обновить сейчас» и приложение перезапустится."
-      en: "Click «Update Now» and the application will restart."
+      ru: "Нажмите «OK» и приложение перезапустится."
+      en: "Click «OK» and the application will restart."
 
   update-now:
     ru: "Обновить сейчас"

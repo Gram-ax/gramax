@@ -1,6 +1,6 @@
 export const listItem = {
 	group: "listItem",
-	content: "paragraph block*",
+	content: "block+",
 	defining: true,
 	attrs: {
 		isTaskItem: { default: null },

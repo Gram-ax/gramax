@@ -22,5 +22,7 @@ const ExportButton = forwardRef((props: ExportButtonProps, ref: Ref<HTMLDivEleme
 export default styled(ExportButton)`
 	display: flex;
 	align-items: center;
+	justify-content: space-between;
+	width: 100%;
 	gap: 5px;
 `;

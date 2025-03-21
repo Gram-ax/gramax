@@ -53,7 +53,7 @@ const Button = forwardRef((props: ButtonProps, ref?: MutableRefObject<HTMLDivEle
 	return (
 		<div data-qa="qa-clickable" className={className} ref={ref}>
 			<div
-				style={{ ...(style ?? {}), fontSize: TextKeys[textSize] + (isEmUnits ? "em" : "rem") }}
+				style={{ fontSize: TextKeys[textSize] + (isEmUnits ? "em" : "rem"), ...(style ?? {}) }}
 				className={classNames(buttonStyle, { fullWidth }, ["content"])}
 				{...otherProps}
 			>

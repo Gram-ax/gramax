@@ -3,6 +3,7 @@
 permissions = [
   "allow-init-new",
   "allow-clone",
+  "allow-clone-cancel",
   "allow-file-history",
   "allow-checkout",
   "allow-fetch",

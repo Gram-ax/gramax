@@ -14,6 +14,7 @@ pub enum Error {
   Io(String),
   NoWorkdir,
   NoModifiedFiles,
+  AlreadyCloningWithSameId(String),
   Yaml(serde_yml::Error),
   Utf8,
 }
@@ -46,6 +47,7 @@ impl Display for Error {
       Error::NoModifiedFiles => writeln!(f, "No files modified"),
       Error::NoWorkdir => writeln!(f, "Repository has no workdir"),
       Error::Utf8 => writeln!(f, "String was not UTF8"),
+      Error::AlreadyCloningWithSameId(id) => writeln!(f, "Already cloning with same id: {}", id),
       Error::Yaml(err) => writeln!(f, "YAML serialize/deserialize: {}", err),
     }
   }

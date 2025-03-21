@@ -27,6 +27,8 @@ import {
 } from "react";
 import LinkItem from "../models/LinkItem";
 
+import linkFilter from "@ext/artilce/LinkCreator/logic/linkFilter";
+
 interface SelectLinkItemProps {
 	href: string;
 	value: string;
@@ -160,6 +162,7 @@ const ListView = (props: ListViewProps) => {
 	return (
 		<div ref={parentRef} style={{ padding: "0 5.5px", width: "300px" }}>
 			<ListLayout
+				filterItems={linkFilter}
 				containerRef={parentRef}
 				addWidth={8}
 				itemsClassName={className}
@@ -193,7 +196,6 @@ const getItemByItemLinks = (itemLinks: LinkItem[], value, href) => {
 	const linkToHeader = indexLinkToHeader !== -1 ? itemLinks[indexLinkToHeader] : null;
 
 	if (!linkToHeader && !linkToArticle) return { item: null, index: null };
-
 	if (linkToHeader) return { item: linkToHeader, index: indexLinkToHeader };
 
 	return { item: linkToArticle, index: indexLinkToArticle };

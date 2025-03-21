@@ -28,7 +28,7 @@ export default class SearcherContext {
 		const makeLocator = () => {
 			if (forceQa) return was.locator(`[data-qa="${selector}"]`);
 			if (alias) return was.locator(alias);
-			return was.locator("[data-qa]", { hasText: selector });
+			return was.locator(`[data-qa]:has-text("${selector}"), [data-qa="${selector}"]`);
 		};
 		const locator = makeLocator().first();
 		if (config.highlight) await locator.highlight();

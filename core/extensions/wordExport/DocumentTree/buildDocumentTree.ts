@@ -12,6 +12,9 @@ import ParserContextFactory from "@ext/markdown/core/Parser/ParserContext/Parser
 import MarkdownElementsFilter from "@ext/wordExport/MarkdownElementsFilter";
 import { DocumentTree } from "./DocumentTree";
 import { TitleInfo } from "@ext/wordExport/options/WordTypes";
+import { Tag } from "@ext/markdown/core/render/logic/Markdoc";
+import { Display } from "@ext/properties/models/displays";
+import { SystemProperties } from "@ext/properties/models";
 
 const buildDocumentTree = async (
 	isCategory: boolean,
@@ -31,17 +34,18 @@ const buildDocumentTree = async (
 
 	if (!isCatalog) await parseContent(item as Article, catalog, ctx, parser, parserContextFactory, false);
 
-	const heading: DocumentTree = {
+	const heading: DocumentTree = await (item as Article).parsedContent.read((p) => ({
 		name: isCatalog ? catalog.props.title : item.getTitle() || catalog.name,
-		content: !isCatalog ? filter.getSupportedTree((item as Article).parsedContent?.renderTree) : "",
-		resourceManager: !isCatalog ? (item as Article).parsedContent?.resourceManager : undefined,
+		content: !isCatalog ? filter.getSupportedTree(p?.renderTree) : "",
+		resourceManager: !isCatalog ? p?.resourceManager : undefined,
 		level: level,
 		number: number,
 		parserContext: !isCatalog
 			? parserContextFactory.fromArticle(item as Article, catalog, defaultLanguage, true)
 			: null,
 		children: [],
-	};
+	}));
+
 	const fileName = item.getFileName();
 	if (fileName) {
 		titlesMap.set(fileName, { title: heading.name, order: number });
@@ -68,9 +72,31 @@ const buildDocumentTree = async (
 				);
 			}) || [],
 		);
+
+		const contentAsTag = heading.content as Tag;
+		addViewTag(contentAsTag);
 	} else heading.children = [];
 
 	return heading;
+};
+
+const addViewTag = (content: any) => {
+	if (typeof content === "object" && content !== null) {
+		content.children = content.children ?? [];
+		if (content.children.length === 0) {
+			content.children.push(
+				new Tag("View", {
+					defs: [
+						{
+							name: SystemProperties.hierarchy,
+							value: ["none"],
+						},
+					],
+					display: Display.List,
+				}),
+			);
+		}
+	}
 };
 
 export default buildDocumentTree;

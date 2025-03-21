@@ -1,11 +1,20 @@
 import { Content, TDocumentDefinitions } from "pdfmake/interfaces";
-import { FONT_FILES, FONTS, FOOTER_CONFIG, HEADING_STYLES } from "./config";
+import { FONT_FILES, FONTS, FOOTER_CONFIG, STYLES } from "./config";
 import { handleDocumentTree } from "@ext/pdfExport/parseNodesPDF";
-import { DocumentTree } from "@ext/pdfExport/buildDocumentTree";
 import resolveModule from "@app/resolveModule/backend";
+import { TitleInfo } from "@ext/wordExport/options/WordTypes";
+import DocumentTree from "@ext/wordExport/DocumentTree/DocumentTree";
+import ContextualCatalog from "@core/FileStructue/Catalog/ContextualCatalog";
+import CatalogProps from "@core-ui/ContextServices/CatalogProps";
+import { ItemFilter } from "@core/FileStructue/Catalog/Catalog";
 
 class PDFExporter {
-	constructor(private fileName: string, private nodes: DocumentTree[]) {}
+	constructor(
+		private _nodes: DocumentTree,
+		private readonly _titlesMap: Map<string, TitleInfo>,
+		private _catalog: ContextualCatalog<CatalogProps>,
+		private _itemFilters: ItemFilter[],
+	) {}
 
 	async create(): Promise<Buffer> {
 		const { default: pdfMake } = await import("pdfmake/build/pdfmake");
@@ -41,14 +50,14 @@ class PDFExporter {
 	}
 
 	private async _buildContent(): Promise<Content> {
-		return await handleDocumentTree(this.nodes);
+		return await handleDocumentTree(this._nodes, this._titlesMap, this._catalog, this._itemFilters);
 	}
 
 	private buildDocDefinition(content: Content): TDocumentDefinitions {
 		return {
 			content,
 			footer: (currentPage: number, pageCount: number) => this._generateFooterContent(currentPage, pageCount),
-			styles: HEADING_STYLES,
+			styles: STYLES,
 		};
 	}
 
@@ -61,7 +70,7 @@ class PDFExporter {
 
 	private _buildLeftFooterColumn(): Content {
 		return {
-			text: this.fileName,
+			text: this._titlesMap.keys().next().value,
 			alignment: FOOTER_CONFIG.COLUMNS.LEFT.alignment,
 			fontSize: FOOTER_CONFIG.COLUMNS.LEFT.fontSize,
 			margin: FOOTER_CONFIG.COLUMNS.LEFT.margin,

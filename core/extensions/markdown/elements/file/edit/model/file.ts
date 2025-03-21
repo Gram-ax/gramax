@@ -68,7 +68,7 @@ export const File = Mark.create({
 
 	addKeyboardShortcuts() {
 		return addShortcuts(
-			[{ key: "Space", focusShouldBeInsideNode: false, rules: [space("unsetFile")] }],
+			[{ key: "Space", focusShouldBeInsideNode: false, rules: [space("unsetFile", this.type.name)] }],
 			this.type.name,
 		);
 	},

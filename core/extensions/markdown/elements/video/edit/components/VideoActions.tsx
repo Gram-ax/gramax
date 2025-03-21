@@ -1,9 +1,10 @@
-import { ChangeEvent, ReactElement, RefObject } from "react";
+import { ChangeEvent, Dispatch, ReactElement, RefObject, SetStateAction } from "react";
 import { Editor } from "@tiptap/core";
 import { Node } from "@tiptap/pm/model";
 import ActionButton from "@components/controls/HoverController/ActionButton";
 import t from "@ext/localization/locale/translate";
 import ActionInput from "@components/controls/HoverController/ActionInput";
+import toggleSignature from "@core-ui/toggleSignature";
 
 interface VideoActionsProps {
 	editor: Editor;
@@ -11,7 +12,7 @@ interface VideoActionsProps {
 	updateAttributes: (attrs: Record<string, string>) => void;
 	node: Node;
 	getPos: () => number;
-	setHasSignature: (hasSignature: boolean) => void;
+	setHasSignature: Dispatch<SetStateAction<boolean>>;
 }
 
 const VideoActions = (props: VideoActionsProps): ReactElement => {
@@ -23,8 +24,7 @@ const VideoActions = (props: VideoActionsProps): ReactElement => {
 	};
 
 	const addSignature = () => {
-		setHasSignature(true);
-		signatureRef.current?.focus();
+		setHasSignature((prev) => toggleSignature(prev, signatureRef.current, updateAttributes));
 	};
 
 	const onChange = (event: ChangeEvent<HTMLInputElement>) => {

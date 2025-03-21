@@ -1,9 +1,9 @@
 import { Tag } from "@ext/markdown/core/render/logic/Markdoc";
-import { parseNodeToPDFContent } from "@ext/pdfExport/parseNodesPDF";
+import { parseNodeToPDFContent, pdfRenderContext } from "@ext/pdfExport/parseNodesPDF";
 import { isTag } from "@ext/pdfExport/utils/isTag";
 import { Content } from "pdfmake/interfaces";
 
-export const tabsHandler = async (node: Tag): Promise<Content[]> => {
+export const tabsHandler = async (node: Tag, context: pdfRenderContext): Promise<Content[]> => {
 	if (node.name === "Tabs") {
 		const results: Content[] = [];
 
@@ -11,7 +11,7 @@ export const tabsHandler = async (node: Tag): Promise<Content[]> => {
 
 		for (const tabNode of tabNodes) {
 			if (isTag(tabNode) && tabNode.name === "Tab") {
-				const tabContent = await parseNodeToPDFContent(tabNode);
+				const tabContent = await parseNodeToPDFContent(tabNode, context);
 				results.push({
 					text: tabNode.attributes.name,
 					bold: true,
@@ -27,7 +27,7 @@ export const tabsHandler = async (node: Tag): Promise<Content[]> => {
 	if (node.name === "Tab") {
 		const results: Content[] = [];
 
-		const tabContent = await parseNodeToPDFContent(node);
+		const tabContent = await parseNodeToPDFContent(node, context);
 		results.push({
 			text: node.attributes.name,
 			bold: true,

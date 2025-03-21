@@ -2,13 +2,18 @@ import { parseRow } from "@ext/markdown/elements/table/pdf/tableRow";
 import { TableBody } from "../types";
 import { Tag } from "@ext/markdown/core/render/logic/Markdoc";
 import { MAX_WIDTH } from "@ext/pdfExport/config";
+import { NodeOptions, pdfRenderContext } from "@ext/pdfExport/parseNodesPDF";
 
-export const parseTable = async (rows: Tag[]): Promise<{ body: TableBody; widths: (number | string)[] }> => {
+export const parseTable = async (
+	rows: Tag[],
+	context: pdfRenderContext,
+	options: NodeOptions,
+): Promise<{ body: TableBody; widths: (number | string)[] }> => {
 	const tableBody: TableBody = [];
 	let colWidths: (number | string)[] = [];
 
 	for (const row of rows) {
-		const { tableRow, widths } = await parseRow(row, tableBody.length);
+		const { tableRow, widths } = await parseRow(row, tableBody.length, context, options);
 		tableBody.push(tableRow);
 		widths.forEach((width, index) => {
 			colWidths[index] = width;
@@ -37,6 +42,36 @@ export const parseTable = async (rows: Tag[]): Promise<{ body: TableBody; widths
 		const autoWidth = remainingSpace / autoCount;
 		colWidths = colWidths.map((width) => (width === "auto" ? autoWidth : width));
 	}
+
+	const adjustImageWidth = (node, colWidth) => {
+		if (Array.isArray(node)) {
+			node.forEach((item) => adjustImageWidth(item, colWidth));
+		} else if (typeof node === "object" && node !== null) {
+			if ("image" in node) {
+				node.width = colWidth;
+				node._width = colWidth;
+				node._maxWidth = colWidth;
+
+				if (node._minWidth) {
+					node._minWidth = colWidth;
+				}
+			}
+
+			if (node.stack && Array.isArray(node.stack)) {
+				adjustImageWidth(node.stack, colWidth);
+			}
+		}
+	};
+
+	tableBody.forEach((row, rowIndex) => {
+		row.forEach((cell, colIndex) => {
+			const colWidth = colWidths[colIndex];
+
+			if (cell.stack && Array.isArray(cell.stack)) {
+				adjustImageWidth(cell.stack, colWidth);
+			}
+		});
+	});
 
 	return { body: tableBody, widths: colWidths };
 };

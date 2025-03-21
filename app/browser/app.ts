@@ -87,7 +87,7 @@ const _init = async (config: AppConfig): Promise<Application> => {
 	const sitePresenterFactory = new SitePresenterFactory(wm, parser, parserContextFactory, rp, customArticlePresenter);
 	const resourceUpdaterFactory = new ResourceUpdaterFactory(parser, parserContextFactory, formatter);
 
-	const am: AuthManager = config.enterprise.gesUrl ? new ClientAuthManager(config.enterprise.gesUrl) : null;
+	const am: AuthManager = em.getConfig().gesUrl ? new ClientAuthManager(em.getConfig().gesUrl) : null;
 	const contextFactory = new ContextFactory(tm, config.tokens.cookie, config.isReadOnly, am);
 
 	const cache = new Cache(new DiskFileProvider(config.paths.data));

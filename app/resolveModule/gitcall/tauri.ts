@@ -1,11 +1,11 @@
-import { onCloneProgress, type CredsArgs } from "@ext/git/core/GitCommands/LibGit2IntermediateCommands";
+import { cloneProgressCallbacks, type CredsArgs } from "@ext/git/core/GitCommands/LibGit2IntermediateCommands";
 import { LibGit2Error } from "@ext/git/core/GitCommands/errors/LibGit2Error";
 import { convertFileSrc, invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
 
 void listen("clone-progress", (ev) => {
 	const payload = ev.payload as any;
-	onCloneProgress?.(payload);
+	cloneProgressCallbacks[payload.data.id]?.(payload);
 });
 
 export const call = async <O>(command: string, args?: any): Promise<O> => {

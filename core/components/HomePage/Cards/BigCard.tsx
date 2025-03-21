@@ -3,17 +3,33 @@ import Url from "@core-ui/ApiServices/Types/Url";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import styled from "@emotion/styled";
 import { CatalogLink } from "@ext/navigation/NavigationLinks";
-import Link from "../../Atoms/Link";
 import ThemeService from "@ext/Theme/components/ThemeService";
+import Link from "../../Atoms/Link";
 
-const BigCard = ({ link, className, name }: { link: CatalogLink; className?: string; name: string }) => {
+const BigCard = ({
+	hideLogo,
+	link,
+	className,
+	name,
+}: {
+	hideLogo?: boolean;
+	link: CatalogLink;
+	className?: string;
+	name: string;
+}) => {
 	const apiUrlCreator = ApiUrlCreatorService.value;
 	const theme = ThemeService.value;
 
-	const logo = resolveModule("useImage")(apiUrlCreator.getLogoUrl(link.name, theme));
+	const logo = hideLogo ? null : resolveModule("useImage")(apiUrlCreator.getLogoUrl(link.name, theme));
 
 	return (
-		<Link data-catalog-card={name} className={className} href={Url.from(link)}>
+		<Link
+			data-catalog-card={name}
+			className={className}
+			href={Url.from({
+				pathname: link.lastVisited || link.pathname,
+			})}
+		>
 			<div className="catalog-background">
 				<div className="catalog">
 					<div className="catalog-titles">

@@ -21,8 +21,6 @@ const LeftNavigationComponent = ({
 	mediumMedia: boolean;
 	delay?: number;
 }) => {
-	const [hideScroll, setHideScroll] = useState(true);
-
 	const isPin = SidebarsIsPinService.value.left;
 	const [prevIsPin, setPrevIsPin] = useState<boolean>(undefined);
 
@@ -47,14 +45,9 @@ const LeftNavigationComponent = ({
 		if (prevIsPin && !isPin) {
 			SidebarsIsOpenService.value = { left: false };
 			unpinAnimation.current = true;
-			setHideScroll(true);
 		}
 		setPrevIsPin(isPin);
 	}, [isPin]);
-
-	useWatch(() => {
-		if (!isOpen) setHideScroll(true);
-	}, [isOpen]);
 
 	return (
 		<div
@@ -64,7 +57,6 @@ const LeftNavigationComponent = ({
 		>
 			<LeftNavigationLayout
 				mediumMedia={mediumMedia}
-				hideScroll={hideScroll}
 				leftNavigationTop={<LeftNavigationTop data={data} />}
 				leftNavigationContent={<LeftNavViewContentContainer itemLinks={data.leftNavItemLinks} />}
 				leftNavigationBottom={<LeftNavigationBottom data={data} />}
@@ -72,7 +64,6 @@ const LeftNavigationComponent = ({
 					setTimeout(() => {
 						if (!isLeftNavHover.current || unpinAnimation.current) return;
 						SidebarsIsOpenService.value = { left: true };
-						setHideScroll(false);
 					}, delay)
 				}
 				onTransitionEnd={() => {

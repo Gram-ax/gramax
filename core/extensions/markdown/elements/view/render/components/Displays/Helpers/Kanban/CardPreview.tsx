@@ -1,5 +1,5 @@
 import styled from "@emotion/styled";
-import { CSSProperties, DragEvent, forwardRef, MouseEvent, useMemo } from "react";
+import { CSSProperties, forwardRef, MouseEvent, useMemo } from "react";
 import { Property as PropertyType, PropertyTypes } from "@ext/properties/models";
 import Property from "@ext/properties/components/Property";
 import t from "@ext/localization/locale/translate";
@@ -16,10 +16,9 @@ interface CardProps {
 	style?: CSSProperties;
 	dragging?: boolean;
 	isReadOnly?: boolean;
-	onDragStart?: (e: DragEvent) => void;
+	removeLink?: () => void;
 	onMouseEnter?: (e: MouseEvent) => void;
 	onDoubleClick?: (e: MouseEvent) => void;
-	onMouseDown?: (e: MouseEvent) => void;
 	onSubmit?: (propertyName: string, value: string, isDelete?: boolean) => void;
 }
 
@@ -32,11 +31,10 @@ const CardPreview = forwardRef<HTMLDivElement, CardProps>((props, ref) => {
 		style,
 		dragging,
 		isReadOnly,
-		onDragStart,
 		onMouseEnter,
 		onDoubleClick,
-		onMouseDown,
 		onSubmit,
+		removeLink,
 	} = props;
 
 	const properties = useMemo(
@@ -72,17 +70,17 @@ const CardPreview = forwardRef<HTMLDivElement, CardProps>((props, ref) => {
 			draggable={true}
 			data-drag-handle
 			style={style}
-			onMouseDown={onMouseDown}
+			onMouseDown={removeLink}
 			onDoubleClick={onDoubleClick}
-			onDragStart={onDragStart}
+			onDragStart={removeLink}
 			onMouseEnter={onMouseEnter}
 		>
 			<div className="card-title" onMouseEnter={onMouseEnter}>
 				{title}
 			</div>
 			{properties.length > 0 && (
-				<div className="card-content">
-					<div className="chips" onMouseEnter={onMouseEnter}>
+				<div className="card-content" onMouseMove={removeLink}>
+					<div className="chips">
 						{properties}
 						{!dragging && !isReadOnly && (
 							<AddProperty

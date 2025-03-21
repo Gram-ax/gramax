@@ -3,7 +3,7 @@ import type { DiffTreeAnyItem } from "@ext/git/core/GitDiffItemCreator/RevisionD
 import DiffEntry from "@ext/git/core/GitMergeRequest/components/Changes/DiffEntry";
 import t from "@ext/localization/locale/translate";
 import type { DiffItemOrResource } from "@ext/VersionControl/model/Diff";
-import { createContext, useState } from "react";
+import { createContext, forwardRef, useState } from "react";
 
 export enum DiffEntriesLoadStage {
 	NotLoaded,
@@ -53,14 +53,15 @@ export type DiffEntriesProps = {
 	actionIcon?: string;
 };
 
-export const DiffEntries = ({ changes, selectFile, isFileSelected, setArticleDiffView, onAction, actionIcon }: DiffEntriesProps) => {
+export const DiffEntries = forwardRef<HTMLDivElement, DiffEntriesProps>((props, ref) => {
+	const { changes, selectFile, isFileSelected, setArticleDiffView, onAction, actionIcon } = props;
 	const [selectedByPath, setSelectedByPath] = useState<string>(undefined);
 
 	const hasCheckboxes = selectFile && isFileSelected;
 
 	return (
 		<SelectedDiffEntryContext.Provider value={{ selectedByPath, setSelectedByPath }}>
-			<DiffEntriesWrapper>
+			<DiffEntriesWrapper ref={ref}>
 				{changes?.length > 0 ? (
 					changes.map((entry, id) => (
 						<DiffEntry
@@ -84,4 +85,4 @@ export const DiffEntries = ({ changes, selectFile, isFileSelected, setArticleDif
 			</DiffEntriesWrapper>
 		</SelectedDiffEntryContext.Provider>
 	);
-};
+});

@@ -3,31 +3,23 @@ import Button, { TextSize } from "@components/Atoms/Button/Button";
 import { ButtonStyle } from "@components/Atoms/Button/ButtonStyle";
 import IconLink from "@components/Molecules/IconLink";
 import ArticlePropsService from "@core-ui/ContextServices/ArticleProps";
-import CatalogPropsService from "@core-ui/ContextServices/CatalogProps";
 import { getCatalogLinks, useGetArticleLinks } from "@core-ui/getRigthSidebarLinks";
 import { usePlatform } from "@core-ui/hooks/usePlatform";
 import { cssMedia } from "@core-ui/utils/cssUtils";
 import styled from "@emotion/styled";
 import SwitchContentLanguage from "@ext/localization/actions/SwitchContentLanguage";
 import t from "@ext/localization/locale/translate";
-import { ItemLink } from "@ext/navigation/NavigationLinks";
 import TableOfContents from "@ext/navigation/article/render/TableOfContents";
 import SwitchVersion from "@ext/versioning/components/SwitchVersion";
-import { useRef, useState } from "react";
-import ArticleActions from "../../../Actions/ArticleActions";
-import CatalogActions from "../../../Actions/CatalogActions";
+import { useRef } from "react";
 import Links from "../../layoutComponents";
 
-const RightNavigation = ({ itemLinks, className }: { itemLinks: ItemLink[]; className?: string }): JSX.Element => {
+const RightNavigation = ({ className }: { className?: string }): JSX.Element => {
 	const ref = useRef<HTMLDivElement>(null);
 	const articleProps = ArticlePropsService.value;
-	const catalogProps = CatalogPropsService.value;
-	const isCatalogExist = !!catalogProps.name;
 	const showArticleActions = !(articleProps?.errorCode && articleProps.errorCode !== 500);
 	const articleLinks = useGetArticleLinks();
 	const { isNext } = usePlatform();
-	const [isCatalogActionsVisible, setCatalogActionsVisibility] = useState(false);
-	const [isArticleActionsVisible, setArticleActionsVisibility] = useState(false);
 
 	return (
 		<div
@@ -52,25 +44,7 @@ const RightNavigation = ({ itemLinks, className }: { itemLinks: ItemLink[]; clas
 					/>
 				)}
 				{showArticleActions && <TableOfContents />}
-				<Links
-					articleLinks={showArticleActions ? articleLinks : []}
-					catalogLinks={getCatalogLinks()}
-					articleChildren={
-						<ArticleActions
-							isCatalogExist={isCatalogExist}
-							hasRenderableActions={setArticleActionsVisibility}
-						/>
-					}
-					catalogChildren={
-						<CatalogActions
-							isCatalogExist={isCatalogExist}
-							itemLinks={itemLinks}
-							hasRenderableActions={setCatalogActionsVisibility}
-						/>
-					}
-					isArticleActionsVisible={isArticleActionsVisible}
-					isCatalogActionsVisible={isCatalogActionsVisible}
-				/>
+				<Links articleLinks={showArticleActions ? articleLinks : []} catalogLinks={getCatalogLinks()} />
 			</aside>
 			{isNext && (
 				<div className={"gramax-link"}>

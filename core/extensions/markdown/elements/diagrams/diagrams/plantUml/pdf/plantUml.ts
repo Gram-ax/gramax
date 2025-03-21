@@ -1,30 +1,33 @@
-import { ContentStack, ContentTable } from "pdfmake/interfaces";
-import { BASE_CONFIG, FONT_SIZE_COEFFICIENT, MAX_WIDTH, NOT_FOUND_IMAGE } from "@ext/pdfExport/config";
+import { ContentStack } from "pdfmake/interfaces";
+import { BASE_CONFIG, FONT_SIZE_COEFFICIENT, IMAGE_SCALE_FACTOR, MAX_WIDTH } from "@ext/pdfExport/config";
 import { Tag } from "@ext/markdown/core/render/logic/Markdoc";
-import { NodeOptions } from "@ext/pdfExport/parseNodesPDF";
-import { errorCase } from "@ext/pdfExport/utils/getErrorElement";
+import { NodeOptions, pdfRenderContext } from "@ext/pdfExport/parseNodesPDF";
+import { pdfDiagramRenderer } from "@ext/markdown/elements/diagrams/pdf/pdfDiagramRenderer";
+import DiagramType from "@core/components/Diagram/DiagramType";
 
-export function plantUmlHandler(node: Tag, level?: number, options?: NodeOptions): ContentStack | ContentTable {
-	if (!node.attributes || !node.attributes.src || node.attributes.src === "") {
-		return errorCase(node);
-	}
-
-	if (node.attributes.src.startsWith(NOT_FOUND_IMAGE)) {
-		return errorCase(node);
-	}
+export async function plantUmlHandler(
+	node: Tag,
+	context: pdfRenderContext,
+	options?: NodeOptions,
+): Promise<ContentStack> {
 	let originalWidth = parseInt(node.attributes.width) || MAX_WIDTH;
 
 	if (options?.colWidth) {
-		originalWidth = Math.min(originalWidth, options.colWidth * 0.8);
-	} else if (originalWidth > MAX_WIDTH) {
-		originalWidth = MAX_WIDTH;
+		originalWidth = Math.min(originalWidth, options.colWidth);
 	}
+
+	const { base64, size } = await pdfDiagramRenderer.renderSimpleDiagram(
+		node,
+		DiagramType["plant-uml"],
+		context.parserContext.getResourceManager(),
+		originalWidth,
+	);
 
 	return {
 		stack: [
 			{
-				svg: node.attributes.src,
-				width: originalWidth * 0.7,
+				image: base64,
+				width: size.width * IMAGE_SCALE_FACTOR,
 				margin: [0, 0, 0, BASE_CONFIG.FONT_SIZE * 0.5],
 			},
 			{

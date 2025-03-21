@@ -1,6 +1,10 @@
 import type { FileStatus } from "@ext/Watchers/model/FileStatus";
 import DefaultError from "@ext/errorHandlers/logic/DefaultError";
-import type { CommitAuthorInfo, MergeResult, UpstreamCountFileChanges } from "@ext/git/core/GitCommands/LibGit2IntermediateCommands";
+import type {
+	CommitAuthorInfo,
+	MergeResult,
+	UpstreamCountFileChanges,
+} from "@ext/git/core/GitCommands/LibGit2IntermediateCommands";
 import GitStash from "@ext/git/core/model/GitStash";
 import Path from "../../../../../logic/FileProvider/Path/Path";
 import { VersionControlInfo } from "../../../../VersionControl/model/VersionControlInfo";
@@ -9,6 +13,8 @@ import { GitBranch } from "../../GitBranch/GitBranch";
 import { GitStatus } from "../../GitWatcher/model/GitStatus";
 import GitSourceData from "../../model/GitSourceData.schema";
 import { GitVersion } from "../../model/GitVersion";
+
+export type CloneCancelToken = number;
 
 export type DiffCompareOptions =
 	| {
@@ -45,6 +51,20 @@ export type TransferProgress =
 	| { type: "indexingDeltas"; data: { indexed: number; total: number } }
 	| { type: "receivingObjects"; data: { received: number; indexed: number; total: number } };
 
+type CloneProgressTypes =
+	| { type: "started"; data: { path: string } }
+	| { type: "finish"; data: { path: string; isCancelled: boolean } }
+	| { type: "error"; data: { path: string; error: DefaultError } }
+	| { type: "sideband"; data: { id: CloneCancelToken; remoteText: string } }
+	| { type: "checkout"; data: { id: CloneCancelToken; checkouted: number; total: number } }
+	| { type: "download"; data: { id: CloneCancelToken; bytes: number; downloadSpeedBytes: number } }
+	| {
+			type: "chunkedTransfer";
+			data: { id: CloneCancelToken; transfer: TransferProgress; bytes: number; downloadSpeedBytes: number };
+	  };
+
+export type CloneProgress = CloneProgressTypes & { cancellable?: boolean };
+
 export type TreeReadScope = { commit: string } | { reference: string } | "HEAD";
 
 export type RefInfo =
@@ -72,14 +92,6 @@ export type FileStat = {
 
 export type DirStat = { name: string } & FileStat;
 
-export type CloneProgress =
-	| { type: "wait"; data: { path: string } }
-	| { type: "started"; data: { path: string } }
-	| { type: "finish"; data: { path: string } }
-	| { type: "error"; data: { path: string; error: DefaultError } }
-	| { type: "sideband"; data: { remote_text: string } }
-	| { type: "chunkedTransfer"; data: { transfer: TransferProgress; bytes: number; download_speed_bytes: number } };
-
 interface GitCommandsModel {
 	isInit(): Promise<boolean>;
 	isBare(): Promise<boolean>;
@@ -87,11 +99,13 @@ interface GitCommandsModel {
 	clone(
 		url: string,
 		source: GitSourceData,
+		cancelToken: number,
 		branch?: string,
 		depth?: number,
 		isBare?: boolean,
 		onProgress?: (progress: CloneProgress) => void,
 	): Promise<void>;
+	cloneCancel(id: number): Promise<boolean>;
 	setHead(refname: string): Promise<void>;
 	commit(message: string, data: SourceData, parents?: string[], files?: string[]): Promise<GitVersion>;
 	add(paths?: Path[], force?: boolean): Promise<void>;

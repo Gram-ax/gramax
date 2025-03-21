@@ -1,14 +1,9 @@
-import ArticleUpdaterService from "@components/Article/ArticleUpdater/ArticleUpdaterService";
 import Fetcher from "@core-ui/ApiServices/Types/Fetcher";
 import UseSWRService from "@core-ui/ApiServices/UseSWRService";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import IsOfflineService from "@core-ui/ContextServices/IsOfflineService";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
-import { refreshPage } from "@core-ui/ContextServices/RefreshPageContext";
 import SyncIconService from "@core-ui/ContextServices/SyncIconService";
-import BranchUpdaterService from "@ext/git/actions/Branch/BranchUpdaterService/logic/BranchUpdaterService";
-import OnBranchUpdateCaller from "@ext/git/actions/Branch/BranchUpdaterService/model/OnBranchUpdateCaller";
-import tryOpenMergeConflict from "@ext/git/actions/MergeConflictHandler/logic/tryOpenMergeConflict";
 import SyncLayout from "@ext/git/actions/Sync/components/SyncLayout";
 import SyncService from "@ext/git/actions/Sync/logic/SyncService";
 import { CSSProperties, useEffect } from "react";
@@ -28,25 +23,22 @@ const Sync = ({ style }: { style?: CSSProperties }) => {
 	);
 
 	useEffect(() => {
-		SyncService.bindOnSyncService({
-			onStartSync: () => {
-				if (syncProccess) return;
-				SyncIconService.start();
-			},
-			onFinishSync: async (mergeData) => {
-				SyncIconService.stop();
-				BranchUpdaterService.updateBranch(apiUrlCreator, OnBranchUpdateCaller.MergeRequest);
-				if (!mergeData.ok) {
-					tryOpenMergeConflict({ mergeData: { ...mergeData } });
-					return;
-				}
-				refreshPage();
-				await ArticleUpdaterService.update(apiUrlCreator);
-			},
-			onSyncError: () => {
-				SyncIconService.stop();
-			},
+		const startToken = SyncService.events.on("start", () => {
+			if (syncProccess) return;
+			SyncIconService.start();
 		});
+		const finishToken = SyncService.events.on("finish", () => {
+			SyncIconService.stop();
+		});
+		const errorToken = SyncService.events.on("error", () => {
+			SyncIconService.stop();
+		});
+
+		return () => {
+			SyncService.events.off(startToken);
+			SyncService.events.off(finishToken);
+			SyncService.events.off(errorToken);
+		};
 	}, [syncProccess]);
 
 	return (

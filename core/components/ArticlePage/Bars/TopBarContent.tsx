@@ -8,9 +8,13 @@ import styled from "@emotion/styled";
 import Search from "../../Actions/Modal/Search";
 import Link from "../../Atoms/Link";
 import Logo from "../../Logo";
+import CatalogActions from "@components/Actions/CatalogActions";
+import CatalogPropsService from "@core-ui/ContextServices/CatalogProps";
 
 const TopBarContent = ({ data, className }: { data: ArticlePageData; className?: string }) => {
 	const logoImageUrl = PageDataContextService.value.conf.logo.imageUrl;
+	const catalogProps = CatalogPropsService.value;
+	const isCatalogExist = !!catalogProps.name;
 
 	return (
 		<div className={className}>
@@ -22,6 +26,7 @@ const TopBarContent = ({ data, className }: { data: ArticlePageData; className?:
 			<Logo imageUrl={logoImageUrl} />
 			<div className="iconWrapper">
 				<Search isHomePage={false} catalogLinks={[data.catalogProps.link]} itemLinks={data.itemLinks} />
+				<CatalogActions isCatalogExist={isCatalogExist} itemLinks={data.itemLinks} />
 			</div>
 		</div>
 	);
@@ -40,6 +45,7 @@ export default styled(TopBarContent)`
 
 	.iconWrapper {
 		display: flex;
+		gap: 0.5em;
 		align-items: center;
 		vertical-align: middle;
 	}

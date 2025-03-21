@@ -1,34 +1,28 @@
+import ArticleUpdaterService from "@components/Article/ArticleUpdater/ArticleUpdaterService";
+import ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
+import FetchService from "@core-ui/ApiServices/FetchService";
+import { createEventEmitter, Event } from "@core/Event/EventEmitter";
+import tryOpenMergeConflict from "@ext/git/actions/MergeConflictHandler/logic/tryOpenMergeConflict";
 import MergeData from "@ext/git/actions/MergeConflictHandler/model/MergeData";
-import ApiUrlCreator from "../../../../../ui-logic/ApiServices/ApiUrlCreator";
-import FetchService from "../../../../../ui-logic/ApiServices/FetchService";
 
-let _onStartSync: () => void | Promise<void>;
-let _onFinishSync: (mergeData: MergeData) => void | Promise<void>;
-let _onSyncError: () => void | Promise<void>;
+export type SyncServiceEvents = Event<"start"> & Event<"finish", { mergeData: MergeData }> & Event<"error">;
 
 export default class SyncService {
-	public static bindOnSyncService({
-		onStartSync,
-		onFinishSync,
-		onSyncError,
-	}: {
-		onStartSync?: typeof _onStartSync;
-		onFinishSync?: typeof _onFinishSync;
-		onSyncError?: typeof _onSyncError;
-	}) {
-		_onStartSync = onStartSync;
-		_onFinishSync = onFinishSync;
-		_onSyncError = onSyncError;
+	private static _events = createEventEmitter<SyncServiceEvents>();
+
+	static get events() {
+		return SyncService._events;
 	}
 
 	public static async sync(apiUrlCreator: ApiUrlCreator) {
-		await _onStartSync?.();
+		await SyncService.events.emit("start", {});
 		const data = await SyncService._sync(apiUrlCreator);
 		if (!data.resOk) {
-			await _onSyncError?.();
+			await SyncService.events.emit("error", {});
 			return;
 		}
-		await _onFinishSync?.(data.mergeData);
+		await SyncService._onFinish(data.mergeData, apiUrlCreator);
+		await SyncService.events.emit("finish", { mergeData: data.mergeData });
 	}
 
 	private static async _sync(
@@ -37,5 +31,14 @@ export default class SyncService {
 		const res = await FetchService.fetch<MergeData>(apiUrlCreator.getStorageSyncUrl());
 		if (!res.ok) return { resOk: false };
 		return { resOk: true, mergeData: await res.json() };
+	}
+
+	private static async _onFinish(mergeData: MergeData, apiUrlCreator: ApiUrlCreator) {
+		if (!mergeData.ok) {
+			tryOpenMergeConflict({ mergeData: { ...mergeData } });
+			return;
+		}
+		await ArticleUpdaterService.update(apiUrlCreator);
+		void refreshPage();
 	}
 }

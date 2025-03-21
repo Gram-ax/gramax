@@ -30,6 +30,13 @@ describe("multiLayoutSearcher ищет", () => {
 		expect(result).toEqual("2");
 	});
 
+	test("по запросу на неправильной раскладке + CAPS", () => {
+		const text = "ЕНUI";
+		const result = multiLayoutSearcher<string>(searcher, true)(text);
+
+		expect(result).toEqual("2");
+	});
+
 	test("по запросу с транслетирацией с английского на русский", () => {
 		const text = "schzkh";
 		const result = multiLayoutSearcher<string>(searcher, true)(text);

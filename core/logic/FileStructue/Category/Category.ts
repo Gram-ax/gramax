@@ -115,9 +115,9 @@ export class Category<P extends CategoryProps = CategoryProps> extends Article<P
 		return this;
 	}
 
-	private _updateCategory(rootCategoryProps: FSProps, folderPath: Path) {
-		this.parsedContent = null;
-		return this._fs.makeCategory(
+	private async _updateCategory(rootCategoryProps: FSProps, folderPath: Path) {
+		await this.parsedContent.write(() => null);
+		return await this._fs.makeCategory(
 			folderPath,
 			this.parent,
 			rootCategoryProps,

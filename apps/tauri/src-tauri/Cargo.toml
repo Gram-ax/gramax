@@ -37,6 +37,7 @@ rust-i18n = "3.0.1"
 sys-locale = "0.3.1"
 reqwest = { workspace = true }
 anyhow = "^1.0"
+copy_dir = "0.1.3"
 
 [target.'cfg(any(target_os = "windows", target_os = "macos", target_os = "linux"))'.dependencies]
 notify-rust = "4.10.0"

@@ -3,9 +3,11 @@ import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import ModalToOpenService from "@core-ui/ContextServices/ModalToOpenService/ModalToOpenService";
 import ModalToOpen from "@core-ui/ContextServices/ModalToOpenService/model/ModalsToOpen";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
+import PagePropsUpdateService from "@core-ui/ContextServices/PagePropsUpdate";
 import SyncIconService from "@core-ui/ContextServices/SyncIconService";
 import ArticleViewService from "@core-ui/ContextServices/views/articleView/ArticleViewService";
 import { useRouter } from "@core/Api/useRouter";
+import { UnsubscribeToken } from "@core/Event/EventEmitter";
 import Path from "@core/FileProvider/Path/Path";
 import tryOpenMergeConflict from "@ext/git/actions/MergeConflictHandler/logic/tryOpenMergeConflict";
 import MergeData from "@ext/git/actions/MergeConflictHandler/model/MergeData";
@@ -30,8 +32,14 @@ const usePathnameHandler = (isFirstLoad: boolean) => {
 	useEffect(() => {
 		if (!isFirstLoad || !isArticle || isReadOnly || !isStorageInitialized) return;
 		const handler = async () => {
+			ArticleViewService.setLoadingView();
+			const exit = () => {
+				SyncIconService.stop();
+				ArticleViewService.setDefaultView();
+			};
+
 			const res = await FetchService.fetch<MergeData>(apiUrlCreator.getMergeData());
-			if (!res.ok) return;
+			if (!res.ok) return exit();
 			const mergeData = await res.json();
 
 			const checkoutData = await getPathnameCheckoutData(apiUrlCreator, new Path(router.path).removeExtraSymbols);
@@ -47,7 +55,7 @@ const usePathnameHandler = (isFirstLoad: boolean) => {
 						: t("git.merge.confirm.catalog-conflict-state"),
 					title: t("git.merge.error.catalog-conflict-state"),
 				});
-				return;
+				return exit();
 			}
 
 			if (checkoutData.haveToCheckout) {
@@ -56,21 +64,22 @@ const usePathnameHandler = (isFirstLoad: boolean) => {
 					currentBranchName: checkoutData.currentBranch,
 					branchToCheckout: checkoutData.branchToCheckout,
 				});
-				return;
+				return exit();
 			}
 
-			ArticleViewService.setLoadingView();
 			SyncIconService.start();
 			const { haveToPull, canPull } = await getPathnamePullData(apiUrlCreator);
-			const exit = () => {
-				SyncIconService.stop();
-				ArticleViewService.setDefaultView();
-			};
+
 			if (!haveToPull) return exit();
 
 			if (canPull) {
+				const unsubcribeToken: { current: UnsubscribeToken } = { current: null };
+				PagePropsUpdateService.events.on("update", () => {
+					exit();
+					PagePropsUpdateService.events.off(unsubcribeToken.current);
+				});
 				await SyncService.sync(apiUrlCreator);
-				return exit();
+				return;
 			}
 			exit();
 			ModalToOpenService.setValue<ComponentProps<typeof PullHandler>>(ModalToOpen.PullHandler);

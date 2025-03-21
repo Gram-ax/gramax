@@ -33,12 +33,6 @@ export const HeadingStyles = {
 	10: "Heading10",
 };
 
-export const HStyles = {
-	2: "H2",
-	3: "H3",
-	4: "H4",
-};
-
 export const wordFontTypes = {
 	numbering: "Roboto",
 	bold: "Roboto",
@@ -77,6 +71,14 @@ export enum WordFontStyles {
 	tabsTitle = "TabsTitle",
 	tableOfContents = "TableOfContent",
 }
+
+export const HStyles = {
+	2: "H2",
+	3: "H3",
+	4: "H4",
+	5: WordFontStyles.strong,
+	6: WordFontStyles.strong,
+};
 
 export const enum WordBlockType {
 	table = "table",

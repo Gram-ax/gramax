@@ -40,13 +40,6 @@ export const getCroppedCanvas = async (
 	const imageContainerRect = imageContainer?.getBoundingClientRect();
 	if (!imageContainerRect) return;
 
-	const x = (crop.x / 100) * imageContainerRect.width;
-	const y = (crop.y / 100) * imageContainerRect.height;
-	const width = (crop.w / 100) * imageContainerRect.width;
-	const height = (crop.h / 100) * imageContainerRect.height;
-
-	if (width === 0 || height === 0) return;
-
 	const canvas = document.createElement("canvas");
 	const context = canvas.getContext("2d");
 
@@ -57,23 +50,15 @@ export const getCroppedCanvas = async (
 
 		return new Promise((resolve) => {
 			image.onload = () => {
-				const scaleX = image.naturalWidth / imageContainerRect.width;
-				const scaleY = image.naturalHeight / imageContainerRect.height;
+				const x = (crop.x / 100) * image.naturalWidth;
+				const y = (crop.y / 100) * image.naturalHeight;
+				const width = (crop.w / 100) * image.naturalWidth;
+				const height = (crop.h / 100) * image.naturalHeight;
 
-				canvas.width = width * scaleX;
-				canvas.height = height * scaleY;
+				canvas.width = width;
+				canvas.height = height;
 
-				context.drawImage(
-					image,
-					x * scaleX,
-					y * scaleY,
-					canvas.width,
-					canvas.height,
-					0,
-					0,
-					canvas.width,
-					canvas.height,
-				);
+				context.drawImage(image, x, y, canvas.width, canvas.height, 0, 0, canvas.width, canvas.height);
 
 				canvas.toBlob((blob) => resolve(blob), "image/png");
 			};
@@ -121,20 +106,22 @@ export const restoreImage = (image: HTMLImageElement, imageSize: { w: number; h:
 };
 
 interface HandleMoveProps {
-	setDraggable: React.Dispatch<React.SetStateAction<boolean>>;
+	editable: boolean;
 	parentRef: React.RefObject<HTMLDivElement>;
 	mainRef: React.MutableRefObject<HTMLDivElement>;
+	setDraggable: React.Dispatch<React.SetStateAction<boolean>>;
 	setHover?: React.Dispatch<React.SetStateAction<boolean>>;
 	onMouseUpCallback?: (newX: number, newY: number, newWidth?: number, newHeight?: number) => void;
 	onMouseDownCallback?: () => boolean;
 }
 
-export const MINIMUM_SQUARE_SIZE = 40;
+export const MINIMUM_SQUARE_SIZE = 20;
 
 export const handleMove = (props: HandleMoveProps) => {
-	const { setDraggable, setHover, parentRef, mainRef, onMouseUpCallback, onMouseDownCallback } = props;
+	const { setDraggable, setHover, editable, parentRef, mainRef, onMouseUpCallback, onMouseDownCallback } = props;
 
 	const onMouseDown: MouseEventHandler<HTMLDivElement> = (event) => {
+		if (!editable) return;
 		setDraggable(true);
 
 		if (setHover) setHover(false);
@@ -171,47 +158,60 @@ export const handleMove = (props: HandleMoveProps) => {
 		};
 
 		const onMouseMove = (event: MouseEvent) => {
-			const deltaX = ((event.clientX - startX) / imageContainerRect.width) * 100;
-			const deltaY = ((event.clientY - startY) / imageContainerRect.height) * 100;
+			const deltaX = event.clientX - startX;
+			const deltaY = event.clientY - startY;
 
-			let newWidth = startWidth;
-			let newHeight = startHeight;
-			let newTop = startTop;
-			let newLeft = startLeft;
-
-			const minimumWidthPercent = (MINIMUM_SQUARE_SIZE / imageContainerRect.width) * 100;
-			const minimumHeightPercent = (MINIMUM_SQUARE_SIZE / imageContainerRect.height) * 100;
+			let newWidth = (startWidth / 100) * imageContainerRect.width;
+			let newHeight = (startHeight / 100) * imageContainerRect.height;
+			let newTop = (startTop / 100) * imageContainerRect.height;
+			let newLeft = (startLeft / 100) * imageContainerRect.width;
 
 			switch (currentHandle.id) {
 				case "top-left":
-					newWidth = applyConstraints(startWidth - deltaX, minimumWidthPercent, startWidth + startLeft);
-					newHeight = applyConstraints(startHeight - deltaY, minimumHeightPercent, startHeight + startTop);
-					newLeft = startLeft + (startWidth - newWidth);
-					newTop = startTop + (startHeight - newHeight);
+					newWidth = applyConstraints(newWidth - deltaX, MINIMUM_SQUARE_SIZE, newWidth + newLeft);
+					newHeight = applyConstraints(newHeight - deltaY, MINIMUM_SQUARE_SIZE, newHeight + newTop);
+					newLeft = newLeft + (newWidth - (newWidth - deltaX));
+					newTop = newTop + (newHeight - (newHeight - deltaY));
 					break;
 				case "top-right":
-					newWidth = applyConstraints(startWidth + deltaX, minimumWidthPercent, 100 - startLeft);
-					newHeight = applyConstraints(startHeight - deltaY, minimumHeightPercent, startHeight + startTop);
-					newTop = startTop + (startHeight - newHeight);
+					newWidth = applyConstraints(
+						newWidth + deltaX,
+						MINIMUM_SQUARE_SIZE,
+						imageContainerRect.width - newLeft,
+					);
+					newHeight = applyConstraints(newHeight - deltaY, MINIMUM_SQUARE_SIZE, newHeight + newTop);
+					newTop = newTop + (newHeight - (newHeight - deltaY));
 					break;
 				case "bottom-left":
-					newWidth = applyConstraints(startWidth - deltaX, minimumWidthPercent, startWidth + startLeft);
-					newHeight = applyConstraints(startHeight + deltaY, minimumHeightPercent, 100 - startTop);
-					newLeft = startLeft + (startWidth - newWidth);
+					newWidth = applyConstraints(newWidth - deltaX, MINIMUM_SQUARE_SIZE, newWidth + newLeft);
+					newHeight = applyConstraints(
+						newHeight + deltaY,
+						MINIMUM_SQUARE_SIZE,
+						imageContainerRect.height - newTop,
+					);
+					newLeft = newLeft + (newWidth - (newWidth - deltaX));
 					break;
 				case "bottom-right":
-					newWidth = applyConstraints(startWidth + deltaX, minimumWidthPercent, 100 - startLeft);
-					newHeight = applyConstraints(startHeight + deltaY, minimumHeightPercent, 100 - startTop);
+					newWidth = applyConstraints(
+						newWidth + deltaX,
+						MINIMUM_SQUARE_SIZE,
+						imageContainerRect.width - newLeft,
+					);
+					newHeight = applyConstraints(
+						newHeight + deltaY,
+						MINIMUM_SQUARE_SIZE,
+						imageContainerRect.height - newTop,
+					);
 					break;
 			}
 
-			newLeft = applyConstraints(newLeft, 0, 100 - newWidth);
-			newTop = applyConstraints(newTop, 0, 100 - newHeight);
+			newLeft = applyConstraints(newLeft, 0, imageContainerRect.width - newWidth);
+			newTop = applyConstraints(newTop, 0, imageContainerRect.height - newHeight);
 
-			main.style.width = `${newWidth}%`;
-			main.style.height = `${newHeight}%`;
-			main.style.left = `${newLeft}%`;
-			main.style.top = `${newTop}%`;
+			main.style.width = `${newWidth}px`;
+			main.style.height = `${newHeight}px`;
+			main.style.left = `${newLeft}px`;
+			main.style.top = `${newTop}px`;
 		};
 
 		const onMouseUp = () => {
@@ -223,10 +223,10 @@ export const handleMove = (props: HandleMoveProps) => {
 			main.style.top = `calc(${main.style.top} - ${marginTop}px)`;
 
 			const computedStyle = getComputedStyle(main);
-			const leftPercent = +((parseInt(computedStyle.left) / imageContainerRect.width) * 100).toFixed(2);
-			const topPercent = +((parseInt(computedStyle.top) / imageContainerRect.height) * 100).toFixed(2);
-			const widthPercent = +parseInt(main.style.width).toFixed(2);
-			const heightPercent = +parseInt(main.style.height).toFixed(2);
+			const leftPercent = (parseInt(computedStyle.left) / imageContainerRect.width) * 100;
+			const topPercent = (parseInt(computedStyle.top) / imageContainerRect.height) * 100;
+			const widthPercent = (parseInt(main.style.width) / imageContainerRect.width) * 100;
+			const heightPercent = (parseInt(main.style.height) / imageContainerRect.height) * 100;
 
 			main.style.marginTop = `${marginTop}px`;
 			main.style.marginLeft = `${marginLeft}px`;
@@ -246,10 +246,10 @@ interface ObjectMoveProps extends HandleMoveProps {
 }
 
 export const objectMove = (props: ObjectMoveProps) => {
-	const { setDraggable, isDraggable, parentRef, mainRef, onMouseUpCallback, onMouseDownCallback } = props;
+	const { setDraggable, isDraggable, editable, parentRef, mainRef, onMouseUpCallback, onMouseDownCallback } = props;
 
 	const cropperMouseDown: React.MouseEventHandler<HTMLDivElement> = (event) => {
-		if (isDraggable) return;
+		if (isDraggable || !editable) return;
 
 		const object = mainRef.current;
 		const computedStyle = getComputedStyle(object);
@@ -275,14 +275,14 @@ export const objectMove = (props: ObjectMoveProps) => {
 			const x = e.clientX - containerRect.left - offsetX;
 			const y = e.clientY - containerRect.top - offsetY;
 
-			const elementWidthPercent = (object.offsetWidth / containerRect.width) * 100;
-			const elementHeightPercent = (object.offsetHeight / containerRect.height) * 100;
+			const elementWidth = object.offsetWidth;
+			const elementHeight = object.offsetHeight;
 
-			const xPercent = Math.min(Math.max(0, (x / containerRect.width) * 100), 100 - elementWidthPercent);
-			const yPercent = Math.min(Math.max(0, (y / containerRect.height) * 100), 100 - elementHeightPercent);
+			const constrainedX = Math.min(Math.max(0, x), containerRect.width - elementWidth);
+			const constrainedY = Math.min(Math.max(0, y), containerRect.height - elementHeight);
 
-			object.style.left = `${xPercent}%`;
-			object.style.top = `${yPercent}%`;
+			object.style.left = `${constrainedX}px`;
+			object.style.top = `${constrainedY}px`;
 		};
 
 		const onMouseUp = () => {
@@ -293,10 +293,10 @@ export const objectMove = (props: ObjectMoveProps) => {
 			object.style.top = `calc(${object.style.top} - ${marginTop}px)`;
 
 			const computedStyle = getComputedStyle(object);
-			const leftPercent = +((parseInt(computedStyle.left) / containerRect.width) * 100).toFixed(2);
-			const topPercent = +((parseInt(computedStyle.top) / containerRect.height) * 100).toFixed(2);
-			const widthPercent = +parseInt(object.style.width).toFixed(2);
-			const heightPercent = +parseInt(object.style.height).toFixed(2);
+			const leftPercent = (parseInt(computedStyle.left) / containerRect.width) * 100;
+			const topPercent = (parseInt(computedStyle.top) / containerRect.height) * 100;
+			const widthPercent = (parseInt(object.style.width) / containerRect.width) * 100;
+			const heightPercent = (parseInt(object.style.height) / containerRect.height) * 100;
 
 			object.style.marginTop = `${marginTop}px`;
 			object.style.marginLeft = `${marginLeft}px`;

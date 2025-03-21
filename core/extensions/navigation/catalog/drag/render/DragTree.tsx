@@ -4,7 +4,6 @@ import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import ArticlePropsService from "@core-ui/ContextServices/ArticleProps";
 import ArticleRefService from "@core-ui/ContextServices/ArticleRef";
 import CatalogPropsService from "@core-ui/ContextServices/CatalogProps";
-import IsEditService from "@core-ui/ContextServices/IsEdit";
 import ModalToOpenService from "@core-ui/ContextServices/ModalToOpenService/ModalToOpenService";
 import ModalToOpen from "@core-ui/ContextServices/ModalToOpenService/model/ModalsToOpen";
 import useRestoreRightSidebar from "@core-ui/hooks/diff/useRestoreRightSidebar";
@@ -24,6 +23,8 @@ import IconExtension from "../../main/render/IconExtension";
 import NavigationItem from "../../main/render/Item";
 import DragTreeTransformer from "../logic/DragTreeTransformer";
 import getOpenItemsIds from "../logic/getOpenItemsIds";
+import { useRouter } from "@core/Api/useRouter";
+import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 
 type handleOnDropType = (
 	draggedItemPath: string,
@@ -38,12 +39,13 @@ const ExportLevNavDragTree = ({
 	items: NodeModel<ItemLink>[];
 	closeNavigation?: () => void;
 }) => {
-	const isEdit = IsEditService.value;
+	const isReadOnly = PageDataContextService.value.conf.isReadOnly;
 	const articleProps = ArticlePropsService.value;
 	const catalogProps = CatalogPropsService.value;
 	const apiUrlCreator = ApiUrlCreatorService.value;
-	const [dragged, setDragged] = useState<boolean>(isEdit);
+	const [dragged, setDragged] = useState<boolean>(!isReadOnly);
 	const [treeData, setTreeData] = useState(items);
+	const router = useRouter();
 
 	useEffect(() => {
 		setTreeData(items);
@@ -53,18 +55,21 @@ const ExportLevNavDragTree = ({
 		if (!DragTreeTransformer.isModified(draggedItemPath, treeData, newTree)) return;
 		setDragged(false);
 
-		const url = apiUrlCreator.updateCatalogNav(articleProps.logicPath);
+		const url = apiUrlCreator.updateCatalogNav(articleProps.ref.path);
 		const body = JSON.stringify({ draggedItemPath, old: treeData, new: newTree });
 		const res = await FetchService.fetch<NodeModel<ItemLink>[]>(url, body, MimeTypes.json);
 		if (!res.ok) return;
 		fetchComplete();
-		setTreeData(await res.json());
+		const newItems = await res.json();
+		const currentItem = newItems?.find((i) => i.data.isCurrentLink);
+		if (currentItem) router.pushPath(currentItem.data.pathname);
+		setTreeData(newItems);
 		setDragged(true);
 	};
 
 	useEffect(() => {
-		setDragged(isEdit);
-	}, [isEdit]);
+		setDragged(!isReadOnly);
+	}, [isReadOnly]);
 
 	return (
 		<LevNavDragTree
@@ -181,6 +186,7 @@ const LevNavDragTree = styled((props: LevNavDragTreeProps) => {
 
 						const rightExtensions = useMemo(
 							() => [
+								<CreateArticle key={1} item={thisItem} />,
 								<EditMenu
 									key={0}
 									itemLink={thisItem}
@@ -189,7 +195,6 @@ const LevNavDragTree = styled((props: LevNavDragTreeProps) => {
 									onOpen={() => setIsHover(true)}
 									onClose={() => setIsHover(false)}
 								/>,
-								<CreateArticle key={1} item={thisItem} />,
 							],
 							[thisItem],
 						);

@@ -13,7 +13,7 @@ import usePublish from "@ext/git/core/GitPublish/usePublish";
 import usePublishDiffEntries from "@ext/git/core/GitPublish/usePublishDiffEntries";
 import usePublishSelection from "@ext/git/core/GitPublish/usePublishSelectedFiles";
 import t from "@ext/localization/locale/translate";
-import { useCallback, useEffect } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 export type PublishTabProps = {
 	show: boolean;
@@ -30,6 +30,11 @@ const PublishTab = ({ show, setShow }: PublishTabProps) => {
 	const { isNext } = usePlatform();
 	if (isNext) return null;
 
+	const [contentHeight, setContentHeight] = useState<number>(null);
+	const tabWrapperRef = useRef<HTMLDivElement>(null);
+	const hasBeenOpened = useRef(false);
+	const hasDiscarded = useRef(false);
+
 	const { diffTree, overview, isEntriesLoading, isEntriesReady, resetDiffTree } = usePublishDiffEntries({
 		autoUpdate: show,
 	});
@@ -45,7 +50,7 @@ const PublishTab = ({ show, setShow }: PublishTabProps) => {
 		onPublished: () => {
 			resetDiffTree();
 			resetSelection();
-			onClose();
+			close();
 		},
 	});
 
@@ -57,27 +62,44 @@ const PublishTab = ({ show, setShow }: PublishTabProps) => {
 
 	const apiUrlCreator = ApiUrlCreatorService.value;
 
-	const { discard } = useDiscard(reset);
+	const onDiscard = useCallback(() => {
+		reset();
+		hasDiscarded.current = true;
+	}, [reset]);
+
+	const { discard } = useDiscard(onDiscard);
 	const canDiscard = selectedFiles.size > 0 && !isPublishing && !isEntriesLoading && isEntriesReady;
 	const restoreRightSidebar = useRestoreRightSidebar();
+
 	const restoreView = () => {
 		ArticleViewService.setDefaultView();
 		restoreRightSidebar();
 	};
 
-	const onClose = () => {
+	const close = () => {
+		const isDefaultView = ArticleViewService.isDefaultView();
 		restoreView();
 		setShow(false);
-		ArticleUpdaterService.update(apiUrlCreator);
-		refreshPage();
+		if (hasDiscarded.current || !isDefaultView) {
+			ArticleUpdaterService.update(apiUrlCreator);
+			refreshPage();
+		}
+		hasDiscarded.current = false;
 	};
+
+	const closeIfDiscardedAll = () => {
+		if (diffTree?.tree.length === 0 && hasDiscarded.current) close();
+	};
+
+	useWatch(closeIfDiscardedAll, [diffTree, hasDiscarded]);
 
 	useEffect(() => {
 		return restoreView;
 	}, []);
 
-	useEffect(() => {
-		if (!show) onClose();
+	useWatch(() => {
+		if (show) hasBeenOpened.current = true;
+		if (!show && hasBeenOpened.current) close();
 	}, [show]);
 
 	useWatch(() => {
@@ -95,13 +117,22 @@ const PublishTab = ({ show, setShow }: PublishTabProps) => {
 	}, [show, publish, canPublish]);
 
 	return (
-		<TabWrapper show={show} title={t("git.publish.name")} onClose={onClose}>
+		<TabWrapper
+			ref={tabWrapperRef}
+			contentHeight={contentHeight}
+			show={show}
+			title={t("git.publish.name")}
+			onClose={close}
+		>
 			<>
 				<PublishChanges
+					show={show}
+					tabWrapperRef={tabWrapperRef}
 					diffTree={diffTree}
 					overview={overview}
 					isLoading={isEntriesLoading}
 					isReady={isEntriesReady}
+					setContentHeight={setContentHeight}
 					canDiscard={canDiscard}
 					onDiscard={(paths) => discard(paths?.filter(Boolean) || Array.from(selectedFiles), !paths)}
 					selectFile={(file, checked) => {

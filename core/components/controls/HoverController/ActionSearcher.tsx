@@ -1,30 +1,30 @@
 import Tooltip from "@components/Atoms/Tooltip";
 import ListLayout from "@components/List/ListLayout";
 import styled from "@emotion/styled";
-import { memo, useCallback } from "react";
 
 interface ActionSearcherProps {
 	items: string[];
 	tooltipText?: string;
 	placeholder?: string;
-	onChange?: (lang?: string) => void;
+	onChange: (lang?: string) => void;
 	className?: string;
 	defaultValue?: string;
 }
 
 const ActionSearcher = (props: ActionSearcherProps) => {
 	const { tooltipText, items, placeholder, onChange, className, defaultValue } = props;
-	const onCancelClick = useCallback(() => {
-		onChange?.();
-	}, [onChange]);
+
+	const onCancelClick = () => {
+		onChange("");
+	};
 
 	return (
 		<Tooltip content={tooltipText} delay={[500, 0]} customStyle>
 			<div className={className}>
 				<ListLayout
-					useVirtuoso={false}
+					useVirtuoso
 					placeholder={placeholder}
-					appendTo="parent"
+					appendTo={() => document.body}
 					items={items}
 					onCancelClick={onCancelClick}
 					onItemClick={onChange}
@@ -35,7 +35,7 @@ const ActionSearcher = (props: ActionSearcherProps) => {
 	);
 };
 
-export default memo(styled(ActionSearcher)`
+export default styled(ActionSearcher)`
 	display: flex;
 	padding: 0 0;
 	border: 0;
@@ -73,9 +73,14 @@ export default memo(styled(ActionSearcher)`
 		height: 5em;
 		border-radius: 0;
 		background-color: transparent;
+		padding: 0 0.5rem;
 	}
 
 	.list-search {
 		gap: 0 !important;
+
+		.list-input {
+			font-size: 0.9rem !important;
+		}
 	}
-`);
+`;

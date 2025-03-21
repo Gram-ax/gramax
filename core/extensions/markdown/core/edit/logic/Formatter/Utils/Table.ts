@@ -47,10 +47,10 @@ const TableUtils = {
 		});
 		return rowIsSimple;
 	},
-	cellIncludeHardBreak(childContent: Node) {
+	cellIncludeLineBreaks(childContent: Node) {
 		let hasHardBreak = false;
 		childContent.forEach((node) => {
-			if (node.type.name === "hard_break") {
+			if (node.type.name === "hard_break" || node.type.name === "br") {
 				hasHardBreak = true;
 				return false;
 			}
@@ -60,7 +60,7 @@ const TableUtils = {
 	cellIsSimple(node: Node): boolean {
 		if (node.childCount > 1) return false;
 		if (node.firstChild.type.name !== "paragraph") return false;
-		if (this.cellIncludeHardBreak(node.content.firstChild)) return false;
+		if (this.cellIncludeLineBreaks(node.content.firstChild)) return false;
 		if (JSON.stringify(node.attrs) !== `{"aggregation":null,"colspan":1,"rowspan":1,"colwidth":null,"align":null}`)
 			return false;
 		let cellIsSimple = true;

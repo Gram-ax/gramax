@@ -1,20 +1,26 @@
 use std::path::Path;
 use std::path::PathBuf;
 
+use serde::Serialize;
+
 use gramaxgit::commands as git;
 use gramaxgit::prelude::*;
+
+use clone::*;
+
+use napi::bindgen_prelude::AsyncTask;
 use napi::bindgen_prelude::Buffer;
-use napi::Env;
 use napi::Error;
 use napi::JsFunction;
-use serde::Serialize;
 
 #[macro_use]
 extern crate napi_derive;
 
+mod clone;
+
 type Output = std::result::Result<String, Error>;
 
-trait JsonExt {
+pub trait JsonExt {
   fn json(&self) -> Output;
 }
 
@@ -32,39 +38,21 @@ impl<T: Serialize, E: Serialize> JsonExt for Result<T, E> {
 type Input = String;
 
 #[napi(object, use_nullable = true)]
+#[derive(Clone)]
 pub struct AccessTokenCreds {
   pub author_name: String,
   pub author_email: String,
   pub access_token: String,
+  pub username: Option<String>,
   pub protocol: Option<String>,
 }
 
 #[napi(object, use_nullable = true)]
+#[derive(Clone)]
 pub struct CommitOptions {
   pub message: String,
   pub parent_refs: Option<Vec<String>>,
   pub files: Option<Vec<String>>,
-}
-
-#[napi(object, use_nullable = true)]
-pub struct CloneOptions {
-  pub branch: Option<String>,
-  pub depth: Option<i32>,
-  pub url: String,
-  pub to: String,
-  pub is_bare: bool,
-}
-
-impl From<CloneOptions> for gramaxgit::actions::clone::CloneOptions {
-  fn from(val: CloneOptions) -> Self {
-    gramaxgit::actions::clone::CloneOptions {
-      branch: val.branch,
-      depth: val.depth,
-      url: val.url,
-      to: val.to.into(),
-      is_bare: val.is_bare,
-    }
-  }
 }
 
 impl From<CommitOptions> for gramaxgit::actions::commit::CommitOptions {
@@ -109,6 +97,7 @@ impl From<AccessTokenCreds> for gramaxgit::creds::AccessTokenCreds {
       &val.author_name,
       &val.author_email,
       &val.access_token,
+      val.username.as_deref(),
       val.protocol.as_deref(),
     )
   }
@@ -130,17 +119,17 @@ pub fn init_new(path: String, creds: AccessTokenCreds) -> Output {
 }
 
 #[napi]
-pub fn clone(env: Env, creds: AccessTokenCreds, opts: CloneOptions, callback: JsFunction) -> Output {
-  git::clone(
-    creds.into(),
-    opts.into(),
-    Box::new(move |val| {
-      if let Ok(val) = serde_json::to_string(&val) {
-        _ = callback.call(None, &[env.create_string(&val).unwrap()]);
-      }
-    }),
-  )
-  .json()
+pub fn clone(
+  creds: AccessTokenCreds,
+  opts: RawCloneOptions,
+  callback: JsFunction,
+) -> Result<AsyncTask<CloneTask>, napi::Error> {
+  CloneTask::create_task(creds, opts, callback)
+}
+
+#[napi(js_name = "clone_cancel")]
+pub fn clone_cancel(id: i32) -> Output {
+  git::clone_cancel(id as usize).json()
 }
 
 #[napi]
@@ -337,7 +326,7 @@ pub fn find_refs_by_globs(repo_path: String, pattern: Vec<String>) -> Output {
 #[napi(js_name = "reset_repo")]
 pub fn reset_repo() -> Result<bool, Error> {
   git::reset_repo();
-  Ok(true)  
+  Ok(true)
 }
 
 #[napi(js_name = "get_all_commit_authors")]

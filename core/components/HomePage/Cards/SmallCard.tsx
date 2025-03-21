@@ -1,4 +1,5 @@
 import resolveModule from "@app/resolveModule/frontend";
+import { classNames } from "@components/libs/classNames";
 import Url from "@core-ui/ApiServices/Types/Url";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import styled from "@emotion/styled";
@@ -6,18 +7,34 @@ import ThemeService from "@ext/Theme/components/ThemeService";
 import { CatalogLink } from "../../../extensions/navigation/NavigationLinks";
 import Link from "../../Atoms/Link";
 
-const SmallCard = ({ link, className, name }: { link: CatalogLink; className?: string; name: string }) => {
+const SmallCard = ({
+	link,
+	className,
+	name,
+	hideLogo = true,
+}: {
+	hideLogo?: boolean;
+	link: CatalogLink;
+	className?: string;
+	name: string;
+}) => {
 	const apiUrlCreator = ApiUrlCreatorService.value;
 	const theme = ThemeService.value;
 
-	const logo = resolveModule("useImage")(apiUrlCreator.getLogoUrl(link.name, theme));
+	const logo = hideLogo ? null : resolveModule("useImage")(apiUrlCreator.getLogoUrl(link.name, theme));
 
 	return (
-		<Link data-catalog-card={name} className={className} href={Url.from(link)}>
+		<Link
+			data-catalog-card={name}
+			className={className}
+			href={Url.from({
+				pathname: link.lastVisited || link.pathname,
+			})}
+		>
 			<div className={`catalog-background background`}>
 				<div className="catalog">
 					<div className="catalog-title-logo" style={logo && { backgroundImage: `url(${logo})` }} />
-					<div title={link.description} className="catalog-texts">
+					<div title={link.description} className={classNames("catalog-texts", { fullWith: !logo })}>
 						<div className="catalog-text-logo">{link.title}</div>
 						<div className="catalog-text">{link.description}</div>
 					</div>
@@ -49,6 +66,10 @@ export default styled(SmallCard)`
 
 	.catalog-texts {
 		width: 68%;
+
+		&.fullWith {
+			width: 100%;
+		}
 	}
 
 	@media only screen and (max-width: 380px) {

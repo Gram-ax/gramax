@@ -1,20 +1,16 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useLayoutEffect, useState } from "react";
 
-const useIsFirstLoad = () => {
+const useIsFirstLoad = (): [boolean, () => void] => {
 	const [isFirstLoad, setIsFirstLoad] = useState(true);
 	const resetIsFirstLoad = useCallback(() => {
 		setIsFirstLoad(true);
 	}, []);
 
-	useEffect(() => {
+	useLayoutEffect(() => {
 		setIsFirstLoad(false);
 	}, [isFirstLoad]);
 
-	const result: [boolean, () => void] = useMemo(
-		() => [isFirstLoad, resetIsFirstLoad],
-		[isFirstLoad, resetIsFirstLoad],
-	);
-	return result;
+	return [isFirstLoad, resetIsFirstLoad];
 };
 
 export default useIsFirstLoad;

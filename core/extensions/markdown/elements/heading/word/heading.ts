@@ -11,10 +11,14 @@ export const headingWordLayout: WordBlockChild = async ({ state, tag, addOptions
 		wordRenderContext.articleName,
 		tag.attributes.id,
 	);
+
+	const addOptionsWithStyle = { ...(addOptions ?? {}) };
+	if (tag.attributes.level >= 5) addOptionsWithStyle.style = HStyles[tag.attributes.level];
+
 	const headingParagraph = new Paragraph({
 		children: [
 			new BookmarkStart(bookmarkName, bookmarkId),
-			...(await state.renderInline(tag, addOptions)),
+			...(await state.renderInline(tag, addOptionsWithStyle)),
 			new BookmarkEnd(bookmarkId),
 		],
 		style:

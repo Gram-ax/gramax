@@ -10,7 +10,6 @@ import Html from "@ext/markdown/elements/html/render/components/HTML";
 import Unsupported from "@ext/markdown/elements/unsupported/render/component/Unsupported";
 import Cmd from "../../../../elements/cmd/render/Cmd";
 import Code from "../../../../elements/code/render/component/Code";
-import Color from "../../../../elements/color/render/Color";
 import Cut from "../../../../elements/cut/render/component/Cut";
 import DbDiagram from "../../../../elements/diagramdb/render/DbDiagram";
 import Drawio from "../../../../elements/drawio/render/component/Drawio";
@@ -41,12 +40,13 @@ import ParserContext from "../../../Parser/ParserContext/ParserContext";
 import View from "@ext/markdown/elements/view/render/components/View";
 import ReadonlyListItem from "@ext/markdown/elements/list/render/ReadonlyListItem";
 import Td from "@ext/markdown/elements/table/render/component/TableCell";
+import Color from "@ext/markdown/elements/color/render/components/Color";
 
 export default function getComponents(): { [name: string]: (...props: any) => ReactNode } {
 	return {
 		Br: () => <br />,
-		Color,
 		Link,
+		Color,
 		Formula,
 		Fence,
 		Snippet,

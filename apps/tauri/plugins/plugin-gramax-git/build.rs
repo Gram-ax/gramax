@@ -1,6 +1,7 @@
 const COMMANDS: &[&str] = &[
   "init_new",
   "clone",
+  "clone_cancel",
   "file_history",
   "checkout",
   "fetch",

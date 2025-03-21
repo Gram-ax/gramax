@@ -22,6 +22,7 @@ type dataType = {
 	title: string;
 	content: RenderableTreeNodes;
 	articleProps: ClientArticleProps;
+	error?: string;
 };
 
 type TooltipContent = {
@@ -80,13 +81,18 @@ const ArticleLinkTooltip = (props: LinkTooltipProps) => {
 		if (!combinedResourcePath) return;
 
 		const url = apiUrlCreator.getArticleContentByRelativePath(combinedResourcePath);
+
 		if (!url) return;
+		const res = await FetchService.fetch<dataType>(url, undefined, undefined, undefined, false);
 
-		const res = await FetchService.fetch<dataType>(url);
 		if (!res || !res.ok) return;
-
 		const data = await res.json();
+
 		if (mark?.attrs?.hash && mark.attrs?.hash !== hash) setHash(mark.attrs.hash);
+
+		if (data.error && typeof data.content === "string") {
+			data.content = JSON.parse(data.content);
+		}
 
 		setData(data);
 	}, [apiUrlCreator, getMark, resourcePath]);
@@ -173,11 +179,11 @@ const TooltipProvider = (props: TooltipProviderProps) => {
 		<ApiUrlCreatorService.Provider value={apiUrlCreator.fromNewArticlePath(data.path)}>
 			<OnLoadResourceService.Provider>
 				<PageDataContextService.Provider value={pageDataContext}>
-					<CatalogPropsService.Provider value={catalogProps}>
+					<CatalogPropsService.Context value={catalogProps}>
 						<ArticleRefService.Provider>
 							<>{children}</>
 						</ArticleRefService.Provider>
-					</CatalogPropsService.Provider>
+					</CatalogPropsService.Context>
 				</PageDataContextService.Provider>
 			</OnLoadResourceService.Provider>
 		</ApiUrlCreatorService.Provider>

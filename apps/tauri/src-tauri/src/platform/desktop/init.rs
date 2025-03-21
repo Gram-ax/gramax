@@ -16,6 +16,9 @@ pub struct OpenUrl(pub Mutex<Option<String>>);
 type InitResult = std::result::Result<(), Box<dyn std::error::Error>>;
 
 pub fn init_app<R: Runtime>(app: &mut App<R>) -> InitResult {
+  let manager = app.handle().to_owned();
+  app.run_on_main_thread(move || super::migrate_settings::try_migrate_settings(&manager))?;
+
   app.on_menu_event(super::menu::on_menu_event);
 
   std::env::remove_var("ROOT_PATH");

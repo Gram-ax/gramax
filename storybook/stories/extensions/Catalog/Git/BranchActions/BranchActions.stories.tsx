@@ -4,13 +4,21 @@ import BranchActionsSrc from "../../../../../../core/extensions/git/actions/Bran
 import BlockDecorator from "../../../../../styles/decorators/InlineDecorator";
 import checkoutApi from "./checkoutApi";
 import mergeApi from "./mergeApi";
+import mergeRequestApi from "storybook/stories/extensions/Catalog/Git/Merge/MergeRequests/mergeRequestApi";
 
 export const BranchActions: StoryObj<{ currentBranch: string }> = {
 	args: {
 		currentBranch: "branch",
 	},
 	render: (props) => (
-		<BranchActionsSrc currentBranch={props.currentBranch} trigger={<span>Branch actions trigger</span>} />
+		<BranchActionsSrc
+			show={true}
+			setShow={() => {}}
+			currentBranch={props.currentBranch}
+			tabWrapperRef={null}
+			isInitNewBranch={false}
+			setIsInitNewBranch={() => {}}
+		/>
 	),
 };
 
@@ -18,7 +26,7 @@ const meta: Meta = {
 	title: "gx/extensions/Catalog/Git/BranchActions",
 	decorators: [BlockDecorator],
 	parameters: {
-		msw: mock([...checkoutApi, ...mergeApi]),
+		msw: mock([...checkoutApi, ...mergeApi, ...mergeRequestApi]),
 	},
 };
 

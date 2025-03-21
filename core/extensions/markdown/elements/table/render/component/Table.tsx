@@ -40,7 +40,7 @@ const Table = (props: TableProps): ReactElement => {
 	useAggregation(ref);
 
 	return (
-		<WidthWrapper elementRef={ref}>
+		<WidthWrapper>
 			{typeof children === "string" ? (
 				<table
 					ref={ref}

@@ -32,12 +32,16 @@ class EnterpriseApi {
 			const data = (await res.json()) as {
 				info?: UserInfo;
 				workspacePermissions?: string[];
-				catalogsPermissions?: { resourceId: string; permissions: string[]; props: { branches?: string[] } }[];
+				catalogsPermissions?: {
+					resourceId: string;
+					permissions: string[];
+					props: { branches?: string[]; mainBranch: string };
+				}[];
 			};
 
 			const catalogsPermissions = data.catalogsPermissions;
 			const newCatalogsPermissions: { [catalogName: string]: string[] } = {};
-			const newCatalogsProps: { [catalogName: string]: { branches?: string[] } } = {};
+			const newCatalogsProps: { [catalogName: string]: { branches?: string[]; mainBranch: string } } = {};
 			catalogsPermissions.forEach(({ resourceId, permissions, props }) => {
 				const split = resourceId.split("/");
 				const catalogName = split.pop();
@@ -63,6 +67,11 @@ class EnterpriseApi {
 			return [];
 		}
 		return res.json();
+	}
+
+	async isEnabledGetUsers(): Promise<boolean> {
+		const res = await fetch(`${this._gesUrl}/sso/connectors/ldap/enabled`);
+		return res.ok && res.status === 200;
 	}
 
 	async checkStyleGuide(paragraphs: RequestParagraphModel[]): Promise<StyleGuideGptResponseModel> {

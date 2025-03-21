@@ -3,16 +3,14 @@ import RightNavigationLayout from "@components/Layouts/CatalogLayout/RightNaviga
 import SidebarsIsOpenService from "@core-ui/ContextServices/Sidebars/SidebarsIsOpenContext";
 import SidebarsIsPinService from "@core-ui/ContextServices/Sidebars/SidebarsIsPin";
 import useWatch from "@core-ui/hooks/useWatch";
-import { ItemLink } from "@ext/navigation/NavigationLinks";
 import { useRef } from "react";
 
 interface RightNavigationComponentProps {
-	itemLinks: ItemLink[];
 	delay?: number;
 }
 
 const RightNavigationComponent = (props: RightNavigationComponentProps) => {
-	const { itemLinks, delay } = props;
+	const { delay } = props;
 
 	const prevIsSidebarRightPin = useRef<boolean>(null);
 	const isSidebarRightPin = SidebarsIsPinService.value.right;
@@ -41,7 +39,7 @@ const RightNavigationComponent = (props: RightNavigationComponentProps) => {
 
 	return (
 		<RightNavigationLayout
-			rightNavigationContent={<RightNavigation itemLinks={itemLinks} />}
+			rightNavigationContent={<RightNavigation />}
 			onRightNavMouseEnter={onRightNavMouseEnterHandler}
 			onRightNavMouseLeave={onRightNavMouseLeaveHandler}
 		/>

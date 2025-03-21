@@ -150,9 +150,10 @@ const _init = async (config: AppConfig): Promise<Application> => {
 };
 
 const getApp = async (): Promise<Application> => {
-	if (global.app) return global.app;
-	global.app = await _init(getConfig());
-	autoPull(global.app);
+	if (!global.app) {
+		global.app = _init(getConfig());
+		await autoPull(global.app);
+	}
 	return global.app;
 };
 

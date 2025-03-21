@@ -5,10 +5,10 @@ import DiagramType from "@core/components/Diagram/DiagramType";
 import Theme from "@ext/Theme/Theme";
 import UiLanguage, { type ContentLanguage } from "@ext/localization/core/model/Language";
 import SourceType from "@ext/storage/logic/SourceDataProvider/model/SourceType";
+import { ExportFormat } from "@ext/wordExport/components/ItemExport";
 import type { WorkspacePath } from "@ext/workspace/WorkspaceConfig";
 import MimeTypes from "./Types/MimeTypes";
 import Url from "./Types/Url";
-import { ExportFormat } from "@ext/wordExport/components/ItemExport";
 
 export default class ApiUrlCreator {
 	constructor(private _basePath: string, private _catalogName?: string, private _articlePath?: string) {}
@@ -315,16 +315,17 @@ export default class ApiUrlCreator {
 		});
 	}
 
-	public getVersionControlStatuses() {
+	public getVersionControlStatuses(shouldAdd = true) {
 		return Url.fromBasePath(`/api/versionControl/statuses`, this._basePath, {
 			catalogName: this._catalogName,
+			shouldAdd: shouldAdd.toString(),
 		});
 	}
 
-	public getVersionControlFileStatus() {
+	public getVersionControlFileStatus(articlePath: string) {
 		return Url.fromBasePath(`/api/versionControl/fileStatus`, this._basePath, {
 			catalogName: this._catalogName,
-			articlePath: this._articlePath,
+			articlePath,
 		});
 	}
 
@@ -378,6 +379,12 @@ export default class ApiUrlCreator {
 
 	public getStorageCloneProgressUrl(path: string) {
 		return Url.fromBasePath(`/api/storage/getCloneProgress`, this._basePath, {
+			path,
+		});
+	}
+
+	public getStorageCloneCancelUrl(path: string) {
+		return Url.fromBasePath(`/api/storage/cancelClone`, this._basePath, {
 			path,
 		});
 	}
@@ -474,9 +481,9 @@ export default class ApiUrlCreator {
 		});
 	}
 
-	public getVersionControlFileHistoryUrl() {
+	public getVersionControlFileHistoryUrl(articlePath: string) {
 		return Url.fromBasePath(`/api/versionControl/fileHistory`, this._basePath, {
-			path: this._articlePath,
+			path: articlePath,
 			catalogName: this._catalogName,
 		});
 	}
@@ -614,9 +621,9 @@ export default class ApiUrlCreator {
 		});
 	}
 
-	public updateCatalogNav(logicPath: string) {
+	public updateCatalogNav(itemPath: string) {
 		return Url.fromBasePath(`/api/catalog/updateNavigation`, this._basePath, {
-			logicPath,
+			itemPath,
 			catalogName: this._catalogName,
 		});
 	}
@@ -648,16 +655,16 @@ export default class ApiUrlCreator {
 		});
 	}
 
-	public setArticleContent() {
+	public setArticleContent(articlePath: string) {
 		return Url.fromBasePath(`/api/article/features/setContent`, this._basePath, {
-			path: this._articlePath,
+			path: articlePath,
 			catalogName: this._catalogName,
 		});
 	}
 
-	public getArticleContent() {
+	public getArticleContent(articlePath: string) {
 		return Url.fromBasePath(`/api/article/features/getContent`, this._basePath, {
-			path: this._articlePath,
+			path: articlePath,
 			catalogName: this._catalogName,
 		});
 	}
@@ -842,6 +849,13 @@ export default class ApiUrlCreator {
 		return Url.fromBasePath(`/api/mergeRequests/setApproval`, this._basePath, {
 			catalogName: this._catalogName,
 			approve: approve.toString(),
+		});
+	}
+
+	public getPageData(articlePath: string) {
+		return Url.fromBasePath(`api/page/getPageData`, this._basePath, {
+			catalogName: this._catalogName,
+			articlePath,
 		});
 	}
 }

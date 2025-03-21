@@ -9,19 +9,19 @@ export type ClientGitStatus = {
 	status: FileStatus;
 };
 
-const status: Command<{ ctx: Context; catalogName: string }, ClientGitStatus[]> = Command.create({
+const status: Command<{ ctx: Context; catalogName: string; shouldAdd: boolean }, ClientGitStatus[]> = Command.create({
 	path: "versionControl/statuses",
 
 	kind: ResponseKind.json,
 
 	middlewares: [new DesktopModeMiddleware()],
 
-	async do({ catalogName }) {
+	async do({ catalogName, shouldAdd }) {
 		const workspace = this._app.wm.current();
 		const catalog = await workspace.getContextlessCatalog(catalogName);
 		if (!catalog?.repo?.gvc) return;
 
-		await catalog.repo.gvc.add();
+		if (shouldAdd) await catalog.repo.gvc.add();
 
 		const status = await catalog.repo.gvc.getChanges("index");
 
@@ -32,7 +32,7 @@ const status: Command<{ ctx: Context; catalogName: string }, ClientGitStatus[]> 
 	},
 
 	params(ctx, q) {
-		return { ctx, catalogName: q.catalogName };
+		return { ctx, catalogName: q.catalogName, shouldAdd: q.shouldAdd === "true" };
 	},
 });
 

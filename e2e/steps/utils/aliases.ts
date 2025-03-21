@@ -28,6 +28,9 @@ const aliases = {
 	"диаграмма draw.io": '[data-qa="qa-drawio"]',
 	"html блок": '[data-qa="qa-html"]',
 	"выделить таблицу": '[data-qa="table-select-all"]',
+	"действия каталога": '[data-qa="qa-catalog-actions"]',
+	"действия статьи": '[data-qa="qa-article-actions"]',
+	"смена ветки": '[data-qa="qa-branch"]',
 
 	"%token%": process.env.GX_E2E_GITLAB_TOKEN,
 	"%url%": process.env.GX_E2E_GITLAB_URL,
@@ -59,6 +62,7 @@ const icons = {
 	ссылка: ".lucide-link",
 	"карандаш с линейкой": ".lucide-pencil-ruler",
 	диаграммы: ".lucide-share2",
+	"стрелка вправо": ".lucide-arrow-right",
 	"диаграмма draw.io": `[data-qa="qa-edit-menu-diagrams.net"]`,
 	"диаграмма mermaid": `[data-qa="qa-edit-menu-Mermaid"]`,
 	"диаграмма plantuml": `[data-qa="qa-edit-menu-Plant-uml"]`,
@@ -67,14 +71,17 @@ const icons = {
 	"удалить форматирование": ".fa-text-slash",
 	ножницы: ".lucide-scissors",
 	"три точки": ".lucide-ellipsis",
+	"вертикальные три точки": ".lucide-ellipsis-vertical",
 	облачка: ".lucide-cloud",
 	синхронизации: ".lucide-refresh-cw",
 	"зачёркнутого облачка": `[data-qa="qa-connect-storage"]`,
 	отмена: ".lucide-reply",
+	"отмена всех изменений": ".lucide-reply-all",
 	лупы: ".lucide-search",
 	галочка: ".lucide-check",
 	"Вставить строку сверху": `[data-qa="table-add-row-up"]`,
 	"удалить строку": `[data-qa="table-del-row"]`,
+	"удалить столбец": `[data-qa="table-del-col"]`,
 };
 
 export type Aliases = { [key: string]: string };

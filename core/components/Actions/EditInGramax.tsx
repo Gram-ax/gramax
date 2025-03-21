@@ -10,37 +10,56 @@ import useEditUrl from "./useEditUrl";
 
 const DESKTOP_APP_LISTENING_ADDRESS = "http://127.0.0.1:52055";
 
-const EditInGramaxButton = ({
-	text,
-	targetSelf,
-	onClick,
-}: {
+interface EditInGramaxButtonProps {
 	text: string;
+	pathname: string;
+	articlePath: string;
 	targetSelf?: boolean;
-	onClick?: () => void;
-}) => {
+	onClick?: (callback: () => void) => void;
+}
+
+const openHref = (href: string, target: string) => {
+	const a = document.createElement("a");
+	a.href = href;
+	a.target = target;
+	document.body.appendChild(a);
+	a.click();
+	document.body.removeChild(a);
+};
+
+const EditInGramaxButton = ({ text, targetSelf, onClick, pathname, articlePath }: EditInGramaxButtonProps) => {
+	const url = useEditUrl(pathname, articlePath);
+
 	return (
-		<li style={{ listStyleType: "none", width: "fit-content" }}>
+		<div>
 			<Button buttonStyle={ButtonStyle.transparent} textSize={TextSize.XS}>
 				<IconLink
-					onClick={onClick}
-					href={useEditUrl()}
+					onClick={() => {
+						onClick
+							? onClick(() => openHref(url, targetSelf ? "_self" : "_blank"))
+							: openHref(url, targetSelf ? "_self" : "_blank");
+					}}
+					href={url}
+					style={{ lineHeight: "140%" }}
 					afterIconCode={"gramax"}
 					text={text}
 					isExternal
 					target={targetSelf ? "_self" : "_blank"}
 				/>
 			</Button>
-		</li>
+		</div>
 	);
 };
 
-export const assertDesktopOpened = async () => {
+export const assertDesktopOpened = async (callback?: () => void) => {
 	let attempts = 3;
 	await new Promise((resolve) => setTimeout(resolve, 200));
 	while (attempts--) {
 		try {
-			if (await fetch(DESKTOP_APP_LISTENING_ADDRESS).then((r) => r.ok)) return;
+			if (await fetch(DESKTOP_APP_LISTENING_ADDRESS).then((r) => r.ok)) {
+				callback?.();
+				return;
+			}
 		} catch {}
 		await new Promise((resolve) => setTimeout(resolve, 1000));
 	}
@@ -56,11 +75,24 @@ export const assertDesktopOpened = async () => {
 	);
 };
 
-const EditInDesktop = () => <EditInGramaxButton targetSelf text={t("open-in.desktop")} onClick={assertDesktopOpened} />;
+const EditInDesktop = ({ pathname, articlePath }: { pathname: string; articlePath: string }) => (
+	<EditInGramaxButton
+		targetSelf
+		text={t("open-in.desktop")}
+		pathname={pathname}
+		articlePath={articlePath}
+		onClick={assertDesktopOpened}
+	/>
+);
 
-const EditInWeb = () => !PageDataContextService.value?.conf.isRelease && <EditInGramaxButton text={t("open-in.web")} />;
+const EditInWeb = ({ pathname, articlePath }: { pathname: string; articlePath: string }) =>
+	!PageDataContextService.value?.conf.isRelease && (
+		<EditInGramaxButton pathname={pathname} articlePath={articlePath} text={t("open-in.web")} />
+	);
 
-const EditInWebFromDocPortal = () => <EditInGramaxButton text={t("open-in.gramax")} />;
+const EditInWebFromDocPortal = ({ pathname, articlePath }: { pathname: string; articlePath: string }) => (
+	<EditInGramaxButton pathname={pathname} articlePath={articlePath} text={t("open-in.gramax")} />
+);
 
 const editInGramaxComponents = {
 	next: EditInWebFromDocPortal,
@@ -68,8 +100,8 @@ const editInGramaxComponents = {
 	browser: EditInDesktop,
 };
 
-const EditInGramax = () => {
-	return editInGramaxComponents[getExecutingEnvironment()]();
+const EditInGramax = ({ pathname, articlePath }: { pathname: string; articlePath: string }) => {
+	return editInGramaxComponents[getExecutingEnvironment()]({ pathname, articlePath });
 };
 
 export default EditInGramax;

@@ -15,7 +15,7 @@ const AlertError = ({ title, error }: AlertErrorProps): ReactElement => {
 		<Alert title={title ?? t("app.error.something-went-wrong")} type={AlertType.error}>
 			<div>{error.message}</div>
 			{error.stack && (
-				<Note title={t("alert.details")} collapsed={true} type={NoteType.danger}>
+				<Note title={t("alert.details")} disableRender={true} collapsed={true} type={NoteType.danger}>
 					<CodeBlock value={error.stack} />
 				</Note>
 			)}

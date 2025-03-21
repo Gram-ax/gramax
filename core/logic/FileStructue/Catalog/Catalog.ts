@@ -68,7 +68,7 @@ export class Catalog<P extends CatalogProps = CatalogProps>
 	private _events = createEventEmitter<CatalogEvents>();
 	private _searcher: CatalogItemSearcher;
 
-	private _headVersion: Catalog<P>;
+	private _headVersion: Promise<Catalog<P>>;
 	private _parsedOnce = false;
 
 	constructor(init: CatalogInitProps<P>) {
@@ -170,11 +170,12 @@ export class Catalog<P extends CatalogProps = CatalogProps>
 		});
 	}
 
-	async getHeadVersion(): Promise<Catalog<P>> {
+	getHeadVersion(): Promise<Catalog<P>> {
+		// eslint-disable-next-line @typescript-eslint/no-misused-promises
 		if (!this._headVersion) {
 			if (!this.repo.gvc) return null;
 			const headPath = GitTreeFileProvider.scoped(this.basePath, null);
-			this._headVersion = (await this._fs.getCatalogByPath(headPath, false)) as Catalog<P>;
+			this._headVersion = this._fs.getCatalogByPath(headPath, false) as Promise<Catalog<P>>;
 		}
 		return this._headVersion;
 	}
@@ -405,9 +406,13 @@ export class Catalog<P extends CatalogProps = CatalogProps>
 		await resourceUpdater.updateOtherArticles(from.path, to.path, innerRefs);
 	}
 
+	categoryPathByArticle(article: Article) {
+		const dir = article.ref.path.parentDirectoryPath.join(new Path(article.getFileName()));
+		return dir.join(new Path(CATEGORY_ROOT_FILENAME));
+	}
+
 	async createCategoryByArticle(makeResourceUpdater: MakeResourceUpdater, parentArticle: Article): Promise<Category> {
-		const dir = parentArticle.ref.path.parentDirectoryPath.join(new Path(parentArticle.getFileName()));
-		const path = dir.join(new Path(CATEGORY_ROOT_FILENAME));
+		const path = this.categoryPathByArticle(parentArticle);
 
 		const index = parentArticle.parent.items.findIndex((i) => i.ref.path.compare(parentArticle.ref.path));
 		await this._deleteItem(parentArticle.ref);
@@ -445,7 +450,7 @@ export class Catalog<P extends CatalogProps = CatalogProps>
 		);
 	}
 
-	protected _setHeadVersion(headVersion: Catalog<P>) {
+	protected _setHeadVersion(headVersion: Promise<Catalog<P>>) {
 		this._headVersion = headVersion;
 	}
 
@@ -501,7 +506,10 @@ export class Catalog<P extends CatalogProps = CatalogProps>
 		if (await this._fp.exists(item.ref.path)) {
 			if (item.content && parser) {
 				await parser.parse(item, this);
-				await item.parsedContent.resourceManager.deleteAll();
+				await item.parsedContent.write(async (p) => {
+					await p.resourceManager.deleteAll();
+					return p;
+				});
 			}
 
 			if (item.type == ItemType.category) {
@@ -510,7 +518,10 @@ export class Catalog<P extends CatalogProps = CatalogProps>
 					await Promise.all(
 						items.map(async (item: Article) => {
 							await parser.parse(item, this);
-							await item.parsedContent.resourceManager.deleteAll();
+							await item.parsedContent.write(async (p) => {
+								await p.resourceManager.deleteAll();
+								return p;
+							});
 						}),
 					);
 				}

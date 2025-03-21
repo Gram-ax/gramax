@@ -9,7 +9,6 @@ const LeftNavigationLayout = styled(
 		leftNavigationTop,
 		leftNavigationContent,
 		leftNavigationBottom,
-		hideScroll,
 		isOpen,
 		onMouseEnter,
 		onMouseLeave,
@@ -20,7 +19,6 @@ const LeftNavigationLayout = styled(
 		leftNavigationContent: JSX.Element;
 		leftNavigationTop: JSX.Element;
 		leftNavigationBottom: JSX.Element;
-		hideScroll?: boolean;
 		transitionEndIsOpen: boolean;
 		isOpen: boolean;
 		isPin: boolean;
@@ -32,7 +30,6 @@ const LeftNavigationLayout = styled(
 		return (
 			<div className={classNames(className, {}, [LEFT_NAV_CLASS])} onTransitionEnd={onTransitionEnd}>
 				<LeftSidebar
-					hideScroll={hideScroll}
 					shadow={isOpen}
 					sidebarTop={
 						<div onMouseEnter={onMouseEnter} onMouseLeave={onMouseLeave} onTouchEnd={onMouseEnter}>

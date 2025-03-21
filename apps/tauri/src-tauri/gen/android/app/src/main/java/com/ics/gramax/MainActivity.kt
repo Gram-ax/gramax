@@ -1,3 +1,3 @@
-package com.ics.gramax
+package gramax.app
 
 class MainActivity : TauriActivity()

@@ -95,9 +95,13 @@ export default class RepositoryProvider {
 		recursive = true,
 		isBare = false,
 		branch?: string,
-		onCloneFinish?: (path: Path) => Promise<void>,
+		onCloneFinish?: (path: Path, isCancelled: boolean) => Promise<void>,
 	) {
 		return this._sp.cloneNewStorage({ fs, path, data, recursive, isBare, branch, onCloneFinish });
+	}
+
+	async cancelClone(path: Path, fs: FileStructure) {
+		return this._sp.cancelClone(path, fs);
 	}
 
 	getCloneProgress(path: Path) {

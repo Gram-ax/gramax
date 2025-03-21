@@ -10,6 +10,7 @@ const ImageCropper = (props: Cropper & { className?: string; parentRef: RefObjec
 	const [curCrop, setCurCrop] = useState<Crop>(null);
 
 	const cropperMouseDown = objectMove({
+		editable: true,
 		isDraggable,
 		parentRef,
 		setDraggable,
@@ -33,6 +34,7 @@ const ImageCropper = (props: Cropper & { className?: string; parentRef: RefObjec
 	}, [cropEnabled]);
 
 	const onMouseDown = handleMove({
+		editable: true,
 		setDraggable,
 		parentRef,
 		mainRef: cropperRef,

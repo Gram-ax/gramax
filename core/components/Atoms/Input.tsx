@@ -3,6 +3,7 @@ import styled from "@emotion/styled";
 import { ChangeEvent, HTMLProps, MutableRefObject, forwardRef } from "react";
 import Icon from "./Icon";
 import Tooltip from "./Tooltip";
+import { classNames } from "@components/libs/classNames";
 
 interface InputProps extends HTMLProps<HTMLInputElement> {
 	onChange?: (e: ChangeEvent<HTMLInputElement>) => void;
@@ -39,7 +40,7 @@ const Input = forwardRef((props: InputProps, ref?: MutableRefObject<HTMLInputEle
 			{startText && <div className="startTextContainer">{startText}</div>}
 			<Tooltip visible={!!errorText && showErrorText} content={<span>{errorText}</span>}>
 				<input
-					className={`textInput ${isLoading ? 'loading' : ''}`}
+					className={classNames("textInput", { loading: isLoading })}
 					data-qa={dataQa}
 					ref={ref}
 					type={hidden ? "password" : "text"}
@@ -76,9 +77,9 @@ export default styled(Input)`
 				? ""
 				: css`
 						width: 100%;
-						height: 34px;
+						height: 3em;
 						display: block;
-						font-size: 14px;
+						font-size: 1em;
 						padding: 0.4em 0.8em;
 						border-radius: var(--radius-medium);
 						background: var(--color-code-bg);

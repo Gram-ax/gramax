@@ -27,7 +27,7 @@ const CatalogComponent = ({ data, children }: { data: ArticlePageData; children:
 				article={
 					<ArticleComponent
 						article={children}
-						rightNav={<RightNavigationComponent itemLinks={data.itemLinks} delay={OPEN_DELAY_MS} />}
+						rightNav={<RightNavigationComponent delay={OPEN_DELAY_MS} />}
 					/>
 				}
 			/>

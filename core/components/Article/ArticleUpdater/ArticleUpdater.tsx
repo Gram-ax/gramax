@@ -1,6 +1,5 @@
 import { classNames } from "@components/libs/classNames";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
-import IsEditService from "@core-ui/ContextServices/IsEdit";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import { ArticlePageData } from "@core/SitePresenter/SitePresenter";
 import styled from "@emotion/styled";
@@ -16,7 +15,6 @@ export interface ArticleUpdaterProps {
 
 const ArticleUpdater = (props: ArticleUpdaterProps) => {
 	const { data, onUpdate, children, className } = props;
-	const isEdit = IsEditService.value;
 	const apiUrlCreator = ApiUrlCreatorService.value;
 	const isReadOnly = PageDataContextService.value.conf.isReadOnly;
 
@@ -26,10 +24,6 @@ const ArticleUpdater = (props: ArticleUpdaterProps) => {
 	const updateContent = useCallback(() => {
 		ArticleUpdaterService.update(apiUrlCreator);
 	}, [apiUrlCreator]);
-
-	useEffect(() => {
-		if (!isEdit && !isReadOnly) updateContent();
-	}, [isEdit]);
 
 	useEffect(() => {
 		ArticleUpdaterService.bindData(data);

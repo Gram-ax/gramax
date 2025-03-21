@@ -1,27 +1,27 @@
 import styled from "@emotion/styled";
-import { CSSProperties } from "react";
+import { CSSProperties, forwardRef } from "react";
 
-const SpinnerLoader = styled(
-	({
-		fullScreen = false,
-		style,
-		className,
-	}: {
-		fullScreen?: boolean;
-		style?: CSSProperties;
-		className?: string;
-		width?: number;
-		height?: number;
-		lineWidth?: number;
-	}) => {
+interface SpinnerLoaderProps {
+	fullScreen?: boolean;
+	style?: CSSProperties;
+	className?: string;
+	width?: number;
+	height?: number;
+	lineWidth?: number;
+}
+
+const SpinnerLoader = forwardRef<HTMLDivElement, SpinnerLoaderProps>(
+	({ fullScreen = false, style, className }, ref) => {
 		const Spinner = (
 			<div data-qa="loader" className={className}>
 				<div className="spinner" />
 			</div>
 		);
+
 		if (fullScreen)
 			return (
 				<div
+					ref={ref}
 					style={{
 						width: "100%",
 						height: "100%",
@@ -35,9 +35,12 @@ const SpinnerLoader = styled(
 					{Spinner}
 				</div>
 			);
-		return Spinner;
+
+		return <div ref={ref}>{Spinner}</div>;
 	},
-)`
+);
+
+export default styled(SpinnerLoader)`
 	position: relative;
 	color: var(--color-article-text);
 	width: ${(p) => `${p.width ?? "100"}px !important`};
@@ -67,5 +70,3 @@ const SpinnerLoader = styled(
 		}
 	}
 `;
-
-export default SpinnerLoader;

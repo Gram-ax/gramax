@@ -39,11 +39,7 @@ const EnterpriseCheckStyleGuide = () => {
 	}, []);
 
 	if (!render) return null;
-	return (
-		<li>
-			<ButtonLink iconCode="spell-check" text={t("style-guide.check-with-style-guide")} onClick={checkArticle} />
-		</li>
-	);
+	return <ButtonLink iconCode="spell-check" text={t("style-guide.check-with-style-guide")} onClick={checkArticle} />;
 };
 
 export default EnterpriseCheckStyleGuide;

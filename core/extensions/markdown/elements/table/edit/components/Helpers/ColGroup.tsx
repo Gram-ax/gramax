@@ -3,28 +3,26 @@ import useWatch from "@core-ui/hooks/useWatch";
 import { Node } from "@tiptap/pm/model";
 import { memo, useEffect, useState } from "react";
 
-const tableHasColumnWidth = (firstRow: Node) => {
-	for (let i = 0; i < firstRow.childCount; i++) {
-		const cell = firstRow.child(i);
-		if (cell.attrs.colwidth && cell.attrs.colwidth[0]) return true;
-	}
-
-	return false;
-};
-
 const ColGroup = ({ content }: { content: Node }) => {
 	const articleRef = ArticleRefService.value;
 	const maxWidth = articleRef.current?.firstElementChild?.firstElementChild?.clientWidth - 36;
-	const [cellWidth, setCellWidth] = useState<number>(
-		tableHasColumnWidth(content) ? null : maxWidth / (content.childCount + 1 - content.child(0).attrs.colspan),
-	);
+
+	const getCellWidth = (): number => {
+		let colspanCount = 0;
+		for (let i = 0; i < content.childCount; i++) {
+			const cell = content.child(i);
+			if (cell.attrs.colwidth && cell.attrs.colwidth[0]) return null;
+			colspanCount += cell.attrs.colspan;
+		}
+
+		return maxWidth / colspanCount;
+	};
+
+	const [cellWidth, setCellWidth] = useState<number>(getCellWidth());
 
 	useEffect(() => {
 		const onResize = () => {
-			const maxWidth = articleRef.current?.firstElementChild?.firstElementChild?.clientWidth - 36;
-			const newCellWidth = tableHasColumnWidth(content)
-				? null
-				: maxWidth / (content.childCount + 1 - content.child(0).attrs.colspan);
+			const newCellWidth = getCellWidth();
 			if (newCellWidth !== cellWidth) setCellWidth(newCellWidth);
 		};
 
@@ -35,10 +33,7 @@ const ColGroup = ({ content }: { content: Node }) => {
 	}, [content]);
 
 	useWatch(() => {
-		const maxWidth = articleRef.current?.firstElementChild?.firstElementChild?.clientWidth - 36;
-		const newCellWidth = tableHasColumnWidth(content)
-			? null
-			: maxWidth / (content.childCount + 1 - content.child(0).attrs.colspan);
+		const newCellWidth = getCellWidth();
 		if (newCellWidth !== cellWidth) setCellWidth(newCellWidth);
 	}, [content]);
 

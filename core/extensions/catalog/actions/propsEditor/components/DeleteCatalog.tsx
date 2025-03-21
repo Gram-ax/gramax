@@ -1,16 +1,16 @@
 import SpinnerLoader from "@components/Atoms/SpinnerLoader";
-import ListItem from "@components/Layouts/CatalogLayout/RightNavigation/ListItem";
 import LogsLayout from "@components/Layouts/LogsLayout";
 import ModalLayout from "@components/Layouts/Modal";
 import CatalogPropsService from "@core-ui/ContextServices/CatalogProps";
 import { useRouter } from "@core/Api/useRouter";
 import ErrorConfirmService from "@ext/errorHandlers/client/ErrorConfirmService";
 import t from "@ext/localization/locale/translate";
-import { useState } from "react";
+import { CSSProperties, useState } from "react";
 import FetchService from "../../../../../ui-logic/ApiServices/FetchService";
 import ApiUrlCreatorService from "../../../../../ui-logic/ContextServices/ApiUrlCreator";
+import ButtonLink from "@components/Molecules/ButtonLink";
 
-const DeleteCatalog = () => {
+const DeleteCatalog = ({ style }: { style?: CSSProperties }) => {
 	const catalogProps = CatalogPropsService.value;
 	const apiUrlCreator = ApiUrlCreatorService.value;
 
@@ -36,7 +36,7 @@ const DeleteCatalog = () => {
 					<SpinnerLoader fullScreen />
 				</LogsLayout>
 			</ModalLayout>
-			<ListItem text={t("catalog.delete")} onClick={deleteCatalog} iconCode="trash" />
+			<ButtonLink style={style} onClick={deleteCatalog} iconCode="trash" text={t("catalog.delete")} />
 		</>
 	);
 };

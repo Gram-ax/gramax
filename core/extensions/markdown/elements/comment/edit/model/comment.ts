@@ -24,6 +24,10 @@ const Comment = Mark.create({
 		return {};
 	},
 
+	inclusive() {
+		return false;
+	},
+
 	addAttributes() {
 		return { comment: { default: null }, answers: { default: null }, count: { default: 0 } };
 	},
@@ -104,7 +108,7 @@ const Comment = Mark.create({
 
 	addKeyboardShortcuts() {
 		return addShortcuts(
-			[{ key: "Space", focusShouldBeInsideNode: false, rules: [space("unsetComment")] }],
+			[{ key: "Space", focusShouldBeInsideNode: false, rules: [space("unsetComment", this.type.name)] }],
 			this.type.name,
 		);
 	},

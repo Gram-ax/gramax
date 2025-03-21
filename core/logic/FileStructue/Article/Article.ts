@@ -6,6 +6,7 @@ import type Hasher from "@core/Hash/Hasher";
 import LinkResourceManager from "@core/Link/LinkResourceManager";
 import ResourceUpdater from "@core/Resource/ResourceUpdater";
 import createNewFilePathUtils from "@core/utils/createNewFilePathUtils";
+import { RwLock } from "@core/utils/rwlock";
 import { FileStatus } from "@ext/Watchers/model/FileStatus";
 import { JSONContent } from "@tiptap/core";
 import { RenderableTreeNode } from "../../../extensions/markdown/core/render/logic/Markdoc";
@@ -36,7 +37,7 @@ export type ArticleProps = {
 export class Article<P extends ArticleProps = ArticleProps> extends Item<P> {
 	protected _fs: FileStructure;
 
-	private _parsedContent?: Content;
+	private _parsedContent = RwLock.store<Content>(null);
 	private _content: string;
 	private _errorCode?: number;
 	private _lastModified: number;
@@ -51,10 +52,6 @@ export class Article<P extends ArticleProps = ArticleProps> extends Item<P> {
 
 	get events() {
 		return super.events;
-	}
-
-	set parsedContent(parsedContent: Content) {
-		this._parsedContent = parsedContent;
 	}
 
 	get parsedContent() {
@@ -77,9 +74,9 @@ export class Article<P extends ArticleProps = ArticleProps> extends Item<P> {
 		this._errorCode = value;
 	}
 
-	async updateContent(content: string) {
+	async updateContent(content: string, dropParsedContent = true) {
 		this._content = content;
-		this._parsedContent = null;
+		if (dropParsedContent) await this._parsedContent.write(() => null);
 		await this._save();
 	}
 
@@ -89,7 +86,7 @@ export class Article<P extends ArticleProps = ArticleProps> extends Item<P> {
 			const newArticle = await this._getUpdateArticleByRead();
 			this._content = newArticle._content;
 			this._props = newArticle._props as P;
-			this._parsedContent = null;
+			await this._parsedContent.write(() => null);
 		}
 
 		return result;
@@ -114,7 +111,7 @@ export class Article<P extends ArticleProps = ArticleProps> extends Item<P> {
 	async hash(hash: Hasher, recursive = true) {
 		const hasher = await super.hash(hash);
 		hasher.hash(this._content);
-		if (recursive) await this.parsedContent?.resourceManager?.hash(hash);
+		if (recursive) await this.parsedContent.read((p) => p.resourceManager?.hash(hash));
 		return hasher;
 	}
 
@@ -144,7 +141,7 @@ export class Article<P extends ArticleProps = ArticleProps> extends Item<P> {
 		this._logicPath = newArticle.logicPath;
 		this._ref = newArticle.ref;
 		this._content = newArticle._content;
-		this.parsedContent = newArticle.parsedContent;
+		await this.parsedContent.write(() => newArticle.parsedContent.read());
 
 		return this;
 	}

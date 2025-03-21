@@ -5,6 +5,7 @@ const data: ClientGitBranchData[] = [
 	{
 		name: "otherBranch1",
 		lastCommitAuthor: "commit-author1",
+		lastCommitAuthorMail: "commit-author1@example.com",
 		branchHashSameAsHead: false,
 		lastCommitModify: "2024-11-12",
 		remoteName: "remote1",
@@ -25,6 +26,7 @@ const data: ClientGitBranchData[] = [
 	{
 		name: "otherBranch2",
 		lastCommitAuthor: "commit-author2",
+		lastCommitAuthorMail: "commit-author2@example.com",
 		lastCommitModify: "2024-11-12",
 		branchHashSameAsHead: false,
 		remoteName: "remote1",
@@ -45,6 +47,7 @@ const data: ClientGitBranchData[] = [
 	{
 		name: "otherBranch3",
 		lastCommitAuthor: "commit-author3",
+		lastCommitAuthorMail: "commit-author3@example.com",
 		lastCommitModify: "2024-11-12",
 		branchHashSameAsHead: false,
 		remoteName: "remote1",
@@ -65,6 +68,7 @@ const data: ClientGitBranchData[] = [
 	{
 		name: "otherBranch4",
 		lastCommitAuthor: "commit-author4",
+		lastCommitAuthorMail: "commit-author4@example.com",
 		lastCommitModify: "2024-11-12",
 		branchHashSameAsHead: false,
 		remoteName: "remote1",
@@ -73,6 +77,7 @@ const data: ClientGitBranchData[] = [
 	{
 		name: "otherBranch5",
 		lastCommitAuthor: "commit-author5",
+		lastCommitAuthorMail: "commit-author5@example.com",
 		lastCommitModify: "2024-11-12",
 		branchHashSameAsHead: false,
 		remoteName: "remote1",
@@ -81,6 +86,7 @@ const data: ClientGitBranchData[] = [
 	{
 		name: "otherBranch6",
 		lastCommitAuthor: "commit-author6",
+		lastCommitAuthorMail: "commit-author6@example.com",
 		lastCommitModify: "2024-11-12",
 		branchHashSameAsHead: false,
 		remoteName: "remote1",
@@ -89,6 +95,7 @@ const data: ClientGitBranchData[] = [
 	{
 		name: "otherBranch7",
 		lastCommitAuthor: "commit-author7",
+		lastCommitAuthorMail: "commit-author7@example.com",
 		lastCommitModify: "2024-11-12",
 		branchHashSameAsHead: false,
 		remoteName: "remote1",
@@ -97,6 +104,7 @@ const data: ClientGitBranchData[] = [
 	{
 		name: "otherBranch8",
 		lastCommitAuthor: "commit-author8",
+		lastCommitAuthorMail: "commit-author8@example.com",
 		lastCommitModify: "2024-11-12",
 		branchHashSameAsHead: false,
 		remoteName: "remote1",
@@ -105,6 +113,7 @@ const data: ClientGitBranchData[] = [
 	{
 		name: "otherBranch9",
 		lastCommitAuthor: "commit-author9",
+		lastCommitAuthorMail: "commit-author9@example.com",
 		lastCommitModify: "2024-11-12",
 		branchHashSameAsHead: false,
 		remoteName: "remote1",

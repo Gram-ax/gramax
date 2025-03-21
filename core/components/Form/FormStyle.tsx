@@ -180,6 +180,7 @@ export default styled(FormStyle)`
 			.left-buttons {
 				flex: 1;
 				display: flex;
+				gap: 0.5em;
 				align-items: center;
 				flex-direction: row;
 				justify-content: flex-start;

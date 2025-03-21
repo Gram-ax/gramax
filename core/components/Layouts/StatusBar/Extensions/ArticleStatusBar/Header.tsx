@@ -57,7 +57,7 @@ const Header = ({ title, rightExtension, onClose }: HeaderProps) => {
 	return (
 		<Wrapper>
 			<Part>
-				<Title>{title}</Title>
+				<Title className="tab-wrapper-title">{title}</Title>
 				{rightExtension}
 			</Part>
 			<Part>

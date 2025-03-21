@@ -12,9 +12,12 @@ abstract class CatalogPropsService {
 		return <CatalogPropsContext.Provider value={catalogProps}>{children}</CatalogPropsContext.Provider>;
 	}
 
+	static Context({ children, value }: { children: ReactElement; value: ClientCatalogProps }): ReactElement {
+		return <CatalogPropsContext.Provider value={value}>{children}</CatalogPropsContext.Provider>;
+	}
+
 	static get value(): ClientCatalogProps {
-		const value = useContext(CatalogPropsContext);
-		return value;
+		return useContext(CatalogPropsContext);
 	}
 
 	static set value(value: ClientCatalogProps) {

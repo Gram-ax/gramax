@@ -156,6 +156,14 @@ const Search = (props: SearchProps) => {
 		};
 	});
 
+	useEffect(() => {
+		if (isHomePage) return;
+
+		if (isOpen && blockRef.current) {
+			blockRef.current.dispatchEvent(new MouseEvent("mousedown", { bubbles: true }));
+		}
+	}, [blockRef.current, isOpen, isHomePage]);
+
 	return (
 		<ModalLayout
 			onClose={() => {

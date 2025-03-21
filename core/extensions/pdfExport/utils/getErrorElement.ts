@@ -1,14 +1,9 @@
 import { ContentTable } from "pdfmake/interfaces";
 import { getSvgIconFromString } from "@ext/pdfExport/utils/getIcon";
 import { BASE_CONFIG } from "@ext/pdfExport/config";
-import { RenderableTreeNode } from "@ext/markdown/core/render/logic/Markdoc";
 import t from "@ext/localization/locale/translate";
-import { isTag } from "@ext/pdfExport/utils/isTag";
 
-export function errorCase(node: RenderableTreeNode): ContentTable {
-	if (!isTag(node)) {
-		return;
-	}
+export function errorCase(): ContentTable {
 	const icon = getSvgIconFromString("circle-alert", "#ba1c1c");
 	return {
 		table: {

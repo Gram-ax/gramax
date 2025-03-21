@@ -8,13 +8,13 @@ import CatalogPropsService from "@core-ui/ContextServices/CatalogProps";
 import CommentCounterService from "@core-ui/ContextServices/CommentCounter";
 import DiffViewModeService from "@core-ui/ContextServices/DiffViewModeService";
 import GitIndexService from "@core-ui/ContextServices/GitIndexService";
-import IsEditService from "@core-ui/ContextServices/IsEdit";
 import IsFirstLoadService from "@core-ui/ContextServices/IsFirstLoadService";
 import IsMacService from "@core-ui/ContextServices/IsMac";
 import IsMenuBarOpenService from "@core-ui/ContextServices/IsMenuBarOpenService";
 import IsOfflineService from "@core-ui/ContextServices/IsOfflineService";
 import LanguageService from "@core-ui/ContextServices/Language";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
+import PagePropsUpdateService from "@core-ui/ContextServices/PagePropsUpdate";
 import RefreshPageService from "@core-ui/ContextServices/RefreshPageContext";
 import SearchQueryService from "@core-ui/ContextServices/SearchQuery";
 import SidebarsIsPinService from "@core-ui/ContextServices/Sidebars/SidebarsIsPin";
@@ -80,51 +80,54 @@ export default function ContextProviders({
 	if (isNext && isProduction) yandexMetric(metrics.yandex.metricCounter);
 
 	return (
-		<IsOfflineService.Provider>
-			<PermissionService.Provider value={pageProps.context.permissions}>
-				<ApiUrlCreatorService.Provider value={apiUrlCreator}>
-					<LanguageService.Provider language={pageProps.context.language?.ui}>
-						<PageDataContextService.Provider value={pageProps.context}>
-							<RefreshPageService.Provider refresh={refreshPage} clearData={clearData}>
-								<ThemeService.Provider value={pageProps.context.theme}>
-									<IsMacService.Provider>
-										<WorkspaceService.Provider>
-											<WorkspaceAssetsService.Provider>
-												<SearchQueryService.Provider>
-													<SyncIconService.Provider>
-														<IsOpenModalService.Provider>
-															<SidebarsIsPinService.Provider>
-																<>
-																	{isArticlePage ? (
-																		<DiffViewModeService.Provider>
-																			<GitIndexService.Provider>
-																				<EditorExtensionsService.Provider>
-																					<OnLoadResourceService.Provider>
-																						<IsMenuBarOpenService.Provider>
-																							<ArticleRefService.Provider>
-																								<ArticleDataService.Provider
-																									value={
-																										pageProps.data
-																									}
-																								>
-																									<ArticlePropsService.Provider
+		<PagePropsUpdateService.Provider pageData={pageProps}>
+			<IsOfflineService.Provider>
+				<PermissionService.Provider value={pageProps.context.permissions}>
+					<ApiUrlCreatorService.Provider value={apiUrlCreator}>
+						<LanguageService.Provider language={pageProps.context.language?.ui}>
+							<PageDataContextService.Provider value={pageProps.context}>
+								<RefreshPageService.Provider refresh={refreshPage} clearData={clearData}>
+									<ThemeService.Provider value={pageProps.context.theme}>
+										<IsMacService.Provider>
+											<WorkspaceService.Provider
+												current={pageProps.context.workspace.current}
+												workspaces={pageProps.context.workspace.workspaces}
+											>
+												<WorkspaceAssetsService.Provider>
+													<SearchQueryService.Provider>
+														<SyncIconService.Provider>
+															<IsOpenModalService.Provider>
+																<SidebarsIsPinService.Provider>
+																	<>
+																		{isArticlePage ? (
+																			<DiffViewModeService.Provider>
+																				<GitIndexService.Provider>
+																					<EditorExtensionsService.Provider>
+																						<OnLoadResourceService.Provider>
+																							<IsMenuBarOpenService.Provider>
+																								<ArticleRefService.Provider>
+																									<ArticleDataService.Provider
 																										value={
-																											pageProps
-																												.data
-																												.articleProps
+																											pageProps.data
 																										}
 																									>
-																										<CatalogPropsService.Provider
+																										<ArticlePropsService.Provider
 																											value={
 																												pageProps
 																													.data
-																													.catalogProps
+																													.articleProps
 																											}
 																										>
-																											<PropertyService.Provider>
-																												<ModalToOpenService.Provider>
-																													<CurrentTabsTagService.Provider>
-																														<IsEditService.Provider>
+																											<CatalogPropsService.Provider
+																												value={
+																													pageProps
+																														.data
+																														.catalogProps
+																												}
+																											>
+																												<PropertyService.Provider>
+																													<ModalToOpenService.Provider>
+																														<CurrentTabsTagService.Provider>
 																															<ArticleTooltipService.Provider>
 																																<IsFirstLoadService.Provider
 																																	resetIsFirstLoad={
@@ -134,12 +137,12 @@ export default function ContextProviders({
 																																		isFirstLoad
 																																	}
 																																>
-																																	<ViewContextProvider
-																																		articlePageData={
-																																			pageProps.data
-																																		}
-																																	>
-																																		<OnUpdateAppFuncs>
+																																	<OnUpdateAppFuncs>
+																																		<ViewContextProvider
+																																			articlePageData={
+																																				pageProps.data
+																																			}
+																																		>
 																																			<>
 																																				{pageProps
 																																					.context
@@ -157,50 +160,50 @@ export default function ContextProviders({
 																																					children
 																																				)}
 																																			</>
-																																		</OnUpdateAppFuncs>
-																																	</ViewContextProvider>
+																																		</ViewContextProvider>
+																																	</OnUpdateAppFuncs>
 																																</IsFirstLoadService.Provider>
 																															</ArticleTooltipService.Provider>
-																														</IsEditService.Provider>
-																													</CurrentTabsTagService.Provider>
-																												</ModalToOpenService.Provider>
-																											</PropertyService.Provider>
-																										</CatalogPropsService.Provider>
-																									</ArticlePropsService.Provider>
-																								</ArticleDataService.Provider>
-																							</ArticleRefService.Provider>
-																						</IsMenuBarOpenService.Provider>
-																					</OnLoadResourceService.Provider>
-																				</EditorExtensionsService.Provider>
-																			</GitIndexService.Provider>
-																		</DiffViewModeService.Provider>
-																	) : (
-																		<ModalToOpenService.Provider>
-																			<IsFirstLoadService.Provider
-																				resetIsFirstLoad={resetIsFirstLoad}
-																				value={isFirstLoad}
-																			>
-																				<OnUpdateAppFuncs>
-																					{children}
-																				</OnUpdateAppFuncs>
-																			</IsFirstLoadService.Provider>
-																		</ModalToOpenService.Provider>
-																	)}
-																</>
-															</SidebarsIsPinService.Provider>
-														</IsOpenModalService.Provider>
-													</SyncIconService.Provider>
-												</SearchQueryService.Provider>
-											</WorkspaceAssetsService.Provider>
-										</WorkspaceService.Provider>
-									</IsMacService.Provider>
-								</ThemeService.Provider>
-							</RefreshPageService.Provider>
-						</PageDataContextService.Provider>
-					</LanguageService.Provider>
-				</ApiUrlCreatorService.Provider>
-			</PermissionService.Provider>
-		</IsOfflineService.Provider>
+																														</CurrentTabsTagService.Provider>
+																													</ModalToOpenService.Provider>
+																												</PropertyService.Provider>
+																											</CatalogPropsService.Provider>
+																										</ArticlePropsService.Provider>
+																									</ArticleDataService.Provider>
+																								</ArticleRefService.Provider>
+																							</IsMenuBarOpenService.Provider>
+																						</OnLoadResourceService.Provider>
+																					</EditorExtensionsService.Provider>
+																				</GitIndexService.Provider>
+																			</DiffViewModeService.Provider>
+																		) : (
+																			<ModalToOpenService.Provider>
+																				<IsFirstLoadService.Provider
+																					resetIsFirstLoad={resetIsFirstLoad}
+																					value={isFirstLoad}
+																				>
+																					<OnUpdateAppFuncs>
+																						{children}
+																					</OnUpdateAppFuncs>
+																				</IsFirstLoadService.Provider>
+																			</ModalToOpenService.Provider>
+																		)}
+																	</>
+																</SidebarsIsPinService.Provider>
+															</IsOpenModalService.Provider>
+														</SyncIconService.Provider>
+													</SearchQueryService.Provider>
+												</WorkspaceAssetsService.Provider>
+											</WorkspaceService.Provider>
+										</IsMacService.Provider>
+									</ThemeService.Provider>
+								</RefreshPageService.Provider>
+							</PageDataContextService.Provider>
+						</LanguageService.Provider>
+					</ApiUrlCreatorService.Provider>
+				</PermissionService.Provider>
+			</IsOfflineService.Provider>
+		</PagePropsUpdateService.Provider>
 	);
 }
 

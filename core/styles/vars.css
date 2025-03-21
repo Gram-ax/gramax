@@ -46,6 +46,7 @@
 	--bar-shadow-vertical: -3px 0px 12px -5px rgba(0, 0, 0, 0.16);
 	--menu-tooltip-shadow: rgb(6 6 6 / 18%) -1px 2px 10px;
 	--comment-tooltip-shadow: 0px 0px 12px 1px rgba(13, 13, 13, 0.19);
+	--inline-element-shadow: 0px 1px 2px 0px rgba(15, 23, 42, 0.05);
 
 	--color-comment-bg: #ffa80060;
 	--color-comment-hover-bg: #ffa80080;
@@ -80,6 +81,9 @@
 	--version-control-primary: rgb(0, 122, 204);
 	--version-control-primary-opacity: rgb(0, 122, 204, 0.25);
 	--status-bar-height: 22px;
+
+	--opacity-darken-element: 0.5;
+	--opacity-active-element: 1;
 
 	--transition-time: 0.3s;
 	--transition-time-fast: 0.15s;
@@ -226,6 +230,14 @@
 	--color-text-main: #686868;
 	--color-text-secondary: #969696;
 
+	--color-cmd-text: #0f172a;
+	--color-cmd-bg: #f8fafc;
+	--color-cmd-border: #e2e8f0;
+
+	--color-kbd-text: #64748b;
+	--color-kbd-border: #e2e8f0;
+	--color-kbd-bg: white;
+
 	--color-input-disabled-text: #4e526366;
 
 	--color-btn-stroke: var(--color-text-accent);
@@ -370,6 +382,14 @@
 	--color-text-count: #000000;
 	--color-text-main: #a1a3a9;
 	--color-text-secondary: #73757e;
+
+	--color-cmd-text: #f8fafc;
+	--color-cmd-bg: #0F172A;
+	--color-cmd-border: #334155;
+
+	--color-kbd-text: #94a3b8;
+	--color-kbd-border: #334155;
+	--color-kbd-bg: #1e293b00;
 
 	--color-input-disabled-text: #4e5263;
 

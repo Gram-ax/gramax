@@ -67,7 +67,7 @@ export default class DbDiagram {
 		const dy = Math.tan((style.arrow.angle / 360) * Math.PI) * style.arrow.length;
 		const dx = leftToRight ? -style.arrow.length : style.arrow.length;
 		const points = `${x},${y} ${x + dx},${y + dy} ${x + dx},${y - dy}`;
-		return `<polyline fill="${style.arrow.color}" points="${points}"/>`;
+		return `<polyline  class="arrow" fill="${style.arrow.color}" points="${points}"/>`;
 	}
 
 	_createRect(x: number, y: number, width: number, height: number, color: string): string {
@@ -231,7 +231,7 @@ export default class DbDiagram {
 			}
 		});
 		return (
-			`<path d="${d}" fill="none" stroke="${style.line.color}" stroke-width="${style.line.width}px" />` +
+			`<path d="${d}" fill="none" class="line" stroke="${style.line.color}" stroke-width="${style.line.width}px" />` +
 			this._createArrow(x2, y2, x2l) +
 			`<path d="${d}" fill="none" stroke="black" opacity="0" stroke-width="30px" />`
 		);
@@ -561,6 +561,8 @@ export default class DbDiagram {
 			.field { font: ${style.field.fontSize}px ${style.field.fontFamily} }
 			.key { font-weight: bold }
 			.notNullable { font: ${style.notNullable.fontSize}px "Open Sans", sans-serif;}
+			.arrow { fill: #000000; }
+			.line { stroke: #000000; }
 		</style>
 	</defs>
 	${this.linksSvg.map((l) => l.link).join() + this.tablesSvg.map((table) => table.title + table.fields.join()).join()}

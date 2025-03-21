@@ -1,8 +1,13 @@
 import LinksBreadcrumb from "@components/Breadcrumbs/LinksBreadcrumb";
 import { classNames } from "@components/libs/classNames";
-import { cssMedia } from "@core-ui/utils/cssUtils";
+import ArticlePropsService from "@core-ui/ContextServices/ArticleProps";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
+import useWatch from "@core-ui/hooks/useWatch";
+import { cssMedia } from "@core-ui/utils/cssUtils";
+import { ItemType } from "@core/FileStructue/Item/ItemType";
 import styled from "@emotion/styled";
+import getArticleItemLink from "@ext/artilce/LinkCreator/logic/getArticleItemLink";
+import EditMenu from "@ext/item/EditMenu";
 import { ItemLink } from "@ext/navigation/NavigationLinks";
 import Properties from "@ext/properties/components/Properties";
 import { Property, PropertyValue } from "@ext/properties/models";
@@ -17,9 +22,13 @@ interface ArticleBreadcrumbProps {
 const ArticleBreadcrumb = ({ className, itemLinks }: ArticleBreadcrumbProps) => {
 	const linksRef = useRef<HTMLDivElement>(null);
 	const breadcrumbRef = useRef<HTMLDivElement>(null);
+
 	const [isOverflow, setIsOverflow] = useState<boolean>(null);
 	const [properties, setProperties] = useState<Property[] | PropertyValue[]>([]);
+	const [itemLink, setItemLink] = useState<ItemLink>(null);
+
 	const pageData = PageDataContextService.value;
+	const articleProps = ArticlePropsService.value;
 	const isReadOnly = pageData?.conf.isReadOnly;
 
 	const resize = useCallback(() => {
@@ -49,26 +58,62 @@ const ArticleBreadcrumb = ({ className, itemLinks }: ArticleBreadcrumbProps) => 
 		resize();
 	}, [isOverflow]);
 
+	useWatch(() => {
+		const newItemLink = getArticleItemLink(itemLinks, articleProps.ref.path);
+		setItemLink(newItemLink);
+	}, [articleProps.ref.path]);
+
+	const showArticleActions = !articleProps?.errorCode || articleProps?.errorCode === 500;
+
 	return (
-		<div ref={breadcrumbRef} className={classNames(className, { nextLine: isOverflow })}>
+		<div ref={breadcrumbRef} className={classNames(className, { "next-line": isOverflow })}>
 			<LinksBreadcrumb ref={linksRef} itemLinks={itemLinks} />
-			{!isReadOnly && <Properties properties={properties} setProperties={setProperties} />}
+			{!isReadOnly && showArticleActions && (
+				<>
+					<div className="article-actions" data-qa="qa-article-actions">
+						<EditMenu
+							style={{ marginTop: "2px", marginRight: "-1px", fontSize: "22px" }}
+							itemLink={itemLink}
+							isCategory={itemLink?.type === ItemType.category}
+							setItemLink={setItemLink}
+						/>
+					</div>
+					<Properties properties={properties} setProperties={setProperties} />
+				</>
+			)}
 		</div>
 	);
 };
 
 export default styled(ArticleBreadcrumb)`
+	position: relative;
 	display: flex;
 	align-items: center;
 	justify-content: space-between;
-	${(p) => p.hasPreview && `& {width: 70%;}`}
+	${(p) => p.hasPreview && `& {width: 68%;}`}
 
-	&.nextLine {
+	&.next-line {
 		display: block;
 
 		> :last-of-type {
 			justify-content: end;
 		}
+	}
+
+	.article-actions {
+		position: absolute;
+		display: flex;
+		align-items: center;
+		justify-content: end;
+		right: -0.15em;
+		bottom: -2.1em;
+		margin-right: 4px;
+		z-index: var(--z-index-base);
+		opacity: var(--opacity-darken-element);
+	}
+
+	.article-actions:hover {
+		opacity: var(--opacity-active-element);
 	}
 
 	${cssMedia.narrow} {

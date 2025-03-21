@@ -110,6 +110,11 @@ pub(crate) fn clone<R: Runtime>(
   git::clone(creds, opts, Box::new(move |chunk| _ = window.emit("clone-progress", chunk)))
 }
 
+#[command]
+pub(crate) fn clone_cancel(id: usize) -> Result<bool> {
+  git::clone_cancel(id)
+}
+
 #[command(async)]
 pub(crate) fn add(repo_path: &Path, patterns: Vec<PathBuf>, force: bool) -> Result<()> {
   git::add(repo_path, patterns, force)

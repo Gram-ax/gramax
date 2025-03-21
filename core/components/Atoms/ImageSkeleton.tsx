@@ -4,7 +4,7 @@ import { CSSProperties, ReactNode } from "react";
 
 interface SkeletonProps {
 	width: string;
-	height: string;
+	height?: string;
 	isLoaded: boolean;
 	children: ReactNode;
 	style?: CSSProperties;
@@ -28,7 +28,7 @@ export default styled(ImageSkeleton)`
 		${(p) => p.width && `width: ${p.width};`}
 		${(p) => p.height && `height: ${p.height};`}
 		background-color: hsl(var(--color-skeleton-bg) / .1);
-		animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+		animation: SkeletonPulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 
 		> * {
 			display: none;
@@ -46,7 +46,7 @@ export default styled(ImageSkeleton)`
 		}
 	}
 
-	@keyframes pulse {
+	@keyframes SkeletonPulse {
 		50% {
 			opacity: 0.5;
 		}

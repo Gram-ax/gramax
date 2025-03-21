@@ -248,7 +248,7 @@ impl MainWindowBuilder {
 
     #[cfg(desktop)]
     let builder =
-      builder.title("Gramax").enable_clipboard_access().inner_size(1000.0, 700.0).accept_first_mouse(true);
+      builder.title(&manager.package_info().name).enable_clipboard_access().inner_size(1000.0, 700.0).accept_first_mouse(true);
 
     let window = builder.build()?;
 

@@ -7,6 +7,20 @@ import { MarkSerializerSpec } from "../../Prosemirror/to_markdown";
 
 const getMarkFormatters = (context?: ParserContext): { [mark: string]: MarkSerializerSpec } => ({
 	comment: getCommentFormatter(context),
+	color: {
+		open(_, mark) {
+			const color = mark.attrs.color;
+			if (!color) return "";
+			return `[color:${color}]`;
+		},
+		close(_, mark) {
+			const color = mark.attrs.color;
+			if (!color) return "";
+			return `[/color]`;
+		},
+		mixable: true,
+		expelEnclosingWhitespace: true,
+	},
 	suggestion: getSuggestionFormatter(),
 	s: { open: "~~", close: "~~", mixable: true, expelEnclosingWhitespace: true },
 	em: { open: "*", close: "*", mixable: true, expelEnclosingWhitespace: true },

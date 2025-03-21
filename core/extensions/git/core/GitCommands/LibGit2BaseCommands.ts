@@ -8,7 +8,7 @@ export abstract class LibGit2BaseCommands {
 			authorName: data.userName,
 			authorEmail: data.userEmail,
 			accessToken: "token" in data ? (data.token as string) : "",
-			gitServerUsername: "gitServerUsername" in data ? (data.gitServerUsername as string) : "",
+			username: "gitServerUsername" in data ? (data.gitServerUsername as string) : "git",
 			protocol: "protocol" in data ? (data.protocol as string) : null,
 		};
 	}
