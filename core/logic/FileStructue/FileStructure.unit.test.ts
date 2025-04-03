@@ -141,7 +141,7 @@ describe("FileStructure", () => {
 			await fs.createCategory(
 				FileStructure.getCatalogPath(catalog).join(path("category/_index.md")),
 				catalog.getRootCategory(),
-				{ props: {}, content: "content" } as any, // createCategory использует только эти поля, поэтому норм
+				{ props: {}, content: "content" } as any, // createCategory only uses these fields, so it's ok
 				{},
 				{},
 			);

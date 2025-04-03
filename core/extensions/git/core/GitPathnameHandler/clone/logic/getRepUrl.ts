@@ -15,7 +15,7 @@ const getRepUrl = (shareData: ShareData): { href: string; value: string } => {
 		return { href: `https://${link}`, value: link };
 	}
 
-	// что делать с enterprise?
+	// What to do with enterprise?
 
 	return { href: "", value: "" };
 };

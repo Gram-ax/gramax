@@ -6,6 +6,7 @@ use build::RepoBuilder;
 use git2::*;
 
 use crate::creds::ActualCreds;
+use crate::prelude::RemoteConnect;
 use crate::remote_callback::*;
 
 use crate::error::Result;
@@ -121,6 +122,12 @@ impl<C: ActualCreds> Clone<C> for Repo<C> {
     }
 
     let repo = Self(repo, creds);
+
+    if repo.1.access_token().is_empty() && !repo.can_push()? {
+      info!(target: TAG, "no enough rights to push, deleting the remote `origin`");
+      repo.0.remote_delete("origin")?;
+    }
+
     repo.ensure_head_exists()?;
     repo.ensure_crlf_configured()?;
     Ok(())

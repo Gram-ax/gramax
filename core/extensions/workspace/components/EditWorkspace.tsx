@@ -39,7 +39,8 @@ const EditWorkspace = ({ workspace }: { workspace: ClientWorkspaceConfig }) => {
 			trigger={<Icon isAction code="pen" />}
 			confirmSaveAction={saveChangesHandler}
 			confirmTitle={t("unsaved-changes")}
-			confirmText={t("modal.confirm.warning-have-changes")}
+			forceCloseConfirm={forceCloseModal}
+			confirmText={t("exit-edit-mode")}
 			{...confirmProps}
 		>
 			<WorkspaceForm

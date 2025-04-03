@@ -6,15 +6,15 @@ import type { ReadonlyCatalog } from "@core/FileStructue/Catalog/ReadonlyCatalog
 import { Category } from "@core/FileStructue/Category/Category";
 import { Item } from "@core/FileStructue/Item/Item";
 import { ItemType } from "@core/FileStructue/Item/ItemType";
-import { defaultLanguage } from "@ext/localization/core/model/Language";
+import { resolveLanguage } from "@ext/localization/core/model/Language";
 import MarkdownParser from "@ext/markdown/core/Parser/Parser";
 import ParserContextFactory from "@ext/markdown/core/Parser/ParserContext/ParserContextFactory";
-import MarkdownElementsFilter from "@ext/wordExport/MarkdownElementsFilter";
-import { DocumentTree } from "./DocumentTree";
-import { TitleInfo } from "@ext/wordExport/options/WordTypes";
 import { Tag } from "@ext/markdown/core/render/logic/Markdoc";
-import { Display } from "@ext/properties/models/displays";
 import { SystemProperties } from "@ext/properties/models";
+import { Display } from "@ext/properties/models/displays";
+import MarkdownElementsFilter from "@ext/wordExport/MarkdownElementsFilter";
+import { TitleInfo } from "@ext/wordExport/options/WordTypes";
+import { DocumentTree } from "./DocumentTree";
 
 const buildDocumentTree = async (
 	isCategory: boolean,
@@ -41,7 +41,7 @@ const buildDocumentTree = async (
 		level: level,
 		number: number,
 		parserContext: !isCatalog
-			? parserContextFactory.fromArticle(item as Article, catalog, defaultLanguage, true)
+			? parserContextFactory.fromArticle(item as Article, catalog, resolveLanguage(), true)
 			: null,
 		children: [],
 	}));

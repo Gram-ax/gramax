@@ -13,7 +13,7 @@ const useOnPathnameUpdateBranch = () => {
 
 	useEffect(() => {
 		const onUpdateBranch = (branch: GitBranchData, caller: OnBranchUpdateCaller) => {
-			if (caller === OnBranchUpdateCaller.MergeRequest) return;
+			if (caller === OnBranchUpdateCaller.MergeRequest || caller === OnBranchUpdateCaller.Publish) return;
 
 			const routerPath = new Path(router.path + router.hash).removeExtraSymbols;
 			if (isReadOnly || !RouterPathProvider.isEditorPathname(routerPath)) return;
@@ -33,7 +33,7 @@ const useOnPathnameUpdateBranch = () => {
 
 		BranchUpdaterService.addListener(onUpdateBranch);
 		return () => BranchUpdaterService.removeListener(onUpdateBranch);
-	}, [router.path]);
+	}, [router.path, router.hash, isReadOnly]);
 };
 
 export default useOnPathnameUpdateBranch;

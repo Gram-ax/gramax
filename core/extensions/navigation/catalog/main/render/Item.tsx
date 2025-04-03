@@ -183,7 +183,7 @@ export default styled(LevNavItem)`
 		align-items: center;
 		justify-content: flex-end;
 		gap: var(--distance-i-span);
-		margin-left: var(--distance-i-span) !important;
+		margin-right: 1px;
 
 		i {
 			padding: 0;

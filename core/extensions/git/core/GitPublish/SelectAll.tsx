@@ -15,7 +15,7 @@ const Wrapper = styled.div`
 	display: flex;
 	align-items: center;
 	justify-content: space-between;
-	padding-left: 0.86rem;
+	padding-left: 1rem;
 	padding-right: 1rem;
 	cursor: pointer;
 

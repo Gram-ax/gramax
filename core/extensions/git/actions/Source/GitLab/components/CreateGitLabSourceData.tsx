@@ -133,11 +133,11 @@ const CreateGitLabSourceData = ({
 
 	newSchema.properties = { ...newSchema.properties };
 
-	if (!thisProps.domain || formErrors.url) {
+	if (!thisProps.domain || (formErrors.url && !thisProps.token)) {
 		delete newSchema.properties.token;
 	}
 
-	if (!newSchema.properties.token || !thisProps.token || formErrors.token) {
+	if (!newSchema.properties.token || !thisProps.token || formErrors.token || formErrors.url) {
 		delete newSchema.properties.userName;
 		delete newSchema.properties.userEmail;
 	}

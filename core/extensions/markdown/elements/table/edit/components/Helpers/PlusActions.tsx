@@ -34,6 +34,7 @@ const Line = styled.div`
 
 	&.horizontal {
 		top: 1em;
+		left: 0.4em;
 	}
 `;
 
@@ -50,7 +51,7 @@ const PlusActions = (props: PlusActionsProps) => {
 		const table = tableRef.current;
 		const hoveredData = {
 			width: vertical ? `calc(${table.clientWidth}px - 3em)` : "5px",
-			height: vertical ? "5px" : `calc(${table.clientHeight}px - 2em)`,
+			height: vertical ? "5px" : `calc(${table.clientHeight}px - 2.5em)`,
 		};
 
 		setHoveredData(hoveredData);

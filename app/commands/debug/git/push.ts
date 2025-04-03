@@ -1,6 +1,6 @@
 import GitCommands from "../../../../core/extensions/git/core/GitCommands/GitCommands";
 import GitSourceData from "../../../../core/extensions/git/core/model/GitSourceData.schema";
-import { defaultLanguage } from "../../../../core/extensions/localization/core/model/Language";
+import { resolveLanguage } from "../../../../core/extensions/localization/core/model/Language";
 import { Command } from "../../../types/Command";
 
 const push: Command<{ catalogName: string }, void> = Command.create({
@@ -13,13 +13,13 @@ const push: Command<{ catalogName: string }, void> = Command.create({
 		const fp = workspace.getFileProvider();
 
 		const name = await catalog.repo.storage.getSourceName();
-		const sourceData = this._app.rp.getSourceData(
-			(await this._app.contextFactory.fromBrowser(defaultLanguage, {})).cookie,
+		const sourceData = this._app.rp.getSourceData<GitSourceData>(
+			await this._app.contextFactory.fromBrowser(resolveLanguage(), {}),
 			name,
 		);
 		const path = catalog.repo.gvc.getPath();
 		const gr = new GitCommands(fp, path);
-		await gr.push(sourceData as GitSourceData);
+		await gr.push(sourceData);
 	},
 });
 

@@ -115,10 +115,19 @@ const locale = {
 					placeholder: "glpat-aq6PK8sz1eQeKhTy-Dm5", // # gitleaks:allow
 					description: "Token for reading and modifying repositories in the storage",
 				},
+				password: {
+					name: "Password",
+					placeholder: "password",
+					description: "Password used for authorization on the git server",
+				},
 				createDate: {
 					name: "Creation Time",
 					placeholder: "1707213960",
 					description: "Time the token was obtained",
+				},
+				usePassword: {
+					name: "Use Password",
+					description: "Use password instead of token",
 				},
 				refreshToken: {
 					name: "Refresh Token",
@@ -126,14 +135,19 @@ const locale = {
 					description: "Token for refreshing the main token",
 				},
 				userName: {
-					name: "Username",
+					name: "Author Name",
 					description: "Will be displayed in the change history",
-					placeholder: "Ivan Ivanov",
+					placeholder: "John Doe",
+				},
+				gitServerUsername: {
+					name: "Git Username",
+					description: "Username used for authorization on the git server",
+					placeholder: "john.doe",
 				},
 				userEmail: {
 					name: "Email",
 					description: "Will be displayed in the change history",
-					placeholder: "ivan.ivanov@mail.ru",
+					placeholder: "john.doe@gmail.com",
 				},
 			},
 		},
@@ -167,7 +181,7 @@ const locale = {
 					description: "Token for refreshing the main token",
 				},
 				userName: {
-					name: "Username",
+					name: "Author Name",
 					description: "Will be displayed in the change history",
 					placeholder: "John Doe",
 				},
@@ -508,6 +522,7 @@ Add storage to confirm the link.`,
 		new: "Create new",
 		clone: "Load",
 		"clone-2": "Load existing",
+		"clone-3": "Clone via Link",
 		import: "Import",
 		add: "Add catalog",
 		delete: "Delete catalog",
@@ -633,7 +648,12 @@ Add storage to confirm the link.`,
 					"In storage {{storage}} catalog {{name}} already exists.\nChange the “Repository Name” field in the catalog settings.",
 				"cannot-bind-to-storage": `Cannot bind to this storage`,
 				"unsupported-link": "A link of the format must be specified",
+				"invalid-credentials": {
+					desc: "The current token for this storage is invalid. Update the storage data and try again.",
+				},
 			},
+			"remove-alert": "Are you sure you want to delete this source?",
+			"remove-alert-usage": "It is used in the following catalogs:\n\n",
 		},
 		clone: {
 			progress: {
@@ -659,17 +679,30 @@ Add storage to confirm the link.`,
 			"indexing-deltas": "Indexed {indexed} deltas of {total}",
 			checkout: "Checkout {checkouted} files of {total}",
 			"repo-link": "Repository link",
+			"public-clone": "Clone via Link",
 			"not-cloned": {
 				title: "Load catalog?",
 				body: "The link leads to a catalog that has not been loaded yet. To view and edit, load it from storage.",
 			},
 			"open-in-app": "You also can open that catalog in Gramax desktop app",
+			public: {
+				"link-title": "Repository URL",
+				"link-placeholder": "Public Git Repository URL",
+				"link-description": `Public Git Repository URL to clone.<br>For example: <a href='https://github.com/gram-ax/gramax' ${
+					getExecutingEnvironment() === "tauri" ? "" : "target=_blank"
+				} rel='noreferrer'>https://github.com/gram-ax/gramax</a>`,
+			},
 			error: {
 				"cannot-clone": "Unable to load catalog",
-				"already-exist": "A catalog with this name already exists {{path}}",
+				"already-exist": "A catalog with name `{{path}}` already exists",
 				"no-permission": "No access to repository {{url}}",
 				generic: "Try refreshing the page and loading the catalog again.",
 				"branch-not-found": "Unable to load catalog on branch {{branch}}",
+				public: {
+					"invalid-link":
+						"Invalid link to repository. Please check if link is correct and repository is public",
+					"name-empty": "Repository name and url cannot be empty",
+				},
 			},
 		},
 		sync: {
@@ -785,8 +818,7 @@ Add storage to confirm the link.`,
 				unknown: "Unknown error when publishing. Error message -",
 				protected: "Branch protected from publishing",
 				"no-permission": "You do not have permission to publish in this catalog",
-				"main-branch": "Publishing directly is prohibited.",
-				"main-branch-merge": "Only merge or merge request",
+				"main-branch": "Publishing in this branch is prohibited",
 			},
 		},
 		history: {
@@ -875,6 +907,12 @@ Add storage to confirm the link.`,
 				"no-changes": {
 					title: "No changes",
 					body: "There are no changes in branches to merge.",
+				},
+			},
+			error: {
+				"merge-with-conflicts": {
+					title: "Failed to merge branches",
+					body: "<p>There are conflicts in the branches. Merge the changes from the <code>{{targetBranch}}</code> branch into the <code>{{sourceBranch}}</code> branch. Then resolve the conflict.</p>",
 				},
 			},
 		},
@@ -1320,6 +1358,7 @@ Add storage to confirm the link.`,
 	"error-occured": "An error occurred while displaying the documentation.",
 	"export-catalog-docx": "Сatalog to DOCX",
 	"export-catalog-pdf": "Сatalog to PDF",
+	"export-disabled": "Add an article to export",
 	"file-content": "File content",
 	"file-download-error-message": "It may have been moved or deleted.",
 	"file-download-error-title": "Failed to download file",
@@ -1416,7 +1455,8 @@ Add storage to confirm the link.`,
 	"tip-text": "Tip",
 	"to-branch": "To branch",
 	"to-navigate": "Navigation",
-	"to-сhange-click": "Click to change",
+	click: "Click",
+	"to-make-changes": "to make changes",
 	"today-at": "Today at ",
 	"top-left-pointer": "Top left annotation",
 	"top-right-pointer": "Top right annotation",
@@ -1505,6 +1545,15 @@ Add storage to confirm the link.`,
 	model: "Model",
 	"goto-original": "Go to original",
 	"select-table": "Select table",
+	"no-date": "No date",
+	inbox: {
+		placeholders: {
+			title: "Note title",
+			content: "Note content",
+		},
+		"new-note": "New note",
+		"no-catalog-notes": "No notes in the current catalog",
+	},
 };
 
 export default locale;

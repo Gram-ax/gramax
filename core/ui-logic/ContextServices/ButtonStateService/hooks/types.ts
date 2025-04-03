@@ -1,5 +1,6 @@
 import { Level } from "@ext/markdown/elements/heading/edit/model/heading";
 import OPEN_API_NAME from "@ext/markdown/elements/openApi/name";
+import { Selection } from "@tiptap/pm/state";
 
 export type Attrs = { level: Level; notFirstInList?: boolean };
 
@@ -38,6 +39,7 @@ export interface ActionContextValue {
 	actions: NodeType[];
 	marks: Mark[];
 	attrs: Partial<Attrs>;
+	selection: Selection;
 }
 
 export interface ButtonState {

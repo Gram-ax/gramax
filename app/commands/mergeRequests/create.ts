@@ -21,7 +21,7 @@ const create: Command<{ catalogName: string; mr: CreateMergeRequest; ctx: Contex
 		const storage = catalog.repo.storage as GitStorage;
 		if (!isGitSourceType(await storage.getType())) return;
 
-		const sourceData = rp.getSourceData(ctx.cookie, await storage.getSourceName()) as GitSourceData;
+		const sourceData = rp.getSourceData(ctx, await storage.getSourceName()) as GitSourceData;
 		if (mr) mr.forceCreate = true;
 
 		await catalog.repo.mergeRequests.create(sourceData, mr);

@@ -26,7 +26,7 @@ const scrollUtils = {
 	},
 
 	hasScroll(element: HTMLElement): boolean {
-		return element.scrollHeight !== element.clientHeight;
+		return Math.abs(element.scrollHeight - element.clientHeight) > 1;
 	},
 
 	scrollToWithCallback(element: Element, offset: number, callback: () => void): void {

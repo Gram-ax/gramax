@@ -52,7 +52,9 @@ abstract class CommentCounterService {
 	}
 
 	public static totalByPathname(pathname: string) {
-		return Object.values(CommentCounterService.value).reduce(
+		const comments = CommentCounterService.value;
+    if (!comments) return 0;
+		return Object.values(comments).reduce(
 			(acc, curr) => acc + (curr.pathnames[pathname] ?? 0),
 			0,
 		);

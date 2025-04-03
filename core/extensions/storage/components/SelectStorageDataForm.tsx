@@ -10,6 +10,7 @@ import useWatch from "@core-ui/hooks/useWatch";
 import { transliterate } from "@core-ui/languageConverter/transliterate";
 import SelectConfluenceStorageDataFields from "@ext/confluence/core/components/SelectConfluenceStorageDataFields";
 import ConfluenceSourceData from "@ext/confluence/core/model/ConfluenceSourceData";
+import PublicClone from "@ext/git/actions/Clone/components/PublicClone";
 import Mode from "@ext/git/actions/Clone/model/Mode";
 import SelectGitStorageDataFields from "@ext/git/actions/Source/Git/components/SelectGitStorageDataFields";
 import GitHubSourceData from "@ext/git/actions/Source/GitHub/logic/GitHubSourceData";
@@ -19,7 +20,8 @@ import t from "@ext/localization/locale/translate";
 import NotionSourceData from "@ext/notion/model/NotionSourceData";
 import NotionStorageData from "@ext/notion/model/NotionStorageData";
 import importSourceTypes from "@ext/storage/logic/SourceDataProvider/logic/importSourceType";
-import { useMemo, useState } from "react";
+import removeSourceTokenIfInvalid from "@ext/storage/logic/utils/removeSourceTokenIfInvalid";
+import { useCallback, useMemo, useState } from "react";
 import SelectGitHubStorageDataFields from "../../git/actions/Source/GitHub/components/SelectGitHubStorageDataFields";
 import SelectGitLabStorageDataFields from "../../git/actions/Source/GitLab/components/SelectGitLabStorageDataFields";
 import CreateSourceData from "../logic/SourceDataProvider/components/CreateSourceData";
@@ -65,11 +67,15 @@ const SelectStorageDataForm = (props: SelectStorageDataFormProps) => {
 
 		return modeConfigs[mode];
 	}, [LanguageService.currentUi()]);
+
 	const filteredSourceDatas = pageProps.sourceDatas.filter(filter);
 	const [sourceDatas, setStorageDatas] = useState<SourceData[]>(filteredSourceDatas);
 	const [selectSourceData, setSelectStorageData] = useState<SourceData>(null);
+	const selectStorageName = selectSourceData ? getStorageNameByData(selectSourceData) : "";
 
 	const [externalIsOpen, setExternalIsOpen] = useState(false);
+	const [isPublicCloneOpen, setIsPublicCloneOpen] = useState(false);
+
 	const addNewStorageListItem: ButtonItem = {
 		element: (
 			<CreateSourceData
@@ -77,7 +83,7 @@ const SelectStorageDataForm = (props: SelectStorageDataFormProps) => {
 				externalIsOpen={externalIsOpen}
 				trigger={
 					<div style={{ width: "100%" }}>
-						<ActionListItem>
+						<ActionListItem divider={mode !== Mode.clone}>
 							<div style={{ width: "100%", padding: "6px 11px" }}>
 								<Sidebar
 									title={sideBarTitle + "..."}
@@ -107,6 +113,7 @@ const SelectStorageDataForm = (props: SelectStorageDataFormProps) => {
 					})();
 
 					setSelectStorageData(data);
+					setIsPublicCloneOpen(false);
 					setStorageDatas(newSourceDatas);
 					pageProps.sourceDatas = newSourceDatas;
 					PageDataContextService.value = pageProps;
@@ -114,6 +121,22 @@ const SelectStorageDataForm = (props: SelectStorageDataFormProps) => {
 			/>
 		),
 		onClick: () => setExternalIsOpen(true),
+		labelField: "",
+	};
+
+	const publicClone: ButtonItem = {
+		element: (
+			<ActionListItem divider={sourceDatas?.length > 0}>
+				<div style={{ width: "100%", padding: "6px 11px" }}>
+					<Sidebar title={t("git.clone.public-clone")} leftActions={[<Icon code="link-2" key={0} />]} />
+				</div>
+			</ActionListItem>
+		),
+		onClick: () => {
+			setIsPublicCloneOpen(true);
+			setExternalIsOpen(false);
+			setSelectStorageData(null);
+		},
 		labelField: "",
 	};
 
@@ -131,6 +154,67 @@ const SelectStorageDataForm = (props: SelectStorageDataFormProps) => {
 			onChange({ name: `YandexDisk`, source: selectSourceData });
 		}
 	}, [selectSourceData]);
+
+	const onSourceDataDelete = useCallback(
+		(name: string) => {
+			const sourceName = selectSourceData ? getStorageNameByData(selectSourceData) : null;
+			if (sourceName === name) setSelectStorageData(null);
+			setStorageDatas(sourceDatas.filter((d) => getStorageNameByData(d) !== name));
+		},
+		[sourceDatas, selectSourceData],
+	);
+
+	const FormLowerPart = selectSourceData?.isInvalid ? (
+		<CreateSourceData
+			mode={mode}
+			externalIsOpen={true}
+			onCreate={(data) => {
+				setSelectStorageData(data);
+				setIsPublicCloneOpen(false);
+				const storageName = getStorageNameByData(selectSourceData);
+				pageProps.sourceDatas = pageProps.sourceDatas.filter((d) => getStorageNameByData(d) !== storageName);
+				pageProps.sourceDatas.push(data);
+				setStorageDatas(pageProps.sourceDatas);
+			}}
+			onOpen={() => setSelectStorageData(null)}
+			onClose={() => setSelectStorageData(null)}
+			defaultSourceData={selectSourceData}
+			defaultSourceType={selectSourceData?.sourceType}
+		/>
+	) : (
+		<>
+			{isPublicCloneOpen && <PublicClone setStorageData={onChange} />}
+			{selectSourceData?.sourceType === SourceType.git && (
+				<SelectGitStorageDataFields
+					source={selectSourceData as GitSourceData}
+					onChange={onChange}
+					mode={mode}
+				/>
+			)}
+			{selectSourceData?.sourceType === SourceType.gitLab && (
+				<SelectGitLabStorageDataFields
+					source={selectSourceData as GitlabSourceData}
+					onChange={onChange}
+					mode={mode}
+				/>
+			)}
+			{selectSourceData?.sourceType === SourceType.gitHub && (
+				<SelectGitHubStorageDataFields
+					source={selectSourceData as GitHubSourceData}
+					onChange={onChange}
+					mode={mode}
+				/>
+			)}
+			{(selectSourceData?.sourceType === SourceType.confluenceCloud ||
+				selectSourceData?.sourceType === SourceType.confluenceServer) && (
+				<SelectConfluenceStorageDataFields
+					source={selectSourceData as ConfluenceSourceData}
+					onChange={onChange}
+				/>
+			)}
+			{children}
+		</>
+	);
 
 	return (
 		<FormStyle>
@@ -150,62 +234,51 @@ const SelectStorageDataForm = (props: SelectStorageDataFormProps) => {
 										? {
 												element: (
 													<SourceListItem
-														code={selectSourceData.sourceType}
-														text={getStorageNameByData(selectSourceData)}
+														source={selectSourceData}
+														name={selectStorageName}
 													/>
 												),
-												labelField: getStorageNameByData(selectSourceData),
+												labelField: selectStorageName,
+										  }
+										: isPublicCloneOpen
+										? {
+												element: <SourceListItem source="public" />,
+												labelField: t("git.clone.public-clone"),
 										  }
 										: ""
 								}
-								buttons={[addNewStorageListItem]}
+								buttons={
+									mode === Mode.clone ? [addNewStorageListItem, publicClone] : [addNewStorageListItem]
+								}
 								provideCloseHandler={setChildrenCloseHandler}
 								items={sourceDatas.map((d) => {
 									const disable = mode !== Mode.clone && d.sourceType === SourceType.git;
+									const name = getStorageNameByData(d);
+
 									return {
 										isTitle: disable,
 										disable: disable,
-										labelField: getStorageNameByData(d),
-										element: <SourceListItem code={d.sourceType} text={getStorageNameByData(d)} />,
+										labelField: name,
 										tooltipDisabledContent: disable && t("git.source.error.cannot-bind-to-storage"),
+										element: (
+											<SourceListItem
+												source={d}
+												name={name}
+												deletable
+												onDelete={onSourceDataDelete}
+											/>
+										),
 									};
 								})}
 								onItemClick={(labelField, _, idx) => {
-									if (labelField) setSelectStorageData(sourceDatas[idx]);
+									if (!labelField) return setIsPublicCloneOpen(false);
+									setSelectStorageData(removeSourceTokenIfInvalid(sourceDatas[idx]));
 								}}
 								openByDefault={true}
 							/>
 						</div>
 					</div>
-					{selectSourceData?.sourceType === SourceType.git && (
-						<SelectGitStorageDataFields
-							source={selectSourceData as GitSourceData}
-							onChange={onChange}
-							mode={mode}
-						/>
-					)}
-					{selectSourceData?.sourceType === SourceType.gitLab && (
-						<SelectGitLabStorageDataFields
-							source={selectSourceData as GitlabSourceData}
-							onChange={onChange}
-							mode={mode}
-						/>
-					)}
-					{selectSourceData?.sourceType === SourceType.gitHub && (
-						<SelectGitHubStorageDataFields
-							source={selectSourceData as GitHubSourceData}
-							onChange={onChange}
-							mode={mode}
-						/>
-					)}
-					{(selectSourceData?.sourceType === SourceType.confluenceCloud ||
-						selectSourceData?.sourceType === SourceType.confluenceServer) && (
-						<SelectConfluenceStorageDataFields
-							source={selectSourceData as ConfluenceSourceData}
-							onChange={onChange}
-						/>
-					)}
-					{children}
+					{FormLowerPart}
 				</fieldset>
 			</>
 		</FormStyle>

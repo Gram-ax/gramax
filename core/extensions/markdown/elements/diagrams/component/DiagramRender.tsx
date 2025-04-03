@@ -64,6 +64,10 @@ export default styled(DiagramRender)`
 	align-items: center;
 	justify-content: center;
 
+	p {
+		line-height: 1.5em;
+	}
+
 	${(p) => {
 		return p.diagramName == DiagramType["c4-diagram"]
 			? `.${DiagramType["c4-diagram"]}-diagram {

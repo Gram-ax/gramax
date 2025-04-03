@@ -16,7 +16,7 @@ export default class TypesenseConfig {
 
 	constructor() {
 		const host = env("TUPESENSE_HOST") ?? "";
-		const port = +env("TUPESENSE_PORT") ?? 0;
+		const port = +env("TUPESENSE_PORT") || 0;
 		const protocol = env("TUPESENSE_PROTOCOL") ?? "";
 		const apiKey = env("TUPESENSE_API_KEY") ?? "";
 		this.configurationOptions = { nodes: [{ host, port, protocol }], apiKey };

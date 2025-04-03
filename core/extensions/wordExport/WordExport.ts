@@ -1,7 +1,15 @@
+import { ItemFilter } from "@core/FileStructue/Catalog/Catalog";
+import { CatalogProps } from "@core/FileStructue/Catalog/CatalogProps";
+import ContextualCatalog from "@core/FileStructue/Catalog/ContextualCatalog";
+import { resolveLanguage } from "@ext/localization/core/model/Language";
 import t from "@ext/localization/locale/translate";
 import { Tag } from "@ext/markdown/core/render/logic/Markdoc";
 import DocumentTree from "@ext/wordExport/DocumentTree/DocumentTree";
+import { ExportType } from "@ext/wordExport/ExportType";
 import { createContent } from "@ext/wordExport/TextWordGenerator";
+import { createParagraph } from "@ext/wordExport/createParagraph";
+import { generateBookmarkName } from "@ext/wordExport/generateBookmarkName";
+import { TitleInfo } from "@ext/wordExport/options/WordTypes";
 import { BookmarkEnd, BookmarkStart, Document, ISectionOptions, Paragraph, TableOfContents } from "docx";
 import { WordSerializerState } from "./WordExportState";
 import { getBlockChildren } from "./getBlockChildren";
@@ -9,14 +17,6 @@ import { getInlineChildren } from "./getInlineChildren";
 import stylesJson from "./options/mainStyles.json";
 import { wordDocumentStyles } from "./options/wordDocumentStyles";
 import { HeadingStyles, WordFontStyles } from "./options/wordExportSettings";
-import { createParagraph } from "@ext/wordExport/createParagraph";
-import { defaultLanguage } from "@ext/localization/core/model/Language";
-import { ExportType } from "@ext/wordExport/ExportType";
-import { generateBookmarkName } from "@ext/wordExport/generateBookmarkName";
-import { TitleInfo } from "@ext/wordExport/options/WordTypes";
-import ContextualCatalog from "@core/FileStructue/Catalog/ContextualCatalog";
-import { CatalogProps } from "@core/FileStructue/Catalog/CatalogProps";
-import { ItemFilter } from "@core/FileStructue/Catalog/Catalog";
 
 const MAX_HEADING_LEVEL = 9;
 
@@ -68,7 +68,11 @@ abstract class WordExport {
 	protected _createTableOfContents(article: DocumentTree) {
 		return [
 			createParagraph(
-				[createContent(t("word.table-of-contents", article?.parserContext?.getLanguage() ?? defaultLanguage))],
+				[
+					createContent(
+						t("word.table-of-contents", article?.parserContext?.getLanguage() ?? resolveLanguage()),
+					),
+				],
 				WordFontStyles.tableOfContents,
 			),
 			new TableOfContents("tableOfContents", {

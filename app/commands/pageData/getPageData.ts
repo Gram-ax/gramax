@@ -57,7 +57,7 @@ const getPageData: Command<
 	},
 
 	params(ctx, q) {
-		const path = q.articlePath;
+		const path = q.path;
 		return { ctx, path };
 	},
 });

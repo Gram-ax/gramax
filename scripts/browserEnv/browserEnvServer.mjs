@@ -32,7 +32,7 @@ app.get("/env.js", (req, res) => {
 	res.setHeader("content-type", "application/javascript");
 	res.send(envJs);
 });
-app.get("*", (req, res) => {
+app.get(/.*/, (req, res) => {
 	setHeaders(res);
 	res.setHeader("content-type", "text/html");
 	res.sendFile(path.join(distPath, "index.html"));

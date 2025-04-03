@@ -11,12 +11,12 @@ export enum DiffEntriesLoadStage {
 	Ready,
 }
 
-const DiffEntriesWrapper = styled.div`
+const DiffEntriesWrapper = styled.div<{ hasChanges: boolean }>`
 	display: flex;
 	flex-direction: column;
 	height: auto;
 	flex-shrink: 1;
-	margin: 0 -1.6em;
+	${({ hasChanges }) => hasChanges && "margin: 0 -1.6em;"}
 
 	& > div {
 		padding-left: 1rem;
@@ -31,7 +31,13 @@ const DiffEntriesWrapper = styled.div`
 `;
 
 const NoChanges = styled.div`
-	margin-left: 1.4em;
+	color: var(--color-merge-request-text);
+	opacity: 0.8;
+	text-align: center;
+	padding: 24px 0;
+	padding-top: calc(24px - 0.5rem);
+	padding-bottom: calc(24px + 0.5rem);
+	font-size: 14px;
 `;
 
 export const SelectedDiffEntryContext = createContext<{
@@ -56,13 +62,14 @@ export type DiffEntriesProps = {
 export const DiffEntries = forwardRef<HTMLDivElement, DiffEntriesProps>((props, ref) => {
 	const { changes, selectFile, isFileSelected, setArticleDiffView, onAction, actionIcon } = props;
 	const [selectedByPath, setSelectedByPath] = useState<string>(undefined);
+	const hasChanges = changes?.length > 0;
 
 	const hasCheckboxes = selectFile && isFileSelected;
 
 	return (
 		<SelectedDiffEntryContext.Provider value={{ selectedByPath, setSelectedByPath }}>
-			<DiffEntriesWrapper ref={ref}>
-				{changes?.length > 0 ? (
+			<DiffEntriesWrapper ref={ref} hasChanges={hasChanges}>
+				{hasChanges ? (
 					changes.map((entry, id) => (
 						<DiffEntry
 							key={id}

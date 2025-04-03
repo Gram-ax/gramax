@@ -1,5 +1,7 @@
 import ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
 import FetchService from "@core-ui/ApiServices/FetchService";
+import Method from "@core-ui/ApiServices/Types/Method";
+import MimeTypes from "@core-ui/ApiServices/Types/MimeTypes";
 import CatalogPropsService from "@core-ui/ContextServices/CatalogProps";
 import Path from "@core/FileProvider/Path/Path";
 import { TreeReadScope } from "@ext/git/core/GitCommands/model/GitCommandsModel";
@@ -56,7 +58,7 @@ abstract class OnLoadResourceService {
 					? GitTreeFileProvider.scoped(new Path(catalogName), scope, undefined, true).value
 					: undefined;
 				const url = apiUrlCreator.getArticleResource(src, undefined, scopedCatalogName);
-				const res = await FetchService.fetch(url);
+				const res = await FetchService.fetch(url, undefined, MimeTypes.text, Method.POST, false);
 				if (!res.ok) return callback(undefined);
 
 				const buffer = await res.buffer();

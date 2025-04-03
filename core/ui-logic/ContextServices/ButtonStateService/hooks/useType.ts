@@ -3,10 +3,11 @@ import { Editor } from "@tiptap/core";
 import { Mark } from "@tiptap/pm/model";
 import { useRef, useState } from "react";
 import { Attrs, Mark as MarkType, NodeType } from "./types";
+import { Selection } from "@tiptap/pm/state";
 
 const markList: MarkType[] = ["link", "strong", "em", "code", "file", "comment", "s"];
 
-type State = { actions: NodeType[]; marks: MarkType[]; attrs: Attrs };
+type State = { actions: NodeType[]; marks: MarkType[]; attrs: Attrs; selection: Selection };
 
 export const getNodeNameFromCursor = (state: Editor["state"]) => {
 	const { selection } = state;
@@ -80,12 +81,14 @@ const useType = (editor: Editor) => {
 		actions: [],
 		marks: [],
 		attrs: { level: null, notFirstInList: false },
+		selection: null,
 	});
 
 	const [state, setState] = useState<State>({
 		actions: [],
 		marks: [],
 		attrs: { level: null, notFirstInList: false },
+		selection: null,
 	});
 
 	const getMarksAction = () => {
@@ -135,6 +138,7 @@ const useType = (editor: Editor) => {
 				actions: [...mirror.current.actions],
 				marks: [...mirror.current.marks],
 				attrs: { level: mirror.current.attrs?.level, notFirstInList: mirror.current.attrs?.notFirstInList },
+				selection: editor.state.selection,
 			});
 		}
 	}, [editor.state.selection, editor.commands]);

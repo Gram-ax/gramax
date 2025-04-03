@@ -5,6 +5,7 @@ import styled from "@emotion/styled";
 import type { DiffTreeAnyItem } from "@ext/git/core/GitDiffItemCreator/RevisionDiffTreePresenter";
 import Breadcrumbs from "@ext/git/core/GitMergeRequest/components/Changes/Breadcrumbs";
 import { SelectedDiffEntryContext } from "@ext/git/core/GitMergeRequest/components/Changes/DiffEntries";
+import IndentLine from "@ext/git/core/GitMergeRequest/components/Changes/IndentLine";
 import { Overview } from "@ext/git/core/GitMergeRequest/components/Changes/Overview";
 import { Accent } from "@ext/git/core/GitMergeRequest/components/Elements";
 import t from "@ext/localization/locale/translate";
@@ -33,6 +34,7 @@ const STATUS_COLORS = {
 };
 
 const Wrapper = styled.div`
+	position: relative;
 	width: 100%;
 `;
 
@@ -106,6 +108,7 @@ const Indent = styled(Accent)<{ indent?: number; checkboxIndent?: boolean; isRes
 	white-space: nowrap;
 
 	> span {
+		display: inline;
 		padding-left: 0.2em;
 		flex-grow: 1;
 		max-width: 100%;
@@ -133,28 +136,9 @@ const Title = styled.span<{ indent?: number }>`
 `;
 
 const CheckboxWrapper = styled.div`
+	z-index: 1;
 	position: absolute;
-	margin: 0 1.05rem;
-`;
-
-const Outline = styled.div<{ isCheckbox?: boolean; indent?: number }>`
-	position: relative;
-
-	${({ indent, isCheckbox }) =>
-		indent &&
-		css`
-			&::before {
-				content: "";
-				z-index: 99;
-				display: flex;
-				position: absolute;
-				align-items: center;
-				left: ${indent + 0.22 + (isCheckbox ? 1.23 + Number(indent <= 1) : 0)}rem;
-				width: 1px;
-				height: 100%;
-				background-color: var(--color-merge-request-outline);
-			}
-		`}
+	margin: 0 1.2rem;
 `;
 
 const DiffEntry = ({
@@ -206,6 +190,16 @@ const DiffEntry = ({
 		/>
 	) : null;
 
+	const indentLine = (
+		<IndentLine
+			gap="calc(1rem - 1px)"
+			color="var(--color-merge-request-outline)"
+			level={indent}
+			containerMarginLeft={`${(isCheckbox ? 0.15 : 0) + 1.18}rem`}
+			ignoreFirstLine={isCheckbox}
+		/>
+	);
+
 	if (entry.type === "resource") {
 		return (
 			<Wrapper>
@@ -219,7 +213,7 @@ const DiffEntry = ({
 							<Checkbox interactive checked={isFileSelected(entry)} onClick={onFileSelect} />
 						</CheckboxWrapper>
 					)}
-
+					{indentLine}
 					<Indent indent={indent} checkboxIndent={isCheckbox && indent === 0} isResource>
 						<Title indent={indent}>
 							<Icon code={entry.icon} />
@@ -239,23 +233,21 @@ const DiffEntry = ({
 		return (
 			<>
 				<Wrapper>
+					{indentLine}
 					<Breadcrumbs marginLeft={indent + 1 + (isCheckbox ? 0.15 : 0)} breadcrumb={entry.breadcrumbs} />
 				</Wrapper>
-
-				<Outline indent={entry.breadcrumbs?.length > 0 ? (indent || 1) + 1 : 0} isCheckbox={isCheckbox}>
-					{entry.childs.map((inner, id) => (
-						<DiffEntry
-							key={id}
-							entry={inner}
-							onSelect={onSelect}
-							indent={indent + Number(entry.breadcrumbs?.length > 0)}
-							selectFile={selectFile}
-							isFileSelected={isFileSelected}
-							onAction={onAction}
-							actionIcon={actionIcon}
-						/>
-					))}
-				</Outline>
+				{entry.childs.map((inner, id) => (
+					<DiffEntry
+						key={id}
+						entry={inner}
+						onSelect={onSelect}
+						indent={indent + Number(entry.breadcrumbs?.length > 0)}
+						selectFile={selectFile}
+						isFileSelected={isFileSelected}
+						onAction={onAction}
+						actionIcon={actionIcon}
+					/>
+				))}
 			</>
 		);
 	}
@@ -273,6 +265,7 @@ const DiffEntry = ({
 							<Checkbox interactive checked={isFileSelected(entry)} onClick={onFileSelect} />
 						</CheckboxWrapper>
 					)}
+					{indentLine}
 					<Indent indent={indent} checkboxIndent={isCheckbox}>
 						<Title indent={indent}>{entry.name}</Title>
 						<Overview added={entry.overview.added} deleted={entry.overview.removed} />
@@ -280,23 +273,19 @@ const DiffEntry = ({
 					</Indent>
 				</Highlight>
 			</Wrapper>
-
-			{entry.childs.length > 0 && (
-				<Outline indent={indent + Number(!isCheckbox)} isCheckbox={isCheckbox}>
-					{entry.childs.map((inner, id) => (
-						<DiffEntry
-							key={id}
-							entry={inner}
-							onSelect={onSelect}
-							indent={indent + 1}
-							selectFile={selectFile}
-							isFileSelected={isFileSelected}
-							onAction={onAction}
-							actionIcon={actionIcon}
-						/>
-					))}
-				</Outline>
-			)}
+			{entry.childs.length > 0 &&
+				entry.childs.map((inner, id) => (
+					<DiffEntry
+						key={id}
+						entry={inner}
+						onSelect={onSelect}
+						indent={indent + 1}
+						selectFile={selectFile}
+						isFileSelected={isFileSelected}
+						onAction={onAction}
+						actionIcon={actionIcon}
+					/>
+				))}
 		</>
 	);
 };

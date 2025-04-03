@@ -3,7 +3,7 @@ import { classNames } from "@components/libs/classNames";
 import { useDebounce } from "@core-ui/hooks/useDebounce";
 import { useOutsideClick } from "@core-ui/hooks/useOutsideClick";
 import styled from "@emotion/styled";
-import { ReactNode, useEffect, RefObject, useCallback, memo, useRef, CSSProperties } from "react";
+import { ReactNode, useEffect, RefObject, useCallback, memo, useRef, CSSProperties, useState } from "react";
 import { Instance } from "tippy.js";
 
 interface HoverProps {
@@ -12,6 +12,7 @@ interface HoverProps {
 	setIsHovered: (isHovered: boolean) => void;
 	isHovered: boolean;
 	selected?: boolean;
+	hideOnClick?: boolean;
 	isOver?: boolean;
 	actionsStyle?: CSSProperties;
 	leftActions?: ReactNode;
@@ -42,9 +43,11 @@ const HoverableActions = (props: HoverProps) => {
 		isHovered,
 		actionsStyle,
 		setIsHovered,
+		hideOnClick = true,
 	} = props;
 	if (!setIsHovered) return children;
 	const actionsRef = useRef<HTMLDivElement>(null);
+	const [isHideOnClick] = useState(hideOnClick);
 	const debounceHide = useDebounce((f: () => void) => f(), 150);
 
 	const handleHide = useCallback(() => {
@@ -60,7 +63,7 @@ const HoverableActions = (props: HoverProps) => {
 		debounceHide.cancel();
 	}, [isHovered, actionsRef.current]);
 
-	useOutsideClick([hoverElementRef.current], handleHide);
+	if (isHideOnClick) useOutsideClick([hoverElementRef.current], handleHide);
 
 	useEffect(() => {
 		const hoverElement = hoverElementRef.current;

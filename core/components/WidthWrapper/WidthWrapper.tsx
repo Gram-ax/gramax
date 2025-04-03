@@ -51,7 +51,7 @@ const WidthWrapper = ({ children, className }: { children: JSX.Element; classNam
 		};
 
 		const observer = new ResizeObserver(handleResize);
-		observer.observe(scrollContainerRef.current.firstElementChild);
+		observer.observe(scrollContainerRef.current.lastElementChild);
 		window.addEventListener("resize", resizeWrapper);
 
 		return () => {
@@ -84,7 +84,7 @@ const WidthWrapper = ({ children, className }: { children: JSX.Element; classNam
 				const editor = parent.firstElementChild.firstElementChild;
 				return {
 					width: `calc(${parent.clientWidth}px - 2.5rem)`,
-					marginLeft: `calc(-${(parent.clientWidth - editor.clientWidth) / 2}px + 30px - ${addMargin}px)`, // 30px - ширина левой навигации в свернутом виде
+					marginLeft: `calc(-${(parent.clientWidth - editor.clientWidth) / 2}px + 30px - ${addMargin}px)`, // 30px - width of left navigation in inverted form
 				};
 			}
 		}
@@ -138,7 +138,6 @@ export default styled(WidthWrapper)`
 			td {
 				max-width: max-content;
 				min-width: ${CELL_MIN_WIDTH};
-				height: 3.4em;
 			}
 		}
 	}

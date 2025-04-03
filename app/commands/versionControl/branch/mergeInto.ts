@@ -24,7 +24,7 @@ const mergeInto: Command<
 		const storage = catalog?.repo.storage;
 		if (!storage) return;
 
-		const sourceData = rp.getSourceData(ctx.cookie, await storage.getSourceName());
+		const sourceData = rp.getSourceData(ctx, await storage.getSourceName());
 		const mergeResult = await catalog.repo.merge({
 			data: sourceData,
 			targetBranch: branchName,
@@ -49,8 +49,8 @@ const mergeInto: Command<
 		return {
 			ctx,
 			deleteAfterMerge: q.deleteAfterMerge === "true",
-			catalogName: encodeURIComponent(q.catalogName),
-			branchName: encodeURIComponent(q.branchName),
+			catalogName: q.catalogName,
+			branchName: q.branchName,
 		};
 	},
 });

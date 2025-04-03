@@ -14,6 +14,7 @@ import { TocItem } from "../../../extensions/navigation/article/logic/createTocI
 import ResourceManager from "../../Resource/ResourceManager";
 import { Category } from "../Category/Category";
 import { Item, UpdateItemProps, type ItemEvents, type ItemProps } from "../Item/Item";
+import { InboxProps } from "@ext/inbox/models/types";
 
 export type ArticleEvents = ItemEvents;
 
@@ -30,9 +31,13 @@ export type ArticleInitProps<P extends ItemProps> = {
 	errorCode?: number;
 };
 
-export type ArticleProps = {
-	welcome?: boolean;
-} & ItemProps;
+export type ArticleProps =
+	| ({
+			welcome?: boolean;
+	  } & ItemProps)
+	| InboxProps;
+
+export const ArticlePropsKeys = ["title", "properties", "date", "author", "description"] as const;
 
 export class Article<P extends ArticleProps = ArticleProps> extends Item<P> {
 	protected _fs: FileStructure;
@@ -97,11 +102,19 @@ export class Article<P extends ArticleProps = ArticleProps> extends Item<P> {
 	}
 
 	protected override _updateProps(props: UpdateItemProps) {
-		this._props.title = props.title;
-		if (props.properties?.length) this._props.properties = props.properties;
-		else delete this._props.properties;
+		const allProps = this._props as Record<string, unknown>;
 
-		if (props.description !== "") this._props.description = props.description;
+		for (const key of ArticlePropsKeys) {
+			if (!(key in props)) {
+				delete allProps[key];
+				continue;
+			}
+
+			if (Array.isArray(props[key])) {
+				if (props[key]?.length) allProps[key] = props[key];
+				else delete allProps[key];
+			} else allProps[key] = props[key];
+		}
 	}
 
 	save() {

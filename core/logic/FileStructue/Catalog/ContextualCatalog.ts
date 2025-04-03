@@ -62,6 +62,10 @@ export default class ContextualCatalog<P extends CatalogProps = CatalogProps> im
 		return this.deref.snippetProvider;
 	}
 
+	get inboxProvider() {
+		return this.deref.inboxProvider;
+	}
+
 	get iconProvider() {
 		return this.deref.iconProvider;
 	}

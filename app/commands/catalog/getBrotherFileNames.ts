@@ -8,7 +8,7 @@ const getBrotherFileNames: Command<{ catalogName: string }, string[]> = Command.
 
 	kind: ResponseKind.json,
 
-	middlewares: [new AuthorizeMiddleware(), new DesktopModeMiddleware()],
+	middlewares: [new AuthorizeMiddleware()],
 
 	async do({ catalogName }) {
 		const workspace = await this._app.wm.currentOrDefault();

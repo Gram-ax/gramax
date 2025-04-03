@@ -154,7 +154,7 @@ function getDiffNodes(
 					(node as AddedDiffNode).deletedDiffNode = deletedDiffNodes[0] as DeletedDiffNode;
 				});
 
-				// todo: сделать для удаленных
+				// todo: implement for deleted
 				diffNodes.push(...addedDiffNodes);
 				diffNodes.push(...deletedDiffNodes);
 			} else {

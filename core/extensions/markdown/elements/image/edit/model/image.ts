@@ -12,9 +12,6 @@ declare module "@tiptap/core" {
 
 const Image = Node.create({
 	...getExtensionOptions({ schema: imageSchema, name: "image", withResource: true }),
-	draggable: true,
-	group: "block",
-	inline: false,
 
 	parseHTML() {
 		return [{ tag: "image-react-component" }];

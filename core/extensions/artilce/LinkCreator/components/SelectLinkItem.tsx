@@ -122,7 +122,8 @@ const ButtonView = ({ href, icon, itemName, setButton, isExternalLink }: ButtonV
 
 	const hashHatch = LinkFocusTooltip.getLinkToHeading(href);
 	const isCurrentLink = typeof window !== "undefined" ? window.location.pathname === hashHatch?.[1] : false;
-	const isHashLink = hashHatch?.[2] && isCurrentLink;
+	const hrefStartByHash = href.startsWith("#");
+	const isHashLink = hashHatch?.[2] && (isCurrentLink || hrefStartByHash);
 
 	return (
 		<>
@@ -189,10 +190,14 @@ const getItemByItemLinks = (itemLinks: LinkItem[], value, href) => {
 	const indexLinkToArticle = itemLinks.findIndex((i) => i.relativePath === value);
 	const linkToArticle = indexLinkToArticle !== -1 ? itemLinks[indexLinkToArticle] : null;
 
-	const indexLinkToHeader = itemLinks.findIndex((i) => {
-		const match = LinkFocusTooltip.getLinkToHeading(value);
-		return i.relativePath === (match ? match[1] : href);
-	});
+	const valueStartByHash = value.startsWith("#");
+	const indexLinkToHeader = valueStartByHash
+		? itemLinks.findIndex((i) => i.isCurrent)
+		: itemLinks.findIndex((i) => {
+				const match = LinkFocusTooltip.getLinkToHeading(value);
+				return i.relativePath === (match ? match[1] : href);
+		  });
+
 	const linkToHeader = indexLinkToHeader !== -1 ? itemLinks[indexLinkToHeader] : null;
 
 	if (!linkToHeader && !linkToArticle) return { item: null, index: null };

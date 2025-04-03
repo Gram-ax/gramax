@@ -15,7 +15,7 @@ export const getChildLinks = (category: Category, catalog: ReadonlyCatalog, filt
 	return "[view:hierarchy=none::::List]";
 };
 
-const tryExtractHeader = (article: Article, { editTree, renderTree }: Content) => {
+const getExtractHeader = ({ editTree, renderTree }: Content): string => {
 	let header: string = null;
 
 	if (editTree) {
@@ -39,7 +39,7 @@ const tryExtractHeader = (article: Article, { editTree, renderTree }: Content) =
 		}
 	}
 
-	if (header) article.props.title = header;
+	return header;
 };
 
 async function parseContent(
@@ -76,9 +76,11 @@ async function parseContent(
 				: article.content;
 
 		const parsedContent = await parser.parse(content, context, requestUrl);
-		tryExtractHeader(article, parsedContent);
+		const header = getExtractHeader(parsedContent);
+		if (header) article.props.title = header;
 		return parsedContent;
 	});
 }
 
+export { getExtractHeader };
 export default parseContent;

@@ -20,6 +20,7 @@ import updateContent from "./updateContent";
 import update from "@app/commands/article/property/update";
 import removeProperty from "@app/commands/article/property/remove";
 import getProperty from "@app/commands/article/property/get";
+import provider from "@app/commands/article/provider";
 
 const article = {
 	features: {
@@ -48,6 +49,7 @@ const article = {
 		update,
 		removeProperty,
 	},
+	provider,
 	create,
 	getProps,
 	updateContent,

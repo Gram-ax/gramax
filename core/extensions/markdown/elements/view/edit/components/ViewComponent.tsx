@@ -40,6 +40,7 @@ const ViewComponent = ({ node, className, updateAttributes, editor, getPos }: Vi
 		<NodeViewWrapper ref={hoverElementRef}>
 			<div className={className}>
 				<HoverableActions
+					hideOnClick={false}
 					hoverElementRef={hoverElementRef}
 					isHovered={isHovered}
 					setIsHovered={setIsHovered}

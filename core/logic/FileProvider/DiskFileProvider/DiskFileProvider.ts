@@ -1,4 +1,4 @@
-// в tauri заменяем fs-extra на TauriFs(tauri/vite.config.ts); в wasm на wasmfs
+// In tauri we replace fs-extra with TauriFs(tauri/vite.config.ts); in wasm with wasmfs
 import { getExecutingEnvironment } from "@app/resolveModule/env";
 import { ItemRef } from "@core/FileStructue/Item/ItemRef";
 import * as fs from "fs-extra";
@@ -46,7 +46,7 @@ export default class DiskFileProvider implements FileProvider {
 	}
 
 	async getItems(path: Path): Promise<FileInfo[]> {
-		// В next не используется кастомная реализация fs; По сути этот if - оптимизация количества вызовов команд
+		// In next, custom fs implementation is not used; This if is essentially an optimization of command call count
 		if (getExecutingEnvironment() != "next") {
 			const stats = await (fs as unknown as typeof DFPIntermediateCommands).readDirStats(this._toAbsolute(path));
 			return stats.map((stat) =>

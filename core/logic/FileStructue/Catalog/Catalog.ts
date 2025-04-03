@@ -34,6 +34,7 @@ import { Category } from "../Category/Category";
 import { Item, UpdateItemProps } from "../Item/Item";
 import { ItemRef } from "../Item/ItemRef";
 import { ItemType } from "../Item/ItemType";
+import InboxProvider from "@ext/inbox/logic/InboxProvider";
 
 export type ItemFilter = ((item: Item, catalog: ReadonlyCatalog) => boolean) & {
 	getErrorArticle?: (pathname: string) => Article;
@@ -57,11 +58,13 @@ export class Catalog<P extends CatalogProps = CatalogProps>
 	protected readonly _type = "catalog";
 
 	private _rootCategory: Category<P>;
+
 	private _perms: Permission;
 
 	private _snippetProvider: SnippetProvider;
 	private _iconProvider: IconProvider;
 	private _errors: CatalogErrors;
+	private _inboxProvider: InboxProvider;
 
 	private _fp: FileProvider;
 	private _fs: FileStructure;
@@ -88,8 +91,8 @@ export class Catalog<P extends CatalogProps = CatalogProps>
 			);
 		}
 
+		this._inboxProvider = new InboxProvider(this._fp, this._fs, this);
 		this._snippetProvider = new SnippetProvider(this._fp, this._fs, this);
-
 		this._iconProvider = new IconProvider(this._fp, this._fs, this);
 	}
 
@@ -119,6 +122,10 @@ export class Catalog<P extends CatalogProps = CatalogProps>
 
 	get snippetProvider() {
 		return this._snippetProvider;
+	}
+
+	get inboxProvider() {
+		return this._inboxProvider;
 	}
 
 	get iconProvider() {

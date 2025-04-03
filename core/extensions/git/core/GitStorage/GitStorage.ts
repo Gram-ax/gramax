@@ -3,6 +3,8 @@ import type FileStructure from "@core/FileStructue/FileStructure";
 import GithubStorageData from "@ext/git/actions/Source/GitHub/model/GithubStorageData";
 import type { CloneCancelToken } from "@ext/git/core/GitCommands/model/GitCommandsModel";
 import getUrlFromGitStorageData from "@ext/git/core/GitStorage/utils/getUrlFromGitStorageData";
+import type { ProxiedSourceDataCtx } from "@ext/storage/logic/SourceDataProvider/logic/SourceDataCtx";
+import assert from "assert";
 import Path from "../../../../logic/FileProvider/Path/Path";
 import FileProvider from "../../../../logic/FileProvider/model/FileProvider";
 import parseStorageUrl, { type StorageUrl } from "../../../../logic/utils/parseStorageUrl";
@@ -34,7 +36,7 @@ export default class GitStorage implements Storage {
 	private _cachedDefaultBranch: Branch;
 	private static _gitDataParser: GitDataParser = gitDataParser;
 
-	constructor(private _path: Path, private _fp: FileProvider) {
+	constructor(private _path: Path, private _fp: FileProvider, private _authServiceUrl?: string) {
 		this._gitRepository = new GitCommands(this._fp, this._path);
 		void this._initSubGitStorages();
 	}
@@ -51,7 +53,6 @@ export default class GitStorage implements Storage {
 
 	static async clone({
 		fs,
-		url,
 		data,
 		source,
 		branch,
@@ -64,7 +65,7 @@ export default class GitStorage implements Storage {
 		fs.fp.stopWatch();
 		try {
 			const gitRepository = new GitCommands(fs.fp.default(), repositoryPath);
-			const currentUrl = url ?? getUrlFromGitStorageData(data);
+			const currentUrl = getUrlFromGitStorageData(data);
 			try {
 				await gitRepository.clone(
 					getHttpsRepositoryUrl(currentUrl),
@@ -76,7 +77,10 @@ export default class GitStorage implements Storage {
 					onProgress,
 				);
 			} catch (e) {
-				if (!((e as GitError).props?.errorCode === GitErrorCode.AlreadyExistsError)) throw e;
+				if ((e as GitError).props?.errorCode === GitErrorCode.AlreadyExistsError) return;
+				if (((e as GitError).cause as any)?.props?.errorCode === GitErrorCode.CancelledOperation) throw e;
+
+				await (source as ProxiedSourceDataCtx<GitSourceData>).assertValid?.(e);
 			}
 			if (recursive) {
 				// const submodulesData = await gitRepository.getSubmodulesData();
@@ -168,13 +172,19 @@ export default class GitStorage implements Storage {
 		return this._url;
 	}
 
-	async push(data: GitSourceData, recursive = true) {
-		if (getStorageNameByData(data) !== (await this.getSourceName())) return;
-		await this._gitRepository.push(data);
-		if (recursive) {
-			// const subModules = await this.getSubGitStorages();
-			// for (const s of subModules) await s.push(data);
+	async push(source: GitSourceData, recursive?: boolean) {
+		const storageName = getStorageNameByData(source);
+		assert(
+			storageName === (await this.getSourceName()),
+			`storage name mismatch: ${storageName} !== ${await this.getSourceName()}; can't push to this storage`,
+		);
+
+		try {
+			await this._gitRepository.push(source);
+		} catch (e) {
+			await (source as ProxiedSourceDataCtx<GitSourceData>).assertValid?.(e);
 		}
+
 		await this.updateSyncCount();
 	}
 
@@ -196,16 +206,27 @@ export default class GitStorage implements Storage {
 		return this._gitRepository.getRemoteName();
 	}
 
-	async pull(data: GitSourceData, recursive = true) {
+	async pull(source: GitSourceData, recursive = true) {
 		this._fp.stopWatch();
+
 		try {
 			const remoteName = (await this._gitRepository.getCurrentBranch()).getData().remoteName;
-			if (remoteName) await this._gitRepository.pull(data);
+			if (remoteName) {
+				try {
+					await this._gitRepository.pull(source);
+				} catch (e) {
+					await (source as ProxiedSourceDataCtx<GitSourceData>).assertValid?.(e);
+				}
+			}
 
 			if (recursive) {
 				await this._initSubGitStorages();
 				for (const storage of await this.getSubGitStorages()) {
-					await storage.pull(data);
+					try {
+						await storage.pull(source);
+					} catch (e) {
+						await (source as ProxiedSourceDataCtx<GitSourceData>).assertValid?.(e);
+					}
 				}
 			}
 		} finally {
@@ -238,8 +259,12 @@ export default class GitStorage implements Storage {
 		return { storage: this, relativePath: path };
 	}
 
-	async fetch(data: GitSourceData, force = false) {
-		await this._gitRepository.fetch(data, force);
+	async fetch(source: GitSourceData, force = false) {
+		try {
+			await this._gitRepository.fetch(source, force);
+		} catch (e) {
+			await (source as ProxiedSourceDataCtx<GitSourceData>).assertValid?.(e);
+		}
 		await this.updateSyncCount();
 	}
 
@@ -281,7 +306,7 @@ export default class GitStorage implements Storage {
 			getSubmodulesData.map(async (data) => {
 				const fullSubmodulePath = this._path.join(data.path);
 				if (await this._gitRepository.isSubmoduleExist(data.path))
-					return new GitStorage(fullSubmodulePath, this._fp);
+					return new GitStorage(fullSubmodulePath, this._fp, this._authServiceUrl);
 			}),
 		).then((x) => x.filter((x) => x));
 	}

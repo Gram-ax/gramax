@@ -6,28 +6,34 @@ import { MainMiddleware } from "@core/Api/middleware/MainMiddleware";
 import parseContent from "@core/FileStructue/Article/parseContent";
 import ExceptionsResponse from "@ext/publicApi/ExceptionsResponse";
 import { ApplyApiMiddleware } from "apps/next/logic/Api/ApplyMiddleware";
+import { convertContentToUiLanguage } from "@ext/localization/locale/translate";
 
 export default ApplyApiMiddleware(
 	async function (req: ApiRequest, res: ApiResponse) {
-		const context = await this.app.contextFactory.from(req, res);
+		const { contextFactory, parser, sitePresenterFactory, parserContextFactory } = this.app;
+		const context = await contextFactory.from(req, res);
 		const catalogName = req.query.catalogId as string;
 		const articleId = req.query.articleId as string;
-		const dataProvider = this.app.sitePresenterFactory.fromContext(context);
+		const dataProvider = sitePresenterFactory.fromContext(context);
 		const { article, catalog } = await dataProvider.getArticleByPathOfCatalog([catalogName, articleId], []);
 
 		if (new ExceptionsResponse(res, context).checkArticleAvailability(catalog, catalogName, article, articleId))
 			return;
 
-		await parseContent(
+		const originDomain = (req.query.originDomain as string) ?? apiUtils.getDomain(req);
+
+		await parseContent(article, catalog, context, parser, parserContextFactory, true, originDomain);
+		const parserContext = parserContextFactory.fromArticle(
 			article,
 			catalog,
-			context,
-			this.app.parser,
-			this.app.parserContextFactory,
-			true,
-			apiUtils.getDomain(req),
+			convertContentToUiLanguage(context.contentLanguage || catalog?.props?.language),
+			context.user?.isLogged,
 		);
-		const htmlContent = await article.parsedContent.read((p) => p.htmlValue);
+		const htmlContent = parser.getHtml(
+			(await article.parsedContent.read()).renderTree,
+			parserContext,
+			originDomain,
+		);
 
 		res.setHeader("Content-type", "text/html; charset=utf-8");
 		res.setHeader("Access-Control-Allow-Origin", "*");

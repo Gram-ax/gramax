@@ -54,22 +54,18 @@ Object.assign(Module, {
 			const xhr = new XMLHttpRequest();
 			const abortController = new AbortController();
 
+			xhr.open(method, proxy && proxy !== "null" ? proxy + url.replace(/https?:\/\//, `/`) : url, true);
+			xhr.responseType = "arraybuffer";
+			if (token) xhr.setRequestHeader("x-private-token", token);
+			if (gitServerUsername) xhr.setRequestHeader("x-git-username", gitServerUsername);
+			if (protocol) xhr.setRequestHeader("x-protocol", protocol);
+
 			self.emscriptenhttpconnections[connId] = {
 				xhr: xhr,
 				abortController: abortController,
 				resultbufferpointer: 0,
 				buffersize: buffersize,
 			};
-
-			xhr.open(
-				method,
-				proxy && proxy !== "null" ? proxy + url.replace(/https?:\/\//, `/${gitServerUsername}:$token$@`) : url,
-				true,
-			);
-
-			xhr.responseType = "arraybuffer";
-			xhr.setRequestHeader("x-private-token", token);
-			if (protocol) xhr.setRequestHeader("x-protocol", protocol);
 
 			if (headers) Object.keys(headers).forEach((header) => xhr.setRequestHeader(header, headers[header]));
 

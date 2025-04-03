@@ -1,5 +1,9 @@
 export const GRAMAX_EDITOR_URL = "https://app.gram.ax";
 
+export const GRAMAX_DIRECTORY = ".gramax" as const;
+export const INBOX_DIRECTORY = "inbox" as const;
+export const SNIPPETS_DIRECTORY = "snippets" as const;
+
 export const DOC_ROOT_FILENAME = ".doc-root.yaml";
 export const DOC_ROOT_REGEXP = /.(doc-)?root.ya?ml/;
 

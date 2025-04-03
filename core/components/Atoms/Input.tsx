@@ -1,9 +1,9 @@
+import { classNames } from "@components/libs/classNames";
 import { css } from "@emotion/react";
 import styled from "@emotion/styled";
 import { ChangeEvent, HTMLProps, MutableRefObject, forwardRef } from "react";
 import Icon from "./Icon";
 import Tooltip from "./Tooltip";
-import { classNames } from "@components/libs/classNames";
 
 interface InputProps extends HTMLProps<HTMLInputElement> {
 	onChange?: (e: ChangeEvent<HTMLInputElement>) => void;
@@ -86,7 +86,7 @@ export default styled(Input)`
 				  `}
 
 		${(p) =>
-			(p.disabled && "color: var(--color-input-disabled-text);") ||
+			(p.disabled && p.readOnly && "color: var(--color-input-disabled-text);") ||
 			(p.isCode && "color: var(--color-article-heading-text);")}
 	}
 

@@ -18,6 +18,7 @@ import useOnPathnameUpdateBranch from "@ext/git/core/GitPathnameHandler/checkout
 import PullHandler from "@ext/git/core/GitPathnameHandler/pull/components/PullHandler";
 import getPathnamePullData from "@ext/git/core/GitPathnameHandler/pull/logic/getPathnamePullData";
 import t from "@ext/localization/locale/translate";
+import useIsSourceDataValid from "@ext/storage/components/useIsSourceDataValid";
 import useIsStorageInitialized from "@ext/storage/logic/utils/useIsStorageInitialized";
 import { ComponentProps, useEffect } from "react";
 
@@ -25,9 +26,12 @@ const usePathnameHandler = (isFirstLoad: boolean) => {
 	const router = useRouter();
 	const apiUrlCreator = ApiUrlCreatorService.value;
 	const isStorageInitialized = useIsStorageInitialized();
+	const isSourceValid = useIsSourceDataValid();
 	const pageDataContext = PageDataContextService.value;
 	const { isArticle } = pageDataContext;
 	const { isReadOnly } = pageDataContext.conf;
+
+	useOnPathnameUpdateBranch();
 
 	useEffect(() => {
 		if (!isFirstLoad || !isArticle || isReadOnly || !isStorageInitialized) return;
@@ -67,6 +71,8 @@ const usePathnameHandler = (isFirstLoad: boolean) => {
 				return exit();
 			}
 
+			if (!isSourceValid) return exit();
+
 			SyncIconService.start();
 			const { haveToPull, canPull } = await getPathnamePullData(apiUrlCreator);
 
@@ -85,9 +91,7 @@ const usePathnameHandler = (isFirstLoad: boolean) => {
 			ModalToOpenService.setValue<ComponentProps<typeof PullHandler>>(ModalToOpen.PullHandler);
 		};
 		void handler();
-	}, [isFirstLoad]);
-
-	useOnPathnameUpdateBranch();
+	}, [router.path, isFirstLoad, isArticle, isReadOnly, isStorageInitialized, isSourceValid, apiUrlCreator]);
 };
 
 export default usePathnameHandler;

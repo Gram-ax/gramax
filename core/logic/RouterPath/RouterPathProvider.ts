@@ -100,11 +100,15 @@ export default class RouterPathProvider {
 	}
 
 	private static _getArrayOfStrings(path: string[] | string | Path): string[] {
-		return path instanceof Array
-			? path
-			: path
-					.toString()
-					.split("/")
-					.filter((f) => f !== "");
+		const arr =
+			path instanceof Array
+				? path
+				: path
+						.toString()
+						.split("/")
+						.filter((f) => f !== "");
+
+		if (arr[0] === "http:" || arr[0] === "https:") arr.shift();
+		return arr;
 	}
 }

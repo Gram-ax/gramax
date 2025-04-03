@@ -36,6 +36,7 @@ export const call = async <O>(command: string, args?: any): Promise<O> => {
 				`${error?.message?.trim() || error}\nArgs: ${JSON.stringify(args, null, 4)}`,
 				error.class,
 				error.code,
+				command,
 			),
 		);
 	}

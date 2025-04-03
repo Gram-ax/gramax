@@ -116,6 +116,8 @@ const PublishTab = ({ show, setShow }: PublishTabProps) => {
 		return () => document.removeEventListener("keydown", handler);
 	}, [show, publish, canPublish]);
 
+	const hasChanges = diffTree?.tree?.length > 0;
+
 	return (
 		<TabWrapper
 			ref={tabWrapperRef}
@@ -144,16 +146,18 @@ const PublishTab = ({ show, setShow }: PublishTabProps) => {
 					isSelectedAll={isSelectedAll}
 					isFileSelected={(file) => file.type !== "node" && isSelected(file.filepath.new, file.filepath.old)}
 				/>
-				<CommitMessage
-					commitMessageValue={message}
-					commitMessagePlaceholder={placeholder}
-					disableCommitInput={isPublishing || !isEntriesReady}
-					disablePublishButton={!canPublish}
-					fileCount={selectedFiles.size}
-					onPublishClick={() => void publish()}
-					onCommitMessageChange={(msg) => setMessage(msg)}
-					isLoading={isPublishing}
-				/>
+				{hasChanges && (
+					<CommitMessage
+						commitMessageValue={message}
+						commitMessagePlaceholder={placeholder}
+						disableCommitInput={isPublishing || !isEntriesReady}
+						disablePublishButton={!canPublish}
+						fileCount={selectedFiles.size}
+						onPublishClick={() => void publish()}
+						onCommitMessageChange={(msg) => setMessage(msg)}
+						isLoading={isPublishing}
+					/>
+				)}
 			</>
 		</TabWrapper>
 	);

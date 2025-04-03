@@ -60,7 +60,7 @@ const NoneGroups = (props: HTMLAttributes<HTMLDivElement>) => {
 												await refreshPage();
 											}}
 										>
-											{t("actions")}
+											{t("change")}
 										</a>
 									</span>
 								</p>

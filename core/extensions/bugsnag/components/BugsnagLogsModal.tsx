@@ -99,7 +99,7 @@ const BugsnagBody = ({ setIsOpen, className, itemLogicPath }: BugsnagBodyProps) 
 				await sendBug(
 					new Error("Пользовательская ошибка"),
 					(e) => {
-						// TODO Нужно как то отлавливать, дошел ли контент до багснега и если нет, то бросать ошибку.
+						// TODO Need to catch if content reached Bugsnag, if not, throw an error
 						e.addMetadata("props", logs);
 					},
 					false,

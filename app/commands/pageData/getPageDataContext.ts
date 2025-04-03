@@ -28,7 +28,7 @@ const getPageDataContext = ({
 		theme: ctx.theme,
 		domain: ctx.domain,
 		isLogged: ctx.user.isLogged,
-		sourceDatas: app.rp.getSourceDatas(ctx.cookie) ?? [],
+		sourceDatas: app.rp.getSourceDatas(ctx) ?? [],
 		isArticle,
 		workspace: {
 			workspaces: app.wm.workspaces(),

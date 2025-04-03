@@ -20,7 +20,7 @@ const fetchCmd: Command<{ ctx: Context; catalogName: string }, void> = Command.c
 
 		const storage = catalog?.repo.storage;
 		if (!storage) return;
-		const data = rp.getSourceData(ctx.cookie, await storage.getSourceName());
+		const data = rp.getSourceData(ctx, await storage.getSourceName());
 		if (!data) return;
 		await storage.fetch(data, catalog.repo.isBare);
 

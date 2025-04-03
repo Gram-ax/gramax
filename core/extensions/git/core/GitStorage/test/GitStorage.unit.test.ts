@@ -30,7 +30,7 @@ const mockUserData: GitSourceData = {
 	sourceType: SourceType.git,
 	userEmail: "test-email@email.com",
 	userName: "test user",
-	domain: "http://localhost:8173",
+	domain: "http://localhost:8174",
 	token: "",
 };
 

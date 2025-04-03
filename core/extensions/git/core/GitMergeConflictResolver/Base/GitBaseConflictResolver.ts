@@ -4,7 +4,7 @@ import haveConflictWithFileDelete from "@ext/git/actions/MergeConflictHandler/lo
 import GitMergeResult from "@ext/git/actions/MergeConflictHandler/model/GitMergeResult";
 import type Repository from "@ext/git/core/Repository/Repository";
 import type { RepositoryState } from "@ext/git/core/Repository/state/RepositoryState";
-import SourceData from "@ext/storage/logic/SourceDataProvider/model/SourceData";
+import type GitSourceData from "@ext/git/core/model/GitSourceData.schema";
 import Path from "../../../../../logic/FileProvider/Path/Path";
 import FileProvider from "../../../../../logic/FileProvider/model/FileProvider";
 import FileStructure from "../../../../../logic/FileStructue/FileStructure";
@@ -13,7 +13,7 @@ import { GitMergeResultContent } from "../../../actions/MergeConflictHandler/mod
 export default class GitBaseConflictResolver {
 	constructor(protected _repo: Repository, private _fp: FileProvider, private _pathToRep: Path) {}
 
-	async abortMerge(_state: RepositoryState, _sourceData?: SourceData): Promise<void> {
+	async abortMerge(_state: RepositoryState, _sourceData?: GitSourceData): Promise<void> {
 		await this._repo.gvc.hardReset();
 	}
 
@@ -39,7 +39,7 @@ export default class GitBaseConflictResolver {
 	async resolveConflictedFiles(
 		files: { path: string; content: string }[],
 		_state: RepositoryState,
-		_sourceData?: SourceData,
+		_sourceData?: GitSourceData,
 	): Promise<void> {
 		await Promise.all(
 			files.map(async (file) => {

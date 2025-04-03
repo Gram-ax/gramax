@@ -2,10 +2,13 @@ import OPEN_API_NAME from "@ext/markdown/elements/openApi/name";
 import { useContext } from "react";
 import { ActionContext } from "../ButtonStateService";
 import { Attrs, ButtonState, Mark, NodeType, NodeValues } from "./types";
+import { Selection } from "@tiptap/pm/state";
+import { CellSelection } from "prosemirror-tables";
 
 const Block = ["heading", "orderedList", "bulletList", "taskList"];
 const BlockPlus = ["table", "cut", "note", "tab", "tabs", "blockquote"];
 const BlockOutContent = ["drawio", "diagrams", "image", "video", "code_block", "snippet", OPEN_API_NAME];
+const ListGroup = ["orderedList", "bulletList", "taskList"];
 
 const disabledMarkRule: Record<Mark, Mark[]> = {
 	code: ["link", "file", "comment", "strong", "em"],
@@ -21,6 +24,10 @@ const disableBlockRule = {
 	orderedList: (buttonNode) => ["heading", "taskList", "code_block", ...BlockPlus].includes(buttonNode),
 	bulletList: (buttonNode) => ["heading", "taskList", "code_block", ...BlockPlus].includes(buttonNode),
 	taskList: (buttonNode) => ["heading", "code_block", ...BlockPlus].includes(buttonNode),
+};
+
+const disableBlockBySelection = {
+	table: (selection, buttonNode) => selection instanceof CellSelection && ListGroup.includes(buttonNode),
 };
 
 const disabledMarkByAction = {
@@ -61,6 +68,19 @@ function changeResultByMark(activeNode: NodeType, buttonMark, result: ButtonStat
 	}
 }
 
+function changeResultBySelection(
+	activeNode: NodeType,
+	selection: Selection,
+	buttonNode: NodeType,
+	result: ButtonState,
+) {
+	if (!(activeNode in disableBlockBySelection)) return;
+
+	if (disableBlockBySelection[activeNode]?.(selection, buttonNode)) {
+		result.disabled = true;
+	}
+}
+
 function getButtonStateByMarks(contextMarks: Mark[], buttonMark: Mark, result: ButtonState) {
 	if (!contextMarks || !contextMarks.length) return;
 
@@ -79,16 +99,18 @@ interface ResultByActionDataProps {
 	attrs?: Partial<Attrs>;
 	marks?: Mark[];
 	currentNode: NodeValues;
+	selection: Selection;
 }
 
 export const getResultByActionData = (props: ResultByActionDataProps) => {
-	const { currentNode: current, attrs, marks, actions } = props;
+	const { currentNode: current, attrs, marks, actions, selection } = props;
 	const result = { isActive: false, disabled: false };
 
 	actions.forEach((action) => {
 		changeResultByAction(action, current.action, result);
 		changeResultByMark(action, current.mark, result);
 		changeResultByAttrs(attrs, current.attrs, result);
+		changeResultBySelection(action, selection, current.action, result);
 		getButtonStateByMarks(marks, current.mark, result);
 	});
 
@@ -96,9 +118,9 @@ export const getResultByActionData = (props: ResultByActionDataProps) => {
 };
 
 const useCurrentAction = (currentNode: NodeValues) => {
-	const { actions, attrs, marks } = useContext(ActionContext);
+	const { actions, attrs, marks, selection } = useContext(ActionContext);
 
-	return getResultByActionData({ actions, attrs, marks, currentNode });
+	return getResultByActionData({ actions, attrs, marks, currentNode, selection });
 };
 
 export default useCurrentAction;

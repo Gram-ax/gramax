@@ -184,7 +184,8 @@ export default styled(TablePlusActions)`
 
 	.controls-container-horizontal {
 		position: absolute;
-		margin-left: 1.5em;
+		left: 1.5em;
+		top: 0.25em;
 		overflow-x: visible;
 		display: grid;
 		justify-content: center;
@@ -198,7 +199,8 @@ export default styled(TablePlusActions)`
 
 	.controls-container-vertical {
 		position: absolute;
-		margin-top: 1em;
+		top: 1.325em;
+		left: 0;
 		overflow-y: visible;
 		display: grid;
 		justify-content: center;

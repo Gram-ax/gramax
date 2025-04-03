@@ -13,6 +13,8 @@ use crate::error::Result;
 use crate::prelude::Repo;
 use crate::ShortInfo;
 
+use super::remote::RemoteConnect;
+
 const TAG: &str = "git:branch";
 
 pub trait Branch {
@@ -22,11 +24,14 @@ pub trait Branch {
   fn new_branch<S: AsRef<str>>(&self, shorthand: S) -> Result<BranchEntry<'_>>;
 
   fn delete_branch_local<S: AsRef<str>>(&self, shorthand: S) -> Result<()>;
+  fn ensure_branch_exists_local<S: AsRef<str>>(&self, shorthand: S) -> Result<()>;
 }
 
 pub trait RemoteBranch {
   fn delete_branch_remote<S: AsRef<str>>(&self, shorthand: S) -> Result<()>;
+  fn create_branch_remote<S: AsRef<str>>(&self, shorthand: S) -> Result<()>;
   fn default_branch(&self) -> Result<Option<BranchEntry<'_>>>;
+  fn ensure_branch_exists(&self, shorthand: &str) -> Result<()>;
 }
 
 pub struct BranchEntry<'b> {
@@ -133,6 +138,26 @@ impl<C: Creds> Branch for Repo<C> {
     branch.delete()?;
     Ok(())
   }
+
+  fn ensure_branch_exists_local<S: AsRef<str>>(&self, shorthand: S) -> Result<()> {
+    match self.0.find_branch(shorthand.as_ref(), BranchType::Local) {
+      Ok(branch) => branch,
+      Err(err) if err.code() == ErrorCode::NotFound => {
+        warn!(target: TAG, "branch {} does not exist; creating it", shorthand.as_ref());
+
+        let commit = match self.0.find_branch(&format!("origin/{}", shorthand.as_ref()), BranchType::Remote) {
+          Ok(remote_branch) => remote_branch.get().peel_to_commit()?,
+          Err(_) => return Err(err.into()),
+        };
+
+        self.0.branch(shorthand.as_ref(), &commit, false)?
+      }
+      Err(err) => {
+        return Err(err.into());
+      }
+    };
+    Ok(())
+  }
 }
 
 impl<C: ActualCreds> RemoteBranch for Repo<C> {
@@ -142,8 +167,11 @@ impl<C: ActualCreds> RemoteBranch for Repo<C> {
     cbs.credentials(make_credentials_callback(&self.1));
     cbs.certificate_check(ssl_callback);
     cbs.push_update_reference(push_update_reference_callback);
+
     let mut push_opts = PushOptions::new();
     push_opts.remote_callbacks(cbs);
+    push_opts.follow_redirects(RemoteRedirect::All);
+    push_opts.add_credentials_headers(&self.1);
 
     let mut branch = self.0.find_branch(&format!("origin/{}", shorthand.as_ref()), BranchType::Remote)?;
     let mut remote = self.0.find_remote("origin")?;
@@ -155,14 +183,7 @@ impl<C: ActualCreds> RemoteBranch for Repo<C> {
 
   fn default_branch(&self) -> Result<Option<BranchEntry<'_>>> {
     let mut remote = self.0.find_remote("origin")?;
-    if !remote.connected() {
-      let mut cbs = RemoteCallbacks::new();
-      cbs.credentials(make_credentials_callback(&self.1));
-      cbs.certificate_check(ssl_callback);
-      cbs.push_update_reference(push_update_reference_callback);
-
-      remote.connect_auth(Direction::Fetch, Some(cbs), None)?;
-    }
+    self.ensure_remote_connected(&mut remote, Direction::Fetch)?;
 
     let branch_buf = remote.default_branch()?;
     let Some(branch) = branch_buf.as_str() else {
@@ -172,5 +193,41 @@ impl<C: ActualCreds> RemoteBranch for Repo<C> {
     let shorthand = branch.strip_prefix("refs/heads/").unwrap_or(branch);
     let branch = self.branch_by_name(shorthand, BranchType::Local)?;
     Ok(Some(branch))
+  }
+
+  fn create_branch_remote<S: AsRef<str>>(&self, shorthand: S) -> Result<()> {
+    let mut push_opts = PushOptions::new();
+
+    let mut cbs = RemoteCallbacks::new();
+    cbs.credentials(make_credentials_callback(&self.1));
+    cbs.certificate_check(ssl_callback);
+    cbs.push_update_reference(push_update_reference_callback);
+
+    push_opts.follow_redirects(RemoteRedirect::All);
+    push_opts.remote_callbacks(cbs);
+
+    let refspec = format!("refs/heads/{}:refs/heads/{}", shorthand.as_ref(), shorthand.as_ref());
+    info!(target: TAG, "create remote branch {}; pushing refspec {} to origin", shorthand.as_ref(), refspec);
+
+    let mut remote = self.0.find_remote("origin")?;
+    remote.push(&[&refspec], Some(&mut push_opts))?;
+    Ok(())
+  }
+
+  fn ensure_branch_exists(&self, shorthand: &str) -> Result<()> {
+    self.ensure_branch_exists_local(shorthand)?;
+
+    match self.0.find_branch(&format!("origin/{}", shorthand), BranchType::Remote) {
+      Ok(_) => (),
+      Err(err) if err.code() == ErrorCode::NotFound => {
+        warn!(target: TAG, "branch {} does not exist; creating it", shorthand);
+        self.create_branch_remote(shorthand)?;
+      }
+      Err(err) => {
+        return Err(err.into());
+      }
+    };
+
+    Ok(())
   }
 }

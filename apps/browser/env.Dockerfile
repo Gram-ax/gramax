@@ -51,4 +51,4 @@ RUN ls -la && \
     rm -rf /var/lib/apt/lists/* && \
     curl -LO https://github.com/oven-sh/bun/releases/latest/download/bun-linux-x64-baseline.zip; unzip -j bun-linux-x64-baseline.zip 'bun-linux-x64-baseline/bun' -d /usr/local/bin; rm bun-linux-x64-baseline.zip;
 
-CMD [ "bun", "browserEnvServer.mjs" ]
+CMD [ "node", "browserEnvServer.mjs" ]

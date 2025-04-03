@@ -7,6 +7,8 @@ const useUrlObjectImage = (src: Url) => {
 	const [data, setData] = useState<string>();
 
 	useEffect(() => {
+		if (!src) return;
+
 		const loadImage = async () => {
 			const res = await FetchService.fetch(src);
 			if (!res?.body) return setData(null);
@@ -15,7 +17,7 @@ const useUrlObjectImage = (src: Url) => {
 		};
 		void loadImage();
 		return () => URL.revokeObjectURL(data);
-	}, [typeof src == "string" ? src : src.toString()]);
+	}, [typeof src == "string" ? src : src?.toString()]);
 
 	return data;
 };

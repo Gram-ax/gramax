@@ -17,7 +17,7 @@ const checkout: Command<{ ctx: Context; catalogName: string; branch: string }, s
 
 		const catalog = await workspace.getContextlessCatalog(catalogName);
 		if (!catalog) return;
-		const source = rp.getSourceData(ctx.cookie, await catalog.repo.storage.getSourceName());
+		const source = rp.getSourceData(ctx, await catalog.repo.storage.getSourceName());
 		await catalog.repo.checkout({
 			data: source,
 			branch,

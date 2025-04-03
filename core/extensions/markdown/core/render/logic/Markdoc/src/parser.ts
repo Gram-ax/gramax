@@ -32,8 +32,8 @@ function handleAttrs(token: Token, type: string) {
 		case "image": {
 			const attrs = Object.fromEntries(token.attrs);
 			return attrs.title
-				? { alt: token.content, src: attrs.src, title: attrs.title, width: attrs.width, height: attrs.height }
-				: { alt: token.content, src: attrs.src, width: attrs.width, height: attrs.height };
+				? { alt: attrs.alt, src: attrs.src, title: attrs.title, width: attrs.width, height: attrs.height }
+				: { alt: attrs.alt, src: attrs.src, width: attrs.width, height: attrs.height };
 		}
 		case "table": {
 			if (!Array.isArray(token.attrs) && token.attrs) return token.attrs;

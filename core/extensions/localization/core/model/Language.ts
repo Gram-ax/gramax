@@ -1,3 +1,5 @@
+import { env } from "@app/resolveModule/env";
+
 enum UiLanguage {
 	en = "en",
 	ru = "ru",
@@ -23,6 +25,10 @@ export enum ContentLanguage {
 	sv = "sv",
 }
 
-export const defaultLanguage = UiLanguage.ru;
+export const defaultLanguage = UiLanguage.en;
+
+export const overriddenLanguage = UiLanguage[env("DEFAULT_UI_LANGUAGE") as keyof typeof UiLanguage];
+
+export const resolveLanguage = (current?: UiLanguage): UiLanguage => current || overriddenLanguage || defaultLanguage;
 
 export default UiLanguage;

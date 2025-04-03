@@ -9,16 +9,14 @@ import t from "@ext/localization/locale/translate";
 const Article = ({ data }: { data: ArticlePageData }) => {
 	const { articleProps } = data;
 	const pageDataContext = PageDataContextService.value;
-	useCtrlKeyLinkHandler(); // Для открытия ссылок в tauri
-	useScrollToArticleAnchor(data); // Для скрола до заголовка в статье
+
+	useCtrlKeyLinkHandler(); // For opening links in tauri
+	useScrollToArticleAnchor(data); // For scrolling to article header
+	const isRenderMode = pageDataContext.conf.isReadOnly || articleProps.errorCode;
 
 	return (
 		<ErrorHandler alertTitle={t("article.error.render-failed")} isAlert>
-			{pageDataContext.conf.isReadOnly || articleProps.errorCode ? (
-				<ArticleReadRenderer data={data} />
-			) : (
-				<ArticleEditRenderer data={data} />
-			)}
+			{isRenderMode ? <ArticleReadRenderer data={data} /> : <ArticleEditRenderer data={data} />}
 		</ErrorHandler>
 	);
 };

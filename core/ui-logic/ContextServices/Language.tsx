@@ -1,12 +1,10 @@
-// import resolveModule from "@app/resolveModule/frontend";
-import { refreshPage } from "@core-ui/ContextServices/RefreshPageContext";
-import UiLanguage, { defaultLanguage } from "@ext/localization/core/model/Language";
+import UiLanguage, { resolveLanguage } from "@ext/localization/core/model/Language";
 import { ReactElement, useLayoutEffect } from "react";
 
-const DEFAULT_SELECTED_LANGUAGE: UiLanguage =
+const DEFAULT_SELECTED_LANGUAGE =
 	typeof window === "undefined"
-		? defaultLanguage
-		: UiLanguage[window.navigator?.language?.split("-")?.[0]] ?? defaultLanguage;
+		? resolveLanguage()
+		: resolveLanguage(UiLanguage[window.navigator?.language?.split("-")?.[0]]);
 
 const LOCAL_STORAGE_UI_LANGUAGE_KEY = "ui-lang";
 

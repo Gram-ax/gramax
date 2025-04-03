@@ -6,6 +6,8 @@ import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import SyncIconService from "@core-ui/ContextServices/SyncIconService";
 import SyncLayout from "@ext/git/actions/Sync/components/SyncLayout";
 import SyncService from "@ext/git/actions/Sync/logic/SyncService";
+import useSourceData from "@ext/storage/components/useSourceData";
+import { useOpenRestoreSourceTokenModal } from "@ext/storage/logic/SourceDataProvider/components/useOpenRestoreSourceTokenModal";
 import { CSSProperties, useEffect } from "react";
 import { SWRResponse } from "swr";
 
@@ -14,6 +16,9 @@ const Sync = ({ style }: { style?: CSSProperties }) => {
 	const syncProccess = SyncIconService.value;
 	const pageDataContext = PageDataContextService.value;
 	const disableFetch = IsOfflineService.value || pageDataContext.conf.isReadOnly || !pageDataContext.userInfo;
+
+	const source = useSourceData();
+	const openRestoreSourceModal = useOpenRestoreSourceTokenModal(source);
 
 	const { data: syncCount }: SWRResponse<{ pull: 0; push: 0 }, any> = UseSWRService.getData<{ pull: 0; push: 0 }>(
 		disableFetch ? null : apiUrlCreator.getSyncCountUrl(),
@@ -46,7 +51,8 @@ const Sync = ({ style }: { style?: CSSProperties }) => {
 			pullCounter={syncCount?.pull}
 			pushCounter={syncCount?.push}
 			syncProccess={syncProccess}
-			onClick={() => SyncService.sync(apiUrlCreator)}
+			sourceInvalid={source?.isInvalid}
+			onClick={() => (source?.isInvalid ? openRestoreSourceModal() : SyncService.sync(apiUrlCreator))}
 			style={style}
 		/>
 	);

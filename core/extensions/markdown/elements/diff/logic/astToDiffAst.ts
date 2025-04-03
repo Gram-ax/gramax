@@ -6,7 +6,7 @@ export default function astToDiffAst(ast: JSONContent): DiffDocWithPaths {
 	const result: JSONContent[] = [];
 	const paths: string[] = [];
 
-	// подумать над depth
+	// Think about depth
 	const traverse = (node: JSONContent, depth: number, path: string) => {
 		if (node.type === "text") return;
 		const haveTextContent = node.type === "paragraph" || node.type === "heading" || node.type === "code_block";

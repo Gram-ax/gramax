@@ -402,17 +402,14 @@ export const sortByFirstLetter = (arr: string[]): string[] =>
 
 export const StandardCaseLangList = sortByFirstLetter(Object.values(standardLangWriting));
 
+const standardCaseLangListLowe = StandardCaseLangList.slice().map((lang) => lang.toLowerCase());
 const standardCaseKeys = sortByFirstLetter(Object.keys(standardLangWriting));
-const langKeysOnLowerCase = sortByFirstLetter(Object.values(standardLangWriting).map((lang) => lang.toLowerCase()));
 
 export const getLowerLangName = (name?: string) => {
 	if (!name || typeof name !== "string") return;
 	const lowerName = name.toLowerCase();
 
-	let index = langKeysOnLowerCase.indexOf(lowerName);
-	if (index !== -1) return standardCaseKeys[index];
-
-	index = standardCaseKeys.indexOf(lowerName);
+	const index = standardCaseKeys.indexOf(lowerName);
 	if (index !== -1) return standardCaseKeys[index];
 
 	return;
@@ -422,16 +419,13 @@ export function getStandardCaseByLower(name?: string) {
 	const lowerName = getLowerLangName(name);
 	if (!lowerName) return name;
 
-	const index = standardCaseKeys.indexOf(lowerName);
+	const index = standardCaseLangListLowe.indexOf(lowerName);
 
 	return StandardCaseLangList[index];
 }
 
 export async function getLangImportFuncByName(name?: string): Promise<void | LanguageFn> {
-	const lowerName = getLowerLangName(name);
-	if (!lowerName) return;
-
-	const linkToLangModule = languages[lowerName];
+	const linkToLangModule = languages[name];
 	if (!linkToLangModule) return;
 
 	const langModule = await linkToLangModule();

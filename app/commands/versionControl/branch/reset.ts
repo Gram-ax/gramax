@@ -24,14 +24,14 @@ const reset: Command<{ ctx: Context; catalogName: string }, ClientGitBranchData[
 		const catalog = await workspace.getContextlessCatalog(catalogName);
 		if (!catalog) return;
 		const storage = catalog.repo.storage;
-		const data = rp.getSourceData(ctx.cookie, await storage.getSourceName()) as GitSourceData;
+		const data = rp.getSourceData(ctx, await storage.getSourceName()) as GitSourceData;
 		const isBare = catalog.repo.isBare;
 		let hasCheckout = false;
 		if (isBare) {
-			if (haveInternetAccess() && storage) await storage.fetch(data);
+			if (haveInternetAccess() && storage && !data.isInvalid) await storage.fetch(data);
 			hasCheckout = (await catalog.repo.checkoutIfCurrentBranchNotExist(data)).hasCheckout;
 		}
-		if (haveInternetAccess() && storage) await storage.fetch(data, isBare);
+		if (haveInternetAccess() && storage && !data.isInvalid) await storage.fetch(data, isBare);
 		if (hasCheckout) {
 			throw new DefaultError(t("git.branch.error.not-found-reload"));
 		}

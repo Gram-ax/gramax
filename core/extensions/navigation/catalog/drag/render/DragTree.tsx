@@ -228,7 +228,7 @@ const LevNavDragTree = styled((props: LevNavDragTreeProps) => {
 									<CommentCountNavExtension key={1} item={thisItem} />,
 								]}
 								rightExtensions={rightExtensions}
-								{...useDragOver(node.id, isOpen, currentOnToggle)} //авторазворачивание
+								{...useDragOver(node.id, isOpen, currentOnToggle)} //auto-expand
 							/>
 						);
 					}}

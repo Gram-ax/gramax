@@ -3,6 +3,7 @@ import { ResponseKind } from "@app/types/ResponseKind";
 import { DesktopModeMiddleware } from "@core/Api/middleware/DesktopModeMiddleware";
 import Context from "@core/Context/Context";
 import DefaultError from "@ext/errorHandlers/logic/DefaultError";
+import t from "@ext/localization/locale/translate";
 import assert from "assert";
 
 const merge: Command<
@@ -26,7 +27,7 @@ const merge: Command<
 		const mr = await catalog.repo.mergeRequests.findBySource(branch.toString());
 		assert(mr, `no merge request found at ${branch.toString()}`);
 
-		const userInfo = this._app.rp.getSourceData(ctx.cookie, await catalog.repo.storage.getSourceName());
+		const userInfo = this._app.rp.getSourceData(ctx, await catalog.repo.storage.getSourceName());
 
 		if (mr.creator.email !== userInfo?.userEmail)
 			throw new DefaultError("You are not the author of this merge request or storage is not connected");
@@ -48,7 +49,15 @@ const merge: Command<
 		});
 		if (!mergeData.ok) {
 			await this._commands.versionControl.mergeConflict.abort.do({ ctx, catalogName });
-			throw new DefaultError("Can't merge with conflicts");
+			throw new DefaultError(
+				t("git.merge-requests.error.merge-with-conflicts.body")
+					.replaceAll("{{targetBranch}}", targetBranch)
+					.replaceAll("{{sourceBranch}}", branch.toString()),
+				null,
+				{ html: true },
+				null,
+				t("git.merge-requests.error.merge-with-conflicts.title"),
+			);
 		}
 	},
 

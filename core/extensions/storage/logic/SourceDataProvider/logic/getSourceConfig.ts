@@ -1,6 +1,6 @@
-import importSourceTypes from "@ext/storage/logic/SourceDataProvider/logic/importSourceType";
 import { getExecutingEnvironment } from "@app/resolveModule/env";
 import t from "@ext/localization/locale/translate";
+import importSourceTypes from "@ext/storage/logic/SourceDataProvider/logic/importSourceType";
 import SourceType from "@ext/storage/logic/SourceDataProvider/model/SourceType";
 
 const excludeSourcesFilter = (excludedSources) => (source) => !excludedSources.includes(source);

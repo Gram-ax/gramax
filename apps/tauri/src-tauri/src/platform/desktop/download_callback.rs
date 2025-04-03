@@ -5,8 +5,6 @@ use std::sync::Mutex;
 
 use tauri::*;
 
-use notify_rust::Notification;
-use notify_rust::Timeout;
 use webview::DownloadEvent;
 
 use super::assert_can_write;
@@ -59,19 +57,11 @@ impl DownloadCallback {
       return false;
     };
 
-    if let Err(err) = self.show_notification(&t!("file-download.fail-desc", name = filename)) {
-      error!("{}", err)
-    }
+    rfd::MessageDialog::new()
+      .set_title(t!("file-download.fail-title"))
+      .set_description(t!("file-download.fail-desc", name = filename))
+      .set_level(rfd::MessageLevel::Error)
+      .show();
     true
-  }
-
-  fn show_notification(&self, body: &str) -> std::result::Result<(), notify_rust::error::Error> {
-    Notification::new()
-      .summary(&t!("file-download.fail"))
-      .body(body)
-      .auto_icon()
-      .timeout(Timeout::Milliseconds(5000))
-      .show()
-      .map(|_| ())
   }
 }

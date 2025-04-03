@@ -13,6 +13,8 @@ interface SourceData {
 	 * @default ""
 	 */
 	sourceType: SourceType;
+
+	isInvalid?: boolean;
 }
 
 export default SourceData;

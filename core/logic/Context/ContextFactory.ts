@@ -2,7 +2,7 @@ import LanguageService from "@core-ui/ContextServices/Language";
 import ThemeManager from "../../extensions/Theme/ThemeManager";
 import Cookie from "../../extensions/cookie/Cookie";
 import CookieFactory from "../../extensions/cookie/CookieFactory";
-import UiLanguage, { ContentLanguage, defaultLanguage } from "../../extensions/localization/core/model/Language";
+import UiLanguage, { ContentLanguage, overriddenLanguage, resolveLanguage } from "../../extensions/localization/core/model/Language";
 import AuthManager from "../../extensions/security/logic/AuthManager";
 import User from "../../extensions/security/logic/User/User";
 import localUser from "../../extensions/security/logic/User/localUser";
@@ -26,7 +26,7 @@ export class ContextFactory {
 		const cookie = this._cookieFactory.from(this._cookieSecret, req, res);
 		if (!query) query = {};
 
-		query.ui = cookie.get("ui");
+		query.ui = cookie.get("ui") || overriddenLanguage || UiLanguage[req.headers["accept-language"]?.split(",")?.[0]];
 		if (!query.l) query.l = ContentLanguage[req.headers["x-gramax-language"]];
 
 		const user = this._isReadOnly ? await this._am?.getUser(cookie, query, req.headers) : localUser;
@@ -60,7 +60,7 @@ export class ContextFactory {
 			domain,
 			cookie,
 			contentLanguage: query?.l as ContentLanguage,
-			ui: (query?.ui || defaultLanguage) as UiLanguage,
+			ui: (query?.ui || resolveLanguage()) as UiLanguage,
 			theme: this._tm?.getTheme(cookie),
 			refname: query?.refname as string,
 		};

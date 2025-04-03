@@ -39,7 +39,9 @@ export class CatalogItemSearcher {
 	}
 
 	findItemByPath(path: Path | ItemRef, type?: ItemType): Item {
-		path = path instanceof Path ? path : path.path;
+		path = path instanceof Path ? path : path?.path;
+		if (!path) return null;
+
 		const filter = [(i: Item) => (type ? i.type === type : true) && i.ref.path.compare(path)];
 
 		const cached = this._cachedItemPath.get(path.value)?.deref();

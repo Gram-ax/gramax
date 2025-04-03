@@ -49,7 +49,7 @@ class LinkFocusTooltip extends BaseMark {
 
 		this._setTooltipPosition(element);
 
-		const markValue = this._getValue(mark);
+		const markValue = this._getValue(mark) || "";
 
 		this._clearLastMark = () => {
 			if (!this._componentIsSet) return;
@@ -77,6 +77,7 @@ class LinkFocusTooltip extends BaseMark {
 	static getLinkToHeading = (href: string) => {
 		return href.match(/^(.*?)(#.+)$/);
 	};
+
 	set lastInputMethod(value: string) {
 		this._lastInputMethod = value;
 	}
@@ -89,7 +90,13 @@ class LinkFocusTooltip extends BaseMark {
 	private _getHref(mark: Mark) {
 		const { attrs } = mark;
 		if (attrs?.newHref) return attrs.newHref;
-		return (isURL(attrs.href) ? attrs.href : "/" + attrs.href) + (mark?.attrs?.hash ?? "");
+
+		const href = attrs.href;
+		if (typeof href === "string" && href.startsWith("#") && href.length > 1) {
+			return href + (mark?.attrs?.hash ?? "");
+		}
+
+		return (isURL(href) ? href : "/" + href) + (mark?.attrs?.hash ?? "");
 	}
 
 	private _getValue(mark: Mark) {

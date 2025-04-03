@@ -101,7 +101,7 @@ export default styled(FormStyle)`
 
 			.field.row {
 				display: flex;
-				align-items: baseline;
+				align-items: center;
 				flex-direction: row;
 				justify-content: space-between;
 

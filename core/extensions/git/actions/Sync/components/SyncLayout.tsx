@@ -4,10 +4,21 @@ import PullPushCounter from "@ext/git/actions/Sync/components/PullPushCounter";
 import t from "@ext/localization/locale/translate";
 import { CSSProperties } from "react";
 
+const Wrapper = styled.span`
+	display: flex;
+	align-items: center;
+	gap: 4px;
+`;
+
+const Warning = styled.span`
+	margin-left: 2px;
+`
+
 const SyncLayout = styled(
 	({
 		pullCounter,
 		pushCounter,
+		sourceInvalid,
 		syncProccess,
 		onClick,
 		style,
@@ -16,10 +27,14 @@ const SyncLayout = styled(
 		pullCounter: number;
 		pushCounter: number;
 		syncProccess: boolean;
+		sourceInvalid: boolean;
 		onClick?: () => void;
 		style?: CSSProperties;
 		className?: string;
 	}) => {
+		const ok = syncProccess ? t("synchronization") : `${t("sync")} ${t("catalog.name")}`;
+		const err = t("storage-not-connected");
+
 		return (
 			<span className={className} style={style}>
 				<StatusBarElement
@@ -28,10 +43,13 @@ const SyncLayout = styled(
 					iconCode="refresh-cw"
 					iconStrokeWidth="1.6"
 					iconClassName={"rotate-icon" + (syncProccess ? " rotate" : "")}
-					tooltipText={syncProccess ? t("synchronization") : `${t("sync")} ${t("catalog.name")}`}
+					tooltipText={sourceInvalid ? err : ok}
 					disable={syncProccess}
 				>
-					<PullPushCounter pullCounter={pullCounter} pushCounter={pushCounter} />
+					<Wrapper>
+						{sourceInvalid && <Warning>!</Warning>}
+						<PullPushCounter pullCounter={pullCounter} pushCounter={pushCounter} />
+					</Wrapper>
 				</StatusBarElement>
 			</span>
 		);

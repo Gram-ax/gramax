@@ -1,6 +1,6 @@
 import LanguageService from "@core-ui/ContextServices/Language";
 import { getContext } from "../../../../apps/next/logic/Context/getContext";
-import UiLanguage, { defaultLanguage, type ContentLanguage } from "../core/model/Language";
+import UiLanguage, { resolveLanguage, type ContentLanguage } from "../core/model/Language";
 import en from "./locale.en";
 import ru from "./locale.ru";
 
@@ -42,15 +42,15 @@ type ObjectDotNotation<O, R = void> = O extends string
 		: never
 	: BreakDownObject<O, R>[keyof BreakDownObject<O, R>];
 
-const resolveLanguage = (): UiLanguage => {
-	return getContext()?.ui ?? LanguageService.currentUi() ?? defaultLanguage;
+const getCurrentLanguage = (): UiLanguage => {
+	return getContext()?.ui ?? resolveLanguage(LanguageService.currentUi());
 };
 
 const resolveTranslationMap = (language: UiLanguage) => locales[language] ?? defaultLocale;
 
 const t = (key: TranslationKey, forceLanguage?: UiLanguage) => {
 	if (!key) return;
-	const language = forceLanguage ?? resolveLanguage();
+	const language = forceLanguage ?? getCurrentLanguage();
 	const locale = resolveTranslationMap(language);
 
 	if (key.includes(".")) {
@@ -92,10 +92,10 @@ export const pluralize = (
 	}
 };
 
-export const hasTranslation = (key: TranslationKey): boolean => t(key, defaultLanguage) != key;
+export const hasTranslation = (key: TranslationKey): boolean => t(key, getCurrentLanguage()) != key;
 
 export const convertContentToUiLanguage = (l: ContentLanguage): UiLanguage =>
-	UiLanguage[l] || LanguageService.currentUi() || defaultLanguage;
+	UiLanguage[l] || resolveLanguage(LanguageService.currentUi());
 
 export const tString = (key: string) => t(key as TranslationKey);
 

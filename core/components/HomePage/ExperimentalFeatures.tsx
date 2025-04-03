@@ -21,8 +21,6 @@ const Wrapper = styled.span`
 const ExperimentalFeatures = () => {
 	if (getExecutingEnvironment() === "next") return null;
 
-	// Таури крашиться, если часто перезаргужать окна через window.reload
-	// но это единственный способ полностью обновить контекст Window
 	const [cooldown, setCooldown] = useState(false);
 
 	const callback = useCallback(async () => {
@@ -40,7 +38,7 @@ const ExperimentalFeatures = () => {
 
 	return (
 		<Wrapper>
-			<div>
+			<div data-qa="qa-clickable">
 				<Checkbox interactive checked={window.debug.devMode.check()} onClick={callback}>
 					<span onClick={callback}>{t("experimental-features.label")}</span>
 				</Checkbox>

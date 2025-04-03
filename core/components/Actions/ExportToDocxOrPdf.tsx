@@ -7,7 +7,6 @@ import styled from "@emotion/styled";
 
 interface ExportToDocxOrPdfProps {
 	fileName: string;
-	pathname: string;
 	itemRefPath: string;
 	isCategory: boolean;
 	className?: string;

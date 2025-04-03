@@ -3,7 +3,7 @@ import Input from "@components/Atoms/Input";
 import SpinnerLoader from "@components/Atoms/SpinnerLoader";
 import { useDebounce } from "@core-ui/hooks/useDebounce";
 import styled from "@emotion/styled";
-import { useState, forwardRef } from "react";
+import { forwardRef } from "react";
 
 interface SearchProps {
 	dataQa: string;
@@ -11,15 +11,26 @@ interface SearchProps {
 	placeholder?: string;
 	errorText?: string;
 	searchValue: string;
+	isLoading: boolean;
+	setIsLoading: (isLoading: boolean) => void;
 	setSearchValue: (value: string) => void;
 	onValueChange?: (value: string) => Promise<void> | void;
 	className?: string;
 }
 
 const Search = forwardRef<HTMLInputElement, SearchProps>((props, ref) => {
-	const { dataQa, showErrorText, placeholder, errorText, searchValue, setSearchValue, onValueChange, className } =
-		props;
-	const [isLoading, setIsLoading] = useState(false);
+	const {
+		dataQa,
+		showErrorText,
+		placeholder,
+		errorText,
+		searchValue,
+		setSearchValue,
+		onValueChange,
+		className,
+		isLoading,
+		setIsLoading,
+	} = props;
 	const debounceSearch = useDebounce(async (value: string) => {
 		await onValueChange?.(value);
 		setIsLoading(false);

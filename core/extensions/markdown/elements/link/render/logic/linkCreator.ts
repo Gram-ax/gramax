@@ -6,7 +6,7 @@ import ParserContext from "../../../../core/Parser/ParserContext/ParserContext";
 class LinkCreator {
 	isExternalLink(href: string): boolean {
 		return !!(href?.match(/^#/) || href?.match(/^\w+:/) || href?.slice(1, 4) == "api");
-		// вынести?
+		// Extract?
 	}
 
 	async getLink(

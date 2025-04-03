@@ -11,6 +11,10 @@ const MinimizedArticle = ({ className, children }: { className?: string; childre
 };
 
 export const MinimizedArticleStyled = styled(MinimizedArticle)`
+	[data-qa="article-editor"] > .ProseMirror > p:first-of-type {
+		font-size: 1.6em;
+	}
+
 	h2 {
 		font-size: 1.2em !important;
 	}

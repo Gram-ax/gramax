@@ -37,7 +37,7 @@ class TransformerMsO {
 		if (this._isTauri) {
 			void (async () => {
 				await this._images(doc.body, (oldImage, newImage) => {
-					const parentNode = oldImage.closest("p");
+					const parentNode = this._getImageParentNode(oldImage);
 					if (!parentNode) return;
 					parentNode.replaceWith(newImage);
 				});
@@ -140,10 +140,13 @@ class TransformerMsO {
 		element: HTMLElement,
 		callback: (oldImage: HTMLImageElement, newImage: HTMLImageElement) => void,
 	) => {
-		const imgs = element.querySelectorAll("img");
+		const imgs: NodeListOf<HTMLImageElement> = element.querySelectorAll("img, v\\:imagedata");
 		if (!imgs.length) return;
 
-		const src = imgs?.[0].parentElement.childNodes?.[0].textContent.match(/file:\/\/\/([^"]+)/)?.[0] || imgs[0].src;
+		const firstImage = imgs[0];
+		const src =
+			firstImage.parentElement.childNodes?.[0].textContent.match(/file:\/\/\/([^"]+)/)?.[0] ||
+			firstImage.getAttribute("src");
 		const isBlob = src.startsWith("blob:");
 		const resourcePath = this.getResourcePath(src);
 		if (!isBlob && !resourcePath) return;
@@ -190,12 +193,12 @@ class TransformerMsO {
 	};
 
 	private _handleImage = async (image: HTMLImageElement, resourcePath?: string) => {
-		const element = image.parentElement.childNodes?.[0];
-		const isBlob = image.src.startsWith("blob:");
+		const src = image.getAttribute("src");
+		const isBlob = src.startsWith("blob:");
 		const res = await FetchService.fetch(
 			this._apiUrlCreator.createResourceFromPath(
-				isBlob ? image.src : resourcePath,
-				isBlob ? image.src : `${/([^\\/]+)\.(jpg|png|jpeg|gif)/.exec(element.textContent)?.[0]}`,
+				isBlob ? src : resourcePath,
+				this._getImageFileName(isBlob, image),
 			),
 		);
 
@@ -207,8 +210,31 @@ class TransformerMsO {
 		return newElement as HTMLImageElement;
 	};
 
+	private _getImageFileName = (isBlob: boolean, image: HTMLImageElement) => {
+		const fileNameRegex = /([^\\/]+)\.(jpg|png|jpeg|gif)/;
+
+		if (isBlob) {
+			return image.getAttribute("src");
+		}
+
+		const match = fileNameRegex.exec(image.getAttribute("src"));
+
+		if (match?.[0]) return match[0];
+
+		if (image.parentElement.childNodes?.[0]) {
+			const match = fileNameRegex.exec(image.parentElement.childNodes?.[0].textContent);
+			return match?.[0];
+		}
+	};
+
 	private _insertContent(doc: Document) {
 		this._view.pasteHTML(doc.body.innerHTML);
+	}
+
+	private _getImageParentNode(image: HTMLImageElement) {
+		const parentNode = image.closest("p");
+		if (!parentNode) return;
+		return parentNode;
 	}
 }
 

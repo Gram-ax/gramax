@@ -15,9 +15,9 @@ interface PropertyButtonProps {
 const getInput = (type: InputType, props: PropertyButtonProps): React.ReactNode => {
 	switch (type) {
 		case "radio":
-			return <input type="radio" checked={props.checked} />;
+			return <input type="radio" checked={props.checked} readOnly />;
 		case "checkbox":
-			return <Checkbox disabled indeterminate={props.indeterminate} checked={props.checked} />;
+			return <Checkbox disabled indeterminate={props.indeterminate} checked={props.checked} readOnly />;
 		default:
 			return null;
 	}

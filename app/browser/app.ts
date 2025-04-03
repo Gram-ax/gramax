@@ -32,7 +32,7 @@ import { TicketManager } from "@ext/security/logic/TicketManager/TicketManager";
 import FuseSearcher from "@ext/serach/Fuse/FuseSearcher";
 import { IndexDataProvider } from "@ext/serach/IndexDataProvider";
 import Searcher from "@ext/serach/Searcher";
-import SourceDataProvider from "@ext/storage/logic/SourceDataProvider/logic/SourceDataProvider";
+import { SourceDataProvider } from "@ext/storage/logic/SourceDataProvider/logic/SourceDataProvider";
 import WorkspaceManager from "@ext/workspace/WorkspaceManager";
 import setWorkerProxy from "../../apps/browser/src/logic/setWorkerProxy";
 import { AppConfig, getConfig, type AppGlobalConfig } from "../config/AppConfig";
@@ -50,7 +50,7 @@ const _init = async (config: AppConfig): Promise<Application> => {
 		new Path("config.yaml"),
 	);
 
-	const rp = new RepositoryProvider();
+	const rp = new RepositoryProvider(config);
 
 	const em = new EnterpriseManager(config.enterprise, fileConfig);
 

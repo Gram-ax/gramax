@@ -22,6 +22,7 @@ const updateContent: Command<{ ctx: Context; articlePath: Path; catalogName: str
 
 			const catalog = await workspace.getCatalog(catalogName, ctx);
 			if (!catalog) return;
+
 			const article = catalog.findItemByItemPath<Article>(articlePath);
 			if (!article) return;
 

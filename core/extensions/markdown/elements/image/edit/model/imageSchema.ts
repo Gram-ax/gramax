@@ -1,6 +1,5 @@
 const imageSchema = {
-	group: "inline",
-	inline: true,
+	group: "block",
 	draggable: true,
 	attrs: {
 		src: { default: null },

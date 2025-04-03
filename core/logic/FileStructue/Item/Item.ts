@@ -14,6 +14,7 @@ import IPermission from "../../../extensions/security/logic/Permission/IPermissi
 import Permission from "../../../extensions/security/logic/Permission/Permission";
 import { ClientArticleProps } from "../../SitePresenter/SitePresenter";
 import { Category, type CategoryProps } from "../Category/Category";
+import { InboxProps } from "@ext/inbox/models/types";
 
 export type ItemEvents = Event<"item-order-updated", { item: Item }> &
 	Event<"item-saved", { item: Item }> &
@@ -35,7 +36,7 @@ export type ItemProps = FSLocalizationProps & {
 	shouldBeCreated?: boolean;
 };
 
-export type UpdateItemProps = (ItemProps & { fileName?: never; logicPath: string }) | ClientArticleProps;
+export type UpdateItemProps = (ItemProps & { fileName?: never; logicPath: string }) | ClientArticleProps | InboxProps;
 
 export const ORDERING_MAX_PRECISION = 6;
 

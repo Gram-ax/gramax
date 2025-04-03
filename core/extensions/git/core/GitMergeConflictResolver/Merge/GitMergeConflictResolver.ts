@@ -1,10 +1,10 @@
-
 import type Repository from "@ext/git/core/Repository/Repository";
+import type { RepositoryMergeConflictState } from "@ext/git/core/Repository/state/RepositoryState";
+import type GitSourceData from "@ext/git/core/model/GitSourceData.schema";
+import type SourceData from "@ext/storage/logic/SourceDataProvider/model/SourceData";
 import Path from "../../../../../logic/FileProvider/Path/Path";
 import FileProvider from "../../../../../logic/FileProvider/model/FileProvider";
-import SourceData from "../../../../storage/logic/SourceDataProvider/model/SourceData";
 import GitBaseConflictResolver from "../Base/GitBaseConflictResolver";
-import type { RepositoryMergeConflictState } from "@ext/git/core/Repository/state/RepositoryState";
 
 export default class GitMergeConflictResolver extends GitBaseConflictResolver {
 	constructor(protected _repo: Repository, fp: FileProvider, pathToRep: Path) {

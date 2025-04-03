@@ -1,88 +1,90 @@
+import type Context from "@core/Context/Context";
+import type Cookie from "@ext/cookie/Cookie";
 import t from "@ext/localization/locale/translate";
+import SourceDataCtx, { type ProxiedSourceDataCtx } from "@ext/storage/logic/SourceDataProvider/logic/SourceDataCtx";
 import SourceType from "@ext/storage/logic/SourceDataProvider/model/SourceType";
+import getStorageNameByData from "@ext/storage/logic/utils/getStorageNameByData";
 import WorkspaceManager from "@ext/workspace/WorkspaceManager";
+import assert from "assert";
 import { Encoder } from "../../../../Encoder/Encoder";
-import Cookie from "../../../../cookie/Cookie";
-import getStorageNameByData from "../../utils/getStorageNameByData";
 import SourceData from "../model/SourceData";
 
-export default class SourceDataProvider {
-	private _encoder: Encoder;
-	private _token = "UGnL8QMQqw";
-	private _oldNamePostfix = "_storage_data";
+export class SourceDataProvider {
+	protected secret = "UGnL8QMQqw";
 
-	constructor(private _wm: WorkspaceManager) {
+	private _encoder: Encoder;
+	private _postfix = "_storage_data";
+
+	constructor(private _wm: WorkspaceManager, private _cookie?: Cookie, private _authServiceUrl?: string) {
 		this._encoder = new Encoder();
 	}
 
-	getDatas(cookie: Cookie): SourceData[] {
+	withContext(ctx: Context): SourceDataProvider {
+		return new SourceDataProvider(this._wm, ctx.cookie, this._authServiceUrl);
+	}
+
+	getSourceDatas(): SourceData[] {
 		if (!this._wm.hasWorkspace()) return [];
-		this._migrateOldStoragesToNewFormat(cookie);
-		const allCookieNames = cookie.getAllNames();
-		const cookieNames = allCookieNames.filter((d) => d.endsWith(this._getNamePostfix()));
+		const postfix = this.getPostfix();
 		const sourceTypes = Object.values(SourceType);
+
+		const allCookieNames = this._cookie.getAllNames();
+		const cookieNames = allCookieNames.filter((d) => d.endsWith(postfix));
+
 		return cookieNames
-			.map((n) => this.getData(cookie, n.slice(0, -this._getNamePostfix().length)))
+			.map((n) => this.getSourceByName(n.slice(0, -postfix.length)).raw)
 			.filter((d) => sourceTypes.includes(d.sourceType));
 	}
 
-	existData(cookie: Cookie, storageName: string) {
-		return cookie.exist(this._getName(storageName));
+	isSourceExists(storageName: string): boolean {
+		return this._cookie.exist(this.getCompleteName(storageName));
 	}
 
-	removeData(cookie: Cookie, storageName: string) {
-		const name = this._getName(storageName);
-		if (cookie.exist(name)) cookie.remove(name);
+	removeSource(storageName: string): void {
+		const name = this.getCompleteName(storageName);
+		if (this._cookie.exist(name)) this._cookie.remove(name);
 	}
 
-	getData(cookie: Cookie, storageName: string, workspaceId?: string): SourceData {
-		const data = cookie.get(this._getName(storageName, workspaceId));
+	getSourceByName(storageName: string, workspaceId?: string): ProxiedSourceDataCtx<SourceData> {
+		const data = this._cookie.get(this.getCompleteName(storageName, workspaceId));
 		if (!data) throw new Error(t("git.source.error.storage-not-exist").replace("{{storage}}", storageName));
-		return this._decodeData(data);
+		const sourceData = this.decode(data);
+		assert(sourceData, "invalid source data; expected a value");
+		return SourceDataCtx.init(sourceData, this._authServiceUrl, (sourceData, isValid) => {
+			sourceData.isInvalid = !isValid;
+			this.updateSource(sourceData, workspaceId);
+		});
 	}
 
-	setData(cookie: Cookie, data: SourceData, workspaceId?: string): string {
+	updateSource(data: SourceData, workspaceId?: string): string {
 		const storageName = getStorageNameByData(data);
-		cookie.set(this._getName(storageName, workspaceId), this._encodeData(data));
+		const raw = "raw" in data ? (data.raw as SourceData) : data;
+		if (!raw.isInvalid) delete raw.isInvalid;
+		this._cookie.set(this.getCompleteName(storageName, workspaceId), this.encode(raw));
 		return storageName;
 	}
-
-	private _encodeData(data: SourceData) {
-		return this._encoder.ecode([JSON.stringify(data)], this._token);
+	protected encode(data: SourceData): string {
+		return this._encoder.ecode([JSON.stringify(data)], this.secret);
 	}
 
-	private _decodeData(ticket: string): SourceData {
-		const data = this._encoder.decode(this._token, ticket);
-		return JSON.parse(data[0]);
+	protected decode(ticket: string): SourceData {
+		const data = this._encoder.decode(this.secret, ticket);
+		try {
+			return JSON.parse(data[0]);
+		} catch (e) {
+			throw new Error("Encoded data is malformed, can't decode: " + e.message);
+		}
 	}
 
-	private _getName(storageName: string, workspaceId?: string) {
-		return storageName + this._getNamePostfix(workspaceId);
-	}
-
-	private _migrateOldStoragesToNewFormat(cookie: Cookie) {
-		const allCookieNames = cookie.getAllNames();
-		const oldCookieNames = allCookieNames.filter((d) => d.endsWith(this._oldNamePostfix));
-		if (!oldCookieNames.length) return;
-		const sourceTypes = Object.values(SourceType);
-		const storages = oldCookieNames
-			.map((n) => this.getData(cookie, n.slice(0, -this._oldNamePostfix.length), ""))
-			.filter((d) => sourceTypes.includes(d.sourceType));
-
-		const workspaceIds = this._wm.workspaces().map((w) => this._getWorkspaceId(w.path));
-
-		workspaceIds.forEach((id) => {
-			storages.map((d) => this.setData(cookie, d, id));
-		});
-
-		oldCookieNames.map((n) => cookie.remove(n));
-	}
-
-	private _getNamePostfix(workspaceId?: string) {
-		return this._oldNamePostfix + (workspaceId ?? this._getWorkspaceId(this._wm.maybeCurrent()?.path()));
-	}
-
-	private _getWorkspaceId(workspacePath: string) {
+	protected getWorkspaceId(workspacePath: string): string {
 		return workspacePath;
+	}
+
+	protected getCompleteName(storageName: string, workspaceId?: string): string {
+		return storageName + this.getPostfix(workspaceId);
+	}
+
+	protected getPostfix(workspaceId?: string): string {
+		return this._postfix + (workspaceId ?? this.getWorkspaceId(this._wm.maybeCurrent()?.path()));
 	}
 }

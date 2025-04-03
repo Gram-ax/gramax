@@ -28,7 +28,7 @@ pub fn on_open_asked<R: Runtime>(app: &AppHandle<R>, urls: Vec<Url>) {
 
 fn open_url<R: Runtime>(url: &str, window: &WebviewWindow<R>) -> Result<()> {
   let script = format!(crate::include_script!("open-url.template.js"), url = url.trim_start_matches('/'));
-  debug!("open url in window: {:?}, script: {:?}", window, script);
+  info!("open url in window: {:?}, script: {:?}", window, script);
   window.eval(&script)?;
   window.show()?;
   window.unminimize()?;

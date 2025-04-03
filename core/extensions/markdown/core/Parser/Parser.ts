@@ -78,7 +78,11 @@ export default class MarkdownParser {
 	}
 
 	public async parseToHtml(content: string, context?: ParserContext, requestUrl?: string): Promise<string> {
-		return Markdoc.renderers.html(await this.parseRenderableTreeNode(content, context), {
+		return this.getHtml(await this.parseRenderableTreeNode(content, context), context, requestUrl);
+	}
+
+	public getHtml(renderTree: RenderableTreeNodes, context?: ParserContext, requestUrl?: string): string {
+		return Markdoc.renderers.html(renderTree, {
 			components: getComponentsHTML(requestUrl, context),
 		});
 	}
@@ -137,7 +141,7 @@ export default class MarkdownParser {
 		const parseDoc = mdParser.preParse(content);
 		const tokens = this._getTokenizer().tokenize(parseDoc);
 		const transformer = new Transformer();
-		return transformer.htmlTransform(transformer.tableTransform(tokens));
+		return transformer.htmlTransform(transformer.tableTransform(transformer.imageTransform(tokens)));
 	}
 
 	private _getTokenizer() {

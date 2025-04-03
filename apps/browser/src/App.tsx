@@ -38,7 +38,7 @@ const AppContext = () => {
 		}
 	}, [path, query]);
 
-	if (typeof window !== "undefined")
+	if (typeof window !== "undefined") {
 		window.navigateTo = useCallback(
 			(url: string) => {
 				window.resetIsFirstLoad();
@@ -52,6 +52,7 @@ const AppContext = () => {
 			},
 			[path, refresh, setLocation],
 		);
+	}
 
 	useEffect(() => {
 		if (!data) return;

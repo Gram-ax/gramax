@@ -10,7 +10,7 @@ import type { HTMLAttributes } from "react";
 
 export type NotActualRevisionWarningProps = HTMLAttributes<HTMLDivElement>;
 
-// todo: убрать разрыв при переносе слова в code
+// todo: remove word break in code
 const NotActualRevisionWarning = (props: NotActualRevisionWarningProps) => {
 	const catalogProps = CatalogPropsService.value;
 	const router = useRouter();

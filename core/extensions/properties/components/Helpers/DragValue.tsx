@@ -20,7 +20,7 @@ interface DragValueProps {
 	className?: string;
 }
 
-const DragValue = memo((props: DragValueProps) => {
+const DragValue = (props: DragValueProps) => {
 	const { id, text, className, findValue, moveValue, onDelete, updateValue, endDrag, isActions } = props;
 	const inputRef = useRef<HTMLInputElement>(null);
 
@@ -58,7 +58,11 @@ const DragValue = memo((props: DragValueProps) => {
 	}, [updateValue, inputRef.current]);
 
 	const updateDebounce = useDebounce(() => handleEdit(), 200);
-	const onChange = useCallback(() => updateDebounce.start(), [updateDebounce.start]);
+
+	const onChange = useCallback(() => {
+		updateDebounce.cancel();
+		updateDebounce.start();
+	}, []);
 
 	return (
 		<div ref={(ref) => void drop(preview(ref))} className={classNames(className, { isDragging })}>
@@ -73,9 +77,9 @@ const DragValue = memo((props: DragValueProps) => {
 			)}
 		</div>
 	);
-});
+};
 
-export default styled(DragValue)`
+export default memo(styled(DragValue)`
 	display: flex;
 	align-items: center;
 	justify-content: space-between;
@@ -111,4 +115,4 @@ export default styled(DragValue)`
 	&.isDragging {
 		background-color: var(--color-nav-article-drop-target);
 	}
-`;
+`);

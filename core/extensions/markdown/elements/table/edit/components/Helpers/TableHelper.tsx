@@ -27,7 +27,7 @@ type TableDataString = {
 
 const TriangleButton = styled.div`
 	position: absolute;
-	top: 0;
+	top: 0.25em;
 	left: 0.5em;
 	cursor: pointer;
 	border-top: 4px solid transparent;

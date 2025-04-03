@@ -12,4 +12,6 @@ export default styled(ArticleExtensions)`
 	bottom: 4px;
 	z-index: var(--z-index-base);
 	position: sticky;
+
+	pointer-events: none;
 `;

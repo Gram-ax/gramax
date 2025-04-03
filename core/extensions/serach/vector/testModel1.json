@@ -1,0 +1,432 @@
+{
+    "type": "doc",
+    "content": [
+        {
+            "type": "paragraph",
+            "content": [
+                {
+                    "type": "text",
+                    "text": "Gramax — это "
+                },
+                {
+                    "type": "text",
+                    "marks": [
+                        {
+                            "type": "strong"
+                        }
+                    ],
+                    "text": "бесплатное"
+                },
+                {
+                    "type": "text",
+                    "text": " приложение с открытым исходным кодом для создания, редактирования и публикации документации. Gramax чаще всего используется как:"
+                }
+            ]
+        },
+        {
+            "type": "bulletList",
+            "attrs": {
+                "tight": false
+            },
+            "content": [
+                {
+                    "type": "list_item",
+                    "content": [
+                        {
+                            "type": "paragraph",
+                            "content": [
+                                {
+                                    "type": "text",
+                                    "text": "Портал документации о продукте."
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "list_item",
+                    "content": [
+                        {
+                            "type": "paragraph",
+                            "content": [
+                                {
+                                    "type": "text",
+                                    "text": "Внутренняя база знаний."
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "list_item",
+                    "content": [
+                        {
+                            "type": "paragraph",
+                            "content": [
+                                {
+                                    "type": "text",
+                                    "text": "Проектная документация."
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "list_item",
+                    "content": [
+                        {
+                            "type": "paragraph",
+                            "content": [
+                                {
+                                    "type": "text",
+                                    "text": "Персональные заметки."
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "heading",
+            "attrs": {
+                "level": 2,
+                "id": null,
+                "isCustomId": false
+            },
+            "content": [
+                {
+                    "type": "text",
+                    "text": "Начало работы"
+                }
+            ]
+        },
+        {
+            "type": "orderedList",
+            "attrs": {
+                "order": 1,
+                "tight": false
+            },
+            "content": [
+                {
+                    "type": "list_item",
+                    "content": [
+                        {
+                            "type": "paragraph",
+                            "content": [
+                                {
+                                    "type": "text",
+                                    "marks": [
+                                        {
+                                            "type": "link",
+                                            "attrs": {
+                                                "href": "gitlab.ics-it.ru/dr/gramax/ver2/-/quick-start/create-catalog",
+                                                "resourcePath": "./create-catalog.md",
+                                                "hash": "",
+                                                "isFile": false
+                                            }
+                                        }
+                                    ],
+                                    "text": "Создайте каталог"
+                                },
+                                {
+                                    "type": "text",
+                                    "text": "."
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "list_item",
+                    "content": [
+                        {
+                            "type": "paragraph",
+                            "content": [
+                                {
+                                    "type": "text",
+                                    "marks": [
+                                        {
+                                            "type": "link",
+                                            "attrs": {
+                                                "href": "gitlab.ics-it.ru/dr/gramax/ver2/-/quick-start/publish-repository",
+                                                "resourcePath": "./publish-repository.md",
+                                                "hash": "",
+                                                "isFile": false
+                                            }
+                                        }
+                                    ],
+                                    "text": "Опубликуйте каталог в хранилище"
+                                },
+                                {
+                                    "type": "text",
+                                    "text": "."
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "list_item",
+                    "content": [
+                        {
+                            "type": "paragraph",
+                            "content": [
+                                {
+                                    "type": "text",
+                                    "marks": [
+                                        {
+                                            "type": "link",
+                                            "attrs": {
+                                                "href": "gitlab.ics-it.ru/dr/gramax/ver2/-/quick-start/own-server",
+                                                "resourcePath": "./own-server/_index.md",
+                                                "hash": "",
+                                                "isFile": false
+                                            }
+                                        }
+                                    ],
+                                    "text": "Разверните портал для читателей"
+                                },
+                                {
+                                    "type": "text",
+                                    "text": "."
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "list_item",
+                    "content": [
+                        {
+                            "type": "paragraph",
+                            "content": [
+                                {
+                                    "type": "text",
+                                    "marks": [
+                                        {
+                                            "type": "link",
+                                            "attrs": {
+                                                "href": "gramax/quick-start/clone-catalog/_index",
+                                                "resourcePath": "./clone-catalog/_index",
+                                                "hash": "",
+                                                "isFile": false
+                                            }
+                                        }
+                                    ],
+                                    "text": "Загрузите каталог на созданный портал"
+                                },
+                                {
+                                    "type": "text",
+                                    "text": "."
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "heading",
+            "attrs": {
+                "level": 2,
+                "id": null,
+                "isCustomId": false
+            },
+            "content": [
+                {
+                    "type": "text",
+                    "text": "Компоненты"
+                }
+            ]
+        },
+        {
+            "type": "orderedList",
+            "attrs": {
+                "order": 1,
+                "tight": false
+            },
+            "content": [
+                {
+                    "type": "list_item",
+                    "content": [
+                        {
+                            "type": "paragraph",
+                            "content": [
+                                {
+                                    "type": "text",
+                                    "marks": [
+                                        {
+                                            "type": "link",
+                                            "attrs": {
+                                                "href": "gitlab.ics-it.ru/dr/gramax/ver2/-/app",
+                                                "resourcePath": "./../app/_index.md",
+                                                "hash": "",
+                                                "isFile": false
+                                            }
+                                        }
+                                    ],
+                                    "text": "Приложение Gramax"
+                                },
+                                {
+                                    "type": "text",
+                                    "text": ". Позволяет пользователям создавать "
+                                },
+                                {
+                                    "type": "text",
+                                    "marks": [
+                                        {
+                                            "type": "link",
+                                            "attrs": {
+                                                "href": "gitlab.ics-it.ru/dr/gramax/ver2/-/catalog",
+                                                "resourcePath": "./../catalog/_index.md",
+                                                "hash": "",
+                                                "isFile": false
+                                            }
+                                        }
+                                    ],
+                                    "text": "каталоги"
+                                },
+                                {
+                                    "type": "text",
+                                    "text": " и редактировать "
+                                },
+                                {
+                                    "type": "text",
+                                    "marks": [
+                                        {
+                                            "type": "link",
+                                            "attrs": {
+                                                "href": "gitlab.ics-it.ru/dr/gramax/ver2/-/article",
+                                                "resourcePath": "./../article/_index.md",
+                                                "hash": "",
+                                                "isFile": false
+                                            }
+                                        }
+                                    ],
+                                    "text": "статьи"
+                                },
+                                {
+                                    "type": "text",
+                                    "text": ". Есть браузерная и десктопная версия для Windows, Mac, Linux."
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "list_item",
+                    "content": [
+                        {
+                            "type": "paragraph",
+                            "content": [
+                                {
+                                    "type": "text",
+                                    "marks": [
+                                        {
+                                            "type": "link",
+                                            "attrs": {
+                                                "href": "gitlab.ics-it.ru/dr/gramax/ver2/-/storage",
+                                                "resourcePath": "./../storage/_index.md",
+                                                "hash": "",
+                                                "isFile": false
+                                            }
+                                        }
+                                    ],
+                                    "text": "Хранилище"
+                                },
+                                {
+                                    "type": "text",
+                                    "text": ". С его помощью происходит "
+                                },
+                                {
+                                    "type": "text",
+                                    "marks": [
+                                        {
+                                            "type": "link",
+                                            "attrs": {
+                                                "href": "gitlab.ics-it.ru/dr/gramax/ver2/-/collaboration",
+                                                "resourcePath": "./../collaboration/_index.md",
+                                                "hash": "",
+                                                "isFile": false
+                                            }
+                                        }
+                                    ],
+                                    "text": "синхронизация"
+                                },
+                                {
+                                    "type": "text",
+                                    "text": " каталогов между пользователями. А также из хранилища информация публикуется на "
+                                },
+                                {
+                                    "type": "text",
+                                    "marks": [
+                                        {
+                                            "type": "link",
+                                            "attrs": {
+                                                "href": "gitlab.ics-it.ru/dr/gramax/ver2/-/doc-portal",
+                                                "resourcePath": "./../doc-portal/_index.md",
+                                                "hash": "",
+                                                "isFile": false
+                                            }
+                                        }
+                                    ],
+                                    "text": "портал документации"
+                                },
+                                {
+                                    "type": "text",
+                                    "text": "."
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "list_item",
+                    "content": [
+                        {
+                            "type": "paragraph",
+                            "content": [
+                                {
+                                    "type": "text",
+                                    "marks": [
+                                        {
+                                            "type": "link",
+                                            "attrs": {
+                                                "href": "gitlab.ics-it.ru/dr/gramax/ver2/-/doc-portal",
+                                                "resourcePath": "./../doc-portal/_index.md",
+                                                "hash": "",
+                                                "isFile": false
+                                            }
+                                        }
+                                    ],
+                                    "text": "Портал документации"
+                                },
+                                {
+                                    "type": "text",
+                                    "text": ". Это сайт, на котором читатели могут просматривать опубликованные материалы."
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "image",
+            "attrs": {
+                "src": "./quick-start.png",
+                "alt": null,
+                "crop": {
+                    "x": 0,
+                    "y": 0,
+                    "w": 100,
+                    "h": 100
+                },
+                "title": null,
+                "scale": null,
+                "objects": []
+            }
+        }
+    ]
+}

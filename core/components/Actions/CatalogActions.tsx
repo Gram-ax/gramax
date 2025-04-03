@@ -12,16 +12,21 @@ import { configureCatalogPermission } from "@ext/security/logic/Permission/Permi
 import PermissionService from "@ext/security/logic/Permission/components/PermissionService";
 import GetSharedTicket from "@ext/security/logic/TicketManager/components/GetSharedTicket";
 import ItemExport, { ExportFormat } from "@ext/wordExport/components/ItemExport";
-import { FC, useEffect, useRef } from "react";
+import { FC, useRef } from "react";
 import CatalogEditAction from "../../extensions/catalog/actions/propsEditor/components/CatalogEditAction";
 import Healthcheck from "../../extensions/healthcheck/components/Healthcheck";
 import IsReadOnlyHOC from "../../ui-logic/HigherOrderComponent/IsReadOnlyHOC";
 import Share from "@ext/catalog/actions/share/components/Share";
+import { LeftNavigationTab } from "@components/Layouts/StatusBar/Extensions/ArticleStatusBar/ArticleStatusBar";
 import ExportButton from "@ext/wordExport/components/ExportButton";
+// import getIsDevMode from "@core-ui/utils/getIsDevMode";
+import Tooltip from "@components/Atoms/Tooltip";
 
 interface CatalogActionsProps {
 	isCatalogExist: boolean;
 	itemLinks: ItemLink[];
+	currentTab: LeftNavigationTab;
+	setCurrentTab: (tab: LeftNavigationTab) => void;
 }
 
 const CatalogActions: FC<CatalogActionsProps> = ({ isCatalogExist, itemLinks }) => {
@@ -29,22 +34,17 @@ const CatalogActions: FC<CatalogActionsProps> = ({ isCatalogExist, itemLinks }) 
 	const workspacePath = WorkspaceService.current().path;
 	const { isNext } = usePlatform();
 	const isReadOnly = PageDataContextService.value.conf.isReadOnly;
+	const isArticleExist = !!itemLinks.length;
+	// const isInbox = currentTab === LeftNavigationTab.Inbox;
 	const canConfigureCatalog = PermissionService.useCheckPermission(
 		configureCatalogPermission,
 		workspacePath,
 		catalogProps.name,
 	);
 	const ref = useRef();
-
-	useEffect(() => {
-		if (!isCatalogExist) return;
-	});
+	// const [isDevMode] = useState(() => getIsDevMode());
 
 	if (!isCatalogExist) return null;
-
-	const renderGetSharedTicket = () => (
-		<GetSharedTicket trigger={<ButtonLink text={t("share.name.catalog")} iconCode="external-link" />} />
-	);
 
 	return (
 		<PopupMenuLayout
@@ -55,19 +55,25 @@ const CatalogActions: FC<CatalogActionsProps> = ({ isCatalogExist, itemLinks }) 
 			}
 			appendTo={() => document.body}
 		>
-			<PopupMenuLayout
-				appendTo={() => ref.current}
-				offset={[10, -5]}
-				className="wrapper"
-				placement="right-start"
-				openTrigger="mouseenter focus"
-				trigger={<ExportButton ref={ref} iconCode="file-output" text={t("export")} />}
-			>
-				<ItemExport fileName={catalogProps.name} exportFormat={ExportFormat.docx} />
-				{canConfigureCatalog && isNext && renderGetSharedTicket()}
-				<ItemExport fileName={catalogProps.name} exportFormat={ExportFormat.pdf} />
-				{canConfigureCatalog && isNext && renderGetSharedTicket()}
-			</PopupMenuLayout>
+			<Tooltip content={t("export-disabled")} disabled={isArticleExist}>
+				<PopupMenuLayout
+					appendTo={() => ref.current}
+					offset={[10, -5]}
+					className="wrapper"
+					placement="right-start"
+					openTrigger="mouseenter focus"
+					disabled={!isArticleExist}
+					trigger={
+						<ExportButton disabled={!isArticleExist} ref={ref} iconCode="file-output" text={t("export")} />
+					}
+				>
+					<ItemExport fileName={catalogProps.name} exportFormat={ExportFormat.docx} />
+					<ItemExport fileName={catalogProps.name} exportFormat={ExportFormat.pdf} />
+				</PopupMenuLayout>
+			</Tooltip>
+			{canConfigureCatalog && isNext && (
+				<GetSharedTicket trigger={<ButtonLink text={t("share.name.catalog")} iconCode="external-link" />} />
+			)}
 			{!isNext && catalogProps.sourceName && (
 				<Share
 					path={`/${catalogProps.link.pathname}`}
@@ -76,6 +82,13 @@ const CatalogActions: FC<CatalogActionsProps> = ({ isCatalogExist, itemLinks }) 
 				/>
 			)}
 			<IsReadOnlyHOC>
+				{/* {isDevMode && (
+					<ButtonLink
+						text={"Inbox"}
+						iconCode="inbox"
+						onClick={() => setCurrentTab(isInbox ? LeftNavigationTab.None : LeftNavigationTab.Inbox)}
+					/>
+				)} */}
 				<Healthcheck
 					itemLinks={itemLinks}
 					trigger={<ButtonLink text={t("check-errors")} iconCode="heart-pulse" />}

@@ -6,15 +6,15 @@ export class LibGit2Error extends Error {
 	code?: GitErrorCode;
 	data?: { [key: string]: string };
 
-	constructor(name: string, message: string, klass: number, code: number) {
+	constructor(name: string, message: string, klass: number, code: number, command?: string) {
 		super(message);
 		this.name = name;
-		this.code = fromRaw(klass, code, message);
+		this.code = fromRaw(klass, code, message, command);
 		this.data = makeData(this.code, message);
 	}
 }
 
-export const fromRaw = (klass: number, code: number, message: string): GitErrorCode => {
+export const fromRaw = (klass: number, code: number, message: string, command?: string): GitErrorCode => {
 	const eq = (targetKlass: number, targetCode: number) => targetKlass == klass && targetCode == code;
 
 	switch (true) {
@@ -51,8 +51,11 @@ export const fromRaw = (klass: number, code: number, message: string): GitErrorC
 		case eq(14, 1):
 			return GitErrorCode.FileNotFoundError;
 
-		case (eq(0, 5) || eq(0, 0) || eq(26, 0)) &&
-			(message.includes("no error") || message.includes("-1") || message.includes("aborted")):
+		case command === "clone" &&
+			(message.includes("indexer callback") ||
+				message.includes("aborted") ||
+				message.includes("no error") ||
+				message.includes("-1")):
 			return GitErrorCode.CancelledOperation;
 
 		case eq(JSErrorClass, 19):

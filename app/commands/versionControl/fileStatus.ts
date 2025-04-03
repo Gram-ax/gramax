@@ -19,8 +19,7 @@ const fileStatus: Command<{ catalogName: string; articlePath: Path }, GitStatus>
 		if (!catalog?.repo?.gvc) return;
 		if (catalog.repo.isBare) return { path: articlePath, status: FileStatus.current };
 		const relativeRepPath = catalog.getRepositoryRelativePath(articlePath);
-		if (await workspace.getFileProvider().exists(articlePath))
-			return catalog.repo.gvc.getFileStatus(relativeRepPath);
+		return await catalog.repo.gvc.getFileStatus(relativeRepPath).catch(() => null);
 	},
 
 	params(ctx, q) {

@@ -1,8 +1,15 @@
 import { classNames } from "@components/libs/classNames";
 import styled from "@emotion/styled";
 import { Editor } from "@tiptap/core";
+import { CSSProperties } from "react";
 
-const ArticleMat = ({ editor, className }: { editor?: Editor; className?: string }) => {
+interface ArticleMatProps {
+	editor?: Editor;
+	className?: string;
+	style?: CSSProperties;
+}
+
+const ArticleMat = ({ editor, className, style }: ArticleMatProps) => {
 	const onClickHandler = () => {
 		const doc = editor.state.doc;
 		const lastChild = doc.lastChild;
@@ -30,6 +37,7 @@ const ArticleMat = ({ editor, className }: { editor?: Editor; className?: string
 		<div
 			className={classNames("mat-under-article", {}, [className])}
 			onClick={editor ? onClickHandler : undefined}
+			style={style}
 		/>
 	);
 };

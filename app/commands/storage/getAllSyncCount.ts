@@ -27,21 +27,21 @@ const getAllSyncCount: Command<
 			if (!entry.repo?.storage) continue;
 			const promise = async () => {
 				try {
-					if (shouldFetch) {
-						const data = rp.getSourceData(ctx.cookie, await entry.repo.storage.getSourceName());
-						if (!data) {
-							res[name] = { errorMessage: t("storage-not-connected") };
-							return;
-						}
+					const data = rp.getSourceData(ctx, await entry.repo.storage.getSourceName());
+					const invalidData = !data || data.isInvalid;
 
-						await entry.repo.storage.fetch(data);
+					if (invalidData) {
+						res[name] = { errorMessage: t("storage-not-connected") };
+						return;
 					}
 
+					if (shouldFetch) await entry.repo.storage.fetch(data);
 					res[name] = await entry.repo.storage.getSyncCount();
 				} catch (err) {
-					res[name] = { errorMessage: t("unable-to-get-sync-count") };
+					if (!res[name]) res[name] = { errorMessage: t("unable-to-get-sync-count") };
 				}
 			};
+
 			promises.push(promise());
 		}
 

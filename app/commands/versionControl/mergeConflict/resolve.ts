@@ -19,7 +19,7 @@ const resolve: Command<{ ctx: Context; catalogName: string; files: GitMergeResul
 		if (!catalog) return;
 		const storage = catalog?.repo.storage;
 		if (!storage) return;
-		const sourceData = rp.getSourceData(ctx.cookie, await storage.getSourceName());
+		const sourceData = rp.getSourceData(ctx, await storage.getSourceName());
 		const state = await catalog.repo.getState();
 
 		try {

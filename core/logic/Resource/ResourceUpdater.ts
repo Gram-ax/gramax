@@ -10,12 +10,12 @@ import MarkdownFormatter from "../../extensions/markdown/core/edit/logic/Formatt
 import Context from "../Context/Context";
 import { Article } from "../FileStructue/Article/Article";
 import parseContent from "../FileStructue/Article/parseContent";
-import { Catalog } from "../FileStructue/Catalog/Catalog";
+import { ReadonlyCatalog } from "@core/FileStructue/Catalog/ReadonlyCatalog";
 
 export default class ResourceUpdater {
 	constructor(
 		private _rc: Context,
-		private _catalog: Catalog,
+		private _catalog: ReadonlyCatalog,
 		private _parser: MarkdownParser,
 		private _parserContextFactory: ParserContextFactory,
 		private _formatter: MarkdownFormatter,

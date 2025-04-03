@@ -48,6 +48,6 @@ describe("Маркдаун фильтер правильно", () => {
 			markdownElementsFilter.getUnsupportedElements(p.renderTree as Tag),
 		);
 
-		expect(supportedElements.size).toEqual(18);
+		expect(supportedElements.size).toEqual(19);
 	});
 });

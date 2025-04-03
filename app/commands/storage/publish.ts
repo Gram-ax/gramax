@@ -25,7 +25,7 @@ const publish: Command<
 		if (!catalog) return;
 		const storage = catalog.repo.storage;
 		if (!storage) return;
-		const data = rp.getSourceData(ctx.cookie, await storage.getSourceName());
+		const data = rp.getSourceData(ctx, await storage.getSourceName());
 		const isCreated = await catalog.repo.mergeRequests.isCreated();
 		await catalog.repo.publish({
 			commitMessage: message,

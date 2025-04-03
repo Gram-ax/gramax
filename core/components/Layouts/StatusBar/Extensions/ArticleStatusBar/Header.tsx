@@ -49,7 +49,7 @@ const IconMargin = styled.div`
 
 export type HeaderProps = {
 	title: string;
-	onClose: () => void;
+	onClose?: () => void;
 	rightExtension?: JSX.Element;
 };
 
@@ -60,11 +60,13 @@ const Header = ({ title, rightExtension, onClose }: HeaderProps) => {
 				<Title className="tab-wrapper-title">{title}</Title>
 				{rightExtension}
 			</Part>
-			<Part>
-				<IconMargin>
-					<CloseIcon strokeWidth={1.2} tooltipContent={t("close")} code="x" onClick={onClose} />
-				</IconMargin>
-			</Part>
+			{onClose && (
+				<Part>
+					<IconMargin>
+						<CloseIcon strokeWidth={1.2} tooltipContent={t("close")} code="x" onClick={onClose} />
+					</IconMargin>
+				</Part>
+			)}
 		</Wrapper>
 	);
 };

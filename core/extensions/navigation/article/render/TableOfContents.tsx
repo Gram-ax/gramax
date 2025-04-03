@@ -44,8 +44,8 @@ const Scrollspy = forwardRef((props: ScrollspyProps, articleElementRef: MutableR
 
 		function onScroll() {
 			if (!pairs || !pairs[0].hEl || !pairs[0]?.hEl.parentNode || !pairs[0]?.hEl.offsetTop) refreshPairs();
-			// если элементы размонтировались (сменилась статья), тогда надо заново прочитать пары
-			// почему-то после перехода по анкорной ссылке (href=#XXX) все DOM-элементы в pairs размонтируются
+			// If elements are unmounted (article changed), then we need to read pairs again
+			// For some reason after navigating to anchor link (href=#XXX) all DOM elements in pairs are unmounted
 
 			const y = scrollEl.scrollTop + SCROLLSPY_OFFSET;
 			let aEl = null as HTMLElement;

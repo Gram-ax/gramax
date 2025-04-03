@@ -9,65 +9,68 @@ import { useState } from "react";
 import Popup from "reactjs-popup";
 import { Table, TableWithRefs } from "../../../../../logic/components/tableDB/table";
 
-const TableDB = styled(
-	({
-		object,
-		error,
-		className,
-	}: {
-		object: Table | TableWithRefs;
-		error?: { message: string; stack: string };
-		className?: string;
-	}) => {
-		const lang = LanguageService.currentUi();
+interface TableDBProps {
+	object: Table | TableWithRefs;
+	error?: { message: string; stack: string };
+	className?: string;
+}
 
-		if (error)
-			return (
-				<DiagramError error={error} title={t("diagram.error.tabledb-render-failed")} diagramName="Db-Table" />
-			);
+const TableDB = ({ object, error, className }: TableDBProps) => {
+	const lang = LanguageService.currentUi();
 
-		if (!object) return <SpinnerLoader width={75} height={75} />;
+	if (error)
+		return <DiagramError error={error} title={t("diagram.error.tabledb-render-failed")} diagramName="Db-Table" />;
 
-		const table = (t: string, refTable?: Table) => (
-			<code onClick={refTable ? () => setPopup(refTable) : null} className={refTable ? "refTable" : ""}>
-				<Icon code="table" /> {t}
-			</code>
-		);
-		const [popup, setPopup] = useState(null);
-		return (
-			<div className={className} data-type="dbtable" contentEditable={false}>
-				{popup ? (
-					<Popup defaultOpen onClose={() => setPopup(null)} lockScroll={false}>
-						<div className={className}>
-							<div className="scroll article">
-								<TableDB object={popup} />
-							</div>
+	if (!object) return <SpinnerLoader width={75} height={75} />;
+	const [popup, setPopup] = useState(null);
+
+	const table = (t: string, refTable?: Table) => (
+		<code onClick={refTable ? () => setPopup(refTable) : null} className={refTable ? "refTable" : ""}>
+			<Icon code="table" />
+			<span>{t}</span>
+		</code>
+	);
+
+	return (
+		<div className={className} data-type="dbtable" contentEditable={false}>
+			{popup ? (
+				<Popup defaultOpen onClose={() => setPopup(null)} lockScroll={false}>
+					<div className={className}>
+						<div className="scroll article">
+							<TableDB object={popup} />
 						</div>
-					</Popup>
-				) : null}
-				<h3>
-					{table(object.code)} <span>{getLocalizedString(object.title, lang)}</span>
-				</h3>
-				<div className="subtitle" dangerouslySetInnerHTML={{ __html: object.subtitle }} />
-				<div
-					className="description"
-					dangerouslySetInnerHTML={{
-						__html: getLocalizedString(object.description, lang),
-					}}
-				/>
-				<table className="fields">
-					<thead>
-						<tr>
-							<th>{t("field")}</th>
-							<th>{t("type")}</th>
-							<th>{t("description")}</th>
-						</tr>
-					</thead>
-					<tbody>
-						{object.fields.map((field, idx) => {
-							return (
-								<tr key={idx}>
-									<td>
+					</div>
+				</Popup>
+			) : null}
+			<h3>
+				{table(object.code)} <span>{getLocalizedString(object.title, lang)}</span>
+			</h3>
+			<div className="subtitle" dangerouslySetInnerHTML={{ __html: object.subtitle }} />
+			<div
+				className="description"
+				dangerouslySetInnerHTML={{
+					__html: getLocalizedString(object.description, lang),
+				}}
+			/>
+			<table className="fields">
+				<colgroup>
+					<col style={{ width: "30%" }} />
+					<col style={{ width: "30%" }} />
+					<col style={{ width: "30%" }} />
+				</colgroup>
+				<thead>
+					<tr>
+						<th>{t("field")}</th>
+						<th>{t("type")}</th>
+						<th>{t("description")}</th>
+					</tr>
+				</thead>
+				<tbody>
+					{object.fields.map((field, idx) => {
+						return (
+							<tr key={idx}>
+								<td>
+									<div className="field-code">
 										<code>
 											{field.code}
 											{!field.nullable && (
@@ -77,14 +80,14 @@ const TableDB = styled(
 											)}
 										</code>
 										{field.primary && (
-											<span className="pk">
+											<code>
 												<Icon code="key-round" />
 												&nbsp;PK
-											</span>
+											</code>
 										)}
 										{field.refObject && (
 											<div className="fk" title={t("foreign-key")}>
-												<Icon code="arrow-right-to-line" />{" "}
+												<Icon code="arrow-right-to-line" />
 												<span>
 													{table(
 														field.refObject,
@@ -95,40 +98,41 @@ const TableDB = styled(
 												</span>
 											</div>
 										)}
-									</td>
-									<td>
-										<code>{field.sqlType}</code>
-									</td>
-									<td>
-										{(field.title || field.refObject) && (
-											<div className="title">
-												{getLocalizedString(field.title, lang) || field.refObject}
-											</div>
-										)}
-										{field.default && (
-											<div>
-												Default: <code>{field.default}</code>
-											</div>
-										)}
-										{getLocalizedString(field.description, lang) && (
-											<div
-												className="description"
-												dangerouslySetInnerHTML={{
-													__html: getLocalizedString(field.description, lang),
-												}}
-											/>
-										)}
-									</td>
-								</tr>
-							);
-						})}
-					</tbody>
-				</table>
-			</div>
-		);
-	},
-)`
+									</div>
+								</td>
+								<td>{field.sqlType && <code>{field.sqlType}</code>}</td>
+								<td>
+									{(field.title || field.refObject) && (
+										<div className="title">
+											{getLocalizedString(field.title, lang) || field.refObject}
+										</div>
+									)}
+									{field.default && (
+										<div>
+											Default: <code>{field.default}</code>
+										</div>
+									)}
+									{getLocalizedString(field.description, lang) && (
+										<div
+											className="description"
+											dangerouslySetInnerHTML={{
+												__html: getLocalizedString(field.description, lang),
+											}}
+										/>
+									)}
+								</td>
+							</tr>
+						);
+					})}
+				</tbody>
+			</table>
+		</div>
+	);
+};
+
+export default styled(TableDB)`
 	.fields {
+		display: table;
 		font-size: 14px;
 
 		.description {
@@ -137,10 +141,23 @@ const TableDB = styled(
 		}
 	}
 
+	.field-code {
+		display: flex;
+		align-items: center;
+		flex-wrap: wrap;
+		gap: 0.5em;
+	}
+
+	code {
+		margin: 0;
+		display: inline-flex;
+		align-items: center;
+	}
+
 	.required {
 		color: red;
 		font-weight: bold;
-		margin-left: 5px;
+		margin-left: 2px;
 		vertical-align: 2px;
 	}
 
@@ -165,8 +182,6 @@ const TableDB = styled(
 		flex-direction: row;
 		align-content: center;
 		align-items: center;
-		margin-left: 1.5em;
-		margin-top: 0.5em;
 
 		code {
 			margin: 0 0.3em 0 0;
@@ -212,5 +227,3 @@ const TableDB = styled(
 		text-decoration: underline;
 	}
 `;
-
-export default TableDB;

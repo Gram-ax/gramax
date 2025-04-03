@@ -20,11 +20,11 @@ const BigCard = ({
 	const apiUrlCreator = ApiUrlCreatorService.value;
 	const theme = ThemeService.value;
 
-	const logo = hideLogo ? null : resolveModule("useImage")(apiUrlCreator.getLogoUrl(link.name, theme));
+	const logo = resolveModule("useImage")(hideLogo ? null :  apiUrlCreator.getLogoUrl(link.name, theme));
 
 	return (
 		<Link
-			data-catalog-card={name}
+			data-qa="qa-clickable"
 			className={className}
 			href={Url.from({
 				pathname: link.lastVisited || link.pathname,

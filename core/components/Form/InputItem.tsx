@@ -173,13 +173,14 @@ const ItemInput = (props: ItemInputProps) => {
 			</Tooltip>
 		);
 	}
+
 	return (
 		<Input
 			isCode
 			dataQa={dataQa}
 			disabled={scheme.readOnly}
 			tabIndex={tabIndex}
-			hidden={(scheme as any).private}
+			hidden={typeof (scheme as any).private !== "undefined"}
 			ref={ref as MutableRefObject<HTMLInputElement>}
 			errorText={validate}
 			showErrorText={showErrorText}

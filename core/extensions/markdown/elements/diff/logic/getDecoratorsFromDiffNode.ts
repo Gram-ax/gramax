@@ -42,7 +42,7 @@ function getDecoratorsFromDiffNode(oldEditor: Editor, newEditor: Editor, diffNod
 				const to = from + nodeInfo.node.nodeSize;
 				model.push({ type: "added", startPos: from, endPos: to });
 			} else if (diffNode.diffType === "deleted") {
-				// todo: подумать как хендлить
+				// todo: think about how to handle
 				const nodeInfo = getNodeFromPath(oldDoc, diffNode.path);
 				if (shouldSkipNode(nodeInfo.node.type.name)) return;
 				const from = nodeInfo.position;
@@ -71,7 +71,7 @@ function getDecoratorsFromDiffNode(oldEditor: Editor, newEditor: Editor, diffNod
 				const nodeInfo = getNodeFromPath(newDoc, diffNode.path);
 				const from = nodeInfo.position + 1 + diffNode.relativeFrom; // +1 because paragraph and text offset
 				const to = from + (diffNode.relativeTo - diffNode.relativeFrom);
-				// todo: подумать надо ли добавлять (-2)
+				// todo: think if we need to add (-2)
 				const isBlockAdded = diffNode.relativeFrom === 0 && diffNode.relativeTo === nodeInfo.node.nodeSize;
 				if (isBlockAdded) {
 					model.push({
@@ -122,7 +122,7 @@ function getDecoratorsFromDiffNode(oldEditor: Editor, newEditor: Editor, diffNod
 			return;
 		filteredModel.push(diffLine);
 	});
-	// todo: сделать удаление
+	// todo: implement deletion
 	newEditor.commands.updateDiffLinesModel(filteredModel.filter((x) => x.type !== "deleted"));
 
 	return { addedDecorations, removedDecorations, changedContextDecorations };

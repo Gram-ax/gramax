@@ -1,5 +1,5 @@
 interface DynamicModules {
-	Cookie: typeof BrowserCookie | typeof NextCookie;
+	Cookie: typeof BrowserCookie | typeof NextCookie | typeof TauriCookie;
 	initWasm: (corsProxy: string) => Promise<void>;
 	svgToPng: (svg: string, size: ImageDimensions, scale: number) => Promise<Buffer>;
 	getImageSizeFromImageData: (imageBuffer: Buffer, maxWidth?: number, maxHeight?: number) => Promise<ImageDimensions>;
@@ -67,7 +67,7 @@ modules = {
 
 /// #if VITE_ENVIRONMENT == "tauri"
 // #v-ifdef VITE_ENVIRONMENT='tauri'
-import TauriCookie from "../../apps/browser/src/logic/BrowserCookie";
+import TauriCookie from "../../apps/tauri/src/cookie/TauriCookie";
 import TauriSvgToPng from "../../apps/browser/src/logic/BrowserSvgToPng";
 import TauriGetImageSizeFromImageData from "../../apps/browser/src/logic/BrowserGetImageSizeFromImageData";
 import TauriGetImageFromDom from "../../apps/browser/src/logic/BrowserGetImageFromDom";

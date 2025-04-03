@@ -6,6 +6,7 @@ import InitStorage from "../../storage/components/InitStorage";
 
 const ConnectStorage = () => {
 	const hasRemoteStorage = useHasRemoteStorage();
+
 	const trigger = (
 		<div data-qa="qa-connect-storage">
 			<StatusBarElement

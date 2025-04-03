@@ -1,4 +1,13 @@
-import { DiffTree, DiffTreeAnyItem } from "@ext/git/core/GitDiffItemCreator/RevisionDiffTreePresenter";
+import { DiffTree, DiffTreeAnyItem, DiffTreeItem } from "@ext/git/core/GitDiffItemCreator/RevisionDiffTreePresenter";
+
+interface FormatCommentData {
+	path: string;
+	oldPath: string;
+	resources: {
+		path: string;
+		oldPath: string;
+	}[];
+}
 
 const formatPath = ({ path, oldPath }: { path?: string; oldPath?: string }) => {
 	if (path && oldPath && path != oldPath) return `${oldPath} -> ${path}`;
@@ -8,34 +17,50 @@ const formatPath = ({ path, oldPath }: { path?: string; oldPath?: string }) => {
 const addSelectedPaths = (
 	item: DiffTreeAnyItem,
 	selectedFilePaths: Set<string>,
-	result: { path: string; prefix: string }[],
+	result: FormatCommentData[] = [],
 ): void => {
 	if (item.type === "node") {
 		item.childs.forEach((child) => addSelectedPaths(child, selectedFilePaths, result));
 		return;
 	}
 
-	if (!selectedFilePaths.has(item.filepath.new)) return;
-	result.push({ path: formatPath({ path: item.filepath.new, oldPath: item.filepath.old }), prefix: " - " });
-
-	selectedFilePaths.delete(item.filepath.new);
-	if (item.filepath.old) selectedFilePaths.delete(item.filepath.old);
-	item.childs.forEach((child) => {
-		if (child.type === "node") return;
+	if (selectedFilePaths.has(item.filepath.new)) {
+		const resources = item.childs.filter((c) => c.type === "resource") as DiffTreeItem[];
 		result.push({
-			path: formatPath({ path: child.filepath.new, oldPath: child.filepath.old }),
-			prefix: "   - ",
+			path: item.filepath.new,
+			oldPath: item.filepath.old,
+			resources: resources.map((c: DiffTreeItem) => ({
+				path: c.filepath.new,
+				oldPath: c.filepath.old,
+			})),
 		});
-		selectedFilePaths.delete(child.filepath.new);
-		if (child.filepath.old) selectedFilePaths.delete(child.filepath.old);
-	});
+
+		selectedFilePaths.delete(item.filepath.new);
+		if (item.filepath.old) selectedFilePaths.delete(item.filepath.old);
+
+		resources.forEach((c) => {
+			selectedFilePaths.delete(c.filepath.new);
+			if (c.filepath.old) selectedFilePaths.delete(c.filepath.old);
+		});
+	}
+
+	item.childs.forEach((child) => addSelectedPaths(child, selectedFilePaths, result));
 };
 
 const formatComment = (data: DiffTree, selectedFilePaths: Set<string>) => {
 	if (!data) return "";
-	const paths: { path: string; prefix: string }[] = [];
+	const formatCommentData: FormatCommentData[] = [];
 	const newSelectedFilePaths = new Set(selectedFilePaths);
-	data.tree.map((item) => addSelectedPaths(item, newSelectedFilePaths, paths));
+	data.tree.map((item) => addSelectedPaths(item, newSelectedFilePaths, formatCommentData));
+
+	const paths: { path: string; prefix: string }[] = [];
+	formatCommentData.forEach((d) => {
+		paths.push({ path: formatPath({ path: d.path, oldPath: d.oldPath }), prefix: " - " });
+		d.resources.forEach((r) => {
+			paths.push({ path: formatPath({ path: r.path, oldPath: r.oldPath }), prefix: "   - " });
+		});
+	});
+
 	if (paths.length == 1) return `Update file: ${paths[0].path}`;
 	return `Update ${paths.length} files\n\n${paths.map((d) => `${d.prefix}${d.path}`).join("\n")}`;
 };

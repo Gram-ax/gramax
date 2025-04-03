@@ -3,8 +3,8 @@ module.exports = (w) => {
 		files: [
 			"!node_modules",
 			{ pattern: "./**/*.test.ts", ignore: true },
-			{ pattern: "./**/test/**/{.*,*}", load: false }, // test assets, в т.ч. те, которые начинаются с .
-			"./**/*.ts",
+			{ pattern: "./**/test/**/{.*,*}", load: false }, // test assets, including those starting with .
+			"./**/*.ts", 
 			"./logic/VersionControl/git/diffMatchLib.js",
 			"pages/**/*.ts",
 		],

@@ -124,6 +124,7 @@ const BranchActions = (props: BranchActionsProps) => {
 
 	const [searchValue, setSearchValue] = useState("");
 	const [isLoadingData, setIsLoadingData] = useState(false);
+	const [isLoadingSearch, setIsLoadingSearch] = useState(false);
 
 	const [newBranchValidationError, setNewBranchValidationError] = useState<string>("");
 	const mergeData = useRef<MergeData>({ ok: true });
@@ -246,14 +247,14 @@ const BranchActions = (props: BranchActionsProps) => {
 	}, [newBranches]);
 
 	useEffect(() => {
-		if (!containerRef.current || !tabWrapperRef.current || !show) return;
+		if (!containerRef.current || !tabWrapperRef.current || !show || searchValue.length || isLoadingSearch) return;
 		const mainElement = tabWrapperRef.current;
 		const firstChild = containerRef.current.firstElementChild as HTMLElement;
 		const isSpinner = firstChild.dataset.qa === "loader";
 
 		if (!mainElement && !isSpinner) return;
 		setContentHeight(calculateTabWrapperHeight(mainElement));
-	}, [containerRef.current, apiProcess, items, tabWrapperRef.current, isInitNewBranch]);
+	}, [containerRef.current, apiProcess, items, tabWrapperRef.current, isInitNewBranch, searchValue, isLoadingSearch]);
 
 	const modalOnCloseHandler = useCallback(() => {
 		setIsInitNewBranch(false);
@@ -263,6 +264,8 @@ const BranchActions = (props: BranchActionsProps) => {
 		setInitNewBranchName("");
 		setNewBranchValidationError(null);
 		setContentHeight(undefined);
+		setSearchValue("");
+		setBranches(allBranches);
 
 		if (!mergeData.current.ok) tryOpenMergeConflict({ mergeData: { ...mergeData.current } });
 
@@ -292,10 +295,12 @@ const BranchActions = (props: BranchActionsProps) => {
 		<BranchActionsWrapper ref={containerRef}>
 			<Search
 				dataQa="qa-branch-search"
-				placeholder={t("search.placeholder")}
+				placeholder={t("search.name")}
 				onValueChange={onSearchChange}
 				searchValue={searchValue}
 				setSearchValue={setSearchValue}
+				isLoading={isLoadingSearch}
+				setIsLoading={setIsLoadingSearch}
 			/>
 			<ScrollableElement
 				dragScrolling={false}

@@ -9,7 +9,7 @@ const autoPull = async (app: Promise<Application>) => {
 	const { logger, wm } = await app;
 	if (!process.env.AUTO_PULL_TOKEN) return logger.logWarning("Disabling auto-pull, because token is not set");
 
-	const pullInterval = (Number(process.env.AUTO_PULL_INTERVAL) ?? DEFAULT_AUTO_PULL_INTERVAL) * 1000;
+	const pullInterval = (Number(process.env.AUTO_PULL_INTERVAL) || DEFAULT_AUTO_PULL_INTERVAL) * 1000;
 	logger.logInfo(`Enabled auto-pull with pulling interval: ${pullInterval}`);
 
 	const pullCatalog = async (catalog: BaseCatalog, logger: Logger) => {
@@ -19,12 +19,13 @@ const autoPull = async (app: Promise<Application>) => {
 
 			const sourceData = {
 				sourceType: await catalog.repo.storage.getType(),
-				userEmail: "autopull",
 				userName: "autopull",
+				gitServerUsername: process.env.AUTO_PULL_USERNAME || "autopull",
+				userEmail: "autopull",
 				token: process.env.AUTO_PULL_TOKEN,
 			};
 
-			if (await catalog.repo.isShouldSync({ data: sourceData })) {
+			if (await catalog.repo.isShouldSync({ data: sourceData, shouldFetch: true })) {
 				await catalog.repo.sync({
 					data: sourceData,
 					recursivePull: true,

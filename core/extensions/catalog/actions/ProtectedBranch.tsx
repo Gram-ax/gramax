@@ -13,7 +13,6 @@ const ProtectedBranch = () => {
 				tooltipText={
 					<div style={{ textAlign: "center" }}>
 						<p>{t("git.publish.error.main-branch")}</p>
-						<p>{t("git.publish.error.main-branch-merge")}</p>
 					</div>
 				}
 			/>

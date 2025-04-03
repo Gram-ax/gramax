@@ -13,7 +13,7 @@ import t from "@ext/localization/locale/translate";
 import getSourceConfig from "@ext/storage/logic/SourceDataProvider/logic/getSourceConfig";
 import getSourceProps from "@ext/storage/logic/SourceDataProvider/logic/getSourceProps";
 import sourceComponents from "@ext/storage/logic/SourceDataProvider/logic/sourceComponents";
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import SourceListItem from "../../../components/SourceListItem";
 import SourceData from "../model/SourceData";
 import SourceType from "../model/SourceType";
@@ -41,15 +41,23 @@ const CreateSourceData = (props: CreateSourceDataProps) => {
 		mode = Mode.init,
 	} = props;
 	const [isOpen, setIsOpen] = useState(!trigger);
-	const [sourceType, setSourceType] = useState<SourceType>(defaultSourceType ?? null);
+	const [sourceType, setSourceType] = useState<SourceType>(defaultSourceType || null);
+
+	useWatch(() => {
+		if (defaultSourceType) setSourceType(defaultSourceType);
+	}, [defaultSourceType]);
+
 	const apiUrlCreator = ApiUrlCreatorService.value;
 
-	const createStorageUserData = async (data: SourceData) => {
-		const url = apiUrlCreator.setSourceData();
-		const res = await FetchService.fetch(url, JSON.stringify(data), MimeTypes.json);
-		if (res.ok) onCreate?.(data);
-		setIsOpen(false);
-	};
+	const createStorageUserData = useCallback(
+		async (data: SourceData) => {
+			const url = apiUrlCreator.setSourceData();
+			const res = await FetchService.fetch(url, JSON.stringify(data), MimeTypes.json);
+			if (res.ok) onCreate?.(data);
+			setIsOpen(false);
+		},
+		[apiUrlCreator, onCreate],
+	);
 
 	useWatch(() => {
 		if (externalIsOpen) setIsOpen(externalIsOpen);
@@ -93,7 +101,16 @@ const CreateSourceData = (props: CreateSourceDataProps) => {
 											.filter(filter)
 											.filter((v) => (v === SourceType.yandexDisk ? getIsDevMode() : true))
 											.map((v) => ({
-												element: <SourceListItem code={v.toLowerCase()} text={v} />,
+												element: (
+													<SourceListItem
+														source={{
+															sourceType: v,
+															userEmail: null,
+															userName: null,
+														}}
+														name={v}
+													/>
+												),
 												labelField: v,
 											}))}
 										onItemClick={(labelField) => setSourceType(labelField as SourceType)}

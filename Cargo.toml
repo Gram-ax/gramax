@@ -16,11 +16,12 @@ members = [
   "apps/next/crates/next-gramax-git",
 
   "rbins/warp-spa",
+  "apps/next/crates/napi-async-macro",
 ]
 
 [workspace.package]
 version = "0.0.0"
-authors = ["gram.ax "]
+authors = ["gram.ax"]
 description = "Gramax"
 edition = "2021"
 

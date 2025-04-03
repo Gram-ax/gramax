@@ -18,7 +18,7 @@ const abort: Command<{ ctx: Context; catalogName: string }, void> = Command.crea
 		if (!catalog) return;
 		const storage = catalog.repo.storage;
 		if (!storage) return;
-		const sourceData = rp.getSourceData(ctx.cookie, await storage.getSourceName());
+		const sourceData = rp.getSourceData(ctx, await storage.getSourceName());
 		const state = await catalog.repo.getState();
 		await state.abortMerge(sourceData);
 		await catalog.update();

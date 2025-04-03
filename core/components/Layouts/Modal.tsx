@@ -24,6 +24,7 @@ export interface ModalLayoutProps {
 
 	confirmSaveAction?: () => void;
 	closeConfirm?: () => void;
+	forceCloseConfirm?: () => void;
 	shouldOpenConfirmOnClose?: () => boolean;
 	isOpenConfirm?: boolean;
 
@@ -50,6 +51,7 @@ const ModalLayout = (props: ModalLayoutProps) => {
 		onEnter,
 		onCmdEnter,
 		closeConfirm,
+		forceCloseConfirm,
 		confirmSaveAction,
 		isOpenConfirm,
 		shouldOpenConfirmOnClose,
@@ -180,6 +182,7 @@ const ModalLayout = (props: ModalLayoutProps) => {
 						<Confirm
 							closeConfirm={closeConfirm}
 							saveConfirm={confirmSaveAction}
+							forceCloseConfirm={forceCloseConfirm}
 							title={confirmTitle}
 							text={confirmText}
 						/>

@@ -1,32 +1,33 @@
-import { getExecutingEnvironment } from "@app/resolveModule/env";
 import ShowPublishBar from "@components/Layouts/StatusBar/Extensions/ShowPublishBar";
 import FetchService from "@core-ui/ApiServices/FetchService";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
+import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
+import { usePlatform } from "@core-ui/hooks/usePlatform";
 import getIsDevMode from "@core-ui/utils/getIsDevMode";
 import styled from "@emotion/styled";
+import ProtectedBranch from "@ext/catalog/actions/ProtectedBranch";
 import BranchUpdaterService from "@ext/git/actions/Branch/BranchUpdaterService/logic/BranchUpdaterService";
 import OnBranchUpdateCaller from "@ext/git/actions/Branch/BranchUpdaterService/model/OnBranchUpdateCaller";
+import BranchTab from "@ext/git/actions/Branch/components/BranchTab";
 import ArticlePublishTrigger from "@ext/git/actions/Publish/components/ArticlePublishTrigger";
 import type GitBranchData from "@ext/git/core/GitBranch/model/GitBranchData";
 import MergeRequestTab from "@ext/git/core/GitMergeRequest/components/MergeRequestTab";
 import ShowMergeRequest from "@ext/git/core/GitMergeRequest/components/ShowMergeRequest";
 import type { MergeRequest } from "@ext/git/core/GitMergeRequest/model/MergeRequest";
 import PublishTab from "@ext/git/core/GitPublish/PublishTab";
+import useIsSourceDataValid from "@ext/storage/components/useIsSourceDataValid";
 import { useEffect, useState } from "react";
 import ConnectStorage from "../../../../../extensions/catalog/actions/ConnectStorage";
 import Branch from "../../../../../extensions/git/actions/Branch/components/Branch";
 import Sync from "../../../../../extensions/git/actions/Sync/components/Sync";
 import IsReadOnlyHOC from "../../../../../ui-logic/HigherOrderComponent/IsReadOnlyHOC";
 import StatusBar from "../../StatusBar";
-import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
-import BranchTab from "@ext/git/actions/Branch/components/BranchTab";
-import ProtectedBranch from "@ext/catalog/actions/ProtectedBranch";
-import { usePlatform } from "@core-ui/hooks/usePlatform";
 
-export enum StatusBarTab {
+export enum LeftNavigationTab {
 	None,
 	MergeRequest,
 	Publish,
+	Inbox,
 	Branch,
 }
 
@@ -45,12 +46,13 @@ const ArticleStatusBar = ({ isStorageInitialized, padding }: { isStorageInitiali
 	const [isDevMode] = useState(() => getIsDevMode());
 	const { isNext } = usePlatform();
 	const isReadOnly = PageDataContextService.value.conf.isReadOnly;
+	const isSourceValid = useIsSourceDataValid();
 
 	const [branch, setBranch] = useState<GitBranchData>(null);
 	const [mergeRequestIsDraft, setMergeRequestIsDraft] = useState(false);
 	const [mergeRequest, setMergeRequest] = useState<MergeRequest>(null);
 
-	const [currentTab, setCurrentTab] = useState(StatusBarTab.None);
+	const [currentTab, setCurrentTab] = useState(LeftNavigationTab.None);
 
 	const setupMergeRequestState = async (branch: GitBranchData, caller: OnBranchUpdateCaller) => {
 		if (!isDevMode || isNext) return;
@@ -62,7 +64,8 @@ const ArticleStatusBar = ({ isStorageInitialized, padding }: { isStorageInitiali
 		setMergeRequestIsDraft(!!data && !branch?.mergeRequest);
 		setMergeRequest(mr);
 
-		if (mr && caller !== OnBranchUpdateCaller.DiscardNoReset) setCurrentTab(StatusBarTab.MergeRequest);
+		if (mr && caller !== OnBranchUpdateCaller.DiscardNoReset && caller !== OnBranchUpdateCaller.Publish)
+			setCurrentTab(LeftNavigationTab.MergeRequest);
 	};
 
 	useEffect(() => {
@@ -85,19 +88,19 @@ const ArticleStatusBar = ({ isStorageInitialized, padding }: { isStorageInitiali
 			<MergeRequestTab
 				mergeRequest={mergeRequest}
 				isDraft={mergeRequestIsDraft}
-				setShow={(show) => setCurrentTab(show ? StatusBarTab.MergeRequest : StatusBarTab.None)}
-				show={currentTab === StatusBarTab.MergeRequest}
+				setShow={(show) => setCurrentTab(show ? LeftNavigationTab.MergeRequest : LeftNavigationTab.None)}
+				show={currentTab === LeftNavigationTab.MergeRequest}
 			/>
 			<BranchTab
-				show={currentTab === StatusBarTab.Branch}
-				setShow={(show) => setCurrentTab(show ? StatusBarTab.Branch : StatusBarTab.None)}
+				show={currentTab === LeftNavigationTab.Branch}
+				setShow={(show) => setCurrentTab(show ? LeftNavigationTab.Branch : LeftNavigationTab.None)}
 				branch={branch}
-				onClose={() => setCurrentTab(StatusBarTab.None)}
+				onClose={() => setCurrentTab(LeftNavigationTab.None)}
 				onMergeRequestCreate={() => setupMergeRequestState(branch, OnBranchUpdateCaller.MergeRequest)}
 			/>
 			<PublishTab
-				show={currentTab === StatusBarTab.Publish}
-				setShow={(show) => setCurrentTab(show ? StatusBarTab.Publish : StatusBarTab.None)}
+				show={currentTab === LeftNavigationTab.Publish}
+				setShow={(show) => setCurrentTab(show ? LeftNavigationTab.Publish : LeftNavigationTab.None)}
 			/>
 			<StatusBar
 				padding={padding}
@@ -106,25 +109,25 @@ const ArticleStatusBar = ({ isStorageInitialized, padding }: { isStorageInitiali
 						? [
 								<Branch
 									key={0}
-									show={currentTab === StatusBarTab.Branch}
+									show={currentTab === LeftNavigationTab.Branch}
 									branch={branch}
 									onClick={() =>
 										setCurrentTab(
-											currentTab === StatusBarTab.Branch
-												? StatusBarTab.None
-												: StatusBarTab.Branch,
+											currentTab === LeftNavigationTab.Branch
+												? LeftNavigationTab.None
+												: LeftNavigationTab.Branch,
 										)
 									}
 								/>,
 								<ShowMergeRequest
 									key={1}
 									mergeRequest={mergeRequest}
-									isShow={currentTab === StatusBarTab.MergeRequest}
+									isShow={currentTab === LeftNavigationTab.MergeRequest}
 									setShow={() =>
 										setCurrentTab(
-											currentTab === StatusBarTab.MergeRequest
-												? StatusBarTab.None
-												: StatusBarTab.MergeRequest,
+											currentTab === LeftNavigationTab.MergeRequest
+												? LeftNavigationTab.None
+												: LeftNavigationTab.MergeRequest,
 										)
 									}
 								/>,
@@ -140,12 +143,12 @@ const ArticleStatusBar = ({ isStorageInitialized, padding }: { isStorageInitiali
 								<IsReadOnlyHOC key={2}>
 									{isDevMode ? (
 										<ShowPublishBar
-											isShow={currentTab === StatusBarTab.Publish}
+											isShow={currentTab === LeftNavigationTab.Publish}
 											onClick={() => {
 												setCurrentTab(
-													currentTab === StatusBarTab.Publish
-														? StatusBarTab.None
-														: StatusBarTab.Publish,
+													currentTab === LeftNavigationTab.Publish
+														? LeftNavigationTab.None
+														: LeftNavigationTab.Publish,
 												);
 											}}
 										/>

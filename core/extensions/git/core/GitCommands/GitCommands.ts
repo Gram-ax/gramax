@@ -446,7 +446,6 @@ export class GitCommands {
 		try {
 			return this._impl.graphHeadUpstreamFilesCount(searchIn);
 		} catch (e) {
-			console.error(e);
 			return Promise.resolve({ pull: 0, push: 0, hasChanges: false });
 		}
 	}
@@ -455,7 +454,7 @@ export class GitCommands {
 		const gitModulesPath = this._repoPath.join(new Path(".gitmodules"));
 		if (!(await this._fp.exists(gitModulesPath))) return [];
 		try {
-			// temp? Нужно вытаскивать из конфига
+			// temp? Need to extract from config
 			const submodules = parse(await this._fp.read(gitModulesPath));
 			return Object.values(submodules)
 				.map((submodule) => ({
@@ -521,9 +520,13 @@ export class GitCommands {
 		return this._impl.getReferencesByGlob(patterns);
 	}
 
-	// todo: оптимизировать
+	// todo: optimize
 	private _truncatePath(path: Path): Path {
-		if (!path.startsWith(new Path(this.repoPath.nameWithExtension))) return path;
+		const name = this.repoPath.nameWithExtension;
+		const root = path.rootDirectory?.value || "";
+		if (!(root.startsWith(name) && (!root[name.length] || root[name.length] === ":")))
+			return path.value[0] === "/" ? new Path(path.value.substring(1)) : path;
+
 		const parts = path.value.split("/").filter(Boolean);
 		if (parts.length > 0) parts.shift();
 		path = new Path(parts.join("/"));

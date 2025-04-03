@@ -18,6 +18,7 @@ import setTheme from "./theme/setTheme";
 import versionControl from "./versionControl";
 import word from "./word";
 import pdf from "@app/commands/pdf";
+import inbox from "@app/commands/inbox";
 
 const commands = {
 	enterprise,
@@ -38,6 +39,7 @@ const commands = {
 	debug,
 	search,
 	workspace,
+	inbox,
 };
 
 type CommandTree = typeof commands;

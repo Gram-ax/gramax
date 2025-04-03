@@ -164,7 +164,7 @@ impl<C: Creds> MergeRequestExt for Repo<C> {
       let open_mr = match serde_yml::from_slice::<OpenMergeRequest>(mr_yaml_bytes.as_slice()) {
         Ok(mr) => mr,
         Err(err) => {
-          error!(target: TAG, "failed to parse merge-request yaml at ref {}: {}", branch_ref_raw, err.to_string());
+          error!(target: TAG, "failed to parse merge-request yaml at ref {}: {}", branch_ref_raw, err);
           continue;
         }
       };
@@ -199,15 +199,15 @@ impl<C: Creds> MergeRequestExt for Repo<C> {
     let mr_bytes = std::fs::read(workdir_path.join(MERGE_REQUEST_FILE_PATH))?;
     let mr = serde_yml::from_slice::<OpenMergeRequest>(&mr_bytes)?;
 
+    self.ensure_branch_exists_local(&mr.target_branch_ref)?;
+
     Ok(Some(MergeRequest::from_open_dto(self.0.head()?.shorthand().ok_or(Error::Utf8)?.to_string(), mr)))
   }
 }
 
 impl<C: ActualCreds> MergeRequestManageExt<C> for Repo<C> {
   fn create_or_update_merge_request(&self, opts: CreateMergeRequest) -> Result<()> {
-    _ = self.0.find_branch(&format!("origin/{}", opts.target_branch_ref), BranchType::Remote).inspect_err(
-      |_| error!(target: TAG, "failed to retrieve target remote branch origin/{}", opts.target_branch_ref),
-    )?;
+    self.ensure_branch_exists(&opts.target_branch_ref)?;
 
     if self.0.head()?.shorthand().ok_or(Error::Utf8)? == opts.target_branch_ref {
       return Err(

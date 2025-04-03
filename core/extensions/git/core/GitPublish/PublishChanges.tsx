@@ -1,4 +1,4 @@
-import SpinnerLoader from "@components/Atoms/SpinnerLoader";
+import SpinnerLoaderSrc from "@components/Atoms/SpinnerLoader";
 import calculateTabWrapperHeight from "@components/Layouts/StatusBar/Extensions/logic/calculateTabWrapperHeight";
 import useSetArticleDiffView from "@core-ui/hooks/diff/useSetArticleDiffView";
 import styled from "@emotion/styled";
@@ -35,6 +35,10 @@ export type PublishChangesProps = {
 
 const SelectAllWrapper = styled.div`
 	margin-bottom: 0.5rem;
+`;
+
+const SpinnerLoader = styled(SpinnerLoaderSrc)`
+	margin-bottom: 1rem;
 `;
 
 export const PublishChanges = (props: PublishChangesProps) => {
@@ -83,21 +87,25 @@ export const PublishChanges = (props: PublishChangesProps) => {
 		setContentHeight(height);
 	}, [diffTree?.tree, containerRef.current, tabWrapperRef.current, isLoading]);
 
+	const hasChanges = diffTree?.tree?.length > 0;
+
 	return (
 		<>
-			<SelectAllWrapper>
-				<SelectAll
-					isSelectedAll={isSelectedAll}
-					canDiscard={canDiscard}
-					onDiscard={(e) => {
-						e.preventDefault();
-						e.stopPropagation();
-						onDiscard();
-					}}
-					onSelectAll={selectAll}
-					overview={<Overview showTotal fontSize="12px" {...overview} />}
-				/>
-			</SelectAllWrapper>
+			{hasChanges && (
+				<SelectAllWrapper>
+					<SelectAll
+						isSelectedAll={isSelectedAll}
+						canDiscard={canDiscard}
+						onDiscard={(e) => {
+							e.preventDefault();
+							e.stopPropagation();
+							onDiscard();
+						}}
+						onSelectAll={selectAll}
+						overview={<Overview showTotal fontSize="12px" {...overview} />}
+					/>
+				</SelectAllWrapper>
+			)}
 			<ScrollableDiffEntriesLayout>
 				{!diffTree?.tree && isLoading ? (
 					<SpinnerLoader ref={containerRef} fullScreen />

@@ -5,7 +5,7 @@ const removeSourceData: Command<{ ctx: Context; sourceName: string }, void> = Co
 	path: "storage/removeSourceData",
 
 	do({ ctx, sourceName }) {
-		this._app.rp.removeSourceData(ctx.cookie, sourceName);
+		this._app.rp.removeSource(ctx, sourceName);
 	},
 
 	params(ctx, query) {

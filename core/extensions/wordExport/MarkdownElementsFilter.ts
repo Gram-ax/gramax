@@ -10,9 +10,14 @@ class MarkdownElementsFilter {
 		this._errors = new Map<string, number>();
 	}
 
+	private _isPlainText(tag: Tag): boolean {
+		return typeof tag === "string";
+	}
+
 	private _findUnsupportedElements(renderTree: Tag): void {
 		renderTree.children.forEach((child) => {
 			const tag = child as Tag;
+			if (!tag || this._isPlainText(tag)) return;
 
 			if (tag.name === "View" && this._exportedKeys?.has(tag.name)) {
 				if (tag.attributes.display === Display.Kanban) {
@@ -55,7 +60,7 @@ class MarkdownElementsFilter {
 			node.attributes,
 			node.children
 				.map((child) => this.getSupportedTree(child))
-				.filter((val) => this._exportedKeys.has(val.name)),
+				.filter((val) => this._exportedKeys.has(val?.name)),
 		);
 	}
 }

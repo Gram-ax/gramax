@@ -1,7 +1,9 @@
-import useDragScrolling from "@core-ui/hooks/useDragScrolling";
 import { classNames } from "@components/libs/classNames";
+import useDragScrolling from "@core-ui/hooks/useDragScrolling";
+import { cssMedia } from "@core-ui/utils/cssUtils";
 import scrollUtils from "@core-ui/utils/scrollUtils";
 import styled from "@emotion/styled";
+import { useMediaQuery } from "@mui/material";
 import {
 	CSSProperties,
 	forwardRef,
@@ -12,8 +14,6 @@ import {
 	useRef,
 	useState,
 } from "react";
-import { useMediaQuery } from "@mui/material";
-import { cssMedia } from "@core-ui/utils/cssUtils";
 
 interface ScrollableProps {
 	children: ReactNode;
@@ -56,6 +56,15 @@ const Scrollable = forwardRef((props: ScrollableProps, ref: MutableRefObject<HTM
 	useEffect(() => {
 		const resizeObserver = new ResizeObserver(() => {
 			setContainerWidth(containerRef.current?.getBoundingClientRect().width);
+
+			const scroll = scrollUtils.hasScroll(containerRef.current);
+			setHasElementScroll(scroll);
+			hasScroll?.(scroll);
+
+			const isTop = scrollUtils.scrollPositionIsTop(containerRef.current);
+			const isBottom = scrollUtils.scrollPositionIsBottom(containerRef.current);
+			setIsTop(isTop);
+			setIsBottom(isBottom);
 		});
 
 		resizeObserver.observe(containerRef.current);
@@ -82,6 +91,7 @@ const Scrollable = forwardRef((props: ScrollableProps, ref: MutableRefObject<HTM
 				"has-top-shadow": showTopBottomShadow && hasElementScroll && !isTop,
 				"has-bottom-shadow": showTopBottomShadow && hasElementScroll && !isBottom,
 				"is-mobile": narrowMedia,
+				"no-scroll": !hasElementScroll,
 			})}
 			onMouseEnter={() => {
 				if (onMouseEnter) onMouseEnter();
@@ -93,12 +103,15 @@ const Scrollable = forwardRef((props: ScrollableProps, ref: MutableRefObject<HTM
 				if (!containerRef.current) return;
 				const isTop = scrollUtils.scrollPositionIsTop(containerRef.current);
 				const isBottom = scrollUtils.scrollPositionIsBottom(containerRef.current);
-				onScroll?.(isTop, isBottom);
 				setIsTop(isTop);
 				setIsBottom(isBottom);
+				onScroll?.(isTop, isBottom);
 			}}
 		>
-			<div style={containerWidth ? { width: containerWidth } : {}} className="scrolling-content">
+			<div
+				style={containerWidth ? Object.assign({ width: containerWidth }, style) : style}
+				className="scrolling-content"
+			>
 				{children}
 			</div>
 		</div>
@@ -113,7 +126,7 @@ export default styled(Scrollable)`
 
 	&.has-top-shadow {
 		box-shadow: ${({ boxShadowStyles }) =>
-			boxShadowStyles?.top || `0px 6px 5px 0px var(--color-diff-entries-shadow) inset`};
+			boxShadowStyles?.top || `0px 6px 5px -5px var(--color-diff-entries-shadow) inset`};
 	}
 
 	&.has-bottom-shadow {
@@ -141,5 +154,9 @@ export default styled(Scrollable)`
 
 	.scrolling-content {
 		height: 100%;
+	}
+
+	&.no-scroll {
+		overflow-y: hidden;
 	}
 `;

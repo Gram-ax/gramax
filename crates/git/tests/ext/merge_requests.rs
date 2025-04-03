@@ -191,6 +191,8 @@ createdAt: "1"
 "#,
   )?;
 
+  local.repo().branch("develop", &local.repo().head()?.peel_to_commit()?, false)?;
+
   let mr = local.get_draft_merge_request()?;
   assert!(mr.is_some());
 
@@ -216,6 +218,8 @@ createdAt: "1"
   local.commit_debug()?;
   local.push()?;
 
+  local.repo().branch("dev", &local.repo().head()?.peel_to_commit()?, false)?;
+
   let mr = local.get_draft_merge_request()?;
   assert!(mr.is_some());
 
@@ -229,9 +233,37 @@ createdAt: "1"
 "#,
   )?;
 
+  local.repo().branch("dev-2", &local.repo().head()?.peel_to_commit()?, false)?;
+
   let mr = local.get_draft_merge_request()?;
   assert!(mr.is_some());
   assert_eq!(mr.unwrap().target(), "dev-2");
+
+  Ok(())
+}
+
+#[rstest]
+fn create_merge_request_target_branch_only_local(
+  _sandbox: TempDir,
+  #[with(&_sandbox)] repos: Repos,
+) -> Result {
+  let Repos { local, .. } = repos;
+
+  local.new_branch("local-only")?;
+  local.new_branch("dev")?;
+
+  local.create_or_update_merge_request(CreateMergeRequest {
+    title: Some("test1".to_string()),
+    target_branch_ref: "local-only".to_string(),
+    ..Default::default()
+  })?;
+
+  let mr = local.get_draft_merge_request()?;
+  assert!(mr.is_some());
+  let mr = mr.unwrap();
+  assert_eq!(mr.title(), Some("test1"));
+  assert_eq!(mr.source(), "dev");
+  assert_eq!(mr.target(), "local-only");
 
   Ok(())
 }

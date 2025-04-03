@@ -15,6 +15,10 @@ import { ItemLink } from "../navigation/NavigationLinks";
 import DeleteItem from "./actions/DeleteItem";
 import PropsEditor from "./actions/propsEditor/components/PropsEditor";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
+import Path from "@core/FileProvider/Path/Path";
+import { useRouter } from "@core/Api/useRouter";
+import ActionWarning, { shouldShowActionWarning } from "@ext/localization/actions/ActionWarning";
+import ErrorConfirmService from "@ext/errorHandlers/client/ErrorConfirmService";
 
 const StyledDiv = styled.div`
 	display: flex;
@@ -41,6 +45,7 @@ const EditMenu = ({ itemLink, isCategory, setItemLink, textSize, style, onOpen, 
 	const isReadOnly = PageDataContextService.value.conf.isReadOnly;
 	const articleProps = ArticlePropsService.value;
 
+	const router = useRouter();
 	const apiUrlCreator = ApiUrlCreatorService.value;
 	const catalogProps = CatalogPropsService.value;
 	const isCatalogExist = !!catalogProps.name;
@@ -70,6 +75,20 @@ const EditMenu = ({ itemLink, isCategory, setItemLink, textSize, style, onOpen, 
 		if (!response.ok) return;
 		const data = (await response.json()) as string[];
 		setBrotherFileName(data);
+	};
+
+	const onClickHandler = async () => {
+		const deleteConfirmText = t(isCategory ? "confirm-category-delete" : "confirm-article-delete");
+		if (!shouldShowActionWarning(catalogProps) && !(await confirm(deleteConfirmText))) return;
+		const itemLinkPath = new Path(itemLink.ref.path);
+
+		ErrorConfirmService.stop();
+		await FetchService.fetch(apiUrlCreator.removeItem(itemLink.ref.path));
+		ErrorConfirmService.start();
+
+		if (new Path(router.path).removeExtraSymbols.compare(itemLinkPath))
+			router.pushPath(itemLinkPath.parentDirectoryPath.value);
+		else refreshPage();
 	};
 
 	return (
@@ -109,15 +128,14 @@ const EditMenu = ({ itemLink, isCategory, setItemLink, textSize, style, onOpen, 
 							<ExportToDocxOrPdf
 								isCategory={isCategory}
 								fileName={itemProps?.fileName}
-								pathname={itemProps?.pathname}
 								itemRefPath={itemProps?.ref?.path}
 							/>
 						)}
-						<DeleteItem
-							isCategory={isCategory}
-							itemPath={itemLink?.ref?.path}
-							itemLink={itemLink?.pathname}
-						/>
+						<ActionWarning isDelete catalogProps={catalogProps} action={onClickHandler}>
+							<div>
+								<DeleteItem />
+							</div>
+						</ActionWarning>
 					</>
 				) : (
 					<>
@@ -125,7 +143,6 @@ const EditMenu = ({ itemLink, isCategory, setItemLink, textSize, style, onOpen, 
 							<ExportToDocxOrPdf
 								isCategory={isCategory}
 								fileName={itemProps?.fileName}
-								pathname={itemProps?.pathname}
 								itemRefPath={itemProps?.ref?.path}
 							/>
 						)}

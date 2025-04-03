@@ -7,11 +7,11 @@ import User from "@ext/security/logic/User/User";
 const isReadOnlyBranch = async (user: User, catalog: Catalog) => {
 	if (getExecutingEnvironment() === "next") return true;
 	if (user.type !== "enterprise") return false;
-	
+
 	const enterpriseInfo = (user as EnterpriseUser).getEnterpriseInfo();
 	const props = enterpriseInfo.catalogsProps;
-	const allowedBranches = props?.[catalog.name]?.branches ?? [];
-	const mainBranch = props?.[catalog.name]?.mainBranch ?? "";
+	const allowedBranches = props?.[catalog?.name]?.branches ?? [];
+	const mainBranch = props?.[catalog?.name]?.mainBranch ?? "";
 
 	try {
 		const branch = await catalog?.repo?.gvc?.getCurrentBranch?.();

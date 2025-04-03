@@ -13,7 +13,13 @@ const createFile = async (files: File[], view: EditorView, apiUrlCreator: ApiUrl
 
 	for (const file of files) {
 		const filePath = new Path(file.name);
-		const newName = fileNameUtils.getNewName(names, filePath.name, filePath.extension);
+		const nameStartWithDot = filePath.name.startsWith(".");
+		const newName = fileNameUtils.getNewName(
+			names,
+			filePath.name,
+			nameStartWithDot ? undefined : filePath.extension,
+		);
+
 		const res = await FetchService.fetch(
 			apiUrlCreator.setArticleResource(newName),
 			await file.arrayBuffer(),

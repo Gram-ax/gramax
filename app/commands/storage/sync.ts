@@ -6,6 +6,7 @@ import { Article } from "@core/FileStructue/Article/Article";
 import LastVisited from "@core/SitePresenter/LastVisited";
 import MergeConflictCaller from "@ext/git/actions/MergeConflictHandler/model/MergeConflictCaller";
 import MergeData from "@ext/git/actions/MergeConflictHandler/model/MergeData";
+import type GitSourceData from "@ext/git/core/model/GitSourceData.schema";
 import type { RepositoryMergeConflictState } from "@ext/git/core/Repository/state/RepositoryState";
 import { AuthorizeMiddleware } from "../../../core/logic/Api/middleware/AuthorizeMiddleware";
 import Context from "../../../core/logic/Context/Context";
@@ -24,11 +25,15 @@ const sync: Command<{ ctx: Context; catalogName: string; articlePath: Path }, Me
 
 		const catalog = await workspace.getContextlessCatalog(catalogName);
 		if (!catalog) return;
+
 		const storage = catalog.repo.storage;
 		if (!storage) return;
+
 		const currentBranchName = await catalog.repo.gvc.getCurrentBranchName();
 		const mrBefore = await catalog.repo.mergeRequests.findBySource(currentBranchName);
-		const sourceData = rp.getSourceData(ctx.cookie, await storage.getSourceName());
+
+		const sourceData = rp.getSourceData<GitSourceData>(ctx, await storage.getSourceName());
+
 		const mergeResult = await catalog.repo.sync({
 			recursivePull: this._app.conf.isReadOnly,
 			data: sourceData,

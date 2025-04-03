@@ -29,7 +29,7 @@ export default class BareRepository extends Repository {
 		await this._storage.fetch(opts.data);
 		await this.checkoutIfCurrentBranchNotExist(opts.data);
 		await this._storage.fetch(opts.data, true);
-		await this.gvc.update();
+		this.gvc.update();
 		const afterPullVersion = await this.gvc.getCurrentVersion();
 		await this.gvc.checkChanges(beforePullVersion, afterPullVersion);
 		return [];
@@ -42,7 +42,7 @@ export default class BareRepository extends Repository {
 	async checkout(opts: CheckoutOptions): Promise<GitMergeResultContent[]> {
 		const prev = await this.gvc.getCurrentVersion();
 		await this.gvc.setHead(opts.branch.toString());
-		await this.gvc.update();
+		this.gvc.update();
 		const newVersion = await this.gvc.getCurrentVersion();
 		await this.gvc.checkChanges(prev, newVersion);
 		return [];

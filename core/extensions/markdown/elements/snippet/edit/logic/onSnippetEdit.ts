@@ -23,7 +23,11 @@ const setModalLoading = () => {
 
 const getOnSave = (apiUrlCreator: ApiUrlCreator, snippetId: string) => {
 	return async (data: SnippetEditData) => {
-		await FetchService.fetch(apiUrlCreator.editSnippet(snippetId), JSON.stringify(data), MimeTypes.json);
+		await FetchService.fetch(
+			apiUrlCreator.updateFileInGramaxDir(snippetId, "snippet"),
+			JSON.stringify({ content: data.content, props: { title: data.title } }),
+			MimeTypes.json,
+		);
 		await SnippetUpdateService.updateContent(snippetId, apiUrlCreator);
 	};
 };
@@ -41,7 +45,7 @@ const getOnDelete = (
 	return async () => {
 		const onDelete = async () => {
 			setModalLoading();
-			await FetchService.fetch(apiUrlCreator.removeSnippet(snippetId));
+			await FetchService.fetch(apiUrlCreator.removeFileInGramaxDir(snippetId, "snippet"));
 		};
 
 		setModalLoading();
@@ -70,7 +74,7 @@ const getOnDelete = (
 					articles,
 					onEditorClose,
 					onEditorOpen,
-					callback
+					callback,
 				);
 			}
 			return;

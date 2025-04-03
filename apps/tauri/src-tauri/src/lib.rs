@@ -12,6 +12,7 @@ extern crate rust_i18n;
 
 mod commands;
 mod error;
+mod settings;
 mod http_req;
 mod http_server;
 mod platform;
@@ -105,7 +106,7 @@ pub fn run() {
   }
 
   app.manage(crate::FocusedWebviewLabel(std::sync::Mutex::new(None)));
-  
+
   app.run(platform::on_run_event);
 }
 
@@ -247,8 +248,11 @@ impl MainWindowBuilder {
       .title_bar_style(TitleBarStyle::Overlay);
 
     #[cfg(desktop)]
-    let builder =
-      builder.title(&manager.package_info().name).enable_clipboard_access().inner_size(1000.0, 700.0).accept_first_mouse(true);
+    let builder = builder
+      .title(&manager.package_info().name)
+      .enable_clipboard_access()
+      .inner_size(1000.0, 700.0)
+      .accept_first_mouse(true);
 
     let window = builder.build()?;
 

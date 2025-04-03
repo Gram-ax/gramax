@@ -18,7 +18,7 @@ import type { Workspace } from "@ext/workspace/Workspace";
 import type { WorkspaceConfig } from "@ext/workspace/WorkspaceConfig";
 import type { NodeModel } from "@minoru/react-dnd-treeview";
 import htmlToText from "html-to-text";
-import UiLanguage, { ContentLanguage, defaultLanguage } from "../../extensions/localization/core/model/Language";
+import UiLanguage, { ContentLanguage, resolveLanguage } from "../../extensions/localization/core/model/Language";
 import MarkdownParser from "../../extensions/markdown/core/Parser/Parser";
 import ParserContextFactory from "../../extensions/markdown/core/Parser/ParserContext/ParserContextFactory";
 import { CatalogLink, ItemLink, TitledLink } from "../../extensions/navigation/NavigationLinks";
@@ -288,8 +288,8 @@ export default class SitePresenter {
 				repositoryName: null,
 				sourceName: null,
 				userInfo: null,
-				language: ContentLanguage[defaultLanguage],
-				supportedLanguages: [ContentLanguage[defaultLanguage]],
+				language: ContentLanguage[resolveLanguage()],
+				supportedLanguages: [ContentLanguage[resolveLanguage()]],
 				properties: [],
 				docroot: "",
 			};
@@ -311,7 +311,7 @@ export default class SitePresenter {
 			properties: getAllCatalogProperties(catalog),
 			repositoryName: catalog.name,
 			sourceName: (await storage?.getSourceName()) ?? null,
-			userInfo: this._grp.getSourceUserInfo(this._context.cookie, await storage?.getSourceName()),
+			userInfo: this._grp.getSourceUserInfo(this._context, await storage?.getSourceName()),
 			docroot: catalog.getRelativeRootCategoryPath()?.value,
 			supportedLanguages: Array.from(catalog.props.supportedLanguages || []),
 			versions: catalog.props.versions,
@@ -338,8 +338,8 @@ export default class SitePresenter {
 			root,
 		);
 
-		// ! Костыль, потому что надо 😢
-		// ? Проверяет, является ли найденная категория - категорией языка, тогда перекидывает юзера на первую дочернюю, либо на любую другую первую в руте
+		// ! Hack, because we need to 😢
+		// ? Checks if the found category is a language category, then redirects user to first child, or to any other first in route
 		if (isLanguageCategory(catalog, article)) {
 			if (this._context.contentLanguage || catalog.props.language != this._context.contentLanguage)
 				article = (article as Category).items[0] as Article;

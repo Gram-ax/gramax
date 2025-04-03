@@ -10,8 +10,18 @@ import Link from "../../Atoms/Link";
 import Logo from "../../Logo";
 import CatalogActions from "@components/Actions/CatalogActions";
 import CatalogPropsService from "@core-ui/ContextServices/CatalogProps";
+import { LeftNavigationTab } from "@components/Layouts/StatusBar/Extensions/ArticleStatusBar/ArticleStatusBar";
+import InboxIcon from "@ext/inbox/components/InboxIcon";
 
-const TopBarContent = ({ data, className }: { data: ArticlePageData; className?: string }) => {
+interface TopBarContentProps {
+	data: ArticlePageData;
+	isMacDesktop: boolean;
+	currentTab: LeftNavigationTab;
+	setCurrentTab: (tab: LeftNavigationTab) => void;
+	className?: string;
+}
+
+const TopBarContent = ({ data, isMacDesktop, currentTab, setCurrentTab, className }: TopBarContentProps) => {
 	const logoImageUrl = PageDataContextService.value.conf.logo.imageUrl;
 	const catalogProps = CatalogPropsService.value;
 	const isCatalogExist = !!catalogProps.name;
@@ -25,8 +35,16 @@ const TopBarContent = ({ data, className }: { data: ArticlePageData; className?:
 			)}
 			<Logo imageUrl={logoImageUrl} />
 			<div className="iconWrapper">
+				{currentTab === LeftNavigationTab.Inbox && (
+					<InboxIcon isMacDesktop={isMacDesktop} setCurrentTab={setCurrentTab} />
+				)}
 				<Search isHomePage={false} catalogLinks={[data.catalogProps.link]} itemLinks={data.itemLinks} />
-				<CatalogActions isCatalogExist={isCatalogExist} itemLinks={data.itemLinks} />
+				<CatalogActions
+					isCatalogExist={isCatalogExist}
+					itemLinks={data.itemLinks}
+					currentTab={currentTab}
+					setCurrentTab={setCurrentTab}
+				/>
 			</div>
 		</div>
 	);

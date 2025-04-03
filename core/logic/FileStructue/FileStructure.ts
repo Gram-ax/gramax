@@ -14,7 +14,7 @@ import { Item } from "@core/FileStructue/Item/Item";
 import { ItemRef } from "@core/FileStructue/Item/ItemRef";
 import CatalogEditProps from "@ext/catalog/actions/propsEditor/model/CatalogEditProps.schema";
 import { CatalogErrors } from "@ext/healthcheck/logic/Healthcheck";
-import { defaultLanguage } from "@ext/localization/core/model/Language";
+import { resolveLanguage } from "@ext/localization/core/model/Language";
 import matter from "gray-matter";
 import * as yaml from "js-yaml";
 
@@ -47,7 +47,12 @@ export type MarkdownProps = {
 };
 
 const functionalFolders = [".git", ".idea", ".vscode", "node_modules", ".DS_Store"];
-export const FS_EXCLUDE_FILENAMES = [...functionalFolders, ".snippets", ".icons"];
+export const FS_EXCLUDE_FILENAMES = [
+	...functionalFolders,
+	".snippets", // legacy
+	".icons",
+	".gramax",
+];
 export const FS_EXCLUDE_CATALOG_NAMES = [
 	...functionalFolders,
 	"IndexCaches", // Legacy
@@ -524,7 +529,7 @@ export default class FileStructure {
 	private _serializeProps(props: FSProps): string {
 		const p = Object.fromEntries(Object.entries(props).filter(([, v]) => !!v));
 		delete p.welcome;
-		if (p.lang == defaultLanguage) delete p.lang;
+		if (p.lang == resolveLanguage()) delete p.lang;
 		return yaml.dump(p, { quotingType: '"' });
 	}
 }

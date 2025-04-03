@@ -88,6 +88,7 @@ impl<C: Creds> Repo<C> {
     let mut opts = FetchOptions::new();
     opts.remote_callbacks(cbs);
     opts.add_credentials_headers(&self.1);
+    opts.follow_redirects(RemoteRedirect::All);
     opts.prune(FetchPrune::On);
     opts.download_tags(AutotagOption::All);
 
@@ -110,9 +111,12 @@ impl<C: Creds> Repo<C> {
     cbs.credentials(make_credentials_callback(&self.1));
     cbs.certificate_check(ssl_callback);
     cbs.push_update_reference(push_update_reference_callback);
+
     let mut push_opts = PushOptions::new();
     push_opts.remote_callbacks(cbs);
+    push_opts.follow_redirects(RemoteRedirect::All);
     push_opts.add_credentials_headers(&self.1);
+    push_opts.follow_redirects(RemoteRedirect::All);
 
     let head = self.0.head()?;
     let mut remote = self.0.find_remote("origin")?;

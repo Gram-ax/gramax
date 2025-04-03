@@ -10,6 +10,9 @@ interface GitSourceData extends SourceData {
 	 */
 	sourceType: SourceType.git | SourceType.gitHub | SourceType.gitLab;
 	domain: string;
+	/**
+	 * @private
+	 */
 	token: string;
 	protocol?: string;
 	createDate?: string;

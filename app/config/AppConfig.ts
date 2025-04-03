@@ -1,3 +1,4 @@
+import { EnvironmentVariable } from "@app/config/env";
 import Path from "@core/FileProvider/Path/Path";
 import type { WorkspaceManagerConfig } from "@ext/workspace/WorkspaceManager";
 import { env, getExecutingEnvironment } from "../resolveModule/env";
@@ -55,12 +56,20 @@ export type AppConfig = {
 
 	logo: { imageUrl: string; linkUrl: string; linkTitle: string };
 	allowedGramaxUrls: string[];
+
+	search: {
+		vector: {
+			enabled: boolean;
+			apiUrl: string;
+			collectionName: string;
+		};
+	};
 };
 
 const getServices = (): ServicesConfig => {
 	return {
 		gitProxy: {
-			url: env("GIT_PROXY_SERVICE_URL") ?? "https://gram.ax/git-proxy",
+			url: env("GIT_PROXY_SERVICE_URL") ?? "https://develop.gram.ax/git-proxy",
 		},
 		auth: {
 			url: env("AUTH_SERVICE_URL") ?? "https://gram.ax/auth",
@@ -98,10 +107,31 @@ const getPaths = (): AppConfigPaths => {
 export const getConfig = (): AppConfig => {
 	if (global.config) return global.config;
 
+	const requiredEnvVars: (keyof EnvironmentVariable)[] = [];
+
+	const vectorSearchApiUrl = env("SEARCH_VECTOR_API_URL");
+	const vectorSearchCollectionName = env("SEARCH_VECTOR_COLLECTION_NAME");
+	const vectorSearchEnabled = Boolean(vectorSearchApiUrl || vectorSearchCollectionName);
+	if (vectorSearchEnabled && (!vectorSearchApiUrl || !vectorSearchCollectionName)) {
+		if (!vectorSearchApiUrl) requiredEnvVars.push("SEARCH_VECTOR_API_URL");
+		if (!vectorSearchCollectionName) requiredEnvVars.push("SEARCH_VECTOR_COLLECTION_NAME");
+	}
+	if (requiredEnvVars.length > 0) {
+		throw new Error(`Environment variable(s) must have value: [${requiredEnvVars.join(", ")}]`);
+	}
+
 	global.config = {
 		paths: getPaths(),
 		services: getServices(),
 		isReadOnly: getExecutingEnvironment() === "next",
+
+		search: {
+			vector: {
+				enabled: vectorSearchEnabled,
+				apiUrl: vectorSearchApiUrl,
+				collectionName: vectorSearchCollectionName,
+			},
+		},
 
 		version: env("GRAMAX_VERSION") ?? null,
 		buildVersion: env("BUILD_VERSION") ?? null,

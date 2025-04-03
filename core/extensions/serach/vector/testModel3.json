@@ -1,0 +1,478 @@
+{
+    "type": "doc",
+    "content": [
+        {
+            "type": "paragraph",
+            "content": [
+                {
+                    "type": "text",
+                    "text": "В визуальном редакторе Gramax можно добавить таблицу в несколько кликов. Gramax работает со стандартными Markdown-таблицами и добавляет расширенные возможности. Пример таблицы:"
+                }
+            ]
+        },
+        {
+            "type": "table",
+            "content": [
+                {
+                    "type": "tableRow",
+                    "content": [
+                        {
+                            "type": "tableHeader",
+                            "attrs": {
+                                "colspan": 1,
+                                "rowspan": 1,
+                                "colwidth": [
+                                    148
+                                ]
+                            },
+                            "content": [
+                                {
+                                    "type": "paragraph",
+                                    "content": [
+                                        {
+                                            "type": "text",
+                                            "text": "Наименование"
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "type": "tableHeader",
+                            "attrs": {
+                                "colspan": 1,
+                                "rowspan": 1,
+                                "colwidth": null
+                            },
+                            "content": [
+                                {
+                                    "type": "paragraph",
+                                    "content": [
+                                        {
+                                            "type": "text",
+                                            "text": "Тип данных"
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "type": "tableHeader",
+                            "attrs": {
+                                "colspan": 1,
+                                "rowspan": 1,
+                                "colwidth": null
+                            },
+                            "content": [
+                                {
+                                    "type": "paragraph",
+                                    "content": [
+                                        {
+                                            "type": "text",
+                                            "text": "Обязательное поле"
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "type": "tableHeader",
+                            "attrs": {
+                                "colspan": 1,
+                                "rowspan": 1,
+                                "colwidth": null
+                            },
+                            "content": [
+                                {
+                                    "type": "paragraph",
+                                    "content": [
+                                        {
+                                            "type": "text",
+                                            "text": "Комментарий"
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "tableRow",
+                    "content": [
+                        {
+                            "type": "tableCell",
+                            "attrs": {
+                                "colspan": 1,
+                                "rowspan": 1,
+                                "colwidth": [
+                                    148
+                                ]
+                            },
+                            "content": [
+                                {
+                                    "type": "paragraph",
+                                    "content": [
+                                        {
+                                            "type": "text",
+                                            "text": "id"
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "type": "tableCell",
+                            "attrs": {
+                                "colspan": 1,
+                                "rowspan": 1,
+                                "colwidth": null
+                            },
+                            "content": [
+                                {
+                                    "type": "paragraph",
+                                    "content": [
+                                        {
+                                            "type": "text",
+                                            "text": "integer"
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "type": "tableCell",
+                            "attrs": {
+                                "colspan": 1,
+                                "rowspan": 1,
+                                "colwidth": null
+                            },
+                            "content": [
+                                {
+                                    "type": "paragraph",
+                                    "content": [
+                                        {
+                                            "type": "text",
+                                            "text": "Да"
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "type": "tableCell",
+                            "attrs": {
+                                "colspan": 1,
+                                "rowspan": 1,
+                                "colwidth": null
+                            },
+                            "content": [
+                                {
+                                    "type": "paragraph",
+                                    "content": [
+                                        {
+                                            "type": "text",
+                                            "text": "Id отсутствия"
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "tableRow",
+                    "content": [
+                        {
+                            "type": "tableCell",
+                            "attrs": {
+                                "colspan": 1,
+                                "rowspan": 1,
+                                "colwidth": [
+                                    148
+                                ]
+                            },
+                            "content": [
+                                {
+                                    "type": "paragraph",
+                                    "content": [
+                                        {
+                                            "type": "text",
+                                            "text": "absenceReason"
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "type": "tableCell",
+                            "attrs": {
+                                "colspan": 1,
+                                "rowspan": 1,
+                                "colwidth": null
+                            },
+                            "content": [
+                                {
+                                    "type": "paragraph",
+                                    "content": [
+                                        {
+                                            "type": "text",
+                                            "text": "nvarchar(500)"
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "type": "tableCell",
+                            "attrs": {
+                                "colspan": 1,
+                                "rowspan": 1,
+                                "colwidth": null
+                            },
+                            "content": [
+                                {
+                                    "type": "paragraph",
+                                    "content": [
+                                        {
+                                            "type": "text",
+                                            "text": "Да"
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "type": "tableCell",
+                            "attrs": {
+                                "colspan": 1,
+                                "rowspan": 1,
+                                "colwidth": null
+                            },
+                            "content": [
+                                {
+                                    "type": "paragraph",
+                                    "content": [
+                                        {
+                                            "type": "text",
+                                            "text": "Причина отсутствия"
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "tableRow",
+                    "content": [
+                        {
+                            "type": "tableCell",
+                            "attrs": {
+                                "colspan": 1,
+                                "rowspan": 1,
+                                "colwidth": [
+                                    148
+                                ]
+                            },
+                            "content": [
+                                {
+                                    "type": "paragraph",
+                                    "content": [
+                                        {
+                                            "type": "text",
+                                            "text": "statusId"
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "type": "tableCell",
+                            "attrs": {
+                                "colspan": 1,
+                                "rowspan": 1,
+                                "colwidth": null
+                            },
+                            "content": [
+                                {
+                                    "type": "paragraph",
+                                    "content": [
+                                        {
+                                            "type": "text",
+                                            "text": "nvarchar(50)"
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "type": "tableCell",
+                            "attrs": {
+                                "colspan": 1,
+                                "rowspan": 1,
+                                "colwidth": null
+                            },
+                            "content": [
+                                {
+                                    "type": "paragraph",
+                                    "content": [
+                                        {
+                                            "type": "text",
+                                            "text": "Нет"
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "type": "tableCell",
+                            "attrs": {
+                                "colspan": 1,
+                                "rowspan": 1,
+                                "colwidth": null
+                            },
+                            "content": [
+                                {
+                                    "type": "paragraph",
+                                    "content": [
+                                        {
+                                            "type": "text",
+                                            "text": "Ссылка на статус"
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": [
+                {
+                    "type": "text",
+                    "text": "Добавить таблицу можно двумя способами:"
+                }
+            ]
+        },
+        {
+            "type": "orderedList",
+            "attrs": {
+                "order": 1,
+                "tight": false
+            },
+            "content": [
+                {
+                    "type": "list_item",
+                    "content": [
+                        {
+                            "type": "paragraph",
+                            "content": [
+                                {
+                                    "type": "text",
+                                    "text": "Создать вручную. Для этого кликните значок таблицы в панели редактирования, а затем оформите ее: добавьте строки и столбцы, определите заголовки, объедините ячейки."
+                                }
+                            ]
+                        },
+                        {
+                            "type": "image",
+                            "attrs": {
+                                "src": "./tables.png",
+                                "alt": null,
+                                "crop": {
+                                    "x": 0,
+                                    "y": 0,
+                                    "w": 100,
+                                    "h": 100
+                                },
+                                "title": null,
+                                "scale": null,
+                                "objects": []
+                            }
+                        }
+                    ]
+                },
+                {
+                    "type": "list_item",
+                    "content": [
+                        {
+                            "type": "paragraph",
+                            "content": [
+                                {
+                                    "type": "text",
+                                    "text": "Перенести из Excel. Крупные таблицы можно просто перенести из любой другой системы. Для этого достаточно скопировать таблицу и вставить в статью в Gramax."
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "note",
+            "attrs": {
+                "title": "Закрепить markdown",
+                "type": "note",
+                "collapsed": false
+            },
+            "content": [
+                {
+                    "type": "paragraph",
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": "Если важно, чтобы в статье таблицы были именно в разметке Markdown:"
+                        }
+                    ]
+                },
+                {
+                    "type": "orderedList",
+                    "attrs": {
+                        "order": 1,
+                        "tight": false
+                    },
+                    "content": [
+                        {
+                            "type": "list_item",
+                            "content": [
+                                {
+                                    "type": "paragraph",
+                                    "content": [
+                                        {
+                                            "type": "text",
+                                            "text": "Не меняйте вручную ширину столбцов."
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "type": "list_item",
+                            "content": [
+                                {
+                                    "type": "paragraph",
+                                    "content": [
+                                        {
+                                            "type": "text",
+                                            "text": "Не объединяйте ячейки в таблице."
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "paragraph",
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": "Именно эти действия форматируют Markdown-таблицу в расширенный синтаксис."
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}

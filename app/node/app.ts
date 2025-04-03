@@ -34,7 +34,9 @@ import { TicketManager } from "@ext/security/logic/TicketManager/TicketManager";
 import FuseSearcher from "@ext/serach/Fuse/FuseSearcher";
 import { IndexDataProvider } from "@ext/serach/IndexDataProvider";
 import Searcher from "@ext/serach/Searcher";
-import SourceDataProvider from "@ext/storage/logic/SourceDataProvider/logic/SourceDataProvider";
+import { ConditionalVectorSearcher } from "@ext/serach/conditionalVector/ConditionalVectorSearcher";
+import { VectorSearcher } from "@ext/serach/vector/VectorSearcher";
+import { SourceDataProvider } from "@ext/storage/logic/SourceDataProvider/logic/SourceDataProvider";
 import WorkspaceManager from "@ext/workspace/WorkspaceManager";
 import EnvAuth from "../../core/extensions/security/logic/AuthProviders/EnvAuth";
 import { AppConfig, getConfig } from "../config/AppConfig";
@@ -52,7 +54,7 @@ const _init = async (config: AppConfig): Promise<Application> => {
 
 	const em = new EnterpriseManager(config.enterprise);
 
-	const rp = new RepositoryProvider();
+	const rp = new RepositoryProvider(config);
 	const wm = new WorkspaceManager(
 		(path) => MountFileProvider.fromDefault(new Path(path), watcher),
 		(fs) => {
@@ -105,7 +107,14 @@ const _init = async (config: AppConfig): Promise<Application> => {
 	const resourceUpdaterFactory = new ResourceUpdaterFactory(parser, parserContextFactory, formatter);
 
 	const indexDataProvider = new IndexDataProvider(wm, cache, parser, parserContextFactory);
-	const searcher: Searcher = new FuseSearcher(indexDataProvider);
+
+	const fuseSearcher: Searcher = new FuseSearcher(indexDataProvider);
+	const searcher: Searcher = config.search.vector.enabled
+		? new ConditionalVectorSearcher(
+				fuseSearcher,
+				new VectorSearcher(config.search.vector, wm, parser, parserContextFactory),
+		  )
+		: fuseSearcher;
 
 	return {
 		tm,

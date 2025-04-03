@@ -66,6 +66,20 @@ export default class WorkspaceManager {
 		});
 		this._rules?.forEach((fn) => this._current.events.on("catalog-changed", fn));
 
+		this._current.events.on("add-catalog", (catalog) => {
+			const current = this._workspaces.get(this._current.path());
+			if (!current || current.catalogNames.includes(catalog.catalog.name)) return;
+
+			current.catalogNames.push(catalog.catalog.name);
+		});
+
+		this._current.events.on("remove-catalog", (catalog) => {
+			const current = this._workspaces.get(this._current.path());
+			if (!current) return;
+
+			current.catalogNames = current.catalogNames.filter((name) => name != catalog.name);
+		});
+
 		this._setLatestWorkspace(this._current.path());
 		await this.saveWorkspaces();
 	}

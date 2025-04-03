@@ -33,11 +33,17 @@ pub fn init_app<R: Runtime>(app: &mut App<R>) -> InitResult {
     .as_deref()
     .and_then(|m| m.0.lock().unwrap().take())
     .or(std::env::args().nth(1));
+
+  if opened_path.is_none() {
+    app.manage(OpenUrl(Mutex::new(None)));
+  }
+
   if let Some(ref path) = opened_path {
     let path = path.split_once("://").map(|(_, path)| path).unwrap_or(path.as_str());
-    let script = crate::include_script!("open-url.template.js", url = path.trim_start_matches('/'));
-    debug!("open url in window: {:?}, script: {:?}", window, script);
-    window.eval(&script)?;
+    let mut url = window.url()?;
+    url.set_path(path);
+    info!("open url in window: {:?}, url: {}", window.label(), url);
+    window.navigate(url)?;
   }
 
   std::env::set_var("GRAMAX_VERSION", app.package_info().version.to_string());

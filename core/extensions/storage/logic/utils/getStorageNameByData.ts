@@ -19,6 +19,7 @@ const STORAGE_GET_NAME: { [type in SourceType]: (data: SourceData | ShareData) =
 };
 
 const getStorageNameByData = (data: SourceData | ShareData): string => {
+	if (!data) return "";
 	return STORAGE_GET_NAME[data.sourceType](data);
 };
 

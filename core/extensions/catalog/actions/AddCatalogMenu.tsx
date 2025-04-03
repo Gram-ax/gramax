@@ -1,10 +1,10 @@
 import PopupMenuLayout from "@components/Layouts/PopupMenuLayout";
 import ButtonLink from "@components/Molecules/ButtonLink";
+import Mode from "@ext/git/actions/Clone/model/Mode";
 import t from "@ext/localization/locale/translate";
 import IsReadOnlyHOC from "../../../ui-logic/HigherOrderComponent/IsReadOnlyHOC";
 import Clone from "../../git/actions/Clone/components/Clone";
 import CreateCatalog from "./CreateCatalog";
-import Mode from "@ext/git/actions/Clone/model/Mode";
 
 const AddCatalogMenu = () => {
 	return (

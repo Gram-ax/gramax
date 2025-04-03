@@ -1,11 +1,11 @@
-import { ContentStack } from "pdfmake/interfaces";
-import { BASE_CONFIG, FONT_SIZE_COEFFICIENT, MAX_WIDTH } from "@ext/pdfExport/config";
-import { Tag } from "@ext/markdown/core/render/logic/Markdoc";
-import { NodeOptions, pdfRenderContext } from "@ext/pdfExport/parseNodesPDF";
 import DbDiagram from "@core-ui/DbDiagram";
 import Path from "@core/FileProvider/Path/Path";
-import { defaultLanguage } from "@ext/localization/core/model/Language";
+import { resolveLanguage } from "@ext/localization/core/model/Language";
+import { Tag } from "@ext/markdown/core/render/logic/Markdoc";
 import { PDFImageExporter } from "@ext/markdown/elements/image/pdf/PdfImageProcessor";
+import { BASE_CONFIG, FONT_SIZE_COEFFICIENT, MAX_WIDTH } from "@ext/pdfExport/config";
+import { NodeOptions, pdfRenderContext } from "@ext/pdfExport/parseNodesPDF";
+import { ContentStack } from "pdfmake/interfaces";
 
 export async function diagramdbHandler(
 	node: Tag,
@@ -21,12 +21,12 @@ export async function diagramdbHandler(
 	originalWidth = Math.min(originalWidth, MAX_WIDTH);
 
 	const diagram = new DbDiagram(context.parserContext.getTablesManager(), context.parserContext.fp);
-    const path = context.parserContext.getResourceManager().getAbsolutePath(new Path(node.attributes.src));
+	const path = context.parserContext.getResourceManager().getAbsolutePath(new Path(node.attributes.src));
 	const diagramRef = context.parserContext.fp.getItemRef(path);
 	await diagram.addDiagram(
 		diagramRef,
 		node.attributes.tags,
-		defaultLanguage,
+		resolveLanguage(),
 		context.parserContext.getResourceManager().rootPath,
 	);
 

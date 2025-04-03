@@ -1,45 +1,36 @@
-import Path from "@core/FileProvider/Path/Path";
-import FileProvider from "@core/FileProvider/model/FileProvider";
-import { Article } from "@core/FileStructue/Article/Article";
+import ArticleProvider, { ArticleID } from "@core/FileStructue/Article/ArticleProvider";
 import { Catalog } from "@core/FileStructue/Catalog/Catalog";
-import FileStructure from "@core/FileStructue/FileStructure";
 import SitePresenter from "@core/SitePresenter/SitePresenter";
-import MarkdownParser from "@ext/markdown/core/Parser/Parser";
-import MarkdownFormatter from "@ext/markdown/core/edit/logic/Formatter/Formatter";
-import { Tag } from "@ext/markdown/core/render/logic/Markdoc";
 import SnippetEditorProps from "@ext/markdown/elements/snippet/edit/model/SnippetEditorProps.schema";
-import SnippetEditData from "@ext/markdown/elements/snippet/model/SnippetEditData";
-import SnippetRenderData from "@ext/markdown/elements/snippet/model/SnippetRenderData";
+import FileProvider from "@core/FileProvider/model/FileProvider";
+import MarkdownParser from "@ext/markdown/core/Parser/Parser";
+import { Tag } from "@ext/markdown/core/render/logic/Markdoc";
+import FileStructure from "@core/FileStructue/FileStructure";
+import Path from "@core/FileProvider/Path/Path";
+import { SNIPPETS_DIRECTORY } from "@app/config/const";
+import { JSONContent } from "@tiptap/core";
+import MarkdownFormatter from "@ext/markdown/core/edit/logic/Formatter/Formatter";
+import ParserContextFactory from "@ext/markdown/core/Parser/ParserContext/ParserContextFactory";
+import Context from "@core/Context/Context";
+import { convertContentToUiLanguage } from "@ext/localization/locale/translate";
 
-const SNIPPETS_FOLDER = ".snippets";
+declare module "@core/FileStructue/Article/ArticleProvider" {
+	export enum ArticleProviders {
+		snippet = "snippet",
+	}
+}
 
-export default class SnippetProvider {
-	private _snippetsPath: Path;
-	private _snippetsArticles = new Map<string, Article>();
+export default class SnippetProvider extends ArticleProvider {
+	constructor(fp: FileProvider, fs: FileStructure, catalog: Catalog) {
+		super(fp, fs, catalog, new Path(SNIPPETS_DIRECTORY));
 
-	constructor(private _fp: FileProvider, private _fs: FileStructure, private _catalog: Catalog) {
-		this._snippetsPath = new Path([this._catalog.getRootCategoryPath().value, SNIPPETS_FOLDER]);
+		fs.events.on("catalog-read", async () => {
+			await this.readArticles(this._catalog.getRootCategoryDirectoryPath().join(new Path(".snippets")));
+			await this.readArticles();
+		});
 	}
 
-	async create(snippetData: SnippetEditData, formatter: MarkdownFormatter) {
-		return await this._setSnippet(snippetData, formatter);
-	}
-
-	async edit(oldSnippetId: string, snippetData: SnippetEditData, formatter: MarkdownFormatter) {
-		await this._setSnippet(snippetData, formatter);
-
-		// пока без переименований
-		// if (oldSnippetId !== snippetData.id) await this.remove(oldSnippetId);
-	}
-
-	async remove(id: string, sp: SitePresenter) {
-		const articlesWithSnippet = await this.getArticlesWithSnippet(id, sp);
-		this._snippetsArticles.delete(id);
-		await this._fp.delete(this._getSnippetPath(id));
-		for (const article of articlesWithSnippet) await article.parsedContent.write(() => null);
-	}
-
-	async getArticlesWithSnippet(snippetId: string, sp: SitePresenter) {
+	public async getArticlesWithSnippet(snippetId: string, sp: SitePresenter) {
 		await sp.parseAllItems(this._catalog);
 		const result = [];
 		for (const item of this._catalog.getContentItems()) {
@@ -51,73 +42,74 @@ export default class SnippetProvider {
 		return result;
 	}
 
-	async getEditData(id: string, parser: MarkdownParser): Promise<SnippetEditData> {
-		const article = await this._getSnippet(id);
-		if (await article.parsedContent.isNull())
-			await article.parsedContent.write(() => parser.parse(article.content));
+	public async getEditData(snippetId: string, parser: MarkdownParser) {
+		const snippet = this.getArticle(snippetId);
+		if (!snippet) return;
+		if (await snippet.parsedContent.isNull())
+			await snippet.parsedContent.write(() => parser.parse(snippet.content));
 
-		return await article.parsedContent.read((p) => {
-			return { id, title: article.getTitle(), content: p };
+		return await snippet.parsedContent.read((p) => {
+			return { id: snippetId, title: snippet.getTitle(), content: p.editTree };
 		});
 	}
 
-	async getRenderData(id: string, parser: MarkdownParser): Promise<SnippetRenderData> {
-		const article = await this._getSnippet(id);
-		if (await article.parsedContent.isNull())
-			await article.parsedContent.write(() => parser.parse(article.content));
+	public async getRenderData(snippetId: string, parser: MarkdownParser) {
+		const snippet = this.getArticle(snippetId);
+		if (!snippet) throw new Error("Snippet not found");
+		if (await snippet.parsedContent.isNull())
+			await snippet.parsedContent.write(() => parser.parse(snippet.content));
 
-		return await article.parsedContent.read((p) => {
-			return { id, title: article.getTitle(), content: (p.renderTree as Tag).children };
+		return await snippet.parsedContent.read((p) => {
+			return { id: snippetId, title: snippet.getTitle(), content: (p.renderTree as Tag).children };
 		});
 	}
 
-	async getListData() {
-		if (!(await this._fp.exists(this._snippetsPath))) return [];
-		const entries = (await this._fp.readdir(this._snippetsPath)).map((e) => new Path(e));
-		const data: SnippetEditorProps[] = [];
-		for (const entry of entries) {
-			const id = entry.name;
-			const snippet = await this._getSnippet(id);
-			data.push({ id, title: snippet.props.title });
-		}
+	public getListData() {
+		const data: SnippetEditorProps[] = Array.from(this.articles.values()).map((a) => ({
+			id: a.ref.path.name,
+			title: a.getTitle(),
+		}));
+
 		return data;
 	}
 
-	private async _setSnippet(snippetData: SnippetEditData, formatter: MarkdownFormatter) {
-		const snippetPath = this._getSnippetPath(snippetData.id);
-		const article = this._createArticle(snippetPath, snippetData.title);
-		await article.updateContent(await formatter.render(snippetData.content));
-		this._snippetsArticles.set(snippetData.id, article);
-	}
+	override async updateContent(
+		id: ArticleID,
+		editTree: JSONContent,
+		formatter: MarkdownFormatter,
+		parserContextFactory: ParserContextFactory,
+		parser: MarkdownParser,
+		ctx: Context,
+	) {
+		const article = this.getArticle(id);
+		if (!article) return;
 
-	private async _getSnippet(id: string) {
-		if (this._snippetsArticles.has(id)) return this._snippetsArticles.get(id);
-		const path = this._getSnippetPath(id);
+		if (article.ref.path.value.includes(".snippets")) {
+			await this.remove(id);
+			await this._fp.delete(article.ref.path);
 
-		if (await this._fp.exists(path)) {
-			const { props, content } = this._fs.parseMarkdown(await this._fp.read(path), path);
-			const lastModified = (await this._fp.getStat(path)).mtimeMs;
-			const article = this._createArticle(path, props.title, lastModified, content);
-			this._snippetsArticles.set(id, article);
-		} else {
-			this._snippetsArticles.set(id, null);
+			await this.create(
+				article.ref.path.name,
+				editTree,
+				formatter,
+				parserContextFactory,
+				parser,
+				ctx,
+				article.props,
+			);
+
+			return;
 		}
-		return this._snippetsArticles.get(id);
-	}
 
-	private _getSnippetPath(id: string): Path {
-		return this._snippetsPath.join(new Path(`${id}.md`));
-	}
+		const context = parserContextFactory.fromArticle(
+			article,
+			this._catalog,
+			convertContentToUiLanguage(ctx.contentLanguage || this._catalog.props.language),
+			ctx.user.isLogged,
+		);
 
-	private _createArticle(path: Path, title: string, lastModified: number = new Date().getTime(), content?: string) {
-		return new Article({
-			ref: this._fs.getItemRef(path),
-			parent: null,
-			props: { title },
-			content: content ?? "",
-			logicPath: null,
-			fs: this._fs,
-			lastModified,
-		});
+		const markdown = await formatter.render(editTree, context);
+		await article.updateContent(markdown);
+		await article.parsedContent.write(() => parser.parse(article.content, context));
 	}
 }

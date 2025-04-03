@@ -43,6 +43,7 @@ const addWorkspace: Command<{ ctx: Context; token: string }, UserSettings> = Com
 		const workspace: ClientWorkspaceConfig = {
 			...userSettings.workspace,
 			path: wm.defaultPath().parentDirectoryPath.join(new Path(userSettings.workspace.name)).toString(),
+			isEnterprise: true,
 		};
 		delete (workspace as any).style;
 

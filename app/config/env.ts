@@ -17,6 +17,7 @@ export type EnvironmentVariable = {
 
 	// AutoPull
 	AUTO_PULL_TOKEN: string;
+	AUTO_PULL_USERNAME: string;
 	AUTO_PULL_INTERVAL: number;
 
 	// FileProvider
@@ -26,6 +27,7 @@ export type EnvironmentVariable = {
 	GRAMAX_DEFAULT_WORKSPACE_PATH: string;
 
 	// Other
+	DEFAULT_UI_LANGUAGE: string;
 	SHARE_ACCESS_TOKEN: string;
 	DOC_READER_MAIL: string;
 	DOC_READER_MAIL_PASSWORD: string;
@@ -72,6 +74,10 @@ export type EnvironmentVariable = {
 	LOGO_IMAGE_URL: string;
 	LOGO_LINK_URL: string;
 	LOGO_LINK_TITLE: string;
+
+	// Search
+	SEARCH_VECTOR_API_URL: string;
+	SEARCH_VECTOR_COLLECTION_NAME: string;
 };
 
 export const defaultVariables: Partial<EnvironmentVariable> = {

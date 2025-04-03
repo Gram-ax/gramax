@@ -8,6 +8,7 @@ import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import ModalToOpenService from "@core-ui/ContextServices/ModalToOpenService/ModalToOpenService";
 import ModalToOpen from "@core-ui/ContextServices/ModalToOpenService/model/ModalsToOpen";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
+import styled from "@emotion/styled";
 import BranchUpdaterService from "@ext/git/actions/Branch/BranchUpdaterService/logic/BranchUpdaterService";
 import { MergeRequestStatus } from "@ext/git/core/GitMergeRequest/components/Elements/Status";
 import { MergeRequestConfirmProps } from "@ext/git/core/GitMergeRequest/components/MergeRequestConfirm";
@@ -35,6 +36,18 @@ const useIsMergeAvailable = ({ mergeRequest, status, hasConflicts }: MergeButton
 
 	return { disabled: false, reason: null };
 };
+
+const MergeButtonWrapper = styled.div`
+	i > svg {
+		fill: var(--color-text-accent);
+	}
+
+	&:hover {
+		i > svg {
+			fill: white;
+		}
+	}
+`;
 
 const MergeButton = ({ mergeRequest, status }: MergeButtonProps) => {
 	const apiUrlCreator = ApiUrlCreatorService.value;
@@ -69,7 +82,7 @@ const MergeButton = ({ mergeRequest, status }: MergeButtonProps) => {
 	}, [apiUrlCreator, mergeRequest]);
 
 	const button = (
-		<div>
+		<MergeButtonWrapper>
 			<Button
 				isEmUnits
 				textSize={TextSize.M}
@@ -81,7 +94,7 @@ const MergeButton = ({ mergeRequest, status }: MergeButtonProps) => {
 				<Icon code="git-merge2" />
 				<span>{t("git.merge.branches")}</span>
 			</Button>
-		</div>
+		</MergeButtonWrapper>
 	);
 
 	return disabled ? <Tooltip content={reason}>{button}</Tooltip> : button;

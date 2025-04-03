@@ -55,10 +55,7 @@ fn clone(sandbox: TempDir, #[case] url: &str) -> Result {
 
   let repo = Repo::open(sandbox.path(), TestCreds)?;
 
-  assert!(repo.has_remotes()?);
-
-  assert_eq!(repo.default_branch()?.unwrap().name(), Ok(Some("master")));
-
+  assert!(!repo.has_remotes()?);
   Ok(())
 }
 

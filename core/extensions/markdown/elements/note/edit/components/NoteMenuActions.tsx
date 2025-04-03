@@ -31,7 +31,8 @@ const NoteMenuActions = (props: NoteMenuActionsProps) => {
 	const toggleCollapse = () => {
 		const collapsed = !node.attrs.collapsed;
 		const curTitle = node.attrs.title;
-		const title = collapsed && !curTitle ? t("more") : curTitle;
+		const title = !curTitle ? t("more") : curTitle;
+		if (titleRef.current) titleRef.current.value = title || "";
 		updateAttributes({ collapsed, title: title || "" });
 		setShowHeadEditor(true);
 	};
@@ -42,8 +43,12 @@ const NoteMenuActions = (props: NoteMenuActionsProps) => {
 		const bValue = !showHeadEditor && !hasDataBlur;
 
 		if (node.attrs.collapsed) {
-			updateAttributes({ collapsed: false, title: "" });
-			setShowHeadEditor(false);
+			const curTitle = node.attrs.title;
+			const newTitle = !curTitle ? t("more") : curTitle;
+
+			updateAttributes({ title: newTitle || "" });
+
+			title.value = newTitle || "";
 		} else if (!title?.value.length && hasDataBlur) {
 			updateAttributes({ title: "" });
 			setShowHeadEditor(false);

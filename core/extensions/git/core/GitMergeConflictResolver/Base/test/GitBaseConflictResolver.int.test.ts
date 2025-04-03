@@ -13,6 +13,7 @@ import DiskFileProvider from "../../../../../../logic/FileProvider/DiskFileProvi
 import Path from "../../../../../../logic/FileProvider/Path/Path";
 import GitVersionControl from "../../../GitVersionControl/GitVersionControl";
 import GitBaseConflictResolver from "../GitBaseConflictResolver";
+import type GitSourceData from "@ext/git/core/model/GitSourceData.schema";
 
 const mockUserData: SourceData = {
 	sourceType: SourceType.gitHub,
@@ -95,7 +96,7 @@ describe("GitBaseConflictResolver", () => {
 		expect(await dfp.read(repPath("1.txt"))).toEqual(CONFLICT_CONTENT);
 
 		await expect(
-			resolver.resolveConflictedFiles(resolvedMergeFiles, mockState, mockUserData),
+			resolver.resolveConflictedFiles(resolvedMergeFiles, mockState, mockUserData as GitSourceData),
 		).resolves.toBeUndefined();
 		expect(await dfp.read(repPath("1.txt"))).toBe("conflict content ours and theirs :)");
 	});

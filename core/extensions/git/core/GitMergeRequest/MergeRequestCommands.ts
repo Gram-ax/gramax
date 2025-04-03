@@ -5,8 +5,8 @@ import { MergeRequestErrorCode } from "@ext/git/core/GitMergeRequest/errors/getM
 import LibGit2MergeRequestCommands from "@ext/git/core/GitMergeRequest/LibGit2MergeRequestCommands";
 import type { CreateMergeRequest, MergeRequest } from "@ext/git/core/GitMergeRequest/model/MergeRequest";
 import type { MergeRequestCommandsModel } from "@ext/git/core/GitMergeRequest/model/MergeRequestCommandsModel";
+import type GitSourceData from "@ext/git/core/model/GitSourceData.schema";
 import type Repository from "@ext/git/core/Repository/Repository";
-import type SourceData from "@ext/storage/logic/SourceDataProvider/model/SourceData";
 import assert from "assert";
 
 export default class MergeRequestProvider {
@@ -48,7 +48,7 @@ export default class MergeRequestProvider {
 		return !mr && !!draft;
 	}
 
-	async create(data: SourceData, mergeRequest: CreateMergeRequest): Promise<void> {
+	async create(data: GitSourceData, mergeRequest: CreateMergeRequest): Promise<void> {
 		assert(data, "data is required");
 		assert(mergeRequest, "mergeRequest is required to create merge request");
 
@@ -61,7 +61,7 @@ export default class MergeRequestProvider {
 		return this._mergeRequests.createOrUpdate(data, mergeRequest);
 	}
 
-	async setApproval(data: SourceData, approve: boolean) {
+	async setApproval(data: GitSourceData, approve: boolean) {
 		const mergeRequest = await this._findDraftOrFirstBySource(await this._getSourceRef());
 
 		assert(mergeRequest, "merge request is required to set approval");
@@ -71,7 +71,7 @@ export default class MergeRequestProvider {
 
 		approver.approvedAt = approve ? new Date() : null;
 
-		await this._mergeRequests.createOrUpdate(data, {
+		  await this._mergeRequests.createOrUpdate(data, {
 			targetBranchRef: mergeRequest.targetBranchRef,
 			title: mergeRequest.title,
 			description: mergeRequest.description,
@@ -98,7 +98,7 @@ export default class MergeRequestProvider {
 		return { archiveFileName: filename };
 	}
 
-	async afterSync(prev: MergeRequest, data: SourceData) {
+	async afterSync(prev: MergeRequest, data: GitSourceData) {
 		if (!prev) return;
 		if (prev.creator.email === data.userEmail) return;
 		if (!prev.approvers || !prev.approvers?.find((a) => a.email === data.userEmail)) return;

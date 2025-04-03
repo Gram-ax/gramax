@@ -9,6 +9,9 @@ import { useMediaQuery } from "@mui/material";
 import { ArticlePageData } from "../../../../logic/SitePresenter/SitePresenter";
 import TopBarContent from "../../../ArticlePage/Bars/TopBarContent";
 import BarLayout from "../../BarLayout";
+import { useState } from "react";
+import { LeftNavigationTab } from "@components/Layouts/StatusBar/Extensions/ArticleStatusBar/ArticleStatusBar";
+import InboxTab from "@ext/inbox/components/InboxTab";
 
 const TopBarContentWrapper = styled.div<{ isMacDesktop: boolean }>`
 	padding-top: ${(p) => (p.isMacDesktop ? "1.3rem" : "0")};
@@ -21,6 +24,7 @@ const TopBarContentWrapper = styled.div<{ isMacDesktop: boolean }>`
 const LeftNavigationTop = ({ data, className }: { data: ArticlePageData; className?: string }) => {
 	const leftNavIsOpen = SidebarsIsOpenService.value.left;
 	const narrowMedia = useMediaQuery(cssMedia.narrow);
+	const [currentTab, setCurrentTab] = useState<LeftNavigationTab>(LeftNavigationTab.None);
 
 	const isMacDesktop = IsMacService.value && getExecutingEnvironment() == "tauri";
 
@@ -30,25 +34,33 @@ const LeftNavigationTop = ({ data, className }: { data: ArticlePageData; classNa
 	};
 
 	return (
-		<BarLayout
-			className={className}
-			padding={getPadding()}
-			gap={narrowMedia ? "14px" : 0}
-			height={isMacDesktop ? null : "var(--top-bar-height)"}
-		>
-			<TopBarContentWrapper isMacDesktop={isMacDesktop}>
-				{narrowMedia && (
-					<ButtonLink
-						textSize={TextSize.L}
-						iconCode={leftNavIsOpen ? "arrow-left-from-line" : "arrow-right-from-line"}
-						onClick={() => {
-							SidebarsIsOpenService.value = { left: !leftNavIsOpen };
-						}}
+		<>
+			<BarLayout
+				className={className}
+				padding={getPadding()}
+				gap={narrowMedia ? "14px" : 0}
+				height={isMacDesktop ? null : "var(--top-bar-height)"}
+			>
+				<TopBarContentWrapper isMacDesktop={isMacDesktop}>
+					{narrowMedia && (
+						<ButtonLink
+							textSize={TextSize.L}
+							iconCode={leftNavIsOpen ? "arrow-left-from-line" : "arrow-right-from-line"}
+							onClick={() => {
+								SidebarsIsOpenService.value = { left: !leftNavIsOpen };
+							}}
+						/>
+					)}
+					<TopBarContent
+						isMacDesktop={isMacDesktop}
+						currentTab={currentTab}
+						setCurrentTab={setCurrentTab}
+						data={data}
 					/>
-				)}
-				<TopBarContent data={data} />
-			</TopBarContentWrapper>
-		</BarLayout>
+				</TopBarContentWrapper>
+			</BarLayout>
+			<InboxTab show={currentTab === LeftNavigationTab.Inbox} />
+		</>
 	);
 };
 

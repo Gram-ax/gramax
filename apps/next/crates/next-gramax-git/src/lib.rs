@@ -6,9 +6,10 @@ use serde::Serialize;
 use gramaxgit::commands as git;
 use gramaxgit::prelude::*;
 
+use napi_async_macro::napi_async;
+
 use clone::*;
 
-use napi::bindgen_prelude::AsyncTask;
 use napi::bindgen_prelude::Buffer;
 use napi::Error;
 use napi::JsFunction;
@@ -73,6 +74,7 @@ pub enum TreeReadScopeObjectType {
 }
 
 #[napi(object, use_nullable = true)]
+#[derive(Clone)]
 pub struct TreeReadScope {
   pub object_type: TreeReadScopeObjectType,
   pub reference: Option<String>,
@@ -103,19 +105,19 @@ impl From<AccessTokenCreds> for gramaxgit::creds::AccessTokenCreds {
   }
 }
 
-#[napi(js_name = "is_init")]
+#[napi_async]
 pub fn is_init(repo_path: String) -> Output {
-  git::is_init(Path::new(&repo_path)).json()
+  git::is_init(Path::new(&repo_path))
 }
 
-#[napi(js_name = "is_bare")]
+#[napi_async]
 pub fn is_bare(repo_path: String) -> Output {
-  git::is_bare(Path::new(&repo_path)).json()
+  git::is_bare(Path::new(&repo_path))
 }
 
-#[napi(js_name = "init_new")]
+#[napi_async]
 pub fn init_new(path: String, creds: AccessTokenCreds) -> Output {
-  git::init_new(Path::new(&path), creds.into()).json()
+  git::init_new(Path::new(&path), creds.into())
 }
 
 #[napi]
@@ -123,7 +125,7 @@ pub fn clone(
   creds: AccessTokenCreds,
   opts: RawCloneOptions,
   callback: JsFunction,
-) -> Result<AsyncTask<CloneTask>, napi::Error> {
+) -> Result<napi::bindgen_prelude::AsyncTask<CloneTask>, napi::Error> {
   CloneTask::create_task(creds, opts, callback)
 }
 
@@ -132,37 +134,42 @@ pub fn clone_cancel(id: i32) -> Output {
   git::clone_cancel(id as usize).json()
 }
 
-#[napi]
+#[napi_async]
 pub fn status(repo_path: String, index: bool) -> Output {
-  git::status(Path::new(&repo_path), index).json()
+  git::status(Path::new(&repo_path), index)
 }
 
-#[napi(js_name = "status_file")]
+#[napi_async]
 pub fn status_file(repo_path: String, path: String) -> Output {
-  git::status_file(Path::new(&repo_path), Path::new(&path)).json()
+  git::status_file(Path::new(&repo_path), Path::new(&path))
 }
 
-#[napi(js_name = "default_branch")]
+#[napi_async]
+pub fn get_all_commit_authors(repo_path: String) -> Output {
+  git::get_all_commit_authors(Path::new(&repo_path))
+}
+
+#[napi_async]
 pub fn default_branch(repo_path: String, creds: AccessTokenCreds) -> Output {
-  git::default_branch(Path::new(&repo_path), creds.into()).json()
+  git::default_branch(Path::new(&repo_path), creds.into())
 }
 
-#[napi(js_name = "branch_list")]
+#[napi_async]
 pub fn branch_list(repo_path: String) -> Output {
-  git::branch_list(Path::new(&repo_path)).json()
+  git::branch_list(Path::new(&repo_path))
 }
 
-#[napi(js_name = "branch_info")]
+#[napi_async]
 pub fn branch_info(repo_path: String, name: Option<String>) -> Output {
-  git::branch_info(Path::new(&repo_path), name.as_deref()).json()
+  git::branch_info(Path::new(&repo_path), name.as_deref())
 }
 
-#[napi(js_name = "new_branch")]
+#[napi_async]
 pub fn new_branch(repo_path: String, name: String) -> Output {
-  git::new_branch(Path::new(&repo_path), &name).json()
+  git::new_branch(Path::new(&repo_path), &name)
 }
 
-#[napi(js_name = "delete_branch")]
+#[napi_async]
 pub fn delete_branch(
   repo_path: String,
   creds: Option<AccessTokenCreds>,
@@ -170,61 +177,61 @@ pub fn delete_branch(
   remote: bool,
 ) -> Output {
   let creds = creds.map(|c| c.into());
-  git::delete_branch(Path::new(&repo_path), &name, remote, creds).json()
+  git::delete_branch(Path::new(&repo_path), &name, remote, creds)
 }
 
-#[napi(js_name = "set_head")]
+#[napi_async]
 pub fn set_head(repo_path: String, refname: String) -> Output {
-  git::set_head(Path::new(&repo_path), &refname).json()
+  git::set_head(Path::new(&repo_path), &refname)
 }
 
-#[napi]
+#[napi_async]
 pub fn checkout(repo_path: String, branch: String, create: bool) -> Output {
-  git::checkout(Path::new(&repo_path), &branch, create).json()
+  git::checkout(Path::new(&repo_path), &branch, create)
 }
 
-#[napi(js_name = "add_remote")]
+#[napi_async]
 pub fn add_remote(repo_path: String, name: String, url: String) -> Output {
-  git::add_remote(Path::new(&repo_path), &name, &url).json()
+  git::add_remote(Path::new(&repo_path), &name, &url)
 }
 
-#[napi(js_name = "has_remotes")]
+#[napi_async]
 pub fn has_remotes(repo_path: String) -> Output {
-  git::has_remotes(Path::new(&repo_path)).json()
+  git::has_remotes(Path::new(&repo_path))
 }
 
-#[napi(js_name = "get_remote")]
+#[napi_async]
 pub fn get_remote(repo_path: String) -> Output {
-  git::get_remote(Path::new(&repo_path)).json()
+  git::get_remote(Path::new(&repo_path))
 }
 
-#[napi]
+#[napi_async]
 pub fn fetch(repo_path: String, creds: AccessTokenCreds, force: bool) -> Output {
-  git::fetch(Path::new(&repo_path), creds.into(), force).json()
+  git::fetch(Path::new(&repo_path), creds.into(), force)
 }
 
-#[napi]
+#[napi_async]
 pub fn push(repo_path: String, creds: AccessTokenCreds) -> Output {
-  git::push(Path::new(&repo_path), creds.into()).json()
+  git::push(Path::new(&repo_path), creds.clone().into())
 }
 
-#[napi(js_name = "file_history")]
+#[napi_async]
 pub fn file_history(repo_path: String, file_path: String, count: u32) -> Output {
-  git::file_history(Path::new(&repo_path), Path::new(&file_path), count as usize).json()
+  git::file_history(Path::new(&repo_path), Path::new(&file_path), count as usize)
 }
 
-#[napi]
-pub fn add(repo_path: String, paths: Vec<String>, force: bool) -> Output {
-  let paths: Vec<std::path::PathBuf> = paths.into_iter().map(std::path::PathBuf::from).collect();
-  git::add(Path::new(&repo_path), paths, force).json()
+#[napi_async]
+pub fn add(repo_path: String, paths: Vec<String>, force: bool) {
+  let paths: Vec<std::path::PathBuf> = paths.iter().map(std::path::PathBuf::from).collect();
+  git::add(Path::new(&repo_path), paths, force)
 }
 
-#[napi]
+#[napi_async]
 pub fn commit(repo_path: String, creds: AccessTokenCreds, opts: CommitOptions) -> Output {
-  git::commit(Path::new(&repo_path), creds.into(), opts.into()).json()
+  git::commit(Path::new(&repo_path), creds.into(), opts.into())
 }
 
-#[napi]
+#[napi_async]
 pub fn diff(opts: Input) -> Output {
   #[derive(serde::Deserialize)]
   #[serde(rename_all = "camelCase")]
@@ -234,102 +241,124 @@ pub fn diff(opts: Input) -> Output {
   }
 
   let opts = serde_json::from_str::<Options>(&opts).map_err(|e| Error::from_reason(e.to_string()))?;
-  git::diff(Path::new(&opts.repo_path), opts.opts).json()
+  git::diff(Path::new(&opts.repo_path), opts.opts)
 }
 
-#[napi]
+#[napi_async]
 pub fn restore(repo_path: String, staged: bool, paths: Vec<String>) -> Output {
   let paths: Vec<std::path::PathBuf> = paths.into_iter().map(std::path::PathBuf::from).collect();
-  git::restore(Path::new(&repo_path), staged, paths).json()
+  git::restore(Path::new(&repo_path), staged, paths)
 }
 
-#[napi(js_name = "reset_all")]
+#[napi_async]
 pub fn reset_all(repo_path: String, hard: bool, head: Option<String>) -> Output {
-  git::reset_all(Path::new(&repo_path), hard, head.as_deref()).json()
+  git::reset_all(Path::new(&repo_path), hard, head.as_deref())
 }
 
-#[napi]
+#[napi_async]
 pub fn stash(repo_path: String, creds: AccessTokenCreds, message: Option<String>) -> Output {
-  git::stash(Path::new(&repo_path), message.as_deref(), creds.into()).json()
+  git::stash(Path::new(&repo_path), message.as_deref(), creds.into())
 }
 
-#[napi(js_name = "stash_apply")]
+#[napi_async]
 pub fn stash_apply(repo_path: String, oid: String) -> Output {
-  git::stash_apply(Path::new(&repo_path), &oid).json()
+  git::stash_apply(Path::new(&repo_path), &oid)
 }
 
-#[napi(js_name = "stash_delete")]
+#[napi_async]
 pub fn stash_delete(repo_path: String, oid: String) -> Output {
-  git::stash_delete(Path::new(&repo_path), &oid).json()
+  git::stash_delete(Path::new(&repo_path), &oid)
 }
 
-#[napi]
+#[napi_async]
 pub fn merge(repo_path: String, creds: AccessTokenCreds, theirs: String) -> Output {
-  git::merge(Path::new(&repo_path), creds.into(), &theirs).json()
+  git::merge(Path::new(&repo_path), creds.into(), &theirs)
 }
 
-#[napi(js_name = "graph_head_upstream_files")]
+#[napi_async]
 pub fn graph_head_upstream_files(repo_path: String, search_in: String) -> Output {
-  git::graph_head_upstream_files(Path::new(&repo_path), Path::new(&search_in)).json()
+  git::graph_head_upstream_files(Path::new(&repo_path), Path::new(&search_in))
 }
 
-#[napi(js_name = "get_content")]
+#[napi_async]
 pub fn get_content(repo_path: String, path: String, oid: Option<String>) -> Output {
-  git::get_content(Path::new(&repo_path), Path::new(&path), oid.as_deref()).json()
+  git::get_content(Path::new(&repo_path), Path::new(&path), oid.as_deref())
 }
 
-#[napi(js_name = "get_parent")]
+#[napi_async]
 pub fn get_parent(repo_path: String, oid: String) -> Output {
-  git::get_parent(Path::new(&repo_path), &oid).json()
+  git::get_parent(Path::new(&repo_path), &oid)
 }
 
-#[napi(js_name = "git_read_dir")]
-pub fn read_dir(repo_path: String, scope: TreeReadScope, path: String) -> Output {
-  git::read_dir(Path::new(&repo_path), scope.into(), Path::new(&path)).json()
+#[napi_async]
+pub fn git_read_dir(repo_path: String, scope: TreeReadScope, path: String) -> Output {
+  git::read_dir(Path::new(&repo_path), scope.into(), Path::new(&path))
 }
 
-#[napi(js_name = "git_file_stat")]
-pub fn file_stat(repo_path: String, scope: TreeReadScope, path: String) -> Output {
-  git::file_stat(Path::new(&repo_path), scope.into(), Path::new(&path)).json()
+#[napi_async]
+pub fn git_file_stat(repo_path: String, scope: TreeReadScope, path: String) -> Output {
+  git::file_stat(Path::new(&repo_path), scope.into(), Path::new(&path))
 }
 
-#[napi(js_name = "git_file_exists")]
-pub fn file_exists(repo_path: String, scope: TreeReadScope, path: String) -> Output {
-  git::file_exists(Path::new(&repo_path), scope.into(), Path::new(&path)).json()
+#[napi_async]
+pub fn git_file_exists(repo_path: String, scope: TreeReadScope, path: String) -> Output {
+  git::file_exists(Path::new(&repo_path), scope.into(), Path::new(&path))
 }
 
-#[napi(js_name = "git_read_file")]
-pub fn read_file(repo_path: String, scope: TreeReadScope, path: String) -> Result<Buffer, Error> {
-  match git::read_file(Path::new(&repo_path), scope.into(), Path::new(&path)) {
-    Ok(content) => Ok(content.into()),
-    Err(err) => serde_json::to_string(&err)
-      .map_err(|e| Error::from_reason(e.to_string()))
-      .and_then(|e| Err(Error::from_reason(e))),
+pub struct ReadFileTask {
+  repo_path: String,
+  scope: TreeReadScope,
+  path: String,
+}
+
+impl napi::Task for ReadFileTask {
+  type Output = Vec<u8>;
+  type JsValue = Buffer;
+
+  fn compute(&mut self) -> Result<Self::Output, Error> {
+    match git::read_file(Path::new(&self.repo_path), self.scope.clone().into(), Path::new(&self.path)) {
+      Ok(content) => Ok(content),
+      Err(err) => serde_json::to_string(&err)
+        .map_err(|e| Error::from_reason(e.to_string()))
+        .and_then(|e| Err(Error::from_reason(e))),
+    }
+  }
+
+  fn resolve(&mut self, _: napi::Env, output: Self::Output) -> Result<Self::JsValue, Error> {
+    Ok(output.into())
+  }
+
+  fn reject(&mut self, _: napi::Env, error: Error) -> Result<Self::JsValue, Error> {
+    Err(error)
   }
 }
 
-#[napi(js_name = "git_read_dir_stats")]
-pub fn read_dir_stats(repo_path: String, scope: TreeReadScope, path: String) -> Output {
-  git::read_dir_stats(Path::new(&repo_path), scope.into(), Path::new(&path)).json()
+#[napi(js_name = "git_read_file")]
+pub fn git_read_file(
+  repo_path: String,
+  scope: TreeReadScope,
+  path: String,
+) -> Result<napi::bindgen_prelude::AsyncTask<ReadFileTask>, napi::Error> {
+  Ok(napi::bindgen_prelude::AsyncTask::new(ReadFileTask { repo_path, scope, path }))
 }
 
-#[napi(js_name = "list_merge_requests")]
+#[napi_async]
+pub fn git_read_dir_stats(repo_path: String, scope: TreeReadScope, path: String) -> Output {
+  git::read_dir_stats(Path::new(&repo_path), scope.into(), Path::new(&path))
+}
+
+#[napi_async]
 pub fn list_merge_requests(repo_path: String) -> Output {
-  git::list_merge_requests(Path::new(&repo_path)).json()
+  git::list_merge_requests(Path::new(&repo_path))
 }
 
-#[napi(js_name = "find_refs_by_globs")]
+#[napi_async]
 pub fn find_refs_by_globs(repo_path: String, pattern: Vec<String>) -> Output {
-  git::find_refs_by_globs(Path::new(&repo_path), &pattern).json()
+  git::find_refs_by_globs(Path::new(&repo_path), &pattern)
 }
 
 #[napi(js_name = "reset_repo")]
 pub fn reset_repo() -> Result<bool, Error> {
   git::reset_repo();
   Ok(true)
-}
-
-#[napi(js_name = "get_all_commit_authors")]
-pub fn get_all_commit_authors(repo_path: String) -> Output {
-  git::get_all_commit_authors(Path::new(&repo_path)).json()
 }

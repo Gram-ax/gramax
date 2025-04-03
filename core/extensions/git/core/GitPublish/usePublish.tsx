@@ -42,7 +42,7 @@ const usePublish = ({ diffTree, selectedFiles, onPublished }: UsePublishProps): 
 
 		if (res.ok) onPublished?.();
 
-		BranchUpdaterService.updateBranch(apiUrlCreator, OnBranchUpdateCaller.Init);
+		BranchUpdaterService.updateBranch(apiUrlCreator, OnBranchUpdateCaller.Publish);
 		return res.ok;
 	}, [apiUrlCreator, diffTree, message, messageFallback, selectedFiles]);
 

@@ -36,7 +36,9 @@ const SnippetsButton = ({ editor, onClose }: SnippetsButtonProps) => {
 	};
 
 	const createSnippet = async (snippetData: SnippetEditData) => {
-		await FetchService.fetch(apiUrlCreator.createSnippet(), JSON.stringify(snippetData), MimeTypes.json);
+		const body = JSON.stringify({ props: { title: snippetData.title }, content: snippetData.content });
+
+		await FetchService.fetch(apiUrlCreator.createFileInGramaxDir(snippetData.id, "snippet"), body, MimeTypes.json);
 
 		const res = await FetchService.fetch<SnippetRenderData>(apiUrlCreator.getSnippetRenderData(snippetData.id));
 		if (!res.ok) return;

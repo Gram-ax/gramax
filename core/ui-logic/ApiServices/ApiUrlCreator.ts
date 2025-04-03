@@ -1,5 +1,6 @@
 import { getExecutingEnvironment } from "@app/resolveModule/env";
 import { Router } from "@core/Api/Router";
+import { ArticleProviderType } from "@core/FileStructue/Article/ArticleProvider";
 import CustomArticle from "@core/SitePresenter/customArticles/model/CustomArticle";
 import DiagramType from "@core/components/Diagram/DiagramType";
 import Theme from "@ext/Theme/Theme";
@@ -83,6 +84,10 @@ export default class ApiUrlCreator {
 
 	public setSourceData() {
 		return Url.fromBasePath(`/api/storage/setSourceData`, this._basePath);
+	}
+
+	public getSourceDataUsage(sourceName: string) {
+		return Url.fromBasePath(`/api/storage/getSourceDataUsage`, this._basePath, { sourceName });
 	}
 
 	public removeSourceData(sourceName: string) {
@@ -736,28 +741,10 @@ export default class ApiUrlCreator {
 		});
 	}
 
-	public createSnippet() {
-		return Url.fromBasePath(`/api/elements/snippet/create`, this._basePath, { catalogName: this._catalogName });
-	}
-
-	public removeSnippet(snippetId: string) {
-		return Url.fromBasePath(`/api/elements/snippet/remove`, this._basePath, {
-			catalogName: this._catalogName,
-			snippetId,
-		});
-	}
-
 	public getArticlesWithSnippet(snippetId: string) {
 		return Url.fromBasePath(`/api/elements/snippet/getArticlesWithSnippet`, this._basePath, {
 			catalogName: this._catalogName,
 			snippetId,
-		});
-	}
-
-	public editSnippet(oldSnippetId: string) {
-		return Url.fromBasePath(`/api/elements/snippet/edit`, this._basePath, {
-			catalogName: this._catalogName,
-			oldSnippetId,
 		});
 	}
 
@@ -852,10 +839,61 @@ export default class ApiUrlCreator {
 		});
 	}
 
-	public getPageData(articlePath: string) {
+	public getPageData(path: string) {
 		return Url.fromBasePath(`api/page/getPageData`, this._basePath, {
 			catalogName: this._catalogName,
-			articlePath,
+			path,
+		});
+	}
+
+	public getInboxArticles() {
+		return Url.fromBasePath(`/api/inbox/get`, this._basePath, {
+			catalogName: this._catalogName,
+		});
+	}
+
+	public createInboxArticle() {
+		return Url.fromBasePath(`/api/inbox/create`, this._basePath, {
+			catalogName: this._catalogName,
+		});
+	}
+
+	public mergeInboxArticles(draggedLogicPath: string, droppedLogicPath: string) {
+		return Url.fromBasePath(`/api/inbox/merge`, this._basePath, {
+			catalogName: this._catalogName,
+			draggedLogicPath,
+			droppedLogicPath,
+		});
+	}
+
+	public createFileInGramaxDir(id: string, type: ArticleProviderType) {
+		return Url.fromBasePath(`/api/article/provider/create`, this._basePath, {
+			id,
+			type,
+			catalogName: this._catalogName,
+		});
+	}
+
+	public updateFileInGramaxDir(id: string, type: ArticleProviderType) {
+		return Url.fromBasePath(`/api/article/provider/update`, this._basePath, {
+			id,
+			type,
+			catalogName: this._catalogName,
+		});
+	}
+
+	public removeFileInGramaxDir(id: string, type: ArticleProviderType) {
+		return Url.fromBasePath(`/api/article/provider/remove`, this._basePath, {
+			id,
+			type,
+			catalogName: this._catalogName,
+		});
+	}
+
+	public setSourceState(storageName: string, isValid: boolean) {
+		return Url.fromBasePath(`/api/storage/setSourceState`, this._basePath, {
+			storageName,
+			isValid: isValid.toString(),
 		});
 	}
 }

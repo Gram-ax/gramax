@@ -26,6 +26,7 @@ describe("DiskFileProvider", () => {
 			expect(res).toEqual(true);
 		});
 	});
+
 	describe("удаляет", () => {
 		test("файл", async () => {
 			fs.mkdirSync(rootPath + "/folder");
@@ -45,6 +46,7 @@ describe("DiskFileProvider", () => {
 			expect(res).toEqual(false);
 		});
 	});
+
 	describe("перемещает", () => {
 		test("файл", async () => {
 			fs.mkdirSync(rootPath + "/folder");

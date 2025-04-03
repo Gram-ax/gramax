@@ -1,0 +1,330 @@
+{
+    "type": "doc",
+    "content": [
+        {
+            "type": "paragraph",
+            "content": [
+                {
+                    "type": "text",
+                    "text": "Поддерживается развёртывание на собственном сервере в Docker от версии 20.10."
+                }
+            ]
+        },
+        {
+            "type": "orderedList",
+            "attrs": {
+                "order": 1,
+                "tight": false
+            },
+            "content": [
+                {
+                    "type": "list_item",
+                    "content": [
+                        {
+                            "type": "paragraph",
+                            "content": [
+                                {
+                                    "type": "text",
+                                    "text": "Скачайте готовый файл командой "
+                                },
+                                {
+                                    "type": "text",
+                                    "marks": [
+                                        {
+                                            "type": "code"
+                                        }
+                                    ],
+                                    "text": "curl -LO https://gram.ax/docker-compose.yaml"
+                                },
+                                {
+                                    "type": "text",
+                                    "text": "."
+                                }
+                            ]
+                        },
+                        {
+                            "type": "note",
+                            "attrs": {
+                                "title": "docker-compose.yaml",
+                                "type": "hotfixes",
+                                "collapsed": true
+                            },
+                            "content": [
+                                {
+                                    "type": "code_block",
+                                    "attrs": {
+                                        "language": "yaml"
+                                    },
+                                    "content": [
+                                        {
+                                            "type": "text",
+                                            "text": "services:\n  gramax:\n    image: docker.io/gramax/gramax:latest\n    container_name: gramax\n    restart: unless-stopped\n    ports:\n      - ${PORT:-80}:${PORT:-80}\n    environment:\n      - PORT=${PORT:-80}\n      - ADMIN_LOGIN=${ADMIN_LOGIN:-admin}\n      - ADMIN_PASSWORD=${ADMIN_PASSWORD:-password}\n      - AUTO_PULL_TOKEN=${AUTO_PULL_TOKEN:-}\n      - AUTO_PULL_INTERVAL=${AUTO_PULL_INTERVAL:-}\n    volumes:\n      - ${ROOT_PATH:-./gramax}:/app/data"
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "list_item",
+                    "content": [
+                        {
+                            "type": "paragraph",
+                            "content": [
+                                {
+                                    "type": "text",
+                                    "text": "Задайте переменные среды:"
+                                }
+                            ]
+                        },
+                        {
+                            "type": "orderedList",
+                            "attrs": {
+                                "order": 1,
+                                "tight": false
+                            },
+                            "content": [
+                                {
+                                    "type": "list_item",
+                                    "content": [
+                                        {
+                                            "type": "paragraph",
+                                            "content": [
+                                                {
+                                                    "type": "text",
+                                                    "marks": [
+                                                        {
+                                                            "type": "code"
+                                                        }
+                                                    ],
+                                                    "text": "ROOT_PATH"
+                                                },
+                                                {
+                                                    "type": "text",
+                                                    "text": " — путь до папки, в которую будут склонированы каталоги. Если не указан, создается папка с названием "
+                                                },
+                                                {
+                                                    "type": "text",
+                                                    "marks": [
+                                                        {
+                                                            "type": "code"
+                                                        }
+                                                    ],
+                                                    "text": "gramax"
+                                                },
+                                                {
+                                                    "type": "text",
+                                                    "text": "."
+                                                }
+                                            ]
+                                        }
+                                    ]
+                                },
+                                {
+                                    "type": "list_item",
+                                    "content": [
+                                        {
+                                            "type": "paragraph",
+                                            "content": [
+                                                {
+                                                    "type": "text",
+                                                    "marks": [
+                                                        {
+                                                            "type": "code"
+                                                        }
+                                                    ],
+                                                    "text": "ADMIN_LOGIN"
+                                                },
+                                                {
+                                                    "type": "text",
+                                                    "text": " — логин администратора. Если не указан, используется "
+                                                },
+                                                {
+                                                    "type": "text",
+                                                    "marks": [
+                                                        {
+                                                            "type": "code"
+                                                        }
+                                                    ],
+                                                    "text": "admin"
+                                                },
+                                                {
+                                                    "type": "text",
+                                                    "text": "."
+                                                }
+                                            ]
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "heading",
+            "attrs": {
+                "level": 2,
+                "id": null,
+                "isCustomId": false
+            },
+            "content": [
+                {
+                    "type": "text",
+                    "text": "Команды управления"
+                }
+            ]
+        },
+        {
+            "type": "bulletList",
+            "attrs": {
+                "tight": false
+            },
+            "content": [
+                {
+                    "type": "list_item",
+                    "content": [
+                        {
+                            "type": "paragraph",
+                            "content": [
+                                {
+                                    "type": "text",
+                                    "text": "Для запуска выполните команду "
+                                },
+                                {
+                                    "type": "text",
+                                    "marks": [
+                                        {
+                                            "type": "code"
+                                        }
+                                    ],
+                                    "text": "docker compose up"
+                                },
+                                {
+                                    "type": "text",
+                                    "text": "."
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "list_item",
+                    "content": [
+                        {
+                            "type": "paragraph",
+                            "content": [
+                                {
+                                    "type": "text",
+                                    "text": "Чтобы остановить контейнеры, используйте "
+                                },
+                                {
+                                    "type": "text",
+                                    "marks": [
+                                        {
+                                            "type": "code"
+                                        }
+                                    ],
+                                    "text": "docker compose down"
+                                },
+                                {
+                                    "type": "text",
+                                    "text": "."
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "list_item",
+                    "content": [
+                        {
+                            "type": "paragraph",
+                            "content": [
+                                {
+                                    "type": "text",
+                                    "text": "Для обновления остановите контейнеры и выполните "
+                                },
+                                {
+                                    "type": "text",
+                                    "marks": [
+                                        {
+                                            "type": "code"
+                                        }
+                                    ],
+                                    "text": "docker compose pull && docker compose up"
+                                },
+                                {
+                                    "type": "text",
+                                    "text": "."
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "note",
+            "attrs": {
+                "title": "Правила настройки",
+                "type": "quote",
+                "collapsed": true
+            },
+            "content": [
+                {
+                    "type": "bulletList",
+                    "attrs": {
+                        "tight": false
+                    },
+                    "content": [
+                        {
+                            "type": "list_item",
+                            "content": [
+                                {
+                                    "type": "paragraph",
+                                    "content": [
+                                        {
+                                            "type": "text",
+                                            "text": "Правило 1"
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "type": "list_item",
+                            "content": [
+                                {
+                                    "type": "paragraph",
+                                    "content": [
+                                        {
+                                            "type": "text",
+                                            "text": "Правило 2"
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "type": "list_item",
+                            "content": [
+                                {
+                                    "type": "paragraph",
+                                    "content": [
+                                        {
+                                            "type": "text",
+                                            "text": "Правило 3"
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}

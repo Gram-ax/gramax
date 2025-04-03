@@ -2,9 +2,8 @@ import useWatch from "@core-ui/hooks/useWatch";
 import t from "@ext/localization/locale/translate";
 import DragValue from "@ext/properties/components/Helpers/DragValue";
 import { DragItems } from "@ext/properties/models/kanban";
-import { useState, useCallback, useMemo } from "react";
+import { useState, useCallback } from "react";
 import { useDrop } from "react-dnd";
-import React from "react";
 
 interface ValueHandlerProps {
 	data: string[];
@@ -57,8 +56,10 @@ const ValueHandler = ({ data, onChange, isActions = true }: ValueHandlerProps) =
 		(id: number, atIndex: number) => {
 			const { value, index } = findValue(id);
 			const newValues = [...values];
+
 			newValues.splice(index, 1);
 			newValues.splice(atIndex, 0, value);
+
 			setValues(newValues);
 		},
 		[values, findValue],
@@ -90,27 +91,25 @@ const ValueHandler = ({ data, onChange, isActions = true }: ValueHandlerProps) =
 		[values],
 	);
 
-	const dragValues = useMemo(() => {
-		if (!values.length) return <div className="empty-state">{t("properties.no-values")}</div>;
-
-		return values?.map((value) => (
-			<DragValue
-				isActions={isActions}
-				key={value.text}
-				id={value.id}
-				text={value.text}
-				endDrag={endDrag}
-				moveValue={moveValue}
-				findValue={findValue}
-				updateValue={updateValue}
-				onDelete={deleteValue}
-			/>
-		));
-	}, [values.length]);
-
 	return (
 		<div ref={(ref) => void drop(ref)} className="value-handler">
-			{dragValues}
+			{values?.length ? (
+				values.map((value) => (
+					<DragValue
+						isActions={isActions}
+						key={value.id}
+						id={value.id}
+						text={value.text}
+						endDrag={endDrag}
+						moveValue={moveValue}
+						findValue={findValue}
+						updateValue={updateValue}
+						onDelete={deleteValue}
+					/>
+				))
+			) : (
+				<div className="empty-state">{t("properties.no-values")}</div>
+			)}
 		</div>
 	);
 };

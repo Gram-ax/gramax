@@ -7,14 +7,15 @@ interface ExportButtonProps {
 	iconCode: string;
 	text: string;
 	className?: string;
+	disabled?: boolean;
 }
 
 const ExportButton = forwardRef((props: ExportButtonProps, ref: Ref<HTMLDivElement>) => {
-	const { iconCode, text, className } = props;
+	const { iconCode, text, className, disabled } = props;
 	return (
 		<div className={`export-button ${className}`} ref={ref}>
-			<ButtonLink iconCode={iconCode} text={text} />
-			<Icon code="chevron-right" />
+			<ButtonLink disabled={disabled} iconCode={iconCode} text={text} />
+			{!disabled && <Icon code="chevron-right" />}
 		</div>
 	);
 });

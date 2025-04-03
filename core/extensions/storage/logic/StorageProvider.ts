@@ -1,9 +1,9 @@
+import { AppConfig } from "@app/config/AppConfig";
 import type FileStructure from "@core/FileStructue/FileStructure";
 import { XxHash } from "@core/Hash/Hasher";
 import ConfluenceStorage from "@ext/confluence/core/logic/ConfluenceStorage";
 import ConfluenceStorageData from "@ext/confluence/core/model/ConfluenceStorageData";
 import DefaultError from "@ext/errorHandlers/logic/DefaultError";
-import type GitError from "@ext/git/core/GitCommands/errors/GitError";
 import GitErrorCode from "@ext/git/core/GitCommands/errors/model/GitErrorCode";
 import type { CloneCancelToken, CloneProgress } from "@ext/git/core/GitCommands/model/GitCommandsModel";
 import t from "@ext/localization/locale/translate";
@@ -21,9 +21,7 @@ import GitStorageData from "../../git/core/model/GitStorageData";
 import StorageData from "../models/StorageData";
 import SourceType from "./SourceDataProvider/model/SourceType";
 import Storage from "./Storage";
-
 interface CloneData {
-	url?: string;
 	fs: FileStructure;
 	path: Path;
 	data: StorageData;
@@ -38,16 +36,16 @@ export default class StorageProvider {
 
 	constructor() {}
 
-	async getStorageByPath(path: Path, fp: FileProvider): Promise<Storage> {
-		if (await GitStorage.hasInit(fp, path)) return new GitStorage(path, fp);
+	async getStorageByPath(path: Path, fp: FileProvider, config: AppConfig): Promise<Storage> {
+		if (await GitStorage.hasInit(fp, path)) return new GitStorage(path, fp, config?.services.auth.url);
 		return null;
 	}
 
-	async initNewStorage(fp: FileProvider, path: Path, data: StorageData) {
+	async initNewStorage(fp: FileProvider, path: Path, data: StorageData, config: AppConfig) {
 		if (isGitSourceType(data.source.sourceType)) {
 			await GitStorage.init(path, fp, data as GitStorageData);
 		}
-		return await this.getStorageByPath(path, fp);
+		return await this.getStorageByPath(path, fp, config);
 	}
 
 	async cloneNewStorage(cloneData: CloneData) {
@@ -68,7 +66,7 @@ export default class StorageProvider {
 	}
 
 	private async _clone(cloneData: CloneData) {
-		const { fs, path, data, recursive, url, branch, isBare, onCloneFinish } = cloneData;
+		const { fs, path, data, recursive, branch, isBare, onCloneFinish } = cloneData;
 		try {
 			let isCancelled = false;
 			const pathStr = cloneData.path.toString();
@@ -87,12 +85,14 @@ export default class StorageProvider {
 						data: data as GitStorageData,
 						source: data.source as GitSourceData,
 						cancelToken,
-						url,
 						isBare,
 						onProgress: this._getOnProgress(path),
 					});
 				} catch (e) {
-					if ((e as GitError).props?.errorCode === GitErrorCode.CancelledOperation) {
+					if (
+						e.props?.errorCode === GitErrorCode.CancelledOperation ||
+						e.cause?.props?.errorCode === GitErrorCode.CancelledOperation
+					) {
 						isCancelled = true;
 					} else {
 						throw e;

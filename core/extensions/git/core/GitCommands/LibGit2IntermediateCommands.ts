@@ -1,4 +1,5 @@
 import call from "@app/resolveModule/gitcall";
+import AuthorInfoCodec from "@core-ui/utils/authorInfoCodec";
 import Path from "@core/FileProvider/Path/Path";
 import { VersionControlInfo } from "@ext/VersionControl/model/VersionControlInfo";
 import GitBranchData from "@ext/git/core/GitBranch/model/GitBranchData";
@@ -218,21 +219,13 @@ const intoGitBranchData = (data: any): GitBranchData & { lastCommitOid: string }
 const intoMergeRequest = (data: any): MergeRequest => {
 	return {
 		...data,
-		creator: intoAuthorInfo(data.creator),
+		creator: AuthorInfoCodec.deserialize(data.creator),
 		createdAt: timeFromUtc(data.createdAt),
 		updatedAt: timeFromUtc(data.updatedAt),
 		approvers: data.approvers.map((a: any) => ({
 			approvedAt: timeFromUtc(a.approvedAt),
-			...intoAuthorInfo(a.user),
+			...AuthorInfoCodec.deserialize(a.user),
 		})),
-	};
-};
-
-const intoAuthorInfo = (data: string) => {
-	if (!data) return;
-	return {
-		name: data.slice(0, data.indexOf("<")).trim(),
-		email: data.slice(data.indexOf("<") + 1, data.lastIndexOf(">")).trim(),
 	};
 };
 

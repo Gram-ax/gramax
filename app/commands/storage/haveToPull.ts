@@ -19,7 +19,7 @@ const haveToPull: Command<{ ctx: Context; shouldFetch: boolean; catalogName: str
 		const catalog = await workspace.getContextlessCatalog(catalogName);
 		const storage = catalog?.repo.storage;
 		if (!storage || catalog.repo.isBare) return false;
-		const data = rp.getSourceData(ctx.cookie, await storage.getSourceName());
+		const data = rp.getSourceData(ctx, await storage.getSourceName());
 		return catalog.repo.isShouldSync({
 			data,
 			shouldFetch,

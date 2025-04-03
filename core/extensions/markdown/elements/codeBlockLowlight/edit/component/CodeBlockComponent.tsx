@@ -14,11 +14,14 @@ export const useLowlightActions = (props: { language?: string; updateAttributes?
 	const internalLogic = async (lang: string) => {
 		const lowerLang = getLowerLangName(lang);
 		if (!lowerLang) {
-			return updateAttributes?.({ language: null });
+			return updateAttributes?.({ language: lang });
 		}
 
 		const langRegistered = checkLanguage(lowerLang);
-		if (langRegistered) return setIsRegistered(true);
+		if (langRegistered) {
+			updateAttributes?.({ language: lowerLang });
+			return setIsRegistered(true);
+		}
 
 		const res = await loadLanguage(lowerLang);
 		if (res && res.registered(lowerLang)) {
@@ -31,7 +34,9 @@ export const useLowlightActions = (props: { language?: string; updateAttributes?
 		void internalLogic(language);
 	}, [language]);
 
-	const onChange = (lang: string) => void internalLogic(lang);
+	const onChange = (lang: string) => {
+		void internalLogic(lang);
+	};
 
 	return { onChange, isRegistered };
 };

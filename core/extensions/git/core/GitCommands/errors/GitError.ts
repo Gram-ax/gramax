@@ -71,6 +71,6 @@ export default class GitError extends DefaultError {
 	}
 
 	private static _getCaller(caller: Caller, defaultError: any): Caller {
-		return caller ?? defaultError?.caller?.slice(4); // отрезаем "git."" если caller пришёл из ошибки
+		return caller ?? defaultError?.caller?.slice(4); // Remove "git." if caller came from error
 	}
 }

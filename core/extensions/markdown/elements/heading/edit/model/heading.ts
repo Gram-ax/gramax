@@ -110,32 +110,37 @@ const Heading = Node.create<HeadingOptions>({
 	},
 
 	addInputRules() {
-		return this.options.levels.filter((level) => level < 5).map((level) => {
-			return new InputRule({
-				find: new RegExp(`^(#{1,${level}})\\s$`),
-				handler: ({ state, range, match }) => {
-					const $start = state.doc.resolve(range.from);
-					const { actions, headingLevel } = getNodeNameFromCursor(state);
+		return this.options.levels
+			.filter((level) => level < 5)
+			.map((level) => {
+				return new InputRule({
+					find: new RegExp(`^(#{1,${level}})\\s$`),
+					handler: ({ state, range, match }) => {
+						const $start = state.doc.resolve(range.from);
+						const { actions, headingLevel } = getNodeNameFromCursor(state);
 
-					const { disabled } = getResultByActionData({
-						actions,
-						currentNode: { action: "heading", attrs: { level: headingLevel } },
-					});
+						const { disabled } = getResultByActionData({
+							actions,
+							currentNode: { action: "heading", attrs: { level: headingLevel } },
+							selection: state.selection,
+						});
 
-					if (disabled) {
-						return null;
-					}
+						if (disabled) {
+							return null;
+						}
 
-					const attributes = callOrReturn({ level }, undefined, match) || {};
+						const attributes = callOrReturn({ level }, undefined, match) || {};
 
-					if (!$start.node(-1).canReplaceWith($start.index(-1), $start.indexAfter(-1), this.type)) {
-						return null;
-					}
+						if (!$start.node(-1).canReplaceWith($start.index(-1), $start.indexAfter(-1), this.type)) {
+							return null;
+						}
 
-					state.tr.delete(range.from, range.to).setBlockType(range.from, range.from, this.type, attributes);
-				},
+						state.tr
+							.delete(range.from, range.to)
+							.setBlockType(range.from, range.from, this.type, attributes);
+					},
+				});
 			});
-		});
 	},
 
 	addProseMirrorPlugins() {

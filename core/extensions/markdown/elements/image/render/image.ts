@@ -29,6 +29,7 @@ export function image(context: ParserContext): Schema {
 				node.attributes.width,
 				node.attributes.height,
 			);
+
 			return new Tag(
 				"Image",
 				{

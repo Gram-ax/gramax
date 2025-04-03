@@ -106,7 +106,7 @@ export default class RevisionDiffItemCreator extends GitDiffItemCreator {
 						allResources.add(diffResource);
 
 						for (const diffItem of diffItems) {
-							// если ресурс удален, он может быть прикреплен только к удаленной статьи
+							// If resource is deleted, it can only be attached to deleted article
 							if (resource.status === FileStatus.delete && diffItem.status !== FileStatus.delete)
 								continue;
 
@@ -122,7 +122,7 @@ export default class RevisionDiffItemCreator extends GitDiffItemCreator {
 							}
 						}
 
-						// если ресурс удален и не прикреплен ни к одной удаленной статье, то оставляем как ресурс
+						// If resource is deleted and not attached to any deleted article, then leave as resource
 						if (!isResourceAssigned && resource.status !== FileStatus.delete) {
 							isResourceAssigned = true;
 

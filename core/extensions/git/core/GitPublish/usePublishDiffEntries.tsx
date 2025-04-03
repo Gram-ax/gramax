@@ -27,7 +27,7 @@ const usePublishDiffEntries = ({ autoUpdate }: { autoUpdate?: boolean }): UsePub
 
 	const overview = GitIndexService.getOverview();
 
-	// Пересоздаётся при смене каталога - например при открытии ссылки из браузера
+	// It is recreated when changing the catalog - for example, when opening a link from a browser
 	const request = useCallback(async () => {
 		const timeout = setTimeout(() => setIsEntriesLoading(true), 150);
 

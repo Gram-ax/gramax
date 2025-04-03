@@ -16,9 +16,9 @@ const EditMarkdown = ({ visible, children }: EditMarkdownProps) => {
 			visible={visible}
 			content={
 				<span>
-					{t("to-сhange-click")}
+					{t("click")}
 					<em>{" " + t("article.edit-markdown") + " "}</em>
-					{t("in-the-right-panel")}
+					{t("to-make-changes")}
 				</span>
 			}
 		>

@@ -142,6 +142,11 @@ const Healthcheck = styled(
 				align-items: center;
 				justify-content: space-between;
 			}
+
+			td:first-of-type,
+			th:first-of-type {
+				border-right: unset;
+			}
 		}
 	}
 
@@ -169,7 +174,7 @@ const Healthcheck = styled(
 		}
 
 		table {
-			padding: 0 0 0.5em 1.25em;
+			padding: 0 0 0.5em 1.8em;
 		}
 	}
 `;
@@ -261,10 +266,7 @@ const ResourceErrorComponent = ({
 									<td className="flex">
 										<div className="values-container">
 											{resourceError.values.map((link) => (
-												<p
-													className="value-item"
-													key={link}
-												>
+												<p className="value-item" key={link}>
 													{resourceError.isText ? <span>{link}</span> : <Code>{link}</Code>}
 												</p>
 											))}

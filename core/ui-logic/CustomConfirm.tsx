@@ -3,7 +3,7 @@ import { confirmAlert } from "react-confirm-alert";
 import Button from "../components/Atoms/Button/Button";
 import { ButtonStyle } from "../components/Atoms/Button/ButtonStyle";
 
-// понять, почему после закрытия конфирма, при клике на модальное окно, оно закрывается?
+// Figure out why after closing the confirm dialog, clicking on the modal window closes it?
 
 const customConfirm = (message: string, title?: string): Promise<boolean> => {
 	return new Promise((resolve) => {

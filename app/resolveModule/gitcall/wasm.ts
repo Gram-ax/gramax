@@ -25,6 +25,7 @@ export const callGitWasm = async <O>(command: string, args?): Promise<O> => {
 			`${message?.trim()}\nArgs: ${JSON.stringify(args, null, 4)}`,
 			data.res.class,
 			data.res.code,
+			command,
 		);
 	}
 	return data.res;

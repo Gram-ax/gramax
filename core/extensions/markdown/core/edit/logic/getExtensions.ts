@@ -94,13 +94,13 @@ const getExtensions = (): Extensions => [
 	TableKeyboardShortcuts,
 	CustomTable,
 
-	...getSimpleExtensions(),
+	...getSimpleExtensions(false),
 	Document.extend({
 		content: "paragraph block+",
 	}),
 ];
 
-export const getSimpleExtensions = (): Extensions => [
+export const getSimpleExtensions = (isSimple = true): Extensions => [
 	ColorHighlighter,
 	LineBreakers,
 	CopyMsO,
@@ -125,7 +125,7 @@ export const getSimpleExtensions = (): Extensions => [
 	customBulletList,
 	TaskList,
 	customTaskItem,
-	customListItem,
+	customListItem.configure({ simple: isSimple }),
 
 	Comment,
 ];

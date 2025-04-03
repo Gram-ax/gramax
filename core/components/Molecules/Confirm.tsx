@@ -8,12 +8,13 @@ export interface ConfirmProps {
 	className?: string;
 	closeConfirm?: () => void;
 	saveConfirm?: () => void;
+	forceCloseConfirm?: () => void;
 	text?: string;
 	title?: string;
 }
 
 const Confirm = (props: ConfirmProps) => {
-	const { className, text, title, closeConfirm, saveConfirm } = props;
+	const { className, text, title, forceCloseConfirm, closeConfirm, saveConfirm } = props;
 
 	return (
 		<div className={className}>
@@ -22,6 +23,7 @@ const Confirm = (props: ConfirmProps) => {
 					title={title}
 					icon={{ code: "circle-alert", color: "var(--color-warning)" }}
 					onCancelClick={closeConfirm}
+					secondButton={{ onClick: forceCloseConfirm, text: t("dont-save") }}
 					actionButton={{ onClick: saveConfirm, text: t("save") }}
 					closeButton={{ text: t("cancel") }}
 				>

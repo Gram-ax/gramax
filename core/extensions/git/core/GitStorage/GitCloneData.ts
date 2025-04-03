@@ -9,7 +9,6 @@ interface GitCloneData {
 	repositoryPath: Path;
 	source: GitSourceData;
 	cancelToken: CloneCancelToken;
-	url?: string;
 	branch?: string;
 	recursive?: boolean;
 	data?: GitStorageData;

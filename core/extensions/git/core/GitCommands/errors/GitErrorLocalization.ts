@@ -67,7 +67,12 @@ const gitErrorLocalization: GitErrorLocalization = {
 			case "resolveRef":
 				return { message: t("git.sync.error.local-changes-present") };
 			case "pull":
-				return { message: t("git.error.not-found.remote-branch").replace("{{what}}", props.error.data.what) };
+				if (props.error.data?.what) {
+					return {
+						message: t("git.error.not-found.remote-branch").replace("{{what}}", props.error.data.what),
+					};
+				}
+			// eslint-disable-next-line no-fallthrough
 			case "checkout":
 				const branch: string =
 					props.error?.props?.what ?? /reference '(.*)' not found/.exec(props.error.message)?.[1];

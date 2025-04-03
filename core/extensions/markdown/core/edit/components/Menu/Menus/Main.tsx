@@ -32,6 +32,8 @@ const MainMenu = styled(({ editor, className }: { editor?: Editor; className?: s
 		flex-wrap: wrap;
 	}
 
+	pointer-events: auto;
+
 	@media only screen and (max-width: 1163px) {
 		.hidden {
 			display: none;

@@ -66,7 +66,7 @@ Given("ждём {float} секунд(ы)(у)", { timeout: 1000000 }, async funct
 });
 
 When("смотрим на подсказку", async function (this: E2EWorld) {
-	await this.page().search().reset().scope(".tippy-content", "find");
+	await this.page().search().reset().scope(".tippy-content, .tooltip-content", "find");
 });
 
 When("смотрим на вложенную подсказку", async function (this: E2EWorld) {
@@ -271,4 +271,9 @@ Then(
 
 Then(/^((не )?ожидаем ошибку)$/, function (this: E2EWorld, negative: boolean) {
 	this.allowErrorModal = !negative;
+});
+
+Then(/^кнопка "([^"]*)" (не)?активна$/, async function (this: E2EWorld, name: string, negative: boolean) {
+	const elem = this.page().search().clickable(name);
+	negative ? await expect(elem).toHaveAttribute("data-qa-disabled") : await expect(elem).not.toHaveAttribute("data-qa-disabled");
 });

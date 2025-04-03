@@ -7,6 +7,8 @@ import { classNames } from "@components/libs/classNames";
 import getIsDevMode from "@core-ui/utils/getIsDevMode";
 import styled from "@emotion/styled";
 import t from "@ext/localization/locale/translate";
+import useIsSourceDataValid from "@ext/storage/components/useIsSourceDataValid";
+import InvalidSourceWarning from "@ext/storage/logic/SourceDataProvider/components/InvalidSourceWarning";
 import { forwardRef, MutableRefObject, useState } from "react";
 
 const NotificationWrapper = styled.div`
@@ -16,6 +18,9 @@ const NotificationWrapper = styled.div`
 	> div {
 		position: static !important;
 		font-size: 10px !important;
+		> div {
+			padding: 1px;
+		}
 	}
 `;
 
@@ -46,11 +51,13 @@ const Spinner = styled(SpinnerLoader)`
 const ButtonWrapper = styled.div<{ isDevMode: boolean }>`
 	display: flex;
 	justify-content: end;
+	align-items: center;
 	width: 100%;
 	margin-top: 1em;
 
-	> div {
+	> div:nth-child(1) {
 		${(p) => (p.isDevMode ? "max-width: fit-content;" : "width: 100%;")}
+		flex: 1;
 		&:hover {
 			.file-count-notification > div {
 				background: var(--color-btn-default-text-hover);
@@ -76,6 +83,8 @@ const CommitMsgUnstyled = (props: PublishActionProps, ref: MutableRefObject<HTML
 
 	const [isDevMode] = useState(() => getIsDevMode());
 
+	const canPush = useIsSourceDataValid();
+
 	return (
 		<div className={classNames(className, {}, ["commit-action"])}>
 			<Input
@@ -96,7 +105,7 @@ const CommitMsgUnstyled = (props: PublishActionProps, ref: MutableRefObject<HTML
 			<ButtonWrapper isDevMode={isDevMode}>
 				<Button
 					onClick={onPublishClick}
-					disabled={disablePublishButton}
+					disabled={disablePublishButton || !canPush}
 					fullWidth
 					textSize={TextSize.M}
 					isEmUnits
@@ -112,6 +121,7 @@ const CommitMsgUnstyled = (props: PublishActionProps, ref: MutableRefObject<HTML
 						)}
 					</ButtonContentWrapper>
 				</Button>
+				{!canPush && <InvalidSourceWarning />}
 			</ButtonWrapper>
 		</div>
 	);

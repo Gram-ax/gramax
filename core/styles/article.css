@@ -555,14 +555,10 @@ article a span.external-link-wrapper {
 	margin: 0;
 }
 
-.article table thead {
-	border-bottom: 1px solid var(--color-line);
-}
-
 .article table {
 	width: 100%;
 	max-width: 100%;
-	padding: 1em 1.5em;
+	padding: 1.25em 1.5em;
 	border-spacing: 0;
 	border-collapse: collapse;
 	display: block;
@@ -635,22 +631,28 @@ article a span.external-link-wrapper {
 	text-align: left;
 }
 
-.article table > tbody > tr > td:first-child,
-.article table > tbody > tr > th:first-child,
-.article table > tfoot > tr > td:first-child,
-.article table > tfoot > tr > th:first-child,
-.article table > thead > tr > td:first-child,
-.article table > thead > tr > th:first-child {
-	border-left: none;
+.article table > tbody > tr > td,
+.article table > tbody > tr > th,
+.article table > tfoot > tr > td,
+.article table > tfoot > tr > th,
+.article table > thead > tr > td,
+.article table > thead > tr > th {
+	border: 1px solid var(--color-table-border);
+	border-collapse: collapse;
 }
 
-.article table > tbody > tr > td:last-child,
-.article table > tbody > tr > th:last-child,
-.article table > tfoot > tr > td:last-child,
-.article table > tfoot > tr > th:last-child,
-.article table > thead > tr > td:last-child,
-.article table > thead > tr > th:last-child {
-	border-right: none;
+.article table > thead > tr > th,
+.article table > thead > tr > td {
+	border-bottom: unset;
+}
+
+.article table > tbody > tr:has(> td:hover),
+.article table > tbody > tr:has(> th:hover),
+.article table > tfoot > tr:has(> td:hover),
+.article table > tfoot > tr:has(> th:hover),
+.article table > thead > tr:has(> td:hover),
+.article table > thead > tr:has(> th:hover) {
+	background-color: var(--color-table-row-hover);
 }
 
 .article table > tbody > tr > td,
@@ -660,22 +662,19 @@ article a span.external-link-wrapper {
 .article table > thead > tr > td,
 .article table > thead > tr > th {
 	text-align: left;
+	padding: 0.5rem 1rem;
 	vertical-align: top !important;
-	padding: 12px;
-	border-right: 1px solid var(--color-line);
-	border-left: 1px solid var(--color-line);
-	border-top: none;
-	border-bottom: none;
 	word-break: break-word;
 	white-space: normal;
 }
 
-.article table > tbody > tr {
-	border-bottom: 1px solid var(--color-line);
-}
-
-.article table > tbody > tr:last-child {
-	border-bottom: none !important;
+.article table > tbody > tr > td:empty,
+.article table > tbody > tr > th:empty,
+.article table > tfoot > tr > td:empty,
+.article table > tfoot > tr > th:empty,
+.article table > thead > tr > td:empty,
+.article table > thead > tr > th:empty {
+	height: 3em;
 }
 
 .article code,

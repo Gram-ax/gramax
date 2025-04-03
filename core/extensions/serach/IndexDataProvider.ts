@@ -3,7 +3,7 @@ import { Article } from "@core/FileStructue/Article/Article";
 import { Catalog } from "@core/FileStructue/Catalog/Catalog";
 import type { CatalogFilesUpdated } from "@core/FileStructue/Catalog/CatalogEvents";
 import Cache from "@ext/Cache";
-import { defaultLanguage } from "@ext/localization/core/model/Language";
+import { resolveLanguage } from "@ext/localization/core/model/Language";
 import MarkdownParser from "@ext/markdown/core/Parser/Parser";
 import ParserContextFactory from "@ext/markdown/core/Parser/ParserContext/ParserContextFactory";
 import { IndexData } from "@ext/serach/IndexData";
@@ -98,7 +98,7 @@ export class IndexDataProvider {
 
 	private async _getArticleIndexData(catalog: Catalog, article: Article, forceParse = false): Promise<IndexData> {
 		try {
-			const context = this._parserContextFactory.fromArticle(article, catalog, defaultLanguage, true);
+			const context = this._parserContextFactory.fromArticle(article, catalog, resolveLanguage(), true);
 			const content = article.content ? article.content : "";
 
 			const html = await article.parsedContent.read(async (p) => {

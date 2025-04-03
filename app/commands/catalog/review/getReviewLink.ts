@@ -23,7 +23,7 @@ const getReviewLink: Command<
 
 		const catalog = await workspace.getContextlessCatalog(catalogName);
 		const storage = catalog.repo.storage;
-		const source = rp.getSourceData(ctx.cookie, await storage.getSourceName());
+		const source = rp.getSourceData(ctx, await storage.getSourceName());
 		const baseStorageData = await storage.getStorageData(source);
 		const body: StorageData & { branch: string; filePath: string } = {
 			...baseStorageData,

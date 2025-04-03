@@ -1,15 +1,16 @@
 use rust_i18n::locale;
-use tauri_plugin_dialog::MessageDialogButtons;
 use std::path::Path;
 use std::sync::OnceLock;
 use tauri::*;
 use tauri_plugin_dialog::DialogExt;
+use tauri_plugin_dialog::MessageDialogButtons;
 
 use std::collections::HashMap;
 
 use crate::http_req;
 use crate::http_server::oauth_listen_once;
 use crate::platform::commands::*;
+use crate::settings;
 
 pub fn generate_handler<R: Runtime>(builder: Builder<R>) -> Builder<R> {
   builder.invoke_handler(generate_handler![
@@ -23,6 +24,8 @@ pub fn generate_handler<R: Runtime>(builder: Builder<R>) -> Builder<R> {
     http_req::http_request,
     open_in_explorer,
     open_window_with_url,
+    settings::get_settings,
+    settings::set_settings,
     #[cfg(desktop)]
     set_language,
     #[cfg(desktop)]

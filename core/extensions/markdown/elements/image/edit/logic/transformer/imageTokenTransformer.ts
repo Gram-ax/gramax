@@ -1,9 +1,9 @@
 import TokenTransformerFunc from "@ext/markdown/core/edit/logic/Prosemirror/TokenTransformerFunc";
 
-const imageTokenTransformer: TokenTransformerFunc = ({ token, transformer }) => {
-	if (token.tag == "image") {
-		const attrs = token.attrs;
-		return transformer.getParagraphTokens(null, [{ type: token.tag, tag: "img", attrs }]);
+const imageTokenTransformer: TokenTransformerFunc = ({ token }) => {
+	if (token.type === "image" && Array.isArray(token.attrs?.[0])) {
+		const attrs = Object.fromEntries(token.attrs);
+		return { type: "image", attrs };
 	}
 };
 

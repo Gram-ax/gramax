@@ -1,5 +1,5 @@
 import resolveModule from "@app/resolveModule/backend";
-import { MAX_HEIGHT } from "@ext/wordExport/options/wordExportSettings";
+import { MAX_HEIGHT, MAX_WIDTH } from "@ext/wordExport/options/wordExportSettings";
 import { ImageDimensions } from "@ext/wordExport/options/WordTypes";
 
 export class ImageDimensionsFinder {
@@ -8,7 +8,8 @@ export class ImageDimensionsFinder {
 		return getImageSizeFromImageData(imageBuffer, maxWidth, maxHeight);
 	}
 
-	static getSvgDimensions(svgContent: string, maxWidth: number): ImageDimensions {
+	static getSvgDimensions(svgContent: string, maxWidth?: number): ImageDimensions {
+		maxWidth = maxWidth ?? MAX_WIDTH;
 		const getDOMParser = resolveModule("getDOMParser");
 		const parser = getDOMParser();
 		const doc = parser.parseFromString(svgContent, "image/svg+xml");

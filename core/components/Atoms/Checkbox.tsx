@@ -13,6 +13,7 @@ interface CheckboxProps {
 	onChange?: (isChecked: boolean) => void;
 	onClick?: (isChecked: boolean, e: React.MouseEvent<HTMLDivElement>) => void;
 	overflow?: Property.Overflow;
+	readOnly?: boolean;
 	className?: string;
 }
 
@@ -28,6 +29,7 @@ const Checkbox = (props: CheckboxProps) => {
 		onClick,
 		overflow,
 		className,
+		readOnly,
 	} = props;
 	const [currentChecked, setCurrentChecked] = useState(checked ?? false);
 	const [checkboxSize, setCheckboxSize] = useState<number>(null);
@@ -82,6 +84,7 @@ const Checkbox = (props: CheckboxProps) => {
 						className="atom-checkbox"
 						checked={currentChecked}
 						onChange={() => null}
+						readOnly={readOnly}
 					/>
 				</span>
 			</span>
@@ -98,6 +101,7 @@ const Checkbox = (props: CheckboxProps) => {
 					checked={currentChecked}
 					ref={checkboxRef}
 					onChange={() => null}
+					readOnly={readOnly}
 				/>
 				<span style={{ userSelect: interactive ? null : "none", overflow }}>{children}</span>
 			</div>

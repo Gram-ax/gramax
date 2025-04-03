@@ -13,7 +13,7 @@ import SourceType from "@ext/storage/logic/SourceDataProvider/model/SourceType";
 import getPartGitSourceDataByStorageName from "@ext/storage/logic/utils/getPartSourceDataByStorageName";
 import getSourceDataByStorageName from "@ext/storage/logic/utils/getSourceDataByStorageName";
 import getStorageNameByData from "@ext/storage/logic/utils/getStorageNameByData";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 const CloneWithShareData = ({
 	shareData,
@@ -36,7 +36,10 @@ const CloneWithShareData = ({
 
 	const pageProps = PageDataContextService.value;
 
-	const storageData = convertShareLinkDataToStorageData(sourceData, shareData);
+	const storageData = useMemo(
+		() => convertShareLinkDataToStorageData(sourceData, shareData),
+		[sourceData, shareData],
+	);
 
 	const getBranch = () => {
 		if (shareData.sourceType === SourceType.gitHub || shareData.sourceType === SourceType.gitLab) {
@@ -82,9 +85,9 @@ const CloneWithShareData = ({
 				text: t("add-storage"),
 			}}
 		>
-			<span>
+			<div>
 				{t("no-access-to-storage")} {domain}. {t("add-to-continue-downloading")}
-			</span>
+			</div>
 		</InfoModalForm>
 	);
 

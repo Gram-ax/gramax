@@ -29,7 +29,7 @@ const cloneHandler = async ({
 
 	const res = await FetchService.fetch(
 		apiUrlCreator.getStorageStartCloneUrl(storageData.name, recursive, isBare, skipCheck, branch),
-		JSON.stringify(storageData),
+		storageData ? JSON.stringify(storageData) : null,
 		MimeTypes.json,
 	);
 	if (!res.ok) {

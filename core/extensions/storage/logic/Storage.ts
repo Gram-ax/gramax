@@ -1,14 +1,14 @@
+import type SourceData from "@ext/storage/logic/SourceDataProvider/model/SourceData";
 import Path from "../../../logic/FileProvider/Path/Path";
 import Branch from "../../VersionControl/model/branch/Branch";
 import ShareData from "../../catalog/actions/share/model/ShareData";
 import StorageData from "../models/StorageData";
 import StorageUrl from "../models/StorageUrl";
-import SourceData from "./SourceDataProvider/model/SourceData";
 import SourceType from "./SourceDataProvider/model/SourceType";
 
 export default interface Storage {
 	pull(source: SourceData, recursive?: boolean): Promise<void>;
-	push(source: SourceData): Promise<void>;
+	push(source: SourceData, recursive?: boolean): Promise<void>;
 	fetch(source: SourceData, force?: boolean): Promise<void>;
 	update(): Promise<void>;
 	getDefaultBranch(source: SourceData): Promise<Branch | null>;

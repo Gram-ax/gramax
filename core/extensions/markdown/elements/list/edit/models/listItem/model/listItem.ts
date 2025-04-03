@@ -1,12 +1,28 @@
-import { listItem } from "@ext/markdown/elements/list/edit/models/listItem/model/listItemSchema";
+import {
+	complexContent,
+	listItem,
+	simpleContent,
+} from "@ext/markdown/elements/list/edit/models/listItem/model/listItemSchema";
 import getExtensionOptions from "@ext/markdown/logic/getExtensionOptions";
 import { findParentNodeClosestToPos } from "@tiptap/core";
-import ListItem from "@tiptap/extension-list-item";
+import ListItem, { ListItemOptions } from "@tiptap/extension-list-item";
 import { Plugin, PluginKey } from "@tiptap/pm/state";
 import { ReplaceAroundStep, ReplaceStep } from "@tiptap/pm/transform";
 
-const customListItem = ListItem.extend({
+interface ListItemOptionsExtended extends ListItemOptions {
+	simple: boolean;
+}
+
+const customListItem = ListItem.extend<ListItemOptionsExtended>({
 	...getExtensionOptions({ schema: listItem, name: "listItem" }),
+
+	content() {
+		return this.options?.simple ? simpleContent : complexContent;
+	},
+
+	addOptions(options) {
+		return { ...options, simple: options?.simple ?? true };
+	},
 
 	addProseMirrorPlugins() {
 		const parentPlugins = this.parent?.() ?? [];
@@ -15,7 +31,7 @@ const customListItem = ListItem.extend({
 			...parentPlugins,
 			new Plugin({
 				key: new PluginKey("$NoTaskList"),
-				filterTransaction: (transaction) => {
+				filterTransaction: (transaction, state) => {
 					const replaceSteps = transaction.steps.filter(
 						(step) => step instanceof ReplaceStep || step instanceof ReplaceAroundStep,
 					);
@@ -42,7 +58,7 @@ const customListItem = ListItem.extend({
 					}
 
 					const data = findParentNodeClosestToPos(
-						transaction.selection.$from,
+						state.selection.$from,
 						(node) => node.type.name === "listItem",
 					);
 

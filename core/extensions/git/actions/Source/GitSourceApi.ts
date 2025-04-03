@@ -49,11 +49,9 @@ abstract class GitSourceApi implements SourceAPI {
 		try {
 			await this.getUser();
 		} catch (e) {
-			if (e instanceof NetworkApiError && (e.props.status == 401 || e.props.status == 403)) {
-				return false;
-			}
-			console.error(e);
+			if (e instanceof NetworkApiError && (e.props.status === 401 || e.props.status === 403)) return false;
 		}
+
 		return true;
 	}
 

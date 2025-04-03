@@ -46,7 +46,7 @@ export default class WorkdirRepository extends Repository {
 		await this.storage.updateSyncCount();
 		await this._push({ data, onPush });
 		await this._events.emit("publish", { repo: this });
-		await this.gvc.update();
+		this.gvc.update();
 	}
 
 	async canSync(): Promise<boolean> {
@@ -82,7 +82,7 @@ export default class WorkdirRepository extends Repository {
 
 			await this._pull({ recursive: recursivePull, data, onPull });
 
-			await this.gvc.update();
+			this.gvc.update();
 
 			const afterPullVersion = await this.gvc.getCurrentVersion();
 			const subRepoAfterPullVersions = await this._getSubmoduleCheckChangesData();
@@ -109,13 +109,13 @@ export default class WorkdirRepository extends Repository {
 		const beforePullVersion = await this.gvc.getCurrentVersion();
 		const stashMergeResult = await this._pull({ recursive: recursivePull, data, onPull });
 
-		await this.gvc.update();
+		this.gvc.update();
 		const afterPullVersion = await this.gvc.getCurrentVersion();
 
 		toPush = (await this.storage.getSyncCount()).push;
 		if (toPush > 0) {
 			await this._push({ data, onPush });
-			await this.gvc.update();
+			this.gvc.update();
 		}
 
 		const afterPushVersion = await this.gvc.getCurrentVersion();
@@ -138,13 +138,13 @@ export default class WorkdirRepository extends Repository {
 		const state: RepositoryCheckoutState = { value: "checkout", data: { to: branch } };
 		await this._state.saveState(state);
 
-		if (haveInternet && !allBranches.includes(branch)) await this.storage.fetch(data);
+		if (haveInternet && !allBranches.includes(branch) && !data.isInvalid) await this.storage.fetch(data);
 		await this.gvc.checkoutToBranch(branch, force);
 		onCheckout?.(branch);
 
 		let mergeFiles: GitMergeResultContent[] = [];
 
-		if (haveInternet) {
+		if (haveInternet && !data.isInvalid) {
 			try {
 				mergeFiles = await this._pull({ data });
 				onPull?.();
@@ -184,7 +184,7 @@ export default class WorkdirRepository extends Repository {
 		const mergeResult = await this.gvc.mergeBranch(data, branchNameBefore);
 
 		if (!mergeResult.length) {
-			await this._push({ data });
+			if (!data.isInvalid) await this._push({ data });
 			if (deleteAfterMerge) await this.deleteBranch(branchNameBefore, data);
 			return [];
 		}

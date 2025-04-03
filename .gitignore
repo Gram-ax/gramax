@@ -7,8 +7,6 @@ Cargo.lock
 target
 .ci/github-private-key
 
-#services
-!services/target
 
 # storybook
 /storybook/storybook-static
@@ -29,7 +27,8 @@ next-env.d.ts
 /application/dist
 /application/doc-reader
 
-# services
+#services
+!services/target
 dist
 
 # services -> diagram-renderer
@@ -50,6 +49,7 @@ yarn-error.log*
 
 # testing
 /coverage
+private.env
 
 # mix
 .DS_Store

@@ -62,3 +62,14 @@ fn delete_branch_remote(_sandbox: TempDir, #[with(&_sandbox)] repos: Repos) -> R
   assert_eq!(repos.remote.branches(None)?.count(), 1);
   Ok(())
 }
+
+#[rstest]
+fn create_branch_remote(_sandbox: TempDir, #[with(&_sandbox)] repos: Repos) -> Result {
+  let head = repos.local.repo().head()?.peel_to_commit()?;
+  repos.local.repo().branch("test", &head, false)?;
+  
+  assert!(!repos.remote.branches(None)?.any(|b| b.unwrap().0.name().unwrap().unwrap() == "test"));
+  repos.local.create_branch_remote("test")?;
+  assert!(repos.remote.branches(None)?.any(|b| b.unwrap().0.name().unwrap().unwrap() == "test"));
+  Ok(())
+}

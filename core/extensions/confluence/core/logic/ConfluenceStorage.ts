@@ -11,11 +11,13 @@ import makeConfluenceConvertor from "@ext/confluence/core/logic/makeConfluenceCo
 import { ConfluenceArticle, ConfluenceArticleTree } from "@ext/confluence/core/model/ConfluenceArticle";
 import ConfluenceConverter from "@ext/confluence/core/model/ConfluenceConverter";
 import ConfluenceImportData from "@ext/confluence/core/model/ConfluenceImportData";
+import type ConfluenceSourceData from "@ext/confluence/core/model/ConfluenceSourceData";
 import ConfluenceStorageData from "@ext/confluence/core/model/ConfluenceStorageData";
 import { makeSourceApi } from "@ext/git/actions/Source/makeSourceApi";
 import t from "@ext/localization/locale/translate";
 import MarkdownFormatter from "@ext/markdown/core/edit/logic/Formatter/Formatter";
 import generateUnsupportedMd from "@ext/markdown/elements/unsupported/logic/generateUnsupportedMd";
+import type { ProxiedSourceDataCtx } from "@ext/storage/logic/SourceDataProvider/logic/SourceDataCtx";
 import SourceType from "@ext/storage/logic/SourceDataProvider/model/SourceType";
 import { JSONContent } from "@tiptap/core";
 
@@ -34,6 +36,8 @@ export default class ConfluenceStorage {
 			const blogs: ConfluenceArticle[] = await this.getConfluenceBlogs(data);
 			const articles: ConfluenceArticleTree[] = await this.getConfluenceArticlesTree(data);
 			await this.createArticles(articles, blogs, catalogPath, formatter, converter, fs, fs.fp);
+		} catch (e) {
+			await (data.source as ProxiedSourceDataCtx<ConfluenceSourceData>).assertValid?.(e);
 		} finally {
 			fs.fp?.startWatch();
 		}

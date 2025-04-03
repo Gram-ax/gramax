@@ -5,12 +5,16 @@ import Tooltip from "@components/Atoms/Tooltip";
 import LeftNavViewContent, { ViewContent } from "@components/Layouts/LeftNavViewContent/LeftNavViewContent";
 import LogsLayout from "@components/Layouts/LogsLayout";
 import ModalLayout from "@components/Layouts/Modal";
+import ButtonLink from "@components/Molecules/ButtonLink";
 import FetchService from "@core-ui/ApiServices/FetchService";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import CatalogPropsService from "@core-ui/ContextServices/CatalogProps";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
+import { ClientArticleProps } from "@core/SitePresenter/SitePresenter";
 import styled from "@emotion/styled";
 import { FileStatus } from "@ext/Watchers/model/FileStatus";
+import BranchUpdaterService from "@ext/git/actions/Branch/BranchUpdaterService/logic/BranchUpdaterService";
+import OnBranchUpdateCaller from "@ext/git/actions/Branch/BranchUpdaterService/model/OnBranchUpdateCaller";
 import { GitStatus } from "@ext/git/core/GitWatcher/model/GitStatus";
 import t from "@ext/localization/locale/translate";
 import useHasRemoteStorage from "@ext/storage/logic/utils/useHasRemoteStorage";
@@ -18,8 +22,6 @@ import useIsStorageInitialized from "@ext/storage/logic/utils/useIsStorageInitia
 import { useEffect, useState } from "react";
 import User from "../../../../security/components/User/User";
 import { ArticleHistoryViewModel } from "../model/ArticleHistoryViewModel";
-import ButtonLink from "@components/Molecules/ButtonLink";
-import { ClientArticleProps } from "@core/SitePresenter/SitePresenter";
 
 const History = styled(({ className, item }: { className?: string; item: ClientArticleProps }) => {
 	const apiUrlCreator = ApiUrlCreatorService.value;
@@ -59,6 +61,15 @@ const History = styled(({ className, item }: { className?: string; item: ClientA
 		void getIsFileNew();
 	}, [catalogProps.name, item?.logicPath, hasRemoteStorage, isStorageInitialized, isReadOnly]);
 
+	useEffect(() => {
+		const handler = async (_, caller: OnBranchUpdateCaller) => {
+			if (caller !== OnBranchUpdateCaller.Publish) return;
+			await getIsFileNew();
+		};
+		BranchUpdaterService.addListener(handler);
+		return () => BranchUpdaterService.removeListener(handler);
+	}, [apiUrlCreator, item?.logicPath]);
+
 	const spinnerLoader = (
 		<LogsLayout style={{ overflow: "hidden" }}>
 			<SpinnerLoader fullScreen />
@@ -82,7 +93,7 @@ const History = styled(({ className, item }: { className?: string; item: ClientA
 			trigger={
 				<Tooltip content={t(t("git.history.error.need-to-publish"))} disabled={!disabled}>
 					<ButtonLink
-						onClick={() => setIsOpen(true)} // без этого не работает
+						onClick={() => setIsOpen(true)} // Without this it doesn't work
 						disabled={disabled}
 						iconCode="history"
 						text={t("git.history.button")}

@@ -80,7 +80,7 @@ const Clone = ({ trigger, mode }: { trigger: JSX.Element; mode: Mode }) => {
 			storageData,
 			apiUrlCreator,
 			skipCheck: true,
-			isBare: getExecutingEnvironment() === "next", // todo: добавить настройку при клонировании
+			isBare: getExecutingEnvironment() === "next", // todo: add setting during cloning
 			onError: () => {
 				refreshPage();
 				closeForm();

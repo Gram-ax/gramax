@@ -16,7 +16,7 @@ export default class CatalogVersionResolver implements EventHandlerCollection, E
 	constructor(private _workspace: Workspace, private _rp: RepositoryProvider) {}
 
 	mount(): void {
-		if (getExecutingEnvironment() !== "next") return; // todo: добавить поддержку в редакторе
+		if (getExecutingEnvironment() !== "next") return; // todo: add support in editor
 
 		this._workspace.events.on("on-catalog-resolve", async ({ mutableCatalog, metadata }) => {
 			const refname = metadata;
@@ -48,8 +48,8 @@ export default class CatalogVersionResolver implements EventHandlerCollection, E
 			if (!gvc) return;
 			if (!mutableEntry.entry.props.resolvedVersions?.find((t) => t.encodedName == refname)) return;
 
-			// Версии каталога загружаются только если сам каталог загружен.
-			// Пока Catalog.load() возвращает this и ссылка будет одной и той же, это будет работать
+			// Catalog versions are only loaded if the catalog itself is loaded.
+			// As long as Catalog.load() returns this and the reference will be the same, this will work
 			const versions = this._catalogs.get(mutableEntry.entry.upgrade("catalog"));
 			if (versions) {
 				const catalog = versions.get(refname);

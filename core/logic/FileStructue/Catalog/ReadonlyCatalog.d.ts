@@ -13,6 +13,7 @@ import type { CatalogErrors } from "@ext/healthcheck/logic/Healthcheck";
 import type IconProvider from "@ext/markdown/elements/icon/logic/IconProvider";
 import type SnippetProvider from "@ext/markdown/elements/snippet/logic/SnippetProvider";
 import type IPermission from "@ext/security/logic/Permission/IPermission";
+import type InboxProvider from "@ext/inbox/logic/InboxProvider";
 
 export interface ReadonlyCatalog<P extends CatalogProps = CatalogProps> extends ReadonlyBaseCatalog<P> {
 	get deref(): Catalog<P>;
@@ -21,6 +22,7 @@ export interface ReadonlyCatalog<P extends CatalogProps = CatalogProps> extends 
 	get perms(): IPermission;
 	get snippetProvider(): SnippetProvider;
 	get iconProvider(): IconProvider;
+	get inboxProvider(): InboxProvider;
 
 	getRootCategory(): Category<P>;
 	getRootCategoryRef(): ItemRef;

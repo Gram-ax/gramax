@@ -12,6 +12,7 @@ import NotionAPI from "@ext/notion/api/NotionAPI";
 import NotionConverter from "@ext/notion/logic/NotionConverter";
 import { NotionPropertyManager } from "@ext/notion/logic/NotionPropertyManager";
 import NotionImportData from "@ext/notion/model/NotionImportData";
+import type NotionSourceData from "@ext/notion/model/NotionSourceData";
 import {
 	NotionBlock,
 	NotionPage,
@@ -21,6 +22,7 @@ import {
 	PathsMapValue,
 } from "@ext/notion/model/NotionTypes";
 import { PropertyValue } from "@ext/properties/models";
+import type { ProxiedSourceDataCtx } from "@ext/storage/logic/SourceDataProvider/logic/SourceDataCtx";
 import { JSONContent } from "@tiptap/core";
 import * as yaml from "js-yaml";
 
@@ -43,6 +45,8 @@ export default class NotionStorage {
 				catalogPath.join(new Path(DOC_ROOT_FILENAME)),
 				yaml.dump({ title: data.source.workspaceName, properties: pm.cleanProperties }, { quotingType: '"' }),
 			);
+		} catch (e) {
+			await (data.source as ProxiedSourceDataCtx<NotionSourceData>).assertValid?.(e);
 		} finally {
 			fs.fp?.startWatch();
 		}

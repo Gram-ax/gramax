@@ -1,6 +1,9 @@
 import SourceType from "../model/SourceType";
 
-const getSourceProps = (sourceType: SourceType, defaultSourceData: any) => {
+const getSourceProps = (sourceType: SourceType, defaultSourceData?: any) => {
+	defaultSourceData = defaultSourceData || {};
+	delete defaultSourceData.isInvalid;
+
 	const baseProps = {
 		sourceType,
 		domain: "",
@@ -11,28 +14,28 @@ const getSourceProps = (sourceType: SourceType, defaultSourceData: any) => {
 		...defaultSourceData,
 	};
 
-    const propsMap: Record<string, () => any> = {
-        [SourceType.git]: () => ({
-            props: baseProps,
-            readOnlyProps: defaultSourceData,
-        }),
-        [SourceType.gitLab]: () => ({
-            props: baseProps,
-            readOnlyProps: defaultSourceData,
-        }),
-        [SourceType.confluenceServer]: () => ({
-            props: {
-                ...baseProps,
-                domain: null,
-                token: null,
-                userName: "empty",
-                userEmail: "empty",
-            },
-            readOnlyProps: defaultSourceData,
-        }),
-    };
+	const propsMap: Record<string, any> = {
+		[SourceType.git]: {
+			props: baseProps,
+			readOnlyProps: defaultSourceData,
+		},
+		[SourceType.gitLab]: {
+			props: baseProps,
+			readOnlyProps: defaultSourceData,
+		},
+		[SourceType.confluenceServer]: {
+			props: {
+				...baseProps,
+				domain: null,
+				token: null,
+				userName: "empty",
+				userEmail: "empty",
+			},
+			readOnlyProps: defaultSourceData,
+		},
+	};
 
-    return propsMap[sourceType]?.();
+	return propsMap[sourceType];
 };
 
 export default getSourceProps;

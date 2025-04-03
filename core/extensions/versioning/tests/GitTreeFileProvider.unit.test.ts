@@ -35,10 +35,17 @@ const prepareRepo = async () => {
 	await moveTestImage();
 
 	await dfp.write(repoPath.join(new Path("file")), "content");
+	await dfp.write(repoPath.join(new Path("repo-file")), "repo-file content");
 	await dfp.write(repoPath.join(new Path("dir/file2")), "content2");
 	await dfp.write(repoPath.join(new Path("to-be-deleted")), "");
 
-	await git.add([new Path("file"), new Path("dir/file2"), new Path("to-be-deleted"), new Path("testImage.png")]);
+	await git.add([
+		new Path("file"),
+		new Path("dir/file2"),
+		new Path("to-be-deleted"),
+		new Path("testImage.png"),
+		new Path("repo-file"),
+	]);
 	const commit = await git.commit("f", creds);
 	oid = commit.toString();
 	await dfp.delete(repoPath.join(new Path("to-be-deleted")));
@@ -54,36 +61,49 @@ describe("GitTreeFileProvider", () => {
 	afterAll(async () => await dfp.delete(Path.empty));
 
 	describe("читает файл", () => {
-		test("на хеде", async () => {
-			const file = await gitfp.read(new Path("file"));
-			expect(file).toBe("text");
+		describe("без названия репозитория в пути", () => {
+			test("на хеде", async () => {
+				const file = await gitfp.read(new Path("file"));
+				expect(file).toBe("text");
 
-			const file2 = await gitfp.read(new Path("dir/file2"));
-			expect(file2).toBe("content2");
+				const file2 = await gitfp.read(new Path("dir/file2"));
+				expect(file2).toBe("content2");
 
-			const image = await gitfp.readAsBinary(new Path("testImage.png"));
-			expect(image).toEqual(await getTestImageBuffer());
+				const image = await gitfp.readAsBinary(new Path("testImage.png"));
+				expect(image).toEqual(await getTestImageBuffer());
+			});
+
+			test("на конкретном коммите", async () => {
+				expect(await gitfp.read(new Path(`:commit-${oid}/file`))).toBe("content");
+				expect(await gitfp.read(new Path(`:commit-${oid}/dir/file2`))).toBe("content2");
+
+				const image = await gitfp.readAsBinary(new Path(`:commit-${oid}/testImage.png`));
+				expect(image).toEqual(await getTestImageBuffer());
+			});
+
+			test("на ветке master", async () => {
+				expect(await gitfp.read(new Path(":master/file"))).toBe("text");
+				expect(await gitfp.read(new Path(":master/dir/file2"))).toBe("content2");
+
+				const image = await gitfp.readAsBinary(new Path(":master/testImage.png"));
+				expect(image).toEqual(await getTestImageBuffer());
+			});
+
+			test("несуществующий файл", async () => {
+				expect(await gitfp.readAsBinary(new Path(`:commit-${oid}/not-exists`))).toBeUndefined();
+				expect(await gitfp.readAsBinary(new Path(":master/not-exists"))).toBeUndefined();
+			});
 		});
 
-		test("на конкретном коммите", async () => {
-			expect(await gitfp.read(new Path(`:commit-${oid}/file`))).toBe("content");
-			expect(await gitfp.read(new Path(`:commit-${oid}/dir/file2`))).toBe("content2");
-
-			const image = await gitfp.readAsBinary(new Path(`:commit-${oid}/testImage.png`));
-			expect(image).toEqual(await getTestImageBuffer());
-		});
-
-		test("на ветке master", async () => {
-			expect(await gitfp.read(new Path(":master/file"))).toBe("text");
-			expect(await gitfp.read(new Path(":master/dir/file2"))).toBe("content2");
-
-			const image = await gitfp.readAsBinary(new Path(":master/testImage.png"));
-			expect(image).toEqual(await getTestImageBuffer());
-		});
-
-		test("несуществующий файл", async () => {
-			expect(await gitfp.readAsBinary(new Path(`:commit-${oid}/not-exists`))).toBeUndefined();
-			expect(await gitfp.readAsBinary(new Path(":master/not-exists"))).toBeUndefined();
+		describe("с названием репозитория в пути", () => {
+			test("файл не содержит название репозитория", async () => {
+				const file = await gitfp.read(new Path("repo:master/file"));
+				expect(file).toBe("text");
+			});
+			test("файл содержит название репозитория", async () => {
+				const file = await gitfp.read(new Path("repo:master/repo-file"));
+				expect(file).toBe("repo-file content");
+			});
 		});
 	});
 
