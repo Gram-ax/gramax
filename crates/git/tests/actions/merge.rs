@@ -19,7 +19,7 @@ fn fastforward_merge(sandbox: TempDir, #[with(&sandbox)] repo: Repo<TestCreds>) 
   assert!(path.exists());
   repo.checkout("master", false)?;
   assert!(!path.exists());
-  repo.merge("other")?;
+  repo.merge(MergeOptions::theirs("other"))?;
   assert!(path.exists());
   assert_eq!(fs::read_to_string(path)?, "content222");
 
@@ -56,7 +56,7 @@ fn normal_merge_no_conflicts(sandbox: TempDir, #[with(&sandbox)] repo: Repo<Test
   let (_, message) = repo.commit_debug()?;
   commits.push(message);
 
-  repo.merge("dev")?;
+  repo.merge(MergeOptions::theirs("dev"))?;
 
   let mut revwalk = repo.repo().revwalk()?;
   revwalk.push_head()?;
@@ -91,7 +91,9 @@ fn normal_merge_with_conflicts(sandbox: TempDir, #[with(&sandbox)] repo: Repo<Te
   repo.add("file")?;
   repo.commit_debug()?;
 
-  let Ok(MergeResult::Conflicts(conflicts)) = repo.merge("dev") else { panic!("conflict was expected") };
+  let Ok(MergeResult::Conflicts(conflicts)) = repo.merge(MergeOptions::theirs("dev")) else {
+    panic!("conflict was expected")
+  };
   let conflict = conflicts.first().unwrap();
   assert_eq!(conflict.ours, conflict.theirs);
   assert_eq!(conflict.theirs, conflict.ancestor);
@@ -137,7 +139,9 @@ fn merge_with_rename(sandbox: TempDir, #[with(&sandbox)] repo: Repo<TestCreds>) 
   repo.add(file)?;
   repo.commit_debug()?;
 
-  let Ok(MergeResult::Conflicts(res)) = repo.merge("branch-2") else { panic!("merge conflict was expected") };
+  let Ok(MergeResult::Conflicts(res)) = repo.merge(MergeOptions::theirs("branch-2")) else {
+    panic!("merge conflict was expected")
+  };
 
   let mut res = res.into_iter();
   assert_eq!(res.next().unwrap().ours, Some(PathBuf::from("file")));

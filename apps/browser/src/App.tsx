@@ -8,7 +8,7 @@ import ThemeService from "@ext/Theme/components/ThemeService";
 import DefaultError from "@ext/errorHandlers/logic/DefaultError";
 import { useCallback, useEffect, useState } from "react";
 import { Router } from "wouter";
-import ForwardBackward, { useHistory } from "../../tauri/src/ForwardBackward";
+import { HistoryProvider } from "../../tauri/src/ForwardBackward";
 import Gramax, { GramaxProps } from "./Gramax";
 import AppError from "./components/Atoms/AppError";
 import AppLoader from "./components/Atoms/AppLoader";
@@ -23,7 +23,6 @@ const getData = async (route: string, query: Query) => {
 };
 
 const AppContext = () => {
-	const history = useHistory();
 	const [path, setLocation, query] = useLocation();
 	const [data, setData] = useState<GramaxProps>();
 	const [error, setError] = useState<DefaultError>();
@@ -66,7 +65,6 @@ const AppContext = () => {
 
 	return (
 		<Router hook={() => [data.path, setLocation]}>
-			<ForwardBackward {...history} setLocation={setLocation} location={data.path} />
 			<Gramax data={data} refresh={refresh} setData={setData} />
 		</Router>
 	);
@@ -74,9 +72,11 @@ const AppContext = () => {
 
 const App = () => {
 	return (
-		<LanguageService.Provider>
-			<AppContext />
-		</LanguageService.Provider>
+		<HistoryProvider>
+			<LanguageService.Init>
+				<AppContext />
+			</LanguageService.Init>
+		</HistoryProvider>
 	);
 };
 

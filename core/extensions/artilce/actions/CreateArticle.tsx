@@ -5,12 +5,13 @@ import FetchService from "@core-ui/ApiServices/FetchService";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import CatalogPropsService from "@core-ui/ContextServices/CatalogProps";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
-import { refreshPage } from "@core-ui/ContextServices/RefreshPageContext";
+import { refreshPage } from "@core-ui/utils/initGlobalFuncs";
 import { useRouter } from "@core/Api/useRouter";
 import type { ClientItemRef } from "@core/SitePresenter/SitePresenter";
 import styled from "@emotion/styled";
 import ActionWarning from "@ext/localization/actions/ActionWarning";
 import t from "@ext/localization/locale/translate";
+import NavigationEvents from "@ext/navigation/NavigationEvents";
 import { ItemLink } from "@ext/navigation/NavigationLinks";
 import { MouseEventHandler, useState } from "react";
 
@@ -47,6 +48,7 @@ const CreateArticle = (props: CreateArticleProps) => {
 			setIsLoading(false);
 			if (!response.ok) return refreshPage();
 			onCreate?.();
+			await NavigationEvents.emit("item-create", { path: await response.text() });
 			router.pushPath(await response.text());
 		});
 		setIsLoading(true);

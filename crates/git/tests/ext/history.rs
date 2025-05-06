@@ -68,3 +68,61 @@ fn file_history_with_rename(sandbox: TempDir, #[with(&sandbox)] repo: Repo<TestC
 
   Ok(())
 }
+
+#[rstest]
+fn get_all_branch_commiters_with_limit(sandbox: TempDir, #[with(&sandbox)] repo: Repo<TestCreds>) -> Result {
+  fs::write(sandbox.path().join("file"), "init")?;
+  repo.add("file")?;
+  repo.commit_debug()?;
+
+  repo.new_branch("feature")?;
+
+  for i in 1..=5 {
+    fs::write(sandbox.path().join("file"), format!("feature{}", i))?;
+    repo.add("file")?;
+    repo.commit_debug()?;
+  }
+
+  let commiters = repo.get_branch_commits("master", "feature", Some(3))?;
+
+  assert_eq!(commiters.authors.len(), 1, "should have 1 author");
+  assert_eq!(commiters.authors[0].count, 3, "should have 3 commits");
+  assert_eq!(commiters.commits.len(), 3, "should have 3 commits");
+
+  Ok(())
+}
+
+#[rstest]
+fn get_all_branch_commiters_with_target_branch(
+  sandbox: TempDir,
+  #[with(&sandbox)] repo: Repo<TestCreds>,
+) -> Result {
+  // create a new branch and make commits on it
+  repo.new_branch("feature")?;
+
+  // make 3 commits on feature branch
+  for i in 1..=3 {
+    fs::write(sandbox.path().join("file"), format!("feature{}", i))?;
+    repo.add("file")?;
+    repo.commit_debug()?;
+  }
+
+  repo.checkout("master", true)?;
+
+  std::fs::write(sandbox.path().join("file"), "master commit")?;
+  repo.add("file")?;
+  repo.commit(CommitOptions { message: "master commit".to_string(), parent_refs: None, files: None })?;
+
+  repo.checkout("feature", true)?;
+  repo.merge(MergeOptions::theirs("master"))?;
+
+  let commiters = repo.get_branch_commits("master", "feature", None)?;
+
+  assert!(!commiters.commits.iter().any(|c| c == "master commit"));
+
+  assert_eq!(commiters.authors.len(), 1, "should have 1 author");
+  assert_eq!(commiters.authors[0].count, 3, "should have 3 commits (commits on feature)");
+  assert_eq!(commiters.commits.len(), 3, "should have 3 commits (commits on feature)");
+
+  Ok(())
+}

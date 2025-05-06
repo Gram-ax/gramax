@@ -1,5 +1,4 @@
 import GitCommands from "../../../../core/extensions/git/core/GitCommands/GitCommands";
-import GitSourceData from "../../../../core/extensions/git/core/model/GitSourceData.schema";
 import { resolveLanguage } from "../../../../core/extensions/localization/core/model/Language";
 import { Command } from "../../../types/Command";
 

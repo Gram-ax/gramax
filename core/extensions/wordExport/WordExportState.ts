@@ -10,6 +10,7 @@ import { ExportType } from "@ext/wordExport/ExportType";
 import { CatalogProps } from "@core/FileStructue/Catalog/CatalogProps";
 import ContextualCatalog from "@core/FileStructue/Catalog/ContextualCatalog";
 import { ItemFilter } from "@core/FileStructue/Catalog/Catalog";
+import { JSONContent } from "@tiptap/core";
 
 export class WordSerializerState {
 	constructor(
@@ -24,7 +25,7 @@ export class WordSerializerState {
 		private _itemsFilter: ItemFilter[],
 	) {}
 
-	async renderInline(parent: Tag, addOptions?: AddOptionsWord): Promise<ParagraphChild[]> {
+	async renderInline(parent: Tag | JSONContent, addOptions?: AddOptionsWord): Promise<ParagraphChild[]> {
 		const paragraphChild = await Promise.all(
 			parent.children.map(async (child) => {
 				if (!child) return;
@@ -36,7 +37,8 @@ export class WordSerializerState {
 					return createContent(text, addOptions);
 				}
 
-				return this._inlineConfig[child.name]?.({
+				const name = "name" in child ? child.name : child.type;
+				return this._inlineConfig[name]?.({
 					state: this,
 					tag: child,
 					addOptions,
@@ -56,16 +58,17 @@ export class WordSerializerState {
 		return paragraphChild.flat().filter((val) => val);
 	}
 
-	async renderBlockAsInline(tag: Tag) {
+	async renderBlockAsInline(tag: Tag | JSONContent) {
+		const children = "children" in tag ? tag.children : tag.content;
 		return (
 			await Promise.all(
-				tag.children.map(async (child, i) => {
+				children.map(async (child, i) => {
 					if (!child) return;
 					if (typeof child === "string") return new TextRun(child);
 
 					return [
 						(await this.renderInline(child)).flat().filter((val) => val),
-						...(tag.children.length > 1 && tag.children.length > i + 1 ? [new TextRun({ break: 1 })] : []),
+						...(children.length > 1 && children.length > i + 1 ? [new TextRun({ break: 1 })] : []),
 					];
 				}),
 			)
@@ -74,11 +77,12 @@ export class WordSerializerState {
 			.flat(2);
 	}
 
-	async renderBlock(block: Tag, addOptions?: AddOptionsWord): Promise<FileChild[]> {
-		if (!this._blockConfig[block.name] && this._inlineConfig[block.name])
+	async renderBlock(block: Tag | JSONContent, addOptions?: AddOptionsWord): Promise<FileChild[]> {
+		const name = "name" in block ? block.name : block.type;
+		if (!this._blockConfig[name] && this._inlineConfig[name])
 			return [createParagraph(await this.renderInline({ children: [block] } as Tag))];
 
-		return this._blockConfig[block.name]?.({
+		return this._blockConfig[name]?.({
 			state: this,
 			tag: block,
 			addOptions,

@@ -188,6 +188,8 @@ export default class RevisionDiffItemCreator extends GitDiffItemCreator {
 
 		const newArticleItemRef = this._fp.getItemRef(this._newCatalog.getItemRefPath(file.path));
 		const newArticle = this._newCatalog.findItemByItemRef<Article>(newArticleItemRef);
+		if (!newArticle) return null;
+
 		const oldArticleItemRef = this._fp.getItemRef(this._oldCatalog.getItemRefPath(file.oldPath));
 		const oldArticle = this._oldCatalog.findItemByItemRef<Article>(oldArticleItemRef);
 

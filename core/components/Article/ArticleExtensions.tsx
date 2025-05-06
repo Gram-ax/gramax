@@ -1,17 +1,19 @@
 import styled from "@emotion/styled";
 
-const ArticleExtensions = ({ className, id }: { id: string; className?: string }) => {
-	return (
-		<div className={className}>
-			<div id={id} />
-		</div>
-	);
-};
-
-export default styled(ArticleExtensions)`
-	bottom: 4px;
+const Wrapper = styled.div<{ bottom?: string }>`
+	bottom: ${({ bottom }) => bottom || "4px"};
 	z-index: var(--z-index-base);
 	position: sticky;
 
 	pointer-events: none;
 `;
+
+const ArticleExtensions = ({ id, bottom }: { id: string; bottom?: string }) => {
+	return (
+		<Wrapper bottom={bottom}>
+			<div id={id} />
+		</Wrapper>
+	);
+};
+
+export default ArticleExtensions;

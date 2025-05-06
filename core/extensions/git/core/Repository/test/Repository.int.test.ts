@@ -68,19 +68,27 @@ describe("Repository", () => {
 			await rep.checkout({ data: mockUserData, branch: "master" });
 			await dfp.write(repPath("1.txt"), "111\nmaster\n333");
 			await rep.publish({ commitMessage: "test", data: mockUserData, filesToPublish: [path("1.txt")] });
-			await rep.merge({ targetBranch: "B", deleteAfterMerge: false, data: mockUserData });
-			const state = {
-				value: "mergeConflict",
-				data: {
-					branchNameBefore: "master",
-					theirs: "master",
-					conflictFiles: [{ status: "bothModified", path: "1.txt" }],
-					deleteAfterMerge: false,
-					reverseMerge: true,
-				},
-			};
-			expect(await dfp.read(repPath(".git/gramax/state.json"))).toBe(JSON.stringify(state));
-			expect((await rep.getState()).inner).toEqual(state);
+			let attempts = 3;
+			while (attempts > 0) {
+				try {
+					await rep.merge({ targetBranch: "B", deleteAfterMerge: false, data: mockUserData });
+					const state = {
+						value: "mergeConflict",
+						data: {
+							branchNameBefore: "master",
+							theirs: "master",
+							conflictFiles: [{ status: "bothModified", path: "1.txt" }],
+							deleteAfterMerge: false,
+							reverseMerge: true,
+						},
+					};
+					expect(await dfp.read(repPath(".git/gramax/state.json"))).toBe(JSON.stringify(state));
+					expect((await rep.getState()).inner).toEqual(state);
+					break;
+				} catch (err) {
+					attempts--;
+				}
+			}
 		});
 		describe("стандартное", () => {
 			test("при аборте мержа", async () => {

@@ -1,6 +1,6 @@
 import type Url from "@core-ui/ApiServices/Types/Url";
 
-const useUrlImage = (src: Url) => {
+const useUrlImage = (src: Url, deeps?: Array<any>) => {
 	return src?.toString();
 };
 

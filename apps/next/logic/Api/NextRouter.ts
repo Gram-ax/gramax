@@ -1,4 +1,4 @@
-import { refreshPage } from "@core-ui/ContextServices/RefreshPageContext";
+import { refreshPage } from "@core-ui/utils/initGlobalFuncs";
 import Query from "@core/Api/Query";
 import { Router, RouterRule } from "@core/Api/Router";
 import { NextRouter as DefaultNextRouter, useRouter as useDefaultNextRouter } from "next/router";

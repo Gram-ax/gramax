@@ -32,6 +32,8 @@ switch (arg) {
 		break;
 }
 
+process.env.NODE_ENV = "test";
+
 const test = spawn("jest", [...jestArgs, ...process.argv.slice(3)], { stdio: "inherit", shell: true });
 
 if (useServer) {

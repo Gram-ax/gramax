@@ -1,17 +1,20 @@
+import CatalogActions from "@components/Actions/CatalogActions";
 import { TextSize } from "@components/Atoms/Button/Button";
+import { LeftNavigationTab } from "@components/Layouts/StatusBar/Extensions/ArticleStatusBar/ArticleStatusBar";
 import ButtonLink from "@components/Molecules/ButtonLink";
 import Url from "@core-ui/ApiServices/Types/Url";
+import CatalogPropsService from "@core-ui/ContextServices/CatalogProps";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
+import { usePlatform } from "@core-ui/hooks/usePlatform";
 import { useRouter } from "@core/Api/useRouter";
 import { ArticlePageData } from "@core/SitePresenter/SitePresenter";
 import styled from "@emotion/styled";
 import Search from "../../Actions/Modal/Search";
 import Link from "../../Atoms/Link";
 import Logo from "../../Logo";
-import CatalogActions from "@components/Actions/CatalogActions";
-import CatalogPropsService from "@core-ui/ContextServices/CatalogProps";
-import { LeftNavigationTab } from "@components/Layouts/StatusBar/Extensions/ArticleStatusBar/ArticleStatusBar";
-import InboxIcon from "@ext/inbox/components/InboxIcon";
+import InboxService from "@ext/inbox/components/InboxService";
+import NotificationIcon from "@components/Layouts/LeftNavigationTabs/NotificationIcon";
+import TemplateService from "@ext/templates/components/TemplateService";
 
 interface TopBarContentProps {
 	data: ArticlePageData;
@@ -25,10 +28,25 @@ const TopBarContent = ({ data, isMacDesktop, currentTab, setCurrentTab, classNam
 	const logoImageUrl = PageDataContextService.value.conf.logo.imageUrl;
 	const catalogProps = CatalogPropsService.value;
 	const isCatalogExist = !!catalogProps.name;
+	const { isStatic, isStaticCli } = usePlatform();
+	const showHomePageButton = !(isStatic || isStaticCli || logoImageUrl);
+
+	const { notes } = InboxService.value;
+	const { templates } = TemplateService.value;
+
+	const onCloseInbox = () => {
+		InboxService.removeAllNotes();
+	};
+
+	const onCloseTemplate = () => {
+		TemplateService.closeTemplate();
+		TemplateService.setTemplates([]);
+		refreshPage();
+	};
 
 	return (
 		<div className={className}>
-			{!logoImageUrl && (
+			{showHomePageButton && (
 				<Link className="home" href={Url.fromRouter(useRouter(), { pathname: "/" })} dataQa="home-page-button">
 					<ButtonLink textSize={TextSize.L} iconCode="grip" />
 				</Link>
@@ -36,7 +54,22 @@ const TopBarContent = ({ data, isMacDesktop, currentTab, setCurrentTab, classNam
 			<Logo imageUrl={logoImageUrl} />
 			<div className="iconWrapper">
 				{currentTab === LeftNavigationTab.Inbox && (
-					<InboxIcon isMacDesktop={isMacDesktop} setCurrentTab={setCurrentTab} />
+					<NotificationIcon
+						iconCode="inbox"
+						count={notes.length}
+						isMacDesktop={isMacDesktop}
+						setCurrentTab={setCurrentTab}
+						onCloseNotification={onCloseInbox}
+					/>
+				)}
+				{currentTab === LeftNavigationTab.Template && (
+					<NotificationIcon
+						count={templates.size}
+						iconCode="layout-template"
+						isMacDesktop={isMacDesktop}
+						setCurrentTab={setCurrentTab}
+						onCloseNotification={onCloseTemplate}
+					/>
 				)}
 				<Search isHomePage={false} catalogLinks={[data.catalogProps.link]} itemLinks={data.itemLinks} />
 				<CatalogActions

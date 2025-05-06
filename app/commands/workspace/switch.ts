@@ -15,8 +15,10 @@ const _switch: Command<{ id: WorkspacePath }, void> = Command.create({
 	async do({ id }) {
 		await this._app.wm.setWorkspace(id);
 		// TODO: Remove if
-		if (getExecutingEnvironment() == "browser")
-			setWorkerProxy(this._app.wm.current().config().services?.gitProxy?.url);
+		if (getExecutingEnvironment() == "browser") {
+			const config = await this._app.wm.current().config();
+			setWorkerProxy(config.services?.gitProxy?.url);
+		}
 	},
 
 	params(ctx, q) {

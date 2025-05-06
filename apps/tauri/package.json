@@ -12,12 +12,12 @@
 		"tauri:dev": "cargo tauri dev"
 	},
 	"dependencies": {
-		"@tauri-apps/api": "^2.1.1",
-		"@tauri-apps/plugin-dialog": "^2.0.0",
-		"@tauri-apps/plugin-log": "^2.0.0"
+		"@tauri-apps/api": "^2.4.1",
+		"@tauri-apps/plugin-dialog": "^2.2.1",
+		"@tauri-apps/plugin-log": "^2.3.1"
 	},
 	"devDependencies": {
 		"internal-ip": "^8.0.0",
-		"vite-plugin-webfont-dl": "^3.9.4"
+		"vite-plugin-webfont-dl": "^3.10.0"
 	}
 }

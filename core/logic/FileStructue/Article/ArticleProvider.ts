@@ -1,17 +1,18 @@
+import { GRAMAX_DIRECTORY } from "@app/config/const";
+import Context from "@core/Context/Context";
 import FileProvider from "@core/FileProvider/model/FileProvider";
 import Path from "@core/FileProvider/Path/Path";
-import { GRAMAX_DIRECTORY } from "@app/config/const";
-import FileStructure from "@core/FileStructue/FileStructure";
 import { Article, ArticleProps } from "@core/FileStructue/Article/Article";
-import ResourceUpdaterFactory from "@core/Resource/ResourceUpdaterFactory";
-import Context from "@core/Context/Context";
 import { Catalog } from "@core/FileStructue/Catalog/Catalog";
+import ContextualCatalog from "@core/FileStructue/Catalog/ContextualCatalog";
+import FileStructure from "@core/FileStructue/FileStructure";
+import ResourceUpdaterFactory from "@core/Resource/ResourceUpdaterFactory";
+import { convertContentToUiLanguage } from "@ext/localization/locale/translate";
+import MarkdownFormatter from "@ext/markdown/core/edit/logic/Formatter/Formatter";
 import MarkdownParser from "@ext/markdown/core/Parser/Parser";
 import ParserContextFactory from "@ext/markdown/core/Parser/ParserContext/ParserContextFactory";
-import { convertContentToUiLanguage } from "@ext/localization/locale/translate";
 import { JSONContent } from "@tiptap/core";
-import MarkdownFormatter from "@ext/markdown/core/edit/logic/Formatter/Formatter";
-import ContextualCatalog from "@core/FileStructue/Catalog/ContextualCatalog";
+import assert from "assert";
 
 export type ArticleID = string;
 export enum ArticleProviders {}
@@ -36,6 +37,8 @@ export default class ArticleProvider {
 				return catalog.snippetProvider;
 			case "inbox":
 				return catalog.inboxProvider;
+			case "template":
+				return catalog.templateProvider;
 			default:
 				throw new Error(`Unknown article provider type: ${type}`);
 		}
@@ -51,7 +54,7 @@ export default class ArticleProvider {
 
 	public async create(
 		id: ArticleID,
-		content: JSONContent,
+		editTree: JSONContent,
 		formatter: MarkdownFormatter,
 		parserContextFactory: ParserContextFactory,
 		parser: MarkdownParser,
@@ -60,8 +63,35 @@ export default class ArticleProvider {
 	): Promise<Article<ArticleProps>> {
 		const article = this._createArticle(this._formatPath(id), props, new Date().getTime(), "\n\n");
 		this._setArticle(article);
-		await this.updateContent(id, content, formatter, parserContextFactory, parser, ctx);
+
+		await this.updateContent(id, editTree, formatter, parserContextFactory, parser, ctx);
 		return article;
+	}
+
+	public getContent(id: ArticleID) {
+		const article = this.getArticle(id);
+		assert(article, `Article with id ${id} not found in provider`);
+		return article.content;
+	}
+
+	public async getEditTreeFromContent(
+		id: ArticleID,
+		content: string,
+		parser: MarkdownParser,
+		parserContextFactory: ParserContextFactory,
+		ctx: Context,
+	): Promise<JSONContent> {
+		const article = this.getArticle(id);
+		assert(article, `Article with id ${id} not found in provider`);
+
+		const context = await parserContextFactory.fromArticle(
+			article,
+			this._catalog,
+			convertContentToUiLanguage(ctx.contentLanguage || this._catalog.props.language),
+			ctx.user.isLogged,
+		);
+
+		return (await parser.parse(content, context))?.editTree;
 	}
 
 	public getArticle(id: ArticleID) {
@@ -89,7 +119,7 @@ export default class ArticleProvider {
 		await article.updateProps(
 			{ ...props, logicPath: article.logicPath },
 			resourceUpdaterFactory.withContext(ctx)(this._catalog),
-			this._catalog.getRootCategory(),
+			this._catalog,
 		);
 	}
 
@@ -104,16 +134,15 @@ export default class ArticleProvider {
 		const article = this.getArticle(id);
 		if (!article) return;
 
-		const context = parserContextFactory.fromArticle(
+		const context = await parserContextFactory.fromArticle(
 			article,
 			this._catalog,
 			convertContentToUiLanguage(ctx.contentLanguage || this._catalog.props.language),
 			ctx.user.isLogged,
 		);
 
-		const markdown = await formatter.render(editTree, context);
-		await article.updateContent(markdown);
-		await article.parsedContent.write(() => parser.parse(article.content, context));
+		const content = await formatter.render(editTree, context);
+		await article.updateContent(content);
 	}
 
 	public async readArticles(path?: Path) {
@@ -127,7 +156,7 @@ export default class ArticleProvider {
 			if (item.isDirectory()) {
 				await this.readArticles(newPath);
 			} else {
-				const { props, content } = this._fs.parseMarkdown(await this._fp.read(newPath), newPath);
+				const { props, content } = this._fs.parseMarkdown(await this._fp.read(newPath));
 				const lastModified = (await this._fp.getStat(newPath)).mtimeMs;
 				const article = this._createArticle(newPath, props, lastModified, content);
 				this._setArticle(article);
@@ -150,7 +179,7 @@ export default class ArticleProvider {
 		content?: string,
 	) {
 		return new Article({
-			ref: this._fs.getItemRef(path),
+			ref: this._fs.fp.getItemRef(path),
 			parent: null,
 			props,
 			content: content ?? "",

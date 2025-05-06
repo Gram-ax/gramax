@@ -195,6 +195,7 @@ fn make_menu<R: Runtime>(app: &AppHandle<R>) -> Result<Menu<R>> {
     &PredefinedMenuItem::about(app, Some(&t!("menu.file.about")), Some(about_metadata(app)))?,
     &PredefinedMenuItem::separator(app)?,
     &build_item(Id::CloseWindow, Some("CmdOrControl+W"))?,
+    #[cfg(target_os = "macos")]
     &PredefinedMenuItem::hide(app, Some(&t!("menu.file.hide")))?,
     &PredefinedMenuItem::quit(app, Some(&t!("menu.file.quit")))?,
   ])?;

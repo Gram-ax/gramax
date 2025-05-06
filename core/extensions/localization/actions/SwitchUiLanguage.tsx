@@ -1,20 +1,21 @@
-import { getExecutingEnvironment } from "@app/resolveModule/env";
 import Icon from "@components/Atoms/Icon";
 import PopupMenuLayout from "@components/Layouts/PopupMenuLayout";
 import ButtonLink from "@components/Molecules/ButtonLink";
 import FetchService from "@core-ui/ApiServices/FetchService";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import LanguageService from "@core-ui/ContextServices/Language";
+import { usePlatform } from "@core-ui/hooks/usePlatform";
 import UiLanguage from "@ext/localization/core/model/Language";
 import t from "@ext/localization/locale/translate";
 import { useCallback } from "react";
 
 const SwitchUiLanguage = () => {
 	const apiUrlCreator = ApiUrlCreatorService.value;
+	const { isNext } = usePlatform();
 
 	const setLanguage = useCallback(
 		async (language: UiLanguage) => {
-			if (getExecutingEnvironment() !== "next") return LanguageService.setUiLanguage(language);
+			if (!isNext) return LanguageService.setUiLanguage(language);
 
 			const r = await FetchService.fetch(apiUrlCreator.getSetLanguageURL(language));
 			if (r.ok) LanguageService.setUiLanguage(language);

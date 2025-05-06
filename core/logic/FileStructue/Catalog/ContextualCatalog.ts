@@ -47,11 +47,7 @@ export default class ContextualCatalog<P extends CatalogProps = CatalogProps> im
 	get basePath() {
 		return this.deref.basePath;
 	}
-
-	get errors() {
-		return this.deref.errors;
-	}
-
+	
 	get props() {
 		const mutableProps = { props: this.deref.props };
 		this._events.emitSync("props-resolve", { mutableProps });
@@ -60,6 +56,10 @@ export default class ContextualCatalog<P extends CatalogProps = CatalogProps> im
 
 	get snippetProvider() {
 		return this.deref.snippetProvider;
+	}
+
+	get templateProvider() {
+		return this.deref.templateProvider;
 	}
 
 	get inboxProvider() {

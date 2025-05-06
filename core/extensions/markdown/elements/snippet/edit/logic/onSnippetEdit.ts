@@ -25,7 +25,7 @@ const getOnSave = (apiUrlCreator: ApiUrlCreator, snippetId: string) => {
 	return async (data: SnippetEditData) => {
 		await FetchService.fetch(
 			apiUrlCreator.updateFileInGramaxDir(snippetId, "snippet"),
-			JSON.stringify({ content: data.content, props: { title: data.title } }),
+			JSON.stringify({ editTree: data.content, props: { title: data.title } }),
 			MimeTypes.json,
 		);
 		await SnippetUpdateService.updateContent(snippetId, apiUrlCreator);

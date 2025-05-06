@@ -16,14 +16,14 @@ interface WorkspaceStyle {
 	css?: string;
 }
 
-interface UserSettingsWorkspace extends WorkspaceConfig {
+export interface EnterpriseWorkspaceConfig extends WorkspaceConfig {
 	source: WorkspaceSource;
 	style: WorkspaceStyle;
 }
 
 interface UserSettings {
 	source: GitSourceData;
-	workspace: UserSettingsWorkspace;
+	workspace: EnterpriseWorkspaceConfig;
 	from: string;
 	isNotEditor?: boolean;
 }

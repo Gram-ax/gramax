@@ -61,15 +61,12 @@ const MergeButton = ({ mergeRequest, status }: MergeButtonProps) => {
 		ModalToOpenService.resetValue();
 		if (!res.ok) return;
 
-		const mergeUrl = apiUrlCreator.mergeRequestMerge(
-			mergeRequest.targetBranchRef,
-			mergeRequest.options?.deleteAfterMerge,
-			false,
-		);
+		const mergeUrl = apiUrlCreator.mergeRequestMerge(false);
 		ModalToOpenService.setValue<MergeRequestConfirmProps>(ModalToOpen.MergeRequestConfirm, {
 			sourceBranch: mergeRequest.sourceBranchRef,
 			targetBranch: mergeRequest.targetBranchRef,
 			deleteAfterMerge: mergeRequest.options?.deleteAfterMerge,
+			squash: mergeRequest.options?.squash,
 			onMergeClick: async () => {
 				ModalToOpenService.setValue(ModalToOpen.Loading);
 				await FetchService.fetch(mergeUrl);

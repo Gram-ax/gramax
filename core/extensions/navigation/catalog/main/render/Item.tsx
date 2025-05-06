@@ -4,7 +4,6 @@ import { classNames } from "@components/libs/classNames";
 import Url from "@core-ui/ApiServices/Types/Url";
 import ArticlePropsService from "@core-ui/ContextServices/ArticleProps";
 import GitIndexService from "@core-ui/ContextServices/GitIndexService";
-import ArticleViewService from "@core-ui/ContextServices/views/articleView/ArticleViewService";
 import { ItemType } from "@core/FileStructue/Item/ItemType";
 import styled from "@emotion/styled";
 import { HTMLAttributes } from "react";
@@ -16,40 +15,34 @@ interface LevNavItemProps extends HTMLAttributes<HTMLDivElement> {
 	item?: ItemLink;
 	isOpen?: boolean;
 	isHover?: boolean;
-	isActive?: boolean;
 	isCategory?: boolean;
 	isDropTarget?: boolean;
 	isDragStarted?: boolean;
-	rightExtensions?: JSX.Element | JSX.Element[];
-	leftExtensions?: JSX.Element | JSX.Element[];
+	rightExtensions?: JSX.Element;
+	leftExtensions?: JSX.Element;
 	onToggle?: () => void;
 	className?: string;
 }
 
-const LevNavItem = (props: LevNavItemProps) => {
-	const {
-		level,
-		item,
-		isOpen,
-		rightExtensions,
-		leftExtensions,
-		onToggle,
-		className,
-		isCategory,
-		isDragStarted,
-		isDropTarget,
-		isActive,
-		isHover,
-		...other
-	} = props;
-	const articleProps = ArticlePropsService.value;
-	const title = item ? (articleProps?.ref?.path == item?.ref?.path ? articleProps?.title : item?.title) : null;
-	const currentTitle = articleProps?.ref?.path == item?.ref?.path ? articleProps?.title : null;
-	const existsContent = item?.type === ItemType.category ? (item as CategoryLink)?.existContent : true;
-
-	const status = GitIndexService.getStatusByPath(item?.ref?.path);
-
-	const Item = (
+const Item = ({
+	level,
+	item,
+	isOpen,
+	isCategory,
+	className,
+	onToggle,
+	rightExtensions,
+	leftExtensions,
+	title,
+	currentTitle,
+	status,
+	...other
+}: LevNavItemProps & {
+	currentTitle: string;
+	status: string;
+	isActive?: boolean;
+}) => {
+	return (
 		<div
 			className={classNames(`${className} depth-${level}`, {
 				"a-drop-target": !isOpen && isCategory,
@@ -79,16 +72,9 @@ const LevNavItem = (props: LevNavItemProps) => {
 			)}
 		</div>
 	);
-
-	if (!item || articleProps?.ref?.path == item?.ref?.path || !existsContent) return Item;
-	return (
-		<Link onClick={ArticleViewService.setDefaultView.bind(null)} href={Url.from(item)}>
-			{Item}
-		</Link>
-	);
 };
 
-export default styled(LevNavItem)`
+const StyledItem = styled(Item)`
 	display: flex;
 	position: relative;
 	padding: 5px 0;
@@ -211,3 +197,23 @@ export default styled(LevNavItem)`
 			background: var(--color-nav-article-drop-target) !important;
 		`}
 `;
+
+const LevNavItem = (props: LevNavItemProps) => {
+	const { item } = props;
+	const articleProps = ArticlePropsService.value;
+	const title = item ? (articleProps?.ref?.path == item?.ref?.path ? articleProps?.title : item?.title) : null;
+	const currentTitle = articleProps?.ref?.path == item?.ref?.path ? articleProps?.title : null;
+	const existsContent = item?.type === ItemType.category ? (item as CategoryLink)?.existContent : true;
+	const status = GitIndexService.getStatusByPath(item?.ref?.path);
+
+	if (!item || articleProps?.ref?.path == item?.ref?.path || !existsContent) {
+		return <StyledItem {...props} currentTitle={currentTitle} status={status} title={title} isActive={true} />;
+	}
+	return (
+		<Link href={Url.from(item)}>
+			<StyledItem {...props} currentTitle={currentTitle} status={status} title={title} />
+		</Link>
+	);
+};
+
+export default LevNavItem;

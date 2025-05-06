@@ -15,7 +15,7 @@ export default styled(SmallFence)`
 	${(p) => (p.fixWidth ? "flex: 1; overflow: hidden;" : "")}
 
 	> pre {
-		padding: 2px 6px;
+		padding: 2px 6px !important;
 		margin: 0 !important;
 		color: var(--color-fence-text);
 	}

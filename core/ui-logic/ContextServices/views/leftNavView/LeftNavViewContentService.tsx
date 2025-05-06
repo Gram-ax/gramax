@@ -1,15 +1,12 @@
 import LeftNavigationContent from "@components/Layouts/CatalogLayout/LeftNavigation/LeftNavigationContent";
 import { ItemLink } from "@ext/navigation/NavigationLinks";
-import type { NodeModel } from "@minoru/react-dnd-treeview";
 import { createContext, ReactElement, useContext, useState } from "react";
-
-type ItemLinks = NodeModel<ItemLink>[];
 
 export type LeftNavViewContentComponent = ({
 	itemLinks,
 	closeNavigation,
 }: {
-	itemLinks: ItemLinks;
+	itemLinks: ItemLink[];
 	closeNavigation?: () => void;
 }) => JSX.Element;
 

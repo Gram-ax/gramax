@@ -1,7 +1,7 @@
-import { Display } from "@ext/properties/models/displays";
+import ElementGroups from "@ext/markdown/core/element/ElementGroups";
 
 const viewSchema = {
-	group: "block",
+	group: `${ElementGroups.block} ${ElementGroups.listItemContent}`,
 	draggable: true,
 	disableDropCursor: true,
 	attrs: {
@@ -9,7 +9,7 @@ const viewSchema = {
 		orderby: { default: [] },
 		groupby: { default: [] },
 		select: { default: [] },
-		display: { default: Display.List },
+		display: { default: "List" },
 	},
 };
 

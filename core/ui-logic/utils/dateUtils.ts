@@ -57,4 +57,15 @@ export default abstract class DateUtils {
 
 		return new Intl.DateTimeFormat(lang).format(dateObj);
 	}
+
+	static sort(dateA: DateType, dateB: DateType) {
+		if (dateA && dateB) {
+			return new Date(dateB).getTime() - new Date(dateA).getTime();
+		}
+
+		if (!dateA && dateB) return 1;
+		if (dateA && !dateB) return -1;
+
+		return 0;
+	}
 }

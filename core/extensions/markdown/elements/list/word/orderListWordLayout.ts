@@ -5,7 +5,9 @@ import { WordListRenderer } from "./WordListRenderer";
 
 export const orderListWordLayout: WordBlockChild = async ({ state, tag, addOptions }) => {
 	const reference = "orderedList";
-	const level = Math.min(tag.attributes.depth ?? 0, wordNestedListMaxLevel);
+
+	const attrs = "attributes" in tag ? tag.attributes : tag.attrs;
+	const level = Math.min(attrs.depth ?? 0, wordNestedListMaxLevel);
 	const instance = wordListInstancesCounter.generateInstanceNumberForList();
 	const numbering = { reference, level, instance };
 

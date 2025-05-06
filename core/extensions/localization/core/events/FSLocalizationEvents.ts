@@ -158,7 +158,7 @@ removing from .doc-root.yaml`,
 					description: item.props.description,
 				},
 				makeResourceUpdater(catalog),
-				catalog.getRootCategory(),
+				catalog,
 				true,
 			);
 		});

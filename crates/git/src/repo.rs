@@ -9,7 +9,7 @@ use crate::prelude::BranchEntry;
 use crate::remote_callback::push_update_reference_callback;
 use crate::remote_callback::ssl_callback;
 
-use crate::error::Error;
+use crate::error::OrUtf8Err;
 use crate::error::Result;
 use crate::remote_callback::make_credentials_callback;
 use crate::remote_callback::AddCredentialsHeaders;
@@ -121,14 +121,14 @@ impl<C: Creds> Repo<C> {
     let head = self.0.head()?;
     let mut remote = self.0.find_remote("origin")?;
     self.ensure_remote_has_postfix(&remote)?;
-    let refspec = head.name().ok_or(Error::Utf8)?;
+    let refspec = head.name().or_utf8_err()?;
 
     info!(target: TAG, "pushing refspec {}", refspec);
 
     remote.push(&[refspec], Some(&mut push_opts))?;
-    if let Ok(mut branch) = self.0.find_branch(head.shorthand().ok_or(Error::Utf8)?, BranchType::Local) {
+    if let Ok(mut branch) = self.0.find_branch(head.shorthand().or_utf8_err()?, BranchType::Local) {
       if branch.upstream().is_err() {
-        branch.set_upstream(Some(&format!("origin/{}", branch.name()?.ok_or(Error::Utf8)?)))?;
+        branch.set_upstream(Some(&format!("origin/{}", branch.name()?.or_utf8_err()?)))?;
       }
     }
 
@@ -176,7 +176,7 @@ impl<C: Creds> Repo<C> {
     }
 
     self.0.checkout_tree(branch.get().peel_to_tree()?.as_object(), Some(&mut opts))?;
-    self.0.set_head(branch.get().name().ok_or(Error::Utf8)?)?;
+    self.0.set_head(branch.get().name().or_utf8_err()?)?;
     Ok(())
   }
 
@@ -263,8 +263,8 @@ impl<C: Creds> Repo<C> {
     &'b self,
     branch: (git2::Branch<'b>, BranchType),
   ) -> Result<BranchEntry<'b>> {
-    let commit =
-      self.0.resolve_reference_from_short_name(branch.0.name()?.ok_or(Error::Utf8)?)?.peel_to_commit()?;
+    let refname = branch.0.name()?.or_utf8_err()?;
+    let commit = self.0.resolve_reference_from_short_name(refname)?.peel_to_commit()?;
     Ok((branch, commit).into())
   }
 
@@ -299,9 +299,15 @@ impl<C: Creds> Repo<C> {
       return Err(err.into());
     }
 
-    let sig = self.1.signature()?;
-    let tree = self.0.treebuilder(None)?.write()?;
-    self.0.commit(Some("HEAD"), &sig, &sig, "init", &self.0.find_tree(tree)?, &[])?;
+    match self.1.signature() {
+      Ok(sig) => {
+        let tree = self.0.treebuilder(None)?.write()?;
+        self.0.commit(Some("HEAD"), &sig, &sig, "init", &self.0.find_tree(tree)?, &[])?;
+      }
+      Err(err) => {
+        error!(target: TAG, "failed to get signature: {}; skip creating head", err);
+      }
+    }
 
     Ok(())
   }

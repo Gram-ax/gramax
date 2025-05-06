@@ -5,6 +5,7 @@ import t from "@ext/localization/locale/translate";
 class ParseError extends DefaultError {
 	constructor(cause: Error) {
 		super(t("article.error.parse"), cause);
+		this.name = "ParseError";
 	}
 
 	get type() {

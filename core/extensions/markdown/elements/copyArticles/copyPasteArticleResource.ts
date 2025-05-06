@@ -3,8 +3,7 @@ import ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
 import FetchService from "@core-ui/ApiServices/FetchService";
 import { ClientArticleProps } from "@core/SitePresenter/SitePresenter";
 import createPlainText from "@ext/markdown/elements/copyArticles/createPlainText";
-import { OnLoadResource } from "@ext/markdown/elements/copyArticles/onLoadResourceService";
-import initArticleResource from "@ext/markdown/elementsUtils/AtricleResource/initArticleResource";
+import { ResourceServiceType } from "@ext/markdown/elements/copyArticles/resourceService";
 import { Attrs, DOMSerializer, Fragment, Mark, Node as ProseMirrorNode, Schema, Slice } from "@tiptap/pm/model";
 import { Transaction } from "@tiptap/pm/state";
 import { handlePaste } from "prosemirror-tables";
@@ -16,7 +15,7 @@ interface CreateProps {
 	event: ClipboardEvent;
 	articleProps: ClientArticleProps;
 	apiUrlCreator: ApiUrlCreator;
-	onLoadResource: OnLoadResource;
+	resourceService: ResourceServiceType;
 	tr: Transaction;
 }
 interface FilterProps {
@@ -25,7 +24,7 @@ interface FilterProps {
 	attrs: [] | Attrs;
 	apiUrlCreator: ApiUrlCreator;
 	articleProps: ClientArticleProps;
-	onLoadResource: OnLoadResource;
+	resourceService: ResourceServiceType;
 }
 
 interface PasteProps {
@@ -33,7 +32,7 @@ interface PasteProps {
 	event: ClipboardEvent;
 	articleProps: ClientArticleProps;
 	apiUrlCreator: ApiUrlCreator;
-	onLoadResource: OnLoadResource;
+	resourceService: ResourceServiceType;
 }
 
 interface CreatedFragment {
@@ -42,9 +41,7 @@ interface CreatedFragment {
 	deleteRange?: { from: number; to: number };
 }
 
-type ClipboardItems = {
-	[key: string]: string;
-};
+type ClipboardItems = Record<string, string>;
 const IMAGE_MIME_TYPES = ["image/png", "image/jpeg", "image/gif", "image/webp", "image/svg+xml"];
 
 const handleCommentary = (view: EditorView, marks: Mark[] | readonly Mark[]): Mark[] | readonly Mark[] => {
@@ -79,8 +76,7 @@ const handleCommentary = (view: EditorView, marks: Mark[] | readonly Mark[]): Ma
 const createResource = async (
 	node: ProseMirrorNode,
 	apiUrlCreator: ApiUrlCreator,
-	articleProps: ClientArticleProps,
-	onLoadResource: OnLoadResource,
+	resourceService: ResourceServiceType,
 ) => {
 	const attrs = { ...node.attrs };
 
@@ -91,15 +87,9 @@ const createResource = async (
 	}
 
 	if (!attrs?.resource?.src) return { ...attrs, nodeName: node.type.name };
-	const splitted = attrs.resource.name ? attrs.resource.name.split(".") : attrs.resource.name.slice(2).split(".");
-	const newName = await initArticleResource(
-		articleProps,
-		apiUrlCreator,
-		onLoadResource,
-		Buffer.from(attrs.resource.src),
-		splitted[splitted.length - 1],
-		splitted[splitted.length - 2].slice(1, splitted[splitted.length - 2].length),
-	);
+	const name = attrs.resource.name ? attrs.resource.name : attrs.resource.name.slice(2);
+	const newName = await resourceService.setResource(name, Buffer.from(attrs.resource.src), attrs.resource.path);
+
 	if (!newName) return;
 	attrs.resource = null;
 
@@ -107,7 +97,7 @@ const createResource = async (
 };
 
 const filterMarks = async (props: FilterProps): Promise<ProseMirrorNode> => {
-	const { view, node, attrs, apiUrlCreator, articleProps, onLoadResource } = props;
+	const { view, node, attrs, apiUrlCreator, articleProps, resourceService } = props;
 	const newChildren = [];
 
 	for (let index = 0; index < node.content.childCount; index++) {
@@ -115,7 +105,7 @@ const filterMarks = async (props: FilterProps): Promise<ProseMirrorNode> => {
 		let newChild = child;
 
 		if (Object.keys(newChild.attrs).length > 0 && !child.isText) {
-			const newAttrs = await createResource(child, apiUrlCreator, articleProps, onLoadResource);
+			const newAttrs = await createResource(child, apiUrlCreator, resourceService);
 			newChild = child.type.create(newAttrs, child.content, child.marks);
 		}
 
@@ -130,7 +120,7 @@ const filterMarks = async (props: FilterProps): Promise<ProseMirrorNode> => {
 					attrs: newChild.attrs,
 					apiUrlCreator,
 					articleProps,
-					onLoadResource,
+					resourceService,
 				}),
 			);
 		} else {
@@ -184,12 +174,12 @@ const proceedNodes = async (
 	attrs: Record<string, unknown>,
 	apiUrlCreator: ApiUrlCreator,
 	articleProps: ClientArticleProps,
-	onLoadResource: OnLoadResource,
+	resourceService: ResourceServiceType,
 ) => {
 	if (node.type.name === "text") {
 		const newMarks = handleCommentary(view, node.marks);
 		return view.state.schema.text(node.text, newMarks);
-	} else return await filterMarks({ view, node, attrs, apiUrlCreator, articleProps, onLoadResource });
+	} else return await filterMarks({ view, node, attrs, apiUrlCreator, articleProps, resourceService });
 };
 
 const handleOthers = (view: EditorView, node: ProseMirrorNode): Slice => {
@@ -234,17 +224,17 @@ const createTitleHTML = (view: EditorView, fragment: Fragment) => {
 };
 
 const createNodes = async (props: CreateProps) => {
-	const { event, view, node, apiUrlCreator, articleProps, onLoadResource } = props;
+	const { event, view, node, apiUrlCreator, articleProps, resourceService } = props;
 
 	const clipboardData: ClipboardItems = {};
 	Array.from(event.clipboardData.items).forEach((item) => {
 		clipboardData[item.type] = event.clipboardData.getData(item.type);
 	});
 
-	const attrs = await createResource(node, apiUrlCreator, articleProps, onLoadResource);
+	const attrs = await createResource(node, apiUrlCreator, resourceService);
 	if (!attrs.nodeName) return;
 	const tr = view.state.tr;
-	const newNode = await proceedNodes(node, view, attrs, apiUrlCreator, articleProps, onLoadResource);
+	const newNode = await proceedNodes(node, view, attrs, apiUrlCreator, articleProps, resourceService);
 
 	const isPasted = handleNodes(clipboardData, view, newNode);
 	if (isPasted) return;
@@ -305,6 +295,17 @@ const createTableFragment = (content: Fragment, schema: Schema<any, any>): Creat
 	};
 };
 
+const createCodeBlockFragment = (content: Fragment, schema: Schema): Fragment => {
+	return Fragment.fromArray(
+		content.firstChild.text.split("\n").reduce((acc: ProseMirrorNode[], text) => {
+			if (text.length > 0) {
+				acc.push(schema.nodes.paragraph.create(null, schema.text(text, [])));
+			}
+			return acc;
+		}, []),
+	);
+};
+
 const createFragment = (view: EditorView): CreatedFragment => {
 	const { $from, $to, ranges } = view.state.selection;
 	const { doc, schema } = view.state;
@@ -314,6 +315,15 @@ const createFragment = (view: EditorView): CreatedFragment => {
 	const range = window.getSelection()?.getRangeAt(0);
 
 	const text = createPlainText(range);
+	const fromNode = $from.node();
+	const isSameNode = fromNode === $to.node();
+	if (isSameNode && fromNode.type.spec.code) {
+		return {
+			fragment: createCodeBlockFragment($from.node().content, schema),
+			plainText: text,
+		};
+	}
+
 	if (parentName === "table" && ranges.length > 1)
 		return createTableFragment(view.state.selection.content().content, schema);
 
@@ -335,11 +345,11 @@ const createFragment = (view: EditorView): CreatedFragment => {
 	return { fragment: slice.content, plainText: text };
 };
 
-const getImageFromFragment = (fragment: Fragment, onLoadResource: OnLoadResource): boolean => {
+const getImageFromFragment = (fragment: Fragment, resourceService: ResourceServiceType): boolean => {
 	const firstImage = fragment.firstChild?.type?.name === "image" ? fragment.firstChild : null;
 
 	if (!firstImage) return false;
-	const buffer = onLoadResource.getBuffer(firstImage.attrs.src);
+	const buffer = resourceService.getBuffer(firstImage.attrs.src);
 	if (!buffer) return false;
 
 	const mimeType = resolveImageKind(firstImage.attrs.src);
@@ -369,15 +379,15 @@ const getSerializedHTML = (view: EditorView, fragment: Fragment): string => {
 
 const getNodesData = (
 	view: EditorView,
-	onLoadResource: OnLoadResource,
+	resourceService: ResourceServiceType,
 ): { copyTypes: Record<string, string>; deleteRange: { from: number; to: number } } => {
 	const { fragment, plainText, deleteRange } = createFragment(view);
-	const imageData = getImageFromFragment(fragment, onLoadResource);
+	const imageData = getImageFromFragment(fragment, resourceService);
 	if (imageData) return;
 
 	return {
 		copyTypes: {
-			"text/gramax": JSON.stringify(createNodesJSON(view, fragment, onLoadResource.getBuffer)),
+			"text/gramax": JSON.stringify(createNodesJSON(view, fragment, resourceService.getBuffer)),
 			"text/plain": plainText,
 			"text/html": getSerializedHTML(view, fragment),
 		},
@@ -388,14 +398,14 @@ const getNodesData = (
 const copyArticleResource = (
 	view: EditorView,
 	event: ClipboardEvent,
-	onLoadResource: OnLoadResource,
+	resourceService: ResourceServiceType,
 	isCut?: boolean,
 ) => {
 	const { from, to } = view.state.selection;
 	const { tr } = view.state;
 	if (from === to) return;
 
-	const data = getNodesData(view, onLoadResource);
+	const data = getNodesData(view, resourceService);
 	if (data) {
 		Object.entries(data.copyTypes).forEach(([type, data]) => {
 			event.clipboardData.setData(type, data);
@@ -410,7 +420,7 @@ const copyArticleResource = (
 };
 
 const pasteArticleResource = (props: PasteProps) => {
-	const { view, event, articleProps, apiUrlCreator, onLoadResource } = props;
+	const { view, event, articleProps, apiUrlCreator, resourceService } = props;
 	const { tr } = view.state;
 
 	const gramaxText = event.clipboardData.getData("text/gramax");
@@ -425,7 +435,7 @@ const pasteArticleResource = (props: PasteProps) => {
 		}
 
 		const node = view.state.schema.nodes.doc.create(null, nodes);
-		void createNodes({ node, event, view, articleProps, apiUrlCreator, tr, onLoadResource });
+		void createNodes({ node, event, view, articleProps, apiUrlCreator, tr, resourceService });
 		return true;
 	} catch {
 		return false;

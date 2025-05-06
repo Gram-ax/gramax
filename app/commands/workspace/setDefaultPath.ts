@@ -18,7 +18,10 @@ const setDefaultPath: Command<{ path: Path }, void> = Command.create({
 		if (!workspacePath) return this._app.wm.setDefaultPath(path);
 		await wm.setWorkspace(workspacePath);
 		// TODO: Remove if
-		if (getExecutingEnvironment() == "browser") setWorkerProxy(wm.current().config().services?.gitProxy?.url);
+		if (getExecutingEnvironment() == "browser") {
+			const config = await wm.current().config();
+			setWorkerProxy(config.services?.gitProxy?.url);
+		}
 	},
 
 	params(ctx, q) {

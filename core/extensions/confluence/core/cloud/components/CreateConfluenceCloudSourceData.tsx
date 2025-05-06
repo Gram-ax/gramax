@@ -1,7 +1,12 @@
-import { getExecutingEnvironment } from "@app/resolveModule/env";
 import Button, { TextSize } from "@components/Atoms/Button/Button";
+import { ButtonStyle } from "@components/Atoms/Button/ButtonStyle";
 import SpinnerLoader from "@components/Atoms/SpinnerLoader";
+import ButtonLink from "@components/Molecules/ButtonLink";
+import { usePlatform } from "@core-ui/hooks/usePlatform";
 import Query, { parserQuery } from "@core/Api/Query";
+import ConfluenceCloudAPI from "@ext/confluence/core/api/ConfluenceCloudAPI";
+import { ConfluenceInstance } from "@ext/confluence/core/api/model/ConfluenceAPITypes";
+import ConfluenceCloudSourceData from "@ext/confluence/core/cloud/model/ConfluenceCloudSourceData";
 import { SourceUser } from "@ext/git/actions/Source/SourceAPI";
 import { makeSourceApi } from "@ext/git/actions/Source/makeSourceApi";
 import { waitForTempToken } from "@ext/git/actions/Source/tempToken";
@@ -11,11 +16,6 @@ import { useEffect, useState } from "react";
 import createChildWindow from "../../../../../ui-logic/ChildWindow/createChildWindow";
 import PageDataContextService from "../../../../../ui-logic/ContextServices/PageDataContext";
 import SourceType from "../../../../storage/logic/SourceDataProvider/model/SourceType";
-import ConfluenceCloudSourceData from "@ext/confluence/core/cloud/model/ConfluenceCloudSourceData";
-import { ConfluenceInstance } from "@ext/confluence/core/api/model/ConfluenceAPITypes";
-import ButtonLink from "@components/Molecules/ButtonLink";
-import { ButtonStyle } from "@components/Atoms/Button/ButtonStyle";
-import ConfluenceCloudAPI from "@ext/confluence/core/api/ConfluenceCloudAPI"; 
 
 const CreateConfluenceCloudSourceData = ({
 	onSubmit,
@@ -27,6 +27,7 @@ const CreateConfluenceCloudSourceData = ({
 	const [instanceData, setInstanceData] = useState<ConfluenceInstance>(null);
 	const [user, setUser] = useState<SourceUser>(null);
 	const [token, setToken] = useState<Query>(null);
+	const { isBrowser } = usePlatform();
 
 	const getInstanceData = async (token: { [queryParam: string]: string }) => {
 		if (!token || !token?.access_token) return;
@@ -89,7 +90,7 @@ const CreateConfluenceCloudSourceData = ({
 								(location) => setToken(parserQuery(location.search)),
 							);
 
-							if (getExecutingEnvironment() == "browser") setToken(parserQuery(await waitForTempToken()));
+							if (isBrowser) setToken(parserQuery(await waitForTempToken()));
 						}}
 					/>
 				)}

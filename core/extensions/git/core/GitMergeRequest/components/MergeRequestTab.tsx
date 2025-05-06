@@ -1,4 +1,4 @@
-import TabWrapper from "@components/Layouts/StatusBar/Extensions/ArticleStatusBar/TabWrapper";
+import TabWrapper from "@components/Layouts/LeftNavigationTabs/TabWrapper";
 import calculateTabWrapperHeight from "@components/Layouts/StatusBar/Extensions/logic/calculateTabWrapperHeight";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import ArticleViewService from "@core-ui/ContextServices/views/articleView/ArticleViewService";

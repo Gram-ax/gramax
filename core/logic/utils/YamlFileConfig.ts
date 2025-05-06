@@ -44,6 +44,10 @@ export default class YamlFileConfig<C extends object> {
 		this._config[name] = value;
 	}
 
+	delete(name: keyof C) {
+		delete this._config[name];
+	}
+
 	update(value: C) {
 		this._config = value;
 	}

@@ -1,8 +1,9 @@
 import Url from "@core-ui/ApiServices/Types/Url";
 import { BaseLink } from "@ext/navigation/NavigationLinks";
 import { HTMLAttributes, ReactNode, RefObject, forwardRef } from "react";
-import { Link, useRouter } from "wouter";
+import { Link, LinkProps, useRouter } from "wouter";
 
+const WouterLink: (props: LinkProps & { ref: RefObject<HTMLAnchorElement> }) => ReactNode = Link;
 interface BrowserLinkProps extends HTMLAttributes<HTMLAnchorElement> {
 	href: BaseLink;
 	children: ReactNode;
@@ -14,11 +15,9 @@ const BrowserLink = forwardRef((props: BrowserLinkProps, ref: RefObject<HTMLAnch
 	const url = href ? Url.fromBasePath(href?.pathname, useRouter()?.base, href?.query) : null;
 
 	return (
-		<Link href={url.pathname} {...otherProps}>
-			<a ref={ref} data-qa={dataQa} {...otherProps}>
-				{children}
-			</a>
-		</Link>
+		<WouterLink {...otherProps} ref={ref} data-qa={dataQa} href={url.pathname}>
+			{children}
+		</WouterLink>
 	);
 });
 

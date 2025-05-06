@@ -4,7 +4,7 @@ import Icon from "@components/Atoms/Icon";
 import FetchService from "@core-ui/ApiServices/FetchService";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
-import { refreshPage } from "@core-ui/ContextServices/RefreshPageContext";
+import { refreshPage } from "@core-ui/utils/initGlobalFuncs";
 import type { ArticlePageData } from "@core/SitePresenter/SitePresenter";
 import t from "@ext/localization/locale/translate";
 import { useState } from "react";
@@ -34,7 +34,7 @@ const CreateFirstArticle = (props: CreateArticleProps) => {
 		setIsLoading(false);
 	};
 
-	if (!isReadOnly) return null;
+	if (isReadOnly) return null;
 
 	return (
 		<Button className={className} buttonStyle={ButtonStyle.default} onClick={onClickHandler}>

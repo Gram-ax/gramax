@@ -21,6 +21,7 @@ import GitStorageData from "../../git/core/model/GitStorageData";
 import StorageData from "../models/StorageData";
 import SourceType from "./SourceDataProvider/model/SourceType";
 import Storage from "./Storage";
+
 interface CloneData {
 	fs: FileStructure;
 	path: Path;
@@ -30,6 +31,7 @@ interface CloneData {
 	isBare: boolean;
 	onCloneFinish: (path: Path, isCancelled: boolean) => Promise<void> | void;
 }
+
 export default class StorageProvider {
 	private _progressData: Map<string, CloneProgress> = new Map();
 	private _cancelTokens: Map<string, CloneCancelToken> = new Map();
@@ -53,7 +55,8 @@ export default class StorageProvider {
 	}
 
 	async cancelClone(path: Path, fs: FileStructure) {
-		const cancelToken = this._cancelTokens.get(path.toString());
+		const absolutePath = fs.fp.default().rootPath.join(path);
+		const cancelToken = this._cancelTokens.get(absolutePath.toString());
 		assert(cancelToken, `clone (${path.value}) cancellation token not found`);
 		return await GitStorage.cloneCancel(cancelToken, fs, path);
 	}
@@ -67,14 +70,16 @@ export default class StorageProvider {
 
 	private async _clone(cloneData: CloneData) {
 		const { fs, path, data, recursive, branch, isBare, onCloneFinish } = cloneData;
+		const rootPath = fs.fp.default().rootPath;
+		const absolutePath = rootPath.join(cloneData.path);
+
 		try {
 			let isCancelled = false;
-			const pathStr = cloneData.path.toString();
-			this._progressData.set(pathStr, { type: "started", data: { path: pathStr } });
+			this._progressData.set(absolutePath.toString(), { type: "started", data: { path: path.toString() } });
 
 			if (isGitSourceType(cloneData.data.source.sourceType)) {
-				const cancelToken = XxHash.hasher().hash(pathStr).finalize();
-				this._cancelTokens.set(pathStr, cancelToken);
+				const cancelToken = XxHash.hasher().hash(absolutePath).finalize();
+				this._cancelTokens.set(absolutePath.toString(), cancelToken);
 
 				try {
 					await GitStorage.clone({
@@ -86,7 +91,7 @@ export default class StorageProvider {
 						source: data.source as GitSourceData,
 						cancelToken,
 						isBare,
-						onProgress: this._getOnProgress(path),
+						onProgress: this._getOnProgress(absolutePath),
 					});
 				} catch (e) {
 					if (
@@ -98,7 +103,7 @@ export default class StorageProvider {
 						throw e;
 					}
 				} finally {
-					this._cancelTokens.delete(pathStr);
+					this._cancelTokens.delete(absolutePath.toString());
 				}
 			}
 
@@ -130,30 +135,36 @@ export default class StorageProvider {
 			}
 
 			await onCloneFinish?.(path, isCancelled);
-			this._finishClone(path, isCancelled);
+			this._finishClone(rootPath, path, isCancelled);
 		} catch (e) {
 			if (await fs.fp.exists(path)) await fs.fp.delete(path);
 			if (e instanceof DefaultError) {
-				this._errorClone(path, e);
+				this._errorClone(rootPath, path, e);
 			} else {
 				const message = t("git.clone.error.generic");
 				const title = t("git.clone.error.cannot-clone");
-				this._errorClone(path, new DefaultError(message, e, { showCause: true }, null, title));
+				this._errorClone(rootPath, path, new DefaultError(message, e, { showCause: true }, null, title));
 			}
 		}
 	}
 
-	private _errorClone(path: Path, error: DefaultError) {
-		this._progressData.set(path.toString(), { type: "error", data: { path: path.toString(), error } });
+	private _errorClone(rootPath: Path, path: Path, error: DefaultError) {
+		this._progressData.set(rootPath.join(path).toString(), {
+			type: "error",
+			data: { path: path.toString(), error },
+		});
 	}
 
-	private _finishClone(path: Path, isCancelled: boolean) {
-		this._progressData.set(path.toString(), { type: "finish", data: { path: path.toString(), isCancelled } });
+	private _finishClone(rootPath: Path, path: Path, isCancelled: boolean) {
+		this._progressData.set(rootPath.join(path).toString(), {
+			type: "finish",
+			data: { path: path.toString(), isCancelled },
+		});
 	}
 
-	private _getOnProgress(path: Path) {
+	private _getOnProgress(absolutePath: Path) {
 		return ((p: CloneProgress) => {
-			p && this._progressData.set(path.toString(), p);
+			p && this._progressData.set(absolutePath.toString(), p);
 		}).bind(this);
 	}
 }

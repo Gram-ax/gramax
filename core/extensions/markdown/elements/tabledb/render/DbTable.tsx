@@ -131,6 +131,7 @@ const TableDB = ({ object, error, className }: TableDBProps) => {
 };
 
 export default styled(TableDB)`
+	margin: 1em 0;
 	.fields {
 		display: table;
 		font-size: 14px;

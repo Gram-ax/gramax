@@ -1,6 +1,7 @@
 import { getExecutingEnvironment } from "@app/resolveModule/env";
 import Icon from "@components/Atoms/Icon";
 import Tooltip from "@components/Atoms/Tooltip";
+import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import WorkspaceService from "@core-ui/ContextServices/Workspace";
 import useWatch from "@core-ui/hooks/useWatch";
 import { css } from "@emotion/react";
@@ -8,7 +9,8 @@ import styled from "@emotion/styled";
 import t from "@ext/localization/locale/translate";
 import type { WorkspacePath } from "@ext/workspace/WorkspaceConfig";
 import { getCurrentWindow } from "@tauri-apps/api/window";
-import { useCallback, useEffect, useState } from "react";
+import { createContext, Dispatch, SetStateAction, useCallback, useContext, useEffect, useState } from "react";
+import useLocation from "../../browser/src/logic/Api/useLocation";
 
 const isMacOsDesktop = navigator.userAgent.includes("Mac") && getExecutingEnvironment() === "tauri";
 
@@ -71,11 +73,28 @@ const saveHistory = (history: History[], current: number) => {
 	window.sessionStorage.setItem("history", JSON.stringify({ history, current }));
 };
 
+const HistoryContext = createContext<{
+	history: History[];
+	current: number;
+	setHistory: Dispatch<SetStateAction<History[]>>;
+	setCurrent: Dispatch<SetStateAction<number>>;
+}>(null);
+
+export const HistoryProvider = ({ children }: { children: React.ReactNode }) => {
+	const [history, setHistory] = useState<History[]>([]);
+	const [current, setCurrent] = useState<number>(null);
+
+	return (
+		<HistoryContext.Provider value={{ history, current, setHistory, setCurrent }}>
+			{children}
+		</HistoryContext.Provider>
+	);
+};
+
 export const useHistory = () => {
 	if (!isMacOsDesktop) return null;
 
-	const [history, setHistory] = useState<History[]>(null);
-	const [current, setCurrent] = useState<number>(null);
+	const { history, current, setHistory, setCurrent } = useContext(HistoryContext);
 
 	useEffect(() => {
 		if (history !== null && current !== null) return;
@@ -108,19 +127,14 @@ export type ForwardBackwardProps = ReturnType<typeof useHistory> & {
 	setLocation: (location: string) => void;
 };
 
-const ForwardBackward = ({
-	history,
-	setHistory,
-	current,
-	setCurrent,
-	isFullscreen,
-	location,
-	setLocation,
-}: ForwardBackwardProps) => {
+const ForwardBackward = () => {
 	if (!isMacOsDesktop) return null;
 
-	const workspace = WorkspaceService.current();
+	const [location, setLocation] = useLocation();
+	const { history, setHistory, current, setCurrent, isFullscreen } = useHistory();
 
+	const workspace = WorkspaceService.current();
+	const apiUrlCreator = ApiUrlCreatorService.value;
 	const canGoForward = history.length <= 1 || current === history.length - 1 || current == history.length;
 	const canGoBackward = history.length <= 1 || current == 0;
 
@@ -147,14 +161,14 @@ const ForwardBackward = ({
 				if (!entry) return;
 
 				if (workspace?.path && entry.workspace && workspace.path !== entry.workspace) {
-					await WorkspaceService.setActive(workspace.path, false);
+					await WorkspaceService.setActive(workspace.path, apiUrlCreator, false);
 				}
 
 				setLocation(entry.url);
 				setCurrent(next);
 			}
 		},
-		[history, workspace?.path, current, setLocation],
+		[history, workspace?.path, current, setLocation, apiUrlCreator],
 	);
 
 	return (

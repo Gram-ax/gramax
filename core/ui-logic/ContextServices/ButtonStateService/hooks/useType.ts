@@ -14,6 +14,7 @@ export const getNodeNameFromCursor = (state: Editor["state"]) => {
 	const { from, to, empty } = selection;
 	let { $anchor } = selection;
 	let headingLevel = null;
+	let noteType = null;
 
 	const nodeStack = [];
 	let ignoreList = false;
@@ -34,6 +35,10 @@ export const getNodeNameFromCursor = (state: Editor["state"]) => {
 		heading: (node) => {
 			nodeStack.push("heading");
 			headingLevel = node.attrs?.level;
+		},
+		note: (node) => {
+			nodeStack.push("note");
+			noteType = node.attrs?.type;
 		},
 	};
 
@@ -69,6 +74,7 @@ export const getNodeNameFromCursor = (state: Editor["state"]) => {
 	}
 
 	return {
+		noteType,
 		actions: nodeStack.filter(
 			(elem) => !["doc", "text", "listItem", "taskItem", "tableHeader", "tableCell", "tableRow"].includes(elem),
 		),
@@ -120,15 +126,17 @@ const useType = (editor: Editor) => {
 	};
 
 	useWatch(() => {
-		const { actions, headingLevel } = getNodeNameFromCursor(editor.state);
+		const { actions, headingLevel, noteType } = getNodeNameFromCursor(editor.state);
 		if (headingLevel) mirror.current.attrs.level = headingLevel;
+		if (noteType) mirror.current.attrs.type = noteType;
 
 		const marks = getMarksAction();
 
 		const deepDifference =
 			state.marks.toString() !== marks.toString() ||
 			state.attrs?.level !== mirror.current.attrs?.level ||
-			state.attrs.notFirstInList !== mirror.current.attrs.notFirstInList;
+			state.attrs.notFirstInList !== mirror.current.attrs.notFirstInList ||
+			state.attrs.type !== mirror.current.attrs.type;
 
 		if (actions.toString() !== mirror.current.actions.toString() || deepDifference) {
 			mirror.current.actions = [...actions];
@@ -137,7 +145,11 @@ const useType = (editor: Editor) => {
 			setState({
 				actions: [...mirror.current.actions],
 				marks: [...mirror.current.marks],
-				attrs: { level: mirror.current.attrs?.level, notFirstInList: mirror.current.attrs?.notFirstInList },
+				attrs: {
+					level: mirror.current.attrs?.level,
+					notFirstInList: mirror.current.attrs?.notFirstInList,
+					type: mirror.current.attrs?.type,
+				},
 				selection: editor.state.selection,
 			});
 		}

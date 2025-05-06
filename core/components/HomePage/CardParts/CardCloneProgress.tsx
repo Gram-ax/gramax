@@ -1,13 +1,13 @@
-import { getExecutingEnvironment } from "@app/resolveModule/env";
 import Icon from "@components/Atoms/Icon";
 import Tooltip from "@components/Atoms/Tooltip";
 import FetchService from "@core-ui/ApiServices/FetchService";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
+import { usePlatform } from "@core-ui/hooks/usePlatform";
 import { css } from "@emotion/react";
 import styled from "@emotion/styled";
 import type { CloneProgress } from "@ext/git/core/GitCommands/model/GitCommandsModel";
 import t from "@ext/localization/locale/translate";
-import { useCallback, useState } from "react";
+import { useCallback } from "react";
 
 const Wrapper = styled.div`
 	height: 100%;
@@ -146,13 +146,11 @@ const formatBytes = (data: CloneProgress): string => {
 	return ": " + t("git.clone.etc.b").replace("{}", bytes.toFixed(2)) + " @ " + formatSpeed(data);
 };
 
-const resolveLabelText = (data: CloneProgress) => {
+const resolveLabelText = (data: CloneProgress, isBrowser: boolean) => {
 	if (!data) return t("git.clone.progress.wait");
 
 	if (data.type === "started") {
-		return getExecutingEnvironment() === "browser"
-			? t("git.clone.progress.downloading")
-			: t("git.clone.progress.wait");
+		return isBrowser ? t("git.clone.progress.downloading") : t("git.clone.progress.wait");
 	}
 
 	if (data.type === "finish") {
@@ -172,11 +170,14 @@ export type CardCloneProgressProps = {
 	name: string;
 	percentage: number;
 	progress: CloneProgress;
+
+	isCancel: boolean;
+	setIsCancel: (isCancel: boolean) => void;
 };
 
-const CardCloneProgress = ({ name, percentage, progress }: CardCloneProgressProps) => {
-	const [isCancel, setIsCancel] = useState(false);
+const CardCloneProgress = ({ name, percentage, progress, isCancel, setIsCancel }: CardCloneProgressProps) => {
 	const apiUrlCreator = ApiUrlCreatorService.value;
+	const { isBrowser } = usePlatform();
 
 	const handleCancel = useCallback(async () => {
 		if (isCancel || !progress?.cancellable) return;
@@ -189,7 +190,9 @@ const CardCloneProgress = ({ name, percentage, progress }: CardCloneProgressProp
 			<Info>
 				<Tooltip content={collectProgressInfo(progress)}>
 					<Label>
-						{isCancel ? t("git.clone.progress.cancel") : resolveLabelText(progress) + formatBytes(progress)}
+						{isCancel
+							? t("git.clone.progress.cancel")
+							: resolveLabelText(progress, isBrowser) + formatBytes(progress)}
 					</Label>
 				</Tooltip>
 

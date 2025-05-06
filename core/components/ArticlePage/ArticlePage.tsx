@@ -9,7 +9,7 @@ import styled from "@emotion/styled";
 import CreateFirstArticle from "@ext/artilce/actions/CreateFirstArticle";
 import t from "@ext/localization/locale/translate";
 import { ContentEditorId } from "@ext/markdown/core/edit/components/ContentEditor";
-import OnLoadResourceService from "@ext/markdown/elements/copyArticles/onLoadResourceService";
+import ResourceService from "@ext/markdown/elements/copyArticles/resourceService";
 import interceptPrintShortkeys from "../../extensions/artilce/actions/SaveAsPdf/interceptPrintShortkeys";
 import NextPrevious from "../../extensions/navigation/NextPrevious";
 import ThemeService from "../../extensions/Theme/components/ThemeService";
@@ -20,7 +20,7 @@ import ArticleExtensions from "../Article/ArticleExtensions";
 const ArticlePage = ({ data, className }: { data: ArticlePageData; className?: string }) => {
 	const theme = ThemeService.value;
 	const isMac = IsMacService.value;
-	const { clear } = OnLoadResourceService.value;
+	const { clear } = ResourceService.value;
 	const isShowMainLangContentPreview = useShowMainLangContentPreview();
 
 	useWatch(() => clear(), [data.articleProps.logicPath]);

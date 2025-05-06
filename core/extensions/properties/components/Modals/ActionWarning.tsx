@@ -37,7 +37,6 @@ const ActionWarning = (props: ActionWarningProps) => {
 		});
 	}, [data, editData]);
 
-	console.log(usages);
 	return (
 		<Modal
 			closeOnEscape

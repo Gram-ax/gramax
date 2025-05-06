@@ -52,6 +52,18 @@ const locale = {
 					description: "Group on the main page where it will be displayed",
 				},
 			},
+			extended: {
+				name: "Advanced",
+			},
+		},
+		"catalog-extended-edit-props": {
+			name: "Advanced Settings",
+			props: {
+				syntax: {
+					name: "Component format",
+					placeholder: "format",
+				},
+			},
 		},
 		"catalog-create-props": {
 			name: "Props settings",
@@ -424,6 +436,8 @@ const locale = {
 		"css-style": "CSS-style",
 		logo: "Logo",
 		appearance: "Appearance",
+		"invalid-logo-format-title": "Upload Error",
+		"invalid-logo-format-body": "Unsupported file format. Please upload a logo in SVG or PNG format only",
 		"logo-upload-failed": "Failed to upload the logo",
 		"logo-size-exceeded": "The logo size must not exceed 500KB",
 		"css-styles-description": "Advanced styles settings for your workspace.",
@@ -434,8 +448,7 @@ const locale = {
 	},
 	modal: {
 		confirm: {
-			"warning-have-changes":
-				"Are you sure you want to exit the style editing mode? Your changes will be discarded",
+			"warning-have-changes": "Are you sure you want to exit editing mode? Your changes will be discarded",
 		},
 	},
 	multilang: {
@@ -616,7 +629,21 @@ Add storage to confirm the link.`,
 			},
 		},
 	},
+	cloud: {
+		"enter-cloud": "Log in to Gramax Cloud",
+		"upload-button": "Publish",
+		"upload-catalog": "Publish catalog",
+		"upload-success": "Catalog published successfully",
+		"upload-success-link": "Link to the published catalog",
+		"catalog-link": "The catalog will be available at this link",
+		"delete-catalog": "The catalog will be deleted from cloud",
+		error: {
+			"failed-to-connect": "Failed to connect to the cloud server",
+			"request-failed": "Failed to request to the cloud server",
+		},
+	},
 	"log-in": "Log in to ",
+	"login-with": "Login with ",
 	search: {
 		name: "Search",
 		open: "Open search",
@@ -624,6 +651,7 @@ Add storage to confirm the link.`,
 		desc: '<ul><li>Use <code>"</code> for exact matches. Example:&nbsp;<code><nobr>"word"</nobr></code> or <code><nobr>"search phrase"</nobr></code>.</li><li>Use <code>-</code> to exclude. Example:&nbsp;<code><nobr>-word</nobr></code> or <code><nobr>-"excluded phrase"</nobr></code>.</li></ul>',
 		"articles-not-found": "No articles found",
 		"all-catalogs": "Search all catalogs",
+		"vector-search": "AI search",
 	},
 	list: {
 		"no-results-found": "No results found",
@@ -748,11 +776,13 @@ Add storage to confirm the link.`,
 		},
 		merge: {
 			"instant-merge": "Instant merge",
-			merge: "Combine",
+			merge: "Merge",
 			branches: "Merge branches",
 			"after-merge": "After the merge",
 			"current-branch": "Merge the current branch",
 			"delete-branch-after-merge": "Delete branch after merge",
+			squash: "Squash commits",
+			"squash-tooltip": "Changes from the current branch will be squashed into a single commit after merging",
 			conflict: {
 				"abort-confirm": {
 					title: {
@@ -901,6 +931,10 @@ Add storage to confirm the link.`,
 						"<p>Changes from the <code>{{sourceBranch}}</code> branch will be merged into the <code>{{targetBranch}}</code> branch, and branch <code>{{sourceBranch}}</code> will be deleted. This action cannot be undone.</p>",
 					"not-delete-branch-after-merge":
 						"<p>Changes from the <code>{{sourceBranch}}</code> branch will be merged into the <code>{{targetBranch}}</code> branch. This action cannot be undone.</p>",
+					"squash-comment":
+						"<p>The commits from the <code>{{sourceBranch}}</code> branch will be squashed and merged into the <code>{{targetBranch}}</code> branch. This action cannot be undone.</p>",
+					"squash-delete-branch-comment":
+						"<p>The commits from the <code>{{sourceBranch}}</code> branch will be squashed and merged into the <code>{{targetBranch}}</code> branch, and the <code>{{sourceBranch}}</code> branch will be deleted. This action cannot be undone.</p>",
 				},
 			},
 			warning: {
@@ -997,6 +1031,10 @@ Add storage to confirm the link.`,
 		"task-list": "Task list",
 		note: "Note",
 		heading: "Heading",
+		templates: {
+			"inline-property": "Property field",
+			"block-field": "Block field input",
+		},
 
 		table: {
 			name: "Table",
@@ -1554,6 +1592,28 @@ Add storage to confirm the link.`,
 		"new-note": "New note",
 		"no-catalog-notes": "No notes in the current catalog",
 	},
+	template: {
+		name: "Templates",
+		placeholders: {
+			title: "Template title",
+			content: "Template content",
+		},
+		"new-template": "New template",
+		"no-templates": "No templates in the current catalog",
+		warning: {
+			content: {
+				name: "Insert template {{template}} into article?",
+				body: "The article text will be replaced with the template. If you do not want to lose it — cancel the insertion and move the text to another article.",
+			},
+		},
+		"choose-template": "Choose template",
+		"select-property": "Select property",
+	},
+	clear: "Clear",
+	yes: "Yes",
+	no: "No",
+	placeholder: "Placeholder",
+	reformat: "Reformat",
 };
 
 export default locale;

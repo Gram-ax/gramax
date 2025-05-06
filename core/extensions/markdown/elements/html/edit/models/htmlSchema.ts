@@ -1,9 +1,10 @@
-const html = {
-	group: "block",
+import ElementGroups from "@ext/markdown/core/element/ElementGroups";
+
+const htmlSchema = {
+	group: `${ElementGroups.block} ${ElementGroups.listItemContent}`,
 	attrs: {
-		mode: { default: "iframe" },
 		content: { default: "<p>HTML</p>" },
 	},
 };
 
-export default html;
+export default htmlSchema;

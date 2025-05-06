@@ -40,14 +40,27 @@ export default withBundleAnalyzer({
 	output: process.env.NEXT_OUTPUT_TYPE,
 	// outputFileTracingRoot: process.env.NEXT_OUTPUT_TYPE ? path.join(dirname, '../../') : null,
 
-	webpack: (config, _) => {
+	transpilePackages: ["monaco-editor"],
+
+	webpack: (config, { isServer, webpack }) => {
 		if (isProduction && uploadSourceMapsToBugsnag) config.plugins.push(new NextSourceMapUploader(bugsnagOptions));
-		config.devtool = isProduction ? "source-map" : "eval";
-		config.module.rules.push({
-			test: /\.tsx?$/,
-			exclude: /node_modules/,
-			use: [{ loader: "ifdef-loader", options: { VITE_ENVIRONMENT: "next" } }],
-		});
+		config.devtool = isProduction ? "source-map" : "eval-source-map";
+
+		config.plugins.push(
+			new webpack.IgnorePlugin({
+				resourceRegExp: /^node:/,
+			}),
+		);
+
+		config.resolve.fallback = {
+			...config.resolve.fallback,
+			path: false,
+			os: false,
+			child_process: false,
+			worker_threads: false,
+			module: false,
+		};
+
 		config.module.rules.push({
 			test: /\.node$/,
 			use: [
@@ -59,6 +72,7 @@ export default withBundleAnalyzer({
 				},
 			],
 		});
+
 		config.resolve.alias = {
 			...config.resolve.alias,
 			"@core-ui": path.resolve(dirname, "../../../core/ui-logic"),
@@ -67,6 +81,20 @@ export default withBundleAnalyzer({
 			"@core": path.resolve(dirname, "../../core/logic"),
 			"@ext": path.resolve(dirname, "../../core/extensions"),
 			"@app": path.resolve(dirname, "../../app"),
+			"./frontend/browser": path.resolve(dirname, "empty.mjs"),
+			"./frontend/tauri": path.resolve(dirname, "empty.mjs"),
+			"./frontend/static": path.resolve(dirname, "empty.mjs"),
+			"./frontend/cli": path.resolve(dirname, "empty.mjs"),
+		};
+
+		config.plugins.push(
+			new webpack.DefinePlugin({
+				"global.VITE_ENVIRONMENT": JSON.stringify("next"),
+			}),
+		);
+
+		config.output.devtoolModuleFilenameTemplate = (info) => {
+			return path.resolve(info.absoluteResourcePath).replace(/\\/g, "/");
 		};
 
 		config.optimization.minimize = false;

@@ -1,9 +1,10 @@
 import ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
 import FetchService from "@core-ui/ApiServices/FetchService";
 import MimeTypes from "@core-ui/ApiServices/Types/MimeTypes";
+import { Router } from "@core/Api/Router";
 import { ClientArticleProps } from "@core/SitePresenter/SitePresenter";
 import { pasteArticleResource } from "@ext/markdown/elements/copyArticles/copyPasteArticleResource";
-import { OnLoadResource } from "@ext/markdown/elements/copyArticles/onLoadResourceService";
+import { ResourceServiceType } from "@ext/markdown/elements/copyArticles/resourceService";
 import imageHandlePaste from "@ext/markdown/elements/image/edit/logic/imageHandlePaste";
 import { Editor } from "@tiptap/core";
 import { Slice } from "@tiptap/pm/model";
@@ -50,13 +51,30 @@ export default abstract class EditorService {
 		};
 	}
 
-	public static createHandlePasteCallback(onLoadResource: OnLoadResource): EditorPasteHandler {
+	public static createHandlePasteCallback(resourceService: ResourceServiceType): EditorPasteHandler {
 		return (view, event, _slice, apiUrlCreator, articleProps) => {
 			if (!event.clipboardData) return false;
 			if (event.clipboardData.files.length !== 0)
-				return imageHandlePaste(view, event, articleProps, apiUrlCreator, onLoadResource);
+				return imageHandlePaste(view, event, articleProps, resourceService);
 
-			return pasteArticleResource({ view, event, articleProps, apiUrlCreator, onLoadResource });
+			return pasteArticleResource({ view, event, articleProps, apiUrlCreator, resourceService });
+		};
+	}
+
+	public static createUpdateTitleFunction() {
+		return async (context: BaseEditorContext, router: Router, title: string, fileName?: string) => {
+			const { articleProps, apiUrlCreator } = context;
+			articleProps.title = title;
+			articleProps.fileName = fileName ? fileName : articleProps.fileName;
+
+			const url = apiUrlCreator.updateItemProps();
+			const res = await FetchService.fetch(url, JSON.stringify(articleProps), MimeTypes.json);
+
+			if (fileName && res.ok) {
+				const { pathname, ref } = await res.json();
+				articleProps.ref = ref;
+				pathname && router.pushPath(pathname);
+			}
 		};
 	}
 }

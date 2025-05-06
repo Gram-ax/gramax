@@ -6,13 +6,21 @@ import getComponents from "../extensions/markdown/core/render/components/getComp
 import Header from "../extensions/markdown/elements/heading/render/component/Header";
 import ModalLayoutLight from "./Layouts/ModalLayoutLight";
 
-const CustomArticle = ({ name, setLayout = true }: { name: CustomArticleName; setLayout?: boolean }) => {
+export type CustomArticleProps = {
+	name: CustomArticleName;
+	setLayout?: boolean;
+	copyLinkIcon?: boolean;
+};
+
+const CustomArticle = ({ name, setLayout = true, copyLinkIcon = true }: CustomArticleProps) => {
 	const apiUrlCreator = ApiUrlCreatorService.value;
 	const { data } = UseSWRService.getData<{ title: string; content: string }>(apiUrlCreator.getCustomArticle(name));
 
 	const article = (
 		<>
-			<Header level={2}>{data?.title}</Header>
+			<Header level={2} copyLinkIcon={copyLinkIcon}>
+				{data?.title}
+			</Header>
 			<div className="article" style={{ background: "none" }}>
 				<div className="article-body">
 					{Renderer(JSON.parse(data?.content ?? "{}"), { components: getComponents() })}

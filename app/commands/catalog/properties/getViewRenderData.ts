@@ -7,7 +7,7 @@ import { Article } from "@core/FileStructue/Article/Article";
 import ViewFilter, { OrderValue } from "@ext/properties/logic/ViewFilter";
 import ViewLocalizationFilter from "@ext/properties/logic/viewLocalizationFilter";
 import { PropertyValue, ViewRenderGroup } from "@ext/properties/models";
-import { Display } from "@ext/properties/models/displays";
+import { Display } from "@ext/properties/models/display";
 import RuleProvider from "@ext/rules/RuleProvider";
 
 const getViewRenderData: Command<

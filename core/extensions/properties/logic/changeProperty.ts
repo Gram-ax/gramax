@@ -12,7 +12,7 @@ const deleteProperty = (
 };
 
 const getNewValue = (property: Property, value: string): string => {
-	return property.values && value ? value : value ?? null;
+	return isHasValue[property.type] && value ? value : null;
 };
 
 const addOrUpdateProperty = (
@@ -76,10 +76,8 @@ const updateProperty = (
 	const newValue = getNewValue(property, value);
 
 	if (existedPropertyIndex === -1) {
-		return sortMapByName(
-			Array.from(catalogProperties.keys()),
-			addOrUpdateProperty(properties, property, newValue, returnFull) as Property[],
-		);
+		const newProperties = addOrUpdateProperty(properties, property, newValue, returnFull) as Property[];
+		return sortMapByName(Array.from(catalogProperties.keys()), newProperties);
 	} else {
 		const updatedProperties = returnFull
 			? [...properties]

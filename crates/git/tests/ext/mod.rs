@@ -2,6 +2,7 @@ pub mod graph_head_upstream_files;
 pub mod history;
 pub mod merge_requests;
 pub mod read_tree;
+pub mod gc;
 
 use test_utils::*;
 use test_utils::git::*;

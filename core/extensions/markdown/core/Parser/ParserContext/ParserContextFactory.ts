@@ -20,14 +20,19 @@ class ParserContextFactory {
 		private _ur?: UserRepository,
 	) {}
 
-	fromArticle(article: Article, catalog: ReadonlyCatalog, language: UiLanguage, isLogged: boolean): ParserContext {
+	async fromArticle(
+		article: Article,
+		catalog: ReadonlyCatalog,
+		language: UiLanguage,
+		isLogged: boolean,
+	): Promise<ParserContext> {
 		return new ArticleContext(
 			article,
 			catalog,
 			this._basePath,
 			language,
 			isLogged,
-			this._wm.current().config().services?.diagramRenderer?.url,
+			(await this._wm.current().config()).services?.diagramRenderer?.url,
 			this._tablesManager,
 			this._ur ? this._ur.getUser.bind(this._ur) : (m) => ({ name: m }),
 			this._wm.current().getFileProvider(),

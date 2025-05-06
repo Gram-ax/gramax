@@ -36,7 +36,7 @@ export default class LunrSearcher implements Searcher {
 
 		if (!this._catalogsIndexes[catalogName]) await this._initCatalog(catalogName);
 		const result = <SearchItem[]>[];
-		const datas = await this._indexDataProvider.getIndexData(catalogName, []);
+		const datas = await this._indexDataProvider.getAndSetIndexData(catalogName, []);
 
 		this._catalogsIndexes[catalogName].search(query).forEach((entry) => {
 			if (!artilceIds.some((r) => r == entry.ref)) return;
@@ -108,7 +108,7 @@ export default class LunrSearcher implements Searcher {
 	}
 
 	private async _createIdx(catalogName: string) {
-		const data = await this._indexDataProvider.getIndexData(catalogName, []);
+		const data = await this._indexDataProvider.getAndSetIndexData(catalogName, []);
 		this._catalogsIndexes[catalogName] = lunr(function () {
 			this.ref("path");
 			this.field("content");

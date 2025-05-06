@@ -6,7 +6,7 @@ import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import CatalogPropsService from "@core-ui/ContextServices/CatalogProps";
 import { ContentLanguage } from "@ext/localization/core/model/Language";
 import t from "@ext/localization/locale/translate";
-import ExportButton from "@ext/wordExport/components/ExportButton";
+import ExportButton from "@ext/wordExport/components/DropdownButton";
 import { useRef } from "react";
 
 export type AddContentLanguageProps = {

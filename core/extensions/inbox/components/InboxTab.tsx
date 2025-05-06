@@ -1,5 +1,5 @@
 import { TextSize } from "@components/Atoms/Button/Button";
-import TabWrapper from "@components/Layouts/StatusBar/Extensions/ArticleStatusBar/TabWrapper";
+import TabWrapper from "@components/Layouts/LeftNavigationTabs/TabWrapper";
 import ButtonLink from "@components/Molecules/ButtonLink";
 import FetchService from "@core-ui/ApiServices/FetchService";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";

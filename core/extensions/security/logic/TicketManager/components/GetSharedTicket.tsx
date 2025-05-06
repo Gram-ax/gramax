@@ -87,7 +87,12 @@ const GetSharedTicket = styled((props: { trigger: JSX.Element; className?: strin
 						{!showData ? null : (
 							<Form
 								schema={jsonScheme as any}
-								validate={() => null}
+								validator={{
+									validateFormData: () => null,
+									toErrorList: () => null,
+									isValid: () => true,
+									rawValidation: () => null,
+								}}
 								onSubmit={() => {}}
 								onChange={(value: any) => {
 									setDate(value.formData.date);

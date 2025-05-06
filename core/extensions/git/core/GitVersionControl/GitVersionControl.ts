@@ -4,7 +4,14 @@ import GitMergeResult from "@ext/git/actions/MergeConflictHandler/model/GitMerge
 import type { CommitAuthorInfo } from "@ext/git/core/GitCommands/LibGit2IntermediateCommands";
 import GitError from "@ext/git/core/GitCommands/errors/GitError";
 import GitErrorCode from "@ext/git/core/GitCommands/errors/model/GitErrorCode";
-import type { DiffConfig, DiffTree2TreeInfo, RefInfo } from "@ext/git/core/GitCommands/model/GitCommandsModel";
+import type {
+	DiffConfig,
+	DiffTree2TreeInfo,
+	GcOptions,
+	MergeMessageFormatOptions,
+	MergeOptions,
+	RefInfo,
+} from "@ext/git/core/GitCommands/model/GitCommandsModel";
 import GitStash from "@ext/git/core/model/GitStash";
 import Path from "../../../../logic/FileProvider/Path/Path";
 import FileProvider from "../../../../logic/FileProvider/model/FileProvider";
@@ -209,10 +216,6 @@ export default class GitVersionControl {
 		parents?: (string | GitBranch)[],
 		filesToPublish?: Path[],
 	): Promise<void> {
-		// const subModules = await this._getSubGitVersionControls();
-		// for (const s of subModules) {
-		// 	if ((await s.getChanges()).length > 0) await s.commit(message, userData);
-		// }
 		await this._gitRepository.commit(message, userData, parents, filesToPublish);
 	}
 
@@ -230,13 +233,17 @@ export default class GitVersionControl {
 		}
 	}
 
-	async mergeBranch(data: SourceData, theirs: GitBranch | string): Promise<GitMergeResult[]> {
+	async mergeBranch(data: SourceData, opts: MergeOptions): Promise<GitMergeResult[]> {
 		this._fp.stopWatch();
 		try {
-			return gitMergeConverter(await this._gitRepository.merge(data, theirs.toString()));
+			return gitMergeConverter(await this._gitRepository.merge(data, opts));
 		} finally {
 			this._fp?.startWatch();
 		}
+	}
+
+	async formatMergeMessage(data: SourceData, opts: MergeMessageFormatOptions): Promise<string> {
+		return this._gitRepository.formatMergeMessage(data, opts);
 	}
 
 	async getChanges(type: "index" | "workdir" = "workdir", recursive = true): Promise<GitStatus[]> {
@@ -330,6 +337,10 @@ export default class GitVersionControl {
 				}
 			}
 		}
+	}
+
+	gc(opts: GcOptions) {
+		return this._gitRepository.gc(opts);
 	}
 
 	getCommitAuthors(): Promise<CommitAuthorInfo[]> {

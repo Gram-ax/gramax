@@ -3,9 +3,10 @@ import { TableRow } from "./types";
 import { Tag } from "@ext/markdown/core/render/logic/Markdoc";
 import { isTag } from "@ext/pdfExport/utils/isTag";
 import { NodeOptions, pdfRenderContext } from "@ext/pdfExport/parseNodesPDF";
+import { JSONContent } from "@tiptap/core";
 
 export const parseRow = async (
-	row: Tag,
+	row: Tag | JSONContent,
 	rowIndex: number,
 	context: pdfRenderContext,
 	options: NodeOptions,
@@ -14,13 +15,14 @@ export const parseRow = async (
 	const widths: (number | string)[] = [];
 	let currentColIndex = 0;
 
-	for (const cell of row.children || []) {
+	for (const cell of "children" in row ? row.children : row.content || []) {
 		if (!cell) continue;
 
-		if (isTag(cell)) {
+		if (isTag(cell) || (typeof cell === "object" && "type" in cell && cell.type === "tag")) {
 			const { cellObject, colWidth } = await parseCell(cell, rowIndex, tableRow, context, options);
 
-			const colspan = cell.attributes?.colspan || 1;
+			const attrs = "attributes" in cell ? cell.attributes : cell.attrs;
+			const colspan = attrs?.colspan || 1;
 
 			tableRow[currentColIndex] = cellObject;
 			widths[currentColIndex] = colWidth;

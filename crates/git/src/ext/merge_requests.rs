@@ -8,6 +8,7 @@ use crate::creds::*;
 use crate::prelude::*;
 
 use crate::error::Error;
+use crate::error::OrUtf8Err;
 use crate::error::Result;
 
 const TAG: &str = "git:merge_requests";
@@ -31,6 +32,9 @@ pub trait MergeRequestManageExt<C: ActualCreds> {
 pub struct MergeRequestOptions {
   #[serde(default = "default_delete_after_merge")]
   pub(crate) delete_after_merge: bool,
+
+  #[serde(default)]
+  pub(crate) squash: bool,
 }
 
 fn default_delete_after_merge() -> bool {
@@ -142,7 +146,7 @@ impl<C: Creds> MergeRequestExt for Repo<C> {
 
     for branch in self.branches(Some(BranchType::Remote))? {
       let branch = branch?.0;
-      let branch_ref_raw = branch.get().name().ok_or(crate::error::Error::Utf8)?;
+      let branch_ref_raw = branch.get().name().or_utf8_err()?;
 
       if branch_ref_raw.contains("HEAD") || !branch_ref_raw.contains("refs/remotes/origin") {
         continue;
@@ -169,7 +173,7 @@ impl<C: Creds> MergeRequestExt for Repo<C> {
         }
       };
 
-      if self.branch_by_name(&open_mr.target_branch_ref, BranchType::Remote).is_err() {
+      if self.branch_by_name(&open_mr.target_branch_ref, Some(BranchType::Remote)).is_err() {
         warn!(target: TAG, "in merge-request {} -> {}, the target branch does not exist; skipping", branch_ref, open_mr.target_branch_ref);
         continue;
       }
@@ -201,7 +205,7 @@ impl<C: Creds> MergeRequestExt for Repo<C> {
 
     self.ensure_branch_exists_local(&mr.target_branch_ref)?;
 
-    Ok(Some(MergeRequest::from_open_dto(self.0.head()?.shorthand().ok_or(Error::Utf8)?.to_string(), mr)))
+    Ok(Some(MergeRequest::from_open_dto(self.0.head()?.shorthand().or_utf8_err()?.to_string(), mr)))
   }
 }
 
@@ -209,7 +213,7 @@ impl<C: ActualCreds> MergeRequestManageExt<C> for Repo<C> {
   fn create_or_update_merge_request(&self, opts: CreateMergeRequest) -> Result<()> {
     self.ensure_branch_exists(&opts.target_branch_ref)?;
 
-    if self.0.head()?.shorthand().ok_or(Error::Utf8)? == opts.target_branch_ref {
+    if self.0.head()?.shorthand().or_utf8_err()? == opts.target_branch_ref {
       return Err(
         git2::Error::new(
           ErrorCode::Invalid,

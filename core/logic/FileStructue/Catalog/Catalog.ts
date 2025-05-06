@@ -2,6 +2,7 @@ import { CATEGORY_ROOT_FILENAME } from "@app/config/const";
 import type Context from "@core/Context/Context";
 import { createEventEmitter, type HasEvents } from "@core/Event/EventEmitter";
 import ArticleParser from "@core/FileStructue/Article/ArticleParser";
+import { TemplateProps } from "@core/FileStructue/Article/TemplateArticle";
 import parseContent from "@core/FileStructue/Article/parseContent";
 import BaseCatalog, { type BaseCatalogInitProps } from "@core/FileStructue/Catalog/BaseCatalog";
 import type CatalogEvents from "@core/FileStructue/Catalog/CatalogEvents";
@@ -16,25 +17,25 @@ import itemRefUtils from "@core/utils/itemRefUtils";
 import { ItemStatus, type ItemRefStatus } from "@ext/Watchers/model/ItemStatus";
 import CatalogEditProps from "@ext/catalog/actions/propsEditor/model/CatalogEditProps.schema";
 import type Repository from "@ext/git/core/Repository/Repository";
-import { CatalogErrors } from "@ext/healthcheck/logic/Healthcheck";
+import InboxProvider from "@ext/inbox/logic/InboxProvider";
 import type MarkdownParser from "@ext/markdown/core/Parser/Parser";
 import type ParserContextFactory from "@ext/markdown/core/Parser/ParserContext/ParserContextFactory";
 import IconProvider from "@ext/markdown/elements/icon/logic/IconProvider";
 import SnippetProvider from "@ext/markdown/elements/snippet/logic/SnippetProvider";
 import { SystemProperties } from "@ext/properties/models";
 import Permission from "@ext/security/logic/Permission/Permission";
+import TemplateProvider from "@ext/templates/logic/TemplateProvider";
 import GitTreeFileProvider from "@ext/versioning/GitTreeFileProvider";
 import assert from "assert";
 import { FileStatus } from "../../../extensions/Watchers/model/FileStatus";
 import IPermission from "../../../extensions/security/logic/Permission/IPermission";
 import Path from "../../FileProvider/Path/Path";
 import FileProvider from "../../FileProvider/model/FileProvider";
-import { Article } from "../Article/Article";
+import { Article, ArticleProps } from "../Article/Article";
 import { Category } from "../Category/Category";
 import { Item, UpdateItemProps } from "../Item/Item";
 import { ItemRef } from "../Item/ItemRef";
 import { ItemType } from "../Item/ItemType";
-import InboxProvider from "@ext/inbox/logic/InboxProvider";
 
 export type ItemFilter = ((item: Item, catalog: ReadonlyCatalog) => boolean) & {
 	getErrorArticle?: (pathname: string) => Article;
@@ -45,7 +46,6 @@ export type CategoryFilter = (category: Category, catalog: ReadonlyCatalog) => b
 export type CatalogInitProps<P extends CatalogProps = CatalogProps> = BaseCatalogInitProps & {
 	name: string;
 	root: Category<P>;
-	errors: CatalogErrors;
 
 	fp: FileProvider;
 	fs: FileStructure;
@@ -63,8 +63,8 @@ export class Catalog<P extends CatalogProps = CatalogProps>
 
 	private _snippetProvider: SnippetProvider;
 	private _iconProvider: IconProvider;
-	private _errors: CatalogErrors;
 	private _inboxProvider: InboxProvider;
+	private _templateProvider: TemplateProvider;
 
 	private _fp: FileProvider;
 	private _fs: FileStructure;
@@ -77,14 +77,15 @@ export class Catalog<P extends CatalogProps = CatalogProps>
 	constructor(init: CatalogInitProps<P>) {
 		super(init);
 		this._rootCategory = init.root;
-		this._errors = init.errors;
 		this._fp = init.fp;
 		this._fs = init.fs;
 		this._perms = new Permission(init.root.props.private);
 		this._searcher = new CatalogItemSearcher(this);
 
 		for (const item of this.getItems()) {
+			item.events.on("item-pre-save", this._onItemPreSave.bind(this));
 			item.events.on("item-changed", this._onItemChanged.bind(this));
+			item.events.on("item-get-content", this._onItemGetContent.bind(this));
 			item.events.on(
 				"item-order-updated",
 				async (args) => await this.events.emit("item-order-updated", { catalog: this, ...args }),
@@ -94,6 +95,7 @@ export class Catalog<P extends CatalogProps = CatalogProps>
 		this._inboxProvider = new InboxProvider(this._fp, this._fs, this);
 		this._snippetProvider = new SnippetProvider(this._fp, this._fs, this);
 		this._iconProvider = new IconProvider(this._fp, this._fs, this);
+		this._templateProvider = new TemplateProvider(this._fp, this._fs, this);
 	}
 
 	get findArticleCacheHit() {
@@ -128,12 +130,12 @@ export class Catalog<P extends CatalogProps = CatalogProps>
 		return this._inboxProvider;
 	}
 
-	get iconProvider() {
-		return this._iconProvider;
+	get templateProvider() {
+		return this._templateProvider;
 	}
 
-	get errors() {
-		return this._errors;
+	get iconProvider() {
+		return this._iconProvider;
 	}
 
 	get deref() {
@@ -228,10 +230,54 @@ export class Catalog<P extends CatalogProps = CatalogProps>
 		);
 
 		await this._fp.write(ref.path, markdown);
-		const article = await this._fs.createArticle(ref.path, parentItem, this.props, this._errors);
+		const article = await this._fs.createArticle(ref.path, parentItem, null, this);
 		await article.setLastPosition();
 		parentItem.items.push(article);
 		article.events.on("item-changed", this._onItemChanged.bind(this));
+		article.events.on("item-pre-save", this._onItemPreSave.bind(this));
+		article.events.on("item-get-content", this._onItemGetContent.bind(this));
+		article.events.on(
+			"item-order-updated",
+			async (args) => await this.events.emit("item-order-updated", { catalog: this, ...args }),
+		);
+
+		await this._onItemChanged({ item: article, status: FileStatus.new });
+		if (!silent) await this.events.emit("item-created", { catalog: this, makeResourceUpdater, parentRef });
+		return article;
+	}
+
+	async createTemplateArticle(
+		articlePath: ItemRef,
+		templateId: string,
+		makeResourceUpdater: MakeResourceUpdater,
+		parentRef?: ItemRef,
+		silent?: boolean,
+	) {
+		const parentItem = parentRef
+			? this.findItemByItemRef<Category>(parentRef) ?? this._resolveRootCategory()
+			: this._resolveRootCategory();
+
+		const originalItem = this.findItemByItemRef<Article>(articlePath);
+		assert(originalItem, `article ${articlePath.path.value} not found`);
+
+		const id = parentItem.items.findIndex((i) => articlePath.path.compare(i.ref.path));
+		assert(id !== -1, `article ${articlePath.path.value} not found in parent ${parentItem.ref.path.value}`);
+
+		await this.deleteItem(articlePath);
+		const props: TemplateProps = {
+			...originalItem.props,
+			template: templateId,
+			fields: [],
+		};
+
+		await this._fp.write(articlePath.path, "");
+		const article = await this._fs.createArticle(articlePath.path, parentItem, props, this);
+
+		await article.save();
+		parentItem.items.splice(id, 0, article);
+		article.events.on("item-changed", this._onItemChanged.bind(this));
+		article.events.on("item-pre-save", this._onItemPreSave.bind(this));
+		article.events.on("item-get-content", this._onItemGetContent.bind(this));
 		article.events.on(
 			"item-order-updated",
 			async (args) => await this.events.emit("item-order-updated", { catalog: this, ...args }),
@@ -254,11 +300,12 @@ export class Catalog<P extends CatalogProps = CatalogProps>
 			parentItem.folderPath.join(new Path([name, CATEGORY_ROOT_FILENAME])),
 			parentItem,
 			null,
-			this.props,
-			this._errors,
+			this,
 		);
 
 		category.events.on("item-changed", this._onItemChanged.bind(this));
+		category.events.on("item-pre-save", this._onItemPreSave.bind(this));
+		category.events.on("item-get-content", this._onItemGetContent.bind(this));
 		category.events.on(
 			"item-order-updated",
 			async (args) => await this.events.emit("item-order-updated", { catalog: this, ...args }),
@@ -277,7 +324,7 @@ export class Catalog<P extends CatalogProps = CatalogProps>
 		const item: Item = this.findArticle(props.logicPath, []);
 		if (!item) return;
 		const ref = { ...item.ref };
-		await item.updateProps(props, makeResourceUpdater(this), this._resolveRootCategory().props);
+		await item.updateProps(props, makeResourceUpdater(this), this);
 		await this.events.emit("item-props-updated", { catalog: this, ref, item, props, makeResourceUpdater });
 		this._searcher.resetCache();
 		this.repo?.resetCachedStatus();
@@ -425,16 +472,12 @@ export class Catalog<P extends CatalogProps = CatalogProps>
 		await this._deleteItem(parentArticle.ref);
 		if (index === -1 || parentArticle.type == ItemType.category) return parentArticle as Category;
 
-		const category = await this._fs.createCategory(
-			path,
-			parentArticle.parent,
-			parentArticle,
-			this.props,
-			this._errors,
-		);
+		const category = await this._fs.createCategory(path, parentArticle.parent, parentArticle, this);
 
 		await makeResourceUpdater(this).update(parentArticle, category);
 		category.events.on("item-changed", this._onItemChanged.bind(this));
+		category.events.on("item-pre-save", this._onItemPreSave.bind(this));
+		category.events.on("item-get-content", this._onItemGetContent.bind(this));
 		category.events.on(
 			"item-order-updated",
 			async (args) => await this.events.emit("item-order-updated", { catalog: this, ...args }),
@@ -475,14 +518,8 @@ export class Catalog<P extends CatalogProps = CatalogProps>
 
 		const movedItem =
 			item.type == ItemType.category
-				? await this._fs.makeCategory(
-						to.path.parentDirectoryPath,
-						this._rootCategory,
-						this.props,
-						this._errors,
-						to.path,
-				  )
-				: await this._fs.createArticle(to.path, this._rootCategory, this.props, this._errors);
+				? await this._fs.makeCategory(to.path.parentDirectoryPath, this._rootCategory, this, to.path)
+				: await this._fs.createArticle(to.path, this._rootCategory, null, this);
 
 		return movedItem;
 	}
@@ -542,7 +579,6 @@ export class Catalog<P extends CatalogProps = CatalogProps>
 	private _update(catalog: Catalog<P>) {
 		catalog._setHeadVersion(this._headVersion);
 		this.name = catalog.name;
-		this._errors = catalog._errors;
 		this.basePath = catalog.basePath;
 		this._rootCategory = catalog._rootCategory;
 		this.setRepository(catalog.repo);
@@ -558,6 +594,19 @@ export class Catalog<P extends CatalogProps = CatalogProps>
 			catalog: this,
 			items: items.map((i) => ({ ref: i.item.ref, status: i.status })),
 		});
+	}
+
+	private _onItemGetContent({ item, mutableContent }: { item: Item; mutableContent: { content: string } }) {
+		if (item.props?.template) {
+			const templateProvider = this.templateProvider;
+			mutableContent.content = templateProvider.getArticle(item.props.template)?.content;
+		}
+	}
+
+	private _onItemPreSave({ mutable }: { mutable: { content: string; props: ArticleProps } }) {
+		if (mutable.props?.template) {
+			mutable.content = "";
+		}
 	}
 
 	private async _onFileChanged(update: ItemRefStatus | ItemRefStatus[]) {

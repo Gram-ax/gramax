@@ -3,6 +3,7 @@ import t from "@ext/localization/locale/translate";
 import { Encoder } from "../../../Encoder/Encoder";
 import IPermission from "../Permission/IPermission";
 import Permission from "../Permission/Permission";
+import TokenValidationError from "@ext/publicApi/TokenValidationError";
 
 export class TicketManager {
 	constructor(private _encoder: Encoder, private _shareAccessToken: string, private _gesUrl?: string) {}
@@ -26,9 +27,9 @@ export class TicketManager {
 		);
 	}
 
-	public getUserToken(user: EnterpriseUser): string {
+	public getUserToken(user: EnterpriseUser, expiresAt: Date): string {
 		if (!this._shareAccessToken) throw new Error(t("share-access-token-not-installed"));
-		return this._encoder.ecode(this._generateUserSharedDatas(user), this._shareAccessToken);
+		return this._encoder.ecode(this._generateUserSharedDatas(user, expiresAt), this._shareAccessToken);
 	}
 
 	private _checkShareTicket(ticket: string): { catalogName: string; permission: IPermission } {
@@ -43,19 +44,24 @@ export class TicketManager {
 	}
 
 	private async _checkUserTicket(ticket: string): Promise<EnterpriseUser> {
-		const token = this._encoder.decode(this._shareAccessToken, ticket);
-		if (!token) return null;
-		return await this._parseUserSharedDatas(token);
+		if (!this._gesUrl) return null;
+		const datas = this._encoder.decode(this._shareAccessToken, ticket);
+		const { token, date } = this._parseUserSharedDatas(datas);
+
+		if (new Date(date).valueOf() < Date.now()) throw new TokenValidationError("Token has expired");
+
+		const user = new EnterpriseUser(true, null, null, null, null, this._gesUrl, token);
+		return await user.updatePermissions(false);
 	}
 
-	private _generateUserSharedDatas(user: EnterpriseUser): string[] {
-		return [user.token];
+	private _generateUserSharedDatas(user: EnterpriseUser, expiresAt: Date): string[] {
+		return [user.token, expiresAt.toJSON()];
 	}
-	private async _parseUserSharedDatas(datas: string[]): Promise<EnterpriseUser> {
-		if (datas.length !== 1) return null;
-		if (!this._gesUrl) return null;
-		const user = new EnterpriseUser(true, null, null, null, null, this._gesUrl, datas[0]);
-		return await user.updatePermissions();
+
+	private _parseUserSharedDatas(datas: string[]) {
+		if (!datas || datas.length !== 2) throw new TokenValidationError("Invalid token");
+		const [token, date] = datas;
+		return { token, date };
 	}
 
 	private _generateCatalogSharedDatas(catalogName: string, permissions: IPermission, date: Date): string[] {

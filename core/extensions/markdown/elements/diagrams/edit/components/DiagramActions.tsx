@@ -3,7 +3,7 @@ import toggleSignature from "@core-ui/toggleSignature";
 import t from "@ext/localization/locale/translate";
 import { Editor } from "@tiptap/core";
 import { Node } from "@tiptap/pm/model";
-import { Dispatch, SetStateAction, RefObject } from "react";
+import { Dispatch, RefObject, SetStateAction } from "react";
 
 interface DiagramActionsProps {
 	editor: Editor;
@@ -31,7 +31,7 @@ const DiagramActions = ({ editor, node, getPos, setHasSignature, signatureRef, o
 	return (
 		<>
 			<ActionButton icon="pencil" tooltipText={t("edit2")} onClick={openEditor} />
-			<ActionButton icon="a-large-small" tooltipText={t("signature")} onClick={addSignature} />
+			<ActionButton icon="captions" tooltipText={t("signature")} onClick={addSignature} />
 			<ActionButton icon="trash" tooltipText={t("delete")} onClick={handleDelete} />
 		</>
 	);

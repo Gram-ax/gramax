@@ -1,25 +1,26 @@
-import { getExecutingEnvironment } from "@app/resolveModule/env";
 import Button, { TextSize } from "@components/Atoms/Button/Button";
+import { ButtonStyle } from "@components/Atoms/Button/ButtonStyle";
 import SpinnerLoader from "@components/Atoms/SpinnerLoader";
+import ButtonLink from "@components/Molecules/ButtonLink";
+import createChildWindow from "@core-ui/ChildWindow/createChildWindow";
+import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
+import { usePlatform } from "@core-ui/hooks/usePlatform";
 import Query, { parserQuery } from "@core/Api/Query";
 import { SourceUser } from "@ext/git/actions/Source/SourceAPI";
 import { makeSourceApi } from "@ext/git/actions/Source/makeSourceApi";
 import { waitForTempToken } from "@ext/git/actions/Source/tempToken";
 import t from "@ext/localization/locale/translate";
 import User2 from "@ext/security/components/User/User2";
-import { useEffect, useState } from "react";
-import ButtonLink from "@components/Molecules/ButtonLink";
-import { ButtonStyle } from "@components/Atoms/Button/ButtonStyle";
-import YandexDiskSourceData from "@ext/yandexDisk/model/YandexDiskSourceData";
 import SourceType from "@ext/storage/logic/SourceDataProvider/model/SourceType";
-import createChildWindow from "@core-ui/ChildWindow/createChildWindow";
-import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
+import YandexDiskSourceData from "@ext/yandexDisk/model/YandexDiskSourceData";
+import { useEffect, useState } from "react";
 
 const CreateYandexDiskSourceData = ({ onSubmit }: { onSubmit?: (editProps: YandexDiskSourceData) => void }) => {
 	const page = PageDataContextService.value;
 	const authServiceUrl = PageDataContextService.value.conf.authServiceUrl;
 	const [user, setUser] = useState<SourceUser>(null);
 	const [token, setToken] = useState<Query>(null);
+	const { isBrowser } = usePlatform();
 
 	const loadUser = async (token: { [queryParam: string]: string }) => {
 		if (!token || !token?.access_token) return;
@@ -67,7 +68,7 @@ const CreateYandexDiskSourceData = ({ onSubmit }: { onSubmit?: (editProps: Yande
 								(location) => setToken(parserQuery(location.search)),
 							);
 
-							if (getExecutingEnvironment() == "browser") setToken(parserQuery(await waitForTempToken()));
+							if (isBrowser) setToken(parserQuery(await waitForTempToken()));
 						}}
 					/>
 				)}

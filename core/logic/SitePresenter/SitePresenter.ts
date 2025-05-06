@@ -1,3 +1,4 @@
+import { TemplateField } from "@core/FileStructue/Article/TemplateArticle";
 import type ContextualCatalog from "@core/FileStructue/Catalog/ContextualCatalog";
 import type { Category } from "@core/FileStructue/Category/Category";
 import CustomArticlePresenter from "@core/SitePresenter/CustomArticlePresenter";
@@ -7,16 +8,15 @@ import type { RefInfo } from "@ext/git/core/GitCommands/model/GitCommandsModel";
 import GitRepositoryProvider from "@ext/git/core/Repository/RepositoryProvider";
 import { catalogHasItems, isLanguageCategory, resolveRootCategory } from "@ext/localization/core/catalogExt";
 import { convertContentToUiLanguage } from "@ext/localization/locale/translate";
+import { Syntax } from "@ext/markdown/core/edit/logic/Formatter/Formatters/typeFormats/model/Syntax";
 import getArticleWithTitle from "@ext/markdown/elements/article/edit/logic/getArticleWithTitle";
 import TabsTags from "@ext/markdown/elements/tabs/model/TabsTags";
-import DragTreeTransformer from "@ext/navigation/catalog/drag/logic/DragTreeTransformer";
 import NavigationEventHandlers from "@ext/navigation/events/NavigationEventHandlers";
 import getAllCatalogProperties from "@ext/properties/logic/getAllCatalogProps";
 import { Property, PropertyValue } from "@ext/properties/models";
 import RuleProvider from "@ext/rules/RuleProvider";
 import type { Workspace } from "@ext/workspace/Workspace";
 import type { WorkspaceConfig } from "@ext/workspace/WorkspaceConfig";
-import type { NodeModel } from "@minoru/react-dnd-treeview";
 import htmlToText from "html-to-text";
 import UiLanguage, { ContentLanguage, resolveLanguage } from "../../extensions/localization/core/model/Language";
 import MarkdownParser from "../../extensions/markdown/core/Parser/Parser";
@@ -49,6 +49,7 @@ export type ClientCatalogProps = {
 	versions?: string[];
 	resolvedVersions?: RefInfo[];
 	resolvedVersion?: RefInfo;
+	syntax?: Syntax;
 };
 
 export type ClientArticleProps = {
@@ -63,6 +64,8 @@ export type ClientArticleProps = {
 	welcome?: boolean;
 	status?: FileStatus;
 	properties?: PropertyValue[];
+	template?: string;
+	fields?: TemplateField[];
 };
 
 export type ClientItemRef = {
@@ -94,7 +97,6 @@ export type ArticlePageData = {
 	articleProps: ClientArticleProps;
 	catalogProps: ClientCatalogProps;
 	itemLinks: ItemLink[];
-	leftNavItemLinks: NodeModel<ItemLink>[];
 	rootRef?: ClientItemRef;
 };
 
@@ -178,7 +180,6 @@ export default class SitePresenter {
 			articleProps: await this.serializeArticleProps(article, await catalog?.getPathname(article)),
 			catalogProps: await this.serializeCatalogProps(catalog),
 			rootRef: catalog ? await this._nav.getRootItemLink(catalog) : null,
-			leftNavItemLinks: catalog ? DragTreeTransformer.getRenderDragNav(itemLinks) : [],
 			itemLinks,
 		};
 	}
@@ -205,7 +206,7 @@ export default class SitePresenter {
 	async getHtml(path: string[], ApiRequestUrl?: string): Promise<string> {
 		const { article, catalog } = await this.getArticleByPathOfCatalog(path);
 		if (!article || !catalog) return null;
-		const parsedContext = this._parserContextFactory.fromArticle(
+		const parsedContext = await this._parserContextFactory.fromArticle(
 			article,
 			catalog,
 			this._getLang(catalog),
@@ -240,17 +241,10 @@ export default class SitePresenter {
 		};
 	}
 
-	async parseAllItems(catalog: ReadonlyCatalog, initChildLinks = true): Promise<ReadonlyCatalog> {
+	async parseAllItems(catalog: ReadonlyCatalog): Promise<ReadonlyCatalog> {
 		for (const article of catalog.getContentItems()) {
 			try {
-				await parseContent(
-					article,
-					catalog,
-					this._context,
-					this._parser,
-					this._parserContextFactory,
-					initChildLinks,
-				);
+				await parseContent(article, catalog, this._context, this._parser, this._parserContextFactory);
 			} catch (e) {
 				// logger.logError(e);
 			}
@@ -273,6 +267,8 @@ export default class SitePresenter {
 			properties: article.props.properties ?? [],
 			errorCode: article.errorCode ?? null,
 			welcome: article.props.welcome ?? null,
+			template: article.props.template ?? null,
+			fields: article.props.fields ?? [],
 		};
 	}
 
@@ -300,7 +296,7 @@ export default class SitePresenter {
 		return {
 			link: await this._nav.getCatalogLink(
 				catalog,
-				new LastVisited(this._context, this._workspace.config().name),
+				new LastVisited(this._context, (await this._workspace.config()).name),
 			),
 			relatedLinks: await this._nav.getRelatedLinks(catalog),
 			contactEmail: catalog.props.contactEmail ?? null,
@@ -317,6 +313,7 @@ export default class SitePresenter {
 			versions: catalog.props.versions,
 			resolvedVersion: catalog.props.resolvedVersion,
 			resolvedVersions: catalog.props.resolvedVersions,
+			syntax: catalog.props.syntax,
 		};
 	}
 

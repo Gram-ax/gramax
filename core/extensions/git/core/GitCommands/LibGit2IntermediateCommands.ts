@@ -1,3 +1,4 @@
+import { getExecutingEnvironment } from "@app/resolveModule/env";
 import call from "@app/resolveModule/gitcall";
 import AuthorInfoCodec from "@core-ui/utils/authorInfoCodec";
 import Path from "@core/FileProvider/Path/Path";
@@ -10,6 +11,9 @@ import type {
 	DirEntry,
 	DirStat,
 	FileStat,
+	GcOptions,
+	MergeMessageFormatOptions,
+	MergeOptions,
 	TreeReadScope,
 } from "@ext/git/core/GitCommands/model/GitCommandsModel";
 import type { CreateMergeRequest, MergeRequest, Signature } from "@ext/git/core/GitMergeRequest/model/MergeRequest";
@@ -114,6 +118,8 @@ export const createOrUpdateMergeRequest = async (args: CredsArgs & { mergeReques
 		})) as any;
 	}
 
+	if (getExecutingEnvironment() === "next") args.mergeRequest = JSON.stringify(args.mergeRequest) as any;
+
 	await call<void>("create_or_update_merge_request", args);
 };
 
@@ -127,7 +133,11 @@ export const status = (args: Args & { index: boolean }) => call<[{ path: string;
 export const statusFile = (args: Args & { filePath: string }) => call<string>("status_file", args);
 
 export const fetch = (args: CredsArgs & { force: boolean }) => call<void>("fetch", args);
-export const merge = (args: CredsArgs & { theirs: string }) => call<MergeResult>("merge", args);
+export const merge = (args: CredsArgs & { opts: MergeOptions }) => {
+	args.opts = intoMergeOptions(args.opts);
+	return call<MergeResult>("merge", args);
+};
+
 export const push = (args: CredsArgs) => call<void>("push", args);
 
 export const add = (args: Args & { patterns: string[]; force: boolean }) => call<void>("add", args);
@@ -203,7 +213,14 @@ export const defaultBranch = (args: Args & { creds: Creds }) =>
 
 export const getCommitAuthors = (args: Args) => call<CommitAuthorInfo[]>("get_all_commit_authors", args);
 
+export const gc = (args: Args & { opts: GcOptions }) => call<void>("gc", args);
+
 export const resetRepo = () => call<void>("reset_repo", {});
+
+export const formatMergeMessage = (args: Args & CredsArgs & { opts: MergeMessageFormatOptions }) => {
+	args.opts = intoMergeMessageFormatOptions(args.opts);
+	return call<string>("format_merge_message", args);
+};
 
 const intoGitBranchData = (data: any): GitBranchData & { lastCommitOid: string } => {
 	return {
@@ -213,6 +230,24 @@ const intoGitBranchData = (data: any): GitBranchData & { lastCommitOid: string }
 		lastCommitModify: new Date(data.modify * 1000).toISOString(),
 		remoteName: data.remoteName,
 		lastCommitOid: data.lastCommitOid,
+	};
+};
+
+const intoMergeOptions = (data: any): MergeOptions => {
+	return {
+		theirs: data.theirs,
+		deleteAfterMerge: data.deleteAfterMerge || false,
+		squash: data.squash || false,
+		isMergeRequest: data.isMergeRequest || false,
+	};
+};
+
+const intoMergeMessageFormatOptions = (data: any): MergeMessageFormatOptions => {
+	return {
+		theirs: data.theirs,
+		squash: data.squash || false,
+		maxCommits: data.maxCommits || null,
+		isMergeRequest: data.isMergeRequest || false,
 	};
 };
 

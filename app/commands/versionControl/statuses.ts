@@ -19,7 +19,7 @@ const status: Command<{ ctx: Context; catalogName: string; shouldAdd: boolean },
 	async do({ catalogName, shouldAdd }) {
 		const workspace = this._app.wm.current();
 		const catalog = await workspace.getContextlessCatalog(catalogName);
-		if (!catalog?.repo?.gvc) return;
+		if (!catalog?.repo?.gvc) return [];
 
 		if (shouldAdd) await catalog.repo.gvc.add();
 

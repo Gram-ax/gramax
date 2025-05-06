@@ -7,7 +7,7 @@ use serde::Deserialize;
 use serde::Serialize;
 
 use crate::creds::Creds;
-use crate::error::Error;
+use crate::error::OrUtf8Err;
 use crate::prelude::Repo;
 use crate::OidInfo;
 use crate::Result;
@@ -229,8 +229,8 @@ impl DiffFile {
     let rhs = rhs.map(|blob| String::from_utf8_lossy(blob.content()).to_string());
     let lhs = lhs.map(|blob| String::from_utf8_lossy(blob.content()).to_string());
     let diff = DiffFile {
-      author_name: signature.name().ok_or(Error::Utf8)?.into(),
-      author_email: signature.email().ok_or(Error::Utf8)?.into(),
+      author_name: signature.name().or_utf8_err()?.into(),
+      author_email: signature.email().or_utf8_err()?.into(),
       commit_oid: commit.id().to_string(),
       date: commit.time().seconds() * 1000,
       path: rhs_path,
@@ -247,11 +247,11 @@ impl DiffFile {
     let signature = commit.author();
 
     Ok(Self {
-      author_name: signature.name().ok_or(Error::Utf8)?.into(),
-      author_email: signature.email().ok_or(Error::Utf8)?.into(),
+      author_name: signature.name().or_utf8_err()?.into(),
+      author_email: signature.email().or_utf8_err()?.into(),
       commit_oid: commit.id().to_string(),
       date: commit.time().seconds() * 1000,
-      path: delta.new_file().path().map(|p| p.to_path_buf()).ok_or(Error::Utf8)?,
+      path: delta.new_file().path().or_utf8_err()?.to_path_buf(),
       content: repo
         .find_blob(delta.new_file().id())
         .ok()

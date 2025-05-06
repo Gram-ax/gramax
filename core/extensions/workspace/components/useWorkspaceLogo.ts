@@ -2,6 +2,7 @@ import WorkspaceAssetsService, { useLogoManager } from "@core-ui/ContextServices
 import useWatch from "@core-ui/hooks/useWatch";
 import CustomLogoDriver from "@core/utils/CustomLogoDriver";
 import Theme from "@ext/Theme/Theme";
+import { UpdateResource } from "@ext/workspace/components/LogoUploader";
 import { useState, useCallback, useMemo } from "react";
 
 export const useWorkspaceLogo = (workspacePath: string) => {
@@ -36,13 +37,13 @@ export const useWorkspaceLogo = (workspacePath: string) => {
 		setDarkLogo(null);
 	}, []);
 
-	const updateLightLogo = useCallback((logo: string) => {
-		const base64Logo = CustomLogoDriver.logoToBase64(logo);
+	const updateLightLogo: UpdateResource = useCallback(({ content }) => {
+		const base64Logo = CustomLogoDriver.logoToBase64(content);
 		setLightLogo(base64Logo);
 	}, []);
 
-	const updateDarkLogo = useCallback((logo: string) => {
-		const base64Logo = CustomLogoDriver.logoToBase64(logo);
+	const updateDarkLogo: UpdateResource = useCallback(({ content }) => {
+		const base64Logo = CustomLogoDriver.logoToBase64(content);
 		setDarkLogo(base64Logo);
 	}, []);
 

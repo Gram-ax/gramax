@@ -34,8 +34,8 @@ pub enum RefInfo {
 impl ShortInfo<'_, RefInfo> for git2::Branch<'_> {
   fn short_info(&self) -> Result<RefInfo> {
     Ok(RefInfo::Branch {
-      refname: self.get().name().ok_or(crate::error::Error::Utf8)?.to_string(),
-      name: self.name()?.ok_or(crate::error::Error::Utf8)?.to_string(),
+      refname: self.get().name().or_utf8_err()?.to_string(),
+      name: self.name()?.or_utf8_err()?.to_string(),
       date: self.get().peel_to_commit().map(|c| c.time().seconds() * 1000).ok(),
     })
   }
@@ -72,7 +72,7 @@ impl<C: Creds> Refs for Repo<C> {
 
       for reference in self.0.references_glob(pattern.as_ref())? {
         let reference = reference?;
-        let refname = reference.name().ok_or(crate::error::Error::Utf8)?;
+        let refname = reference.name().or_utf8_err()?;
         if refs.contains_key(refname) {
           continue;
         }
@@ -105,7 +105,7 @@ impl<C: Creds> Refs for Repo<C> {
       return Ok(None);
     }
 
-    let refname = match reference.name().ok_or(crate::error::Error::Utf8)? {
+    let refname = match reference.name().or_utf8_err()? {
       refname if refname.starts_with("refs/tags/") => refname.split_at("refs/tags/".len()).1,
       refname if refname.starts_with("refs/heads/") => refname.split_at("refs/heads/".len()).1,
       refname => refname,
@@ -130,7 +130,7 @@ impl<C: Creds> Refs for Repo<C> {
     let object = match self.0.find_object(oid, None) {
       Ok(object) => object,
       Err(err) => {
-        warn!(target: TAG, "tried to find object {} ({}) but failed; skipping; error: {}", refname, oid.to_string(), err);
+        warn!(target: TAG, "tried to find object {} ({}) but failed; skipping; error: {}", refname, oid, err);
         return Ok(None);
       }
     };

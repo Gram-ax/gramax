@@ -1,19 +1,37 @@
 {
-	// "rust-analyzer.cargo.target": "x86_64-pc-windows-msvc",
-	// "rust-analyzer.cargo.target": "x86_64-apple-darwin",
-	"rust-analyzer.cargo.target": "aarch64-apple-darwin",
-	// "rust-analyzer.cargo.target": "wasm32-unknown-emscripten",
-	// "rust-analyzer.cargo.target": "aarch64-linux-android",
-	// "rust-analyzer.cargo.target": "aarch64-apple-ios",
+	// wasm
 
+	// "rust-analyzer.cargo.target": "wasm32-unknown-emscripten",
+	// "rust-analyzer.check.targets": ["wasm32-unknown-emscripten"],
+	// "rust-analyzer.check.allTargets": true,
+	// "rust-analyzer.cargo.extraEnv": {
+	// 	"BUGSNAG_API_KEY": ""
+	// },
+
+	// macos
+
+	"rust-analyzer.cargo.target": "aarch64-apple-darwin",
 	"rust-analyzer.check.allTargets": true,
 	"rust-analyzer.check.targets": ["aarch64-apple-darwin"],
-	// "rust-analyzer.check.targets": ["wasm32-unknown-emscripten"],
-	// "rust-analyzer.check.features": [],
-	// "rust-analyzer.cargo.features": [],
 	"rust-analyzer.cargo.extraEnv": {
 		"BUGSNAG_API_KEY": ""
 	},
+
+	// windows
+
+	// "rust-analyzer.cargo.target": "x86_64-pc-windows-msvc",
+	// "rust-analyzer.check.allTargets": false,
+	// "rust-analyzer.cargo.target": "x86_64-pc-windows-msvc",
+	// "rust-analyzer.check.targets": ["x86_64-pc-windows-msvc"],
+	// "rust-analyzer.cargo.extraEnv": {
+	// 	"BUGSNAG_API_KEY": "",
+	// 	"TARGET_CC": "clang"
+	// },
+
+	// "rust-analyzer.server.extraEnv": {
+	// 	"CFLAGS": "-I$HOME/.xwin/splat/crt/include/ -I$HOME/.xwin/splat/sdk/include/um -I$HOME/.xwin/splat/sdk/include/ucrt -I$HOME/.xwin/splat/sdk/include/shared -I$HOME/.xwin/splat/sdk/include/winrt",
+	// 	"CARGO": "$HOME/.cargo/bin/cargo-xwin"
+	// },
 
 	"editor.tabCompletion": "on",
 

@@ -4,6 +4,8 @@ const BarLayout = styled(
 	({
 		children,
 		className,
+		padding,
+		height,
 		...props
 	}: {
 		children?: JSX.Element;

@@ -4,6 +4,7 @@ import styled from "@emotion/styled";
 import t from "@ext/localization/locale/translate";
 import { MutableRefObject, forwardRef, useEffect, useRef } from "react";
 import { TocItem } from "../logic/createTocItems";
+import ArticleViewService from "@core-ui/ContextServices/views/articleView/ArticleViewService";
 
 const SCROLLSPY_OFFSET = 50;
 type Pair = { hEl: HTMLElement; aEl: HTMLElement };
@@ -130,7 +131,7 @@ const TableOfContents = styled(({ className }: { className?: string }) => {
 	const items = ArticlePropsService.tocItems;
 	const articleElement = ArticleRefService.value;
 
-	if (!items.length) return null;
+	if (!items.length || !ArticleViewService.isDefaultView) return null;
 
 	return (
 		<Scrollspy

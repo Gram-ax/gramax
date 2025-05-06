@@ -49,7 +49,7 @@ fn status_with_conflicts(sandbox: TempDir, #[with(&sandbox)] repo: Repo<TestCred
   repo.add("file")?;
   repo.commit_debug()?;
 
-  let Ok(MergeResult::Conflicts(conflicts)) = repo.merge("dev") else { panic!("conflict was expected") };
+  let Ok(MergeResult::Conflicts(conflicts)) = repo.merge(MergeOptions::theirs("dev")) else { panic!("conflict was expected") };
   let conflict = conflicts.first().unwrap();
   assert_eq!(conflict.ours, conflict.theirs);
   assert_eq!(conflict.theirs, conflict.ancestor);

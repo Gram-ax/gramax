@@ -3,7 +3,7 @@ import { JSONContent } from "@tiptap/core";
 import { ParserOptions } from "../../../Parser/Parser";
 import ParserContext from "../../../Parser/ParserContext/ParserContext";
 import { RenderableTreeNodes, Schema, SchemaType, Tag } from "../../../render/logic/Markdoc";
-import { getSquareFormatter } from "../Formatter/Formatters/getSquareFormatter";
+import { getMarkdocFormatter } from "../Formatter/Formatters/getMarkdocFormatter";
 import NodeTransformerFunc from "./NodeTransformerFunc";
 import { getSchema } from "./schema";
 
@@ -14,6 +14,7 @@ export class Transformer {
 		private _schemes: Record<string, Schema>,
 		private _nodeTransformerFuncs: NodeTransformerFunc[],
 		private _tokenTransformerFuncs: TokenTransformerFunc[],
+		private _context: ParserContext,
 	) {}
 
 	async transformMdComponents(
@@ -23,11 +24,10 @@ export class Transformer {
 			context?: ParserContext,
 			parserOptions?: ParserOptions,
 		) => Promise<RenderableTreeNodes>,
-		context?: ParserContext,
 	): Promise<JSONContent> {
 		if (node?.content)
 			node.content = await Promise.all(
-				node.content.map(async (n) => await this.transformMdComponents(n, renderer, context)),
+				node.content.map(async (n) => await this.transformMdComponents(n, renderer)),
 			);
 		if (node?.marks) {
 			const inlineMdIndex = node.marks.findIndex((mark) => mark.type === "inlineMd");
@@ -35,7 +35,7 @@ export class Transformer {
 				node = {
 					type: "inlineMd_component",
 					attrs: {
-						tag: await renderer(node.text, context, { isOneElement: true, isBlock: false }),
+						tag: await renderer(node.text, this._context, { isOneElement: true, isBlock: false }),
 						text: node.text,
 					},
 				};
@@ -46,7 +46,7 @@ export class Transformer {
 				type: "blockMd_component",
 				attrs: {
 					text: node.content[0].text,
-					tag: await renderer(node.content[0].text, context, { isOneElement: true, isBlock: true }),
+					tag: await renderer(node.content[0].text, this._context, { isOneElement: true, isBlock: true }),
 				},
 				content: node.content,
 			};
@@ -59,7 +59,6 @@ export class Transformer {
 		node: JSONContent,
 		previousNode?: JSONContent,
 		nextNode?: JSONContent,
-		context?: ParserContext,
 		count?: number,
 	): Promise<JSONContent> {
 		if (node?.content) {
@@ -71,7 +70,6 @@ export class Transformer {
 						value,
 						i == 0 ? null : node.content[i - 1],
 						i == node.content.length - 1 ? null : node.content[i + 1],
-						context,
 						count + i + 1,
 					),
 				);
@@ -80,7 +78,7 @@ export class Transformer {
 		}
 
 		for (const nodeTransformerFunc of this._nodeTransformerFuncs) {
-			const res = await nodeTransformerFunc(node, previousNode, nextNode, context, count);
+			const res = await nodeTransformerFunc(node, previousNode, nextNode, this._context, count);
 			if (res && res.isSet) return res.value;
 		}
 
@@ -172,7 +170,7 @@ export class Transformer {
 			const schema = getSchema();
 			if (!schema.nodes?.[newNode.type] && !schema.marks?.[newNode.type]) {
 				const nodeSchema = transformer._schemes[newNode.type];
-				const formatter = getSquareFormatter(nodeSchema);
+				const formatter = getMarkdocFormatter(nodeSchema, this._context);
 				const tag = new Tag(newNode.type, newNode.attrs);
 				if (token.type === "tag_open") {
 					const content = formatter(tag, "", false, true);

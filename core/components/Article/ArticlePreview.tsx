@@ -6,7 +6,7 @@ import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import ArticleTooltipService from "@core-ui/ContextServices/ArticleTooltip";
 import CatalogPropsService from "@core-ui/ContextServices/CatalogProps";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
-import OnLoadResourceService from "@ext/markdown/elements/copyArticles/onLoadResourceService";
+import ResourceService from "@ext/markdown/elements/copyArticles/resourceService";
 import { useEffect, useState } from "react";
 
 export type ArticlePreviewProps = {
@@ -33,16 +33,16 @@ const ArticlePreview = ({ logicPath, className }: ArticlePreviewProps) => {
 
 	if (!data) return;
 
+	const newApiUrlCreator = new ApiUrlCreator(pageProps.conf.basePath, catalogProps.name, data.articlePath);
+
 	return (
 		<div className={className}>
-			<ApiUrlCreatorService.Provider
-				value={new ApiUrlCreator(pageProps.conf.basePath, catalogProps.name, data.articlePath)}
-			>
-				<OnLoadResourceService.Provider>
+			<ApiUrlCreatorService.Provider value={newApiUrlCreator}>
+				<ResourceService.Provider>
 					<ArticleTooltipService.Provider>
 						<MiniArticle title={data.title} content={data.content} />
 					</ArticleTooltipService.Provider>
-				</OnLoadResourceService.Provider>
+				</ResourceService.Provider>
 			</ApiUrlCreatorService.Provider>
 		</div>
 	);

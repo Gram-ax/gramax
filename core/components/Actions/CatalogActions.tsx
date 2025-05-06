@@ -1,24 +1,25 @@
 import { TextSize } from "@components/Atoms/Button/Button";
 import PopupMenuLayout from "@components/Layouts/PopupMenuLayout";
+import { LeftNavigationTab } from "@components/Layouts/StatusBar/Extensions/ArticleStatusBar/ArticleStatusBar";
 import ButtonLink from "@components/Molecules/ButtonLink";
 import CatalogPropsService from "@core-ui/ContextServices/CatalogProps";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import WorkspaceService from "@core-ui/ContextServices/Workspace";
 import { usePlatform } from "@core-ui/hooks/usePlatform";
 import DeleteCatalog from "@ext/catalog/actions/propsEditor/components/DeleteCatalog";
+import Share from "@ext/catalog/actions/share/components/Share";
 import t from "@ext/localization/locale/translate";
 import { ItemLink } from "@ext/navigation/NavigationLinks";
 import { configureCatalogPermission } from "@ext/security/logic/Permission/Permissions";
 import PermissionService from "@ext/security/logic/Permission/components/PermissionService";
 import GetSharedTicket from "@ext/security/logic/TicketManager/components/GetSharedTicket";
+import UploadCloud from "@ext/static/components/UploadCloud";
+import ExportButton from "@ext/wordExport/components/DropdownButton";
 import ItemExport, { ExportFormat } from "@ext/wordExport/components/ItemExport";
 import { FC, useRef } from "react";
 import CatalogEditAction from "../../extensions/catalog/actions/propsEditor/components/CatalogEditAction";
 import Healthcheck from "../../extensions/healthcheck/components/Healthcheck";
 import IsReadOnlyHOC from "../../ui-logic/HigherOrderComponent/IsReadOnlyHOC";
-import Share from "@ext/catalog/actions/share/components/Share";
-import { LeftNavigationTab } from "@components/Layouts/StatusBar/Extensions/ArticleStatusBar/ArticleStatusBar";
-import ExportButton from "@ext/wordExport/components/ExportButton";
 // import getIsDevMode from "@core-ui/utils/getIsDevMode";
 import Tooltip from "@components/Atoms/Tooltip";
 
@@ -29,13 +30,16 @@ interface CatalogActionsProps {
 	setCurrentTab: (tab: LeftNavigationTab) => void;
 }
 
-const CatalogActions: FC<CatalogActionsProps> = ({ isCatalogExist, itemLinks }) => {
+const CatalogActions: FC<CatalogActionsProps> = ({ isCatalogExist, itemLinks, currentTab, setCurrentTab }) => {
 	const catalogProps = CatalogPropsService.value;
 	const workspacePath = WorkspaceService.current().path;
-	const { isNext } = usePlatform();
-	const isReadOnly = PageDataContextService.value.conf.isReadOnly;
+	const pageData = PageDataContextService.value;
+	const { isNext, isBrowser } = usePlatform();
+	const { isReadOnly, cloudServiceUrl } = pageData.conf;
+	// const isTemplate = currentTab === LeftNavigationTab.Template;
 	const isArticleExist = !!itemLinks.length;
 	// const isInbox = currentTab === LeftNavigationTab.Inbox;
+
 	const canConfigureCatalog = PermissionService.useCheckPermission(
 		configureCatalogPermission,
 		workspacePath,
@@ -81,7 +85,13 @@ const CatalogActions: FC<CatalogActionsProps> = ({ isCatalogExist, itemLinks }) 
 					isArticle={false}
 				/>
 			)}
+			{isBrowser && cloudServiceUrl && <UploadCloud />}
 			<IsReadOnlyHOC>
+				{/* <ButtonLink
+					text={t("template.name")}
+					iconCode="layout-template"
+					onClick={() => setCurrentTab(isTemplate ? LeftNavigationTab.None : LeftNavigationTab.Template)}
+				/> */}
 				{/* {isDevMode && (
 					<ButtonLink
 						text={"Inbox"}

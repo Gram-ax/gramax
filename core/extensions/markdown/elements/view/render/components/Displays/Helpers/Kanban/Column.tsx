@@ -55,6 +55,7 @@ const Column = ({ id, name, cards, className, onCardDrop, disabled, updateProper
 
 export default styled(Column)`
 	min-width: 18em;
+	max-width: 19em;
 
 	.column-name {
 		display: flex;
@@ -64,6 +65,10 @@ export default styled(Column)`
 
 		> span {
 			padding: 0.25em 12px;
+			white-space: nowrap;
+			text-overflow: ellipsis;
+			overflow: clip;
+			max-width: 19em;
 		}
 	}
 
@@ -71,6 +76,7 @@ export default styled(Column)`
 		display: flex;
 		flex-direction: column;
 		border-radius: var(--radius-medium);
+		max-width: 19em;
 		padding: 12px;
 		gap: 0.5em;
 	}

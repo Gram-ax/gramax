@@ -1,6 +1,7 @@
 import SidebarsIsOpenService from "@core-ui/ContextServices/Sidebars/SidebarsIsOpenContext";
 import SidebarsIsPinService from "@core-ui/ContextServices/Sidebars/SidebarsIsPin";
 import LeftNavViewContentContainer from "@core-ui/ContextServices/views/leftNavView/LeftNavViewContainer";
+import { usePlatform } from "@core-ui/hooks/usePlatform";
 import useWatch from "@core-ui/hooks/useWatch";
 import stopOpeningPanels from "@core-ui/utils/stopOpeningPanels ";
 import EditorService from "@ext/markdown/elementsUtils/ContextServices/EditorService";
@@ -23,6 +24,7 @@ const LeftNavigationComponent = ({
 }) => {
 	const isPin = SidebarsIsPinService.value.left;
 	const [prevIsPin, setPrevIsPin] = useState<boolean>(undefined);
+	const { isStaticCli } = usePlatform();
 
 	const isOpen = SidebarsIsOpenService.value.left;
 
@@ -56,9 +58,10 @@ const LeftNavigationComponent = ({
 			onMouseLeave={() => (isLeftNavHover.current = false)}
 		>
 			<LeftNavigationLayout
+				isStaticBuilding={isStaticCli}
 				mediumMedia={mediumMedia}
 				leftNavigationTop={<LeftNavigationTop data={data} />}
-				leftNavigationContent={<LeftNavViewContentContainer itemLinks={data.leftNavItemLinks} />}
+				leftNavigationContent={<LeftNavViewContentContainer itemLinks={data.itemLinks} />}
 				leftNavigationBottom={<LeftNavigationBottom data={data} />}
 				onMouseEnter={() =>
 					setTimeout(() => {

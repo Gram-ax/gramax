@@ -1,5 +1,3 @@
-use std::time::Duration;
-
 use process::restart;
 use tauri::menu::MenuItem;
 use tauri::Result;
@@ -28,7 +26,7 @@ impl<R: Runtime> UpdaterBuilder<R> for tauri::App<R> {
   fn setup_updater(&self) -> updater::Result<()> {
     let updater = Updater::new(self.app_handle().clone())?;
     self.manage(updater);
-    Updater::start_background_check(self.app_handle().clone(), Duration::from_secs(3600 * 6));
+    Updater::check_background(self.app_handle().clone());
     Ok(())
   }
 }
@@ -113,15 +111,11 @@ impl<R: Runtime> Updater<R> {
     dialog.blocking_show()
   }
 
-  fn start_background_check(app: AppHandle<R>, interval: Duration) {
+  fn check_background(app: AppHandle<R>) {
     async_runtime::spawn(async move {
-      let mut interval = tokio::time::interval(interval);
       let updater = app.state::<Updater<R>>();
-      loop {
-        interval.tick().await;
-        if let Err(err) = updater.check_quiet_and_ask().await {
-          warn!("An error occurred while checking for updates: {:?}", err);
-        }
+      if let Err(err) = updater.check_quiet_and_ask().await {
+        warn!("An error occurred while checking for updates: {:?}", err);
       }
     });
   }

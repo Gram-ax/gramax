@@ -13,7 +13,8 @@ export interface CatalogLink extends BaseLink {
 	order: number;
 	description: string;
 	lastVisited?: string;
-	isCloning: boolean;
+	isCloning?: boolean;
+	redirectOnClone?: string;
 }
 
 export interface BaseLink {

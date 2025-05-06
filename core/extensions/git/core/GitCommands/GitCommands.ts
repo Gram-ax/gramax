@@ -11,6 +11,7 @@ import GitErrorCode from "@ext/git/core/GitCommands/errors/model/GitErrorCode";
 import getUrlFromGitStorageData from "@ext/git/core/GitStorage/utils/getUrlFromGitStorageData";
 import t from "@ext/localization/locale/translate";
 import PersistentLogger from "@ext/loggers/PersistentLogger";
+import assert from "assert";
 import { parse } from "ini";
 import Path from "../../../../logic/FileProvider/Path/Path";
 import FileProvider from "../../../../logic/FileProvider/model/FileProvider";
@@ -32,6 +33,8 @@ import GitCommandsModel, {
 	type DirEntry,
 	type DirStat,
 	type FileStat,
+	type GcOptions,
+	type MergeOptions,
 	type RefInfo,
 	type TreeReadScope,
 } from "./model/GitCommandsModel";
@@ -296,12 +299,14 @@ export class GitCommands {
 	async stash(data: SourceData): Promise<GitStash> {
 		return await this._logWrapper("stash", "Stashing", async () => {
 			const res = await this._impl.stash(data);
-			return res && new GitStash(res);
+			const stash = res && new GitStash(res);
+			if (stash) this._log(`Stashed oid '${stash.toString()}'`, "stash");
+			return stash;
 		});
 	}
 
 	async applyStash(stashOid: GitStash): Promise<MergeResult> {
-		const res = await this._logWrapper("applyStash", `Applying stash oid: '${stashOid.toString()}`, () =>
+		const res = await this._logWrapper("applyStash", `Applying stash oid: '${stashOid.toString()}'`, () =>
 			this._impl.applyStash(stashOid.toString()),
 		);
 		return fixConflictLibgit2(res, this._fp, this._repoPath, this, await this.getHeadCommit(), stashOid);
@@ -328,7 +333,7 @@ export class GitCommands {
 
 				const remoteWithRemoteBranchName = (await this.getRemoteName()) + "/" + remoteBranchName;
 
-				await this.merge(data, remoteWithRemoteBranchName);
+				await this.merge(data, { theirs: remoteWithRemoteBranchName });
 			} catch (e) {
 				throw e.props ? e : getGitError(e, { repositoryPath: this._repoPath.value }, "pull");
 			}
@@ -355,13 +360,16 @@ export class GitCommands {
 		});
 	}
 
-	async merge(data: SourceData, theirs: string): Promise<MergeResult> {
+	async merge(data: SourceData, opts: MergeOptions): Promise<MergeResult> {
+		assert(opts, "merge opts is required");
+		assert(opts.theirs, "opts.theirs is required");
+
 		const head = await this.getCurrentBranch();
 		const res = await this._logWrapper(
 			"merge",
-			`Merging branch '${theirs}' into current branch: '${head.toString()}'`,
+			`Merging branch '${opts.theirs}' into current branch: '${head.toString()}'`,
 			async () => {
-				const mergeResult = await this._impl.merge(data, theirs);
+				const mergeResult = await this._impl.merge(data, opts);
 				if (!mergeResult.length) await this.checkout(head, { force: true });
 				return mergeResult;
 			},
@@ -373,8 +381,14 @@ export class GitCommands {
 			this._repoPath,
 			this,
 			await this.getHeadCommit(),
-			await this.getHeadCommit(theirs),
+			await this.getHeadCommit(opts.theirs),
 		);
+	}
+
+	async formatMergeMessage(data: SourceData, opts: MergeOptions): Promise<string> {
+		assert(opts, "merge opts is required");
+		assert(opts.theirs, "opts.theirs is required");
+		return await this._impl.formatMergeMessage(data, opts);
 	}
 
 	async commit(
@@ -491,6 +505,7 @@ export class GitCommands {
 			this._impl.diff(opts),
 		);
 	}
+
 	getRemoteName(): Promise<string> {
 		const REMOTE = "origin";
 		return Promise.resolve(REMOTE);
@@ -518,6 +533,10 @@ export class GitCommands {
 
 	getReferencesByGlob(patterns: string[]): Promise<RefInfo[]> {
 		return this._impl.getReferencesByGlob(patterns);
+	}
+
+	gc(opts: GcOptions): Promise<void> {
+		return this._logWrapper("gc", "Running garbage collection", () => this._impl.gc(opts));
 	}
 
 	// todo: optimize

@@ -5,17 +5,20 @@ import disableencodeuri from "./plugins/disableencodeuri";
 import taskListPlugin from "./plugins/taskListPlugin";
 import { gitConflictPlugin } from "./plugins/gitConflictPlugin";
 import imgSizePlugin from "@ext/markdown/core/render/logic/Markdoc/src/tokenizer/plugins/imgSizePlugin";
+import notePlugin from "@ext/markdown/elements/note/logic/noteBlock";
+import { Schemes } from "@ext/markdown/core/Parser/Parser";
 
 export default class Tokenizer {
 	private parser: MarkdownIt;
 
-	constructor(config: MarkdownIt.Options & { allowIndentation?: boolean } = {}) {
+	constructor(config: MarkdownIt.Options & { allowIndentation?: boolean } = {}, tags?: Schemes["tags"]) {
 		this.parser = new MarkdownIt(config);
 		this.parser.use(taskListPlugin);
 		this.parser.use(imgSizePlugin, "imgSizePlugin", {});
-		this.parser.use(annotations, "annotations", {});
+		this.parser.use(annotations, { tags });
 		this.parser.use(disableencodeuri, "disableencodeuri", {});
 		this.parser.use(gitConflictPlugin);
+		this.parser.use(notePlugin);
 		this.parser.disable("lheading");
 	}
 

@@ -76,7 +76,7 @@ impl<C: Creds> Stash for Repo<C> {
   }
 
   fn stash_delete(&mut self, oid: Oid) -> Result<()> {
-    info!(target: "git", "delete stash: {}", oid.to_string());
+    info!(target: "git", "delete stash: {}", oid);
     let index = self.stash_by_oid(oid)?;
     self.0.stash_drop(index)?;
     Ok(())

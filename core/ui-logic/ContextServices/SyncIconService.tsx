@@ -1,26 +1,29 @@
+import ContextService from "@core-ui/ContextServices/ContextService";
 import { Dispatch, ReactElement, SetStateAction, createContext, useContext, useState } from "react";
 
 const SyncIconContext = createContext<boolean>(undefined);
-let _setSyncProccess: Dispatch<SetStateAction<boolean>>;
 
-abstract class SyncIconService {
-	static Provider({ children }: { children: ReactElement }): ReactElement {
-		const [syncProccess, setSyncProccess] = useState(false);
-		_setSyncProccess = setSyncProccess;
-		return <SyncIconContext.Provider value={syncProccess}>{children}</SyncIconContext.Provider>;
+class SyncIconService implements ContextService {
+	private _setSyncProcess: Dispatch<SetStateAction<boolean>>;
+
+	Init({ children }: { children: ReactElement }): ReactElement {
+		const [syncProcess, setSyncProcess] = useState(false);
+		this._setSyncProcess = setSyncProcess;
+
+		return <SyncIconContext.Provider value={syncProcess}>{children}</SyncIconContext.Provider>;
 	}
 
-    static get value(): boolean{
-        return useContext(SyncIconContext)
-    }
-
-	static start() {
-		_setSyncProccess(true);
+	get value(): boolean {
+		return useContext(SyncIconContext);
 	}
 
-	static stop() {
-		_setSyncProccess(false);
+	start() {
+		this._setSyncProcess(true);
+	}
+
+	stop() {
+		this._setSyncProcess(false);
 	}
 }
 
-export default SyncIconService;
+export default new SyncIconService();

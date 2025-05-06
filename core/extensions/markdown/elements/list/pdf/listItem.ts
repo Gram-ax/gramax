@@ -4,9 +4,10 @@ import { NodeOptions, parseNodeToPDFContent, pdfRenderContext } from "@ext/pdfEx
 import { extractContent } from "@ext/pdfExport/utils/extractTextForCases";
 import { isTag } from "@ext/pdfExport/utils/isTag";
 import { Content, ContentStack } from "pdfmake/interfaces";
+import { JSONContent } from "@tiptap/core";
 
 export const listItemHandler = async (
-	node: Tag,
+	node: Tag | JSONContent,
 	context: pdfRenderContext,
 	options: NodeOptions,
 	isFirstItem: boolean,
@@ -14,11 +15,17 @@ export const listItemHandler = async (
 	const marginTop = isFirstItem ? 0 : BASE_CONFIG.FONT_SIZE * 0.375;
 	const stackContent: Content[] = [];
 	const level = options?.level || 0;
+	const parentChildren = "children" in node ? node.children || [] : node.content || [];
 
-	if (Array.isArray(node.children) && node.children.length > 0) {
-		const firstItem = node.children[0];
+	if (Array.isArray(parentChildren) && parentChildren.length > 0) {
+		const firstItem = parentChildren[0];
 
-		if (firstItem === null || typeof firstItem === "string" || (isTag(firstItem) && firstItem.name !== "p")) {
+		if (
+			firstItem === null ||
+			typeof firstItem === "string" ||
+			(isTag(firstItem) && firstItem.name !== "p") ||
+			(typeof firstItem === "object" && "type" in firstItem && firstItem.type !== "tag")
+		) {
 			const textContent = await extractContent(node, context);
 
 			const cleanedTextContent = textContent.map((item) => {
@@ -30,7 +37,10 @@ export const listItemHandler = async (
 				text: [{ text: cleanedTextContent }],
 				lineHeight: BASE_CONFIG.LINE_HEIGHT,
 			});
-		} else if (isTag(firstItem)) {
+		} else if (
+			isTag(firstItem) ||
+			(typeof firstItem === "object" && "type" in firstItem && firstItem.type === "tag")
+		) {
 			const nestedLists = await parseNodeToPDFContent(node, context, options);
 			stackContent.push(...nestedLists);
 		}

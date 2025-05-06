@@ -1,4 +1,5 @@
 import { Tag } from "@ext/markdown/core/render/logic/Markdoc";
+import { JSONContent } from "@tiptap/core";
 import { WordBlockChild } from "@ext/wordExport/options/WordTypes";
 import {
 	STANDARD_PAGE_WIDTH,
@@ -14,14 +15,17 @@ import { Table, TableCell, TableRow, WidthType } from "docx";
 const INNER_BLOCK_WIDTH_DIFFERENCE = 310;
 
 export const tabsWordLayout: WordBlockChild = async ({ state, tag, addOptions }) => {
+	const children = "children" in tag ? tag.children : tag.content;
 	const rows = await Promise.all(
-		tag.children.map(async (tab) => {
-			const tabTag = tab as Tag;
+		children.map(async (tab: Tag | JSONContent) => {
+			const tabTag = tab;
+			const attrs = "attributes" in tabTag ? tabTag.attributes : tabTag.attrs;
+			const children = "children" in tabTag ? tabTag.children : tabTag.content;
 			const paragraphs = [
-				createParagraph([createContent(tabTag.attributes.name, addOptions)], WordFontStyles.tabsTitle),
+				createParagraph([createContent(attrs.name, addOptions)], WordFontStyles.tabsTitle),
 				...(
 					await Promise.all(
-						tabTag.children.map((child) =>
+						children.map((child) =>
 							state.renderBlock(child as Tag, {
 								...addOptions,
 								maxPictureWidth:

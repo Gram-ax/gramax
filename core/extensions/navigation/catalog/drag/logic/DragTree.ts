@@ -64,14 +64,14 @@ class DragTree {
 		oldLevNav: NodeModel<ItemLink>[],
 		newLevNav: NodeModel<ItemLink>[],
 		catalog: Catalog,
-		parseAllItems: (catalog: Catalog, initChildLinks?: boolean) => Promise<Catalog>,
+		parseAllItems: (catalog: Catalog) => Promise<Catalog>,
 		parentArticle?: Article,
 	) {
 		const logicPath = RouterPathProvider.getLogicPath(oldLevNav.find((a) => a.data.isCurrentLink).data.pathname);
 		const rootItem = DragTreeTransformer.getRootItem();
 		const movements = getMovements<ItemLink>([rootItem, ...oldLevNav], [rootItem, ...newLevNav]);
 		if (!movements.length) return "";
-		await parseAllItems(catalog, false);
+		await parseAllItems(catalog);
 		const innerRefs = movements.map((movement) => itemRefUtils.parseRef(movement.moveItem.data.ref));
 		let draggedItemRef: { oldLogicPath: string; newItemRef: ItemRef };
 		for (const movement of movements) {

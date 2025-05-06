@@ -1,15 +1,20 @@
 import CommentCounterService from "@core-ui/ContextServices/CommentCounter";
 import useWatch from "@core-ui/hooks/useWatch";
 import ArticleMat from "@ext/markdown/core/edit/components/ArticleMat";
+import Main from "@ext/markdown/core/edit/components/Menu/Menus/Main";
+import ElementGroups from "@ext/markdown/core/element/ElementGroups";
 import ArticleTitleHelpers from "@ext/markdown/elements/article/edit/ArticleTitleHelpers";
+import Controllers from "@ext/markdown/elements/controllers/controllers";
 import CopyArticles from "@ext/markdown/elements/copyArticles/copyArticles";
-import OnLoadResourceService from "@ext/markdown/elements/copyArticles/onLoadResourceService";
+import ResourceService from "@ext/markdown/elements/copyArticles/resourceService";
 import EditorExtensionsService from "@ext/markdown/elements/diff/components/EditorExtensionsService";
+import Placeholder from "@ext/markdown/elements/placeholder/placeholder";
 import EditorService, {
 	BaseEditorContext,
 	EditorContext,
 	EditorPasteHandler,
 } from "@ext/markdown/elementsUtils/ContextServices/EditorService";
+import Document from "@tiptap/extension-document";
 import { Mark } from "@tiptap/pm/model";
 import { EditorContent, Extensions, JSONContent, useEditor } from "@tiptap/react";
 import { Node } from "prosemirror-model";
@@ -47,19 +52,19 @@ const ContentEditor = (props: ContentEditorProps) => {
 	const comments = CommentCounterService.value;
 	const articleProps = ArticlePropsService.value;
 	const apiUrlCreator = ApiUrlCreatorService.value;
-	const onLoadResource = OnLoadResourceService.value;
+	const resourceService = ResourceService.value;
 	const pageDataContext = PageDataContextService.value;
 
 	const onDeleteNodes = (nodes: Node[]): void => {
-		deleteImages(nodes, apiUrlCreator);
-		deleteDrawio(nodes, apiUrlCreator);
-		deleteOpenApi(nodes, apiUrlCreator);
-		deleteDiagrams(nodes, apiUrlCreator);
+		deleteImages(nodes, resourceService);
+		deleteDrawio(nodes, resourceService);
+		deleteOpenApi(nodes, resourceService);
+		deleteDiagrams(nodes, resourceService);
 	};
 
 	const onDeleteMarks = (marks: Mark[]): void => {
-		deleteFiles(marks, apiUrlCreator);
-		deleteComments(marks, apiUrlCreator, articleProps.pathname, comments);
+		deleteFiles(marks, resourceService);
+		deleteComments(marks, apiUrlCreator, articleProps.pathname, comments, pageDataContext.userInfo);
 	};
 
 	const onAddMarks = (marks: Mark[]): void => {
@@ -68,9 +73,12 @@ const ContentEditor = (props: ContentEditorProps) => {
 
 	const extensionsList = ExtensionUpdater.getUpdatedExtension([
 		...extensions,
+		Placeholder,
+		Document.extend({ content: `paragraph ${ElementGroups.block}+` }),
+		Controllers.configure({ editable: articleProps?.template?.length > 0 }),
 		OnDeleteNode.configure({ onDeleteNodes }),
 		OnAddMark.configure({ onAddMarks }),
-		CopyArticles.configure({ onLoadResource }),
+		CopyArticles.configure({ resourceService }),
 		OnDeleteMark.configure({ onDeleteMarks }),
 		ArticleTitleHelpers.configure({
 			onTitleLoseFocus: ({ newTitle }) => onTitleLoseFocus({ newTitle, apiUrlCreator, articleProps }),
@@ -81,6 +89,18 @@ const ContentEditor = (props: ContentEditorProps) => {
 	useWatch(() => {
 		EditorExtensionsService.value = extensionsList;
 	}, [extensionsList]);
+
+	useWatch(() => {
+		const extension = extensionsList.find((ext) => ext.name === "controllers");
+		if (!extension) return;
+
+		if (!articleProps?.template?.length) {
+			extension.configure({ editable: false });
+			return;
+		}
+
+		extension.configure({ editable: true });
+	}, [articleProps?.template]);
 
 	const editor = useEditor(
 		{
@@ -105,13 +125,15 @@ const ContentEditor = (props: ContentEditorProps) => {
 	useEffect(() => {
 		if (editor) {
 			const copyArticlesExtension = editor.extensionManager.extensions.find((ext) => ext.name === "copyArticles");
-			if (copyArticlesExtension) copyArticlesExtension.options.onLoadResource = onLoadResource;
+			if (copyArticlesExtension) copyArticlesExtension.options.resourceService = resourceService;
 		}
-	}, [onLoadResource.data]);
+	}, [resourceService.data]);
 
 	return (
 		<>
-			<Menu editor={editor} id={ContentEditorId} />
+			<Menu editor={editor} id={ContentEditorId}>
+				<Main editor={editor} />
+			</Menu>
 			<EditorContent editor={editor} data-qa="article-editor" data-iseditable={true} />
 			<ArticleMat editor={editor} />
 		</>

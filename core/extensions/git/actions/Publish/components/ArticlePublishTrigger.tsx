@@ -25,7 +25,7 @@ import { SideBarElementData } from "@ext/git/actions/Publish/logic/getSideBarEle
 import { useResourceView } from "@ext/git/actions/Publish/logic/useResourceView";
 import SideBarData from "@ext/git/actions/Publish/model/SideBarData";
 import t from "@ext/localization/locale/translate";
-import OnLoadResourceService from "@ext/markdown/elements/copyArticles/onLoadResourceService";
+import ResourceService from "@ext/markdown/elements/copyArticles/resourceService";
 import ArticleDiffModeView from "@ext/markdown/elements/diff/components/ArticleDiffModeView";
 import ArticlePropsesCache from "@ext/markdown/elements/diff/logic/ArticlePropsesCache";
 import { FileStatus } from "@ext/Watchers/model/FileStatus";
@@ -103,9 +103,9 @@ const ArticlePublishTrigger = ({ onPublish, onDiscard }: ArticlePublishTriggerPr
 				() => (
 					<>
 						{data.sideBarDataElement.data.status === FileStatus.delete ? (
-							<OnLoadResourceService.Provider scope={"HEAD"}>
-								{resourceView}
-							</OnLoadResourceService.Provider>
+							<ApiUrlCreatorService.Provider value={resourceApiUrlCreator}>
+								<ResourceService.Provider scope="HEAD">{resourceView}</ResourceService.Provider>
+							</ApiUrlCreatorService.Provider>
 						) : (
 							resourceView
 						)}

@@ -1,13 +1,13 @@
 import { type Event, type EventEmitter } from "@core/Event/EventEmitter";
-import { ItemFilter } from "@core/FileStructue/Catalog/Catalog";
+import { Catalog, ItemFilter } from "@core/FileStructue/Catalog/Catalog";
 import type { ReadonlyCatalog } from "@core/FileStructue/Catalog/ReadonlyCatalog";
 import { digitsAfterDot } from "@core/FileStructue/Item/ItemOrderUtils";
 import type Hasher from "@core/Hash/Hasher";
 import type { Hashable } from "@core/Hash/Hasher";
+import ResourceUpdater from "@core/Resource/ResourceUpdater";
 import createNewFilePathUtils from "@core/utils/createNewFilePathUtils";
 import Path from "../../FileProvider/Path/Path";
 import { Article, ArticleInitProps, type ArticleEvents, type ArticleProps } from "../Article/Article";
-import { FSProps } from "../FileStructure";
 import { Item, ORDERING_MAX_PRECISION, type ItemEvents } from "../Item/Item";
 import { ItemRef } from "../Item/ItemRef";
 import { ItemType } from "../Item/ItemType";
@@ -65,7 +65,10 @@ export class Category<P extends CategoryProps = CategoryProps> extends Article<P
 
 		this._items.sort((x, y) => ((x.props.order ?? 0) - (y.props.order ?? 0)) * (isAsc ? 1 : -1));
 
-		if (force || this.items.some((i) => digitsAfterDot(i.order) > ORDERING_MAX_PRECISION)) {
+		if (
+			!this._fs.fp.isReadOnly &&
+			(force || this.items.some((i) => isNaN(i.order) || digitsAfterDot(i.order) > ORDERING_MAX_PRECISION))
+		) {
 			let order = isAsc ? 1 : this.items.length;
 			for (const item of this.items) {
 				if (item) await item.setOrder(order);
@@ -94,7 +97,7 @@ export class Category<P extends CategoryProps = CategoryProps> extends Article<P
 		return this._ref.path.parentDirectoryPath.nameWithExtension;
 	}
 
-	protected override async _updateFilename(fileName: string, rootCategoryProps?: FSProps) {
+	protected override async _updateFilename(fileName: string, resourceUpdater: ResourceUpdater, catalog?: Catalog) {
 		if (this.getFileName() == fileName) return;
 		let path = this._ref.path.parentDirectoryPath.parentDirectoryPath.join(new Path(fileName));
 		if (await this._fs.fp.exists(path)) {
@@ -107,7 +110,7 @@ export class Category<P extends CategoryProps = CategoryProps> extends Article<P
 			);
 		}
 		await this._fs.moveCategory(this, path);
-		const newCategory = await this._updateCategory(rootCategoryProps, path);
+		const newCategory = await this._updateCategory(path, catalog);
 		this._logicPath = newCategory.logicPath;
 		this._ref = newCategory._ref;
 		this._directory = newCategory._directory;
@@ -115,13 +118,12 @@ export class Category<P extends CategoryProps = CategoryProps> extends Article<P
 		return this;
 	}
 
-	private async _updateCategory(rootCategoryProps: FSProps, folderPath: Path) {
+	private async _updateCategory(folderPath: Path, catalog?: Catalog) {
 		await this.parsedContent.write(() => null);
 		return await this._fs.makeCategory(
 			folderPath,
 			this.parent,
-			rootCategoryProps,
-			{},
+			catalog,
 			folderPath.join(new Path(this.ref.path.nameWithExtension)),
 		);
 	}

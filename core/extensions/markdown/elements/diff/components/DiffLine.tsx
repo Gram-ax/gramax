@@ -5,12 +5,14 @@ import useWatch from "@core-ui/hooks/useWatch";
 import styled from "@emotion/styled";
 import { TreeReadScope } from "@ext/git/core/GitCommands/model/GitCommandsModel";
 import getExtensions from "@ext/markdown/core/edit/logic/getExtensions";
-import OnLoadResourceService from "@ext/markdown/elements/copyArticles/onLoadResourceService";
+import ElementGroups from "@ext/markdown/core/element/ElementGroups";
+import ResourceService from "@ext/markdown/elements/copyArticles/resourceService";
 import addDecorations from "@ext/markdown/elements/diff/logic/addDecorations";
 import DiffExtension, {
 	DiffLine as DiffLineType,
 	NodeBeforeData,
 } from "@ext/markdown/elements/diff/logic/DiffExtension";
+import Document from "@tiptap/extension-document";
 import { PluginKey } from "@tiptap/pm/state";
 import { Decoration, DecorationSet } from "@tiptap/pm/view";
 import { EditorContent, useEditor } from "@tiptap/react";
@@ -131,7 +133,11 @@ const TooltipContent = ({ nodeBefore, oldScope }: TooltipContentProps) => {
 	const contentBefore = nodeBefore.content;
 	const editor = useEditor(
 		{
-			extensions: [...getExtensions(), DiffExtension.configure({ isOldEditor: true })],
+			extensions: [
+				...getExtensions(),
+				DiffExtension.configure({ isOldEditor: true }),
+				Document.configure({ content: `paragraph ${ElementGroups.block}+` }),
+			],
 			content: contentBefore,
 			editable: false,
 		},
@@ -147,7 +153,7 @@ const TooltipContent = ({ nodeBefore, oldScope }: TooltipContentProps) => {
 	}, [editor, nodeBefore.relativeTo, nodeBefore.relativeFrom]);
 
 	return (
-		<OnLoadResourceService.Provider scope={oldScope}>
+		<ResourceService.Provider scope={oldScope}>
 			<div className="tooltip-article">
 				<div className={classNames("article", {}, ["tooltip-size"])}>
 					<MinimizedArticleStyled>
@@ -157,6 +163,6 @@ const TooltipContent = ({ nodeBefore, oldScope }: TooltipContentProps) => {
 					</MinimizedArticleStyled>
 				</div>
 			</div>
-		</OnLoadResourceService.Provider>
+		</ResourceService.Provider>
 	);
 };

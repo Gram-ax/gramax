@@ -1,6 +1,5 @@
 import ArticleProvider, { ArticleID } from "@core/FileStructue/Article/ArticleProvider";
 import { Catalog } from "@core/FileStructue/Catalog/Catalog";
-import SitePresenter from "@core/SitePresenter/SitePresenter";
 import SnippetEditorProps from "@ext/markdown/elements/snippet/edit/model/SnippetEditorProps.schema";
 import FileProvider from "@core/FileProvider/model/FileProvider";
 import MarkdownParser from "@ext/markdown/core/Parser/Parser";
@@ -12,7 +11,6 @@ import { JSONContent } from "@tiptap/core";
 import MarkdownFormatter from "@ext/markdown/core/edit/logic/Formatter/Formatter";
 import ParserContextFactory from "@ext/markdown/core/Parser/ParserContext/ParserContextFactory";
 import Context from "@core/Context/Context";
-import { convertContentToUiLanguage } from "@ext/localization/locale/translate";
 
 declare module "@core/FileStructue/Article/ArticleProvider" {
 	export enum ArticleProviders {
@@ -30,12 +28,11 @@ export default class SnippetProvider extends ArticleProvider {
 		});
 	}
 
-	public async getArticlesWithSnippet(snippetId: string, sp: SitePresenter) {
-		await sp.parseAllItems(this._catalog);
+	public async getArticlesWithSnippet(snippetId: string) {
 		const result = [];
 		for (const item of this._catalog.getContentItems()) {
 			await item.parsedContent.read((p) => {
-				if (p.snippets.has(snippetId)) result.push(item);
+				if (p?.snippets.has(snippetId)) result.push(item);
 			});
 		}
 
@@ -73,6 +70,28 @@ export default class SnippetProvider extends ArticleProvider {
 		return data;
 	}
 
+	override async remove(id: ArticleID) {
+		const article = this.getArticle(id);
+
+		const articles = await this.getArticlesWithSnippet(id);
+		for (const article of articles) {
+			await article.parsedContent.write(() => null);
+		}
+
+		if (this._isOldSnippet(article.ref.path)) {
+			this.articles.delete(id);
+			await this._fp.delete(article.ref.path);
+
+			return;
+		}
+
+		await super.remove(id);
+	}
+
+	public getSnippetsPaths() {
+		return Array.from(this.articles.values()).map((a) => a.ref.path);
+	}
+
 	override async updateContent(
 		id: ArticleID,
 		editTree: JSONContent,
@@ -84,7 +103,7 @@ export default class SnippetProvider extends ArticleProvider {
 		const article = this.getArticle(id);
 		if (!article) return;
 
-		if (article.ref.path.value.includes(".snippets")) {
+		if (this._isOldSnippet(article.ref.path)) {
 			await this.remove(id);
 			await this._fp.delete(article.ref.path);
 
@@ -101,15 +120,10 @@ export default class SnippetProvider extends ArticleProvider {
 			return;
 		}
 
-		const context = parserContextFactory.fromArticle(
-			article,
-			this._catalog,
-			convertContentToUiLanguage(ctx.contentLanguage || this._catalog.props.language),
-			ctx.user.isLogged,
-		);
+		await super.updateContent(id, editTree, formatter, parserContextFactory, parser, ctx);
+	}
 
-		const markdown = await formatter.render(editTree, context);
-		await article.updateContent(markdown);
-		await article.parsedContent.write(() => parser.parse(article.content, context));
+	private _isOldSnippet(path: Path) {
+		return path.value.includes(".snippets");
 	}
 }

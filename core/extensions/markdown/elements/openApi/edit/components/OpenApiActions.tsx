@@ -2,7 +2,7 @@ import ActionButton from "@components/controls/HoverController/ActionButton";
 import ModalToOpenService from "@core-ui/ContextServices/ModalToOpenService/ModalToOpenService";
 import ModalToOpen from "@core-ui/ContextServices/ModalToOpenService/model/ModalsToOpen";
 import t from "@ext/localization/locale/translate";
-import OnLoadResourceService from "@ext/markdown/elements/copyArticles/onLoadResourceService";
+import ResourceService from "@ext/markdown/elements/copyArticles/resourceService";
 import { Editor } from "@tiptap/core";
 import { Node } from "@tiptap/pm/model";
 
@@ -14,7 +14,7 @@ interface OpenApiActionsProps {
 }
 
 const OpenApiActions = ({ editor, node, getPos, updateAttributes }: OpenApiActionsProps) => {
-	const { getBuffer } = OnLoadResourceService.value;
+	const { getBuffer } = ResourceService.value;
 
 	const handleDelete = () => {
 		const position = getPos();

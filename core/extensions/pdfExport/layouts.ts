@@ -14,6 +14,7 @@ import { headingHandler } from "@ext/markdown/elements/heading/pdf/heading";
 import { hrHandler } from "@ext/markdown/elements/hr/pdf/hr";
 import { imageHandler } from "@ext/markdown/elements/image/pdf/image";
 import { includeHandler } from "@ext/markdown/elements/include/pdf/include";
+import { inlinePropertyHandler } from "@ext/markdown/elements/inlineProperty/pdf/inlineProperty";
 import { issueHandler } from "@ext/markdown/elements/issue/pdf/issue";
 import { kbdHandler } from "@ext/markdown/elements/kbd/pdf/kbd";
 import { linkHandler } from "@ext/markdown/elements/link/pdf/link";
@@ -53,6 +54,7 @@ export const inlineLayouts = {
 	s: strikeHandler,
 	Br: brHandler,
 	br: brHandler,
+	"Inline-property": inlinePropertyHandler,
 	// Icon,
 	//Formula,
 	//Fn
@@ -60,11 +62,11 @@ export const inlineLayouts = {
 
 export const blockLayouts = {
 	p: paragraphCase,
-	ol: orderedListHandler,
-	ul: bulletListHandler,
-	Li: listItemHandler,
+	orderedList: orderedListHandler,
+	bulletList: bulletListHandler,
+	listItem: listItemHandler,
 	Heading: headingHandler,
-	Note: noteHandler,
+	note: noteHandler,
 	Fence: codeBlockHandler,
 	hr: hrHandler,
 	Video: videoHandler,
@@ -73,10 +75,10 @@ export const blockLayouts = {
 	"Plant-uml": plantUmlHandler,
 	Mermaid: mermaidHandler,
 	Include: includeHandler,
-	Tabs: tabsHandler,
-	Tab: tabsHandler,
+	tabs: tabsHandler,
+	tab: tabsHandler,
 	Table: tableCase,
-	Snippet: snippetCase,
+	snippet: snippetCase,
 	"Db-diagram": diagramdbHandler,
 	"Db-table": tabledbHandler,
 	View: viewCase,
@@ -90,12 +92,14 @@ export const blockLayouts = {
 	// OpenApi: openApiWordLayout,
 };
 
-export const tableLayoutKeys = ["thead", "tbody", "Td", "tr", "th"];
+export const tableLayoutKeys = ["thead", "tbody", "td", "tr", "th"];
 
-export const pdfExportedKeys = new Set<string>([
-	...Object.keys(inlineLayouts),
-	...Object.keys(blockLayouts),
-	...tableLayoutKeys,
-	"Tab",
-	undefined,
-]);
+export const getPdfExportedKeys = () => {
+	return new Set<string>([
+		...Object.keys(inlineLayouts),
+		...Object.keys(blockLayouts),
+		...tableLayoutKeys,
+		"tab",
+		undefined,
+	]);
+};

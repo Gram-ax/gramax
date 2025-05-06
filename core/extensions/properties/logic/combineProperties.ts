@@ -1,10 +1,11 @@
 import { Property, PropertyValue } from "../models";
 
-const combineProperties = (props: PropertyValue[], catalogProps: Property[]) => {
+const combineProperties = (props: PropertyValue[], catalogProps: Property[]): Property[] => {
 	return props?.map((prop) => {
 		const originalProp = catalogProps.find((p) => p.name === prop.name);
-		if (!originalProp) return prop;
-		return { ...originalProp, value: prop.value };
+		if (!originalProp) return prop as Property;
+		const value = Array.isArray(prop?.value) ? prop?.value : [prop?.value];
+		return { ...originalProp, value: prop.value ? [...value] : undefined };
 	});
 };
 

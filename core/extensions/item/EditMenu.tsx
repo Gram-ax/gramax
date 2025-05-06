@@ -7,18 +7,21 @@ import FetchService from "@core-ui/ApiServices/FetchService";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import ArticlePropsService from "@core-ui/ContextServices/ArticleProps";
 import CatalogPropsService from "@core-ui/ContextServices/CatalogProps";
+import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
+import { useRouter } from "@core/Api/useRouter";
+import Path from "@core/FileProvider/Path/Path";
+import RouterPathProvider from "@core/RouterPath/RouterPathProvider";
 import { ClientArticleProps } from "@core/SitePresenter/SitePresenter";
 import styled from "@emotion/styled";
+import ErrorConfirmService from "@ext/errorHandlers/client/ErrorConfirmService";
+import ActionWarning, { shouldShowActionWarning } from "@ext/localization/actions/ActionWarning";
 import t from "@ext/localization/locale/translate";
-import { CSSProperties, Dispatch, SetStateAction, useEffect, useState } from "react";
+import NavigationEvents from "@ext/navigation/NavigationEvents";
+// import TemplateItemList from "@ext/templates/components/TemplateItemList";
+import React, { CSSProperties, Dispatch, SetStateAction, useEffect, useState } from "react";
 import { ItemLink } from "../navigation/NavigationLinks";
 import DeleteItem from "./actions/DeleteItem";
 import PropsEditor from "./actions/propsEditor/components/PropsEditor";
-import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
-import Path from "@core/FileProvider/Path/Path";
-import { useRouter } from "@core/Api/useRouter";
-import ActionWarning, { shouldShowActionWarning } from "@ext/localization/actions/ActionWarning";
-import ErrorConfirmService from "@ext/errorHandlers/client/ErrorConfirmService";
 
 const StyledDiv = styled.div`
 	display: flex;
@@ -41,19 +44,19 @@ interface EditMenuProps {
 	onClose?: () => void;
 }
 
-const EditMenu = ({ itemLink, isCategory, setItemLink, textSize, style, onOpen, onClose }: EditMenuProps) => {
+const ItemMenu = React.memo(({ itemLink, isCategory, setItemLink }: EditMenuProps) => {
 	const isReadOnly = PageDataContextService.value.conf.isReadOnly;
-	const articleProps = ArticlePropsService.value;
-
-	const router = useRouter();
 	const apiUrlCreator = ApiUrlCreatorService.value;
+	const articleProps = ArticlePropsService.value;
 	const catalogProps = CatalogPropsService.value;
 	const isCatalogExist = !!catalogProps.name;
 	const hasError = articleProps?.errorCode;
+	const router = useRouter();
 
 	const [brotherFileNames, setBrotherFileName] = useState<string[]>(null);
+	const [itemProps, setItemProps] = useState<ClientArticleProps>(null);
 	const [isCurrentItem, setIsCurrentItem] = useState(articleProps?.ref?.path == itemLink?.ref?.path);
-	const [itemProps, setItemProps] = useState<ClientArticleProps>(isCurrentItem ? { ...articleProps } : null);
+	// const isTemplate = isCurrentItem && articleProps?.template?.length > 0;
 
 	useEffect(() => {
 		setIsCurrentItem(articleProps?.ref?.path == itemLink?.ref?.path);
@@ -61,17 +64,17 @@ const EditMenu = ({ itemLink, isCategory, setItemLink, textSize, style, onOpen, 
 
 	useEffect(() => {
 		if (isCurrentItem) setItemProps(articleProps);
-	}, [articleProps]);
+	}, [articleProps, isCurrentItem]);
 
-	const setItemPropsData = async () => {
-		const response = await FetchService.fetch(apiUrlCreator.getItemProps(itemLink.ref.path));
+	const setItemPropsData = async (path: string) => {
+		const response = await FetchService.fetch(apiUrlCreator.getItemProps(path));
 		if (!response.ok) return;
 		const data = (await response.json()) as ClientArticleProps;
 		setItemProps(data);
 	};
 
-	const setBrotherFileNamesData = async () => {
-		const response = await FetchService.fetch(apiUrlCreator.getArticleBrotherFileNames(itemLink.ref.path));
+	const setBrotherFileNamesData = async (path: string) => {
+		const response = await FetchService.fetch(apiUrlCreator.getArticleBrotherFileNames(path));
 		if (!response.ok) return;
 		const data = (await response.json()) as string[];
 		setBrotherFileName(data);
@@ -80,74 +83,104 @@ const EditMenu = ({ itemLink, isCategory, setItemLink, textSize, style, onOpen, 
 	const onClickHandler = async () => {
 		const deleteConfirmText = t(isCategory ? "confirm-category-delete" : "confirm-article-delete");
 		if (!shouldShowActionWarning(catalogProps) && !(await confirm(deleteConfirmText))) return;
-		const itemLinkPath = new Path(itemLink.ref.path);
 
 		ErrorConfirmService.stop();
 		await FetchService.fetch(apiUrlCreator.removeItem(itemLink.ref.path));
 		ErrorConfirmService.start();
 
-		if (new Path(router.path).removeExtraSymbols.compare(itemLinkPath))
-			router.pushPath(itemLinkPath.parentDirectoryPath.value);
-		else refreshPage();
+		await NavigationEvents.emit("item-delete", { path: itemLink.ref.path });
+
+		const currentPathname = RouterPathProvider.getLogicPath(router.path);
+		const itemPathname = RouterPathProvider.getLogicPath(itemLink.pathname);
+
+		if (currentPathname == itemPathname) {
+			router.pushPath(new Path(currentPathname).parentDirectoryPath.value);
+		} else {
+			refreshPage();
+		}
 	};
 
+	useEffect(() => {
+		if (!isCurrentItem && !itemProps) setItemPropsData(itemLink.ref.path);
+		if (!isReadOnly && !brotherFileNames) setBrotherFileNamesData(itemLink.ref.path);
+	}, [isCurrentItem, isReadOnly, itemLink.ref.path, brotherFileNames, itemProps]);
+
 	return (
-		<StyledDiv onClick={(e) => e.stopPropagation()}>
+		<>
+			{!isReadOnly ? (
+				<>
+					{!hasError && (
+						<PropsEditor
+							item={itemProps}
+							itemLink={itemLink}
+							isCategory={isCategory}
+							isCurrentItem={isCurrentItem}
+							brotherFileNames={brotherFileNames}
+							setItemLink={setItemLink}
+						/>
+					)}
+					<ArticleActions
+						editLink={itemLink?.pathname}
+						item={itemProps}
+						isCatalogExist={isCatalogExist}
+						isCurrentItem={isCurrentItem}
+						isTemplate={false}
+					/>
+					{!hasError && (
+						<>
+							<ExportToDocxOrPdf
+								isCategory={isCategory}
+								fileName={itemProps?.fileName}
+								itemRefPath={itemProps?.ref?.path}
+							/>
+							{/* {isCurrentItem && <TemplateItemList itemRefPath={itemProps?.ref?.path} />} */}
+						</>
+					)}
+					<ActionWarning isDelete catalogProps={catalogProps} action={onClickHandler}>
+						<div>
+							<DeleteItem />
+						</div>
+					</ActionWarning>
+				</>
+			) : (
+				<>
+					{!hasError && (
+						<ExportToDocxOrPdf
+							isCategory={isCategory}
+							fileName={itemProps?.fileName}
+							itemRefPath={itemProps?.ref?.path}
+						/>
+					)}
+				</>
+			)}
+		</>
+	);
+});
+
+const EditMenu = ({ itemLink, isCategory, setItemLink, textSize, style, onOpen, onClose }: EditMenuProps) => {
+	const [isClicked, setIsClicked] = useState(false);
+
+	useEffect(() => {
+		setIsClicked(false);
+	}, [itemLink]);
+
+	return (
+		<StyledDiv
+			onClick={(e) => {
+				e.stopPropagation();
+				setIsClicked(true);
+			}}
+		>
 			<PopupMenuLayout
 				isInline
 				trigger={<ButtonLink textSize={textSize} style={style} iconCode="ellipsis-vertical" />}
 				offset={[0, 10]}
 				tooltipText={t("actions")}
-				onOpen={() => {
-					onOpen?.();
-					if (!isCurrentItem) setItemPropsData();
-					if (!isReadOnly) setBrotherFileNamesData();
-				}}
+				onOpen={onOpen}
 				onClose={onClose}
 				appendTo={() => document.body}
 			>
-				{!isReadOnly ? (
-					<>
-						{!hasError && (
-							<PropsEditor
-								item={itemProps}
-								itemLink={itemLink}
-								isCategory={isCategory}
-								isCurrentItem={isCurrentItem}
-								brotherFileNames={brotherFileNames}
-								setItemLink={setItemLink}
-							/>
-						)}
-						<ArticleActions
-							editLink={itemLink?.pathname}
-							item={itemProps}
-							isCatalogExist={isCatalogExist}
-							isCurrentItem={isCurrentItem}
-						/>
-						{!hasError && (
-							<ExportToDocxOrPdf
-								isCategory={isCategory}
-								fileName={itemProps?.fileName}
-								itemRefPath={itemProps?.ref?.path}
-							/>
-						)}
-						<ActionWarning isDelete catalogProps={catalogProps} action={onClickHandler}>
-							<div>
-								<DeleteItem />
-							</div>
-						</ActionWarning>
-					</>
-				) : (
-					<>
-						{!hasError && (
-							<ExportToDocxOrPdf
-								isCategory={isCategory}
-								fileName={itemProps?.fileName}
-								itemRefPath={itemProps?.ref?.path}
-							/>
-						)}
-					</>
-				)}
+				{isClicked && <ItemMenu itemLink={itemLink} isCategory={isCategory} setItemLink={setItemLink} />}
 			</PopupMenuLayout>
 		</StyledDiv>
 	);

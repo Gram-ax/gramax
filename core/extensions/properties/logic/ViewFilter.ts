@@ -7,7 +7,7 @@ import sortMapByName from "@ext/markdown/elements/view/render/logic/sortMap";
 import getAllCatalogProperties from "@ext/properties/logic/getAllCatalogProps";
 import getDisplayValue from "@ext/properties/logic/getDisplayValue";
 import { Property, PropertyValue, SystemProperties, ViewRenderGroup } from "@ext/properties/models";
-import { Display } from "@ext/properties/models/displays";
+import { Display } from "../models/display";
 
 interface ProcessedArticle {
 	title: string;

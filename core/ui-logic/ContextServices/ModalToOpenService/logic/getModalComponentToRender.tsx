@@ -19,6 +19,7 @@ import { ReactNode } from "react";
 import ReviewTicketHandler from "../../../../extensions/catalog/actions/review/components/ReviewTicketHandler";
 import ShareTicketHandler from "../../../../extensions/catalog/actions/share/components/ShareTicketHandler";
 import ModalToOpen from "../model/ModalsToOpen";
+import TemplateContentWarning from "@ext/templates/components/TemplateContentWarning";
 
 const getModalComponentToRender: {
 	[type in ModalToOpen]: (args: { [name: string]: any }) => ReactNode;
@@ -52,6 +53,8 @@ const getModalComponentToRender: {
 	[ModalToOpen.CreateSourceData]: CreateSourceData,
 
 	[ModalToOpen.EditEnterpriseConfig]: EditEnterpriseConfig,
+
+	[ModalToOpen.TemplateContentWarning]: TemplateContentWarning,
 };
 
 export default getModalComponentToRender;

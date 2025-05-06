@@ -4,7 +4,7 @@ import { Suspense, lazy, useState } from "react";
 import ApiUrlCreatorService from "../../../../../ui-logic/ContextServices/ApiUrlCreator";
 import t from "@ext/localization/locale/translate";
 import DiagramError from "@ext/markdown/elements/diagrams/component/DiagramError";
-import OnLoadResourceService from "@ext/markdown/elements/copyArticles/onLoadResourceService";
+import ResourceService from "@ext/markdown/elements/copyArticles/resourceService";
 const LazySwaggerUI = lazy(() => import("./SwaggerUI"));
 
 interface OpenApiProps {
@@ -18,14 +18,14 @@ const OpenApi = (props: OpenApiProps) => {
 	const [data, setData] = useState<string>();
 	const [isError, setIsError] = useState(false);
 	const apiUrlCreator = ApiUrlCreatorService.value;
-	const onLoadResource = OnLoadResourceService.value;
+	const resourceService = ResourceService.value;
 
-	if (typeof window === "undefined" || !apiUrlCreator || !onLoadResource) return null;
+	if (typeof window === "undefined" || !apiUrlCreator || !resourceService) return null;
 
-	onLoadResource.useGetContent(src, apiUrlCreator, (buffer: Buffer) => {
+	resourceService.useGetResource((buffer: Buffer) => {
 		if (!buffer?.byteLength) setIsError(true);
 		setData(buffer.toString());
-	});
+	}, src);
 
 	return (
 		<div data-qa="qa-open-api">

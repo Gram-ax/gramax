@@ -1,7 +1,7 @@
 import Url from "@core-ui/ApiServices/Types/Url";
 import Query, { parserQuery } from "@core/Api/Query";
 import { Router, RouterRule } from "@core/Api/Router";
-import { navigate } from "wouter/use-location";
+import { navigate } from "wouter/use-browser-location";
 import useLocation from "./useLocation";
 
 export default class BrowserRouter extends Router {

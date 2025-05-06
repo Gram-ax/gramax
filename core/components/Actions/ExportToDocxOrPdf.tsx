@@ -2,7 +2,7 @@ import PopupMenuLayout from "@components/Layouts/PopupMenuLayout";
 import t from "@ext/localization/locale/translate";
 import { useRef } from "react";
 import ItemExport, { ExportFormat } from "../../extensions/wordExport/components/ItemExport";
-import ExportButton from "@ext/wordExport/components/ExportButton";
+import ExportButton from "@ext/wordExport/components/DropdownButton";
 import styled from "@emotion/styled";
 
 interface ExportToDocxOrPdfProps {

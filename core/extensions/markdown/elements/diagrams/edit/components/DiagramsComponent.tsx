@@ -3,13 +3,13 @@ import { ReactElement, useRef, useState } from "react";
 import DiagramData from "../../component/DiagramData";
 import ModalToOpenService from "@core-ui/ContextServices/ModalToOpenService/ModalToOpenService";
 import ModalToOpen from "@core-ui/ContextServices/ModalToOpenService/model/ModalsToOpen";
-import OnLoadResourceService from "@ext/markdown/elements/copyArticles/onLoadResourceService";
+import ResourceService from "@ext/markdown/elements/copyArticles/resourceService";
 import BlockActionPanel from "@components/BlockActionPanel";
 import DiagramActions from "@ext/markdown/elements/diagrams/edit/components/DiagramActions";
 import getNaturalSize from "@ext/markdown/elements/diagrams/logic/getNaturalSize";
 
 const DiagramComponent = ({ node, editor, getPos }: NodeViewProps): ReactElement => {
-	const { getBuffer } = OnLoadResourceService.value;
+	const { getBuffer } = ResourceService.value;
 	const hoverElement = useRef<HTMLDivElement>(null);
 	const signatureRef = useRef<HTMLInputElement>(null);
 	const [hasSignature, setHasSignature] = useState(node.attrs?.title?.length > 0);

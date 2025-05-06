@@ -3,13 +3,12 @@ import GifImage from "@components/Atoms/Image/GifImage";
 import Image from "@components/Atoms/Image/Image";
 import Skeleton from "@components/Atoms/ImageSkeleton";
 import HoverableActions from "@components/controls/HoverController/HoverableActions";
-import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import ArticleRefService from "@core-ui/ContextServices/ArticleRef";
 import getAdjustedSize from "@core-ui/utils/getAdjustedSize";
 import Path from "@core/FileProvider/Path/Path";
 import styled from "@emotion/styled";
 import t from "@ext/localization/locale/translate";
-import OnLoadResourceService from "@ext/markdown/elements/copyArticles/onLoadResourceService";
+import ResourceService from "@ext/markdown/elements/copyArticles/resourceService";
 import ImageResizer from "@ext/markdown/elements/image/edit/components/ImageResizer";
 import { Crop, ImageObject } from "@ext/markdown/elements/image/edit/model/imageEditorTypes";
 import ObjectRenderer from "@ext/markdown/elements/image/render/components/ObjectRenderer";
@@ -142,8 +141,7 @@ const ImageRenderer = memo((props: ImageProps): ReactElement => {
 	const [size, setSize] = useState<{ width: string; height: string }>(null);
 
 	const isGif = new Path(realSrc).extension == "gif";
-	const apiUrlCreator = ApiUrlCreatorService.value;
-	const { useGetContent, getBuffer } = OnLoadResourceService.value;
+	const { useGetResource, getBuffer } = ResourceService.value;
 
 	const mainContainerRef = useRef<HTMLDivElement>(null);
 	const imageContainerRef = useRef<HTMLDivElement>(null);
@@ -216,12 +214,12 @@ const ImageRenderer = memo((props: ImageProps): ReactElement => {
 		void cropImg(buffer, crop);
 	}, []);
 
-	useGetContent(realSrc, apiUrlCreator, (buffer: Buffer) => {
+	useGetResource((buffer: Buffer) => {
 		if (!buffer || !buffer.byteLength) return setError(true);
 		if (isLoaded) setIsLoaded(false);
 
 		void cropImg(buffer, crop);
-	});
+	}, realSrc);
 
 	if (error)
 		return (

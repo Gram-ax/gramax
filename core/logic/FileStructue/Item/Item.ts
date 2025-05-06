@@ -1,11 +1,14 @@
 import { NEW_ARTICLE_REGEX } from "@app/config/const";
 import { createEventEmitter, Event } from "@core/Event/EventEmitter";
+import { TemplateField, TemplateProps } from "@core/FileStructue/Article/TemplateArticle";
+import { Catalog } from "@core/FileStructue/Catalog/Catalog";
 import { roundedOrderAfter } from "@core/FileStructue/Item/ItemOrderUtils";
 import { ItemRef } from "@core/FileStructue/Item/ItemRef";
 import { ItemType } from "@core/FileStructue/Item/ItemType";
 import type Hasher from "@core/Hash/Hasher";
 import type { Hashable } from "@core/Hash/Hasher";
 import ResourceUpdater from "@core/Resource/ResourceUpdater";
+import { InboxProps } from "@ext/inbox/models/types";
 import type { FSLocalizationProps } from "@ext/localization/core/events/FSLocalizationEvents";
 import t from "@ext/localization/locale/translate";
 import { PropertyValue } from "@ext/properties/models";
@@ -13,12 +16,13 @@ import { FileStatus } from "@ext/Watchers/model/FileStatus";
 import IPermission from "../../../extensions/security/logic/Permission/IPermission";
 import Permission from "../../../extensions/security/logic/Permission/Permission";
 import { ClientArticleProps } from "../../SitePresenter/SitePresenter";
-import { Category, type CategoryProps } from "../Category/Category";
-import { InboxProps } from "@ext/inbox/models/types";
+import { Category } from "../Category/Category";
 
 export type ItemEvents = Event<"item-order-updated", { item: Item }> &
+	Event<"item-pre-save", { mutable: { content: string; props: ItemProps } }> &
 	Event<"item-saved", { item: Item }> &
-	Event<"item-changed", { item: Item; status: FileStatus }>;
+	Event<"item-changed", { item: Item; status: FileStatus }> &
+	Event<"item-get-content", { item: Item; mutableContent: { content: string } }>;
 
 export type ItemProps = FSLocalizationProps & {
 	title?: string;
@@ -26,6 +30,8 @@ export type ItemProps = FSLocalizationProps & {
 	tags?: string[];
 	order?: number;
 	properties?: PropertyValue[];
+	template?: string;
+	fields?: TemplateField[];
 
 	logicPath?: string;
 
@@ -36,7 +42,11 @@ export type ItemProps = FSLocalizationProps & {
 	shouldBeCreated?: boolean;
 };
 
-export type UpdateItemProps = (ItemProps & { fileName?: never; logicPath: string }) | ClientArticleProps | InboxProps;
+export type UpdateItemProps =
+	| (ItemProps & { fileName?: never; logicPath: string })
+	| ClientArticleProps
+	| InboxProps
+	| TemplateProps;
 
 export const ORDERING_MAX_PRECISION = 6;
 
@@ -79,7 +89,7 @@ export abstract class Item<P extends ItemProps = ItemProps> implements Hashable 
 		return this._neededPermission;
 	}
 	get order(): number {
-		return this._props.order ?? 0;
+		return this._props.order;
 	}
 
 	getTitle(): string {
@@ -150,20 +160,20 @@ export abstract class Item<P extends ItemProps = ItemProps> implements Hashable 
 	async updateProps(
 		props: UpdateItemProps,
 		resourceUpdater: ResourceUpdater,
-		rootCategoryProps?: CategoryProps,
+		catalog?: Catalog,
 		fileNameOnly = false,
 	): Promise<Item<P>> {
 		!fileNameOnly && this._updateProps(props);
 
 		const previousFilename = this.getFileName();
 		const shouldUpdateFilename = props.fileName && previousFilename != props.fileName;
-		if (props.fileName) await this._updateFilename(props.fileName, resourceUpdater, rootCategoryProps);
+		if (props.fileName) await this._updateFilename(props.fileName, resourceUpdater, catalog);
 		if (shouldUpdateFilename) await this.events.emit("item-changed", { item: this, status: FileStatus.delete });
 		await this._save(shouldUpdateFilename);
 		return this;
 	}
 
-	protected abstract _updateFilename(filename: string, ru: ResourceUpdater, rootProps?: CategoryProps): Promise<this>;
+	protected abstract _updateFilename(filename: string, ru: ResourceUpdater, catalog?: Catalog): Promise<this>;
 	protected abstract _updateProps(props: UpdateItemProps): void;
 
 	abstract getFileName(): string;

@@ -1,4 +1,4 @@
-import { alloc, str2ptr } from "../../../apps/browser/wasm/js/utils";
+import { alloc, str2ptr } from "../../../apps/browser/crates/gramax-wasm/js/utils";
 
 const w = self as any;
 

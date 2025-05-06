@@ -3,7 +3,7 @@ import { Article } from "@core/FileStructue/Article/Article";
 import parseContent from "@core/FileStructue/Article/parseContent";
 import t from "@ext/localization/locale/translate";
 import { Tag } from "@ext/markdown/core/render/logic/Markdoc";
-import { exportedKeys } from "@ext/wordExport/layouts";
+import { getExportedKeys } from "@ext/wordExport/layouts";
 import MarkdownElementsFilter from "@ext/wordExport/MarkdownElementsFilter";
 import ctx from "@ext/wordExport/tests/ContextMock";
 import getItemRef from "@ext/workspace/test/getItemRef";
@@ -25,7 +25,7 @@ describe("Маркдаун фильтер правильно", () => {
 
 		await parseContent(article, catalog, ctx, app.parser, app.parserContextFactory);
 
-		const markdownElementsFilter = new MarkdownElementsFilter(exportedKeys);
+		const markdownElementsFilter = new MarkdownElementsFilter(getExportedKeys());
 
 		const unsupportedElements = await article.parsedContent.read((p) =>
 			markdownElementsFilter.getUnsupportedElements(p.renderTree as Tag),

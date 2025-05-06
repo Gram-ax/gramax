@@ -1,9 +1,9 @@
-import { getExecutingEnvironment } from "@app/resolveModule/env";
 import HomePageActions from "@components/HomePage/HomePageActions";
 import { classNames } from "@components/libs/classNames";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import IsMacService from "@core-ui/ContextServices/IsMac";
 import WorkspaceAssetsService from "@core-ui/ContextServices/WorkspaceAssetsService";
+import { usePlatform } from "@core-ui/hooks/usePlatform";
 import styled from "@emotion/styled";
 import { CatalogLink } from "@ext/navigation/NavigationLinks";
 import ThemeService from "../../extensions/Theme/components/ThemeService";
@@ -13,7 +13,8 @@ const Logo = () => {
 	const theme = ThemeService.value;
 	const apiUrlCreator = ApiUrlCreatorService.value;
 	const { homeLogo } = WorkspaceAssetsService.value();
-	const isMacDesktop = IsMacService.value && getExecutingEnvironment() == "tauri";
+	const { isTauri } = usePlatform();
+	const isMacDesktop = IsMacService.value && isTauri;
 	const marginTop = isMacDesktop ? "1.4rem" : "0px";
 
 	return (
@@ -31,7 +32,8 @@ const Logo = () => {
 };
 
 const TopMenu = ({ catalogLinks, className }: { catalogLinks: CatalogLink[]; className?: string }) => {
-	const isMacDesktop = IsMacService.value && getExecutingEnvironment() == "tauri";
+	const { isTauri } = usePlatform();
+	const isMacDesktop = IsMacService.value && isTauri;
 
 	return (
 		<div className={className}>

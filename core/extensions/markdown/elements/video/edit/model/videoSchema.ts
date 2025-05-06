@@ -1,5 +1,7 @@
-const video = {
-	group: "block",
+import ElementGroups from "@ext/markdown/core/element/ElementGroups";
+
+const videoSchema = {
+	group: `${ElementGroups.block} ${ElementGroups.listItemContent}`,
 	attrs: {
 		title: { default: null },
 		path: { default: null },
@@ -7,4 +9,4 @@ const video = {
 	},
 };
 
-export default video;
+export default videoSchema;

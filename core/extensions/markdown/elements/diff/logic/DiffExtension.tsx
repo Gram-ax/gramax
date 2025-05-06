@@ -12,7 +12,7 @@ import { MutableRefObject } from "react";
 import { createRoot, Root } from "react-dom/client";
 
 export const DIFF_DEBOUNCE_DELAY = 300;
-const DIFF_DEBOUNCE_SYMBOL = Symbol("diff-debounce");
+const DIFF_DEBOUNCE_SYMBOL = Symbol();
 
 interface AnyDiffLine {
 	type: "added" | "deleted" | "modified";

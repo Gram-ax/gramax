@@ -1,3 +1,4 @@
+import { getExecutingEnvironment } from "@app/resolveModule/env";
 import type { EventHandlerCollection } from "@core/Event/EventHandlerProvider";
 import Path from "@core/FileProvider/Path/Path";
 import type FileStructure from "@core/FileStructue/FileStructure";
@@ -18,7 +19,7 @@ export default class FSCatalogEntryAttachGit implements EventHandlerCollection {
 				const items = await fp.readdir(path);
 				const isGitRepository = items.includes(".git") || path.value.endsWith(".git");
 
-				if (isGitRepository) {
+				if (getExecutingEnvironment() !== "cli" && isGitRepository) {
 					const git = new GitCommands(fp, path);
 					const gitfp = new GitTreeFileProvider(git);
 

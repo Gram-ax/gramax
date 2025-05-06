@@ -1,4 +1,3 @@
-import ArticleUpdaterService from "@components/Article/ArticleUpdater/ArticleUpdaterService";
 import Button from "@components/Atoms/Button/Button";
 import { ButtonStyle } from "@components/Atoms/Button/ButtonStyle";
 import FileInput from "@components/Atoms/FileInput/FileInput";
@@ -6,33 +5,28 @@ import SpinnerLoader from "@components/Atoms/SpinnerLoader";
 import FormStyle from "@components/Form/FormStyle";
 import ModalLayout from "@components/Layouts/Modal";
 import ModalLayoutLight from "@components/Layouts/ModalLayoutLight";
-import FetchService from "@core-ui/ApiServices/FetchService";
-import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import t from "@ext/localization/locale/translate";
 import { useCallback, useState } from "react";
-import { ClientArticleProps } from "@core/SitePresenter/SitePresenter";
 
 interface FileEditorProps {
 	trigger: JSX.Element;
-	item: ClientArticleProps;
-	isCurrentItem: boolean;
+	loadContent: () => Promise<string>;
+	saveContent: (content: string) => Promise<unknown>;
 }
 
-const FileEditor = ({ trigger, item, isCurrentItem }: FileEditorProps) => {
+const FileEditor = ({ trigger, loadContent, saveContent }: FileEditorProps) => {
 	const [value, setValue] = useState(null);
 	const [isOpen, setIsOpen] = useState(false);
-	const apiUrlCreator = ApiUrlCreatorService.value;
 
 	const loadArticleContent = useCallback(async () => {
-		const res = await FetchService.fetch(apiUrlCreator.getArticleContent(item.ref.path));
-		if (res.ok) setValue(await res.text());
-	}, [apiUrlCreator, item.ref.path]);
+		const content = await loadContent();
+		setValue(content);
+	}, [loadContent]);
 
-	const save = useCallback(async () => {
-		const res = await FetchService.fetch(apiUrlCreator.setArticleContent(item.ref.path), value);
-		if (res.ok && isCurrentItem) ArticleUpdaterService.setUpdateData(await res.json());
+	const save = useCallback(() => {
+		saveContent(value);
 		setIsOpen(false);
-	}, [value, apiUrlCreator, item.ref.path, isCurrentItem]);
+	}, [value, saveContent]);
 
 	return (
 		<ModalLayout

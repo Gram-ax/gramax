@@ -1,6 +1,7 @@
 import FetchService from "@core-ui/ApiServices/FetchService";
 import FetchResponse from "@core-ui/ApiServices/Types/FetchResponse";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
+import ContextService from "@core-ui/ContextServices/ContextService";
 import WorkspaceService from "@core-ui/ContextServices/Workspace";
 import { useWatchClient } from "@core-ui/hooks/useWatch";
 import useTrigger from "@core-ui/triggers/useTrigger";
@@ -8,7 +9,7 @@ import CustomLogoDriver from "@core/utils/CustomLogoDriver";
 import ThemeService from "@ext/Theme/components/ThemeService";
 import Theme from "@ext/Theme/Theme";
 import { WorkspacePath } from "@ext/workspace/WorkspaceConfig";
-import { ReactElement, createContext, useContext, useEffect, useState, useCallback, useMemo } from "react";
+import { ReactElement, createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 
 interface WorkspaceAssetsInterface {
 	updateStyle: (newStyles: string) => void;
@@ -19,11 +20,11 @@ interface WorkspaceAssetsInterface {
 
 const WorkspaceAssetsContext = createContext<WorkspaceAssetsInterface>(undefined);
 
-interface LogoManagerType {
+export interface LogoManagerType {
 	logo: string;
 	isLoading: boolean;
 	deleteLogo: () => Promise<FetchResponse<void>>;
-	updateLogo: (logo: any) => Promise<void>;
+	updateLogo: (logo: any, name?: string) => Promise<void>;
 	getLogo: () => Promise<string>;
 	refreshLogo: () => Promise<void>;
 }
@@ -42,17 +43,17 @@ export const useLogoManager = (workspacePath: WorkspacePath, theme: Theme, ignor
 		setIsLoading(false);
 
 		return logo || "";
-	}, [workspacePath, theme]);
+	}, [workspacePath, theme, apiUrlCreator]);
 
 	const refreshLogo = useCallback(async () => {
 		const logo = await getLogo();
 		setLogo(logo);
-	}, [workspacePath, theme]);
+	}, [getLogo]);
 
 	useWatchClient(async () => {
 		if (ignoreFetch) return;
 		await refreshLogo();
-	}, [getLogo, workspacePath, theme]);
+	}, [getLogo]);
 
 	const updateLogo = useCallback(
 		async (logo: any) => {
@@ -60,12 +61,13 @@ export const useLogoManager = (workspacePath: WorkspacePath, theme: Theme, ignor
 			await FetchService.fetch(url, logo);
 			setLogo(logo);
 		},
-		[workspacePath, theme],
+		[workspacePath, theme, apiUrlCreator],
 	);
+
 	const deleteLogo = useCallback(() => {
 		const url = apiUrlCreator.deleteHomeLogo(workspacePath, theme);
 		return FetchService.fetch(url);
-	}, [workspacePath, theme]);
+	}, [workspacePath, theme, apiUrlCreator]);
 
 	return {
 		logo,
@@ -166,8 +168,8 @@ const updateCustomLogo = (path: WorkspacePath) => {
 	return { forceUpdateLogoInStorage: forceUpdateLogo };
 };
 
-class WorkspaceAssetsService {
-	static Provider({ children }: { children: ReactElement }): ReactElement {
+class WorkspaceAssetsService implements ContextService {
+	Init({ children }: { children: ReactElement }): ReactElement {
 		const { updateStyle } = useStyleManager();
 		const workspace = WorkspaceService.current() || { path: undefined };
 		const { forceUpdateLogoInStorage } = updateCustomLogo(workspace.path);
@@ -205,9 +207,9 @@ class WorkspaceAssetsService {
 		);
 	}
 
-	static value() {
+	value() {
 		return useContext(WorkspaceAssetsContext);
 	}
 }
 
-export default WorkspaceAssetsService;
+export default new WorkspaceAssetsService();

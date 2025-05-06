@@ -5,27 +5,27 @@ import { BASE_CONFIG, ICON_SIZE } from "@ext/pdfExport/config";
 import { Content } from "pdfmake/interfaces";
 import { isTag } from "@ext/pdfExport/utils/isTag";
 import { NodeOptions, pdfRenderContext } from "@ext/pdfExport/parseNodesPDF";
+import { JSONContent } from "@tiptap/core";
 
 export const bulletListHandler = async (
-	node: Tag,
+	node: Tag | JSONContent,
 	context: pdfRenderContext,
 	options: NodeOptions,
 ): Promise<Content> => {
-	const content = node.children || [];
+	const children = "children" in node ? node.children || [] : node.content || [];
 	const level = options?.level || 0;
 
 	const listItems = await Promise.all(
-		content.map(async (taskItem, index) => {
-			if (!isTag(taskItem)) return null;
-
-			const isTaskItem = taskItem.attributes?.isTaskItem;
+		children.map(async (taskItem, index) => {
+			if (!isTag(taskItem) && !("type" in taskItem)) return null;
+			const isTaskItem = "attributes" in taskItem ? taskItem.attributes?.isTaskItem : taskItem.attrs?.isTaskItem;
 			const itemContent = await listItemHandler(taskItem, context, { ...options, level: level + 1 }, index === 0);
 
 			if (!isTaskItem) {
 				return itemContent;
 			}
 
-			const isChecked = taskItem.attributes?.checked || false;
+			const isChecked = "attributes" in taskItem ? taskItem.attributes?.checked : taskItem.attrs?.checked;
 			const iconPath = getSvgIconFromString(isChecked ? "square-check-big" : "square");
 
 			return {
@@ -47,7 +47,7 @@ export const bulletListHandler = async (
 
 	const marginTop = level ? -4 : 0;
 
-	const isTaskList = content.some((item) => isTag(item) && item.attributes?.isTaskItem);
+	const isTaskList = children.some((item) => isTag(item) && item.attributes?.isTaskItem);
 	return isTaskList
 		? ({ stack: listItems.filter(Boolean), margin: [0, marginTop, 0, 0] } as Content)
 		: ({ ul: listItems.filter(Boolean), margin: [1, marginTop, 0, 0] } as Content);

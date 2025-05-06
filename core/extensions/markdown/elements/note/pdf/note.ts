@@ -4,9 +4,15 @@ import { getSvgIconFromString } from "@ext/pdfExport/utils/getIcon";
 import { noteIcons } from "@ext/markdown/elements/note/render/component/Note";
 import { BASE_CONFIG, NOTE_COLOR_CONFIG } from "@ext/pdfExport/config";
 import { Tag } from "@ext/markdown/core/render/logic/Markdoc";
+import { JSONContent } from "@tiptap/core";
 
-export async function noteHandler(node: Tag, context: pdfRenderContext, options: NodeOptions): Promise<ContentTable> {
-	const noteType = node.attributes?.type || "note";
+export async function noteHandler(
+	node: Tag | JSONContent,
+	context: pdfRenderContext,
+	options: NodeOptions,
+): Promise<ContentTable> {
+	const attrs = "attributes" in node ? node.attributes : node.attrs;
+	const noteType = attrs?.type || "note";
 	const borderColor = NOTE_COLOR_CONFIG.borderColors[noteType] || NOTE_COLOR_CONFIG.borderColors.quote;
 	const bgColor = NOTE_COLOR_CONFIG.bgColors[noteType] || "";
 	const svg = getSvgIconFromString(noteIcons[noteType], borderColor);
@@ -22,9 +28,9 @@ export async function noteHandler(node: Tag, context: pdfRenderContext, options:
 
 	let titleOrContent: Content | Content[];
 
-	if (node.attributes?.title && typeof node.attributes.title === "string") {
+	if (attrs?.title && typeof attrs.title === "string") {
 		titleOrContent = {
-			text: node.attributes.title,
+			text: attrs.title,
 			fontSize: BASE_CONFIG.FONT_SIZE * 0.75,
 			bold: true,
 			color: borderColor,
@@ -59,13 +65,13 @@ export async function noteHandler(node: Tag, context: pdfRenderContext, options:
 									},
 									{
 										...titleOrContent,
-										margin: node.attributes?.title
+										margin: attrs?.title
 											? [BASE_CONFIG.FONT_SIZE * 0.5, 0, 0, BASE_CONFIG.FONT_SIZE * 0.75]
 											: [BASE_CONFIG.FONT_SIZE * 0.5, 0, 0, 0],
 									},
 								],
 							},
-							...(!node.attributes?.title ? contentArray.slice(1) : contentArray),
+							...(!attrs?.title ? contentArray.slice(1) : contentArray),
 						],
 						border: [true, true, true, false],
 						borderColor: [borderColor, bgColor, bgColor, false],

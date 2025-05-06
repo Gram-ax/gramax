@@ -5,17 +5,18 @@ import ButtonLink from "@components/Molecules/ButtonLink";
 import t from "@ext/localization/locale/translate";
 import Theme from "@ext/Theme/Theme";
 import EditStyles from "@ext/workspace/components/EditStyles";
-import LogoUploader from "@ext/workspace/components/LogoUploader";
+import LogoUploader, { UpdateResource } from "@ext/workspace/components/LogoUploader";
 import { ReactElement, memo } from "react";
+import styled from "@emotion/styled";
 
 interface EditWorkspaceAssetsProps {
 	lightLogo?: string;
 	darkLogo?: string;
 	deleteLightLogo?: () => void;
 	deleteDarkLogo?: () => void;
-	updateLightLogo?: (data: string) => void;
+	updateLightLogo?: UpdateResource;
 	revertCustomCss?: () => void;
-	updateDarkLogo?: (data: string) => void;
+	updateDarkLogo?: UpdateResource;
 	customCss?: string;
 	setCustomCss?: (css: string) => void;
 	isLoadingDark?: boolean;
@@ -48,6 +49,7 @@ const EditWorkspaceAssets = memo((props: EditWorkspaceAssetsProps) => {
 				>
 					<div className={"change_logo_actions"}>
 						<LogoUploader
+							svgOnly
 							deleteResource={deleteLightLogo}
 							updateResource={updateLightLogo}
 							logo={lightLogo}
@@ -61,6 +63,7 @@ const EditWorkspaceAssets = memo((props: EditWorkspaceAssetsProps) => {
 					<div className={"secondary_logo_action"}>
 						<span className={"control-label"}>{t("workspace.for-dark-theme")}</span>
 						<LogoUploader
+							svgOnly
 							deleteResource={deleteDarkLogo}
 							updateResource={updateDarkLogo}
 							logo={darkLogo}
@@ -92,7 +95,7 @@ const EditWorkspaceAssets = memo((props: EditWorkspaceAssetsProps) => {
 	);
 });
 
-const FormRowItem = (props: { children: ReactElement; label?: string; className?: string; description?: string }) => {
+const _formRowItem = (props: { children: ReactElement; label?: string; className?: string; description?: string }) => {
 	const { children, description, label, className } = props;
 
 	return (
@@ -110,5 +113,19 @@ const FormRowItem = (props: { children: ReactElement; label?: string; className?
 		</div>
 	);
 };
+
+export const FormRowItem = styled(_formRowItem)`
+	.secondary_logo_action {
+		display: flex;
+		flex-direction: column;
+		gap: 0.6rem;
+	}
+
+	.change_logo_actions {
+		display: flex;
+		flex-direction: column;
+		gap: 0.5rem;
+	}
+`;
 
 export default EditWorkspaceAssets;

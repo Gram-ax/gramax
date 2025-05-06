@@ -9,6 +9,7 @@ name = "gramaxgit"
 crate-type = ["staticlib", "rlib"]
 
 [dependencies]
+indexmap = { version = "2.8.0" }
 log = { workspace = true }
 serde = { workspace = true }
 serde_yml = { workspace = true }

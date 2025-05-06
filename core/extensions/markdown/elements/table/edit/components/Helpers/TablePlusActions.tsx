@@ -13,7 +13,7 @@ import {
 	getRowPosition,
 } from "@ext/markdown/elements/table/edit/logic/utils";
 import { HoverEnumTypes } from "@ext/markdown/elements/table/edit/model/tableTypes";
-import EditorService from "@ext/markdown/elementsUtils/ContextServices/EditorService";
+import { Editor } from "@tiptap/core";
 import { Node } from "@tiptap/pm/model";
 import { Transaction } from "@tiptap/pm/state";
 import { columnResizingPluginKey } from "prosemirror-tables";
@@ -21,6 +21,7 @@ import { MouseEvent, RefObject, useCallback, useEffect, useState } from "react";
 
 interface TablePlusActionsProps {
 	node: Node;
+	editor: Editor;
 	getPos: () => number;
 	isHovered: boolean;
 	tableRef: RefObject<HTMLTableElement>;
@@ -32,9 +33,8 @@ interface TablePlusActionsProps {
 }
 
 const TablePlusActions = (props: TablePlusActionsProps) => {
-	const { node, getPos, className, tableSizes, tableRef, isHovered } = props;
+	const { node, getPos, className, tableSizes, tableRef, isHovered, editor } = props;
 	const [isVisible, setIsVisible] = useState(true);
-	const editor = EditorService.getEditor();
 
 	useEffect(() => {
 		const onTransaction = ({ transaction }: { transaction: Transaction }) => {
@@ -106,72 +106,76 @@ const TablePlusActions = (props: TablePlusActionsProps) => {
 			className={classNames(className, { hidden: !isVisible || !isHovered }, ["table-actions"])}
 			contentEditable={false}
 		>
-			<div className="controls-container-horizontal">
-				{tableSizes?.cols?.map((_, index) => (
-					<div key={index} data-col-number={index} className="plus-actions-container">
+			<div className="table-controller">
+				<div className="controls-container-horizontal">
+					{tableSizes?.cols?.map((_, index) => (
+						<div key={index} data-col-number={index} className="plus-actions-container">
+							<PlusActions
+								index={index}
+								onClick={plusColumn}
+								onMouseEnter={onMouseEnter}
+								onMouseLeave={onMouseLeave}
+								dataQa={`qa-add-column-${index}`}
+								tableRef={tableRef}
+							/>
+							<PlusMenu
+								getPos={getPos}
+								node={node}
+								isHovered={isHovered}
+								index={index}
+								onMouseEnter={onMouseEnter}
+								onMouseLeave={onMouseLeave}
+								editor={editor}
+							/>
+						</div>
+					))}
+					<div data-col-number={tableSizes?.cols?.length} className="plus-actions-container">
 						<PlusActions
-							index={index}
+							index={tableSizes?.cols?.length}
 							onClick={plusColumn}
 							onMouseEnter={onMouseEnter}
 							onMouseLeave={onMouseLeave}
-							dataQa={`qa-add-column-${index}`}
+							dataQa={`qa-add-column-right`}
 							tableRef={tableRef}
 						/>
-						<PlusMenu
-							getPos={getPos}
-							node={node}
-							isHovered={isHovered}
-							index={index}
-							onMouseEnter={onMouseEnter}
-							onMouseLeave={onMouseLeave}
-						/>
 					</div>
-				))}
-				<div data-col-number={tableSizes?.cols?.length} className="plus-actions-container">
-					<PlusActions
-						index={tableSizes?.cols?.length}
-						onClick={plusColumn}
-						onMouseEnter={onMouseEnter}
-						onMouseLeave={onMouseLeave}
-						dataQa={`qa-add-column-right`}
-						tableRef={tableRef}
-					/>
 				</div>
-			</div>
 
-			<div className="controls-container-vertical">
-				{tableSizes?.rows?.map((_, index) => (
-					<div key={index} data-row-number={index} className="plus-actions-container">
+				<div className="controls-container-vertical">
+					{tableSizes?.rows?.map((_, index) => (
+						<div key={index} data-row-number={index} className="plus-actions-container">
+							<PlusActions
+								index={index}
+								vertical
+								onClick={plusRow}
+								onMouseEnter={onMouseEnter}
+								onMouseLeave={onMouseLeave}
+								dataQa={`qa-add-row-${index}`}
+								tableRef={tableRef}
+							/>
+							<PlusMenu
+								getPos={getPos}
+								node={node}
+								vertical
+								isHovered={isHovered}
+								index={index}
+								onMouseEnter={onMouseEnter}
+								onMouseLeave={onMouseLeave}
+								editor={editor}
+							/>
+						</div>
+					))}
+					<div data-row-number={tableSizes?.rows?.length} className="plus-actions-container">
 						<PlusActions
-							index={index}
+							index={tableSizes?.rows?.length}
 							vertical
 							onClick={plusRow}
 							onMouseEnter={onMouseEnter}
 							onMouseLeave={onMouseLeave}
-							dataQa={`qa-add-row-${index}`}
+							dataQa={`qa-add-row-down`}
 							tableRef={tableRef}
 						/>
-						<PlusMenu
-							getPos={getPos}
-							node={node}
-							vertical
-							isHovered={isHovered}
-							index={index}
-							onMouseEnter={onMouseEnter}
-							onMouseLeave={onMouseLeave}
-						/>
 					</div>
-				))}
-				<div data-row-number={tableSizes?.rows?.length} className="plus-actions-container">
-					<PlusActions
-						index={tableSizes?.rows?.length}
-						vertical
-						onClick={plusRow}
-						onMouseEnter={onMouseEnter}
-						onMouseLeave={onMouseLeave}
-						dataQa={`qa-add-row-down`}
-						tableRef={tableRef}
-					/>
 				</div>
 			</div>
 		</div>
@@ -179,8 +183,12 @@ const TablePlusActions = (props: TablePlusActionsProps) => {
 };
 
 export default styled(TablePlusActions)`
-	position: relative;
+	position: absolute;
 	top: 0;
+
+	.table-controller {
+		position: relative;
+	}
 
 	.controls-container-horizontal {
 		position: absolute;

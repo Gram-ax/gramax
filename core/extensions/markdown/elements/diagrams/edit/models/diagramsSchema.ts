@@ -1,5 +1,7 @@
-const diagrams = {
-	group: "block",
+import ElementGroups from "@ext/markdown/core/element/ElementGroups";
+
+const diagramsSchema = {
+	group: `${ElementGroups.block} ${ElementGroups.listItemContent}`,
 	draggable: true,
 	attrs: {
 		src: { default: null },
@@ -11,4 +13,4 @@ const diagrams = {
 	},
 };
 
-export default diagrams;
+export default diagramsSchema;

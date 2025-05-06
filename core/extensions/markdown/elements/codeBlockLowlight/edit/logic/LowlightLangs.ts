@@ -1,4 +1,3 @@
-import { languageClassPrefix } from "@ext/markdown/elements/codeBlockLowlight/edit/model/codeBlockLowlight";
 import type { LanguageFn } from "highlight.js";
 
 const languages: Record<string, () => Promise<any>> = {

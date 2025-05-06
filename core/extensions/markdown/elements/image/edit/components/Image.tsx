@@ -1,12 +1,13 @@
 import Signature from "@components/controls/Signature";
-import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import useWatch from "@core-ui/hooks/useWatch";
 import toggleSignature from "@core-ui/toggleSignature";
 import Path from "@core/FileProvider/Path/Path";
+import ResourceService from "@ext/markdown/elements/copyArticles/resourceService";
 import ImageActions from "@ext/markdown/elements/image/edit/components/ImageActions";
 import ImageEditor from "@ext/markdown/elements/image/edit/components/ImageEditor";
 import { Crop, ImageObject } from "@ext/markdown/elements/image/edit/model/imageEditorTypes";
 import ImageRenderer from "@ext/markdown/elements/image/render/components/ImageRenderer";
+import { getBlobFromBuffer } from "@ext/markdown/elements/image/render/logic/cropImage";
 import { Editor } from "@tiptap/core";
 import { Node } from "@tiptap/pm/model";
 import { ReactElement, RefObject, useCallback, useRef, useState } from "react";
@@ -24,14 +25,15 @@ interface ImageDataProps {
 
 const Image = (props: ImageDataProps): ReactElement => {
 	const { node, editor, getPos, hoverElementRef, updateAttributes, selected } = props;
-	const apiUrlCreator = ApiUrlCreatorService.value;
+	const resourceService = ResourceService.value;
+
 	const isEditable = editor.isEditable;
 
 	const signatureRef = useRef<HTMLInputElement>(null);
 	const [hasSignature, setHasSignature] = useState(isEditable && node.attrs?.title?.length > 0);
 	const [isHovered, setIsHovered] = useState(false);
 	const isGif = new Path(node.attrs.src).extension == "gif";
-	const showResizer = (isHovered || selected) && isEditable;
+	const showResizer = selected && isEditable;
 
 	useWatch(() => {
 		if (!hasSignature && node.attrs?.title?.length) return setHasSignature(true);
@@ -54,19 +56,21 @@ const Image = (props: ImageDataProps): ReactElement => {
 			document.body.removeChild(element);
 		};
 
+		const buffer = resourceService.getBuffer(node.attrs.src);
+		const blob = getBlobFromBuffer(buffer);
+		const src = URL.createObjectURL(blob);
+
 		const root = createRoot(element);
 		root.render(
-			<ApiUrlCreatorService.Provider value={apiUrlCreator}>
-				<ImageEditor
-					src={apiUrlCreator.getArticleResource(node?.attrs?.src)}
-					crop={node?.attrs?.crop ?? { x: 0, y: 0, w: 100, h: 100 }}
-					objects={node?.attrs?.objects ?? []}
-					handleSave={handleSave}
-					handleToggle={handleToggle}
-				/>
-			</ApiUrlCreatorService.Provider>,
+			<ImageEditor
+				src={src}
+				crop={node?.attrs?.crop ?? { x: 0, y: 0, w: 100, h: 100 }}
+				objects={node?.attrs?.objects ?? []}
+				handleSave={handleSave}
+				handleToggle={handleToggle}
+			/>,
 		);
-	}, [updateAttributes, node.attrs, apiUrlCreator]);
+	}, [updateAttributes, node.attrs, resourceService.data]);
 
 	const handleDelete = useCallback(() => {
 		const position = getPos();

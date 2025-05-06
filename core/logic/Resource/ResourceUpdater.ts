@@ -30,7 +30,7 @@ export default class ResourceUpdater {
 
 			if (await item.parsedContent.isNull())
 				try {
-					await parseContent(item, this._catalog, this._rc, this._parser, this._parserContextFactory, false);
+					await parseContent(item, this._catalog, this._rc, this._parser, this._parserContextFactory);
 				} catch (e) {
 					if (e instanceof ParseError) return;
 					throw e;
@@ -50,7 +50,7 @@ export default class ResourceUpdater {
 				p.editTree = newEditTree;
 				this._updateInInlineMdComponent(newEditTree, { oldResources, newResources });
 
-				const context = this._parserContextFactory.fromArticle(
+				const context = await this._parserContextFactory.fromArticle(
 					item,
 					this._catalog,
 					convertContentToUiLanguage(this._rc.contentLanguage),
@@ -65,7 +65,7 @@ export default class ResourceUpdater {
 
 	async update(oldArticle: Article, newArticle: Article, innerRefs?: ItemRef[]) {
 		try {
-			await parseContent(oldArticle, this._catalog, this._rc, this._parser, this._parserContextFactory, false);
+			await parseContent(oldArticle, this._catalog, this._rc, this._parser, this._parserContextFactory);
 		} catch (e) {
 			if (e instanceof ParseError) return;
 			throw e;
@@ -98,7 +98,7 @@ export default class ResourceUpdater {
 			const newEditTree = this._updateEditTree(p.editTree, allMovements);
 			this._updateInInlineMdComponent(newEditTree, allMovements);
 
-			const context = this._parserContextFactory.fromArticle(
+			const context = await this._parserContextFactory.fromArticle(
 				newArticle,
 				this._catalog,
 				convertContentToUiLanguage(this._rc.contentLanguage || this._catalog.props.language),

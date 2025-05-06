@@ -25,15 +25,7 @@ const healthcheck: Command<{ ctx: Context; catalogName: string }, CatalogErrors>
 
 		const healthcheck = new Healthcheck(fp, catalog);
 
-		const errors = await healthcheck.checkCatalog();
-
-		const catalogErrors = catalog.errors;
-		Object.keys(catalogErrors).forEach((key) => {
-			if (!errors[key]) errors[key] = [];
-			errors[key].push(...catalogErrors[key]);
-		});
-
-		return errors;
+		return await healthcheck.checkCatalog();
 	},
 
 	params(ctx, q) {

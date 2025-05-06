@@ -1,5 +1,7 @@
 import enterprise from "@app/commands/enterprise";
+import inbox from "@app/commands/inbox";
 import setLanguage from "@app/commands/language/set";
+import pdf from "@app/commands/pdf";
 import workspace from "@app/commands/workspace";
 import Application from "../types/Application";
 import { Command } from "../types/Command";
@@ -17,8 +19,7 @@ import storage from "./storage";
 import setTheme from "./theme/setTheme";
 import versionControl from "./versionControl";
 import word from "./word";
-import pdf from "@app/commands/pdf";
-import inbox from "@app/commands/inbox";
+import templates from "@app/commands/templates";
 
 const commands = {
 	enterprise,
@@ -40,6 +41,7 @@ const commands = {
 	search,
 	workspace,
 	inbox,
+	templates,
 };
 
 type CommandTree = typeof commands;

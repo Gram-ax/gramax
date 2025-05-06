@@ -1,8 +1,8 @@
-import { getExecutingEnvironment } from "@app/resolveModule/env";
 import { assertDesktopOpened } from "@components/Actions/EditInGramax";
 import ModalLayout from "@components/Layouts/Modal";
 import ModalLayoutLight from "@components/Layouts/ModalLayoutLight";
 import ModalToOpenService from "@core-ui/ContextServices/ModalToOpenService/ModalToOpenService";
+import { usePlatform } from "@core-ui/hooks/usePlatform";
 import { useRouter } from "@core/Api/useRouter";
 import CloneWithShareData from "@ext/catalog/actions/share/components/CloneWithShareData";
 import ShareData from "@ext/catalog/actions/share/model/ShareData";
@@ -16,6 +16,7 @@ const CloneHandler = ({ shareData }: { shareData: ShareData }) => {
 	const [clone, setClone] = useState(false);
 	const [isOpen, setIsOpen] = useState(true);
 	const [clonePath, setClonePath] = useState("");
+	const { isBrowser } = usePlatform();
 
 	const close = () => {
 		setIsOpen(false);
@@ -45,6 +46,7 @@ const CloneHandler = ({ shareData }: { shareData: ShareData }) => {
 						<CloneWithShareData
 							shareData={shareData}
 							onCloneStart={close}
+							clonePath={clonePath}
 							onCreateSourceDataClose={(success) => {
 								if (!success) close();
 							}}
@@ -62,7 +64,7 @@ const CloneHandler = ({ shareData }: { shareData: ShareData }) => {
 					isWarning={true}
 				>
 					<div>{t("git.clone.not-cloned.body")}</div>
-					{getExecutingEnvironment() == "browser" && (
+					{isBrowser && (
 						<div>
 							<a
 								onClick={() => assertDesktopOpened()}

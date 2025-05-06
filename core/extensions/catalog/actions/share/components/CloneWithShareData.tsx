@@ -4,7 +4,7 @@ import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import convertShareLinkDataToStorageData from "@ext/catalog/actions/share/logic/convertShareLinkDataToStorageData";
 import ShareData from "@ext/catalog/actions/share/model/ShareData";
 import InfoModalForm from "@ext/errorHandlers/client/components/ErrorForm";
-import cloneHandler from "@ext/git/actions/Clone/logic/cloneHandler";
+import useCloneHandler from "@ext/git/actions/Clone/logic/useCloneHandler";
 import GitShareData from "@ext/git/core/model/GitShareData";
 import t from "@ext/localization/locale/translate";
 import CreateSourceData from "@ext/storage/logic/SourceDataProvider/components/CreateSourceData";
@@ -20,10 +20,12 @@ const CloneWithShareData = ({
 	onCloneError,
 	onCloneStart,
 	onCreateSourceDataClose,
+	clonePath,
 }: {
 	shareData: ShareData;
 	onCloneStart?: VoidFunction;
 	onCloneError?: VoidFunction;
+	clonePath?: string;
 	onCreateSourceDataClose?: (success: boolean) => void;
 }) => {
 	const apiUrlCreator = ApiUrlCreatorService.value;
@@ -33,6 +35,8 @@ const CloneWithShareData = ({
 	const [partSourceData, setPartSourceData] = useState<Partial<SourceData>>(null);
 	const [createSourceDataStep, setCreateSourceDataStep] = useState<"warning" | "create">("warning");
 	const hasStartCloning = useRef(false);
+
+	const clone = useCloneHandler();
 
 	const pageProps = PageDataContextService.value;
 
@@ -119,10 +123,10 @@ const CloneWithShareData = ({
 	useEffect(() => {
 		if (!hasStorageInitialized || !storageData || hasStartCloning.current) return;
 		hasStartCloning.current = true;
-		void cloneHandler({
+		void clone({
 			storageData,
 			branch: getBranch(),
-			apiUrlCreator,
+			redirectOnClone: clonePath,
 			skipCheck: true,
 			recursive: false,
 			onStart: () => {

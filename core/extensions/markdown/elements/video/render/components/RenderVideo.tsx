@@ -20,7 +20,7 @@ export type PreviewVideoProps = Omit<RenderVideoProps, "onLoad" | "onError"> &
 	};
 
 const agent = typeof window !== "undefined" && window.navigator?.userAgent;
-const isCredentiallessUnsupported = getExecutingEnvironment() == "browser" && !agent.includes("Chrome");
+const isCredentiallessUnsupported = getExecutingEnvironment() === "browser" && !agent.includes("Chrome");
 
 const rutubeUrlReplacer = (url: string): string => {
 	if (url.includes("video/private")) return url.replace("video/private", "play/embed");

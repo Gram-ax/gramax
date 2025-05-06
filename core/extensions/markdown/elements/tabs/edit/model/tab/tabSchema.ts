@@ -1,6 +1,9 @@
+import ElementGroups from "@ext/markdown/core/element/ElementGroups";
+
 const tabSchema = {
-	group: "block",
-	content: "block+",
+	group: `${ElementGroups.block}`,
+	content: `${ElementGroups.block}+`,
+	isolating: true,
 	defining: true,
 	attrs: {
 		name: { default: null },

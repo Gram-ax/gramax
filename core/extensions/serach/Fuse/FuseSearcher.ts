@@ -5,6 +5,15 @@ import { IndexData } from "../IndexData";
 import Searcher, { SearchItem } from "../Searcher";
 import prepareFuseString, { extractWords, normalizeQuotationMarks } from "./prepareFuseString";
 
+type paragraph = {
+	prev: string;
+	target: string;
+	next: string;
+	searchedCount?: number;
+	matchIndex?: RangeTuple;
+	queryIndexs?: number[];
+};
+
 export default class FuseSearcher implements Searcher {
 	private _fuseSearchConfig: {
 		readonly nameSimilarityOffset;
@@ -82,7 +91,7 @@ export default class FuseSearcher implements Searcher {
 	}
 
 	private async _getFuse(catalogName: string, articleIds: string[]) {
-		return new Fuse(await this._indexDataProvider.getIndexData(catalogName, articleIds), {
+		return new Fuse(await this._indexDataProvider.getAndSetIndexData(catalogName, articleIds), {
 			keys: [{ name: "path" }, { name: "pathname" }, { name: "title" }, { name: "content" }],
 			useExtendedSearch: true,
 			includeScore: true,
@@ -104,7 +113,8 @@ export default class FuseSearcher implements Searcher {
 		};
 
 		searchItem.name = this._getName(searched, query);
-		searchItem.paragraph = this._getMatchingParagraphs(searched, query);
+		const paragraphs = this._getMatchingParagraphs(searched, query);
+		searchItem.paragraph = this._sliceParagraphs(paragraphs);
 		searchItem.count = searchItem.name.targets.length + searchItem.paragraph.length;
 
 		return searchItem;
@@ -203,7 +213,7 @@ export default class FuseSearcher implements Searcher {
 
 	private _getMatchingParagraphs(searched: FuseResult<IndexData>, query: string) {
 		const content = searched.item.content ?? "";
-		const paragraphs: { prev: string; target: string; next: string }[] = [];
+		const paragraphs: paragraph[] = [];
 		const queryArray = this._getStringArray(query);
 
 		searched.matches.forEach((match) => {
@@ -218,14 +228,46 @@ export default class FuseSearcher implements Searcher {
 						if (!matchIndex) return;
 						const paragraph = this._getMatchingParagraph(content, matchIndex, queryArray[i]);
 						if (paragraph && this._exactMatch(query, paragraph)) {
-							paragraphs.push(paragraph);
-							break;
+							paragraphs.push({ ...paragraph, matchIndex, queryIndexs: [i] });
 						}
 					}
 				});
 			}
 		});
+
 		return paragraphs;
+	}
+
+	private _sliceParagraphs(paragraphs: paragraph[]) {
+		const mergedParagraphs: paragraph[] = [];
+		let lastParagraph: paragraph | null = null;
+
+		paragraphs.forEach((paragraph) => {
+			const queryIndex = paragraph.queryIndexs[0];
+			if (
+				lastParagraph?.queryIndexs.every((f) => f !== queryIndex) &&
+				this._areAdjacent(lastParagraph.matchIndex, paragraph.matchIndex)
+			) {
+				lastParagraph.target += " " + paragraph.target;
+				lastParagraph.next = paragraph.next;
+				lastParagraph.searchedCount += 1;
+				lastParagraph.queryIndexs.push(queryIndex);
+				lastParagraph.matchIndex[1] = paragraph.matchIndex[1];
+			} else {
+				mergedParagraphs.push(paragraph);
+				lastParagraph = paragraph;
+			}
+		});
+
+		mergedParagraphs.sort((a, b) => {
+			return b.searchedCount - a.searchedCount;
+		});
+
+		return mergedParagraphs;
+	}
+
+	private _areAdjacent(lastArray: RangeTuple, matchIndex: RangeTuple, maxDistance: number = 2): boolean {
+		return matchIndex[0] <= lastArray[1] + maxDistance;
 	}
 
 	private _getMatchingParagraph(text: string, matchIndex: [number, number], query: string) {
@@ -238,7 +280,9 @@ export default class FuseSearcher implements Searcher {
 			endIndex < nextEnd ? text.slice(endIndex + 1, nextEnd + 1) + "..." : text.slice(endIndex + 1, nextEnd + 1);
 		const similarity = stringSimilarity.compareTwoStrings(query, target.toLowerCase());
 
-		return similarity > this._fuseSearchConfig.paragraphSimilarityOffset ? { prev, target, next } : null;
+		return similarity > this._fuseSearchConfig.paragraphSimilarityOffset
+			? { prev, target, next, searchedCount: 0 }
+			: null;
 	}
 
 	private _getStringArray(str: string) {

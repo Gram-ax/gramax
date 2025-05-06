@@ -1,8 +1,10 @@
+import { editName as blockFieldEditName } from "@ext/markdown/elements/blockContentField/consts";
 import { Level } from "@ext/markdown/elements/heading/edit/model/heading";
 import OPEN_API_NAME from "@ext/markdown/elements/openApi/name";
 import { Selection } from "@tiptap/pm/state";
+import { NoteType } from "@ext/markdown/elements/note/render/component/Note";
 
-export type Attrs = { level: Level; notFirstInList?: boolean };
+export type Attrs = { level: Level; notFirstInList?: boolean; type?: Exclude<NoteType, "hotfixes"> };
 
 export type NodeType =
 	| "html"
@@ -25,14 +27,16 @@ export type NodeType =
 	| "icon"
 	| "video"
 	| typeof OPEN_API_NAME
-	| "code_block";
+	| "code_block"
+	| "inline-property"
+	| typeof blockFieldEditName;
 
 export type Mark = "link" | "strong" | "em" | "code" | "file" | "comment" | "s";
 
 export interface NodeValues {
 	action?: NodeType;
 	mark?: Mark;
-	attrs?: Attrs;
+	attrs?: Partial<Attrs>;
 }
 
 export interface ActionContextValue {

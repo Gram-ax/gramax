@@ -1,3 +1,4 @@
+import { classNames } from "@components/libs/classNames";
 import styled from "@emotion/styled";
 
 type Direction = "left" | "right";
@@ -13,7 +14,7 @@ const ScrollableShadow = ({ width, height, direction, className }: ScrollableSha
 	return (
 		width > 0 && (
 			<div
-				className={`${className} ${direction}`}
+				className={classNames("shadow-box", {}, [className, direction])}
 				style={{
 					width: `${Math.min(width, 40)}px`,
 					height: `${height}px`,

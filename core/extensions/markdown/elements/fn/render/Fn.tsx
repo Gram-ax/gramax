@@ -2,9 +2,9 @@ import Icon from "@components/Atoms/Icon";
 import ModalLayout from "@components/Layouts/Modal";
 import ModalLayoutLight from "@components/Layouts/ModalLayoutLight";
 import t from "@ext/localization/locale/translate";
+import CodeBlock from "@ext/markdown/elements/codeBlockLowlight/render/component/CodeBlock";
 import Form from "@rjsf/core";
 import { ReactElement, useState } from "react";
-import CodeBlock from "@ext/markdown/elements/codeBlockLowlight/render/component/CodeBlock";
 import fnProperties from "../logic/fnProperties";
 
 const Fn = ({ code, defaultValues }: { code: string; defaultValues?: string }): ReactElement => {
@@ -52,6 +52,12 @@ const Fn = ({ code, defaultValues }: { code: string; defaultValues?: string }): 
 					<div className="form">
 						<Form
 							schema={inputJsonSchema}
+							validator={{
+								validateFormData: () => null,
+								toErrorList: () => null,
+								isValid: () => true,
+								rawValidation: () => null,
+							}}
 							onSubmit={resetResponse}
 							onChange={(value: any) => {
 								if (isOnChange) resetResponse(value);

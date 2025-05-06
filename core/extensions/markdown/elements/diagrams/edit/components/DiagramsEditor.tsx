@@ -16,7 +16,7 @@ import DiagramType from "@core/components/Diagram/DiagramType";
 import styled from "@emotion/styled";
 import InfoModalForm from "@ext/errorHandlers/client/components/ErrorForm";
 import t from "@ext/localization/locale/translate";
-import OnLoadResourceService from "@ext/markdown/elements/copyArticles/onLoadResourceService";
+import ResourceService from "@ext/markdown/elements/copyArticles/resourceService";
 import DiagramError from "@ext/markdown/elements/diagrams/component/DiagramError";
 import DiagramRender from "@ext/markdown/elements/diagrams/component/DiagramRender";
 import getMermaidDiagram from "@ext/markdown/elements/diagrams/diagrams/mermaid/getMermaidDiagram";
@@ -67,7 +67,7 @@ const DiagramsEditor = (props: DiagramsEditorProps) => {
 	const [contentState, setContentState] = useState(content ?? "");
 	const [contentEditState, setContentEditState] = useState(content ?? "");
 	const apiUrlCreator = ApiUrlCreatorService.value;
-	const { update, getBuffer } = OnLoadResourceService.value;
+	const { update, getBuffer } = ResourceService.value;
 	const [error, setError] = useState(null);
 	const alertWrapperRef = useRef<HTMLDivElement>(null);
 	const rightItemRef = useRef<HTMLDivElement>(null);
@@ -278,9 +278,8 @@ const DiagramsEditor = (props: DiagramsEditorProps) => {
 
 const OverloadDiagramRenderer: FC<OverloadRendererProps> = memo((props) => {
 	const { diagramName, error, setError, title = "", content = "" } = props;
-	const apiUrlCreator = ApiUrlCreatorService.value;
 	const diagramsServiceUrl = PageDataContextService.value.conf.diagramsServiceUrl;
-	const { useGetContent } = OnLoadResourceService.value;
+	const { useGetResource } = ResourceService.value;
 
 	const ref = useRef<HTMLDivElement | HTMLImageElement>();
 	const [data, setData] = useState("");
@@ -303,9 +302,7 @@ const OverloadDiagramRenderer: FC<OverloadRendererProps> = memo((props) => {
 		);
 	}
 
-	useGetContent(
-		"",
-		apiUrlCreator,
+	useGetResource(
 		async (buffer: Buffer) => {
 			let err = null;
 			try {
@@ -317,6 +314,7 @@ const OverloadDiagramRenderer: FC<OverloadRendererProps> = memo((props) => {
 			if (err) setError(err);
 			else setError(null);
 		},
+		"",
 		content,
 	);
 

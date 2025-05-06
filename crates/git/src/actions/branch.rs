@@ -8,7 +8,7 @@ use crate::creds::ActualCreds;
 use crate::remote_callback::*;
 
 use crate::creds::Creds;
-use crate::error::Error;
+use crate::error::OrUtf8Err;
 use crate::error::Result;
 use crate::prelude::Repo;
 use crate::ShortInfo;
@@ -19,7 +19,11 @@ const TAG: &str = "git:branch";
 
 pub trait Branch {
   fn branches(&self, branch_type: Option<BranchType>) -> Result<Branches>;
-  fn branch_by_name<S: AsRef<str>>(&self, shorthand: S, branch_type: BranchType) -> Result<BranchEntry<'_>>;
+  fn branch_by_name<S: AsRef<str>>(
+    &self,
+    shorthand: S,
+    branch_type: Option<BranchType>,
+  ) -> Result<BranchEntry<'_>>;
   fn branch_by_head(&self) -> Result<BranchEntry<'_>>;
   fn new_branch<S: AsRef<str>>(&self, shorthand: S) -> Result<BranchEntry<'_>>;
 
@@ -80,9 +84,9 @@ impl ShortInfo<'_, BranchInfo> for BranchEntry<'_> {
     };
 
     let (name, remote_name) = match self.kind {
-      BranchType::Local => (self.name()?.ok_or(Error::Utf8)?.to_owned(), remote_name),
+      BranchType::Local => (self.name()?.or_utf8_err()?.to_owned(), remote_name),
       BranchType::Remote => {
-        let name = self.name()?.ok_or(Error::Utf8)?.replace("origin/", "");
+        let name = self.name()?.or_utf8_err()?.replace("origin/", "");
         (name.clone(), Some(name))
       }
     };
@@ -91,8 +95,8 @@ impl ShortInfo<'_, BranchInfo> for BranchEntry<'_> {
     let info = BranchInfo {
       name,
       modify: self.last_commit.time().seconds(),
-      last_author_name: author.name().ok_or(Error::Utf8)?.into(),
-      last_author_email: author.email().ok_or(Error::Utf8)?.into(),
+      last_author_name: author.name().or_utf8_err()?.into(),
+      last_author_email: author.email().or_utf8_err()?.into(),
       last_commit_oid: self.last_commit.id().to_string(),
       remote_name,
     };
@@ -105,7 +109,21 @@ impl<C: Creds> Branch for Repo<C> {
     Ok(self.0.branches(branch_type)?)
   }
 
-  fn branch_by_name<S: AsRef<str>>(&self, shorthand: S, branch_type: BranchType) -> Result<BranchEntry<'_>> {
+  fn branch_by_name<S: AsRef<str>>(
+    &self,
+    shorthand: S,
+    branch_type: Option<BranchType>,
+  ) -> Result<BranchEntry<'_>> {
+    let branch_type = match branch_type {
+      Some(branch_type) => branch_type,
+      None if shorthand.as_ref().starts_with("origin/") => BranchType::Remote,
+      None => {
+        return self
+          .branch_by_name(shorthand.as_ref(), Some(BranchType::Local))
+          .or_else(|_| self.branch_by_name(shorthand.as_ref(), Some(BranchType::Remote)))
+      }
+    };
+
     let shorthand = if branch_type == BranchType::Remote && !shorthand.as_ref().contains("origin/") {
       Cow::Owned(format!("origin/{}", shorthand.as_ref()))
     } else {
@@ -118,17 +136,24 @@ impl<C: Creds> Branch for Repo<C> {
 
   fn branch_by_head(&self) -> Result<BranchEntry<'_>> {
     let head = self.0.head()?;
-    self.branch_by_name(head.shorthand().ok_or(Error::Utf8)?, BranchType::Local)
+    self.branch_by_name(head.shorthand().or_utf8_err()?, Some(BranchType::Local))
   }
 
   fn new_branch<S: AsRef<str>>(&self, shorthand: S) -> Result<BranchEntry<'_>> {
     info!(target: TAG, "create new branch named {}", shorthand.as_ref());
-    let commit = self.0.find_commit(self.0.head()?.target().ok_or(Error::Utf8)?)?;
+
+    let Some(head_ref) = self.0.head()?.target() else {
+      let message = "HEAD has no direct reference";
+      let err = git2::Error::new(ErrorCode::Invalid, ErrorClass::Reference, message).into();
+      return Err(err);
+    };
+
+    let commit = self.0.find_commit(head_ref)?;
     let branch = (self.0.branch(shorthand.as_ref(), &commit, false)?, BranchType::Local);
     if !self.0.is_bare() {
       self.0.checkout_tree(branch.0.get().peel_to_tree()?.as_object(), None)?
     };
-    self.0.set_head(branch.0.get().name().ok_or(Error::Utf8)?)?;
+    self.0.set_head(branch.0.get().name().or_utf8_err()?)?;
     Ok((branch, commit).into())
   }
 
@@ -191,7 +216,7 @@ impl<C: ActualCreds> RemoteBranch for Repo<C> {
     };
 
     let shorthand = branch.strip_prefix("refs/heads/").unwrap_or(branch);
-    let branch = self.branch_by_name(shorthand, BranchType::Local)?;
+    let branch = self.branch_by_name(shorthand, Some(BranchType::Local))?;
     Ok(Some(branch))
   }
 

@@ -3,7 +3,6 @@ import Context from "@core/Context/Context";
 import Path from "@core/FileProvider/Path/Path";
 import UserSettings from "@ext/enterprise/types/UserSettings";
 import DefaultError from "@ext/errorHandlers/logic/DefaultError";
-import { makeSourceApi } from "@ext/git/actions/Source/makeSourceApi";
 import GitStorageData from "@ext/git/core/model/GitStorageData";
 import t from "@ext/localization/locale/translate";
 import { Command } from "../../types/Command";
@@ -14,19 +13,12 @@ const cloneCatalogs: Command<{ ctx: Context; userSettings: UserSettings }, void>
 	kind: ResponseKind.none,
 
 	async do({ ctx, userSettings }) {
-		const { wm } = this._app;
+		const source = userSettings.source;
+		if (!source) throw new DefaultError(t("enterprise.config-error"));
 
-		if (!userSettings.source) throw new DefaultError(t("enterprise.config-error"));
+		await this._commands.storage.setSourceData.do({ ctx, ...source });
 
-		const sourceData = userSettings.source;
-		const authUrl = wm.current().config().services?.auth?.url;
-		if (!(await makeSourceApi(sourceData, authUrl).isCredentialsValid())) {
-			throw new DefaultError(t("enterprise.config-error"));
-		}
-
-		await this._commands.storage.setSourceData.do({ ctx, ...sourceData });
-
-		if (!userSettings.workspace.source || !userSettings.source) return;
+		if (!userSettings.workspace.source || !source) return;
 
 		for (const repo of userSettings.workspace.source?.repos ?? []) {
 			const split = repo.split("/");
@@ -34,7 +26,7 @@ const cloneCatalogs: Command<{ ctx: Context; userSettings: UserSettings }, void>
 			const group = split.join("/");
 			await this._commands.storage.startClone.do({
 				path: new Path(name),
-				data: { source: userSettings.source, group, name } as GitStorageData,
+				data: { source: source, group, name } as GitStorageData,
 			});
 		}
 	},

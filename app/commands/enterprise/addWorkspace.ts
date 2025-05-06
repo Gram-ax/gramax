@@ -21,9 +21,10 @@ const addWorkspace: Command<{ ctx: Context; token: string }, UserSettings> = Com
 
 	async do({ ctx, token }) {
 		const { wm, em, am } = this._app;
-		if (!em.getConfig().gesUrl) throw new DefaultError(t("enterprise.config-error"));
+		const gesUrl = em.getConfig().gesUrl;
+		if (!gesUrl) throw new DefaultError(t("enterprise.config-error"));
 
-		const userSettings = await new EnterpriseApi(em.getConfig().gesUrl).getUserSettings(token);
+		const userSettings = await new EnterpriseApi(gesUrl).getUserSettings(token);
 
 		if (userSettings.isNotEditor) {
 			throw new DefaultError(
@@ -43,7 +44,16 @@ const addWorkspace: Command<{ ctx: Context; token: string }, UserSettings> = Com
 		const workspace: ClientWorkspaceConfig = {
 			...userSettings.workspace,
 			path: wm.defaultPath().parentDirectoryPath.join(new Path(userSettings.workspace.name)).toString(),
-			isEnterprise: true,
+			enterprise: {
+				gesUrl,
+				lastUpdateDate: Date.now(),
+			},
+			services: {
+				gitProxy: { url: null },
+				auth: { url: null },
+				review: { url: null },
+				diagramRenderer: { url: `${gesUrl}/diagram-renderer` },
+			},
 		};
 		delete (workspace as any).style;
 
@@ -59,7 +69,7 @@ const addWorkspace: Command<{ ctx: Context; token: string }, UserSettings> = Com
 			null,
 			workspacePermission,
 			catalogPermission,
-			userSettings.workspace.gesUrl,
+			gesUrl,
 			sourceData.token,
 		);
 		am.setUser(ctx.cookie, user);

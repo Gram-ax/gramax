@@ -57,7 +57,7 @@ describe("GitCommands", () => {
 				const fileB = await writeFile("1.txt", "content A\nline 2\nline 3");
 				await git.add([fileB]), await git.commit("", mockUserData);
 
-				const conflictFiles = await git.merge(mockUserData, "B");
+				const conflictFiles = await git.merge(mockUserData, { theirs: "B" });
 
 				expect(await dfp.read(repPath("1.txt"))).toBe(
 					"<<<<<<< ours\ncontent A\n=======\ncontent B\n>>>>>>> theirs\nline 2\nline 3",
@@ -73,7 +73,7 @@ describe("GitCommands", () => {
 					await dfp.delete(repPath("1.txt"));
 					await git.add([path("1.txt")]), await git.commit("", mockUserData);
 
-					const conflictFiles = await git.merge(mockUserData, "B");
+					const conflictFiles = await git.merge(mockUserData, { theirs: "B" });
 
 					expect(await dfp.read(repPath("1.txt"))).toBe("content B\nline 2\nline 3");
 					expect(conflictFiles).toEqual([{ ancestor: "1.txt", ours: null, theirs: "1.txt" }]);
@@ -86,7 +86,7 @@ describe("GitCommands", () => {
 					const fileA = await writeFile("1.txt", "content A\nline 2\nline 3");
 					await git.add([fileA]), await git.commit("", mockUserData);
 
-					const conflictFiles = await git.merge(mockUserData, "B");
+					const conflictFiles = await git.merge(mockUserData, { theirs: "B" });
 
 					expect(await dfp.read(repPath("1.txt"))).toBe("content A\nline 2\nline 3");
 					expect(conflictFiles).toEqual([{ ancestor: "1.txt", ours: "1.txt", theirs: null }]);
@@ -102,7 +102,7 @@ describe("GitCommands", () => {
 					const fileA = await writeFile("1.txt", "content A\nline2\nline3");
 					await git.add([fileA]), await git.commit("", mockUserData);
 
-					const conflictFiles = await git.merge(mockUserData, "B");
+					const conflictFiles = await git.merge(mockUserData, { theirs: "B" });
 
 					expect(conflictFiles).toEqual([{ ancestor: "1.txt", ours: "1.txt", theirs: null }]);
 					expect(await dfp.exists(repPath("1.txt"))).toBeTruthy();
@@ -116,7 +116,7 @@ describe("GitCommands", () => {
 					await writeFile("2.txt", "content A\nline 2\nline 3");
 					await git.add([path("1.txt"), path("2.txt")]), await git.commit("", mockUserData);
 
-					const conflictFiles = await git.merge(mockUserData, "B");
+					const conflictFiles = await git.merge(mockUserData, { theirs: "B" });
 
 					expect(conflictFiles).toEqual([{ ancestor: "1.txt", ours: null, theirs: "1.txt" }]);
 					expect(await dfp.exists(repPath("1.txt"))).toBeTruthy();
@@ -133,7 +133,7 @@ describe("GitCommands", () => {
 				await dfp.delete(repPath("1.txt"));
 				await git.add([path("1.txt")]), await git.commit("", mockUserData);
 
-				const conflictFiles = await git.merge(mockUserData, "B");
+				const conflictFiles = await git.merge(mockUserData, { theirs: "B" });
 
 				expect(conflictFiles.length).toBe(2);
 				expect(conflictFiles).toContainEqual({ ancestor: "1.txt", ours: null, theirs: null });
@@ -148,7 +148,7 @@ describe("GitCommands", () => {
 				await dfp.move(repPath("1.txt"), repPath("1_moved.txt"));
 				await git.add([path("1.txt"), path("1_moved.txt")]), await git.commit("", mockUserData);
 
-				const conflictFiles = await git.merge(mockUserData, "B");
+				const conflictFiles = await git.merge(mockUserData, { theirs: "B" });
 
 				expect(await dfp.exists(repPath("1.txt"))).toBeFalsy();
 				expect(conflictFiles.length).toBe(2);
@@ -167,7 +167,7 @@ describe("GitCommands", () => {
 					const fileA = await writeFile("2.txt", "content A\nline 2\nline 3");
 					await git.add([fileA]), await git.commit("", mockUserData);
 
-					const conflictFiles = await git.merge(mockUserData, "B");
+					const conflictFiles = await git.merge(mockUserData, { theirs: "B" });
 
 					expect(conflictFiles).toEqual([{ ancestor: null, ours: "2.txt", theirs: "2.txt" }]);
 					expect(await dfp.read(repPath("2.txt"))).toBe(
@@ -182,7 +182,7 @@ describe("GitCommands", () => {
 					const fileA = await writeFile("2.txt", "content A\nline 2 A\nline 3 A");
 					await git.add([fileA]), await git.commit("", mockUserData);
 
-					const conflictFiles = await git.merge(mockUserData, "B");
+					const conflictFiles = await git.merge(mockUserData, { theirs: "B" });
 
 					expect(conflictFiles).toEqual([{ ancestor: null, ours: "2.txt", theirs: "2.txt" }]);
 					expect(await dfp.read(repPath("2.txt"))).toBe(
@@ -200,7 +200,7 @@ describe("GitCommands", () => {
 						const fileA = await writeFile("2.txt", "content A\nline 2\nline 3");
 						await git.add([fileA]), await git.commit("", mockUserData);
 
-						const conflictFiles = await git.merge(mockUserData, "B");
+						const conflictFiles = await git.merge(mockUserData, { theirs: "B" });
 						expect(conflictFiles).toContainEqual({ ancestor: null, ours: "2.txt", theirs: "2.txt" });
 						expect(conflictFiles).toContainEqual({ ancestor: "1.txt", ours: "1.txt", theirs: null });
 						expect(await dfp.exists(repPath("1.txt"))).toBeTruthy();
@@ -217,7 +217,7 @@ describe("GitCommands", () => {
 						await dfp.move(repPath("1.txt"), repPath("2.txt"));
 						await git.add([path("1.txt"), path("2.txt")]), await git.commit("", mockUserData);
 
-						const conflictFiles = await git.merge(mockUserData, "B");
+						const conflictFiles = await git.merge(mockUserData, { theirs: "B" });
 
 						expect(conflictFiles).toContainEqual({ ancestor: null, ours: "2.txt", theirs: "2.txt" });
 						expect(conflictFiles).toContainEqual({ ancestor: "1.txt", ours: null, theirs: "1.txt" });
@@ -237,7 +237,7 @@ describe("GitCommands", () => {
 						const fileA = await writeFile("2.txt", "content A\nline 2 A\nline 3 A");
 						await git.add([fileA]), await git.commit("", mockUserData);
 
-						const conflictFiles = await git.merge(mockUserData, "B");
+						const conflictFiles = await git.merge(mockUserData, { theirs: "B" });
 
 						expect(conflictFiles).toContainEqual({ ancestor: null, ours: "2.txt", theirs: "2.txt" });
 						expect(conflictFiles).toContainEqual({ ancestor: "1.txt", ours: "1.txt", theirs: null });
@@ -255,7 +255,7 @@ describe("GitCommands", () => {
 						await dfp.move(repPath("1.txt"), repPath("2.txt"));
 						await git.add([path("1.txt"), path("2.txt")]), await git.commit("", mockUserData);
 
-						const conflictFiles = await git.merge(mockUserData, "B");
+						const conflictFiles = await git.merge(mockUserData, { theirs: "B" });
 
 						expect(conflictFiles).toContainEqual({ ancestor: null, ours: "2.txt", theirs: "2.txt" });
 						expect(conflictFiles).toContainEqual({ ancestor: "1.txt", ours: null, theirs: "1.txt" });
@@ -278,7 +278,7 @@ describe("GitCommands", () => {
 						const fileA = await writeFile("2.txt", "content A\nline 2\nline 3");
 						await git.add([fileA]), await git.commit("", mockUserData);
 
-						const conflictFiles = await git.merge(mockUserData, "B");
+						const conflictFiles = await git.merge(mockUserData, { theirs: "B" });
 
 						expect(conflictFiles).toContainEqual({ ancestor: null, ours: "2.txt", theirs: "2.txt" });
 						expect(await dfp.exists(repPath("1.txt"))).toBeFalsy();
@@ -296,7 +296,7 @@ describe("GitCommands", () => {
 						await writeFile("2.txt", "content A\nline 2\nline 3");
 						await git.add([path("1.txt"), path("2.txt")]), await git.commit("", mockUserData);
 
-						const conflictFiles = await git.merge(mockUserData, "B");
+						const conflictFiles = await git.merge(mockUserData, { theirs: "B" });
 
 						expect(conflictFiles).toContainEqual({ ancestor: null, ours: "2.txt", theirs: "2.txt" });
 						expect(await dfp.exists(repPath("1.txt"))).toBeFalsy();
@@ -316,7 +316,7 @@ describe("GitCommands", () => {
 						const fileA = await writeFile("2.txt", "content A\nline 2 A\nline 3 A");
 						await git.add([fileA]), await git.commit("", mockUserData);
 
-						const conflictFiles = await git.merge(mockUserData, "B");
+						const conflictFiles = await git.merge(mockUserData, { theirs: "B" });
 
 						expect(conflictFiles).toContainEqual({ ancestor: null, ours: "2.txt", theirs: "2.txt" });
 						expect(await dfp.exists(repPath("1.txt"))).toBeFalsy();
@@ -334,7 +334,7 @@ describe("GitCommands", () => {
 						await writeFile("2.txt", "content A\nline 2 A\nline 3 A");
 						await git.add([path("1.txt"), path("2.txt")]), await git.commit("", mockUserData);
 
-						const conflictFiles = await git.merge(mockUserData, "B");
+						const conflictFiles = await git.merge(mockUserData, { theirs: "B" });
 
 						expect(conflictFiles).toContainEqual({ ancestor: null, ours: "2.txt", theirs: "2.txt" });
 						expect(await dfp.exists(repPath("1.txt"))).toBeFalsy();
@@ -356,7 +356,7 @@ describe("GitCommands", () => {
 				await dfp.move(repPath("1.txt"), repPath("2_A.txt"));
 				await git.add([path("1.txt"), path("2_A.txt")]), await git.commit("", mockUserData);
 
-				const conflictFiles = await git.merge(mockUserData, "B");
+				const conflictFiles = await git.merge(mockUserData, { theirs: "B" });
 
 				expect(conflictFiles).toContainEqual({ ancestor: "1.txt", ours: null, theirs: null });
 				expect(conflictFiles).toContainEqual({ ancestor: null, ours: null, theirs: "2_B.txt" });
@@ -374,7 +374,7 @@ describe("GitCommands", () => {
 							await dfp.move(repPath("1.txt"), repPath("2.txt"));
 							await git.add([path("1.txt"), path("2.txt")]), await git.commit("", mockUserData);
 
-							const conflictFiles = await git.merge(mockUserData, "B");
+							const conflictFiles = await git.merge(mockUserData, { theirs: "B" });
 
 							expect(conflictFiles).toContainEqual({ ancestor: null, ours: "2.txt", theirs: "2.txt" });
 							expect(conflictFiles).toContainEqual({ ancestor: "1.txt", ours: null, theirs: null });
@@ -393,7 +393,7 @@ describe("GitCommands", () => {
 							await writeFile("2.txt", "content A\nline 2\nline 3");
 							await git.add([path("1.txt"), path("2.txt")]), await git.commit("", mockUserData);
 
-							const conflictFiles = await git.merge(mockUserData, "B");
+							const conflictFiles = await git.merge(mockUserData, { theirs: "B" });
 
 							expect(conflictFiles).toContainEqual({ ancestor: null, ours: "2.txt", theirs: "2.txt" });
 							expect(conflictFiles).toContainEqual({ ancestor: "1.txt", ours: null, theirs: null });
@@ -414,7 +414,7 @@ describe("GitCommands", () => {
 							await dfp.move(repPath("1.txt"), repPath("2.txt"));
 							await git.add([path("1.txt"), path("2.txt")]), await git.commit("", mockUserData);
 
-							const conflictFiles = await git.merge(mockUserData, "B");
+							const conflictFiles = await git.merge(mockUserData, { theirs: "B" });
 
 							expect(conflictFiles).toContainEqual({ ancestor: null, ours: "2.txt", theirs: "2.txt" });
 							expect(conflictFiles).toContainEqual({ ancestor: "1.txt", ours: null, theirs: null });
@@ -433,7 +433,7 @@ describe("GitCommands", () => {
 							await writeFile("2.txt", "content A\nline 2 A\nline 3 A");
 							await git.add([path("1.txt"), path("2.txt")]), await git.commit("", mockUserData);
 
-							const conflictFiles = await git.merge(mockUserData, "B");
+							const conflictFiles = await git.merge(mockUserData, { theirs: "B" });
 
 							expect(conflictFiles).toContainEqual({ ancestor: null, ours: "2.txt", theirs: "2.txt" });
 							expect(conflictFiles).toContainEqual({ ancestor: "1.txt", ours: null, theirs: null });
@@ -456,7 +456,7 @@ describe("GitCommands", () => {
 							await dfp.move(repPath("1.txt"), repPath("2_A.txt"));
 							await git.add([path("1.txt"), path("2_A.txt")]), await git.commit("", mockUserData);
 
-							const conflictFiles = await git.merge(mockUserData, "B");
+							const conflictFiles = await git.merge(mockUserData, { theirs: "B" });
 
 							expect(conflictFiles).toContainEqual({ ancestor: null, ours: "2_A.txt", theirs: null });
 							expect(conflictFiles).toContainEqual({ ancestor: "1.txt", ours: null, theirs: null });
@@ -473,7 +473,7 @@ describe("GitCommands", () => {
 							await writeFile("2_A.txt", "content A\nline 2\nline 3\n");
 							await git.add([path("1.txt"), path("2_A.txt")]), await git.commit("", mockUserData);
 
-							const conflictFiles = await git.merge(mockUserData, "B");
+							const conflictFiles = await git.merge(mockUserData, { theirs: "B" });
 
 							expect(conflictFiles).toContainEqual({ ancestor: null, ours: null, theirs: "2_B.txt" });
 							expect(conflictFiles).toContainEqual({ ancestor: "1.txt", ours: null, theirs: null });
@@ -492,7 +492,7 @@ describe("GitCommands", () => {
 							await dfp.move(repPath("1.txt"), repPath("2_A.txt"));
 							await git.add([path("1.txt"), path("2_A.txt")]), await git.commit("", mockUserData);
 
-							const conflictFiles = await git.merge(mockUserData, "B");
+							const conflictFiles = await git.merge(mockUserData, { theirs: "B" });
 
 							expect(conflictFiles).toContainEqual({ ancestor: null, ours: "2_A.txt", theirs: null });
 							expect(conflictFiles).toContainEqual({ ancestor: "1.txt", ours: null, theirs: null });
@@ -509,7 +509,7 @@ describe("GitCommands", () => {
 							await writeFile("2_A.txt", "content A\nline 2 A\nline 3 A\n");
 							await git.add([path("1.txt"), path("2_A.txt")]), await git.commit("", mockUserData);
 
-							const conflictFiles = await git.merge(mockUserData, "B");
+							const conflictFiles = await git.merge(mockUserData, { theirs: "B" });
 
 							expect(conflictFiles).toContainEqual({ ancestor: null, ours: null, theirs: "2_B.txt" });
 							expect(conflictFiles).toContainEqual({ ancestor: "1.txt", ours: null, theirs: null });
@@ -533,7 +533,7 @@ describe("GitCommands", () => {
 				await writeFile("2.txt", "content A\nline 2\nline 3");
 				await git.add([path("1.txt"), path("2.txt")]), await git.commit("", mockUserData);
 
-				const conflictFiles = await git.merge(mockUserData, "B");
+				const conflictFiles = await git.merge(mockUserData, { theirs: "B" });
 
 				expect(conflictFiles).toEqual([{ ancestor: null, ours: "2.txt", theirs: "2.txt" }]);
 				expect(await dfp.exists(repPath("1.txt"))).toBeFalsy();
@@ -552,7 +552,7 @@ describe("GitCommands", () => {
 				await writeFile("2.txt", "content A\nline 2 A\nline 3 A\nline 4");
 				await git.add([path("1.txt"), path("2.txt")]), await git.commit("", mockUserData);
 
-				const conflictFiles = await git.merge(mockUserData, "B");
+				const conflictFiles = await git.merge(mockUserData, { theirs: "B" });
 
 				expect(conflictFiles).toEqual([{ ancestor: null, ours: "2.txt", theirs: "2.txt" }]);
 				expect(await dfp.exists(repPath("1.txt"))).toBeFalsy();
@@ -573,7 +573,7 @@ describe("GitCommands", () => {
 				const fileA = await writeFile("2.txt", "1.txt content\nline 2\nline 3");
 				await git.add([fileA]), await git.commit("", mockUserData);
 
-				const conflictFiles = await git.merge(mockUserData, "B");
+				const conflictFiles = await git.merge(mockUserData, { theirs: "B" });
 
 				expect(conflictFiles.length).toBeLessThan(2);
 			});
@@ -585,7 +585,7 @@ describe("GitCommands", () => {
 				await dfp.move(repPath("1.txt"), repPath("2.txt"));
 				await git.add([path("1.txt"), path("2.txt")]), await git.commit("", mockUserData);
 
-				const conflictFiles = await git.merge(mockUserData, "B");
+				const conflictFiles = await git.merge(mockUserData, { theirs: "B" });
 
 				expect(conflictFiles.length).toBeLessThan(2);
 			});

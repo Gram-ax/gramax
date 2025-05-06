@@ -1,3 +1,4 @@
+import { getExecutingEnvironment } from "@app/resolveModule/env";
 import ContextProviders from "@components/ContextProviders";
 import HomePage from "@components/HomePage/HomePage";
 import CatalogComponent from "@components/Layouts/CatalogLayout/CatalogComponent";
@@ -6,6 +7,7 @@ import PageDataContext from "@core/Context/PageDataContext";
 import { ArticlePageData, HomePageData } from "@core/SitePresenter/SitePresenter";
 import ErrorBoundary from "@ext/errorHandlers/client/components/ErrorBoundary";
 import React, { Dispatch, SetStateAction } from "react";
+import ForwardBackward from "../../tauri/src/ForwardBackward";
 export interface GramaxProps {
 	data: HomePageData | ArticlePageData;
 	context: PageDataContext;
@@ -30,16 +32,20 @@ const Gramax = React.memo(
 					const prev = data;
 					setTimeout(() => setData((data) => (data == prev ? null : data)), 500);
 				}}
+				platform={getExecutingEnvironment()}
 			>
-				<ErrorBoundary context={data.context}>
-					{data.context.isArticle ? (
-						<CatalogComponent data={data.data as ArticlePageData}>
-							<ArticleViewContainer />
-						</CatalogComponent>
-					) : (
-						<HomePage data={data.data as HomePageData} />
-					)}
-				</ErrorBoundary>
+				<>
+					<ForwardBackward />
+					<ErrorBoundary context={data.context}>
+						{data.context.isArticle ? (
+							<CatalogComponent data={data.data as ArticlePageData}>
+								<ArticleViewContainer />
+							</CatalogComponent>
+						) : (
+							<HomePage data={data.data as HomePageData} />
+						)}
+					</ErrorBoundary>
+				</>
 			</ContextProviders>
 		);
 	},

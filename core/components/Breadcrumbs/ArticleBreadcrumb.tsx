@@ -10,7 +10,7 @@ import getArticleItemLink from "@ext/artilce/LinkCreator/logic/getArticleItemLin
 import EditMenu from "@ext/item/EditMenu";
 import { ItemLink } from "@ext/navigation/NavigationLinks";
 import Properties from "@ext/properties/components/Properties";
-import { Property, PropertyValue } from "@ext/properties/models";
+import PropertyServiceProvider from "@ext/properties/components/PropertyService";
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 
 interface ArticleBreadcrumbProps {
@@ -22,9 +22,9 @@ interface ArticleBreadcrumbProps {
 const ArticleBreadcrumb = ({ className, itemLinks }: ArticleBreadcrumbProps) => {
 	const linksRef = useRef<HTMLDivElement>(null);
 	const breadcrumbRef = useRef<HTMLDivElement>(null);
+	const { articleProperties, setArticleProperties } = PropertyServiceProvider.value;
 
 	const [isOverflow, setIsOverflow] = useState<boolean>(null);
-	const [properties, setProperties] = useState<Property[] | PropertyValue[]>([]);
 	const [itemLink, setItemLink] = useState<ItemLink>(null);
 
 	const pageData = PageDataContextService.value;
@@ -47,12 +47,12 @@ const ArticleBreadcrumb = ({ className, itemLinks }: ArticleBreadcrumbProps) => 
 	useEffect(() => {
 		window.addEventListener("resize", setNull);
 		return () => window.removeEventListener("resize", setNull);
-	}, [itemLinks, properties]);
+	}, [itemLinks, articleProperties]);
 
 	useEffect(() => {
 		if (isReadOnly) return;
 		setNull();
-	}, [itemLinks, properties]);
+	}, [itemLinks, articleProperties]);
 
 	useLayoutEffect(() => {
 		resize();
@@ -78,7 +78,7 @@ const ArticleBreadcrumb = ({ className, itemLinks }: ArticleBreadcrumbProps) => 
 							setItemLink={setItemLink}
 						/>
 					</div>
-					<Properties properties={properties} setProperties={setProperties} />
+					<Properties properties={articleProperties} setProperties={setArticleProperties} />
 				</>
 			)}
 		</div>

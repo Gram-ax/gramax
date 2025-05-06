@@ -62,7 +62,9 @@ class EnterpriseUser extends User {
 		return this._enterpriseInfo;
 	}
 
-	async updatePermissions(): Promise<EnterpriseUser> {
+	async updatePermissions(checkSsoToken: true): Promise<EnterpriseUser | User>;
+	async updatePermissions(checkSsoToken: false): Promise<EnterpriseUser>;
+	async updatePermissions(checkSsoToken: boolean = false): Promise<EnterpriseUser | User> {
 		if (!this._gesUrl) return;
 		if (
 			this._enterpriseInfo &&
@@ -71,8 +73,9 @@ class EnterpriseUser extends User {
 			return;
 		}
 
-		const data = await new EnterpriseApi(this._gesUrl).getUser(this._token);
+		const data = await new EnterpriseApi(this._gesUrl).getUser(this._token, checkSsoToken);
 		if (!data) {
+			if (checkSsoToken) return new User();
 			console.log(`User data not found. ${this._gesUrl}`);
 			return;
 		}

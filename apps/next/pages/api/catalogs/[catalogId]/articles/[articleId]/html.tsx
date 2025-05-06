@@ -7,6 +7,7 @@ import parseContent from "@core/FileStructue/Article/parseContent";
 import ExceptionsResponse from "@ext/publicApi/ExceptionsResponse";
 import { ApplyApiMiddleware } from "apps/next/logic/Api/ApplyMiddleware";
 import { convertContentToUiLanguage } from "@ext/localization/locale/translate";
+import { TokenValidationMiddleware } from "@core/Api/middleware/TokenValidationMiddleware";
 
 export default ApplyApiMiddleware(
 	async function (req: ApiRequest, res: ApiResponse) {
@@ -22,8 +23,8 @@ export default ApplyApiMiddleware(
 
 		const originDomain = (req.query.originDomain as string) ?? apiUtils.getDomain(req);
 
-		await parseContent(article, catalog, context, parser, parserContextFactory, true, originDomain);
-		const parserContext = parserContextFactory.fromArticle(
+		await parseContent(article, catalog, context, parser, parserContextFactory, originDomain);
+		const parserContext = await parserContextFactory.fromArticle(
 			article,
 			catalog,
 			convertContentToUiLanguage(context.contentLanguage || catalog?.props?.language),
@@ -40,5 +41,5 @@ export default ApplyApiMiddleware(
 
 		res.send(htmlContent);
 	},
-	[new MainMiddleware(), new AllowedOriginsMiddleware()],
+	[new MainMiddleware(), new AllowedOriginsMiddleware(), new TokenValidationMiddleware()],
 );

@@ -4,20 +4,21 @@ import { Paragraph, TextRun } from "docx";
 import { getBlockChildren } from "../../../../wordExport/getBlockChildren";
 import { WordBlockChild } from "../../../../wordExport/options/WordTypes";
 import { Tag } from "../../../core/render/logic/Markdoc";
+import { JSONContent } from "@tiptap/core";
 
 export const listItemWordLayout: WordBlockChild = async ({ state, tag, addOptions, wordRenderContext }) => {
-	const filteredChildren = transformerToNormalTag(tag).children.filter(
-		(child) => child && typeof child !== "string",
-	) as Tag[];
 	const blockLayouts = getBlockChildren();
 	const listElements = [];
 	let paragraph = [];
+	const children = "children" in tag ? tag.children : tag.content;
 
-	for (let i = 0; i < filteredChildren.length; i++) {
-		const child = filteredChildren[i];
+	for (let i = 0; i < children.length; i++) {
+		const child = children[i];
+		const childName = "name" in child ? child.name : child.type;
+		const childContent = "content" in child ? child.content : child.children;
 
-		if (child.name === "p") {
-			if ((child.children[0] as Tag)?.name === "Image") {
+		if (childName === "p") {
+			if ((childContent[0] as JSONContent)?.type === "Image" || (childContent[0] as Tag)?.name === "Image") {
 				if (paragraph.length > 0) {
 					listElements.push(
 						new Paragraph({
@@ -29,24 +30,38 @@ export const listItemWordLayout: WordBlockChild = async ({ state, tag, addOption
 				}
 
 				listElements.push(
-					await imageWordLayout(child.children[0] as Tag, addOptions, wordRenderContext.parserContext),
+					await imageWordLayout(
+						(child?.children[0] as Tag) || (child?.content[0] as Tag),
+						addOptions,
+						wordRenderContext.parserContext,
+					),
 				);
 			} else {
 				const inlineElements = await state.renderInline(child);
 
-				const nextChildIsNotImage = !(
-					filteredChildren[i + 1] && (filteredChildren[i + 1].children[0] as Tag)?.name === "Image"
-				);
+				const isLastChild = children[children.length - 1] === child;
+				const nextChild = children[i + 1];
+				const nextChildIsImage =
+					nextChild &&
+					((nextChild.children?.[0] as Tag)?.name === "Image" ||
+						(nextChild as JSONContent)?.content?.[0]?.type === "Image");
+
+				const nextChildIsBlockOrParagraph =
+					!nextChild ||
+					(!blockLayouts[nextChild?.name] && !blockLayouts[nextChild?.type]) ||
+					nextChild?.name === "p" ||
+					nextChild?.type === "p";
+
+				const shouldAddLineBreak =
+					inlineElements &&
+					children.length > 1 &&
+					!isLastChild &&
+					!nextChildIsImage &&
+					nextChildIsBlockOrParagraph;
 
 				paragraph.push([
 					...inlineElements.flat().filter((val) => val),
-					...(inlineElements &&
-					filteredChildren.length > 1 &&
-					filteredChildren[filteredChildren.length - 1] !== child[i] &&
-					nextChildIsNotImage &&
-					(!blockLayouts[filteredChildren[i + 1]?.name] || filteredChildren[i + 1]?.name === "p")
-						? [new TextRun({ break: 1 })]
-						: []),
+					...(shouldAddLineBreak ? [new TextRun({ break: 1 })] : []),
 				]);
 			}
 
@@ -77,10 +92,4 @@ export const listItemWordLayout: WordBlockChild = async ({ state, tag, addOption
 	}
 
 	return listElements;
-};
-
-const transformerToNormalTag = (tag: Tag) => {
-	if (!tag.children.length || ["p", "li"].includes((tag.children[0] as Tag)?.name)) return tag;
-
-	return new Tag("li", {}, [new Tag("p", {}, tag.children)]);
 };

@@ -1,25 +1,34 @@
+import ContextService from "@core-ui/ContextServices/ContextService";
 import { createContext, Dispatch, ReactElement, SetStateAction, useContext, useEffect, useState } from "react";
 
 const IsMacContext = createContext<boolean>(undefined);
 
-let _setIsMac: Dispatch<SetStateAction<boolean>>;
-export default abstract class IsMacService {
-	static Provider({ children }: { children: ReactElement }): ReactElement {
+class IsMacService implements ContextService<boolean> {
+	private _setIsMac: Dispatch<SetStateAction<boolean>>;
+
+	Init({ children }: { children: ReactElement }): ReactElement {
 		const [isMac, setIsMac] = useState<boolean>(undefined);
-		_setIsMac = setIsMac;
+		this._setIsMac = setIsMac;
+
 		useEffect(() => {
-			if (isMac !== undefined) return;
-			if (window) setIsMac(navigator.userAgent.includes("Mac"));
-		}, [isMac]);
+			if (typeof window === "undefined") return;
+			setIsMac(navigator.userAgent.includes("Mac"));
+		}, []);
 
 		return <IsMacContext.Provider value={isMac}>{children}</IsMacContext.Provider>;
 	}
 
-	static get value(): boolean {
+	Provider({ children, value }: { children: ReactElement; value: boolean }): ReactElement {
+		return <IsMacContext.Provider value={value}>{children}</IsMacContext.Provider>;
+	}
+
+	get value(): boolean {
 		return useContext(IsMacContext);
 	}
 
-	static set value(value: boolean) {
-		_setIsMac?.(value);
+	set value(value: boolean) {
+		this._setIsMac?.(value);
 	}
 }
+
+export default new IsMacService();

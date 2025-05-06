@@ -31,8 +31,11 @@ export default class BugsnagLogger extends BaseLogger implements Logger {
 		console.log(`Bugsnag is started! [AppVersion:${config.buildVersion}]`);
 	}
 
-	logError(e: Error) {
+	logError(e: Error, errorDisplayed?: boolean) {
 		if (!this._checkErrorLogLevel()) return;
+		if (errorDisplayed) {
+			Bugsnag.addMetadata("user", "errorDisplayed", true);
+		}
 		void sendBug(e);
 	}
 

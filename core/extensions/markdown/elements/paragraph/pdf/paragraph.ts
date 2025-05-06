@@ -3,9 +3,11 @@ import { extractContent } from "@ext/pdfExport/utils/extractTextForCases";
 import { Tag } from "@ext/markdown/core/render/logic/Markdoc";
 import { pdfRenderContext } from "@ext/pdfExport/parseNodesPDF";
 import { ZERO_WIDTH_SPACE } from "@ext/pdfExport/config";
+import { JSONContent } from "@tiptap/core";
 
-export async function paragraphCase(node: Tag, context: pdfRenderContext): Promise<Content[]> {
-	const contentPromises = (node.children || []).map(async (item) => {
+export async function paragraphCase(node: Tag | JSONContent, context: pdfRenderContext): Promise<Content[]> {
+	const children = "children" in node ? node.children : node.content;
+	const contentPromises = children.map(async (item) => {
 		return extractContent(item, context);
 	});
 

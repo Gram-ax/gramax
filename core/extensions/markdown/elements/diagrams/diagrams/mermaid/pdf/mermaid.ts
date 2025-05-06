@@ -12,7 +12,7 @@ export async function mermaidHandler(
 	context: pdfRenderContext,
 	options?: NodeOptions,
 ): Promise<ContentStack | ContentTable> {
-	if (getExecutingEnvironment() === "next") {
+	if (getExecutingEnvironment() === "next" || getExecutingEnvironment() === "cli") {
 		return createTable(node, context);
 	}
 

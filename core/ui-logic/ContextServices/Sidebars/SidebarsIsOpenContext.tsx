@@ -1,3 +1,4 @@
+import { usePlatform } from "@core-ui/hooks/usePlatform";
 import { useMediaQuery } from "@mui/material";
 import { createContext, Dispatch, ReactElement, SetStateAction, useContext, useEffect, useMemo, useState } from "react";
 import { cssMedia } from "../../utils/cssUtils";
@@ -20,8 +21,9 @@ abstract class SidebarsIsOpenService {
 		const [isLeftOpen, setIsLeftOpen] = useState(false);
 		const [isRightOpen, setIsRightOpen] = useState(false);
 		const sideBarsIsOpen = useMemo(() => ({ left: isLeftOpen, right: isRightOpen }), [isLeftOpen, isRightOpen]);
+		const { isStatic, isStaticCli } = usePlatform();
 
-		const [transitionEndIsLeftOpen, setTransitionEndIsLeftOpen] = useState(false);
+		const [transitionEndIsLeftOpen, setTransitionEndIsLeftOpen] = useState(isStatic || isStaticCli);
 		const [transitionEndIsRightOpen, setTransitionEndIsRightOpen] = useState(false);
 
 		useEffect(() => {

@@ -1,7 +1,8 @@
+import fs from "fs";
 import { networkInterfaces } from "os";
 import * as path from "path";
 import { Plugin, UserConfig, searchForWorkspaceRoot } from "vite";
-import ifdef from "vite-plugin-conditional-compiler";
+import { createHtmlPlugin } from "vite-plugin-html";
 import { nodePolyfills as polyfills } from "vite-plugin-node-polyfills";
 import env from "./scripts/compileTimeEnv.mjs";
 import ViteSourceMapUploader from "./scripts/sourceMaps/ViteSourceMapUploader.mjs";
@@ -11,8 +12,6 @@ if (!process.env.VITE_ENVIRONMENT) process.env.VITE_ENVIRONMENT = "next";
 
 const isProduction = process.env.PRODUCTION === "true";
 const ipv4 = networkInterfaces()?.en0?.[1]?.address ?? "localhost";
-import { createHtmlPlugin } from "vite-plugin-html";
-import fs from "fs";
 
 // https://github.com/vitejs/vite/issues/15012
 const muteWarningsPlugin = (warningsToIgnore: string[][]): Plugin => {
@@ -52,10 +51,9 @@ export default (): UserConfig => ({
 			["MODULE_LEVEL_DIRECTIVE", `"use-client"`],
 			["EVAL", "Use of eval"],
 		]),
-		ifdef(),
 		polyfills({
 			protocolImports: true,
-			exclude: ["buffer"],
+			exclude: ["buffer", "module"],
 		}),
 		isProduction && process.env.BUGSNAG_API_KEY && process.env.BUILD_VERSION && ViteSourceMapUploader(),
 		createHtmlPlugin({
@@ -110,6 +108,7 @@ export default (): UserConfig => ({
 		"process.version": [], // https://github.com/browserify/browserify-sign/issues/85
 		"process.builtIn": getBuiltInVariables(),
 		"process.env.NODE_DEBUG": false,
+		"process.env.VITE_ENVIRONMENT": JSON.stringify(process.env.VITE_ENVIRONMENT),
 	},
 	publicDir: "./core/public",
 	envPrefix: ["VITE", "TAURI", "GX"],
@@ -125,7 +124,7 @@ export default (): UserConfig => ({
 		chunkSizeWarningLimit: 5000,
 		outDir: "dist",
 		rollupOptions: {
-			external: ["fsevents"],
+			external: ["fsevents", "services"],
 		},
 		minify: true,
 		sourcemap: isProduction,

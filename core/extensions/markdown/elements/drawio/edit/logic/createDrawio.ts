@@ -1,20 +1,18 @@
-import ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
 import { Editor } from "@tiptap/core";
 import { ClientArticleProps } from "../../../../../../logic/SitePresenter/SitePresenter";
-import initArticleResource from "../../../../elementsUtils/AtricleResource/initArticleResource";
 import initDrawioDiagram from "./initDrawioDiagram";
-import { OnLoadResource } from "@ext/markdown/elements/copyArticles/onLoadResourceService";
+import { ResourceServiceType } from "@ext/markdown/elements/copyArticles/resourceService";
 import getNaturalSize from "@ext/markdown/elements/diagrams/logic/getNaturalSize";
 
 const createDrawio = async (
 	editor: Editor,
 	articleProps: ClientArticleProps,
-	apiUrlCreator: ApiUrlCreator,
-	onLoadResource: OnLoadResource,
+	resourceService: ResourceServiceType,
 	diagramContent?: string,
 ) => {
 	const content = diagramContent ?? initDrawioDiagram;
-	const newName = await initArticleResource(articleProps, apiUrlCreator, onLoadResource, content, "svg");
+	const name = `${articleProps.fileName}.svg`;
+	const newName = await resourceService.setResource(name, content);
 	if (!newName) return;
 
 	const newSize = getNaturalSize(content);

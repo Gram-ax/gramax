@@ -6,8 +6,14 @@ import HTMLComponents, { unSupportedElements } from "./HTMLComponents";
 import Error from "@components/Error";
 import Alert from "@ext/markdown/elements/alert/render/component/Alert";
 import Fence from "@ext/markdown/elements/codeBlockLowlight/render/component/CodeBlock";
+import Color from "@ext/markdown/elements/color/render/components/Color";
 import Html from "@ext/markdown/elements/html/render/components/HTML";
+import InlineProperty from "@ext/markdown/elements/inlineProperty/render/components/InlineProperty";
+import ReadonlyListItem from "@ext/markdown/elements/list/render/ReadonlyListItem";
+import BulletList from "@ext/markdown/elements/list/render/BulletList";
+import OrderList from "@ext/markdown/elements/list/render/OrderList";
 import Unsupported from "@ext/markdown/elements/unsupported/render/component/Unsupported";
+import View from "@ext/markdown/elements/view/render/components/View";
 import Cmd from "../../../../elements/cmd/render/Cmd";
 import Code from "../../../../elements/code/render/component/Code";
 import Cut from "../../../../elements/cut/render/component/Cut";
@@ -37,10 +43,7 @@ import Video from "../../../../elements/video/render/components/Video";
 import When from "../../../../elements/whowhen/render/When";
 import Who from "../../../../elements/whowhen/render/Who";
 import ParserContext from "../../../Parser/ParserContext/ParserContext";
-import View from "@ext/markdown/elements/view/render/components/View";
-import ReadonlyListItem from "@ext/markdown/elements/list/render/ReadonlyListItem";
-import Td from "@ext/markdown/elements/table/render/component/TableCell";
-import Color from "@ext/markdown/elements/color/render/components/Color";
+import BlockField from "@ext/markdown/elements/blockContentField/render/components/BlockField";
 
 export default function getComponents(): { [name: string]: (...props: any) => ReactNode } {
 	return {
@@ -49,14 +52,16 @@ export default function getComponents(): { [name: string]: (...props: any) => Re
 		Color,
 		Formula,
 		Fence,
-		Snippet,
+		snippet: Snippet,
 		Code,
 		Alfa: () => <span className="alfa" />,
 		Beta: () => <span className="beta" />,
 		Sub: ({ children }: { children: JSX.Element }) => <sub>{children}</sub>,
 		Cmd,
 		Cut,
-		Icon,
+		icon: Icon,
+		"Inline-property": InlineProperty,
+		"Block-field": BlockField,
 		Issue,
 		Module,
 		Who,
@@ -69,20 +74,24 @@ export default function getComponents(): { [name: string]: (...props: any) => Re
 		"Img-v": Images,
 		See,
 		Li: ReadonlyListItem,
+		listItem: ReadonlyListItem,
+		taskItem: ReadonlyListItem,
+		bulletList: BulletList,
+		taskList: BulletList,
+		orderedList: OrderList,
 		OpenApi,
 		Fn,
-		Note,
+		note: Note,
 		Alert,
 		Unsupported,
-		Tabs,
-		Tab,
+		tabs: Tabs,
+		tab: Tab,
 		Video,
 		Heading: Header,
 		Drawio,
 		Term,
 		Error,
 		Table,
-		Td,
 		Include,
 		"Db-table": DbTable,
 		"Db-diagram": DbDiagram,
@@ -102,8 +111,8 @@ export const getComponentsHTML = (requestURL?: string, context?: ParserContext) 
 	components.Code = htmlComponents.getCode();
 	components.Image = htmlComponents.getImg();
 	components.Drawio = htmlComponents.getDrawio();
-	components.Tab = htmlComponents.getNullComponent(unSupportedElements.tab);
-	components.Tabs = htmlComponents.getTabs();
+	components.tab = htmlComponents.getNullComponent(unSupportedElements.tab);
+	components.tabs = htmlComponents.getTabs();
 	components.Mermaid = htmlComponents.getNullComponent(unSupportedElements.mermaid);
 	components.OpenApi = htmlComponents.getNullComponent(unSupportedElements.openApi);
 	components["Plant-uml"] = htmlComponents.getPlantUmlDiagram();

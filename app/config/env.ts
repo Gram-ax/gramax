@@ -11,6 +11,7 @@ export type EnvironmentVariable = {
 
 	// Services
 	AUTH_SERVICE_URL: string;
+	CLOUD_SERVICE_URL: string;
 	DIAGRAM_RENDERER_SERVICE_URL: string;
 	REVIEW_SERVICE_URL: string;
 	GIT_PROXY_SERVICE_URL: string;

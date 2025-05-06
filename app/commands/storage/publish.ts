@@ -40,6 +40,11 @@ const publish: Command<
 			onCommit: () => logger.logTrace(`Commited in catalog "${catalogName}". Message: "${message}"`),
 			onPush: async () => {
 				logger.logInfo(`Pushed in catalog "${catalogName}".`);
+
+				await catalog.repo.gc({
+					looseObjectsLimit: 600,
+				});
+
 				if (!isCreated) return;
 				const branch = await catalog.repo.gvc.getCurrentBranchName();
 				const mr = await catalog.repo.mergeRequests.findBySource(branch, false);

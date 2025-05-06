@@ -107,6 +107,7 @@ describe("GitStorage", () => {
 			});
 		});
 		test("push", async () => {
+			await storage.pull(mockUserData);
 			const hashBefore = (await git.getHeadCommit()).toString();
 			await dfp.write(new Path([repNameWithoutSubmodules, "new_file.txt"]), "new file content");
 			await git.add(), await git.commit("", mockUserData);

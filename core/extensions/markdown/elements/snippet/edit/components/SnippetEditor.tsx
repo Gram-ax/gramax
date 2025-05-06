@@ -8,13 +8,14 @@ import ModalLayoutLight from "@components/Layouts/ModalLayoutLight";
 import { transliterate } from "@core-ui/languageConverter/transliterate";
 import validateEncodingSymbolsUrl from "@core/utils/validateEncodingSymbolsUrl";
 import t from "@ext/localization/locale/translate";
-import { getSimpleExtensions } from "@ext/markdown/core/edit/logic/getExtensions";
+import getExtensions from "@ext/markdown/core/edit/logic/getExtensions";
 import simpleLink from "@ext/markdown/elements/link/edit/model/simpleLink";
 import { Placeholder } from "@ext/markdown/elements/placeholder/placeholder";
 import SnippetViewUses from "@ext/markdown/elements/snippet/edit/components/SnippetViewUses";
 import SnippetEditorProps from "@ext/markdown/elements/snippet/edit/model/SnippetEditorProps.schema";
 import SnippetEditorPropsSchema from "@ext/markdown/elements/snippet/edit/model/SnippetEditorProps.schema.json";
 import SnippetEditData from "@ext/markdown/elements/snippet/model/SnippetEditData";
+import Document from "@tiptap/extension-document";
 import { EditorContent, useEditor } from "@tiptap/react";
 import { JSONSchema7 } from "json-schema";
 import { useEffect, useState } from "react";
@@ -54,7 +55,8 @@ const SnippetEditor = ({
 		{
 			content: snippetData.content,
 			extensions: [
-				...getSimpleExtensions(),
+				...getExtensions(),
+				Document,
 				Placeholder.configure({ placeholder: enterSnippetText }),
 				simpleLink,
 			],

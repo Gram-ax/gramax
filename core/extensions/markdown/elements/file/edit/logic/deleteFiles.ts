@@ -1,11 +1,10 @@
-import ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
-import FetchService from "@core-ui/ApiServices/FetchService";
 import { Mark } from "@tiptap/pm/model";
+import { ResourceServiceType } from "@ext/markdown/elements/copyArticles/resourceService";
 
-const deleteFiles = async (marks: Mark[], apiUrlCreator: ApiUrlCreator) => {
+const deleteFiles = async (marks: Mark[], resourceService: ResourceServiceType) => {
 	for (const mark of marks) {
 		if (mark.type.name !== "file") continue;
-		await FetchService.fetch(apiUrlCreator.deleteArticleResource(mark.attrs.resourcePath));
+		await resourceService.deleteResource(mark.attrs.resourcePath);
 	}
 };
 

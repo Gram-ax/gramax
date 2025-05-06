@@ -6,20 +6,18 @@
 	"scripts": {
 		"dev": "vite",
 		"build": "vite build",
-		"build:post-js": "bun build wasm/js/post.ts --minify --outfile=wasm/js/post.js",
-		"build:wasm": "cargo +nightly build --target wasm32-unknown-emscripten --release -Zbuild-std --manifest-path wasm/Cargo.toml && node ./postbuild.js",
+		"build:post-js": "bun build crates/gramax-wasm/js/post.ts --minify --outfile=crates/gramax-wasm/js/post.js",
+		"build:wasm": "cargo +nightly build --target wasm32-unknown-emscripten --release -Zbuild-std --manifest-path crates/gramax-wasm/Cargo.toml && bun run ./postbuild.ts",
 		"start": "warp-spa dist",
 		"run": "npm run build && npm run start",
 		"analyze": "vite-bundle-visualizer",
 		"prune": "node-prune"
 	},
 	"dependencies": {
-		"jszip": "^3.10.1",
-		"memfs": "^4.9.2",
-		"wouter": "^2.11.0"
+		"wouter": "^3.7.0"
 	},
 	"devDependencies": {
-		"fake-indexeddb": "^4.0.0",
-		"vite-plugin-mkcert": "^1.17.5"
+		"fake-indexeddb": "^6.0.0",
+		"vite-plugin-mkcert": "^1.17.8"
 	}
 }

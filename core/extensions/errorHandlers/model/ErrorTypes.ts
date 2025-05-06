@@ -5,6 +5,7 @@ enum ErrorType {
 	Silent = "Silent",
 	Parse = "Parse",
 	NetworkApi = "NetworkApi",
+	TokenValidation = "TokenValidation",
 }
 
 export default ErrorType;

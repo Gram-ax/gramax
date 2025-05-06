@@ -46,12 +46,12 @@ export const ellipsis = textInputRule({
 
 export const openDoubleQuote = textInputRule({
 	find: /(?:^|[\s{[(<'"\u2018\u201C])(")$/,
-	replace: "“",
+	replace: "«",
 });
 
 export const closeDoubleQuote = textInputRule({
 	find: /"$/,
-	replace: "”",
+	replace: "»",
 });
 
 export const openSingleQuote = textInputRule({

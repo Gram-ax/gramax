@@ -10,12 +10,14 @@
 	-webkit-font-variant-ligatures: none;
 }
 
-.ProseMirror-hideselection {
-	caret-color: transparent;
+.ProseMirror-hideselection *::selection {
+	background: transparent;
 }
-.ProseMirror-hideselection *::selection,
 .ProseMirror-hideselection *::-moz-selection {
 	background: transparent;
+}
+.ProseMirror-hideselection {
+	caret-color: transparent;
 }
 
 .ProseMirror img.ProseMirror-separator {
@@ -175,6 +177,7 @@
 }
 
 [data-qa="article-editor"] > .ProseMirror > p:first-of-type {
+	caret-color: var(--color-article-heading-text) !important;
 	font-size: 2em;
 	font-weight: 700;
 	line-height: 1.3 !important;
@@ -183,6 +186,10 @@
 	width: 100%;
 	color: var(--color-article-heading-text);
 	max-width: 95%;
+}
+
+[is-template="true"] > *:not([data-editable="true"]):not(:has([data-editable="true"])) {
+	caret-color: transparent !important;
 }
 
 .ProseMirror gr-file {

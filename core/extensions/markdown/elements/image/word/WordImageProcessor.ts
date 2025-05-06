@@ -1,14 +1,14 @@
+import resolveModule from "@app/resolveModule/backend";
 import Path from "@core/FileProvider/Path/Path";
 import ResourceManager from "@core/Resource/ResourceManager";
 import t from "@ext/localization/locale/translate";
 import { Crop, ImageObject } from "@ext/markdown/elements/image/edit/model/imageEditorTypes";
-import { ImageDimensionsFinder } from "@ext/markdown/elements/image/word/ImageDimensionsFinder";
 import { BaseImageProcessor } from "@ext/markdown/elements/image/export/BaseImageProcessor";
 import { GetImageByPathOptions } from "@ext/markdown/elements/image/export/NextImageProcessor";
+import { ImageDimensionsFinder } from "@ext/markdown/elements/image/word/ImageDimensionsFinder";
 import { MAX_WIDTH } from "@ext/wordExport/options/wordExportSettings";
 import { ImageDimensions } from "@ext/wordExport/options/WordTypes";
 import { ImageRun } from "docx";
-import resolveModule from "@app/resolveModule/backend";
 
 export class WordImageExporter {
 	static async getImageByPath(
@@ -50,7 +50,10 @@ export class WordImageExporter {
 		const image = await BaseImageProcessor.getImageFromDom(svgCode, fitContent);
 		return this._getImageRun(
 			image,
-			await ImageDimensionsFinder.getImageSizeFromImageData(Buffer.from(image), maxWidth ?? MAX_WIDTH),
+			await ImageDimensionsFinder.getImageSizeFromImageData(
+				Buffer.from(image as unknown as ArrayBuffer),
+				maxWidth ?? MAX_WIDTH,
+			),
 		);
 	}
 

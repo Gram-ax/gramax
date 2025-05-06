@@ -1,6 +1,7 @@
 import ArticlePage from "@components/ArticlePage/ArticlePage";
 import IsFirstLoadService from "@core-ui/ContextServices/IsFirstLoadService";
 import ArticleLoadingView from "@core-ui/ContextServices/views/articleView/ArticleLoadingView";
+import { usePlatform } from "@core-ui/hooks/usePlatform";
 import { ArticlePageData } from "@core/SitePresenter/SitePresenter";
 import { createContext, ReactElement, ReactNode, useContext, useEffect, useLayoutEffect, useState } from "react";
 
@@ -26,13 +27,24 @@ abstract class ArticleViewService {
 		articlePageData: ArticlePageData;
 	}): ReactElement {
 		const isFirstLoad = IsFirstLoadService.value;
+		const { isStatic, isStaticCli } = usePlatform();
+		const isStaticOrStaticCli = isStatic || isStaticCli;
 
-		const [articleView, setArticleView] = useState<ReactNode>(null);
+		if (isStaticOrStaticCli) {
+			ArticleViewService._currentComponent = DefaultArticleView;
+			ArticleViewService._isDefaultView = true;
+		}
+
+		const [articleView, setArticleView] = useState<ReactNode>(() =>
+			isStaticOrStaticCli ? DefaultArticleView(articlePageData) : null,
+		);
+
 		const [useArticleDefaultStyles, setUseArticleDefaultStyles] = useState(true);
 		_setArticleView = setArticleView;
 		_setUseArticleDefaultStyles = setUseArticleDefaultStyles;
 
 		useLayoutEffect(() => {
+			if (isStaticOrStaticCli) return;
 			setArticleView(ArticleLoadingView());
 		}, []);
 

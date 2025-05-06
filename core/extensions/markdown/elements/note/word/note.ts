@@ -24,10 +24,11 @@ const wordNoteTitleTypeMap: Record<string, WordBlockType> = {
 };
 
 export const noteWordLayout: WordBlockChild = async ({ state, tag, addOptions }) => {
-	if (!tag.attributes?.type) return [];
+	const attrs = "attributes" in tag ? tag.attributes : tag.attrs;
+	if (!attrs?.type) return [];
 
-	const moduleType = wordNoteTitleTypeMap[tag.attributes?.type];
-	const style = wordNoteTypeMap[tag.attributes?.type];
+	const moduleType = wordNoteTitleTypeMap[attrs?.type];
+	const style = wordNoteTypeMap[attrs?.type];
 
 	if (!moduleType) {
 		throw new DefaultError("Need to add this note type to wordNoteTitleTypeMap", null, {

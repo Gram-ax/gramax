@@ -87,7 +87,10 @@ const PopupMenuElementUnstyled = (props: PopupMenuElementProps) => {
 
 	return createElement(
 		isInline ? "span" : "div",
-		{ className: classNames("button", {}, [className]), style: { display: "flex", alignItems: "center" } },
+		{
+			className: classNames("button", {}, [className]),
+			style: isInline ? {} : { display: "flex", alignItems: "center" },
+		},
 		Element,
 	);
 };

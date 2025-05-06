@@ -6,21 +6,11 @@ import { CatalogLink } from "@ext/navigation/NavigationLinks";
 import ThemeService from "@ext/Theme/components/ThemeService";
 import Link from "../../Atoms/Link";
 
-const BigCard = ({
-	hideLogo,
-	link,
-	className,
-	name,
-}: {
-	hideLogo?: boolean;
-	link: CatalogLink;
-	className?: string;
-	name: string;
-}) => {
+const BigCard = ({ hideLogo, link, className }: { hideLogo?: boolean; link: CatalogLink; className?: string }) => {
 	const apiUrlCreator = ApiUrlCreatorService.value;
 	const theme = ThemeService.value;
 
-	const logo = resolveModule("useImage")(hideLogo ? null :  apiUrlCreator.getLogoUrl(link.name, theme));
+	const logo = resolveModule("useImage")(hideLogo ? null : apiUrlCreator.getLogoUrl(link.name, theme));
 
 	return (
 		<Link

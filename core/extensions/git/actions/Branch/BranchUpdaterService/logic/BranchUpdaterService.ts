@@ -6,7 +6,12 @@ import FetchService from "../../../../../../ui-logic/ApiServices/FetchService";
 type OnBranchUpdateListener = (branch: GitBranchData, caller: OnBranchUpdateCaller) => void | Promise<void>;
 
 export default class BranchUpdaterService {
+	private static _branch: GitBranchData = null;
 	private static _listeners = new Set<OnBranchUpdateListener>();
+
+	public static get branch() {
+		return this._branch;
+	}
 
 	public static addListener(onUpdateBranch: OnBranchUpdateListener) {
 		this._listeners.add(onUpdateBranch);
@@ -31,6 +36,7 @@ export default class BranchUpdaterService {
 			apiUrlCreator.getVersionControlCurrentBranchUrl({ onlyName: false, cachedMergeRequests: false }),
 		);
 		if (!res.ok) return;
-		return await res.json();
+		this._branch = await res.json();
+		return this._branch;
 	}
 }

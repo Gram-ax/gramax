@@ -60,6 +60,12 @@ function changeResultByAttrs(contextAttrs: Partial<Attrs>, buttonAttrs: Partial<
 			result.isActive = false;
 		}
 	}
+
+	if (Boolean(contextAttrs?.type) && Boolean(buttonAttrs?.type)) {
+		if (contextAttrs.type !== buttonAttrs.type) {
+			result.isActive = false;
+		}
+	}
 }
 
 function changeResultByMark(activeNode: NodeType, buttonMark, result: ButtonState) {

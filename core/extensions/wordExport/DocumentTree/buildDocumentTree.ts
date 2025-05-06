@@ -11,7 +11,7 @@ import MarkdownParser from "@ext/markdown/core/Parser/Parser";
 import ParserContextFactory from "@ext/markdown/core/Parser/ParserContext/ParserContextFactory";
 import { Tag } from "@ext/markdown/core/render/logic/Markdoc";
 import { SystemProperties } from "@ext/properties/models";
-import { Display } from "@ext/properties/models/displays";
+import { Display } from "@ext/properties/models/display";
 import MarkdownElementsFilter from "@ext/wordExport/MarkdownElementsFilter";
 import { TitleInfo } from "@ext/wordExport/options/WordTypes";
 import { DocumentTree } from "./DocumentTree";
@@ -32,16 +32,16 @@ const buildDocumentTree = async (
 ) => {
 	const filter = new MarkdownElementsFilter(exportedKeys);
 
-	if (!isCatalog) await parseContent(item as Article, catalog, ctx, parser, parserContextFactory, false);
+	if (!isCatalog) await parseContent(item as Article, catalog, ctx, parser, parserContextFactory);
 
-	const heading: DocumentTree = await (item as Article).parsedContent.read((p) => ({
+	const heading: DocumentTree = await (item as Article).parsedContent.read(async (p) => ({
 		name: isCatalog ? catalog.props.title : item.getTitle() || catalog.name,
 		content: !isCatalog ? filter.getSupportedTree(p?.renderTree) : "",
 		resourceManager: !isCatalog ? p?.resourceManager : undefined,
 		level: level,
 		number: number,
 		parserContext: !isCatalog
-			? parserContextFactory.fromArticle(item as Article, catalog, resolveLanguage(), true)
+			? await parserContextFactory.fromArticle(item as Article, catalog, resolveLanguage(), true)
 			: null,
 		children: [],
 	}));
@@ -82,7 +82,8 @@ const buildDocumentTree = async (
 
 const addViewTag = (content: any) => {
 	if (typeof content === "object" && content !== null) {
-		content.children = content.children ?? [];
+		const children = "children" in content ? content.children : content.content;
+		content.children = children ?? [];
 		if (content.children.length === 0) {
 			content.children.push(
 				new Tag("View", {

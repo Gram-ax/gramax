@@ -8,6 +8,16 @@ const table = {
 	},
 };
 
+const col = {
+	attrs: {
+		width: { default: null },
+	},
+};
+
+const colgroup = {
+	content: "col+",
+};
+
 const tableRow = {
 	group: "block",
 	content: "tableCell*",
@@ -25,15 +35,4 @@ const tableCell = {
 	},
 };
 
-const tableHeader = {
-	group: "block",
-	content: "block+",
-	attrs: {
-		colspan: { default: 1 },
-		rowspan: { default: 1 },
-		colwidth: { default: null },
-		align: { default: null },
-	},
-};
-
-export { table, tableRow, tableCell, tableHeader };
+export { table, tableRow, tableCell, colgroup, col };

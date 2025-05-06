@@ -8,7 +8,6 @@ const env = {
 	BUILD_VERSION: null,
 	BUGSNAG_API_KEY: null,
 	PRODUCTION: null,
-	BUGSNAG_CLIENT_KEY: null,
 	BRANCH: null,
 	COOKIE_SECRET: null,
 	SHARE_ACCESS_TOKEN: null,

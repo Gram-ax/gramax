@@ -1,6 +1,7 @@
 import { Node } from "prosemirror-model";
 import { RenderableTreeNode } from "../../../markdown/core/render/logic/Markdoc";
 import getChildTextId from "../../../markdown/elements/heading/logic/getChildTextId";
+import { JSONContent } from "@tiptap/core";
 
 export interface TocItem {
 	url: string;
@@ -51,18 +52,31 @@ const getTocItems = (tocItems: LevelTocItem[]): TocItem[] => {
 	return result;
 };
 
-export const getLevelTocItemsByRenderableTree = (tags: RenderableTreeNode[]): LevelTocItem[] => {
+const recursiveGetText = (tag: RenderableTreeNode | JSONContent): string[] => {
+	if (typeof tag === "string") return [tag];
+	if ("children" in tag) return tag.children.flatMap((c) => recursiveGetText(c));
+	if ("content" in tag) return tag.content.flatMap((c) => recursiveGetText(c));
+	return [""];
+};
+
+export const getLevelTocItemsByRenderableTree = (tags: RenderableTreeNode[] | JSONContent[]): LevelTocItem[] => {
 	const items: LevelTocItem[] = [];
 	tags.forEach((tag) => {
-		if (tag && typeof tag !== "string" && tag.name == "Include") {
-			items.push(...getLevelTocItemsByRenderableTree(tag.children));
+		const name = "name" in tag ? tag.name : tag.type;
+		if (tag && name == "Include") {
+			items.push(...getLevelTocItemsByRenderableTree("children" in tag ? tag.children : tag.content));
 		}
-		if (!tag || typeof tag === "string" || tag.name !== "Heading") return;
-		if (tag?.attributes?.level == 4 || tag?.attributes?.level == 3 || tag?.attributes?.level == 2) {
+		if (!tag || typeof tag === "string" || name !== "Heading") return;
+
+		const attrs = "attributes" in tag ? tag.attributes : tag.attrs;
+		if (attrs?.level == 4 || attrs?.level == 3 || attrs?.level == 2) {
+			const text = recursiveGetText(tag).join("");
+			const textId = getChildTextId(text);
+
 			items.push({
-				level: +tag.attributes.level,
-				url: "#" + tag.attributes.id,
-				title: tag.attributes.title,
+				level: +attrs.level,
+				url: "#" + (attrs.id ?? textId),
+				title: attrs.title ?? text,
 				items: [],
 			});
 		}

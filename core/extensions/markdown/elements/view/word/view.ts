@@ -1,5 +1,5 @@
 import { WordBlockChild } from "@ext/wordExport/options/WordTypes";
-import { Display } from "@ext/properties/models/displays";
+import { Display } from "@ext/properties/models/display";
 import { Article } from "@core/FileStructue/Article/Article";
 import ViewFilter from "@ext/properties/logic/ViewFilter";
 import { viewList } from "@ext/markdown/elements/view/word/viewList";

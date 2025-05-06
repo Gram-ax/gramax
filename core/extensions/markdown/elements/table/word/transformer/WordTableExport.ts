@@ -12,6 +12,7 @@ import {
 	wordMarginsType,
 } from "@ext/wordExport/options/wordExportSettings";
 import { AddOptionsWord } from "@ext/wordExport/options/WordTypes";
+import { JSONContent } from "@tiptap/core";
 
 export class WordTableExport {
 	public static readonly defaultWidth = 2000;
@@ -24,7 +25,7 @@ export class WordTableExport {
 
 	constructor(private _wordSerializerState: WordSerializerState) {}
 
-	async renderCellContent(tag: Tag, isTableHeader: boolean, maxWidth: number): Promise<FileChild[]> {
+	async renderCellContent(tag: Tag | JSONContent, isTableHeader: boolean, maxWidth: number): Promise<FileChild[]> {
 		return this._wordSerializerState.renderBlock(tag, {
 			...tag.attributes,
 			removeWhiteSpace: true,
@@ -35,7 +36,7 @@ export class WordTableExport {
 		});
 	}
 
-	async renderCell(parent: Tag, isTableHeader = false): Promise<TableCell> {
+	async renderCell(parent: Tag | JSONContent, isTableHeader = false): Promise<TableCell> {
 		const size = this._getCellWidth(
 			parent.attributes.colwidth
 				? parent.attributes.colwidth[0] * WordTableExport.defaultWidthCoefficient
@@ -43,10 +44,12 @@ export class WordTableExport {
 			this._getCellContractionCoefficient(this._sumColumnsWidth),
 		);
 
+		const parentChildren = "children" in parent ? parent.children : parent.content;
+		const parentAttributes = "attributes" in parent ? parent.attributes : parent.attrs;
 		return new TableCell({
 			children: (
 				await Promise.all(
-					parent.children.map(async (child) => {
+					parentChildren.map(async (child) => {
 						if (!child || typeof child === "string") return;
 						return await this.renderCellContent(
 							child,
@@ -58,16 +61,17 @@ export class WordTableExport {
 			)
 				.flat()
 				.filter((val) => val),
-			...(parent.attributes.colspan ? { columnSpan: parent.attributes.colspan } : []),
-			...(parent.attributes.rowspan ? { rowSpan: parent.attributes.rowspan } : []),
+			...(parentAttributes.colspan ? { columnSpan: parentAttributes.colspan } : []),
+			...(parentAttributes.rowspan ? { rowSpan: parentAttributes.rowspan } : []),
 			width: { size, type: WidthType.DXA },
 		});
 	}
 
-	async renderRowContent(parent: Tag): Promise<TableCell[]> {
+	async renderRowContent(parent: Tag | JSONContent): Promise<TableCell[]> {
+		const parentChildren = "children" in parent ? parent.children : parent.content;
 		return (
 			await Promise.all(
-				parent.children.map(async (child) => {
+				parentChildren.map(async (child) => {
 					if (!child || typeof child === "string") return;
 					return await this._tableConfig[child.name]?.(
 						this._wordSerializerState,
@@ -79,7 +83,7 @@ export class WordTableExport {
 		).filter((val) => val);
 	}
 
-	async renderRow(block: Tag, addOptions?: TableAddOptionsWord): Promise<TableRow> {
+	async renderRow(block: Tag | JSONContent, addOptions?: TableAddOptionsWord): Promise<TableRow> {
 		return new TableRow({
 			children: await this.renderRowContent(block),
 			cantSplit: false,
@@ -87,10 +91,11 @@ export class WordTableExport {
 		});
 	}
 
-	async renderRows(parent: Tag, addOptions?: TableAddOptionsWord): Promise<TableRow[]> {
+	async renderRows(parent: Tag | JSONContent, addOptions?: TableAddOptionsWord): Promise<TableRow[]> {
+		const parentChildren = "children" in parent ? parent.children : parent.content;
 		return (
 			await Promise.all(
-				parent.children.map(async (child) => {
+				parentChildren.map(async (child) => {
 					if (!child || typeof child === "string") return;
 
 					return await this._tableConfig[child.name]?.(
@@ -106,7 +111,7 @@ export class WordTableExport {
 			.filter((val) => val);
 	}
 
-	async renderTable(state: WordSerializerState, parent: Tag, addOptions: AddOptionsWord) {
+	async renderTable(state: WordSerializerState, parent: Tag | JSONContent, addOptions: AddOptionsWord) {
 		this._addOptions = addOptions;
 		return new Table({
 			rows: (await Promise.all(this._getParentChildrenMap(state, parent))).flat().filter((val) => val),
@@ -116,24 +121,26 @@ export class WordTableExport {
 		});
 	}
 
-	private _getParentChildrenMap(state: WordSerializerState, parent: Tag) {
-		return parent.children.map((child) =>
+	private _getParentChildrenMap(state: WordSerializerState, parent: Tag | JSONContent) {
+		const parentChildren = "children" in parent ? parent.children : parent.content;
+		return parentChildren.map((child) =>
 			child && typeof child !== "string"
 				? tableLayout[child.name]?.(state, child, new WordTableExport(state), { removeWhiteSpace: true })
 				: [],
 		);
 	}
 
-	private _getSumOfColumnWidth(parent: Tag) {
+	private _getSumOfColumnWidth(parent: Tag | JSONContent) {
 		let result = 0;
-		const children = (parent.children[0] as Tag).children;
+		const children = "children" in parent ? parent.children : parent.content;
 
 		for (const child of children) {
 			if (child && typeof child !== "string") {
 				for (const cell of child.children) {
 					if (cell && typeof cell !== "string") {
-						result += cell.attributes.colwidth
-							? cell.attributes.colwidth[0] * WordTableExport.defaultWidthCoefficient
+						const cellAttributes = "attributes" in cell ? cell.attributes : cell.attrs;
+						result += cellAttributes.colwidth
+							? cellAttributes.colwidth[0] * WordTableExport.defaultWidthCoefficient
 							: WordTableExport.defaultWidth;
 					}
 				}
@@ -154,18 +161,19 @@ export class WordTableExport {
 		return width * coefficient;
 	}
 
-	private _getColumnWidths(parent: Tag) {
+	private _getColumnWidths(parent: Tag | JSONContent) {
 		const result = [];
-		const children = (parent.children[0] as Tag).children;
+		const parentChildren = "children" in parent ? parent.children : parent.content;
 		this._sumColumnsWidth = this._getSumOfColumnWidth(parent);
 		const coefficient = this._getCellContractionCoefficient(this._sumColumnsWidth);
 
-		for (const child of children) {
+		for (const child of parentChildren) {
 			if (child && typeof child !== "string") {
 				for (const cell of child.children) {
+					const cellAttributes = "attributes" in cell ? cell.attributes : cell.attrs;
 					const width =
-						cell && typeof cell !== "string" && cell.attributes.colwidth
-							? cell.attributes.colwidth[0] * WordTableExport.defaultWidthCoefficient
+						cellAttributes.colwidth
+							? cellAttributes.colwidth[0] * WordTableExport.defaultWidthCoefficient
 							: WordTableExport.defaultWidth;
 
 					result.push(this._getCellWidth(width, coefficient));

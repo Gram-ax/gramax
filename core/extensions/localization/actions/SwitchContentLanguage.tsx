@@ -1,4 +1,3 @@
-import { getExecutingEnvironment } from "@app/resolveModule/env";
 import Icon from "@components/Atoms/Icon";
 import Tooltip from "@components/Atoms/Tooltip";
 import PopupMenuLayout from "@components/Layouts/PopupMenuLayout";
@@ -6,6 +5,7 @@ import ButtonLink from "@components/Molecules/ButtonLink";
 import ArticlePropsService from "@core-ui/ContextServices/ArticleProps";
 import CatalogPropsService from "@core-ui/ContextServices/CatalogProps";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
+import { usePlatform } from "@core-ui/hooks/usePlatform";
 import { useRouter } from "@core/Api/useRouter";
 import styled from "@emotion/styled";
 import AddContentLanguage from "@ext/localization/actions/AddContentLanguage";
@@ -24,6 +24,7 @@ const SwitchContentLanguage = ({ className }: { className?: string }) => {
 	const currentLanguage = PageDataContextService.value.language.content || props?.language;
 
 	const [isLoading, setIsLoading] = useState(false);
+	const { isNext } = usePlatform();
 
 	useEffect(() => {
 		if (isLoading) setIsLoading(false);
@@ -35,7 +36,7 @@ const SwitchContentLanguage = ({ className }: { className?: string }) => {
 	}, []);
 
 	if (!articleProps || !props || !articleProps?.pathname || articleProps.welcome || !props.language) return null;
-	if (getExecutingEnvironment() == "next" && props.supportedLanguages?.length < 2) return null;
+	if (isNext && props.supportedLanguages?.length < 2) return null;
 
 	const switchLanguage = (code: ContentLanguage) => {
 		if (isReadOnly) {

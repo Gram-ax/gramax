@@ -1,4 +1,3 @@
-import resolveModule from "@app/resolveModule/frontend";
 import Icon from "@components/Atoms/Icon";
 import ButtonsLayout from "@components/Layouts/ButtonLayout";
 import ModalLayoutDark from "@components/Layouts/ModalLayoutDark";
@@ -65,8 +64,6 @@ const ImageEditor = (props: EditorProps & { className?: string; style?: CSSPrope
 		saveAndExit: t("save-and-exit"),
 	};
 
-	const mainSrc = resolveModule("useImage")(src);
-
 	const addElement = (newElement: ImageObject) => {
 		setSelectedIndex(() => {
 			const updatedElements = [...elements, newElement];
@@ -120,7 +117,7 @@ const ImageEditor = (props: EditorProps & { className?: string; style?: CSSPrope
 
 		setElements(objects ?? []);
 		restoreImage(imgRef.current, imageSize);
-	}, [mainSrc, objects]);
+	}, [src, objects]);
 
 	useEffect(() => {
 		if (!prevCrop) return;
@@ -567,7 +564,7 @@ const ImageEditor = (props: EditorProps & { className?: string; style?: CSSPrope
 						onLoad={handleOnLoad}
 						draggable="false"
 						onDragStart={(e) => e.preventDefault()}
-						src={mainSrc}
+						src={src}
 						style={style}
 						alt=""
 					/>
@@ -586,7 +583,7 @@ const ImageEditor = (props: EditorProps & { className?: string; style?: CSSPrope
 				</div>
 			</div>
 
-			{mainSrc && (
+			{src && (
 				<div className="toolbar__under">
 					{selectedIndex !== null && (
 						<AnnotationMenu
@@ -635,7 +632,7 @@ const ImageEditor = (props: EditorProps & { className?: string; style?: CSSPrope
 
 							<div className="divider" />
 							<Button
-								hidden={!mainSrc}
+								hidden={!src}
 								text={messages.saveAndExit}
 								icon={"save"}
 								onClick={() => saveData(true)}

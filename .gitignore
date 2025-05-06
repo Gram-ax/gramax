@@ -64,5 +64,5 @@ junit*.xml
 .idea/
 
 
-!apps/browser/wasm/dist
+!apps/browser/crates/gramax-wasm/dist
 apps/next/gramaxVersion.txt

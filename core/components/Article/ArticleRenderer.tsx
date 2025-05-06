@@ -1,16 +1,15 @@
 import { NEW_ARTICLE_REGEX } from "@app/config/const";
 import { classNames } from "@components/libs/classNames";
-import FetchService from "@core-ui/ApiServices/FetchService";
-import MimeTypes from "@core-ui/ApiServices/Types/MimeTypes";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import ArticlePropsService from "@core-ui/ContextServices/ArticleProps";
 import { useDebounce } from "@core-ui/hooks/useDebounce";
+import { usePlatform } from "@core-ui/hooks/usePlatform";
 import useWatch from "@core-ui/hooks/useWatch";
 import { transliterate } from "@core-ui/languageConverter/transliterate";
 import { useRouter } from "@core/Api/useRouter";
-import { ArticlePageData, ClientArticleProps } from "@core/SitePresenter/SitePresenter";
+import { ArticlePageData } from "@core/SitePresenter/SitePresenter";
 import ArticleMat from "@ext/markdown/core/edit/components/ArticleMat";
-import OnLoadResourceService from "@ext/markdown/elements/copyArticles/onLoadResourceService";
+import ResourceService from "@ext/markdown/elements/copyArticles/resourceService";
 import EditorService, { BaseEditorContext } from "@ext/markdown/elementsUtils/ContextServices/EditorService";
 import getTocItems, { getLevelTocItemsByJSONContent } from "@ext/navigation/article/logic/createTocItems";
 import { Editor } from "@tiptap/core";
@@ -33,7 +32,7 @@ const ArticleParent = ({ children }: { children: React.ReactNode }) => {
 export const ArticleEditRenderer = (props: ArticleRendererProps) => {
 	const { data } = props;
 
-	const onLoadResource = OnLoadResourceService.value;
+	const resourceService = ResourceService.value;
 	const [actualData, setActualData] = useState(data);
 
 	const router = useRouter();
@@ -43,7 +42,8 @@ export const ArticleEditRenderer = (props: ArticleRendererProps) => {
 	const apiUrlCreatorRef = useRef(apiUrlCreator);
 	const articlePropsRef = useRef(articleProps);
 	const editorUpdateContent = EditorService.createOnUpdateCallback();
-	const editorHandlePaste = EditorService.createHandlePasteCallback(onLoadResource);
+	const updateTitle = EditorService.createUpdateTitleFunction();
+	const editorHandlePaste = EditorService.createHandlePasteCallback(resourceService);
 
 	useWatch(() => {
 		apiUrlCreatorRef.current = apiUrlCreator;
@@ -67,29 +67,19 @@ export const ArticleEditRenderer = (props: ArticleRendererProps) => {
 		});
 	}, []);
 
-	const updateTitle = useCallback(
-		async (title: string, articleProps: ClientArticleProps, fileName?: string) => {
-			articleProps.title = title;
-			articleProps.fileName = fileName ? fileName : articleProps.fileName;
-
-			const url = apiUrlCreatorRef.current.updateItemProps();
-			const res = await FetchService.fetch(url, JSON.stringify(articleProps), MimeTypes.json);
-
-			if (fileName && res.ok) {
-				const { pathname, ref } = await res.json();
-				articleProps.ref = ref;
-				pathname && router.pushPath(pathname);
-			}
-		},
-		[router],
-	);
-
 	const { start: debouncedUpdateContent, cancel: cancelDebouncedUpdateContent } = useDebounce(updateContent, 500);
 
 	const { start: debouncedUpdateTitle, cancel: cancelDebouncedUpdateTitle } = useDebounce(
 		async (newTitle: string, fileName?: string) => {
-			const articleProps = articlePropsRef.current;
-			await updateTitle(newTitle, articleProps, fileName);
+			await updateTitle(
+				{
+					apiUrlCreator: apiUrlCreatorRef.current,
+					articleProps: articlePropsRef.current,
+				},
+				router,
+				newTitle,
+				fileName,
+			);
 		},
 		500,
 	);
@@ -109,7 +99,16 @@ export const ArticleEditRenderer = (props: ArticleRendererProps) => {
 					? transliterate(newTitle, { kebab: true, maxLength: 50 })
 					: undefined;
 
-			if (maybeKebabName || newTitle !== articleProps.title) updateTitle(newTitle, articleProps, maybeKebabName);
+			if (maybeKebabName || newTitle !== articleProps.title)
+				updateTitle(
+					{
+						apiUrlCreator: apiUrlCreatorRef.current,
+						articleProps: articlePropsRef.current,
+					},
+					router,
+					newTitle,
+					maybeKebabName,
+				);
 		},
 		[updateTitle, articleProps],
 	);
@@ -126,12 +125,21 @@ export const ArticleEditRenderer = (props: ArticleRendererProps) => {
 		}
 	};
 
+	const extensions = useMemo(
+		() =>
+			getExtensions({
+				includeResources: true,
+				...(actualData.articleProps.template && { isTemplateInstance: true }),
+			}),
+		[actualData.articleProps.ref.path, actualData.articleProps.template],
+	);
+
 	return (
 		<ArticleUpdater data={actualData} onUpdate={onUpdate}>
 			<ArticleParent>
 				<ContentEditor
 					content={actualData.articleContentEdit}
-					extensions={getExtensions()}
+					extensions={extensions}
 					onTitleLoseFocus={onTitleNeedsUpdate}
 					onUpdate={onContentUpdate}
 					handlePaste={editorHandlePaste}
@@ -143,6 +151,7 @@ export const ArticleEditRenderer = (props: ArticleRendererProps) => {
 
 export const ArticleReadRenderer = memo(({ data }: { data: ArticlePageData }) => {
 	const { articleProps } = data;
+	const { isStaticCli } = usePlatform();
 	return (
 		<ArticleParent>
 			<>
@@ -154,7 +163,7 @@ export const ArticleReadRenderer = memo(({ data }: { data: ArticlePageData }) =>
 						{articleProps.description}
 					</Header>
 				)}
-				{typeof window == "undefined"
+				{typeof window == "undefined" && !isStaticCli
 					? data.markdown
 					: Renderer(JSON.parse(data.articleContentRender), { components: useMemo(getComponents, []) })}
 				<ArticleMat />

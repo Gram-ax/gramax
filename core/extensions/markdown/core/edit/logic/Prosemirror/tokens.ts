@@ -21,17 +21,20 @@ import linkToken from "../../../../elements/link/edit/model/linkToken";
 import video from "../../../../elements/video/edit/model/videoToken";
 import ParserContext from "../../../Parser/ParserContext/ParserContext";
 
+import colorToken from "@ext/markdown/elements/color/edit/model/colorToken";
+import htmlToken from "@ext/markdown/elements/html/edit/models/htmlToken";
 import iconToken from "@ext/markdown/elements/icon/edit/model/iconToken";
+import inlinePropertyToken from "@ext/markdown/elements/inlineProperty/edit/models/inlinePropertyToken";
 import noteToken from "@ext/markdown/elements/note/edit/model/noteToken";
 import snippetToken from "@ext/markdown/elements/snippet/edit/model/snippetToken";
+import tableTokens from "@ext/markdown/elements/table/edit/model/tableTokens";
 import tabToken from "@ext/markdown/elements/tabs/edit/model/tab/tabToken";
 import tabsToken from "@ext/markdown/elements/tabs/edit/model/tabs/tabsToken";
 import unsupportedToken from "@ext/markdown/elements/unsupported/edit/model/unsupportedToken";
-import { ParseSpec } from "./from_markdown";
-import htmlToken from "@ext/markdown/elements/html/edit/models/htmlToken";
 import viewToken from "@ext/markdown/elements/view/edit/models/viewToken";
-import tableTokens from "@ext/markdown/elements/table/edit/model/tableTokens";
-import colorToken from "@ext/markdown/elements/color/edit/model/colorToken";
+import { ParseSpec } from "./from_markdown";
+import blockFieldToken from "@ext/markdown/elements/blockContentField/edit/models/blockFieldToken";
+import alertToken from "@ext/markdown/elements/alert/edit/model/alertToken";
 
 function listIsTight(tokens, i) {
 	while (++i < tokens.length) if (tokens[i].type != "list_item_open") return tokens[i].hidden;
@@ -48,6 +51,7 @@ const getTokensByContext = (context?: ParserContext): { [name: string]: ParseSpe
 
 export const getTokens = (context?: ParserContext): { [name: string]: ParseSpec } => {
 	const contextTokens = context ? getTokensByContext(context) : {};
+
 	return {
 		link: linkToken(context),
 		tab: tabToken,
@@ -66,6 +70,9 @@ export const getTokens = (context?: ParserContext): { [name: string]: ParseSpec 
 		"plant-uml": plantUmlToken,
 		"c4-diagram": c4DiagramToken,
 		"ts-diagram": tsDiagramToken,
+		"inline-property": inlinePropertyToken(),
+		"block-field": blockFieldToken(),
+		alert: alertToken(),
 
 		br: { node: "br" },
 

@@ -3,7 +3,7 @@ import t from "@ext/localization/locale/translate";
 import Icon from "../Atoms/Icon";
 import Tooltip from "../Atoms/Tooltip";
 
-const VersionControlCommentCount = styled(({ count, className }: { count: number; className?: string }) => {
+const VersionControlCommentCount = ({ count, className }: { count: number; className?: string }) => {
 	return count > 0 ? (
 		<Tooltip content={<span>{t("numbero-of-unsolved-comments")}</span>}>
 			<div className={className}>
@@ -17,7 +17,9 @@ const VersionControlCommentCount = styled(({ count, className }: { count: number
 			</div>
 		</Tooltip>
 	) : null;
-})`
+};
+
+export default styled(VersionControlCommentCount)`
 	width: auto !important;
 	position: relative;
 	display: inline-flex;
@@ -36,5 +38,3 @@ const VersionControlCommentCount = styled(({ count, className }: { count: number
 		line-height: 13.5px;
 	}
 `;
-
-export default VersionControlCommentCount;

@@ -13,14 +13,14 @@ const getHomePageData: Command<{ ctx: Context }, { data: HomePageData; context: 
 		if (!wm.hasWorkspace()) {
 			return {
 				data: { catalogLinks: {} },
-				context: getPageDataContext({ ctx, app: this._app, isArticle: false }),
+				context: await getPageDataContext({ ctx, app: this._app, isArticle: false }),
 			};
 		}
 
 		const workspace = wm.current();
 		const dataProvider = sitePresenterFactory.fromContext(ctx);
-		const data = await dataProvider.getHomePageData(workspace.config());
-		const context = getPageDataContext({
+		const data = await dataProvider.getHomePageData(await workspace.config());
+		const context = await getPageDataContext({
 			ctx,
 			app: this._app,
 			isArticle: false,

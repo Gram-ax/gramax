@@ -126,7 +126,7 @@ class ResourceManager implements Hashable {
 	}
 
 	private _assertMaxFileSize(data: string | Buffer) {
-		assertMaxFileSize(data.length ?? (data as ArrayBuffer).byteLength);
+		assertMaxFileSize(data.length ?? (data as unknown as ArrayBuffer).byteLength);
 	}
 
 	private _getJoinRootPath(basePath?: Path): Path {

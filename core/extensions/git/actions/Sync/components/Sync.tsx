@@ -1,7 +1,7 @@
 import Fetcher from "@core-ui/ApiServices/Types/Fetcher";
 import UseSWRService from "@core-ui/ApiServices/UseSWRService";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
-import IsOfflineService from "@core-ui/ContextServices/IsOfflineService";
+import isOfflineService from "@core-ui/ContextServices/IsOfflineService";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import SyncIconService from "@core-ui/ContextServices/SyncIconService";
 import SyncLayout from "@ext/git/actions/Sync/components/SyncLayout";
@@ -15,7 +15,7 @@ const Sync = ({ style }: { style?: CSSProperties }) => {
 	const apiUrlCreator = ApiUrlCreatorService.value;
 	const syncProccess = SyncIconService.value;
 	const pageDataContext = PageDataContextService.value;
-	const disableFetch = IsOfflineService.value || pageDataContext.conf.isReadOnly || !pageDataContext.userInfo;
+	const disableFetch = isOfflineService.value || pageDataContext.conf.isReadOnly || !pageDataContext.userInfo;
 
 	const source = useSourceData();
 	const openRestoreSourceModal = useOpenRestoreSourceTokenModal(source);

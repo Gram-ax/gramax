@@ -35,7 +35,8 @@ const getArticlePageData: Command<
 			markdown: this._app.conf.isReadOnly,
 		};
 
-		const lastVisited = new LastVisited(ctx, workspace.config().name);
+		const config = await workspace.config();
+		const lastVisited = new LastVisited(ctx, config.name);
 		try {
 			data = await dataProvider.getArticlePageDataByPath(path, pathname, opts);
 			if (
@@ -73,12 +74,12 @@ const getArticlePageData: Command<
 		return {
 			data,
 			openGraphData,
-			context: getPageDataContext({
+			context: await getPageDataContext({
 				ctx,
 				app: this._app,
 				isArticle: true,
 				userInfo: data?.catalogProps?.userInfo,
-				isReadOnly: isReadOnly,
+				isReadOnly,
 			}),
 		};
 	},

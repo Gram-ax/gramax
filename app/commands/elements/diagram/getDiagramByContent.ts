@@ -14,8 +14,9 @@ const getDiagramByContent: Command<
 
 	kind: ResponseKind.blob,
 
-	do({ type, content, count }) {
-		const diagrams = new Diagrams(this._app.wm.current().config().services?.diagramRenderer?.url);
+	async do({ type, content, count }) {
+		const config = await this._app.wm.current().config();
+		const diagrams = new Diagrams(config.services?.diagramRenderer?.url);
 
 		const hashItem: HashItem = new HashItemContent(
 			content,

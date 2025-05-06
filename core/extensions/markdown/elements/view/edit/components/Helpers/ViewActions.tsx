@@ -6,7 +6,7 @@ import Menu from "@ext/markdown/elements/view/edit/components/Helpers/Orderby/Me
 import ViewButton from "@ext/markdown/elements/view/edit/components/Helpers/ViewButton";
 import PropertyItem from "@ext/properties/components/PropertyItem";
 import { getInputType, isHasValue, PropertyValue } from "@ext/properties/models";
-import { Display } from "@ext/properties/models/displays";
+import { Display } from "@ext/properties/models/display";
 import { Editor } from "@tiptap/core";
 import { Node } from "@tiptap/pm/model";
 import { MouseEvent, useCallback } from "react";

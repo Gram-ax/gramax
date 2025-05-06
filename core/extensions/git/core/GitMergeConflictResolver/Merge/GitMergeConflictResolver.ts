@@ -1,6 +1,5 @@
 import type Repository from "@ext/git/core/Repository/Repository";
 import type { RepositoryMergeConflictState } from "@ext/git/core/Repository/state/RepositoryState";
-import type GitSourceData from "@ext/git/core/model/GitSourceData.schema";
 import type SourceData from "@ext/storage/logic/SourceDataProvider/model/SourceData";
 import Path from "../../../../../logic/FileProvider/Path/Path";
 import FileProvider from "../../../../../logic/FileProvider/model/FileProvider";
@@ -29,10 +28,13 @@ export default class GitMergeConflictResolver extends GitBaseConflictResolver {
 
 		const currentBranch = (await gvc.getCurrentBranch()).toString();
 		await gvc.add(null, true);
-		await gvc.commit(`Merge branch '${state.data.theirs}' into ${currentBranch}`, data, [
-			currentBranch,
-			state.data.theirs,
-		]);
+		const parents = state.data.squash ? [currentBranch] : [currentBranch, state.data.theirs];
+		const message = await gvc.formatMergeMessage(data, {
+			theirs: state.data.theirs,
+			squash: state.data.squash,
+			isMergeRequest: state.data.isMergeRequest,
+		});
+		await gvc.commit(message, data, parents);
 		await this._repo.storage?.push(data);
 	}
 }

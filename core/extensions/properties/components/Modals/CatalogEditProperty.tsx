@@ -80,6 +80,7 @@ const CatalogEditProperty = ({ isOpen, closeModal, onSubmit, data }: CreateProps
 				onClose={() => closeModal()}
 				confirmSaveAction={() => submit()}
 				closeConfirm={() => setVisibleWarning(undefined)}
+				forceCloseConfirm={() => closeModal()}
 				confirmTitle={t("unsaved-changes")}
 				confirmText={t("modal.confirm.warning-have-changes")}
 				isOpenConfirm={visibleWarning === 2}

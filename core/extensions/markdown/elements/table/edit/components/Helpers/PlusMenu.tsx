@@ -11,13 +11,14 @@ import {
 	getTableColumnCellPositions,
 } from "@ext/markdown/elements/table/edit/logic/utils";
 import { AlignEnumTypes, HoverEnumTypes, TableHeaderTypes } from "@ext/markdown/elements/table/edit/model/tableTypes";
-import EditorService from "@ext/markdown/elementsUtils/ContextServices/EditorService";
+import { Editor } from "@tiptap/core";
 import { Node } from "@tiptap/pm/model";
 import { MouseEvent, useMemo, useRef } from "react";
 
 interface PlusMenuProps {
 	isHovered: boolean;
 	index: number;
+	editor: Editor;
 	getPos: () => number;
 	node: Node;
 	onMouseEnter: (event: MouseEvent, index: number, type: HoverEnumTypes, vertical?: boolean) => void;
@@ -45,13 +46,12 @@ export const TriggerParent = styled.div`
 `;
 
 const PlusMenu = (props: PlusMenuProps) => {
-	const { vertical, className, onMouseEnter, index, getPos, node, onMouseLeave } = props;
+	const { vertical, className, onMouseEnter, index, getPos, node, onMouseLeave, editor } = props;
 	const submenuRef = useRef<HTMLDivElement>(null);
-	const editor = EditorService.getEditor();
 	const cell = useMemo(() => {
 		if (vertical) return;
 		const position = getFirstTdPosition(node, index + 1, getPos());
-		const newPosition = Math.min(Math.max(position, getPos()), editor.state.doc.nodeSize - 1);
+		const newPosition = Math.min(Math.max(position, getPos()), editor.state.doc.content.size - 1);
 
 		if (isNaN(newPosition)) return null;
 		const child = editor.state.doc.resolve(newPosition);

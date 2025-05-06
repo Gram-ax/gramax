@@ -14,15 +14,16 @@ import type IconProvider from "@ext/markdown/elements/icon/logic/IconProvider";
 import type SnippetProvider from "@ext/markdown/elements/snippet/logic/SnippetProvider";
 import type IPermission from "@ext/security/logic/Permission/IPermission";
 import type InboxProvider from "@ext/inbox/logic/InboxProvider";
+import type TemplateProvider from "@ext/templates/logic/TemplateProvider";
 
 export interface ReadonlyCatalog<P extends CatalogProps = CatalogProps> extends ReadonlyBaseCatalog<P> {
 	get deref(): Catalog<P>;
 
-	get errors(): CatalogErrors;
 	get perms(): IPermission;
 	get snippetProvider(): SnippetProvider;
 	get iconProvider(): IconProvider;
 	get inboxProvider(): InboxProvider;
+	get templateProvider(): TemplateProvider;
 
 	getRootCategory(): Category<P>;
 	getRootCategoryRef(): ItemRef;

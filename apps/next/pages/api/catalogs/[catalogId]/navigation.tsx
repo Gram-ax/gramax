@@ -2,6 +2,7 @@ import type ApiRequest from "@core/Api/ApiRequest";
 import type ApiResponse from "@core/Api/ApiResponse";
 import { AllowedOriginsMiddleware } from "@core/Api/middleware/AllowedOriginsMiddleware";
 import { MainMiddleware } from "@core/Api/middleware/MainMiddleware";
+import { TokenValidationMiddleware } from "@core/Api/middleware/TokenValidationMiddleware";
 import ExceptionsResponse from "@ext/publicApi/ExceptionsResponse";
 import TransformData from "@ext/publicApi/TransformData";
 import { ApplyApiMiddleware } from "apps/next/logic/Api/ApplyMiddleware";
@@ -23,5 +24,5 @@ export default ApplyApiMiddleware(
 
 		res.send(jsonNavigationTree);
 	},
-	[new MainMiddleware(), new AllowedOriginsMiddleware()],
+	[new MainMiddleware(), new AllowedOriginsMiddleware(), new TokenValidationMiddleware()],
 );

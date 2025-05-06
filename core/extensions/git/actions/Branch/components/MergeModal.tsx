@@ -7,6 +7,7 @@ import FormStyle from "@components/Form/FormStyle";
 import Modal from "@components/Layouts/Modal";
 import ModalLayoutLight from "@components/Layouts/ModalLayoutLight";
 import FormattedBranch from "@ext/git/actions/Branch/components/FormattedBranch";
+import SquashCheckbox from "@ext/git/actions/Branch/components/SquashCheckbox";
 import { MergeRequestOptions } from "@ext/git/core/GitMergeRequest/model/MergeRequest";
 import t from "@ext/localization/locale/translate";
 import { useState } from "react";
@@ -54,13 +55,19 @@ const MergeModal = ({ sourceBranchRef, targetBranchRef, onSubmit, onClose }: Mer
 						<div className="control-label delete-after-merge-checkbox">
 							<Checkbox
 								overflow="hidden"
-								onClick={(value) => setMergeRequestOptions({ deleteAfterMerge: value })}
+								onClick={(value) =>
+									setMergeRequestOptions((prev) => ({ ...prev, deleteAfterMerge: value }))
+								}
 							>
 								<div className="control-label picker-text" data-qa="qa-clickable">
 									<span>{t("git.merge.delete-branch-after-merge")}</span>
 								</div>
 							</Checkbox>
 						</div>
+
+						<SquashCheckbox
+							onClick={(value) => setMergeRequestOptions((prev) => ({ ...prev, squash: value }))}
+						/>
 
 						<div className="buttons">
 							<Button onClick={() => setIsOpen(false)} buttonStyle={ButtonStyle.underline}>

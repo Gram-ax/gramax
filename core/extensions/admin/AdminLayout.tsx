@@ -17,6 +17,7 @@ const AdminLoginLayout = styled(
 		const isLogged = PageDataContextService.value.isLogged;
 		const gesUrl = PageDataContextService.value.conf.enterprise.gesUrl;
 		const router = useRouter();
+
 		useEffect(() => {
 			if (isLogged || gesUrl) redirectCallback();
 		}, []);

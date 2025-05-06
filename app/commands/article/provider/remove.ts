@@ -15,12 +15,15 @@ const remove: Command<{ ctx: Context; catalogName: string; id: string; type: Art
 		kind: ResponseKind.none,
 
 		async do({ ctx, catalogName, id, type }) {
-			const { wm } = this._app;
+			const { wm, sitePresenterFactory } = this._app;
 			const workspace = wm.current();
 			const catalog = await workspace.getCatalog(catalogName, ctx);
 			if (!catalog) return;
 
 			const provider = ArticleProvider.getProvider(catalog, type);
+			const sp = sitePresenterFactory.fromContext(ctx);
+			await sp.parseAllItems(catalog);
+
 			await provider.remove(id);
 		},
 

@@ -35,6 +35,13 @@ export interface TreeReadScope {
 export declare function is_init(repoPath: string): Promise<unknown>
 export declare function is_bare(repoPath: string): Promise<unknown>
 export declare function init_new(path: string, creds: AccessTokenCreds): Promise<unknown>
+export interface MergeMessageFormatOptions {
+  theirs: string
+  squash: boolean | null
+  maxCommits: number | null
+  isMergeRequest: boolean | null
+}
+export declare function format_merge_message(repoPath: string, creds: AccessTokenCreds, opts: MergeMessageFormatOptions): Promise<unknown>
 export declare function clone(creds: AccessTokenCreds, opts: RawCloneOptions, callback: (...args: any[]) => any): Promise<unknown>
 export declare function clone_cancel(id: number): Output
 export declare function status(repoPath: string, index: boolean): Promise<unknown>
@@ -44,7 +51,7 @@ export declare function default_branch(repoPath: string, creds: AccessTokenCreds
 export declare function branch_list(repoPath: string): Promise<unknown>
 export declare function branch_info(repoPath: string, name?: string | undefined | null): Promise<unknown>
 export declare function new_branch(repoPath: string, name: string): Promise<unknown>
-export declare function delete_branch(repoPath: string, creds: AccessTokenCreds | undefined | null, name: string, remote: boolean): Promise<unknown>
+export declare function delete_branch(repoPath: string, name: string, remote: boolean, creds?: AccessTokenCreds | undefined | null): Promise<unknown>
 export declare function set_head(repoPath: string, refname: string): Promise<unknown>
 export declare function checkout(repoPath: string, branch: string, create: boolean): Promise<unknown>
 export declare function add_remote(repoPath: string, name: string, url: string): Promise<unknown>
@@ -61,7 +68,13 @@ export declare function reset_all(repoPath: string, hard: boolean, head?: string
 export declare function stash(repoPath: string, creds: AccessTokenCreds, message?: string | undefined | null): Promise<unknown>
 export declare function stash_apply(repoPath: string, oid: string): Promise<unknown>
 export declare function stash_delete(repoPath: string, oid: string): Promise<unknown>
-export declare function merge(repoPath: string, creds: AccessTokenCreds, theirs: string): Promise<unknown>
+export interface MergeOptions {
+  theirs: string
+  deleteAfterMerge: boolean | null
+  squash: boolean | null
+  isMergeRequest: boolean | null
+}
+export declare function merge(repoPath: string, creds: AccessTokenCreds, opts: MergeOptions): Promise<unknown>
 export declare function graph_head_upstream_files(repoPath: string, searchIn: string): Promise<unknown>
 export declare function get_content(repoPath: string, path: string, oid?: string | undefined | null): Promise<unknown>
 export declare function get_parent(repoPath: string, oid: string): Promise<unknown>
@@ -72,4 +85,11 @@ export declare function git_read_file(repoPath: string, scope: TreeReadScope, pa
 export declare function git_read_dir_stats(repoPath: string, scope: TreeReadScope, path: string): Promise<unknown>
 export declare function list_merge_requests(repoPath: string): Promise<unknown>
 export declare function find_refs_by_globs(repoPath: string, pattern: Array<string>): Promise<unknown>
+export declare function create_or_update_merge_request(repoPath: string, mergeRequest: string, creds: AccessTokenCreds): Promise<unknown>
+export declare function get_draft_merge_request(repoPath: string): Promise<unknown>
 export declare function reset_repo(): boolean
+export interface GcOptions {
+  looseObjectsLimit: number | null
+  packFilesLimit: number | null
+}
+export declare function gc(repoPath: string, opts: GcOptions): Promise<unknown>

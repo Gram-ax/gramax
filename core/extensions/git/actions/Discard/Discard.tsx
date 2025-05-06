@@ -11,14 +11,12 @@ const Discard = ({
 	onEndDiscard,
 	onStartDiscard,
 	onDiscardError,
-	selectedText = false,
 	discardAll = false,
 }: {
 	paths: string[];
 	onEndDiscard?: (paths: string[]) => void;
 	onStartDiscard?: (paths: string[]) => void;
 	onDiscardError?: () => void;
-	selectedText?: boolean;
 	discardAll?: boolean;
 }) => {
 	const confirmText = t("git.discard.seletected-confirm");

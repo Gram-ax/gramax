@@ -6,7 +6,7 @@ import t from "@ext/localization/locale/translate";
 import CatalogEditProperty from "@ext/properties/components/Modals/CatalogEditProperty";
 import PropertyItem from "@ext/properties/components/PropertyItem";
 import { getInputComponent, getInputType, getPlaceholder, Property, PropertyValue } from "@ext/properties/models";
-import { MouseEvent, useCallback, useRef, useState } from "react";
+import { MouseEvent, useCallback, useRef, useState, Dispatch, SetStateAction } from "react";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import combineProperties from "@ext/properties/logic/combineProperties";
 import MimeTypes from "@core-ui/ApiServices/Types/MimeTypes";
@@ -14,13 +14,15 @@ import useWatch from "@core-ui/hooks/useWatch";
 import ArticlePropsService from "@core-ui/ContextServices/ArticleProps";
 import { Instance, Props } from "tippy.js";
 import getCatalogEditProps from "@ext/catalog/actions/propsEditor/logic/getCatalogEditProps";
+import ModalToOpenService from "@core-ui/ContextServices/ModalToOpenService/ModalToOpenService";
+import ModalToOpen from "@core-ui/ContextServices/ModalToOpenService/model/ModalsToOpen";
 
 interface AddPropertyProps {
 	trigger: JSX.Element;
 	properties: Property[] | PropertyValue[];
 	catalogProperties: Map<string, Property>;
 	onSubmit: (propertyName: string, value: string) => void;
-	setProperties?: (properties: Property[] | PropertyValue[]) => void;
+	setProperties?: Dispatch<SetStateAction<Property[]>>;
 	canAdd?: boolean;
 	disabled?: boolean;
 }
@@ -44,14 +46,19 @@ const AddProperty = (props: AddPropertyProps) => {
 		async (property: Property, isDelete: boolean = false, saveValue?: boolean) => {
 			const newProps = getCatalogEditProps(catalogProps);
 			const index = newProps.properties.findIndex((obj) => obj.name === property.name);
+
+			ModalToOpenService.setValue(ModalToOpen.Loading);
+
 			if (index === -1) newProps.properties = [...newProps.properties, property];
 			else {
 				if (isDelete && !saveValue) {
 					newProps.properties = newProps.properties.filter((_, propIndex) => propIndex !== index);
 					const res = await FetchService.fetch(apiUrlCreator.removePropertyFromArticles(property.name));
 
-					if (res.ok && canAdd)
-						setProperties(combineProperties(await res.json(), Array.from(catalogProperties.values())));
+					if (res.ok && canAdd) {
+						const props = await res.json();
+						setProperties(combineProperties(props, Array.from(catalogProperties.values())));
+					}
 				} else {
 					const deletedValues = saveValue
 						? ""
@@ -69,12 +76,15 @@ const AddProperty = (props: AddPropertyProps) => {
 							apiUrlCreator.removePropertyFromArticles(property.name, deletedValues),
 						);
 
-						if (res.ok && canAdd)
-							setProperties(combineProperties(await res.json(), Array.from(catalogProperties.values())));
+						if (res.ok && canAdd) {
+							const props = await res.json();
+							setProperties(combineProperties(props, Array.from(catalogProperties.values())));
+						}
 					}
 				}
 			}
 
+			ModalToOpenService.resetValue();
 			FetchService.fetch(apiUrlCreator.updateCatalogProps(), JSON.stringify(newProps), MimeTypes.json);
 			CatalogPropsService.value = { ...catalogProps, properties: newProps.properties };
 		},

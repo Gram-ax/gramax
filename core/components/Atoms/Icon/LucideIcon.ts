@@ -8,7 +8,7 @@ const toCamelCase = (str: string) => {
 };
 
 const LucideIcon = (code: string): Lucide.LucideIcon | CustomIcon => {
-	if (!code) return null;
+	if (!code || code === "icon") return null;
 	if (customIcons[code]) return customIcons[code];
 	return Lucide[toCamelCase(code)];
 };

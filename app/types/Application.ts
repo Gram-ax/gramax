@@ -7,7 +7,6 @@ import CustomArticlePresenter from "@core/SitePresenter/CustomArticlePresenter";
 import SitePresenterFactory from "@core/SitePresenter/SitePresenterFactory";
 import { TableDB } from "@core/components/tableDB/table";
 import VideoUrlRepository from "@core/components/video/videoUrlRepository";
-import MailProvider from "@ext/MailProvider";
 import ThemeManager from "@ext/Theme/ThemeManager";
 import EnterpriseManager from "@ext/enterprise/EnterpriseManager";
 import GitRepositoryProvider from "@ext/git/core/Repository/RepositoryProvider";
@@ -18,7 +17,8 @@ import ParserContextFactory from "@ext/markdown/core/Parser/ParserContext/Parser
 import MarkdownFormatter from "@ext/markdown/core/edit/logic/Formatter/Formatter";
 import AuthManager from "@ext/security/logic/AuthManager";
 import { TicketManager } from "@ext/security/logic/TicketManager/TicketManager";
-import Searcher from "@ext/serach/Searcher";
+import { IndexDataProvider } from "@ext/serach/IndexDataProvider";
+import SearcherManager from "@ext/serach/SearcherManager";
 import type WorkspaceManager from "@ext/workspace/WorkspaceManager";
 
 interface Application {
@@ -28,8 +28,7 @@ interface Application {
 	logger: Logger;
 	am: AuthManager;
 	tm: ThemeManager;
-	mp: MailProvider;
-	searcher: Searcher;
+	searcherManager: SearcherManager;
 	parser: MarkdownParser;
 	htmlParser: HtmlParser;
 	tablesManager: TableDB;
@@ -38,6 +37,7 @@ interface Application {
 	formatter: MarkdownFormatter;
 	ticketManager: TicketManager;
 	contextFactory: ContextFactory;
+	indexDataProvider: IndexDataProvider;
 	parserContextFactory: ParserContextFactory;
 	sitePresenterFactory: SitePresenterFactory;
 	resourceUpdaterFactory: ResourceUpdaterFactory;
@@ -65,6 +65,14 @@ interface Application {
 		};
 
 		allowedOrigins?: string[];
+
+		search: {
+			vector: { enabled: false } | {
+				enabled: true;
+				apiUrl: string;
+				collectionName: string;
+			}
+		};
 	};
 }
 

@@ -9,11 +9,11 @@ import UnsupportedElements from "@ext/import/model/UnsupportedElements";
 import { resolveRootCategory } from "@ext/localization/core/catalogExt";
 import { tString } from "@ext/localization/locale/translate";
 import { Tag } from "@ext/markdown/core/render/logic/Markdoc";
-import { pdfExportedKeys } from "@ext/pdfExport/layouts";
+import { getPdfExportedKeys } from "@ext/pdfExport/layouts";
 import RuleProvider from "@ext/rules/RuleProvider";
 import MarkdownElementsFilter from "@ext/wordExport/MarkdownElementsFilter";
 import { ExportFormat } from "@ext/wordExport/components/ItemExport";
-import { exportedKeys } from "@ext/wordExport/layouts";
+import { getExportedKeys } from "@ext/wordExport/layouts";
 import { Command } from "../../types/Command";
 
 const getErrorElements: Command<
@@ -29,7 +29,7 @@ const getErrorElements: Command<
 		const itemFilters = new RuleProvider(ctx).getItemFilters();
 		const catalog = await workspace.getCatalog(catalogName, ctx);
 		const markdownElementsFilter = new MarkdownElementsFilter(
-			exportFormat === ExportFormat.docx ? exportedKeys : pdfExportedKeys,
+			exportFormat === ExportFormat.docx ? getExportedKeys() : getPdfExportedKeys(),
 		);
 		const unsupportedElements: UnsupportedElements[] = [];
 		const isCatalog = itemPath.toString() === "";
@@ -38,7 +38,7 @@ const getErrorElements: Command<
 			await parseContent(item as Article, catalog, ctx, parser, parserContextFactory);
 
 			const article = {
-				id: item.order.toString(),
+				id: item.order?.toString() || "0",
 				title: item.getTitle(),
 				link: await catalog.getPathname(item),
 			};
@@ -61,13 +61,13 @@ const getErrorElements: Command<
 		};
 
 		const getItemsToProcess = () => {
-			if (isCategory) {
-				const finishedItem = catalog.findItemByItemPath<Category>(itemPath);
-				return finishedItem ? [finishedItem] : [];
-			}
 			if (isCatalog) {
 				const rootCategory = resolveRootCategory(catalog, catalog.props, ctx.contentLanguage);
 				return rootCategory instanceof Category ? rootCategory.getFilteredItems(itemFilters, catalog) : [];
+			}
+			if (isCategory) {
+				const finishedItem = catalog.findItemByItemPath<Category>(itemPath);
+				return finishedItem ? [finishedItem] : [];
 			}
 			const finishedItem = catalog.findItemByItemPath<Article>(itemPath);
 			return finishedItem ? [finishedItem] : [];

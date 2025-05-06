@@ -15,13 +15,8 @@ import { Workspace } from "@ext/workspace/Workspace";
 class EnterpriseAuth implements UserRepositoryProvider, AuthProvider {
 	constructor(private _gesUrl: string, private _getCurrentWorkspace: () => Workspace) {}
 
-	async getUser(idOrMail: string): Promise<UserInfo> {
-		try {
-			const url = `${this._gesUrl}/enterprise/sso/get-user?userOrMail=${idOrMail}`;
-			return (await (await fetch(url)).json()) as UserInfo;
-		} catch (e) {
-			console.error(e);
-		}
+	getUser(): Promise<UserInfo> {
+		return;
 	}
 
 	login(req: ApiRequest, res: ApiResponse): Promise<void> | void {

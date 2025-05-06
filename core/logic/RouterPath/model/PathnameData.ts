@@ -11,6 +11,7 @@ interface BasePathnameData {
 	hash: string;
 	itemLogicPath: string[];
 	repNameItemLogicPath: string[];
+	isPublic: boolean;
 }
 
 type PathnameData = Partial<BasePathnameData>;

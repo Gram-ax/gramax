@@ -11,7 +11,8 @@ export default class ReloadConfirmMiddleware extends Middleware {
 	}
 
 	async Process(req: ApiRequest, response: ApiResponse): Promise<void> {
-		if (getExecutingEnvironment() === "next") return await this._next.Process(req, response);
+		if (getExecutingEnvironment() === "next" || getExecutingEnvironment() === "static")
+			return await this._next.Process(req, response);
 
 		window.addEventListener("beforeunload", onUnload);
 		try {

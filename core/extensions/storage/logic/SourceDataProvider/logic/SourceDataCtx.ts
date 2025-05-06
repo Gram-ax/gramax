@@ -62,6 +62,8 @@ export default class SourceDataCtx<T extends SourceData = SourceData> {
 
 	async assertValid(originalError?: Error) {
 		const api = makeSourceApi(this.raw, this._authServiceUrl);
+		if (!api) throw originalError;
+
 		const isValid = await api.isCredentialsValid();
 		if (this.isValid !== isValid) this._onAvailabilityChanged(this.raw, isValid);
 

@@ -39,12 +39,26 @@ export type DiffTree2TreeInfo = {
 	files: DiffTree2TreeFile[];
 };
 
+export type MergeMessageFormatOptions = {
+	theirs: string;
+	squash?: boolean;
+	maxCommits?: number;
+	isMergeRequest?: boolean;
+};
+
 export type DiffTree2TreeFile = {
 	path: Path;
 	oldPath: Path;
 	status: FileStatus;
 	added: number;
 	deleted: number;
+};
+
+export type MergeOptions = {
+	theirs: string;
+	deleteAfterMerge?: boolean;
+	squash?: boolean;
+	isMergeRequest?: boolean;
 };
 
 export type TransferProgress =
@@ -92,6 +106,11 @@ export type FileStat = {
 
 export type DirStat = { name: string } & FileStat;
 
+export type GcOptions = {
+	looseObjectsLimit?: number;
+	packFilesLimit?: number;
+};
+
 interface GitCommandsModel {
 	isInit(): Promise<boolean>;
 	isBare(): Promise<boolean>;
@@ -115,7 +134,8 @@ interface GitCommandsModel {
 	push(data: GitSourceData): Promise<void>;
 	fetch(data: GitSourceData, force?: boolean): Promise<void>;
 	checkout(ref: string, force?: boolean): Promise<void>;
-	merge(data: SourceData, theirs: string): Promise<MergeResult>;
+	merge(data: SourceData, opts: MergeOptions): Promise<MergeResult>;
+	formatMergeMessage(data: SourceData, opts: MergeMessageFormatOptions): Promise<string>;
 	restore(staged: boolean, filePaths: Path[]): Promise<void>;
 	diff(opts: DiffConfig): Promise<DiffTree2TreeInfo>;
 
@@ -156,6 +176,8 @@ interface GitCommandsModel {
 	readDirStats(dirPath: Path, scope: TreeReadScope): Promise<DirStat[]>;
 	fileStat(filePath: Path, scope: TreeReadScope): Promise<FileStat>;
 	fileExists(filePath: Path, scope: TreeReadScope): Promise<boolean>;
+
+	gc(opts: GcOptions): Promise<void>;
 }
 
 export default GitCommandsModel;

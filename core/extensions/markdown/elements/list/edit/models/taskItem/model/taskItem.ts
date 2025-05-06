@@ -1,7 +1,7 @@
 import TaskItem from "@tiptap/extension-task-item";
 
-const customTaskItem = TaskItem.configure({
+const CustomTaskItem = TaskItem.configure({
 	nested: true,
 });
 
-export default customTaskItem;
+export default CustomTaskItem;

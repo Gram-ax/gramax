@@ -41,7 +41,11 @@ export class Encoder {
 		const keyBuffer = this._getKeyByffer(accessToken);
 		const ivBuffer = Buffer.from(iv, "utf-8");
 
-		const cipher = crypto.createCipheriv(this._algorithm, keyBuffer, ivBuffer);
+		const cipher = crypto.createCipheriv(
+			this._algorithm as crypto.CipherGCMTypes,
+			keyBuffer as unknown as crypto.CipherKey,
+			ivBuffer as unknown as crypto.BinaryLike,
+		);
 		let encrypted = cipher.update(utf8String, "utf8", encoding);
 		encrypted += cipher.final(encoding);
 		return encrypted;
@@ -56,7 +60,11 @@ export class Encoder {
 		const keyBuffer = this._getKeyByffer(accessToken);
 		const ivBuffer = Buffer.from(base64iv, encoding);
 
-		const decipher = crypto.createDecipheriv(this._algorithm, keyBuffer, ivBuffer);
+		const decipher = crypto.createDecipheriv(
+			this._algorithm as crypto.CipherGCMTypes,
+			keyBuffer as unknown as crypto.CipherKey,
+			ivBuffer as unknown as crypto.BinaryLike,
+		);
 		let decrypted = decipher.update(base64String, encoding, "utf8");
 		decrypted += decipher.final("utf8");
 		return decrypted;

@@ -138,22 +138,21 @@ const Image = forwardRef((props: ImageProps, ref?: MutableRefObject<HTMLImageEle
 			const viewRect = view.getBoundingClientRect();
 			const windowWidth = window.innerWidth;
 			const windowHeight = window.innerHeight;
+			const maxViewWidth = windowWidth * 0.8;
+			const maxViewHeight = windowHeight * 0.8;
 
-			if (view.nodeName !== "DIV" && viewRect.width < windowWidth * 0.3 && viewRect.height < windowHeight * 0.3) {
+			if (view.nodeName !== "DIV" && viewRect.width < maxViewWidth && viewRect.height < maxViewHeight) {
 				container.style.scale = "1";
 				container.setAttribute("data-scale", "1");
 				return;
 			}
 
-			const scaleWidth = ((window.innerWidth / 100) * 80) / view.offsetWidth;
-			const scaleHeight = ((window.innerHeight / 100) * 80) / view.offsetHeight;
+			const scaleWidth = maxViewWidth / view.offsetWidth;
+			const scaleHeight = maxViewHeight / view.offsetHeight;
 			const newScale = Math.min(scaleWidth, scaleHeight);
 
-			const minScale = 0.5;
-			const finalScale = Math.max(newScale, minScale);
-
-			container.style.scale = `${finalScale}`;
-			container.setAttribute("data-scale", `${finalScale}`);
+			container.style.scale = `${newScale}`;
+			container.setAttribute("data-scale", `${newScale}`);
 		};
 
 		const element = document.createElement(svg ? "div" : "img");

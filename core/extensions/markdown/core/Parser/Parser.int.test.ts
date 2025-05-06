@@ -20,19 +20,26 @@ describe("MarkdownParser", () => {
 
 	describe("правильно преобразует компонент", () => {
 		for (const [key, value] of Object.entries(MarkdownTestData)) {
-			value.forEach((obj: { text: string; renderTree: any; html: string }, idx: number) => {
-				describe(`${key} №${idx + 1} в`, () => {
-					test("renderTree", async () => {
-						const { renderTree } = await getComponentRenderTreeAndHTML(obj.text);
-						expect(renderTree).toEqual(obj.renderTree);
-					});
+			value.forEach(
+				(obj: { text: { legacy: string; xml: string }; renderTree: any; html: string }, idx: number) => {
+					describe(`${key} №${idx + 1} в`, () => {
+						test("renderTree из legacy", async () => {
+							const { renderTree } = await getComponentRenderTreeAndHTML(obj.text.legacy);
+							expect(renderTree).toEqual(obj.renderTree);
+						});
 
-					test("HTML", async () => {
-						const { html } = await getComponentRenderTreeAndHTML(obj.text);
-						expect(html).toEqual(obj.html);
+						test("renderTree из xml", async () => {
+							const { renderTree } = await getComponentRenderTreeAndHTML(obj.text.xml);
+							expect(renderTree).toEqual(obj.renderTree);
+						});
+
+						test("HTML", async () => {
+							const { html } = await getComponentRenderTreeAndHTML(obj.text.legacy);
+							expect(html).toEqual(obj.html);
+						});
 					});
-				});
-			});
+				},
+			);
 		}
 	});
 });

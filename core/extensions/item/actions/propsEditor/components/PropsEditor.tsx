@@ -69,6 +69,7 @@ const PropsEditor = (props: PropsEditorProps) => {
 		const editor = EditorService.getEditor();
 		itemLink.title = itemProps.title;
 		setItemLink({ ...itemLink });
+		// ArticlePropsService.set(itemProps);
 
 		if (editor) {
 			const header = editor.view.dom.firstChild as HTMLParagraphElement;

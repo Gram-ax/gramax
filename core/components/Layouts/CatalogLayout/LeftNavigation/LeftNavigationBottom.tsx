@@ -17,11 +17,11 @@ const LeftNavigationBottom = ({ data, closeNavigation }: { data: ArticlePageData
 	const catalogProps = CatalogPropsService.value;
 	const isCatalogExist = !!catalogProps.name;
 	const leftNavIsOpen = SidebarsIsOpenService.value.left;
-	const leftNavTrEndIsOpen = SidebarsIsOpenService.transitionEndIsLeftOpen;
 	const mediumMedia = useMediaQuery(cssMedia.JSmedium);
 	const isStorageInitialized = useIsStorageInitialized();
 	const workspacePath = WorkspaceService.current().path;
-	const { isNext } = usePlatform();
+	const { isNext, isStatic, isStaticCli } = usePlatform();
+	const isStaticOrStaticCli = isStatic || isStaticCli;
 
 	const canEditContentCatalog = PermissionService.useCheckPermission(
 		editCatalogContentPermission,
@@ -35,33 +35,22 @@ const LeftNavigationBottom = ({ data, closeNavigation }: { data: ArticlePageData
 	);
 
 	const canSeeStatusBar =
-		(isNext && canConfigureCatalog) || (!isNext && (canEditContentCatalog || !catalogProps.sourceName));
-
-	const getPaddingTop = (): string => {
-		if (leftNavIsOpen) return "0";
-		if (!leftNavIsOpen && leftNavTrEndIsOpen) return "0";
-		if (!leftNavIsOpen && !leftNavTrEndIsOpen) return "70px";
-	};
-
-	const getHeight = (): number => {
-		if (leftNavIsOpen) return 34;
-		if (!leftNavIsOpen && leftNavTrEndIsOpen) return 34;
-		if (!leftNavIsOpen && !leftNavTrEndIsOpen) return 34 + 70;
-	};
+		!isStaticOrStaticCli &&
+		((isNext && canConfigureCatalog) || (!isNext && (canEditContentCatalog || !catalogProps.sourceName)));
 
 	return (
 		<div data-qa="qa-status-bar">
 			<ExtensionBarLayout
-				height={getHeight()}
+				height={34}
 				padding={{
-					top: getPaddingTop(),
 					left: leftNavIsOpen ? "14px" : "0",
 					right: leftNavIsOpen ? "14px" : "6px",
+					bottom: "0px",
 				}}
 				leftExtensions={
 					isCatalogExist ? [<CreateArticle root={data.rootRef} key={0} onCreate={closeNavigation} />] : null
 				}
-				rightExtensions={mediumMedia ? null : [<PinToggleArrowIcon key={0} />]}
+				rightExtensions={mediumMedia ? null : [<PinToggleArrowIcon key={1} />]}
 			/>
 			{canSeeStatusBar && isCatalogExist && (
 				<ArticleStatusBar

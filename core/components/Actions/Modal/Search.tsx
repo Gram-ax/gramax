@@ -6,6 +6,7 @@ import Url from "@core-ui/ApiServices/Types/Url";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import CatalogPropsService from "@core-ui/ContextServices/CatalogProps";
 import IsMacService from "@core-ui/ContextServices/IsMac";
+import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import SearchQueryService from "@core-ui/ContextServices/SearchQuery";
 import debounceFunction from "@core-ui/debounceFunction";
 import { cssMedia } from "@core-ui/utils/cssUtils";
@@ -25,11 +26,13 @@ import Link from "../../Atoms/Link";
 import Breadcrumb from "../../Breadcrumbs/LinksBreadcrumb";
 import ModalLayout from "../../Layouts/Modal";
 import ModalLayoutLight from "../../Layouts/ModalLayoutLight";
+import { ChatResponse } from "@ics/gx-vector-search/dist/apiClient/requestTypes/chat";
 // import Path from "../../../logic/FileProvider/Path/Path";
 // import RouterPathProvider from "@core/RouterPath/RouterPathProvider";
 
 const DEBOUNCE_DELAY = 400;
 const SEARCH_SYMBOL = Symbol();
+const SEARCH_CHAT_PREFIX = "ии!";
 
 export interface SearchProps {
 	isHomePage: boolean;
@@ -47,6 +50,7 @@ const Search = (props: SearchProps) => {
 	const isOpenModal = IsOpenModalService.value;
 	const apiUrlCreator = ApiUrlCreatorService.value;
 	const catalogName = CatalogPropsService.value?.name;
+	const vectorSearchEnabled = PageDataContextService.value.conf.search?.vector.enabled ?? false;
 	const isCatalogExist = !!catalogName;
 
 	const narrowMedia = useMediaQuery(cssMedia.JSnarrow);
@@ -58,9 +62,10 @@ const Search = (props: SearchProps) => {
 
 	const [focusId, setFocusId] = useState(0);
 	const [isOpen, setIsOpen] = useState(false);
-	const [data, setData] = useState<SearchItem[]>(null);
+	const [data, setData] = useState<{ type: "search", searchData: SearchItem[] } | { type: "chat", chatData: ChatResponse }>(null);
 	const [cursorFlaf, setCursorFlaf] = useState(true);
 	const [searchAll, setSearchAll] = useState(isHomePage);
+	const [vectorSearch, setVectorSearch] = useState(false);
 	const homePageBreadcrumbDatas: CatalogLink[] = [];
 	const articleBreadcrumbDatas: { titles: string[]; links: CategoryLink[] }[] = [];
 
@@ -76,7 +81,7 @@ const Search = (props: SearchProps) => {
 			setSearchAll(!searchAll);
 			return;
 		}
-		if (isOpen && data && data.length) {
+		if (isOpen && data && data.type === "search" && data.searchData.length) {
 			if (e.code === "ArrowUp") {
 				setCursorFlaf(false);
 				if (focusId !== 0) setFocusId(focusId - 1);
@@ -84,7 +89,7 @@ const Search = (props: SearchProps) => {
 			}
 			if (e.code === "ArrowDown") {
 				setCursorFlaf(false);
-				if (focusId !== data.length - 1) setFocusId(focusId + 1);
+				if (focusId !== data.searchData.length - 1) setFocusId(focusId + 1);
 				focusRef.current.scrollIntoView({ inline: "center", block: "nearest", behavior: "smooth" });
 			}
 			if (e.code === "Enter") {
@@ -96,7 +101,7 @@ const Search = (props: SearchProps) => {
 	};
 
 	const setHeight = () => {
-		if (blockRef.current) blockRef.current.style.height = query && (!data || !data.length) ? "193.59px" : "";
+		if (blockRef.current) blockRef.current.style.height = query && (!data || (data.type === "search" && !data.searchData.length)) ? "193.59px" : "";
 		if (document && responseRef.current && itemsResponseRef.current) {
 			responseRef.current.style.height = `${document.body.clientHeight}px`;
 			const blockHeight = itemsResponseRef.current.clientHeight + 104;
@@ -105,9 +110,9 @@ const Search = (props: SearchProps) => {
 		}
 	};
 
-	if (data && data.length) {
+	if (data?.type === "search" && data.searchData.length) {
 		if (isHomePage) {
-			data.forEach((d) => {
+			data.searchData.forEach((d) => {
 				const url = new Path(d.url);
 				const isNewPath = RouterPathProvider.isEditorPathname(url);
 				const catalogName = isNewPath
@@ -116,7 +121,7 @@ const Search = (props: SearchProps) => {
 				homePageBreadcrumbDatas.push(catalogLinks.find((link) => link.name === catalogName));
 			});
 		} else {
-			data.forEach((d) => {
+			data.searchData.forEach((d) => {
 				const search = (itemLinks: ItemLink[], catLinks: CategoryLink[]) => {
 					itemLinks.forEach((link) => {
 						if (!d.url.includes(link.pathname)) return;
@@ -139,12 +144,31 @@ const Search = (props: SearchProps) => {
 
 	const loadData = async (query: string) => {
 		if (!query) return;
+		if (vectorSearchEnabled && query.startsWith(SEARCH_CHAT_PREFIX)) {
+			await loadChatData(query.substring(SEARCH_CHAT_PREFIX.length));
+			return;
+		}
 		const res = await FetchService.fetch<SearchItem[]>(
-			apiUrlCreator.getSearchDataUrl(query, searchAll ? null : catalogName),
+			apiUrlCreator.getSearchDataUrl(query, searchAll ? null : catalogName, vectorSearch ? "vector" : null),
 		);
 		if (!res.ok) return;
-		setData(await res.json());
+		setData({
+			type: "search",
+			searchData: await res.json()
+		});
 	};
+
+	const loadChatData = async (query: string) => {
+		if (!query) return;
+		const res = await FetchService.fetch<ChatResponse>(
+			apiUrlCreator.getSearchChatUrl(query, searchAll ? null : catalogName),
+		);
+		if (!res.ok) return;
+		setData({
+			type: "chat",
+			chatData: await res.json()
+		});
+	}
 
 	useEffect(() => {
 		setHeight();
@@ -163,6 +187,12 @@ const Search = (props: SearchProps) => {
 			blockRef.current.dispatchEvent(new MouseEvent("mousedown", { bubbles: true }));
 		}
 	}, [blockRef.current, isOpen, isHomePage]);
+
+	useEffect(() => {
+		if (vectorSearchEnabled && query.startsWith(SEARCH_CHAT_PREFIX)) return;
+		setData(null);
+		loadData(query);
+	}, [searchAll, vectorSearch]);
 
 	return (
 		<ModalLayout
@@ -188,7 +218,7 @@ const Search = (props: SearchProps) => {
 				/>
 			}
 		>
-			<div style={{ height: "100%" }} data-qa={`search-modal`}>
+			<div style={{ height: "100%", display: "flex", justifyContent: "center" }} data-qa={`search-modal`}>
 				<div ref={blockRef} className={className + " modal"}>
 					<ModalLayoutLight className="layer-two block-elevation-2">
 						<div className="search-form form block-elevation-3">
@@ -203,7 +233,12 @@ const Search = (props: SearchProps) => {
 										const query = e.target.value;
 										SearchQueryService.value = query;
 										setData(null);
-										debounceFunction(SEARCH_SYMBOL, () => loadData(query), DEBOUNCE_DELAY);
+										let debounceDelay = DEBOUNCE_DELAY;
+										if (vectorSearchEnabled && query.startsWith(SEARCH_CHAT_PREFIX)) {
+											// Чтобы не отправлять лишние запросы
+											debounceDelay *= 2;
+										}
+										debounceFunction(SEARCH_SYMBOL, () => loadData(query), debounceDelay);
 									}}
 									placeholder={t("search.placeholder")}
 									data-qa={t("search.placeholder")}
@@ -243,14 +278,39 @@ const Search = (props: SearchProps) => {
 											<Icon isLoading style={{ marginRight: "var(--distance-i-span)" }} />
 											<span>{t("loading")}</span>
 										</div>
-									) : !data.length ? (
+									) : data.type === "search" && !data.searchData.length ? (
 										<div className="msg empty">
 											<Icon code="circle-slash-2" />
 											<span>{t("search.articles-not-found")}</span>
 										</div>
 									) : (
 										<div ref={itemsResponseRef}>
-											{data?.map((d, id) => (
+											{data.type === "chat" ? (
+												<div className="item">
+													<div style={{ overflow: "hidden" }}>
+														<div className="item-title" data-qa="qa-clickable">
+															<div className="title-text">
+																<span>AI</span>
+															</div>
+														</div>
+
+														<div className="excerpt">
+															<div style={{ whiteSpace: "pre-wrap" }}>
+																{!data.chatData ? (
+																	t("app.error.command-failed.title")
+																) : data.chatData.items?.map((x) => {
+																	switch (x.type) {
+																		case "text":
+																			return x.text;
+																		case "link":
+																			return (<Link onClick={() => setIsOpen(false)} href={Url.from({ pathname: x.link })}>{t("source")}</Link>)
+																	}
+																})}
+															</div>
+														</div>
+													</div>
+											</div>
+											) : data.searchData.map((d, id) => (
 												<Link
 													key={id}
 													onClick={() => setIsOpen(false)}
@@ -331,12 +391,23 @@ const Search = (props: SearchProps) => {
 									className="all-catalogs-checkbox"
 									checked={searchAll}
 									onChange={(isChecked) => {
-										setData(null);
-										loadData(query);
 										setSearchAll(isChecked);
 									}}
 								>
 									<p>{t("search.all-catalogs")}</p>
+								</Checkbox>
+							</div>
+						)}
+						{!vectorSearchEnabled ? null : (
+							<div className="vectorSearch">
+								<Checkbox
+									className="vector-search-checkbox"
+									checked={vectorSearch}
+									onChange={(isChecked) => {
+										setVectorSearch(isChecked);
+									}}
+								>
+									<p>{t("search.vector-search")}</p>
 								</Checkbox>
 							</div>
 						)}
@@ -383,6 +454,7 @@ const Search = (props: SearchProps) => {
 };
 
 export default styled(Search)`
+	width: min(100%, var(--medium-form-width));
 	height: 180px;
 	transition: all 0.3s;
 
@@ -555,10 +627,12 @@ export default styled(Search)`
 			}
 		}
 
-		.searchAll {
+		.searchAll,
+		.vectorSearch {
 			gap: 0.3rem;
 			display: flex;
 			align-items: center;
+			align-self: center;
 
 			.text {
 				gap: 0.1rem;

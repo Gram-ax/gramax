@@ -12,7 +12,9 @@ const getCloneProgress: Command<{ path: Path }, CloneProgress> = Command.create(
 	middlewares: [new AuthorizeMiddleware()],
 
 	do({ path }) {
-		return this._app.rp.getCloneProgress(path);
+		const { wm } = this._app;
+		const workspace = wm.current().path();
+		return this._app.rp.getCloneProgress(new Path(workspace).join(path));
 	},
 
 	params(_, q, body) {

@@ -76,6 +76,7 @@ export default class Navigation implements HasEvents<NavigationEvents> {
 			description: catalog.props[navProps.description] ?? null,
 			order: catalog.props[navProps.order] ?? 999999,
 			isCloning: catalog.props?.isCloning ?? false,
+			redirectOnClone: catalog.props?.redirectOnClone ?? null,
 		};
 
 		const filter = await this.events.emit("filter-catalog", { entry: catalog, link });

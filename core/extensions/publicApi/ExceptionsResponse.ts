@@ -9,13 +9,20 @@ import SecurityRules from "@ext/security/logic/SecurityRules";
 enum errorTitle {
 	NotFound = "404 Not Found",
 	Forbidden = "403 Forbidden",
+	Unauthorized = "401 Unauthorized",
 }
+
+const validataionTokenErrorMessages = {
+	"Invalid token": "Invalid token. Please provide a valid authentication token.",
+	"Token has expired": "Token has expired. Please refresh your token.",
+};
 
 class ExceptionsResponse {
 	private _hidenFilter: ItemFilter;
 	private _securityFilter: ItemFilter;
 
-	constructor(private _res: ApiResponse, context: Context) {
+	constructor(private _res: ApiResponse, context?: Context) {
+		if (!context) return;
 		this._hidenFilter = new HiddenRules(null).getItemFilter();
 		this._securityFilter = new SecurityRules(context.user).getItemFilter();
 	}
@@ -49,7 +56,7 @@ class ExceptionsResponse {
 			this._res.statusCode = 404;
 			const response = {
 				error: errorTitle.NotFound,
-				message: `Article with id '${articleId}' not found in catalog '${catalogId}'`,
+				message: `Article with id '${articleId}' not found in catalog '${catalogId}'.`,
 			};
 			this._res.send(response);
 			return true;
@@ -70,10 +77,19 @@ class ExceptionsResponse {
 		this._res.statusCode = 404;
 		const response = {
 			error: errorTitle.NotFound,
-			message: `Resource with path '${resourcePath}' not found for article '${articleId}' in catalog '${catalogId}'`,
+			message: `Resource with path '${resourcePath}' not found for article '${articleId}' in catalog '${catalogId}'.`,
 		};
 		this._res.send(response);
 		return true;
+	}
+
+	getValidataionTokenException(message: string) {
+		this._res.statusCode = 401;
+		const response = {
+			error: errorTitle.Unauthorized,
+			message: validataionTokenErrorMessages[message],
+		};
+		this._res.send(response);
 	}
 }
 

@@ -10,9 +10,7 @@ export default class MdParser {
 	private _removeCommentsRegExp: RegExp;
 	private _includeRegExp: RegExp;
 	private _formulaRegExp: RegExp;
-	private _quotesRegExp: RegExp;
 	private _squareRegExp: RegExp;
-	private _noteRegExp: RegExp;
 	private _arrowRegExp: RegExp;
 	private _dashRegExp: RegExp;
 	private _idRegExp: RegExp;
@@ -30,9 +28,6 @@ export default class MdParser {
 	private _findInlineCodeToIgnore = "`{1,2}[^`].*?`{1,2}";
 	private _findBlockCodeToIgnore = "```[^(```)]*?```[^(```)]*?```\n\r?```|```[\\s\\S]*?```[s]?|\\\\.";
 	private _findHtmlToIgnore = "\\[html.*][\\s\\S]*?\\[\\/html\\]";
-	private _findImageToIgnore = String.raw`!\[[^\]]*\]\(.*\)`;
-	private _findBracesAndSquareBracketsToIgnore = String.raw`[\[{][^]*?[\]}]`;
-	private _findTableCellToIgnore = String.raw`{%[^}]*%}`;
 
 	constructor(preParserOptions: MdParserOptions = null) {
 		this._tags = preParserOptions?.tags ?? {};
@@ -44,15 +39,7 @@ export default class MdParser {
 			String.raw`{\s?.*?\s?}|(\${1}[^\$].*?\${1})|(\${2}[^\$].*?\${2})`,
 		);
 		this._squareRegExp = this._createIgnoreRegExp(String.raw`\[(.*?)\]`);
-		this._quotesRegExp = this._createIgnoreRegExp(
-			String.raw`("[^]*?")`,
-			this._findImageToIgnore,
-			this._findBracesAndSquareBracketsToIgnore,
-		);
 		this._arrowRegExp = this._createIgnoreRegExp(String.raw`\\-->|[^\\\r\n]?(-->)`);
-		this._noteRegExp = this._createIgnoreRegExp(
-			String.raw`:::([^\s:]*)(?::(true|false))? *([^\r\n]*)\r?\n([\s\S]*?\n[\t\s]*?):::|image:\S*?:::.*?:`,
-		);
 		this._dashRegExp = this._createIgnoreRegExp(String.raw`.?-->.?|\\--|.?--[-]+|[^\\\n\r]?(--)`);
 		this._idRegExp = this._createIgnoreRegExp(String.raw`[[{] ?(#.*?) ?[\]}]`);
 		this._brRegExp = this._createIgnoreRegExp(String.raw`(<br>|<br\/>)`);
@@ -72,10 +59,8 @@ export default class MdParser {
 	preParse(content: string): string {
 		content = this._removeComments(content);
 		content = this._tableParser(content);
-		content = this._quotesParser(content);
 		content = this._includeParse(content);
 		content = this._idParser(content);
-		content = this._notesParser(content);
 		content = this._dashArrowParser(content);
 		content = this._squareBracketsParser(content);
 		content = this._formulaParser(content);
@@ -106,13 +91,15 @@ export default class MdParser {
 	}
 
 	private _emptyParagraphParser(content: string): string {
-		return content.replaceAll(this._emptyParagraphRegExp, (str: string, match: string) => {
+		content = "\n\n" + content;
+		content = content.replaceAll(this._emptyParagraphRegExp, (str: string, match: string) => {
 			if (!match) return str;
 			const emptyParagraphsCounter = (match.split("\n").length - 2) / 2;
 			const res: string[] = [];
 			for (let i = 1; i <= emptyParagraphsCounter; i++) res.push("\n\n&nbsp;");
 			return str.replace(match, res.join("") + "\n\n");
 		});
+		return content.replace(/^\n\n/, "");
 	}
 
 	private _escapeDoubleQuotes(content: string): string {
@@ -143,26 +130,6 @@ export default class MdParser {
 	private _brParser(content: string): string {
 		return content.replaceAll(this._brRegExp, (str: string, match: string) =>
 			match ? this._parse(["br"], this._tags.br) : str,
-		);
-	}
-
-	private _quotesParser(content: string): string {
-		return content.replaceAll(this._quotesRegExp, (str: string, match: string) => {
-			return match ? `«${match.slice(1, match.length - 1)}»` : str;
-		});
-	}
-
-	private _notesParser(content: string): string {
-		return content.replace(
-			this._noteRegExp,
-			(str: string, type: string, collapsed = "false", title: string, children: string) => {
-				if (typeof type !== "string") return str;
-
-				return `${this._parse(
-					[this._tags.note.render, type, title, collapsed],
-					this._tags.note,
-				)}\n${children}${this._parseClose(this._tags.note.render)}`;
-			},
 		);
 	}
 
@@ -234,7 +201,6 @@ export default class MdParser {
 
 	private _createIgnoreRegExp(reg: string, ...additionalIgnore: string[]): RegExp {
 		const commonString = [
-			this._findTableCellToIgnore,
 			this._findInlineCodeToIgnore,
 			this._findBlockCodeToIgnore,
 			this._findHtmlToIgnore,

@@ -9,6 +9,8 @@ global.window = {
 	cancelAnimationFrame,
 };
 
+global.VITE_ENVIRONMENT = "test";
+
 if (!process.env.DEBUG_JEST) {
 	global.console = {
 		...console,

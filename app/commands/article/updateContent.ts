@@ -26,7 +26,7 @@ const updateContent: Command<{ ctx: Context; articlePath: Path; catalogName: str
 			const article = catalog.findItemByItemPath<Article>(articlePath);
 			if (!article) return;
 
-			const context = parserContextFactory.fromArticle(
+			const context = await parserContextFactory.fromArticle(
 				article,
 				catalog,
 				convertContentToUiLanguage(ctx.contentLanguage || catalog.props.language),

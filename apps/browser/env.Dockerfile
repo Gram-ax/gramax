@@ -5,7 +5,7 @@ WORKDIR /src
 COPY ./package.json ./package-lock.json ./
 COPY  ./apps/browser/package.json ./apps/browser/
 
-RUN npm ci
+RUN npm ci -f
 
 FROM deps AS build
 

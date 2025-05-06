@@ -1,13 +1,14 @@
 import { Editor } from "@tiptap/core";
+import { editName as blockFieldEditName } from "@ext/markdown/elements/blockContentField/consts";
 
 export const readyToPlace = (editor: Editor, nodeName: string, additional?: string[]) => {
-	const { nodeReadyToPlace } = test(editor, nodeName, additional ?? []);
+	const { nodeReadyToPlace } = test(editor, nodeName, [...(additional ?? []), blockFieldEditName]);
 
 	return nodeReadyToPlace;
 };
 
 export const stopExecution = (editor: Editor, nodeName: string, additional?: string[]) => {
-	const { nodeReadyToToggle, nodeReadyToPlace } = test(editor, nodeName, additional ?? []);
+	const { nodeReadyToToggle, nodeReadyToPlace } = test(editor, nodeName, [...(additional ?? []), blockFieldEditName]);
 
 	return !nodeReadyToToggle && !nodeReadyToPlace;
 };

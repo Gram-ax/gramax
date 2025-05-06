@@ -5,26 +5,38 @@ import { BASE_CONFIG, TABLE_STYLE } from "@ext/pdfExport/config";
 import { ContentTable } from "pdfmake/interfaces";
 import { isTag } from "@ext/pdfExport/utils/isTag";
 import { NodeOptions, pdfRenderContext } from "@ext/pdfExport/parseNodesPDF";
+import { JSONContent } from "@tiptap/core";
 
-export async function tableCase(node: Tag, context: pdfRenderContext, options: NodeOptions): Promise<ContentTable> {
-	const content = node.children || [];
-	const thead = content.find((row) => isTag(row) && row.name === "thead") as Tag | undefined;
-	const tbody = content.find((row) => isTag(row) && row.name === "tbody") as Tag | undefined;
+export async function tableCase(
+	node: Tag | JSONContent,
+	context: pdfRenderContext,
+	options: NodeOptions,
+): Promise<ContentTable> {
+	const content = ("children" in node ? node.children : node.content) || [];
+
+	const thead = content.find(
+		(row) =>
+			(isTag(row) && row.name === "thead") || (typeof row === "object" && "type" in row && row.type === "thead"),
+	);
+	const tbody = content.find(
+		(row) =>
+			(isTag(row) && row.name === "tbody") || (typeof row === "object" && "type" in row && row.type === "tbody"),
+	);
 
 	let body: TableBody = [];
 	let widths: (number | string)[] = [];
 
 	if (thead && tbody) {
-		const theadRows = await parseTable((thead.children as Tag[]) || [], context, options);
-		const tbodyRows = await parseTable((tbody.children as Tag[]) || [], context, options);
+		const theadChildren = "children" in thead ? thead.children : thead.content;
+		const tbodyChildren = "children" in tbody ? tbody.children : tbody.content;
+
+		const theadRows = await parseTable(theadChildren as Tag[], context, options);
+		const tbodyRows = await parseTable(tbodyChildren as Tag[], context, options);
 		body = [...theadRows.body, ...tbodyRows.body];
 		widths = [...theadRows.widths];
 	} else if (tbody) {
-		const { body: tbodyRows, widths: tbodyWidths } = await parseTable(
-			(tbody.children as Tag[]) || [],
-			context,
-			options,
-		);
+		const tbodyChildren = "children" in tbody ? tbody.children : tbody.content;
+		const { body: tbodyRows, widths: tbodyWidths } = await parseTable(tbodyChildren, context, options);
 		body = tbodyRows;
 		widths = tbodyWidths;
 	} else {

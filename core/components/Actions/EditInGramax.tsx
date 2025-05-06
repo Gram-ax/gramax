@@ -1,8 +1,8 @@
-import { getExecutingEnvironment } from "@app/resolveModule/env";
 import Button, { TextSize } from "@components/Atoms/Button/Button";
 import { ButtonStyle } from "@components/Atoms/Button/ButtonStyle";
 import IconLink from "@components/Molecules/IconLink";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
+import { usePlatform } from "@core-ui/hooks/usePlatform";
 import ErrorConfirmService from "@ext/errorHandlers/client/ErrorConfirmService";
 import DefaultError from "@ext/errorHandlers/logic/DefaultError";
 import t from "@ext/localization/locale/translate";
@@ -101,7 +101,8 @@ const editInGramaxComponents = {
 };
 
 const EditInGramax = ({ pathname, articlePath }: { pathname: string; articlePath: string }) => {
-	return editInGramaxComponents[getExecutingEnvironment()]({ pathname, articlePath });
+	const { environment } = usePlatform();
+	return editInGramaxComponents[environment]({ pathname, articlePath });
 };
 
 export default EditInGramax;

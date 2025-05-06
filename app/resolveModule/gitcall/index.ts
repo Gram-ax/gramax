@@ -1,30 +1,58 @@
-let call: typeof NextCall | typeof TauriCall | typeof WasmCall;
-/// #if VITE_ENVIRONMENT == "browser"
-// #v-ifdef VITE_ENVIRONMENT='browser'
-import { callGitWasm as WasmCall } from "./wasm";
-call = WasmCall;
-/// #endif
-// #v-endif
+import { getExecutingEnvironment } from "@app/resolveModule/env";
 
-/// #if VITE_ENVIRONMENT == "next"
-// #v-ifdef VITE_ENVIRONMENT='next'
-import { call as NextCall } from "./next";
-call = NextCall;
-// #v-endif
-/// #endif
+type GitCallFn = <O>(command: string, args?: any) => Promise<O>;
 
-/// #if VITE_ENVIRONMENT == "tauri"
-// #v-ifdef VITE_ENVIRONMENT='tauri'
-import { call as TauriCall } from "./tauri";
-call = TauriCall;
-// #v-endif
-/// #endif
+let init: Promise<void> | null = null;
+let call: GitCallFn = null;
 
-/// #if VITE_ENVIRONMENT == "jest"
-// #v-ifdef VITE_ENVIRONMENT='jest'
-import { call as JestCall } from "./next";
-call = JestCall;
-// #v-endif
-/// #endif
+export const initGitCall = async (): Promise<void> => {
+	if (init as any) return init;
 
-export default call;
+	init = (async () => {
+		const environment = getExecutingEnvironment();
+
+		switch (environment) {
+			case "browser":
+				const { callGitWasm } = await import("./wasm");
+				call = callGitWasm;
+				break;
+
+			case "next":
+				const { call: nextCall } = await import("./next");
+				call = nextCall;
+				break;
+
+			case "tauri":
+				const { call: tauriCall } = await import("./tauri");
+				call = tauriCall;
+				break;
+
+			case "test":
+				const { call: testCall } = await import("./next");
+				call = testCall;
+				break;
+
+			case "static":
+				const { call: staticCall } = await import("./static");
+				call = staticCall;
+				break;
+
+			case "cli":
+				const { call: cliCall } = await import("./cli");
+				call = cliCall;
+				break;
+
+			default:
+				throw new Error(`unsupported env: ${environment}`);
+		}
+	})();
+
+	return init;
+};
+
+const resolveCall = async <O>(command: string, args?: any): Promise<O> => {
+	await initGitCall();
+	return call<O>(command, args);
+};
+
+export default resolveCall;

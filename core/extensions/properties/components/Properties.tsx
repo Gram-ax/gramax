@@ -3,20 +3,20 @@ import MimeTypes from "@core-ui/ApiServices/Types/MimeTypes";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import ArticlePropsService from "@core-ui/ContextServices/ArticleProps";
 import styled from "@emotion/styled";
-import { Property as PropertyType, PropertyValue } from "@ext/properties/models";
-import { useCallback, useMemo, CSSProperties } from "react";
+import { Property } from "@ext/properties/models";
+import { useCallback, useMemo, CSSProperties, Dispatch, SetStateAction } from "react";
 import PropertyArticle from "@ext/properties/components/Helpers/PropertyArticle";
 import combineProperties from "@ext/properties/logic/combineProperties";
 import useWatch from "@core-ui/hooks/useWatch";
-import Property from "@ext/properties/components/Property";
+import PropertyComponent from "@ext/properties/components/Property";
 import AddProperty from "@ext/properties/components/Helpers/AddProperty";
 import Chip from "@components/Atoms/Chip";
 import PropertyServiceProvider from "@ext/properties/components/PropertyService";
 import { deleteProperty, updateProperty } from "@ext/properties/logic/changeProperty";
 
 interface PropertiesProps {
-	properties: PropertyType[] | PropertyValue[];
-	setProperties: (properties: PropertyType[] | PropertyValue[]) => void;
+	properties: Property[];
+	setProperties: Dispatch<SetStateAction<Property[]>>;
 	className?: string;
 	style?: CSSProperties;
 }
@@ -38,30 +38,38 @@ const Properties = ({ className, style, properties, setProperties }: PropertiesP
 
 	const deleteHandler = useCallback(
 		(id: string) => {
-			const newProps = deleteProperty(id, properties);
-			setProperties(combineProperties(newProps, Array.from(catalogProperties.values())));
-			FetchService.fetch(
-				apiUrlCreator.updateItemProps(),
-				JSON.stringify({ ...articleProps, properties: newProps }),
-				MimeTypes.json,
-			);
+			setProperties((prevProps: Property[]) => {
+				const newProps = deleteProperty(id, prevProps) as Property[];
+				if (!newProps) return prevProps;
+
+				FetchService.fetch(
+					apiUrlCreator.updateItemProps(),
+					JSON.stringify({ ...articleProps, properties: newProps }),
+					MimeTypes.json,
+				);
+
+				return combineProperties(newProps, Array.from(catalogProperties.values()));
+			});
 		},
-		[articleProps, properties],
+		[articleProps, properties, catalogProperties],
 	);
 
 	const updateHandler = useCallback(
 		(id: string, value?: string) => {
-			const newProps = updateProperty(id, value, catalogProperties, properties);
-			if (!newProps) return;
+			setProperties((prevProps: Property[]) => {
+				const newProps = updateProperty(id, value, catalogProperties, prevProps);
+				if (!newProps) return prevProps;
 
-			setProperties(combineProperties(newProps, Array.from(catalogProperties.values())));
-			FetchService.fetch(
-				apiUrlCreator.updateItemProps(),
-				JSON.stringify({ ...articleProps, properties: newProps }),
-				MimeTypes.json,
-			);
+				FetchService.fetch(
+					apiUrlCreator.updateItemProps(),
+					JSON.stringify({ ...articleProps, properties: newProps }),
+					MimeTypes.json,
+				);
+
+				return combineProperties(newProps, Array.from(catalogProperties.values()));
+			});
 		},
-		[properties, catalogProperties],
+		[articleProps, properties, catalogProperties],
 	);
 
 	const onSubmit = useCallback(
@@ -79,11 +87,11 @@ const Properties = ({ className, style, properties, setProperties }: PropertiesP
 				property={property}
 				onSubmit={onSubmit}
 				trigger={
-					<Property
+					<PropertyComponent
 						key={property.name}
 						type={property.type}
 						icon={property.icon}
-						value={property.value ? property.value : property.name}
+						value={property.value?.length ? property.value : property.name}
 						name={property.name}
 						propertyStyle={property.style}
 					/>

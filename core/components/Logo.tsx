@@ -1,17 +1,19 @@
 import Url from "@core-ui/ApiServices/Types/Url";
 import CatalogPropsService from "@core-ui/ContextServices/CatalogProps";
+import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import { cssMedia } from "@core-ui/utils/cssUtils";
 import styled from "@emotion/styled";
 import Link from "./Atoms/Link";
-import { CatalogLogo } from "./CatalogLogo";
+import { ActionLogo, CatalogLogo } from "./CatalogLogo";
 
 const Logo = ({ className }: { className?: string; imageUrl?: string }) => {
 	const catalogProps = CatalogPropsService.value;
+	const pageData = PageDataContextService.value;
 
 	return (
 		<div className={className}>
 			<Link href={Url.from(catalogProps.link)}>
-				<CatalogLogo catalogName={catalogProps.name} />
+				{pageData.conf.logo.imageUrl ? <ActionLogo /> : <CatalogLogo catalogName={catalogProps.name} />}
 				<span className="title" title={catalogProps.title}>
 					{catalogProps.title}
 				</span>
@@ -63,7 +65,7 @@ export default styled(Logo)`
 	img {
 		vertical-align: middle;
 		display: inline-block;
-		max-height: 1.625rem;
+		height: 1.625rem;
 		padding-right: 10px;
 		transform: translateZ(0);
 	}

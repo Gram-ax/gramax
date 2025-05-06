@@ -1,22 +1,20 @@
-import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import ArticlePropsService from "@core-ui/ContextServices/ArticleProps";
 import t from "@ext/localization/locale/translate";
 import Button from "@ext/markdown/core/edit/components/Menu/Button";
 import SvgContainer from "@ext/markdown/core/edit/components/Menu/SvgContainer";
 import { Editor } from "@tiptap/core";
 import createDrawio from "../logic/createDrawio";
-import OnLoadResourceService from "@ext/markdown/elements/copyArticles/onLoadResourceService";
+import ResourceService from "@ext/markdown/elements/copyArticles/resourceService";
 
 const DrawioMenuButton = ({ editor }: { editor: Editor }) => {
 	const articleProps = ArticlePropsService.value;
-	const apiUrlCreator = ApiUrlCreatorService.value;
-	const onLoadResource = OnLoadResourceService.value;
+	const resourceService = ResourceService.value;
 
 	return (
 		<Button
 			nodeValues={{ action: "drawio" }}
 			tooltipText={t("diagram.names.drawio")}
-			onClick={() => createDrawio(editor, articleProps, apiUrlCreator, onLoadResource)}
+			onClick={() => createDrawio(editor, articleProps, resourceService)}
 		>
 			<SvgContainer>
 				<svg

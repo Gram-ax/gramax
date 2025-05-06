@@ -119,6 +119,8 @@ pub fn init<R: Runtime>() -> TauriPlugin<R> {
       create_or_update_merge_request,
       get_draft_merge_request,
       get_all_commit_authors,
+      format_merge_message,
+      gc,
       reset_repo,
     ])
     .setup(|app, api| {

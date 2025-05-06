@@ -1,6 +1,6 @@
 import ArticleUpdaterService from "@components/Article/ArticleUpdater/ArticleUpdaterService";
 import Icon from "@components/Atoms/Icon";
-import TabWrapper from "@components/Layouts/StatusBar/Extensions/ArticleStatusBar/TabWrapper";
+import TabWrapper from "@components/Layouts/LeftNavigationTabs/TabWrapper";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import CatalogPropsService from "@core-ui/ContextServices/CatalogProps";
 import WorkspaceService from "@core-ui/ContextServices/Workspace";

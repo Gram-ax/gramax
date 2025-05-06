@@ -1,14 +1,13 @@
 import { getExecutingEnvironment } from "@app/resolveModule/env";
 import resolveModule from "@app/resolveModule/frontend";
-import Workspace from "@core-ui/ContextServices/Workspace";
 
-const isUrlPointsToRepo = async (url: string) => {
+const isUrlPointsToRepo = async (url: string, gitProxyUrl: string) => {
 	if (url.endsWith("/")) url = url.slice(0, -1);
 	if (!url.endsWith(".git")) url += ".git";
 	url += "/info/refs?service=git-upload-pack";
 
 	try {
-		const res = await getInfoRefs(url);
+		const res = await getInfoRefs(url, gitProxyUrl);
 		if (!res) return false;
 		const contentType = res.contentType;
 		if (!contentType) return false;
@@ -18,14 +17,14 @@ const isUrlPointsToRepo = async (url: string) => {
 	}
 };
 
-const getInfoRefs = async (url: string) => {
+const getInfoRefs = async (url: string, gitProxyUrl: string) => {
 	const [protocol, href] = url.includes("://") ? url.split("://") : ["http", url];
 
 	if (getExecutingEnvironment() === "tauri") {
 		const makeRequest = resolveModule("httpFetch");
 		return await makeRequest({ url, headers: { "x-protocol": protocol } });
 	} else {
-		const corsProxy = Workspace.current()?.services.gitProxy.url;
+		const corsProxy = gitProxyUrl;
 		if (!corsProxy) return false;
 
 		const proxiedUrl = corsProxy + "/" + href;

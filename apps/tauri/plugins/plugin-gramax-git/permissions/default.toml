@@ -43,5 +43,7 @@ permissions = [
   "allow-create-or-update-merge-request",
   "allow-get-draft-merge-request",
   "allow-get-all-commit-authors",
+  "allow-gc",
   "allow-reset-repo",
+  "allow-format-merge-message",
 ]

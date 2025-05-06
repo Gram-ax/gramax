@@ -41,7 +41,9 @@ const COMMANDS: &[&str] = &[
   "create_or_update_merge_request",
   "get_draft_merge_request",
   "get_all_commit_authors",
+  "gc",
   "reset_repo",
+  "format_merge_message",
 ];
 
 fn main() {

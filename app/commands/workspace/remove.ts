@@ -16,8 +16,10 @@ const remove: Command<{ ctx: Context; id: WorkspacePath }, void> = Command.creat
 	async do({ id }) {
 		await this._app.wm.removeWorkspace(id);
 		// TODO: Remove if
-		if (getExecutingEnvironment() == "browser")
-			setWorkerProxy(this._app.wm.current().config().services?.gitProxy?.url);
+		if (getExecutingEnvironment() == "browser") {
+			const config = await this._app.wm.current().config();
+			setWorkerProxy(config.services?.gitProxy?.url);
+		}
 	},
 
 	params(ctx, q) {

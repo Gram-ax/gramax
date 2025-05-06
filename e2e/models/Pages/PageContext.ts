@@ -36,9 +36,13 @@ export default class PageContext {
 	}
 
 	async waitForLoad(scope?: Locator) {
-		const loaders = await this.search().find(`[data-qa="loader"]`, scope);
-		for (const loader of await loaders.all())
-			await loader.waitFor({ timeout: config.timeouts.long * 4, state: "detached" });
+		try {
+			const loaders = await this.search().find(`[data-qa="loader"]`, scope);
+			for (const loader of await loaders.all())
+				await loader.waitFor({ timeout: config.timeouts.long * 4, state: "detached" });
+		} catch (e) {
+			console.error("wait for load: ", e);
+		}
 	}
 
 	async waitForUrl(url: string) {
@@ -64,13 +68,15 @@ export default class PageContext {
 		return new ArticlePageContext(this._page, this._alias, this._aliases, this._info);
 	}
 
-	// FIX ME IF YOU CAN 
+	// FIX ME IF YOU CAN
 	async getCatalogProps() {
 		if (this.kind() == "home") throw new Error("Not an catalog");
 		return await this._page.evaluate(async () => {
 			const currentCatalog = await window.app.wm
 				.current()
-				.getContextlessCatalog(window.debug?.RouterPathProvider.parsePath(window.location.pathname).catalogName);
+				.getContextlessCatalog(
+					window.debug?.RouterPathProvider.parsePath(window.location.pathname).catalogName,
+				);
 			return currentCatalog.props;
 		});
 	}

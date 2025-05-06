@@ -4,11 +4,14 @@ import { Catalog } from "@core/FileStructue/Catalog/Catalog";
 import FileStructure from "@core/FileStructue/FileStructure";
 import GitCommands from "@ext/git/core/GitCommands/GitCommands";
 import { TreeReadScope } from "@ext/git/core/GitCommands/model/GitCommandsModel";
+import Repository from "@ext/git/core/Repository/Repository";
 import GitTreeFileProvider from "@ext/versioning/GitTreeFileProvider";
 
 export default class ScopedCatalogs {
 	private _scopedCatalogs: Map<string, Catalog> = new Map();
 	private _gitTreeFps: Map<string, GitTreeFileProvider> = new Map();
+
+	constructor(private _repo: Repository) {}
 
 	async getScopedCatalog(catalogPath: Path, fs: FileStructure, scope: TreeReadScope, unmountAfterInit: boolean) {
 		const scopedPath = GitTreeFileProvider.scoped(catalogPath, scope);
@@ -16,6 +19,7 @@ export default class ScopedCatalogs {
 			const gitTreeFileProvider = this._getGitTreeFileProvider(catalogPath, fs.fp);
 			fs.fp.mount(scopedPath, gitTreeFileProvider);
 			const scopedCatalog = await fs.getCatalogByPath(scopedPath, false);
+			scopedCatalog.setRepository(this._repo);
 			if (unmountAfterInit) fs.fp.unmount(scopedPath);
 
 			this._scopedCatalogs.set(scopedPath.value, scopedCatalog);

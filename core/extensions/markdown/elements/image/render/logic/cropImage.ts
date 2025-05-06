@@ -8,9 +8,13 @@ export const cropImage = async (
 	realSrc: string,
 	originalBuffer: Buffer,
 ): Promise<Blob> => {
-	if (!crop) return new Blob([originalBuffer], { type: resolveImageKind(originalBuffer) });
+	if (!crop) return getBlobFromBuffer(originalBuffer);
 	const blob = await getCroppedCanvas(imageContainer, crop, realSrc, originalBuffer);
 
-	if (!blob) return new Blob([originalBuffer], { type: resolveImageKind(originalBuffer) });
+	if (!blob) return getBlobFromBuffer(originalBuffer);
 	return blob;
+};
+
+export const getBlobFromBuffer = (buffer: Buffer) => {
+	return new Blob([buffer], { type: resolveImageKind(buffer) });
 };

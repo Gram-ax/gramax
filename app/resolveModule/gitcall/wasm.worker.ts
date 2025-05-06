@@ -1,4 +1,4 @@
-import { str2ptr } from "../../../apps/browser/wasm/js/utils";
+import { str2ptr } from "../../../apps/browser/crates/gramax-wasm/js/utils";
 
 const w = self as any;
 const TOKEN_KEY = 2;

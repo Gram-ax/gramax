@@ -69,7 +69,7 @@ const TableUtils = {
 		});
 		return cellIsSimple;
 	},
-	getTableAttributes(attrs: { [name: string]: boolean | string | number }, prefix = ""): string {
+	getOldCellAttributes(attrs: { [name: string]: boolean | string | number }): string {
 		if (attrs.colspan == 1) attrs.colspan = null;
 		if (attrs.rowspan == 1) attrs.rowspan = null;
 		const attributes = Object.keys(attrs)
@@ -81,8 +81,8 @@ const TableUtils = {
 				return `${key}=${attrs[key]}`;
 			})
 			.filter((a) => a);
-		if (attributes.length == 0) return prefix ? `{% ${prefix} %}\n\n` : "";
-		return `{%${prefix} ${attributes.join(" ")} %}\n\n`;
+		if (attributes.length == 0) return "";
+		return `{% ${attributes.join(" ")} %}\n\n`;
 	},
 };
 

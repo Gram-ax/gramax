@@ -8,6 +8,7 @@ use serde::Serialize;
 
 use crate::actions::diff::DiffFile;
 use crate::creds::Creds;
+use crate::prelude::Branch;
 use crate::repo::Repo;
 use crate::Result;
 use crate::ShortInfo;
@@ -35,9 +36,24 @@ pub struct CommitAuthorInfo {
   pub count: usize,
 }
 
+#[derive(Serialize, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct BranchCommitsInfo {
+  pub authors: Vec<CommitAuthorInfo>,
+  pub commits: Vec<String>,
+}
+
 pub trait History {
   fn history<P: AsRef<Path>>(&self, path: P, max: usize) -> Result<HistoryInfo>;
+
   fn get_all_authors(&self) -> Result<Vec<CommitAuthorInfo>>;
+
+  fn get_branch_commits<S: AsRef<str>>(
+    &self,
+    ours: S,
+    theirs: S,
+    max: Option<usize>,
+  ) -> Result<BranchCommitsInfo>;
 }
 
 impl<C: Creds> History for Repo<C> {
@@ -63,6 +79,44 @@ impl<C: Creds> History for Repo<C> {
     Ok(authors.into_iter().map(|(author, count)| CommitAuthorInfo { author, count }).collect())
   }
 
+  fn get_branch_commits<S: AsRef<str>>(
+    &self,
+    ours: S,
+    theirs: S,
+    limit: Option<usize>,
+  ) -> Result<BranchCommitsInfo> {
+    let mut authors = HashMap::new();
+    let mut commits = vec![];
+
+    let theirs = self.branch_by_name(theirs.as_ref(), None)?;
+
+    let ours = self.branch_by_name(ours.as_ref(), None)?;
+
+    let mut revwalk = self.0.revwalk()?;
+    revwalk.push_range(&format!("{}..{}", ours.last_commit.id(), theirs.last_commit.id()))?;
+
+    for oid in revwalk.take(limit.unwrap_or(usize::MAX)) {
+      let commit = self.0.find_commit(oid?)?;
+      let author = commit.author().short_info()?;
+
+      match commit.summary() {
+        Some(summary) => commits.push(summary.to_string()),
+        None => commits.push(format!("{} <invalid summary utf-8>", commit.id())),
+      }
+
+      match authors.get_mut(&author) {
+        Some(count) => *count += 1,
+        None => {
+          authors.insert(author, 1);
+        }
+      }
+    }
+
+    let authors = authors.into_iter().map(|(author, count)| CommitAuthorInfo { author, count }).collect();
+
+    Ok(BranchCommitsInfo { authors, commits })
+  }
+
   fn history<P: AsRef<Path>>(&self, path: P, max: usize) -> Result<HistoryInfo> {
     let mut remain = max;
     let mut history = vec![];
@@ -81,7 +135,7 @@ impl<C: Creds> History for Repo<C> {
       if remain == 0 {
         break;
       }
-      
+
       // skip merge commits
       if c.parent_count() > 1 {
         continue;

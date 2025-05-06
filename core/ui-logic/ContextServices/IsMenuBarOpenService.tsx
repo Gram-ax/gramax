@@ -1,22 +1,24 @@
-import { Dispatch, ReactElement, SetStateAction, createContext, useContext, useState } from "react";
+import { ReactElement, createContext, useContext, useState } from "react";
 
-export const IsMenuBarOpenContext = createContext<boolean>(undefined);
-let _setIsMenuBarOpen: Dispatch<SetStateAction<boolean>>;
+type IsMenuBarOpenContextType = {
+	isOpen: boolean;
+	setIsOpen: (value: boolean) => void;
+};
+
+const IsMenuBarOpenContext = createContext<IsMenuBarOpenContextType>(undefined);
 
 abstract class IsMenuBarOpenService {
-	static Provider({ children }: { children: ReactElement }): ReactElement {
-		const [isOpen, setIsOpen] = useState<boolean>(true);
-		_setIsMenuBarOpen = setIsOpen;
-		return <IsMenuBarOpenContext.Provider value={isOpen}>{children}</IsMenuBarOpenContext.Provider>;
+	static Provider({ children }: { children: ReactElement }) {
+		const [isOpen, setIsOpen] = useState(false);
+
+		return <IsMenuBarOpenContext.Provider value={{ isOpen, setIsOpen }}>{children}</IsMenuBarOpenContext.Provider>;
 	}
 
-	static get value(): boolean {
-		return useContext(IsMenuBarOpenContext);
-	}
-
-	static set value(value: boolean) {
-		_setIsMenuBarOpen(value);
+	static get value() {
+		const context = useContext(IsMenuBarOpenContext);
+		return context;
 	}
 }
 
 export default IsMenuBarOpenService;
+export { IsMenuBarOpenContext };

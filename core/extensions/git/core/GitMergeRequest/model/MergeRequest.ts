@@ -9,7 +9,7 @@ export type ApprovalSignature = Signature & {
 	approvedAt?: Date;
 };
 
-export type MergeRequestOptions = { deleteAfterMerge: boolean };
+export type MergeRequestOptions = { deleteAfterMerge: boolean; squash: boolean };
 
 export type MergeRequest = {
 	targetBranchRef: string;

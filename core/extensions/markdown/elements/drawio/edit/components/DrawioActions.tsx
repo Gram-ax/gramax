@@ -31,7 +31,7 @@ const DrawioActions = ({ editor, node, getPos, setHasSignature, signatureRef, op
 	return (
 		<>
 			<ActionButton icon="pencil" tooltipText={t("edit2")} onClick={openEditor} />
-			<ActionButton icon="a-large-small" tooltipText={t("signature")} onClick={addSignature} />
+			<ActionButton icon="captions" tooltipText={t("signature")} onClick={addSignature} />
 			<ActionButton icon="trash" tooltipText={t("delete")} onClick={handleDelete} />
 		</>
 	);

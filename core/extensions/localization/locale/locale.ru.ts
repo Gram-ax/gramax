@@ -53,6 +53,18 @@ const locale: DefaultLocale = {
 					description: "Группа на главной странице, в которой будет отображаться",
 				},
 			},
+			extended: {
+				name: "Расширенные",
+			},
+		},
+		"catalog-extended-edit-props": {
+			name: "Расширенные настройки",
+			props: {
+				syntax: {
+					name: "Формат компонентов",
+					placeholder: "формат",
+				},
+			},
 		},
 		"catalog-create-props": {
 			name: "Настройки свойства",
@@ -309,7 +321,7 @@ const locale: DefaultLocale = {
 		error: {
 			"browser-not-supported": {
 				title: "Этот браузер не поддерживается",
-				desc: "<span>Откройте Gramax в <a href='https://gram.ax/resources/docs/app/web-editor'>другом браузере</a> или </span><a href='https://gram.ax'> скачайте приложение</a><span>на компьютер</span>",
+				desc: "<span>Откройте Gramax в <a href='https://gram.ax/resources/docs/app/web-editor'>другом браузере</a> или <a href='https://gram.ax'>скачайте приложение</a> на компьютер</span>",
 			},
 			"unknown-error": "Неизвестная ошибка",
 			"cannot-load": "Не удалось загрузить приложение",
@@ -426,6 +438,9 @@ const locale: DefaultLocale = {
 		"css-style": "CSS-стили",
 		logo: "Логотип",
 		appearance: "Внешний вид",
+		"invalid-logo-format-title": "Ошибка при загрузке",
+		"invalid-logo-format-body":
+			"Неподдерживаемый формат файла. Пожалуйста, загрузите логотип в формате SVG или PNG",
 		"logo-upload-failed": "Не удалось загрузить логотип",
 		"logo-size-exceeded": "Размер логотипа не должен превышать 500Кб",
 		"css-styles-description": "Продвинутая настройка стилей для вашего пространства.",
@@ -435,8 +450,7 @@ const locale: DefaultLocale = {
 	},
 	modal: {
 		confirm: {
-			"warning-have-changes":
-				"Вы уверены, что хотите выйти из режима редактирования стилей? Ваши изменения удалятся",
+			"warning-have-changes": "Вы уверены, что хотите выйти из режима редактирования? Ваши изменения удалятся",
 		},
 	},
 	multilang: {
@@ -618,7 +632,21 @@ title: Каталог уже связан с репозиторием
 			},
 		},
 	},
+	cloud: {
+		"enter-cloud": "Войдите в Gramax Cloud",
+		"upload-button": "Опубликовать",
+		"upload-catalog": "Опубликовать каталог",
+		"upload-success": "Каталог успешно опубликован",
+		"upload-success-link": "Ссылка на опубликованный каталог",
+		"catalog-link": "Каталог будет доступен по ссылке",
+		"delete-catalog": "Каталог будет удален из облака",
+		error: {
+			"failed-to-connect": "Не удалось подключиться к облачному серверу",
+			"request-failed": "Не удалось выполнить запрос на облачный сервер",
+		},
+	},
 	"log-in": "Войти в ",
+	"login-with": "Войти с помощью ",
 	search: {
 		name: "Поиск",
 		open: "Открыть поиск",
@@ -626,6 +654,7 @@ title: Каталог уже связан с репозиторием
 		desc: `<ul><li>Для поиска точного совпадения используйте <code>"</code>. Например:&nbsp;<code><nobr>"слово"</nobr></code> или <code><nobr>"искомая фраза"</nobr></code>.</li><li>Для исключения из поиска используйте <code>-</code>. Например:&nbsp;<code><nobr>-слово</nobr></code> или <code><nobr>-"исключенная фраза"</nobr></code>.</li></ul>`,
 		"articles-not-found": "Статей не найдено",
 		"all-catalogs": "Искать по всем каталогам",
+		"vector-search": "AI-поиск",
 	},
 	list: {
 		"no-results-found": "Ничего не найдено",
@@ -754,6 +783,8 @@ title: Каталог уже связан с репозиторием
 			"after-merge": "После слияния",
 			"current-branch": "Слить текущую ветку",
 			"delete-branch-after-merge": "Удалить ветку после слияния",
+			squash: "Объединить коммиты",
+			"squash-tooltip": "После слияния, изменения из текущей ветки будут объединены в один коммит",
 			conflict: {
 				"abort-confirm": {
 					title: {
@@ -899,6 +930,10 @@ title: Каталог уже связан с репозиторием
 						"<p>Изменения из ветки <code>{{sourceBranch}}</code> попадут в ветку <code>{{targetBranch}}</code>, а ветка <code>{{sourceBranch}}</code> удалится. Отменить это действие не получится.</p>",
 					"not-delete-branch-after-merge":
 						"<p>Изменения из ветки <code>{{sourceBranch}}</code> попадут в ветку <code>{{targetBranch}}</code>. Отменить это действие не получится.</p>",
+					"squash-comment":
+						"<p>Изменения из ветки <code>{{sourceBranch}}</code> будут объединены в один коммит и попадут в ветку <code>{{targetBranch}}</code>. Отменить это действие не получится.</p>",
+					"squash-delete-branch-comment":
+						"<p>Изменения из ветки <code>{{sourceBranch}}</code> будут объединены в один коммит и попадут в ветку <code>{{targetBranch}}</code>, а ветка <code>{{sourceBranch}}</code> удалится. Отменить это действие не получится.</p>",
 				},
 			},
 			warning: {
@@ -995,6 +1030,10 @@ title: Каталог уже связан с репозиторием
 		"task-list": "Список задач",
 		note: "Заметка",
 		heading: "Заголовок",
+		templates: {
+			"inline-property": "Поле свойства",
+			"block-field": "Блочное поле ввода",
+		},
 
 		table: {
 			name: "Таблица",
@@ -1458,7 +1497,7 @@ title: Каталог уже связан с репозиторием
 	"tip-text": "Совет",
 	"to-branch": "На ветку",
 	"to-navigate": "Навигация",
-	"click": "Кликните",
+	click: "Кликните",
 	"to-make-changes": "для изменения",
 	"today-at": "Сегодня в ",
 	"top-left-pointer": "Верхняя левая аннотация",
@@ -1555,6 +1594,28 @@ title: Каталог уже связан с репозиторием
 		"new-note": "Новая заметка",
 		"no-catalog-notes": "В текущем каталоге нет заметок",
 	},
+	template: {
+		name: "Шаблоны",
+		placeholders: {
+			title: "Заголовок шаблона",
+			content: "Текст шаблона",
+		},
+		"new-template": "Новый шаблон",
+		"no-templates": "В текущем каталоге нет шаблонов",
+		warning: {
+			content: {
+				name: "Вставить шаблон {{template}} в статью?",
+				body: "Текст статьи будет заменен на шаблон. Если вы не хотите потерять его — отмените вставку и переместите текст в другую статью.",
+			},
+		},
+		"choose-template": "Выбрать шаблон",
+		"select-property": "Выбрать свойство",
+	},
+	clear: "Очистить",
+	yes: "Да",
+	no: "Нет",
+	placeholder: "Плейсхолдер",
+	reformat: "Переформатировать",
 };
 
 export default locale;

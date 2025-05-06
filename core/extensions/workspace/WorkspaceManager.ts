@@ -1,4 +1,5 @@
 import type { AppConfig, ServicesConfig } from "@app/config/AppConfig";
+
 import resolveModule from "@app/resolveModule/backend";
 import { getExecutingEnvironment } from "@app/resolveModule/env";
 import type FileProvider from "@core/FileProvider/model/FileProvider";
@@ -13,6 +14,7 @@ import { uniqueName } from "@core/utils/uniqueName";
 import YamlFileConfig from "@core/utils/YamlFileConfig";
 import RepositoryProvider from "@ext/git/core/Repository/RepositoryProvider";
 import t from "@ext/localization/locale/translate";
+import { EnterpriseWorkspace } from "@ext/enterprise/EnterpriseWorkspace";
 import NoActiveWorkspace from "@ext/workspace/error/NoActiveWorkspaceError";
 import WorkspaceMissingPath from "@ext/workspace/error/UnknownWorkspace";
 import { Workspace } from "@ext/workspace/Workspace";
@@ -31,7 +33,7 @@ export type WorkspaceConfigWithCatalogs = {
 	config: YamlFileConfig<WorkspaceConfig>;
 };
 
-const WORKSPACE_CONFIG_FILENAME = new Path("workspace.yaml");
+export const WORKSPACE_CONFIG_FILENAME = new Path("workspace.yaml");
 const DEFAULT_WORKSPACE_NAME = "workspace.default-name";
 const DEFAULT_WORKSPACE_ICON = "layers";
 const LATEST_WORKSPACE_KEY = "latest-workspace";
@@ -57,13 +59,16 @@ export default class WorkspaceManager {
 		await fp.createRootPathIfNeed();
 		const fs = new FileStructure(fp, this._config.isReadOnly);
 		this._callback(fs);
-		this._current = await Workspace.init({
+
+		const WorkspaceClass = init.get("enterprise")?.gesUrl || init.get("gesUrl") ? EnterpriseWorkspace : Workspace;
+		this._current = await WorkspaceClass.init({
 			fs,
 			rp: this._rp,
 			path,
 			config: init,
 			assets: this.getWorkspaceAssets(path),
 		});
+
 		this._rules?.forEach((fn) => this._current.events.on("catalog-changed", fn));
 
 		this._current.events.on("add-catalog", (catalog) => {
@@ -221,8 +226,10 @@ export default class WorkspaceManager {
 			name: config?.name || t(DEFAULT_WORKSPACE_NAME),
 			icon: config?.icon || DEFAULT_WORKSPACE_ICON,
 			groups: config?.groups ?? null,
-			gesUrl: config?.gesUrl ?? null,
-			isEnterprise: config?.isEnterprise ?? false,
+			enterprise: {
+				gesUrl: config?.enterprise?.gesUrl ?? null,
+				lastUpdateDate: config?.enterprise?.lastUpdateDate ?? null,
+			},
 			services: mergeObjects<ServicesConfig>(this._config.services, config?.services ?? {}),
 		});
 
@@ -237,7 +244,7 @@ export default class WorkspaceManager {
 			),
 		);
 
-		if (!yaml.get("isEnterprise")) yaml.set("services", this._config.services);
+		if (!yaml.get("enterprise")?.gesUrl) yaml.set("services", this._config.services);
 		if (yaml.get("name") != name) await yaml.save();
 
 		const catalogNames = await FileStructure.getCatalogDirs(fp);

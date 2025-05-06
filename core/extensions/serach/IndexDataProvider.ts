@@ -20,7 +20,13 @@ export class IndexDataProvider {
 		this._wm.onCatalogChange(this._getOnChangeRule());
 	}
 
-	async getIndexData(catalogName: string, articlePaths: string[]): Promise<IndexData[]> {
+	async getAndSetIndexData(catalogName: string, articlePaths?: string[]): Promise<IndexData[]> {
+		const data = await this.getIndexData(catalogName, articlePaths);
+		await this._setIndexDataInStorage(catalogName, data);
+		return data;
+	}
+
+	async getIndexData(catalogName: string, articlePaths?: string[]): Promise<IndexData[]> {
 		return this._getIndexDataFromStorage(catalogName, articlePaths);
 	}
 
@@ -78,13 +84,11 @@ export class IndexDataProvider {
 			result.push(newData);
 		}
 
-		await this._setIndexDataInStorage(catalogName, result);
 		return result;
 	}
 
 	private async _getAndCreateIndexData(catalogName: string): Promise<IndexData[]> {
 		const data = await this._getIndexData(catalogName);
-		await this._setIndexDataInStorage(catalogName, data);
 		return data;
 	}
 
@@ -98,7 +102,12 @@ export class IndexDataProvider {
 
 	private async _getArticleIndexData(catalog: Catalog, article: Article, forceParse = false): Promise<IndexData> {
 		try {
-			const context = this._parserContextFactory.fromArticle(article, catalog, resolveLanguage(), true);
+			const context = await this._parserContextFactory.fromArticle(
+				article,
+				catalog,
+				resolveLanguage(),
+				true,
+			);
 			const content = article.content ? article.content : "";
 
 			const html = await article.parsedContent.read(async (p) => {

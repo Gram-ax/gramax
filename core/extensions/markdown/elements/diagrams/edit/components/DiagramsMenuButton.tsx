@@ -10,13 +10,13 @@ import { mermaidIcon } from "../../diagrams/mermaid/mermaidData";
 import { plantUmlIcon } from "../../diagrams/plantUml/plantUmlData";
 import { tsDiagramIcon } from "../../diagrams/tsDiagram/tsDiagramData";
 import createDiagrams from "../../logic/createDiagrams";
-import OnLoadResourceService from "@ext/markdown/elements/copyArticles/onLoadResourceService";
+import ResourceService from "@ext/markdown/elements/copyArticles/resourceService";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 
 const DiagramsMenuButton = ({ editor, diagramName }: { editor: Editor; diagramName: DiagramType }) => {
 	const articleProps = ArticlePropsService.value;
 	const apiUrlCreator = ApiUrlCreatorService.value;
-	const onLoadResource = OnLoadResourceService.value;
+	const resourceService = ResourceService.value;
 	const pageDataContext = PageDataContextService.value;
 
 	let diagramIcon: JSX.Element;
@@ -46,7 +46,7 @@ const DiagramsMenuButton = ({ editor, diagramName }: { editor: Editor; diagramNa
 			tooltipText={diagramTooltipText}
 			nodeValues={{ action: "diagrams" }}
 			onClick={() =>
-				void createDiagrams(editor, articleProps, apiUrlCreator, onLoadResource, diagramName, pageDataContext)
+				void createDiagrams(editor, articleProps, apiUrlCreator, resourceService, diagramName, pageDataContext)
 			}
 		>
 			<SvgContainer>{diagramIcon}</SvgContainer>

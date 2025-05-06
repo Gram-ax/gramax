@@ -1,4 +1,3 @@
-import { getExecutingEnvironment } from "@app/resolveModule/env";
 import SpinnerLoader from "@components/Atoms/SpinnerLoader";
 import CardCloneProgress from "@components/HomePage/CardParts/CardCloneProgress";
 import CardError from "@components/HomePage/CardParts/CardError";
@@ -6,6 +5,7 @@ import RightBottomExtWrapper from "@components/HomePage/CardParts/RightBottomExt
 import BigCard from "@components/HomePage/Cards/BigCard";
 import SmallCard from "@components/HomePage/Cards/SmallCard";
 import { classNames } from "@components/libs/classNames";
+import { usePlatform } from "@core-ui/hooks/usePlatform";
 import styled from "@emotion/styled";
 import useCloneProgress from "@ext/git/actions/Clone/logic/useCloneProgress";
 import CatalogFetchNotification from "@ext/git/actions/Fetch/CatalogFetchNotification";
@@ -29,27 +29,44 @@ const Loader = () => {
 };
 
 const Card = ({ link, style, className, onClick, name }: CardProps) => {
-	const { isCloning, percentage, progress, error } = useCloneProgress(link.isCloning, link.name);
+	const { isCloning, percentage, progress, error } = useCloneProgress(
+		link.isCloning,
+		link.name,
+		link.redirectOnClone,
+	);
+
+	const [isCancel, setIsCancel] = useState(false);
 	const [isLoading, setIsLoading] = useState<boolean>(false);
+	const { isNext } = usePlatform();
+
+	if (isCancel && !isCloning && !error) return null;
 
 	return (
 		<div className={className}>
 			<CatalogFetchNotification catalogLink={link} />
 			{isLoading && <Loader />}
-			{isCloning && <CardCloneProgress name={name} percentage={percentage} progress={progress} />}
+			{isCloning && (
+				<CardCloneProgress
+					name={name}
+					percentage={percentage}
+					progress={progress}
+					isCancel={isCancel}
+					setIsCancel={setIsCancel}
+				/>
+			)}
 			{error && <CardError link={link} error={error} />}
 			<div
 				className={classNames("card", { cloning: isCloning || !!error }, ["block-elevation-hover-1"])}
 				onClick={() => {
-					if (getExecutingEnvironment() === "next") return;
+					if (isNext) return;
 					onClick?.();
 					setIsLoading(true);
 				}}
 			>
 				{style === "big" ? (
-					<BigCard name={name} link={link} hideLogo={isCloning} />
+					<BigCard link={link} hideLogo={isCloning} />
 				) : (
-					<SmallCard name={name} link={link} hideLogo={isCloning} />
+					<SmallCard link={link} hideLogo={isCloning} />
 				)}
 			</div>
 		</div>

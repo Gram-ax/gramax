@@ -1,19 +1,24 @@
+import { PageProps } from "@components/ContextProviders";
+import ContextService from "@core-ui/ContextServices/ContextService";
 import { createEventEmitter, Event } from "@core/Event/EventEmitter";
 import { ReactElement, useEffect } from "react";
 
 export type PageDataUpdateEvents = Event<"update">;
 
-abstract class PagePropsUpdateService {
-	private static _events = createEventEmitter<PageDataUpdateEvents>();
-	static get events() {
-		return PagePropsUpdateService._events;
-	}
-	static Provider = ({ children, pageData }: { children: ReactElement; pageData: any }) => {
+class PagePropsUpdateService implements ContextService {
+	private _events = createEventEmitter<PageDataUpdateEvents>();
+
+	Init({ children, pageProps }: { children: ReactElement; pageProps: PageProps }) {
 		useEffect(() => {
-			void PagePropsUpdateService.events.emit("update", {});
-		}, [pageData]);
+			void this.events.emit("update", {});
+		}, [pageProps]);
+
 		return children;
-	};
+	}
+
+	get events() {
+		return this._events;
+	}
 }
 
-export default PagePropsUpdateService;
+export default new PagePropsUpdateService();

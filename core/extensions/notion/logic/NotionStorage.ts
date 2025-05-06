@@ -47,6 +47,7 @@ export default class NotionStorage {
 			);
 		} catch (e) {
 			await (data.source as ProxiedSourceDataCtx<NotionSourceData>).assertValid?.(e);
+			throw e;
 		} finally {
 			fs.fp?.startWatch();
 		}
@@ -107,10 +108,10 @@ export default class NotionStorage {
 			const { pagePath } = pageData;
 			const md = await this._processContent(page, pagePath, pathsMap, converter, formatter);
 
-			const content = fs.serialize(
-				{ title: page.title, order: pageTree.indexOf(page), properties: articleProperties },
-				md,
-			);
+			const content = fs.serialize({
+				props: { title: page.title, order: pageTree.indexOf(page), properties: articleProperties },
+				content: md,
+			});
 
 			await fp.write(pagePath, content);
 

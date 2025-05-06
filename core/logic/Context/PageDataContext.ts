@@ -21,7 +21,6 @@ interface PageDataContext {
 		workspaces: ClientWorkspaceConfig[];
 		current: WorkspacePath;
 		defaultPath: WorkspacePath;
-		isEnterprise: boolean;
 	};
 	conf: {
 		version: string;
@@ -31,6 +30,7 @@ interface PageDataContext {
 		isReadOnly: boolean;
 		isProduction: boolean;
 		authServiceUrl: string;
+		cloudServiceUrl: string;
 		diagramsServiceUrl: string;
 		bugsnagApiKey: string;
 		enterprise: EnterpriseConfig;
@@ -39,6 +39,9 @@ interface PageDataContext {
 			imageUrl: string;
 			linkUrl: string;
 			linkTitle: string;
+		};
+		search?: {
+			vector: { enabled: boolean };
 		};
 	};
 	permissions: string;

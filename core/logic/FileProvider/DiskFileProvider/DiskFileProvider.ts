@@ -22,11 +22,11 @@ export default class DiskFileProvider implements FileProvider {
 	}
 
 	get storageId(): string {
-		return `Disk@${this._toAbsolute(Path.empty)}`;
+		return `Disk@${this.toAbsolute(Path.empty)}`;
 	}
 
 	get rootPath(): Path {
-		return new Path(this._toAbsolute(Path.empty));
+		return new Path(this.toAbsolute(Path.empty));
 	}
 
 	get isReadOnly(): boolean {
@@ -46,9 +46,9 @@ export default class DiskFileProvider implements FileProvider {
 	}
 
 	async getItems(path: Path): Promise<FileInfo[]> {
-		// In next, custom fs implementation is not used; This if is essentially an optimization of command call count
-		if (getExecutingEnvironment() != "next") {
-			const stats = await (fs as unknown as typeof DFPIntermediateCommands).readDirStats(this._toAbsolute(path));
+		// In nodejs, custom fs implementation is not used; This if is essentially an optimization of command call count
+		if (getExecutingEnvironment() === "browser" || getExecutingEnvironment() === "tauri") {
+			const stats = await (fs as unknown as typeof DFPIntermediateCommands).readDirStats(this.toAbsolute(path));
 			return stats.map((stat) =>
 				Object.assign(stat, {
 					type: (stat.isFile() ? "file" : "dir") as any,
@@ -58,7 +58,7 @@ export default class DiskFileProvider implements FileProvider {
 		}
 
 		try {
-			const files = await fs.readdir(this._toAbsolute(path));
+			const files = await fs.readdir(this.toAbsolute(path));
 			return (
 				await Promise.all(
 					files.map(async (name): Promise<FileInfo> => {
@@ -76,17 +76,17 @@ export default class DiskFileProvider implements FileProvider {
 
 	async isFolder(path: Path): Promise<boolean> {
 		if (!(await this.exists(path))) return false;
-		return await fs.lstat(this._toAbsolute(path)).then((stat) => {
+		return await fs.lstat(this.toAbsolute(path)).then((stat) => {
 			return stat.isDirectory();
 		});
 	}
 
 	exists(uri: Path) {
-		return fs.exists(this._toAbsolute(uri));
+		return fs.exists(this.toAbsolute(uri));
 	}
 
 	async getStat(path: Path, lstat = false): Promise<FileInfo> {
-		const stats = lstat ? await fs.lstat(this._toAbsolute(path)) : await fs.stat(this._toAbsolute(path));
+		const stats = lstat ? await fs.lstat(this.toAbsolute(path)) : await fs.stat(this.toAbsolute(path));
 		if (!stats) return null;
 		return Object.assign(stats, {
 			type: (stats.isFile() ? "file" : "dir") as any,
@@ -98,7 +98,7 @@ export default class DiskFileProvider implements FileProvider {
 	async delete(path: Path, preferTrash?: boolean) {
 		if (preferTrash && isDesktop) {
 			try {
-				return await (fs as any).moveToTrash(this._toAbsolute(path));
+				return await (fs as any).moveToTrash(this.toAbsolute(path));
 			} catch {}
 		}
 
@@ -109,11 +109,11 @@ export default class DiskFileProvider implements FileProvider {
 	async write(path: Path, data: string | Buffer) {
 		this._watcher?.stop();
 		try {
-			const absolutePath = this._toAbsolute(path);
-			if (await this.exists(path.parentDirectoryPath)) await fs.writeFile(absolutePath, data);
+			const absolutePath = this.toAbsolute(path);
+			if (await this.exists(path.parentDirectoryPath)) await fs.writeFile(absolutePath, data as any);
 			else {
-				await fs.mkdir(this._toAbsolute(path.parentDirectoryPath), { recursive: true });
-				await fs.writeFile(absolutePath, data);
+				await fs.mkdir(this.toAbsolute(path.parentDirectoryPath), { recursive: true });
+				await fs.writeFile(absolutePath, data as any);
 			}
 		} finally {
 			this._watcher?.start();
@@ -121,7 +121,7 @@ export default class DiskFileProvider implements FileProvider {
 	}
 
 	async move(from: Path, to: Path) {
-		await fs.move(this._toAbsolute(from), this._toAbsolute(to));
+		await fs.move(this.toAbsolute(from), this.toAbsolute(to));
 	}
 
 	async copy(from: Path, to: Path) {
@@ -132,7 +132,7 @@ export default class DiskFileProvider implements FileProvider {
 	async mkdir(path: Path, mode?: number) {
 		this._watcher?.stop();
 		try {
-			const absolutPath = this._toAbsolute(path);
+			const absolutPath = this.toAbsolute(path);
 			if (!(await this.exists(path))) await fs.mkdir(absolutPath, { recursive: true, mode });
 		} finally {
 			this._watcher?.start();
@@ -140,12 +140,12 @@ export default class DiskFileProvider implements FileProvider {
 	}
 
 	async read(path: Path): Promise<string> {
-		return (await fs.readFile(this._toAbsolute(path))).toString();
+		return (await fs.readFile(this.toAbsolute(path))).toString();
 	}
 
 	async readAsBinary(path: Path): Promise<Buffer> {
 		try {
-			return await fs.readFile(this._toAbsolute(path));
+			return await fs.readFile(this.toAbsolute(path));
 		} catch (e) {
 			if (e.name == "ENOENT" || e.code == "ENOENT") return;
 			throw e;
@@ -153,15 +153,15 @@ export default class DiskFileProvider implements FileProvider {
 	}
 
 	async readdir(path: Path): Promise<string[]> {
-		return fs.readdir(this._toAbsolute(path));
+		return fs.readdir(this.toAbsolute(path));
 	}
 
 	async readlink(path: Path): Promise<string> {
-		return fs.readlink(this._toAbsolute(path));
+		return fs.readlink(this.toAbsolute(path));
 	}
 
 	async symlink(target: Path, path: Path): Promise<void> {
-		await fs.symlink(this._toAbsolute(target), this._toAbsolute(path));
+		await fs.symlink(this.toAbsolute(target), this.toAbsolute(path));
 	}
 
 	async deleteEmptyFolders(folderPath: Path) {
@@ -203,18 +203,29 @@ export default class DiskFileProvider implements FileProvider {
 		}
 	}
 
+	toAbsolute(path: Path): string {
+		if (!this._mountPath && !this._rootPath) throw new Error("Mount path or root path are not set");
+
+		if (this._mountPath) {
+			if (this._rootPath) return this._mountPath.join(this._rootPath, path).value;
+			return this._mountPath.join(path).value;
+		}
+
+		return this._rootPath ? this._rootPath.join(path).value : path.value;
+	}
+
 	private async _deleteFile(path: Path) {
 		if (!(await this.exists(path))) return;
 		this._watcher?.stop();
 		try {
-			await fs.unlink(this._toAbsolute(path));
+			await fs.unlink(this.toAbsolute(path));
 		} finally {
 			this._watcher?.start();
 		}
 	}
 
 	private async _deleteFolder(uri: Path) {
-		const path = this._toAbsolute(uri);
+		const path = this.toAbsolute(uri);
 		if (!(await fs.exists(path))) return;
 		this._watcher?.stop();
 		try {
@@ -227,7 +238,7 @@ export default class DiskFileProvider implements FileProvider {
 	private async _copyFolder(oldPath: Path, newPath: Path) {
 		this._watcher?.stop();
 		try {
-			await fs.copy(this._toAbsolute(oldPath), this._toAbsolute(newPath));
+			await fs.copy(this.toAbsolute(oldPath), this.toAbsolute(newPath));
 		} finally {
 			this._watcher?.start();
 		}
@@ -246,16 +257,5 @@ export default class DiskFileProvider implements FileProvider {
 
 	private async _isEmptyFolder(path: Path) {
 		if (await this.exists(path)) return (await this.readdir(path)).length === 0;
-	}
-
-	private _toAbsolute(path: Path): string {
-		if (!this._mountPath && !this._rootPath) throw new Error("Mount path nor root path are not set");
-
-		if (this._mountPath) {
-			if (this._rootPath) return this._mountPath.join(this._rootPath, path).value;
-			return this._mountPath.join(path).value;
-		}
-
-		return this._rootPath ? this._rootPath.join(path).value : path.value;
 	}
 }

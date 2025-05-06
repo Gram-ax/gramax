@@ -9,10 +9,9 @@ import ModalLayoutLight from "@components/Layouts/ModalLayoutLight";
 import ListLayout from "@components/List/ListLayout";
 import FetchService from "@core-ui/ApiServices/FetchService";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
-import { clearData } from "@core-ui/ContextServices/RefreshPageContext";
 import WorkspaceService from "@core-ui/ContextServices/Workspace";
 import { usePlatform } from "@core-ui/hooks/usePlatform";
-import useWatch from "@core-ui/hooks/useWatch";
+import { clearData } from "@core-ui/utils/initGlobalFuncs";
 import { uniqueName } from "@core/utils/uniqueName";
 import styled from "@emotion/styled";
 import t from "@ext/localization/locale/translate";
@@ -20,7 +19,7 @@ import EditCustomTheme from "@ext/workspace/components/EditCustomTheme";
 import { useWorkspaceLogo } from "@ext/workspace/components/useWorkspaceLogo";
 import { useWorkspaceStyle } from "@ext/workspace/components/useWorkspaceStyle";
 import { ClientWorkspaceConfig } from "@ext/workspace/WorkspaceConfig";
-import { useMemo, useState, useCallback, useEffect } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 export interface WorkspaceFormProps {
 	create?: boolean;
@@ -52,6 +51,7 @@ const WorkspaceForm = (Props: WorkspaceFormProps) => {
 		haveChanges: haveLogoChanges,
 		...workspaceLogoProps
 	} = useWorkspaceLogo(workspace?.path);
+
 	const {
 		confirmChanges: confirmStyle,
 		haveChanges: haveStyleChanges,
@@ -278,17 +278,5 @@ export default styled(WorkspaceForm)`
 			opacity: 0;
 			padding: 0 !important;
 		}
-	}
-
-	.secondary_logo_action {
-		display: flex;
-		flex-direction: column;
-		gap: 0.6rem;
-	}
-
-	.change_logo_actions {
-		display: flex;
-		flex-direction: column;
-		gap: 0.5rem;
 	}
 `;

@@ -11,7 +11,6 @@ import { useDrag, useDrop } from "react-dnd";
 interface DragValueProps {
 	id: number;
 	text: string;
-	findValue: (id: number) => { value: any; index: number };
 	moveValue: (id: number, index: number) => void;
 	onDelete: (id: number) => void;
 	updateValue: (text: string, id?: number) => void;
@@ -21,7 +20,7 @@ interface DragValueProps {
 }
 
 const DragValue = (props: DragValueProps) => {
-	const { id, text, className, findValue, moveValue, onDelete, updateValue, endDrag, isActions } = props;
+	const { id, text, className, moveValue, onDelete, updateValue, endDrag, isActions } = props;
 	const inputRef = useRef<HTMLInputElement>(null);
 
 	const [{ isDragging }, drag, preview] = useDrag({
@@ -38,14 +37,11 @@ const DragValue = (props: DragValueProps) => {
 		() => ({
 			accept: DragItems.Value,
 			hover({ id: draggedId }) {
-				if (draggedId !== id) {
-					const { index } = findValue(id);
-					if (index === -1) return;
-					moveValue(draggedId, index);
-				}
+				if (draggedId === id) return;
+				moveValue(draggedId, id);
 			},
 		}),
-		[findValue, moveValue],
+		[moveValue],
 	);
 
 	const handleDelete = useCallback(() => {
@@ -65,10 +61,20 @@ const DragValue = (props: DragValueProps) => {
 	}, []);
 
 	return (
-		<div ref={(ref) => void drop(preview(ref))} className={classNames(className, { isDragging })}>
+		<div
+			ref={(ref) => void drop(preview(ref))}
+			className={classNames(className, { isDragging, isEditable: isActions })}
+		>
 			<div className="content">
 				<Icon code="grip-vertical" isAction className="drag-icon" ref={(ref) => void drag(ref)} />
-				<Input type="text" ref={inputRef} defaultValue={text} autoFocus onChange={onChange} />
+				<Input
+					type="text"
+					ref={inputRef}
+					defaultValue={text}
+					autoFocus
+					onChange={onChange}
+					readOnly={!isActions}
+				/>
 			</div>
 			{isActions && (
 				<div className="actions">

@@ -7,6 +7,7 @@ import LinkResourceManager from "@core/Link/LinkResourceManager";
 import ResourceUpdater from "@core/Resource/ResourceUpdater";
 import createNewFilePathUtils from "@core/utils/createNewFilePathUtils";
 import { RwLock } from "@core/utils/rwlock";
+import { InboxProps } from "@ext/inbox/models/types";
 import { FileStatus } from "@ext/Watchers/model/FileStatus";
 import { JSONContent } from "@tiptap/core";
 import { RenderableTreeNode } from "../../../extensions/markdown/core/render/logic/Markdoc";
@@ -14,7 +15,6 @@ import { TocItem } from "../../../extensions/navigation/article/logic/createTocI
 import ResourceManager from "../../Resource/ResourceManager";
 import { Category } from "../Category/Category";
 import { Item, UpdateItemProps, type ItemEvents, type ItemProps } from "../Item/Item";
-import { InboxProps } from "@ext/inbox/models/types";
 
 export type ArticleEvents = ItemEvents;
 
@@ -37,15 +37,15 @@ export type ArticleProps =
 	  } & ItemProps)
 	| InboxProps;
 
-export const ArticlePropsKeys = ["title", "properties", "date", "author", "description"] as const;
+export const ArticlePropsKeys = ["title", "properties", "date", "author", "description", "template"] as const;
 
 export class Article<P extends ArticleProps = ArticleProps> extends Item<P> {
 	protected _fs: FileStructure;
 
-	private _parsedContent = RwLock.store<Content>(null);
-	private _content: string;
+	protected _parsedContent = RwLock.store<Content>(null);
+	protected _content: string;
+	protected _lastModified: number;
 	private _errorCode?: number;
-	private _lastModified: number;
 
 	constructor({ ref, parent, props, logicPath, ...init }: ArticleInitProps<P>) {
 		super(ref, parent, props, logicPath);
@@ -63,8 +63,14 @@ export class Article<P extends ArticleProps = ArticleProps> extends Item<P> {
 		return this._parsedContent;
 	}
 
+	get lastModified() {
+		return this._lastModified;
+	}
+
 	get content() {
-		return this._content;
+		const mutableContent = { content: this._content };
+		this.events.emitSync("item-get-content", { item: this, mutableContent });
+		return mutableContent.content;
 	}
 
 	get type() {
@@ -85,6 +91,12 @@ export class Article<P extends ArticleProps = ArticleProps> extends Item<P> {
 		await this._save();
 	}
 
+	async rawUpdateContent(rawContent: string, dropParsedContent = true) {
+		const { content, props } = this._fs.parseMarkdown(rawContent);
+		this._updateProps(props);
+		await this.updateContent(content, dropParsedContent);
+	}
+
 	async checkLastModified(lastModified: number): Promise<boolean> {
 		const result = this._lastModified !== lastModified;
 		if (result) {
@@ -101,10 +113,10 @@ export class Article<P extends ArticleProps = ArticleProps> extends Item<P> {
 		return this._ref.path.name;
 	}
 
-	protected override _updateProps(props: UpdateItemProps) {
+	protected _updateProps(props: UpdateItemProps, additionalKeys: string[] = []) {
 		const allProps = this._props as Record<string, unknown>;
 
-		for (const key of ArticlePropsKeys) {
+		for (const key of [...ArticlePropsKeys, ...additionalKeys]) {
 			if (!(key in props)) {
 				delete allProps[key];
 				continue;
@@ -132,7 +144,8 @@ export class Article<P extends ArticleProps = ArticleProps> extends Item<P> {
 		delete this._props.shouldBeCreated;
 		delete this._props.welcome;
 		if (this._props.title?.trim()) delete this._props.external;
-		const stat = await this._fs.saveArticle(this);
+
+		const stat = await this._fs.saveArticle(this._ref.path, this._content, this._props);
 		this._lastModified = stat.mtimeMs;
 		await this.events.emit("item-changed", { item: this, status: renamed ? FileStatus.new : FileStatus.modified });
 	}
@@ -160,18 +173,11 @@ export class Article<P extends ArticleProps = ArticleProps> extends Item<P> {
 	}
 
 	private async _getUpdateArticleByRead() {
-		return await this._fs.createArticle(this._ref.path, this._parent, this._parent.props);
+		return await this._fs.createArticle(this._ref.path, this._parent);
 	}
 
-	private _getUpdateArticleByProps(path: Path) {
-		return this._fs.makeArticleByProps(
-			path,
-			this._props,
-			this._content,
-			this._parent,
-			this._parent.props,
-			this._lastModified,
-		);
+	protected _getUpdateArticleByProps(path: Path) {
+		return this._fs.makeArticleByProps(path, this._props, this._content, this._parent, this._lastModified);
 	}
 }
 

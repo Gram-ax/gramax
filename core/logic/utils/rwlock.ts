@@ -14,7 +14,7 @@ export class RwLockContainer<T> {
 	async write(fn: (prev: T) => Promise<T> | T): Promise<void> {
 		const free = await this._lock.write();
 		try {
-			this._data = await fn(this._data);
+			this._data = await this.onWrite(await fn(this._data));
 		} finally {
 			free();
 		}
@@ -26,7 +26,8 @@ export class RwLockContainer<T> {
 	async read<R = T>(fn?: (data: T) => Promise<R> | R): Promise<R> {
 		const free = await this._lock.read();
 		try {
-			return fn ? await fn(this._data) : (this._data as unknown as R);
+			const data = await this.onRead(this._data);
+			return fn ? await fn(data) : (data as unknown as R);
 		} finally {
 			free();
 		}
@@ -37,6 +38,14 @@ export class RwLockContainer<T> {
 		const res = !this._data;
 		free();
 		return res;
+	}
+
+	protected onWrite(prev: T): Promise<T> | T {
+		return prev;
+	}
+
+	protected onRead(data: T): Promise<T> | T {
+		return data;
 	}
 }
 

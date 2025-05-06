@@ -1,31 +1,22 @@
-import ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
-import initArticleResource from "@ext/markdown/elementsUtils/AtricleResource/initArticleResource";
 import { EditorView } from "prosemirror-view";
 import { ClientArticleProps } from "../../../../../../logic/SitePresenter/SitePresenter";
 import { NodeSelection } from "@tiptap/pm/state";
-import { OnLoadResource } from "@ext/markdown/elements/copyArticles/onLoadResourceService";
-import FetchService from "@core-ui/ApiServices/FetchService";
 import getNaturalSize from "@ext/markdown/elements/image/edit/logic/getNaturalSize";
+import { ResourceServiceType } from "@ext/markdown/elements/copyArticles/resourceService";
 
 const createImages = async (
 	files: File[],
 	view: EditorView,
 	articleProps: ClientArticleProps,
-	apiUrlCreator: ApiUrlCreator,
-	onLoadResource: OnLoadResource,
+	resourceService: ResourceServiceType,
 ) => {
 	files = files.filter((f) => f);
 	if (!files.length) return;
 
 	for (const file of files) {
 		if (!file.type.startsWith("image")) continue;
-		const newName = await initArticleResource(
-			articleProps,
-			apiUrlCreator,
-			onLoadResource,
-			Buffer.from(await file.arrayBuffer()),
-			file.type.slice("image/".length),
-		);
+		const name = `${articleProps.fileName}.${file.type.slice("image/".length)}`;
+		const newName = await resourceService.setResource(name, Buffer.from(await file.arrayBuffer()));
 
 		const { $from } = view.state.selection;
 		const attributes: Record<string, any> = { src: newName };
@@ -42,7 +33,7 @@ const createImages = async (
 		const tr = view.state.tr;
 		if ($from.parent.type.name === "doc" && $from.nodeAfter?.type?.name === "image") {
 			const src = $from.nodeAfter.attrs.src;
-			await FetchService.fetch(apiUrlCreator.deleteArticleResource(src));
+			await resourceService.deleteResource(src);
 			return view.dispatch(view.state.tr.setNodeAttribute($from.pos, "src", newName));
 		}
 

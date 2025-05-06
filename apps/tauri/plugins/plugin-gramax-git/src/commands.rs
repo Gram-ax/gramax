@@ -144,8 +144,8 @@ pub(crate) fn graph_head_upstream_files(
 }
 
 #[command(async)]
-pub(crate) fn merge(repo_path: &Path, creds: AccessTokenCreds, theirs: &str) -> Result<MergeResult> {
-  git::merge(repo_path, creds, theirs)
+pub(crate) fn merge(repo_path: &Path, creds: AccessTokenCreds, opts: MergeOptions) -> Result<MergeResult> {
+  git::merge(repo_path, creds, opts)
 }
 
 #[command(async)]
@@ -240,8 +240,22 @@ pub(crate) fn get_all_commit_authors(repo_path: &Path) -> Result<Vec<CommitAutho
   git::get_all_commit_authors(repo_path)
 }
 
+#[command(async)]
+pub(crate) fn gc(repo_path: &Path, opts: GcOptions) -> Result<()> {
+  git::gc(repo_path, opts)
+}
+
 #[command]
 pub(crate) fn reset_repo() -> Result<bool> {
   git::reset_repo();
   Ok(true)
+}
+
+#[command(async)]
+pub(crate) fn format_merge_message(
+  repo_path: &Path,
+  creds: AccessTokenCreds,
+  opts: MergeMessageFormatOptions,
+) -> Result<String> {
+  git::format_merge_message(repo_path, creds, opts)
 }

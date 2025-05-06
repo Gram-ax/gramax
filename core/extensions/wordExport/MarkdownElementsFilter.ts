@@ -1,7 +1,8 @@
 import { getExecutingEnvironment } from "@app/resolveModule/env";
 import t from "@ext/localization/locale/translate";
 import { RenderableTreeNode, Tag } from "@ext/markdown/core/render/logic/Markdoc";
-import { Display } from "@ext/properties/models/displays";
+import { Display } from "@ext/properties/models/display";
+import { JSONContent } from "@tiptap/core";
 
 class MarkdownElementsFilter {
 	private _errors: Map<string, number>;
@@ -10,31 +11,35 @@ class MarkdownElementsFilter {
 		this._errors = new Map<string, number>();
 	}
 
-	private _isPlainText(tag: Tag): boolean {
+	private _isPlainText(tag: Tag | JSONContent): boolean {
 		return typeof tag === "string";
 	}
 
-	private _findUnsupportedElements(renderTree: Tag): void {
-		renderTree.children.forEach((child) => {
-			const tag = child as Tag;
+	private _findUnsupportedElements(renderTree: Tag | JSONContent): void {
+		const renderChildren = "children" in renderTree ? renderTree?.children : renderTree?.content;
+		renderChildren.forEach((child) => {
+			const tag = child;
 			if (!tag || this._isPlainText(tag)) return;
 
-			if (tag.name === "View" && this._exportedKeys?.has(tag.name)) {
-				if (tag.attributes.display === Display.Kanban) {
+			const name = (("name" in tag && tag.name) || ("type" in tag && tag.type)) as string;
+			if (name === "View" && this._exportedKeys?.has(name)) {
+				const attrs = "attributes" in tag ? tag.attributes : tag;
+				if (attrs.display === Display.Kanban) {
 					this._incrementErrorCount(t("pdf.kanban-view-export-error"));
 				}
 				return;
 			}
 
-			if (tag.name === "Mermaid" && getExecutingEnvironment() === "next") {
+			if (name === "Mermaid" && getExecutingEnvironment() === "next") {
 				this._incrementErrorCount(t("diagram.error.mermaid-export-next-error"));
 				return;
 			}
 
-			if (this._exportedKeys?.has(tag.name)) {
-				if (tag.children?.length) this._findUnsupportedElements(tag);
+			const children = "children" in tag ? tag.children : tag.content;
+			if (this._exportedKeys?.has(name)) {
+				if (children?.length) this._findUnsupportedElements(tag);
 			} else {
-				this._incrementErrorCount(tag.name);
+				this._incrementErrorCount(name);
 			}
 		});
 	}
@@ -53,15 +58,8 @@ class MarkdownElementsFilter {
 		return this._errors;
 	}
 
-	public getSupportedTree(node: RenderableTreeNode) {
-		if (node === null || node === undefined || typeof node === "string" || node.$$mdtype !== "Tag") return node;
-		return new Tag(
-			node.name,
-			node.attributes,
-			node.children
-				.map((child) => this.getSupportedTree(child))
-				.filter((val) => this._exportedKeys.has(val?.name)),
-		);
+	public getSupportedTree(node: RenderableTreeNode | JSONContent) {
+		return node;
 	}
 }
 

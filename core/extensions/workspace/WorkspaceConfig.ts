@@ -10,8 +10,11 @@ export interface WorkspaceConfig {
 	icon?: string;
 	groups?: Record<string, WorkspaceGroup>;
 	services?: ServicesConfig;
-	isEnterprise?: boolean;
-	gesUrl?: string;
+	enterprise?: {
+		gesUrl?: string;
+		lastUpdateDate?: number;
+	};
+	gesUrl?: string; // legacy
 }
 
 export type WorkspacePath = string;

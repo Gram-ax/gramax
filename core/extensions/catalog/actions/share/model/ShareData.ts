@@ -2,6 +2,7 @@ import SourceType from "../../../../storage/logic/SourceDataProvider/model/Sourc
 
 export default interface ShareData {
 	sourceType: SourceType;
-	filePath: string;
+	filePath: string[];
 	name: string;
+	isPublic: boolean;
 }

@@ -7,13 +7,13 @@ import GitStorage from "@ext/git/core/GitStorage/GitStorage";
 import RepositoryProvider from "@ext/git/core/Repository/RepositoryProvider";
 import WorkdirRepository from "@ext/git/core/Repository/WorkdirRepository";
 import type { RepositoryMergeConflictState } from "@ext/git/core/Repository/state/RepositoryState";
+import type GitSourceData from "@ext/git/core/model/GitSourceData.schema";
 import SourceData from "@ext/storage/logic/SourceDataProvider/model/SourceData";
 import SourceType from "@ext/storage/logic/SourceDataProvider/model/SourceType";
 import DiskFileProvider from "../../../../../../logic/FileProvider/DiskFileProvider/DiskFileProvider";
 import Path from "../../../../../../logic/FileProvider/Path/Path";
 import GitVersionControl from "../../../GitVersionControl/GitVersionControl";
 import GitBaseConflictResolver from "../GitBaseConflictResolver";
-import type GitSourceData from "@ext/git/core/model/GitSourceData.schema";
 
 const mockUserData: SourceData = {
 	sourceType: SourceType.gitHub,
@@ -76,7 +76,7 @@ describe("GitBaseConflictResolver", () => {
 		await commit(gvc, { "1.txt": "conflict content ours" });
 		const hashBefore = (await gvc.getCommitHash()).toString();
 		const statusBefore = await gvc.getChanges();
-		await gvc.mergeBranch(mockUserData, "conflict");
+		await gvc.mergeBranch(mockUserData, { theirs: "conflict" });
 		expect(await dfp.read(repPath("1.txt"))).toEqual(CONFLICT_CONTENT);
 
 		await resolver.abortMerge(mockState);
@@ -92,7 +92,7 @@ describe("GitBaseConflictResolver", () => {
 		await gvc.checkoutToBranch("master");
 		await commit(gvc, { "1.txt": "conflict content ours" });
 		const resolvedMergeFiles = [{ path: "1.txt", content: "conflict content ours and theirs :)" }];
-		await gvc.mergeBranch(mockUserData, "conflict");
+		await gvc.mergeBranch(mockUserData, { theirs: "conflict" });
 		expect(await dfp.read(repPath("1.txt"))).toEqual(CONFLICT_CONTENT);
 
 		await expect(

@@ -5,6 +5,7 @@ pub use git2::Error as GitError;
 
 use std::fmt::Display;
 use std::io;
+use std::path::Path;
 
 pub type Result<T> = std::result::Result<T, Error>;
 
@@ -12,6 +13,7 @@ pub type Result<T> = std::result::Result<T, Error>;
 pub enum Error {
   Git(git2::Error),
   Io(String),
+  Network { status: u16, message: Option<String> },
   NoWorkdir,
   NoModifiedFiles,
   AlreadyCloningWithSameId(String),
@@ -44,11 +46,30 @@ impl Display for Error {
         writeln!(f, "{:?}", err)
       }
       Error::Io(err) => writeln!(f, "{}", err),
+      Error::Network { status, message } => {
+        writeln!(f, "External network error: {} {}", status, message.as_ref().unwrap_or(&"".to_string()))
+      }
       Error::NoModifiedFiles => writeln!(f, "No files modified"),
       Error::NoWorkdir => writeln!(f, "Repository has no workdir"),
       Error::Utf8 => writeln!(f, "String was not UTF8"),
       Error::AlreadyCloningWithSameId(id) => writeln!(f, "Already cloning with same id: {}", id),
       Error::Yaml(err) => writeln!(f, "YAML serialize/deserialize: {}", err),
     }
+  }
+}
+
+pub trait OrUtf8Err<'s, T: ?Sized> {
+  fn or_utf8_err(self) -> Result<&'s T>;
+}
+
+impl<'s> OrUtf8Err<'s, str> for Option<&'s str> {
+  fn or_utf8_err(self) -> Result<&'s str> {
+    self.ok_or(Error::Utf8)
+  }
+}
+
+impl<'s> OrUtf8Err<'s, Path> for Option<&'s Path> {
+  fn or_utf8_err(self) -> Result<&'s Path> {
+    self.ok_or(Error::Utf8)
   }
 }

@@ -21,7 +21,10 @@ const getArticlesWithSnippet: Command<
 		const catalog = await workspace.getCatalog(catalogName, ctx);
 		if (!catalog) return;
 		const sp = sitePresenterFactory.fromContext(ctx);
-		const items = await catalog.snippetProvider.getArticlesWithSnippet(snippetId, sp);
+
+		await sp.parseAllItems(catalog);
+		const items = await catalog.snippetProvider.getArticlesWithSnippet(snippetId);
+
 		return Promise.all(
 			items.map(async (i) => ({
 				pathname: await catalog.getPathname(i),

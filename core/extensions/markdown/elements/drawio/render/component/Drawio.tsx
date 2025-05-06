@@ -3,9 +3,8 @@ import { forwardRef, MutableRefObject, ReactElement, useLayoutEffect, useRef, us
 import DiagramError from "@ext/markdown/elements/diagrams/component/DiagramError";
 import t from "@ext/localization/locale/translate";
 import Image from "@components/Atoms/Image/Image";
-import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import { resolveImageKind } from "@components/Atoms/Image/resolveImageKind";
-import OnLoadResourceService from "@ext/markdown/elements/copyArticles/onLoadResourceService";
+import ResourceService from "@ext/markdown/elements/copyArticles/resourceService";
 import Skeleton from "@components/Atoms/ImageSkeleton";
 import getAdjustedSize from "@core-ui/utils/getAdjustedSize";
 
@@ -22,8 +21,7 @@ interface DrawioProps {
 
 const Drawio = forwardRef((props: DrawioProps, refT: MutableRefObject<HTMLImageElement>): ReactElement => {
 	const { id, src, title, width, height, className, openEditor, noEm } = props;
-	const apiUrlCreator = ApiUrlCreatorService.value;
-	const { useGetContent } = OnLoadResourceService.value;
+	const { useGetResource } = ResourceService.value;
 
 	const ref = refT || useRef<HTMLImageElement>(null);
 	const parentRef = useRef<HTMLDivElement>(null);
@@ -54,11 +52,11 @@ const Drawio = forwardRef((props: DrawioProps, refT: MutableRefObject<HTMLImageE
 		setSize({ width: newSize.width + "px", height: newSize.height + offset + "px" });
 	}, [width, height]);
 
-	useGetContent(src, apiUrlCreator, (buffer) => {
+	useGetResource((buffer) => {
 		if (!buffer || !buffer.byteLength) return setIsError(true);
 		setIsLoaded(false);
 		setSrc(new Blob([buffer], { type: resolveImageKind(buffer) }));
-	});
+	}, src);
 
 	if (!src || isError)
 		return <DiagramError error={{ message: t("diagram.error.cannot-get-data") }} diagramName="diagrams.net" />;

@@ -10,7 +10,6 @@ import tags from "./src/tags/index";
 import Tokenizer from "./src/tokenizer";
 import transformer from "./src/transformer";
 import transforms from "./src/transforms/index";
-import { parseTags } from "./src/utils";
 import validator from "./src/validator";
 
 import MarkdownIt from "markdown-it";
@@ -99,7 +98,6 @@ export default {
 	Ast,
 	Tag,
 	Tokenizer,
-	parseTags,
 	transformer,
 	validator,
 	parse,
@@ -111,17 +109,4 @@ export default {
 	truthy,
 };
 
-export {
-	Ast,
-	Tag,
-	Tokenizer,
-	functions,
-	nodes,
-	parseTags,
-	renderers,
-	tags,
-	transformer,
-	transforms,
-	truthy,
-	validator,
-};
+export { Ast, Tag, Tokenizer, functions, nodes, renderers, tags, transformer, transforms, truthy, validator };

@@ -4,7 +4,6 @@ import t from "@ext/localization/locale/translate";
 import {
 	StandardCaseLangList,
 	getStandardCaseByLower,
-	getLowerLangName,
 } from "@ext/markdown/elements/codeBlockLowlight/edit/logic/LowlightLangs";
 import { Editor } from "@tiptap/core";
 import { Node } from "@tiptap/pm/model";

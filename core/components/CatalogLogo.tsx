@@ -1,16 +1,17 @@
-import resolveModule from "@app/resolveModule/frontend";
-import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
+import { usePlatform } from "@core-ui/hooks/usePlatform";
 import t from "@ext/localization/locale/translate";
-import ThemeService from "@ext/Theme/components/ThemeService";
+import CatalogLogoService from "@core-ui/ContextServices/CatalogLogoService/Context";
 import { useState } from "react";
 
-const ActionLogo = ({ setIsError }) => {
+export const ActionLogo = () => {
+	const [isError, setIsError] = useState(false);
 	const logoData = PageDataContextService.value.conf.logo;
-	const imageSrc = logoData?.imageUrl;
 	const url = logoData.linkUrl;
+	const imageSrc = logoData?.imageUrl;
 	const title = logoData?.linkTitle ?? (url !== "/" ? `${t("go-to")} ${url}` : null);
 
+	if (isError) return null;
 	return (
 		<img
 			src={imageSrc}
@@ -24,14 +25,9 @@ const ActionLogo = ({ setIsError }) => {
 };
 
 export const CatalogLogo = ({ catalogName }: { catalogName?: string }) => {
-	const useImage = resolveModule("useImage");
-	const [isError, setIsError] = useState(false);
-	const theme = ThemeService.value;
-	const apiUrlCreator = ApiUrlCreatorService.value;
-	const imageSrc = useImage(apiUrlCreator.getLogoUrl(catalogName, theme));
-	if (!catalogName || isError || !imageSrc) return null;
+	const { logo } = CatalogLogoService.value();
+	const { isStaticCli } = usePlatform();
+	if (!logo || isStaticCli) return null;
 
-	if (PageDataContextService.value.conf.logo.imageUrl) return <ActionLogo setIsError={setIsError} />;
-
-	return <img src={imageSrc} onError={() => setIsError(true)} alt={catalogName} />;
+	return <img src={logo} alt={catalogName} />;
 };

@@ -14,6 +14,7 @@ export const DiffEntries: StoryObj<{ checkboxes: boolean }> = {
 	render: (props) => (
 		<div style={{ width: "500px" }}>
 			<DiffEntriesSrc
+				renderCommentsCount={false}
 				changes={diffTree}
 				setArticleDiffView={() => {}}
 				onAction={() => {}}

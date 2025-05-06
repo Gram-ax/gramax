@@ -1,4 +1,4 @@
-import drawio from "@ext/markdown/elements/drawio/edit/model/drawioSchema";
+import drawioSchema from "@ext/markdown/elements/drawio/edit/model/drawioSchema";
 import getExtensionOptions from "@ext/markdown/logic/getExtensionOptions";
 import { mergeAttributes, Node } from "@tiptap/core";
 import { ReactNodeViewRenderer } from "@tiptap/react";
@@ -13,7 +13,7 @@ declare module "@tiptap/core" {
 }
 
 const Drawio = Node.create({
-	...getExtensionOptions({ schema: drawio, name: "drawio", withResource: true }),
+	...getExtensionOptions({ schema: drawioSchema, name: "drawio", withResource: true }),
 
 	parseHTML() {
 		return [{ tag: "drawio-react-component" }];

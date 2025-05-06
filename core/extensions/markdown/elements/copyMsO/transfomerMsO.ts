@@ -106,7 +106,10 @@ class TransformerMsO {
 					if (listStack.length > 0) listStack[listStack.length - 1].appendChild(newList);
 
 					listStack.push(newList);
-				} else listStack.pop();
+				} else {
+					if (listStack.length === 0) return;
+					listStack.pop();
+				}
 			}
 
 			const markerSpan = p.querySelector("span > span");

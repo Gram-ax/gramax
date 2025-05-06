@@ -12,7 +12,7 @@ import PageDataContext from "@core/Context/PageDataContext";
 import { ClientArticleProps, ClientCatalogProps } from "@core/SitePresenter/SitePresenter";
 import styled from "@emotion/styled";
 import { RenderableTreeNodes } from "@ext/markdown/core/render/logic/Markdoc";
-import OnLoadResourceService from "@ext/markdown/elements/copyArticles/onLoadResourceService";
+import ResourceService from "@ext/markdown/elements/copyArticles/resourceService";
 import { Mark } from "@tiptap/pm/model";
 import { ReactNode, useCallback, useEffect, useRef, useState } from "react";
 import { useLocation } from "wouter";
@@ -89,10 +89,6 @@ const ArticleLinkTooltip = (props: LinkTooltipProps) => {
 		const data = await res.json();
 
 		if (mark?.attrs?.hash && mark.attrs?.hash !== hash) setHash(mark.attrs.hash);
-
-		if (data.error && typeof data.content === "string") {
-			data.content = JSON.parse(data.content);
-		}
 
 		setData(data);
 	}, [apiUrlCreator, getMark, resourcePath]);
@@ -177,7 +173,7 @@ const TooltipProvider = (props: TooltipProviderProps) => {
 
 	return (
 		<ApiUrlCreatorService.Provider value={apiUrlCreator.fromNewArticlePath(data.path)}>
-			<OnLoadResourceService.Provider>
+			<ResourceService.Provider>
 				<PageDataContextService.Provider value={pageDataContext}>
 					<CatalogPropsService.Context value={catalogProps}>
 						<ArticleRefService.Provider>
@@ -185,7 +181,7 @@ const TooltipProvider = (props: TooltipProviderProps) => {
 						</ArticleRefService.Provider>
 					</CatalogPropsService.Context>
 				</PageDataContextService.Provider>
-			</OnLoadResourceService.Provider>
+			</ResourceService.Provider>
 		</ApiUrlCreatorService.Provider>
 	);
 };

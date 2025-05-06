@@ -81,6 +81,7 @@ export default class GitStorage implements Storage {
 				if (((e as GitError).cause as any)?.props?.errorCode === GitErrorCode.CancelledOperation) throw e;
 
 				await (source as ProxiedSourceDataCtx<GitSourceData>).assertValid?.(e);
+				throw e;
 			}
 			if (recursive) {
 				// const submodulesData = await gitRepository.getSubmodulesData();
@@ -163,7 +164,8 @@ export default class GitStorage implements Storage {
 			domain: source.domain,
 			protocol: source.protocol,
 			sourceType: source.sourceType,
-			filePath: filePath.value,
+			filePath: filePath.value.split("/").filter(Boolean),
+			isPublic: false,
 		};
 	}
 
@@ -172,7 +174,7 @@ export default class GitStorage implements Storage {
 		return this._url;
 	}
 
-	async push(source: GitSourceData, recursive?: boolean) {
+	async push(source: GitSourceData) {
 		const storageName = getStorageNameByData(source);
 		assert(
 			storageName === (await this.getSourceName()),
@@ -183,6 +185,7 @@ export default class GitStorage implements Storage {
 			await this._gitRepository.push(source);
 		} catch (e) {
 			await (source as ProxiedSourceDataCtx<GitSourceData>).assertValid?.(e);
+			throw e;
 		}
 
 		await this.updateSyncCount();
@@ -216,6 +219,7 @@ export default class GitStorage implements Storage {
 					await this._gitRepository.pull(source);
 				} catch (e) {
 					await (source as ProxiedSourceDataCtx<GitSourceData>).assertValid?.(e);
+					throw e;
 				}
 			}
 
@@ -226,6 +230,7 @@ export default class GitStorage implements Storage {
 						await storage.pull(source);
 					} catch (e) {
 						await (source as ProxiedSourceDataCtx<GitSourceData>).assertValid?.(e);
+						throw e;
 					}
 				}
 			}
@@ -264,6 +269,7 @@ export default class GitStorage implements Storage {
 			await this._gitRepository.fetch(source, force);
 		} catch (e) {
 			await (source as ProxiedSourceDataCtx<GitSourceData>).assertValid?.(e);
+			throw e;
 		}
 		await this.updateSyncCount();
 	}

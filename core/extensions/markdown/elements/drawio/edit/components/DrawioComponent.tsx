@@ -11,7 +11,7 @@ import getNaturalSize from "@ext/markdown/elements/image/edit/logic/getNaturalSi
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import FetchService from "@core-ui/ApiServices/FetchService";
 import { resolveImageKind } from "@components/Atoms/Image/resolveImageKind";
-import OnLoadResourceService from "@ext/markdown/elements/copyArticles/onLoadResourceService";
+import ResourceService from "@ext/markdown/elements/copyArticles/resourceService";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import { Base64ToDataImage, DataImageToBase64, isDataImage } from "@core-ui/Base64Converter";
 import ArticleUpdaterService from "@components/Article/ArticleUpdater/ArticleUpdaterService";
@@ -29,7 +29,7 @@ const DrawioComponent = ({ node, getPos, editor }: NodeViewProps): ReactElement 
 	const apiUrlCreator = ApiUrlCreatorService.value;
 	const pageDataContext = PageDataContextService.value;
 	const articleProps = ArticlePropsService.value;
-	const { getBuffer, update } = OnLoadResourceService.value;
+	const { getBuffer, update } = ResourceService.value;
 
 	const setImgData = useCallback(() => {
 		const imagData = refT.current?.src;

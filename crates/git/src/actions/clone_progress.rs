@@ -24,7 +24,7 @@ pub(super) struct CloneCancel<'id> {
 
 impl<'id> CloneCancel<'id> {
   pub fn new(id: usize, to: &'id Path) -> Result<Self> {
-    let to = to.to_str().ok_or(crate::error::Error::Utf8)?;
+    let to = to.to_str().or_utf8_err()?;
     if !CLONING.write().unwrap().insert(id) {
       return Err(crate::error::Error::AlreadyCloningWithSameId(format!("{}", id)));
     }

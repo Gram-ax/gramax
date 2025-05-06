@@ -12,7 +12,8 @@ import ArticlePropsService from "@core-ui/ContextServices/ArticleProps";
 import CatalogPropsService from "@core-ui/ContextServices/CatalogProps";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import WorkspaceService from "@core-ui/ContextServices/Workspace";
-import useWatch from "@core-ui/hooks/useWatch";
+import CatalogLogoService from "@core-ui/ContextServices/CatalogLogoService/Context";
+import useWatch, { useWatchClient } from "@core-ui/hooks/useWatch";
 import { transliterate } from "@core-ui/languageConverter/transliterate";
 import openNewTab from "@core-ui/utils/openNewTab";
 import { useRouter } from "@core/Api/useRouter";
@@ -26,12 +27,17 @@ import getRepUrl from "@ext/git/core/GitPathnameHandler/clone/logic/getRepUrl";
 import GitShareData from "@ext/git/core/model/GitShareData";
 import t from "@ext/localization/locale/translate";
 import getPartGitSourceDataByStorageName from "@ext/storage/logic/utils/getPartSourceDataByStorageName";
+import Theme from "@ext/Theme/Theme";
+import { FormRowItem } from "@ext/workspace/components/EditCustomTheme";
+import LogoUploader from "@ext/workspace/components/LogoUploader";
 import { JSONSchema7 } from "json-schema";
 import { useState } from "react";
 import FetchService from "../../../../../ui-logic/ApiServices/FetchService";
 import ApiUrlCreatorService from "../../../../../ui-logic/ContextServices/ApiUrlCreator";
 import CatalogEditProps from "../model/CatalogEditProps.schema";
 import Schema from "../model/CatalogEditProps.schema.json";
+import CatalogExtendedPropsEditor from "@ext/catalog/actions/propsEditor/components/CatalogExtendedPropsEditor";
+import getIsDevMode from "@core-ui/utils/getIsDevMode";
 
 const CatalogPropsEditor = ({
 	trigger,
@@ -47,11 +53,13 @@ const CatalogPropsEditor = ({
 	const suchCatalogExists = t("catalog.error.already-exist");
 	const noEncodingSymbolsInUrl = t("no-encoding-symbols-in-url");
 
+	const [isDevMode] = useState(() => getIsDevMode());
+
 	const workspace = WorkspaceService.current();
 	const apiUrlCreator = ApiUrlCreatorService.value;
 	const [isOpen, setIsOpen] = useState(props.isOpen);
 	const [allCatalogNames, setAllCatalogNames] = useState<string[]>([]);
-
+	const { confirmChanges: confirmCatalogLogoChanges } = CatalogLogoService.value();
 	useWatch(() => setIsOpen(props.isOpen), [props.isOpen]);
 
 	const router = useRouter();
@@ -91,6 +99,8 @@ const CatalogPropsEditor = ({
 
 		onSubmitParent?.(props);
 		setEditProps(getCatalogEditProps(newCatalogProps));
+
+		await confirmCatalogLogoChanges();
 	};
 
 	const onChange = (props: CatalogEditProps) => {
@@ -111,7 +121,7 @@ const CatalogPropsEditor = ({
 	};
 
 	const submit = (props: CatalogEditProps) => {
-		if (onSubmit) onSubmit(props);
+		if (onSubmit) void onSubmit(props);
 		setIsOpen(false);
 	};
 
@@ -173,7 +183,8 @@ const CatalogPropsEditor = ({
 												group: pathnameData.group,
 												branch: pathnameData.refname,
 												name: pathnameData.repo,
-												filePath: "",
+												isPublic: false,
+												filePath: [],
 											};
 											openNewTab(getRepUrl(gitShareData).href);
 										}}
@@ -181,6 +192,13 @@ const CatalogPropsEditor = ({
 										{t("open-in.generic") + " " + sourceType}
 									</Button>
 								)}
+								{/* {isDevMode && (
+									<CatalogExtendedPropsEditor>
+										<Button buttonStyle={ButtonStyle.underline}>
+											<span>{t("forms.catalog-edit-props.extended.name")}</span>
+										</Button>
+									</CatalogExtendedPropsEditor>
+								)} */}
 							</>
 						}
 						schema={Schema as JSONSchema7}
@@ -212,46 +230,101 @@ const CatalogPropsEditor = ({
 							(schema.properties.url as any).readOnly = !!sourceType;
 						}}
 					>
-						{workspace?.groups && (
-							<div className="form-group">
-								<div className="field field-string row">
-									<label className="control-label">
-										{t("forms.catalog-edit-props.props.group.name")}
-									</label>
-									<div className="input-lable">
-										<ListLayout
-											items={Object.entries(workspace.groups).map(([key, group]) => ({
-												labelField: key,
-												element: group.title,
-											}))}
-											item={{
-												labelField: editProps.group ?? "",
-												element: workspace.groups[editProps.group]?.title ?? "",
-											}}
-											placeholder={t("forms.catalog-edit-props.props.group.placeholder")}
-											onCancelClick={() => setEditProps({ ...editProps, group: "" })}
-											onItemClick={(_, __, idx) =>
-												setEditProps({
-													...editProps,
-													group: Object.entries(workspace.groups)[idx][0],
-												})
-											}
-										/>
+						<>
+							{workspace?.groups && (
+								<div className="form-group">
+									<div className="field field-string row">
+										<label className="control-label">
+											{t("forms.catalog-edit-props.props.group.name")}
+										</label>
+										<div className="input-lable">
+											<ListLayout
+												items={Object.entries(workspace.groups).map(([key, group]) => ({
+													labelField: key,
+													element: group.title,
+												}))}
+												item={{
+													labelField: editProps.group ?? "",
+													element: workspace.groups[editProps.group]?.title ?? "",
+												}}
+												placeholder={t("forms.catalog-edit-props.props.group.placeholder")}
+												onCancelClick={() => setEditProps({ ...editProps, group: "" })}
+												onItemClick={(_, __, idx) =>
+													setEditProps({
+														...editProps,
+														group: Object.entries(workspace.groups)[idx][0],
+													})
+												}
+											/>
+										</div>
+									</div>
+									<div className="input-lable-description">
+										<div />
+										<div className="article">
+											{t("forms.catalog-edit-props.props.group.description")}
+										</div>
 									</div>
 								</div>
-								<div className="input-lable-description">
-									<div />
-									<div className="article">
-										{t("forms.catalog-edit-props.props.group.description")}
-									</div>
-								</div>
-							</div>
-						)}
+							)}
+
+							{isOpen && <CatalogLogo />}
+						</>
 					</Form>
 				</ModalLayoutLight>
 			</ModalLayout>
 		</>
 	);
 };
+
+function CatalogLogo() {
+	const {
+		deleteLightLogo,
+		deleteDarkLogo,
+		isLoadingDark,
+		isLoadingLight,
+		lightLogo,
+		darkLogo,
+		updateLightLogo,
+		updateDarkLogo,
+		refreshState,
+	} = CatalogLogoService.value();
+
+	useWatchClient(() => {
+		void refreshState();
+	}, []);
+
+	return (
+		<>
+			<FormRowItem
+				className={"assets_row_item inverseMargin"}
+				label={t("workspace.logo")}
+				description={t("workspace.default-logo-description")}
+			>
+				<div className={"change_logo_actions"}>
+					<LogoUploader
+						deleteResource={deleteLightLogo}
+						updateResource={updateLightLogo}
+						logo={lightLogo}
+						isLoading={isLoadingLight}
+						imageTheme={Theme.light}
+					/>
+				</div>
+			</FormRowItem>
+
+			<FormRowItem className={"assets_row_item"} description={t("workspace.dark-logo-description")}>
+				<div className={"secondary_logo_action"}>
+					<span className={"control-label"}>{t("workspace.for-dark-theme")}</span>
+					<LogoUploader
+						deleteResource={deleteDarkLogo}
+						updateResource={updateDarkLogo}
+						logo={darkLogo}
+						isLoading={isLoadingDark}
+						imageTheme={Theme.dark}
+					/>
+				</div>
+			</FormRowItem>
+		</>
+	);
+}
 
 export default CatalogPropsEditor;

@@ -1,0 +1,31 @@
+name: Bug Report
+description: Report a bug
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Please give the issue a good title - be less abstract and more specific.
+        Use code blocks for markdown, stacktraces or code snippets.
+        If there is a related issue, please reference it in the description.
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Describe the bug
+      description: A clear description of what the bug is. Screenshots or videos can be included to describe the issue more precisely
+      placeholder: Bug description
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Stacktrace / Markdown  (Optional)
+      description: Include an error stacktrace from the devtools console or markdown code block that reproduces the issue
+
+  - type: textarea
+    id: expected-behavior
+    attributes:
+      label: Expected behavior (Optional)
+      description: Describe what you expected to happen

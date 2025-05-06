@@ -48,6 +48,8 @@ const getRenderContent: Command<
 					type: "Parse",
 				},
 			});
+
+			errorArticleData.content = JSON.parse(errorArticleData.content);
 		}
 
 		return {

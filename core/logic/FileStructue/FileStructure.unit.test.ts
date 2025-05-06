@@ -142,8 +142,7 @@ describe("FileStructure", () => {
 				FileStructure.getCatalogPath(catalog).join(path("category/_index.md")),
 				catalog.getRootCategory(),
 				{ props: {}, content: "content" } as any, // createCategory only uses these fields, so it's ok
-				{},
-				{},
+				catalog,
 			);
 
 			const actual = await fp.read(path("test1/category/_index.md"));
@@ -155,17 +154,6 @@ describe("FileStructure", () => {
 			const catalog = await fs.getCatalogByPath(path("test1"));
 			expect(catalog.getItems([() => false])).toHaveLength(0);
 		});
-
-		test("callback при сохранении", async () => {
-			const catalog = await fs.getCatalogByPath(path("test1"));
-			let worked = false;
-			fs.addSaveRule((props) => {
-				worked = !!props;
-				return props;
-			});
-			await fs.saveCatalog(catalog);
-			expect(worked).toBeTruthy();
-		});
 	});
 
 	describe("читает", () => {
@@ -174,8 +162,7 @@ describe("FileStructure", () => {
 			const category = await fs.makeCategory(
 				path("test1/category"),
 				catalog.getRootCategory(),
-				{},
-				{},
+				catalog,
 				path("test1/category/_index.md"),
 			);
 			expect(category).toBeDefined();

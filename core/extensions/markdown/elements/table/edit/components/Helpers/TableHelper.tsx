@@ -7,7 +7,7 @@ import TablePlusActions from "@ext/markdown/elements/table/edit/components/Helpe
 import { hideOldControls, showNewControls } from "@ext/markdown/elements/table/edit/logic/controlActions";
 import { getHoveredData, getTableSizes } from "@ext/markdown/elements/table/edit/logic/utils";
 import { HoveredData } from "@ext/markdown/elements/table/edit/model/tableTypes";
-import EditorService from "@ext/markdown/elementsUtils/ContextServices/EditorService";
+import { Editor } from "@tiptap/core";
 import { Node } from "@tiptap/pm/model";
 import { MouseEvent as ReactMouseEvent, ReactNode, RefObject, useCallback, useEffect, useRef, useState } from "react";
 
@@ -17,6 +17,8 @@ interface TableHelperProps {
 	children: ReactNode;
 	node: Node;
 	getPos: () => number;
+	editor: Editor;
+	disabledWrapper?: boolean;
 	className?: string;
 }
 
@@ -52,13 +54,16 @@ const TriangleButton = styled.div`
 	}
 `;
 
+const Wrapper = styled.div`
+	overflow: auto;
+`;
+
 const TableHelper = (props: TableHelperProps) => {
-	const { tableRef, hoverElementRef, children, className, node, getPos } = props;
+	const { tableRef, hoverElementRef, children, className, node, getPos, editor, disabledWrapper } = props;
 
 	const [tableSizes, setTableSizes] = useState<TableDataString>(null);
 	const [isHovered, setIsHovered] = useState(false);
 
-	const editor = EditorService.getEditor();
 	const hoveredData = useRef<HoveredData>(null);
 
 	useEffect(() => {
@@ -111,17 +116,22 @@ const TableHelper = (props: TableHelperProps) => {
 	}, [tableRef.current]);
 
 	const hideControls = useCallback(() => {
-		const tableParent = tableRef.current?.parentElement;
+		const tableParent = disabledWrapper
+			? tableRef.current?.parentElement.parentElement
+			: tableRef.current.parentElement;
 		const containerHorizontal = tableParent?.querySelector(".controls-container-horizontal");
 		const containerVertical = tableParent?.querySelector(".controls-container-vertical");
 
 		if (hoveredData.current) hideOldControls(containerVertical, containerHorizontal, { ...hoveredData.current });
 		hoveredData.current = null;
-	}, [tableRef.current, hoveredData]);
+	}, [tableRef.current, hoveredData, disabledWrapper]);
 
 	const onMouseMove = useCallback(
 		(event: ReactMouseEvent) => {
-			const { cellIndex, rowIndex } = getHoveredData(event, tableRef.current.parentElement);
+			const { cellIndex, rowIndex } = getHoveredData(
+				event,
+				disabledWrapper ? tableRef.current.parentElement.parentElement : tableRef.current.parentElement,
+			);
 			if (cellIndex === -1 || rowIndex === -1) return;
 
 			if (hoveredData.current?.cellIndex === cellIndex && hoveredData.current?.rowIndex === rowIndex) return;
@@ -134,7 +144,7 @@ const TableHelper = (props: TableHelperProps) => {
 
 			hoveredData.current = { rowIndex, cellIndex };
 		},
-		[tableRef.current, hoveredData.current, node.firstChild.childCount, node.childCount],
+		[tableRef.current, hoveredData.current, node.firstChild.childCount, node.childCount, disabledWrapper],
 	);
 
 	const selectNode = useCallback(() => {
@@ -142,30 +152,33 @@ const TableHelper = (props: TableHelperProps) => {
 		editor.commands.setNodeSelection(startPos);
 	}, [getPos, editor]);
 
+	const WrapperChildren = (
+		<>
+			{children}
+			{isHovered && (
+				<Tooltip content={t("select-table")} delay={[1000, 0]}>
+					<TriangleButton onClick={selectNode} data-qa="table-select-all" contentEditable={false} />
+				</Tooltip>
+			)}
+			<TablePlusActions
+				isHovered={isHovered}
+				tableSizes={tableSizes}
+				node={node}
+				getPos={getPos}
+				tableRef={tableRef}
+				editor={editor}
+			/>
+		</>
+	);
+
 	return (
 		<HoverableActions hoverElementRef={hoverElementRef} setIsHovered={setIsHovered} isHovered={isHovered}>
 			<div onMouseMove={onMouseMove}>
-				<WidthWrapper className={className}>
-					<>
-						{isHovered && (
-							<Tooltip content={t("select-table")} delay={[1000, 0]}>
-								<TriangleButton
-									onClick={selectNode}
-									data-qa="table-select-all"
-									contentEditable={false}
-								/>
-							</Tooltip>
-						)}
-						<TablePlusActions
-							isHovered={isHovered}
-							tableSizes={tableSizes}
-							node={node}
-							getPos={getPos}
-							tableRef={tableRef}
-						/>
-						{children}
-					</>
-				</WidthWrapper>
+				{disabledWrapper ? (
+					<Wrapper>{WrapperChildren}</Wrapper>
+				) : (
+					<WidthWrapper className={className}>{WrapperChildren}</WidthWrapper>
+				)}
 			</div>
 		</HoverableActions>
 	);

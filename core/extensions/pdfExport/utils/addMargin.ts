@@ -1,18 +1,18 @@
 import { RenderableTreeNode } from "@ext/markdown/core/render/logic/Markdoc";
 import { BASE_CONFIG, HEADING_MARGINS } from "@ext/pdfExport/config";
-import { isTag } from "@ext/pdfExport/utils/isTag";
 import { inlineLayouts } from "@ext/wordExport/layouts";
+import { JSONContent } from "@tiptap/core";
 import { ContentText } from "pdfmake/interfaces";
 
 const MARGIN_CONFIG: { [key: string]: { top?: number; bottom?: number } } = {
 	Heading: { top: BASE_CONFIG.FONT_SIZE * 1.5, bottom: BASE_CONFIG.FONT_SIZE * 0.75 },
 	p: { bottom: BASE_CONFIG.FONT_SIZE * 0.9375 },
-	ul: { bottom: BASE_CONFIG.FONT_SIZE * 1.25 },
-	ol: { bottom: BASE_CONFIG.FONT_SIZE * 1.25 },
+	bulletList: { bottom: BASE_CONFIG.FONT_SIZE * 1.25 },
+	orderedList: { bottom: BASE_CONFIG.FONT_SIZE * 1.25 },
 	View: { top: BASE_CONFIG.FONT_SIZE * 1.25, bottom: BASE_CONFIG.FONT_SIZE * 1 },
 	Fence: { top: BASE_CONFIG.FONT_SIZE * 1, bottom: BASE_CONFIG.FONT_SIZE * 1 },
 	hr: { top: BASE_CONFIG.FONT_SIZE * 2, bottom: BASE_CONFIG.FONT_SIZE * 2 },
-	Note: { top: BASE_CONFIG.FONT_SIZE * 1.125, bottom: BASE_CONFIG.FONT_SIZE * 1.125 },
+	note: { top: BASE_CONFIG.FONT_SIZE * 1.125, bottom: BASE_CONFIG.FONT_SIZE * 1.125 },
 	Video: { top: BASE_CONFIG.FONT_SIZE * 1.125, bottom: BASE_CONFIG.FONT_SIZE * 1.125 },
 	Image: { top: BASE_CONFIG.FONT_SIZE * 1.125, bottom: BASE_CONFIG.FONT_SIZE * 1.125 },
 	Drawio: { top: BASE_CONFIG.FONT_SIZE * 1.125, bottom: BASE_CONFIG.FONT_SIZE * 1.125 },
@@ -26,26 +26,42 @@ const MARGIN_CONFIG: { [key: string]: { top?: number; bottom?: number } } = {
 };
 
 export function addMargin(
-	prevNode: RenderableTreeNode,
+	prevNode: RenderableTreeNode | JSONContent,
 	currentType: string,
-	currentNode?: RenderableTreeNode,
+	currentNode?: RenderableTreeNode | JSONContent,
 ): ContentText | null {
 	if (!prevNode) {
 		return null;
 	}
 
+	const prevIsObject = typeof prevNode === "object";
+	const prevAttributes =
+		prevIsObject && "attributes" in prevNode && prevNode.attributes
+			? prevNode.attributes
+			: prevIsObject && "attrs" in prevNode && prevNode.attrs
+			? prevNode.attrs
+			: null;
+	const currentIsObject = typeof currentNode === "object";
+	const prevName = prevIsObject && "name" in prevNode ? prevNode.name : (prevNode as JSONContent).type;
+	const currentAttributes =
+		currentIsObject && "attributes" in currentNode && currentNode.attributes
+			? currentNode.attributes
+			: currentIsObject && "attrs" in currentNode && currentNode.attrs
+			? currentNode.attrs
+			: null;
+
 	const currentMargin =
-		currentType === "Heading" && isTag(currentNode) && currentNode.attributes?.level
-			? HEADING_MARGINS[`H${currentNode.attributes.level}`] || { top: 0, bottom: 0 }
+		currentType === "Heading" && currentAttributes?.level
+			? HEADING_MARGINS[`H${currentAttributes.level}`] || { top: 0, bottom: 0 }
 			: MARGIN_CONFIG[currentType] || { top: 0, bottom: 0 };
 
 	const prevMargin =
-		isTag(prevNode) && prevNode.name === "Heading" && prevNode.attributes?.level
-			? HEADING_MARGINS[`H${prevNode.attributes.level}`] || { top: 0, bottom: 0 }
-			: MARGIN_CONFIG[isTag(prevNode) ? prevNode.name : ""] || { top: 0, bottom: 0 };
+		prevIsObject && prevName === "Heading" && prevAttributes?.level
+			? HEADING_MARGINS[`H${prevAttributes.level}`] || { top: 0, bottom: 0 }
+			: MARGIN_CONFIG[prevName] || { top: 0, bottom: 0 };
 
 	const topMargin =
-		isTag(prevNode) && currentType === "Heading"
+		prevIsObject && prevName === "Heading" && prevAttributes?.level
 			? Math.max(prevMargin.bottom || 0, currentMargin.top || 0) - BASE_CONFIG.LINE_HEIGHT_MARGIN
 			: Math.max(prevMargin.bottom || 0, currentMargin.top || 0) - BASE_CONFIG.LINE_HEIGHT_MARGIN;
 

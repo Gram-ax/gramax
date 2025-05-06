@@ -23,9 +23,11 @@ const WidthWrapper = ({ children, className }: { children: JSX.Element; classNam
 
 	const setWidth = useCallback(() => {
 		const scroll = scrollContainerRef.current;
+
 		if (scroll && scroll.firstElementChild) {
 			const containerRect = scroll.getBoundingClientRect();
 			const childRect = scroll.firstElementChild.getBoundingClientRect();
+
 			setLeftWidth(containerRect.left - childRect.left);
 			setRightWidth(childRect.right - containerRect.right);
 		}
@@ -34,29 +36,33 @@ const WidthWrapper = ({ children, className }: { children: JSX.Element; classNam
 	const resizeWrapper = useCallback(() => {
 		const first = articleRef?.current?.firstElementChild;
 		const articleRefWidth = first?.clientWidth;
-		const scrollContentRefWidth = scrollContainerRef?.current?.lastElementChild.clientWidth;
+
+		const scrollContainer = scrollContainerRef.current;
+		const scrollContentRefWidth = scrollContainer?.firstElementChild.clientWidth;
+
 		const editorWidth = first?.firstElementChild.clientWidth;
 		const newWrapperSize = (articleRefWidth - editorWidth) / 2;
+
+		setHeight(scrollContainer.clientHeight);
 		setWrapperSize(scrollContentRefWidth >= editorWidth - 24 ? newWrapperSize : 0);
 	}, [articleRef, scrollContainerRef.current]);
 
 	useEffect(() => {
 		if (!scrollContainerRef.current) return;
-		const handleResize = (entries: ResizeObserverEntry[]) => {
-			for (const entry of entries) {
-				setHeight(entry.target.clientHeight);
-			}
+
+		const handleResize = () => {
 			setWidth();
 			resizeWrapper();
 		};
 
 		const observer = new ResizeObserver(handleResize);
-		observer.observe(scrollContainerRef.current.lastElementChild);
-		window.addEventListener("resize", resizeWrapper);
+		observer.observe(scrollContainerRef.current.firstElementChild);
+
+		window.addEventListener("resize", handleResize);
 
 		return () => {
 			observer.disconnect();
-			window.removeEventListener("resize", resizeWrapper);
+			window.removeEventListener("resize", handleResize);
 		};
 	}, [scrollContainerRef.current]);
 
@@ -65,33 +71,32 @@ const WidthWrapper = ({ children, className }: { children: JSX.Element; classNam
 		setWidth();
 	}, [leftNavigation]);
 
-	const getWidth = (): CSSProperties => {
-		if (typeof isPin !== "undefined" && wrapperSize > 0) {
-			const parentElement = scrollContainerRef?.current?.parentElement.parentElement;
-			const nodeWidth = parentElement.clientWidth;
-			const editorWidth = articleRef?.current.firstElementChild?.firstElementChild.clientWidth;
-			const addMargin = editorWidth - nodeWidth;
+	const getWidth = useCallback((): CSSProperties => {
+		if (isShowMainLangContentPreview) return {};
+		if (typeof isPin === "undefined" || wrapperSize <= 0) return {};
 
-			if (isPin)
-				return {
-					width: `calc(${
-						articleRef?.current.firstElementChild.firstElementChild.clientWidth + wrapperSize * 2
-					}px - 1em)`,
-					marginLeft: `calc(0.5em - ${wrapperSize}px - ${addMargin}px)`,
-				};
-			else {
-				const parent = articleRef.current;
-				const editor = parent.firstElementChild.firstElementChild;
-				return {
-					width: `calc(${parent.clientWidth}px - 2.5rem)`,
-					marginLeft: `calc(-${(parent.clientWidth - editor.clientWidth) / 2}px + 30px - ${addMargin}px)`, // 30px - width of left navigation in inverted form
-				};
-			}
+		const parentElement = scrollContainerRef?.current?.parentElement.parentElement;
+		const nodeWidth = parentElement.clientWidth;
+		const editorWidth = articleRef?.current.firstElementChild?.firstElementChild.clientWidth;
+		const addMargin = editorWidth - nodeWidth;
+
+		if (isPin) {
+			return {
+				width: `calc(${
+					articleRef?.current.firstElementChild.firstElementChild.clientWidth + wrapperSize * 2
+				}px - 1em)`,
+				marginLeft: `calc(0.5em - ${wrapperSize}px - ${addMargin}px)`,
+			};
 		}
-		if (typeof isPin !== "undefined" && wrapperSize > 0) {
-			return { ...getWidth(), justifyContent: isShowMainLangContentPreview ? "flex-end" : "center" };
-		}
-	};
+
+		const parent = articleRef.current;
+		const editor = parent.firstElementChild.firstElementChild;
+
+		return {
+			width: `calc(${parent.clientWidth}px - 2.5rem)`,
+			marginLeft: `calc(-${(parent.clientWidth - editor.clientWidth) / 2}px + 30px - ${addMargin}px)`, // 30px - width of left navigation in inverted form
+		};
+	}, [isShowMainLangContentPreview, isPin, wrapperSize, articleRef?.current]);
 
 	return (
 		<div className={classNames(className, { center: wrapperSize > 0 })} style={{ ...getWidth() }}>
@@ -125,6 +130,7 @@ export default styled(WidthWrapper)`
 		position: relative;
 	}
 
+	&:not(.center):has(table) .shadow-box.left,
 	&:not(.center) .scrollableContent:has(table) {
 		margin-left: -1.5em;
 	}
@@ -136,7 +142,6 @@ export default styled(WidthWrapper)`
 
 			th,
 			td {
-				max-width: max-content;
 				min-width: ${CELL_MIN_WIDTH};
 			}
 		}

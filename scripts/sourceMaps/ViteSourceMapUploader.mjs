@@ -4,6 +4,13 @@ import { unlinkSync } from "fs";
 import * as path from "path";
 import { BugsnagSourceMapUploaderPlugin } from "vite-plugin-bugsnag";
 
+/**
+ * @typedef {import('vite').Plugin} Plugin
+ */
+
+/**
+ * @returns {Plugin}
+ */
 const ViteSourceMapUploader = () => {
 	const bugsnagSourceMapUploader = BugsnagSourceMapUploaderPlugin({
 		apiKey: process.env.BUGSNAG_API_KEY,

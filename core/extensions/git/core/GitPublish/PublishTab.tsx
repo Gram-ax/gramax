@@ -1,5 +1,5 @@
 import ArticleUpdaterService from "@components/Article/ArticleUpdater/ArticleUpdaterService";
-import TabWrapper from "@components/Layouts/StatusBar/Extensions/ArticleStatusBar/TabWrapper";
+import TabWrapper from "@components/Layouts/LeftNavigationTabs/TabWrapper";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import ArticleViewService from "@core-ui/ContextServices/views/articleView/ArticleViewService";
 import useRestoreRightSidebar from "@core-ui/hooks/diff/useRestoreRightSidebar";

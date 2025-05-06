@@ -1,4 +1,4 @@
-import UserSettings from "@ext/enterprise/types/UserSettings";
+import UserSettings, { EnterpriseWorkspaceConfig } from "@ext/enterprise/types/UserSettings";
 import DefaultError from "@ext/errorHandlers/logic/DefaultError";
 import t from "@ext/localization/locale/translate";
 import UserInfo from "@ext/security/logic/User/UserInfo";
@@ -18,12 +18,14 @@ class EnterpriseApi {
 		}
 	}
 
-	async getUser(token: string) {
+	async getUser(token: string, checkSsoToken = false) {
 		if (!this._gesUrl) return;
 
 		try {
 			const sendToken = token ? encodeURIComponent(token) : "null";
-			const res = await fetch(`${this._gesUrl}/enterprise/sso/get-user?token=${sendToken}`);
+			const res = await fetch(
+				`${this._gesUrl}/enterprise/sso/get-user?token=${sendToken}&checkSsoToken=${checkSsoToken}`,
+			);
 			if (!res.ok || res.status !== 200) {
 				console.warn(`Error retrieving user information. Status: ${res.status} Status text: ${res.statusText}`);
 				return;
@@ -52,6 +54,17 @@ class EnterpriseApi {
 			return { ...data, catalogsPermissions: newCatalogsPermissions, catalogsProps: newCatalogsProps };
 		} catch (e) {
 			console.log(e);
+		}
+	}
+
+	async checkIsAdmin(token: string) {
+		const url = `${this._gesUrl}/enterprise/config/check?token=${encodeURIComponent(token)}`;
+		try {
+			const res = await fetch(url);
+			if (res.status === 200) return true;
+			return false;
+		} catch (e) {
+			return false;
 		}
 	}
 
@@ -140,6 +153,26 @@ class EnterpriseApi {
 		const gitRes = await fetch(`${this._gesUrl}/update?token=${encodeURIComponent(token)}`, { method: "POST" });
 
 		return gitRes.ok && res.ok && res.status === 200;
+	}
+
+	async getWorkspaceConfig(configHash?: string): Promise<EnterpriseWorkspaceConfig> {
+		if (!this._gesUrl) return;
+
+		try {
+			const url = new URL(`${this._gesUrl}/enterprise/config/get-workspace-config`);
+			if (configHash) {
+				url.searchParams.append("hash", configHash);
+			}
+
+			const res = await fetch(url.toString());
+
+			if (!res.ok || res.status !== 200) return;
+
+			return await res.json();
+		} catch (e) {
+			console.error("Failed to get workspace config:", e);
+			return;
+		}
 	}
 }
 

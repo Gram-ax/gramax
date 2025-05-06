@@ -20,7 +20,7 @@
       """
       [tabs]
       
-      [tab:крутая вкладка::]
+      [tab:крутая вкладка]
       
       абра кадабра
       
@@ -37,13 +37,13 @@
       """
       [tabs]
       
-      [tab:крутая вкладка::]
+      [tab:крутая вкладка]
       
       абра кадабра
       
       [/tab]
       
-      [tab:Вкладка::]
+      [tab:Вкладка]
       
       абра кадабра 2
       
@@ -58,7 +58,7 @@
       """
       [tabs]
       
-      [tab:крутая вкладка::]
+      [tab:крутая вкладка]
       
       абра кадабра
       
@@ -72,7 +72,7 @@
       
       [/tab]
       
-      [tab:Вкладка::]
+      [tab:Вкладка]
       
       абра кадабра 2
       
@@ -85,13 +85,13 @@
       """
       [tabs]
       
-      [tab:крутая вкладка::]
+      [tab:крутая вкладка]
       
       
       
       [/tab]
       
-      [tab:Вкладка::]
+      [tab:Вкладка]
       
       абра кадабра 2
       
@@ -115,7 +115,7 @@
       """
       [tabs]
       
-      [tab:крутая вкладка::]
+      [tab:крутая вкладка]
       
       (*)
       
@@ -130,7 +130,7 @@
       """
       [tabs]
       
-      [tab:крутая вкладка::]
+      [tab:крутая вкладка]
       
       -  AMOGUS
       
@@ -145,7 +145,7 @@
       """
       [tabs]
       
-      [tab:крутая вкладка::]
+      [tab:крутая вкладка]
       
       -  AMOGUS
       
@@ -157,3 +157,47 @@
       
       """
     И очищаем документ
+
+  Сценарий: Вставка HTML вкладки
+    Пусть смотрим на редактор
+    И вставляем html
+      """
+      <meta charset='utf-8'>
+      <div xmlns="http://www.w3.org/1999/xhtml">
+        <p>test start</p>
+        <tabs-react-component childattrs="[{&quot;name&quot;:&quot;test1&quot;,&quot;idx&quot;:0},{&quot;name&quot;:&quot;test2&quot;,&quot;idx&quot;:1},{&quot;name&quot;:&quot;test3&quot;,&quot;idx&quot;:2}]">
+          <tab-react-component name="Вкладка" idx="0"><p>1</p></tab-react-component>
+          <tab-react-component name="Вкладка" idx="1"><p>2</p></tab-react-component>
+          <tab-react-component name="Вкладка" idx="2"><p>3</p></tab-react-component>
+        </tabs-react-component>
+        <p>test end</p>
+      </div>
+      """
+    Тогда разметка текущей статьи содержит
+      """
+      test start
+      
+      [tabs]
+      
+      [tab:test1]
+      
+      1
+      
+      [/tab]
+      
+      [tab:test2]
+      
+      2
+      
+      [/tab]
+      
+      [tab:test3]
+      
+      3
+      
+      [/tab]
+      
+      [/tabs]
+      
+      test end
+      """

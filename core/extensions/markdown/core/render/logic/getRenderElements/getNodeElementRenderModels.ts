@@ -2,6 +2,7 @@ import ParserContext from "../../../Parser/ParserContext/ParserContext";
 import { Schema } from "../Markdoc";
 
 import { fence } from "@ext/markdown/elements/codeBlockLowlight/render/model/codeBlock";
+import { color } from "@ext/markdown/elements/color/render/model/color";
 import { article } from "../../../../elements/article/render/article";
 import { code } from "../../../../elements/code/render/model/code";
 import { em } from "../../../../elements/em/render/em";
@@ -14,11 +15,11 @@ import { paragraph } from "../../../../elements/paragraph/paragraph";
 import { strikethrough } from "../../../../elements/strikethrough/render/strikethrough";
 import { strong } from "../../../../elements/strong/render/strong";
 import { sub } from "../../../../elements/sub/sub";
-import { table, tbody, thead, tr, td } from "../../../../elements/table/render/model/table";
-import { color } from "@ext/markdown/elements/color/render/model/color";
+import { table, tbody, td, thead, tr } from "../../../../elements/table/render/model/table";
 
 export default function getNodeElementRenderModels(context?: ParserContext): Record<string, Schema> {
 	const contextelements = context ? getContextNodeElementRenderModels(context) : {};
+
 	return {
 		link: link(context),
 		strikethrough,

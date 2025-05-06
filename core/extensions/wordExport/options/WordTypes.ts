@@ -7,6 +7,7 @@ import { ExportType } from "@ext/wordExport/ExportType";
 import ContextualCatalog from "@core/FileStructue/Catalog/ContextualCatalog";
 import { CatalogProps } from "@core/FileStructue/Catalog/CatalogProps";
 import { ItemFilter } from "@core/FileStructue/Catalog/Catalog";
+import { JSONContent } from "@tiptap/core";
 
 export type WordBlockChildren = Record<string, WordBlockChild>;
 
@@ -22,7 +23,7 @@ export type WordRenderContext = {
 
 export type WordBlockChild = (params: {
 	state: WordSerializerState;
-	tag: Tag;
+	tag: Tag | JSONContent;
 	addOptions: AddOptionsWord;
 	wordRenderContext: WordRenderContext;
 }) => Promise<FileChild[]>;
@@ -31,7 +32,7 @@ export type WordInlineChildren = Record<string, WordInlineChild>;
 
 export type WordInlineChild = (params: {
 	state: WordSerializerState;
-	tag: Tag;
+	tag: Tag | JSONContent;
 	addOptions: AddOptionsWord;
 	wordRenderContext: WordRenderContext;
 }) => Promise<ParagraphChild[]>;

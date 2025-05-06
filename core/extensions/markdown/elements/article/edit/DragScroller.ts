@@ -12,6 +12,7 @@ class DragScroller {
 	private _handlers: { name: string; handler: (event: Event) => void }[];
 
 	constructor(readonly editorView: EditorView, articleRef: MutableRefObject<HTMLDivElement>) {
+		if (!articleRef?.current) return;
 		this._articleElement = articleRef.current;
 		this._handlers = ["dragover", "dragend", "dragleave", "drop"].map((name) => {
 			const handler = (e: Event) => {
@@ -24,7 +25,7 @@ class DragScroller {
 	}
 
 	destroy() {
-		this._handlers.forEach(({ name, handler }) => this.editorView.dom.removeEventListener(name, handler));
+		this._handlers?.forEach(({ name, handler }) => this.editorView.dom.removeEventListener(name, handler));
 	}
 
 	update() {}

@@ -1,3 +1,6 @@
+import { initModules } from "@app/resolveModule/backend";
+import { getExecutingEnvironment } from "@app/resolveModule/env";
+import { initModules as initModulesFrontend } from "@app/resolveModule/frontend";
 import autoPull from "@core/AutoPull/AutoPull";
 import { ContextFactory } from "@core/Context/ContextFactory";
 import DiskFileProvider from "@core/FileProvider/DiskFileProvider/DiskFileProvider";
@@ -14,7 +17,6 @@ import VideoUrlRepository from "@core/components/video/videoUrlRepository";
 import YamlFileConfig from "@core/utils/YamlFileConfig";
 import Cache from "@ext/Cache";
 import { Encoder } from "@ext/Encoder/Encoder";
-import MailProvider from "@ext/MailProvider";
 import ThemeManager from "@ext/Theme/ThemeManager";
 import BlankWatcher from "@ext/Watchers/BlankWatcher";
 import EnterpriseManager from "@ext/enterprise/EnterpriseManager";
@@ -33,8 +35,7 @@ import ServerAuthManager from "@ext/security/logic/ServerAuthManager";
 import { TicketManager } from "@ext/security/logic/TicketManager/TicketManager";
 import FuseSearcher from "@ext/serach/Fuse/FuseSearcher";
 import { IndexDataProvider } from "@ext/serach/IndexDataProvider";
-import Searcher from "@ext/serach/Searcher";
-import { ConditionalVectorSearcher } from "@ext/serach/conditionalVector/ConditionalVectorSearcher";
+import SearcherManager from "@ext/serach/SearcherManager";
 import { VectorSearcher } from "@ext/serach/vector/VectorSearcher";
 import { SourceDataProvider } from "@ext/storage/logic/SourceDataProvider/logic/SourceDataProvider";
 import WorkspaceManager from "@ext/workspace/WorkspaceManager";
@@ -43,6 +44,8 @@ import { AppConfig, getConfig } from "../config/AppConfig";
 import Application from "../types/Application";
 
 const _init = async (config: AppConfig): Promise<Application> => {
+	await initModulesFrontend();
+	await initModules();
 	if (!config.isReadOnly && !config.paths.data) throw new Error(`USER_DATA_PATH not specified`);
 
 	const logger: Logger = config.isProduction ? new BugsnagLogger(config) : new ConsoleLogger();
@@ -69,7 +72,14 @@ const _init = async (config: AppConfig): Promise<Application> => {
 	const sdp = new SourceDataProvider(wm);
 	rp.addSourceDataProvider(sdp);
 
-	const workspace = await wm.addWorkspace(config.paths.root.value, { name: "Gramax", icon: "layers" });
+	const workspace = await wm.addWorkspace(config.paths.root.value, {
+		name: "Gramax",
+		icon: "layers",
+		enterprise: {
+			gesUrl: em.getConfig()?.gesUrl,
+			lastUpdateDate: Date.now(),
+		},
+	});
 	await wm.setWorkspace(workspace);
 
 	const formatter = new MarkdownFormatter();
@@ -88,7 +98,6 @@ const _init = async (config: AppConfig): Promise<Application> => {
 	const htmlParser = new HtmlParser(parser, parserContextFactory);
 
 	const vur: VideoUrlRepository = null;
-	const mp: MailProvider = new MailProvider(config.mail);
 
 	const tm = new ThemeManager();
 	const am: AuthManager = new ServerAuthManager(
@@ -108,18 +117,17 @@ const _init = async (config: AppConfig): Promise<Application> => {
 
 	const indexDataProvider = new IndexDataProvider(wm, cache, parser, parserContextFactory);
 
-	const fuseSearcher: Searcher = new FuseSearcher(indexDataProvider);
-	const searcher: Searcher = config.search.vector.enabled
-		? new ConditionalVectorSearcher(
-				fuseSearcher,
-				new VectorSearcher(config.search.vector, wm, parser, parserContextFactory),
-		  )
-		: fuseSearcher;
+	const searcherManager = new SearcherManager(new FuseSearcher(indexDataProvider), {
+		vector: config.search.vector.enabled
+			? new VectorSearcher(config.search.vector, wm, parser, parserContextFactory)
+			: null,
+	});
+
+	const workspaceConfig = await wm.maybeCurrent()?.config();
 
 	return {
 		tm,
 		am,
-		mp,
 		rp,
 		wm,
 		em,
@@ -127,12 +135,13 @@ const _init = async (config: AppConfig): Promise<Application> => {
 		parser,
 		logger,
 		hashes,
-		searcher,
+		searcherManager,
 		formatter,
 		htmlParser,
 		ticketManager,
 		tablesManager,
 		contextFactory,
+		indexDataProvider,
 		parserContextFactory,
 		sitePresenterFactory,
 		customArticlePresenter,
@@ -149,19 +158,27 @@ const _init = async (config: AppConfig): Promise<Application> => {
 			version: config.version,
 			buildVersion: config.buildVersion,
 			bugsnagApiKey: config.bugsnagApiKey,
-			services: wm.maybeCurrent()?.config()?.services ?? config.services,
+			services: workspaceConfig?.services ?? config.services,
 
 			logo: config.logo,
 
 			allowedOrigins: config.allowedGramaxUrls,
+
+			search: {
+				vector: {
+					enabled: config.search.vector.enabled,
+					apiUrl: config.search.vector.apiUrl,
+					collectionName: config.search.vector.collectionName,
+				},
+			},
 		},
 	};
 };
 
-const getApp = async (): Promise<Application> => {
+const getApp = (): Promise<Application> => {
 	if (!global.app) {
 		global.app = _init(getConfig());
-		await autoPull(global.app);
+		if (getExecutingEnvironment() !== "cli") void autoPull(global.app);
 	}
 	return global.app;
 };

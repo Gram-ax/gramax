@@ -31,7 +31,8 @@ const getReviewLink: Command<
 			source: { ...baseStorageData.source, userName, userEmail },
 			filePath,
 		};
-		const response = await fetch(`${workspace.config().services?.review?.url}/ticket`, {
+		const config = await workspace.config();
+		const response = await fetch(`${config.services?.review?.url}/ticket`, {
 			body: JSON.stringify(body),
 			method: "POST",
 			headers: { "Content-Type": MimeTypes.json },

@@ -16,7 +16,7 @@ const Context = (Story: any, context: StoryContext) => {
 	}, []);
 
 	return (
-		<ContextProviders pageProps={pagePropsJSON} refreshPage={() => alert("Called refresh page")}>
+		<ContextProviders pageProps={pagePropsJSON} refreshPage={() => alert("Called refresh page")} platform="next">
 			<Story />
 		</ContextProviders>
 	);

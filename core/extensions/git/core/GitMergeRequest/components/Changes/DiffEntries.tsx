@@ -50,6 +50,7 @@ export const SelectedDiffEntryContext = createContext<{
 
 export type DiffEntriesProps = {
 	changes: DiffTreeAnyItem[];
+	renderCommentsCount: boolean;
 	setArticleDiffView: (item: DiffItemOrResource) => void;
 
 	selectFile?: (entry: DiffTreeAnyItem, checked: boolean) => void;
@@ -60,7 +61,8 @@ export type DiffEntriesProps = {
 };
 
 export const DiffEntries = forwardRef<HTMLDivElement, DiffEntriesProps>((props, ref) => {
-	const { changes, selectFile, isFileSelected, setArticleDiffView, onAction, actionIcon } = props;
+	const { changes, selectFile, isFileSelected, setArticleDiffView, onAction, actionIcon, renderCommentsCount } =
+		props;
 	const [selectedByPath, setSelectedByPath] = useState<string>(undefined);
 	const hasChanges = changes?.length > 0;
 
@@ -84,6 +86,7 @@ export const DiffEntries = forwardRef<HTMLDivElement, DiffEntriesProps>((props, 
 							actionIcon={actionIcon}
 							selectFile={selectFile}
 							isFileSelected={isFileSelected}
+							renderCommentsCount={renderCommentsCount}
 						/>
 					))
 				) : (

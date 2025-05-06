@@ -18,7 +18,10 @@ const create: Command<{ config: ClientWorkspaceConfig }, void> = Command.create(
 		const id = await wm.addWorkspace(path, init, true);
 		await wm.setWorkspace(id);
 		// TODO: Remove if
-		if (getExecutingEnvironment() == "browser") setWorkerProxy(wm.current().config().services?.gitProxy?.url);
+		if (getExecutingEnvironment() == "browser") {
+			const config = await wm.current().config();
+			setWorkerProxy(config.services?.gitProxy?.url);
+		}
 	},
 
 	params(ctx, q, body) {

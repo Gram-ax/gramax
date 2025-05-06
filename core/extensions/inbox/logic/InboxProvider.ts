@@ -40,7 +40,7 @@ export default class InboxProvider extends ArticleProvider {
 
 		const newContent = droppedArticle.content + "\n\n" + draggedArticle.content;
 
-		const context = parserContextFactory.fromArticle(
+		const context = await parserContextFactory.fromArticle(
 			droppedArticle,
 			this._catalog,
 			convertContentToUiLanguage(ctx.contentLanguage || this._catalog.props.language),
@@ -80,13 +80,17 @@ export default class InboxProvider extends ArticleProvider {
 		return Array.from(this.articles.values()).find((article) => article.logicPath === logicPath);
 	}
 
-	public async getArticles(parser: MarkdownParser, parserContextFactory: ParserContextFactory, ctx: Context): Promise<InboxArticle[]> {
+	public async getArticles(
+		parser: MarkdownParser,
+		parserContextFactory: ParserContextFactory,
+		ctx: Context,
+	): Promise<InboxArticle[]> {
 		if (!this.articles.size) await this.readArticles();
 
 		const notes = [];
 
 		for (const item of Array.from(this.articles.values())) {
-			const context = parserContextFactory.fromArticle(
+			const context = await parserContextFactory.fromArticle(
 				item,
 				this._catalog,
 				convertContentToUiLanguage(ctx.contentLanguage || this._catalog.props.language),

@@ -9,12 +9,13 @@ export interface MergeRequestConfirmProps {
 	sourceBranch: string;
 	targetBranch: string;
 	deleteAfterMerge: boolean;
+	squash: boolean;
 	onCancelClick?: () => void | Promise<void>;
 	onMergeClick?: () => void | Promise<void>;
 }
 
 const MergeRequestConfirm = (props: MergeRequestConfirmProps) => {
-	const { sourceBranch, targetBranch, deleteAfterMerge, onCancelClick, onMergeClick } = props;
+	const { sourceBranch, targetBranch, deleteAfterMerge, squash, onCancelClick, onMergeClick } = props;
 
 	const [isOpen, setisOpen] = useState(true);
 
@@ -49,7 +50,11 @@ const MergeRequestConfirm = (props: MergeRequestConfirmProps) => {
 						<span
 							dangerouslySetInnerHTML={{
 								__html: t(
-									deleteAfterMerge
+									squash
+										? deleteAfterMerge
+											? "git.merge-requests.confirm.body.squash-delete-branch-comment"
+											: "git.merge-requests.confirm.body.squash-comment"
+										: deleteAfterMerge
 										? "git.merge-requests.confirm.body.delete-branch-after-merge"
 										: "git.merge-requests.confirm.body.not-delete-branch-after-merge",
 								)

@@ -49,7 +49,8 @@ const sync: Command<{ ctx: Context; catalogName: string; articlePath: Path }, Me
 		const article = catalog.findItemByItemPath<Article>(articlePath);
 		if (!article) {
 			const dataProvider = sitePresenterFactory.fromContext(ctx);
-			const lastVisited = new LastVisited(ctx, workspace.config().name);
+			const config = await workspace.config();
+			const lastVisited = new LastVisited(ctx, config.name);
 			const articleData = await dataProvider.getArticlePageDataByPath([catalogName]);
 			lastVisited.setLastVisitedArticle(catalog, articleData.articleProps);
 		}

@@ -3,7 +3,7 @@ import FetchService from "@core-ui/ApiServices/FetchService";
 import type Url from "@core-ui/ApiServices/Types/Url";
 import { useEffect, useState } from "react";
 
-const useUrlObjectImage = (src: Url) => {
+const useUrlObjectImage = (src: Url, deps: Array<any> = []) => {
 	const [data, setData] = useState<string>();
 
 	useEffect(() => {
@@ -17,7 +17,7 @@ const useUrlObjectImage = (src: Url) => {
 		};
 		void loadImage();
 		return () => URL.revokeObjectURL(data);
-	}, [typeof src == "string" ? src : src?.toString()]);
+	}, [typeof src == "string" ? src : src?.toString(), ...deps]);
 
 	return data;
 };

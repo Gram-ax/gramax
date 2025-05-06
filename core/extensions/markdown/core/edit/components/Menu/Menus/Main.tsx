@@ -9,7 +9,13 @@ import HeadersMenuGroup from "../Groups/Headers";
 import ListMenuGroup from "../Groups/List";
 import TextMenuGroup from "../Groups/Text";
 
-const MainMenu = styled(({ editor, className }: { editor?: Editor; className?: string }) => {
+interface MainMenuProps {
+	editor?: Editor;
+	className?: string;
+	includeResources?: boolean;
+}
+
+const MainMenu = styled(({ editor, className, includeResources = true }: MainMenuProps) => {
 	return (
 		<div className={className}>
 			<ModalLayoutDark>
@@ -20,7 +26,7 @@ const MainMenu = styled(({ editor, className }: { editor?: Editor; className?: s
 					<div className="divider" />
 					<ListMenuGroup editor={editor} />
 					<div className="divider" />
-					<AnyMenuGroup editor={editor} />
+					<AnyMenuGroup editor={editor} includeResources={includeResources} />
 				</ButtonsLayout>
 			</ModalLayoutDark>
 		</div>

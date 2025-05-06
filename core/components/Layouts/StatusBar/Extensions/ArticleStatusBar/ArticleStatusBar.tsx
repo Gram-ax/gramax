@@ -15,7 +15,6 @@ import MergeRequestTab from "@ext/git/core/GitMergeRequest/components/MergeReque
 import ShowMergeRequest from "@ext/git/core/GitMergeRequest/components/ShowMergeRequest";
 import type { MergeRequest } from "@ext/git/core/GitMergeRequest/model/MergeRequest";
 import PublishTab from "@ext/git/core/GitPublish/PublishTab";
-import useIsSourceDataValid from "@ext/storage/components/useIsSourceDataValid";
 import { useEffect, useState } from "react";
 import ConnectStorage from "../../../../../extensions/catalog/actions/ConnectStorage";
 import Branch from "../../../../../extensions/git/actions/Branch/components/Branch";
@@ -29,6 +28,7 @@ export enum LeftNavigationTab {
 	Publish,
 	Inbox,
 	Branch,
+	Template,
 }
 
 const Wrapper = styled.div`
@@ -46,7 +46,6 @@ const ArticleStatusBar = ({ isStorageInitialized, padding }: { isStorageInitiali
 	const [isDevMode] = useState(() => getIsDevMode());
 	const { isNext } = usePlatform();
 	const isReadOnly = PageDataContextService.value.conf.isReadOnly;
-	const isSourceValid = useIsSourceDataValid();
 
 	const [branch, setBranch] = useState<GitBranchData>(null);
 	const [mergeRequestIsDraft, setMergeRequestIsDraft] = useState(false);

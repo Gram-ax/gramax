@@ -2,6 +2,7 @@ export const GRAMAX_EDITOR_URL = "https://app.gram.ax";
 
 export const GRAMAX_DIRECTORY = ".gramax" as const;
 export const INBOX_DIRECTORY = "inbox" as const;
+export const TEMPLATES_DIRECTORY = "templates" as const;
 export const SNIPPETS_DIRECTORY = "snippets" as const;
 
 export const DOC_ROOT_FILENAME = ".doc-root.yaml";
@@ -20,3 +21,5 @@ export const UNIQUE_NAME_START_IDX = 2;
 
 export const LEFT_NAV_CLASS = "left-navigation-layout";
 export const RIGHT_NAV_CLASS = "right-nav-layout";
+
+export const STORAGE_DIR_NAME = ".storage";

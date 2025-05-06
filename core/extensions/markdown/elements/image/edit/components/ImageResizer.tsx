@@ -97,20 +97,32 @@ const ImageResizer = (props: ImageResizerProps): ReactElement => {
 
 export default styled(ImageResizer)`
 	position: absolute;
-	right: -1em;
+	right: -2px;
 	top: 0;
-	width: 1em;
+	width: 6px;
 	height: 100%;
 	display: flex;
 	align-items: center;
-	padding: 6px;
 	max-height: 100%;
 
 	.resizer {
+		opacity: 0;
 		cursor: col-resize;
 		width: 100%;
-		height: 50%;
-		background-color: var(--color-focus);
+		height: max(25%, 1.5em);
+		border: 2px solid var(--color-focus);
+		background-color: var(--color-white);
 		border-radius: var(--radius-large);
+		transition: opacity 0.15s ease-in-out;
+
+		.resizer-container:hover & {
+			opacity: 1;
+			transition-delay: 0s;
+		}
+
+		.resizer-container:not(:hover) & {
+			opacity: 0;
+			transition-delay: 0.3s;
+		}
 	}
 `;

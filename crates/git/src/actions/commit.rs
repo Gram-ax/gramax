@@ -3,6 +3,7 @@ use std::path::PathBuf;
 use git2::*;
 
 use crate::creds::*;
+use crate::error::OrUtf8Err;
 use crate::error::Result;
 use crate::repo::Repo;
 
@@ -52,7 +53,7 @@ impl<C: ActualCreds> Commits<C> for Repo<C> {
 
     let counter = COUNTER.fetch_add(1, Ordering::Relaxed);
     let branch = self.branch_by_head()?;
-    let branch = branch.name()?.ok_or(crate::error::Error::Utf8)?;
+    let branch = branch.name()?.or_utf8_err()?;
 
     let message = format!("debug commit on {}: {}", branch, counter);
     let oid = self.commit(CommitOptions { message: message.clone(), parent_refs: None, files: None })?;

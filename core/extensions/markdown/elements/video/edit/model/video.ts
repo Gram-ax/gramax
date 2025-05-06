@@ -1,3 +1,5 @@
+import videoSchema from "@ext/markdown/elements/video/edit/model/videoSchema";
+import getExtensionOptions from "@ext/markdown/logic/getExtensionOptions";
 import { mergeAttributes, Node } from "@tiptap/core";
 import { ReactNodeViewRenderer } from "@tiptap/react";
 import EditVideo from "../components/Video";
@@ -12,12 +14,7 @@ declare module "@tiptap/core" {
 }
 
 const Video = Node.create({
-	name: "video",
-	group: "block",
-
-	addAttributes() {
-		return { title: { default: null }, path: { default: null }, isLink: { default: true } };
-	},
+	...getExtensionOptions({ schema: videoSchema, name: "video" }),
 
 	parseHTML() {
 		return [{ tag: "video-react-component" }];

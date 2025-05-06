@@ -29,22 +29,20 @@ const RightNavigation = ({ className }: { className?: string }): JSX.Element => 
 		>
 			<aside className={className}>
 				<ArticlePageActions />
-				{showArticleActions && (
-					<Links
-						catalogChildren={
-							<>
-								<li style={{ listStyleType: "none", width: "fit-content" }}>
-									<SwitchVersion />
-								</li>
-								<li style={{ listStyleType: "none", width: "fit-content" }}>
-									<SwitchContentLanguage />
-								</li>
-							</>
-						}
-					/>
-				)}
+				<Links
+					catalogChildren={
+						<>
+							<li style={{ listStyleType: "none", width: "fit-content" }}>
+								<SwitchVersion />
+							</li>
+							<li style={{ listStyleType: "none", width: "fit-content" }}>
+								<SwitchContentLanguage />
+							</li>
+						</>
+					}
+				/>
 				{showArticleActions && <TableOfContents />}
-				<Links articleLinks={showArticleActions ? articleLinks : []} catalogLinks={getCatalogLinks()} />
+				<Links articleLinks={articleLinks} catalogLinks={getCatalogLinks()} />
 			</aside>
 			{isNext && (
 				<div className={"gramax-link"}>

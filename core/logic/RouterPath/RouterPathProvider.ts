@@ -12,35 +12,37 @@ export default class RouterPathProvider {
 	}
 
 	static parsePath(path: string[] | string | Path): PathnameData {
-		const pathSegments = this._getArrayOfStrings(path);
-		const currentPath = this.isEditorPathname(pathSegments)
-			? pathSegments
-			: this._getArrayOfStrings(this.getPathname({ itemLogicPath: pathSegments }));
+		const segments = this._parseSegments(path);
 
-		const [sourceName, group, repo, refname, dir, maybeLanguage, ...filePath] = currentPath.map((p) =>
-			p === this._separator ? undefined : p,
-		);
+		let isPublic = false;
+		if (segments[0] === "public") {
+			isPublic = true;
+			segments.shift();
+		}
+
+		const [sourceName, group, repo, refname, dir, maybeLanguage, ...filePath] = segments;
 
 		const language = ContentLanguage[maybeLanguage];
 		maybeLanguage && filePath.unshift(maybeLanguage);
 		const normalizedFilePath = filePath.map((x) => decodeURIComponent(x));
 		const catalogName = dir ?? repo;
 		const itemLogicPath = [catalogName, ...normalizedFilePath];
-		const repNameItemLogicPath = repo ? [repo, ...normalizedFilePath] : undefined;
+		const repNameItemLogicPath = repo ? [repo, ...normalizedFilePath] : null;
 
-		const hash = catalogName?.match(/^(.+?)(#.+)?$/)?.[2] ?? "";
+		const hash = catalogName?.split("#", 1)?.[1] ?? "";
 
 		return {
-			sourceName: sourceName ? decodeURIComponent(sourceName) : undefined,
-			group: group ? decodeURIComponent(group) : undefined,
+			sourceName: sourceName ? decodeURIComponent(sourceName) : null,
+			group: group ? decodeURIComponent(group) : null,
 			repo: repo,
-			refname: refname ? decodeURIComponent(refname) : undefined,
+			refname: refname ? decodeURIComponent(refname) : null,
 			catalogName,
 			language,
 			filePath: normalizedFilePath,
 			itemLogicPath,
 			repNameItemLogicPath,
 			hash,
+			isPublic,
 		};
 	}
 
@@ -77,7 +79,12 @@ export default class RouterPathProvider {
 
 	static isEditorPathname(path: string[] | string | Path): boolean {
 		const currentPath = this._getArrayOfStrings(path);
-		return (currentPath[0]?.includes(".") || currentPath[0] == this._separator) && !currentPath[0]?.includes(":");
+		const exclude = ["public"];
+		const maybeStorage = exclude.includes(currentPath[0]) ? currentPath[1] : currentPath[0];
+
+		const isEditorPathname =
+			(maybeStorage?.includes(".") || maybeStorage == this._separator) && !maybeStorage?.includes(":");
+		return isEditorPathname;
 	}
 
 	static updatePathnameData(
@@ -100,6 +107,8 @@ export default class RouterPathProvider {
 	}
 
 	private static _getArrayOfStrings(path: string[] | string | Path): string[] {
+		const exclude = ["http:", "https:"];
+
 		const arr =
 			path instanceof Array
 				? path
@@ -108,7 +117,18 @@ export default class RouterPathProvider {
 						.split("/")
 						.filter((f) => f !== "");
 
-		if (arr[0] === "http:" || arr[0] === "https:") arr.shift();
-		return arr;
+		if (exclude.includes(arr[0])) arr[0] = null;
+		if (exclude.includes(arr[1])) arr[1] = null;
+
+		return arr.filter(Boolean);
+	}
+
+	private static _parseSegments(path: string[] | string | Path): string[] {
+		const rawSegments = this._getArrayOfStrings(path);
+		const segments = this.isEditorPathname(rawSegments)
+			? rawSegments
+			: this._getArrayOfStrings(this.getPathname({ itemLogicPath: rawSegments }));
+
+		return segments.filter(Boolean).map((p) => (p === this._separator ? null : p));
 	}
 }

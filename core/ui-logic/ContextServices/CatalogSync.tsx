@@ -1,7 +1,7 @@
 import FetchService from "@core-ui/ApiServices/FetchService";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import CatalogFetchTimersService from "@core-ui/ContextServices/CatalogFetchTimers";
-import IsOfflineService from "@core-ui/ContextServices/IsOfflineService";
+import isOfflineService from "@core-ui/ContextServices/IsOfflineService";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import WorkspaceService from "@core-ui/ContextServices/Workspace";
 import { createContext, ReactElement, useContext, useEffect, useState } from "react";
@@ -24,7 +24,7 @@ export default abstract class CatalogSyncService {
 		const apiUrlCreator = ApiUrlCreatorService.value;
 		const pageDataContext = PageDataContextService.value;
 		const shouldDisplay = !pageDataContext.conf.isReadOnly;
-		const shouldFetch = !IsOfflineService.value && shouldDisplay;
+		const shouldFetch = !isOfflineService.value && shouldDisplay;
 		const key = `${WorkspaceService.current()?.name}_all`;
 		const hasWorkspace = WorkspaceService.hasActive();
 

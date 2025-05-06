@@ -37,7 +37,7 @@ export interface Cropper {
 }
 
 export interface ImageProps {
-	src: Url;
+	src: string;
 	crop?: Crop;
 	alt?: string;
 	title?: string;

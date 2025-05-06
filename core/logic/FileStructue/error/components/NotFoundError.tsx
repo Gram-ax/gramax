@@ -1,6 +1,6 @@
 import FetchService from "@core-ui/ApiServices/FetchService";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
-import { defaultRefreshPage } from "@core-ui/ContextServices/RefreshPageContext";
+import { defaultRefreshPage } from "@core-ui/utils/initGlobalFuncs";
 import Path from "@core/FileProvider/Path/Path";
 import RouterPathProvider from "@core/RouterPath/RouterPathProvider";
 import BranchData from "@ext/VersionControl/model/branch/BranchData";

@@ -4,7 +4,7 @@ import ViewLocalizationFilter from "@ext/properties/logic/viewLocalizationFilter
 import RuleProvider from "@ext/rules/RuleProvider";
 import buildDocumentTree from "@ext/wordExport/DocumentTree/buildDocumentTree";
 import { ExportType } from "@ext/wordExport/ExportType";
-import { exportedKeys } from "@ext/wordExport/layouts";
+import { getExportedKeys } from "@ext/wordExport/layouts";
 import { TitleInfo } from "@ext/wordExport/options/WordTypes";
 import ctx from "@ext/wordExport/tests/ContextMock";
 import { MainWordExport } from "@ext/wordExport/WordExport";
@@ -26,7 +26,7 @@ const getExportData = async (path: string, isCategory: boolean): Promise<Buffer>
 		isCategory,
 		isCatalog,
 		isCatalog ? catalog.getRootCategory() : catalog.findItemByItemRef(getItemRef(catalog, path)),
-		exportedKeys,
+		getExportedKeys(),
 		catalog,
 		ctx,
 		(

@@ -5,6 +5,7 @@ import GitIndexService from "@core-ui/ContextServices/GitIndexService";
 import useWatch from "@core-ui/hooks/useWatch";
 import BranchUpdaterService from "@ext/git/actions/Branch/BranchUpdaterService/logic/BranchUpdaterService";
 import type { DiffTree, TotalOverview } from "@ext/git/core/GitDiffItemCreator/RevisionDiffTreePresenter";
+import PublishChangesProvider from "@ext/git/core/GitPublish/PublishChangesProvider";
 import { useCallback, useEffect, useState } from "react";
 
 export type UsePublishDiffEntries = {
@@ -26,6 +27,11 @@ const usePublishDiffEntries = ({ autoUpdate }: { autoUpdate?: boolean }): UsePub
 	const [isEntriesReady, setIsEntriesReady] = useState(false);
 
 	const overview = GitIndexService.getOverview();
+
+	useWatch(() => {
+		if (!diffTree) return;
+		PublishChangesProvider.value = diffTree.tree;
+	}, [diffTree]);
 
 	// It is recreated when changing the catalog - for example, when opening a link from a browser
 	const request = useCallback(async () => {

@@ -22,28 +22,17 @@ const ValueHandler = ({ data, onChange, isActions = true }: ValueHandlerProps) =
 	);
 	const [, drop] = useDrop(() => ({ accept: DragItems.Value }));
 
-	const filterValues = useCallback((values: string[]) => {
-		return values.filter((value, index) => {
-			if (index !== values.length - 1 && value.length > 0) return true;
-			if (index === values.length - 1 && value.length === 0) return true;
-			return value.length > 0;
-		});
-	}, []);
-
 	useWatch(() => {
-		if (data) setValues(filterValues(data).map((value, index) => ({ id: index, text: value })));
+		if (data) setValues(data.map((value, index) => ({ id: index, text: value })));
 	}, [data]);
 
-	const findValue = useCallback(
-		(id: number) => {
-			const value = values.find((c) => c.id === id);
-			return {
-				value,
-				index: values.indexOf(value),
-			};
-		},
-		[values],
-	);
+	const findValue = useCallback((id: number, values: Value[]) => {
+		const value = values.find((c) => c.id === id);
+		return {
+			value,
+			index: values.indexOf(value),
+		};
+	}, []);
 
 	const submit = useCallback(
 		(values: Value[]) => {
@@ -54,28 +43,33 @@ const ValueHandler = ({ data, onChange, isActions = true }: ValueHandlerProps) =
 
 	const moveValue = useCallback(
 		(id: number, atIndex: number) => {
-			const { value, index } = findValue(id);
-			const newValues = [...values];
+			setValues((values) => {
+				const { value, index } = findValue(id, values);
+				const newValues = [...values];
 
-			newValues.splice(index, 1);
-			newValues.splice(atIndex, 0, value);
+				newValues.splice(index, 1);
+				newValues.splice(atIndex, 0, value);
 
-			setValues(newValues);
+				submit(newValues);
+				return newValues;
+			});
 		},
-		[values, findValue],
+		[findValue, submit],
 	);
 
 	const updateValue = useCallback(
 		(text: string, id?: number) => {
-			const newValues = [...values];
-			const { index } = findValue(id);
-			if (index === -1) newValues.push({ id: newValues.length, text });
-			else newValues[index].text = text;
+			setValues((values) => {
+				const newValues = [...values];
+				const { index } = findValue(id, newValues);
+				if (index === -1) newValues.push({ id: newValues.length, text });
+				else newValues[index].text = text;
 
-			setValues(newValues);
-			submit(newValues);
+				submit(newValues);
+				return newValues;
+			});
 		},
-		[values, findValue, submit],
+		[findValue, submit],
 	);
 
 	const endDrag = useCallback(() => {
@@ -84,11 +78,14 @@ const ValueHandler = ({ data, onChange, isActions = true }: ValueHandlerProps) =
 
 	const deleteValue = useCallback(
 		(id: number) => {
-			const newValues = [...values.filter((v) => v.id !== id)];
-			setValues(newValues);
-			submit(newValues);
+			setValues((values) => {
+				const newValues = values.filter((v) => v.id !== id);
+				submit(newValues);
+
+				return newValues;
+			});
 		},
-		[values],
+		[submit],
 	);
 
 	return (
@@ -97,12 +94,11 @@ const ValueHandler = ({ data, onChange, isActions = true }: ValueHandlerProps) =
 				values.map((value) => (
 					<DragValue
 						isActions={isActions}
-						key={value.id}
+						key={value.text}
 						id={value.id}
 						text={value.text}
 						endDrag={endDrag}
 						moveValue={moveValue}
-						findValue={findValue}
 						updateValue={updateValue}
 						onDelete={deleteValue}
 					/>

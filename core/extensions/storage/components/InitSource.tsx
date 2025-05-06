@@ -21,7 +21,7 @@ const InitSource = ({ trigger }: { trigger: JSX.Element }) => {
 			<ModalLayoutLight>
 				<FormStyle>
 					<>
-						<CustomArticle name="initSource" setLayout={false} />
+						<CustomArticle name="initSource" setLayout={false} copyLinkIcon={false} />
 						<div className="buttons">
 							<Button buttonStyle={ButtonStyle.underline} onClick={() => setIsOpen(false)}>
 								{t("continue-locally")}

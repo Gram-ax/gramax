@@ -1,5 +1,7 @@
-const drawio = {
-	group: "block",
+import ElementGroups from "@ext/markdown/core/element/ElementGroups";
+
+const drawioSchema = {
+	group: `${ElementGroups.block} ${ElementGroups.listItemContent}`,
 	draggable: true,
 	attrs: {
 		src: { default: null },
@@ -9,4 +11,4 @@ const drawio = {
 	},
 };
 
-export default drawio;
+export default drawioSchema;

@@ -1,0 +1,22 @@
+{
+	"name": "gramax-cli",
+	"version": "",
+	"type": "module",
+	"description": "Generates a static site from a specified source directory",
+	"main": "index.js",
+	"bin": {
+		"gramax-cli": "./index.js"
+	},
+	"dependencies": {
+		"canvas": "^3.1.0",
+		"graceful-fs": "^4.2.11",
+		"sharp": "^0.33.5"
+	},
+	"keywords": [
+		"documentation",
+		"markdown",
+		"ssg",
+		"website"
+	],
+	"license": "GPL-3.0"
+}

@@ -13,7 +13,7 @@ fn get_branch_info(_sandbox: TempDir, #[with(&_sandbox)] repo: Repo<TestCreds>) 
 
 #[rstest]
 fn get_branch_info_by_name(_sandbox: TempDir, #[with(&_sandbox)] repo: Repo<TestCreds>) -> Result {
-  let branch = repo.branch_by_name("master", BranchType::Local)?;
+  let branch = repo.branch_by_name("master", Some(BranchType::Local))?;
   let info = branch.short_info()?;
   assert_eq!(info.name, "master");
   Ok(())
@@ -38,7 +38,7 @@ fn create_branch_on_remote(_sandbox: TempDir, #[with(&_sandbox)] repos: Repos) -
   repos.local.new_branch("test")?;
   repos.local.push()?;
   assert!(repos.remote.branches(None)?.any(|b| b.unwrap().0.name().unwrap().unwrap() == "test"));
-  let local = repos.local.branch_by_name("test", git2::BranchType::Local)?.short_info()?;
+  let local = repos.local.branch_by_name("test", Some(BranchType::Local))?.short_info()?;
   assert_eq!(local.remote_name, Some("test".into()));
   Ok(())
 }
@@ -67,7 +67,7 @@ fn delete_branch_remote(_sandbox: TempDir, #[with(&_sandbox)] repos: Repos) -> R
 fn create_branch_remote(_sandbox: TempDir, #[with(&_sandbox)] repos: Repos) -> Result {
   let head = repos.local.repo().head()?.peel_to_commit()?;
   repos.local.repo().branch("test", &head, false)?;
-  
+
   assert!(!repos.remote.branches(None)?.any(|b| b.unwrap().0.name().unwrap().unwrap() == "test"));
   repos.local.create_branch_remote("test")?;
   assert!(repos.remote.branches(None)?.any(|b| b.unwrap().0.name().unwrap().unwrap() == "test"));

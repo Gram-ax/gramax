@@ -1,17 +1,23 @@
 import Icon from "@components/Atoms/Icon";
 import { ItemType } from "@core/FileStructue/Item/ItemType";
-import { useEffect, useRef, useState } from "react";
+import EditMenu from "@ext/item/EditMenu";
+import React, { useEffect, useRef, useState } from "react";
 import { ArticleLink, CategoryLink, ItemLink, LinkFilter } from "../../NavigationLinks";
 import IconExtension from "../main/render/IconExtension";
 import LevNavItem from "../main/render/Item";
 
-const LevNavWatchTree = ({ items, closeNavigation }: { items: ItemLink[]; closeNavigation?: () => void }) => {
-	return (
-		<div>
-			<Tree items={items} level={0} closeNavigation={closeNavigation} />
-		</div>
-	);
-};
+const LevNavWatchTree = React.memo(
+	({ items, closeNavigation }: { items: ItemLink[]; closeNavigation?: () => void }) => {
+		return (
+			<div>
+				<Tree items={items} level={0} closeNavigation={closeNavigation} />
+			</div>
+		);
+	},
+	(prevProps, nextProps) => {
+		return prevProps.items === nextProps.items;
+	},
+);
 
 const Tree = ({
 	items,
@@ -26,7 +32,7 @@ const Tree = ({
 }) => {
 	const [isFiltered, setFiltered] = useState(true);
 	return (
-		<ul>
+		<ul className={level === 0 ? "tree-root" : ""}>
 			{items.map((item, key) => {
 				return !isFiltered || isVisible(filter, item as ArticleLink, key, items.length) ? (
 					<Item closeNavigation={closeNavigation} item={item} level={level} key={key} />
@@ -37,7 +43,7 @@ const Tree = ({
 					<LevNavItem
 						onClick={closeNavigation}
 						level={level}
-						leftExtensions={[<Icon key={0} code="ellipsis" svgStyle={{ fill: "currentColor" }} />]}
+						leftExtensions={<Icon code="ellipsis" svgStyle={{ fill: "currentColor" }} />}
 					/>
 				</li>
 			) : null}
@@ -48,6 +54,7 @@ const Tree = ({
 const Item = ({ item, level, closeNavigation }: { item: ItemLink; level: number; closeNavigation: () => void }) => {
 	const ref = useRef<HTMLLIElement>(null);
 	const [scrollFlag, setScrollFalag] = useState(true);
+	const [isHover, setIsHover] = useState(false);
 
 	const isActive = item.isCurrentLink;
 
@@ -87,10 +94,19 @@ const Item = ({ item, level, closeNavigation }: { item: ItemLink; level: number;
 			<LevNavItem
 				item={item}
 				level={level}
+				isHover={isHover}
 				isOpen={isOpen || allwaysIsOpen}
-				isActive={isActive}
 				isCategory={isCategory}
-				leftExtensions={[<IconExtension key={0} item={item} />]}
+				leftExtensions={<IconExtension item={item} />}
+				rightExtensions={
+					<EditMenu
+						itemLink={item}
+						isCategory={isCategory}
+						setItemLink={() => {}}
+						onOpen={() => setIsHover(true)}
+						onClose={() => setIsHover(false)}
+					/>
+				}
 				onClick={onClick}
 			/>
 			{isCategory && (isOpen || allwaysIsOpen) && (

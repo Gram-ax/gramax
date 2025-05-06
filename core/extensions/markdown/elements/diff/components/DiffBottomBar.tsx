@@ -185,28 +185,25 @@ const DiffBottomBar = ({
 		</DiffContentWrapper>
 	);
 
-	const bottomBarContent = () => {
-		if (!hasRevisions) return DiffContentElement;
-		return (
-			<FromWhereContainer>
-				<BranchContainer title={oldRevision}>
-					<FormattedBranch name={oldRevision} />
-				</BranchContainer>
-				<LargeIcon strokeWidth={1.5} code="arrow-right" style={{ color: "var(--color-primary)" }} />
-				<BranchContainer title={newRevision}>
-					<FormattedBranch name={newRevision} />
-				</BranchContainer>
-			</FromWhereContainer>
-		);
-	};
+	const bottomBarContent = (
+		<FromWhereContainer>
+			<BranchContainer title={oldRevision}>
+				<FormattedBranch name={oldRevision} />
+			</BranchContainer>
+			<LargeIcon strokeWidth={1.5} code="arrow-right" style={{ color: "var(--color-primary)" }} />
+			<BranchContainer title={newRevision}>
+				<FormattedBranch name={newRevision} />
+			</BranchContainer>
+		</FromWhereContainer>
+	);
 
 	return (
-		<div className={className} data-theme="dark">
+		<div className={className} data-theme="dark" id="diff-bottom-bar">
 			<div className="bottom-bar-content">
 				{title && <div style={{ color: "var(--color-primary)" }}>{title}</div>}
 				{hasRevisions && DiffContentElement}
 				<div className="bottom-bar-row" style={{ justifyContent: "flex-end" }}>
-					{bottomBarContent()}
+					{hasRevisions ? bottomBarContent : DiffContentElement}
 					<PopupMenuLayout
 						onOpen={() => setChevronState("up")}
 						onClose={() => setChevronState("down")}

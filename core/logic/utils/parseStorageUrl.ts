@@ -17,7 +17,7 @@ const noDataObject: StorageUrl = {
 };
 
 const parseStorageUrl = (url: string): StorageUrl => {
-	if (!url) return noDataObject;
+	if (!url || typeof url !== "string") return noDataObject;
 	if (url.startsWith("git@")) return sshUrlParser(url);
 	if (!url.includes("://")) url = `https://${url}`;
 

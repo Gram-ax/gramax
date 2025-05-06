@@ -5,11 +5,6 @@ import getFocusNode from "@ext/markdown/elementsUtils/getFocusNode";
 import getExtensionOptions from "@ext/markdown/logic/getExtensionOptions";
 import { Editor, mergeAttributes, Node } from "@tiptap/core";
 import { ReactNodeViewRenderer } from "@tiptap/react";
-import noneBackspace from "../../logic/noneBackspace";
-import { Plugin, PluginKey } from "@tiptap/pm/state";
-import { EditorView } from "prosemirror-view";
-import checkTabContent from "@ext/markdown/elements/tabs/edit/logic/checkTabContent";
-import preventBackspace from "@ext/markdown/elements/tabs/edit/logic/preventBackspace";
 
 declare module "@tiptap/core" {
 	interface Commands<ReturnType> {
@@ -64,27 +59,7 @@ const Tab = Node.create({
 					.focus()
 					.run();
 			},
-
-			Backspace: noneBackspace(this.type.name),
-			Delete: noneBackspace(this.type.name),
-			"Mod-Backspace": noneBackspace(this.type.name),
-			"Shift-Backspace": noneBackspace(this.type.name),
 		};
-	},
-	addProseMirrorPlugins() {
-		return [
-			new Plugin({
-				key: new PluginKey("tabPreventBackspace"),
-				props: {
-					handleKeyDown(view: EditorView, event: KeyboardEvent) {
-						return preventBackspace(view, event);
-					},
-				},
-				appendTransaction(transactions, _, newState) {
-					return checkTabContent(transactions, newState);
-				},
-			}),
-		];
 	},
 });
 

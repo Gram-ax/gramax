@@ -120,6 +120,35 @@ pub fn init_new(path: String, creds: AccessTokenCreds) -> Output {
   git::init_new(Path::new(&path), creds.into())
 }
 
+#[napi(object, use_nullable = true)]
+#[derive(Clone)]
+pub struct MergeMessageFormatOptions {
+  pub theirs: String,
+  pub squash: Option<bool>,
+  pub max_commits: Option<i32>,
+  pub is_merge_request: Option<bool>,
+}
+
+impl From<MergeMessageFormatOptions> for gramaxgit::actions::merge::MergeMessageFormatOptions {
+  fn from(val: MergeMessageFormatOptions) -> Self {
+    gramaxgit::actions::merge::MergeMessageFormatOptions {
+      theirs: val.theirs,
+      squash: val.squash.unwrap_or_default(),
+      max_commits: val.max_commits.map(|x| x as usize),
+      is_merge_request: val.is_merge_request.unwrap_or_default(),
+    }
+  }
+}
+
+#[napi_async]
+pub fn format_merge_message(
+  repo_path: String,
+  creds: AccessTokenCreds,
+  opts: MergeMessageFormatOptions,
+) -> Output {
+  git::format_merge_message(Path::new(&repo_path), creds.into(), opts.into())
+}
+
 #[napi]
 pub fn clone(
   creds: AccessTokenCreds,
@@ -172,9 +201,9 @@ pub fn new_branch(repo_path: String, name: String) -> Output {
 #[napi_async]
 pub fn delete_branch(
   repo_path: String,
-  creds: Option<AccessTokenCreds>,
   name: String,
   remote: bool,
+  creds: Option<AccessTokenCreds>,
 ) -> Output {
   let creds = creds.map(|c| c.into());
   git::delete_branch(Path::new(&repo_path), &name, remote, creds)
@@ -270,9 +299,29 @@ pub fn stash_delete(repo_path: String, oid: String) -> Output {
   git::stash_delete(Path::new(&repo_path), &oid)
 }
 
+#[napi(object, use_nullable = true)]
+#[derive(Clone)]
+pub struct MergeOptions {
+  pub theirs: String,
+  pub delete_after_merge: Option<bool>,
+  pub squash: Option<bool>,
+  pub is_merge_request: Option<bool>,
+}
+
+impl From<MergeOptions> for gramaxgit::actions::merge::MergeOptions {
+  fn from(val: MergeOptions) -> Self {
+    gramaxgit::actions::merge::MergeOptions {
+      theirs: val.theirs,
+      delete_after_merge: val.delete_after_merge.unwrap_or_default(),
+      squash: val.squash.unwrap_or_default(),
+      is_merge_request: val.is_merge_request.unwrap_or_default(),
+    }
+  }
+}
+
 #[napi_async]
-pub fn merge(repo_path: String, creds: AccessTokenCreds, theirs: String) -> Output {
-  git::merge(Path::new(&repo_path), creds.into(), &theirs)
+pub fn merge(repo_path: String, creds: AccessTokenCreds, opts: MergeOptions) -> Output {
+  git::merge(Path::new(&repo_path), creds.into(), opts.into())
 }
 
 #[napi_async]
@@ -357,8 +406,46 @@ pub fn find_refs_by_globs(repo_path: String, pattern: Vec<String>) -> Output {
   git::find_refs_by_globs(Path::new(&repo_path), &pattern)
 }
 
+#[napi_async]
+pub fn create_or_update_merge_request(
+  repo_path: String,
+  merge_request: String,
+  creds: AccessTokenCreds,
+) -> Output {
+  let merge_request = serde_json::from_str::<CreateMergeRequest>(&merge_request)
+    .map_err(|e| Error::from_reason(e.to_string()))?;
+  git::create_or_update_merge_request(Path::new(&repo_path), merge_request, creds.into())
+}
+
+#[napi_async]
+pub fn get_draft_merge_request(repo_path: String) -> Output {
+  git::get_draft_merge_request(Path::new(&repo_path))
+}
+
 #[napi(js_name = "reset_repo")]
 pub fn reset_repo() -> Result<bool, Error> {
   git::reset_repo();
   Ok(true)
 }
+
+#[napi(object, use_nullable = true)]
+#[derive(Clone)]
+pub struct GcOptions {
+  pub loose_objects_limit: Option<i32>,
+  pub pack_files_limit: Option<i32>,
+}
+
+impl From<GcOptions> for gramaxgit::ext::gc::GcOptions {
+  fn from(val: GcOptions) -> Self {
+    gramaxgit::ext::gc::GcOptions {
+      loose_objects_limit: val.loose_objects_limit.map(|x| x as usize),
+      pack_files_limit: val.pack_files_limit.map(|x| x as usize),
+    }
+  }
+}
+
+#[napi_async]
+pub fn gc(repo_path: String, opts: GcOptions) -> Output {
+  git::gc(Path::new(&repo_path), opts.into())
+}
+

@@ -1,7 +1,7 @@
+import { LEFT_NAV_CLASS } from "@app/config/const";
+import { classNames } from "@components/libs/classNames";
 import styled from "@emotion/styled";
 import LeftSidebar from "../../LeftSidebar/LeftSidebar";
-import { classNames } from "@components/libs/classNames";
-import { LEFT_NAV_CLASS } from "@app/config/const";
 
 const LeftNavigationLayout = styled(
 	({
@@ -22,6 +22,7 @@ const LeftNavigationLayout = styled(
 		transitionEndIsOpen: boolean;
 		isOpen: boolean;
 		isPin: boolean;
+		isStaticBuilding: boolean;
 		onMouseEnter?: () => void;
 		onMouseLeave?: () => void;
 		onTransitionEnd?: () => void;
@@ -72,7 +73,7 @@ const LeftNavigationLayout = styled(
 		p.isPin
 			? `
 	transform: translateX(0px);
-	${p.transitionEndIsOpen ? "position: static;" : ""}
+	${p.transitionEndIsOpen || p.isStaticBuilding ? "position: static;" : ""}
 			`
 			: `
 	transform: translateX(calc((-1 * var(--left-nav-width) + 30px)));

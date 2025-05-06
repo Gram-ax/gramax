@@ -1,6 +1,7 @@
 import Input from "@components/Atoms/Input";
 import FetchService from "@core-ui/ApiServices/FetchService";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
+import WorkspaceService from "@core-ui/ContextServices/Workspace";
 import { useDebounce } from "@core-ui/hooks/useDebounce";
 import Path from "@core/FileProvider/Path/Path";
 import OnNetworkApiErrorService from "@ext/errorHandlers/client/OnNetworkApiErrorService";
@@ -24,6 +25,7 @@ const PublicClone = ({ setStorageData }: PublicCloneProps) => {
 	const [focusedField, setFocusedField] = useState<string>(null);
 	const [isValid, setIsValid] = useState<boolean>(false);
 
+	const gitProxyUrl = WorkspaceService.current()?.services.gitProxy.url;
 	const existingDirs = useRef<string[]>([]);
 	const lastSetNull = useRef(false);
 
@@ -34,7 +36,7 @@ const PublicClone = ({ setStorageData }: PublicCloneProps) => {
 			return;
 		}
 
-		const isUrlPointingToGit = await isUrlPointsToRepo(url);
+		const isUrlPointingToGit = await isUrlPointsToRepo(url, gitProxyUrl);
 		setIsValid(isUrlPointingToGit);
 		setUrlError(isUrlPointingToGit ? null : t("git.clone.error.public.invalid-link"));
 	}, 500);

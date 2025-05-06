@@ -21,7 +21,7 @@ function mergeAdjacentLists(tr: Transaction, node: Node, parentOffset = 0): Tran
 	return tr;
 }
 
-export const joinLists = Extension.create({
+export const JoinLists = Extension.create({
 	name: "joinLists",
 
 	addOptions() {

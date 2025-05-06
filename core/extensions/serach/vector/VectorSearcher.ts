@@ -5,9 +5,10 @@ import { resolveLanguage } from "@ext/localization/core/model/Language";
 import MarkdownParser from "@ext/markdown/core/Parser/Parser";
 import ParserContextFactory from "@ext/markdown/core/Parser/ParserContext/ParserContextFactory";
 import Searcher, { SearchItem } from "@ext/serach/Searcher";
-import { GramaxCatalog, GramaxCatalogItem } from "@ext/serach/vector/GramaxCatalog";
+import { VectorArticle, VectorArticleMetadata } from "@ext/serach/vector/VectorArticle";
+import VectorArticleContentParser from "@ext/serach/vector/VectorArticleContentParser";
 import WorkspaceManager from "@ext/workspace/WorkspaceManager";
-import { Chunk, ChunkFactory, VectorDbApiClient } from "@ics/gx-vector-search";
+import { VectorDbApiClient } from "@ics/gx-vector-search";
 import { TaskStatusInProgressResponse } from "@ics/gx-vector-search/dist/apiClient/requestTypes/taskStatus";
 import { UpdateResponse } from "@ics/gx-vector-search/dist/apiClient/requestTypes/update";
 
@@ -17,8 +18,7 @@ interface VectorSearcherOptions {
 }
 
 export class VectorSearcher implements Searcher {
-	private readonly _vectorDb: VectorDbApiClient;
-	private readonly _chunkFactory = new ChunkFactory();
+	private readonly _vectorDb: VectorDbApiClient<VectorArticleMetadata>;
 	private _indexingTaskIds: string[] = [];
 
 	constructor(
@@ -32,20 +32,20 @@ export class VectorSearcher implements Searcher {
 			collectionName: options.collectionName,
 		});
 
-		this.resetAllCatalogs();
+		void this.resetAllCatalogs();
 		_wm.onCatalogChange((change) => {
-			this._actualizeCatalog(change.catalog);
+			void this._actualizeCatalog(change.catalog);
 		});
 	}
 
 	async resetAllCatalogs(): Promise<void> {
-		for (const [catalogName, chunks] of await this._getAllCatalogChunks()) {
-			this._storeTaskIdIfNeed(await this._vectorDb.updateCatalog(catalogName, chunks));
+		for (const [catalogName, articles] of await this._getAllCatalogVectorArticles()) {
+			this._storeTaskIdIfNeed(await this._vectorDb.updateCatalog(catalogName, articles));
 		}
 	}
 
 	async searchAll(query: string, ids: { [catalogName: string]: string[] }): Promise<SearchItem[]> {
-		let result: SearchItem[] = [];
+		const result: SearchItem[] = [];
 
 		for (const catalogName in ids) {
 			const searchResult = await this.search(query, catalogName, ids[catalogName]);
@@ -64,35 +64,15 @@ export class VectorSearcher implements Searcher {
 		await this._cleanAndWaitIndexingTasks();
 
 		const dbResult = await this._vectorDb.search(query, catalogName);
-
-		const catalog = await this._wm.current().getContextlessCatalog(catalogName);
-		const catalogToParse = await this._getVectorCatalog(catalog, articleIds);
-
-		const result: any[] = [];
-		dbResult?.result?.forEach((item) => {
-			const article = catalogToParse.getAllArticles().find((a) => a.getId() === item.payload.articleId);
-			if (!article) return;
-			const block = article.getBlocks().find((b) => b.getId() === item.payload.id);
-			if (!block) return;
-
-			result.push({
-				article: article.getModel().title,
-				path: article.getModel().path,
-				block: block.getPlainText(),
-				score: item.score,
-			});
-		});
-
-		return result
-			.map<SearchItem>((r) => {
-				return {
-					name: { end: "", targets: [{ start: r.article, target: "" }] },
-					count: 1,
-					score: r.score,
-					paragraph: [{ prev: r.block, target: "", next: "" }],
-					url: r.path,
-				};
-			})
+		return dbResult.items
+			.filter((x) => articleIds.includes(x.metadata.refPath))
+			.map<SearchItem>((x) => ({
+				name: { end: "", targets: [{ start: x.metadata.title, target: "" }] },
+				count: 1,
+				score: x.score,
+				paragraph: [{ prev: x.text, target: "", next: "" }],
+				url: x.metadata.logicPath,
+			}))
 			.sort((a, b) => b.score - a.score);
 	}
 
@@ -100,13 +80,13 @@ export class VectorSearcher implements Searcher {
 		if (this._indexingTaskIds.length == 0) return;
 
 		const retryDelayMs = 10000;
-		let maxRetryCount = 1;
+		const maxRetryCount = 1;
 
 		for (let retryCount = 0; retryCount < maxRetryCount; retryCount++) {
 			const statuses = await Promise.all(
 				this._indexingTaskIds.map(async (taskId) => ({
 					taskId,
-					status: await this._vectorDb.taskStatus(taskId) ?? { done: true },
+					status: (await this._vectorDb.taskStatus(taskId)) ?? { done: true },
 				})),
 			);
 
@@ -114,7 +94,7 @@ export class VectorSearcher implements Searcher {
 			if (doneTaskIds.length > 0)
 				this._indexingTaskIds = this._indexingTaskIds.filter((x) => !doneTaskIds.includes(x));
 
-			let pendingTasks: {
+			const pendingTasks: {
 				taskId: string;
 				status: TaskStatusInProgressResponse;
 			}[] = [];
@@ -132,52 +112,59 @@ export class VectorSearcher implements Searcher {
 	}
 
 	private async _actualizeCatalog(catalog: Catalog): Promise<void> {
-		const chunks = await this._getCatalogChunks(catalog);
-		this._storeTaskIdIfNeed(await this._vectorDb.updateCatalog(catalog.name, chunks));
+		const vectorArticles = await this._getVectorArticles(catalog);
+		this._storeTaskIdIfNeed(await this._vectorDb.updateCatalog(catalog.name, vectorArticles));
 	}
 
-	private async _getAllCatalogChunks(): Promise<[string, Chunk[]][]> {
+	private async _getAllCatalogVectorArticles(): Promise<[string, VectorArticle[]][]> {
 		return await Promise.all(
-			[...this._wm.current().getAllCatalogs().keys()].map<Promise<[string, Chunk[]]>>(async (catalogName) => {
-				const catalog = await this._wm.current().getContextlessCatalog(catalogName);
-				const chunks = await this._getCatalogChunks(catalog);
-				return [catalogName, chunks];
-			}),
+			[...this._wm.current().getAllCatalogs().keys()].map<Promise<[string, VectorArticle[]]>>(
+				async (catalogName) => {
+					const catalog = await this._wm.current().getContextlessCatalog(catalogName);
+					const vectorArticles = await this._getVectorArticles(catalog);
+					return [catalogName, vectorArticles];
+				},
+			),
 		);
 	}
 
-	private async _getCatalogChunks(catalog: Catalog): Promise<Chunk[]> {
-		return this._chunkFactory.createFromCatalog(await this._getVectorCatalog(catalog));
-	}
-
-	private async _getVectorCatalog(catalog: Catalog, articleIds?: string[]): Promise<GramaxCatalog> {
+	private async _getVectorArticles(catalog: Catalog): Promise<VectorArticle[]> {
 		const articles = catalog.getItems() as Article[];
-		const parsedItemsByArticle: Map<string, GramaxCatalogItem> = new Map();
-		const items: GramaxCatalogItem[] = [];
+		const vectorArticlesByPath: Map<string, VectorArticle> = new Map();
 		for (const article of articles) {
-			if (articleIds && !articleIds.includes(article.ref.path.value)) continue;
-
 			const parsedContent =
 				(await article.parsedContent.read()) ?? (await this._parseArticleContent(article, catalog));
-			if (!parsedContent) continue;
-
-			const item = {
-				parsedContent: parsedContent,
-				parent: article.parent ? parsedItemsByArticle.get(article.parent.logicPath) ?? null : null,
-				content: article.content,
-				path: article.logicPath,
-				title: article.getTitle() ?? getExtractHeader(parsedContent),
+			const title = parsedContent ? getExtractHeader(parsedContent) ?? article.getTitle() : article.getTitle();
+			const item: VectorArticle = {
+				id: article.logicPath,
+				title,
+				children: [],
+				items: parsedContent ? new VectorArticleContentParser(parsedContent.editTree.content).parse() : [],
+				metadata: {
+					logicPath: article.logicPath,
+					refPath: article.ref.path.value,
+					title,
+				},
 			};
 
-			parsedItemsByArticle.set(article.logicPath, item);
-			items.push(item);
+			vectorArticlesByPath.set(article.logicPath, item);
 		}
 
-		return new GramaxCatalog(items, catalog.name);
+		const vectorArticles: VectorArticle[] = [];
+		articles.forEach((article) => {
+			const vectorArticle = vectorArticlesByPath.get(article.logicPath);
+			if (!article.parent || !vectorArticlesByPath.has(article.parent.logicPath)) {
+				vectorArticles.push(vectorArticle);
+			} else {
+				vectorArticlesByPath.get(article.parent.logicPath).children.push(vectorArticle);
+			}
+		});
+
+		return vectorArticles;
 	}
 
 	private async _parseArticleContent(article: Article, catalog: Catalog): Promise<Content> {
-		const parseCtx = this._parserContextFactory.fromArticle(article, catalog, resolveLanguage(), true);
+		const parseCtx = await this._parserContextFactory.fromArticle(article, catalog, resolveLanguage(), true);
 		try {
 			return await this._parser.parse(article.content, parseCtx);
 		} catch {

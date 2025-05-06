@@ -4,18 +4,19 @@ import { BASE_CONFIG, FONT_SIZE_COEFFICIENT } from "@ext/pdfExport/config";
 import { NodeOptions, pdfRenderContext } from "@ext/pdfExport/parseNodesPDF";
 import { isTag } from "@ext/pdfExport/utils/isTag";
 import { ContentOrderedList } from "pdfmake/interfaces";
+import { JSONContent } from "@tiptap/core";
 
 export const orderedListHandler = async (
-	node: Tag,
+	node: Tag | JSONContent,
 	context: pdfRenderContext,
 	options: NodeOptions,
 ): Promise<ContentOrderedList> => {
-	const content = node.children || [];
+	const children = "children" in node ? node.children || [] : node.content || [];
 	const level = options?.level || 0;
 
 	const listItems = await Promise.all(
-		content.map(async (item, index) => {
-			if (!isTag(item)) return null;
+		children.map(async (item, index) => {
+			if (!isTag(item) && !("type" in item)) return null;
 			return listItemHandler(item, context, { ...options, level: level + 1 }, index === 0);
 		}),
 	);

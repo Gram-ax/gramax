@@ -11,45 +11,75 @@ import t from "@ext/localization/locale/translate";
 import Theme from "@ext/Theme/Theme";
 import { memo, useCallback, ChangeEvent, useState, useMemo } from "react";
 
+export type UpdateResource = (data: { content: string; type: string; fileName: string }) => void;
+
 interface LogoUploader {
 	deleteResource: () => any;
-	updateResource: (value: string) => void;
+	updateResource: UpdateResource;
 	imageTheme?: Theme;
 	isLoading?: boolean;
 	className?: string;
 	logo?: string;
+	svgOnly?: boolean;
 }
 
 const LogoUploader = memo((props: LogoUploader) => {
-	const { updateResource, deleteResource, logo, imageTheme, isLoading, className } = props;
+	const { updateResource, deleteResource, logo, svgOnly, imageTheme, isLoading, className } = props;
 	const [error, setError] = useState<DefaultError>(null);
 
 	const handleUpload = useCallback(
 		(event: ChangeEvent<HTMLInputElement>) => {
 			setError(null);
-			const file = event.target.files && event.target.files[0];
-			if (file && file.type === "image/svg+xml") {
-				const maxSize = 500 * 1024;
 
-				if (file.size > maxSize) {
-					setError(
-						new DefaultError(
-							t("workspace.logo-size-exceeded"),
-							undefined,
-							undefined,
-							undefined,
-							t("workspace.logo-upload-failed"),
-						),
-					);
-				} else {
-					const reader = new FileReader();
-					reader.onload = (e) => {
-						const svgContent = e.target?.result as string;
-						if (svgContent) updateResource(svgContent);
-					};
-					reader.readAsText(file);
-				}
+			const file = event.target.files && event.target.files[0];
+			if (!file) return;
+
+			const allowedTypes = svgOnly ? ["image/svg+xml"] : ["image/svg+xml", "image/png"];
+			if (!allowedTypes.includes(file.type)) {
+				setError(
+					new DefaultError(
+						t("workspace.invalid-logo-format-body"),
+						undefined,
+						undefined,
+						undefined,
+						t("workspace.invalid-logo-format-title"),
+					),
+				);
+				event.target.value = "";
+				return;
 			}
+
+			const maxSize = 500 * 1024;
+			if (file.size > maxSize) {
+				setError(
+					new DefaultError(
+						t("workspace.logo-size-exceeded"),
+						undefined,
+						undefined,
+						undefined,
+						t("workspace.logo-upload-failed"),
+					),
+				);
+
+				return (event.target.value = "");
+			}
+
+			const reader = new FileReader();
+
+			if (file.type === "image/svg+xml") {
+				reader.onload = (e) => {
+					const svgContent = e.target?.result as string;
+					if (svgContent) updateResource({ content: svgContent, type: "svg", fileName: file.name });
+				};
+				reader.readAsText(file);
+			} else {
+				reader.onload = (e) => {
+					const dataUrl = e.target?.result as string;
+					if (dataUrl) updateResource({ content: dataUrl, type: "png", fileName: file.name });
+				};
+				reader.readAsDataURL(file);
+			}
+
 			event.target.value = "";
 		},
 		[updateResource],
@@ -85,7 +115,12 @@ const LogoUploader = memo((props: LogoUploader) => {
 
 					{logo && <ButtonLink {...buttonProps} iconCode={"x"} onClick={deleteResource} />}
 
-					<FileInput buttonLinkProps={buttonProps} accept=".svg" onChange={handleUpload} hidden />
+					<FileInput
+						buttonLinkProps={buttonProps}
+						accept={svgOnly ? ".svg" : ".svg,.png"}
+						onChange={handleUpload}
+						hidden
+					/>
 				</>
 			)}
 			<ErrorModal error={error} setError={setError} />

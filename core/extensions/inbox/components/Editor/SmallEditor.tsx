@@ -1,136 +1,143 @@
-import { MinimizedArticleStyled } from "@components/Article/MiniArticle";
 import FetchService from "@core-ui/ApiServices/FetchService";
 import MimeTypes from "@core-ui/ApiServices/Types/MimeTypes";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
+import IsMenuBarOpenService from "@core-ui/ContextServices/IsMenuBarOpenService";
 import { useDebounce } from "@core-ui/hooks/useDebounce";
 import Path from "@core/FileProvider/Path/Path";
-import InboxService from "@ext/inbox/components/InboxService";
-import t from "@ext/localization/locale/translate";
+import { ArticleProviderType } from "@core/FileStructue/Article/ArticleProvider";
 import ArticleMat from "@ext/markdown/core/edit/components/ArticleMat";
-import { getSimpleExtensions } from "@ext/markdown/core/edit/logic/getExtensions";
-import ArticleTitleHelpers from "@ext/markdown/elements/article/edit/ArticleTitleHelpers";
-import getArticleWithTitle from "@ext/markdown/elements/article/edit/logic/getArticleWithTitle";
-import { Placeholder } from "@ext/markdown/elements/placeholder/placeholder";
-import Document from "@tiptap/extension-document";
-import { Editor, EditorContent, JSONContent, useEditor } from "@tiptap/react";
-import { memo, useCallback } from "react";
+import { Editor, EditorContent, JSONContent, useEditor, Extensions } from "@tiptap/react";
+import { memo, useCallback, useMemo } from "react";
+import styled from "@emotion/styled";
+import { ContentEditorId } from "@ext/markdown/core/edit/components/ContentEditor";
+import Menu from "@ext/inbox/components/Editor/Menu";
 
-interface SmallEditorProps {
-	content: JSONContent;
-	path: string;
-	logicPath: string;
+type MiniProps<T> = T extends { title: string; content: JSONContent } ? T : { title: string; content: JSONContent };
+
+interface SmallEditorOptions {
+	menu?: (editor: Editor) => JSX.Element;
 }
 
-const getExtensions = (onTitleLoseFocus: (newTitle: string) => void) => [
-	...getSimpleExtensions(),
-	ArticleTitleHelpers.configure({
-		onTitleLoseFocus: ({ newTitle }) => onTitleLoseFocus(newTitle),
-	}),
-	Document.extend({
-		content: "paragraph block+",
-	}),
-	Placeholder.configure({
-		placeholder: ({ editor, node }) => {
-			if (editor.state.doc.firstChild.type.name === "paragraph" && editor.state.doc.firstChild === node)
-				return t("inbox.placeholders.title");
+const SmallEditorWrapper = styled.div`
+	display: flex;
+	flex-direction: column;
+	height: 100%;
 
-			if (
-				node.type.name === "paragraph" &&
-				editor.state.doc.content.child(1) === node &&
-				editor.state.doc.content.childCount === 2
-			)
-				return t("inbox.placeholders.content");
-		},
-	}),
-];
+	.full-article {
+		display: flex;
+		flex-direction: column;
+		height: 100%;
+	}
 
-const SmallEditor = ({ content, path, logicPath }: SmallEditorProps) => {
+	.mini-article {
+		flex: 1 1 0px;
+		display: flex;
+		flex-direction: column;
+	}
+
+	.mini-article-page-wrapper {
+		gap: 1rem;
+		flex: 1 1 0px;
+		display: flex;
+		flex-direction: column;
+	}
+
+	.mini-article-container {
+		height: 100%;
+		display: flex;
+		flex-direction: column;
+	}
+
+	.mini-article-body {
+		flex: 1;
+		display: flex;
+		position: relative;
+		flex-direction: column;
+	}
+
+	.article-body {
+		flex: unset;
+	}
+`;
+
+interface SmallEditorProps<T> {
+	id: string;
+	props: MiniProps<T>;
+	content: JSONContent;
+	path: string;
+	articleType: ArticleProviderType;
+	extensions?: Extensions;
+	updateCallback?: (id: string, content: JSONContent, title: string) => void;
+	options?: SmallEditorOptions;
+	className?: string;
+}
+
+const SmallEditor = <T extends MiniProps<any>>(proprs: SmallEditorProps<T>) => {
+	const { id, props, content, path, articleType, extensions = [], updateCallback, options, className } = proprs;
 	const apiUrlCreator = ApiUrlCreatorService.value;
-	const { selectedPath, notes } = InboxService.value;
 
 	const updateContent = useCallback(
-		async (content: JSONContent) => {
-			if (selectedPath.length === 0) return;
-
-			const selectedNote = notes.find((note) => logicPath === note.logicPath);
-			if (!selectedNote) return;
-
+		async (content: JSONContent, title: string) => {
 			const curPath = new Path(path);
-			const url = apiUrlCreator.updateFileInGramaxDir(curPath.name, "inbox");
-			await FetchService.fetch(url, JSON.stringify({ content }), MimeTypes.json);
-
-			selectedNote.content = getArticleWithTitle(selectedNote.title, content);
-			InboxService.setNotes([...notes.filter((note) => note.logicPath !== logicPath), selectedNote]);
-		},
-		[logicPath, apiUrlCreator, selectedPath, notes],
-	);
-
-	const updateTitle = useCallback(
-		async (title: string) => {
-			if (selectedPath.length === 0) return;
-
-			const selectedNote = notes.find((note) => logicPath === note.logicPath);
-			if (!selectedNote) return;
-			if (title === selectedNote?.title) return;
+			const url = apiUrlCreator.updateFileInGramaxDir(curPath.name, articleType);
 
 			const articleProps = {
-				...selectedNote.props,
+				...props,
 				title,
 			};
 
-			const curPath = new Path(path);
-			const url = apiUrlCreator.updateFileInGramaxDir(curPath.name, "inbox");
-			await FetchService.fetch(url, JSON.stringify({ props: articleProps }), MimeTypes.json);
-			selectedNote.title = title;
-
-			selectedNote.content.content.shift();
-			selectedNote.content = getArticleWithTitle(title, selectedNote.content);
-
-			InboxService.setNotes([...notes.filter((note) => note.logicPath !== logicPath), selectedNote]);
+			await FetchService.fetch(url, JSON.stringify({ editTree: content, props: articleProps }), MimeTypes.json);
+			updateCallback?.(id, content, title);
 		},
-		[logicPath, apiUrlCreator, selectedPath, notes],
+		[id, apiUrlCreator, props],
 	);
 
 	const debouncedUpdateContent = useDebounce(updateContent, 500);
-	const debouncedUpdateTitle = useDebounce(updateTitle, 500);
 
 	const onUpdateContent = useCallback(
 		({ editor }: { editor: Editor }) => {
 			const json = editor.getJSON();
+			const title = editor.state.doc.firstChild?.textContent?.trim();
 			json.content.shift();
 			debouncedUpdateContent.cancel();
-			debouncedUpdateContent.start(json);
+			debouncedUpdateContent.start(json, title);
 		},
 		[debouncedUpdateContent],
 	);
 
-	const onTitleLoseFocus = useCallback(
-		(newTitle: string) => {
-			debouncedUpdateTitle.cancel();
-			debouncedUpdateTitle.start(newTitle);
-		},
-		[debouncedUpdateTitle],
-	);
+	const editorExtensions = useMemo(() => {
+		return extensions;
+	}, [extensions]);
 
 	const editor = useEditor(
 		{
 			onUpdate: onUpdateContent,
 			content: content ?? { type: "doc", content: [{ type: "paragraph" }, { type: "paragraph" }] },
 			injectCSS: false,
-			extensions: getExtensions(onTitleLoseFocus),
+			extensions: editorExtensions,
 			editable: true,
 			autofocus: content.content.length === 2,
 		},
-		[],
+		[content],
 	);
 
 	return (
-		<MinimizedArticleStyled>
-			<div className="article">
-				<EditorContent data-qa="article-editor" editor={editor} className={"article-body"} />
-				<ArticleMat editor={editor} style={{ minHeight: "unset", height: "90%" }} />
+		<SmallEditorWrapper className={className}>
+			<div className="mini-article">
+				<div className="mini-article-body">
+					<EditorContent
+						data-qa="article-editor"
+						data-iseditable={true}
+						editor={editor}
+						className={"article-body"}
+					/>
+					<ArticleMat editor={editor} />
+				</div>
 			</div>
-		</MinimizedArticleStyled>
+			<IsMenuBarOpenService.Provider>
+				<Menu menu={options?.menu} editor={editor} id={ContentEditorId} />
+			</IsMenuBarOpenService.Provider>
+		</SmallEditorWrapper>
 	);
 };
 

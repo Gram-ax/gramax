@@ -7,30 +7,36 @@ import ParserContext from "@ext/markdown/core/Parser/ParserContext/ParserContext
 import { AddOptionsWord, WordBlockChild } from "@ext/wordExport/options/WordTypes";
 import AnnotationText from "@ext/markdown/elements/image/word/imageEditor/AnnotationText";
 import { WordImageExporter } from "@ext/markdown/elements/image/word/WordImageProcessor";
+import { JSONContent } from "@tiptap/core";
 
 export const renderImageWordLayout: WordBlockChild = async ({ tag, addOptions, wordRenderContext }) => {
 	return imageWordLayout(tag, addOptions, wordRenderContext.parserContext);
 };
 
-export const imageWordLayout = async (tag: Tag, addOptions: AddOptionsWord, parserContext: ParserContext) => {
+export const imageWordLayout = async (
+	tag: Tag | JSONContent,
+	addOptions: AddOptionsWord,
+	parserContext: ParserContext,
+) => {
 	try {
+		const attrs = "attributes" in tag ? tag.attributes : tag.attrs;
 		return [
 			new Paragraph({
 				children: [
 					await WordImageExporter.getImageByPath(
-						new Path(tag.attributes.src),
+						new Path(attrs.src),
 						parserContext.getResourceManager(),
 						addOptions?.maxPictureWidth,
 						undefined,
-						tag.attributes.crop,
-						tag.attributes.objects,
-						tag.attributes.scale,
+						attrs.crop,
+						attrs.objects,
+						attrs.scale,
 					),
 				],
 				style: WordFontStyles.picture,
 				keepNext: true,
 			}),
-			...AnnotationText.getText(tag.attributes.title, tag.attributes.objects),
+			...AnnotationText.getText(attrs.title, attrs.objects),
 		];
 	} catch (error) {
 		return errorWordLayout(imageString(parserContext.getLanguage()), parserContext.getLanguage());

@@ -4,19 +4,17 @@ import Url from "@core-ui/ApiServices/Types/Url";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import styled from "@emotion/styled";
 import ThemeService from "@ext/Theme/components/ThemeService";
-import { CatalogLink } from "../../../extensions/navigation/NavigationLinks";
+import { CatalogLink } from "@ext/navigation/NavigationLinks";
 import Link from "../../Atoms/Link";
 
 const SmallCard = ({
 	link,
 	className,
-	name,
 	hideLogo = true,
 }: {
 	hideLogo?: boolean;
 	link: CatalogLink;
 	className?: string;
-	name: string;
 }) => {
 	const apiUrlCreator = ApiUrlCreatorService.value;
 	const theme = ThemeService.value;

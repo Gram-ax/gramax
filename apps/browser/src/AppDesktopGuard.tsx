@@ -8,7 +8,7 @@ import App from "./App";
 
 const ContinueInBrowserUnstyled = ({ onClick, ...props }: { onClick: () => void } & HTMLAttributes<HTMLDivElement>) => {
 	return (
-		<LanguageService.Provider>
+		<LanguageService.Init>
 			<ThemeService.Provider>
 				<div {...props}>
 					<div className="container">
@@ -22,7 +22,7 @@ const ContinueInBrowserUnstyled = ({ onClick, ...props }: { onClick: () => void 
 					</div>
 				</div>
 			</ThemeService.Provider>
-		</LanguageService.Provider>
+		</LanguageService.Init>
 	);
 };
 

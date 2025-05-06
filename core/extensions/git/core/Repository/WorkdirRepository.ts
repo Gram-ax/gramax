@@ -69,8 +69,8 @@ export default class WorkdirRepository extends Repository {
 		return toPull > 0;
 	}
 
-	async status(): Promise<GitStatus[]> {
-		if (!this._cachedStatus) this._cachedStatus = await this.gvc.getChanges();
+	async status(cached = true): Promise<GitStatus[]> {
+		if (!this._cachedStatus || !cached) this._cachedStatus = await this.gvc.getChanges();
 		return this._cachedStatus;
 	}
 
@@ -155,7 +155,7 @@ export default class WorkdirRepository extends Repository {
 			}
 		}
 
-		await this.gvc.update();
+		this.gvc.update();
 		const newVersion = await this.gvc.getCurrentVersion();
 
 		await this._events.emit("checkout", { repo: this, branch });
@@ -174,14 +174,20 @@ export default class WorkdirRepository extends Repository {
 		data,
 		targetBranch,
 		deleteAfterMerge,
+		squash,
 		validateMerge = true,
+		isMergeRequest,
 	}: MergeOptions): Promise<GitMergeResultContent[]> {
 		if (validateMerge) await this.validateMerge();
 
 		const branchNameBefore = (await this.gvc.getCurrentBranch()).toString();
 		await this.checkout({ data, branch: targetBranch });
 
-		const mergeResult = await this.gvc.mergeBranch(data, branchNameBefore);
+		const mergeResult = await this.gvc.mergeBranch(data, {
+			theirs: branchNameBefore,
+			squash,
+			isMergeRequest,
+		});
 
 		if (!mergeResult.length) {
 			if (!data.isInvalid) await this._push({ data });
@@ -197,6 +203,8 @@ export default class WorkdirRepository extends Repository {
 				conflictFiles: mergeResult,
 				deleteAfterMerge,
 				reverseMerge: true,
+				squash,
+				isMergeRequest,
 			},
 		};
 		await this._state.saveState(state);

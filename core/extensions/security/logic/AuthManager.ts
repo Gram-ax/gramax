@@ -23,9 +23,9 @@ export default abstract class AuthManager {
 	}
 
 	protected async _updateEnterpriseUser(cookie: Cookie, user: EnterpriseUser): Promise<void> {
-		const updatedUser = await user.updatePermissions();
+		const updatedUser = await user.updatePermissions(true);
 		if (!updatedUser) return;
-		this._setUsersEnterpriseInfo(updatedUser, cookie);
+		if (updatedUser instanceof EnterpriseUser) this._setUsersEnterpriseInfo(updatedUser, cookie);
 		this.setUser(cookie, updatedUser);
 	}
 

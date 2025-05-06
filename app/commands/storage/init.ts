@@ -19,7 +19,8 @@ const init: Command<{ catalogName: string; articlePath: Path; data: StorageData 
 
 		await initEnterpriseStorage(em.getConfig().gesUrl, data);
 
-		await makeSourceApi(data.source, workspace.config().services?.auth?.url).assertStorageExist(data);
+		const config = await workspace.config();
+		await makeSourceApi(data.source, config.services?.auth?.url).assertStorageExist(data);
 		const fp = workspace.getFileProvider();
 		const repo = await rp.initNew(catalog.basePath, fp, data);
 		catalog.setRepository(repo);

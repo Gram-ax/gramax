@@ -13,4 +13,4 @@ core/extensions/security/logic/AuthProviders/dropbox.ts
 .gitlab-ci.yml
 **/target
 
-!apps/browser/wasm/dist/**/*
+!apps/browser/crates/gramax-wasm/dist/**/*

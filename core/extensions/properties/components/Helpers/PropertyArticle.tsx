@@ -18,10 +18,12 @@ interface PropertyArticleProps {
 	property: PropertyType;
 	onSubmit: (propertyName: string, value: string, isDelete?: boolean) => void;
 	disabled?: boolean;
+	canDelete?: boolean;
+	isInline?: boolean;
 }
 
 const PropertyArticle = memo((props: PropertyArticleProps) => {
-	const { disabled, trigger, property, onSubmit } = props;
+	const { disabled, trigger, property, onSubmit, isInline = false, canDelete = true } = props;
 
 	const instanceRef = useRef<Instance<Props>>(null);
 	const [value, setValue] = useState<string[] | string>(property.value);
@@ -98,6 +100,7 @@ const PropertyArticle = memo((props: PropertyArticleProps) => {
 
 	return (
 		<PopupMenuLayout
+			isInline={isInline}
 			offset={[0, 10]}
 			onTippyMount={onTippyMount}
 			appendTo={() => document.body}
@@ -119,7 +122,7 @@ const PropertyArticle = memo((props: PropertyArticleProps) => {
 				)}
 				{buttons}
 				{(property?.values?.length > 0 || InputComponent) && <div className="divider" />}
-				<PropertyItem name={t("delete")} startIcon="trash" onClick={deleteProperty} />
+				{canDelete && <PropertyItem name={t("clear")} startIcon="eraser" onClick={deleteProperty} />}
 			</>
 		</PopupMenuLayout>
 	);

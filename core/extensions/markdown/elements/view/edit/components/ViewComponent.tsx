@@ -1,7 +1,7 @@
 import CatalogPropsService from "@core-ui/ContextServices/CatalogProps";
 import styled from "@emotion/styled";
 import View from "@ext/markdown/elements/view/render/components/View";
-import { Display } from "@ext/properties/models/displays";
+import { Display } from "@ext/properties/models/display";
 import { NodeViewProps, NodeViewWrapper } from "@tiptap/react";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import FetchService from "@core-ui/ApiServices/FetchService";

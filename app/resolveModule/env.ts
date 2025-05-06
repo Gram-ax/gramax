@@ -1,56 +1,54 @@
+import assert from "assert";
 import { EnvironmentVariable, defaultVariables } from "../config/env";
 import viteEnv from "../config/viteenv";
 
-type Environment = "next" | "tauri" | "browser";
+export type Environment = "next" | "tauri" | "browser" | "test" | "static" | "cli";
 
-let executing: Environment;
 let _env: (name: keyof EnvironmentVariable) => string;
 
-/// #if VITE_ENVIRONMENT == "browser"
-// #v-ifdef VITE_ENVIRONMENT='browser'
-
-executing = "browser";
-
-_env = (window as any)?.getEnv ?? (() => undefined);
-
-/// #endif
-// #v-endif
-
-/// #if VITE_ENVIRONMENT == "next"
-// #v-ifdef VITE_ENVIRONMENT='next'
-
-executing = "next";
-
-_env = (name: string) => {
-	return process.env[name];
+const getEnv = (): string => {
+	let env = global.VITE_ENVIRONMENT || process.env.VITE_ENVIRONMENT;
+	if (env === "test") env = "next";
+	assert(env, "env not set");
+	return env;
 };
 
-// #v-endif
-/// #endif
+const executing = getEnv() as Environment;
 
-/// #if VITE_ENVIRONMENT == "jest"
-// #v-ifdef VITE_ENVIRONMENT='jest'
+const initEnv = () => {
+	if (executing === "browser") {
+		_env = typeof window !== "undefined" ? (window as any)?.getEnv ?? (() => undefined) : () => undefined;
+	}
+	if (executing === "tauri") {
+		_env = (name: string) => {
+			return typeof window !== "undefined" ? window.process?.env?.[name] : undefined;
+		};
+	}
 
-executing = "next";
+	if (executing === "next") {
+		_env = (name: string) => {
+			return process.env?.[name];
+		};
+	}
 
-_env = (name: string) => {
-	return process.env[name];
+	if (executing === "test") {
+		_env = (name: string) => {
+			return process.env?.[name];
+		};
+	}
+
+	if (executing === "static") {
+		_env = typeof window !== "undefined" ? (window as any)?.getEnv ?? (() => undefined) : () => undefined;
+	}
+
+	if (executing === "cli") {
+		_env = (name: string) => {
+			return process.env?.[name];
+		};
+	}
 };
 
-// #v-endif
-/// #endif
-
-/// #if VITE_ENVIRONMENT == "tauri"
-// #v-ifdef VITE_ENVIRONMENT='tauri'
-
-executing = "tauri";
-
-_env = (name: string) => {
-	return window.process?.env?.[name];
-};
-
-// #v-endif;
-/// #endif
+initEnv();
 
 const builtIn = { ...(process as any).builtIn, ...viteEnv };
 

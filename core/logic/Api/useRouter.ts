@@ -1,6 +1,6 @@
 import resolveModule from "@app/resolveModule/frontend";
-import { Router } from "./Router";
 import Localizer from "@ext/localization/core/Localizer";
+import { Router } from "./Router";
 
 const rules = [Localizer.sanitize.bind(Localizer)];
 

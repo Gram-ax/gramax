@@ -1,8 +1,8 @@
+import diagramsSchema from "@ext/markdown/elements/diagrams/edit/models/diagramsSchema";
+import getExtensionOptions from "@ext/markdown/logic/getExtensionOptions";
 import { mergeAttributes, Node } from "@tiptap/core";
 import { ReactNodeViewRenderer } from "@tiptap/react";
 import EditDiagrams from "../components/DiagramsComponent";
-import getExtensionOptions from "@ext/markdown/logic/getExtensionOptions";
-import diagrams from "@ext/markdown/elements/diagrams/edit/models/diagramsSchema";
 
 declare module "@tiptap/core" {
 	interface Commands<ReturnType> {
@@ -13,7 +13,7 @@ declare module "@tiptap/core" {
 }
 
 const Diagrams = Node.create({
-	...getExtensionOptions({ schema: diagrams, name: "diagrams", withResource: true }),
+	...getExtensionOptions({ schema: diagramsSchema, name: "diagrams", withResource: true }),
 
 	parseHTML() {
 		return [{ tag: "diagrams-react-component" }];

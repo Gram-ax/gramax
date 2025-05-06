@@ -1,15 +1,18 @@
 import DiffFileInput from "@components/Atoms/FileInput/DiffFileInput/DiffFileInput";
 import DiffViewModeService from "@core-ui/ContextServices/DiffViewModeService";
+import ArticleViewService from "@core-ui/ContextServices/views/articleView/ArticleViewService";
+import useRestoreRightSidebar from "@core-ui/hooks/diff/useRestoreRightSidebar";
 import useSetupRightNavCloseHandler from "@core-ui/hooks/diff/useSetupRightNavCloseHandler";
 import { TreeReadScope } from "@ext/git/core/GitCommands/model/GitCommandsModel";
 import { DiffViewMode } from "@ext/markdown/elements/diff/components/DiffBottomBar";
 import { DiffModeView } from "@ext/markdown/elements/diff/components/DiffModeView";
 import RenderDiffBottomBarInArticle from "@ext/markdown/elements/diff/components/RenderDiffBottomBarInArticle";
 import { EditorContext } from "@ext/markdown/elementsUtils/ContextServices/EditorService";
+import NavigationEvents from "@ext/navigation/NavigationEvents";
 import { DiffFilePaths } from "@ext/VersionControl/model/Diff";
 import { FileStatus } from "@ext/Watchers/model/FileStatus";
 import { JSONContent } from "@tiptap/core";
-import { useLayoutEffect, useState } from "react";
+import { useEffect, useLayoutEffect, useState } from "react";
 
 interface ArticleDiffModeViewProps {
 	oldEditTree: JSONContent;
@@ -59,11 +62,25 @@ const ArticleDiffModeView = (props: ArticleDiffModeViewProps) => {
 	})();
 
 	const diffViewService = DiffViewModeService.value;
+	const restoreRightSidebar = useRestoreRightSidebar();
 	const [diffView, setDiffView] = useState(diffViewService);
 
 	useLayoutEffect(() => {
 		if (!hasEditTree && diffView === "wysiwyg") setDiffView("single-panel");
 	}, []);
+
+	useEffect(() => {
+		const listener = () => {
+			restoreRightSidebar();
+			ArticleViewService.setDefaultView();
+		};
+
+		const token = NavigationEvents.on("item-click", listener);
+
+		return () => {
+			NavigationEvents.off(token);
+		};
+	}, [restoreRightSidebar]);
 
 	useSetupRightNavCloseHandler();
 
@@ -115,8 +132,8 @@ const ArticleDiffModeView = (props: ArticleDiffModeViewProps) => {
 			)}
 			<RenderDiffBottomBarInArticle
 				// title={title}
-				// oldRevision={oldRevision}
-				// newRevision={newRevision}
+				oldRevision={oldRevision}
+				newRevision={newRevision}
 				filePath={filePath}
 				type={changeType}
 				diffViewMode={diffView}

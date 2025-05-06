@@ -11,7 +11,7 @@ export default class HtmlParser {
 		try {
 			return await this._markdownParser.parseToHtml(
 				article.content,
-				this._parserContextFactory.fromArticle(
+				await this._parserContextFactory.fromArticle(
 					article,
 					catalog,
 					convertContentToUiLanguage(article.props.language || catalog.props.language),

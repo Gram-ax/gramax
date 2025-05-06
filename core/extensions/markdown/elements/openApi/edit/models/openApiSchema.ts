@@ -1,9 +1,11 @@
-const openapi = {
-	group: "block",
+import ElementGroups from "@ext/markdown/core/element/ElementGroups";
+
+const openApiSchema = {
+	group: `${ElementGroups.block} ${ElementGroups.listItemContent}`,
 	attrs: {
 		src: { default: null },
 		flag: { default: true },
 	},
 };
 
-export default openapi;
+export default openApiSchema;

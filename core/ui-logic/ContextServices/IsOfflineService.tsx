@@ -1,12 +1,14 @@
+import ContextService from "@core-ui/ContextServices/ContextService";
 import { Dispatch, ReactElement, SetStateAction, createContext, useContext, useEffect, useState } from "react";
 
 export const IsOfflineContext = createContext<boolean>(undefined);
-let _setIsOffline: Dispatch<SetStateAction<boolean>>;
 
-abstract class IsOfflineService {
-	static Provider({ children }: { children: ReactElement }): ReactElement {
+class IsOfflineService implements ContextService {
+	private _setIsOffline: Dispatch<SetStateAction<boolean>>;
+
+	Init({ children }: { children: ReactElement }): ReactElement {
 		const [isOffline, setIsOffline] = useState<boolean>(null);
-		_setIsOffline = setIsOffline;
+		this._setIsOffline = setIsOffline;
 
 		const isOnlineHandler = () => setIsOffline(false);
 		const isOfflineHandler = () => setIsOffline(true);
@@ -23,13 +25,13 @@ abstract class IsOfflineService {
 		return <IsOfflineContext.Provider value={isOffline}>{children}</IsOfflineContext.Provider>;
 	}
 
-	static get value(): boolean {
+	get value(): boolean {
 		return useContext(IsOfflineContext);
 	}
 
-	static set value(value: boolean) {
-		_setIsOffline(value);
+	set value(value: boolean) {
+		this._setIsOffline(value);
 	}
 }
 
-export default IsOfflineService;
+export default new IsOfflineService();

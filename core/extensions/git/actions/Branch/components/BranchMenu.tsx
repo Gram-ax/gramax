@@ -1,5 +1,5 @@
-import Icon from "@components/Atoms/Icon";
 import ArticleUpdaterService from "@components/Article/ArticleUpdater/ArticleUpdaterService";
+import Icon from "@components/Atoms/Icon";
 import PopupMenuLayout from "@components/Layouts/PopupMenuLayout";
 import ButtonLink from "@components/Molecules/ButtonLink";
 import FetchService from "@core-ui/ApiServices/FetchService";
@@ -10,12 +10,12 @@ import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import EnterpriseApi from "@ext/enterprise/EnterpriseApi";
 import BranchUpdaterService from "@ext/git/actions/Branch/BranchUpdaterService/logic/BranchUpdaterService";
 import MergeModal from "@ext/git/actions/Branch/components/MergeModal";
+import CreateMergeRequestModal from "@ext/git/actions/Branch/components/MergeRequest/CreateMergeRequest";
 import tryOpenMergeConflict from "@ext/git/actions/MergeConflictHandler/logic/tryOpenMergeConflict";
 import MergeData from "@ext/git/actions/MergeConflictHandler/model/MergeData";
 import { CreateMergeRequest } from "@ext/git/core/GitMergeRequest/model/MergeRequest";
 import t from "@ext/localization/locale/translate";
 import { ComponentProps } from "react";
-import CreateMergeRequestModal from "@ext/git/actions/Branch/components/MergeRequest/CreateMergeRequest";
 
 interface BranchMenuProps {
 	currentBranchName: string;
@@ -75,7 +75,11 @@ const BranchMenu = (props: BranchMenuProps) => {
 							onSubmit: async (mergeRequestOptions) => {
 								ModalToOpenService.setValue(ModalToOpen.Loading);
 								const res = await FetchService.fetch<MergeData>(
-									apiUrlCreator.mergeInto(branchName, mergeRequestOptions?.deleteAfterMerge),
+									apiUrlCreator.mergeInto(
+										branchName,
+										mergeRequestOptions?.deleteAfterMerge,
+										mergeRequestOptions?.squash,
+									),
 								);
 								ModalToOpenService.resetValue();
 								await BranchUpdaterService.updateBranch(apiUrlCreator);

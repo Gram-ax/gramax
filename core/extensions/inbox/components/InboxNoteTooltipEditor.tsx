@@ -1,14 +1,21 @@
+import { MinimizedArticleStyled } from "@components/Article/MiniArticle";
 import BoxResizeWrapper from "@components/Atoms/BoxResizeWrapper";
 import DragWrapper from "@components/Atoms/DragWrapper";
 import ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
-import InboxService from "@ext/inbox/components/InboxService";
 import styled from "@emotion/styled";
 import SmallEditor from "@ext/inbox/components/Editor/SmallEditor";
+import InboxService from "@ext/inbox/components/InboxService";
 import TopBarControllers from "@ext/inbox/components/TopBarControllers";
 import InboxUtility from "@ext/inbox/logic/InboxUtility";
 import { InboxArticle, InboxPosition, InboxRect } from "@ext/inbox/models/types";
-import { useEffect, useRef } from "react";
+import t from "@ext/localization/locale/translate";
+import getExtensions from "@ext/markdown/core/edit/logic/getExtensions";
+import getArticleWithTitle from "@ext/markdown/elements/article/edit/logic/getArticleWithTitle";
+import { Placeholder } from "@ext/markdown/elements/placeholder/placeholder";
+import Document from "@tiptap/extension-document";
+import { Extensions, JSONContent } from "@tiptap/react";
+import { useCallback, useEffect, useRef } from "react";
 
 interface InboxNoteTooltipEditorProps {
 	notes: InboxArticle[];
@@ -21,6 +28,13 @@ interface InboxNoteTooltipEditorProps {
 	setIsPinned: (isPinned: boolean) => void;
 	updateRect: (rect: Partial<InboxRect>) => void;
 }
+
+type InboxProps = {
+	title: string;
+	content: JSONContent;
+	date: string;
+	author: string;
+};
 
 interface TooltipContentProps {
 	note: InboxArticle;
@@ -57,12 +71,69 @@ const ContainerWrapper = styled.div`
 	max-height: min(45rem, 60vh);
 `;
 
+const getInboxExtensions = (): Extensions => [
+	...getExtensions(),
+	Document.extend({
+		content: "paragraph block+",
+	}),
+	Placeholder.configure({
+		placeholder: ({ editor, node }) => {
+			if (editor.state.doc.firstChild.type.name === "paragraph" && editor.state.doc.firstChild === node)
+				return t("inbox.placeholders.title");
+
+			if (
+				node.type.name === "paragraph" &&
+				editor.state.doc.content.child(1) === node &&
+				editor.state.doc.content.childCount === 2
+			)
+				return t("inbox.placeholders.content");
+		},
+	}),
+];
+
 const TooltipContent = ({ note }: TooltipContentProps) => {
+	const { notes, selectedPath } = InboxService.value;
+	const props: InboxProps = {
+		title: note.title,
+		content: note.content,
+		date: note.props.date,
+		author: note.props.author,
+	};
+
+	const updateCallback = useCallback(
+		(id: string, content: JSONContent, title: string) => {
+			if (!selectedPath.includes(id)) return;
+			const selectedNote = notes.find((note) => note.logicPath === id);
+			if (!selectedNote) return;
+
+			if (selectedNote.title !== title) {
+				selectedNote.title = title;
+			}
+
+			selectedNote.content.content.shift();
+			selectedNote.content = getArticleWithTitle(title, content);
+
+			const newNotes = [...notes.filter((note) => note.logicPath !== id), selectedNote];
+			InboxService.setNotes(newNotes);
+		},
+		[notes],
+	);
+
 	return (
 		<TooltipWrapper>
 			<TooltipContentWrapper className="tooltip-content">
 				<TopBarControllers logicPath={note.logicPath} />
-				<SmallEditor content={note.content} logicPath={note.logicPath} path={note.ref.path} />
+				<MinimizedArticleStyled>
+					<SmallEditor
+						props={props}
+						content={note.content}
+						id={note.logicPath}
+						path={note.ref.path}
+						extensions={getInboxExtensions()}
+						updateCallback={updateCallback}
+						articleType="inbox"
+					/>
+				</MinimizedArticleStyled>
 			</TooltipContentWrapper>
 		</TooltipWrapper>
 	);

@@ -1,9 +1,21 @@
+import ElementGroups from "@ext/markdown/core/element/ElementGroups";
+
 const tabsSchema = {
-	group: "block",
-	content: "tab+",
+	group: `${ElementGroups.block}`,
+	content: `${ElementGroups.tab}+`,
 	defining: true,
 	attrs: {
-		childAttrs: { default: [] },
+		childAttrs: {
+			default: [],
+			parseHTML: (node) => {
+				return JSON.parse(node.getAttribute("childAttrs") || "[]");
+			},
+			renderHTML: (attrs) => {
+				return {
+					childAttrs: JSON.stringify(attrs.childAttrs),
+				};
+			},
+		},
 	},
 };
 

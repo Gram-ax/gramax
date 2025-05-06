@@ -16,6 +16,7 @@ mod settings;
 mod http_req;
 mod http_server;
 mod platform;
+mod win;
 
 use std::collections::HashMap;
 use std::path::PathBuf;

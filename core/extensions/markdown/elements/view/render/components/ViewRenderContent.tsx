@@ -1,7 +1,8 @@
 import t from "@ext/localization/locale/translate";
 import getCountArticles from "@ext/markdown/elements/view/render/logic/getCountArticles";
 import { PropertyValue, ViewRenderGroup } from "@ext/properties/models";
-import { Display, getDisplayComponent } from "@ext/properties/models/displays";
+import { getDisplayComponent } from "@ext/properties/models/displays";
+import { Display } from "@ext/properties/models/display";
 import { memo } from "react";
 
 interface ViewRenderContentProps {

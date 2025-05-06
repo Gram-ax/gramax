@@ -1,5 +1,15 @@
+import { getExecutingEnvironment } from "@app/resolveModule/env";
+import type {
+	GetImageByPathOptions,
+	GetImageByPathResult,
+} from "@ext/markdown/elements/image/export/NextImageProcessor";
+import type { ImageDimensions } from "@ext/wordExport/options/WordTypes";
+import type BrowserCookie from "apps/browser/src/logic/BrowserCookie";
+import type NextCookie from "apps/next/logic/NextCookie";
+import type TauriCookie from "apps/tauri/src/cookie/TauriCookie";
+
 interface DynamicModules {
-	Cookie: typeof BrowserCookie | typeof NextCookie | typeof TauriCookie;
+	Cookie: typeof BrowserCookie | typeof TauriCookie | typeof NextCookie;
 	initWasm: (corsProxy: string) => Promise<void>;
 	svgToPng: (svg: string, size: ImageDimensions, scale: number) => Promise<Buffer>;
 	getImageSizeFromImageData: (imageBuffer: Buffer, maxWidth?: number, maxHeight?: number) => Promise<ImageDimensions>;
@@ -11,116 +21,69 @@ interface DynamicModules {
 	getImageByPath: (options: GetImageByPathOptions) => Promise<GetImageByPathResult>;
 }
 
-let modules: DynamicModules;
+let modules: DynamicModules = null;
+let init: Promise<void> | null = null;
 
-/// #if VITE_ENVIRONMENT == "browser"
-// #v-ifdef VITE_ENVIRONMENT='browser'
-import BrowserCookie from "../../apps/browser/src/logic/BrowserCookie";
-import BrowserSvgToPng from "../../apps/browser/src/logic/BrowserSvgToPng";
-import BrowserGetImageSizeFromImageData from "../../apps/browser/src/logic/BrowserGetImageSizeFromImageData";
-import BrowserGetImageFromDom from "../../apps/browser/src/logic/BrowserGetImageFromDom";
-import { initWasm } from "../../apps/browser/wasm/js/wasm";
-import { browserLoadFont } from "@ext/pdfExport/fontLoaders/browserLoadFont";
-import { getImageByPath as BrowserGetImageByPath } from "../../apps/browser/src/logic/BrowserGetImageByPath";
+export const initModules = async (): Promise<void> => {
+	if (init as any) return init;
 
-modules = {
-	Cookie: BrowserCookie,
-	initWasm: initWasm,
-	svgToPng: BrowserSvgToPng,
-	getImageSizeFromImageData: BrowserGetImageSizeFromImageData,
-	getImageFromDom: BrowserGetImageFromDom,
-	moveToTrash: () => Promise.resolve(),
-	getDOMParser: () => new DOMParser(),
-	setSessionData: () => Promise.resolve(),
-	pdfLoadFont: browserLoadFont,
-	getImageByPath: BrowserGetImageByPath,
+	init = (async () => {
+		const env = getExecutingEnvironment();
+
+		switch (env) {
+			case "browser":
+				{
+					const mod = await import("./backend/browser");
+					modules = await mod.getBrowserModules();
+				}
+				break;
+
+			case "next":
+				{
+					const mod = await import("./backend/next");
+					modules = await mod.getNextModules();
+				}
+				break;
+
+			case "tauri":
+				{
+					const mod = await import("./backend/tauri");
+					modules = await mod.getTauriModules();
+				}
+				break;
+
+			case "test":
+				{
+					const mod = await import("./backend/test");
+					modules = await mod.getTestModules();
+				}
+				break;
+
+			case "static":
+				{
+					const mod = await import("./backend/static");
+					modules = await mod.getStaticModules();
+				}
+				break;
+
+			case "cli":
+				{
+					const mod = await import("./backend/cli");
+					modules = await mod.getCliModules();
+				}
+				break;
+
+			default:
+				throw new Error(`unsupported environment: ${env}`);
+		}
+	})();
+
+	return init;
 };
-
-/// #endif
-// #v-endif
-
-/// #if VITE_ENVIRONMENT == "next"
-// #v-ifdef VITE_ENVIRONMENT='next'
-import NextCookie from "../../apps/next/logic/NextCookie";
-import NextSvgToPng from "../../apps/next/logic/NextSvgToPng";
-import NextGetImageSizeFromImageData from "../../apps/next/logic/NextGetImageSizeFromImageData";
-import NextGetImageFromDom from "../../apps/next/logic/NextGetImageFromDom";
-import { DOMParser as NextDOMParser } from "@xmldom/xmldom";
-import { loadFontBuffer } from "@ext/pdfExport/fontLoaders/nextLoadFont";
-import { getImageByPath as NextGetImageByPath } from "../../apps/next/logic/NextGetImageByPath";
-
-modules = {
-	Cookie: NextCookie,
-	initWasm: () => Promise.resolve(),
-	svgToPng: NextSvgToPng,
-	getImageSizeFromImageData: NextGetImageSizeFromImageData,
-	getImageFromDom: NextGetImageFromDom,
-	moveToTrash: () => Promise.resolve(),
-	getDOMParser: () => new NextDOMParser() as any,
-	setSessionData: () => Promise.resolve(),
-	pdfLoadFont: loadFontBuffer,
-	getImageByPath: NextGetImageByPath,
-};
-
-// #v-endif
-/// #endif
-
-/// #if VITE_ENVIRONMENT == "tauri"
-// #v-ifdef VITE_ENVIRONMENT='tauri'
-import TauriCookie from "../../apps/tauri/src/cookie/TauriCookie";
-import TauriSvgToPng from "../../apps/browser/src/logic/BrowserSvgToPng";
-import TauriGetImageSizeFromImageData from "../../apps/browser/src/logic/BrowserGetImageSizeFromImageData";
-import TauriGetImageFromDom from "../../apps/browser/src/logic/BrowserGetImageFromDom";
-import { moveToTrash, setSessionData } from "../../apps/tauri/src/window/commands";
-import { browserLoadFont as tauriLoadFont } from "@ext/pdfExport/fontLoaders/browserLoadFont";
-import { getImageByPath as TauriGetImageByPath } from "../../apps/browser/src/logic/BrowserGetImageByPath";
-
-modules = {
-	Cookie: TauriCookie,
-	initWasm: () => Promise.resolve(),
-	svgToPng: TauriSvgToPng,
-	getImageSizeFromImageData: TauriGetImageSizeFromImageData,
-	getImageFromDom: TauriGetImageFromDom,
-	moveToTrash: moveToTrash,
-	getDOMParser: () => new DOMParser(),
-	setSessionData: setSessionData,
-	pdfLoadFont: tauriLoadFont,
-	getImageByPath: TauriGetImageByPath,
-};
-
-// #v-endif;
-/// #endif
-
-/// #if VITE_ENVIRONMENT == "jest"
-// #v-ifdef VITE_ENVIRONMENT='jest'
-import JestCookie from "../../apps/browser/src/logic/BrowserCookie";
-import JestSvgToPng from "../../apps/next/logic/NextSvgToPng";
-import JestGetImageSizeFromImageData from "../../apps/next/logic/NextGetImageSizeFromImageData";
-import { ImageDimensions } from "@ext/wordExport/options/WordTypes";
-import JestGetImageFromDom from "../../apps/next/logic/NextGetImageFromDom";
-import { DOMParser as JestDOMParser } from "@xmldom/xmldom";
-import { GetImageByPathOptions, GetImageByPathResult } from "@ext/markdown/elements/image/export/NextImageProcessor";
-import { getImageByPath as JestGetImageByPath } from "../../apps/next/logic/NextGetImageByPath";
-
-modules = {
-	Cookie: JestCookie,
-	initWasm: () => Promise.resolve(),
-	svgToPng: JestSvgToPng,
-	getImageSizeFromImageData: JestGetImageSizeFromImageData,
-	getImageFromDom: JestGetImageFromDom,
-	moveToTrash: () => Promise.resolve(),
-	getDOMParser: () => new JestDOMParser() as any,
-	setSessionData: () => Promise.resolve(),
-	pdfLoadFont: () => Promise.resolve(new ArrayBuffer(0)),
-	getImageByPath: JestGetImageByPath,
-};
-
-// #v-endif;
-/// #endif
 
 const resolveModule = <K extends keyof DynamicModules>(name: K): DynamicModules[K] => {
-	const module = modules[name];
-	if (!module) throw new Error("Module " + name + " not found");
+	const module = modules?.[name];
+	if (!module) throw new Error("module " + name + " not found");
 	return module;
 };
 

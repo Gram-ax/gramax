@@ -14,6 +14,7 @@ const update: Command<
 		catalogName: string;
 		id: string;
 		editTree: JSONContent;
+		content: string;
 		props: ArticleProps;
 		type: ArticleProviderType;
 	},
@@ -25,7 +26,7 @@ const update: Command<
 
 	kind: ResponseKind.none,
 
-	async do({ ctx, catalogName, id, editTree, props, type }) {
+	async do({ ctx, catalogName, id, editTree, content, props, type }) {
 		const { wm, formatter, parser, parserContextFactory, resourceUpdaterFactory } = this._app;
 		const workspace = wm.current();
 		const catalog = await workspace.getCatalog(catalogName, ctx);
@@ -33,15 +34,19 @@ const update: Command<
 
 		const provider = ArticleProvider.getProvider(catalog, type);
 		if (editTree) await provider.updateContent(id, editTree, formatter, parserContextFactory, parser, ctx);
+		if (content) {
+			const editTree = await provider.getEditTreeFromContent(id, content, parser, parserContextFactory, ctx);
+			await provider.updateContent(id, editTree, formatter, parserContextFactory, parser, ctx);
+		}
 		if (props) await provider.updateProps(id, resourceUpdaterFactory, props);
 	},
 
 	params(ctx, q, body) {
-		const editTree = body?.content as JSONContent;
+		const editTree = body?.editTree as JSONContent;
 		const props = body?.props as ArticleProps;
 		const id = q.id;
 		const type = q.type as ArticleProviderType;
-		return { ctx, catalogName: q.catalogName, id, editTree, props, type };
+		return { ctx, catalogName: q.catalogName, id, editTree, content: body?.content, props, type };
 	},
 });
 

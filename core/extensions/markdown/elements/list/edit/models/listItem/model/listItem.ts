@@ -1,24 +1,12 @@
-import {
-	complexContent,
-	listItem,
-	simpleContent,
-} from "@ext/markdown/elements/list/edit/models/listItem/model/listItemSchema";
+import { listItem } from "@ext/markdown/elements/list/edit/models/listItem/model/listItemSchema";
 import getExtensionOptions from "@ext/markdown/logic/getExtensionOptions";
 import { findParentNodeClosestToPos } from "@tiptap/core";
 import ListItem, { ListItemOptions } from "@tiptap/extension-list-item";
 import { Plugin, PluginKey } from "@tiptap/pm/state";
 import { ReplaceAroundStep, ReplaceStep } from "@tiptap/pm/transform";
 
-interface ListItemOptionsExtended extends ListItemOptions {
-	simple: boolean;
-}
-
-const customListItem = ListItem.extend<ListItemOptionsExtended>({
+const CustomListItem = ListItem.extend<ListItemOptions>({
 	...getExtensionOptions({ schema: listItem, name: "listItem" }),
-
-	content() {
-		return this.options?.simple ? simpleContent : complexContent;
-	},
 
 	addOptions(options) {
 		return { ...options, simple: options?.simple ?? true };
@@ -73,4 +61,4 @@ const customListItem = ListItem.extend<ListItemOptionsExtended>({
 	},
 });
 
-export default customListItem;
+export default CustomListItem;

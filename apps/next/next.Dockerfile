@@ -8,10 +8,10 @@ COPY ./package.json ./package-lock.json ./
 COPY ./apps/browser/package.json ./apps/browser/
 COPY ./apps/tauri/package.json ./apps/tauri/
 COPY ./apps/next/package.json ./apps/next/
-COPY ./e2e/package.json ./e2e/package-lock.json ./e2e/
+COPY ./e2e/package.json ./e2e/
 COPY ./apps/next/crates/next-gramax-git/package.json ./apps/next/crates/next-gramax-git/
 
-RUN npm ci
+RUN npm ci -f
 
 # TODO: rust caching
 # COPY ./Cargo.toml ./Cargo.lock ./recipe.json ./

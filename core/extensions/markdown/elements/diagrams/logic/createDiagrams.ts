@@ -2,13 +2,11 @@ import ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
 import { Editor } from "@tiptap/core";
 import { ClientArticleProps } from "../../../../../logic/SitePresenter/SitePresenter";
 import DiagramType from "../../../../../logic/components/Diagram/DiagramType";
-
-import initArticleResource from "../../../elementsUtils/AtricleResource/initArticleResource";
 import { startC4DiagramText } from "../diagrams/c4Diagram/c4DiagramData";
 import { startMermaid } from "../diagrams/mermaid/mermaidData";
 import { startPlantUmlText } from "../diagrams/plantUml/plantUmlData";
 import { startTsDiagram } from "../diagrams/tsDiagram/tsDiagramData";
-import { OnLoadResource } from "@ext/markdown/elements/copyArticles/onLoadResourceService";
+import { ResourceServiceType } from "@ext/markdown/elements/copyArticles/resourceService";
 import getNaturalSize from "@ext/markdown/elements/diagrams/logic/getNaturalSize";
 import PageDataContext from "@core/Context/PageDataContext";
 import getMermaidDiagram from "@ext/markdown/elements/diagrams/diagrams/mermaid/getMermaidDiagram";
@@ -35,7 +33,7 @@ const createDiagrams = async (
 	editor: Editor,
 	articleProps: ClientArticleProps,
 	apiUrlCreator: ApiUrlCreator,
-	onLoadResource: OnLoadResource,
+	resourceService: ResourceServiceType,
 	diagramName: DiagramType,
 	pageDataContext: PageDataContext,
 ) => {
@@ -60,7 +58,8 @@ const createDiagrams = async (
 			break;
 	}
 
-	const newName = await initArticleResource(articleProps, apiUrlCreator, onLoadResource, file, extension);
+	const name = `${articleProps.fileName}.${extension}`;
+	const newName = await resourceService.setResource(name, file);
 	if (!newName) return;
 	const diagramData = DIAGRAM_FUNCTIONS?.[diagramName]
 		? await DIAGRAM_FUNCTIONS?.[diagramName](file, pageDataContext.conf.diagramsServiceUrl)

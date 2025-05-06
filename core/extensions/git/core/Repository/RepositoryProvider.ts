@@ -3,6 +3,7 @@ import type Context from "@core/Context/Context";
 import { createEventEmitter, Event } from "@core/Event/EventEmitter";
 import Path from "@core/FileProvider/Path/Path";
 import FileProvider from "@core/FileProvider/model/FileProvider";
+import type BaseCatalog from "@core/FileStructue/Catalog/BaseCatalog";
 import type FileStructure from "@core/FileStructue/FileStructure";
 import { resetRepo } from "@ext/git/core/GitCommands/LibGit2IntermediateCommands";
 import GitVersionControl from "@ext/git/core/GitVersionControl/GitVersionControl";
@@ -17,6 +18,7 @@ import SourceData from "@ext/storage/logic/SourceDataProvider/model/SourceData";
 import Storage from "@ext/storage/logic/Storage";
 import StorageProvider from "@ext/storage/logic/StorageProvider";
 import StorageData from "@ext/storage/models/StorageData";
+import type { WorkspacePath } from "@ext/workspace/WorkspaceConfig";
 
 export type RepositoryProviderEvents = Event<"connect-repository", { repo: Repository }>;
 
@@ -107,8 +109,14 @@ export default class RepositoryProvider {
 		return this._sp.cancelClone(path, fs);
 	}
 
-	getCloneProgress(path: Path) {
-		return this._sp.getCloneProgress(path);
+	getCloneProgress(absolutePath: Path) {
+		return this._sp.getCloneProgress(absolutePath);
+	}
+
+	tryInitEntryCloningStatus(workspacePath: WorkspacePath, catalog: BaseCatalog) {
+		const progress = this._sp.getCloneProgress(new Path(workspacePath).join(catalog.basePath));
+		if (!progress) return;
+		catalog.props.isCloning = true;
 	}
 
 	private async _makeRepository(

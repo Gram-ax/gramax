@@ -5,7 +5,7 @@ import { getExecutingEnvironment } from "@app/resolveModule/env";
 import { getCodeBlock } from "@ext/markdown/elements/codeBlockLowlight/word";
 
 export const mermaidWordLayout: WordBlockChild = async ({ tag, addOptions, wordRenderContext }) => {
-	if (getExecutingEnvironment() === "next")
+	if (getExecutingEnvironment() === "next" || getExecutingEnvironment() === "cli")
 		return getCodeBlock(
 			[await WordDiagramRenderer.getDiagramContent(tag, wordRenderContext.parserContext.getResourceManager())],
 			addOptions,

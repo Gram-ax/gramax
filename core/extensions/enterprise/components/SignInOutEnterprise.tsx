@@ -16,7 +16,7 @@ const SignInOutEnterprise = () => {
 		(workspaceConfig) => workspaceConfig.path === currentWorkspaceName,
 	);
 
-	if (workspaceConfig?.isEnterprise)
+	if (workspaceConfig?.enterprise?.gesUrl)
 		return (
 			<SignOutEnterprise
 				trigger={

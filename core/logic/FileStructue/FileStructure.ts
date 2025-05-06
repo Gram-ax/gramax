@@ -5,23 +5,18 @@ import Path from "@core/FileProvider/Path/Path";
 import FileInfo from "@core/FileProvider/model/FileInfo";
 import type FileProvider from "@core/FileProvider/model/FileProvider";
 import { Article, type ArticleProps } from "@core/FileStructue/Article/Article";
+import { TemplateArticle, TemplateProps } from "@core/FileStructue/Article/TemplateArticle";
 import { Catalog } from "@core/FileStructue/Catalog/Catalog";
 import CatalogEntry from "@core/FileStructue/Catalog/CatalogEntry";
 import type CatalogEvents from "@core/FileStructue/Catalog/CatalogEvents";
 import type { CatalogProps } from "@core/FileStructue/Catalog/CatalogProps";
 import { Category, type CategoryProps } from "@core/FileStructue/Category/Category";
 import { Item } from "@core/FileStructue/Item/Item";
-import { ItemRef } from "@core/FileStructue/Item/ItemRef";
 import CatalogEditProps from "@ext/catalog/actions/propsEditor/model/CatalogEditProps.schema";
-import { CatalogErrors } from "@ext/healthcheck/logic/Healthcheck";
 import { resolveLanguage } from "@ext/localization/core/model/Language";
 import matter from "gray-matter";
 import * as yaml from "js-yaml";
 
-export type FSRule = (item: Item, catalogProps: FSProps, isRootCategory?: boolean) => void;
-export type FSFilterRule = (parent: Category, catalogProps: FSProps, item: Item) => void;
-export type FSSaveRule = (catalogProps: CatalogProps) => CatalogProps;
-export type FSArticleSaveRule = (articleProps: ArticleProps) => ArticleProps;
 export type FSLazyLoadCatalog = (entry: CatalogEntry) => Promise<Catalog>;
 
 export type FSEvents = Event<
@@ -61,32 +56,9 @@ export const FS_EXCLUDE_CATALOG_NAMES = [
 ];
 
 export default class FileStructure {
-	private _rules: FSRule[] = [];
-	private _saveRules: FSSaveRule[] = [];
-	private _articleSaveRules: FSArticleSaveRule[] = [];
 	private _events = createEventEmitter<FSEvents>();
 
 	constructor(private _fp: MountFileProvider, private _isReadOnly: boolean) {}
-
-	get fp() {
-		return this._fp;
-	}
-
-	get events() {
-		return this._events;
-	}
-
-	addSaveRule(rule: FSSaveRule) {
-		this._saveRules.push(rule);
-	}
-
-	addArticleSaveRule(rule: FSArticleSaveRule) {
-		this._articleSaveRules.push(rule);
-	}
-
-	addRule(rule: FSRule) {
-		this._rules.push(rule);
-	}
 
 	static isCatalog(path: Path): boolean {
 		return DOC_ROOT_REGEXP.test(path.toString());
@@ -105,20 +77,18 @@ export default class FileStructure {
 		return items.filter((i) => i.isDirectory() && !FS_EXCLUDE_CATALOG_NAMES.includes(i.name));
 	}
 
-	getItemRef(path: Path): ItemRef {
-		return this._fp.getItemRef(path);
+	get fp() {
+		return this._fp;
+	}
+
+	get events() {
+		return this._events;
 	}
 
 	async getCatalogEntries(): Promise<CatalogEntry[]> {
 		const dirs = await FileStructure.getCatalogDirs(this._fp);
 		const catalogs = await Promise.all(dirs.map((dir) => this.getCatalogEntryByPath(dir.path)));
 		return catalogs.filter((c) => c);
-	}
-
-	async getCatalogsByEntries(entries: CatalogEntry[]): Promise<Catalog[]> {
-		const catalogs = [];
-		for (const entry of entries) catalogs.push(await entry.load());
-		return catalogs;
 	}
 
 	async getCatalogByPath(path: Path, checkIsExists = true): Promise<Catalog> {
@@ -142,54 +112,12 @@ export default class FileStructure {
 			rootCaterogyRef: ref,
 			basePath: path,
 			props: { ...initProps, ...props },
-			load: (entry) => this.getCatalogByEntry(entry),
+			load: (entry) => this._getCatalogByEntry(entry),
 			isReadOnly: this._isReadOnly,
 		});
 
 		await this._events.emit("catalog-entry-read", { entry });
 		return entry;
-	}
-
-	async getCatalogByEntry(entry: CatalogEntry): Promise<Catalog> {
-		if (!entry) throw new Error("cannot resolve catalog from entry; entry is undefined");
-
-		const category = new Category({
-			ref: this.getItemRef(entry.getRootCategoryRef().path),
-			parent: null,
-			content: null,
-			props: entry.props,
-			items: [],
-			logicPath: entry.name,
-			directory: entry.getRootCategoryDirectoryPath(),
-			fs: this,
-			lastModified: 0,
-		});
-
-		this._rules.forEach((rule) => rule(category, entry.props, true));
-		const errors: CatalogErrors = {};
-
-		await this._readCategoryItems(entry.getRootCategoryDirectoryPath(), category, entry.props, errors);
-
-		const catalog = new Catalog({
-			name: entry.name,
-			root: category,
-			rootCaterogyRef: category.ref,
-			errors,
-			basePath: entry.basePath,
-			fs: this,
-			fp: this._fp,
-			isReadOnly: this._isReadOnly,
-		});
-
-		catalog.events.on("item-moved", (args) => this.events.emit("item-moved", args));
-		catalog.events.on("item-created", (args) => this.events.emit("item-created", args));
-		catalog.events.on("item-deleted", (args) => this.events.emit("item-deleted", args));
-		catalog.events.on("item-props-updated", (args) => this.events.emit("item-props-updated", args));
-		catalog.events.on("item-order-updated", (args) => this.events.emit("item-order-updated", args));
-
-		await this.events.emit("catalog-read", { fs: this, catalog });
-
-		return catalog;
 	}
 
 	async createCatalog(props: CatalogEditProps, base?: Path): Promise<Catalog> {
@@ -204,15 +132,9 @@ export default class FileStructure {
 		return await entry.load();
 	}
 
-	async createCategory(
-		path: Path,
-		parent: Category,
-		article?: Article,
-		props?: CatalogProps,
-		errors?: CatalogErrors,
-	): Promise<Category> {
+	async createCategory(path: Path, parent: Category, article?: Article, catalog?: Catalog): Promise<Category> {
 		const shouldWriteIndex =
-			!props?.optionalCategoryIndex ||
+			!catalog?.props?.optionalCategoryIndex ||
 			article?.content ||
 			(article?.props && Object.values(article.props).filter(Boolean).length);
 
@@ -220,7 +142,16 @@ export default class FileStructure {
 			? await this._fp.write(path, article ? this._serializeArticle(article) : "")
 			: await this._fp.mkdir(path.parentDirectoryPath);
 
-		return await this.makeCategory(path.parentDirectoryPath, parent, props, errors, shouldWriteIndex ? path : null);
+		return await this.makeCategory(path.parentDirectoryPath, parent, catalog, shouldWriteIndex ? path : null);
+	}
+
+	async createArticle(path: Path, parent: Category, initProps?: ArticleProps, catalog?: Catalog): Promise<Article> {
+		const { props, content } = this.parseMarkdown(await this._fp.read(path));
+
+		const stat = await this._fp.getStat(path);
+		const article = this.makeArticleByProps(path, initProps || props, content, parent, stat.mtimeMs, catalog);
+
+		return article;
 	}
 
 	async moveArticle(article: Article, path: Path): Promise<void> {
@@ -231,121 +162,94 @@ export default class FileStructure {
 		await this._fp.move(category.ref.path.parentDirectoryPath, path);
 	}
 
-	async createArticle(
-		path: Path,
-		parent: Category,
-		catalogProps?: FSProps,
-		errors?: CatalogErrors,
-	): Promise<Article> {
-		const { props, content } = this.parseMarkdown(await this._fp.read(path), path, errors);
-
-		const stat = await this._fp.getStat(path);
-		const article = this.makeArticleByProps(path, props, content, parent, catalogProps, stat.mtimeMs);
-
-		this._rules.forEach((rule) => rule(article, catalogProps));
-
-		return article;
-	}
-
 	async saveCatalog(catalog: Catalog): Promise<void> {
-		let props = catalog.props;
-		this._saveRules.forEach((rule) => (props = rule(props)));
+		const props = catalog.props;
 		delete props.docroot;
 		const text = this._serializeProps({ ...props });
 		await this._fp.write(catalog.getRootCategoryPath().join(new Path(DOC_ROOT_FILENAME)), text);
 		catalog.repo?.resetCachedStatus();
 	}
 
-	async saveArticle(article: Article): Promise<FileInfo> {
-		const text = this._serializeArticle(article);
-		await this._fp.write(article.ref.path, text);
-		return await this._fp.getStat(article.ref.path);
+	async saveArticle(path: Path, content: string, props: ArticleProps): Promise<FileInfo> {
+		const text = this.serialize({ props, content });
+		await this._fp.write(path, text);
+		return await this._fp.getStat(path);
 	}
 
 	makeArticleByProps(
 		path: Path,
-		props: ArticleProps,
+		props: ArticleProps | TemplateProps,
 		content: string,
 		parent: Category,
-		catalogProps: FSProps,
 		lastModified: number,
+		catalog?: Catalog,
 	): Article {
 		const articleCodeInCategory = parent.folderPath.subDirectory(path).stripDotsAndExtension;
 		const logicPath = Path.join(parent.logicPath, articleCodeInCategory);
 
 		props = props ?? {};
 
-		const article = new Article({
-			ref: this.getItemRef(path),
-			parent,
-			props,
-			content,
-			logicPath,
-			fs: this,
-			lastModified,
-		});
-
-		this._rules.forEach((rule) => rule(article, catalogProps));
+		const article = this._createArticleByProps(props, parent, path, logicPath, content, lastModified, catalog);
 		return article;
 	}
 
-	async makeCategory(
-		path: Path,
-		parent: Category,
-		props: CatalogProps,
-		errors: CatalogErrors,
-		indexPath?: Path,
-	): Promise<Category> {
-		const parsed = indexPath
-			? this.parseMarkdown(await this._fp.read(indexPath), indexPath, errors)
-			: { props: {}, content: "" };
-		return await this._makeCategoryByProps(parsed.props, path, parsed.content, parent, props, errors, indexPath);
+	async makeCategory(path: Path, parent: Category, catalog: Catalog, indexPath?: Path): Promise<Category> {
+		const parsed = indexPath ? this.parseMarkdown(await this._fp.read(indexPath)) : { props: {}, content: "" };
+		return await this._makeCategoryByProps(parsed.props, path, parsed.content, parent, catalog, indexPath);
 	}
 
-	parseMarkdown(content: string, path?: Path, errors?: CatalogErrors): MarkdownProps {
+	parseMarkdown(content: string): MarkdownProps {
 		let md: matter.GrayMatterFile<string>;
 		try {
 			md = matter(content, {});
 			if (md.data && typeof md.data != "object") throw "Wrong format";
 		} catch (e) {
-			if (errors) {
-				if (errors.FileStructure) errors.FileStructure = [];
-				errors.FileStructure?.push({
-					code: "YAML error",
-					message: `Invalid matter in markdown file${path ? " " + path : ""}: ${e.message ?? ""}`,
-				});
-			}
+			console.error("Invalid matter in markdown", content, e);
 			return { props: {}, content: "" };
 		}
 		return { props: md.data as ArticleProps, content: md.content.trim() };
 	}
 
-	serialize(props: any, content: string): string {
-		return `---\n${this._serializeProps(props)}---\n\n${content}`;
+	serialize(props: MarkdownProps): string {
+		return `---\n${this._serializeProps(props.props)}---\n\n${props.content}`;
 	}
 
-	private async _makeArticle(
-		path: Path,
-		parentCategory: Category,
-		catalogProps: CatalogProps,
-		catalogErrors: CatalogErrors,
-	): Promise<Article> {
-		const { props, content } = this.parseMarkdown(await this._fp.read(path), path, catalogErrors);
-		const articleCodeInCategory = parentCategory.folderPath.subDirectory(path).name;
+	private async _getCatalogByEntry(entry: CatalogEntry): Promise<Catalog> {
+		if (!entry) throw new Error("cannot resolve catalog from entry; entry is undefined");
 
-		const logicPath = Path.join(parentCategory.logicPath, articleCodeInCategory);
-		const article = new Article({
-			ref: this.getItemRef(path),
-			parent: parentCategory,
-			props: props ?? {},
-			content,
-			logicPath,
+		const category = new Category({
+			ref: this._fp.getItemRef(entry.getRootCategoryRef().path),
+			parent: null,
+			content: null,
+			props: entry.props,
+			items: [],
+			logicPath: entry.name,
+			directory: entry.getRootCategoryDirectoryPath(),
 			fs: this,
 			lastModified: 0,
 		});
 
-		this._rules.forEach((r) => r(article, catalogProps));
-		return article;
+		const catalog = new Catalog({
+			name: entry.name,
+			root: category,
+			rootCaterogyRef: category.ref,
+			basePath: entry.basePath,
+			fs: this,
+			fp: this._fp,
+			isReadOnly: this._isReadOnly,
+		});
+
+		await this._readCategoryItems(entry.getRootCategoryDirectoryPath(), category, catalog);
+
+		catalog.events.on("item-moved", (args) => this.events.emit("item-moved", args));
+		catalog.events.on("item-created", (args) => this.events.emit("item-created", args));
+		catalog.events.on("item-deleted", (args) => this.events.emit("item-deleted", args));
+		catalog.events.on("item-props-updated", (args) => this.events.emit("item-props-updated", args));
+		catalog.events.on("item-order-updated", (args) => this.events.emit("item-order-updated", args));
+
+		await this.events.emit("catalog-read", { fs: this, catalog });
+
+		return catalog;
 	}
 
 	private async _makeCategoryByProps(
@@ -353,8 +257,7 @@ export default class FileStructure {
 		path: Path,
 		content: string,
 		parent: Category,
-		catalogProps: CatalogProps,
-		errors: CatalogErrors,
+		catalog: Catalog,
 		indexPath?: Path,
 	): Promise<Category> {
 		const logicPath = Path.join(
@@ -375,41 +278,29 @@ export default class FileStructure {
 			lastModified: 0,
 			fs: this,
 		});
-		this._rules.forEach((rule) => rule(category, catalogProps));
-		await this._readCategoryItems(path, category, catalogProps, errors);
+		await this._readCategoryItems(path, category, catalog);
 		return category;
 	}
 
-	private async _readCategory(
-		folderPath: Path,
-		parentCategory: Category,
-		catalogProps: CatalogProps,
-		catalogErrors: CatalogErrors,
-	): Promise<void> {
+	private async _readCategory(folderPath: Path, parentCategory: Category, catalog: Catalog): Promise<void> {
 		const indexPath = folderPath.join(new Path(CATEGORY_ROOT_FILENAME));
 		const hasIndex = await this._fp.exists(indexPath);
 
-		if (!hasIndex && !catalogProps.optionalCategoryIndex)
-			return await this._readCategoryItems(folderPath, parentCategory, catalogProps, catalogErrors);
+		if (!hasIndex && !catalog.props.optionalCategoryIndex)
+			return await this._readCategoryItems(folderPath, parentCategory, catalog);
 
 		if (!hasIndex) {
 			const hasArticles = await this._search(folderPath, /\.md$/, 3);
 			if (!hasArticles) return;
 		}
 
-		const category = await this.makeCategory(
-			folderPath,
-			parentCategory,
-			catalogProps,
-			catalogErrors,
-			hasIndex ? indexPath : null,
-		);
+		const category = await this.makeCategory(folderPath, parentCategory, catalog, hasIndex ? indexPath : null);
 
 		if (!hasIndex) category.props.shouldBeCreated = true;
 
 		const passFilter = await this.events.emit("item-filter", {
 			fs: this,
-			catalogProps,
+			catalogProps: catalog.props,
 			parent: parentCategory,
 			item: category,
 		});
@@ -417,12 +308,7 @@ export default class FileStructure {
 		if (passFilter) parentCategory.items.push(category);
 	}
 
-	private async _readCategoryItems(
-		folderPath: Path,
-		category: Category,
-		catalogProps: CatalogProps,
-		catalogErrors: CatalogErrors,
-	) {
+	private async _readCategoryItems(folderPath: Path, category: Category, catalog: Catalog) {
 		const files = await this._fp.getItems(folderPath);
 
 		const mdFiles = files.filter((f) => {
@@ -431,12 +317,12 @@ export default class FileStructure {
 
 		const articles = await Promise.all(
 			mdFiles.map(async (f) => {
-				const article = await this._makeArticle(f.path, category, catalogProps, catalogErrors);
+				const article = await this._makeArticle(f.path, category, catalog);
 				if (!article) return null;
 
 				const filter = await this.events.emit("item-filter", {
 					fs: this,
-					catalogProps,
+					catalogProps: catalog.props,
 					parent: category,
 					item: article,
 				});
@@ -448,8 +334,41 @@ export default class FileStructure {
 		category.items.push(...articles.filter((article) => article !== null));
 
 		const directories = files.filter((f) => f.isDirectory() && !FS_EXCLUDE_FILENAMES.includes(f.name));
-		for (const f of directories) await this._readCategory(f.path, category, catalogProps, catalogErrors);
+		for (const f of directories) await this._readCategory(f.path, category, catalog);
 		await category.sortItems();
+	}
+
+	private async _makeArticle(path: Path, parentCategory: Category, catalog: Catalog): Promise<Article> {
+		const { props, content } = this.parseMarkdown(await this._fp.read(path));
+		const articleCodeInCategory = parentCategory.folderPath.subDirectory(path).name;
+
+		const logicPath = Path.join(parentCategory.logicPath, articleCodeInCategory);
+		const article = this._createArticleByProps(props, parentCategory, path, logicPath, content, null, catalog);
+
+		return article;
+	}
+
+	private _createArticleByProps(
+		props: ArticleProps | TemplateProps,
+		parent: Category,
+		path: Path,
+		logicPath: string,
+		content: string,
+		lastModified?: number,
+		catalog?: Catalog,
+	): Article {
+		const initProps = {
+			ref: this._fp.getItemRef(path),
+			parent,
+			fs: this,
+			lastModified: lastModified || 0,
+			content,
+			logicPath,
+		};
+
+		return props.template
+			? new TemplateArticle({ ...initProps, props: props as TemplateProps })
+			: new Article({ ...initProps, props });
 	}
 
 	private async _search(root: Path, search: RegExp, depth = 5): Promise<Path> {
@@ -521,9 +440,7 @@ export default class FileStructure {
 	}
 
 	private _serializeArticle(article: Article): string {
-		let props = article.props;
-		this._articleSaveRules.forEach((rule) => (props = rule(props)));
-		return this.serialize(props, article.content);
+		return this.serialize({ props: article.props, content: article.content });
 	}
 
 	private _serializeProps(props: FSProps): string {

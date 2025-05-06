@@ -1,4 +1,3 @@
-import { getExecutingEnvironment } from "@app/resolveModule/env";
 import PureLink from "@components/Atoms/PureLink";
 import SpinnerLoader from "@components/Atoms/SpinnerLoader";
 import FormStyle from "@components/Form/FormStyle";
@@ -10,6 +9,7 @@ import MimeTypes from "@core-ui/ApiServices/Types/MimeTypes";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import { downloadFile } from "@core-ui/downloadResource";
+import { usePlatform } from "@core-ui/hooks/usePlatform";
 import { CancelableFunction } from "@core/utils/CancelableFunction";
 import CommonUnsupportedElementsModal from "@ext/import/components/CommonUnsupportedElementsModal";
 import UnsupportedElements from "@ext/import/model/UnsupportedElements";
@@ -34,6 +34,7 @@ const ItemExport = ({ fileName, itemRefPath, isCategory, exportFormat }: ItemExp
 	const [isDownloading, setIsDownloading] = useState(false);
 	const [errorWordElements, setErrorWordElements] = useState<UnsupportedElements[]>([]);
 	const apiUrlCreator = ApiUrlCreatorService.value;
+	const { isNext, isStatic, isTauri } = usePlatform();
 
 	const cancelableFunction = useMemo(
 		() =>
@@ -44,7 +45,7 @@ const ItemExport = ({ fileName, itemRefPath, isCategory, exportFormat }: ItemExp
 						: await FetchService.fetch(apiUrlCreator.getWordSaveUrl(isCategory, itemRefPath));
 				if (!res.ok || signal.aborted) return;
 				downloadFile(
-					getExecutingEnvironment() === "next" ? await res.buffer() : res.body,
+					isNext || isStatic ? await res.buffer() : res.body,
 					exportFormat === ExportFormat.docx ? MimeTypes.docx : MimeTypes.pdf,
 					fileName,
 				);
@@ -111,7 +112,7 @@ const ItemExport = ({ fileName, itemRefPath, isCategory, exportFormat }: ItemExp
 			onActionClick={startDownload}
 			onCancelClick={() => setIsOpen(false)}
 			renderArticleLink={(article) =>
-				getExecutingEnvironment() !== "tauri" ? (
+				!isTauri ? (
 					<PureLink href={domain + "/" + article.link}>{article.title}</PureLink>
 				) : (
 					<p>{article.title}</p>

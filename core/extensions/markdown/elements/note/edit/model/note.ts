@@ -12,8 +12,8 @@ import EditNote from "../components/Note";
 declare module "@tiptap/core" {
 	interface Commands<ReturnType> {
 		note: {
-			setNote: () => ReturnType;
-			toggleNote: () => ReturnType;
+			setNote: (type?: NoteType) => ReturnType;
+			toggleNote: (type?: NoteType) => ReturnType;
 			updateNote: (attrs: NoteAttrs) => ReturnType;
 		};
 	}
@@ -61,9 +61,9 @@ const Note = Node.create({
 	addCommands() {
 		return {
 			setNote:
-				() =>
+				(type?: NoteType) =>
 				({ commands, state }) => {
-					const attrs = { type: NoteType.note, title: "" };
+					const attrs = { type: type || NoteType.note, title: "" };
 					const text = getSelectedText(state);
 					if (text) return commands.wrapIn(this.name, attrs);
 					return commands.insertContent({
@@ -73,11 +73,11 @@ const Note = Node.create({
 					});
 				},
 			toggleNote:
-				() =>
+				(type?: NoteType) =>
 				({ commands, editor }) => {
-					if (stopExecution(editor, "note")) return false;
+					if (stopExecution(editor, "note", ["block-field"])) return false;
 
-					return commands.toggleWrap(this.name);
+					return commands.toggleWrap(this.name, { type: type || NoteType.note });
 				},
 			updateNote:
 				(props: NoteAttrs) =>

@@ -15,7 +15,7 @@ type PegLocation = {
 	column: number;
 };
 
-export interface SyntaxError extends Error {
+export class SyntaxError extends Error {
 	location: {
 		start: PegLocation;
 		end: PegLocation;

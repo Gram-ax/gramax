@@ -3,7 +3,16 @@ import FetchService from "@core-ui/ApiServices/FetchService";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import { usePlatform } from "@core-ui/hooks/usePlatform";
 import UserInfo from "@ext/security/logic/User/UserInfo";
-import { DependencyList, Dispatch, SetStateAction, createContext, useContext, useEffect, useState } from "react";
+import {
+	DependencyList,
+	Dispatch,
+	SetStateAction,
+	createContext,
+	useContext,
+	useEffect,
+	useMemo,
+	useState,
+} from "react";
 
 export type AuthoredComments = { total: number; pathnames: CommentsByArticle };
 
@@ -17,13 +26,13 @@ let _setComments: Dispatch<SetStateAction<AuthoredCommentsByAuthor>>;
 
 abstract class CommentCounterService {
 	public static Provider({ children, deps }: { children: JSX.Element; deps?: DependencyList }): JSX.Element {
-		const { isNext } = usePlatform();
+		const { isNext, isStatic, isStaticCli } = usePlatform();
 		const apiUrlCreator = ApiUrlCreatorService.value;
 		const [comments, setComments] = useState<AuthoredCommentsByAuthor>({});
 		_setComments = setComments;
 
 		useEffect(() => {
-			if (isNext) return;
+			if (isNext || isStatic || isStaticCli) return;
 			CommentCounterService.load(apiUrlCreator);
 		}, deps ?? []);
 
@@ -51,13 +60,14 @@ abstract class CommentCounterService {
 		_setComments(Object.assign({}, comments));
 	}
 
-	public static totalByPathname(pathname: string) {
+	public static useGetTotalByPathname(pathname: string) {
 		const comments = CommentCounterService.value;
-    if (!comments) return 0;
-		return Object.values(comments).reduce(
-			(acc, curr) => acc + (curr.pathnames[pathname] ?? 0),
-			0,
-		);
+		return useMemo(() => CommentCounterService.getTotalByPathname(comments, pathname), [comments, pathname]);
+	}
+
+	public static getTotalByPathname(comments: AuthoredCommentsByAuthor, pathname: string) {
+		if (!comments) return 0;
+		return Object.values(comments).reduce((acc, curr) => acc + (curr.pathnames[pathname] ?? 0), 0);
 	}
 
 	public static add(comments: AuthoredCommentsByAuthor, pathname: string, user: UserInfo) {

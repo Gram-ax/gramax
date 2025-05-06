@@ -1,7 +1,8 @@
 import { classNames } from "@components/libs/classNames";
 import styled from "@emotion/styled";
-import { getSimpleExtensions } from "@ext/markdown/core/edit/logic/getExtensions";
+import getExtensions from "@ext/markdown/core/edit/logic/getExtensions";
 import { Placeholder } from "@ext/markdown/elements/placeholder/placeholder";
+import Document from "@tiptap/extension-document";
 import { EditorContent, JSONContent, useEditor } from "@tiptap/react";
 import { Dispatch, SetStateAction, useEffect, useRef, useState } from "react";
 import EditorButtons from "./EditorButtons";
@@ -47,7 +48,7 @@ const CommentEditor = styled(
 		const editor = useEditor(
 			{
 				content: { type: "doc", content },
-				extensions: [...getSimpleExtensions(), placeholder ? Placeholder.configure({ placeholder }) : null],
+				extensions: [...getExtensions(), Document, placeholder ? Placeholder.configure({ placeholder }) : null],
 				editable: isEditable,
 			},
 			[isEditable, currentContent],

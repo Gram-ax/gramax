@@ -1,5 +1,5 @@
 import React, { ReactElement, useContext, useEffect, useState } from "react";
-import { ClientCatalogProps } from "../../logic/SitePresenter/SitePresenter";
+import { ClientCatalogProps } from "@core/SitePresenter/SitePresenter";
 
 const CatalogPropsContext = React.createContext<ClientCatalogProps>(undefined);
 let _setValue: React.Dispatch<React.SetStateAction<ClientCatalogProps>>;

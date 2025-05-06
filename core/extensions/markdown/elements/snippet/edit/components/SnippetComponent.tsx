@@ -52,7 +52,7 @@ const SnippetComponent = ({ node, editor, getPos }: NodeViewProps): ReactElement
 				hoverElementRef={hoverElementRef}
 				setIsHovered={setIsHovered}
 				isHovered={isHovered}
-				rightActions={<SnippetActions onClickEdit={onClickEdit} onClickDelete={handleDelete} />}
+				rightActions={<SnippetActions existsSnippet={!!content} onClickEdit={onClickEdit} onClickDelete={handleDelete} />}
 			>
 				<div>
 					<Snippet>{Renderer(content, { components: getComponents() })}</Snippet>

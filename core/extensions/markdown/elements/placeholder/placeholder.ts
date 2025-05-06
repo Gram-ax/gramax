@@ -3,6 +3,7 @@ import { Editor, Extension } from "@tiptap/core";
 import { Node as ProsemirrorNode } from "prosemirror-model";
 import { Plugin, PluginKey } from "prosemirror-state";
 import { Decoration, DecorationSet } from "prosemirror-view";
+import { editName as blockFieldEditName } from "@ext/markdown/elements/blockContentField/consts";
 
 export interface PlaceholderOptions {
 	emptyEditorClass: string;
@@ -15,6 +16,13 @@ export interface PlaceholderOptions {
 	includeChildren: boolean;
 }
 
+const getParentNode = (editor: Editor, pos: number) => {
+	const $pos = editor.state.doc.resolve(pos);
+	const parent = $pos.parent;
+
+	return parent;
+};
+
 export const Placeholder = Extension.create<PlaceholderOptions>({
 	name: "placeholder",
 
@@ -25,7 +33,7 @@ export const Placeholder = Extension.create<PlaceholderOptions>({
 			placeholder: "Write something …",
 			showOnlyWhenEditable: true,
 			showOnlyCurrent: false,
-			includeChildren: false,
+			includeChildren: true,
 		};
 	},
 
@@ -82,7 +90,7 @@ export const Placeholder = Extension.create<PlaceholderOptions>({
 });
 
 export default Placeholder.configure({
-	placeholder: ({ editor, node }) => {
+	placeholder: ({ editor, node, pos }) => {
 		if (editor.state.doc.firstChild.type.name === "paragraph" && editor.state.doc.firstChild === node)
 			return t("article.title");
 
@@ -92,5 +100,16 @@ export default Placeholder.configure({
 			editor.state.doc.content.childCount === 2
 		)
 			return t("article.placeholder");
+
+		const parent = getParentNode(editor, pos);
+
+		if (
+			parent.type.name === blockFieldEditName &&
+			node.type.name === "paragraph" &&
+			parent.firstChild === node &&
+			parent.childCount === 1
+		)
+			return parent.attrs.placeholder;
+		if (node.attrs.placeholder) return node.attrs.placeholder;
 	},
 });

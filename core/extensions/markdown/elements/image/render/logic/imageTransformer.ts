@@ -78,19 +78,23 @@ const transformToObjects = (objects: string): ImageObject[] => {
 	return newObjects;
 };
 
-export const format = (width: number, height: number, crop: Crop, objects: ImageObject[], scale?: number): string => {
-	const hasSize = width && height;
-	return (
-		Object.values(crop).join(",") +
-		":" +
-		(scale || "") +
-		":" +
-		(Array.isArray(objects)
-			? objects?.map((data: any, index: number) => {
-					if (data.type) return (index !== 0 ? "&" : "") + Object.values(data).join(",");
-			  })
-			: ":") +
-		":" +
-		(hasSize ? width + ":" + height : "")
-	);
+export const format = (width: number, height: number, crop: Crop, objects: ImageObject[], scale?: number) => {
+	const result: Record<string, any> = {};
+
+	result.crop = Object.values(crop).join(",");
+	result.scale = scale ? scale.toString() : "";
+
+	if (Array.isArray(objects) && objects.length > 0) {
+		result.objects = objects
+			.filter((data) => data && data.type)
+			.map((data, index) => (index !== 0 ? "&" : "") + Object.values(data).join(","))
+			.join("");
+	}
+
+	if (width && height) {
+		result.width = width;
+		result.height = height;
+	}
+
+	return result;
 };

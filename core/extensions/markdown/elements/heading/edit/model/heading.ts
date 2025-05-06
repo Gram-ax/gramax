@@ -3,9 +3,9 @@ import { getNodeNameFromCursor } from "@core-ui/ContextServices/ButtonStateServi
 import { stopExecution } from "@ext/markdown/elementsUtils/cursorFunctions";
 import { mergeAttributes, Node, InputRule, callOrReturn } from "@tiptap/core";
 import getChildTextId from "@ext/markdown/elements/heading/logic/getChildTextId";
-import { selecInsideSingleParagraph } from "@ext/markdown/elementsUtils/selecInsideSingleParagraph";
 import { Plugin, PluginKey } from "@tiptap/pm/state";
 import { ReplaceAroundStep, ReplaceStep } from "@tiptap/pm/transform";
+import { editName as blockFieldEditName } from "@ext/markdown/elements/blockContentField/consts";
 // import updateId from "@ext/markdown/elements/heading/edit/plugins/updateId";
 
 export type Level = 1 | 2 | 3 | 4 | 5 | 6;
@@ -73,7 +73,7 @@ const Heading = Node.create<HeadingOptions>({
 				(attributes) =>
 				({ commands, editor }) => {
 					if (!this.options.levels.includes(attributes.level)) return false;
-					if (stopExecution(editor, this.name)) return false;
+					if (stopExecution(editor, this.name, [blockFieldEditName])) return false;
 
 					return commands.toggleNode(this.name, "paragraph", attributes);
 				},
@@ -91,8 +91,8 @@ const Heading = Node.create<HeadingOptions>({
 							[`Mod-Alt-${level}`]: () => {
 								if (this.editor.state.selection.$from.parent === this.editor.state.doc.firstChild)
 									return false;
-								if (selecInsideSingleParagraph(this.editor.state))
-									return this.editor.commands.toggleHeading({ level });
+
+								return this.editor.commands.toggleHeading({ level });
 							},
 						},
 					}),

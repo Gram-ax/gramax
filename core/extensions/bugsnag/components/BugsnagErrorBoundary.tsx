@@ -1,15 +1,18 @@
-import { getExecutingEnvironment } from "@app/resolveModule/env";
+import { Environment } from "@app/resolveModule/env";
 import Bugsnag, { OnErrorCallback } from "@bugsnag/js";
 import normalizeStack from "@ext/bugsnag/logic/normalizeStacktrace";
 import { ErrorBoundaryProps } from "@ext/errorHandlers/client/components/ErrorBoundary";
 import React from "react";
 import sendBug from "../logic/sendBug";
-class BugsnagErrorBoundary extends React.Component<ErrorBoundaryProps> {
-	constructor(props: ErrorBoundaryProps) {
+
+type BugsnagErrorBoundaryProps = ErrorBoundaryProps & { environment: Environment };
+
+class BugsnagErrorBoundary extends React.Component<BugsnagErrorBoundaryProps> {
+	constructor(props: BugsnagErrorBoundaryProps) {
 		super(props);
 		if (!props.context.conf.bugsnagApiKey || typeof window === "undefined") return;
 		const onError: OnErrorCallback = (e) => {
-			const target = getExecutingEnvironment().toUpperCase();
+			const target = props.environment.toUpperCase();
 			e.errors.forEach((e) => {
 				if (!e.errorMessage.includes(target)) e.errorMessage = `[${target}:ui] ${e.errorMessage}`;
 				normalizeStack(e.stacktrace);

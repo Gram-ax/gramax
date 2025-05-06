@@ -10,7 +10,7 @@ import ViewMenuButton from "@ext/markdown/elements/view/edit/components/ViewMenu
 import { Editor } from "@tiptap/core";
 import { useState } from "react";
 
-const SemiBlocks = ({ editor }: { editor?: Editor }) => {
+const SemiBlocks = ({ editor, includeResources }: { editor?: Editor; includeResources?: boolean }) => {
 	const tabs = ButtonStateService.useCurrentAction({ action: "tabs" });
 	const snippet = ButtonStateService.useCurrentAction({ action: "snippet" });
 
@@ -34,7 +34,7 @@ const SemiBlocks = ({ editor }: { editor?: Editor }) => {
 				<ModalLayoutDark>
 					<ButtonsLayout>
 						<TabsMenuButton editor={editor} />
-						<SnippetsButton editor={editor} onClose={() => setIsOpen(false)} />
+						{includeResources && <SnippetsButton editor={editor} onClose={() => setIsOpen(false)} />}
 						<HTMLMenuButton editor={editor} />
 						<ViewMenuButton editor={editor} />
 					</ButtonsLayout>

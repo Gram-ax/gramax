@@ -2,17 +2,20 @@ import { TableCell } from "./types";
 import { NodeOptions, parseNodeToPDFContent, pdfRenderContext } from "@ext/pdfExport/parseNodesPDF";
 import { BASE_CONFIG } from "@ext/pdfExport/config";
 import { Tag } from "@ext/markdown/core/render/logic/Markdoc";
+import { JSONContent } from "@tiptap/core";
 
 export const parseCell = async (
-	cell: Tag,
+	cell: Tag | JSONContent,
 	rowIndex: number,
 	tableRow: TableCell[],
 	context: pdfRenderContext,
 	options: NodeOptions,
 ): Promise<{ cellObject: TableCell; colWidth: number | string; colIndex: number }> => {
-	const isHeader = cell.name === "th";
-	const colSpan = cell.attributes?.colspan || 1;
-	const rowSpan = cell.attributes?.rowspan || 1;
+	const name = "name" in cell ? cell.name : cell.type;
+	const isHeader = name === "th";
+	const attrs = "attributes" in cell ? cell.attributes : cell.attrs;
+	const colSpan = attrs?.colspan || 1;
+	const rowSpan = attrs?.rowspan || 1;
 
 	const colIndex = tableRow.length;
 	const colWidth = calculateColWidth(cell);
@@ -40,6 +43,7 @@ export const parseCell = async (
 	return { cellObject, colWidth, colIndex };
 };
 
-export const calculateColWidth = (cell: Tag): number | string => {
-	return cell.attributes?.colwidth ? (cell.attributes.colwidth[0] / 100) * 67 : "auto";
+export const calculateColWidth = (cell: Tag | JSONContent): number | string => {
+	const attrs = "attributes" in cell ? cell.attributes : cell.attrs;
+	return attrs?.colwidth ? (attrs.colwidth[0] / 100) * 67 : "auto";
 };

@@ -3,7 +3,7 @@ import FetchService from "@core-ui/ApiServices/FetchService";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import getAdjustedSize from "@core-ui/utils/getAdjustedSize";
-import OnLoadResourceService from "@ext/markdown/elements/copyArticles/onLoadResourceService";
+import ResourceService from "@ext/markdown/elements/copyArticles/resourceService";
 import getMermaidDiagram from "@ext/markdown/elements/diagrams/diagrams/mermaid/getMermaidDiagram";
 import getPlantUmlDiagram from "@ext/markdown/elements/diagrams/diagrams/plantUml/getPlantUmlDiagram";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
@@ -32,7 +32,7 @@ const DiagramData = (props: DiagramDataProps) => {
 	const isC4Diagram = diagramName == DiagramType["c4-diagram"];
 	const apiUrlCreator = ApiUrlCreatorService.value;
 	const diagramsServiceUrl = PageDataContextService.value.conf.diagramsServiceUrl;
-	const { useGetContent, getBuffer } = OnLoadResourceService.value;
+	const { useGetResource, getBuffer } = ResourceService.value;
 
 	const ref = useRef<HTMLDivElement | HTMLImageElement>(null);
 	const parentRef = useRef<HTMLDivElement>(null);
@@ -66,9 +66,7 @@ const DiagramData = (props: DiagramDataProps) => {
 		setSize({ width: parentWidth + "px", height: newSize.height + offset + "px" });
 	}, [width, height]);
 
-	useGetContent(
-		src,
-		apiUrlCreator,
+	useGetResource(
 		async (buffer: Buffer) => {
 			try {
 				setError(null);
@@ -82,6 +80,7 @@ const DiagramData = (props: DiagramDataProps) => {
 
 			setIsLoaded(true);
 		},
+		src,
 		content,
 	);
 

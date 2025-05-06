@@ -9,14 +9,16 @@ const ArticleTitleHelpers = Extension.create<{ onTitleLoseFocus: ({ newTitle }: 
 		return [
 			new Plugin({
 				key: new PluginKey("ArticleTitleHelpers"),
-				appendTransaction: (_, oldState, newState) => {
+				appendTransaction: (transactions, oldState, newState) => {
 					const isDiffEditor = this.editor.storage.diff;
-					if(isDiffEditor) return;
+					if (isDiffEditor) return;
+
 					const { selection: newSelection } = newState;
 					const { selection: oldSelection } = oldState;
 
-					if (oldSelection.$anchor.parent !== oldState.doc.firstChild) return;
-					if (newSelection.$anchor.parent === newState.doc.firstChild) return;
+					const hasBlurTransaction = transactions.some((transaction) => transaction.getMeta("blur"));
+					if (oldSelection.$anchor.parent !== oldState.doc.firstChild && !hasBlurTransaction) return;
+					if (newSelection.$anchor.parent === newState.doc.firstChild && !hasBlurTransaction) return;
 					if (this.options.onTitleLoseFocus)
 						this.options.onTitleLoseFocus({ newTitle: newState.doc.firstChild.textContent });
 
@@ -28,7 +30,8 @@ const ArticleTitleHelpers = Extension.create<{ onTitleLoseFocus: ({ newTitle }: 
 
 					tr.steps.some((step) => {
 						if (!(step instanceof AddMarkStep)) return;
-						const resolvedPos = tr.doc.resolve(step.from);
+						const clampedPos = Math.max(Math.min(step.from, tr.doc.content.size), 0);
+						const resolvedPos = tr.doc.resolve(clampedPos);
 
 						if (resolvedPos.parent !== tr.doc.firstChild) return;
 						allowTr = false;

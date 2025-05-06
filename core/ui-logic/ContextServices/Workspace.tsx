@@ -1,49 +1,45 @@
+import { PageProps } from "@components/ContextProviders";
 import ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
 import FetchService from "@core-ui/ApiServices/FetchService";
+import ContextService from "@core-ui/ContextServices/ContextService";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import Path from "@core/FileProvider/Path/Path";
 import type { ClientWorkspaceConfig, WorkspacePath } from "@ext/workspace/WorkspaceConfig";
-import { ReactElement } from "react";
-import ApiUrlCreatorService from "./ApiUrlCreator";
+import { createContext, ReactElement, useContext, useMemo } from "react";
 
-export type WorkspaceServiceProps = {
-	children: ReactElement;
-	current: WorkspacePath;
-	workspaces: ClientWorkspaceConfig[];
-};
+const WorkspaceServiceContext = createContext<ClientWorkspaceConfig>(null);
 
-export default abstract class WorkspaceService {
-	private static _apiUrlCreator: ApiUrlCreator;
-	private static _workspaces: ClientWorkspaceConfig[] = [];
-	private static _current: ClientWorkspaceConfig;
+class WorkspaceService implements ContextService {
+	Init({ children, pageProps }: { pageProps: PageProps; children: ReactElement }): ReactElement {
+		const workspaces = pageProps?.context?.workspace?.workspaces;
+		const currentPath = pageProps?.context?.workspace?.current;
 
-	static Provider({ children, current, workspaces }: WorkspaceServiceProps): ReactElement {
-		WorkspaceService._apiUrlCreator = ApiUrlCreatorService.value;
-		WorkspaceService._workspaces = workspaces;
-		WorkspaceService._current = workspaces.find((w) => w.path == current);
+		const current = useMemo(() => workspaces.find((w) => w.path == currentPath), [workspaces, currentPath]);
 
-		return children;
+		return <WorkspaceServiceContext.Provider value={current}>{children}</WorkspaceServiceContext.Provider>;
 	}
 
-	static current() {
-		return WorkspaceService._current;
+	current() {
+		return useContext(WorkspaceServiceContext);
 	}
 
-	static hasActive() {
-		return !!WorkspaceService._current;
+	hasActive() {
+		return !!useContext(WorkspaceServiceContext);
 	}
 
-	static workspaces() {
-		return WorkspaceService._workspaces;
+	workspaces() {
+		return PageDataContextService.value.workspace.workspaces;
 	}
 
-	static defaultPath() {
+	defaultPath() {
 		return new Path(PageDataContextService.value.workspace.defaultPath).parentDirectoryPath.value;
 	}
 
-	static async setActive(workspace: WorkspacePath, refresh = true) {
+	async setActive(workspace: WorkspacePath, apiUrlCreator: ApiUrlCreator, refresh = true) {
 		if (refresh) clearData();
-		await FetchService.fetch(WorkspaceService._apiUrlCreator.switchWorkspace(workspace));
+		await FetchService.fetch(apiUrlCreator.switchWorkspace(workspace));
 		if (refresh) await refreshPage();
 	}
 }
+
+export default new WorkspaceService();

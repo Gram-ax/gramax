@@ -4,6 +4,7 @@ import ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
 import FetchService, { type OnDidCommandEv } from "@core-ui/ApiServices/FetchService";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
+import { usePlatform } from "@core-ui/hooks/usePlatform";
 import useWatch from "@core-ui/hooks/useWatch";
 import getIsDevMode from "@core-ui/utils/getIsDevMode";
 import type { UnsubscribeToken } from "@core/Event/EventEmitter";
@@ -62,6 +63,7 @@ export default abstract class GitIndexService {
 	private static _timeout: NodeJS.Timeout;
 
 	static Provider({ children }: { children: ReactElement }): ReactElement {
+		const { isNext } = usePlatform();
 		const [index, setIndex] = useState<Map<string, FileStatus>>(new Map());
 		const [overview, setOverview] = useState<TotalOverview>({
 			added: 0,
@@ -79,8 +81,7 @@ export default abstract class GitIndexService {
 			if (!isArticle) GitIndexService._inited = false;
 		}, [isArticle]);
 
-		if (isArticle && !GitIndexService._inited && getIsDevMode() && getExecutingEnvironment() !== "next")
-			GitIndexService._init();
+		if (isArticle && !GitIndexService._inited && getIsDevMode() && !isNext) GitIndexService._init();
 
 		return <GitIndexContext.Provider value={{ index, overview }}>{children}</GitIndexContext.Provider>;
 	}
@@ -95,7 +96,6 @@ export default abstract class GitIndexService {
 
 	private static _init() {
 		if (!getIsDevMode()) return;
-		if (getExecutingEnvironment() === "next") return;
 		if (!GitIndexService._unsubscribe) {
 			GitIndexService._unsubscribe = FetchService.events.on(
 				"on-did-command",
@@ -121,12 +121,13 @@ export default abstract class GitIndexService {
 	}
 
 	private static async _update() {
+		// temp getExecutingEnvironment
 		const shouldAdd = !(getExecutingEnvironment() === "browser" && this._lastRun === 0);
 		const endpoint = this._apiUrlCreator.getVersionControlStatuses(shouldAdd);
 		const res = await FetchService.fetch<ClientGitStatus[]>(endpoint);
 		const data = await res.json();
 
-		const iter: [string, FileStatus][] = data?.map((s) => [s.path, s.status]) || [];
+		const iter: [string, FileStatus][] = data?.map?.((s) => [s.path, s.status]) || [];
 
 		const overview = iter.reduce(
 			(acc, [, status]) => {

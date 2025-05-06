@@ -57,7 +57,7 @@ export const PublishChanges = (props: PublishChangesProps) => {
 		setContentHeight,
 	} = props;
 	const containerRef = useRef<HTMLDivElement>(null);
-	const setArticleDiffView = useSetArticleDiffView(null, { reference: "HEAD" });
+	const setArticleDiffView = useSetArticleDiffView(false, null, { reference: "HEAD" });
 
 	const onEntryDiscard = useCallback(
 		(entry: DiffTreeAnyItem) => {
@@ -118,6 +118,7 @@ export const PublishChanges = (props: PublishChangesProps) => {
 						setArticleDiffView={setArticleDiffView}
 						onAction={onEntryDiscard}
 						actionIcon="reply"
+						renderCommentsCount={false}
 					/>
 				)}
 			</ScrollableDiffEntriesLayout>

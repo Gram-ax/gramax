@@ -7,15 +7,15 @@ import IsMacService from "@core-ui/ContextServices/IsMac";
 import IsSelectedOneNodeService from "@core-ui/ContextServices/IsSelected";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import { ClientArticleProps } from "@core/SitePresenter/SitePresenter";
+import canDisplayMenu from "@ext/markdown/elements/article/edit/helpers/canDisplayMenu";
 import InlineEditPanel from "@ext/markdown/elements/article/edit/helpers/InlineEditPanel";
 import TooltipBase from "@ext/markdown/elementsUtils/prosemirrorPlugins/TooltipBase";
 import { Editor, Extension } from "@tiptap/core";
 import { EditorState } from "@tiptap/pm/state";
 import { Plugin, PluginKey } from "prosemirror-state";
+import { CellSelection, isInTable } from "prosemirror-tables";
 import { EditorView } from "prosemirror-view";
 import PageDataContext from "../../../../../../logic/Context/PageDataContext";
-import { CellSelection, isInTable } from "prosemirror-tables";
-import canDisplayMenu from "@ext/markdown/elements/article/edit/helpers/canDisplayMenu";
 
 interface SelectionMenuProps {
 	articleProps: ClientArticleProps;
@@ -24,14 +24,16 @@ interface SelectionMenuProps {
 	editor: Editor;
 	isCellSelection: boolean;
 	inTable: boolean;
+	isMac: boolean;
 	closeHandler: () => void;
 	onMountCallback: () => void;
 }
 
 const SelectionMenuComponent = (props: SelectionMenuProps) => {
-	const { pageDataContext, apiUrlCreator, editor, closeHandler, onMountCallback, isCellSelection, inTable } = props;
+	const { pageDataContext, apiUrlCreator, editor, closeHandler, onMountCallback, isCellSelection, inTable, isMac } =
+		props;
 	return (
-		<IsMacService.Provider>
+		<IsMacService.Provider value={isMac}>
 			<ApiUrlCreatorService.Provider value={apiUrlCreator}>
 				<PageDataContextService.Provider value={pageDataContext}>
 					<ModalLayoutDark>
@@ -73,6 +75,7 @@ class TextSelectionMenu extends TooltipBase {
 		super(
 			SelectionMenuComponent,
 			{
+				isMac: _isMac,
 				articleProps: _articleProps,
 				pageDataContext: _pageDataContext,
 				apiUrlCreator: _apiUrlCreator,

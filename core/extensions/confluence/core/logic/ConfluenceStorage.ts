@@ -38,6 +38,7 @@ export default class ConfluenceStorage {
 			await this.createArticles(articles, blogs, catalogPath, formatter, converter, fs, fs.fp);
 		} catch (e) {
 			await (data.source as ProxiedSourceDataCtx<ConfluenceSourceData>).assertValid?.(e);
+			throw e;
 		} finally {
 			fs.fp?.startWatch();
 		}
@@ -78,7 +79,7 @@ export default class ConfluenceStorage {
 		);
 
 		const md = await this._processContent(node, currentPath, converter, formatter);
-		const content = fs.serialize({ title: node.title, order: this.position++ }, md);
+		const content = fs.serialize({ props: { title: node.title, order: this.position++ }, content: md });
 
 		await fp.write(currentPath, content);
 
@@ -99,7 +100,7 @@ export default class ConfluenceStorage {
 		fp: FileProvider,
 	) {
 		const blogsPath = new Path(`${path.value}/blogs/${CATEGORY_ROOT_FILENAME}`);
-		const content = fs.serialize({ title: t("confluence.blogs"), order: this.position++ }, "");
+		const content = fs.serialize({ props: { title: t("confluence.blogs"), order: this.position++ }, content: "" });
 		await fp.write(blogsPath, content);
 		let blogPosition = blogs.length;
 		for (const blog of blogs) {
@@ -107,7 +108,7 @@ export default class ConfluenceStorage {
 				`${path.value}/blogs/${transliterate(blog.title, { kebab: true, maxLength: 50 })}.md`,
 			);
 			const md = await this._processContent(blog, blogPath, converter, formatter);
-			const content = fs.serialize({ title: blog.title, order: blogPosition-- }, md);
+			const content = fs.serialize({ props: { title: blog.title, order: blogPosition-- }, content: md });
 			await fp.write(blogPath, content);
 		}
 	}

@@ -1,8 +1,8 @@
-import { getExecutingEnvironment } from "@app/resolveModule/env";
 import Button, { TextSize } from "@components/Atoms/Button/Button";
 import { ButtonStyle } from "@components/Atoms/Button/ButtonStyle";
 import SpinnerLoader from "@components/Atoms/SpinnerLoader";
 import ButtonLink from "@components/Molecules/ButtonLink";
+import { usePlatform } from "@core-ui/hooks/usePlatform";
 import { parserQuery } from "@core/Api/Query";
 import OnNetworkApiErrorService from "@ext/errorHandlers/client/OnNetworkApiErrorService";
 import { waitForTempToken } from "@ext/git/actions/Source/tempToken";
@@ -21,6 +21,7 @@ const CreateGitHubSourceData = ({ onSubmit }: { onSubmit?: (editProps: GitHubSou
 	const [user, setUser] = useState(null);
 	const [token, setToken] = useState(null);
 	const onNetworkApiError = OnNetworkApiErrorService.value;
+	const { isTauri } = usePlatform();
 
 	const loadUser = async (token) => {
 		if (!token || !token?.access_token) return;
@@ -67,7 +68,7 @@ const CreateGitHubSourceData = ({ onSubmit }: { onSubmit?: (editProps: GitHubSou
 								(location) => setToken(parserQuery(location.search)),
 							);
 
-							if (getExecutingEnvironment() !== "tauri") setToken(parserQuery(await waitForTempToken()));
+							if (!isTauri) setToken(parserQuery(await waitForTempToken()));
 						}}
 					/>
 				)}

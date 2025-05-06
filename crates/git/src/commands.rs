@@ -11,7 +11,6 @@ use crate::ShortInfo;
 use std::path::Path;
 use std::path::PathBuf;
 
-use git2::BranchType;
 use serde::Deserialize;
 use serde::Serialize;
 
@@ -22,6 +21,22 @@ pub struct GitError {
   pub code: Option<i32>,
 }
 
+impl std::fmt::Display for GitError {
+  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    write!(f, "git error (")?;
+    if let Some(class) = self.class {
+      write!(f, "class: {}, ", class)?;
+    }
+
+    if let Some(code) = self.code {
+      write!(f, "code: {}", code)?;
+    }
+
+    write!(f, "): {}", self.message)?;
+    Ok(())
+  }
+}
+
 impl From<Error> for GitError {
   fn from(value: Error) -> Self {
     match value {
@@ -30,6 +45,9 @@ impl From<Error> for GitError {
         class: Some(err.class() as i32),
         code: Some(err.code() as i32),
       },
+      Error::Network { status, message } => {
+        GitError { message: message.unwrap_or_default(), class: None, code: Some(status as i32) }
+      }
       value => GitError { message: value.to_string(), class: None, code: None },
     }
   }
@@ -80,10 +98,7 @@ pub fn file_history(repo_path: &Path, file_path: &Path, count: usize) -> Result<
 pub fn branch_info(repo_path: &Path, name: Option<&str>) -> Result<BranchInfo> {
   Repo::execute_without_creds_try_lock(repo_path, |repo| {
     let info = if let Some(name) = name {
-      repo
-        .branch_by_name(name, BranchType::Local)
-        .or_else(|_| repo.branch_by_name(name, BranchType::Remote))?
-        .short_info()?
+      repo.branch_by_name(name, None)?.short_info()?
     } else {
       repo.branch_by_head()?.short_info()?
     };
@@ -216,8 +231,16 @@ pub fn graph_head_upstream_files(repo_path: &Path, search_in: &Path) -> Result<U
   Ok(Repo::open(repo_path, DummyCreds)?.graph_head_upstream_files(search_in)?)
 }
 
-pub fn merge(repo_path: &Path, creds: AccessTokenCreds, theirs: &str) -> Result<MergeResult> {
-  Repo::execute_with_creds_lock(repo_path, creds, |repo| Ok(repo.merge(theirs)?))
+pub fn merge(repo_path: &Path, creds: AccessTokenCreds, opts: MergeOptions) -> Result<MergeResult> {
+  Repo::execute_with_creds_lock(repo_path, creds, |repo| Ok(repo.merge(opts)?))
+}
+
+pub fn format_merge_message(
+  repo_path: &Path,
+  creds: AccessTokenCreds,
+  opts: MergeMessageFormatOptions,
+) -> Result<String> {
+  Repo::execute_with_creds_try_lock(repo_path, creds, |repo| Ok(repo.format_merge_message(opts)?))
 }
 
 pub fn get_content(repo_path: &Path, path: &Path, oid: Option<&str>) -> Result<String> {
@@ -317,6 +340,10 @@ pub fn get_draft_merge_request(repo_path: &Path) -> Result<Option<MergeRequest>>
 
 pub fn get_all_commit_authors(repo_path: &Path) -> Result<Vec<CommitAuthorInfo>> {
   Repo::execute_without_creds_try_lock(repo_path, |repo| Ok(repo.get_all_authors()?))
+}
+
+pub fn gc(repo_path: &Path, opts: GcOptions) -> Result<()> {
+  Repo::execute_without_creds_lock(repo_path, |repo| Ok(repo.gc(opts)?))
 }
 
 pub fn reset_repo() {

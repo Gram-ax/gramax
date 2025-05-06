@@ -9,7 +9,9 @@ import LanguageService from "@core-ui/ContextServices/Language";
 import useWatch from "@core-ui/hooks/useWatch";
 import getIsDevMode from "@core-ui/utils/getIsDevMode";
 import Mode from "@ext/git/actions/Clone/model/Mode";
+import GitSourceData from "@ext/git/core/model/GitSourceData.schema";
 import t from "@ext/localization/locale/translate";
+import CreateEnterpriseSourceData from "@ext/storage/logic/SourceDataProvider/components/CreateEnterpriseSourceData";
 import getSourceConfig from "@ext/storage/logic/SourceDataProvider/logic/getSourceConfig";
 import getSourceProps from "@ext/storage/logic/SourceDataProvider/logic/getSourceProps";
 import sourceComponents from "@ext/storage/logic/SourceDataProvider/logic/sourceComponents";
@@ -118,11 +120,20 @@ const CreateSourceData = (props: CreateSourceDataProps) => {
 									/>
 								</div>
 							</div>
-							{SourceComponent && (
-								<SourceComponent
-									{...getSourceProps(sourceType, defaultSourceData)}
+							{(defaultSourceData as any)?.isEnterprise ? (
+								<CreateEnterpriseSourceData
+									sourceData={defaultSourceData as GitSourceData}
 									onSubmit={createStorageUserData}
 								/>
+							) : (
+								<>
+									{SourceComponent && (
+										<SourceComponent
+											{...getSourceProps(sourceType, defaultSourceData)}
+											onSubmit={createStorageUserData}
+										/>
+									)}
+								</>
 							)}
 						</fieldset>
 					</>

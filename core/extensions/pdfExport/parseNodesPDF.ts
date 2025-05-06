@@ -1,5 +1,4 @@
 import { RenderableTreeNode } from "@ext/markdown/core/render/logic/Markdoc";
-import { blockLayouts, inlineLayouts } from "@ext/pdfExport/layouts";
 import { addMargin } from "@ext/pdfExport/utils/addMargin";
 import { HEADING_MARGINS } from "@ext/pdfExport/config";
 import { Content } from "pdfmake/interfaces";
@@ -9,9 +8,11 @@ import DocumentTree from "@ext/wordExport/DocumentTree/DocumentTree";
 import { TitleInfo } from "@ext/wordExport/options/WordTypes";
 import ParserContext from "@ext/markdown/core/Parser/ParserContext/ParserContext";
 import { generateBookmarkName } from "@ext/wordExport/generateBookmarkName";
-import CatalogProps from "@core-ui/ContextServices/CatalogProps";
 import ContextualCatalog from "@core/FileStructue/Catalog/ContextualCatalog";
 import { ItemFilter } from "@core/FileStructue/Catalog/Catalog";
+import { CatalogProps } from "@core/FileStructue/Catalog/CatalogProps";
+import getLayout from "@ext/pdfExport/utils/getLayout";
+import { JSONContent } from "@tiptap/core";
 
 export interface NodeOptions {
 	level?: number;
@@ -29,23 +30,36 @@ export interface pdfRenderContext {
 }
 
 async function handleNode(
-	node: RenderableTreeNode,
-	prevNode: RenderableTreeNode | null,
+	node: RenderableTreeNode | JSONContent,
+	prevNode: RenderableTreeNode | JSONContent,
 	context: pdfRenderContext,
 	options?: NodeOptions,
 ): Promise<Content[]> {
-	if (!isTag(node)) {
+	if (typeof node === "object" && !isTag(node) && !("type" in node)) {
 		return [];
 	}
 
-	const caseHandler = blockLayouts[node.name] || inlineLayouts[node.name];
-	if (node.name === "p") {
-		if (Array.isArray(node.children) && node.children.length > 0) {
-			const firstChild = node.children[0];
+	if (typeof node === "string") {
+		return [];
+	}
 
-			if (isTag(firstChild) && firstChild.name === "Image") {
-				const content = await blockLayouts["Image"](firstChild, context, options);
-				const margin = addMargin(prevNode, node.name, firstChild);
+	const name = "name" in node ? node.name : node.type;
+
+	const caseHandler = getLayout(name);
+	const children = "children" in node ? node.children : node.content;
+	if (name === "p") {
+		if (Array.isArray(children) && children.length > 0) {
+			const firstChild = children[0];
+			const firstChildName =
+				typeof firstChild === "object" && "name" in firstChild ? firstChild.name : firstChild.type;
+
+			if (
+				(isTag(firstChild) ||
+					(typeof firstChild === "object" && "type" in firstChild && firstChild.type === "tag")) &&
+				firstChildName === "Image"
+			) {
+				const content = await getLayout("Image")(firstChild, context, options);
+				const margin = addMargin(prevNode, name, firstChild);
 				return margin ? [margin, content] : [content];
 			}
 		}
@@ -53,30 +67,31 @@ async function handleNode(
 
 	if (caseHandler) {
 		const content = await caseHandler(node, context, options);
-		const margin = addMargin(prevNode, node.name, node);
+		const margin = addMargin(prevNode, name, node);
 		return margin ? [margin, content] : [content];
 	}
+
 	return [];
 }
 
 export async function parseNodeToPDFContent(
-	node: RenderableTreeNode,
+	node: RenderableTreeNode | JSONContent,
 	context: pdfRenderContext,
 	options?: NodeOptions,
 ): Promise<Content[]> {
 	const results: Content[] = [];
 
-	if (!isTag(node)) {
+	if (typeof node !== "object" || (!isTag(node) && !("type" in node))) {
 		return results;
 	}
 
-	if (!Array.isArray(node.children)) {
+	if (!Array.isArray(node.children) && !("content" in node && Array.isArray(node.content))) {
 		return results;
 	}
 
-	let prevNode: RenderableTreeNode | null = null;
+	let prevNode: RenderableTreeNode | JSONContent = null;
 
-	for (const currentNode of node.children) {
+	for (const currentNode of "children" in node ? node.children : node.content) {
 		try {
 			const content = await handleNode(currentNode, prevNode, context, options);
 			results.push(...content);
@@ -109,7 +124,7 @@ export async function handleDocumentTree(
 
 	results.push(createHeader(context));
 
-	if (node.content) {
+	if ("content" in node && node.content) {
 		const contentResults = await parseNodeToPDFContent(node.content, context);
 		results.push(...contentResults);
 	}
@@ -134,6 +149,7 @@ export async function handleDocumentTree(
 const createHeader = (context: pdfRenderContext): Content => {
 	const margins = HEADING_MARGINS["H1"];
 	const bookmarkName = generateBookmarkName(context.order, context.articleName);
+	context.headingMap.set(bookmarkName, 1);
 	return {
 		text: context.articleName,
 		style: "H1",

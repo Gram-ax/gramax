@@ -27,6 +27,8 @@ enum ModalToOpen {
 	CreateSourceData = "CreateSourceData",
 
 	EditEnterpriseConfig = "EditEnterpriseConfig",
+
+	TemplateContentWarning = "TemplateContentWarning",
 }
 
 export default ModalToOpen;

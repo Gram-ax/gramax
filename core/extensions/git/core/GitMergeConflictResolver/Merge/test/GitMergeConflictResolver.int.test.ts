@@ -79,12 +79,12 @@ describe("GitMergeConflictResolver", () => {
 			await commit(gvc, { "1.txt": "conflict content ours" });
 			const hashBefore = (await gvc.getCommitHash()).toString();
 			const statusBefore = await gvc.getChanges();
-			await gvc.mergeBranch(mockUserData, "conflict");
+			await gvc.mergeBranch(mockUserData, { theirs: "conflict" });
 			expect(await dfp.read(repPath("1.txt"))).toEqual(CONFLICT_CONTENT);
 
 			const state: RepositoryMergeConflictState = {
 				value: "mergeConflict",
-				data: { conflictFiles: null, deleteAfterMerge: null, reverseMerge: null, theirs: null },
+				data: { conflictFiles: null, deleteAfterMerge: null, reverseMerge: null, theirs: null, squash: false },
 			};
 
 			await resolver.abortMerge(state, mockUserData);
@@ -102,7 +102,7 @@ describe("GitMergeConflictResolver", () => {
 			const statusBefore = await gvc.getChanges();
 			await gvc.checkoutToBranch("master");
 			await commit(gvc, { "1.txt": "conflict content ours" });
-			await gvc.mergeBranch(mockUserData, "conflict");
+			await gvc.mergeBranch(mockUserData, { theirs: "conflict" });
 			expect(await dfp.read(repPath("1.txt"))).toEqual(CONFLICT_CONTENT);
 
 			const state: RepositoryMergeConflictState = {
@@ -113,6 +113,7 @@ describe("GitMergeConflictResolver", () => {
 					reverseMerge: null,
 					theirs: null,
 					branchNameBefore: "conflict",
+					squash: false,
 				},
 			};
 
@@ -134,12 +135,18 @@ describe("GitMergeConflictResolver", () => {
 		const hashBeforeCommit = (await gvc.getCommitHash()).toString();
 		const resolvedMergeFiles = [{ path: "1.txt", content: "conflict content ours and theirs :)" }];
 
-		await gvc.mergeBranch(mockUserData, "conflict");
+		await gvc.mergeBranch(mockUserData, { theirs: "conflict" });
 		expect(await dfp.read(repPath("1.txt"))).toEqual(CONFLICT_CONTENT);
 
 		const state: RepositoryMergeConflictState = {
 			value: "mergeConflict",
-			data: { conflictFiles: null, deleteAfterMerge: null, reverseMerge: null, theirs: "conflict" },
+			data: {
+				conflictFiles: null,
+				deleteAfterMerge: null,
+				reverseMerge: null,
+				theirs: "conflict",
+				squash: false,
+			},
 		};
 
 		await expect(resolver.resolveConflictedFiles(resolvedMergeFiles, state, mockUserData)).resolves.toBeUndefined();

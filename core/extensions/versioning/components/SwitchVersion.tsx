@@ -1,4 +1,3 @@
-import { getExecutingEnvironment } from "@app/resolveModule/env";
 import Icon from "@components/Atoms/Icon";
 import Tooltip from "@components/Atoms/Tooltip";
 import PopupMenuLayout from "@components/Layouts/PopupMenuLayout";
@@ -6,6 +5,7 @@ import ButtonLink from "@components/Molecules/ButtonLink";
 import FetchService from "@core-ui/ApiServices/FetchService";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import CatalogPropsService from "@core-ui/ContextServices/CatalogProps";
+import { usePlatform } from "@core-ui/hooks/usePlatform";
 import { useRouter } from "@core/Api/useRouter";
 import styled from "@emotion/styled";
 import type GitBranchData from "@ext/git/core/GitBranch/model/GitBranchData";
@@ -35,7 +35,8 @@ const TruncatedText = ({ children }: { children: ReactNode }) => {
 };
 
 const SwitchVersion = () => {
-	if (getExecutingEnvironment() != "next") return null;
+	const { isNext } = usePlatform();
+	if (!isNext) return null;
 
 	const catalogProps = CatalogPropsService.value;
 	const [branch, setBranch] = useState<GitBranchData>(null);

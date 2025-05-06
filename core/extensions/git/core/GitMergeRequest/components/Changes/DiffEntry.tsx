@@ -1,5 +1,8 @@
 import Checkbox from "@components/Atoms/Checkbox";
 import Icon from "@components/Atoms/Icon";
+import CommentCountSrc from "@components/Comments/CommentCount";
+import CatalogPropsService from "@core-ui/ContextServices/CatalogProps";
+import CommentCounterService from "@core-ui/ContextServices/CommentCounter";
 import { css } from "@emotion/react";
 import styled from "@emotion/styled";
 import type { DiffTreeAnyItem } from "@ext/git/core/GitDiffItemCreator/RevisionDiffTreePresenter";
@@ -8,7 +11,9 @@ import { SelectedDiffEntryContext } from "@ext/git/core/GitMergeRequest/componen
 import IndentLine from "@ext/git/core/GitMergeRequest/components/Changes/IndentLine";
 import { Overview } from "@ext/git/core/GitMergeRequest/components/Changes/Overview";
 import { Accent } from "@ext/git/core/GitMergeRequest/components/Elements";
+import getUnscopedLogicPath from "@ext/git/core/GitMergeRequest/logic/getUnscopedLogicPath";
 import t from "@ext/localization/locale/translate";
+import { DiffItem } from "@ext/VersionControl/model/Diff";
 import { FileStatus } from "@ext/Watchers/model/FileStatus";
 
 import { useCallback, useContext } from "react";
@@ -16,6 +21,7 @@ import { useCallback, useContext } from "react";
 export type DiffEntryProps = {
 	entry: DiffTreeAnyItem;
 	onSelect: (entry: DiffTreeAnyItem) => void;
+	renderCommentsCount: boolean;
 	hidden?: boolean;
 	indent?: number;
 
@@ -36,6 +42,15 @@ const STATUS_COLORS = {
 const Wrapper = styled.div`
 	position: relative;
 	width: 100%;
+`;
+
+const CommentCount = styled(CommentCountSrc)`
+	margin-left: 0.25rem;
+`;
+
+const BreadcrumbWrapper = styled.div`
+	position: relative;
+	width: 95%;
 `;
 
 const Highlight = styled.div<{ isActive: boolean; status: FileStatus; indent?: number }>`
@@ -110,7 +125,6 @@ const Indent = styled(Accent)<{ indent?: number; checkboxIndent?: boolean; isRes
 	> span {
 		display: inline;
 		padding-left: 0.2em;
-		flex-grow: 1;
 		max-width: 100%;
 	}
 
@@ -123,15 +137,24 @@ const Title = styled.span<{ indent?: number }>`
 	display: flex;
 	align-items: center;
 	justify-content: flex-start;
-	flex-grow: 1;
 	overflow: hidden;
 	text-overflow: ellipsis;
 	white-space: nowrap;
-	width: 100%;
+	max-width: 100%;
 
 	> i {
 		padding-right: 0.2em;
 		padding-top: 0.05em;
+	}
+`;
+
+const TitleWrapper = styled.div`
+	display: flex;
+	overflow: hidden;
+	width: 100%;
+
+	> span {
+		display: inline;
 	}
 `;
 
@@ -150,8 +173,11 @@ const DiffEntry = ({
 	isFileSelected,
 	onAction,
 	actionIcon,
+	renderCommentsCount,
 }: DiffEntryProps) => {
 	const { selectedByPath } = useContext(SelectedDiffEntryContext);
+	const comments = CommentCounterService.value;
+	const catalogName = CatalogPropsService.value?.name;
 
 	indent = Math.min(Math.max(indent || 0, 0), 10);
 
@@ -215,11 +241,12 @@ const DiffEntry = ({
 					)}
 					{indentLine}
 					<Indent indent={indent} checkboxIndent={isCheckbox && indent === 0} isResource>
-						<Title indent={indent}>
-							<Icon code={entry.icon} />
-							{entry.name}
-						</Title>
-
+						<TitleWrapper>
+							<Title indent={indent}>
+								<Icon code={entry.icon} />
+								{entry.name}
+							</Title>
+						</TitleWrapper>
 						<Overview added={entry.overview.added} deleted={entry.overview.removed} />
 						{indent === 1 && discardFileComponent}
 					</Indent>
@@ -232,10 +259,10 @@ const DiffEntry = ({
 		if (!entry.childs.length) return;
 		return (
 			<>
-				<Wrapper>
+				<BreadcrumbWrapper>
 					{indentLine}
 					<Breadcrumbs marginLeft={indent + 1 + (isCheckbox ? 0.15 : 0)} breadcrumb={entry.breadcrumbs} />
-				</Wrapper>
+				</BreadcrumbWrapper>
 				{entry.childs.map((inner, id) => (
 					<DiffEntry
 						key={id}
@@ -246,11 +273,17 @@ const DiffEntry = ({
 						isFileSelected={isFileSelected}
 						onAction={onAction}
 						actionIcon={actionIcon}
+						renderCommentsCount={renderCommentsCount}
 					/>
 				))}
 			</>
 		);
 	}
+
+	const unscopedLogicPath = getUnscopedLogicPath((entry.rawItem as DiffItem).logicPath, catalogName);
+	const commentsCount = renderCommentsCount
+		? CommentCounterService.getTotalByPathname(comments, unscopedLogicPath.value)
+		: 0;
 
 	return (
 		<>
@@ -267,7 +300,10 @@ const DiffEntry = ({
 					)}
 					{indentLine}
 					<Indent indent={indent} checkboxIndent={isCheckbox}>
-						<Title indent={indent}>{entry.name}</Title>
+						<TitleWrapper>
+							<Title indent={indent}>{entry.name}</Title>
+							<CommentCount count={commentsCount} />
+						</TitleWrapper>
 						<Overview added={entry.overview.added} deleted={entry.overview.removed} />
 						{discardFileComponent}
 					</Indent>
@@ -284,6 +320,7 @@ const DiffEntry = ({
 						isFileSelected={isFileSelected}
 						onAction={onAction}
 						actionIcon={actionIcon}
+						renderCommentsCount={renderCommentsCount}
 					/>
 				))}
 		</>

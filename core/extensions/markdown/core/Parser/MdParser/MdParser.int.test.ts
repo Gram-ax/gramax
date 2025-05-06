@@ -131,53 +131,6 @@ describe("MdParser корректно парсит", () => {
 			});
 		});
 
-		describe("ковычки", () => {
-			describe("парсит", () => {
-				test("в обычном тексте", async () => {
-					const mdParser = await getMdParser();
-					const str = `aaaaa"aaa"bbb"aaa"aaaaaa`;
-					const parsedStr = `aaaaa«aaa»bbb«aaa»aaaaaa`;
-
-					const testParseStr = mdParser.preParse(str);
-
-					expect(testParseStr).toEqual(parsedStr);
-				});
-				test("в скобках", async () => {
-					const mdParser = await getMdParser();
-					const str = `aaaaa("aaa")bbb(qwerty "aaa"qwerty)aaaaaa`;
-					const parsedStr = `aaaaa(«aaa»)bbb(qwerty «aaa»qwerty)aaaaaa`;
-
-					const testParseStr = mdParser.preParse(str);
-
-					expect(testParseStr).toEqual(parsedStr);
-				});
-				test("со скобками внутри", async () => {
-					const mdParser = await getMdParser();
-					const str = `aaa "bbb [](){} ccc" ddd`;
-					const parsedStr = `aaa «bbb [](){} ccc» ddd`;
-
-					const testParseStr = mdParser.preParse(str);
-
-					expect(testParseStr).toEqual(parsedStr);
-				});
-			});
-			describe("игнорирует", () => {
-				test("внутри фигурных или квадратных скобок", async () => {
-					const mdParser = await getMdParser();
-					const str = `aaa [qwerty "aaa" qwerty] bbb {qwerty "aaa" qwerty} ccc`;
-					const testParseStr = mdParser.preParse(str);
-
-					expect(testParseStr).toEqual(str);
-				});
-				test("внутри тега картинок", async () => {
-					const mdParser = await getMdParser();
-					const str = `![](./src.png "title")`;
-					const testParseStr = mdParser.preParse(str);
-
-					expect(testParseStr).toEqual(str);
-				});
-			});
-		});
 		describe("формулы", () => {
 			test("простая строка", async () => {
 				const mdParser = await getMdParser();
@@ -193,153 +146,6 @@ describe("MdParser корректно парсит", () => {
 				const mdParser = await getMdParser();
 				const str = `$E = mc^2$$$$ \\int_a^b f(x)\\,dx = F(b) - F(a) $$$$E = mc^2$`;
 				const parsedStr = `{%formula content="$E = mc^2$" /%}\${%formula content="$$ \\\\int_a^b f(x)\\\\,dx = F(b) - F(a) $$" /%}\${%formula content="$E = mc^2$" /%}`;
-
-				const testParseStr = mdParser.preParse(str);
-
-				expect(testParseStr).toEqual(parsedStr);
-			});
-		});
-
-		describe("заметки в тег Markdoc", () => {
-			test("с типом и заголовком", async () => {
-				const mdParser = await getMdParser();
-				const str = `
-:::someType someTitle
-childrenText
-someChildrenText
-someMoreChildrenText
-:::`;
-				const parsedStr = `
-{%note type="someType" title="someTitle" collapsed="false" %}
-childrenText
-someChildrenText
-someMoreChildrenText
-{%/note%}`;
-
-				const testParseStr = mdParser.preParse(str);
-
-				expect(testParseStr).toEqual(parsedStr);
-			});
-
-			test("с типом, заголовком и в свернутом состоянии", async () => {
-				const mdParser = await getMdParser();
-				const str = `
-:::someType:true someTitle
-childrenText
-someChildrenText
-someMoreChildrenText
-:::`;
-				const parsedStr = `
-{%note type="someType" title="someTitle" collapsed="true" %}
-childrenText
-someChildrenText
-someMoreChildrenText
-{%/note%}`;
-
-				const testParseStr = mdParser.preParse(str);
-
-				expect(testParseStr).toEqual(parsedStr);
-			});
-
-			test("без типа и заголовка", async () => {
-				const mdParser = await getMdParser();
-				const str = `
-			:::
-			test
-			:::`;
-				const parsedStr = `
-			{%note type="" title="" collapsed="false" %}
-			test
-			{%/note%}`;
-
-				const testParseStr = mdParser.preParse(str);
-
-				expect(testParseStr).toEqual(parsedStr);
-			});
-
-			test("image в note", async () => {
-				const mdParser = await getMdParser();
-				const str = `
-				:::
-				[image:./src.png:::0,0,100,100::]
-				:::
-				`;
-				const parsedStr = `
-				{%note type="" title="" collapsed="false" %}
-				{%image src="./src.png" alt="" title="" crop="0,0,100,100" scale="" objects="" /%}
-				{%/note%}
-				`;
-
-				const testParseStr = mdParser.preParse(str);
-
-				expect(testParseStr).toEqual(parsedStr);
-			});
-
-			test("без note в image", async () => {
-				const mdParser = await getMdParser();
-				const str = `
-				[image:./src.png:::0,0,100,100::]
-				[image:./src.png:::0,0,100,100::]
-				`;
-				const parsedStr = `
-				{%image src="./src.png" alt="" title="" crop="0,0,100,100" scale="" objects="" /%}
-				{%image src="./src.png" alt="" title="" crop="0,0,100,100" scale="" objects="" /%}
-				`;
-
-				const testParseStr = mdParser.preParse(str);
-
-				expect(testParseStr).toEqual(parsedStr);
-			});
-
-			test("note в списке", async () => {
-				const mdParser = await getMdParser();
-
-				const str = `test
-
--  test test test test test test test test test
-
-   :::tip test test test test test
-
-   test test test test test test test test test test
-
-   :::
-
-test test test test test test
-
-:::tip test test test test test test
-
-test test test test test test
-
-:::
-
-test test test test`;
-
-				const parsedStr = `test
-
--  test test test test test test test test test
-
-   {%note type="tip" title="test test test test test" collapsed="false" %}
-
-   test test test test test test test test test test
-
-   {%/note%}
-
-test test test test test test
-
-{%note type="tip" title="test test test test test test" collapsed="false" %}
-
-test test test test test test
-
-{%/note%}
-
-test test test test`;
-				mdParser.use({
-					render: "Test",
-					attributes: {
-						attr1: { type: String },
-						attr2: { type: String },
-					},
-				});
 
 				const testParseStr = mdParser.preParse(str);
 
@@ -994,11 +800,32 @@ test test test test`;
 	test("скобки внутри изображений", async () => {
 		const mdParser = await getMdParser();
 
-		const str = `paragraph1\n![image](https://test.com/image.png "title (brackets text)")\nparagraph2\n"Ковычки"`;
-		const parsedStr = `paragraph1\n!{%image  /%}(https://test.com/image.png "title (brackets text)")\nparagraph2\n«Ковычки»`;
+		const str = `paragraph1\n![image](https://test.com/image.png "title (brackets text)")\nparagraph2`;
+		const parsedStr = `paragraph1\n!{%image  /%}(https://test.com/image.png "title (brackets text)")\nparagraph2`;
 
 		const testParseStr = mdParser.preParse(str);
 
 		expect(testParseStr).toEqual(parsedStr);
 	});
+	
+	describe("начальные переводы строк обрабатываются корректно", () => {
+		const testCases = [
+			{ input: "Paragraph", expected: "Paragraph" },
+			{ input: "\nParagraph", expected: "\nParagraph" },
+			{ input: "\n\nParagraph", expected: "&nbsp;\n\nParagraph" },
+			{ input: "\n\n\nParagraph", expected: "&nbsp;\n\n&nbsp;\n\nParagraph" },
+			{ input: "\n\n\n\nParagraph", expected: "&nbsp;\n\n&nbsp;\n\nParagraph" },
+			{ input: "\n\n\n\n\nParagraph", expected: "&nbsp;\n\n&nbsp;\n\n&nbsp;\n\nParagraph" },
+		];
+
+		for (let i = 0; i < testCases.length; i++) {
+			test(`различное количество переносов строк в начале документа ${i}`, async () => {
+				const mdParser = await getMdParser();
+				const { input, expected } = testCases[i];
+				const result = mdParser.preParse(input);
+				expect(result).toEqual(expected);
+			});
+		}
+	});
+
 });

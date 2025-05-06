@@ -1,6 +1,6 @@
 import type MarkdownIt from "markdown-it/lib";
 
-const OPEN = "<<<<<<<";
+export const OPEN = "<<<<<<<";
 const MID = "=======";
 const CLOSE = ">>>>>>>";
 
@@ -67,7 +67,7 @@ export function gitConflictPlugin(md: MarkdownIt) {
 		return true;
 	}
 
-	md.block.ruler.before("paragraph", "git_conflict", block, {
+	md.block.ruler.before("annotations", "git_conflict", block, {
 		alt: ["paragraph", "reference", "blockquote", "list"],
 	});
 }

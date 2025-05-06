@@ -4,6 +4,7 @@ import type ApiResponse from "@core/Api/ApiResponse";
 import { apiUtils } from "@core/Api/apiUtils";
 import { AllowedOriginsMiddleware } from "@core/Api/middleware/AllowedOriginsMiddleware";
 import { MainMiddleware } from "@core/Api/middleware/MainMiddleware";
+import { TokenValidationMiddleware } from "@core/Api/middleware/TokenValidationMiddleware";
 import Path from "@core/FileProvider/Path/Path";
 import ExceptionsResponse from "@ext/publicApi/ExceptionsResponse";
 import { ApplyApiMiddleware } from "apps/next/logic/Api/ApplyMiddleware";
@@ -41,5 +42,5 @@ export default ApplyApiMiddleware(
 
 		if (hashItem) await apiUtils.sendWithETag(req, res, hashItem, this.app.hashes);
 	},
-	[new MainMiddleware(), new AllowedOriginsMiddleware()],
+	[new MainMiddleware(), new AllowedOriginsMiddleware(), new TokenValidationMiddleware()],
 );

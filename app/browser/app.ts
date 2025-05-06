@@ -1,4 +1,5 @@
-import resolveModule from "@app/resolveModule/backend";
+import resolveModule, { initModules } from "@app/resolveModule/backend";
+import { initModules as initModulesFrontend } from "@app/resolveModule/frontend";
 import { ContextFactory } from "@core/Context/ContextFactory";
 import DiskFileProvider from "@core/FileProvider/DiskFileProvider/DiskFileProvider";
 import MountFileProvider from "@core/FileProvider/MountFileProvider/MountFileProvider";
@@ -14,7 +15,6 @@ import VideoUrlRepository from "@core/components/video/videoUrlRepository";
 import YamlFileConfig from "@core/utils/YamlFileConfig";
 import Cache from "@ext/Cache";
 import { Encoder } from "@ext/Encoder/Encoder";
-import MailProvider from "@ext/MailProvider";
 import ThemeManager from "@ext/Theme/ThemeManager";
 import EnterpriseManager from "@ext/enterprise/EnterpriseManager";
 import RepositoryProvider from "@ext/git/core/Repository/RepositoryProvider";
@@ -31,7 +31,7 @@ import ClientAuthManager from "@ext/security/logic/ClientAuthManager";
 import { TicketManager } from "@ext/security/logic/TicketManager/TicketManager";
 import FuseSearcher from "@ext/serach/Fuse/FuseSearcher";
 import { IndexDataProvider } from "@ext/serach/IndexDataProvider";
-import Searcher from "@ext/serach/Searcher";
+import SearcherManager from "@ext/serach/SearcherManager";
 import { SourceDataProvider } from "@ext/storage/logic/SourceDataProvider/logic/SourceDataProvider";
 import WorkspaceManager from "@ext/workspace/WorkspaceManager";
 import setWorkerProxy from "../../apps/browser/src/logic/setWorkerProxy";
@@ -39,10 +39,14 @@ import { AppConfig, getConfig, type AppGlobalConfig } from "../config/AppConfig"
 import Application from "../types/Application";
 
 const _init = async (config: AppConfig): Promise<Application> => {
-	const mp: MailProvider = null;
+	await initModulesFrontend();
+	await initModules();
+
 	const vur: VideoUrlRepository = null;
 
-	await resolveModule("initWasm")?.(config.services.gitProxy.url);
+	const initWasm = resolveModule("initWasm");
+
+	await initWasm?.(config.services.gitProxy.url);
 	await XxHash.init();
 
 	const fileConfig = await YamlFileConfig.readFromFile<AppGlobalConfig>(
@@ -69,7 +73,8 @@ const _init = async (config: AppConfig): Promise<Application> => {
 	rp.addSourceDataProvider(sdp);
 
 	await wm.readWorkspaces();
-	const services = wm.maybeCurrent()?.config()?.services ?? config.services;
+	const workspaceConfig = await wm.maybeCurrent()?.config();
+	const services = workspaceConfig?.services ?? config.services;
 	setWorkerProxy(services.gitProxy.url);
 
 	const hashes = new HashItemProvider();
@@ -92,12 +97,11 @@ const _init = async (config: AppConfig): Promise<Application> => {
 
 	const cache = new Cache(new DiskFileProvider(config.paths.data));
 	const indexDataProvider = new IndexDataProvider(wm, cache, parser, parserContextFactory);
-	const searcher: Searcher = new FuseSearcher(indexDataProvider);
+	const searcherManager = new SearcherManager(new FuseSearcher(indexDataProvider), { vector: null });
 
 	return {
 		am,
 		tm,
-		mp,
 		wm,
 		em,
 		rp,
@@ -105,12 +109,13 @@ const _init = async (config: AppConfig): Promise<Application> => {
 		logger,
 		parser,
 		hashes,
-		searcher,
+		searcherManager,
 		formatter,
 		htmlParser,
 		tablesManager,
 		ticketManager,
 		contextFactory,
+		indexDataProvider,
 		sitePresenterFactory,
 		parserContextFactory,
 		resourceUpdaterFactory,
@@ -130,6 +135,8 @@ const _init = async (config: AppConfig): Promise<Application> => {
 			version: config.version,
 			buildVersion: config.buildVersion,
 			bugsnagApiKey: config.bugsnagApiKey,
+
+			search: { vector: { enabled: false } },
 		},
 	};
 };

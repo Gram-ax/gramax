@@ -1,5 +1,7 @@
+import ElementGroups from "@ext/markdown/core/element/ElementGroups";
+
 const snippetSchema = {
-	group: "block",
+	group: `${ElementGroups.block} ${ElementGroups.listItemContent}`,
 	attrs: {
 		id: { default: null },
 		title: { default: null },

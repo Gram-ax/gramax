@@ -1,6 +1,6 @@
 import listItemNodeTransformer from "@ext/markdown/elements/list/edit/models/taskItem/logic/listItemNodeTransformer";
 import taskListNodeTransformer from "@ext/markdown/elements/list/edit/models/taskList/logic/taskListNodeTransformer";
-import noteNodeTransformer from "@ext/markdown/elements/note/logic/transformer/noteNodeTransformer";
+import noteNodeTransformer from "@ext/markdown/elements/note/logic/noteNodeTransformer";
 import unsupportedNodeTransformer from "@ext/markdown/elements/unsupported/logic/unsupportedNodeTransformer";
 import ParserContext from "./ParserContext/ParserContext";
 
@@ -26,24 +26,26 @@ import { ProsemirrorMarkdownParser, ProsemirrorTransformer } from "../edit/logic
 import { getSchema } from "../edit/logic/Prosemirror/schema";
 import { getTokens } from "../edit/logic/Prosemirror/tokens";
 
-import commentTokenTransformer from "@ext/markdown/elements/comment/edit/logic/commentTokenTransformer";
+import commentTokenTransformer from "@ext/markdown/elements/comment/logic/commentTokenTransformer";
 import commentNodeTransformer from "@ext/markdown/elements/comment/legacy/transformer/commentNodeTransformer";
-import cutTokenTransformer from "@ext/markdown/elements/cut/edit/logic/cutTokenTransformer";
+import cutTokenTransformer from "@ext/markdown/elements/cut/logic/cutTokenTransformer";
 import iconTokenTransformer from "@ext/markdown/elements/icon/logic/iconTokenTransformer";
-import imageTokenTransformer from "@ext/markdown/elements/image/edit/logic/transformer/imageTokenTransformer";
-import tableTokenTransformer from "@ext/markdown/elements/table/edit/logic/tableTokenTransformer";
+import imageTokenTransformer from "@ext/markdown/elements/image/logic/imageTokenTransformer";
+import tableTokenTransformer from "@ext/markdown/elements/table/logic/tableTokenTransformer";
 import { JSONContent } from "@tiptap/core";
 import getTocItems, { getLevelTocItemsByRenderableTree } from "../../../navigation/article/logic/createTocItems";
-import inlineCutNodeTransformer from "../../elements/cut/edit/logic/inlineCutNodeTransformer";
-import diagramsNodeTransformer from "../../elements/diagrams/logic/transformer/diagramsNodeTransformer";
-import fileMarkTransformer from "../../elements/file/edit/logic/fileMarkTransformer";
-import blockMdNodeTransformer from "../../elements/md/logic/blockMdNodeTransformer";
-import paragraphNodeTransformer from "../../elements/paragraph/edit/logic/paragraphNodeTransformer";
+import inlineCutNodeTransformer from "@ext/markdown/elements/cut/logic/inlineCutNodeTransformer";
+import diagramsNodeTransformer from "@ext/markdown/elements/diagrams/logic/transformer/diagramsNodeTransformer";
+import fileMarkTransformer from "@ext/markdown/elements/file/logic/fileMarkTransformer";
+import blockMdNodeTransformer from "@ext/markdown/elements/md/logic/blockMdNodeTransformer";
+import paragraphNodeTransformer from "@ext/markdown/elements/paragraph/logic/paragraphNodeTransformer";
 import Transformer from "./Transformer/Transformer";
 
 import ParseError from "@ext/markdown/core/Parser/Error/ParseError";
-import htmlTokenTransformer from "@ext/markdown/elements/html/edit/logic/htmlTokenTransformer";
+import htmlTokenTransformer from "@ext/markdown/elements/html/logic/htmlTokenTransformer";
 import MarkdownFormatter from "../edit/logic/Formatter/Formatter";
+import inlinePropertyTokenTransformer from "@ext/markdown/elements/inlineProperty/edit/logic/inlinePropertyTokenTransformer";
+import editTreeToRenderTree from "@ext/markdown/core/Parser/EditTreeToRenderTree";
 
 const katexPlugin = import("@traptitech/markdown-it-katex");
 
@@ -54,13 +56,14 @@ export default class MarkdownParser {
 		try {
 			const schemes = this._getSchemes(context);
 			const tokens = this._getTokens(content, schemes);
-			const renderTree = await this._getRenderableTreeNode(tokens, schemes, context);
 			const editTree = await this._editParser(tokens, schemes, context);
+			const renderTree = editTreeToRenderTree(editTree, getSchema());
+			const tocItems = getTocItems(getLevelTocItemsByRenderableTree((renderTree as Tag)?.children ?? []));
 			return {
 				editTree,
 				renderTree,
 				htmlValue: await this.parseToHtml(content, context, requestUrl),
-				tocItems: getTocItems(getLevelTocItemsByRenderableTree((renderTree as Tag)?.children ?? [])),
+				tocItems,
 				linkManager: context?.getLinkManager(),
 				resourceManager: context?.getResourceManager(),
 				snippets: context?.snippet,
@@ -131,21 +134,21 @@ export default class MarkdownParser {
 	}
 
 	private _getSchemes(context?: ParserContext): Schemes {
-		const tags: Record<string, Schema> = getTagElementRenderModels(context);
-		const nodes: Record<string, Schema> = getNodeElementRenderModels(context);
+		const tags = getTagElementRenderModels(context);
+		const nodes = getNodeElementRenderModels(context);
 		return { tags, nodes };
 	}
 
 	private _getTokens(content: string, schemes?: Schemes) {
 		const mdParser = new MdParser({ tags: schemes.tags });
 		const parseDoc = mdParser.preParse(content);
-		const tokens = this._getTokenizer().tokenize(parseDoc);
+		const tokens = this._getTokenizer(schemes.tags).tokenize(parseDoc);
 		const transformer = new Transformer();
 		return transformer.htmlTransform(transformer.tableTransform(transformer.imageTransform(tokens)));
 	}
 
-	private _getTokenizer() {
-		const tokenizer = new Tokenizer({ linkify: false });
+	private _getTokenizer(tags?: Schemes["tags"]) {
+		const tokenizer = new Tokenizer({ linkify: false }, tags);
 		return tokenizer;
 	}
 	private async _getRenderableTreeNode(
@@ -177,6 +180,7 @@ export default class MarkdownParser {
 				commentNodeTransformer,
 			],
 			[
+				inlinePropertyTokenTransformer,
 				htmlTokenTransformer,
 				tableTokenTransformer,
 				cutTokenTransformer,
@@ -184,18 +188,18 @@ export default class MarkdownParser {
 				commentTokenTransformer,
 				iconTokenTransformer,
 			],
+			context,
 		);
 
 		const transformTokens = transformer.transformToken(tokens);
 
 		const editTree = (await prosemirrorParser.parse(transformTokens)).toJSON();
 
-		const transformEditTree = await transformer.transformTree(editTree, null, null, context, 0);
+		const transformEditTree = await transformer.transformTree(editTree, null, null, 0);
 
 		const finalEditTree = await transformer.transformMdComponents(
 			transformEditTree,
 			this.parseRenderableTreeNode.bind(this),
-			context,
 		);
 
 		return finalEditTree;

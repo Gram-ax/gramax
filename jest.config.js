@@ -6,21 +6,7 @@ module.exports = {
 	transform: {
 		"^.+\\.jsx?$": "babel-jest",
 		"^.+\\.svg$": "<rootDir>/scripts/jest/svgTransform.js",
-		"^.+\\.(ts)x?$": [
-			"jest-chain-transform",
-			{
-				transformers: [
-					["ts-jest", { diagnostics: true, babelConfig: true }],
-					[
-						"jest-ifdef-transform",
-						{
-							"ifdef-triple-slash": true,
-							VITE_ENVIRONMENT: "jest",
-						},
-					],
-				],
-			},
-		],
+		"^.+\\.(ts)x?$": ["ts-jest", { diagnostics: true, babelConfig: true }],
 	},
 	testMatch: ["<rootDir>/**/*.test.ts"],
 	testPathIgnorePatterns: [
@@ -49,7 +35,6 @@ module.exports = {
 		"^@services/(.*)$": "<rootDir>/services/core/$1",
 	},
 	transformIgnorePatterns: [
-		"<rootDir>/node_modules",
 		"<rootDir>/.next",
 		"<rootDir>/public",
 		"<rootDir>/docs",

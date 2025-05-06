@@ -6,15 +6,18 @@ import ArticleRefService from "@core-ui/ContextServices/ArticleRef";
 import CatalogPropsService from "@core-ui/ContextServices/CatalogProps";
 import ModalToOpenService from "@core-ui/ContextServices/ModalToOpenService/ModalToOpenService";
 import ModalToOpen from "@core-ui/ContextServices/ModalToOpenService/model/ModalsToOpen";
-import useRestoreRightSidebar from "@core-ui/hooks/diff/useRestoreRightSidebar";
+import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
+import ArticleViewService from "@core-ui/ContextServices/views/articleView/ArticleViewService";
 import useWatch from "@core-ui/hooks/useWatch";
+import { useRouter } from "@core/Api/useRouter";
 import { ItemType } from "@core/FileStructue/Item/ItemType";
 import styled from "@emotion/styled";
 import type ActionWarning from "@ext/localization/actions/ActionWarning";
 import { shouldShowActionWarning } from "@ext/localization/actions/ActionWarning";
-import { DropOptions, NodeModel, Tree, useDragOver } from "@minoru/react-dnd-treeview";
+import NavigationEvents from "@ext/navigation/NavigationEvents";
+import { DropOptions, NodeModel, RenderParams, Tree, useDragOver } from "@minoru/react-dnd-treeview";
 import { CssBaseline } from "@mui/material";
-import { useCallback, useEffect, useMemo, useState, type ComponentProps } from "react";
+import React, { useCallback, useEffect, useState, type ComponentProps } from "react";
 import CreateArticle from "../../../../artilce/actions/CreateArticle";
 import EditMenu from "../../../../item/EditMenu";
 import CommentCountNavExtension from "../../../../markdown/elements/comment/edit/components/CommentCountNavExtension";
@@ -23,8 +26,6 @@ import IconExtension from "../../main/render/IconExtension";
 import NavigationItem from "../../main/render/Item";
 import DragTreeTransformer from "../logic/DragTreeTransformer";
 import getOpenItemsIds from "../logic/getOpenItemsIds";
-import { useRouter } from "@core/Api/useRouter";
-import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 
 type handleOnDropType = (
 	draggedItemPath: string,
@@ -32,23 +33,17 @@ type handleOnDropType = (
 	fetchComplete: () => void,
 ) => Promise<void> | void;
 
-const ExportLevNavDragTree = ({
-	items,
-	closeNavigation,
-}: {
-	items: NodeModel<ItemLink>[];
-	closeNavigation?: () => void;
-}) => {
+const ExportLevNavDragTree = ({ items, closeNavigation }: { items: ItemLink[]; closeNavigation?: () => void }) => {
 	const isReadOnly = PageDataContextService.value.conf.isReadOnly;
 	const articleProps = ArticlePropsService.value;
 	const catalogProps = CatalogPropsService.value;
 	const apiUrlCreator = ApiUrlCreatorService.value;
 	const [dragged, setDragged] = useState<boolean>(!isReadOnly);
-	const [treeData, setTreeData] = useState(items);
+	const [treeData, setTreeData] = useState<NodeModel<ItemLink>[]>([]);
 	const router = useRouter();
 
 	useEffect(() => {
-		setTreeData(items);
+		setTreeData(DragTreeTransformer.getRenderDragNav(items));
 	}, [items]);
 
 	const handleOnDrop: handleOnDropType = async (draggedItemPath, newTree, fetchComplete) => {
@@ -106,6 +101,7 @@ const LevNavDragTree = styled((props: LevNavDragTreeProps) => {
 	const articleElement = ArticleRefService.value.current;
 	const [initialOpen, setInitialOpen] = useState(new Set<number | string>(getOpenItemsIds(items)));
 	const [draggedItemPath, setDraggedItemPath] = useState<string>();
+
 	const onDropHandler = useCallback(
 		(tree: NodeModel<ItemLink>[], { dropTargetId }: DropOptions<ItemLink>) => {
 			const addToInitialOpen = () => {
@@ -138,100 +134,17 @@ const LevNavDragTree = styled((props: LevNavDragTreeProps) => {
 					onDragEnd={() => setDraggedItemPath(undefined)}
 					onDragStart={(tree) => setDraggedItemPath(tree.data.ref.path)}
 					initialOpen={Array.from(initialOpen)}
-					render={(node, { depth, isOpen, onToggle, containerRef, isDropTarget }) => {
-						const [thisItem, setThisItem] = useState(node.data);
-						const [isHover, setIsHover] = useState(false);
-						const restoreRightSidebar = useRestoreRightSidebar();
-
-						const isActive = thisItem.isCurrentLink;
-						const existsContent =
-							thisItem.type === ItemType.category ? (thisItem as CategoryLink).existContent : true;
-						const isCategory = !!(thisItem as CategoryLink).items?.length;
-
-						const updateAlwaysIsOpen = () => {
-							if (isOpen) initialOpen.delete(node.id);
-							else initialOpen.add(node.id);
-							setInitialOpen(new Set(initialOpen));
-						};
-
-						const currentOnToggle = () => {
-							onToggle();
-							updateAlwaysIsOpen();
-						};
-
-						useEffect(() => {
-							setThisItem(node.data);
-						}, [node.data]);
-
-						useEffect(() => {
-							if ((node.data as CategoryLink)?.isExpanded && !isOpen) currentOnToggle();
-						}, [(node.data as CategoryLink)?.isExpanded]);
-
-						useWatch(() => {
-							if (!isActive) return;
-							containerRef.current?.scrollIntoView({
-								behavior: "smooth",
-								block: "nearest",
-							});
-						}, [isActive]);
-
-						useEffect(() => {
-							if (!isActive) return;
-							containerRef.current?.scrollIntoView({
-								behavior: "auto",
-								inline: "center",
-								block: "center",
-							});
-						}, []);
-
-						const rightExtensions = useMemo(
-							() => [
-								<CreateArticle key={1} item={thisItem} />,
-								<EditMenu
-									key={0}
-									itemLink={thisItem}
-									isCategory={isCategory}
-									setItemLink={setThisItem}
-									onOpen={() => setIsHover(true)}
-									onClose={() => setIsHover(false)}
-								/>,
-							],
-							[thisItem],
-						);
-
-						return (
-							<NavigationItem
-								level={depth}
-								isOpen={isOpen}
-								isDragStarted={!!draggedItemPath}
-								item={thisItem}
-								isHover={isHover}
-								isActive={isActive}
-								isCategory={isCategory}
-								onToggle={currentOnToggle}
-								isDropTarget={isDropTarget}
-								onClick={() => {
-									restoreRightSidebar();
-									closeNavigation?.();
-									if (node.data.isCurrentLink)
-										articleElement?.scrollTo({
-											top: 0,
-											left: 0,
-											behavior: "smooth",
-										});
-									if (!onToggle) return;
-									if (!existsContent || isActive) currentOnToggle();
-									else if (!isOpen) return currentOnToggle();
-								}}
-								leftExtensions={[
-									<IconExtension key={0} item={thisItem} />,
-									<CommentCountNavExtension key={1} item={thisItem} />,
-								]}
-								rightExtensions={rightExtensions}
-								{...useDragOver(node.id, isOpen, currentOnToggle)} //auto-expand
-							/>
-						);
-					}}
+					render={(node, params) => (
+						<NavItem
+							node={node}
+							params={params}
+							initialOpen={initialOpen}
+							setInitialOpen={setInitialOpen}
+							draggedItemPath={draggedItemPath}
+							closeNavigation={closeNavigation}
+							articleElement={articleElement}
+						/>
+					)}
 					placeholderRender={(_, { depth }) => {
 						return <div className={"placeholder depth-" + depth} />;
 					}}
@@ -289,5 +202,150 @@ const LevNavDragTree = styled((props: LevNavDragTreeProps) => {
 		}
 	}
 `;
+
+interface NavItemProps {
+	node: NodeModel<ItemLink>;
+	params: RenderParams;
+	initialOpen: Set<number | string>;
+	setInitialOpen: (initialOpen: Set<number | string>) => void;
+	draggedItemPath: string;
+	closeNavigation: () => void;
+	articleElement: HTMLElement;
+}
+
+const NavItem = React.memo(
+	({
+		node,
+		params: { depth, isOpen, onToggle, containerRef, isDropTarget },
+		initialOpen,
+		setInitialOpen,
+		draggedItemPath,
+		closeNavigation,
+		articleElement,
+	}: NavItemProps) => {
+		const [thisItem, setThisItem] = useState(node.data);
+		const [isHover, setIsHover] = useState(false);
+
+		const isActive = thisItem.isCurrentLink && ArticleViewService.isDefaultView();
+		const existsContent = thisItem.type === ItemType.category ? (thisItem as CategoryLink).existContent : true;
+		const isCategory = !!(thisItem as CategoryLink).items?.length;
+
+		const updateAlwaysIsOpen = () => {
+			if (isOpen) initialOpen.delete(node.id);
+			else initialOpen.add(node.id);
+			setInitialOpen(new Set(initialOpen));
+		};
+
+		const currentOnToggle = () => {
+			onToggle();
+			updateAlwaysIsOpen();
+		};
+
+		useEffect(() => {
+			setThisItem(node.data);
+		}, [node.data]);
+
+		useEffect(() => {
+			if ((node.data as CategoryLink)?.isExpanded && !isOpen) currentOnToggle();
+		}, [(node.data as CategoryLink)?.isExpanded]);
+
+		useWatch(() => {
+			if (!isActive) return;
+			containerRef.current?.scrollIntoView({
+				behavior: "smooth",
+				block: "nearest",
+			});
+		}, [isActive]);
+
+		useEffect(() => {
+			if (!isActive) return;
+			containerRef.current?.scrollIntoView({
+				behavior: "auto",
+				inline: "center",
+				block: "center",
+			});
+		}, []);
+
+		return (
+			<NavigationItem
+				level={depth}
+				isOpen={isOpen}
+				item={thisItem}
+				isHover={isHover}
+				isCategory={isCategory}
+				onToggle={currentOnToggle}
+				isDropTarget={isDropTarget}
+				isDragStarted={!!draggedItemPath}
+				onClick={() => {
+					NavigationEvents.emit("item-click", { path: thisItem.ref.path });
+					closeNavigation?.();
+					if (node.data.isCurrentLink)
+						articleElement?.scrollTo({
+							top: 0,
+							left: 0,
+							behavior: "smooth",
+						});
+					if (!onToggle) return;
+					if (!existsContent || isActive) currentOnToggle();
+					else if (!isOpen) return currentOnToggle();
+				}}
+				leftExtensions={<LeftExtensions item={thisItem} />}
+				rightExtensions={
+					<RightExtensions
+						item={thisItem}
+						isCategory={isCategory}
+						setThisItem={setThisItem}
+						setIsHover={setIsHover}
+					/>
+				}
+				{...useDragOver(node.id, isOpen, currentOnToggle)} //auto-expand
+			/>
+		);
+	},
+);
+
+const LeftExtensions = ({ item }: { item: ItemLink }) => {
+	return (
+		<>
+			<IconExtension item={item} />
+			<CommentCountNavExtension item={item} />
+		</>
+	);
+};
+
+const RightExtensions = React.memo(
+	({
+		item,
+		isCategory,
+		setThisItem,
+		setIsHover,
+	}: {
+		item: ItemLink;
+		isCategory: boolean;
+		setThisItem: (item: ItemLink) => void;
+		setIsHover: (isHover: boolean) => void;
+	}) => {
+		const onOpenHandler = useCallback(() => {
+			setIsHover(true);
+		}, [setIsHover]);
+
+		const onCloseHandler = useCallback(() => {
+			setIsHover(false);
+		}, [setIsHover]);
+
+		return (
+			<>
+				<CreateArticle item={item} />
+				<EditMenu
+					itemLink={item}
+					isCategory={isCategory}
+					setItemLink={setThisItem}
+					onOpen={onOpenHandler}
+					onClose={onCloseHandler}
+				/>
+			</>
+		);
+	},
+);
 
 export default ExportLevNavDragTree;

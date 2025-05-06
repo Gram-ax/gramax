@@ -6,26 +6,18 @@ const createContainer = (html: string) => {
 	return container;
 };
 
-const createListDocument = (additionalText?: string) => {
-	const list = document.createElement("ul");
-	list.innerHTML =
-		"<li><p>jwrhtbkrwj</p><ul><li><p>wrjkbtkjwrlt</p></li><li><p>wrktkjwkt</p><ul><li><p>jrwjktrwnk</p></li><li><p>rjwhtkjwlrkt</p><ul><li><p>kwjrbhktjrwt</p></li></ul></li><li><p>wrtrwt</p></li></ul></li><li><p>wrtwrt</p></li><li><p>rw</p></li></ul></li><li><p>wrtwrt</p></li>";
-	return createContainer(additionalText ? `${additionalText}${list.outerHTML}` : list.outerHTML);
-};
-
-const createTwoListDocument = () => {
-	const list = document.createElement("ul");
-	list.innerHTML =
-		"<li><p>jwrhtbkrwj</p><ul><li><p>wrjkbtkjwrlt</p></li><li><p>wrktkjwkt</p><ol><li><p>jrwjktrwnk</p></li><li><p>rjwhtkjwlrkt</p><ul><li><p>kwjrbhktjrwt</p></li></ul></li><li><p>wrtrwt</p></li></ol></li><li><p>wrtwrt</p></li><li><p>rw</p></li></ul></li><li><p>wrtwrt</p></li>";
-	return createContainer(list.outerHTML);
+const createRange = (html: string) => {
+	const container = createContainer(html);
+	const range = document.createRange();
+	range.selectNodeContents(container);
+	return range;
 };
 
 describe("createPlainText", () => {
 	test("целый список", () => {
-		const range = document.createRange();
-		const container = createListDocument();
-		document.body.appendChild(container);
-		range.selectNodeContents(container);
+		const range = createRange(
+			"<li><p>jwrhtbkrwj</p><ul><li><p>wrjkbtkjwrlt</p></li><li><p>wrktkjwkt</p><ul><li><p>jrwjktrwnk</p></li><li><p>rjwhtkjwlrkt</p><ul><li><p>kwjrbhktjrwt</p></li></ul></li><li><p>wrtrwt</p></li></ul></li><li><p>wrtwrt</p></li><li><p>rw</p></li></ul></li><li><p>wrtwrt</p></li>",
+		);
 
 		const testData = createPlainText(range);
 		const expectedData = `- jwrhtbkrwj
@@ -37,17 +29,31 @@ describe("createPlainText", () => {
 		- wrtrwt
 	- wrtwrt
 	- rw
-- wrtwrt
+- wrtwrt`;
+		expect(testData).toBe(expectedData);
+	});
+
+	test("обрезанный список", () => {
+		const range = createRange(
+			"<li><p>jwrhtbkrwj</p><ul><li><p>wrjkbtkjwrlt</p></li><li><p>wrktkjwkt</p><ul><li><p>jrwjktrwnk</p></li><li><p>rjwhtkjwlrkt</p><ul><li><p>kwjrbhktjrwt</p></li></ul></li><li><p>wrtrwt</p></li>",
+		);
+
+		const testData = createPlainText(range);
+		const expectedData = `- jwrhtbkrwj
+	- wrjkbtkjwrlt
+	- wrktkjwkt
+		- jrwjktrwnk
+		- rjwhtkjwlrkt
+			- kwjrbhktjrwt
+		- wrtrwt
 `;
 		expect(testData).toBe(expectedData);
-		document.body.removeChild(container);
 	});
 
 	test("список с текстом", () => {
-		const range = document.createRange();
-		const container = createListDocument("<p>amogus</p><p>abobus amogus</p><p>abobus</p>");
-		document.body.appendChild(container);
-		range.selectNodeContents(container);
+		const range = createRange(
+			"<p>amogus</p><p>abobus amogus</p><p>abobus</p><li><p>jwrhtbkrwj</p><ul><li><p>wrjkbtkjwrlt</p></li><li><p>wrktkjwkt</p><ul><li><p>jrwjktrwnk</p></li><li><p>rjwhtkjwlrkt</p><ul><li><p>kwjrbhktjrwt</p></li></ul></li><li><p>wrtrwt</p></li></ul></li><li><p>wrtwrt</p></li><li><p>rw</p></li></ul></li><li><p>wrtwrt</p></li>",
+		);
 
 		const testData = createPlainText(range);
 		const expectedData = `amogus
@@ -62,17 +68,14 @@ abobus
 		- wrtrwt
 	- wrtwrt
 	- rw
-- wrtwrt
-`;
+- wrtwrt`;
 		expect(testData).toBe(expectedData);
-		document.body.removeChild(container);
 	});
 
 	test("изображение и список", () => {
-		const range = document.createRange();
-		const container = createListDocument("<img src='amogus.png' />");
-		document.body.appendChild(container);
-		range.selectNodeContents(container);
+		const range = createRange(
+			"<img src='amogus.png' /><li><p>jwrhtbkrwj</p><ul><li><p>wrjkbtkjwrlt</p></li><li><p>wrktkjwkt</p><ul><li><p>jrwjktrwnk</p></li><li><p>rjwhtkjwlrkt</p><ul><li><p>kwjrbhktjrwt</p></li></ul></li><li><p>wrtrwt</p></li></ul></li><li><p>wrtwrt</p></li><li><p>rw</p></li></ul></li><li><p>wrtwrt</p></li>",
+		);
 
 		const testData = createPlainText(range);
 		const expectedData = `- jwrhtbkrwj
@@ -84,17 +87,14 @@ abobus
 		- wrtrwt
 	- wrtwrt
 	- rw
-- wrtwrt
-`;
+- wrtwrt`;
 		expect(testData).toBe(expectedData);
-		document.body.removeChild(container);
 	});
 
 	test("два разных списка", () => {
-		const range = document.createRange();
-		const container = createTwoListDocument();
-		document.body.appendChild(container);
-		range.selectNodeContents(container);
+		const range = createRange(
+			"<li><p>jwrhtbkrwj</p><ul><li><p>wrjkbtkjwrlt</p></li><li><p>wrktkjwkt</p><ol><li><p>jrwjktrwnk</p></li><li><p>rjwhtkjwlrkt</p><ul><li><p>kwjrbhktjrwt</p></li></ul></li><li><p>wrtrwt</p></li></ol></li><li><p>wrtwrt</p></li><li><p>rw</p></li></ul></li><li><p>wrtwrt</p></li>",
+		);
 
 		const testData = createPlainText(range);
 		const expectedData = `- jwrhtbkrwj
@@ -106,9 +106,83 @@ abobus
 		3. wrtrwt
 	- wrtwrt
 	- rw
-- wrtwrt
-`;
+- wrtwrt`;
 		expect(testData).toBe(expectedData);
-		document.body.removeChild(container);
+	});
+
+	test("list item с дополнительным текстом", () => {
+		const range = createRange(
+			"<li><p>jwrhtbkrwj</p><ul><li><p>wrjkbtkjwrlt</p></li><li><p>wrktkjwkt</p><p>text</p><ol><li><p>jrwjktrwnk</p></li><li><p>rjwhtkjwlrkt</p><ul><li><p>kwjrbhktjrwt</p></li></ul></li><li><p>wrtrwt</p></li></ol></li><li><p>wrtwrt</p></li><li><p>rw</p></li></ul></li><li><p>wrtwrt</p></li>",
+		);
+
+		const testData = createPlainText(range);
+		const expectedData = `- jwrhtbkrwj
+	- wrjkbtkjwrlt
+	- wrktkjwkt
+	  text
+		1. jrwjktrwnk
+		2. rjwhtkjwlrkt
+			- kwjrbhktjrwt
+		3. wrtrwt
+	- wrtwrt
+	- rw
+- wrtwrt`;
+		expect(testData).toBe(expectedData);
+	});
+
+	test("обычный текст с инлайн кодом", () => {
+		const range = createRange(
+			"<p>jwrhtbkrwj</p><p>wrjkbtkjwrlt</p><p>wrktkjwkt</p><p>text</p><p>jrwjktrwnk <code>code</code></p><p>rjwhtkjwlrkt</p><p>kwjrbhktjrwt</p><p>wrtrwt</p><p>wrtwrt</p><p>rw</p>",
+		);
+
+		const testData = createPlainText(range);
+		const expectedData = `jwrhtbkrwj
+wrjkbtkjwrlt
+wrktkjwkt
+text
+jrwjktrwnk code
+rjwhtkjwlrkt
+kwjrbhktjrwt
+wrtrwt
+wrtwrt
+rw`;
+		expect(testData).toBe(expectedData);
+	});
+
+	test("копирование текста из list item", () => {
+		const range = createRange("<li><p>jwrhtbkrwj <code>code</code></p></li>");
+
+		const testData = createPlainText(range);
+		const expectedData = `jwrhtbkrwj code`;
+		expect(testData).toBe(expectedData);
+	});
+
+	test("копирование текста из других элементов", () => {
+		const range = createRange(
+			"<div><p>jwrhtbkrwj</p><li><p>jwrhtbkrwj</p><ul><li><p>wrjkbtkjwrlt</p></li><li><p>wrktkjwkt</p><ul><li><p>jrwjktrwnk</p></li><li><p>rjwhtkjwlrkt</p><ul><li><p>kwjrbhktjrwt</p></li></ul></li><li><p>wrtrwt</p></li></div>",
+		);
+
+		const testData = createPlainText(range);
+		const expectedData = `jwrhtbkrwj
+- jwrhtbkrwj
+	- wrjkbtkjwrlt
+	- wrktkjwkt
+		- jrwjktrwnk
+		- rjwhtkjwlrkt
+			- kwjrbhktjrwt
+		- wrtrwt`;
+		expect(testData).toBe(expectedData);
+	});
+
+	test("копирование текста из code block", () => {
+		const range = createRange(
+			`<pre><div data-node-view-content="" style="white-space: pre-wrap;"><div data-node-view-content-react="" style="white-space: inherit;"><span class="hljs-built_in">print</span>(<span class="hljs-string">"hello gramax"</span>)
+<span class="hljs-built_in">print</span>(<span class="hljs-string">"huesos"</span>)</div></div></pre>`,
+		);
+
+		const testData = createPlainText(range);
+		const expectedData = `print("hello gramax")
+print("huesos")`;
+		expect(testData).toBe(expectedData);
 	});
 });

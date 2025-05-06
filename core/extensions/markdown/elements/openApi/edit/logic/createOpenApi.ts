@@ -1,18 +1,11 @@
-import ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
 import { ClientArticleProps } from "@core/SitePresenter/SitePresenter";
-import initArticleResource from "@ext/markdown/elementsUtils/AtricleResource/initArticleResource";
 import { Editor } from "@tiptap/core";
 import OpenApiData from "./OpenApiData";
-import { OnLoadResource } from "@ext/markdown/elements/copyArticles/onLoadResourceService";
+import { ResourceServiceType } from "@ext/markdown/elements/copyArticles/resourceService";
 
-const createOpenApi = async (
-	editor: Editor,
-	articleProps: ClientArticleProps,
-	apiUrlCreator: ApiUrlCreator,
-	onLoadResource: OnLoadResource,
-) => {
-	const extension = "yaml";
-	const newName = await initArticleResource(articleProps, apiUrlCreator, onLoadResource, OpenApiData, extension);
+const createOpenApi = async (editor: Editor, articleProps: ClientArticleProps, resourceService: ResourceServiceType) => {
+	const name = `${articleProps.fileName}.yaml`;
+	const newName = await resourceService.setResource(name, OpenApiData);
 	if (!newName) return;
 	editor.chain().setOpenApi({ src: newName }).run();
 };

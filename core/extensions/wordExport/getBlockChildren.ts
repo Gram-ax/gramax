@@ -1,4 +1,6 @@
-import { WordBlockChildren } from "./options/WordTypes";
 import { blockLayouts } from "./layouts";
+import { WordBlockChildren } from "./options/WordTypes";
 
-export const getBlockChildren: () => WordBlockChildren = () => blockLayouts;
+export const getBlockChildren: () => WordBlockChildren = () => {
+	return blockLayouts;
+};

@@ -1,0 +1,351 @@
+import { RenderableTreeNode, Tag } from "@ext/markdown/core/render/logic/Markdoc";
+import { JSONContent } from "@tiptap/core";
+import { Schema } from "@tiptap/pm/model";
+
+type ComponentsNames = Record<string, string>;
+
+type Child = JSONContent | Tag;
+
+type Attrs = Record<string, unknown>;
+
+const getComponentsNames = (): ComponentsNames => {
+	return {
+		doc: "article",
+		text: "Text",
+		heading: "Heading",
+		paragraph: "p",
+		strong: "strong",
+		em: "em",
+		link: "Link",
+		s: "s",
+		code: "Code",
+		code_block: "Fence",
+		image: "Image",
+		table_row: "TableRow",
+		cut: "Cut",
+		cmd: "Cmd",
+		who: "Who",
+		kbd: "Kbd",
+		drawio: "Drawio",
+		"plant-uml": "Plant-uml",
+		openapi: "OpenApi",
+		mermaid: "Mermaid",
+		include: "Include",
+		formula: "Formula",
+		"ts-diagram": "Ts-diagram",
+		video: "Video",
+		view: "View",
+		html: "Html",
+		alfa: "Alfa",
+		beta: "Beta",
+		when: "When",
+		horizontal_rule: "hr",
+		tableCell: "td",
+		tableRow: "tr",
+		tableHeader: "th",
+		tbody: "tbody",
+		color: "Color",
+		thead: "thead",
+		alert: "Alert",
+	};
+};
+
+const diagramsTransformer = (node: JSONContent, componentsNames: ComponentsNames): JSONContent => {
+	const diagramName = node.attrs?.diagramName?.toLowerCase();
+	if (!diagramName) {
+		return node;
+	}
+
+	const tagName = componentsNames[diagramName];
+	if (!tagName) {
+		return node;
+	}
+
+	const tag = {
+		...node,
+		type: tagName.toLowerCase(),
+	};
+
+	return tag;
+};
+
+const tableTransformer = (node: JSONContent): JSONContent => {
+	if (node.type !== "table") {
+		return node;
+	}
+
+	const tag = {
+		...node,
+		type: "Table",
+	};
+
+	const handleRow = (row: JSONContent) => {
+		const tag = {
+			...row,
+			content: row.content.map((cell) => handleCell(cell)),
+			type: "tableRow",
+		};
+
+		return tag;
+	};
+
+	const handleCell = (cell: JSONContent) => {
+		const tag = {
+			...cell,
+			type: "tableCell",
+		};
+
+		return tag;
+	};
+
+	const children = [{ type: "tbody", content: node.content.map((row) => handleRow(row)) }];
+
+	tag.content = children;
+
+	return tag;
+};
+
+const snippetTagTransformer = (node: JSONContent): JSONContent => {
+	if (node.type !== "snippet") {
+		return node;
+	}
+
+	const tag = {
+		...node,
+		type: "snippet",
+		content: node.attrs?.content || [],
+	};
+
+	return tag;
+};
+
+const codeBlockTransformer = (node: JSONContent): JSONContent => {
+	if (node.type !== "code_block") {
+		return node;
+	}
+
+	const text = node.content?.[0]?.text || "";
+	const tag = {
+		...node,
+		attrs: {
+			...node.attrs,
+			value: text,
+		},
+		type: "code_block",
+	};
+
+	delete tag.content;
+
+	return tag;
+};
+
+const listTransformer = (node: JSONContent): JSONContent => {
+	if (node.type !== "bulletList" && node.type !== "orderedList") {
+		return node;
+	}
+
+	const recursiveAddDepth = (node: JSONContent, depth: number) => {
+		if (node.attrs?.depth !== undefined) {
+			return node;
+		}
+
+		if (node.type !== "bulletList" && node.type !== "orderedList") {
+			if (node.content) {
+				node.content = node.content.map((child) =>
+					recursiveAddDepth(
+						child,
+						child.type === "bulletList" || child.type === "orderedList" ? depth + 1 : depth,
+					),
+				);
+			}
+
+			return node;
+		}
+
+		const newNode = {
+			...node,
+			attrs: {
+				...node.attrs,
+				depth,
+			},
+		};
+
+		if (node.content) {
+			newNode.content = node.content.map((child) =>
+				recursiveAddDepth(
+					child,
+					child.type === "bulletList" || child.type === "orderedList" ? depth + 1 : depth,
+				),
+			);
+		}
+
+		return newNode;
+	};
+
+	return recursiveAddDepth(node, 0);
+};
+
+const parentLinksTagTransformer = (tag: Child): object | object[] => {
+	const linkChildren =
+		"children" in tag
+			? tag.children.filter((child: Tag) => child?.name === "Link")
+			: tag.content.filter((child: JSONContent) => child?.name === "Link");
+
+	if (!linkChildren.length) {
+		return tag;
+	}
+
+	const linksByHref: Record<string, Tag[]> = {};
+
+	linkChildren.forEach((link: Tag) => {
+		const href = link.attributes.href;
+		if (!linksByHref[href]) {
+			linksByHref[href] = [];
+		}
+		linksByHref[href].push(link);
+	});
+
+	const newChildren: Tag[] = [];
+
+	for (let i = 0; i < tag.children.length; i++) {
+		const child = "children" in tag ? tag.children[i] : tag.content[i];
+
+		if (child.name !== "Link") {
+			newChildren.push(child);
+			continue;
+		}
+
+		const href = child.attributes.href;
+		const linksWithSameHref = linksByHref[href];
+
+		if (linksWithSameHref && linksWithSameHref[0] === child) {
+			const combinedLink: Tag = {
+				...child,
+				children: [],
+			};
+
+			linksWithSameHref.forEach((link) => {
+				combinedLink.children.push(...link.children);
+			});
+
+			newChildren.push(combinedLink);
+
+			i += linksWithSameHref.length - 1;
+		}
+	}
+
+	return {
+		...tag,
+		children: newChildren,
+	};
+};
+
+const editTreeToRenderTree = (editTree: JSONContent, editSchema: Schema): RenderableTreeNode => {
+	const transformNode = (node: JSONContent) => {
+		const nodeHandlers = [diagramsTransformer, tableTransformer, codeBlockTransformer, listTransformer];
+
+		for (const handler of nodeHandlers) {
+			const result = handler(node, componentsNames);
+			if (result && node !== result) return result;
+		}
+	};
+
+	const transformTag = (tag: Child): object | object[] => {
+		const tagHandlers = [parentLinksTagTransformer, snippetTagTransformer];
+
+		for (const handler of tagHandlers) {
+			const result = handler(tag);
+			if (result && tag !== result) return result;
+		}
+
+		return tag;
+	};
+
+	const createTag = (name: string, attrs: Attrs, children: string | JSONContent | Tag[]): Tag => {
+		return {
+			$$mdtype: "Tag",
+			name,
+			attributes: attrs || {},
+			children: (Array.isArray(children) ? children : [children]) as Tag[], // Array of Tag and JSONContent
+		};
+	};
+
+	const createNodeOrMark = (type: string, attrs: Attrs, children: string | JSONContent | Tag[]): JSONContent => {
+		return {
+			type,
+			attrs: attrs || {},
+			content: (Array.isArray(children) ? children : [children]) as unknown[], // Array of Tag and JSONContent
+		};
+	};
+
+	const convertNode = (node: JSONContent): object[] | object | string => {
+		node = transformNode(node) || node;
+
+		if (node.attrs?.tag) {
+			return Array.isArray(node.attrs.tag) ? node.attrs.tag.map((tag) => ({ ...tag })) : [{ ...node.attrs.tag }];
+		}
+
+		if (node?.text && !node?.marks) return node.text;
+
+		const tagName = componentsNames[node.type];
+		const isInline = editSchema.nodes[node.content?.[0]?.type]?.isInline;
+		const tag: Child = tagName
+			? createTag(tagName, node.attrs || {}, [])
+			: createNodeOrMark(node.type, node.attrs || {}, []);
+
+		// Content
+		if (node.content) {
+			// If the node has only one child and it's an inline node, convert it to a render node
+			if (node.content.length === 1 && isInline && node.content[0].type !== "text") {
+				return convertNode(node.content[0]);
+			}
+
+			node.content.forEach((child) => {
+				const children = convertNode(child);
+
+				if (Array.isArray(children) && !children.some((child) => child.name === "Text")) {
+					children.forEach((child2) => {
+						if ("children" in tag) {
+							tag.children.push(child2);
+						} else if ("content" in tag) {
+							tag.content.push(child2);
+						}
+					});
+				} else {
+					if ("children" in tag) {
+						tag.children.push(children);
+					} else if ("content" in tag) {
+						tag.content.push(children as JSONContent);
+					}
+				}
+			});
+		}
+
+		// Marks
+		if (node.marks && node.marks.length > 0) {
+			const marks = node.marks.map((mark) => editSchema.marks[mark.type]);
+			marks.sort((a: any, b: any) => (b.rank || 0) - (a.rank || 0));
+
+			let wrappedTag = node.text ? node.text : tag;
+			marks.forEach((mark) => {
+				const nodeMark = node.marks.find((m) => m.type === mark.name);
+				const markName = componentsNames[mark.name];
+
+				wrappedTag = markName
+					? createTag(markName, nodeMark?.attrs || {}, [wrappedTag])
+					: createNodeOrMark(mark.name, nodeMark?.attrs || {}, [wrappedTag]);
+			});
+
+			return transformTag(wrappedTag as Child);
+		}
+
+		return transformTag(tag);
+	};
+
+	const componentsNames = getComponentsNames();
+	const document = convertNode(editTree) as RenderableTreeNode;
+
+	return document;
+};
+
+export default editTreeToRenderTree;

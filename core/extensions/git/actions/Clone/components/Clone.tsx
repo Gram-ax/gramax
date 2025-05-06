@@ -1,4 +1,3 @@
-import { getExecutingEnvironment } from "@app/resolveModule/env";
 import Button from "@components/Atoms/Button/Button";
 import SpinnerLoader from "@components/Atoms/SpinnerLoader";
 import FormStyle from "@components/Form/FormStyle";
@@ -7,8 +6,9 @@ import ModalLayoutLight from "@components/Layouts/ModalLayoutLight";
 import FetchService from "@core-ui/ApiServices/FetchService";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import LanguageService from "@core-ui/ContextServices/Language";
+import { usePlatform } from "@core-ui/hooks/usePlatform";
 import OnNetworkApiErrorService from "@ext/errorHandlers/client/OnNetworkApiErrorService";
-import cloneHandler from "@ext/git/actions/Clone/logic/cloneHandler";
+import useCloneHandler from "@ext/git/actions/Clone/logic/useCloneHandler";
 import Mode from "@ext/git/actions/Clone/model/Mode";
 import UnsupportedElementsModal from "@ext/import/components/UnsupportedElementsModal";
 import UnsupportedElements from "@ext/import/model/UnsupportedElements";
@@ -66,6 +66,7 @@ const Clone = ({ trigger, mode }: { trigger: JSX.Element; mode: Mode }) => {
 	const [storageData, setStorageData] = useState<StorageData>(null);
 	const [unsupportedElements, setUnsupportedElements] = useState<UnsupportedElements[]>([]);
 	const apiUrlCreator = ApiUrlCreatorService.value;
+	const { isNext } = usePlatform();
 
 	const disable = !storageData || Object.values(storageData).some((v) => !v);
 
@@ -75,12 +76,13 @@ const Clone = ({ trigger, mode }: { trigger: JSX.Element; mode: Mode }) => {
 		setStorageData(null);
 	};
 
+	const clone = useCloneHandler();
+
 	const startClone = () => {
-		void cloneHandler({
+		void clone({
 			storageData,
-			apiUrlCreator,
 			skipCheck: true,
-			isBare: getExecutingEnvironment() === "next", // todo: add setting during cloning
+			isBare: isNext, // todo: add setting during cloning
 			onError: () => {
 				refreshPage();
 				closeForm();

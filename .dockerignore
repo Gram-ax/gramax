@@ -10,4 +10,4 @@ node_modules/
 **/out/
 target/
 
-!apps/browser/wasm/dist
+!apps/browser/crates/gramax-wasm/dist

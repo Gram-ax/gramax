@@ -1,11 +1,13 @@
-import { getExecutingEnvironment } from "@app/resolveModule/env";
+import PlatformService from "@core-ui/ContextServices/PlatformService";
 
 export const usePlatform = () => {
-	const Environment = getExecutingEnvironment();
+	const Environment = PlatformService.value;
 
 	const isBrowser = Environment === "browser";
 	const isTauri = Environment === "tauri";
 	const isNext = Environment === "next";
+	const isStaticCli = Environment === "cli";
+	const isStatic = Environment === "static";
 
-	return { isBrowser, isTauri, isNext };
+	return { isBrowser, isTauri, isNext, isStaticCli, isStatic, environment: Environment };
 };

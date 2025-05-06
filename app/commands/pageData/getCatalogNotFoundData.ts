@@ -13,7 +13,8 @@ const getCatalogNotFoundData: Command<
 		const { customArticlePresenter, logger, sitePresenterFactory, wm } = this._app;
 		const dataProvider = sitePresenterFactory.fromContext(ctx);
 		const workspace = wm.maybeCurrent();
-		const lastVisited = new LastVisited(ctx, workspace?.config().name);
+		const config = await workspace?.config();
+		const lastVisited = new LastVisited(ctx, config?.name);
 		const catalogName = logicPath.split("/")[0];
 		if (catalogName) workspace ? lastVisited.remove(catalogName) : lastVisited.clear();
 		logger.logTrace(`Article: ${logicPath}`);
@@ -26,7 +27,7 @@ const getCatalogNotFoundData: Command<
 		return {
 			data,
 			openGraphData,
-			context: getPageDataContext({
+			context: await getPageDataContext({
 				ctx,
 				app: this._app,
 				isArticle: true,

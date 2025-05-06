@@ -1,4 +1,4 @@
-import openapi from "@ext/markdown/elements/openApi/edit/models/openApiSchema";
+import openApiSchema from "@ext/markdown/elements/openApi/edit/models/openApiSchema";
 import OPEN_API_NAME from "@ext/markdown/elements/openApi/name";
 import getExtensionOptions from "@ext/markdown/logic/getExtensionOptions";
 import { mergeAttributes, Node } from "@tiptap/core";
@@ -14,7 +14,7 @@ declare module "@tiptap/core" {
 }
 
 const OpenApi = Node.create({
-	...getExtensionOptions({ schema: openapi, name: OPEN_API_NAME, withResource: true }),
+	...getExtensionOptions({ schema: openApiSchema, name: OPEN_API_NAME, withResource: true }),
 
 	parseHTML() {
 		return [{ tag: "openapi-react-component" }];

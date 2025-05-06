@@ -11,17 +11,19 @@ import { WordFontStyles, diagramString } from "@ext/wordExport/options/wordExpor
 import { AddOptionsWord, ImageDimensions } from "@ext/wordExport/options/WordTypes";
 import { ImageDimensionsFinder } from "@ext/markdown/elements/image/word/ImageDimensionsFinder";
 import { BaseImageProcessor } from "@ext/markdown/elements/image/export/BaseImageProcessor";
+import { JSONContent } from "@tiptap/core";
 
 export class WordDiagramRenderer {
 	static async renderSimpleDiagram(
-		tag: Tag,
+		tag: Tag | JSONContent,
 		addOptions: AddOptionsWord,
 		diagramType: DiagramType,
 		resourceManager: ResourceManager,
 		language: UiLanguage,
 		diagramRendererServerUrl?: string,
 	) {
-		if (tag.attributes.src && tag.attributes.content) return;
+		const attrs = "attributes" in tag ? tag.attributes : tag.attrs;
+		if (attrs.src && attrs.content) return;
 
 		try {
 			const diagramContent = await this.getDiagramContent(tag, resourceManager);
@@ -31,10 +33,10 @@ export class WordDiagramRenderer {
 				WordDiagramRenderer._getParagraphWithImage(await BaseImageProcessor.svgToPng(diagram, size), size),
 			];
 
-			if (tag.attributes.title)
+			if (attrs.title)
 				paragraphs.push(
 					new Paragraph({
-						children: [new TextRun({ text: tag.attributes.title })],
+						children: [new TextRun({ text: attrs.title })],
 						style: WordFontStyles.pictureTitle,
 					}),
 				);
@@ -45,25 +47,26 @@ export class WordDiagramRenderer {
 		}
 	}
 
-	static async getDiagramContent(tag: Tag, resourceManager: ResourceManager) {
+	static async getDiagramContent(tag: Tag | JSONContent, resourceManager: ResourceManager) {
+		const attrs = "attributes" in tag ? tag.attributes : tag.attrs;
 		return (
-			(tag.attributes.content as string) ??
-			(await resourceManager.getContent(new Path(tag.attributes.src))).toString()
+			(attrs.content as string) ??
+			(await resourceManager.getContent(new Path(attrs.src))).toString()
 		);
 	}
 
 	static async renderC4Diagram(
-		tag: Tag,
+		tag: Tag | JSONContent,
 		addOptions: AddOptionsWord,
 		diagramType: DiagramType,
 		resourceManager: ResourceManager,
 		language: UiLanguage,
 		diagramRendererServerUrl: string,
 	) {
-		if (tag.attributes.src && tag.attributes.content) return;
+		const attrs = "attributes" in tag ? tag.attributes : tag.attrs;
+		if (attrs.src && attrs.content) return;
 
-		const diagramContent =
-			tag.attributes.content ?? (await resourceManager.getContent(new Path(tag.attributes.src))).toString();
+		const diagramContent = attrs.content ?? (await resourceManager.getContent(new Path(attrs.src))).toString();
 
 		try {
 			const diagramString = await new Diagrams(diagramRendererServerUrl).getDiagram(diagramType, diagramContent);

@@ -51,7 +51,6 @@ export default {
 			sourceName: "GitHub",
 			userInfo: null,
 		},
-		leftNavItemLinks: [],
 		itemLinks: [
 			{
 				ref: {
@@ -758,7 +757,6 @@ export default {
 			workspaces: [{ path: "f", name: "default workspace" }],
 			defaultPath: "f",
 			readResult: undefined,
-			isEnterprise: false,
 		},
 		currentWorkspace: "default-workspace",
 		domain: "http://localhost:3000",
@@ -778,6 +776,7 @@ export default {
 			basePath: "",
 			bugsnagApiKey: "",
 			authServiceUrl: "",
+			cloudServiceUrl: "",
 			diagramsServiceUrl: "",
 
 			isSso: false,

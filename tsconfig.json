@@ -65,13 +65,21 @@
 	],
 
 	"exclude": [
-		"./**/node_modules",
-		"./**/dist",
-		"./storybook/storybook-static",
-		"./apps/tauri/**/target",
-		"./apps/tauri/src-tauri",
-		"./apps/browser/wasm/dist",
-		"./services/**/Services/TSClassDiagram/files",
-		"./apps/tauri/src-tauri"
+		"target",
+		"**/node_modules",
+		"node_modules",
+		"dist",
+		"**/dist",
+		".npm",
+		"**/.npm",
+		".next",
+		"**/.next",
+		".vite-cache",
+		"**/.vite-cache",
+		".git",
+		"storybook/storybook-static",
+		"services/**/Services/TSClassDiagram/files",
+		"services/target/admin/client",
+		"apps/tauri/src-tauri"
 	]
 }

@@ -1,5 +1,7 @@
+import ElementGroups from "@ext/markdown/core/element/ElementGroups";
+
 const imageSchema = {
-	group: "block",
+	group: `${ElementGroups.block} ${ElementGroups.listItemContent}`,
 	draggable: true,
 	attrs: {
 		src: { default: null },

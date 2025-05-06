@@ -9,7 +9,7 @@ import { pdfRenderContext } from "@ext/pdfExport/parseNodesPDF";
 import { errorCase } from "@ext/pdfExport/utils/getErrorElement";
 import ViewFilter from "@ext/properties/logic/ViewFilter";
 import { ViewRenderData } from "@ext/properties/models";
-import { Display } from "@ext/properties/models/displays";
+import { Display } from "@ext/properties/models/display";
 import { generateBookmarkName } from "@ext/wordExport/generateBookmarkName";
 import { Content } from "pdfmake/interfaces";
 

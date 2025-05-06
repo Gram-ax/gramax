@@ -1,6 +1,6 @@
 import { ResponseKind } from "@app/types/ResponseKind";
 import CustomArticle from "@core/SitePresenter/customArticles/model/CustomArticle";
-import { Command } from "../../../types/Command";
+import { Command } from "@app/types/Command";
 
 const getCustomArticle: Command<{ name: CustomArticle; props: any }, { title: string; content: string }> =
 	Command.create({
@@ -20,7 +20,9 @@ const getCustomArticle: Command<{ name: CustomArticle; props: any }, { title: st
 
 			return {
 				title: article?.getTitle() ?? "None article",
-				content: await article.parsedContent.read((content) => (content ? JSON.stringify(content.renderTree) : "")),
+				content: await article.parsedContent.read((content) =>
+					content ? JSON.stringify(content.renderTree) : "",
+				),
 			};
 		},
 

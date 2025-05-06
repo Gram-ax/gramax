@@ -15,7 +15,8 @@ interface AppConfigPaths {
 export interface ServicesConfig {
 	gitProxy: { url: string };
 	auth: { url: string };
-	review: { url: string };
+	cloud?: { url: string };
+	review?: { url: string };
 	diagramRenderer: { url: string };
 }
 
@@ -80,6 +81,9 @@ const getServices = (): ServicesConfig => {
 		review: {
 			url: env("REVIEW_SERVICE_URL") ?? null,
 		},
+		cloud: {
+			url: env("CLOUD_SERVICE_URL") ?? null,
+		},
 	};
 };
 
@@ -123,7 +127,10 @@ export const getConfig = (): AppConfig => {
 	global.config = {
 		paths: getPaths(),
 		services: getServices(),
-		isReadOnly: getExecutingEnvironment() === "next",
+		isReadOnly:
+			getExecutingEnvironment() === "next" ||
+			getExecutingEnvironment() === "static" ||
+			getExecutingEnvironment() === "cli",
 
 		search: {
 			vector: {

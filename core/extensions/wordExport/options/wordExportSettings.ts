@@ -142,12 +142,10 @@ const wordNoteBorderType = (color: string) => ({
 
 export const wordBordersType = {
 	[WordBlockType.table]: {
-		top: { style: BorderStyle.NIL },
-		bottom: { style: BorderStyle.NIL },
-		left: { style: BorderStyle.NIL },
-		right: { style: BorderStyle.NIL },
-		insideHorizontal: { style: BorderStyle.SINGLE, color: wordBordersColors.grey, size: 10 },
-		insideVertical: { style: BorderStyle.SINGLE, color: wordBordersColors.grey, size: 10 },
+		top: { style: BorderStyle.SINGLE },
+		bottom: { style: BorderStyle.SINGLE },
+		left: { style: BorderStyle.SINGLE },
+		right: { style: BorderStyle.SINGLE },
 	},
 	[WordBlockType.fence]: {},
 	[WordBlockType.note]: wordNoteBorderType(wordBordersColors.orange),

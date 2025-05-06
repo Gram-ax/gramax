@@ -1,4 +1,4 @@
-import { refreshPage } from "@core-ui/ContextServices/RefreshPageContext";
+import { refreshPage } from "@core-ui/utils/initGlobalFuncs";
 
 const onSnippetDeleteCallback = (
 	usedInArticles: { pathname: string; title: string }[],

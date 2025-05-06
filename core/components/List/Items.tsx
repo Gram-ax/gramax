@@ -10,12 +10,12 @@ import {
 	MutableRefObject,
 	ReactNode,
 	forwardRef,
+	memo,
 	useCallback,
 	useEffect,
 	useMemo,
 	useRef,
 	useState,
-	memo,
 } from "react";
 
 import Tooltip from "@components/Atoms/Tooltip";
@@ -290,7 +290,8 @@ const Items = memo((props: ItemsProps) => {
 								if (items.length && !isReadyToScroll) setIsReadyToScroll(true);
 							}}
 							components={{
-								List: forwardRef(({ children, ...props }, listRef) => {
+								List: forwardRef((props: any, listRef) => {
+									const { children, ...rest } = props;
 									return (
 										<div
 											ref={(el) => {
@@ -299,7 +300,7 @@ const Items = memo((props: ItemsProps) => {
 												}
 												ref.current = el;
 											}}
-											{...props}
+											{...rest}
 										>
 											{children}
 										</div>

@@ -42,7 +42,6 @@ const SelectAllCheckboxUnstyled = (props: SelectAllCheckboxProps) => {
 						<div className="discard-all">
 							<Discard
 								paths={filePathsToDiscard}
-								selectedText
 								onStartDiscard={onStartDiscard}
 								onEndDiscard={onEndDiscard}
 								discardAll

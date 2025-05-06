@@ -13,7 +13,8 @@ const getReviewLinkData: Command<{ ticket: string }, ReviewLinkData> = Command.c
 	middlewares: [new AuthorizeMiddleware()],
 
 	async do({ ticket }) {
-		const response = await fetch(`${this._app.wm.current().config().services?.review?.url}/repdata`, {
+		const config = await this._app.wm.current().config();
+		const response = await fetch(`${config.services?.review?.url}/repdata`, {
 			body: ticket,
 			method: "POST",
 			headers: { "Content-Type": MimeTypes.text },

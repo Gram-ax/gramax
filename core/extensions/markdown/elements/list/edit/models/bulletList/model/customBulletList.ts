@@ -4,7 +4,7 @@ import BulletList from "@tiptap/extension-bullet-list";
 const TextStyleName = "textStyle";
 const inputRegex = /^\s*([-*])\s$/;
 
-const customBulletList = BulletList.extend({
+const CustomBulletList = BulletList.extend({
 	addInputRules() {
 		let inputRule = wrappingInputRule({
 			find: inputRegex,
@@ -27,4 +27,4 @@ const customBulletList = BulletList.extend({
 	},
 });
 
-export default customBulletList;
+export default CustomBulletList;

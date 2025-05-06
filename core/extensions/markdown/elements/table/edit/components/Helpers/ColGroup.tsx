@@ -3,9 +3,10 @@ import useWatch from "@core-ui/hooks/useWatch";
 import { Node } from "@tiptap/pm/model";
 import { memo, useEffect, useState } from "react";
 
-const ColGroup = ({ content }: { content: Node }) => {
+const ColGroup = ({ content, parentElement }: { content: Node; parentElement: HTMLElement }) => {
 	const articleRef = ArticleRefService.value;
-	const maxWidth = articleRef.current?.firstElementChild?.firstElementChild?.clientWidth - 36;
+	const maxWidth =
+		parentElement?.clientWidth - 36 || articleRef.current?.firstElementChild?.firstElementChild?.clientWidth - 36;
 
 	const getCellWidth = (): number => {
 		let colspanCount = 0;
@@ -30,12 +31,12 @@ const ColGroup = ({ content }: { content: Node }) => {
 		return () => {
 			window.removeEventListener("resize", onResize);
 		};
-	}, [content]);
+	}, [content, parentElement]);
 
 	useWatch(() => {
 		const newCellWidth = getCellWidth();
 		if (newCellWidth !== cellWidth) setCellWidth(newCellWidth);
-	}, [content]);
+	}, [content, parentElement]);
 
 	return (
 		<colgroup>

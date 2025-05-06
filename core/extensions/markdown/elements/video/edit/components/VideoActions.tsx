@@ -1,10 +1,10 @@
-import { ChangeEvent, Dispatch, ReactElement, RefObject, SetStateAction } from "react";
-import { Editor } from "@tiptap/core";
-import { Node } from "@tiptap/pm/model";
 import ActionButton from "@components/controls/HoverController/ActionButton";
-import t from "@ext/localization/locale/translate";
 import ActionInput from "@components/controls/HoverController/ActionInput";
 import toggleSignature from "@core-ui/toggleSignature";
+import t from "@ext/localization/locale/translate";
+import { Editor } from "@tiptap/core";
+import { Node } from "@tiptap/pm/model";
+import { ChangeEvent, Dispatch, ReactElement, RefObject, SetStateAction } from "react";
 
 interface VideoActionsProps {
 	editor: Editor;
@@ -45,7 +45,7 @@ const VideoActions = (props: VideoActionsProps): ReactElement => {
 					<ActionButton icon="external-link" tooltipText={t("goto-original")} />
 				</a>
 			)}
-			<ActionButton icon="a-large-small" onClick={addSignature} tooltipText={t("signature")} />
+			<ActionButton icon="captions" onClick={addSignature} tooltipText={t("signature")} />
 			<ActionButton icon="trash" onClick={handleDelete} tooltipText={t("delete")} />
 		</>
 	);

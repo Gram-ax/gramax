@@ -29,8 +29,12 @@ export default class IconProvider {
 		} catch {}
 	}
 
-	private _getIconPath(id: string): Path {
-		return this._iconsPath.join(new Path(`${id}.svg`));
+	getIconsPaths() {
+		return Array.from(this._cachedIcons.keys()).map((code) => this._getIconPath(code));
+	}
+
+	private _getIconPath(code: string) {
+		return this._iconsPath.join(new Path(`${code}.svg`));
 	}
 
 	async getIconsList() {

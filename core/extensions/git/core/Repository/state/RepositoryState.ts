@@ -20,10 +20,12 @@ export type RepositoryMergeConflictState = State<
 	"mergeConflict",
 	{
 		deleteAfterMerge: boolean;
+		squash: boolean;
 		theirs: string;
 		conflictFiles: GitMergeResult[];
 		reverseMerge: boolean;
 		branchNameBefore?: string;
+		isMergeRequest?: boolean;
 	}
 >;
 

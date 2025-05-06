@@ -1,7 +1,6 @@
+import { STORAGE_DIR_NAME } from "@app/config/const";
 import Path from "../logic/FileProvider/Path/Path";
 import FileProvider from "../logic/FileProvider/model/FileProvider";
-
-const STORAGE_DIR_NAME = ".storage";
 
 class Cache {
 	constructor(private _fp: FileProvider, private _pathPrefix = STORAGE_DIR_NAME) {}

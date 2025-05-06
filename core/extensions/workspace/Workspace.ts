@@ -39,12 +39,12 @@ export class Workspace {
 	private _entries = new Map<string, BaseCatalog>();
 	private _events = createEventEmitter<WorkspaceEvents>();
 
-	private constructor(
+	protected constructor(
 		private _path: WorkspacePath,
-		private _config: YamlFileConfig<WorkspaceConfig>,
+		protected _config: YamlFileConfig<WorkspaceConfig>,
 		private _fs: FileStructure,
 		private _rp: RepositoryProvider,
-		private _assets: WorkspaceAssets,
+		protected _assets: WorkspaceAssets,
 	) {
 		new WorkspaceEventHandlers(this, this._rp).mount();
 	}
@@ -53,6 +53,7 @@ export class Workspace {
 		const entries = await fs.getCatalogEntries();
 		rules?.forEach((rule) => rule(fs.fp, entries));
 		const workspace = new this(path, config, fs, rp, assets);
+
 		fs.fp.watch(workspace._onItemChanged.bind(this));
 		await workspace._initRepositories(entries, fs.fp);
 		return workspace;
@@ -66,8 +67,8 @@ export class Workspace {
 		return this._path;
 	}
 
-	config() {
-		return this._config.inner();
+	async config() {
+		return Promise.resolve(this._config.inner());
 	}
 
 	async getCatalog(name: string, ctx: Context): Promise<ContextualCatalog> {
@@ -162,6 +163,7 @@ export class Workspace {
 				const maybeEntry = entry.upgrade("entry");
 				if (maybeEntry) maybeEntry.setLoadCallback((catalog) => this.addCatalog(catalog));
 				entry.setRepository(await this._rp.getRepositoryByPath(new Path(entry.name), fp));
+				this._rp.tryInitEntryCloningStatus(this._path, entry);
 				this._entries.set(entry.name, entry);
 			}),
 		);

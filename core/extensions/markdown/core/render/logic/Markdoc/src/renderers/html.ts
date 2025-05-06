@@ -2,7 +2,8 @@ import MarkdownIt from "markdown-it";
 import React from "react";
 import { renderToString } from "react-dom/server";
 import Renderer from "../../../../components/Renderer";
-import type { RenderableTreeNodes } from "../types";
+import type { RenderableTreeNodes, Tag } from "../types";
+import { JSONContent } from "@tiptap/core";
 const { escapeHtml } = MarkdownIt().utils;
 
 // HTML elements that do not have a matching close tag
@@ -24,14 +25,30 @@ const voidElements = new Set([
 	"wbr",
 ]);
 
-export default function render(node: RenderableTreeNodes, { components = {} } = {}): string {
+type NodeData = {
+	name: string;
+	attributes: Record<string, unknown>;
+	children: RenderableTreeNodes | JSONContent[];
+};
+
+const getNodeData = (node: RenderableTreeNodes | JSONContent): NodeData => {
+	if (typeof node !== "object" || node === null) return { name: "", attributes: {}, children: [] };
+
+	const isTag = "children" in node;
+	if (isTag) return node as Tag;
+
+	node = node as JSONContent;
+	return { name: node.type, attributes: node.attrs, children: node.content };
+};
+
+export default function render(node: RenderableTreeNodes | JSONContent, { components = {} } = {}): string {
 	if (typeof node === "string") return escapeHtml(node);
 
 	if (Array.isArray(node)) return node.map((node) => render(node, { components })).join("");
 
 	if (node === null || typeof node !== "object") return "";
 
-	const { name, attributes, children = [] } = node;
+	const { name, attributes, children = [] } = getNodeData(node);
 
 	if (!name) return render(children, { components });
 
@@ -52,7 +69,7 @@ export default function render(node: RenderableTreeNodes, { components = {} } = 
 
 	if (voidElements.has(name)) return output;
 	if (!components?.[name]) {
-		if (children.length) output += render(children, { components });
+		if (Array.isArray(children) && children.length) output += render(children, { components });
 		output += `</${name}>`;
 	}
 

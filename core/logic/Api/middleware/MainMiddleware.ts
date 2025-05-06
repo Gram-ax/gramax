@@ -24,7 +24,7 @@ export class MainMiddleware extends Middleware {
 				// if (defaultError?.cause) this._app.logger.logError(this._getPathError(defaultError.cause));
 			} else {
 				const error = this._getPathError(e);
-				this._app.logger.logError(error);
+				this._app.logger.logError(error, true);
 				defaultError = new DefaultError(
 					isEnterprise ? t("app.error.command-failed.body-enterprise") : t("app.error.command-failed.body"),
 					error,

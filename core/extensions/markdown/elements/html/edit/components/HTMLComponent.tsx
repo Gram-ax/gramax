@@ -29,7 +29,7 @@ const HTMLComponent = ({ node, getPos, editor, updateAttributes }: NodeViewProps
 					isEditable && <HTMLActions editor={editor} node={node} getPos={getPos} openEditor={openEditor} />
 				}
 			>
-				<HTML mode={node.attrs.mode} content={node.attrs.content} />
+				<HTML content={node.attrs.content} />
 			</BlockActionPanel>
 		</NodeViewWrapper>
 	);

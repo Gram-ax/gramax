@@ -4,7 +4,7 @@ import FuseSearcher from "./FuseSearcher";
 describe("FuseSearcher", () => {
 	describe("находит", () => {
 		const mockIndexDataProvider = {
-			getIndexData: () => {
+			getAndSetIndexData: () => {
 				const indexData: IndexData[] = [
 					{
 						path: "1",
@@ -109,7 +109,7 @@ describe("FuseSearcher", () => {
 
 	describe("сортирует", () => {
 		const mockIndexDataProvider = {
-			getIndexData: () => {
+			getAndSetIndexData: () => {
 				const indexData: IndexData[] = [
 					{
 						path: "1",
@@ -154,6 +154,93 @@ describe("FuseSearcher", () => {
 			expect(result[2]).toMatchObject({ url: "2" });
 			expect(result[3]).toMatchObject({ url: "3" });
 			expect(result).toHaveLength(4);
+		});
+	});
+
+	describe("соединяет рядом стоящие слова", () => {
+		const mockIndexDataProvider = {
+			getAndSetIndexData: () => {
+				const indexData: IndexData[] = [
+					{
+						path: "1",
+						pathname: "1",
+						title: "Тест соединения",
+						content: "Это пример текста где слова стоят рядом друг с другом",
+					},
+					{
+						path: "2",
+						pathname: "2",
+						title: "Тест разрыва",
+						content: "Это пример текста где слова разделены другими словами",
+					},
+					{
+						path: "3",
+						pathname: "3",
+						title: "Тест границ",
+						content: "Слова в начале и в конце текста должны соединяться",
+					},
+					{
+						path: "4",
+						pathname: "4",
+						title: "Тест привет",
+						content: "Привет абоба привет абоба",
+					},
+				];
+				return indexData;
+			},
+			clear: () => {},
+		};
+
+		const fuseSearcher = new FuseSearcher(mockIndexDataProvider as any);
+		const articleIds = ["1", "2", "3", "4"];
+		const catalogName = "test";
+
+		test("соединяет два рядом стоящих слова", async () => {
+			const result = await fuseSearcher.search("слова стоят", catalogName, articleIds);
+			const paragraph = result[0].paragraph[0];
+
+			expect(paragraph.target).toBe("слова стоят");
+			expect(paragraph.prev).toContain("текста где");
+			expect(paragraph.next).toContain("рядом");
+			expect(result[0].paragraph).toHaveLength(1);
+		});
+
+		test("соединяет три рядом стоящих слова", async () => {
+			const result = await fuseSearcher.search("друг с другом", catalogName, articleIds);
+			const paragraph = result[0].paragraph[0];
+
+			expect(paragraph.target).toBe("друг с другом");
+			expect(paragraph.prev).toContain("слова стоят");
+			expect(paragraph.next).toBe("");
+			expect(result[0].paragraph).toHaveLength(4);
+		});
+
+		test("соединяет слова в начале текста", async () => {
+			const result = await fuseSearcher.search("Слова в", catalogName, articleIds);
+			const paragraph = result[1].paragraph[0];
+
+			expect(paragraph.target).toBe("Слова в");
+			expect(paragraph.prev).toBe("");
+			expect(paragraph.next).toContain("начале");
+			expect(result[1].paragraph).toHaveLength(2);
+		});
+
+		test("соединяет слова в конце текста", async () => {
+			const result = await fuseSearcher.search("должны соединяться", catalogName, articleIds);
+			const paragraph = result[0].paragraph[0];
+
+			expect(paragraph.target).toBe("должны соединяться");
+			expect(paragraph.prev).toContain("и в");
+			expect(paragraph.next).toBe("");
+			expect(result[0].paragraph).toHaveLength(1);
+		});
+
+		test("не соединяет одинаковые", async () => {
+			const result = await fuseSearcher.search("привет абоба", catalogName, articleIds);
+
+			expect(result[0].paragraph).toHaveLength(2);
+			expect(result[0].paragraph[0].target).toBe("Привет абоба");
+			expect(result[0].paragraph[1].target).toBe("привет абоба");
 		});
 	});
 });

@@ -1,17 +1,18 @@
-import { getExecutingEnvironment } from "@app/resolveModule/env";
 import { TextSize } from "@components/Atoms/Button/Button";
+import { LeftNavigationTab } from "@components/Layouts/StatusBar/Extensions/ArticleStatusBar/ArticleStatusBar";
 import ButtonLink from "@components/Molecules/ButtonLink";
 import IsMacService from "@core-ui/ContextServices/IsMac";
 import SidebarsIsOpenService from "@core-ui/ContextServices/Sidebars/SidebarsIsOpenContext";
+import { usePlatform } from "@core-ui/hooks/usePlatform";
 import { cssMedia } from "@core-ui/utils/cssUtils";
 import styled from "@emotion/styled";
+import InboxTab from "@ext/inbox/components/InboxTab";
 import { useMediaQuery } from "@mui/material";
+import { useState } from "react";
 import { ArticlePageData } from "../../../../logic/SitePresenter/SitePresenter";
 import TopBarContent from "../../../ArticlePage/Bars/TopBarContent";
 import BarLayout from "../../BarLayout";
-import { useState } from "react";
-import { LeftNavigationTab } from "@components/Layouts/StatusBar/Extensions/ArticleStatusBar/ArticleStatusBar";
-import InboxTab from "@ext/inbox/components/InboxTab";
+import TemplateTab from "@ext/templates/components/Tab/TemplateTab";
 
 const TopBarContentWrapper = styled.div<{ isMacDesktop: boolean }>`
 	padding-top: ${(p) => (p.isMacDesktop ? "1.3rem" : "0")};
@@ -24,9 +25,10 @@ const TopBarContentWrapper = styled.div<{ isMacDesktop: boolean }>`
 const LeftNavigationTop = ({ data, className }: { data: ArticlePageData; className?: string }) => {
 	const leftNavIsOpen = SidebarsIsOpenService.value.left;
 	const narrowMedia = useMediaQuery(cssMedia.narrow);
+	const { isTauri } = usePlatform();
 	const [currentTab, setCurrentTab] = useState<LeftNavigationTab>(LeftNavigationTab.None);
 
-	const isMacDesktop = IsMacService.value && getExecutingEnvironment() == "tauri";
+	const isMacDesktop = IsMacService.value && isTauri;
 
 	const getPadding = () => {
 		if (narrowMedia) return "0 14px";
@@ -60,6 +62,7 @@ const LeftNavigationTop = ({ data, className }: { data: ArticlePageData; classNa
 				</TopBarContentWrapper>
 			</BarLayout>
 			<InboxTab show={currentTab === LeftNavigationTab.Inbox} />
+			<TemplateTab show={currentTab === LeftNavigationTab.Template} />
 		</>
 	);
 };

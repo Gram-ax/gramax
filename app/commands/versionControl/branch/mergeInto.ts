@@ -7,17 +7,24 @@ import { AuthorizeMiddleware } from "../../../../core/logic/Api/middleware/Autho
 import Context from "../../../../core/logic/Context/Context";
 import { Command } from "../../../types/Command";
 
-const mergeInto: Command<
-	{ ctx: Context; catalogName: string; branchName: string; deleteAfterMerge: boolean; validateMerge?: boolean },
-	MergeData
-> = Command.create({
+export type MergeIntoParams = {
+	ctx: Context;
+	catalogName: string;
+	branchName: string;
+	deleteAfterMerge: boolean;
+	validateMerge?: boolean;
+	squash?: boolean;
+	isMergeRequest?: boolean;
+};
+
+const mergeInto: Command<MergeIntoParams, MergeData> = Command.create({
 	path: "versionControl/branch/mergeInto",
 
 	kind: ResponseKind.json,
 
 	middlewares: [new AuthorizeMiddleware(), new ReloadConfirmMiddleware()],
 
-	async do({ ctx, catalogName, branchName, deleteAfterMerge, validateMerge }) {
+	async do({ ctx, catalogName, branchName, deleteAfterMerge, validateMerge, squash, isMergeRequest }) {
 		const { rp, wm } = this._app;
 		const workspace = wm.current();
 		const catalog = await workspace.getContextlessCatalog(catalogName);
@@ -30,6 +37,8 @@ const mergeInto: Command<
 			targetBranch: branchName,
 			deleteAfterMerge,
 			validateMerge,
+			squash,
+			isMergeRequest,
 		});
 		const state = await catalog.repo.getState();
 		if (!mergeResult.length) await catalog.update();
@@ -51,6 +60,7 @@ const mergeInto: Command<
 			deleteAfterMerge: q.deleteAfterMerge === "true",
 			catalogName: q.catalogName,
 			branchName: q.branchName,
+			squash: q.squash === "true",
 		};
 	},
 });

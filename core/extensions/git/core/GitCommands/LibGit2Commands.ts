@@ -17,6 +17,8 @@ import GitCommandsModel, {
 	type DirEntry,
 	type DirStat,
 	type FileStat,
+	type GcOptions,
+	type MergeOptions,
 	type RefInfo,
 	type TreeReadScope,
 } from "./model/GitCommandsModel";
@@ -24,6 +26,9 @@ import GitCommandsModel, {
 class LibGit2Commands extends LibGit2BaseCommands implements GitCommandsModel {
 	constructor(repoPath: Path) {
 		super(repoPath.value);
+	}
+	format_merge_message(data: SourceData, opts: MergeOptions): Promise<string> {
+		throw new Error("Method not implemented.");
 	}
 
 	isInit(): Promise<boolean> {
@@ -110,9 +115,13 @@ class LibGit2Commands extends LibGit2BaseCommands implements GitCommandsModel {
 		await git.setHead({ repoPath: this._repoPath, refname });
 	}
 
-	async merge(data: GitSourceData, theirs: string): Promise<git.MergeResult> {
-		const res = await git.merge({ repoPath: this._repoPath, creds: this._intoCreds(data), theirs });
+	async merge(data: GitSourceData, opts: MergeOptions): Promise<git.MergeResult> {
+		const res = await git.merge({ repoPath: this._repoPath, creds: this._intoCreds(data), opts });
 		return res?.length ? res : [];
+	}
+
+	async formatMergeMessage(data: SourceData, opts: MergeOptions): Promise<string> {
+		return git.formatMergeMessage({ repoPath: this._repoPath, creds: this._intoCreds(data), opts });
 	}
 
 	async add(paths?: Path[], force = false) {
@@ -311,6 +320,10 @@ class LibGit2Commands extends LibGit2BaseCommands implements GitCommandsModel {
 				date: new Date(r.date),
 			};
 		});
+	}
+
+	gc(opts: GcOptions): Promise<void> {
+		return git.gc({ repoPath: this._repoPath, opts });
 	}
 }
 

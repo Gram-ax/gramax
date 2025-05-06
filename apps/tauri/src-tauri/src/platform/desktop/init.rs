@@ -16,6 +16,9 @@ pub struct OpenUrl(pub Mutex<Option<String>>);
 type InitResult = std::result::Result<(), Box<dyn std::error::Error>>;
 
 pub fn init_app<R: Runtime>(app: &mut App<R>) -> InitResult {
+  #[cfg(target_os = "macos")]
+  macos_init_spellcheck(&app.config().identifier);
+
   let manager = app.handle().to_owned();
   app.run_on_main_thread(move || super::migrate_settings::try_migrate_settings(&manager))?;
 
@@ -59,4 +62,39 @@ pub fn init_app<R: Runtime>(app: &mut App<R>) -> InitResult {
 
 pub fn user_data_path<R: Runtime, M: Manager<R>>(app: &M) -> std::path::PathBuf {
   app.path().app_config_dir().expect("Config directory doesn't exists")
+}
+
+#[cfg(target_os = "macos")]
+pub fn macos_init_spellcheck(app_id: &str) {
+  let mut cmd = std::process::Command::new("defaults");
+  cmd.args(["read", app_id, "WebContinuousSpellCheckingEnabled"]);
+
+  let output = match cmd.output() {
+    Ok(output) => output,
+    Err(e) => {
+      error!("failed to gather output (stdout/stderr) from {:?}; error: {}", cmd, e);
+      return;
+    }
+  };
+
+  let stderr = String::from_utf8_lossy(&output.stderr);
+
+  /*
+  Example output if the key does not exist:
+  2025-04-23 20:13:56.113 defaults[42911:5909169]
+  The domain/default pair of (gramax.dev, WebContinuousSpellCheckingEnabled) does not exist
+   */
+  if !stderr.contains("does not exist") {
+    return;
+  }
+
+  info!("auto-enabling spellcheck since it wasn't enabled or disabled by user");
+  let mut cmd = std::process::Command::new("defaults");
+  cmd.args(["write", app_id, "WebContinuousSpellCheckingEnabled", "-bool", "YES"]);
+
+  info!("running: {:?}", cmd);
+  match cmd.spawn().and_then(|mut p| p.wait()) {
+    Ok(_) => {}
+    Err(e) => error!("failed to run {:?} command; error: {}", cmd, e),
+  };
 }

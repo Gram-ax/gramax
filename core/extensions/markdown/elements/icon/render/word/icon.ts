@@ -6,7 +6,8 @@ import getLucideIcon from "../../../../../../components/Atoms/Icon/LucideIcon";
 import { WordImageExporter } from "@ext/markdown/elements/image/word/WordImageProcessor";
 
 export const iconWordLayout: WordInlineChild = async ({ tag }) => {
-	return [tag.attributes.svg ? await getHtmlIcon(tag.attributes.svg) : await getIconFromString(tag.attributes.code)];
+	const attrs = "attributes" in tag ? tag.attributes : tag.attrs;
+	return [attrs.svg ? await getHtmlIcon(attrs.svg) : await getIconFromString(attrs.code)];
 };
 
 export const getIconFromString = async (icon: string) => {

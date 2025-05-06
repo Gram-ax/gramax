@@ -14,7 +14,7 @@ const LeftNavigationNarrowComponent = ({ data }: { data: ArticlePageData }) => {
 			isOpen={SidebarsIsOpenService.value.left}
 			leftNavigationTop={<LeftNavigationTop data={data} />}
 			leftNavigationContent={
-				<LeftNavViewContentContainer itemLinks={data.leftNavItemLinks} closeNavigation={closeNavigation} />
+				<LeftNavViewContentContainer itemLinks={data.itemLinks} closeNavigation={closeNavigation} />
 			}
 			leftNavigationBottom={<LeftNavigationBottom data={data} closeNavigation={closeNavigation} />}
 		/>

@@ -1,11 +1,15 @@
 import { ContentText } from "pdfmake/interfaces";
-import { inlineLayouts } from "@ext/pdfExport/layouts";
 import { BASE_CONFIG } from "@ext/pdfExport/config";
 import { RenderableTreeNode } from "@ext/markdown/core/render/logic/Markdoc";
 import { pdfRenderContext } from "@ext/pdfExport/parseNodesPDF";
 import { isTag } from "@ext/pdfExport/utils/isTag";
+import { inlineLayouts } from "@ext/pdfExport/layouts";
+import { JSONContent } from "@tiptap/core";
 
-export const extractContent = async (node: RenderableTreeNode, context: pdfRenderContext): Promise<ContentText[]> => {
+export const extractContent = async (
+	node: RenderableTreeNode | JSONContent,
+	context: pdfRenderContext,
+): Promise<ContentText[]> => {
 	if (typeof node === "string") {
 		return [
 			{
@@ -16,15 +20,17 @@ export const extractContent = async (node: RenderableTreeNode, context: pdfRende
 		];
 	}
 
-	if (isTag(node)) {
-		const tagName = node.name;
+	if (isTag(node) || "type" in node) {
+		const tagName = "type" in node ? node.type : node.name;
 
 		if (inlineLayouts[tagName]) {
 			return inlineLayouts[tagName](node, context);
 		}
 
-		if (node.children && node.children.length > 0) {
-			const childrenContent = await Promise.all(node.children.map((child) => extractContent(child, context)));
+		const children = "children" in node ? node.children : node.content;
+
+		if (children && children.length > 0) {
+			const childrenContent = await Promise.all(children.map((child) => extractContent(child, context)));
 
 			return childrenContent.flat();
 		}

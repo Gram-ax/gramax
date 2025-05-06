@@ -3,7 +3,7 @@ import Context from "@core/Context/Context";
 import Path from "@core/FileProvider/Path/Path";
 import { resolveRootCategory } from "@ext/localization/core/catalogExt";
 import { Command } from "../../types/Command";
-import { pdfExportedKeys } from "@ext/pdfExport/layouts";
+import { getPdfExportedKeys } from "@ext/pdfExport/layouts";
 import RuleProvider from "@ext/rules/RuleProvider";
 import PDFExporter from "@ext/pdfExport/PDFExporter";
 import { TitleInfo } from "@ext/wordExport/options/WordTypes";
@@ -39,7 +39,7 @@ const getDocument: Command<{ ctx: Context; itemPath?: Path; isCategory: boolean;
 				isCategory,
 				isCatalog,
 				item,
-				pdfExportedKeys,
+				getPdfExportedKeys(),
 				catalog,
 				ctx,
 				parser,

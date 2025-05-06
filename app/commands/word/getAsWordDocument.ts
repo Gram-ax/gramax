@@ -5,7 +5,7 @@ import { resolveRootCategory } from "@ext/localization/core/catalogExt";
 import RuleProvider from "@ext/rules/RuleProvider";
 import buildDocumentTree from "@ext/wordExport/DocumentTree/buildDocumentTree";
 import { ExportType } from "@ext/wordExport/ExportType";
-import { exportedKeys } from "@ext/wordExport/layouts";
+import { getExportedKeys } from "@ext/wordExport/layouts";
 import { MainWordExport } from "@ext/wordExport/WordExport";
 import { Command } from "../../types/Command";
 import { TitleInfo } from "@ext/wordExport/options/WordTypes";
@@ -36,7 +36,7 @@ const getAsWordDocument: Command<{ ctx: Context; itemPath?: Path; isCategory: bo
 				isCategory,
 				isCatalog,
 				item,
-				exportedKeys,
+				getExportedKeys(),
 				catalog,
 				ctx,
 				parser,

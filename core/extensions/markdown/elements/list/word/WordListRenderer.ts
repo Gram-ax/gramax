@@ -3,12 +3,18 @@ import { FileChild } from "docx/build/file/file-child";
 import { WordSerializerState } from "../../../../wordExport/WordExportState";
 import { AddOptionsWord } from "../../../../wordExport/options/WordTypes";
 import { Tag } from "../../../core/render/logic/Markdoc";
+import { JSONContent } from "@tiptap/core";
 
 export class WordListRenderer {
-	static async renderList(state: WordSerializerState, tag: Tag, addOption?: IParagraphOptions): Promise<FileChild[]> {
+	static async renderList(
+		state: WordSerializerState,
+		tag: Tag | JSONContent,
+		addOption?: IParagraphOptions,
+	): Promise<FileChild[]> {
+		const children = "children" in tag ? tag.children : tag.content;
 		return (
 			await Promise.all(
-				tag.children.map(async (child) => {
+				children.map(async (child) => {
 					if (!child || typeof child === "string") return;
 					return await WordListRenderer._getRenderedBlock(state, child, addOption);
 				}),
@@ -20,7 +26,7 @@ export class WordListRenderer {
 
 	private static async _getRenderedBlock(
 		state: WordSerializerState,
-		child: Tag,
+		child: Tag | JSONContent,
 		addOption: IParagraphOptions,
 	): Promise<FileChild[]> {
 		return (await state.renderBlock(child, addOption as AddOptionsWord)).flat();

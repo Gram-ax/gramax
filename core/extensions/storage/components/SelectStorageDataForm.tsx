@@ -83,7 +83,7 @@ const SelectStorageDataForm = (props: SelectStorageDataFormProps) => {
 				externalIsOpen={externalIsOpen}
 				trigger={
 					<div style={{ width: "100%" }}>
-						<ActionListItem divider={mode !== Mode.clone}>
+						<ActionListItem divider>
 							<div style={{ width: "100%", padding: "6px 11px" }}>
 								<Sidebar
 									title={sideBarTitle + "..."}
@@ -248,7 +248,8 @@ const SelectStorageDataForm = (props: SelectStorageDataFormProps) => {
 										: ""
 								}
 								buttons={
-									mode === Mode.clone ? [addNewStorageListItem, publicClone] : [addNewStorageListItem]
+									// mode === Mode.clone ? [addNewStorageListItem, publicClone] : [addNewStorageListItem]
+									[addNewStorageListItem]
 								}
 								provideCloseHandler={setChildrenCloseHandler}
 								items={sourceDatas.map((d) => {

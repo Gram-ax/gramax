@@ -102,7 +102,7 @@ fi
 echo "Github API rate limit: $(fetch_gh_ratelimit)"
 
 if $SHOULD_COMPILE_WASM; then
-    mkdir -p apps/browser/wasm/dist
+    mkdir -p apps/browser/crates/gramax-wasm/dist
     npm --prefix apps/browser run build:wasm
 fi
 
@@ -111,7 +111,7 @@ if $SHOULD_COMPILE_NODE; then
 fi
 
 if $SHOULD_COMPILE_WARP; then
-    cargo install --path rbins/warp-spa
+    cargo install --path crates/warp-spa
 fi
 
 echo "Compiling schemes"

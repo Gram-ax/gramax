@@ -3,7 +3,8 @@ import type FileProvider from "@core/FileProvider/model/FileProvider";
 import type Path from "@core/FileProvider/Path/Path";
 import DefaultError from "@ext/errorHandlers/logic/DefaultError";
 import type { GitMergeResultContent } from "@ext/git/actions/MergeConflictHandler/model/GitMergeResultContent";
-import MergeRequestCommands from "@ext/git/core/GitMergeRequest/MergeRequestCommands";
+import type { GcOptions } from "@ext/git/core/GitCommands/model/GitCommandsModel";
+import MergeRequestCommands from "@ext/git/core/GitMergeRequest/logic/MergeRequestCommands";
 import type GitVersionControl from "@ext/git/core/GitVersionControl/GitVersionControl";
 import type { GitStatus } from "@ext/git/core/GitWatcher/model/GitStatus";
 import type RepositoryStateProvider from "@ext/git/core/Repository/state/RepositoryState";
@@ -42,6 +43,8 @@ export type MergeOptions = Credentials & {
 	targetBranch: string;
 	deleteAfterMerge: boolean;
 	validateMerge?: boolean;
+	squash?: boolean;
+	isMergeRequest?: boolean;
 };
 
 export type IsShouldSyncOptions = Credentials & { shouldFetch?: boolean; onFetch?: () => void };
@@ -50,7 +53,7 @@ export default abstract class Repository {
 	protected _mergeRequests: MergeRequestCommands;
 	protected _cachedStatus: GitStatus[] = null;
 	protected _events = createEventEmitter<RepositoryEvents>();
-	private _scopedCatalogs = new ScopedCatalogs();
+	private _scopedCatalogs = new ScopedCatalogs(this);
 
 	constructor(
 		protected _repoPath: Path,
@@ -103,12 +106,16 @@ export default abstract class Repository {
 		await this.checkout({ data, branch: defaultBranch.toString(), force });
 	}
 
+	async gc(opts: GcOptions) {
+		return this._gvc.gc(opts);
+	}
+
 	abstract publish(opts: PublishOptions): Promise<void>;
 	abstract sync(opts: SyncOptions): Promise<GitMergeResultContent[]>;
 	abstract checkout(opts: CheckoutOptions): Promise<GitMergeResultContent[]>;
 	abstract validateMerge(): Promise<void>;
 	abstract merge(opts: MergeOptions): Promise<GitMergeResultContent[]>;
-	abstract status(): Promise<GitStatus[]>;
+	abstract status(cached?: boolean): Promise<GitStatus[]>;
 	abstract isShouldSync(opts: IsShouldSyncOptions): Promise<boolean>;
 	abstract canSync(): Promise<boolean>;
 	abstract deleteBranch(targetBranch: string, data: SourceData): Promise<void>;

@@ -17,9 +17,8 @@ import Tooltip from "../../../components/Atoms/Tooltip";
 import Breadcrumb from "../../../components/Breadcrumbs/LinksBreadcrumb";
 import ModalLayout from "../../../components/Layouts/Modal";
 import Code from "../../markdown/elements/code/render/component/Code";
-import { getExecutingEnvironment } from "@app/resolveModule/env";
 
-interface ResourceError {
+export interface ResourceError {
 	title: string;
 	logicPath: string;
 	editorLink: string;
@@ -186,19 +185,15 @@ const getIcons = (isError) =>
 		<Icon code="check" style={{ color: "green", marginRight: "0.5rem" }} strokeWidth="2.5" />
 	);
 
-const ResourceErrorComponent = ({
-	errorGroup,
-	data,
-	itemLinks,
-	goToArticleOnClick,
-}: {
+interface ResourceErrorComponentProps {
 	errorGroup: { type: string; title: string };
 	data: CatalogError[];
 	itemLinks: ItemLink[];
 	goToArticleOnClick: () => void;
-}) => {
+}
+
+export const groupResourceErrors = (data: CatalogError[]) => {
 	const resourceErrors: ResourceError[] = [];
-	const articleBreadcrumbDatas: { [logicPath: string]: { titles: string[]; links: CategoryLink[] } } = {};
 
 	data.forEach((d: CatalogError) => {
 		const errorLink: ResourceError = {
@@ -215,6 +210,13 @@ const ResourceErrorComponent = ({
 			resourceErrors[index].values.push(d.args.value);
 		}
 	});
+	return resourceErrors;
+};
+
+const ResourceErrorComponent = ({ errorGroup, data, itemLinks, goToArticleOnClick }: ResourceErrorComponentProps) => {
+	const resourceErrors: ResourceError[] = groupResourceErrors(data);
+	const articleBreadcrumbDatas: { [logicPath: string]: { titles: string[]; links: CategoryLink[] } } = {};
+	const { isTauri } = usePlatform();
 
 	const search = (itemLinks: ItemLink[], catLinks: CategoryLink[], logicPath: string) => {
 		itemLinks.forEach((link) => {
@@ -276,7 +278,7 @@ const ResourceErrorComponent = ({
 												<a
 													target="_blank"
 													onClick={(ev) => {
-														if (getExecutingEnvironment() === "tauri") {
+														if (isTauri) {
 															ev.preventDefault();
 															ev.stopPropagation();
 															resolveModule("openWindowWithUrl")(
@@ -284,7 +286,7 @@ const ResourceErrorComponent = ({
 															);
 														}
 													}}
-													{...(getExecutingEnvironment() !== "tauri" && {
+													{...(!isTauri && {
 														href: resourceError.editorLink,
 													})}
 													rel="noreferrer"

@@ -20,7 +20,8 @@ const closeIfChild = () => {
 	if (
 		typeof window !== "undefined" &&
 		getExecutingEnvironment() !== "tauri" &&
-		saveTempTokenIfPresent(/\?access_token=/)
+		(saveTempTokenIfPresent(/\?access_token=/) ||
+			(saveTempTokenIfPresent(/\?enterpriseToken=/) && typeof window.opener !== "undefined"))
 	)
 		window.close();
 };

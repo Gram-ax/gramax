@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="ru">
+
+<head>
+  <meta charset="UTF-8" />
+  <title>Gramax</title>
+  <meta name="viewport"
+    content="width=device-width, user-scalable=no, initial-scale=1, minimum-scale=1, maximum-scale=1, interactive-widget=resizes-content, viewport-fit=cover" />
+  <%- criticalStyle %> <%- vars %><%- themes %>
+  <script>
+    const global = {};
+  </script>
+   <!--data.js-->
+  <script>
+    <!--app-config-->
+  </script>
+  <script>
+    <!--app-data-->
+  </script>
+  <script defer type="module" src="./src/Components/hydrate.tsx"></script>
+  <app-styles/>
+</head>
+
+<body>
+  <div data-qa="app" id="root"><app-body/></div>
+</body>
+<%- bodyDatasetInjector %>
+</html>

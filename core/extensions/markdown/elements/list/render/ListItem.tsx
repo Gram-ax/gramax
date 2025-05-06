@@ -65,7 +65,7 @@ const DefaultListItem = ({ children, className }: ListItemProps) => {
 };
 
 const ListItem: FC<ListItemProps> = (props) => {
-	const Tag = props?.isTaskItem ? StyledTaskItemView : DefaultListItem;
+	const Tag = "checked" in props ? StyledTaskItemView : DefaultListItem;
 
 	return <Tag {...props} />;
 };

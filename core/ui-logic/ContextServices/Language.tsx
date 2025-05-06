@@ -1,5 +1,8 @@
+import { PageProps } from "@components/ContextProviders";
+import ContextService from "@core-ui/ContextServices/ContextService";
+import { usePlatform } from "@core-ui/hooks/usePlatform";
 import UiLanguage, { resolveLanguage } from "@ext/localization/core/model/Language";
-import { ReactElement, useLayoutEffect } from "react";
+import { ReactElement } from "react";
 
 const DEFAULT_SELECTED_LANGUAGE =
 	typeof window === "undefined"
@@ -8,37 +11,39 @@ const DEFAULT_SELECTED_LANGUAGE =
 
 const LOCAL_STORAGE_UI_LANGUAGE_KEY = "ui-lang";
 
-export default abstract class LanguageService {
-	private static _current = DEFAULT_SELECTED_LANGUAGE;
-	private static _callback: (language: UiLanguage) => void;
+class LanguageService implements ContextService {
+	private _current = DEFAULT_SELECTED_LANGUAGE;
+	private _callback: (language: UiLanguage) => void;
 
-	static Provider({ language, children }: { language?: UiLanguage; children: ReactElement }): ReactElement {
-		useLayoutEffect(() => LanguageService.setupLanguage(), []);
-		if (language) LanguageService._current = language;
-
+	Init({ pageProps, children }: { pageProps?: PageProps; children: ReactElement }): ReactElement {
+		const { isStatic } = usePlatform();
+		const language = pageProps?.context?.language?.ui;
+		if (language && isStatic) this._current = language;
 		return children;
 	}
 
-	static setupLanguage() {
-		LanguageService._current =
+	setupLanguage() {
+		this._current =
 			UiLanguage[typeof window != "undefined" && window.localStorage?.getItem(LOCAL_STORAGE_UI_LANGUAGE_KEY)];
 	}
 
-	static setUiLanguage(language: UiLanguage, noemit?: boolean) {
-		if (LanguageService._current == language) return;
+	setUiLanguage(language: UiLanguage, noemit?: boolean) {
+		if (this._current == language) return;
 		window.localStorage.setItem(LOCAL_STORAGE_UI_LANGUAGE_KEY, language);
-		LanguageService._current = language;
-		!noemit && LanguageService._callback?.(language);
+		this._current = language;
+		!noemit && this._callback?.(language);
 		refreshPage();
 	}
 
-	static onLanguageChanged(callback: (language: UiLanguage) => void) {
-		LanguageService._callback = callback;
+	onLanguageChanged(callback: (language: UiLanguage) => void) {
+		this._callback = callback;
 	}
 
-	static currentUi() {
-		return LanguageService._current ?? DEFAULT_SELECTED_LANGUAGE;
+	currentUi() {
+		return this._current ?? DEFAULT_SELECTED_LANGUAGE;
 	}
 }
 
-LanguageService.setupLanguage();
+const languageService = new LanguageService();
+languageService.setupLanguage();
+export default languageService;
