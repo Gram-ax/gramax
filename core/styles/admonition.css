@@ -198,7 +198,7 @@
 	margin-top: 0.7em;
 }
 
-.admonition-content *:last-child,
+.admonition-content > *:last-child,
 .admonition-content ul:last-child li:last-child,
 .admonition-content ol:last-child li:last-child,
 .admonition-content ul:last-child li:last-child > *:last-child,
@@ -206,8 +206,12 @@
 	margin-bottom: 0 !important;
 }
 
-.admonition-content *:first-child {
+.admonition-content > *:first-child {
 	margin-top: 0 !important;
+}
+
+.admonition-content .resource-caption {
+	margin-bottom: 0.5em !important;
 }
 
 @media print {

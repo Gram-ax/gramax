@@ -1,6 +1,5 @@
-import ArticleProvider, { ArticleID } from "@core/FileStructue/Article/ArticleProvider";
+import ArticleProvider from "@ext/articleProvider/logic/ArticleProvider";
 import { Catalog } from "@core/FileStructue/Catalog/Catalog";
-import SnippetEditorProps from "@ext/markdown/elements/snippet/edit/model/SnippetEditorProps.schema";
 import FileProvider from "@core/FileProvider/model/FileProvider";
 import MarkdownParser from "@ext/markdown/core/Parser/Parser";
 import { Tag } from "@ext/markdown/core/render/logic/Markdoc";
@@ -11,8 +10,11 @@ import { JSONContent } from "@tiptap/core";
 import MarkdownFormatter from "@ext/markdown/core/edit/logic/Formatter/Formatter";
 import ParserContextFactory from "@ext/markdown/core/Parser/ParserContext/ParserContextFactory";
 import Context from "@core/Context/Context";
+import { ItemID } from "@ext/articleProvider/models/types";
+import { Article, ArticleProps } from "@core/FileStructue/Article/Article";
+import ParserContext from "@ext/markdown/core/Parser/ParserContext/ParserContext";
 
-declare module "@core/FileStructue/Article/ArticleProvider" {
+declare module "@ext/articleProvider/logic/ArticleProvider" {
 	export enum ArticleProviders {
 		snippet = "snippet",
 	}
@@ -46,31 +48,28 @@ export default class SnippetProvider extends ArticleProvider {
 			await snippet.parsedContent.write(() => parser.parse(snippet.content));
 
 		return await snippet.parsedContent.read((p) => {
-			return { id: snippetId, title: snippet.getTitle(), content: p.editTree };
+			return p.editTree;
 		});
 	}
 
-	public async getRenderData(snippetId: string, parser: MarkdownParser) {
+	public async getRenderData(snippetId: string, context: ParserContext) {
 		const snippet = this.getArticle(snippetId);
 		if (!snippet) throw new Error("Snippet not found");
-		if (await snippet.parsedContent.isNull())
-			await snippet.parsedContent.write(() => parser.parse(snippet.content));
+		if (await snippet.parsedContent.isNull()) {
+			await snippet.parsedContent.write(() => context.parser.parse(snippet.content, context));
+		}
 
 		return await snippet.parsedContent.read((p) => {
 			return { id: snippetId, title: snippet.getTitle(), content: (p.renderTree as Tag).children };
 		});
 	}
 
-	public getListData() {
-		const data: SnippetEditorProps[] = Array.from(this.articles.values()).map((a) => ({
-			id: a.ref.path.name,
-			title: a.getTitle(),
-		}));
-
-		return data;
-	}
-
-	override async remove(id: ArticleID) {
+	override async remove(
+		id: ItemID,
+		parser: MarkdownParser,
+		parserContextFactory: ParserContextFactory,
+		ctx: Context,
+	) {
 		const article = this.getArticle(id);
 
 		const articles = await this.getArticlesWithSnippet(id);
@@ -79,21 +78,29 @@ export default class SnippetProvider extends ArticleProvider {
 		}
 
 		if (this._isOldSnippet(article.ref.path)) {
-			this.articles.delete(id);
 			await this._fp.delete(article.ref.path);
+			await this.remove(id, parser, parserContextFactory, ctx);
 
 			return;
 		}
 
-		await super.remove(id);
+		await super.remove(id, parser, parserContextFactory, ctx);
 	}
 
-	public getSnippetsPaths() {
-		return Array.from(this.articles.values()).map((a) => a.ref.path);
+	public async clearArticlesContentWithSnippet(snippetId: string) {
+		const articles = await this.getArticlesWithSnippet(snippetId);
+		for (const article of articles) {
+			await article.parsedContent.write(() => null);
+		}
+	}
+
+	public async getSnippetsPaths() {
+		const items = (await this.getItems(true)) as Article<ArticleProps>[];
+		return items.map((a) => a.ref.path);
 	}
 
 	override async updateContent(
-		id: ArticleID,
+		id: ItemID,
 		editTree: JSONContent,
 		formatter: MarkdownFormatter,
 		parserContextFactory: ParserContextFactory,
@@ -104,7 +111,7 @@ export default class SnippetProvider extends ArticleProvider {
 		if (!article) return;
 
 		if (this._isOldSnippet(article.ref.path)) {
-			await this.remove(id);
+			await this.remove(id, parser, parserContextFactory, ctx);
 			await this._fp.delete(article.ref.path);
 
 			await this.create(

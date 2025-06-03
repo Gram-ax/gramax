@@ -3,7 +3,7 @@ import DefaultError from "@ext/errorHandlers/logic/DefaultError";
 import t from "@ext/localization/locale/translate";
 import UserInfo from "@ext/security/logic/User/UserInfo";
 import type { StyleGuideGptResponseModel } from "@ics/gx-ai";
-import { RequestParagraphModel } from "@ics/gx-ai/dist/styleGuideCheck/styleGuideGptRequest";
+import { RequestChunkModel } from "@ics/gx-ai/dist/styleGuideCheck/styleGuideGptRequest";
 
 class EnterpriseApi {
 	constructor(private _gesUrl: string) {}
@@ -22,10 +22,12 @@ class EnterpriseApi {
 		if (!this._gesUrl) return;
 
 		try {
-			const sendToken = token ? encodeURIComponent(token) : "null";
-			const res = await fetch(
-				`${this._gesUrl}/enterprise/sso/get-user?token=${sendToken}&checkSsoToken=${checkSsoToken}`,
-			);
+			const headers = {
+				Authorization: `Bearer ${token ? token : "null"}`,
+			};
+			const res = await fetch(`${this._gesUrl}/enterprise/sso/get-user?&checkSsoToken=${checkSsoToken}`, {
+				headers,
+			});
 			if (!res.ok || res.status !== 200) {
 				console.warn(`Error retrieving user information. Status: ${res.status} Status text: ${res.statusText}`);
 				return;
@@ -58,9 +60,12 @@ class EnterpriseApi {
 	}
 
 	async checkIsAdmin(token: string) {
-		const url = `${this._gesUrl}/enterprise/config/check?token=${encodeURIComponent(token)}`;
+		const headers = {
+			Authorization: `Bearer ${token}`,
+		};
+		const url = `${this._gesUrl}/enterprise/config/check`;
 		try {
-			const res = await fetch(url);
+			const res = await fetch(url, { headers });
 			if (res.status === 200) return true;
 			return false;
 		} catch (e) {
@@ -70,7 +75,7 @@ class EnterpriseApi {
 
 	async getUsers(search: string): Promise<{ name: string; email: string }[]> {
 		if (!search || !search.trim()) return [];
-		const res = await fetch(`${this._gesUrl}/sso/connectors/ldap/getUsers`, {
+		const res = await fetch(`${this._gesUrl}/sso/connectors/getUsers`, {
 			method: "POST",
 			headers: { "Content-Type": "application/json" },
 			body: JSON.stringify({ emailOrCn: search }),
@@ -83,11 +88,11 @@ class EnterpriseApi {
 	}
 
 	async isEnabledGetUsers(): Promise<boolean> {
-		const res = await fetch(`${this._gesUrl}/sso/connectors/ldap/enabled`);
+		const res = await fetch(`${this._gesUrl}/sso/connectors/enabled`);
 		return res.ok && res.status === 200;
 	}
 
-	async checkStyleGuide(paragraphs: RequestParagraphModel[]): Promise<StyleGuideGptResponseModel> {
+	async checkStyleGuide(paragraphs: RequestChunkModel[]): Promise<StyleGuideGptResponseModel> {
 		try {
 			const res = await fetch(`${this._gesUrl}/enterprise/style-guide/check`, {
 				method: "POST",
@@ -113,13 +118,15 @@ class EnterpriseApi {
 		try {
 			const res = await fetch(`${this._gesUrl}/enterprise/config/init-repo`, {
 				method: "POST",
-				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify({ token, resourceId }),
+				headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+				body: JSON.stringify({ resourceId }),
 			});
 			if (res.status == 403) throw new DefaultError(t("enterprise.init-repo.forbidden"));
 			if (res.status == 409) throw new DefaultError(t("enterprise.init-repo.already-exists"));
 
-			const resProxy = await fetch(`${this._gesUrl}/update?token=${encodeURIComponent(token)}`);
+			const resProxy = await fetch(`${this._gesUrl}/update`, {
+				headers: { Authorization: `Bearer ${token}` },
+			});
 			if (res.status == 403) throw new DefaultError(t("enterprise.init-repo.forbidden"));
 
 			return res.ok && resProxy.ok;
@@ -132,7 +139,9 @@ class EnterpriseApi {
 	async getUserSettings(token: string): Promise<UserSettings> {
 		if (!this._gesUrl || !token) return;
 
-		const res = await fetch(`${this._gesUrl}/enterprise/sso/get-user-settings?token=${encodeURIComponent(token)}`);
+		const res = await fetch(`${this._gesUrl}/enterprise/sso/get-user-settings`, {
+			headers: { Authorization: `Bearer ${token}` },
+		});
 		if (!res.ok || res.status !== 200) return;
 
 		return await res.json();
@@ -143,14 +152,16 @@ class EnterpriseApi {
 
 		const res = await fetch(`${this._gesUrl}/enterprise/config/add-reviews`, {
 			method: "POST",
-			headers: { "Content-Type": "application/json" },
-			body: JSON.stringify({ token, resourceId, reviewers, branch }),
+			headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+			body: JSON.stringify({ resourceId, reviewers, branch }),
 		});
 
 		if (res.status === 403) throw new DefaultError(t("enterprise.add-reviews.forbidden"));
 		if (res.status === 400) throw new DefaultError(t("enterprise.add-reviews.not-found"));
 
-		const gitRes = await fetch(`${this._gesUrl}/update?token=${encodeURIComponent(token)}`, { method: "POST" });
+		const gitRes = await fetch(`${this._gesUrl}/update`, {
+			headers: { Authorization: `Bearer ${token}` },
+		});
 
 		return gitRes.ok && res.ok && res.status === 200;
 	}
@@ -173,6 +184,30 @@ class EnterpriseApi {
 			console.error("Failed to get workspace config:", e);
 			return;
 		}
+	}
+
+	async mailSendOTP(email: string): Promise<{ status: number; timeLeft?: number }> {
+		const res = await fetch(`${this._gesUrl}/enterprise/mail/send-otp`, {
+			method: "POST",
+			headers: { "Content-Type": "application/json" },
+			body: JSON.stringify({ email }),
+		});
+
+		if (res.status === 429) return { status: res.status, timeLeft: (await res.json())?.timeLeft };
+
+		return { status: res.status };
+	}
+
+	async mailLoginOTP(email: string, otp: string) {
+		const res = await fetch(`${this._gesUrl}/enterprise/mail/login-otp`, {
+			method: "POST",
+			headers: { "Content-Type": "application/json" },
+			body: JSON.stringify({ email, otp }),
+		});
+
+		if (!res.ok) return;
+
+		return await res.json();
 	}
 }
 

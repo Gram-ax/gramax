@@ -1,12 +1,12 @@
 import AnimatedExtension from "@components/Atoms/ItemWrapper";
 import { classNames } from "@components/libs/classNames";
 import styled from "@emotion/styled";
-import { forwardRef, memo, MouseEvent, RefObject, useCallback } from "react";
+import { forwardRef, memo, MouseEvent, RefObject, useCallback, useRef } from "react";
 
-interface ItemComponentProps {
+export interface ItemComponentProps {
 	id: string;
 	title: string;
-	onItemClick: (logicPath: string) => void;
+	onItemClick: (logicPath: string, target: HTMLElement) => void;
 	isSelected: boolean;
 	rightActions: JSX.Element;
 	rightActionsWidth?: string;
@@ -26,18 +26,20 @@ const Item = forwardRef((props: ItemComponentProps, ref: RefObject<HTMLDivElemen
 		rightActionsWidth = "1.5em",
 	} = props;
 
+	const Ref = ref || useRef<HTMLDivElement>(null);
+
 	const handleClick = useCallback(
 		(event: MouseEvent<HTMLDivElement>) => {
 			event.stopPropagation();
 			event.preventDefault();
-			onItemClick(id);
+			onItemClick(id, Ref.current);
 		},
-		[id, onItemClick],
+		[id, onItemClick, Ref.current],
 	);
 
 	return (
 		<div
-			ref={ref}
+			ref={Ref}
 			className={classNames(className, { selected: isSelected })}
 			onClick={handleClick}
 			data-qa="qa-clickable"
@@ -89,7 +91,7 @@ export default memo(styled(Item)`
 	&:hover .right-actions,
 	&:has(*[aria-expanded="true"]) .right-actions {
 		padding-left: unset !important;
-		width: 1.5em;
+		width: ${({ rightActionsWidth }) => rightActionsWidth};
 		opacity: 1;
 		gap: 0.6rem;
 		margin-right: 0.2rem;

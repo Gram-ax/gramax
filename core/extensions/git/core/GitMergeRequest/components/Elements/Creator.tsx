@@ -27,7 +27,7 @@ const Creator = ({ from, created }: { from: Signature; created: Date }) => {
 			</Wrapper>
 			<Wrapper style={{ maxWidth: "100%", overflow: "hidden" }}>
 				<Accent bold>
-					<Date date={created.toString()} />
+					<Date date={created?.toString()} />
 				</Accent>
 			</Wrapper>
 		</Wrapper>

@@ -23,7 +23,7 @@ const getArticlesWithSnippet: Command<
 		const sp = sitePresenterFactory.fromContext(ctx);
 
 		await sp.parseAllItems(catalog);
-		const items = await catalog.snippetProvider.getArticlesWithSnippet(snippetId);
+		const items = await catalog.customProviders.snippetProvider.getArticlesWithSnippet(snippetId);
 
 		return Promise.all(
 			items.map(async (i) => ({

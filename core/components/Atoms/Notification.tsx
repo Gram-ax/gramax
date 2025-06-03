@@ -31,7 +31,7 @@ const Notification = ({ tooltip, className, size = 12, wrapperStyle, ...props }:
 
 export default styled(Notification)`
 	top: -0.5rem;
-	z-index: var(--z-index-base);
+	z-index: var(--z-index-card-overflow);
 	right: -0.5rem;
 	min-height: 1.5em;
 	padding: 0.2em;

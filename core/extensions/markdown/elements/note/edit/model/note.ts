@@ -8,6 +8,8 @@ import { callOrReturn, InputRule, mergeAttributes, Node } from "@tiptap/core";
 import { findWrapping } from "@tiptap/pm/transform";
 import { ReactNodeViewRenderer } from "@tiptap/react";
 import EditNote from "../components/Note";
+import { editName as BLOCK_FIELD } from "@ext/markdown/elements/blockContentField/consts";
+import { editName as BLOCK_PROPERTY } from "@ext/markdown/elements/blockProperty/consts";
 
 declare module "@tiptap/core" {
 	interface Commands<ReturnType> {
@@ -75,7 +77,7 @@ const Note = Node.create({
 			toggleNote:
 				(type?: NoteType) =>
 				({ commands, editor }) => {
-					if (stopExecution(editor, "note", ["block-field"])) return false;
+					if (stopExecution(editor, "note", [BLOCK_FIELD, BLOCK_PROPERTY])) return false;
 
 					return commands.toggleWrap(this.name, { type: type || NoteType.note });
 				},

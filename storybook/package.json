@@ -4,7 +4,7 @@
 	"author": "ics",
 	"scripts": {
 		"dev": "storybook dev -p 6006",
-		"build": "storybook build && node ./.storybook/build.js",
+		"build": "bun run ../node_modules/storybook/index.js build && bun run ./.storybook/build.js",
 		"start": "http-server storybook-static ${PORT}"
 	},
 	"dependencies": {

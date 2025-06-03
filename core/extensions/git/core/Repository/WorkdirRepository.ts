@@ -1,3 +1,6 @@
+import getIsDevMode from "@core-ui/utils/getIsDevMode";
+import DiskFileProvider from "@core/FileProvider/DiskFileProvider/DiskFileProvider";
+import MountFileProvider from "@core/FileProvider/MountFileProvider/MountFileProvider";
 import Path from "@core/FileProvider/Path/Path";
 import FileProvider from "@core/FileProvider/model/FileProvider";
 import haveInternetAccess from "@core/utils/haveInternetAccess";
@@ -33,6 +36,24 @@ export default class WorkdirRepository extends Repository {
 	constructor(repoPath: Path, fp: FileProvider, gvc: GitVersionControl, storage: Storage) {
 		super(repoPath, fp, gvc, storage);
 		this._state = new RepositoryStateProvider(this, this._repoPath, this._fp);
+		if (gvc) this.subscribeEvents(fp);
+	}
+
+	subscribeEvents(fp: FileProvider) {
+		const isDevMode = getIsDevMode();
+		if (!isDevMode) return;
+		if (!(fp instanceof MountFileProvider && fp.default() instanceof DiskFileProvider)) return;
+		DiskFileProvider.events.on("write", (e) => this._gitIndexAddFiles([e.path]));
+		DiskFileProvider.events.on("move", (e) => this._gitIndexAddFiles([e.from, e.to]));
+		DiskFileProvider.events.on("copy", (e) => this._gitIndexAddFiles([e.from, e.to]));
+		DiskFileProvider.events.on("delete", (e) => this._gitIndexAddFiles([e.path]));
+	}
+
+	private async _gitIndexAddFiles(p: Path[]) {
+		const paths = p.filter((x) => x && x.value.length && x.startsWith(this._repoPath));
+		if (paths.length === 0) return;
+		const gitPaths = paths.map((x) => this._repoPath.rootDirectory.subDirectory(x));
+		await this.gvc.add(gitPaths);
 	}
 
 	checkoutIfCurrentBranchNotExist(): Promise<{ hasCheckout: boolean }> {

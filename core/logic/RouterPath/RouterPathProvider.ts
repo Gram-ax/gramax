@@ -25,7 +25,7 @@ export default class RouterPathProvider {
 		const language = ContentLanguage[maybeLanguage];
 		maybeLanguage && filePath.unshift(maybeLanguage);
 		const normalizedFilePath = filePath.map((x) => decodeURIComponent(x));
-		const catalogName = dir ?? repo;
+		const catalogName = dir ?? repo ?? this._separator;
 		const itemLogicPath = [catalogName, ...normalizedFilePath];
 		const repNameItemLogicPath = repo ? [repo, ...normalizedFilePath] : null;
 
@@ -80,10 +80,11 @@ export default class RouterPathProvider {
 	static isEditorPathname(path: string[] | string | Path): boolean {
 		const currentPath = this._getArrayOfStrings(path);
 		const exclude = ["public"];
-		const maybeStorage = exclude.includes(currentPath[0]) ? currentPath[1] : currentPath[0];
+		const offset = exclude.includes(currentPath[0]) ? 1 : 0;
 
-		const isEditorPathname =
-			(maybeStorage?.includes(".") || maybeStorage == this._separator) && !maybeStorage?.includes(":");
+		const maybeStorage = currentPath[0 + offset];
+		const maybeSeparator = currentPath.slice(1 + offset, 4 + offset).some((s) => s === this._separator);
+		const isEditorPathname = (maybeStorage?.includes(".") || maybeSeparator) && !maybeStorage?.includes(":");
 		return isEditorPathname;
 	}
 

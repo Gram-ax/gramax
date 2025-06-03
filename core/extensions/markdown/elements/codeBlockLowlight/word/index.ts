@@ -14,7 +14,7 @@ export const getCodeBlock = async (lines: string[], addOptions: AddOptionsWord) 
 			(text, index) =>
 				new TextRun({
 					text,
-					break: index < lines.length - 1 && index > 0 ? 1 : 0,
+					break: index > 0 ? 1 : 0,
 				}),
 		),
 		style: WordBlockType.fence,

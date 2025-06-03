@@ -60,7 +60,7 @@ impl<C: Creds> History for Repo<C> {
   fn get_all_authors(&self) -> Result<Vec<CommitAuthorInfo>> {
     let mut authors = HashMap::new();
     let mut revwalk = self.0.revwalk()?;
-    revwalk.push_head()?;
+    revwalk.push_glob("refs/heads/*")?;
 
     for oid in revwalk {
       let commit = self.0.find_commit(oid?)?;

@@ -2,7 +2,7 @@ import { MergeConflictParser } from "@ext/git/actions/MergeConflictHandler/Monac
 import { IDocumentMergeConflictDescriptor } from "@ext/git/actions/MergeConflictHandler/Monaco/model/interfaces";
 import Theme from "@ext/Theme/Theme";
 import { editor } from "monaco-editor";
-import type * as monaco from "monaco-editor/esm/vs/editor/editor.api";
+import type * as monacoType from "monaco-editor/esm/vs/editor/editor.api";
 
 interface CodeLenseCommandProps {
 	descriptorIdx: number;
@@ -27,12 +27,12 @@ export default class FileInputMergeConflict {
 	private _codeLensLineNumbers: { current: number; incoming: number }[];
 	private _mergeConfilctDescriptor: IDocumentMergeConflictDescriptor[] = [];
 	private _decorators: editor.IEditorDecorationsCollection[] = [];
-	private _codeLensDisposables: monaco.IDisposable[] = [];
+	private _codeLensDisposables: monacoType.IDisposable[] = [];
 	private _mergeConflictParser: MergeConflictParser;
 
 	constructor(
 		private _editor: editor.IStandaloneCodeEditor,
-		private _monaco: typeof monaco,
+		private _monaco: typeof monacoType,
 		private _editorLanguage: string,
 		private _codeLensText: CodeLensText,
 		private _theme: Theme,
@@ -45,6 +45,14 @@ export default class FileInputMergeConflict {
 		this._codeLensDisposables = this._registerCodeLenses();
 
 		this._editor.onDidChangeCursorPosition(this._onDidChangeCursorPosition.bind(this));
+	}
+
+	static getMergeConflictDescriptor(
+		monaco: typeof monacoType,
+		model: editor.ITextModel,
+	): IDocumentMergeConflictDescriptor[] {
+		const mergeConflictParser = new MergeConflictParser(monaco);
+		return mergeConflictParser.scanDocument(model);
 	}
 
 	get haveConflictWithFileDelete() {
@@ -175,7 +183,7 @@ export default class FileInputMergeConflict {
 		}));
 	}
 
-	private _registerCodeLenses(): monaco.IDisposable[] {
+	private _registerCodeLenses(): monacoType.IDisposable[] {
 		if (this._mergeConfilctDescriptor.length === 0) {
 			this._monaco.languages.registerCodeLensProvider(this._editorLanguage, {
 				provideCodeLenses: () => ({ lenses: [], dispose: () => {} }),
@@ -219,7 +227,7 @@ export default class FileInputMergeConflict {
 			incoming: number;
 		},
 		idx: number,
-	): monaco.languages.ProviderResult<monaco.languages.CodeLensList> {
+	): monacoType.languages.ProviderResult<monacoType.languages.CodeLensList> {
 		return {
 			lenses: [
 				{
@@ -285,7 +293,7 @@ export default class FileInputMergeConflict {
 		mergeConflictDescriptor: IDocumentMergeConflictDescriptor,
 		codeLensLine: { current: number; incoming: number },
 		idx: number,
-	): monaco.languages.ProviderResult<monaco.languages.CodeLensList> {
+	): monacoType.languages.ProviderResult<monacoType.languages.CodeLensList> {
 		const isCurrentDeleted = this._isCurrentDeleted(mergeConflictDescriptor);
 		return {
 			lenses: [

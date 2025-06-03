@@ -51,6 +51,11 @@ export default class GitStorage implements Storage {
 		await gitRepository.cloneCancel(cancelToken);
 	}
 
+	static async getAllCancelTokens(fp: FileProvider, path: Path) {
+		const git = new GitCommands(fp, path);
+		return git.getAllCancelTokens();
+	}
+
 	static async clone({
 		fs,
 		data,

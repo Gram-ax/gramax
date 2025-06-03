@@ -9,7 +9,7 @@ import { refreshPage } from "@core-ui/utils/initGlobalFuncs";
 import { useRouter } from "@core/Api/useRouter";
 import type { ClientItemRef } from "@core/SitePresenter/SitePresenter";
 import styled from "@emotion/styled";
-import ActionWarning from "@ext/localization/actions/ActionWarning";
+import OtherLanguagesPresentWarning from "@ext/localization/actions/OtherLanguagesPresentWarning";
 import t from "@ext/localization/locale/translate";
 import NavigationEvents from "@ext/navigation/NavigationEvents";
 import { ItemLink } from "@ext/navigation/NavigationLinks";
@@ -57,7 +57,7 @@ const CreateArticle = (props: CreateArticleProps) => {
 	if (isReadOnly) return null;
 
 	return (
-		<ActionWarning catalogProps={catalogProps} action={onClickHandler}>
+		<OtherLanguagesPresentWarning catalogProps={catalogProps} action={onClickHandler}>
 			<span className={className}>
 				<ButtonLink
 					iconFw={false}
@@ -69,7 +69,7 @@ const CreateArticle = (props: CreateArticleProps) => {
 					iconPlace={item ? "top" : "right"}
 				/>
 			</span>
-		</ActionWarning>
+		</OtherLanguagesPresentWarning>
 	);
 };
 

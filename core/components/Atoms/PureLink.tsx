@@ -6,6 +6,7 @@ export enum LinkTheme {
 	INHERIT = "inherit",
 	PRIMARY = "primary",
 	DISABLED = "disabled",
+	DEFAULT = "",
 }
 
 export interface PureLinkProps extends HTMLAttributes<HTMLAnchorElement> {

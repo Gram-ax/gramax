@@ -1,13 +1,11 @@
+import clearArticlesContentWithSnippet from "./clearArticlesContent";
 import getArticlesWithSnippet from "./getArticlesWithSnippet";
-import getEditData from "./getEditData";
-import getListData from "./getListData";
 import getRenderData from "./getRenderData";
 
 const snippet = {
-	getListData,
-	getEditData,
 	getRenderData,
 	getArticlesWithSnippet,
+	clearArticlesContentWithSnippet,
 };
 
 export default snippet;

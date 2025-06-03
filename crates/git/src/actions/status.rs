@@ -1,6 +1,5 @@
 use std::path::Path;
 use std::path::PathBuf;
-use std::slice::Iter;
 
 use git2::*;
 use serde::Serialize;
@@ -29,7 +28,7 @@ pub enum StatusEntry {
   Unknown,
 }
 
-#[derive(Serialize, Debug)]
+#[derive(Serialize, PartialEq, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct StatusInfoEntry {
   pub path: PathBuf,
@@ -41,8 +40,8 @@ pub struct StatusInfoEntry {
 pub struct StatusInfo(Vec<StatusInfoEntry>);
 
 impl StatusInfo {
-  pub fn entries(&self) -> Iter<StatusInfoEntry> {
-    self.0.iter()
+  pub fn entries(&self) -> &Vec<StatusInfoEntry> {
+    &self.0
   }
 }
 

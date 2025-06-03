@@ -1,3 +1,5 @@
+import getEditTree from "./getEditTree";
+import getItemList from "./getItemList";
 import create from "./create";
 import getContent from "./getContent";
 import remove from "./remove";
@@ -8,4 +10,6 @@ export default {
 	remove,
 	update,
 	getContent,
+	getEditTree,
+	getItemList,
 };

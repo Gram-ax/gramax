@@ -1,4 +1,5 @@
 import { editName as blockFieldEditName } from "@ext/markdown/elements/blockContentField/consts";
+import { editName as blockPropertyEditName } from "@ext/markdown/elements/blockProperty/consts";
 import { Level } from "@ext/markdown/elements/heading/edit/model/heading";
 import OPEN_API_NAME from "@ext/markdown/elements/openApi/name";
 import { Selection } from "@tiptap/pm/state";
@@ -29,7 +30,8 @@ export type NodeType =
 	| typeof OPEN_API_NAME
 	| "code_block"
 	| "inline-property"
-	| typeof blockFieldEditName;
+	| typeof blockFieldEditName
+	| typeof blockPropertyEditName;
 
 export type Mark = "link" | "strong" | "em" | "code" | "file" | "comment" | "s";
 

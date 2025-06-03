@@ -29,7 +29,7 @@ const DrawioComponent = ({ node, getPos, editor }: NodeViewProps): ReactElement 
 	const apiUrlCreator = ApiUrlCreatorService.value;
 	const pageDataContext = PageDataContextService.value;
 	const articleProps = ArticlePropsService.value;
-	const { getBuffer, update } = ResourceService.value;
+	const { getBuffer, setResource } = ResourceService.value;
 
 	const setImgData = useCallback(() => {
 		const imagData = refT.current?.src;
@@ -42,11 +42,10 @@ const DrawioComponent = ({ node, getPos, editor }: NodeViewProps): ReactElement 
 		async (data: string) => {
 			const newBase64Img = DataImageToBase64(data);
 			const buffer = Buffer.from(newBase64Img, "base64");
-			await FetchService.fetch(apiUrlCreator.setArticleResource(nodeSrc), buffer);
-			update(nodeSrc, buffer);
+			await setResource(nodeSrc, buffer, undefined, true);
 			updateAttributes({});
 		},
-		[nodeSrc, apiUrlCreator],
+		[nodeSrc, setResource],
 	);
 
 	const openEditor = useCallback(() => {

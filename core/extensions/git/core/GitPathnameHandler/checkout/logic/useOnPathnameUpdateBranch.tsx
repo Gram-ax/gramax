@@ -18,6 +18,9 @@ const useOnPathnameUpdateBranch = () => {
 			const routerPath = new Path(router.path + router.hash).removeExtraSymbols;
 			if (isReadOnly || !RouterPathProvider.isEditorPathname(routerPath)) return;
 
+			const checkoutToNewCreatedBranch = caller === OnBranchUpdateCaller.CheckoutToNewCreatedBranch;
+			if (checkoutToNewCreatedBranch) return;
+
 			const fromInit = caller === OnBranchUpdateCaller.Init;
 			const pathnameData = RouterPathProvider.parsePath(routerPath);
 			const isLocal = RouterPathProvider.isLocal(pathnameData);

@@ -5,7 +5,7 @@ export const getCliModules = async () => {
 		{ default: NextGetImageSizeFromImageData },
 		{ default: NextGetImageFromDom },
 		xmldom,
-		{ loadFontBuffer },
+		{ cliLoadFont },
 		{ default: NextGetImageByPath },
 	] = await Promise.all([
 		import("../../../apps/next/logic/NextCookie"),
@@ -13,7 +13,7 @@ export const getCliModules = async () => {
 		import("../../../apps/next/logic/NextGetImageSizeFromImageData"),
 		import("../../../apps/next/logic/NextGetImageFromDom"),
 		import("@xmldom/xmldom"),
-		import("@ext/pdfExport/fontLoaders/nextLoadFont"),
+		import("@ext/pdfExport/fontLoaders/cliLoadFont"),
 		import("../../../apps/next/logic/NextGetImageByPath"),
 	]);
 
@@ -26,7 +26,7 @@ export const getCliModules = async () => {
 		moveToTrash: () => Promise.resolve(),
 		getDOMParser: () => new xmldom.DOMParser() as any,
 		setSessionData: () => Promise.resolve(),
-		pdfLoadFont: loadFontBuffer("fonts"),
+		pdfLoadFont: cliLoadFont(),
 		getImageByPath: NextGetImageByPath,
 	};
 };

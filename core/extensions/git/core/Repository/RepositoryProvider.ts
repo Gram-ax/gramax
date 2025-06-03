@@ -4,6 +4,7 @@ import { createEventEmitter, Event } from "@core/Event/EventEmitter";
 import Path from "@core/FileProvider/Path/Path";
 import FileProvider from "@core/FileProvider/model/FileProvider";
 import type BaseCatalog from "@core/FileStructue/Catalog/BaseCatalog";
+import type { CatalogProps } from "@core/FileStructue/Catalog/CatalogProps";
 import type FileStructure from "@core/FileStructue/FileStructure";
 import { resetRepo } from "@ext/git/core/GitCommands/LibGit2IntermediateCommands";
 import GitVersionControl from "@ext/git/core/GitVersionControl/GitVersionControl";
@@ -18,8 +19,8 @@ import SourceData from "@ext/storage/logic/SourceDataProvider/model/SourceData";
 import Storage from "@ext/storage/logic/Storage";
 import StorageProvider from "@ext/storage/logic/StorageProvider";
 import StorageData from "@ext/storage/models/StorageData";
+import type { Workspace } from "@ext/workspace/Workspace";
 import type { WorkspacePath } from "@ext/workspace/WorkspaceConfig";
-
 export type RepositoryProviderEvents = Event<"connect-repository", { repo: Repository }>;
 
 export default class RepositoryProvider {
@@ -87,10 +88,18 @@ export default class RepositoryProvider {
 
 	async initNew(path: Path, fp: FileProvider, data: StorageData): Promise<Repository> {
 		const gvc = await GitVersionControl.init(fp, path, data.source);
-		const storage = await this._sp.initNewStorage(fp, path, data, this._config);
+		const storage = await this._sp.initStorage(fp, path, data, this._config);
 		const repo = await this._makeRepository(path, fp, gvc, storage);
 		await this._events.emit("connect-repository", { repo });
 		return repo;
+	}
+
+	cleanupProgressCache(fs: FileStructure, entries: Path[]) {
+		this._sp.cleanupProgressCache(fs, entries);
+	}
+
+	async tryReviveCloneProgress(workspace: Workspace, path: Path, initProps: CatalogProps, cancelTokens: number[]) {
+		return this._sp.tryReviveCloneProgress(workspace, path, initProps, cancelTokens);
 	}
 
 	async cloneNewRepository(
@@ -102,11 +111,11 @@ export default class RepositoryProvider {
 		branch?: string,
 		onCloneFinish?: (path: Path, isCancelled: boolean) => Promise<void>,
 	) {
-		return this._sp.cloneNewStorage({ fs, path, data, recursive, isBare, branch, onCloneFinish });
+		return this._sp.cloneFromStorage(fs, { out: path, data, recursive, isBare, branch, onFinish: onCloneFinish });
 	}
 
-	async cancelClone(path: Path, fs: FileStructure) {
-		return this._sp.cancelClone(path, fs);
+	async cancelClone(fs: FileStructure, path: Path) {
+		return this._sp.cancelClone(fs, path);
 	}
 
 	getCloneProgress(absolutePath: Path) {

@@ -146,6 +146,7 @@ describe("Repository", () => {
 
 			expect((await rep.gvc.getCurrentBranch()).toString()).toBe("master");
 			expect(rep.gvc.getBranch("feature")).toBeDefined();
+			expect(await dfp.exists(repPath(".gramax/mr/open.yaml"))).toBeFalsy();
 		});
 
 		test("with branch deletion", async () => {
@@ -166,6 +167,7 @@ describe("Repository", () => {
 
 			expect((await rep.gvc.getCurrentBranch()).toString()).toBe("master");
 			await expect(rep.gvc.getBranch("feature")).rejects.toThrow(LibGit2Error);
+			expect(await dfp.exists(repPath(".gramax/mr/open.yaml"))).toBeFalsy();
 		});
 	});
 

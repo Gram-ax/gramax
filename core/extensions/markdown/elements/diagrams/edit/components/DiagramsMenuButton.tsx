@@ -13,11 +13,17 @@ import createDiagrams from "../../logic/createDiagrams";
 import ResourceService from "@ext/markdown/elements/copyArticles/resourceService";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 
-const DiagramsMenuButton = ({ editor, diagramName }: { editor: Editor; diagramName: DiagramType }) => {
-	const articleProps = ArticlePropsService.value;
+interface DiagramsMenuButtonProps {
+	editor: Editor;
+	diagramName: DiagramType;
+	fileName?: string;
+}
+
+const DiagramsMenuButton = ({ editor, diagramName, fileName }: DiagramsMenuButtonProps) => {
 	const apiUrlCreator = ApiUrlCreatorService.value;
 	const resourceService = ResourceService.value;
 	const pageDataContext = PageDataContextService.value;
+	const articleProps = ArticlePropsService.value;
 
 	let diagramIcon: JSX.Element;
 	let diagramTooltipText: string;
@@ -46,7 +52,14 @@ const DiagramsMenuButton = ({ editor, diagramName }: { editor: Editor; diagramNa
 			tooltipText={diagramTooltipText}
 			nodeValues={{ action: "diagrams" }}
 			onClick={() =>
-				void createDiagrams(editor, articleProps, apiUrlCreator, resourceService, diagramName, pageDataContext)
+				void createDiagrams(
+					editor,
+					fileName || articleProps?.fileName,
+					apiUrlCreator,
+					resourceService,
+					diagramName,
+					pageDataContext,
+				)
 			}
 		>
 			<SvgContainer>{diagramIcon}</SvgContainer>

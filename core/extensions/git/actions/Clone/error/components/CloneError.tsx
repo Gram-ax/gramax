@@ -17,16 +17,27 @@ const CloneErrorComponent = ({ error, onCancelClick }: ComponentProps<typeof Get
 		<InfoModalForm onCancelClick={onCancelClick} title={t("clone-fail")} closeButton={{ text: t("ok") }}>
 			<div className="article">
 				<Wrapper>
-					{t("clone-error-desc1")}{" "}
-					<a href={error.props.repUrl} target="_blank" rel="noreferrer">
-						{error.props.repUrl}
-					</a>
+					{t("clone-error-desc1")}
+					{error.props.remoteUrl && (
+						<>
+							{" "}
+							<a href={error.props.remoteUrl} target="_blank" rel="noreferrer">
+								{error.props.remoteUrl}
+							</a>
+						</>
+					)}
 					. {t("clone-error-desc2")}
 				</Wrapper>
 
 				{cause && (
 					<Note title={t("technical-details")} collapsed={true} type={NoteType.hotfixes}>
-						<CodeBlock value={cause.name + ": " + cause.message + "\n" + cause.stack} />
+						<CodeBlock
+							value={
+								cause.stack.includes("Fn:")
+									? cause.stack
+									: cause.name + ": " + cause.message + "\n" + cause.stack
+							}
+						/>
 					</Note>
 				)}
 			</div>

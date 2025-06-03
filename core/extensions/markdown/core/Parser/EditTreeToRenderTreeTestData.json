@@ -9,7 +9,7 @@
 				"name": "Heading",
 				"attributes": {
 					"level": 2,
-					"id": null,
+					"id": "заголовок-2",
 					"isCustomId": false
 				},
 				"children": ["Заголовок 2"]
@@ -19,7 +19,7 @@
 				"name": "Heading",
 				"attributes": {
 					"level": 3,
-					"id": null,
+					"id": "заголовок-3",
 					"isCustomId": false
 				},
 				"children": ["Заголовок 3"]
@@ -29,7 +29,7 @@
 				"name": "Heading",
 				"attributes": {
 					"level": 4,
-					"id": null,
+					"id": "заголовок-4",
 					"isCustomId": false
 				},
 				"children": ["Заголовок 4"]
@@ -282,7 +282,7 @@
 				"name": "Heading",
 				"attributes": {
 					"level": 2,
-					"id": null,
+					"id": "заголовок-2",
 					"isCustomId": false
 				},
 				"children": ["Заголовок 2"]
@@ -300,7 +300,7 @@
 				"name": "Heading",
 				"attributes": {
 					"level": 3,
-					"id": null,
+					"id": "заголовок-3",
 					"isCustomId": false
 				},
 				"children": ["Заголовок 3"]
@@ -318,7 +318,7 @@
 				"name": "Heading",
 				"attributes": {
 					"level": 4,
-					"id": null,
+					"id": "заголовок-4",
 					"isCustomId": false
 				},
 				"children": ["Заголовок 4"]

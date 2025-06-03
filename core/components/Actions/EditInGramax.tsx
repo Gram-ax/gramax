@@ -1,12 +1,14 @@
 import Button, { TextSize } from "@components/Atoms/Button/Button";
 import { ButtonStyle } from "@components/Atoms/Button/ButtonStyle";
 import IconLink from "@components/Molecules/IconLink";
+import Icon from "@components/Atoms/Icon";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import { usePlatform } from "@core-ui/hooks/usePlatform";
 import ErrorConfirmService from "@ext/errorHandlers/client/ErrorConfirmService";
 import DefaultError from "@ext/errorHandlers/logic/DefaultError";
 import t from "@ext/localization/locale/translate";
 import useEditUrl from "./useEditUrl";
+import ButtonLink from "@components/Molecules/ButtonLink";
 
 const DESKTOP_APP_LISTENING_ADDRESS = "http://127.0.0.1:52055";
 
@@ -31,14 +33,15 @@ const EditInGramaxButton = ({ text, targetSelf, onClick, pathname, articlePath }
 	const url = useEditUrl(pathname, articlePath);
 
 	return (
-		<div>
+		<div
+			onClick={() => {
+				onClick
+					? onClick(() => openHref(url, targetSelf ? "_self" : "_blank"))
+					: openHref(url, targetSelf ? "_self" : "_blank");
+			}}
+		>
 			<Button buttonStyle={ButtonStyle.transparent} textSize={TextSize.XS}>
 				<IconLink
-					onClick={() => {
-						onClick
-							? onClick(() => openHref(url, targetSelf ? "_self" : "_blank"))
-							: openHref(url, targetSelf ? "_self" : "_blank");
-					}}
 					href={url}
 					style={{ lineHeight: "140%" }}
 					afterIconCode={"gramax"}

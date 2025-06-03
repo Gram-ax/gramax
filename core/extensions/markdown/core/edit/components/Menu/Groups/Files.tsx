@@ -9,12 +9,26 @@ import ModalLayoutDark from "@components/Layouts/ModalLayoutDark";
 import IconMenuButton from "@ext/markdown/elements/icon/edit/components/IconMenuButton";
 import Tooltip from "@components/Atoms/Tooltip";
 import { useState } from "react";
+import CatalogPropsService from "@core-ui/ContextServices/CatalogProps";
+import getFormatterType from "@ext/markdown/core/edit/logic/Formatter/Formatters/typeFormats/getFormatterType";
 
-const FilesMenuGroup = ({ editor }: { editor?: Editor }) => {
+interface FilesMenuGroupProps {
+	editor?: Editor;
+	fileName?: string;
+	isSmallEditor?: boolean;
+}
+
+const FilesMenuGroup = ({ editor, fileName, isSmallEditor }: FilesMenuGroupProps) => {
 	const file = ButtonStateService.useCurrentAction({ mark: "file" });
 	const image = ButtonStateService.useCurrentAction({ action: "image" });
 	const video = ButtonStateService.useCurrentAction({ action: "video" });
 	const icon = ButtonStateService.useCurrentAction({ action: "icon" });
+
+	const syntax = CatalogPropsService.value.syntax;
+	const supportedElements = getFormatterType(syntax).supportedElements;
+
+	const isVideoSupported = supportedElements.includes("video");
+	const isIconSupported = supportedElements.includes("icon");
 
 	const disabled = file.disabled && image.disabled && video.disabled && icon.disabled;
 	const isActive = file.isActive || image.isActive || video.isActive || icon.isActive;
@@ -35,10 +49,10 @@ const FilesMenuGroup = ({ editor }: { editor?: Editor }) => {
 			content={
 				<ModalLayoutDark>
 					<ButtonsLayout>
-						<FileMenuButton editor={editor} />
-						<ImageMenuButton editor={editor} />
-						<VideoMenuButton editor={editor} />
-						<IconMenuButton editor={editor} onClose={() => setIsOpen(false)} />
+						{!isSmallEditor && <FileMenuButton editor={editor} />}
+						<ImageMenuButton editor={editor} fileName={fileName} />
+						{isVideoSupported && <VideoMenuButton editor={editor} />}
+						{isIconSupported && <IconMenuButton editor={editor} onClose={() => setIsOpen(false)} />}
 					</ButtonsLayout>
 				</ModalLayoutDark>
 			}

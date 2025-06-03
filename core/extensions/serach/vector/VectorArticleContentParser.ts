@@ -104,9 +104,14 @@ export default class VectorArticleContentParser {
 	}
 
 	private _enterBlock(block: ArticleBlock) {
+		if (this._curBlock) {
+			this._blocksStack.push(this._curBlock);
+			this._curBlock.items.push(block);
+		} else {
+			this._children.push(block);
+		}
+
 		this._curBlock = block;
-		this._blocksStack.push(this._curBlock);
-		this._children.push(this._curBlock);
 	}
 
 	private _exitBlock() {

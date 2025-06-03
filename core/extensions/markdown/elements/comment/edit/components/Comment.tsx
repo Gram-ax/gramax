@@ -90,7 +90,7 @@ const Comment = (props: CommentProps) => {
 					onConfirm={onConfirm}
 					onLoaded={onLoaded}
 					placeholder={t("leave-comment")}
-					confirmButtonText={t("comment")}
+					confirmButtonText={t("comment-on")}
 				/>
 			</div>
 		</div>

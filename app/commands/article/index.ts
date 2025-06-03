@@ -21,6 +21,8 @@ import update from "@app/commands/article/property/update";
 import removeProperty from "@app/commands/article/property/remove";
 import getProperty from "@app/commands/article/property/get";
 import provider from "@app/commands/article/provider";
+import markAsRead from "./markAsRead";
+import markAsOpened from "./markAsOpened";
 
 const article = {
 	features: {
@@ -54,6 +56,8 @@ const article = {
 	getProps,
 	updateContent,
 	checkLastModified,
+	markAsRead,
+	markAsOpened,
 };
 
 export default article;

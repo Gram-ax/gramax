@@ -263,7 +263,7 @@ export class GitCommands {
 				throw new GitError(
 					GitErrorCode.CloneError,
 					e,
-					{ repositoryPath: this._repoPath.value, repUrl: url },
+					{ repositoryPath: this._repoPath.value, remoteUrl: url },
 					"clone",
 					null,
 					t("git.clone.error.cannot-clone"),
@@ -274,6 +274,10 @@ export class GitCommands {
 
 	async cloneCancel(cancelToken: CloneCancelToken): Promise<boolean> {
 		return this._impl.cloneCancel(cancelToken);
+	}
+
+	async getAllCancelTokens(): Promise<number[]> {
+		return this._impl.getAllCancelTokens();
 	}
 
 	async add(filePaths?: Path[], force = false): Promise<void> {
@@ -345,7 +349,8 @@ export class GitCommands {
 			try {
 				await this._impl.push(data);
 			} catch (e) {
-				throw getGitError(e, { repositoryPath: this._repoPath.value }, "push");
+				const origin = await this.getRemoteUrl();
+				throw getGitError(e, { repositoryPath: this._repoPath.value, remoteUrl: origin }, "push");
 			}
 		});
 	}
@@ -355,7 +360,8 @@ export class GitCommands {
 			try {
 				await this._impl.fetch(data, force);
 			} catch (e) {
-				throw getGitError(e, { repositoryPath: this._repoPath.value }, "fetch");
+				const origin = await this.getRemoteUrl();
+				throw getGitError(e, { repositoryPath: this._repoPath.value, remoteUrl: origin }, "fetch");
 			}
 		});
 	}

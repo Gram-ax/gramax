@@ -8,30 +8,51 @@ import { tagWraps, findTagEnd } from "../../utils";
 import { Schemes } from "@ext/markdown/core/Parser/Parser";
 import { PluginWithOptions } from "markdown-it/lib";
 import { RuleBlock } from "markdown-it/lib/parser_block";
+import { RuleInline } from "markdown-it/lib/parser_inline";
 import { OPEN as gitConflictOpen } from "@ext/markdown/core/render/logic/Markdoc/src/tokenizer/plugins/gitConflictPlugin";
+import { blockElements, blockWithInlineElements, selfClosingTags } from "@ext/markdown/elements/htmlTag/logic/utils";
 
-const checkTag = (meta: any, options?: { tags?: Schemes["tags"] }) => {
-	if (!meta.tag || !options?.tags) return true;
+const getHtmlTagType = (name: string) => {
+	const lowerName = name.toLowerCase();
+
+	if (selfClosingTags.includes(lowerName)) return "selfClosingHtmlTag";
+	if (blockElements.includes(lowerName)) return "blockHtmlTag";
+	if (blockWithInlineElements.includes(lowerName)) return "blockWithInlineHtmlTag";
+	return "inlineHtmlTag";
+};
+
+const transformUnschemedTag = (meta: any, options?: { tags?: Schemes["tags"]; allowHtmlFallback?: boolean }) => {
+	if (!meta.tag || !options?.tags) return meta;
 
 	const hasScheme = !!options.tags[meta.tag];
-	if (hasScheme) return true;
-	return false;
+	if (hasScheme) return meta;
+	if (!options.allowHtmlFallback) return null;
+
+	const tagType = getHtmlTagType(meta.tag);
+	return {
+		...meta,
+		tag: tagType,
+		attributes: [
+			{ name: "name", value: meta.tag },
+			{ name: "attributes", value: meta.attributes || [] },
+		],
+	};
 };
 
 export const createToken = (
 	state: StateBlock | StateInline,
 	content: string,
 	contentStart?: number,
-	options?: { tags?: Schemes["tags"] },
+	options?: { tags?: Schemes["tags"]; allowHtmlFallback?: boolean },
 ): Token => {
 	try {
 		const { type, meta, nesting = 0 } = parse(content, { Variable, Function });
 
-		if (!checkTag(meta, options)) return null;
-
-		const token = state.push(type, "", nesting);
+		const transformedMeta = transformUnschemedTag(meta, options);
+		if (!transformedMeta) return null;
+		const token = state.push(transformedMeta.tag === "selfClosingHtmlTag" ? "tag" : type, "", nesting);
 		token.info = content;
-		token.meta = meta;
+		token.meta = transformedMeta;
 
 		if (!state.delimiters) {
 			state.delimiters = [];
@@ -50,9 +71,11 @@ const block =
 		const start = state.bMarks[startLine] + state.tShift[startLine];
 		const finish = state.eMarks[startLine];
 
-		const currentTag = Object.values(tagWraps).find((tag) => state.src.startsWith(tag.open, start));
+		const tagMatch = Object.entries(tagWraps).find(([_, tag]) => state.src.startsWith(tag.open, start));
 
-		if (!currentTag) return false;
+		if (!tagMatch) return false;
+
+		const [tagName, currentTag] = tagMatch;
 
 		const tagEnd = findTagEnd(state.src, start, currentTag.close);
 		const lastPossible = state.src.slice(0, finish).trim().length;
@@ -67,7 +90,10 @@ const block =
 
 		if (silent) return true;
 
-		const token = createToken(state, content, contentStart, { tags });
+		const token = createToken(state, content, contentStart, {
+			tags,
+			allowHtmlFallback: tagName === "angle",
+		});
 		if (!token) return false;
 
 		token.map = [startLine, startLine + lines];
@@ -76,19 +102,23 @@ const block =
 	};
 
 const inline =
-	(tags: Schemes["tags"]) =>
-	(state: StateInline, silent: boolean): boolean => {
+	(tags: Schemes["tags"]): RuleInline =>
+	(state, silent): boolean => {
 		if (state.src.startsWith(gitConflictOpen)) return false;
 
-		const currentTag = Object.values(tagWraps).find((tag) => state.src.startsWith(tag.open, state.pos));
-		if (!currentTag) return false;
+		const tagMatch = Object.entries(tagWraps).find(([_, tag]) => state.src.startsWith(tag.open, state.pos));
+		if (!tagMatch) return false;
 
+		const [tagName, currentTag] = tagMatch;
 		const tagEnd = findTagEnd(state.src, state.pos, currentTag.close);
 		if (!tagEnd) return false;
 
 		const content = state.src.slice(state.pos + currentTag.open.length, tagEnd);
 		if (!silent) {
-			const token = createToken(state, content.trim(), state.pos, { tags });
+			const token = createToken(state, content.trim(), state.pos, {
+				tags,
+				allowHtmlFallback: tagName === "angle",
+			});
 			if (!token) return false;
 		}
 

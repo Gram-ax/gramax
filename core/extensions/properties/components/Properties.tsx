@@ -4,10 +4,9 @@ import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import ArticlePropsService from "@core-ui/ContextServices/ArticleProps";
 import styled from "@emotion/styled";
 import { Property } from "@ext/properties/models";
-import { useCallback, useMemo, CSSProperties, Dispatch, SetStateAction } from "react";
+import { useCallback, useMemo, CSSProperties, Dispatch, SetStateAction, useEffect } from "react";
 import PropertyArticle from "@ext/properties/components/Helpers/PropertyArticle";
 import combineProperties from "@ext/properties/logic/combineProperties";
-import useWatch from "@core-ui/hooks/useWatch";
 import PropertyComponent from "@ext/properties/components/Property";
 import AddProperty from "@ext/properties/components/Helpers/AddProperty";
 import Chip from "@components/Atoms/Chip";
@@ -26,14 +25,13 @@ const Properties = ({ className, style, properties, setProperties }: PropertiesP
 	const catalogProperties = PropertyServiceProvider.value?.properties;
 	const apiUrlCreator = ApiUrlCreatorService.value;
 
-	useWatch(() => {
-		if (catalogProperties?.size > 0)
-			setProperties(combineProperties(properties, Array.from(catalogProperties.values())));
+	useEffect(() => {
+		if (catalogProperties?.size > 0) setProperties(combineProperties(properties, catalogProperties));
 	}, [catalogProperties]);
 
-	useWatch(() => {
+	useEffect(() => {
 		if (articleProps?.properties && catalogProperties?.size > 0)
-			setProperties(combineProperties(articleProps.properties, Array.from(catalogProperties.values())));
+			setProperties(combineProperties(articleProps.properties, catalogProperties));
 	}, [articleProps?.properties]);
 
 	const deleteHandler = useCallback(
@@ -48,7 +46,7 @@ const Properties = ({ className, style, properties, setProperties }: PropertiesP
 					MimeTypes.json,
 				);
 
-				return combineProperties(newProps, Array.from(catalogProperties.values()));
+				return combineProperties(newProps, catalogProperties);
 			});
 		},
 		[articleProps, properties, catalogProperties],
@@ -66,7 +64,7 @@ const Properties = ({ className, style, properties, setProperties }: PropertiesP
 					MimeTypes.json,
 				);
 
-				return combineProperties(newProps, Array.from(catalogProperties.values()));
+				return combineProperties(newProps, catalogProperties);
 			});
 		},
 		[articleProps, properties, catalogProperties],

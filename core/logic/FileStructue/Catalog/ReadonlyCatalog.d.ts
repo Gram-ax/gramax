@@ -15,15 +15,19 @@ import type SnippetProvider from "@ext/markdown/elements/snippet/logic/SnippetPr
 import type IPermission from "@ext/security/logic/Permission/IPermission";
 import type InboxProvider from "@ext/inbox/logic/InboxProvider";
 import type TemplateProvider from "@ext/templates/logic/TemplateProvider";
+import PromptProvider from "@ext/ai/logic/PromptProvider";
 
 export interface ReadonlyCatalog<P extends CatalogProps = CatalogProps> extends ReadonlyBaseCatalog<P> {
 	get deref(): Catalog<P>;
 
 	get perms(): IPermission;
-	get snippetProvider(): SnippetProvider;
-	get iconProvider(): IconProvider;
-	get inboxProvider(): InboxProvider;
-	get templateProvider(): TemplateProvider;
+	get customProviders(): {
+		inboxProvider: InboxProvider;
+		templateProvider: TemplateProvider;
+		promptProvider: PromptProvider;
+		snippetProvider: SnippetProvider;
+		iconProvider: IconProvider;
+	};
 
 	getRootCategory(): Category<P>;
 	getRootCategoryRef(): ItemRef;

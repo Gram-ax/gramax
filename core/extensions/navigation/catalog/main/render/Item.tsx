@@ -6,6 +6,7 @@ import ArticlePropsService from "@core-ui/ContextServices/ArticleProps";
 import GitIndexService from "@core-ui/ContextServices/GitIndexService";
 import { ItemType } from "@core/FileStructue/Item/ItemType";
 import styled from "@emotion/styled";
+import { isFromModal } from "@ui-kit/Modal";
 import { HTMLAttributes } from "react";
 import { CategoryLink, ItemLink } from "../../../NavigationLinks";
 /* eslint-disable @typescript-eslint/no-unused-vars */
@@ -36,6 +37,10 @@ const Item = ({
 	title,
 	currentTitle,
 	status,
+	isActive,
+	isDragStarted,
+	isDropTarget,
+	isHover,
 	...other
 }: LevNavItemProps & {
 	currentTitle: string;
@@ -57,7 +62,10 @@ const Item = ({
 					viewBox="3 3 18 18"
 					isAction
 					className="angle"
-					onClick={onToggle}
+					onClick={(e) => {
+						e.stopPropagation();
+						onToggle();
+					}}
 					onClickCapture={(e) => e.preventDefault()}
 				/>
 			)}
@@ -66,7 +74,13 @@ const Item = ({
 				{leftExtensions}
 			</div>
 			{rightExtensions && (
-				<div className="right-extensions" onClickCapture={(e) => e.preventDefault()}>
+				<div
+					className="right-extensions"
+					onClickCapture={(e) => {
+						if (isFromModal(e)) return;
+						e.preventDefault();
+					}}
+				>
 					{rightExtensions}
 				</div>
 			)}

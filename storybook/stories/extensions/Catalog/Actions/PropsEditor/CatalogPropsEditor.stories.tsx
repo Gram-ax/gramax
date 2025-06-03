@@ -30,9 +30,9 @@ export const InlineContent: StoryObj = {
 		};
 
 		return (
-			<CatalogPropsService.Provider value={props as any}>
+			<CatalogPropsService.Init value={props as any}>
 				<CatalogPropsEditor trigger={<div>Открыть настройки</div>} onSubmit={console.log} />
-			</CatalogPropsService.Provider>
+			</CatalogPropsService.Init>
 		);
 	},
 };

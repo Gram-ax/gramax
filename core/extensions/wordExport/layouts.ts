@@ -40,6 +40,7 @@ import { plantUMLWordLayout } from "../markdown/elements/diagrams/diagrams/plant
 import { tsDiagramWordLayout } from "../markdown/elements/diagrams/diagrams/tsDiagram/word/tsDiagram";
 import { tabledbWordlayout } from "../markdown/elements/tabledb/word/tabledb";
 import { videoWordLayout } from "../markdown/elements/video/word/video";
+import { blockPropertyWordLayout } from "@ext/markdown/elements/blockProperty/word/blockProperty";
 // import { imagesWordLayout } from "@ext/markdown/elements/imgs/word/imgs";
 // import { seeWordLayout } from "@ext/markdown/elements/see/word/see";
 // import { formulaWordLayout } from "../markdown/elements/formula/word/formula";
@@ -64,7 +65,7 @@ export const inlineLayouts = {
 	Term: termWordLayout,
 	icon: iconWordLayout,
 	s: strikeWordLayout,
-	"Inline-property": inlinePropertyWordLayout,
+	"inline-property": inlinePropertyWordLayout,
 	//Formula: formulaWordLayout,
 	//Fn
 };
@@ -93,6 +94,7 @@ export const blockLayouts = {
 	"Ts-diagram": tsDiagramWordLayout,
 	"C4-diagram": c4DiagramWordLayout,
 	"Db-table": tabledbWordlayout,
+	"block-property": blockPropertyWordLayout,
 	View: viewWordLayout,
 	// "Img-v": imagesWordLayout,
 	// "Img-h": imagesWordLayout,

@@ -1,5 +1,4 @@
 import type { ClientGitStatus } from "@app/commands/versionControl/statuses";
-import { getExecutingEnvironment } from "@app/resolveModule/env";
 import ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
 import FetchService, { type OnDidCommandEv } from "@core-ui/ApiServices/FetchService";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
@@ -39,6 +38,8 @@ export default abstract class GitIndexService {
 		"item/updateProps",
 		"catalog/language/add",
 		"catalog/language/remove",
+		"catalog/updateNavigation",
+		"catalog/updateProps",
 		"elements/icon/create",
 		"elements/snippet/create",
 		"elements/snippet/edit",
@@ -51,6 +52,7 @@ export default abstract class GitIndexService {
 		"versionControl/branch/checkout",
 		"versionControl/branch/create",
 		"versionControl/discard",
+		"versionControl/add",
 		"init",
 	]);
 
@@ -121,9 +123,7 @@ export default abstract class GitIndexService {
 	}
 
 	private static async _update() {
-		// temp getExecutingEnvironment
-		const shouldAdd = !(getExecutingEnvironment() === "browser" && this._lastRun === 0);
-		const endpoint = this._apiUrlCreator.getVersionControlStatuses(shouldAdd);
+		const endpoint = this._apiUrlCreator.getVersionControlStatuses();
 		const res = await FetchService.fetch<ClientGitStatus[]>(endpoint);
 		const data = await res.json();
 

@@ -44,6 +44,7 @@ abstract class ThemeService {
 		_setTheme(verifyTheme);
 
 		document.body.dataset.theme = verifyTheme;
+		document.body.className = verifyTheme;
 	}
 
 	public static getTheme() {

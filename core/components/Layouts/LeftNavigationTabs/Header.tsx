@@ -49,11 +49,14 @@ const IconMargin = styled.div`
 
 export type HeaderProps = {
 	title: string;
+	show: boolean;
 	onClose?: () => void;
 	rightExtension?: JSX.Element;
 };
 
-const Header = ({ title, rightExtension, onClose }: HeaderProps) => {
+const Header = (props: HeaderProps) => {
+	const { title, rightExtension, onClose, show } = props;
+
 	return (
 		<Wrapper>
 			<Part>
@@ -63,7 +66,12 @@ const Header = ({ title, rightExtension, onClose }: HeaderProps) => {
 			{onClose && (
 				<Part>
 					<IconMargin>
-						<CloseIcon strokeWidth={1.2} tooltipContent={t("close")} code="x" onClick={onClose} />
+						<CloseIcon
+							strokeWidth={1.2}
+							tooltipContent={show ? t("close") : null}
+							code="x"
+							onClick={onClose}
+						/>
 					</IconMargin>
 				</Part>
 			)}

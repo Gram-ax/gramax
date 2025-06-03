@@ -15,6 +15,9 @@ import Path from "@core/FileProvider/Path/Path";
 import RouterPathProvider from "@core/RouterPath/RouterPathProvider";
 import styled from "@emotion/styled";
 import t from "@ext/localization/locale/translate";
+import getComponents from "@ext/markdown/core/render/components/getComponents/getComponents";
+import Renderer from "@ext/markdown/core/render/components/Renderer";
+import { RenderableTreeNodes } from "@ext/markdown/core/render/logic/Markdoc";
 import { CatalogLink, CategoryLink, ItemLink } from "@ext/navigation/NavigationLinks";
 import useMediaQuery from "@mui/material/useMediaQuery";
 import { Fragment, useEffect, useRef, useState } from "react";
@@ -26,13 +29,12 @@ import Link from "../../Atoms/Link";
 import Breadcrumb from "../../Breadcrumbs/LinksBreadcrumb";
 import ModalLayout from "../../Layouts/Modal";
 import ModalLayoutLight from "../../Layouts/ModalLayoutLight";
-import { ChatResponse } from "@ics/gx-vector-search/dist/apiClient/requestTypes/chat";
+import { usePlatform } from "@core-ui/hooks/usePlatform";
 // import Path from "../../../logic/FileProvider/Path/Path";
 // import RouterPathProvider from "@core/RouterPath/RouterPathProvider";
 
 const DEBOUNCE_DELAY = 400;
 const SEARCH_SYMBOL = Symbol();
-const SEARCH_CHAT_PREFIX = "ии!";
 
 export interface SearchProps {
 	isHomePage: boolean;
@@ -50,8 +52,12 @@ const Search = (props: SearchProps) => {
 	const isOpenModal = IsOpenModalService.value;
 	const apiUrlCreator = ApiUrlCreatorService.value;
 	const catalogName = CatalogPropsService.value?.name;
-	const vectorSearchEnabled = PageDataContextService.value.conf.search?.vector.enabled ?? false;
+	const catalogDefaultLanguage = CatalogPropsService.value?.language;
+	const currentArticleLanguage = PageDataContextService.value?.language?.content;
+	const { isNext } = usePlatform();
+	const vectorSearchEnabled = (isNext && PageDataContextService.value?.conf?.ai?.enabled) ?? false;
 	const isCatalogExist = !!catalogName;
+	const abortControllerRef = useRef<AbortController>(null);
 
 	const narrowMedia = useMediaQuery(cssMedia.JSnarrow);
 	const blockRef = useRef<HTMLDivElement>(null);
@@ -62,10 +68,12 @@ const Search = (props: SearchProps) => {
 
 	const [focusId, setFocusId] = useState(0);
 	const [isOpen, setIsOpen] = useState(false);
-	const [data, setData] = useState<{ type: "search", searchData: SearchItem[] } | { type: "chat", chatData: ChatResponse }>(null);
+	const [data, setData] = useState<
+		{ type: "search"; searchData: SearchItem[] } | { type: "chat"; chatData: RenderableTreeNodes }
+	>(null);
 	const [cursorFlaf, setCursorFlaf] = useState(true);
 	const [searchAll, setSearchAll] = useState(isHomePage);
-	const [vectorSearch, setVectorSearch] = useState(false);
+	const [chatSearch, setChatSearch] = useState(false);
 	const homePageBreadcrumbDatas: CatalogLink[] = [];
 	const articleBreadcrumbDatas: { titles: string[]; links: CategoryLink[] }[] = [];
 
@@ -101,7 +109,9 @@ const Search = (props: SearchProps) => {
 	};
 
 	const setHeight = () => {
-		if (blockRef.current) blockRef.current.style.height = query && (!data || (data.type === "search" && !data.searchData.length)) ? "193.59px" : "";
+		if (blockRef.current)
+			blockRef.current.style.height =
+				query && (!data || (data.type === "search" && !data.searchData.length)) ? "193.59px" : "";
 		if (document && responseRef.current && itemsResponseRef.current) {
 			responseRef.current.style.height = `${document.body.clientHeight}px`;
 			const blockHeight = itemsResponseRef.current.clientHeight + 104;
@@ -144,31 +154,42 @@ const Search = (props: SearchProps) => {
 
 	const loadData = async (query: string) => {
 		if (!query) return;
-		if (vectorSearchEnabled && query.startsWith(SEARCH_CHAT_PREFIX)) {
-			await loadChatData(query.substring(SEARCH_CHAT_PREFIX.length));
-			return;
-		}
-		const res = await FetchService.fetch<SearchItem[]>(
-			apiUrlCreator.getSearchDataUrl(query, searchAll ? null : catalogName, vectorSearch ? "vector" : null),
-		);
-		if (!res.ok) return;
-		setData({
-			type: "search",
-			searchData: await res.json()
-		});
+
+		const abortController = new AbortController();
+		abortControllerRef.current = abortController;
+
+		const data = chatSearch ? await getChatData(query) : await getSearchData(query);
+
+		if (!data || abortController.signal.aborted) return;
+		setData(data);
 	};
 
-	const loadChatData = async (query: string) => {
+	const getSearchData = async (query: string) => {
 		if (!query) return;
-		const res = await FetchService.fetch<ChatResponse>(
-			apiUrlCreator.getSearchChatUrl(query, searchAll ? null : catalogName),
+		const res = await FetchService.fetch<SearchItem[]>(
+			apiUrlCreator.getSearchDataUrl(query, searchAll ? null : catalogName),
 		);
 		if (!res.ok) return;
-		setData({
-			type: "chat",
-			chatData: await res.json()
-		});
-	}
+		return {
+			type: "search" as const,
+			searchData: await res.json(),
+		};
+	};
+
+	const getChatData = async (query: string) => {
+		if (!query) return;
+		const articlesLanguage =
+			isCatalogExist && !searchAll ? currentArticleLanguage ?? catalogDefaultLanguage ?? "none" : null;
+		const responseLanguage = isCatalogExist ? currentArticleLanguage ?? catalogDefaultLanguage : null;
+		const res = await FetchService.fetch<RenderableTreeNodes>(
+			apiUrlCreator.getSearchChatUrl(query, searchAll ? null : catalogName, articlesLanguage, responseLanguage),
+		);
+		if (!res.ok) return;
+		return {
+			type: "chat" as const,
+			chatData: await res.json(),
+		};
+	};
 
 	useEffect(() => {
 		setHeight();
@@ -189,10 +210,9 @@ const Search = (props: SearchProps) => {
 	}, [blockRef.current, isOpen, isHomePage]);
 
 	useEffect(() => {
-		if (vectorSearchEnabled && query.startsWith(SEARCH_CHAT_PREFIX)) return;
 		setData(null);
 		loadData(query);
-	}, [searchAll, vectorSearch]);
+	}, [searchAll, chatSearch]);
 
 	return (
 		<ModalLayout
@@ -209,7 +229,7 @@ const Search = (props: SearchProps) => {
 				}
 			}}
 			isOpen={isOpen}
-			contentWidth={"M"}
+			contentWidth={"minM"}
 			trigger={
 				<ButtonLink
 					iconCode="search"
@@ -218,7 +238,7 @@ const Search = (props: SearchProps) => {
 				/>
 			}
 		>
-			<div style={{ height: "100%", display: "flex", justifyContent: "center" }} data-qa={`search-modal`}>
+			<div style={{ height: "100%", display: "flex", flexDirection: "column" }} data-qa={`search-modal`}>
 				<div ref={blockRef} className={className + " modal"}>
 					<ModalLayoutLight className="layer-two block-elevation-2">
 						<div className="search-form form block-elevation-3">
@@ -230,11 +250,13 @@ const Search = (props: SearchProps) => {
 									ref={inputRef}
 									type="text"
 									onChange={(e) => {
+										abortControllerRef.current?.abort();
+										abortControllerRef.current = null;
 										const query = e.target.value;
 										SearchQueryService.value = query;
 										setData(null);
 										let debounceDelay = DEBOUNCE_DELAY;
-										if (vectorSearchEnabled && query.startsWith(SEARCH_CHAT_PREFIX)) {
+										if (chatSearch) {
 											// Чтобы не отправлять лишние запросы
 											debounceDelay *= 2;
 										}
@@ -290,7 +312,7 @@ const Search = (props: SearchProps) => {
 													<div style={{ overflow: "hidden" }}>
 														<div className="item-title" data-qa="qa-clickable">
 															<div className="title-text">
-																<span>AI</span>
+																<span>✨</span>
 															</div>
 														</div>
 
@@ -298,78 +320,92 @@ const Search = (props: SearchProps) => {
 															<div style={{ whiteSpace: "pre-wrap" }}>
 																{!data.chatData ? (
 																	t("app.error.command-failed.title")
-																) : data.chatData.items?.map((x) => {
-																	switch (x.type) {
-																		case "text":
-																			return x.text;
-																		case "link":
-																			return (<Link onClick={() => setIsOpen(false)} href={Url.from({ pathname: x.link })}>{t("source")}</Link>)
-																	}
-																})}
+																) : (
+																	<div
+																		className="article"
+																		style={{ background: "none" }}
+																	>
+																		<div className="main-article">
+																			<div className="article-body">
+																				{Renderer(data.chatData, {
+																					components: getComponents(),
+																				})}
+																			</div>
+																		</div>
+																	</div>
+																)}
 															</div>
 														</div>
 													</div>
-											</div>
-											) : data.searchData.map((d, id) => (
-												<Link
-													key={id}
-													onClick={() => setIsOpen(false)}
-													ref={focusId === id ? focusRef : null}
-													href={Url.from({ pathname: d.url })}
-													onMouseOver={() => {
-														if (cursorFlaf) setFocusId(id);
-													}}
-													className={`item ${focusId === id ? "item-active" : ""}`}
-												>
-													<div style={{ overflow: "hidden" }}>
-														{d.count > 1 && (
-															<span className="count">
-																{d.count} {t("values")}.
-															</span>
-														)}
-
-														<div className="item-title" data-qa="qa-clickable">
-															<div className="title-text">
-																<span>
-																	{d.name.targets.map((t, index) => {
-																		return (
-																			<Fragment key={index}>
-																				{t.start}
-																				<strong className="match">
-																					{t.target}
-																				</strong>
-																			</Fragment>
-																		);
-																	})}
-																	{d.name.end}
+												</div>
+											) : (
+												data.searchData.map((d, id) => (
+													<Link
+														key={id}
+														onClick={() => setIsOpen(false)}
+														ref={focusId === id ? focusRef : null}
+														href={Url.from({ pathname: d.url })}
+														onMouseOver={() => {
+															if (cursorFlaf) setFocusId(id);
+														}}
+														className={`item ${focusId === id ? "item-active" : ""}`}
+													>
+														<div style={{ overflow: "hidden" }}>
+															{d.count > 1 && (
+																<span className="count">
+																	{d.count} {t("values")}.
 																</span>
-															</div>
-
-															{isHomePage && homePageBreadcrumbDatas.length ? (
-																<Breadcrumb catalogLink={homePageBreadcrumbDatas[id]} />
-															) : (
-																<Breadcrumb readyData={articleBreadcrumbDatas[id]} />
 															)}
-														</div>
 
-														{d.paragraph.map((p, index) =>
-															index > 5 ? null : (
-																<div
-																	key={index}
-																	className="excerpt"
-																	data-qa="qa-clickable"
-																>
-																	<span className="cut-content">
-																		{p.prev}
-																		<strong className="match">{p.target}</strong>
-																		{p.next}
+															<div className="item-title" data-qa="qa-clickable">
+																<div className="title-text">
+																	<span>
+																		{d.name.targets.map((t, index) => {
+																			return (
+																				<Fragment key={index}>
+																					{t.start}
+																					<strong className="match">
+																						{t.target}
+																					</strong>
+																				</Fragment>
+																			);
+																		})}
+																		{d.name.end}
 																	</span>
 																</div>
-															),
-														)}
-													</div>
-												</Link>
-											))}
+
+																{isHomePage && homePageBreadcrumbDatas.length ? (
+																	<Breadcrumb
+																		catalogLink={homePageBreadcrumbDatas[id]}
+																	/>
+																) : (
+																	<Breadcrumb
+																		readyData={articleBreadcrumbDatas[id]}
+																	/>
+																)}
+															</div>
+
+															{d.paragraph.map((p, index) =>
+																index > 5 ? null : (
+																	<div
+																		key={index}
+																		className="excerpt"
+																		data-qa="qa-clickable"
+																	>
+																		<span className="cut-content">
+																			{p.prev}
+																			<strong className="match">
+																				{p.target}
+																			</strong>
+																			{p.next}
+																		</span>
+																	</div>
+																),
+															)}
+														</div>
+													</Link>
+												))
+											)}
 										</div>
 									)}
 								</>
@@ -379,7 +415,7 @@ const Search = (props: SearchProps) => {
 					<div className="bottom-content prompt article ">
 						<div className="absolute-bg " />
 						{isHomePage || !isCatalogExist ? null : (
-							<div className="searchAll">
+							<div className="bottomCheckbox">
 								<div className={"text"}>
 									<span className="cmd">{isMac ? <Icon code="command" /> : "Ctrl"}</span>
 									<p>+</p>
@@ -399,15 +435,15 @@ const Search = (props: SearchProps) => {
 							</div>
 						)}
 						{!vectorSearchEnabled ? null : (
-							<div className="vectorSearch">
+							<div className="bottomCheckbox">
 								<Checkbox
-									className="vector-search-checkbox"
-									checked={vectorSearch}
+									className="chat-search-checkbox"
+									checked={chatSearch}
 									onChange={(isChecked) => {
-										setVectorSearch(isChecked);
+										setChatSearch(isChecked);
 									}}
 								>
-									<p>{t("search.vector-search")}</p>
+									<p>{t("search.ai")}</p>
 								</Checkbox>
 							</div>
 						)}
@@ -454,7 +490,6 @@ const Search = (props: SearchProps) => {
 };
 
 export default styled(Search)`
-	width: min(100%, var(--medium-form-width));
 	height: 180px;
 	transition: all 0.3s;
 
@@ -500,11 +535,6 @@ export default styled(Search)`
 			width: 100%;
 			overflow-y: auto;
 			border-radius: var(--radius-small);
-
-			${cssMedia.narrow} {
-				max-height: 75vh;
-				height: fit-content !important;
-			}
 
 			.msg {
 				margin: 2em 20px;
@@ -627,8 +657,7 @@ export default styled(Search)`
 			}
 		}
 
-		.searchAll,
-		.vectorSearch {
+		.bottomCheckbox {
 			gap: 0.3rem;
 			display: flex;
 			align-items: center;
@@ -646,12 +675,6 @@ export default styled(Search)`
 			white-space: normal !important;
 			overflow: hidden !important;
 			text-overflow: ellipsis !important;
-		}
-	}
-
-	${cssMedia.narrow} {
-		&.modal {
-			height: fit-content !important;
 		}
 	}
 `;

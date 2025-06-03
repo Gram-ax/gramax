@@ -1,16 +1,13 @@
-import Button from "@components/Atoms/Button/Button";
-import { ButtonStyle } from "@components/Atoms/Button/ButtonStyle";
-import FileInput from "@components/Atoms/FileInput/FileInput";
-import Icon from "@components/Atoms/Icon";
-import IconWithText from "@components/Atoms/Icon/IconWithText";
 import PureLink, { LinkTheme } from "@components/Atoms/PureLink";
-import FormStyle from "@components/Form/FormStyle";
-import ModalLayout from "@components/Layouts/Modal";
-import ModalLayoutLight from "@components/Layouts/ModalLayoutLight";
 import { usePlatform } from "@core-ui/hooks/usePlatform";
-import styled from "@emotion/styled";
+import { Button } from "@ui-kit/Button";
+import FileInput from "@components/Atoms/FileInput/FileInput";
+import Footer from "@ext/catalog/actions/propsEditor/components/ModalFooter";
+import Header from "@ext/catalog/actions/propsEditor/components/ModalHeader";
 import t from "@ext/localization/locale/translate";
 import { useCallback, useState, ReactElement } from "react";
+import { Modal, ModalBody, ModalContent, ModalTrigger } from "@ui-kit/Modal";
+import LanguageService from "@core-ui/ContextServices/Language";
 
 interface EditStylesProps {
 	children: ReactElement;
@@ -20,9 +17,39 @@ interface EditStylesProps {
 	className?: string;
 }
 
-const EditStyles = ({ children, customCss, setCustomCss, revertCustomCss, className }: EditStylesProps) => {
-	const [isOpen, setIsOpen] = useState(false);
+const useModalDescription = () => {
+	const mainText = t("workspace.css-configuration-instruction") || "";
+	const linkText = t("workspace.instruction");
 	const { isTauri } = usePlatform();
+	const lang = LanguageService.currentUi();
+	const isRuLang = lang === "ru";
+
+	const textOnTwoParts = mainText.split("{{instruction}}");
+
+	const description = (
+		<span>
+			{textOnTwoParts[0]}
+			<PureLink
+				href={
+					isRuLang
+						? "https://gram.ax/resources/docs/space/css-styles"
+						: "https://gram.ax/resources/docs/en/space/css-styles"
+				}
+				target={isTauri ? "_self" : "_blank"}
+				linkTheme={LinkTheme.DEFAULT}
+			>
+				{linkText}
+			</PureLink>
+			{textOnTwoParts[1]}
+		</span>
+	);
+
+	return { description };
+};
+
+const EditStyles = ({ children, customCss, setCustomCss, revertCustomCss }: EditStylesProps) => {
+	const [isOpen, setIsOpen] = useState(false);
+	const { description } = useModalDescription();
 
 	const closeEditor = useCallback(() => {
 		setIsOpen(false);
@@ -33,60 +60,32 @@ const EditStyles = ({ children, customCss, setCustomCss, revertCustomCss, classN
 		setIsOpen(false);
 	}, [revertCustomCss]);
 
-	const onOpen = useCallback(() => {
-		setIsOpen(true);
+	const onOpenChange = useCallback((value) => {
+		setIsOpen(value);
 	}, []);
 
 	return (
-		<ModalLayout trigger={children} onOpen={onOpen} contentWidth="L" onClose={closeEditor} isOpen={isOpen}>
-			<ModalLayoutLight>
-				<FormStyle className={className}>
-					<>
-						<legend>
-							<div className={"edit-css-legend"}>
-								<IconWithText iconCode={"palette"} text={t("workspace.editing-css")} />
-								<div className={"help-wrapper"}>
-									<PureLink
-										href={"https://gram.ax/resources/docs/space/css-styles"}
-										target={isTauri ? "_self" : "_blank"}
-										linkTheme={LinkTheme.INHERIT}
-									>
-										<Icon className={"help-icon"} code={"circle-help"} />
-									</PureLink>
-								</div>
-							</div>
-						</legend>
-						<fieldset style={{ height: "60vh" }}>
-							<FileInput language={"css"} value={customCss} onChange={setCustomCss} height={"60vh"} />
-						</fieldset>
-						<div className="buttons">
-							<Button buttonStyle={ButtonStyle.underline} onClick={cancelEdit}>
-								<span>{t("cancel")}</span>
-							</Button>
-							<Button buttonStyle={ButtonStyle.default} onClick={closeEditor}>
-								<span>{t("continue")}</span>
-							</Button>
-						</div>
-					</>
-				</FormStyle>
-			</ModalLayoutLight>
-		</ModalLayout>
+		<Modal open={isOpen} onOpenChange={onOpenChange}>
+			{children && <ModalTrigger asChild>{children}</ModalTrigger>}
+			<ModalContent className={"monaco-form-old-width"} data-modal-root>
+				<Header title={t("workspace.editing-css")} description={description} icon={"palette"} />
+				<ModalBody className="space-y-4">
+					<FileInput
+						style={{ padding: undefined }}
+						language={"css"}
+						value={customCss}
+						onChange={setCustomCss}
+						height={"min(calc(650px - 2.5rem), calc(60vh - 2.5rem))"}
+						uiKitTheme
+					/>
+				</ModalBody>
+				<Footer
+					primaryButton={<Button variant="primary" onClick={closeEditor} children={t("continue")} />}
+					secondaryButton={<Button onClick={cancelEdit} variant="text" children={t("cancel")} />}
+				/>
+			</ModalContent>
+		</Modal>
 	);
 };
 
-export default styled(EditStyles)`
-	.edit-css-legend {
-		display: flex;
-		justify-content: start;
-		gap: 1rem;
-	}
-
-	.help-wrapper {
-		font-size: 0.9em;
-		color: var(--version-control-primary);
-		display: flex;
-		justify-content: center;
-		align-items: center;
-		cursor: pointer;
-	}
-`;
+export default EditStyles;

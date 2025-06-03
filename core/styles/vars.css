@@ -92,10 +92,13 @@
 		padding var(--transition-time) ease 0s, padding-right var(--transition-time) ease 0s;
 
 	--article-max-width: 780px;
+	--article-wrapper-padding-left: 45px;
 
 	--z-index-background: -1;
 	--z-index-foreground: 1;
 	--z-index-selected-cell: 2;
+	--z-index-card-overflow: 10;
+	--z-index-homepage-action: 20;
 	--z-index-base: 100;
 	--z-index-popover: 150;
 	--z-index-article-modal: 200;

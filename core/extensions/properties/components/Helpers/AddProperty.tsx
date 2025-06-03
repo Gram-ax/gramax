@@ -57,7 +57,7 @@ const AddProperty = (props: AddPropertyProps) => {
 
 					if (res.ok && canAdd) {
 						const props = await res.json();
-						setProperties(combineProperties(props, Array.from(catalogProperties.values())));
+						setProperties(combineProperties(props, catalogProperties));
 					}
 				} else {
 					const deletedValues = saveValue
@@ -78,7 +78,7 @@ const AddProperty = (props: AddPropertyProps) => {
 
 						if (res.ok && canAdd) {
 							const props = await res.json();
-							setProperties(combineProperties(props, Array.from(catalogProperties.values())));
+							setProperties(combineProperties(props, catalogProperties));
 						}
 					}
 				}

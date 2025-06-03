@@ -1,7 +1,7 @@
+import StatusBarWrapper from "@components/Layouts/StatusBar/StatusBarWrapper";
 import type GitBranchData from "@ext/git/core/GitBranch/model/GitBranchData";
 import t from "@ext/localization/locale/translate";
 import SpinnerLoader from "../../../../../components/Atoms/SpinnerLoader";
-import StatusBarWrapper from "@components/Layouts/StatusBar/StatusBarWrapper";
 
 interface BranchProps {
 	branch: GitBranchData;
@@ -15,7 +15,7 @@ const Branch = ({ branch, show, onClick }: BranchProps) => {
 	return (
 		<StatusBarWrapper
 			dataQa="qa-branch"
-			tooltipText={t("git.checkout.change-branch")}
+			tooltipText={t("git.branch.management")}
 			iconCode="git-branch"
 			iconStyle={{ color: show ? "var(--color-primary)" : "white" }}
 			onClick={onClick}

@@ -1,18 +1,21 @@
 import { TextSize } from "@components/Atoms/Button/Button";
+import NavigationTabsService from "@components/Layouts/LeftNavigationTabs/NavigationTabsService";
 import { LeftNavigationTab } from "@components/Layouts/StatusBar/Extensions/ArticleStatusBar/ArticleStatusBar";
 import ButtonLink from "@components/Molecules/ButtonLink";
+import CatalogPropsService from "@core-ui/ContextServices/CatalogProps";
 import IsMacService from "@core-ui/ContextServices/IsMac";
 import SidebarsIsOpenService from "@core-ui/ContextServices/Sidebars/SidebarsIsOpenContext";
 import { usePlatform } from "@core-ui/hooks/usePlatform";
 import { cssMedia } from "@core-ui/utils/cssUtils";
 import styled from "@emotion/styled";
+import PromptTab from "@ext/ai/components/Tab/PromptTab";
 import InboxTab from "@ext/inbox/components/InboxTab";
+import SnippetsTab from "@ext/markdown/elements/snippet/edit/components/Tab/SnippetsTab";
+import TemplateTab from "@ext/templates/components/Tab/TemplateTab";
 import { useMediaQuery } from "@mui/material";
-import { useState } from "react";
 import { ArticlePageData } from "../../../../logic/SitePresenter/SitePresenter";
 import TopBarContent from "../../../ArticlePage/Bars/TopBarContent";
 import BarLayout from "../../BarLayout";
-import TemplateTab from "@ext/templates/components/Tab/TemplateTab";
 
 const TopBarContentWrapper = styled.div<{ isMacDesktop: boolean }>`
 	padding-top: ${(p) => (p.isMacDesktop ? "1.3rem" : "0")};
@@ -24,9 +27,10 @@ const TopBarContentWrapper = styled.div<{ isMacDesktop: boolean }>`
 
 const LeftNavigationTop = ({ data, className }: { data: ArticlePageData; className?: string }) => {
 	const leftNavIsOpen = SidebarsIsOpenService.value.left;
+	const catalogProps = CatalogPropsService.value;
 	const narrowMedia = useMediaQuery(cssMedia.narrow);
 	const { isTauri } = usePlatform();
-	const [currentTab, setCurrentTab] = useState<LeftNavigationTab>(LeftNavigationTab.None);
+	const { topTab } = NavigationTabsService.value;
 
 	const isMacDesktop = IsMacService.value && isTauri;
 
@@ -55,14 +59,20 @@ const LeftNavigationTop = ({ data, className }: { data: ArticlePageData; classNa
 					)}
 					<TopBarContent
 						isMacDesktop={isMacDesktop}
-						currentTab={currentTab}
-						setCurrentTab={setCurrentTab}
+						currentTab={topTab}
+						setCurrentTab={(tab) => NavigationTabsService.setTop(tab)}
 						data={data}
 					/>
 				</TopBarContentWrapper>
 			</BarLayout>
-			<InboxTab show={currentTab === LeftNavigationTab.Inbox} />
-			<TemplateTab show={currentTab === LeftNavigationTab.Template} />
+			{!catalogProps.notFound && (
+				<>
+					<InboxTab show={topTab === LeftNavigationTab.Inbox} />
+					<TemplateTab show={topTab === LeftNavigationTab.Template} />
+					<SnippetsTab show={topTab === LeftNavigationTab.Snippets} />
+					<PromptTab show={topTab === LeftNavigationTab.Prompt} />
+				</>
+			)}
 		</>
 	);
 };

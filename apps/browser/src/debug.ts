@@ -112,3 +112,9 @@ export const clearLockFiles = async (catalogName: string) => {
 
 	await deleteLocks(remotesPath);
 };
+
+export const gitAddAll = async (catalogName: string) => {
+	const app = await getApp();
+	const { gvc } = (await app.wm.current().getContextlessCatalog(catalogName)).repo;
+	await gvc.add();
+};

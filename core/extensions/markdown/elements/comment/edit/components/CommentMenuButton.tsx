@@ -5,6 +5,8 @@ import Button from "@ext/markdown/core/edit/components/Menu/Button";
 import getIsSelected from "@ext/markdown/elementsUtils/getIsSelected";
 import { selecInsideSingleParagraph } from "@ext/markdown/elementsUtils/selecInsideSingleParagraph";
 import { Editor } from "@tiptap/core";
+import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
+import FetchService from "@core-ui/ApiServices/FetchService";
 
 const CommentMenuButton = ({ editor, onClick }: { editor: Editor; onClick: () => void }) => {
 	const { isActive, disabled } = ButtonStateService.useCurrentAction({ mark: "comment" });
@@ -13,8 +15,12 @@ const CommentMenuButton = ({ editor, onClick }: { editor: Editor; onClick: () =>
 	const pageDataContext = PageDataContextService.value;
 	const isButtonDisabled = !isSelected || !isSelectionInsideSingleParagraph || !pageDataContext.userInfo || disabled;
 	const tooltipText = pageDataContext.userInfo ? "leave-comment" : "connect-storage-to-leave-comment";
-	const onClickHandler = () => {
-		editor.commands.toggleComment({ data: undefined });
+	const apiUrlCreator = ApiUrlCreatorService.value;
+
+	const onClickHandler = async () => {
+		const res = await FetchService.fetch(apiUrlCreator.getCommentCount());
+		if (!res.ok) return;
+		editor.commands.toggleComment({ preCount: await res.text() });
 		onClick();
 	};
 

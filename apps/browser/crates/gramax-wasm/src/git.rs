@@ -145,6 +145,11 @@ pub fn clone_cancel(id: usize) -> Result<bool> {
   git::clone_cancel(id)
 }
 
+#[em_bindgen(json)]
+pub fn get_all_cancel_tokens() -> Result<Vec<usize>> {
+  git::get_all_cancel_tokens()
+}
+
 #[em_bindgen]
 pub fn add(repo_path: String, patterns: Vec<PathBuf>, force: bool) -> Result<()> {
   git::add(Path::new(&repo_path), patterns, force)
@@ -275,3 +280,4 @@ pub fn reset_repo(_unused: ()) -> Result<bool> {
   git::reset_repo();
   Ok(true)
 }
+

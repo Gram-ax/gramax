@@ -36,16 +36,14 @@
 	-webkit-user-select: none;
 	pointer-events: none;
 }
-*[data-iseditable="true"] {
-	.ProseMirror-selectednode {
-		.focus-pointer-events {
-			pointer-events: auto !important;
-		}
-		*[data-focusable="true"] {
-			outline: 2px solid var(--color-focus);
-			outline-offset: -2px;
-		}
-	}
+
+[data-iseditable="true"] .ProseMirror-selectednode .focus-pointer-events {
+	pointer-events: auto !important;
+}
+
+[data-iseditable="true"] .ProseMirror-selectednode [data-focusable="true"] {
+	outline: 2px solid var(--color-focus);
+	outline-offset: -2px;
 }
 
 .ProseMirror a {
@@ -242,4 +240,12 @@
 .added-text {
 	color: var(--color-added-text);
 	background: var(--color-added-bg);
+}
+
+.ProseMirror .blur-selection {
+	display: inline;
+	background-color: Highlight;
+	color: HighlightText;
+	padding: 5px 0;
+	box-decoration-break: clone;
 }

@@ -8,6 +8,7 @@ import ModalToOpenService from "@core-ui/ContextServices/ModalToOpenService/Moda
 import EnterpriseApi from "@ext/enterprise/EnterpriseApi";
 import t from "@ext/localization/locale/translate";
 import { useState } from "react";
+import { formatGesUrl } from "../utils/formatGesUrl";
 
 const EditEnterpriseConfig = ({
 	config,
@@ -34,13 +35,13 @@ const EditEnterpriseConfig = ({
 											isCode
 											value={value}
 											onChange={async (e) => {
+												setDisabled(true);
 												const value = e.target.value;
 												setValue(value);
 												if (!value || value === "") return setDisabled(false);
 
-												const gesUrl = value.replace(/\/+$/, "");
+												const gesUrl = formatGesUrl(value);
 												setValue(gesUrl);
-												setDisabled(true);
 												setDisabled(!(await new EnterpriseApi(gesUrl).check()));
 											}}
 										/>

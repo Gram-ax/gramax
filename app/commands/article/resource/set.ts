@@ -7,8 +7,9 @@ import { Article } from "@core/FileStructue/Article/Article";
 import parseContent from "@core/FileStructue/Article/parseContent";
 import HashResourceManager from "@core/Hash/HashItems/HashResourceManager";
 import { Command } from "../../../types/Command";
+import ArticleProvider, { ArticleProviderType } from "@ext/articleProvider/logic/ArticleProvider";
 
-const set: Command<{ data: any; src: Path; catalogName: string; articlePath: Path; ctx: Context }, void> =
+const set: Command<{ data: any; src: Path; catalogName: string; articlePath: Path; ctx: Context; providerType: ArticleProviderType; }, void> =
 	Command.create({
 		path: "article/resource/set",
 
@@ -16,14 +17,16 @@ const set: Command<{ data: any; src: Path; catalogName: string; articlePath: Pat
 
 		middlewares: [new DesktopModeMiddleware(), new ReloadConfirmMiddleware()],
 
-		async do({ data, src, catalogName, articlePath, ctx }) {
+		async do({ data, src, catalogName, articlePath, ctx, providerType }) {
 			const { hashes, wm, parser, parserContextFactory } = this._app;
 			const workspace = wm.current();
 
 			const catalog = await workspace.getCatalog(catalogName, ctx);
 			const fp = workspace.getFileProvider();
 			const itemRef = fp.getItemRef(articlePath);
-			const article = catalog.findItemByItemPath<Article>(itemRef.path);
+			const article = providerType
+				? ArticleProvider.getProvider(catalog, providerType).getArticle(articlePath.value)
+				: catalog.findItemByItemPath<Article>(itemRef.path);
 			if (!article) return;
 			await parseContent(article, catalog, ctx, parser, parserContextFactory);
 
@@ -40,7 +43,8 @@ const set: Command<{ data: any; src: Path; catalogName: string; articlePath: Pat
 			const src = new Path(q.src);
 			const catalogName = q.catalogName;
 			const articlePath = new Path(q.articlePath);
-			return { ctx, data, src, catalogName, articlePath };
+			const providerType = q.providerType as ArticleProviderType;
+			return { ctx, data, src, catalogName, articlePath, providerType };
 		},
 	});
 

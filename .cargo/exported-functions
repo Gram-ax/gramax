@@ -62,3 +62,4 @@ _get_all_commit_authors
 _gc
 _reset_repo
 _set_last_http_error
+_get_all_cancel_tokens

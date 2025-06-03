@@ -105,12 +105,14 @@ export default styled(Button)`
 		}
 	}
 
+	//fixme after change all form
 	.underline {
 		border-radius: var(--radius-medium);
 		color: var(--color-btn-underline-text);
 		font-weight: var(--font-weight-btn-underline);
 		padding: var(--padding-btn-underline);
 		margin: var(--margin-btn-underline);
+		text-decoration: none;
 
 		&:hover {
 			color: var(--color-btn-underline-text-hover);

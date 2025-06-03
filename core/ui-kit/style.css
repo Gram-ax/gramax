@@ -1,0 +1,39 @@
+[data-raidx-select-item] {
+	cursor: pointer !important;
+	font-weight: 400;
+}
+
+[data-radix-select-trigger] {
+	font-weight: 400;
+}
+
+.interactive-tooltip {
+	pointer-events: auto !important;
+}
+
+.monaco-form-old-width {
+	width: calc(100vw - 2rem);
+	max-width: 1200px;
+}
+
+[data-modal-root] .monaco-editor {
+	outline: none !important;
+}
+
+[data-modal-root] a {
+	color: hsl(var(--primary-fg), 0.7);
+	text-decoration: underline;
+	text-underline-offset: 24%;
+	text-decoration-thickness: 0;
+}
+
+[data-modal-root] a:hover {
+	color: hsl(var(--primary-fg));
+	text-decoration: underline;
+	text-underline-offset: 24%;
+	text-decoration-thickness: 0;
+}
+
+[data-upper-error] {
+	z-index: 1005;
+}

@@ -29,9 +29,9 @@ export interface CatalogEditProps {
 	 */
 	properties?: Property[];
 	// /**
-	//  * @title Кому доступно
-	//  * @format Почта или группа
-	//  * @description Укажите, кто сможет просматривать каталог после публикации. Это могут быть группы или отдельные пользователи.
+	//  * @title Who has access
+	//  * @format Email or group
+	//  * @description Specify who will be able to view the catalog after publishing. This can be groups or individual users.
 	//  */
 	// private?: string[];
 }

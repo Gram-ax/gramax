@@ -11,7 +11,6 @@ enum ModalToOpen {
 	CloneHandler = "CloneHandler",
 	PullHandler = "PullHandler",
 
-	SnippetEditor = "SnippetEditor",
 	SnippetAlreadyUseWarn = "SnippetAlreadyUseWarn",
 
 	Loading = "Loading",
@@ -29,6 +28,9 @@ enum ModalToOpen {
 	EditEnterpriseConfig = "EditEnterpriseConfig",
 
 	TemplateContentWarning = "TemplateContentWarning",
+	TemplatePropertySettings = "TemplatePropertySettings",
+
+	DocRootMissingModal = "DocRootMissingModal",
 }
 
 export default ModalToOpen;

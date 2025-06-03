@@ -24,13 +24,13 @@ export interface ButtonItem extends Omit<ListItem, "breadcrumb"> {
 	iconViewBox?: string;
 }
 
-interface ConfigProps {
+export interface ConfigProps {
 	isHierarchy?: boolean;
 	showFilteredItems?: boolean;
 	withBreadcrumbs?: boolean;
 }
 
-interface ItemProps extends Omit<HTMLAttributes<HTMLDivElement>, "content">, ConfigProps {
+export interface ItemProps extends Omit<HTMLAttributes<HTMLDivElement>, "content">, ConfigProps {
 	content: ItemContent;
 	disable?: boolean;
 	isActive?: boolean;
@@ -180,7 +180,7 @@ export default styled(Item)`
 			overflow: hidden;
 			width: 100%;
 
-			> li:first-child {
+			> li:first-of-type {
 				text-overflow: clip;
 				span {
 					text-overflow: clip;

@@ -3,24 +3,42 @@ import LegacyFormatter from "./LegacyFormatter";
 import XmlFormatter from "./XmlFormatter";
 import ParserContext from "@ext/markdown/core/Parser/ParserContext/ParserContext";
 import { NodeSerializerSpec } from "@ext/markdown/core/edit/logic/Prosemirror/to_markdown";
+import GitHubFormatter from "@ext/markdown/core/edit/logic/Formatter/Formatters/typeFormats/GitHubFormatter";
 
-type NodeFormatterKeys = "table" | "tableRow" | "tableCell";
+type NodeFormatterKeys = "note" | "table" | "tableRow" | "tableCell";
+type SupportedElement =
+	| "snippet"
+	| "tabs"
+	| "HTML"
+	| "view"
+	| "drawio"
+	| "mermaid"
+	| "plant-uml"
+	| "openApi"
+	| "video"
+	| "icon"
+	| "comment";
 
 export interface FormatterType {
 	nodeFormatters: Record<NodeFormatterKeys, NodeSerializerSpec>;
 	openTag(tagName: string, attributes?: Record<string, any>, selfClosing?: boolean): string;
 	closeTag(tagName: string): string;
+	type?: Syntax;
+	supportedElements: SupportedElement[];
 }
 
 const formatters: Record<Syntax, FormatterType> = {
-	legacy: LegacyFormatter,
-	xml: XmlFormatter,
+	"GitHub Flavored Markdown": GitHubFormatter,
+	Legacy: LegacyFormatter,
+	Xml: XmlFormatter,
 };
 
-const getFormatterType = (context: ParserContext) => {
-	const syntax: Syntax = context?.getProp("syntax");
-	const formatter = formatters[syntax];
-	return formatter ?? LegacyFormatter;
+export const getFormatterTypeByContext = (context: ParserContext) => {
+	return getFormatterType(context?.getProp("syntax"));
+};
+
+const getFormatterType = (syntax: Syntax) => {
+	return formatters[syntax] ?? LegacyFormatter;
 };
 
 export default getFormatterType;

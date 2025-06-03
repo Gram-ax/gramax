@@ -13,7 +13,9 @@ async function createGitHubRepository(storageData: GithubStorageData) {
 
 	if (!response.ok) {
 		const errorData = await response.json();
-		throw new Error(`${t("git.source.error.cannot-create-repo")}. ${errorData}`);
+		const error = new Error(`${t("git.source.error.cannot-create-repo")}. ${errorData}`);
+		error.stack = "Error info:\n" + JSON.stringify(data, null, 2) + "\n\n" + error.stack;
+		throw error;
 	}
 }
 

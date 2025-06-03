@@ -1,9 +1,9 @@
-import type { RequestParagraphModel } from "@ics/gx-ai/dist/styleGuideCheck/styleGuideGptRequest";
+import type { RequestChunkModel } from "@ics/gx-ai/dist/styleGuideCheck/styleGuideGptRequest";
 import { SuggestionItem } from "../extension/Suggestion";
 
 export function getSuggestionItems(
 	items: { text: string; id: number }[],
-	sentences: RequestParagraphModel[],
+	sentences: RequestChunkModel[],
 ): SuggestionItem[] {
 	return items.map((item) => {
 		return {

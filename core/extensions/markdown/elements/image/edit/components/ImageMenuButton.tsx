@@ -8,7 +8,13 @@ import { Editor } from "@tiptap/core";
 import createImages from "../logic/createImages";
 import ResourceService from "@ext/markdown/elements/copyArticles/resourceService";
 
-const ImageMenuButton = ({ editor, className }: { editor: Editor; className?: string }) => {
+interface ImageMenuButtonProps {
+	editor: Editor;
+	className?: string;
+	fileName?: string;
+}
+
+const ImageMenuButton = ({ editor, className, fileName }: ImageMenuButtonProps) => {
 	const articleProps = ArticlePropsService.value;
 	const resourceService = ResourceService.value;
 
@@ -31,7 +37,7 @@ const ImageMenuButton = ({ editor, className }: { editor: Editor; className?: st
 					id="image"
 					accept="image/*"
 					onChange={(event) =>
-						createImages([...event.currentTarget.files], editor.view, articleProps, resourceService)
+						createImages([...event.currentTarget.files], editor.view, fileName || articleProps?.fileName, resourceService)
 					}
 				/>
 				<Button icon="image" />

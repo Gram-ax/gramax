@@ -78,6 +78,7 @@
 		"no-empty": "off",
 		"react/prop-types": "off",
 		"react/display-name": "off",
+		"react/no-children-prop": "off",
 		"react/react-in-jsx-scope": "off",
 		"react/no-unknown-property": "off",
 		"@typescript-eslint/no-empty-function": "off",

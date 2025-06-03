@@ -1,36 +1,36 @@
 import { LanguageFn } from "highlight.js";
 
 const _1c: LanguageFn = (hljs) => {
-	// общий паттерн для определения идентификаторов
+	// general pattern for defining identifiers
 	const UNDERSCORE_IDENT_RE = "[A-Za-zА-Яа-яёЁ_][A-Za-zА-Яа-яёЁ_0-9]+";
 
-	// v7 уникальные ключевые слова, отсутствующие в v8 ==> keyword
+	// v7 unique keywords that are not in v8 ==> keyword
 	const v7_keywords = "далее ";
 
-	// v8 ключевые слова ==> keyword
+	// v8 keywords ==> keyword
 	const v8_keywords =
 		"возврат вызватьисключение выполнить для если и из или иначе иначеесли исключение каждого конецесли " +
 		"конецпопытки конеццикла не новый перейти перем по пока попытка прервать продолжить тогда цикл экспорт ";
 
-	// keyword : ключевые слова
+	// keyword : keywords
 	const KEYWORD = v7_keywords + v8_keywords;
 
-	// v7 уникальные директивы, отсутствующие в v8 ==> meta-keyword
+	// v7 unique directives that are not in v8 ==> meta-keyword
 	const v7_meta_keywords = "загрузитьизфайла ";
 
-	// v8 ключевые слова в инструкциях препроцессора, директивах компиляции, аннотациях ==> meta-keyword
+	// v8 keywords in preprocessor instructions, compilation directives, annotations ==> meta-keyword
 	const v8_meta_keywords =
 		"вебклиент вместо внешнеесоединение клиент конецобласти мобильноеприложениеклиент мобильноеприложениесервер " +
 		"наклиенте наклиентенасервере наклиентенасерверебезконтекста насервере насерверебезконтекста область перед " +
 		"после сервер толстыйклиентобычноеприложение толстыйклиентуправляемоеприложение тонкийклиент ";
 
-	// meta-keyword : ключевые слова в инструкциях препроцессора, директивах компиляции, аннотациях
+	// meta-keyword : keywords in preprocessor instructions, compilation directives, annotations
 	const METAKEYWORD = v7_meta_keywords + v8_meta_keywords;
 
-	// v7 системные константы ==> built_in
+	// v7 system constants ==> built_in
 	const v7_system_constants = "разделительстраниц разделительстрок символтабуляции ";
 
-	// v7 уникальные методы глобального контекста, отсутствующие в v8 ==> built_in
+	// v7 unique global context methods that are not in v8 ==> built_in
 	const v7_global_context_methods =
 		"ansitooem oemtoansi ввестивидсубконто ввестиперечисление ввестипериод ввестиплансчетов выбранныйплансчетов " +
 		"датагод датамесяц датачисло заголовоксистемы значениевстроку значениеизстроки каталогиб каталогпользователя " +
@@ -44,7 +44,7 @@ const _1c: LanguageFn = (hljs) => {
 		"рассчитатьрегистрыпо симв создатьобъект статусвозврата стрколичествострок сформироватьпозициюдокумента " +
 		"счетпокоду текущеевремя типзначения типзначениястр установитьтана установитьтапо фиксшаблон шаблон ";
 
-	// v8 методы глобального контекста ==> built_in
+	// v8 global context methods ==> built_in
 	const v8_global_context_methods =
 		"acos asin atan base64значение base64строка cos exp log log10 pow sin sqrt tan xmlзначение xmlстрока " +
 		"xmlтип xmlтипзнч активноеокно безопасныйрежим безопасныйрежимразделенияданных булево ввестидату ввестизначение " +
@@ -119,7 +119,7 @@ const _1c: LanguageFn = (hljs) => {
 		"установитьсоставстандартногоинтерфейсаodata установитьчасовойпоясинформационнойбазы установитьчасовойпояссеанса " +
 		"формат цел час часовойпояс часовойпояссеанса число числопрописью этоадресвременногохранилища ";
 
-	// v8 свойства глобального контекста ==> built_in
+	// v8 global context properties ==> built_in
 	const v8_global_context_property =
 		"wsссылки библиотекакартинок библиотекамакетовоформлениякомпоновкиданных библиотекастилей бизнеспроцессы " +
 		"внешниеисточникиданных внешниеобработки внешниеотчеты встроенныепокупки главныйинтерфейс главныйстиль " +
@@ -135,7 +135,7 @@ const _1c: LanguageFn = (hljs) => {
 
 	const booleanString = "True False true false ";
 
-	// built_in : встроенные или библиотечные объекты (константы, классы, функции)
+	// built_in : built-in or library objects (constants, classes, functions)
 	const BUILTIN =
 		v7_system_constants +
 		v7_global_context_methods +
@@ -143,11 +143,11 @@ const _1c: LanguageFn = (hljs) => {
 		v8_global_context_property +
 		booleanString;
 
-	// v8 системные наборы значений ==> class
+	// v8 system value sets ==> class
 	const v8_system_sets_of_values =
 		"webцвета windowsцвета windowsшрифты библиотекакартинок рамкистиля символы цветастиля шрифтыстиля ";
 
-	// v8 системные перечисления - интерфейсные ==> class
+	// v8 system enumerations - interface ==> class
 	const v8_system_enums_interface =
 		"автоматическоесохранениеданныхформывнастройках автонумерациявформе автораздвижениесерий " +
 		"анимациядиаграммы вариантвыравниванияэлементовизаголовков вариантуправлениявысотойтаблицы " +
@@ -196,17 +196,17 @@ const _1c: LanguageFn = (hljs) => {
 		"факторлиниитрендадиаграммы фигуракнопки фигурыграфическойсхемы фиксациявтаблице форматдняшкалывремени " +
 		"форматкартинки ширинаподчиненныхэлементовформы ";
 
-	// v8 системные перечисления - свойства прикладных объектов ==> class
+	// v8 system enumerations - properties of application objects ==> class
 	const v8_system_enums_objects_properties =
 		"виддвижениябухгалтерии виддвижениянакопления видпериодарегистрарасчета видсчета видточкимаршрутабизнеспроцесса " +
 		"использованиеагрегатарегистранакопления использованиегруппиэлементов использованиережимапроведения " +
 		"использованиесреза периодичностьагрегатарегистранакопления режимавтовремя режимзаписидокумента режимпроведениядокумента ";
 
-	// v8 системные перечисления - планы обмена ==> class
+	// v8 system enumerations - exchange plans ==> class
 	const v8_system_enums_exchange_plans =
 		"авторегистрацияизменений допустимыйномерсообщения отправкаэлементаданных получениеэлементаданных ";
 
-	// v8 системные перечисления - табличный документ ==> class
+	// v8 system enumerations - spreadsheet document ==> class
 	const v8_system_enums_tabular_document =
 		"использованиерасшифровкитабличногодокумента ориентациястраницы положениеитоговколоноксводнойтаблицы " +
 		"положениеитоговстроксводнойтаблицы положениетекстаотносительнокартинки расположениезаголовкагруппировкитабличногодокумента " +
@@ -216,26 +216,26 @@ const _1c: LanguageFn = (hljs) => {
 		"типразмещениятекстатабличногодокумента типрисункатабличногодокумента типсмещениятабличногодокумента " +
 		"типузоратабличногодокумента типфайлатабличногодокумента точностьпечати чередованиерасположениястраниц ";
 
-	// v8 системные перечисления - планировщик ==> class
+	// v8 system enumerations - scheduler ==> class
 	const v8_system_enums_sheduler = "отображениевремениэлементовпланировщика ";
 
-	// v8 системные перечисления - форматированный документ ==> class
+	// v8 system enumerations - formatted document ==> class
 	const v8_system_enums_formatted_document = "типфайлаформатированногодокумента ";
 
-	// v8 системные перечисления - запрос ==> class
+	// v8 system enumerations - query ==> class
 	const v8_system_enums_query = "обходрезультатазапроса типзаписизапроса ";
 
-	// v8 системные перечисления - построитель отчета ==> class
+	// v8 system enumerations - report builder ==> class
 	const v8_system_enums_report_builder =
 		"видзаполнениярасшифровкипостроителяотчета типдобавленияпредставлений типизмеренияпостроителяотчета типразмещенияитогов ";
 
-	// v8 системные перечисления - работа с файлами ==> class
+	// v8 system enumerations - working with files ==> class
 	const v8_system_enums_files = "доступкфайлу режимдиалогавыборафайла режимоткрытияфайла ";
 
-	// v8 системные перечисления - построитель запроса ==> class
+	// v8 system enumerations - query builder ==> class
 	const v8_system_enums_query_builder = "типизмеренияпостроителязапроса ";
 
-	// v8 системные перечисления - анализ данных ==> class
+	// v8 system enumerations - data analysis ==> class
 	const v8_system_enums_data_analysis =
 		"видданныханализа методкластеризации типединицыинтервалавременианализаданных типзаполнениятаблицырезультатаанализаданных " +
 		"типиспользованиячисловыхзначенийанализаданных типисточникаданныхпоискаассоциаций типколонкианализаданныхдереворешений " +
@@ -244,7 +244,7 @@ const _1c: LanguageFn = (hljs) => {
 		"типотсеченияправилассоциации типполяанализаданных типстандартизациианализаданных типупорядочиванияправилассоциациианализаданных " +
 		"типупорядочиванияшаблоновпоследовательностейанализаданных типупрощениядереварешений ";
 
-	// v8 системные перечисления - xml, json, xs, dom, xdto, web-сервисы ==> class
+	// v8 system enumerations - xml, json, xs, dom, xdto, web-services ==> class
 	const v8_system_enums_xml_json_xs_dom_xdto_ws =
 		"wsнаправлениепараметра вариантxpathxs вариантзаписидатыjson вариантпростоготипаxs видгруппымоделиxs видфасетаxdto " +
 		"действиепостроителяdom завершенностьпростоготипаxs завершенностьсоставноготипаxs завершенностьсхемыxs запрещенныеподстановкиxs " +
@@ -254,7 +254,7 @@ const _1c: LanguageFn = (hljs) => {
 		"типканоническогоxml типкомпонентыxs типпроверкиxml типрезультатаdomxpath типузлаdom типузлаxml формаxml формапредставленияxs " +
 		"форматдатыjson экранированиесимволовjson ";
 
-	// v8 системные перечисления - система компоновки данных ==> class
+	// v8 system enumerations - data composition system ==> class
 	const v8_system_enums_data_composition_system =
 		"видсравнениякомпоновкиданных действиеобработкирасшифровкикомпоновкиданных направлениесортировкикомпоновкиданных " +
 		"расположениевложенныхэлементоврезультатакомпоновкиданных расположениеитоговкомпоновкиданных расположениегруппировкикомпоновкиданных " +
@@ -269,39 +269,39 @@ const _1c: LanguageFn = (hljs) => {
 		"вариантиспользованиягруппировкикомпоновкиданных расположениересурсоввдиаграммекомпоновкиданных фиксациякомпоновкиданных " +
 		"использованиеусловногооформлениякомпоновкиданных ";
 
-	// v8 системные перечисления - почта ==> class
+	// v8 system enumerations - email ==> class
 	const v8_system_enums_email =
 		"важностьинтернетпочтовогосообщения обработкатекстаинтернетпочтовогосообщения способкодированияинтернетпочтовоговложения " +
 		"способкодированиянеasciiсимволовинтернетпочтовогосообщения типтекстапочтовогосообщения протоколинтернетпочты " +
 		"статусразборапочтовогосообщения ";
 
-	// v8 системные перечисления - журнал регистрации ==> class
+	// v8 system enumerations - event log ==> class
 	const v8_system_enums_logbook =
 		"режимтранзакциизаписижурналарегистрации статустранзакциизаписижурналарегистрации уровеньжурналарегистрации ";
 
-	// v8 системные перечисления - криптография ==> class
+	// v8 system enumerations - cryptography ==> class
 	const v8_system_enums_cryptography =
 		"расположениехранилищасертификатовкриптографии режимвключениясертификатовкриптографии режимпроверкисертификатакриптографии " +
 		"типхранилищасертификатовкриптографии ";
 
-	// v8 системные перечисления - ZIP ==> class
+	// v8 system enumerations - ZIP ==> class
 	const v8_system_enums_zip =
 		"кодировкаименфайловвzipфайле методсжатияzip методшифрованияzip режимвосстановленияпутейфайловzip режимобработкиподкаталоговzip " +
 		"режимсохраненияпутейzip уровеньсжатияzip ";
 
-	// v8 системные перечисления -
-	// Блокировка данных, Фоновые задания, Автоматизированное тестирование,
-	// Доставляемые уведомления, Встроенные покупки, Интернет, Работа с двоичными данными ==> class
+	// v8 system enumerations -
+	// Data locking, Background jobs, Automated testing,
+	// Delivered notifications, In-app purchases, Internet, Binary data operations ==> class
 	const v8_system_enums_other =
 		"звуковоеоповещение направлениепереходакстроке позициявпотоке порядокбайтов режимблокировкиданных режимуправленияблокировкойданных " +
 		"сервисвстроенныхпокупок состояниефоновогозадания типподписчикадоставляемыхуведомлений уровеньиспользованиязащищенногосоединенияftp ";
 
-	// v8 системные перечисления - схема запроса ==> class
+	// v8 system enumerations - query schema ==> class
 	const v8_system_enums_request_schema =
 		"направлениепорядкасхемызапроса типдополненияпериодамисхемызапроса типконтрольнойточкисхемызапроса типобъединениясхемызапроса " +
 		"типпараметрадоступнойтаблицысхемызапроса типсоединениясхемызапроса ";
 
-	// v8 системные перечисления - свойства объектов метаданных ==> class
+	// v8 system enumerations - properties of metadata objects ==> class
 	const v8_system_enums_properties_of_metadata_objects =
 		"httpметод автоиспользованиеобщегореквизита автопрефиксномеразадачи вариантвстроенногоязыка видиерархии видрегистранакопления " +
 		"видтаблицывнешнегоисточникаданных записьдвиженийприпроведении заполнениепоследовательностей индексирование " +
@@ -321,7 +321,7 @@ const _1c: LanguageFn = (hljs) => {
 		"типданныхтаблицывнешнегоисточникаданных типкодапланавидоврасчета типкодасправочника типмакета типномерабизнеспроцесса " +
 		"типномерадокумента типномеразадачи типформы удалениедвижений ";
 
-	// v8 системные перечисления - разные ==> class
+	// v8 system enumerations - miscellaneous ==> class
 	const v8_system_enums_differents =
 		"важностьпроблемыприменениярасширенияконфигурации вариантинтерфейсаклиентскогоприложения вариантмасштабаформклиентскогоприложения " +
 		"вариантосновногошрифтаклиентскогоприложения вариантстандартногопериода вариантстандартнойдатыначала видграницы видкартинки " +
@@ -333,7 +333,7 @@ const _1c: LanguageFn = (hljs) => {
 		"способвыборасертификатаwindows способкодированиястроки статуссообщения типвнешнейкомпоненты типплатформы типповеденияклавишиenter " +
 		"типэлементаинформацииовыполненииобновленияконфигурациибазыданных уровеньизоляциитранзакций хешфункция частидаты";
 
-	// class: встроенные наборы значений, системные перечисления (содержат дочерние значения, обращения к которым через разыменование)
+	// class: built-in value sets, system enumerations (contain child values accessed through dereferencing)
 	const CLASS =
 		v8_system_sets_of_values +
 		v8_system_enums_interface +
@@ -358,7 +358,7 @@ const _1c: LanguageFn = (hljs) => {
 		v8_system_enums_properties_of_metadata_objects +
 		v8_system_enums_differents;
 
-	// v8 общие объекты (у объектов есть конструктор, экземпляры создаются методом НОВЫЙ) ==> type
+	// v8 shared objects (objects have a constructor, instances are created using the NEW method) ==> type
 	const v8_shared_object =
 		"comобъект ftpсоединение httpзапрос httpсервисответ httpсоединение wsопределения wsпрокси xbase анализданных аннотацияxs " +
 		"блокировкаданных буфердвоичныхданных включениеxs выражениекомпоновкиданных генераторслучайныхчисел географическаясхема " +
@@ -396,21 +396,21 @@ const _1c: LanguageFn = (hljs) => {
 		"фрагментxs хешированиеданных хранилищезначения цвет чтениеfastinfoset чтениеhtml чтениеjson чтениеxml чтениеzipфайла " +
 		"чтениеданных чтениетекста чтениеузловdom шрифт элементрезультатакомпоновкиданных ";
 
-	// v8 универсальные коллекции значений ==> type
+	// v8 universal value collections ==> type
 	const v8_universal_collection =
 		"comsafearray деревозначений массив соответствие списокзначений структура таблицазначений фиксированнаяструктура " +
 		"фиксированноесоответствие фиксированныймассив ";
 
-	// type : встроенные типы
+	// type : built-in types
 	const TYPE = v8_shared_object + v8_universal_collection;
 
-	// literal : примитивные типы
+	// literal : primitive types
 	const LITERAL = "null истина ложь неопределено";
 
-	// number : числа
+	// number : numbers
 	const NUMBERS = hljs.inherit(hljs.NUMBER_MODE);
 
-	// string : строки
+	// string : strings
 	const DOUBLE_STRING = {
 		className: "string",
 		begin: '"|\\|',
@@ -425,7 +425,7 @@ const _1c: LanguageFn = (hljs) => {
 		contains: [{ begin: "''" }],
 	};
 
-	// number : даты
+	// number : dates
 	const DATE = {
 		begin: "'",
 		end: "'",
@@ -445,11 +445,11 @@ const _1c: LanguageFn = (hljs) => {
 		relevance: 0,
 	};
 
-	// comment : комментарии
+	// comment : comments
 	const COMMENTS = hljs.inherit(hljs.C_LINE_COMMENT_MODE);
 	const COMMENT_BLOCK = hljs.inherit(hljs.C_BLOCK_COMMENT_MODE);
 
-	// meta : инструкции препроцессора, директивы компиляции
+	// meta : preprocessor instructions, compilation directives
 	const META = {
 		className: "attribute",
 		begin: "#|&",
@@ -461,7 +461,7 @@ const _1c: LanguageFn = (hljs) => {
 		contains: [COMMENTS, COMMENT_BLOCK],
 	};
 
-	// symbol : метка goto
+	// symbol : goto label
 	const SYMBOL = {
 		className: "symbol",
 		begin: "~",
@@ -469,7 +469,7 @@ const _1c: LanguageFn = (hljs) => {
 		excludeEnd: true,
 	};
 
-	// function : объявление процедур и функций
+	// function : declaration of procedures and functions
 	const FUNCTION = {
 		className: "function hljs-keyword", //add keyword
 		variants: [

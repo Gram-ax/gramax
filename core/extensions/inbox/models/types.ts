@@ -1,9 +1,9 @@
 import { ItemProps } from "@core/FileStructue/Item/Item";
-import { ClientItemRef } from "@core/SitePresenter/SitePresenter";
-import { JSONContent } from "@tiptap/core";
+import { PopoverRect } from "@ext/articleProvider/logic/Popover";
+import { ProviderItemProps } from "@ext/articleProvider/models/types";
 
-export type InboxDragItemData = { draggedLogicPath: string };
-export type InboxDropItemData = { droppedLogicPath: string };
+export type InboxDragItemData = { draggedId: string };
+export type InboxDropItemData = { droppedId: string };
 export type InboxDragDropData = InboxDragItemData & InboxDropItemData;
 
 export type Author = string;
@@ -15,22 +15,12 @@ export type InboxProps = ItemProps & {
 	welcome?: boolean;
 };
 
-export type InboxArticle = {
-	title: string;
-	logicPath: string;
-	pathname: string;
-	ref: ClientItemRef;
-	content: JSONContent;
-	fileName: string;
+export type InboxArticle = ProviderItemProps & {
 	props: {
 		date: string;
 		author: Author;
 	};
 };
-
-export type InboxPosition = { x: number; y: number };
-export type InboxSize = { width: number; height: number };
-export type InboxRect = InboxPosition & InboxSize;
 
 export type InboxArticleId = string;
 
@@ -39,5 +29,5 @@ export type InboxLocalStorageData = {
 };
 
 export type InboxArticleLocalStorageData = {
-	rect: InboxRect;
+	rect: PopoverRect;
 };

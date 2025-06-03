@@ -185,4 +185,81 @@ rw`;
 print("huesos")`;
 		expect(testData).toBe(expectedData);
 	});
+
+	test("копирование task list", () => {
+		const range = createRange(
+			`<ul data-type="taskList"><li data-checked="false"><label contenteditable="false"><input type="checkbox"><span></span></label><div><p>rwjthkjwrt</p></div></li><li data-checked="false"><label contenteditable="false"><input type="checkbox"><span></span></label><div><p>rwtwrjthjklwrt</p></div></li><li data-checked="false"><label contenteditable="false"><input type="checkbox"><span></span></label><div><p>wrtwrjktnwrt</p></div></li><li data-checked="false"><label contenteditable="false"><input type="checkbox"><span></span></label><div><p>rwtjrwkltwrt</p></div></li><li data-checked="false"><label contenteditable="false"><input type="checkbox"><span></span></label><div><p>wrtkjwrtwrt</p></div></li><li data-checked="false"><label contenteditable="false"><input type="checkbox"><span></span></label><div><p>rwtjkwrhtkrwt</p></div></li></ul>`,
+		);
+
+		const testData = createPlainText(range);
+		const expectedData = `- [ ] rwjthkjwrt
+- [ ] rwtwrjthjklwrt
+- [ ] wrtwrjktnwrt
+- [ ] rwtjrwkltwrt
+- [ ] wrtkjwrtwrt
+- [ ] rwtjkwrhtkrwt`;
+		expect(testData).toBe(expectedData);
+	});
+
+	test("task item с текстом", () => {
+		const range = createRange(
+			`<li data-checked="false"><label contenteditable="false"><input type="checkbox"><span></span></label><div><p>rwjthkjwrt</p></div></li><li data-checked="false"><label contenteditable="false"><input type="checkbox"><span></span></label><div><p>rwtwrjthjklwrt</p></div></li><li data-checked="false"><label contenteditable="false"><input type="checkbox"><span></span></label><div><p>wrtwrjktnwrt</p></div></li><li data-checked="false"><label contenteditable="false"><input type="checkbox"><span></span></label><div><p>rwtjrwkltwrt</p></div></li><li data-checked="false"><label contenteditable="false"><input type="checkbox"><span></span></label><div><p>wrtkjwrtwrt</p></div></li><li data-checked="false"><label contenteditable="false"><input type="checkbox"><span></span></label><div><p>rwtjkwrhtkrwt</p></div></li>`,
+		);
+
+		const testData = createPlainText(range);
+		const expectedData = `- [ ] rwjthkjwrt
+- [ ] rwtwrjthjklwrt
+- [ ] wrtwrjktnwrt
+- [ ] rwtjrwkltwrt
+- [ ] wrtkjwrtwrt
+- [ ] rwtjkwrhtkrwt`;
+		expect(testData).toBe(expectedData);
+	});
+
+	test("task item с текстом и дополнительным текстом", () => {
+		const range = createRange(
+			`<p>123</p><ul data-type="taskList"><li data-checked="false"><label contenteditable="false"><input type="checkbox"><span></span></label><div><p>rwjthkjwrt</p></div></li><li data-checked="true"><label contenteditable="false"><input type="checkbox" checked><span></span></label><div><p>rwtwrjthjklwrt</p></div></li><li data-checked="false"><label contenteditable="false"><input type="checkbox"><span></span></label><div><p>wrtwrjktnwrt</p></div></li><li data-checked="false"><label contenteditable="false"><input type="checkbox"><span></span></label><div><p>rwtjrwkltwrt</p></div></li><li data-checked="false"><label contenteditable="false"><input type="checkbox"><span></span></label><div><p>wrtkjwrtwrt</p></div></li><li data-checked="false"><label contenteditable="false"><input type="checkbox"><span></span></label><div><p>rwtjkwrhtkrwt</p></div></li></ul><p>456</p>`,
+		);
+
+		const testData = createPlainText(range);
+		const expectedData = `123
+- [ ] rwjthkjwrt
+- [x] rwtwrjthjklwrt
+- [ ] wrtwrjktnwrt
+- [ ] rwtjrwkltwrt
+- [ ] wrtkjwrtwrt
+- [ ] rwtjkwrhtkrwt
+456`;
+		expect(testData).toBe(expectedData);
+	});
+
+	test("task item со вложенным списком", () => {
+		const range = createRange(
+			`<ul data-type="taskList"><li data-checked="false"><label contenteditable="false"><input type="checkbox"><span></span></label><div><p>rwjthkjwrt</p><ul data-type="taskList"><li data-checked="false"><label contenteditable="false"><input type="checkbox"><span></span></label><div><p>rwtwrjthjklwrt</p></div></li></ul></div></li><li data-checked="false"><label contenteditable="false"><input type="checkbox"><span></span></label><div><p>wrtwrjktnwrt</p></div></li><li data-checked="false"><label contenteditable="false"><input type="checkbox"><span></span></label><div><p>rwtjrwkltwrt</p></div></li><li data-checked="false"><label contenteditable="false"><input type="checkbox"><span></span></label><div><p>wrtkjwrtwrt</p></div></li><li data-checked="false"><label contenteditable="false"><input type="checkbox"><span></span></label><div><p>rwtjkwrhtkrwt</p></div></li></ul>`,
+		);
+
+		const testData = createPlainText(range);
+		const expectedData = `- [ ] rwjthkjwrt
+	- [ ] rwtwrjthjklwrt
+- [ ] wrtwrjktnwrt
+- [ ] rwtjrwkltwrt
+- [ ] wrtkjwrtwrt
+- [ ] rwtjkwrhtkrwt`;
+		expect(testData).toBe(expectedData);
+	});
+
+	test("task item со вложенным списком без ul", () => {
+		const range = createRange(
+			`<li data-checked="false"><label contenteditable="false"><input type="checkbox"><span></span></label><div><p>rwjthkjwrt</p><ul data-type="taskList"><li data-checked="false"><label contenteditable="false"><input type="checkbox"><span></span></label><div><p>rwtwrjthjklwrt</p></div></li></ul></div></li><li data-checked="false"><label contenteditable="false"><input type="checkbox"><span></span></label><div><p>wrtwrjktnwrt</p></div></li><li data-checked="false"><label contenteditable="false"><input type="checkbox"><span></span></label><div><p>rwtjrwkltwrt</p></div></li><li data-checked="false"><label contenteditable="false"><input type="checkbox"><span></span></label><div><p>wrtkjwrtwrt</p></div></li><li data-checked="false"><label contenteditable="false"><input type="checkbox"><span></span></label><div><p>rwtjkwrhtkrwt</p></div></li>`,
+		);
+
+		const testData = createPlainText(range);
+		const expectedData = `- [ ] rwjthkjwrt
+	- [ ] rwtwrjthjklwrt
+- [ ] wrtwrjktnwrt
+- [ ] rwtjrwkltwrt
+- [ ] wrtkjwrtwrt
+- [ ] rwtjkwrhtkrwt`;
+		expect(testData).toBe(expectedData);
+	});
 });

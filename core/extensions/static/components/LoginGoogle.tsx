@@ -31,7 +31,7 @@ const LoginGoogle = ({ onLogin }: LoginGoogleProps) => {
 	const [isLoading, setIsLoading] = useState(false);
 	const page = PageDataContextService.value;
 	const cloudServiceUrl = page.conf.cloudServiceUrl;
-	const [staticApi] = useState(() => new CloudApi(cloudServiceUrl));
+	const [cloudAPi] = useState(() => new CloudApi(cloudServiceUrl));
 	const redirectUrl = `${page?.domain}${page?.conf.basePath ?? ""}?access_token=success`;
 	const { isTauri } = usePlatform();
 
@@ -51,7 +51,7 @@ const LoginGoogle = ({ onLogin }: LoginGoogleProps) => {
 						text={t("login-with") + "Google"}
 						onClick={async () => {
 							// TODO: test on tauri
-							createChildWindow(staticApi.getOauthUrl("google", redirectUrl), 450, 500, cloudServiceUrl);
+							createChildWindow(cloudAPi.getOauthUrl("google", redirectUrl), 450, 500, cloudServiceUrl);
 							setIsLoading(true);
 
 							if (!isTauri) {

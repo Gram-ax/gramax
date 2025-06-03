@@ -2,13 +2,14 @@ import SpinnerLoader from "@components/Atoms/SpinnerLoader";
 import PopupMenuLayout from "@components/Layouts/PopupMenuLayout";
 import ButtonLink from "@components/Molecules/ButtonLink";
 import FetchService from "@core-ui/ApiServices/FetchService";
+import MimeTypes from "@core-ui/ApiServices/Types/MimeTypes";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import ModalToOpenService from "@core-ui/ContextServices/ModalToOpenService/ModalToOpenService";
 import ModalToOpen from "@core-ui/ContextServices/ModalToOpenService/model/ModalsToOpen";
 import styled from "@emotion/styled";
 import t from "@ext/localization/locale/translate";
 import { TemplateContentWarningProps } from "@ext/templates/components/TemplateContentWarning";
-import { TemplateItemProps } from "@ext/templates/models/types";
+import { ProviderItemProps } from "@ext/articleProvider/models/types";
 import DropdownButton from "@ext/wordExport/components/DropdownButton";
 import { useRef, useState } from "react";
 
@@ -20,7 +21,7 @@ const Loader = styled.div`
 `;
 
 const TemplateItemList = ({ itemRefPath }: { itemRefPath: string }) => {
-	const [list, setList] = useState<TemplateItemProps[]>([]);
+	const [list, setList] = useState<ProviderItemProps[]>([]);
 	const [isApiRequest, setIsApiRequest] = useState(false);
 	const ref = useRef<HTMLDivElement>(null);
 
@@ -28,8 +29,8 @@ const TemplateItemList = ({ itemRefPath }: { itemRefPath: string }) => {
 
 	const fetchTemplateItems = async () => {
 		setIsApiRequest(true);
-		const url = apiUrlCreator.getTemplatesList();
-		const res = await FetchService.fetch<TemplateItemProps[]>(url);
+		const url = apiUrlCreator.getArticleListInGramaxDir("template");
+		const res = await FetchService.fetch<ProviderItemProps[]>(url);
 
 		if (!res.ok) return setIsApiRequest(false);
 		const templates = await res.json();
@@ -42,15 +43,27 @@ const TemplateItemList = ({ itemRefPath }: { itemRefPath: string }) => {
 		ModalToOpenService.setValue(ModalToOpen.Loading);
 	};
 
-	const setAsTemplate = async (item: TemplateItemProps) => {
+	const setAsTemplate = async (item: ProviderItemProps) => {
 		setModalLoader();
-		const url = apiUrlCreator.setArticleAsTemplate(itemRefPath, item.id);
-		await FetchService.fetch(url);
+		const itemProps = apiUrlCreator.getItemProps(itemRefPath);
+		const res = await FetchService.fetch(itemProps);
+		const itemPropsData = await res.json();
+		if (!res.ok) return ModalToOpenService.resetValue();
+
+		itemPropsData.template = item.id;
+		itemPropsData.title = itemPropsData.title !== t("article.no-name") ? itemPropsData.title : "";
+
+		const setArticleContentUrl = apiUrlCreator.setArticleContent(itemRefPath, true);
+		await FetchService.fetch(setArticleContentUrl, "");
+
+		const url = apiUrlCreator.updateItemProps();
+		await FetchService.fetch(url, JSON.stringify(itemPropsData), MimeTypes.json);
+
 		ModalToOpenService.resetValue();
 		await refreshPage();
 	};
 
-	const onClickHandler = async (item: TemplateItemProps) => {
+	const onClickHandler = async (item: ProviderItemProps) => {
 		setModalLoader();
 
 		const url = apiUrlCreator.getArticleContent(itemRefPath);

@@ -33,7 +33,7 @@ const SwitchContentLanguage = ({ className }: { className?: string }) => {
 	useEffect(() => {
 		if (!props || !articleProps) return;
 		if (props.language && !props.supportedLanguages.includes(currentLanguage)) switchLanguage(props.language);
-	}, []);
+	}, [props, articleProps]);
 
 	if (!articleProps || !props || !articleProps?.pathname || articleProps.welcome || !props.language) return null;
 	if (isNext && props.supportedLanguages?.length < 2) return null;
@@ -74,7 +74,7 @@ const SwitchContentLanguage = ({ className }: { className?: string }) => {
 					iconCode="languages"
 					text={t(`language.${ContentLanguage[currentLanguage]}`)}
 					iconIsLoading={isLoading}
-					rightActions={[<Icon key={0} code="chevron-down" />]}
+					rightActions={[<Icon key={"language-chevron-down"} code="chevron-down" />]}
 				/>
 			}
 		>
@@ -86,23 +86,23 @@ const SwitchContentLanguage = ({ className }: { className?: string }) => {
 					</>
 				)}
 
-				{Object.values(props.supportedLanguages).map((code, idx) => {
+				{Object.values(props.supportedLanguages).map((code) => {
 					const canSwitch = code != currentLanguage;
 					const showActions = !isReadOnly && props.language != code;
 
 					const button = (
 						<ButtonLink
-							key={idx}
+							key={`button-${code}`}
 							className={className}
 							onClick={canSwitch ? () => switchLanguage(code) : undefined}
 							text={t(`language.${ContentLanguage[code]}`)}
 							fullWidth={props.language != code || !canSwitch}
 							iconIsLoading={isLoading}
 							rightActions={[
-								!canSwitch ? <Icon key={0} code="check" /> : null,
+								!canSwitch ? <Icon key={`check-${code}`} code="check" /> : null,
 								showActions ? (
 									<ContentLanguageActions
-										key={1}
+										key={`content-language-actions-${code}`}
 										canSwitch={canSwitch}
 										setIsLoading={setIsLoading}
 										targetCode={code}
@@ -115,7 +115,7 @@ const SwitchContentLanguage = ({ className }: { className?: string }) => {
 					return canSwitch ? (
 						button
 					) : (
-						<Tooltip hideInMobile hideOnClick content={t("multilang.current")}>
+						<Tooltip key={`tooltip-${code}`} hideInMobile hideOnClick content={t("multilang.current")}>
 							{button}
 						</Tooltip>
 					);

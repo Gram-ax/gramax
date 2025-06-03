@@ -42,6 +42,7 @@ const COMMANDS: &[&str] = &[
   "get_draft_merge_request",
   "get_all_commit_authors",
   "gc",
+  "get_all_cancel_tokens",
   "reset_repo",
   "format_merge_message",
 ];

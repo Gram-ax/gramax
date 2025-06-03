@@ -14,11 +14,11 @@ const StyledDiv = styled.div`
 `;
 
 interface TooltipListLayoutProps extends ListLayoutProps {
-	className?: string;
-	action: NodeType;
 	tooltipText: string;
 	buttonIcon: string;
-	onShow: () => void;
+	className?: string;
+	action?: NodeType;
+	onShow?: () => void;
 }
 
 const TooltipListLayout = (props: TooltipListLayoutProps) => {
@@ -42,7 +42,7 @@ const TooltipListLayout = (props: TooltipListLayoutProps) => {
 			customStyle
 			onShow={() => {
 				setIsOpen(true);
-				onShow();
+				onShow?.();
 			}}
 			onHide={() => setIsOpen(false)}
 			content={

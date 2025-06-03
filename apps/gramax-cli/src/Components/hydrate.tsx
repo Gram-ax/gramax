@@ -12,6 +12,7 @@ import Query, { parserQuery } from "@core/Api/Query";
 import Path from "@core/FileProvider/Path/Path";
 import RouterPathProvider from "@core/RouterPath/RouterPathProvider";
 import CustomArticlePresenter from "@core/SitePresenter/CustomArticlePresenter";
+import { HomePageData } from "@core/SitePresenter/SitePresenter";
 import ThemeService from "@ext/Theme/components/ThemeService";
 import DefaultError from "@ext/errorHandlers/logic/DefaultError";
 import MarkdownParser from "@ext/markdown/core/Parser/Parser";
@@ -27,7 +28,7 @@ import { InitialData } from "../logic/ArticleTypes";
 import { InitialDataKeys } from "../logic/StaticSiteBuilder";
 
 const initialData: InitialData = (window as any)[InitialDataKeys.DATA];
-if (initialData.data.articlePageData.articleProps.errorCode === 404) {
+if (initialData.context.isArticle && initialData.data?.articlePageData?.articleProps?.errorCode === 404) {
 	const article404 = new CustomArticlePresenter().getArticle("Article404", {
 		pathname: window.location.pathname,
 	});
@@ -55,9 +56,14 @@ const getData = async (route: string, query: Query) => {
 const Component = () => {
 	const isFirstRender = useRef(true);
 	const [path, , query] = useLocation();
-	const { articlePageData, catalogProps } = initialData.data;
 	const [data, setData] = useState<Omit<AppProps, "platform">>({
-		data: { articleContentEdit: "", ...articlePageData, catalogProps },
+		data: initialData.context.isArticle
+			? {
+					articleContentEdit: "",
+					...initialData.data.articlePageData,
+					catalogProps: initialData.data.catalogProps,
+			  }
+			: (initialData.data as any as HomePageData),
 		context: initialData.context,
 	});
 	const [error, setError] = useState<DefaultError>();

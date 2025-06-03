@@ -16,6 +16,8 @@ pub fn generate_handler<R: Runtime>(builder: Builder<R>) -> Builder<R> {
   builder.invoke_handler(generate_handler![
     http_listen_once,
     close_current_window,
+    minimize_window,
+    new_window,
     get_user_language,
     open_directory,
     quit,

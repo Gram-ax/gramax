@@ -5,9 +5,11 @@ import WorkspaceService from "@core-ui/ContextServices/Workspace";
 import EditEnterpriseWorkspace from "@ext/enterprise/components/EditEnterpriseWorkspace";
 import AddWorkspace from "@ext/workspace/components/AddWorkspace";
 import EditWorkspace from "@ext/workspace/components/EditWorkspace";
+import { useState } from "react";
 
 const SwitchWorkspace = () => {
 	const apiUrlCreator = ApiUrlCreatorService.value;
+	const [modalIsOpen, setModalIsOpen] = useState(false);
 
 	return (
 		<PopupMenuLayout trigger={<ButtonLink iconCode="layers" text={WorkspaceService.current().name} />}>
@@ -22,14 +24,21 @@ const SwitchWorkspace = () => {
 						<ButtonLink
 							key={path}
 							fullWidth
-							onClick={() => WorkspaceService.setActive(path, apiUrlCreator)}
+							onClick={() => {
+								if (modalIsOpen) return;
+								void WorkspaceService.setActive(path, apiUrlCreator);
+							}}
 							iconCode={icon}
 							text={workspaceName}
 							rightActions={[
 								workspace.enterprise?.gesUrl ? (
-									<EditEnterpriseWorkspace key={1} workspace={workspace} />
+									<EditEnterpriseWorkspace key={workspace.path} workspace={workspace} />
 								) : (
-									<EditWorkspace key={0} workspace={workspace} />
+									<EditWorkspace
+										onOpenChange={setModalIsOpen}
+										key={workspace.path}
+										workspace={workspace}
+									/>
 								),
 							]}
 						/>

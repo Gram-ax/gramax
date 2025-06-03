@@ -127,7 +127,7 @@ export default styled(ArticleLayout)`
 		justify-content: center;
 		width: ${p.isRightNavPin ? "calc(100% - var(--narrow-nav-width))" : "100%"};
 		color: var(--color-article-text);
-		${!p.useArticleDefaultStyles ? "" : p.isRightNavPin ? "" : "padding-left: 45px;"}
+		${!p.useArticleDefaultStyles ? "" : p.isRightNavPin ? "" : `padding-left: var(--article-wrapper-padding-left);`}
 	}
 
 	.article-content{

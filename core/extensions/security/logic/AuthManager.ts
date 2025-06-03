@@ -17,6 +17,8 @@ export default abstract class AuthManager {
 	): Promise<void>;
 	abstract login(req: ApiRequest, res: ApiResponse): Promise<void>;
 	abstract logout(cookie: Cookie, req?: ApiRequest, res?: ApiResponse): Promise<void>;
+	abstract mailSendOTP(req: ApiRequest, res: ApiResponse): Promise<void>;
+	abstract mailLoginOTP(req: ApiRequest, res: ApiResponse): Promise<void>;
 
 	setUser(cookie: Cookie, user: User, expires?: number): void {
 		cookie.set(this._COOKIE_USER, JSON.stringify(user.toJSON()), expires);

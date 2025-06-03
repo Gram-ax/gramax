@@ -1,6 +1,7 @@
 import { NodeSerializerSpec } from "@ext/markdown/core/edit/logic/Prosemirror/to_markdown";
 import { format } from "@ext/markdown/elements/image/render/logic/imageTransformer";
 import { FormatterType } from "@ext/markdown/core/edit/logic/Formatter/Formatters/typeFormats/getFormatterType";
+import { Syntax } from "@ext/markdown/core/edit/logic/Formatter/Formatters/typeFormats/model/Syntax";
 
 const CLEAR_CROP = { x: 0, y: 0, w: 100, h: 100 };
 
@@ -28,7 +29,7 @@ const imageNodeFormatter =
 					node.attrs.scale,
 				),
 			};
-			state.write(formatter.openTag("image", attrs, true));
+			state.write(formatter.openTag(formatter.type === Syntax.github ? "img" : "image", attrs, true));
 		} else {
 			state.write(
 				"![" +

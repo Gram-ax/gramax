@@ -19,7 +19,7 @@ const create: Command<{ ctx: Context; catalogName: string; iconEditorProps: Icon
 
 			const catalog = await workspace.getCatalog(catalogName, ctx);
 			if (!catalog) return;
-			return await catalog.iconProvider.create(iconEditorProps);
+			return await catalog.customProviders.iconProvider.create(iconEditorProps);
 		},
 
 		params(ctx, q, body) {

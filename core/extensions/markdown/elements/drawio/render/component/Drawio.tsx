@@ -1,3 +1,4 @@
+import { classNames } from "@components/libs/classNames";
 import styled from "@emotion/styled";
 import { forwardRef, MutableRefObject, ReactElement, useLayoutEffect, useRef, useState } from "react";
 import DiagramError from "@ext/markdown/elements/diagrams/component/DiagramError";
@@ -64,7 +65,7 @@ const Drawio = forwardRef((props: DrawioProps, refT: MutableRefObject<HTMLImageE
 	return (
 		<div ref={parentRef} data-qa="qa-drawio">
 			<Skeleton isLoaded={isLoaded} width={size?.width} height={size?.height}>
-				<div className={"drawio " + className} data-focusable="true">
+				<div className={classNames(className, {}, ["drawio"])} data-focusable="true">
 					<Image
 						ref={ref}
 						id={id}

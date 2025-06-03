@@ -96,21 +96,17 @@ class GXCore {
 
 		while (articles.length) {
 			const article = articles.pop();
-			if (article.has_children) {
-				this.createIndexArticle({
-					path: article.slug,
-					order: 1,
-					title: article.title,
-					markdown: article.content,
-				});
-			} else {
-				this.createArticleTo({
-					path: article.slug,
-					order: 1,
-					title: article.title,
-					markdown: article.content,
-				});
-			}
+			if (!Article.validateArticle(article).haveMainAttr) continue;
+
+			const props = {
+				path: article.slug,
+				order: 1,
+				title: article.title,
+				markdown: article.content,
+			};
+
+			if (article.has_children) this.createIndexArticle(props);
+			else this.createArticleTo(props);
 		}
 	}
 
@@ -123,8 +119,9 @@ class GXCore {
 			const item = articles[itemId];
 			const name = item.name;
 
-			let content = item.content;
 			const resources: Resource[] = [];
+			let content = item.content;
+			if (!Article.validateArticle(item).correctContent) continue;
 
 			const { resources: DiagramsResources, content: WithDiagramContent } = ResourceReplacer.diagramsReplacer(
 				content,
@@ -163,6 +160,8 @@ class GXCore {
 		while (stack.length) {
 			const itemId = stack.pop();
 			const item = articles[itemId];
+			if (!Article.validateArticle(item).correctContent) continue;
+
 			let content = item.content;
 
 			const url = DOMAIN + item.slug + "/";
@@ -184,6 +183,7 @@ class GXCore {
 		while (stack.length) {
 			const itemId = stack.pop();
 			const item = articles[itemId];
+			if (!Article.validateArticle(item).correctContent) continue;
 
 			let content = item.content;
 
@@ -213,6 +213,8 @@ class GXCore {
 		while (stack.length) {
 			const itemId = stack.pop();
 			const item = articles[itemId];
+			if (!Article.validateArticle(item).haveMainAttr) continue;
+
 			const articleName = item.name;
 			const isIndexArticle = item.has_children;
 

@@ -29,11 +29,11 @@ const AddContentLanguage = ({ onChange, setIsLoading }: AddContentLanguageProps)
 			openTrigger="mouseenter focus"
 			trigger={<ExportButton ref={ref} iconCode="plus" text={t("multilang.add-localization")} />}
 		>
-			{Object.values(ContentLanguage).map((code, idx) => {
+			{Object.values(ContentLanguage).map((code) => {
 				const disabled = code == props.language || props.supportedLanguages?.includes(code);
 				const button = (
 					<ButtonLink
-						key={idx}
+						key={`add-content-language-${code}`}
 						text={t(`language.${code}`)}
 						onClick={async () => {
 							setIsLoading(true);
@@ -46,7 +46,13 @@ const AddContentLanguage = ({ onChange, setIsLoading }: AddContentLanguageProps)
 				);
 
 				return disabled ? (
-					<Tooltip place="auto" hideOnClick hideInMobile content={t("multilang.error.cannot-add-language")}>
+					<Tooltip
+						key={`tooltip-${code}`}
+						place="auto"
+						hideOnClick
+						hideInMobile
+						content={t("multilang.error.cannot-add-language")}
+					>
 						{button}
 					</Tooltip>
 				) : (

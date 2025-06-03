@@ -65,15 +65,21 @@ const ImageResizer = (props: ImageResizerProps): ReactElement => {
 		[saveResize],
 	);
 
-	const applyScale = useCallback((scale: number) => {
-		const image = imageRef.current;
-		if (!image || +image.style.width || !scale) return;
-
-		const width = getScale(scale, parseFloat(getComputedStyle(containerRef.current).width));
-		image.style.width = `${width}px`;
-	}, []);
-
 	useEffect(() => {
+		const applyScale = (newScale: number = 100) => {
+			const image = imageRef.current;
+			if (image && newScale === null) {
+				image.style.removeProperty("width");
+				return;
+			}
+
+			const scale = newScale || 100;
+			if (!image || +image.style.width || !scale) return;
+
+			const width = getScale(scale, parseFloat(getComputedStyle(containerRef.current).width));
+			image.style.width = `${width}px`;
+		};
+
 		applyScale(scale);
 
 		const resize = () => {

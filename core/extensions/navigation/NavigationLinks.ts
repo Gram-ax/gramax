@@ -14,6 +14,7 @@ export interface CatalogLink extends BaseLink {
 	description: string;
 	lastVisited?: string;
 	isCloning?: boolean;
+	cloneCancelDisabled?: boolean;
 	redirectOnClone?: string;
 }
 

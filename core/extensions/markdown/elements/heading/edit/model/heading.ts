@@ -5,7 +5,8 @@ import { mergeAttributes, Node, InputRule, callOrReturn } from "@tiptap/core";
 import getChildTextId from "@ext/markdown/elements/heading/logic/getChildTextId";
 import { Plugin, PluginKey } from "@tiptap/pm/state";
 import { ReplaceAroundStep, ReplaceStep } from "@tiptap/pm/transform";
-import { editName as blockFieldEditName } from "@ext/markdown/elements/blockContentField/consts";
+import { editName as BLOCK_FIELD } from "@ext/markdown/elements/blockContentField/consts";
+import { editName as BLOCK_PROPERTY } from "@ext/markdown/elements/blockProperty/consts";
 // import updateId from "@ext/markdown/elements/heading/edit/plugins/updateId";
 
 export type Level = 1 | 2 | 3 | 4 | 5 | 6;
@@ -73,7 +74,7 @@ const Heading = Node.create<HeadingOptions>({
 				(attributes) =>
 				({ commands, editor }) => {
 					if (!this.options.levels.includes(attributes.level)) return false;
-					if (stopExecution(editor, this.name, [blockFieldEditName])) return false;
+					if (stopExecution(editor, this.name, [BLOCK_FIELD, BLOCK_PROPERTY])) return false;
 
 					return commands.toggleNode(this.name, "paragraph", attributes);
 				},

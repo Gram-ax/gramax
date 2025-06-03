@@ -1,5 +1,4 @@
 import { EditorView } from "prosemirror-view";
-import { ClientArticleProps } from "../../../../../../logic/SitePresenter/SitePresenter";
 import { NodeSelection } from "@tiptap/pm/state";
 import getNaturalSize from "@ext/markdown/elements/image/edit/logic/getNaturalSize";
 import { ResourceServiceType } from "@ext/markdown/elements/copyArticles/resourceService";
@@ -7,7 +6,7 @@ import { ResourceServiceType } from "@ext/markdown/elements/copyArticles/resourc
 const createImages = async (
 	files: File[],
 	view: EditorView,
-	articleProps: ClientArticleProps,
+	fileName: string,
 	resourceService: ResourceServiceType,
 ) => {
 	files = files.filter((f) => f);
@@ -15,7 +14,7 @@ const createImages = async (
 
 	for (const file of files) {
 		if (!file.type.startsWith("image")) continue;
-		const name = `${articleProps.fileName}.${file.type.slice("image/".length)}`;
+		const name = `${fileName}.${file.type.slice("image/".length)}`;
 		const newName = await resourceService.setResource(name, Buffer.from(await file.arrayBuffer()));
 
 		const { $from } = view.state.selection;

@@ -58,11 +58,20 @@ export type AppConfig = {
 	logo: { imageUrl: string; linkUrl: string; linkTitle: string };
 	allowedGramaxUrls: string[];
 
+	portalAi: {
+		enabled: boolean;
+		apiUrl: string;
+		token: string;
+		instanceName: string;
+	};
+
 	search: {
-		vector: {
+		elastic: {
 			enabled: boolean;
 			apiUrl: string;
-			collectionName: string;
+			instanceName: string;
+			username: string;
+			password: string;
 		};
 	};
 };
@@ -113,16 +122,22 @@ export const getConfig = (): AppConfig => {
 
 	const requiredEnvVars: (keyof EnvironmentVariable)[] = [];
 
-	const vectorSearchApiUrl = env("SEARCH_VECTOR_API_URL");
-	const vectorSearchCollectionName = env("SEARCH_VECTOR_COLLECTION_NAME");
-	const vectorSearchEnabled = Boolean(vectorSearchApiUrl || vectorSearchCollectionName);
-	if (vectorSearchEnabled && (!vectorSearchApiUrl || !vectorSearchCollectionName)) {
-		if (!vectorSearchApiUrl) requiredEnvVars.push("SEARCH_VECTOR_API_URL");
-		if (!vectorSearchCollectionName) requiredEnvVars.push("SEARCH_VECTOR_COLLECTION_NAME");
+	const aiApiUrl = env("AI_SERVER_URL");
+	const aiInstanceName = env("AI_INSTANCE_NAME");
+	const aiToken = env("AI_TOKEN");
+	const aiEnabled = Boolean(aiApiUrl && aiInstanceName && aiToken);
+	if (aiEnabled && (!aiApiUrl || !aiInstanceName || !aiToken)) {
+		if (!aiApiUrl) requiredEnvVars.push("AI_SERVER_URL");
+		if (!aiInstanceName) requiredEnvVars.push("AI_INSTANCE_NAME");
+		if (!aiToken) requiredEnvVars.push("AI_TOKEN");
 	}
 	if (requiredEnvVars.length > 0) {
 		throw new Error(`Environment variable(s) must have value: [${requiredEnvVars.join(", ")}]`);
 	}
+
+	const elasticApiUrl = env("ELASTIC_SEARCH_API_URL");
+	const elasticInstanceName = env("ELASTIC_SEARCH_INSTANCE_NAME");
+	const elasticEnabled = Boolean(elasticApiUrl && elasticInstanceName);
 
 	global.config = {
 		paths: getPaths(),
@@ -132,11 +147,20 @@ export const getConfig = (): AppConfig => {
 			getExecutingEnvironment() === "static" ||
 			getExecutingEnvironment() === "cli",
 
+		portalAi: {
+			enabled: aiEnabled,
+			apiUrl: aiApiUrl,
+			instanceName: aiInstanceName,
+			token: aiToken,
+		},
+
 		search: {
-			vector: {
-				enabled: vectorSearchEnabled,
-				apiUrl: vectorSearchApiUrl,
-				collectionName: vectorSearchCollectionName,
+			elastic: {
+				enabled: elasticEnabled,
+				apiUrl: elasticApiUrl,
+				instanceName: elasticInstanceName,
+				username: env("ELASTIC_SEARCH_USERNAME"),
+				password: env("ELASTIC_SEARCH_PASSWORD"),
 			},
 		},
 

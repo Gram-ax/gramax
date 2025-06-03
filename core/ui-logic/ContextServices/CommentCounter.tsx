@@ -16,7 +16,7 @@ import {
 
 export type AuthoredComments = { total: number; pathnames: CommentsByArticle };
 
-export type CommentsByArticle = { [pathname: string]: number };
+export type CommentsByArticle = { [pathname: string]: string[] };
 
 export type AuthoredCommentsByAuthor = { [author: string]: AuthoredComments };
 
@@ -51,11 +51,13 @@ abstract class CommentCounterService {
 		_setComments(comments);
 	}
 
-	public static delete(comments: AuthoredCommentsByAuthor, pathname: string, author: UserInfo) {
+	public static delete(comments: AuthoredCommentsByAuthor, pathname: string, author: UserInfo, deleteId: string) {
 		if (!comments[author?.mail]) return;
 		comments[author.mail].total--;
-		comments[author.mail].pathnames[pathname]--;
-		if (comments[author.mail].pathnames[pathname] === 0) delete comments[author.mail].pathnames[pathname];
+		comments[author.mail].pathnames[pathname] = comments[author.mail].pathnames[pathname].filter(
+			(id) => id !== deleteId,
+		);
+		if (comments[author.mail].pathnames[pathname].length === 0) delete comments[author.mail].pathnames[pathname];
 
 		_setComments(Object.assign({}, comments));
 	}
@@ -67,13 +69,14 @@ abstract class CommentCounterService {
 
 	public static getTotalByPathname(comments: AuthoredCommentsByAuthor, pathname: string) {
 		if (!comments) return 0;
-		return Object.values(comments).reduce((acc, curr) => acc + (curr.pathnames[pathname] ?? 0), 0);
+		return Object.values(comments).reduce((acc, curr) => acc + (curr.pathnames[pathname]?.length ?? 0), 0);
 	}
 
-	public static add(comments: AuthoredCommentsByAuthor, pathname: string, user: UserInfo) {
+	public static add(comments: AuthoredCommentsByAuthor, pathname: string, user: UserInfo, newId: string) {
 		if (!comments[user.mail]) comments[user.mail] = { total: 0, pathnames: {} };
+		if (!comments[user.mail].pathnames[pathname]) comments[user.mail].pathnames[pathname] = [];
 		comments[user.mail].total++;
-		comments[user.mail].pathnames[pathname] = (comments[user.mail].pathnames[pathname] ?? 0) + 1;
+		comments[user.mail].pathnames[pathname].push(newId);
 		_setComments(Object.assign({}, comments));
 	}
 }

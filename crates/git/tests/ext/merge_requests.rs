@@ -277,3 +277,28 @@ fn signature_onelinear_deserialize_test() -> Result {
   assert_eq!(deserialized, signature);
   Ok(())
 }
+
+#[rstest]
+fn get_draft_merge_request_same_branch(_sandbox: TempDir, #[with(&_sandbox)] repos: Repos) -> Result {
+  let Repos { local, local_path, .. } = repos;
+
+  std::fs::create_dir_all(local_path.join(".gramax/mr"))?;
+  std::fs::write(
+    local_path.join(".gramax/mr/open.yaml"),
+    r#"
+title: test1
+targetBranch: master
+creator: test <test@test.com>
+createdAt: "1"
+"#,
+  )?;
+
+  local.add(".gramax/mr/open.yaml")?;
+  local.commit_debug()?;
+  local.push()?;
+
+  let mr = local.get_draft_merge_request()?;
+  assert!(mr.is_none(), "expected None when source and target branches are the same");
+
+  Ok(())
+}

@@ -125,14 +125,16 @@ class StaticSiteBuilder {
 		);
 
 		await Promise.all(
-			catalog.snippetProvider.getSnippetsPaths().map(async (path) => {
+			(
+				await catalog.customProviders.snippetProvider.getSnippetsPaths()
+			).map(async (path) => {
 				const targetPath = new Path(catalog.name).join(new Path(path.value.replace(folderPath, "")));
 				await copyFile(path, targetPath);
 			}),
 		);
 
 		await Promise.all(
-			catalog.iconProvider.getIconsPaths().map(async (path) => {
+			catalog.customProviders.iconProvider.getIconsPaths().map(async (path) => {
 				const targetPath = new Path(catalog.name).join(new Path(path.value.replace(folderPath, "")));
 				await copyFile(path, targetPath);
 			}),

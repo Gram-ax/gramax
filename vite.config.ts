@@ -65,6 +65,9 @@ export default (): UserConfig => ({
 					bodyDatasetInjector: `<script>${readFileAsString(
 						"scripts/browser/bodyDatasetInjector.js",
 					)}</script>`,
+					objectHasOwnPolyfill: `<script>${readFileAsString(
+						"scripts/browser/objectHasOwnPolyfill.js",
+					)}</script>`,
 					tryOpenInDesktop: `<script>${readFileAsString("scripts/browser/tryOpenInDesktop.js")}</script>`,
 				},
 			},
@@ -79,6 +82,7 @@ export default (): UserConfig => ({
 	resolve: {
 		alias: {
 			"@components": path.resolve(__dirname, "core/components"),
+			"@ui-kit": path.resolve(__dirname, "core/ui-kit/components"),
 			"@core": path.resolve(__dirname, "core/logic"),
 			"@core-ui": path.resolve(__dirname, "core/ui-logic"),
 			"@ext": path.resolve(__dirname, "core/extensions"),

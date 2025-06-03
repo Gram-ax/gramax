@@ -13,6 +13,7 @@ const logout: Command<{ ctx: Context; id: WorkspacePath }, void> = Command.creat
 
 	async do({ ctx, id }) {
 		await this._commands.workspace.remove.do({ ctx, id });
+		await this._commands.ai.removeAiData.do({ ctx, workspacePath: id });
 		await this._app.am.logout(ctx.cookie);
 	},
 

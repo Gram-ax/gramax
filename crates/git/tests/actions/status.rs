@@ -17,11 +17,11 @@ fn status(sandbox: TempDir, #[with(&sandbox)] repo: Repo<TestCreds>) -> Result {
   let status = repo.status(false)?.short_info()?;
 
   assert_eq!(
-    status.entries().find(|e| e.path == Path::new("new_file")).map(|e| e.status),
+    status.entries().iter().find(|e| e.path == Path::new("new_file")).map(|e| e.status),
     Some(StatusEntry::New)
   );
   assert_eq!(
-    status.entries().find(|e| e.path == file_deleted_name).map(|e| e.status),
+    status.entries().iter().find(|e| e.path == file_deleted_name).map(|e| e.status),
     Some(StatusEntry::Delete)
   );
 

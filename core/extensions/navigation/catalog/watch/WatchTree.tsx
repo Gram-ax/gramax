@@ -62,17 +62,13 @@ const Item = ({ item, level, closeNavigation }: { item: ItemLink; level: number;
 	const existsContent = item.type === ItemType.category ? (item as CategoryLink).existContent : true;
 
 	const [isOpen, setIsOpen] = useState(level == 0 || (item as CategoryLink).isExpanded);
-	const [allwaysIsOpen, setAllwaysIsOpen] = useState(false);
+
+	const onToggle = () => {
+		setIsOpen(!isOpen);
+	};
 
 	const onClick = () => {
 		if (existsContent || item.type == ItemType.article) closeNavigation?.();
-		if (item.type !== ItemType.category) return;
-		if (!existsContent || isActive) {
-			setIsOpen(!isOpen);
-			if (isOpen && allwaysIsOpen) {
-				setAllwaysIsOpen(false);
-			}
-		} else setIsOpen(true);
 	};
 
 	useEffect(() => {
@@ -82,12 +78,8 @@ const Item = ({ item, level, closeNavigation }: { item: ItemLink; level: number;
 	});
 
 	useEffect(() => {
-		setIsOpen((item as CategoryLink).isExpanded);
+		if ((item as CategoryLink).isExpanded) setIsOpen((item as CategoryLink).isExpanded);
 	}, [(item as CategoryLink).isExpanded]);
-
-	useEffect(() => {
-		if (isCategory && isOpen) setAllwaysIsOpen(true);
-	}, [isOpen]);
 
 	return (
 		<li ref={ref}>
@@ -95,7 +87,7 @@ const Item = ({ item, level, closeNavigation }: { item: ItemLink; level: number;
 				item={item}
 				level={level}
 				isHover={isHover}
-				isOpen={isOpen || allwaysIsOpen}
+				isOpen={isOpen}
 				isCategory={isCategory}
 				leftExtensions={<IconExtension item={item} />}
 				rightExtensions={
@@ -108,8 +100,9 @@ const Item = ({ item, level, closeNavigation }: { item: ItemLink; level: number;
 					/>
 				}
 				onClick={onClick}
+				onToggle={onToggle}
 			/>
-			{isCategory && (isOpen || allwaysIsOpen) && (
+			{isCategory && isOpen && (
 				<Tree
 					items={(item as CategoryLink).items}
 					level={level + 1}

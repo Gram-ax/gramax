@@ -5,14 +5,26 @@ import getFileInputDefaultLanguage from "@components/Atoms/FileInput/getFileInpu
 import MergeConflictStyles from "@ext/git/actions/MergeConflictHandler/Monaco/components/MergeConflictStyles";
 import FileInputMergeConflict from "@ext/git/actions/MergeConflictHandler/Monaco/logic/FileInputMergeConflict";
 import t from "@ext/localization/locale/translate";
-import { useLayoutEffect, useRef, useState } from "react";
+import { useLayoutEffect, useRef, useState, CSSProperties } from "react";
 import Theme from "../../../extensions/Theme/Theme";
 import ThemeService from "../../../extensions/Theme/components/ThemeService";
 
 const DEFAULT_LANGAUGE = getFileInputDefaultLanguage();
 
-const FileInput = (props: FileInputProps) => {
-	const { value, className, language, onChange, onMount, options, height = "60vh", ...otherProps } = props;
+const FileInput = (props: FileInputProps & { style?: CSSProperties; uiKitTheme?: boolean }) => {
+	const {
+		value,
+		style,
+		className,
+		uiKitTheme,
+		language,
+		onChange,
+		onMount,
+		options,
+		height = "60vh",
+		...otherProps
+	} = props;
+
 	const readOnly = options?.readOnly ?? false;
 	const theme = ThemeService.value;
 	const ref = useRef<HTMLDivElement>(null);
@@ -27,8 +39,10 @@ const FileInput = (props: FileInputProps) => {
 		};
 	}, []);
 
+	const monacoDarkTheme = uiKitTheme ? "new-vs-dark" : "vs-dark";
+
 	return (
-		<div className={className} style={{ padding: "1rem 0", height }}>
+		<div className={className} style={{ padding: "1rem 0", height, ...style }}>
 			<div ref={ref} style={{ height: "100%" }}>
 				<MergeConflictStyles style={{ height: "100%" }}>
 					<FileInput
@@ -46,7 +60,7 @@ const FileInput = (props: FileInputProps) => {
 							wordWrap: "on",
 							...options,
 						}}
-						theme={theme == Theme.dark ? "vs-dark" : "light"}
+						theme={theme == Theme.dark ? monacoDarkTheme : "light"}
 						onMount={(editor, monaco) => {
 							if (readOnly) {
 								onMount?.(editor, monaco, null);

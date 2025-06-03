@@ -41,7 +41,7 @@ const StyleGuideMenu = () => {
 				styleGuideOptions: {
 					rules: checkSettings.rules,
 				},
-			}),
+			} as any),
 		);
 	}, [accountSettings, checkSettings]);
 

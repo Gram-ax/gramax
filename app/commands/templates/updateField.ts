@@ -16,7 +16,7 @@ const updateField: Command<
 		const workspace = wm.current();
 
 		const catalog = await workspace.getCatalog(catalogName, ctx);
-		const templateProvider = catalog.templateProvider;
+		const templateProvider = catalog.customProviders.templateProvider;
 
 		await templateProvider.updateTemplateArticleField(
 			articlePath,

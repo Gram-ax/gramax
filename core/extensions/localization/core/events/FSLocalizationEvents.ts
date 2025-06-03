@@ -33,7 +33,8 @@ export default class FSLocalizationEvents implements EventHandlerCollection {
 	}
 
 	private onItemFilter = ({ catalogProps, item }: EventArgs<FSEvents, "item-filter">) => {
-		if (!catalogProps.language || getExecutingEnvironment() != "next") return true;
+		if (!catalogProps.language || getExecutingEnvironment() === "browser" || getExecutingEnvironment() === "tauri")
+			return true;
 
 		if (item.props.external && item.type == ItemType.article) return false;
 		if (item.props.external && item.type == ItemType.category) {
@@ -168,7 +169,7 @@ removing from .doc-root.yaml`,
 		if (!catalog.props.language) return;
 
 		await this.applyAll(catalog, true, originalItem.ref, async (ref, item) => {
-			await item.setOrder(originalItem.props.order);
+			await item.setOrder(originalItem.props.order, true);
 		});
 	};
 
@@ -213,7 +214,12 @@ removing from .doc-root.yaml`,
 			const ref = { path, storageId: originalRef.storageId };
 			let item = catalog.findItemByItemRef(ref);
 			if (!item && check) {
-				const languageCategory = catalog.findArticle(catalog.name + "/" + language, []) as Category;
+				let languageCategoryName = catalog.name;
+				if (catalog.props.language != language) languageCategoryName += "/" + language;
+
+				const languageCategory = catalog.findArticle(languageCategoryName, []) as Category;
+
+				if (!languageCategory) continue;
 
 				await addExternalItems(
 					catalog.getRootCategory(),

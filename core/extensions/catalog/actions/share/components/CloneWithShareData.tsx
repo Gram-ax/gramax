@@ -1,5 +1,4 @@
 import SmallFence from "@components/Labels/SmallFence";
-import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import convertShareLinkDataToStorageData from "@ext/catalog/actions/share/logic/convertShareLinkDataToStorageData";
 import ShareData from "@ext/catalog/actions/share/model/ShareData";
@@ -28,7 +27,6 @@ const CloneWithShareData = ({
 	clonePath?: string;
 	onCreateSourceDataClose?: (success: boolean) => void;
 }) => {
-	const apiUrlCreator = ApiUrlCreatorService.value;
 	const [sourceData, setSourceData] = useState<SourceData>(null);
 	const [hasStorageInitialized, setHasStorageInitialized] = useState(false);
 	const hasStorageInitializedRef = useRef(false);
@@ -52,7 +50,7 @@ const CloneWithShareData = ({
 	};
 
 	const getPartSourceData = () => {
-		if (shareData.sourceType === SourceType.gitHub || shareData.sourceType === SourceType.gitLab) {
+		if (shareData && (shareData.sourceType === SourceType.gitHub || shareData.sourceType === SourceType.gitLab)) {
 			return getPartGitSourceDataByStorageName((shareData as GitShareData).domain).data;
 		}
 		return {};
@@ -75,7 +73,7 @@ const CloneWithShareData = ({
 
 	const domain = (
 		<div style={{ display: "inline-flex" }}>
-			<SmallFence overflow="hidden" fixWidth value={(shareData as GitShareData).domain} />
+			<SmallFence overflow="hidden" fixWidth value={(shareData as GitShareData)?.domain} />
 		</div>
 	);
 

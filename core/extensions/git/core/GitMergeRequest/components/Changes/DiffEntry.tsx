@@ -5,9 +5,10 @@ import CatalogPropsService from "@core-ui/ContextServices/CatalogProps";
 import CommentCounterService from "@core-ui/ContextServices/CommentCounter";
 import { css } from "@emotion/react";
 import styled from "@emotion/styled";
-import type { DiffTreeAnyItem } from "@ext/git/core/GitDiffItemCreator/RevisionDiffTreePresenter";
+import type { DiffTreeAnyItem, DiffTreeBreadcrumb } from "@ext/git/core/GitDiffItemCreator/RevisionDiffTreePresenter";
 import Breadcrumbs from "@ext/git/core/GitMergeRequest/components/Changes/Breadcrumbs";
 import { SelectedDiffEntryContext } from "@ext/git/core/GitMergeRequest/components/Changes/DiffEntries";
+import { getBreadcrumbs, getItemChilds } from "@ext/git/core/GitMergeRequest/components/Changes/DiffEntryUtils";
 import IndentLine from "@ext/git/core/GitMergeRequest/components/Changes/IndentLine";
 import { Overview } from "@ext/git/core/GitMergeRequest/components/Changes/Overview";
 import { Accent } from "@ext/git/core/GitMergeRequest/components/Elements";
@@ -202,11 +203,6 @@ const DiffEntry = ({
 	);
 	if (hidden) return null;
 
-	if (entry.type === "node" && entry.childs.length === 1 && entry.childs[0].type === "node") {
-		const breadcrumb = entry.breadcrumbs;
-		entry = { ...entry.childs[0], breadcrumbs: [...breadcrumb, ...entry.childs[0].breadcrumbs] };
-	}
-
 	const discardFileComponent = actionIcon ? (
 		<Icon
 			onClick={onActionClick}
@@ -257,18 +253,23 @@ const DiffEntry = ({
 
 	if (entry.type === "node") {
 		if (!entry.childs.length) return;
+
+		const itemChilds = getItemChilds(entry) ?? [];
+		const allBreadcrumbs: DiffTreeBreadcrumb[] = [];
+		getBreadcrumbs(entry, allBreadcrumbs);
+
 		return (
 			<>
 				<BreadcrumbWrapper>
 					{indentLine}
-					<Breadcrumbs marginLeft={indent + 1 + (isCheckbox ? 0.15 : 0)} breadcrumb={entry.breadcrumbs} />
+					<Breadcrumbs marginLeft={indent + 1 + (isCheckbox ? 0.15 : 0)} breadcrumb={allBreadcrumbs} />
 				</BreadcrumbWrapper>
-				{entry.childs.map((inner, id) => (
+				{itemChilds.map((inner, id) => (
 					<DiffEntry
 						key={id}
 						entry={inner}
 						onSelect={onSelect}
-						indent={indent + Number(entry.breadcrumbs?.length > 0)}
+						indent={indent + Number(allBreadcrumbs.length > 0)}
 						selectFile={selectFile}
 						isFileSelected={isFileSelected}
 						onAction={onAction}

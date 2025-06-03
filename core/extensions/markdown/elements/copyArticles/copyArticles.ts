@@ -1,3 +1,4 @@
+import ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
 import { copyArticleResource } from "@ext/markdown/elements/copyArticles/copyPasteArticleResource";
 import { ResourceServiceType } from "@ext/markdown/elements/copyArticles/resourceService";
 import { Editor, Extension } from "@tiptap/core";
@@ -35,10 +36,19 @@ const selectNodes = (editor: Editor): boolean => {
 	return true;
 };
 
-const CopyArticles = Extension.create({
+interface CopyArticlesOptions {
+	apiUrlCreator: ApiUrlCreator;
+	resourceService: ResourceServiceType;
+}
+
+const CopyArticles = Extension.create<CopyArticlesOptions>({
 	name: "copyArticles",
+
 	addOptions() {
-		return {};
+		return {
+			apiUrlCreator: null,
+			resourceService: null,
+		};
 	},
 
 	addKeyboardShortcuts() {

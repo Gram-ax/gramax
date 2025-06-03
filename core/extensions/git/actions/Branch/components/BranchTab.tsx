@@ -6,12 +6,13 @@ import CatalogPropsService from "@core-ui/ContextServices/CatalogProps";
 import WorkspaceService from "@core-ui/ContextServices/Workspace";
 import { usePlatform } from "@core-ui/hooks/usePlatform";
 import BranchUpdaterService from "@ext/git/actions/Branch/BranchUpdaterService/logic/BranchUpdaterService";
+import OnBranchUpdateCaller from "@ext/git/actions/Branch/BranchUpdaterService/model/OnBranchUpdateCaller";
 import BranchActions from "@ext/git/actions/Branch/components/BranchActions";
 import GitBranchData from "@ext/git/core/GitBranch/model/GitBranchData";
 import t from "@ext/localization/locale/translate";
 import PermissionService from "@ext/security/logic/Permission/components/PermissionService";
 import { editCatalogPermission } from "@ext/security/logic/Permission/Permissions";
-import { useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 
 interface BranchTabProps {
 	show: boolean;
@@ -41,6 +42,18 @@ const BranchTab = ({ show, setShow, onClose, branch, onMergeRequestCreate }: Bra
 	);
 
 	const allowAddNewBranch = !isNext && canEditCatalog;
+
+	const onSwitchBranch = useCallback(
+		async (isNewBranchCreated: boolean) => {
+			if (isNewBranchCreated)
+				await BranchUpdaterService.updateBranch(apiUrlCreator, OnBranchUpdateCaller.CheckoutToNewCreatedBranch);
+			else {
+				await BranchUpdaterService.updateBranch(apiUrlCreator);
+				await ArticleUpdaterService.update(apiUrlCreator);
+			}
+		},
+		[apiUrlCreator],
+	);
 
 	return (
 		<TabWrapper
@@ -72,10 +85,7 @@ const BranchTab = ({ show, setShow, onClose, branch, onMergeRequestCreate }: Bra
 					canEditCatalog={allowAddNewBranch}
 					currentBranch={branchName}
 					onMergeRequestCreate={onMergeRequestCreate}
-					onNewBranch={async () => {
-						await BranchUpdaterService.updateBranch(apiUrlCreator);
-						await ArticleUpdaterService.update(apiUrlCreator);
-					}}
+					onSwitchBranch={onSwitchBranch}
 				/>
 			</div>
 		</TabWrapper>

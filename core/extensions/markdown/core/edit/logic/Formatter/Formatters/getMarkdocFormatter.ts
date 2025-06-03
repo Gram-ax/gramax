@@ -1,6 +1,9 @@
 import { Markdown, Schema, SchemaType, Tag } from "../../../../render/logic/Markdoc";
 import ParserContext from "@ext/markdown/core/Parser/ParserContext/ParserContext";
-import getFormatterType from "@ext/markdown/core/edit/logic/Formatter/Formatters/typeFormats/getFormatterType";
+import getFormatterType, {
+	getFormatterTypeByContext,
+} from "@ext/markdown/core/edit/logic/Formatter/Formatters/typeFormats/getFormatterType";
+import { Syntax } from "@ext/markdown/core/edit/logic/Formatter/Formatters/typeFormats/model/Syntax";
 
 export function getMarkdocFormatter(schema: Schema, context: ParserContext) {
 	if (schema.render == "Formula") {
@@ -9,11 +12,13 @@ export function getMarkdocFormatter(schema: Schema, context: ParserContext) {
 		};
 	}
 
-	const formatter = getFormatterType(context);
+	const formatter = getFormatterTypeByContext(context);
+	const htmlFormatter = getFormatterType(Syntax.xml);
 
 	return (tag: Tag, children?: Markdown, onlyClose?: boolean, onlyOpen?: boolean): string => {
+		const currentFormatter = tag.name == "htmlTag" ? htmlFormatter : formatter;
 		const tagName = tag.name.toLowerCase();
-		const closeTag = formatter.closeTag(tagName);
+		const closeTag = currentFormatter.closeTag(tagName);
 		if (onlyClose) return closeTag;
 		const selfClosing = schema.selfClosing ?? true;
 		const attrs = schema.attributes
@@ -22,7 +27,7 @@ export function getMarkdocFormatter(schema: Schema, context: ParserContext) {
 					return acc;
 			  }, {} as Record<string, any>)
 			: {};
-		const openTag = formatter.openTag(tagName, attrs, selfClosing);
+		const openTag = currentFormatter.openTag(tagName, attrs, selfClosing);
 		if (onlyOpen) return openTag;
 		if (!selfClosing) return `${openTag}${children}${getPrefix(schema, tag, true)}${closeTag}`;
 		return openTag;

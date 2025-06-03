@@ -86,6 +86,8 @@ export const clone = async (
 
 export const cloneCancel = (id: number) => call<boolean>("clone_cancel", { id });
 
+export const getAllCancelTokens = () => call<number[]>("get_all_cancel_tokens", {});
+
 export const init = (args: CredsArgs) => call<Oid>("init_new", args);
 
 export const fileHistory = async (args: Args & { filePath: string; count: number }) => {

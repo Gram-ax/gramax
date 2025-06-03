@@ -5,7 +5,7 @@ import { svgToBase64 } from "@core/utils/CustomLogoDriver";
 import { XxHash } from "@core/Hash/Hasher";
 
 export class EnterpriseWorkspace extends Workspace {
-	private _updateInterval: number = 1000 * 10 * 15; // 15 minutes
+	private _updateInterval: number = 1000 * 60 * 15; // 15 minutes
 	private _configHash: string = "";
 
 	async config() {
@@ -18,10 +18,8 @@ export class EnterpriseWorkspace extends Workspace {
 		if (Number(this._config.get("enterprise")?.lastUpdateDate) > timeDiff) return;
 
 		const gesUrl = this._config.get("enterprise")?.gesUrl || this._config.get("gesUrl");
-		this._config.set("enterprise", { gesUrl, lastUpdateDate: Date.now() });
+		this._config.set("enterprise", { ...this._config.get("enterprise"), lastUpdateDate: Date.now() });
 		this._config.delete("gesUrl");
-
-		this._config.set("enterprise", { gesUrl, lastUpdateDate: Date.now() });
 
 		const clientConfig = {
 			name: this._config.get("name"),
@@ -39,6 +37,7 @@ export class EnterpriseWorkspace extends Workspace {
 					return Buffer.from(iconData.split(",")[1], "base64").toString();
 				})(),
 			},
+			authMethods: this._config.get("enterprise")?.authMethods || [],
 		};
 
 		const hasher = XxHash.hasher();
@@ -48,16 +47,25 @@ export class EnterpriseWorkspace extends Workspace {
 		const config = await new EnterpriseApi(gesUrl).getWorkspaceConfig(this._configHash);
 
 		if (!config) return;
-
 		this._config.set("name", config.name);
 		this._config.set("icon", config.icon);
 		this._config.set("groups", config.groups);
+		this._config.set("enterprise", {
+			...this._config.get("enterprise"),
+			authMethods: config.authMethods,
+		});
 
-		if (config.style?.css) await this._assets.write(PredefinedAssets.customStyle, config.style.css);
-		if (config.style?.logo)
-			await this._assets.write(PredefinedAssets.lightHomeIcon, svgToBase64(config.style.logo));
-		if (config.style?.logoDark)
-			await this._assets.write(PredefinedAssets.darkHomeIcon, svgToBase64(config.style.logoDark));
+		config.style?.css
+			? await this._assets.write(PredefinedAssets.customStyle, config.style.css)
+			: await this._assets.delete(PredefinedAssets.customStyle);
+
+		config.style?.logo
+			? await this._assets.write(PredefinedAssets.lightHomeIcon, svgToBase64(config.style.logo))
+			: await this._assets.delete(PredefinedAssets.lightHomeIcon);
+
+		config.style?.logoDark
+			? await this._assets.write(PredefinedAssets.darkHomeIcon, svgToBase64(config.style.logoDark))
+			: await this._assets.delete(PredefinedAssets.darkHomeIcon);
 
 		await this._config.save();
 	}

@@ -1,55 +1,21 @@
 import Icon from "@components/Atoms/Icon";
-import Modal from "@components/Layouts/Modal";
-import { useModalConfirm } from "@core-ui/hooks/useModalConfirm";
-import t from "@ext/localization/locale/translate";
-import WorkspaceForm from "@ext/workspace/components/WorkspaceForm";
+import EditWorkspaceForm from "@ext/workspace/components/EditWorkspaceForm";
 import { ClientWorkspaceConfig } from "@ext/workspace/WorkspaceConfig";
-import { useState, useCallback } from "react";
+import { SetStateAction, Dispatch } from "react";
 
-export interface ConfirmProps {
-	saveChangesHandler?: () => void;
-	setHaveChanges?: (v: boolean) => void;
-	isOpenConfirm: boolean;
-	useSaveCallback: (callback: () => any) => void;
-	shouldOpenConfirmOnClose: () => boolean;
-	clearData: () => void;
-	closeConfirm: () => void;
+interface EditWorkspaceProps {
+	workspace: ClientWorkspaceConfig;
+	onOpenChange: Dispatch<SetStateAction<boolean>>;
 }
 
-const EditWorkspace = ({ workspace }: { workspace: ClientWorkspaceConfig }) => {
-	const [isOpen, setIsOpen] = useState(false);
-
-	const { setHaveChanges, saveChangesHandler, clearData, useSaveCallback, ...confirmProps } = useModalConfirm();
-
-	const forceCloseModal = useCallback(() => {
-		setIsOpen(false);
-		clearData();
-	}, [clearData]);
-
-	const onOpen = useCallback(() => {
-		setIsOpen(true);
-	}, []);
-
+const EditWorkspace = ({ workspace, onOpenChange }: EditWorkspaceProps) => {
 	return (
-		<Modal
-			closeOnEscape
-			onOpen={onOpen}
-			onClose={forceCloseModal}
-			isOpen={isOpen}
-			trigger={<Icon isAction code="pen" />}
-			confirmSaveAction={saveChangesHandler}
-			confirmTitle={t("unsaved-changes")}
-			forceCloseConfirm={forceCloseModal}
-			confirmText={t("exit-edit-mode")}
-			{...confirmProps}
-		>
-			<WorkspaceForm
-				useSaveWorkspaceCallback={useSaveCallback}
-				setHaveChanges={setHaveChanges}
-				closeCallback={forceCloseModal}
-				workspace={workspace}
-			/>
-		</Modal>
+		<EditWorkspaceForm
+			key={workspace?.path}
+			workspace={workspace}
+			onOpenChange={onOpenChange}
+			trigger={<Icon onClick={(e) => e.stopPropagation()} isAction code="pen" />}
+		/>
 	);
 };
 

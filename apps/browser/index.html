@@ -13,6 +13,7 @@
 			const global = {};
 		</script>
 		<!-- import env script -->
+		<%- objectHasOwnPolyfill %>
 		<script defer type="module" src="./src/index.tsx"></script>
 	</head>
 	<%- tryOpenInDesktop %>

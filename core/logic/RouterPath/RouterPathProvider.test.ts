@@ -136,15 +136,15 @@ describe("RouterPathProvider", () => {
 			const result = RouterPathProvider.parsePath("source/-/repo/-/-/file");
 
 			expect(result).toEqual({
-				sourceName: null,
+				sourceName: "source",
 				group: null,
-				repo: null,
+				repo: "repo",
 				refname: null,
-				catalogName: "source",
+				catalogName: "repo",
 				language: undefined,
-				filePath: ["repo", "null", "null", "file"],
-				itemLogicPath: ["source", "repo", "null", "null", "file"],
-				repNameItemLogicPath: null,
+				filePath: ["file"],
+				itemLogicPath: ["repo", "file"],
+				repNameItemLogicPath: ["repo", "file"],
 				hash: "",
 				isPublic: false,
 			});

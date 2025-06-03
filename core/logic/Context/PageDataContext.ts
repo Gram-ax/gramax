@@ -41,7 +41,10 @@ interface PageDataContext {
 			linkTitle: string;
 		};
 		search?: {
-			vector: { enabled: boolean };
+			elastic: { enabled: boolean };
+		};
+		ai: {
+			enabled: boolean;
 		};
 	};
 	permissions: string;

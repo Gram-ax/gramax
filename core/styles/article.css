@@ -260,7 +260,7 @@ article a span.external-link-wrapper {
 .article .article-body ol {
 	counter-reset: listitem 0;
 	list-style: none;
-	padding-left: 32px !important;
+	padding-left: 2em !important;
 }
 
 .article .article-body ol > li {
@@ -809,6 +809,18 @@ article a span.external-link-wrapper {
 
 .article .hover-right-button > i {
 	padding-left: 0 !important;
+}
+
+.article .skeleton-pulse {
+	max-width: 100%;
+	background-color: hsl(var(--color-skeleton-bg) / 0.1);
+	animation: SkeletonPulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes SkeletonPulse {
+	50% {
+		opacity: 0.5;
+	}
 }
 
 @media print {

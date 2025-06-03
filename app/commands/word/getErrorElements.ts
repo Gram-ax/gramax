@@ -35,26 +35,38 @@ const getErrorElements: Command<
 		const isCatalog = itemPath.toString() === "";
 
 		const collectUnsupportedElements = async (item: Item) => {
-			await parseContent(item as Article, catalog, ctx, parser, parserContextFactory);
-
 			const article = {
 				id: item.order?.toString() || "0",
 				title: item.getTitle(),
 				link: await catalog.getPathname(item),
 			};
 
-			const elements = await (item as Article).parsedContent.read((p) => {
-				return markdownElementsFilter.getUnsupportedElements(p.renderTree as Tag);
-			});
+			try {
+				await parseContent(item as Article, catalog, ctx, parser, parserContextFactory);
 
-			if (elements.size > 0)
+				const elements = await (item as Article).parsedContent.read((p) => {
+					return markdownElementsFilter.getUnsupportedElements(p.renderTree as Tag);
+				});
+
+				if (elements.size > 0)
+					unsupportedElements.push({
+						article,
+						elements: Array.from(elements, ([name, count]) => ({
+							name: tString(name),
+							count,
+						})),
+					});
+			} catch (error) {
 				unsupportedElements.push({
 					article,
-					elements: Array.from(elements, ([name, count]) => ({
-						name: tString(name),
-						count,
-					})),
+					elements: [
+						{
+							name: tString("markdown-error"),
+							count: 1,
+						},
+					],
 				});
+			}
 
 			if (item instanceof Category && (isCategory || isCatalog))
 				await Promise.all(item.getFilteredItems(itemFilters, catalog).map(collectUnsupportedElements));

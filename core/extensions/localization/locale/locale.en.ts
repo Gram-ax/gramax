@@ -4,27 +4,28 @@ const locale = {
 	forms: {
 		"catalog-edit-props": {
 			name: "Catalog Settings",
+			description: "Configure your documentation catalog settings",
 			props: {
 				title: {
 					name: "Catalog Title",
-					placeholder: "My catalog",
+					placeholder: "Enter the catalog name",
 					description: "Displayed on the homepage and within the catalog",
 				},
 				url: {
 					name: "Repository Name",
-					placeholder: "Name",
+					placeholder: "Enter the repository name",
 					description: "System name assigned when creating the repository. Displayed in the URL",
 				},
 				docroot: {
 					name: "Directory",
-					placeholder: "./",
+					placeholder: "Specify the directory",
 					description: "Path to the directory where all documentation will be stored in the repository",
 				},
 				versions: {
 					name: "Versions",
-					placeholder: "releases/**/*",
+					placeholder: "Specify the versions",
 					description:
-						"List of versions (branches or tags) displayed in the docportal. Specified as glob-patterns, for example v19.* or release-*",
+						"List of versions (branches or tags) to be shown in the doc portal. Specified as glob patterns, e.g., v19.* or release-*",
 				},
 				language: {
 					name: "Main language",
@@ -33,7 +34,7 @@ const locale = {
 				},
 				description: {
 					name: "Description",
-					placeholder: "For personal notes",
+					placeholder: "Enter a description",
 				},
 				style: {
 					name: "Style",
@@ -41,7 +42,7 @@ const locale = {
 				},
 				code: {
 					name: "Short Name",
-					placeholder: "PN",
+					placeholder: "Enter a short name",
 				},
 				properties: {
 					name: "Properties",
@@ -52,16 +53,21 @@ const locale = {
 					description: "Group on the main page where it will be displayed",
 				},
 			},
+			section: {
+				display: "Display on the homepage",
+			},
 			extended: {
-				name: "Advanced",
+				name: "Format",
 			},
 		},
 		"catalog-extended-edit-props": {
-			name: "Advanced Settings",
+			name: "Text Storage Format",
 			props: {
 				syntax: {
-					name: "Component format",
-					placeholder: "format",
+					name: "Article Markup Language",
+					description:
+						"By default, articles are saved in extended Markdown syntax. You can choose a different format: after saving the settings, all articles will be reformatted. You will only need to publish the changes",
+					placeholder: "Legacy",
 				},
 			},
 		},
@@ -82,7 +88,7 @@ const locale = {
 					placeholder: "Icon",
 				},
 				style: {
-					name: "Syle",
+					name: "Style",
 					placeholder: "Blue",
 				},
 				values: {
@@ -258,7 +264,7 @@ const locale = {
 					placeholder: "my_id",
 				},
 				content: {
-					name: "<p>Content</p>",
+					name: "Content",
 				},
 			},
 		},
@@ -422,7 +428,9 @@ const locale = {
 	},
 	workspace: {
 		name: "Workspace",
+		"configure-your-workspace": "Configure your space settings",
 		"default-name": "Default Workspace",
+		"enter-name": "Enter a name",
 		"path-desc": "Directory on the local disk where working catalogs are located",
 		selected: "Working directory: ",
 		add: "Add workspace",
@@ -433,18 +441,34 @@ const locale = {
 		},
 		"edit-style": "Edit style",
 		"editing-css": "Editing CSS-styles",
+		"css-configuration-instruction":
+			"Use the {{instruction}} to configure the CSS styles of the application and the portal",
+		instruction: "instruction",
 		"css-style": "CSS-style",
 		logo: "Logo",
 		appearance: "Appearance",
-		"invalid-logo-format-title": "Upload Error",
+		"button-ai-server": "AI server",
+		"set-ai-server": "AI server",
+		"ai-server-url": "AI server URL",
+		"ai-server-url-description": "Enter the URL of your AI server",
+		"ai-server-token": "AI server token",
+		"ai-server-token-description": "Enter the token for your AI server",
+		"ai-server-error": "Error connecting to AI server. Check the URL",
+		"ai-token-error": "Token is invalid. Check it in the server settings",
+		"delete-ai-server": "Delete AI server?",
+		"upload-error-title": "Upload Error",
 		"invalid-logo-format-body": "Unsupported file format. Please upload a logo in SVG or PNG format only",
+		"icon-invalid-files-body":
+			"Errors occurred while uploading files [{{iconNames}}]. Please upload icons in SVG format and no larger than 500 KB",
+		"icons-available-in-article": "Icons available in the article",
+		"icons-uploaded": "Icons uploaded",
 		"logo-upload-failed": "Failed to upload the logo",
 		"logo-size-exceeded": "The logo size must not exceed 500KB",
-		"css-styles-description": "Advanced styles settings for your workspace.",
-		"dark-logo-description": "Logo for dark theme. Used only in dark theme.",
+		"css-styles-description": "Advanced styles settings for your workspace",
+		"dark-logo-description": "Logo for dark theme. Used only in dark theme",
 		"for-dark-theme": "For the dark theme",
 		"default-logo-description":
-			"Default logo. Used in the light theme and also in the dark theme if there is no separate dark theme logo.",
+			"Default logo. Used in the light theme and also in the dark theme if there is no separate dark theme logo",
 	},
 	modal: {
 		confirm: {
@@ -481,7 +505,10 @@ const locale = {
 		placeholder: "Article text",
 		"add-child": "Add a sub-article",
 		"add-root": "Add a root article",
-		configure: "Article settings",
+		configure: {
+			title: "Article settings",
+			description: "Configure your article settings",
+		},
 		"edit-markdown": "Edit Markdown",
 		error: {
 			parse: "Gramax couldn’t read the Markdown structure in the article file.\nClick Edit Markdown, then fix the error or remove the structure.",
@@ -527,8 +554,11 @@ But we don't know which storage this repository is located in.
 Add storage to confirm the link.`,
 		},
 	},
-	category: {
-		configure: "Category Settings",
+	section: {
+		configure: {
+			title: "Section Settings",
+			description: "Configure your section settings",
+		},
 	},
 	catalog: {
 		"new-name": "New Catalog",
@@ -541,6 +571,12 @@ Add storage to confirm the link.`,
 		delete: "Delete catalog",
 		name: "catalog",
 		configure: "Configure catalog",
+		"missing-config": {
+			title: "Insufficient catalog information",
+			description:
+				"This catalog was not created in Gramax: it has no name, group, or logo. Specify them in the settings.",
+			"open-settings": "Open settings",
+		},
 		style: {
 			red: "Red",
 			blue: "Blue",
@@ -579,6 +615,7 @@ Add storage to confirm the link.`,
 			catalog: "Share catalog",
 			article: "Share article",
 		},
+		"new-file-disable": "You can share only after the article is published",
 		copy: "Link to access the article and catalog on the branch ",
 		hint: "You can also copy the link directly from your browser's address bar.",
 		note: "Note:",
@@ -629,6 +666,38 @@ Add storage to confirm the link.`,
 			},
 		},
 	},
+	"enterprise-guest": {
+		guestTitle: "Sign in by email",
+		descriptions: {
+			emailFieldDescription: "Enter your email to receive a one-time code",
+			otpFieldDescription: "Enter the code sent to your email",
+		},
+		placeholders: {
+			emailPlaceholder: "johndoe@example.com",
+			otpPlaceholder: "123456",
+		},
+		buttons: {
+			continueAsGuestButton: "By email",
+			sendPasswordButton: "Send code",
+			resendPasswordButton: "Resend code",
+		},
+		validationErrors: {
+			emailRequired: "Email is required",
+			emailInvalidFormat: "Invalid email format",
+			otpRequired: "Code is required",
+			otpNumbersOnly: "Code must contain only numbers",
+			otpLength: "Code must be 6 digits long",
+		},
+		tooltips: {
+			tooManyRequests: "Too many requests. Try after {minutes} min",
+			resendAvailableIn: "Resend available in {seconds}",
+			internalServerError: "Internal server error. Please try again later",
+			loginFailed: "Login failed (Status: {status})",
+			errorSendingPassword: "Error sending code (Status: {status})",
+			invalidOtp: "Invalid code",
+			networkError: "Network error. Please try again",
+		},
+	},
 	cloud: {
 		"enter-cloud": "Log in to Gramax Cloud",
 		"upload-button": "Publish",
@@ -651,7 +720,7 @@ Add storage to confirm the link.`,
 		desc: '<ul><li>Use <code>"</code> for exact matches. Example:&nbsp;<code><nobr>"word"</nobr></code> or <code><nobr>"search phrase"</nobr></code>.</li><li>Use <code>-</code> to exclude. Example:&nbsp;<code><nobr>-word</nobr></code> or <code><nobr>-"excluded phrase"</nobr></code>.</li></ul>',
 		"articles-not-found": "No articles found",
 		"all-catalogs": "Search all catalogs",
-		"vector-search": "AI search",
+		ai: "AI search",
 	},
 	list: {
 		"no-results-found": "No results found",
@@ -689,6 +758,7 @@ Add storage to confirm the link.`,
 				downloading: "Downloading",
 				checkout: "Checking out",
 				wait: "Waiting server",
+				queue: "Pending",
 				cancel: "Cancelling",
 			},
 			cancel: "Cancel",
@@ -755,22 +825,31 @@ Add storage to confirm the link.`,
 			},
 		},
 		branch: {
+			management: "Branch management",
 			actual: "Actual branch",
 			error: {
 				"deleting-head-branch":
 					"You are trying to delete the branch you are on. Switch to another branch and try again",
 				"cannot-delete-protected":
-					"Branch {{branch}} is protected from deletion. Uncheck the “Delete branch {{branch}} after merging” option and try again.",
-				"cannot-delete": "Failed to delete remote branch {{branch}}",
+					"Branch <code>{{branch}}</code> is protected from deletion. Uncheck the “Delete branch <code>{{branch}}</code> after merging” option and try again",
+				"cannot-delete":
+					"Failed to complete the deletion of the published branch <code>{{branch}}</code>. Please reload the page and try again",
 				"not-found": {
 					local: "Could not determine the current branch",
-					remote: "Failed to find remote branch for local branch {{branch}}",
+					remote: "Failed to find remote branch for local branch <code>{{branch}}</code>",
 				},
-				"not-found-reload": "Could not determine the current branch. Reload the page.",
-				"already-exist": "Unable to create new branch. Branch {{branch}} already exists",
+				"not-found-reload": "Could not determine the current branch. Reload the page",
+				"already-exist": "Unable to create new branch. Branch <code>{{branch}}</code> already exists",
 				"has-been-deleted": {
 					title: "Branch has been deleted",
-					body: "The branch on which the catalog was located has been deleted. You will be switched to the default branch of the catalog.",
+					body: "The branch on which the catalog was located has been deleted. You will be switched to the default branch of the catalog",
+				},
+			},
+			delete: {
+				confirm: {
+					title: "Delete branch?",
+					description:
+						"Branch <code>{{branch}}</code> and all its content will be deleted from the app and the Git storage. This action cannot be undone",
 				},
 			},
 		},
@@ -784,6 +863,7 @@ Add storage to confirm the link.`,
 			squash: "Squash commits",
 			"squash-tooltip": "Changes from the current branch will be squashed into a single commit after merging",
 			conflict: {
+				conflicts: "Conflicts",
 				"abort-confirm": {
 					title: {
 						sync: "Cancel synchronization?",
@@ -874,20 +954,30 @@ Add storage to confirm the link.`,
 		},
 		error: {
 			"not-found": {
-				branch: "Failed to find branch {{what}}",
-				"remote-branch": "Failed to find remote branch {{what}}",
-				blob: "Failed to find file {{path}}",
+				branch: "Failed to find branch <code>{{what}}</code>",
+				"remote-branch": "Failed to find remote branch <code>{{what}}</code>",
+				blob: "Failed to find file <code>{{path}}</code>",
+				repo: {
+					title: "Repository not found",
+					message: `Failed to find repository <a href='{{url}}' ${
+						getExecutingEnvironment() === "tauri" ? "" : "target=_blank"
+					} rel='noreferrer'>{{name}}</a> in Git storage. It may have been deleted, moved, or you don't have enough permissions to access it`,
+				},
 				generic: "Error code - NotFoundError. Error message - ",
+			},
+			"content-too-large": {
+				title: "Too many changes",
+				message: `You are trying to push a large file or too many changes at once. Try publishing changes by parts`,
 			},
 			network: {
 				title: "No internet",
 				message:
 					"Publishing, synchronizing, changing branches, and other operations with Git storage require internet. Reconnect and try again.",
 			},
-			"source-api": {
+			http: {
 				title: "Error when requesting Git storage",
+				message: "An unexpected error occurred when requesting the Git repository",
 			},
-			http: "HTTP Error: {{status}}",
 		},
 		"merge-requests": {
 			"branch-tab-tooltip": "This branch has a merge request",
@@ -1021,6 +1111,10 @@ Add storage to confirm the link.`,
 		},
 	},
 	editor: {
+		ai: {
+			improve: "Improve writing",
+			generate: "Generate",
+		},
 		italic: "Italic",
 		bold: "Bold",
 		stroke: "Strikethrough",
@@ -1188,6 +1282,7 @@ Add storage to confirm the link.`,
 	collapse: "Collapse",
 	command: "Command",
 	comment: "Comment",
+	"comment-on": "Comment",
 	company: "Internal documentation",
 	configure: "Edit",
 	confirm: "Confirm",
@@ -1239,7 +1334,7 @@ Add storage to confirm the link.`,
 	loading2: "Loading...",
 	loading: "Loading...",
 	loadWait: "Waiting for download",
-	local: "Locally",
+	local: "Local branch",
 	mail: "Email",
 	more: "More",
 	name: "Name",
@@ -1519,6 +1614,7 @@ Add storage to confirm the link.`,
 		name: "Properties",
 		all: "All",
 		empty: "(empty)",
+		"delete-property-confirm": "Are you sure you want to delete this property? It will be removed from all articles.",
 		"select-all": "(select all)",
 		"validation-errors": {
 			"all-parameters-added": "All parameters added",
@@ -1565,6 +1661,9 @@ Add storage to confirm the link.`,
 			Enum: "One from the list",
 			Many: "Several from the list",
 			Text: "Text",
+			Array: "Array",
+			BlockMd: "Block of text",
+			InlineMd: "Inline Markdown",
 		},
 		selected: "Selected",
 		"not-selected": "Not selected",
@@ -1589,8 +1688,11 @@ Add storage to confirm the link.`,
 			title: "Note title",
 			content: "Note content",
 		},
+		notes: "Notes",
 		"new-note": "New note",
 		"no-catalog-notes": "No notes in the current catalog",
+		"search-placeholder": "Search author...",
+		"no-user-with-this-name": "Author not found",
 	},
 	template: {
 		name: "Templates",
@@ -1613,7 +1715,33 @@ Add storage to confirm the link.`,
 	yes: "Yes",
 	no: "No",
 	placeholder: "Placeholder",
-	reformat: "Reformat",
+	snippets: "Snippets",
+	"new-snippet": "New snippet",
+	"no-snippets": "No snippets in the current catalog",
+	"snippet-no-usages": "Snippet is not used in any articles",
+	ai: {
+		"ai-prompts": "AI Prompts",
+		"ask-ai": "Ask AI anything",
+		generating: "Generating...",
+		placeholder: {
+			prettify: "What to do with the selected text ✨",
+			generate: "Write something beautiful ✨",
+		},
+		warning: {
+			"generate-many-selection": "You can only work with the selected text through the popup editor",
+		},
+		prompt: {
+			placeholder: {
+				title: "Prompt title",
+				content: "Prompt content",
+			},
+			"new-prompt": "New prompt",
+			"no-prompts": "No prompts in the current catalog",
+		},
+	},
+	"mark-as-read": "Mark as read",
+	"mark-as-read-popover": "Great, you can move on to the next article!",
+	"already-read": "Read",
 };
 
 export default locale;

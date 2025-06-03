@@ -19,6 +19,7 @@ import {
 import { Instance, Props } from "tippy.js";
 
 export interface PopupMenuLayoutProps {
+	isOpen?: boolean;
 	children: ReactElement<any> | ReactElement<any>[];
 	trigger?: JSX.Element | JSX.Element[];
 	openTrigger?: string;
@@ -115,13 +116,14 @@ const PopupMenuLayout = forwardRef((props: PopupMenuLayoutProps, ref: RefObject<
 		disabled,
 		openTrigger = "click",
 		hideOnClick = true,
+		isOpen: isOpenProp,
 		buttonClassName,
 	} = props;
 
 	const currentRef = ref || useRef<Element>();
 	const exists = useElementExistence(currentRef);
 
-	const [isOpen, setIsOpen] = useState(false);
+	const [isOpen, setIsOpen] = useState(isOpenProp);
 
 	const IconElement = trigger ?? <ButtonLink iconCode="ellipsis" />;
 
@@ -141,6 +143,10 @@ const PopupMenuLayout = forwardRef((props: PopupMenuLayoutProps, ref: RefObject<
 	useEffect(() => {
 		if (isOpen) setIsOpen(exists);
 	}, [exists]);
+
+	useEffect(() => {
+		setIsOpen(isOpenProp);
+	}, [isOpenProp]);
 
 	const element = PopupMenuElementUnstyled({ isInline, tooltipText, IconElement, className: buttonClassName });
 

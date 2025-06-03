@@ -1,18 +1,14 @@
-import { ClientItemRef } from "@core/SitePresenter/SitePresenter";
-import { Property } from "@ext/properties/models";
+import { Property, PropertyTypes } from "@ext/properties/models";
 
 export type TemplateProperties = Property[];
 
-export type TemplateID = string;
+export type PropertyChild = Array<PropertyTypes>;
 
-export type TemplateProps = {
-	id: TemplateID;
-	title: string;
-	logicPath: string;
-	ref: ClientItemRef;
+export type TemplateCustomProperty = Property & {
+	child?: PropertyChild;
 };
 
-export type TemplateItemProps = {
-	id: TemplateID;
-	title: string;
+export type TemplateField = {
+	name: string;
+	value: string;
 };

@@ -76,6 +76,7 @@ export default class Navigation implements HasEvents<NavigationEvents> {
 			description: catalog.props[navProps.description] ?? null,
 			order: catalog.props[navProps.order] ?? 999999,
 			isCloning: catalog.props?.isCloning ?? false,
+			cloneCancelDisabled: catalog.props?.cloneCancelDisabled ?? false,
 			redirectOnClone: catalog.props?.redirectOnClone ?? null,
 		};
 

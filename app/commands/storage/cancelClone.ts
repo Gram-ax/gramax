@@ -12,7 +12,7 @@ const cancelClone: Command<{ path: Path }, void> = Command.create({
 		const workspace = await this._app.wm.currentOrDefault();
 		const { rp } = this._app;
 		const fs = workspace.getFileStructure();
-		await rp.cancelClone(path, fs);
+		await rp.cancelClone(fs, path);
 	},
 
 	params(_, q) {

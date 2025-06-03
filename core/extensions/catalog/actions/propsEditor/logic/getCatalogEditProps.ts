@@ -3,16 +3,16 @@ import CatalogEditProps from "../model/CatalogEditProps.schema";
 
 const getCatalogEditProps = (props: ClientCatalogProps): CatalogEditProps => {
 	return {
-		url: props.name,
-		code: props.link?.code,
-		docroot: props.docroot,
 		title: props.title,
-		description: props.link?.description,
-		style: props.link?.style,
+		url: props.name,
+		docroot: props.docroot,
 		group: props.link?.group,
 		properties: props.properties,
 		language: props.language,
 		versions: props.versions,
+		description: props.link?.description,
+		style: props.link?.style,
+		code: props.link?.code,
 	};
 };
 

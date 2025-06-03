@@ -34,6 +34,12 @@ initialize(
 		http.get("/api/comments/getCommentsByAuthors", () => {
 			return HttpResponse.json(`{}`, { status: 200 });
 		}),
+		http.get("/api/catalog/logo/exist", () => {
+			return HttpResponse.json(`{"isExist":false}`, { status: 200 });
+		}),
+		http.get("/api/catalog/logo", () => {
+			return HttpResponse.json(`{}`, { status: 200 });
+		}),
 	],
 );
 

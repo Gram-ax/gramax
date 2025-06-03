@@ -12,4 +12,6 @@ export interface AuthProvider {
 		cookie: Cookie,
 		setUser: (cookie: Cookie, user: User) => Promise<void>,
 	): Promise<void> | void;
+	mailLoginOTP(req: ApiRequest, res: ApiResponse): Promise<void> | void;
+	mailSendOTP(req: ApiRequest, res: ApiResponse): Promise<void> | void;
 }

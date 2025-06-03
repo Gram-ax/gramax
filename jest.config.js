@@ -20,6 +20,7 @@ module.exports = {
 	],
 	reporters: ["default", ["jest-junit", { suiteName: "jest tests" }]],
 	moduleNameMapper: {
+		"^ics-ui-kit/(.*)$": "<rootDir>/node_modules/ics-ui-kit/dist/$1",
 		"react-dnd": "<rootDir>/app/test/__mocks__/react-dnd.js",
 		"^lowlight$": "<rootDir>/app/test/__mocks__/lowlight.js",
 		"^hast-util-to-jsx-runtime$": "<rootDir>/app/test/__mocks__/lowlight.js",
@@ -28,17 +29,13 @@ module.exports = {
 		"^lodash-es(/(.*)|$)": "lodash$1",
 		"^nanoid(/(.*)|$)": "nanoid$1",
 		"^@components/(.*)$": "<rootDir>/core/components/$1",
+		"^@ui-kit/(.*)$": "<rootDir>/core/ui-kit/components/$1",
 		"^@core/(.*)$": "<rootDir>/core/logic/$1",
 		"^@core-ui/(.*)$": "<rootDir>/core/ui-logic/$1",
 		"^@ext/(.*)$": "<rootDir>/core/extensions/$1",
 		"^@app/(.*)$": "<rootDir>/app/$1",
 		"^@services/(.*)$": "<rootDir>/services/core/$1",
 	},
-	transformIgnorePatterns: [
-		"<rootDir>/.next",
-		"<rootDir>/public",
-		"<rootDir>/docs",
-		"<rootDir>/application",
-	],
+	transformIgnorePatterns: ["<rootDir>/.next", "<rootDir>/public", "<rootDir>/docs", "<rootDir>/application"],
 	coveragePathIgnorePatterns: ["/node_modules/", "(.test)\\.(ts|tsx|js)$", "/distribution/.*\\.(ts|js)$"],
 };

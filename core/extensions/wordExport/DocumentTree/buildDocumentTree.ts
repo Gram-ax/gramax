@@ -31,20 +31,37 @@ const buildDocumentTree = async (
 	number: string = "",
 ) => {
 	const filter = new MarkdownElementsFilter(exportedKeys);
-
-	if (!isCatalog) await parseContent(item as Article, catalog, ctx, parser, parserContextFactory);
-
-	const heading: DocumentTree = await (item as Article).parsedContent.read(async (p) => ({
+	const heading: DocumentTree = {
 		name: isCatalog ? catalog.props.title : item.getTitle() || catalog.name,
-		content: !isCatalog ? filter.getSupportedTree(p?.renderTree) : "",
-		resourceManager: !isCatalog ? p?.resourceManager : undefined,
 		level: level,
 		number: number,
-		parserContext: !isCatalog
-			? await parserContextFactory.fromArticle(item as Article, catalog, resolveLanguage(), true)
-			: null,
 		children: [],
-	}));
+		content: "",
+		resourceManager: undefined,
+		parserContext: null,
+	};
+
+	if (!isCatalog) {
+		try {
+			await parseContent(item as Article, catalog, ctx, parser, parserContextFactory);
+			const parsedData = await (item as Article).parsedContent.read(async (p) => ({
+				content: filter.getSupportedTree(p?.renderTree),
+				resourceManager: p?.resourceManager,
+				parserContext: await parserContextFactory.fromArticle(
+					item as Article,
+					catalog,
+					resolveLanguage(),
+					true,
+				),
+			}));
+
+			heading.content = parsedData.content;
+			heading.resourceManager = parsedData.resourceManager;
+			heading.parserContext = parsedData.parserContext;
+		} catch (error) {
+			console.error(error);
+		}
+	}
 
 	const fileName = item.getFileName();
 	if (fileName) {

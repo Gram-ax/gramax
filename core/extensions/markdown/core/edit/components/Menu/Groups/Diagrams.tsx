@@ -9,10 +9,29 @@ import ModalLayoutDark from "@components/Layouts/ModalLayoutDark";
 import DiagramsMenuButton from "@ext/markdown/elements/diagrams/edit/components/DiagramsMenuButton";
 import DrawioMenuButton from "@ext/markdown/elements/drawio/edit/components/DrawioMenuButton";
 import OpenApiMenuButton from "@ext/markdown/elements/openApi/edit/components/OpenApiMenuButton";
+import CatalogPropsService from "@core-ui/ContextServices/CatalogProps";
+import getFormatterType from "@ext/markdown/core/edit/logic/Formatter/Formatters/typeFormats/getFormatterType";
 
-const DiagramsMenuGroup = ({ editor }: { editor?: Editor }) => {
+interface DiagramsMenuGroupProps {
+	editor?: Editor;
+	fileName?: string;
+}
+
+const DiagramsMenuGroup = ({ editor, fileName }: DiagramsMenuGroupProps) => {
 	const drawIo = ButtonStateService.useCurrentAction({ action: "drawio" });
 	const diagrams = ButtonStateService.useCurrentAction({ action: "diagrams" });
+
+	const syntax = CatalogPropsService.value.syntax;
+	const formatterSupportedElements = getFormatterType(syntax).supportedElements;
+
+	const isDrawioSupported = formatterSupportedElements.includes("drawio");
+	const isMermaidSupported = formatterSupportedElements.includes("mermaid");
+	const isPlantUmlSupported = formatterSupportedElements.includes("plant-uml");
+	const isOpenApiSupported = formatterSupportedElements.includes("openApi");
+
+	if (!isDrawioSupported && !isMermaidSupported && !isPlantUmlSupported && !isOpenApiSupported) {
+		return null;
+	}
 
 	const isActive = drawIo.isActive || diagrams.isActive;
 	const disabled = drawIo.disabled && diagrams.disabled;
@@ -26,13 +45,22 @@ const DiagramsMenuGroup = ({ editor }: { editor?: Editor }) => {
 			content={
 				<ModalLayoutDark>
 					<ButtonsLayout>
-						<DrawioMenuButton editor={editor} />
-						{/* <DiagramsMenuButton editor={editor} diagramName={DiagramType["ts-diagram"]} /> */}
-						{/* <DiagramsMenuButton editor={editor} diagramName={DiagramType["c4-diagram"]} /> */}
-						<DiagramsMenuButton editor={editor} diagramName={DiagramType["mermaid"]} />
-						{/* <MermaidMenuButton editor={editor} /> */}
-						<DiagramsMenuButton editor={editor} diagramName={DiagramType["plant-uml"]} />
-						<OpenApiMenuButton editor={editor} />
+						{isDrawioSupported && <DrawioMenuButton editor={editor} fileName={fileName} />}
+						{isMermaidSupported && (
+							<DiagramsMenuButton
+								editor={editor}
+								diagramName={DiagramType["mermaid"]}
+								fileName={fileName}
+							/>
+						)}
+						{isPlantUmlSupported && (
+							<DiagramsMenuButton
+								editor={editor}
+								diagramName={DiagramType["plant-uml"]}
+								fileName={fileName}
+							/>
+						)}
+						{isOpenApiSupported && <OpenApiMenuButton editor={editor} />}
 					</ButtonsLayout>
 				</ModalLayoutDark>
 			}

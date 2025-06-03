@@ -1,21 +1,19 @@
+import Icon from "@components/Atoms/Icon";
 import Modal from "@components/Layouts/Modal";
 import ModalLayoutLight from "@components/Layouts/ModalLayoutLight";
 import InfoModalForm from "@ext/errorHandlers/client/components/ErrorForm";
 import t from "@ext/localization/locale/translate";
-import SnippetViewUses from "@ext/markdown/elements/snippet/edit/components/SnippetViewUses";
+import SnippetUsages from "@ext/markdown/elements/snippet/edit/components/Tab/SnippetUsages";
 import { useState } from "react";
 
-const SnippetAlreadyUseWarn = ({
-	articles,
-	onDelete,
-	onClose,
-	onOpen,
-}: {
-	articles: { pathname: string; title: string }[];
+export interface SnippetAlreadyUseWarnProps {
+	snippetId: string;
 	onDelete: () => Promise<void> | void;
-	onOpen?: () => Promise<void> | void;
 	onClose?: () => Promise<void> | void;
-}) => {
+	onOpen?: () => Promise<void> | void;
+}
+
+const SnippetAlreadyUseWarn = ({ snippetId, onDelete, onClose, onOpen }: SnippetAlreadyUseWarnProps) => {
 	const [isOpen, setIsOpen] = useState(true);
 	return (
 		<Modal
@@ -42,9 +40,17 @@ const SnippetAlreadyUseWarn = ({
 				>
 					<div className="article">
 						<p>{t("delete-snippet-desc")}.</p>
-						<p>
-							<SnippetViewUses articles={articles} onLinkClick={() => setIsOpen(false)} />
-						</p>
+						<SnippetUsages
+							offset={[10, 0]}
+							placement="bottom"
+							snippetId={snippetId}
+							trigger={
+								<a style={{ display: "flex", alignItems: "center" }}>
+									<span>{t("view-usage")}</span>
+									<Icon code="chevron-down" />
+								</a>
+							}
+						/>
 						<p>{t("delete-snippet-warn")}.</p>
 						<p>{t("continue-confirm")}</p>
 					</div>

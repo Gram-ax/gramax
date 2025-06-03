@@ -23,6 +23,11 @@ const getPageDataContext = async ({
 	const workspaceConfig = await workspace?.config();
 	const isStatic = getExecutingEnvironment() === "static";
 
+	const enterpriseConfig = app.em.getConfig();
+	const isGramaxAiEnabled = Boolean(
+		conf.portalAi.enabled || app.adp.getEditorAiData(ctx, workspace?.path() ?? "").apiUrl,
+	);
+
 	return {
 		language: {
 			content: ctx.contentLanguage ?? null,
@@ -50,9 +55,10 @@ const getPageDataContext = async ({
 			authServiceUrl: workspaceConfig?.services?.auth?.url || conf.services.auth.url,
 			cloudServiceUrl: workspaceConfig?.services?.cloud?.url || conf.services.cloud.url,
 			diagramsServiceUrl: workspaceConfig?.services?.diagramRenderer?.url || conf.services.diagramRenderer.url,
-			enterprise: app.em.getConfig(),
+			enterprise: enterpriseConfig,
 			logo: app.conf.logo,
 			search: app.conf.search,
+			ai: { enabled: isGramaxAiEnabled },
 		},
 		userInfo: userInfo ?? ctx.user.info ?? null,
 		permissions: getClientPermissions(ctx.user),

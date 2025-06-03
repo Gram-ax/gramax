@@ -204,7 +204,7 @@ pub fn add(repo_path: &Path, patterns: Vec<PathBuf>, force: bool) -> Result<()> 
   Repo::execute_without_creds_lock(repo_path, |repo| {
     let add_result = if force { repo.add_glob_force(patterns) } else { repo.add_glob(patterns) };
     let Err(err) = add_result else { return Ok(()) };
-    warn!(target: "git:add", "failed to add: {}", err);
+    error!(target: "git:add", "failed to add: {}", err);
     Ok(())
   })
 }
@@ -344,6 +344,10 @@ pub fn get_all_commit_authors(repo_path: &Path) -> Result<Vec<CommitAuthorInfo>>
 
 pub fn gc(repo_path: &Path, opts: GcOptions) -> Result<()> {
   Repo::execute_without_creds_lock(repo_path, |repo| Ok(repo.gc(opts)?))
+}
+
+pub fn get_all_cancel_tokens() -> Result<Vec<usize>> {
+  Ok(Repo::<AccessTokenCreds>::get_all_cancel_tokens())
 }
 
 pub fn reset_repo() {

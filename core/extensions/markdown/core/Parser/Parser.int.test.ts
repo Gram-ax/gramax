@@ -16,6 +16,12 @@ jest.mock("next/router", () => ({
 describe("MarkdownParser", () => {
 	beforeAll(() => {
 		LanguageService.setUiLanguage(UiLanguage.ru);
+
+		global.ResizeObserver = jest.fn().mockImplementation(() => ({
+			observe: jest.fn(),
+			unobserve: jest.fn(),
+			disconnect: jest.fn(),
+		}));
 	});
 
 	describe("правильно преобразует компонент", () => {

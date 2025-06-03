@@ -23,21 +23,24 @@ const CatalogExistsError = ({ error, onCancelClick }: ComponentProps<typeof GetE
 
 	return (
 		<>
-			<InfoModalForm
-				onCancelClick={onCancelClick}
-				title={t("catalog.error.already-exist")}
-				actionButton={{
-					text: t("catalog.configure"),
-					onClick: () => setIsSettingsOpen(true),
-				}}
-				closeButton={{ text: t("close") }}
-				icon={{ code: "alert-circle", color: "var(--color-danger)" }}
-			>
-				{formatError()}
-			</InfoModalForm>
+			{!isSettingsOpen && (
+				<InfoModalForm
+					onCancelClick={onCancelClick}
+					title={t("catalog.error.already-exist")}
+					actionButton={{
+						text: t("catalog.configure"),
+						onClick: () => setIsSettingsOpen(true),
+					}}
+					closeButton={{ text: t("close") }}
+					icon={{ code: "alert-circle", color: "var(--color-danger)" }}
+				>
+					{formatError()}
+				</InfoModalForm>
+			)}
 			<CatalogPropsEditor
 				onClose={() => setIsSettingsOpen(false)}
 				onSubmit={onCancelClick}
+				modalContentProps={{ "data-upper-error": true }}
 				isOpen={isSettingsOpen}
 			/>
 		</>

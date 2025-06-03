@@ -9,7 +9,7 @@ import CommentFocusTooltip from "../logic/CommentFocusTooltip";
 declare module "@tiptap/core" {
 	interface Commands<ReturnType> {
 		comment: {
-			toggleComment: (attributes: { data: any }) => ReturnType;
+			toggleComment: (attributes: { preCount: string }) => ReturnType;
 			unsetComment: () => ReturnType;
 		};
 	}
@@ -29,7 +29,12 @@ const Comment = Mark.create({
 	},
 
 	addAttributes() {
-		return { comment: { default: null }, answers: { default: null }, count: { default: 0 } };
+		return {
+			comment: { default: null },
+			answers: { default: null },
+			count: { default: 0 },
+			preCount: { default: 0 },
+		};
 	},
 
 	parseHTML() {
@@ -98,7 +103,6 @@ const Comment = Mark.create({
 						editorView,
 						this.editor,
 						this.options.theme,
-						this.options.apiUrlCreator,
 						this.options.pageDataContext,
 					);
 				},

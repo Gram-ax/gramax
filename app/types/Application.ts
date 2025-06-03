@@ -8,6 +8,7 @@ import SitePresenterFactory from "@core/SitePresenter/SitePresenterFactory";
 import { TableDB } from "@core/components/tableDB/table";
 import VideoUrlRepository from "@core/components/video/videoUrlRepository";
 import ThemeManager from "@ext/Theme/ThemeManager";
+import { AiDataProvider } from "@ext/ai/logic/AiDataProvider";
 import EnterpriseManager from "@ext/enterprise/EnterpriseManager";
 import GitRepositoryProvider from "@ext/git/core/Repository/RepositoryProvider";
 import HtmlParser from "@ext/html/HtmlParser";
@@ -28,15 +29,16 @@ interface Application {
 	logger: Logger;
 	am: AuthManager;
 	tm: ThemeManager;
-	searcherManager: SearcherManager;
 	parser: MarkdownParser;
 	htmlParser: HtmlParser;
 	tablesManager: TableDB;
 	vur: VideoUrlRepository;
 	rp: GitRepositoryProvider;
+	adp: AiDataProvider;
 	formatter: MarkdownFormatter;
 	ticketManager: TicketManager;
 	contextFactory: ContextFactory;
+	searcherManager: SearcherManager;
 	indexDataProvider: IndexDataProvider;
 	parserContextFactory: ParserContextFactory;
 	sitePresenterFactory: SitePresenterFactory;
@@ -66,12 +68,18 @@ interface Application {
 
 		allowedOrigins?: string[];
 
+		portalAi: { enabled: boolean };
+
 		search: {
-			vector: { enabled: false } | {
-				enabled: true;
-				apiUrl: string;
-				collectionName: string;
-			}
+			elastic:
+				| { enabled: false }
+				| {
+						enabled: true;
+						apiUrl: string;
+						instanceName: string;
+						username: string;
+						password: string;
+				  };
 		};
 	};
 }

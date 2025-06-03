@@ -1,330 +1,354 @@
-import { NEW_CATALOG_NAME } from "@app/config/const";
-import Button from "@components/Atoms/Button/Button";
-import { ButtonStyle } from "@components/Atoms/Button/ButtonStyle";
-import SpinnerLoader from "@components/Atoms/SpinnerLoader";
-import Form from "@components/Form/Form";
-import LogsLayout from "@components/Layouts/LogsLayout";
-import ModalLayout from "@components/Layouts/Modal";
-import ModalLayoutLight from "@components/Layouts/ModalLayoutLight";
-import ListLayout from "@components/List/ListLayout";
-import MimeTypes from "@core-ui/ApiServices/Types/MimeTypes";
-import ArticlePropsService from "@core-ui/ContextServices/ArticleProps";
-import CatalogPropsService from "@core-ui/ContextServices/CatalogProps";
-import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
+import ReformattedSelect from "@components/Select/ReformattedSelect";
 import WorkspaceService from "@core-ui/ContextServices/Workspace";
-import CatalogLogoService from "@core-ui/ContextServices/CatalogLogoService/Context";
-import useWatch, { useWatchClient } from "@core-ui/hooks/useWatch";
-import { transliterate } from "@core-ui/languageConverter/transliterate";
-import openNewTab from "@core-ui/utils/openNewTab";
-import { useRouter } from "@core/Api/useRouter";
-import Path from "@core/FileProvider/Path/Path";
-import RouterPathProvider from "@core/RouterPath/RouterPathProvider";
-import type { ClientCatalogProps } from "@core/SitePresenter/SitePresenter";
-import { uniqueName } from "@core/utils/uniqueName";
+import useWatch from "@core-ui/hooks/useWatch";
 import validateEncodingSymbolsUrl from "@core/utils/validateEncodingSymbolsUrl";
-import getCatalogEditProps from "@ext/catalog/actions/propsEditor/logic/getCatalogEditProps";
-import getRepUrl from "@ext/git/core/GitPathnameHandler/clone/logic/getRepUrl";
-import GitShareData from "@ext/git/core/model/GitShareData";
+import { useCatalogPropsEditorActions } from "@ext/catalog/actions/propsEditor/logic/useCatalogPropsEditorActions";
+import { useOpenExternalGitSourceButton } from "@ext/catalog/actions/propsEditor/logic/useOpenExternalGitSourceButton";
 import t from "@ext/localization/locale/translate";
-import getPartGitSourceDataByStorageName from "@ext/storage/logic/utils/getPartSourceDataByStorageName";
-import Theme from "@ext/Theme/Theme";
-import { FormRowItem } from "@ext/workspace/components/EditCustomTheme";
-import LogoUploader from "@ext/workspace/components/LogoUploader";
-import { JSONSchema7 } from "json-schema";
-import { useState } from "react";
-import FetchService from "../../../../../ui-logic/ApiServices/FetchService";
-import ApiUrlCreatorService from "../../../../../ui-logic/ContextServices/ApiUrlCreator";
-import CatalogEditProps from "../model/CatalogEditProps.schema";
+import UploadArticleIcon from "@ext/markdown/elements/icon/edit/components/UploadArticleIcon";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Button } from "@ui-kit/Button";
+import { Divider } from "@ui-kit/Divider";
+import { Form, FormField, FormSectionTitle } from "@ui-kit/Form";
+import { Input } from "@ui-kit/Input";
+import { Modal, ModalBody, ModalContent, ModalTrigger } from "@ui-kit/Modal";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@ui-kit/Select";
+import { useCallback, useMemo } from "react";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
 import Schema from "../model/CatalogEditProps.schema.json";
+import Footer from "./ModalFooter";
+import Header from "./ModalHeader";
+import UploadCatalogLogo from "./UploadCatalogLogo";
 import CatalogExtendedPropsEditor from "@ext/catalog/actions/propsEditor/components/CatalogExtendedPropsEditor";
-import getIsDevMode from "@core-ui/utils/getIsDevMode";
 
-const CatalogPropsEditor = ({
-	trigger,
-	onSubmit: onSubmitParent,
-	...props
-}: {
+interface CatalogSettingsModalProps {
 	isOpen?: boolean;
+	modalContentProps?: object;
 	onSubmit?: (editProps: any) => void;
 	onClose?: () => void;
 	trigger?: JSX.Element;
-}) => {
-	const maxLength = t("max-length");
-	const suchCatalogExists = t("catalog.error.already-exist");
-	const noEncodingSymbolsInUrl = t("no-encoding-symbols-in-url");
+	startUpdatingProps?: () => void;
+}
 
-	const [isDevMode] = useState(() => getIsDevMode());
+export type FormProps = Record<string, string>;
 
+const useFormSelectValues = () => {
 	const workspace = WorkspaceService.current();
-	const apiUrlCreator = ApiUrlCreatorService.value;
-	const [isOpen, setIsOpen] = useState(props.isOpen);
-	const [allCatalogNames, setAllCatalogNames] = useState<string[]>([]);
-	const { confirmChanges: confirmCatalogLogoChanges } = CatalogLogoService.value();
-	useWatch(() => setIsOpen(props.isOpen), [props.isOpen]);
 
-	const router = useRouter();
-	const articleProps = ArticlePropsService.value;
-	const catalogProps = CatalogPropsService.value;
-	const [generatedUrl, setGeneratedUrl] = useState<string>();
-	const [editProps, setEditProps] = useState(getCatalogEditProps(catalogProps));
-	const [saveProcess, setSaveProcess] = useState(false);
-
-	useWatch(() => setEditProps(getCatalogEditProps(catalogProps)), [catalogProps]);
-
-	const gesUrl = PageDataContextService.value.conf.enterprise.gesUrl;
-	const { sourceType } = getPartGitSourceDataByStorageName(catalogProps.sourceName);
-
-	const onSubmit = async (props: CatalogEditProps) => {
-		setSaveProcess(true);
-		setGeneratedUrl(undefined);
-		const result = await FetchService.fetch<ClientCatalogProps>(
-			apiUrlCreator.updateCatalogProps(),
-			JSON.stringify(props),
-			MimeTypes.json,
-		);
-		if (!result.ok) return;
-		const newCatalogProps = await result.json();
-		setSaveProcess(false);
-		CatalogPropsService.value = newCatalogProps;
-
-		const basePathName = new Path(newCatalogProps.link.pathname);
-		const { filePath } = RouterPathProvider.parseItemLogicPath(new Path(articleProps.logicPath));
-		const isNewPath = RouterPathProvider.isEditorPathname(new Path(router.path).removeExtraSymbols);
-
-		router.pushPath(
-			isNewPath
-				? RouterPathProvider.updatePathnameData(basePathName, { filePath }).value
-				: Path.join(basePathName.value, ...filePath),
-		);
-
-		onSubmitParent?.(props);
-		setEditProps(getCatalogEditProps(newCatalogProps));
-
-		await confirmCatalogLogoChanges();
-	};
-
-	const onChange = (props: CatalogEditProps) => {
-		if (sourceType) return;
-		if (props.url !== editProps.url) setGeneratedUrl(undefined);
-		else if (
-			(generatedUrl && props.title) ||
-			(props.title && props.title !== editProps.title && props.url.startsWith(NEW_CATALOG_NAME))
-		) {
-			const newGeneratedUrl = uniqueName(
-				transliterate(props.title, { kebab: true, maxLength: 50 }),
-				allCatalogNames,
-			);
-			setGeneratedUrl(newGeneratedUrl);
-			props.url = newGeneratedUrl;
-		}
-		setEditProps({ ...props });
-	};
-
-	const submit = (props: CatalogEditProps) => {
-		if (onSubmit) void onSubmit(props);
-		setIsOpen(false);
-	};
-
-	const loadAllCatalogNames = async () => {
-		const res = await FetchService.fetch(apiUrlCreator.getCatalogBrotherFileNames());
-		if (!res.ok) return;
-		setAllCatalogNames(await res.json());
-	};
-
-	const validateUrl = (
-		allCatalogNames: string[],
-		url: string,
-		suchCatalogExists: string,
-		noEncodingSymbolsInUrl: string,
-	): string => {
-		if (allCatalogNames.includes(url)) return suchCatalogExists;
-		if (!validateEncodingSymbolsUrl(url)) return noEncodingSymbolsInUrl;
-		return null;
-	};
-
-	return (
-		<>
-			<ModalLayout isOpen={saveProcess}>
-				<LogsLayout style={{ overflow: "hidden" }}>
-					<SpinnerLoader fullScreen />
-				</LogsLayout>
-			</ModalLayout>
-			<ModalLayout
-				trigger={trigger}
-				isOpen={isOpen}
-				closeOnCmdEnter={false}
-				onOpen={() => {
-					loadAllCatalogNames();
-					setIsOpen(true);
-				}}
-				onClose={() => {
-					setIsOpen(false);
-					setEditProps(getCatalogEditProps(catalogProps));
-					props.onClose?.();
-				}}
-			>
-				<ModalLayoutLight>
-					<Form<CatalogEditProps>
-						fieldDirection="row"
-						leftButton={
-							<>
-								{!!sourceType && !gesUrl && (
-									<Button
-										style={{ margin: 0 }}
-										buttonStyle={ButtonStyle.underline}
-										onClick={() => {
-											const pathnameData = RouterPathProvider.parsePath(
-												new Path(catalogProps.link.pathname),
-											);
-											const gitShareData: GitShareData = {
-												sourceType: getPartGitSourceDataByStorageName(pathnameData.sourceName)
-													.sourceType,
-												domain: pathnameData.sourceName,
-												group: pathnameData.group,
-												branch: pathnameData.refname,
-												name: pathnameData.repo,
-												isPublic: false,
-												filePath: [],
-											};
-											openNewTab(getRepUrl(gitShareData).href);
-										}}
-									>
-										{t("open-in.generic") + " " + sourceType}
-									</Button>
-								)}
-								{/* {isDevMode && (
-									<CatalogExtendedPropsEditor>
-										<Button buttonStyle={ButtonStyle.underline}>
-											<span>{t("forms.catalog-edit-props.extended.name")}</span>
-										</Button>
-									</CatalogExtendedPropsEditor>
-								)} */}
-							</>
-						}
-						schema={Schema as JSONSchema7}
-						props={editProps}
-						validateDeps={[allCatalogNames]}
-						validate={({ url, description, code }) => {
-							return {
-								url: validateUrl(allCatalogNames, url, suchCatalogExists, noEncodingSymbolsInUrl),
-								description: description?.length > 50 ? maxLength + 50 : null,
-								code: code?.length > 4 ? maxLength + 4 : null,
-							};
-						}}
-						onChange={onChange}
-						onSubmit={submit}
-						onMount={(_, schema) => {
-							schema.properties = {
-								title: Schema.properties.title,
-								url: Schema.properties.url,
-								docroot: Schema.properties.docroot,
-								language: Schema.properties.language,
-								versions: Schema.properties.versions,
-								_h2: t("display-on-homepage"),
-								description: Schema.properties.description,
-								style: Schema.properties.style,
-								code: Schema.properties.code,
-							} as any;
-							(schema.properties.versions as any).readOnly = !!sourceType;
-							(schema.properties.language as any).readOnly = !!catalogProps.language;
-							(schema.properties.url as any).readOnly = !!sourceType;
-						}}
-					>
-						<>
-							{workspace?.groups && (
-								<div className="form-group">
-									<div className="field field-string row">
-										<label className="control-label">
-											{t("forms.catalog-edit-props.props.group.name")}
-										</label>
-										<div className="input-lable">
-											<ListLayout
-												items={Object.entries(workspace.groups).map(([key, group]) => ({
-													labelField: key,
-													element: group.title,
-												}))}
-												item={{
-													labelField: editProps.group ?? "",
-													element: workspace.groups[editProps.group]?.title ?? "",
-												}}
-												placeholder={t("forms.catalog-edit-props.props.group.placeholder")}
-												onCancelClick={() => setEditProps({ ...editProps, group: "" })}
-												onItemClick={(_, __, idx) =>
-													setEditProps({
-														...editProps,
-														group: Object.entries(workspace.groups)[idx][0],
-													})
-												}
-											/>
-										</div>
-									</div>
-									<div className="input-lable-description">
-										<div />
-										<div className="article">
-											{t("forms.catalog-edit-props.props.group.description")}
-										</div>
-									</div>
-								</div>
-							)}
-
-							{isOpen && <CatalogLogo />}
-						</>
-					</Form>
-				</ModalLayoutLight>
-			</ModalLayout>
-		</>
+	const languages = useMemo<{ value: string; children: string }[]>(
+		() =>
+			Schema.properties.language.enum.map((shortLang) => {
+				return { value: shortLang, children: t(`${Schema.properties.language.see}.${shortLang}` as any) };
+			}),
+		[],
 	);
+
+	const cardColors = useMemo(
+		() =>
+			Schema.properties.style.enum.map((color) => {
+				return t(`${Schema.properties.style.see}.${color}` as any);
+			}),
+		[],
+	);
+
+	const workspaceGroups = useMemo(
+		() =>
+			Object.entries(workspace?.groups || {}).map(([key, group]) => ({
+				value: key,
+				children: group.title,
+			})),
+		[workspace?.groups],
+	);
+
+	return { workspaceGroups, cardColors, languages };
 };
 
-function CatalogLogo() {
-	const {
-		deleteLightLogo,
-		deleteDarkLogo,
-		isLoadingDark,
-		isLoadingLight,
-		lightLogo,
-		darkLogo,
-		updateLightLogo,
-		updateDarkLogo,
-		refreshState,
-	} = CatalogLogoService.value();
+const CatalogPropsEditor = (props: CatalogSettingsModalProps) => {
+	const { trigger, modalContentProps, onSubmit: onSubmitParent, onClose, isOpen, startUpdatingProps } = props;
 
-	useWatchClient(() => {
-		void refreshState();
+	const hookProps = useCatalogPropsEditorActions();
+	const { onMouseTriggerEnter, allCatalogNames, originalProps, onSubmit, open, setOpen } = hookProps;
+
+	const internalSetIsOpen = useCallback(
+		(value: boolean) => {
+			setOpen(value);
+			if (!value) onClose?.();
+		},
+		[onClose],
+	);
+
+	useWatch(() => {
+		if (typeof isOpen === "boolean") internalSetIsOpen(isOpen);
+	}, [isOpen]);
+
+	const { workspaceGroups, cardColors, languages } = useFormSelectValues();
+
+	const { gitlabButtonProps } = useOpenExternalGitSourceButton(useCallback(() => internalSetIsOpen(false), []));
+
+	const suchCatalogExists = t("catalog.error.already-exist");
+	const noEncodingSymbolsInUrl = t("no-encoding-symbols-in-url");
+	const maxLetterLength = t("max-length");
+	const requiredParam = t("required-parameter");
+
+	const formSchema = z.object({
+		title: z
+			.string()
+			.min(1, {
+				message: requiredParam,
+			})
+			.refine((value) => !allCatalogNames.includes(value), {
+				message: suchCatalogExists,
+			}),
+		url: z
+			.string()
+			.min(1, {
+				message: requiredParam,
+			})
+			.refine((value) => validateEncodingSymbolsUrl(value), {
+				message: noEncodingSymbolsInUrl,
+			}),
+		docroot: z.optional(z.string().nullable()),
+		language: z.optional(z.string().nullable()),
+		versions: z.optional(z.array(z.string()).nullable()),
+		description: z.optional(
+			z
+				.string()
+				.max(50, {
+					message: maxLetterLength + "50",
+				})
+				.nullable(),
+		),
+		style: z.optional(z.string().nullable()),
+		code: z.optional(
+			z
+				.string()
+				.max(4, {
+					message: maxLetterLength + "4",
+				})
+				.nullable(),
+		),
+		group: z.optional(z.string().nullable()),
+	});
+
+	const form = useForm<z.infer<typeof formSchema>>({
+		resolver: zodResolver(formSchema),
+		defaultValues: Object.assign({}, originalProps) as any,
+	});
+
+	const formProps: FormProps = useMemo(() => {
+		return {
+			labelClassName: "w-44",
+		};
 	}, []);
 
-	return (
-		<>
-			<FormRowItem
-				className={"assets_row_item inverseMargin"}
-				label={t("workspace.logo")}
-				description={t("workspace.default-logo-description")}
-			>
-				<div className={"change_logo_actions"}>
-					<LogoUploader
-						deleteResource={deleteLightLogo}
-						updateResource={updateLightLogo}
-						logo={lightLogo}
-						isLoading={isLoadingLight}
-						imageTheme={Theme.light}
-					/>
-				</div>
-			</FormRowItem>
+	const formSubmit = (e) => {
+		startUpdatingProps?.();
+		form.handleSubmit(onSubmit)(e);
+		onSubmitParent?.(originalProps);
+	};
 
-			<FormRowItem className={"assets_row_item"} description={t("workspace.dark-logo-description")}>
-				<div className={"secondary_logo_action"}>
-					<span className={"control-label"}>{t("workspace.for-dark-theme")}</span>
-					<LogoUploader
-						deleteResource={deleteDarkLogo}
-						updateResource={updateDarkLogo}
-						logo={darkLogo}
-						isLoading={isLoadingDark}
-						imageTheme={Theme.dark}
-					/>
-				</div>
-			</FormRowItem>
-		</>
+	return (
+		<Modal open={open} onOpenChange={internalSetIsOpen}>
+			{trigger && (
+				<ModalTrigger asChild onMouseEnter={onMouseTriggerEnter}>
+					{trigger}
+				</ModalTrigger>
+			)}
+			<ModalContent data-modal-root {...modalContentProps}>
+				<Form {...form}>
+					<form className="contents" onSubmit={formSubmit}>
+						<Header
+							title={t("forms.catalog-edit-props.name")}
+							description={t("forms.catalog-edit-props.description")}
+						/>
+						<ModalBody className="space-y-4">
+							<FormField
+								name="title"
+								title={t("forms.catalog-edit-props.props.title.name")}
+								description={t("forms.catalog-edit-props.props.title.description")}
+								required
+								control={({ field }) => (
+									<Input
+										data-qa={t("forms.catalog-edit-props.props.title.name")}
+										placeholder={t("forms.catalog-edit-props.props.title.placeholder")}
+										{...field}
+									/>
+								)}
+								{...formProps}
+							/>
+							<FormField
+								name="url"
+								title={t("forms.catalog-edit-props.props.url.name")}
+								description={t("forms.catalog-edit-props.props.url.description")}
+								control={({ field }) => (
+									<Input
+										data-qa={t("forms.catalog-edit-props.props.url.name")}
+										placeholder={t("forms.catalog-edit-props.props.url.placeholder")}
+										{...field}
+									/>
+								)}
+								{...formProps}
+							/>
+							<FormField
+								name="docroot"
+								title={t("forms.catalog-edit-props.props.docroot.name")}
+								description={t("forms.catalog-edit-props.props.docroot.description")}
+								control={({ field }) => (
+									<Input
+										data-qa={t("forms.catalog-edit-props.props.docroot.name")}
+										placeholder={t("forms.catalog-edit-props.props.docroot.placeholder")}
+										{...field}
+									/>
+								)}
+								{...formProps}
+							/>
+							<FormField
+								name="language"
+								title={t("forms.catalog-edit-props.props.language.name")}
+								description={t("forms.catalog-edit-props.props.language.description")}
+								control={({ field }) => (
+									<Select
+										onValueChange={field.onChange}
+										disabled={Boolean(originalProps.language)}
+										defaultValue={field.value || undefined}
+									>
+										<SelectTrigger data-qa={t("forms.catalog-edit-props.props.language.name")}>
+											<SelectValue
+												placeholder={t("forms.catalog-edit-props.props.language.placeholder")}
+											/>
+										</SelectTrigger>
+										<SelectContent>
+											{languages.map(({ value, children }) => (
+												<SelectItem
+													data-qa={"qa-clickable"}
+													key={value}
+													children={children}
+													value={value}
+												/>
+											))}
+										</SelectContent>
+									</Select>
+								)}
+								{...formProps}
+							/>
+							<FormField
+								name="versions"
+								title={t("forms.catalog-edit-props.props.versions.name")}
+								description={t("forms.catalog-edit-props.props.versions.description")}
+								control={({ field }) => (
+									<ReformattedSelect
+										create
+										placeholder={t("forms.catalog-edit-props.props.versions.placeholder")}
+										dataQa={t("forms.catalog-edit-props.props.versions.name")}
+										onChange={(values) => {
+											const versions = values.map((value) => value.value);
+											form.setValue("versions", versions);
+											field.value = versions;
+										}}
+										options={[]}
+										values={field.value?.map((value) => ({ value, label: value }))}
+									/>
+								)}
+								{...formProps}
+							/>
+							<Divider />
+							<FormSectionTitle children={t("forms.catalog-edit-props.section.display")} />
+							<FormField
+								name="description"
+								title={t("forms.catalog-edit-props.props.description.name")}
+								control={({ field }) => (
+									<Input
+										data-qa={t("forms.catalog-edit-props.props.description.name")}
+										placeholder={t("forms.catalog-edit-props.props.description.placeholder")}
+										{...field}
+									/>
+								)}
+								{...formProps}
+							/>
+							<FormField
+								name="style"
+								title={t("forms.catalog-edit-props.props.style.name")}
+								control={({ field }) => (
+									<Select onValueChange={field.onChange} defaultValue={field.value || undefined}>
+										<SelectTrigger>
+											<SelectValue
+												placeholder={t("forms.catalog-edit-props.props.style.placeholder")}
+											/>
+										</SelectTrigger>
+										<SelectContent>
+											{cardColors.map((color, index) => (
+												<SelectItem
+													children={color}
+													key={color}
+													value={Schema.properties.style.enum[index]}
+												/>
+											))}
+										</SelectContent>
+									</Select>
+								)}
+								{...formProps}
+							/>
+							<FormField
+								name="code"
+								title={t("forms.catalog-edit-props.props.code.name")}
+								control={({ field }) => (
+									<Input
+										data-qa={t("forms.catalog-edit-props.props.code.name")}
+										placeholder={t("forms.catalog-edit-props.props.code.placeholder")}
+										{...field}
+									/>
+								)}
+								{...formProps}
+							/>
+							{workspaceGroups.length >= 1 && (
+								<FormField
+									name="group"
+									title={t("forms.catalog-edit-props.props.group.name")}
+									control={({ field }) => (
+										<Select
+											disabled={!workspaceGroups.length}
+											onValueChange={field.onChange}
+											defaultValue={field.value || undefined}
+										>
+											<SelectTrigger>
+												<SelectValue
+													placeholder={t("forms.catalog-edit-props.props.group.placeholder")}
+												/>
+											</SelectTrigger>
+											<SelectContent>
+												{workspaceGroups.map(({ value, children }) => (
+													<SelectItem children={children} key={value} value={value} />
+												))}
+											</SelectContent>
+										</Select>
+									)}
+									{...formProps}
+								/>
+							)}
+							<UploadCatalogLogo formProps={formProps} />
+							<UploadArticleIcon formProps={formProps} />
+						</ModalBody>
+						<Footer
+							primaryButton={<Button hidden variant="primary" children={t("save")} />}
+							secondaryButton={
+								<>
+									<CatalogExtendedPropsEditor
+										trigger={
+											<Button variant="outline">
+												{t("forms.catalog-edit-props.extended.name")}
+											</Button>
+										}
+									/>
+									<Button variant="outline" {...gitlabButtonProps} />
+								</>
+							}
+						/>
+					</form>
+				</Form>
+			</ModalContent>
+		</Modal>
 	);
-}
+};
 
 export default CatalogPropsEditor;

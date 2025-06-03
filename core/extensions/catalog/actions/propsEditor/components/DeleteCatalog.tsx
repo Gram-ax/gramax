@@ -37,9 +37,9 @@ const DeleteCatalog = ({ style }: { style?: CSSProperties }) => {
 	const deleteCatalogInCloud = async () => {
 		if (!(await confirm(t("cloud.delete-catalog")))) return;
 		setDeleteProcess(true);
-		const staticApi = new CloudApi(cloudServiceUrl, (e) => ErrorConfirmService.notify(e));
+		const cloudApi = new CloudApi(cloudServiceUrl, (e) => ErrorConfirmService.notify(e));
 		try {
-			await staticApi.deleteCatalog(catalogProps.name);
+			await cloudApi.deleteCatalog(catalogProps.name);
 		} finally {
 			setDeleteProcess(false);
 		}

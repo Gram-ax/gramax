@@ -3,9 +3,11 @@ import useWatch from "@core-ui/hooks/useWatch";
 import CodeBlockActions from "@ext/markdown/elements/codeBlockLowlight/edit/component/CodeBlockActions";
 import { loadLanguage, checkLanguage } from "@ext/markdown/elements/codeBlockLowlight/edit/logic/Lowlight";
 import { getLowerLangName } from "@ext/markdown/elements/codeBlockLowlight/edit/logic/LowlightLangs";
+import StyledCodeBlock from "@ext/markdown/elements/codeBlockLowlight/render/component/StyledCodeBlock";
 import { NodeViewProps } from "@tiptap/core";
 import { NodeViewContent, NodeViewWrapper } from "@tiptap/react";
 import { useRef, useState } from "react";
+import styled from "@emotion/styled";
 
 export const useLowlightActions = (props: { language?: string; updateAttributes?: (props: any) => void }) => {
 	const { language, updateAttributes } = props;
@@ -41,6 +43,15 @@ export const useLowlightActions = (props: { language?: string; updateAttributes?
 	return { onChange, isRegistered };
 };
 
+const StyledNodeViewContent = styled(NodeViewContent)`
+	white-space: unset !important;
+
+	> div:first-of-type {
+		overflow: auto;
+		padding: 1.375em 1.625em;
+	}
+`;
+
 const CodeBlockComponent = (props: NodeViewProps) => {
 	const { node, editor, getPos, updateAttributes } = props;
 	const viewWrapperRef = useRef<HTMLDivElement>(null);
@@ -58,9 +69,9 @@ const CodeBlockComponent = (props: NodeViewProps) => {
 					isEditable && <CodeBlockActions onChange={onChange} editor={editor} node={node} getPos={getPos} />
 				}
 			>
-				<pre>
-					<NodeViewContent />
-				</pre>
+				<StyledCodeBlock>
+					<StyledNodeViewContent />
+				</StyledCodeBlock>
 			</BlockActionPanel>
 		</NodeViewWrapper>
 	);

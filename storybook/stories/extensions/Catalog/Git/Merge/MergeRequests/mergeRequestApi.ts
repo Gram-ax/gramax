@@ -48,7 +48,7 @@ const mergeRequestApi = [
 		},
 	},
 	{
-		path: "https://test-ges-url.com/sso/connectors/ldap/enabled",
+		path: "https://test-ges-url.com/sso/connectors/enabled",
 		delay: 200,
 	},
 ] as MockedAPIEndpoint[];

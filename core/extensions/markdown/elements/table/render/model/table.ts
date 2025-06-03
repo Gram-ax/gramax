@@ -39,7 +39,15 @@ export const td: Schema = {
 	selfClosing: false,
 	type: SchemaType.block,
 	transform: async (node, config) => {
-		return new Tag("td", node.attributes, await node.transformChildren(config));
+		return new Tag(
+			"td",
+			{
+				colSpan: node.attributes.colspan,
+				rowSpan: node.attributes.rowspan,
+				align: node.attributes.align,
+			},
+			await node.transformChildren(config),
+		);
 	},
 };
 

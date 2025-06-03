@@ -1,40 +1,28 @@
 {
-  "extends": ["config:recommended"],
-  "timezone": "Europe/Moscow",
-  "schedule": ["before 18:00 every weekday"],
-  "baseBranches": ["develop", "master"],
-  "reviewers": ["pavel.smirnov"],
-  "bun": {
-    "enabled": true,
-    "binarySource": "docker"
-  },
-  "cargo": {
-    "enabled": true
-  },
-  "separateMultipleMajor": false,
-  "separateMajorMinor": false,
-  "groupName": "all-dependencies",
-  "packageRules": [
-    {
-      "matchManagers": ["cargo"],
-      "updateTypes": ["minor", "patch"]
-    },
-    {
-      "matchManagers": ["bun"],
-      "matchDepTypes": ["devDependencies", "dependencies"],
-      "updateTypes": ["minor", "patch"],
-      "lockFileMaintenance": true
-    },
-    {
-      "matchManagers": ["npm"],
-      "matchDepTypes": ["devDependencies", "dependencies"],
-      "updateTypes": ["minor", "patch"],
-      "lockFileMaintenance": true
-    },
-    {
-      "updateTypes": ["major"]
-    }
-  ],
-  "enabledManagers": ["bun", "cargo"],
-  "dependencyDashboard": true
+	"extends": ["config:recommended"],
+	"timezone": "Europe/Moscow",
+	"schedule": ["before 18:00 every weekday"],
+	"baseBranches": ["develop"],
+	"reviewers": ["pavel.smirnov", "stanislav.yargunkin"],
+	"postUpdateOptions": ["skipInstalls"],
+	"bun": {
+		"enabled": true,
+		"binarySource": "docker"
+	},
+	"cargo": {
+		"enabled": true
+	},
+	"packageRules": [
+		{
+			"matchManagers": ["cargo"],
+			"updateTypes": ["minor", "patch"]
+		},
+		{
+			"matchManagers": ["bun"],
+			"updateTypes": ["minor", "patch"],
+			"lockFileMaintenance": true
+		}
+	],
+	"enabledManagers": ["bun", "cargo"],
+	"dependencyDashboard": true
 }

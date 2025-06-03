@@ -4,7 +4,10 @@ import { renderToString } from "react-dom/server";
 import Renderer from "../../../../components/Renderer";
 import type { RenderableTreeNodes, Tag } from "../types";
 import { JSONContent } from "@tiptap/core";
+import { createRoot } from "react-dom/client";
+import { flushSync } from "react-dom";
 const { escapeHtml } = MarkdownIt().utils;
+const isBrowser = typeof window !== "undefined";
 
 // HTML elements that do not have a matching close tag
 // Defined in the HTML standard: https://html.spec.whatwg.org/#void-elements
@@ -41,6 +44,22 @@ const getNodeData = (node: RenderableTreeNodes | JSONContent): NodeData => {
 	return { name: node.type, attributes: node.attrs, children: node.content };
 };
 
+const renderString = (component: any): string => {
+	if (!isBrowser) return renderToString(component);
+
+	const container = document.createElement("div");
+	const root = createRoot(container);
+
+	flushSync(() => {
+		root.render(component);
+	});
+
+	const html = container.innerHTML;
+	container.remove();
+
+	return html;
+};
+
 export default function render(node: RenderableTreeNodes | JSONContent, { components = {} } = {}): string {
 	if (typeof node === "string") return escapeHtml(node);
 
@@ -56,7 +75,7 @@ export default function render(node: RenderableTreeNodes | JSONContent, { compon
 	if (components?.[name]) {
 		try {
 			const component = React.createElement(components[name], attributes, Renderer(children, { components }));
-			output = renderToString(component);
+			output = renderString(component);
 		} catch (error) {
 			console.error(`Error rendering component ${name}:`, error);
 			output = `<div>Error rendering component ${name}</div>`;

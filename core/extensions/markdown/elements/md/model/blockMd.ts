@@ -1,11 +1,11 @@
-import { blockMd_component } from "@ext/markdown/elements/md/model/blockMdSchema";
+import blockMd from "@ext/markdown/elements/md/model/blockMdSchema";
 import getExtensionOptions from "@ext/markdown/logic/getExtensionOptions";
 import { mergeAttributes, Node } from "@tiptap/core";
 import { ReactNodeViewRenderer } from "@tiptap/react";
 import EditBlock from "../component/EditBlock";
 
-const BlockMdComponent = Node.create({
-	...getExtensionOptions({ schema: blockMd_component, name: "blockMd_component" }),
+const BlockMd = Node.create({
+	...getExtensionOptions({ schema: blockMd, name: "blockMd" }),
 
 	parseHTML() {
 		return [{ tag: "block-md-react-component" }];
@@ -20,4 +20,4 @@ const BlockMdComponent = Node.create({
 	},
 });
 
-export default BlockMdComponent;
+export default BlockMd;

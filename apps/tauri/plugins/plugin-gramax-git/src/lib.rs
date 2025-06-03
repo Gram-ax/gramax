@@ -121,6 +121,7 @@ pub fn init<R: Runtime>() -> TauriPlugin<R> {
       get_all_commit_authors,
       format_merge_message,
       gc,
+      get_all_cancel_tokens,
       reset_repo,
     ])
     .setup(|app, api| {

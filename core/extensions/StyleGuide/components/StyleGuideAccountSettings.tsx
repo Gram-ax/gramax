@@ -9,10 +9,11 @@ import ListLayout from "@components/List/ListLayout";
 import useWatch from "@core-ui/hooks/useWatch";
 import t from "@ext/localization/locale/translate";
 import { StyleGuideChecker } from "@ics/gx-ai";
-import type { GroqLlmModel } from "@ics/gx-ai/dist/llm/groq/groqLlm";
 import type { LlmApiKey } from "@ics/gx-ai/dist/llm/llm";
 import type { LlmProviderName } from "@ics/gx-ai/dist/llm/llmFactory";
 import { useEffect, useState } from "react";
+
+type GroqLlmModel = any // @ics/gx-ai/dist/llm/groq/groqLlm
 
 export interface AccountSettings {
 	provider: LlmProviderName;

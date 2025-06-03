@@ -3,12 +3,12 @@ import { AuthorizeMiddleware } from "@core/Api/middleware/AuthorizeMiddleware";
 import { DesktopModeMiddleware } from "@core/Api/middleware/DesktopModeMiddleware";
 import ReloadConfirmMiddleware from "@core/Api/middleware/ReloadConfirmMiddleware";
 import Context from "@core/Context/Context";
+import { ItemType } from "@core/FileStructue/Item/ItemType";
 import { ItemLink } from "@ext/navigation/NavigationLinks";
 import DragTree from "@ext/navigation/catalog/drag/logic/DragTree";
 import DragTreeTransformer from "@ext/navigation/catalog/drag/logic/DragTreeTransformer";
 import { NodeModel } from "@minoru/react-dnd-treeview";
 import { Command } from "../../types/Command";
-import { ItemType } from "@core/FileStructue/Item/ItemType";
 
 const updateNavigation: Command<
 	{
@@ -35,7 +35,7 @@ const updateNavigation: Command<
 		const fp = workspace.getFileProvider();
 		const sitePresenter = sitePresenterFactory.fromContext(ctx);
 		const dragTree = new DragTree(fp, resourceUpdaterFactory.withContext(ctx));
-		const ancestors = dragTree.findOrderingAncestors(newLevNav, draggedItemPath, catalog);
+		const ancestors = await dragTree.findOrderingAncestors(newLevNav, draggedItemPath, catalog);
 		if (!ancestors) return;
 
 		let newLogicPath: string;
@@ -56,6 +56,7 @@ const updateNavigation: Command<
 				catalog,
 				sitePresenter.parseAllItems.bind(sitePresenter),
 				ancestors.parent,
+				ancestors.newCategoryPath,
 			);
 		}
 		return DragTreeTransformer.getRenderDragNav(

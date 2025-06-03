@@ -28,7 +28,7 @@ export const call = async <O>(command: string, args?: any): Promise<O> => {
 			const err = await readRes.json();
 			if (args?.creds?.accessToken) args.creds.accessToken = "<redacted>";
 			throw new LibGit2Error(
-				`git (${command})`,
+				`git (${command}, ${err.class ?? "<unknown class>"}, ${err.code ?? "<unknown code>"})`,
 				`${err.message?.trim() || err}\nArgs:${JSON.stringify(args, null, 4)}`,
 				err.class,
 				err.code,
@@ -41,7 +41,7 @@ export const call = async <O>(command: string, args?: any): Promise<O> => {
 		if ((args as CredsArgs)?.creds?.accessToken) (args as CredsArgs).creds.accessToken = "<redacted>";
 		const error = parseError(err);
 		throw new LibGit2Error(
-			`git (${command})`,
+			`git (${command}, ${error.class ?? "<unknown class>"}, ${error.code ?? "<unknown code>"})`,
 			`${error.message?.trim()}\nArgs: ${JSON.stringify(args, null, 4)}`,
 			error.class,
 			error.code,

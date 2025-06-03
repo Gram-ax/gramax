@@ -52,6 +52,14 @@ export default class ServerAuthManager extends AuthManager {
 		return await this._ap.logout(req, res);
 	}
 
+	async mailSendOTP(req: ApiRequest, res: ApiResponse) {
+		return await this._ap.mailSendOTP(req, res);
+	}
+
+	async mailLoginOTP(req: ApiRequest, res: ApiResponse) {
+		return await this._ap.mailLoginOTP(req, res);
+	}
+
 	private async _getAnonymousUser(cookie: Cookie): Promise<User> {
 		if (!this._gesUrl) return new User();
 		const user = new EnterpriseUser(false, null, null, null, null, this._gesUrl);

@@ -1,183 +1,98 @@
-import { NEW_ARTICLE_REGEX } from "@app/config/const";
-import Button from "@components/Atoms/Button/Button";
-import { ButtonStyle } from "@components/Atoms/Button/ButtonStyle";
-import Input from "@components/Atoms/Input";
-import FormStyle from "@components/Form/FormStyle";
-import ModalLayout from "@components/Layouts/Modal";
-import ModalLayoutLight from "@components/Layouts/ModalLayoutLight";
 import ButtonLink from "@components/Molecules/ButtonLink";
-import FetchService from "@core-ui/ApiServices/FetchService";
-import MimeTypes from "@core-ui/ApiServices/Types/MimeTypes";
-import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
-import ArticlePropsService from "@core-ui/ContextServices/ArticleProps";
-import CatalogPropsService from "@core-ui/ContextServices/CatalogProps";
-import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
-import { transliterate } from "@core-ui/languageConverter/transliterate";
-import { useRouter } from "@core/Api/useRouter";
-import { ClientArticleProps } from "@core/SitePresenter/SitePresenter";
-import { uniqueName } from "@core/utils/uniqueName";
-import ActionWarning from "@ext/localization/actions/ActionWarning";
+import Footer from "@ext/catalog/actions/propsEditor/components/ModalFooter";
+import Header from "@ext/catalog/actions/propsEditor/components/ModalHeader";
+import {
+	UsePropsEditorActionsParams,
+	usePropsEditorActions,
+} from "@ext/item/actions/propsEditor/logic/usePropsEditorAcitions";
+import { Modal, ModalTrigger, ModalContent, ModalBody } from "@ui-kit/Modal";
+import { Button } from "@ui-kit/Button";
+import { Input } from "@ui-kit/Input";
+import { Form, FormField } from "@ui-kit/Form";
+import OtherLanguagesPresentWarning from "@ext/localization/actions/OtherLanguagesPresentWarning";
 import t from "@ext/localization/locale/translate";
-import EditorService from "@ext/markdown/elementsUtils/ContextServices/EditorService";
-import { ItemLink } from "@ext/navigation/NavigationLinks";
-import { Dispatch, SetStateAction, useEffect, useState } from "react";
+import { FC, useRef, useCallback } from "react";
 
-interface PropsEditorProps {
-	item: ClientArticleProps;
-	itemLink: ItemLink;
-	setItemLink: Dispatch<SetStateAction<ItemLink>>;
-	isCategory: boolean;
-	isCurrentItem: boolean;
-	brotherFileNames: string[];
+interface PropsEditorProps extends Omit<UsePropsEditorActionsParams, "onExternalClose"> {
+	openExternally?: boolean;
+	onOpenChange?: (open: boolean) => void;
 }
 
-const PropsEditor = (props: PropsEditorProps) => {
-	const { item, itemLink, setItemLink, isCategory, isCurrentItem, brotherFileNames } = props;
-	const domain = PageDataContextService.value.domain;
-	const articleProps = ArticlePropsService.value;
-	const catalogProps = CatalogPropsService.value;
-	const router = useRouter();
-	const apiUrlCreator = ApiUrlCreatorService.value;
-	const [parentCategoryLink, setParentCategoryLink] = useState<string>(domain);
+const PropsEditor: FC<PropsEditorProps> = (props) => {
+	const { openExternally, onOpenChange, ...hookParams } = props;
+	const formRef = useRef<HTMLFormElement>(null);
 
-	const [isOpen, setIsOpen] = useState(false);
-	const [itemProps, setItemProps] = useState<ClientArticleProps>();
-	const [generatedFileName, setGeneratedFileName] = useState<string>();
-
-	useEffect(() => {
-		setParentCategoryLink(domain + "/" + item?.logicPath.replace(/[^/]*$/, ""));
-		setItemProps(item);
-	}, [item]);
-
-	const updateNavigation = (updatedPathname: string, currentArticlePathname: string, itemLogicPath: string) => {
-		if (isCurrentItem) return router.pushPath(updatedPathname);
-		if (!isCurrentItem && currentArticlePathname.startsWith(itemLogicPath))
-			return router.pushPath(articleProps.logicPath.replace(itemProps.logicPath, updatedPathname));
-		refreshPage();
-	};
-
-	const save = async () => {
-		if (getErrorText()) return;
-		if (generatedFileName) itemProps.fileName = generatedFileName;
-		const response = await FetchService.fetch(
-			apiUrlCreator.updateItemProps(),
-			JSON.stringify(itemProps),
-			MimeTypes.json,
-		);
-		const { pathname } = await response.json();
-		updateNavigation(pathname, articleProps.logicPath, itemProps.logicPath);
-		const editor = EditorService.getEditor();
-		itemLink.title = itemProps.title;
-		setItemLink({ ...itemLink });
-		// ArticlePropsService.set(itemProps);
-
-		if (editor) {
-			const header = editor.view.dom.firstChild as HTMLParagraphElement;
-			if (header && isCurrentItem) header.innerText = itemProps.title;
-		}
-
-		setIsOpen(false);
-	};
-
-	const getErrorText = () => {
-		const fileName = generatedFileName ?? itemProps?.fileName;
-		if (!fileName) return t("must-be-not-empty");
-		if (brotherFileNames?.includes(fileName)) return t("cant-be-same-name");
-		if (!/^[\w\d\-_]+$/m.test(fileName)) return t("no-encoding-symbols-in-url");
-		return null;
-	};
-
-	const onClose = () => {
-		setItemProps({ ...item });
-		setIsOpen(false);
-	};
-
-	const isOnlyTitleChanged =
-		itemProps &&
-		Object.keys(itemProps).every((key) => {
-			if (key === "title") return itemProps.title !== item.title;
-			return itemProps[key] === item[key];
+	const { open, setOpen, openModal, form, handleSubmit, submit, isOnlyTitleChanged, catalogProps } =
+		usePropsEditorActions({
+			...hookParams,
+			onExternalClose: () => onOpenChange?.(false),
 		});
 
+	if (typeof openExternally === "boolean" && openExternally !== open) {
+		setOpen(openExternally);
+	}
+
+	const formSubmitHandler = useCallback(
+		(e) => {
+			handleSubmit(submit)(e);
+		},
+		[handleSubmit, submit],
+	);
+
 	return (
-		<ModalLayout
-			closeOnCmdEnter
-			isOpen={isOpen}
-			trigger={<ButtonLink iconCode="pencil" text={t("configure")} />}
-			contentWidth={"S"}
-			onOpen={() => setIsOpen(true)}
-			onClose={onClose}
-		>
-			<ModalLayoutLight>
-				<FormStyle>
-					<>
-						<legend>{isCategory ? t("category.configure") : t("article.configure")}</legend>
-						<fieldset>
-							<label className="control-label">{t("title")}</label>
-							<div className="form-group field field-string">
-								<Input
-									dataQa={t("title")}
-									isCode
-									value={itemProps?.title}
-									onChange={(e) => {
-										const newItemProps = { ...itemProps };
-										newItemProps.title = e.target.value ?? "";
-										if (newItemProps.title && NEW_ARTICLE_REGEX.test(newItemProps.fileName)) {
-											setGeneratedFileName(
-												uniqueName(
-													transliterate(newItemProps.title, { kebab: true, maxLength: 50 }),
-													brotherFileNames,
-												),
-											);
-										}
-										setItemProps({ ...newItemProps });
-									}}
-									placeholder={t("enter-value")}
-								/>
-							</div>
-							<label className="control-label">
-								{"URL"}
-								<span className="required">*</span>
-							</label>
-							<div className="form-group field field-string">
-								<Input
-									dataQa="URL"
-									isCode
-									value={generatedFileName ?? itemProps?.fileName}
-									startText={parentCategoryLink}
-									endText={"/"}
-									errorText={getErrorText()}
-									onChange={(e) => {
-										const newItemProps = { ...itemProps };
-										setGeneratedFileName(undefined);
-										newItemProps.fileName = e.target.value ?? "";
-										setItemProps({ ...newItemProps });
-									}}
-									placeholder={t("enter-value")}
-								/>
-							</div>
-							<div className="buttons">
-								{!isOnlyTitleChanged ? (
-									<ActionWarning catalogProps={catalogProps} action={save}>
-										<Button buttonStyle={ButtonStyle.default} disabled={!!getErrorText()}>
-											<span>{t("save")}</span>
-										</Button>
-									</ActionWarning>
-								) : (
-									<Button
-										buttonStyle={ButtonStyle.default}
-										onClick={save}
-										disabled={!!getErrorText()}
-									>
-										<span>{t("save")}</span>
-									</Button>
+		<Modal open={open} onOpenChange={setOpen}>
+			<ModalTrigger asChild>
+				<ButtonLink onClick={openModal} iconCode="pencil" text={t("configure")} />
+			</ModalTrigger>
+
+			<ModalContent data-modal-root>
+				<Form {...form}>
+					<form ref={formRef} className="contents ui-kit" onSubmit={formSubmitHandler}>
+						<Header
+							title={t(`${hookParams.isCategory ? "section" : "article"}.configure.title`)}
+							description={t(`${hookParams.isCategory ? "section" : "article"}.configure.description`)}
+						/>
+
+						<ModalBody className="space-y-4">
+							<FormField
+								name="title"
+								required
+								title={t("title")}
+								control={({ field }) => (
+									<Input placeholder={t("enter-value")} data-qa={t("title")} {...field} />
 								)}
-							</div>
-						</fieldset>
-					</>
-				</FormStyle>
-			</ModalLayoutLight>
-		</ModalLayout>
+								labelClassName={"w-44"}
+							/>
+
+							<FormField
+								name="fileName"
+								required
+								title="URL"
+								control={({ field }) => (
+									<Input data-qa="URL" placeholder={t("enter-value")} {...field} />
+								)}
+								labelClassName={"w-44"}
+							/>
+						</ModalBody>
+
+						<Footer
+							primaryButton={
+								isOnlyTitleChanged ? (
+									<Button type="submit">{t("save")}</Button>
+								) : (
+									<OtherLanguagesPresentWarning
+										catalogProps={catalogProps}
+										action={formSubmitHandler}
+									>
+										<Button type="button">{t("save")}</Button>
+									</OtherLanguagesPresentWarning>
+								)
+							}
+						/>
+					</form>
+				</Form>
+			</ModalContent>
+		</Modal>
 	);
 };
 

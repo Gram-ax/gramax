@@ -30,8 +30,8 @@ class PropertyServiceProvider {
 		);
 
 		useEffect(() => {
-			setArticleProperties(combineProperties(articleProps.properties, Array.from(properties.values())));
-		}, []);
+			setArticleProperties(combineProperties(articleProps.properties, properties));
+		}, [articleProps.properties]);
 
 		return (
 			<PropertyContext.Provider value={{ properties, articleProperties, setArticleProperties }}>

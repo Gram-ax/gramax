@@ -8,28 +8,25 @@ import ModalLayout from "@components/Layouts/Modal";
 import ButtonLink from "@components/Molecules/ButtonLink";
 import FetchService from "@core-ui/ApiServices/FetchService";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
-import CatalogPropsService from "@core-ui/ContextServices/CatalogProps";
-import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import { ClientArticleProps } from "@core/SitePresenter/SitePresenter";
 import styled from "@emotion/styled";
-import { FileStatus } from "@ext/Watchers/model/FileStatus";
-import BranchUpdaterService from "@ext/git/actions/Branch/BranchUpdaterService/logic/BranchUpdaterService";
-import OnBranchUpdateCaller from "@ext/git/actions/Branch/BranchUpdaterService/model/OnBranchUpdateCaller";
-import { GitStatus } from "@ext/git/core/GitWatcher/model/GitStatus";
 import t from "@ext/localization/locale/translate";
 import useHasRemoteStorage from "@ext/storage/logic/utils/useHasRemoteStorage";
 import useIsStorageInitialized from "@ext/storage/logic/utils/useIsStorageInitialized";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import User from "../../../../security/components/User/User";
 import { ArticleHistoryViewModel } from "../model/ArticleHistoryViewModel";
 
-const History = styled(({ className, item }: { className?: string; item: ClientArticleProps }) => {
-	const apiUrlCreator = ApiUrlCreatorService.value;
-	const catalogProps = CatalogPropsService.value;
-	const pageData = PageDataContextService.value;
-	const { isReadOnly } = pageData.conf;
+interface HistoryProps {
+	item: ClientArticleProps;
+	isFileNew: boolean;
+	className?: string;
+}
 
-	const [isFileNew, setIsFileNew] = useState(false);
+const History = styled((props: HistoryProps) => {
+	const { className, item, isFileNew } = props;
+	const apiUrlCreator = ApiUrlCreatorService.value;
+
 	const [showDiff, setShowDiff] = useState(true);
 	const [isOpen, setIsOpen] = useState(false);
 	const [data, setData] = useState<ArticleHistoryViewModel[]>(null);
@@ -49,26 +46,6 @@ const History = styled(({ className, item }: { className?: string; item: ClientA
 		}
 		setData(await response.json());
 	};
-
-	const getIsFileNew = async () => {
-		const res = await FetchService.fetch<GitStatus>(apiUrlCreator.getVersionControlFileStatus(item.ref.path));
-		const gitStatus = await res.json();
-		setIsFileNew(!gitStatus || gitStatus.status == FileStatus.new);
-	};
-
-	useEffect(() => {
-		if (!hasRemoteStorage || !isStorageInitialized || isReadOnly) return;
-		void getIsFileNew();
-	}, [catalogProps.name, item?.logicPath, hasRemoteStorage, isStorageInitialized, isReadOnly]);
-
-	useEffect(() => {
-		const handler = async (_, caller: OnBranchUpdateCaller) => {
-			if (caller !== OnBranchUpdateCaller.Publish) return;
-			await getIsFileNew();
-		};
-		BranchUpdaterService.addListener(handler);
-		return () => BranchUpdaterService.removeListener(handler);
-	}, [apiUrlCreator, item?.logicPath]);
 
 	const spinnerLoader = (
 		<LogsLayout style={{ overflow: "hidden" }}>

@@ -15,6 +15,9 @@ import Logo from "../../Logo";
 import InboxService from "@ext/inbox/components/InboxService";
 import NotificationIcon from "@components/Layouts/LeftNavigationTabs/NotificationIcon";
 import TemplateService from "@ext/templates/components/TemplateService";
+import SnippetService from "@ext/markdown/elements/snippet/edit/components/Tab/SnippetService";
+import PromptService from "@ext/ai/components/Tab/PromptService";
+import t from "@ext/localization/locale/translate";
 
 interface TopBarContentProps {
 	data: ArticlePageData;
@@ -31,17 +34,29 @@ const TopBarContent = ({ data, isMacDesktop, currentTab, setCurrentTab, classNam
 	const { isStatic, isStaticCli } = usePlatform();
 	const showHomePageButton = !(isStatic || isStaticCli || logoImageUrl);
 
-	const { notes } = InboxService.value;
+	const { items: notes } = InboxService.value;
 	const { templates } = TemplateService.value;
+	const { snippets } = SnippetService.value;
+	const { items: promptNotes } = PromptService.value;
 
 	const onCloseInbox = () => {
-		InboxService.removeAllNotes();
+		InboxService.removeAllItems();
 	};
 
 	const onCloseTemplate = () => {
 		TemplateService.closeTemplate();
 		TemplateService.setTemplates([]);
 		refreshPage();
+	};
+
+	const onCloseSnippet = () => {
+		SnippetService.closeSnippet();
+		SnippetService.setSnippets([]);
+		refreshPage();
+	};
+
+	const onClosePrompt = () => {
+		PromptService.removeAllItems();
 	};
 
 	return (
@@ -56,6 +71,7 @@ const TopBarContent = ({ data, isMacDesktop, currentTab, setCurrentTab, classNam
 				{currentTab === LeftNavigationTab.Inbox && (
 					<NotificationIcon
 						iconCode="inbox"
+						tooltipText={t("inbox.notes")}
 						count={notes.length}
 						isMacDesktop={isMacDesktop}
 						setCurrentTab={setCurrentTab}
@@ -65,10 +81,31 @@ const TopBarContent = ({ data, isMacDesktop, currentTab, setCurrentTab, classNam
 				{currentTab === LeftNavigationTab.Template && (
 					<NotificationIcon
 						count={templates.size}
+						tooltipText={t("template.name")}
 						iconCode="layout-template"
 						isMacDesktop={isMacDesktop}
 						setCurrentTab={setCurrentTab}
 						onCloseNotification={onCloseTemplate}
+					/>
+				)}
+				{currentTab === LeftNavigationTab.Snippets && (
+					<NotificationIcon
+						iconCode="file"
+						count={snippets.size}
+						tooltipText={t("snippets")}
+						isMacDesktop={isMacDesktop}
+						setCurrentTab={setCurrentTab}
+						onCloseNotification={onCloseSnippet}
+					/>
+				)}
+				{currentTab === LeftNavigationTab.Prompt && (
+					<NotificationIcon
+						iconCode="square-chevron-right"
+						count={promptNotes.length}
+						tooltipText={t("ai.ai-prompts")}
+						isMacDesktop={isMacDesktop}
+						setCurrentTab={setCurrentTab}
+						onCloseNotification={onClosePrompt}
 					/>
 				)}
 				<Search isHomePage={false} catalogLinks={[data.catalogProps.link]} itemLinks={data.itemLinks} />

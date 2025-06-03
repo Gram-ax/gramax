@@ -32,11 +32,14 @@ import { TicketManager } from "@ext/security/logic/TicketManager/TicketManager";
 import FuseSearcher from "@ext/serach/Fuse/FuseSearcher";
 import { IndexDataProvider } from "@ext/serach/IndexDataProvider";
 import SearcherManager from "@ext/serach/SearcherManager";
+import WorkspaceCheckIsCatalogCloning from "@ext/storage/events/WorkspaceCheckIsCatalogCloning";
 import { SourceDataProvider } from "@ext/storage/logic/SourceDataProvider/logic/SourceDataProvider";
+import FSTemplateEvents from "@ext/templates/logic/FSTemplateEvents";
 import WorkspaceManager from "@ext/workspace/WorkspaceManager";
 import setWorkerProxy from "../../apps/browser/src/logic/setWorkerProxy";
 import { AppConfig, getConfig, type AppGlobalConfig } from "../config/AppConfig";
 import Application from "../types/Application";
+import { AiDataProvider } from "@ext/ai/logic/AiDataProvider";
 
 const _init = async (config: AppConfig): Promise<Application> => {
 	await initModulesFrontend();
@@ -58,12 +61,16 @@ const _init = async (config: AppConfig): Promise<Application> => {
 
 	const em = new EnterpriseManager(config.enterprise, fileConfig);
 
+	const templateEventHandlers = new FSTemplateEvents();
+
 	const wm = new WorkspaceManager(
 		(path) => MountFileProvider.fromDefault(new Path(path)),
 		(fs) => {
 			new FileStructureEventHandlers(fs).mount();
 			new RepositoryProviderEventHandlers(fs, rp).mount();
+			templateEventHandlers.mount(fs);
 		},
+		(workspace) => new WorkspaceCheckIsCatalogCloning(workspace, rp).mount(),
 		rp,
 		config,
 		fileConfig,
@@ -71,6 +78,8 @@ const _init = async (config: AppConfig): Promise<Application> => {
 
 	const sdp = new SourceDataProvider(wm);
 	rp.addSourceDataProvider(sdp);
+
+	const adp = new AiDataProvider(wm);
 
 	await wm.readWorkspaces();
 	const workspaceConfig = await wm.maybeCurrent()?.config();
@@ -97,7 +106,9 @@ const _init = async (config: AppConfig): Promise<Application> => {
 
 	const cache = new Cache(new DiskFileProvider(config.paths.data));
 	const indexDataProvider = new IndexDataProvider(wm, cache, parser, parserContextFactory);
-	const searcherManager = new SearcherManager(new FuseSearcher(indexDataProvider), { vector: null });
+	const searcherManager = new SearcherManager(new FuseSearcher(indexDataProvider));
+
+	templateEventHandlers.withParser(parser, formatter, parserContextFactory);
 
 	return {
 		am,
@@ -106,15 +117,16 @@ const _init = async (config: AppConfig): Promise<Application> => {
 		em,
 		rp,
 		vur,
+		adp,
 		logger,
 		parser,
 		hashes,
-		searcherManager,
 		formatter,
 		htmlParser,
 		tablesManager,
 		ticketManager,
 		contextFactory,
+		searcherManager,
 		indexDataProvider,
 		sitePresenterFactory,
 		parserContextFactory,
@@ -136,7 +148,13 @@ const _init = async (config: AppConfig): Promise<Application> => {
 			buildVersion: config.buildVersion,
 			bugsnagApiKey: config.bugsnagApiKey,
 
-			search: { vector: { enabled: false } },
+			portalAi: {
+				enabled: false,
+			},
+
+			search: {
+				elastic: { enabled: false },
+			},
 		},
 	};
 };

@@ -2,7 +2,7 @@ const path = require("path");
 const { spawn, execSync } = require("child_process");
 const { testGitCatalogUtils } = require("../core/extensions/git/test/testGitCatalogUtils");
 
-const arg = process.argv[2]; // unit, int, fileName или undefined
+const arg = process.argv[2]; // unit, int, fileName or undefined
 const FIXTURES_PATH = path.join(process.cwd(), "core/extensions/git/test/fixtures");
 process.env.ROOT_PATH = path.join(process.cwd(), "app/test/docs");
 process.env.PRODUCTION = "false";
@@ -27,7 +27,7 @@ switch (arg) {
 	case undefined:
 		break;
 	default:
-		// Если arg не является unit, int или undefined, тогда считаем, что это имя файла
+		// If arg is not unit, int or undefined, then consider it a filename
 		jestArgs = [...jestArgs, arg];
 		break;
 }

@@ -176,7 +176,7 @@ export default class GithubSourceAPI extends GitSourceApi {
 					errorJson: await res.json(),
 					status: res.status,
 				},
-				t("git.error.source-api.title"),
+				t("git.error.http.title"),
 			);
 
 			this._onError?.(error);

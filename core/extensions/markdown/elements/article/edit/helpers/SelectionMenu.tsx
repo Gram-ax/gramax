@@ -2,13 +2,16 @@ import ButtonsLayout from "@components/Layouts/ButtonLayout";
 import ModalLayoutDark from "@components/Layouts/ModalLayoutDark";
 import ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
+import ArticlePropsService from "@core-ui/ContextServices/ArticleProps";
 import ButtonStateService from "@core-ui/ContextServices/ButtonStateService/ButtonStateService";
+import CatalogPropsService from "@core-ui/ContextServices/CatalogProps";
 import IsMacService from "@core-ui/ContextServices/IsMac";
 import IsSelectedOneNodeService from "@core-ui/ContextServices/IsSelected";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
-import { ClientArticleProps } from "@core/SitePresenter/SitePresenter";
+import { ClientArticleProps, ClientCatalogProps } from "@core/SitePresenter/SitePresenter";
 import canDisplayMenu from "@ext/markdown/elements/article/edit/helpers/canDisplayMenu";
 import InlineEditPanel from "@ext/markdown/elements/article/edit/helpers/InlineEditPanel";
+import ResourceService from "@ext/markdown/elements/copyArticles/resourceService";
 import TooltipBase from "@ext/markdown/elementsUtils/prosemirrorPlugins/TooltipBase";
 import { Editor, Extension } from "@tiptap/core";
 import { EditorState } from "@tiptap/pm/state";
@@ -18,6 +21,7 @@ import { EditorView } from "prosemirror-view";
 import PageDataContext from "../../../../../../logic/Context/PageDataContext";
 
 interface SelectionMenuProps {
+	catalogProps: ClientCatalogProps;
 	articleProps: ClientArticleProps;
 	pageDataContext: PageDataContext;
 	apiUrlCreator: ApiUrlCreator;
@@ -30,27 +34,47 @@ interface SelectionMenuProps {
 }
 
 const SelectionMenuComponent = (props: SelectionMenuProps) => {
-	const { pageDataContext, apiUrlCreator, editor, closeHandler, onMountCallback, isCellSelection, inTable, isMac } =
-		props;
+	const {
+		pageDataContext,
+		apiUrlCreator,
+		editor,
+		closeHandler,
+		onMountCallback,
+		isCellSelection,
+		inTable,
+		isMac,
+		catalogProps,
+		articleProps,
+	} = props;
+
+	const isGramaxAiEnabled = pageDataContext.conf.ai.enabled;
+
 	return (
 		<IsMacService.Provider value={isMac}>
 			<ApiUrlCreatorService.Provider value={apiUrlCreator}>
 				<PageDataContextService.Provider value={pageDataContext}>
-					<ModalLayoutDark>
-						<ButtonsLayout>
-							<IsSelectedOneNodeService.Provider editor={editor}>
-								<ButtonStateService.Provider editor={editor}>
-									<InlineEditPanel
-										editor={editor}
-										closeHandler={closeHandler}
-										onMountCallback={onMountCallback}
-										isCellSelection={isCellSelection}
-										inTable={inTable}
-									/>
-								</ButtonStateService.Provider>
-							</IsSelectedOneNodeService.Provider>
-						</ButtonsLayout>
-					</ModalLayoutDark>
+					<CatalogPropsService.Provider value={catalogProps}>
+						<ArticlePropsService.Provider value={articleProps}>
+							<ResourceService.Provider>
+								<ModalLayoutDark>
+									<ButtonsLayout>
+										<IsSelectedOneNodeService.Provider editor={editor}>
+											<ButtonStateService.Provider editor={editor}>
+												<InlineEditPanel
+													editor={editor}
+													closeHandler={closeHandler}
+													onMountCallback={onMountCallback}
+													isCellSelection={isCellSelection}
+													inTable={inTable}
+													isGramaxAiEnabled={isGramaxAiEnabled}
+												/>
+											</ButtonStateService.Provider>
+										</IsSelectedOneNodeService.Provider>
+									</ButtonsLayout>
+								</ModalLayoutDark>
+							</ResourceService.Provider>
+						</ArticlePropsService.Provider>
+					</CatalogPropsService.Provider>
 				</PageDataContextService.Provider>
 			</ApiUrlCreatorService.Provider>
 		</IsMacService.Provider>
@@ -67,7 +91,8 @@ class TextSelectionMenu extends TooltipBase {
 	constructor(
 		private _view: EditorView,
 		private _editor: Editor,
-		private _isMac: boolean,
+		isMac: boolean,
+		private _catalogProps: ClientCatalogProps,
 		private _articleProps: ClientArticleProps,
 		private _apiUrlCreator: ApiUrlCreator,
 		private _pageDataContext: PageDataContext,
@@ -75,7 +100,8 @@ class TextSelectionMenu extends TooltipBase {
 		super(
 			SelectionMenuComponent,
 			{
-				isMac: _isMac,
+				isMac: isMac,
+				catalogProps: _catalogProps,
 				articleProps: _articleProps,
 				pageDataContext: _pageDataContext,
 				apiUrlCreator: _apiUrlCreator,
@@ -106,7 +132,7 @@ class TextSelectionMenu extends TooltipBase {
 
 	public update(view: EditorView, prevState: EditorState) {
 		const canDisplay = canDisplayMenu(this._editor);
-		if (canDisplay) return;
+		if (!canDisplay) return;
 
 		const { from, to } = view.state.selection;
 		this._updateTableSelection();
@@ -114,6 +140,7 @@ class TextSelectionMenu extends TooltipBase {
 		const selectedText = view.state.doc.textBetween(from, to);
 
 		this.updateProps({
+			catalogProps: this._catalogProps,
 			articleProps: this._articleProps,
 			pageDataContext: this._pageDataContext,
 			apiUrlCreator: this._apiUrlCreator,
@@ -147,7 +174,6 @@ class TextSelectionMenu extends TooltipBase {
 		this._element.style.top = endPosition.top - domReact.top + yDistance + "px";
 		this._element.style.left = this._element.style.right = null;
 		if (left + tooltipWidth / 2 > domReact.width) this._element.style.right = "0px";
-		else if (left < tooltipWidth / 2) this._element.style.left = "0px";
 		else this._element.style.left = left + "px";
 		this._element.style.zIndex = "var(--z-index-popover)";
 	};
@@ -178,12 +204,10 @@ class TextSelectionMenu extends TooltipBase {
 		const isInstanceSelection = this._view.state.selection instanceof CellSelection;
 		const inTable = this._inTable;
 		const selectedText = this._view.state.doc.textBetween(from, to) || inTable;
-		if (
-			(!selectedText && !isInstanceSelection) ||
-			$from.parent.type.name === "doc" ||
-			this._view.state.doc.firstChild === $from.parent
-		)
+
+		if ((!selectedText && !isInstanceSelection) || this._view.state.doc.firstChild === $from.parent) {
 			return this.closeComponent();
+		}
 
 		const anchor = this._view.coordsAtPos(from);
 		const icrAnchor = this._view.coordsAtPos(from + 1);
@@ -217,7 +241,8 @@ const SelectionMenu = Extension.create({
 					const textSelectionMenu = new TextSelectionMenu(
 						view,
 						this.editor,
-						this.options.isMac,
+						this.options.isMac === "true",
+						this.options.catalogProps,
 						this.options.articleProps,
 						this.options.apiUrlCreator,
 						this.options.pageDataContext,

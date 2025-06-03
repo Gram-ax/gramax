@@ -22,7 +22,7 @@ export class DbTableRenderer {
 												svg: getSvgIconFromString("table", COLOR_CONFIG.black, "1.3"),
 												width: 14,
 												height: 14,
-												margin: [0, 3, 0, 0],
+												margin: [3, 1, 0, 0],
 											},
 											{
 												text: table.code,

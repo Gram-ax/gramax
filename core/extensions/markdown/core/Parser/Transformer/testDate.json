@@ -1,133 +1,193 @@
 {
-	"tokens": [
-		{ "type": "tag_open", "tag": "", "info": "table" },
-		{ "type": "hr", "tag": "hr" },
-		{ "type": "bullet_list_open", "tag": "ul" },
-		{ "type": "list_item_open", "tag": "li" },
-		{
-			"type": "annotation",
-			"tag": "",
-			"meta": { "attributes": [{ "type": "attribute", "name": "colspan", "value": 2 }] }
+	"tableTransform": {
+		"tokens": [
+			{ "type": "tag_open", "tag": "", "info": "table" },
+			{ "type": "hr", "tag": "hr" },
+			{ "type": "bullet_list_open", "tag": "ul" },
+			{ "type": "list_item_open", "tag": "li" },
+			{
+				"type": "annotation",
+				"tag": "",
+				"meta": { "attributes": [{ "type": "attribute", "name": "colspan", "value": 2 }] }
+			},
+			{ "type": "paragraph_open", "tag": "p" },
+			{
+				"type": "inline",
+				"tag": "",
+				"children": [{ "type": "text", "tag": "", "content": "foo" }],
+				"content": "foo"
+			},
+			{ "type": "paragraph_close", "tag": "p" },
+			{ "type": "list_item_close", "tag": "li" },
+			{ "type": "list_item_open", "tag": "li" },
+			{ "type": "paragraph_open", "tag": "p" },
+			{
+				"type": "inline",
+				"tag": "",
+				"children": [{ "type": "text", "tag": "", "content": "bar" }],
+				"content": "bar"
+			},
+			{ "type": "paragraph_close", "tag": "p" },
+			{ "type": "list_item_close", "tag": "li" },
+			{ "type": "bullet_list_close", "tag": "ul" },
+			{ "type": "hr", "tag": "hr" },
+			{ "type": "bullet_list_open", "tag": "ul" },
+			{ "type": "list_item_open", "tag": "li" },
+			{ "type": "paragraph_open", "tag": "p" },
+			{
+				"type": "inline",
+				"tag": "",
+				"children": [{ "type": "text", "tag": "", "content": "foo" }],
+				"content": "foo"
+			},
+			{ "type": "paragraph_close", "tag": "p" },
+			{ "type": "list_item_close", "tag": "li" },
+			{ "type": "list_item_open", "tag": "li" },
+			{ "type": "paragraph_open", "tag": "p" },
+			{
+				"type": "inline",
+				"tag": "",
+				"children": [{ "type": "text", "tag": "", "content": "foo2" }],
+				"content": "foo2"
+			},
+			{ "type": "paragraph_close", "tag": "p" },
+			{ "type": "list_item_close", "tag": "li" },
+			{ "type": "list_item_open", "tag": "li" },
+			{ "type": "paragraph_open", "tag": "p" },
+			{
+				"type": "inline",
+				"tag": "",
+				"children": [{ "type": "text", "tag": "", "content": "foo3" }],
+				"content": "foo3"
+			},
+			{ "type": "paragraph_close", "tag": "p" },
+			{ "type": "list_item_close", "tag": "li" },
+			{ "type": "bullet_list_close", "tag": "ul" },
+			{ "type": "tag_close", "tag": "", "nesting": -1, "info": "/table", "meta": { "tag": "table" } }
+		],
+		"transformedTokens": [
+			{ "type": "table_open", "tag": "table", "nesting": 1, "attrs": {} },
+			{ "type": "tbody_open", "tag": "tbody", "nesting": 1 },
+			{ "type": "tr_open", "tag": "tr", "nesting": 1 },
+			{
+				"type": "td_open",
+				"tag": "td",
+				"nesting": 1,
+				"attrs": { "colspan": 2 },
+				"meta": { "attributes": [{ "type": "attribute", "name": "colspan", "value": 2 }] }
+			},
+			{ "type": "paragraph_open", "tag": "p" },
+			{
+				"type": "inline",
+				"tag": "",
+				"children": [{ "type": "text", "tag": "", "content": "foo" }],
+				"content": "foo"
+			},
+			{ "type": "paragraph_close", "tag": "p" },
+			{ "type": "td_close", "tag": "td", "nesting": -1 },
+			{ "type": "td_open", "tag": "td", "nesting": 1, "attrs": {}, "meta": null },
+			{ "type": "paragraph_open", "tag": "p" },
+			{
+				"type": "inline",
+				"tag": "",
+				"children": [{ "type": "text", "tag": "", "content": "bar" }],
+				"content": "bar"
+			},
+			{ "type": "paragraph_close", "tag": "p" },
+			{ "type": "td_close", "tag": "td", "nesting": -1 },
+			{ "type": "tr_close", "tag": "tr", "nesting": -1 },
+			{ "type": "tr_open", "tag": "tr", "nesting": 1 },
+			{ "type": "td_open", "tag": "td", "nesting": 1, "attrs": {}, "meta": null },
+			{ "type": "paragraph_open", "tag": "p" },
+			{
+				"type": "inline",
+				"tag": "",
+				"children": [{ "type": "text", "tag": "", "content": "foo" }],
+				"content": "foo"
+			},
+			{ "type": "paragraph_close", "tag": "p" },
+			{ "type": "td_close", "tag": "td", "nesting": -1 },
+			{ "type": "td_open", "tag": "td", "nesting": 1, "attrs": {}, "meta": null },
+			{ "type": "paragraph_open", "tag": "p" },
+			{
+				"type": "inline",
+				"tag": "",
+				"children": [{ "type": "text", "tag": "", "content": "foo2" }],
+				"content": "foo2"
+			},
+			{ "type": "paragraph_close", "tag": "p" },
+			{ "type": "td_close", "tag": "td", "nesting": -1 },
+			{ "type": "td_open", "tag": "td", "nesting": 1, "attrs": {}, "meta": null },
+			{ "type": "paragraph_open", "tag": "p" },
+			{
+				"type": "inline",
+				"tag": "",
+				"children": [{ "type": "text", "tag": "", "content": "foo3" }],
+				"content": "foo3"
+			},
+			{ "type": "paragraph_close", "tag": "p" },
+			{ "type": "td_close", "tag": "td", "nesting": -1 },
+			{ "type": "tr_close", "tag": "tr", "nesting": -1 },
+			{ "type": "tbody_close", "tag": "tbody", "nesting": -1 },
+			{ "type": "table_close", "tag": "table", "nesting": -1 }
+		]
+	},
+	"htmlTagTransform": {
+		"blockHtmlTag": {
+			"tokens": [
+				{ "type": "paragraph_open" },
+				{
+					"type": "inline",
+					"children": [
+						{ "type": "text", "content": "Hello " },
+						{ "meta": { "tag": "blockHtmlTag" }, "type": "tag_open", "content": "<div>" },
+						{ "type": "text", "content": "World" },
+						{ "meta": { "tag": "blockHtmlTag" }, "type": "tag_close", "content": "</div>" }
+					]
+				},
+				{ "type": "paragraph_close" }
+			],
+			"transformedTokens": [
+				{ "type": "paragraph_open" },
+				{
+					"type": "inline",
+					"children": [{ "type": "text", "content": "Hello " }],
+					"content": "Hello "
+				},
+				{ "type": "paragraph_close" },
+				{ "meta": { "tag": "blockHtmlTag" }, "type": "tag_open", "content": "<div>" },
+				{ "type": "paragraph_open" },
+				{ "type": "inline", "children": [{ "type": "text", "content": "World" }], "content": "World" },
+				{ "type": "paragraph_close" },
+				{ "meta": { "tag": "blockHtmlTag" }, "type": "tag_close", "content": "</div>" }
+			]
 		},
-		{ "type": "paragraph_open", "tag": "p" },
-		{
-			"type": "inline",
-			"tag": "",
-			"children": [{ "type": "text", "tag": "", "content": "foo" }],
-			"content": "foo"
-		},
-		{ "type": "paragraph_close", "tag": "p" },
-		{ "type": "list_item_close", "tag": "li" },
-		{ "type": "list_item_open", "tag": "li" },
-		{ "type": "paragraph_open", "tag": "p" },
-		{
-			"type": "inline",
-			"tag": "",
-			"children": [{ "type": "text", "tag": "", "content": "bar" }],
-			"content": "bar"
-		},
-		{ "type": "paragraph_close", "tag": "p" },
-		{ "type": "list_item_close", "tag": "li" },
-		{ "type": "bullet_list_close", "tag": "ul" },
-		{ "type": "hr", "tag": "hr" },
-		{ "type": "bullet_list_open", "tag": "ul" },
-		{ "type": "list_item_open", "tag": "li" },
-		{ "type": "paragraph_open", "tag": "p" },
-		{
-			"type": "inline",
-			"tag": "",
-			"children": [{ "type": "text", "tag": "", "content": "foo" }],
-			"content": "foo"
-		},
-		{ "type": "paragraph_close", "tag": "p" },
-		{ "type": "list_item_close", "tag": "li" },
-		{ "type": "list_item_open", "tag": "li" },
-		{ "type": "paragraph_open", "tag": "p" },
-		{
-			"type": "inline",
-			"tag": "",
-			"children": [{ "type": "text", "tag": "", "content": "foo2" }],
-			"content": "foo2"
-		},
-		{ "type": "paragraph_close", "tag": "p" },
-		{ "type": "list_item_close", "tag": "li" },
-		{ "type": "list_item_open", "tag": "li" },
-		{ "type": "paragraph_open", "tag": "p" },
-		{
-			"type": "inline",
-			"tag": "",
-			"children": [{ "type": "text", "tag": "", "content": "foo3" }],
-			"content": "foo3"
-		},
-		{ "type": "paragraph_close", "tag": "p" },
-		{ "type": "list_item_close", "tag": "li" },
-		{ "type": "bullet_list_close", "tag": "ul" },
-		{ "type": "tag_close", "tag": "", "nesting": -1, "info": "/table", "meta": { "tag": "table" } }
-	],
-	"transformedTkens": [
-		{ "type": "table_open", "tag": "table", "nesting": 1, "attrs": {} },
-		{ "type": "tbody_open", "tag": "tbody", "nesting": 1 },
-		{ "type": "tr_open", "tag": "tr", "nesting": 1 },
-		{
-			"type": "td_open",
-			"tag": "td",
-			"nesting": 1,
-			"attrs": { "colspan": 2 },
-			"meta": { "attributes": [{ "type": "attribute", "name": "colspan", "value": 2 }] }
-		},
-		{ "type": "paragraph_open", "tag": "p" },
-		{
-			"type": "inline",
-			"tag": "",
-			"children": [{ "type": "text", "tag": "", "content": "foo" }],
-			"content": "foo"
-		},
-		{ "type": "paragraph_close", "tag": "p" },
-		{ "type": "td_close", "tag": "td", "nesting": -1 },
-		{ "type": "td_open", "tag": "td", "nesting": 1, "attrs": {}, "meta": null },
-		{ "type": "paragraph_open", "tag": "p" },
-		{
-			"type": "inline",
-			"tag": "",
-			"children": [{ "type": "text", "tag": "", "content": "bar" }],
-			"content": "bar"
-		},
-		{ "type": "paragraph_close", "tag": "p" },
-		{ "type": "td_close", "tag": "td", "nesting": -1 },
-		{ "type": "tr_close", "tag": "tr", "nesting": -1 },
-		{ "type": "tr_open", "tag": "tr", "nesting": 1 },
-		{ "type": "td_open", "tag": "td", "nesting": 1, "attrs": {}, "meta": null },
-		{ "type": "paragraph_open", "tag": "p" },
-		{
-			"type": "inline",
-			"tag": "",
-			"children": [{ "type": "text", "tag": "", "content": "foo" }],
-			"content": "foo"
-		},
-		{ "type": "paragraph_close", "tag": "p" },
-		{ "type": "td_close", "tag": "td", "nesting": -1 },
-		{ "type": "td_open", "tag": "td", "nesting": 1, "attrs": {}, "meta": null },
-		{ "type": "paragraph_open", "tag": "p" },
-		{
-			"type": "inline",
-			"tag": "",
-			"children": [{ "type": "text", "tag": "", "content": "foo2" }],
-			"content": "foo2"
-		},
-		{ "type": "paragraph_close", "tag": "p" },
-		{ "type": "td_close", "tag": "td", "nesting": -1 },
-		{ "type": "td_open", "tag": "td", "nesting": 1, "attrs": {}, "meta": null },
-		{ "type": "paragraph_open", "tag": "p" },
-		{
-			"type": "inline",
-			"tag": "",
-			"children": [{ "type": "text", "tag": "", "content": "foo3" }],
-			"content": "foo3"
-		},
-		{ "type": "paragraph_close", "tag": "p" },
-		{ "type": "td_close", "tag": "td", "nesting": -1 },
-		{ "type": "tr_close", "tag": "tr", "nesting": -1 },
-		{ "type": "tbody_close", "tag": "tbody", "nesting": -1 },
-		{ "type": "table_close", "tag": "table", "nesting": -1 }
-	]
+		"blockWithInlineHtmlTag": {
+			"tokens": [
+				{ "type": "paragraph_open" },
+				{
+					"type": "inline",
+					"children": [
+						{ "type": "text", "content": "Hello " },
+						{ "meta": { "tag": "blockWithInlineHtmlTag" }, "type": "tag_open", "content": "<span>" },
+						{ "type": "text", "content": "World" },
+						{ "meta": { "tag": "blockWithInlineHtmlTag" }, "type": "tag_close", "content": "</span>" }
+					]
+				},
+				{ "type": "paragraph_close" }
+			],
+			"transformedTokens": [
+				{ "type": "paragraph_open" },
+				{
+					"type": "inline",
+					"children": [{ "type": "text", "content": "Hello " }],
+					"content": "Hello "
+				},
+				{ "type": "paragraph_close" },
+				{ "meta": { "tag": "blockWithInlineHtmlTag" }, "type": "tag_open", "content": "<span>" },
+				{ "type": "inline", "children": [{ "type": "text", "content": "World" }], "content": "World" },
+				{ "meta": { "tag": "blockWithInlineHtmlTag" }, "type": "tag_close", "content": "</span>" }
+			]
+		}
+	}
 }

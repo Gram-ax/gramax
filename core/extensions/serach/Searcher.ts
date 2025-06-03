@@ -5,9 +5,9 @@ export default interface Searcher {
 }
 
 export interface SearchItem {
-	name: { targets: { start: string; target: string }[]; end: string }; // Заголовок
-	paragraph: { prev: string; target: string; next: string }[]; // Тексты с совпадениями
-	count: number; // Количество совпадений
-	score: number; // Коэфициент совпадения (чем больше тем лучше)
+	name: { targets: { start: string; target: string }[]; end: string }; // Title
+	paragraph: { prev: string; target: string; next: string }[]; // Texts with matches
+	count: number; // Number of matches
+	score: number; // Match coefficient (higher is better)
 	url: string;
 }

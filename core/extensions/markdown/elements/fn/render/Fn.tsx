@@ -77,7 +77,7 @@ const Fn = ({ code, defaultValues }: { code: string; defaultValues?: string }): 
 								</label>
 								<div className="field">
 									<CodeBlock
-										lang={"json"}
+										language={"json"}
 										value={
 											typeof response[key] === "string"
 												? response[key]

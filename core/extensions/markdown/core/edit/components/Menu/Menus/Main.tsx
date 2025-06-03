@@ -8,30 +8,66 @@ import AnyMenuGroup from "../Groups/Any";
 import HeadersMenuGroup from "../Groups/Headers";
 import ListMenuGroup from "../Groups/List";
 import TextMenuGroup from "../Groups/Text";
+import AIGroup from "@ext/markdown/core/edit/components/Menu/Groups/AIGroup";
+import PropertyMenuGroup from "@ext/markdown/core/edit/components/Menu/Groups/Property";
 
-interface MainMenuProps {
-	editor?: Editor;
-	className?: string;
+export interface MainMenuOptions {
 	includeResources?: boolean;
+	isGramaxAiEnabled?: boolean;
+	isTemplate?: boolean;
+	fileName?: string;
+	isSmallEditor?: boolean;
 }
 
-const MainMenu = styled(({ editor, className, includeResources = true }: MainMenuProps) => {
-	return (
-		<div className={className}>
-			<ModalLayoutDark>
-				<ButtonsLayout>
-					<HeadersMenuGroup editor={editor} />
-					<div className="divider" />
-					<TextMenuGroup editor={editor} />
-					<div className="divider" />
-					<ListMenuGroup editor={editor} />
-					<div className="divider" />
-					<AnyMenuGroup editor={editor} includeResources={includeResources} />
-				</ButtonsLayout>
-			</ModalLayoutDark>
-		</div>
-	);
-})`
+interface MainMenuProps extends MainMenuOptions {
+	editor?: Editor;
+	className?: string;
+}
+
+const MainMenu = styled(
+	({
+		editor,
+		className,
+		includeResources = true,
+		isGramaxAiEnabled,
+		isTemplate,
+		fileName,
+		isSmallEditor = false,
+	}: MainMenuProps) => {
+		return (
+			<div className={className}>
+				<ModalLayoutDark>
+					<ButtonsLayout>
+						<HeadersMenuGroup editor={editor} />
+						<div className="divider" />
+						<TextMenuGroup editor={editor} />
+						{isTemplate && (
+							<>
+								<div className="divider" />
+								<PropertyMenuGroup editor={editor} />
+							</>
+						)}
+						<div className="divider" />
+						<ListMenuGroup editor={editor} />
+						<div className="divider" />
+						<AnyMenuGroup
+							editor={editor}
+							includeResources={includeResources}
+							fileName={fileName}
+							isSmallEditor={isSmallEditor}
+						/>
+						{isGramaxAiEnabled && (
+							<>
+								<div className="divider" />
+								<AIGroup editor={editor} />
+							</>
+						)}
+					</ButtonsLayout>
+				</ModalLayoutDark>
+			</div>
+		);
+	},
+)`
 	border-radius: var(--radius-large);
 
 	> div > div {

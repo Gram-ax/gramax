@@ -1,0 +1,147 @@
+{
+	"p": {
+		"input": { "type": "p", "content": [{ "type": "text", "text": "paragraph" }] },
+		"output": [{ "type": "text", "text": "paragraph" }]
+	},
+	"div": {
+		"input": { "type": "div", "content": [{ "type": "text", "text": "div content" }] },
+		"output": [{ "type": "text", "text": "div content" }]
+	},
+	"span": {
+		"input": { "type": "span", "content": [{ "type": "text", "text": "span content" }] },
+		"output": [{ "type": "text", "text": "span content" }]
+	},
+	"b": {
+		"input": { "type": "b", "content": [{ "type": "text", "text": "bold" }] },
+		"output": [{ "type": "text", "text": "bold", "marks": [{ "type": "strong" }] }]
+	},
+	"strong": {
+		"input": { "type": "strong", "content": [{ "type": "text", "text": "strong" }] },
+		"output": [{ "type": "text", "text": "strong", "marks": [{ "type": "strong" }] }]
+	},
+	"i": {
+		"input": { "type": "i", "content": [{ "type": "text", "text": "italic" }] },
+		"output": [{ "type": "text", "text": "italic", "marks": [{ "type": "em" }] }]
+	},
+	"em": {
+		"input": { "type": "em", "content": [{ "type": "text", "text": "emphasized" }] },
+		"output": [{ "type": "text", "text": "emphasized", "marks": [{ "type": "em" }] }]
+	},
+	"a": {
+		"input": { "type": "a", "content": [{ "type": "text", "text": "link" }] },
+		"output": [{ "type": "text", "text": "link", "marks": [{ "type": "link" }] }]
+	},
+	"code": {
+		"input": { "type": "code", "content": [{ "type": "text", "text": "code" }] },
+		"output": [{ "type": "text", "text": "code", "marks": [{ "type": "code" }] }]
+	},
+	"strike": {
+		"input": { "type": "strike", "content": [{ "type": "text", "text": "strikethrough" }] },
+		"output": [{ "type": "text", "text": "strikethrough", "marks": [{ "type": "s" }] }]
+	},
+	"s": {
+		"input": { "type": "s", "content": [{ "type": "text", "text": "strikethrough" }] },
+		"output": [{ "type": "text", "text": "strikethrough", "marks": [{ "type": "s" }] }]
+	},
+	"h1": {
+		"input": { "type": "h1", "content": [{ "type": "text", "text": "heading 1" }] },
+		"output": { "type": "heading", "attrs": { "level": 2 }, "content": [{ "type": "text", "text": "heading 1" }] }
+	},
+	"h2": {
+		"input": { "type": "h2", "content": [{ "type": "text", "text": "heading 2" }] },
+		"output": { "type": "heading", "attrs": { "level": 2 }, "content": [{ "type": "text", "text": "heading 2" }] }
+	},
+	"h3": {
+		"input": { "type": "h3", "content": [{ "type": "text", "text": "heading 3" }] },
+		"output": { "type": "heading", "attrs": { "level": 3 }, "content": [{ "type": "text", "text": "heading 3" }] }
+	},
+	"h4": {
+		"input": { "type": "h4", "content": [{ "type": "text", "text": "heading 4" }] },
+		"output": { "type": "heading", "attrs": { "level": 4 }, "content": [{ "type": "text", "text": "heading 4" }] }
+	},
+	"h5": {
+		"input": { "type": "h5", "content": [{ "type": "text", "text": "heading 5" }] },
+		"output": { "type": "heading", "attrs": { "level": 5 }, "content": [{ "type": "text", "text": "heading 5" }] }
+	},
+	"h6": {
+		"input": { "type": "h6", "content": [{ "type": "text", "text": "heading 6" }] },
+		"output": { "type": "heading", "attrs": { "level": 6 }, "content": [{ "type": "text", "text": "heading 6" }] }
+	},
+	"pre": {
+		"input": { "type": "pre", "content": [{ "type": "text", "text": "code block" }] },
+		"output": { "type": "code_block", "attrs": {}, "content": [{ "type": "text", "text": "code block" }] }
+	},
+	"li": {
+		"input": { "type": "li", "content": [{ "type": "text", "text": "list item" }] },
+		"output": { "type": "listItem", "attrs": {}, "content": [{ "type": "text", "text": "list item" }] }
+	},
+	"ul": {
+		"input": {
+			"type": "ul",
+			"content": [{ "type": "listItem", "content": [{ "type": "text", "text": "list item" }] }]
+		},
+		"output": {
+			"type": "bulletList",
+			"attrs": {},
+			"content": [{ "type": "listItem", "content": [{ "type": "text", "text": "list item" }] }]
+		}
+	},
+	"ol": {
+		"input": {
+			"type": "ol",
+			"content": [{ "type": "listItem", "content": [{ "type": "text", "text": "list item" }] }]
+		},
+		"output": {
+			"type": "orderedList",
+			"attrs": {},
+			"content": [{ "type": "listItem", "content": [{ "type": "text", "text": "list item" }] }]
+		}
+	},
+	"blockquote": {
+		"input": { "type": "blockquote", "content": [{ "type": "text", "text": "quote" }] },
+		"output": { "type": "note", "attrs": { "type": "quote" }, "content": [{ "type": "text", "text": "quote" }] }
+	},
+	"img": {
+		"input": {
+			"type": "img",
+			"attrs": {
+				"attributes": {
+					"src": "image.png",
+					"crop": "10,10,80,80",
+					"scale": "50",
+					"width": "522px",
+					"height": "271px",
+					"objects": "square,50,50,25,25,asd,top-left"
+				}
+			},
+			"content": [{ "type": "text", "text": "image alt" }]
+		},
+		"output": {
+			"type": "image",
+			"attrs": {
+				"src": "image.png",
+				"scale": 50,
+				"width": "522px",
+				"height": "271px",
+				"crop": {
+					"h": 80,
+					"w": 80,
+					"x": 10,
+					"y": 10
+				},
+				"objects": [
+					{
+						"direction": "top-left",
+						"h": 25,
+						"text": "asd",
+						"type": "square",
+						"w": 25,
+						"x": 50,
+						"y": 50
+					}
+				]
+			},
+			"content": [{ "type": "text", "text": "image alt" }]
+		}
+	}
+}

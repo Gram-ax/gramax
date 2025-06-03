@@ -1,4 +1,5 @@
 import { alfaHandler, betaHandler } from "@ext/markdown/elements/alfaBeta/pdf/alfabeta";
+import { blockPropertyHandler } from "@ext/markdown/elements/blockProperty/pdf/blockProperty";
 import { brHandler } from "@ext/markdown/elements/br/pdf/br";
 import { cmdHandler } from "@ext/markdown/elements/cmd/pdf/cmd";
 import { codeHandler } from "@ext/markdown/elements/code/pdf/code";
@@ -54,7 +55,7 @@ export const inlineLayouts = {
 	s: strikeHandler,
 	Br: brHandler,
 	br: brHandler,
-	"Inline-property": inlinePropertyHandler,
+	"inline-property": inlinePropertyHandler,
 	// Icon,
 	//Formula,
 	//Fn
@@ -82,6 +83,7 @@ export const blockLayouts = {
 	"Db-diagram": diagramdbHandler,
 	"Db-table": tabledbHandler,
 	View: viewCase,
+	"block-property": blockPropertyHandler,
 	// cut
 	// blockquote
 	// 	"Ts-diagram": tsDiagramWordLayout,

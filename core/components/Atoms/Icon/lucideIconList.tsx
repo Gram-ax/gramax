@@ -43,6 +43,13 @@ export const toListItem = ({ code, svg, category }: IconListProps, inverse?: boo
 	};
 };
 
+export const toListItemByUikit = ({ code, svg, category }: IconListProps, inverse?: boolean): ListItem => {
+	return {
+		labelField: code,
+		element: <Sidebar leftActions={[<Icon key={0} code={code} svg={svg} />]} title={code} />,
+	};
+};
+
 export const iconFilter = (customIconsList?: IconEditorProps[], inverse?: boolean) => {
 	const [categories, setCategories] = useState<{ [name: string]: string[] }>();
 
@@ -101,6 +108,10 @@ export const iconFilter = (customIconsList?: IconEditorProps[], inverse?: boolea
 
 	return transliterationSearch;
 };
+
+export const lucideIconListForUikit = Object.keys(Lucide.icons).map((code) =>
+	toListItemByUikit({ code: camelToKebabCase(code) }),
+);
 
 const lucideIconList = Object.keys(Lucide.icons).map((code) => toListItem({ code: camelToKebabCase(code) }));
 

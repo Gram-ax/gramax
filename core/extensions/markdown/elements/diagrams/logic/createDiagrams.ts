@@ -1,6 +1,5 @@
 import ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
 import { Editor } from "@tiptap/core";
-import { ClientArticleProps } from "../../../../../logic/SitePresenter/SitePresenter";
 import DiagramType from "../../../../../logic/components/Diagram/DiagramType";
 import { startC4DiagramText } from "../diagrams/c4Diagram/c4DiagramData";
 import { startMermaid } from "../diagrams/mermaid/mermaidData";
@@ -31,7 +30,7 @@ const getAnyDiagrams = async (
 
 const createDiagrams = async (
 	editor: Editor,
-	articleProps: ClientArticleProps,
+	fileName: string,
 	apiUrlCreator: ApiUrlCreator,
 	resourceService: ResourceServiceType,
 	diagramName: DiagramType,
@@ -58,20 +57,27 @@ const createDiagrams = async (
 			break;
 	}
 
-	const name = `${articleProps.fileName}.${extension}`;
+	const name = `${fileName}.${extension}`;
 	const newName = await resourceService.setResource(name, file);
+
 	if (!newName) return;
-	const diagramData = DIAGRAM_FUNCTIONS?.[diagramName]
-		? await DIAGRAM_FUNCTIONS?.[diagramName](file, pageDataContext.conf.diagramsServiceUrl)
-		: await getAnyDiagrams(file, apiUrlCreator, diagramName, diagramName === DiagramType["c4-diagram"]);
-	const newSize = getNaturalSize(diagramData);
+
 	const attributes: { src: string; diagramName: string; width?: string; height?: string } = {
 		src: newName,
 		diagramName,
 	};
-	if (newSize) {
-		attributes.width = newSize.width + "px";
-		attributes.height = newSize.height + "px";
+	try {
+		const diagramData = DIAGRAM_FUNCTIONS?.[diagramName]
+			? await DIAGRAM_FUNCTIONS?.[diagramName](file, pageDataContext.conf.diagramsServiceUrl)
+			: await getAnyDiagrams(file, apiUrlCreator, diagramName, diagramName === DiagramType["c4-diagram"]);
+		const newSize = getNaturalSize(diagramData);
+
+		if (newSize) {
+			attributes.width = newSize.width + "px";
+			attributes.height = newSize.height + "px";
+		}
+	} catch (error) {
+		console.error("Error creating diagram:", error);
 	}
 
 	editor.chain().setDiagrams(attributes).run();

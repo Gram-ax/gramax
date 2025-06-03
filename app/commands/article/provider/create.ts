@@ -5,7 +5,7 @@ import { AuthorizeMiddleware } from "@core/Api/middleware/AuthorizeMiddleware";
 import { DesktopModeMiddleware } from "@core/Api/middleware/DesktopModeMiddleware";
 import ReloadConfirmMiddleware from "@core/Api/middleware/ReloadConfirmMiddleware";
 import type Context from "@core/Context/Context";
-import ArticleProvider, { ArticleProviderType } from "@core/FileStructue/Article/ArticleProvider";
+import ArticleProvider, { ArticleProviderType } from "@ext/articleProvider/logic/ArticleProvider";
 import { JSONContent } from "@tiptap/core";
 
 const create: Command<
@@ -41,10 +41,7 @@ const create: Command<
 		const props = body?.props || {};
 		const content = body?.content || {
 			type: "doc",
-			content: [
-				{ type: "paragraph", content: [] },
-				{ type: "paragraph", content: [] },
-			],
+			content: [{ type: "paragraph", content: [] }],
 		};
 		return { ctx, catalogName: q.catalogName, id, content, props, type };
 	},

@@ -144,6 +144,11 @@ export class Article<P extends ArticleProps = ArticleProps> extends Item<P> {
 		delete this._props.shouldBeCreated;
 		delete this._props.welcome;
 		if (this._props.title?.trim()) delete this._props.external;
+		await this.events.emit("item-pre-save", {
+			item: this,
+			mutable: { content: this._content, props: this._props },
+		});
+		if (this._props.title?.toString().trim()) delete this._props.external;
 
 		const stat = await this._fs.saveArticle(this._ref.path, this._content, this._props);
 		this._lastModified = stat.mtimeMs;

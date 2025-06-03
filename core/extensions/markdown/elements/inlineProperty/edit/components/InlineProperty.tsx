@@ -1,12 +1,11 @@
 import styled from "@emotion/styled";
-import ListLayout from "@components/List/ListLayout";
 import { Property, PropertyTypes } from "@ext/properties/models";
 import PropertyServiceProvider from "@ext/properties/components/PropertyService";
 import Icon from "@components/Atoms/Icon";
 import t from "@ext/localization/locale/translate";
 import Flag from "@ext/markdown/elements/inlineProperty/edit/components/inputs/Flag";
 import PropertyEditor from "@ext/markdown/elements/inlineProperty/edit/components/PropertyEditor";
-import Tooltip from "@components/Atoms/Tooltip";
+import getDisplayValue from "@ext/properties/logic/getDisplayValue";
 
 interface InlinePropertyProps {
 	bind: string;
@@ -38,76 +37,70 @@ const TriggerWrapper = styled.span`
 	}
 `;
 
-const ContentWrapper = styled.div`
-	font-size: 0.8rem;
-	background: var(--color-article-bg);
-	box-shadow: var(--menu-tooltip-shadow);
-	border-radius: var(--radius-medium);
-	overflow: hidden;
-`;
+interface EditablePropertyProps {
+	bind: string;
+	articleProp: Property;
+	catalogProp: Property;
+	isExists: boolean;
+	onChangeProperty: (name: string, value: string) => void;
+}
 
-const InlineProperty = ({ bind, onUpdate, props, isEditable, onChangeProperty, selected }: InlinePropertyProps) => {
+const EditableProperty = ({ bind, onChangeProperty, articleProp, catalogProp, isExists }: EditablePropertyProps) => {
+	if (!catalogProp) return;
+	const isFlag = catalogProp?.type === PropertyTypes.flag;
+
+	const yesOrNo = isExists ? t("yes") : t("no");
+	const displayValue = isFlag ? yesOrNo : getDisplayValue(catalogProp?.type, articleProp?.value) || bind;
+
+	const trigger = (
+		<TriggerWrapper data-focusable="true">
+			{articleProp && <Icon code={catalogProp?.icon} />}
+			{displayValue}
+		</TriggerWrapper>
+	);
+
+	if (!articleProp) return trigger;
+
+	const resolvedCustomComponent = catalogProp.type === PropertyTypes.flag ? Flag : undefined;
+
+	return (
+		<PropertyEditor
+			customComponent={resolvedCustomComponent}
+			isInline
+			id={catalogProp.name}
+			type={catalogProp.type}
+			values={catalogProp.values}
+			value={isFlag ? isExists : articleProp.value}
+			onSubmit={onChangeProperty}
+			trigger={trigger}
+		/>
+	);
+};
+
+const InlineProperty = ({ bind, props, isEditable, onChangeProperty, selected }: InlinePropertyProps) => {
 	const { articleProperties } = PropertyServiceProvider.value;
-	const articleProp = articleProperties?.find((p) => p?.name === bind) || props.get(bind);
+	const catalogProp = props.get(bind);
+	const articleProp = articleProperties?.find((p) => p?.name === bind) || catalogProp;
 
 	if (isEditable) {
-		const isFlag = articleProp?.type === PropertyTypes.flag;
 		const isExists = articleProperties.some((p) => p?.name === articleProp?.name);
 
-		const yesOrNo = isExists ? t("yes") : t("no");
-		const displayValue = isFlag ? yesOrNo : articleProp?.value?.join(", ") || bind || "???";
-
-		const trigger = (
-			<TriggerWrapper data-focusable="true">
-				{articleProp && <Icon code={articleProp?.icon} />}
-				{displayValue}
-			</TriggerWrapper>
+		return (
+			<EditableProperty
+				bind={bind}
+				onChangeProperty={onChangeProperty}
+				articleProp={articleProp}
+				catalogProp={catalogProp}
+				isExists={isExists}
+			/>
 		);
-
-		if (articleProp) {
-			const resolvedCustomComponent = articleProp.type === PropertyTypes.flag ? Flag : undefined;
-
-			return (
-				<PropertyEditor
-					customComponent={resolvedCustomComponent}
-					isInline
-					id={articleProp.name}
-					type={articleProp.type}
-					values={articleProp.values}
-					value={isFlag ? isExists : articleProp.value}
-					onSubmit={onChangeProperty}
-					trigger={trigger}
-				/>
-			);
-		}
-		return trigger;
 	}
 
 	return (
-		<Tooltip
-			visible={selected}
-			interactive
-			customStyle
-			arrow={false}
-			place="bottom-start"
-			offset={[0, 5]}
-			trigger="click"
-			content={
-				<ContentWrapper>
-					<ListLayout
-						onItemClick={onUpdate}
-						item={bind}
-						placeholder={t("template.select-property")}
-						items={Array.from(props.keys())}
-					/>
-				</ContentWrapper>
-			}
-		>
-			<TriggerWrapper data-focusable="true">
-				{articleProp && <Icon code={articleProp?.icon} />}
-				{bind || "???"}
-			</TriggerWrapper>
-		</Tooltip>
+		<TriggerWrapper data-focusable="true" className={selected ? "selected" : ""}>
+			{articleProp && <Icon code={catalogProp?.icon} />}
+			{bind || "???"}
+		</TriggerWrapper>
 	);
 };
 

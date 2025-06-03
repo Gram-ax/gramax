@@ -6,6 +6,7 @@ import PropertyServiceProvider from "@ext/properties/components/PropertyService"
 import { deleteProperty, updateProperty } from "@ext/properties/logic/changeProperty";
 import combineProperties from "@ext/properties/logic/combineProperties";
 import { Property } from "@ext/properties/models";
+import TemplateService from "@ext/templates/components/TemplateService";
 import { NodeSelection } from "@tiptap/pm/state";
 import { NodeViewProps, NodeViewWrapper } from "@tiptap/react";
 import { useCallback } from "react";
@@ -13,7 +14,8 @@ import { useCallback } from "react";
 const InlinePropertyComponent = ({ node, updateAttributes, extension, editor, selected }: NodeViewProps) => {
 	const bind = node.attrs.bind as string;
 	const isSelected = selected && editor.state.selection instanceof NodeSelection;
-	const { properties, articleProperties, setArticleProperties } = PropertyServiceProvider.value;
+	const { setArticleProperties } = PropertyServiceProvider.value;
+	const { properties } = TemplateService.value;
 	const articleProps = ArticlePropsService.value;
 	const apiUrlCreator = ApiUrlCreatorService.value;
 
@@ -32,10 +34,10 @@ const InlinePropertyComponent = ({ node, updateAttributes, extension, editor, se
 					JSON.stringify({ ...articleProps, properties: newProps }),
 				);
 
-				return combineProperties(newProps, Array.from(properties.values()));
+				return combineProperties(newProps, properties);
 			});
 		},
-		[articleProps, properties, articleProperties],
+		[articleProps, properties],
 	);
 
 	const updateHandler = useCallback(
@@ -49,10 +51,10 @@ const InlinePropertyComponent = ({ node, updateAttributes, extension, editor, se
 					JSON.stringify({ ...articleProps, properties: newProps }),
 				);
 
-				return combineProperties(newProps, Array.from(properties.values()));
+				return combineProperties(newProps, properties);
 			});
 		},
-		[articleProps, properties, articleProperties],
+		[articleProps, properties],
 	);
 
 	const onSubmit = useCallback(

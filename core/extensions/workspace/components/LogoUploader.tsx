@@ -1,20 +1,18 @@
-import { TextSize } from "@components/Atoms/Button/Button";
-import { ButtonStyle } from "@components/Atoms/Button/ButtonStyle";
+import { MAX_ICON_SIZE } from "@app/config/const";
 import { classNames } from "@components/libs/classNames";
-import FileInput from "@components/Molecules/FileInput";
 import Skeleton from "@components/Atoms/Skeleton";
-import ButtonLink, { ButtonLinkProps } from "@components/Molecules/ButtonLink";
 import styled from "@emotion/styled";
 import ErrorModal from "@ext/errorHandlers/client/components/ErrorModal";
 import DefaultError from "@ext/errorHandlers/logic/DefaultError";
 import t from "@ext/localization/locale/translate";
 import Theme from "@ext/Theme/Theme";
-import { memo, useCallback, ChangeEvent, useState, useMemo } from "react";
+import { IconButton, Button } from "@ui-kit/Button";
+import { memo, useCallback, useState, useRef, ChangeEvent } from "react";
 
 export type UpdateResource = (data: { content: string; type: string; fileName: string }) => void;
 
-interface LogoUploader {
-	deleteResource: () => any;
+interface LogoUploaderProps {
+	deleteResource: () => void;
 	updateResource: UpdateResource;
 	imageTheme?: Theme;
 	isLoading?: boolean;
@@ -23,131 +21,146 @@ interface LogoUploader {
 	svgOnly?: boolean;
 }
 
-const LogoUploader = memo((props: LogoUploader) => {
-	const { updateResource, deleteResource, logo, svgOnly, imageTheme, isLoading, className } = props;
-	const [error, setError] = useState<DefaultError>(null);
+const ALLOWED_SVG = ["image/svg+xml"];
+const ALLOWED_PNG_SVG = ["image/svg+xml", "image/png"];
+const getAllowedTypes = (svgOnly?: boolean) => (svgOnly ? ALLOWED_SVG : ALLOWED_PNG_SVG);
+
+const useLogoUploader = ({ svgOnly, updateResource }: Pick<LogoUploaderProps, "svgOnly" | "updateResource">) => {
+	const [error, setError] = useState<DefaultError | null>(null);
+
+	const resetInput = (input: HTMLInputElement) => {
+		input.value = "";
+	};
+
+	const validateFile = (file: File, svgOnly?: boolean) => {
+		if (!getAllowedTypes(svgOnly).includes(file.type as any)) return "workspace.invalid-logo-format-body";
+		if (file.size > MAX_ICON_SIZE) return "workspace.logo-size-exceeded";
+	};
 
 	const handleUpload = useCallback(
 		(event: ChangeEvent<HTMLInputElement>) => {
+			const input = event.target;
 			setError(null);
 
-			const file = event.target.files && event.target.files[0];
+			const file = input.files?.[0];
 			if (!file) return;
 
-			const allowedTypes = svgOnly ? ["image/svg+xml"] : ["image/svg+xml", "image/png"];
-			if (!allowedTypes.includes(file.type)) {
-				setError(
-					new DefaultError(
-						t("workspace.invalid-logo-format-body"),
-						undefined,
-						undefined,
-						undefined,
-						t("workspace.invalid-logo-format-title"),
-					),
+			const errorKey = validateFile(file, svgOnly);
+			if (errorKey) {
+				const errorInstance = new DefaultError(
+					t(errorKey),
+					undefined,
+					undefined,
+					undefined,
+					t("workspace.upload-error-title"),
 				);
-				event.target.value = "";
-				return;
-			}
-
-			const maxSize = 500 * 1024;
-			if (file.size > maxSize) {
-				setError(
-					new DefaultError(
-						t("workspace.logo-size-exceeded"),
-						undefined,
-						undefined,
-						undefined,
-						t("workspace.logo-upload-failed"),
-					),
-				);
-
-				return (event.target.value = "");
+				setError(errorInstance);
+				return resetInput(input);
 			}
 
 			const reader = new FileReader();
 
-			if (file.type === "image/svg+xml") {
-				reader.onload = (e) => {
-					const svgContent = e.target?.result as string;
-					if (svgContent) updateResource({ content: svgContent, type: "svg", fileName: file.name });
-				};
-				reader.readAsText(file);
-			} else {
-				reader.onload = (e) => {
-					const dataUrl = e.target?.result as string;
-					if (dataUrl) updateResource({ content: dataUrl, type: "png", fileName: file.name });
-				};
-				reader.readAsDataURL(file);
-			}
+			reader.onload = (e) => {
+				const result = e.target?.result as string;
+				if (!result) return;
 
-			event.target.value = "";
+				updateResource({
+					content: result,
+					type: file.type === "image/svg+xml" ? "svg" : "png",
+					fileName: file.name,
+				});
+			};
+
+			file.type === "image/svg+xml" ? reader.readAsText(file) : reader.readAsDataURL(file);
+
+			resetInput(input);
 		},
-		[updateResource],
+		[svgOnly, updateResource],
 	);
 
-	const height = 31.55;
+	return { error, setError, handleUpload } as const;
+};
 
-	const buttonProps: ButtonLinkProps = useMemo(() => {
-		return {
-			iconCode: "upload",
-			style: { height },
-			text: logo ? undefined : t("load"),
-			unionFontSize: true,
-			isEmUnits: true,
-			textSize: TextSize.S,
-			buttonStyle: ButtonStyle.default,
-			fullWidth: !logo,
-			iconFw: false,
-		};
-	}, [logo, height]);
+const LogoUploaderComponent = memo((props: LogoUploaderProps) => {
+	const { updateResource, deleteResource, logo, svgOnly, imageTheme, isLoading, className } = props;
+
+	const { handleUpload, setError, error } = useLogoUploader({
+		svgOnly,
+		updateResource,
+	});
+	const fileRef = useRef<HTMLInputElement>(null);
+
+	const hasLogo = Boolean(logo);
 
 	return (
-		<div className={classNames(className, { needGap: logo })}>
+		<Wrapper className={classNames(className, { "need-gap": hasLogo })}>
 			{isLoading ? (
-				<Skeleton style={{ height, width: "100%" }} />
+				<Skeleton className={"skeleton-structure"} />
 			) : (
 				<>
-					{logo && (
-						<div style={{ height }} data-theme={imageTheme} className={"imageWrapper"}>
-							<img src={logo} className={"homePageImg"} alt={`${imageTheme}-logo`} />
-						</div>
+					{hasLogo && (
+						<>
+							<div data-theme={imageTheme} className="image-wrapper">
+								<img src={logo} className="home-page-img" alt="logo" />
+							</div>
+							<IconButton icon="x" type="button" onClick={deleteResource} />
+						</>
 					)}
 
-					{logo && <ButtonLink {...buttonProps} iconCode={"x"} onClick={deleteResource} />}
+					<label style={{ width: "100%" }}>
+						{hasLogo ? (
+							<IconButton onClick={() => fileRef.current?.click()} type="button" icon="upload" />
+						) : (
+							<Button
+								onClick={() => fileRef.current?.click()}
+								startIcon="upload"
+								type="button"
+								variant="primary"
+								style={{ width: "100%" }}
+							>
+								{t("load")}
+							</Button>
+						)}
 
-					<FileInput
-						buttonLinkProps={buttonProps}
-						accept={svgOnly ? ".svg" : ".svg,.png"}
-						onChange={handleUpload}
-						hidden
-					/>
+						<input ref={fileRef} hidden type="file" onChange={handleUpload} />
+					</label>
 				</>
 			)}
+
 			<ErrorModal error={error} setError={setError} />
-		</div>
+		</Wrapper>
 	);
 });
 
-export default styled(LogoUploader)`
+LogoUploaderComponent.displayName = "LogoUploader";
+
+const Wrapper = styled("div")`
 	display: grid;
 	justify-content: space-between;
 	grid-template-columns: 1fr auto auto;
 	gap: 0;
 
-	&.needGap {
+	&.need-gap {
 		gap: 0.5rem;
 	}
 
-	.imageWrapper {
+	.skeleton-structure {
+		height: 36px;
+		width: 100%;
+	}
+
+	.image-wrapper {
+		height: 36px;
 		background: var(--color-menu-bg);
-		height: 100%;
 		border-radius: var(--radius-medium);
 		padding: 4px 8px;
 	}
 
-	.homePageImg {
+	.home-page-img {
 		max-width: 100%;
 		height: 100%;
 		max-height: 50px;
 	}
 `;
+
+export default LogoUploaderComponent;

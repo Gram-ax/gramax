@@ -17,7 +17,7 @@ export default {
 	launch: {
 		devtools: false,
 		headless: !ci(true),
-		slowMo: 50,
+		slowMo: 35,
 		args: [
 			"--disable-web-security",
 			"--disable-features=IsolateOrigins,site-per-process",

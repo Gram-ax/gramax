@@ -59,9 +59,9 @@ const TabWrapper = forwardRef<HTMLDivElement, TabWrapperProps>((props, ref) => {
 		<Wrapper
 			ref={ref}
 			className={classNames("tab-wrapper", { show, "is-top": isTop })}
-			height={show && contentHeight}
+			height={show ? contentHeight : undefined}
 		>
-			<Header title={title} rightExtension={titleRightExtension} onClose={onClose} />
+			<Header title={title} rightExtension={titleRightExtension} onClose={onClose} show={show} />
 			{children}
 		</Wrapper>
 	);

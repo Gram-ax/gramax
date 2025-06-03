@@ -1,4 +1,3 @@
-import { TemplateField } from "@core/FileStructue/Article/TemplateArticle";
 import type ContextualCatalog from "@core/FileStructue/Catalog/ContextualCatalog";
 import type { Category } from "@core/FileStructue/Category/Category";
 import CustomArticlePresenter from "@core/SitePresenter/CustomArticlePresenter";
@@ -15,6 +14,7 @@ import NavigationEventHandlers from "@ext/navigation/events/NavigationEventHandl
 import getAllCatalogProperties from "@ext/properties/logic/getAllCatalogProps";
 import { Property, PropertyValue } from "@ext/properties/models";
 import RuleProvider from "@ext/rules/RuleProvider";
+import { TemplateField } from "@ext/templates/models/types";
 import type { Workspace } from "@ext/workspace/Workspace";
 import type { WorkspaceConfig } from "@ext/workspace/WorkspaceConfig";
 import htmlToText from "html-to-text";
@@ -50,6 +50,8 @@ export type ClientCatalogProps = {
 	resolvedVersions?: RefInfo[];
 	resolvedVersion?: RefInfo;
 	syntax?: Syntax;
+	docrootIsNoneExsistent?: boolean;
+	notFound: boolean;
 };
 
 export type ClientArticleProps = {
@@ -275,6 +277,7 @@ export default class SitePresenter {
 	async serializeCatalogProps(catalog: ReadonlyBaseCatalog): Promise<ClientCatalogProps> {
 		if (!catalog) {
 			return {
+				notFound: true,
 				relatedLinks: null,
 				link: null,
 				contactEmail: null,
@@ -294,6 +297,7 @@ export default class SitePresenter {
 		const storage = catalog.repo.storage;
 
 		return {
+			notFound: false,
 			link: await this._nav.getCatalogLink(
 				catalog,
 				new LastVisited(this._context, (await this._workspace.config()).name),
@@ -314,6 +318,7 @@ export default class SitePresenter {
 			resolvedVersion: catalog.props.resolvedVersion,
 			resolvedVersions: catalog.props.resolvedVersions,
 			syntax: catalog.props.syntax,
+			docrootIsNoneExsistent: catalog.props.docrootIsNoneExistent,
 		};
 	}
 

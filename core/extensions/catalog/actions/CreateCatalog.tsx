@@ -9,6 +9,8 @@ import { uniqueName } from "@core/utils/uniqueName";
 import CatalogEditProps from "@ext/catalog/actions/propsEditor/model/CatalogEditProps.schema";
 import t from "@ext/localization/locale/translate";
 import { useRouter } from "../../../logic/Api/useRouter";
+import CatalogExtendedEditProps from "@ext/catalog/actions/propsEditor/model/CatalogExtendedEditProps.schema";
+import { Syntax } from "@ext/markdown/core/edit/logic/Formatter/Formatters/typeFormats/model/Syntax";
 
 const CreateCatalog = ({ trigger }: { trigger: JSX.Element }) => {
 	const router = useRouter();
@@ -24,9 +26,10 @@ const CreateCatalog = ({ trigger }: { trigger: JSX.Element }) => {
 		const catalogNames = await getAllCatalogNames();
 		if (!catalogNames) return;
 
-		const props: CatalogEditProps = {
+		const props: CatalogEditProps & CatalogExtendedEditProps = {
 			url: uniqueName(NEW_CATALOG_NAME, catalogNames),
 			title: t("catalog.new-name"),
+			syntax: Syntax.xml,
 		};
 
 		const responsePromise = FetchService.fetch<ClientCatalogProps>(

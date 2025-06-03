@@ -26,26 +26,27 @@ import { ProsemirrorMarkdownParser, ProsemirrorTransformer } from "../edit/logic
 import { getSchema } from "../edit/logic/Prosemirror/schema";
 import { getTokens } from "../edit/logic/Prosemirror/tokens";
 
-import commentTokenTransformer from "@ext/markdown/elements/comment/logic/commentTokenTransformer";
 import commentNodeTransformer from "@ext/markdown/elements/comment/legacy/transformer/commentNodeTransformer";
+import commentTokenTransformer from "@ext/markdown/elements/comment/logic/commentTokenTransformer";
 import cutTokenTransformer from "@ext/markdown/elements/cut/logic/cutTokenTransformer";
-import iconTokenTransformer from "@ext/markdown/elements/icon/logic/iconTokenTransformer";
-import imageTokenTransformer from "@ext/markdown/elements/image/logic/imageTokenTransformer";
-import tableTokenTransformer from "@ext/markdown/elements/table/logic/tableTokenTransformer";
-import { JSONContent } from "@tiptap/core";
-import getTocItems, { getLevelTocItemsByRenderableTree } from "../../../navigation/article/logic/createTocItems";
 import inlineCutNodeTransformer from "@ext/markdown/elements/cut/logic/inlineCutNodeTransformer";
 import diagramsNodeTransformer from "@ext/markdown/elements/diagrams/logic/transformer/diagramsNodeTransformer";
 import fileMarkTransformer from "@ext/markdown/elements/file/logic/fileMarkTransformer";
+import iconTokenTransformer from "@ext/markdown/elements/icon/logic/iconTokenTransformer";
+import imageTokenTransformer from "@ext/markdown/elements/image/logic/imageTokenTransformer";
 import blockMdNodeTransformer from "@ext/markdown/elements/md/logic/blockMdNodeTransformer";
 import paragraphNodeTransformer from "@ext/markdown/elements/paragraph/logic/paragraphNodeTransformer";
-import Transformer from "./Transformer/Transformer";
+import preTransformTokens from "./Transformer/preTransformTokens";
 
+import editTreeToRenderTree from "@ext/markdown/core/Parser/EditTreeToRenderTree";
 import ParseError from "@ext/markdown/core/Parser/Error/ParseError";
 import htmlTokenTransformer from "@ext/markdown/elements/html/logic/htmlTokenTransformer";
-import MarkdownFormatter from "../edit/logic/Formatter/Formatter";
+import htmlTagNodeTransformer from "@ext/markdown/elements/htmlTag/logic/htmlTagNodeTransformer";
+import htmlTagTokenTransformer from "@ext/markdown/elements/htmlTag/logic/htmlTagTokenTransformer";
 import inlinePropertyTokenTransformer from "@ext/markdown/elements/inlineProperty/edit/logic/inlinePropertyTokenTransformer";
-import editTreeToRenderTree from "@ext/markdown/core/Parser/EditTreeToRenderTree";
+import tableTokenTransformer from "@ext/markdown/elements/table/logic/tableTokenTransformer";
+import getTocItems, { getLevelTocItemsByRenderableTree } from "@ext/navigation/article/logic/createTocItems";
+import { JSONContent } from "@tiptap/core";
 
 const katexPlugin = import("@traptitech/markdown-it-katex");
 
@@ -143,8 +144,7 @@ export default class MarkdownParser {
 		const mdParser = new MdParser({ tags: schemes.tags });
 		const parseDoc = mdParser.preParse(content);
 		const tokens = this._getTokenizer(schemes.tags).tokenize(parseDoc);
-		const transformer = new Transformer();
-		return transformer.htmlTransform(transformer.tableTransform(transformer.imageTransform(tokens)));
+		return preTransformTokens(tokens);
 	}
 
 	private _getTokenizer(tags?: Schemes["tags"]) {
@@ -169,8 +169,9 @@ export default class MarkdownParser {
 			{ ...schemes.tags, ...schemes.nodes },
 			[
 				fileMarkTransformer,
+				htmlTagNodeTransformer,
 				paragraphNodeTransformer,
-				blockMdNodeTransformer(new MarkdownFormatter(), context),
+				blockMdNodeTransformer,
 				listItemNodeTransformer,
 				taskListNodeTransformer,
 				inlineCutNodeTransformer,
@@ -187,6 +188,7 @@ export default class MarkdownParser {
 				imageTokenTransformer,
 				commentTokenTransformer,
 				iconTokenTransformer,
+				htmlTagTokenTransformer,
 			],
 			context,
 		);

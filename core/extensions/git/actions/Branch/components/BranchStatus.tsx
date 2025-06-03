@@ -42,15 +42,19 @@ export const MergeRequestIcon = () => {
 	);
 };
 
-export const RemoteOrLocalIcon = ({ isRemote }: { isRemote: boolean }) => {
+const LocalIconUnstyled = () => {
 	return (
 		<Icon
 			tooltipDelay={[1000, 0]}
 			tooltipAppendTo={() => document.body}
 			style={{ padding: 0 }}
-			code={isRemote ? "cloud" : "monitor"}
+			code="crossed-cloud"
 			tooltipPlace="right"
-			tooltipContent={isRemote ? t("remote") : t("local")}
+			tooltipContent={t("local")}
 		/>
 	);
 };
+
+export const LocalIcon = styled(LocalIconUnstyled)`
+	font-size: 8px;
+`;

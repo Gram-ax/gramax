@@ -3,43 +3,17 @@ import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import { SidebarsIsPinValue } from "@core-ui/ContextServices/Sidebars/SidebarsIsPin";
 import debounceFunction from "@core-ui/debounceFunction";
 import { TreeReadScope } from "@ext/git/core/GitCommands/model/GitCommandsModel";
-import DiffLine from "@ext/markdown/elements/diff/components/DiffLine";
-import { Editor, Extension, JSONContent } from "@tiptap/core";
+import { Editor, Extension } from "@tiptap/core";
 import { PluginView } from "@tiptap/pm/state";
 import { Plugin, PluginKey } from "prosemirror-state";
 import { MutableRefObject } from "react";
 
+import ProseMirrorDiffLineComponent from "@ext/markdown/elements/diff/components/ProseMirrorDiffLine";
+import { ProseMirrorDiffLine } from "@ext/markdown/elements/diff/logic/model/ProseMirrorDiffLine";
 import { createRoot, Root } from "react-dom/client";
 
 export const DIFF_DEBOUNCE_DELAY = 300;
 const DIFF_DEBOUNCE_SYMBOL = Symbol();
-
-interface AnyDiffLine {
-	type: "added" | "deleted" | "modified";
-	startPos: number;
-	endPos: number;
-}
-
-export interface AddedLine extends AnyDiffLine {
-	type: "added";
-}
-
-export interface ModifiedLine extends AnyDiffLine {
-	type: "modified";
-	nodeBefore: NodeBeforeData;
-}
-
-export interface DeletedLine extends AnyDiffLine {
-	type: "deleted";
-}
-
-export type DiffLine = AddedLine | ModifiedLine | DeletedLine;
-
-export interface NodeBeforeData {
-	content: JSONContent;
-	relativeFrom?: number;
-	relativeTo?: number;
-}
 
 export interface DiffExtensionProps {
 	isOldEditor: boolean;
@@ -51,7 +25,7 @@ export interface DiffExtensionProps {
 }
 
 export interface DiffExtensionStore {
-	diffLines: DiffLine[];
+	diffLines: ProseMirrorDiffLine[];
 	isOldEditor: boolean;
 	isPin: SidebarsIsPinValue;
 	oldScope: TreeReadScope;
@@ -60,14 +34,12 @@ export interface DiffExtensionStore {
 
 declare module "@tiptap/core" {
 	interface Commands<ReturnType> {
-		diff: {
-			updateDiffLinesModel: (diffLines: DiffLine[]) => ReturnType;
-		};
+		diff: { updateDiffLinesModel: (diffLines: ProseMirrorDiffLine[]) => ReturnType };
 	}
 }
 
 class DiffLines implements PluginView {
-	private readonly _diffLinesPixelOffset = 2;
+	private readonly _diffLinesStratchPixels = 2;
 	private _article: HTMLDivElement;
 	private _articleRef: HTMLDivElement;
 	private static _editorRenderData: Map<Editor, { root: Root; element: HTMLElement }[]> = new Map();
@@ -109,19 +81,18 @@ class DiffLines implements PluginView {
 		renderData.forEach((_, idx) => {
 			const rootData = this._getRenderData()[idx];
 			const diffLine = diffLines[idx];
-			const coordsStart = this._editor.view.coordsAtPos(diffLine.startPos);
-			const coordsEnd = this._editor.view.coordsAtPos(diffLine.endPos);
+			const coordsStart = this._editor.view.coordsAtPos(diffLine.pos.from);
+			const coordsEnd = this._editor.view.coordsAtPos(diffLine.pos.to + 1); // +1 to include the last character
 			const left = this._getLeft();
 
 			rootData.root.render(
 				<ApiUrlCreatorService.Provider value={this._apiUrlCreator}>
-					<DiffLine
+					<ProseMirrorDiffLineComponent
+						diffLine={diffLine}
 						oldScope={this._extensionStore.oldScope}
 						left={left}
-						nodeBefore={diffLine.type === "modified" ? diffLine.nodeBefore : undefined}
-						type={diffLine.type}
-						top={coordsStart.top + this._articleRef.scrollTop - this._diffLinesPixelOffset}
-						height={coordsEnd.top - coordsStart.top - this._diffLinesPixelOffset}
+						top={coordsStart.top + this._articleRef.scrollTop - this._diffLinesStratchPixels}
+						height={coordsEnd.bottom - coordsStart.top + this._diffLinesStratchPixels * 2}
 					/>
 				</ApiUrlCreatorService.Provider>,
 			);

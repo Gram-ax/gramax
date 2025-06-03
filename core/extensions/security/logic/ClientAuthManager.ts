@@ -36,6 +36,9 @@ export default class ClientAuthManager extends AuthManager {
 		return Promise.resolve();
 	}
 
+	async mailSendOTP() {}
+	async mailLoginOTP() {}
+
 	private async _getUser(cookie: Cookie): Promise<User> {
 		const userData = cookie.get(this._COOKIE_USER);
 		if (!userData || !this._gesUrl) return localUser;

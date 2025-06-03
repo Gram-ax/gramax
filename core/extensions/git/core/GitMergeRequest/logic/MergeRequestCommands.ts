@@ -1,3 +1,4 @@
+import { MERGE_REQUEST_DIRECTORY } from "@app/config/const";
 import type FileProvider from "@core/FileProvider/model/FileProvider";
 import Path from "@core/FileProvider/Path/Path";
 import DefaultError from "@ext/errorHandlers/logic/DefaultError";
@@ -59,7 +60,7 @@ export default class MergeRequestProvider {
 			throw new Error(`Merge Request ${sourceRef} -> ${mergeRequest.targetBranchRef} already exists`);
 
 		mergeRequest.createdAt = new Date();
-		return this._mergeRequests.createOrUpdate(data, mergeRequest);
+		return this._createOrUpdateMergeRequest(data, mergeRequest);
 	}
 
 	async setApproval(data: GitSourceData, approve: boolean) {
@@ -72,7 +73,7 @@ export default class MergeRequestProvider {
 
 		approver.approvedAt = approve ? new Date() : null;
 
-		await this._mergeRequests.createOrUpdate(data, {
+		await this._createOrUpdateMergeRequest(data, {
 			targetBranchRef: mergeRequest.targetBranchRef,
 			title: mergeRequest.title,
 			description: mergeRequest.description,
@@ -81,7 +82,7 @@ export default class MergeRequestProvider {
 		});
 	}
 
-	async archive(sourceBranchRef: string): Promise<{ archiveFileName: string }> {
+	async archive(sourceBranchRef: string, data: GitSourceData) {
 		const mr = await this.findBySource(sourceBranchRef);
 
 		assert(mr, `merge request not found at ${sourceBranchRef}`);
@@ -96,7 +97,11 @@ export default class MergeRequestProvider {
 			this._repoPath.join(new Path(`.gramax/mr/archive/${filename}`)),
 		);
 
-		return { archiveFileName: filename };
+		await this._repo.publish({
+			data,
+			commitMessage: `Move 'open.yaml' to 'archive/${filename}'`,
+			filesToPublish: [new Path(`.gramax/mr/open.yaml`), new Path(`.gramax/mr/archive/${filename}`)],
+		});
 	}
 
 	async restoreIfConflict() {
@@ -128,8 +133,7 @@ export default class MergeRequestProvider {
 			throw new DefaultError("You are not the author of this merge request or storage is not connected");
 
 		if (validateMerge) await this._repo.validateMerge();
-		const { archiveFileName } = await this.archive(branch.toString());
-		await this._repo.gvc.commit(`Move 'open.yaml' to 'archive/${archiveFileName}'`, data);
+		await this.archive(branch.toString(), data);
 
 		const mergeData = await this._repo.merge({
 			data,
@@ -153,6 +157,11 @@ export default class MergeRequestProvider {
 				t("git.merge-requests.error.merge-with-conflicts.title"),
 			);
 		}
+	}
+
+	private async _createOrUpdateMergeRequest(...args: Parameters<typeof this._mergeRequests.createOrUpdate>) {
+		await this._mergeRequests.createOrUpdate(...args);
+		await this._repo.gvc.add([new Path(MERGE_REQUEST_DIRECTORY)]);
 	}
 
 	private async _findDraftOrFirstBySource(sourceBranchRef: string): Promise<MergeRequest | undefined> {

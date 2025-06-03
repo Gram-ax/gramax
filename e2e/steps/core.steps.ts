@@ -79,6 +79,15 @@ When("нажимаем на кнопку {string}", { timeout: config.timeouts.m
 	await this.page().waitForLoad();
 });
 
+When(
+	"нажимаем на элемент списка {string}",
+	{ timeout: config.timeouts.medium },
+	async function (this: E2EWorld, text: string) {
+		const elems = await this.page().search().lookup(text);
+		await elems.click();
+	},
+);
+
 Then("нажимаем на {int} кнопку с текстом {string}", async function (this: E2EWorld, i: number, text: string) {
 	await this.page().search().clickable(text, undefined, true).nth(i).click();
 });
@@ -88,6 +97,15 @@ When("нажимаем на поле {string}", { timeout: config.timeouts.mediu
 	await elem.click();
 	await this.page().waitForLoad();
 });
+
+When(
+	"нажимаем на Select {string}",
+	{ timeout: config.timeouts.medium },
+	async function (this: E2EWorld, label: string) {
+		const elem = await this.page().search().lookup(label, undefined, true);
+		await elem.click();
+	},
+);
 
 When(
 	"нажимаем на элемент {string}",
@@ -275,5 +293,7 @@ Then(/^((не )?ожидаем ошибку)$/, function (this: E2EWorld, negati
 
 Then(/^кнопка "([^"]*)" (не)?активна$/, async function (this: E2EWorld, name: string, negative: boolean) {
 	const elem = this.page().search().clickable(name);
-	negative ? await expect(elem).toHaveAttribute("data-qa-disabled") : await expect(elem).not.toHaveAttribute("data-qa-disabled");
+	negative
+		? await expect(elem).toHaveAttribute("data-qa-disabled")
+		: await expect(elem).not.toHaveAttribute("data-qa-disabled");
 });

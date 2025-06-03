@@ -8,7 +8,7 @@ export function icon(context: ParserContext): Schema {
 
 		transform: async (node: Node) => {
 			context.icons.add(node.attributes.code);
-			const svg = await context.getCatalog().iconProvider.getIconByCode(node.attributes.code);
+			const svg = await context.getCatalog().customProviders.iconProvider.getIconByCode(node.attributes.code);
 			return new Tag("icon", { code: node.attributes.code, svg: svg, color: node.attributes.color });
 		},
 	};

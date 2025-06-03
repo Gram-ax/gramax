@@ -1,5 +1,4 @@
 use git2::*;
-
 use std::collections::HashSet;
 use std::fmt::Display;
 use std::path::Path;
@@ -38,6 +37,10 @@ impl<'id> CloneCancel<'id> {
 
   pub fn is_cancelled(&self) -> bool {
     !CLONING.read().unwrap().contains(&self.id)
+  }
+
+  pub fn get_all_cancel_tokens() -> Vec<usize> {
+    CLONING.read().unwrap().iter().cloned().collect()
   }
 
   pub fn cancel(id: usize) -> bool {
@@ -97,6 +100,10 @@ pub enum CloneProgress {
     checkouted: usize,
     total: usize,
   },
+  Finish {
+    id: usize,
+    is_cancelled: bool,
+  },
 }
 
 impl Display for CloneProgress {
@@ -121,6 +128,9 @@ impl Display for CloneProgress {
       }
       CloneProgress::Checkout { checkouted, total, .. } => {
         write!(f, "checkout progress -> checked out: {}, total: {}", checkouted, total)
+      }
+      CloneProgress::Finish { is_cancelled, .. } => {
+        write!(f, "finish -> is_cancelled: {}", is_cancelled)
       }
     }
   }

@@ -54,20 +54,8 @@ export default class ContextualCatalog<P extends CatalogProps = CatalogProps> im
 		return mutableProps.props;
 	}
 
-	get snippetProvider() {
-		return this.deref.snippetProvider;
-	}
-
-	get templateProvider() {
-		return this.deref.templateProvider;
-	}
-
-	get inboxProvider() {
-		return this.deref.inboxProvider;
-	}
-
-	get iconProvider() {
-		return this.deref.iconProvider;
+	get customProviders() {
+		return this.deref.customProviders;
 	}
 
 	get repo() {

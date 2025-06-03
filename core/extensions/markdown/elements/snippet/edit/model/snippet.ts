@@ -1,5 +1,5 @@
 import snippetSchema from "@ext/markdown/elements/snippet/edit/model/snippetSchema";
-import SnippetRenderData from "@ext/markdown/elements/snippet/model/SnippetRenderData";
+import { SnippetRenderData } from "@ext/markdown/elements/snippet/edit/model/types";
 import getExtensionOptions from "@ext/markdown/logic/getExtensionOptions";
 import { mergeAttributes, Node } from "@tiptap/core";
 import { ReactNodeViewRenderer } from "@tiptap/react";

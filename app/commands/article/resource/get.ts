@@ -8,6 +8,8 @@ import type { ReadonlyCatalog } from "@core/FileStructue/Catalog/ReadonlyCatalog
 import HashResourceManager from "@core/Hash/HashItems/HashResourceManager";
 import GitTreeFileProvider from "@ext/versioning/GitTreeFileProvider";
 import { Article } from "../../../../core/logic/FileStructue/Article/Article";
+import ArticleProvider, { ArticleProviderType } from "@ext/articleProvider/logic/ArticleProvider";
+import ContextualCatalog from "@core/FileStructue/Catalog/ContextualCatalog";
 
 const get: Command<
 	{
@@ -17,6 +19,7 @@ const get: Command<
 		catalogName: string;
 		mimeType: MimeTypes;
 		ifNotExistsErrorText: { title: string; message: string };
+		providerType: ArticleProviderType;
 	},
 	{ mime: MimeTypes; hashItem: HashResourceManager }
 > = Command.create({
@@ -24,7 +27,7 @@ const get: Command<
 
 	kind: ResponseKind.blob,
 
-	async do({ src, mimeType, catalogName, articlePath, ifNotExistsErrorText, ctx }) {
+	async do({ src, mimeType, catalogName, articlePath, ifNotExistsErrorText, ctx, providerType }) {
 		const { parser, parserContextFactory, wm } = this._app;
 		const workspace = wm.current();
 		const fs = workspace.getFileStructure();
@@ -44,7 +47,10 @@ const get: Command<
 			if (!catalog) return;
 		}
 
-		const article = catalog.findItemByItemPath<Article>(articlePath);
+		const article = providerType
+			? ArticleProvider.getProvider(catalog as ContextualCatalog, providerType).getArticle(articlePath.value)
+			: catalog.findItemByItemPath<Article>(articlePath);
+
 		if (!article) return;
 		await parseContent(article, catalog, ctx, parser, parserContextFactory);
 
@@ -63,7 +69,8 @@ const get: Command<
 		const mimeType = q.mimeType as MimeTypes;
 		const catalogName = q.catalogName;
 		const articlePath = new Path(q.articlePath);
-		return { ctx, src, mimeType, catalogName, articlePath, ifNotExistsErrorText: body };
+		const providerType = q.providerType as ArticleProviderType;
+		return { ctx, src, mimeType, catalogName, articlePath, ifNotExistsErrorText: body, providerType };
 	},
 });
 

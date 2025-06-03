@@ -209,7 +209,7 @@ const UserDetails = styled((props: { className?: string; details: string }) => {
 					<>
 						<legend>{t("bug-report.view-tech-details")}</legend>
 						<div className={classNames("form-group", {}, ["code_wrapper"])}>
-							<CodeBlock lang={"javascript"} value={details} />
+							<CodeBlock language={"javascript"} value={details} />
 						</div>
 					</>
 				</FormStyle>

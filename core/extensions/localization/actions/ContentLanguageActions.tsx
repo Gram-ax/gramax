@@ -22,7 +22,12 @@ const ContentLanguageActions = ({ canSwitch, setIsLoading, targetCode }: Content
 				</Tooltip>
 			}
 		>
-			<RemoveContentLanguage key={0} setIsLoading={setIsLoading} disabled={!canSwitch} targetCode={targetCode} />
+			<RemoveContentLanguage
+				key={`remove-content-language-${targetCode}`}
+				setIsLoading={setIsLoading}
+				disabled={!canSwitch}
+				targetCode={targetCode}
+			/>
 		</PopupMenuLayout>
 	);
 };

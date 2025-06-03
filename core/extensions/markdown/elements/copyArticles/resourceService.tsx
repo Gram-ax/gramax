@@ -13,10 +13,11 @@ import GitTreeFileProvider from "@ext/versioning/GitTreeFileProvider";
 import { ReactElement, createContext, useCallback, useContext, useEffect, useState } from "react";
 import resolveModule from "@app/resolveModule/frontend";
 import { getExecutingEnvironment } from "@app/resolveModule/env";
+import { ArticleProviderType } from "@ext/articleProvider/logic/ArticleProvider";
 
 type UseGetResource = (callback: (buffer: Buffer) => void, src: string, content?: string) => void;
 
-type SetResource = (name: string, file: string | Buffer, path?: string) => Promise<string>;
+type SetResource = (name: string, file: string | Buffer, path?: string, force?: boolean) => Promise<string>;
 
 type DeleteResource = (src: string) => Promise<void>;
 
@@ -24,6 +25,8 @@ type ResourceData = Record<string, Buffer>;
 
 export type ResourceServiceType = {
 	data: ResourceData;
+	id?: string;
+	provider?: ArticleProviderType;
 	useGetResource: UseGetResource;
 	setResource: SetResource;
 	deleteResource: DeleteResource;
@@ -34,6 +37,8 @@ export type ResourceServiceType = {
 
 const ResourceServiceContext = createContext<ResourceServiceType>({
 	data: {},
+	id: undefined,
+	provider: undefined,
 	useGetResource: () => {},
 	deleteResource: async () => {},
 	setResource: async () => Promise.resolve(""),
@@ -44,11 +49,13 @@ const ResourceServiceContext = createContext<ResourceServiceType>({
 
 type ResourceServiceProps = {
 	children: ReactElement;
+	id?: string;
+	provider?: ArticleProviderType;
 	scope?: TreeReadScope;
 };
 
 abstract class ResourceService {
-	static Provider({ children, scope }: ResourceServiceProps) {
+	static Provider({ children, scope, provider, id }: ResourceServiceProps) {
 		const [data, setData] = useState<ResourceData>({});
 		const catalogName = CatalogPropsService.value?.name;
 		const articleProps = ArticlePropsService.value;
@@ -57,6 +64,11 @@ abstract class ResourceService {
 		const clear = useCallback(() => {
 			setData({});
 		}, [setData]);
+
+		useEffect(() => {
+			if (!id) return;
+			clear();
+		}, [id]);
 
 		const update = useCallback(
 			(src: string, buffer: Buffer) => {
@@ -89,7 +101,8 @@ abstract class ResourceService {
 				const scopedCatalogName = scope
 					? GitTreeFileProvider.scoped(new Path(catalogName), scope, undefined, true).value
 					: undefined;
-				const url = apiUrlCreator.getArticleResource(src, undefined, scopedCatalogName);
+				const url = apiUrlCreator.getArticleResource(src, undefined, scopedCatalogName, id, provider);
+
 				const res = await FetchService.fetch(url, undefined, MimeTypes.text, Method.POST, false);
 
 				if (!res.ok) return;
@@ -113,19 +126,17 @@ abstract class ResourceService {
 		};
 
 		const setResource: SetResource = useCallback(
-			async (name, file, path) => {
+			async (name, file, path, force) => {
 				const pathedName = new Path(name);
 				const extension = pathedName.extension;
 
-				const names = await getArticleFileBrotherNames(apiUrlCreator);
+				const names = force ? [] : await getArticleFileBrotherNames(apiUrlCreator, id, provider);
 				const newName = fileNameUtils.getNewName(names, pathedName.name ?? articleProps.fileName, extension);
 
 				const fullResourcePath = new Path([path, newName]);
-				const res = await FetchService.fetch(
-					apiUrlCreator.setArticleResource(fullResourcePath.value),
-					file,
-					MimeTypes.text,
-				);
+				const url = apiUrlCreator.setArticleResource(fullResourcePath.value, id, provider);
+
+				const res = await FetchService.fetch(url, file, MimeTypes.text);
 				if (!res.ok) return;
 
 				update(newName, typeof file == "string" ? Buffer.from(file) : file);
@@ -134,15 +145,15 @@ abstract class ResourceService {
 
 				return newName;
 			},
-			[setData, apiUrlCreator, articleProps?.fileName, update],
+			[setData, apiUrlCreator, articleProps?.fileName, update, provider, id],
 		);
 
 		const deleteResource: DeleteResource = useCallback(
 			async (src: string) => {
-				const url = apiUrlCreator.deleteArticleResource(src);
+				const url = apiUrlCreator.deleteArticleResource(src, id, provider);
 				await FetchService.fetch(url);
 			},
-			[setData, apiUrlCreator],
+			[setData, apiUrlCreator, provider, id],
 		);
 
 		const getBuffer = useCallback(
@@ -154,7 +165,7 @@ abstract class ResourceService {
 
 		return (
 			<ResourceServiceContext.Provider
-				value={{ data, useGetResource, setResource, deleteResource, getBuffer, clear, update }}
+				value={{ data, id, provider, useGetResource, setResource, deleteResource, getBuffer, clear, update }}
 			>
 				{children}
 			</ResourceServiceContext.Provider>

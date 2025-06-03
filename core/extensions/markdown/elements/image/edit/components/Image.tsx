@@ -1,4 +1,4 @@
-import Signature from "@components/controls/Signature";
+import Caption from "@components/controls/Caption";
 import useWatch from "@core-ui/hooks/useWatch";
 import toggleSignature from "@core-ui/toggleSignature";
 import Path from "@core/FileProvider/Path/Path";
@@ -113,11 +113,11 @@ const Image = (props: ImageDataProps): ReactElement => {
 					)
 				}
 			/>
-			<Signature
+			<Caption
 				editor={editor}
 				getPos={getPos}
 				ref={signatureRef}
-				autoFocus={node.attrs.title?.length === 0}
+				autoFocus={node.attrs.title?.length >= 1}
 				text={node.attrs.title}
 				onUpdate={onUpdate}
 				onLoseFocus={onLoseFocus}

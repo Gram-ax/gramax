@@ -23,6 +23,7 @@ export default {
 			errorCode: null,
 		},
 		catalogProps: {
+			notFound: false,
 			link: {
 				name: "doc-reader",
 				pathname: "doc-reader",
@@ -784,6 +785,8 @@ export default {
 			isRelease: false,
 			isReadOnly: false,
 			isProduction: false,
+
+			ai: { enabled: false },
 
 			version: "0.0.0@storybook",
 			buildVersion: "0.0.0@storybook",

@@ -1,4 +1,4 @@
-import type { RequestParagraphModel } from "@ics/gx-ai/dist/styleGuideCheck/styleGuideGptRequest";
+import type { RequestChunkModel } from "@ics/gx-ai/dist/styleGuideCheck/styleGuideGptRequest";
 import { JSONContent } from "@tiptap/react";
 
 function extractSentences(text: string): string[] {
@@ -14,8 +14,8 @@ function extractSentences(text: string): string[] {
 	return texts;
 }
 
-function astToParagraphs(ast: JSONContent): RequestParagraphModel[] {
-	const result: RequestParagraphModel[] = [];
+function astToParagraphs(ast: JSONContent): RequestChunkModel[] {
+	const result: RequestChunkModel[] = [];
 	let idx = 0;
 
 	const traverse = (node: JSONContent, path: string[] = []) => {

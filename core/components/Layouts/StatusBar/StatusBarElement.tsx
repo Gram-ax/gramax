@@ -27,6 +27,7 @@ const StatusBarElement = styled(
 				iconClassName?: string;
 				reverse?: boolean;
 				className?: string;
+				changeBackgroundOnHover?: boolean;
 			},
 			ref: React.LegacyRef<HTMLDivElement>,
 		) => {
@@ -43,7 +44,7 @@ const StatusBarElement = styled(
 							<div className="status-bar-element" style={disable ? { pointerEvents: "none" } : null}>
 								{iconCode && (
 									<div className={"status-bar-icon" + (iconClassName ? " " + iconClassName : "")}>
-										<Icon code={iconCode} style={iconStyle} strokeWidth={iconStrokeWidth}/>
+										<Icon code={iconCode} style={iconStyle} strokeWidth={iconStrokeWidth} />
 									</div>
 								)}
 								{children && (
@@ -89,9 +90,11 @@ const StatusBarElement = styled(
 			color: white;
 		}
 
-		:hover {
+		${(p) =>
+			p.changeBackgroundOnHover !== false &&
+			`:hover {
 			background: rgba(255, 255, 255, 0.2);
-		}
+		}`}
 	}
 
 	.status-bar-icon,

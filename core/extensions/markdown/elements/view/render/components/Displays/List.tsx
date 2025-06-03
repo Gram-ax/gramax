@@ -43,8 +43,8 @@ const List = ({ content, groupby, className, disabled, updateArticle }: ListProp
 
 	return (
 		<ul className={className} data-focusable="true">
-			{data.map((group: ViewRenderGroup) => (
-				<Fragment key={group.group?.[0]}>{renderGroup(group, disabled, onSubmit)}</Fragment>
+			{data.map((group: ViewRenderGroup, idx: number) => (
+				<Fragment key={`${group.group?.[0]}-${idx}`}>{renderGroup(group, disabled, onSubmit)}</Fragment>
 			))}
 		</ul>
 	);

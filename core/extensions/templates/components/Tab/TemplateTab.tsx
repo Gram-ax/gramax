@@ -5,11 +5,11 @@ import FetchService from "@core-ui/ApiServices/FetchService";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import generateUniqueID from "@core/utils/generateUniqueID";
 import styled from "@emotion/styled";
+import ItemList from "@ext/articleProvider/components/ItemList";
 import t from "@ext/localization/locale/translate";
 import NavigationEvents from "@ext/navigation/NavigationEvents";
-import TemplateList from "@ext/templates/components/Tab/TemplateList";
 import TemplateService from "@ext/templates/components/TemplateService";
-import { TemplateProps } from "@ext/templates/models/types";
+import { ProviderItemProps } from "@ext/articleProvider/models/types";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 const ExtensionWrapper = styled.div`
@@ -24,13 +24,13 @@ const TemplateTab = ({ show }: TemplateTabProps) => {
 	const tabWrapperRef = useRef<HTMLDivElement>(null);
 	const [height, setHeight] = useState(0);
 	const apiUrlCreator = ApiUrlCreatorService.value;
-	const { selectedID } = TemplateService.value;
+	const { selectedID, templates } = TemplateService.value;
 
 	const addNewNote = useCallback(async () => {
 		const uniqueID = generateUniqueID();
 		await FetchService.fetch(apiUrlCreator.createFileInGramaxDir(uniqueID, "template"));
 
-		const res = await FetchService.fetch<TemplateProps[]>(apiUrlCreator.getTemplates());
+		const res = await FetchService.fetch<ProviderItemProps[]>(apiUrlCreator.getArticleListInGramaxDir("template"));
 		if (!res.ok) return;
 
 		const newTemplates = await res.json();
@@ -56,6 +56,47 @@ const TemplateTab = ({ show }: TemplateTabProps) => {
 		};
 	}, [selectedID]);
 
+	useEffect(() => {
+		if (!show) return;
+
+		TemplateService.fetchTemplates(apiUrlCreator);
+	}, [show]);
+
+	const onDelete = useCallback(
+		(id: string) => {
+			if (selectedID === id) {
+				TemplateService.closeTemplate();
+			}
+
+			const newTemplates = Array.from(templates.values()).filter((t) => t.id !== id);
+			TemplateService.setTemplates(newTemplates);
+		},
+		[selectedID, templates],
+	);
+
+	const onMarkdownChange = useCallback(
+		(id: string) => {
+			if (selectedID === id) {
+				TemplateService.closeTemplate();
+
+				setTimeout(() => {
+					TemplateService.openTemplate(templates.get(id));
+				}, 0);
+			}
+		},
+		[selectedID, templates],
+	);
+
+	const onItemClick = useCallback(
+		(id: string) => {
+			const template = templates.get(id);
+			if (!template) return;
+
+			TemplateService.openTemplate(template);
+		},
+		[templates],
+	);
+
 	return (
 		<TabWrapper
 			ref={tabWrapperRef}
@@ -75,7 +116,18 @@ const TemplateTab = ({ show }: TemplateTabProps) => {
 				</ExtensionWrapper>
 			}
 		>
-			<TemplateList tabWrapperRef={tabWrapperRef} show={show} setContentHeight={setHeight} />
+			<ItemList
+				tabWrapperRef={tabWrapperRef}
+				show={show}
+				setContentHeight={setHeight}
+				noItemsText={t("template.no-templates")}
+				items={Array.from(templates.values())}
+				selectedItemId={selectedID}
+				providerType="template"
+				onItemClick={onItemClick}
+				onDelete={onDelete}
+				onMarkdownChange={onMarkdownChange}
+			/>
 		</TabWrapper>
 	);
 };

@@ -6,7 +6,12 @@ import { Editor } from "@tiptap/core";
 import createDrawio from "../logic/createDrawio";
 import ResourceService from "@ext/markdown/elements/copyArticles/resourceService";
 
-const DrawioMenuButton = ({ editor }: { editor: Editor }) => {
+interface DrawioMenuButtonProps {
+	editor: Editor;
+	fileName?: string;
+}
+
+const DrawioMenuButton = ({ editor, fileName }: DrawioMenuButtonProps) => {
 	const articleProps = ArticlePropsService.value;
 	const resourceService = ResourceService.value;
 
@@ -14,7 +19,7 @@ const DrawioMenuButton = ({ editor }: { editor: Editor }) => {
 		<Button
 			nodeValues={{ action: "drawio" }}
 			tooltipText={t("diagram.names.drawio")}
-			onClick={() => createDrawio(editor, articleProps, resourceService)}
+			onClick={() => createDrawio(editor, fileName || articleProps?.fileName, resourceService)}
 		>
 			<SvgContainer>
 				<svg

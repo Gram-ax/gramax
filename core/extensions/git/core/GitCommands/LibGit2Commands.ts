@@ -69,6 +69,10 @@ class LibGit2Commands extends LibGit2BaseCommands implements GitCommandsModel {
 		return git.cloneCancel(id);
 	}
 
+	getAllCancelTokens(): Promise<number[]> {
+		return git.getAllCancelTokens();
+	}
+
 	async commit(message: string, data: SourceData, parents?: string[], paths?: string[]): Promise<GitVersion> {
 		await git.commit({
 			repoPath: this._repoPath,

@@ -133,10 +133,10 @@ export default class GitVersionControl {
 	async applyStash(
 		stashHash: GitStash,
 		{
-			restoreAfterStash = true,
+			restoreAfterStash = false,
 			deleteAfterApply = true,
 		}: { restoreAfterStash?: boolean; deleteAfterApply?: boolean } = {
-			restoreAfterStash: true,
+			restoreAfterStash: false,
 			deleteAfterApply: true,
 		},
 	): Promise<GitMergeResult[]> {
@@ -175,12 +175,7 @@ export default class GitVersionControl {
 	}
 
 	async add(filePaths?: Path[], force = false): Promise<void> {
-		if (!filePaths) return this._gitRepository.add(null, force);
-		const versionContolsAndItsFiles = await this._getVersionControlsAndItsFiles(filePaths);
-		for (const [storage, paths] of Array.from(versionContolsAndItsFiles)) {
-			const gitRepository = new GitCommands(this._fp, storage.getPath());
-			await gitRepository.add(paths, force);
-		}
+		return this._gitRepository.add(filePaths, force);
 	}
 
 	async discard(filePaths: Path[]): Promise<void> {
@@ -281,11 +276,6 @@ export default class GitVersionControl {
 	async restoreRepositoryState(): Promise<void> {
 		const parent = await this.getParentCommitHash(await this.getHeadCommit());
 		await this.softReset(parent);
-		const changes = await this.getChanges();
-		await this.restore(
-			true,
-			changes.map((c) => c.path),
-		);
 	}
 
 	async getGitVersionControlContainsItem(

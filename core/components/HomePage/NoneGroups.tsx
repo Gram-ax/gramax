@@ -5,6 +5,7 @@ import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import WorkspaceService from "@core-ui/ContextServices/Workspace";
 import IsReadOnlyHOC from "@core-ui/HigherOrderComponent/IsReadOnlyHOC";
+import { usePlatform } from "@core-ui/hooks/usePlatform";
 import styled from "@emotion/styled";
 import Mode from "@ext/git/actions/Clone/model/Mode";
 import t from "@ext/localization/locale/translate";
@@ -21,6 +22,7 @@ const NoneGroups = (props: HTMLAttributes<HTMLDivElement>) => {
 	const apiUrlCreator = ApiUrlCreatorService.value;
 	const hasWorkspace = !!PageDataContextService.value.workspace.current;
 	const workspacePath = WorkspaceService?.current()?.path;
+	const { isStatic } = usePlatform();
 
 	const canEditCatalog = workspacePath
 		? PermissionService.useCheckPermission(editCatalogPermission, workspacePath)
@@ -28,7 +30,10 @@ const NoneGroups = (props: HTMLAttributes<HTMLDivElement>) => {
 	const canConfigureWorkspace = workspacePath
 		? PermissionService.useCheckPermission(configureWorkspacePermission, workspacePath)
 		: true;
-	const canAddCatalog = (isReadOnly && canConfigureWorkspace) || (!isReadOnly && canEditCatalog);
+	const canAddCatalog = (() => {
+		if (isStatic) return false;
+		return (isReadOnly && canConfigureWorkspace) || (!isReadOnly && canEditCatalog);
+	})();
 
 	return (
 		<div {...props}>

@@ -31,7 +31,9 @@
 		"moduleResolution": "node",
 
 		"paths": {
+			"ics-ui-kit/*": ["node_modules/ics-ui-kit/dist/*"],
 			"@components/*": ["core/components/*"],
+			"@ui-kit/*": ["core/ui-kit/components/*"],
 			"@ext/*": ["core/extensions/*"],
 			"@core/*": ["core/logic/*"],
 			"@core-ui/*": ["core/ui-logic/*"],

@@ -42,7 +42,10 @@ const SignOutEnterprise = ({
 				title={t("enterprise.workspace-exit")}
 				icon={{ code: "circle-alert", color: "var(--color-warning)" }}
 				closeButton={{ text: t("cancel") }}
-				onCancelClick={() => refreshPage()}
+				onCancelClick={() => {
+					setIsOpen(false);
+					refreshPage();
+				}}
 				actionButton={{
 					onClick: () => removeWorkspace(),
 					text: t("exit"),

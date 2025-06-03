@@ -127,7 +127,7 @@
 }
 
 .swagger-ui .opblock-tag-section {
-	margin-top: 0.8em;
+	margin: 0.5em 0;
 }
 
 .swagger-ui .opblock.opblock .opblock-section-header {
@@ -1281,7 +1281,7 @@
 }
 
 .swagger-ui section.models {
-	margin: 1.875em 0;
+	margin: 1.875em 0 0.5em 0;
 	border: 0.0625em solid rgba(59, 65, 81, 0.3);
 	border-radius: var(--radius-small);
 	background: var(--color-lightgray);

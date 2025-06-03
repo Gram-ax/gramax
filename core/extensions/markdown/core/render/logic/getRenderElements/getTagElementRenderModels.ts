@@ -39,6 +39,15 @@ import { when, who } from "@ext/markdown/elements/whowhen/model/whowhen";
 import ParserContext from "../../../Parser/ParserContext/ParserContext";
 import { Schema } from "../Markdoc";
 import { blockField } from "@ext/markdown/elements/blockContentField/render/models/blockField";
+import { blockProperty } from "@ext/markdown/elements/blockProperty/render/models/blockProperty";
+import {
+	blockHtmlTag,
+	inlineHtmlTag,
+	selfClosingHtmlTag,
+	blockHtmlTagComponent,
+	inlineHtmlTagComponent,
+	blockWithInlineHtmlTag,
+} from "@ext/markdown/elements/htmlTag/render/model/htmlTag";
 
 function getContextTagElementRenderModels(context: ParserContext): Record<string, Schema> {
 	return {
@@ -66,6 +75,12 @@ export default function getTagElementRenderModels(context?: ParserContext): Reco
 	const contextElements = context ? getContextTagElementRenderModels(context) : {};
 
 	return {
+		inlineHtmlTagComponent,
+		blockWithInlineHtmlTag,
+		blockHtmlTagComponent,
+		selfClosingHtmlTag,
+		inlineHtmlTag,
+		blockHtmlTag,
 		comment,
 		answer,
 		module,
@@ -96,6 +111,7 @@ export default function getTagElementRenderModels(context?: ParserContext): Reco
 		fn,
 		"inline-property": inlineProperty,
 		"block-field": blockField,
+		"block-property": blockProperty,
 		...contextElements,
 	};
 }

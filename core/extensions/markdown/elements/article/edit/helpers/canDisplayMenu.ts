@@ -1,5 +1,5 @@
 import { Editor } from "@tiptap/core";
-import checkBlockField from "@ext/markdown/elements/controllers/helpers/checkBlockField";
+import isTemplateEditableBlock from "@ext/markdown/elements/controllers/helpers/isTemplateEditableBlock";
 
 const isInTitle = (editor: Editor) => {
 	const { selection } = editor.view.state;
@@ -14,19 +14,15 @@ const isTemplateInstance = (dom: HTMLElement) => {
 };
 
 const canDisplayMenu = (editor: Editor) => {
-	if (!editor.isEditable) return true;
+	if (!editor.isEditable) return false;
 
 	const isFirst = isInTitle(editor);
 	const isTemplate = isTemplateInstance(editor.view.dom);
 
-	if (isTemplate && !isFirst && !checkBlockField(editor.view.state.selection)) return true;
+	if (isTemplate && !isFirst && !isTemplateEditableBlock(editor.view.state.selection)) return false;
+	if (isFirst) return false;
 
-	const { selection } = editor.view.state;
-	const doc = editor.view.state.doc;
-	const isSelectedFullyDoc =
-		selection.$from.parent.type.name === "doc" && !doc.maybeChild(1).textContent && doc.childCount === 2;
-
-	return isFirst || isSelectedFullyDoc;
+	return true;
 };
 
 export default canDisplayMenu;

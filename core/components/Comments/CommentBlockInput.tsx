@@ -44,7 +44,7 @@ export const CommentBlockInput = styled(
 				<div ref={ref} className={className}>
 					<div className="input">
 						<Input
-							confirmButtonText={t("comment")}
+							confirmButtonText={t("comment-on")}
 							placeholder={t("leave-comment")}
 							onEditorClick={onEditorClick}
 							onConfirm={onCurrentConfirm}

@@ -2,8 +2,11 @@ export const GRAMAX_EDITOR_URL = "https://app.gram.ax";
 
 export const GRAMAX_DIRECTORY = ".gramax" as const;
 export const INBOX_DIRECTORY = "inbox" as const;
+export const PROMPT_DIRECTORY = "prompt" as const;
 export const TEMPLATES_DIRECTORY = "templates" as const;
 export const SNIPPETS_DIRECTORY = "snippets" as const;
+
+export const MERGE_REQUEST_DIRECTORY = `${GRAMAX_DIRECTORY}/mr` as const;
 
 export const DOC_ROOT_FILENAME = ".doc-root.yaml";
 export const DOC_ROOT_REGEXP = /.(doc-)?root.ya?ml/;
@@ -23,3 +26,5 @@ export const LEFT_NAV_CLASS = "left-navigation-layout";
 export const RIGHT_NAV_CLASS = "right-nav-layout";
 
 export const STORAGE_DIR_NAME = ".storage";
+
+export const MAX_ICON_SIZE = 500 * 1024;

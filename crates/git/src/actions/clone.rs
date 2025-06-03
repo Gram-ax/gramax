@@ -6,6 +6,7 @@ use build::RepoBuilder;
 use git2::*;
 
 use crate::creds::ActualCreds;
+use crate::creds::Creds;
 use crate::prelude::RemoteConnect;
 use crate::remote_callback::*;
 
@@ -37,12 +38,29 @@ pub trait Clone<C: ActualCreds> {
   fn clone_cancel(id: usize) -> Result<bool>;
 }
 
+pub trait CloneExt {
+  fn get_all_cancel_tokens() -> Vec<usize>;
+}
+
+impl<C: Creds> CloneExt for Repo<C> {
+  fn get_all_cancel_tokens() -> Vec<usize> {
+    CloneCancel::get_all_cancel_tokens()
+  }
+}
+
 impl<C: ActualCreds> Clone<C> for Repo<C> {
   fn clone(creds: C, opts: CloneOptions, callback: CloneProgressCallback) -> Result<()> {
     let CloneOptions { url, to, branch, depth, is_bare, cancel_token } = opts;
 
     let to = if is_bare { to.join(".git") } else { to };
-    let cancel_token = CloneCancel::new(cancel_token, to.as_path())?;
+
+    let cancel_token = match CloneCancel::new(cancel_token, to.as_path()) {
+      Ok(cancel_token) => cancel_token,
+      Err(_) => {
+        warn!(target: TAG, "failed to start clone; repo at {} is already cloning; cancelling previous clone", to.as_path().display());
+        return Ok(());
+      }
+    };
 
     info!(
       target: TAG,
@@ -65,14 +83,15 @@ impl<C: ActualCreds> Clone<C> for Repo<C> {
       !cancel_token.is_cancelled()
     });
 
-    let mut last_transfer_callack = time_now() - CHUNK_TIME_SPAN;
+    let mut last_transfer_callback = time_now() - CHUNK_TIME_SPAN;
     let mut last_transfer_bytes = 0;
+
     cbs.transfer_progress(|progress| {
-      if time_now() - last_transfer_callack < CHUNK_TIME_SPAN {
+      if time_now() - last_transfer_callback < CHUNK_TIME_SPAN {
         return true;
       }
 
-      last_transfer_callack = time_now();
+      last_transfer_callback = time_now();
       let received_bytes = progress.received_bytes();
       callback(CloneProgress::transfer_progress(cancel_token.id(), progress, last_transfer_bytes));
       last_transfer_bytes = received_bytes;
@@ -123,13 +142,14 @@ impl<C: ActualCreds> Clone<C> for Repo<C> {
 
     let repo = Self(repo, creds);
 
-    if repo.1.access_token().is_empty() && !repo.can_push()? {
-      info!(target: TAG, "no enough rights to push, deleting the remote `origin`");
+    if !repo.can_push()? && repo.1.access_token().is_empty() {
+      info!(target: TAG, "access token wasn't provided, deleting the remote `origin`");
       repo.0.remote_delete("origin")?;
     }
 
     repo.ensure_head_exists()?;
     repo.ensure_crlf_configured()?;
+
     Ok(())
   }
 

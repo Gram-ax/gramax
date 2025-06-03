@@ -23,7 +23,7 @@ export const heading: Schema = {
 	},
 };
 
-const getHeaderTitle = (children: RenderableTreeNode[]) => {
+export const getHeaderTitle = (children: RenderableTreeNode[]) => {
 	const createHeaderTitle = (str: string, children: RenderableTreeNode[]) => {
 		if (!children) return str;
 		if (typeof children === "string") return str + children;

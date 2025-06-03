@@ -63,8 +63,11 @@ export const MinimizedArticleStyled = styled(MinimizedArticle)`
 		margin: 0.5em 0 !important;
 	}
 
-	img {
+	.image-container {
 		margin: 0.5em auto !important;
+	}
+
+	img {
 		pointer-events: none !important;
 	}
 

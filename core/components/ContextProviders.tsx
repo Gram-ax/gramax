@@ -43,6 +43,9 @@ import ThemeService from "../extensions/Theme/components/ThemeService";
 import PageDataContext from "../logic/Context/PageDataContext";
 import IsOpenModalService from "../ui-logic/ContextServices/IsOpenMpdal";
 import ModalToOpenService from "../ui-logic/ContextServices/ModalToOpenService/ModalToOpenService";
+import SnippetService from "@ext/markdown/elements/snippet/edit/components/Tab/SnippetService";
+import PromptService from "@ext/ai/components/Tab/PromptService";
+import NavigationTabsService from "@components/Layouts/LeftNavigationTabs/NavigationTabsService";
 
 export interface PageProps {
 	data: HomePageData & ArticlePageData;
@@ -62,8 +65,8 @@ const appServices: ContextService[] = [
 	SearchQueryService,
 	SyncIconService,
 	IsOpenModalService,
-	TemplateService,
 	PublishChangesProvider,
+	NavigationTabsService,
 ];
 const Inits = appServices.map((service) => service.Init.bind(service) as typeof service.Init);
 
@@ -114,54 +117,62 @@ export default function ContextProviders({
 															<ArticlePropsService.Provider
 																value={pageProps.data.articleProps}
 															>
-																<CatalogPropsService.Provider
+																<CatalogPropsService.Init
 																	value={pageProps.data.catalogProps}
 																>
 																	<CatalogLogoService.Init>
-																		<InboxService.Provider>
-																			<PropertyService.Provider>
-																				<ModalToOpenService.Provider>
-																					<CurrentTabsTagService.Provider>
-																						<ArticleTooltipService.Provider>
-																							<IsFirstLoadService.Provider
-																								resetIsFirstLoad={
-																									resetIsFirstLoad
-																								}
-																								value={isFirstLoad}
-																							>
-																								<OnUpdateAppFuncs>
-																									<ViewContextProvider
-																										articlePageData={
-																											pageProps.data
-																										}
-																									>
-																										<>
-																											{pageProps
-																												.context
-																												.isLogged ? (
-																												<CommentCounterService.Provider
-																													deps={[
-																														pageProps,
-																													]}
-																												>
-																													{
-																														children
+																		<PromptService.Provider>
+																			<InboxService.Provider>
+																				<PropertyService.Provider>
+																					<TemplateService.Init>
+																						<SnippetService.Init>
+																							<ModalToOpenService.Provider>
+																								<CurrentTabsTagService.Provider>
+																									<ArticleTooltipService.Provider>
+																										<IsFirstLoadService.Provider
+																											resetIsFirstLoad={
+																												resetIsFirstLoad
+																											}
+																											value={
+																												isFirstLoad
+																											}
+																										>
+																											<OnUpdateAppFuncs>
+																												<ViewContextProvider
+																													articlePageData={
+																														pageProps.data
 																													}
-																												</CommentCounterService.Provider>
-																											) : (
-																												children
-																											)}
-																										</>
-																									</ViewContextProvider>
-																								</OnUpdateAppFuncs>
-																							</IsFirstLoadService.Provider>
-																						</ArticleTooltipService.Provider>
-																					</CurrentTabsTagService.Provider>
-																				</ModalToOpenService.Provider>
-																			</PropertyService.Provider>
-																		</InboxService.Provider>
+																												>
+																													<>
+																														{pageProps
+																															.context
+																															.isLogged ? (
+																															<CommentCounterService.Provider
+																																deps={[
+																																	pageProps,
+																																]}
+																															>
+																																{
+																																	children
+																																}
+																															</CommentCounterService.Provider>
+																														) : (
+																															children
+																														)}
+																													</>
+																												</ViewContextProvider>
+																											</OnUpdateAppFuncs>
+																										</IsFirstLoadService.Provider>
+																									</ArticleTooltipService.Provider>
+																								</CurrentTabsTagService.Provider>
+																							</ModalToOpenService.Provider>
+																						</SnippetService.Init>
+																					</TemplateService.Init>
+																				</PropertyService.Provider>
+																			</InboxService.Provider>
+																		</PromptService.Provider>
 																	</CatalogLogoService.Init>
-																</CatalogPropsService.Provider>
+																</CatalogPropsService.Init>
 															</ArticlePropsService.Provider>
 														</ArticleDataService.Provider>
 													</ArticleRefService.Provider>

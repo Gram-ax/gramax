@@ -17,7 +17,7 @@ export interface ModalLayoutProps {
 	onCmdEnter?: (e: KeyboardEvent) => void;
 	isOpen?: boolean;
 	className?: string;
-	contentWidth?: "S" | "M" | "L";
+	contentWidth?: "XS" | "S" | "M" | "L" | "minM";
 	closeOnEscape?: boolean;
 	closeOnCmdEnter?: boolean;
 	setGlobalsStyles?: boolean;
@@ -36,9 +36,11 @@ export interface ModalLayoutProps {
 }
 
 export enum ModalWidth {
+	"XS" = "30%",
 	"S" = "45%",
 	"M" = "60%",
 	"L" = "80%",
+	"minM" = "min(100%, var(--medium-form-width))",
 	"default" = "var(--default-form-width)",
 }
 
@@ -202,10 +204,9 @@ export default styled(ModalLayout)`
 		height: 80%;
 		margin: auto;
 		width: ${(p) => {
-			if (!p.contentWidth) return ModalWidth.default;
-			if (p.contentWidth === "S") return ModalWidth.S;
-			if (p.contentWidth === "M") return ModalWidth.M;
-			if (p.contentWidth === "L") return ModalWidth.L;
+			const width = ModalWidth[p.contentWidth];
+			if (!width) return ModalWidth.default;
+			return width;
 		}};
 		${cssMedia.mediumest} {
 			width: 70% !important;

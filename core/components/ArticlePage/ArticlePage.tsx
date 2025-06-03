@@ -3,19 +3,17 @@ import ArticleWithPreviewArticle from "@components/ArticlePage/ArticleWithPrevie
 import ArticleBreadcrumb from "@components/Breadcrumbs/ArticleBreadcrumb";
 import Welcome from "@components/Welcome";
 import useShowMainLangContentPreview from "@core-ui/hooks/useShowMainLangContentPreview";
-import useWatch from "@core-ui/hooks/useWatch";
 import { ArticlePageData } from "@core/SitePresenter/SitePresenter";
 import styled from "@emotion/styled";
 import CreateFirstArticle from "@ext/artilce/actions/CreateFirstArticle";
 import t from "@ext/localization/locale/translate";
-import { ContentEditorId } from "@ext/markdown/core/edit/components/ContentEditor";
 import ResourceService from "@ext/markdown/elements/copyArticles/resourceService";
 import interceptPrintShortkeys from "../../extensions/artilce/actions/SaveAsPdf/interceptPrintShortkeys";
-import NextPrevious from "../../extensions/navigation/NextPrevious";
 import ThemeService from "../../extensions/Theme/components/ThemeService";
 import IsMacService from "../../ui-logic/ContextServices/IsMac";
 import Article from "../Article/Article";
-import ArticleExtensions from "../Article/ArticleExtensions";
+import ArticleFooter from "@components/Article/ArticleFooter";
+import { useEffect } from "react";
 
 const ArticlePage = ({ data, className }: { data: ArticlePageData; className?: string }) => {
 	const theme = ThemeService.value;
@@ -23,7 +21,7 @@ const ArticlePage = ({ data, className }: { data: ArticlePageData; className?: s
 	const { clear } = ResourceService.value;
 	const isShowMainLangContentPreview = useShowMainLangContentPreview();
 
-	useWatch(() => clear(), [data.articleProps.logicPath]);
+	useEffect(() => clear(), [data.articleProps.logicPath]);
 
 	interceptPrintShortkeys(isMac, theme);
 	if (data.articleProps.welcome)
@@ -45,8 +43,7 @@ const ArticlePage = ({ data, className }: { data: ArticlePageData; className?: s
 					isShowMainLangContentPreview && <ArticlePreview logicPath={data.articleProps.logicPath} />
 				}
 			/>
-			<NextPrevious itemLinks={data.itemLinks} />
-			<ArticleExtensions id={ContentEditorId} />
+			<ArticleFooter logicPath={data.articleProps.logicPath} itemLinks={data.itemLinks} />
 		</div>
 	);
 };

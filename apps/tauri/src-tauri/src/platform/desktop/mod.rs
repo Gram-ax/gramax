@@ -24,7 +24,7 @@ pub use updater::UpdaterBuilder;
 use save_windows::SaveWindowsExt;
 
 pub fn on_navigation(url: &url::Url) -> bool {
-  if url.scheme() == "blob" || url.domain().is_some_and(|domain| ALLOWED_DOMAINS.contains(&domain)) {
+  if url.scheme() == "blob" || url.scheme() == "tauri" || url.domain().is_some_and(|domain| ALLOWED_DOMAINS.contains(&domain)) {
     return true;
   }
 

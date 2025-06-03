@@ -1,7 +1,6 @@
 import { NodeViewWrapper, NodeViewProps, NodeViewContent } from "@tiptap/react";
 import BlockWrapper from "./BlockWrapper";
 import { useState, useRef, ChangeEvent, useCallback } from "react";
-import useUpdateTemplateField from "@ext/markdown/elements/blockContentField/edit/logic/useUpdateTemplateFIeld";
 
 const BlockContentFieldComponent = ({ node, extension, updateAttributes }: NodeViewProps) => {
 	const [isEditable] = useState(extension.options.editable);
@@ -22,8 +21,6 @@ const BlockContentFieldComponent = ({ node, extension, updateAttributes }: NodeV
 		},
 		[updatePlaceholder],
 	);
-
-	if (isEditable) useUpdateTemplateField(node);
 
 	return (
 		<NodeViewWrapper ref={hoverElementRef}>

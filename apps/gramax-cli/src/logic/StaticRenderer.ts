@@ -107,6 +107,7 @@ class StaticRenderer {
 
 	private _modifyContextForStaticGeneration(pageDataContext: PageDataContext) {
 		const { workspace } = pageDataContext;
+		pageDataContext.theme = null;
 		workspace.current = "/";
 		workspace.workspaces = [workspace.workspaces[0]];
 		workspace.workspaces[0].path = "/";

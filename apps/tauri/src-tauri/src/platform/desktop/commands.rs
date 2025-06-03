@@ -15,6 +15,21 @@ pub fn close_current_window<R: Runtime>(app: AppHandle<R>, window: WebviewWindow
   Ok(())
 }
 
+#[command]
+pub fn new_window<R: Runtime>(app: AppHandle<R>) -> Result<()> {
+  std::thread::spawn(move || {
+    MainWindowBuilder::default().build(&app).or_show_with_message(&t!("etc.error.build-window"))
+  });
+
+  Ok(())
+}
+
+#[command]
+pub fn minimize_window<R: Runtime>(window: WebviewWindow<R>) -> Result<()> {
+  window.minimize()?;
+  Ok(())
+}
+
 #[command(async)]
 pub fn open_directory() -> Option<PathBuf> {
   rfd::FileDialog::new().pick_folder()

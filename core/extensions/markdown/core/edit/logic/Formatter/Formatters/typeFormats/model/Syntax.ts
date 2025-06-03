@@ -1,4 +1,5 @@
 export enum Syntax {
-	legacy = "legacy",
-	xml = "xml",
+	github = "GitHub Flavored Markdown",
+	legacy = "Legacy",
+	xml = "Xml",
 }

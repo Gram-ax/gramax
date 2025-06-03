@@ -1,17 +1,14 @@
+import Tooltip from "@components/Atoms/Tooltip";
 import getIsDevMode from "@core-ui/utils/getIsDevMode";
+import styled from "@emotion/styled";
 import BranchMenu from "@ext/git/actions/Branch/components/BranchMenu";
+import { BranchStatusEnum, LocalIcon, MergeRequestIcon } from "@ext/git/actions/Branch/components/BranchStatus";
+import DisableTooltipContent from "@ext/git/actions/Branch/components/DisableTooltipContent";
 import type { MergeRequest } from "@ext/git/core/GitMergeRequest/model/MergeRequest";
+import t from "@ext/localization/locale/translate";
+import InlineUser from "@ext/security/components/User/InlineUser";
 import { useState } from "react";
 import Sidebar from "../../../../../components/Layouts/Sidebar";
-import styled from "@emotion/styled";
-import { BranchStatusEnum, MergeRequestIcon, RemoteOrLocalIcon } from "@ext/git/actions/Branch/components/BranchStatus";
-import InlineUser from "@ext/security/components/User/InlineUser";
-import Tooltip from "@components/Atoms/Tooltip";
-import DisableTooltipContent from "@ext/git/actions/Branch/components/DisableTooltipContent";
-import { ButtonStyle } from "@components/Atoms/Button/ButtonStyle";
-import t from "@ext/localization/locale/translate";
-import ButtonLink from "@components/Molecules/ButtonLink";
-import { TextSize } from "@components/Atoms/Button/Button";
 
 interface TitleComponentProps {
 	branchName: string;
@@ -34,7 +31,7 @@ interface GitDateSideBarProps {
 	className?: string;
 	switchBranch?: (branchName: string) => void;
 	canSwitchBranch?: (branchName: string) => boolean;
-	closeList?: () => void;
+	refreshList?: () => void;
 	onMergeRequestCreate?: () => void;
 }
 
@@ -101,7 +98,7 @@ const TitleComponent = (props: TitleComponentProps) => {
 		<TitleWrapper>
 			<div className="branch-name">
 				<span>{branchName}</span>
-				<RemoteOrLocalIcon isRemote={branchStatus === BranchStatusEnum.Remote} />
+				{branchStatus === BranchStatusEnum.Local && <LocalIcon />}
 				{hasMergeRequest && <MergeRequestIcon />}
 			</div>
 			<div className="branch-info">
@@ -118,52 +115,52 @@ const GitDateSideBar = (props: GitDateSideBarProps) => {
 		branchStatus,
 		mergeRequest,
 		data,
-		closeList,
+		refreshList,
 		onMergeRequestCreate,
 		switchBranch,
 		canSwitchBranch,
 		className,
 		disable,
 	} = props;
+
 	const [isDevMode] = useState(() => getIsDevMode());
 	const hasMergeRequest = Boolean(isDevMode && mergeRequest);
 
+	const onBranchSwitch = () => {
+		if (!canSwitchBranch(title)) return;
+		switchBranch(title);
+	};
+
 	return (
-		<Tooltip content={disable ? <DisableTooltipContent branch={title} /> : undefined}>
+		<Tooltip
+			delay={disable ? undefined : [500, 0]}
+			content={disable ? <DisableTooltipContent branch={title} /> : t("switch-branch")}
+		>
 			<div data-qa="qa-clickable" className={className}>
-				<Sidebar
-					disable={disable}
-					titleComponent={
-						<TitleComponent
-							branchName={title}
-							lastAuthor={data?.lastCommitAuthor}
-							lastAuthorMail={data?.lastCommitAuthorMail}
-							lastModify={data?.lastCommitModify}
-							branchStatus={branchStatus}
-							hasMergeRequest={hasMergeRequest}
-						/>
-					}
-					rightActions={[
-						<Tooltip key={0} content={t("switch-branch")}>
-							<ButtonLink
-								key={0}
-								data-qa="qa-switch-branch"
-								iconCode="arrow-right"
-								buttonStyle={ButtonStyle.transparent}
-								textSize={TextSize.M}
-								onClick={() => switchBranch(title)}
-								disabled={!canSwitchBranch(title)}
+				<div data-qa="qa-switch-branch" onClick={onBranchSwitch}>
+					<Sidebar
+						disable={disable}
+						titleComponent={
+							<TitleComponent
+								branchName={title}
+								lastAuthor={data?.lastCommitAuthor}
+								lastAuthorMail={data?.lastCommitAuthorMail}
+								lastModify={data?.lastCommitModify}
+								branchStatus={branchStatus}
+								hasMergeRequest={hasMergeRequest}
 							/>
-						</Tooltip>,
-						<BranchMenu
-							key={1}
-							closeList={closeList}
-							branchName={title}
-							onMergeRequestCreate={onMergeRequestCreate}
-							currentBranchName={currentBranchName}
-						/>,
-					]}
-				/>
+						}
+						rightActions={[
+							<BranchMenu
+							refreshList={refreshList}
+								key={1}
+								branchName={title}
+								onMergeRequestCreate={onMergeRequestCreate}
+								currentBranchName={currentBranchName}
+							/>,
+						]}
+					/>
+				</div>
 			</div>
 		</Tooltip>
 	);

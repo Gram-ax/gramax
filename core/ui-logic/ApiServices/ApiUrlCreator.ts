@@ -1,17 +1,17 @@
 import { getExecutingEnvironment } from "@app/resolveModule/env";
 import { Router } from "@core/Api/Router";
-import { ArticleProviderType } from "@core/FileStructue/Article/ArticleProvider";
+import { ArticleProviderType } from "@ext/articleProvider/logic/ArticleProvider";
 import CustomArticle from "@core/SitePresenter/customArticles/model/CustomArticle";
 import DiagramType from "@core/components/Diagram/DiagramType";
 import Theme from "@ext/Theme/Theme";
 import UiLanguage, { type ContentLanguage } from "@ext/localization/core/model/Language";
+import { Syntax } from "@ext/markdown/core/edit/logic/Formatter/Formatters/typeFormats/model/Syntax";
 import { SearcherType } from "@ext/serach/SearcherManager";
 import SourceType from "@ext/storage/logic/SourceDataProvider/model/SourceType";
 import { ExportFormat } from "@ext/wordExport/components/ItemExport";
 import type { WorkspacePath } from "@ext/workspace/WorkspaceConfig";
 import MimeTypes from "./Types/MimeTypes";
 import Url from "./Types/Url";
-import { Syntax } from "@ext/markdown/core/edit/logic/Formatter/Formatters/typeFormats/model/Syntax";
 
 export default class ApiUrlCreator {
 	constructor(private _basePath: string, private _catalogName?: string, private _articlePath?: string) {}
@@ -76,12 +76,19 @@ export default class ApiUrlCreator {
 		return Url.fromBasePath(`/api/workspace/setDefaultPath`, this._basePath, { path });
 	}
 
-	public getArticleResource(src: string, mimeType?: MimeTypes, catalogName?: string) {
+	public getArticleResource(
+		src: string,
+		mimeType?: MimeTypes,
+		catalogName?: string,
+		itemId?: string,
+		providerType?: ArticleProviderType,
+	) {
 		return Url.fromBasePath(`/api/article/resource/get`, this._basePath, {
-			articlePath: this._articlePath,
+			articlePath: itemId || this._articlePath,
 			catalogName: catalogName ?? this._catalogName,
 			mimeType,
 			src,
+			providerType,
 		});
 	}
 
@@ -127,26 +134,29 @@ export default class ApiUrlCreator {
 		});
 	}
 
-	public setArticleResource(src: string, articlePath?: string) {
+	public setArticleResource(src: string, articlePath?: string, providerType?: ArticleProviderType) {
 		return Url.fromBasePath(`/api/article/resource/set`, this._basePath, {
 			articlePath: articlePath ?? this._articlePath,
 			catalogName: this._catalogName,
 			src,
+			providerType,
 		});
 	}
 
-	public deleteArticleResource(src: string) {
+	public deleteArticleResource(src: string, itemId?: string, providerType?: ArticleProviderType) {
 		return Url.fromBasePath(`/api/article/resource/remove`, this._basePath, {
-			articlePath: this._articlePath,
+			articlePath: itemId || this._articlePath,
 			catalogName: this._catalogName,
 			src,
+			providerType,
 		});
 	}
 
-	public getArticleFileBrotherNames() {
+	public getArticleFileBrotherNames(itemId?: string, providerType?: ArticleProviderType) {
 		return Url.fromBasePath(`/api/article/features/getBrotherNames`, this._basePath, {
-			articlePath: this._articlePath,
+			articlePath: itemId || this._articlePath,
 			catalogName: this._catalogName,
+			providerType,
 		});
 	}
 
@@ -300,13 +310,6 @@ export default class ApiUrlCreator {
 		});
 	}
 
-	public getGitAddUrl(filePaths: string[]) {
-		return Url.fromBasePath(`/api/git/add`, this._basePath, {
-			catalogName: this._catalogName,
-			filePaths: JSON.stringify(filePaths),
-		});
-	}
-
 	public getVersionControlResetBranchesUrl() {
 		return Url.fromBasePath("/api/versionControl/branch/reset", this._basePath, {
 			catalogName: this._catalogName,
@@ -344,10 +347,9 @@ export default class ApiUrlCreator {
 		});
 	}
 
-	public getVersionControlStatuses(shouldAdd = true) {
+	public getVersionControlStatuses() {
 		return Url.fromBasePath(`/api/versionControl/statuses`, this._basePath, {
 			catalogName: this._catalogName,
-			shouldAdd: shouldAdd.toString(),
 		});
 	}
 
@@ -475,6 +477,13 @@ export default class ApiUrlCreator {
 		});
 	}
 
+	public getVersionControlDeleteBranchUrl(branch: string) {
+		return Url.fromBasePath(`/api/versionControl/branch/delete`, this._basePath, {
+			branch: encodeURIComponent(branch),
+			catalogName: this._catalogName,
+		});
+	}
+
 	public getReviewLinkUrl(filePath: string) {
 		return Url.fromBasePath(`/api/catalog/review/getReviewLink`, this._basePath, {
 			catalogName: this._catalogName,
@@ -513,10 +522,17 @@ export default class ApiUrlCreator {
 		});
 	}
 
-	public getSearchChatUrl(query: string, catalogName: string | null) {
+	public getSearchChatUrl(
+		query: string,
+		catalogName: string | null,
+		articlesLanguage: ContentLanguage | "none" | null,
+		responseLanguage: ContentLanguage | null,
+	) {
 		return Url.fromBasePath(`/api/search/chat`, this._basePath, {
 			query,
-			catalogName
+			catalogName,
+			articlesLanguage,
+			responseLanguage,
 		});
 	}
 
@@ -769,12 +785,6 @@ export default class ApiUrlCreator {
 		});
 	}
 
-	public getSnippetsListData() {
-		return Url.fromBasePath(`/api/elements/snippet/getListData`, this._basePath, {
-			catalogName: this._catalogName,
-		});
-	}
-
 	public getArticlesWithSnippet(snippetId: string) {
 		return Url.fromBasePath(`/api/elements/snippet/getArticlesWithSnippet`, this._basePath, {
 			catalogName: this._catalogName,
@@ -782,8 +792,8 @@ export default class ApiUrlCreator {
 		});
 	}
 
-	public getSnippetEditData(snippetId: string) {
-		return Url.fromBasePath(`/api/elements/snippet/getEditData`, this._basePath, {
+	public clearArticlesContentWithSnippet(snippetId: string) {
+		return Url.fromBasePath(`/api/elements/snippet/clearArticlesContent`, this._basePath, {
 			catalogName: this._catalogName,
 			snippetId,
 		});
@@ -886,8 +896,15 @@ export default class ApiUrlCreator {
 		});
 	}
 
-	public getInboxArticles() {
+	public getInboxArticles(userMail: string) {
 		return Url.fromBasePath(`/api/inbox/get`, this._basePath, {
+			catalogName: this._catalogName,
+			userMail,
+		});
+	}
+
+	public getInboxUsers() {
+		return Url.fromBasePath(`/api/inbox/getUsers`, this._basePath, {
 			catalogName: this._catalogName,
 		});
 	}
@@ -924,6 +941,13 @@ export default class ApiUrlCreator {
 		});
 	}
 
+	public getArticleListInGramaxDir(type: ArticleProviderType) {
+		return Url.fromBasePath(`/api/article/provider/getItemList`, this._basePath, {
+			type,
+			catalogName: this._catalogName,
+		});
+	}
+
 	public removeFileInGramaxDir(id: string, type: ArticleProviderType) {
 		return Url.fromBasePath(`/api/article/provider/remove`, this._basePath, {
 			id,
@@ -932,30 +956,25 @@ export default class ApiUrlCreator {
 		});
 	}
 
-	public getTemplates() {
-		return Url.fromBasePath(`/api/templates/get`, this._basePath, {
+	public getTemplateProperties(templateId: string) {
+		return Url.fromBasePath(`/api/templates/getProperties`, this._basePath, {
 			catalogName: this._catalogName,
+			templateId,
 		});
 	}
 
-	public getTemplatesList() {
-		return Url.fromBasePath(`/api/templates/getList`, this._basePath, {
+	public saveTemplateCustomProperty(templateId: string) {
+		return Url.fromBasePath(`/api/templates/saveCustomProperty`, this._basePath, {
 			catalogName: this._catalogName,
-		});
-	}
-
-	public setArticleAsTemplate(articlePath: string, templateId: string) {
-		return Url.fromBasePath(`/api/templates/setArticleAsTemplate`, this._basePath, {
-			catalogName: this._catalogName,
-			articlePath,
 			templateId,
 		});
 	}
 
-	public getTemplateContent(templateId: string) {
-		return Url.fromBasePath(`/api/templates/getContent`, this._basePath, {
+	public deleteTemplateCustomProperty(templateId: string, propertyName: string) {
+		return Url.fromBasePath(`/api/templates/deleteCustomProperty`, this._basePath, {
 			catalogName: this._catalogName,
 			templateId,
+			propertyName,
 		});
 	}
 
@@ -986,6 +1005,73 @@ export default class ApiUrlCreator {
 		return Url.fromBasePath(`api/catalog/setSyntax`, this._basePath, {
 			catalogName: this._catalogName,
 			syntax,
+		});
+	}
+
+	public getEditTreeInGramaxDir(id: string, type: ArticleProviderType) {
+		return Url.fromBasePath(`/api/article/provider/getEditTree`, this._basePath, {
+			id,
+			type,
+			catalogName: this._catalogName,
+		});
+	}
+
+	public getPrettifiedText(command: string) {
+		return Url.fromBasePath(`/api/ai/getPrettifiedText`, this._basePath, {
+			command,
+			catalogName: this._catalogName,
+		});
+	}
+
+	public getGeneratedText(command: string) {
+		return Url.fromBasePath(`/api/ai/getGeneratedText`, this._basePath, {
+			command,
+			catalogName: this._catalogName,
+		});
+	}
+
+	public markArticleAsRead(logicPath: string) {
+		return Url.fromBasePath(`/api/article/markAsRead`, this._basePath, {
+			catalogName: this._catalogName,
+			logicPath,
+		});
+	}
+
+	public markArticleAsOpened(logicPath: string) {
+		return Url.fromBasePath(`/api/article/markAsOpened`, this._basePath, {
+			catalogName: this._catalogName,
+			logicPath,
+		});
+	}
+
+	public checkAiAuth(apiUrl: string, token: string) {
+		return Url.fromBasePath(`/api/ai/checkAuth`, this._basePath, {
+			apiUrl,
+			token,
+		});
+	}
+
+	public checkAiServer(apiUrl: string) {
+		return Url.fromBasePath(`/api/ai/checkServer`, this._basePath, {
+			apiUrl,
+		});
+	}
+
+	public setAiData(workspacePath: string) {
+		return Url.fromBasePath(`/api/ai/setData`, this._basePath, {
+			workspacePath,
+		});
+	}
+
+	public removeAiData(workspacePath: string) {
+		return Url.fromBasePath(`/api/ai/removeData`, this._basePath, {
+			workspacePath,
+		});
+	}
+
+	public getAiUrl(workspacePath: string) {
+		return Url.fromBasePath(`/api/ai/getUrl`, this._basePath, {
+			workspacePath,
 		});
 	}
 }

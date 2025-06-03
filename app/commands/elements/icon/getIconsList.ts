@@ -14,7 +14,7 @@ const getListIcons: Command<{ ctx: Context; catalogName: string }, IconEditorPro
 		const workspace = this._app.wm.current();
 		const catalog = await workspace.getCatalog(catalogName, ctx);
 		if (!catalog) return;
-		return catalog.iconProvider.getIconsList();
+		return catalog.customProviders.iconProvider.getIconsList();
 	},
 
 	params(ctx, q) {

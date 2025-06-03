@@ -1,20 +1,22 @@
 import { classNames } from "@components/libs/classNames";
-import NoteRightExtensions from "@ext/inbox/components/Note/NoteRightExtensions";
 import { INBOX_DRAG_TYPE } from "@ext/inbox/models/consts";
 import { InboxArticle, InboxDragDropData, InboxDragItemData } from "@ext/inbox/models/types";
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useRef } from "react";
 import { useDrag, useDrop } from "react-dnd";
 import t from "@ext/localization/locale/translate";
 import InboxService from "@ext/inbox/components/InboxService";
 import Item from "@components/Layouts/LeftNavigationTabs/Item";
 import styled from "@emotion/styled";
 import Date from "@components/Atoms/Date";
+import BaseRightExtensions from "@ext/articleProvider/components/BaseRightExtensions";
+import useWatch from "@core-ui/hooks/useWatch";
 
 interface NoteProps {
 	article: InboxArticle;
-	handleDrop: (data: InboxDragDropData) => void;
-	onItemClick: (logicPath: string) => void;
 	isSelected: boolean;
+	handleDrop: (data: InboxDragDropData) => void;
+	onItemClick: (id: string, target: HTMLElement) => void;
+	onDelete: (id: string) => void;
 }
 
 const StyledNote = styled(Item)`
@@ -23,48 +25,60 @@ const StyledNote = styled(Item)`
 	}
 `;
 
-const Note = ({ article, handleDrop, onItemClick, isSelected }: NoteProps) => {
+const Note = ({ article, handleDrop, onItemClick, isSelected, onDelete }: NoteProps) => {
 	const containerRef = useRef<HTMLDivElement>(null);
 	const title = article.title.length ? article.title : t("article.no-name");
 
 	const [{ isOver }, drop] = useDrop({
 		accept: INBOX_DRAG_TYPE,
-		canDrop: (data: InboxDragItemData) => data.draggedLogicPath !== article.logicPath,
+		canDrop: (data: InboxDragItemData) => data.draggedId !== article.id,
 		collect: (monitor) => ({
 			isOver: !!monitor.isOver(),
 		}),
 		drop: (data: InboxDragItemData) => {
-			const droppedData = { droppedLogicPath: article.logicPath };
+			const droppedData = { droppedId: article.id };
 			handleDrop({ ...data, ...droppedData });
 		},
 	});
 
 	const [, drag] = useDrag(() => ({
 		type: INBOX_DRAG_TYPE,
-		item: { draggedLogicPath: article.logicPath },
+		item: { draggedId: article.id },
 	}));
 
-	const handleRef = useCallback(
-		(ref) => {
-			containerRef.current = ref;
-			drag(drop(ref));
-		},
-		[drop, drag],
-	);
+	useWatch(() => {
+		if (!containerRef.current) return;
+		drag(drop(containerRef.current));
+	}, [containerRef.current]);
 
-	useEffect(() => {
-		if (!isSelected) return;
-		InboxService.openNote(article, containerRef.current);
-	}, [isSelected]);
+	const onMarkdownChange = useCallback(
+		(id: string) => {
+			if (!isSelected) return;
+			InboxService.closeNote(id);
+
+			setTimeout(() => {
+				InboxService.openNote(article, containerRef.current);
+			}, 0);
+		},
+		[article, isSelected, containerRef.current],
+	);
 
 	return (
 		<StyledNote
-			ref={handleRef}
-			id={article.logicPath}
+			ref={containerRef}
+			id={article.id}
 			title={title}
+			rightActionsWidth="0.75em"
 			rightText={<Date date={article.props.date ?? ""} />}
 			className={classNames("", { over: isOver })}
-			rightActions={<NoteRightExtensions article={article} />}
+			rightActions={
+				<BaseRightExtensions
+					id={article.id}
+					providerType="inbox"
+					onMarkdownChange={onMarkdownChange}
+					onDelete={onDelete}
+				/>
+			}
 			onItemClick={onItemClick}
 			isSelected={isSelected}
 		/>

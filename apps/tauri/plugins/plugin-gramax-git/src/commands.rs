@@ -107,7 +107,12 @@ pub(crate) fn clone<R: Runtime>(
   creds: AccessTokenCreds,
   opts: CloneOptions,
 ) -> Result<()> {
-  git::clone(creds, opts, Box::new(move |chunk| _ = window.emit("clone-progress", chunk)))
+  let handle = window.app_handle().clone();
+  let cancel_token = opts.cancel_token;
+  git::clone(creds, opts, Box::new(move |chunk| _ = window.emit("clone-progress", chunk)))?;
+  let _ = handle.emit("clone-progress", CloneProgress::Finish { id: cancel_token, is_cancelled: false });
+
+  Ok(())
 }
 
 #[command]
@@ -243,6 +248,11 @@ pub(crate) fn get_all_commit_authors(repo_path: &Path) -> Result<Vec<CommitAutho
 #[command(async)]
 pub(crate) fn gc(repo_path: &Path, opts: GcOptions) -> Result<()> {
   git::gc(repo_path, opts)
+}
+
+#[command]
+pub(crate) fn get_all_cancel_tokens() -> Result<Vec<usize>> {
+  git::get_all_cancel_tokens()
 }
 
 #[command]

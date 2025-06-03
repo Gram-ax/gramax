@@ -5,7 +5,6 @@ import Path from "@core/FileProvider/Path/Path";
 import FileInfo from "@core/FileProvider/model/FileInfo";
 import type FileProvider from "@core/FileProvider/model/FileProvider";
 import { Article, type ArticleProps } from "@core/FileStructue/Article/Article";
-import { TemplateArticle, TemplateProps } from "@core/FileStructue/Article/TemplateArticle";
 import { Catalog } from "@core/FileStructue/Catalog/Catalog";
 import CatalogEntry from "@core/FileStructue/Catalog/CatalogEntry";
 import type CatalogEvents from "@core/FileStructue/Catalog/CatalogEvents";
@@ -31,6 +30,8 @@ export type FSEvents = Event<
 	Event<"item-moved", EventArgs<CatalogEvents, "item-moved">> &
 	Event<"item-deleted", EventArgs<CatalogEvents, "item-deleted">> &
 	Event<"item-created", EventArgs<CatalogEvents, "item-created">> &
+	Event<"item-serialize", { mutable: { content: string; props: ArticleProps } }> &
+	Event<"before-item-create", { catalog: Catalog; mutableItem: { item: Item } }> &
 	Event<"item-order-updated", EventArgs<CatalogEvents, "item-order-updated">> &
 	Event<"item-props-updated", EventArgs<CatalogEvents, "item-props-updated">>;
 
@@ -74,7 +75,9 @@ export default class FileStructure {
 
 	static async getCatalogDirs(fp: FileProvider): Promise<FileInfo[]> {
 		const items = await fp.getItems(Path.empty);
-		return items.filter((i) => i.isDirectory() && !FS_EXCLUDE_CATALOG_NAMES.includes(i.name));
+		const predicate = (i: FileInfo) =>
+			i.isDirectory() && !i.name.startsWith(".") && !FS_EXCLUDE_CATALOG_NAMES.includes(i.name);
+		return items.filter(predicate);
 	}
 
 	get fp() {
@@ -165,20 +168,23 @@ export default class FileStructure {
 	async saveCatalog(catalog: Catalog): Promise<void> {
 		const props = catalog.props;
 		delete props.docroot;
+		delete props.docrootIsNoneExistent;
 		const text = this._serializeProps({ ...props });
 		await this._fp.write(catalog.getRootCategoryPath().join(new Path(DOC_ROOT_FILENAME)), text);
 		catalog.repo?.resetCachedStatus();
 	}
 
 	async saveArticle(path: Path, content: string, props: ArticleProps): Promise<FileInfo> {
-		const text = this.serialize({ props, content });
+		const mutable = { content, props };
+		await this.events.emit("item-serialize", { mutable });
+		const text = this.serialize({ props: mutable.props, content: mutable.content });
 		await this._fp.write(path, text);
 		return await this._fp.getStat(path);
 	}
 
 	makeArticleByProps(
 		path: Path,
-		props: ArticleProps | TemplateProps,
+		props: ArticleProps,
 		content: string,
 		parent: Category,
 		lastModified: number,
@@ -240,6 +246,8 @@ export default class FileStructure {
 		});
 
 		await this._readCategoryItems(entry.getRootCategoryDirectoryPath(), category, catalog);
+
+		catalog.bindItemEvents();
 
 		catalog.events.on("item-moved", (args) => this.events.emit("item-moved", args));
 		catalog.events.on("item-created", (args) => this.events.emit("item-created", args));
@@ -349,7 +357,7 @@ export default class FileStructure {
 	}
 
 	private _createArticleByProps(
-		props: ArticleProps | TemplateProps,
+		props: ArticleProps,
 		parent: Category,
 		path: Path,
 		logicPath: string,
@@ -366,9 +374,10 @@ export default class FileStructure {
 			logicPath,
 		};
 
-		return props.template
-			? new TemplateArticle({ ...initProps, props: props as TemplateProps })
-			: new Article({ ...initProps, props });
+		const mutableItem = { item: new Article({ ...initProps, props }) };
+		this.events.emitSync("before-item-create", { catalog, mutableItem });
+
+		return mutableItem.item;
 	}
 
 	private async _search(root: Path, search: RegExp, depth = 5): Promise<Path> {
@@ -436,6 +445,7 @@ export default class FileStructure {
 		return {
 			title: path.name,
 			optionalCategoryIndex: true,
+			docrootIsNoneExistent: true,
 		};
 	}
 

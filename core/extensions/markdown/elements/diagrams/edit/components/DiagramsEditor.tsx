@@ -67,7 +67,7 @@ const DiagramsEditor = (props: DiagramsEditorProps) => {
 	const [contentState, setContentState] = useState(content ?? "");
 	const [contentEditState, setContentEditState] = useState(content ?? "");
 	const apiUrlCreator = ApiUrlCreatorService.value;
-	const { update, getBuffer } = ResourceService.value;
+	const { getBuffer, setResource } = ResourceService.value;
 	const [error, setError] = useState(null);
 	const alertWrapperRef = useRef<HTMLDivElement>(null);
 	const rightItemRef = useRef<HTMLDivElement>(null);
@@ -89,8 +89,7 @@ const DiagramsEditor = (props: DiagramsEditorProps) => {
 
 	const saveSrc = (newContent = "") => {
 		if (!src) return;
-		void FetchService.fetch(apiUrlCreator.setArticleResource(src), newContent);
-		update(src, Buffer.from(newContent));
+		setResource(src, newContent, undefined, true);
 	};
 
 	const saveContent = (newContent = "") => {

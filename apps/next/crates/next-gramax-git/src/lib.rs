@@ -449,3 +449,7 @@ pub fn gc(repo_path: String, opts: GcOptions) -> Output {
   git::gc(Path::new(&repo_path), opts.into())
 }
 
+#[napi(js_name = "get_all_cancel_tokens")]
+pub fn get_all_cancel_tokens() -> Output {
+  git::get_all_cancel_tokens().json()
+}

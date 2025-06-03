@@ -21,8 +21,11 @@ import linkToken from "../../../../elements/link/edit/model/linkToken";
 import video from "../../../../elements/video/edit/model/videoToken";
 import ParserContext from "../../../Parser/ParserContext/ParserContext";
 
+import alertToken from "@ext/markdown/elements/alert/edit/model/alertToken";
+import blockFieldToken from "@ext/markdown/elements/blockContentField/edit/models/blockFieldToken";
 import colorToken from "@ext/markdown/elements/color/edit/model/colorToken";
 import htmlToken from "@ext/markdown/elements/html/edit/models/htmlToken";
+import htmlTagTokens from "@ext/markdown/elements/htmlTag/edit/model/htmlTagTokens";
 import iconToken from "@ext/markdown/elements/icon/edit/model/iconToken";
 import inlinePropertyToken from "@ext/markdown/elements/inlineProperty/edit/models/inlinePropertyToken";
 import noteToken from "@ext/markdown/elements/note/edit/model/noteToken";
@@ -33,8 +36,7 @@ import tabsToken from "@ext/markdown/elements/tabs/edit/model/tabs/tabsToken";
 import unsupportedToken from "@ext/markdown/elements/unsupported/edit/model/unsupportedToken";
 import viewToken from "@ext/markdown/elements/view/edit/models/viewToken";
 import { ParseSpec } from "./from_markdown";
-import blockFieldToken from "@ext/markdown/elements/blockContentField/edit/models/blockFieldToken";
-import alertToken from "@ext/markdown/elements/alert/edit/model/alertToken";
+import blockPropertyToken from "@ext/markdown/elements/blockProperty/edit/models/blockPropertyToken";
 
 function listIsTight(tokens, i) {
 	while (++i < tokens.length) if (tokens[i].type != "list_item_open") return tokens[i].hidden;
@@ -72,6 +74,7 @@ export const getTokens = (context?: ParserContext): { [name: string]: ParseSpec 
 		"ts-diagram": tsDiagramToken,
 		"inline-property": inlinePropertyToken(),
 		"block-field": blockFieldToken(),
+		"block-property": blockPropertyToken(),
 		alert: alertToken(),
 
 		br: { node: "br" },
@@ -82,8 +85,8 @@ export const getTokens = (context?: ParserContext): { [name: string]: ParseSpec 
 				return { ...tok.attrs, isInline: false };
 			},
 		},
-
-		blockMd: { block: "blockMd" },
+		...htmlTagTokens,
+		blockMd: { node: "blockMd", getAttrs: (tok) => tok.attrs },
 		...tableTokens,
 		blockquote: { block: "blockquote" },
 		paragraph: { block: "paragraph" },

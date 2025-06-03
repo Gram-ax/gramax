@@ -7,6 +7,7 @@ import type Context from "@core/Context/Context";
 import type { Item } from "@core/FileStructue/Item/Item";
 import { ItemType } from "@core/FileStructue/Item/ItemType";
 import { ContentLanguage } from "@ext/localization/core/model/Language";
+import assert from "assert";
 
 const remove: Command<{ ctx: Context; code: ContentLanguage; catalogName: string }, void> = Command.create({
 	path: "catalog/language/remove",
@@ -18,13 +19,13 @@ const remove: Command<{ ctx: Context; code: ContentLanguage; catalogName: string
 	async do({ ctx, code, catalogName }) {
 		const { wm, resourceUpdaterFactory } = this._app;
 
-		if (!code || !ContentLanguage[code]) throw new Error("No content language code provided");
+		assert(code && ContentLanguage[code], "No content language code provided");
 		const catalog = await wm.current().getCatalog(catalogName, ctx);
-		if (!catalog) throw new Error(`Catalog '${catalogName} not found`);
-		if (!catalog.props.language) throw new Error(`Catalog '${catalogName}' hasn't main language set`);
-		if (!catalog.props.supportedLanguages.includes(code))
-			throw new Error(`Catalog ${catalogName} hasn't language ${code}`);
-		if (catalog.props.language == code) throw new Error("You can't delete main language");
+		assert(catalog, `Catalog '${catalogName} not found`);
+		assert(catalog.props.language, `Catalog '${catalogName}' hasn't main language set`);
+		assert(catalog.props.supportedLanguages.includes(code), `Catalog ${catalogName} hasn't language ${code}`);
+
+		assert(catalog.props.language != code, "You can't delete main language");
 
 		catalog.props.supportedLanguages = catalog.props.supportedLanguages.filter((l) => l != code);
 
@@ -32,6 +33,12 @@ const remove: Command<{ ctx: Context; code: ContentLanguage; catalogName: string
 		const languageCategory = catalog.findArticle(`${catalogName}/${code}`, [filter]);
 
 		if (languageCategory) await catalog.deleteItem(languageCategory.ref, null, false);
+
+		const props = catalog.props;
+		if (props.supportedLanguages?.length <= 1) {
+			props.language = null;
+			props.supportedLanguages = [];
+		}
 
 		await catalog.updateProps(catalog.props, resourceUpdaterFactory);
 		await wm.current().refreshCatalog(catalogName);

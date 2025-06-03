@@ -1,6 +1,8 @@
 import { useDebounce } from "@core-ui/hooks/useDebounce";
 import addDecorations from "@ext/markdown/elements/diff/logic/addDecorations";
-import showDiffs from "@ext/markdown/elements/diff/logic/showDiffs";
+import ProsemirrorAstDiffTransformer from "@ext/markdown/elements/diff/logic/astTransformer/ProseMirrorAstDiffTransformer";
+import convertDeletedDifflines from "@ext/markdown/elements/diff/logic/convertDeletedDifflines";
+import getDiffDecoratorsAndDiffLines from "@ext/markdown/elements/diff/logic/getDiffDecoratorsAndDiffLines";
 import { PluginKey, Transaction } from "@tiptap/pm/state";
 import { AddMarkStep, RemoveMarkStep } from "@tiptap/pm/transform";
 import { DecorationSet } from "@tiptap/pm/view";
@@ -40,7 +42,29 @@ const useDiff = ({ editor: newEditor, oldContentEditor }: { editor: Editor; oldC
 	const newEditorDecorations = useRef<DecorationSet>(null);
 
 	const updateDiffDecorators = () => {
-		const { newEditorDecoration, oldEditorDecorations } = showDiffs(oldContentEditor, newEditor);
+		const astDiffTransformer = new ProsemirrorAstDiffTransformer(oldContentEditor.state.doc, newEditor.state.doc);
+
+		const { addedDecorations, removedDecorations, changedContextDecorations, diffLines } =
+			getDiffDecoratorsAndDiffLines(astDiffTransformer);
+
+		// temp
+		const { convertedDiffLines, removedDecorations: extraRemovedDecorations } = convertDeletedDifflines(diffLines);
+
+		const oldEditorDecorations = DecorationSet.create(oldContentEditor.state.doc, [
+			...removedDecorations,
+			...extraRemovedDecorations,
+		]);
+		const newEditorDecoration = DecorationSet.create(newEditor.state.doc, [
+			...addedDecorations,
+			...changedContextDecorations,
+		]);
+
+		const proseMirrorDiffLines = convertedDiffLines.map((diffLine) =>
+			astDiffTransformer.convertToProseMirrorDiffLine(diffLine),
+		);
+
+		newEditor.commands.updateDiffLinesModel(proseMirrorDiffLines);
+
 		newEditorDecorations.current = newEditorDecoration;
 		addDecorations(newEditor, newEditorDecoration, diffNewEditorPluginKey);
 		addDecorations(oldContentEditor, oldEditorDecorations, diffOldEditorPluginKey);

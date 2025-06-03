@@ -5,6 +5,7 @@ import Path from "@core/FileProvider/Path/Path";
 import { ReactElement } from "react";
 import styled from "@emotion/styled";
 import { ZOOM_COUNT } from "@components/Atoms/Image/modalImage/modalFunctions";
+import ResourceService from "@ext/markdown/elements/copyArticles/resourceService";
 
 interface HeaderProps {
 	onClose: (immediately?: boolean) => void;
@@ -17,6 +18,7 @@ interface HeaderProps {
 
 const Header = (props: HeaderProps): ReactElement => {
 	const { zoomImage, onClose, downloadSrc, className, modalEdit } = props;
+	const rs = ResourceService.value;
 	const apiUrlCreator = ApiUrlCreatorService.value;
 
 	return (
@@ -32,7 +34,7 @@ const Header = (props: HeaderProps): ReactElement => {
 			)}
 			<Icon code="zoom-in" onClick={() => zoomImage(-ZOOM_COUNT)} />
 			<Icon code="zoom-out" onClick={() => zoomImage(ZOOM_COUNT)} />
-			{downloadSrc && (
+			{downloadSrc && !rs.id && (
 				<a onClick={() => downloadResource(apiUrlCreator, new Path(downloadSrc))}>
 					<Icon code="download" />
 				</a>

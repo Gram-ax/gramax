@@ -10,7 +10,7 @@ export class LibGit2Error extends Error {
 		super(message);
 		this.name = name;
 		this.code = fromRaw(klass, code, message, command);
-		this.data = makeData(this.code, message);
+		this.data = makeData(this.code, code);
 	}
 }
 
@@ -38,8 +38,18 @@ export const fromRaw = (klass: number, code: number, message: string, command?: 
 		case eq(4, 1):
 			return GitErrorCode.NotFoundError;
 
+		case message.includes("unexpected http status code: 404") || code === 404:
+			return GitErrorCode.RemoteRepositoryNotFoundError;
+
+		case message.includes("too many redirects or authentication replays") || code === 401 || code === 403:
+			return GitErrorCode.NotAuthorizedError;
+
+		case [413, 431, 422].some((c) => code == c || message.includes(`unexpected http status code: ${c}`)):
+			return GitErrorCode.ContentTooLargeError;
+
 		case eq(34, 16):
 		case eq(34, 0):
+		case code > 299:
 			return GitErrorCode.HttpError;
 
 		case eq(4, 9):
@@ -66,7 +76,7 @@ export const fromRaw = (klass: number, code: number, message: string, command?: 
 	}
 };
 
-export const makeData = (code: GitErrorCode, message: string): any => {
+export const makeData = (code: GitErrorCode, rawCode: number): any => {
 	switch (code) {
 		case GitErrorCode.PushRejectedError:
 			return {
@@ -75,7 +85,12 @@ export const makeData = (code: GitErrorCode, message: string): any => {
 
 		case GitErrorCode.HttpError:
 			return {
-				statusCode: message,
+				statusCode: rawCode > 99 ? rawCode : -1,
+			};
+
+		case GitErrorCode.RemoteRepositoryNotFoundError:
+			return {
+				statusCode: rawCode > 99 ? rawCode : 404,
 			};
 
 		default:

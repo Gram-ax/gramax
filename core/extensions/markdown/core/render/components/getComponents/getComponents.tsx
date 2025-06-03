@@ -44,6 +44,8 @@ import When from "../../../../elements/whowhen/render/When";
 import Who from "../../../../elements/whowhen/render/Who";
 import ParserContext from "../../../Parser/ParserContext/ParserContext";
 import BlockField from "@ext/markdown/elements/blockContentField/render/components/BlockField";
+import BlockProperty from "@ext/markdown/elements/blockProperty/render/components/BlockProperty";
+import HtmlTag from "@ext/markdown/elements/htmlTag/render/component/HtmlTag";
 
 export default function getComponents(): { [name: string]: (...props: any) => ReactNode } {
 	return {
@@ -60,14 +62,19 @@ export default function getComponents(): { [name: string]: (...props: any) => Re
 		Cmd,
 		Cut,
 		icon: Icon,
-		"Inline-property": InlineProperty,
-		"Block-field": BlockField,
+		"inline-property": InlineProperty,
+		"block-field": BlockField,
+		"block-property": BlockProperty,
 		Issue,
 		Module,
 		Who,
 		When,
 		Kbd,
 		Html,
+		inlineHtmlTag: HtmlTag,
+		blockHtmlTag: HtmlTag,
+		blockWithInlineHtmlTag: HtmlTag,
+		selfClosingHtmlTag: HtmlTag,
 		View,
 		Image,
 		"Img-h": Images,

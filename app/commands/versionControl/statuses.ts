@@ -1,3 +1,4 @@
+import { getExecutingEnvironment } from "@app/resolveModule/env";
 import { ResponseKind } from "@app/types/ResponseKind";
 import { DesktopModeMiddleware } from "@core/Api/middleware/DesktopModeMiddleware";
 import type Context from "@core/Context/Context";
@@ -9,19 +10,20 @@ export type ClientGitStatus = {
 	status: FileStatus;
 };
 
-const status: Command<{ ctx: Context; catalogName: string; shouldAdd: boolean }, ClientGitStatus[]> = Command.create({
+const status: Command<{ ctx: Context; catalogName: string }, ClientGitStatus[]> = Command.create({
 	path: "versionControl/statuses",
 
 	kind: ResponseKind.json,
 
 	middlewares: [new DesktopModeMiddleware()],
 
-	async do({ catalogName, shouldAdd }) {
+	async do({ catalogName }) {
 		const workspace = this._app.wm.current();
 		const catalog = await workspace.getContextlessCatalog(catalogName);
 		if (!catalog?.repo?.gvc) return [];
 
-		if (shouldAdd) await catalog.repo.gvc.add();
+		const isBrowser = getExecutingEnvironment() === "browser";
+		if (!isBrowser) await catalog.repo.gvc.add();
 
 		const status = await catalog.repo.gvc.getChanges("index");
 
@@ -32,7 +34,7 @@ const status: Command<{ ctx: Context; catalogName: string; shouldAdd: boolean },
 	},
 
 	params(ctx, q) {
-		return { ctx, catalogName: q.catalogName, shouldAdd: q.shouldAdd === "true" };
+		return { ctx, catalogName: q.catalogName };
 	},
 });
 

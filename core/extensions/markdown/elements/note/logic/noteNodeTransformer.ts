@@ -1,12 +1,14 @@
+import { JSONContent } from "@tiptap/core";
 import { NoteType } from "@ext/markdown/elements/note/render/component/Note";
 import NodeTransformerFunc from "../../../core/edit/logic/Prosemirror/NodeTransformerFunc";
+import { GFMAlerts } from "@ext/markdown/elements/note/edit/logic/github/noteFormatter";
 
 const noteNodeTransformer: NodeTransformerFunc = (node) => {
 	if (node && node.type === "blockquote") {
 		node.attrs = {
 			title: "",
 			collapsed: false,
-			type: NoteType.quote,
+			...getGFMAttrs(node),
 		};
 
 		node.type = "note";
@@ -34,6 +36,43 @@ const noteNodeTransformer: NodeTransformerFunc = (node) => {
 	}
 
 	return;
+};
+
+const getGFMAttrs = (node: JSONContent): { type: NoteType; title?: string } => {
+	let type = NoteType.quote;
+
+	const typeChildren = node.content?.[0];
+	if (
+		typeChildren &&
+		typeChildren.type === "paragraph" &&
+		typeChildren.content?.length === 1 &&
+		typeChildren.content[0].type === "text" &&
+		!typeChildren.content[0].marks
+	) {
+		const text = typeChildren.content[0].text.toUpperCase();
+		const GFMtype = GFMAlerts[text];
+		if (GFMtype) {
+			node.content = node.content.slice(1);
+			type = GFMtype;
+		}
+	}
+
+	const titleChildren = node.content?.[0];
+
+	if (
+		!titleChildren ||
+		titleChildren.type !== "heading" ||
+		titleChildren.attrs.level !== 3 ||
+		!(titleChildren.content?.length === 1) ||
+		titleChildren.content[0].type !== "text" ||
+		titleChildren.content[0].marks
+	)
+		return { type };
+
+	node.content = node.content.slice(1);
+	const title = titleChildren.content[0].text;
+
+	return { title, type };
 };
 
 export default noteNodeTransformer;

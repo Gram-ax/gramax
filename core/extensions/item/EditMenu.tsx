@@ -14,14 +14,14 @@ import RouterPathProvider from "@core/RouterPath/RouterPathProvider";
 import { ClientArticleProps } from "@core/SitePresenter/SitePresenter";
 import styled from "@emotion/styled";
 import ErrorConfirmService from "@ext/errorHandlers/client/ErrorConfirmService";
-import ActionWarning, { shouldShowActionWarning } from "@ext/localization/actions/ActionWarning";
+import PropsEditor from "@ext/item/actions/propsEditor/components/PropsEditor";
+import { shouldShowActionWarning } from "@ext/localization/actions/OtherLanguagesPresentWarning";
 import t from "@ext/localization/locale/translate";
 import NavigationEvents from "@ext/navigation/NavigationEvents";
-// import TemplateItemList from "@ext/templates/components/TemplateItemList";
+import TemplateItemList from "@ext/templates/components/TemplateItemList";
 import React, { CSSProperties, Dispatch, SetStateAction, useEffect, useState } from "react";
 import { ItemLink } from "../navigation/NavigationLinks";
 import DeleteItem from "./actions/DeleteItem";
-import PropsEditor from "./actions/propsEditor/components/PropsEditor";
 
 const StyledDiv = styled.div`
 	display: flex;
@@ -133,14 +133,10 @@ const ItemMenu = React.memo(({ itemLink, isCategory, setItemLink }: EditMenuProp
 								fileName={itemProps?.fileName}
 								itemRefPath={itemProps?.ref?.path}
 							/>
-							{/* {isCurrentItem && <TemplateItemList itemRefPath={itemProps?.ref?.path} />} */}
+							{isCurrentItem && <TemplateItemList itemRefPath={itemProps?.ref?.path} />}
 						</>
 					)}
-					<ActionWarning isDelete catalogProps={catalogProps} action={onClickHandler}>
-						<div>
-							<DeleteItem />
-						</div>
-					</ActionWarning>
+					<DeleteItem onConfirm={onClickHandler} />
 				</>
 			) : (
 				<>

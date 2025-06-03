@@ -83,6 +83,7 @@ export const format = (width: number, height: number, crop: Crop, objects: Image
 
 	result.crop = Object.values(crop).join(",");
 	result.scale = scale ? scale.toString() : "";
+	result.objects = "";
 
 	if (Array.isArray(objects) && objects.length > 0) {
 		result.objects = objects

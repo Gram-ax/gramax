@@ -42,14 +42,7 @@ export class Transformer {
 			}
 		}
 		if (node.type == "blockMd") {
-			node = {
-				type: "blockMd_component",
-				attrs: {
-					text: node.content[0].text,
-					tag: await renderer(node.content[0].text, this._context, { isOneElement: true, isBlock: true }),
-				},
-				content: node.content,
-			};
+			node.attrs.tag = await renderer(node.attrs.text, this._context, { isOneElement: true, isBlock: true });
 		}
 
 		return node;
@@ -139,6 +132,7 @@ export class Transformer {
 			if (
 				tokenTypeName &&
 				tokenTypeName !== "tableRow" &&
+				tokenTypeName !== "inlineHtmlTag" &&
 				tokenTypeName === previous.type.match(/(.*?)_open/)?.[1]
 			) {
 				return [{ type: "paragraph_open", tag: "p" }, { type: "paragraph_close", tag: "p" }, token];
@@ -172,47 +166,29 @@ export class Transformer {
 				const nodeSchema = transformer._schemes[newNode.type];
 				const formatter = getMarkdocFormatter(nodeSchema, this._context);
 				const tag = new Tag(newNode.type, newNode.attrs);
-				if (token.type === "tag_open") {
+
+				if (token.type === "tag_open" && parent && parent.type == "inline") {
 					const content = formatter(tag, "", false, true);
-					if (parent && parent.type == "inline") return transformer.getInlineMdOpenTokens(content);
-					return [
-						{ type: "paragraph_open", tag: "p" },
-						{ type: "blockMd_open", tag: "blockMd" },
-						...transformer.getParagraphTokens(content),
-					];
+					return transformer.getInlineMdOpenTokens(content);
 				}
 
-				if (token.type === "tag_close") {
+				if (token.type === "tag_close" && parent && parent.type == "inline") {
 					const content = formatter(tag, "", true);
-					if (parent && parent.type == "inline") return transformer.getInlineMdCloseTokens(content);
-					return [
-						...transformer.getParagraphTokens(content),
-						{ type: "blockMd_close", tag: "blockMd" },
-						{ type: "paragraph_close", tag: "p" },
-					];
+					return transformer.getInlineMdCloseTokens(content);
 				}
 
 				if (
 					nodeSchema.type == SchemaType.block ||
 					(newNode.tag === "formula" && newNode.attrs["content"].includes("$$"))
 				) {
-					if (!parent)
-						return transformer.getParagraphTokens(
-							null,
-							transformer.getBlockMdTokens(
-								transformer.getParagraphTokens(null, [this.getTextToken(formatter(tag, ""))]),
-							),
-						);
-
-					return transformer.getBlockMdTokens(
-						transformer.getParagraphTokens(null, [this.getTextToken(formatter(tag, ""))]),
-					);
+					return { type: "blockMd", attrs: { text: formatter(tag, "") } };
 				} else {
 					if (!parent)
 						return transformer.getParagraphTokens(null, transformer.getInlineMdTokens(formatter(tag, "")));
 					return transformer.getInlineMdTokens(formatter(tag, ""));
 				}
 			}
+
 			if (token.type === "tag_open") newNode.type = newNode.type + "_open";
 			if (token.type === "tag_close") newNode.type = newNode.type + "_close";
 

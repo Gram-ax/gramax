@@ -1,3 +1,4 @@
+import { getExecutingEnvironment } from "@app/resolveModule/env";
 import { ResponseKind } from "@app/types/ResponseKind";
 import getIsDevMode from "@core-ui/utils/getIsDevMode";
 import { AuthorizeMiddleware } from "@core/Api/middleware/AuthorizeMiddleware";
@@ -51,7 +52,8 @@ const diffTree: Command<{ catalogName: string; ctx: Context }, DiffItemResourceC
 		}
 
 		if (useNewDiff) {
-			await catalog.repo.gvc.add();
+			const isBrowser = getExecutingEnvironment() === "browser";
+			if (!isBrowser) await catalog.repo.gvc.add();
 
 			const head = await catalog.getHeadVersion();
 			const diffOpts: DiffCompareOptions = {

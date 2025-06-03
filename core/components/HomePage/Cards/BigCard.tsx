@@ -1,39 +1,40 @@
-import resolveModule from "@app/resolveModule/frontend";
+import useGetCatalogTitleLogo from "@components/HomePage/Cards/useGetCatalogTitleLogo";
 import Url from "@core-ui/ApiServices/Types/Url";
-import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
+import { usePlatform } from "@core-ui/hooks/usePlatform";
 import styled from "@emotion/styled";
 import { CatalogLink } from "@ext/navigation/NavigationLinks";
-import ThemeService from "@ext/Theme/components/ThemeService";
 import Link from "../../Atoms/Link";
 
 const BigCard = ({ hideLogo, link, className }: { hideLogo?: boolean; link: CatalogLink; className?: string }) => {
-	const apiUrlCreator = ApiUrlCreatorService.value;
-	const theme = ThemeService.value;
+	const { isStatic } = usePlatform();
+	const logo = useGetCatalogTitleLogo(link.name, hideLogo);
 
-	const logo = resolveModule("useImage")(hideLogo ? null : apiUrlCreator.getLogoUrl(link.name, theme));
-
-	return (
-		<Link
-			data-qa="qa-clickable"
-			className={className}
-			href={Url.from({
-				pathname: link.lastVisited || link.pathname,
-			})}
-		>
-			<div className="catalog-background">
-				<div className="catalog">
-					<div className="catalog-titles">
-						<div className="catalog-title gradient">
-							{link.code.length <= 4 ? link.code : link.code.slice(0, 3) + "..."}
-						</div>
-						<div className="catalog-title-logo" style={logo && { backgroundImage: `url(${logo})` }} />
+	const card = (
+		<div className="catalog-background">
+			<div className="catalog">
+				<div className="catalog-titles">
+					<div className="catalog-title gradient">
+						{link.code.length <= 4 ? link.code : link.code.slice(0, 3) + "..."}
 					</div>
-					<div title={link.description} className="catalog-texts">
-						<div className="catalog-text-logo">{link.title}</div>
-						<div className="catalog-text">{link.description}</div>
-					</div>
+					<div className="catalog-title-logo" style={logo && { backgroundImage: `url(${logo})` }} />
+				</div>
+				<div title={link.description} className="catalog-texts">
+					<div className="catalog-text-logo">{link.title}</div>
+					<div className="catalog-text">{link.description}</div>
 				</div>
 			</div>
+		</div>
+	);
+
+	if (isStatic)
+		return (
+			<a data-catalog-card={name} className={className} href={link.pathname}>
+				{card}
+			</a>
+		);
+	return (
+		<Link data-catalog-card={name} className={className} href={Url.from(link)}>
+			{card}
 		</Link>
 	);
 };

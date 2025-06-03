@@ -1,6 +1,11 @@
 import styled from "@emotion/styled";
 import { ReactNode } from "react";
 
+interface BlockWrapperProps extends React.HTMLAttributes<HTMLDivElement> {
+	children: ReactNode;
+	readOnly?: boolean;
+}
+
 const Wrapper = styled.div<{ readOnly?: boolean }>`
 	border: 1px dashed var(--color-comment-bg);
 	border-radius: var(--radius-medium);
@@ -9,6 +14,7 @@ const Wrapper = styled.div<{ readOnly?: boolean }>`
 	${({ readOnly }) =>
 		readOnly &&
 		`
+		cursor: default;
 		input {
 		font-size: 1em;
 			outline: none;
@@ -26,21 +32,25 @@ const Wrapper = styled.div<{ readOnly?: boolean }>`
 	`}
 
 	> div > div > :last-child,
-	> p:last-of-type {
+	p:last-of-type {
 		margin-bottom: 0 !important;
 	}
 `;
 
-const BlockWrapper = ({ children, readOnly = false }: { children: ReactNode; readOnly?: boolean }) => {
+const BlockWrapper = ({ children, readOnly = false, ...props }: BlockWrapperProps) => {
 	if (readOnly) {
 		return (
-			<Wrapper data-focusable={true} readOnly={readOnly} contentEditable={false}>
+			<Wrapper data-focusable={true} readOnly={readOnly} {...props}>
 				{children}
 			</Wrapper>
 		);
 	}
 
-	return <Wrapper data-editable={true}>{children}</Wrapper>;
+	return (
+		<Wrapper data-editable={true} {...props}>
+			{children}
+		</Wrapper>
+	);
 };
 
 export default BlockWrapper;

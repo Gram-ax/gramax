@@ -16,9 +16,9 @@ import SwitchWorkspace from "@ext/workspace/components/SwitchWorkspace";
 export type HomePageActionsProps = { catalogLinks: CatalogLink[]; className?: string; pin?: boolean };
 
 const HomePageActions = ({ catalogLinks, className }: HomePageActionsProps) => {
-	const { isNext } = usePlatform();
+	const { isNext, isStatic } = usePlatform();
 	const hasWorkspace = WorkspaceService.hasActive();
-	const workspacePath = WorkspaceService?.current()?.path;
+	const workspacePath = WorkspaceService.current()?.path;
 
 	const canEditCatalog = PermissionService.useCheckPermission(editCatalogPermission, workspacePath);
 	const canConfigureWorkspace = PermissionService.useCheckPermission(configureWorkspacePermission, workspacePath);
@@ -26,12 +26,12 @@ const HomePageActions = ({ catalogLinks, className }: HomePageActionsProps) => {
 
 	return (
 		<div className={className} data-qa="app-actions">
-			{!isNext && hasWorkspace && <SwitchWorkspace />}
-			{hasWorkspace && <Search isHomePage catalogLinks={catalogLinks} />}
+			{!isNext && hasWorkspace && !isStatic && <SwitchWorkspace />}
+			{hasWorkspace && !isStatic && <Search isHomePage catalogLinks={catalogLinks} />}
 			<SwitchUiLanguage />
 			<ThemeToggle />
-			{canAddCatalog && hasWorkspace && <AddCatalogMenu />}
-			{hasWorkspace && <SingInOut isHomePage />}
+			{canAddCatalog && hasWorkspace && !isStatic && <AddCatalogMenu />}
+			{hasWorkspace && !isStatic && <SingInOut isHomePage />}
 		</div>
 	);
 };
@@ -52,7 +52,7 @@ export default styled(HomePageActions)`
 		`}
 
 	> * {
-		z-index: var(--z-index-base);
+		z-index: var(--z-index-homepage-action);
 	}
 
 	${cssMedia.narrow} {

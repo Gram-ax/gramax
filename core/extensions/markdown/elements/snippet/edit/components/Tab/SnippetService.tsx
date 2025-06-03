@@ -1,0 +1,76 @@
+import ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
+import FetchService from "@core-ui/ApiServices/FetchService";
+import ArticleViewService from "@core-ui/ContextServices/views/articleView/ArticleViewService";
+import generateUniqueID from "@core/utils/generateUniqueID";
+import { ProviderItemProps } from "@ext/articleProvider/models/types";
+import ArticleSnippet from "@ext/markdown/elements/snippet/edit/components/Article/ArticleSnippet";
+import { createContext, useContext, useState } from "react";
+
+export type SnippetContextType = {
+	snippets: Map<string, ProviderItemProps>;
+	selectedID: string;
+};
+
+export const SnippetContext = createContext<SnippetContextType>({
+	snippets: new Map(),
+	selectedID: null,
+});
+
+class SnippetService {
+	private _setSnippets: (snippets: Map<string, ProviderItemProps>) => void = () => {};
+	private _setSelectedID: (selectedID: string) => void = () => {};
+
+	Init = ({ children }: { children: JSX.Element }): JSX.Element => {
+		const [snippets, setSnippets] = useState<Map<string, ProviderItemProps>>(new Map());
+		const [selectedID, setSelectedID] = useState<string>(null);
+
+		this._setSnippets = setSnippets;
+		this._setSelectedID = setSelectedID;
+
+		return <SnippetContext.Provider value={{ snippets, selectedID }}>{children}</SnippetContext.Provider>;
+	};
+
+	get value(): SnippetContextType {
+		return useContext(SnippetContext);
+	}
+
+	async fetchSnippets(apiUrlCreator: ApiUrlCreator) {
+		const url = apiUrlCreator.getArticleListInGramaxDir("snippet");
+		const res = await FetchService.fetch(url);
+
+		if (!res.ok) return;
+		const snippets = await res.json();
+
+		this.setSnippets(snippets);
+	}
+
+	setSnippets(snippets: ProviderItemProps[]) {
+		this._setSnippets(new Map(snippets.map((snippet) => [snippet.id, snippet])));
+	}
+
+	closeSnippet() {
+		ArticleViewService.setDefaultView();
+		this._setSelectedID(null);
+	}
+
+	openSnippet(snippet: ProviderItemProps) {
+		ArticleViewService.setView(() => <ArticleSnippet item={snippet} />);
+		this._setSelectedID(snippet.id);
+	}
+
+	async addNewSnippet(apiUrlCreator: ApiUrlCreator) {
+		const uniqueID = generateUniqueID();
+		await FetchService.fetch(apiUrlCreator.createFileInGramaxDir(uniqueID, "snippet"));
+
+		const res = await FetchService.fetch<ProviderItemProps[]>(apiUrlCreator.getArticleListInGramaxDir("snippet"));
+		if (!res.ok) return;
+
+		const newSnippets = await res.json();
+		this.setSnippets(newSnippets);
+
+		const addedSnippet = newSnippets.find((snippet) => snippet.id === uniqueID);
+		return addedSnippet;
+	}
+}
+
+export default new SnippetService();

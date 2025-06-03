@@ -18,8 +18,12 @@ const fileStatus: Command<{ catalogName: string; articlePath: Path }, GitStatus>
 		const catalog = await workspace.getContextlessCatalog(catalogName);
 		if (!catalog?.repo?.gvc) return;
 		if (catalog.repo.isBare) return { path: articlePath, status: FileStatus.current };
-		const relativeRepPath = catalog.getRepositoryRelativePath(articlePath);
-		return await catalog.repo.gvc.getFileStatus(relativeRepPath).catch(() => null);
+		try {
+			const relativeRepPath = catalog.getRepositoryRelativePath(articlePath);
+			return await catalog.repo.gvc.getFileStatus(relativeRepPath);
+		} catch {
+			return null;
+		}
 	},
 
 	params(ctx, q) {

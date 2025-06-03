@@ -32,8 +32,6 @@ const MergeRequestIcon = () => {
 interface GitDateSideBarProps {
 	title: string;
 	currentBranchName?: string;
-	// temp
-	isLocal?: boolean;
 	iconCode?: string;
 	iconViewBox?: string;
 	tooltipContent?: string;
@@ -42,16 +40,13 @@ interface GitDateSideBarProps {
 	disable?: boolean;
 	dateWidth?: "wide" | "narrow" | "auto";
 	showBranchMenu?: boolean;
-	closeList?: () => void;
+	refreshList?: () => void;
 	onMergeRequestCreate?: () => void;
 }
 
 const GitDateSideBar = ({
 	title,
 	currentBranchName,
-	//temp
-	// eslint-disable-next-line @typescript-eslint/no-unused-vars
-	isLocal,
 	iconCode,
 	iconViewBox,
 	tooltipContent,
@@ -60,7 +55,7 @@ const GitDateSideBar = ({
 	disable = false,
 	dateWidth = "auto",
 	showBranchMenu = false,
-	closeList,
+	refreshList,
 	onMergeRequestCreate,
 }: GitDateSideBarProps) => {
 	const [isDevMode] = useState(() => getIsDevMode());
@@ -94,7 +89,7 @@ const GitDateSideBar = ({
 					showBranchMenu && isDevMode && (
 						<BranchMenu
 							key={1}
-							closeList={closeList}
+							refreshList={refreshList}
 							branchName={title}
 							onMergeRequestCreate={onMergeRequestCreate}
 							currentBranchName={currentBranchName}

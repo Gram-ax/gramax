@@ -8,7 +8,7 @@ import { Fragment } from "react";
 const getKeyComponent = (key: string, isMac: boolean): JSX.Element | string => {
 	const keyComponents = {
 		Mod: isMac ? <Icon code="command" /> : "Ctrl",
-		Alt: isMac ? <Icon code="option" /> : "alt",
+		Alt: isMac ? <Icon code="option" /> : "Alt",
 		Shift: <Icon code="arrow-big-up" viewBox="3 3 18 18" />,
 		ArrowUp: <Icon code="arrow-up" />,
 		ArrowDown: <Icon code="arrow-down" />,

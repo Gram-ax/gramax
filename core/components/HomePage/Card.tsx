@@ -29,15 +29,18 @@ const Loader = () => {
 };
 
 const Card = ({ link, style, className, onClick, name }: CardProps) => {
+	const [isCancel, setIsCancel] = useState(false);
+	const [isLoading, setIsLoading] = useState<boolean>(false);
+
 	const { isCloning, percentage, progress, error } = useCloneProgress(
 		link.isCloning,
 		link.name,
 		link.redirectOnClone,
+		link.cloneCancelDisabled,
+		setIsCancel,
 	);
 
-	const [isCancel, setIsCancel] = useState(false);
-	const [isLoading, setIsLoading] = useState<boolean>(false);
-	const { isNext } = usePlatform();
+	const { isNext, isStatic } = usePlatform();
 
 	if (isCancel && !isCloning && !error) return null;
 
@@ -58,7 +61,7 @@ const Card = ({ link, style, className, onClick, name }: CardProps) => {
 			<div
 				className={classNames("card", { cloning: isCloning || !!error }, ["block-elevation-hover-1"])}
 				onClick={() => {
-					if (isNext) return;
+					if (isNext || isStatic) return;
 					onClick?.();
 					setIsLoading(true);
 				}}

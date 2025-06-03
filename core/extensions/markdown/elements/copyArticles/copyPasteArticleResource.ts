@@ -5,7 +5,7 @@ import { ClientArticleProps } from "@core/SitePresenter/SitePresenter";
 import createPlainText from "@ext/markdown/elements/copyArticles/createPlainText";
 import { ResourceServiceType } from "@ext/markdown/elements/copyArticles/resourceService";
 import { Attrs, DOMSerializer, Fragment, Mark, Node as ProseMirrorNode, Schema, Slice } from "@tiptap/pm/model";
-import { Transaction } from "@tiptap/pm/state";
+import { Selection, Transaction } from "@tiptap/pm/state";
 import { handlePaste } from "prosemirror-tables";
 import { EditorView } from "prosemirror-view";
 
@@ -141,17 +141,31 @@ const handleCodeBlock = (data: ClipboardItems, view: EditorView): Slice => {
 	}
 };
 
+const hasChildNodeText = (node: ProseMirrorNode): boolean => {
+	for (let index = 0; index < node.content.childCount; index++) {
+		const child = node.content.child(index);
+
+		if (child.type.name.includes("list")) continue;
+		if ((child.isTextblock || child.isText) && child.textContent.length) return true;
+	}
+
+	return false;
+};
+
 const handleListItem = (data: ClipboardItems, view: EditorView, node: ProseMirrorNode): Slice => {
 	const parent = node.content.firstChild?.firstChild;
 	const selectionNode = view.state.selection.$from.node(view.state.selection.$from.depth - 1);
 	const cursorInListItem = selectionNode?.type?.name === "listItem";
-	if (!cursorInListItem || selectionNode.textContent) return;
+	if (!cursorInListItem || hasChildNodeText(selectionNode)) return;
 
 	if (parent && parent.type.name === "listItem") {
-		const firstListItem = parent.firstChild;
-		if (firstListItem && firstListItem.type.name === "paragraph") {
-			const paragraph = firstListItem;
+		const paragraph = parent.firstChild;
+		if (paragraph && paragraph.type.name === "paragraph") {
 			const remainingContent = [];
+
+			parent.content.forEach((child, _, index) => {
+				if (index > 0) remainingContent.push(child);
+			});
 
 			node.content.firstChild.forEach((child, _, index) => {
 				if (index > 0) remainingContent.push(child);
@@ -200,6 +214,10 @@ const handleNodes = (data: ClipboardItems, view: EditorView, node: ProseMirrorNo
 
 const insertSlice = (tr: Transaction, view: EditorView, slice: Slice) => {
 	tr.replaceSelection(slice);
+
+	const pos = Math.max(Math.min(view.state.selection.$from.pos + slice.content.size, tr.doc.content.size), 0);
+	tr.setSelection(Selection.near(tr.doc.resolve(pos), 1));
+
 	tr.setMeta("paste", true);
 	tr.setMeta("uiEvent", "paste");
 	view.dispatch(tr);
@@ -319,7 +337,7 @@ const createFragment = (view: EditorView): CreatedFragment => {
 	const isSameNode = fromNode === $to.node();
 	if (isSameNode && fromNode.type.spec.code) {
 		return {
-			fragment: createCodeBlockFragment($from.node().content, schema),
+			fragment: createCodeBlockFragment(slice.content, schema),
 			plainText: text,
 		};
 	}

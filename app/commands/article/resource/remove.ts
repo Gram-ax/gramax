@@ -5,15 +5,19 @@ import Path from "@core/FileProvider/Path/Path";
 import { Article } from "@core/FileStructue/Article/Article";
 import parseContent from "@core/FileStructue/Article/parseContent";
 import { Command } from "../../../types/Command";
+import ArticleProvider, { ArticleProviderType } from "@ext/articleProvider/logic/ArticleProvider";
 
-const remove: Command<{ src: Path; articlePath: Path; catalogName: string; ctx: Context }, void> = Command.create({
+const remove: Command<
+	{ src: Path; articlePath: Path; catalogName: string; ctx: Context; providerType: ArticleProviderType },
+	void
+> = Command.create({
 	path: "article/resource/remove",
 
 	kind: ResponseKind.none,
 
 	middlewares: [new DesktopModeMiddleware()],
 
-	async do({ src, articlePath, catalogName, ctx }) {
+	async do({ src, articlePath, catalogName, ctx, providerType }) {
 		if (!src?.value) return;
 		const { parser, parserContextFactory, wm } = this._app;
 		const workspace = wm.current();
@@ -21,8 +25,12 @@ const remove: Command<{ src: Path; articlePath: Path; catalogName: string; ctx: 
 		const catalog = await workspace.getCatalog(catalogName, ctx);
 		const fp = workspace.getFileProvider();
 		const itemRef = fp.getItemRef(articlePath);
-		const article = catalog.findItemByItemRef<Article>(itemRef);
+		const article = providerType
+			? ArticleProvider.getProvider(catalog, providerType).getArticle(articlePath.value)
+			: catalog.findItemByItemRef<Article>(itemRef);
+
 		if (!article) return;
+
 		await parseContent(article, catalog, ctx, parser, parserContextFactory);
 		await article.parsedContent.write(async (p) => {
 			await p.resourceManager.delete(src);
@@ -34,7 +42,8 @@ const remove: Command<{ src: Path; articlePath: Path; catalogName: string; ctx: 
 		const src = new Path(q.src);
 		const catalogName = q.catalogName;
 		const articlePath = new Path(q.articlePath);
-		return { ctx, src, catalogName, articlePath };
+		const providerType = q.providerType as ArticleProviderType;
+		return { ctx, src, catalogName, articlePath, providerType };
 	},
 });
 

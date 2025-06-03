@@ -36,12 +36,16 @@ import { TicketManager } from "@ext/security/logic/TicketManager/TicketManager";
 import FuseSearcher from "@ext/serach/Fuse/FuseSearcher";
 import { IndexDataProvider } from "@ext/serach/IndexDataProvider";
 import SearcherManager from "@ext/serach/SearcherManager";
+import VectorChatBotSearcher from "@ext/serach/vector/VectorChatBotSearcher";
+import VectorDatabaseClient from "@ext/serach/vector/VectorDatabaseClient";
 import { VectorSearcher } from "@ext/serach/vector/VectorSearcher";
 import { SourceDataProvider } from "@ext/storage/logic/SourceDataProvider/logic/SourceDataProvider";
 import WorkspaceManager from "@ext/workspace/WorkspaceManager";
 import EnvAuth from "../../core/extensions/security/logic/AuthProviders/EnvAuth";
+import FSTemplateEvents from "../../core/extensions/templates/logic/FSTemplateEvents";
 import { AppConfig, getConfig } from "../config/AppConfig";
 import Application from "../types/Application";
+import { AiDataProvider } from "@ext/ai/logic/AiDataProvider";
 
 const _init = async (config: AppConfig): Promise<Application> => {
 	await initModulesFrontend();
@@ -58,12 +62,17 @@ const _init = async (config: AppConfig): Promise<Application> => {
 	const em = new EnterpriseManager(config.enterprise);
 
 	const rp = new RepositoryProvider(config);
+
+	const templateEventHandlers: FSTemplateEvents = new FSTemplateEvents();
+
 	const wm = new WorkspaceManager(
 		(path) => MountFileProvider.fromDefault(new Path(path), watcher),
 		(fs) => {
 			new FileStructureEventHandlers(fs).mount();
 			new RepositoryProviderEventHandlers(fs, rp).mount();
+			templateEventHandlers.mount(fs);
 		},
+		() => {},
 		rp,
 		config,
 		YamlFileConfig.dummy(),
@@ -71,6 +80,8 @@ const _init = async (config: AppConfig): Promise<Application> => {
 
 	const sdp = new SourceDataProvider(wm);
 	rp.addSourceDataProvider(sdp);
+
+	const adp = new AiDataProvider(wm);
 
 	const workspace = await wm.addWorkspace(config.paths.root.value, {
 		name: "Gramax",
@@ -97,6 +108,8 @@ const _init = async (config: AppConfig): Promise<Application> => {
 	const parserContextFactory = new ParserContextFactory(config.paths.base, wm, tablesManager, parser, formatter);
 	const htmlParser = new HtmlParser(parser, parserContextFactory);
 
+	templateEventHandlers.withParser(parser, formatter, parserContextFactory);
+
 	const vur: VideoUrlRepository = null;
 
 	const tm = new ThemeManager();
@@ -117,11 +130,28 @@ const _init = async (config: AppConfig): Promise<Application> => {
 
 	const indexDataProvider = new IndexDataProvider(wm, cache, parser, parserContextFactory);
 
-	const searcherManager = new SearcherManager(new FuseSearcher(indexDataProvider), {
-		vector: config.search.vector.enabled
-			? new VectorSearcher(config.search.vector, wm, parser, parserContextFactory)
-			: null,
-	});
+	const vectorDatabaseClient = config.portalAi.enabled
+		? new VectorDatabaseClient(
+				{
+					apiUrl: config.portalAi.apiUrl,
+					apiKey: config.portalAi.token,
+					collectionName: config.portalAi.instanceName,
+				},
+				wm,
+				parser,
+				parserContextFactory,
+		  )
+		: null;
+
+	const aiAvailable = config.portalAi.enabled ? await vectorDatabaseClient.checkConnection() : false;
+
+	const searcherManager = new SearcherManager(
+		new FuseSearcher(indexDataProvider),
+		vectorDatabaseClient ? new VectorChatBotSearcher(vectorDatabaseClient, wm) : null,
+		{
+			vector: vectorDatabaseClient ? new VectorSearcher(vectorDatabaseClient) : null,
+		},
+	);
 
 	const workspaceConfig = await wm.maybeCurrent()?.config();
 
@@ -132,15 +162,16 @@ const _init = async (config: AppConfig): Promise<Application> => {
 		wm,
 		em,
 		vur,
+		adp,
 		parser,
 		logger,
 		hashes,
-		searcherManager,
 		formatter,
 		htmlParser,
 		ticketManager,
 		tablesManager,
 		contextFactory,
+		searcherManager,
 		indexDataProvider,
 		parserContextFactory,
 		sitePresenterFactory,
@@ -164,11 +195,15 @@ const _init = async (config: AppConfig): Promise<Application> => {
 
 			allowedOrigins: config.allowedGramaxUrls,
 
+			portalAi: { enabled: aiAvailable },
+
 			search: {
-				vector: {
-					enabled: config.search.vector.enabled,
-					apiUrl: config.search.vector.apiUrl,
-					collectionName: config.search.vector.collectionName,
+				elastic: {
+					enabled: config.search.elastic.enabled,
+					apiUrl: config.search.elastic.apiUrl,
+					instanceName: config.search.elastic.instanceName,
+					username: config.search.elastic.username,
+					password: config.search.elastic.password,
 				},
 			},
 		},

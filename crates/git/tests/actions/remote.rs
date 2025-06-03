@@ -46,6 +46,7 @@ fn clone(sandbox: TempDir, #[case] url: &str) -> Result {
       CloneProgress::Checkout { .. } => {
         *checkout_calls_clone.borrow_mut() += 1;
       }
+      CloneProgress::Finish { .. } => {}
     }),
   )?;
   assert!(sandbox.path().join(".git").exists());

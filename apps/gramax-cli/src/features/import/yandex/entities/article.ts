@@ -43,6 +43,20 @@ class Article {
 		this._rawMode = false;
 	}
 
+	validateArticle(article: Partial<ArticleItem>) {
+		const result = { isObject: false, haveMainAttr: false, correctContent: false };
+
+		result.isObject = typeof article === "object";
+		if (!result.isObject) return result;
+
+		result.haveMainAttr = "slug" in article && "content" in article && "id" in article;
+		if (!result.haveMainAttr) return result;
+
+		result.correctContent = typeof article.content === "string";
+
+		return result;
+	}
+
 	set setRawMode(isRaw: boolean) {
 		this._rawMode = isRaw;
 	}
@@ -89,6 +103,7 @@ class Article {
 			try {
 				await writeArticleBySlug(item.slug, item.has_children);
 			} catch (e) {
+				delete navigation[itemId];
 				console.log(e);
 			}
 		}

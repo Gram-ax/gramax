@@ -16,7 +16,7 @@ const create: Command<
 		const workspace = wm.current();
 
 		const catalog = await workspace.getCatalog(catalogName, ctx);
-		const inbox = catalog.inboxProvider;
+		const inbox = catalog.customProviders.inboxProvider;
 		const newNote = await inbox.mergeArticles(
 			draggedLogicPath,
 			droppedLogicPath,

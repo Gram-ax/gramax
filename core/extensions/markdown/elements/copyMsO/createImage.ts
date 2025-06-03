@@ -23,7 +23,7 @@ const createImage = async (
 	const items = await fp.getItems(articlePath.parentDirectoryPath);
 
 	const baseFileName = fullResourcePath.name;
-	const extension = fullResourcePath.extension;
+	const extension = fullResourcePath.extension || "png";
 
 	const names = items.map((i) => "./" + i.name);
 	const newName = new Path(fileNameUtils.getNewName(names, isBlob ? article.getFileName() : baseFileName, extension));

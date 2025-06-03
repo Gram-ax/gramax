@@ -58,6 +58,9 @@ const addWorkspace: Command<{ ctx: Context; token: string }, UserSettings> = Com
 		delete (workspace as any).style;
 
 		await this._commands.workspace.create.do({ config: workspace });
+		if (userSettings.ai) {
+			await this._commands.ai.setAiData.do({ ctx, workspacePath: workspace.path, ...userSettings.ai });
+		}
 
 		const workspacePermission = new RelaxPermissionMap({ [workspace.path]: new Permission([]) });
 		const catalogPermission = new RelaxPermissionMap({});

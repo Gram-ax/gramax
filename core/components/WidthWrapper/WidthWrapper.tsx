@@ -6,7 +6,7 @@ import SidebarsIsPinService from "@core-ui/ContextServices/Sidebars/SidebarsIsPi
 import useShowMainLangContentPreview from "@core-ui/hooks/useShowMainLangContentPreview";
 import { cssMedia } from "@core-ui/utils/cssUtils";
 import styled from "@emotion/styled";
-import { CSSProperties, useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
+import { CSSProperties, useCallback, useEffect, useRef, useState } from "react";
 
 export const CELL_MIN_WIDTH = "3em";
 
@@ -66,7 +66,7 @@ const WidthWrapper = ({ children, className }: { children: JSX.Element; classNam
 		};
 	}, [scrollContainerRef.current]);
 
-	useLayoutEffect(() => {
+	useEffect(() => {
 		resizeWrapper();
 		setWidth();
 	}, [leftNavigation]);

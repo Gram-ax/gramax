@@ -32,7 +32,7 @@ export const call = async <O>(command: string, args?: any): Promise<O> => {
 		if ((args as CredsArgs)?.creds?.accessToken) (args as CredsArgs).creds.accessToken = "<redacted>";
 		return Promise.reject(
 			new LibGit2Error(
-				`git (${command})`,
+				`git (${command}, ${error.class ?? "<unknown class>"}, ${error.code ?? "<unknown code>"})`,
 				`${error?.message?.trim() || error}\nArgs: ${JSON.stringify(args, null, 4)}`,
 				error.class,
 				error.code,

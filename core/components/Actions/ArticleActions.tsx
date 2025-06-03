@@ -1,5 +1,6 @@
 import EditInGramax from "@components/Actions/EditInGramax";
 import ShowInExplorer from "@components/Actions/ShowInExplorer";
+import useIsFileNew from "@components/Actions/useIsFileNew";
 import ArticleUpdaterService from "@components/Article/ArticleUpdater/ArticleUpdaterService";
 import ButtonLink from "@components/Molecules/ButtonLink";
 import FetchService from "@core-ui/ApiServices/FetchService";
@@ -12,7 +13,7 @@ import IsReadOnlyHOC from "@core-ui/HigherOrderComponent/IsReadOnlyHOC";
 import { usePlatform } from "@core-ui/hooks/usePlatform";
 import { ClientArticleProps } from "@core/SitePresenter/SitePresenter";
 import BugsnagLogsModal from "@ext/bugsnag/components/BugsnagLogsModal";
-import Share from "@ext/catalog/actions/share/components/Share";
+import ShareAction from "@ext/catalog/actions/share/components/ShareAction";
 import EnterpriseCheckStyleGuide from "@ext/enterprise/components/EnterpriseCheckStyleGuide";
 import t from "@ext/localization/locale/translate";
 import PermissionService from "@ext/security/logic/Permission/components/PermissionService";
@@ -69,18 +70,15 @@ const ArticleActions: FC<ArticleActionsProps> = ({ isCatalogExist, item, isCurre
 		[apiUrlCreator, item.ref.path, isCurrentItem],
 	);
 
+	const isFileNew = useIsFileNew(item);
+
 	return (
 		<>
-			{!isNext && catalogProps.sourceName && (
-				<Share
-					path={editLink}
-					trigger={<ButtonLink text={t("share.name.article")} iconCode="external-link" />}
-				/>
-			)}
+			{!isNext && catalogProps.sourceName && <ShareAction path={editLink} isArticle />}
 			<IsReadOnlyHOC>
-				<History key="history" item={item} />
+				<History key="history" item={item} isFileNew={isFileNew} />
 				<BugsnagLogsModal key="bugsnag" itemLogicPath={item.logicPath} />
-				{!isTemplate && (
+				{!isTemplate && isCurrentItem && (
 					<FileEditor
 						key="file-editor"
 						trigger={<ButtonLink iconCode="file-pen" text={t("article.edit-markdown")} />}

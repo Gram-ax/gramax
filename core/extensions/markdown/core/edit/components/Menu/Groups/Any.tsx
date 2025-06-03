@@ -7,17 +7,24 @@ import DiagramsMenuGroup from "./Diagrams";
 import FilesMenuGroup from "./Files";
 import NotesMenuGroup from "@ext/markdown/core/edit/components/Menu/Groups/Notes";
 
-const AnyMenuGroup = ({ editor, includeResources }: { editor?: Editor; includeResources?: boolean }) => {
+interface AnyMenuGroupProps {
+	editor?: Editor;
+	includeResources?: boolean;
+	fileName?: string;
+	isSmallEditor?: boolean;
+}
+
+const AnyMenuGroup = ({ editor, includeResources, fileName, isSmallEditor }: AnyMenuGroupProps) => {
 	return (
 		<ButtonsLayout>
 			<CodeMenuButton editor={editor} />
 			<NotesMenuGroup editor={editor} />
 			<TableMenuButton editor={editor} />
-			<SemiBlocks editor={editor} includeResources={includeResources} />
+			<SemiBlocks editor={editor} includeResources={includeResources} isSmallEditor={isSmallEditor} />
 			{includeResources && (
 				<>
-					<DiagramsMenuGroup editor={editor} />
-					<FilesMenuGroup editor={editor} />
+					<DiagramsMenuGroup editor={editor} fileName={fileName} />
+					<FilesMenuGroup editor={editor} fileName={fileName} isSmallEditor={isSmallEditor} />
 				</>
 			)}
 		</ButtonsLayout>

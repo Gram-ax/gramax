@@ -1,11 +1,12 @@
 const LIST_TYPES = ["UL", "OL"];
 
-const getPrefix = (node: Node, index: number = 0): string => {
-	const dataset = (node as HTMLElement).dataset;
-	const isTaskList = dataset?.type === "taskList";
+const getPrefix = (node: Node, index: number = 0, liNode?: Node): string => {
 	const isOL = node.nodeName === "OL";
 
-	if (isTaskList) return dataset.checked === "true" ? "[x]" : "[ ]";
+	if (liNode && (liNode as HTMLElement).hasAttribute("data-checked")) {
+		const checked = (liNode as HTMLElement).getAttribute("data-checked") === "true";
+		return `- [${checked ? "x" : " "}]`;
+	}
 	return isOL ? `${index + 1}.` : "-";
 };
 
@@ -20,18 +21,28 @@ const processListItems = (node: Node, level: number = 0): string => {
 		let nestedLists = "";
 
 		Array.from(child.childNodes).forEach((childNode, childIndex) => {
-			if (childNode.nodeName === "P") {
-				if (childIndex === 0 || !itemContent) {
-					itemContent = childNode.textContent || "";
+			if (childNode.nodeName === "P" || childNode.nodeName === "DIV") {
+				const nestedList = Array.from(childNode.childNodes).find((n) => LIST_TYPES.includes(n.nodeName));
+				if (nestedList) {
+					Array.from(childNode.childNodes).forEach((n) => {
+						if (n !== nestedList) {
+							itemContent += (n.textContent || "").trim();
+						}
+					});
+					nestedLists += processListItems(nestedList, level + 1);
 				} else {
-					additionalText += `\n${"\t".repeat(level)}  ${childNode.textContent}`;
+					if (childIndex === 0 || !itemContent) {
+						itemContent = childNode.textContent || "";
+					} else {
+						additionalText += `\n${"\t".repeat(level)}  ${childNode.textContent}`;
+					}
 				}
 			} else if (LIST_TYPES.includes(childNode.nodeName)) {
 				nestedLists += processListItems(childNode, level + 1);
 			}
 		});
 
-		const prefix = getPrefix(node, index);
+		const prefix = getPrefix(node, index, child);
 		result += `${"\t".repeat(level)}${prefix} ${itemContent}`;
 
 		if (additionalText) {
@@ -51,20 +62,31 @@ const processListItem = (li: Node, level: number = 0): string => {
 	const nestedLists: Node[] = [];
 
 	Array.from(li.childNodes).forEach((child) => {
-		if (child.nodeName === "P") {
-			paragraphs.push(child);
+		if (child.nodeName === "P" || child.nodeName === "DIV") {
+			const hasInnerList = Array.from(child.childNodes).some((n) => LIST_TYPES.includes(n.nodeName));
+			if (hasInnerList) {
+				Array.from(child.childNodes).forEach((n) => {
+					if (LIST_TYPES.includes(n.nodeName)) {
+						nestedLists.push(n);
+					} else {
+						paragraphs.push(n);
+					}
+				});
+			} else {
+				paragraphs.push(child);
+			}
 		} else if (LIST_TYPES.includes(child.nodeName)) {
 			nestedLists.push(child);
 		}
 	});
 
-	const mainContent = paragraphs.length > 0 ? paragraphs[0].textContent || "" : "";
+	const parent = li.parentNode as Node;
+	const siblings = Array.from(parent.childNodes).filter((n): n is ChildNode => n.nodeName === "LI");
+	const index = siblings.indexOf(li as ChildNode);
+	const prefix = getPrefix(parent, index, li);
 
-	result += `${"\t".repeat(level)}- ${mainContent}\n`;
-
-	for (let i = 1; i < paragraphs.length; i++) {
-		result += `${"\t".repeat(level)}  ${paragraphs[i].textContent}\n`;
-	}
+	const mainContent = paragraphs.length > 0 ? paragraphs.map((p) => p.textContent || "").join("") : "";
+	result += `${"\t".repeat(level)}${prefix} ${mainContent}\n`;
 
 	nestedLists.forEach((list) => {
 		result += processListItems(list, level + 1);

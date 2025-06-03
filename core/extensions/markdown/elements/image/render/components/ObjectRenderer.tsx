@@ -1,4 +1,4 @@
-import { ImageObject, SquareObject } from "@ext/markdown/elements/image/edit/model/imageEditorTypes";
+import { ImageObject, ImageObjectTypes, SquareObject } from "@ext/markdown/elements/image/edit/model/imageEditorTypes";
 import UnifiedComponent from "@ext/markdown/elements/image/render/components/ImageEditor/Unified";
 import { RefObject, useEffect, useState } from "react";
 
@@ -46,6 +46,7 @@ const ObjectRenderer = (props: ObjectRendererProps) => {
 		const isNotTop = hasOffset && !data?.direction.includes("top");
 		const isNotLeft = hasOffset && !data?.direction.includes("left");
 		const newData = { ...data } as SquareObject;
+		const noStyles = data.type === ImageObjectTypes.Square;
 
 		return (
 			<UnifiedComponent
@@ -56,8 +57,8 @@ const ObjectRenderer = (props: ObjectRendererProps) => {
 				{...newData}
 				selectedIndex={selectedIndex}
 				style={{
-					marginLeft: isNotLeft && `calc(-1.4em * ${1 - scaleFactor})`,
-					marginTop: isNotTop && `calc(-1.4em * ${1 - scaleFactor})`,
+					marginLeft: noStyles ? undefined : isNotLeft && `calc(-1.4em * ${1 - scaleFactor})`,
+					marginTop: noStyles ? undefined : isNotTop && `calc(-1.4em * ${1 - scaleFactor})`,
 				}}
 				editable={editable}
 				type={data.type}

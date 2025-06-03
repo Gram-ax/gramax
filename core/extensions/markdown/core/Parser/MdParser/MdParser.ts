@@ -29,6 +29,8 @@ export default class MdParser {
 	private _findBlockCodeToIgnore = "```[^(```)]*?```[^(```)]*?```\n\r?```|```[\\s\\S]*?```[s]?|\\\\.";
 	private _findHtmlToIgnore = "\\[html.*][\\s\\S]*?\\[\\/html\\]";
 
+	private _preTagRegExp: RegExp;
+
 	constructor(preParserOptions: MdParserOptions = null) {
 		this._tags = preParserOptions?.tags ?? {};
 		this._escapeDoubleQuotesRegExp = this._createIgnoreRegExp(String.raw`.*?[^\\](").*?`);
@@ -38,7 +40,7 @@ export default class MdParser {
 		this._formulaRegExp = this._createIgnoreRegExp(
 			String.raw`{\s?.*?\s?}|(\${1}[^\$].*?\${1})|(\${2}[^\$].*?\${2})`,
 		);
-		this._squareRegExp = this._createIgnoreRegExp(String.raw`\[(.*?)\]`);
+		this._squareRegExp = this._createIgnoreRegExp(String.raw`\[(.*?)\](\()?`);
 		this._arrowRegExp = this._createIgnoreRegExp(String.raw`\\-->|[^\\\r\n]?(-->)`);
 		this._dashRegExp = this._createIgnoreRegExp(String.raw`.?-->.?|\\--|.?--[-]+|[^\\\n\r]?(--)`);
 		this._idRegExp = this._createIgnoreRegExp(String.raw`[[{] ?(#.*?) ?[\]}]`);
@@ -46,10 +48,11 @@ export default class MdParser {
 		this._backDashRegExp = this._createIgnoreRegExp(String.raw`(—)`);
 		this._backArrowRegExp = this._createIgnoreRegExp(String.raw`(→)`);
 		this._listWithAnEmptyItem = new RegExp(String.raw`^[ \t]*(?:\d+\.|-)[ \t]*$`, "gm");
-		this._table = new RegExp(String.raw`{% table %}([\s\S]*?){% \/table %}`, "gm");
+		this._table = new RegExp(String.raw`{% table\s*([^%]*)%}([\s\S]*?){% \/table %}`, "gm");
 		this._emptyTableCell = new RegExp(String.raw`^(?:\*)[ \t]*$`, "gm");
 
 		this._findHtmlRegExp = new RegExp(String.raw`(^[^\n]*)\[html.*]([\s\S]*?)\[\/html\]`, "gm");
+		this._preTagRegExp = new RegExp(String.raw`<pre>([\s\S]*?)<\/pre>`, "gm");
 	}
 
 	use(tag: Schema) {
@@ -57,6 +60,7 @@ export default class MdParser {
 	}
 
 	preParse(content: string): string {
+		content = this._preTagParser(content);
 		content = this._removeComments(content);
 		content = this._tableParser(content);
 		content = this._includeParse(content);
@@ -134,8 +138,8 @@ export default class MdParser {
 	}
 
 	private _squareBracketsParser(content: string): string {
-		return content.replaceAll(this._squareRegExp, (str: string, group: string) => {
-			if (!group) return str;
+		return content.replaceAll(this._squareRegExp, (str: string, group: string, hasOpenBracket: string) => {
+			if (!group || hasOpenBracket) return str;
 			group = this._screenLink(group);
 			const split = group.split(":");
 			if (split[0][0] === "/") {
@@ -215,5 +219,13 @@ export default class MdParser {
 		return content.replaceAll(this._removeCommentsRegExp, (str: string, comment: string) =>
 			str.replace(comment, ""),
 		);
+	}
+
+	private _preTagParser(content: string): string {
+		return content.replaceAll(this._preTagRegExp, (str: string, preContent: string) => {
+			if (!preContent.includes("\n")) preContent = "\n" + preContent + "\n";
+
+			return `\`\`\`${preContent}\`\`\``;
+		});
 	}
 }

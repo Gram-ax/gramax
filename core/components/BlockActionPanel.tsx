@@ -1,5 +1,5 @@
 import HoverableActions from "@components/controls/HoverController/HoverableActions";
-import Signature from "@components/controls/Signature";
+import Caption from "@components/controls/Caption";
 import useWatch from "@core-ui/hooks/useWatch";
 import EditorService from "@ext/markdown/elementsUtils/ContextServices/EditorService";
 import { FocusEvent, ReactElement, RefObject, useCallback, useState } from "react";
@@ -67,9 +67,9 @@ const BlockActionPanel = (props: BlockActionPanelProps) => {
 		>
 			{children}
 			{signatureRef && (
-				<Signature
+				<Caption
 					ref={signatureRef}
-					autoFocus={!isSignature}
+					autoFocus={isSignature}
 					text={signatureText}
 					onUpdate={onUpdate}
 					onLoseFocus={onLoseFocus}

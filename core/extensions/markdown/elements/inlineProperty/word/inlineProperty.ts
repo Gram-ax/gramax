@@ -7,9 +7,12 @@ export const inlinePropertyWordLayout: WordInlineChild = async ({ state, tag, ad
 
 	const article = wordRenderContext.parserContext.getArticle();
 	const catalog = wordRenderContext.catalog;
+	const template = catalog.customProviders.templateProvider.getArticle(article.props.template);
+	if (!template) return [];
+
 	const properties = article.props?.properties;
 
-	const catalogProperty = catalog.props.properties.find((p) => p.name === tag.attributes.bind);
+	const catalogProperty = template.props.customProperties.find((p) => p.name === tag.attributes.bind);
 
 	if (!catalogProperty) return [];
 	const articleProperty = properties?.find((p) => p.name === tag.attributes.bind);

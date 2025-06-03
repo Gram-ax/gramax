@@ -16,7 +16,6 @@ import type { ItemRefStatus } from "@ext/Watchers/model/ItemStatus";
 import RepositoryProvider from "@ext/git/core/Repository/RepositoryProvider";
 import WorkspaceAssets from "@ext/workspace/WorkspaceAssets";
 import { WorkspaceConfig, type WorkspacePath } from "@ext/workspace/WorkspaceConfig";
-import type { FSCatalogsInitializedCallback } from "@ext/workspace/WorkspaceManager";
 import WorkspaceEventHandlers from "@ext/workspace/events/WorkspaceEventHandlers";
 
 export type WorkspaceEvents = Event<"add-catalog", { catalog: Catalog }> &
@@ -24,15 +23,18 @@ export type WorkspaceEvents = Event<"add-catalog", { catalog: Catalog }> &
 	Event<"resolve-category", EventArgs<CatalogEvents, "resolve-category">> &
 	Event<"catalog-changed", CatalogFilesUpdated> &
 	Event<"on-catalog-resolve", { mutableCatalog: { catalog: Catalog }; name: string; metadata: string }> &
-	Event<"on-catalog-entry-resolve", { mutableEntry: { entry: BaseCatalog }; name: string; metadata: string }>;
+	Event<"on-catalog-entry-resolve", { mutableEntry: { entry: BaseCatalog }; name: string; metadata: string }> &
+	Event<"on-entries-read", { mutableEntries: { entries: CatalogEntry[] } }>;
+
+export type WorkspaceInitCallback = (workspace: Workspace) => void;
 
 export type WorkspaceInitProps = {
 	fs: FileStructure;
 	rp: RepositoryProvider;
 	path: WorkspacePath;
 	config: YamlFileConfig<WorkspaceConfig>;
-	rules?: FSCatalogsInitializedCallback[];
 	assets: WorkspaceAssets;
+	onInit?: WorkspaceInitCallback;
 };
 
 export class Workspace {
@@ -49,13 +51,16 @@ export class Workspace {
 		new WorkspaceEventHandlers(this, this._rp).mount();
 	}
 
-	static async init({ fs, rp, rules, path, config, assets }: WorkspaceInitProps) {
+	static async init({ fs, rp, path, config, assets, onInit }: WorkspaceInitProps) {
 		const entries = await fs.getCatalogEntries();
-		rules?.forEach((rule) => rule(fs.fp, entries));
 		const workspace = new this(path, config, fs, rp, assets);
+		onInit?.(workspace);
+
+		const mutableEntries = { entries };
+		await workspace._events.emit("on-entries-read", { mutableEntries });
 
 		fs.fp.watch(workspace._onItemChanged.bind(this));
-		await workspace._initRepositories(entries, fs.fp);
+		await workspace._initRepositories(mutableEntries.entries, fs.fp);
 		return workspace;
 	}
 

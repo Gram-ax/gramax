@@ -12,8 +12,8 @@ import useWatch from "@core-ui/hooks/useWatch";
 import { useRouter } from "@core/Api/useRouter";
 import { ItemType } from "@core/FileStructue/Item/ItemType";
 import styled from "@emotion/styled";
-import type ActionWarning from "@ext/localization/actions/ActionWarning";
-import { shouldShowActionWarning } from "@ext/localization/actions/ActionWarning";
+import type OtherLanguagesPresentWarning from "@ext/localization/actions/OtherLanguagesPresentWarning";
+import { shouldShowActionWarning } from "@ext/localization/actions/OtherLanguagesPresentWarning";
 import NavigationEvents from "@ext/navigation/NavigationEvents";
 import { DropOptions, NodeModel, RenderParams, Tree, useDragOver } from "@minoru/react-dnd-treeview";
 import { CssBaseline } from "@mui/material";
@@ -72,7 +72,7 @@ const ExportLevNavDragTree = ({ items, closeNavigation }: { items: ItemLink[]; c
 			canDrag={dragged}
 			onDrop={(...args) => {
 				shouldShowActionWarning(catalogProps)
-					? ModalToOpenService.setValue<ComponentProps<typeof ActionWarning>>(
+					? ModalToOpenService.setValue<ComponentProps<typeof OtherLanguagesPresentWarning>>(
 							ModalToOpen.MultilangActionConfirm,
 							{
 								action: () => handleOnDrop(...args),

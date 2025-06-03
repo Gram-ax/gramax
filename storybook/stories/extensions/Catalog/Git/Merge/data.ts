@@ -16,6 +16,19 @@ end
 		status: GitMergeStatus.BothModified,
 	},
 	{
+		title: "very looong file title with a lot of text and a include only one conflict",
+		path: "path/to/veryLongFileTitleWithALotOfTextAndAIncludeOnlyOneConflict.md",
+		content: `start
+<<<<<<< Updated upstream
+изменение на сервере
+=======
+локальное изменение
+>>>>>>> Stashed changes
+end
+`,
+		status: GitMergeStatus.BothModified,
+	},
+	{
 		title: "file both modified 2",
 		path: "path/to/bothModified2.md",
 		content: `start

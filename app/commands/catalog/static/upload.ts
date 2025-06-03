@@ -1,20 +1,22 @@
 import { ResponseKind } from "@app/types/ResponseKind";
+import Context from "@core/Context/Context";
 import Path from "@core/FileProvider/Path/Path";
 import DefaultError from "@ext/errorHandlers/logic/DefaultError";
 import t from "@ext/localization/locale/translate";
 import CloudApi from "@ext/static/logic/CloudApi";
+import convertCatalogLink from "@ext/static/logic/convertCatalogLink";
 import ZipFileProvider from "@ext/static/logic/ZipFileProvider";
 import StaticSiteBuilder from "../../../../apps/gramax-cli/src/logic/StaticSiteBuilder";
 import { Command } from "../../../types/Command";
 
-const uploadStatic: Command<{ catalogName: string }, void> = Command.create({
+const uploadStatic: Command<{ ctx: Context; catalogName: string }, void> = Command.create({
 	path: "catalog/static/upload",
 	kind: ResponseKind.none,
 
-	async do({ catalogName }) {
+	async do({ ctx, catalogName }) {
 		try {
 			this._app.conf.isReadOnly = true;
-			const wm = this._app.wm;
+			const { wm, sitePresenterFactory } = this._app;
 			const catalog = await wm.current().getContextlessCatalog(catalogName);
 			const zipFileProvider = await ZipFileProvider.create();
 			const workspaceConfig = await wm.current().config();
@@ -31,13 +33,17 @@ const uploadStatic: Command<{ catalogName: string }, void> = Command.create({
 			const buffer = await zipFileProvider.zip.generateAsync({ type: "nodebuffer" });
 
 			await cloudApi.uploadStatic(catalogName, buffer);
+
+			const catalogLink = (await sitePresenterFactory.fromContext(ctx).serializeCatalogProps(catalog)).link;
+			const convertedCatalogLink = convertCatalogLink(catalogName, catalogLink);
+			await cloudApi.uploadCatalogLink(catalogName, convertedCatalogLink);
 		} finally {
 			this._app.conf.isReadOnly = false;
 		}
 	},
 
-	params(_, q) {
-		return { catalogName: q.catalogName };
+	params(ctx, q) {
+		return { ctx, catalogName: q.catalogName };
 	},
 });
 

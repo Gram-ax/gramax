@@ -7,6 +7,8 @@ import StorageData from "../../../../storage/models/StorageData";
 import ShareData from "../model/ShareData";
 
 const convertShareLinkDataToStorageData = (sourceData: SourceData, shareLinkData: ShareData): StorageData => {
+	if (!sourceData || !shareLinkData) return null;
+
 	if (isGitSourceType(shareLinkData.sourceType)) {
 		return {
 			source: sourceData as GitSourceData,

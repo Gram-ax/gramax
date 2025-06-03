@@ -54,6 +54,7 @@ const ContentEditor = (props: ContentEditorProps) => {
 	const apiUrlCreator = ApiUrlCreatorService.value;
 	const resourceService = ResourceService.value;
 	const pageDataContext = PageDataContextService.value;
+	const isGramaxAiEnabled = pageDataContext.conf.ai.enabled;
 
 	const onDeleteNodes = (nodes: Node[]): void => {
 		deleteImages(nodes, resourceService);
@@ -86,7 +87,7 @@ const ContentEditor = (props: ContentEditorProps) => {
 		SelectionMenu,
 	]);
 
-	useWatch(() => {
+	useEffect(() => {
 		EditorExtensionsService.value = extensionsList;
 	}, [extensionsList]);
 
@@ -132,7 +133,7 @@ const ContentEditor = (props: ContentEditorProps) => {
 	return (
 		<>
 			<Menu editor={editor} id={ContentEditorId}>
-				<Main editor={editor} />
+				<Main editor={editor} isGramaxAiEnabled={isGramaxAiEnabled} fileName={articleProps.fileName} />
 			</Menu>
 			<EditorContent editor={editor} data-qa="article-editor" data-iseditable={true} />
 			<ArticleMat editor={editor} />

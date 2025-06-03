@@ -4,7 +4,7 @@ import { AuthorizeMiddleware } from "@core/Api/middleware/AuthorizeMiddleware";
 import { DesktopModeMiddleware } from "@core/Api/middleware/DesktopModeMiddleware";
 import ReloadConfirmMiddleware from "@core/Api/middleware/ReloadConfirmMiddleware";
 import type Context from "@core/Context/Context";
-import ArticleProvider, { ArticleProviderType } from "@core/FileStructue/Article/ArticleProvider";
+import ArticleProvider, { ArticleProviderType } from "@ext/articleProvider/logic/ArticleProvider";
 
 const remove: Command<{ ctx: Context; catalogName: string; id: string; type: ArticleProviderType }, void> =
 	Command.create({
@@ -15,7 +15,7 @@ const remove: Command<{ ctx: Context; catalogName: string; id: string; type: Art
 		kind: ResponseKind.none,
 
 		async do({ ctx, catalogName, id, type }) {
-			const { wm, sitePresenterFactory } = this._app;
+			const { wm, sitePresenterFactory, parser, parserContextFactory } = this._app;
 			const workspace = wm.current();
 			const catalog = await workspace.getCatalog(catalogName, ctx);
 			if (!catalog) return;
@@ -24,7 +24,7 @@ const remove: Command<{ ctx: Context; catalogName: string; id: string; type: Art
 			const sp = sitePresenterFactory.fromContext(ctx);
 			await sp.parseAllItems(catalog);
 
-			await provider.remove(id);
+			await provider.remove(id, parser, parserContextFactory, ctx);
 		},
 
 		params(ctx, q) {

@@ -66,9 +66,10 @@ export type TransferProgress =
 	| { type: "receivingObjects"; data: { received: number; indexed: number; total: number } };
 
 type CloneProgressTypes =
-	| { type: "started"; data: { path: string } }
-	| { type: "finish"; data: { path: string; isCancelled: boolean } }
-	| { type: "error"; data: { path: string; error: DefaultError } }
+	| { type: "queue"; data: object }
+	| { type: "started"; data: object }
+	| { type: "finish"; data: { isCancelled: boolean } }
+	| { type: "error"; data: { error: DefaultError } }
 	| { type: "sideband"; data: { id: CloneCancelToken; remoteText: string } }
 	| { type: "checkout"; data: { id: CloneCancelToken; checkouted: number; total: number } }
 	| { type: "download"; data: { id: CloneCancelToken; bytes: number; downloadSpeedBytes: number } }
@@ -125,6 +126,7 @@ interface GitCommandsModel {
 		onProgress?: (progress: CloneProgress) => void,
 	): Promise<void>;
 	cloneCancel(id: number): Promise<boolean>;
+	getAllCancelTokens(): Promise<number[]>;
 	setHead(refname: string): Promise<void>;
 	commit(message: string, data: SourceData, parents?: string[], files?: string[]): Promise<GitVersion>;
 	add(paths?: Path[], force?: boolean): Promise<void>;

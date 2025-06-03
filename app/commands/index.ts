@@ -20,8 +20,10 @@ import setTheme from "./theme/setTheme";
 import versionControl from "./versionControl";
 import word from "./word";
 import templates from "@app/commands/templates";
+import ai from "@app/commands/ai";
 
 const commands = {
+	ai,
 	enterprise,
 	setTheme,
 	setLanguage,

@@ -29,6 +29,7 @@ export default ApplyApiMiddleware(
 			catalogName: catalogName,
 			ifNotExistsErrorText: null,
 			mimeType: null,
+			providerType: null,
 		});
 
 		if (!(await hashItem.getContent())) {

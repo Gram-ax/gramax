@@ -1,12 +1,10 @@
-import { INBOX_DIRECTORY } from "@app/config/const";
 import ScrollableElement from "@components/Layouts/ScrollableElement";
 import calculateTabWrapperHeight from "@components/Layouts/StatusBar/Extensions/logic/calculateTabWrapperHeight";
 import FetchService from "@core-ui/ApiServices/FetchService";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
-import ArticleDataService from "@core-ui/ContextServices/ArticleData";
 import InboxService from "@ext/inbox/components/InboxService";
 import Note from "@ext/inbox/components/Note/Note";
-import InboxUtility from "@ext/inbox/logic/InboxUtility";
+import PopoverUtility from "@ext/articleProvider/logic/PopoverUtility";
 import { InboxArticle, InboxDragDropData } from "@ext/inbox/models/types";
 import t from "@ext/localization/locale/translate";
 import ModifiedBackend from "@ext/navigation/catalog/drag/logic/ModifiedBackend";
@@ -23,80 +21,67 @@ interface InboxProps {
 const Inbox = ({ show, setContentHeight, tabWrapperRef }: InboxProps) => {
 	const ref = useRef<HTMLDivElement>(null);
 	const apiUrlCreator = ApiUrlCreatorService.value;
-	const pageData = ArticleDataService.value;
-	const { selectedPath, notes } = InboxService.value;
-
-	const fetchInbox = useCallback(async () => {
-		await InboxService.fetchInbox(apiUrlCreator);
-	}, [apiUrlCreator]);
-
-	useEffect(() => {
-		if (pageData?.articleProps?.logicPath.includes(INBOX_DIRECTORY)) {
-			const newPaths = InboxUtility.setSelectedPath(selectedPath, [pageData?.articleProps?.logicPath]);
-			InboxService.setSelectedPath(newPaths);
-		} else if (selectedPath.length === 0) {
-			InboxService.setSelectedPath([]);
-		}
-	}, [pageData?.articleProps?.logicPath]);
-
-	useEffect(() => {
-		if (show) fetchInbox();
-	}, [show]);
+	const { selectedIds, items } = InboxService.value;
 
 	const handleDrop = useCallback(
-		async ({ draggedLogicPath, droppedLogicPath }: InboxDragDropData) => {
-			const url = apiUrlCreator.mergeInboxArticles(draggedLogicPath, droppedLogicPath);
+		async ({ draggedId, droppedId }: InboxDragDropData) => {
+			const url = apiUrlCreator.mergeInboxArticles(draggedId, droppedId);
 			const res = await FetchService.fetch<InboxArticle>(url);
 			if (!res.ok) return;
 
 			const newTargetNote = await res.json();
 			if (!newTargetNote) return;
 
-			if (selectedPath.includes(draggedLogicPath)) InboxService.setSelectedPath([droppedLogicPath]);
+			if (selectedIds.includes(draggedId)) InboxService.setSelectedIds([droppedId]);
 
-			const droppedNoteIndex = notes.findIndex((note) => note.logicPath === droppedLogicPath);
-			const draggedNoteIndex = notes.findIndex((note) => note.logicPath === draggedLogicPath);
+			const droppedNoteIndex = items.findIndex((note) => note.id === droppedId);
+			const draggedNoteIndex = items.findIndex((note) => note.id === draggedId);
 
-			notes[droppedNoteIndex] = newTargetNote;
-			notes.splice(draggedNoteIndex, 1);
+			items[droppedNoteIndex] = newTargetNote;
+			items.splice(draggedNoteIndex, 1);
 
-			InboxService.closeNote(draggedLogicPath);
-			InboxService.closeNote(droppedLogicPath);
+			InboxService.closeNote(draggedId);
+			InboxService.closeNote(droppedId);
 
-			const newPaths = InboxUtility.removeSelectedPath(selectedPath, [draggedLogicPath, droppedLogicPath]);
-			InboxService.setSelectedPath(newPaths);
+			const newPaths = PopoverUtility.removeSelectedIds(selectedIds, [draggedId, droppedId]);
+			InboxService.setSelectedIds(newPaths);
 
-			InboxService.setNotes(notes);
+			InboxService.setItems(items);
 			refreshPage();
 		},
-		[apiUrlCreator, selectedPath, notes],
+		[apiUrlCreator, selectedIds, items],
 	);
 
 	const onItemClick = useCallback(
-		(logicPath: string) => {
-			if (selectedPath.includes(logicPath)) {
-				const newPaths = InboxUtility.removeSelectedPath(selectedPath, logicPath);
-				InboxService.setSelectedPath(newPaths);
-				InboxService.closeNote(logicPath);
+		(id: string, target: HTMLElement) => {
+			if (selectedIds.includes(id)) {
+				const newPaths = PopoverUtility.removeSelectedIds(selectedIds, id);
+				InboxService.setSelectedIds(newPaths);
+				InboxService.closeNote(id);
 				return;
 			}
 
 			const tooltipManager = InboxService.getTooltipManager();
 			const unpinnedTooltips = tooltipManager.getUnpinnedTooltips();
 
-			const unpinnedLogicPaths = unpinnedTooltips.map((tooltip) => tooltip.note.logicPath);
-			const newPaths = InboxUtility.removeSelectedPath(
-				InboxUtility.setSelectedPath(selectedPath, [logicPath]),
-				unpinnedLogicPaths,
+			const unpinnedIds = unpinnedTooltips.map((tooltip) => tooltip.item.id);
+			const newPaths = PopoverUtility.removeSelectedIds(
+				PopoverUtility.setSelectedIds(selectedIds, [id]),
+				unpinnedIds,
 			);
 
 			unpinnedTooltips.forEach((tooltip) => tooltipManager.removeTooltip(tooltip));
-			InboxService.setSelectedPath(newPaths);
+			InboxService.setSelectedIds(newPaths);
+
+			const note = items.find((item) => item.id === id);
+			if (!note) return;
+
+			InboxService.openNote(note, target);
 		},
-		[selectedPath],
+		[items, selectedIds],
 	);
 
-	const sortedNotes = useMemo(() => InboxUtility.sortByDate(notes), [notes.length]);
+	const sortedNotes = useMemo(() => PopoverUtility.sortByDate(items), [items]);
 
 	useEffect(() => {
 		if (!ref.current || !tabWrapperRef.current || !show) return;
@@ -107,6 +92,21 @@ const Inbox = ({ show, setContentHeight, tabWrapperRef }: InboxProps) => {
 		if (!mainElement && !isSpinner) return;
 		setContentHeight(calculateTabWrapperHeight(mainElement));
 	}, [ref.current, tabWrapperRef.current, show, sortedNotes?.length]);
+
+	const onDelete = useCallback(
+		(id: string) => {
+			if (selectedIds.includes(id)) {
+				InboxService.closeNote(id);
+				InboxService.setSelectedIds(PopoverUtility.removeSelectedIds(selectedIds, id));
+			}
+
+			const newItems = items.filter((note) => note.id !== id);
+			InboxService.setItems(newItems);
+		},
+		[selectedIds, items],
+	);
+
+	if (!show) return null;
 
 	return (
 		<div ref={ref}>
@@ -120,11 +120,12 @@ const Inbox = ({ show, setContentHeight, tabWrapperRef }: InboxProps) => {
 						)}
 						{sortedNotes.map((note) => (
 							<Note
-								key={note.fileName}
+								key={note.id}
 								article={note}
 								handleDrop={handleDrop}
 								onItemClick={onItemClick}
-								isSelected={selectedPath?.includes(note.logicPath)}
+								isSelected={selectedIds?.includes(note.id)}
+								onDelete={onDelete}
 							/>
 						))}
 					</div>

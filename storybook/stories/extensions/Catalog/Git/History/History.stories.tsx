@@ -6,7 +6,7 @@ import mock from "storybook/data/mock";
 import BlockDecorator from "storybook/styles/decorators/BlockDecorator";
 
 export const History = () => {
-	return <HistorySrc item={{ logicPath: "test" } as ClientArticleProps} />;
+	return <HistorySrc isFileNew={false} item={{ logicPath: "test" } as ClientArticleProps} />;
 };
 
 export default {

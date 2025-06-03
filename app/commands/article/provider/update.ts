@@ -5,7 +5,7 @@ import { AuthorizeMiddleware } from "@core/Api/middleware/AuthorizeMiddleware";
 import { DesktopModeMiddleware } from "@core/Api/middleware/DesktopModeMiddleware";
 import ReloadConfirmMiddleware from "@core/Api/middleware/ReloadConfirmMiddleware";
 import type Context from "@core/Context/Context";
-import ArticleProvider, { ArticleProviderType } from "@core/FileStructue/Article/ArticleProvider";
+import ArticleProvider, { ArticleProviderType } from "@ext/articleProvider/logic/ArticleProvider";
 import type { JSONContent } from "@tiptap/react";
 
 const update: Command<

@@ -1,5 +1,7 @@
 enum GitErrorCode {
-	RemoteNotFoundMessageError = "RemoteNotFoundMessageError",
+	RemoteRepositoryNotFoundError = "RemoteRepositoryNotFoundError",
+	ContentTooLargeError = "ContentTooLargeError",
+	NotAuthorizedError = "NotAuthorizedError",
 	CurrentBranchNotFoundError = "CurrentBranchNotFoundError",
 	NetworkConntectionError = "NetworkConntectionError",
 	MergeNotSupportedError = "MergeNotSupportedError",

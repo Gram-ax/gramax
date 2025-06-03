@@ -1,3 +1,4 @@
+import "ics-ui-kit/styles.css";
 import "../../../core/styles/ProseMirror.css";
 import "../../../core/styles/admonition.css";
 import "../../../core/styles/article-alfabeta.css";

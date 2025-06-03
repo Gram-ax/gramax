@@ -29,8 +29,8 @@ const Menu = ({ editor, id, className, children }: MenuProps) => {
 		if (!editor) return;
 		const canDisplay = canDisplayMenu(editor);
 
-		if (isOpen && canDisplay) setIsOpen(false);
-		if (!isOpen && !canDisplay) setIsOpen(true);
+		if (isOpen && !canDisplay) setIsOpen(false);
+		if (!isOpen && canDisplay) setIsOpen(true);
 	}, [editor?.state?.selection]);
 
 	if (!editor || !isEditable) return null;

@@ -24,12 +24,15 @@ export type CatalogProps = FSLocalizationProps & {
 	sharePointDirectory?: string;
 
 	isCloning?: boolean;
+	cloneCancelDisabled?: boolean;
 	redirectOnClone?: string;
 	resolvedVersions?: RefInfo[];
 	resolvedVersion?: RefInfo;
 	optionalCategoryIndex?: boolean;
 
 	logo?: string;
+
+	docrootIsNoneExistent?: boolean;
 };
 
 export const ExcludedProps: (keyof CatalogProps)[] = ["url", "docroot", "resolvedVersions", "resolvedVersion"];

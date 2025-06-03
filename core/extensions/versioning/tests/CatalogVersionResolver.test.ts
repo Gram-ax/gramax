@@ -20,6 +20,7 @@ describe("CatalogVersionResolver", () => {
 		wm = new WorkspaceManager(
 			(path) => MountFileProvider.fromDefault(new Path(path)),
 			(fs) => new FileStructureEventHandlers(fs).mount(),
+			() => {},
 			rp,
 			{} as AppConfig,
 			YamlFileConfig.dummy(),

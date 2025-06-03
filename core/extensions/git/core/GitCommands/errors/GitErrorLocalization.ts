@@ -37,9 +37,30 @@ const gitErrorLocalization: GitErrorLocalization = {
 		return { message: t("git.publish.error.protected"), showMessage: true };
 	},
 	CurrentBranchNotFoundError: () => ({ message: t("git.branch.error.not-found.local") }),
-	RemoteNotFoundMessageError: (props) => ({
-		message: t("git.branch.error.not-found.remote").replace("{{branch}}", props.error?.props?.branchName),
+	RemoteRepositoryNotFoundError: (props) => {
+		return {
+			message: t("git.error.not-found.repo.message")
+				.replace("{{url}}", props.error.props.remoteUrl)
+				.replace("{{name}}", props.error.props.repositoryPath.replaceAll("/", "")),
+			title: t("git.error.not-found.repo.title"),
+			showMessage: false,
+		};
+	},
+	ContentTooLargeError: (props) => ({
+		message: t("git.error.content-too-large.message")
+			.replace("{{url}}", props.error.props.remoteUrl)
+			.replace("{{name}}", props.error.props.repositoryPath.replaceAll("/", "")),
+		title: t("git.error.content-too-large.title"),
+		showMessage: false,
 	}),
+	NotAuthorizedError: (props) => {
+		if (props.caller === "pull" || props.caller === "fetch")
+			return { title: t("git.error.http.title"), message: t("git.sync.error.no-permission") };
+		if (props.caller === "push")
+			return { title: t("git.error.http.title"), message: t("git.publish.error.no-permission") };
+
+		return { title: t("git.error.http.title"), message: t("git.error.http.message"), showMessage: true };
+	},
 	MergeNotSupportedError: () => ({ message: t("git.merge.error.not-supported") }),
 	MergeConflictError: () => ({ message: t("git.merge.error.conflict-occured") }),
 	MergeError: () => ({ message: t("git.merge.error.generic") }),
@@ -53,14 +74,8 @@ const gitErrorLocalization: GitErrorLocalization = {
 			};
 	},
 	HttpError: (props) => {
-		const text = props.error.data?.statusCode ?? ("" as string);
-		if (!(text.includes("status") && text.includes("code")))
-			return { message: t("git.error.http").replace("{{status}}", text) };
-		if (text.includes("401") || text.includes("403")) {
-			if (props.caller === "pull") return { message: t("git.sync.error.no-permission") };
-			if (props.caller === "push") return { message: t("git.publish.error.no-permission") };
-		}
-		return { message: t("git.error.http").replace("{{status}}", text) };
+		const text = props.error.message ?? ("" as string);
+		return { message: t("git.error.http.message"), showMessage: true, title: t("git.error.http.title") };
 	},
 	NotFoundError: (props) => {
 		switch (props.caller) {

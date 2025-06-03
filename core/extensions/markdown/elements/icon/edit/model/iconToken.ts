@@ -7,7 +7,7 @@ const iconToken = (context?: ParserContext): ParseSpec => {
 
 		getAttrs: async (tok) => {
 			if (!context) return { code: tok.attrs.code, color: tok.attrs.color };
-			const svg = await context.getCatalog().iconProvider.getIconByCode(tok.attrs.code);
+			const svg = await context.getCatalog().customProviders.iconProvider.getIconByCode(tok.attrs.code);
 			return { code: tok.attrs.code, svg, color: tok.attrs.color };
 		},
 	};

@@ -1,4 +1,4 @@
-import Icon from "@components/Atoms/Icon";
+import Icon, { type IconProps } from "@components/Atoms/Icon";
 import Tooltip from "@components/Atoms/Tooltip";
 import FetchService from "@core-ui/ApiServices/FetchService";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
@@ -7,7 +7,7 @@ import { css } from "@emotion/react";
 import styled from "@emotion/styled";
 import type { CloneProgress } from "@ext/git/core/GitCommands/model/GitCommandsModel";
 import t from "@ext/localization/locale/translate";
-import { useCallback } from "react";
+import { forwardRef, useCallback } from "react";
 
 const Wrapper = styled.div`
 	height: 100%;
@@ -53,7 +53,13 @@ const Info = styled.div`
 	width: 100%;
 `;
 
-const Cancel = styled(Icon)<{ show?: boolean; clickable?: boolean }>`
+const Cancel = styled(
+	forwardRef(
+		({ clickable, show, ...props }: { show?: boolean; clickable?: boolean; code: string } & IconProps, ref) => (
+			<Icon {...props} ref={ref as any} />
+		),
+	),
+)`
 	padding: 0px 4px 0px 0px;
 	cursor: ${(p) => (p.clickable ? "pointer" : "default")};
 	opacity: ${(p) => (p.clickable ? 1 : 0.5)};
@@ -148,6 +154,10 @@ const formatBytes = (data: CloneProgress): string => {
 
 const resolveLabelText = (data: CloneProgress, isBrowser: boolean) => {
 	if (!data) return t("git.clone.progress.wait");
+
+	if (data.type === "queue") {
+		return t("git.clone.progress.queue");
+	}
 
 	if (data.type === "started") {
 		return isBrowser ? t("git.clone.progress.downloading") : t("git.clone.progress.wait");

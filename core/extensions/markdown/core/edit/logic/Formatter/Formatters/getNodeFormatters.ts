@@ -8,7 +8,6 @@ import bulletList from "@ext/markdown/elements/list/edit/models/bulletList/logic
 import orderedList from "@ext/markdown/elements/list/edit/models/orderList/logic/orderListFormatter";
 import taskItem from "@ext/markdown/elements/list/edit/models/taskItem/logic/taskItemFormatter";
 import taskList from "@ext/markdown/elements/list/edit/models/taskList/logic/taskListFormatter";
-import noteFormatter from "@ext/markdown/elements/note/edit/logic/noteFormatter";
 import OpenApiFormatter from "@ext/markdown/elements/openApi/edit/logic/OpenApiFormatter";
 import SnippetFormatter from "@ext/markdown/elements/snippet/edit/logic/SnippetFormatter";
 import TabFormatter from "@ext/markdown/elements/tabs/edit/logic/TabFormatter";
@@ -18,7 +17,7 @@ import viewNodeFormatter from "@ext/markdown/elements/view/edit/logic/viewNodeFo
 import listItemFormatter from "@ext/markdown/elements/list/edit/models/listItem/logic/listItemFormatter";
 import inlinePropertyFormatter from "@ext/markdown/elements/inlineProperty/edit/logic/inlinePropertyFormatter";
 import blockFieldFormatter from "@ext/markdown/elements/blockContentField/edit/logic/BlockFieldFormatter";
-import getFormatterType from "@ext/markdown/core/edit/logic/Formatter/Formatters/typeFormats/getFormatterType";
+import { getFormatterTypeByContext } from "@ext/markdown/core/edit/logic/Formatter/Formatters/typeFormats/getFormatterType";
 import blockMdFormatter from "@ext/markdown/elements/md/edit/logic/blockMdFormatter";
 import blockMdComponentFormatter from "@ext/markdown/elements/md/edit/logic/blockMdComponentFormatter";
 import inlineMdComponentFormatter from "@ext/markdown/elements/md/edit/logic/inlineMdComponentFormatter";
@@ -36,9 +35,11 @@ import hrFormatter from "@ext/markdown/elements/hr/edit/logic/hrFormatter";
 import paragraphFormatter from "@ext/markdown/elements/paragraph/edit/logic/paragraphFormatter";
 import textFormatter from "@ext/markdown/elements/text/edit/logic/textFormatter";
 import brFormatter from "@ext/markdown/elements/br/edit/logic/brFormatter";
+import blockPropertyFormatter from "@ext/markdown/elements/blockProperty/edit/logic/blockPropertyFormatter";
+import htmlTagNodeFormatters from "@ext/markdown/elements/htmlTag/edit/logic/htmlTagNodeFormatters";
 
 const getNodeFormatters = (context?: ParserContext): { [node: string]: NodeSerializerSpec } => {
-	const formatter = getFormatterType(context);
+	const formatter = getFormatterTypeByContext(context);
 	return {
 		code_block: codeBlockFormatter,
 		diagrams: DiagramsFormatter(formatter),
@@ -47,7 +48,7 @@ const getNodeFormatters = (context?: ParserContext): { [node: string]: NodeSeria
 		icon: IconFormatter(formatter),
 		tabs: TabsFormatter(formatter),
 		tab: TabFormatter(formatter),
-		note: noteFormatter(formatter),
+		note: formatter.nodeFormatters.note,
 		html: htmlNodeFormatter(formatter),
 		view: viewNodeFormatter(formatter),
 		unsupported: unsupportedFormatter(formatter),
@@ -59,6 +60,7 @@ const getNodeFormatters = (context?: ParserContext): { [node: string]: NodeSeria
 		listItem: listItemFormatter,
 		"inline-property": inlinePropertyFormatter(formatter),
 		"block-field": blockFieldFormatter(formatter),
+		"block-property": blockPropertyFormatter(formatter),
 		inlineMd_component: inlineMdComponentFormatter,
 		blockMd_component: blockMdComponentFormatter,
 		blockMd: blockMdFormatter,
@@ -79,6 +81,7 @@ const getNodeFormatters = (context?: ParserContext): { [node: string]: NodeSeria
 		hard_break: brFormatter,
 		br: brFormatter,
 		text: textFormatter,
+		...htmlTagNodeFormatters,
 	};
 };
 

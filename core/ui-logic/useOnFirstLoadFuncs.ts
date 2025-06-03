@@ -7,6 +7,7 @@ import { useFindInvalidSouresOnStart } from "@ext/git/actions/Source/logic/useFi
 import { saveTempTokenIfPresent } from "@ext/git/actions/Source/tempToken";
 import usePathnameCloneHandler from "@ext/git/core/GitPathnameHandler/clone/logic/usePathnameCloneHandler";
 import usePathnameHandler from "@ext/git/core/GitPathnameHandler/usePathnameHandler";
+import useInitCatalogToIndexOnFirstLoad from "@ext/git/migration/useInitCatalogToIndex";
 
 const closeIfChild = () => {
 	if (
@@ -36,6 +37,7 @@ const useOnFirstLoadFuncs = () => {
 	useEnterpriseTokenHandler(isFirstLoad);
 	usePathnameCloneHandler();
 	usePathnameHandler(isFirstLoad);
+	useInitCatalogToIndexOnFirstLoad(isFirstLoad);
 	// useReviewHandler(isFirstLoad);
 };
 

@@ -76,9 +76,16 @@ export type EnvironmentVariable = {
 	LOGO_LINK_URL: string;
 	LOGO_LINK_TITLE: string;
 
-	// Search
-	SEARCH_VECTOR_API_URL: string;
-	SEARCH_VECTOR_COLLECTION_NAME: string;
+	// ElasticSearch
+	ELASTIC_SEARCH_API_URL: string;
+	ELASTIC_SEARCH_INSTANCE_NAME: string;
+	ELASTIC_SEARCH_USERNAME: string;
+	ELASTIC_SEARCH_PASSWORD: string;
+
+	// AI
+	AI_SERVER_URL: string;
+	AI_INSTANCE_NAME: string;
+	AI_TOKEN: string;
 };
 
 export const defaultVariables: Partial<EnvironmentVariable> = {

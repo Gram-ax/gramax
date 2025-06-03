@@ -1,15 +1,15 @@
 #!/usr/bin/env -S node --no-warnings
 
+import { WORKSPACE_CONFIG_FILENAME } from "@ext/workspace/WorkspaceManager";
+import chalk from "chalk";
 import { Command } from "commander";
-import { generateImportYandexCommand } from "./logic/cli/import/command";
-import { STEP_ERROR_NAME } from "./logic/cli/utils/logger";
 import fs from "fs-extra";
 import { basename } from "path";
-import chalk from "chalk";
 import { generateBuildCommand } from "./logic/cli/build/command";
 import { generateCheckCommand } from "./logic/cli/check/command";
 import { generateExportCommand } from "./logic/cli/export/command";
-import { WORKSPACE_CONFIG_FILENAME } from "@ext/workspace/WorkspaceManager";
+import { generateImportYandexCommand } from "./logic/cli/import/command";
+import { STEP_ERROR_NAME } from "./logic/cli/utils/logger";
 import ChalkLogger from "./utils/ChalkLogger";
 
 type WriteFileFn = typeof fs.writeFile;
@@ -51,6 +51,8 @@ const startCli = async () => {
 	} finally {
 		ChalkLogger.log();
 	}
+
+	process.exit(0);
 };
 
 void startCli();

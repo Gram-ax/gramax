@@ -12,10 +12,10 @@ extern crate rust_i18n;
 
 mod commands;
 mod error;
-mod settings;
 mod http_req;
 mod http_server;
 mod platform;
+mod settings;
 mod win;
 
 use std::collections::HashMap;
@@ -37,13 +37,17 @@ macro_rules! include_script {
     include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/src/scripts/", $path))
   };
   ($path: literal$(, $($args:tt)+)?) => {
-    format!($crate::include_script!($path)$(, $($args)+)?)
+    &format!($crate::include_script!($path)$(, $($args)+)?)
   };
 }
 
 i18n!("locales");
 
-pub const ALLOWED_DOMAINS: [&str; 3] = ["tauri.localhost", "localhost", "gramax"];
+#[cfg(debug_assertions)]
+pub const ALLOWED_DOMAINS: [&str; 3] = ["tauri.localhost", "gramax", "localhost"];
+
+#[cfg(not(debug_assertions))]
+pub const ALLOWED_DOMAINS: [&str; 2] = ["gramax", "tauri.localhost"];
 
 trait AppBuilder {
   fn init(self) -> Self;
@@ -185,7 +189,7 @@ fn handle_ping_server<R: Runtime>(req: &tiny_http::Request, app: &AppHandle<R>) 
   let window = app.get_focused_or_default_webview();
 
   if let Some(window) = window {
-    _ = window.eval(&include_script!("open-url.template.js", url = path.trim_start_matches('/'))).or_show();
+    _ = window.eval(include_script!("open-url.template.js", url = path.trim_start_matches('/'))).or_show();
     _ = window.request_user_attention(Some(UserAttentionType::Informational));
     _ = window.show().or_show();
     _ = window.unminimize().or_show();
@@ -236,7 +240,7 @@ impl MainWindowBuilder {
       .initialization_script(include_script!("add-window-close.js"))
       .on_navigation(on_navigation);
 
-    #[cfg(desktop)]
+    #[cfg(not(target_os = "linux"))]
     let builder = {
       let callback = download_callback::DownloadCallback::new();
       builder.on_download(move |w, e| callback.on_download(w, e))
@@ -247,6 +251,9 @@ impl MainWindowBuilder {
       .initialization_script(include_script!("macos-fixes.js"))
       .hidden_title(true)
       .title_bar_style(TitleBarStyle::Overlay);
+
+    #[cfg(target_os = "windows")]
+    let builder = builder.initialization_script(include_script!("windows-fixes.js"));
 
     #[cfg(desktop)]
     let builder = builder
@@ -259,7 +266,7 @@ impl MainWindowBuilder {
 
     #[cfg(desktop)]
     if let Some(session_data) = self.session_data.or(window.get_session_data()) {
-      window.eval(&crate::include_script!("restore-session.js", data = session_data))?;
+      window.eval(crate::include_script!("restore-session.js", data = session_data))?;
     }
 
     Ok(window)

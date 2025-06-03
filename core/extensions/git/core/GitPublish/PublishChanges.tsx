@@ -118,7 +118,7 @@ export const PublishChanges = (props: PublishChangesProps) => {
 						setArticleDiffView={setArticleDiffView}
 						onAction={onEntryDiscard}
 						actionIcon="reply"
-						renderCommentsCount={false}
+						renderCommentsCount
 					/>
 				)}
 			</ScrollableDiffEntriesLayout>

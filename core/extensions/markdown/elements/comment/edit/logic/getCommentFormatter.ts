@@ -1,4 +1,4 @@
-import getFormatterType from "@ext/markdown/core/edit/logic/Formatter/Formatters/typeFormats/getFormatterType";
+import { getFormatterTypeByContext } from "@ext/markdown/core/edit/logic/Formatter/Formatters/typeFormats/getFormatterType";
 import { CommentBlock } from "../../../../../../ui-logic/CommentBlock";
 import ParserContext from "../../../../core/Parser/ParserContext/ParserContext";
 import { MarkSerializerSpec } from "../../../../core/edit/logic/Prosemirror/to_markdown";
@@ -6,7 +6,7 @@ import CommentProvider from "./CommentProvider";
 
 const getCommentFormatter = (context?: ParserContext): MarkSerializerSpec => {
 	if (!context) return { open: () => "", close: () => "" };
-	const formatter = getFormatterType(context);
+	const formatter = getFormatterTypeByContext(context);
 
 	const commentProvider = new CommentProvider(context.fp, context.getArticle().ref.path);
 

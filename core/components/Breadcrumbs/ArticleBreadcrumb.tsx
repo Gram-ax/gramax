@@ -30,6 +30,7 @@ const ArticleBreadcrumb = ({ className, itemLinks }: ArticleBreadcrumbProps) => 
 	const pageData = PageDataContextService.value;
 	const articleProps = ArticlePropsService.value;
 	const isReadOnly = pageData?.conf.isReadOnly;
+	const isTemplate = articleProps?.template;
 
 	const resize = useCallback(() => {
 		if (isReadOnly) return;
@@ -45,9 +46,10 @@ const ArticleBreadcrumb = ({ className, itemLinks }: ArticleBreadcrumbProps) => 
 	const setNull = () => setIsOverflow(null);
 
 	useEffect(() => {
+		if (isReadOnly || isTemplate) return;
 		window.addEventListener("resize", setNull);
 		return () => window.removeEventListener("resize", setNull);
-	}, [itemLinks, articleProperties]);
+	}, [itemLinks, articleProperties, isTemplate]);
 
 	useEffect(() => {
 		if (isReadOnly) return;
@@ -78,7 +80,7 @@ const ArticleBreadcrumb = ({ className, itemLinks }: ArticleBreadcrumbProps) => 
 							setItemLink={setItemLink}
 						/>
 					</div>
-					<Properties properties={articleProperties} setProperties={setArticleProperties} />
+					{!isTemplate && <Properties properties={articleProperties} setProperties={setArticleProperties} />}
 				</>
 			)}
 		</div>
@@ -108,7 +110,7 @@ export default styled(ArticleBreadcrumb)`
 		right: -0.15em;
 		bottom: -2.1em;
 		margin-right: 4px;
-		z-index: var(--z-index-base);
+		z-index: var(--z-index-foreground);
 		opacity: var(--opacity-darken-element);
 	}
 

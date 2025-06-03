@@ -41,18 +41,49 @@ impl<C: Creds> Add for Repo<C> {
       .map(PathBuf::from)
       .collect::<HashSet<_>>();
 
-    info!(target: TAG, "add {} files; currently {} conflicts in index", patterns.len(), conflicts.len());
+    info!(target: TAG, "add {} pathspecs; currently {} conflicts in index", patterns.len(), conflicts.len());
 
-    let mut cb = |path: &Path, _: &[u8]| {
+    let use_add_all = patterns
+      .len()
+      .eq(&1)
+      .then_some(patterns.first().map(|p| p.as_ref().eq(Path::new(".")) || p.as_ref().eq(Path::new("*"))))
+      .flatten()
+      .unwrap_or(false);
+
+    let is_conflict = |path: &Path| -> bool {
       if conflicts.contains(path) {
         warn!(target: TAG, "skipping path '{}' due to conflicts", path.display());
-        return 1;
+        return true;
       }
-
-      0
+      false
     };
 
-    index.add_all(patterns.into_iter(), IndexAddOption::DEFAULT, Some(&mut cb))?;
+    let mut cb = |path: &Path, _: &[u8]| is_conflict(path) as i32;
+
+    if use_add_all {
+      info!(target: TAG, "using add_all since `.` or '*' was provided");
+      index.add_all(patterns.into_iter(), IndexAddOption::DEFAULT, Some(&mut cb))?;
+      index.write()?;
+      return Ok(());
+    }
+
+    let workdir_path = self.0.workdir().ok_or(crate::error::Error::NoWorkdir)?;
+
+    let mut del_pathspecs = vec![];
+    for path in patterns.iter().filter(|p| !is_conflict(p.as_ref())) {
+      let absolute_path = workdir_path.join(path.as_ref());
+
+      if absolute_path.exists() {
+        add_all(&mut index, workdir_path, &absolute_path)?;
+      } else {
+        del_pathspecs.push(path.as_ref());
+      }
+    }
+
+    if !del_pathspecs.is_empty() {
+      index.remove_all(del_pathspecs, None)?;
+    }
+
     index.write()?;
     Ok(())
   }
@@ -66,4 +97,23 @@ impl<C: Creds> Add for Repo<C> {
     index.write()?;
     Ok(())
   }
+}
+
+fn add_all(index: &mut Index, workdir_path: &Path, path: &Path) -> Result<()> {
+  if !path.is_dir() {
+    let Ok(relative_path) = path.strip_prefix(workdir_path) else {
+      return Ok(());
+    };
+
+    index.add_path(relative_path)?;
+    return Ok(());
+  }
+
+  for entry in std::fs::read_dir(path)? {
+    let path = entry?.path();
+
+    add_all(index, workdir_path, &path)?;
+  }
+
+  Ok(())
 }

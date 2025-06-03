@@ -41,6 +41,14 @@ class EnvAuth implements AuthProvider {
 		await setUser(cookie, localUser);
 		res.send({});
 	}
+
+	mailSendOTP(req: ApiRequest, res: ApiResponse) {
+		apiUtils.sendError(res, new DefaultError("Mail send OTP not implemented"), 501);
+	}
+
+	mailLoginOTP(req: ApiRequest, res: ApiResponse) {
+		apiUtils.sendError(res, new DefaultError("Mail login OTP not implemented"), 501);
+	}
 }
 
 export default EnvAuth;

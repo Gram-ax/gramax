@@ -21,6 +21,7 @@ import Branch from "../../../../../extensions/git/actions/Branch/components/Bran
 import Sync from "../../../../../extensions/git/actions/Sync/components/Sync";
 import IsReadOnlyHOC from "../../../../../ui-logic/HigherOrderComponent/IsReadOnlyHOC";
 import StatusBar from "../../StatusBar";
+import NavigationTabsService from "@components/Layouts/LeftNavigationTabs/NavigationTabsService";
 
 export enum LeftNavigationTab {
 	None,
@@ -29,6 +30,8 @@ export enum LeftNavigationTab {
 	Inbox,
 	Branch,
 	Template,
+	Snippets,
+	Prompt,
 }
 
 const Wrapper = styled.div`
@@ -51,7 +54,7 @@ const ArticleStatusBar = ({ isStorageInitialized, padding }: { isStorageInitiali
 	const [mergeRequestIsDraft, setMergeRequestIsDraft] = useState(false);
 	const [mergeRequest, setMergeRequest] = useState<MergeRequest>(null);
 
-	const [currentTab, setCurrentTab] = useState(LeftNavigationTab.None);
+	const { bottomTab } = NavigationTabsService.value;
 
 	const setupMergeRequestState = async (branch: GitBranchData, caller: OnBranchUpdateCaller) => {
 		if (!isDevMode || isNext) return;
@@ -64,7 +67,7 @@ const ArticleStatusBar = ({ isStorageInitialized, padding }: { isStorageInitiali
 		setMergeRequest(mr);
 
 		if (mr && caller !== OnBranchUpdateCaller.DiscardNoReset && caller !== OnBranchUpdateCaller.Publish)
-			setCurrentTab(LeftNavigationTab.MergeRequest);
+			NavigationTabsService.setBottom(LeftNavigationTab.MergeRequest);
 	};
 
 	useEffect(() => {
@@ -87,19 +90,25 @@ const ArticleStatusBar = ({ isStorageInitialized, padding }: { isStorageInitiali
 			<MergeRequestTab
 				mergeRequest={mergeRequest}
 				isDraft={mergeRequestIsDraft}
-				setShow={(show) => setCurrentTab(show ? LeftNavigationTab.MergeRequest : LeftNavigationTab.None)}
-				show={currentTab === LeftNavigationTab.MergeRequest}
+				setShow={(show) =>
+					NavigationTabsService.setBottom(show ? LeftNavigationTab.MergeRequest : LeftNavigationTab.None)
+				}
+				show={bottomTab === LeftNavigationTab.MergeRequest}
 			/>
 			<BranchTab
-				show={currentTab === LeftNavigationTab.Branch}
-				setShow={(show) => setCurrentTab(show ? LeftNavigationTab.Branch : LeftNavigationTab.None)}
+				show={bottomTab === LeftNavigationTab.Branch}
+				setShow={(show) =>
+					NavigationTabsService.setBottom(show ? LeftNavigationTab.Branch : LeftNavigationTab.None)
+				}
 				branch={branch}
-				onClose={() => setCurrentTab(LeftNavigationTab.None)}
+				onClose={() => NavigationTabsService.setBottom(LeftNavigationTab.None)}
 				onMergeRequestCreate={() => setupMergeRequestState(branch, OnBranchUpdateCaller.MergeRequest)}
 			/>
 			<PublishTab
-				show={currentTab === LeftNavigationTab.Publish}
-				setShow={(show) => setCurrentTab(show ? LeftNavigationTab.Publish : LeftNavigationTab.None)}
+				show={bottomTab === LeftNavigationTab.Publish}
+				setShow={(show) =>
+					NavigationTabsService.setBottom(show ? LeftNavigationTab.Publish : LeftNavigationTab.None)
+				}
 			/>
 			<StatusBar
 				padding={padding}
@@ -108,11 +117,11 @@ const ArticleStatusBar = ({ isStorageInitialized, padding }: { isStorageInitiali
 						? [
 								<Branch
 									key={0}
-									show={currentTab === LeftNavigationTab.Branch}
+									show={bottomTab === LeftNavigationTab.Branch}
 									branch={branch}
 									onClick={() =>
-										setCurrentTab(
-											currentTab === LeftNavigationTab.Branch
+										NavigationTabsService.setBottom(
+											bottomTab === LeftNavigationTab.Branch
 												? LeftNavigationTab.None
 												: LeftNavigationTab.Branch,
 										)
@@ -121,10 +130,10 @@ const ArticleStatusBar = ({ isStorageInitialized, padding }: { isStorageInitiali
 								<ShowMergeRequest
 									key={1}
 									mergeRequest={mergeRequest}
-									isShow={currentTab === LeftNavigationTab.MergeRequest}
+									isShow={bottomTab === LeftNavigationTab.MergeRequest}
 									setShow={() =>
-										setCurrentTab(
-											currentTab === LeftNavigationTab.MergeRequest
+										NavigationTabsService.setBottom(
+											bottomTab === LeftNavigationTab.MergeRequest
 												? LeftNavigationTab.None
 												: LeftNavigationTab.MergeRequest,
 										)
@@ -142,10 +151,10 @@ const ArticleStatusBar = ({ isStorageInitialized, padding }: { isStorageInitiali
 								<IsReadOnlyHOC key={2}>
 									{isDevMode ? (
 										<ShowPublishBar
-											isShow={currentTab === LeftNavigationTab.Publish}
+											isShow={bottomTab === LeftNavigationTab.Publish}
 											onClick={() => {
-												setCurrentTab(
-													currentTab === LeftNavigationTab.Publish
+												NavigationTabsService.setBottom(
+													bottomTab === LeftNavigationTab.Publish
 														? LeftNavigationTab.None
 														: LeftNavigationTab.Publish,
 												);

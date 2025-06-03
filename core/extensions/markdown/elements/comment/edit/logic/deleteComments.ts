@@ -15,11 +15,12 @@ const deleteComments = async (
 ) => {
 	for (const mark of marks) {
 		if (mark.type.name !== "comment") continue;
-		const isEmptyComment = !mark.attrs?.comment && !mark.attrs?.count;
+		const id = mark.attrs?.count;
+		const isEmptyComment = !mark.attrs?.comment && !id;
 		if (isEmptyComment) {
-			CommentCounterService.delete(comments, articlePathname, author);
+			CommentCounterService.delete(comments, articlePathname, author, mark.attrs?.preCount);
 		} else {
-			CommentCounterService.delete(comments, articlePathname, mark.attrs?.comment?.user);
+			CommentCounterService.delete(comments, articlePathname, mark.attrs?.comment?.user, id);
 			await FetchService.fetch(apiUrlCreator.deleteComment(mark.attrs.count));
 		}
 	}

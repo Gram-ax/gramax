@@ -9,17 +9,18 @@ import MergeRequestConfirm from "@ext/git/core/GitMergeRequest/components/MergeR
 import CheckoutHandler from "@ext/git/core/GitPathnameHandler/checkout/components/CheckoutHandler";
 import CloneHandler from "@ext/git/core/GitPathnameHandler/clone/components/CloneHandler";
 import PullHandler from "@ext/git/core/GitPathnameHandler/pull/components/PullHandler";
-import ActionWarning from "@ext/localization/actions/ActionWarning";
+import OtherLanguagesPresentWarning from "@ext/localization/actions/OtherLanguagesPresentWarning";
 import DiagramsEditor from "@ext/markdown/elements/diagrams/edit/components/DiagramsEditor";
 import HTMLEditor from "@ext/markdown/elements/html/edit/components/HTMLEditButton";
 import SnippetAlreadyUseWarn from "@ext/markdown/elements/snippet/edit/components/SnippetAlreadyUseWarn";
-import SnippetEditor from "@ext/markdown/elements/snippet/edit/components/SnippetEditor";
 import CreateSourceData from "@ext/storage/logic/SourceDataProvider/components/CreateSourceData";
+import TemplateContentWarning from "@ext/templates/components/TemplateContentWarning";
 import { ReactNode } from "react";
 import ReviewTicketHandler from "../../../../extensions/catalog/actions/review/components/ReviewTicketHandler";
 import ShareTicketHandler from "../../../../extensions/catalog/actions/share/components/ShareTicketHandler";
 import ModalToOpen from "../model/ModalsToOpen";
-import TemplateContentWarning from "@ext/templates/components/TemplateContentWarning";
+import PropertySettings from "@ext/templates/components/Properties/PropertySettings";
+import DocRootMissingModal from "@components/Layouts/CatalogLayout/DocRootMissingModal";
 
 const getModalComponentToRender: {
 	[type in ModalToOpen]: (args: { [name: string]: any }) => ReactNode;
@@ -36,12 +37,11 @@ const getModalComponentToRender: {
 	[ModalToOpen.PullHandler]: PullHandler,
 	[ModalToOpen.CloneHandler]: CloneHandler,
 
-	[ModalToOpen.SnippetEditor]: SnippetEditor,
 	[ModalToOpen.SnippetAlreadyUseWarn]: SnippetAlreadyUseWarn,
 
 	[ModalToOpen.Loading]: ModalLoading,
 
-	[ModalToOpen.MultilangActionConfirm]: ActionWarning,
+	[ModalToOpen.MultilangActionConfirm]: OtherLanguagesPresentWarning,
 
 	[ModalToOpen.DiagramEditor]: DiagramsEditor,
 	[ModalToOpen.HTMLEditor]: HTMLEditor,
@@ -55,6 +55,9 @@ const getModalComponentToRender: {
 	[ModalToOpen.EditEnterpriseConfig]: EditEnterpriseConfig,
 
 	[ModalToOpen.TemplateContentWarning]: TemplateContentWarning,
+	[ModalToOpen.TemplatePropertySettings]: PropertySettings,
+
+	[ModalToOpen.DocRootMissingModal]: DocRootMissingModal,
 };
 
 export default getModalComponentToRender;

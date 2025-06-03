@@ -5,11 +5,15 @@ const CatalogPropsContext = React.createContext<ClientCatalogProps>(undefined);
 let _setValue: React.Dispatch<React.SetStateAction<ClientCatalogProps>>;
 
 abstract class CatalogPropsService {
-	static Provider({ children, value }: { children: ReactElement; value: ClientCatalogProps }): ReactElement {
+	static Init({ children, value }: { children: ReactElement; value: ClientCatalogProps }): ReactElement {
 		const [catalogProps, setCatalogProps] = useState<ClientCatalogProps>(value);
 		_setValue = setCatalogProps;
 		useEffect(() => setCatalogProps(value), [value]);
 		return <CatalogPropsContext.Provider value={catalogProps}>{children}</CatalogPropsContext.Provider>;
+	}
+
+	static Provider({ children, value }: { children: ReactElement; value: ClientCatalogProps }): ReactElement {
+		return <CatalogPropsContext.Provider value={value}>{children}</CatalogPropsContext.Provider>;
 	}
 
 	static Context({ children, value }: { children: ReactElement; value: ClientCatalogProps }): ReactElement {

@@ -6,9 +6,11 @@ import t from "@ext/localization/locale/translate";
 import Button from "@ext/markdown/core/edit/components/Menu/Button";
 import { Editor } from "@tiptap/core";
 import createFile from "../logic/createFile";
+import ResourceService from "@ext/markdown/elements/copyArticles/resourceService";
 
 const FileMenuButton = ({ editor, onSave }: { editor: Editor; onSave?: () => void }) => {
 	const apiUrlCreator = ApiUrlCreatorService.value;
+	const rs = ResourceService.value;
 
 	const { disabled } = ButtonStateService.useCurrentAction({ mark: "file" });
 
@@ -20,7 +22,7 @@ const FileMenuButton = ({ editor, onSave }: { editor: Editor; onSave?: () => voi
 		<InputFile
 			onChange={async (event) => {
 				const filesArray = Array.from(event.currentTarget.files);
-				await createFile(filesArray, editor.view, apiUrlCreator);
+				await createFile(filesArray, editor.view, apiUrlCreator, rs);
 				onSave?.();
 			}}
 		>

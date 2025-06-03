@@ -2,11 +2,17 @@ import MimeTypes from "@core-ui/ApiServices/Types/MimeTypes";
 import DefaultError from "@ext/errorHandlers/logic/DefaultError";
 import NetworkApiError from "@ext/errorHandlers/network/NetworkApiError";
 import t from "@ext/localization/locale/translate";
+import { CatalogLink } from "@ext/navigation/NavigationLinks";
+import Theme from "@ext/Theme/Theme";
 
 type OAuthType = "google";
 
 class CloudApi {
 	constructor(private _cloudUrl: string, private _onError?: (error: NetworkApiError | DefaultError) => void) {}
+
+	getCatalogLogoUrl(catalogName: string, theme: Theme, login: string): string {
+		return `${this._cloudUrl}/api/get-catalog-logo?catalogName=${catalogName}&theme=${theme}&login_name=${login}`;
+	}
 
 	getOauthUrl(type: OAuthType, redirectUrl?: string) {
 		return `${this._cloudUrl}/oauth?auth_type=${type}${
@@ -60,7 +66,20 @@ class CloudApi {
 		});
 	}
 
-	async _api(path: string, options: RequestInit = {}, triggerOnErrorCallback = true): Promise<Response> {
+	async uploadCatalogLink(catalogName: string, catalogLink: CatalogLink): Promise<void> {
+		await this._api(`/api/upload-catalog-link`, {
+			method: "POST",
+			body: JSON.stringify({
+				catalogName,
+				data: catalogLink,
+			}),
+			headers: {
+				"Content-Type": "application/json",
+			},
+		});
+	}
+
+	private async _api(path: string, options: RequestInit = {}, triggerOnErrorCallback = true): Promise<Response> {
 		let res: Response;
 		try {
 			res = await fetch(`${this._cloudUrl}${path}`, {

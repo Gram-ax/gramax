@@ -8,9 +8,12 @@ export const inlinePropertyHandler = (tag: Tag, context: pdfRenderContext): Cont
 
 	const article = context.parserContext.getArticle();
 	const catalog = context.catalog;
+	const template = catalog.customProviders.templateProvider.getArticle(article.props.template);
+	if (!template) return [];
+
 	const properties = article.props?.properties;
 
-	const catalogProperty = catalog.props.properties.find((p) => p.name === tag.attributes.bind);
+	const catalogProperty = template.props.customProperties.find((p) => p.name === tag.attributes.bind);
 
 	if (!catalogProperty) return [];
 

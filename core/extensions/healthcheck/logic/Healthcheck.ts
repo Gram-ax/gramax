@@ -195,7 +195,7 @@ class Healthcheck {
 	};
 
 	private async _checkIcons(item: Article, code: string) {
-		if ((await this._catalog.iconProvider.getIconByCode(code)) || LucideIcon(code)) return;
+		if ((await this._catalog.customProviders.iconProvider.getIconByCode(code)) || LucideIcon(code)) return;
 		this._errors.icons.push(
 			this._getRefCatalogError({
 				value: code,

@@ -1,4 +1,5 @@
 import { ServicesConfig } from "@app/config/AppConfig";
+import { AuthMethod } from "@ext/enterprise/types/UserSettings";
 
 export type WorkspaceGroup = {
 	title: string;
@@ -13,6 +14,7 @@ export interface WorkspaceConfig {
 	enterprise?: {
 		gesUrl?: string;
 		lastUpdateDate?: number;
+		authMethods?: AuthMethod[];
 	};
 	gesUrl?: string; // legacy
 }

@@ -24,7 +24,7 @@ const Part = styled.div`
 	opacity: 0.7;
 	color: var(--color-primary-general);
 
-	> div:nth-child(2) {
+	> div:nth-of-type(2) {
 		padding-top: 0.5px;
 	}
 `;

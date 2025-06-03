@@ -1,14 +1,18 @@
-import { RenderableTreeNode, Tag } from "@ext/markdown/core/render/logic/Markdoc";
+import { RenderableTreeNode, RenderableTreeNodes, Tag } from "@ext/markdown/core/render/logic/Markdoc";
+import headingTransformer from "@ext/markdown/elements/heading/render/logic/headingTransformer";
+import HtmlTagComponentEditTreeToRenderTree from "@ext/markdown/elements/htmlTag/render/logic/HtmlTagComponentEditTreeToRenderTreeTransformer";
+import mdEditTreeToRenderTree from "@ext/markdown/elements/md/logic/mdEditTreeToRenderTree";
 import { JSONContent } from "@tiptap/core";
 import { Schema } from "@tiptap/pm/model";
 
 type ComponentsNames = Record<string, string>;
-
-type Child = JSONContent | Tag;
-
+export type Child = JSONContent | Tag;
 type Attrs = Record<string, unknown>;
 
-const getComponentsNames = (): ComponentsNames => {
+export type CustomEditTreeToRenderTree = (node: JSONContent) => RenderableTreeNodes;
+export type EditTreeToRenderTreeTransformer = (node: JSONContent) => JSONContent;
+
+const getComponentNames = (): ComponentsNames => {
 	return {
 		doc: "article",
 		text: "Text",
@@ -47,19 +51,17 @@ const getComponentsNames = (): ComponentsNames => {
 		color: "Color",
 		thead: "thead",
 		alert: "Alert",
+		hard_break: "br",
+		file: "Link",
 	};
 };
 
 const diagramsTransformer = (node: JSONContent, componentsNames: ComponentsNames): JSONContent => {
 	const diagramName = node.attrs?.diagramName?.toLowerCase();
-	if (!diagramName) {
-		return node;
-	}
+	if (!diagramName) return node;
 
 	const tagName = componentsNames[diagramName];
-	if (!tagName) {
-		return node;
-	}
+	if (!tagName) return node;
 
 	const tag = {
 		...node,
@@ -70,9 +72,7 @@ const diagramsTransformer = (node: JSONContent, componentsNames: ComponentsNames
 };
 
 const tableTransformer = (node: JSONContent): JSONContent => {
-	if (node.type !== "table") {
-		return node;
-	}
+	if (node.type !== "table") return node;
 
 	const tag = {
 		...node,
@@ -99,16 +99,13 @@ const tableTransformer = (node: JSONContent): JSONContent => {
 	};
 
 	const children = [{ type: "tbody", content: node.content.map((row) => handleRow(row)) }];
-
 	tag.content = children;
 
 	return tag;
 };
 
 const snippetTagTransformer = (node: JSONContent): JSONContent => {
-	if (node.type !== "snippet") {
-		return node;
-	}
+	if (node.type !== "snippet") return node;
 
 	const tag = {
 		...node,
@@ -120,9 +117,7 @@ const snippetTagTransformer = (node: JSONContent): JSONContent => {
 };
 
 const codeBlockTransformer = (node: JSONContent): JSONContent => {
-	if (node.type !== "code_block") {
-		return node;
-	}
+	if (node.type !== "code_block") return node;
 
 	const text = node.content?.[0]?.text || "";
 	const tag = {
@@ -140,9 +135,7 @@ const codeBlockTransformer = (node: JSONContent): JSONContent => {
 };
 
 const listTransformer = (node: JSONContent): JSONContent => {
-	if (node.type !== "bulletList" && node.type !== "orderedList") {
-		return node;
-	}
+	if (node.type !== "bulletList" && node.type !== "orderedList") return node;
 
 	const recursiveAddDepth = (node: JSONContent, depth: number) => {
 		if (node.attrs?.depth !== undefined) {
@@ -191,9 +184,7 @@ const parentLinksTagTransformer = (tag: Child): object | object[] => {
 			? tag.children.filter((child: Tag) => child?.name === "Link")
 			: tag.content.filter((child: JSONContent) => child?.name === "Link");
 
-	if (!linkChildren.length) {
-		return tag;
-	}
+	if (!linkChildren.length) return tag;
 
 	const linksByHref: Record<string, Tag[]> = {};
 
@@ -242,7 +233,13 @@ const parentLinksTagTransformer = (tag: Child): object | object[] => {
 
 const editTreeToRenderTree = (editTree: JSONContent, editSchema: Schema): RenderableTreeNode => {
 	const transformNode = (node: JSONContent) => {
-		const nodeHandlers = [diagramsTransformer, tableTransformer, codeBlockTransformer, listTransformer];
+		const nodeHandlers = [
+			diagramsTransformer,
+			tableTransformer,
+			codeBlockTransformer,
+			listTransformer,
+			HtmlTagComponentEditTreeToRenderTree,
+		];
 
 		for (const handler of nodeHandlers) {
 			const result = handler(node, componentsNames);
@@ -251,7 +248,7 @@ const editTreeToRenderTree = (editTree: JSONContent, editSchema: Schema): Render
 	};
 
 	const transformTag = (tag: Child): object | object[] => {
-		const tagHandlers = [parentLinksTagTransformer, snippetTagTransformer];
+		const tagHandlers = [parentLinksTagTransformer, snippetTagTransformer, headingTransformer];
 
 		for (const handler of tagHandlers) {
 			const result = handler(tag);
@@ -278,12 +275,19 @@ const editTreeToRenderTree = (editTree: JSONContent, editSchema: Schema): Render
 		};
 	};
 
+	const customConvert = (node: JSONContent) => {
+		const nodeHandlers = [mdEditTreeToRenderTree];
+		for (const handler of nodeHandlers) {
+			const result = handler(node);
+			if (result) return result;
+		}
+	};
+
 	const convertNode = (node: JSONContent): object[] | object | string => {
 		node = transformNode(node) || node;
 
-		if (node.attrs?.tag) {
-			return Array.isArray(node.attrs.tag) ? node.attrs.tag.map((tag) => ({ ...tag })) : [{ ...node.attrs.tag }];
-		}
+		const customConvertedNode = customConvert(node);
+		if (customConvertedNode) return customConvertedNode;
 
 		if (node?.text && !node?.marks) return node.text;
 
@@ -342,7 +346,7 @@ const editTreeToRenderTree = (editTree: JSONContent, editSchema: Schema): Render
 		return transformTag(tag);
 	};
 
-	const componentsNames = getComponentsNames();
+	const componentsNames = getComponentNames();
 	const document = convertNode(editTree) as RenderableTreeNode;
 
 	return document;

@@ -22,7 +22,7 @@ export type SystemProperty = {
 export type Locale = typeof en;
 export type DefaultLocale = typeof defaultLocale;
 type TranslationKey = ObjectDotNotation<
-	Omit<typeof defaultLocale, "forms" | "properties.system"> & { forms: FormDefinition; properties: SystemProperty }
+	Omit<typeof defaultLocale, "properties.system"> & { forms: FormDefinition; properties: SystemProperty }
 >;
 
 const defaultLocale = en;

@@ -89,7 +89,7 @@ abstract class GitSourceApi implements SourceAPI {
 			const error = new NetworkApiError(
 				"No response from server",
 				{ url: null, errorJson: null, status: -1 },
-				t("git.error.source-api.title"),
+				t("git.error.http.title"),
 			);
 			this._onError?.(error);
 			throw error;
@@ -104,7 +104,7 @@ abstract class GitSourceApi implements SourceAPI {
 				errorJson,
 				status: res.status,
 			},
-			t("git.error.source-api.title"),
+			t("git.error.http.title"),
 		);
 		this._onError?.(error);
 		throw error;

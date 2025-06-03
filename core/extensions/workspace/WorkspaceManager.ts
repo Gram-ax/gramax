@@ -12,12 +12,12 @@ import FileStructure from "@core/FileStructue/FileStructure";
 import mergeObjects from "@core/utils/mergeObjects";
 import { uniqueName } from "@core/utils/uniqueName";
 import YamlFileConfig from "@core/utils/YamlFileConfig";
+import { EnterpriseWorkspace } from "@ext/enterprise/EnterpriseWorkspace";
 import RepositoryProvider from "@ext/git/core/Repository/RepositoryProvider";
 import t from "@ext/localization/locale/translate";
-import { EnterpriseWorkspace } from "@ext/enterprise/EnterpriseWorkspace";
 import NoActiveWorkspace from "@ext/workspace/error/NoActiveWorkspaceError";
 import WorkspaceMissingPath from "@ext/workspace/error/UnknownWorkspace";
-import { Workspace } from "@ext/workspace/Workspace";
+import { Workspace, type WorkspaceInitCallback } from "@ext/workspace/Workspace";
 import WorkspaceAssets from "@ext/workspace/WorkspaceAssets";
 import type { WorkspaceConfig, WorkspacePath } from "@ext/workspace/WorkspaceConfig";
 
@@ -46,6 +46,7 @@ export default class WorkspaceManager {
 	constructor(
 		private _makeFileProvider: FSFileProviderFactory,
 		private _callback: FSCreatedCallback,
+		private _onInit: WorkspaceInitCallback,
 		private _rp: RepositoryProvider,
 		private _config: AppConfig,
 		private _workspacesConfig: YamlFileConfig<WorkspaceManagerConfig>,
@@ -67,6 +68,7 @@ export default class WorkspaceManager {
 			path,
 			config: init,
 			assets: this.getWorkspaceAssets(path),
+			onInit: this._onInit,
 		});
 
 		this._rules?.forEach((fn) => this._current.events.on("catalog-changed", fn));

@@ -5,39 +5,9 @@ import styled from "@emotion/styled";
 import GitSourceFormData from "@ext/git/actions/Source/Git/GitSourceFormData";
 import GitSourceData from "@ext/git/core/model/GitSourceData.schema";
 import t from "@ext/localization/locale/translate";
-import { ReactNode, useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import parseStorageUrl from "../../../../../../logic/utils/parseStorageUrl";
-
-export type FormFieldProps = {
-	label: string;
-	description?: string;
-	children: ReactNode;
-	checkbox?: boolean;
-	checkboxLabel?: string;
-	setCheckbox?: (value: boolean) => void;
-};
-
-const FormField = ({ label, description, children }: FormFieldProps) => (
-	<div className="form-group">
-		<div className="field field-string row">
-			<label className="control-label">
-				<div>
-					<div style={{ display: "flex" }}>
-						<span>{label}</span>
-					</div>
-				</div>
-			</label>
-			<div className="input-lable">{children}</div>
-		</div>
-		{description && (
-			<div className="input-lable-description">
-				<div />
-				<div className="article">{description}</div>
-			</div>
-		)}
-	</div>
-);
-
+import SimplifiedField from "@components/Form/SimplifiedField";
 const Separator = styled.div`
 	margin: 2rem 0;
 `;
@@ -151,7 +121,7 @@ const CreateGitSourceData = ({
 
 	return (
 		<div className="form-container" style={{ marginTop: "2rem" }}>
-			<FormField
+			<SimplifiedField
 				label={t("forms.git-source-data.props.url.name")}
 				description={t("forms.git-source-data.props.url.description")}
 			>
@@ -163,7 +133,7 @@ const CreateGitSourceData = ({
 					errorText={errors.url}
 					disabled={readOnlyProps?.url !== undefined}
 				/>
-			</FormField>
+			</SimplifiedField>
 
 			{showTokenField && (
 				<div className="form-group">
@@ -181,7 +151,7 @@ const CreateGitSourceData = ({
 			)}
 
 			{showTokenField && usePassword && (
-				<FormField
+				<SimplifiedField
 					label={t("forms.git-source-data.props.gitServerUsername.name")}
 					description={t("forms.git-source-data.props.gitServerUsername.description")}
 				>
@@ -192,11 +162,11 @@ const CreateGitSourceData = ({
 						placeholder={t("forms.git-source-data.props.gitServerUsername.placeholder")}
 						disabled={readOnlyProps?.gitServerUsername !== undefined}
 					/>
-				</FormField>
+				</SimplifiedField>
 			)}
 
 			{showTokenField && (
-				<FormField
+				<SimplifiedField
 					label={
 						usePassword
 							? t("forms.git-source-data.props.password.name")
@@ -207,9 +177,6 @@ const CreateGitSourceData = ({
 							? t("forms.git-source-data.props.password.description")
 							: t("forms.git-source-data.props.token.description")
 					}
-					checkboxLabel={t("forms.git-source-data.props.usePassword.name")}
-					checkbox={usePassword}
-					setCheckbox={(value) => handleChange("usePassword", value)}
 				>
 					<Input
 						isCode
@@ -219,13 +186,13 @@ const CreateGitSourceData = ({
 						placeholder={t("forms.git-source-data.props.token.placeholder")}
 						disabled={readOnlyProps?.token !== undefined}
 					/>
-				</FormField>
+				</SimplifiedField>
 			)}
 
 			{showUserFields && (
 				<>
 					<Separator />
-					<FormField
+					<SimplifiedField
 						label={t("forms.git-source-data.props.userName.name")}
 						description={t("forms.git-source-data.props.userName.description")}
 					>
@@ -236,9 +203,9 @@ const CreateGitSourceData = ({
 							placeholder={t("forms.git-source-data.props.userName.placeholder")}
 							disabled={readOnlyProps?.userName !== undefined}
 						/>
-					</FormField>
+					</SimplifiedField>
 
-					<FormField
+					<SimplifiedField
 						label={t("forms.git-source-data.props.userEmail.name")}
 						description={t("forms.git-source-data.props.userEmail.description")}
 					>
@@ -250,7 +217,7 @@ const CreateGitSourceData = ({
 							errorText={errors.userEmail}
 							disabled={readOnlyProps?.userEmail !== undefined}
 						/>
-					</FormField>
+					</SimplifiedField>
 				</>
 			)}
 

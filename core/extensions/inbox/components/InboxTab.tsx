@@ -8,14 +8,21 @@ import AuthorInfoCodec from "@core-ui/utils/authorInfoCodec";
 import generateUniqueID from "@core/utils/generateUniqueID";
 import styled from "@emotion/styled";
 import Inbox from "@ext/inbox/components/Inbox";
+import InboxFilter from "@ext/inbox/components/InboxFilter";
 import InboxService from "@ext/inbox/components/InboxService";
-import InboxUtility from "@ext/inbox/logic/InboxUtility";
 import { InboxArticle } from "@ext/inbox/models/types";
 import t from "@ext/localization/locale/translate";
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 const ExtensionWrapper = styled.div`
-	margin-left: -0.5em;
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding-left: 1rem;
+	padding-right: 1rem;
+	margin-left: 0.5em;
+	margin-bottom: 0.5em;
+	margin-top: -0.5em;
 `;
 
 interface InboxTabProps {
@@ -24,10 +31,13 @@ interface InboxTabProps {
 
 const InboxTab = ({ show }: InboxTabProps) => {
 	const tabWrapperRef = useRef<HTMLDivElement>(null);
-	const [height, setHeight] = useState(0);
+
 	const apiUrlCreator = ApiUrlCreatorService.value;
 	const pageData = PageDataContextService.value;
-	const { selectedPath } = InboxService.value;
+	const { selectedIds } = InboxService.value;
+
+	const [height, setHeight] = useState(0);
+	const [selectedAuthor, setSelectedAuthor] = useState<string>(pageData.userInfo?.mail);
 
 	const addNewNote = useCallback(async () => {
 		const uniqueID = generateUniqueID();
@@ -44,39 +54,40 @@ const InboxTab = ({ show }: InboxTabProps) => {
 			}),
 		);
 
-		const res = await FetchService.fetch<InboxArticle[]>(apiUrlCreator.getInboxArticles());
+		if (selectedAuthor !== pageData.userInfo?.mail) return;
+
+		const res = await FetchService.fetch<InboxArticle[]>(apiUrlCreator.getInboxArticles(pageData.userInfo?.mail));
 		if (!res.ok) return;
 
-		const newNotes = await res.json();
-		const createdArticle = newNotes.find((note) => note.logicPath.includes(uniqueID));
+		const newItems = await res.json();
+		InboxService.setItems(newItems);
+	}, [apiUrlCreator, pageData.userInfo, selectedAuthor, selectedIds]);
 
-		InboxService.setNotes(newNotes);
-		if (!createdArticle) return;
-
-		const newPaths = InboxUtility.setSelectedPath(selectedPath, [createdArticle.logicPath]);
-		InboxService.setSelectedPath(newPaths);
-	}, [apiUrlCreator, pageData.userInfo]);
+	useEffect(() => {
+		if (pageData.userInfo?.mail) setSelectedAuthor(pageData.userInfo.mail);
+	}, [pageData.userInfo]);
 
 	return (
-		<TabWrapper
-			ref={tabWrapperRef}
-			isTop
-			show={show}
-			title=""
-			contentHeight={height}
-			titleRightExtension={
+		<TabWrapper ref={tabWrapperRef} isTop show={show} title="" contentHeight={height}>
+			<>
 				<ExtensionWrapper>
 					<ButtonLink
 						textSize={TextSize.S}
 						text={t("inbox.new-note")}
 						style={{ marginLeft: "-8px" }}
 						iconCode="plus"
+						disabled={pageData.userInfo?.mail ? pageData.userInfo?.mail !== selectedAuthor : false}
 						onClick={addNewNote}
 					/>
+					<InboxFilter
+						show={show}
+						apiUrlCreator={apiUrlCreator}
+						selectedAuthor={selectedAuthor}
+						setSelectedAuthor={setSelectedAuthor}
+					/>
 				</ExtensionWrapper>
-			}
-		>
-			<Inbox tabWrapperRef={tabWrapperRef} show={show} setContentHeight={setHeight} />
+				<Inbox tabWrapperRef={tabWrapperRef} show={show} setContentHeight={setHeight} />
+			</>
 		</TabWrapper>
 	);
 };

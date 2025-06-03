@@ -1,5 +1,6 @@
-import checkBlockField from "@ext/markdown/elements/controllers/helpers/checkBlockField";
+import isTemplateEditableBlock from "@ext/markdown/elements/controllers/helpers/isTemplateEditableBlock";
 import { editName as BLOCK_FIELD_NAME } from "@ext/markdown/elements/blockContentField/consts";
+import { editName as BLOCK_PROPERTY } from "@ext/markdown/elements/blockProperty/consts";
 import { ReplaceStep, Step } from "@tiptap/pm/transform";
 import { TextSelection, Transaction } from "prosemirror-state";
 import { Node } from "@tiptap/pm/model";
@@ -9,7 +10,7 @@ const stepsContentHasntBlockField = (transaction: Transaction): boolean => {
 		if (!(step instanceof ReplaceStep)) return false;
 
 		for (const content of step.slice.content.content) {
-			if (content.type.name === BLOCK_FIELD_NAME) return true;
+			if (content.type.name === BLOCK_FIELD_NAME || content.type.name === BLOCK_PROPERTY) return true;
 		}
 	});
 };
@@ -20,9 +21,11 @@ const isChangeInBlockField = (doc: Node, steps: Step[]): boolean => {
 
 		const mapResult = step.getMap().mapResult(step.from);
 		const isDeleted = mapResult.deleted;
-		const isBlockField = checkBlockField(TextSelection.create(doc, mapResult.pos));
+		const isEditableBlock = isTemplateEditableBlock(
+			TextSelection.create(doc, Math.max(Math.min(mapResult.pos, doc.nodeSize), 0)),
+		);
 
-		if (isDeleted && isBlockField) return true;
+		if (isDeleted && isEditableBlock) return true;
 	}
 };
 
@@ -37,7 +40,7 @@ const selectionRule = (transaction: Transaction): boolean => {
 	}
 
 	if (stepsContentHasntBlockField(transaction)) return false;
-	if (isChangeInBlockField(doc, transaction.steps) || checkBlockField(selection)) return true;
+	if (isChangeInBlockField(doc, transaction.steps) || isTemplateEditableBlock(selection)) return true;
 	if (transaction.docChanged) return false;
 
 	return true;

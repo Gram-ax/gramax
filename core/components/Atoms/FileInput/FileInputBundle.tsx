@@ -10,6 +10,17 @@ self.MonacoEnvironment = {
 	},
 };
 
+// #020617 references to hsl(var(--secondary-bg))
+
+monaco.editor.defineTheme("new-vs-dark", {
+	base: "vs-dark",
+	inherit: true,
+	rules: [],
+	colors: {
+		"editor.background": "#020617",
+	},
+});
+
 loader.config({ monaco });
 
 loader.init();

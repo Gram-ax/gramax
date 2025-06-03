@@ -8,8 +8,6 @@ import { Mark } from "@tiptap/pm/model";
 import { EditorView } from "prosemirror-view";
 import { createContext } from "react";
 import PageDataContext from "../../../../../../logic/Context/PageDataContext";
-import ApiUrlCreator from "../../../../../../ui-logic/ApiServices/ApiUrlCreator";
-import FetchService from "../../../../../../ui-logic/ApiServices/FetchService";
 import { CommentBlock } from "../../../../../../ui-logic/CommentBlock";
 import PageDataContextService from "../../../../../../ui-logic/ContextServices/PageDataContext";
 import Theme from "../../../../../Theme/Theme";
@@ -33,7 +31,6 @@ class CommentFocusTooltip extends BaseMark {
 		view: EditorView,
 		editor: Editor,
 		private _theme: Theme,
-		private _apiUrlCreator: ApiUrlCreator,
 		private _pageDataContext: PageDataContext,
 	) {
 		super(view, editor);
@@ -127,11 +124,10 @@ class CommentFocusTooltip extends BaseMark {
 		this._updateAttributes(markPosition, commentBlock);
 	}
 
-	private async _createComment(markPosition: { from: number; to: number; mark: Mark }, content: JSONContent[]) {
-		const res = await FetchService.fetch(this._apiUrlCreator.getCommentCount());
-		if (!res.ok) return;
+	private _createComment(markPosition: { from: number; to: number; mark: Mark }, content: JSONContent[]) {
 		this._updateAttributes(markPosition, {
-			count: await res.text(),
+			preCount: markPosition.mark.attrs.preCount,
+			count: markPosition.mark.attrs.preCount,
 			comment: {
 				user: { mail: this._pageDataContext.userInfo.mail, name: this._pageDataContext.userInfo.name },
 				dateTime: new Date().toJSON(),

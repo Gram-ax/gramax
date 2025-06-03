@@ -24,7 +24,13 @@ const getPercent = (progress: CloneProgress, firstReceived: number) => {
 	}
 };
 
-const useCloneProgress = (initIsCloning: boolean, catalogName: string, redirectOnClone: string) => {
+const useCloneProgress = (
+	initIsCloning: boolean,
+	catalogName: string,
+	redirectOnClone: string,
+	cloneCancelDisabled: boolean,
+	setIsCancel: (isCancel: boolean) => void,
+) => {
 	const apiUrlCreator = ApiUrlCreatorService.value;
 	const router = useRouter();
 	const [error, setError] = useState<DefaultError>(null);
@@ -43,6 +49,8 @@ const useCloneProgress = (initIsCloning: boolean, catalogName: string, redirectO
 			if (!res.ok) return;
 			const data = await res.json();
 
+			if (data && cloneCancelDisabled) data.cancellable = false;
+
 			setProgress(data);
 
 			if (data?.type === "chunkedTransfer" && data.data.transfer.type === "receivingObjects" && !firstReceived)
@@ -52,8 +60,10 @@ const useCloneProgress = (initIsCloning: boolean, catalogName: string, redirectO
 
 			if (data?.type === "finish") {
 				setIsCloning(false);
+				if (cloneCancelDisabled && data.data.isCancelled) setIsCancel(true);
 				clearInterval(intervalIdx);
 				if (redirectOnClone) router.pushPath(redirectOnClone);
+				else refreshPage();
 			}
 
 			if (data?.type === "error") {

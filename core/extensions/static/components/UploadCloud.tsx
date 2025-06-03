@@ -21,15 +21,15 @@ const UploadCloud = () => {
 	const [uploadedUrl, setUploadedUrl] = useState<string>("");
 	const error = useRef<DefaultError>(null);
 	const cloudServiceUrl = PageDataContextService.value.conf.cloudServiceUrl;
-	const [staticApi] = useState(() => new CloudApi(cloudServiceUrl, (e) => (error.current = e)));
+	const [cloudApi] = useState(() => new CloudApi(cloudServiceUrl, (e) => (error.current = e)));
 
 	const setAuthStatus = async () => {
-		if (!(await staticApi.getServerState())) {
+		if (!(await cloudApi.getServerState())) {
 			error.current = new DefaultError(t("cloud.error.failed-to-connect"));
 			return;
 		}
 
-		const clientName = await staticApi.getAuthClientName();
+		const clientName = await cloudApi.getAuthClientName();
 		if (clientName) {
 			setClientName(clientName);
 			isLoggedIn.current = true;

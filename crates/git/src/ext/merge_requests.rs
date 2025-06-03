@@ -203,9 +203,16 @@ impl<C: Creds> MergeRequestExt for Repo<C> {
     let mr_bytes = std::fs::read(workdir_path.join(MERGE_REQUEST_FILE_PATH))?;
     let mr = serde_yml::from_slice::<OpenMergeRequest>(&mr_bytes)?;
 
+    let source_branch_ref = self.0.head()?.shorthand().or_utf8_err()?.to_string();
+
+    if source_branch_ref == mr.target_branch_ref {
+      warn!(target: TAG, "source and target branches are the same ({} -> {}); omitting draft merge-request", source_branch_ref, mr.target_branch_ref);
+      return Ok(None);
+    }
+
     self.ensure_branch_exists_local(&mr.target_branch_ref)?;
 
-    Ok(Some(MergeRequest::from_open_dto(self.0.head()?.shorthand().or_utf8_err()?.to_string(), mr)))
+    Ok(Some(MergeRequest::from_open_dto(source_branch_ref, mr)))
   }
 }
 

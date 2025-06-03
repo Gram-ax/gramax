@@ -801,13 +801,13 @@ describe("MdParser корректно парсит", () => {
 		const mdParser = await getMdParser();
 
 		const str = `paragraph1\n![image](https://test.com/image.png "title (brackets text)")\nparagraph2`;
-		const parsedStr = `paragraph1\n!{%image  /%}(https://test.com/image.png "title (brackets text)")\nparagraph2`;
+		const parsedStr = `paragraph1\n![image](https://test.com/image.png "title (brackets text)")\nparagraph2`;
 
 		const testParseStr = mdParser.preParse(str);
 
 		expect(testParseStr).toEqual(parsedStr);
 	});
-	
+
 	describe("начальные переводы строк обрабатываются корректно", () => {
 		const testCases = [
 			{ input: "Paragraph", expected: "Paragraph" },
@@ -826,6 +826,62 @@ describe("MdParser корректно парсит", () => {
 				expect(result).toEqual(expected);
 			});
 		}
+	});
+
+	describe("квадратные скобки обрабатываются корректно", () => {
+		test("не обрабатывает ссылку в markdown формате", async () => {
+			const mdParser = await getMdParser();
+			const str = "[icon](./some/link)";
+			const parsedStr = "[icon](./some/link)";
+
+			const testParseStr = mdParser.preParse(str);
+
+			expect(testParseStr).toEqual(parsedStr);
+		});
+
+		test("не обрабатывает изображение в markdown формате", async () => {
+			const mdParser = await getMdParser();
+			const str = "![image](./some/link/to/image)";
+			const parsedStr = "![image](./some/link/to/image)";
+
+			const testParseStr = mdParser.preParse(str);
+
+			expect(testParseStr).toEqual(parsedStr);
+		});
+
+		test("обрабатывает несколько тегов подряд", async () => {
+			const mdParser = await getMdParser();
+			const str = "[icon:code][cmd:text]";
+			const parsedStr = `{%icon code="code" /%}{%cmd text="text" /%}`;
+			mdParser.use({
+				render: "Test",
+				attributes: {
+					attr1: { type: String },
+					attr2: { type: String },
+				},
+			});
+
+			const testParseStr = mdParser.preParse(str);
+
+			expect(testParseStr).toEqual(parsedStr);
+		});
+
+		test("обрабатывает тег с текстом после него", async () => {
+			const mdParser = await getMdParser();
+			const str = "[test:text1:text2]some text";
+			const parsedStr = `{%test attr1="text1" attr2="text2" /%}some text`;
+			mdParser.use({
+				render: "Test",
+				attributes: {
+					attr1: { type: String },
+					attr2: { type: String },
+				},
+			});
+
+			const testParseStr = mdParser.preParse(str);
+
+			expect(testParseStr).toEqual(parsedStr);
+		});
 	});
 
 });

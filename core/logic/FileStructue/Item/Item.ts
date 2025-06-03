@@ -1,6 +1,5 @@
 import { NEW_ARTICLE_REGEX } from "@app/config/const";
 import { createEventEmitter, Event } from "@core/Event/EventEmitter";
-import { TemplateField, TemplateProps } from "@core/FileStructue/Article/TemplateArticle";
 import { Catalog } from "@core/FileStructue/Catalog/Catalog";
 import { roundedOrderAfter } from "@core/FileStructue/Item/ItemOrderUtils";
 import { ItemRef } from "@core/FileStructue/Item/ItemRef";
@@ -11,15 +10,16 @@ import ResourceUpdater from "@core/Resource/ResourceUpdater";
 import { InboxProps } from "@ext/inbox/models/types";
 import type { FSLocalizationProps } from "@ext/localization/core/events/FSLocalizationEvents";
 import t from "@ext/localization/locale/translate";
-import { PropertyValue } from "@ext/properties/models";
+import { Property, PropertyValue } from "@ext/properties/models";
 import { FileStatus } from "@ext/Watchers/model/FileStatus";
 import IPermission from "../../../extensions/security/logic/Permission/IPermission";
 import Permission from "../../../extensions/security/logic/Permission/Permission";
 import { ClientArticleProps } from "../../SitePresenter/SitePresenter";
 import { Category } from "../Category/Category";
+import { TemplateField } from "@ext/templates/models/types";
 
 export type ItemEvents = Event<"item-order-updated", { item: Item }> &
-	Event<"item-pre-save", { mutable: { content: string; props: ItemProps } }> &
+	Event<"item-pre-save", { item: Item; mutable: { content: string; props: ItemProps } }> &
 	Event<"item-saved", { item: Item }> &
 	Event<"item-changed", { item: Item; status: FileStatus }> &
 	Event<"item-get-content", { item: Item; mutableContent: { content: string } }>;
@@ -30,6 +30,7 @@ export type ItemProps = FSLocalizationProps & {
 	tags?: string[];
 	order?: number;
 	properties?: PropertyValue[];
+	customProperties?: Property[];
 	template?: string;
 	fields?: TemplateField[];
 
@@ -42,11 +43,7 @@ export type ItemProps = FSLocalizationProps & {
 	shouldBeCreated?: boolean;
 };
 
-export type UpdateItemProps =
-	| (ItemProps & { fileName?: never; logicPath: string })
-	| ClientArticleProps
-	| InboxProps
-	| TemplateProps;
+export type UpdateItemProps = (ItemProps & { fileName?: never; logicPath: string }) | ClientArticleProps | InboxProps;
 
 export const ORDERING_MAX_PRECISION = 6;
 

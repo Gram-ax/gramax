@@ -21,6 +21,7 @@ const updateProps: Command<{ ctx: Context; catalogName: string; props: ClientArt
 			const catalog = await workspace.getCatalog(catalogName, ctx);
 			if (!catalog) return;
 			const updatedItem = await catalog.updateItemProps(props, resourceUpdaterFactory);
+			if (!updatedItem) return;
 
 			const ref = { path: updatedItem.ref.path.value, storageId: updatedItem.ref.storageId };
 			return { pathname: await catalog.getPathname(updatedItem), ref };

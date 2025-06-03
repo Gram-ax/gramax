@@ -87,6 +87,7 @@ const Tooltip = forwardRef((props: TooltipProps, ref?: RefObject<Element>) => {
 			interactive={interactive}
 			delay={delay}
 			{...otherProps}
+			className={interactive ? "interactive-tooltip" : undefined}
 		>
 			{children}
 		</Tippy>

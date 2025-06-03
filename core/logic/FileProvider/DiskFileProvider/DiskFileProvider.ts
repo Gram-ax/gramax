@@ -1,17 +1,19 @@
 // In tauri we replace fs-extra with TauriFs(tauri/vite.config.ts); in wasm with wasmfs
 import { getExecutingEnvironment } from "@app/resolveModule/env";
+import { EventEmitter } from "@core/Event/EventEmitter";
+import type * as DFPIntermediateCommands from "@core/FileProvider/DiskFileProvider/DFPIntermediateCommands";
+import FileInfo from "@core/FileProvider/model/FileInfo";
+import FileProvider, { FileProviderEvents } from "@core/FileProvider/model/FileProvider";
+import Path from "@core/FileProvider/Path/Path";
 import { ItemRef } from "@core/FileStructue/Item/ItemRef";
+import { ItemRefStatus } from "@ext/Watchers/model/ItemStatus";
+import Watcher from "@ext/Watchers/model/Watcher";
 import * as fs from "fs-extra";
-import { type ItemRefStatus } from "../../../extensions/Watchers/model/ItemStatus";
-import Watcher from "../../../extensions/Watchers/model/Watcher";
-import Path from "../Path/Path";
-import FileInfo from "../model/FileInfo";
-import FileProvider from "../model/FileProvider";
-import type * as DFPIntermediateCommands from "./DFPIntermediateCommands";
 
 const isDesktop = getExecutingEnvironment() == "tauri";
 
 export default class DiskFileProvider implements FileProvider {
+	private static _events: EventEmitter<FileProviderEvents> = new EventEmitter();
 	private _rootPath: Path;
 	private _mountPath: Path;
 
@@ -19,6 +21,10 @@ export default class DiskFileProvider implements FileProvider {
 		if (typeof rootPath === "string") this._rootPath = new Path(rootPath);
 		else this._rootPath = rootPath;
 		_watcher?.init(this);
+	}
+
+	static get events(): EventEmitter<FileProviderEvents> {
+		return DiskFileProvider._events;
 	}
 
 	get storageId(): string {
@@ -104,6 +110,7 @@ export default class DiskFileProvider implements FileProvider {
 
 		if (await this.isFolder(path)) await this._deleteFolder(path);
 		else await this._deleteFile(path);
+		await DiskFileProvider.events.emit("delete", { path });
 	}
 
 	async write(path: Path, data: string | Buffer) {
@@ -115,6 +122,7 @@ export default class DiskFileProvider implements FileProvider {
 				await fs.mkdir(this.toAbsolute(path.parentDirectoryPath), { recursive: true });
 				await fs.writeFile(absolutePath, data as any);
 			}
+			await DiskFileProvider.events.emit("write", { path, data });
 		} finally {
 			this._watcher?.start();
 		}
@@ -122,11 +130,13 @@ export default class DiskFileProvider implements FileProvider {
 
 	async move(from: Path, to: Path) {
 		await fs.move(this.toAbsolute(from), this.toAbsolute(to));
+		await DiskFileProvider.events.emit("move", { from, to });
 	}
 
 	async copy(from: Path, to: Path) {
 		if (await this.isFolder(from)) await this._copyFolder(from, to);
 		else await this._copyFile(from, to);
+		await DiskFileProvider.events.emit("copy", { from, to });
 	}
 
 	async mkdir(path: Path, mode?: number) {

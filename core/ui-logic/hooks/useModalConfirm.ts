@@ -1,9 +1,18 @@
 import { useEventEmitter } from "@core/utils/eventEmitter";
-import { ConfirmProps } from "@ext/workspace/components/EditWorkspace";
 import { useState, useCallback, useEffect, useRef } from "react";
 
 export interface EmitterAction {
 	saveAction: () => void;
+}
+
+export interface ConfirmProps {
+	saveChangesHandler?: () => void;
+	setHaveChanges?: (v: boolean) => void;
+	isOpenConfirm: boolean;
+	useSaveCallback: (callback: () => any) => void;
+	shouldOpenConfirmOnClose: () => boolean;
+	clearData: () => void;
+	closeConfirm: () => void;
 }
 
 export const useModalConfirm = (): ConfirmProps => {

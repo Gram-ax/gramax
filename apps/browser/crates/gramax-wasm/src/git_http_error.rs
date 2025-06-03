@@ -30,6 +30,7 @@ impl<T> OrHttpError<T> for Result<T> {
       Ok(_) => {
         warn!(target: TAG, "suspicious: last_http_error was set but provided Result is ok");
         warn!(target: TAG, "last_http_error ({}): {}", http_error.status, http_error.res);
+        return self;
       }
       Err(_) => {
         let err = self.as_ref().err().unwrap();

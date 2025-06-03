@@ -15,13 +15,19 @@ const GoToArticle = (props: GoToArticleProps) => {
 	const { trigger, href, distance = 10, onClick, ...otherProps } = props;
 	const ref = useRef<HTMLAnchorElement>(null);
 
+	const onClickHandler = (e: MouseEvent) => {
+		e.stopPropagation();
+
+		onClick?.(e);
+	};
+
 	useEffect(() => {
 		ref.current?.blur();
 	}, []);
 
 	return (
 		<Tooltip hideOnClick={true} content={t("go-to-article")} distance={distance}>
-			<span onClick={onClick}>
+			<span onClick={onClickHandler}>
 				<Link href={Url.from({ pathname: href })} ref={ref} {...otherProps}>
 					{trigger}
 				</Link>

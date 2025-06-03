@@ -25,7 +25,7 @@ export class SourceDataProvider {
 
 	getSourceDatas(): SourceData[] {
 		if (!this._wm.hasWorkspace()) return [];
-		const postfix = this.getPostfix();
+		const postfix = this._getPostfix();
 		const sourceTypes = Object.values(SourceType);
 
 		const allCookieNames = this._cookie.getAllNames();
@@ -37,18 +37,18 @@ export class SourceDataProvider {
 	}
 
 	isSourceExists(storageName: string): boolean {
-		return this._cookie.exist(this.getCompleteName(storageName));
+		return this._cookie.exist(this._getCompleteName(storageName));
 	}
 
 	removeSource(storageName: string): void {
-		const name = this.getCompleteName(storageName);
+		const name = this._getCompleteName(storageName);
 		if (this._cookie.exist(name)) this._cookie.remove(name);
 	}
 
 	getSourceByName(storageName: string, workspaceId?: string): ProxiedSourceDataCtx<SourceData> {
-		const data = this._cookie.get(this.getCompleteName(storageName, workspaceId));
+		const data = this._cookie.get(this._getCompleteName(storageName, workspaceId));
 		if (!data) throw new Error(t("git.source.error.storage-not-exist").replace("{{storage}}", storageName));
-		const sourceData = this.decode(data);
+		const sourceData = this._decode(data);
 		assert(sourceData, "invalid source data; expected a value");
 		return SourceDataCtx.init(sourceData, this._authServiceUrl, (sourceData, isValid) => {
 			sourceData.isInvalid = !isValid;
@@ -60,14 +60,14 @@ export class SourceDataProvider {
 		const storageName = getStorageNameByData(data);
 		const raw = "raw" in data ? (data.raw as SourceData) : data;
 		if (!raw.isInvalid) delete raw.isInvalid;
-		this._cookie.set(this.getCompleteName(storageName, workspaceId), this.encode(raw));
+		this._cookie.set(this._getCompleteName(storageName, workspaceId), this._encode(raw));
 		return storageName;
 	}
-	protected encode(data: SourceData): string {
+	private _encode(data: SourceData): string {
 		return this._encoder.ecode([JSON.stringify(data)], this.secret);
 	}
 
-	protected decode(ticket: string): SourceData {
+	private _decode(ticket: string): SourceData {
 		const data = this._encoder.decode(this.secret, ticket);
 		try {
 			return JSON.parse(data[0]);
@@ -76,15 +76,20 @@ export class SourceDataProvider {
 		}
 	}
 
-	protected getWorkspaceId(workspacePath: string): string {
-		return workspacePath;
+	private _getWorkspaceId(workspacePath: string): string {
+		assert(workspacePath, "workspacePath is required");
+
+		const hasOldPathCookie = this._cookie
+			?.getAllNames()
+			?.some((name) => name.includes(this._getPostfix(workspacePath)));
+		return hasOldPathCookie ? workspacePath : encodeURIComponent(workspacePath);
 	}
 
-	protected getCompleteName(storageName: string, workspaceId?: string): string {
-		return storageName + this.getPostfix(workspaceId);
+	private _getCompleteName(storageName: string, workspaceId?: string): string {
+		return storageName + this._getPostfix(workspaceId);
 	}
 
-	protected getPostfix(workspaceId?: string): string {
-		return this._postfix + (workspaceId ?? this.getWorkspaceId(this._wm.maybeCurrent()?.path()));
+	private _getPostfix(workspaceId?: string): string {
+		return this._postfix + (workspaceId ?? this._getWorkspaceId(this._wm.maybeCurrent()?.path()));
 	}
 }

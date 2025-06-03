@@ -4,12 +4,13 @@ import Context from "@core/Context/Context";
 import { Article } from "@core/FileStructue/Article/Article";
 import parseContent from "@core/FileStructue/Article/parseContent";
 import { Catalog } from "@core/FileStructue/Catalog/Catalog";
+import { ReadonlyBaseCatalog } from "@core/FileStructue/Catalog/ReadonlyCatalog";
 import { Category } from "@core/FileStructue/Category/Category";
 import RouterPathProvider from "@core/RouterPath/RouterPathProvider";
-import SitePresenter, { ClientArticleProps } from "@core/SitePresenter/SitePresenter";
+import SitePresenter, { ClientArticleProps, ClientCatalogProps } from "@core/SitePresenter/SitePresenter";
 import assert from "assert";
 import { ExtendedArticlePageData, InitialArticleData } from "./ArticleTypes";
-import { getItemLinks } from "./NavigationUtils";
+import { getItemLinks, replacePathIfNeeded } from "./NavigationUtils";
 
 export type StaticArticlePageData = {
 	articleContentRender: string;
@@ -24,29 +25,29 @@ export class ArticleDataService {
 		defaultArticle: Article,
 		context: Context,
 	): Promise<InitialArticleData> {
-		const sp = this._app.sitePresenterFactory.fromContext(context);
-		const catalogProps = await sp.serializeCatalogProps(catalog);
-		const itemLinks = await getItemLinks(catalog, defaultArticle.ref.path.value, sp);
+		const sitePresenter = this._app.sitePresenterFactory.fromContext(context);
+		const catalogProps = await this._getAnonymizedCatalogProps(sitePresenter, catalog);
+		const itemLinks = await getItemLinks(catalog, defaultArticle.ref.path.value, sitePresenter);
 
 		const articlePageData: ExtendedArticlePageData = {
 			...(await this._getStaticArticlePageData(defaultArticle, catalog, context)),
 			itemLinks,
 		};
 
-		const articlePageDataContext = await this._getPageDataContext(context);
+		const articlePageDataContext = await this._getAnonymizedPageDataContext(context);
 
 		return { catalogProps, articlePageData, articlePageDataContext };
 	}
 
 	async getArticlesPageData(context: Context, catalog: Catalog): Promise<InitialArticleData> {
-		const sp = this._app.sitePresenterFactory.fromContext(context);
+		const sitePresenter = this._app.sitePresenterFactory.fromContext(context);
 		const articlesPageData: ExtendedArticlePageData[] = [];
 
 		const processArticleForPageData = async (pathname: string) => {
 			const logicPath = RouterPathProvider.getLogicPath(pathname);
 			const article = catalog.findArticle(logicPath, []);
 
-			articlesPageData.push(await this._createArticlePageData(article, catalog, sp, context));
+			articlesPageData.push(await this._createArticlePageData(article, catalog, sitePresenter, context));
 
 			if ((article as Category).items) {
 				for (const item of (article as Category).items) {
@@ -55,15 +56,15 @@ export class ArticleDataService {
 			}
 		};
 
-		const nav = await sp.getCatalogNav(catalog, "");
+		const nav = await sitePresenter.getCatalogNav(catalog, "");
 
 		for (const item of nav) {
 			await processArticleForPageData(item.pathname);
 		}
 
-		const articlePageDataContext = await this._getPageDataContext(context);
+		const articlePageDataContext = await this._getAnonymizedPageDataContext(context);
 
-		const catalogProps = await sp.serializeCatalogProps(catalog);
+		const catalogProps = await this._getAnonymizedCatalogProps(sitePresenter, catalog);
 		catalogProps.language = context.contentLanguage;
 
 		return { catalogProps, articlesPageData, articlePageDataContext };
@@ -95,13 +96,27 @@ export class ArticleDataService {
 		};
 	}
 
-	private _getPageDataContext(ctx: Context) {
-		return getPageDataContext({
+	private async _getAnonymizedPageDataContext(ctx: Context) {
+		const pageDataContext = await getPageDataContext({
 			ctx,
 			app: this._app,
 			isArticle: true,
 			isReadOnly: true,
 		});
+		pageDataContext.sourceDatas = [];
+		pageDataContext.userInfo = null;
+		return pageDataContext;
+	}
+
+	private async _getAnonymizedCatalogProps(
+		sitePresenter: SitePresenter,
+		catalog: ReadonlyBaseCatalog,
+	): Promise<ClientCatalogProps> {
+		const props = await sitePresenter.serializeCatalogProps(catalog);
+		props.repositoryName = null;
+		props.sourceName = null;
+		props.userInfo = null;
+		return props;
 	}
 
 	private async _createArticlePageData(
@@ -127,10 +142,8 @@ export class ArticleDataService {
 		assert(catalog, "Catalog must be provided to getStaticArticlePageData");
 		const sp = this._app.sitePresenterFactory.fromContext(context);
 		await parseContent(article, catalog, context, this._app.parser, this._app.parserContextFactory);
-		const catalogFolderPath = catalog.getRootCategory().folderPath.value;
-		const catalogBasePath = catalog.basePath.value;
 		const articleProps = await sp.serializeArticleProps(article, await catalog.getPathname(article));
-		articleProps.ref.path = articleProps.ref.path.replace(catalogFolderPath, catalogBasePath);
+		articleProps.ref.path = replacePathIfNeeded(articleProps.ref.path, catalog);
 		return {
 			articleContentRender: JSON.stringify(await article.parsedContent.read((p) => p.renderTree)),
 			articleProps,
