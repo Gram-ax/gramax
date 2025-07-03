@@ -8,7 +8,10 @@ const setSourceData: Command<{ ctx: Context } & SourceData, string> = Command.cr
 
 	kind: ResponseKind.plain,
 
-	do({ ctx, ...data }) {
+	async do({ ctx, ...data }) {
+		const { wm } = this._app;
+		await wm.currentOrDefault(); // to be sure that the workspace is initialized
+
 		return this._app.rp.setSourceData(ctx, data);
 	},
 

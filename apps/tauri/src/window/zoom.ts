@@ -1,3 +1,4 @@
+import { isTauriMobile } from "@app/resolveModule/env";
 import { invoke } from "@tauri-apps/api/core";
 import { type Webview } from "@tauri-apps/api/webview";
 
@@ -9,6 +10,8 @@ const initialLevelIdx = 7;
 let levelIdx = initialLevelIdx;
 
 export const initZoom = async (window: Webview) => {
+	if (isTauriMobile()) return;
+
 	void invoke("plugin:webview|set_webview_zoom", {
 		value: ZOOM_FACTORS[initialLevelIdx],
 	});

@@ -5,6 +5,17 @@ describe("DocCreator", () => {
 		const doc = DocCreator.create().p("Hello").value();
 		expect(doc).toEqual([{ type: "paragraph", content: [{ type: "text", text: "Hello" }] }]);
 	});
+
+	it("should create an empty paragraph", () => {
+		const doc = DocCreator.create().p("").value();
+		expect(doc).toEqual([{ type: "paragraph" }]);
+	});
+
+	it("should create an empty heading", () => {
+		const doc = DocCreator.create().h(1, "").value();
+		expect(doc).toEqual([{ type: "heading", attrs: { id: null, level: 1, isCustomId: false } }]);
+	});
+
 	it("should create a doc with list", () => {
 		const doc = DocCreator.create()
 			.p("Hello")

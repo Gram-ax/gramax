@@ -1,5 +1,6 @@
 import { LibGit2BaseCommands } from "@ext/git/core/GitCommands/LibGit2BaseCommands";
 import getGitError from "@ext/git/core/GitCommands/errors/logic/getGitError";
+import GitVersionData from "@ext/git/core/model/GitVersionData";
 import Path from "../../../../logic/FileProvider/Path/Path";
 import { VersionControlInfo } from "../../../VersionControl/model/VersionControlInfo";
 import { FileStatus } from "../../../Watchers/model/FileStatus";
@@ -139,7 +140,7 @@ class LibGit2Commands extends LibGit2BaseCommands implements GitCommandsModel {
 			if (opts.compare.new) opts.compare.new = opts.compare.new.toString() as any;
 		}
 
-		if (opts.compare.type === "workdir") {
+		if (opts.compare.type === "workdir" || opts.compare.type === "index") {
 			if (opts.compare.tree) opts.compare.tree = opts.compare.tree.toString() as any;
 		}
 
@@ -157,6 +158,17 @@ class LibGit2Commands extends LibGit2BaseCommands implements GitCommandsModel {
 
 	getFileHistory(filePath: Path, count: number): Promise<VersionControlInfo[]> {
 		return git.fileHistory({ repoPath: this._repoPath, filePath: filePath.value, count });
+	}
+
+	async getCommitInfo(oid: string, opts: { depth: number; simplify: boolean }): Promise<GitVersionData[]> {
+		const raw = await git.getCommitInfo({ repoPath: this._repoPath, oid, opts });
+		return raw.map((r) => ({
+			author: r.author,
+			timestamp: r.timestamp,
+			oid: r.oid,
+			summary: r.summary,
+			parents: r.parents,
+		}));
 	}
 
 	async getDefaultBranch(source: GitSourceData): Promise<GitBranch | null> {

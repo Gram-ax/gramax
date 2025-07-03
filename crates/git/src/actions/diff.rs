@@ -105,7 +105,7 @@ impl<C: Creds> Diff for Repo<C> {
       }
       DiffCompareOptions::Tree2Workdir { tree: tree_id } => {
         let tree = match tree_id {
-          Some(ref tree) => Some(self.0.find_tree(tree.parse()?)?),
+          Some(ref tree) => Some(self.0.find_object(tree.parse()?, None).and_then(|o| o.peel_to_tree())?),
           _ => Some(self.0.head()?.peel_to_tree()?),
         };
 
@@ -115,7 +115,7 @@ impl<C: Creds> Diff for Repo<C> {
 
       DiffCompareOptions::Tree2Index { tree: tree_id } => {
         let tree = match tree_id {
-          Some(ref tree) => Some(self.0.find_tree(tree.parse()?)?),
+          Some(ref tree) => Some(self.0.find_object(tree.parse()?, None).and_then(|o| o.peel_to_tree())?),
           _ => Some(self.0.head()?.peel_to_tree()?),
         };
 

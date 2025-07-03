@@ -15,6 +15,7 @@ const StatusBarElement = styled(
 				tooltipText,
 				iconClassName,
 				disable = false,
+				tooltipArrow = true,
 				className,
 			}: {
 				onClick?: () => void;
@@ -25,6 +26,7 @@ const StatusBarElement = styled(
 				tooltipText?: ReactNode;
 				disable?: boolean;
 				iconClassName?: string;
+				tooltipArrow?: boolean;
 				reverse?: boolean;
 				className?: string;
 				changeBackgroundOnHover?: boolean;
@@ -39,7 +41,7 @@ const StatusBarElement = styled(
 						if (!disable) onClick?.();
 					}}
 				>
-					<Tooltip content={tooltipText}>
+					<Tooltip content={tooltipText} arrow={tooltipArrow}>
 						<div style={{ height: "100%" }}>
 							<div className="status-bar-element" style={disable ? { pointerEvents: "none" } : null}>
 								{iconCode && (

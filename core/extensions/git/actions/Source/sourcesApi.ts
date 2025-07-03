@@ -12,8 +12,8 @@ import NotionAPI from "@ext/notion/api/NotionAPI";
 import NotionSourceData from "@ext/notion/model/NotionSourceData";
 import type SourceData from "@ext/storage/logic/SourceDataProvider/model/SourceData";
 import type SourceType from "@ext/storage/logic/SourceDataProvider/model/SourceType";
-import YandexDiskSourceData from "@ext/yandexDisk/model/YandexDiskSourceData";
 import YandexDiskServiceAPI from "@ext/yandexDisk/api/YandexDiskServiceAPI";
+import YandexDiskSourceData from "@ext/yandexDisk/model/YandexDiskSourceData";
 
 const sourcesAPI: Record<
 	SourceType,

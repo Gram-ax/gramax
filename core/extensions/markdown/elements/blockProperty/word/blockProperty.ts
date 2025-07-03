@@ -1,15 +1,13 @@
 import { WordBlockChild } from "../../../../wordExport/options/WordTypes";
-import { Tag } from "@ext/markdown/core/render/logic/Markdoc";
 
 export const blockPropertyWordLayout: WordBlockChild = async ({ state, tag, addOptions }) => {
+	const children = "children" in tag ? tag.children : tag.content;
 	const results = await Promise.all(
-		tag.children
-			.filter((child) => child instanceof Tag)
-			.map((child) =>
-				state.renderBlock(child, {
-					...addOptions,
-				}),
-			),
+		children.map((child) =>
+			state.renderBlock(child, {
+				...addOptions,
+			}),
+		),
 	);
 
 	return results.flat();

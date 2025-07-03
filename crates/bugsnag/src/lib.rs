@@ -33,7 +33,10 @@ impl BugsnagNotificationBuilder {
     Self {
       api_key,
       webview_version,
+      #[cfg(any(target_os = "macos", target_os = "linux", target_os = "windows"))]
       device_id: machine_uid::get().unwrap_or("unknown".to_string()),
+      #[cfg(not(any(target_os = "macos", target_os = "linux", target_os = "windows")))]
+      device_id: "unknown".to_string(),
       notifier: None,
     }
   }

@@ -9,6 +9,21 @@ use tauri::command;
 use gramaxfs::error::Result;
 use gramaxfs::FileInfo;
 
+#[derive(Debug, Clone, serde::Deserialize)]
+#[serde(untagged)]
+pub enum WriteContent {
+  Bytes(Vec<u8>),
+  String(String),
+}
+
+#[command(async)]
+pub fn write_file(path: &Path, content: WriteContent) -> Result<()> {
+  match content {
+    WriteContent::Bytes(bytes) => fs::write_file(path, bytes),
+    WriteContent::String(string) => fs::write_file(path, string),
+  }
+}
+
 #[command]
 pub(crate) fn read_dir(path: &Path) -> Result<Vec<String>> {
   fs::read_dir(path)

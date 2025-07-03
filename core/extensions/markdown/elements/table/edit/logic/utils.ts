@@ -1,6 +1,8 @@
+import TableNodeSheet from "@ext/markdown/elements/table/edit/logic/TableNodeSheet";
 import { HoveredData } from "@ext/markdown/elements/table/edit/model/tableTypes";
 import { Editor } from "@tiptap/core";
 import { Attrs, Node } from "@tiptap/pm/model";
+import { Transaction } from "@tiptap/pm/state";
 import { Decoration } from "@tiptap/pm/view";
 import { MouseEvent } from "react";
 
@@ -18,87 +20,112 @@ export const getTableColumnCellPositions = (node: Node, pos: number, index: numb
 	return positions;
 };
 
-export const getTableRowCellPositions = (node: Node, pos: number, index: number) => {
-	const numCells = node.maybeChild(index)?.childCount;
+export const addRowDecoration = (sheet: TableNodeSheet, rowIndex: number, tr: Transaction, attrs: Attrs) => {
+	const positionMap = sheet.getPositionMap();
+	if (!positionMap) return null;
+
+	const decorations = [];
+
+	const sheetData = sheet.getSheet();
+	if (!sheetData || !sheetData[0]) return null;
+
+	const logicalRow = sheet.getRow(sheet.getLogicalRowIndex(rowIndex));
+	if (logicalRow.length === 0) return null;
+
+	logicalRow.forEach((cell) => {
+		if (!cell) return;
+
+		const cellNode = tr.doc.nodeAt(cell);
+		if (cellNode) decorations.push(Decoration.node(cell, cell + cellNode.nodeSize, attrs));
+	});
+
+	if (decorations.length > 0) return tr.setMeta("addDecoration", decorations);
+
+	return null;
+};
+
+export const addColumnDecoration = (sheet: TableNodeSheet, columnIndex: number, tr: Transaction, attrs: Attrs) => {
+	const positionMap = sheet.getPositionMap();
+	if (!positionMap) return null;
+
+	const decorations = [];
+
+	const sheetData = sheet.getSheet();
+	if (!sheetData) return null;
+
+	const logicalColumn = sheet.getColumn(sheet.getLogicalColumnIndex(columnIndex));
+	if (logicalColumn.length === 0) return null;
+
+	logicalColumn.forEach((cell) => {
+		if (!cell) return;
+
+		const cellNode = tr.doc.nodeAt(cell);
+		if (cellNode) decorations.push(Decoration.node(cell, cell + cellNode.nodeSize, attrs));
+	});
+
+	if (decorations.length > 0) return tr.setMeta("addDecoration", decorations);
+
+	return null;
+};
+
+export const getTableRowCellsPosition = (sheet: TableNodeSheet, rowIndex: number) => {
+	const positionMap = sheet.getPositionMap();
+	if (!positionMap) return [];
+
 	const positions = [];
 
-	for (let cellIndex = 0; cellIndex < numCells; cellIndex++) {
-		const cellPos = getTdPosition(node, cellIndex, pos, index);
+	const sheetData = sheet.getSheet();
+	if (!sheetData || !sheetData[0]) return [];
 
-		if (cellPos === null || cellPos === undefined) continue;
-		positions.push(cellPos);
+	const maxColumns = sheetData[0].length;
+
+	for (let columnIndex = 0; columnIndex < maxColumns; columnIndex++) {
+		const cellInfo = positionMap.getCellInfo(rowIndex, columnIndex);
+		if (cellInfo && cellInfo.isMaster) {
+			positions.push({
+				position: cellInfo.position,
+				rowIndex,
+				columnIndex,
+				colspan: cellInfo.colspan,
+				rowspan: cellInfo.rowspan,
+				isMerged: cellInfo.isMerged,
+				isMaster: cellInfo.isMaster,
+			});
+		}
 	}
 
 	return positions;
 };
 
-export const addRowWidgetDecoration = (node: Node, pos: number, index: number, editor: Editor, dom: HTMLElement) => {
-	const position = getRowPosition(node, index + 1, pos) - 2;
-	if (!position) return;
+export const getTableColumnCellsPositions = (sheet: TableNodeSheet, columnIndex: number) => {
+	const positionMap = sheet.getPositionMap();
+	if (!positionMap) return [];
 
-	const rowNode = editor.state.doc.nodeAt(position);
-	const decorations = [];
+	const positions = [];
 
-	if (!rowNode) return;
-	for (let cellIndex = 0; cellIndex < rowNode.childCount; cellIndex++) {
-		const cellPos = getTdPosition(node, cellIndex, pos, index);
+	const sheetData = sheet.getSheet();
+	if (!sheetData) return [];
 
-		if (cellPos === null || cellPos === undefined) continue;
-		decorations.push(Decoration.widget(cellPos + 1, dom.cloneNode(true), { key: `${cellPos}` }));
+	const maxRows = sheetData.length;
+
+	for (let rowIndex = 0; rowIndex < maxRows; rowIndex++) {
+		const cellInfo = positionMap.getCellInfo(rowIndex, columnIndex);
+		if (cellInfo && cellInfo.isMaster) {
+			positions.push({
+				position: cellInfo.position,
+				rowIndex,
+				columnIndex,
+				colspan: cellInfo.colspan,
+				rowspan: cellInfo.rowspan,
+				isMerged: cellInfo.isMerged,
+				isMaster: cellInfo.isMaster,
+			});
+		}
 	}
 
-	if (decorations.length > 0) editor.view.dispatch(editor.view.state.tr.setMeta("addDecoration", decorations));
+	return positions;
 };
 
-export const addColumnWidgetDecoration = (node: Node, pos: number, index: number, editor: Editor, dom: HTMLElement) => {
-	const numRows = node.childCount;
-	const decorations = [];
-
-	for (let rowIndex = 0; rowIndex < numRows; rowIndex++) {
-		const cellPos = getTdPosition(node, index, pos, rowIndex) + 1;
-
-		if (cellPos === null || cellPos === undefined) continue;
-		decorations.push(Decoration.widget(cellPos, dom.cloneNode(true), { key: `${cellPos}` }));
-	}
-
-	if (decorations.length > 0) editor.view.dispatch(editor.view.state.tr.setMeta("addDecoration", decorations));
-};
-
-export const addRowDecoration = (node: Node, pos: number, index: number, editor: Editor, attrs: Attrs) => {
-	const position = getRowPosition(node, index + 1, pos) - 2;
-
-	if (!position) return;
-	const rowNode = editor.state.doc.nodeAt(position);
-
-	if (!rowNode) return;
-	const decoration = Decoration.node(position, position + rowNode.nodeSize, attrs);
-
-	editor.view.dispatch(editor.view.state.tr.setMeta("addDecoration", decoration));
-};
-
-export const addTdDecoration = (node: Node, pos: number, index: number, editor: Editor, attrs: Attrs) => {
-	const tableNode = node;
-	const numRows = tableNode.childCount;
-
-	const decorations = [];
-
-	for (let rowIndex = 0; rowIndex < numRows; rowIndex++) {
-		const row = tableNode.child(rowIndex);
-		if (!row) continue;
-
-		const cellPos = getTdPosition(tableNode, index, pos, rowIndex);
-		if (cellPos === null || cellPos === undefined) continue;
-
-		const cellNode = editor.state.doc.nodeAt(cellPos);
-		if (!cellNode) continue;
-
-		decorations.push(Decoration.node(cellPos, cellPos + cellNode.nodeSize, attrs));
-	}
-
-	if (decorations.length > 0) {
-		editor.view.dispatch(editor.view.state.tr.setMeta("addDecoration", decorations));
-	}
-};
 export const getFirstTdPosition = (node: Node, index: number, startPos: number) => {
 	const firstTd = node.content.firstChild;
 	let pos = startPos + 2;
@@ -182,6 +209,8 @@ const findCellByPosition = (event: MouseEvent, parent: HTMLElement): HTMLTableCe
 	let closestDistance = Infinity;
 
 	cells.forEach((cell: HTMLTableCellElement) => {
+		if (!cell) return;
+
 		const cellRect = cell.getBoundingClientRect();
 
 		const closestX = Math.max(cellRect.left, Math.min(targetX, cellRect.right));
@@ -235,7 +264,7 @@ export const getHoveredData = (event: MouseEvent, parent: HTMLElement): HoveredD
 	return { rowIndex, cellIndex: Math.min(cellIndex, rows[0].childElementCount - offset) };
 };
 
-export const getTableSizes = (table: HTMLTableElement): { cols: string[]; rows: string[] } => {
+export const getTableSizes = (table: HTMLElement): { cols: string[]; rows: string[] } => {
 	const cols = [];
 	const rows = [];
 	const tableBody = table?.lastElementChild;

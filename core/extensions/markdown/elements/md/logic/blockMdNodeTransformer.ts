@@ -12,13 +12,13 @@ const blockMdNodeTransformer: NodeTransformerFunc = (node) => {
 	const nodes: JSONContent[] = [];
 	let textNodes: JSONContent[] = [];
 	node.content.forEach((current, index) => {
-		if (current.type === "blockMd" || current.type === "image") {
+		if (current.type === "blockMd") {
 			if (textNodes.length > 0) {
 				nodes.push(createParagraph(textNodes, node.type));
 				textNodes = [];
 			}
 
-			if (current.type === "image" || current.content[0].type === "text") {
+			if (current.content[0].type === "text") {
 				nodes.push(current);
 			} else {
 				if (current.content[0].type === "paragraph") {

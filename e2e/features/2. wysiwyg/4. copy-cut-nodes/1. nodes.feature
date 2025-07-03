@@ -161,7 +161,7 @@
       """
       text
       
-      [drawio:./new-article.svg::211px:101px]
+      <drawio path="./new-article-4.svg" width="211px" height="101px"/>
       """
   # Сценарий: Постройка сложного узла
   #   Пусть смотрим на редактор

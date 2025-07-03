@@ -22,7 +22,6 @@ interface BlockActionPanelProps {
 
 const BlockActionPanel = (props: BlockActionPanelProps) => {
 	const {
-		isSignature,
 		updateAttributes,
 		signatureText,
 		leftActions,
@@ -69,7 +68,6 @@ const BlockActionPanel = (props: BlockActionPanelProps) => {
 			{signatureRef && (
 				<Caption
 					ref={signatureRef}
-					autoFocus={isSignature}
 					text={signatureText}
 					onUpdate={onUpdate}
 					onLoseFocus={onLoseFocus}

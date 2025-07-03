@@ -1,7 +1,30 @@
 import { EditorView } from "prosemirror-view";
-import { NodeSelection } from "@tiptap/pm/state";
+import { NodeSelection, Transaction } from "@tiptap/pm/state";
 import getNaturalSize from "@ext/markdown/elements/image/edit/logic/getNaturalSize";
 import { ResourceServiceType } from "@ext/markdown/elements/copyArticles/resourceService";
+import { Attrs, ResolvedPos } from "@tiptap/pm/model";
+import { MAX_INLINE_IMAGE_HEIGHT } from "@ext/markdown/elements/inlineImage/edit/models/node";
+
+const createBlockImage = (view: EditorView, $from: ResolvedPos, attributes: Attrs): Transaction => {
+	const tr = view.state.tr;
+
+	const node = view.state.schema.nodes.image.create(attributes);
+	tr.replaceSelectionWith(node);
+	if ($from.parentOffset === 0 && $from.parent.isTextblock)
+		tr.setSelection(NodeSelection.create(tr.doc, $from.pos - 1));
+	else tr.setSelection(NodeSelection.create(tr.doc, $from.pos + 1));
+
+	return tr;
+};
+
+const createInlineImage = (view: EditorView, $from: ResolvedPos, attributes: Attrs): Transaction => {
+	const tr = view.state.tr;
+
+	const node = view.state.schema.nodes.inlineImage.create(attributes);
+	tr.replaceSelectionWith(node);
+
+	return tr;
+};
 
 const createImages = async (
 	files: File[],
@@ -14,34 +37,32 @@ const createImages = async (
 
 	for (const file of files) {
 		if (!file.type.startsWith("image")) continue;
-		const name = `${fileName}.${file.type.slice("image/".length)}`;
-		const newName = await resourceService.setResource(name, Buffer.from(await file.arrayBuffer()));
 
-		const { $from } = view.state.selection;
-		const attributes: Record<string, any> = { src: newName };
+		const { $from, $to } = view.state.selection;
+		const attributes: Record<string, any> = { src: "" };
 
 		const urlToImage = URL.createObjectURL(file);
 		const newSize = await getNaturalSize(urlToImage);
 		URL.revokeObjectURL(urlToImage);
 
+		let isInline = false;
+
+		if ($from.pos === $to.pos && $from.parent.isTextblock && $from.parent.childCount) isInline = true;
 		if (newSize) {
 			attributes.width = newSize.width + "px";
 			attributes.height = newSize.height + "px";
+
+			if (!isInline) isInline = newSize.height <= MAX_INLINE_IMAGE_HEIGHT;
 		}
 
-		const tr = view.state.tr;
-		if ($from.parent.type.name === "doc" && $from.nodeAfter?.type?.name === "image") {
-			const src = $from.nodeAfter.attrs.src;
-			await resourceService.deleteResource(src);
-			return view.dispatch(view.state.tr.setNodeAttribute($from.pos, "src", newName));
-		}
+		if (isInline && ($from.parent === view.state.doc.firstChild || $to.parent === view.state.doc.firstChild))
+			continue;
 
-		const node = view.state.schema.nodes.image.create(attributes);
-		tr.replaceSelectionWith(node);
-		if ($from.parentOffset === 0 && $from.parent.isTextblock)
-			tr.setSelection(NodeSelection.create(tr.doc, $from.pos - 1));
-		else tr.setSelection(NodeSelection.create(tr.doc, $from.pos + 1));
+		const name = `${fileName}.${file.type.slice("image/".length)}`;
+		const newName = await resourceService.setResource(name, Buffer.from(await file.arrayBuffer()));
+		attributes.src = newName;
 
+		const tr = isInline ? createInlineImage(view, $from, attributes) : createBlockImage(view, $from, attributes);
 		view.dispatch(tr);
 	}
 };

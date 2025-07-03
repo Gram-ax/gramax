@@ -5,7 +5,7 @@ import { ItemRefStatus } from "@ext/Watchers/model/ItemStatus";
 import type { default as JSZipType } from "jszip";
 
 class ZipFileProvider extends DiskFileProvider {
-	constructor(private _zip: JSZipType) {
+	private constructor(private _zip: JSZipType) {
 		super("");
 	}
 

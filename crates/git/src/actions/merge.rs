@@ -42,6 +42,9 @@ pub struct MergeMessageFormatOptions {
   pub theirs: String,
 
   #[serde(default)]
+  pub ours: Option<String>,
+
+  #[serde(default)]
   pub squash: bool,
 
   #[serde(default)]
@@ -139,7 +142,11 @@ impl<C: ActualCreds> Merge for Repo<C> {
 
   fn format_merge_message(&self, opts: MergeMessageFormatOptions) -> Result<String> {
     let head = self.0.head()?;
-    let ours = head.shorthand().or_utf8_err()?;
+
+    let ours = match &opts.ours {
+      Some(ours) => ours,
+      None => head.shorthand().or_utf8_err()?,
+    };
 
     let mut msg = String::new();
 
@@ -157,7 +164,7 @@ impl<C: ActualCreds> Merge for Repo<C> {
         msg.push_str("and squash ");
       }
 
-      msg.push_str(&format!("branch '{}' into '{}'\n\n", ours, opts.theirs.trim_start_matches("origin/")));
+      msg.push_str(&format!("branch '{}' into '{}'\n\n", opts.theirs.trim_start_matches("origin/"), ours));
     }
 
     let mut commits = self.get_branch_commits(ours, &opts.theirs, Some(opts.max_commits.unwrap_or(50)))?;
@@ -250,6 +257,7 @@ impl<C: ActualCreds> Repo<C> {
 
     let msg = self.format_merge_message(MergeMessageFormatOptions {
       theirs: theirs.to_string(),
+      ours: Some(ours.replace("refs/heads", "")),
       squash,
       max_commits: Some(50),
       is_merge_request,

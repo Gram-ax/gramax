@@ -1,91 +1,96 @@
-import useWatch from "@core-ui/hooks/useWatch";
 import t from "@ext/localization/locale/translate";
-import DragValue from "@ext/properties/components/Helpers/DragValue";
-import { DragItems } from "@ext/properties/models/kanban";
-import { useState, useCallback } from "react";
+import { useState, useCallback, useMemo, useEffect } from "react";
 import { useDrop } from "react-dnd";
+import { DragItems } from "@ext/properties/models/kanban";
+import DragValue from "./DragValue";
 
-interface ValueHandlerProps {
-	data: string[];
-	isActions?: boolean;
-	onChange?: (values: string[]) => void;
-}
-
-export type Value = {
+interface Value {
 	id: number;
 	text: string;
-};
+}
 
-const ValueHandler = ({ data, onChange, isActions = true }: ValueHandlerProps) => {
+interface ValueHandlerProps {
+	data?: string[];
+	onChange?: (values: string[]) => void;
+	isActions?: boolean;
+	isEditable?: boolean;
+}
+
+const ValueHandler = ({ data, onChange, isActions = true, isEditable = true }: ValueHandlerProps) => {
 	const [values, setValues] = useState<Value[]>(
-		(data && data?.map((value, index) => ({ id: index, text: value }))) || [],
+		() => data?.map((value, index) => ({ id: index, text: value })) || [],
 	);
+
 	const [, drop] = useDrop(() => ({ accept: DragItems.Value }));
 
-	useWatch(() => {
-		if (data) setValues(data.map((value, index) => ({ id: index, text: value })));
-	}, [data]);
+	const memoizedData = useMemo(() => data, [data]);
+	useEffect(() => {
+		if (memoizedData) {
+			setValues(memoizedData.map((value, index) => ({ id: index, text: value })));
+		}
+	}, [memoizedData]);
 
-	const findValue = useCallback((id: number, values: Value[]) => {
-		const value = values.find((c) => c.id === id);
-		return {
-			value,
-			index: values.indexOf(value),
-		};
-	}, []);
-
-	const submit = useCallback(
-		(values: Value[]) => {
-			onChange?.(values.filter((v) => v.text.length).map((v) => v.text));
+	const submitChanges = useCallback(
+		(newValues: Value[]) => {
+			const filteredValues = newValues.filter((v) => v.text.trim().length > 0).map((v) => v.text);
+			onChange?.(filteredValues);
 		},
 		[onChange],
 	);
 
-	const moveValue = useCallback(
-		(id: number, atIndex: number) => {
-			setValues((values) => {
-				const { value, index } = findValue(id, values);
-				const newValues = [...values];
+	const moveValue = useCallback((draggedId: number, hoveredId: number) => {
+		setValues((prevValues) => {
+			const draggedIndex = prevValues.findIndex((v) => v.id === draggedId);
+			const hoveredIndex = prevValues.findIndex((v) => v.id === hoveredId);
 
-				newValues.splice(index, 1);
-				newValues.splice(atIndex, 0, value);
+			if (draggedIndex === -1 || hoveredIndex === -1) return prevValues;
 
-				submit(newValues);
-				return newValues;
-			});
-		},
-		[findValue, submit],
-	);
+			const newValues = [...prevValues];
+			const [draggedValue] = newValues.splice(draggedIndex, 1);
+			newValues.splice(hoveredIndex, 0, draggedValue);
 
-	const updateValue = useCallback(
-		(text: string, id?: number) => {
-			setValues((values) => {
-				const newValues = [...values];
-				const { index } = findValue(id, newValues);
-				if (index === -1) newValues.push({ id: newValues.length, text });
-				else newValues[index].text = text;
+			return newValues;
+		});
+	}, []);
 
-				submit(newValues);
-				return newValues;
-			});
-		},
-		[findValue, submit],
-	);
+	const updateValue = useCallback((text: string, id: number) => {
+		setValues((prevValues) => {
+			const newValues = [...prevValues];
+			const index = newValues.findIndex((v) => v.id === id);
 
-	const endDrag = useCallback(() => {
-		submit(values);
-	}, [values, submit]);
+			if (index !== -1) {
+				newValues[index] = { ...newValues[index], text };
+			}
+
+			return newValues;
+		});
+	}, []);
 
 	const deleteValue = useCallback(
 		(id: number) => {
-			setValues((values) => {
-				const newValues = values.filter((v) => v.id !== id);
-				submit(newValues);
-
+			setValues((prevValues) => {
+				const newValues = prevValues.filter((v) => v.id !== id);
+				submitChanges(newValues);
 				return newValues;
 			});
 		},
-		[submit],
+		[submitChanges],
+	);
+
+	const handleDragEnd = useCallback(() => {
+		submitChanges(values);
+	}, [values, submitChanges]);
+
+	const handleInputBlur = useCallback(
+		(text: string, id: number) => {
+			updateValue(text, id);
+			setValues((currentValues) => {
+				const updatedValues = currentValues.map((v) => (v.id === id ? { ...v, text } : v));
+				submitChanges(updatedValues);
+				return updatedValues;
+			});
+		},
+		[updateValue, submitChanges],
 	);
 
 	return (
@@ -93,14 +98,16 @@ const ValueHandler = ({ data, onChange, isActions = true }: ValueHandlerProps) =
 			{values?.length ? (
 				values.map((value) => (
 					<DragValue
+						key={value.id}
 						isActions={isActions}
-						key={value.text}
+						isEditable={isEditable}
 						id={value.id}
 						text={value.text}
-						endDrag={endDrag}
 						moveValue={moveValue}
 						updateValue={updateValue}
 						onDelete={deleteValue}
+						onDragEnd={handleDragEnd}
+						onInputBlur={handleInputBlur}
 					/>
 				))
 			) : (

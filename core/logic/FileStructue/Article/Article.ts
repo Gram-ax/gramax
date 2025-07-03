@@ -37,7 +37,15 @@ export type ArticleProps =
 	  } & ItemProps)
 	| InboxProps;
 
-export const ArticlePropsKeys = ["title", "properties", "date", "author", "description", "template"] as const;
+export const ArticlePropsKeys = [
+	"title",
+	"properties",
+	"date",
+	"author",
+	"description",
+	"template",
+	"customProperties",
+] as const;
 
 export class Article<P extends ArticleProps = ArticleProps> extends Item<P> {
 	protected _fs: FileStructure;

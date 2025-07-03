@@ -2,9 +2,9 @@ import CatalogLogoService from "@core-ui/ContextServices/CatalogLogoService/Cont
 import { useWatchClient } from "@core-ui/hooks/useWatch";
 import { FormProps } from "@ext/catalog/actions/propsEditor/components/CatalogPropsEditor";
 import t from "@ext/localization/locale/translate";
-import Theme from "@ext/Theme/Theme";
-import { FormItemTitle, FormField } from "@ui-kit/Form";
+import { FormField } from "@ui-kit/Form";
 import LogoUploader from "@ext/workspace/components/LogoUploader";
+import { useMemo } from "react";
 
 const UploadCatalogLogo = ({ formProps }: { formProps: FormProps }) => {
 	const {
@@ -23,39 +23,43 @@ const UploadCatalogLogo = ({ formProps }: { formProps: FormProps }) => {
 		void refreshState();
 	}, []);
 
+	const defaultLightFileInfo = useMemo(() => {
+		if (!lightLogo) return;
+
+		return { name: "logo_light.svg", url: lightLogo };
+	}, [isLoadingLight, lightLogo]);
+
+	const defaultDarkFileInfo = useMemo(() => {
+		if (!darkLogo) return;
+
+		return { name: "logo_dark.svg", url: darkLogo };
+	}, [isLoadingDark, darkLogo]);
+
 	return (
 		<>
 			<FormField
 				name="lightLogo"
-				title={t("workspace.logo")}
-				description={t("workspace.default-logo-description")}
-				control={({ field }) => (
+				title={t("file-input.logo-light")}
+				description={t("file-input.both-themes-if-no-dark")}
+				control={() => (
 					<LogoUploader
 						deleteResource={deleteLightLogo}
 						updateResource={updateLightLogo}
-						logo={lightLogo}
-						isLoading={isLoadingLight}
-						imageTheme={Theme.light}
+						defaultFileInfo={defaultLightFileInfo}
 					/>
 				)}
 				{...formProps}
 			/>
-
 			<FormField
-				name="darkLogo"
-				title=""
-				description={t("workspace.dark-logo-description")}
-				control={({ field }) => (
-					<>
-						<FormItemTitle as={"h4"} children={t("workspace.for-dark-theme")} />
-						<LogoUploader
-							deleteResource={deleteDarkLogo}
-							updateResource={updateDarkLogo}
-							logo={darkLogo}
-							isLoading={isLoadingDark}
-							imageTheme={Theme.dark}
-						/>
-					</>
+				name={"darkLogo"}
+				title={t("file-input.logo-dark")}
+				description={t("file-input.dark-theme-only")}
+				control={() => (
+					<LogoUploader
+						deleteResource={deleteDarkLogo}
+						updateResource={updateDarkLogo}
+						defaultFileInfo={defaultDarkFileInfo}
+					/>
 				)}
 				{...formProps}
 			/>

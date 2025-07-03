@@ -17,6 +17,7 @@ const env = {
 	GIT_PROXY_SERVICE_URL: null,
 	GEPS_URL: null,
 	GES_URL: null,
+	CLOUD_SERVICE_URL: null,
 };
 
 if (process.env.PRODUCTION && !process.env.COOKIE_SECRET) console.warn("WARNING: You need to set COOKIE_SECRET if you run gramax in production.");

@@ -26,6 +26,9 @@ export const viewWordLayout: WordBlockChild = async ({ tag, wordRenderContext })
 		wordRenderContext.catalog,
 		display,
 		wordRenderContext.itemsFilter,
+		null,
+		null,
+		null,
 	).getFilteredArticles();
 
 	if (display === Display.Table) {

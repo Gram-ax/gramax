@@ -7,24 +7,20 @@ import { useFindInvalidSouresOnStart } from "@ext/git/actions/Source/logic/useFi
 import { saveTempTokenIfPresent } from "@ext/git/actions/Source/tempToken";
 import usePathnameCloneHandler from "@ext/git/core/GitPathnameHandler/clone/logic/usePathnameCloneHandler";
 import usePathnameHandler from "@ext/git/core/GitPathnameHandler/usePathnameHandler";
-import useInitCatalogToIndexOnFirstLoad from "@ext/git/migration/useInitCatalogToIndex";
 
 const closeIfChild = () => {
-	if (
-		typeof window !== "undefined" &&
-		typeof window.opener !== "undefined" &&
-		getExecutingEnvironment() === "browser"
-	) {
+	if (typeof window === "undefined") return;
+
+	if (window.opener && getExecutingEnvironment() === "browser") {
 		window?.opener?.onLoadApp?.(window.location);
 	}
 
 	if (
-		typeof window !== "undefined" &&
 		getExecutingEnvironment() !== "tauri" &&
-		(saveTempTokenIfPresent(/\?access_token=/) ||
-			(saveTempTokenIfPresent(/\?enterpriseToken=/) && typeof window.opener !== "undefined"))
-	)
+		(saveTempTokenIfPresent(/\?access_token=/) || (saveTempTokenIfPresent(/\?enterpriseToken=/) && window.opener))
+	) {
 		window.close();
+	}
 };
 
 const useOnFirstLoadFuncs = () => {
@@ -37,7 +33,6 @@ const useOnFirstLoadFuncs = () => {
 	useEnterpriseTokenHandler(isFirstLoad);
 	usePathnameCloneHandler();
 	usePathnameHandler(isFirstLoad);
-	useInitCatalogToIndexOnFirstLoad(isFirstLoad);
 	// useReviewHandler(isFirstLoad);
 };
 

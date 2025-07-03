@@ -11,7 +11,7 @@ const BlockOutContent = ["drawio", "diagrams", "image", "video", "code_block", "
 const ListGroup = ["orderedList", "bulletList", "taskList"];
 
 const disabledMarkRule: Record<Mark, Mark[]> = {
-	code: ["link", "file", "comment", "strong", "em"],
+	code: ["link", "file", "comment"],
 	comment: ["link", "file", "comment", "code"],
 	file: ["link", "file", "comment", "code"],
 	link: ["file", "comment", "code"],

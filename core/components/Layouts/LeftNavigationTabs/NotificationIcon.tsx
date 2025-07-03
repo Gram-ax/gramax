@@ -21,7 +21,7 @@ const NotificationIcon = (props: NotificationIconProps) => {
 
 	const onClose = () => {
 		setCurrentTab(LeftNavigationTab.None);
-		onCloseNotification();
+		onCloseNotification?.();
 	};
 
 	return (

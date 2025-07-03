@@ -12,17 +12,20 @@ import AddProperty from "@ext/properties/components/Helpers/AddProperty";
 import Chip from "@components/Atoms/Chip";
 import PropertyServiceProvider from "@ext/properties/components/PropertyService";
 import { deleteProperty, updateProperty } from "@ext/properties/logic/changeProperty";
+import { isComplexProperty } from "@ext/templates/models/properties";
+import { isMarkdownText } from "@ext/markdown/elements/pasteMarkdown/handlePasteMarkdown";
 
 interface PropertiesProps {
 	properties: Property[];
 	setProperties: Dispatch<SetStateAction<Property[]>>;
+	hideList?: boolean;
 	className?: string;
 	style?: CSSProperties;
 }
 
-const Properties = ({ className, style, properties, setProperties }: PropertiesProps) => {
+const Properties = ({ className, style, properties, setProperties, hideList }: PropertiesProps) => {
 	const articleProps = ArticlePropsService.value;
-	const catalogProperties = PropertyServiceProvider.value?.properties;
+	const { properties: catalogProperties } = PropertyServiceProvider.value;
 	const apiUrlCreator = ApiUrlCreatorService.value;
 
 	useEffect(() => {
@@ -42,7 +45,10 @@ const Properties = ({ className, style, properties, setProperties }: PropertiesP
 
 				FetchService.fetch(
 					apiUrlCreator.updateItemProps(),
-					JSON.stringify({ ...articleProps, properties: newProps }),
+					JSON.stringify({
+						...articleProps,
+						properties: newProps,
+					}),
 					MimeTypes.json,
 				);
 
@@ -60,7 +66,10 @@ const Properties = ({ className, style, properties, setProperties }: PropertiesP
 
 				FetchService.fetch(
 					apiUrlCreator.updateItemProps(),
-					JSON.stringify({ ...articleProps, properties: newProps }),
+					JSON.stringify({
+						...articleProps,
+						properties: newProps,
+					}),
 					MimeTypes.json,
 				);
 
@@ -78,25 +87,32 @@ const Properties = ({ className, style, properties, setProperties }: PropertiesP
 		[updateHandler, deleteHandler],
 	);
 
+	const filterProperties = useCallback((value: Property) => {
+		return !isComplexProperty[value.type] && !isMarkdownText(value.value?.[0]);
+	}, []);
+
 	const articleRenderedProperties = useMemo(() => {
-		return properties?.map((property) => (
-			<PropertyArticle
-				key={property.name}
-				property={property}
-				onSubmit={onSubmit}
-				trigger={
-					<PropertyComponent
-						key={property.name}
-						type={property.type}
-						icon={property.icon}
-						value={property.value?.length ? property.value : property.name}
-						name={property.name}
-						propertyStyle={property.style}
-					/>
-				}
-			/>
-		));
-	}, [properties]);
+		if (hideList) return null;
+		return properties
+			?.filter(filterProperties)
+			?.map((property) => (
+				<PropertyArticle
+					key={property.name}
+					property={property}
+					onSubmit={onSubmit}
+					trigger={
+						<PropertyComponent
+							key={property.name}
+							type={property.type}
+							icon={property.icon}
+							value={property.value?.length && property.value[0].length ? property.value : property.name}
+							name={property.name}
+							propertyStyle={property.style}
+						/>
+					}
+				/>
+			));
+	}, [properties, onSubmit, hideList]);
 
 	return (
 		<div className={className} style={style}>

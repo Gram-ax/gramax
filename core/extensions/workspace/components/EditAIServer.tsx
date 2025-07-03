@@ -1,9 +1,8 @@
 import { FormEvent, MouseEvent, ReactElement, useMemo, useState } from "react";
 import t from "@ext/localization/locale/translate";
 import { Modal, ModalBody, ModalContent, ModalHeader, ModalTitle, ModalTrigger } from "@ui-kit/Modal";
-import Footer from "@ext/catalog/actions/propsEditor/components/ModalFooter";
 import { Button } from "@ui-kit/Button";
-import { Form, FormField } from "@ui-kit/Form";
+import { Form, FormField, FormFooter, FormStack } from "@ui-kit/Form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -95,36 +94,38 @@ const EditAIServer = ({ trigger, workspacePath }: EditAIServerProps) => {
 		<Modal open={open} onOpenChange={setOpen}>
 			{trigger && <ModalTrigger asChild>{trigger}</ModalTrigger>}
 			<ModalContent>
-				<Form {...form}>
+				<Form asChild {...form}>
 					<form className="contents ui-kit" onSubmit={formSubmit}>
 						<ModalHeader>
 							<ModalTitle>{t("workspace.set-ai-server")}</ModalTitle>
 						</ModalHeader>
-						<ModalBody className="space-y-4">
-							<FormField
-								name="apiUrl"
-								title={t("workspace.ai-server-url")}
-								description={t("workspace.ai-server-url-description")}
-								control={({ field }) => (
-									<Input {...field} placeholder="https://your-ai-server.com" readOnly={isEdit} />
-								)}
-								{...formProps}
-							/>
-							{!isEdit ? (
+						<ModalBody>
+							<FormStack>
 								<FormField
-									name="token"
-									title={t("workspace.ai-server-token")}
-									description={t("workspace.ai-server-token-description")}
+									name="apiUrl"
+									title={t("workspace.ai-server-url")}
+									description={t("workspace.ai-server-url-description")}
 									control={({ field }) => (
-										<Input {...field} type="password" placeholder="your-server-token" />
+										<Input {...field} placeholder="https://your-ai-server.com" readOnly={isEdit} />
 									)}
 									{...formProps}
 								/>
-							) : null}
+								{!isEdit ? (
+									<FormField
+										name="token"
+										title={t("workspace.ai-server-token")}
+										description={t("workspace.ai-server-token-description")}
+										control={({ field }) => (
+											<Input {...field} type="password" placeholder="your-server-token" />
+										)}
+										{...formProps}
+									/>
+								) : null}
+							</FormStack>
 						</ModalBody>
-						<Footer
+						<FormFooter
 							primaryButton={<Button hidden variant="primary" children={t("save")} disabled={isEdit} />}
-							leftButton={
+							secondaryButton={
 								isEdit && <Button variant="text" children={t("delete")} onClick={onDeleteClick} />
 							}
 						/>

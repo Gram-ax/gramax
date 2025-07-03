@@ -4,6 +4,7 @@ import FetchService from "@core-ui/ApiServices/FetchService";
 import MimeTypes from "@core-ui/ApiServices/Types/MimeTypes";
 import type Url from "@core-ui/ApiServices/Types/Url";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
+import CatalogPropsService from "@core-ui/ContextServices/CatalogProps";
 import useWatch, { useWatchClient } from "@core-ui/hooks/useWatch";
 import CustomLogoDriver from "@core/utils/CustomLogoDriver";
 import ThemeService from "@ext/Theme/components/ThemeService";
@@ -14,6 +15,7 @@ import { useCallback, useRef, useState } from "react";
 const useCatalogLogoManager = (catalogPath: string, theme: Theme) => {
 	const apiUrlCreator = ApiUrlCreatorService.value;
 	const [logo, setLogo] = useState("");
+
 	const [isLoading, setIsLoading] = useState(false);
 
 	const getLogo = useCallback(async () => {
@@ -69,6 +71,7 @@ const useCatalogLogoManager = (catalogPath: string, theme: Theme) => {
 
 export const useCatalogLogo = (catalogPath?: string, successUpdateCallback?: () => void) => {
 	const apiUrlCreator = ApiUrlCreatorService.value;
+	const catalogProps = CatalogPropsService.value;
 
 	const {
 		deleteLogo: deleteDark,
@@ -119,32 +122,35 @@ export const useCatalogLogo = (catalogPath?: string, successUpdateCallback?: () 
 		const props: Record<string, unknown> = {};
 
 		if (initialLightLogo !== lightLogo) {
+			await deleteLight();
 			if (lightLogo) {
 				await updateLight(lightLogo, logoProps.current.logo);
 				props.logo = logoProps.current.logo;
 			} else {
-				await deleteLight();
 				props.logo = "";
 			}
 		}
 
 		if (initialDarkLogo !== darkLogo) {
+			await deleteDark();
 			if (darkLogo) {
 				await updateDark(darkLogo, logoProps.current.logo_dark);
 				props.logo_dark = logoProps.current.logo_dark;
 			} else {
-				await deleteDark();
 				props.logo_dark = "";
 			}
 		}
 
 		if (typeof props.logo === "string" || typeof props.logo_dark === "string") {
 			const UrlToUpdate = apiUrlCreator.updateCatalogProps();
-			await FetchService.fetch(UrlToUpdate, JSON.stringify(props), MimeTypes.json);
+			//FIXME, нужно убрать два вызова апдейта пропсов, например в форме catalogPropsEditor
+
+			const CatalogPropsWithLogo = Object.assign(catalogProps, props);
+			await FetchService.fetch(UrlToUpdate, JSON.stringify(CatalogPropsWithLogo), MimeTypes.json);
 
 			successUpdateCallback?.();
 		}
-	}, [initialLightLogo, lightLogo, initialDarkLogo, darkLogo]);
+	}, [initialLightLogo, lightLogo, initialDarkLogo, darkLogo, catalogProps]);
 
 	const refreshState = useCallback(async () => {
 		await refreshDarkLogo();

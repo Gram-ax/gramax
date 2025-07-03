@@ -1,7 +1,7 @@
 import SelectSrc from "@components/Select/Select";
 import styled from "@emotion/styled";
 import useGitCommitAuthors from "@ext/git/actions/Branch/components/useGitCommitAuthors";
-import { Signature } from "@ext/git/core/GitMergeRequest/model/MergeRequest";
+import type { Signature } from "@ext/git/core/model/Signature";
 
 const Select = styled(SelectSrc)`
 	.react-dropdown-select-content {

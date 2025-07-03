@@ -26,8 +26,9 @@ export class WordSerializerState {
 	) {}
 
 	async renderInline(parent: Tag | JSONContent, addOptions?: AddOptionsWord): Promise<ParagraphChild[]> {
+		const children = "children" in parent ? parent.children : parent.content;
 		const paragraphChild = await Promise.all(
-			parent.children.map(async (child) => {
+			children.map(async (child) => {
 				if (!child) return;
 
 				if (typeof child === "string") {

@@ -18,6 +18,8 @@ const SmallCard = ({
 	const { isStatic } = usePlatform();
 	const logo = useGetCatalogTitleLogo(link.name, hideLogo);
 
+	const pathname = link.lastVisited || link.pathname;
+
 	const card = (
 		<div className={`catalog-background background`}>
 			<div className="catalog">
@@ -32,12 +34,12 @@ const SmallCard = ({
 
 	if (isStatic)
 		return (
-			<a data-catalog-card={name} className={className} href={link.pathname}>
+			<a data-catalog-card={name} className={className} href={pathname}>
 				{card}
 			</a>
 		);
 	return (
-		<Link data-catalog-card={name} className={className} href={Url.from(link)}>
+		<Link data-catalog-card={name} className={className} href={Url.from({ pathname })}>
 			{card}
 		</Link>
 	);

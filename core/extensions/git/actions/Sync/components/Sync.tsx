@@ -1,58 +1,71 @@
-import Fetcher from "@core-ui/ApiServices/Types/Fetcher";
-import UseSWRService from "@core-ui/ApiServices/UseSWRService";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
-import isOfflineService from "@core-ui/ContextServices/IsOfflineService";
-import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
+import CatalogPropsService from "@core-ui/ContextServices/CatalogProps";
+import { useSyncCount } from "@core-ui/ContextServices/SyncCount/useSyncCount";
 import SyncIconService from "@core-ui/ContextServices/SyncIconService";
 import SyncLayout from "@ext/git/actions/Sync/components/SyncLayout";
 import SyncService from "@ext/git/actions/Sync/logic/SyncService";
 import useSourceData from "@ext/storage/components/useSourceData";
 import { useOpenRestoreSourceTokenModal } from "@ext/storage/logic/SourceDataProvider/components/useOpenRestoreSourceTokenModal";
-import { CSSProperties, useEffect } from "react";
-import { SWRResponse } from "swr";
+import { CSSProperties, useCallback, useEffect } from "react";
 
 const Sync = ({ style }: { style?: CSSProperties }) => {
 	const apiUrlCreator = ApiUrlCreatorService.value;
-	const syncProccess = SyncIconService.value;
-	const pageDataContext = PageDataContextService.value;
-	const disableFetch = isOfflineService.value || pageDataContext.conf.isReadOnly || !pageDataContext.userInfo;
+	const catalogProps = CatalogPropsService.value;
+	const syncProcess = SyncIconService.value;
+
+	const { syncCount, updateSyncCount } = useSyncCount(catalogProps.name);
 
 	const source = useSourceData();
 	const openRestoreSourceModal = useOpenRestoreSourceTokenModal(source);
 
-	const { data: syncCount }: SWRResponse<{ pull: 0; push: 0 }, any> = UseSWRService.getData<{ pull: 0; push: 0 }>(
-		disableFetch ? null : apiUrlCreator.getSyncCountUrl(),
-		Fetcher.json,
-		true,
-		{ refreshInterval: 3000 },
-	);
-
 	useEffect(() => {
-		const startToken = SyncService.events.on("start", () => {
-			if (syncProccess) return;
-			SyncIconService.start();
-		});
-		const finishToken = SyncService.events.on("finish", () => {
+		const handleSyncStart = () => {
+			if (!syncProcess) {
+				SyncIconService.start();
+			}
+		};
+
+		const handleSyncFinish = () => {
 			SyncIconService.stop();
-		});
-		const errorToken = SyncService.events.on("error", () => {
+			updateSyncCount({
+				pull: 0,
+				push: 0,
+				hasChanges: false,
+				errorMessage: null,
+			});
+		};
+
+		const handleSyncError = () => {
 			SyncIconService.stop();
-		});
+		};
+
+		const startToken = SyncService.events.on("start", handleSyncStart);
+		const finishToken = SyncService.events.on("finish", handleSyncFinish);
+		const errorToken = SyncService.events.on("error", handleSyncError);
 
 		return () => {
 			SyncService.events.off(startToken);
 			SyncService.events.off(finishToken);
 			SyncService.events.off(errorToken);
 		};
-	}, [syncProccess]);
+	}, [syncProcess]);
+
+	const handleSyncClick = useCallback(async () => {
+		if (source?.isInvalid) {
+			openRestoreSourceModal();
+			return;
+		}
+
+		await SyncService.sync(apiUrlCreator);
+	}, [source?.isInvalid, openRestoreSourceModal, apiUrlCreator]);
 
 	return (
 		<SyncLayout
-			pullCounter={syncCount?.pull}
-			pushCounter={syncCount?.push}
-			syncProccess={syncProccess}
+			pullCounter={syncCount?.pull || 0}
+			pushCounter={syncCount?.push || 0}
+			syncProccess={syncProcess}
 			sourceInvalid={source?.isInvalid}
-			onClick={() => (source?.isInvalid ? openRestoreSourceModal() : SyncService.sync(apiUrlCreator))}
+			onClick={handleSyncClick}
 			style={style}
 		/>
 	);

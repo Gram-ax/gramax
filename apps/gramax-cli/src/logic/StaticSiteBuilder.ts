@@ -11,6 +11,7 @@ import { logStepWithErrorSuppression, logStep } from "./cli/utils/logger";
 import { RenderedHtml, HtmlData } from "./ArticleTypes";
 import { STORAGE_DIR_NAME } from "@app/config/const";
 import { dirname } from "path";
+import { joinTitles } from "@core-ui/getPageTitle";
 
 export type StaticFileProvider = Pick<FileProvider, "write" | "copy" | "mkdir">;
 
@@ -21,11 +22,13 @@ export enum InitialDataKeys {
 }
 
 const htmlTags = {
+	base: "<!--base-tag-->",
+	title: "<!--title-content-->",
 	config: "<!--app-config-->",
 	fs: "<!--data.js-->",
 	data: "<!--app-data-->",
-	body: "<app-body/>",
-	styles: "<app-styles/>",
+	body: "<!--app-body-->",
+	styles: "<!--app-styles-->",
 };
 
 const isBrowser = getExecutingEnvironment() === "browser";
@@ -187,13 +190,20 @@ class StaticSiteBuilder {
 
 		const templateHtml = this._html
 			.replace(htmlTags.config, `window.${InitialDataKeys.CONFIG} = ` + (JSON.stringify(config) ?? "{}"))
-			.replace(htmlTags.fs, `<script src="/${catalogName}/data.js"></script>`);
+			.replace(htmlTags.fs, `<script src="${catalogName}/data.js"></script>`);
 
-		const generateHtmlFile = async (htmlData: HtmlData, logicPath: Path) => {
+		const generateHtmlFile = async (htmlData: HtmlData, logicPath: Path, basePath?: string) => {
 			const dataKey = `window.${InitialDataKeys.DATA} = `;
 			const initialData = this._escapeDollars(JSON.stringify(htmlData.initialData) ?? "{}");
+			const calculatedBasePath = basePath ?? logicPath.getRelativePath(new Path("."));
+			const title = joinTitles(
+				htmlData.initialData.data.articlePageData.articleProps.title,
+				htmlData.initialData.data.catalogProps.title,
+			);
 
 			const html = templateHtml
+				.replace(htmlTags.base, `<base href="${calculatedBasePath}">`)
+				.replace(htmlTags.title, title)
 				.replace(htmlTags.data, dataKey + initialData)
 				.replace(htmlTags.body, htmlData.htmlContent.body ?? "")
 				.replace(htmlTags.styles, htmlData.htmlContent.styles ?? "");
@@ -206,7 +216,11 @@ class StaticSiteBuilder {
 		if (!isBrowser)
 			await this._fp.write(targetDir.join(new Path("index.html")), this._getRedirectHTML(catalogName));
 
-		await generateHtmlFile(rendered.article404Html, new Path(isBrowser ? [catalogName, "404.html"] : "404.html"));
+		await generateHtmlFile(
+			rendered.article404Html,
+			new Path(isBrowser ? [catalogName, "404.html"] : "404.html"),
+			"/",
+		);
 		await generateHtmlFile(rendered.defaultHtml, new Path(catalogName).join(new Path("index.html")));
 
 		for (const htmlData of rendered.htmlData) {
@@ -225,7 +239,7 @@ class StaticSiteBuilder {
 		<meta charset="UTF-8">
 		<meta name="viewport" content="width=device-width, initial-scale=1.0">
 		<title>${catalogName}</title>
-		<meta http-equiv="refresh" content="0;url=/${catalogName}">
+		<meta http-equiv="refresh" content="0;url=./${catalogName}">
 	</head>
 	</html>`;
 	}

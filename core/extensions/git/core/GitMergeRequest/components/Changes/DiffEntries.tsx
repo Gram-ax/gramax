@@ -1,6 +1,7 @@
 import styled from "@emotion/styled";
 import type { DiffTreeAnyItem } from "@ext/git/core/GitDiffItemCreator/RevisionDiffTreePresenter";
 import DiffEntry from "@ext/git/core/GitMergeRequest/components/Changes/DiffEntry";
+import useUpdateArticleDiffView from "@ext/git/core/GitMergeRequest/components/Changes/useUpdateArticleDiffView";
 import t from "@ext/localization/locale/translate";
 import type { DiffItemOrResource } from "@ext/VersionControl/model/Diff";
 import { createContext, forwardRef, useState } from "react";
@@ -68,6 +69,8 @@ export const DiffEntries = forwardRef<HTMLDivElement, DiffEntriesProps>((props, 
 
 	const hasCheckboxes = selectFile && isFileSelected;
 
+	useUpdateArticleDiffView({ changes, currentSelectedPath: selectedByPath, setArticleDiffView });
+
 	return (
 		<SelectedDiffEntryContext.Provider value={{ selectedByPath, setSelectedByPath }}>
 			<DiffEntriesWrapper ref={ref} hasChanges={hasChanges}>
@@ -90,7 +93,7 @@ export const DiffEntries = forwardRef<HTMLDivElement, DiffEntriesProps>((props, 
 						/>
 					))
 				) : (
-					<NoChanges>{t("git.warning.no-changes.title")}</NoChanges>
+					<NoChanges data-qa="qa-no-changes">{t("git.warning.no-changes.title")}</NoChanges>
 				)}
 			</DiffEntriesWrapper>
 		</SelectedDiffEntryContext.Provider>

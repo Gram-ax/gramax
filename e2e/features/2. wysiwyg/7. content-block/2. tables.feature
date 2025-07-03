@@ -33,35 +33,61 @@
     И вводим "test"
     То разметка текущей статьи содержит
       """
-      {% table header="row" %}
+      <table header="row">
+      <tr>
+      <td>
       
-      ---
+      -  text
       
-      *  -  text
+      -  test
       
-         -  test
+      </td>
+      <td>
       
-      *  
       
-      *  
       
-      ---
+      </td>
+      <td>
       
-      *  
       
-      *  
       
-      *  
+      </td>
+      </tr>
+      <tr>
+      <td>
       
-      ---
       
-      *  
       
-      *  
+      </td>
+      <td>
       
-      *  
       
-      {% /table %}
+      
+      </td>
+      <td>
+      
+      
+      
+      </td>
+      </tr>
+      <tr>
+      <td>
+      
+      
+      
+      </td>
+      <td>
+      
+      
+      
+      </td>
+      <td>
+      
+      
+      
+      </td>
+      </tr>
+      </table>
       
       """
 
@@ -78,35 +104,61 @@
     И вводим "text"
     То разметка текущей статьи содержит
       """
-      {% table header="row" %}
+      <table header="row">
+      <tr>
+      <td>
       
-      ---
+      ```
+      text
+      ```
       
-      *  ```
-         text
-         ```
+      </td>
+      <td>
       
-      *  
       
-      *  
       
-      ---
+      </td>
+      <td>
       
-      *  
       
-      *  
       
-      *  
+      </td>
+      </tr>
+      <tr>
+      <td>
       
-      ---
       
-      *  
       
-      *  
+      </td>
+      <td>
       
-      *  
       
-      {% /table %}
+      
+      </td>
+      <td>
+      
+      
+      
+      </td>
+      </tr>
+      <tr>
+      <td>
+      
+      
+      
+      </td>
+      <td>
+      
+      
+      
+      </td>
+      <td>
+      
+      
+      
+      </td>
+      </tr>
+      </table>
       
       """
 
@@ -183,49 +235,88 @@
     И вводим "Текст после таблики"
     Тогда разметка текущей статьи содержит
       """
-      {% table header="row" %}
+      <table header="row">
+      <tr>
+      <td>
       
-      ---
       
-      *  
       
-      *  
+      </td>
+      <td>
       
-      *  
       
-      ---
       
-      *  
+      </td>
+      <td>
       
-      *  
       
-      *  
       
-      ---
+      </td>
+      </tr>
+      <tr>
+      <td>
       
-      *  
       
-      *  
       
-      *  
+      </td>
+      <td>
       
-      ---
       
-      *  
       
-      *  
+      </td>
+      <td>
       
-      *  {% rowspan=2 %}
       
-         
       
-      ---
+      </td>
+      </tr>
+      <tr>
+      <td>
       
-      *  
       
-      *  
       
-      {% /table %}
+      </td>
+      <td>
+      
+      
+      
+      </td>
+      <td>
+      
+      
+      
+      </td>
+      </tr>
+      <tr>
+      <td>
+      
+      
+      
+      </td>
+      <td>
+      
+      
+      
+      </td>
+      <td rowspan="2">
+      
+      
+      
+      </td>
+      </tr>
+      <tr>
+      <td>
+      
+      
+      
+      </td>
+      <td>
+      
+      
+      
+      </td>
+      </tr>
+      </table>
       
       Текст после таблики
       """
@@ -299,24 +390,26 @@
       
       {% /table %}
       """
-    И наводимся и нажимаем на элемент "qa-add-row-0"
+    И наводимся на элемент "table"
+    И нажимаем на элемент "qa-add-row-0"
     Тогда разметка текущей статьи содержит
       """
-      {% table header="row" %}
+      <table header="row">
+      <tr>
+      <td align="center">
       
-      ---
       
-      *  {% align="center" %}
       
-         
+      </td>
+      </tr>
+      <tr>
+      <td align="center">
       
-      ---
       
-      *  {% align="center" %}
       
-         
-      
-      {% /table %}
+      </td>
+      </tr>
+      </table>
       
       """
 
@@ -334,23 +427,25 @@
       
       {% /table %}
       """
-    И наводимся и нажимаем на элемент "qa-add-row-down"
+    И наводимся на элемент "table"
+    И нажимаем на элемент "qa-add-row-down"
     Тогда разметка текущей статьи содержит
       """
-      {% table header="row" %}
+      <table header="row">
+      <tr>
+      <td align="center">
       
-      ---
       
-      *  {% align="center" %}
       
-         
+      </td>
+      </tr>
+      <tr>
+      <td align="center">
       
-      ---
       
-      *  {% align="center" %}
       
-         
-      
-      {% /table %}
+      </td>
+      </tr>
+      </table>
       
       """

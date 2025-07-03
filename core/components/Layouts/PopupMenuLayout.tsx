@@ -36,6 +36,8 @@ export interface PopupMenuLayoutProps {
 	disabled?: boolean;
 	hideOnClick?: boolean;
 	buttonClassName?: string;
+	resetMaxHeight?: boolean;
+	popperOptions?: Props["popperOptions"];
 }
 
 interface PopupProps {
@@ -118,6 +120,7 @@ const PopupMenuLayout = forwardRef((props: PopupMenuLayoutProps, ref: RefObject<
 		hideOnClick = true,
 		isOpen: isOpenProp,
 		buttonClassName,
+		popperOptions,
 	} = props;
 
 	const currentRef = ref || useRef<Element>();
@@ -182,6 +185,7 @@ const PopupMenuLayout = forwardRef((props: PopupMenuLayoutProps, ref: RefObject<
 					{children}
 				</Popup>
 			}
+			popperOptions={popperOptions}
 		>
 			{element}
 		</Tippy>
@@ -218,6 +222,7 @@ export default styled(PopupMenuLayout)`
 					color: var(--color-primary);
 				}
 			}`}
+	${(p) => (p.resetMaxHeight ? "" : "max-height: 40vh;")}
 	margin: -10px 0px 0px;
 	min-width: 0;
 	font-size: 13px;
@@ -227,7 +232,6 @@ export default styled(PopupMenuLayout)`
 	background: var(--color-article-bg);
 	left: 0 !important;
 	box-shadow: var(--menu-tooltip-shadow) !important;
-	max-height: 40vh;
 	overflow-y: auto;
 
 	white-space: nowrap;

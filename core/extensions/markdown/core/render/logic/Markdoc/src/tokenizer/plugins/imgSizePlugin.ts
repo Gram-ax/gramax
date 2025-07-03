@@ -1,7 +1,7 @@
 import { Token } from "@ext/markdown/core/render/logic/Markdoc";
 import MarkdownIt from "markdown-it";
 
-const isImage = (token: Token) => token?.children?.[0]?.type === "image";
+const isImage = (token: Token) => token.type === "image";
 
 export const parseImageSize = (content: string) => {
 	const match = content.match(/\{(.*?)\}/);
@@ -14,22 +14,32 @@ export const parseImageSize = (content: string) => {
 	);
 };
 
+const processTokensRecursively = (tokens: Token[]) => {
+	for (let i = 0; i < tokens.length; i++) {
+		const token = tokens[i];
+
+		if (isImage(token)) {
+			const nextToken = tokens?.[i + 1];
+			if (!nextToken) continue;
+
+			const params = parseImageSize(nextToken.content);
+			if (!params) continue;
+			if (params.width) token.attrSet("width", params.width);
+			if (params.height) token.attrSet("height", params.height);
+
+			nextToken.content = nextToken.content.replace(/\{.*?\}/, "");
+			if (nextToken.children) nextToken.children = nextToken.children.splice(0, 1);
+		}
+
+		if (token.children) {
+			processTokensRecursively(token.children);
+		}
+	}
+};
+
 function imgSizePlugin(md: MarkdownIt) {
 	md.core.ruler.push("image-size", function (state) {
-		const tokens = state.tokens;
-		for (let i = 0; i < tokens.length; i++) {
-			const token = tokens[i];
-
-			if (isImage(token)) {
-				const params = parseImageSize(token.content);
-				if (!params) continue;
-				if (params.width) token.children[0].attrSet("width", params.width);
-				if (params.height) token.children[0].attrSet("height", params.height);
-
-				token.content = token.content.replace(/\{.*?\}/, "");
-				if (token.children) token.children = token.children.splice(0, 1);
-			}
-		}
+		processTokensRecursively(state.tokens);
 	});
 }
 

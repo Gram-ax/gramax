@@ -10,9 +10,16 @@ export default class DocCreator {
 		return this;
 	}
 	static p(...content: (string | { type: string; text: string })[]) {
+		const filteredContent = content.filter((item) => (typeof item === "string" ? item !== "" : item.text !== ""));
+		if (filteredContent.length === 0) {
+			return {
+				type: "paragraph",
+			};
+		}
+
 		return {
 			type: "paragraph",
-			content: content.map((item) =>
+			content: filteredContent.map((item) =>
 				typeof item === "string"
 					? { type: "text", text: item }
 					: { type: "text", marks: [{ type: item.type }], text: item.text },
@@ -26,6 +33,18 @@ export default class DocCreator {
 	}
 
 	static h(level: number, ...content: (string | { type: string; text: string })[]) {
+		const filteredContent = content.filter((item) => (typeof item === "string" ? item !== "" : item.text !== ""));
+		if (filteredContent.length === 0) {
+			return {
+				type: "heading",
+				attrs: {
+					id: null,
+					level: level,
+					isCustomId: false,
+				},
+			};
+		}
+
 		return {
 			type: "heading",
 			attrs: {
@@ -33,7 +52,7 @@ export default class DocCreator {
 				level: level,
 				isCustomId: false,
 			},
-			content: content.map((item) =>
+			content: filteredContent.map((item) =>
 				typeof item === "string"
 					? { type: "text", text: item }
 					: { type: "text", marks: [{ type: item.type }], text: item.text },

@@ -16,6 +16,7 @@ import { useMediaQuery } from "@mui/material";
 import { ArticlePageData } from "../../../../logic/SitePresenter/SitePresenter";
 import TopBarContent from "../../../ArticlePage/Bars/TopBarContent";
 import BarLayout from "../../BarLayout";
+import FavoriteArticlesTab from "@ext/artilce/Favorite/components/FavoriteArticlesTab";
 
 const TopBarContentWrapper = styled.div<{ isMacDesktop: boolean }>`
 	padding-top: ${(p) => (p.isMacDesktop ? "1.3rem" : "0")};
@@ -29,7 +30,7 @@ const LeftNavigationTop = ({ data, className }: { data: ArticlePageData; classNa
 	const leftNavIsOpen = SidebarsIsOpenService.value.left;
 	const catalogProps = CatalogPropsService.value;
 	const narrowMedia = useMediaQuery(cssMedia.narrow);
-	const { isTauri } = usePlatform();
+	const { isTauri, isBrowser, isStaticCli } = usePlatform();
 	const { topTab } = NavigationTabsService.value;
 
 	const isMacDesktop = IsMacService.value && isTauri;
@@ -65,13 +66,16 @@ const LeftNavigationTop = ({ data, className }: { data: ArticlePageData; classNa
 					/>
 				</TopBarContentWrapper>
 			</BarLayout>
-			{!catalogProps.notFound && (
+			{(isTauri || isBrowser) && !catalogProps.notFound && (
 				<>
 					<InboxTab show={topTab === LeftNavigationTab.Inbox} />
 					<TemplateTab show={topTab === LeftNavigationTab.Template} />
 					<SnippetsTab show={topTab === LeftNavigationTab.Snippets} />
 					<PromptTab show={topTab === LeftNavigationTab.Prompt} />
 				</>
+			)}
+			{!isStaticCli && !catalogProps.notFound && (
+				<FavoriteArticlesTab show={topTab === LeftNavigationTab.FavoriteArticles} />
 			)}
 		</>
 	);

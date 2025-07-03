@@ -32,6 +32,11 @@ app.get("/env.js", (req, res) => {
 	res.setHeader("content-type", "application/javascript");
 	res.send(envJs);
 });
+app.get("/robots.txt", (req, res) => {
+	setHeaders(res);
+	res.setHeader("content-type", "text/plain");
+	res.send("User-agent: *\nDisallow: /");
+});
 app.get(/.*/, (req, res) => {
 	setHeaders(res);
 	res.setHeader("content-type", "text/html");

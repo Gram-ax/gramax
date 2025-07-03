@@ -6,7 +6,6 @@ import getApp from "@app/node/app";
 import TestContext from "@app/test/TestContext";
 import DiskFileProvider from "@core/FileProvider/DiskFileProvider/DiskFileProvider";
 import Path from "@core/FileProvider/Path/Path";
-import ArticleParser from "@core/FileStructue/Article/ArticleParser";
 import { Catalog } from "@core/FileStructue/Catalog/Catalog";
 import FileStructure from "@core/FileStructue/FileStructure";
 import GitCommands from "@ext/git/core/GitCommands/GitCommands";
@@ -17,7 +16,6 @@ import { GitVersion } from "@ext/git/core/model/GitVersion";
 import { TEST_GIT_CATALOG_PATH } from "@ext/git/test/testGitCatalogPath";
 import SourceData from "@ext/storage/logic/SourceDataProvider/model/SourceData";
 import SourceType from "@ext/storage/logic/SourceDataProvider/model/SourceType";
-import { DiffFilePaths } from "@ext/VersionControl/model/Diff";
 import GitTreeFileProvider from "@ext/versioning/GitTreeFileProvider";
 import { FileStatus } from "@ext/Watchers/model/FileStatus";
 import util from "util";
@@ -32,9 +30,8 @@ const mockUserData: SourceData = {
 };
 
 const getGitDiffItemCreatorData = async () => {
-	const { wm, rp, sitePresenterFactory, parser, parserContextFactory } = await getApp();
+	const { wm, rp, sitePresenterFactory } = await getApp();
 	const ctx = new TestContext();
-	const articleParser = new ArticleParser(ctx, parser, parserContextFactory);
 	const dfp = new DiskFileProvider(TEST_GIT_CATALOG_PATH);
 	const workspace = wm.current();
 	const catalog = await workspace.getContextlessCatalog("gitCatalog");
@@ -43,7 +40,7 @@ const getGitDiffItemCreatorData = async () => {
 	const sitePresenter = sitePresenterFactory.fromContext(ctx);
 	const git = new GitCommands(dfp, new Path());
 
-	return { catalog, dfp, fs, fp, rp, git, sitePresenter, articleParser };
+	return { catalog, dfp, fs, fp, rp, git, sitePresenter };
 };
 
 const getRefCatalogs = async (catalog: Catalog, oldRef: GitVersion, newRef: GitVersion, fs: FileStructure) => {
@@ -69,7 +66,7 @@ describe("GitDiffItemCreator ", () => {
 			await repTestUtils.clearResourceChanges(dfp, git);
 		});
 		test("без изменения ресурсов", async () => {
-			const { catalog, dfp, git, fs, sitePresenter, articleParser } = await getGitDiffItemCreatorData();
+			const { catalog, dfp, git, fs, sitePresenter } = await getGitDiffItemCreatorData();
 			const oldRef = await git.getHeadCommit();
 
 			await repTestUtils.makeChanges(dfp);
@@ -84,7 +81,6 @@ describe("GitDiffItemCreator ", () => {
 				{ type: "tree", old: oldRef.toString(), new: newRef.toString() },
 				oldCatalog,
 				newCatalog,
-				articleParser,
 			);
 			await catalog.update();
 
@@ -101,7 +97,7 @@ describe("GitDiffItemCreator ", () => {
 		});
 
 		test("с изменением ресурсов", async () => {
-			const { catalog, dfp, git, fs, sitePresenter, articleParser } = await getGitDiffItemCreatorData();
+			const { catalog, dfp, git, fs, sitePresenter } = await getGitDiffItemCreatorData();
 			const oldRef = await git.getHeadCommit();
 
 			await repTestUtils.makeResourceChanges(dfp);
@@ -116,7 +112,6 @@ describe("GitDiffItemCreator ", () => {
 				{ type: "tree", old: oldRef.toString(), new: newRef.toString() },
 				oldCatalog,
 				newCatalog,
-				articleParser,
 			);
 			await catalog.update();
 
@@ -158,7 +153,7 @@ describe("GitDiffItemCreator ", () => {
 		});
 
 		test("с переименованием", async () => {
-			const { catalog, dfp, git, fs, sitePresenter, articleParser } = await getGitDiffItemCreatorData();
+			const { catalog, dfp, git, fs, sitePresenter } = await getGitDiffItemCreatorData();
 			const oldRef = await git.getHeadCommit();
 
 			await repTestUtils.makeRenameChanges(dfp);
@@ -173,27 +168,15 @@ describe("GitDiffItemCreator ", () => {
 				{ type: "tree", old: oldRef.toString(), new: newRef.toString() },
 				oldCatalog,
 				newCatalog,
-				articleParser,
 			);
 			await catalog.update();
 
 			const res = await gitDiffItemCreator.getDiffItems();
 
 			expect(res.items.length).toEqual(1);
-			expect(res.items[0].hunks).not.toBeUndefined();
-			expect(res.items.map((x) => ({ filePath: x.filePath }))).toEqual([
-				{
-					filePath: {
-						hunks: [
-							{ value: "_index", type: undefined },
-							{ value: "2", type: FileStatus.new },
-							{ value: ".md", type: undefined },
-						],
-						path: "_index2.md",
-						oldPath: "_index.md",
-					} as DiffFilePaths,
-				},
-			]);
+			expect(
+				res.items.map((x) => ({ filePath: { path: x.filePath.path, oldPath: x.filePath.oldPath } })),
+			).toEqual([{ filePath: { path: "_index2.md", oldPath: "_index.md" } }]);
 		});
 	});
 });

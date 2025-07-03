@@ -4,6 +4,7 @@ import LanguageService from "@core-ui/ContextServices/Language";
 import getPageTitle from "@core-ui/getPageTitle";
 import Query, { parserQuery } from "@core/Api/Query";
 import RouterPathProvider from "@core/RouterPath/RouterPathProvider";
+import type { ArticlePageData } from "@core/SitePresenter/SitePresenter";
 import ThemeService from "@ext/Theme/components/ThemeService";
 import DefaultError from "@ext/errorHandlers/logic/DefaultError";
 import { useCallback, useEffect, useState } from "react";
@@ -22,6 +23,16 @@ const getData = async (route: string, query: Query) => {
 	return commands.page.getPageData.do({ ctx, path: route });
 };
 
+// used for handling opening urls of cloning catalogs; we don't want to open them yet
+const filterOutPageData = (data: ArticlePageData, setLocation: (path: string) => void) => {
+	if (data?.catalogProps?.link?.isCloning) {
+		setLocation("/");
+		return true;
+	}
+
+	return false;
+};
+
 const AppContext = () => {
 	const [path, setLocation, query] = useLocation();
 	const [data, setData] = useState<GramaxProps>();
@@ -30,6 +41,7 @@ const AppContext = () => {
 	const refresh = useCallback(async () => {
 		try {
 			const data = await getData(path, parserQuery(query));
+			if (filterOutPageData(data?.data as ArticlePageData, setLocation)) return;
 			setData({ path, ...data });
 		} catch (err) {
 			console.error(err);

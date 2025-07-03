@@ -19,8 +19,8 @@ export const useCatalogPropsEditorActions = () => {
 	const catalogProps = CatalogPropsService.value;
 	const [originalProps, setOriginalProps] = useState<CatalogEditProps>(getCatalogEditProps(catalogProps));
 	const articleProps = ArticlePropsService.value;
-	const router = useRouter();
 	const { confirmChanges: confirmCatalogLogoChanges } = CatalogLogoService.value();
+	const router = useRouter();
 
 	const onMouseTriggerEnter = async () => {
 		const res = await FetchService.fetch(apiUrlCreator.getCatalogBrotherFileNames());

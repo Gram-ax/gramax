@@ -1,4 +1,3 @@
-import getIsDevMode from "@core-ui/utils/getIsDevMode";
 import DiskFileProvider from "@core/FileProvider/DiskFileProvider/DiskFileProvider";
 import MountFileProvider from "@core/FileProvider/MountFileProvider/MountFileProvider";
 import Path from "@core/FileProvider/Path/Path";
@@ -40,8 +39,6 @@ export default class WorkdirRepository extends Repository {
 	}
 
 	subscribeEvents(fp: FileProvider) {
-		const isDevMode = getIsDevMode();
-		if (!isDevMode) return;
 		if (!(fp instanceof MountFileProvider && fp.default() instanceof DiskFileProvider)) return;
 		DiskFileProvider.events.on("write", (e) => this._gitIndexAddFiles([e.path]));
 		DiskFileProvider.events.on("move", (e) => this._gitIndexAddFiles([e.from, e.to]));
@@ -49,23 +46,22 @@ export default class WorkdirRepository extends Repository {
 		DiskFileProvider.events.on("delete", (e) => this._gitIndexAddFiles([e.path]));
 	}
 
-	private async _gitIndexAddFiles(p: Path[]) {
-		const paths = p.filter((x) => x && x.value.length && x.startsWith(this._repoPath));
-		if (paths.length === 0) return;
-		const gitPaths = paths.map((x) => this._repoPath.rootDirectory.subDirectory(x));
-		await this.gvc.add(gitPaths);
-	}
-
 	checkoutIfCurrentBranchNotExist(): Promise<{ hasCheckout: boolean }> {
 		return Promise.resolve({ hasCheckout: false });
 	}
 
-	async publish({ commitMessage, filesToPublish, data, onAdd, onCommit, onPush }: PublishOptions): Promise<void> {
-		onAdd?.();
-		await this.gvc.commit(commitMessage, data, null, filesToPublish);
-		onCommit?.();
+	async publish(data: PublishOptions): Promise<void> {
+		const { data: sourceData, onPush, onlyPush, restoreIfFail } = data;
+
+		if (onlyPush !== true) {
+			const { commitMessage, filesToPublish, onAdd, onCommit } = data;
+			onAdd?.();
+			await this.gvc.commit(commitMessage, sourceData, null, filesToPublish);
+			onCommit?.();
+		}
+
 		await this.storage.updateSyncCount();
-		await this._push({ data, onPush });
+		await this._push({ data: sourceData, onPush, restoreIfFail });
 		await this._events.emit("publish", { repo: this });
 		this.gvc.update();
 	}
@@ -211,7 +207,7 @@ export default class WorkdirRepository extends Repository {
 		});
 
 		if (!mergeResult.length) {
-			if (!data.isInvalid) await this._push({ data });
+			if (!data.isInvalid) await this.publish({ data, onlyPush: true, restoreIfFail: false });
 			if (deleteAfterMerge) await this.deleteBranch(branchNameBefore, data);
 			return [];
 		}
@@ -259,6 +255,13 @@ export default class WorkdirRepository extends Repository {
 		await this.gvc.deleteLocalBranch(branchName);
 	}
 
+	private async _gitIndexAddFiles(p: Path[]) {
+		const paths = p.filter((x) => x && x.value.length && x.startsWith(this._repoPath));
+		if (paths.length === 0) return;
+		const gitPaths = paths.map((x) => this._repoPath.rootDirectory.subDirectory(x));
+		await this.gvc.add(gitPaths);
+	}
+
 	private async _getSubmoduleCheckChangesData(): Promise<{
 		[path: string]: { version: GitVersion; subGvc: GitVersionControl };
 	}> {
@@ -270,11 +273,19 @@ export default class WorkdirRepository extends Repository {
 		return versions;
 	}
 
-	private async _push({ data, onPush }: { data: SourceData; onPush?: () => void | Promise<void> }): Promise<void> {
+	private async _push({
+		data,
+		onPush,
+		restoreIfFail = true,
+	}: {
+		data: SourceData;
+		onPush?: () => void | Promise<void>;
+		restoreIfFail?: boolean;
+	}): Promise<void> {
 		try {
 			await this.storage.push(data);
 		} catch (e) {
-			await this.gvc.restoreRepositoryState();
+			if (restoreIfFail) await this.gvc.restoreRepositoryState();
 			await this.storage.updateSyncCount();
 			throw e;
 		}

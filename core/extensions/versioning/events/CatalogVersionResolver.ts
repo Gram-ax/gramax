@@ -58,46 +58,58 @@ export default class CatalogVersionResolver implements EventHandlerCollection, E
 		});
 
 		this._workspace.events.on("add-catalog", async ({ catalog }) => {
-			if (!catalog?.repo?.gvc || !catalog.props.versions) return;
+			if (!catalog.repo) return;
 
-			if ((await catalog.repo.gvc.getSubGitVersionControls()).length > 0) {
-				console.warn(
-					`skipping version resolving for catalog ${catalog.basePath.value}; submodules aren't currently supported for bare repositories`,
-				);
-			}
-
-			let gitfp = this._workspace.getFileProvider().at(catalog.basePath);
-			if (!(gitfp instanceof GitTreeFileProvider))
-				gitfp = new GitTreeFileProvider(
-					new GitCommands(this._workspace.getFileProvider().default(), catalog.basePath),
-				);
-
-			const entries = new Map();
-			const versions = await catalog.repo.gvc.getReferencesByGlob(catalog.props.versions);
-			catalog.props.resolvedVersions = versions.slice(0, VERSION_LIMIT);
-
-			const fs = this._workspace.getFileStructure();
-
-			for (const resolvedVersion of catalog.props.resolvedVersions) {
-				const basePath = catalog.basePath;
-				const path = basePath.value + `:${resolvedVersion.encodedName}`;
-				fs.fp.mount(new Path(path), gitfp);
-
-				const entry = await fs.getCatalogEntryByPath(new Path(path), false, {
-					resolvedVersion,
-					versions: catalog.props.versions,
-					resolvedVersions: catalog.props.resolvedVersions,
-				});
-				entry.setRepository(catalog.repo);
-				entry.setLoadCallback((c) => {
-					c.events.on("update", () => catalog.update());
-					c.setRepository(catalog.repo);
-					entries.set(resolvedVersion.encodedName, c);
-				});
-				entries.set(resolvedVersion.encodedName, entry);
-			}
-
-			this._catalogs.set(catalog, entries);
+			await this._updateCatalog(catalog);
+			catalog.repo.events.on("sync", async () => {
+				await this._updateCatalog(catalog);
+			});
 		});
+	}
+
+	// TODO: Store oid->refname mapping and compare oids to detect changes; don't reset the versioned catalog if it's not needed
+	private async _updateCatalog(catalog: Catalog) {
+		if (!catalog?.repo?.gvc || !catalog.props.versions) {
+			if (this._catalogs.get(catalog)) this._catalogs.delete(catalog);
+			return;
+		}
+
+		if ((await catalog.repo.gvc.getSubGitVersionControls()).length > 0) {
+			const msg = `skipping version resolving for catalog ${catalog.basePath.value}; submodules aren't currently supported for bare repositories`;
+			console.warn(msg);
+		}
+
+		let gitfp = this._workspace.getFileProvider().at(catalog.basePath);
+		if (!(gitfp instanceof GitTreeFileProvider)) {
+			const git = new GitCommands(this._workspace.getFileProvider().default(), catalog.basePath);
+			gitfp = new GitTreeFileProvider(git);
+		}
+
+		const entries = new Map();
+		const versions = await catalog.repo.gvc.getReferencesByGlob(catalog.props.versions);
+		catalog.props.resolvedVersions = versions.slice(0, VERSION_LIMIT);
+
+		const fs = this._workspace.getFileStructure();
+
+		for (const resolvedVersion of catalog.props.resolvedVersions) {
+			const basePath = catalog.basePath;
+			const path = basePath.value + `:${resolvedVersion.encodedName}`;
+			fs.fp.mount(new Path(path), gitfp);
+
+			const entry = await fs.getCatalogEntryByPath(new Path(path), false, {
+				resolvedVersion,
+				versions: catalog.props.versions,
+				resolvedVersions: catalog.props.resolvedVersions,
+			});
+			entry.setRepository(catalog.repo);
+			entry.setLoadCallback((c) => {
+				c.events.on("update", () => catalog.update());
+				c.setRepository(catalog.repo);
+				entries.set(resolvedVersion.encodedName, c);
+			});
+			entries.set(resolvedVersion.encodedName, entry);
+		}
+
+		this._catalogs.set(catalog, entries);
 	}
 }

@@ -1,11 +1,9 @@
 import Tooltip from "@components/Atoms/Tooltip";
 import type { FormSchema } from "@components/Form/Form";
 import t, { hasTranslation } from "@ext/localization/locale/translate";
-import ArrayItems from "@ext/properties/components/ArrayItems";
-import CatalogEditProperty from "@ext/properties/components/Modals/CatalogEditProperty";
 import { Property } from "@ext/properties/models";
 import { JSONSchema7 } from "json-schema";
-import { MutableRefObject, useEffect, useRef, useState } from "react";
+import { MutableRefObject, useEffect, useRef } from "react";
 import Checkbox from "../Atoms/Checkbox";
 import Input from "../Atoms/Input";
 import ListLayout from "../List/ListLayout";
@@ -44,8 +42,6 @@ const ItemInput = (props: ItemInputProps) => {
 	let { value } = props;
 
 	const ref = useRef<HTMLElement>();
-	const [isOpen, setIsOpen] = useState<boolean>(false);
-	const [editData, setEditData] = useState<Property>(null);
 
 	useEffect(() => {
 		if (!focus || !ref?.current) return;
@@ -116,41 +112,6 @@ const ItemInput = (props: ItemInputProps) => {
 					/>
 				</div>
 			</Tooltip>
-		);
-	}
-
-	if (scheme.type === "array" && (scheme.items as JSONSchema7)?.type === "object") {
-		const change = (prop: Property, isDelete: boolean = false) => {
-			const newProps = [...(value as Property[])];
-			const index = (value as Property[]).findIndex((obj: Property) => obj.name === prop.name);
-			if (index === -1) {
-				newProps.push(prop);
-				onChange?.(newProps);
-				return;
-			}
-
-			if (isDelete) newProps.splice(index, 1);
-			else newProps[index] = prop;
-			onChange?.(newProps);
-		};
-
-		const toggleModal = (index?: number) => {
-			if (index === undefined) {
-				setIsOpen(false);
-				setEditData(null);
-				return;
-			}
-
-			setEditData(value?.[index]);
-			setIsOpen(true);
-		};
-
-		return (
-			<ArrayItems newIcon="plus" otherIcon="pencil" values={value as Property[]} onClick={toggleModal}>
-				{isOpen && (
-					<CatalogEditProperty data={editData} isOpen={isOpen} closeModal={toggleModal} onSubmit={change} />
-				)}
-			</ArrayItems>
 		);
 	}
 

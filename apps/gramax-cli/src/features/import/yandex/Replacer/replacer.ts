@@ -177,6 +177,20 @@ class Replacer {
 
 		return content;
 	}
+
+	applyReplacers(content: string): string {
+		content = this.replaceInlineMark(content);
+		content = this.replaceNotes(content);
+		content = this.replaceCuts(content);
+		content = this.replaceIframe(content);
+		content = this.replaceCheckBox(content);
+		content = this.replaceTabs(content);
+		content = this.transformTable(content);
+		content = this.relocateInlineImages(content);
+		content = this.postReplace(content);
+
+		return content;
+	}
 }
 
 export default new Replacer();

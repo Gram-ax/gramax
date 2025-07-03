@@ -12,7 +12,6 @@ import { ClientArticleProps } from "@core/SitePresenter/SitePresenter";
 import styled from "@emotion/styled";
 import t from "@ext/localization/locale/translate";
 import useHasRemoteStorage from "@ext/storage/logic/utils/useHasRemoteStorage";
-import useIsStorageInitialized from "@ext/storage/logic/utils/useIsStorageInitialized";
 import { useState } from "react";
 import User from "../../../../security/components/User/User";
 import { ArticleHistoryViewModel } from "../model/ArticleHistoryViewModel";
@@ -33,8 +32,7 @@ const History = styled((props: HistoryProps) => {
 	const showDiffText = t("show-diffs");
 
 	const hasRemoteStorage = useHasRemoteStorage();
-	const isStorageInitialized = useIsStorageInitialized();
-	const disabled = !hasRemoteStorage || !isStorageInitialized || isFileNew;
+	const disabled = !hasRemoteStorage || isFileNew;
 
 	const loadData = async () => {
 		const response = await FetchService.fetch<ArticleHistoryViewModel[]>(

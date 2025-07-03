@@ -40,6 +40,7 @@ import setWorkerProxy from "../../apps/browser/src/logic/setWorkerProxy";
 import { AppConfig, getConfig, type AppGlobalConfig } from "../config/AppConfig";
 import Application from "../types/Application";
 import { AiDataProvider } from "@ext/ai/logic/AiDataProvider";
+import { WordTemplateManager } from "@ext/wordExport/WordTemplateManager";
 
 const _init = async (config: AppConfig): Promise<Application> => {
 	await initModulesFrontend();
@@ -107,6 +108,7 @@ const _init = async (config: AppConfig): Promise<Application> => {
 	const cache = new Cache(new DiskFileProvider(config.paths.data));
 	const indexDataProvider = new IndexDataProvider(wm, cache, parser, parserContextFactory);
 	const searcherManager = new SearcherManager(new FuseSearcher(indexDataProvider));
+	const wtm = new WordTemplateManager(wm);
 
 	templateEventHandlers.withParser(parser, formatter, parserContextFactory);
 
@@ -118,6 +120,7 @@ const _init = async (config: AppConfig): Promise<Application> => {
 		rp,
 		vur,
 		adp,
+		wtm,
 		logger,
 		parser,
 		hashes,

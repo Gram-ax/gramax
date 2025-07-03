@@ -65,9 +65,7 @@ export default (): UserConfig => ({
 					bodyDatasetInjector: `<script>${readFileAsString(
 						"scripts/browser/bodyDatasetInjector.js",
 					)}</script>`,
-					objectHasOwnPolyfill: `<script>${readFileAsString(
-						"scripts/browser/objectHasOwnPolyfill.js",
-					)}</script>`,
+					polyfill: `<script>${readFileAsString("scripts/browser/polyfill.js")}</script>`,
 					tryOpenInDesktop: `<script>${readFileAsString("scripts/browser/tryOpenInDesktop.js")}</script>`,
 				},
 			},

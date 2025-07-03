@@ -58,6 +58,7 @@ const CheckboxWrapper = styled.div`
 const SelectAll = ({ isSelectedAll, onSelectAll, onDiscard, canDiscard, overview }: SelectAllProps) => {
 	return (
 		<Wrapper
+			data-qa="qa-clickable"
 			onClick={(e) => {
 				onSelectAll(!isSelectedAll, true);
 				e.stopPropagation();

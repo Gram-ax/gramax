@@ -4,12 +4,15 @@ use std::path::Path;
 
 use git2::*;
 
+use serde::Deserialize;
 use serde::Serialize;
 
 use crate::actions::diff::DiffFile;
 use crate::creds::Creds;
+use crate::error::OrUtf8Err;
 use crate::prelude::Branch;
 use crate::repo::Repo;
+use crate::OidInfo;
 use crate::Result;
 use crate::ShortInfo;
 use crate::SignatureInfo;
@@ -43,6 +46,24 @@ pub struct BranchCommitsInfo {
   pub commits: Vec<String>,
 }
 
+#[derive(Deserialize, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct CommitInfoOpts {
+  pub depth: usize,
+  #[serde(default)]
+  pub simplify: bool,
+}
+
+#[derive(Serialize, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct CommitInfo {
+  pub author: SignatureInfo,
+  pub timestamp: i64,
+  pub oid: OidInfo,
+  pub summary: String,
+  pub parents: Vec<OidInfo>,
+}
+
 pub trait History {
   fn history<P: AsRef<Path>>(&self, path: P, max: usize) -> Result<HistoryInfo>;
 
@@ -54,9 +75,42 @@ pub trait History {
     theirs: S,
     max: Option<usize>,
   ) -> Result<BranchCommitsInfo>;
+
+  fn get_commit_info(&self, oid: Oid, opts: CommitInfoOpts) -> Result<Vec<CommitInfo>>;
 }
 
 impl<C: Creds> History for Repo<C> {
+  fn get_commit_info(&self, oid: Oid, opts: CommitInfoOpts) -> Result<Vec<CommitInfo>> {
+    let mut res = Vec::with_capacity(opts.depth);
+
+    let mut revwalk = self.0.revwalk()?;
+    revwalk.set_sorting(Sort::TOPOLOGICAL)?;
+    revwalk.push(oid)?;
+
+    if opts.simplify {
+      revwalk.simplify_first_parent()?;
+    }
+
+    for oid in revwalk.take(opts.depth) {
+      let oid = oid?;
+      let commit = self.0.find_commit(oid)?;
+      let author = commit.author();
+      let timestamp = commit.time().seconds() * 1000;
+      let summary = commit.summary().or_utf8_err()?.to_string();
+      let parents = commit.parents().filter_map(|p| p.id().short_info().ok()).collect();
+
+      res.push(CommitInfo {
+        author: author.short_info()?,
+        timestamp,
+        oid: oid.short_info()?,
+        summary,
+        parents,
+      });
+    }
+
+    Ok(res)
+  }
+
   fn get_all_authors(&self) -> Result<Vec<CommitAuthorInfo>> {
     let mut authors = HashMap::new();
     let mut revwalk = self.0.revwalk()?;

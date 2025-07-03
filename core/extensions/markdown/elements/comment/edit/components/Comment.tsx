@@ -2,12 +2,11 @@ import styled from "@emotion/styled";
 import t from "@ext/localization/locale/translate";
 import { JSONContent } from "@tiptap/core";
 import { Mark } from "prosemirror-model";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import CommentBlockComponent from "../../../../../../components/Comments/CommentBlock";
 import Input from "../../../../../../components/Comments/Input";
 import { CommentBlock } from "../../../../../../ui-logic/CommentBlock";
 import { EditorView } from "prosemirror-view";
-import { getMat } from "@ext/markdown/core/edit/components/ArticleMat";
 import { classNames } from "@components/libs/classNames";
 
 interface CommentProps {
@@ -20,9 +19,14 @@ interface CommentProps {
 	className?: string;
 }
 
+const Wrapper = styled.div`
+	z-index: var(--z-index-popover);
+	font-size: 14px;
+	width: 30em;
+`;
+
 const Comment = (props: CommentProps) => {
-	const { mark, view, element, onDelete, onUpdate, onConfirm, className } = props;
-	const tooltipRef = useRef<HTMLDivElement>(null);
+	const { mark, element, onDelete, onUpdate, onConfirm, className } = props;
 	const [isLoaded, setIsLoaded] = useState(false);
 
 	useEffect(() => {
@@ -37,40 +41,12 @@ const Comment = (props: CommentProps) => {
 
 	const onLoaded = () => {
 		setIsLoaded(true);
-		setPosition();
-	};
-
-	const setPosition = () => {
-		const tooltip = tooltipRef.current?.parentElement;
-		const tooltipWidth = tooltip.offsetWidth;
-		const tooltipHeight = document.documentElement.clientHeight / 2;
-		const rect = element.getBoundingClientRect();
-		const domRect = view.dom.parentElement.getBoundingClientRect();
-		const mat = getMat();
-		const matHeight = (mat?.getBoundingClientRect().height ?? 0) + 12;
-
-		tooltip.style.top = tooltip.style.bottom = null;
-		const top = rect.top - domRect.top;
-
-		if (tooltipHeight > domRect.height) tooltip.style.top = top + rect.height + "px";
-		else {
-			if (top + tooltipHeight > domRect.height) {
-				tooltip.style.bottom = domRect.height + matHeight - top + "px";
-			} else tooltip.style.top = top + rect.height + "px";
-		}
-
-		tooltip.style.left = tooltip.style.right = null;
-		const left = rect.left - domRect.left;
-
-		if (left > 0 && left + tooltipWidth > domRect.width) tooltip.style.right = "0px";
-		else if (left < 0) tooltip.style.left = "0px";
-		else tooltip.style.left = left + "px";
 	};
 
 	if (mark?.attrs?.comment) {
 		if (!Array.isArray(mark.attrs.answers)) (mark.attrs as CommentBlock).answers = [];
 		return (
-			<div ref={tooltipRef} className={classNames(className, { isLoaded })} data-comment={true}>
+			<Wrapper className={classNames(className, { isLoaded })} data-comment={true}>
 				<CommentBlockComponent
 					maxHeight="50vh"
 					onLoaded={onLoaded}
@@ -78,12 +54,12 @@ const Comment = (props: CommentProps) => {
 					onUpdate={onUpdate}
 					onDeleteComment={onDelete}
 				/>
-			</div>
+			</Wrapper>
 		);
 	}
 
 	return (
-		<div ref={tooltipRef} className={classNames(className, { isLoaded })}>
+		<Wrapper className={classNames(className, { isLoaded })}>
 			<div className="add-input" data-qa="qa-add-comment">
 				<Input
 					onCancel={onDelete}
@@ -93,7 +69,7 @@ const Comment = (props: CommentProps) => {
 					confirmButtonText={t("comment-on")}
 				/>
 			</div>
-		</div>
+		</Wrapper>
 	);
 };
 

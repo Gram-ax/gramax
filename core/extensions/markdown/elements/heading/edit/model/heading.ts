@@ -164,6 +164,16 @@ const Heading = Node.create<HeadingOptions>({
 					});
 					return newTr;
 				},
+				filterTransaction(tr, state) {
+					if (!tr.docChanged) return true;
+
+					const newFirstChild = tr.doc.firstChild;
+					if (newFirstChild === state.doc.firstChild) return true;
+					if (!newFirstChild.childCount) return true;
+					if (newFirstChild.childCount === 1 && newFirstChild.firstChild.type.name === "text") return true;
+
+					return false;
+				},
 			}),
 		];
 	},

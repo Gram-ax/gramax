@@ -7,7 +7,7 @@ const htmlTransform = (tokens: Token[]) => {
 		if (token.type === "tag_open" && token.meta.tag === "html") {
 			let text = "";
 			let nextID = idx + 1;
-			const mode = token.meta.attributes[0].value;
+			const mode = token.meta.attributes?.[0].value || "iframe";
 
 			while (nextID < tokens.length) {
 				const nextToken = tokens[nextID];

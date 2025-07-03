@@ -49,6 +49,7 @@ const getTestModules = async (): Promise<any> => {
 		FileInput: FileInputCdn,
 		DiffFileInput: DiffFileInputCdn,
 		httpFetch: () => undefined,
+		setBadge: () => undefined,
 		openInExplorer: () => undefined,
 		openWindowWithUrl: () => undefined,
 	};

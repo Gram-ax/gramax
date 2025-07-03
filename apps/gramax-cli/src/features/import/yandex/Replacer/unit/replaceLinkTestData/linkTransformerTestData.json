@@ -1,0 +1,140 @@
+{
+	"48057398": {
+		"id": 48057398,
+		"slug": "navigation-root",
+		"title": "Навигация по внутренним ссылкам",
+		"name": "navigation-root",
+		"has_children": true,
+		"content": "[Sed imperdiet](https://wiki.yandex.ru/navigation-root/) dui metus, et accumsan odio hendrerit quis.\n\nPhasellus eu mi quis purus venenatis faucibus.\n\n[Lorem ipsum](https://wiki.yandex.ru/navigation-root/child-1/) [dolor sit](https://wiki.yandex.ru/navigation-root/child-2/) amet\n\n[Morbi vestibulum](https://wiki.yandex.ru/navigation-root/child-1/child-3/) vel [arcu](https://wiki.yandex.ru/navigation-root/child-1/child-3/child-4/)",
+		"breadcrumbs": [
+			{
+				"id": 48057398,
+				"title": "Навигация по внутренним ссылкам",
+				"slug": "navigation-root",
+				"page_exists": true
+			}
+		]
+	},
+	"48057874": {
+		"id": 48057874,
+		"slug": "navigation-root/child-1",
+		"title": "child-1",
+		"name": "child-1",
+		"has_children": true,
+		"content": "Content from child-1\n\n[Link to root](https://wiki.yandex.ru/navigation-root/)\n\n[Link to child-2](https://wiki.yandex.ru/navigation-root/child-2/)\n\n[Link to child-3](https://wiki.yandex.ru/navigation-root/child-1/child-3/)",
+		"breadcrumbs": [
+			{
+				"id": 48057398,
+				"title": "Навигация по внутренним ссылкам",
+				"slug": "navigation-root",
+				"page_exists": true
+			},
+			{
+				"id": 48057874,
+				"title": "child-1",
+				"slug": "navigation-root/child-1",
+				"page_exists": true
+			}
+		]
+	},
+	"48057875": {
+		"id": 48057875,
+		"slug": "navigation-root/child-2",
+		"title": "child-2",
+		"name": "child-2",
+		"has_children": false,
+		"content": "Content from child-2 (no children)\n\n[Back to root](https://wiki.yandex.ru/navigation-root/)\n\n[To sibling child-1](https://wiki.yandex.ru/navigation-root/child-1/)",
+		"breadcrumbs": [
+			{
+				"id": 48057398,
+				"title": "Навигация по внутренним ссылкам",
+				"slug": "navigation-root",
+				"page_exists": true
+			},
+			{
+				"id": 48057875,
+				"title": "child-2",
+				"slug": "navigation-root/child-2",
+				"page_exists": true
+			}
+		]
+	},
+	"48057877": {
+		"id": 48057877,
+		"slug": "navigation-root/child-1/child-3",
+		"title": "child-3",
+		"name": "child-3",
+		"has_children": true,
+		"content": "Content from child-3\n\n[Up to child-1](https://wiki.yandex.ru/navigation-root/child-1/)\n\n[To child-4](https://wiki.yandex.ru/navigation-root/child-1/child-3/child-4/)\n\n[External link](https://external-site.com/page)",
+		"breadcrumbs": [
+			{
+				"id": 48057398,
+				"title": "Навигация по внутренним ссылкам",
+				"slug": "navigation-root",
+				"page_exists": true
+			},
+			{
+				"id": 48057874,
+				"title": "child-1",
+				"slug": "navigation-root/child-1",
+				"page_exists": true
+			},
+			{
+				"id": 48057877,
+				"title": "child-3",
+				"slug": "navigation-root/child-1/child-3",
+				"page_exists": true
+			}
+		]
+	},
+	"48057878": {
+		"id": 48057878,
+		"slug": "navigation-root/child-1/child-3/child-4",
+		"title": "child-4",
+		"name": "child-4",
+		"has_children": false,
+		"content": "child-4\n\n[Sed imperdiet](https://wiki.yandex.ru/navigation-root/) dui metus, et accumsan odio hendrerit quis.\n\nPhasellus eu mi quis purus venenatis faucibus.\n\n[Lorem ipsum](https://wiki.yandex.ru/navigation-root/child-1/) [dolor sit](https://wiki.yandex.ru/navigation-root/child-2/) amet\n\n[Morbi vestibulum](https://wiki.yandex.ru/navigation-root/child-1/child-3/) vel [arcu](https://wiki.yandex.ru/navigation-root/child-1/child-3/child-4/)\n\n[Non-existing link](https://wiki.yandex.ru/non-existing-page/)",
+		"breadcrumbs": [
+			{
+				"id": 48057398,
+				"title": "Навигация по внутренним ссылкам",
+				"slug": "navigation-root",
+				"page_exists": true
+			},
+			{
+				"id": 48057874,
+				"title": "child-1",
+				"slug": "navigation-root/child-1",
+				"page_exists": true
+			},
+			{
+				"id": 48057877,
+				"title": "child-3",
+				"slug": "navigation-root/child-1/child-3",
+				"page_exists": true
+			},
+			{
+				"id": 48057878,
+				"title": "child-4",
+				"slug": "navigation-root/child-1/child-3/child-4",
+				"page_exists": true
+			}
+		]
+	},
+	"48057900": {
+		"id": 48057900,
+		"slug": "other-section",
+		"title": "Other Section",
+		"name": "other-section",
+		"has_children": false,
+		"content": "Content from other section (no children)\n\n[Link to navigation-root](https://wiki.yandex.ru/navigation-root/)\n\n[Link to child-2](https://wiki.yandex.ru/navigation-root/child-2/)",
+		"breadcrumbs": [
+			{
+				"id": 48057900,
+				"title": "Other Section",
+				"slug": "other-section",
+				"page_exists": true
+			}
+		]
+	}
+}

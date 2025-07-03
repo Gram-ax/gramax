@@ -1,4 +1,5 @@
 import { classNames } from "@components/libs/classNames";
+import TableNodeSheet from "@ext/markdown/elements/table/edit/logic/TableNodeSheet";
 import styled from "@emotion/styled";
 import PlusActions from "@ext/markdown/elements/table/edit/components/Helpers/PlusActions";
 import PlusMenu from "@ext/markdown/elements/table/edit/components/Helpers/PlusMenu";
@@ -6,34 +7,32 @@ import {
 	addColumn,
 	addColumnRight,
 	addRow,
-	addRowDecoration,
 	addRowDown,
-	addTdDecoration,
 	getFirstTdPosition,
 	getRowPosition,
 } from "@ext/markdown/elements/table/edit/logic/utils";
-import { HoverEnumTypes } from "@ext/markdown/elements/table/edit/model/tableTypes";
 import { Editor } from "@tiptap/core";
 import { Node } from "@tiptap/pm/model";
 import { Transaction } from "@tiptap/pm/state";
 import { columnResizingPluginKey } from "prosemirror-tables";
-import { MouseEvent, RefObject, useCallback, useEffect, useState } from "react";
+import { RefObject, useCallback, useEffect, useState } from "react";
 
 interface TablePlusActionsProps {
 	node: Node;
 	editor: Editor;
 	getPos: () => number;
 	isHovered: boolean;
-	tableRef: RefObject<HTMLTableElement>;
+	tableRef: RefObject<HTMLElement>;
 	tableSizes: {
 		cols: string[];
 		rows: string[];
 	};
 	className?: string;
+	tableSheet?: TableNodeSheet;
 }
 
 const TablePlusActions = (props: TablePlusActionsProps) => {
-	const { node, getPos, className, tableSizes, tableRef, isHovered, editor } = props;
+	const { node, getPos, className, tableSizes, tableRef, isHovered, editor, tableSheet } = props;
 	const [isVisible, setIsVisible] = useState(true);
 
 	useEffect(() => {
@@ -49,26 +48,6 @@ const TablePlusActions = (props: TablePlusActionsProps) => {
 		return () => {
 			editor.off("transaction", onTransaction);
 		};
-	}, [editor]);
-
-	const onMouseEnter = useCallback(
-		(e: MouseEvent, index: number, type: HoverEnumTypes, vertical?: boolean) => {
-			if (type === HoverEnumTypes.DELETE) {
-				if (vertical)
-					addRowDecoration(node, getPos(), index, editor, {
-						class: "delete",
-					});
-				else
-					addTdDecoration(node, getPos(), index, editor, {
-						class: "delete",
-					});
-			}
-		},
-		[node, editor, getPos, tableSizes],
-	);
-
-	const onMouseLeave = useCallback(() => {
-		editor.view.dispatch(editor.view.state.tr.setMeta("removeDecoration", true));
 	}, [editor]);
 
 	const plusRow = useCallback(
@@ -113,8 +92,6 @@ const TablePlusActions = (props: TablePlusActionsProps) => {
 							<PlusActions
 								index={index}
 								onClick={plusColumn}
-								onMouseEnter={onMouseEnter}
-								onMouseLeave={onMouseLeave}
 								dataQa={`qa-add-column-${index}`}
 								tableRef={tableRef}
 							/>
@@ -123,9 +100,8 @@ const TablePlusActions = (props: TablePlusActionsProps) => {
 								node={node}
 								isHovered={isHovered}
 								index={index}
-								onMouseEnter={onMouseEnter}
-								onMouseLeave={onMouseLeave}
 								editor={editor}
+								tableSheet={tableSheet}
 							/>
 						</div>
 					))}
@@ -133,8 +109,6 @@ const TablePlusActions = (props: TablePlusActionsProps) => {
 						<PlusActions
 							index={tableSizes?.cols?.length}
 							onClick={plusColumn}
-							onMouseEnter={onMouseEnter}
-							onMouseLeave={onMouseLeave}
 							dataQa={`qa-add-column-right`}
 							tableRef={tableRef}
 						/>
@@ -148,8 +122,6 @@ const TablePlusActions = (props: TablePlusActionsProps) => {
 								index={index}
 								vertical
 								onClick={plusRow}
-								onMouseEnter={onMouseEnter}
-								onMouseLeave={onMouseLeave}
 								dataQa={`qa-add-row-${index}`}
 								tableRef={tableRef}
 							/>
@@ -159,9 +131,8 @@ const TablePlusActions = (props: TablePlusActionsProps) => {
 								vertical
 								isHovered={isHovered}
 								index={index}
-								onMouseEnter={onMouseEnter}
-								onMouseLeave={onMouseLeave}
 								editor={editor}
+								tableSheet={tableSheet}
 							/>
 						</div>
 					))}
@@ -170,8 +141,6 @@ const TablePlusActions = (props: TablePlusActionsProps) => {
 							index={tableSizes?.rows?.length}
 							vertical
 							onClick={plusRow}
-							onMouseEnter={onMouseEnter}
-							onMouseLeave={onMouseLeave}
 							dataQa={`qa-add-row-down`}
 							tableRef={tableRef}
 						/>
@@ -185,6 +154,12 @@ const TablePlusActions = (props: TablePlusActionsProps) => {
 export default styled(TablePlusActions)`
 	position: absolute;
 	top: 0;
+	&:has(*[aria-expanded="true"]) {
+		display: flex;
+		visibility: visible !important;
+		pointer-events: auto !important;
+		overflow: visible !important;
+	}
 
 	.table-controller {
 		position: relative;
@@ -197,7 +172,7 @@ export default styled(TablePlusActions)`
 		overflow-x: visible;
 		display: grid;
 		justify-content: center;
-		z-index: var(--z-index-popover);
+		z-index: var(--z-index-base);
 		grid-template-columns: ${({ tableSizes }) => `${tableSizes?.cols?.join(" ")} 0px`};
 
 		.plus-actions-container {
@@ -212,7 +187,7 @@ export default styled(TablePlusActions)`
 		overflow-y: visible;
 		display: grid;
 		justify-content: center;
-		z-index: var(--z-index-popover);
+		z-index: var(--z-index-base);
 		grid-template-rows: ${({ tableSizes }) => `${tableSizes?.rows?.join(" ")} 0px`};
 
 		.plus-actions-container {

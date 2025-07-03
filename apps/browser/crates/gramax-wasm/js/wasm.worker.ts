@@ -10,7 +10,7 @@ const CORS_PROXY_KEY = 1;
 const self = global.self as typeof global.self & {
 	on_done: (callbackId: number, ptr: number) => void;
 	onCloneProgress: (data: any) => void;
-	wasm: typeof WasmModule;
+	wasm: any;
 	store: (key: number, value: string) => Promise<void>;
 	getStore: (key: number) => string;
 };

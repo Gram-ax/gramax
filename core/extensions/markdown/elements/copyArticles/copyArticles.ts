@@ -2,19 +2,24 @@ import ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
 import { copyArticleResource } from "@ext/markdown/elements/copyArticles/copyPasteArticleResource";
 import { ResourceServiceType } from "@ext/markdown/elements/copyArticles/resourceService";
 import { Editor, Extension } from "@tiptap/core";
-import { Node } from "@tiptap/pm/model";
+import { Node, Slice } from "@tiptap/pm/model";
 import { Plugin, Transaction } from "@tiptap/pm/state";
 import { ReplaceAroundStep, ReplaceStep } from "@tiptap/pm/transform";
 import { EditorView } from "prosemirror-view";
 
-const processNode = (childNode: Node, resourceService: ResourceServiceType) => {
-	if (!childNode.isText && Object.keys(childNode.attrs).length !== 0 && childNode.attrs.src) {
+const processNode = (childNode: Node, resourceService: ResourceServiceType, notDeletedSrc?: Set<string>) => {
+	if (
+		!childNode.isText &&
+		Object.keys(childNode.attrs).length !== 0 &&
+		childNode.attrs.src &&
+		!notDeletedSrc.has(childNode.attrs.src)
+	) {
 		const name = childNode.attrs.src.slice(2);
 		void resourceService.setResource(name, resourceService.getBuffer(childNode.attrs.src));
 	}
 
 	for (let index = 0; index < childNode.content.childCount; index++) {
-		processNode(childNode.content.child(index), resourceService);
+		processNode(childNode.content.child(index), resourceService, notDeletedSrc);
 	}
 };
 
@@ -81,12 +86,27 @@ const CopyArticles = Extension.create<CopyArticlesOptions>({
 				},
 				appendTransaction: (transactions: Transaction[]) => {
 					transactions.forEach((tr: Transaction) => {
-						if (!tr.docChanged || !tr.getMeta("history$")) return;
+						const $history = tr.getMeta("history$");
+						if (!tr.docChanged || !$history) return;
+
+						const notDeletedSrc = new Set<string>();
+						const historyState = $history.historyState;
+						const items = $history.redo ? historyState.done.items : historyState.undone.items;
+
+						items.values.forEach((item) => {
+							const slice: Slice = item.step.slice;
+							if (!slice?.content?.childCount) return;
+
+							slice.content.forEach((node) => {
+								if (!node.attrs.src) return;
+								notDeletedSrc.add(node.attrs.src);
+							});
+						});
 
 						tr.steps.forEach((step) => {
 							if (step instanceof ReplaceStep || step instanceof ReplaceAroundStep) {
 								step.slice.content.forEach((node: Node) => {
-									processNode(node, this.options.resourceService);
+									processNode(node, this.options.resourceService, notDeletedSrc);
 								});
 							}
 						});

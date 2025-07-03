@@ -1,0 +1,2 @@
+*.feature diff=text
+*.ts diff=text

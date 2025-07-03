@@ -34,6 +34,7 @@ const getPageDataContext = async ({
 			ui: ctx.ui ?? null,
 		},
 		theme: ctx.theme,
+		wordTemplates: (await app.wtm.from(workspace))?.getTemplates() ?? [],
 		domain: ctx.domain,
 		isLogged: !isStatic && ctx.user.isLogged,
 		sourceDatas: app.rp.getSourceDatas(ctx) ?? [],

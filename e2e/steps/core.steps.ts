@@ -52,7 +52,7 @@ Given("смотрим на редактор заголовка", { timeout: conf
 	await this.page().inner().locator(".ProseMirror :nth-child(1)").first().click({ clickCount: 1, delay: 200 });
 });
 
-Then("заново смотрим на/в {string}", async function (this: E2EWorld, selector: string) {
+When("заново смотрим на/в {string}", async function (this: E2EWorld, selector: string) {
 	await lookAt.bind(this)(selector, true);
 });
 
@@ -88,7 +88,7 @@ When(
 	},
 );
 
-Then("нажимаем на {int} кнопку с текстом {string}", async function (this: E2EWorld, i: number, text: string) {
+When("нажимаем на {int} кнопку с текстом {string}", async function (this: E2EWorld, i: number, text: string) {
 	await this.page().search().clickable(text, undefined, true).nth(i).click();
 });
 
@@ -246,7 +246,7 @@ Then("свойства текущего каталога содержат", asyn
 	}
 });
 
-Then("перезагружаем страницу", async function (this: E2EWorld) {
+When("перезагружаем страницу", async function (this: E2EWorld) {
 	await this.page().inner().reload();
 });
 

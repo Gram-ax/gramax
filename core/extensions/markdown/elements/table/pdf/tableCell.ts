@@ -38,6 +38,7 @@ export const parseCell = async (
 				  ],
 		colSpan: colSpan > 1 ? colSpan : undefined,
 		rowSpan: rowSpan > 1 ? rowSpan : undefined,
+		alignment: attrs.align,
 	};
 
 	return { cellObject, colWidth, colIndex };

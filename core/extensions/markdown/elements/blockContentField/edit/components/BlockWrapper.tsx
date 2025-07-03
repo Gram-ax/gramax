@@ -7,9 +7,9 @@ interface BlockWrapperProps extends React.HTMLAttributes<HTMLDivElement> {
 }
 
 const Wrapper = styled.div<{ readOnly?: boolean }>`
-	border: 1px dashed var(--color-comment-bg);
+	border: 1px dashed var(--color-line);
 	border-radius: var(--radius-medium);
-	margin: -4px -8px 0.2em -9px;
+	margin: 4px -8px 0.85em -9px;
 	padding: 4px 8px;
 	${({ readOnly }) =>
 		readOnly &&

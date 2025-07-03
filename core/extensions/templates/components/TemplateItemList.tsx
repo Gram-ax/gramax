@@ -53,7 +53,7 @@ const TemplateItemList = ({ itemRefPath }: { itemRefPath: string }) => {
 		itemPropsData.template = item.id;
 		itemPropsData.title = itemPropsData.title !== t("article.no-name") ? itemPropsData.title : "";
 
-		const setArticleContentUrl = apiUrlCreator.setArticleContent(itemRefPath, true);
+		const setArticleContentUrl = apiUrlCreator.setArticleContent(itemRefPath);
 		await FetchService.fetch(setArticleContentUrl, "");
 
 		const url = apiUrlCreator.updateItemProps();
@@ -90,6 +90,21 @@ const TemplateItemList = ({ itemRefPath }: { itemRefPath: string }) => {
 		}
 	};
 
+	const items = isApiRequest
+		? [...Array(3)].map((_, index) => (
+				<Loader key={index}>
+					<ButtonLink text={t("loading")} />
+					<SpinnerLoader width={14} height={14} />
+				</Loader>
+		  ))
+		: list.map((item) => (
+				<ButtonLink
+					key={item.id}
+					text={item.title.length ? item.title : t("article.no-name")}
+					onClick={() => onClickHandler(item)}
+				/>
+		  ));
+
 	return (
 		<PopupMenuLayout
 			appendTo={() => ref.current}
@@ -102,24 +117,7 @@ const TemplateItemList = ({ itemRefPath }: { itemRefPath: string }) => {
 			}}
 			trigger={<DropdownButton ref={ref} iconCode="layout-template" text={t("template.choose-template")} />}
 		>
-			{isApiRequest ? (
-				<>
-					{[...Array(3)].map((_, index) => (
-						<Loader key={index}>
-							<ButtonLink text={t("loading")} />
-							<SpinnerLoader width={14} height={14} />
-						</Loader>
-					))}
-				</>
-			) : (
-				list.map((item) => (
-					<ButtonLink
-						key={item.id}
-						text={item.title.length ? item.title : t("article.no-name")}
-						onClick={() => onClickHandler(item)}
-					/>
-				))
-			)}
+			{items.length ? items : <ButtonLink text={t("template.no-templates")} />}
 		</PopupMenuLayout>
 	);
 };

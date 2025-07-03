@@ -259,7 +259,9 @@ impl<C: Creds> Repo<C> {
     let time_repack = time_now() - start;
 
     let pack_name = packbuilder.name().or_utf8_err()?;
-    let packfile_path = self.0.path().join("objects/pack").join(pack_name).with_extension("pack");
+    let pack_dir = self.0.path().join("objects/pack");
+    std::fs::create_dir_all(&pack_dir)?;
+    let packfile_path = pack_dir.join(pack_name).with_extension("pack");
 
     info!(target: TAG, "repacked {} objects in {:?}; packfile: {}", packbuilder.written(), time_repack, packfile_path.display());
     Ok(())

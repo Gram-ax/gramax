@@ -18,6 +18,7 @@ import TemplateService from "@ext/templates/components/TemplateService";
 import SnippetService from "@ext/markdown/elements/snippet/edit/components/Tab/SnippetService";
 import PromptService from "@ext/ai/components/Tab/PromptService";
 import t from "@ext/localization/locale/translate";
+import FavoriteService from "@ext/artilce/Favorite/components/FavoriteService";
 
 interface TopBarContentProps {
 	data: ArticlePageData;
@@ -38,6 +39,7 @@ const TopBarContent = ({ data, isMacDesktop, currentTab, setCurrentTab, classNam
 	const { templates } = TemplateService.value;
 	const { snippets } = SnippetService.value;
 	const { items: promptNotes } = PromptService.value;
+	const { articles } = FavoriteService.value;
 
 	const onCloseInbox = () => {
 		InboxService.removeAllItems();
@@ -76,6 +78,15 @@ const TopBarContent = ({ data, isMacDesktop, currentTab, setCurrentTab, classNam
 						isMacDesktop={isMacDesktop}
 						setCurrentTab={setCurrentTab}
 						onCloseNotification={onCloseInbox}
+					/>
+				)}
+				{currentTab === LeftNavigationTab.FavoriteArticles && (
+					<NotificationIcon
+						iconCode="star"
+						tooltipText={t("favorites-articles")}
+						count={articles.length}
+						isMacDesktop={isMacDesktop}
+						setCurrentTab={setCurrentTab}
 					/>
 				)}
 				{currentTab === LeftNavigationTab.Template && (

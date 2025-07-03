@@ -1,11 +1,12 @@
 import styled from "@emotion/styled";
 import { Property } from "csstype";
+import { forwardRef, LegacyRef } from "react";
 import { DiffHunk } from "../../extensions/VersionControl/DiffHandler/model/DiffHunk";
 import { FileStatus } from "../../extensions/Watchers/model/FileStatus";
 import Code from "./Code";
 
-const DiffContent = styled(
-	({
+const DiffContent = (
+	{
 		showDiff,
 		changes,
 		isCode = true,
@@ -21,27 +22,30 @@ const DiffContent = styled(
 		whiteSpace?: Property.WhiteSpace;
 		isCode?: boolean;
 		className?: string;
-	}) => {
-		if (changes.length == 0) return null;
-		const content = showDiff ? changes : changes.filter((c) => c.type !== FileStatus.delete);
-
-		return (
-			<div className={className}>
-				{content.map((c, idx) => {
-					return isCode ? (
-						<Code className={showDiff ? c.type ?? "common" : "common"} key={idx}>
-							{c.value}
-						</Code>
-					) : (
-						<span className={showDiff ? c.type ?? "common" : "common"} key={idx}>
-							{c.value}
-						</span>
-					);
-				})}
-			</div>
-		);
 	},
-)`
+	ref: LegacyRef<HTMLDivElement>,
+) => {
+	if (changes.length == 0) return null;
+	const content = showDiff ? changes : changes.filter((c) => c.type !== FileStatus.delete);
+
+	return (
+		<div className={className} ref={ref}>
+			{content.map((c, idx) => {
+				return isCode ? (
+					<Code className={showDiff ? c.type ?? "common" : "common"} key={idx}>
+						{c.value}
+					</Code>
+				) : (
+					<span className={showDiff ? c.type ?? "common" : "common"} key={idx}>
+						{c.value}
+					</span>
+				);
+			})}
+		</div>
+	);
+};
+
+export default styled(forwardRef(DiffContent))`
 	${(p) =>
 		p.isCode === false
 			? `
@@ -80,5 +84,3 @@ const DiffContent = styled(
 				: `color: var(--color-removed-text); background: var(--color-removed-bg)`}
 	}
 `;
-
-export default DiffContent;

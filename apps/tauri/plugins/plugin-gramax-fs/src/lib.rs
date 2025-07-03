@@ -72,15 +72,16 @@ pub fn init<R: Runtime>() -> TauriPlugin<R> {
   use commands::*;
 
   let builder = Builder::new("plugin-gramax-fs")
-    .setup(|_app, _api| {
+    .setup(|app, _api| {
       #[cfg(target_os = "ios")]
       _api.register_ios_plugin(init_plugin_gramaxfs)?;
 
       #[cfg(target_os = "android")]
-      _api.register_android_plugin("gramax.app", "GramaxFS")?;
+      _api.register_android_plugin(app.config().identifier.as_str(), "GramaxFS")?;
       Ok(())
     })
     .invoke_handler(tauri::generate_handler![
+      write_file,
       read_dir,
       read_link,
       make_dir,
@@ -95,7 +96,9 @@ pub fn init<R: Runtime>() -> TauriPlugin<R> {
     ]);
 
   #[cfg(not(target_os = "linux"))]
-  let builder = builder.register_asynchronous_uri_scheme_protocol("gramax-fs-stream", |_, req, responder| responder.respond(handle_req(req)));
+  let builder = builder.register_asynchronous_uri_scheme_protocol("gramax-fs-stream", |_, req, responder| {
+    responder.respond(handle_req(req))
+  });
 
   #[cfg(target_os = "linux")]
   let builder = builder.register_uri_scheme_protocol("gramax-fs-stream", |_, req| handle_req(req));

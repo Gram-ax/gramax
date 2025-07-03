@@ -3,9 +3,9 @@ import { NodeViewContent, NodeViewProps, NodeViewWrapper } from "@tiptap/react";
 import { useState } from "react";
 import styled from "@emotion/styled";
 
-const Wrapper = styled.div`
+const Wrapper = styled.div<{ readOnly?: boolean }>`
 	min-height: 1.7em;
-	pointer-events: none;
+	pointer-events: ${({ readOnly }) => (readOnly ? "none" : "auto")};
 `;
 
 const BlockPropertyComponent = ({ extension }: NodeViewProps) => {
@@ -14,7 +14,7 @@ const BlockPropertyComponent = ({ extension }: NodeViewProps) => {
 	return (
 		<NodeViewWrapper>
 			<BlockWrapper readOnly={!isEditable}>
-				<Wrapper>
+				<Wrapper readOnly={!isEditable}>
 					<NodeViewContent />
 				</Wrapper>
 			</BlockWrapper>

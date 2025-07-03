@@ -4,6 +4,7 @@ import { classNames } from "@components/libs/classNames";
 import ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
 import FetchService from "@core-ui/ApiServices/FetchService";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
+import ArticlePropsService from "@core-ui/ContextServices/ArticleProps";
 import ArticleRefService from "@core-ui/ContextServices/ArticleRef";
 import CatalogPropsService from "@core-ui/ContextServices/CatalogProps";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
@@ -13,6 +14,7 @@ import { ClientArticleProps, ClientCatalogProps } from "@core/SitePresenter/Site
 import styled from "@emotion/styled";
 import { RenderableTreeNodes } from "@ext/markdown/core/render/logic/Markdoc";
 import ResourceService from "@ext/markdown/elements/copyArticles/resourceService";
+import PropertyServiceProvider from "@ext/properties/components/PropertyService";
 import { Mark } from "@tiptap/pm/model";
 import { ReactNode, useCallback, useEffect, useRef, useState } from "react";
 import { useLocation } from "wouter";
@@ -176,9 +178,13 @@ const TooltipProvider = (props: TooltipProviderProps) => {
 			<ResourceService.Provider>
 				<PageDataContextService.Provider value={pageDataContext}>
 					<CatalogPropsService.Context value={catalogProps}>
-						<ArticleRefService.Provider>
-							<>{children}</>
-						</ArticleRefService.Provider>
+						<ArticlePropsService.Provider value={data?.articleProps}>
+							<PropertyServiceProvider.Provider>
+								<ArticleRefService.Provider>
+									<>{children}</>
+								</ArticleRefService.Provider>
+							</PropertyServiceProvider.Provider>
+						</ArticlePropsService.Provider>
 					</CatalogPropsService.Context>
 				</PageDataContextService.Provider>
 			</ResourceService.Provider>

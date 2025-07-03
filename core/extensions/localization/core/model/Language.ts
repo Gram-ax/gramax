@@ -23,6 +23,7 @@ export enum ContentLanguage {
 	nl = "nl",
 	cs = "cs",
 	sv = "sv",
+	ky = "ky",
 }
 
 export const defaultLanguage = UiLanguage.en;

@@ -2,8 +2,8 @@ import UserSettings, { EnterpriseWorkspaceConfig } from "@ext/enterprise/types/U
 import DefaultError from "@ext/errorHandlers/logic/DefaultError";
 import t from "@ext/localization/locale/translate";
 import UserInfo from "@ext/security/logic/User/UserInfo";
-import type { StyleGuideGptResponseModel } from "@ics/gx-ai";
 import { RequestChunkModel } from "@ics/gx-ai/dist/styleGuideCheck/styleGuideGptRequest";
+import { Suggestion } from "@ics/gx-ai/dist/styleGuideCheck/styleGuideGptResponse";
 
 class EnterpriseApi {
 	constructor(private _gesUrl: string) {}
@@ -92,7 +92,7 @@ class EnterpriseApi {
 		return res.ok && res.status === 200;
 	}
 
-	async checkStyleGuide(paragraphs: RequestChunkModel[]): Promise<StyleGuideGptResponseModel> {
+	async checkStyleGuide(paragraphs: RequestChunkModel[]): Promise<Suggestion[]> {
 		try {
 			const res = await fetch(`${this._gesUrl}/enterprise/style-guide/check`, {
 				method: "POST",

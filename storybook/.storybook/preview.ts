@@ -1,3 +1,4 @@
+import "ics-ui-kit/styles.css";
 import "../../core/styles/ProseMirror.css";
 import "../../core/styles/admonition.css";
 import "../../core/styles/article-alfabeta.css";
@@ -38,6 +39,9 @@ initialize(
 			return HttpResponse.json(`{"isExist":false}`, { status: 200 });
 		}),
 		http.get("/api/catalog/logo", () => {
+			return HttpResponse.json(`{}`, { status: 200 });
+		}),
+		http.get("/api/storage/getAllSyncCount", () => {
 			return HttpResponse.json(`{}`, { status: 200 });
 		}),
 	],

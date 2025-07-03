@@ -27,6 +27,7 @@ const COMMANDS: &[&str] = &[
   "get_parent",
   "get_content",
   "graph_head_upstream_files",
+  "get_commit_info",
   "find_refs_by_globs",
   "is_init",
   "is_bare",

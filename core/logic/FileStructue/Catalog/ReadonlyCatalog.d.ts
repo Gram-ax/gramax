@@ -9,13 +9,13 @@ import type { Item, ItemProps } from "@core/FileStructue/Item/Item";
 import type { ItemRef } from "@core/FileStructue/Item/ItemRef";
 import type PathnameData from "@core/RouterPath/model/PathnameData";
 import type Repository from "@ext/git/core/Repository/Repository";
-import type { CatalogErrors } from "@ext/healthcheck/logic/Healthcheck";
 import type IconProvider from "@ext/markdown/elements/icon/logic/IconProvider";
 import type SnippetProvider from "@ext/markdown/elements/snippet/logic/SnippetProvider";
 import type IPermission from "@ext/security/logic/Permission/IPermission";
 import type InboxProvider from "@ext/inbox/logic/InboxProvider";
 import type TemplateProvider from "@ext/templates/logic/TemplateProvider";
 import PromptProvider from "@ext/ai/logic/PromptProvider";
+import CatalogLinksProvider from "@ext/properties/logic/CatalogLinksProvider";
 
 export interface ReadonlyCatalog<P extends CatalogProps = CatalogProps> extends ReadonlyBaseCatalog<P> {
 	get deref(): Catalog<P>;
@@ -27,12 +27,12 @@ export interface ReadonlyCatalog<P extends CatalogProps = CatalogProps> extends 
 		promptProvider: PromptProvider;
 		snippetProvider: SnippetProvider;
 		iconProvider: IconProvider;
+		linksProvider: CatalogLinksProvider;
 	};
 
 	getRootCategory(): Category<P>;
 	getRootCategoryRef(): ItemRef;
 	getRootCategoryPath(): Path;
-	getHeadVersion(): Promise<ReadonlyCatalog<P>>;
 	getRepositoryRelativePath(ref: Path | ItemRef): Path;
 
 	getItemRefPath(relativeRepoPath: Path): Path;

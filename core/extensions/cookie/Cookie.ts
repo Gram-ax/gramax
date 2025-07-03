@@ -10,7 +10,7 @@ export default abstract class Cookie {
 	private _secret: string;
 
 	constructor(secret: string) {
-		this._secret = secret ?? ".";
+		this._secret = secret || ".";
 	}
 
 	protected _encrypt(value: string): string {
@@ -18,7 +18,19 @@ export default abstract class Cookie {
 	}
 
 	protected _decrypt(value: string): string {
-		return cryptoJS.AES.decrypt(value ?? "", this._secret).toString(cryptoJS.enc.Utf8);
+		try {
+			return cryptoJS.AES.decrypt(value ?? "", this._secret).toString(cryptoJS.enc.Utf8);
+		} catch (e) {
+			try {
+				return cryptoJS.AES.decrypt(value ?? "", "").toString(cryptoJS.enc.Utf8);
+			} catch {
+				try {
+					return cryptoJS.AES.decrypt(value ?? "", ".").toString(cryptoJS.enc.Utf8);
+				} catch (e) {
+					console.warn(new Error("Cookie decrypt error", { cause: e }));
+				}
+			}
+		}
 	}
 
 	protected _parse(cookieString: string, name: string) {

@@ -3,7 +3,7 @@ import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import { useDebounce } from "@core-ui/hooks/useDebounce";
 import styled from "@emotion/styled";
 import EnterpriseApi from "@ext/enterprise/EnterpriseApi";
-import { Signature } from "@ext/git/core/GitMergeRequest/model/MergeRequest";
+import type { Signature } from "@ext/git/core/model/Signature";
 import { useRef, useState } from "react";
 
 const Select = styled(SelectSrc)`

@@ -1,3 +1,4 @@
+import PathUtils from "path";
 import FileInfo from "@core/FileProvider/model/FileInfo";
 import { InitialDataKeys } from "../../../apps/gramax-cli/src/logic/StaticSiteBuilder";
 
@@ -31,7 +32,8 @@ const commands = {
 		const file = findItemByPath(path);
 
 		if (file?.type === "file") {
-			return Buffer.from(await (await fetch(`${location.origin}${path}`)).arrayBuffer());
+			const importPath = new URL(PathUtils.join(document.baseURI, path)).href;
+			return Buffer.from(await (await fetch(importPath)).arrayBuffer());
 		} else {
 			throw new Error(`File not found or is a directory: ${path}`);
 		}

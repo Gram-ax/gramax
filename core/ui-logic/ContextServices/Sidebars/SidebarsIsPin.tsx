@@ -49,8 +49,9 @@ abstract class SidebarsIsPinService {
 	}
 
 	static get value(): { left: boolean; right: boolean } {
+		const value = useContext(SidebarsIsPinContext);
 		if (SidebarsIsPinService._mediumMedia) return { left: false, right: false };
-		return useContext(SidebarsIsPinContext) ?? ({} as any);
+		return value ?? ({} as any);
 	}
 
 	static set value(props: { left: boolean; right?: boolean } | { left?: boolean; right: boolean }) {

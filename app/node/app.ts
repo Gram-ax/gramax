@@ -46,6 +46,7 @@ import FSTemplateEvents from "../../core/extensions/templates/logic/FSTemplateEv
 import { AppConfig, getConfig } from "../config/AppConfig";
 import Application from "../types/Application";
 import { AiDataProvider } from "@ext/ai/logic/AiDataProvider";
+import { WordTemplateManager } from "@ext/wordExport/WordTemplateManager";
 
 const _init = async (config: AppConfig): Promise<Application> => {
 	await initModulesFrontend();
@@ -155,6 +156,8 @@ const _init = async (config: AppConfig): Promise<Application> => {
 
 	const workspaceConfig = await wm.maybeCurrent()?.config();
 
+	const wtm = new WordTemplateManager(wm);
+
 	return {
 		tm,
 		am,
@@ -163,6 +166,7 @@ const _init = async (config: AppConfig): Promise<Application> => {
 		em,
 		vur,
 		adp,
+		wtm,
 		parser,
 		logger,
 		hashes,

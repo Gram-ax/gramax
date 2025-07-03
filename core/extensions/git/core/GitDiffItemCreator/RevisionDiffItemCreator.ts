@@ -1,9 +1,7 @@
-import Path from "@core/FileProvider/Path/Path";
+import FileProvider from "@core/FileProvider/model/FileProvider";
 import { Article } from "@core/FileStructue/Article/Article";
-import ArticleParser from "@core/FileStructue/Article/ArticleParser";
 import { ReadonlyCatalog } from "@core/FileStructue/Catalog/ReadonlyCatalog";
 import FileStructure from "@core/FileStructue/FileStructure";
-import { MarkdownExtension } from "@core/FileStructue/Item/ItemExtensions";
 import SitePresenter from "@core/SitePresenter/SitePresenter";
 import {
 	DiffTree2TreeFile,
@@ -11,15 +9,14 @@ import {
 	type DiffCompareOptions,
 } from "@ext/git/core/GitCommands/model/GitCommandsModel";
 import GitDiffItemCreator from "@ext/git/core/GitDiffItemCreator/GitDiffItemCreator";
-import { GitVersion } from "@ext/git/core/model/GitVersion";
-import getArticleWithTitle from "@ext/markdown/elements/article/edit/logic/getArticleWithTitle";
 import type { DiffItem, DiffResource } from "@ext/VersionControl/model/Diff";
 import { FileStatus } from "@ext/Watchers/model/FileStatus";
-import { JSONContent } from "@tiptap/core";
 
 type PathAssignees = Map<string, { article: Article; catalog: ReadonlyCatalog }>;
 
 export default class RevisionDiffItemCreator extends GitDiffItemCreator {
+	private _fp: FileProvider;
+
 	constructor(
 		catalog: ReadonlyCatalog,
 		sp: SitePresenter,
@@ -27,31 +24,9 @@ export default class RevisionDiffItemCreator extends GitDiffItemCreator {
 		private _compareOptions: DiffCompareOptions,
 		private _oldCatalog: ReadonlyCatalog,
 		private _newCatalog: ReadonlyCatalog,
-		private _articleParser: ArticleParser,
 	) {
 		super(catalog, sp, fs);
-	}
-
-	protected _getNewContent(path: Path): Promise<string> {
-		if (this._compareOptions.type === "index" || this._compareOptions.type === "workdir")
-			return this._fs.fp.read(this._newCatalog.getItemRefPath(path));
-
-		if (this._compareOptions.type === "tree")
-			return this._gitVersionControl.showFileContent(path, GitVersion.from(this._compareOptions.new));
-
-		throw new Error(`Unsupported compare type: ${JSON.stringify(this._compareOptions)}`);
-	}
-
-	protected _getOldContent(path: Path): Promise<string> {
-		if (this._compareOptions.type === "index" || this._compareOptions.type === "workdir")
-			return this._compareOptions.tree
-				? this._gitVersionControl.showFileContent(path, GitVersion.from(this._compareOptions.tree))
-				: this._gitVersionControl.showLastCommitContent(path);
-
-		if (this._compareOptions.type === "tree")
-			return this._gitVersionControl.showFileContent(path, GitVersion.from(this._compareOptions.old));
-
-		throw new Error(`Unsupported compare type: ${JSON.stringify(this._compareOptions)}`);
+		this._fp = fs.fp;
 	}
 
 	protected async _assignResourcesToItems(
@@ -99,7 +74,7 @@ export default class RevisionDiffItemCreator extends GitDiffItemCreator {
 					if (resourceManager.getAbsolutePath(path).endsWith(resource.path)) {
 						resourcePathAssignees.set(resource.path.value, { article, catalog });
 						parentPath = catalog.getRepositoryRelativePath(article.ref).value;
-						const diffResource = await this._getDiffResource(resource, {
+						const diffResource = this._getDiffResource(resource, {
 							path: parentPath,
 							oldPath: parentPath,
 						});
@@ -147,7 +122,7 @@ export default class RevisionDiffItemCreator extends GitDiffItemCreator {
 			}
 
 			if (!isResourceAssigned) {
-				const unassigneedResource = await this._getDiffResource(resource, {
+				const unassigneedResource = this._getDiffResource(resource, {
 					path: parentPath,
 					oldPath: parentPath,
 				});
@@ -172,28 +147,28 @@ export default class RevisionDiffItemCreator extends GitDiffItemCreator {
 	}
 
 	protected async _getOldDiffItem(file: DiffTree2TreeFile): Promise<DiffItem> {
+		if (!this._isMarkdown(file.path)) return null;
+
 		const diffItem = await super._getOldDiffItem(file);
 		const itemRef = this._fp.getItemRef(this._oldCatalog.getItemRefPath(file.path));
 		const oldArticle = this._oldCatalog.findItemByItemRef<Article>(itemRef);
+		if (!oldArticle) return null;
 		const logicPath = await this._oldCatalog.getPathname(oldArticle);
 
-		diffItem.oldEditTree = await this._getEditTree(oldArticle, this._oldCatalog);
 		diffItem.logicPath = logicPath;
+		diffItem.title = oldArticle.getTitle();
 
 		return diffItem;
 	}
 
 	protected async _getNewOrModifiedDiffItem(file: DiffTree2TreeFile): Promise<DiffItem> {
-		if (file.path.allExtensions[0] !== MarkdownExtension) return null;
+		if (!this._isMarkdown(file.path)) return null;
 
 		const newArticleItemRef = this._fp.getItemRef(this._newCatalog.getItemRefPath(file.path));
 		const newArticle = this._newCatalog.findItemByItemRef<Article>(newArticleItemRef);
 		if (!newArticle) return null;
 
-		const oldArticleItemRef = this._fp.getItemRef(this._oldCatalog.getItemRefPath(file.oldPath));
-		const oldArticle = this._oldCatalog.findItemByItemRef<Article>(oldArticleItemRef);
-
-		return this._getNewOrModifiedDiffItemByArticle(file, newArticle, this._newCatalog, true, [], oldArticle);
+		return this._getNewOrModifiedDiffItemByArticle(file, newArticle, this._newCatalog, true, []);
 	}
 
 	protected async _getDiffFiles(): Promise<DiffTree2TreeInfo> {
@@ -209,25 +184,16 @@ export default class RevisionDiffItemCreator extends GitDiffItemCreator {
 		catalog: ReadonlyCatalog,
 		isChanged: boolean,
 		resources: DiffResource[] = [],
-		oldArticle?: Article,
 	): Promise<DiffItem> {
-		const content = await this._getNewContentCached(file);
-		const filePath = this._getFilePath(file);
-
 		return {
 			type: "item",
 			status: file.status,
 			title: article.getTitle(),
 			order: article.props.order,
-			filePath,
-			content,
-			hunks: await this._getDiffHunksByFile(file),
-			oldContent: await this._getOldContentCached(file),
+			filePath: this._getFilePath(file),
 			logicPath: await catalog.getPathname(article),
 			resources,
 			isChanged,
-			oldEditTree: file.status === FileStatus.new ? null : await this._getEditTree(oldArticle, this._oldCatalog),
-			newEditTree: await this._getEditTree(article, this._newCatalog),
 			added: file?.added,
 			deleted: file?.deleted,
 		};
@@ -241,19 +207,5 @@ export default class RevisionDiffItemCreator extends GitDiffItemCreator {
 			added: 0,
 			deleted: 0,
 		};
-	}
-
-	private async _getEditTree(article: Article, catalog: ReadonlyCatalog): Promise<JSONContent> {
-		if (!article) return null;
-
-		if (await article.parsedContent.isNull()) {
-			try {
-				await this._articleParser.parse(article, catalog);
-			} catch {
-				return null;
-			}
-		}
-		const editTree = { ...(await article.parsedContent.read((p) => p?.editTree)) };
-		return getArticleWithTitle(article.getTitle(), editTree);
 	}
 }

@@ -5,7 +5,7 @@ use std::sync::Mutex;
 
 use tauri::*;
 
-use crate::MainWindowBuilder;
+use crate::shared::MainWindowBuilder;
 
 use super::save_windows::SaveWindowsExt;
 
@@ -15,12 +15,18 @@ pub struct OpenUrl(pub Mutex<Option<String>>);
 
 type InitResult = std::result::Result<(), Box<dyn std::error::Error>>;
 
+pub fn window_post_init<R: Runtime>(_: &WebviewWindow<R>) -> Result<()> {
+  Ok(())
+}
+
 pub fn init_app<R: Runtime>(app: &mut App<R>) -> InitResult {
   #[cfg(target_os = "macos")]
   macos_init_spellcheck(&app.config().identifier);
 
-  let manager = app.handle().to_owned();
-  app.run_on_main_thread(move || super::migrate_settings::try_migrate_settings(&manager))?;
+  #[cfg(target_os = "windows")]
+  if let Err(e) = windows_init_badges(app) {
+    error!("failed to init badges: {}", e);
+  }
 
   app.on_menu_event(super::menu::on_menu_event);
 
@@ -97,4 +103,64 @@ pub fn macos_init_spellcheck(app_id: &str) {
     Ok(_) => {}
     Err(e) => error!("failed to run {:?} command; error: {}", cmd, e),
   };
+}
+
+#[cfg(target_os = "windows")]
+pub struct Badges<'b>(Vec<tauri::image::Image<'b>>);
+
+#[cfg(target_os = "windows")]
+impl Badges<'_> {
+  pub fn set_badge<R: Runtime>(window: &WebviewWindow<R>, count: Option<usize>) -> tauri::Result<()> {
+    let Some(badges) = window.app_handle().try_state::<Badges>() else {
+      return Ok(());
+    };
+
+    let badge = match count {
+      Some(0) | None => return window.set_overlay_icon(None),
+      Some(count) => badges.0.get(count.clamp(0, badges.0.len()) - 1).cloned(),
+    };
+
+    window.set_overlay_icon(badge)?;
+    Ok(())
+  }
+}
+
+#[cfg(target_os = "windows")]
+pub fn windows_init_badges<R: Runtime>(app: &App<R>) -> anyhow::Result<()> {
+  const BADGES_BYTES: &[u8] = include_bytes!("../../../icons/badges.tar.xz");
+  
+  use std::io::Read;
+  use tauri::image::Image;
+
+  let mut xz = Vec::new();
+  lzma_rs::xz_decompress(&mut std::io::Cursor::new(BADGES_BYTES), &mut xz)?;
+  let mut archive = tar::Archive::new(std::io::Cursor::new(xz));
+
+  let mut badges = Vec::<(usize, Image)>::with_capacity(100);
+
+  for entry in archive.entries()? {
+    let mut entry = entry?;
+    let mut buf = Vec::<u8>::with_capacity(1024);
+    entry.read_to_end(&mut buf)?;
+    let name = entry.path()?.to_path_buf();
+
+    let number = name
+      .file_name()
+      .and_then(|name| name.to_str())
+      .and_then(|name| name.split_once("_").map(|(_, num)| num))
+      .and_then(|num| num.split_once(".").map(|(num, _)| num))
+      .and_then(|num| num.parse::<usize>().ok())
+      .unwrap_or(usize::MAX);
+
+    let image = Image::from_bytes(&buf)?;
+    badges.push((number, image));
+  }
+
+  badges.sort_by(|(a, _), (b, _)| a.cmp(b));
+  let badges = Badges(badges.into_iter().map(|(_, image)| image).collect());
+
+  info!("loaded {} badges", badges.0.len());
+  app.manage(badges);
+
+  Ok(())
 }

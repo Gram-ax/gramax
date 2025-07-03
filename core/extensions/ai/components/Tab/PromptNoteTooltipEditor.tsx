@@ -60,14 +60,14 @@ const Tooltip = ({ item, ...rest }: PromptNoteTooltipEditorProps) => {
 							editor.state.doc.firstChild.type.name === "paragraph" &&
 							editor.state.doc.firstChild === node
 						)
-							return t("inbox.placeholders.title");
+							return t("ai.prompt.placeholder.title");
 
 						if (
 							node.type.name === "paragraph" &&
 							editor.state.doc.content.child(1) === node &&
 							editor.state.doc.content.childCount === 2
 						)
-							return t("inbox.placeholders.content");
+							return t("ai.prompt.placeholder.content");
 					},
 				}),
 			]}

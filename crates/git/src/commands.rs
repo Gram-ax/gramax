@@ -231,6 +231,11 @@ pub fn graph_head_upstream_files(repo_path: &Path, search_in: &Path) -> Result<U
   Ok(Repo::open(repo_path, DummyCreds)?.graph_head_upstream_files(search_in)?)
 }
 
+pub fn get_commit_info(repo_path: &Path, oid: &str, opts: CommitInfoOpts) -> Result<Vec<CommitInfo>> {
+  let oid = Oid::from_str(oid).map_err(Error::from)?;
+  Repo::execute_without_creds_try_lock(repo_path, |repo| Ok(repo.get_commit_info(oid, opts)?))
+}
+
 pub fn merge(repo_path: &Path, creds: AccessTokenCreds, opts: MergeOptions) -> Result<MergeResult> {
   Repo::execute_with_creds_lock(repo_path, creds, |repo| Ok(repo.merge(opts)?))
 }

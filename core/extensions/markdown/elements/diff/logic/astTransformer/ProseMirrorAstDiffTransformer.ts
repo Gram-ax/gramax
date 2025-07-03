@@ -59,7 +59,11 @@ export default class ProsemirrorAstDiffTransformer extends AstDiffTransformer {
 	private _astWalker(node: Node, pos: number, strings: string[], matrix: number[][]) {
 		if (node.type.name === "paragraph" || node.type.name === "heading") {
 			const string = node.textContent;
-			if (!string) return;
+			if (!string) {
+				strings.push("");
+				matrix.push([pos]);
+				return;
+			}
 
 			strings.push(string);
 			const positions: number[] = [];

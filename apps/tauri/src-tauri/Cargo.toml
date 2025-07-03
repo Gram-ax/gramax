@@ -18,6 +18,7 @@ tauri-plugin-log = { workspace = true }
 tauri-plugin-dialog = { workspace = true }
 tauri-plugin-deep-link = { workspace = true }
 tauri-plugin-window-state = { workspace = true }
+tauri-plugin-shell = { workspace = true }
 
 plugin-gramax-fs = { path = "../plugins/plugin-gramax-fs" }
 plugin-gramax-git = { path = "../plugins/plugin-gramax-git" }
@@ -31,8 +32,6 @@ url = "2.4.0"
 log = "0.4.20"
 semver = { version = "1.0.18", features = ["serde"] }
 strum = { version = "0.27.0", features = ["derive"] }
-rfd = { version = "^0.14", default-features = false, features = ["gtk3"] }
-trash = "5.1.0"
 rust-i18n = "3.0.1"
 sys-locale = "0.3.1"
 reqwest = { workspace = true }
@@ -44,16 +43,19 @@ windows-sys = { version = "0.59.0", features = [
   "Win32_System_LibraryLoader",
   "Win32_Foundation",
 ] }
+tar = "^0.4.44"
+lzma-rs = "^0.3.0"
 
 [target.'cfg(any(target_os = "windows", target_os = "macos", target_os = "linux"))'.dependencies]
 tauri-plugin-updater = { workspace = true }
-tauri-plugin-shell = { workspace = true }
+rfd = { version = "^0.14", default-features = false, features = ["gtk3"] }
+trash = "5.1.0"
 
 tokio = { version = "1.32.0", features = ["time"] }
 open = "5.0.0"
 
-# [target.'cfg(target_os = "android")'.dependencies]
-# android-intent = { git = "https://github.com/pashokitsme/android-intent.git" }
+[target.'cfg(target_os = "android")'.dependencies]
+android-intent = { git = "https://github.com/pashokitsme/android-intent.git" }
 
 [target.'cfg(target_os = "ios")'.dependencies]
 cacao = { version = "0.3.2", default-features = false, features = ["uikit"] }

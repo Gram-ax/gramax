@@ -1,9 +1,5 @@
 import type { GitVersion } from "@ext/git/core/model/GitVersion";
-
-export type Signature = {
-	name: string;
-	email: string;
-};
+import { Signature } from "@ext/git/core/model/Signature";
 
 export type ApprovalSignature = Signature & {
 	approvedAt?: Date;

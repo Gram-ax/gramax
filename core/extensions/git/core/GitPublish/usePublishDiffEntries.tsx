@@ -27,6 +27,7 @@ const usePublishDiffEntries = ({ autoUpdate }: { autoUpdate?: boolean }): UsePub
 	const [isEntriesReady, setIsEntriesReady] = useState(false);
 
 	const overview = GitIndexService.getOverview();
+	const gitStatus = GitIndexService.getStatus();
 
 	useWatch(() => {
 		if (!diffTree) return;
@@ -37,7 +38,7 @@ const usePublishDiffEntries = ({ autoUpdate }: { autoUpdate?: boolean }): UsePub
 	const request = useCallback(async () => {
 		const timeout = setTimeout(() => setIsEntriesLoading(true), 150);
 
-		const url = apiUrlCreator.getVersionControlDiffTreeUrl();
+		const url = apiUrlCreator.getVersionControlDiffTreeUrl("HEAD");
 		const res = await FetchService.fetch<DiffTree>(url);
 
 		clearTimeout(timeout);
@@ -52,10 +53,12 @@ const usePublishDiffEntries = ({ autoUpdate }: { autoUpdate?: boolean }): UsePub
 	}, [catalogProps.name]);
 
 	useWatch(() => {
-		if (!overview || !diffTree?.overview) return;
-
+		if (!gitStatus?.size) {
+			setDiffTree(null);
+			return;
+		}
 		request();
-	}, [overview, request]);
+	}, [gitStatus, request]);
 
 	useEffect(() => {
 		if (!autoUpdate) return;
@@ -66,7 +69,7 @@ const usePublishDiffEntries = ({ autoUpdate }: { autoUpdate?: boolean }): UsePub
 
 	const resetDiffTree = useCallback(() => request(), [setDiffTree, request]);
 
-	return { diffTree, overview: overview, isEntriesLoading, isEntriesReady, resetDiffTree };
+	return { diffTree, overview, isEntriesLoading, isEntriesReady, resetDiffTree };
 };
 
 export default usePublishDiffEntries;

@@ -46,7 +46,6 @@ const Caption = forwardRef<HTMLInputElement, CaptionProps>((props, ref: RefObjec
 			ref={ref}
 			onFocus={preventSelect}
 			type="text"
-			autoFocus={autoFocus}
 			defaultValue={text}
 			placeholder={t("signature")}
 			className={classNames(className, { visible }, ["no-selection", "resource-caption"])}

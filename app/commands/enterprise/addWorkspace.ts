@@ -77,26 +77,40 @@ const addWorkspace: Command<{ ctx: Context; token: string }, UserSettings> = Com
 		);
 		am.setUser(ctx.cookie, user);
 
-		if (userSettings.workspace?.style?.css) {
+		if (userSettings.workspace.style?.css) {
 			await this._commands.workspace.assets.setCustomStyle.do({
 				workspacePath: workspace.path,
 				style: userSettings.workspace.style.css,
 			});
 		}
-		if (userSettings.workspace?.style?.logo) {
+		if (userSettings.workspace.style?.logo) {
 			await this._commands.workspace.assets.homeIconActions.updateLogo.do({
 				workspacePath: workspace.path,
 				theme: Theme.light,
 				icon: CustomLogoDriver.logoToBase64(userSettings.workspace.style.logo),
 			});
 		}
-		if (userSettings.workspace?.style?.logoDark) {
+		if (userSettings.workspace.style?.logoDark) {
 			await this._commands.workspace.assets.homeIconActions.updateLogo.do({
 				workspacePath: workspace.path,
 				theme: Theme.dark,
 				icon: CustomLogoDriver.logoToBase64(userSettings.workspace.style.logoDark),
 			});
 		}
+
+		if (userSettings.workspace.wordTemplates?.length) {
+			const currentWorkspace = this._app.wm.current();
+			const templates = [];
+			for (const template of userSettings.workspace.wordTemplates) {
+				templates.push({
+					name: template.title,
+					buffer: Buffer.from(template.bufferBase64, "base64"),
+				});
+			}
+
+			await this._app.wtm.addTemplates(currentWorkspace, templates);
+		}
+
 		return userSettings;
 	},
 

@@ -1,8 +1,6 @@
-import MimeTypes from "@core-ui/ApiServices/Types/MimeTypes";
 import DefaultError from "@ext/errorHandlers/logic/DefaultError";
 import NetworkApiError from "@ext/errorHandlers/network/NetworkApiError";
 import t from "@ext/localization/locale/translate";
-import { CatalogLink } from "@ext/navigation/NavigationLinks";
 import Theme from "@ext/Theme/Theme";
 
 type OAuthType = "google";
@@ -20,12 +18,6 @@ class CloudApi {
 		}`;
 	}
 
-	async getTemplateHtml(): Promise<string> {
-		const res = await this._api("/api/html-template");
-		if (!res.ok) return;
-		return res.text();
-	}
-
 	async getServerState(): Promise<boolean> {
 		try {
 			await this._api("/api/auth-status", {}, false);
@@ -37,6 +29,7 @@ class CloudApi {
 
 	async getAuthClientName(): Promise<string> {
 		let res: Response;
+
 		try {
 			res = await this._api("/api/auth-status", {}, false);
 		} catch {
@@ -56,30 +49,7 @@ class CloudApi {
 		});
 	}
 
-	async uploadStatic(catalogName: string, buffer: Buffer): Promise<void> {
-		await this._api(`/api/upload-catalog?catalogName=${catalogName}`, {
-			method: "POST",
-			body: buffer,
-			headers: {
-				"Content-Type": MimeTypes.zip,
-			},
-		});
-	}
-
-	async uploadCatalogLink(catalogName: string, catalogLink: CatalogLink): Promise<void> {
-		await this._api(`/api/upload-catalog-link`, {
-			method: "POST",
-			body: JSON.stringify({
-				catalogName,
-				data: catalogLink,
-			}),
-			headers: {
-				"Content-Type": "application/json",
-			},
-		});
-	}
-
-	private async _api(path: string, options: RequestInit = {}, triggerOnErrorCallback = true): Promise<Response> {
+	protected async _api(path: string, options: RequestInit = {}, triggerOnErrorCallback = true): Promise<Response> {
 		let res: Response;
 		try {
 			res = await fetch(`${this._cloudUrl}${path}`, {

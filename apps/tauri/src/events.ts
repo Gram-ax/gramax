@@ -1,3 +1,4 @@
+import { isTauriMobile } from "@app/resolveModule/env";
 import LanguageService from "@core-ui/ContextServices/Language";
 import ModalToOpenService from "@core-ui/ContextServices/ModalToOpenService/ModalToOpenService";
 import ModalToOpen from "@core-ui/ContextServices/ModalToOpenService/model/ModalsToOpen";
@@ -50,8 +51,10 @@ const subscribeEvents = async () => {
 		initSettings(),
 	]);
 
-	LanguageService.onLanguageChanged((language) => void invoke("set_language", { language }));
-	await invoke("set_language", { language: LanguageService.currentUi() });
+	if (!isTauriMobile()) {
+		LanguageService.onLanguageChanged((language) => void invoke("set_language", { language }));
+		await invoke("set_language", { language: LanguageService.currentUi() });
+	}
 };
 
 export default subscribeEvents;

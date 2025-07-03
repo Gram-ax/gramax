@@ -71,7 +71,7 @@ async function parseContent(
 	await article.parsedContent.write(async () => {
 		const filters = new RuleProvider(ctx).getItemFilters();
 		const content =
-			article.type == ItemType.category && !article.content?.trim?.()
+			article.type == ItemType.category && !article.content?.trim?.() && !article.props.template
 				? getChildLinks(article as Category, catalog, filters)
 				: article.content;
 

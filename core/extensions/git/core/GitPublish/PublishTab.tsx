@@ -35,7 +35,7 @@ const PublishTab = ({ show, setShow }: PublishTabProps) => {
 	const hasBeenOpened = useRef(false);
 	const hasDiscarded = useRef(false);
 
-	const { diffTree, overview, isEntriesLoading, isEntriesReady, resetDiffTree } = usePublishDiffEntries({
+	const { diffTree, overview, isEntriesLoading, isEntriesReady } = usePublishDiffEntries({
 		autoUpdate: show,
 	});
 
@@ -48,24 +48,16 @@ const PublishTab = ({ show, setShow }: PublishTabProps) => {
 		selectedFiles,
 
 		onPublished: () => {
-			resetDiffTree();
 			resetSelection();
-			close();
+			void close();
 		},
 	});
-
-	const reset = useCallback(() => {
-		resetDiffTree();
-		resetSelection();
-		setMessage(null);
-	}, [resetDiffTree, resetSelection, setMessage]);
 
 	const apiUrlCreator = ApiUrlCreatorService.value;
 
 	const onDiscard = useCallback(() => {
-		reset();
 		hasDiscarded.current = true;
-	}, [reset]);
+	}, []);
 
 	const { discard } = useDiscard(onDiscard);
 	const canDiscard = selectedFiles.size > 0 && !isPublishing && !isEntriesLoading && isEntriesReady;
@@ -76,19 +68,24 @@ const PublishTab = ({ show, setShow }: PublishTabProps) => {
 		restoreRightSidebar();
 	};
 
-	const close = () => {
+	const close = async () => {
+		setShow(false);
 		const isDefaultView = ArticleViewService.isDefaultView();
 		restoreView();
-		setShow(false);
 		if (hasDiscarded.current || !isDefaultView) {
-			ArticleUpdaterService.update(apiUrlCreator);
+			await ArticleUpdaterService.update(apiUrlCreator);
 			refreshPage();
 		}
 		hasDiscarded.current = false;
 	};
 
+	const open = () => {
+		setShow(true);
+		hasBeenOpened.current = true;
+	};
+
 	const closeIfDiscardedAll = () => {
-		if (diffTree?.tree.length === 0 && hasDiscarded.current) close();
+		if (diffTree?.tree.length === 0 && hasDiscarded.current) void close();
 	};
 
 	useWatch(closeIfDiscardedAll, [diffTree, hasDiscarded]);
@@ -98,13 +95,9 @@ const PublishTab = ({ show, setShow }: PublishTabProps) => {
 	}, []);
 
 	useWatch(() => {
-		if (show) hasBeenOpened.current = true;
-		if (!show && hasBeenOpened.current) close();
+		if (show) open();
+		if (!show && hasBeenOpened.current) void close();
 	}, [show]);
-
-	useWatch(() => {
-		if (show) reset();
-	}, [show, reset]);
 
 	const canPublish = !isPublishing && !isEntriesLoading && isEntriesReady && selectedFiles.size > 0;
 
@@ -120,6 +113,7 @@ const PublishTab = ({ show, setShow }: PublishTabProps) => {
 
 	return (
 		<TabWrapper
+			data-qa="qa-publish-tab"
 			ref={tabWrapperRef}
 			contentHeight={contentHeight}
 			show={show}

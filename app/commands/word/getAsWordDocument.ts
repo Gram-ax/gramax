@@ -10,52 +10,75 @@ import { MainWordExport } from "@ext/wordExport/WordExport";
 import { Command } from "../../types/Command";
 import { TitleInfo } from "@ext/wordExport/options/WordTypes";
 import ViewLocalizationFilter from "@ext/properties/logic/viewLocalizationFilter";
+import TemplateProcessor from "@ext/wordExport/TemplateProcessor";
+import t from "@ext/localization/locale/translate";
+import { WORD_TEMPLATES_DIR } from "@ext/workspace/WorkspaceAssets";
+import assert from "assert";
 
 const docx = import("docx");
 
-const getAsWordDocument: Command<{ ctx: Context; itemPath?: Path; isCategory: boolean; catalogName: string }, Buffer> =
-	Command.create({
-		path: "word",
-		kind: ResponseKind.file,
+const getAsWordDocument: Command<
+	{ ctx: Context; itemPath?: Path; isCategory: boolean; catalogName: string; wordTemplateName?: string },
+	Buffer
+> = Command.create({
+	path: "word",
+	kind: ResponseKind.file,
 
-		async do({ ctx, catalogName, isCategory, itemPath }) {
-			const { wm, parser, parserContextFactory } = this._app;
-			const workspace = wm.current();
-			const catalog = await workspace.getCatalog(catalogName, ctx);
-			const isCatalog = itemPath.toString() === "";
-			const item = isCatalog
-				? resolveRootCategory(catalog, catalog.props, ctx.contentLanguage)
-				: catalog.findItemByItemPath(itemPath);
-			const itemFilters = [
-				...new RuleProvider(ctx, undefined, undefined).getItemFilters(),
-				new ViewLocalizationFilter().getItemFilter(),
-			];
-			const filters = new RuleProvider(ctx).getItemFilters();
-			const titlesMap: Map<string, TitleInfo> = new Map();
-			const documentTree = await buildDocumentTree(
-				isCategory,
-				isCatalog,
-				item,
-				getExportedKeys(),
-				catalog,
-				ctx,
-				parser,
-				parserContextFactory,
-				filters,
-				titlesMap,
-			);
-			const wordExport = new MainWordExport(ExportType.withoutTableOfContents, titlesMap, catalog, itemFilters);
+	async do({ ctx, catalogName, isCategory, itemPath, wordTemplateName }) {
+		const { wm, parser, parserContextFactory } = this._app;
+		const workspace = wm.current();
+		const catalog = await workspace.getCatalog(catalogName, ctx);
+		const isCatalog = itemPath.toString() === "";
+		const item = isCatalog
+			? resolveRootCategory(catalog, catalog.props, ctx.contentLanguage)
+			: catalog.findItemByItemPath(itemPath);
+		const itemFilters = [
+			...new RuleProvider(ctx, undefined, undefined).getItemFilters(),
+			new ViewLocalizationFilter().getItemFilter(),
+		];
+		const filters = new RuleProvider(ctx).getItemFilters();
+		const titlesMap: Map<string, TitleInfo> = new Map();
+		const documentTree = await buildDocumentTree(
+			isCategory,
+			isCatalog,
+			item,
+			getExportedKeys(),
+			catalog,
+			ctx,
+			parser,
+			parserContextFactory,
+			filters,
+			titlesMap,
+		);
+		const wordExport = new MainWordExport(ExportType.withoutTableOfContents, titlesMap, catalog, itemFilters);
 
-			return await (await docx).Packer.toBuffer(await wordExport.getDocument(documentTree));
-		},
+		if (wordTemplateName) {
+			const templateBuffer = await workspace.getAssets().getBuffer(Path.join(WORD_TEMPLATES_DIR, wordTemplateName));
 
-		params(ctx, q) {
-			const catalogName = q.catalogName;
-			const itemPath = new Path(q.itemPath);
-			const isCategory = q.isCategory === "true";
+			assert(templateBuffer, t("word.template.error.template-not-found"));
 
-			return { ctx, itemPath, isCategory, catalogName };
-		},
-	});
+			const docxSections = await wordExport.getSections(documentTree, isCatalog);
+			const documentProps = {
+				title: item.getTitle(),
+			};
+
+			const templateProcessor = new TemplateProcessor(templateBuffer, docxSections, documentProps);
+			const mergedDocument = await templateProcessor.merge();
+
+			return mergedDocument;
+		}
+
+		return await (await docx).Packer.toBuffer(await wordExport.getDocument(documentTree));
+	},
+
+	params(ctx, q) {
+		const catalogName = q.catalogName;
+		const itemPath = new Path(q.itemPath);
+		const isCategory = q.isCategory === "true";
+		const wordTemplateName = q.wordTemplateName;
+
+		return { ctx, itemPath, isCategory, catalogName, wordTemplateName };
+	},
+});
 
 export default getAsWordDocument;

@@ -1,32 +1,28 @@
-import CatalogSyncService from "@core-ui/ContextServices/CatalogSync";
-import type { CatalogsLinks } from "@core/SitePresenter/SitePresenter";
 import styled from "@emotion/styled";
 import { useState } from "react";
 import Group from "./Group";
 import NoneGroups from "./NoneGroups";
+import GroupsService from "@core-ui/ContextServices/GroupsService";
 
-const Groups = ({ catalogsLinks, className }: { catalogsLinks: CatalogsLinks; className?: string }) => {
+const Groups = ({ className }: { className?: string }) => {
 	const [isAnyCardLoading, setIsAnyCardLoading] = useState(false);
-	const groupsData = catalogsLinks ? Object.values(catalogsLinks) : [];
+	const { catalogLinks } = GroupsService.value;
+	const groupsData = catalogLinks ? Object.values(catalogLinks) : [];
 	const catalogCount = groupsData.reduce((total, group) => total + group.catalogLinks.length, 0);
 
 	return (
-		<CatalogSyncService.Provider>
-			<div className={className} style={isAnyCardLoading ? { pointerEvents: "none" } : {}}>
-				{catalogCount ? (
-					<>
-						{groupsData.map((groupData, i) => {
-							if (groupData?.catalogLinks.length)
-								return (
-									<Group key={i} groupData={groupData} setIsAnyCardLoading={setIsAnyCardLoading} />
-								);
-						})}
-					</>
-				) : (
-					<NoneGroups />
-				)}
-			</div>
-		</CatalogSyncService.Provider>
+		<div className={className} style={isAnyCardLoading ? { pointerEvents: "none" } : {}}>
+			{catalogCount ? (
+				<>
+					{groupsData.map((groupData, i) => {
+						if (groupData?.catalogLinks.length)
+							return <Group key={i} groupData={groupData} setIsAnyCardLoading={setIsAnyCardLoading} />;
+					})}
+				</>
+			) : (
+				<NoneGroups />
+			)}
+		</div>
 	);
 };
 

@@ -46,6 +46,7 @@ type CatalogEvents = Event<"update", { catalog: Catalog }> &
 			props: UpdateItemProps;
 			makeResourceUpdater: MakeResourceUpdater;
 		}
-	>;
+	> &
+	Event<"repository-set", { catalog: Catalog }>;
 
 export default CatalogEvents;

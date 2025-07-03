@@ -1,6 +1,7 @@
 "$schema" = "schemas/schema.json"
 [default]
 permissions = [
+  "allow-write-file",
   "allow-read-dir",
   "allow-read-link",
   "allow-make-dir",

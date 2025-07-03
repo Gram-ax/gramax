@@ -7,7 +7,7 @@ import t from "@ext/localization/locale/translate";
 import { Command } from "../../types/Command";
 
 const getAllSyncCount: Command<
-	{ ctx: Context; shouldFetch?: boolean },
+	{ ctx: Context; shouldFetch?: boolean; resetSyncCount?: boolean },
 	{ [catalogName: string]: { pull?: number; push?: number; hasChanges?: boolean; errorMessage?: string } }
 > = Command.create({
 	path: "storage/getAllSyncCount",
@@ -16,7 +16,7 @@ const getAllSyncCount: Command<
 
 	middlewares: [new SilentMiddleware(), new NetworkConnectMiddleWare(), new AuthorizeMiddleware()],
 
-	async do({ ctx, shouldFetch }) {
+	async do({ ctx, shouldFetch, resetSyncCount }) {
 		const { rp, wm } = this._app;
 		const workspace = wm.current();
 
@@ -36,6 +36,7 @@ const getAllSyncCount: Command<
 					}
 
 					if (shouldFetch) await entry.repo.storage.fetch(data);
+					if (resetSyncCount) await entry.repo.storage.updateSyncCount();
 					res[name] = await entry.repo.storage.getSyncCount();
 				} catch (err) {
 					if (!res[name]) res[name] = { errorMessage: t("unable-to-get-sync-count") };

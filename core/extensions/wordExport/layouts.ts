@@ -41,6 +41,7 @@ import { tsDiagramWordLayout } from "../markdown/elements/diagrams/diagrams/tsDi
 import { tabledbWordlayout } from "../markdown/elements/tabledb/word/tabledb";
 import { videoWordLayout } from "../markdown/elements/video/word/video";
 import { blockPropertyWordLayout } from "@ext/markdown/elements/blockProperty/word/blockProperty";
+import { renderInlineImageWordLayout } from "@ext/markdown/elements/inlineImage/word/inlineImage";
 // import { imagesWordLayout } from "@ext/markdown/elements/imgs/word/imgs";
 // import { seeWordLayout } from "@ext/markdown/elements/see/word/see";
 // import { formulaWordLayout } from "../markdown/elements/formula/word/formula";
@@ -66,6 +67,7 @@ export const inlineLayouts = {
 	icon: iconWordLayout,
 	s: strikeWordLayout,
 	"inline-property": inlinePropertyWordLayout,
+	inlineImage: renderInlineImageWordLayout,
 	//Formula: formulaWordLayout,
 	//Fn
 };

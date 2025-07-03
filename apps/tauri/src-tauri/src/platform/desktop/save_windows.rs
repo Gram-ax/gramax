@@ -1,12 +1,12 @@
 use std::collections::HashMap;
-use std::sync::Mutex;
 
 use tauri::*;
 use tauri_plugin_window_state::AppHandleExt;
 use tauri_plugin_window_state::StateFlags;
 
-use crate::AppHandleExt as _;
-use crate::MainWindowBuilder;
+use crate::shared::AppHandleExt as _;
+use crate::shared::MainWindowBuilder;
+use crate::shared::WindowSessionData;
 
 #[derive(serde::Serialize, serde::Deserialize)]
 #[serde(untagged)]
@@ -15,26 +15,18 @@ enum SavedWindow {
   WithSessionData { url: String, session_data: Option<HashMap<String, String>> },
 }
 
+pub trait SaveWindowsExt<R: Runtime> {
+  fn save_windows(&self) -> Result<()>;
+  fn reopen_windows(&self) -> Result<Option<WebviewWindow<R>>>;
+}
+
 #[derive(Default, serde::Serialize, serde::Deserialize)]
 struct SavedWindows {
   focused_window_name: Option<String>,
   windows: HashMap<String, SavedWindow>,
 }
 
-#[derive(Default, Debug)]
-struct WindowSessionData(Mutex<HashMap<String, HashMap<String, String>>>);
-
 const REOPEN_WINDOWS_FILENAME: &str = "gramax-reopen-windows";
-
-pub trait SaveWindowsExt<R: Runtime> {
-  fn save_windows(&self) -> Result<()>;
-  fn reopen_windows(&self) -> Result<Option<WebviewWindow<R>>>;
-}
-
-pub trait WindowSessionDataExt {
-  fn set_session_data(&self, key: &str, data: &str);
-  fn get_session_data(&self) -> Option<HashMap<String, String>>;
-}
 
 impl<R: Runtime> SaveWindowsExt<R> for AppHandle<R> {
   fn save_windows(&self) -> Result<()> {
@@ -95,26 +87,5 @@ impl<R: Runtime> SaveWindowsExt<R> for AppHandle<R> {
     }
 
     Ok(self.get_focused_or_default_webview())
-  }
-}
-
-impl<R: Runtime> WindowSessionDataExt for WebviewWindow<R> {
-  fn set_session_data(&self, key: &str, data: &str) {
-    let session_data = self
-      .try_state::<WindowSessionData>()
-      .unwrap_or_else(|| {
-        self.manage(WindowSessionData::default());
-        self.state()
-      })
-      .inner();
-
-    let mut session_data = session_data.0.lock().unwrap();
-    let session_data = session_data.entry(self.label().to_string()).or_default();
-
-    session_data.insert(key.to_string(), data.to_string());
-  }
-
-  fn get_session_data(&self) -> Option<HashMap<String, String>> {
-    self.try_state::<WindowSessionData>().and_then(|s| s.0.lock().unwrap().get(self.label()).cloned())
   }
 }

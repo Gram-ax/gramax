@@ -1,9 +1,11 @@
 import { getExecutingEnvironment } from "@app/resolveModule/env";
 import { Router } from "@core/Api/Router";
-import { ArticleProviderType } from "@ext/articleProvider/logic/ArticleProvider";
 import CustomArticle from "@core/SitePresenter/customArticles/model/CustomArticle";
 import DiagramType from "@core/components/Diagram/DiagramType";
 import Theme from "@ext/Theme/Theme";
+import { ArticleProviderType } from "@ext/articleProvider/logic/ArticleProvider";
+import { TreeReadScope } from "@ext/git/core/GitCommands/model/GitCommandsModel";
+import type { DiffItemContentScope } from "@ext/git/core/GitDiffItemCreator/DiffItemContent/DiffItemContent";
 import UiLanguage, { type ContentLanguage } from "@ext/localization/core/model/Language";
 import { Syntax } from "@ext/markdown/core/edit/logic/Formatter/Formatters/typeFormats/model/Syntax";
 import { SearcherType } from "@ext/serach/SearcherManager";
@@ -114,6 +116,13 @@ export default class ApiUrlCreator {
 	public getArticleContentByRelativePath(articleRelativePath: string) {
 		return Url.fromBasePath(`/api/article/features/getRenderContent`, this._basePath, {
 			articleRelativePath,
+			catalogName: this._catalogName,
+			articlePath: this._articlePath,
+		});
+	}
+
+	public getArticleEditorContent() {
+		return Url.fromBasePath(`/api/article/features/getEditorContent`, this._basePath, {
 			catalogName: this._catalogName,
 			articlePath: this._articlePath,
 		});
@@ -286,11 +295,12 @@ export default class ApiUrlCreator {
 		});
 	}
 
-	public getWordSaveUrl(isCategory: boolean, itemPath?: string) {
+	public getWordSaveUrl(isCategory: boolean, itemPath?: string, wordTemplateName?: string) {
 		return Url.fromBasePath(`/api/word`, this._basePath, {
 			itemPath,
 			catalogName: this._catalogName,
 			isCategory: isCategory ? "true" : "false",
+			wordTemplateName,
 		});
 	}
 
@@ -324,8 +334,11 @@ export default class ApiUrlCreator {
 		});
 	}
 
-	public getAllSyncCountUrl(shouldFetch: boolean) {
-		return Url.fromBasePath(`/api/storage/getAllSyncCount`, this._basePath, { fetch: shouldFetch.toString() });
+	public getAllSyncCountUrl(shouldFetch: boolean, resetSyncCount: boolean) {
+		return Url.fromBasePath(`/api/storage/getAllSyncCount`, this._basePath, {
+			fetch: shouldFetch.toString(),
+			resetSyncCount: resetSyncCount.toString(),
+		});
 	}
 
 	public getStoragePublishUrl(message: string) {
@@ -341,9 +354,28 @@ export default class ApiUrlCreator {
 		});
 	}
 
-	public getVersionControlDiffTreeUrl() {
-		return Url.fromBasePath(`/api/versionControl/diffTree`, this._basePath, {
+	public getVersionControlDiffTreeUrl(oldScope: TreeReadScope, newScope?: TreeReadScope) {
+		return Url.fromBasePath(`/api/versionControl/diff/getDiffTree`, this._basePath, {
 			catalogName: this._catalogName,
+			oldScope: JSON.stringify(oldScope),
+			newScope: newScope ? JSON.stringify(newScope) : undefined,
+		});
+	}
+
+	public getVersionControlRevisionsUrl(from?: string, depth?: number) {
+		return Url.fromBasePath(`/api/versionControl/revision/getRevisions`, this._basePath, {
+			catalogName: this._catalogName,
+			from,
+			depth: depth?.toString(),
+		});
+	}
+
+	public getVersionControlDiffItemContentUrl(scope: DiffItemContentScope, filePath: string, isResource?: boolean) {
+		return Url.fromBasePath(`/api/versionControl/diff/getDiffItemContent`, this._basePath, {
+			catalogName: this._catalogName,
+			scope: JSON.stringify(scope),
+			filePath,
+			isResource: isResource?.toString(),
 		});
 	}
 
@@ -586,30 +618,6 @@ export default class ApiUrlCreator {
 		return Url.fromBasePath(`/api/mergeRequests/merge`, this._basePath, {
 			catalogName: this._catalogName,
 			validateMerge: validateMerge?.toString(),
-		});
-	}
-
-	public mergeRequestDiffTree(sourceBranch: string, targetBranch: string) {
-		return Url.fromBasePath(`/api/mergeRequests/diffTree`, this._basePath, {
-			catalogName: this._catalogName,
-			sourceBranch,
-			targetBranch,
-		});
-	}
-
-	public cleanupReferencesDiff(sourceBranch: string, targetBranch: string) {
-		return Url.fromBasePath(`/api/mergeRequests/cleanupReferencesDiff`, this._basePath, {
-			catalogName: this._catalogName,
-			sourceBranch,
-			targetBranch,
-		});
-	}
-
-	public mountReferencesDiff(sourceBranch: string, targetBranch: string) {
-		return Url.fromBasePath(`/api/mergeRequests/mountReferencesDiff`, this._basePath, {
-			catalogName: this._catalogName,
-			sourceBranch,
-			targetBranch,
 		});
 	}
 
@@ -963,21 +971,6 @@ export default class ApiUrlCreator {
 		});
 	}
 
-	public saveTemplateCustomProperty(templateId: string) {
-		return Url.fromBasePath(`/api/templates/saveCustomProperty`, this._basePath, {
-			catalogName: this._catalogName,
-			templateId,
-		});
-	}
-
-	public deleteTemplateCustomProperty(templateId: string, propertyName: string) {
-		return Url.fromBasePath(`/api/templates/deleteCustomProperty`, this._basePath, {
-			catalogName: this._catalogName,
-			templateId,
-			propertyName,
-		});
-	}
-
 	public updateTemplateArticleField(field: string) {
 		return Url.fromBasePath(`/api/templates/updateArticleField`, this._basePath, {
 			catalogName: this._catalogName,
@@ -1072,6 +1065,26 @@ export default class ApiUrlCreator {
 	public getAiUrl(workspacePath: string) {
 		return Url.fromBasePath(`/api/ai/getUrl`, this._basePath, {
 			workspacePath,
+		});
+	}
+
+	public getFavoriteArticleData() {
+		return Url.fromBasePath(`/api/catalog/favorite/getArticlesData`, this._basePath, {
+			catalogName: this._catalogName,
+		});
+	}
+
+	public getArticleBacklinks(articlePath: string) {
+		return Url.fromBasePath(`/api/catalog/links/backlinks/get`, this._basePath, {
+			catalogName: this._catalogName,
+			articlePath,
+		});
+	}
+
+	public getArticleLinks(articlePath: string) {
+		return Url.fromBasePath(`/api/catalog/links/links/get`, this._basePath, {
+			catalogName: this._catalogName,
+			articlePath,
 		});
 	}
 }

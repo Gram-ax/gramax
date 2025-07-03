@@ -231,4 +231,60 @@ describe("GitCommands", () => {
 			status: FileStatus.modified,
 		});
 	});
+	describe("Проверяет есть ли конфликты", () => {
+		test("если есть конфликты", async () => {
+			const file1 = await writeFile("conflictFile", "line1\nline2\nline3");
+			await git.add([file1]);
+			await git.commit("", mockUserData);
+
+			await git.createNewBranch("develop");
+
+			await writeFile("conflictFile", "line1\nline2\ndevelop");
+			await git.add([file1]);
+			await git.commit("", mockUserData);
+
+			await git.checkout("master");
+
+			await writeFile("conflictFile", "line1\nline2\nmaster");
+			await git.add([file1]);
+			await git.commit("", mockUserData);
+
+			const branchBefore = await git.getCurrentBranchName();
+			const commitHashBefore = await git.getHeadCommit();
+			const statusLengthBefore = (await git.status()).length;
+
+			expect(await git.haveConflictsWithBranch("develop", mockUserData)).toBeTruthy();
+
+			expect(await git.getCurrentBranchName()).toBe(branchBefore);
+			expect((await git.getHeadCommit()).toString()).toBe(commitHashBefore.toString());
+			expect((await git.status()).length).toBe(statusLengthBefore);
+		});
+		test("если нет конфликтов", async () => {
+			const file1 = await writeFile("noConflictFile", "line1\nline2\nline3");
+			await git.add([file1]);
+			await git.commit("", mockUserData);
+
+			await git.createNewBranch("develop");
+
+			const file2 = await writeFile("noConflictFile2", "line1\nline2\ndevelop");
+			await git.add([file2]);
+			await git.commit("", mockUserData);
+
+			await git.checkout("master");
+
+			await writeFile("noConflictFile", "line1\nline2\nmaster");
+			await git.add([file1]);
+			await git.commit("", mockUserData);
+
+			const branchBefore = await git.getCurrentBranchName();
+			const commitHashBefore = await git.getHeadCommit();
+			const statusLengthBefore = (await git.status()).length;
+
+			expect(await git.haveConflictsWithBranch("develop", mockUserData)).toBeFalsy();
+
+			expect(await git.getCurrentBranchName()).toBe(branchBefore);
+			expect((await git.getHeadCommit()).toString()).toBe(commitHashBefore.toString());
+			expect((await git.status()).length).toBe(statusLengthBefore);
+		});
+	});
 });

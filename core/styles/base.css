@@ -11,7 +11,7 @@ div#root {
 	letter-spacing: normal !important;
 	scroll-behavior: smooth !important;
 	background-color: var(--color-home-bg);
-	-webkit-font-smoothing: subpixel-antialiased !important;
+	-webkit-font-smoothing: antialiased !important;
 	font-family: var(--app-font-famaly), sans-serif !important;
 }
 

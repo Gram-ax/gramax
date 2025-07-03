@@ -19,6 +19,7 @@ export const openChildWindow = async ({ url, redirect }: { url: string; redirect
 export const openDirectory = () => invoke<string>("open_directory");
 
 type HttpResponseBody = { type: "text"; data: string } | { type: "binary"; data: Array<number> };
+
 export const httpFetch = (req: {
 	url: string;
 	body?: string;
@@ -40,6 +41,8 @@ export const openInExplorer = (path: string) => invoke<void>("open_in_explorer",
 export const setSessionData = (key: string, data: string) => invoke<void>("set_session_data", { key, data });
 
 export const openWindowWithUrl = (url: string) => invoke<void>("open_window_with_url", { url });
+
+export const setBadge = (count: number | null) => invoke<void>("set_badge", { count });
 
 window.reloadAll = async () => {
 	const webviews = await getAllWebviews();

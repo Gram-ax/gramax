@@ -28,6 +28,7 @@ export type EnvironmentVariable = {
 	GRAMAX_DEFAULT_WORKSPACE_PATH: string;
 
 	// Other
+	IS_MOBILE: Bool;
 	DEFAULT_UI_LANGUAGE: string;
 	SHARE_ACCESS_TOKEN: string;
 	DOC_READER_MAIL: string;

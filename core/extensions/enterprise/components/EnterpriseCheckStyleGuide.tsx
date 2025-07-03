@@ -1,4 +1,6 @@
 import ButtonLink from "@components/Molecules/ButtonLink";
+import FetchService from "@core-ui/ApiServices/FetchService";
+import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import ModalToOpenService from "@core-ui/ContextServices/ModalToOpenService/ModalToOpenService";
 import ModalToOpen from "@core-ui/ContextServices/ModalToOpenService/model/ModalsToOpen";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
@@ -15,14 +17,25 @@ const EnterpriseCheckStyleGuide = () => {
 	const [render, setRender] = useState(false);
 	const { isNext } = usePlatform();
 	const gesUrl = PageDataContextService.value.conf.enterprise.gesUrl;
+	const apiUrlCreator = ApiUrlCreatorService.value;
 
 	const checkArticle = async () => {
 		const editor = EditorService.getEditor();
 		if (!editor) return;
 		ModalToOpenService.setValue(ModalToOpen.Loading, { title: "Проверка статьи" });
-		const paragraphs = astToParagraphs(editor.getJSON());
+
+		const res = await FetchService.fetch(apiUrlCreator.getArticleEditorContent());
+		if (!res.ok) {
+			ModalToOpenService.resetValue();
+			return;
+		}
+		const content = await res.json();
+		const json = content;
+		json.content.shift();
+
+		const paragraphs = astToParagraphs(json);
 		const result = await new EnterpriseApi(gesUrl).checkStyleGuide(paragraphs);
-		const paragraphsMerger = new ParagraphsMerger(result ?? { suggestions: [] }, { paragraphs });
+		const paragraphsMerger = new ParagraphsMerger({ suggestions: result ?? [] }, { paragraphs });
 		const suggestionItems = getSuggestionItems(paragraphsMerger.getMergedParagraphs(), paragraphs);
 		editor.commands.setSuggestion(suggestionItems);
 		ModalToOpenService.resetValue();

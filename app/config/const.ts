@@ -1,3 +1,5 @@
+import Path from "@core/FileProvider/Path/Path";
+
 export const GRAMAX_EDITOR_URL = "https://app.gram.ax";
 
 export const GRAMAX_DIRECTORY = ".gramax" as const;
@@ -6,7 +8,10 @@ export const PROMPT_DIRECTORY = "prompt" as const;
 export const TEMPLATES_DIRECTORY = "templates" as const;
 export const SNIPPETS_DIRECTORY = "snippets" as const;
 
-export const MERGE_REQUEST_DIRECTORY = `${GRAMAX_DIRECTORY}/mr` as const;
+export const OPEN_MERGE_REQUEST_FILE = "open.yaml" as const;
+export const MERGE_REQUEST_DIRECTORY_PATH = new Path([GRAMAX_DIRECTORY, "mr"]);
+export const OPEN_MERGE_REQUEST_PATH = MERGE_REQUEST_DIRECTORY_PATH.join(new Path(OPEN_MERGE_REQUEST_FILE));
+export const ARCHIVE_MERGE_REQUEST_PATH = MERGE_REQUEST_DIRECTORY_PATH.join(new Path("archive"));
 
 export const DOC_ROOT_FILENAME = ".doc-root.yaml";
 export const DOC_ROOT_REGEXP = /.(doc-)?root.ya?ml/;

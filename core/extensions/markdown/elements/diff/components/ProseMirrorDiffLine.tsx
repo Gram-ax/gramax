@@ -43,7 +43,7 @@ const DiffLine = ({ top, height, left, diffLine, oldScope, className }: DiffLine
 
 	if (!hasOldContent)
 		return (
-			<div className={className}>
+			<div className={classNames(className, { "disable-hover": true })}>
 				<DiffLineConteiner style={{ top, height, left }}>
 					<div className={"diff-line"} style={{ backgroundColor: bgColors[type] }} />
 				</DiffLineConteiner>
@@ -82,6 +82,10 @@ const DiffLine = ({ top, height, left, diffLine, oldScope, className }: DiffLine
 };
 
 export default styled(DiffLine)`
+	&.disable-hover {
+		pointer-events: none;
+	}
+
 	.diff-line {
 		width: 4px;
 		border-radius: 3px;

@@ -16,7 +16,7 @@ export async function paragraphCase(node: Tag | JSONContent, context: pdfRenderC
 	const flatContent = filteredContent.flat();
 
 	const textContent = flatContent.map((item) => {
-		const contentText: Content = { text: item.text || "", lineHeight: 1.35 };
+		const contentText: Content = item.text ? { text: item.text || "", lineHeight: 1.35 } : item;
 		return Object.assign(contentText, item);
 	});
 
@@ -24,7 +24,7 @@ export async function paragraphCase(node: Tag | JSONContent, context: pdfRenderC
 
 	return [
 		{
-			text: textContent,
+			stack: textContent,
 		},
 	];
 }

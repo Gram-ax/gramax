@@ -7,7 +7,7 @@ const toCamelCase = (str: string) => {
 	return camelCaseParts.join("");
 };
 
-const LucideIcon = (code: string): Lucide.LucideIcon | CustomIcon => {
+const LucideIcon = <T = NonNullable<unknown>>(code: string): Lucide.LucideIcon | CustomIcon<T> => {
 	if (!code || code === "icon") return null;
 	if (customIcons[code]) return customIcons[code];
 	return Lucide[toCamelCase(code)];

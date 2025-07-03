@@ -55,7 +55,7 @@ const PropertyItem = (props: PropertyItemProps) => {
 	const translatedName = isSystem ? t(`properties.system.${name}.name`) : name;
 	const translatedValue = isSystem ? values.map((val) => t(`properties.system.${name}.values.${val}`)) : values;
 
-	return values || children ? (
+	return values?.length || children ? (
 		<PopupMenuLayout
 			offset={[10, -5]}
 			appendTo={() => ref.current}

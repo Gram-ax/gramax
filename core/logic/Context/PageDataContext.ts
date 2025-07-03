@@ -17,6 +17,7 @@ interface PageDataContext {
 	domain: string;
 	sourceDatas: SourceData[];
 	isArticle: boolean;
+	wordTemplates: string[];
 	workspace: {
 		workspaces: ClientWorkspaceConfig[];
 		current: WorkspacePath;

@@ -26,6 +26,7 @@ export interface EnterpriseWorkspaceConfig extends WorkspaceConfig {
 	source: WorkspaceSource;
 	style: WorkspaceStyle;
 	authMethods: AuthMethod[];
+	wordTemplates?: { title: string; bufferBase64?: string }[];
 }
 
 interface UserSettings {

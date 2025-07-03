@@ -107,6 +107,7 @@ pub fn init<R: Runtime>() -> TauriPlugin<R> {
       get_parent,
       get_content,
       graph_head_upstream_files,
+      get_commit_info,
       git_read_dir,
       git_file_stat,
       git_file_exists,

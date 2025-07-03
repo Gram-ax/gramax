@@ -9,7 +9,7 @@ interface FlagProps {
 	onChange: (event: ReactChangeEvent<HTMLInputElement>) => void;
 }
 
-const FlagWrapper = styled.div`
+const ButtonWrapper = styled.div`
 	display: flex;
 	align-items: center;
 	gap: 0.5em;
@@ -18,28 +18,33 @@ const FlagWrapper = styled.div`
 const Flag = ({ value, onChange, preSubmit, id }: FlagProps) => {
 	const ref = useRef<HTMLInputElement>(null);
 
-	const onClick = () => {
+	const onClick = (value: boolean) => {
 		const input = ref.current;
-		const newValue = !value;
 		const syntheticEvent = {
-			target: { checked: newValue },
-			currentTarget: { checked: newValue },
+			target: { checked: value },
+			currentTarget: { checked: value },
 		} as ReactChangeEvent<HTMLInputElement>;
 
 		if (input) {
-			input.checked = newValue;
+			input.checked = value;
 			input.dispatchEvent(new Event("change", { bubbles: true }));
 		}
 
 		onChange(syntheticEvent);
-		preSubmit(id, newValue, !newValue);
+		preSubmit(id, value, !value);
 	};
 
 	return (
-		<FlagWrapper onClick={onClick}>
-			<input ref={ref} type="checkbox" role="switch" readOnly checked={value} />
-			<span>{value ? t("yes") : t("no")}</span>
-		</FlagWrapper>
+		<>
+			<ButtonWrapper onClick={() => onClick(true)}>
+				<input ref={ref} type="radio" readOnly checked={value} />
+				{t("yes")}
+			</ButtonWrapper>
+			<ButtonWrapper onClick={() => onClick(false)}>
+				<input ref={ref} type="radio" readOnly checked={!value} />
+				{t("no")}
+			</ButtonWrapper>
+		</>
 	);
 };
 

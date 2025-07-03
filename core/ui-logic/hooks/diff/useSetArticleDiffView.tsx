@@ -2,9 +2,9 @@ import ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import DiffViewModeService from "@core-ui/ContextServices/DiffViewModeService";
 import ArticleViewService from "@core-ui/ContextServices/views/articleView/ArticleViewService";
-import ArticleDiffViewWrapper from "@core-ui/hooks/diff/ArticleDiffViewWrapper";
 import useWatch from "@core-ui/hooks/useWatch";
 import Path from "@core/FileProvider/Path/Path";
+import { css } from "@emotion/react";
 import getSideBarData from "@ext/git/actions/Publish/logic/getSideBarData";
 import getSideBarElementByModelIdx, {
 	SideBarElementData,
@@ -13,8 +13,39 @@ import { useResourceView } from "@ext/git/actions/Publish/logic/useResourceView"
 import SideBarData from "@ext/git/actions/Publish/model/SideBarData";
 import SideBarResourceData from "@ext/git/actions/Publish/model/SideBarResourceData";
 import { TreeReadScope } from "@ext/git/core/GitCommands/model/GitCommandsModel";
+import ArticleDiffViewWrapper from "@ext/markdown/elements/diff/components/ArticleDiffViewWrapper";
 import type { DiffItem, DiffResource } from "@ext/VersionControl/model/Diff";
 import { useCallback, useRef } from "react";
+
+const diffStyles = css`
+	.width-wrapper {
+		width: auto !important;
+		margin-left: 0 !important;
+
+		> .scrollableContent {
+			overflow-x: auto;
+			overflow-y: hidden;
+			position: relative;
+			margin-left: 0 !important;
+		}
+	}
+
+	.article-default-content {
+		max-width: calc(var(--article-max-width) * 2);
+	}
+
+	.main-article {
+		max-width: var(--article-max-width);
+	}
+
+	.article-page-wrapper {
+		justify-content: center;
+	}
+`.styles;
+
+const getUniqueKey = (path: string, scope: TreeReadScope, deleteScope: TreeReadScope) => {
+	return path + (scope ? "-" + JSON.stringify(scope) : "") + (deleteScope ? "-" + JSON.stringify(deleteScope) : "");
+};
 
 const setArticleView = (
 	data: SideBarElementData,
@@ -53,10 +84,11 @@ const setArticleView = (
 	} else {
 		const sideBarData = data.sideBarDataElement as SideBarData;
 		const path = sideBarData.data.filePath.path;
+		const uniqueKey = getUniqueKey(path, scope, deleteScope);
 		ArticleViewService.setView(
 			() => (
 				<ArticleDiffViewWrapper
-					key={path}
+					key={uniqueKey}
 					sideBarData={sideBarData}
 					scope={scope}
 					oldScope={deleteScope}
@@ -64,6 +96,7 @@ const setArticleView = (
 				/>
 			),
 			useDefaultStyles,
+			diffStyles,
 		);
 	}
 };
@@ -116,7 +149,7 @@ const useSetArticleDiffView = (isReadOnly: boolean, scope?: TreeReadScope, delet
 				deleteScope,
 			});
 		},
-		[apiUrlCreator, scope, deleteScope],
+		[scope, deleteScope],
 	);
 
 	return SetArticleDiffViewMemo;

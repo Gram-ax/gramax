@@ -25,7 +25,7 @@ When("закрываем активную форму", async function (this: E2E
 	await elem.click();
 });
 
-Then("заполняем форму", async function (this: E2EWorld, raw: string) {
+When("заполняем форму", async function (this: E2EWorld, raw: string) {
 	const search = this.page().search();
 	for (const [name, val] of raw.split("\n").map((raw) => raw.split(": ", 2).map((s) => s.trim()))) {
 		const field = await search.lookup(name, undefined, true);

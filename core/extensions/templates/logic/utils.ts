@@ -42,19 +42,21 @@ export const fillMarkdownTemplate = (fields: TemplateField[], properties: Proper
 
 	if (properties) {
 		updatedContent = properties.reduce((acc, propValue) => {
-			if (!propValue.value || !propValue.value.length) {
-				return acc;
-			}
+			if (!propValue.value || !propValue.value.length || !propValue.value[0].length) return acc;
 
 			const blockRegex = new RegExp(
-				`\\[block-property:${propValue.name}\\]([\\s\\S]*?)\\[\\/block-property\\]`,
-				"g",
+				`(^\\s*)\\[block-property:${propValue.name}\\]([\\s\\S]*?)\\[\\/block-property\\]`,
+				"gm",
 			);
 
-			return acc.replace(
-				blockRegex,
-				() => `[block-property:${propValue.name}]\n${propValue.value[0]}\n[/block-property]`,
-			);
+			return acc.replace(blockRegex, (_, openingIndent) => {
+				const contentWithIndent = propValue.value[0]
+					.split("\n")
+					.map((line) => (line.trim() ? `${openingIndent}${line}` : line))
+					.join("\n");
+
+				return `${openingIndent}[block-property:${propValue.name}]\n${contentWithIndent}\n${openingIndent}[/block-property]`;
+			});
 		}, updatedContent);
 	}
 

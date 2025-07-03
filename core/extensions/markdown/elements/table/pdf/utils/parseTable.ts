@@ -4,6 +4,7 @@ import { Tag } from "@ext/markdown/core/render/logic/Markdoc";
 import { MAX_WIDTH } from "@ext/pdfExport/config";
 import { NodeOptions, pdfRenderContext } from "@ext/pdfExport/parseNodesPDF";
 import { JSONContent } from "@tiptap/core";
+import { aggregateTable, setCellAlignment } from "@ext/markdown/elements/table/edit/logic/exportUtils";
 
 export const parseTable = async (
 	rows: Tag[] | JSONContent[],
@@ -12,6 +13,9 @@ export const parseTable = async (
 ): Promise<{ body: TableBody; widths: (number | string)[] }> => {
 	const tableBody: TableBody = [];
 	let colWidths: (number | string)[] = [];
+
+	aggregateTable(rows);
+	setCellAlignment(rows);
 
 	for (const row of rows) {
 		const { tableRow, widths } = await parseRow(row, tableBody.length, context, options);
@@ -64,7 +68,7 @@ export const parseTable = async (
 		}
 	};
 
-	tableBody.forEach((row, rowIndex) => {
+	tableBody.forEach((row) => {
 		row.forEach((cell, colIndex) => {
 			const colWidth = colWidths[colIndex];
 

@@ -1,14 +1,11 @@
 import Icon from "@components/Atoms/Icon";
 import { classNames } from "@components/libs/classNames";
 import styled from "@emotion/styled";
-import { HoverEnumTypes } from "@ext/markdown/elements/table/edit/model/tableTypes";
 import { MouseEvent, RefObject, useState } from "react";
 
 interface PlusActionsProps {
 	onClick: (index) => void;
-	onMouseEnter: (event: MouseEvent, index: number, type: HoverEnumTypes, vertical?: boolean) => void;
-	onMouseLeave: () => void;
-	tableRef: RefObject<HTMLTableElement>;
+	tableRef: RefObject<HTMLElement>;
 	index?: number;
 	className?: string;
 	vertical?: boolean;
@@ -39,7 +36,7 @@ const Line = styled.div`
 `;
 
 const PlusActions = (props: PlusActionsProps) => {
-	const { index, className, vertical, onClick, onMouseEnter, onMouseLeave, dataQa, tableRef } = props;
+	const { index, className, vertical, onClick, dataQa, tableRef } = props;
 	const [hoveredData, setHoveredData] = useState<HoveredData>(null);
 	const preOnClick = (e: MouseEvent) => {
 		e.preventDefault();
@@ -47,7 +44,7 @@ const PlusActions = (props: PlusActionsProps) => {
 		onClick(index);
 	};
 
-	const preOnMouseEnter = (e: MouseEvent) => {
+	const preOnMouseEnter = () => {
 		const table = tableRef.current;
 		const hoveredData = {
 			width: vertical ? `calc(${table.clientWidth}px - 3em)` : "5px",
@@ -55,12 +52,10 @@ const PlusActions = (props: PlusActionsProps) => {
 		};
 
 		setHoveredData(hoveredData);
-		onMouseEnter(e, index, HoverEnumTypes.ADD, vertical);
 	};
 
 	const preOnMouseLeave = () => {
 		setHoveredData(null);
-		onMouseLeave();
 	};
 
 	return (

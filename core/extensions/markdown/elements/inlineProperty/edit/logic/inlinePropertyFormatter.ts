@@ -4,7 +4,7 @@ import { NodeSerializerSpec } from "@ext/markdown/core/edit/logic/Prosemirror/to
 const inlinePropertyFormatter =
 	(formatter: FormatterType): NodeSerializerSpec =>
 	(state, node) => {
-		state.write(formatter.openTag("inline-property", { bind: node.attrs.bind }));
+		state.write(formatter.openTag("inline-property", { bind: node.attrs.bind }, true));
 	};
 
 export default inlinePropertyFormatter;

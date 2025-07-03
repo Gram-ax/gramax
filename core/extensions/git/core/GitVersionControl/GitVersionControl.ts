@@ -13,6 +13,7 @@ import type {
 	RefInfo,
 } from "@ext/git/core/GitCommands/model/GitCommandsModel";
 import GitStash from "@ext/git/core/model/GitStash";
+import GitVersionData from "@ext/git/core/model/GitVersionData";
 import Path from "../../../../logic/FileProvider/Path/Path";
 import FileProvider from "../../../../logic/FileProvider/model/FileProvider";
 import { FileStatus } from "../../../Watchers/model/FileStatus";
@@ -25,6 +26,10 @@ import { GitVersion } from "../model/GitVersion";
 import SubmoduleData from "../model/SubmoduleData";
 
 export type GitVersionControlEvents = Event<"files-changed", { items: GitStatus[] }>;
+export type GitVersionDataSet = {
+	data: GitVersionData[];
+	reachedFirstCommit: boolean;
+};
 
 export default class GitVersionControl {
 	private _currentVersion: Promise<GitVersion>;
@@ -335,6 +340,37 @@ export default class GitVersionControl {
 
 	getCommitAuthors(): Promise<CommitAuthorInfo[]> {
 		return this._gitRepository.getCommitAuthors();
+	}
+
+	haveConflictsWithBranch(branch: GitBranch | string, data: SourceData): Promise<boolean> {
+		return this._gitRepository.haveConflictsWithBranch(branch, data);
+	}
+
+	async getCommitInfo(oid?: GitVersion, depth = 20): Promise<GitVersionDataSet> {
+		oid = oid ?? (await this.getHeadCommit());
+		const data = await this._gitRepository.getCommitInfo(oid, { depth, simplify: true });
+		let reachedFirstCommit = false;
+		if (data.length < depth) reachedFirstCommit = true;
+		else {
+			try {
+				reachedFirstCommit = !(await this.getParentCommitHash(new GitVersion(data[data.length - 1].oid)));
+			} catch {
+				reachedFirstCommit = true;
+			}
+		}
+
+		return {
+			data: data.map(
+				(x): GitVersionData => ({
+					author: x.author,
+					timestamp: x.timestamp,
+					oid: x.oid,
+					summary: x.summary,
+					parents: x.parents,
+				}),
+			),
+			reachedFirstCommit,
+		};
 	}
 
 	async getSubGitVersionControls(): Promise<GitVersionControl[]> {

@@ -1,10 +1,13 @@
 import { Tag } from "@ext/markdown/core/render/logic/Markdoc";
 import getTextByProperty from "@ext/markdown/elements/inlineProperty/edit/logic/getTextByProperty";
 import { pdfRenderContext } from "@ext/pdfExport/parseNodesPDF";
-import { ContentText } from "pdfmake/interfaces";
+import { Content } from "pdfmake/interfaces";
+import { JSONContent } from "@tiptap/core";
+import { paragraphCase } from "@ext/markdown/elements/paragraph/pdf/paragraph";
 
-export const inlinePropertyHandler = (tag: Tag, context: pdfRenderContext): ContentText[] => {
-	if (!tag.attributes?.bind) return [];
+export const inlinePropertyHandler = async (tag: Tag | JSONContent, context: pdfRenderContext): Promise<Content[]> => {
+	const attrs = "attributes" in tag ? tag.attributes : tag.attrs;
+	if (!attrs?.bind) return [];
 
 	const article = context.parserContext.getArticle();
 	const catalog = context.catalog;
@@ -13,11 +16,15 @@ export const inlinePropertyHandler = (tag: Tag, context: pdfRenderContext): Cont
 
 	const properties = article.props?.properties;
 
-	const catalogProperty = template.props.customProperties.find((p) => p.name === tag.attributes.bind);
+	const catalogProperties =
+		template.props?.customProperties?.length > 0 ? template.props.customProperties : catalog.props.properties;
+	const catalogProperty = catalogProperties.find((p) => p.name === attrs.bind);
 
 	if (!catalogProperty) return [];
 
-	const articleProperty = properties?.find((p) => p.name === tag.attributes.bind);
+	const articleProperty = properties?.find((p) => p.name === attrs.bind);
 	const displayValue = getTextByProperty({ ...catalogProperty, value: articleProperty?.value }, !!articleProperty);
-	return [{ text: displayValue }];
+
+	const content = await paragraphCase(new Tag("p", {}, [displayValue]), context);
+	return content;
 };

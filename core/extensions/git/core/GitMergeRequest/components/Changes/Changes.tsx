@@ -9,15 +9,15 @@ import t from "@ext/localization/locale/translate";
 import { useEffect, useMemo, useState } from "react";
 
 export type ChangesProps = {
-	sourceRef: string;
 	targetRef: string;
 	stage: DiffEntriesLoadStage;
 	setStage: (stage: DiffEntriesLoadStage) => void;
 };
 
-export const Changes = ({ targetRef, sourceRef, stage, setStage }: ChangesProps) => {
+export const Changes = ({ targetRef, stage, setStage }: ChangesProps) => {
 	const [isCollapsed, setIsCollapsed] = useState(true);
-	const setArticleDiffView = useSetArticleDiffView(true, { reference: sourceRef }, { reference: targetRef });
+	const deleteScope = useMemo(() => ({ reference: targetRef }), [targetRef]);
+	const setArticleDiffView = useSetArticleDiffView(false, null, deleteScope);
 	const { changes, stage: newStage } = useDiffEntries();
 
 	useEffect(() => {
@@ -43,7 +43,7 @@ export const Changes = ({ targetRef, sourceRef, stage, setStage }: ChangesProps)
 			isCollapsed={false}
 			isNotLoaded={!changes}
 			isLoading={stage === DiffEntriesLoadStage.Loading}
-			right={stage === DiffEntriesLoadStage.Ready && <Overview showTotal fontSize="12px" {...changes.overview} />}
+			right={changes && <Overview showTotal fontSize="12px" {...changes.overview} />}
 			headerStyles="padding-left: 1rem; padding-right: 1rem;"
 		>
 			{DiffEntriesCached}

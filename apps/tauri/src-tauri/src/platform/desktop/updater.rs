@@ -12,7 +12,7 @@ use tauri_plugin_updater as updater;
 use semver::Prerelease;
 use semver::Version;
 
-use crate::AppHandleExt;
+use crate::shared::AppHandleExt;
 
 use super::menu::search_menu;
 use super::menu::MenuItemId;

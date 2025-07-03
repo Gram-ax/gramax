@@ -1,3 +1,4 @@
+import ArticleUpdaterService from "@components/Article/ArticleUpdater/ArticleUpdaterService";
 import TabWrapper from "@components/Layouts/LeftNavigationTabs/TabWrapper";
 import calculateTabWrapperHeight from "@components/Layouts/StatusBar/Extensions/logic/calculateTabWrapperHeight";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
@@ -11,7 +12,7 @@ import SyncService from "@ext/git/actions/Sync/logic/SyncService";
 import Approvers from "@ext/git/core/GitMergeRequest/components/Approval/Approvers";
 import { Changes } from "@ext/git/core/GitMergeRequest/components/Changes/Changes";
 import { DiffEntriesLoadStage } from "@ext/git/core/GitMergeRequest/components/Changes/DiffEntries";
-import { Creator, Description, FromWhere, Status } from "@ext/git/core/GitMergeRequest/components/Elements";
+import { Creator, Description, MergeRequestFromWhere, Status } from "@ext/git/core/GitMergeRequest/components/Elements";
 import MergeButton from "@ext/git/core/GitMergeRequest/components/MergeButton";
 import type { MergeRequest } from "@ext/git/core/GitMergeRequest/model/MergeRequest";
 import t from "@ext/localization/locale/translate";
@@ -56,9 +57,14 @@ const MergeRequestTab = ({ mergeRequest, isDraft, show, setShow }: MergeRequestP
 
 	const restoreRightSidebar = useRestoreRightSidebar();
 
-	const restoreView = () => {
+	const restoreView = async () => {
+		const isDefaultView = ArticleViewService.isDefaultView();
+		if (isDefaultView) return;
+
 		ArticleViewService.setDefaultView();
 		restoreRightSidebar();
+		await ArticleUpdaterService.update(apiUrlCreator);
+		refreshPage();
 	};
 
 	useWatch(() => {
@@ -91,16 +97,11 @@ const MergeRequestTab = ({ mergeRequest, isDraft, show, setShow }: MergeRequestP
 		return (
 			<>
 				<TopWrapper>
-					<FromWhere from={mergeRequest.sourceBranchRef} where={mergeRequest.targetBranchRef} />
+					<MergeRequestFromWhere from={mergeRequest.sourceBranchRef} where={mergeRequest.targetBranchRef} />
 					<Creator from={mergeRequest.creator} created={mergeRequest.createdAt} />
 					<Description content={mergeRequest.description} />
 				</TopWrapper>
-				<Changes
-					targetRef={mergeRequest.targetBranchRef}
-					sourceRef={mergeRequest.sourceBranchRef}
-					stage={stage}
-					setStage={setStage}
-				/>
+				<Changes targetRef={mergeRequest.targetBranchRef} stage={stage} setStage={setStage} />
 				<BottomWrapper>
 					<Approvers approvers={mergeRequest.approvers} />
 					<ButtonArea>

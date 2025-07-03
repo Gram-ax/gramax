@@ -2,8 +2,7 @@ import { iconFilter, toListItem, lucideIconListForUikit } from "@components/Atom
 import ListLayoutByUikit from "@components/List/ListLayoutByUikit";
 import { usePlatform } from "@core-ui/hooks/usePlatform";
 import { FormProps } from "@ext/catalog/actions/propsEditor/components/CatalogPropsEditor";
-import Footer from "@ext/catalog/actions/propsEditor/components/ModalFooter";
-import Header from "@ext/catalog/actions/propsEditor/components/ModalHeader";
+import ModalErrorHandler from "@ext/errorHandlers/client/components/ModalErrorHandler";
 import t from "@ext/localization/locale/translate";
 import EditAIServer from "@ext/workspace/components/EditAIServer";
 import EditCustomTheme from "@ext/workspace/components/EditCustomTheme";
@@ -12,10 +11,10 @@ import { ClientWorkspaceConfig } from "@ext/workspace/WorkspaceConfig";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@ui-kit/Button";
 import { Divider } from "@ui-kit/Divider";
-import { Form, FormField, FormSectionTitle } from "@ui-kit/Form";
+import { Form, FormField, FormSectionTitle, FormHeader, FormFooter, FormStack } from "@ui-kit/Form";
 import { Input } from "@ui-kit/Input";
 import { Modal, ModalBody, ModalContent, ModalTrigger } from "@ui-kit/Modal";
-import { useCallback, useMemo, SetStateAction, Dispatch } from "react";
+import { useCallback, useMemo, SetStateAction, Dispatch, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
@@ -53,13 +52,13 @@ const EditWorkspaceForm = (props: WorkspaceSettingsModalProps) => {
 	const formSchema = z.object({
 		name: z
 			.string()
-			.min(1)
+			.min(2, { message: t("space-name-min-length") })
 			.refine(isNameUnique, { message: t("cant-be-same-name") }),
 		icon: z.optional(z.string()),
 		path: z.optional(
 			z
 				.string()
-				.min(1)
+				.min(2, { message: t("space-name-min-length") })
 				.refine(isPathValid, { message: t("cant-be-same-path") }),
 		),
 	});
@@ -100,96 +99,104 @@ const EditWorkspaceForm = (props: WorkspaceSettingsModalProps) => {
 		<Modal open={open} onOpenChange={onOpenChangeHandler}>
 			{trigger && <ModalTrigger asChild>{trigger}</ModalTrigger>}
 			<ModalContent data-modal-root>
-				<Form {...form}>
-					<form className="contents" onSubmit={formSubmit}>
-						<Header title={t("workspace.edit")} description={t("workspace.configure-your-workspace")} />
-						<ModalBody className="space-y-4">
-							<FormField
-								name="name"
-								title={t("name")}
-								required
-								control={({ field }) => (
-									<Input
-										{...field}
-										autoFocus
-										placeholder={t("workspace.enter-name")}
-										data-qa={t("name")}
-									/>
-								)}
-								{...formProps}
+				<ModalErrorHandler onError={() => {}} onClose={onCloseHandler}>
+					<Form asChild {...form}>
+						<form className="contents" onSubmit={formSubmit}>
+							<FormHeader
+								icon={"settings"}
+								title={t("workspace.edit")}
+								description={t("workspace.configure-your-workspace")}
 							/>
-							<FormField
-								name="icon"
-								title={t("icon")}
-								control={({ field }) => (
-									<ListLayoutByUikit
-										placeholder={t("icon")}
-										openByDefault={false}
-										items={lucideIconListForUikit}
-										filterItems={iconFilter([], true)}
-										item={toListItem({ code: field.value ?? "" })}
-										onItemClick={(value) => {
-											form.setValue("icon", value);
-											field.value = value;
-										}}
+							<ModalBody>
+								<FormStack>
+									<FormField
+										name="name"
+										title={t("name")}
+										required
+										control={({ field }) => (
+											<Input
+												{...field}
+												autoFocus
+												placeholder={t("workspace.enter-name")}
+												data-qa={t("name")}
+											/>
+										)}
+										{...formProps}
 									/>
-								)}
-								{...formProps}
-							/>
-							{askPath && (
-								<FormField
-									name="path"
-									title={t("working-directory")}
-									required
-									control={({ field }) => (
-										<Input
-											{...field}
-											readOnly
-											placeholder={pathPlaceholder}
-											title={field.value}
-											data-qa={t("working-directory")}
+									<FormField
+										name="icon"
+										title={t("icon")}
+										control={({ field }) => (
+											<ListLayoutByUikit
+												placeholder={t("icon")}
+												openByDefault={false}
+												items={lucideIconListForUikit}
+												filterItems={iconFilter([], true)}
+												item={toListItem({ code: field.value ?? "" })}
+												onItemClick={(value) => {
+													form.setValue("icon", value);
+													field.value = value;
+												}}
+											/>
+										)}
+										{...formProps}
+									/>
+									{askPath && (
+										<FormField
+											name="path"
+											title={t("working-directory")}
+											required
+											control={({ field }) => (
+												<Input
+													{...field}
+													readOnly
+													placeholder={pathPlaceholder}
+													title={field.value}
+													data-qa={t("working-directory")}
+												/>
+											)}
+											{...formProps}
 										/>
 									)}
-									{...formProps}
-								/>
-							)}
-							{originalProps.path && (
-								<>
-									<Divider />
-									<FormSectionTitle children={t("workspace.appearance")} />
-									<EditCustomTheme
-										{...workspaceStyleProps}
-										{...workspaceLogoProps}
-										formProps={formProps}
-									/>
-								</>
-							)}
-						</ModalBody>
-						<Footer
-							primaryButton={<Button type="submit" variant="primary" children={t("save")} />}
-							leftButton={
-								<>
-									<Button
-										onClick={() => removeWorkspace(onCloseHandler)}
-										type="button"
-										variant="text"
-										children={t("delete")}
-									/>
-									<EditAIServer
-										workspacePath={workspace.path}
-										trigger={
-											<Button
-												type="button"
-												variant="text"
-												children={t("workspace.button-ai-server")}
+									{originalProps.path && (
+										<>
+											<Divider />
+											<FormSectionTitle children={t("workspace.appearance")} />
+											<EditCustomTheme
+												{...workspaceStyleProps}
+												{...workspaceLogoProps}
+												formProps={formProps}
 											/>
-										}
-									/>
-								</>
-							}
-						/>
-					</form>
-				</Form>
+										</>
+									)}
+								</FormStack>
+							</ModalBody>
+							<FormFooter
+								primaryButton={<Button type="submit" variant="primary" children={t("save")} />}
+								leftContent={
+									<>
+										<Button
+											onClick={() => removeWorkspace(onCloseHandler)}
+											type="button"
+											variant="text"
+											children={t("delete")}
+										/>
+										<EditAIServer
+											workspacePath={workspace.path}
+											trigger={
+												<Button
+													type="button"
+													variant="text"
+													children={t("workspace.button-ai-server")}
+												/>
+											}
+										/>
+									</>
+								}
+							/>
+						</form>
+					</Form>
+				</ModalErrorHandler>
 			</ModalContent>
 		</Modal>
 	);

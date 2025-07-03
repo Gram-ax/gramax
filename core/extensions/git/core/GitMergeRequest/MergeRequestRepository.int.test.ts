@@ -2,38 +2,19 @@
  * @jest-environment node
  */
 
-import DiskFileProvider from "@core/FileProvider/DiskFileProvider/DiskFileProvider";
-import MountFileProvider from "@core/FileProvider/MountFileProvider/MountFileProvider";
 import Path from "@core/FileProvider/Path/Path";
 import DefaultError from "@ext/errorHandlers/logic/DefaultError";
-import { LibGit2Error } from "@ext/git/core/GitCommands/errors/LibGit2Error";
 import { MergeRequest, MergeRequestOptions } from "@ext/git/core/GitMergeRequest/model/MergeRequest";
 import GitStorage from "@ext/git/core/GitStorage/GitStorage";
-import GitVersionControl from "@ext/git/core/GitVersionControl/GitVersionControl";
-import GitSourceData from "@ext/git/core/model/GitSourceData.schema";
-import type Repository from "@ext/git/core/Repository/Repository";
-import RepositoryProvider from "@ext/git/core/Repository/RepositoryProvider";
+import FileRepository from "@ext/git/core/Repository/test/utils/FileRepository";
 import WorkdirRepository from "@ext/git/core/Repository/WorkdirRepository";
-import SourceType from "@ext/storage/logic/SourceDataProvider/model/SourceType";
-import BlankWatcher from "@ext/Watchers/BlankWatcher";
-
-const mockUserData: GitSourceData = {
-	sourceType: SourceType.git,
-	userEmail: "test-email@email.com",
-	userName: "test user",
-	domain: "localhost:8174",
-	token: "test-token",
-};
+import fs from "fs";
 
 const path = (path: string) => new Path(path);
-const repPath = (path: string) => new Path(["testRep", path]);
 
-const dfp = new DiskFileProvider(__dirname);
-
-let gvc: GitVersionControl;
-let rep: Repository;
-
-const mountFp = MountFileProvider.fromDefault(new Path(__dirname), new BlankWatcher());
+let rep: WorkdirRepository;
+let pushMock: jest.SpyInstance;
+const fr = new FileRepository(__dirname);
 
 const createMergeRequest = (
 	options: MergeRequestOptions = {
@@ -41,11 +22,11 @@ const createMergeRequest = (
 		squash: true,
 	},
 ): Promise<void> => {
-	return rep.mergeRequests.create(mockUserData, {
+	return rep.mergeRequests.create(FileRepository.sourceData, {
 		targetBranchRef: "master",
 		title: "test title",
 		description: "test description",
-		approvers: [{ name: "test user", email: "test-email@email.com", approvedAt: new Date() }],
+		approvers: [{ name: "Test User", email: "test@test.com", approvedAt: new Date() }],
 		createdAt: new Date(),
 		options,
 	});
@@ -62,34 +43,15 @@ const clearMrDates = (mr: MergeRequest) => {
 
 describe("Repository", () => {
 	beforeEach(async () => {
-		await RepositoryProvider.resetRepo();
-		await GitStorage.clone({
-			source: mockUserData,
-			repositoryPath: path("testRep"),
-			fs: { fp: mountFp } as any,
-			cancelToken: 0,
-			data: {
-				url: "http://localhost:8174/remoteRep.git",
-			} as any,
-			branch: "master",
-		});
-
-		gvc = new GitVersionControl(path("testRep"), dfp);
-		const storage = new GitStorage(path("testRep"), dfp);
-		rep = new WorkdirRepository(path("testRep"), dfp, gvc, storage);
+		rep = fr.create().firstInstance;
 		await rep.gvc.createNewBranch("feature");
-		await rep.storage.push(mockUserData);
 	});
 
-	afterEach(async () => {
-		await RepositoryProvider.resetRepo();
-		await dfp.delete(path("testRep"));
-		rep = null;
+	afterEach(() => {
+		fr.clear();
 	});
 
 	test("creates merge request", async () => {
-		await rep.storage.push(mockUserData);
-
 		await createMergeRequest();
 
 		const mr = await rep.mergeRequests.tryGetDraft();
@@ -100,12 +62,12 @@ describe("Repository", () => {
 			sourceBranchRef: "feature",
 			title: "test title",
 			description: "test description",
-			creator: { name: "test user", email: "test-email@email.com" },
+			creator: { name: "Test User", email: "test@test.com" },
 			approvers: [
 				{
 					approvedAt: null,
-					name: "test user",
-					email: "test-email@email.com",
+					name: "Test User",
+					email: "test@test.com",
 				},
 			],
 			createdAt: null,
@@ -115,15 +77,15 @@ describe("Repository", () => {
 				squash: true,
 			},
 		} as MergeRequest);
-		expect(await dfp.exists(repPath(".gramax/mr/open.yaml"))).toBeTruthy();
+		expect(fs.existsSync(fr.firstPath + "/.gramax/mr/open.yaml")).toBeTruthy();
 	});
 
 	describe("merges merge request", () => {
 		beforeEach(async () => {
-			await dfp.write(repPath("feature_1"), "test");
+			fs.writeFileSync(fr.firstPath + "/feature_1", "test");
 			await rep.publish({
 				commitMessage: "feature commit",
-				data: mockUserData,
+				data: FileRepository.sourceData,
 				filesToPublish: [path("feature_1")],
 			});
 		});
@@ -132,86 +94,163 @@ describe("Repository", () => {
 			await createMergeRequest({ deleteAfterMerge: false, squash: true });
 			await rep.publish({
 				commitMessage: "mr commit",
-				data: mockUserData,
+				data: FileRepository.sourceData,
 				filesToPublish: [path(".gramax/mr/open.yaml")],
 			});
+			const beforeMergeCommitHash = await rep.gvc.getHeadCommit();
 
 			let mr = await rep.mergeRequests.tryGetDraft();
 			expect(mr).toBeDefined();
 
-			await rep.mergeRequests.merge(mockUserData);
+			await rep.mergeRequests.merge(FileRepository.sourceData);
 
 			mr = await rep.mergeRequests.tryGetDraft();
 			expect(mr).toBeUndefined();
 
 			expect((await rep.gvc.getCurrentBranch()).toString()).toBe("master");
 			expect(rep.gvc.getBranch("feature")).toBeDefined();
-			expect(await dfp.exists(repPath(".gramax/mr/open.yaml"))).toBeFalsy();
+			expect(fs.existsSync(fr.firstPath + "/.gramax/mr/open.yaml")).toBeFalsy();
+
+			await rep.gvc.checkoutToBranch("feature");
+
+			mr = await rep.mergeRequests.tryGetDraft();
+			expect(mr).toBeUndefined();
+
+			expect(fs.existsSync(fr.firstPath + "/.gramax/mr/open.yaml")).toBeFalsy();
+
+			const afterMergeCommitHash = await rep.gvc.getHeadCommit();
+			expect(afterMergeCommitHash.compare(beforeMergeCommitHash)).toBeFalsy();
+			const parentCommitHash = await rep.gvc.getParentCommitHash(afterMergeCommitHash);
+			expect(parentCommitHash.compare(beforeMergeCommitHash)).toBeTruthy();
 		});
 
 		test("with branch deletion", async () => {
 			await createMergeRequest({ deleteAfterMerge: true, squash: true });
 			await rep.publish({
 				commitMessage: "mr commit",
-				data: mockUserData,
+				data: FileRepository.sourceData,
 				filesToPublish: [path(".gramax/mr/open.yaml")],
 			});
 
 			let mr = await rep.mergeRequests.tryGetDraft();
 			expect(mr).toBeDefined();
 
-			await rep.mergeRequests.merge(mockUserData);
+			await rep.mergeRequests.merge(FileRepository.sourceData);
 
 			mr = await rep.mergeRequests.tryGetDraft();
 			expect(mr).toBeUndefined();
 
 			expect((await rep.gvc.getCurrentBranch()).toString()).toBe("master");
-			await expect(rep.gvc.getBranch("feature")).rejects.toThrow(LibGit2Error);
-			expect(await dfp.exists(repPath(".gramax/mr/open.yaml"))).toBeFalsy();
+			await expect(rep.gvc.getBranch("feature")).rejects.toThrow();
+			expect(fs.existsSync(fr.firstPath + "/.gramax/mr/open.yaml")).toBeFalsy();
+			expect(fs.existsSync(fr.firstPath + "/.gramax/mr/archive")).toBeTruthy();
 		});
 	});
 
-	test("throws an error if there are local changes", async () => {
-		await createMergeRequest();
-		await rep.publish({
-			commitMessage: "mr commit",
-			data: mockUserData,
-			filesToPublish: [path(".gramax/mr/open.yaml")],
-		});
-		await dfp.write(repPath("test_file"), "test_file content");
+	describe("throws an error if there are local changes", () => {
+		test("in workdir", async () => {
+			await createMergeRequest();
+			await rep.publish({
+				commitMessage: "mr commit",
+				data: FileRepository.sourceData,
+				filesToPublish: [path(".gramax/mr/open.yaml")],
+			});
+			fs.writeFileSync(fr.firstPath + "/test_file", "test_file content");
 
-		await expect(rep.mergeRequests.merge(mockUserData)).rejects.toThrow(DefaultError);
+			await expect(rep.mergeRequests.merge(FileRepository.sourceData)).rejects.toThrow(DefaultError);
+		});
+
+		test("in index", async () => {
+			await createMergeRequest();
+			await rep.publish({
+				commitMessage: "mr commit",
+				data: FileRepository.sourceData,
+				filesToPublish: [path(".gramax/mr/open.yaml")],
+			});
+			fs.writeFileSync(fr.firstPath + "/test_file", "test_file content");
+			await rep.gvc.add([path("test_file")]);
+
+			await expect(rep.mergeRequests.merge(FileRepository.sourceData)).rejects.toThrow(DefaultError);
+		});
 	});
 
-	test("throws an error when merge merge request has conflicts", async () => {
-		await gvc.checkoutToBranch("master");
-		await dfp.write(repPath("conflict_file"), "change in master");
+	test("throws an error when merging merge request with conflicts", async () => {
+		await rep.gvc.checkoutToBranch("master");
+		fs.writeFileSync(fr.firstPath + "/conflict_file", "change in master");
 		await rep.publish({
 			commitMessage: "master commit",
-			data: mockUserData,
+			data: FileRepository.sourceData,
 			filesToPublish: [path("conflict_file")],
 		});
 
-		await gvc.checkoutToBranch("feature");
-		await dfp.write(repPath("conflict_file"), "change in feature");
+		await rep.gvc.checkoutToBranch("feature");
+		fs.writeFileSync(fr.firstPath + "/conflict_file", "change in feature");
 		await rep.publish({
 			commitMessage: "feature commit",
-			data: mockUserData,
+			data: FileRepository.sourceData,
 			filesToPublish: [path("conflict_file")],
 		});
 		await createMergeRequest();
 		await rep.publish({
 			commitMessage: "mr commit",
-			data: mockUserData,
+			data: FileRepository.sourceData,
 			filesToPublish: [path(".gramax/mr/open.yaml")],
 		});
 
+		const lastCommitOidBefore = (await rep.gvc.getCurrentBranch()).getData().lastCommitOid;
+
 		expect((await rep.status(false)).length).toBe(0);
 
-		await expect(rep.mergeRequests.merge(mockUserData)).rejects.toThrow(DefaultError);
+		let mr = await rep.mergeRequests.tryGetDraft();
+		expect(mr).toBeDefined();
 
-		expect(await dfp.exists(repPath(".gramax/mr/open.yaml"))).toBeTruthy();
+		await expect(rep.mergeRequests.merge(FileRepository.sourceData)).rejects.toThrow(DefaultError);
+
+		mr = await rep.mergeRequests.tryGetDraft();
+		expect(mr).toBeDefined();
+
+		const lastCommitOidAfter = (await rep.gvc.getCurrentBranch()).getData().lastCommitOid;
+		expect(lastCommitOidAfter).toBe(lastCommitOidBefore);
+
 		expect((await rep.status(false)).length).toBe(0);
-		expect(await dfp.exists(repPath(".gramax/mr/archive"))).toBeFalsy();
+
+		expect(fs.existsSync(fr.firstPath + "/.gramax/mr/open.yaml")).toBeTruthy();
+		expect(fs.existsSync(fr.firstPath + "/.gramax/mr/archive")).toBeFalsy();
+	});
+
+	test("restores if push fails", async () => {
+		await createMergeRequest();
+		await rep.publish({
+			commitMessage: "mr commit",
+			data: FileRepository.sourceData,
+			filesToPublish: [path(".gramax/mr/open.yaml")],
+		});
+
+		let mr = await rep.mergeRequests.tryGetDraft();
+		expect(mr).toBeDefined();
+
+		const statusLengthBefore = (await rep.status(false)).length;
+		const headCommitHashBefore = await rep.gvc.getHeadCommit();
+
+		pushMock = jest.spyOn(GitStorage.prototype, "push").mockImplementation(() => {
+			return Promise.reject(new Error("Test push failed"));
+		});
+
+		await expect(rep.mergeRequests.merge(FileRepository.sourceData)).rejects.toThrow(Error);
+
+		pushMock.mockRestore();
+
+		mr = await rep.mergeRequests.tryGetDraft();
+		expect(mr).toBeDefined();
+
+		const statusLengthAfter = (await rep.status(false)).length;
+		expect(statusLengthAfter).toBe(statusLengthBefore);
+
+		const headCommitHashAfter = await rep.gvc.getHeadCommit();
+		expect(headCommitHashAfter.compare(headCommitHashBefore)).toBeTruthy();
+		expect((await rep.gvc.getCurrentBranch()).getData().lastCommitOid).toBe(headCommitHashBefore.toString());
+
+		expect(fs.existsSync(fr.firstPath + "/.gramax/mr/open.yaml")).toBeTruthy();
+		expect(fs.existsSync(fr.firstPath + "/.gramax/mr/archive")).toBeFalsy();
 	});
 });

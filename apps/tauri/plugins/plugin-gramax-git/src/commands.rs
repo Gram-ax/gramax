@@ -159,6 +159,11 @@ pub(crate) fn get_content(repo_path: &Path, path: &Path, oid: Option<&str>) -> R
 }
 
 #[command(async)]
+pub(crate) fn get_commit_info(repo_path: &Path, oid: &str, opts: CommitInfoOpts) -> Result<Vec<CommitInfo>> {
+  git::get_commit_info(repo_path, oid, opts)
+}
+
+#[command(async)]
 pub(crate) fn get_parent(repo_path: &Path, oid: &str) -> Result<Option<String>> {
   git::get_parent(repo_path, oid)
 }

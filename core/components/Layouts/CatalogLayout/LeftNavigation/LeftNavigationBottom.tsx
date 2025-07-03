@@ -53,10 +53,7 @@ const LeftNavigationBottom = ({ data, closeNavigation }: { data: ArticlePageData
 				rightExtensions={mediumMedia ? null : [<PinToggleArrowIcon key={1} />]}
 			/>
 			{canSeeStatusBar && isCatalogExist && (
-				<ArticleStatusBar
-					isStorageInitialized={isStorageInitialized}
-					padding={leftNavIsOpen ? "0 6px" : "0 31px"}
-				/>
+				<ArticleStatusBar isStorageInitialized={isStorageInitialized} padding={"0 6px"} />
 			)}
 		</div>
 	);

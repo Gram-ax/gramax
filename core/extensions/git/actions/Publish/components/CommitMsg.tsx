@@ -4,12 +4,11 @@ import Input from "@components/Atoms/Input";
 import Notification from "@components/Atoms/Notification";
 import SpinnerLoader from "@components/Atoms/SpinnerLoader";
 import { classNames } from "@components/libs/classNames";
-import getIsDevMode from "@core-ui/utils/getIsDevMode";
 import styled from "@emotion/styled";
 import t from "@ext/localization/locale/translate";
 import useIsSourceDataValid from "@ext/storage/components/useIsSourceDataValid";
 import InvalidSourceWarning from "@ext/storage/logic/SourceDataProvider/components/InvalidSourceWarning";
-import { forwardRef, MutableRefObject, useState } from "react";
+import { forwardRef, MutableRefObject } from "react";
 
 const NotificationWrapper = styled.div`
 	position: relative;
@@ -48,7 +47,7 @@ const Spinner = styled(SpinnerLoader)`
 	margin-right: 0.5em;
 `;
 
-const ButtonWrapper = styled.div<{ isDevMode: boolean }>`
+const ButtonWrapper = styled.div`
 	display: flex;
 	justify-content: end;
 	align-items: center;
@@ -56,7 +55,7 @@ const ButtonWrapper = styled.div<{ isDevMode: boolean }>`
 	margin-top: 1em;
 
 	> div:nth-child(1) {
-		${(p) => (p.isDevMode ? "max-width: fit-content;" : "width: 100%;")}
+		max-width: fit-content;
 		flex: 1;
 		&:hover {
 			.file-count-notification > div {
@@ -81,8 +80,6 @@ const CommitMsgUnstyled = (props: PublishActionProps, ref: MutableRefObject<HTML
 		isLoading,
 	} = props;
 
-	const [isDevMode] = useState(() => getIsDevMode());
-
 	const canPush = useIsSourceDataValid();
 
 	return (
@@ -102,7 +99,7 @@ const CommitMsgUnstyled = (props: PublishActionProps, ref: MutableRefObject<HTML
 				disabled={disableCommitInput}
 				placeholder={t("commit-message")}
 			/>
-			<ButtonWrapper isDevMode={isDevMode}>
+			<ButtonWrapper>
 				<Button
 					onClick={onPublishClick}
 					disabled={disablePublishButton || !canPush}

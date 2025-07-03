@@ -435,4 +435,51 @@ describe("Path правильно", () => {
 			);
 		});
 	});
+
+	describe("получает новое имя", () => {
+		describe("с родительской директорией", () => {
+			describe("без слеша", () => {
+				test("без расширения", () => {
+					expect(new Path("rootFolder/folder/file").getNewName("newFile").value).toBe(
+						"rootFolder/folder/newFile",
+					);
+				});
+				test("с расширением", () => {
+					expect(new Path("rootFolder/folder/file.ext").getNewName("newFile").value).toBe(
+						"rootFolder/folder/newFile.ext",
+					);
+				});
+			});
+			describe("с слешем", () => {
+				test("без расширения", () => {
+					expect(new Path("/rootFolder/folder/file").getNewName("newFile").value).toBe(
+						"/rootFolder/folder/newFile",
+					);
+				});
+				test("с расширением", () => {
+					expect(new Path("/rootFolder/folder/file.ext").getNewName("newFile").value).toBe(
+						"/rootFolder/folder/newFile.ext",
+					);
+				});
+			});
+		});
+		describe("без родительской директории", () => {
+			describe("без слеша", () => {
+				test("без расширения", () => {
+					expect(new Path("file").getNewName("newFile").value).toBe("newFile");
+				});
+				test("с расширением", () => {
+					expect(new Path("file.ext").getNewName("newFile").value).toBe("newFile.ext");
+				});
+			});
+			describe("с слешем", () => {
+				test("без расширения", () => {
+					expect(new Path("/file").getNewName("newFile").value).toBe("/newFile");
+				});
+				test("с расширением", () => {
+					expect(new Path("/file.ext").getNewName("newFile").value).toBe("/newFile.ext");
+				});
+			});
+		});
+	});
 });

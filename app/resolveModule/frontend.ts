@@ -7,7 +7,6 @@ import type { Router } from "@core/Api/Router";
 import { ClientWorkspaceConfig } from "@ext/workspace/WorkspaceConfig";
 import type useUrlObjectImage from "apps/browser/src/hooks/useUrlObjectImage";
 import type BrowserRouter from "../../apps/browser/src/logic/Api/BrowserRouter";
-import type StaticRouter from "../../apps/gramax-cli/src/Components/Api/StaticRouter";
 import type NextRouter from "../../apps/next/logic/Api/NextRouter";
 import type { httpFetch } from "../../apps/tauri/src/window/commands";
 import type Link from "../../core/components/Atoms/Link";
@@ -15,7 +14,7 @@ import type FetchService from "../../core/ui-logic/ApiServices/FetchService";
 
 interface DynamicModules {
 	Link: typeof Link;
-	Router: typeof BrowserRouter | typeof StaticRouter | typeof NextRouter;
+	Router: typeof BrowserRouter | typeof NextRouter;
 	Fetcher: typeof FetchService.fetch;
 	useImage: typeof useUrlImage | typeof useUrlObjectImage;
 	FileInput: FileInput;
@@ -41,6 +40,7 @@ interface DynamicModules {
 		features?: string;
 	}) => Promise<Window> | Window;
 	httpFetch: typeof httpFetch;
+	setBadge: (count: number | null) => void | Promise<void>;
 }
 
 let modules: DynamicModules = null;

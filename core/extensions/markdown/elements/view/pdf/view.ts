@@ -32,6 +32,9 @@ export async function viewCase(node: Tag, context: pdfRenderContext): Promise<Co
 		context.catalog,
 		display,
 		context.itemFilters,
+		null,
+		null,
+		null,
 	).getFilteredArticles();
 
 	if (!data || data.length === 0) {

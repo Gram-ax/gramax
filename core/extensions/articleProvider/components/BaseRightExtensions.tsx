@@ -4,7 +4,7 @@ import ButtonLink from "@components/Molecules/ButtonLink";
 import FetchService from "@core-ui/ApiServices/FetchService";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import { ArticleProviderType } from "@ext/articleProvider/logic/ArticleProvider";
-import FileEditor from "@ext/artilce/actions/FileEditor";
+import EditMarkdown from "@ext/artilce/actions/EditMarkdown";
 import DeleteItem from "@ext/item/actions/DeleteItem";
 import t from "@ext/localization/locale/translate";
 import { MouseEvent, ReactNode, useCallback } from "react";
@@ -73,7 +73,7 @@ const BaseRightExtensions = (props: BaseRightExtensionsProps) => {
 			appendTo={() => document.body}
 		>
 			<>
-				<FileEditor
+				<EditMarkdown
 					trigger={<ButtonLink iconCode="pencil" text={t("article.edit-markdown")} />}
 					loadContent={loadContent}
 					saveContent={saveContent}

@@ -26,6 +26,7 @@ export const getBrowserModules = async (): Promise<any> => {
 		FileInput: BrowserLazyFileInput,
 		DiffFileInput: BrowserLazyDiffFileInput,
 		httpFetch: () => undefined,
+		setBadge: () => undefined,
 		openInExplorer: () => undefined,
 		openWindowWithUrl: () => undefined,
 	};

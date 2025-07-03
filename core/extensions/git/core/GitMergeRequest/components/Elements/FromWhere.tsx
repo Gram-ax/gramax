@@ -1,6 +1,5 @@
 import Icon from "@components/Atoms/Icon";
 import styled from "@emotion/styled";
-import FormattedBranch from "@ext/git/actions/Branch/components/FormattedBranch";
 
 export const LargeIcon = styled(Icon)`
 	font-size: 16px;
@@ -15,12 +14,19 @@ const Wrapper = styled.div`
 	gap: 0.33em;
 `;
 
-const FromWhere = ({ from, where }: { from: string; where: string }) => {
+interface FromWhereProps {
+	fromComponent: React.ReactNode;
+	whereComponent: React.ReactNode;
+}
+
+const FromWhere = (props: FromWhereProps) => {
+	const { fromComponent, whereComponent } = props;
+
 	return (
 		<Wrapper>
-			<FormattedBranch name={from} />
+			{fromComponent}
 			<LargeIcon strokeWidth={1.5} code="arrow-right" />
-			<FormattedBranch name={where} />
+			{whereComponent}
 		</Wrapper>
 	);
 };

@@ -14,6 +14,7 @@ import IsMacService from "../../ui-logic/ContextServices/IsMac";
 import Article from "../Article/Article";
 import ArticleFooter from "@components/Article/ArticleFooter";
 import { useEffect } from "react";
+import ArticleErrorHandler from "@ext/errorHandlers/client/components/ArticleErrorHandler";
 
 const ArticlePage = ({ data, className }: { data: ArticlePageData; className?: string }) => {
 	const theme = ThemeService.value;
@@ -36,14 +37,16 @@ const ArticlePage = ({ data, className }: { data: ArticlePageData; className?: s
 
 	return (
 		<div className={className}>
-			<ArticleBreadcrumb itemLinks={data.itemLinks} hasPreview={isShowMainLangContentPreview} />
-			<ArticleWithPreviewArticle
-				mainArticle={<Article data={data} />}
-				previewArticle={
-					isShowMainLangContentPreview && <ArticlePreview logicPath={data.articleProps.logicPath} />
-				}
-			/>
-			<ArticleFooter logicPath={data.articleProps.logicPath} itemLinks={data.itemLinks} />
+			<ArticleErrorHandler>
+				<ArticleBreadcrumb itemLinks={data.itemLinks} hasPreview={isShowMainLangContentPreview} />
+				<ArticleWithPreviewArticle
+					mainArticle={<Article data={data} />}
+					previewArticle={
+						isShowMainLangContentPreview && <ArticlePreview logicPath={data.articleProps.logicPath} />
+					}
+				/>
+				<ArticleFooter logicPath={data.articleProps.logicPath} itemLinks={data.itemLinks} />
+			</ArticleErrorHandler>
 		</div>
 	);
 };

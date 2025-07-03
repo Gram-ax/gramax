@@ -82,9 +82,13 @@ export default class RouterPathProvider {
 		const exclude = ["public"];
 		const offset = exclude.includes(currentPath[0]) ? 1 : 0;
 
-		const maybeStorage = currentPath[0 + offset];
+		const maybeStorage = decodeURIComponent(currentPath[0 + offset]);
 		const maybeSeparator = currentPath.slice(1 + offset, 4 + offset).some((s) => s === this._separator);
-		const isEditorPathname = (maybeStorage?.includes(".") || maybeSeparator) && !maybeStorage?.includes(":");
+
+		const isEditorPathname =
+			(maybeStorage?.includes(".") || maybeSeparator || maybeStorage.startsWith("localhost")) &&
+			(!maybeStorage?.includes(":") || /^.*:\d+$/.test(maybeStorage));
+
 		return isEditorPathname;
 	}
 

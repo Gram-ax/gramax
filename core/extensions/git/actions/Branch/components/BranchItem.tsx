@@ -1,5 +1,5 @@
 import Tooltip from "@components/Atoms/Tooltip";
-import getIsDevMode from "@core-ui/utils/getIsDevMode";
+import { DateType } from "@core-ui/utils/dateUtils";
 import styled from "@emotion/styled";
 import BranchMenu from "@ext/git/actions/Branch/components/BranchMenu";
 import { BranchStatusEnum, LocalIcon, MergeRequestIcon } from "@ext/git/actions/Branch/components/BranchStatus";
@@ -7,14 +7,13 @@ import DisableTooltipContent from "@ext/git/actions/Branch/components/DisableToo
 import type { MergeRequest } from "@ext/git/core/GitMergeRequest/model/MergeRequest";
 import t from "@ext/localization/locale/translate";
 import InlineUser from "@ext/security/components/User/InlineUser";
-import { useState } from "react";
 import Sidebar from "../../../../../components/Layouts/Sidebar";
 
-interface TitleComponentProps {
-	branchName: string;
-	lastAuthor: string;
-	lastAuthorMail: string;
-	lastModify: string;
+interface BranchLayoutProps {
+	title: string;
+	author: string;
+	authorMail: string;
+	date: DateType;
 	branchStatus?: BranchStatusEnum;
 	hasMergeRequest?: boolean;
 }
@@ -92,17 +91,18 @@ const TitleWrapper = styled.div`
 	}
 `;
 
-const TitleComponent = (props: TitleComponentProps) => {
-	const { branchName, lastAuthor, lastAuthorMail, lastModify, branchStatus, hasMergeRequest } = props;
+export const BranchLayout = (props: BranchLayoutProps) => {
+	const { title, author, authorMail, date, branchStatus, hasMergeRequest } = props;
+
 	return (
 		<TitleWrapper>
 			<div className="branch-name">
-				<span>{branchName}</span>
+				<span>{title}</span>
 				{branchStatus === BranchStatusEnum.Local && <LocalIcon />}
 				{hasMergeRequest && <MergeRequestIcon />}
 			</div>
 			<div className="branch-info">
-				<InlineUser name={lastAuthor} mail={lastAuthorMail} date={lastModify} />
+				<InlineUser name={author} mail={authorMail} date={date} />
 			</div>
 		</TitleWrapper>
 	);
@@ -123,8 +123,7 @@ const GitDateSideBar = (props: GitDateSideBarProps) => {
 		disable,
 	} = props;
 
-	const [isDevMode] = useState(() => getIsDevMode());
-	const hasMergeRequest = Boolean(isDevMode && mergeRequest);
+	const hasMergeRequest = !!mergeRequest;
 
 	const onBranchSwitch = () => {
 		if (!canSwitchBranch(title)) return;
@@ -141,18 +140,18 @@ const GitDateSideBar = (props: GitDateSideBarProps) => {
 					<Sidebar
 						disable={disable}
 						titleComponent={
-							<TitleComponent
-								branchName={title}
-								lastAuthor={data?.lastCommitAuthor}
-								lastAuthorMail={data?.lastCommitAuthorMail}
-								lastModify={data?.lastCommitModify}
+							<BranchLayout
+								title={title}
+								author={data?.lastCommitAuthor}
+								authorMail={data?.lastCommitAuthorMail}
+								date={data?.lastCommitModify}
 								branchStatus={branchStatus}
 								hasMergeRequest={hasMergeRequest}
 							/>
 						}
 						rightActions={[
 							<BranchMenu
-							refreshList={refreshList}
+								refreshList={refreshList}
 								key={1}
 								branchName={title}
 								onMergeRequestCreate={onMergeRequestCreate}

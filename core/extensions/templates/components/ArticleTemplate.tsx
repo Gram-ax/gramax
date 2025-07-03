@@ -5,9 +5,6 @@ import getArticleWithTitle from "@ext/markdown/elements/article/edit/logic/getAr
 import TemplateService from "@ext/templates/components/TemplateService";
 import { JSONContent } from "@tiptap/core";
 import { Placeholder } from "@ext/markdown/elements/placeholder/placeholder";
-import FetchService from "@core-ui/ApiServices/FetchService";
-import useWatch from "@core-ui/hooks/useWatch";
-import ApiUrlCreator from "@core-ui/ContextServices/ApiUrlCreator";
 
 interface ArticleTemplateProps {
 	item: ProviderItemProps;
@@ -15,7 +12,6 @@ interface ArticleTemplateProps {
 
 const ArticleTemplate = ({ item }: ArticleTemplateProps) => {
 	const { templates } = TemplateService.value;
-	const apiUrlCreator = ApiUrlCreator.value;
 
 	const updateContent = (id: string, content: JSONContent, title: string) => {
 		const newTemplate = templates.get(id);
@@ -35,22 +31,6 @@ const ArticleTemplate = ({ item }: ArticleTemplateProps) => {
 	const onCloseClick = () => {
 		TemplateService.closeTemplate();
 	};
-
-	const fetchProperties = async () => {
-		const res = await FetchService.fetch(apiUrlCreator.getTemplateProperties(item.id));
-		if (!res.ok) return;
-
-		const properties = await res.json();
-		TemplateService.setProperties(new Map(properties.map((prop) => [prop.name, prop])));
-	};
-
-	const fetchData = async () => {
-		await fetchProperties();
-	};
-
-	useWatch(() => {
-		fetchData();
-	}, [item.id]);
 
 	return (
 		<BaseArticleView

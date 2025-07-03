@@ -58,9 +58,13 @@ const OnDeleteNode = Extension.create({
 										}
 
 										if (removedNodes.length && this.options.onDeleteNodes) {
-											const nodeNeedRemove = removedNodes.filter(
-												(node) => !addedNodes.includes(node),
-											);
+											const nodeNeedRemove = removedNodes.filter((node) => {
+												const hasSameAttrs = addedNodes.some((addedNode) => {
+													return addedNode.attrs.src === node.attrs.src;
+												});
+
+												return !addedNodes.includes(node) || !hasSameAttrs;
+											});
 											this.options.onDeleteNodes(nodeNeedRemove);
 										}
 									}

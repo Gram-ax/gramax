@@ -31,7 +31,7 @@ const Menu = memo(({ name, data, defaultData, updateData, className }: MenuProps
 		<DndProvider backend={ModifiedBackend}>
 			<ButtonLink text={t("reset")} iconCode="rotate-ccw" onClick={deleteHandler} />
 			<span className={`${className} tree-root`}>
-				<ValueHandler data={data} isActions={false} onChange={onChange} />
+				<ValueHandler data={data} isActions={true} onChange={onChange} isEditable={false} />
 			</span>
 		</DndProvider>
 	);

@@ -88,12 +88,16 @@ class TransformerMsO {
 		msoListParagraphs.forEach((p, index) => {
 			const styleString = p.getAttribute("style");
 			const matches = styleString.match(/mso-list:\s*[^;]*level(\d+)\s*lfo(\d+)/i);
-			const level = parseInt(matches?.[1], 10);
+			let level = parseInt(matches?.[1], 10);
 			const lfo = matches?.[2];
 
 			if (lfo !== previousLfo) {
 				listStack.splice(0, listStack.length);
 				previousLfo = lfo;
+
+				if (level > 1) {
+					level = 1;
+				}
 			}
 
 			while (level !== listStack.length) {

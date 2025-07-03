@@ -4,13 +4,15 @@ import styled from "@emotion/styled";
 import { CSSProperties } from "react";
 
 interface StatusBarWrapperProps {
-	children: JSX.Element;
+	children?: JSX.Element;
 	dataQa?: string;
 	onClick?: () => void;
 	iconCode?: string;
 	iconStyle?: CSSProperties;
 	tooltipText?: string;
+	tooltipArrow?: boolean;
 	isShow?: boolean;
+	iconStrokeWidth?: string;
 }
 
 const Wrapper = styled.div<{ show?: boolean }>`
@@ -26,11 +28,17 @@ const Wrapper = styled.div<{ show?: boolean }>`
 `;
 
 const StatusBarWrapper = (props: StatusBarWrapperProps) => {
-	const { children, dataQa, onClick, iconCode, iconStyle, tooltipText, isShow } = props;
+	const { children, dataQa, onClick, iconCode, iconStyle, tooltipText, isShow, iconStrokeWidth } = props;
 
 	return (
 		<Wrapper data-qa={dataQa} show={isShow}>
-			<StatusBarElement onClick={onClick} iconCode={iconCode} iconStyle={iconStyle} tooltipText={tooltipText}>
+			<StatusBarElement
+				onClick={onClick}
+				iconCode={iconCode}
+				iconStyle={iconStyle}
+				tooltipText={tooltipText}
+				iconStrokeWidth={iconStrokeWidth}
+			>
 				{children}
 			</StatusBarElement>
 		</Wrapper>

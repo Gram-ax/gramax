@@ -1,4 +1,5 @@
 const COMMANDS: &[&str] = &[
+  "write_file",
   "read_dir",
   "read_link",
   "make_dir",

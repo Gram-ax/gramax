@@ -1,9 +1,10 @@
 import { classNames } from "@components/libs/classNames";
 import styled from "@emotion/styled";
-import { CSSProperties, ReactNode } from "react";
+import { CSSProperties, ElementType, ReactNode } from "react";
 
 interface SkeletonProps {
 	width: string;
+	elementType?: ElementType;
 	height?: string;
 	isLoaded: boolean;
 	children: ReactNode;
@@ -11,11 +12,11 @@ interface SkeletonProps {
 	className?: string;
 }
 
-const ImageSkeleton = ({ className, style, children, isLoaded }: SkeletonProps) => {
+const ImageSkeleton = ({ className, style, children, isLoaded, elementType: Tag = "div" }: SkeletonProps) => {
 	return (
-		<div className={classNames(className, { skeleton: !isLoaded })} style={style}>
+		<Tag className={classNames(className, { skeleton: !isLoaded })} style={style}>
 			{children}
-		</div>
+		</Tag>
 	);
 };
 

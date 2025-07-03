@@ -71,6 +71,37 @@ describe("ProseMirrorAstDiffTransformer", () => {
 
 			expect(strings).toEqual(["Main Title", "Hello", "Subtitle", "World"]);
 		});
+
+		it("with empty paragraphs", () => {
+			const ast = D.create().p("").p("Hello").p("").p("World").p("").value();
+			const { transformer } = getTransformer(ast);
+
+			const strings = transformer.getStrings().newStrings;
+
+			expect(strings).toEqual(["", "Hello", "", "World", ""]);
+		});
+
+		it("with empty headings", () => {
+			const ast = D.create().h(1, "").p("Hello").h(2, "").p("World").value();
+			const { transformer } = getTransformer(ast);
+
+			const strings = transformer.getStrings().newStrings;
+
+			expect(strings).toEqual(["", "Hello", "", "World"]);
+		});
+
+		it("with empty list items", () => {
+			const ast = D.create()
+				.p("Hello")
+				.bulletList(D.listItem(D.p("")), D.bulletList(D.listItem(D.p(""))))
+				.p("World")
+				.value();
+			const { transformer } = getTransformer(ast);
+
+			const strings = transformer.getStrings().newStrings;
+
+			expect(strings).toEqual(["Hello", "", "", "World"]);
+		});
 	});
 
 	describe("returns ast pos from string index", () => {
@@ -131,6 +162,42 @@ describe("ProseMirrorAstDiffTransformer", () => {
 			const astPos2 = transformer.getAstPos("new", 0, 6);
 
 			expect(getContentFromAstPos(node, astPos1, astPos2)).toEqual("in Ti");
+		});
+
+		it("with empty paragraphs", () => {
+			const ast = D.create().p("").p("Hello").p("").value();
+			const { transformer, node } = getTransformer(ast);
+			transformer.getStrings();
+
+			const astPos1 = transformer.getAstPos("new", 0, 0);
+			const astPos2 = transformer.getAstPos("new", 0, 0);
+
+			expect(getContentFromAstPos(node, astPos1, astPos2)).toEqual("");
+		});
+
+		it("with empty headings", () => {
+			const ast = D.create().h(1, "").p("Hello").value();
+			const { transformer, node } = getTransformer(ast);
+			transformer.getStrings();
+
+			const astPos1 = transformer.getAstPos("new", 0, 0);
+			const astPos2 = transformer.getAstPos("new", 0, 0);
+
+			expect(getContentFromAstPos(node, astPos1, astPos2)).toEqual("");
+		});
+
+		it("with empty list items", () => {
+			const ast = D.create()
+				.bulletList(D.listItem(D.p("")))
+				.p("Hello")
+				.value();
+			const { transformer, node } = getTransformer(ast);
+			transformer.getStrings();
+
+			const astPos1 = transformer.getAstPos("new", 0, 0);
+			const astPos2 = transformer.getAstPos("new", 0, 0);
+
+			expect(getContentFromAstPos(node, astPos1, astPos2)).toEqual("");
 		});
 	});
 });

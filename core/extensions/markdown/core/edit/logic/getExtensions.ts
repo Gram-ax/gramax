@@ -60,6 +60,7 @@ import VideoComponent from "@ext/markdown/elements/video/edit/model/video";
 import View from "@ext/markdown/elements/view/edit/models/view";
 import { Suggestion } from "@ext/StyleGuide/extension/Suggestion";
 import BlockProperty from "@ext/markdown/elements/blockProperty/edit/models/blockProperty";
+import InlineImage from "@ext/markdown/elements/inlineImage/edit/models/node";
 
 export interface GetExtensionsPropsOptions {
 	includeResources?: boolean;
@@ -131,6 +132,6 @@ export const getTemplateExtensions = (isTemplateInstance: boolean): Extensions =
 	BlockProperty.configure({ canChangeProps: isTemplateInstance ?? false }),
 ];
 
-export const getResourcesExtensions = (): Extensions => [Image, File, Icon, Diagrams, Drawio, OpenApi];
+export const getResourcesExtensions = (): Extensions => [Image, File, Icon, Diagrams, Drawio, OpenApi, InlineImage];
 
 export default getExtensions;

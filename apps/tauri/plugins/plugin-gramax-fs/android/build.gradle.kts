@@ -4,7 +4,7 @@ plugins {
 }
 
 android {
-    namespace = "gramax.app.fs"
+    namespace = "gramax.dev"
     compileSdk = 34
 
     defaultConfig {

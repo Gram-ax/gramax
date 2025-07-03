@@ -1,8 +1,11 @@
 import DiffFileInput from "@components/Atoms/FileInput/DiffFileInput/DiffFileInput";
+import ArticlePropsService from "@core-ui/ContextServices/ArticleProps";
+import CatalogPropsService from "@core-ui/ContextServices/CatalogProps";
 import DiffViewModeService from "@core-ui/ContextServices/DiffViewModeService";
 import ArticleViewService from "@core-ui/ContextServices/views/articleView/ArticleViewService";
 import useRestoreRightSidebar from "@core-ui/hooks/diff/useRestoreRightSidebar";
 import useSetupRightNavCloseHandler from "@core-ui/hooks/diff/useSetupRightNavCloseHandler";
+import Path from "@core/FileProvider/Path/Path";
 import { TreeReadScope } from "@ext/git/core/GitCommands/model/GitCommandsModel";
 import { DiffViewMode } from "@ext/markdown/elements/diff/components/DiffBottomBar";
 import { DiffModeView } from "@ext/markdown/elements/diff/components/DiffModeView";
@@ -44,6 +47,7 @@ const ArticleDiffModeView = (props: ArticleDiffModeViewProps) => {
 		oldContent,
 		newContent,
 		changeType,
+		// eslint-disable-next-line @typescript-eslint/no-unused-vars
 		title,
 		articlePath,
 		oldArticlePath,
@@ -55,13 +59,18 @@ const ArticleDiffModeView = (props: ArticleDiffModeViewProps) => {
 		onViewModeChange,
 	} = props;
 
+	const isAdded = changeType === FileStatus.new;
+	const isDeleted = changeType === FileStatus.delete;
 	const hasEditTree = (() => {
-		if (changeType === FileStatus.delete) return !!oldEditTree;
-		if (changeType === FileStatus.new) return !!newEditTree;
+		if (isDeleted) return !!oldEditTree;
+		if (isAdded) return !!newEditTree;
 		return !!oldEditTree && !!newEditTree;
 	})();
 
+	const articleProps = ArticlePropsService.value;
 	const diffViewService = DiffViewModeService.value;
+	const catalogName = CatalogPropsService.value?.name;
+
 	const restoreRightSidebar = useRestoreRightSidebar();
 	const [diffView, setDiffView] = useState(diffViewService);
 
@@ -73,6 +82,8 @@ const ArticleDiffModeView = (props: ArticleDiffModeViewProps) => {
 		const listener = () => {
 			restoreRightSidebar();
 			ArticleViewService.setDefaultView();
+			const clickOnCurrentArticle = Path.join(catalogName, articlePath) === articleProps.ref.path;
+			if (clickOnCurrentArticle) refreshPage();
 		};
 
 		const token = NavigationEvents.on("item-click", listener);
@@ -80,7 +91,7 @@ const ArticleDiffModeView = (props: ArticleDiffModeViewProps) => {
 		return () => {
 			NavigationEvents.off(token);
 		};
-	}, [restoreRightSidebar]);
+	}, [restoreRightSidebar, articlePath, articleProps, catalogName]);
 
 	useSetupRightNavCloseHandler();
 
@@ -118,7 +129,7 @@ const ArticleDiffModeView = (props: ArticleDiffModeViewProps) => {
 						onMonacoUpdate?.(value);
 					}}
 					options={{
-						readOnly,
+						readOnly: isDeleted || readOnly,
 						renderSideBySide: diffView === "double-panel",
 						useInlineViewWhenSpaceIsLimited: false,
 						renderOverviewRuler: false,

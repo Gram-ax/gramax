@@ -12,7 +12,8 @@ import FormattedBranch from "@ext/git/actions/Branch/components/FormattedBranch"
 import SelectGES from "@ext/git/actions/Branch/components/MergeRequest/SelectGES";
 import SelectGitCommitAuthors from "@ext/git/actions/Branch/components/MergeRequest/SelectGitCommitAuthors";
 import SquashCheckbox from "@ext/git/actions/Branch/components/SquashCheckbox";
-import { CreateMergeRequest, MergeRequestOptions, Signature } from "@ext/git/core/GitMergeRequest/model/MergeRequest";
+import { CreateMergeRequest, MergeRequestOptions } from "@ext/git/core/GitMergeRequest/model/MergeRequest";
+import type { Signature } from "@ext/git/core/model/Signature";
 import t from "@ext/localization/locale/translate";
 import { useState } from "react";
 

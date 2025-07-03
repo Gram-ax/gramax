@@ -1,4 +1,5 @@
 import SpinnerLoader from "@components/Atoms/SpinnerLoader";
+import CardActions from "@components/HomePage/CardParts/CardActions";
 import CardCloneProgress from "@components/HomePage/CardParts/CardCloneProgress";
 import CardError from "@components/HomePage/CardParts/CardError";
 import RightBottomExtWrapper from "@components/HomePage/CardParts/RightBottomExt";
@@ -57,6 +58,7 @@ const Card = ({ link, style, className, onClick, name }: CardProps) => {
 					setIsCancel={setIsCancel}
 				/>
 			)}
+			{!isLoading && !isCloning && !error && <CardActions catalogLink={link} />}
 			{error && <CardError link={link} error={error} />}
 			<div
 				className={classNames("card", { cloning: isCloning || !!error }, ["block-elevation-hover-1"])}
@@ -83,6 +85,10 @@ export default styled(Card)`
 		cursor: pointer;
 		border-radius: var(--radius-large);
 		overflow: hidden;
+	}
+
+	&:hover .card-actions {
+		opacity: 1;
 	}
 
 	.cloning {

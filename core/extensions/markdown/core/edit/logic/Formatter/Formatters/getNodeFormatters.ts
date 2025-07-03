@@ -37,6 +37,7 @@ import textFormatter from "@ext/markdown/elements/text/edit/logic/textFormatter"
 import brFormatter from "@ext/markdown/elements/br/edit/logic/brFormatter";
 import blockPropertyFormatter from "@ext/markdown/elements/blockProperty/edit/logic/blockPropertyFormatter";
 import htmlTagNodeFormatters from "@ext/markdown/elements/htmlTag/edit/logic/htmlTagNodeFormatters";
+import inlineImageFormatter from "@ext/markdown/elements/inlineImage/edit/logic/formatter";
 
 const getNodeFormatters = (context?: ParserContext): { [node: string]: NodeSerializerSpec } => {
 	const formatter = getFormatterTypeByContext(context);
@@ -53,6 +54,7 @@ const getNodeFormatters = (context?: ParserContext): { [node: string]: NodeSeria
 		view: viewNodeFormatter(formatter),
 		unsupported: unsupportedFormatter(formatter),
 		image: imageNodeFormatter(formatter),
+		inlineImage: inlineImageFormatter,
 		taskItem: taskItem,
 		taskList: taskList,
 		orderedList: orderedList,

@@ -43,9 +43,9 @@ export enum PropertyTypes {
 	date = "Date",
 	many = "Many",
 	text = "Text",
-	array = "Array",
+	// array = "Array",
 	blockMd = "BlockMd",
-	inlineMd = "InlineMd",
+	// inlineMd = "InlineMd",
 }
 
 export const getInputComponent: Partial<{
@@ -78,8 +78,8 @@ export const isHasValue: Partial<{ [type in PropertyTypes]: boolean }> = {
 	[PropertyTypes.date]: true,
 	[PropertyTypes.text]: true,
 	[PropertyTypes.blockMd]: true,
-	[PropertyTypes.inlineMd]: true,
-	[PropertyTypes.array]: true,
+	// [PropertyTypes.inlineMd]: true,
+	// [PropertyTypes.array]: true,
 };
 
 export interface PropertyUsage {

@@ -3,14 +3,13 @@ import PopupMenuLayout from "@components/Layouts/PopupMenuLayout";
 import FetchService from "@core-ui/ApiServices/FetchService";
 import CatalogPropsService from "@core-ui/ContextServices/CatalogProps";
 import t from "@ext/localization/locale/translate";
-import CatalogEditProperty from "@ext/properties/components/Modals/CatalogEditProperty";
+import { PropertyEditorProps } from "@ext/properties/components/Modals/PropertyEditor";
 import PropertyItem from "@ext/properties/components/PropertyItem";
 import { getInputComponent, getInputType, getPlaceholder, Property, PropertyValue } from "@ext/properties/models";
-import { MouseEvent, useCallback, useRef, useState, Dispatch, SetStateAction } from "react";
+import { MouseEvent, useCallback, useRef, Dispatch, SetStateAction, useEffect, useState } from "react";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import combineProperties from "@ext/properties/logic/combineProperties";
 import MimeTypes from "@core-ui/ApiServices/Types/MimeTypes";
-import useWatch from "@core-ui/hooks/useWatch";
 import ArticlePropsService from "@core-ui/ContextServices/ArticleProps";
 import { Instance, Props } from "tippy.js";
 import getCatalogEditProps from "@ext/catalog/actions/propsEditor/logic/getCatalogEditProps";
@@ -33,13 +32,13 @@ const AddProperty = (props: AddPropertyProps) => {
 	const catalogProps = CatalogPropsService.value;
 	const apiUrlCreator = ApiUrlCreatorService.value;
 
+	const [isOpen, setIsOpen] = useState(false);
 	const instanceRef = useRef<Instance<Props>>(null);
-	const [isOpen, setOpen] = useState<boolean>(false);
-	const [data, setData] = useState<Property>(null);
 
-	useWatch(() => {
-		setOpen(false);
-		setData(null);
+	useEffect(() => {
+		if (!isOpen) return;
+		ModalToOpenService.resetValue();
+		setIsOpen(false);
 	}, [articleProps.logicPath]);
 
 	const saveCatalogProperties = useCallback(
@@ -94,15 +93,26 @@ const AddProperty = (props: AddPropertyProps) => {
 	const toggleModal = useCallback(
 		(id?: string) => {
 			if (typeof id === "undefined") {
-				setOpen(false);
-				setData(null);
+				setIsOpen(false);
+				ModalToOpenService.resetValue();
 				return;
 			}
 
-			setData(catalogProperties.get(id));
-			setOpen(true);
+			setIsOpen(true);
+			ModalToOpenService.setValue<PropertyEditorProps>(ModalToOpen.PropertySettings, {
+				properties,
+				data: catalogProperties.get(id),
+				onSubmit: (property, isDelete, saveValue) => {
+					saveCatalogProperties(property, isDelete, saveValue);
+					ModalToOpenService.resetValue();
+				},
+				onClose: () => {
+					setIsOpen(false);
+					ModalToOpenService.resetValue();
+				},
+			});
 		},
-		[catalogProperties, setData, setOpen],
+		[catalogProperties, saveCatalogProperties],
 	);
 
 	const hideTippy = useCallback(
@@ -187,14 +197,6 @@ const AddProperty = (props: AddPropertyProps) => {
 				{catalogProperties.size > 0 && canAdd && <div className="divider" />}
 				{canAdd && <PropertyItem id={null} name={t("create-new")} startIcon="plus" onClick={hideTippy} />}
 			</PopupMenuLayout>
-			{isOpen && !disabled && canAdd && (
-				<CatalogEditProperty
-					data={data}
-					closeModal={toggleModal}
-					isOpen={isOpen}
-					onSubmit={saveCatalogProperties}
-				/>
-			)}
 		</>
 	);
 };

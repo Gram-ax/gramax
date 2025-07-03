@@ -60,6 +60,11 @@ export declare function get_remote(repoPath: string): Promise<unknown>
 export declare function fetch(repoPath: string, creds: AccessTokenCreds, force: boolean): Promise<unknown>
 export declare function push(repoPath: string, creds: AccessTokenCreds): Promise<unknown>
 export declare function file_history(repoPath: string, filePath: string, count: number): Promise<unknown>
+export interface CommitInfoOpts {
+  depth: number
+  simplify: boolean
+}
+export declare function get_commit_info(repoPath: string, oid: string, opts: CommitInfoOpts): Promise<unknown>
 export declare function add(repoPath: string, paths: Array<string>, force: boolean): Promise<unknown>
 export declare function commit(repoPath: string, creds: AccessTokenCreds, opts: CommitOptions): Promise<unknown>
 export declare function diff(opts: Input): Promise<unknown>
@@ -93,3 +98,4 @@ export interface GcOptions {
   packFilesLimit: number | null
 }
 export declare function gc(repoPath: string, opts: GcOptions): Promise<unknown>
+export declare function get_all_cancel_tokens(): Output

@@ -1,4 +1,5 @@
 import { getHttpsRepositoryUrl } from "@components/libs/utils";
+import { createEventEmitter } from "@core/Event/EventEmitter";
 import type FileStructure from "@core/FileStructue/FileStructure";
 import GithubStorageData from "@ext/git/actions/Source/GitHub/model/GithubStorageData";
 import type { CloneCancelToken } from "@ext/git/core/GitCommands/model/GitCommandsModel";
@@ -10,7 +11,7 @@ import FileProvider from "../../../../logic/FileProvider/model/FileProvider";
 import parseStorageUrl, { type StorageUrl } from "../../../../logic/utils/parseStorageUrl";
 import Branch from "../../../VersionControl/model/branch/Branch";
 import SourceType from "../../../storage/logic/SourceDataProvider/model/SourceType";
-import Storage from "../../../storage/logic/Storage";
+import Storage, { StorageEvents } from "../../../storage/logic/Storage";
 import getPartGitSourceDataByStorageName from "../../../storage/logic/utils/getPartSourceDataByStorageName";
 import getStorageNameByData from "../../../storage/logic/utils/getStorageNameByData";
 import createGitHubRepository from "../../actions/Source/GitHub/logic/createGitHubRepository";
@@ -35,9 +36,11 @@ export default class GitStorage implements Storage {
 	private _parsedUrl: StorageUrl;
 	private _cachedDefaultBranch: Branch;
 	private static _gitDataParser: GitDataParser = gitDataParser;
+	private _events = createEventEmitter<StorageEvents>();
 
 	constructor(private _path: Path, private _fp: FileProvider, private _authServiceUrl?: string) {
 		this._gitRepository = new GitCommands(this._fp, this._path);
+		this._gitRepository.events.on("fetch", ({ force }) => this._events.emit("fetch", { storage: this, force }));
 		void this._initSubGitStorages();
 	}
 
@@ -116,6 +119,10 @@ export default class GitStorage implements Storage {
 		await gitRepository.addRemote(data);
 	}
 
+	get events() {
+		return this._events;
+	}
+
 	getPath(): Path {
 		return this._path;
 	}
@@ -180,11 +187,7 @@ export default class GitStorage implements Storage {
 	}
 
 	async push(source: GitSourceData) {
-		const storageName = getStorageNameByData(source);
-		assert(
-			storageName === (await this.getSourceName()),
-			`storage name mismatch: ${storageName} !== ${await this.getSourceName()}; can't push to this storage`,
-		);
+		await this.validateStorageName(source);
 
 		try {
 			await this._gitRepository.push(source);
@@ -293,6 +296,14 @@ export default class GitStorage implements Storage {
 	async getSubGitStorages(): Promise<GitStorage[]> {
 		if (!this._subGitStorages) await this._initSubGitStorages();
 		return this._subGitStorages;
+	}
+
+	async validateStorageName(source: GitSourceData) {
+		const storageName = getStorageNameByData(source);
+		assert(
+			storageName === (await this.getSourceName()),
+			`storage name mismatch: ${storageName} !== ${await this.getSourceName()}; can't push to this storage`,
+		);
 	}
 
 	private async _initRepositoryUrl() {

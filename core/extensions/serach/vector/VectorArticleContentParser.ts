@@ -1,4 +1,4 @@
-import { ArticleBlock, ArticleItem, ArticleText } from "@ics/gx-vector-search";
+import { ArticleBlock, ArticleItem, ArticleTableRow, ArticleTableRowData } from "@ics/gx-vector-search";
 import { JSONContent } from "@tiptap/core";
 
 class HeaderArticleBlock implements ArticleBlock {
@@ -18,45 +18,67 @@ export default class VectorArticleContentParser {
 	private _blocksStack: ArticleBlock[] = [];
 	private _curBlock: ArticleBlock | undefined;
 
-	constructor(private readonly _items: JSONContent[]) {}
+	constructor(
+		private readonly _items: JSONContent[],
+		private readonly _getSnippetItems: (id: string) => Promise<JSONContent[] | null>,
+		private readonly _getPropertyValue: (id: string) => string | null,
+	) {}
 
-	parse(): ArticleItem[] {
-		for (const contentItem of this._items) {
-			this._parseItem(contentItem);
-		}
-
+	async parse(): Promise<ArticleItem[]> {
+		await this._parseItems(this._items);
 		return this._children;
 	}
 
-	private _parseItem(item: JSONContent): void {
+	private async _parseItems(items?: JSONContent[]): Promise<void> {
+		if (!items) return;
+
+		for (const item of items) {
+			await this._parseItem(item);
+		}
+	}
+
+	private async _parseItem(item: JSONContent): Promise<void> {
+		if (!item) return;
+
 		switch (item.type) {
 			case "paragraph":
-				this._addParagraph(item);
+				this._addText(this._jsonToString(item));
 				break;
 			case "heading":
 				this._addHeader(item);
 				break;
 			case "code_block":
-				this._addCodeBlock(item);
+				this._addText(this._jsonToString(item));
 				break;
 			case "table":
-				this._addTable(item);
+				await this._addTable(item);
 				break;
 			case "note":
-				this._addNote(item);
+				await this._addNote(item);
 				break;
 			case "bulletList":
 			case "orderedList":
-				this._addList(item);
+				await this._parseItems(item.content?.flatMap((x) => x.content));
+				break;
+			case "tab":
+				await this._addTab(item);
+				break;
+			case "snippet":
+				await this._addSnippet(item);
+				break;
+			case "horizontal_rule":
+			case "diagrams":
+			case "openapi":
+			case "blockMd":
+			case "image":
+			case "video":
+			case "view":
+			case "html":
+				break;
+			default:
+				await this._parseItems(item.content);
 				break;
 		}
-	}
-
-	private _addParagraph(paragraph: JSONContent): void {
-		this._addText({
-			type: "text",
-			text: this._jsonToString(paragraph),
-		});
 	}
 
 	private _addHeader(header: JSONContent): void {
@@ -67,43 +89,83 @@ export default class VectorArticleContentParser {
 		this._enterBlock(new HeaderArticleBlock(header.attrs.level, this._jsonToString(header)));
 	}
 
-	private _addTable(table: JSONContent): void {
-		this._addText({
-			type: "text",
-			text: this._tableToString(table),
-		});
-	}
-
-	private _addCodeBlock(codeBlock: JSONContent): void {
-		this._addText({
-			type: "text",
-			text: this._jsonToString(codeBlock),
-		});
-	}
-
-	private _addList(list: JSONContent): void {
-		list.content.forEach((listItem) => listItem.content.forEach((x) => this._parseItem(x)));
-	}
-
-	private _addNote(note: JSONContent): void {
+	private async _addNote(note: JSONContent): Promise<void> {
 		this._enterBlock({
 			type: "block",
 			items: [],
 			title: note.attrs.title,
 		});
-		note.content.forEach((x) => this._parseItem(x));
+
+		await this._parseItems(note.content);
 		this._exitBlock();
 	}
 
-	private _addText(child: ArticleText) {
+	private async _addTab(tab: JSONContent): Promise<void> {
+		this._enterBlock({
+			type: "block",
+			items: [],
+			title: tab.attrs?.name,
+		});
+
+		await this._parseItems(tab.content);
+		this._exitBlock();
+	}
+
+	private async _addSnippet(snippet: JSONContent): Promise<void> {
+		if (!snippet.attrs?.id) return;
+
+		const items = await this._getSnippetItems(snippet.attrs.id);
+		await this._parseItems(items);
+	}
+
+	private async _addTable(table: JSONContent): Promise<void> {
+		const rows: ArticleTableRow[] = [];
+		for (const row of table.content ?? []) {
+			const data: ArticleTableRowData[] = [];
+			for (const cell of row.content ?? []) {
+				let cellItems: ArticleItem[] = [];
+				if (cell.content) {
+					cellItems = await new VectorArticleContentParser(
+						cell.content,
+						this._getSnippetItems,
+						this._getPropertyValue,
+					).parse();
+				}
+
+				data.push({
+					items: cellItems,
+					colspan: cell.attrs.colspan,
+					rowspan: cell.attrs.rowspan,
+				});
+			}
+
+			rows.push({
+				data,
+			});
+		}
+
+		this._addItem({
+			type: "table",
+			rows,
+		});
+	}
+
+	private _addText(text: string) {
+		this._addItem({
+			type: "text",
+			text,
+		});
+	}
+
+	private _addItem(item: ArticleItem) {
 		if (!this._curBlock) {
-			this._children.push(child);
+			this._children.push(item);
 		} else {
-			this._curBlock.items.push(child);
+			this._curBlock.items.push(item);
 		}
 	}
 
-	private _enterBlock(block: ArticleBlock) {
+	private _enterBlock(block: ArticleBlock): void {
 		if (this._curBlock) {
 			this._blocksStack.push(this._curBlock);
 			this._curBlock.items.push(block);
@@ -114,26 +176,19 @@ export default class VectorArticleContentParser {
 		this._curBlock = block;
 	}
 
-	private _exitBlock() {
+	private _exitBlock(): void {
 		this._curBlock = this._blocksStack.pop();
 	}
 
-	private _tableToString(table: JSONContent): string {
-		return table.content
-			.map((row) => {
-				const rowContent = row.content.map((cell) => {
-					const cells = cell.content.map((contentItem) => {
-						const cellTextContent = contentItem.content?.map((c) => c.text)?.join("");
-						return cellTextContent;
-					});
-					return cells.join(" ");
-				});
-				return rowContent.join(" ");
-			})
-			.join("\n");
-	}
-
 	private _jsonToString(json: JSONContent): string {
-		return json.content?.map((content) => content.text).join("") ?? "";
+		return (
+			json.content
+				?.map((x) =>
+					x.type === "inline-property" && x.attrs.bind
+						? this._getPropertyValue(x.attrs.bind) ?? x.text
+						: x.text,
+				)
+				.join("") ?? ""
+		);
 	}
 }

@@ -1,6 +1,6 @@
 import LanguageService from "@core-ui/ContextServices/Language";
 
-type DateType = string | number | Date;
+export type DateType = string | number | Date;
 
 export default abstract class DateUtils {
 	static getDateViewModel(date: DateType): string {

@@ -1,9 +1,15 @@
 import getCountArticles from "@ext/markdown/elements/view/render/logic/getCountArticles";
 import getDisplayValue from "@ext/properties/logic/getDisplayValue";
-import { ViewRenderGroup } from "@ext/properties/models";
+import { Property, PropertyTypes, ViewRenderGroup } from "@ext/properties/models";
 import { TableCell, TableRow } from "@ext/properties/models/table";
 
-const getArray = (group: ViewRenderGroup, select: string[]): TableCell[] => {
+const getWidth = (property: Property) => {
+	if (property.type === PropertyTypes.blockMd) return "20em";
+	if (property.type === PropertyTypes.text) return "5em";
+	return undefined;
+};
+
+const getArray = (group: ViewRenderGroup, select: string[], catalogProperties: Map<string, Property>): TableCell[] => {
 	const rows = [];
 	let row = [];
 
@@ -14,18 +20,21 @@ const getArray = (group: ViewRenderGroup, select: string[]): TableCell[] => {
 		});
 	if (group?.subgroups?.length > 0) {
 		group.subgroups.map((subgroup) => {
-			row.push(...getArray(subgroup, select));
+			row.push(...getArray(subgroup, select, catalogProperties));
 		});
 	}
 	if (group?.articles?.length > 0) {
 		group.articles.forEach((article) => {
 			const cells = select.map((name) => {
+				const catalogProperty = catalogProperties.get(name);
 				const property = article.otherProps.find((prop) => prop.name === name);
 
-				if (!property) return { name: "", rowSpan: 1 };
+				if (!property && !catalogProperty) return { name: "", rowSpan: 1 };
 				return {
-					name: getDisplayValue(property.type, property.value),
+					name: getDisplayValue(catalogProperty?.type, property?.value, Boolean(property)),
+					itemPath: article.itemPath,
 					rowSpan: 1,
+					width: getWidth(catalogProperty),
 				};
 			});
 			row.push({ article }, ...cells, "\n");
@@ -60,8 +69,12 @@ const splitRows = (rows: TableCell[]) => {
 	return result;
 };
 
-const getRenderRows = (group: ViewRenderGroup, select: string[]): Array<TableRow[]> => {
-	return splitRows(getArray(group, select));
+const getRenderRows = (
+	group: ViewRenderGroup,
+	select: string[],
+	catalogProperties: Map<string, Property>,
+): Array<TableRow[]> => {
+	return splitRows(getArray(group, select, catalogProperties));
 };
 
 export default getRenderRows;

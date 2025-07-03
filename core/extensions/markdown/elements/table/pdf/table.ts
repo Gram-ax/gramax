@@ -8,10 +8,11 @@ import { NodeOptions, pdfRenderContext } from "@ext/pdfExport/parseNodesPDF";
 import { JSONContent } from "@tiptap/core";
 
 export async function tableCase(
-	node: Tag | JSONContent,
+	table: Tag | JSONContent,
 	context: pdfRenderContext,
 	options: NodeOptions,
 ): Promise<ContentTable> {
+	const node = JSON.parse(JSON.stringify(table));
 	const content = ("children" in node ? node.children : node.content) || [];
 
 	const thead = content.find(

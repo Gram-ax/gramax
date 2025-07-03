@@ -1,3 +1,5 @@
+import NavigationTabsService from "@components/Layouts/LeftNavigationTabs/NavigationTabsService";
+import { LeftNavigationTab } from "@components/Layouts/StatusBar/Extensions/ArticleStatusBar/ArticleStatusBar";
 import ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
 import FetchService from "@core-ui/ApiServices/FetchService";
 import ArticleViewService from "@core-ui/ContextServices/views/articleView/ArticleViewService";
@@ -54,6 +56,7 @@ class SnippetService {
 	}
 
 	openSnippet(snippet: ProviderItemProps) {
+		NavigationTabsService.setTop(LeftNavigationTab.Snippets);
 		ArticleViewService.setView(() => <ArticleSnippet item={snippet} />);
 		this._setSelectedID(snippet.id);
 	}

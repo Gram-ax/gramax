@@ -74,7 +74,7 @@ pub fn push_update_reference_callback(
   Ok(())
 }
 
-#[cfg(not(target_family = "wasm"))]
+#[cfg(not(any(target_family = "wasm", target_os = "android")))]
 fn resolve_identity_from_config(url: &str) -> Option<PathBuf> {
   use ssh2_config::ParseRule;
   use ssh2_config::SshConfig;
@@ -87,7 +87,7 @@ fn resolve_identity_from_config(url: &str) -> Option<PathBuf> {
     .filter(|path| path.exists())
 }
 
-#[cfg(not(target_family = "wasm"))]
+#[cfg(not(any(target_family = "wasm", target_os = "android")))]
 fn resolve_identities() -> Option<impl Iterator<Item = PathBuf>> {
   let ssh_dir = dirs::home_dir()?.join(".ssh");
   let files = ssh_dir.read_dir().ok()?;
@@ -102,12 +102,12 @@ fn resolve_identities() -> Option<impl Iterator<Item = PathBuf>> {
   Some(iter)
 }
 
-#[cfg(target_family = "wasm")]
+#[cfg(any(target_family = "wasm", target_os = "android"))]
 fn resolve_identities() -> Option<impl Iterator<Item = PathBuf>> {
   Some(vec![].into_iter())
 }
 
-#[cfg(target_family = "wasm")]
+#[cfg(any(target_family = "wasm", target_os = "android"))]
 fn resolve_identity_from_config(_url: &str) -> Option<PathBuf> {
   None
 }

@@ -1,6 +1,6 @@
 import CommentCounterService, { type AuthoredCommentsByAuthor } from "@core-ui/ContextServices/CommentCounter";
 import useWatch from "@core-ui/hooks/useWatch";
-import type { Signature } from "@ext/git/core/GitMergeRequest/model/MergeRequest";
+import type { Signature } from "@ext/git/core/model/Signature";
 import { useState } from "react";
 
 export type UseReviewerCommentsProps = { authors: Signature[] };

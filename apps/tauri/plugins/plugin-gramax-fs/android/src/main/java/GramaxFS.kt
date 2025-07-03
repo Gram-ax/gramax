@@ -1,4 +1,4 @@
-package gramax.app.fs
+package gramax.dev
 
 import android.app.Activity
 import app.tauri.annotation.Command

@@ -6,6 +6,8 @@ import styled from "@emotion/styled";
 import { ReactNode, useEffect, RefObject, useCallback, memo, useRef, CSSProperties, useState } from "react";
 import { Instance } from "tippy.js";
 
+type Placement = "top" | "inner";
+
 interface HoverProps {
 	children: ReactNode;
 	hoverElementRef: RefObject<HTMLElement>;
@@ -18,6 +20,7 @@ interface HoverProps {
 	leftActions?: ReactNode;
 	rightActions?: ReactNode;
 	className?: string;
+	placement?: Placement;
 }
 
 const shouldTippyHide = (target: HTMLElement, parent: HTMLElement) => {
@@ -44,6 +47,7 @@ const HoverableActions = (props: HoverProps) => {
 		actionsStyle,
 		setIsHovered,
 		hideOnClick = true,
+		placement = "inner",
 	} = props;
 	if (!setIsHovered) return children;
 	const actionsRef = useRef<HTMLDivElement>(null);
@@ -104,7 +108,7 @@ const HoverableActions = (props: HoverProps) => {
 		<>
 			<div
 				ref={actionsRef}
-				className={classNames(className, { isOver }, ["node-actions"])}
+				className={classNames(className, { isOver }, ["node-actions", placement])}
 				data-drag-handle
 				contentEditable={false}
 			>
@@ -141,8 +145,10 @@ export default memo(styled(HoverableActions)`
 		}
 	}
 
-	&.isOver {
-		top: -2.5em !important;
+	&.top {
+		right: 0;
+		top: -3.5em !important;
+		margin-right: 0;
 	}
 
 	.actions-left {

@@ -21,7 +21,7 @@ import EditorExtensionsService from "@ext/markdown/elements/diff/components/Edit
 import ScopeWrapper from "@ext/markdown/elements/diff/components/ScopeWrapper";
 import ArticlePropsesCache from "@ext/markdown/elements/diff/logic/ArticlePropsesCache";
 import DiffExtension from "@ext/markdown/elements/diff/logic/DiffExtension";
-import useDiff from "@ext/markdown/elements/diff/logic/useDiff";
+import useDiff from "@ext/markdown/elements/diff/logic/hooks/useDiff";
 import EditorService from "@ext/markdown/elementsUtils/ContextServices/EditorService";
 import ExtensionUpdater from "@ext/markdown/elementsUtils/editExtensionUpdator/ExtensionUpdater";
 import { FileStatus } from "@ext/Watchers/model/FileStatus";
@@ -185,8 +185,8 @@ export const DiffModeView = (props: DiffModeViewProps) => {
 					}
 					previewArticle={
 						hasChanges ? (
-							<ScopeWrapper scope={oldScope}>
-								<ApiUrlCreatorService.Provider value={oldDiffArticleApiUrlCreator}>
+							<ApiUrlCreatorService.Provider value={oldDiffArticleApiUrlCreator}>
+								<ScopeWrapper scope={oldScope}>
 									<div style={{ marginLeft: "0.5rem" }}>
 										<EditorContent
 											editor={oldContentEditor}
@@ -194,8 +194,8 @@ export const DiffModeView = (props: DiffModeViewProps) => {
 											data-iseditable={false}
 										/>
 									</div>
-								</ApiUrlCreatorService.Provider>
-							</ScopeWrapper>
+								</ScopeWrapper>
+							</ApiUrlCreatorService.Provider>
 						) : undefined
 					}
 				/>

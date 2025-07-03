@@ -4,8 +4,10 @@ import styled from "@emotion/styled";
 import BottomInfo from "./BottomInfo";
 import Groups from "./Groups";
 import TopMenu from "./TopMenu";
+import GroupsService from "@core-ui/ContextServices/GroupsService";
 
 export default styled(({ data, className }: { data: HomePageData; className?: string }) => {
+	const Service = GroupsService.Init.bind(GroupsService);
 	return (
 		<div className={className}>
 			<div className="article container">
@@ -14,7 +16,9 @@ export default styled(({ data, className }: { data: HomePageData; className?: st
 						(catalogData) => catalogData.catalogLinks || [],
 					)}
 				/>
-				<Groups catalogsLinks={data.catalogLinks} />
+				<Service value={data.catalogLinks}>
+					<Groups />
+				</Service>
 				<BottomInfo />
 			</div>
 		</div>

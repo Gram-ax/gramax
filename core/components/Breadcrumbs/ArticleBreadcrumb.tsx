@@ -30,7 +30,7 @@ const ArticleBreadcrumb = ({ className, itemLinks }: ArticleBreadcrumbProps) => 
 	const pageData = PageDataContextService.value;
 	const articleProps = ArticlePropsService.value;
 	const isReadOnly = pageData?.conf.isReadOnly;
-	const isTemplate = articleProps?.template;
+	const isTemplate = articleProps?.template?.length > 0;
 
 	const resize = useCallback(() => {
 		if (isReadOnly) return;
@@ -49,7 +49,7 @@ const ArticleBreadcrumb = ({ className, itemLinks }: ArticleBreadcrumbProps) => 
 		if (isReadOnly || isTemplate) return;
 		window.addEventListener("resize", setNull);
 		return () => window.removeEventListener("resize", setNull);
-	}, [itemLinks, articleProperties, isTemplate]);
+	}, [itemLinks, articleProperties]);
 
 	useEffect(() => {
 		if (isReadOnly) return;
@@ -80,7 +80,11 @@ const ArticleBreadcrumb = ({ className, itemLinks }: ArticleBreadcrumbProps) => 
 							setItemLink={setItemLink}
 						/>
 					</div>
-					{!isTemplate && <Properties properties={articleProperties} setProperties={setArticleProperties} />}
+					<Properties
+						properties={articleProperties}
+						setProperties={setArticleProperties}
+						hideList={isTemplate}
+					/>
 				</>
 			)}
 		</div>

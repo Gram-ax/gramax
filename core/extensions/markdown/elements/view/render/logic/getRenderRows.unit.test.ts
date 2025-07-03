@@ -37,7 +37,7 @@ describe("GetRenderRows", () => {
 			],
 		} as ViewRenderGroup;
 
-		const result = getRenderRows(data, []);
+		const result = getRenderRows(data, [], new Map());
 		expect(result).toStrictEqual([
 			[
 				{ name: "analysis", rowSpan: 3 },

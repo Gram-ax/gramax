@@ -62,7 +62,6 @@ export const getCatalogLinks = (): TitledLink[] => {
 	// 		void fetchData();
 	// 	},
 	// });
-
 	// links.push(divider);
 
 	return links;

@@ -1,4 +1,4 @@
-import { MERGE_REQUEST_DIRECTORY } from "@app/config/const";
+import { ARCHIVE_MERGE_REQUEST_PATH, MERGE_REQUEST_DIRECTORY_PATH, OPEN_MERGE_REQUEST_PATH } from "@app/config/const";
 import type FileProvider from "@core/FileProvider/model/FileProvider";
 import Path from "@core/FileProvider/Path/Path";
 import DefaultError from "@ext/errorHandlers/logic/DefaultError";
@@ -82,33 +82,6 @@ export default class MergeRequestProvider {
 		});
 	}
 
-	async archive(sourceBranchRef: string, data: GitSourceData) {
-		const mr = await this.findBySource(sourceBranchRef);
-
-		assert(mr, `merge request not found at ${sourceBranchRef}`);
-
-		const filename = this._formatArchiveFilename(sourceBranchRef, mr.createdAt);
-
-		if (!(await this._fp.exists(this._repoPath.join(new Path(`.gramax/mr/archive`)))))
-			await this._fp.mkdir(this._repoPath.join(new Path(`.gramax/mr/archive`)));
-
-		await this._fp.move(
-			this._repoPath.join(new Path(".gramax/mr/open.yaml")),
-			this._repoPath.join(new Path(`.gramax/mr/archive/${filename}`)),
-		);
-
-		await this._repo.publish({
-			data,
-			commitMessage: `Move 'open.yaml' to 'archive/${filename}'`,
-			filesToPublish: [new Path(`.gramax/mr/open.yaml`), new Path(`.gramax/mr/archive/${filename}`)],
-		});
-	}
-
-	async restoreIfConflict() {
-		const parent = await this._repo.gvc.getParentCommitHash(await this._repo.gvc.getHeadCommit());
-		await this._repo.gvc.hardReset(parent);
-	}
-
 	async afterSync(prev: MergeRequest, data: GitSourceData) {
 		if (!prev) return;
 		if (prev.creator.email === data.userEmail) return;
@@ -133,20 +106,12 @@ export default class MergeRequestProvider {
 			throw new DefaultError("You are not the author of this merge request or storage is not connected");
 
 		if (validateMerge) await this._repo.validateMerge();
-		await this.archive(branch.toString(), data);
 
-		const mergeData = await this._repo.merge({
-			data,
-			targetBranch: mr.targetBranchRef,
-			validateMerge,
-			deleteAfterMerge: mr.options?.deleteAfterMerge,
-			squash: mr.options?.squash,
-			isMergeRequest: true,
-		});
+		const { filename } = await this._archiveMrFile(branch.toString());
+		await this._commitArchiveFile(filename, branch.toString(), mr.targetBranchRef, data);
 
-		if (mergeData.length) {
-			await (await this._repo.getState()).abortMerge(data);
-			await this.restoreIfConflict();
+		if (await this._repo.gvc.haveConflictsWithBranch(mr.targetBranchRef, data)) {
+			await this._restoreArchiveFile();
 			throw new DefaultError(
 				t("git.merge-requests.error.merge-with-conflicts.body")
 					.replaceAll("{{targetBranch}}", mr.targetBranchRef)
@@ -157,11 +122,31 @@ export default class MergeRequestProvider {
 				t("git.merge-requests.error.merge-with-conflicts.title"),
 			);
 		}
+
+		await this._tryPublishArchiveFile(data);
+
+		const mergeData = await this._repo.merge({
+			data,
+			targetBranch: mr.targetBranchRef,
+			validateMerge,
+			deleteAfterMerge: mr.options?.deleteAfterMerge,
+			squash: mr.options?.squash,
+			isMergeRequest: true,
+		});
+
+		try {
+			if (mergeData.length) {
+				// the code should never get here, but it's better to be safe
+				throw new DefaultError(t("git.merge.conflict.abort-confirm.body.impossible-conflict"));
+			}
+		} finally {
+			this._repo.gvc.update();
+		}
 	}
 
 	private async _createOrUpdateMergeRequest(...args: Parameters<typeof this._mergeRequests.createOrUpdate>) {
 		await this._mergeRequests.createOrUpdate(...args);
-		await this._repo.gvc.add([new Path(MERGE_REQUEST_DIRECTORY)]);
+		await this._repo.gvc.add([MERGE_REQUEST_DIRECTORY_PATH]);
 	}
 
 	private async _findDraftOrFirstBySource(sourceBranchRef: string): Promise<MergeRequest | undefined> {
@@ -171,6 +156,54 @@ export default class MergeRequestProvider {
 	private async _getSourceRef() {
 		const branch = await this._repo.gvc.getCurrentBranch();
 		return branch.toString();
+	}
+
+	private async _archiveMrFile(sourceBranchRef: string): Promise<{ filename: string }> {
+		const mr = await this.findBySource(sourceBranchRef);
+
+		assert(mr, `merge request not found at ${sourceBranchRef}`);
+
+		const filename = this._formatArchiveFilename(sourceBranchRef, mr.createdAt);
+		const ARCHIVE_MERGE_REQUEST_FILENAME_PATH = ARCHIVE_MERGE_REQUEST_PATH.join(new Path(filename));
+
+		if (!(await this._fp.exists(this._repoPath.join(ARCHIVE_MERGE_REQUEST_PATH))))
+			await this._fp.mkdir(this._repoPath.join(ARCHIVE_MERGE_REQUEST_PATH));
+
+		await this._fp.move(
+			this._repoPath.join(OPEN_MERGE_REQUEST_PATH),
+			this._repoPath.join(ARCHIVE_MERGE_REQUEST_FILENAME_PATH),
+		);
+
+		return { filename };
+	}
+
+	private async _commitArchiveFile(
+		filename: string,
+		sourceBranchRef: string,
+		targetBranchRef: string,
+		data: GitSourceData,
+	) {
+		const ARCHIVE_MERGE_REQUEST_FILENAME_PATH = ARCHIVE_MERGE_REQUEST_PATH.join(new Path(filename));
+
+		await this._repo.gvc.commit(`Closing merge request ${sourceBranchRef} -> ${targetBranchRef}`, data, null, [
+			OPEN_MERGE_REQUEST_PATH,
+			ARCHIVE_MERGE_REQUEST_FILENAME_PATH,
+		]);
+	}
+
+	private async _tryPublishArchiveFile(data: GitSourceData) {
+		try {
+			await this._repo.publish({ onlyPush: true, data });
+		} catch (e) {
+			// already restored
+			await this._repo.gvc.hardReset();
+			throw e;
+		}
+	}
+
+	private async _restoreArchiveFile() {
+		await this._repo.gvc.restoreRepositoryState();
+		await this._repo.gvc.hardReset();
 	}
 
 	private _formatArchiveFilename(sourceBranchRef: string, createdAt: Date) {

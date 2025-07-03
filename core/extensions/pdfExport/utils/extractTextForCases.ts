@@ -34,5 +34,7 @@ export const extractContent = async (
 
 			return childrenContent.flat();
 		}
+
+		return [];
 	}
 };

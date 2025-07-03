@@ -3,17 +3,15 @@ import { cssMedia } from "@core-ui/utils/cssUtils";
 import type { GroupData } from "@core/SitePresenter/SitePresenter";
 import styled from "@emotion/styled";
 import t from "@ext/localization/locale/translate";
-import type { Dispatch, SetStateAction } from "react";
+import { type Dispatch, type SetStateAction } from "react";
 
-const Group = ({
-	groupData,
-	setIsAnyCardLoading,
-	className,
-}: {
+interface GroupProps {
 	groupData: GroupData;
 	setIsAnyCardLoading: Dispatch<SetStateAction<boolean>>;
 	className?: string;
-}) => {
+}
+
+const Group = ({ groupData, setIsAnyCardLoading, className }: GroupProps) => {
 	return (
 		<div className={className}>
 			<div className="group-header">{groupData.title !== "null" && t(groupData.title as any)}</div>

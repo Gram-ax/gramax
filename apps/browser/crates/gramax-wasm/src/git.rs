@@ -75,6 +75,11 @@ pub fn file_history(repo_path: String, file_path: String, count: usize) -> Resul
 }
 
 #[em_bindgen(json)]
+pub fn get_commit_info(repo_path: String, oid: String, opts: CommitInfoOpts) -> Result<Vec<CommitInfo>> {
+  git::get_commit_info(Path::new(&repo_path), &oid, opts)
+}
+
+#[em_bindgen(json)]
 pub fn branch_info(repo_path: String, name: Option<String>) -> Result<BranchInfo> {
   git::branch_info(Path::new(&repo_path), name.as_deref())
 }

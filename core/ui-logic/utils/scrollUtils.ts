@@ -1,10 +1,10 @@
 const scrollUtils = {
-	scrollPositionIsTop(element: HTMLElement): boolean {
-		return element.scrollTop < 2;
+	scrollPositionIsTop(element: HTMLElement, threshold: number = 2): boolean {
+		return element.scrollTop < threshold;
 	},
 
-	scrollPositionIsBottom(element: HTMLElement): boolean {
-		return element.scrollHeight - element.scrollTop - element.clientHeight < 2;
+	scrollPositionIsBottom(element: HTMLElement, threshold: number = 2): boolean {
+		return element.scrollHeight - element.scrollTop - element.clientHeight < threshold;
 	},
 
 	addTopBottomPositionClass(element: HTMLElement) {
@@ -25,8 +25,8 @@ const scrollUtils = {
 		} else element.className = element.className.replaceAll(topClassName, "");
 	},
 
-	hasScroll(element: HTMLElement): boolean {
-		return Math.abs(element.scrollHeight - element.clientHeight) > 1;
+	hasScroll(element: HTMLElement, threshold: number = 1): boolean {
+		return Math.abs(element.scrollHeight - element.clientHeight) > threshold;
 	},
 
 	scrollToWithCallback(element: Element, offset: number, callback: () => void): void {

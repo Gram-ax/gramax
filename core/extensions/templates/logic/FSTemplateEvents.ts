@@ -18,12 +18,14 @@ export default class FSTemplateEvents {
 	private _formatter: MarkdownFormatter;
 	private _parserContextFactory: ParserContextFactory;
 
+	private _refs = []
+
 	constructor() {}
 
 	mount(fs: FileStructure): void {
-		fs.events.on("before-item-create", this._onBeforeItemCreate.bind(this));
-		fs.events.on("item-serialize", this._onItemSerialize.bind(this));
-		fs.events.on("item-props-updated", this._onItemPropsUpdated.bind(this));
+		this._refs.push(fs.events.on("before-item-create", this._onBeforeItemCreate.bind(this)));
+		this._refs.push(fs.events.on("item-serialize", this._onItemSerialize.bind(this)));
+		this._refs.push(fs.events.on("item-props-updated", this._onItemPropsUpdated.bind(this)));
 	}
 
 	withParser(parser: MarkdownParser, formatter: MarkdownFormatter, parserContextFactory: ParserContextFactory): void {

@@ -3,6 +3,7 @@ import Icon from "@components/Atoms/Icon";
 import CommentCountSrc from "@components/Comments/CommentCount";
 import CatalogPropsService from "@core-ui/ContextServices/CatalogProps";
 import CommentCounterService from "@core-ui/ContextServices/CommentCounter";
+import TooltipIfOveflow from "@core-ui/TooltipIfOveflow";
 import { css } from "@emotion/react";
 import styled from "@emotion/styled";
 import type { DiffTreeAnyItem, DiffTreeBreadcrumb } from "@ext/git/core/GitDiffItemCreator/RevisionDiffTreePresenter";
@@ -17,7 +18,7 @@ import t from "@ext/localization/locale/translate";
 import { DiffItem } from "@ext/VersionControl/model/Diff";
 import { FileStatus } from "@ext/Watchers/model/FileStatus";
 
-import { useCallback, useContext } from "react";
+import { useCallback, useContext, useRef } from "react";
 
 export type DiffEntryProps = {
 	entry: DiffTreeAnyItem;
@@ -201,6 +202,9 @@ const DiffEntry = ({
 		},
 		[entry, onAction],
 	);
+
+	const overflowElement = useRef<HTMLDivElement>(null);
+
 	if (hidden) return null;
 
 	const discardFileComponent = actionIcon ? (
@@ -237,12 +241,14 @@ const DiffEntry = ({
 					)}
 					{indentLine}
 					<Indent indent={indent} checkboxIndent={isCheckbox && indent === 0} isResource>
-						<TitleWrapper>
-							<Title indent={indent}>
-								<Icon code={entry.icon} />
-								{entry.name}
-							</Title>
-						</TitleWrapper>
+						<TooltipIfOveflow content={entry.name} childrenRef={overflowElement} interactive>
+							<TitleWrapper>
+								<Title indent={indent} ref={overflowElement}>
+									<Icon code={entry.icon} />
+									{entry.name}
+								</Title>
+							</TitleWrapper>
+						</TooltipIfOveflow>
 						<Overview added={entry.overview.added} deleted={entry.overview.removed} />
 						{indent === 1 && discardFileComponent}
 					</Indent>
@@ -302,7 +308,11 @@ const DiffEntry = ({
 					{indentLine}
 					<Indent indent={indent} checkboxIndent={isCheckbox}>
 						<TitleWrapper>
-							<Title indent={indent}>{entry.name}</Title>
+							<TooltipIfOveflow content={entry.name} childrenRef={overflowElement} interactive>
+								<Title indent={indent} ref={overflowElement}>
+									{entry.name}
+								</Title>
+							</TooltipIfOveflow>
 							<CommentCount count={commentsCount} />
 						</TitleWrapper>
 						<Overview added={entry.overview.added} deleted={entry.overview.removed} />

@@ -27,7 +27,20 @@ const getResult = async (
 	propertiesTestCatalog: Catalog,
 	curArticle: Article,
 ) =>
-	new ViewFilter(defs, sortBy, groupBy, select, allArticles, curArticle, propertiesTestCatalog).getFilteredArticles();
+	new ViewFilter(
+		defs,
+		sortBy,
+		groupBy,
+		select,
+		allArticles,
+		curArticle,
+		propertiesTestCatalog,
+		null,
+		null,
+		null,
+		null,
+		null,
+	).getFilteredArticles();
 
 describe("ViewFilter фильтрует по свойствам", () => {
 	test("article", async () => {

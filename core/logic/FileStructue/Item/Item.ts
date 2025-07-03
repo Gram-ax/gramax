@@ -22,6 +22,7 @@ export type ItemEvents = Event<"item-order-updated", { item: Item }> &
 	Event<"item-pre-save", { item: Item; mutable: { content: string; props: ItemProps } }> &
 	Event<"item-saved", { item: Item }> &
 	Event<"item-changed", { item: Item; status: FileStatus }> &
+	Event<"item-update-content", { item: Item }> &
 	Event<"item-get-content", { item: Item; mutableContent: { content: string } }>;
 
 export type ItemProps = FSLocalizationProps & {
@@ -30,7 +31,7 @@ export type ItemProps = FSLocalizationProps & {
 	tags?: string[];
 	order?: number;
 	properties?: PropertyValue[];
-	customProperties?: Property[];
+	customProperties?: Property[]; // will be deleted in future
 	template?: string;
 	fields?: TemplateField[];
 

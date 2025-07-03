@@ -4,6 +4,7 @@ import type Path from "@core/FileProvider/Path/Path";
 import DefaultError from "@ext/errorHandlers/logic/DefaultError";
 import type { GitMergeResultContent } from "@ext/git/actions/MergeConflictHandler/model/GitMergeResultContent";
 import type { GcOptions } from "@ext/git/core/GitCommands/model/GitCommandsModel";
+import DiffItemContent from "@ext/git/core/GitDiffItemCreator/DiffItemContent/DiffItemContent";
 import MergeRequestCommands from "@ext/git/core/GitMergeRequest/logic/MergeRequestCommands";
 import type GitVersionControl from "@ext/git/core/GitVersionControl/GitVersionControl";
 import type { GitStatus } from "@ext/git/core/GitWatcher/model/GitStatus";
@@ -16,15 +17,24 @@ export type Credentials = { data: SourceData };
 
 export type RepositoryEvents = Event<"publish", { repo: Repository }> &
 	Event<"checkout", { repo: Repository; branch: string }> &
-	Event<"sync", { repo: Repository; isVersionChanged: boolean }>;
+	Event<"sync", { repo: Repository; isVersionChanged: boolean }> &
+	Event<"fetch", { repo: Repository; force: boolean }>;
 
-export type PublishOptions = Credentials & {
-	commitMessage: string;
-	filesToPublish: Path[];
-	onAdd?: () => void;
-	onCommit?: () => void;
+export type PublishOptions = (
+	| {
+			commitMessage: string;
+			filesToPublish: Path[];
+			onAdd?: () => void;
+			onCommit?: () => void;
+			onlyPush?: false;
+	  }
+	| {
+			onlyPush: true;
+	  }
+) & {
 	onPush?: () => void | Promise<void>;
-};
+	restoreIfFail?: boolean;
+} & Credentials;
 
 export type SyncOptions = Credentials & {
 	recursivePull: boolean;
@@ -51,6 +61,7 @@ export type IsShouldSyncOptions = Credentials & { shouldFetch?: boolean; onFetch
 
 export default abstract class Repository {
 	protected _mergeRequests: MergeRequestCommands;
+	protected _diffItemContent: DiffItemContent;
 	protected _cachedStatus: GitStatus[] = null;
 	protected _events = createEventEmitter<RepositoryEvents>();
 	private _scopedCatalogs = new ScopedCatalogs(this);
@@ -63,10 +74,19 @@ export default abstract class Repository {
 	) {
 		if (!this._fp || !this._repoPath) return;
 		this._mergeRequests = new MergeRequestCommands(this._fp, this._repoPath, this);
+		this._storage?.events.on("fetch", (e) => this._events.emit("fetch", { repo: this, force: e.force }));
 	}
 
 	get scopedCatalogs(): ScopedCatalogs {
 		return this._scopedCatalogs;
+	}
+
+	get diffItemContent(): DiffItemContent {
+		return this._diffItemContent;
+	}
+
+	set diffItemContent(value: DiffItemContent) {
+		this._diffItemContent = value;
 	}
 
 	get gvc(): GitVersionControl {
@@ -94,6 +114,7 @@ export default abstract class Repository {
 		this._gvc = gvc;
 		this._storage = storage;
 		this._fp = fp;
+		this._storage.events.on("fetch", (e) => this._events.emit("fetch", { repo: this, force: e.force }));
 	}
 
 	resetCachedStatus() {

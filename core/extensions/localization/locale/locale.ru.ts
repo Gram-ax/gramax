@@ -5,7 +5,7 @@ const locale: DefaultLocale = {
 	forms: {
 		"catalog-edit-props": {
 			name: "Настройки каталога",
-			description: "Настройте параметры вашего каталога документации",
+			description: "Задайте параметры каталога и его отображение",
 			props: {
 				title: {
 					name: "Название каталога",
@@ -336,7 +336,9 @@ const locale: DefaultLocale = {
 			"command-failed": {
 				title: "Что-то пошло не так",
 				body: `<p>Перезагрузите страницу и попробуйте еще раз.</p><p>Мы получим сообщение о проблеме и постараемся ее быстро исправить. Если ошибка блокирует работу — напишите нам в <a href="https://t.me/gramax_assist_bot">Telegram</a>.</p>`,
-				"body-enterprise": `<p>Перезагрузите страницу и попробуйте еще раз. Если ошибка блокирует работу — обратитесь в поддержку.</p>`,
+				"body-enterprise": `<p>Перезагрузите страницу и попробуйте еще раз. Если ошибка блокирует работу — обратитесь в <a href="https://t.me/gramax_chat" target="${
+					getExecutingEnvironment() === "tauri" ? "" : "target='_blank'"
+				}">поддержку</a>.</p>`,
 			},
 			"something-went-wrong": "Что-то пошло не так",
 		},
@@ -365,6 +367,7 @@ const locale: DefaultLocale = {
 		pl: "Polski",
 		sv: "Svenska",
 		cs: "Čeština",
+		ky: "Кыргызча",
 	},
 	"style-guide": {
 		"check-with-style-guide": "Проверить по стайлгайду",
@@ -471,6 +474,14 @@ const locale: DefaultLocale = {
 		"for-dark-theme": "Для темной темы",
 		"default-logo-description": "Используется в светлой теме и в темной, если нет логотипа для темной темы",
 	},
+	"file-input": {
+		"select-file": "Выберите файл",
+		"no-file-chosen": "файл не выбран",
+		"logo-light": "Логотип для светлой",
+		"logo-dark": "Логотип для тёмной",
+		"dark-theme-only": "Отображается только в тёмной теме",
+		"both-themes-if-no-dark": "Отображается в обеих темах, если нет логотипа для тёмной",
+	},
 	modal: {
 		confirm: {
 			"warning-have-changes": "Вы уверены, что хотите выйти из режима редактирования? Ваши изменения удалятся",
@@ -511,6 +522,16 @@ const locale: DefaultLocale = {
 			description: "Настройте параметры вашей статьи",
 		},
 		"edit-markdown": "Редактировать Markdown",
+		links: {
+			name: "Связанные статьи",
+			backlinks: "Ссылки на статью",
+			links: "Ссылки из статьи",
+			"no-links": "Ссылки не найдены",
+		},
+		"markdown-edit": {
+			title: "Разметка Markdown",
+			description: "Измените или задайте оформление статьи в разметке",
+		},
 		error: {
 			parse: "Gramax не смог прочитать Markdown-конструкцию в файле статьи.\nКликните Редактировать Markdown, а затем исправьте ошибку или удалите конструкцию.",
 			"resource-too-large": {
@@ -669,24 +690,33 @@ title: Каталог уже связан с репозиторием
 		},
 	},
 	"enterprise-guest": {
-		guestTitle: "Войти по почте",
+		welcomeTitle: "Добро пожаловать в Gramax Enterprise Server",
+
 		descriptions: {
 			emailFieldDescription: "Введите почту, на нее будет отправлен одноразовый код",
 			otpFieldDescription: "Введите код, который пришел на почту",
+			continueWith: "или продолжите с",
 		},
 		placeholders: {
 			emailPlaceholder: "ivanov@example.com",
 			otpPlaceholder: "123456",
 		},
 		buttons: {
-			continueAsGuestButton: "По почте",
 			sendPasswordButton: "Отправить код",
 			resendPasswordButton: "Отправить код повторно",
+			confirmButton: "Подтвердить",
+			resendPasswordButtonWithCooldown: "Отправить код повторно через {seconds} сек",
+			corporateLoginButton: "Корп. вход (SSO)",
+		},
+		fields: {
+			emailLabel: "Email",
+			otpLabel: "Код доступа",
 		},
 		validationErrors: {
 			emailRequired: "Почта обязательна",
 			emailInvalidFormat: "Некорректный формат почты",
 			otpRequired: "Код обязателен",
+			formSubmitError: "Заполните все обязательные поля корректно",
 			otpNumbersOnly: "Код должен содержать только цифры",
 			otpLength: "Код должен состоять из 6 цифр",
 		},
@@ -793,7 +823,7 @@ title: Каталог уже связан с репозиторием
 			},
 			error: {
 				"cannot-clone": "Не удалось загрузить каталог",
-				"already-exist": "Каталог с названием `{{path}}` уже существует",
+				"already-exist": "Каталог с названием <b>{{path}}</b> уже существует",
 				"no-permission": "Нет доступа к репозиторию {{url}}",
 				generic: "Попробуйте обновить страницу и загрузить каталог заново.",
 				"branch-not-found": "Не удалось загрузить каталог на ветке {{branch}}",
@@ -873,6 +903,8 @@ title: Каталог уже связан с репозиторием
 					body: {
 						sync: "При синхронизации возник конфликт. Для завершения синхронизации нужно его решить. Если это не сделать, каталог вернется в предыдущее состояние.",
 						branch: "При слиянии веток возник конфликт. Для завершения слияния нужно его решить. Если это не сделать, слияние отменится.",
+						"impossible-conflict":
+							"При слиянии веток возник конфликт. Перезагрузите страницу и решите конфликт.",
 					},
 					"action-button": {
 						sync: "Отменить синхронизацию",
@@ -937,6 +969,11 @@ title: Каталог уже связан с репозиторием
 				"not-found": "Не удалось найти историю файла",
 				"need-to-publish": "История изменений станет доступна после публикации статьи",
 			},
+		},
+		revisions: {
+			"compare-title": "Сравнение ревизий",
+			"compare-button": "Сравнить ревизии",
+			"choose-placeholder": "Выберите ревизию...",
 		},
 		discard: {
 			"seletected-confirm":
@@ -1228,6 +1265,14 @@ title: Каталог уже связан с репозиторием
 			"divide-by-zero-error": "Ошибка деления на ноль.",
 			"delete-failed-error": "Не удалось удалить файл",
 		},
+		template: {
+			templates: "Шаблоны",
+			"no-template": "Без шаблона",
+			error: {
+				"template-not-found": "Шаблон не найден",
+				"processing-error": "Ошибка при обработке шаблона",
+			},
+		},
 	},
 	pdf: {
 		"component-parsing-failed": "Не удалось обработать компонент",
@@ -1420,6 +1465,9 @@ title: Каталог уже связан с репозиторием
 	"by-azure": "C помощью Azure",
 	"by-mail": "По почте",
 	"cancel-crop": "Отменить обрезку",
+	"space-name-min-length": "Название пространства должно содержать минимум 2 символа",
+	"repository-name-min-length": "Название репозитория должно содержать минимум 2 символа",
+	"directory-name-min-length": "Название каталога должно содержать минимум 2 символа",
 	"cant-be-same-name": "Имя должно быть уникальным",
 	"cant-be-same-path": "Путь должен быть уникальным",
 	"cant-edit-this-line": "Нельзя редактировать эту строку",
@@ -1696,7 +1744,11 @@ title: Каталог уже связан с репозиторием
 		"search-placeholder": "Поиск автора...",
 		"no-user-with-this-name": "Автор не найден",
 	},
-
+	"article-url": {
+		title: "URL статьи",
+		description:
+			"Настраиваемая часть ссылки на вашу статью. Можно использовать латинские буквы, цифры и символы '-', '_'",
+	},
 	template: {
 		name: "Шаблоны",
 		placeholders: {
@@ -1723,7 +1775,7 @@ title: Каталог уже связан с репозиторием
 	"no-snippets": "В текущем каталоге нет сниппетов",
 	"snippet-no-usages": "Сниппет не используется ни в одной из статей",
 	ai: {
-		"ai-prompts": "ИИ Промпты",
+		"ai-prompts": "ИИ-промпты",
 		"ask-ai": "Спросить у ИИ что-либо",
 		generating: "Генерация...",
 		placeholder: {
@@ -1746,6 +1798,13 @@ title: Каталог уже связан с репозиторием
 	"mark-as-read": "Отметить как прочитанное",
 	"mark-as-read-popover": "Отлично, можете переходить к следующей статье!",
 	"already-read": "Прочитано",
+	"add-favorite": "Добавить в избранное",
+	"remove-favorite": "Убрать из избранного",
+	favorites: "Избранное",
+	"no-favorites-in-catalog": "В текущем каталоге нет избранных статей",
+	"favorites-articles": "Избранные статьи",
+	"inline-to-block-image": "Инлайн изображение в блочный вид",
+	"block-to-inline-image": "Блочное изображение в инлайн вид",
 };
 
 export default locale;

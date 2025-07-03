@@ -124,7 +124,8 @@ class Path {
 		path = path.removeExtraSymbols;
 		let generalPath = thisPath.parentDirectoryPath;
 		let depthCount = thisPath.extension ? 0 : 1;
-		while (!path.startsWith(generalPath)) {
+		const getPathWithSlash = (path: Path) => path.concat(new Path("/"));
+		while (!(path.compare(generalPath) || path.startsWith(getPathWithSlash(generalPath)))) {
 			generalPath = generalPath.parentDirectoryPath;
 			depthCount++;
 		}
@@ -152,9 +153,10 @@ class Path {
 	}
 
 	getNewName(newFileName: string) {
-		return new Path(
-			this.parentDirectoryPath.value + `/${newFileName}${this.extension ? `.${this.extension}` : ""}`,
-		);
+		const parent = this.parentDirectoryPath.value;
+		if (parent) return new Path([parent, newFileName + (this.extension ? `.${this.extension}` : "")]);
+		const startsWithSlash = this.value.startsWith("/");
+		return new Path((startsWithSlash ? "/" : "") + newFileName + (this.extension ? `.${this.extension}` : ""));
 	}
 
 	private _parseArrayPath(path: string[]) {

@@ -46,7 +46,7 @@ export const IconUploaderButton = memo(
 					<Button
 						startIcon={"upload"}
 						children={t("load")}
-						variant="primary"
+						variant="outline"
 						style={{ width: "100%" }}
 						onClick={onClickHandler}
 						type="button"

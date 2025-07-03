@@ -29,7 +29,13 @@ const Loader = styled.div`
 	width: 8em !important;
 `;
 
-const SnippetUsages = ({ snippetId, trigger, openTrigger = "click", placement = "right-end", offset = [0, -5] }: ComponentProps) => {
+const SnippetUsages = ({
+	snippetId,
+	trigger,
+	openTrigger = "click",
+	placement = "right-end",
+	offset = [0, -5],
+}: ComponentProps) => {
 	const [list, setList] = useState<SnippetUsagesProps[]>([]);
 	const [isApiRequest, setIsApiRequest] = useState(false);
 
@@ -100,11 +106,7 @@ const SnippetUsages = ({ snippetId, trigger, openTrigger = "click", placement = 
 							}
 						/>
 					))}
-					{!list.length && (
-						<span className="popup-button" onClick={onClick}>
-							{t("snippet-no-usages")}
-						</span>
-					)}
+					{!list.length && <ButtonLink onClick={onClick} text={t("snippet-no-usages")} />}
 				</>
 			)}
 		</PopupMenuLayout>

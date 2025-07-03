@@ -5,6 +5,7 @@ import t from "@ext/localization/locale/translate";
 import { MutableRefObject, forwardRef, useEffect, useRef } from "react";
 import { TocItem } from "../logic/createTocItems";
 import ArticleViewService from "@core-ui/ContextServices/views/articleView/ArticleViewService";
+import { usePlatform } from "@core-ui/hooks/usePlatform";
 
 const SCROLLSPY_OFFSET = 50;
 type Pair = { hEl: HTMLElement; aEl: HTMLElement };
@@ -78,6 +79,13 @@ const Scrollspy = forwardRef((props: ScrollspyProps, articleElementRef: MutableR
 	);
 });
 
+const getHref = (href: string) => {
+	const { isStatic, isStaticCli } = usePlatform();
+	if (!isStatic && !isStaticCli) return href;
+	const logicPath = ArticlePropsService.value.logicPath;
+	return logicPath + href;
+};
+
 const Tree = ({ items, level }: { items: TocItem[]; level: number }) => {
 	return (
 		<ul style={{ margin: "1em 0 0 0" }}>
@@ -86,7 +94,7 @@ const Tree = ({ items, level }: { items: TocItem[]; level: number }) => {
 					{!x.items?.length ? (
 						<a
 							className={`lvl-${level}`}
-							href={x.url}
+							href={getHref(x.url)}
 							dangerouslySetInnerHTML={{ __html: x.title }}
 							data-qa={`article-navigation-link-level-${level}`}
 						/>
@@ -118,7 +126,11 @@ const CategoryTree = ({ item, level }: { item: TocItem; level: number }) => {
 							style={{ fontWeight: 300, verticalAlign: "baseline" }}
 						/>
 					</div> */}
-				<a className={`lvl-${level}`} href={item.url} data-qa={`article-navigation-level-${level}-link`}>
+				<a
+					className={`lvl-${level}`}
+					href={getHref(item.url)}
+					data-qa={`article-navigation-level-${level}-link`}
+				>
 					{item.title}
 				</a>
 			</li>

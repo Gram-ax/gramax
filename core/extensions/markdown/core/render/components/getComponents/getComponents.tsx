@@ -46,6 +46,7 @@ import ParserContext from "../../../Parser/ParserContext/ParserContext";
 import BlockField from "@ext/markdown/elements/blockContentField/render/components/BlockField";
 import BlockProperty from "@ext/markdown/elements/blockProperty/render/components/BlockProperty";
 import HtmlTag from "@ext/markdown/elements/htmlTag/render/component/HtmlTag";
+import InlineImage from "@ext/markdown/elements/inlineImage/render/components/InlineImage";
 
 export default function getComponents(): { [name: string]: (...props: any) => ReactNode } {
 	return {
@@ -65,6 +66,7 @@ export default function getComponents(): { [name: string]: (...props: any) => Re
 		"inline-property": InlineProperty,
 		"block-field": BlockField,
 		"block-property": BlockProperty,
+		inlineImage: InlineImage,
 		Issue,
 		Module,
 		Who,

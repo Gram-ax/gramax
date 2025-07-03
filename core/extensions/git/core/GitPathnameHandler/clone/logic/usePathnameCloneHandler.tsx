@@ -64,7 +64,7 @@ const usePathnameCloneHandler = () => {
 		const isPublic = shareData.isPublic;
 
 		if (isPublic) {
-			publicClone();
+			if (typeof window !== "undefined" && !window.desktopOpened) publicClone();
 		} else {
 			pageDataContext.shareData = null;
 			ModalToOpenService.setValue<ComponentProps<typeof CloneHandler>>(ModalToOpen.CloneHandler, {

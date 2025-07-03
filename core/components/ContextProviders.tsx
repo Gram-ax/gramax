@@ -1,4 +1,5 @@
 import { Environment } from "@app/resolveModule/env";
+import NavigationTabsService from "@components/Layouts/LeftNavigationTabs/NavigationTabsService";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import ArticleDataService from "@core-ui/ContextServices/ArticleData";
 import ArticlePropsService from "@core-ui/ContextServices/ArticleProps";
@@ -20,6 +21,7 @@ import pagePropsUpdateService from "@core-ui/ContextServices/PagePropsUpdate";
 import PlatformService from "@core-ui/ContextServices/PlatformService";
 import SearchQueryService from "@core-ui/ContextServices/SearchQuery";
 import SidebarsIsPinService from "@core-ui/ContextServices/Sidebars/SidebarsIsPin";
+import GlobalSyncCountService from "@core-ui/ContextServices/SyncCount/GlobalSyncCount";
 import SyncIconService from "@core-ui/ContextServices/SyncIconService";
 import ArticleViewService from "@core-ui/ContextServices/views/articleView/ArticleViewService";
 import LeftNavViewContentService from "@core-ui/ContextServices/views/leftNavView/LeftNavViewContentService";
@@ -31,10 +33,13 @@ import useIsFirstLoad from "@core-ui/useIsFirstLoad";
 import { initRefresh } from "@core-ui/utils/initGlobalFuncs";
 import yandexMetric from "@core-ui/yandexMetric";
 import { ArticlePageData, HomePageData } from "@core/SitePresenter/SitePresenter";
+import PromptService from "@ext/ai/components/Tab/PromptService";
+import FavoriteService from "@ext/artilce/Favorite/components/FavoriteService";
 import PublishChangesProvider from "@ext/git/core/GitPublish/PublishChangesProvider";
 import InboxService from "@ext/inbox/components/InboxService";
 import ResourceService from "@ext/markdown/elements/copyArticles/resourceService";
 import EditorExtensionsService from "@ext/markdown/elements/diff/components/EditorExtensionsService";
+import SnippetService from "@ext/markdown/elements/snippet/edit/components/Tab/SnippetService";
 import CurrentTabsTagService from "@ext/markdown/elements/tabs/components/CurrentTabsTagService";
 import PropertyService from "@ext/properties/components/PropertyService";
 import permissionService from "@ext/security/logic/Permission/components/PermissionService";
@@ -43,9 +48,6 @@ import ThemeService from "../extensions/Theme/components/ThemeService";
 import PageDataContext from "../logic/Context/PageDataContext";
 import IsOpenModalService from "../ui-logic/ContextServices/IsOpenMpdal";
 import ModalToOpenService from "../ui-logic/ContextServices/ModalToOpenService/ModalToOpenService";
-import SnippetService from "@ext/markdown/elements/snippet/edit/components/Tab/SnippetService";
-import PromptService from "@ext/ai/components/Tab/PromptService";
-import NavigationTabsService from "@components/Layouts/LeftNavigationTabs/NavigationTabsService";
 
 export interface PageProps {
 	data: HomePageData & ArticlePageData;
@@ -63,12 +65,14 @@ const appServices: ContextService[] = [
 	WorkspaceService,
 	WorkspaceAssetsService,
 	SearchQueryService,
+	FavoriteService,
 	SyncIconService,
 	IsOpenModalService,
 	PublishChangesProvider,
-	NavigationTabsService,
+	GlobalSyncCountService,
 ];
 const Inits = appServices.map((service) => service.Init.bind(service) as typeof service.Init);
+const NavigationTabInit = NavigationTabsService.Init.bind(NavigationTabsService);
 
 export default function ContextProviders({
 	pageProps,
@@ -107,80 +111,82 @@ export default function ContextProviders({
 					<SidebarsIsPinService.Provider>
 						<>
 							{isArticlePage ? (
-								<DiffViewModeService.Provider>
-									<GitIndexService.Provider>
-										<EditorExtensionsService.Provider>
-											<ResourceService.Provider>
-												<IsMenuBarOpenService.Provider>
-													<ArticleRefService.Provider>
-														<ArticleDataService.Provider value={pageProps.data}>
-															<ArticlePropsService.Provider
-																value={pageProps.data.articleProps}
-															>
-																<CatalogPropsService.Init
-																	value={pageProps.data.catalogProps}
+								<NavigationTabInit>
+									<DiffViewModeService.Provider>
+										<GitIndexService.Provider>
+											<EditorExtensionsService.Provider>
+												<ResourceService.Provider>
+													<IsMenuBarOpenService.Provider>
+														<ArticleRefService.Provider>
+															<ArticleDataService.Provider value={pageProps.data}>
+																<ArticlePropsService.Provider
+																	value={pageProps.data.articleProps}
 																>
-																	<CatalogLogoService.Init>
-																		<PromptService.Provider>
-																			<InboxService.Provider>
-																				<PropertyService.Provider>
-																					<TemplateService.Init>
-																						<SnippetService.Init>
-																							<ModalToOpenService.Provider>
-																								<CurrentTabsTagService.Provider>
-																									<ArticleTooltipService.Provider>
-																										<IsFirstLoadService.Provider
-																											resetIsFirstLoad={
-																												resetIsFirstLoad
-																											}
-																											value={
-																												isFirstLoad
-																											}
-																										>
-																											<OnUpdateAppFuncs>
-																												<ViewContextProvider
-																													articlePageData={
-																														pageProps.data
-																													}
-																												>
-																													<>
-																														{pageProps
-																															.context
-																															.isLogged ? (
-																															<CommentCounterService.Provider
-																																deps={[
-																																	pageProps,
-																																]}
-																															>
-																																{
-																																	children
-																																}
-																															</CommentCounterService.Provider>
-																														) : (
-																															children
-																														)}
-																													</>
-																												</ViewContextProvider>
-																											</OnUpdateAppFuncs>
-																										</IsFirstLoadService.Provider>
-																									</ArticleTooltipService.Provider>
-																								</CurrentTabsTagService.Provider>
-																							</ModalToOpenService.Provider>
-																						</SnippetService.Init>
-																					</TemplateService.Init>
-																				</PropertyService.Provider>
-																			</InboxService.Provider>
-																		</PromptService.Provider>
-																	</CatalogLogoService.Init>
-																</CatalogPropsService.Init>
-															</ArticlePropsService.Provider>
-														</ArticleDataService.Provider>
-													</ArticleRefService.Provider>
-												</IsMenuBarOpenService.Provider>
-											</ResourceService.Provider>
-										</EditorExtensionsService.Provider>
-									</GitIndexService.Provider>
-								</DiffViewModeService.Provider>
+																	<CatalogPropsService.Init
+																		value={pageProps.data.catalogProps}
+																	>
+																		<CatalogLogoService.Init>
+																			<PromptService.Provider>
+																				<InboxService.Provider>
+																					<PropertyService.Provider>
+																						<TemplateService.Init>
+																							<SnippetService.Init>
+																								<ModalToOpenService.Provider>
+																									<CurrentTabsTagService.Provider>
+																										<ArticleTooltipService.Provider>
+																											<IsFirstLoadService.Provider
+																												resetIsFirstLoad={
+																													resetIsFirstLoad
+																												}
+																												value={
+																													isFirstLoad
+																												}
+																											>
+																												<OnUpdateAppFuncs>
+																													<ViewContextProvider
+																														articlePageData={
+																															pageProps.data
+																														}
+																													>
+																														<>
+																															{pageProps
+																																.context
+																																.isLogged ? (
+																																<CommentCounterService.Provider
+																																	deps={[
+																																		pageProps,
+																																	]}
+																																>
+																																	{
+																																		children
+																																	}
+																																</CommentCounterService.Provider>
+																															) : (
+																																children
+																															)}
+																														</>
+																													</ViewContextProvider>
+																												</OnUpdateAppFuncs>
+																											</IsFirstLoadService.Provider>
+																										</ArticleTooltipService.Provider>
+																									</CurrentTabsTagService.Provider>
+																								</ModalToOpenService.Provider>
+																							</SnippetService.Init>
+																						</TemplateService.Init>
+																					</PropertyService.Provider>
+																				</InboxService.Provider>
+																			</PromptService.Provider>
+																		</CatalogLogoService.Init>
+																	</CatalogPropsService.Init>
+																</ArticlePropsService.Provider>
+															</ArticleDataService.Provider>
+														</ArticleRefService.Provider>
+													</IsMenuBarOpenService.Provider>
+												</ResourceService.Provider>
+											</EditorExtensionsService.Provider>
+										</GitIndexService.Provider>
+									</DiffViewModeService.Provider>
+								</NavigationTabInit>
 							) : (
 								<ModalToOpenService.Provider>
 									<IsFirstLoadService.Provider

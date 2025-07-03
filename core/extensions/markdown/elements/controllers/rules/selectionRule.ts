@@ -22,7 +22,7 @@ const isChangeInBlockField = (doc: Node, steps: Step[]): boolean => {
 		const mapResult = step.getMap().mapResult(step.from);
 		const isDeleted = mapResult.deleted;
 		const isEditableBlock = isTemplateEditableBlock(
-			TextSelection.create(doc, Math.max(Math.min(mapResult.pos, doc.nodeSize), 0)),
+			TextSelection.create(doc, Math.max(0, Math.min(mapResult.pos, doc.content.size))),
 		);
 
 		if (isDeleted && isEditableBlock) return true;

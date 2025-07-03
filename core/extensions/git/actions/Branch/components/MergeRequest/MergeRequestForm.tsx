@@ -1,7 +1,8 @@
 import TextArea from "@components/Atoms/TextArea";
 import SelectGES from "@ext/git/actions/Branch/components/MergeRequest/SelectGES";
 import SelectGitCommitAuthors from "@ext/git/actions/Branch/components/MergeRequest/SelectGitCommitAuthors";
-import { CreateMergeRequest, Signature } from "@ext/git/core/GitMergeRequest/model/MergeRequest";
+import { CreateMergeRequest } from "@ext/git/core/GitMergeRequest/model/MergeRequest";
+import type { Signature } from "@ext/git/core/model/Signature";
 import t from "@ext/localization/locale/translate";
 
 interface MergeRequestModalProps {

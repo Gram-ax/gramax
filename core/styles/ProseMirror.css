@@ -135,7 +135,8 @@
 }
 
 .ProseMirror table .selectedCell:after {
-	background: var(--color-code-bg);
+	background: var(--color-focus);
+	opacity: 0.15;
 	content: "";
 	left: 0;
 	right: 0;

@@ -149,14 +149,10 @@ export const NOTE_COLOR_CONFIG = {
 };
 
 export const TABLE_STYLE = {
-	hLineWidth: (rowIndex, _node) =>
-		rowIndex === 0 || (_node.table.body && rowIndex === _node.table.body.length) ? 0 : 0.1,
-	vLineWidth: (colIndex, _node) =>
-		colIndex === 0 || (_node.table.widths && colIndex === _node.table.widths.length) ? 0 : 0.1,
 	hLineColor: () => COLOR_CONFIG.table,
 	vLineColor: () => COLOR_CONFIG.table,
-	paddingLeft: () => 4,
-	paddingRight: () => 4,
-	paddingTop: () => 8,
+	paddingLeft: () => 6,
+	paddingRight: () => 6,
+	paddingTop: () => 6,
 	paddingBottom: () => 8,
 };

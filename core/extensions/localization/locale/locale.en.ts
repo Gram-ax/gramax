@@ -4,7 +4,7 @@ const locale = {
 	forms: {
 		"catalog-edit-props": {
 			name: "Catalog Settings",
-			description: "Configure your documentation catalog settings",
+			description: "Set the catalog parameters and its display",
 			props: {
 				title: {
 					name: "Catalog Title",
@@ -332,8 +332,9 @@ const locale = {
 			"command-failed": {
 				title: "Something went wrong",
 				body: '<p>Reload the page and try again.</p><p>We will receive a problem report and try to fix it quickly. If the error blocks your work — contact us on <a href="https://t.me/gramax_assist_bot">Telegram</a>.</p>',
-				"body-enterprise":
-					"<p>Reload the page and try again. If the error blocks your work — contact support.</p>",
+				"body-enterprise": `<p>Reload the page and try again. If the error blocks your work — contact <a href='https://t.me/gramax_chat' target='${
+					getExecutingEnvironment() === "tauri" ? "" : "target='_blank'"
+				}'>support</a>.</p>`,
 			},
 			"something-went-wrong": "Something went wrong",
 		},
@@ -363,6 +364,7 @@ const locale = {
 		pl: "Polski",
 		sv: "Svenska",
 		cs: "Čeština",
+		ky: "Кыргызча",
 	},
 	"style-guide": {
 		"check-with-style-guide": "Check with style guide",
@@ -470,6 +472,14 @@ const locale = {
 		"default-logo-description":
 			"Default logo. Used in the light theme and also in the dark theme if there is no separate dark theme logo",
 	},
+	"file-input": {
+		"select-file": "Select a file",
+		"no-file-chosen": "no file chosen",
+		"logo-light": "Logo for light theme",
+		"logo-dark": "Logo for dark theme",
+		"dark-theme-only": "Displayed only in dark theme",
+		"both-themes-if-no-dark": "Displayed in both themes if no dark logo",
+	},
 	modal: {
 		confirm: {
 			"warning-have-changes": "Are you sure you want to exit editing mode? Your changes will be discarded",
@@ -505,11 +515,21 @@ const locale = {
 		placeholder: "Article text",
 		"add-child": "Add a sub-article",
 		"add-root": "Add a root article",
+		links: {
+			name: "Related articles",
+			backlinks: "Backlinks",
+			links: "Links",
+			"no-links": "No links",
+		},
 		configure: {
 			title: "Article settings",
 			description: "Configure your article settings",
 		},
 		"edit-markdown": "Edit Markdown",
+		"markdown-edit": {
+			title: "Markdown Formatting",
+			description: "Edit or define the article styling using Markdown",
+		},
 		error: {
 			parse: "Gramax couldn’t read the Markdown structure in the article file.\nClick Edit Markdown, then fix the error or remove the structure.",
 			"resource-too-large": {
@@ -667,19 +687,26 @@ Add storage to confirm the link.`,
 		},
 	},
 	"enterprise-guest": {
-		guestTitle: "Sign in by email",
+		welcomeTitle: "Welcome to Gramax Enterprise Server",
 		descriptions: {
 			emailFieldDescription: "Enter your email to receive a one-time code",
 			otpFieldDescription: "Enter the code sent to your email",
+			continueWith: "or continue with",
 		},
 		placeholders: {
 			emailPlaceholder: "johndoe@example.com",
 			otpPlaceholder: "123456",
 		},
 		buttons: {
-			continueAsGuestButton: "By email",
 			sendPasswordButton: "Send code",
 			resendPasswordButton: "Resend code",
+			confirmButton: "Confirm",
+			resendPasswordButtonWithCooldown: "Resend code in {seconds} sec",
+			corporateLoginButton: "Corporate login (SSO)",
+		},
+		fields: {
+			emailLabel: "Email",
+			otpLabel: "Access code",
 		},
 		validationErrors: {
 			emailRequired: "Email is required",
@@ -687,6 +714,7 @@ Add storage to confirm the link.`,
 			otpRequired: "Code is required",
 			otpNumbersOnly: "Code must contain only numbers",
 			otpLength: "Code must be 6 digits long",
+			formSubmitError: "Please fill all required fields correctly",
 		},
 		tooltips: {
 			tooManyRequests: "Too many requests. Try after {minutes} min",
@@ -872,6 +900,8 @@ Add storage to confirm the link.`,
 					body: {
 						sync: "A conflict occurred during synchronization. You need to resolve it to complete synchronization. If you do not, the catalog will return to its previous state.",
 						branch: "A conflict occurred while merging branches. You need to resolve it to complete the merge. If you don't, the merge will be canceled.",
+						"impossible-conflict":
+							"A conflict occurred while merging branches. Reload the page and resolve the conflict.",
 					},
 					"action-button": {
 						sync: "Cancel synchronization",
@@ -939,7 +969,11 @@ Add storage to confirm the link.`,
 				"need-to-publish": "Change history will be available after the article is published",
 			},
 		},
-
+		revisions: {
+			"compare-title": "Revision comparison",
+			"compare-button": "Compare revisions",
+			"choose-placeholder": "Select revision...",
+		},
 		discard: {
 			"seletected-confirm":
 				"Discard selected changes? The articles will revert to their previous state, and the added media files will be deleted.",
@@ -1228,6 +1262,14 @@ Add storage to confirm the link.`,
 			"divide-by-zero-error": "Divide by zero error.",
 			"delete-failed-error": "Failed to delete the file",
 		},
+		template: {
+			templates: "Templates",
+			"no-template": "No template",
+			error: {
+				"template-not-found": "Template not found",
+				"processing-error": "Error during document processing",
+			},
+		},
 	},
 	pdf: {
 		"component-parsing-failed": "Failed to process the component",
@@ -1419,6 +1461,9 @@ Add storage to confirm the link.`,
 	"by-azure": "By Azure",
 	"by-mail": "By email",
 	"cancel-crop": "Cancel crop",
+	"space-name-min-length": "The space name must contain at least 2 characters",
+	"repository-name-min-length": "The repository name must contain at least 2 characters",
+	"directory-name-min-length": "The directory name must contain at least 2 characters",
 	"cant-be-same-name": "The name must be unique",
 	"cant-be-same-path": "The path must be unique",
 	"cant-edit-this-line": "Cannot edit this line",
@@ -1614,7 +1659,8 @@ Add storage to confirm the link.`,
 		name: "Properties",
 		all: "All",
 		empty: "(empty)",
-		"delete-property-confirm": "Are you sure you want to delete this property? It will be removed from all articles.",
+		"delete-property-confirm":
+			"Are you sure you want to delete this property? It will be removed from all articles.",
 		"select-all": "(select all)",
 		"validation-errors": {
 			"all-parameters-added": "All parameters added",
@@ -1694,6 +1740,11 @@ Add storage to confirm the link.`,
 		"search-placeholder": "Search author...",
 		"no-user-with-this-name": "Author not found",
 	},
+	"article-url": {
+		title: "Article URL",
+		description:
+			"Customizable part of the link to your article. You can use Latin letters, numbers, and the symbols '-' and '_'",
+	},
 	template: {
 		name: "Templates",
 		placeholders: {
@@ -1742,6 +1793,13 @@ Add storage to confirm the link.`,
 	"mark-as-read": "Mark as read",
 	"mark-as-read-popover": "Great, you can move on to the next article!",
 	"already-read": "Read",
+	"add-favorite": "Add to favorites",
+	"remove-favorite": "Remove from favorites",
+	favorites: "Favorites",
+	"no-favorites-in-catalog": "No favorites article in the current catalog",
+	"favorites-articles": "Favorites articles",
+	"inline-to-block-image": "Inline to block image",
+	"block-to-inline-image": "Block to inline image",
 };
 
 export default locale;

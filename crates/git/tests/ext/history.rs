@@ -126,3 +126,62 @@ fn get_all_branch_commiters_with_target_branch(
 
   Ok(())
 }
+
+#[rstest]
+fn get_commit_info(sandbox: TempDir, #[with(&sandbox)] repo: Repo<TestCreds>) -> Result {
+  fs::write(sandbox.path().join("file"), "init")?;
+  repo.add("file")?;
+  repo.commit_debug()?;
+
+  let mut oids = Vec::new();
+
+  // prepare
+  for i in 1..=10 {
+    fs::write(sandbox.path().join("file"), format!("init{}", i))?;
+    repo.add("file")?;
+    let info = repo.commit_debug()?;
+    oids.push(info);
+  }
+  oids.reverse();
+
+  // get commit info
+  let head = repo.repo().head()?.peel_to_commit()?;
+  let commit_info_only_head = repo.get_commit_info(head.id(), CommitInfoOpts { depth: 1, simplify: true })?;
+
+  assert_eq!(commit_info_only_head.len(), 1);
+  assert_eq!(commit_info_only_head.first().unwrap().oid, oids.first().unwrap().0.short_info()?);
+  assert_eq!(commit_info_only_head.first().unwrap().summary, oids.first().unwrap().1);
+
+  // get commit info with depth 10
+  let commit_info_10 = repo.get_commit_info(head.id(), CommitInfoOpts { depth: 10, simplify: true })?;
+
+  commit_info_10.iter().zip(&oids).for_each(|(info, oid)| {
+    assert_eq!(
+      info.oid,
+      oid.0.short_info().unwrap(),
+      "get commit info with depth 10: {} != {}",
+      *info.oid,
+      oid.0
+    )
+  });
+
+  // get commit info depth 2 since specific commit
+  let index = oids.len() / 2;
+  let depth = 2;
+  let oid = oids.get(index).unwrap().0;
+
+  let commit_info_2 = repo.get_commit_info(oid, CommitInfoOpts { depth, simplify: true })?;
+
+  commit_info_2.iter().zip(oids.iter().take(depth).skip(index)).for_each(|(info, oid)| {
+    assert_eq!(
+      info.oid,
+      oid.0.short_info().unwrap(),
+      "get commit info with depth 2 and index {}: {} != {}",
+      index,
+      *info.oid,
+      oid.0
+    )
+  });
+
+  Ok(())
+}

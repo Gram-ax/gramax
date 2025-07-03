@@ -35,4 +35,10 @@ export type CatalogProps = FSLocalizationProps & {
 	docrootIsNoneExistent?: boolean;
 };
 
-export const ExcludedProps: (keyof CatalogProps)[] = ["url", "docroot", "resolvedVersions", "resolvedVersion"];
+export const ExcludedProps: (keyof CatalogProps)[] = [
+	"url",
+	"docroot",
+	"resolvedVersions",
+	"resolvedVersion",
+	"isCloning",
+];

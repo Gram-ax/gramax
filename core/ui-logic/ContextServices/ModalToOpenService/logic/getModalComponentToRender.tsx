@@ -4,7 +4,6 @@ import MergeModal from "@ext/git/actions/Branch/components/MergeModal";
 import CreateMergeRequestModal from "@ext/git/actions/Branch/components/MergeRequest/CreateMergeRequest";
 import MergeConflictConfirm from "@ext/git/actions/MergeConflictHandler/components/MergeConflictConfirm";
 import MergeResolver from "@ext/git/actions/MergeConflictHandler/components/MergeResolver";
-import PublishModal from "@ext/git/actions/Publish/components/PublishModal";
 import MergeRequestConfirm from "@ext/git/core/GitMergeRequest/components/MergeRequestConfirm";
 import CheckoutHandler from "@ext/git/core/GitPathnameHandler/checkout/components/CheckoutHandler";
 import CloneHandler from "@ext/git/core/GitPathnameHandler/clone/components/CloneHandler";
@@ -19,8 +18,8 @@ import { ReactNode } from "react";
 import ReviewTicketHandler from "../../../../extensions/catalog/actions/review/components/ReviewTicketHandler";
 import ShareTicketHandler from "../../../../extensions/catalog/actions/share/components/ShareTicketHandler";
 import ModalToOpen from "../model/ModalsToOpen";
-import PropertySettings from "@ext/templates/components/Properties/PropertySettings";
 import DocRootMissingModal from "@components/Layouts/CatalogLayout/DocRootMissingModal";
+import PropertyEditor from "@ext/properties/components/Modals/PropertyEditor";
 
 const getModalComponentToRender: {
 	[type in ModalToOpen]: (args: { [name: string]: any }) => ReactNode;
@@ -28,7 +27,6 @@ const getModalComponentToRender: {
 	[ModalToOpen.MergeConfirm]: MergeConflictConfirm,
 	[ModalToOpen.MergeResolver]: MergeResolver,
 
-	[ModalToOpen.Publish]: PublishModal,
 
 	[ModalToOpen.ShareTicketHandler]: ShareTicketHandler,
 	[ModalToOpen.ReviewTicketHandler]: ReviewTicketHandler,
@@ -55,7 +53,7 @@ const getModalComponentToRender: {
 	[ModalToOpen.EditEnterpriseConfig]: EditEnterpriseConfig,
 
 	[ModalToOpen.TemplateContentWarning]: TemplateContentWarning,
-	[ModalToOpen.TemplatePropertySettings]: PropertySettings,
+	[ModalToOpen.PropertySettings]: PropertyEditor,
 
 	[ModalToOpen.DocRootMissingModal]: DocRootMissingModal,
 };

@@ -19,8 +19,9 @@ import t from "@ext/localization/locale/translate";
 import PermissionService from "@ext/security/logic/Permission/components/PermissionService";
 import { editCatalogPermission } from "@ext/security/logic/Permission/Permissions";
 import { FC, useCallback } from "react";
-import FileEditor from "../../extensions/artilce/actions/FileEditor";
+import EditMarkdown from "@ext/artilce/actions/EditMarkdown";
 import History from "../../extensions/git/actions/History/component/History";
+import ArticleLinks from "@ext/properties/components/Helpers/ArticleLinks";
 
 interface ArticleActionsProps {
 	item: ClientArticleProps;
@@ -44,20 +45,16 @@ const ArticleActions: FC<ArticleActionsProps> = ({ isCatalogExist, item, isCurre
 
 	const shouldShowEditInGramax = !isNext && !isStatic && !isStaticCli && (canEditCatalog || !catalogProps.sourceName);
 
-	if (!item) return null;
-
-	if (!isCatalogExist) return <BugsnagLogsModal itemLogicPath={item.logicPath} />;
-
 	const loadContent = useCallback(async () => {
-		const res = await FetchService.fetch(apiUrlCreator.getArticleContent(item.ref.path));
+		const res = await FetchService.fetch(apiUrlCreator.getArticleContent(item?.ref?.path));
 		if (res.ok) return await res.json();
 		return null;
-	}, [apiUrlCreator, item.ref.path]);
+	}, [apiUrlCreator, item?.ref?.path]);
 
 	const saveContent = useCallback(
 		async (content: string) => {
 			const res = await FetchService.fetch(
-				apiUrlCreator.setArticleContent(item.ref.path),
+				apiUrlCreator.setArticleContent(item?.ref?.path),
 				content,
 				MimeTypes.text,
 				Method.POST,
@@ -67,20 +64,25 @@ const ArticleActions: FC<ArticleActionsProps> = ({ isCatalogExist, item, isCurre
 			ArticleUpdaterService.setUpdateData(await res.json());
 			if (isCurrentItem && item.errorCode) refreshPage();
 		},
-		[apiUrlCreator, item.ref.path, isCurrentItem],
+		[apiUrlCreator, item?.ref?.path, isCurrentItem],
 	);
 
 	const isFileNew = useIsFileNew(item);
 
+	if (!item) return null;
+
+	if (!isCatalogExist) return <BugsnagLogsModal itemLogicPath={item.logicPath} />;
+
 	return (
 		<>
 			{!isNext && catalogProps.sourceName && <ShareAction path={editLink} isArticle />}
+			<ArticleLinks itemRefPath={item.ref.path} />
 			<IsReadOnlyHOC>
 				<History key="history" item={item} isFileNew={isFileNew} />
 				<BugsnagLogsModal key="bugsnag" itemLogicPath={item.logicPath} />
 				{!isTemplate && isCurrentItem && (
-					<FileEditor
-						key="file-editor"
+					<EditMarkdown
+						key="edit-markdown"
 						trigger={<ButtonLink iconCode="file-pen" text={t("article.edit-markdown")} />}
 						loadContent={loadContent}
 						saveContent={saveContent}

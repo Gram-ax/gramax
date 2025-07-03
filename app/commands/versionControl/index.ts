@@ -9,7 +9,7 @@ import get from "./branch/get";
 import getBranchToCheckout from "./branch/getBranchToCheckout";
 import mergeInto from "./branch/mergeInto";
 import reset from "./branch/reset";
-import diffTree from "./diffTree";
+import diff from "./diff";
 import discard from "./discard";
 import fileHistory from "./fileHistory";
 import fileStatus from "./fileStatus";
@@ -18,16 +18,17 @@ import abort from "./mergeConflict/abort";
 import getMergeData from "./mergeConflict/getMergeData";
 import resolve from "./mergeConflict/resolve";
 import validateMerge from "./mergeConflict/validateMerge";
+import revision from "./revision";
 
 const versionControl = {
 	init,
 	discard,
-	diffTree,
 	fileStatus,
 	fileHistory,
 	statuses,
 	getAllCommitAuthors,
 	addAll,
+	revision,
 	mergeConflict: {
 		getMergeData,
 		abort,
@@ -44,6 +45,7 @@ const versionControl = {
 		reset,
 		get,
 	},
+	diff,
 };
 
 export default versionControl;

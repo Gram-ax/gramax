@@ -24,6 +24,8 @@ import ItemExport, { ExportFormat } from "@ext/wordExport/components/ItemExport"
 import { FC, useEffect, useRef, useState } from "react";
 import Healthcheck from "../../extensions/healthcheck/components/Healthcheck";
 import IsReadOnlyHOC from "../../ui-logic/HigherOrderComponent/IsReadOnlyHOC";
+import AddToFavoriteButton from "@ext/artilce/Favorite/components/AddToFavoriteButton";
+import FavoriteService from "@ext/artilce/Favorite/components/FavoriteService";
 
 interface CatalogActionsProps {
 	isCatalogExist: boolean;
@@ -36,7 +38,7 @@ const CatalogActions: FC<CatalogActionsProps> = ({ isCatalogExist, itemLinks, cu
 	const catalogProps = CatalogPropsService.value;
 	const workspacePath = WorkspaceService.current().path;
 	const pageData = PageDataContextService.value;
-	const { isNext, isBrowser, isStatic } = usePlatform();
+	const { isNext, isBrowser, isStatic, isStaticCli } = usePlatform();
 	const shouldRenderDeleteCatalog = useShouldRenderDeleteCatalog();
 	const [renderDeleteCatalog, setRenderDeleteCatalog] = useState(false);
 	const { isReadOnly, cloudServiceUrl } = pageData.conf;
@@ -45,9 +47,11 @@ const CatalogActions: FC<CatalogActionsProps> = ({ isCatalogExist, itemLinks, cu
 	const isInbox = currentTab === LeftNavigationTab.Inbox;
 	const isSnippets = currentTab === LeftNavigationTab.Snippets;
 	const isPrompt = currentTab === LeftNavigationTab.Prompt;
+	const isFavoriteArticles = currentTab === LeftNavigationTab.FavoriteArticles;
 	const isAiEnabled = pageData.conf.ai.enabled;
 	const [isDevMode] = useState(() => getIsDevMode());
 	const validateDeleteCatalogInStatic = useValidateDeleteCatalogInStatic();
+	const { catalogs } = FavoriteService.value;
 
 	const canConfigureCatalog = PermissionService.useCheckPermission(
 		configureCatalogPermission,
@@ -62,6 +66,14 @@ const CatalogActions: FC<CatalogActionsProps> = ({ isCatalogExist, itemLinks, cu
 	const ref = useRef();
 
 	if (!isCatalogExist) return null;
+
+	const onClickFavorite = () => {
+		const newFavoriteCatalogs = catalogs.find((catalog) => catalog === catalogProps.name)
+			? catalogs.filter((catalog) => catalog !== catalogProps.name)
+			: [...catalogs, catalogProps.name];
+
+		FavoriteService.setCatalogs(newFavoriteCatalogs);
+	};
 
 	return (
 		<PopupMenuLayout
@@ -102,28 +114,41 @@ const CatalogActions: FC<CatalogActionsProps> = ({ isCatalogExist, itemLinks, cu
 				<ShareAction path={`/${catalogProps.link.pathname}`} isArticle={false} />
 			)}
 			{isBrowser && cloudServiceUrl && isDevMode && <UploadCloud />}
+			{!isStaticCli && !isStatic && (
+				<>
+					<AddToFavoriteButton
+						isFavorite={!!catalogs.find((catalog) => catalog === catalogProps.name)}
+						onClick={onClickFavorite}
+					/>
+					<ButtonLink
+						text={t("favorites-articles")}
+						iconCode="star"
+						onClick={() =>
+							setCurrentTab(
+								isFavoriteArticles ? LeftNavigationTab.None : LeftNavigationTab.FavoriteArticles,
+							)
+						}
+					/>
+				</>
+			)}
 			<IsReadOnlyHOC>
 				<ButtonLink
 					text={t("snippets")}
 					iconCode="file"
 					onClick={() => setCurrentTab(isSnippets ? LeftNavigationTab.None : LeftNavigationTab.Snippets)}
 				/>
-				{isDevMode && (
-					<>
-						<ButtonLink
-							text={t("template.name")}
-							iconCode="layout-template"
-							onClick={() =>
-								setCurrentTab(isTemplate ? LeftNavigationTab.None : LeftNavigationTab.Template)
-							}
-						/>
-						<ButtonLink
-							text={t("inbox.notes")}
-							iconCode="inbox"
-							onClick={() => setCurrentTab(isInbox ? LeftNavigationTab.None : LeftNavigationTab.Inbox)}
-						/>
-					</>
-				)}
+				<>
+					<ButtonLink
+						text={t("template.name")}
+						iconCode="layout-template"
+						onClick={() => setCurrentTab(isTemplate ? LeftNavigationTab.None : LeftNavigationTab.Template)}
+					/>
+					<ButtonLink
+						text={t("inbox.notes")}
+						iconCode="inbox"
+						onClick={() => setCurrentTab(isInbox ? LeftNavigationTab.None : LeftNavigationTab.Inbox)}
+					/>
+				</>
 				{isAiEnabled && (
 					<ButtonLink
 						text={t("ai.ai-prompts")}

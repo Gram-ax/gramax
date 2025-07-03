@@ -2,8 +2,6 @@ enum ModalToOpen {
 	MergeConfirm = "MergeConfirm",
 	MergeResolver = "MergeResolver",
 
-	Publish = "Publish",
-
 	ShareTicketHandler = "ShareTicketHandler",
 	ReviewTicketHandler = "ReviewTicketHandler",
 
@@ -28,7 +26,7 @@ enum ModalToOpen {
 	EditEnterpriseConfig = "EditEnterpriseConfig",
 
 	TemplateContentWarning = "TemplateContentWarning",
-	TemplatePropertySettings = "TemplatePropertySettings",
+	PropertySettings = "PropertySettings",
 
 	DocRootMissingModal = "DocRootMissingModal",
 }

@@ -1,7 +1,7 @@
 import ElementGroups from "@ext/markdown/core/element/ElementGroups";
 
 export default {
-	group: `${ElementGroups.block} ${ElementGroups.listItemContent}`,
+	group: ElementGroups.block,
 	content: `${ElementGroups.block}+`,
 	isolating: true,
 	defining: true,

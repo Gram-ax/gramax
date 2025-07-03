@@ -1,6 +1,6 @@
 import { CATEGORY_ROOT_FILENAME } from "@app/config/const";
 import { getExecutingEnvironment } from "@app/resolveModule/env";
-import type { EventArgs } from "@core/Event/EventEmitter";
+import type { EventArgs, UnsubscribeToken } from "@core/Event/EventEmitter";
 import type { EventHandlerCollection } from "@core/Event/EventHandlerProvider";
 import Path from "@core/FileProvider/Path/Path";
 import type { Catalog } from "@core/FileStructue/Catalog/Catalog";
@@ -19,17 +19,21 @@ export type FSLocalizationProps = {
 };
 
 export default class FSLocalizationEvents implements EventHandlerCollection {
+	// For some reason we need to save unsubscribe token address from "catalog-read" event and maybe other events
+	private _unsubribeTokens: UnsubscribeToken[] = [];
 	constructor(private _fs: FileStructure) {}
 
 	mount(): void {
-		this._fs.events.on("catalog-entry-read", this.onCatalogEntryRead.bind(this));
-		this._fs.events.on("catalog-read", this.onCatalogRead.bind(this));
-		this._fs.events.on("item-created", this.onItemCreated.bind(this));
-		this._fs.events.on("item-deleted", this.onItemDeleted.bind(this));
-		this._fs.events.on("item-moved", this.onItemMoved.bind(this));
-		this._fs.events.on("item-props-updated", this.onItemPropsUpdated.bind(this));
-		this._fs.events.on("item-order-updated", this.onItemOrderUpdated.bind(this));
-		this._fs.events.on("item-filter", this.onItemFilter.bind(this));
+		this._unsubribeTokens.push(
+			this._fs.events.on("catalog-entry-read", this.onCatalogEntryRead.bind(this)),
+			this._fs.events.on("catalog-read", this.onCatalogRead.bind(this)),
+			this._fs.events.on("item-created", this.onItemCreated.bind(this)),
+			this._fs.events.on("item-deleted", this.onItemDeleted.bind(this)),
+			this._fs.events.on("item-moved", this.onItemMoved.bind(this)),
+			this._fs.events.on("item-props-updated", this.onItemPropsUpdated.bind(this)),
+			this._fs.events.on("item-order-updated", this.onItemOrderUpdated.bind(this)),
+			this._fs.events.on("item-filter", this.onItemFilter.bind(this)),
+		);
 	}
 
 	private onItemFilter = ({ catalogProps, item }: EventArgs<FSEvents, "item-filter">) => {

@@ -2,35 +2,52 @@ import styled from "@emotion/styled";
 import t from "@ext/localization/locale/translate";
 import TableComponent from "@ext/markdown/elements/table/render/component/Table";
 import Group from "@ext/markdown/elements/view/render/components/Displays/Helpers/Table/Group";
-import { ViewRenderGroup } from "@ext/properties/models";
+import { Property, PropertyTypes, ViewRenderGroup } from "@ext/properties/models";
+import { ClientCatalogProps } from "@core/SitePresenter/SitePresenter";
+import PropertyServiceProvider from "@ext/properties/components/PropertyService";
 
 interface TableProps {
 	content: ViewRenderGroup[];
 	className?: string;
 	groupby: string[];
 	select: string[];
+	catalogProps: ClientCatalogProps;
 }
 
-const Table = ({ content, className, groupby, select }: TableProps) => {
+const getWidth = (property: Property) => {
+	if (property.type === PropertyTypes.blockMd) return "20em";
+	return "8em";
+};
+
+const Table = ({ content, className, groupby, select, catalogProps }: TableProps) => {
+	const { properties } = PropertyServiceProvider.value;
 	return (
 		<div className={className}>
 			<TableComponent>
-				<tbody data-focusable="true">
+				<tbody>
 					<tr>
 						{groupby?.map((name) => (
-							<th key={name} scope="col">
+							<th key={name} scope="col" data-colwidth="10em">
 								{name}
 							</th>
 						))}
-						<th scope="col">{t("properties.article")}</th>
+						<th scope="col" data-colwidth="10em">
+							{t("properties.article")}
+						</th>
 						{select?.map((name) => (
-							<th key={name} scope="col">
+							<th key={name} scope="col" data-colwidth={getWidth(properties.get(name))}>
 								{name}
 							</th>
 						))}
 					</tr>
 					{content?.map((group) => (
-						<Group key={group.group?.[0]} group={group} select={select} />
+						<Group
+							key={group.group?.[0]}
+							group={group}
+							select={select}
+							catalogName={catalogProps.name}
+							catalogProperties={properties}
+						/>
 					))}
 				</tbody>
 			</TableComponent>
@@ -39,7 +56,7 @@ const Table = ({ content, className, groupby, select }: TableProps) => {
 };
 
 export default styled(Table)`
-	tbody {
+	table {
 		border-radius: var(--radius-small);
 	}
 

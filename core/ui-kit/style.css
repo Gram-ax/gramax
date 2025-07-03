@@ -11,7 +11,7 @@
 	pointer-events: auto !important;
 }
 
-.monaco-form-old-width {
+[data-monaco-modal-normal-width] {
 	width: calc(100vw - 2rem);
 	max-width: 1200px;
 }
@@ -32,6 +32,24 @@
 	text-decoration: underline;
 	text-underline-offset: 24%;
 	text-decoration-thickness: 0;
+}
+
+[data-sign-in-enteprise-form] {
+	max-width: min(420px, calc(100vw - 32px));
+}
+
+@media (min-width: 1024px) {
+	[data-sign-in-enteprise-form] {
+		max-width: min(432px, calc(100vw - 32px));
+	}
+}
+
+.ui-kit {
+	z-index: var(--z-index-article-modal);
+}
+
+.ui-kit form {
+	font-weight: 400;
 }
 
 [data-upper-error] {

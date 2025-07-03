@@ -28,13 +28,13 @@ export class VectorSearcher implements Searcher {
 	async search(query: string, catalogName: string, articleIds: string[]): Promise<SearchItem[]> {
 		const dbResult = await this._vectorDbClient.search(query, catalogName);
 		return dbResult.items
-			.filter((x) => articleIds.includes(x.metadata.refPath))
+			.filter((x) => articleIds.includes(x.article.metadata.refPath))
 			.map<SearchItem>((x) => ({
-				name: { end: "", targets: [{ start: x.metadata.title, target: "" }] },
+				name: { end: "", targets: [{ start: x.article.title, target: "" }] },
 				count: 1,
 				score: x.score,
 				paragraph: [{ prev: x.text, target: "", next: "" }],
-				url: x.metadata.logicPath,
+				url: x.article.id,
 			}))
 			.sort((a, b) => b.score - a.score);
 	}

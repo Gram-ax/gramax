@@ -6,8 +6,8 @@ use tauri::*;
 
 use crate::error::ShowError;
 use crate::platform::desktop::updater::Updater;
-use crate::AppHandleExt;
-use crate::MainWindowBuilder;
+use crate::shared::AppHandleExt;
+use crate::shared::MainWindowBuilder;
 
 pub trait MenuBuilder {
   fn setup_menu(&self) -> Result<()>;

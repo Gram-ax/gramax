@@ -47,9 +47,9 @@ export class NotionPropertyManager {
 		[PropertyTypes.numeric]: this._processNumericProperty.bind(this),
 		[PropertyTypes.flag]: this._processFlagProperty.bind(this),
 		[PropertyTypes.text]: this._processTextProperty.bind(this),
-		[PropertyTypes.array]: null,
+		// [PropertyTypes.array]: null,
 		[PropertyTypes.blockMd]: null,
-		[PropertyTypes.inlineMd]: null,
+		// [PropertyTypes.inlineMd]: null,
 	};
 
 	private _properties: CustomProperty[] = [];

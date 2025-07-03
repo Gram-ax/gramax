@@ -30,6 +30,7 @@ export const getTauriModules = async (): Promise<any> => {
 		DiffFileInput: LazyDiffFileInputTauri,
 		openDirectory: tauriCommands.openDirectory,
 		httpFetch: tauriCommands.httpFetch,
+		setBadge: tauriCommands.setBadge,
 		openInExplorer: tauriCommands.openInExplorer,
 		openWindowWithUrl: tauriCommands.openWindowWithUrl,
 	};

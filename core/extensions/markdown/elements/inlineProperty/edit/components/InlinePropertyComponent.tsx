@@ -6,7 +6,6 @@ import PropertyServiceProvider from "@ext/properties/components/PropertyService"
 import { deleteProperty, updateProperty } from "@ext/properties/logic/changeProperty";
 import combineProperties from "@ext/properties/logic/combineProperties";
 import { Property } from "@ext/properties/models";
-import TemplateService from "@ext/templates/components/TemplateService";
 import { NodeSelection } from "@tiptap/pm/state";
 import { NodeViewProps, NodeViewWrapper } from "@tiptap/react";
 import { useCallback } from "react";
@@ -14,8 +13,7 @@ import { useCallback } from "react";
 const InlinePropertyComponent = ({ node, updateAttributes, extension, editor, selected }: NodeViewProps) => {
 	const bind = node.attrs.bind as string;
 	const isSelected = selected && editor.state.selection instanceof NodeSelection;
-	const { setArticleProperties } = PropertyServiceProvider.value;
-	const { properties } = TemplateService.value;
+	const { setArticleProperties, properties } = PropertyServiceProvider.value;
 	const articleProps = ArticlePropsService.value;
 	const apiUrlCreator = ApiUrlCreatorService.value;
 

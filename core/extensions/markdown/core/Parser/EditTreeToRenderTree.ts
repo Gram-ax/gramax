@@ -82,7 +82,7 @@ const tableTransformer = (node: JSONContent): JSONContent => {
 	const handleRow = (row: JSONContent) => {
 		const tag = {
 			...row,
-			content: row.content.map((cell) => handleCell(cell)),
+			content: row.content?.map((cell) => handleCell(cell)),
 			type: "tableRow",
 		};
 

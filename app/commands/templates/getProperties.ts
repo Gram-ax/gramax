@@ -1,7 +1,6 @@
 import { Command } from "@app/types/Command";
 import { ResponseKind } from "@app/types/ResponseKind";
 import { AuthorizeMiddleware } from "@core/Api/middleware/AuthorizeMiddleware";
-import { DesktopModeMiddleware } from "@core/Api/middleware/DesktopModeMiddleware";
 import type Context from "@core/Context/Context";
 import { Property } from "@ext/properties/models";
 
@@ -15,7 +14,7 @@ const getProperties: Command<
 > = Command.create({
 	path: "templates/getProperties",
 
-	middlewares: [new AuthorizeMiddleware(), new DesktopModeMiddleware()],
+	middlewares: [new AuthorizeMiddleware()],
 
 	kind: ResponseKind.json,
 

@@ -3,7 +3,7 @@ import UserCircle from "@components/Atoms/UserCircle";
 import VersionControlCommentCount from "@components/Comments/CommentCount";
 import styled from "@emotion/styled";
 import { Accent } from "@ext/git/core/GitMergeRequest/components/Elements";
-import type { Signature } from "@ext/git/core/GitMergeRequest/model/MergeRequest";
+import type { Signature } from "@ext/git/core/model/Signature";
 import t from "@ext/localization/locale/translate";
 
 const Comments = styled(VersionControlCommentCount)`

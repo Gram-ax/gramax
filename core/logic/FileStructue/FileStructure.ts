@@ -287,7 +287,11 @@ export default class FileStructure {
 			fs: this,
 		});
 		await this._readCategoryItems(path, category, catalog);
-		return category;
+
+		const mutableItem = { item: category };
+		this.events.emitSync("before-item-create", { catalog, mutableItem });
+
+		return mutableItem.item;
 	}
 
 	private async _readCategory(folderPath: Path, parentCategory: Category, catalog: Catalog): Promise<void> {

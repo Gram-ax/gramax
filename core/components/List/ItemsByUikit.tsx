@@ -20,10 +20,11 @@ import {
 } from "react";
 
 import Tooltip from "@components/Atoms/Tooltip";
+import RequestValueNotFound from "@components/List/RequestValueNotFound";
+import scrollUtils from "@core-ui/utils/scrollUtils";
 import ErrorHandler from "@ext/errorHandlers/client/components/ErrorHandler";
-import t from "@ext/localization/locale/translate";
 import { Virtuoso, VirtuosoHandle } from "react-virtuoso";
-import Item, { ButtonItem, ItemContent, ListItem } from "./Item";
+import { ButtonItem, ItemContent, ListItem } from "./Item";
 
 export type OnItemClick = (
 	value: string | ListItem,
@@ -56,6 +57,7 @@ interface ItemsProps extends HTMLAttributes<HTMLDivElement>, ConfigProps {
 	onItemClick?: OnItemClick;
 	keepFullWidth?: boolean;
 	useVirtuoso?: boolean;
+	endReached?: () => void;
 }
 
 const getArray = <T,>(array: T[]): T[] => (!Array.isArray(array) || !array.length ? [] : array);
@@ -63,7 +65,7 @@ const getArray = <T,>(array: T[]): T[] => (!Array.isArray(array) || !array.lengt
 const Items = memo((props: ItemsProps) => {
 	const {
 		items: propsItems,
-		buttons,
+		buttons = [],
 		itemIndex,
 		onItemClick,
 		isOpen,
@@ -72,7 +74,7 @@ const Items = memo((props: ItemsProps) => {
 		isHierarchy,
 		withBreadcrumbs,
 		blurInInput,
-		searchRef,
+		searchRef = { current: null },
 		className,
 		value,
 		maxItems = 6,
@@ -81,6 +83,7 @@ const Items = memo((props: ItemsProps) => {
 		showFilteredItems,
 		keepFullWidth,
 		useVirtuoso: hasVirtuoso,
+		endReached,
 		...otherProps
 	} = props;
 
@@ -200,13 +203,13 @@ const Items = memo((props: ItemsProps) => {
 	}, [value]);
 
 	useEffect(() => {
-		const inputRef = searchRef.current?.inputRef;
-		inputRef?.addEventListener("keydown", keydownHandler);
+		const element = searchRef.current?.inputRef ?? document;
+		element.addEventListener("keydown", keydownHandler);
 
-		return () => inputRef?.removeEventListener("keydown", keydownHandler);
+		return () => element.removeEventListener("keydown", keydownHandler);
 	}, [keydownHandler, searchRef]);
 
-	const itemContent = (idx) => {
+	const itemContent = (idx: number) => {
 		const button = buttons[idx];
 		const isLastButton = !(buttons.length - 1 - idx);
 
@@ -277,6 +280,12 @@ const Items = memo((props: ItemsProps) => {
 			className={classNames("items", {}, [className])}
 			isOpen={isOpen}
 			filteredWidth={filteredWidth}
+			onScroll={(e) => {
+				if (useVirtuoso) return;
+				props.onScroll?.(e);
+				const isBottom = scrollUtils.scrollPositionIsBottom(e.target as HTMLDivElement, 32);
+				if (isBottom) endReached();
+			}}
 			{...otherProps}
 		>
 			{!useVirtuoso ? (
@@ -285,6 +294,7 @@ const Items = memo((props: ItemsProps) => {
 				<StyledVirtuoso height={maxItems * 32} width={filteredWidth} keepFullWidth={keepFullWidth}>
 					<ErrorHandler>
 						<Virtuoso
+							endReached={endReached}
 							ref={virtuosoRef}
 							totalCount={itemsWithButtons.length}
 							itemsRendered={(items) => {
@@ -327,7 +337,7 @@ export default Items;
 
 const StyleDiv = styled.div<ConfigProps>`
 	z-index: var(--z-index-foreground);
-	width: clac(100% +2px);
+	width: calc(100% +2px);
 	margin-left: -1px;
 	border-radius: var(--radius);
 	box-shadow: var(--shadows-deeplight);
@@ -349,16 +359,6 @@ const StyleDiv = styled.div<ConfigProps>`
 		opacity: 0.4;
 	}
 `;
-
-const RequestValueNotFound = () => (
-	<ItemByUikit
-		style={{ color: "var(--color-primary-general-inverse)" }}
-		content={{
-			element: t("list.no-results-found"),
-			labelField: "",
-		}}
-	/>
-);
 
 interface StyledVirtuosoProps {
 	height: number;

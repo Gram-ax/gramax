@@ -1,6 +1,7 @@
 import Icon from "@components/Atoms/Icon";
 import StatusBarWrapper from "@components/Layouts/StatusBar/StatusBarWrapper";
 import GitIndexService from "@core-ui/ContextServices/GitIndexService";
+import SidebarsIsOpenService from "@core-ui/ContextServices/Sidebars/SidebarsIsOpenContext";
 import styled from "@emotion/styled";
 import t from "@ext/localization/locale/translate";
 
@@ -16,13 +17,18 @@ const Counter = styled.span`
 `;
 
 const ShowPublishBar = ({ onClick, isShow }: { onClick: () => void; isShow: boolean }) => {
+	const leftNavIsOpen = SidebarsIsOpenService.value.left;
 	const overview = GitIndexService.getOverview();
 	const total = overview.added + overview.deleted + overview.modified;
 
 	return (
 		<StatusBarWrapper
+			tooltipArrow={leftNavIsOpen}
 			dataQa="qa-publish-trigger"
-			onClick={onClick}
+			onClick={() => {
+				onClick();
+				if (!leftNavIsOpen) SidebarsIsOpenService.value = { left: true };
+			}}
 			iconCode="custom-cloud-up"
 			tooltipText={t("publish-changes")}
 			iconStyle={{ fill: isShow ? "var(--color-primary)" : "white" }}

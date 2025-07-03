@@ -88,6 +88,32 @@ describe("transformerMsO правильно трансформирует html", 
 			expect(normalize(html)).toBe(normalize(expectHTML));
 		});
 
+		test("не создает список внутри списка", () => {
+			const testHTML = `
+            <html xmlns:v="urn:schemas-microsoft-com:vml">
+                <body>
+                    <p class="MsoListParagraph" style="margin-left:35.45pt;text-align:justify;
+text-indent:-36.0pt;line-height:115%;mso-list:l0 level2 lfo1"><![if !supportLists]><span lang="RU" style="font-family:&quot;Arial&quot;,sans-serif;mso-fareast-font-family:Arial;
+mso-fareast-language:EN-US;font-weight:normal"><span style="mso-list:Ignore">1.1.<span style="font:7.0pt &quot;Times New Roman&quot;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span></span><!--[endif]--><span lang="RU" style="font-family:&quot;Arial&quot;,sans-serif;
+mso-fareast-font-family:Calibri;mso-fareast-theme-font:minor-latin;mso-fareast-language:
+EN-US;font-weight:normal">Исполнитель обязуется оказывать устные, письменные консультации,
+в том числе по вопросам функционирования ПО, развития функционала ПО, создания
+нового функционала ПО, исправления инцидентов (далее – Услуги). </span><span lang="RU" style="font-family:&quot;Arial&quot;,sans-serif;font-weight:normal">Порядок оказания
+Услуг, состав и содержание Услуг, технические требования к Услугам, сроки
+оказания Услуг, а также иные условия оказания Услуг определяются в соответствии
+с условиями Договора, Приложения № 7 к Договору.</span><span lang="RU" style="font-family:&quot;Arial&quot;,sans-serif;mso-fareast-font-family:Calibri;
+mso-fareast-theme-font:minor-latin;mso-fareast-language:EN-US;font-weight:normal"><o:p></o:p></span></p>
+                </body>
+            </html>`;
+
+			const html = transformer.parseFromHTML(testHTML);
+
+			const expectHTML = `<ol><li><span lang="RU" style="font-family:&quot;Arial&quot;,sans-serif;mso-fareast-font-family:Arial; mso-fareast-language:EN-US;font-weight:normal"><span style="mso-list:Ignore"></span></span><span lang="RU" style="font-family:&quot;Arial&quot;,sans-serif; mso-fareast-font-family:Calibri;mso-fareast-theme-font:minor-latin;mso-fareast-language: EN-US;font-weight:normal">Исполнитель обязуется оказывать устные, письменные консультации, в том числе по вопросам функционирования ПО, развития функционала ПО, создания нового функционала ПО, исправления инцидентов (далее – Услуги). </span><span lang="RU" style="font-family:&quot;Arial&quot;,sans-serif;font-weight:normal">Порядок оказания Услуг, состав и содержание Услуг, технические требования к Услугам, сроки оказания Услуг, а также иные условия оказания Услуг определяются в соответствии с условиями Договора, Приложения № 7 к Договору.</span><span lang="RU" style="font-family:&quot;Arial&quot;,sans-serif;mso-fareast-font-family:Calibri; mso-fareast-theme-font:minor-latin;mso-fareast-language:EN-US;font-weight:normal"><o:p></o:p></span></li></ol>`;
+
+			expect(normalize(html)).toBe(normalize(expectHTML));
+		});
+
 		test("нумерованный список", () => {
 			const testHTML = `
             <html xmlns:v="urn:schemas-microsoft-com:vml">

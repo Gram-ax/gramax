@@ -6,6 +6,7 @@ import { NodeViewProps, NodeViewWrapper, useReactNodeView } from "@tiptap/react"
 import { useLayoutEffect, useRef, useState } from "react";
 import styled from "@emotion/styled";
 import useWatch from "@core-ui/hooks/useWatch";
+import TableWrapper from "@ext/markdown/elements/table/render/component/TableWrapper";
 
 const Wrapper = styled.div`
 	overflow: auto;
@@ -40,9 +41,16 @@ const TableComponent = ({ node, getPos, editor }: NodeViewProps) => {
 	useAggregation(tableRef, node.content);
 
 	const table = (
-		<table ref={nodeViewContentRef} className="tableComponent" data-header={node.attrs.header}>
-			<ColGroup content={node.firstChild} parentElement={parentElement} />
-		</table>
+		<TableWrapper>
+			<table
+				data-qa={"table"}
+				ref={nodeViewContentRef}
+				className="tableComponent"
+				data-header={node.attrs.header}
+			>
+				<ColGroup content={node.firstChild} parentElement={parentElement} />
+			</table>
+		</TableWrapper>
 	);
 
 	if (!editor.isEditable) {

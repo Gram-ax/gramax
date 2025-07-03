@@ -79,19 +79,19 @@ export type AppConfig = {
 const getServices = (): ServicesConfig => {
 	return {
 		gitProxy: {
-			url: env("GIT_PROXY_SERVICE_URL") ?? "https://develop.gram.ax/git-proxy",
+			url: env("GIT_PROXY_SERVICE_URL") || "https://develop.gram.ax/git-proxy",
 		},
 		auth: {
-			url: env("AUTH_SERVICE_URL") ?? "https://gram.ax/auth",
+			url: env("AUTH_SERVICE_URL") || "https://gram.ax/auth",
 		},
 		diagramRenderer: {
-			url: env("DIAGRAM_RENDERER_SERVICE_URL") ?? null,
+			url: env("DIAGRAM_RENDERER_SERVICE_URL") || null,
 		},
 		review: {
-			url: env("REVIEW_SERVICE_URL") ?? null,
+			url: env("REVIEW_SERVICE_URL") || null,
 		},
 		cloud: {
-			url: env("CLOUD_SERVICE_URL") ?? null,
+			url: env("CLOUD_SERVICE_URL") || null,
 		},
 	};
 };
@@ -107,7 +107,7 @@ const getPaths = (): AppConfigPaths => {
 	}
 
 	const root = env("ROOT_PATH") && new Path(env("ROOT_PATH"));
-	const userData = (env("USER_DATA_PATH") && new Path(env("USER_DATA_PATH"))) ?? root;
+	const userData = (env("USER_DATA_PATH") && new Path(env("USER_DATA_PATH"))) || root;
 
 	return {
 		base: new Path(env("BASE_PATH")),
@@ -164,32 +164,32 @@ export const getConfig = (): AppConfig => {
 			},
 		},
 
-		version: env("GRAMAX_VERSION") ?? null,
-		buildVersion: env("BUILD_VERSION") ?? null,
+		version: env("GRAMAX_VERSION") || null,
+		buildVersion: env("BUILD_VERSION") || null,
 
 		isProduction: env("PRODUCTION") === "true",
-		isRelease: (env("BRANCH") ?? "develop") == "master",
+		isRelease: (env("BRANCH") || "develop") == "master",
 		disableSeo: env("DISABLE_SEO") === "true",
 
-		bugsnagApiKey: env("BUGSNAG_API_KEY") ?? null,
+		bugsnagApiKey: env("BUGSNAG_API_KEY") || null,
 
 		metrics: {
-			yandex: { metricCounter: env("YANDEX_METRIC_COUNTER") ?? null },
+			yandex: { metricCounter: env("YANDEX_METRIC_COUNTER") || null },
 			matomo: {
-				matomoSiteId: env("MATOMO_SITE_ID") ?? null,
-				matomoUrl: env("MATOMO_URL") ?? null,
-				matomoContainerUrl: env("MATOMO_CONTAINER_URL") ?? null,
+				matomoSiteId: env("MATOMO_SITE_ID") || null,
+				matomoUrl: env("MATOMO_URL") || null,
+				matomoContainerUrl: env("MATOMO_CONTAINER_URL") || null,
 			},
 		},
 
 		admin: {
-			login: env("ADMIN_LOGIN") ?? null,
-			password: env("ADMIN_PASSWORD") ?? null,
+			login: env("ADMIN_LOGIN") || null,
+			password: env("ADMIN_PASSWORD") || null,
 		},
 
 		tokens: {
-			share: env("SHARE_ACCESS_TOKEN") ?? null,
-			cookie: env("COOKIE_SECRET") ?? null,
+			share: env("SHARE_ACCESS_TOKEN") || null,
+			cookie: env("COOKIE_SECRET") || null,
 		},
 
 		mail: {
@@ -203,7 +203,7 @@ export const getConfig = (): AppConfig => {
 
 		logo: {
 			imageUrl: env("LOGO_IMAGE_URL"),
-			linkUrl: env("LOGO_LINK_URL") ?? "/",
+			linkUrl: env("LOGO_LINK_URL") || "/",
 			linkTitle: env("LOGO_LINK_TITLE"),
 		},
 

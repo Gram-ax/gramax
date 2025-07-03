@@ -6,9 +6,22 @@ import SidebarsIsPinService from "@core-ui/ContextServices/Sidebars/SidebarsIsPi
 import useShowMainLangContentPreview from "@core-ui/hooks/useShowMainLangContentPreview";
 import { cssMedia } from "@core-ui/utils/cssUtils";
 import styled from "@emotion/styled";
-import { CSSProperties, useCallback, useEffect, useRef, useState } from "react";
+import { CSSProperties, useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 
 export const CELL_MIN_WIDTH = "3em";
+
+const calculateContentWidth = (element: Element | null): number => {
+	if (!element) return 0;
+
+	const isTable = element.firstElementChild?.tagName.toLowerCase() === "table";
+	if (!isTable) return element.clientWidth;
+
+	const style = window.getComputedStyle(element);
+	const paddingLeft = parseInt(style.paddingLeft);
+	const paddingRight = parseInt(style.paddingRight);
+
+	return element.clientWidth - paddingLeft - paddingRight;
+};
 
 const WidthWrapper = ({ children, className }: { children: JSX.Element; className?: string }) => {
 	const [rightWidth, setRightWidth] = useState(0);
@@ -38,16 +51,17 @@ const WidthWrapper = ({ children, className }: { children: JSX.Element; classNam
 		const articleRefWidth = first?.clientWidth;
 
 		const scrollContainer = scrollContainerRef.current;
-		const scrollContentRefWidth = scrollContainer?.firstElementChild.clientWidth;
+		const scrollContentRef = scrollContainer?.firstElementChild;
+		const scrollContentRefWidth = calculateContentWidth(scrollContentRef);
 
 		const editorWidth = first?.firstElementChild.clientWidth;
 		const newWrapperSize = (articleRefWidth - editorWidth) / 2;
 
 		setHeight(scrollContainer.clientHeight);
-		setWrapperSize(scrollContentRefWidth >= editorWidth - 24 ? newWrapperSize : 0);
+		setWrapperSize(scrollContentRefWidth >= editorWidth ? newWrapperSize : 0);
 	}, [articleRef, scrollContainerRef.current]);
 
-	useEffect(() => {
+	useLayoutEffect(() => {
 		if (!scrollContainerRef.current) return;
 
 		const handleResize = () => {
@@ -99,7 +113,10 @@ const WidthWrapper = ({ children, className }: { children: JSX.Element; classNam
 	}, [isShowMainLangContentPreview, isPin, wrapperSize, articleRef?.current]);
 
 	return (
-		<div className={classNames(className, { center: wrapperSize > 0 })} style={{ ...getWidth() }}>
+		<div
+			className={classNames(className, { center: wrapperSize > 0 }, ["width-wrapper"])}
+			style={{ ...getWidth() }}
+		>
 			<div ref={scrollContainerRef} className={"scrollableContent"} onScroll={setWidth}>
 				{children}
 			</div>
@@ -122,12 +139,12 @@ export default styled(WidthWrapper)`
 	&.center {
 		display: flex;
 		justify-content: center;
-	}
 
-	.scrollableContent {
-		overflow-x: auto;
-		overflow-y: hidden;
-		position: relative;
+		.scrollableContent {
+			overflow-x: auto;
+			overflow-y: hidden;
+			position: relative;
+		}
 	}
 
 	&:not(.center):has(table) .shadow-box.left,

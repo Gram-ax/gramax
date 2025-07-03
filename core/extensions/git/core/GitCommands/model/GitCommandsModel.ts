@@ -6,6 +6,7 @@ import type {
 	UpstreamCountFileChanges,
 } from "@ext/git/core/GitCommands/LibGit2IntermediateCommands";
 import GitStash from "@ext/git/core/model/GitStash";
+import GitVersionData from "@ext/git/core/model/GitVersionData";
 import Path from "../../../../../logic/FileProvider/Path/Path";
 import { VersionControlInfo } from "../../../../VersionControl/model/VersionControlInfo";
 import SourceData from "../../../../storage/logic/SourceDataProvider/model/SourceData";
@@ -80,7 +81,9 @@ type CloneProgressTypes =
 
 export type CloneProgress = CloneProgressTypes & { cancellable?: boolean };
 
-export type TreeReadScope = { commit: string } | { reference: string } | "HEAD";
+export type CommitScope = { commit: string };
+
+export type TreeReadScope = CommitScope | { reference: string } | "HEAD";
 
 export type RefInfo =
 	| {
@@ -156,6 +159,7 @@ interface GitCommandsModel {
 	getCommitHash(ref: string): Promise<GitVersion>;
 
 	getFileHistory(filePath: Path, count: number): Promise<VersionControlInfo[]>;
+	getCommitInfo(oid: string, opts: { depth: number; simplify: boolean }): Promise<GitVersionData[]>;
 	graphHeadUpstreamFilesCount(searchIn: string): Promise<UpstreamCountFileChanges>;
 
 	getHeadCommit(branch: string): Promise<GitVersion>;

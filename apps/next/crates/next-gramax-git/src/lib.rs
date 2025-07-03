@@ -133,6 +133,7 @@ impl From<MergeMessageFormatOptions> for gramaxgit::actions::merge::MergeMessage
   fn from(val: MergeMessageFormatOptions) -> Self {
     gramaxgit::actions::merge::MergeMessageFormatOptions {
       theirs: val.theirs,
+      ours: None,
       squash: val.squash.unwrap_or_default(),
       max_commits: val.max_commits.map(|x| x as usize),
       is_merge_request: val.is_merge_request.unwrap_or_default(),
@@ -247,6 +248,24 @@ pub fn push(repo_path: String, creds: AccessTokenCreds) -> Output {
 #[napi_async]
 pub fn file_history(repo_path: String, file_path: String, count: u32) -> Output {
   git::file_history(Path::new(&repo_path), Path::new(&file_path), count as usize)
+}
+
+#[napi(object, use_nullable = true)]
+#[derive(Clone)]
+pub struct CommitInfoOpts {
+  pub depth: u32,
+  pub simplify: bool,
+}
+
+impl From<CommitInfoOpts> for gramaxgit::ext::history::CommitInfoOpts {
+  fn from(val: CommitInfoOpts) -> Self {
+    gramaxgit::ext::history::CommitInfoOpts { depth: val.depth as usize, simplify: val.simplify }
+  }
+}
+
+#[napi_async]
+pub fn get_commit_info(repo_path: String, oid: String, opts: CommitInfoOpts) -> Output {
+  git::get_commit_info(Path::new(&repo_path), &oid, opts.into())
 }
 
 #[napi_async]

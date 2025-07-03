@@ -44,6 +44,8 @@ const CloneWithShareData = ({
 	);
 
 	const getBranch = () => {
+    if (!shareData) return;
+
 		if (shareData.sourceType === SourceType.gitHub || shareData.sourceType === SourceType.gitLab) {
 			return (shareData as GitShareData).branch;
 		}

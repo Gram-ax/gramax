@@ -13,12 +13,12 @@ const decorationPlugin = new Plugin({
 			const addDecoration = tr.getMeta("addDecoration");
 			const removeDecoration = tr.getMeta("removeDecoration");
 
+			if (removeDecoration) set = DecorationSet.empty;
+
 			if (addDecoration) {
 				if (Array.isArray(addDecoration)) set = set.add(tr.doc, addDecoration);
 				else set = set.add(tr.doc, [addDecoration]);
 			}
-
-			if (removeDecoration) set = DecorationSet.empty;
 
 			return set;
 		},

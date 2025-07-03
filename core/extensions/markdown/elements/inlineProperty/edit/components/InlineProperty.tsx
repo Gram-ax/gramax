@@ -19,11 +19,13 @@ interface InlinePropertyProps {
 const TriggerWrapper = styled.span`
 	display: inline-flex;
 	align-items: center;
+	vertical-align: top;
 	line-height: 1.5em;
 	gap: 0.25em;
 	padding: 0 0.25em;
 	cursor: pointer;
 	user-select: none;
+	margin-top: 2px;
 	border-bottom: 2px dashed var(--color-comment-bg);
 
 	:hover {

@@ -8,11 +8,14 @@ import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import ArticlePropsService from "@core-ui/ContextServices/ArticleProps";
 import CatalogPropsService from "@core-ui/ContextServices/CatalogProps";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
+import { usePlatform } from "@core-ui/hooks/usePlatform";
 import { useRouter } from "@core/Api/useRouter";
 import Path from "@core/FileProvider/Path/Path";
 import RouterPathProvider from "@core/RouterPath/RouterPathProvider";
 import { ClientArticleProps } from "@core/SitePresenter/SitePresenter";
 import styled from "@emotion/styled";
+import AddToFavoriteButton from "@ext/artilce/Favorite/components/AddToFavoriteButton";
+import FavoriteService from "@ext/artilce/Favorite/components/FavoriteService";
 import ErrorConfirmService from "@ext/errorHandlers/client/ErrorConfirmService";
 import PropsEditor from "@ext/item/actions/propsEditor/components/PropsEditor";
 import { shouldShowActionWarning } from "@ext/localization/actions/OtherLanguagesPresentWarning";
@@ -52,11 +55,14 @@ const ItemMenu = React.memo(({ itemLink, isCategory, setItemLink }: EditMenuProp
 	const isCatalogExist = !!catalogProps.name;
 	const hasError = articleProps?.errorCode;
 	const router = useRouter();
-
 	const [brotherFileNames, setBrotherFileName] = useState<string[]>(null);
 	const [itemProps, setItemProps] = useState<ClientArticleProps>(null);
 	const [isCurrentItem, setIsCurrentItem] = useState(articleProps?.ref?.path == itemLink?.ref?.path);
+	const { articles } = FavoriteService.value;
+	const isFavorite = articles.some((article) => article === itemLink.ref.path);
 	// const isTemplate = isCurrentItem && articleProps?.template?.length > 0;
+
+	const { isStatic, isStaticCli } = usePlatform();
 
 	useEffect(() => {
 		setIsCurrentItem(articleProps?.ref?.path == itemLink?.ref?.path);
@@ -105,6 +111,14 @@ const ItemMenu = React.memo(({ itemLink, isCategory, setItemLink }: EditMenuProp
 		if (!isReadOnly && !brotherFileNames) setBrotherFileNamesData(itemLink.ref.path);
 	}, [isCurrentItem, isReadOnly, itemLink.ref.path, brotherFileNames, itemProps]);
 
+	const updateFavorite = () => {
+		const newFavoriteArticles = isFavorite
+			? articles.filter((article) => article !== itemLink.ref.path)
+			: [...articles, itemLink.ref.path];
+
+		FavoriteService.setArticles(newFavoriteArticles);
+	};
+
 	return (
 		<>
 			{!isReadOnly ? (
@@ -126,6 +140,9 @@ const ItemMenu = React.memo(({ itemLink, isCategory, setItemLink }: EditMenuProp
 						isCurrentItem={isCurrentItem}
 						isTemplate={false}
 					/>
+					{!isStatic && !isStaticCli && (
+						<AddToFavoriteButton isFavorite={isFavorite} onClick={updateFavorite} />
+					)}
 					{!hasError && (
 						<>
 							<ExportToDocxOrPdf
@@ -140,6 +157,7 @@ const ItemMenu = React.memo(({ itemLink, isCategory, setItemLink }: EditMenuProp
 				</>
 			) : (
 				<>
+					<AddToFavoriteButton isFavorite={isFavorite} onClick={updateFavorite} />
 					{!hasError && (
 						<ExportToDocxOrPdf
 							isCategory={isCategory}
@@ -175,6 +193,7 @@ const EditMenu = ({ itemLink, isCategory, setItemLink, textSize, style, onOpen, 
 				onOpen={onOpen}
 				onClose={onClose}
 				appendTo={() => document.body}
+				resetMaxHeight
 			>
 				{isClicked && <ItemMenu itemLink={itemLink} isCategory={isCategory} setItemLink={setItemLink} />}
 			</PopupMenuLayout>

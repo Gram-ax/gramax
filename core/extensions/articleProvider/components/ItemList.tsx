@@ -6,22 +6,22 @@ import { ArticleProviderType } from "@ext/articleProvider/logic/ArticleProvider"
 import BaseRightExtensions from "./BaseRightExtensions";
 import { ProviderItemProps } from "@ext/articleProvider/models/types";
 
-interface ItemListProps {
+interface ItemListProps<T = ProviderItemProps> {
 	show: boolean;
 	tabWrapperRef: RefObject<HTMLDivElement>;
-	providerType: ArticleProviderType;
 	selectedItemId: string | string[];
-	items: ProviderItemProps[];
+	items: T[];
+	providerType?: ArticleProviderType;
 	noItemsText: string;
 	onItemClick: (id: string, target: HTMLElement) => void;
-	onDelete: (id: string) => void;
-	onMarkdownChange: (id: string, markdown: string) => void;
+	onDelete?: (id: string) => void;
 	setContentHeight: (height: number) => void;
+	onMarkdownChange?: (id: string, markdown: string) => void;
 	preDelete?: (id: string) => Promise<boolean>;
 	rightActions?: (id: string) => ReactNode;
 }
 
-const ItemList = (props: ItemListProps) => {
+const ItemList = <T extends ProviderItemProps>(props: ItemListProps<T>) => {
 	const {
 		show,
 		tabWrapperRef,
@@ -54,18 +54,23 @@ const ItemList = (props: ItemListProps) => {
 				rightActionsWidth="0.85em"
 				onItemClick={onItemClick}
 				rightActions={
-					<BaseRightExtensions
-						id={item.id}
-						providerType={providerType}
-						onDelete={onDelete}
-						onMarkdownChange={onMarkdownChange}
-						items={rightActions}
-						preDelete={preDelete}
-					/>
+					onMarkdownChange &&
+					onDelete && (
+						<BaseRightExtensions
+							id={item.id}
+							providerType={providerType}
+							onDelete={onDelete}
+							onMarkdownChange={onMarkdownChange}
+							items={rightActions}
+							preDelete={preDelete}
+						/>
+					)
 				}
 			/>
 		));
 	}, [items, selectedId, onItemClick, providerType, rightActions]);
+
+	if (!show) return;
 
 	return (
 		<div ref={ref}>

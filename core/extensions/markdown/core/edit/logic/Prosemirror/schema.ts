@@ -44,6 +44,7 @@ import suggestion from "@ext/StyleGuide/extension/suggestionSchema";
 import { Schema } from "prosemirror-model";
 import htmlTags from "@ext/markdown/elements/htmlTag/render/model/htmlTagSchema";
 import * as htmlTagsComponents from "@ext/markdown/elements/htmlTag/edit/model/htmlTagSchema";
+import inlineImageSchema from "@ext/markdown/elements/inlineImage/edit/models/schema";
 
 export const getSchema = (additionalSchema?: Record<string, any>) => {
 	const schema = {
@@ -99,6 +100,7 @@ export const getSchema = (additionalSchema?: Record<string, any>) => {
 
 			video: videoSchema,
 			image: imageSchema,
+			inlineImage: inlineImageSchema,
 			drawio: drawioSchema,
 
 			icon,

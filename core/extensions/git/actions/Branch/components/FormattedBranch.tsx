@@ -1,8 +1,9 @@
 import Icon from "@components/Atoms/Icon";
+import { css } from "@emotion/react";
 import styled from "@emotion/styled";
 import { ReactNode } from "react";
 
-const Wrapper = styled.span`
+const Wrapper = styled.span<{ changeColorOnHover?: boolean }>`
 	background: var(--merge-branch-code-bg);
 	color: var(--merge-branch-code-text);
 	font-weight: 400;
@@ -14,11 +15,26 @@ const Wrapper = styled.span`
 	> i {
 		margin-right: 2px;
 	}
+
+	${({ changeColorOnHover }) =>
+		changeColorOnHover &&
+		css`
+			:hover {
+				background: var(--merge-branch-code-bg-hover);
+			}
+		`}
 `;
 
-const FormattedBranch = ({ name }: { name: ReactNode }) => {
+interface FormattedBranchProps {
+	name: ReactNode;
+	changeColorOnHover?: boolean;
+}
+
+const FormattedBranch = (props: FormattedBranchProps) => {
+	const { name, changeColorOnHover = false } = props;
+
 	return (
-		<Wrapper>
+		<Wrapper changeColorOnHover={changeColorOnHover}>
 			<Icon code="git-branch" strokeWidth={"2.5px"} style={{ lineHeight: "normal" }} />
 			{name}
 		</Wrapper>

@@ -27,7 +27,7 @@ import type YandexStorageData from "@ext/yandexDisk/model/YandexDiskStorageData"
 import assert from "assert";
 import Storage from "./Storage";
 
-export type OnCloneFinish = (path: Path, isCancelled: boolean) => Promise<void> | void;
+export type OnCloneFinish = (path: Path, isCancelled: boolean) => Promise<boolean> | boolean;
 
 export type CloneOptions = {
 	out: Path;
@@ -75,8 +75,8 @@ export default class StorageProvider {
 		try {
 			const result = await this._takeSlot(() => this._cloneStorageBasedOnType(fs, progress, opts));
 			const isCancelled = result?.isCancelledByUser ?? false;
-			await opts.onFinish?.(opts.out, isCancelled);
-			progress.setFinish(isCancelled);
+			const isCancelledByCallback = await opts.onFinish?.(opts.out, isCancelled);
+			progress.setFinish(isCancelled || isCancelledByCallback);
 		} catch (e) {
 			await this._cleanupOnError(fs, progress, opts.out, e);
 		} finally {

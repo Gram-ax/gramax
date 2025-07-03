@@ -4,6 +4,7 @@ import Note from "../../render/component/Note";
 import BlockActionPanel from "@components/BlockActionPanel";
 import NoteMenuActions from "@ext/markdown/elements/note/edit/components/NoteMenuActions";
 import NoteHeadEditor from "@ext/markdown/elements/note/edit/components/NoteHeadEditor";
+import useWatch from "@core-ui/hooks/useWatch";
 
 const EditNote = ({ node, getPos, updateAttributes, editor }: NodeViewProps): ReactElement => {
 	const isEditable = editor.isEditable;
@@ -14,6 +15,10 @@ const EditNote = ({ node, getPos, updateAttributes, editor }: NodeViewProps): Re
 	const onChange = (value: string) => {
 		updateAttributes({ title: value });
 	};
+
+	useWatch(() => {
+		setShowHeadEditor(isEditable && node.attrs.title?.length > 0);
+	}, [node.attrs.title]);
 
 	return (
 		<NodeViewWrapper ref={hoverElementRef}>

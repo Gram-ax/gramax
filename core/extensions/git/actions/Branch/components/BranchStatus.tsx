@@ -47,7 +47,7 @@ const LocalIconUnstyled = () => {
 		<Icon
 			tooltipDelay={[1000, 0]}
 			tooltipAppendTo={() => document.body}
-			style={{ padding: 0 }}
+			style={{ padding: 0, fill: "var(--color-article-text)" }}
 			code="crossed-cloud"
 			tooltipPlace="right"
 			tooltipContent={t("local")}

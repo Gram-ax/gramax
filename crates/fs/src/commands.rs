@@ -14,8 +14,8 @@ pub fn read_file<P: AsRef<Path>>(path: P) -> Result<Vec<u8>> {
   Ok(fs::read(path)?)
 }
 
-pub fn write_file<P: AsRef<Path>>(path: P, content: Vec<u8>) -> Result<()> {
-  Ok(fs::write(path, content)?)
+pub fn write_file<P: AsRef<Path>, C: AsRef<[u8]>>(path: P, content: C) -> Result<()> {
+  Ok(fs::write(path, content.as_ref())?)
 }
 
 pub fn read_link<P: AsRef<Path>>(path: P) -> Result<PathBuf> {

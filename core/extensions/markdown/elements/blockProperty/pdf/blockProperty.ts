@@ -6,12 +6,6 @@ export const blockPropertyHandler = async (node: Tag, context: pdfRenderContext)
 	const results: Content[] = [];
 
 	const content = await parseNodeToPDFContent(node, context);
-	results.push({
-		text: node.attributes.name,
-		bold: true,
-		margin: [0, 5],
-	});
 	results.push(...content);
-	results.push({ text: "", margin: [0, 10] });
 	return results;
 };

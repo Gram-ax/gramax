@@ -13,6 +13,8 @@ import {
 } from "@ext/wordExport/options/wordExportSettings";
 import { AddOptionsWord } from "@ext/wordExport/options/WordTypes";
 import { JSONContent } from "@tiptap/core";
+import { AlignEnumTypes } from "@ext/markdown/elements/table/edit/model/tableTypes";
+import { aggregateTable, setCellAlignment } from "@ext/markdown/elements/table/edit/logic/exportUtils";
 
 export class WordTableExport {
 	public static readonly defaultWidth = 2000;
@@ -25,7 +27,12 @@ export class WordTableExport {
 
 	constructor(private _wordSerializerState: WordSerializerState) {}
 
-	async renderCellContent(tag: Tag | JSONContent, isTableHeader: boolean, maxWidth: number): Promise<FileChild[]> {
+	async renderCellContent(
+		tag: Tag | JSONContent,
+		isTableHeader: boolean,
+		maxWidth: number,
+		align?: AlignEnumTypes,
+	): Promise<FileChild[]> {
 		return this._wordSerializerState.renderBlock(tag, {
 			...tag.attributes,
 			removeWhiteSpace: true,
@@ -33,6 +40,7 @@ export class WordTableExport {
 			bold: isTableHeader,
 			maxPictureWidth: maxWidth / WordTableExport.defaultWidthCoefficient,
 			maxTableWidth: maxWidth,
+			alignment: align,
 		});
 	}
 
@@ -55,6 +63,7 @@ export class WordTableExport {
 							child,
 							isTableHeader,
 							size - WordTableExport.innerBlockWidthDifference,
+							parentAttributes.align,
 						);
 					}),
 				)
@@ -111,8 +120,17 @@ export class WordTableExport {
 			.filter((val) => val);
 	}
 
-	async renderTable(state: WordSerializerState, parent: Tag | JSONContent, addOptions: AddOptionsWord) {
+	async renderTable(state: WordSerializerState, table: Tag | JSONContent, addOptions: AddOptionsWord) {
+		const parent = JSON.parse(JSON.stringify(table));
 		this._addOptions = addOptions;
+
+		const children = "children" in parent ? parent.children : parent.content;
+		const rows: (Tag | JSONContent)[] =
+			children?.[0] && ("name" in children[0] && children ? children[0].children : children);
+
+		aggregateTable(rows);
+		setCellAlignment(rows);
+
 		return new Table({
 			rows: (await Promise.all(this._getParentChildrenMap(state, parent))).flat().filter((val) => val),
 			margins: wordMarginsType[WordBlockType.table],
@@ -171,10 +189,9 @@ export class WordTableExport {
 			if (child && typeof child !== "string") {
 				for (const cell of child.children) {
 					const cellAttributes = "attributes" in cell ? cell.attributes : cell.attrs;
-					const width =
-						cellAttributes.colwidth
-							? cellAttributes.colwidth[0] * WordTableExport.defaultWidthCoefficient
-							: WordTableExport.defaultWidth;
+					const width = cellAttributes.colwidth
+						? cellAttributes.colwidth[0] * WordTableExport.defaultWidthCoefficient
+						: WordTableExport.defaultWidth;
 
 					result.push(this._getCellWidth(width, coefficient));
 				}

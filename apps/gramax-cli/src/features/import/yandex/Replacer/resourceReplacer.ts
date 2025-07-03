@@ -1,3 +1,4 @@
+import { DOMAIN } from "../../../../utils/predefinedValues";
 import { Resource } from "../entities/article";
 
 export interface ResourceCounter {
@@ -14,16 +15,10 @@ class ResourceReplacer {
 	private readonly _mermaidRegex = /```mermaid([\s\S]*?)```/g;
 	private readonly _plantUmlRegex = /{% diagram %}\s*([\s\S]*?)\s*{% enddiagram %}/g;
 
-	private readonly _imageRegex = /!\[.*?\]\((.*?)\s*=\s*(\d+)x(\d+)\)/g;
+	private readonly _imageRegex = /!\[.*?\]\((.*?)\s*=\s*(?:(\d+)x(\d+)|x(\d+)|(\d+)x)\)/g;
 	private readonly _fileRegex = /:file\[(.*?)\]\((.*?)\)(?:\{type="(.*?)"\})?/g;
 
 	constructor() {}
-
-	get counter(): ResourceCounter {
-		const internalNames = { mermaidCounter: 0, plantUmlCounter: 0, drawioCounter: 0 };
-
-		return internalNames;
-	}
 
 	unsupportedReplace(sourceText: string, url: string) {
 		let content = sourceText;
@@ -69,12 +64,12 @@ class ResourceReplacer {
 		return content;
 	}
 
-	fileReplacer(sourceText: string, articleName: string) {
+	fileReplacer(sourceText: string, articleName: string, slug: string) {
 		let content = sourceText;
 		const resources: Resource[] = [];
 
 		content = content.replace(this._fileRegex, (_, filename, src) => {
-			const item: Resource = { type: "file", slug: "", src, status: "open", is_replaced: true };
+			const item: Resource = { type: "file", slug, src, status: "open", is_replaced: true };
 			resources.push(item);
 
 			return `[${filename}](./${articleName}-${src.split("/").pop()})`;
@@ -83,15 +78,42 @@ class ResourceReplacer {
 		return { content, resources };
 	}
 
-	imageReplacer(sourceText: string, articleName: string) {
+	imageReplacer(sourceText: string, articleName: string, slug: string) {
 		let content = sourceText;
 		const resources: Resource[] = [];
 
-		content = content.replace(this._imageRegex, (_, src, width, height) => {
-			const item: Resource = { type: "image", slug: "", src, status: "open", is_replaced: true };
+		content = content.replace(this._imageRegex, (match, src, width1, height1, heightOnly, widthOnly) => {
+			let width: string, height: string;
+
+			if (width1 && height1) {
+				width = width1;
+				height = height1;
+			} else if (heightOnly) {
+				width = heightOnly;
+				height = heightOnly;
+			} else if (widthOnly) {
+				width = widthOnly;
+				height = widthOnly;
+			} else {
+				width = "auto";
+				height = "auto";
+			}
+
+			const item: Resource = {
+				type: "image",
+				slug,
+				src,
+				status: "open",
+				is_replaced: true,
+			};
+
 			resources.push(item);
 
-			return `![](./${articleName}-${src.split("/").pop()}){width=${width}px height=${height}px}`;
+			if (width === "auto" && height === "auto") {
+				return `![](./${articleName}-${src.split("/").pop()})`;
+			} else {
+				return `![](./${articleName}-${src.split("/").pop()}){width=${width}px height=${height}px}`;
+			}
 		});
 
 		return { content, resources };
@@ -99,30 +121,18 @@ class ResourceReplacer {
 
 	diagramsReplacer(sourceText: string, articleName: string, slug: string) {
 		let content = sourceText;
-		const counter = this.counter;
 
-		const { resources: DrawIoResources, content: drawioContent } = this.drawioReplacer(
-			content,
-			counter,
-			articleName,
-			slug,
-		);
+		const { resources: DrawIoResources, content: drawioContent } = this.drawioReplacer(content, articleName, slug);
 		content = drawioContent;
 
 		const { resources: MeramidResources, content: mermaidContent } = this.mermaidReplacer(
 			content,
-			counter,
 			articleName,
 			slug,
 		);
 		content = mermaidContent;
 
-		const { resources: PumlResources, content: pumlContent } = this.pumlReplacer(
-			content,
-			counter,
-			articleName,
-			slug,
-		);
+		const { resources: PumlResources, content: pumlContent } = this.pumlReplacer(content, articleName, slug);
 		content = pumlContent;
 
 		const unionResources: Resource[] = [...DrawIoResources, ...MeramidResources, ...PumlResources];
@@ -130,15 +140,12 @@ class ResourceReplacer {
 		return { content, resources: unionResources };
 	}
 
-	drawioReplacer(sourceText: string, counter: ResourceCounter, articleName: string, slug: string) {
+	drawioReplacer(sourceText: string, articleName: string, slug: string) {
 		let content = sourceText;
-		let resources: Resource[] = [];
+		const resources: Resource[] = [];
 
 		content = content.replace(this._drawioRegex, (match, base64Svg) => {
-			const diagramName =
-				`${articleName}-diagram` + (counter.drawioCounter ? "-" + counter.drawioCounter : "") + ".svg";
-
-			counter.drawioCounter += 1;
+			const diagramName = `${articleName}-diagram` + (resources.length ? "-" + resources.length : "") + ".svg";
 
 			const svgContent = Buffer.from(base64Svg, "base64").toString("utf8");
 
@@ -159,15 +166,13 @@ class ResourceReplacer {
 		return { content, resources };
 	}
 
-	mermaidReplacer(sourceText: string, counter: ResourceCounter, articleName: string, slug: string) {
+	mermaidReplacer(sourceText: string, articleName: string, slug: string) {
 		let content = sourceText;
-		let resources: Resource[] = [];
+		const resources: Resource[] = [];
 
 		content = content.replace(this._mermaidRegex, (match, content) => {
 			const diagramName =
-				`${articleName}-diagram` + (counter.mermaidCounter ? "-" + counter.mermaidCounter : "") + ".mermaid";
-
-			counter.mermaidCounter += 1;
+				`${articleName}-diagram` + (resources.length ? "-" + resources.length : "") + ".mermaid";
 
 			const resource: Resource = {
 				type: "diagram",
@@ -186,15 +191,12 @@ class ResourceReplacer {
 		return { content, resources };
 	}
 
-	pumlReplacer(sourceText: string, counter: ResourceCounter, articleName: string, slug: string) {
+	pumlReplacer(sourceText: string, articleName: string, slug: string) {
 		let content = sourceText;
-		let resources: Resource[] = [];
+		const resources: Resource[] = [];
 
 		content = content.replace(this._plantUmlRegex, (match, diagramContent) => {
-			const diagramName =
-				`${articleName}-diagram` + (counter.plantUmlCounter ? "-" + counter.plantUmlCounter : "") + ".puml";
-
-			counter.plantUmlCounter += 1;
+			const diagramName = `${articleName}-diagram` + (resources.length ? "-" + resources.length : "") + ".puml";
 
 			const resource: Resource = {
 				type: "diagram",
@@ -211,6 +213,34 @@ class ResourceReplacer {
 		});
 
 		return { content, resources };
+	}
+
+	applyResourceReplacers(
+		content: string,
+		name: string,
+		slug: string,
+		raw: boolean,
+	): { content: string; resources: Resource[] } {
+		const resources: Resource[] = [];
+
+		const replacerMethods = ["diagramsReplacer", "fileReplacer", "imageReplacer"] as const;
+
+		for (const method of replacerMethods) {
+			const { resources: foundResources, content: replacedContent } = this[method](content, name, slug);
+			if (!raw) content = replacedContent;
+			if (foundResources.length) resources.push(...foundResources);
+		}
+
+		return { content, resources };
+	}
+
+	applyUnsupportedReplacers(content: string, slug: string): string {
+		const url = DOMAIN + slug + "/";
+
+		content = this.temporarilyUnsupportedReplace(content, url);
+		content = this.unsupportedReplace(content, url);
+
+		return content;
 	}
 }
 

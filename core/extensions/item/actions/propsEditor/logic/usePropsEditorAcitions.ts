@@ -16,6 +16,7 @@ import { uniqueName } from "@core/utils/uniqueName";
 import EditorService from "@ext/markdown/elementsUtils/ContextServices/EditorService";
 import t from "@ext/localization/locale/translate";
 import { ItemLink } from "@ext/navigation/NavigationLinks";
+import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 
 export interface UsePropsEditorActionsParams {
 	item: ClientArticleProps;
@@ -35,6 +36,13 @@ export const usePropsEditorActions = (params: UsePropsEditorActionsParams) => {
 	const apiUrlCreator = ApiUrlCreatorService.value;
 	const articleProps = ArticlePropsService.value;
 	const router = useRouter();
+
+	const domain = PageDataContextService.value.domain;
+	const [parentCategoryLink, setParentCategoryLink] = useState<string>(domain);
+
+	useWatch(() => {
+		setParentCategoryLink(domain + "/" + item?.logicPath.replace(/[^/]*$/, ""));
+	}, [item]);
 
 	const formSchema = z.object({
 		title: z.string().min(1, { message: t("must-be-not-empty") }),
@@ -147,6 +155,7 @@ export const usePropsEditorActions = (params: UsePropsEditorActionsParams) => {
 		isOnlyTitleChanged,
 		generatedFileName,
 		openModal,
+		parentCategoryLink,
 		closeModal,
 		catalogProps: CatalogPropsService.value,
 	} as const;

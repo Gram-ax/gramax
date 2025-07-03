@@ -1,6 +1,7 @@
 import Tooltip from "@components/Atoms/Tooltip";
 import HoverableActions from "@components/controls/HoverController/HoverableActions";
 import WidthWrapper from "@components/WidthWrapper/WidthWrapper";
+import TableNodeSheet from "@ext/markdown/elements/table/edit/logic/TableNodeSheet";
 import styled from "@emotion/styled";
 import t from "@ext/localization/locale/translate";
 import TablePlusActions from "@ext/markdown/elements/table/edit/components/Helpers/TablePlusActions";
@@ -9,7 +10,16 @@ import { getHoveredData, getTableSizes } from "@ext/markdown/elements/table/edit
 import { HoveredData } from "@ext/markdown/elements/table/edit/model/tableTypes";
 import { Editor } from "@tiptap/core";
 import { Node } from "@tiptap/pm/model";
-import { MouseEvent as ReactMouseEvent, ReactNode, RefObject, useCallback, useEffect, useRef, useState } from "react";
+import {
+	MouseEvent as ReactMouseEvent,
+	ReactNode,
+	RefObject,
+	useCallback,
+	useEffect,
+	useRef,
+	useState,
+	useMemo,
+} from "react";
 
 interface TableHelperProps {
 	tableRef: RefObject<HTMLTableElement>;
@@ -66,6 +76,8 @@ const TableHelper = (props: TableHelperProps) => {
 
 	const hoveredData = useRef<HoveredData>(null);
 
+	const tableSheet = useMemo(() => TableNodeSheet.createFromProseMirrorNode(node, getPos()), [node, getPos]);
+
 	useEffect(() => {
 		const tableObserver = new ResizeObserver(() => {
 			const tableSizes = getTableSizes(tableRef.current);
@@ -115,12 +127,13 @@ const TableHelper = (props: TableHelperProps) => {
 		};
 	}, [tableRef.current]);
 
+	const commonParent = disabledWrapper
+		? tableRef.current?.parentElement.parentElement.parentElement
+		: tableRef.current?.parentElement.parentElement;
+
 	const hideControls = useCallback(() => {
-		const tableParent = disabledWrapper
-			? tableRef.current?.parentElement.parentElement
-			: tableRef.current.parentElement;
-		const containerHorizontal = tableParent?.querySelector(".controls-container-horizontal");
-		const containerVertical = tableParent?.querySelector(".controls-container-vertical");
+		const containerHorizontal = commonParent?.querySelector(".controls-container-horizontal");
+		const containerVertical = commonParent?.querySelector(".controls-container-vertical");
 
 		if (hoveredData.current) hideOldControls(containerVertical, containerHorizontal, { ...hoveredData.current });
 		hoveredData.current = null;
@@ -128,16 +141,13 @@ const TableHelper = (props: TableHelperProps) => {
 
 	const onMouseMove = useCallback(
 		(event: ReactMouseEvent) => {
-			const { cellIndex, rowIndex } = getHoveredData(
-				event,
-				disabledWrapper ? tableRef.current.parentElement.parentElement : tableRef.current.parentElement,
-			);
+			const { cellIndex, rowIndex } = getHoveredData(event, commonParent);
 			if (cellIndex === -1 || rowIndex === -1) return;
 
 			if (hoveredData.current?.cellIndex === cellIndex && hoveredData.current?.rowIndex === rowIndex) return;
-			const tableParent = tableRef.current?.parentElement;
-			const containerHorizontal = tableParent?.querySelector(".controls-container-horizontal");
-			const containerVertical = tableParent?.querySelector(".controls-container-vertical");
+
+			const containerHorizontal = commonParent?.querySelector(".controls-container-horizontal");
+			const containerVertical = commonParent?.querySelector(".controls-container-vertical");
 
 			hideControls();
 			showNewControls(containerVertical, containerHorizontal, Math.min(rowIndex, node.childCount - 1), cellIndex);
@@ -167,6 +177,7 @@ const TableHelper = (props: TableHelperProps) => {
 				getPos={getPos}
 				tableRef={tableRef}
 				editor={editor}
+				tableSheet={tableSheet}
 			/>
 		</>
 	);
@@ -184,10 +195,4 @@ const TableHelper = (props: TableHelperProps) => {
 	);
 };
 
-export default styled(TableHelper)`
-	@media not print {
-		.tableComponent {
-			display: block;
-		}
-	}
-`;
+export default TableHelper;

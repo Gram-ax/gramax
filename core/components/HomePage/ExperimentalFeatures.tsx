@@ -1,7 +1,6 @@
 import { getExecutingEnvironment } from "@app/resolveModule/env";
 import Checkbox from "@components/Atoms/Checkbox";
 import styled from "@emotion/styled";
-import onExperimentalFeaturesClick from "@ext/git/migration/onExperimentalFeaturesClick";
 import t from "@ext/localization/locale/translate";
 import { useCallback, useState } from "react";
 
@@ -24,7 +23,7 @@ const ExperimentalFeatures = () => {
 
 	const [cooldown, setCooldown] = useState(false);
 
-	const callback = useCallback(async () => {
+	const callback = useCallback(() => {
 		if (typeof window === "undefined") return;
 
 		if (cooldown) return;
@@ -32,7 +31,6 @@ const ExperimentalFeatures = () => {
 		setTimeout(() => setCooldown(false), 500);
 
 		window.debug.devMode.check() ? window.debug.devMode.disable() : window.debug.devMode.enable();
-		onExperimentalFeaturesClick();
 
 		setTimeout(async () => {
 			getExecutingEnvironment() === "browser" ? window.location.reload() : await window.reloadAll();

@@ -68,7 +68,7 @@ const ImageResizer = (props: ImageResizerProps): ReactElement => {
 	useEffect(() => {
 		const applyScale = (newScale: number = 100) => {
 			const image = imageRef.current;
-			if (image && newScale === null) {
+			if (image && !newScale) {
 				image.style.removeProperty("width");
 				return;
 			}

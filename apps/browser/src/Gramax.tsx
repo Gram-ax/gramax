@@ -1,4 +1,4 @@
-import { getExecutingEnvironment } from "@app/resolveModule/env";
+import { Environment, getExecutingEnvironment } from "@app/resolveModule/env";
 import ContextProviders from "@components/ContextProviders";
 import HomePage from "@components/HomePage/HomePage";
 import CatalogComponent from "@components/Layouts/CatalogLayout/CatalogComponent";
@@ -19,10 +19,12 @@ const Gramax = React.memo(
 		data,
 		refresh,
 		setData,
+		platform,
 	}: {
 		data: GramaxProps;
-		refresh: () => Promise<void>;
+		refresh?: () => Promise<void>;
 		setData: Dispatch<SetStateAction<GramaxProps>>;
+		platform?: Environment;
 	}) => {
 		return (
 			<ContextProviders
@@ -32,14 +34,14 @@ const Gramax = React.memo(
 					const prev = data;
 					setTimeout(() => setData((data) => (data == prev ? null : data)), 500);
 				}}
-				platform={getExecutingEnvironment()}
+				platform={platform || getExecutingEnvironment()}
 			>
 				<>
 					<ForwardBackward />
 					<ErrorBoundary context={data.context}>
 						{data.context.isArticle ? (
 							<CatalogComponent data={data.data as ArticlePageData}>
-								<ArticleViewContainer />
+								<ArticleViewContainer key={(data.data as ArticlePageData)?.articleProps?.ref?.path} />
 							</CatalogComponent>
 						) : (
 							<HomePage data={data.data as HomePageData} />

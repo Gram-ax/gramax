@@ -61,15 +61,14 @@ const recursiveGetText = (tag: RenderableTreeNode | JSONContent): string[] => {
 
 export const getLevelTocItemsByRenderableTree = (tags: RenderableTreeNode[] | JSONContent[]): LevelTocItem[] => {
 	const items: LevelTocItem[] = [];
-	tags.forEach((tag) => {
-		const name = "name" in tag ? tag.name : tag.type;
-		if (tag && name == "Include") {
-			items.push(...getLevelTocItemsByRenderableTree("children" in tag ? tag.children : tag.content));
-		}
-		if (!tag || typeof tag === "string" || name !== "Heading") return;
 
+	const recursiveTraversal = (tag: RenderableTreeNode | JSONContent) => {
+		if (typeof tag !== "object") return;
+
+		const name = "name" in tag ? tag.name : tag.type;
 		const attrs = "attributes" in tag ? tag.attributes : tag.attrs;
-		if (attrs?.level == 4 || attrs?.level == 3 || attrs?.level == 2) {
+
+		if (name === "Heading" && (attrs?.level == 4 || attrs?.level == 3 || attrs?.level == 2)) {
 			const text = recursiveGetText(tag).join("");
 			const textId = getChildTextId(text);
 
@@ -80,7 +79,13 @@ export const getLevelTocItemsByRenderableTree = (tags: RenderableTreeNode[] | JS
 				items: [],
 			});
 		}
-	});
+
+		const children = "children" in tag ? tag.children : tag.content;
+		if (children) children.forEach((child) => recursiveTraversal(child));
+	};
+
+	tags.forEach((tag) => recursiveTraversal(tag));
+
 	return items;
 };
 
@@ -98,10 +103,18 @@ export const getLevelTocItemsByJSONContent = (node: Node): LevelTocItem[] => {
 		}
 	};
 
+	const recursivePushItem = (n: Node) => {
+		if (n?.type?.name == "comment" && n?.firstChild?.type?.name == "heading") recursivePushItem(n.firstChild);
+		if (n?.type?.name == "block-property") n.content.forEach((c) => recursivePushItem(c));
+		if (n?.type?.name == "heading") pushItem(n);
+		if (n?.type?.name == "snippet") items.push(...getLevelTocItemsByRenderableTree(n.attrs.content));
+		n?.content?.forEach((n) => {
+			recursivePushItem(n);
+		});
+	};
+
 	node.content.forEach((n) => {
-		if (n?.type?.name == "comment" && n?.firstChild?.type?.name == "heading") pushItem(n.firstChild);
-		if (!n || n.type.name !== "heading") return;
-		pushItem(n);
+		recursivePushItem(n);
 	});
 
 	return items;

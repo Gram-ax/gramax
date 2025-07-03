@@ -28,8 +28,11 @@ export type CliConfig = {
 	};
 };
 
-export const loadConfig = async (configPath: string) => {
-	if (!(await exists(configPath))) return {} as CliConfig;
+export const loadConfig = async (configPath: string, force = false) => {
+	const isExist = await exists(configPath);
+	if (!isExist && force) throw new Error(`Configuration file not found at path: ${configPath}`);
+	if (!isExist) return {} as CliConfig;
+
 	const fileContents = await logStep("Reading configuration file", () => readFile(configPath, "utf-8"));
 	ChalkLogger.log(`Found: ${configPath}`, { indent: 1 });
 	return ((await logStep("Parsing YAML configuration", () => parse(fileContents))) as CliConfig) || ({} as CliConfig);

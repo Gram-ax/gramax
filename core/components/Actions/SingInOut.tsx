@@ -5,7 +5,7 @@ import { useRouter } from "@core/Api/useRouter";
 import styled from "@emotion/styled";
 import SignInOutEnterprise from "@ext/enterprise/components/SignInOutEnterprise";
 import t from "@ext/localization/locale/translate";
-import SighInEnterpriseModal from "@ext/enterprise/components/SignInEnterpriseModal";
+import SignInEnterpriseForm from "@ext/enterprise/components/SignInEnterpriseForm";
 
 const SingInOut = styled(({ className, isHomePage }: { className?: string; isHomePage?: boolean }) => {
 	const router = useRouter();
@@ -36,7 +36,7 @@ const SingInOut = styled(({ className, isHomePage }: { className?: string; isHom
 	if (isReadOnly && enterprise.gesUrl) {
 		return (
 			<div className={className}>
-				<SighInEnterpriseModal authUrl={authUrl} />
+				<SignInEnterpriseForm authUrl={authUrl} />
 			</div>
 		);
 	}

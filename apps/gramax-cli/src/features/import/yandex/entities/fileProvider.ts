@@ -14,7 +14,7 @@ class FileProvider {
 	}
 
 	static createDir(folderPath: string, isRelativePath = true) {
-		const path = isRelativePath ? join(InternalPath.pathToContent, folderPath) : folderPath;
+		const path = isRelativePath ? join(InternalPath.pathToContentDir, folderPath) : folderPath;
 
 		if (!existsSync(path)) {
 			mkdirSync(path, { recursive: true });
@@ -22,10 +22,10 @@ class FileProvider {
 	}
 
 	static async writeFile(stream: ReadableStream, slug: string, fileName: string) {
-		const path = join(InternalPath.pathToContent, slug);
+		const path = join(InternalPath.pathToContentDir, slug);
 		const folderIsExist = FileProvider.exist(path);
 
-		if (!folderIsExist) throw new Error(`Folder is not exist, path: ${slug}; file-name: ${fileName}`);
+		if (!folderIsExist) throw new Error(`\nFolder is not exist, path: ${slug}; file-name: ${fileName}`, {});
 
 		const filePath = join(path, fileName);
 		const writeStream = createWriteStream(filePath);
@@ -34,8 +34,8 @@ class FileProvider {
 		await pipelineAsync(nodeReadable, writeStream);
 	}
 
-	static writeFileAsync(content: string, filePath: string, fileName: string) {
-		const path = join(InternalPath.pathToContent, filePath);
+	static writeFileAsync(content: string, filePath: string) {
+		const path = join(InternalPath.pathToContentDir, filePath);
 
 		try {
 			writeFile(path, content, "utf8", () => {});
@@ -45,7 +45,7 @@ class FileProvider {
 	}
 
 	static writeMarkdown(filePath: string, content: string) {
-		const path = join(InternalPath.pathToContent, filePath);
+		const path = join(InternalPath.pathToContentDir, filePath);
 
 		writeFileSync(path, content, "utf8");
 	}
@@ -65,7 +65,7 @@ class FileProvider {
 	}
 
 	static writeYaml(filePath: string, yamlContent: string) {
-		const path = join(InternalPath.pathToContent, filePath);
+		const path = join(InternalPath.pathToContentDir, filePath);
 
 		writeFileSync(path, yamlContent, "utf8");
 	}

@@ -7,6 +7,7 @@ import { uniqueName } from "@core/utils/uniqueName";
 import { pasteArticleResource } from "@ext/markdown/elements/copyArticles/copyPasteArticleResource";
 import { ResourceServiceType } from "@ext/markdown/elements/copyArticles/resourceService";
 import imageHandlePaste from "@ext/markdown/elements/image/edit/logic/imageHandlePaste";
+import { PropertyService } from "@ext/properties/components/PropertyService";
 import { Editor } from "@tiptap/core";
 import { Slice } from "@tiptap/pm/model";
 import { EditorView } from "prosemirror-view";
@@ -14,6 +15,7 @@ import { EditorView } from "prosemirror-view";
 export interface BaseEditorContext {
 	apiUrlCreator: ApiUrlCreator;
 	articleProps: ClientArticleProps;
+	propertyService?: PropertyService;
 }
 
 export interface EditorContext {
@@ -72,7 +74,11 @@ export default abstract class EditorService {
 				: articleProps.fileName;
 
 			const url = apiUrlCreator.updateItemProps();
-			const res = await FetchService.fetch(url, JSON.stringify(articleProps), MimeTypes.json);
+			const res = await FetchService.fetch(
+				url,
+				JSON.stringify({ ...articleProps, properties: context.propertyService.articleProperties }),
+				MimeTypes.json,
+			);
 
 			if (fileName && res.ok) {
 				const { pathname, ref } = await res.json();

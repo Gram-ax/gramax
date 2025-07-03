@@ -34,14 +34,6 @@ const PropertyArticle = memo((props: PropertyArticleProps) => {
 		if (InputComponent) setValue(property.value?.[0] ?? "");
 	}, [property.value]);
 
-	const onClose = useCallback(
-		(instance: Instance<Props>) => {
-			if (!getInputType[property.type]) return;
-			updateInput(property.name, instance);
-		},
-		[property.name],
-	);
-
 	const preSubmit = useCallback(
 		(id: string, value: string, isDelete?: boolean) => {
 			onSubmit(id, value, isDelete);
@@ -66,14 +58,17 @@ const PropertyArticle = memo((props: PropertyArticleProps) => {
 	);
 
 	const updateInput = useCallback(
-		(id: string, instance: any) => {
+		(id: string) => {
+			const instance = instanceRef.current;
 			const currentValue = instance.popper.getElementsByTagName("input")[0].value;
+
 			if (currentValue && currentValue !== value?.[0]) {
+				setValue(currentValue);
 				preSubmit(id, currentValue);
 				instance.popper.getElementsByTagName("input")[0].value = "";
 			}
 		},
-		[preSubmit, value],
+		[preSubmit, value, instanceRef.current],
 	);
 
 	const deleteProperty = useCallback(() => preSubmit(property.name, undefined, true), [preSubmit, property.name]);
@@ -107,7 +102,6 @@ const PropertyArticle = memo((props: PropertyArticleProps) => {
 			disabled={disabled}
 			key={property.name}
 			hideOnClick={false}
-			onClose={onClose}
 			trigger={trigger}
 		>
 			<>
@@ -117,7 +111,7 @@ const PropertyArticle = memo((props: PropertyArticleProps) => {
 						placeholder={t(getPlaceholder[property.type])}
 						onKeyDown={onKeyDown}
 						value={value}
-						onChange={(e) => setValue(e.target.value)}
+						onChange={() => updateInput(property.name)}
 					/>
 				)}
 				{buttons}

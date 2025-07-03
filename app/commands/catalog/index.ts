@@ -14,6 +14,8 @@ import upload from "./static/upload";
 import updateNavigation from "./updateNavigation";
 import updateProps from "./updateProps";
 import setSyntax from "./setSyntax";
+import getArticlesData from "./favorite/getArticlesData";
+import links from "./links";
 
 const catalog = {
 	review: {
@@ -27,6 +29,10 @@ const catalog = {
 	static: {
 		upload,
 	},
+	favorite: {
+		getArticlesData,
+	},
+	links,
 	create,
 	remove,
 	getBrotherFileNames,

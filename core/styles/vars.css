@@ -77,6 +77,7 @@
 	--merger-bottom-bg-opacity: rgba(151, 71, 255, 0.15);
 
 	--merge-branch-code-bg: rgb(191, 219, 254);
+	--merge-branch-code-bg-hover: rgb(191, 219, 254, 0.5);
 	--merge-branch-code-text: rgb(7, 89, 133);
 
 	--version-control-primary: rgb(0, 122, 204);
@@ -155,7 +156,7 @@
 	--color-article-search-bg: #ffffff;
 	--color-article-hotkey-search-bg: #ffd500a0;
 	--color-article-hotkey-search-bg-active: #ffa800ef;
-	--color-table-border: #e5e5e5;
+	--color-table-border: rgba(0, 0, 0, 0.13);
 	--color-table-row-hover: #f5f5f5;
 
 	--color-placeholder: #a9a9a9;
@@ -290,7 +291,7 @@
 	--color-fence-text: #d6deeb;
 	--color-article-hotkey-search-bg: rgba(255, 213, 0, 0.94);
 	--color-article-hotkey-search-bg-active: rgb(255, 136, 0);
-	--color-table-border: #334155;
+	--color-table-border: rgba(255, 255, 255, 0.13);
 	--color-table-row-hover: #1e293b;
 
 	--color-tooltip-text: #1d2135;

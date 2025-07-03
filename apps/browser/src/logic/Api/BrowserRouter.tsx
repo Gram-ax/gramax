@@ -30,7 +30,7 @@ export default class BrowserRouter extends Router {
 	}
 
 	get hash(): string {
-		return encodeURI(window.location.hash ?? "");
+		return typeof window === "undefined" ? "" : encodeURI(window.location.hash ?? "");
 	}
 
 	pushQuery(query: Query) {

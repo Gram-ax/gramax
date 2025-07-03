@@ -2158,6 +2158,58 @@ diff_match_patch.patch_obj.prototype.toString = function () {
 	return text.join("").replace(/%20/g, " ");
 };
 
+// Source: https://codesandbox.io/p/sandbox/wo6nozyjkl?file=%2Fsrc%2Fcleanup.js
+
+const tokenize = (text) => {
+	return text.match(/(?:[A-Za-zА-Яа-я0-9À-ž]+|[^A-Za-zА-Яа-я0-9À-ž])/g) || [];
+};
+
+/**
+ * @param {string} text1
+ * @param {string} text2
+ * @returns {{ chars1: string, chars2: string, lineArray: string[] }}
+ */
+diff_match_patch.prototype.diff_wordsToChars_ = function (text1, text2) {
+	const wordArray = [];
+	const wordHash = {};
+
+	wordArray[0] = "";
+
+	const diff_linesToWordsMunge_ = (text) => {
+		let chars = "";
+		let wordArrayLength = wordArray.length;
+
+		for (let word of tokenize(text)) {
+			if (wordHash.hasOwnProperty ? wordHash.hasOwnProperty(word) : wordHash[word] !== undefined) {
+				chars += String.fromCharCode(wordHash[word]);
+			} else {
+				chars += String.fromCharCode(wordArrayLength);
+				wordHash[word] = wordArrayLength;
+				wordArray[wordArrayLength++] = word;
+			}
+		}
+
+		return chars;
+	};
+
+	const chars1 = diff_linesToWordsMunge_(text1);
+	const chars2 = diff_linesToWordsMunge_(text2);
+	return { chars1, chars2, lineArray: wordArray };
+};
+
+/**
+ * @param {string} text1
+ * @param {string} text2
+ * @returns {!Array.<!diff_match_patch.Diff>}
+ */
+diff_match_patch.prototype.diff_words = function (text1, text2) {
+	const { chars1, chars2, lineArray } = this.diff_wordsToChars_(text1, text2);
+	const diffs = this.diff_main(chars1, chars2);
+	this.diff_cleanupSemantic(diffs);
+	this.diff_charsToLines_(diffs, lineArray);
+	return diffs;
+};
+
 // CLOSURE:begin_strip
 // Lines below here will not be included in the Closure-compatible library.
 

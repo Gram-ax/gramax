@@ -1,5 +1,4 @@
 import Tooltip from "@components/Atoms/Tooltip";
-import getIsDevMode from "@core-ui/utils/getIsDevMode";
 import BranchMenu from "@ext/git/actions/Branch/components/BranchMenu";
 import GitDateInfo from "@ext/git/actions/Branch/components/GitDateInfo";
 import SmallGitDateInfo from "@ext/git/actions/Branch/components/SmallGItDateInfo";
@@ -58,8 +57,6 @@ const GitDateSideBar = ({
 	refreshList,
 	onMergeRequestCreate,
 }: GitDateSideBarProps) => {
-	const [isDevMode] = useState(() => getIsDevMode());
-
 	const ref = useRef<HTMLDivElement>();
 	const [width, setWidth] = useState(0);
 
@@ -72,7 +69,7 @@ const GitDateSideBar = ({
 			<Sidebar
 				disable={disable}
 				title={title}
-				titleComponent={isDevMode && mergeRequest ? <MergeRequestIcon /> : undefined}
+				titleComponent={mergeRequest ? <MergeRequestIcon /> : undefined}
 				leftActions={
 					iconCode && [
 						<Icon
@@ -86,7 +83,7 @@ const GitDateSideBar = ({
 				}
 				rightActions={[
 					data && <DateComponent key={0} width={width} data={data} dateWidth={dateWidth} />,
-					showBranchMenu && isDevMode && (
+					showBranchMenu && (
 						<BranchMenu
 							key={1}
 							refreshList={refreshList}

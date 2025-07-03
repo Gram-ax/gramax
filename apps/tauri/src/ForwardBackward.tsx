@@ -12,7 +12,7 @@ import { getCurrentWindow } from "@tauri-apps/api/window";
 import { createContext, Dispatch, SetStateAction, useCallback, useContext, useEffect, useState } from "react";
 import useLocation from "../../browser/src/logic/Api/useLocation";
 
-const isMacOsDesktop = navigator.userAgent.includes("Mac") && getExecutingEnvironment() === "tauri";
+const isMacOsDesktop = getExecutingEnvironment() === "tauri" && navigator.userAgent.includes("Mac");
 
 const Wrapper = styled.div<{ leftPad?: number; fixedPad?: boolean }>`
 	position: absolute;

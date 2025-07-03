@@ -38,7 +38,26 @@ const Header = (props: HeaderProps) => {
 	return React.createElement("h" + level, { id, className, "data-qa": dataQa }, header);
 };
 
+const getFontSize = (level: number) => {
+	return {
+		1: "2em",
+		2: "1.6em",
+		3: "1.3em",
+		4: "1.1em",
+		5: "1em",
+		6: "1em",
+	}[level];
+};
+
 export default styled(Header)`
+	${({ level }) => {
+		return `
+		font-size: ${getFontSize(level) ?? "1em"};
+		font-weight: ${level === 1 ? "700" : "400"};
+		line-height: 1.6;
+		`;
+	}}
+
 	:hover > a.anchor {
 		opacity: 0.5;
 	}

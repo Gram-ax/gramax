@@ -5,7 +5,6 @@ import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import { usePlatform } from "@core-ui/hooks/usePlatform";
 import useWatch from "@core-ui/hooks/useWatch";
-import getIsDevMode from "@core-ui/utils/getIsDevMode";
 import type { UnsubscribeToken } from "@core/Event/EventEmitter";
 import type Path from "@core/FileProvider/Path/Path";
 import type { TotalOverview } from "@ext/git/core/GitDiffItemCreator/RevisionDiffTreePresenter";
@@ -54,6 +53,9 @@ export default abstract class GitIndexService {
 		"versionControl/discard",
 		"versionControl/add",
 		"init",
+		"article/provider/create",
+		"article/provider/update",
+		"article/provider/remove",
 	]);
 
 	private static _inited = false;
@@ -65,7 +67,7 @@ export default abstract class GitIndexService {
 	private static _timeout: NodeJS.Timeout;
 
 	static Provider({ children }: { children: ReactElement }): ReactElement {
-		const { isNext } = usePlatform();
+		const { isNext, isStatic, isStaticCli } = usePlatform();
 		const [index, setIndex] = useState<Map<string, FileStatus>>(new Map());
 		const [overview, setOverview] = useState<TotalOverview>({
 			added: 0,
@@ -83,9 +85,13 @@ export default abstract class GitIndexService {
 			if (!isArticle) GitIndexService._inited = false;
 		}, [isArticle]);
 
-		if (isArticle && !GitIndexService._inited && getIsDevMode() && !isNext) GitIndexService._init();
+		if (isArticle && !GitIndexService._inited && !isNext && !isStatic && !isStaticCli) GitIndexService._init();
 
 		return <GitIndexContext.Provider value={{ index, overview }}>{children}</GitIndexContext.Provider>;
+	}
+
+	static getStatus() {
+		return useContext(GitIndexContext).index;
 	}
 
 	static getStatusByPath(path: Path | string) {
@@ -97,7 +103,6 @@ export default abstract class GitIndexService {
 	}
 
 	private static _init() {
-		if (!getIsDevMode()) return;
 		if (!GitIndexService._unsubscribe) {
 			GitIndexService._unsubscribe = FetchService.events.on(
 				"on-did-command",

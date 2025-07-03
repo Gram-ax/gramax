@@ -113,6 +113,23 @@ describe("RouterPathProvider", () => {
 				isPublic: false,
 			});
 		});
+		it("должен разбирать путь с хранилищем и портом", () => {
+			const result = RouterPathProvider.parsePath("localhost:8080/group/repo/branch/dir/file");
+
+			expect(result).toEqual({
+				sourceName: "localhost:8080",
+				group: "group",
+				repo: "repo",
+				refname: "branch",
+				catalogName: "dir",
+				language: undefined,
+				filePath: ["file"],
+				itemLogicPath: ["dir", "file"],
+				repNameItemLogicPath: ["repo", "file"],
+				hash: "",
+				isPublic: false,
+			});
+		});
 
 		it("должен разбирать путь с сепаратором", () => {
 			const result = RouterPathProvider.parsePath("source/group/repo/branch/-/file");

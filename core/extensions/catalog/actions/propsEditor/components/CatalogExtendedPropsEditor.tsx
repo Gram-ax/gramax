@@ -1,3 +1,4 @@
+import ModalErrorHandler from "@ext/errorHandlers/client/components/ModalErrorHandler";
 import { FormEvent, ReactElement, useMemo, useState } from "react";
 import Schema from "../model/CatalogExtendedEditProps.schema.json";
 import CatalogExtendedEditProps from "@ext/catalog/actions/propsEditor/model/CatalogExtendedEditProps.schema";
@@ -6,9 +7,8 @@ import FetchService from "@core-ui/ApiServices/FetchService";
 import CatalogPropsService from "@core-ui/ContextServices/CatalogProps";
 import t from "@ext/localization/locale/translate";
 import { Modal, ModalBody, ModalContent, ModalHeader, ModalTitle, ModalTrigger } from "@ui-kit/Modal";
-import Footer from "./ModalFooter";
 import { Button } from "@ui-kit/Button";
-import { Form, FormField } from "@ui-kit/Form";
+import { Form, FormField, FormFooter, FormStack } from "@ui-kit/Form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -58,45 +58,52 @@ const CatalogExtendedPropsEditor = ({ trigger }: { trigger: ReactElement }) => {
 		<Modal open={open} onOpenChange={setOpen}>
 			{trigger && <ModalTrigger asChild>{trigger}</ModalTrigger>}
 			<ModalContent>
-				<Form {...form}>
-					<form className="contents ui-kit" onSubmit={formSubmit}>
-						<ModalHeader>
-							<ModalTitle>{t("forms.catalog-extended-edit-props.name")}</ModalTitle>
-						</ModalHeader>
-						<ModalBody className="space-y-4">
-							<FormField
-								name="syntax"
-								title={t("forms.catalog-extended-edit-props.props.syntax.name")}
-								description={t("forms.catalog-extended-edit-props.props.syntax.description")}
-								control={({ field }) => (
-									<Select onValueChange={field.onChange} defaultValue={field.value || undefined}>
-										<SelectTrigger
-											data-qa={t("forms.catalog-extended-edit-props.props.syntax.name")}
-										>
-											<SelectValue
-												placeholder={t(
-													"forms.catalog-extended-edit-props.props.syntax.placeholder",
-												)}
-											/>
-										</SelectTrigger>
-										<SelectContent>
-											{syntaxes.map(({ value, children }) => (
-												<SelectItem
-													data-qa={"qa-clickable"}
-													key={value}
-													children={children}
-													value={value}
-												/>
-											))}
-										</SelectContent>
-									</Select>
-								)}
-								labelClassName="w-44"
-							/>
-						</ModalBody>
-						<Footer primaryButton={<Button hidden variant="primary" children={t("save")} />} />
-					</form>
-				</Form>
+				<ModalErrorHandler onError={() => {}} onClose={() => setOpen(false)}>
+					<Form asChild {...form}>
+						<form className="contents ui-kit" onSubmit={formSubmit}>
+							<ModalHeader>
+								<ModalTitle>{t("forms.catalog-extended-edit-props.name")}</ModalTitle>
+							</ModalHeader>
+							<ModalBody>
+								<FormStack>
+									<FormField
+										name="syntax"
+										title={t("forms.catalog-extended-edit-props.props.syntax.name")}
+										description={t("forms.catalog-extended-edit-props.props.syntax.description")}
+										control={({ field }) => (
+											<Select
+												onValueChange={field.onChange}
+												defaultValue={field.value || undefined}
+											>
+												<SelectTrigger
+													data-qa={t("forms.catalog-extended-edit-props.props.syntax.name")}
+												>
+													<SelectValue
+														placeholder={t(
+															"forms.catalog-extended-edit-props.props.syntax.placeholder",
+														)}
+													/>
+												</SelectTrigger>
+												<SelectContent>
+													{syntaxes.map(({ value, children }) => (
+														<SelectItem
+															data-qa={"qa-clickable"}
+															key={value}
+															children={children}
+															value={value}
+														/>
+													))}
+												</SelectContent>
+											</Select>
+										)}
+										labelClassName="w-44"
+									/>
+								</FormStack>
+							</ModalBody>
+							<FormFooter primaryButton={<Button hidden variant="primary" children={t("save")} />} />
+						</form>
+					</Form>
+				</ModalErrorHandler>
 			</ModalContent>
 		</Modal>
 	);

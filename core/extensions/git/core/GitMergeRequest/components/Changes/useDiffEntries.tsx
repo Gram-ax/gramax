@@ -1,42 +1,33 @@
-import type { MergeRequestDiffTree } from "@app/commands/mergeRequests/getDiffTree";
 import FetchService from "@core-ui/ApiServices/FetchService";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
+import GitIndexService from "@core-ui/ContextServices/GitIndexService";
 import BranchUpdaterService from "@ext/git/actions/Branch/BranchUpdaterService/logic/BranchUpdaterService";
 import OnBranchUpdateCaller from "@ext/git/actions/Branch/BranchUpdaterService/model/OnBranchUpdateCaller";
 import GitBranchData from "@ext/git/core/GitBranch/model/GitBranchData";
+import { DiffTree } from "@ext/git/core/GitDiffItemCreator/RevisionDiffTreePresenter";
 import { DiffEntriesLoadStage } from "@ext/git/core/GitMergeRequest/components/Changes/DiffEntries";
+import { MergeRequest } from "@ext/git/core/GitMergeRequest/model/MergeRequest";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 export const useDiffEntries = () => {
 	const apiUrlCreator = ApiUrlCreatorService.value;
 
-	const [changes, setChanges] = useState<MergeRequestDiffTree>(null);
+	const [changes, setChanges] = useState<DiffTree>(null);
 	const [stage, setLoadStage] = useState(DiffEntriesLoadStage.NotLoaded);
-	const prevRefs = useRef<{ sourceRef: string; targetRef: string }>({
-		sourceRef: null,
-		targetRef: null,
-	});
+	const gitStatus = GitIndexService.getStatus();
+	const mergeRequest = useRef<MergeRequest>(null);
 
 	const requestChanges = useCallback(
-		(sourceRef: string, targetRef: string) => {
+		(targetRef: string) => {
 			return (async () => {
-				if (prevRefs.current.sourceRef && prevRefs.current.targetRef) {
-					const cleanupUrl = apiUrlCreator.cleanupReferencesDiff(
-						prevRefs.current.sourceRef,
-						prevRefs.current.targetRef,
-					);
-					await FetchService.fetch(cleanupUrl);
-				}
-				prevRefs.current = { sourceRef, targetRef };
 				setLoadStage(DiffEntriesLoadStage.Loading);
 				try {
-					const url = apiUrlCreator.mergeRequestDiffTree(sourceRef, targetRef);
-					const res = await FetchService.fetch(url);
+					const url = apiUrlCreator.getVersionControlDiffTreeUrl({ reference: targetRef });
+					const res = await FetchService.fetch<DiffTree>(url);
 					if (res.ok) {
 						const data = await res.json();
 						setChanges(data);
 						setLoadStage(DiffEntriesLoadStage.Ready);
-						await FetchService.fetch(apiUrlCreator.mountReferencesDiff(sourceRef, targetRef));
 					} else {
 						setLoadStage(DiffEntriesLoadStage.NotLoaded);
 					}
@@ -49,17 +40,26 @@ export const useDiffEntries = () => {
 	);
 
 	useEffect(() => {
-		const handler = (branch: GitBranchData, reason: OnBranchUpdateCaller) =>
-			branch.mergeRequest &&
-			(reason === OnBranchUpdateCaller.Init ||
-				reason === OnBranchUpdateCaller.Checkout ||
-				reason === OnBranchUpdateCaller.Publish) &&
-			(stage === DiffEntriesLoadStage.Ready || stage === DiffEntriesLoadStage.Loading) &&
-			requestChanges(branch.mergeRequest.sourceBranchRef, branch.mergeRequest.targetBranchRef);
-
+		const handler = (branch: GitBranchData, reason: OnBranchUpdateCaller) => {
+			if (
+				branch.mergeRequest &&
+				(reason === OnBranchUpdateCaller.Init ||
+					reason === OnBranchUpdateCaller.Checkout ||
+					reason === OnBranchUpdateCaller.Publish) &&
+				(stage === DiffEntriesLoadStage.Ready || stage === DiffEntriesLoadStage.Loading)
+			) {
+				mergeRequest.current = branch.mergeRequest;
+				requestChanges(branch.mergeRequest.targetBranchRef);
+			}
+		};
 		BranchUpdaterService.addListener(handler);
 		return () => BranchUpdaterService.removeListener(handler);
 	}, [requestChanges, stage]);
+
+	useEffect(() => {
+		if (!mergeRequest.current) return;
+		requestChanges(mergeRequest.current.targetBranchRef);
+	}, [gitStatus, requestChanges]);
 
 	useEffect(() => {
 		const handler = async () => {
@@ -70,13 +70,14 @@ export const useDiffEntries = () => {
 				mr = await res.json();
 			}
 			if (!mr) return;
-			await requestChanges(mr.sourceBranchRef, mr.targetBranchRef);
+			mergeRequest.current = mr;
+			await requestChanges(mr.targetBranchRef);
 		};
 		void handler();
 	}, []);
 
 	return {
-		changes: changes?.diffTree,
+		changes,
 		stage,
 	};
 };

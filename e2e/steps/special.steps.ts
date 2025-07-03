@@ -5,31 +5,28 @@ import E2EWorld from "../models/World";
 import config from "../setup/config";
 import { checkForErrorModal, sleep } from "./utils/utils";
 
-Given("отменяем все изменения", { timeout: config.timeouts.long }, async function (this: E2EWorld) {
+When("отменяем все изменения", { timeout: config.timeouts.long }, async function (this: E2EWorld) {
 	const search = this.page().search().reset();
 	await search.scope("левую панель");
 	await search.scope("нижнюю панель");
 	await search.icon("облачка").click();
 
-	await search.reset().find(".form-layout");
-	await this.page().waitForLoad();
+	const locator = await search.find('[data-qa="qa-no-changes"]');
 
-	const close = search.clickable("Понятно");
-
-	if (await close.isVisible()) {
-		await search.clickable("Понятно").click();
+	if (await locator.isVisible()) {
+		await sleep(2000);
+		await search.icon("облачка").click();
 	} else {
-		await search.scope("публикация");
-		await search.scope("левую панель");
-		await search.scope("Выбрать все");
+		await search.clickable("выбрать все").hover();
 		await search.icon("отмена всех изменений").click();
+		await sleep(2000);
+		// temp
+		await this.page().inner().reload();
 	}
-
 	search.reset();
-	await this.page().waitForLoad();
 });
 
-Then("решаем конфликт", { timeout: config.timeouts.long }, async function (this: E2EWorld) {
+When("решаем конфликт", { timeout: config.timeouts.long }, async function (this: E2EWorld) {
 	await sleep(1000);
 	await this.page().keyboard().press("Control+A");
 	await this.page().keyboard().type(`---\norder: 1\ntitle: Тест\n---\n\nM\n`);
@@ -71,15 +68,17 @@ Then(
 			total++;
 			try {
 				const href = await next.getAttribute("href", { timeout: 500 });
-				console.log(this.page().url(), "->", href);
+				const currentUrl = this.page().url();
+				const hrefPath = href.startsWith(config.url) ? href.slice(config.url.length) : href;
+				console.log(currentUrl, "->", hrefPath);
 
-				if (this.page().url().endsWith(href)) {
+				if (currentUrl.endsWith(hrefPath)) {
 					await this.page().inner().reload();
 					continue;
 				}
 
 				await next.click({ timeout: 500 });
-				await this.page().waitForUrl(href);
+				await this.page().waitForUrl(hrefPath);
 			} catch {
 				break;
 			}
@@ -165,7 +164,7 @@ When("вставляем html", async function (this: E2EWorld, text: string) {
 	await this.page().keyboard().press("Control+V");
 });
 
-Then("вставляем текст", async function (this: E2EWorld, text: string) {
+When("вставляем текст", async function (this: E2EWorld, text: string) {
 	await this.page()
 		.inner()
 		.evaluate(async (text) => {
@@ -176,7 +175,7 @@ Then("вставляем текст", async function (this: E2EWorld, text: stri
 	await this.page().keyboard().press("Control+V");
 });
 
-Then("вставляем изображение", async function (this: E2EWorld) {
+When("вставляем изображение", async function (this: E2EWorld) {
 	const screenshotBuffer = await page.screenshot();
 	const screenshotBase64 = screenshotBuffer.toString("base64");
 

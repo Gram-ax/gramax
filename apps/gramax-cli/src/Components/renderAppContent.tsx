@@ -1,10 +1,11 @@
 import createEmotionCache from "@emotion/cache";
 import { CacheProvider } from "@emotion/react";
-import { StaticRouter } from "react-router-dom/server";
+import { Router } from "wouter";
+
 import ReactDOMServer from "react-dom/server";
 import { ArticlePageData } from "@core/SitePresenter/SitePresenter";
 import PageDataContext from "@core/Context/PageDataContext";
-import App from "./App";
+import Gramax from "./../../../browser/src/Gramax";
 
 const convertEmotionStylesToString = (styles: Record<string, string>): string => {
 	if (typeof window === "undefined") return "";
@@ -23,16 +24,20 @@ export const renderAppContent = (data: ArticlePageData, context: PageDataContext
 	});
 	const body = ReactDOMServer.renderToString(
 		<CacheProvider value={emotionCache}>
-			<StaticRouter location={"/"}>
-				<App
+			<Router ssrPath={data.articleProps.logicPath} base="./">
+				<Gramax
 					data={{
-						articleContentEdit: "",
-						...data,
+						data: {
+							articleContentEdit: "",
+							...data,
+						},
+						context,
+						path: data.articleProps.logicPath,
 					}}
-					context={context}
+					setData={() => {}}
 					platform="cli"
 				/>
-			</StaticRouter>
+			</Router>
 		</CacheProvider>,
 	);
 	return {

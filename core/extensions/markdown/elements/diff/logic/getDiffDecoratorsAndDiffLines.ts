@@ -1,19 +1,33 @@
 import AstDiffTransformer from "@ext/markdown/elements/diff/logic/astTransformer/AstDiffTransofrmer";
 import getAddedAndDeletedPartIdxes from "@ext/markdown/elements/diff/logic/getAddedAndDeletedPartIdxes";
+import LevenshteinStringsDiff, {
+	LevenshteinStringsDiffConfig,
+} from "@ext/markdown/elements/diff/logic/levenshteinStrings/LevenshteinStringsDiff";
 import { DiffLine, Pos } from "@ext/markdown/elements/diff/logic/model/DiffLine";
-import StringsDiff, { StringsDiffConfig } from "@ext/markdown/elements/diff/logic/stringsDiff/StringsDiff";
 import { Decoration } from "@tiptap/pm/view";
 
-const getDiffDecoratorsAndDiffLines = (astDiffTransformer: AstDiffTransformer, config?: StringsDiffConfig) => {
+const getDiffDecoratorsAndDiffLines = (
+	astDiffTransformer: AstDiffTransformer,
+	config?: LevenshteinStringsDiffConfig,
+) => {
 	const addedDecorations: Decoration[] = [];
 	const removedDecorations: Decoration[] = [];
 	const diffLines: DiffLine[] = [];
 
 	const { oldStrings, newStrings } = astDiffTransformer.getStrings();
 
-	const diff = new StringsDiff(oldStrings, newStrings, config).getDiff();
+	const diff = new LevenshteinStringsDiff(oldStrings, newStrings, config).getDiff();
 
 	diff.addedIdxes.forEach((idx) => {
+		if (newStrings[idx] === "") {
+			const addedBlockStartAndEnd = astDiffTransformer.getAstPos("new", idx, 0);
+			diffLines.push({
+				type: "added",
+				pos: { from: addedBlockStartAndEnd, to: addedBlockStartAndEnd },
+			});
+			return;
+		}
+
 		const addedBlockStart = astDiffTransformer.getAstPos("new", idx, 0);
 		const addedBlockEnd = astDiffTransformer.getAstPos("new", idx, newStrings[idx].length - 1);
 
@@ -24,6 +38,15 @@ const getDiffDecoratorsAndDiffLines = (astDiffTransformer: AstDiffTransformer, c
 	});
 
 	diff.deletedIdxes.forEach((idx) => {
+		if (oldStrings[idx] === "") {
+			const deletedBlockStartAndEnd = astDiffTransformer.getAstPos("old", idx, 0);
+			diffLines.push({
+				type: "deleted",
+				pos: { from: deletedBlockStartAndEnd, to: deletedBlockStartAndEnd },
+			});
+			return;
+		}
+
 		const deletedBlockStart = astDiffTransformer.getAstPos("old", idx, 0);
 		const deletedBlockEnd = astDiffTransformer.getAstPos("old", idx, oldStrings[idx].length - 1);
 

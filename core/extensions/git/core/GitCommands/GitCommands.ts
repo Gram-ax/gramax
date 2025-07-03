@@ -1,3 +1,5 @@
+import { getExecutingEnvironment } from "@app/resolveModule/env";
+import { createEventEmitter, type Event } from "@core/Event/EventEmitter";
 import fixConflictLibgit2 from "@ext/git/actions/MergeConflictHandler/logic/FixConflictLibgit2";
 import LibGit2Commands from "@ext/git/core/GitCommands/LibGit2Commands";
 import type {
@@ -9,6 +11,7 @@ import getGitError from "@ext/git/core/GitCommands/errors/logic/getGitError";
 import { Caller } from "@ext/git/core/GitCommands/errors/model/Caller";
 import GitErrorCode from "@ext/git/core/GitCommands/errors/model/GitErrorCode";
 import getUrlFromGitStorageData from "@ext/git/core/GitStorage/utils/getUrlFromGitStorageData";
+import GitVersionData from "@ext/git/core/model/GitVersionData";
 import t from "@ext/localization/locale/translate";
 import PersistentLogger from "@ext/loggers/PersistentLogger";
 import assert from "assert";
@@ -39,8 +42,11 @@ import GitCommandsModel, {
 	type TreeReadScope,
 } from "./model/GitCommandsModel";
 
+export type GitCommandsEvents = Event<"fetch", { commands: GitCommands; force: boolean }>;
+
 export class GitCommands {
 	private _impl: GitCommandsModel;
+	private _events = createEventEmitter<GitCommandsEvents>();
 
 	constructor(private _fp: FileProvider, private _repoPath: Path) {
 		this._impl = new LibGit2Commands(this._fp.rootPath.join(_repoPath));
@@ -48,6 +54,10 @@ export class GitCommands {
 
 	get repoPath() {
 		return this._repoPath;
+	}
+
+	get events() {
+		return this._events;
 	}
 
 	inner() {
@@ -359,6 +369,7 @@ export class GitCommands {
 		return await this._logWrapper("fetch", "Fetching", async () => {
 			try {
 				await this._impl.fetch(data, force);
+				await this._events.emit("fetch", { commands: this, force });
 			} catch (e) {
 				const origin = await this.getRemoteUrl();
 				throw getGitError(e, { repositoryPath: this._repoPath.value, remoteUrl: origin }, "fetch");
@@ -509,6 +520,33 @@ export class GitCommands {
 	async diff(opts: DiffConfig): Promise<DiffTree2TreeInfo> {
 		return await this._logWrapper("diff", `Finding diffs for opts: '${JSON.stringify(opts)}'`, () =>
 			this._impl.diff(opts),
+		);
+	}
+
+	async haveConflictsWithBranch(branch: GitBranch | string, data: SourceData): Promise<boolean> {
+		return await this._logWrapper(
+			"haveConflicts",
+			`Checking if there are conflicts for ref: '${branch.toString()}'`,
+			async () => {
+				// temp implementation
+				const headBefore = await this.getHeadCommit();
+				const isBrowser = getExecutingEnvironment() === "browser";
+				if (!isBrowser) await this.add();
+
+				assert((await this.status("index")).length == 0, "Can't check conflicts if there are local changes");
+
+				const haveConflicts = (await this.merge(data, { theirs: branch.toString() })).length > 0;
+				await this.hardReset(headBefore);
+				return haveConflicts;
+			},
+		);
+	}
+
+	async getCommitInfo(oid: GitVersion, opts: { depth: number; simplify: boolean }): Promise<GitVersionData[]> {
+		return await this._logWrapper(
+			"getCommitInfo",
+			`Getting commit info for oid: '${oid.toString()}', depth: ${opts.depth}, simplify: ${opts.simplify}`,
+			() => this._impl.getCommitInfo(oid.toString(), opts),
 		);
 	}
 

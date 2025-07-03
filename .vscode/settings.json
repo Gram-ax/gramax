@@ -8,6 +8,16 @@
 	// 	"BUGSNAG_API_KEY": ""
 	// },
 
+	// android
+
+	// "rust-analyzer.cargo.target": "aarch64-linux-android",
+	// "rust-analyzer.check.allTargets": true,
+	// "rust-analyzer.check.targets": ["aarch64-linux-android"],
+	// "rust-analyzer.cargo.extraEnv": {
+	// 	"BUGSNAG_API_KEY": "",
+	// 	"PKG_CONFIG_ALLOW_CROSS": "1"
+	// },
+
 	// macos
 
 	"rust-analyzer.cargo.target": "aarch64-apple-darwin",
@@ -21,16 +31,14 @@
 
 	// "rust-analyzer.cargo.target": "x86_64-pc-windows-msvc",
 	// "rust-analyzer.check.allTargets": false,
-	// "rust-analyzer.cargo.target": "x86_64-pc-windows-msvc",
 	// "rust-analyzer.check.targets": ["x86_64-pc-windows-msvc"],
 	// "rust-analyzer.cargo.extraEnv": {
 	// 	"BUGSNAG_API_KEY": "",
 	// 	"TARGET_CC": "clang"
 	// },
-
 	// "rust-analyzer.server.extraEnv": {
-	// 	"CFLAGS": "-I$HOME/.xwin/splat/crt/include/ -I$HOME/.xwin/splat/sdk/include/um -I$HOME/.xwin/splat/sdk/include/ucrt -I$HOME/.xwin/splat/sdk/include/shared -I$HOME/.xwin/splat/sdk/include/winrt",
-	// 	"CARGO": "$HOME/.cargo/bin/cargo-xwin"
+	// 	"CFLAGS": "-I${env:HOME}/.xwin/splat/crt/include/ -I${env:HOME}/.xwin/splat/sdk/include/um -I${env:HOME}/.xwin/splat/sdk/include/ucrt -I${env:HOME}/.xwin/splat/sdk/include/shared -I${env:HOME}/.xwin/splat/sdk/include/winrt",
+	// 	"CARGO": "${env:HOME}/.cargo/bin/cargo-xwin"
 	// },
 
 	"editor.tabCompletion": "on",

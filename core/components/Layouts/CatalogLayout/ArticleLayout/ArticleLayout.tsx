@@ -11,6 +11,7 @@ export interface ArticleLayoutProps {
 	isRightNavPin: boolean;
 	isRightNavOpen: boolean;
 	useArticleDefaultStyles: boolean;
+	additionalStyles?: string;
 	onArticleMouseEnter?: () => void;
 	onArticleMouseLeave?: () => void;
 	onRightNavTransitionEnd?: () => void;
@@ -181,4 +182,6 @@ export default styled(ArticleLayout)`
 		}
 	}
 	`}
+
+	${(p) => p.additionalStyles ?? ""}
 `;

@@ -9,6 +9,8 @@ const BigCard = ({ hideLogo, link, className }: { hideLogo?: boolean; link: Cata
 	const { isStatic } = usePlatform();
 	const logo = useGetCatalogTitleLogo(link.name, hideLogo);
 
+	const pathname = link.lastVisited || link.pathname;
+
 	const card = (
 		<div className="catalog-background">
 			<div className="catalog">
@@ -28,12 +30,13 @@ const BigCard = ({ hideLogo, link, className }: { hideLogo?: boolean; link: Cata
 
 	if (isStatic)
 		return (
-			<a data-catalog-card={name} className={className} href={link.pathname}>
+			<a data-catalog-card={name} className={className} href={pathname}>
 				{card}
 			</a>
 		);
+
 	return (
-		<Link data-catalog-card={name} className={className} href={Url.from(link)}>
+		<Link data-catalog-card={name} className={className} href={Url.from({ pathname })}>
 			{card}
 		</Link>
 	);

@@ -1,9 +1,9 @@
-import DateUtils from "@core-ui/utils/dateUtils";
-import Tooltip from "./Tooltip";
+import DateUtils, { DateType } from "@core-ui/utils/dateUtils";
 import { Props } from "tippy.js";
+import Tooltip from "./Tooltip";
 
 interface DateProps {
-	date: string;
+	date: DateType;
 	tooltipDelay?: Props["delay"];
 	tooltipAppendTo?: Props["appendTo"];
 	className?: string;

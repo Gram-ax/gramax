@@ -28,8 +28,9 @@ const ShareAction = ({ path, isArticle }: ShareActionProps) => {
 	const router = useRouter();
 
 	const shareUrl = useMemo(() => {
-		const newPath = path || router.path;
-		return `${getClientDomain()}/${newPath}`;
+		let newPath = path || router.path;
+		newPath = newPath.startsWith("/") ? newPath : `/${newPath}`;
+		return `${getClientDomain()}${newPath}`;
 	}, [path]);
 
 	const onClick = useCallback(

@@ -4,8 +4,185 @@
 		"text": "В визуальном редакторе Gramax можно добавить таблицу в несколько кликов. Gramax работает со стандартными Markdown-таблицами и добавляет расширенные возможности. Пример таблицы:"
 	},
 	{
-		"type": "text",
-		"text": "Наименование Тип данных Обязательное поле Комментарий\nid integer Да Id отсутствия\nabsenceReason nvarchar(500) Да Причина отсутствия\nstatusId nvarchar(50) Нет Ссылка на статус"
+		"type": "table",
+		"rows": [
+			{
+				"data": [
+					{
+						"items": [
+							{
+								"type": "text",
+								"text": "Наименование"
+							}
+						],
+						"colspan": 1,
+						"rowspan": 1
+					},
+					{
+						"items": [
+							{
+								"type": "text",
+								"text": "Тип данных"
+							}
+						],
+						"colspan": 1,
+						"rowspan": 1
+					},
+					{
+						"items": [
+							{
+								"type": "text",
+								"text": "Обязательное поле"
+							}
+						],
+						"colspan": 1,
+						"rowspan": 1
+					},
+					{
+						"items": [
+							{
+								"type": "text",
+								"text": "Комментарий"
+							}
+						],
+						"colspan": 1,
+						"rowspan": 1
+					}
+				]
+			},
+			{
+				"data": [
+					{
+						"items": [
+							{
+								"type": "text",
+								"text": "id"
+							}
+						],
+						"colspan": 1,
+						"rowspan": 1
+					},
+					{
+						"items": [
+							{
+								"type": "text",
+								"text": "integer"
+							}
+						],
+						"colspan": 1,
+						"rowspan": 1
+					},
+					{
+						"items": [
+							{
+								"type": "text",
+								"text": "Да"
+							}
+						],
+						"colspan": 1,
+						"rowspan": 1
+					},
+					{
+						"items": [
+							{
+								"type": "text",
+								"text": "Id отсутствия"
+							}
+						],
+						"colspan": 1,
+						"rowspan": 1
+					}
+				]
+			},
+			{
+				"data": [
+					{
+						"items": [
+							{
+								"type": "text",
+								"text": "absenceReason"
+							}
+						],
+						"colspan": 1,
+						"rowspan": 1
+					},
+					{
+						"items": [
+							{
+								"type": "text",
+								"text": "nvarchar(500)"
+							}
+						],
+						"colspan": 1,
+						"rowspan": 1
+					},
+					{
+						"items": [
+							{
+								"type": "text",
+								"text": "Да"
+							}
+						],
+						"colspan": 1,
+						"rowspan": 1
+					},
+					{
+						"items": [
+							{
+								"type": "text",
+								"text": "Причина отсутствия"
+							}
+						],
+						"colspan": 1,
+						"rowspan": 1
+					}
+				]
+			},
+			{
+				"data": [
+					{
+						"items": [
+							{
+								"type": "text",
+								"text": "statusId"
+							}
+						],
+						"colspan": 1,
+						"rowspan": 1
+					},
+					{
+						"items": [
+							{
+								"type": "text",
+								"text": "nvarchar(50)"
+							}
+						],
+						"colspan": 1,
+						"rowspan": 1
+					},
+					{
+						"items": [
+							{
+								"type": "text",
+								"text": "Нет"
+							}
+						],
+						"colspan": 1,
+						"rowspan": 1
+					},
+					{
+						"items": [
+							{
+								"type": "text",
+								"text": "Ссылка на статус"
+							}
+						],
+						"colspan": 1,
+						"rowspan": 1
+					}
+				]
+			}
+		]
 	},
 	{
 		"type": "text",

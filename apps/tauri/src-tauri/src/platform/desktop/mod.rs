@@ -3,19 +3,21 @@ use tauri::*;
 
 use crate::error::ShowError;
 
-use crate::AppHandleExt;
-use crate::ALLOWED_DOMAINS;
+use crate::shared::handle_external_url;
+use crate::shared::should_allow_navigation;
+use crate::shared::AppHandleExt;
+use crate::shared::ALLOWED_DOMAINS;
 
 pub mod commands;
 pub mod download_callback;
 pub mod init;
 pub mod menu;
 pub mod save_windows;
+mod win;
 mod updater;
 
 #[cfg(target_os = "macos")]
 mod custom_protocol;
-mod migrate_settings;
 
 #[cfg(target_family = "unix")]
 pub use menu::MenuBuilder;
@@ -24,17 +26,16 @@ pub use updater::UpdaterBuilder;
 use save_windows::SaveWindowsExt;
 
 pub fn on_navigation(url: &url::Url) -> bool {
-  if url.scheme() == "blob" || url.scheme() == "tauri" || url.domain().is_some_and(|domain| ALLOWED_DOMAINS.contains(&domain)) {
+  if should_allow_navigation(url, &ALLOWED_DOMAINS) {
     return true;
   }
 
-  _ = open::that(url.as_str()).or_show_with_message(&t!("etc.error.open-url", url = url.as_str()));
-  false
+  handle_external_url(url)
 }
 
 #[cfg(target_os = "macos")]
 pub fn on_run_event<R: Runtime>(app: &AppHandle<R>, ev: RunEvent) {
-  use crate::MainWindowBuilder;
+  use crate::shared::MainWindowBuilder;
 
   match ev {
     RunEvent::Opened { urls } => custom_protocol::on_open_asked(app, urls),

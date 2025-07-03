@@ -5,6 +5,7 @@ import FileStructure from "@core/FileStructue/FileStructure";
 import GitCommands from "@ext/git/core/GitCommands/GitCommands";
 import { TreeReadScope } from "@ext/git/core/GitCommands/model/GitCommandsModel";
 import Repository from "@ext/git/core/Repository/Repository";
+import convertScopeToCommitScope from "@ext/git/core/ScopedCatalogs/convertScopeToCommitScope";
 import GitTreeFileProvider from "@ext/versioning/GitTreeFileProvider";
 
 export default class ScopedCatalogs {
@@ -13,36 +14,24 @@ export default class ScopedCatalogs {
 
 	constructor(private _repo: Repository) {}
 
-	async getScopedCatalog(catalogPath: Path, fs: FileStructure, scope: TreeReadScope, unmountAfterInit: boolean) {
-		const scopedPath = GitTreeFileProvider.scoped(catalogPath, scope);
+	async getScopedCatalog(catalogPath: Path, fs: FileStructure, scope: TreeReadScope) {
+		const commitScope = await convertScopeToCommitScope(scope, this._repo.gvc);
+		const scopedPath = GitTreeFileProvider.scoped(catalogPath, commitScope);
 		if (!this._scopedCatalogs.has(scopedPath.value)) {
 			const gitTreeFileProvider = this._getGitTreeFileProvider(catalogPath, fs.fp);
 			fs.fp.mount(scopedPath, gitTreeFileProvider);
 			const scopedCatalog = await fs.getCatalogByPath(scopedPath, false);
 			scopedCatalog.setRepository(this._repo);
-			if (unmountAfterInit) fs.fp.unmount(scopedPath);
 
 			this._scopedCatalogs.set(scopedPath.value, scopedCatalog);
 		}
 		return this._scopedCatalogs.get(scopedPath.value);
 	}
 
-	deleteScopedCatalog(catalogPath: Path) {
-		this._scopedCatalogs.delete(catalogPath.value);
-	}
-
-	mountScopes(catalogPath: Path, fp: MountFileProvider, ...scopes: TreeReadScope[]) {
-		scopes.forEach((scope) => {
-			const scopedPath = GitTreeFileProvider.scoped(catalogPath, scope);
-			fp.mount(scopedPath, this._getGitTreeFileProvider(catalogPath, fp));
-		});
-	}
-
-	unmountScopes(catalogPath: Path, fp: MountFileProvider, ...scopes: TreeReadScope[]) {
-		scopes.forEach((scope) => {
-			const scopedPath = GitTreeFileProvider.scoped(catalogPath, scope);
-			fp.unmount(scopedPath);
-		});
+	invalidateCache(fs: FileStructure) {
+		this._scopedCatalogs.keys().forEach((scopedPath) => fs.fp.unmount(new Path(scopedPath)));
+		this._scopedCatalogs.clear();
+		this._gitTreeFps.clear();
 	}
 
 	private _getGitTreeFileProvider(catalogPath: Path, fp: MountFileProvider): GitTreeFileProvider {

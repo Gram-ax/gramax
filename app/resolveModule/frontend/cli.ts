@@ -1,7 +1,7 @@
 export const getCliModules = async (): Promise<any> => {
 	const [{ default: Link }, { default: StaticRouter }, { default: useUrlImage }] = await Promise.all([
-		import("../../../apps/gramax-cli/src/Components/Atoms/Link"),
-		import("../../../apps/gramax-cli/src/Components/Api/StaticRouter"),
+		import("../../../apps/browser/src/components/Atoms/Link"),
+		import("../../../apps/gramax-cli/src/logic/api/StaticRouter"),
 		import("../../../core/components/Atoms/Image/useUrlImage"),
 	]);
 
@@ -19,6 +19,7 @@ export const getCliModules = async (): Promise<any> => {
 		FileInput: () => null,
 		DiffFileInput: () => null,
 		httpFetch: () => undefined,
+		setBadge: () => undefined,
 		openInExplorer: () => undefined,
 		openWindowWithUrl: () => undefined,
 	};

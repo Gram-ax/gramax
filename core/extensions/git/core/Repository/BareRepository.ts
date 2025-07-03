@@ -25,13 +25,17 @@ export default class BareRepository extends Repository {
 	}
 
 	async sync(opts: SyncOptions): Promise<GitMergeResultContent[]> {
-		const beforePullVersion = await this.gvc.getCurrentVersion();
+		const prevOid = await this.gvc.getCurrentVersion();
 		await this._storage.fetch(opts.data);
 		await this.checkoutIfCurrentBranchNotExist(opts.data);
 		await this._storage.fetch(opts.data, true);
 		this.gvc.update();
-		const afterPullVersion = await this.gvc.getCurrentVersion();
-		await this.gvc.checkChanges(beforePullVersion, afterPullVersion);
+		const oid = await this.gvc.getCurrentVersion();
+		await this._events.emit("sync", {
+			repo: this,
+			isVersionChanged: !prevOid.compare(oid),
+		});
+		await this.gvc.checkChanges(prevOid, oid);
 		return [];
 	}
 
@@ -44,6 +48,10 @@ export default class BareRepository extends Repository {
 		await this.gvc.setHead(opts.branch.toString());
 		this.gvc.update();
 		const newVersion = await this.gvc.getCurrentVersion();
+		await this._events.emit("checkout", {
+			repo: this,
+			branch: opts.branch,
+		});
 		await this.gvc.checkChanges(prev, newVersion);
 		return [];
 	}

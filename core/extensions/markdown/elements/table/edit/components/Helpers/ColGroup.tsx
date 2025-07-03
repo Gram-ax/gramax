@@ -1,63 +1,117 @@
 import ArticleRefService from "@core-ui/ContextServices/ArticleRef";
-import useWatch from "@core-ui/hooks/useWatch";
 import { Node } from "@tiptap/pm/model";
-import { memo, useEffect, useState } from "react";
+import { memo, RefObject, useLayoutEffect, useMemo, useState } from "react";
 
-const ColGroup = ({ content, parentElement }: { content: Node; parentElement: HTMLElement }) => {
+interface ColGroupProps {
+	content?: Node;
+	parentElement?: HTMLElement;
+	tableRef?: RefObject<HTMLTableElement>;
+}
+
+interface ColInfo {
+	colspan: number;
+	colwidth?: (number | string)[];
+}
+
+const ColGroup = ({ content, parentElement, tableRef }: ColGroupProps) => {
 	const articleRef = ArticleRefService.value;
-	const maxWidth =
-		parentElement?.clientWidth - 36 || articleRef.current?.firstElementChild?.firstElementChild?.clientWidth - 36;
+	const [colInfo, setColInfo] = useState<ColInfo[]>([]);
+	const [cellWidth, setCellWidth] = useState<number>(null);
 
-	const getCellWidth = (): number => {
-		let colspanCount = 0;
+	const getColInfoFromNode = (): ColInfo[] => {
+		if (!content) return [];
+
+		const cols = [];
 		for (let i = 0; i < content.childCount; i++) {
 			const cell = content.child(i);
-			if (cell.attrs.colwidth && cell.attrs.colwidth[0]) return null;
-			colspanCount += cell.attrs.colspan;
+			cols.push({
+				colspan: cell.attrs.colspan || 1,
+				colwidth: cell.attrs.colwidth || null,
+			});
 		}
 
-		return maxWidth / colspanCount;
+		return cols;
 	};
 
-	const [cellWidth, setCellWidth] = useState<number>(getCellWidth());
+	const getColInfoFromTable = (): ColInfo[] => {
+		if (!tableRef?.current) return [];
 
-	useEffect(() => {
-		const onResize = () => {
-			const newCellWidth = getCellWidth();
-			if (newCellWidth !== cellWidth) setCellWidth(newCellWidth);
-		};
+		const firstRow = tableRef.current.querySelector("tr");
+		if (!firstRow) return [];
+
+		const cells = Array.from(firstRow.children) as HTMLElement[];
+		return cells.map((cell) => {
+			const colwidth = cell.getAttribute("colwidth") || cell.getAttribute("data-colwidth");
+			if (!colwidth) return { colspan: 1, colwidth: null };
+
+			const colwidths = colwidth.split(",").map((w) => w.trim());
+
+			return {
+				colspan: parseInt(cell.getAttribute("colspan") || "1"),
+				colwidth: colwidths,
+			};
+		});
+	};
+
+	const calculateCellWidth = (cols: ColInfo[]): number => {
+		if (cols.length === 0) return null;
+
+		if (cols.some((col) => col.colwidth && col.colwidth[0])) return null;
+
+		const maxWidth =
+			parentElement?.clientWidth - 36 ||
+			articleRef?.current?.firstElementChild?.firstElementChild?.clientWidth - 36;
+
+		if (!maxWidth) return null;
+
+		const totalColspan = cols.reduce((sum, col) => sum + col.colspan, 0);
+		return maxWidth / totalColspan;
+	};
+
+	const updateColInfo = () => {
+		const newColInfo = content ? getColInfoFromNode() : getColInfoFromTable();
+		const newCellWidth = calculateCellWidth(newColInfo);
+
+		setColInfo(newColInfo);
+		setCellWidth(newCellWidth);
+	};
+
+	useLayoutEffect(() => {
+		updateColInfo();
+		const onResize = () => updateColInfo();
 
 		window.addEventListener("resize", onResize);
 		return () => {
 			window.removeEventListener("resize", onResize);
 		};
-	}, [content, parentElement]);
+	}, [content, parentElement, tableRef?.current, articleRef?.current]);
 
-	useWatch(() => {
-		const newCellWidth = getCellWidth();
-		if (newCellWidth !== cellWidth) setCellWidth(newCellWidth);
-	}, [content, parentElement]);
+	const generatedCols = useMemo(() => {
+		const cols = [];
 
-	return (
-		<colgroup>
-			{Array.from({ length: content.childCount }, (_, i) => {
-				const columnAttrs = content.child(i).attrs;
+		colInfo.forEach((col, i) => {
+			for (let j = 0; j < col.colspan; j++) {
+				const colwidth = col.colwidth?.[j];
+				const width = cellWidth || colwidth;
 
-				return Array.from({ length: columnAttrs.colspan }, (_, j) => {
-					const colwidth = columnAttrs.colwidth?.[j];
-					return (
+				if (width) {
+					cols.push(
 						<col
 							key={`${i}-${j}`}
 							style={{
-								minWidth: `${cellWidth ? cellWidth : colwidth}px`,
-								width: `${cellWidth ? cellWidth : colwidth}px`,
+								minWidth: `${typeof width === "number" ? width + "px" : width}`,
+								width: `${typeof width === "number" ? width + "px" : width}`,
 							}}
-						/>
+						/>,
 					);
-				});
-			})}
-		</colgroup>
-	);
+				} else cols.push(<col key={`${i}-${j}`} />);
+			}
+		});
+
+		return cols;
+	}, [colInfo, cellWidth]);
+
+	return <colgroup>{generatedCols}</colgroup>;
 };
 
 export default memo(ColGroup);

@@ -2,18 +2,20 @@ import Icon from "@components/Atoms/Icon";
 import PopupMenuLayout from "@components/Layouts/PopupMenuLayout";
 import { classNames } from "@components/libs/classNames";
 import ButtonLink from "@components/Molecules/ButtonLink";
+import TableNodeSheet from "@ext/markdown/elements/table/edit/logic/TableNodeSheet";
 import styled from "@emotion/styled";
 import t from "@ext/localization/locale/translate";
 import AggregationPopup from "@ext/markdown/elements/table/edit/components/Helpers/AggregationPopup";
 import {
+	addRowDecoration,
+	addColumnDecoration,
 	getFirstTdPosition,
 	getRowPosition,
-	getTableColumnCellPositions,
 } from "@ext/markdown/elements/table/edit/logic/utils";
-import { AlignEnumTypes, HoverEnumTypes, TableHeaderTypes } from "@ext/markdown/elements/table/edit/model/tableTypes";
+import { AlignEnumTypes, TableHeaderTypes } from "@ext/markdown/elements/table/edit/model/tableTypes";
 import { Editor } from "@tiptap/core";
 import { Node } from "@tiptap/pm/model";
-import { MouseEvent, useMemo, useRef } from "react";
+import { memo, useMemo, useRef } from "react";
 
 interface PlusMenuProps {
 	isHovered: boolean;
@@ -21,10 +23,9 @@ interface PlusMenuProps {
 	editor: Editor;
 	getPos: () => number;
 	node: Node;
-	onMouseEnter: (event: MouseEvent, index: number, type: HoverEnumTypes, vertical?: boolean) => void;
-	onMouseLeave: () => void;
 	vertical?: boolean;
 	className?: string;
+	tableSheet?: TableNodeSheet;
 }
 
 export const PopoverItem = styled.div`
@@ -46,7 +47,7 @@ export const TriggerParent = styled.div`
 `;
 
 const PlusMenu = (props: PlusMenuProps) => {
-	const { vertical, className, onMouseEnter, index, getPos, node, onMouseLeave, editor } = props;
+	const { vertical, className, index, getPos, node, editor, tableSheet } = props;
 	const submenuRef = useRef<HTMLDivElement>(null);
 	const cell = useMemo(() => {
 		if (vertical) return;
@@ -59,40 +60,100 @@ const PlusMenu = (props: PlusMenuProps) => {
 		return child?.parent;
 	}, [getPos, editor, node.firstChild.maybeChild(index), index]);
 
-	const deleteMouseEnter = (event: MouseEvent) => {
-		onMouseEnter(event, index, HoverEnumTypes.DELETE, vertical);
-	};
-
 	const setAlign = (align: AlignEnumTypes) => {
-		const positions = getTableColumnCellPositions(node, getPos(), index);
-		if (!positions) return;
+		editor
+			.chain()
+			.command(({ tr }) => {
+				const positions = tableSheet.getColumn(tableSheet.getLogicalColumnIndex(index));
+				if (!positions) return false;
 
-		const tr = editor.state.tr;
-		positions.forEach((pos) => {
-			tr.setNodeAttribute(pos, "align", align);
-		});
+				positions.forEach((pos) => {
+					tr.setNodeAttribute(pos, "align", align);
+				});
 
-		tr.setMeta("removeDecoration", true);
-		editor.view.dispatch(tr);
+				return true;
+			})
+			.setMeta("removeDecoration", true)
+			.run();
 	};
 
 	const setHeader = (header: TableHeaderTypes) => {
-		const tr = editor.state.tr;
-		tr.setNodeAttribute(getPos(), "header", header === node.attrs.header ? TableHeaderTypes.NONE : header);
-		tr.setMeta("removeDecoration", true);
-		editor.view.dispatch(tr);
+		editor.chain().focus(getPos()).updateAttributes("table", { header: header }).run();
 	};
 
 	const rowDelete = () => {
-		const position = getRowPosition(node, index + 1, getPos());
+		const position = tableSheet.getCell(index, 0);
 		if (!position) return;
 		editor.chain().focus(position).deleteRow().setMeta("removeDecoration", true).run();
 	};
 
 	const columnDelete = () => {
-		const position = getFirstTdPosition(node, index + 1, getPos());
+		const logicalColumnIndex = tableSheet.getLogicalColumnIndex(index);
+		const position = tableSheet.getCell(0, logicalColumnIndex);
 		if (!position) return;
 		editor.chain().focus(position).deleteColumn().setMeta("removeDecoration", true).run();
+	};
+
+	const onOpen = () => {
+		if (!tableSheet) return;
+
+		let tr = editor.state.tr;
+		if (vertical) {
+			tr = addRowDecoration(tableSheet, index, tr, {
+				class: "selectedCell",
+			});
+		} else {
+			tr = addColumnDecoration(tableSheet, index, tr, {
+				class: "selectedCell",
+			});
+		}
+
+		if (tr) editor.view.dispatch(tr);
+	};
+
+	const onMouseEnter = () => {
+		if (!tableSheet) return;
+
+		let tr = editor.state.tr;
+		tr.setMeta("removeDecoration", true);
+
+		if (vertical) {
+			tr = addRowDecoration(tableSheet, index, tr, {
+				class: "delete",
+			});
+		} else {
+			tr = addColumnDecoration(tableSheet, index, tr, {
+				class: "delete",
+			});
+		}
+
+		if (tr) editor.view.dispatch(tr);
+	};
+
+	const onMouseLeave = () => {
+		if (!tableSheet) return;
+		let tr = editor.state.tr.setMeta("removeDecoration", true);
+
+		if (vertical) {
+			tr = addRowDecoration(tableSheet, index, tr, {
+				class: "selectedCell",
+			});
+		} else {
+			tr = addColumnDecoration(tableSheet, index, tr, {
+				class: "selectedCell",
+			});
+		}
+
+		if (tr) editor.view.dispatch(tr);
+	};
+
+	const onClose = () => {
+		let position = null;
+		if (vertical) position = getRowPosition(node, index + 1, getPos());
+		else position = getFirstTdPosition(node, index + 1, getPos());
+
+		if (!position) return;
+		editor.chain().focus(position).setMeta("removeDecoration", true).run();
 	};
 
 	return (
@@ -101,6 +162,8 @@ const PlusMenu = (props: PlusMenuProps) => {
 			offset={[10, 0]}
 			appendTo={() => document.body}
 			openTrigger="click"
+			onOpen={onOpen}
+			onClose={onClose}
 			trigger={<Icon code={vertical ? "ellipsis-vertical" : "ellipsis"} />}
 		>
 			{vertical ? (
@@ -112,7 +175,7 @@ const PlusMenu = (props: PlusMenuProps) => {
 						</PopoverItem>
 					)}
 					<ButtonLink
-						onMouseEnter={deleteMouseEnter}
+						onMouseEnter={onMouseEnter}
 						onMouseLeave={onMouseLeave}
 						text={t("editor.table.row.delete")}
 						onClick={rowDelete}
@@ -127,7 +190,14 @@ const PlusMenu = (props: PlusMenuProps) => {
 							{node.attrs.header === TableHeaderTypes.COLUMN && <Icon code="check" />}
 						</PopoverItem>
 					)}
-					<AggregationPopup editor={editor} node={node} cell={cell} index={index} getPos={getPos} />
+					<AggregationPopup
+						editor={editor}
+						tableSheet={tableSheet}
+						node={node}
+						cell={cell}
+						index={index}
+						getPos={getPos}
+					/>
 					<PopupMenuLayout
 						openTrigger="focus mouseenter"
 						placement="right-start"
@@ -156,7 +226,7 @@ const PlusMenu = (props: PlusMenuProps) => {
 						</PopoverItem>
 					</PopupMenuLayout>
 					<ButtonLink
-						onMouseEnter={deleteMouseEnter}
+						onMouseEnter={onMouseEnter}
 						onMouseLeave={onMouseLeave}
 						text={t("editor.table.column.delete")}
 						onClick={columnDelete}
@@ -168,7 +238,7 @@ const PlusMenu = (props: PlusMenuProps) => {
 	);
 };
 
-export default styled(PlusMenu)`
+export default styled(memo(PlusMenu))`
 	display: flex;
 	position: absolute;
 	justify-content: center;

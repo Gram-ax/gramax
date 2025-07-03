@@ -11,11 +11,11 @@
     И вводим "text"
     Тогда разметка текущей статьи содержит
       """
-      :::quote 
+      <note type="quote">
       
       text
       
-      :::
+      </note>
       
       text
       """
@@ -38,11 +38,11 @@
     И нажимаем на клавишу "Backspace Backspace"
     Тогда разметка текущей статьи содержит
       """
-      :::note 
+      <note>
       
       eljhrkjeqr
       
       eqjhrkjeqlr
       
-      :::
+      </note>
       """

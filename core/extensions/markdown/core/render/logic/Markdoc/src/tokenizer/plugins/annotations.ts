@@ -1,16 +1,21 @@
+import { Schemes } from "@ext/markdown/core/Parser/Parser";
+import { OPEN as gitConflictOpen } from "@ext/markdown/core/render/logic/Markdoc/src/tokenizer/plugins/gitConflictPlugin";
+import {
+	blockElements,
+	blockWithInlineElements,
+	inlineElements,
+	selfClosingTags,
+} from "@ext/markdown/elements/htmlTag/logic/utils";
 import type MarkdownIt from "markdown-it/lib";
+import { PluginWithOptions } from "markdown-it/lib";
+import { RuleBlock } from "markdown-it/lib/parser_block";
+import { RuleInline } from "markdown-it/lib/parser_inline";
 import type StateInline from "markdown-it/lib/rules_inline/state_inline";
 import Function from "../../ast/function";
 import Variable from "../../ast/variable";
 import { parse, SyntaxError as TagSyntaxError } from "../../grammar/tag";
 import type { StateBlock, Token } from "../../types";
-import { tagWraps, findTagEnd } from "../../utils";
-import { Schemes } from "@ext/markdown/core/Parser/Parser";
-import { PluginWithOptions } from "markdown-it/lib";
-import { RuleBlock } from "markdown-it/lib/parser_block";
-import { RuleInline } from "markdown-it/lib/parser_inline";
-import { OPEN as gitConflictOpen } from "@ext/markdown/core/render/logic/Markdoc/src/tokenizer/plugins/gitConflictPlugin";
-import { blockElements, blockWithInlineElements, selfClosingTags } from "@ext/markdown/elements/htmlTag/logic/utils";
+import { findTagEnd, tagWraps } from "../../utils";
 
 const getHtmlTagType = (name: string) => {
 	const lowerName = name.toLowerCase();
@@ -18,7 +23,8 @@ const getHtmlTagType = (name: string) => {
 	if (selfClosingTags.includes(lowerName)) return "selfClosingHtmlTag";
 	if (blockElements.includes(lowerName)) return "blockHtmlTag";
 	if (blockWithInlineElements.includes(lowerName)) return "blockWithInlineHtmlTag";
-	return "inlineHtmlTag";
+	if (inlineElements.includes(lowerName)) return "inlineHtmlTag";
+	return null;
 };
 
 const transformUnschemedTag = (meta: any, options?: { tags?: Schemes["tags"]; allowHtmlFallback?: boolean }) => {
@@ -29,6 +35,7 @@ const transformUnschemedTag = (meta: any, options?: { tags?: Schemes["tags"]; al
 	if (!options.allowHtmlFallback) return null;
 
 	const tagType = getHtmlTagType(meta.tag);
+	if (!tagType) return null;
 	return {
 		...meta,
 		tag: tagType,

@@ -24,7 +24,8 @@ export type WorkspaceEvents = Event<"add-catalog", { catalog: Catalog }> &
 	Event<"catalog-changed", CatalogFilesUpdated> &
 	Event<"on-catalog-resolve", { mutableCatalog: { catalog: Catalog }; name: string; metadata: string }> &
 	Event<"on-catalog-entry-resolve", { mutableEntry: { entry: BaseCatalog }; name: string; metadata: string }> &
-	Event<"on-entries-read", { mutableEntries: { entries: CatalogEntry[] } }>;
+	Event<"on-entries-read", { mutableEntries: { entries: CatalogEntry[] } }> &
+	Event<"config-updated">;
 
 export type WorkspaceInitCallback = (workspace: Workspace) => void;
 
@@ -131,6 +132,7 @@ export class Workspace {
 			const path = FileStructure.getCatalogPath(catalog);
 			await fp.delete(path, false);
 		}
+
 		this._entries.delete(name);
 		await this._events.emit("remove-catalog", { name });
 	}

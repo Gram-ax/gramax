@@ -25,6 +25,7 @@ const cloneCatalogs: Command<{ ctx: Context; userSettings: UserSettings }, void>
 			const name = split.pop();
 			const group = split.join("/");
 			await this._commands.storage.startClone.do({
+				ctx,
 				path: new Path(name),
 				data: { source: source, group, name } as GitStorageData,
 			});

@@ -2,12 +2,13 @@ import Date from "@components/Atoms/Date";
 import Icon from "@components/Atoms/Icon";
 import Tooltip from "@components/Atoms/Tooltip";
 import UserCircle from "@components/Atoms/UserCircle";
+import { DateType } from "@core-ui/utils/dateUtils";
 import styled from "@emotion/styled";
 
 interface UserProps {
 	name: string;
 	mail?: string;
-	date?: string;
+	date?: DateType;
 	className?: string;
 }
 
@@ -17,7 +18,7 @@ const InlineUser = ({ name, mail, date, className }: UserProps) => {
 			<span className="user-circle">
 				<UserCircle name={name || "Unknown"} />
 			</span>
-			<Tooltip delay={[1000, 0]} content={mail} appendTo={() => document.body}>
+			<Tooltip delay={[1000, 0]} content={mail} appendTo={() => document.body} interactive>
 				<span className="user-name">{name}</span>
 			</Tooltip>
 			{date && (

@@ -49,7 +49,6 @@ const SnippetsButton = ({ editor, onClose }: SnippetsButtonProps) => {
 	};
 
 	const onEditClick = (snippet: ProviderItemProps) => {
-		openSnippetTab();
 		SnippetService.openSnippet(snippet);
 	};
 

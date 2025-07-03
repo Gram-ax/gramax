@@ -364,7 +364,10 @@ const createFragment = (view: EditorView): CreatedFragment => {
 };
 
 const getImageFromFragment = (fragment: Fragment, resourceService: ResourceServiceType): boolean => {
-	const firstImage = fragment.firstChild?.type?.name === "image" ? fragment.firstChild : null;
+	const firstImage =
+		fragment.firstChild?.type?.name === "image" || fragment.firstChild?.type?.name === "inlineImage"
+			? fragment.firstChild
+			: null;
 
 	if (!firstImage) return false;
 	const buffer = resourceService.getBuffer(firstImage.attrs.src);

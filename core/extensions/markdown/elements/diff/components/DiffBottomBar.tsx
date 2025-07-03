@@ -1,8 +1,8 @@
 import DiffContent from "@components/Atoms/DiffContent";
 import Icon from "@components/Atoms/Icon";
 import IconWithText from "@components/Atoms/Icon/IconWithText";
-import Tooltip from "@components/Atoms/Tooltip";
 import PopupMenuLayout, { PopupMenuElement } from "@components/Layouts/PopupMenuLayout";
+import TooltipIfOveflow from "@core-ui/TooltipIfOveflow";
 import styled from "@emotion/styled";
 import FormattedBranch from "@ext/git/actions/Branch/components/FormattedBranch";
 import t from "@ext/localization/locale/translate";
@@ -11,7 +11,7 @@ import Theme from "@ext/Theme/Theme";
 import { DiffHunk } from "@ext/VersionControl/DiffHandler/model/DiffHunk";
 import type { DiffFilePaths } from "@ext/VersionControl/model/Diff";
 import { FileStatus } from "@ext/Watchers/model/FileStatus";
-import { useState } from "react";
+import { forwardRef, useRef, useState } from "react";
 
 export type DiffViewMode = "wysiwyg" | "single-panel" | "double-panel";
 
@@ -138,15 +138,18 @@ interface DiffBottomBarProps {
 	className?: string;
 }
 
-const DiffContentComponent = ({ changes, unchangedColor }: { changes: DiffHunk[]; unchangedColor?: string }) => (
-	<div data-theme="dark">
-		<DiffContent
-			whiteSpace="nowrap"
-			changes={changes}
-			unchangedColor={unchangedColor ? { color: unchangedColor } : undefined}
-			showDiff
-		/>
-	</div>
+const DiffContentComponent = forwardRef<HTMLDivElement, { changes: DiffHunk[]; unchangedColor?: string }>(
+	({ changes, unchangedColor }: { changes: DiffHunk[]; unchangedColor?: string }, ref) => (
+		<div data-theme="dark">
+			<DiffContent
+				ref={ref}
+				whiteSpace="nowrap"
+				changes={changes}
+				unchangedColor={unchangedColor ? { color: unchangedColor } : undefined}
+				showDiff
+			/>
+		</div>
+	),
 );
 
 const DiffBottomBar = ({
@@ -166,10 +169,12 @@ const DiffBottomBar = ({
 	const hasRevisions = !!oldRevision || !!newRevision;
 	const changes = filePath?.hunks?.length ? filePath?.hunks : [{ value: filePath?.path, type }];
 	const theme = ThemeService.value;
+	const wrapperRef = useRef<HTMLDivElement>(null);
 
 	const DiffContentElement = (
 		<DiffContentWrapper showDiffViewChanger={showDiffViewChanger}>
-			<Tooltip
+			<TooltipIfOveflow
+				childrenRef={wrapperRef}
 				interactive
 				content={
 					<DiffContentComponent
@@ -179,9 +184,9 @@ const DiffBottomBar = ({
 				}
 			>
 				<div>
-					<DiffContentComponent changes={changes} unchangedColor="var(--color-primary)" />
+					<DiffContentComponent changes={changes} unchangedColor="var(--color-primary)" ref={wrapperRef} />
 				</div>
-			</Tooltip>
+			</TooltipIfOveflow>
 		</DiffContentWrapper>
 	);
 

@@ -29,20 +29,23 @@ abstract class WordExport {
 	) {}
 
 	async getDocument(documentTree: DocumentTree) {
-		const sections = await this._getDocumentSections(documentTree);
 		const externalStyles = stylesJson[0];
 
-		return new Document({ sections, ...wordDocumentStyles, externalStyles });
+		return new Document({ sections: await this.getSections(documentTree), ...wordDocumentStyles, externalStyles });
 	}
 
-	protected async _getDocumentSections(rootNode: DocumentTree) {
+	async getSections(documentTree: DocumentTree, skipFirstNode = false) {
+		return await this._getDocumentSections(documentTree, skipFirstNode);
+	}
+
+	protected async _getDocumentSections(rootNode: DocumentTree, skipFirstNode = false) {
 		const sections: ISectionOptions[] = [];
 
 		if (this._exportType == ExportType.withTableOfContents)
 			sections.push({ children: this._createTableOfContents(rootNode) });
 
-		const processNode = async (currentNode: DocumentTree, content = []) => {
-			content.push(...(await this._parseArticle(currentNode)));
+		const processNode = async (currentNode: DocumentTree, content = [], skipFirstNode = false) => {
+			if (!skipFirstNode) content.push(...(await this._parseArticle(currentNode)));
 
 			const isEmptyArticle =
 				(currentNode.content === "" || (currentNode.content as Tag).children.length < 1) &&
@@ -55,12 +58,12 @@ abstract class WordExport {
 				return;
 			}
 
-			sections.push({ children: content });
+			if (content.length) sections.push({ children: content });
 
 			if (!isEmptyArticle) for (const child of currentNode.children) await processNode(child);
 		};
 
-		await processNode(rootNode);
+		await processNode(rootNode, [], skipFirstNode);
 
 		return sections;
 	}

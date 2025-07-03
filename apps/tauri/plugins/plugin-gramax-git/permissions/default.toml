@@ -46,5 +46,6 @@ permissions = [
   "allow-gc",
   "allow-reset-repo",
   "allow-format-merge-message",
+  "allow-get-commit-info",
   "allow-get-all-cancel-tokens"
 ]

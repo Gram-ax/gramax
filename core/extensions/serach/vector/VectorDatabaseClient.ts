@@ -11,14 +11,14 @@ import VectorArticleContentParser from "@ext/serach/vector/VectorArticleContentP
 import WorkspaceManager from "@ext/workspace/WorkspaceManager";
 import {
 	ChatResponse,
+	CheckAuthResponse,
+	CheckResponse,
 	Filter,
+	RagApiClient,
 	SearchResponse,
 	TaskStatusInProgressResponse,
 	UpdateResponse,
-	RagApiClient,
-	CheckAuthResponse,
 } from "@ics/gx-vector-search";
-import { CheckResponse } from "@ics/gx-vector-search";
 
 export interface VectorDatabaseClientOptions {
 	apiUrl: string;
@@ -49,10 +49,13 @@ export default class VectorDatabaseClient {
 			collectionName: options.collectionName,
 		});
 
-		void this.updateAllCatalogs();
 		_wm.onCatalogChange((change) => {
 			void this._actualizeCatalog(change.catalog);
 		});
+		_wm.maybeCurrent()?.events?.on?.("add-catalog", ({ catalog }) => {
+			void this._actualizeCatalog(catalog);
+		});
+		void this._readAllCatalogs(); // read all catalogs
 	}
 
 	async chat(
@@ -172,6 +175,13 @@ export default class VectorDatabaseClient {
 		this._storeTaskIdIfNeed(updateResp);
 	}
 
+	private async _readAllCatalogs() {
+		const catalogNames = [...this._wm.current().getAllCatalogs().keys()];
+		for (const catalogName of catalogNames) {
+			await this._wm.current().getContextlessCatalog(catalogName);
+		}
+	}
+
 	private async _getAllCatalogVectorArticles(): Promise<[string, VectorArticle[]][]> {
 		const catalogNames = [...this._wm.current().getAllCatalogs().keys()];
 		const promises = catalogNames.map<Promise<[string, VectorArticle[]]>>(async (catalogName) => {
@@ -204,19 +214,37 @@ export default class VectorDatabaseClient {
 	}
 
 	private async _createVectorArticle(catalog: Catalog, article: Article): Promise<VectorArticle> {
+		const getSnippetItems = async (id: string) => {
+			const snippetContent = catalog.customProviders.snippetProvider.getArticle(id)?.parsedContent;
+			if (!snippetContent) return null;
+			return (await snippetContent.read()).editTree.content;
+		};
+
+		const getPropertyValue = (id: string) => {
+			const prop = article.props?.properties?.find((x) => x.name === id);
+			return prop?.value?.join(", ");
+		};
+
 		const parsedContent = await this._parseArticleContent(article, catalog);
 		const title = parsedContent ? getExtractHeader(parsedContent) ?? article.getTitle() : article.getTitle();
 		const item: VectorArticle = {
 			id: article.logicPath,
 			title,
 			children: [],
-			items: parsedContent ? new VectorArticleContentParser(parsedContent.editTree.content).parse() : [],
+			items: parsedContent
+				? await new VectorArticleContentParser(
+						parsedContent.editTree.content,
+						getSnippetItems,
+						getPropertyValue,
+				  ).parse()
+				: [],
 			metadata: {
 				catalogId: catalog.name,
-				logicPath: article.logicPath,
 				refPath: article.ref.path.value,
-				title,
 				lang: Localizer.extract(Localizer.sanitize(article.logicPath)) ?? catalog.props.language ?? "none",
+				properties: article.props.properties
+					? Object.fromEntries(article.props.properties.map((x) => [x.name, x.value]))
+					: {},
 			},
 		};
 

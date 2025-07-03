@@ -1,10 +1,10 @@
 import { Meta, StoryObj } from "@storybook/react";
 import mock from "storybook/data/mock";
+import mergeRequestApi from "storybook/stories/extensions/Catalog/Git/Merge/MergeRequests/mergeRequestApi";
 import BranchActionsSrc from "../../../../../../core/extensions/git/actions/Branch/components/BranchActions";
 import BlockDecorator from "../../../../../styles/decorators/InlineDecorator";
 import checkoutApi from "./checkoutApi";
 import mergeApi from "./mergeApi";
-import mergeRequestApi from "storybook/stories/extensions/Catalog/Git/Merge/MergeRequests/mergeRequestApi";
 
 export const BranchActions: StoryObj<{ currentBranch: string }> = {
 	args: {
@@ -15,7 +15,7 @@ export const BranchActions: StoryObj<{ currentBranch: string }> = {
 			show={true}
 			setShow={() => {}}
 			currentBranch={props.currentBranch}
-			tabWrapperRef={null}
+			tabWrapperRef={{} as any}
 			isInitNewBranch={false}
 			setIsInitNewBranch={() => {}}
 		/>

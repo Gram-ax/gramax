@@ -47,6 +47,7 @@ import inlinePropertyTokenTransformer from "@ext/markdown/elements/inlinePropert
 import tableTokenTransformer from "@ext/markdown/elements/table/logic/tableTokenTransformer";
 import getTocItems, { getLevelTocItemsByRenderableTree } from "@ext/navigation/article/logic/createTocItems";
 import { JSONContent } from "@tiptap/core";
+import inlineImageTokenTransformer from "@ext/markdown/elements/inlineImage/edit/logic/inlineImageTokenTransformer";
 
 const katexPlugin = import("@traptitech/markdown-it-katex");
 
@@ -181,6 +182,7 @@ export default class MarkdownParser {
 				commentNodeTransformer,
 			],
 			[
+				inlineImageTokenTransformer,
 				inlinePropertyTokenTransformer,
 				htmlTokenTransformer,
 				tableTokenTransformer,

@@ -1,6 +1,5 @@
 import ButtonLink from "@components/Molecules/ButtonLink";
-import Footer from "@ext/catalog/actions/propsEditor/components/ModalFooter";
-import Header from "@ext/catalog/actions/propsEditor/components/ModalHeader";
+import ModalErrorHandler from "@ext/errorHandlers/client/components/ModalErrorHandler";
 import {
 	UsePropsEditorActionsParams,
 	usePropsEditorActions,
@@ -8,7 +7,7 @@ import {
 import { Modal, ModalTrigger, ModalContent, ModalBody } from "@ui-kit/Modal";
 import { Button } from "@ui-kit/Button";
 import { Input } from "@ui-kit/Input";
-import { Form, FormField } from "@ui-kit/Form";
+import { Form, FormField, FormHeader, FormFooter, FormStack } from "@ui-kit/Form";
 import OtherLanguagesPresentWarning from "@ext/localization/actions/OtherLanguagesPresentWarning";
 import t from "@ext/localization/locale/translate";
 import { FC, useRef, useCallback } from "react";
@@ -46,51 +45,68 @@ const PropsEditor: FC<PropsEditorProps> = (props) => {
 			</ModalTrigger>
 
 			<ModalContent data-modal-root>
-				<Form {...form}>
-					<form ref={formRef} className="contents ui-kit" onSubmit={formSubmitHandler}>
-						<Header
-							title={t(`${hookParams.isCategory ? "section" : "article"}.configure.title`)}
-							description={t(`${hookParams.isCategory ? "section" : "article"}.configure.description`)}
-						/>
-
-						<ModalBody className="space-y-4">
-							<FormField
-								name="title"
-								required
-								title={t("title")}
-								control={({ field }) => (
-									<Input placeholder={t("enter-value")} data-qa={t("title")} {...field} />
+				<ModalErrorHandler onError={() => {}} onClose={() => setOpen(false)}>
+					<Form asChild {...form}>
+						<form ref={formRef} className="contents ui-kit" onSubmit={formSubmitHandler}>
+							<FormHeader
+								icon={"settings"}
+								title={t(`${hookParams.isCategory ? "section" : "article"}.configure.title`)}
+								description={t(
+									`${hookParams.isCategory ? "section" : "article"}.configure.description`,
 								)}
-								labelClassName={"w-44"}
 							/>
+							<ModalBody>
+								<FormStack>
+									<FormField
+										name="title"
+										required
+										title={t("title")}
+										control={({ field }) => (
+											<Input
+												placeholder={t("enter-value")}
+												data-qa={t("title")}
+												{...field}
+												autoFocus
+											/>
+										)}
+										labelClassName={"w-44"}
+									/>
 
-							<FormField
-								name="fileName"
-								required
-								title="URL"
-								control={({ field }) => (
-									<Input data-qa="URL" placeholder={t("enter-value")} {...field} />
-								)}
-								labelClassName={"w-44"}
+									<FormField
+										name="fileName"
+										required
+										title={t("article-url.title")}
+										description={t("article-url.description")}
+										control={({ field, fieldState }) => (
+											<Input
+												data-qa="URL"
+												error={fieldState?.error?.message}
+												placeholder={t("enter-value")}
+												{...field}
+											/>
+										)}
+										labelClassName={"w-44"}
+									/>
+								</FormStack>
+							</ModalBody>
+
+							<FormFooter
+								primaryButton={
+									isOnlyTitleChanged ? (
+										<Button type="submit">{t("save")}</Button>
+									) : (
+										<OtherLanguagesPresentWarning
+											catalogProps={catalogProps}
+											action={formSubmitHandler}
+										>
+											<Button type="button">{t("save")}</Button>
+										</OtherLanguagesPresentWarning>
+									)
+								}
 							/>
-						</ModalBody>
-
-						<Footer
-							primaryButton={
-								isOnlyTitleChanged ? (
-									<Button type="submit">{t("save")}</Button>
-								) : (
-									<OtherLanguagesPresentWarning
-										catalogProps={catalogProps}
-										action={formSubmitHandler}
-									>
-										<Button type="button">{t("save")}</Button>
-									</OtherLanguagesPresentWarning>
-								)
-							}
-						/>
-					</form>
-				</Form>
+						</form>
+					</Form>
+				</ModalErrorHandler>
 			</ModalContent>
 		</Modal>
 	);

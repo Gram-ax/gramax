@@ -6,8 +6,12 @@ import { Item } from "@core/FileStructue/Item/Item";
 import sortMapByName from "@ext/markdown/elements/view/render/logic/sortMap";
 import getAllCatalogProperties from "@ext/properties/logic/getAllCatalogProps";
 import getDisplayValue from "@ext/properties/logic/getDisplayValue";
-import { Property, PropertyValue, SystemProperties, ViewRenderGroup } from "@ext/properties/models";
+import { Property, PropertyTypes, PropertyValue, SystemProperties, ViewRenderGroup } from "@ext/properties/models";
 import { Display } from "../models/display";
+import ParserContextFactory from "@ext/markdown/core/Parser/ParserContext/ParserContextFactory";
+import Context from "@core/Context/Context";
+import MarkdownParser from "@ext/markdown/core/Parser/Parser";
+import { convertContentToUiLanguage } from "@ext/localization/locale/translate";
 
 interface ProcessedArticle {
 	title: string;
@@ -36,6 +40,9 @@ class ViewFilter {
 		private _catalog: ReadonlyCatalog,
 		private _display: Display = Display.List,
 		private _itemFilters: ItemFilter[] = [],
+		private _parserContextFactory: ParserContextFactory,
+		private _parser: MarkdownParser,
+		private _ctx: Context,
 	) {}
 
 	public async getFilteredArticles(): Promise<ViewRenderGroup[]> {
@@ -107,8 +114,34 @@ class ViewFilter {
 				const prop = extendedProperties.find((p) => p.name === groupProp);
 				return prop?.value ?? prop?.name ?? null;
 			}),
-			otherProps: sortMapByName(Array.from(this._catalogPropMap.keys()), this._filterProps(extendedProperties)),
+			otherProps: sortMapByName(
+				Array.from(this._catalogPropMap.keys()),
+				await this._processProps(article, this._filterProps(extendedProperties)),
+			),
 		};
+	}
+
+	private async _processProps(article: Article, props: Property[]): Promise<Property[]> {
+		const newProps = [];
+
+		for (const prop of props) {
+			if (prop.type === PropertyTypes.blockMd) {
+				const context = await this._parserContextFactory.fromArticle(
+					article,
+					this._catalog,
+					convertContentToUiLanguage(this._ctx.contentLanguage || this._catalog.props.language),
+					this._ctx.user.isLogged,
+				);
+
+				const content = await this._parser.parse(prop.value?.[0], context);
+				console.log(content.renderTree);
+				newProps.push({ ...prop, value: [content.renderTree] });
+			}
+
+			newProps.push(prop);
+		}
+
+		return newProps;
 	}
 
 	private _orderArticles(articles: ProcessedArticle[]): ProcessedArticle[] {
@@ -202,10 +235,7 @@ class ViewFilter {
 		let groupedArticles = articles.reduce((acc, article) => {
 			const groupValue = article.groupValues[groupIndex];
 			const groupValueType = this._catalogPropMap.get(this._groupby[groupIndex])?.type;
-			const key =
-				groupValue !== null && groupValue !== undefined
-					? getDisplayValue(groupValueType, groupValue)
-					: "ungrouped";
+			const key = this._createKey(groupValue, groupValueType);
 			(acc[key] ??= []).push(article);
 			return acc;
 		}, {} as Record<string, ProcessedArticle[]>);
@@ -238,6 +268,14 @@ class ViewFilter {
 		}));
 
 		return this._orderGroup(groups, this._groupby[groupIndex]);
+	}
+
+	private _createKey(groupValue: string | string[], groupValueType: PropertyTypes): string {
+		if (groupValueType === PropertyTypes.blockMd) return "ungrouped";
+
+		const key =
+			groupValue !== null && groupValue !== undefined ? getDisplayValue(groupValueType, groupValue) : "ungrouped";
+		return String(key);
 	}
 
 	private _flattenGroups(groups: ViewRenderGroup[]): ViewRenderGroup[] {

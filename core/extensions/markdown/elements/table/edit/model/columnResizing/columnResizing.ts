@@ -210,19 +210,31 @@ function updateColumnWidth(view: EditorView, cell: number, width: number): void 
 	const table = $cell.node(-1),
 		map = TableMap.get(table),
 		start = $cell.start(-1);
+
+	let dom: Node | null = view.domAtPos($cell.start(-1)).node;
+	while (dom && dom.nodeName != "TABLE") {
+		dom = dom.parentNode;
+	}
+	if (!dom) return;
+
+	const widths = Array.from(dom.firstChild.childNodes).map((node: any) => parseFloat(node.style.width || 0));
+
 	const col = map.colCount($cell.pos - start) + $cell.nodeAfter.attrs.colspan - 1;
 	const tr = view.state.tr;
 	for (let row = 0; row < map.height; row++) {
-		const mapIndex = row * map.width + col;
-		// Rowspanning cell that has already been handled
-		if (row && map.map[mapIndex] == map.map[mapIndex - map.width]) continue;
-		const pos = map.map[mapIndex];
-		const attrs = table.nodeAt(pos).attrs as CellAttrs;
-		const index = attrs.colspan == 1 ? 0 : col - map.colCount(pos);
-		if (attrs.colwidth && attrs.colwidth[index] == width) continue;
-		const colwidth = attrs.colwidth ? attrs.colwidth.slice() : zeroes(attrs.colspan);
-		colwidth[index] = width;
-		tr.setNodeMarkup(start + pos, null, { ...attrs, colwidth: colwidth });
+		for (let cell = 0; cell < map.width; cell++) {
+			const mapIndex = row * map.width + cell;
+
+			const pos = map.map[mapIndex];
+			const attrs = table.nodeAt(pos).attrs as CellAttrs;
+			const index = attrs.colspan == 1 ? 0 : cell - map.colCount(pos);
+
+			const colwidth = attrs.colwidth ? attrs.colwidth.slice() : zeroes(attrs.colspan);
+			for (let i = 0; i < attrs.colspan; i++) {
+				colwidth[i] = cell === col ? width : widths[cell - index + i];
+			}
+			tr.setNodeMarkup(start + pos, null, { ...attrs, colwidth: colwidth });
+		}
 	}
 	if (tr.docChanged) view.dispatch(tr);
 }

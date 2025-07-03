@@ -3,17 +3,17 @@ export const getStaticModules = async (): Promise<any> => {
 		{ default: BrowserLink },
 		{ default: useUrlObjectImage },
 		{ default: BrowserFetchService },
-		{ default: BrowserRouter },
+		{ default: StaticRouter },
 	] = await Promise.all([
 		import("../../../apps/browser/src/components/Atoms/Link"),
 		import("../../../apps/browser/src/hooks/useUrlObjectImage"),
 		import("../../../apps/browser/src/logic/Api/BrowserFetchService"),
-		import("../../../apps/browser/src/logic/Api/BrowserRouter"),
+		import("../../../apps/gramax-cli/src/logic/api/StaticRouter"),
 	]);
 
 	return {
 		Link: BrowserLink,
-		Router: BrowserRouter,
+		Router: StaticRouter,
 		Fetcher: BrowserFetchService,
 		useImage: useUrlObjectImage,
 		openChildWindow: (params) => window.open(params.url, params.name, params.features),
@@ -22,6 +22,7 @@ export const getStaticModules = async (): Promise<any> => {
 		FileInput: () => null,
 		DiffFileInput: () => null,
 		httpFetch: () => undefined,
+		setBadge: () => undefined,
 		openInExplorer: () => undefined,
 		openWindowWithUrl: () => undefined,
 	};

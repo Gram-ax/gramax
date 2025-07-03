@@ -21,6 +21,7 @@ import { TicketManager } from "@ext/security/logic/TicketManager/TicketManager";
 import { IndexDataProvider } from "@ext/serach/IndexDataProvider";
 import SearcherManager from "@ext/serach/SearcherManager";
 import type WorkspaceManager from "@ext/workspace/WorkspaceManager";
+import { WordTemplateManager } from "@ext/wordExport/WordTemplateManager";
 
 interface Application {
 	wm: WorkspaceManager;
@@ -35,6 +36,7 @@ interface Application {
 	vur: VideoUrlRepository;
 	rp: GitRepositoryProvider;
 	adp: AiDataProvider;
+	wtm: WordTemplateManager;
 	formatter: MarkdownFormatter;
 	ticketManager: TicketManager;
 	contextFactory: ContextFactory;

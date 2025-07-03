@@ -20,6 +20,7 @@ import WorkspaceMissingPath from "@ext/workspace/error/UnknownWorkspace";
 import { Workspace, type WorkspaceInitCallback } from "@ext/workspace/Workspace";
 import WorkspaceAssets from "@ext/workspace/WorkspaceAssets";
 import type { WorkspaceConfig, WorkspacePath } from "@ext/workspace/WorkspaceConfig";
+import { createEventEmitter, Event } from "@core/Event/EventEmitter";
 
 export type FSCreatedCallback = (fs: FileStructure) => void;
 export type CatalogChangedCallback = (change: CatalogFilesUpdated) => void | Promise<void>;
@@ -33,6 +34,8 @@ export type WorkspaceConfigWithCatalogs = {
 	config: YamlFileConfig<WorkspaceConfig>;
 };
 
+export type WorkspaceManagerEvents = Event<"workspace-changed", { workspace: Workspace }>;
+
 export const WORKSPACE_CONFIG_FILENAME = new Path("workspace.yaml");
 const DEFAULT_WORKSPACE_NAME = "workspace.default-name";
 const DEFAULT_WORKSPACE_ICON = "layers";
@@ -42,6 +45,7 @@ export default class WorkspaceManager {
 	private _current: Workspace;
 	private _workspaces: Map<WorkspacePath, WorkspaceConfigWithCatalogs> = new Map();
 	private _rules: CatalogChangedCallback[] = [];
+	private _events = createEventEmitter<WorkspaceManagerEvents>();
 
 	constructor(
 		private _makeFileProvider: FSFileProviderFactory,
@@ -51,6 +55,10 @@ export default class WorkspaceManager {
 		private _config: AppConfig,
 		private _workspacesConfig: YamlFileConfig<WorkspaceManagerConfig>,
 	) {}
+
+	get events() {
+		return this._events;
+	}
 
 	async setWorkspace(path: WorkspacePath) {
 		if (!path) throw new Error(`Invalid workspace path ${path}`);
@@ -89,6 +97,8 @@ export default class WorkspaceManager {
 
 		this._setLatestWorkspace(this._current.path());
 		await this.saveWorkspaces();
+
+		await this._events.emit("workspace-changed", { workspace: this._current });
 	}
 
 	async readWorkspaces(): Promise<void> {
@@ -166,7 +176,6 @@ export default class WorkspaceManager {
 	async removeWorkspace(path: WorkspacePath) {
 		const fp = this._makeFileProvider(path);
 		if (getExecutingEnvironment() == "browser") await fp.delete(Path.empty);
-		else await fp.delete(WORKSPACE_CONFIG_FILENAME, true);
 		this._workspaces.delete(path);
 		await this.saveWorkspaces();
 		if (this.current().path() == path) await this.setWorkspace(this.workspaces()[0].path);

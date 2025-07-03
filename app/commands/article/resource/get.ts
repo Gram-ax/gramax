@@ -4,12 +4,14 @@ import MimeTypes from "@core-ui/ApiServices/Types/MimeTypes";
 import Context from "@core/Context/Context";
 import Path from "@core/FileProvider/Path/Path";
 import parseContent from "@core/FileStructue/Article/parseContent";
+import ContextualCatalog from "@core/FileStructue/Catalog/ContextualCatalog";
 import type { ReadonlyCatalog } from "@core/FileStructue/Catalog/ReadonlyCatalog";
 import HashResourceManager from "@core/Hash/HashItems/HashResourceManager";
-import GitTreeFileProvider from "@ext/versioning/GitTreeFileProvider";
-import { Article } from "../../../../core/logic/FileStructue/Article/Article";
 import ArticleProvider, { ArticleProviderType } from "@ext/articleProvider/logic/ArticleProvider";
-import ContextualCatalog from "@core/FileStructue/Catalog/ContextualCatalog";
+import convertScopeToCommitScope from "@ext/git/core/ScopedCatalogs/convertScopeToCommitScope";
+import GitTreeFileProvider from "@ext/versioning/GitTreeFileProvider";
+import assert from "assert";
+import { Article } from "../../../../core/logic/FileStructue/Article/Article";
 
 const get: Command<
 	{
@@ -38,10 +40,14 @@ const get: Command<
 
 		if (scope) {
 			catalog = await workspace.getCatalog(unscoped.value, ctx);
+			assert(catalog);
+			assert(catalog.repo.gvc);
+			catalog = await catalog.repo.scopedCatalogs.getScopedCatalog(catalog.basePath, fs, scope);
 			if (!catalog) return;
-			catalog = await catalog.repo.scopedCatalogs.getScopedCatalog(catalog.basePath, fs, scope, false);
-			if (!catalog) return;
-			articlePath = GitTreeFileProvider.scoped(articlePath, scope);
+			// temp
+			// TODO: add scoped CatalogProps, ArticleProps, ApiUrlCreator on front using ScopedCatalogs props
+			const commitScope = await convertScopeToCommitScope(scope, catalog.repo.gvc);
+			articlePath = GitTreeFileProvider.scoped(articlePath, commitScope);
 		} else {
 			catalog = await workspace.getCatalog(catalogName, ctx);
 			if (!catalog) return;

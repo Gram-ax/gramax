@@ -62,7 +62,7 @@ const useCloneProgress = (
 				setIsCloning(false);
 				if (cloneCancelDisabled && data.data.isCancelled) setIsCancel(true);
 				clearInterval(intervalIdx);
-				if (redirectOnClone) router.pushPath(redirectOnClone);
+				if (redirectOnClone && !data.data.isCancelled) router.pushPath(redirectOnClone);
 				else refreshPage();
 			}
 

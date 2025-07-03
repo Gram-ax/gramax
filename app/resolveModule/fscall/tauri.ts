@@ -1,7 +1,8 @@
+import { isTauriMobile } from "@app/resolveModule/env";
 import IoError from "@core/FileProvider/DiskFileProvider/DFPIOError";
 import { InvokeArgs, convertFileSrc, invoke } from "@tauri-apps/api/core";
 
-const CUSTOM_PROTOCOL_COMMANDS = ["read_file", "write_file"];
+const CUSTOM_PROTOCOL_COMMANDS = isTauriMobile() ? ["read_file"] : ["read_file", "write_file"];
 
 const callAsCustomProtocol = async <O>(
 	command: string,

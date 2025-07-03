@@ -773,6 +773,7 @@ export default {
 			id: "30b4fbbd-8f92-4bd0-9dbb-ad895ac1ed91",
 			mail: "danil.kazanov@ics-it.ru",
 		},
+		wordTemplates: [],
 		conf: {
 			basePath: "",
 			bugsnagApiKey: "",

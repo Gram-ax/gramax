@@ -57,7 +57,7 @@ export const PublishChanges = (props: PublishChangesProps) => {
 		setContentHeight,
 	} = props;
 	const containerRef = useRef<HTMLDivElement>(null);
-	const setArticleDiffView = useSetArticleDiffView(false, null, { reference: "HEAD" });
+	const setArticleDiffView = useSetArticleDiffView(false, null, "HEAD");
 
 	const onEntryDiscard = useCallback(
 		(entry: DiffTreeAnyItem) => {
@@ -85,7 +85,7 @@ export const PublishChanges = (props: PublishChangesProps) => {
 			calculateTabWrapperHeight(mainElement) - parseFloat(getComputedStyle(document.documentElement).fontSize);
 
 		setContentHeight(height);
-	}, [diffTree?.tree, containerRef.current, tabWrapperRef.current, isLoading]);
+	}, [diffTree?.tree, containerRef.current, tabWrapperRef.current, isLoading, show]);
 
 	const hasChanges = diffTree?.tree?.length > 0;
 

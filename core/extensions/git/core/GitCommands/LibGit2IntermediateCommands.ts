@@ -16,7 +16,8 @@ import type {
 	MergeOptions,
 	TreeReadScope,
 } from "@ext/git/core/GitCommands/model/GitCommandsModel";
-import type { CreateMergeRequest, MergeRequest, Signature } from "@ext/git/core/GitMergeRequest/model/MergeRequest";
+import type { CreateMergeRequest, MergeRequest } from "@ext/git/core/GitMergeRequest/model/MergeRequest";
+import type { Signature } from "@ext/git/core/model/Signature";
 
 export const cloneProgressCallbacks = {};
 
@@ -47,6 +48,14 @@ export type RefInfo =
 
 export type CommitAuthorInfo = Signature & {
 	count: number;
+};
+
+export type RawCommitInfo = {
+	author: Signature;
+	timestamp: number;
+	oid: string;
+	summary: string;
+	parents: string[];
 };
 
 export type CredsArgs = Args & { creds: Creds };
@@ -182,6 +191,9 @@ export const graphHeadUpstreamFiles = (args: Args & { searchIn: string }) =>
 	call<UpstreamCountFileChanges>("graph_head_upstream_files", args);
 
 export const getContent = (args: Args & { path: string; oid?: string }) => call<string>("get_content", args);
+
+export const getCommitInfo = (args: Args & { oid: string; opts: { depth: number; simplify: boolean } }) =>
+	call<RawCommitInfo[]>("get_commit_info", args);
 
 export const getParent = (args: Args & { oid: string }) => call<string>("get_parent", args);
 

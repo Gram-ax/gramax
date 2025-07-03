@@ -17,6 +17,7 @@ export default class MdParser {
 	private _brRegExp: RegExp;
 	private _emptyParagraphRegExp: RegExp;
 	private _findHtmlRegExp: RegExp;
+	private _findHtmlTagRegExp: RegExp;
 
 	private _backDashRegExp: RegExp;
 	private _backArrowRegExp: RegExp;
@@ -52,6 +53,7 @@ export default class MdParser {
 		this._emptyTableCell = new RegExp(String.raw`^(?:\*)[ \t]*$`, "gm");
 
 		this._findHtmlRegExp = new RegExp(String.raw`(^[^\n]*)\[html.*]([\s\S]*?)\[\/html\]`, "gm");
+		this._findHtmlTagRegExp = new RegExp(String.raw`(^[^\n]*)(<html[^>]*>)([\s\S]*?)<\/html>`, "gm");
 		this._preTagRegExp = new RegExp(String.raw`<pre>([\s\S]*?)<\/pre>`, "gm");
 	}
 
@@ -170,7 +172,7 @@ export default class MdParser {
 	}
 
 	private _htmlParser(content: string): string {
-		return content.replaceAll(this._findHtmlRegExp, (_: string, firstGroup: string, secondGroup: string) => {
+		content = content.replaceAll(this._findHtmlRegExp, (_: string, firstGroup: string, secondGroup: string) => {
 			const group = secondGroup;
 			if (!group) return `{%html %}${secondGroup}{%/html%}`;
 			const space = " ".repeat(firstGroup.length);
@@ -178,6 +180,18 @@ export default class MdParser {
 				/\[html:(.*?)\]/.exec(_)?.[1] || "iframe"
 			}" %}\n${space}\`\`\`\n${secondGroup}\n${space}\`\`\`\n${space}{%/html%}`;
 		});
+
+		content = content.replaceAll(
+			this._findHtmlTagRegExp,
+			(_: string, firstGroup: string, htmlTag: string, secondGroup: string) => {
+				const group = secondGroup;
+				if (!group) return `${htmlTag}${secondGroup}</html>`;
+				const space = " ".repeat(firstGroup.length);
+				return `${firstGroup}${htmlTag}\n${space}\`\`\`\n${secondGroup}\n${space}\`\`\`\n${space}</html>`;
+			},
+		);
+
+		return content;
 	}
 
 	private _parse(split: string[], tag: Schema): string {

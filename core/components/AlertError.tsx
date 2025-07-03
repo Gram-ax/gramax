@@ -8,12 +8,13 @@ import { ReactElement } from "react";
 interface AlertErrorProps {
 	title?: string;
 	error: { message: string; stack?: string };
+	isHtmlMessage?: boolean;
 }
 
-const AlertError = ({ title, error }: AlertErrorProps): ReactElement => {
+const AlertError = ({ title, error, isHtmlMessage }: AlertErrorProps): ReactElement => {
 	return (
 		<Alert title={title ?? t("app.error.something-went-wrong")} type={AlertType.error}>
-			<div>{error.message}</div>
+			{isHtmlMessage ? <div dangerouslySetInnerHTML={{ __html: error.message }} /> : <div>{error.message}</div>}
 			{error.stack && (
 				<Note title={t("alert.details")} disableRender={true} collapsed={true} type={NoteType.danger}>
 					<CodeBlock value={error.stack} />

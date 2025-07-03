@@ -26,6 +26,7 @@ export default defineConfig(({ isSsrBuild }) => {
 	}
 
 	return mergeConfig(browserConfig, {
+		base: "",
 		ssr: {
 			noExternal: /^(?!shelljs$|graceful-fs$)/,
 		},

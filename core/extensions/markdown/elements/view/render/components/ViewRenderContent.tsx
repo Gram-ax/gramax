@@ -4,6 +4,7 @@ import { PropertyValue, ViewRenderGroup } from "@ext/properties/models";
 import { getDisplayComponent } from "@ext/properties/models/displays";
 import { Display } from "@ext/properties/models/display";
 import { memo } from "react";
+import { ClientCatalogProps } from "@core/SitePresenter/SitePresenter";
 
 interface ViewRenderContentProps {
 	content: ViewRenderGroup[];
@@ -14,6 +15,7 @@ interface ViewRenderContentProps {
 	select: string[];
 	className?: string;
 	disabled?: boolean;
+	catalogProps: ClientCatalogProps;
 	updateArticle?: (articlePath: string, property: string, value: string, isDelete?: boolean) => void;
 }
 

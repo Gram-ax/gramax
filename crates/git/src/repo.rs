@@ -5,6 +5,7 @@ use std::borrow::Cow;
 use std::path::Path;
 
 use crate::creds::*;
+use crate::prelude::Branch;
 use crate::prelude::BranchEntry;
 use crate::remote_callback::push_update_reference_callback;
 use crate::remote_callback::ssl_callback;
@@ -96,13 +97,13 @@ impl<C: Creds> Repo<C> {
     self.ensure_remote_has_postfix(&remote)?;
 
     let refspec = match force {
-      true => &["+refs/heads/*:refs/heads/*"],
-      false => &["refs/heads/*:refs/remotes/origin/*"],
+      true => ["+refs/*:refs/*"],
+      false => ["refs/heads/*:refs/remotes/origin/*"],
     };
 
     info!(target: TAG, "fetching at {}{}; refspecs: {:?}", self.0.path().display(), if force { " (force)" } else { "" }, refspec);
 
-    remote.fetch(refspec, Some(&mut opts), None)?;
+    remote.fetch(&refspec, Some(&mut opts), None)?;
     Ok(())
   }
 
@@ -121,15 +122,15 @@ impl<C: Creds> Repo<C> {
     let head = self.0.head()?;
     let mut remote = self.0.find_remote("origin")?;
     self.ensure_remote_has_postfix(&remote)?;
+    let should_set_upstream = self.ensure_branch_has_upstream(head.shorthand().or_utf8_err()?)?;
     let refspec = head.name().or_utf8_err()?;
 
     info!(target: TAG, "pushing refspec {}", refspec);
 
     remote.push(&[refspec], Some(&mut push_opts))?;
-    if let Ok(mut branch) = self.0.find_branch(head.shorthand().or_utf8_err()?, BranchType::Local) {
-      if branch.upstream().is_err() {
-        branch.set_upstream(Some(&format!("origin/{}", branch.name()?.or_utf8_err()?)))?;
-      }
+
+    if should_set_upstream {
+      self.ensure_branch_has_upstream(head.shorthand().or_utf8_err()?)?;
     }
 
     Ok(())

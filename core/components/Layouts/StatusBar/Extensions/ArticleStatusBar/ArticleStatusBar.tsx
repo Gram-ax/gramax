@@ -1,15 +1,18 @@
+import NavigationTabsService from "@components/Layouts/LeftNavigationTabs/NavigationTabsService";
+import BranchErrorElement from "@components/Layouts/StatusBar/Extensions/ArticleStatusBar/BranchErrorElements";
 import ShowPublishBar from "@components/Layouts/StatusBar/Extensions/ShowPublishBar";
 import FetchService from "@core-ui/ApiServices/FetchService";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import { usePlatform } from "@core-ui/hooks/usePlatform";
-import getIsDevMode from "@core-ui/utils/getIsDevMode";
 import styled from "@emotion/styled";
 import ProtectedBranch from "@ext/catalog/actions/ProtectedBranch";
+import DefaultError from "@ext/errorHandlers/logic/DefaultError";
 import BranchUpdaterService from "@ext/git/actions/Branch/BranchUpdaterService/logic/BranchUpdaterService";
 import OnBranchUpdateCaller from "@ext/git/actions/Branch/BranchUpdaterService/model/OnBranchUpdateCaller";
 import BranchTab from "@ext/git/actions/Branch/components/BranchTab";
-import ArticlePublishTrigger from "@ext/git/actions/Publish/components/ArticlePublishTrigger";
+import RevisionsTab from "@ext/git/actions/Revisions/components/RevisionsTab/RevisionsTab";
+import ShowRevisionsTab from "@ext/git/actions/Revisions/components/RevisionsTab/ShowRevisionsTab";
 import type GitBranchData from "@ext/git/core/GitBranch/model/GitBranchData";
 import MergeRequestTab from "@ext/git/core/GitMergeRequest/components/MergeRequestTab";
 import ShowMergeRequest from "@ext/git/core/GitMergeRequest/components/ShowMergeRequest";
@@ -21,17 +24,21 @@ import Branch from "../../../../../extensions/git/actions/Branch/components/Bran
 import Sync from "../../../../../extensions/git/actions/Sync/components/Sync";
 import IsReadOnlyHOC from "../../../../../ui-logic/HigherOrderComponent/IsReadOnlyHOC";
 import StatusBar from "../../StatusBar";
-import NavigationTabsService from "@components/Layouts/LeftNavigationTabs/NavigationTabsService";
+import CatalogPropsService from "@core-ui/ContextServices/CatalogProps";
 
 export enum LeftNavigationTab {
 	None,
+
 	MergeRequest,
 	Publish,
-	Inbox,
 	Branch,
+	Revisions,
+
+	Inbox,
 	Template,
 	Snippets,
 	Prompt,
+	FavoriteArticles,
 }
 
 const Wrapper = styled.div`
@@ -46,18 +53,19 @@ const Wrapper = styled.div`
 
 const ArticleStatusBar = ({ isStorageInitialized, padding }: { isStorageInitialized: boolean; padding?: string }) => {
 	const apiUrlCreator = ApiUrlCreatorService.value;
-	const [isDevMode] = useState(() => getIsDevMode());
 	const { isNext } = usePlatform();
 	const isReadOnly = PageDataContextService.value.conf.isReadOnly;
 
 	const [branch, setBranch] = useState<GitBranchData>(null);
+	const [branchError, setBranchError] = useState<DefaultError>(null);
 	const [mergeRequestIsDraft, setMergeRequestIsDraft] = useState(false);
 	const [mergeRequest, setMergeRequest] = useState<MergeRequest>(null);
+	const catalogName = CatalogPropsService.value?.name
 
 	const { bottomTab } = NavigationTabsService.value;
 
 	const setupMergeRequestState = async (branch: GitBranchData, caller: OnBranchUpdateCaller) => {
-		if (!isDevMode || isNext) return;
+		if (isNext) return;
 
 		const response = await FetchService.fetch<MergeRequest | undefined>(apiUrlCreator.getDraftMergeRequest());
 		const data = response.ok ? await response.json() : null;
@@ -79,11 +87,37 @@ const ArticleStatusBar = ({ isStorageInitialized, padding }: { isStorageInitiali
 			if (!isNext && caller === OnBranchUpdateCaller.Checkout) refreshPage();
 		};
 
+		const onError = (error: DefaultError) => setBranchError(error);
+
 		BranchUpdaterService.addListener(onUpdateBranch);
 		BranchUpdaterService.updateBranch(apiUrlCreator, OnBranchUpdateCaller.Init);
 
-		return () => BranchUpdaterService.removeListener(onUpdateBranch);
-	}, [isStorageInitialized]);
+		BranchUpdaterService.addOnErrorListener(onError);
+
+		return () => {
+			BranchUpdaterService.removeListener(onUpdateBranch);
+			BranchUpdaterService.removeOnErrorListener(onError);
+		};
+	}, [isStorageInitialized, catalogName]);
+
+	const storageConnection = !isStorageInitialized
+		? [<ConnectStorage key={0} />]
+		: [
+				<Sync key={0} style={{ height: "100%" }} />,
+				!isNext && isReadOnly && <ProtectedBranch key={1} />,
+				<IsReadOnlyHOC key={2}>
+					<ShowPublishBar
+						isShow={bottomTab === LeftNavigationTab.Publish}
+						onClick={() => {
+							NavigationTabsService.setBottom(
+								bottomTab === LeftNavigationTab.Publish
+									? LeftNavigationTab.None
+									: LeftNavigationTab.Publish,
+							);
+						}}
+					/>
+				</IsReadOnlyHOC>,
+		  ];
 
 	return (
 		<Wrapper>
@@ -104,6 +138,12 @@ const ArticleStatusBar = ({ isStorageInitialized, padding }: { isStorageInitiali
 				onClose={() => NavigationTabsService.setBottom(LeftNavigationTab.None)}
 				onMergeRequestCreate={() => setupMergeRequestState(branch, OnBranchUpdateCaller.MergeRequest)}
 			/>
+			<RevisionsTab
+				show={bottomTab === LeftNavigationTab.Revisions}
+				setShow={(show) =>
+					NavigationTabsService.setBottom(show ? LeftNavigationTab.Revisions : LeftNavigationTab.None)
+				}
+			/>
 			<PublishTab
 				show={bottomTab === LeftNavigationTab.Publish}
 				setShow={(show) =>
@@ -113,10 +153,10 @@ const ArticleStatusBar = ({ isStorageInitialized, padding }: { isStorageInitiali
 			<StatusBar
 				padding={padding}
 				leftElements={
-					isStorageInitialized
+					isStorageInitialized && !branchError
 						? [
 								<Branch
-									key={0}
+									key={LeftNavigationTab.Branch}
 									show={bottomTab === LeftNavigationTab.Branch}
 									branch={branch}
 									onClick={() =>
@@ -128,7 +168,7 @@ const ArticleStatusBar = ({ isStorageInitialized, padding }: { isStorageInitiali
 									}
 								/>,
 								<ShowMergeRequest
-									key={1}
+									key={LeftNavigationTab.MergeRequest}
 									mergeRequest={mergeRequest}
 									isShow={bottomTab === LeftNavigationTab.MergeRequest}
 									setShow={() =>
@@ -139,45 +179,22 @@ const ArticleStatusBar = ({ isStorageInitialized, padding }: { isStorageInitiali
 										)
 									}
 								/>,
+								<ShowRevisionsTab
+									key={LeftNavigationTab.Revisions}
+									isShow={bottomTab === LeftNavigationTab.Revisions}
+									setShow={() =>
+										NavigationTabsService.setBottom(
+											bottomTab === LeftNavigationTab.Revisions
+												? LeftNavigationTab.None
+												: LeftNavigationTab.Revisions,
+										)
+									}
+								/>,
 						  ]
 						: []
 				}
 				rightElements={
-					!isStorageInitialized
-						? [<ConnectStorage key={0} />]
-						: [
-								<Sync key={0} style={{ height: "100%" }} />,
-								!isNext && isReadOnly && <ProtectedBranch key={1} />,
-								<IsReadOnlyHOC key={2}>
-									{isDevMode ? (
-										<ShowPublishBar
-											isShow={bottomTab === LeftNavigationTab.Publish}
-											onClick={() => {
-												NavigationTabsService.setBottom(
-													bottomTab === LeftNavigationTab.Publish
-														? LeftNavigationTab.None
-														: LeftNavigationTab.Publish,
-												);
-											}}
-										/>
-									) : (
-										<ArticlePublishTrigger
-											onDiscard={() =>
-												BranchUpdaterService.updateBranch(
-													apiUrlCreator,
-													OnBranchUpdateCaller.Init,
-												)
-											}
-											onPublish={() =>
-												BranchUpdaterService.updateBranch(
-													apiUrlCreator,
-													OnBranchUpdateCaller.Init,
-												)
-											}
-										/>
-									)}
-								</IsReadOnlyHOC>,
-						  ]
+					branchError ? [<BranchErrorElement key={0} errorText={branchError.message} />] : storageConnection
 				}
 			/>
 		</Wrapper>

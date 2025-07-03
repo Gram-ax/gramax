@@ -10,6 +10,7 @@ pub trait ShowError<T, E: std::error::Error> {
 impl<T, E: std::error::Error> ShowError<T, E> for Result<T, E> {
   fn or_show_with_message(self, message: &str) -> Result<T, E> {
     if let Err(ref err) = self {
+      #[cfg(not(target_os = "android"))]
       rfd::MessageDialog::new()
         .set_level(rfd::MessageLevel::Error)
         .set_title(t!("etc.error.title"))
@@ -22,6 +23,7 @@ impl<T, E: std::error::Error> ShowError<T, E> for Result<T, E> {
 
   fn or_show(self) -> Result<T, E> {
     if let Err(ref err) = self {
+      #[cfg(not(target_os = "android"))]
       rfd::MessageDialog::new()
         .set_level(rfd::MessageLevel::Error)
         .set_title(t!("etc.error.title"))
@@ -73,6 +75,7 @@ fn panic_hook(#[allow(unused_variables)] bugsnag: &BugsnagNotificationBuilder, p
     message = panic_message
   );
 
+  #[cfg(not(target_os = "android"))]
   rfd::MessageDialog::new()
     .set_title("Gramax was crashed")
     .set_level(rfd::MessageLevel::Error)

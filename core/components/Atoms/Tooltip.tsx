@@ -42,6 +42,7 @@ const Tooltip = forwardRef((props: TooltipProps, ref?: RefObject<Element>) => {
 		setPlaceCallback = () => {},
 		interactive = false,
 		delay = 0,
+		interactiveBorder = 10,
 		inverseStyle,
 		appendTo = () => document.body,
 		...otherProps
@@ -74,9 +75,10 @@ const Tooltip = forwardRef((props: TooltipProps, ref?: RefObject<Element>) => {
 				)
 			}
 			duration={0}
-			trigger={trigger}
+			trigger={visible ? undefined : trigger}
 			visible={visible}
 			placement={place}
+			interactiveBorder={interactiveBorder}
 			offset={[0, distance]}
 			hideOnClick={visible !== undefined && !hideOnClick ? undefined : hideOnClick}
 			onMount={(instance) => {

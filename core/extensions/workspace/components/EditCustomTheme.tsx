@@ -1,10 +1,9 @@
 import t from "@ext/localization/locale/translate";
-import Theme from "@ext/Theme/Theme";
 import EditStyles from "@ext/workspace/components/EditStyles";
 import LogoUploader, { UpdateResource } from "@ext/workspace/components/LogoUploader";
 import { Button } from "@ui-kit/Button";
-import { FormField, FormItemTitle } from "@ui-kit/Form";
-import { memo } from "react";
+import { FormField } from "@ui-kit/Form";
+import { memo, useMemo } from "react";
 
 interface EditWorkspaceAssetsProps {
 	lightLogo?: string;
@@ -37,19 +36,29 @@ const EditWorkspaceAssets = memo((props: EditWorkspaceAssetsProps) => {
 		formProps,
 	} = props;
 
+	const defaultLightFileInfo = useMemo(() => {
+		if (!lightLogo) return;
+
+		return { name: "logo_for_light.svg", url: lightLogo };
+	}, [lightLogo, isLoadingLight]);
+
+	const defaultDarkFileInfo = useMemo(() => {
+		if (!darkLogo) return;
+
+		return { name: "logo_for_dark.svg", url: darkLogo };
+	}, [isLoadingDark, darkLogo]);
+
 	return (
 		<>
 			<FormField
 				name="lightLogo"
-				title={t("workspace.logo")}
-				description={t("workspace.default-logo-description")}
-				control={({ field }) => (
+				title={t("file-input.logo-light")}
+				description={t("file-input.both-themes-if-no-dark")}
+				control={() => (
 					<LogoUploader
 						deleteResource={deleteLightLogo}
 						updateResource={updateLightLogo}
-						logo={lightLogo}
-						isLoading={isLoadingLight}
-						imageTheme={Theme.light}
+						defaultFileInfo={defaultLightFileInfo}
 					/>
 				)}
 				{...formProps}
@@ -57,19 +66,14 @@ const EditWorkspaceAssets = memo((props: EditWorkspaceAssetsProps) => {
 
 			<FormField
 				name="darkLogo"
-				title=""
-				description={t("workspace.dark-logo-description")}
-				control={({ field }) => (
-					<>
-						<FormItemTitle as={"h4"} children={t("workspace.for-dark-theme")} />
-						<LogoUploader
-							deleteResource={deleteDarkLogo}
-							updateResource={updateDarkLogo}
-							logo={darkLogo}
-							isLoading={isLoadingDark}
-							imageTheme={Theme.dark}
-						/>
-					</>
+				title={t("file-input.logo-dark")}
+				description={t("file-input.dark-theme-only")}
+				control={() => (
+					<LogoUploader
+						deleteResource={deleteDarkLogo}
+						updateResource={updateDarkLogo}
+						defaultFileInfo={defaultDarkFileInfo}
+					/>
 				)}
 				{...formProps}
 			/>
@@ -78,9 +82,9 @@ const EditWorkspaceAssets = memo((props: EditWorkspaceAssetsProps) => {
 				name="cssStyles"
 				title={t("workspace.css-style")}
 				description={t("workspace.css-styles-description")}
-				control={({ field }) => (
+				control={() => (
 					<EditStyles revertCustomCss={revertCustomCss} setCustomCss={setCustomCss} customCss={customCss}>
-						<Button startIcon="palette" type="button" variant="primary" style={{ width: "100%" }}>
+						<Button startIcon="palette" type="button" variant="outline" style={{ width: "100%" }}>
 							{t("edit2")}
 						</Button>
 					</EditStyles>

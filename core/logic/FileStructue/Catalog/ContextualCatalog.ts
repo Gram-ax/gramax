@@ -47,7 +47,7 @@ export default class ContextualCatalog<P extends CatalogProps = CatalogProps> im
 	get basePath() {
 		return this.deref.basePath;
 	}
-	
+
 	get props() {
 		const mutableProps = { props: this.deref.props };
 		this._events.emitSync("props-resolve", { mutableProps });
@@ -80,10 +80,6 @@ export default class ContextualCatalog<P extends CatalogProps = CatalogProps> im
 
 	getRelativeRootCategoryPath(): Path {
 		return this.deref.getRelativeRootCategoryPath();
-	}
-
-	async getHeadVersion(): Promise<ReadonlyCatalog<P>> {
-		return (await this.deref.getHeadVersion()).ctx(this._ctx);
 	}
 
 	getRepositoryRelativePath(ref: Path | ItemRef): Path {

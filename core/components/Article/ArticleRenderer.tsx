@@ -20,6 +20,7 @@ import Renderer from "../../extensions/markdown/core/render/components/Renderer"
 import getComponents from "../../extensions/markdown/core/render/components/getComponents/getComponents";
 import Header from "../../extensions/markdown/elements/heading/render/component/Header";
 import ArticleUpdater from "./ArticleUpdater/ArticleUpdater";
+import PropertyService from "@ext/properties/components/PropertyService";
 
 interface ArticleRendererProps {
 	data: ArticlePageData;
@@ -37,10 +38,12 @@ export const ArticleEditRenderer = (props: ArticleRendererProps) => {
 
 	const router = useRouter();
 	const apiUrlCreator = ApiUrlCreatorService.value;
-	const articleProps = ArticlePropsService.value;
+	const { value: articleProps, setArticleProps, setTocItems } = ArticlePropsService;
+	const propertyService = PropertyService.value;
 
 	const apiUrlCreatorRef = useRef(apiUrlCreator);
 	const articlePropsRef = useRef(articleProps);
+	const propertyServiceRef = useRef(propertyService);
 	const editorUpdateContent = EditorService.createOnUpdateCallback();
 	const updateTitle = EditorService.createUpdateTitleFunction();
 	const editorHandlePaste = EditorService.createHandlePasteCallback(resourceService);
@@ -48,7 +51,8 @@ export const ArticleEditRenderer = (props: ArticleRendererProps) => {
 	useWatch(() => {
 		apiUrlCreatorRef.current = apiUrlCreator;
 		articlePropsRef.current = articleProps;
-	}, [apiUrlCreator, articleProps]);
+		propertyServiceRef.current = propertyService;
+	}, [apiUrlCreator, articleProps, propertyService.articleProperties]);
 
 	useEffect(() => {
 		setActualData(data);
@@ -56,7 +60,7 @@ export const ArticleEditRenderer = (props: ArticleRendererProps) => {
 
 	const onUpdate = (newData: ArticlePageData) => {
 		setActualData(newData);
-		ArticlePropsService.set(newData.articleProps);
+		setArticleProps(newData.articleProps);
 	};
 
 	const updateContent = useCallback(async (editor: Editor) => {
@@ -75,6 +79,7 @@ export const ArticleEditRenderer = (props: ArticleRendererProps) => {
 				{
 					apiUrlCreator: apiUrlCreatorRef.current,
 					articleProps: articlePropsRef.current,
+					propertyService: propertyServiceRef.current,
 				},
 				router,
 				newTitle,
@@ -104,6 +109,7 @@ export const ArticleEditRenderer = (props: ArticleRendererProps) => {
 					{
 						apiUrlCreator: apiUrlCreatorRef.current,
 						articleProps: articlePropsRef.current,
+						propertyService: propertyServiceRef.current,
 					},
 					router,
 					newTitle,
@@ -115,7 +121,7 @@ export const ArticleEditRenderer = (props: ArticleRendererProps) => {
 
 	const onContentUpdate = ({ editor }: { editor: Editor }) => {
 		const tocItems = getTocItems(getLevelTocItemsByJSONContent(editor.state.doc));
-		if (tocItems) ArticlePropsService.tocItems = tocItems;
+		if (tocItems) setTocItems([...tocItems]);
 
 		typeof window !== "undefined" && (window.forceSave = () => updateContent(editor));
 

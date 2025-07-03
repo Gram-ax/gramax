@@ -23,10 +23,10 @@ import type MarkdownParser from "@ext/markdown/core/Parser/Parser";
 import type ParserContextFactory from "@ext/markdown/core/Parser/ParserContext/ParserContextFactory";
 import IconProvider from "@ext/markdown/elements/icon/logic/IconProvider";
 import SnippetProvider from "@ext/markdown/elements/snippet/logic/SnippetProvider";
+import CatalogLinksProvider from "@ext/properties/logic/CatalogLinksProvider";
 import { SystemProperties } from "@ext/properties/models";
 import Permission from "@ext/security/logic/Permission/Permission";
 import TemplateProvider from "@ext/templates/logic/TemplateProvider";
-import GitTreeFileProvider from "@ext/versioning/GitTreeFileProvider";
 import assert from "assert";
 import { FileStatus } from "../../../extensions/Watchers/model/FileStatus";
 import IPermission from "../../../extensions/security/logic/Permission/IPermission";
@@ -72,9 +72,9 @@ export class Catalog<P extends CatalogProps = CatalogProps>
 		inboxProvider: InboxProvider;
 		templateProvider: TemplateProvider;
 		promptProvider: PromptProvider;
+		linksProvider: CatalogLinksProvider;
 	};
 
-	private _headVersion: Promise<Catalog<P>>;
 	private _parsedOnce = false;
 
 	constructor(init: CatalogInitProps<P>) {
@@ -91,6 +91,7 @@ export class Catalog<P extends CatalogProps = CatalogProps>
 			inboxProvider: new InboxProvider(this._fp, this._fs, this),
 			templateProvider: new TemplateProvider(this._fp, this._fs, this),
 			promptProvider: new PromptProvider(this._fp, this._fs, this),
+			linksProvider: new CatalogLinksProvider(this._fs, this),
 		};
 	}
 
@@ -140,6 +141,7 @@ export class Catalog<P extends CatalogProps = CatalogProps>
 	setRepository(repo: Repository) {
 		this.repo = repo;
 		if (!this.repo.gvc) return;
+		this._events.emitSync("repository-set", { catalog: this });
 		this.repo.gvc.events.on("files-changed", async ({ items }) => {
 			await this.update();
 
@@ -151,26 +153,9 @@ export class Catalog<P extends CatalogProps = CatalogProps>
 			);
 		});
 		this.repo.events.on("publish", () => {
-			this._headVersion = null;
 			this.repo?.resetCachedStatus();
 			this._searcher.resetCache();
 		});
-		this.repo.events.on("checkout", () => {
-			this._headVersion = null;
-		});
-		this.repo.events.on("sync", ({ isVersionChanged }) => {
-			if (isVersionChanged) this._headVersion = null;
-		});
-	}
-
-	getHeadVersion(): Promise<Catalog<P>> {
-		// eslint-disable-next-line @typescript-eslint/no-misused-promises
-		if (!this._headVersion) {
-			if (!this.repo.gvc) return null;
-			const headPath = GitTreeFileProvider.scoped(this.basePath, null);
-			this._headVersion = this._fs.getCatalogByPath(headPath, false) as Promise<Catalog<P>>;
-		}
-		return this._headVersion;
 	}
 
 	getRepositoryRelativePath(ref: Path | ItemRef): Path {
@@ -453,10 +438,6 @@ export class Catalog<P extends CatalogProps = CatalogProps>
 		}
 	}
 
-	protected _setHeadVersion(headVersion: Promise<Catalog<P>>) {
-		this._headVersion = headVersion;
-	}
-
 	private _resolveRootCategory() {
 		return this._rootCategory;
 	}
@@ -537,7 +518,6 @@ export class Catalog<P extends CatalogProps = CatalogProps>
 	}
 
 	private _update(catalog: Catalog<P>) {
-		catalog._setHeadVersion(this._headVersion);
 		this.name = catalog.name;
 		this.basePath = catalog.basePath;
 		this._rootCategory = catalog._rootCategory;
@@ -576,7 +556,8 @@ export class Catalog<P extends CatalogProps = CatalogProps>
 	}
 
 	private async _getCategoryUniqueName(name: string, dir: Path) {
-		const readdir = await this._fp.readdir(dir);
+		const exist = await this._fp.exists(dir);
+		const readdir = exist ? await this._fp.readdir(dir) : [];
 		const paths = readdir.map((r) => new Path(r).name);
 		return dir.join(new Path(uniqueName(name, paths)));
 	}

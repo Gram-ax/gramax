@@ -2,20 +2,21 @@ import Icon from "@components/Atoms/Icon";
 import Tooltip from "@components/Atoms/Tooltip";
 import PopupMenuLayout from "@components/Layouts/PopupMenuLayout";
 import ButtonLink from "@components/Molecules/ButtonLink";
+import { SheetColumn } from "@core-ui/utils/Sheet";
 import styled from "@emotion/styled";
 import t from "@ext/localization/locale/translate";
 import { PopoverItem, TriggerParent } from "@ext/markdown/elements/table/edit/components/Helpers/PlusMenu";
 import {
 	getAggregatedValue,
-	getCellsColumnData,
-	getCellsInColumn,
 	getFormattedValue,
 	getFormatter,
 } from "@ext/markdown/elements/table/edit/logic/aggregation";
+import TableNodeSheet from "@ext/markdown/elements/table/edit/logic/TableNodeSheet";
 import { getFirstTdPosition } from "@ext/markdown/elements/table/edit/logic/utils";
 import {
 	AggregationMethod,
 	aggregationMethodIcons,
+	ColumnData,
 	methodsWithTooltip,
 } from "@ext/markdown/elements/table/edit/model/tableTypes";
 import { Editor } from "@tiptap/core";
@@ -24,6 +25,7 @@ import { useRef, useState } from "react";
 
 interface AggregationPopupProps {
 	editor: Editor;
+	tableSheet: TableNodeSheet;
 	node: Node;
 	cell: Node;
 	index: number;
@@ -39,7 +41,7 @@ export const AggregationItem = styled.div`
 
 type AggregationData = string[];
 
-const AggregationPopup = ({ editor, node, cell, index, getPos }: AggregationPopupProps) => {
+const AggregationPopup = ({ editor, tableSheet, node, cell, index, getPos }: AggregationPopupProps) => {
 	const [aggregationData, setAggregationData] = useState<AggregationData>([]);
 	const submenuRef = useRef<HTMLDivElement>(null);
 
@@ -60,10 +62,26 @@ const AggregationPopup = ({ editor, node, cell, index, getPos }: AggregationPopu
 		const isColumnHeader = table.dataset.header === "column";
 		const startRow = isRowHeader ? 1 : 0;
 
-		const cells = isColumnHeader ? [] : getCellsInColumn(table, index);
+		const cells = isColumnHeader ? [] : tableSheet.getColumn(index);
 		const formatter = getFormatter();
 		const lastRow = table.lastElementChild.lastElementChild as HTMLTableRowElement;
 		const lastRowIsAggregated = lastRow.dataset.aggregation === "true";
+
+		const getCellsColumnData = (cells: SheetColumn<number>): ColumnData => {
+			const data: ColumnData = [];
+
+			for (let colIndex = 0; colIndex < cells.length; colIndex++) {
+				const cell = cells[colIndex];
+				if (!cell) continue;
+
+				const node = editor.view.domAtPos(cell + 1);
+				if (!node) continue;
+
+				data.push(node.node.textContent?.trim() || "");
+			}
+
+			return data;
+		};
 
 		for (const name in AggregationMethod) {
 			const data = getCellsColumnData(cells).slice(startRow, lastRowIsAggregated ? -1 : undefined);

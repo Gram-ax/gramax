@@ -3,7 +3,7 @@ import Context from "@core/Context/Context";
 import Path from "@core/FileProvider/Path/Path";
 import DefaultError from "@ext/errorHandlers/logic/DefaultError";
 import t from "@ext/localization/locale/translate";
-import CloudApi from "@ext/static/logic/CloudApi";
+import VersionedCloudApi from "@ext/static/logic/VersionedCloudApi";
 import convertCatalogLink from "@ext/static/logic/convertCatalogLink";
 import ZipFileProvider from "@ext/static/logic/ZipFileProvider";
 import StaticSiteBuilder from "../../../../apps/gramax-cli/src/logic/StaticSiteBuilder";
@@ -22,7 +22,7 @@ const uploadStatic: Command<{ ctx: Context; catalogName: string }, void> = Comma
 			const workspaceConfig = await wm.current().config();
 			const cloudServiceUrl = workspaceConfig.services?.cloud?.url;
 			if (!cloudServiceUrl) throw new Error("Cloud service URL is not set");
-			const cloudApi = new CloudApi(cloudServiceUrl);
+			const cloudApi = new VersionedCloudApi(cloudServiceUrl);
 			if (!(await cloudApi.getServerState())) throw new DefaultError(t("cloud.error.failed-to-connect"));
 
 			const htmlTemplate = await cloudApi.getTemplateHtml();

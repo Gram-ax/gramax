@@ -13,9 +13,9 @@ import { logStep } from "../utils/logger";
 export const importYandexCommandFunction = async (options: ImportYandexOptions) => {
 	const { raw, config: pathToConfig, destination: pathToDistDir } = options;
 
-	const config = await loadConfig(resolve(pathToConfig, CONFIG_NAME));
-	const headers = config?.import?.yandex?.headers;
+	const config = await loadConfig(resolve(pathToConfig, CONFIG_NAME), true);
 
+	const headers = config?.import?.yandex?.headers;
 	if (!headers) throw new Error("Headers are not defined in configuration");
 
 	const requiredKeys = ["x-csrf-token", "x-org-id", "cookie"];
@@ -42,5 +42,5 @@ export const importYandexCommandFunction = async (options: ImportYandexOptions) 
 
 	ChalkLogger.log();
 	ChalkLogger.log(`The catalog has been successfully exported. Saved to:`, { prefix: "SUCCESS" });
-	ChalkLogger.log(InternalPath.pathToOut, { indent: 1 });
+	ChalkLogger.log(InternalPath.pathToOutDir, { indent: 1 });
 };

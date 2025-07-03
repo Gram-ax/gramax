@@ -37,6 +37,7 @@ import unsupportedToken from "@ext/markdown/elements/unsupported/edit/model/unsu
 import viewToken from "@ext/markdown/elements/view/edit/models/viewToken";
 import { ParseSpec } from "./from_markdown";
 import blockPropertyToken from "@ext/markdown/elements/blockProperty/edit/models/blockPropertyToken";
+import inlineImageToken from "@ext/markdown/elements/inlineImage/edit/models/token";
 
 function listIsTight(tokens, i) {
 	while (++i < tokens.length) if (tokens[i].type != "list_item_open") return tokens[i].hidden;
@@ -61,6 +62,7 @@ export const getTokens = (context?: ParserContext): { [name: string]: ParseSpec 
 		unsupported: unsupportedToken,
 		tabs: tabsToken,
 		image: imageToken(),
+		inlineImage: inlineImageToken(),
 		fence: fenceToken(),
 		drawio: drawioToken(),
 		openapi: openApiToken,

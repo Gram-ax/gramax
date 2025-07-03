@@ -15,6 +15,7 @@ import { headingHandler } from "@ext/markdown/elements/heading/pdf/heading";
 import { hrHandler } from "@ext/markdown/elements/hr/pdf/hr";
 import { imageHandler } from "@ext/markdown/elements/image/pdf/image";
 import { includeHandler } from "@ext/markdown/elements/include/pdf/include";
+import { inlineImageHandler } from "@ext/markdown/elements/inlineImage/pdf/inlineImage";
 import { inlinePropertyHandler } from "@ext/markdown/elements/inlineProperty/pdf/inlineProperty";
 import { issueHandler } from "@ext/markdown/elements/issue/pdf/issue";
 import { kbdHandler } from "@ext/markdown/elements/kbd/pdf/kbd";
@@ -56,6 +57,7 @@ export const inlineLayouts = {
 	Br: brHandler,
 	br: brHandler,
 	"inline-property": inlinePropertyHandler,
+	inlineImage: inlineImageHandler,
 	// Icon,
 	//Formula,
 	//Fn

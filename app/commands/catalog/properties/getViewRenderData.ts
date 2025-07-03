@@ -30,7 +30,7 @@ const getViewRenderData: Command<
 	middlewares: [new ReloadConfirmMiddleware()],
 
 	async do({ display, catalogName, defs, orderby, groupby, select, articlePath, ctx }) {
-		const { wm } = this._app;
+		const { wm, parserContextFactory, parser } = this._app;
 		const workspace = wm.current();
 		const catalog = await workspace.getCatalog(catalogName, ctx);
 		if (!catalog) return [];
@@ -53,6 +53,9 @@ const getViewRenderData: Command<
 			catalog,
 			display,
 			itemFilters,
+			parserContextFactory,
+			parser,
+			ctx,
 		).getFilteredArticles();
 	},
 

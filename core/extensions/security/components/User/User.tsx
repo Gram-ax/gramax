@@ -1,46 +1,49 @@
 import Date from "@components/Atoms/Date";
+import Tooltip from "@components/Atoms/Tooltip";
 import UserCircle from "@components/Atoms/UserCircle";
+import { DateType } from "@core-ui/utils/dateUtils";
 import styled from "@emotion/styled";
 
-const User = styled(
-	({
-		date,
-		name,
-		dateAdd,
-		comment,
-		actions,
-		className,
-	}: {
-		date: string;
-		name: string;
-		mail?: string;
-		dateAdd?: JSX.Element;
-		comment?: JSX.Element;
-		actions?: JSX.Element;
-		className?: string;
-	}) => {
-		return (
-			<div className={className}>
-				<div className="comment-with-user">
-					<div className="user-circle">
-						<UserCircle name={name} />
-					</div>
-					<div className="comment-content">
-						<div className="head">
-							<div className="user-data">
+interface UserProps {
+	date: DateType;
+	name: string;
+	mail?: string;
+	dateAdd?: JSX.Element;
+	comment?: JSX.Element;
+	actions?: JSX.Element;
+	tooltipDelay?: number;
+	className?: string;
+}
+
+const UserUnstyled = (props: UserProps) => {
+	const { date, name, mail, dateAdd, comment, actions, className, tooltipDelay } = props;
+	return (
+		<div className={className}>
+			<div className="comment-with-user">
+				<div className="user-circle">
+					<UserCircle name={name} />
+				</div>
+				<div className="comment-content">
+					<div className="head">
+						<div className="user-data">
+							<Tooltip content={mail} interactive delay={tooltipDelay}>
 								<div className="username">{name}</div>
-								<Date date={date} className="date" />
+							</Tooltip>
+							<div className="date-container">
+								<Date date={date} className="date" tooltipDelay={tooltipDelay} />
 								{dateAdd ? dateAdd : null}
 							</div>
-							{actions ? <div className="actions">{actions}</div> : null}
 						</div>
-						{comment ? <div className="editer">{comment}</div> : null}
+						{actions ? <div className="actions">{actions}</div> : null}
 					</div>
+					{comment ? <div className="editer">{comment}</div> : null}
 				</div>
 			</div>
-		);
-	},
-)`
+		</div>
+	);
+};
+
+const User = styled(UserUnstyled)`
 	.comment-with-user {
 		display: flex;
 		flex-direction: row;
@@ -73,7 +76,6 @@ const User = styled(
 	}
 
 	.username {
-		${(p) => (p.mail ? "text-decoration: underline;" : null)}
 		font-weight: 400;
 		margin-right: 8px;
 		overflow: hidden;

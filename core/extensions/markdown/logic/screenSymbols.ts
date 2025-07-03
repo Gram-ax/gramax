@@ -2,7 +2,7 @@ const screenSymbols = (str: string): string => {
 	if (!str) return "";
 	const specialCharacters = {
 		"\\": "\\\\",
-		"'": "\\'",
+		// "'": "\\'",
 		'"': '\\"',
 		// $: "\\$",
 		"\n": "\\n",

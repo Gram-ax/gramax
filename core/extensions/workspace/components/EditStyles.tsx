@@ -2,9 +2,8 @@ import PureLink, { LinkTheme } from "@components/Atoms/PureLink";
 import { usePlatform } from "@core-ui/hooks/usePlatform";
 import { Button } from "@ui-kit/Button";
 import FileInput from "@components/Atoms/FileInput/FileInput";
-import Footer from "@ext/catalog/actions/propsEditor/components/ModalFooter";
-import Header from "@ext/catalog/actions/propsEditor/components/ModalHeader";
 import t from "@ext/localization/locale/translate";
+import { FormHeader, FormFooter, FormStack } from "@ui-kit/Form";
 import { useCallback, useState, ReactElement } from "react";
 import { Modal, ModalBody, ModalContent, ModalTrigger } from "@ui-kit/Modal";
 import LanguageService from "@core-ui/ContextServices/Language";
@@ -67,19 +66,21 @@ const EditStyles = ({ children, customCss, setCustomCss, revertCustomCss }: Edit
 	return (
 		<Modal open={isOpen} onOpenChange={onOpenChange}>
 			{children && <ModalTrigger asChild>{children}</ModalTrigger>}
-			<ModalContent className={"monaco-form-old-width"} data-modal-root>
-				<Header title={t("workspace.editing-css")} description={description} icon={"palette"} />
-				<ModalBody className="space-y-4">
-					<FileInput
-						style={{ padding: undefined }}
-						language={"css"}
-						value={customCss}
-						onChange={setCustomCss}
-						height={"min(calc(650px - 2.5rem), calc(60vh - 2.5rem))"}
-						uiKitTheme
-					/>
+			<ModalContent className={"monaco-form-old-width"} data-modal-root data-monaco-modal-normal-width>
+				<FormHeader title={t("workspace.editing-css")} description={description as any} icon={"palette"} />
+				<ModalBody>
+					<FormStack>
+						<FileInput
+							style={{ padding: undefined }}
+							language={"css"}
+							value={customCss}
+							onChange={setCustomCss}
+							height={"min(calc(650px - 2.5rem), calc(60vh - 2.5rem))"}
+							uiKitTheme
+						/>
+					</FormStack>
 				</ModalBody>
-				<Footer
+				<FormFooter
 					primaryButton={<Button variant="primary" onClick={closeEditor} children={t("continue")} />}
 					secondaryButton={<Button onClick={cancelEdit} variant="text" children={t("cancel")} />}
 				/>

@@ -5,8 +5,8 @@ use url::Url;
 
 use crate::error::ShowError;
 use crate::init::OpenUrl;
-use crate::AppHandleExt;
-use crate::MainWindowBuilder;
+use crate::shared::AppHandleExt;
+use crate::shared::MainWindowBuilder;
 
 pub fn on_open_asked<R: Runtime>(app: &AppHandle<R>, urls: Vec<Url>) {
   let Some(url) = urls.first().and_then(|url| url.as_str().split_once("://").map(|u| u.1)) else {

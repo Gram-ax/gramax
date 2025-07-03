@@ -31,6 +31,8 @@ import { Article } from "../FileStructue/Article/Article";
 import parseContent from "../FileStructue/Article/parseContent";
 import { ArticleFilter, Catalog, ItemFilter } from "../FileStructue/Catalog/Catalog";
 import type { ReadonlyBaseCatalog, ReadonlyCatalog } from "../FileStructue/Catalog/ReadonlyCatalog";
+import ResourceUpdaterFactory from "@core/Resource/ResourceUpdaterFactory";
+import MarkdownFormatter from "@ext/markdown/core/edit/logic/Formatter/Formatter";
 
 export type ClientCatalogProps = {
 	name: string;
@@ -153,6 +155,7 @@ export default class SitePresenter {
 		).forEach((cLink) => {
 			let group: string = groups ? cLink.group : null;
 			if (groups && !groups.includes(cLink.group)) group = "other";
+
 			catalogLinks[group].catalogLinks.push(cLink);
 		});
 
@@ -164,6 +167,17 @@ export default class SitePresenter {
 		catalog: ReadonlyCatalog,
 		{ editableContent, markdown }: GetArticlePageDataOptions = {},
 	): Promise<ArticlePageData> {
+		if (!catalog.customProviders.templateProvider.isTransferedLegacyProperties()) {
+			const formatter = new MarkdownFormatter();
+			await catalog.customProviders.templateProvider.transferLegacyProperties(
+				new ResourceUpdaterFactory(this._parser, this._parserContextFactory, formatter),
+				this._parserContextFactory,
+				this._parser,
+				formatter,
+				this._context,
+			);
+		}
+
 		await parseContent(article, catalog, this._context, this._parser, this._parserContextFactory);
 
 		const itemLinks = catalog ? await this._nav.getCatalogNav(catalog, article.ref.path.value) : [];
@@ -227,7 +241,7 @@ export default class SitePresenter {
 			: await this.getArticleByPathOfCatalog(path, [this._filters[1], this._filters[2]]);
 
 		if (!article) return null;
-		if (!article.parsedContent)
+		if (await article.parsedContent.isNull())
 			await parseContent(article, catalog, this._context, this._parser, this._parserContextFactory);
 		let description =
 			article.props["summary"] ??
