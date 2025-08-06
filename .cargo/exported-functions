@@ -24,7 +24,7 @@ _init_new
 _merge
 _new_branch
 _push
-_reset_all
+_reset
 _restore
 _stash
 _stash_apply

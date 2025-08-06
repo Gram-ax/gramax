@@ -2,17 +2,14 @@ import AlertError from "@components/AlertError";
 import Skeleton from "@components/Atoms/ImageSkeleton";
 import t from "@ext/localization/locale/translate";
 import ResourceService from "@ext/markdown/elements/copyArticles/resourceService";
-import { ReactNode, RefObject, useState } from "react";
+import { ReactNode, useState } from "react";
 import styled from "@emotion/styled";
-import HoverableActions from "@components/controls/HoverController/HoverableActions";
 
 interface InlineImageProps {
 	src: string;
 	alt: string;
 	width: string;
 	height: string;
-	actions: ReactNode;
-	hoverElementRef: RefObject<HTMLDivElement>;
 }
 
 interface SkeletonWrapperProps {
@@ -61,30 +58,7 @@ const ContainerWrapper = styled.span`
 	}
 `;
 
-interface HoverComponentProps {
-	children: React.ReactNode;
-	hoverElementRef: React.RefObject<HTMLDivElement>;
-	actions: React.ReactNode;
-}
-
-const HoverComponent = ({ children, hoverElementRef, actions }: HoverComponentProps) => {
-	if (!hoverElementRef) return children;
-	const [isHovered, setIsHovered] = useState(false);
-
-	return (
-		<HoverableActions
-			isHovered={isHovered}
-			setIsHovered={setIsHovered}
-			hoverElementRef={hoverElementRef}
-			rightActions={actions}
-			placement="top"
-		>
-			{children}
-		</HoverableActions>
-	);
-};
-
-const InlineImage = ({ src: initialSrc, alt, width, height, actions, hoverElementRef }: InlineImageProps) => {
+const InlineImage = ({ src: initialSrc, alt, width, height }: InlineImageProps) => {
 	const { useGetResource } = ResourceService.value;
 
 	const [isLoaded, setIsLoaded] = useState(false);
@@ -108,13 +82,11 @@ const InlineImage = ({ src: initialSrc, alt, width, height, actions, hoverElemen
 	if (isError) return <AlertError title={t("alert.image.unavailable")} error={{ message: t("alert.image.path") }} />;
 
 	return (
-		<HoverComponent hoverElementRef={hoverElementRef} actions={isError ? undefined : actions}>
-			<ContainerWrapper className="focus-pointer-events" data-focusable="true">
-				<SkeletonWrapper width={width} height={height} isLoaded={isLoaded}>
-					<img src={src} alt={alt} onLoad={onLoad} onError={onError} />
-				</SkeletonWrapper>
-			</ContainerWrapper>
-		</HoverComponent>
+		<ContainerWrapper className="focus-pointer-events" data-focusable="true">
+			<SkeletonWrapper width={width} height={height} isLoaded={isLoaded}>
+				<img src={src} alt={alt} onLoad={onLoad} onError={onError} />
+			</SkeletonWrapper>
+		</ContainerWrapper>
 	);
 };
 

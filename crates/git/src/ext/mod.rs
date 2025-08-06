@@ -2,6 +2,7 @@ pub mod gc;
 pub mod history;
 pub mod merge_requests;
 pub mod read_tree;
+pub mod walk;
 
 pub mod prelude {
   pub use crate::ext::gc::*;

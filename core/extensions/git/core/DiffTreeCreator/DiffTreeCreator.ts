@@ -1,4 +1,5 @@
 import { getExecutingEnvironment } from "@app/resolveModule/env";
+import ArticleParser from "@core/FileStructue/Article/ArticleParser";
 import { Catalog } from "@core/FileStructue/Catalog/Catalog";
 import { ReadonlyCatalog } from "@core/FileStructue/Catalog/ReadonlyCatalog";
 import FileStructure from "@core/FileStructue/FileStructure";
@@ -14,6 +15,7 @@ export default class DiffTreeCreator {
 	private _gvc: GitVersionControl;
 
 	constructor(
+		private _articleParser: ArticleParser,
 		private _fs: FileStructure,
 		private _sp: SitePresenter,
 		private _catalog: Catalog,
@@ -32,6 +34,7 @@ export default class DiffTreeCreator {
 			this._catalog,
 			this._sp,
 			this._fs,
+			this._articleParser,
 			diffOpts,
 			oldCatalog,
 			newCatalog,
@@ -53,7 +56,7 @@ export default class DiffTreeCreator {
 
 	private async _gitIndexAddInDesktop() {
 		const isBrowser = getExecutingEnvironment() === "browser";
-		if (!isBrowser) await this._gvc.add();
+		if (!isBrowser && this._gvc) await this._gvc.add();
 	}
 
 	private async _getScopedCatalogsAndDiffOpts(): Promise<{

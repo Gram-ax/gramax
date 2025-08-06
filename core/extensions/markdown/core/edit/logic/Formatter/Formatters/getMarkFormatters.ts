@@ -9,17 +9,19 @@ import getInlineMdFormatter from "@ext/markdown/elements/md/logic/getInlineMdFor
 import getStrikeFormatter from "@ext/markdown/elements/strikethrough/edit/logic/getStrikeFormatter";
 import getStrongFormatter from "@ext/markdown/elements/strong/edit/logic/getStrongFormatter";
 import getSuggestionFormatter from "@ext/StyleGuide/extension/getSuggestionFormatter";
+import getHighlightFormatter from "@ext/markdown/elements/highlight/edit/logic/getHighlightFormatter";
 
 const getMarkFormatters = (context?: ParserContext): { [mark: string]: MarkSerializerSpec } => ({
 	em: getEmFormatter(),
 	s: getStrikeFormatter(),
-	link: getLinkFormatter(),
+	link: getLinkFormatter(context),
 	code: getCodeFormatter(),
 	color: getColorFormatter(context),
 	strong: getStrongFormatter(),
 	inlineMd: getInlineMdFormatter(),
 	suggestion: getSuggestionFormatter(),
 	comment: getCommentFormatter(context),
+	highlight: getHighlightFormatter(context),
 });
 
 export default getMarkFormatters;

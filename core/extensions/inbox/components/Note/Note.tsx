@@ -14,6 +14,7 @@ import useWatch from "@core-ui/hooks/useWatch";
 interface NoteProps {
 	article: InboxArticle;
 	isSelected: boolean;
+	confirmDeleteText?: string;
 	handleDrop: (data: InboxDragDropData) => void;
 	onItemClick: (id: string, target: HTMLElement) => void;
 	onDelete: (id: string) => void;
@@ -25,7 +26,7 @@ const StyledNote = styled(Item)`
 	}
 `;
 
-const Note = ({ article, handleDrop, onItemClick, isSelected, onDelete }: NoteProps) => {
+const Note = ({ article, handleDrop, onItemClick, isSelected, onDelete, confirmDeleteText }: NoteProps) => {
 	const containerRef = useRef<HTMLDivElement>(null);
 	const title = article.title.length ? article.title : t("article.no-name");
 
@@ -77,6 +78,7 @@ const Note = ({ article, handleDrop, onItemClick, isSelected, onDelete }: NotePr
 					providerType="inbox"
 					onMarkdownChange={onMarkdownChange}
 					onDelete={onDelete}
+					confirmDeleteText={confirmDeleteText}
 				/>
 			}
 			onItemClick={onItemClick}

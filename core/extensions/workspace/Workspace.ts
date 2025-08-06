@@ -102,7 +102,7 @@ export class Workspace {
 	}
 
 	async getBaseCatalog(name: string): Promise<BaseCatalog> {
-		const [n, metadata] = name?.split(":") ?? [name];
+		const { name: n, metadata } = BaseCatalog.parseName(name);
 		const entry = this._entries.get(n);
 		const mutableEntry = { entry };
 		await this._events.emit("on-catalog-entry-resolve", { mutableEntry, name, metadata });
@@ -135,6 +135,7 @@ export class Workspace {
 
 		this._entries.delete(name);
 		await this._events.emit("remove-catalog", { name });
+		await RepositoryProvider.resetRepo();
 	}
 
 	addCatalogEntry(catalogEntry: CatalogEntry): void {

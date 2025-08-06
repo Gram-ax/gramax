@@ -8,6 +8,9 @@ import ContextualCatalog from "@core/FileStructue/Catalog/ContextualCatalog";
 import CatalogProps from "@core-ui/ContextServices/CatalogProps";
 import { ItemFilter } from "@core/FileStructue/Catalog/Catalog";
 
+const HEADLINE_LEVELS = [1, 2, 3, 4] as const;
+const FOOTER_NODES_AMOUNT = 3;
+
 class PDFExporter {
 	constructor(
 		private _nodes: DocumentTree,
@@ -58,6 +61,9 @@ class PDFExporter {
 			content,
 			footer: (currentPage: number, pageCount: number) => this._generateFooterContent(currentPage, pageCount),
 			styles: STYLES,
+			pageBreakBefore: (currentNode: any, followingNodesOnPage: any[]) => {
+				return currentNode.headlineLevel in HEADLINE_LEVELS && followingNodesOnPage.length === FOOTER_NODES_AMOUNT;
+			},
 		};
 	}
 

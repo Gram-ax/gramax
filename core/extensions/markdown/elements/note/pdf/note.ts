@@ -1,10 +1,13 @@
-import { ContentTable, Content } from "pdfmake/interfaces";
-import { NodeOptions, parseNodeToPDFContent, pdfRenderContext } from "@ext/pdfExport/parseNodesPDF";
-import { getSvgIconFromString } from "@ext/pdfExport/utils/getIcon";
-import { noteIcons } from "@ext/markdown/elements/note/render/component/Note";
-import { BASE_CONFIG, NOTE_COLOR_CONFIG } from "@ext/pdfExport/config";
 import { Tag } from "@ext/markdown/core/render/logic/Markdoc";
+import { BASE_CONFIG, NOTE_COLOR_CONFIG } from "@ext/pdfExport/config";
+import { parseNodeToPDFContent, pdfRenderContext, NodeOptions } from "@ext/pdfExport/parseNodesPDF";
+import { noteIcons } from "@ext/markdown/elements/note/render/component/Note";
+import { getSvgIconFromString } from "@ext/pdfExport/utils/getIcon";
+import { ContentTable, Content, TableCell } from "pdfmake/interfaces";
 import { JSONContent } from "@tiptap/core";
+
+const OUTER = BASE_CONFIG.FONT_SIZE * 0.75;
+const INNER = OUTER;
 
 export async function noteHandler(
 	node: Tag | JSONContent,
@@ -19,65 +22,64 @@ export async function noteHandler(
 
 	const parsedContent = await parseNodeToPDFContent(node, context, options);
 
-	const flattenContent = (content: Content | Content[]): Content[] =>
-		Array.isArray(content)
-			? content.flatMap((item) => (Array.isArray(item) ? flattenContent(item) : item))
-			: [content];
+	const flatten = (c: Content | Content[]): Content[] => (Array.isArray(c) ? c.flatMap(flatten) : [c]);
 
-	const contentArray: Content[] = flattenContent(parsedContent);
+	const contentArray = flatten(parsedContent);
 
-	let titleOrContent: Content | Content[];
+	const titleContent =
+		attrs?.title && typeof attrs.title === "string"
+			? {
+					text: attrs.title,
+					fontSize: BASE_CONFIG.FONT_SIZE * 0.75,
+					bold: true,
+					color: borderColor,
+			  }
+			: typeof contentArray[0] === "object"
+			? contentArray[0]
+			: { text: "", fontSize: BASE_CONFIG.FONT_SIZE };
 
-	if (attrs?.title && typeof attrs.title === "string") {
-		titleOrContent = {
-			text: attrs.title,
-			fontSize: BASE_CONFIG.FONT_SIZE * 0.75,
-			bold: true,
-			color: borderColor,
-		};
-	} else if (Array.isArray(contentArray) && typeof contentArray[0] === "object") {
-		titleOrContent = contentArray[0];
-	} else {
-		titleOrContent = { text: "", fontSize: BASE_CONFIG.FONT_SIZE };
-	}
+	const rows: TableCell[][] = [];
+
+	rows.push([
+		{
+			columns: [
+				{ svg: svg, width: BASE_CONFIG.FONT_SIZE * 0.875, height: BASE_CONFIG.FONT_SIZE * 0.875 },
+				{ ...titleContent, margin: [BASE_CONFIG.FONT_SIZE * 0.5, 0, 0, 0] },
+			],
+		},
+	]);
+
+	const noteContent = attrs?.title ? contentArray : contentArray.slice(1);
+	noteContent.forEach((c) => {
+		if (typeof c === "object") {
+			rows.push([{ ...c }]);
+		} else {
+			rows.push([{ text: c, fontSize: BASE_CONFIG.FONT_SIZE }]);
+		}
+	});
+
+	const noteLayout = {
+		vLineWidth: (i: number) => (i === 0 ? 2 : 0),
+		vLineColor: () => borderColor,
+
+		hLineWidth: () => 0,
+		hLineColor: () => borderColor,
+
+		fillColor: () => bgColor,
+
+		paddingLeft: () => INNER,
+		paddingRight: () => INNER,
+		paddingTop: (rowIdx: number) => (rowIdx === 0 ? INNER : 0),
+		paddingBottom: (rowIdx: number, node: any) =>
+			rowIdx === node.table.body.length - 1 ? INNER - BASE_CONFIG.LINE_HEIGHT_MARGIN : 0,
+	} as const;
 
 	return {
 		table: {
-			dontBreakRows: true,
 			widths: ["*"],
-			body: [
-				[
-					{
-						margin: [
-							BASE_CONFIG.FONT_SIZE * 0.75,
-							BASE_CONFIG.FONT_SIZE * 0.75,
-							BASE_CONFIG.FONT_SIZE * 0.75,
-							BASE_CONFIG.FONT_SIZE * 0.75 - BASE_CONFIG.LINE_HEIGHT_MARGIN,
-						],
-						fillColor: bgColor,
-						stack: [
-							{
-								columns: [
-									{
-										svg: svg,
-										width: BASE_CONFIG.FONT_SIZE * 0.875,
-										height: BASE_CONFIG.FONT_SIZE * 0.875,
-									},
-									{
-										...titleOrContent,
-										margin: attrs?.title
-											? [BASE_CONFIG.FONT_SIZE * 0.5, 0, 0, BASE_CONFIG.FONT_SIZE * 0.75]
-											: [BASE_CONFIG.FONT_SIZE * 0.5, 0, 0, 0],
-									},
-								],
-							},
-							...(!attrs?.title ? contentArray.slice(1) : contentArray),
-						],
-						border: [true, true, true, false],
-						borderColor: [borderColor, bgColor, bgColor, false],
-					},
-				],
-			],
+			body: rows,
 		},
+
+		layout: noteLayout,
 	};
 }

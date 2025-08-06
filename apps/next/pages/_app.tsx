@@ -21,6 +21,8 @@ import Head from "next/head";
 
 import { initModules } from "@app/resolveModule/frontend";
 
+import { Toaster } from "ics-ui-kit/components/toast";
+import { TooltipProvider } from "ics-ui-kit/components/tooltip";
 import { useLayoutEffect, useState } from "react";
 
 const useInitModules = () => {
@@ -64,22 +66,25 @@ export default function App({
 			<Head>
 				<title>{getPageTitle(isArticle, pageProps.data)}</title>
 				<link rel="icon" href={iconPath} />
+				{isArticle && <OpenGraph openGraphData={pageProps.openGraphData} />}
 			</Head>
 			<Language.Init>
-				<ContextProviders pageProps={pageProps} refreshPage={defaultRefreshPage} platform="next">
-					<ErrorBoundary context={pageProps.context}>
-						{isArticle ? (
-							<>
-								<OpenGraph openGraphData={pageProps.openGraphData} />
-								<CatalogComponent data={pageProps.data}>
-									<Component {...pageProps} />
-								</CatalogComponent>
-							</>
-						) : (
-							<Component {...pageProps} />
-						)}
-					</ErrorBoundary>
-				</ContextProviders>
+				<TooltipProvider>
+					<Toaster />
+					<ContextProviders pageProps={pageProps} refreshPage={defaultRefreshPage} platform="next">
+						<ErrorBoundary context={pageProps.context}>
+							{isArticle ? (
+								<>
+									<CatalogComponent data={pageProps.data}>
+										<Component {...pageProps} />
+									</CatalogComponent>
+								</>
+							) : (
+								<Component {...pageProps} />
+							)}
+						</ErrorBoundary>
+					</ContextProviders>
+				</TooltipProvider>
 			</Language.Init>
 		</>
 	);

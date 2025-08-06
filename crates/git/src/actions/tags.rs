@@ -55,7 +55,7 @@ impl<C: Creds> Tags for Repo<C> {
     let tagname = if tagname.contains("refs/tags") {
       Cow::Borrowed(tagname)
     } else {
-      Cow::Owned(format!("refs/tags/{}", tagname))
+      Cow::Owned(format!("refs/tags/{tagname}"))
     };
 
     let tag = self.0.find_reference(&tagname)?;

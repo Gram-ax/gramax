@@ -12,14 +12,14 @@ export const WORD_TEMPLATES_DIR = "word";
 export default class WorkspaceAssets {
 	constructor(private readonly _fp: FileProvider) {}
 
-	async get(name: PredefinedAssets | string): Promise<string> {
+	async get(name: PredefinedAssets): Promise<string> {
 		const status = await this._fp.exists(new Path(name));
 		if (!status) return null;
 
 		return await this._fp.read(new Path(name)).catch(() => null);
 	}
 
-	async getBuffer(name: PredefinedAssets | string): Promise<Buffer> {
+	async getBuffer(name: string): Promise<Buffer> {
 		const status = await this._fp.exists(new Path(name));
 		if (!status) return null;
 		return await this._fp.readAsBinary(new Path(name)).catch(() => null);

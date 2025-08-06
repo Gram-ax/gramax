@@ -27,6 +27,16 @@ pub fn generate_handler<R: Runtime>(builder: Builder<R>) -> Builder<R> {
     open_window_with_url,
     #[cfg(desktop)]
     move_to_trash,
+    #[cfg(desktop)]
+    crate::updater::update_check,
+    #[cfg(desktop)]
+    crate::updater::update_install,
+    #[cfg(desktop)]
+    crate::updater::update_cache_clear,
+    #[cfg(desktop)]
+    crate::updater::update_install_by_path,
+    #[cfg(desktop)]
+    crate::updater::restart_app,
     set_language,
     set_session_data,
     #[cfg(target_os = "macos")]

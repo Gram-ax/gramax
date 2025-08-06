@@ -32,6 +32,7 @@ const aliases = {
 	"действия статьи": '[data-qa="qa-article-actions"]',
 	"смена ветки": '[data-qa="qa-branch"]',
 	"нет изменений": '[data-qa="qa-no-changes"]',
+	"действия блока": '[data-qa="qa-node-actions"]',
 
 	"%token%": process.env.GX_E2E_GITLAB_TOKEN,
 	"%url%": process.env.GX_E2E_GITLAB_URL,
@@ -57,6 +58,7 @@ const icons = {
 	"список задач": ".lucide-list-todo",
 	"маркированный список": ".lucide-list",
 	"новый комментарий": ".lucide-message-square",
+	глобус: ".lucide-globe",
 	корзина: ".lucide-trash",
 	корзина2: ".lucide-trash2",
 	карандаш: ".lucide-pencil",

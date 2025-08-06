@@ -5,10 +5,10 @@ import { Attrs, ButtonState, Mark, NodeType, NodeValues } from "./types";
 import { Selection } from "@tiptap/pm/state";
 import { CellSelection } from "prosemirror-tables";
 
-const Block = ["heading", "orderedList", "bulletList", "taskList"];
-const BlockPlus = ["table", "cut", "note", "tab", "tabs", "blockquote"];
+export const ListGroup = ["orderedList", "bulletList", "taskList"];
+export const BlockPlus = ["table", "cut", "note", "tab", "tabs", "blockquote"];
+
 const BlockOutContent = ["drawio", "diagrams", "image", "video", "code_block", "snippet", OPEN_API_NAME];
-const ListGroup = ["orderedList", "bulletList", "taskList"];
 
 const disabledMarkRule: Record<Mark, Mark[]> = {
 	code: ["link", "file", "comment"],
@@ -18,12 +18,7 @@ const disabledMarkRule: Record<Mark, Mark[]> = {
 	strong: ["code"],
 	em: ["code"],
 	s: [],
-};
-
-const disableBlockRule = {
-	orderedList: (buttonNode) => ["heading", "taskList", "code_block", ...BlockPlus].includes(buttonNode),
-	bulletList: (buttonNode) => ["heading", "taskList", "code_block", ...BlockPlus].includes(buttonNode),
-	taskList: (buttonNode) => ["heading", "code_block", ...BlockPlus].includes(buttonNode),
+	highlight: ["code"],
 };
 
 const disableBlockBySelection = {
@@ -44,13 +39,11 @@ function changeResultByAction(activeNode: NodeType, buttonNode: NodeType, result
 	if (BlockOutContent.includes(activeNode)) {
 		if (activeNode === "code_block" && activeNode === buttonNode) {
 			result.disabled = false;
-		} else {
-			result.disabled = true;
 		}
 	} else if (BlockPlus.includes(activeNode)) {
-		result.disabled = BlockPlus.includes(buttonNode) || buttonNode === "heading";
-	} else if (Block.includes(activeNode)) {
-		result.disabled = disableBlockRule?.[activeNode]?.(buttonNode);
+		result.disabled = activeNode === buttonNode || buttonNode === "heading";
+	} else if (ListGroup.includes(activeNode) && buttonNode === "heading") {
+		result.disabled = true;
 	}
 }
 

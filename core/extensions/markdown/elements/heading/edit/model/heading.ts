@@ -3,10 +3,6 @@ import { getNodeNameFromCursor } from "@core-ui/ContextServices/ButtonStateServi
 import { stopExecution } from "@ext/markdown/elementsUtils/cursorFunctions";
 import { mergeAttributes, Node, InputRule, callOrReturn } from "@tiptap/core";
 import getChildTextId from "@ext/markdown/elements/heading/logic/getChildTextId";
-import { Plugin, PluginKey } from "@tiptap/pm/state";
-import { ReplaceAroundStep, ReplaceStep } from "@tiptap/pm/transform";
-import { editName as BLOCK_FIELD } from "@ext/markdown/elements/blockContentField/consts";
-import { editName as BLOCK_PROPERTY } from "@ext/markdown/elements/blockProperty/consts";
 // import updateId from "@ext/markdown/elements/heading/edit/plugins/updateId";
 
 export type Level = 1 | 2 | 3 | 4 | 5 | 6;
@@ -72,9 +68,9 @@ const Heading = Node.create<HeadingOptions>({
 				},
 			toggleHeading:
 				(attributes) =>
-				({ commands, editor }) => {
+				({ commands, state }) => {
 					if (!this.options.levels.includes(attributes.level)) return false;
-					if (stopExecution(editor, this.name, [BLOCK_FIELD, BLOCK_PROPERTY])) return false;
+					if (stopExecution(state, this.name)) return false;
 
 					return commands.toggleNode(this.name, "paragraph", attributes);
 				},
@@ -142,40 +138,6 @@ const Heading = Node.create<HeadingOptions>({
 					},
 				});
 			});
-	},
-
-	addProseMirrorPlugins() {
-		return [
-			new Plugin({
-				key: new PluginKey("updateArticleTitle"),
-				appendTransaction(transactions, oldState, newState) {
-					if (oldState.doc.firstChild.childCount === newState.doc.firstChild.childCount) return null;
-					const newTr = newState.tr;
-					transactions.forEach((tr) => {
-						if (!tr.docChanged) return;
-						tr.steps.forEach((step) => {
-							if (step instanceof ReplaceStep || step instanceof ReplaceAroundStep) {
-								tr.doc.firstChild.content.forEach((node, offset) => {
-									if (!node.marks) return;
-									newTr.removeMark(offset, offset + node.nodeSize + 1);
-								});
-							}
-						});
-					});
-					return newTr;
-				},
-				filterTransaction(tr, state) {
-					if (!tr.docChanged) return true;
-
-					const newFirstChild = tr.doc.firstChild;
-					if (newFirstChild === state.doc.firstChild) return true;
-					if (!newFirstChild.childCount) return true;
-					if (newFirstChild.childCount === 1 && newFirstChild.firstChild.type.name === "text") return true;
-
-					return false;
-				},
-			}),
-		];
 	},
 });
 

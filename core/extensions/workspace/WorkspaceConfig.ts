@@ -1,15 +1,19 @@
 import { ServicesConfig } from "@app/config/AppConfig";
 import { AuthMethod } from "@ext/enterprise/types/UserSettings";
 
-export type WorkspaceGroup = {
+export type WorkspaceSection = {
 	title: string;
-	style: "big" | "small";
+	icon?: string;
+	description?: string;
+	catalogs?: string[];
+	sections?: Record<string, WorkspaceSection>;
 };
 
 export interface WorkspaceConfig {
 	name: string;
 	icon?: string;
-	groups?: Record<string, WorkspaceGroup>;
+	groups?: Record<string, WorkspaceSection>;
+	sections?: Record<string, WorkspaceSection>;
 	services?: ServicesConfig;
 	enterprise?: {
 		gesUrl?: string;

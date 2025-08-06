@@ -15,7 +15,7 @@ interface TableProps {
 }
 
 const getWidth = (property: Property) => {
-	if (property.type === PropertyTypes.blockMd) return "20em";
+	if (property?.type === PropertyTypes.blockMd) return "20em";
 	return "8em";
 };
 

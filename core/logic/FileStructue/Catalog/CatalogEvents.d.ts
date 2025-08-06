@@ -1,6 +1,6 @@
 import type { Event } from "@core/Event/EventEmitter";
 import type ArticleParser from "@core/FileStructue/Article/ArticleParser";
-import type Catalog from "@core/FileStructue/Catalog/Catalog2";
+import type { Catalog } from "@core/FileStructue/Catalog/Catalog";
 import type { Category } from "@core/FileStructue/Category/Category";
 import type { Item, UpdateItemProps } from "@core/FileStructue/Item/Item";
 import type { ItemRef } from "@core/FileStructue/Item/ItemRef";

@@ -1,8 +1,7 @@
 import { useDebounce } from "@core-ui/hooks/useDebounce";
 import addDecorations from "@ext/markdown/elements/diff/logic/addDecorations";
 import ProsemirrorAstDiffTransformer from "@ext/markdown/elements/diff/logic/astTransformer/ProseMirrorAstDiffTransformer";
-import convertDeletedDifflines from "@ext/markdown/elements/diff/logic/convertDeletedDifflines";
-import getDiffDecoratorsAndDiffLines from "@ext/markdown/elements/diff/logic/getDiffDecoratorsAndDiffLines";
+import DiffRenderDataHandler from "@ext/markdown/elements/diff/logic/DiffRenderDataHandler";
 import { PluginKey, Transaction } from "@tiptap/pm/state";
 import { AddMarkStep, RemoveMarkStep } from "@tiptap/pm/transform";
 import { DecorationSet } from "@tiptap/pm/view";
@@ -43,12 +42,12 @@ const useDiff = ({ editor: newEditor, oldContentEditor }: { editor: Editor; oldC
 
 	const updateDiffDecorators = () => {
 		const astDiffTransformer = new ProsemirrorAstDiffTransformer(oldContentEditor.state.doc, newEditor.state.doc);
+		const diffRenderDataHandler = new DiffRenderDataHandler(astDiffTransformer);
 
 		const { addedDecorations, removedDecorations, changedContextDecorations, diffLines } =
-			getDiffDecoratorsAndDiffLines(astDiffTransformer);
+			diffRenderDataHandler.getDiffRenderData();
 
-		// temp
-		const { convertedDiffLines, removedDecorations: extraRemovedDecorations } = convertDeletedDifflines(diffLines);
+		const extraRemovedDecorations = diffRenderDataHandler.makeRemovedDiffLinesToDecorators(diffLines);
 
 		const oldEditorDecorations = DecorationSet.create(oldContentEditor.state.doc, [
 			...removedDecorations,
@@ -59,9 +58,7 @@ const useDiff = ({ editor: newEditor, oldContentEditor }: { editor: Editor; oldC
 			...changedContextDecorations,
 		]);
 
-		const proseMirrorDiffLines = convertedDiffLines.map((diffLine) =>
-			astDiffTransformer.convertToProseMirrorDiffLine(diffLine),
-		);
+		const proseMirrorDiffLines = astDiffTransformer.convertToProseMirrorDiffLines(diffLines);
 
 		newEditor.commands.updateDiffLinesModel(proseMirrorDiffLines);
 

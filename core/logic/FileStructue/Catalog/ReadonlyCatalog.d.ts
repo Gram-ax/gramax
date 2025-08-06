@@ -16,6 +16,7 @@ import type InboxProvider from "@ext/inbox/logic/InboxProvider";
 import type TemplateProvider from "@ext/templates/logic/TemplateProvider";
 import PromptProvider from "@ext/ai/logic/PromptProvider";
 import CatalogLinksProvider from "@ext/properties/logic/CatalogLinksProvider";
+import CommentProvider from "@ext/markdown/elements/comment/edit/logic/CommentProvider";
 
 export interface ReadonlyCatalog<P extends CatalogProps = CatalogProps> extends ReadonlyBaseCatalog<P> {
 	get deref(): Catalog<P>;
@@ -28,6 +29,7 @@ export interface ReadonlyCatalog<P extends CatalogProps = CatalogProps> extends 
 		snippetProvider: SnippetProvider;
 		iconProvider: IconProvider;
 		linksProvider: CatalogLinksProvider;
+		commentProvider: CommentProvider;
 	};
 
 	getRootCategory(): Category<P>;

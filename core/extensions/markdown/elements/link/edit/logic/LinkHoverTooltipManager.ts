@@ -18,11 +18,13 @@ export class LinkHoverTooltipManager {
 		markData,
 		anchorPos,
 		resourcePath,
+		hash,
 	}: {
 		linkElement: HTMLElement;
 		markData?: { from: number; to: number; mark: any };
 		anchorPos?: number | null;
 		resourcePath?: string;
+		hash?: string;
 	}) {
 		const tooltip = new LinkHoverTooltip(
 			this.parentElement,
@@ -36,7 +38,7 @@ export class LinkHoverTooltipManager {
 		};
 
 		if (markData) tooltip.setMarkData(markData);
-		if (resourcePath) tooltip.setResourcePath(resourcePath);
+		if (resourcePath) tooltip.setResourcePath(resourcePath, hash);
 		if (anchorPos) tooltip.updateAnchorPos(anchorPos);
 
 		tooltip.setComponent(linkElement);

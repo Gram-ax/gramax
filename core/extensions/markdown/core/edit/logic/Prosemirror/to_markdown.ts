@@ -175,7 +175,7 @@ export class MarkdownSerializerState {
 		if (!this.nodes[node.type.name])
 			throw new Error("Token type `" + node.type.name + "` not supported by Markdown renderer");
 		await this.nodes[node.type.name](this, node, parent, index);
-		if (node.type.name === "table_simple") this.out = formatTable(this.out);
+		if (node.type.name === "table_simple") this.out = formatTable(this.out, this.delim);
 	}
 
 	/// Render the contents of `parent` as block nodes.
@@ -370,9 +370,8 @@ export class MarkdownSerializerState {
 	}
 }
 
-export const formatTable = (table: string) => {
+export const formatTable = (table: string, delim: string) => {
 	table = new MdParser().backParse(table);
-	const space = table.match(/^\s*/)[0];
 	const lines = table.trim().split("\n");
 
 	const headers = lines[0]
@@ -399,7 +398,7 @@ export const formatTable = (table: string) => {
 	});
 
 	const formattedTable =
-		`${space}| ${formattedHeaders} |\n${space}|-${separator}-|\n` +
-		formattedRows.map((row) => `${space}| ${row} |`).join("\n");
+		`| ${formattedHeaders} |\n${delim}|-${separator}-|\n` +
+		formattedRows.map((row) => `${delim}| ${row} |`).join("\n");
 	return formattedTable;
 };

@@ -14,7 +14,7 @@ describe("Преобразоывние простых таблиц", () => {
 |   |   |   |
 |   |   |   |`;
 
-		const testParseStr = formatTable(str);
+		const testParseStr = formatTable(str, "");
 		expect(testParseStr).toEqual(parsedStr);
 	});
 
@@ -29,7 +29,7 @@ describe("Преобразоывние простых таблиц", () => {
 | ячейка 1    | ячейка 2 | ячейка 3    |
 | ячейка 4    | ячейка 5 | ячейка 6    |`;
 
-		const testParseStr = formatTable(str);
+		const testParseStr = formatTable(str, "");
 		expect(testParseStr).toEqual(parsedStr);
 	});
 });

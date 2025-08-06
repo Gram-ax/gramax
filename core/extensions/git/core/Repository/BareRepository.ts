@@ -3,7 +3,7 @@ import type Path from "@core/FileProvider/Path/Path";
 import type { GitMergeResultContent } from "@ext/git/actions/MergeConflictHandler/model/GitMergeResultContent";
 import type GitVersionControl from "@ext/git/core/GitVersionControl/GitVersionControl";
 import type { GitStatus } from "@ext/git/core/GitWatcher/model/GitStatus";
-import Repository, { type CheckoutOptions, type SyncOptions } from "@ext/git/core/Repository/Repository";
+import Repository, { SyncResult, type CheckoutOptions, type SyncOptions } from "@ext/git/core/Repository/Repository";
 import RepositoryStateProvider from "@ext/git/core/Repository/state/RepositoryState";
 import SourceData from "@ext/storage/logic/SourceDataProvider/model/SourceData";
 import type Storage from "@ext/storage/logic/Storage";
@@ -11,8 +11,8 @@ import type Storage from "@ext/storage/logic/Storage";
 export default class BareRepository extends Repository {
 	private _state: RepositoryStateProvider;
 
-	constructor(repoPath: Path, fp: FileProvider, gvc: GitVersionControl, storage: Storage) {
-		super(repoPath, fp, gvc, storage);
+	constructor(repoPath: Path, fp: FileProvider, gvc: GitVersionControl, storage: Storage, disableMergeRequests: boolean = true) {
+		super(repoPath, fp, gvc, storage, disableMergeRequests);
 		this._state = new RepositoryStateProvider(this, this._repoPath, this._fp);
 	}
 
@@ -24,19 +24,23 @@ export default class BareRepository extends Repository {
 		throw new Error("Publishing is not supported for bare repositories.");
 	}
 
-	async sync(opts: SyncOptions): Promise<GitMergeResultContent[]> {
+	async sync(opts: SyncOptions): Promise<SyncResult> {
 		const prevOid = await this.gvc.getCurrentVersion();
 		await this._storage.fetch(opts.data);
 		await this.checkoutIfCurrentBranchNotExist(opts.data);
 		await this._storage.fetch(opts.data, true);
 		this.gvc.update();
 		const oid = await this.gvc.getCurrentVersion();
+		const isVersionChanged = !prevOid.compare(oid);
+
 		await this._events.emit("sync", {
 			repo: this,
-			isVersionChanged: !prevOid.compare(oid),
+			isVersionChanged,
 		});
+
 		await this.gvc.checkChanges(prevOid, oid);
-		return [];
+
+		return { mergeData: [], isVersionChanged, before: prevOid, after: oid };
 	}
 
 	status(): Promise<GitStatus[]> {

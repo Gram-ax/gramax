@@ -57,7 +57,7 @@ async function getComponentRenderTreeAndHTML(componentText: string): Promise<{
 	const { parser, parseContext } = await getParserTestData();
 	const content = await parser.parse(componentText, parseContext, "requestURL.com");
 	const allRenderTree = content.renderTree;
-	const allHTML = content.htmlValue;
+	const allHTML = await content.getHtmlValue.get();
 	return {
 		renderTree: getFirstChildren(allRenderTree),
 		html: getChildrenHTML(allHTML),

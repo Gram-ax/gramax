@@ -1,10 +1,14 @@
 import getCommentsByAuthors from "@app/commands/elements/comments/getCommentsByAuthors";
 import deleteComment from "./deleteComment";
-import getCommentsCount from "./getCommentCount";
+import getNewCommentId from "./getNewCommentId";
+import getComment from "./get";
+import updateComment from "./update";
 
 const comments = {
 	deleteComment,
-	getCommentsCount,
+	getComment,
+	updateComment,
+	getNewCommentId,
 	getCommentsByAuthors,
 };
 

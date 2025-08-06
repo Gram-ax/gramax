@@ -33,9 +33,9 @@ pub struct DirStat {
 }
 
 pub trait RepoSelectTreeScope<C: Creds> {
-  fn read_tree_head(&self) -> Result<RepoTreeScope<C>>;
-  fn read_tree_commit(&self, oid: Oid) -> Result<RepoTreeScope<C>>;
-  fn read_tree_reference(&self, reference: &str) -> Result<RepoTreeScope<C>>;
+  fn read_tree_head(&self) -> Result<RepoTreeScope<'_, C>>;
+  fn read_tree_commit(&self, oid: Oid) -> Result<RepoTreeScope<'_, C>>;
+  fn read_tree_reference(&self, reference: &str) -> Result<RepoTreeScope<'_, C>>;
 }
 
 pub trait ReadTree {
@@ -53,20 +53,20 @@ pub struct RepoTreeScope<'t, C: Creds> {
 }
 
 impl<C: Creds> RepoSelectTreeScope<C> for Repo<C> {
-  fn read_tree_head(&self) -> Result<RepoTreeScope<C>> {
+  fn read_tree_head(&self) -> Result<RepoTreeScope<'_, C>> {
     Ok(RepoTreeScope { repo: self, tree: self.0.head()?.peel_to_tree()? })
   }
 
-  fn read_tree_commit(&self, oid: Oid) -> Result<RepoTreeScope<C>> {
+  fn read_tree_commit(&self, oid: Oid) -> Result<RepoTreeScope<'_, C>> {
     Ok(RepoTreeScope { repo: self, tree: self.0.find_commit(oid)?.tree()? })
   }
 
-  fn read_tree_reference(&self, reference: &str) -> Result<RepoTreeScope<C>> {
+  fn read_tree_reference(&self, reference: &str) -> Result<RepoTreeScope<'_, C>> {
     let reference = match reference {
       reference if !reference.starts_with("refs/") => self
         .0
-        .find_reference(&format!("refs/heads/{}", reference))
-        .or_else(|_| self.0.find_reference(&format!("refs/tags/{}", reference)))?,
+        .find_reference(&format!("refs/heads/{reference}"))
+        .or_else(|_| self.0.find_reference(&format!("refs/tags/{reference}")))?,
       reference => self.0.find_reference(reference)?,
     };
 

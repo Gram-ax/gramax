@@ -26,6 +26,7 @@ export async function headingHandler(node: Tag, context: pdfRenderContext): Prom
 		style: `H${level}`,
 		font: "RobotoRegular",
 		lineHeight: BASE_CONFIG.LINE_HEIGHT * 0.725,
+		headlineLevel: level,
 	};
 }
 

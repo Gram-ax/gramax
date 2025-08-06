@@ -1,9 +1,14 @@
+import Path from "@core/FileProvider/Path/Path";
+import ParserContext from "@ext/markdown/core/Parser/ParserContext/ParserContext";
 import { parse } from "@ext/markdown/elements/image/render/logic/imageTransformer";
+import linkCreator from "@ext/markdown/elements/link/render/logic/linkCreator";
 
-function imageToken() {
+function imageToken(context: ParserContext) {
 	return {
 		node: "image",
 		getAttrs: (tok) => {
+			if (!linkCreator.isExternalLink(tok.attrs.src)) context.getResourceManager().set(new Path(tok.attrs.src));
+
 			const { crop, objects, scale } = parse(
 				tok.attrs.crop ?? "0,0,100,100",
 				tok.attrs.scale ?? null,

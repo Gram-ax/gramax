@@ -8,11 +8,10 @@ import { ClientCatalogProps } from "@core/SitePresenter/SitePresenter";
 import { uniqueName } from "@core/utils/uniqueName";
 import CatalogEditProps from "@ext/catalog/actions/propsEditor/model/CatalogEditProps.schema";
 import t from "@ext/localization/locale/translate";
-import { useRouter } from "../../../logic/Api/useRouter";
-import CatalogExtendedEditProps from "@ext/catalog/actions/propsEditor/model/CatalogExtendedEditProps.schema";
 import { Syntax } from "@ext/markdown/core/edit/logic/Formatter/Formatters/typeFormats/model/Syntax";
+import { useRouter } from "../../../logic/Api/useRouter";
 
-const CreateCatalog = ({ trigger }: { trigger: JSX.Element }) => {
+const CreateCatalog = ({ trigger, className }: { trigger: JSX.Element; className?: string }) => {
 	const router = useRouter();
 	const apiUrlCreator = ApiUrlCreatorService.value;
 
@@ -26,7 +25,7 @@ const CreateCatalog = ({ trigger }: { trigger: JSX.Element }) => {
 		const catalogNames = await getAllCatalogNames();
 		if (!catalogNames) return;
 
-		const props: CatalogEditProps & CatalogExtendedEditProps = {
+		const props: CatalogEditProps = {
 			url: uniqueName(NEW_CATALOG_NAME, catalogNames),
 			title: t("catalog.new-name"),
 			syntax: Syntax.xml,
@@ -44,7 +43,11 @@ const CreateCatalog = ({ trigger }: { trigger: JSX.Element }) => {
 		router.pushPath("/" + newCatalogProps.link.pathname);
 	};
 
-	return <div onClick={createCatalog}>{trigger}</div>;
+	return (
+		<div className={className} onClick={createCatalog}>
+			{trigger}
+		</div>
+	);
 };
 
 export default CreateCatalog;

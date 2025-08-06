@@ -25,11 +25,11 @@ const ArticleSnippet = ({ item }: { item: ProviderItemProps }) => {
 		newContent.content.shift();
 		newContent = getArticleWithTitle(title, newContent);
 
-		SnippetService.setSnippets(Array.from(snippets.values()));
+		SnippetService.setItems(Array.from(snippets.values()));
 	};
 
 	const onCloseClick = () => {
-		SnippetService.closeSnippet();
+		SnippetService.closeItem();
 		SnippetUpdateService.updateContent(item.id, apiUrlCreator);
 	};
 

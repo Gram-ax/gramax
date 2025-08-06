@@ -1,6 +1,6 @@
 import { CATEGORY_ROOT_FILENAME } from "@app/config/const";
 import type Context from "@core/Context/Context";
-import { createEventEmitter, type HasEvents } from "@core/Event/EventEmitter";
+import { createEventEmitter, UnsubscribeToken, type HasEvents } from "@core/Event/EventEmitter";
 import ArticleParser from "@core/FileStructue/Article/ArticleParser";
 import parseContent from "@core/FileStructue/Article/parseContent";
 import BaseCatalog, { type BaseCatalogInitProps } from "@core/FileStructue/Catalog/BaseCatalog";
@@ -21,6 +21,7 @@ import type Repository from "@ext/git/core/Repository/Repository";
 import InboxProvider from "@ext/inbox/logic/InboxProvider";
 import type MarkdownParser from "@ext/markdown/core/Parser/Parser";
 import type ParserContextFactory from "@ext/markdown/core/Parser/ParserContext/ParserContextFactory";
+import CommentProvider from "@ext/markdown/elements/comment/edit/logic/CommentProvider";
 import IconProvider from "@ext/markdown/elements/icon/logic/IconProvider";
 import SnippetProvider from "@ext/markdown/elements/snippet/logic/SnippetProvider";
 import CatalogLinksProvider from "@ext/properties/logic/CatalogLinksProvider";
@@ -61,6 +62,7 @@ export class Catalog<P extends CatalogProps = CatalogProps>
 	private _rootCategory: Category<P>;
 
 	private _perms: Permission;
+	private _unsubscirbeTokens: { repo: UnsubscribeToken[]; gvc: UnsubscribeToken[] } = { repo: [], gvc: [] };
 
 	private _fp: FileProvider;
 	private _fs: FileStructure;
@@ -73,6 +75,7 @@ export class Catalog<P extends CatalogProps = CatalogProps>
 		templateProvider: TemplateProvider;
 		promptProvider: PromptProvider;
 		linksProvider: CatalogLinksProvider;
+		commentProvider: CommentProvider;
 	};
 
 	private _parsedOnce = false;
@@ -92,7 +95,12 @@ export class Catalog<P extends CatalogProps = CatalogProps>
 			templateProvider: new TemplateProvider(this._fp, this._fs, this),
 			promptProvider: new PromptProvider(this._fp, this._fs, this),
 			linksProvider: new CatalogLinksProvider(this._fs, this),
+			commentProvider: new CommentProvider(this._fp),
 		};
+	}
+
+	get isFpReadOnly() {
+		return this._fs.fp.at(this.basePath).isReadOnly;
 	}
 
 	get findArticleCacheHit() {
@@ -138,11 +146,18 @@ export class Catalog<P extends CatalogProps = CatalogProps>
 		return this._rootCategory.folderPath;
 	}
 
-	setRepository(repo: Repository) {
+	setRepository(repo: Repository, subscribeToEvents = true) {
 		this.repo = repo;
 		if (!this.repo.gvc) return;
+
+		this._unsubscirbeTokens.gvc.forEach((token) => this.repo.gvc.events.off(token));
+		this._unsubscirbeTokens.repo.forEach((token) => this.repo.events.off(token));
+
 		this._events.emitSync("repository-set", { catalog: this });
-		this.repo.gvc.events.on("files-changed", async ({ items }) => {
+
+		if (!subscribeToEvents) return;
+
+		const fileChangesToken = this.repo.gvc.events.on("files-changed", async ({ items }) => {
 			await this.update();
 
 			await this._onFileChanged(
@@ -152,10 +167,13 @@ export class Catalog<P extends CatalogProps = CatalogProps>
 				})),
 			);
 		});
-		this.repo.events.on("publish", () => {
+		this._unsubscirbeTokens.gvc.push(fileChangesToken);
+
+		const publishToken = this.repo.events.on("publish", () => {
 			this.repo?.resetCachedStatus();
 			this._searcher.resetCache();
 		});
+		this._unsubscirbeTokens.repo.push(publishToken);
 	}
 
 	getRepositoryRelativePath(ref: Path | ItemRef): Path {

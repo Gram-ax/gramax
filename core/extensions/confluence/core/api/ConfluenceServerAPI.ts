@@ -87,6 +87,7 @@ export default class ConfluenceServerAPI implements ConfluenceAPI {
 		const res = await this._api(`/rest/api/user/current`);
 		if (res.status !== 200) return null;
 		const data = res.body;
+		if (!data) return null;
 		return {
 			name: data.displayName,
 			email: "",

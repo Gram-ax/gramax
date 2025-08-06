@@ -14,7 +14,7 @@ export default class GitBaseConflictResolver {
 	constructor(protected _repo: Repository, private _fp: FileProvider, private _pathToRep: Path) {}
 
 	async abortMerge(_state: RepositoryState, _sourceData?: GitSourceData): Promise<void> {
-		await this._repo.gvc.hardReset();
+		await this._repo.gvc.reset({ mode: "hard" });
 	}
 
 	async convertToMergeResultContent(

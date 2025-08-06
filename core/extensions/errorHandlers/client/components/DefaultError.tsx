@@ -6,6 +6,11 @@ import GetErrorComponent from "../../logic/GetErrorComponent";
 import InfoModalForm from "./ErrorForm";
 
 const DefaultErrorComponent = ({ error, onCancelClick }: ComponentProps<typeof GetErrorComponent>) => {
+	const onActionClick = () => {
+		onCancelClick();
+		window.location.reload();
+	};
+
 	return (
 		<InfoModalForm
 			onCancelClick={onCancelClick}
@@ -16,6 +21,7 @@ const DefaultErrorComponent = ({ error, onCancelClick }: ComponentProps<typeof G
 					: { code: error.icon || "circle-x", color: "var(--color-danger)" }
 			}
 			closeButton={error.title || error.isWarning ? { text: t("ok") } : null}
+			actionButton={{ text: t("refresh"), onClick: onActionClick }}
 			isWarning={error.isWarning}
 		>
 			<div className={"article"}>

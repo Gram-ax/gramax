@@ -1,5 +1,9 @@
 import t from "@ext/localization/locale/translate";
 
-export default (name: string) => {
+const isSystemProperty = (name: string) => {
 	return t(`properties.system.${name}.name`) !== `properties.system.${name}.name`;
 };
+
+export const isNotSystemProperty = (name: string) => !isSystemProperty(name);
+
+export default isSystemProperty;

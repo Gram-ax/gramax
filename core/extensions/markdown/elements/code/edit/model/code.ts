@@ -1,4 +1,3 @@
-import getIsSelected from "@ext/markdown/elementsUtils/getIsSelected";
 import getIsSelectedOneNode from "@ext/markdown/elementsUtils/getIsSelectedOneNode";
 import { Mark, markInputRule, markPasteRule, mergeAttributes } from "@tiptap/core";
 import addShortcuts from "@ext/markdown/elementsUtils/keyboardShortcuts/addShortcuts";
@@ -26,7 +25,7 @@ const Code = Mark.create<CodeOptions>({
 	name: "code",
 	code: true,
 	priority: 1001,
-	excludes: "strong em comment",
+	excludes: "strong em comment highlight",
 
 	addOptions() {
 		return {
@@ -55,11 +54,9 @@ const Code = Mark.create<CodeOptions>({
 				},
 			toggleCode:
 				() =>
-				({ commands, editor, state }) => {
+				({ commands, editor }) => {
 					if (editor.isActive(this.name)) return commands.toggleMark(this.name);
 					if (getIsSelectedOneNode(editor.state)) return commands.toggleMark(this.name);
-
-					return getIsSelected(state) ? commands.multilineCodeBlock() : commands.toggleCodeBlock();
 				},
 			unsetCode:
 				() =>

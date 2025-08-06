@@ -1,67 +1,77 @@
-import HomePageActions from "@components/HomePage/HomePageActions";
+import Search from "@components/Actions/Modal/Search";
+import SingInOut from "@components/Actions/SingInOut";
 import { classNames } from "@components/libs/classNames";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import IsMacService from "@core-ui/ContextServices/IsMac";
+import WorkspaceService from "@core-ui/ContextServices/Workspace";
 import WorkspaceAssetsService from "@core-ui/ContextServices/WorkspaceAssetsService";
 import { usePlatform } from "@core-ui/hooks/usePlatform";
-import styled from "@emotion/styled";
+import AddCatalogMenu from "@ext/catalog/actions/AddCatalogMenu";
+import SwitchUiLanguage from "@ext/localization/actions/SwitchUiLanguage";
 import { CatalogLink } from "@ext/navigation/NavigationLinks";
+import PermissionService from "@ext/security/logic/Permission/components/PermissionService";
+import { configureWorkspacePermission, editCatalogPermission } from "@ext/security/logic/Permission/Permissions";
+import ThemeToggle from "@ext/Theme/components/ThemeToggle";
+import SwitchWorkspace from "@ext/workspace/components/SwitchWorkspace";
 import ThemeService from "../../extensions/Theme/components/ThemeService";
 import useUrlImage from "../Atoms/Image/useUrlImage";
 
-const Logo = () => {
+export type HomePageActionsProps = { catalogLinks: CatalogLink[]; pin?: boolean };
+
+export const Logo = () => {
 	const theme = ThemeService.value;
 	const apiUrlCreator = ApiUrlCreatorService.value;
 	const { homeLogo } = WorkspaceAssetsService.value();
 	const { isTauri } = usePlatform();
 	const isMacDesktop = IsMacService.value && isTauri;
-	const marginTop = isMacDesktop ? "1.4rem" : "0px";
 
 	return (
-		<div
-			className={classNames("home-icon-wrapper", { "logo-desktop-padding": isMacDesktop })}
-			style={{ marginTop }}
-		>
+		<div className={classNames("home-icon-wrapper", { "logo-desktop-padding": isMacDesktop })}>
 			<img
 				src={homeLogo ? homeLogo : useUrlImage(apiUrlCreator.getLogo(theme))}
-				className={classNames("home-icon", { "default-icon": !homeLogo })}
+				className={classNames("home-icon")}
 				alt={`logo-${theme}`}
 			/>
 		</div>
 	);
 };
 
-const TopMenu = ({ catalogLinks, className }: { catalogLinks: CatalogLink[]; className?: string }) => {
+const TopMenu = ({ catalogLinks }: { catalogLinks: CatalogLink[] }) => {
 	const { isTauri } = usePlatform();
 	const isMacDesktop = IsMacService.value && isTauri;
+	const { isNext, isStatic } = usePlatform();
+	const hasWorkspace = WorkspaceService.hasActive();
+	const workspacePath = WorkspaceService.current()?.path;
+
+	const canEditCatalog = PermissionService.useCheckPermission(editCatalogPermission, workspacePath);
+	const canConfigureWorkspace = PermissionService.useCheckPermission(configureWorkspacePermission, workspacePath);
+	const canAddCatalog = (isNext && canConfigureWorkspace) || (!isNext && canEditCatalog);
 
 	return (
-		<div className={className}>
-			<Logo />
-			<HomePageActions pin={isMacDesktop} catalogLinks={catalogLinks} />
+		<div
+			data-qa="app-actions"
+			className={`w-full bg-alpha-40 top-0 px-4 ${isMacDesktop ? "pt-4" : ""}`}
+			style={{ backdropFilter: "blur(5px)", position: "sticky", zIndex: "var(--z-index-top-menu)" }}
+		>
+			<div className="w-full mx-auto flex max-w-[1144px] flex-row items-center justify-between py-2 relative">
+				<div className="flex flex-row items-center gap-3 lg:gap-6">
+					<div>
+						<Logo />
+					</div>
+					<div className="flex flex-row items-center lg:gap-2">
+						{!isNext && hasWorkspace && !isStatic && <SwitchWorkspace />}
+						{canAddCatalog && hasWorkspace && !isStatic && <AddCatalogMenu />}
+					</div>
+				</div>
+				<div className="flex flex-row items-center gap-0.5 lg:gap-2">
+					{hasWorkspace && !isStatic && <Search isHomePage catalogLinks={catalogLinks} />}
+					<SwitchUiLanguage />
+					<ThemeToggle isHomePage />
+					{hasWorkspace && !isStatic && <SingInOut />}
+				</div>
+			</div>
 		</div>
 	);
 };
 
-export default styled(TopMenu)`
-	width: 100%;
-	display: flex;
-	flex-direction: row;
-	justify-content: space-between;
-	margin-top: 0.5rem;
-
-	.home-icon {
-		display: flex;
-		border-radius: 0;
-		justify-content: start;
-		align-items: center;
-	}
-
-	.home-icon-wrapper {
-		max-height: 2.5rem;
-	}
-
-	.default-icon {
-		width: 5.5rem;
-	}
-`;
+export default TopMenu;

@@ -32,7 +32,7 @@ const SnippetsTab = ({ show }: SnippetsTabProps) => {
 		if (!selectedID) return;
 
 		const listener = () => {
-			SnippetService.closeSnippet();
+			SnippetService.closeItem();
 			SnippetUpdateService.updateContent(selectedID, apiUrlCreator);
 		};
 

@@ -120,7 +120,8 @@ class Sheet<T> implements SheetInterface<T> {
 	}
 
 	public isCellMerged(row: number, column: number): boolean {
-		const cell = this._sheet[row][column];
+		const cell = this._sheet?.[row]?.[column];
+		if (!cell) return false;
 		return this._isMergedCell(cell) || this._isMergedCellReference(cell);
 	}
 

@@ -1,7 +1,8 @@
 import { getHttpsRepositoryUrl } from "@components/libs/utils";
 import { createEventEmitter } from "@core/Event/EventEmitter";
 import type FileStructure from "@core/FileStructue/FileStructure";
-import GithubStorageData from "@ext/git/actions/Source/GitHub/model/GithubStorageData";
+import GitSourceApi from "@ext/git/actions/Source/GitSourceApi";
+import { makeSourceApi } from "@ext/git/actions/Source/makeSourceApi";
 import type { CloneCancelToken } from "@ext/git/core/GitCommands/model/GitCommandsModel";
 import getUrlFromGitStorageData from "@ext/git/core/GitStorage/utils/getUrlFromGitStorageData";
 import type { ProxiedSourceDataCtx } from "@ext/storage/logic/SourceDataProvider/logic/SourceDataCtx";
@@ -14,7 +15,6 @@ import SourceType from "../../../storage/logic/SourceDataProvider/model/SourceTy
 import Storage, { StorageEvents } from "../../../storage/logic/Storage";
 import getPartGitSourceDataByStorageName from "../../../storage/logic/utils/getPartSourceDataByStorageName";
 import getStorageNameByData from "../../../storage/logic/utils/getStorageNameByData";
-import createGitHubRepository from "../../actions/Source/GitHub/logic/createGitHubRepository";
 import GitCommands from "../GitCommands/GitCommands";
 import GitError from "../GitCommands/errors/GitError";
 import GitErrorCode from "../GitCommands/errors/model/GitErrorCode";
@@ -114,7 +114,13 @@ export default class GitStorage implements Storage {
 	}
 
 	static async init(repositoryPath: Path, fp: FileProvider, data: GitStorageData) {
-		if (data.source.sourceType == SourceType.gitHub) await createGitHubRepository(data as GithubStorageData);
+		if (data.source.sourceType == SourceType.gitHub || data.source.sourceType == SourceType.gitVerse) {
+			const sourceApi = makeSourceApi(data.source) as GitSourceApi;
+			assert(sourceApi, "sourceApi is missing");
+
+			await sourceApi.createRepository(data);
+		}
+
 		const gitRepository = new GitCommands(fp, repositoryPath);
 		await gitRepository.addRemote(data);
 	}

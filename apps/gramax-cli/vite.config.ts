@@ -1,4 +1,4 @@
-import { readdirSync, rmSync, statSync } from "fs";
+import { existsSync, readdirSync, rmSync, statSync } from "fs";
 import { join, resolve } from "path";
 import { defineConfig, mergeConfig, Plugin, UserConfig } from "vite";
 import { viteStaticCopy } from "vite-plugin-static-copy";
@@ -51,6 +51,7 @@ export default defineConfig(({ isSsrBuild }) => {
 								const protectedFolderPath = resolve(distPath, protectedFolderName);
 
 								try {
+									if (!existsSync(distPath)) return;	
 									const filesAndFolders = readdirSync(distPath);
 									filesAndFolders.forEach((item) => {
 										const itemPath = join(distPath, item);

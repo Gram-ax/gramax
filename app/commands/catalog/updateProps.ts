@@ -21,8 +21,10 @@ const updateProps: Command<{ ctx: Context; catalogName: string; props: CatalogEd
 
 			const catalog = await workspace.getCatalog(catalogName, ctx);
 			if (!catalog) return;
-
+			const isSyntaxChanged = props.syntax && catalog.props.syntax !== props.syntax;
 			const newCatalog = await catalog.updateProps(props, resourceUpdaterFactory);
+			if (isSyntaxChanged) await this._commands.catalog.setSyntax.do({ ctx, catalogName });
+			
 			return sitePresenterFactory.fromContext(ctx).serializeCatalogProps(newCatalog);
 		},
 

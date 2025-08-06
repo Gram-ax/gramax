@@ -16,7 +16,7 @@ const TooltipIfOveflow = (props: TooltipIfOveflowProps) => {
 	const [mouseOver, setMouseOver] = useState(false);
 
 	useEffect(() => {
-		if (!childrenRef.current) return;
+		if (!childrenRef?.current) return;
 
 		const onMouseEnter = () => setMouseOver(true);
 		const onMouseLeave = () => setMouseOver(false);
@@ -33,6 +33,7 @@ const TooltipIfOveflow = (props: TooltipIfOveflowProps) => {
 		resizeObserver.observe(childrenRef.current);
 
 		return () => {
+			if (!childrenRef?.current) return;
 			resizeObserver.disconnect();
 			childrenRef.current?.removeEventListener("mouseenter", onMouseEnter);
 			childrenRef.current?.removeEventListener("mouseleave", onMouseLeave);

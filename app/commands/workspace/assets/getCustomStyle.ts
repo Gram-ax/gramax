@@ -15,7 +15,7 @@ const getCustomStyle: Command<{ workspacePath?: WorkspacePath }, string> = Comma
 	},
 
 	params(ctx, q) {
-		return { workspacePath: q.id };
+		return { workspacePath: q.path };
 	},
 });
 

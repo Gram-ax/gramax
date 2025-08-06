@@ -46,7 +46,7 @@ export default class CustomArticlePresenter {
 			content: md.content ?? "",
 			parent: null,
 			props: md.data as ArticleProps,
-			logicPath: name,
+			logicPath: props?.logicPath || name,
 			lastModified: new Date().getTime(),
 			errorCode,
 			fs: null,

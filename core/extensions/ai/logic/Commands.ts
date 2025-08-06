@@ -3,7 +3,8 @@ import TiptapGramaxAi from "@ext/ai/logic/TiptapGramaxAi";
 import { RESTORE_SELECTION_META_KEY } from "@ext/ai/logic/plugins/BlurSelection/consts";
 import { SAVE_SELECTION_META_KEY } from "@ext/ai/logic/plugins/BlurSelection/consts";
 import { createLoadingDecoration } from "@ext/ai/logic/utils";
-import { AiGenerateOptions, AiPrettifyOptions } from "@ext/ai/models/types";
+import { AiGenerateOptions, AiPrettifyOptions, AiTranscribeOptions } from "@ext/ai/models/types";
+import t from "@ext/localization/locale/translate";
 import { CommandProps } from "@tiptap/core";
 
 export const prettify =
@@ -53,7 +54,7 @@ export const generate =
 			($from.node().type.name !== "text" ? $from.node().textContent : $from.node().text).length > 0;
 
 		const isBlock = from === to && !hasContent;
-		const decorations = createLoadingDecoration(from, to, isBlock);
+		const decorations = createLoadingDecoration(from, to, isBlock, t("editor.ai.generate"));
 
 		editor.commands.setMeta("addDecoration", decorations);
 		editor.setEditable(false);
@@ -88,3 +89,34 @@ export const restoreSelection =
 	() =>
 	({ commands }: CommandProps) =>
 		commands.setMeta(RESTORE_SELECTION_META_KEY, true);
+
+export const transcribe =
+	(apiUrlCreator: ApiUrlCreator) =>
+	(options: AiTranscribeOptions) =>
+	({ editor }: CommandProps) => {
+		const ai = new TiptapGramaxAi(apiUrlCreator, editor.schema);
+
+		const { selection } = editor.state;
+		const from = selection.from;
+		const to = selection.to;
+
+		const decorations = createLoadingDecoration(from, to, true, t("ai.transcribtion"));
+
+		editor.commands.setMeta("addDecoration", decorations);
+		editor.setEditable(false);
+
+		void ai
+			.transcribe(options.buffer)
+			.then((text) => {
+				editor.chain().setMeta("removeDecoration", true).deleteRange({ from, to }).insertContent(text).run();
+				editor.setEditable(true);
+
+				return text;
+			})
+			.catch(() => {
+				editor.commands.setMeta("removeDecoration", true);
+				editor.setEditable(true);
+			});
+
+		return true;
+	};

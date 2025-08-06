@@ -55,6 +55,7 @@ const CardPreview = forwardRef<HTMLDivElement, CardProps>((props, ref) => {
 								propertyStyle={property.style}
 								name={property.name}
 								value={!isFlag ? property.value : property.name}
+								shouldShowValue={!isFlag}
 							/>
 						}
 					/>

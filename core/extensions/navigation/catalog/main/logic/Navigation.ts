@@ -71,7 +71,6 @@ export default class Navigation implements HasEvents<NavigationEvents> {
 			title: catalog.props[navProps.title] ?? catalog.name,
 			query: {},
 			group: catalog.props[navProps.group] ?? null,
-			code: catalog.props[navProps.code] ?? "",
 			style: catalog.props[navProps.style] ?? null,
 			description: catalog.props[navProps.description] ?? null,
 			order: catalog.props[navProps.order] ?? 999999,

@@ -26,6 +26,7 @@ const scrollUtils = {
 	},
 
 	hasScroll(element: HTMLElement, threshold: number = 1): boolean {
+		if (!element || !element.scrollHeight || !element.clientHeight) return false;
 		return Math.abs(element.scrollHeight - element.clientHeight) > threshold;
 	},
 

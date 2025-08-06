@@ -21,32 +21,29 @@ const getAllSyncCount: Command<
 		const workspace = wm.current();
 
 		const res = {};
-		const promises = [];
 
-		for (const [name, entry] of workspace.getAllCatalogs().entries()) {
-			if (!entry.repo?.storage) continue;
-			const promise = async () => {
-				try {
-					const data = rp.getSourceData(ctx, await entry.repo.storage.getSourceName());
-					const invalidData = !data || data.isInvalid;
+		const entries = Array.from(workspace.getAllCatalogs().entries());
 
-					if (invalidData) {
-						res[name] = { errorMessage: t("storage-not-connected") };
-						return;
-					}
+		await entries.forEachAsync(async ([name, entry]) => {
+			if (!entry.repo?.storage) return;
 
-					if (shouldFetch) await entry.repo.storage.fetch(data);
-					if (resetSyncCount) await entry.repo.storage.updateSyncCount();
-					res[name] = await entry.repo.storage.getSyncCount();
-				} catch (err) {
-					if (!res[name]) res[name] = { errorMessage: t("unable-to-get-sync-count") };
+			try {
+				const data = rp.getSourceData(ctx, await entry.repo.storage.getSourceName());
+				const invalidData = !data || data.isInvalid;
+
+				if (invalidData) {
+					res[name] = { errorMessage: t("storage-not-connected") };
+					return;
 				}
-			};
 
-			promises.push(promise());
-		}
+				if (shouldFetch) await entry.repo.storage.fetch(data);
+				if (resetSyncCount) await entry.repo.storage.updateSyncCount();
+				res[name] = await entry.repo.storage.getSyncCount();
+			} catch (err) {
+				if (!res[name]) res[name] = { errorMessage: t("unable-to-get-sync-count") };
+			}
+		});
 
-		await Promise.all(promises);
 		return res;
 	},
 

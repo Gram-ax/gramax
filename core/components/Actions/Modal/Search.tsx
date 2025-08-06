@@ -9,6 +9,7 @@ import IsMacService from "@core-ui/ContextServices/IsMac";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import SearchQueryService from "@core-ui/ContextServices/SearchQuery";
 import debounceFunction from "@core-ui/debounceFunction";
+import { usePlatform } from "@core-ui/hooks/usePlatform";
 import { cssMedia } from "@core-ui/utils/cssUtils";
 import { useRouter } from "@core/Api/useRouter";
 import Path from "@core/FileProvider/Path/Path";
@@ -20,6 +21,7 @@ import Renderer from "@ext/markdown/core/render/components/Renderer";
 import { RenderableTreeNodes } from "@ext/markdown/core/render/logic/Markdoc";
 import { CatalogLink, CategoryLink, ItemLink } from "@ext/navigation/NavigationLinks";
 import useMediaQuery from "@mui/material/useMediaQuery";
+import { IconButton } from "@ui-kit/Button";
 import { Fragment, useEffect, useRef, useState } from "react";
 import { SearchItem } from "../../../extensions/serach/Searcher";
 import IsOpenModalService from "../../../ui-logic/ContextServices/IsOpenMpdal";
@@ -29,7 +31,6 @@ import Link from "../../Atoms/Link";
 import Breadcrumb from "../../Breadcrumbs/LinksBreadcrumb";
 import ModalLayout from "../../Layouts/Modal";
 import ModalLayoutLight from "../../Layouts/ModalLayoutLight";
-import { usePlatform } from "@core-ui/hooks/usePlatform";
 // import Path from "../../../logic/FileProvider/Path/Path";
 // import RouterPathProvider from "@core/RouterPath/RouterPathProvider";
 
@@ -101,7 +102,7 @@ const Search = (props: SearchProps) => {
 				focusRef.current.scrollIntoView({ inline: "center", block: "nearest", behavior: "smooth" });
 			}
 			if (e.code === "Enter") {
-				router.pushPath(data[focusId].url);
+				router.pushPath(data?.searchData?.[focusId]?.url);
 				setFocusId(0);
 				setIsOpen(false);
 			}
@@ -231,11 +232,11 @@ const Search = (props: SearchProps) => {
 			isOpen={isOpen}
 			contentWidth={"minM"}
 			trigger={
-				<ButtonLink
-					iconCode="search"
-					textSize={isHomePage ? TextSize.XS : TextSize.L}
-					text={isHomePage ? t("search.name") : null}
-				/>
+				isHomePage ? (
+					<IconButton variant="ghost" icon={"search"} />
+				) : (
+					<ButtonLink iconCode="search" textSize={TextSize.L} />
+				)
 			}
 		>
 			<div style={{ height: "100%", display: "flex", flexDirection: "column" }} data-qa={`search-modal`}>
@@ -490,8 +491,8 @@ const Search = (props: SearchProps) => {
 };
 
 export default styled(Search)`
-	height: 180px;
 	transition: all 0.3s;
+	max-height: 100%;
 
 	.layer-two {
 		overflow: hidden;

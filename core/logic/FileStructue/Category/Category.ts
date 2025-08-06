@@ -66,7 +66,7 @@ export class Category<P extends CategoryProps = CategoryProps> extends Article<P
 		this._items.sort((x, y) => ((x.props.order ?? 0) - (y.props.order ?? 0)) * (isAsc ? 1 : -1));
 
 		if (
-			!this._fs.fp.isReadOnly &&
+			!this._fs.fp.at(this.ref.path).isReadOnly &&
 			(force || this.items.some((i) => isNaN(i.order) || digitsAfterDot(i.order) > ORDERING_MAX_PRECISION))
 		) {
 			let order = isAsc ? 1 : this.items.length;

@@ -37,11 +37,17 @@ class FileFocusTooltip extends BaseMark {
 		const element = getFirstPatentByName(text as HTMLElement, "gr-file");
 		if (!element || element.tagName == "BODY") return;
 
+		const aiEnabled = this._pageDataContext.conf.ai.enabled;
+
 		this._setTooltipPosition(element);
 		this._setComponent(
 			<PageDataContextService.Provider value={this._pageDataContext}>
 				<ApiUrlCreatorService.Provider value={this._apiUrlCreator}>
-					<FileMenu resourcePath={mark.attrs.resourcePath} onDelete={() => this._delete(markPosition)} />
+					<FileMenu
+						resourcePath={mark.attrs.resourcePath}
+						onDelete={() => this._delete(markPosition)}
+						aiEnabled={aiEnabled}
+					/>
 				</ApiUrlCreatorService.Provider>
 			</PageDataContextService.Provider>,
 		);

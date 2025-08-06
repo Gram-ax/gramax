@@ -5,6 +5,7 @@ import { useOutsideClick } from "@core-ui/hooks/useOutsideClick";
 import styled from "@emotion/styled";
 import { ReactNode, useEffect, RefObject, useCallback, memo, useRef, CSSProperties, useState } from "react";
 import { Instance } from "tippy.js";
+import useDefaultActions, { UseDefaultActionsOptions } from "./hooks/useDefaultActions";
 
 type Placement = "top" | "inner";
 
@@ -12,6 +13,7 @@ interface HoverProps {
 	children: ReactNode;
 	hoverElementRef: RefObject<HTMLElement>;
 	setIsHovered: (isHovered: boolean) => void;
+	actionsOptions?: UseDefaultActionsOptions;
 	isHovered: boolean;
 	selected?: boolean;
 	hideOnClick?: boolean;
@@ -48,6 +50,7 @@ const HoverableActions = (props: HoverProps) => {
 		setIsHovered,
 		hideOnClick = true,
 		placement = "inner",
+		actionsOptions,
 	} = props;
 	if (!setIsHovered) return children;
 	const actionsRef = useRef<HTMLDivElement>(null);
@@ -68,6 +71,7 @@ const HoverableActions = (props: HoverProps) => {
 	}, [isHovered, actionsRef.current]);
 
 	if (isHideOnClick) useOutsideClick([hoverElementRef.current], handleHide);
+	const { Left, Right } = useDefaultActions(rightActions, leftActions, actionsOptions);
 
 	useEffect(() => {
 		const hoverElement = hoverElementRef.current;
@@ -108,15 +112,16 @@ const HoverableActions = (props: HoverProps) => {
 		<>
 			<div
 				ref={actionsRef}
+				data-qa="qa-node-actions"
 				className={classNames(className, { isOver }, ["node-actions", placement])}
 				data-drag-handle
 				contentEditable={false}
 			>
 				<div className="actions-left" style={actionsStyle}>
-					{isHovered && leftActions && <ActionButtonContainer>{leftActions}</ActionButtonContainer>}
+					{isHovered && Left && <ActionButtonContainer>{Left}</ActionButtonContainer>}
 				</div>
 				<div className="actions-right" style={actionsStyle}>
-					{isHovered && <ActionButtonContainer>{rightActions}</ActionButtonContainer>}
+					{isHovered && Right && <ActionButtonContainer>{Right}</ActionButtonContainer>}
 				</div>
 			</div>
 			{children}

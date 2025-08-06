@@ -109,7 +109,7 @@ const ItemMenu = React.memo(({ itemLink, isCategory, setItemLink }: EditMenuProp
 	useEffect(() => {
 		if (!isCurrentItem && !itemProps) setItemPropsData(itemLink.ref.path);
 		if (!isReadOnly && !brotherFileNames) setBrotherFileNamesData(itemLink.ref.path);
-	}, [isCurrentItem, isReadOnly, itemLink.ref.path, brotherFileNames, itemProps]);
+	}, [isCurrentItem, isReadOnly, itemLink?.ref?.path, brotherFileNames, itemProps]);
 
 	const updateFavorite = () => {
 		const newFavoriteArticles = isFavorite
@@ -140,9 +140,7 @@ const ItemMenu = React.memo(({ itemLink, isCategory, setItemLink }: EditMenuProp
 						isCurrentItem={isCurrentItem}
 						isTemplate={false}
 					/>
-					{!isStatic && !isStaticCli && (
-						<AddToFavoriteButton isFavorite={isFavorite} onClick={updateFavorite} />
-					)}
+					<AddToFavoriteButton isFavorite={isFavorite} onClick={updateFavorite} />
 					{!hasError && (
 						<>
 							<ExportToDocxOrPdf
@@ -157,7 +155,9 @@ const ItemMenu = React.memo(({ itemLink, isCategory, setItemLink }: EditMenuProp
 				</>
 			) : (
 				<>
-					<AddToFavoriteButton isFavorite={isFavorite} onClick={updateFavorite} />
+					{!isStatic && !isStaticCli && (
+						<AddToFavoriteButton isFavorite={isFavorite} onClick={updateFavorite} />
+					)}
 					{!hasError && (
 						<ExportToDocxOrPdf
 							isCategory={isCategory}

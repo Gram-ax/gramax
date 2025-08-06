@@ -1,8 +1,8 @@
 import styled from "@emotion/styled";
 import { ArticleLink, BaseLink, CatalogLink, CategoryLink, ItemLink } from "@ext/navigation/NavigationLinks";
 import { forwardRef, MutableRefObject } from "react";
-import { CatalogLogo } from "../CatalogLogo";
 import Breadcrumb from "./Breadcrumb";
+import { useGetCatalogLogoSrc } from "@core-ui/ContextServices/CatalogLogoService/catalogLogoHooks";
 
 interface BreadcrumbProps {
 	itemLinks?: ItemLink[];
@@ -47,7 +47,9 @@ const LinksBreadcrumb = forwardRef((props: BreadcrumbProps, ref: MutableRefObjec
 		categoryLinks = readyData.links;
 	}
 
-	if (!titles.length) return <div></div>;
+	if (!titles.length && !catalogLink) return <div />;
+
+	const { isExist, src } = useGetCatalogLogoSrc(catalogLink?.name);
 
 	return (
 		<div
@@ -58,7 +60,7 @@ const LinksBreadcrumb = forwardRef((props: BreadcrumbProps, ref: MutableRefObjec
 			{catalogLink ? (
 				<>
 					<a className="catalog-logo">
-						<CatalogLogo catalogName={catalogLink.name} />
+						{isExist && <img src={src} alt={catalogLink.name} />}
 						<span className="title">{catalogLink.title}</span>
 					</a>
 				</>

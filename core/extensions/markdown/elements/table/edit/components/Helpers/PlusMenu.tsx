@@ -78,7 +78,12 @@ const PlusMenu = (props: PlusMenuProps) => {
 	};
 
 	const setHeader = (header: TableHeaderTypes) => {
-		editor.chain().focus(getPos()).updateAttributes("table", { header: header }).run();
+		const newHeaderType = node.attrs.header === header ? TableHeaderTypes.NONE : header;
+		editor
+			.chain()
+			.focus(getPos() + 1)
+			.updateAttributes("table", { header: newHeaderType })
+			.run();
 	};
 
 	const rowDelete = () => {

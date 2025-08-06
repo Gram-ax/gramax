@@ -30,7 +30,6 @@ export class NextImageProccessor extends BaseImageProcessor {
 		const { path, resourceManager, defaultValue, maxWidth, maxHeight, crop, objects, scale } = options;
 
 		if (path.extension === "svg+xml") return await this.getImageFromSvgPath(path, resourceManager);
-
 		const imageBuffer = await this.getFileByPath(path, resourceManager);
 		const scaleMaxWidth = this._calculateScaledDimension(maxWidth, defaultValue, scale);
 		const scaleMaxHeight = this._calculateScaledDimension(maxHeight, MAX_HEIGHT, scale);
@@ -62,28 +61,38 @@ export class NextImageProccessor extends BaseImageProcessor {
 	}
 
 	private static async _cropImage(imageBuffer: Buffer, image: Buffer, size: ImageDimensions, crop?: Crop) {
-		if (crop) {
+		if (this._isCropRequired(crop)) {
 			imageBuffer = Buffer.from(await this._cropImageToBuffer(image, crop, size));
 			size = await ImageDimensionsFinder.getImageSizeFromImageData(imageBuffer);
 		}
 		return { imageBuffer, size };
 	}
+
+	private static _isCropRequired(crop?: Crop): boolean {
+		if (!crop) return false;
+		return !(crop.x === 0 && crop.y === 0 && crop.w === 100 && crop.h === 100);
+	}
+
 	private static async _cropImageToBuffer(
 		imageBuffer: Buffer,
 		crop: Crop,
 		size: ImageDimensions,
 	): Promise<Uint8Array> {
-		const sharp = (await import("sharp")).default;
+		const { createCanvas, loadImage } = await import("canvas");
 
 		const cropX = Math.round((size.width * crop.x) / 100);
 		const cropY = Math.round((size.height * crop.y) / 100);
 		const cropW = Math.round((size.width * crop.w) / 100);
 		const cropH = Math.round((size.height * crop.h) / 100);
 
-		const croppedImageBuffer = await sharp(imageBuffer)
-			.extract({ left: cropX, top: cropY, width: cropW, height: cropH })
-			.png()
-			.toBuffer();
+		const image = await loadImage(imageBuffer);
+
+		const canvas = createCanvas(cropW, cropH);
+		const ctx = canvas.getContext("2d");
+
+		ctx.drawImage(image, -cropX, -cropY);
+
+		const croppedImageBuffer = canvas.toBuffer("image/png");
 
 		return new Uint8Array(croppedImageBuffer);
 	}

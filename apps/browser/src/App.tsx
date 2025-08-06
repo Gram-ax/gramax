@@ -7,9 +7,10 @@ import RouterPathProvider from "@core/RouterPath/RouterPathProvider";
 import type { ArticlePageData } from "@core/SitePresenter/SitePresenter";
 import ThemeService from "@ext/Theme/components/ThemeService";
 import DefaultError from "@ext/errorHandlers/logic/DefaultError";
+import { Toaster } from "ics-ui-kit/components/toast";
+import { TooltipProvider } from "ics-ui-kit/components/tooltip";
 import { useCallback, useEffect, useState } from "react";
 import { Router } from "wouter";
-import { HistoryProvider } from "../../tauri/src/ForwardBackward";
 import Gramax, { GramaxProps } from "./Gramax";
 import AppError from "./components/Atoms/AppError";
 import AppLoader from "./components/Atoms/AppLoader";
@@ -43,6 +44,8 @@ const AppContext = () => {
 			const data = await getData(path, parserQuery(query));
 			if (filterOutPageData(data?.data as ArticlePageData, setLocation)) return;
 			setData({ path, ...data });
+
+			if (data) document.title = getPageTitle(data.context.isArticle, data.data as any);
 		} catch (err) {
 			console.error(err);
 			setError(err);
@@ -65,11 +68,6 @@ const AppContext = () => {
 		);
 	}
 
-	useEffect(() => {
-		if (!data) return;
-		document.title = getPageTitle(data.context.isArticle, data.data as any);
-	}, [data]);
-
 	useEffect(() => void refresh(), [refresh]);
 
 	if (!data)
@@ -84,11 +82,14 @@ const AppContext = () => {
 
 const App = () => {
 	return (
-		<HistoryProvider>
-			<LanguageService.Init>
-				<AppContext />
-			</LanguageService.Init>
-		</HistoryProvider>
+		<>
+			<TooltipProvider>
+				<Toaster />
+				<LanguageService.Init>
+					<AppContext />
+				</LanguageService.Init>
+			</TooltipProvider>
+		</>
 	);
 };
 

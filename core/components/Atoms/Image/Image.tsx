@@ -11,6 +11,7 @@ import {
 } from "react";
 import Lightbox from "./modalImage/Lightbox";
 import { ImageObject } from "@ext/markdown/elements/image/edit/model/imageEditorTypes";
+import { useDoubleTap } from "../../../ui-logic/hooks/useDoubleTap";
 
 interface ImageProps extends DetailedHTMLProps<ImgHTMLAttributes<HTMLImageElement>, HTMLImageElement> {
 	realSrc?: string;
@@ -34,6 +35,12 @@ const Image = forwardRef((props: ImageProps, ref?: MutableRefObject<HTMLImageEle
 	const onClick = useCallback(() => {
 		setOpen(true);
 	}, []);
+
+	const { onTouchStart, onDoubleClick } = useDoubleTap({
+		onDoubleTap: onClick,
+		delay: 300,
+		threshold: 50,
+	});
 
 	return (
 		<Fragment>
@@ -60,7 +67,8 @@ const Image = forwardRef((props: ImageProps, ref?: MutableRefObject<HTMLImageEle
 				onError={onError}
 				src={src}
 				className={className}
-				onDoubleClick={onClick}
+				onDoubleClick={onDoubleClick}
+				onTouchStart={onTouchStart}
 			/>
 			{title && <em>{title}</em>}
 		</Fragment>

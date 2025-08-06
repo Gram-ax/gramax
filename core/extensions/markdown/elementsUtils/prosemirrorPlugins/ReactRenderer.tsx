@@ -16,8 +16,8 @@ class ReactRenderer {
 	}
 
 	public destroy(element) {
-		this._parentElement?.removeChild(element);
-		this._root.unmount();
+		if (this._parentElement?.contains(element)) this._parentElement.removeChild(element);
+		this._root?.unmount();
 	}
 
 	protected _initialization(element: HTMLElement) {

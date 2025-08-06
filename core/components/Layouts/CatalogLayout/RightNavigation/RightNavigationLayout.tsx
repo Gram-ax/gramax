@@ -5,20 +5,16 @@ import { ReactNode } from "react";
 
 interface RightNavigationLayoutProps {
 	rightNavigationContent: ReactNode;
-	onRightNavMouseEnter?: () => void;
-	onRightNavMouseLeave?: () => void;
+	onPointerUp?: () => void;
+	onPointerLeave?: () => void;
+	onTouchEnd?: () => void;
 	className?: string;
 }
 
 const RightNavigationLayout = (props: RightNavigationLayoutProps) => {
-	const { rightNavigationContent, onRightNavMouseEnter, onRightNavMouseLeave, className } = props;
+	const { rightNavigationContent, ...otherProps } = props;
 	return (
-		<div
-			className={className}
-			onMouseEnter={onRightNavMouseEnter}
-			onMouseLeave={onRightNavMouseLeave}
-			onTouchEnd={onRightNavMouseEnter}
-		>
+		<div {...otherProps}>
 			<div className="right-nav">{rightNavigationContent}</div>
 		</div>
 	);
@@ -33,10 +29,10 @@ export default styled(RightNavigationLayout)`
 	.right-nav {
 		display: flex;
 		flex-direction: column;
-		padding: 20px 12px 20px 20px;
+		padding: 2rem 1.2rem 2rem 2rem;
 		overflow-y: scroll;
 		height: 100%;
-		${() => (useMediaQuery(cssMedia.narrow) ? "padding-top: calc(16px + var(--top-bar-height));" : "")}
+		${() => (useMediaQuery(cssMedia.narrow) ? "padding-top: calc(1rem + var(--top-bar-height));" : "")}
 	}
 
 	@media print {

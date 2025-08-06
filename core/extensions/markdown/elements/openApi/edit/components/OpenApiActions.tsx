@@ -9,17 +9,11 @@ import { Node } from "@tiptap/pm/model";
 interface OpenApiActionsProps {
 	editor: Editor;
 	node: Node;
-	getPos: () => number;
 	updateAttributes: (attrs: Record<string, unknown>) => void;
 }
 
-const OpenApiActions = ({ editor, node, getPos, updateAttributes }: OpenApiActionsProps) => {
+const OpenApiActions = ({ editor, node, updateAttributes }: OpenApiActionsProps) => {
 	const { getBuffer } = ResourceService.value;
-
-	const handleDelete = () => {
-		const position = getPos();
-		editor.commands.deleteRange({ from: position, to: position + node.nodeSize });
-	};
 
 	const toggleFlag = () => {
 		updateAttributes({ flag: !node.attrs.flag });
@@ -44,7 +38,6 @@ const OpenApiActions = ({ editor, node, getPos, updateAttributes }: OpenApiActio
 				onClick={toggleFlag}
 				tooltipText={node.attrs.flag ? t("schemas-block") : t("no-schemas-block")}
 			/>
-			<ActionButton icon="trash" onClick={handleDelete} tooltipText={t("delete")} />
 		</>
 	);
 };

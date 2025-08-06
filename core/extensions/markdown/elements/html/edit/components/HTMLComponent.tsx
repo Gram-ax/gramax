@@ -4,10 +4,11 @@ import ModalToOpen from "@core-ui/ContextServices/ModalToOpenService/model/Modal
 import HTMLActions from "@ext/markdown/elements/html/edit/components/HTMLActions";
 import HTML from "@ext/markdown/elements/html/render/components/HTML";
 import { NodeViewProps } from "@tiptap/core";
-import { NodeViewWrapper } from "@tiptap/react";
 import { ReactElement, useRef } from "react";
+import { NodeViewContextableWrapper } from "@ext/markdown/core/element/NodeViewContextableWrapper";
 
-const HTMLComponent = ({ node, getPos, editor, updateAttributes }: NodeViewProps): ReactElement => {
+const HTMLComponent = (props: NodeViewProps): ReactElement => {
+	const { node, getPos, editor, updateAttributes } = props;
 	const hoverElement = useRef<HTMLDivElement>(null);
 	const isEditable = editor.isEditable;
 
@@ -20,18 +21,17 @@ const HTMLComponent = ({ node, getPos, editor, updateAttributes }: NodeViewProps
 	};
 
 	return (
-		<NodeViewWrapper ref={hoverElement} as={"div"} data-qa="qa-html">
+		<NodeViewContextableWrapper ref={hoverElement} props={props} as={"div"} data-qa="qa-html">
 			<BlockActionPanel
 				updateAttributes={updateAttributes}
 				hoverElementRef={hoverElement}
+				actionsOptions={{ comment: true }}
 				getPos={getPos}
-				rightActions={
-					isEditable && <HTMLActions editor={editor} node={node} getPos={getPos} openEditor={openEditor} />
-				}
+				rightActions={isEditable && <HTMLActions openEditor={openEditor} />}
 			>
 				<HTML content={node.attrs.content} />
 			</BlockActionPanel>
-		</NodeViewWrapper>
+		</NodeViewContextableWrapper>
 	);
 };
 

@@ -124,7 +124,7 @@ export default class ArticleProvider {
 		ctx: Context,
 	) {
 		const article = this.getArticle(id);
-		assert(article, `Template with id ${id} not found`);
+		assert(article, `Article with id ${id} not found`);
 
 		if (article.parsedContent.isNull) {
 			const context = await parserContextFactory.fromArticle(

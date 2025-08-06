@@ -4,8 +4,9 @@ import GitSourceApi from "@ext/git/actions/Source/GitSourceApi";
 import { GitRepData, GitRepsPageData } from "@ext/git/actions/Source/model/GitRepsApiData";
 import { SourceUser } from "@ext/git/actions/Source/SourceAPI";
 import type GitSourceData from "@ext/git/core/model/GitSourceData.schema";
-import Branch from "../../../../../VersionControl/model/branch/Branch";
-import GitStorageData from "../../../../core/model/GitStorageData";
+import GitStorageData from "@ext/git/core/model/GitStorageData";
+import Branch from "@ext/VersionControl/model/branch/Branch";
+import assert from "assert";
 
 export default class GitlabSourceAPI extends GitSourceApi {
 	private readonly _allProjectsUrl = "projects?order_by=last_activity_at&simple=true&membership=true";
@@ -18,6 +19,8 @@ export default class GitlabSourceAPI extends GitSourceApi {
 	}
 
 	async refreshAccessToken(): Promise<GitSourceData> {
+		assert(this._authServiceUrl, "authServiceUrl is required");
+
 		const url = `${this._authServiceUrl}/gitlab-refresh?refreshToken=${this._data.refreshToken}`;
 		const res = await fetch(url);
 		return (await res.json()) ?? null;
@@ -118,6 +121,12 @@ export default class GitlabSourceAPI extends GitSourceApi {
 	async getAllBranches(data: GitStorageData, field?: string): Promise<any[]> {
 		const res = await this._api(`projects/${encodeURIComponent(`${data.group}/${data.name}`)}/repository/branches`);
 		return (await res.json()).map((branch) => branch?.[field] ?? branch?.name);
+	}
+
+	// dont implement because we can create rep by "git push"
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
+	createRepository(_data: GitStorageData): Promise<void> {
+		throw new Error("Method not implemented.");
 	}
 
 	private async _searchFileInBranch(

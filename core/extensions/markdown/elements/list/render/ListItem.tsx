@@ -1,5 +1,6 @@
 import { classNames } from "@components/libs/classNames";
 import styled from "@emotion/styled";
+import { CHECKED_ATTR } from "@ext/markdown/elements/list/edit/models/listItem/model/listItem";
 import { FC, ChangeEvent } from "react";
 import { ReactNode } from "react";
 
@@ -65,7 +66,7 @@ const DefaultListItem = ({ children, className }: ListItemProps) => {
 };
 
 const ListItem: FC<ListItemProps> = (props) => {
-	const Tag = "checked" in props ? StyledTaskItemView : DefaultListItem;
+	const Tag = props.isTaskItem ? StyledTaskItemView : DefaultListItem;
 
 	return <Tag {...props} />;
 };

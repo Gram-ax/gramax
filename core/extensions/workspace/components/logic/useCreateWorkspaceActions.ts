@@ -4,13 +4,13 @@ import WorkspaceService from "@core-ui/ContextServices/Workspace";
 import { clearData } from "@core-ui/utils/initGlobalFuncs";
 import { uniqueName } from "@core/utils/uniqueName";
 import { ClientWorkspaceConfig } from "@ext/workspace/WorkspaceConfig";
-import { useState, useCallback } from "react";
+import { useCallback, useState } from "react";
 
 export const useCreateWorkspaceActions = () => {
 	const apiUrlCreator = ApiUrlCreatorService.value;
 	const workspaces = WorkspaceService.workspaces();
 	const pathPlaceholder = WorkspaceService.defaultPath();
-	const [open, setOpenInner] = useState(false);
+	const [open, setOpenInner] = useState(true);
 
 	const [originalProps, setOriginalProps] = useState<ClientWorkspaceConfig>({
 		name: "",

@@ -12,6 +12,7 @@ import ArticleMat from "@ext/markdown/core/edit/components/ArticleMat";
 import ResourceService from "@ext/markdown/elements/copyArticles/resourceService";
 import EditorService, { BaseEditorContext } from "@ext/markdown/elementsUtils/ContextServices/EditorService";
 import getTocItems, { getLevelTocItemsByJSONContent } from "@ext/navigation/article/logic/createTocItems";
+import PropertyService from "@ext/properties/components/PropertyService";
 import { Editor } from "@tiptap/core";
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import ContentEditor from "../../extensions/markdown/core/edit/components/ContentEditor";
@@ -20,7 +21,6 @@ import Renderer from "../../extensions/markdown/core/render/components/Renderer"
 import getComponents from "../../extensions/markdown/core/render/components/getComponents/getComponents";
 import Header from "../../extensions/markdown/elements/heading/render/component/Header";
 import ArticleUpdater from "./ArticleUpdater/ArticleUpdater";
-import PropertyService from "@ext/properties/components/PropertyService";
 
 interface ArticleRendererProps {
 	data: ArticlePageData;
@@ -61,6 +61,7 @@ export const ArticleEditRenderer = (props: ArticleRendererProps) => {
 	const onUpdate = (newData: ArticlePageData) => {
 		setActualData(newData);
 		setArticleProps(newData.articleProps);
+		resourceService.clear();
 	};
 
 	const updateContent = useCallback(async (editor: Editor) => {
@@ -98,7 +99,7 @@ export const ArticleEditRenderer = (props: ArticleRendererProps) => {
 	}, [cancelDebouncedUpdateContent, cancelDebouncedUpdateTitle, apiUrlCreator, actualData.articleProps]);
 
 	const onTitleNeedsUpdate = useCallback(
-		({ newTitle, articleProps }: { newTitle: string } & BaseEditorContext) => {
+		({ newTitle, articleProps, apiUrlCreator }: { newTitle: string } & BaseEditorContext) => {
 			const maybeKebabName =
 				newTitle && NEW_ARTICLE_REGEX.test(articleProps.fileName)
 					? transliterate(newTitle, { kebab: true, maxLength: 50 })
@@ -107,8 +108,8 @@ export const ArticleEditRenderer = (props: ArticleRendererProps) => {
 			if (maybeKebabName || newTitle !== articleProps.title)
 				updateTitle(
 					{
-						apiUrlCreator: apiUrlCreatorRef.current,
-						articleProps: articlePropsRef.current,
+						articleProps,
+						apiUrlCreator,
 						propertyService: propertyServiceRef.current,
 					},
 					router,

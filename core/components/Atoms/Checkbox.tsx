@@ -42,8 +42,18 @@ const Checkbox = (props: CheckboxProps) => {
 	};
 
 	useEffect(() => {
-		setCheckboxSize(checkboxRef.current.getBoundingClientRect().width);
-	}, []);
+		const checkbox = checkboxRef.current;
+		if (!checkbox) return;
+
+		const rect = checkbox.getBoundingClientRect();
+		if (!rect) return;
+		const onResize = () => setCheckboxSize(rect.width);
+
+		const resizeObserver = new ResizeObserver(onResize);
+		resizeObserver.observe(checkbox);
+
+		return () => resizeObserver.disconnect();
+	}, [checkboxRef.current]);
 
 	useEffect(() => {
 		setCurrentChecked(Boolean(checked));

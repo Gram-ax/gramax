@@ -1,6 +1,9 @@
 import isURL from "@core-ui/utils/isURL";
 import Path from "@core/FileProvider/Path/Path";
+import { getFormatterTypeByContext } from "@ext/markdown/core/edit/logic/Formatter/Formatters/typeFormats/getFormatterType";
+import { Syntax } from "@ext/markdown/core/edit/logic/Formatter/Formatters/typeFormats/model/Syntax";
 import { MarkSerializerSpec } from "@ext/markdown/core/edit/logic/Prosemirror/to_markdown";
+import ParserContext from "@ext/markdown/core/Parser/ParserContext/ParserContext";
 
 function isPlainURL(link, parent, index, side) {
 	if (link.attrs.title || !/^\w+:/.test(link.attrs.href)) return false;
@@ -12,7 +15,10 @@ function isPlainURL(link, parent, index, side) {
 	return !link.isInSet(next.marks);
 }
 
-const getLinkFormatter = (): MarkSerializerSpec => {
+const getLinkFormatter = (context?: ParserContext): MarkSerializerSpec => {
+	const formatter = getFormatterTypeByContext(context);
+	const isGFM = formatter.type === Syntax.github;
+
 	return {
 		open(_state, mark, parent, index) {
 			return isPlainURL(mark, parent, index, 1) ? "<" : "[";
@@ -26,8 +32,11 @@ const getLinkFormatter = (): MarkSerializerSpec => {
 			const link: string =
 				isFile || isUrl
 					? resourcePath?.value ?? ""
-					: (resourcePath?.stripExtension ?? mark.attrs.href) + (mark.attrs.hash ?? "");
-			return isPlainURL(mark, parent, index, -1) ? ">" : `](${link.includes(" ") ? `<${link}>` : link})`;
+					: ((isGFM ? resourcePath : resourcePath?.stripExtension) ?? mark.attrs.href) +
+					  (mark.attrs.hash ?? "");
+			return isPlainURL(mark, parent, index, -1)
+				? ">"
+				: `](${link.includes(" ") ? `<${link.replaceAll("<", "\\<").replaceAll(">", "\\>")}>` : link})`;
 		},
 	};
 };

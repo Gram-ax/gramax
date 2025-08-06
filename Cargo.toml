@@ -13,8 +13,11 @@ members = [
   "apps/next/crates/next-gramax-git",
   "apps/next/crates/napi-async-macro",
 
-  "crates/warp-spa",
+  "crates/spa",
 ]
+
+[workspace.lints.clippy]
+multiple_crate_versions = "deny"
 
 [workspace.package]
 version = "0.0.0"
@@ -34,7 +37,9 @@ tauri = { version = "^2.0.0", features = [
 tauri-plugin-deep-link = "^2.0.0"
 tauri-plugin-dialog = "^2.0.0"
 tauri-plugin-log = "^2.0.0"
-tauri-plugin-updater = { version = "^2.0.0", features = ["zip"] }
+tauri-plugin-updater = { git = "https://github.com/pashokitsme/plugins-workspace", branch = "updater/pub-release-info", features = [
+  "zip",
+] }
 tauri-plugin-shell = "^2.0.0"
 tauri-plugin-window-state = "^2.0.0"
 
@@ -43,6 +48,8 @@ serde_yml = "^0.0"
 serde_json = "^1.0"
 reqwest = { version = "^0.12", features = ["blocking", "json"] }
 log = "^0.4"
+itertools = "0.14.0"
+nanoid = "0.4.0"
 
 rstest = "^0.23"
 

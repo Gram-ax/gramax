@@ -1,26 +1,69 @@
-import Button from "@components/Atoms/Button/Button";
-import PureLink from "@components/Atoms/PureLink";
-import FormStyle from "@components/Form/FormStyle";
 import t from "@ext/localization/locale/translate";
+import { ModalHeader, ModalTitle, ModalClose } from "@ui-kit/Modal";
+import { FormFooter } from "@ui-kit/Form";
+import { Button } from "@ui-kit/Button";
+import { showPopover } from "@core-ui/showPopover";
+import { Description } from "@ui-kit/Description";
+import Anchor from "@components/controls/Anchor";
+import Icon from "@components/Atoms/Icon";
+import { styled } from "@mui/material";
+import CloudModalBody from "@ext/static/components/CloudModalBody";
+import getCatalogUrl from "@ext/static/utils/cloudUrl";
 
-interface UploadedProps {
-	url: string;
-	onOkClick?: () => void;
-}
-
-const Uploaded = ({ url, onOkClick }: UploadedProps) => {
+const IconComponent = ({ className }: { className?: string }) => {
 	return (
-		<FormStyle>
-			<fieldset>
-				<legend>{t("cloud.upload-success")}</legend>
-				<span className="article">
-					{t("cloud.upload-success-link") + ": "} <PureLink href={url}>{url}</PureLink>
-				</span>
-				<div className="buttons">
-					<Button onClick={onOkClick}>{t("ok")}</Button>
+		<div className={className}>
+			<Icon code="cloud-check"></Icon>
+		</div>
+	);
+};
+
+const StyledIconComponent = styled(IconComponent)`
+	margin-right: 0.75rem;
+	font-size: 1.5rem;
+	display: flex;
+
+	svg {
+		stroke-width: 2;
+	}
+`;
+
+const Uploaded = () => {
+	const url = getCatalogUrl();
+
+	const onCopyClick = () => {
+		navigator.clipboard.writeText(url);
+		showPopover(t("share.popover"));
+	};
+
+	return (
+		<>
+			<ModalHeader>
+				<div className="flex items-center">
+					<StyledIconComponent className="text-primary-fg" />
+					<ModalTitle>{t("cloud.uploaded-modal.title")}</ModalTitle>
 				</div>
-			</fieldset>
-		</FormStyle>
+			</ModalHeader>
+			<CloudModalBody>
+				<p>
+					{t("cloud.uploaded-modal.link") + ": "}
+					<br />
+					<Anchor className="anchor" href={url} data-qa="qa-clickable">
+						{url}
+					</Anchor>
+				</p>
+				<Description>{t("cloud.uploaded-modal.description")}</Description>
+			</CloudModalBody>
+			<FormFooter
+				primaryButton={
+					<ModalClose>
+						<Button onClick={onCopyClick} startIcon="copy">
+							{`${t("copy")} ${t("link2").toLowerCase()}`}
+						</Button>
+					</ModalClose>
+				}
+			/>
+		</>
 	);
 };
 

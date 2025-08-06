@@ -1,7 +1,7 @@
 import { classNames } from "@components/libs/classNames";
 import styled from "@emotion/styled";
 import t from "@ext/localization/locale/translate";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Button, { TextSize } from "../Atoms/Button/Button";
 import { ButtonStyle } from "../Atoms/Button/ButtonStyle";
 
@@ -23,12 +23,8 @@ const EditorButtons = (props: EditorButtonsProps) => {
 		style = ButtonStyle.orange,
 		className,
 	} = props;
-	const [isEditing, setEditing] = useState<boolean>();
-
-	useEffect(() => {
-		if (isEditing || confirmDisabled) return;
-		setEditing(true);
-	}, [confirmDisabled]);
+	const [wasVisible, setWasVisible] = useState(!confirmDisabled);
+	const firstRender = useRef(true);
 
 	const handleKeyPress = useCallback(
 		(event: KeyboardEvent) => {
@@ -39,6 +35,11 @@ const EditorButtons = (props: EditorButtonsProps) => {
 		},
 		[onConfirm, confirmDisabled],
 	);
+
+	useEffect(() => {
+		if (!confirmDisabled) setWasVisible(true);
+		firstRender.current = false;
+	}, [confirmDisabled]);
 
 	useEffect(() => {
 		document.addEventListener("keydown", handleKeyPress);
@@ -52,32 +53,27 @@ const EditorButtons = (props: EditorButtonsProps) => {
 			<div
 				className={classNames("buttons", {
 					appear: !confirmDisabled,
-					disappear: isEditing && confirmDisabled,
+					disappear: wasVisible && confirmDisabled && !firstRender.current,
 				})}
 			>
-				{!confirmDisabled && (
-					<>
-						<Button
-							disabled={confirmDisabled}
-							buttonStyle={ButtonStyle.underline}
-							textSize={TextSize.S}
-							onClick={onCancel}
-							isEmUnits={true}
-						>
-							<span>{t("cancel")}</span>
-						</Button>
-
-						<Button
-							disabled={confirmDisabled}
-							buttonStyle={style}
-							textSize={TextSize.S}
-							onClick={onConfirm}
-							isEmUnits={true}
-						>
-							<span>{confirmButtonText}</span>
-						</Button>
-					</>
-				)}
+				<Button
+					disabled={confirmDisabled}
+					buttonStyle={ButtonStyle.underline}
+					textSize={TextSize.S}
+					onClick={onCancel}
+					isEmUnits={true}
+				>
+					<span>{t("cancel")}</span>
+				</Button>
+				<Button
+					disabled={confirmDisabled}
+					buttonStyle={style}
+					textSize={TextSize.S}
+					onClick={onConfirm}
+					isEmUnits={true}
+				>
+					<span>{confirmButtonText}</span>
+				</Button>
 			</div>
 		</div>
 	);

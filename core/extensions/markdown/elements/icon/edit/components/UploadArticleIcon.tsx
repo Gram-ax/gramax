@@ -1,7 +1,6 @@
 import { MAX_ICON_SIZE } from "@app/config/const";
 import FetchService from "@core-ui/ApiServices/FetchService";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
-import { FormProps } from "@ext/catalog/actions/propsEditor/components/CatalogPropsEditor";
 import ErrorModal from "@ext/errorHandlers/client/components/ErrorModal";
 import DefaultError from "@ext/errorHandlers/logic/DefaultError";
 import t from "@ext/localization/locale/translate";
@@ -22,6 +21,7 @@ import {
 } from "react";
 import Path from "@core/FileProvider/Path/Path";
 import Tooltip from "@components/Atoms/Tooltip";
+import type { FormProps } from "@ext/catalog/actions/propsEditor/logic/createFormSchema";
 
 type IconResource = { content: string; type: "svg"; fileName: string };
 

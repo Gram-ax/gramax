@@ -10,6 +10,9 @@ const Article = ({ data }: { data: ArticlePageData }) => {
 
 	useCtrlKeyLinkHandler(); // For opening links in tauri
 	useScrollToArticleAnchor(data); // For scrolling to article header
+
+	if (!pageDataContext.isArticle) return;
+
 	const isRenderMode = pageDataContext.conf.isReadOnly || articleProps.errorCode;
 
 	return isRenderMode ? <ArticleReadRenderer data={data} /> : <ArticleEditRenderer data={data} />;

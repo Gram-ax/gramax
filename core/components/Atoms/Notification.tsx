@@ -15,7 +15,7 @@ const NotificationWrapper = styled.div<{ size?: number }>`
 const Notification = ({ tooltip, className, size = 12, wrapperStyle, ...props }: NotificationProps) => {
 	if (tooltip) {
 		return (
-			<Tooltip content={tooltip}>
+			<Tooltip content={tooltip} hideInMobile={false}>
 				<NotificationWrapper size={size} className={className} style={wrapperStyle}>
 					<div {...props} />
 				</NotificationWrapper>
@@ -52,5 +52,6 @@ export default styled(Notification)`
 		text-align: center;
 		align-items: center;
 		justify-content: center;
+		user-select: none;
 	}
 `;

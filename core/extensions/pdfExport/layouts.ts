@@ -12,6 +12,7 @@ import { plantUmlHandler } from "@ext/markdown/elements/diagrams/diagrams/plantU
 import { drawioHandler } from "@ext/markdown/elements/drawio/pdf/drawio";
 import { emHandler } from "@ext/markdown/elements/em/pdf/em";
 import { headingHandler } from "@ext/markdown/elements/heading/pdf/heading";
+import { highlightHandler } from "@ext/markdown/elements/highlight/pdf/highlight";
 import { hrHandler } from "@ext/markdown/elements/hr/pdf/hr";
 import { imageHandler } from "@ext/markdown/elements/image/pdf/image";
 import { includeHandler } from "@ext/markdown/elements/include/pdf/include";
@@ -43,6 +44,7 @@ export const inlineLayouts = {
 	Link: linkHandler,
 	Code: codeHandler,
 	Color: colorHandler,
+	highlight: highlightHandler,
 	Alfa: alfaHandler,
 	Beta: betaHandler,
 	Who: whoHandler,

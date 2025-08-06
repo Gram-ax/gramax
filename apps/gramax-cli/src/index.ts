@@ -1,7 +1,6 @@
 #!/usr/bin/env -S node --no-warnings
 
 import { WORKSPACE_CONFIG_FILENAME } from "@ext/workspace/WorkspaceManager";
-import chalk from "chalk";
 import { Command } from "commander";
 import fs from "fs-extra";
 import { basename } from "path";
@@ -11,6 +10,8 @@ import { generateExportCommand } from "./logic/cli/export/command";
 import { generateImportYandexCommand } from "./logic/cli/import/command";
 import { STEP_ERROR_NAME } from "./logic/cli/utils/logger";
 import ChalkLogger from "./utils/ChalkLogger";
+import CliUserError from "./logic/CliUserError";
+import ErrorType from "@ext/errorHandlers/model/ErrorTypes";
 
 type WriteFileFn = typeof fs.writeFile;
 
@@ -42,17 +43,29 @@ const startCli = async () => {
 		await program.parseAsync(process.argv);
 	} catch (error) {
 		if (error instanceof Error) {
-			ChalkLogger.log(`${chalk.red.bold(`${error.name === STEP_ERROR_NAME ? "  " : ""}${error.message}`)}`);
+			const logErrorMessage = (text: string) => {
+				ChalkLogger.log(text, {
+					indent: error.name === STEP_ERROR_NAME ? 1 : 0,
+					styles: ["red", "bold"],
+				});
+			};
+
+			if ((error as CliUserError).type === ErrorType.CliUser) {
+				logErrorMessage(error.message);
+			} else {
+				if (typeof error.cause === "string") logErrorMessage(error.cause);
+
+				ChalkLogger.log();
+				ChalkLogger.log(error.stack, { styles: ["red"] });
+			}
 		} else {
-			ChalkLogger.log(`${chalk.red.bold(`An unexpected error occurred: ${error}`)}`);
+			ChalkLogger.log(`An unexpected error occurred: ${error}`, { styles: ["red", "bold"] });
 		}
 		ChalkLogger.log();
 		process.exit(1);
 	} finally {
 		ChalkLogger.log();
 	}
-
-	process.exit(0);
 };
 
 void startCli();

@@ -139,7 +139,7 @@ fn auto_add_remote_postfix(
   repo.add_remote("origin", url)?;
   repo.fetch(false)?;
   assert!(repo.has_remotes()?);
-  assert_eq!(repo.get_remote()?, Some(format!("{}.git", url)));
+  assert_eq!(repo.get_remote()?, Some(format!("{url}.git")));
 
   Ok(())
 }

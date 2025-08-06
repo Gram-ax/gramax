@@ -22,8 +22,6 @@ import isGitSourceType from "@ext/storage/logic/SourceDataProvider/logic/isGitSo
 import SourceType from "@ext/storage/logic/SourceDataProvider/model/SourceType";
 import type StorageData from "@ext/storage/models/StorageData";
 import type { Workspace } from "@ext/workspace/Workspace";
-import YandexDiskStorage from "@ext/yandexDisk/api/logic/YandexDiskStorage";
-import type YandexStorageData from "@ext/yandexDisk/model/YandexDiskStorageData";
 import assert from "assert";
 import Storage from "./Storage";
 
@@ -163,9 +161,11 @@ export default class StorageProvider {
 		assert(sourceType, "source.sourceType is required");
 
 		if (isGitSourceType(sourceType)) return await this._cloneGitStorage(fs, progress, opts);
+
+		progress.setStartedSilent();
+
 		if (sourceType === SourceType.confluenceCloud || sourceType === SourceType.confluenceServer)
 			return await this._cloneConfluenceStorage(fs, opts);
-		if (sourceType === SourceType.yandexDisk) return await this._cloneYandexDiskStorage(fs, opts);
 		if (sourceType === SourceType.notion) return await this._cloneNotionStorage(fs, opts);
 	}
 
@@ -218,18 +218,6 @@ export default class StorageProvider {
 		await ConfluenceStorage.clone({
 			fs,
 			data: data as ConfluenceStorageData,
-			catalogPath: out,
-		});
-
-		return null;
-	}
-
-	private async _cloneYandexDiskStorage(fs: FileStructure, opts: CloneOptions) {
-		const { data, out } = opts;
-
-		await YandexDiskStorage.clone({
-			fs,
-			data: data as YandexStorageData,
 			catalogPath: out,
 		});
 

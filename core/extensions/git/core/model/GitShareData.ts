@@ -6,5 +6,5 @@ export default interface GitShareData extends ShareData {
 	group: string;
 	branch: string;
 	protocol?: string;
-	sourceType: SourceType.git | SourceType.gitHub | SourceType.gitLab;
+	sourceType: SourceType.git | SourceType.gitHub | SourceType.gitLab | SourceType.gitVerse;
 }

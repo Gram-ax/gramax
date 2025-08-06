@@ -2,23 +2,24 @@ import { CommentBlock } from "@core-ui/CommentBlock";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import styled from "@emotion/styled";
 import t from "@ext/localization/locale/translate";
-import { GlobalEditorIsEditable } from "@ext/markdown/elements/comment/edit/logic/CommentFocusTooltip";
 import { JSONContent } from "@tiptap/react";
 import { ReactElement, useContext, useEffect, useRef, useState } from "react";
 import CommentComponent from "./Comment";
 import CommentBlockInput from "./CommentBlockInput";
+import GlobalEditorIsEditable from "@ext/markdown/elements/comment/edit/logic/GlobalIsEditable";
 
 interface CommentBlockProps {
 	commentBlock: CommentBlock;
 	maxHeight: string;
 	onUpdate: (commentBlock: CommentBlock) => void;
+	onAddAnswer: (commentBlock: CommentBlock) => void;
 	onDeleteComment?: () => void;
 	onLoaded?: () => void;
 	className?: string;
 }
 
 const CommentBlockComponent = (props: CommentBlockProps): ReactElement => {
-	const { commentBlock, onUpdate, onDeleteComment, onLoaded, className } = props;
+	const { commentBlock, onUpdate, onDeleteComment, onLoaded, className, onAddAnswer } = props;
 	const confirmAnswerDelelteText = t("confirm-answer-delete");
 	const confirmCommentDeleteText = t("confirm-comment-delete");
 
@@ -34,7 +35,6 @@ const CommentBlockComponent = (props: CommentBlockProps): ReactElement => {
 	const currentOnDeleteComment = async () => {
 		if (!(await confirm(confirmCommentDeleteText))) return;
 		if (onDeleteComment) onDeleteComment();
-		onUpdate(null);
 	};
 
 	const commentOnEdit = (content: JSONContent[]) => {
@@ -79,7 +79,7 @@ const CommentBlockComponent = (props: CommentBlockProps): ReactElement => {
 			dateTime: new Date().toJSON(),
 			content,
 		});
-		onUpdate(currentCommentBlock);
+		onAddAnswer(currentCommentBlock);
 
 		setCurrentCommentBlock(Object.assign({}, currentCommentBlock));
 	};

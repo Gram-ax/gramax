@@ -111,8 +111,9 @@ export const Link = Mark.create<LinkOptions>({
 	addPasteRules() {
 		return [
 			markPasteRule({
-				find: (text) =>
-					find(text)
+				find: (text, event) => {
+					if (event.clipboardData.getData("text/gramax")) return;
+					return find(text)
 						.filter((link) => {
 							if (this.options.validate) {
 								return this.options.validate(link.value);
@@ -125,7 +126,8 @@ export const Link = Mark.create<LinkOptions>({
 							text: link.value,
 							index: link.start,
 							data: link,
-						})),
+						}));
+				},
 				type: this.type,
 				getAttributes: (match) => ({
 					href: match.data?.href,
@@ -174,8 +176,10 @@ export default Link.extend({
 					key: "Mod-k",
 					focusShouldBeInsideNode: false,
 					rules: [
-						({ editor }) =>
-							this.editor.commands.toggleLink({ href: "", target: getSelectedText(editor.state) }),
+						({ editor }) => {
+							editor.commands.toggleLink({ href: "", target: getSelectedText(editor.state) });
+							return true;
+						},
 					],
 				},
 			],

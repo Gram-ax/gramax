@@ -2,6 +2,7 @@ import type { AppConfig, ServicesConfig } from "@app/config/AppConfig";
 
 import resolveModule from "@app/resolveModule/backend";
 import { getExecutingEnvironment } from "@app/resolveModule/env";
+import { createEventEmitter, Event } from "@core/Event/EventEmitter";
 import type FileProvider from "@core/FileProvider/model/FileProvider";
 import type MountFileProvider from "@core/FileProvider/MountFileProvider/MountFileProvider";
 import Path from "@core/FileProvider/Path/Path";
@@ -17,10 +18,10 @@ import RepositoryProvider from "@ext/git/core/Repository/RepositoryProvider";
 import t from "@ext/localization/locale/translate";
 import NoActiveWorkspace from "@ext/workspace/error/NoActiveWorkspaceError";
 import WorkspaceMissingPath from "@ext/workspace/error/UnknownWorkspace";
+import WorkspaceRepositoriesOverview from "@ext/workspace/UnintializedWorkspace";
 import { Workspace, type WorkspaceInitCallback } from "@ext/workspace/Workspace";
 import WorkspaceAssets from "@ext/workspace/WorkspaceAssets";
 import type { WorkspaceConfig, WorkspacePath } from "@ext/workspace/WorkspaceConfig";
-import { createEventEmitter, Event } from "@core/Event/EventEmitter";
 
 export type FSCreatedCallback = (fs: FileStructure) => void;
 export type CatalogChangedCallback = (change: CatalogFilesUpdated) => void | Promise<void>;
@@ -58,6 +59,21 @@ export default class WorkspaceManager {
 
 	get events() {
 		return this._events;
+	}
+
+	async getUnintializedWorkspaces() {
+		const current = this.maybeCurrent()?.path();
+		if (!current) return [];
+
+		const workspaces = Array.from(this._workspaces.keys()?.filter((w) => w !== current));
+
+		return await workspaces.mapAsync(async (w) => {
+			return await WorkspaceRepositoriesOverview.init({
+				path: w,
+				fs: new FileStructure(this._makeFileProvider(w), this._config.isReadOnly),
+				rp: this._rp,
+			});
+		});
 	}
 
 	async setWorkspace(path: WorkspacePath) {
@@ -178,7 +194,8 @@ export default class WorkspaceManager {
 		if (getExecutingEnvironment() == "browser") await fp.delete(Path.empty);
 		this._workspaces.delete(path);
 		await this.saveWorkspaces();
-		if (this.current().path() == path) await this.setWorkspace(this.workspaces()[0].path);
+		if (this.current().path() == path && this.workspaces()?.[0]?.path)
+			await this.setWorkspace(this.workspaces()[0].path);
 	}
 
 	defaultPath() {

@@ -8,7 +8,7 @@ interface GitSourceData extends SourceData {
 	/**
 	 * @default ""
 	 */
-	sourceType: SourceType.git | SourceType.gitHub | SourceType.gitLab;
+	sourceType: SourceType.git | SourceType.gitHub | SourceType.gitLab | SourceType.gitVerse;
 	domain: string;
 	/**
 	 * @private

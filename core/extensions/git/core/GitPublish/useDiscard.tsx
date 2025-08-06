@@ -8,7 +8,7 @@ import t from "@ext/localization/locale/translate";
 import { useCallback } from "react";
 
 export type UseDiscard = {
-	discard: (path: string[], reset: boolean) => void;
+	discard: (path: string[], reset: boolean) => Promise<void>;
 };
 
 export const useDiscard = (onDiscard?: () => void): UseDiscard => {

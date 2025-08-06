@@ -1,0 +1,26 @@
+import { getFormatterTypeByContext } from "@ext/markdown/core/edit/logic/Formatter/Formatters/typeFormats/getFormatterType";
+import { NodeSerializerSpec } from "@ext/markdown/core/edit/logic/Prosemirror/to_markdown";
+import ParserContext from "@ext/markdown/core/Parser/ParserContext/ParserContext";
+
+const commentModifyFormatters = (formatters: { [node: string]: NodeSerializerSpec }, context?: ParserContext) => {
+	const formatter = getFormatterTypeByContext(context);
+
+	Object.keys(formatters).forEach((nodeType) => {
+		const originalFormatter = formatters[nodeType];
+
+		formatters[nodeType] = async (state, node, ...args): Promise<void> => {
+			if (!node.attrs?.comment?.id) return originalFormatter(state, node, ...args);
+
+			const comment = node.attrs.comment;
+			const commentId = comment.id;
+
+			state.write(formatter.openTag("comment", { id: commentId }, true) + "\n\n");
+			await originalFormatter(state, node, ...args);
+			state.write(formatter.closeTag("comment") + "\n\n");
+		};
+	});
+
+	return formatters;
+};
+
+export default commentModifyFormatters;

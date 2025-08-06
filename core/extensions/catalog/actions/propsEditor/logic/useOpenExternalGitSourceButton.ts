@@ -1,4 +1,5 @@
 import CatalogPropsService from "@core-ui/ContextServices/CatalogProps";
+import WorkspaceService from "@core-ui/ContextServices/Workspace";
 import openNewTab from "@core-ui/utils/openNewTab";
 import Path from "@core/FileProvider/Path/Path";
 import RouterPathProvider from "@core/RouterPath/RouterPathProvider";
@@ -7,8 +8,7 @@ import GitShareData from "@ext/git/core/model/GitShareData";
 import t from "@ext/localization/locale/translate";
 import SourceType from "@ext/storage/logic/SourceDataProvider/model/SourceType";
 import getPartGitSourceDataByStorageName from "@ext/storage/logic/utils/getPartSourceDataByStorageName";
-import { useMemo, MouseEvent } from "react";
-import WorkspaceService from "@core-ui/ContextServices/Workspace";
+import { MouseEvent, useMemo } from "react";
 
 export const useOpenExternalGitSourceButton = (closeHandler: () => void) => {
 	const catalogProps = CatalogPropsService.value;
@@ -17,12 +17,13 @@ export const useOpenExternalGitSourceButton = (closeHandler: () => void) => {
 
 	const githubIcon = SourceType.gitHub === sourceType ? "github" : undefined;
 	const gitlabIcon = SourceType.gitLab === sourceType ? "gitlab" : undefined;
+	const gitverseIcon = SourceType.gitVerse === sourceType ? "gitverse" : undefined;
 
-	const gitlabButtonProps = useMemo(
+	const gitButtonProps = useMemo(
 		() => ({
 			shouldRender: !!sourceType && !gesUrl,
 			children: `${t("open-in.generic")} ${sourceType}`,
-			startIcon: gitlabIcon || githubIcon,
+			startIcon: gitlabIcon || githubIcon || gitverseIcon,
 			onClick: (e: MouseEvent<HTMLButtonElement>) => {
 				e.preventDefault();
 
@@ -44,5 +45,5 @@ export const useOpenExternalGitSourceButton = (closeHandler: () => void) => {
 		[sourceType, gesUrl, closeHandler],
 	);
 
-	return { gitlabButtonProps };
+	return { gitButtonProps };
 };

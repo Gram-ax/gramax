@@ -10,7 +10,8 @@ export const callGitWasm = async <O>(command: string, args?): Promise<O> => {
 			reject,
 		};
 	});
-	(window as any).wasm.postMessage({
+
+	window.wasm.postMessage({
 		type: "git-call",
 		command,
 		args,
@@ -18,8 +19,12 @@ export const callGitWasm = async <O>(command: string, args?): Promise<O> => {
 	});
 	const data = (await promise) as any;
 	if (!data.ok) {
-		const message = typeof data.res === "string" ? data.res : data.res.message;
-		if (args?.creds?.accessToken) args.creds.accessToken = "<redacted>";
+		let message = typeof data.res === "string" ? data.res : data.res.message;
+		if (args?.creds?.accessToken) {
+			message = typeof message === "string" ? message.replace(args.creds.accessToken, "<redacted>") : message;
+			args.creds.accessToken = "<redacted>";
+		}
+
 		throw new LibGit2Error(
 			`git (${command}, ${data.res.class ?? "<unknown class>"}, ${data.res.code ?? "<unknown code>"})`,
 			`${message?.trim()}\nArgs: ${JSON.stringify(args, null, 4)}`,
@@ -33,6 +38,7 @@ export const callGitWasm = async <O>(command: string, args?): Promise<O> => {
 
 export const onGitWasmCallback = (ev) => {
 	if (!(ev.data.type == "git-call" && ev.data.callbackId)) return;
+
 	const promise = callbacks[ev.data.callbackId];
 	delete callbacks[ev.data.callbackId];
 	promise.resolve(ev.data);

@@ -1,38 +1,17 @@
 import Icon from "@components/Atoms/Icon";
-import Tooltip from "@components/Atoms/Tooltip";
-import PopupMenuLayout from "@components/Layouts/PopupMenuLayout";
+import TruncatedText from "@components/Atoms/TruncatedText";
 import ButtonLink from "@components/Molecules/ButtonLink";
 import FetchService from "@core-ui/ApiServices/FetchService";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import CatalogPropsService from "@core-ui/ContextServices/CatalogProps";
 import { usePlatform } from "@core-ui/hooks/usePlatform";
 import { useRouter } from "@core/Api/useRouter";
-import styled from "@emotion/styled";
 import type GitBranchData from "@ext/git/core/GitBranch/model/GitBranchData";
 import t from "@ext/localization/locale/translate";
-import { addGitTreeScopeToPath } from "@ext/versioning/utils";
-import { useEffect, useRef, useState, type ReactNode } from "react";
-
-const TruncatedText = ({ children }: { children: ReactNode }) => {
-	const ref = useRef<HTMLDivElement>(null);
-	const [isOverflowing, setIsOverflowing] = useState(false);
-
-	const TruncatedDiv = styled.div`
-		white-space: nowrap;
-		overflow: hidden;
-		text-overflow: ellipsis;
-		display: block;
-		max-width: 180px;
-	`;
-
-	useEffect(() => setIsOverflowing(ref.current.clientWidth >= 179), [children]);
-
-	return (
-		<Tooltip hideInMobile hideOnClick placement="left" content={isOverflowing ? children : null}>
-			<TruncatedDiv ref={ref}>{children}</TruncatedDiv>
-		</Tooltip>
-	);
-};
+import { addScopeToPath } from "@ext/versioning/utils";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from "@ui-kit/Dropdown";
+import { DropdownMenuRadioGroup, DropdownMenuRadioItem } from "ics-ui-kit/components/dropdown";
+import { useEffect, useState } from "react";
 
 const SwitchVersion = () => {
 	const { isNext } = usePlatform();
@@ -62,61 +41,45 @@ const SwitchVersion = () => {
 	const isActualVersion = !catalogProps.resolvedVersion;
 
 	const onSwitch = (name?: string) => {
+		if (name == catalogProps.resolvedVersion?.name || (isActualVersion && name == branch?.name)) return;
+
 		setIsLoading(true);
-		router.pushPath(addGitTreeScopeToPath(router.path, name));
+		router.pushPath(addScopeToPath(router.path, name === branch?.name ? null : name));
 	};
 
 	return (
-		<PopupMenuLayout
-			disabled={isLoading}
-			trigger={
+		<DropdownMenu>
+			<DropdownMenuTrigger asChild>
 				<ButtonLink
 					iconIsLoading={isLoading}
 					iconCode={"tag"}
 					iconFw
 					text={
-						<TruncatedText>
+						<TruncatedText maxWidth={180}>
 							{isActualVersion ? branch?.name || t("versions.switch") : catalogProps.resolvedVersion.name}
 						</TruncatedText>
 					}
 					rightActions={[<Icon key={0} code="chevron-down" />]}
 				/>
-			}
-		>
-			<>
-				<Tooltip hideOnClick hideInMobile content={isActualVersion ? t("versions.current-version") : null}>
-					<ButtonLink
-						onClick={isActualVersion ? undefined : () => onSwitch()}
-						iconFw
-						fullWidth={isActualVersion}
-						text={<TruncatedText>{branch?.name}</TruncatedText>}
-						rightActions={isActualVersion ? [<Icon key={0} code="check" />] : null}
-					/>
-				</Tooltip>
-				{catalogProps.resolvedVersions
-					?.filter((version) => version.name !== branch?.name)
-					.map((version, idx) => {
-						const disabled = version.name === catalogProps.resolvedVersion?.name;
-						return (
-							<Tooltip
-								key={idx}
-								hideOnClick
-								hideInMobile
-								content={disabled ? t("versions.current-version") : null}
-							>
-								<ButtonLink
-									onClick={disabled ? undefined : () => onSwitch(version.name)}
-									key={`button-${idx}`}
-									iconFw
-									fullWidth={disabled}
-									text={<TruncatedText>{version.name}</TruncatedText>}
-									rightActions={disabled ? [<Icon key={0} code="check" />] : null}
-								/>
-							</Tooltip>
-						);
-					})}
-			</>
-		</PopupMenuLayout>
+			</DropdownMenuTrigger>
+			<DropdownMenuContent align="start" data-qa="dropdown-menu-content">
+				<DropdownMenuRadioGroup
+					value={catalogProps.resolvedVersion?.name || branch?.name || null}
+					onValueChange={onSwitch}
+				>
+					<DropdownMenuRadioItem data-qa="qa-clickable" value={branch?.name || null}>
+						<TruncatedText maxWidth={180}>{branch?.name}</TruncatedText>
+					</DropdownMenuRadioItem>
+					{catalogProps.resolvedVersions
+						?.filter((version) => version.name !== branch?.name)
+						.map((version) => (
+							<DropdownMenuRadioItem data-qa="qa-clickable" value={version.name} key={version.name}>
+								<TruncatedText maxWidth={180}>{version.name}</TruncatedText>
+							</DropdownMenuRadioItem>
+						))}
+				</DropdownMenuRadioGroup>
+			</DropdownMenuContent>
+		</DropdownMenu>
 	);
 };
 

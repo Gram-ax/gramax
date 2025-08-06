@@ -21,7 +21,7 @@ pub trait Stash {
 
 impl<C: ActualCreds> StashSave for Repo<C> {
   fn stash(&mut self, message: Option<&str>) -> Result<Option<Oid>> {
-    info!(target: TAG, "creating stash with message {:?}", message);
+    info!(target: TAG, "creating stash with message {message:?}");
     let signature = self.creds().signature()?.to_owned();
     match self.0.stash_save2(
       &signature,
@@ -29,7 +29,7 @@ impl<C: ActualCreds> StashSave for Repo<C> {
       Some(StashFlags::DEFAULT | StashFlags::INCLUDE_IGNORED | StashFlags::INCLUDE_UNTRACKED),
     ) {
       Ok(oid) => {
-        info!(target: TAG, "created stash with oid {}", oid);
+        info!(target: TAG, "created stash with oid {oid}");
         Ok(Some(oid))
       }
       Err(e) if e.code() == ErrorCode::NotFound && e.class() == ErrorClass::Stash => {
@@ -43,7 +43,7 @@ impl<C: ActualCreds> StashSave for Repo<C> {
 
 impl<C: Creds> Stash for Repo<C> {
   fn stash_apply(&mut self, oid: Oid) -> Result<MergeResult> {
-    info!(target: TAG, "applying stash with oid {}", oid);
+    info!(target: TAG, "applying stash with oid {oid}");
 
     let stash = self.0.find_commit(oid)?;
     let head = self.0.head()?.peel_to_commit()?;
@@ -71,12 +71,12 @@ impl<C: Creds> Stash for Repo<C> {
     }
 
     self.0.checkout_index(Some(&mut index), Some(&mut opts))?;
-    info!(target: TAG, "stash {} applied without conflicts", oid);
+    info!(target: TAG, "stash {oid} applied without conflicts");
     Ok(MergeResult::Ok)
   }
 
   fn stash_delete(&mut self, oid: Oid) -> Result<()> {
-    info!(target: "git", "delete stash: {}", oid);
+    info!(target: "git", "delete stash: {oid}");
     let index = self.stash_by_oid(oid)?;
     self.0.stash_drop(index)?;
     Ok(())

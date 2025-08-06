@@ -65,14 +65,32 @@
 	white-space: pre-wrap;
 }
 
-.ProseMirror comment-react-component {
-	cursor: pointer;
-	border-radius: var(--radius-small);
-	background: var(--color-comment-bg);
+.ProseMirror [data-comment="true"] {
+	transition: background var(--transition-time-fast) ease-in-out, outline var(--transition-time-fast) ease-in-out;
 }
 
-.ProseMirror comment-react-component:hover {
+.ProseMirror [data-comment="true"]:not([data-comment-block="true"]) {
+	cursor: pointer;
+	background: var(--color-comment-bg);
+	border-bottom: 2px solid var(--color-comment-border);
+}
+
+.ProseMirror [data-comment="true"]:has(.active) {
 	background: var(--color-comment-hover-bg) !important;
+	border-bottom-color: var(--color-comment-block-hover-border);
+}
+
+.ProseMirror .has-comment [data-comment="true"] {
+	width: inherit;
+	height: inherit;
+	border-radius: inherit;
+	cursor: default !important;
+	outline: 2px solid var(--color-comment-block-border);
+	border-bottom: none !important;
+}
+
+.ProseMirror .active [data-comment-block="true"] {
+	outline: 2px solid var(--color-comment-block-hover-border);
 }
 
 .ProseMirror pre > div {

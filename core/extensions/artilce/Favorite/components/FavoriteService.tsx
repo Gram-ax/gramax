@@ -1,10 +1,10 @@
+import { PageProps } from "@components/ContextProviders";
+import ContextService from "@core-ui/ContextServices/ContextService";
+import Workspace from "@core-ui/ContextServices/Workspace";
+import { usePlatform } from "@core-ui/hooks/usePlatform";
 import FavoriteProvider from "@ext/artilce/Favorite/logic/FavoriteProvider";
 import { FavoriteArticle, FavoriteCatalog } from "@ext/artilce/Favorite/models/types";
 import { createContext, useContext, useLayoutEffect, useState } from "react";
-import Workspace from "@core-ui/ContextServices/Workspace";
-import { PageProps } from "@components/ContextProviders";
-import ContextService from "@core-ui/ContextServices/ContextService";
-import { usePlatform } from "@core-ui/hooks/usePlatform";
 
 export type FavoriteServiceType = {
 	catalogs: FavoriteCatalog[];
@@ -29,13 +29,13 @@ class FavoriteService implements ContextService {
 
 		const setAndUpdateFavoriteArticles = (favoriteArticles: FavoriteArticle[]) => {
 			setArticles(favoriteArticles);
-			const provider = new FavoriteProvider(workspace.name);
+			const provider = new FavoriteProvider(workspace.path);
 			provider.setFavoriteArticlePaths(pageProps.data.catalogProps.name, favoriteArticles);
 		};
 
 		const setAndUpdateFavoriteCatalogs = (favoriteCatalogs: FavoriteCatalog[]) => {
 			setCatalogs(favoriteCatalogs);
-			const provider = new FavoriteProvider(workspace.name);
+			const provider = new FavoriteProvider(workspace.path);
 			provider.setFavoriteCatalogNames(favoriteCatalogs);
 		};
 
@@ -44,11 +44,11 @@ class FavoriteService implements ContextService {
 
 		useLayoutEffect(() => {
 			if (isStatic || isStaticCli || !workspace) return;
-			const favoriteProvider = new FavoriteProvider(workspace.name);
+			const favoriteProvider = new FavoriteProvider(workspace.path);
 			const favoriteCatalogNames = favoriteProvider.getFavoriteCatalogNames();
 
 			setCatalogs(favoriteCatalogNames);
-		}, [workspace?.name]);
+		}, [workspace?.path]);
 
 		return (
 			<FavoriteServiceContext.Provider value={{ articles, catalogs }}>{children}</FavoriteServiceContext.Provider>
@@ -59,8 +59,8 @@ class FavoriteService implements ContextService {
 		return useContext(FavoriteServiceContext);
 	}
 
-	fetchFavoriteArticles(workspaceName: string, catalogName: string) {
-		const favoriteProvider = new FavoriteProvider(workspaceName);
+	fetchFavoriteArticles(workspacePath: string, catalogName: string) {
+		const favoriteProvider = new FavoriteProvider(workspacePath);
 		const favoriteArticles = favoriteProvider.getFavoriteArticlePaths(catalogName);
 		this.setArticles(favoriteArticles);
 	}

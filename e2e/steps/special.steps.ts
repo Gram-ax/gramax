@@ -11,16 +11,21 @@ When("отменяем все изменения", { timeout: config.timeouts.lo
 	await search.scope("нижнюю панель");
 	await search.icon("облачка").click();
 
+	await sleep(500);
+	const loader = await this.page().search().find(`[data-qa="loader"]`);
+	await loader.waitFor({ timeout: config.timeouts.long * 4, state: "detached" });
+
 	const locator = await search.find('[data-qa="qa-no-changes"]');
 
 	if (await locator.isVisible()) {
-		await sleep(2000);
+		await sleep(1000);
 		await search.icon("облачка").click();
 	} else {
 		await search.clickable("выбрать все").hover();
 		await search.icon("отмена всех изменений").click();
-		await sleep(2000);
-		// temp
+
+		const loader = await this.page().search().find(`[data-qa="loader"]`);
+		await loader.waitFor({ timeout: config.timeouts.long * 4, state: "detached" });
 		await this.page().inner().reload();
 	}
 	search.reset();

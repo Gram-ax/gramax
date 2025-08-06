@@ -1,3 +1,4 @@
+import { getExecutingEnvironment } from "@app/resolveModule/env";
 import { createEventEmitter, type Event } from "@core/Event/EventEmitter";
 import type FileProvider from "@core/FileProvider/model/FileProvider";
 import type Path from "@core/FileProvider/Path/Path";
@@ -8,6 +9,8 @@ import DiffItemContent from "@ext/git/core/GitDiffItemCreator/DiffItemContent/Di
 import MergeRequestCommands from "@ext/git/core/GitMergeRequest/logic/MergeRequestCommands";
 import type GitVersionControl from "@ext/git/core/GitVersionControl/GitVersionControl";
 import type { GitStatus } from "@ext/git/core/GitWatcher/model/GitStatus";
+import GitStash from "@ext/git/core/model/GitStash";
+import { GitVersion } from "@ext/git/core/model/GitVersion";
 import type RepositoryStateProvider from "@ext/git/core/Repository/state/RepositoryState";
 import ScopedCatalogs from "@ext/git/core/ScopedCatalogs/ScopedCatalogs";
 import type SourceData from "@ext/storage/logic/SourceDataProvider/model/SourceData";
@@ -44,6 +47,7 @@ export type SyncOptions = Credentials & {
 
 export type CheckoutOptions = Credentials & {
 	branch: string;
+	recursivePull?: boolean;
 	onCheckout?: (branch: string) => void;
 	force?: boolean;
 	onPull?: () => void;
@@ -59,6 +63,13 @@ export type MergeOptions = Credentials & {
 
 export type IsShouldSyncOptions = Credentials & { shouldFetch?: boolean; onFetch?: () => void };
 
+export type SyncResult = {
+	mergeData: GitMergeResultContent[];
+	isVersionChanged: boolean;
+	before: GitVersion;
+	after: GitVersion;
+};
+
 export default abstract class Repository {
 	protected _mergeRequests: MergeRequestCommands;
 	protected _diffItemContent: DiffItemContent;
@@ -71,9 +82,10 @@ export default abstract class Repository {
 		protected _fp: FileProvider,
 		protected _gvc: GitVersionControl,
 		protected _storage: Storage,
+		disableMergeRequests: boolean,
 	) {
 		if (!this._fp || !this._repoPath) return;
-		this._mergeRequests = new MergeRequestCommands(this._fp, this._repoPath, this);
+		this._mergeRequests = new MergeRequestCommands(this._fp, this._repoPath, this, disableMergeRequests);
 		this._storage?.events.on("fetch", (e) => this._events.emit("fetch", { repo: this, force: e.force }));
 	}
 
@@ -131,8 +143,18 @@ export default abstract class Repository {
 		return this._gvc.gc(opts);
 	}
 
+	async stash(data: SourceData, doAddBeforeStash?: boolean): Promise<GitStash> {
+		const isBrowser = getExecutingEnvironment() === "browser";
+
+		if (!isBrowser) await this.gvc.add();
+		const changes = await this.gvc.getChanges("index");
+		if (!changes.length) return null;
+
+		return this._gvc.stash(data, isBrowser ? false : doAddBeforeStash);
+	}
+
 	abstract publish(opts: PublishOptions): Promise<void>;
-	abstract sync(opts: SyncOptions): Promise<GitMergeResultContent[]>;
+	abstract sync(opts: SyncOptions): Promise<SyncResult>;
 	abstract checkout(opts: CheckoutOptions): Promise<GitMergeResultContent[]>;
 	abstract validateMerge(): Promise<void>;
 	abstract merge(opts: MergeOptions): Promise<GitMergeResultContent[]>;

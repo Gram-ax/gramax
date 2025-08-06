@@ -166,8 +166,8 @@ pub fn diff(repo_path: String, opts: DiffConfig) -> Result<DiffTree2TreeInfo> {
 }
 
 #[em_bindgen]
-pub fn reset_all(repo_path: String, hard: bool, head: Option<String>) -> Result<()> {
-  git::reset_all(Path::new(&repo_path), hard, head.as_deref())
+pub fn reset(repo_path: String, opts: ResetOptions) -> Result<()> {
+  git::reset(Path::new(&repo_path), opts)
 }
 
 #[em_bindgen]
@@ -285,4 +285,3 @@ pub fn reset_repo(_unused: ()) -> Result<bool> {
   git::reset_repo();
   Ok(true)
 }
-

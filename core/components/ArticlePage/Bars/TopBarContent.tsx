@@ -29,11 +29,12 @@ interface TopBarContentProps {
 }
 
 const TopBarContent = ({ data, isMacDesktop, currentTab, setCurrentTab, className }: TopBarContentProps) => {
-	const logoImageUrl = PageDataContextService.value.conf.logo.imageUrl;
+	const { logo, cloudServiceUrl } = PageDataContextService.value.conf;
+	const logoImageUrl = logo.imageUrl;
 	const catalogProps = CatalogPropsService.value;
 	const isCatalogExist = !!catalogProps.name;
 	const { isStatic, isStaticCli } = usePlatform();
-	const showHomePageButton = !(isStatic || isStaticCli || logoImageUrl);
+	const showHomePageButton = (!(isStatic || isStaticCli) || cloudServiceUrl) && !logoImageUrl;
 
 	const { items: notes } = InboxService.value;
 	const { templates } = TemplateService.value;
@@ -46,14 +47,14 @@ const TopBarContent = ({ data, isMacDesktop, currentTab, setCurrentTab, classNam
 	};
 
 	const onCloseTemplate = () => {
-		TemplateService.closeTemplate();
-		TemplateService.setTemplates([]);
+		TemplateService.closeItem();
+		TemplateService.setItems([]);
 		refreshPage();
 	};
 
 	const onCloseSnippet = () => {
-		SnippetService.closeSnippet();
-		SnippetService.setSnippets([]);
+		SnippetService.closeItem();
+		SnippetService.setItems([]);
 		refreshPage();
 	};
 

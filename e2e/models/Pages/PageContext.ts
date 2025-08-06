@@ -56,7 +56,9 @@ export default class PageContext {
 	async resetToArticle() {
 		if (this.kind() == "home") {
 			await this._page.locator(`text=Добавить каталог`).first().click();
-			await this._page.locator(`text=Создать новый`).first().click();
+			await this.search().reset().scope('[role="menu"]', "find");
+			await this._page.locator(`text=Создать новый каталог`).first().click();
+			this.search().reset();
 		}
 
 		await this._page.locator(".status-bar .lucide-plus").click();

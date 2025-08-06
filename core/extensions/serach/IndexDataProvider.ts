@@ -102,16 +102,11 @@ export class IndexDataProvider {
 
 	private async _getArticleIndexData(catalog: Catalog, article: Article, forceParse = false): Promise<IndexData> {
 		try {
-			const context = await this._parserContextFactory.fromArticle(
-				article,
-				catalog,
-				resolveLanguage(),
-				true,
-			);
+			const context = await this._parserContextFactory.fromArticle(article, catalog, resolveLanguage(), true);
 			const content = article.content ? article.content : "";
 
 			const html = await article.parsedContent.read(async (p) => {
-				return p && !forceParse ? p.htmlValue : await this._parser.parseToHtml(content, context);
+				return p && !forceParse ? await p.getHtmlValue.get() : await this._parser.parseToHtml(content, context);
 			});
 
 			return {

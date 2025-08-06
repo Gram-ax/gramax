@@ -4,7 +4,11 @@ use tauri::*;
 
 #[tauri::command]
 pub fn read_env() -> HashMap<String, String> {
-  std::env::vars().collect::<HashMap<String, String>>()
+  let vars = std::env::vars().collect::<HashMap<String, String>>();
+  if std::env::var("UPDATE_INSTALLED").is_ok() {
+    std::env::remove_var("UPDATE_INSTALLED");
+  }
+  vars
 }
 
 #[tauri::command]
@@ -21,7 +25,7 @@ pub fn get_user_language() -> String {
 pub fn http_listen_once<R: Runtime>(
   window: Window<R>,
   url: &str,
-  redirect: Box<str>,
+  action: super::http_server::OauthListenOnceAction,
   callback_name: Box<str>,
 ) -> Result<()> {
   #[cfg(mobile)]
@@ -32,9 +36,9 @@ pub fn http_listen_once<R: Runtime>(
   }
 
   #[cfg(desktop)]
-  open::that(url)?;
+  open::that_detached(url)?;
 
-  super::http_server::oauth_listen_once(redirect, move |req| {
+  super::http_server::oauth_listen_once(action, move |req| {
     window.emit(&callback_name, req.url().split('?').nth(1)).unwrap()
   });
 

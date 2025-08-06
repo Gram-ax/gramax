@@ -1,8 +1,10 @@
 import { Article, Content } from "@core/FileStructue/Article/Article";
 import { getExtractHeader } from "@core/FileStructue/Article/parseContent";
 import { Catalog } from "@core/FileStructue/Catalog/Catalog";
+import DefaultError from "@ext/errorHandlers/logic/DefaultError";
 import Localizer from "@ext/localization/core/Localizer";
 import { ContentLanguage, resolveLanguage } from "@ext/localization/core/model/Language";
+import t from "@ext/localization/locale/translate";
 import MarkdownParser from "@ext/markdown/core/Parser/Parser";
 import ParserContextFactory from "@ext/markdown/core/Parser/ParserContext/ParserContextFactory";
 import { withRetries } from "@ext/serach/vector/utils/withRetries";
@@ -82,7 +84,17 @@ export default class VectorDatabaseClient {
 				value: articlesLanguage,
 			});
 
-		return await this._vectorApiClient.chat(query, responseLanguage, filter);
+		try {
+			return await this._vectorApiClient.chat(query, responseLanguage, filter);
+		} catch (error) {
+			throw new DefaultError(
+				t("search.ai-search-error"),
+				error,
+				{ showCause: true, logCause: true },
+				false,
+				t("search.ai-search-error-title"),
+			);
+		}
 	}
 
 	async checkConnection(): Promise<boolean> {
@@ -104,7 +116,7 @@ export default class VectorDatabaseClient {
 	}
 
 	async search(query: string, catalogName: string): Promise<SearchResponse<VectorArticleMetadata>> {
-		await this._cleanAndWaitIndexingTasks();
+		this._cleanAndWaitIndexingTasks();
 		return this._vectorApiClient.search(query, {
 			metadata: [
 				{
@@ -132,10 +144,10 @@ export default class VectorDatabaseClient {
 		}
 	}
 
-	private async _cleanAndWaitIndexingTasks(): Promise<void> {
+	private _cleanAndWaitIndexingTasks(): void {
 		if (this._indexingTaskIds.length == 0) return;
 
-		withRetries(async () => {
+		void withRetries(async () => {
 			const statuses = await Promise.all(
 				this._indexingTaskIds.map(async (taskId) => ({
 					taskId,

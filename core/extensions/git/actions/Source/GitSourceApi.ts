@@ -65,6 +65,7 @@ abstract class GitSourceApi implements SourceAPI {
 	abstract isBranchContainsFile(filename: string, data: StorageData, branch: Branch): Promise<boolean>;
 	abstract getDefaultBranch(data: StorageData): Promise<string>;
 	abstract getAllBranches(data: StorageData, field?: string): Promise<string[]>;
+	abstract createRepository(data: StorageData): Promise<void>;
 
 	protected abstract _api(url: string, init?: RequestInit): Promise<Response>;
 	protected abstract _paginationApi(url: string, init?: RequestInit, perPage?: number): Promise<Response[]>;
@@ -96,7 +97,10 @@ abstract class GitSourceApi implements SourceAPI {
 		}
 
 		if (res.ok) return;
-		const errorJson = (await res.json()) as { message: string; status: string; documentation_url: string };
+		const isText = res.headers.get("content-type")?.includes("text/plain");
+		const errorJson = isText
+			? { message: await res.text() }
+			: ((await res.json()) as { message: string; status: string });
 		const error = new NetworkApiError(
 			errorJson.message,
 			{

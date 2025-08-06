@@ -99,7 +99,7 @@ const _init = async (config: AppConfig): Promise<Application> => {
 	const parserContextFactory = new ParserContextFactory(config.paths.base, wm, tablesManager, parser, formatter);
 	const htmlParser = new HtmlParser(parser, parserContextFactory);
 	const logger: Logger = config.isProduction ? new BugsnagLogger(config) : new ConsoleLogger();
-	const sitePresenterFactory = new SitePresenterFactory(wm, parser, parserContextFactory, rp, customArticlePresenter);
+	const sitePresenterFactory = new SitePresenterFactory(wm, parser, parserContextFactory, rp, customArticlePresenter, config.isReadOnly);
 	const resourceUpdaterFactory = new ResourceUpdaterFactory(parser, parserContextFactory, formatter);
 
 	const am: AuthManager = em.getConfig().gesUrl ? new ClientAuthManager(em.getConfig().gesUrl) : null;

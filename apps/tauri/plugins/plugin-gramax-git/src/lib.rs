@@ -100,7 +100,7 @@ pub fn init<R: Runtime>() -> TauriPlugin<R> {
       diff,
       add_remote,
       has_remotes,
-      reset_all,
+      reset,
       commit,
       merge,
       restore,

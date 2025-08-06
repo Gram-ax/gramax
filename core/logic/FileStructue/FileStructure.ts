@@ -11,8 +11,10 @@ import type CatalogEvents from "@core/FileStructue/Catalog/CatalogEvents";
 import type { CatalogProps } from "@core/FileStructue/Catalog/CatalogProps";
 import { Category, type CategoryProps } from "@core/FileStructue/Category/Category";
 import { Item } from "@core/FileStructue/Item/Item";
+import { roundedOrderAfter } from "@core/FileStructue/Item/ItemOrderUtils";
 import CatalogEditProps from "@ext/catalog/actions/propsEditor/model/CatalogEditProps.schema";
 import { resolveLanguage } from "@ext/localization/core/model/Language";
+import assert from "assert";
 import matter from "gray-matter";
 import * as yaml from "js-yaml";
 
@@ -25,6 +27,7 @@ export type FSEvents = Event<
 	Event<"catalog-entry-read", { entry: CatalogEntry }> &
 	Event<"catalog-read", { fs: FileStructure; catalog: Catalog }> &
 	Event<"item-filter", { fs: FileStructure; item: Item; parent: Category; catalogProps: CatalogProps }> &
+	Event<"category-filter", { fs: FileStructure; item: Item; parent: Category; catalogProps: CatalogProps }> &
 	Event<"item-save", { item: Item }> &
 	Event<"catalog-save", { catalog: Catalog }> &
 	Event<"item-moved", EventArgs<CatalogEvents, "item-moved">> &
@@ -90,7 +93,7 @@ export default class FileStructure {
 
 	async getCatalogEntries(): Promise<CatalogEntry[]> {
 		const dirs = await FileStructure.getCatalogDirs(this._fp);
-		const catalogs = await Promise.all(dirs.map((dir) => this.getCatalogEntryByPath(dir.path)));
+		const catalogs = await dirs.mapAsync((dir) => this.getCatalogEntryByPath(dir.path));
 		return catalogs.filter((c) => c);
 	}
 
@@ -221,7 +224,7 @@ export default class FileStructure {
 	}
 
 	private async _getCatalogByEntry(entry: CatalogEntry): Promise<Catalog> {
-		if (!entry) throw new Error("cannot resolve catalog from entry; entry is undefined");
+		assert(entry, "cannot resolve catalog from entry; entry is undefined");
 
 		const category = new Category({
 			ref: this._fp.getItemRef(entry.getRootCategoryRef().path),
@@ -317,7 +320,28 @@ export default class FileStructure {
 			item: category,
 		});
 
-		if (passFilter) parentCategory.items.push(category);
+		if (!passFilter) return;
+
+		const passCategoryFilter = await this.events.emit("category-filter", {
+			fs: this,
+			catalogProps: catalog.props,
+			parent: parentCategory,
+			item: category,
+		});
+
+		if (passCategoryFilter) {
+			parentCategory.items.push(category);
+			return;
+		}
+
+		const orders = parentCategory.items.map((i) => i.order);
+
+		category.items.reduce((prev, item) => {
+			item.props.order = roundedOrderAfter(orders, prev);
+			return item.props.order;
+		}, category.order);
+
+		parentCategory.items.push(...category.items);
 	}
 
 	private async _readCategoryItems(folderPath: Path, category: Category, catalog: Catalog) {
@@ -327,21 +351,19 @@ export default class FileStructure {
 			return !f.isDirectory() && f.name.match(/\.md$/) && !FileStructure.isCategory(f.name);
 		});
 
-		const articles = await Promise.all(
-			mdFiles.map(async (f) => {
-				const article = await this._makeArticle(f.path, category, catalog);
-				if (!article) return null;
+		const articles = await mdFiles.mapAsync(async (f) => {
+			const article = await this._makeArticle(f.path, category, catalog);
+			if (!article) return null;
 
-				const filter = await this.events.emit("item-filter", {
-					fs: this,
-					catalogProps: catalog.props,
-					parent: category,
-					item: article,
-				});
+			const filter = await this.events.emit("item-filter", {
+				fs: this,
+				catalogProps: catalog.props,
+				parent: category,
+				item: article,
+			});
 
-				return filter ? article : null;
-			}),
-		);
+			return filter ? article : null;
+		}, 10);
 
 		category.items.push(...articles.filter((article) => article !== null));
 

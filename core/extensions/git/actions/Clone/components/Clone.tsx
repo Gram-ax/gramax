@@ -13,7 +13,6 @@ import Mode from "@ext/git/actions/Clone/model/Mode";
 import UnsupportedElementsModal from "@ext/import/components/UnsupportedElementsModal";
 import UnsupportedElements from "@ext/import/model/UnsupportedElements";
 import t from "@ext/localization/locale/translate";
-import SourceType from "@ext/storage/logic/SourceDataProvider/model/SourceType";
 import { useMemo, useState } from "react";
 import SelectStorageDataForm from "../../../../storage/components/SelectStorageDataForm";
 import StorageData from "../../../../storage/models/StorageData";
@@ -60,9 +59,9 @@ const SelectStorageForm = (props: SelectStorageFormProps) => {
 	);
 };
 
-const Clone = ({ trigger, mode }: { trigger: JSX.Element; mode: Mode }) => {
+const Clone = ({ trigger, mode, onClose }: { trigger?: JSX.Element; mode: Mode; onClose?: () => void }) => {
 	const [stage, setStage] = useState(CloneStage.AskForStorage);
-	const [isOpen, setIsOpen] = useState(false);
+	const [isOpen, setIsOpen] = useState(!trigger);
 	const [storageData, setStorageData] = useState<StorageData>(null);
 	const [unsupportedElements, setUnsupportedElements] = useState<UnsupportedElements[]>([]);
 	const apiUrlCreator = ApiUrlCreatorService.value;
@@ -74,6 +73,7 @@ const Clone = ({ trigger, mode }: { trigger: JSX.Element; mode: Mode }) => {
 		setStage(CloneStage.AskForStorage);
 		setIsOpen(false);
 		setStorageData(null);
+		onClose?.();
 	};
 
 	const clone = useCloneHandler();
@@ -110,11 +110,6 @@ const Clone = ({ trigger, mode }: { trigger: JSX.Element; mode: Mode }) => {
 	}, [LanguageService.currentUi()]);
 
 	const loadUnsupportedElements = async () => {
-		if (storageData.source.sourceType === SourceType.yandexDisk) {
-			startClone();
-			return;
-		}
-
 		setStage(CloneStage.LoadUnsupportedElements);
 		const res = await FetchService.fetch<UnsupportedElements[]>(
 			apiUrlCreator.getUnsupportedElementsUrl(storageData.name, storageData.source.sourceType),
@@ -140,7 +135,7 @@ const Clone = ({ trigger, mode }: { trigger: JSX.Element; mode: Mode }) => {
 				onOpen={() => setIsOpen(true)}
 				onClose={closeForm}
 				onCmdEnter={startClone}
-				trigger={<div>{trigger}</div>}
+				trigger={trigger && <div>{trigger}</div>}
 			>
 				<OnNetworkApiErrorService.Provider callback={() => closeForm()}>
 					<ModalLayoutLight>

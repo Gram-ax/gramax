@@ -1,5 +1,12 @@
 import ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
-import { CheckAuthResponse, CheckResponse } from "@ics/gx-vector-search";
+import { ResourceServiceType } from "@ext/markdown/elements/copyArticles/resourceService";
+import {
+	CheckAuthResponse,
+	CheckResponse,
+	TranscribeResponse,
+	RequestOptions,
+	TranscribeRequest,
+} from "@ics/gx-vector-search";
 
 export type AiPrettifyOptions = {
 	command: string;
@@ -11,7 +18,12 @@ export type AiGenerateOptions = {
 
 export interface TiptapGramaxAiOptions {
 	apiUrlCreator: ApiUrlCreator;
+	resourceService: ResourceServiceType;
 }
+
+export type AiTranscribeOptions = {
+	buffer: ArrayBuffer;
+};
 
 type Token = string;
 
@@ -34,14 +46,25 @@ export type GramaxAiOptions = AiServerConfig & {
 	};
 };
 
-export interface GramaxAi {
-	prettifyText(command: string, text: string): Promise<string>;
-	generateText(command: string): Promise<string>;
+export interface AiProvider {
+	// Server
 	checkServer(): Promise<CheckResponse>;
 	checkAuth(): Promise<CheckAuthResponse>;
+
+	// Text
+	prettifyText(command: string, text: string): Promise<string>;
+	generateText(command: string): Promise<string>;
+
+	// Audio
+	transcribe(request: TranscribeRequest, options?: RequestOptions): Promise<TranscribeResponse>;
 }
 
 export type SourceAiData = {
 	apiUrl: string;
 	isInvalid?: boolean;
+};
+
+export type AudioHistoryItem = {
+	name: string;
+	blob: Blob;
 };

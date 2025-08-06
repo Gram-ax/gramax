@@ -17,6 +17,13 @@ class TiptapGramaxAi {
 		return text;
 	}
 
+	public async transcribe(buffer: ArrayBuffer): Promise<string> {
+		const url = this._apiUrlCreator.transcribeAudio();
+		const text = await this._sendRequest(url, new Blob([buffer], { type: "audio/webm" }));
+
+		return text;
+	}
+
 	public async generate(command: string): Promise<string> {
 		const url = this._apiUrlCreator.getGeneratedText(command);
 		const text = await this._sendRequest(url, null);

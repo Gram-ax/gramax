@@ -16,11 +16,8 @@ const diagramsNodeTransformer: NodeTransformerFunc = (node) => {
 		node = {
 			type: "diagrams",
 			attrs: {
-				src: node.attrs.src,
-				title: node.attrs.title,
+				...node.attrs,
 				diagramName: DiagramType[node.type],
-				width: node.attrs.width,
-				height: node.attrs.height,
 			},
 		};
 		return { isSet: true, value: node };

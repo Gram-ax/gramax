@@ -41,12 +41,18 @@ import unsupported from "@ext/markdown/elements/unsupported/edit/model/unsupport
 import videoSchema from "@ext/markdown/elements/video/edit/model/videoSchema";
 import viewSchema from "@ext/markdown/elements/view/edit/models/viewSchema";
 import suggestion from "@ext/StyleGuide/extension/suggestionSchema";
-import { Schema } from "prosemirror-model";
+import { Schema, SchemaSpec } from "prosemirror-model";
 import htmlTags from "@ext/markdown/elements/htmlTag/render/model/htmlTagSchema";
 import * as htmlTagsComponents from "@ext/markdown/elements/htmlTag/edit/model/htmlTagSchema";
 import inlineImageSchema from "@ext/markdown/elements/inlineImage/edit/models/schema";
+import highlightSchema from "@ext/markdown/elements/highlight/edit/model/schema";
+import commentSchemaModifier from "@ext/markdown/elements/comment/edit/logic/commentSchemaModifier";
 
-export const getSchema = (additionalSchema?: Record<string, any>) => {
+type SchemaModifier = (schema: SchemaSpec<any, any>) => void;
+
+const defaultModifiers: SchemaModifier[] = [commentSchemaModifier];
+export const getSchema = (additionalSchema?: Record<string, any>, modifiers?: SchemaModifier[]) => {
+	const allModifiers = [...defaultModifiers, ...(modifiers ?? [])];
 	const schema = {
 		nodes: {
 			doc,
@@ -126,6 +132,7 @@ export const getSchema = (additionalSchema?: Record<string, any>) => {
 		},
 		marks: {
 			color,
+			highlight: highlightSchema,
 			link,
 			comment,
 			suggestion,
@@ -139,6 +146,8 @@ export const getSchema = (additionalSchema?: Record<string, any>) => {
 			...(additionalSchema?.marks ?? {}),
 		},
 	};
+
+	if (allModifiers) allModifiers.forEach((modifier) => modifier(schema));
 
 	return new Schema(schema);
 };

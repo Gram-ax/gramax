@@ -15,16 +15,31 @@ export async function paragraphCase(node: Tag | JSONContent, context: pdfRenderC
 	const filteredContent = resolvedContent.filter(Boolean);
 	const flatContent = filteredContent.flat();
 
-	const textContent = flatContent.map((item) => {
+	const content: Content[] = [],
+		textContent = [];
+
+	const pushTextContent = () => {
+		if (textContent.length) {
+			content.push({
+				text: textContent.slice(),
+			});
+			textContent.length = 0;
+		}
+	};
+
+	flatContent.forEach((item) => {
+		if (!item.text) {
+			if (textContent.length) pushTextContent();
+			return content.push({
+				stack: [item],
+			});
+		}
 		const contentText: Content = item.text ? { text: item.text || "", lineHeight: 1.35 } : item;
-		return Object.assign(contentText, item);
+		textContent.push(Object.assign(contentText, item));
 	});
+	pushTextContent();
 
-	if (textContent.length === 0) return [{ text: ZERO_WIDTH_SPACE }];
+	if (content.length === 0) return [{ text: ZERO_WIDTH_SPACE }];
 
-	return [
-		{
-			stack: textContent,
-		},
-	];
+	return content;
 }

@@ -129,12 +129,13 @@ gramax-cli export --source <path> --output <path> [--format <format>] [--yes]
 
 #### **Options**
 
-| Option         | Description                                  | Default                   |
-| -------------- | -------------------------------------------- | ------------------------- |
-| `--source, -s` | Path to the catalog directory for export.    | Current working directory |
-| `--output, -o` | Path where the generated file will be saved. | `./export`                |
-| `--format, -f` | Export format: docx or pdf.                  | `docx`                    |
-| `--yes, -y`    | Skip confirmation.                           | `false`                   |
+| Option           | Description                                                                                         | Default                   |
+| ---------------- | --------------------------------------------------------------------------------------------------- | ------------------------- |
+| `--source, -s`   | Path to the catalog directory for export.                                                           | Current working directory |
+| `--output, -o`   | Path where the generated file will be saved.                                                        | `./export`                |
+| `--format, -f`   | Export format: docx or pdf.                                                                         | `docx`                    |
+| `--yes, -y`      | Skip confirmation.                                                                                  | `false`                   |
+| `--template, -t` | Path to a template file, or template name from the workspace of the catalog (only for docx export). | Not specified             |
 
 #### **Example**
 

@@ -1,5 +1,5 @@
 const comment = {
-	attrs: { count: { default: null }, comment: { default: null }, answers: { default: null } },
+	attrs: { id: { default: null } },
 	inclusive: false,
 };
 

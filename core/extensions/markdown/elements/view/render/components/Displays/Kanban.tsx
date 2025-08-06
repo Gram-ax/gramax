@@ -4,7 +4,7 @@ import t from "@ext/localization/locale/translate";
 import WidthWrapper from "@components/WidthWrapper/WidthWrapper";
 import Column from "@ext/markdown/elements/view/render/components/Displays/Helpers/Kanban/Column";
 import { CustomDragLayer } from "@ext/markdown/elements/view/render/components/Displays/Helpers/Kanban/CustomDragLayer";
-import ModifiedBackend from "@ext/navigation/catalog/drag/logic/ModifiedBackend";
+import ModifiedBackend, { useDragDrop } from "@ext/navigation/catalog/drag/logic/ModifiedBackend";
 import { Property, ViewRenderGroup } from "@ext/properties/models";
 import { useCallback, useState } from "react";
 import { DndProvider } from "react-dnd";
@@ -26,6 +26,8 @@ const Kanban = (props: KanbanProps) => {
 	const noGroup = t("properties.validation-errors.no-groupby");
 
 	const [data, setData] = useState<ViewRenderGroup[]>(content);
+
+	const { backend, options } = useDragDrop();
 
 	useWatch(() => {
 		setData(content);
@@ -90,7 +92,7 @@ const Kanban = (props: KanbanProps) => {
 		);
 
 	return (
-		<DndProvider backend={ModifiedBackend}>
+		<DndProvider backend={(manager) => ModifiedBackend(backend(manager))} options={options}>
 			<div className="tree-root">
 				<WidthWrapper>
 					<div className={className} data-focusable="true">

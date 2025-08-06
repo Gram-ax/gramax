@@ -6,6 +6,8 @@ import TooltipBase from "@ext/markdown/elementsUtils/prosemirrorPlugins/TooltipB
 import { Mark } from "@tiptap/pm/model";
 
 class LinkHoverTooltip extends TooltipBase {
+	private _destroyTimeout: NodeJS.Timeout;
+
 	markPosition: { from: number; to: number };
 	isMounted = false;
 	isLeaved = false;
@@ -14,6 +16,7 @@ class LinkHoverTooltip extends TooltipBase {
 	anchorPos: number;
 	onDestroy: () => void;
 	mark: Mark;
+	hash?: string;
 
 	constructor(
 		parentElement: HTMLElement,
@@ -42,10 +45,12 @@ class LinkHoverTooltip extends TooltipBase {
 	}
 
 	destroyFunctions(delay?: 200) {
-		setTimeout(() => {
+		if (this._destroyTimeout) clearTimeout(this._destroyTimeout);
+		this._destroyTimeout = setTimeout(() => {
 			this.destroy(this._element);
 			this.onDestroy();
 		}, delay);
+		this._destroyTimeout = null;
 	}
 
 	canSetComponent() {
@@ -68,8 +73,9 @@ class LinkHoverTooltip extends TooltipBase {
 		this.mark = mark;
 	}
 
-	setResourcePath = (resourcePath: string) => {
+	setResourcePath = (resourcePath: string, hash?: string) => {
 		this.resourcePath = resourcePath;
+		this.hash = hash;
 	};
 
 	setComponent(element: HTMLElement) {
@@ -89,7 +95,7 @@ class LinkHoverTooltip extends TooltipBase {
 		this.element = element;
 		this.isMounted = true;
 
-		this.updateProps({ isOpen: true, element, resourcePath: this.resourcePath });
+		this.updateProps({ isOpen: true, element, resourcePath: this.resourcePath, hash: this.hash });
 	}
 
 	setObserver(element: HTMLElement) {

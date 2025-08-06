@@ -10,6 +10,7 @@ import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import DiagramType from "../../../../../logic/components/Diagram/DiagramType";
 import C4Render from "./C4Render";
 import DiagramRender from "./DiagramRender";
+import ErrorConfirmService from "@ext/errorHandlers/client/ErrorConfirmService";
 
 const DIAGRAM_FUNCTIONS = {
 	[DiagramType.mermaid]: getMermaidDiagram,
@@ -22,13 +23,14 @@ interface DiagramDataProps {
 	src?: string;
 	title?: string;
 	content?: string;
+	commentId?: string;
 	noEm?: boolean;
 	width?: string;
 	height?: string;
 }
 
 const DiagramData = (props: DiagramDataProps) => {
-	const { src, title, content, diagramName, openEditor, width, height, noEm } = props;
+	const { src, title, content, diagramName, openEditor, width, height, noEm, commentId } = props;
 	const isC4Diagram = diagramName == DiagramType["c4-diagram"];
 	const apiUrlCreator = ApiUrlCreatorService.value;
 	const diagramsServiceUrl = PageDataContextService.value.conf.diagramsServiceUrl;
@@ -68,6 +70,7 @@ const DiagramData = (props: DiagramDataProps) => {
 
 	useGetResource(
 		async (buffer: Buffer) => {
+			ErrorConfirmService.stop();
 			try {
 				setError(null);
 				const diagramData = DIAGRAM_FUNCTIONS?.[diagramName]
@@ -77,6 +80,7 @@ const DiagramData = (props: DiagramDataProps) => {
 			} catch (err) {
 				setError(err);
 			}
+			ErrorConfirmService.start();
 
 			setIsLoaded(true);
 		},
@@ -98,6 +102,7 @@ const DiagramData = (props: DiagramDataProps) => {
 						diagramName={diagramName}
 						data={data}
 						error={error}
+						commentId={commentId}
 					/>
 				)}
 			</Skeleton>

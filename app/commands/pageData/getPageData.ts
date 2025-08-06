@@ -1,3 +1,4 @@
+import { ResponseKind } from "@app/types/ResponseKind";
 import Context from "@core/Context/Context";
 import PageDataContext from "@core/Context/PageDataContext";
 import Path from "@core/FileProvider/Path/Path";
@@ -5,9 +6,9 @@ import RouterPathProvider from "@core/RouterPath/RouterPathProvider";
 import getPageDataByPathname, { PageDataType } from "@core/RouterPath/logic/getPageDataByPathname";
 import getShareDataFromPathnameData from "@core/RouterPath/logic/getShareDataFromRouterPath";
 import { ArticlePageData, HomePageData } from "@core/SitePresenter/SitePresenter";
+import homeSections from "@core/utils/homeSections";
 import getPartGitSourceDataByStorageName from "@ext/storage/logic/utils/getPartSourceDataByStorageName";
 import { Command } from "../../types/Command";
-import { ResponseKind } from "@app/types/ResponseKind";
 
 const getPageData: Command<
 	{ path: string; ctx: Context },
@@ -18,13 +19,13 @@ const getPageData: Command<
 	kind: ResponseKind.json,
 
 	async do({ path, ctx }) {
-		const getHomePageData = () => this._commands.page.getHomePageData.do({ ctx });
+		const getHomePageData = (path?: string) => this._commands.page.getHomePageData.do({ ctx, path });
 		const getArticlePageData = (path: string[], pathname: string) =>
 			this._commands.page.getArticlePageData.do({ path, ctx, pathname });
 		const getNotFoundCatalog = (pathname: string, logicPath: string) =>
 			this._commands.page.getCatalogNotFoundData.do({ pathname, logicPath, ctx });
 
-		if (!path || path == "/") return getHomePageData();
+		if (!path || path == "/" || homeSections.isHomeSectionPath(path)) return getHomePageData(path);
 
 		const workspace = this._app.wm.maybeCurrent();
 

@@ -53,9 +53,9 @@ async function parseContent(
 	parserContextFactory: ParserContextFactory,
 	requestUrl?: string,
 ) {
+	if (!article) return;
 	const hasContent = !(await article.parsedContent.isNull());
 
-	if (!article) return;
 	if (article.type == ItemType.article && hasContent) return;
 	if (article.type == ItemType.category && hasContent && !!article.content?.trim?.()) {
 		return;

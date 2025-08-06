@@ -15,7 +15,7 @@ import ListLayout from "@components/List/ListLayout";
 import lucideIconList, { iconFilter, toListItem } from "@components/Atoms/Icon/lucideIconList";
 import ValueHandler from "@ext/properties/components/Helpers/ValueHandler";
 import { DndProvider } from "react-dnd";
-import ModifiedBackend from "@ext/navigation/catalog/drag/logic/ModifiedBackend";
+import ModifiedBackend, { useDragDrop } from "@ext/navigation/catalog/drag/logic/ModifiedBackend";
 import Icon from "@components/Atoms/Icon";
 
 export interface PropertyEditorProps<T = Property> {
@@ -31,6 +31,7 @@ const PropertyEditor = ({ properties, onSubmit, onClose, data }: PropertyEditorP
 	const [visibleWarning, setVisibleWarning] = useState<number>(undefined);
 	const suchExists = t("properties.validation-errors.prop-creator");
 	const editSchema = useMemo(() => ({ ...Schema }), []);
+	const { backend, options } = useDragDrop();
 
 	const onChange = (props) => setEditProps(props);
 
@@ -44,6 +45,10 @@ const PropertyEditor = ({ properties, onSubmit, onClose, data }: PropertyEditorP
 	};
 
 	const onCloseWarning = () => setVisibleWarning(undefined);
+
+	const handleLinkNavigation = () => {
+		onCloseHandler();
+	};
 
 	const validateName = (name: string) => {
 		if (!name) return false;
@@ -167,7 +172,10 @@ const PropertyEditor = ({ properties, onSubmit, onClose, data }: PropertyEditorP
 										/>
 									}
 									input={
-										<DndProvider backend={ModifiedBackend}>
+										<DndProvider
+											backend={(manager) => ModifiedBackend(backend(manager))}
+											options={options}
+										>
 											<div className="tree-root">
 												<ValueHandler
 													data={editProps.values}
@@ -191,6 +199,7 @@ const PropertyEditor = ({ properties, onSubmit, onClose, data }: PropertyEditorP
 							action={(saveValue?: boolean) => submit(visibleWarning === 1, saveValue)}
 							isCatalog={visibleWarning === 1}
 							onClose={onCloseWarning}
+							onLinkClick={handleLinkNavigation}
 							data={data}
 							editData={editProps}
 							isOpen={true}

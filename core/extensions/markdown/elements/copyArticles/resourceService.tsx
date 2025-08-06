@@ -1,19 +1,17 @@
+import { getExecutingEnvironment } from "@app/resolveModule/env";
+import resolveModule from "@app/resolveModule/frontend";
 import FetchService from "@core-ui/ApiServices/FetchService";
 import Method from "@core-ui/ApiServices/Types/Method";
 import MimeTypes from "@core-ui/ApiServices/Types/MimeTypes";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import ArticlePropsService from "@core-ui/ContextServices/ArticleProps";
 import CatalogPropsService from "@core-ui/ContextServices/CatalogProps";
-import { isExternalLink } from "@core-ui/hooks/useExternalLink";
 import fileNameUtils from "@core-ui/fileNameUtils";
+import { isExternalLink } from "@core-ui/hooks/useExternalLink";
 import Path from "@core/FileProvider/Path/Path";
-import { TreeReadScope } from "@ext/git/core/GitCommands/model/GitCommandsModel";
-import getArticleFileBrotherNames from "@ext/markdown/elementsUtils/AtricleResource/getAtricleResourceNames";
-import GitTreeFileProvider from "@ext/versioning/GitTreeFileProvider";
-import { ReactElement, createContext, useCallback, useContext, useEffect, useState } from "react";
-import resolveModule from "@app/resolveModule/frontend";
-import { getExecutingEnvironment } from "@app/resolveModule/env";
 import { ArticleProviderType } from "@ext/articleProvider/logic/ArticleProvider";
+import getArticleFileBrotherNames from "@ext/markdown/elementsUtils/AtricleResource/getAtricleResourceNames";
+import { ReactElement, createContext, useCallback, useContext, useEffect, useState } from "react";
 
 type UseGetResource = (callback: (buffer: Buffer) => void, src: string, content?: string) => void;
 
@@ -51,11 +49,10 @@ type ResourceServiceProps = {
 	children: ReactElement;
 	id?: string;
 	provider?: ArticleProviderType;
-	scope?: TreeReadScope;
 };
 
 abstract class ResourceService {
-	static Provider({ children, scope, provider, id }: ResourceServiceProps) {
+	static Provider({ children, provider, id }: ResourceServiceProps) {
 		const [data, setData] = useState<ResourceData>({});
 		const catalogName = CatalogPropsService.value?.name;
 		const articleProps = ArticlePropsService.value;
@@ -98,10 +95,7 @@ abstract class ResourceService {
 			};
 
 			const loadInternalData = async (src: string) => {
-				const scopedCatalogName = scope
-					? GitTreeFileProvider.scoped(new Path(catalogName), scope, undefined, true).value
-					: undefined;
-				const url = apiUrlCreator.getArticleResource(src, undefined, scopedCatalogName, id, provider);
+				const url = apiUrlCreator.getArticleResource(src, undefined, catalogName, id, provider);
 
 				const res = await FetchService.fetch(url, undefined, MimeTypes.text, Method.POST, false);
 

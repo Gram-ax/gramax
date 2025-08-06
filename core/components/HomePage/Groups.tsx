@@ -1,148 +1,126 @@
+import { cssMedia } from "@core-ui/utils/cssUtils";
+import { useRouter } from "@core/Api/useRouter";
+import { HomePageBreadcrumb, Section } from "@core/SitePresenter/SitePresenter";
 import styled from "@emotion/styled";
+import FavoriteCatalogLinkService from "@ext/artilce/Favorite/components/FavoriteCatalogLinkService";
+import t from "@ext/localization/locale/translate";
+import {
+	Breadcrumb,
+	BreadcrumbItem,
+	BreadcrumbLink,
+	BreadcrumbList,
+	BreadcrumbPage,
+	BreadcrumbSeparator,
+} from "ics-ui-kit/components/breadcrumb";
 import { useState } from "react";
+import Folder from "./Folder";
 import Group from "./Group";
-import NoneGroups from "./NoneGroups";
-import GroupsService from "@core-ui/ContextServices/GroupsService";
 
-const Groups = ({ className }: { className?: string }) => {
+interface GroupsProps {
+	className?: string;
+	section: Section;
+	breadcrumb: HomePageBreadcrumb[];
+}
+
+const Groups = (props: GroupsProps) => {
+	const { className, section, breadcrumb } = props;
+	const router = useRouter();
 	const [isAnyCardLoading, setIsAnyCardLoading] = useState(false);
-	const { catalogLinks } = GroupsService.value;
-	const groupsData = catalogLinks ? Object.values(catalogLinks) : [];
-	const catalogCount = groupsData.reduce((total, group) => total + group.catalogLinks.length, 0);
+	const favoriteCatalogLinks = FavoriteCatalogLinkService.value;
+	const sectionKeys = Object.keys(section.sections || {});
+	const isMainPage = breadcrumb.length === 0;
 
 	return (
-		<div className={className} style={isAnyCardLoading ? { pointerEvents: "none" } : {}}>
-			{catalogCount ? (
-				<>
-					{groupsData.map((groupData, i) => {
-						if (groupData?.catalogLinks.length)
-							return <Group key={i} groupData={groupData} setIsAnyCardLoading={setIsAnyCardLoading} />;
-					})}
-				</>
-			) : (
-				<NoneGroups />
-			)}
+		<div className={`${className} w-full pt-4 px-4`} style={isAnyCardLoading ? { pointerEvents: "none" } : {}}>
+			<div className="mx-auto flex max-w-[1144px] flex-col gap-8 breadcrumb-container">
+				<Breadcrumb>
+					<BreadcrumbList>
+						{breadcrumb.map((b, index) => (
+							<>
+								<BreadcrumbItem key={b.title}>
+									{index !== breadcrumb.length - 1 ? (
+										<BreadcrumbLink onClick={() => router.pushPath(b.href)}>
+											{b.title}
+										</BreadcrumbLink>
+									) : (
+										<BreadcrumbPage>{b.title}</BreadcrumbPage>
+									)}
+								</BreadcrumbItem>
+								{index !== breadcrumb.length - 1 && (
+									<BreadcrumbSeparator>
+										<span className="text-muted">/</span>
+									</BreadcrumbSeparator>
+								)}
+							</>
+						))}
+					</BreadcrumbList>
+				</Breadcrumb>
+			</div>
+			<div className="mx-auto flex max-w-[1144px] flex-col gap-8">
+				{!!favoriteCatalogLinks.length && isMainPage && (
+					<Group
+						title="favorites"
+						catalogLinks={favoriteCatalogLinks}
+						setIsAnyCardLoading={setIsAnyCardLoading}
+					/>
+				)}
+				<div className="flex flex-col gap-6 pt-4">
+					{isMainPage ? (
+						<h3 className="text-center text-2xl font-semibold text-primary-fg pt-4">
+							{t("groups-and-projects")}
+						</h3>
+					) : (
+						<h3 className="text-center text-2xl font-semibold text-primary-fg pt-4">{section.title}</h3>
+					)}
+					{sectionKeys.length !== 0 && (
+						<div className="group-container">
+							{sectionKeys.map((sectionKey, index) => (
+								<Folder key={sectionKey + index} section={section.sections[sectionKey]} />
+							))}
+						</div>
+					)}
+					{section && <Group catalogLinks={section.catalogLinks} setIsAnyCardLoading={setIsAnyCardLoading} />}
+				</div>
+			</div>
 		</div>
 	);
 };
 
 export default styled(Groups)`
 	flex: 1;
-	width: 100%;
-	display: flex;
-	flex-direction: column;
 
-	.catalog-background {
-		width: 100%;
-		border-radius: var(--radius-large);
-		background: var(--color-home-card-bg);
+	.group-container {
+		gap: 1.5rem;
+		display: flex;
+		flex-wrap: wrap;
+	}
 
-		border-width: 1px;
-		border-style: solid;
-		border-color: var(--color-home-card-border);
+	.breadcrumb-container {
+		ol {
+			list-style: none;
+		}
 
-		transition: border-color var(--transition-time);
-
-		:hover {
-			border-color: var(--color-home-card-border-hover);
+		a:hover {
+			color: hsl(var(--primary-fg)) !important;
 		}
 	}
 
-	.catalog {
-		transition: background-color var(--transition-time), box-shadow var(--transition-time) !important;
-	}
-
-	.catalog:hover {
-		background-color: var(--color-home-card-bg-hover) !important;
-	}
-
-	.catalog-title {
-		text-transform: lowercase;
-		font-family: Montserrat, sans-serif;
-		font-size: 2.3rem;
-		height: 1.8em;
-	}
-
-	.catalog-texts {
-		display: flex;
-		margin-top: 1rem;
-		flex-direction: column;
-	}
-
-	.catalog-text-logo {
-		font-size: 16px;
-		line-height: 23px;
-		font-weight: normal;
-		letter-spacing: 0.01em;
-
-		text-overflow: ellipsis;
-		-webkit-line-clamp: 2;
-		-webkit-box-orient: vertical;
-		display: -webkit-box;
-		overflow: hidden;
-	}
-
-	.catalog-text {
-		font-size: 12px;
+	a {
+		width: fit-content;
 		font-weight: 300;
-		line-height: 150%;
-		margin-top: 0.5rem;
-		overflow: hidden;
-		-webkit-line-clamp: 2;
-		display: -webkit-box;
-		-webkit-box-orient: vertical;
-	}
+		color: var(--color-home-card-link);
+		text-decoration: none;
+		display: inline-block;
+		position: relative;
 
-	.catalog-title-logo {
-		top: -2rem;
-		height: 9rem;
-		width: 7.5rem;
-		display: flex;
-		right: -2.2rem;
-		max-width: 50%;
-		position: absolute;
-		justify-content: center;
-		background-size: contain;
-		background-position: center center;
-		background-repeat: no-repeat !important;
-	}
-
-	@media only screen and (max-width: 380px) {
-		.catalog-title-logo {
-			top: -1.5rem;
-			right: -1.7rem;
-			max-height: 80%;
-		}
-		.catalog-title {
-			font-size: 1.7rem;
-		}
-		.catalog-text-logo {
-			font-size: 14px;
-		}
-		.catalog-text {
-			font-size: 10px;
+		&:hover {
+			color: var(--color-home-card-link-hover) !important;
 		}
 	}
 
-	@media only screen and (max-width: 320px) {
-		.group-container {
-			grid-template-columns: 1fr;
-		}
-
-		.catalog-title-logo {
-			top: -2rem;
-			right: -2.2rem;
-			max-height: none;
-		}
-
-		.catalog-title {
-			font-size: 2.2rem;
-		}
-		.catalog-text-logo {
-			font-size: 17px;
-		}
-		.catalog-text {
-			font-size: 12px;
+	${cssMedia.narrow} {
+		i + span {
+			display: none;
 		}
 	}
 `;

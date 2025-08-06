@@ -195,7 +195,7 @@ export class Article<P extends ArticleProps = ArticleProps> extends Item<P> {
 }
 
 export interface Content {
-	htmlValue: string;
+	getHtmlValue: { get: () => Promise<string> };
 	tocItems: TocItem[];
 	editTree: JSONContent;
 	renderTree: RenderableTreeNode;

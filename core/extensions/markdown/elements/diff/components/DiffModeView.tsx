@@ -1,10 +1,11 @@
 import ArticleExtensions from "@components/Article/ArticleExtensions";
 import ArticleWithPreviewArticle from "@components/ArticlePage/ArticleWithPreviewArticle";
-import SpinnerLoader from "@components/Atoms/SpinnerLoader";
 import ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
-import FetchService from "@core-ui/ApiServices/FetchService";
+import ArticleContextWrapper from "@core-ui/ArticleContextWrapper/ArticleContextWrapper";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
+import ArticlePropsService from "@core-ui/ContextServices/ArticleProps";
 import CatalogPropsService from "@core-ui/ContextServices/CatalogProps";
+import DiffViewModeService from "@core-ui/ContextServices/DiffViewModeService";
 import SidebarsIsPinService from "@core-ui/ContextServices/Sidebars/SidebarsIsPin";
 import { useDebounce } from "@core-ui/hooks/useDebounce";
 import { useRouter } from "@core/Api/useRouter";
@@ -12,20 +13,27 @@ import Path from "@core/FileProvider/Path/Path";
 import { ClientArticleProps } from "@core/SitePresenter/SitePresenter";
 import { TreeReadScope } from "@ext/git/core/GitCommands/model/GitCommandsModel";
 import ArticleMat from "@ext/markdown/core/edit/components/ArticleMat";
+import { ContentEditorId } from "@ext/markdown/core/edit/components/ContentEditor";
 import Menu from "@ext/markdown/core/edit/components/Menu/Menu";
 import Main from "@ext/markdown/core/edit/components/Menu/Menus/Main";
+import useContentEditorHooks from "@ext/markdown/core/edit/components/UseContentEditorHooks";
 import getExtensions from "@ext/markdown/core/edit/logic/getExtensions";
 import ElementGroups from "@ext/markdown/core/element/ElementGroups";
+import Comment from "@ext/markdown/elements/comment/edit/model/comment";
 import ResourceService from "@ext/markdown/elements/copyArticles/resourceService";
 import EditorExtensionsService from "@ext/markdown/elements/diff/components/EditorExtensionsService";
-import ScopeWrapper from "@ext/markdown/elements/diff/components/ScopeWrapper";
-import ArticlePropsesCache from "@ext/markdown/elements/diff/logic/ArticlePropsesCache";
+import LoadingWithDiffBottomBar from "@ext/markdown/elements/diff/components/LoadingWithDiffBottomBar";
 import DiffExtension from "@ext/markdown/elements/diff/logic/DiffExtension";
 import useDiff from "@ext/markdown/elements/diff/logic/hooks/useDiff";
+import OnAddMark from "@ext/markdown/elements/onAdd/OnAddMark";
+import OnDeleteMark from "@ext/markdown/elements/onDocChange/OnDeleteMark";
+import OnDeleteNode from "@ext/markdown/elements/onDocChange/OnDeleteNode";
 import EditorService from "@ext/markdown/elementsUtils/ContextServices/EditorService";
-import ExtensionUpdater from "@ext/markdown/elementsUtils/editExtensionUpdator/ExtensionUpdater";
+import ExtensionContextUpdater from "@ext/markdown/elementsUtils/editExtensionUpdator/ExtensionContextUpdater";
+import PropertyService from "@ext/properties/components/PropertyService";
+import { DiffFilePaths } from "@ext/VersionControl/model/Diff";
 import { FileStatus } from "@ext/Watchers/model/FileStatus";
-import { Editor } from "@tiptap/core";
+import { Editor, Extensions } from "@tiptap/core";
 import Document from "@tiptap/extension-document";
 import { EditorContent, JSONContent, useEditor } from "@tiptap/react";
 import { useEffect, useState } from "react";
@@ -42,7 +50,7 @@ interface DiffModeViewProps {
 	onUpdate?: (props: { editor: Editor; apiUrlCreator: ApiUrlCreator; articleProps: ClientArticleProps }) => void;
 }
 
-export const DiffModeView = (props: DiffModeViewProps) => {
+const DiffModeViewInternal = (props: DiffModeViewProps) => {
 	const {
 		oldContent,
 		newContent,
@@ -62,12 +70,15 @@ export const DiffModeView = (props: DiffModeViewProps) => {
 	const handlePaste = EditorService.createHandlePasteCallback(resourceService);
 	const editorOnUpdate = EditorService.createOnUpdateCallback();
 	const editorTitleOnUpdate = EditorService.createUpdateTitleFunction();
+	const propertyService = PropertyService.value;
+
+	const articleProps = ArticlePropsService.value;
 
 	const { start: onUpdateDebounce } = useDebounce((editor: Editor) => {
-		editorOnUpdate({ editor, apiUrlCreator: diffArticleApiUrlCreator, articleProps });
+		editorOnUpdate({ editor, apiUrlCreator, articleProps });
 		if (articleProps.title !== editor.state.doc.firstChild.textContent) {
 			editorTitleOnUpdate(
-				{ apiUrlCreator: diffArticleApiUrlCreator, articleProps },
+				{ apiUrlCreator, articleProps, propertyService },
 				router,
 				editor.state.doc.firstChild.textContent,
 			);
@@ -75,33 +86,11 @@ export const DiffModeView = (props: DiffModeViewProps) => {
 	}, 500);
 
 	const apiUrlCreator = ApiUrlCreatorService.value;
-	const diffArticleApiUrlCreator = apiUrlCreator.fromArticle(articlePath);
-	const oldDiffArticleApiUrlCreator = oldArticlePath
-		? apiUrlCreator.fromArticle(oldArticlePath)
-		: diffArticleApiUrlCreator;
-
-	const catalogName = CatalogPropsService.value.name;
-
-	const articlePropsesCache = ArticlePropsesCache.cache;
-	const [articleProps, setArticleProps] = useState<ClientArticleProps>(articlePropsesCache[articlePath]);
+	const oldDiffArticleApiUrlCreator = oldArticlePath ? apiUrlCreator.fromArticle(oldArticlePath) : apiUrlCreator;
 
 	const isPin = SidebarsIsPinService.value;
 	const hasChanges = changeType === FileStatus.modified || changeType === FileStatus.rename;
 	const [diffBottomBarHeight, setDiffBottomBarHeight] = useState(0);
-
-	const setItemPropsData = async () => {
-		const res = await FetchService.fetch<ClientArticleProps>(
-			apiUrlCreator.getItemProps(Path.join(catalogName, articlePath)),
-		);
-		if (!res.ok) return;
-		const data = await res.json();
-		setArticleProps(data);
-		articlePropsesCache[articlePath] = data;
-	};
-
-	useEffect(() => {
-		if (!articlePropsesCache[articlePath]) void setItemPropsData();
-	}, []);
 
 	useEffect(() => {
 		const bottomBarElement = document.getElementById("diff-bottom-bar");
@@ -110,15 +99,30 @@ export const DiffModeView = (props: DiffModeViewProps) => {
 		setDiffBottomBarHeight(height);
 	}, []);
 
-	const UpdatedDiffExtension = ExtensionUpdater.getUpdatedExtension([
+	const UpdatedDiffExtension = ExtensionContextUpdater.useExtendExtensionsWithContext([
 		DiffExtension.configure({ isPin, oldScope, newScope }),
 	])[0] as typeof DiffExtension;
 
+	const { onDeleteNodes, onDeleteMarks, onAddMarks } = useContentEditorHooks();
+
 	const getNewEditorExtensions = () => {
 		if (!extensions) return [...getExtensions(), Document.extend({ content: `paragraph ${ElementGroups.block}+` })];
-		const filteredExtensions = [...extensions.filter((e) => e.name !== "OnTitleLoseFocus"), UpdatedDiffExtension];
-		if (readOnly) return filteredExtensions.filter((e) => e.name !== "selectionMenu");
-		return filteredExtensions;
+		const filterOldExtensions = ["OnDeleteNode", "OnDeleteMark", "OnAddMark"];
+
+		const updatedExtensions = [
+			...extensions.filter((e) => !filterOldExtensions.includes(e.name)),
+			UpdatedDiffExtension,
+			OnDeleteNode.configure({ onDeleteNodes }),
+			OnAddMark.configure({ onAddMarks }),
+			OnDeleteMark.configure({ onDeleteMarks }),
+		];
+		if (readOnly) return getReadOnlyExtensions(updatedExtensions);
+		return updatedExtensions;
+	};
+
+	const getReadOnlyExtensions = (extensions: Extensions) => {
+		const excludeExtensions = ["selectionMenu", "ArticleTitleHelpers"];
+		return extensions.filter((e) => !excludeExtensions.includes(e.name));
 	};
 
 	const newEditor = useEditor(
@@ -126,27 +130,25 @@ export const DiffModeView = (props: DiffModeViewProps) => {
 			extensions: getNewEditorExtensions(),
 			content: extensions ? newContent : undefined,
 			editorProps: {
-				handlePaste: (view, event, slice) =>
-					handlePaste(view, event, slice, diffArticleApiUrlCreator, articleProps),
+				handlePaste: (view, event, slice) => handlePaste(view, event, slice, apiUrlCreator, articleProps),
 			},
 			editable: !readOnly,
 			onUpdate: ({ editor }) => {
 				if (!editor.isEditable) return;
-				currentOnUpdate?.({ editor, apiUrlCreator: diffArticleApiUrlCreator, articleProps });
+				currentOnUpdate?.({ editor, apiUrlCreator, articleProps });
 				onUpdateDebounce(editor);
 			},
 		},
 		[extensions, newContent, articleProps],
 	);
 
+	ExtensionContextUpdater.useUpdateContextInExtensions(newEditor);
+
 	const oldContentEditor = useEditor(
 		{
 			extensions: extensions
-				? [
-						...extensions.filter((e) => e.name !== "selectionMenu"),
-						UpdatedDiffExtension.configure({ isOldEditor: true }),
-				  ]
-				: [...getExtensions(), Document.extend({ content: `paragraph ${ElementGroups.block}+` })],
+				? [...getReadOnlyExtensions(extensions), UpdatedDiffExtension.configure({ isOldEditor: true })]
+				: [...getExtensions(), Comment, Document.extend({ content: `paragraph ${ElementGroups.block}+` })],
 			editable: false,
 			content: extensions ? oldContent : undefined,
 		},
@@ -154,14 +156,17 @@ export const DiffModeView = (props: DiffModeViewProps) => {
 	);
 
 	useEffect(() => {
-		if (!newEditor?.storage.diff || !oldContentEditor?.storage.diff) return;
-		newEditor.storage.diff.isPin = isPin;
-		oldContentEditor.storage.diff.isPin = isPin;
+		newEditor.commands.updateIsPin(isPin, true);
+		oldContentEditor.commands.updateIsPin(isPin, false);
 	}, [isPin.left, isPin.right]);
 
-	useDiff(hasChanges ? { editor: newEditor, oldContentEditor } : { editor: null, oldContentEditor: null });
+	const diffViewMode = DiffViewModeService.value;
 
-	if (!articleProps && changeType !== FileStatus.delete) return <SpinnerLoader fullScreen />;
+	useEffect(() => {
+		newEditor.commands.updateDiffViewMode(diffViewMode, true);
+	}, [diffViewMode]);
+
+	useDiff(hasChanges ? { editor: newEditor, oldContentEditor } : { editor: null, oldContentEditor: null });
 
 	const mainArticle =
 		changeType === FileStatus.delete ? (
@@ -169,49 +174,69 @@ export const DiffModeView = (props: DiffModeViewProps) => {
 				<EditorContent editor={oldContentEditor} data-qa="article-editor" data-iseditable={false} />
 			</ApiUrlCreatorService.Provider>
 		) : (
-			<ApiUrlCreatorService.Provider value={diffArticleApiUrlCreator}>
-				<EditorContent editor={newEditor} data-qa="article-editor" data-iseditable={!readOnly} />
-			</ApiUrlCreatorService.Provider>
+			<EditorContent editor={newEditor} data-qa="article-editor" data-iseditable={!readOnly} />
 		);
 
+	const catalogName = CatalogPropsService.value?.name;
+	const oldContextArticlePath = Path.join(catalogName, oldArticlePath ?? articlePath);
+
+	const isDelete = changeType === FileStatus.delete;
+
+	const mainArticleWrapper = isDelete ? (
+		<ArticleContextWrapper scope={oldScope} articlePath={oldContextArticlePath}>
+			{mainArticle}
+		</ArticleContextWrapper>
+	) : (
+		mainArticle
+	);
+
 	return (
-		<ApiUrlCreatorService.Provider value={diffArticleApiUrlCreator}>
-			<>
-				<ArticleWithPreviewArticle
-					mainArticle={
-						<ScopeWrapper scope={changeType === FileStatus.delete ? oldScope : newScope}>
-							{mainArticle}
-						</ScopeWrapper>
-					}
-					previewArticle={
-						hasChanges ? (
-							<ApiUrlCreatorService.Provider value={oldDiffArticleApiUrlCreator}>
-								<ScopeWrapper scope={oldScope}>
-									<div style={{ marginLeft: "0.5rem" }}>
-										<EditorContent
-											editor={oldContentEditor}
-											data-qa="article-editor"
-											data-iseditable={false}
-										/>
-									</div>
-								</ScopeWrapper>
-							</ApiUrlCreatorService.Provider>
-						) : undefined
-					}
-				/>
-				{readOnly ? (
-					<ArticleMat />
-				) : (
-					<>
-						<ArticleMat editor={newEditor} />
-						<Menu editor={newEditor} id={"diff-mode-extensions"} key={"diff-mode-extensions"}>
-							<Main editor={newEditor} />
-						</Menu>
-						<ArticleExtensions id={"diff-mode-extensions"} bottom={`${diffBottomBarHeight + 4}px`} />
-					</>
-				)}
-			</>
-		</ApiUrlCreatorService.Provider>
+		<>
+			<ArticleWithPreviewArticle
+				mainArticle={mainArticleWrapper}
+				previewArticle={
+					hasChanges &&
+					diffViewMode !== "wysiwyg-single" && (
+						<ArticleContextWrapper scope={oldScope} articlePath={oldContextArticlePath}>
+							<div style={{ marginLeft: "0.5rem" }}>
+								<EditorContent
+									editor={oldContentEditor}
+									data-qa="article-editor"
+									data-iseditable={false}
+								/>
+							</div>
+						</ArticleContextWrapper>
+					)
+				}
+			/>
+			{readOnly ? (
+				<ArticleMat />
+			) : (
+				<>
+					<ArticleMat editor={newEditor} />
+					<Menu editor={newEditor} id={"ContentEditorId"} key={"diff-mode-extensions"}>
+						<Main editor={newEditor} />
+					</Menu>
+					<ArticleExtensions id={"ContentEditorId"} bottom={`${diffBottomBarHeight + 4}px`} />
+				</>
+			)}
+		</>
+	);
+};
+
+export const DiffModeView = (props: DiffModeViewProps & { filePath: DiffFilePaths }) => {
+	const { articlePath, newScope, oldScope, changeType, filePath } = props;
+	const scope = changeType === FileStatus.delete ? oldScope : newScope;
+	const catalogName = CatalogPropsService.value.name;
+
+	return (
+		<ArticleContextWrapper
+			scope={scope}
+			articlePath={Path.join(catalogName, articlePath)}
+			loader={<LoadingWithDiffBottomBar filePath={filePath} />}
+		>
+			<DiffModeViewInternal {...props} />
+		</ArticleContextWrapper>
 	);
 };
 

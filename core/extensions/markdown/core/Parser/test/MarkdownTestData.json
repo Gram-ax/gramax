@@ -89,7 +89,7 @@
 				"attributes": { "text": "text", "icon": "icon" },
 				"children": []
 			},
-			"html": "<span class=\"cmd\" data-icon=\"icon\"><i class=\"css-15fiha7\"><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"1em\" height=\"1em\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"max(0.075em, 1.3px)\" stroke-linecap=\"round\" stroke-linejoin=\"round\" class=\"lucide lucide-circle-help\" aria-hidden=\"true\"><circle cx=\"12\" cy=\"12\" r=\"10\"></circle><path d=\"M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3\"></path><path d=\"M12 17h.01\"></path></svg></i><span>text</span></span>"
+			"html": "<span class=\"cmd\" data-icon=\"icon\"><i class=\"css-15fiha7\"><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"1em\" height=\"1em\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"max(0.075em, 1.3px)\" stroke-linecap=\"round\" stroke-linejoin=\"round\" class=\"lucide lucide-circle-question-mark\" aria-hidden=\"true\"><circle cx=\"12\" cy=\"12\" r=\"10\"></circle><path d=\"M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3\"></path><path d=\"M12 17h.01\"></path></svg></i><span>text</span></span>"
 		}
 	],
 	"Kbd": [
@@ -113,7 +113,7 @@
 				"content": [],
 				"type": "icon"
 			},
-			"html": "<i style=\"color: green;\" class=\"css-wkbl5c\"><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"1em\" height=\"1em\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"max(0.075em, 1.3px)\" stroke-linecap=\"round\" stroke-linejoin=\"round\" class=\"lucide lucide-code\" aria-hidden=\"true\"><polyline points=\"16 18 22 12 16 6\"></polyline><polyline points=\"8 6 2 12 8 18\"></polyline></svg></i>"
+			"html": "<i style=\"color: green;\" class=\"css-wkbl5c\"><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"1em\" height=\"1em\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"max(0.075em, 1.3px)\" stroke-linecap=\"round\" stroke-linejoin=\"round\" class=\"lucide lucide-code\" aria-hidden=\"true\"><path d=\"m16 18 6-6-6-6\"></path><path d=\"m8 6-6 6 6 6\"></path></svg></i>"
 		}
 	],
 	"Issue": [
@@ -153,7 +153,7 @@
 				"xml": "<when text=\"text\"/>"
 			},
 			"renderTree": { "$$mdtype": "Tag", "name": "When", "attributes": { "text": "text" }, "children": [] },
-			"html": "<span class=\"attr\"><span class=\"delimiter\">/</span><i class=\"css-15fiha7\"><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"1em\" height=\"1em\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"max(0.075em, 1.3px)\" stroke-linecap=\"round\" stroke-linejoin=\"round\" class=\"lucide lucide-clock\" aria-hidden=\"true\"><circle cx=\"12\" cy=\"12\" r=\"10\"></circle><polyline points=\"12 6 12 12 16 14\"></polyline></svg></i><span>text</span></span>"
+			"html": "<span class=\"attr\"><span class=\"delimiter\">/</span><i class=\"css-15fiha7\"><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"1em\" height=\"1em\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"max(0.075em, 1.3px)\" stroke-linecap=\"round\" stroke-linejoin=\"round\" class=\"lucide lucide-clock\" aria-hidden=\"true\"><path d=\"M12 6v6l4 2\"></path><circle cx=\"12\" cy=\"12\" r=\"10\"></circle></svg></i><span>text</span></span>"
 		}
 	],
 	"Fn": [
@@ -200,6 +200,9 @@
 				"$$mdtype": "Tag",
 				"attributes": {
 					"alt": "someAlt",
+					"comment": {
+						"id": null
+					},
 					"src": "./image.png",
 					"title": "someTitle",
 					"crop": {
@@ -228,6 +231,9 @@
 			"renderTree": {
 				"$$mdtype": "Tag",
 				"attributes": {
+					"comment": {
+						"id": null
+					},
 					"isLink": false,
 					"path": "sample-mp4-file.mp4",
 					"title": "Очень интересное видео"
@@ -235,7 +241,7 @@
 				"children": [],
 				"name": "Video"
 			},
-			"html": "<div class=\"css-1rkrvv1\" data-type=\"video\"><div class=\"css-cvlp6m skeleton\"><video id=\"my-player\" data-focusable=\"true\" class=\"video-js\" controls=\"\" preload=\"auto\" data-setup=\"{}\" src=\"sample-mp4-file.mp4\"></video><em>Очень интересное видео</em></div></div>"
+			"html": "<div class=\"css-1rkrvv1\" data-type=\"video\"><div class=\"css-cvlp6m skeleton\"><div class=\"block-comment-view css-1axo4e6\" data-comment=\"false\" data-comment-block=\"false\"><video id=\"my-player\" data-focusable=\"true\" class=\"video-js\" controls=\"\" preload=\"auto\" data-setup=\"{}\" src=\"sample-mp4-file.mp4\"></video><em>Очень интересное видео</em></div></div></div>"
 		}
 	],
 	"Term": [
@@ -370,6 +376,9 @@
 			"renderTree": {
 				"$$mdtype": "Tag",
 				"attributes": {
+					"comment": {
+						"id": null
+					},
 					"src": "./drawio.svg",
 					"title": "someTitle",
 					"height": null,
@@ -756,6 +765,7 @@
 													{
 														"type": "listItem",
 														"attrs": {
+															"checked": null,
 															"isTaskItem": null
 														},
 														"content": [
@@ -770,6 +780,7 @@
 													{
 														"type": "listItem",
 														"attrs": {
+															"checked": null,
 															"isTaskItem": null
 														},
 														"content": [
@@ -784,6 +795,7 @@
 													{
 														"type": "listItem",
 														"attrs": {
+															"checked": null,
 															"isTaskItem": null
 														},
 														"content": [

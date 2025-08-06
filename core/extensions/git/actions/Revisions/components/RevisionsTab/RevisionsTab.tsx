@@ -14,6 +14,7 @@ import BranchUpdaterService, {
 } from "@ext/git/actions/Branch/BranchUpdaterService/logic/BranchUpdaterService";
 import OnBranchUpdateCaller from "@ext/git/actions/Branch/BranchUpdaterService/model/OnBranchUpdateCaller";
 import RevisionsWhomWhere from "@ext/git/actions/Revisions/components/RevisionsTab/RevisionsWhomWhere";
+import SyncService from "@ext/git/actions/Sync/logic/SyncService";
 import { DiffTree } from "@ext/git/core/GitDiffItemCreator/RevisionDiffTreePresenter";
 import { DiffEntries } from "@ext/git/core/GitMergeRequest/components/Changes/DiffEntries";
 import { Overview } from "@ext/git/core/GitMergeRequest/components/Changes/Overview";
@@ -154,9 +155,22 @@ const RevisionsTab = (props: RevisionsTabProps) => {
 	}, [tabWrapperRef.current, show, diffTree, revision]);
 
 	useEffect(() => {
-		if (!revision) return;
+		if (!revision || !show) return;
 		void requestDiffTree(revision);
-	}, [gitStatus]);
+	}, [gitStatus, show]);
+
+	const tryOpenBeforeSyncRevision = useCallback(() => {
+		const token = SyncService.events.on("finish", ({ syncData }) => {
+			if (!syncData.isVersionChanged) return;
+			setShow(true);
+			setRevision(syncData.before);
+			void requestDiffTree(syncData.before);
+		});
+
+		return () => SyncService.events.off(token);
+	}, []);
+
+	useEffect(tryOpenBeforeSyncRevision, [tryOpenBeforeSyncRevision]);
 
 	return (
 		<TabWrapper

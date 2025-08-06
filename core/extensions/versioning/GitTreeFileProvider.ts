@@ -6,7 +6,7 @@ import { LibGit2Error } from "@ext/git/core/GitCommands/errors/LibGit2Error";
 import GitErrorCode from "@ext/git/core/GitCommands/errors/model/GitErrorCode";
 import GitCommands from "@ext/git/core/GitCommands/GitCommands";
 import type { TreeReadScope } from "@ext/git/core/GitCommands/model/GitCommandsModel";
-import { addGitTreeScopeToPath } from "@ext/versioning/utils";
+import { addScopeToPath } from "@ext/versioning/utils";
 
 const decoder = new TextDecoder();
 
@@ -120,7 +120,7 @@ export default class GitTreeFileProvider implements ReadOnlyFileProvider {
 		if (!scope || scope === "HEAD") scopeValue = "HEAD";
 		else if ("reference" in scope) scopeValue = scope.reference;
 		else if ("commit" in scope) scopeValue = `commit-${scope.commit}`;
-		return new Path(addGitTreeScopeToPath(path.value, encode ? encodeURIComponent(scopeValue) : scopeValue));
+		return new Path(addScopeToPath(path.value, encode ? encodeURIComponent(scopeValue) : scopeValue));
 	}
 
 	static unscope(scopedPath: Path): { unscoped: Path; scope: TreeReadScope } {

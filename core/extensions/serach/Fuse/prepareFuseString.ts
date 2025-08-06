@@ -43,8 +43,8 @@ export const extractWords = (str: string): string[] => {
 	return words;
 };
 
-export const normalizeQuotationMarks = (query: string) => {
-	return query.replace(/“/g, '"');
+export const normalizeQuotationMarks = (query: string = "") => {
+	return query?.replace(/“/g, '"');
 };
 
 export default prepareFuseString;

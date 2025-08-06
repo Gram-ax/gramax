@@ -1,13 +1,11 @@
-import ActionButton from "@components/controls/HoverController/ActionButton";
 import { ClientCatalogProps } from "@core/SitePresenter/SitePresenter";
 import t from "@ext/localization/locale/translate";
 import AddFilter from "@ext/markdown/elements/view/edit/components/Helpers/AddFilter";
 import Menu from "@ext/markdown/elements/view/edit/components/Helpers/Orderby/Menu";
 import ViewButton from "@ext/markdown/elements/view/edit/components/Helpers/ViewButton";
 import PropertyItem from "@ext/properties/components/PropertyItem";
-import { getInputType, isHasValue, PropertyValue } from "@ext/properties/models";
+import { getInputType, isHasValue, Property, PropertyTypes, PropertyValue } from "@ext/properties/models";
 import { Display } from "@ext/properties/models/display";
-import { Editor } from "@tiptap/core";
 import { Node } from "@tiptap/pm/model";
 import { MouseEvent, useCallback } from "react";
 
@@ -16,11 +14,9 @@ interface ViewActionsProps {
 	catalogProps: ClientCatalogProps;
 	updateDisplay: (e: MouseEvent, display: Display) => void;
 	updateAttributes: (attributes: Record<string, any>) => void;
-	getPos: () => number;
-	editor: Editor;
 }
 
-const ViewActions = ({ node, updateDisplay, updateAttributes, catalogProps, editor, getPos }: ViewActionsProps) => {
+const ViewActions = ({ node, updateDisplay, updateAttributes, catalogProps }: ViewActionsProps) => {
 	const displayType = node.attrs.display;
 
 	const getDataFromAttribute = useCallback(
@@ -32,10 +28,16 @@ const ViewActions = ({ node, updateDisplay, updateAttributes, catalogProps, edit
 		[node.attrs],
 	);
 
-	const handleDelete = () => {
-		const position = getPos();
-		editor.commands.deleteRange({ from: position, to: position + node.nodeSize });
-	};
+	const propertyGroupFilter = useCallback(
+		(property: Property) => {
+			if (displayType === Display.Kanban) {
+				return property.type === PropertyTypes.enum || property.type === PropertyTypes.many;
+			}
+
+			return true;
+		},
+		[displayType],
+	);
 
 	return (
 		<>
@@ -81,6 +83,7 @@ const ViewActions = ({ node, updateDisplay, updateAttributes, catalogProps, edit
 				updateAttributes={updateAttributes}
 				catalogProps={catalogProps}
 				availableValues={false}
+				filter={propertyGroupFilter}
 				oneValue={node.attrs.display === Display.Kanban}
 				allowSystemProperties={false}
 			/>
@@ -117,7 +120,6 @@ const ViewActions = ({ node, updateDisplay, updateAttributes, catalogProps, edit
 					onClick={updateDisplay}
 				/>
 			</ViewButton>
-			<ActionButton icon="trash" tooltipText={t("delete")} onClick={handleDelete} />
 		</>
 	);
 };

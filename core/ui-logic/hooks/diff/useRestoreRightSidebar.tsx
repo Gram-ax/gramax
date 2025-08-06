@@ -5,8 +5,8 @@ const useRestoreRightSidebar = () => {
 	const sidebarsIsPin = SidebarsIsPinService.value;
 
 	const restoreRightSidebar = useCallback(() => {
+		SidebarsIsPinService.isSidebarsDependent = true;
 		if (!sidebarsIsPin.right && sidebarsIsPin.left) {
-			SidebarsIsPinService.isSidebarsDependent = true;
 			SidebarsIsPinService.value = { right: true };
 		}
 	}, [sidebarsIsPin.left, sidebarsIsPin.right]);

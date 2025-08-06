@@ -3,51 +3,59 @@ import ResourceService from "@ext/markdown/elements/copyArticles/resourceService
 import Image from "@ext/markdown/elements/image/edit/components/Image";
 import getNaturalSize from "@ext/markdown/elements/image/edit/logic/getNaturalSize";
 import { NodeViewProps } from "@tiptap/core";
-import { NodeViewWrapper } from "@tiptap/react";
 import { ReactElement, useCallback, useRef } from "react";
+import { NodeViewContextableWrapper } from "@ext/markdown/core/element/NodeViewContextableWrapper";
 
 const ImageComponent = (props: NodeViewProps): ReactElement => {
-	const { editor, node, getPos, selected } = props;
+	const { editor, node, getPos, selected, updateAttributes } = props;
 	const isSelected = editor.isEditable && selected && editor.state.selection.from + 1 === editor.state.selection.to;
 	const hoverElement = useRef<HTMLDivElement>(null);
 	const resourceService = ResourceService.value;
 
-	const updateAttributes = useCallback(
+	const updateAttributesCallback = useCallback(
 		async (attributes: Record<string, any>) => {
 			const pos = getPos();
-			if (!pos) return;
-			const tr = editor.view.state.tr;
-			const buffer = resourceService.getBuffer(node.attrs.src);
-			if (buffer) {
-				const urlToImage = URL.createObjectURL(new Blob([buffer], { type: resolveImageKind(buffer) }));
-				const newSize = await getNaturalSize(urlToImage);
-				if (newSize) {
-					attributes.width = newSize.width + "px";
-					attributes.height = newSize.height + "px";
+
+			if (!node.attrs?.width) {
+				if (!pos) return;
+				const buffer = resourceService.getBuffer(node.attrs.src);
+
+				if (buffer) {
+					const urlToImage = URL.createObjectURL(new Blob([buffer], { type: resolveImageKind(buffer) }));
+					const newSize = await getNaturalSize(urlToImage);
+					if (newSize) {
+						attributes.width = newSize.width + "px";
+						attributes.height = newSize.height + "px";
+					}
+					URL.revokeObjectURL(urlToImage);
 				}
-				URL.revokeObjectURL(urlToImage);
 			}
 
-			Object.keys(attributes).forEach((key) => {
-				tr.setNodeAttribute(pos, key, attributes[key]);
-			});
-
-			editor.view.dispatch(tr);
+			updateAttributes(attributes);
 		},
-		[editor?.view, getPos],
+		[editor?.view, getPos, updateAttributes, node.attrs?.width],
 	);
 
 	return (
-		<NodeViewWrapper ref={hoverElement} draggable={true} data-drag-handle>
+		<NodeViewContextableWrapper ref={hoverElement} props={props} draggable={true} data-drag-handle>
 			<Image
 				editor={editor}
-				updateAttributes={updateAttributes}
+				updateAttributes={updateAttributesCallback}
 				selected={isSelected}
-				node={node}
+				id={node.attrs.id}
+				title={node.attrs.title}
+				objects={node.attrs.objects}
+				src={node.attrs.src}
+				alt={node.attrs.alt}
+				width={node.attrs.width}
+				height={node.attrs.height}
 				getPos={getPos}
 				hoverElementRef={hoverElement}
+				scale={node.attrs.scale}
+				crop={node.attrs.crop}
+				commentId={node.attrs.comment?.id}
 			/>
-		</NodeViewWrapper>
+		</NodeViewContextableWrapper>
 	);
 };
 

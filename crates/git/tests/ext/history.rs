@@ -78,7 +78,7 @@ fn get_all_branch_commiters_with_limit(sandbox: TempDir, #[with(&sandbox)] repo:
   repo.new_branch("feature")?;
 
   for i in 1..=5 {
-    fs::write(sandbox.path().join("file"), format!("feature{}", i))?;
+    fs::write(sandbox.path().join("file"), format!("feature{i}"))?;
     repo.add("file")?;
     repo.commit_debug()?;
   }
@@ -102,7 +102,7 @@ fn get_all_branch_commiters_with_target_branch(
 
   // make 3 commits on feature branch
   for i in 1..=3 {
-    fs::write(sandbox.path().join("file"), format!("feature{}", i))?;
+    fs::write(sandbox.path().join("file"), format!("feature{i}"))?;
     repo.add("file")?;
     repo.commit_debug()?;
   }
@@ -137,7 +137,7 @@ fn get_commit_info(sandbox: TempDir, #[with(&sandbox)] repo: Repo<TestCreds>) ->
 
   // prepare
   for i in 1..=10 {
-    fs::write(sandbox.path().join("file"), format!("init{}", i))?;
+    fs::write(sandbox.path().join("file"), format!("init{i}"))?;
     repo.add("file")?;
     let info = repo.commit_debug()?;
     oids.push(info);

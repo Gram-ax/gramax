@@ -1,76 +1,33 @@
-import { cssMedia } from "@core-ui/utils/cssUtils";
+import { usePlatform } from "@core-ui/hooks/usePlatform";
 import { HomePageData } from "@core/SitePresenter/SitePresenter";
 import styled from "@emotion/styled";
+import { GlobalAudioToolbar } from "@ext/ai/components/Audio/Toolbar";
+import FavoriteCatalogLinkService from "@ext/artilce/Favorite/components/FavoriteCatalogLinkService";
 import BottomInfo from "./BottomInfo";
 import Groups from "./Groups";
+import NoneGroups from "./NoneGroups";
 import TopMenu from "./TopMenu";
-import GroupsService from "@core-ui/ContextServices/GroupsService";
 
 export default styled(({ data, className }: { data: HomePageData; className?: string }) => {
-	const Service = GroupsService.Init.bind(GroupsService);
+	const { isStatic, isStaticCli, isNext } = usePlatform();
+	const catalogCount = data.catalogsLinks.length;
+
 	return (
-		<div className={className}>
-			<div className="article container">
-				<TopMenu
-					catalogLinks={Object.values(data.catalogLinks).flatMap(
-						(catalogData) => catalogData.catalogLinks || [],
-					)}
-				/>
-				<Service value={data.catalogLinks}>
-					<Groups />
-				</Service>
-				<BottomInfo />
-			</div>
+		<div className={`${className} bg-primary-bg flex flex-col`}>
+			<TopMenu catalogLinks={data.catalogsLinks} />
+			{catalogCount ? (
+				<FavoriteCatalogLinkService.Init value={data.catalogsLinks}>
+					<Groups section={data.section} breadcrumb={data.breadcrumb} />
+				</FavoriteCatalogLinkService.Init>
+			) : (
+				<NoneGroups className="article px-4" style={{ background: "#ffffff00" }} />
+			)}
+			<BottomInfo />
+			{!(isStatic || isStaticCli || isNext) && <GlobalAudioToolbar />}
 		</div>
 	);
 })`
 	height: 100%;
 	overflow: auto;
-
-	.container {
-		display: flex;
-		min-height: 100%;
-		margin-left: auto;
-		margin-right: auto;
-		max-width: 86.8rem;
-		padding-left: 1rem;
-		font-family: Roboto, sans-serif;
-		padding-right: 1rem;
-		flex-direction: column;
-		align-items: flex-start;
-		justify-content: flex-start;
-		color: var(--color-home-text);
-		background: var(--color-home-bg);
-	}
-
-	.container img {
-		box-shadow: none;
-		max-width: 100%;
-		max-height: inherit;
-		border: 0;
-		display: inline;
-		margin: 0;
-	}
-
-	a {
-		font-weight: 300;
-		color: var(--color-home-card-link);
-		text-decoration: none;
-		display: inline-block;
-		position: relative;
-
-		&:hover {
-			color: var(--color-home-card-link-hover) !important;
-		}
-	}
-	${cssMedia.narrow} {
-		.container {
-			padding-left: 0.5rem;
-			padding-right: 0.5rem;
-		}
-
-		i + span {
-			display: none;
-		}
-	}
+	font-family: Roboto, sans-serif;
 `;

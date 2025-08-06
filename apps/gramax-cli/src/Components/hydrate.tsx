@@ -1,24 +1,24 @@
+import { useCallback, useEffect, useRef, useState } from "react";
 import { createRoot } from "react-dom/client";
 import { Router } from "wouter";
-import { useCallback, useEffect, useRef, useState } from "react";
 
+import Gramax, { GramaxProps } from "../../../browser/src/Gramax";
+import AppError from "../../../browser/src/components/Atoms/AppError";
+import useLocation from "../../../browser/src/logic/Api/useLocation";
 import { InitialData } from "../logic/ArticleTypes";
 import { InitialDataKeys } from "../logic/StaticSiteBuilder";
-import useLocation from "../../../browser/src/logic/Api/useLocation";
-import AppError from "../../../browser/src/components/Atoms/AppError";
-import Gramax, { GramaxProps } from "../../../browser/src/Gramax";
 
-import Application from "@app/types/Application";
 import getApp from "@app/browser/app";
 import getCommands from "@app/browser/commands";
 import { AppConfig } from "@app/config/AppConfig";
 import { initModules } from "@app/resolveModule/frontend";
+import Application from "@app/types/Application";
+import getPageTitle from "@core-ui/getPageTitle";
 import Query, { parserQuery } from "@core/Api/Query";
 import Path from "@core/FileProvider/Path/Path";
 import RouterPathProvider from "@core/RouterPath/RouterPathProvider";
 import CustomArticlePresenter from "@core/SitePresenter/CustomArticlePresenter";
 import { HomePageData } from "@core/SitePresenter/SitePresenter";
-import getPageTitle from "@core-ui/getPageTitle";
 
 import ThemeService from "@ext/Theme/components/ThemeService";
 import DefaultError from "@ext/errorHandlers/logic/DefaultError";
@@ -29,10 +29,11 @@ import "../../../../core/styles/ProseMirror.css";
 import "../../../../core/styles/admonition.css";
 import "../../../../core/styles/article-alfabeta.css";
 import "../../../../core/styles/article.css";
+import "../../../../core/styles/chain-icon.css";
 import "../../../../core/styles/global.css";
 import "../../../../core/styles/swagger-ui-theme.css";
 
-if (window.location.pathname.length > 1 && window.location.pathname.endsWith("/")) {
+if (window.location.hash && window.location.pathname.length > 1 && window.location.pathname.endsWith("/")) {
 	const newPath = window.location.pathname.slice(0, -1);
 	const newUrl = newPath + window.location.search + window.location.hash;
 	window.history.replaceState(null, "", newUrl);
@@ -97,6 +98,8 @@ const Component = () => {
 				return;
 			}
 			const cleanPath = removeBasePath(path);
+			if (!cleanPath || !initialData.context.isArticle) return window.location.reload();
+
 			const data = await getData(cleanPath, parserQuery(query));
 			setData({ path, ...data });
 		} catch (err) {

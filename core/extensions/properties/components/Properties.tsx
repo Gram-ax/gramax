@@ -3,7 +3,7 @@ import MimeTypes from "@core-ui/ApiServices/Types/MimeTypes";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import ArticlePropsService from "@core-ui/ContextServices/ArticleProps";
 import styled from "@emotion/styled";
-import { Property } from "@ext/properties/models";
+import { Property, PropertyTypes } from "@ext/properties/models";
 import { useCallback, useMemo, CSSProperties, Dispatch, SetStateAction, useEffect } from "react";
 import PropertyArticle from "@ext/properties/components/Helpers/PropertyArticle";
 import combineProperties from "@ext/properties/logic/combineProperties";
@@ -108,6 +108,7 @@ const Properties = ({ className, style, properties, setProperties, hideList }: P
 							value={property.value?.length && property.value[0].length ? property.value : property.name}
 							name={property.name}
 							propertyStyle={property.style}
+							shouldShowValue={property.type !== PropertyTypes.flag}
 						/>
 					}
 				/>

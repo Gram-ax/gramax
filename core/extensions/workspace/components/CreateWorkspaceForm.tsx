@@ -1,29 +1,28 @@
 import resolveModule from "@app/resolveModule/frontend";
-import { iconFilter, toListItem, lucideIconListForUikit } from "@components/Atoms/Icon/lucideIconList";
+import { iconFilter, lucideIconListForUikit, toListItem } from "@components/Atoms/Icon/lucideIconList";
 import ListLayoutByUikit from "@components/List/ListLayoutByUikit";
+import ModalToOpenService from "@core-ui/ContextServices/ModalToOpenService/ModalToOpenService";
 import { usePlatform } from "@core-ui/hooks/usePlatform";
-import { FormProps } from "@ext/catalog/actions/propsEditor/components/CatalogPropsEditor";
+import type { FormProps } from "@ext/catalog/actions/propsEditor/logic/createFormSchema";
 import ModalErrorHandler from "@ext/errorHandlers/client/components/ModalErrorHandler";
 import t from "@ext/localization/locale/translate";
 import { useCreateWorkspaceActions } from "@ext/workspace/components/logic/useCreateWorkspaceActions";
 import { ClientWorkspaceConfig } from "@ext/workspace/WorkspaceConfig";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@ui-kit/Button";
-import { Form, FormField, FormHeader, FormFooter, FormStack } from "@ui-kit/Form";
+import { Form, FormField, FormFooter, FormHeader, FormStack } from "@ui-kit/Form";
 import { Input } from "@ui-kit/Input";
-import { Modal, ModalBody, ModalContent, ModalTrigger } from "@ui-kit/Modal";
+import { Modal, ModalBody, ModalContent } from "@ui-kit/Modal";
 import { useCallback, useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
 interface WorkspaceSettingsModalProps {
 	onSubmit?: (props: ClientWorkspaceConfig) => void;
-	onClose?: () => void;
-	trigger?: JSX.Element;
 }
 
 const CreateWorkspaceForm = (props: WorkspaceSettingsModalProps) => {
-	const { onSubmit: onSubmitParent, onClose, trigger } = props;
+	const { onSubmit: onSubmitParent } = props;
 
 	const { open, setOpen, originalProps, workspaces, pathPlaceholder, onSubmit } = useCreateWorkspaceActions();
 	const { isTauri } = usePlatform();
@@ -62,8 +61,8 @@ const CreateWorkspaceForm = (props: WorkspaceSettingsModalProps) => {
 
 	const onCloseHandler = useCallback(() => {
 		setOpen(false);
-		onClose?.();
-	}, [onClose]);
+		ModalToOpenService.resetValue();
+	}, []);
 
 	const formProps: FormProps = useMemo(() => {
 		return {
@@ -72,8 +71,13 @@ const CreateWorkspaceForm = (props: WorkspaceSettingsModalProps) => {
 	}, []);
 
 	return (
-		<Modal open={open} onOpenChange={setOpen}>
-			{trigger && <ModalTrigger asChild>{trigger}</ModalTrigger>}
+		<Modal
+			open={open}
+			onOpenChange={(v) => {
+				setOpen(v);
+				if (!v) onCloseHandler();
+			}}
+		>
 			<ModalContent data-modal-root>
 				<ModalErrorHandler onError={() => {}} onClose={onCloseHandler}>
 					<Form asChild {...form}>

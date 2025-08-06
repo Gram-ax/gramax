@@ -1,13 +1,13 @@
 import type { GitMergeResultContent } from "@ext/git/actions/MergeConflictHandler/model/GitMergeResultContent";
 import type { GitStatus } from "@ext/git/core/GitWatcher/model/GitStatus";
-import Repository from "@ext/git/core/Repository/Repository";
+import Repository, { SyncResult } from "@ext/git/core/Repository/Repository";
 import type RepositoryStateProvider from "@ext/git/core/Repository/state/RepositoryState";
 
 export default class NullRepository extends Repository {
 	static instance = new NullRepository();
 
 	private constructor() {
-		super(null, null, null, null);
+		super(null, null, null, null, true);
 	}
 
 	checkoutIfCurrentBranchNotExist(): Promise<{ hasCheckout: boolean }> {
@@ -18,8 +18,8 @@ export default class NullRepository extends Repository {
 		return Promise.resolve();
 	}
 
-	sync(): Promise<GitMergeResultContent[]> {
-		return Promise.resolve([]);
+	sync(): Promise<SyncResult> {
+		return Promise.resolve({ mergeData: [], isVersionChanged: false, before: null, after: null });
 	}
 
 	checkout(): Promise<GitMergeResultContent[]> {

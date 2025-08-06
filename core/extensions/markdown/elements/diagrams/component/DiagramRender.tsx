@@ -4,6 +4,7 @@ import { forwardRef, MutableRefObject, useState } from "react";
 import DiagramType from "../../../../../logic/components/Diagram/DiagramType";
 import Lightbox from "@components/Atoms/Image/modalImage/Lightbox";
 import { classNames } from "@components/libs/classNames";
+import BlockCommentView from "@ext/markdown/elements/comment/edit/components/BlockCommentView";
 
 interface DiagramProps {
 	data?: string;
@@ -16,45 +17,59 @@ interface DiagramProps {
 	title?: string;
 	downloadSrc?: string;
 	isFrozen?: boolean;
+	commentId?: string;
 }
 
 const DiagramRender = forwardRef((props: DiagramProps, ref?: MutableRefObject<HTMLDivElement>) => {
-	const { data, error, diagramName, className, isFrozen, background = true, title, downloadSrc, openEditor } = props;
+	const {
+		data,
+		error,
+		diagramName,
+		className,
+		isFrozen,
+		background = true,
+		title,
+		downloadSrc,
+		openEditor,
+		commentId,
+	} = props;
 
 	const [isOpen, setOpen] = useState(false);
 
 	if (error) return <DiagramError error={error} diagramName={diagramName} />;
 
 	return (
-		<div
-			className={classNames(`${className} diagram-image`, { "diagram-background": background })}
-			data-focusable="true"
-		>
-			{isOpen && (
-				<Lightbox
-					id={diagramName}
-					svg={data}
-					title={title}
-					onClose={() => setOpen(false)}
-					openedElement={ref}
-					downloadSrc={downloadSrc}
-					modalEdit={openEditor}
-					modalStyle={{
-						display: "flex",
-						justifyContent: "center",
-						backgroundColor: "var(--color-diagram-bg)",
-						borderRadius: "var(--radius-large)",
-						width: diagramName === DiagramType.mermaid ? "30em" : "auto",
-					}}
-				/>
-			)}
+		<BlockCommentView commentId={commentId} style={{ borderRadius: "var(--radius-large)" }}>
 			<div
-				ref={ref}
-				className={classNames(className, { isFrozen }, [`${diagramName}-diagram`])}
-				onDoubleClick={() => setOpen(true)}
-				dangerouslySetInnerHTML={{ __html: data }}
-			/>
-		</div>
+				className={classNames(`${className} diagram-image`, { "diagram-background": background })}
+				data-focusable="true"
+			>
+				{isOpen && (
+					<Lightbox
+						id={diagramName}
+						svg={data}
+						title={title}
+						onClose={() => setOpen(false)}
+						openedElement={ref}
+						downloadSrc={downloadSrc}
+						modalEdit={openEditor}
+						modalStyle={{
+							display: "flex",
+							justifyContent: "center",
+							backgroundColor: "var(--color-diagram-bg)",
+							borderRadius: "var(--radius-large)",
+							width: diagramName === DiagramType.mermaid ? "30em" : "auto",
+						}}
+					/>
+				)}
+				<div
+					ref={ref}
+					className={classNames(className, { isFrozen }, [`${diagramName}-diagram`])}
+					onDoubleClick={() => setOpen(true)}
+					dangerouslySetInnerHTML={{ __html: data }}
+				/>
+			</div>
+		</BlockCommentView>
 	);
 });
 
@@ -74,8 +89,6 @@ export default styled(DiagramRender)`
 					height: ${p.isFull ? "100%" : "33rem"} !important;
 			}
 			`
-			: p.diagramName == DiagramType.mermaid
-			? ``
 			: "";
 	}}
 
@@ -84,7 +97,6 @@ export default styled(DiagramRender)`
 	}
 
 	svg {
-		pointer-events: none;
 		user-select: none;
 		background: none !important;
 		height: ${(p) => (p.isFull ? "100%" : "auto")} !important;

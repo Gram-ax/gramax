@@ -79,7 +79,7 @@ const NoneGroups = (props: HTMLAttributes<HTMLDivElement>) => {
 							<IsReadOnlyHOC>
 								<CreateCatalog
 									trigger={
-										<Button>
+										<Button fullWidth>
 											<Icon code="plus" viewBox="3 3 18 18" />
 											<span>{t("catalog.new")}</span>
 										</Button>
@@ -88,7 +88,7 @@ const NoneGroups = (props: HTMLAttributes<HTMLDivElement>) => {
 							</IsReadOnlyHOC>
 							<Clone
 								trigger={
-									<Button>
+									<Button fullWidth>
 										<Icon code="cloud-download" />
 										<span>{`${t("catalog.clone")}`}</span>
 									</Button>
@@ -98,7 +98,7 @@ const NoneGroups = (props: HTMLAttributes<HTMLDivElement>) => {
 							<IsReadOnlyHOC>
 								<Clone
 									trigger={
-										<Button>
+										<Button fullWidth>
 											<Icon code="import" />
 											<span>{`${t("catalog.import")}`}</span>
 										</Button>
@@ -114,7 +114,7 @@ const NoneGroups = (props: HTMLAttributes<HTMLDivElement>) => {
 	);
 };
 
-export const NoneGroupsStyled = styled(NoneGroups)`
+export default styled(NoneGroups)`
 	margin: auto 0;
 	height: inherit;
 	width: inherit;
@@ -122,52 +122,3 @@ export const NoneGroupsStyled = styled(NoneGroups)`
 	align-items: center;
 	justify-content: center;
 `;
-// `
-// flex: 1;
-// display: flex;
-// align-items: center;
-// flex-direction: column;
-
-// 	> div {
-// 		width: 45rem;
-// 		margin: auto;
-
-// 		> div {
-// 			padding: 2rem;
-// 			display: flex;
-// 			align-items: flex-start;
-
-// 			h2 {
-// 				margin-top: 0 !important;
-// 				${(p) => !p.isLogged && p.isReadOnly && "margin-bottom: 0 !important"}
-// 			}
-
-// 			.buttons {
-// 				gap: 2rem;
-// 				width: 100%;
-// 				display: flex;
-// 				margin-top: 0.5rem;
-// 				flex-direction: row;
-// 				justify-content: space-evenly;
-
-// 				> div {
-// 					flex: 0.5;
-
-// 					> div,
-// 					> div > div {
-// 						width: 100%;
-// 						justify-content: center;
-// 					}
-// 				}
-// 			}
-// 		}
-// 	}
-
-// ${cssMedia.medium} {
-// 	> div {
-// 		width: 100%;
-// 	}
-// }
-// `;
-
-export default NoneGroupsStyled;

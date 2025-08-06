@@ -1,5 +1,5 @@
 import { EditorView } from "prosemirror-view";
-import { NodeSelection, Transaction } from "@tiptap/pm/state";
+import { Selection, Transaction } from "@tiptap/pm/state";
 import getNaturalSize from "@ext/markdown/elements/image/edit/logic/getNaturalSize";
 import { ResourceServiceType } from "@ext/markdown/elements/copyArticles/resourceService";
 import { Attrs, ResolvedPos } from "@tiptap/pm/model";
@@ -11,8 +11,8 @@ const createBlockImage = (view: EditorView, $from: ResolvedPos, attributes: Attr
 	const node = view.state.schema.nodes.image.create(attributes);
 	tr.replaceSelectionWith(node);
 	if ($from.parentOffset === 0 && $from.parent.isTextblock)
-		tr.setSelection(NodeSelection.create(tr.doc, $from.pos - 1));
-	else tr.setSelection(NodeSelection.create(tr.doc, $from.pos + 1));
+		tr.setSelection(Selection.near(tr.doc.resolve($from.pos - 1)));
+	else tr.setSelection(Selection.near(tr.doc.resolve($from.pos + 1)));
 
 	return tr;
 };

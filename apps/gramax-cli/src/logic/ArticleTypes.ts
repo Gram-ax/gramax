@@ -11,11 +11,6 @@ export interface InitialData {
 	context: PageDataContext;
 }
 
-export interface RenderedHtml {
-	htmlData: HtmlData[];
-	defaultHtml: HtmlData;
-	article404Html: HtmlData;
-}
 export interface HtmlData {
 	initialData: InitialData;
 	logicPath: string;

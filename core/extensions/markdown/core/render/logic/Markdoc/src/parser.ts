@@ -1,3 +1,4 @@
+import { CHECKED_ATTR } from "@ext/markdown/elements/list/edit/models/listItem/model/listItem";
 import Node from "./ast/node";
 import transforms from "./transforms/index";
 
@@ -63,7 +64,7 @@ function handleAttrs(token: Token, type: string) {
 		case "item": {
 			const attrs = Array.isArray(token?.attrs) ? token.attrs : [];
 
-			const cortege = attrs.find((item) => item[0] === "checked") || [];
+			const cortege = attrs.find((item) => item[0] === CHECKED_ATTR) || [];
 			if (!cortege.length) return {};
 
 			const [, value] = cortege;

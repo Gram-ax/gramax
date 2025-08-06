@@ -1,4 +1,3 @@
-import listItemNodeTransformer from "@ext/markdown/elements/list/edit/models/taskItem/logic/listItemNodeTransformer";
 import taskListNodeTransformer from "@ext/markdown/elements/list/edit/models/taskList/logic/taskListNodeTransformer";
 import noteNodeTransformer from "@ext/markdown/elements/note/logic/noteNodeTransformer";
 import unsupportedNodeTransformer from "@ext/markdown/elements/unsupported/logic/unsupportedNodeTransformer";
@@ -43,13 +42,25 @@ import ParseError from "@ext/markdown/core/Parser/Error/ParseError";
 import htmlTokenTransformer from "@ext/markdown/elements/html/logic/htmlTokenTransformer";
 import htmlTagNodeTransformer from "@ext/markdown/elements/htmlTag/logic/htmlTagNodeTransformer";
 import htmlTagTokenTransformer from "@ext/markdown/elements/htmlTag/logic/htmlTagTokenTransformer";
+import inlineImageTokenTransformer from "@ext/markdown/elements/inlineImage/edit/logic/inlineImageTokenTransformer";
 import inlinePropertyTokenTransformer from "@ext/markdown/elements/inlineProperty/edit/logic/inlinePropertyTokenTransformer";
 import tableTokenTransformer from "@ext/markdown/elements/table/logic/tableTokenTransformer";
+import getTabsNodeTransformer from "@ext/markdown/elements/tabs/edit/logic/getTabsNodeTransformer";
 import getTocItems, { getLevelTocItemsByRenderableTree } from "@ext/navigation/article/logic/createTocItems";
 import { JSONContent } from "@tiptap/core";
-import inlineImageTokenTransformer from "@ext/markdown/elements/inlineImage/edit/logic/inlineImageTokenTransformer";
 
 const katexPlugin = import("@traptitech/markdown-it-katex");
+
+class GetHtmlValue {
+	private _html: string;
+
+	constructor(private _parseToHtml: () => Promise<string>) {}
+
+	async get() {
+		if (!this._html) this._html = await this._parseToHtml();
+		return this._html;
+	}
+}
 
 export type EditRenderableTreeNode = RenderableTreeNode | Node;
 
@@ -64,7 +75,7 @@ export default class MarkdownParser {
 			return {
 				editTree,
 				renderTree,
-				htmlValue: await this.parseToHtml(content, context, requestUrl),
+				getHtmlValue: new GetHtmlValue(async () => await this.parseToHtml(content, context, requestUrl)),
 				tocItems,
 				linkManager: context?.getLinkManager(),
 				resourceManager: context?.getResourceManager(),
@@ -173,13 +184,13 @@ export default class MarkdownParser {
 				htmlTagNodeTransformer,
 				paragraphNodeTransformer,
 				blockMdNodeTransformer,
-				listItemNodeTransformer,
 				taskListNodeTransformer,
 				inlineCutNodeTransformer,
 				diagramsNodeTransformer,
 				noteNodeTransformer,
 				unsupportedNodeTransformer,
 				commentNodeTransformer,
+				getTabsNodeTransformer(context),
 			],
 			[
 				inlineImageTokenTransformer,

@@ -2,7 +2,7 @@ import MarkdownIt from "markdown-it/lib";
 import { Token } from "../types";
 import annotations from "./plugins/annotations";
 import disableencodeuri from "./plugins/disableencodeuri";
-import taskListPlugin from "./plugins/taskListPlugin";
+import taskListPlugin from "@ext/markdown/elements/list/edit/models/taskList/logic/taskListPlugin";
 import { gitConflictPlugin } from "./plugins/gitConflictPlugin";
 import imgSizePlugin from "@ext/markdown/core/render/logic/Markdoc/src/tokenizer/plugins/imgSizePlugin";
 import notePlugin from "@ext/markdown/elements/note/logic/noteBlock";

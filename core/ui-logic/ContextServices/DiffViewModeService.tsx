@@ -7,7 +7,7 @@ let _setDiffViewMode: Dispatch<SetStateAction<DiffViewMode>>;
 
 abstract class DiffViewModeService {
 	static Provider({ children }: { children: ReactElement }): ReactElement {
-		const [diffViewMode, setDiffViewMode] = useState<DiffViewMode>("wysiwyg");
+		const [diffViewMode, setDiffViewMode] = useState<DiffViewMode>("wysiwyg-single");
 		_setDiffViewMode = setDiffViewMode;
 		return <DiffViewModeContext.Provider value={diffViewMode}>{children}</DiffViewModeContext.Provider>;
 	}

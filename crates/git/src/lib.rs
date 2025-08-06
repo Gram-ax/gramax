@@ -29,7 +29,7 @@ pub trait ShortInfo<'i, T: serde::Serialize> {
 
 #[derive(serde::Serialize, serde::Deserialize, Clone, PartialEq, Debug)]
 #[serde(transparent)]
-pub struct OidInfo(String);
+pub struct OidInfo(pub String);
 
 impl Deref for OidInfo {
   type Target = String;

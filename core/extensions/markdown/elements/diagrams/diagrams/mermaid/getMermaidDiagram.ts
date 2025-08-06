@@ -1,8 +1,9 @@
+import DefaultError from "@ext/errorHandlers/logic/DefaultError";
 import t from "@ext/localization/locale/translate";
 
 const getMermaidDiagram = async (diagramContent: string) => {
 	const mermaid = await import("mermaid");
-	if (!diagramContent) throw new Error(t("diagram.error.cannot-get-data"));
+	if (!diagramContent) throw new DefaultError(t("diagram.error.cannot-get-data"));
 
 	const diagramId = `mermaidGraph-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 	const diagramRenderContainer = document.createElement("div");
@@ -18,9 +19,10 @@ const getMermaidDiagram = async (diagramContent: string) => {
 			error.message.includes("error loading dynamically imported module") ||
 			error.message.includes("Failed to fetch dynamically imported module")
 		)
-			throw new Error(t("diagram.error.no-internet"));
+			throw new DefaultError(t("diagram.error.no-internet"));
 
-		throw new Error(t("diagram.error.invalid-syntax"), { cause: error.message });
+		error.cause = error.message;
+		throw new DefaultError(t("diagram.error.invalid-syntax"), error);
 	} finally {
 		diagramRenderContainer.remove();
 	}

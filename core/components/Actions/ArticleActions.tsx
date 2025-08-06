@@ -94,7 +94,6 @@ const ArticleActions: FC<ArticleActionsProps> = ({ isCatalogExist, item, isCurre
 			)}
 			<ShowInExplorer item={item} />
 			{!item.errorCode && isCurrentItem && <EnterpriseCheckStyleGuide />}
-			{/* {isDevMode && <StyleGuideMenu />} */}
 		</>
 	);
 };

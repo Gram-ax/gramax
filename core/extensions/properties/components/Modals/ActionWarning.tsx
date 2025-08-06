@@ -15,6 +15,7 @@ export type ActionWarningProps = {
 	children?: JSX.Element;
 	isCatalog?: boolean;
 	onClose?: () => void;
+	onLinkClick?: () => void;
 	isOpen?: boolean;
 	className?: string;
 	data: Property;
@@ -22,7 +23,7 @@ export type ActionWarningProps = {
 };
 
 const ActionWarning = (props: ActionWarningProps) => {
-	const { data, editData, isCatalog, isOpen: initialIsOpen, children, action, onClose } = props;
+	const { data, editData, isCatalog, isOpen: initialIsOpen, children, action, onClose, onLinkClick } = props;
 	const apiUrlCreator = ApiUrlCreatorService.value;
 	const [isOpen, setIsOpen] = useState(initialIsOpen);
 	const [usages, setUsages] = useState<PropertyUsage[]>([]);
@@ -32,6 +33,7 @@ const ActionWarning = (props: ActionWarningProps) => {
 		const deletedValues = isCatalog
 			? data?.values?.toString()
 			: data?.values?.filter((value) => !editData.values.includes(value))?.toString();
+
 		FetchService.fetch(apiUrlCreator.getPropertyUsages(data.name, deletedValues)).then(async (res) => {
 			if (res.ok) setUsages(await res.json());
 		});
@@ -84,7 +86,14 @@ const ActionWarning = (props: ActionWarningProps) => {
 									<ul>
 										{usages.map((usage, index) => (
 											<li key={usage.title + index}>
-												<Anchor href={usage.linkPath} resourcePath={usage.resourcePath}>
+												<Anchor
+													href={usage.linkPath}
+													resourcePath={usage.resourcePath}
+													onClick={() => {
+														setIsOpen(false);
+														onLinkClick?.();
+													}}
+												>
 													{usage.title || t("article.no-name")}
 												</Anchor>
 											</li>

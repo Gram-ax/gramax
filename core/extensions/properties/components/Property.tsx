@@ -12,15 +12,16 @@ interface PropertyProps {
 	propertyStyle?: string;
 	icon?: string;
 	style?: CSSProperties;
+	shouldShowValue?: boolean | ((value: string[] | string) => boolean);
 	className?: string;
 }
 
-const Property = ({ type, name, value, className, style, icon }: PropertyProps) => {
+const Property = ({ type, name, value, className, style, icon, shouldShowValue = true }: PropertyProps) => {
 	return (
 		<Tooltip content={name}>
 			<div className={className} style={style} data-qa="qa-property">
 				{icon && <Icon code={icon} />}
-				{getDisplayValue(type, value)}
+				{shouldShowValue ? getDisplayValue(type, value) : name}
 			</div>
 		</Tooltip>
 	);

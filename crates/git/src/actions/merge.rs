@@ -180,7 +180,7 @@ impl<C: ActualCreds> Merge for Repo<C> {
     msg.push_str("\nCommits:\n");
 
     for commit in commits.commits {
-      msg.push_str(&format!("\t* {}\n", commit));
+      msg.push_str(&format!("\t* {commit}\n"));
     }
 
     Ok(msg)
@@ -228,8 +228,8 @@ impl<C: ActualCreds> Repo<C> {
           commit.id()
         );
 
-        error!(target: TAG, "{}", msg);
-        let err = git2::Error::new(err.code(), err.class(), format!("{}\noriginal git error: {}", msg, err));
+        error!(target: TAG, "{msg}");
+        let err = git2::Error::new(err.code(), err.class(), format!("{msg}\noriginal git error: {err}"));
         return Err(err.into());
       }
     };

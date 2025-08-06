@@ -69,7 +69,16 @@ export declare function add(repoPath: string, paths: Array<string>, force: boole
 export declare function commit(repoPath: string, creds: AccessTokenCreds, opts: CommitOptions): Promise<unknown>
 export declare function diff(opts: Input): Promise<unknown>
 export declare function restore(repoPath: string, staged: boolean, paths: Array<string>): Promise<unknown>
-export declare function reset_all(repoPath: string, hard: boolean, head?: string | undefined | null): Promise<unknown>
+export interface ResetOptions {
+  head: string | null
+  mode: ResetMode
+}
+export const enum ResetMode {
+  Soft = 'soft',
+  Mixed = 'mixed',
+  Hard = 'hard'
+}
+export declare function reset(repoPath: string, opts: ResetOptions): Promise<unknown>
 export declare function stash(repoPath: string, creds: AccessTokenCreds, message?: string | undefined | null): Promise<unknown>
 export declare function stash_apply(repoPath: string, oid: string): Promise<unknown>
 export declare function stash_delete(repoPath: string, oid: string): Promise<unknown>

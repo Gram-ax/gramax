@@ -32,6 +32,22 @@ describe("GitFileHistory", () => {
 
 		expect(res).toEqual([
 			{
+				version: "797b974427a1d33bc7fb357591260958dd2cf104",
+				author: "DanilKazanov",
+				date: "2025-08-05T14:27:23.000Z",
+				content: [
+					{ type: "new", value: "--- \norder: 5 \n--- \n \n" },
+					{ type: undefined, value: "content 3" },
+					{ type: "delete", value: " \n" },
+					{ type: undefined, value: "" },
+				],
+				filePath: {
+					path: "file-with-history.md",
+					oldPath: "file-with-history.md",
+					diff: undefined,
+				},
+			},
+			{
 				version: "18329a0852d3e29e296a58ff12b55131bd77b5b7",
 				author: "Danil Kazanov",
 				date: "2023-06-02T13:22:32.000Z",
@@ -82,7 +98,7 @@ describe("GitFileHistory", () => {
 
 	test("Возвращает пустой массив, если файла не существует в git", async () => {
 		const { dfp, gitFileHistory, catalog } = await getGitFileHistoryData();
-		await dfp.write(new Path("new.md"), "new file content");
+		await dfp.write(new Path("new.md"), "--- \norder: 8 \n--- \nnew file content");
 		await catalog.update();
 		const itemRef = dfp.getItemRef(new Path("gitCatalog/new.md"));
 

@@ -10,11 +10,11 @@
     Пусть смотрим на активную форму
     Когда заполняем форму
       """
-      Название каталога: Тест
-      Название репозитория: test
-      Директория: test/a/b
-      Описание: 123
-      Краткое название: T
+      qa-catalog-title: Тест
+      qa-catalog-url: test
+      qa-catalog-docroot: test/a/b
+      qa-catalog-description: 123
+      qa-catalog-code: T
       """
     И нажимаем на кнопку "Сохранить"
     Тогда находимся по адресу "/-/-/-/-/test/new-article-2"

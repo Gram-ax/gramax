@@ -8,7 +8,7 @@ const getArticleWithTitle = (title: string, editTree: JSONContent) => {
 				type: "paragraph",
 				content: title ? [{ type: "text", text: title }] : [],
 			},
-			...editTree.content,
+			...(editTree?.content || []),
 		],
 	};
 };

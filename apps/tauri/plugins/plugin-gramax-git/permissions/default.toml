@@ -22,7 +22,7 @@ permissions = [
   "allow-diff",
   "allow-add-remote",
   "allow-has-remotes",
-  "allow-reset-all",
+  "allow-reset",
   "allow-commit",
   "allow-merge",
   "allow-restore",
@@ -47,5 +47,5 @@ permissions = [
   "allow-reset-repo",
   "allow-format-merge-message",
   "allow-get-commit-info",
-  "allow-get-all-cancel-tokens"
+  "allow-get-all-cancel-tokens",
 ]

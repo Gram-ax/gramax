@@ -1,3 +1,5 @@
+import { getExecutingEnvironment } from "@app/resolveModule/env";
+import { UnsubscribeToken } from "@core/Event/EventEmitter";
 import DiskFileProvider from "@core/FileProvider/DiskFileProvider/DiskFileProvider";
 import MountFileProvider from "@core/FileProvider/MountFileProvider/MountFileProvider";
 import Path from "@core/FileProvider/Path/Path";
@@ -16,6 +18,7 @@ import Repository, {
 	type MergeOptions,
 	type PublishOptions,
 	type SyncOptions,
+	type SyncResult,
 } from "@ext/git/core/Repository/Repository";
 import RepositoryStateProvider, {
 	type RepositoryCheckoutState,
@@ -31,19 +34,29 @@ import Storage from "@ext/storage/logic/Storage";
 export default class WorkdirRepository extends Repository {
 	private _getRepositoryStateFirstly = true;
 	private _state: RepositoryStateProvider;
+	private _unsubscribeTokens: UnsubscribeToken[] = [];
 
-	constructor(repoPath: Path, fp: FileProvider, gvc: GitVersionControl, storage: Storage) {
-		super(repoPath, fp, gvc, storage);
+	constructor(
+		repoPath: Path,
+		fp: FileProvider,
+		gvc: GitVersionControl,
+		storage: Storage,
+		disableMergeRequests?: boolean,
+	) {
+		super(repoPath, fp, gvc, storage, disableMergeRequests);
 		this._state = new RepositoryStateProvider(this, this._repoPath, this._fp);
 		if (gvc) this.subscribeEvents(fp);
 	}
 
 	subscribeEvents(fp: FileProvider) {
 		if (!(fp instanceof MountFileProvider && fp.default() instanceof DiskFileProvider)) return;
-		DiskFileProvider.events.on("write", (e) => this._gitIndexAddFiles([e.path]));
-		DiskFileProvider.events.on("move", (e) => this._gitIndexAddFiles([e.from, e.to]));
-		DiskFileProvider.events.on("copy", (e) => this._gitIndexAddFiles([e.from, e.to]));
-		DiskFileProvider.events.on("delete", (e) => this._gitIndexAddFiles([e.path]));
+
+		this._unsubscribeTokens.push(
+			DiskFileProvider.events.on("write", (e) => this._gitIndexAddFiles([e.path])),
+			DiskFileProvider.events.on("move", (e) => this._gitIndexAddFiles([e.from, e.to])),
+			DiskFileProvider.events.on("copy", (e) => this._gitIndexAddFiles([e.from, e.to])),
+			DiskFileProvider.events.on("delete", (e) => this._gitIndexAddFiles([e.path])),
+		);
 	}
 
 	checkoutIfCurrentBranchNotExist(): Promise<{ hasCheckout: boolean }> {
@@ -91,7 +104,7 @@ export default class WorkdirRepository extends Repository {
 		return this._cachedStatus;
 	}
 
-	async sync({ data, recursivePull, onPull, onPush }: SyncOptions): Promise<GitMergeResultContent[]> {
+	async sync({ data, recursivePull, onPull, onPush }: SyncOptions): Promise<SyncResult> {
 		if (recursivePull) {
 			await this.gvc.checkoutSubGitVersionControls();
 			const beforePullVersion = await this.gvc.getCurrentVersion();
@@ -103,10 +116,11 @@ export default class WorkdirRepository extends Repository {
 
 			const afterPullVersion = await this.gvc.getCurrentVersion();
 			const subRepoAfterPullVersions = await this._getSubmoduleCheckChangesData();
+			const isVersionChanged = !beforePullVersion.compare(afterPullVersion);
 
 			await this._events.emit("sync", {
 				repo: this,
-				isVersionChanged: !beforePullVersion.compare(afterPullVersion),
+				isVersionChanged,
 			});
 			await this.gvc.recursiveCheckChanges(
 				beforePullVersion,
@@ -114,7 +128,7 @@ export default class WorkdirRepository extends Repository {
 				subRepoBeforePullVerisons,
 				subRepoAfterPullVersions,
 			);
-			return [];
+			return { mergeData: [], isVersionChanged, before: beforePullVersion, after: afterPullVersion };
 		}
 
 		let toPush = (await this.storage.getSyncCount()).push;
@@ -136,17 +150,23 @@ export default class WorkdirRepository extends Repository {
 		}
 
 		const afterPushVersion = await this.gvc.getCurrentVersion();
+		const isVersionChanged = !beforePullVersion.compare(afterPushVersion);
 
-		await this._events.emit("sync", {
-			repo: this,
-			isVersionChanged: !beforePullVersion.compare(afterPushVersion),
-		});
+		await this._events.emit("sync", { repo: this, isVersionChanged });
 
 		await this.gvc.checkChanges(beforePullVersion, afterPullVersion);
-		return stashMergeResult;
+
+		return { mergeData: stashMergeResult, isVersionChanged, before: beforePullVersion, after: afterPushVersion };
 	}
 
-	async checkout({ data, branch, onCheckout, onPull, force }: CheckoutOptions): Promise<GitMergeResultContent[]> {
+	async checkout({
+		data,
+		branch,
+		onCheckout,
+		onPull,
+		force,
+		recursivePull,
+	}: CheckoutOptions): Promise<GitMergeResultContent[]> {
 		const oldVersion = await this.gvc.getCurrentVersion();
 		const oldBranch = await this.gvc.getCurrentBranch();
 		const allBranches = (await this.gvc.getAllBranches()).map((b) => b.getData().remoteName ?? b.getData().name);
@@ -159,12 +179,15 @@ export default class WorkdirRepository extends Repository {
 		await this.gvc.checkoutToBranch(branch, force);
 		onCheckout?.(branch);
 
+		const isBrowser = getExecutingEnvironment() === "browser";
+		if (!isBrowser) await this.gvc.add();
+		const changes = await this.gvc.getChanges("index");
+
 		let mergeFiles: GitMergeResultContent[] = [];
 
-		if (haveInternet && !data.isInvalid) {
+		if (haveInternet && !data.isInvalid && !changes.length) {
 			try {
-				mergeFiles = await this._pull({ data });
-				onPull?.();
+				mergeFiles = await this._pull({ data, onPull, recursive: recursivePull });
 			} catch (e) {
 				await this.gvc.checkoutToBranch(oldBranch.toString());
 				await this._state.resetState();
@@ -183,7 +206,7 @@ export default class WorkdirRepository extends Repository {
 	}
 
 	async validateMerge(): Promise<void> {
-		if ((await this.gvc.getChanges("workdir", false)).length > 0)
+		if ((await this.gvc.getChanges("workdir")).length > 0)
 			throw new GitError(GitErrorCode.WorkingDirNotEmpty, null, { repositoryPath: this.gvc.getPath().value });
 	}
 
@@ -309,12 +332,13 @@ export default class WorkdirRepository extends Repository {
 
 		let stashResult: GitMergeResult[] = [];
 		const commitHeadBefore = await this.gvc.getCurrentVersion();
+
 		const stashOid = await this.gvc.stash(data);
 
 		try {
 			await this.storage.pull(data, recursive);
 		} catch (e) {
-			await this.gvc.hardReset(commitHeadBefore);
+			await this.gvc.reset({ mode: "hard", head: commitHeadBefore });
 			if (stashOid) await this.gvc.applyStash(stashOid);
 			throw e;
 		}

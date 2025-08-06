@@ -1,12 +1,14 @@
-import { NodeViewContent, NodeViewProps, NodeViewWrapper } from "@tiptap/react";
+import { NodeViewContent, NodeViewProps } from "@tiptap/react";
 import { ReactElement, useRef, useState } from "react";
 import Note from "../../render/component/Note";
 import BlockActionPanel from "@components/BlockActionPanel";
 import NoteMenuActions from "@ext/markdown/elements/note/edit/components/NoteMenuActions";
 import NoteHeadEditor from "@ext/markdown/elements/note/edit/components/NoteHeadEditor";
 import useWatch from "@core-ui/hooks/useWatch";
+import { NodeViewContextableWrapper } from "@ext/markdown/core/element/NodeViewContextableWrapper";
 
-const EditNote = ({ node, getPos, updateAttributes, editor }: NodeViewProps): ReactElement => {
+const EditNote = (props: NodeViewProps): ReactElement => {
+	const { node, getPos, updateAttributes, editor } = props;
 	const isEditable = editor.isEditable;
 	const hoverElementRef = useRef<HTMLDivElement>(null);
 	const titleRef = useRef<HTMLInputElement>(null);
@@ -21,7 +23,7 @@ const EditNote = ({ node, getPos, updateAttributes, editor }: NodeViewProps): Re
 	}, [node.attrs.title]);
 
 	return (
-		<NodeViewWrapper ref={hoverElementRef}>
+		<NodeViewContextableWrapper ref={hoverElementRef} props={props}>
 			<BlockActionPanel
 				getPos={getPos}
 				updateAttributes={updateAttributes}
@@ -58,7 +60,7 @@ const EditNote = ({ node, getPos, updateAttributes, editor }: NodeViewProps): Re
 					<NodeViewContent className="content" />
 				</Note>
 			</BlockActionPanel>
-		</NodeViewWrapper>
+		</NodeViewContextableWrapper>
 	);
 };
 export default EditNote;

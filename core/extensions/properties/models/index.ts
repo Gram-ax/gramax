@@ -2,7 +2,7 @@ import Input from "@components/Atoms/Input";
 import Style from "@components/HomePage/Cards/model/Style";
 import { ComponentType } from "react";
 
-type PropertyID = string;
+export type PropertyID = string;
 
 export enum SystemProperties {
 	hierarchy = "hierarchy",

@@ -10,7 +10,9 @@ import styled from "@emotion/styled";
 import { createRoot } from "react-dom/client";
 import App from "../../browser/src/App";
 import * as debug from "../../browser/src/debug";
+import ForwardBackward from "./ForwardBackward";
 import subscribeEvents from "./events";
+import UpdateChecker from "./update/UpdateChecker";
 
 const DragableArea = styled.div`
 	user-select: none;
@@ -20,7 +22,7 @@ const DragableArea = styled.div`
 	width: 100vw;
 	height: 1.45rem;
 	background-color: transparent;
-	z-index: var(--z-index-foreground);
+	z-index: var(--z-index-top-menu-dragable-area);
 `;
 
 window.debug = debug;
@@ -35,7 +37,9 @@ window.addEventListener("load", async () => {
 
 	root.render(
 		<>
+			<ForwardBackward />
 			<App />
+			<UpdateChecker />
 			{isMacOS && <DragableArea data-tauri-drag-region />}
 		</>,
 	);

@@ -15,6 +15,8 @@ import Mode from "@ext/git/actions/Clone/model/Mode";
 import SelectGitStorageDataFields from "@ext/git/actions/Source/Git/components/SelectGitStorageDataFields";
 import GitHubSourceData from "@ext/git/actions/Source/GitHub/logic/GitHubSourceData";
 import GitlabSourceData from "@ext/git/actions/Source/GitLab/logic/GitlabSourceData";
+import SelectGitVerseStorageDataFields from "@ext/git/actions/Source/GitVerse/components/SelectGitVerseStorageDataFields";
+import GitVerseSourceData from "@ext/git/actions/Source/GitVerse/logic/GitVerseSourceData";
 import GitSourceData from "@ext/git/core/model/GitSourceData.schema";
 import t from "@ext/localization/locale/translate";
 import NotionSourceData from "@ext/notion/model/NotionSourceData";
@@ -46,7 +48,8 @@ const SelectStorageDataForm = (props: SelectStorageDataFormProps) => {
 		placeholderSuffix: t("storage2"),
 		controlLabel: t("storage"),
 		sideBarTitle: t("add-new-storage"),
-		filter: (data: SourceData) => [SourceType.git, SourceType.gitHub, SourceType.gitLab].includes(data.sourceType),
+		filter: (data: SourceData) =>
+			[SourceType.git, SourceType.gitHub, SourceType.gitLab, SourceType.gitVerse].includes(data.sourceType),
 	};
 
 	const { placeholderSuffix, controlLabel, sideBarTitle, filter } = useMemo(() => {
@@ -150,9 +153,6 @@ const SelectStorageDataForm = (props: SelectStorageDataFormProps) => {
 				}),
 				source: selectSourceData,
 			} as NotionStorageData);
-		else if (selectSourceData?.sourceType === SourceType.yandexDisk) {
-			onChange({ name: `YandexDisk`, source: selectSourceData });
-		}
 	}, [selectSourceData]);
 
 	const onSourceDataDelete = useCallback(
@@ -194,6 +194,13 @@ const SelectStorageDataForm = (props: SelectStorageDataFormProps) => {
 			{selectSourceData?.sourceType === SourceType.gitLab && (
 				<SelectGitLabStorageDataFields
 					source={selectSourceData as GitlabSourceData}
+					onChange={onChange}
+					mode={mode}
+				/>
+			)}
+			{selectSourceData?.sourceType === SourceType.gitVerse && (
+				<SelectGitVerseStorageDataFields
+					source={selectSourceData as GitVerseSourceData}
 					onChange={onChange}
 					mode={mode}
 				/>

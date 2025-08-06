@@ -20,6 +20,7 @@ import {
 	useState,
 	useMemo,
 } from "react";
+import { Wrapper } from "@ext/markdown/elements/table/edit/components/TableComponent";
 
 interface TableHelperProps {
 	tableRef: RefObject<HTMLTableElement>;
@@ -64,9 +65,9 @@ const TriangleButton = styled.div`
 	}
 `;
 
-const Wrapper = styled.div`
-	overflow: auto;
-`;
+const actionsOptions = {
+	delete: false,
+};
 
 const TableHelper = (props: TableHelperProps) => {
 	const { tableRef, hoverElementRef, children, className, node, getPos, editor, disabledWrapper } = props;
@@ -76,7 +77,8 @@ const TableHelper = (props: TableHelperProps) => {
 
 	const hoveredData = useRef<HoveredData>(null);
 
-	const tableSheet = useMemo(() => TableNodeSheet.createFromProseMirrorNode(node, getPos()), [node, getPos]);
+	const pos = getPos();
+	const tableSheet = useMemo(() => TableNodeSheet.createFromProseMirrorNode(node, pos), [node, pos]);
 
 	useEffect(() => {
 		const tableObserver = new ResizeObserver(() => {
@@ -183,7 +185,12 @@ const TableHelper = (props: TableHelperProps) => {
 	);
 
 	return (
-		<HoverableActions hoverElementRef={hoverElementRef} setIsHovered={setIsHovered} isHovered={isHovered}>
+		<HoverableActions
+			hoverElementRef={hoverElementRef}
+			setIsHovered={setIsHovered}
+			isHovered={isHovered}
+			actionsOptions={actionsOptions}
+		>
 			<div onMouseMove={onMouseMove}>
 				{disabledWrapper ? (
 					<Wrapper>{WrapperChildren}</Wrapper>

@@ -25,11 +25,11 @@ const ArticleTemplate = ({ item }: ArticleTemplateProps) => {
 		newContent.content.shift();
 		newContent = getArticleWithTitle(title, newContent);
 
-		TemplateService.setTemplates(Array.from(templates.values()));
+		TemplateService.setItems(Array.from(templates.values()));
 	};
 
 	const onCloseClick = () => {
-		TemplateService.closeTemplate();
+		TemplateService.closeItem();
 	};
 
 	return (

@@ -78,6 +78,11 @@ export type CommitOptions = {
 	files?: string[];
 };
 
+export type ResetOptions = {
+	mode: "soft" | "mixed" | "hard";
+	head?: string;
+};
+
 export const clone = async (
 	args: {
 		creds: Creds;
@@ -181,7 +186,7 @@ export const stashApply = (args: Args & { oid: Oid }) => call<MergeResult>("stas
 
 export const stashDelete = (args: Args & { oid: Oid }) => call<void>("stash_delete", args);
 
-export const resetAll = (args: Args & { hard: boolean; head?: string }) => call<void>("reset_all", args);
+export const reset = (args: Args & { opts: ResetOptions }) => call<void>("reset", args);
 
 export const commit = (args: Args & CredsArgs & { opts: CommitOptions }) => call<void>("commit", args);
 
@@ -229,7 +234,7 @@ export const getCommitAuthors = (args: Args) => call<CommitAuthorInfo[]>("get_al
 
 export const gc = (args: Args & { opts: GcOptions }) => call<void>("gc", args);
 
-export const resetRepo = () => call<void>("reset_repo", {});
+export const resetRepo = () => call<void>("reset_repo", { unused: null });
 
 export const formatMergeMessage = (args: Args & CredsArgs & { opts: MergeMessageFormatOptions }) => {
 	args.opts = intoMergeMessageFormatOptions(args.opts);

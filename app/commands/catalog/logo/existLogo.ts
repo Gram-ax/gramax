@@ -11,7 +11,7 @@ const existLogo: Command<{ catalogName: string; theme: Theme }, { isExist?: bool
 	async do({ catalogName, theme }) {
 		const workspace = this._app.wm.current();
 		const catalog = await workspace.getBaseCatalog(catalogName);
-		if (!catalog) return;
+		if (!catalog) return {};
 
 		let isExist = false;
 

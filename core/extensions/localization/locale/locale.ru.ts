@@ -28,6 +28,11 @@ const locale: DefaultLocale = {
 					description:
 						"Список версий (веток или тегов), отображаемых в докпортале. Задаются в виде glob-паттернов, например v19.* или release-*",
 				},
+				filterProperties: {
+					name: "Фильтрация",
+					placeholder: "Укажите свойства",
+					description: "Список свойств для фильтрации каталога",
+				},
 				language: {
 					name: "Основной язык",
 					placeholder: "Русский",
@@ -47,11 +52,6 @@ const locale: DefaultLocale = {
 				},
 				properties: {
 					name: "Свойства",
-				},
-				group: {
-					name: "Группа",
-					placeholder: "Группа",
-					description: "Группа на главной странице, в которой будет отображаться",
 				},
 			},
 			section: {
@@ -181,7 +181,7 @@ const locale: DefaultLocale = {
 					description:
 						`<a ${
 							getExecutingEnvironment() === "tauri" ? "" : "target='_blank'"
-						} href='{{create_token_url}}'>Создать токен</a><br>Токен для чтения и изменения репозиториев в хранилище. Укажите для токена права: \`api\`, \`read_repository\`, \`write_repository\`. ` +
+						} href='{{create_token_url}}'>Создать токен</a><br>Токен для чтения и изменения репозиториев в хранилище. Укажите для токена права: <code>api</code>, <code>read_repository</code>, <code>write_repository</code>. ` +
 						`<a ${
 							getExecutingEnvironment() === "tauri" ? "" : "target='_blank'"
 						} href='https://docs.gitlab.com/ee/user/profile/personal_access_tokens.html'>Подробнее</a>`,
@@ -190,6 +190,49 @@ const locale: DefaultLocale = {
 					name: "URL сервера GitLab",
 					placeholder: "https://gitlab.com",
 					description: "Войдите в GitLab и скопируйте URL с главной страницы",
+				},
+				createDate: {
+					name: "Время создания",
+					placeholder: "1707213960",
+					description: "Время получения токена",
+				},
+				refreshToken: {
+					name: "Refresh-токен",
+					placeholder: "4740fbc6db719d42c158b88580be7633c1e386827ebe9134e9a5198c52cb2e4c",
+					description: "Токен для обновления основного токена",
+				},
+				userName: {
+					name: "Имя пользователя",
+					description: "Будет отображаться в истории изменений",
+					placeholder: "Ivan Ivanov",
+				},
+				userEmail: {
+					name: "Почта",
+					description: "Будет отображаться в истории изменений",
+					placeholder: "ivan.ivanov@mail.ru",
+				},
+			},
+		},
+		"gitverse-source-data": {
+			props: {
+				sourceType: {
+					name: "Тип",
+				},
+				token: {
+					name: "GitVerse-токен",
+					placeholder: "e5a43119d84f620fedfc0929e125ed4b10a6a5f4", // # gitleaks:allow
+					description:
+						`<a ${
+							getExecutingEnvironment() === "tauri" ? "" : "target='_blank'"
+						} href='https://gitverse.ru/settings/tokens'>Создать токен</a><br>Токен для чтения и изменения репозиториев в хранилище. Укажите для токена права: <code>Репозиторий</code>, <code>Публичный API</code>. ` +
+						`<a ${
+							getExecutingEnvironment() === "tauri" ? "" : "target='_blank'"
+						} href='https://gitverse.ru/docs/account-and-profile/tokens-uc/'>Подробнее</a>`,
+				},
+				url: {
+					name: "URL сервера GitVerse",
+					placeholder: "https://gitverse.ru",
+					description: "Войдите в GitVerse и скопируйте URL с главной страницы",
 				},
 				createDate: {
 					name: "Время создания",
@@ -323,6 +366,13 @@ const locale: DefaultLocale = {
 		},
 	},
 	app: {
+		update: {
+			error: "Не удалось обновить приложение",
+			retry: "Повторить",
+			available: "Доступна новая версия",
+			updating: "Обновление...",
+			installed: "Обновление установлено",
+		},
 		loading: "загружаем",
 		error: {
 			"browser-not-supported": {
@@ -451,7 +501,6 @@ const locale: DefaultLocale = {
 		instruction: "инструкцией",
 		logo: "Логотип",
 		appearance: "Внешний вид",
-		"button-ai-server": "AI-сервер",
 		"set-ai-server": "AI-сервер",
 		"ai-server-url": "URL AI-сервера",
 		"ai-server-url-description": "Введите ссылку до вашего AI-сервера",
@@ -459,6 +508,7 @@ const locale: DefaultLocale = {
 		"ai-server-token-description": "Введите токен для вашего AI-сервера",
 		"ai-server-error": "Ошибка при подключении к серверу. Проверьте URL.",
 		"ai-token-error": "Токен недействителен. Проверьте его в настройках сервера.",
+		"ai-token-set-error": "Токен не установлен. Для подключения необходимо установить токен.",
 		"delete-ai-server": "Удалить AI-сервер?",
 		"upload-error-title": "Ошибка при загрузке",
 		"invalid-logo-format-body":
@@ -473,6 +523,33 @@ const locale: DefaultLocale = {
 		"dark-logo-description": "Используется только в темной теме",
 		"for-dark-theme": "Для темной темы",
 		"default-logo-description": "Используется в светлой теме и в темной, если нет логотипа для темной темы",
+		tooltip: {
+			"only-current": {
+				one: "каталог доступен для синхронизации в текущем пространстве",
+				few: "каталога доступны для синхронизации в текущем пространстве",
+				many: "каталогов доступны для синхронизации в текущем пространстве",
+			},
+			"including-current": {
+				one: "каталог доступен для синхронизации ({{current-count}} в текущем)",
+				few: "каталога доступны для синхронизации в {{workspace-count}} пространствах ({{current-count}} в текущем)",
+				many: "каталогов доступны для синхронизации в {{workspace-count}} пространствах ({{current-count}} в текущем)",
+			},
+			"excluding-current": {
+				one: "каталог доступен для синхронизации",
+				few: "каталога доступны для синхронизации в {{workspace-count}} пространствах",
+				many: "каталогов доступны для синхронизации в {{workspace-count}} пространствах",
+			},
+			"only-one-excluding-current": {
+				one: "каталог доступен для синхронизации в одном из пространств",
+				few: "каталога доступны для синхронизации в одном из пространств",
+				many: "каталогов доступны для синхронизации в одном из пространств",
+			},
+			"has-changes": {
+				one: "Доступен {{count}} каталог для синхронизации",
+				few: "Доступно {{count}} каталога для синхронизации",
+				many: "Доступно {{count}} каталогов для синхронизации",
+			},
+		},
 	},
 	"file-input": {
 		"select-file": "Выберите файл",
@@ -585,10 +662,15 @@ title: Каталог уже связан с репозиторием
 	catalog: {
 		"new-name": "Новый каталог",
 		new: "Создать новый",
+		"new-2": "Создать новый каталог",
+		"new-3": "Хранится локально до первой публикации",
 		clone: "Загрузить",
-		"clone-2": "Загрузить существующий",
+		"clone-2": "Загрузить существующий каталог",
 		"clone-3": "Загрузить по ссылке",
+		"clone-4": "Если в хранилище уже такой есть",
 		import: "Импортировать",
+		"import-2": "Импортировать из другой системы",
+		"import-3": "Из Confluence или Notion",
 		add: "Добавить каталог",
 		delete: "Удалить каталог",
 		name: "каталог",
@@ -731,17 +813,47 @@ title: Каталог уже связан с репозиторием
 		},
 	},
 	cloud: {
-		"enter-cloud": "Войдите в Gramax Cloud",
-		"upload-button": "Опубликовать",
-		"upload-catalog": "Опубликовать каталог",
-		"upload-success": "Каталог успешно опубликован",
-		"upload-success-link": "Ссылка на опубликованный каталог",
-		"catalog-link": "Каталог будет доступен по ссылке",
-		"delete-catalog": "Каталог будет удален из облака",
+		"publish-to-cloud": "Опубликовать в облако",
+		"login-modal": {
+			title: "Войдите в Gramax Cloud",
+			description: "Для публикации каталога требуется авторизация",
+			definition:
+				"это сервис для размещения статических HTML-версий каталогов. После публикации ваш каталог будет доступен по ссылке",
+			"account-info":
+				"Вход нужен для защиты и привязки публикации к аккаунту. Все последующие публикации также будут выполняться от имени этого аккаунта.",
+		},
+		"upload-modal": {
+			title: "Опубликовать каталог",
+			description: "Сделайте каталог доступным для всех",
+			info: "После публикации каталог станет доступен <strong>всем в интернете</strong> по ссылке:",
+			revoke: "В любой момент каталог можно снять с публикации.",
+			"switch-account": "Сменить аккаунт",
+			status: {
+				building: "Сборка сайта",
+				publishing: "Публикация",
+			},
+			published: {
+				title: "Перепубликовать каталог",
+				description: "Обновите опубликованный каталог доступный для всех",
+				info: "После перепубликации каталог продолжит быть доступен <strong>всем в интернете</strong> по ссылке:",
+			},
+		},
+		"uploaded-modal": {
+			title: "Каталог успешно опубликован",
+			link: "Ссылка на опубликованный каталог",
+			description:
+				"Статус публикации вы можете увидеть в правой панели. Там же можно обновить или отозвать публикацию.",
+		},
+		"publish-status-panel": {
+			published: "Опубликовано",
+			republish: "Перепубликовать",
+			delete: "Удалить публикацию",
+		},
 		error: {
 			"failed-to-connect": "Не удалось подключиться к облачному серверу",
 			"request-failed": "Не удалось выполнить запрос на облачный сервер",
 		},
+		"delete-catalog": "Каталог будет удален из облака",
 	},
 	"log-in": "Войти в ",
 	"login-with": "Войти с помощью ",
@@ -753,6 +865,9 @@ title: Каталог уже связан с репозиторием
 		"articles-not-found": "Статей не найдено",
 		"all-catalogs": "Искать по всем каталогам",
 		ai: "AI-поиск",
+		"ai-search-error":
+			"Функция ИИ - поиска недоступна из - за технических неполадок. Рекомендуем обратиться к администратору системы за дополнительной информацией.",
+		"ai-search-error-title": "Технические проблемы с ИИ - поиском",
 	},
 	list: {
 		"no-results-found": "Ничего не найдено",
@@ -761,12 +876,15 @@ title: Каталог уже связан с репозиторием
 	versions: {
 		switch: "Переключить версию",
 		version: "Версия",
-		"current-version": "Вы находитесь на этой версии",
 		"not-actual-warning": {
 			header: "Неактуальная версия",
 			"1": "Вы просматриваете неактуальную версию ",
 			"2": "<a data-qa href='{{link}}'>Переключите версию</a> для просмотра актуальной версии",
 		},
+	},
+	filterProperties: {
+		switch: "Фильтр",
+		unfilter: "Без фильтра",
 	},
 	git: {
 		source: {
@@ -803,10 +921,10 @@ title: Каталог уже связан с репозиторием
 				"eta-m": ", ~{m}м {s}с",
 				"eta-h": ", ~{h}ч {m}м {s}с",
 			},
+
 			"receiving-objects": "Получено {received} объектов из {total} (проиндексировано {indexed})",
 			"indexing-deltas": "Проиндексировано {indexed} дельт из {total}",
 			checkout: "Извлечено {checkouted} файлов из {total}",
-			cancel: "Отменить",
 			"repo-link": "Ссылка на репозиторий",
 			"not-cloned": {
 				title: "Загрузить каталог?",
@@ -822,11 +940,12 @@ title: Каталог уже связан с репозиторием
 				} rel='noreferrer'>https://github.com/gram-ax/gramax</a>`,
 			},
 			error: {
+				title: "Ошибка загрузки",
 				"cannot-clone": "Не удалось загрузить каталог",
 				"already-exist": "Каталог с названием <b>{{path}}</b> уже существует",
 				"no-permission": "Нет доступа к репозиторию {{url}}",
 				generic: "Попробуйте обновить страницу и загрузить каталог заново.",
-				"branch-not-found": "Не удалось загрузить каталог на ветке {{branch}}",
+				"branch-not-found": "Не удалось загрузить каталог на ветке <code>{{branch}}</code>",
 				public: {
 					"invalid-link":
 						"Неверная ссылка на репозиторий. Пожалуйста, проверьте правильность ссылки и публичность репозитория",
@@ -887,6 +1006,7 @@ title: Каталог уже связан с репозиторием
 		merge: {
 			"instant-merge": "Слить",
 			merge: "Слить",
+			"add-user": "Добавить пользователя",
 			branches: "Слить ветки",
 			"after-merge": "После слияния",
 			"current-branch": "Слить текущую ветку",
@@ -971,8 +1091,8 @@ title: Каталог уже связан с репозиторием
 			},
 		},
 		revisions: {
-			"compare-title": "Сравнение ревизий",
-			"compare-button": "Сравнить ревизии",
+			"compare-title": "Просмотр изменений",
+			"compare-button": "Просмотр изменений",
 			"choose-placeholder": "Выберите ревизию...",
 		},
 		discard: {
@@ -980,6 +1100,7 @@ title: Каталог уже связан с репозиторием
 				"Отменить выбранные изменения? Статьи вернутся в предыдущее состояние, а добавленные медиафайлы удалятся.",
 			"select-all-arrow-tooltip": "Отменить выбранные изменения",
 			"selected-file-arrow-tooltip": "Отменить изменения",
+			"paragraph-tooltip": "Отменить изменения",
 		},
 		warning: {
 			"no-changes": {
@@ -1101,9 +1222,13 @@ title: Каталог уже связан с репозиторием
 		"log-in": "Войти в Яндекс.Диск",
 	},
 	diff: {
-		wysiwyg: "Визуальное сравнение",
-		"single-panel": "Однопанельный текст",
-		"double-panel": "Двухпанельный текст",
+		"source-text": "Исходный текст",
+		"double-panel": "Двухпанельный режим",
+		type: {
+			added: "Добавлено",
+			modified: "Изменено",
+			deleted: "Удалено",
+		},
 	},
 	"unsupported-elements": {
 		confluence: {
@@ -1149,6 +1274,7 @@ title: Каталог уже связан с репозиторием
 		ai: {
 			improve: "Улучшить текст",
 			generate: "Сгенерировать",
+			transcribe: "Транскрипция речи в текст",
 		},
 		italic: "Курсив",
 		bold: "Жирный",
@@ -1158,6 +1284,19 @@ title: Каталог уже связан с репозиторием
 		"bullet-list": "Маркированый список",
 		"ordered-list": "Нумерованный список",
 		"task-list": "Список задач",
+		highlight: {
+			name: "Выделение заднего фона",
+			colors: {
+				default: "Без выделения",
+				"lemon-yellow": "Лимонно-жёлтый",
+				"mint-green": "Мятно-зелёный",
+				lavender: "Лаванда",
+				"ice-blue": "Аквамарин",
+				peach: "Персиковый",
+				"light-pink": "Розовый",
+				"grayish-blue": "Серо-голубой",
+			},
+		},
 		note: "Заметка",
 		heading: "Заголовок",
 
@@ -1310,7 +1449,33 @@ title: Каталог уже связан с репозиторием
 	},
 	"experimental-features": {
 		label: "Экспериментальные функции",
-		"learn-more": "Подробнее об экспериментальных функциях",
+		status: {
+			"in-dev": "Эта функция находится в разработке и не предназначена для использования",
+			experimental: "Эта функция экспериментальная и может не работать как ожидается",
+			unstable: "Эта функция нестабильная и, вероятно, содержит ошибки",
+			beta: "Эта функция не полностью стабилизирована и все еще может содержать ошибки",
+		},
+	},
+	export: {
+		name: "Экспортировать",
+		zip: {
+			catalog: "Каталог в ZIP",
+			article: "Статья в ZIP",
+			category: "Раздел в ZIP",
+			process: "Подготовка к выгрузке ZIP-архива",
+		},
+		docx: {
+			catalog: "Каталог в DOCX",
+			article: "Статья в DOCX",
+			category: "Раздел в DOCX",
+			process: "Подготовка к выгрузке DOCX-документа",
+		},
+		pdf: {
+			catalog: "Каталог в PDF",
+			article: "Статья в PDF",
+			category: "Раздел в PDF",
+			process: "Подготовка к выгрузке PDF-документа",
+		},
 	},
 	account: "Аккаунт",
 	add: "Добавить",
@@ -1351,7 +1516,6 @@ title: Каталог уже связан с репозиторием
 	existing: "существующий",
 	exit: "Выход",
 	expand: "Раскрыть",
-	export: "Экспортировать",
 	field: "Поле",
 	file: "Файл",
 	find: "Поиск",
@@ -1383,6 +1547,7 @@ title: Каталог уже связан с репозиторием
 	local: "Локальная ветка",
 	mail: "Почта",
 	more: "Подробнее",
+	"read-more": "Подробнее..",
 	name: "Название",
 	ok: "Понятно",
 	open: "Открыть",
@@ -1444,10 +1609,6 @@ title: Каталог уже связан с репозиторием
 	"and-sync-catalog": "И синхронизировать каталог?",
 	"annotation-text": "Текст аннотации",
 	"article-titles": "Заголовки статьи",
-	"article-to-docx": "Cтатью в DOCX",
-	"article-to-pdf": "Cтатью в PDF",
-	"generate-pdf": "Формируем PDF",
-	"generate-docx": "Формируем DOCX",
 	"authorization-by-mail": "Авторизация по почте",
 	"bottom-left-pointer": "Нижняя левая аннотация",
 	"bottom-right-pointer": "Нижняя правая аннотация",
@@ -1473,8 +1634,6 @@ title: Каталог уже связан с репозиторием
 	"cant-edit-this-line": "Нельзя редактировать эту строку",
 	"cant-get-snippet-data": "Проверьте, правильно ли указан путь, а также есть ли файл со сниппетом в репозитории",
 	"catalog-icons-title": "Иконки каталога",
-	"category-to-docx": "Раздел в DOCX",
-	"category-to-pdf": "Раздел в PDF",
 	"change-and-sync": "Сменить и синхронизировать",
 	"check-diagrams": "Диаграммы",
 	"check-file-path": "Проверьте правильно ли указан путь до файла",
@@ -1541,8 +1700,6 @@ title: Каталог уже связан с репозиторием
 	"error-mail": "Указана некорректная почта",
 	"error-sing-in": "Ошибка входа",
 	"error-occured": "К сожалению, при отображении документации возникла ошибка.",
-	"export-catalog-docx": "Каталог в DOCX",
-	"export-catalog-pdf": "Каталог в PDF",
 	"export-disabled": "Добавьте статью для экспорта",
 	"file-content": "Контент файла",
 	"file-download-error-message": "Возможно, он был перенесен или удален.",
@@ -1778,6 +1935,27 @@ title: Каталог уже связан с репозиторием
 		"ai-prompts": "ИИ-промпты",
 		"ask-ai": "Спросить у ИИ что-либо",
 		generating: "Генерация...",
+		transcribe: {
+			name: "Транскрипция",
+			description: "Распознавание речи из медиа файла",
+			click: "Нажмите для записи",
+			access: "Нажмите для запроса доступа к микрофону",
+			"browser-denied": "Доступ к микрофону запрещен. Разрешите доступ в настройках браузера",
+			"system-denied": "Доступ к микрофону запрещен. Разрешите доступ в настройках системы",
+			loading: "Проверка доступа к микрофону...",
+			notSupported: "Ваш браузер не поддерживает захват звука",
+			recording: "Запись",
+			reset: "Нажмите для сброса записи",
+			pause: "Нажмите для паузы",
+			resume: "Нажмите для продолжения",
+			warningHomeSend: "Вы не можете сохранить аудио с главной страницы",
+			history: "История аудио",
+			modal: "<p>После транскрипции появится распознанный текст.</p><p>Вы можете отредактировать текст, чтобы улучшить его качество. Для этого кликните на поле ввода и редактируйте его.</p>",
+			"limit-reached": "Превышен лимит в 5 минут. Вы можете продолжить запись после сохранения текущего аудио.",
+			modalAttention:
+				"<p><strong>Внимание!</strong> Распознанный текст никуда не сохраняется. Если вы хотите сохранить текст, вы можете скопировать его в буфер обмена.</p>",
+		},
+		transcribtion: "Транскрипция...",
 		placeholder: {
 			prettify: "Что сделать с выделенным текстом ✨",
 			generate: "Напишите что-нибудь прекрасное ✨",
@@ -1801,10 +1979,16 @@ title: Каталог уже связан с репозиторием
 	"add-favorite": "Добавить в избранное",
 	"remove-favorite": "Убрать из избранного",
 	favorites: "Избранное",
+	home: "Главная",
+	"groups-and-projects": "Группы и проекты",
 	"no-favorites-in-catalog": "В текущем каталоге нет избранных статей",
 	"favorites-articles": "Избранные статьи",
 	"inline-to-block-image": "Инлайн изображение в блочный вид",
 	"block-to-inline-image": "Блочное изображение в инлайн вид",
+	"save-file": "Сохранить файл",
+	"confirm-inbox-note-delete": "Вы уверены, что хотите удалить эту заметку?",
+	"confirm-prompts-delete": "Вы уверены, что хотите удалить этот промпт?",
+	"confirm-templates-delete": "Вы уверены, что хотите удалить этот шаблон?",
 };
 
 export default locale;

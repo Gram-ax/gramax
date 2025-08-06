@@ -1,7 +1,8 @@
 import { TableHeaderTypes } from "@ext/markdown/elements/table/edit/model/tableTypes";
+import ElementGroups from "@ext/markdown/core/element/ElementGroups";
 
 const table = {
-	group: "block",
+	group: `${ElementGroups.block} ${ElementGroups.listItemContent}`,
 	content: "tableRow+",
 	attrs: {
 		header: { default: TableHeaderTypes.ROW },

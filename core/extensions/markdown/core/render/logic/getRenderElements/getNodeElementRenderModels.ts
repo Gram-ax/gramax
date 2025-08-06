@@ -16,6 +16,7 @@ import { strikethrough } from "../../../../elements/strikethrough/render/striket
 import { strong } from "../../../../elements/strong/render/strong";
 import { sub } from "../../../../elements/sub/sub";
 import { table, tbody, td, thead, tr } from "../../../../elements/table/render/model/table";
+import { highlight } from "@ext/markdown/elements/highlight/render/model/schema";
 
 export default function getNodeElementRenderModels(context?: ParserContext): Record<string, Schema> {
 	const contextelements = context ? getContextNodeElementRenderModels(context) : {};
@@ -30,6 +31,7 @@ export default function getNodeElementRenderModels(context?: ParserContext): Rec
 		fence,
 		table,
 		color,
+		highlight,
 		td,
 		thead,
 		tbody,

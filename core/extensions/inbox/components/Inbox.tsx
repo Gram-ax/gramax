@@ -7,8 +7,7 @@ import Note from "@ext/inbox/components/Note/Note";
 import PopoverUtility from "@ext/articleProvider/logic/PopoverUtility";
 import { InboxArticle, InboxDragDropData } from "@ext/inbox/models/types";
 import t from "@ext/localization/locale/translate";
-import ModifiedBackend from "@ext/navigation/catalog/drag/logic/ModifiedBackend";
-import { getBackendOptions } from "@minoru/react-dnd-treeview";
+import ModifiedBackend, { useDragDrop } from "@ext/navigation/catalog/drag/logic/ModifiedBackend";
 import { useCallback, useEffect, useMemo, useRef, RefObject } from "react";
 import { DndProvider } from "react-dnd";
 
@@ -22,6 +21,8 @@ const Inbox = ({ show, setContentHeight, tabWrapperRef }: InboxProps) => {
 	const ref = useRef<HTMLDivElement>(null);
 	const apiUrlCreator = ApiUrlCreatorService.value;
 	const { selectedIds, items } = InboxService.value;
+
+	const { backend, options } = useDragDrop();
 
 	const handleDrop = useCallback(
 		async ({ draggedId, droppedId }: InboxDragDropData) => {
@@ -111,7 +112,7 @@ const Inbox = ({ show, setContentHeight, tabWrapperRef }: InboxProps) => {
 	return (
 		<div ref={ref}>
 			<ScrollableElement style={{ maxHeight: "40vh" }} dragScrolling={false}>
-				<DndProvider backend={ModifiedBackend} options={getBackendOptions()}>
+				<DndProvider backend={(manager) => ModifiedBackend(backend(manager))} options={options}>
 					<div className="tree-root" style={{ height: sortedNotes.length === 0 ? "2em" : "auto" }}>
 						{sortedNotes.length === 0 && (
 							<div style={{ paddingLeft: "1rem", paddingRight: "1rem" }}>
@@ -126,6 +127,7 @@ const Inbox = ({ show, setContentHeight, tabWrapperRef }: InboxProps) => {
 								onItemClick={onItemClick}
 								isSelected={selectedIds?.includes(note.id)}
 								onDelete={onDelete}
+								confirmDeleteText={t("confirm-inbox-note-delete")}
 							/>
 						))}
 					</div>

@@ -4,7 +4,6 @@ const importSourceTypes = [
 	SourceType.confluenceCloud,
 	SourceType.confluenceServer,
 	SourceType.notion,
-	SourceType.yandexDisk,
 ];
 
 export default importSourceTypes;

@@ -2,10 +2,9 @@ import SidebarsIsOpenService from "@core-ui/ContextServices/Sidebars/SidebarsIsO
 import SidebarsIsPinService from "@core-ui/ContextServices/Sidebars/SidebarsIsPin";
 import LeftNavViewContentContainer from "@core-ui/ContextServices/views/leftNavView/LeftNavViewContainer";
 import { usePlatform } from "@core-ui/hooks/usePlatform";
-import useWatch from "@core-ui/hooks/useWatch";
 import stopOpeningPanels from "@core-ui/utils/stopOpeningPanels ";
 import EditorService from "@ext/markdown/elementsUtils/ContextServices/EditorService";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { ArticlePageData } from "../../../../logic/SitePresenter/SitePresenter";
 import LeftNavigationBottom from "./LeftNavigationBottom";
 import LeftNavigationLayout from "./LeftNavigationLayout";
@@ -43,7 +42,7 @@ const LeftNavigationComponent = ({
 	const isLeftNavHover = useRef(false);
 	const unpinAnimation = useRef(false);
 
-	useWatch(() => {
+	useLayoutEffect(() => {
 		if (prevIsPin && !isPin) {
 			SidebarsIsOpenService.value = { left: false };
 			unpinAnimation.current = true;

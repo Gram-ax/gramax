@@ -1,6 +1,5 @@
+import { useDismissableToast } from "@components/Atoms/DismissableToast";
 import PureLink from "@components/Atoms/PureLink";
-import SpinnerLoader from "@components/Atoms/SpinnerLoader";
-import FormStyle from "@components/Form/FormStyle";
 import ModalLayout from "@components/Layouts/Modal";
 import ModalLayoutLight from "@components/Layouts/ModalLayoutLight";
 import PopupMenuLayout from "@components/Layouts/PopupMenuLayout";
@@ -16,6 +15,7 @@ import CommonUnsupportedElementsModal from "@ext/import/components/CommonUnsuppo
 import UnsupportedElements from "@ext/import/model/UnsupportedElements";
 import t from "@ext/localization/locale/translate";
 import DropdownButton from "@ext/wordExport/components/DropdownButton";
+import { Loader } from "ics-ui-kit/components/loader";
 import { useMemo, useRef, useState } from "react";
 
 interface ItemExportProps {
@@ -51,13 +51,21 @@ const TemplateHeader = () => {
 
 const ItemExport = ({ fileName, itemRefPath, isCategory, exportFormat }: ItemExportProps) => {
 	const [isOpen, setIsOpen] = useState(false);
-	const [isLoading, setIsLoading] = useState(true);
 	const [isDownloading, setIsDownloading] = useState(false);
 	const [errorWordElements, setErrorWordElements] = useState<UnsupportedElements[]>([]);
 	const [selectedTemplate, setSelectedTemplate] = useState<string>();
 	const apiUrlCreator = ApiUrlCreatorService.value;
 	const { isNext, isStatic, isTauri } = usePlatform();
 	const templates = PageDataContextService.value.wordTemplates;
+
+	const { dismiss, show } = useDismissableToast({
+		title: t(exportFormat === ExportFormat.pdf ? "export.pdf.process" : "export.docx.process"),
+		closeAction: false,
+		focus: "medium",
+		size: "sm",
+		status: "info",
+		primaryAction: <Loader size="md" />,
+	});
 
 	const cancelableFunction = useMemo(
 		() =>
@@ -79,12 +87,12 @@ const ItemExport = ({ fileName, itemRefPath, isCategory, exportFormat }: ItemExp
 	);
 
 	const startDownload = () => {
-		setIsOpen(true);
-		setIsLoading(true);
 		setIsDownloading(true);
+		setIsOpen(false);
+		show();
 		cancelableFunction.start().finally(() => {
-			setIsOpen(false);
 			setIsDownloading(false);
+			dismiss?.current();
 		});
 	};
 
@@ -93,8 +101,6 @@ const ItemExport = ({ fileName, itemRefPath, isCategory, exportFormat }: ItemExp
 	};
 
 	const onOpen = async () => {
-		setIsLoading(true);
-
 		const url = getErrorElementsUrl(exportFormat, isCategory, itemRefPath);
 		const res = await FetchService.fetch<UnsupportedElements[]>(url);
 
@@ -105,20 +111,11 @@ const ItemExport = ({ fileName, itemRefPath, isCategory, exportFormat }: ItemExp
 		const errorWordElements = await res.json();
 		setErrorWordElements(errorWordElements);
 		if (errorWordElements.length > 0) {
-			setIsLoading(false);
+			setIsOpen(true);
 			return;
 		}
 		startDownload();
 	};
-
-	const loading = (
-		<FormStyle>
-			<>
-				<legend>{t(exportFormat === ExportFormat.pdf ? "generate-pdf" : "generate-docx")}</legend>
-				<SpinnerLoader height={100} width={100} fullScreen />
-			</>
-		</FormStyle>
-	);
 
 	const domain = PageDataContextService.value.domain;
 	const unsupportedElementsModal = (
@@ -150,13 +147,13 @@ const ItemExport = ({ fileName, itemRefPath, isCategory, exportFormat }: ItemExp
 		if (itemRefPath) {
 			return isCategory
 				? exportFormat === ExportFormat.pdf
-					? t("category-to-pdf")
-					: t("category-to-docx")
+					? t("export.pdf.category")
+					: t("export.docx.category")
 				: exportFormat === ExportFormat.pdf
-				? t("article-to-pdf")
-				: t("article-to-docx");
+				? t("export.pdf.article")
+				: t("export.docx.article");
 		}
-		return exportFormat === ExportFormat.pdf ? t("export-catalog-pdf") : t("export-catalog-docx");
+		return exportFormat === ExportFormat.pdf ? t("export.pdf.catalog") : t("export.docx.catalog");
 	};
 
 	const ref = useRef();
@@ -183,7 +180,8 @@ const ItemExport = ({ fileName, itemRefPath, isCategory, exportFormat }: ItemExp
 							iconCode="file-text"
 							text={t("word.template.no-template")}
 							onClick={() => {
-								setIsOpen(true);
+								setSelectedTemplate(undefined);
+								void onOpen();
 							}}
 						/>
 						<TemplateHeader />
@@ -194,7 +192,7 @@ const ItemExport = ({ fileName, itemRefPath, isCategory, exportFormat }: ItemExp
 								text={template.split(".")[0]}
 								onClick={() => {
 									setSelectedTemplate(template);
-									setIsOpen(true);
+									void onOpen();
 								}}
 							/>
 						))}
@@ -208,27 +206,29 @@ const ItemExport = ({ fileName, itemRefPath, isCategory, exportFormat }: ItemExp
 				iconCode="file-text"
 				text={getExportText()}
 				onClick={() => {
-					setIsOpen(true);
+					void onOpen();
 				}}
+				iconIsLoading={isDownloading}
 			/>
 		);
-	}, [exportFormat, getExportText, templates]);
+	}, [exportFormat, getExportText, templates, isDownloading]);
 
 	return (
-		<ModalLayout
-			isOpen={isOpen}
-			onOpen={() => {
-				setIsOpen(true);
-				void onOpen();
-			}}
-			onClose={() => {
-				setIsOpen(false);
-				if (isDownloading) cancelableFunction.abort();
-			}}
-			trigger={renderExportButton}
-		>
-			<ModalLayoutLight>{!isLoading ? unsupportedElementsModal : loading}</ModalLayoutLight>
-		</ModalLayout>
+		<>
+			{isOpen && errorWordElements.length > 0 && (
+				<ModalLayout
+					isOpen={isOpen}
+					onClose={() => {
+						setIsOpen(false);
+						if (isDownloading) cancelableFunction.abort();
+					}}
+					trigger={<></>}
+				>
+					<ModalLayoutLight>{unsupportedElementsModal}</ModalLayoutLight>
+				</ModalLayout>
+			)}
+			{renderExportButton}
+		</>
 	);
 };
 

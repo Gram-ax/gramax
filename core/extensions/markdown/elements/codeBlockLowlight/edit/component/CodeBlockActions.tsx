@@ -5,24 +5,16 @@ import {
 	StandardCaseLangList,
 	getStandardCaseByLower,
 } from "@ext/markdown/elements/codeBlockLowlight/edit/logic/LowlightLangs";
-import { Editor } from "@tiptap/core";
 import { Node } from "@tiptap/pm/model";
 import { useState } from "react";
 
 interface CodeBlockActionsProps {
-	editor: Editor;
 	node: Node;
-	getPos: () => number;
 	onChange: (lang: string) => void;
 }
 
-const CodeBlockActions = ({ editor, node, getPos, onChange }: CodeBlockActionsProps) => {
+const CodeBlockActions = ({ node, onChange }: CodeBlockActionsProps) => {
 	const [isCopied, setIsCopied] = useState(false);
-
-	const handleDelete = () => {
-		const position = getPos();
-		editor.commands.deleteRange({ from: position, to: position + node.nodeSize });
-	};
 
 	const handleCopy = () => {
 		void navigator.clipboard.writeText(node.textContent);
@@ -47,7 +39,6 @@ const CodeBlockActions = ({ editor, node, getPos, onChange }: CodeBlockActionsPr
 				onClick={handleCopy}
 				onMouseLeave={onMouseLeave}
 			/>
-			<ActionButton icon="trash" tooltipText={t("delete")} onClick={handleDelete} />
 		</>
 	);
 };

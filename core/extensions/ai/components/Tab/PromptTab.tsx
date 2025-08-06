@@ -9,9 +9,9 @@ import PromptService from "@ext/ai/components/Tab/PromptService";
 import ItemList from "@ext/articleProvider/components/ItemList";
 import PopoverUtility from "@ext/articleProvider/logic/PopoverUtility";
 import { ProviderItemProps } from "@ext/articleProvider/models/types";
+import BranchUpdaterService from "@ext/git/actions/Branch/BranchUpdaterService/logic/BranchUpdaterService";
 import t from "@ext/localization/locale/translate";
 import NavigationEvents from "@ext/navigation/NavigationEvents";
-import TemplateService from "@ext/templates/components/TemplateService";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 const ExtensionWrapper = styled.div`
@@ -41,20 +41,25 @@ const PromptTab = ({ show }: PromptTab) => {
 
 	useEffect(() => {
 		if (!selectedIds.length) return;
+		const branchListener = () => {
+			selectedIds.forEach((id) => PromptService.closeNote(id));
+		};
 
 		const listener = () => {
-			TemplateService.closeTemplate();
+			branchListener();
 			refreshPage();
 		};
 
 		const clickToken = NavigationEvents.on("item-click", listener);
 		const createToken = NavigationEvents.on("item-create", listener);
 		const deleteToken = NavigationEvents.on("item-delete", listener);
+		BranchUpdaterService.addListener(branchListener);
 
 		return () => {
 			NavigationEvents.off(clickToken);
 			NavigationEvents.off(createToken);
 			NavigationEvents.off(deleteToken);
+			BranchUpdaterService.removeListener(branchListener);
 		};
 	}, [selectedIds]);
 
@@ -150,6 +155,7 @@ const PromptTab = ({ show }: PromptTab) => {
 				onItemClick={onItemClick}
 				onDelete={onDelete}
 				onMarkdownChange={onMarkdownChange}
+				confirmDeleteText={t("confirm-prompts-delete")}
 			/>
 		</TabWrapper>
 	);

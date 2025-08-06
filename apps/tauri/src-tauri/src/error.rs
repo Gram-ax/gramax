@@ -14,7 +14,7 @@ impl<T, E: std::error::Error> ShowError<T, E> for Result<T, E> {
       rfd::MessageDialog::new()
         .set_level(rfd::MessageLevel::Error)
         .set_title(t!("etc.error.title"))
-        .set_description(format!("{}\n\n{}", message, err))
+        .set_description(format!("{message}\n\n{err}"))
         .set_buttons(rfd::MessageButtons::OkCustom(t!("etc.ok").to_string()))
         .show();
     }
@@ -75,6 +75,8 @@ fn panic_hook(#[allow(unused_variables)] bugsnag: &BugsnagNotificationBuilder, p
     message = panic_message
   );
 
+  println!("{message}");
+
   #[cfg(not(target_os = "android"))]
   rfd::MessageDialog::new()
     .set_title("Gramax was crashed")
@@ -82,8 +84,6 @@ fn panic_hook(#[allow(unused_variables)] bugsnag: &BugsnagNotificationBuilder, p
     .set_description(message)
     .set_buttons(rfd::MessageButtons::Ok)
     .show();
-
-  error!("panic:\n{}", panic_message);
 
   #[cfg(not(debug_assertions))]
   {

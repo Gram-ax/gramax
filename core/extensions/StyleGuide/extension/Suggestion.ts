@@ -53,10 +53,14 @@ export const Suggestion = Mark.create({
 					const handleFindAndReplace = (findText: string, replaceText: string) => {
 						let tr = state.tr;
 
+						findText = getNodeByHTMLText(findText, editor).textContent;
+						if (!findText) {
+							console.warn("findText is empty");
+							return;
+						}
 						state.doc.descendants((node, pos) => {
 							if (node.type.name === "paragraph" || node.type.name === "heading") {
-								findText = getNodeByHTMLText(findText, editor).textContent;
-								const regex = new RegExp(findText, "g");
+								const regex = new RegExp(findText.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "g");
 								const matches = [...Array.from(node.textContent?.matchAll(regex) ?? [])];
 								matches.forEach((match) => {
 									if (match.index === undefined) return;

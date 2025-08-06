@@ -25,7 +25,7 @@ impl<'id> CloneCancel<'id> {
   pub fn new(id: usize, to: &'id Path) -> Result<Self> {
     let to = to.to_str().or_utf8_err()?;
     if !CLONING.write().unwrap().insert(id) {
-      return Err(crate::error::Error::AlreadyCloningWithSameId(format!("{}", id)));
+      return Err(crate::error::Error::AlreadyCloningWithSameId(format!("{id}")));
     }
 
     Ok(Self { id, to })
@@ -109,14 +109,14 @@ pub enum CloneProgress {
 impl Display for CloneProgress {
   fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
     match self {
-      CloneProgress::Sideband { remote_text, .. } => write!(f, "remote -> {}", remote_text),
+      CloneProgress::Sideband { remote_text, .. } => write!(f, "remote -> {remote_text}"),
       CloneProgress::ChunkedTransfer { transfer, bytes, download_speed_bytes, .. } => {
         match transfer {
           TransferProgress::ReceivingObjects { received, indexed, total } => {
-            write!(f, "receiving objects -> received: {}, indexed: {}, total: {}", received, indexed, total)
+            write!(f, "receiving objects -> received: {received}, indexed: {indexed}, total: {total}")
           }
           TransferProgress::IndexingDeltas { indexed, total } => {
-            write!(f, "indexing deltas -> indexed: {}, total: {}", indexed, total)
+            write!(f, "indexing deltas -> indexed: {indexed}, total: {total}")
           }
         }?;
         write!(
@@ -127,10 +127,10 @@ impl Display for CloneProgress {
         )
       }
       CloneProgress::Checkout { checkouted, total, .. } => {
-        write!(f, "checkout progress -> checked out: {}, total: {}", checkouted, total)
+        write!(f, "checkout progress -> checked out: {checkouted}, total: {total}")
       }
       CloneProgress::Finish { is_cancelled, .. } => {
-        write!(f, "finish -> is_cancelled: {}", is_cancelled)
+        write!(f, "finish -> is_cancelled: {is_cancelled}")
       }
     }
   }

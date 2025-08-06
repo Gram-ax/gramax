@@ -22,7 +22,7 @@ export default class FileRepository {
 	};
 
 	// for debugging
-	public preserveDelete = false;
+	public preventDelete = false;
 
 	constructor(path: string) {
 		this.path = path;
@@ -35,22 +35,23 @@ export default class FileRepository {
 	} {
 		this._mockJestGitStorageImplementation();
 
+		const { userName, userEmail } = FileRepository.sourceData;
+
 		const dfp = new DiskFileProvider(new Path(this.path));
 
-		execSync("git init -b master --bare FILE_BARE", { cwd: this.path });
+		execSync("git init -b master --bare FILE_BARE", { cwd: this.path, stdio: "pipe" });
 
-		execSync("git clone FILE_BARE FILE_WORKDIR1", { cwd: this.path });
+		execSync("git clone FILE_BARE FILE_WORKDIR1", { cwd: this.path, stdio: "pipe" });
+
+		execSync(`git config user.name "${userName}"`, { cwd: this.firstPath, stdio: "pipe" });
+		execSync(`git config user.email ${userEmail}`, { cwd: this.firstPath, stdio: "pipe" });
 
 		fs.writeFileSync(this.firstPath + "/init", "init");
+		execSync("git add .", { cwd: this.firstPath, stdio: "pipe" });
+		execSync(`git commit -m "init"`, { cwd: this.firstPath, stdio: "pipe" });
+		execSync("git push", { cwd: this.firstPath, stdio: "pipe" });
 
-		execSync(`git config user.name "${FileRepository.sourceData.userName}"`, { cwd: this.firstPath });
-		execSync(`git config user.email ${FileRepository.sourceData.userEmail}`, { cwd: this.firstPath });
-
-		execSync("git add .", { cwd: this.firstPath });
-		execSync(`git commit -m "init"`, { cwd: this.firstPath });
-		execSync("git push", { cwd: this.firstPath });
-
-		execSync("git clone FILE_BARE FILE_WORKDIR2", { cwd: this.path });
+		execSync("git clone FILE_BARE FILE_WORKDIR2", { cwd: this.path, stdio: "pipe" });
 
 		const gvcBare = new GitVersionControl(new Path("FILE_BARE"), dfp);
 		const storageBare = new GitStorage(new Path("FILE_BARE"), dfp);
@@ -73,7 +74,7 @@ export default class FileRepository {
 
 	clear() {
 		this._validateStorageNameMock.mockRestore();
-		if (this.preserveDelete) return;
+		if (this.preventDelete) return;
 		fs.rmSync(this.path + "/FILE_BARE", { recursive: true });
 		fs.rmSync(this.path + "/FILE_WORKDIR1", { recursive: true });
 		fs.rmSync(this.path + "/FILE_WORKDIR2", { recursive: true });

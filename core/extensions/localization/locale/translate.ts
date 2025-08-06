@@ -21,7 +21,7 @@ export type SystemProperty = {
 
 export type Locale = typeof en;
 export type DefaultLocale = typeof defaultLocale;
-type TranslationKey = ObjectDotNotation<
+export type TranslationKey = ObjectDotNotation<
 	Omit<typeof defaultLocale, "properties.system"> & { forms: FormDefinition; properties: SystemProperty }
 >;
 
@@ -74,10 +74,13 @@ export const pluralize = (
 		few: string;
 		many: string;
 	},
-	prefix: string = "",
+	addCount = true,
+	prefix = "",
 ) => {
 	const lastDigit = count % 10;
 	const lastTwoDigits = count % 100;
+
+	if (!addCount) return forms[lastDigit === 1 ? "one" : lastDigit >= 2 && lastDigit <= 4 ? "few" : "many"];
 
 	if (count === 0 && forms.zero) {
 		return forms.zero;

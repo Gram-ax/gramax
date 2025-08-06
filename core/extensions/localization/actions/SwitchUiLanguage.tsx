@@ -1,12 +1,18 @@
 import Icon from "@components/Atoms/Icon";
-import PopupMenuLayout from "@components/Layouts/PopupMenuLayout";
-import ButtonLink from "@components/Molecules/ButtonLink";
 import FetchService from "@core-ui/ApiServices/FetchService";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import LanguageService from "@core-ui/ContextServices/Language";
 import { usePlatform } from "@core-ui/hooks/usePlatform";
 import UiLanguage from "@ext/localization/core/model/Language";
 import t from "@ext/localization/locale/translate";
+import {
+	DropdownMenu,
+	DropdownMenuContent,
+	DropdownMenuGroup,
+	DropdownMenuItem,
+	DropdownMenuTriggerButton,
+} from "ics-ui-kit/components/dropdown";
+import { MenuItemInfoTemplate } from "ics-ui-kit/components/menu-item";
 import { useCallback } from "react";
 
 const SwitchUiLanguage = () => {
@@ -26,17 +32,24 @@ const SwitchUiLanguage = () => {
 	const current = LanguageService.currentUi();
 
 	return (
-		<PopupMenuLayout trigger={<ButtonLink iconCode="globe" text={t("current")} />}>
-			{Object.values(UiLanguage).map((l, idx) => (
-				<ButtonLink
-					key={idx}
-					onClick={l == current ? null : () => setLanguage(l)}
-					text={t("current", l)}
-					fullWidth={current == l}
-					rightActions={[current == l ? <Icon key={0} code="check" /> : null]}
-				/>
-			))}
-		</PopupMenuLayout>
+		<DropdownMenu>
+			<DropdownMenuTriggerButton variant="ghost" className="aspect-square p-2" data-qa={`qa-language-${current}`}>
+				<Icon code={"globe"} />
+			</DropdownMenuTriggerButton>
+			<DropdownMenuContent>
+				<DropdownMenuGroup>
+					{Object.values(UiLanguage).map((l, idx) => (
+						<DropdownMenuItem
+							key={idx + l}
+							onClick={l == current ? null : () => setLanguage(l)}
+							data-qa="qa-clickable"
+						>
+							<MenuItemInfoTemplate text={t("current", l)} isSelected={current == l} />
+						</DropdownMenuItem>
+					))}
+				</DropdownMenuGroup>
+			</DropdownMenuContent>
+		</DropdownMenu>
 	);
 };
 

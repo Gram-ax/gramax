@@ -15,7 +15,7 @@ impl AddCredentialsHeaders for FetchOptions<'_> {
     let private_token = format!("x-private-token: {}", creds.access_token());
 
     if let Some(protocol) = creds.protocol() {
-      self.custom_headers(&[&private_token, &format!("x-protocol: {}", protocol)]);
+      self.custom_headers(&[&private_token, &format!("x-protocol: {protocol}")]);
     } else {
       self.custom_headers(&[&private_token]);
     }
@@ -27,7 +27,7 @@ impl AddCredentialsHeaders for PushOptions<'_> {
     let private_token = format!("x-private-token: {}", creds.access_token());
 
     if let Some(protocol) = creds.protocol() {
-      self.custom_headers(&[&private_token, &format!("x-protocol: {}", protocol)]);
+      self.custom_headers(&[&private_token, &format!("x-protocol: {protocol}")]);
     } else {
       self.custom_headers(&[&private_token]);
     }
@@ -42,7 +42,7 @@ pub fn ssl_callback(_cert: &cert::Cert, _host: &str) -> Result<CertificateCheckS
   return Ok(CertificateCheckStatus::CertificateOk);
 }
 
-pub fn make_credentials_callback<C: Creds>(creds: &C) -> CredentialsCallback {
+pub fn make_credentials_callback<C: Creds>(creds: &C) -> CredentialsCallback<'_> {
   let mut identities = resolve_identities();
   Box::new(move |url: &str, username: Option<&str>, allowed_type: CredentialType| -> Result<Cred, Error> {
     match allowed_type {
@@ -68,7 +68,7 @@ pub fn push_update_reference_callback(
     return Err(git2::Error::new(
       ErrorCode::Invalid,
       ErrorClass::Net,
-      format!("Failed to push {}: {}", refname, status),
+      format!("Failed to push {refname}: {status}"),
     ));
   }
   Ok(())

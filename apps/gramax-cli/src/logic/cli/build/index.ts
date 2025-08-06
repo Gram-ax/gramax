@@ -9,6 +9,7 @@ import getApp from "@app/node/app";
 import StaticSiteBuilder from "../../StaticSiteBuilder";
 import ChalkLogger from "../../../utils/ChalkLogger";
 import { checkExistsPath, setRootPath } from "../utils/paths";
+import CliUserError from "../../CliUserError";
 const CONFIG_NAME = "gramax.config.yaml";
 
 enum EnvVariables {
@@ -68,7 +69,7 @@ const buildCommandFunction = async (options: BuildOptions) => {
 
 	await checkExistsPath(fullPath);
 	const fp = new DiskFileProvider("");
-	if (!(await fp.isFolder(new Path(fullPath)))) throw new Error("The provided path is not a directory.");
+	if (!(await fp.isFolder(new Path(fullPath)))) throw new CliUserError("The provided path is not a directory.");
 
 	const catalogName = basename(fullPath);
 	await setEnv(fullPath);
@@ -76,7 +77,7 @@ const buildCommandFunction = async (options: BuildOptions) => {
 	const app = await getApp();
 	const wm = app.wm.current();
 	const catalog = await wm.getContextlessCatalog(catalogName);
-	if (!catalog) throw new Error("This is an empty catalog");
+	if (!catalog) throw new CliUserError("This is an empty catalog");
 
 	if (!SkipCheck) {
 		if (!(await check(catalogName))) process.exit(1);

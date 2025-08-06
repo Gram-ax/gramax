@@ -19,6 +19,7 @@ export default abstract class GitDiffItemCreator {
 
 	public async getDiffItems(): Promise<DiffItemResourceCollection> {
 		if (!this._gitVersionControl) return { items: [], resources: [] };
+
 		const files = await this._getChangedFiles();
 		const { items, resources } = await this._resolveDiffItems(files.items, files.resources);
 

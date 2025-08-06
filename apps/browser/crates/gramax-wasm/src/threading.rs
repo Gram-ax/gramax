@@ -28,13 +28,8 @@ pub fn run<F: FnOnce() -> Buffer + Send + Sync + 'static>(job: F) -> JobCallback
 fn on_done(callback_id: usize, buffer: Buffer) {
   unsafe {
     let ptr = buffer.boxed();
-    let script = format!(
-      "self.postMessage({{ callbackId: {callback_id}, ptr: {ptr} }})",
-      callback_id = callback_id,
-      ptr = ptr as usize
-    );
-
-    let script_cstr = CString::new(script).unwrap().into_raw() as *const u8;
+    let script = format!("self.postMessage({{ callbackId: {}, ptr: {} }})", callback_id, ptr as usize);
+    let script_cstr = CString::new(script).unwrap().into_raw().cast::<u8>();
     crate::ffi::emscripten_run_script(script_cstr);
   }
 }

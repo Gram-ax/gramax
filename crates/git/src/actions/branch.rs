@@ -198,7 +198,7 @@ impl<C: Creds> Branch for Repo<C> {
     let remote_name = format!("origin/{}", branch.name()?.or_utf8_err()?);
 
     let Ok(_) = self.0.find_branch(&remote_name, BranchType::Remote) else {
-      warn!(target: TAG, "remote branch {} does not exist; skipping upstream setting", remote_name);
+      warn!(target: TAG, "remote branch {remote_name} does not exist; skipping upstream setting");
       return Ok(true);
     };
 
@@ -264,10 +264,10 @@ impl<C: ActualCreds> RemoteBranch for Repo<C> {
   fn ensure_branch_exists(&self, shorthand: &str) -> Result<()> {
     self.ensure_branch_exists_local(shorthand)?;
 
-    match self.0.find_branch(&format!("origin/{}", shorthand), BranchType::Remote) {
+    match self.0.find_branch(&format!("origin/{shorthand}"), BranchType::Remote) {
       Ok(_) => (),
       Err(err) if err.code() == ErrorCode::NotFound => {
-        warn!(target: TAG, "branch {} does not exist; creating it", shorthand);
+        warn!(target: TAG, "branch {shorthand} does not exist; creating it");
         self.create_branch_remote(shorthand)?;
       }
       Err(err) => {

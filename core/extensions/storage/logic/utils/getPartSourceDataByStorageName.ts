@@ -4,7 +4,7 @@ import SourceType from "../SourceDataProvider/model/SourceType";
 const getPartGitSourceDataByStorageName = (
 	name: string,
 ): {
-	sourceType: SourceType.git | SourceType.gitHub | SourceType.gitLab;
+	sourceType: SourceType.git | SourceType.gitHub | SourceType.gitLab | SourceType.gitVerse;
 	data: Partial<GitSourceData>;
 } => {
 	if (!name) return { sourceType: null, data: {} };
@@ -14,6 +14,9 @@ const getPartGitSourceDataByStorageName = (
 	}
 	if (lcName.includes("gitlab")) {
 		return { sourceType: SourceType.gitLab, data: { domain: name } };
+	}
+	if (lcName.includes("gitverse")) {
+		return { sourceType: SourceType.gitVerse, data: {} };
 	}
 
 	return { sourceType: SourceType.git, data: { domain: name } };

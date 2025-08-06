@@ -54,25 +54,29 @@ const Scrollable = forwardRef((props: ScrollableProps, ref: MutableRefObject<HTM
 	}, []);
 
 	useEffect(() => {
-		const contentElement = containerRef.current?.firstElementChild.firstElementChild;
+		const container = containerRef.current;
+		if (!container) return;
+
+		const contentElement = container.firstElementChild?.firstElementChild;
 		if (!contentElement) return;
 
 		const onResize = () => {
-			setContainerWidth(containerRef.current?.getBoundingClientRect().width);
+			const rect = container.getBoundingClientRect();
+			setContainerWidth(rect.width);
 
-			const scroll = scrollUtils.hasScroll(containerRef.current);
+			const scroll = scrollUtils.hasScroll(container);
 			setHasElementScroll(scroll);
 			hasScroll?.(scroll);
 
-			const isTop = scrollUtils.scrollPositionIsTop(containerRef.current);
-			const isBottom = scrollUtils.scrollPositionIsBottom(containerRef.current);
+			const isTop = scrollUtils.scrollPositionIsTop(container);
+			const isBottom = scrollUtils.scrollPositionIsBottom(container);
 			setIsTop(isTop);
 			setIsBottom(isBottom);
 		};
 
 		const resizeObserver = new ResizeObserver(onResize);
 
-		resizeObserver.observe(containerRef.current);
+		resizeObserver.observe(container);
 		resizeObserver.observe(contentElement);
 
 		return () => {

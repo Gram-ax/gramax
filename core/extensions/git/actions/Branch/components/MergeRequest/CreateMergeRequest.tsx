@@ -8,6 +8,7 @@ import FormStyle from "@components/Form/FormStyle";
 import Modal from "@components/Layouts/Modal";
 import ModalLayoutLight from "@components/Layouts/ModalLayoutLight";
 import useWatch from "@core-ui/hooks/useWatch";
+import validateEmail from "@core/utils/validateEmail";
 import FormattedBranch from "@ext/git/actions/Branch/components/FormattedBranch";
 import SelectGES from "@ext/git/actions/Branch/components/MergeRequest/SelectGES";
 import SelectGitCommitAuthors from "@ext/git/actions/Branch/components/MergeRequest/SelectGitCommitAuthors";
@@ -114,12 +115,24 @@ const CreateMergeRequestModal = ({
 										approvers={approvers}
 										shouldFetch={isOpen}
 										onChange={(reviewers) => {
-											setApprovers(
-												reviewers.map((reviewer) => ({
-													name: reviewer.name,
-													email: reviewer.email,
-												})),
+											const additionalReviewers = reviewers.filter((reviewer) =>
+												validateEmail(reviewer.value),
 											);
+
+											const res = [
+												...reviewers
+													.filter((reviewer) => !!reviewer.name)
+													.map((reviewer) => ({
+														name: reviewer.name,
+														email: reviewer.email,
+													})),
+												...additionalReviewers.map((reviewer) => ({
+													name: reviewer.value,
+													email: reviewer.value,
+												})),
+											];
+
+											setApprovers(res);
 										}}
 									/>
 								)}

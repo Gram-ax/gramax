@@ -22,7 +22,7 @@ interface TablePlusActionsProps {
 	editor: Editor;
 	getPos: () => number;
 	isHovered: boolean;
-	tableRef: RefObject<HTMLElement>;
+	tableRef: RefObject<HTMLTableElement>;
 	tableSizes: {
 		cols: string[];
 		rows: string[];

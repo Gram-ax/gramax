@@ -62,11 +62,8 @@ const AggregationPopup = ({ editor, tableSheet, node, cell, index, getPos }: Agg
 		const isColumnHeader = table.dataset.header === "column";
 		const startRow = isRowHeader ? 1 : 0;
 
-		const cells = isColumnHeader ? [] : tableSheet.getColumn(index);
+		const cells = isColumnHeader ? [] : tableSheet.getColumn(tableSheet.getLogicalColumnIndex(index));
 		const formatter = getFormatter();
-		const lastRow = table.lastElementChild.lastElementChild as HTMLTableRowElement;
-		const lastRowIsAggregated = lastRow.dataset.aggregation === "true";
-
 		const getCellsColumnData = (cells: SheetColumn<number>): ColumnData => {
 			const data: ColumnData = [];
 
@@ -84,7 +81,7 @@ const AggregationPopup = ({ editor, tableSheet, node, cell, index, getPos }: Agg
 		};
 
 		for (const name in AggregationMethod) {
-			const data = getCellsColumnData(cells).slice(startRow, lastRowIsAggregated ? -1 : undefined);
+			const data = getCellsColumnData(cells).slice(startRow);
 			const aggregatedValue = getAggregatedValue(AggregationMethod[name], data);
 			methodsData.push(getFormattedValue(formatter, aggregatedValue));
 		}

@@ -9,10 +9,15 @@ name = "gramaxgit"
 crate-type = ["staticlib", "rlib"]
 
 [dependencies]
-indexmap = { version = "2.8.0" }
+indexmap = { version = "^2.8" }
+itertools = { workspace = true }
 log = { workspace = true }
 serde = { workspace = true }
 serde_yml = { workspace = true }
+chrono = { version = "^0.4", default-features = false, features = [
+  "alloc",
+  "std",
+] }
 
 [target.'cfg(any(target_os = "macos", target_os = "linux", target_os = "windows"))'.dependencies]
 dirs = "^5.0.0"

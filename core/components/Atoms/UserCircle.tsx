@@ -16,7 +16,7 @@ const UserCircle = styled(({ name, className }: { name: string; className?: stri
 				backgroundColor: hsluv.hsluvToHex([hue, saturation, lightness]),
 			}}
 		>
-			<div>{name.split(" ").map((s, i) => (i < 2 ? s[0] : null))}</div>
+			<div>{name?.split(" ").map((s, i) => (i < 2 ? s[0] : null))}</div>
 		</div>
 	);
 })`

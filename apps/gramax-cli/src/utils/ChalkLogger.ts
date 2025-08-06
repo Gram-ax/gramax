@@ -32,11 +32,6 @@ class ChalkLogger {
 		process.stdout.write("\r\x1b[K");
 	}
 
-	static getBoldText(text?: string) {
-		if (!text) return;
-		return chalk.bold(text);
-	}
-
 	static log(str?: string, options?: LogOptions) {
 		const log = this._formatLog(str, options);
 		console.log(log);

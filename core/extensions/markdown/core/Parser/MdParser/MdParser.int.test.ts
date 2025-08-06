@@ -227,8 +227,8 @@ describe("MdParser корректно парсит", () => {
 
 		test("комментарий", async () => {
 			const mdParser = await getMdParser();
-			const str = `[comment:email:time]\n[/comment]`;
-			const parsedStr = `{%comment count="email" undefined="time" %}\n{%/comment%}`;
+			const str = `[comment:wtere]\n[/comment]`;
+			const parsedStr = `{%comment id="wtere" %}\n{%/comment%}`;
 
 			const testParseStr = mdParser.preParse(str);
 
@@ -298,6 +298,16 @@ describe("MdParser корректно парсит", () => {
 							attr2: { type: String },
 						},
 					});
+
+					const testParseStr = mdParser.preParse(str);
+
+					expect(testParseStr).toEqual(parsedStr);
+				});
+
+				test("с <html> внутри", async () => {
+					const mdParser = await getMdParser();
+					const str = "```\n<html>\n<p>test</p>\n</html>\n```";
+					const parsedStr = "```\n<html>\n<p>test</p>\n</html>\n```";
 
 					const testParseStr = mdParser.preParse(str);
 
@@ -883,5 +893,4 @@ describe("MdParser корректно парсит", () => {
 			expect(testParseStr).toEqual(parsedStr);
 		});
 	});
-
 });

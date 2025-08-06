@@ -7,7 +7,6 @@ import MimeTypes from "@core-ui/ApiServices/Types/MimeTypes";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import LanguageService from "@core-ui/ContextServices/Language";
 import useWatch from "@core-ui/hooks/useWatch";
-import getIsDevMode from "@core-ui/utils/getIsDevMode";
 import Mode from "@ext/git/actions/Clone/model/Mode";
 import GitSourceData from "@ext/git/core/model/GitSourceData.schema";
 import t from "@ext/localization/locale/translate";
@@ -101,7 +100,6 @@ const CreateSourceData = (props: CreateSourceDataProps) => {
 										placeholder={`${t("find")} ${placeholderSuffix}`}
 										items={Object.values(SourceType)
 											.filter(filter)
-											.filter((v) => (v === SourceType.yandexDisk ? getIsDevMode() : true))
 											.map((v) => ({
 												element: (
 													<SourceListItem

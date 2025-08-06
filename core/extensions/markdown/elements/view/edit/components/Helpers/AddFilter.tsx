@@ -12,6 +12,7 @@ interface AddFilterProps {
 	updateAttributes: (attributes: Record<string, any>) => void;
 	tooltipText?: string;
 	availableValues?: boolean;
+	filter?: (property: Property) => boolean;
 	customPropertyMenu?: (
 		property: Property,
 		updateData: (name: string, value: string | string[]) => void,
@@ -42,9 +43,11 @@ const AddFilter = (props: AddFilterProps) => {
 		closeOnSelection = true,
 		specialValues = false,
 		allowAddAll = false,
+		filter,
 	} = props;
 	const noAssignedProperties: PropertyFilter[] = useMemo(() => {
 		return catalogProps.properties
+			.filter((prop) => filter?.(prop) ?? true)
 			.filter((prop) => allowSystemProperties || !SystemProperties[prop.name.toLowerCase()])
 			.map((prop) => {
 				const assignedProp = properties.findIndex(
@@ -64,7 +67,7 @@ const AddFilter = (props: AddFilterProps) => {
 
 				return prop;
 			});
-	}, [catalogProps?.properties, properties]);
+	}, [catalogProps?.properties, properties, filter, allowSystemProperties]);
 
 	const addFilter = useCallback(
 		(name: string, val?: string | string[]) => {
@@ -75,7 +78,7 @@ const AddFilter = (props: AddFilterProps) => {
 
 			if (Array.isArray(val)) newValue = val;
 			else if (availableValues && !oneValue) {
-				if (val.includes("all")) {
+				if (val?.includes("all")) {
 					const includesNone = !val.includes("none");
 					newValue =
 						property.type === PropertyTypes.flag

@@ -6,7 +6,7 @@ import Theme from "@ext/Theme/Theme";
 type OAuthType = "google";
 
 class CloudApi {
-	constructor(private _cloudUrl: string, private _onError?: (error: NetworkApiError | DefaultError) => void) {}
+	constructor(protected _cloudUrl: string, private _onError?: (error: NetworkApiError | DefaultError) => void) {}
 
 	getCatalogLogoUrl(catalogName: string, theme: Theme, login: string): string {
 		return `${this._cloudUrl}/api/get-catalog-logo?catalogName=${catalogName}&theme=${theme}&login_name=${login}`;
@@ -16,6 +16,18 @@ class CloudApi {
 		return `${this._cloudUrl}/oauth?auth_type=${type}${
 			redirectUrl ? `&redirect=${encodeURIComponent(redirectUrl)}` : ""
 		}`;
+	}
+
+	getLoginSuccessUrl() {
+		return `${this._cloudUrl}/login/success`;
+	}
+
+	async signIn(query: string) {
+		await this._api(`/api/generate-cookie${query}`, {}, false);
+	}
+
+	async signOut() {
+		await this._api("/api/reset-cookie", {}, false);
 	}
 
 	async getServerState(): Promise<boolean> {
@@ -47,6 +59,23 @@ class CloudApi {
 			method: "DELETE",
 			body: JSON.stringify({ name: catalogName }),
 		});
+	}
+
+	async getCatalogPublishDate(catalogName: string): Promise<string> {
+		let res: Response;
+
+		try {
+			res = await this._api(`/api/get-catalog-publish-date?catalogName=${encodeURIComponent(catalogName)}`, {
+				headers: {
+					"Content-Type": "application/json",
+				},
+				method: "GET",
+			});
+		} catch {
+			return null;
+		}
+		const data = await res.json();
+		return data?.publisingDate;
 	}
 
 	protected async _api(path: string, options: RequestInit = {}, triggerOnErrorCallback = true): Promise<Response> {

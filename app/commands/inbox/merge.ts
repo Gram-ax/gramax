@@ -1,7 +1,7 @@
 import { ResponseKind } from "@app/types/ResponseKind";
 import Context from "@core/Context/Context";
-import { Command } from "../../types/Command";
 import { InboxArticle } from "@ext/inbox/models/types";
+import { Command } from "../../types/Command";
 
 const create: Command<
 	{ catalogName: string; ctx: Context; draggedLogicPath: string; droppedLogicPath: string },
@@ -24,7 +24,7 @@ const create: Command<
 			parserContextFactory,
 			ctx,
 		);
-		return await inbox.createInboxArticle(newNote);
+		return inbox.createInboxArticle(newNote);
 	},
 
 	params(ctx, q) {

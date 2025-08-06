@@ -3,15 +3,17 @@ import RenderVideo from "./RenderVideo";
 import ErrorVideo from "@ext/markdown/elements/video/render/components/ErrorVideo";
 import Skeleton from "@components/Atoms/ImageSkeleton";
 import styled from "@emotion/styled";
+import BlockCommentView from "@ext/markdown/elements/comment/edit/components/BlockCommentView";
 
 interface VideoProps {
 	path: string;
 	title: string;
 	noEm?: boolean;
 	className?: string;
+	commentId?: string;
 }
 
-const Video = ({ path, title, noEm, className }: VideoProps) => {
+const Video = ({ path, title, noEm, className, commentId }: VideoProps) => {
 	const [isError, setIsError] = useState(false);
 	const [isLoaded, setIsLoaded] = useState(false);
 
@@ -22,17 +24,19 @@ const Video = ({ path, title, noEm, className }: VideoProps) => {
 	return (
 		<div className={className} data-type="video">
 			<Skeleton isLoaded={isError || isLoaded} width="100%">
-				{isError ? (
-					<>
-						<ErrorVideo link={path} isLink isNoneError={!path} />
-						{!path && title && !noEm && <em>{title}</em>}
-					</>
-				) : (
-					<>
-						<RenderVideo url={path} setIsError={setIsError} setIsLoaded={setIsLoaded} />
-						{title && !noEm && <em>{title}</em>}
-					</>
-				)}
+				<BlockCommentView commentId={commentId}>
+					{isError ? (
+						<>
+							<ErrorVideo link={path} isLink isNoneError={!path} />
+							{!path && title && !noEm && <em>{title}</em>}
+						</>
+					) : (
+						<>
+							<RenderVideo url={path} setIsError={setIsError} setIsLoaded={setIsLoaded} />
+							{title && !noEm && <em>{title}</em>}
+						</>
+					)}
+				</BlockCommentView>
 			</Skeleton>
 		</div>
 	);

@@ -43,7 +43,7 @@ export const Changes = ({ targetRef, stage, setStage }: ChangesProps) => {
 			isCollapsed={false}
 			isNotLoaded={!changes}
 			isLoading={stage === DiffEntriesLoadStage.Loading}
-			right={changes && <Overview showTotal fontSize="12px" {...changes.overview} />}
+			right={changes && <Overview showTotal fontSize="12px" {...(changes?.overview || {})} />}
 			headerStyles="padding-left: 1rem; padding-right: 1rem;"
 		>
 			{DiffEntriesCached}

@@ -8,19 +8,27 @@ import Path from "@core/FileProvider/Path/Path";
 import { ItemRef } from "@core/FileStructue/Item/ItemRef";
 import { ItemRefStatus } from "@ext/Watchers/model/ItemStatus";
 import Watcher from "@ext/Watchers/model/Watcher";
+import assert from "assert";
 import * as fs from "fs-extra";
 
 const isDesktop = getExecutingEnvironment() == "tauri";
 
-export default class DiskFileProvider implements FileProvider {
-	private static _events: EventEmitter<FileProviderEvents> = new EventEmitter();
-	private _rootPath: Path;
-	private _mountPath: Path;
+export type DiskFileProviderOptions = {
+	watcher?: Watcher;
+};
 
-	constructor(rootPath: Path | string, private _watcher?: Watcher) {
+export default class DiskFileProvider implements FileProvider {
+	protected static _events: EventEmitter<FileProviderEvents> = new EventEmitter();
+	protected _rootPath: Path;
+	protected _mountPath: Path;
+	private _watcher: Watcher;
+
+	constructor(rootPath: Path | string, options: DiskFileProviderOptions = {}) {
 		if (typeof rootPath === "string") this._rootPath = new Path(rootPath);
 		else this._rootPath = rootPath;
-		_watcher?.init(this);
+
+		this._watcher = options.watcher;
+		this._watcher?.init(this);
 	}
 
 	static get events(): EventEmitter<FileProviderEvents> {
@@ -214,7 +222,15 @@ export default class DiskFileProvider implements FileProvider {
 	}
 
 	toAbsolute(path: Path): string {
-		if (!this._mountPath && !this._rootPath) throw new Error("Mount path or root path are not set");
+		assert(this._mountPath || this._rootPath, "Mount path or root path are not set");
+
+		// If the root path is not empty and mount path is specified, we need to remove first component of path
+		// This is needed in cases when we using a virtual path, like 'catalog:tag'
+		// If we don't remove first component, we will get '/mnt/dir/catalog:tag/catalog/...'
+		if (this._mountPath && this._rootPath.value != Path.empty.value) {
+			const index = path.value.indexOf("/");
+			path = index > 0 ? new Path(path.value.slice(index + 1)) : Path.empty;
+		}
 
 		if (this._mountPath) {
 			if (this._rootPath) return this._mountPath.join(this._rootPath, path).value;

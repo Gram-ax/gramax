@@ -27,6 +27,11 @@ const locale = {
 					description:
 						"List of versions (branches or tags) to be shown in the doc portal. Specified as glob patterns, e.g., v19.* or release-*",
 				},
+				filterProperties: {
+					name: "Filter Properties",
+					placeholder: "Specify the filter properties",
+					description: "List of properties to use for filtering the catalog",
+				},
 				language: {
 					name: "Main language",
 					placeholder: "English",
@@ -46,11 +51,6 @@ const locale = {
 				},
 				properties: {
 					name: "Properties",
-				},
-				group: {
-					name: "Group",
-					placeholder: "Group",
-					description: "Group on the main page where it will be displayed",
 				},
 			},
 			section: {
@@ -179,14 +179,57 @@ const locale = {
 					placeholder: "glpat-aq6PK8sz1eQeKhTy-Dm5", // # gitleaks:allow
 					description: `<a ${
 						getExecutingEnvironment() === "tauri" ? "" : "target='_blank'"
-					} href='{{create_token_url}}'>New token</a><br>Token for reading and modifying repositories in storage. Specify the token permissions: api, read_repository, write_repository. <a ${
+					} href='{{create_token_url}}'>New token</a><br>Token for reading and modifying repositories in storage. Specify the token permissions: <code>api</code>, <code>read_repository</code>, <code>write_repository</code>. <a ${
 						getExecutingEnvironment() === "tauri" ? "" : "target='_blank'"
 					} href='https://docs.gitlab.com/ee/user/profile/personal_access_tokens.html'>Learn more</a>`,
 				},
 				url: {
-					name: "Git Server URL",
-					placeholder: "https://git-server.com",
-					description: "Copy the URL from the main page of your repository",
+					name: "GitLab Server URL",
+					placeholder: "https://gitlab.com",
+					description: "Log in to GitLab and copy the URL from the main page",
+				},
+				createDate: {
+					name: "Creation Time",
+					placeholder: "1707213960",
+					description: "Token retrieval time",
+				},
+				refreshToken: {
+					name: "Refresh Token",
+					placeholder: "4740fbc6db719d42c158b88580be7633c1e386827ebe9134e9a5198c52cb2e4c",
+					description: "Token for refreshing the main token",
+				},
+				userName: {
+					name: "Author Name",
+					description: "Will be displayed in the change history",
+					placeholder: "John Doe",
+				},
+				userEmail: {
+					name: "Email",
+					description: "Will be displayed in the change history",
+					placeholder: "john.doe@mail.com",
+				},
+			},
+		},
+		"gitverse-source-data": {
+			props: {
+				sourceType: {
+					name: "Type",
+				},
+				token: {
+					name: "GitVerse Token",
+					placeholder: "e5a43119d84f620fedfc0929e125ed4b10a6a5f4", // # gitleaks:allow
+					description:
+						`<a ${
+							getExecutingEnvironment() === "tauri" ? "" : "target='_blank'"
+						} href='https://gitverse.ru/settings/tokens'>Create token</a><br>Token for reading and modifying repositories in storage. Specify the token permissions: <code>Репозиторий</code>, <code>Публичный API</code>. ` +
+						`<a ${
+							getExecutingEnvironment() === "tauri" ? "" : "target='_blank'"
+						} href='https://gitverse.ru/docs/account-and-profile/tokens-uc/'>Learn more</a>`,
+				},
+				url: {
+					name: "GitVerse Server URL",
+					placeholder: "https://gitverse.ru",
+					description: "Log in to GitVerse and copy the URL from the main page",
 				},
 				createDate: {
 					name: "Creation Time",
@@ -319,6 +362,13 @@ const locale = {
 		},
 	},
 	app: {
+		update: {
+			error: "Unable to update the application",
+			retry: "Try again",
+			available: "New version is available",
+			updating: "Updating...",
+			installed: "Update installed",
+		},
 		loading: "loading",
 		error: {
 			"browser-not-supported": {
@@ -449,13 +499,13 @@ const locale = {
 		"css-style": "CSS-style",
 		logo: "Logo",
 		appearance: "Appearance",
-		"button-ai-server": "AI server",
 		"set-ai-server": "AI server",
 		"ai-server-url": "AI server URL",
 		"ai-server-url-description": "Enter the URL of your AI server",
 		"ai-server-token": "AI server token",
 		"ai-server-token-description": "Enter the token for your AI server",
 		"ai-server-error": "Error connecting to AI server. Check the URL",
+		"ai-token-set-error": "Token is not set. To connect, you need to set the token",
 		"ai-token-error": "Token is invalid. Check it in the server settings",
 		"delete-ai-server": "Delete AI server?",
 		"upload-error-title": "Upload Error",
@@ -471,6 +521,33 @@ const locale = {
 		"for-dark-theme": "For the dark theme",
 		"default-logo-description":
 			"Default logo. Used in the light theme and also in the dark theme if there is no separate dark theme logo",
+		tooltip: {
+			"only-current": {
+				one: "catalog is available for sync in the current workspace",
+				few: "catalogs are available for sync in the current workspace",
+				many: "catalogs are available for sync in the current workspace",
+			},
+			"including-current": {
+				one: "catalog is available for sync ({{current-count}} in current)",
+				few: "catalogs are available for sync in {{workspace-count}} workspaces ({{current-count}} in current)",
+				many: "catalogs are available for sync in {{workspace-count}} workspaces ({{current-count}} in current)",
+			},
+			"excluding-current": {
+				one: "catalog is available for sync",
+				few: "catalogs are available for sync in {{workspace-count}} workspaces",
+				many: "catalogs are available for sync in {{workspace-count}} workspaces",
+			},
+			"only-one-excluding-current": {
+				one: "catalog is available for sync in one of workspaces",
+				few: "catalogs are available for sync in one of workspaces",
+				many: "catalogs are available for sync in one of workspaces",
+			},
+			"has-changes": {
+				one: "{{count}} catalog is available for sync",
+				few: "{{count}} catalogs are available for sync",
+				many: "{{count}} catalogs are available for sync",
+			},
+		},
 	},
 	"file-input": {
 		"select-file": "Select a file",
@@ -583,10 +660,15 @@ Add storage to confirm the link.`,
 	catalog: {
 		"new-name": "New Catalog",
 		new: "Create new",
+		"new-2": "Create new catalog",
+		"new-3": "Stored locally until first publication",
 		clone: "Load",
 		"clone-2": "Load existing",
 		"clone-3": "Clone via Link",
+		"clone-4": "If it already exists in the storage",
 		import: "Import",
+		"import-2": "Import from another system",
+		"import-3": "From Confluence or Notion",
 		add: "Add catalog",
 		delete: "Delete catalog",
 		name: "catalog",
@@ -727,17 +809,47 @@ Add storage to confirm the link.`,
 		},
 	},
 	cloud: {
-		"enter-cloud": "Log in to Gramax Cloud",
-		"upload-button": "Publish",
-		"upload-catalog": "Publish catalog",
-		"upload-success": "Catalog published successfully",
-		"upload-success-link": "Link to the published catalog",
-		"catalog-link": "The catalog will be available at this link",
-		"delete-catalog": "The catalog will be deleted from cloud",
+		"publish-to-cloud": "Publish to Cloud",
+		"login-modal": {
+			title: "Sign in to Gramax Cloud",
+			description: "Authorization is required to publish the catalog",
+			definition:
+				"is a service for hosting static HTML versions of catalogs. After publishing, your catalog will be available at the following link",
+			"account-info":
+				"Sign in is required to protect and link the publication to your account. All subsequent publications will also be performed on behalf of this account.",
+		},
+		"upload-modal": {
+			title: "Publish catalog",
+			description: "Make your catalog available to everyone",
+			info: "After publishing, the catalog will become available <strong>to everyone on the Internet</strong> at the following link:",
+			revoke: "You can unpublish the catalog at any time.",
+			"switch-account": "Switch account",
+			status: {
+				building: "Building site",
+				publishing: "Publishing",
+			},
+			published: {
+				title: "Republish catalog",
+				description: "Update the published catalog available to everyone",
+				info: "After republishing, the catalog will remain available <strong>to everyone on the Iinternet</strong> at the following link:",
+			},
+		},
+		"uploaded-modal": {
+			title: "Catalog published successfully",
+			link: "Link to the published catalog",
+			description:
+				"You can see the publication status in the right panel. There you can also update or revoke the publication.",
+		},
+		"publish-status-panel": {
+			published: "Published",
+			republish: "Republish",
+			delete: "Delete publication",
+		},
 		error: {
 			"failed-to-connect": "Failed to connect to the cloud server",
 			"request-failed": "Failed to request to the cloud server",
 		},
+		"delete-catalog": "The catalog will be deleted from cloud",
 	},
 	"log-in": "Log in to ",
 	"login-with": "Login with ",
@@ -749,6 +861,9 @@ Add storage to confirm the link.`,
 		"articles-not-found": "No articles found",
 		"all-catalogs": "Search all catalogs",
 		ai: "AI search",
+		"ai-search-error":
+			"The AI search function is unavailable due to technical problems. We recommend contacting the system administrator for additional information.",
+		"ai-search-error-title": "Technical problems with AI search",
 	},
 	list: {
 		"no-results-found": "No results found",
@@ -757,12 +872,15 @@ Add storage to confirm the link.`,
 	versions: {
 		switch: "Switch version",
 		version: "Version",
-		"current-version": "You're currently viewing this version",
 		"not-actual-warning": {
 			header: "Outdated version",
 			"1": "You are viewing an outdated version ",
 			"2": "Switch to the <a data-qa href='{{link}}'>latest version</a> to view the actual version",
 		},
+	},
+	filterProperties: {
+		switch: "Filter",
+		unfilter: "No filter",
 	},
 	git: {
 		source: {
@@ -789,7 +907,6 @@ Add storage to confirm the link.`,
 				queue: "Pending",
 				cancel: "Cancelling",
 			},
-			cancel: "Cancel",
 			etc: {
 				bs: "{bs} B/s",
 				kbs: "{kbs} KB/s",
@@ -801,6 +918,7 @@ Add storage to confirm the link.`,
 				"eta-m": ", ETA {m}m {s}s",
 				"eta-h": ", ETA {h}h {m}m {s}s",
 			},
+
 			"receiving-objects": "Received {received} objects of {total} (indexed {indexed})",
 			"indexing-deltas": "Indexed {indexed} deltas of {total}",
 			checkout: "Checkout {checkouted} files of {total}",
@@ -819,11 +937,12 @@ Add storage to confirm the link.`,
 				} rel='noreferrer'>https://github.com/gram-ax/gramax</a>`,
 			},
 			error: {
+				title: "Error loading",
 				"cannot-clone": "Unable to load catalog",
 				"already-exist": "A catalog with name `{{path}}` already exists",
 				"no-permission": "No access to repository {{url}}",
 				generic: "Try refreshing the page and loading the catalog again.",
-				"branch-not-found": "Unable to load catalog on branch {{branch}}",
+				"branch-not-found": "Unable to load catalog on branch <code>{{branch}}</code>",
 				public: {
 					"invalid-link":
 						"Invalid link to repository. Please check if link is correct and repository is public",
@@ -884,6 +1003,7 @@ Add storage to confirm the link.`,
 		merge: {
 			"instant-merge": "Instant merge",
 			merge: "Merge",
+			"add-user": "Add user",
 			branches: "Merge branches",
 			"after-merge": "After the merge",
 			"current-branch": "Merge the current branch",
@@ -970,8 +1090,8 @@ Add storage to confirm the link.`,
 			},
 		},
 		revisions: {
-			"compare-title": "Revision comparison",
-			"compare-button": "Compare revisions",
+			"compare-title": "Change review",
+			"compare-button": "Change review",
 			"choose-placeholder": "Select revision...",
 		},
 		discard: {
@@ -979,6 +1099,7 @@ Add storage to confirm the link.`,
 				"Discard selected changes? The articles will revert to their previous state, and the added media files will be deleted.",
 			"select-all-arrow-tooltip": "Discard selected changes",
 			"selected-file-arrow-tooltip": "Discard changes",
+			"paragraph-tooltip": "Discard changes",
 		},
 		warning: {
 			"no-changes": {
@@ -1100,9 +1221,13 @@ Add storage to confirm the link.`,
 		"log-in": "Log in to Yandex.Disk",
 	},
 	diff: {
-		wysiwyg: "Visual comparison",
-		"single-panel": "Single-panel text",
-		"double-panel": "Two-panel text",
+		"source-text": "Source text",
+		"double-panel": "Double panel",
+		type: {
+			added: "Added",
+			modified: "Modified",
+			deleted: "Deleted",
+		},
 	},
 	"unsupported-elements": {
 		confluence: {
@@ -1148,6 +1273,7 @@ Add storage to confirm the link.`,
 		ai: {
 			improve: "Improve writing",
 			generate: "Generate",
+			transcribe: "Transcribe speech to text",
 		},
 		italic: "Italic",
 		bold: "Bold",
@@ -1159,6 +1285,19 @@ Add storage to confirm the link.`,
 		"task-list": "Task list",
 		note: "Note",
 		heading: "Heading",
+		highlight: {
+			name: "Highlight background",
+			colors: {
+				default: "No highlight",
+				"lemon-yellow": "Lemon yellow",
+				"mint-green": "Mint green",
+				lavender: "Lavender",
+				"ice-blue": "Ice blue",
+				peach: "Peach",
+				"light-pink": "Light pink",
+				"grayish-blue": "Grayish blue",
+			},
+		},
 		templates: {
 			"inline-property": "Property field",
 			"block-field": "Block field input",
@@ -1306,7 +1445,33 @@ Add storage to confirm the link.`,
 	},
 	"experimental-features": {
 		label: "Experimental Features",
-		"learn-more": "Learn more about experimental features",
+		status: {
+			"in-dev": "This feature is under development and not intended to be used",
+			experimental: "This feature is experimental and may not work as expected",
+			unstable: "This feature is unstable and likely contains bugs",
+			beta: "This feature is not yet fully stabilized and still may contain bugs",
+		},
+	},
+	export: {
+		name: "Export",
+		zip: {
+			catalog: "Catalog to ZIP",
+			article: "Article to ZIP",
+			category: "Section to ZIP",
+			process: "Preparing to export ZIP archive",
+		},
+		docx: {
+			catalog: "Catalog to DOCX",
+			article: "Article to DOCX",
+			category: "Section to DOCX",
+			process: "Preparing to export DOCX document",
+		},
+		pdf: {
+			catalog: "Catalog to PDF",
+			article: "Article to PDF",
+			category: "Section to PDF",
+			process: "Preparing to export PDF document",
+		},
 	},
 	account: "Account",
 	add: "Add",
@@ -1346,7 +1511,6 @@ Add storage to confirm the link.`,
 	existing: "existing",
 	exit: "Exit",
 	expand: "Expand",
-	export: "Export",
 	field: "Field",
 	file: "File",
 	find: "Search",
@@ -1379,6 +1543,7 @@ Add storage to confirm the link.`,
 	local: "Local branch",
 	mail: "Email",
 	more: "More",
+	"read-more": "Read more..",
 	name: "Name",
 	ok: "Okay",
 	open: "Open",
@@ -1440,10 +1605,6 @@ Add storage to confirm the link.`,
 	"and-sync-catalog": "And synchronize changes?",
 	"annotation-text": "Annotation text",
 	"article-titles": "Article titles",
-	"article-to-docx": "Article to DOCX",
-	"article-to-pdf": "Article to PDF",
-	"generate-pdf": "Generating PDF",
-	"generate-docx": "Generating DOCX",
 	"authorization-by-mail": "Authorization by email",
 	"bottom-left-pointer": "Bottom left annotation",
 	"bottom-right-pointer": "Bottom right annotation",
@@ -1469,8 +1630,6 @@ Add storage to confirm the link.`,
 	"cant-edit-this-line": "Cannot edit this line",
 	"cant-get-snippet-data": "Check if the path is correct and if the snippet file is in the repository",
 	"catalog-icons-title": "Catalog icons",
-	"category-to-docx": "Section to DOCX",
-	"category-to-pdf": "Section to PDF",
 	"change-and-sync": "Change and synchronize",
 	"check-diagrams": "Diagrams",
 	"check-file-path": "Check if the file path is correct",
@@ -1534,8 +1693,6 @@ Add storage to confirm the link.`,
 	"error-mail": "The email provided is incorrect.",
 	"error-sing-in": "Ошибка входа",
 	"error-occured": "An error occurred while displaying the documentation.",
-	"export-catalog-docx": "Сatalog to DOCX",
-	"export-catalog-pdf": "Сatalog to PDF",
 	"export-disabled": "Add an article to export",
 	"file-content": "File content",
 	"file-download-error-message": "It may have been moved or deleted.",
@@ -1774,6 +1931,28 @@ Add storage to confirm the link.`,
 		"ai-prompts": "AI Prompts",
 		"ask-ai": "Ask AI anything",
 		generating: "Generating...",
+		transcribe: {
+			name: "Transcription",
+			description: "Recognize speech from a media file",
+			click: "Click to record",
+			access: "Click to request access to the microphone",
+			"browser-denied": "Microphone access is denied. Allow access in browser settings",
+			"system-denied": "Microphone access is denied. Allow access in system settings",
+			loading: "Checking microphone access...",
+			notSupported: "Your browser does not support microphone access",
+			recording: "Recording",
+			reset: "Click to reset recorded audio",
+			pause: "Click to pause",
+			resume: "Click to resume",
+			warningHomeSend: "You can't save audio from the home page",
+			modal: "<p>After transcription, the recognized text will appear.</p><p>You can edit the text to improve its quality. To do this, click on the input field and edit it.</p>",
+			"limit-reached":
+				"The limit of 5 minutes has been reached. You can continue recording after saving the current audio.",
+			history: "Audio history",
+			modalAttention:
+				"<p><strong>Attention!</strong> The recognized text is not saved anywhere. If you want to save it, you can copy it to the clipboard.</p>",
+		},
+		transcribtion: "Transcribtion...",
 		placeholder: {
 			prettify: "What to do with the selected text ✨",
 			generate: "Write something beautiful ✨",
@@ -1796,10 +1975,16 @@ Add storage to confirm the link.`,
 	"add-favorite": "Add to favorites",
 	"remove-favorite": "Remove from favorites",
 	favorites: "Favorites",
+	home: "Home",
+	"groups-and-projects": "Groups and projects",
 	"no-favorites-in-catalog": "No favorites article in the current catalog",
 	"favorites-articles": "Favorites articles",
 	"inline-to-block-image": "Inline to block image",
 	"block-to-inline-image": "Block to inline image",
+	"save-file": "Save file",
+	"confirm-inbox-note-delete": "Are you sure you want to delete this note?",
+	"confirm-prompts-delete": "Are you sure you want to delete this prompt?",
+	"confirm-templates-delete": "Are you sure you want to delete this template?",
 };
 
 export default locale;

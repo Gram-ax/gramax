@@ -1,6 +1,6 @@
-import { generate, prettify, saveSelection, restoreSelection } from "@ext/ai/logic/Commands";
+import { generate, prettify, saveSelection, restoreSelection, transcribe } from "@ext/ai/logic/Commands";
 import BlurSelection from "@ext/ai/logic/plugins/BlurSelection/BlurSelection";
-import { AiGenerateOptions, AiPrettifyOptions, TiptapGramaxAiOptions } from "@ext/ai/models/types";
+import { AiGenerateOptions, AiPrettifyOptions, AiTranscribeOptions, TiptapGramaxAiOptions } from "@ext/ai/models/types";
 import { Extension } from "@tiptap/core";
 
 declare module "@tiptap/core" {
@@ -9,6 +9,7 @@ declare module "@tiptap/core" {
 		aiGenerate: { aiGenerate: (options: AiGenerateOptions) => ReturnType };
 		saveSelection: { saveSelection: () => ReturnType };
 		restoreSelection: { restoreSelection: () => ReturnType };
+		aiTranscribe: { aiTranscribe: (options: AiTranscribeOptions) => ReturnType };
 	}
 }
 
@@ -18,6 +19,7 @@ const Ai = Extension.create<TiptapGramaxAiOptions>({
 	addOptions() {
 		return {
 			apiUrlCreator: null,
+			resourceService: null,
 		};
 	},
 
@@ -25,6 +27,7 @@ const Ai = Extension.create<TiptapGramaxAiOptions>({
 		return {
 			aiPrettify: prettify(this.options.apiUrlCreator),
 			aiGenerate: generate(this.options.apiUrlCreator),
+			aiTranscribe: transcribe(this.options.apiUrlCreator),
 			saveSelection: saveSelection,
 			restoreSelection: restoreSelection,
 		};

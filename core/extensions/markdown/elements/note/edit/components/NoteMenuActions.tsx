@@ -19,10 +19,6 @@ interface NoteMenuActionsProps {
 
 const NoteMenuActions = (props: NoteMenuActionsProps) => {
 	const { editor, node, getPos, updateAttributes, setShowHeadEditor, showHeadEditor, titleRef } = props;
-	const handleDelete = () => {
-		const position = getPos();
-		editor.commands.deleteRange({ from: position, to: position + node.nodeSize });
-	};
 
 	const updateType = (type: NoteType) => {
 		updateAttributes({ type });
@@ -48,7 +44,7 @@ const NoteMenuActions = (props: NoteMenuActionsProps) => {
 
 			updateAttributes({ title: newTitle || "" });
 
-			title.value = newTitle || "";
+			if (title) title.value = newTitle || "";
 		} else if (!title?.value.length && hasDataBlur) {
 			updateAttributes({ title: "" });
 			setShowHeadEditor(false);
@@ -102,7 +98,6 @@ const NoteMenuActions = (props: NoteMenuActionsProps) => {
 				tooltipText={t("collapse")}
 				onClick={toggleCollapse}
 			/>
-			<ActionButton icon="trash" onClick={handleDelete} tooltipText={t("delete")} />
 		</>
 	);
 };

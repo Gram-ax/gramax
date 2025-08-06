@@ -44,7 +44,13 @@ impl Default for DiffCompareOptions {
 pub struct DiffConfig {
   #[serde(default)]
   pub compare: DiffCompareOptions,
+  #[serde(default = "default_use_merge_base")]
+  pub use_merge_base: bool,
   pub renames: bool,
+}
+
+fn default_use_merge_base() -> bool {
+  true
 }
 
 #[derive(Serialize, Debug)]
@@ -92,38 +98,11 @@ impl<C: Creds> Diff for Repo<C> {
   }
 
   fn diff(&self, opts: DiffConfig) -> Result<DiffTree2TreeInfo> {
-    let mut diff_opts = git2::DiffOptions::new();
-    diff_opts.context_lines(0);
+    let merge_base = self.diff_find_merge_base(&opts)?;
 
-    let mut diff = match opts.compare {
-      DiffCompareOptions::Tree2Tree { new, old } => {
-        let old_tree = self.0.find_object(old.parse()?, None).and_then(|o| o.peel_to_tree()).ok();
-        let new_tree = self.0.find_object(new.parse()?, None).and_then(|o| o.peel_to_tree()).ok();
-
-        info!(target: TAG, "tree2tree diff: {} -> {}", old.0, new.0);
-        self.0.diff_tree_to_tree(old_tree.as_ref(), new_tree.as_ref(), Some(&mut diff_opts))?
-      }
-      DiffCompareOptions::Tree2Workdir { tree: tree_id } => {
-        let tree = match tree_id {
-          Some(ref tree) => Some(self.0.find_object(tree.parse()?, None).and_then(|o| o.peel_to_tree())?),
-          _ => Some(self.0.head()?.peel_to_tree()?),
-        };
-
-        info!(target: TAG, "tree2workdir diff: {} -> workdir", tree_id.map(|t| t.0).unwrap_or_else(|| "head".to_string()));
-        self.0.diff_tree_to_workdir_with_index(tree.as_ref(), Some(&mut diff_opts))?
-      }
-
-      DiffCompareOptions::Tree2Index { tree: tree_id } => {
-        let tree = match tree_id {
-          Some(ref tree) => Some(self.0.find_object(tree.parse()?, None).and_then(|o| o.peel_to_tree())?),
-          _ => Some(self.0.head()?.peel_to_tree()?),
-        };
-
-        info!(target: TAG, "tree2index diff: {} -> index", tree_id.map(|t| t.0).unwrap_or_else(|| "head".to_string()));
-
-        let index = self.0.index()?;
-        self.0.diff_tree_to_index(tree.as_ref(), Some(&index), Some(&mut diff_opts))?
-      }
+    let mut diff = match merge_base {
+      Some(merge_base) => self.diff_using_merge_base(merge_base, &opts)?,
+      None => self.diff_without_merge_base(&opts)?,
     };
 
     if opts.renames {
@@ -137,6 +116,103 @@ impl<C: Creds> Diff for Repo<C> {
 }
 
 impl<C: Creds> Repo<C> {
+  fn diff_find_merge_base(&self, opts: &DiffConfig) -> Result<Option<Oid>> {
+    if !opts.use_merge_base {
+      return Ok(None);
+    }
+
+    let merge_base = match &opts.compare {
+      DiffCompareOptions::Tree2Tree { new, old } => {
+        let old_oid = old.parse()?;
+        let new_oid = new.parse()?;
+        self.0.merge_base(old_oid, new_oid)?
+      }
+      DiffCompareOptions::Tree2Workdir { tree } | DiffCompareOptions::Tree2Index { tree } => {
+        let head_commit = self.0.head()?.peel_to_commit()?;
+        let Some(tree_oid) = tree.as_ref().map(|t| t.parse()) else {
+          return Ok(None);
+        };
+        self.0.merge_base(head_commit.id(), tree_oid?)?
+      }
+    };
+
+    Ok(Some(merge_base))
+  }
+
+  fn diff_without_merge_base(&self, opts: &DiffConfig) -> Result<git2::Diff<'_>> {
+    let mut diff_opts = git2::DiffOptions::new();
+    diff_opts.context_lines(0);
+
+    let diff = match &opts.compare {
+      DiffCompareOptions::Tree2Tree { new, old } => {
+        let old_oid = old.parse::<Oid>()?;
+        let new_oid = new.parse()?;
+
+        let old_tree = self.0.find_object(old_oid, None).and_then(|o| o.peel_to_tree()).ok();
+        let new_tree = self.0.find_object(new_oid, None).and_then(|o| o.peel_to_tree()).ok();
+
+        info!(target: TAG, "tree2tree diff: {new_oid} -> {old_oid}");
+        self.0.diff_tree_to_tree(old_tree.as_ref(), new_tree.as_ref(), Some(&mut diff_opts))?
+      }
+      DiffCompareOptions::Tree2Workdir { tree: tree_id } => {
+        let head_commit = self.0.head()?.peel_to_commit()?;
+
+        let tree_commit_id = match tree_id.as_ref() {
+          Some(tree) => self.0.find_object(tree.parse()?, None).and_then(|o| o.peel_to_commit())?.id(),
+          _ => head_commit.id(),
+        };
+
+        info!(target: TAG, "tree2workdir diff: {tree_commit_id} -> workdir");
+        let base_commit = self.0.find_object(tree_commit_id, None).and_then(|o| o.peel_to_tree()).ok();
+        self.0.diff_tree_to_workdir_with_index(base_commit.as_ref(), Some(&mut diff_opts))?
+      }
+      DiffCompareOptions::Tree2Index { tree: tree_id } => {
+        let head_commit = self.0.head()?.peel_to_commit()?;
+
+        let tree_commit_id = match tree_id.as_ref() {
+          Some(tree) => self.0.find_object(tree.parse()?, None).and_then(|o| o.peel_to_commit())?.id(),
+          _ => head_commit.id(),
+        };
+
+        info!(target: TAG, "tree2index diff: {tree_commit_id} -> index");
+        let base_commit = self.0.find_object(tree_commit_id, None).and_then(|o| o.peel_to_tree()).ok();
+        self.0.diff_tree_to_index(base_commit.as_ref(), Some(&self.0.index()?), Some(&mut diff_opts))?
+      }
+    };
+
+    Ok(diff)
+  }
+
+  fn diff_using_merge_base(&self, merge_base: Oid, opts: &DiffConfig) -> Result<git2::Diff<'_>> {
+    let mut diff_opts = git2::DiffOptions::new();
+    diff_opts.context_lines(0);
+
+    let diff = match &opts.compare {
+      DiffCompareOptions::Tree2Tree { new, old } => {
+        let old_oid = old.parse::<Oid>()?;
+        let new_oid = new.parse()?;
+
+        let new_tree = self.0.find_object(new_oid, None).and_then(|o| o.peel_to_tree()).ok();
+
+        info!(target: TAG, "tree2tree diff: {merge_base} -> {new_oid} (using merge base; old oid: {old_oid})");
+        let base_commit = self.0.find_object(merge_base, None).and_then(|o| o.peel_to_tree()).ok();
+        self.0.diff_tree_to_tree(base_commit.as_ref(), new_tree.as_ref(), Some(&mut diff_opts))?
+      }
+      DiffCompareOptions::Tree2Workdir { tree: _ } => {
+        info!(target: TAG, "tree2workdir diff: {merge_base} -> workdir (using merge base)");
+        let base_commit = self.0.find_object(merge_base, None).and_then(|o| o.peel_to_tree()).ok();
+        self.0.diff_tree_to_workdir_with_index(base_commit.as_ref(), Some(&mut diff_opts))?
+      }
+      DiffCompareOptions::Tree2Index { tree: _ } => {
+        let base_commit = self.0.find_object(merge_base, None).and_then(|o| o.peel_to_tree()).ok();
+        info!(target: TAG, "tree2index diff: {merge_base} -> index (using merge base)");
+        self.0.diff_tree_to_index(base_commit.as_ref(), Some(&self.0.index()?), Some(&mut diff_opts))?
+      }
+    };
+
+    Ok(diff)
+  }
+
   fn collect_diff_deltas(&self, diff: git2::Diff<'_>) -> Result<DiffTree2TreeInfo> {
     let total_deletions = diff.stats()?.deletions();
     let total_additions = diff.stats()?.insertions();

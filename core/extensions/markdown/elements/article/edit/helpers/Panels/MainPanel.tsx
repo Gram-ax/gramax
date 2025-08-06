@@ -17,7 +17,7 @@ const MainPanel = (props: PanelMenuComponentProps) => {
 					<div className="divider" />
 				</>
 			)}
-			<TextMenuGroup editor={editor} />
+			<TextMenuGroup editor={editor} isSelectionMenu />
 			<div className="divider" />
 			<ListMenuGroup editor={editor} />
 			{!isCellSelection && (

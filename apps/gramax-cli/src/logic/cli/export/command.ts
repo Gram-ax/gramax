@@ -9,6 +9,7 @@ export interface ExportOptions {
 	output: string;
 	yes: boolean;
 	format: ExportFormat;
+	template: string;
 }
 
 export const defaultName = "export";
@@ -45,6 +46,13 @@ const exportOptions: {
 			description: "docx",
 		},
 		short: "f",
+		type: "string",
+	},
+	template: {
+		description:
+			"Path to a template file, or template name from the workspace of the catalog.\n" +
+			"Applies only when format is 'docx'",
+		short: "t",
 		type: "string",
 	},
 };

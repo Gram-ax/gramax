@@ -5,16 +5,18 @@ import ApiUrlCreatorService from "../../../../../ui-logic/ContextServices/ApiUrl
 import t from "@ext/localization/locale/translate";
 import DiagramError from "@ext/markdown/elements/diagrams/component/DiagramError";
 import ResourceService from "@ext/markdown/elements/copyArticles/resourceService";
+import BlockCommentView from "@ext/markdown/elements/comment/edit/components/BlockCommentView";
 const LazySwaggerUI = lazy(() => import("./SwaggerUI"));
 
 interface OpenApiProps {
 	src?: string;
 	className?: string;
 	flag?: boolean;
+	commentId?: string;
 }
 
 const OpenApi = (props: OpenApiProps) => {
-	const { src, className, flag = true } = props;
+	const { src, className, flag = true, commentId } = props;
 	const [data, setData] = useState<string>();
 	const [isError, setIsError] = useState(false);
 	const apiUrlCreator = ApiUrlCreatorService.value;
@@ -23,7 +25,7 @@ const OpenApi = (props: OpenApiProps) => {
 	if (typeof window === "undefined" || !apiUrlCreator || !resourceService) return null;
 
 	resourceService.useGetResource((buffer: Buffer) => {
-		if (!buffer?.byteLength) setIsError(true);
+		if (!buffer || !buffer?.byteLength) return setIsError(true);
 		setData(buffer.toString());
 	}, src);
 
@@ -44,7 +46,9 @@ const OpenApi = (props: OpenApiProps) => {
 							</div>
 						}
 					>
-						<LazySwaggerUI key={flag} defaultModelsExpandDepth={flag ? 1 : -1} spec={data} />
+						<BlockCommentView commentId={commentId}>
+							<LazySwaggerUI key={flag} defaultModelsExpandDepth={flag ? 1 : -1} spec={data} />
+						</BlockCommentView>
 					</Suspense>
 				</div>
 			)}

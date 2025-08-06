@@ -1,20 +1,19 @@
 import { getExecutingEnvironment } from "@app/resolveModule/env";
 import Icon from "@components/Atoms/Icon";
 import Tooltip from "@components/Atoms/Tooltip";
-import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
-import WorkspaceService from "@core-ui/ContextServices/Workspace";
-import useWatch from "@core-ui/hooks/useWatch";
 import { css } from "@emotion/react";
 import styled from "@emotion/styled";
 import t from "@ext/localization/locale/translate";
-import type { WorkspacePath } from "@ext/workspace/WorkspaceConfig";
 import { getCurrentWindow } from "@tauri-apps/api/window";
-import { createContext, Dispatch, SetStateAction, useCallback, useContext, useEffect, useState } from "react";
-import useLocation from "../../browser/src/logic/Api/useLocation";
+import { useCallback, useEffect, useState } from "react";
 
 const isMacOsDesktop = getExecutingEnvironment() === "tauri" && navigator.userAgent.includes("Mac");
 
 const Wrapper = styled.div<{ leftPad?: number; fixedPad?: boolean }>`
+	@media print {
+		display: none;
+	}
+
 	position: absolute;
 	${(p) =>
 		p.fixedPad
@@ -50,125 +49,42 @@ const OpacityIcon = styled(Icon)<{ disabled?: boolean }>`
 		`}
 `;
 
-type History = {
-	url: string;
-	workspace: WorkspacePath;
-};
-
-const loadHistory = (): { history: History[]; current: number } => {
-	const savedHistory = typeof window !== "undefined" && window.sessionStorage.getItem("history");
-
-	if (savedHistory) {
-		try {
-			return JSON.parse(savedHistory);
-		} catch {
-			return { history: [], current: -1 };
-		}
-	}
-
-	return { history: [], current: -1 };
-};
-
-const saveHistory = (history: History[], current: number) => {
-	window.sessionStorage.setItem("history", JSON.stringify({ history, current }));
-};
-
-const HistoryContext = createContext<{
-	history: History[];
-	current: number;
-	setHistory: Dispatch<SetStateAction<History[]>>;
-	setCurrent: Dispatch<SetStateAction<number>>;
-}>(null);
-
-export const HistoryProvider = ({ children }: { children: React.ReactNode }) => {
-	const [history, setHistory] = useState<History[]>([]);
-	const [current, setCurrent] = useState<number>(null);
-
-	return (
-		<HistoryContext.Provider value={{ history, current, setHistory, setCurrent }}>
-			{children}
-		</HistoryContext.Provider>
-	);
-};
-
-export const useHistory = () => {
-	if (!isMacOsDesktop) return null;
-
-	const { history, current, setHistory, setCurrent } = useContext(HistoryContext);
-
-	useEffect(() => {
-		if (history !== null && current !== null) return;
-		const { history: savedHistory, current: savedCurrent } = loadHistory();
-		setCurrent(savedCurrent);
-		setHistory(savedHistory);
-	}, []);
-
-	const [isFullscreen, setIsFullscreen] = useState(false);
-
-	useEffect(() => {
-		const window = getCurrentWindow();
-		const unlisten = window.onResized(async () => {
-			setIsFullscreen(await window.isFullscreen());
-		});
-		return () => void unlisten.then((unlisten) => unlisten());
-	}, []);
-
-	return {
-		history,
-		setHistory,
-		current,
-		setCurrent,
-		isFullscreen,
-	};
-};
-
-export type ForwardBackwardProps = ReturnType<typeof useHistory> & {
-	location: string;
-	setLocation: (location: string) => void;
-};
-
 const ForwardBackward = () => {
 	if (!isMacOsDesktop) return null;
 
-	const [location, setLocation] = useLocation();
-	const { history, setHistory, current, setCurrent, isFullscreen } = useHistory();
+	const [isFullscreen, setIsFullscreen] = useState(false);
 
-	const workspace = WorkspaceService.current();
-	const apiUrlCreator = ApiUrlCreatorService.value;
-	const canGoForward = history.length <= 1 || current === history.length - 1 || current == history.length;
-	const canGoBackward = history.length <= 1 || current == 0;
+	const [canGoBackward, setCanGoBackward] = useState(() => window.history.length <= 1);
 
-	useWatch(() => {
-		const entry = history[current];
+	const updateNavigationState = useCallback(() => {
+		const historyLength = window.history.length;
+		const newCanGoBackward = historyLength <= 1;
 
-		if (!workspace?.path) return;
+		setCanGoBackward((prev) => (prev !== newCanGoBackward ? newCanGoBackward : prev));
+	}, []);
 
-		if (location !== entry?.url || workspace?.path !== entry?.workspace) {
-			setHistory((prev) => [...prev.slice(0, current + 1), { url: location, workspace: workspace.path }]);
-			setCurrent((prev) => prev + 1);
-		}
-	}, [location]);
+	useEffect(() => {
+		updateNavigationState();
 
-	useWatch(() => saveHistory(history, current), [history, current]);
+		const wv = getCurrentWindow();
+		const unlisten = wv.onResized(async () => setIsFullscreen(await wv.isFullscreen()));
+		window.addEventListener("popstate", updateNavigationState);
+
+		return () => {
+			window.removeEventListener("popstate", updateNavigationState);
+			void unlisten.then((unlisten) => unlisten());
+		};
+	}, [updateNavigationState]);
 
 	const navigate = useCallback(
-		async (direction: "forward" | "backward") => {
-			const offset = direction === "forward" ? 1 : -1;
-			const next = current + offset;
-
-			if (next >= 0 && next < history.length) {
-				const entry = history[next];
-				if (!entry) return;
-
-				if (workspace?.path && entry.workspace && workspace.path !== entry.workspace) {
-					await WorkspaceService.setActive(workspace.path, apiUrlCreator, false);
-				}
-
-				setLocation(entry.url);
-				setCurrent(next);
+		(direction: "forward" | "backward") => {
+			if (direction === "backward" && !canGoBackward) {
+				window.history.back();
+			} else if (direction === "forward") {
+				window.history.forward();
 			}
 		},
-		[history, workspace?.path, current, setLocation, apiUrlCreator],
+		[canGoBackward],
 	);
 
 	return (
@@ -177,7 +93,7 @@ const ForwardBackward = () => {
 				<OpacityIcon disabled={canGoBackward} onClick={() => navigate("backward")} code="arrow-left" />
 			</Tooltip>
 			<Tooltip content={t("forward")}>
-				<OpacityIcon disabled={canGoForward} onClick={() => navigate("forward")} code="arrow-right" />
+				<OpacityIcon onClick={() => navigate("forward")} code="arrow-right" />
 			</Tooltip>
 		</Wrapper>
 	);

@@ -3,13 +3,16 @@ import Button, { TextSize } from "@components/Atoms/Button/Button";
 import { ButtonStyle } from "@components/Atoms/Button/ButtonStyle";
 import IconLink from "@components/Molecules/IconLink";
 import ArticlePropsService from "@core-ui/ContextServices/ArticleProps";
+import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import { getCatalogLinks, useGetArticleLinks } from "@core-ui/getRigthSidebarLinks";
 import { usePlatform } from "@core-ui/hooks/usePlatform";
 import { cssMedia } from "@core-ui/utils/cssUtils";
 import styled from "@emotion/styled";
+import SwitchFilteredCatalog from "@ext/CatalogPropertyFilter/SwitchFilteredCatalog";
 import SwitchContentLanguage from "@ext/localization/actions/SwitchContentLanguage";
 import t from "@ext/localization/locale/translate";
 import TableOfContents from "@ext/navigation/article/render/TableOfContents";
+import PublishStatusPanel from "@ext/static/components/PublishStatusPanel";
 import SwitchVersion from "@ext/versioning/components/SwitchVersion";
 import { useRef } from "react";
 import Links from "../../layoutComponents";
@@ -20,6 +23,7 @@ const RightNavigation = ({ className }: { className?: string }): JSX.Element => 
 	const showArticleActions = !(articleProps?.errorCode && articleProps.errorCode !== 500);
 	const articleLinks = useGetArticleLinks();
 	const { isNext } = usePlatform();
+	const cloudServiceUrl = PageDataContextService.value.conf.cloudServiceUrl;
 
 	return (
 		<div
@@ -33,6 +37,9 @@ const RightNavigation = ({ className }: { className?: string }): JSX.Element => 
 					catalogChildren={
 						<>
 							<li style={{ listStyleType: "none", width: "fit-content" }}>
+								<SwitchFilteredCatalog />
+							</li>
+							<li style={{ listStyleType: "none", width: "fit-content" }}>
 								<SwitchVersion />
 							</li>
 							<li style={{ listStyleType: "none", width: "fit-content" }}>
@@ -43,6 +50,7 @@ const RightNavigation = ({ className }: { className?: string }): JSX.Element => 
 				/>
 				{showArticleActions && <TableOfContents />}
 				<Links articleLinks={articleLinks} catalogLinks={getCatalogLinks()} />
+				{cloudServiceUrl && <PublishStatusPanel />}
 			</aside>
 			{isNext && (
 				<div className={"gramax-link"}>

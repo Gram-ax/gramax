@@ -2,6 +2,7 @@ import getApp from "@app/browser/app";
 import getCommands from "@app/browser/commands";
 import { env } from "@app/resolveModule/env";
 import Path from "@core/FileProvider/Path/Path";
+import { downloadZipArchive } from "@core/FileProvider/utils/createZipArchive";
 import RouterPathProvider from "@core/RouterPath/RouterPathProvider";
 import * as git from "@ext/git/core/GitCommands/LibGit2IntermediateCommands";
 import ConsoleLogger from "@ext/loggers/ConsoleLogger";
@@ -84,13 +85,6 @@ export const clearLogs = PersistentLogger.clearLogs.bind(this);
 
 logger.setLogLevel(LogLevel.error);
 
-const devModeItemName = "is_dev_mode";
-export const devMode = {
-	check: () => window.localStorage.getItem(devModeItemName) === "true",
-	enable: () => window.localStorage.setItem(devModeItemName, "true"),
-	disable: () => window.localStorage.setItem(devModeItemName, "false"),
-};
-
 export const clearLockFiles = async (catalogName: string) => {
 	const app = await getApp();
 	const fp = app.wm.current().getFileProvider();
@@ -117,4 +111,10 @@ export const gitAddAll = async (catalogName: string) => {
 	const app = await getApp();
 	const { gvc } = (await app.wm.current().getContextlessCatalog(catalogName)).repo;
 	await gvc.add();
+};
+
+export const zip = async (catalog: string) => {
+	const app = await getApp();
+	const fp = app.wm.current().getFileProvider();
+	await downloadZipArchive(fp, new Path(catalog), catalog);
 };

@@ -5,7 +5,7 @@ import { useRouter } from "@core/Api/useRouter";
 import styled from "@emotion/styled";
 import t from "@ext/localization/locale/translate";
 import Alert, { AlertType } from "@ext/markdown/elements/alert/render/component/Alert";
-import { addGitTreeScopeToPath } from "@ext/versioning/utils";
+import { addScopeToPath } from "@ext/versioning/utils";
 import type { HTMLAttributes } from "react";
 
 export type NotActualRevisionWarningProps = HTMLAttributes<HTMLDivElement>;
@@ -17,7 +17,7 @@ const NotActualRevisionWarning = (props: NotActualRevisionWarningProps) => {
 
 	const { className, ...restProps } = props;
 
-	const url = addGitTreeScopeToPath(router.path);
+	const url = addScopeToPath(router.path);
 
 	return (
 		<div data-qa="switch-version-warning" className={classNames(className, {}, ["article-body"])} {...restProps}>

@@ -173,7 +173,7 @@ Object.assign(Module, {
 					resolve(handleResponse(buffer, buffersize));
 				};
 				connection.xhr.onabort = function () {
-					resolve(-1);
+					resolve(-999);
 				};
 				connection.xhr.onerror = function (err) {
 					trySetLastHttpError(connection.xhr.status, connection.xhr.response);

@@ -1,7 +1,7 @@
 import ElementGroups from "@ext/markdown/core/element/ElementGroups";
 
 const tabsSchema = {
-	group: `${ElementGroups.block}`,
+	group: `${ElementGroups.block} ${ElementGroups.listItemContent}`,
 	content: `${ElementGroups.tab}+`,
 	defining: true,
 	attrs: {

@@ -1,11 +1,32 @@
 import ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
 import { copyArticleResource } from "@ext/markdown/elements/copyArticles/copyPasteArticleResource";
 import { ResourceServiceType } from "@ext/markdown/elements/copyArticles/resourceService";
+import { readyToPlace } from "@ext/markdown/elementsUtils/cursorFunctions";
 import { Editor, Extension } from "@tiptap/core";
 import { Node, Slice } from "@tiptap/pm/model";
 import { Plugin, Transaction } from "@tiptap/pm/state";
 import { ReplaceAroundStep, ReplaceStep } from "@tiptap/pm/transform";
 import { EditorView } from "prosemirror-view";
+import { Fragment } from "prosemirror-model";
+import headingPasteFormatter from "@ext/markdown/elements/heading/edit/logic/headingPasteFormatter";
+
+const mapFragment = (fragment: Fragment, transform: (node: Node) => Node) => {
+	const mapContent = (content: Fragment) => {
+		const children = [];
+
+		content.forEach((node) => {
+			let newContent = node.content;
+			if (newContent && newContent.size > 0) newContent = mapContent(newContent);
+
+			const newNode = transform(node.copy(newContent));
+			children.push(newNode);
+		});
+
+		return Fragment.fromArray(children);
+	};
+
+	return mapContent(fragment);
+};
 
 const processNode = (childNode: Node, resourceService: ResourceServiceType, notDeletedSrc?: Set<string>) => {
 	if (
@@ -83,6 +104,19 @@ const CopyArticles = Extension.create<CopyArticlesOptions>({
 					transformPastedHTML(html) {
 						return html?.replaceAll("[object Object]", "");
 					},
+					transformPasted(slice, view) {
+						const headingAllowed = readyToPlace(view.state, "heading");
+						if (headingAllowed) return slice;
+
+						return new Slice(
+							mapFragment(slice.content, (node) => {
+								if (node.type.name !== "heading") return node;
+								return headingPasteFormatter(view.state, node);
+							}),
+							slice.openStart,
+							slice.openEnd,
+						);
+					},
 				},
 				appendTransaction: (transactions: Transaction[]) => {
 					transactions.forEach((tr: Transaction) => {
@@ -92,8 +126,9 @@ const CopyArticles = Extension.create<CopyArticlesOptions>({
 						const notDeletedSrc = new Set<string>();
 						const historyState = $history.historyState;
 						const items = $history.redo ? historyState.done.items : historyState.undone.items;
+						const values = items?.values || [];
 
-						items.values.forEach((item) => {
+						values.forEach((item) => {
 							const slice: Slice = item.step.slice;
 							if (!slice?.content?.childCount) return;
 

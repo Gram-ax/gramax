@@ -52,8 +52,10 @@ export default class MdParser {
 		this._table = new RegExp(String.raw`{% table\s*([^%]*)%}([\s\S]*?){% \/table %}`, "gm");
 		this._emptyTableCell = new RegExp(String.raw`^(?:\*)[ \t]*$`, "gm");
 
-		this._findHtmlRegExp = new RegExp(String.raw`(^[^\n]*)\[html.*]([\s\S]*?)\[\/html\]`, "gm");
-		this._findHtmlTagRegExp = new RegExp(String.raw`(^[^\n]*)(<html[^>]*>)([\s\S]*?)<\/html>`, "gm");
+		this._findHtmlRegExp = this._createBlockCodeIgnoreRegExp(String.raw`(^[^\n]*)\[html.*]([\s\S]*?)\[\/html\]`);
+		this._findHtmlTagRegExp = this._createBlockCodeIgnoreRegExp(
+			String.raw`(^[^\n]*)(<html[^>]*>)([\s\S]*?)<\/html>`,
+		);
 		this._preTagRegExp = new RegExp(String.raw`<pre>([\s\S]*?)<\/pre>`, "gm");
 	}
 
@@ -174,7 +176,7 @@ export default class MdParser {
 	private _htmlParser(content: string): string {
 		content = content.replaceAll(this._findHtmlRegExp, (_: string, firstGroup: string, secondGroup: string) => {
 			const group = secondGroup;
-			if (!group) return `{%html %}${secondGroup}{%/html%}`;
+			if (!group) return _;
 			const space = " ".repeat(firstGroup.length);
 			return `${firstGroup}{%html mode="${
 				/\[html:(.*?)\]/.exec(_)?.[1] || "iframe"
@@ -185,7 +187,7 @@ export default class MdParser {
 			this._findHtmlTagRegExp,
 			(_: string, firstGroup: string, htmlTag: string, secondGroup: string) => {
 				const group = secondGroup;
-				if (!group) return `${htmlTag}${secondGroup}</html>`;
+				if (!group) return _;
 				const space = " ".repeat(firstGroup.length);
 				return `${firstGroup}${htmlTag}\n${space}\`\`\`\n${secondGroup}\n${space}\`\`\`\n${space}</html>`;
 			},
@@ -215,6 +217,11 @@ export default class MdParser {
 
 	private _unScreenLink(content: string): string {
 		return content.replaceAll(`|//`, `://`);
+	}
+
+	private _createBlockCodeIgnoreRegExp(reg: string, ...additionalIgnore: string[]): RegExp {
+		const commonString = [this._findBlockCodeToIgnore, ...additionalIgnore, reg].join("|");
+		return new RegExp(commonString, "gm");
 	}
 
 	private _createIgnoreRegExp(reg: string, ...additionalIgnore: string[]): RegExp {

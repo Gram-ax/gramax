@@ -118,6 +118,8 @@ export const usePropsEditorActions = (params: UsePropsEditorActionsParams) => {
 				MimeTypes.json,
 			);
 
+			if (!response.ok) return;
+
 			const { pathname } = await response.json();
 			updateNavigation(pathname);
 

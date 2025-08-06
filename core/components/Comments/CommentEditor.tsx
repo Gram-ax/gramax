@@ -6,24 +6,29 @@ import Document from "@tiptap/extension-document";
 import { EditorContent, JSONContent, useEditor } from "@tiptap/react";
 import { Dispatch, SetStateAction, useEffect, useRef, useState } from "react";
 import EditorButtons from "./EditorButtons";
+import Comment from "@ext/markdown/elements/comment/edit/model/comment";
+import useWatch from "@core-ui/hooks/useWatch";
 
 export type EditorProps = {
 	confirmButtonText: string;
+	autoFocus?: boolean;
 	onConfirm: (content: JSONContent[]) => void;
 	onCancel: () => void;
-	setFocusId?: Dispatch<SetStateAction<number>>;
 	onEditorClick?: () => void;
-	setParentIsActive?: Dispatch<SetStateAction<boolean>>;
 	onInput?: (content: string) => void;
+	setParentIsActive?: Dispatch<SetStateAction<boolean>>;
+	setFocusId?: Dispatch<SetStateAction<number>>;
 	placeholder?: string;
 	content?: JSONContent[];
 	isEditable?: boolean;
+	parentIsActive?: boolean;
 	className?: string;
 };
 
 const CommentEditor = styled(
 	({
 		confirmButtonText,
+		autoFocus = false,
 		onConfirm,
 		onCancel,
 		setFocusId,
@@ -33,9 +38,9 @@ const CommentEditor = styled(
 		placeholder,
 		content = [{ type: "paragraph", content: [] }],
 		isEditable = true,
+		parentIsActive,
 		className,
 	}: EditorProps) => {
-		const [isFirstOpenFlag, setIsFirstOpenFlag] = useState(true);
 		const [currentContent, setCurrentContent] = useState(content);
 		const [isActive, setIsActive] = useState(false);
 
@@ -45,10 +50,31 @@ const CommentEditor = styled(
 			if (JSON.stringify(currentContent) !== JSON.stringify(content)) setCurrentContent(content);
 		}, [content]);
 
+		useWatch(() => {
+			setIsActive(parentIsActive);
+		}, [parentIsActive]);
+
+		const onFocus = () => {
+			setIsActive(true);
+			if (setParentIsActive) setParentIsActive(true);
+		};
+
+		const onBlur = () => {
+			if (editor.isEmpty) setIsActive(false);
+		};
+
 		const editor = useEditor(
 			{
 				content: { type: "doc", content },
-				extensions: [...getExtensions(), Document, placeholder ? Placeholder.configure({ placeholder }) : null],
+				extensions: [
+					...getExtensions(),
+					Comment,
+					Document,
+					placeholder ? Placeholder.configure({ placeholder }) : null,
+				],
+				onFocus,
+				onBlur,
+				autofocus: autoFocus,
 				editable: isEditable,
 			},
 			[isEditable, currentContent],
@@ -58,41 +84,35 @@ const CommentEditor = styled(
 			if (onInput) onInput(editor?.getText());
 		}, [editor?.getText()]);
 
-		useEffect(() => {
-			if (setParentIsActive) setParentIsActive(isActive);
-		}, [isActive]);
-
 		const blur = (): void => {
 			editor.commands.blur();
 		};
 
 		useEffect(() => {
-			if (!editor) return;
 			const contentElement = getContentElement();
-			if (isFirstOpenFlag && isEditable && contentElement) {
-				setIsFirstOpenFlag(false);
-				editor.commands.focus("start", { scrollIntoView: false });
-			}
-
-			setIsActive(isEditable);
-		}, [editor, isFirstOpenFlag, isEditable]);
-
-		useEffect(() => {
-			if (!isEditable) setIsFirstOpenFlag(true);
-		}, [isEditable]);
-
-		useEffect(() => {
-			const contentElement = getContentElement();
-			if (contentElement && isFirstOpenFlag && isEditable) {
+			if (contentElement && isEditable) {
 				contentElement.scrollTo({ top: contentElement.scrollHeight, behavior: "smooth" });
 			}
-		}, [contentRef.current?.firstChild]);
+		}, []);
 
 		const onCurrentConfirm = () => {
 			if (!editor.isEmpty) onConfirm(editor.getJSON().content);
 			if (!editor.isDestroyed) editor.commands.clearContent(true);
 			if (setFocusId) setFocusId(null);
 		};
+
+		useEffect(() => {
+			const onKeyDown = (event: KeyboardEvent) => {
+				if (editor.isFocused && event.code === "Enter" && (event.ctrlKey || event.metaKey)) {
+					event.stopImmediatePropagation();
+					onCurrentConfirm();
+					return true;
+				}
+			};
+
+			window.addEventListener("keydown", onKeyDown, { capture: true });
+			return () => window.removeEventListener("keydown", onKeyDown, { capture: true });
+		}, [editor]);
 
 		const onCurrentCancel = () => {
 			blur();
@@ -109,28 +129,6 @@ const CommentEditor = styled(
 			return contentRef.current?.firstChild as HTMLDivElement;
 		};
 
-		useEffect(() => {
-			const contentElement = getContentElement();
-			if (!contentElement) return;
-
-			const keydownHandler = (e: KeyboardEvent) => {
-				if (!isEditable || !isActive) return;
-
-				if (e.code === "Escape") {
-					e.stopImmediatePropagation();
-					onCurrentCancel();
-				} else if (e.code === "Enter" && (e.ctrlKey || e.metaKey)) {
-					e.stopImmediatePropagation();
-					onCurrentConfirm();
-				}
-			};
-
-			contentElement.addEventListener("keydown", keydownHandler);
-			return () => {
-				contentElement.removeEventListener("keydown", keydownHandler);
-			};
-		});
-
 		return (
 			<div className={classNames("article", {}, [className])}>
 				<EditorContent
@@ -140,14 +138,12 @@ const CommentEditor = styled(
 					className={"article-body"}
 					onClick={onCurrentEditorClick}
 				/>
-				{isActive ? (
-					<EditorButtons
-						onCancel={onCurrentCancel}
-						onConfirm={onCurrentConfirm}
-						confirmDisabled={editor.isEmpty && isEditable}
-						confirmButtonText={confirmButtonText}
-					/>
-				) : null}
+				<EditorButtons
+					onCancel={onCurrentCancel}
+					onConfirm={onCurrentConfirm}
+					confirmDisabled={!isActive || (editor.isEmpty && isEditable)}
+					confirmButtonText={confirmButtonText}
+				/>
 			</div>
 		);
 	},

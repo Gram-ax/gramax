@@ -69,7 +69,7 @@ const getErrorElements: Command<
 			}
 
 			if (item instanceof Category && (isCategory || isCatalog))
-				await Promise.all(item.getFilteredItems(itemFilters, catalog).map(collectUnsupportedElements));
+				await item.getFilteredItems(itemFilters, catalog).forEachAsync(collectUnsupportedElements);
 		};
 
 		const getItemsToProcess = () => {
@@ -86,7 +86,7 @@ const getErrorElements: Command<
 		};
 
 		const itemsToProcess = getItemsToProcess();
-		await Promise.all(itemsToProcess.map(collectUnsupportedElements));
+		await itemsToProcess.forEachAsync(collectUnsupportedElements);
 
 		return unsupportedElements;
 	},

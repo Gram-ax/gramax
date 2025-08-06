@@ -7,6 +7,7 @@ enum ModalToOpen {
 
 	CheckoutHandler = "CheckoutHander",
 	CloneHandler = "CloneHandler",
+	Clone = "Clone",
 	PullHandler = "PullHandler",
 
 	SnippetAlreadyUseWarn = "SnippetAlreadyUseWarn",
@@ -29,6 +30,11 @@ enum ModalToOpen {
 	PropertySettings = "PropertySettings",
 
 	DocRootMissingModal = "DocRootMissingModal",
+
+	CloudModal = "CloudModal",
+
+	CreateWorkspaceForm = "CreateWorkspaceForm",
+	EditWorkspaceForm = "EditWorkspaceForm",
 }
 
 export default ModalToOpen;

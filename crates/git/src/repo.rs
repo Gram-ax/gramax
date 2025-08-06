@@ -30,9 +30,9 @@ fn set_mwindow_file_limit_once() {
     let result = git2::raw::git_libgit2_opts(git2::raw::GIT_OPT_SET_MWINDOW_FILE_LIMIT as i32, FILE_LIMIT);
 
     if result == 0 {
-      info!("set GIT_OPT_SET_MWINDOW_FILE_LIMIT to {}; result code {}", FILE_LIMIT, result);
+      info!("set GIT_OPT_SET_MWINDOW_FILE_LIMIT to {FILE_LIMIT}; result code {result}");
     } else {
-      error!("failed to set GIT_OPT_SET_MWINDOW_FILE_LIMIT to {}; result code {}", FILE_LIMIT, result);
+      error!("failed to set GIT_OPT_SET_MWINDOW_FILE_LIMIT to {FILE_LIMIT}; result code {result}");
     }
   });
 }
@@ -42,6 +42,10 @@ pub struct Repo<C: Creds>(pub(crate) git2::Repository, pub(crate) C);
 impl<C: Creds> Repo<C> {
   pub fn repo(&self) -> &git2::Repository {
     &self.0
+  }
+
+  pub fn repo_mut(&mut self) -> &mut git2::Repository {
+    &mut self.0
   }
 
   pub fn open<P: AsRef<Path>>(path: P, creds: C) -> Result<Self> {
@@ -125,7 +129,7 @@ impl<C: Creds> Repo<C> {
     let should_set_upstream = self.ensure_branch_has_upstream(head.shorthand().or_utf8_err()?)?;
     let refspec = head.name().or_utf8_err()?;
 
-    info!(target: TAG, "pushing refspec {}", refspec);
+    info!(target: TAG, "pushing refspec {refspec}");
 
     remote.push(&[refspec], Some(&mut push_opts))?;
 
@@ -140,7 +144,7 @@ impl<C: Creds> Repo<C> {
     let refname = if refname.starts_with("refs/heads/") {
       Cow::Borrowed(refname)
     } else {
-      Cow::Owned(format!("refs/heads/{}", refname))
+      Cow::Owned(format!("refs/heads/{refname}"))
     };
 
     if !self.0.find_reference(&refname)?.is_branch() {
@@ -159,13 +163,13 @@ impl<C: Creds> Repo<C> {
   }
 
   pub fn checkout(&self, branch_name: &str, force: bool) -> Result<()> {
-    info!(target: TAG, "checkout to {} (force: {})", branch_name, force);
+    info!(target: TAG, "checkout to {branch_name} (force: {force})");
     let branch = match self.0.find_branch(branch_name, BranchType::Local) {
       Ok(b) => b,
       Err(err) if err.code() == ErrorCode::NotFound && err.class() == ErrorClass::Reference => {
-        let remote_ref = self.0.find_reference(&format!("refs/remotes/origin/{}", branch_name))?;
+        let remote_ref = self.0.find_reference(&format!("refs/remotes/origin/{branch_name}"))?;
         let mut branch = self.0.branch(branch_name, &remote_ref.peel_to_commit()?, false)?;
-        branch.set_upstream(Some(&format!("origin/{}", branch_name)))?;
+        branch.set_upstream(Some(&format!("origin/{branch_name}")))?;
         branch
       }
       Err(err) => return Err(err.into()),
@@ -178,83 +182,6 @@ impl<C: Creds> Repo<C> {
 
     self.0.checkout_tree(branch.get().peel_to_tree()?.as_object(), Some(&mut opts))?;
     self.0.set_head(branch.get().name().or_utf8_err()?)?;
-    Ok(())
-  }
-
-  pub fn reset_all(&self, hard: bool, head: Option<Oid>) -> Result<()> {
-    info!(target: TAG, "reset all to {} (hard: {})", head.map(|h| h.to_string()).as_deref().unwrap_or("HEAD"), hard);
-
-    let commit = match head {
-      Some(head) => self.0.find_commit(head)?,
-      None => self.0.head()?.peel_to_commit()?.parent(0)?,
-    };
-
-    if hard {
-      let mut opts = CheckoutBuilder::new();
-      opts.remove_ignored(true).remove_untracked(true);
-      self.0.reset(commit.as_object(), ResetType::Hard, Some(&mut opts))?;
-    } else {
-      self.0.reset(commit.as_object(), ResetType::Soft, None)?;
-    }
-
-    Ok(())
-  }
-
-  pub fn restore<I: Iterator<Item = P>, P: AsRef<Path>>(&self, paths: I, staged: bool) -> Result<()> {
-    info!(target: TAG, "restore{}", if staged { " staged" } else { "" });
-
-    let mut index = self.0.index()?;
-    let tree = self.0.head()?.peel_to_tree()?;
-    let workdir = self.0.workdir().unwrap_or_else(|| self.0.path());
-    for path in paths {
-      if staged {
-        match tree.get_path(path.as_ref()) {
-          Ok(entry) => {
-            let index_entry = IndexEntry {
-              id: entry.id(),
-              path: path.as_ref().as_os_str().as_encoded_bytes().to_vec(),
-              mode: entry.filemode() as u32,
-              ctime: git2::IndexTime::new(0, 0),
-              mtime: git2::IndexTime::new(0, 0),
-              dev: 0,
-              ino: 0,
-              uid: 0,
-              gid: 0,
-              file_size: 0,
-              flags: 0,
-              flags_extended: 0,
-            };
-
-            index.add(&index_entry)?;
-          }
-          Err(_) => {
-            if let Err(err) = index.remove_path(path.as_ref()) {
-              warn!(target: TAG, "failed to remove path {}: {}", path.as_ref().display(), err);
-            }
-          }
-        }
-
-        continue;
-      }
-
-      let fs_path = workdir.join(path.as_ref());
-      match tree.get_path(path.as_ref()) {
-        Ok(entry) => {
-          let blob = entry.to_object(&self.0)?.peel_to_blob()?;
-          if !fs_path.parent().map(|p| p.exists()).unwrap_or(true) {
-            std::fs::create_dir_all(fs_path.parent().unwrap())?;
-          }
-          std::fs::write(fs_path, blob.content())?;
-        }
-        Err(err) if matches!((err.class(), err.code()), (ErrorClass::Tree, ErrorCode::NotFound)) => {
-          self.remove_path(&fs_path)?;
-        }
-        Err(err) => return Err(err.into()),
-      }
-    }
-
-    index.write()?;
-
     Ok(())
   }
 }
@@ -273,26 +200,6 @@ impl<C: Creds> Repo<C> {
     &self.1
   }
 
-  fn remove_path(&self, path: &Path) -> Result<()> {
-    if !path.exists() {
-      warn!(target: TAG, "path {} does not exist", path.display());
-      return Ok(());
-    }
-
-    if std::fs::metadata(path)?.is_dir() {
-      std::fs::remove_dir_all(path)?;
-      return Ok(());
-    }
-
-    std::fs::remove_file(path)?;
-    if let Some(parent) = path.parent() {
-      if std::fs::metadata(parent)?.is_dir() && parent.read_dir()?.next().is_none() {
-        std::fs::remove_dir_all(parent)?;
-      }
-    }
-    Ok(())
-  }
-
   pub(crate) fn ensure_head_exists(&self) -> Result<()> {
     let Err(err) = self.0.head() else { return Ok(()) };
 
@@ -306,7 +213,7 @@ impl<C: Creds> Repo<C> {
         self.0.commit(Some("HEAD"), &sig, &sig, "init", &self.0.find_tree(tree)?, &[])?;
       }
       Err(err) => {
-        error!(target: TAG, "failed to get signature: {}; skip creating head", err);
+        error!(target: TAG, "failed to get signature: {err}; skip creating head");
       }
     }
 
@@ -338,7 +245,7 @@ impl<C: Creds> Repo<C> {
 
       if !append_exclude.is_empty() {
         append_exclude.push('\n');
-        info!(target: TAG, "found useless files {:?}; writing to .git/info/exclude:\n{}", TRASH, append_exclude);
+        info!(target: TAG, "found useless files {TRASH:?}; writing to .git/info/exclude:\n{append_exclude}");
         file.write_all(append_exclude.as_bytes())?;
       }
     }

@@ -1,10 +1,12 @@
 import ErrorType from "../model/ErrorTypes";
 
+type DefaultErrorProps = { [key: string]: any } & { errorCode?: string; showCause?: boolean; logCause?: boolean };
+
 export default class DefaultError extends Error {
 	constructor(
 		message: string,
 		public cause?: Error,
-		protected _props?: { [key: string]: any } & { errorCode?: string },
+		protected _props?: DefaultErrorProps,
 		public isWarning = false,
 		public title?: string,
 		public icon?: string,
@@ -22,7 +24,7 @@ export default class DefaultError extends Error {
 		else this._props.showCause = showCause;
 	}
 
-	get props(): { [key: string]: any } & { errorCode: string } {
+	get props(): DefaultErrorProps {
 		return { errorCode: "default", ...this._props };
 	}
 

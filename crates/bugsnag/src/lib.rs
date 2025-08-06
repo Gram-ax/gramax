@@ -112,7 +112,7 @@ impl BugsnagNotification {
         true
       }
       Err(err) => {
-        log::error!("error while sending error to bugsnag; error: {:#?}", err);
+        log::error!("error while sending error to bugsnag; error: {err:#?}");
         false
       }
     }

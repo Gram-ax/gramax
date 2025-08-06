@@ -1,3 +1,4 @@
+use crate::ext::walk::*;
 use git2::ObjectType;
 use std::fs;
 use std::path::Path;
@@ -118,7 +119,7 @@ fn gc_with_index_objects(_sandbox: TempDir, #[with(&_sandbox)] repo: Repo<TestCr
   // write & add to index file2 5 times with different content; should be removed after gc
   let mut to_be_removed = vec![];
   for i in 1..5 {
-    let content = format!("content_{}", i);
+    let content = format!("content_{i}");
     fs::write(_sandbox.path().join(file2_name), content)?;
     repo.add(file2_name)?;
     let index = repo.repo().index()?;
@@ -165,7 +166,7 @@ fn gc_with_index_objects(_sandbox: TempDir, #[with(&_sandbox)] repo: Repo<TestCr
 fn gc_with_large_data(_sandbox: TempDir, #[with(&_sandbox)] repo: Repo<TestCreds>) -> Result {
   // create many files with unique content to generate multiple loose objects
   for i in 0..5100 {
-    let filename = format!("file{}.txt", i);
+    let filename = format!("file{i}.txt");
     fs::write(_sandbox.path().join(&filename), format!("content of file {} - {}", i, "X".repeat(i % 10)))?;
 
     if i % 50 == 49 {
@@ -208,8 +209,8 @@ fn gc_with_large_data(_sandbox: TempDir, #[with(&_sandbox)] repo: Repo<TestCreds
   let tree = head_commit.tree()?;
 
   for i in [0, 100, 1000, 2500, 4000, 5000] {
-    let filename = format!("file{}.txt", i);
-    assert!(tree.get_path(Path::new(&filename)).is_ok(), "file {} should exist after gc", filename);
+    let filename = format!("file{i}.txt");
+    assert!(tree.get_path(Path::new(&filename)).is_ok(), "file {filename} should exist after gc");
   }
 
   Ok(())
@@ -231,10 +232,10 @@ fn gc_multiple_calls(_sandbox: TempDir, #[with(&_sandbox)] repo: Repo<TestCreds>
   for i in 0..top_i {
     for j in 0..top_j {
       for k in 0..top_k {
-        fs::write(_sandbox.path().join(file_name), format!("content_{}_{}_{}", i, j, k))?;
+        fs::write(_sandbox.path().join(file_name), format!("content_{i}_{j}_{k}"))?;
         repo.add(file_name)?;
       }
-      fs::write(_sandbox.path().join(file_name), format!("content_{}_{}_final", i, j))?;
+      fs::write(_sandbox.path().join(file_name), format!("content_{i}_{j}_final"))?;
       repo.add(file_name)?;
       repo.commit_debug()?;
     }
@@ -248,7 +249,7 @@ fn gc_multiple_calls(_sandbox: TempDir, #[with(&_sandbox)] repo: Repo<TestCreds>
     );
 
     let pack_files = count_pack_files(repo.repo()) as isize;
-    assert!(pack_files == i, "pack files count should be =i = {}; actual = {}", i, pack_files);
+    assert!(pack_files == i, "pack files count should be =i = {i}; actual = {pack_files}");
     assert!(!is_any_object_dir_empty(repo.repo()), "all objects dirs should not be empty");
 
     let gc_options = GcOptions { loose_objects_limit: Some(1), ..Default::default() };
@@ -258,7 +259,7 @@ fn gc_multiple_calls(_sandbox: TempDir, #[with(&_sandbox)] repo: Repo<TestCreds>
 
     let loose_objects = repo.collect_loose_objects()?;
     let loose_objects_count = loose_objects.len();
-    assert!(loose_objects_count == 0, "loose objects should be 0; actual = {}", loose_objects_count);
+    assert!(loose_objects_count == 0, "loose objects should be 0; actual = {loose_objects_count}");
 
     let pack_files = count_pack_files(repo.repo()) as isize;
     assert!(pack_files == i + 1, "pack files should be =i+1 = {}; actual = {}", i + 1, pack_files);
@@ -300,9 +301,103 @@ fn gc_loose_objects_limit_not_reached(_sandbox: TempDir, #[with(&_sandbox)] repo
 
   assert_eq!(
     final_pack_files, initial_pack_files,
-    "pack files count should not change when limit not reached (initial = {}, actual = {})",
-    initial_pack_files, final_pack_files
+    "pack files count should not change when limit not reached (initial = {initial_pack_files}, actual = {final_pack_files})"
   );
+
+  Ok(())
+}
+
+#[rstest]
+fn gc_stash_objects(_sandbox: TempDir, #[with(&_sandbox)] mut repo: Repo<TestCreds>) -> Result {
+  let file_name = "file";
+
+  fs::write(_sandbox.path().join(file_name), "initial")?;
+  let stash_oid = repo.stash(None)?.unwrap();
+
+  fs::write(_sandbox.path().join(file_name), "modified")?;
+  repo.add(file_name)?;
+
+  repo.stash(None)?;
+
+  fs::write(_sandbox.path().join(file_name), "modified2")?;
+  repo.add(file_name)?;
+  repo.commit_debug()?;
+
+  let gc_options = GcOptions { loose_objects_limit: Some(1), ..Default::default() };
+  repo.gc(gc_options)?;
+
+  repo.stash_apply(stash_oid)?;
+
+  let loose_objects_after = repo.collect_loose_objects()?;
+  assert_eq!(loose_objects_after.len(), 0);
+
+  Ok(())
+}
+
+#[rstest]
+fn gc_healthcheck(_sandbox: TempDir, #[with(&_sandbox)] repo: Repo<TestCreds>) -> Result {
+  let file_name = "file";
+
+  fs::write(_sandbox.path().join(file_name), "content")?;
+  repo.add(file_name)?;
+  let commit = repo.commit_debug()?;
+  let bad_objects = repo.healthcheck()?;
+  assert_eq!(bad_objects.len(), 0);
+
+  let tree1 = repo.repo().find_commit(commit.0)?.tree()?;
+
+  let id = tree1.get_name("file").unwrap().id();
+
+  let id_str = id.to_string();
+  let mid = id_str.char_indices().nth(2).map(|(i, _)| i).unwrap_or(id_str.len());
+  let (prefix, rest) = id_str.split_at(mid);
+
+  // remove object to break repository
+  let obj_path = repo.repo().path().join("objects").join(prefix).join(rest);
+  assert!(obj_path.exists());
+
+  fs::remove_file(obj_path)?;
+
+  let bad_objects = repo.healthcheck()?;
+  assert!(!bad_objects.is_empty());
+  assert_eq!(bad_objects[0].oid, id);
+
+  repo.repo().find_object(id, None).unwrap_err();
+
+  Ok(())
+}
+
+#[rstest]
+fn gc_healthcheck_after_gc(_sandbox: TempDir, #[with(&_sandbox)] repo: Repo<TestCreds>) -> Result {
+  let file_name = "file";
+
+  fs::write(_sandbox.path().join(file_name), "content")?;
+  repo.add(file_name)?;
+  let commit = repo.commit_debug()?;
+  let bad_objects = repo.healthcheck()?;
+  assert_eq!(bad_objects.len(), 0);
+
+  let tree1 = repo.repo().find_commit(commit.0)?.tree()?;
+
+  let id = tree1.get_name("file").unwrap().id();
+
+  let id_str = id.to_string();
+  let mid = id_str.char_indices().nth(2).map(|(i, _)| i).unwrap_or(id_str.len());
+  let (prefix, rest) = id_str.split_at(mid);
+
+  // remove object to break repository
+  let obj_path = repo.repo().path().join("objects").join(prefix).join(rest);
+  assert!(obj_path.exists());
+
+  fs::remove_file(obj_path)?;
+
+  let err =
+    repo.gc(GcOptions { loose_objects_limit: Some(1), ..Default::default() }).unwrap_err().to_string();
+
+  println!("{err}");
+  assert!(err.contains("bad object 6b584e8ece562ebffc15d38808cd6b98fc3d97ea;"));
+  
+  repo.repo().find_object(id, None).unwrap_err();
 
   Ok(())
 }

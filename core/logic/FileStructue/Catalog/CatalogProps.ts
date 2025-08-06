@@ -3,7 +3,7 @@ import type { FSLocalizationProps } from "@ext/localization/core/events/FSLocali
 import { Syntax } from "@ext/markdown/core/edit/logic/Formatter/Formatters/typeFormats/model/Syntax";
 import type TabsTags from "@ext/markdown/elements/tabs/model/TabsTags";
 import type { TitledLink } from "@ext/navigation/NavigationLinks";
-import type { Property } from "@ext/properties/models";
+import type { Property, PropertyID } from "@ext/properties/models";
 
 export type CatalogProps = FSLocalizationProps & {
 	title?: string;
@@ -14,6 +14,7 @@ export type CatalogProps = FSLocalizationProps & {
 	contactEmail?: string;
 	properties?: Property[];
 	versions?: string[];
+	filterProperties?: PropertyID[];
 	syntax?: Syntax;
 
 	relatedLinks?: TitledLink[];
@@ -26,6 +27,7 @@ export type CatalogProps = FSLocalizationProps & {
 	isCloning?: boolean;
 	cloneCancelDisabled?: boolean;
 	redirectOnClone?: string;
+	resolvedFilterProperty?: PropertyID;
 	resolvedVersions?: RefInfo[];
 	resolvedVersion?: RefInfo;
 	optionalCategoryIndex?: boolean;

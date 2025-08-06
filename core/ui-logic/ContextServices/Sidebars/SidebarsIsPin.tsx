@@ -1,6 +1,7 @@
 import { useMediaQuery } from "@mui/material";
 import { createContext, Dispatch, ReactElement, SetStateAction, useContext, useEffect, useMemo, useState } from "react";
 import { cssMedia } from "../../utils/cssUtils";
+import isMobileService from "@core-ui/ContextServices/isMobileService";
 
 export interface SidebarsIsPinValue {
 	left: boolean;
@@ -22,6 +23,7 @@ abstract class SidebarsIsPinService {
 
 	static Provider({ children }: { children: ReactElement }): ReactElement {
 		const isMedium = useMediaQuery(cssMedia.JSmedium);
+		const isMobile = isMobileService.value;
 		const [leftIsPin, setLeftIsPin] = useState(true);
 		const [rightIsPin, setRightIsPin] = useState(true);
 
@@ -35,8 +37,8 @@ abstract class SidebarsIsPinService {
 		_setIsSidebarsDependent = setIsSidebarsDependent;
 
 		useEffect(() => {
-			setLeftIsPin(SidebarsIsPinService.localStorageLeftValue);
-			setRightIsPin(SidebarsIsPinService.localStorageLeftValue);
+			setLeftIsPin(isMedium || isMobile ? false : SidebarsIsPinService.localStorageLeftValue);
+			setRightIsPin(isMedium || isMobile ? false : SidebarsIsPinService.localStorageLeftValue);
 		}, []);
 
 		return (

@@ -4,7 +4,7 @@ import KeyboardShortcut from "@ext/markdown/elementsUtils/keyboardShortcuts/mode
 const listTypes = ["bulletList", "orderedList", "taskList"];
 const blockToListItem: KeyboardRule = ({ editor, node, parentNode, nodePosition }) => {
 	if (!parentNode || parentNode.type.name === "listItem") return false;
-	if (node.isTextblock || !node.isBlock) return false;
+	if (node.isTextblock || !node.isBlock || node.type.name === "code_block") return false;
 	const $pos = editor.state.doc.resolve(nodePosition);
 
 	const listItem = editor.schema.nodes.listItem.create(null, node);

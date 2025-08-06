@@ -5,33 +5,70 @@ import FileProvider from "../../../../../../logic/FileProvider/model/FileProvide
 import ParserContext from "../../../../core/Parser/ParserContext/ParserContext";
 import generateUniqueID from "@core/utils/generateUniqueID";
 
-class CommentProvider {
-	constructor(private _fp: FileProvider, private _articlePath: Path) {}
+type CommentData = Record<string, { stringifiedData: CommentBlock<string>; parsedData: CommentBlock }>;
 
-	getFilePath() {
-		return new Path([this._articlePath.parentDirectoryPath.toString(), `${this._articlePath.name}.comments.yaml`]);
+class CommentProvider {
+	private _comments: Map<string, CommentData> = new Map();
+	constructor(private _fp: FileProvider) {}
+
+	getFilePath(articlePath: Path) {
+		return new Path([articlePath.parentDirectoryPath.toString(), `${articlePath.name}.comments.yaml`]);
 	}
 
-	getCount(): string {
+	getNewCommentId(): string {
 		return generateUniqueID();
 	}
 
-	async getComment(count: string, context: ParserContext): Promise<CommentBlock> {
-		const allComment = await this._read();
-		return this._parse(allComment[count], context);
+	async getComment(id: string, articlePath: Path, context: ParserContext): Promise<CommentBlock> {
+		const articlePathString = articlePath.value;
+		if (this._comments.has(articlePathString) && this._comments.get(articlePathString)?.[id])
+			return this._comments.get(articlePathString)[id]?.parsedData;
+
+		const allComments: CommentData = {};
+		for (const [id, comment] of Object.entries(await this._read(articlePath))) {
+			allComments[id] = {
+				stringifiedData: comment,
+				parsedData: await this._parse(comment, context),
+			};
+		}
+
+		this._comments.set(articlePathString, allComments);
+		return allComments[id]?.parsedData;
 	}
 
-	async saveComment(count: string, comment: CommentBlock, context: ParserContext) {
-		const allComment = await this._read();
-		allComment[count] = await this._stringify(comment, context);
-		await this._write(allComment);
+	async saveComment(id: string, comment: CommentBlock, articlePath: Path, context: ParserContext) {
+		const articlePathString = articlePath.value;
+		const allComments = this._comments.get(articlePathString) || {};
+
+		allComments[id] = {
+			stringifiedData: await this._stringify(comment, context),
+			parsedData: comment,
+		};
+
+		this._comments.set(articlePathString, allComments);
+		const allStringifiedComments = Object.fromEntries(
+			Object.entries(allComments).map(([id, comment]) => [id, comment.stringifiedData]),
+		);
+		this._comments.set(articlePathString, allComments);
+		await this._write(articlePath, allStringifiedComments);
 	}
 
-	async deleteComment(count: string) {
-		const allComment = await this._read();
-		delete allComment[count];
-		if (Object.keys(allComment).length) await this._write(allComment);
-		else await this._delete();
+	async deleteComment(id: string, articlePath: Path) {
+		const articlePathString = articlePath.value;
+		const allComments = this._comments.get(articlePathString);
+
+		if (!allComments) return;
+		if (!allComments[id]) return;
+
+		delete allComments[id];
+		this._comments.set(articlePathString, allComments);
+
+		const allStringifiedComments = Object.fromEntries(
+			Object.entries(allComments).map(([id, comment]) => [id, comment.stringifiedData]),
+		);
+
+		if (Object.keys(allComments).length) await this._write(articlePath, allStringifiedComments);
+		else await this._delete(articlePath);
 	}
 
 	private async _parse(strCommentBlock: CommentBlock<string>, context: ParserContext): Promise<CommentBlock> {
@@ -62,12 +99,12 @@ class CommentProvider {
 		};
 	}
 
-	private async _read(): Promise<{ [count: string]: CommentBlock<string> }> {
-		if (await this._fp.exists(this.getFilePath())) {
-			const data = await this._fp.read(this.getFilePath());
-			let result: { [count: string]: CommentBlock<string> };
+	private async _read(articlePath: Path): Promise<Record<string, CommentBlock<string>>> {
+		if (await this._fp.exists(this.getFilePath(articlePath))) {
+			const data = await this._fp.read(this.getFilePath(articlePath));
+			let result: { [id: string]: CommentBlock<string> };
 			try {
-				result = yaml.load(data) as { [count: string]: CommentBlock<string> };
+				result = yaml.load(data) as { [id: string]: CommentBlock<string> };
 			} catch (e) {
 				console.error(e);
 				result = {};
@@ -76,13 +113,13 @@ class CommentProvider {
 		} else return {};
 	}
 
-	private async _write(strCommentBlocks: { [count: string]: CommentBlock<string> }) {
-		await this._fp.write(this.getFilePath(), yaml.dump(strCommentBlocks));
+	private async _write(articlePath: Path, strCommentBlocks: Record<string, CommentBlock<string>>) {
+		await this._fp.write(this.getFilePath(articlePath), yaml.dump(strCommentBlocks));
 	}
 
-	private async _delete() {
-		if (!(await this._fp.exists(this.getFilePath()))) return;
-		await this._fp.delete(this.getFilePath());
+	private async _delete(articlePath: Path) {
+		if (!(await this._fp.exists(this.getFilePath(articlePath)))) return;
+		await this._fp.delete(this.getFilePath(articlePath));
 	}
 }
 

@@ -35,7 +35,7 @@ const getArticleHeadersByRelativePath: Command<
 		}
 
 		return await article.parsedContent.read((p) => {
-			const { renderTree } = p;
+			const renderTree = p.renderTree;
 			if (!renderTree || typeof renderTree === "string") return [];
 
 			const headersTocItem = getLevelTocItemsByRenderableTree(renderTree.children);

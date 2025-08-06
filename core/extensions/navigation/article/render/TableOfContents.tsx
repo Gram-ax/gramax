@@ -5,7 +5,7 @@ import t from "@ext/localization/locale/translate";
 import { MutableRefObject, forwardRef, useEffect, useRef } from "react";
 import { TocItem } from "../logic/createTocItems";
 import ArticleViewService from "@core-ui/ContextServices/views/articleView/ArticleViewService";
-import { usePlatform } from "@core-ui/hooks/usePlatform";
+import useGetHref from "@core-ui/useGetHref";
 
 const SCROLLSPY_OFFSET = 50;
 type Pair = { hEl: HTMLElement; aEl: HTMLElement };
@@ -36,16 +36,19 @@ const Scrollspy = forwardRef((props: ScrollspyProps, articleElementRef: MutableR
 
 		let pairs: Pair[] = null;
 		function refreshPairs() {
-			pairs = Array.from(el.querySelectorAll("a[href]")).map((x) => ({
-				hEl: document.getElementById(x.attributes["href"].value.substring(1)),
-				aEl: x as HTMLElement,
-			}));
+			pairs = Array.from(el.querySelectorAll("a[href]")).map((x) => {
+				const href = x.attributes["href"].value as string;
+				return {
+					hEl: document.getElementById(href.substring(href.indexOf("#") + 1)),
+					aEl: x as HTMLElement,
+				};
+			});
 		}
 
 		let prevAEl: HTMLElement = null;
 
 		function onScroll() {
-			if (!pairs || !pairs[0].hEl || !pairs[0]?.hEl.parentNode || !pairs[0]?.hEl.offsetTop) refreshPairs();
+			if (!pairs || !pairs?.[0]?.hEl || !pairs?.[0]?.hEl.parentNode || !pairs?.[0]?.hEl.offsetTop) refreshPairs();
 			// If elements are unmounted (article changed), then we need to read pairs again
 			// For some reason after navigating to anchor link (href=#XXX) all DOM elements in pairs are unmounted
 
@@ -79,13 +82,6 @@ const Scrollspy = forwardRef((props: ScrollspyProps, articleElementRef: MutableR
 	);
 });
 
-const getHref = (href: string) => {
-	const { isStatic, isStaticCli } = usePlatform();
-	if (!isStatic && !isStaticCli) return href;
-	const logicPath = ArticlePropsService.value.logicPath;
-	return logicPath + href;
-};
-
 const Tree = ({ items, level }: { items: TocItem[]; level: number }) => {
 	return (
 		<ul style={{ margin: "1em 0 0 0" }}>
@@ -94,7 +90,7 @@ const Tree = ({ items, level }: { items: TocItem[]; level: number }) => {
 					{!x.items?.length ? (
 						<a
 							className={`lvl-${level}`}
-							href={getHref(x.url)}
+							href={useGetHref(x.url)}
 							dangerouslySetInnerHTML={{ __html: x.title }}
 							data-qa={`article-navigation-link-level-${level}`}
 						/>
@@ -128,7 +124,7 @@ const CategoryTree = ({ item, level }: { item: TocItem; level: number }) => {
 					</div> */}
 				<a
 					className={`lvl-${level}`}
-					href={getHref(item.url)}
+					href={useGetHref(item.url)}
 					data-qa={`article-navigation-level-${level}-link`}
 				>
 					{item.title}

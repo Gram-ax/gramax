@@ -1,7 +1,7 @@
 import FetchService from "@core-ui/ApiServices/FetchService";
 import ApiUrlCreator from "@core-ui/ContextServices/ApiUrlCreator";
 import { AiServerConfig } from "@ext/ai/models/types";
-import { useState, useCallback, useMemo, useRef, useEffect, MutableRefObject } from "react";
+import { MutableRefObject, useCallback, useRef } from "react";
 
 const debounce = <T>(
 	callback: () => Promise<T>,
@@ -28,12 +28,8 @@ const debounce = <T>(
 
 export const useWorkspaceAi = (workspacePath: string) => {
 	const apiUrlCreator = ApiUrlCreator.value;
-	const [initialConfig, setInitialConfig] = useState<AiServerConfig>({ apiUrl: "", token: "" });
-	const [config, setConfig] = useState<AiServerConfig>({ apiUrl: "", token: "" });
 	const serverTimeout = useRef<NodeJS.Timeout>();
 	const tokenTimeout = useRef<NodeJS.Timeout>();
-
-	const isEdit = useMemo(() => initialConfig && initialConfig.apiUrl.length > 0, [initialConfig]);
 
 	const saveData = useCallback(
 		async (config: AiServerConfig) => {
@@ -43,28 +39,14 @@ export const useWorkspaceAi = (workspacePath: string) => {
 		[workspacePath, apiUrlCreator],
 	);
 
-	const deleteData = useCallback(async () => {
-		const url = apiUrlCreator.removeAiData(workspacePath);
-		await FetchService.fetch(url);
-		await refreshPage();
-	}, [workspacePath, apiUrlCreator]);
-
-	const fetchData = useCallback(async () => {
-		const url = apiUrlCreator.getAiUrl(workspacePath);
+	const getData = useCallback(async () => {
+		const url = apiUrlCreator.getAiData(workspacePath);
 		const res = await FetchService.fetch(url);
 		if (!res.ok) return;
-
 		const data = await res.json();
 
-		setInitialConfig({ apiUrl: data, token: "" });
-		setConfig({ apiUrl: data, token: "" });
-
-		return { apiUrl: data, token: "" };
+		return { aiApiUrl: data.apiUrl, aiToken: data.token };
 	}, [workspacePath, apiUrlCreator]);
-
-	useEffect(() => {
-		void fetchData();
-	}, [fetchData]);
 
 	const checkToken = useCallback(
 		async (apiUrl: string, token: string): Promise<boolean> => {
@@ -97,13 +79,9 @@ export const useWorkspaceAi = (workspacePath: string) => {
 	);
 
 	return {
-		config,
 		checkServer,
 		saveData,
-		initialConfig,
-		isEdit,
-		fetchData,
-		deleteData,
+		getData,
 		checkToken,
 	};
 };

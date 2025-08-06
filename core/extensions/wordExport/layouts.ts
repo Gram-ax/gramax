@@ -42,6 +42,7 @@ import { tabledbWordlayout } from "../markdown/elements/tabledb/word/tabledb";
 import { videoWordLayout } from "../markdown/elements/video/word/video";
 import { blockPropertyWordLayout } from "@ext/markdown/elements/blockProperty/word/blockProperty";
 import { renderInlineImageWordLayout } from "@ext/markdown/elements/inlineImage/word/inlineImage";
+import { highlightWordLayout } from "@ext/markdown/elements/highlight/word/highlight";
 // import { imagesWordLayout } from "@ext/markdown/elements/imgs/word/imgs";
 // import { seeWordLayout } from "@ext/markdown/elements/see/word/see";
 // import { formulaWordLayout } from "../markdown/elements/formula/word/formula";
@@ -54,6 +55,7 @@ export const inlineLayouts = {
 	Br: brWordLayout,
 	br: brWordLayout,
 	Color: colorWordLayout,
+	highlight: highlightWordLayout,
 	Alfa: alfaWordLayout,
 	Beta: betaWordLayout,
 	Who: whoWordLayout,

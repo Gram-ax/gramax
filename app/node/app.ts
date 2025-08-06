@@ -122,7 +122,7 @@ const _init = async (config: AppConfig): Promise<Application> => {
 		em.getConfig()?.gesUrl,
 	);
 	const contextFactory = new ContextFactory(tm, config.tokens.cookie, config.isReadOnly, am);
-	const sitePresenterFactory = new SitePresenterFactory(wm, parser, parserContextFactory, rp, customArticlePresenter);
+	const sitePresenterFactory = new SitePresenterFactory(wm, parser, parserContextFactory, rp, customArticlePresenter, config.isReadOnly);
 
 	const cacheFileProvider = new DiskFileProvider(config.paths.data);
 	await cacheFileProvider.createRootPathIfNeed();

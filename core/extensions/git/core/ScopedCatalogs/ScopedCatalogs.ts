@@ -21,7 +21,7 @@ export default class ScopedCatalogs {
 			const gitTreeFileProvider = this._getGitTreeFileProvider(catalogPath, fs.fp);
 			fs.fp.mount(scopedPath, gitTreeFileProvider);
 			const scopedCatalog = await fs.getCatalogByPath(scopedPath, false);
-			scopedCatalog.setRepository(this._repo);
+			scopedCatalog.setRepository(this._repo, false);
 
 			this._scopedCatalogs.set(scopedPath.value, scopedCatalog);
 		}

@@ -9,6 +9,7 @@ import styled from "@emotion/styled";
 import { isFromModal } from "@ui-kit/Modal";
 import { HTMLAttributes } from "react";
 import { CategoryLink, ItemLink } from "../../../NavigationLinks";
+import { cssMedia } from "@core-ui/utils/cssUtils";
 /* eslint-disable @typescript-eslint/no-unused-vars */
 
 interface LevNavItemProps extends HTMLAttributes<HTMLDivElement> {
@@ -146,10 +147,6 @@ const StyledItem = styled(Item)`
 	.right-extensions {
 		display: inline-flex !important;
 	}
-    
-	:hover {
-		background: var(--color-article-bg);
-	}
     `}
 
 	> i,
@@ -192,24 +189,31 @@ const StyledItem = styled(Item)`
 	}
 
 	${(p) =>
-		p.isDragStarted
-			? ``
-			: `
-	:hover {
-		background: var(--color-lev-sidebar-hover);
-
-		.right-extensions {
-			display: inline-flex;
-		}
-	}
-	`}
-	${(p) =>
 		p.isDragStarted &&
 		p.isDropTarget &&
 		!p.isCategory &&
 		`
 			background: var(--color-nav-article-drop-target) !important;
 		`}
+
+	${cssMedia.wide} {
+		:hover {
+			background: var(--color-lev-sidebar-hover);
+
+			.right-extensions {
+				display: inline-flex;
+			}
+		}
+
+		${(p) =>
+			!(p.isActive ?? false)
+				? ""
+				: `
+			:hover {
+				background: var(--color-article-bg);
+			}
+		`}
+	}
 `;
 
 const LevNavItem = (props: LevNavItemProps) => {

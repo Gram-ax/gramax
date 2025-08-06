@@ -1,6 +1,5 @@
 import styled from "@emotion/styled";
-import ModifiedBackend from "@ext/navigation/catalog/drag/logic/ModifiedBackend";
-import { getBackendOptions } from "@minoru/react-dnd-treeview";
+import ModifiedBackend, { useDragDrop } from "@ext/navigation/catalog/drag/logic/ModifiedBackend";
 import { CSSProperties, ReactNode } from "react";
 import { DndProvider } from "react-dnd";
 import Scrollable from "../ScrollableElement";
@@ -20,11 +19,12 @@ interface LeftSidebarProps {
 const LeftSidebar = (props: LeftSidebarProps) => {
 	const { children, shadow = true, boxShadowStyles, sidebarTop, sidebarBottom, style, className } = props;
 	const { onContentMouseEnter, onContentMouseLeave } = props;
+	const { backend, options } = useDragDrop();
 
 	return (
 		<div className={className} style={style}>
 			{sidebarTop}
-			<DndProvider backend={ModifiedBackend} options={getBackendOptions()}>
+			<DndProvider backend={(manager) => ModifiedBackend(backend(manager))} options={options}>
 				<Scrollable
 					style={style}
 					showTopBottomShadow={shadow}

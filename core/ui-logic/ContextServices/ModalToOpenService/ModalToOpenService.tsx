@@ -1,6 +1,7 @@
 import { Dispatch, ReactElement, SetStateAction, useState } from "react";
 import getModalComponentToRender from "./logic/getModalComponentToRender";
 import ModalToOpen from "./model/ModalsToOpen";
+import { usePlatform } from "@core-ui/hooks/usePlatform";
 
 let _setIsOpenModal: Dispatch<SetStateAction<ModalToOpen>> = () => {};
 let _setArgs: Dispatch<SetStateAction<{ [name: string]: any }>> = () => {};
@@ -10,11 +11,14 @@ export default abstract class ModalToOpenService {
 	private static _args: { [name: string]: any } = {};
 
 	static Provider({ children }: { children: ReactElement }): ReactElement {
+		const isStaticCli = usePlatform().isStaticCli;
 		const [modalToOpen, setModalToOpen] = useState<ModalToOpen>(null);
 		const [args, setArgs] = useState<{ [name: string]: any }>({});
 		ModalToOpenService._args = args;
-		_setIsOpenModal = setModalToOpen;
-		_setArgs = setArgs;
+		if (!isStaticCli) {
+			_setIsOpenModal = setModalToOpen;
+			_setArgs = setArgs;
+		}
 		const Component = getModalComponentToRender[modalToOpen];
 
 		return (

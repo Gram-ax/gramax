@@ -8,10 +8,10 @@ import ModalLayoutLight from "@components/Layouts/ModalLayoutLight";
 import { classNames } from "@components/libs/classNames";
 import FetchService from "@core-ui/ApiServices/FetchService";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
+import IsMobileService from "@core-ui/ContextServices/isMobileService";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import { useDebounce } from "@core-ui/hooks/useDebounce";
 import useWatch from "@core-ui/hooks/useWatch";
-import { cssMedia } from "@core-ui/utils/cssUtils";
 import DiagramType from "@core/components/Diagram/DiagramType";
 import styled from "@emotion/styled";
 import InfoModalForm from "@ext/errorHandlers/client/components/ErrorForm";
@@ -22,7 +22,6 @@ import DiagramRender from "@ext/markdown/elements/diagrams/component/DiagramRend
 import getMermaidDiagram from "@ext/markdown/elements/diagrams/diagrams/mermaid/getMermaidDiagram";
 import getPlantUmlDiagram from "@ext/markdown/elements/diagrams/diagrams/plantUml/getPlantUmlDiagram";
 import getNaturalSize from "@ext/markdown/elements/diagrams/logic/getNaturalSize";
-import useMediaQuery from "@mui/material/useMediaQuery";
 import { Editor } from "@tiptap/core";
 import { FC, Suspense, lazy, memo, useCallback, useEffect, useRef, useState } from "react";
 
@@ -74,7 +73,7 @@ const DiagramsEditor = (props: DiagramsEditorProps) => {
 	const [alertHeight, setAlertHeight] = useState(undefined);
 	const [monacoHeight, setMonacoHeight] = useState(undefined);
 	const [showConfirm, setShowConfirm] = useState(false);
-	const isMobile = useMediaQuery(cssMedia.JSnarrow);
+	const isMobile = IsMobileService.value;
 	const [pendedData, setPendedData] = useState(content ?? "");
 	const diagramsServiceUrl = PageDataContextService.value.conf.diagramsServiceUrl;
 
@@ -134,7 +133,10 @@ const DiagramsEditor = (props: DiagramsEditorProps) => {
 
 	const loadContent = (src: string) => {
 		if (!src) return;
-		const cnt = getBuffer(src).toString();
+		const buffer = getBuffer(src);
+		if (!buffer) return;
+
+		const cnt = buffer.toString();
 		setContentState(cnt);
 		setStartContent(cnt);
 		setContentEditState(cnt);

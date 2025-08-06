@@ -3,8 +3,10 @@ import BranchErrorElement from "@components/Layouts/StatusBar/Extensions/Article
 import ShowPublishBar from "@components/Layouts/StatusBar/Extensions/ShowPublishBar";
 import FetchService from "@core-ui/ApiServices/FetchService";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
+import CatalogPropsService from "@core-ui/ContextServices/CatalogProps";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import { usePlatform } from "@core-ui/hooks/usePlatform";
+import useWatch from "@core-ui/hooks/useWatch";
 import styled from "@emotion/styled";
 import ProtectedBranch from "@ext/catalog/actions/ProtectedBranch";
 import DefaultError from "@ext/errorHandlers/logic/DefaultError";
@@ -18,13 +20,12 @@ import MergeRequestTab from "@ext/git/core/GitMergeRequest/components/MergeReque
 import ShowMergeRequest from "@ext/git/core/GitMergeRequest/components/ShowMergeRequest";
 import type { MergeRequest } from "@ext/git/core/GitMergeRequest/model/MergeRequest";
 import PublishTab from "@ext/git/core/GitPublish/PublishTab";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import ConnectStorage from "../../../../../extensions/catalog/actions/ConnectStorage";
 import Branch from "../../../../../extensions/git/actions/Branch/components/Branch";
 import Sync from "../../../../../extensions/git/actions/Sync/components/Sync";
 import IsReadOnlyHOC from "../../../../../ui-logic/HigherOrderComponent/IsReadOnlyHOC";
 import StatusBar from "../../StatusBar";
-import CatalogPropsService from "@core-ui/ContextServices/CatalogProps";
 
 export enum LeftNavigationTab {
 	None,
@@ -60,9 +61,14 @@ const ArticleStatusBar = ({ isStorageInitialized, padding }: { isStorageInitiali
 	const [branchError, setBranchError] = useState<DefaultError>(null);
 	const [mergeRequestIsDraft, setMergeRequestIsDraft] = useState(false);
 	const [mergeRequest, setMergeRequest] = useState<MergeRequest>(null);
-	const catalogName = CatalogPropsService.value?.name
+	const mergeRequestRef = useRef<MergeRequest>(null);
+	const catalogName = CatalogPropsService.value?.name;
 
 	const { bottomTab } = NavigationTabsService.value;
+
+	useWatch(() => {
+		mergeRequestRef.current = mergeRequest;
+	}, [mergeRequest]);
 
 	const setupMergeRequestState = async (branch: GitBranchData, caller: OnBranchUpdateCaller) => {
 		if (isNext) return;
@@ -74,7 +80,14 @@ const ArticleStatusBar = ({ isStorageInitialized, padding }: { isStorageInitiali
 		setMergeRequestIsDraft(!!data && !branch?.mergeRequest);
 		setMergeRequest(mr);
 
-		if (mr && caller !== OnBranchUpdateCaller.DiscardNoReset && caller !== OnBranchUpdateCaller.Publish)
+		const mergeRequestWasBefore = !!mergeRequestRef.current;
+
+		if (
+			mr &&
+			caller !== OnBranchUpdateCaller.DiscardNoReset &&
+			caller !== OnBranchUpdateCaller.Publish &&
+			!mergeRequestWasBefore
+		)
 			NavigationTabsService.setBottom(LeftNavigationTab.MergeRequest);
 	};
 

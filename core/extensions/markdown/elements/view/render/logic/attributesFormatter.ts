@@ -1,4 +1,6 @@
 export default class AttributeFormatter {
+	private _allowedAttributesKey: string[] = ["defs", "orderby", "groupby", "select", "display"];
+
 	public parse(attrs: Record<string, string>) {
 		return this._parse(attrs);
 	}
@@ -8,26 +10,30 @@ export default class AttributeFormatter {
 	}
 
 	private _parse(attrs: Record<string, string>) {
-		return Object.entries(attrs).reduce((result, [key, value]) => {
-			if (!value) return result;
-			if (key === "display") result[key] = value;
-			else if (value.includes("=")) result[key] = this._parseToObject(value);
-			else result[key] = this._parseToArray(value);
-			return result;
-		}, {} as Record<string, any>);
+		return Object.entries(attrs)
+			.filter(([key]) => this._allowedAttributesKey.includes(key))
+			.reduce((result, [key, value]) => {
+				if (!value) return result;
+				if (key === "display") result[key] = value;
+				else if (value.includes("=")) result[key] = this._parseToObject(value);
+				else result[key] = this._parseToArray(value);
+				return result;
+			}, {} as Record<string, any>);
 	}
 
 	private _stringify(attrs: Record<string, any>): { [key: string]: string } {
-		return Object.entries(attrs).reduce((result, [key, value]) => {
-			if (!value) return result;
-			const stringValue = String(value);
-			const notObject = !stringValue.includes("[object");
+		return Object.entries(attrs)
+			.filter(([key]) => this._allowedAttributesKey.includes(key))
+			.reduce((result, [key, value]) => {
+				if (!value) return result;
+				const stringValue = String(value);
+				const notObject = !stringValue.includes("[object");
 
-			if (notObject && Array.isArray(value)) result[key] = this._stringifyArray(value);
-			else if (typeof value === "string" && notObject) result[key] = value.toString();
-			else result[key] = this._stringifyObject(value);
-			return result;
-		}, {} as Record<string, any>);
+				if (notObject && Array.isArray(value)) result[key] = this._stringifyArray(value);
+				else if (typeof value === "string" && notObject) result[key] = value.toString();
+				else result[key] = this._stringifyObject(value);
+				return result;
+			}, {} as Record<string, any>);
 	}
 
 	private _parseToArray(value: string) {

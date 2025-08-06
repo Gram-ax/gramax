@@ -6,6 +6,7 @@ import { useLowlightActions } from "@ext/markdown/elements/codeBlockLowlight/edi
 import lowlight from "@ext/markdown/elements/codeBlockLowlight/edit/logic/Lowlight";
 import { Lang, getLowerLangName } from "@ext/markdown/elements/codeBlockLowlight/edit/logic/LowlightLangs";
 import StyledCodeBlock from "@ext/markdown/elements/codeBlockLowlight/render/component/StyledCodeBlock";
+import isNavigatorAvailable from "@core-ui/isNavigatorAvailable";
 import { toJsxRuntime } from "hast-util-to-jsx-runtime";
 import { HTMLAttributes, useState } from "react";
 import { Fragment, jsx, jsxs } from "react/jsx-runtime";
@@ -46,6 +47,7 @@ const CodeBlock = (props: CodeBlockProps) => {
 	const [coppedIsExpanded, setCoppedIsExpanded] = useState(false);
 	const lowerLang = getLowerLangName(language);
 	const { isRegistered } = useLowlightActions({ language });
+	const copyAllowed = isNavigatorAvailable();
 
 	const [copped, setCopped] = useState(false);
 
@@ -61,17 +63,21 @@ const CodeBlock = (props: CodeBlockProps) => {
 		return <StyledCodeBlock style={style}>{trimVal}</StyledCodeBlock>;
 	}
 
+	const onMouseEnterHandler = () => {
+		if (!copyAllowed) return;
+		setCoppedIsExpanded(true);
+	};
+
+	const onMouseLeaveHandler = () => {
+		if (!copyAllowed) return;
+		setCoppedIsExpanded(false);
+		setCopped(false);
+	};
+
 	const tree = isRegistered ? lowlight.highlight(lowerLang, trimVal) : lowlight.highlight("none", trimVal);
 
 	return (
-		<NewStyledCodeBlock
-			style={style}
-			onMouseEnter={() => setCoppedIsExpanded(true)}
-			onMouseLeave={() => {
-				setCoppedIsExpanded(false);
-				setCopped(false);
-			}}
-		>
+		<NewStyledCodeBlock style={style} onMouseEnter={onMouseEnterHandler} onMouseLeave={onMouseLeaveHandler}>
 			{coppedIsExpanded && (
 				<Tooltip content={!copped ? clickToCopyText : copiedText}>
 					<StyledHoverButton onClick={coppedText}>

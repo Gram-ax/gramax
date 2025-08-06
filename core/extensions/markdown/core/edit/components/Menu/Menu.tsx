@@ -8,6 +8,9 @@ import styled from "@emotion/styled";
 import { Editor } from "@tiptap/react";
 import { ReactNode, useEffect, useState } from "react";
 import canDisplayMenu from "@ext/markdown/elements/article/edit/helpers/canDisplayMenu";
+import { isActive } from "@core-ui/hooks/useAudioRecorder";
+import { ArticleAudioToolbar } from "@ext/ai/components/Audio/Toolbar";
+import AudioRecorderService from "@ext/ai/components/Audio/AudioRecorderService";
 
 interface MenuProps {
 	editor: Editor;
@@ -20,6 +23,7 @@ const Menu = ({ editor, id, className, children }: MenuProps) => {
 	const [isOpen, setIsOpen] = useState(false);
 	const { isOpen: isMenuBarOpen } = IsMenuBarOpenService.value;
 	const isEditable = editor?.isEditable;
+	const { recorderState } = AudioRecorderService.value;
 
 	useWatch(() => {
 		setIsOpen(isMenuBarOpen);
@@ -37,10 +41,15 @@ const Menu = ({ editor, id, className, children }: MenuProps) => {
 
 	return (
 		<Portal parentId={id}>
-			<div className={className} style={isOpen ? null : { visibility: "hidden" }} data-qa="qa-edit-menu-button">
-				<IsSelectedOneNodeService.Provider editor={editor}>
-					<ButtonStateService.Provider editor={editor}>{children}</ButtonStateService.Provider>
-				</IsSelectedOneNodeService.Provider>
+			<div className={className}>
+				<div>
+					{isActive(recorderState) && <ArticleAudioToolbar editor={editor} />}
+					<div style={isOpen ? null : { visibility: "hidden" }} data-qa="qa-edit-menu-button">
+						<IsSelectedOneNodeService.Provider editor={editor}>
+							<ButtonStateService.Provider editor={editor}>{children}</ButtonStateService.Provider>
+						</IsSelectedOneNodeService.Provider>
+					</div>
+				</div>
 			</div>
 		</Portal>
 	);
@@ -52,7 +61,7 @@ export default styled(Menu)`
 	align-items: center;
 	flex-direction: column;
 
-	> * {
+	> div:first-of-type > * {
 		box-shadow: var(--shadows-deeplight);
 	}
 

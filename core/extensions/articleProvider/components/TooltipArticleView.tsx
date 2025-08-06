@@ -16,6 +16,7 @@ import SpinnerLoader from "@components/Atoms/SpinnerLoader";
 import { ArticleProviderType } from "@ext/articleProvider/logic/ArticleProvider";
 import { ProviderItemProps } from "@ext/articleProvider/models/types";
 import TopBarControllers from "@ext/articleProvider/components/TopBarControllers";
+import Comment from "@ext/markdown/elements/comment/edit/model/comment";
 
 type ItemProps = ProviderItemProps & {
 	props: Record<string, any>;
@@ -78,6 +79,7 @@ const ContainerWrapper = styled.div`
 
 const getTooltipExtensions = (extensions: Extensions, options?: GetExtensionsPropsOptions): Extensions => [
 	...getExtensions(options),
+	Comment,
 	Document.extend({
 		content: "paragraph block+",
 	}),

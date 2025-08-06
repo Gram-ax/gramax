@@ -3,6 +3,7 @@ import Caption from "@components/controls/Caption";
 import useWatch from "@core-ui/hooks/useWatch";
 import EditorService from "@ext/markdown/elementsUtils/ContextServices/EditorService";
 import { FocusEvent, ReactElement, RefObject, useCallback, useState } from "react";
+import { UseDefaultActionsOptions } from "@components/controls/HoverController/hooks/useDefaultActions";
 
 interface BlockActionPanelProps {
 	updateAttributes: (attributes: Record<string, any>) => void;
@@ -15,6 +16,7 @@ interface BlockActionPanelProps {
 	selected?: boolean;
 	isOver?: boolean;
 	setHasSignature?: (value: boolean) => void;
+	actionsOptions?: UseDefaultActionsOptions;
 	isSignature?: boolean;
 	leftActions?: ReactElement;
 	rightActions?: ReactElement;
@@ -34,6 +36,7 @@ const BlockActionPanel = (props: BlockActionPanelProps) => {
 		setHasSignature,
 		getPos,
 		isOver,
+		actionsOptions,
 	} = props;
 	const [isHovered, setIsHovered] = useState<boolean>(false);
 	const editor = EditorService.getEditor();
@@ -63,6 +66,7 @@ const BlockActionPanel = (props: BlockActionPanelProps) => {
 			setIsHovered={setIsHovered}
 			rightActions={rightActions}
 			leftActions={leftActions}
+			actionsOptions={actionsOptions}
 		>
 			{children}
 			{signatureRef && (

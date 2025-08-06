@@ -10,7 +10,8 @@ import getReviewLinkData from "./review/getReviewLinkData";
 import getShareLink from "./share/getShareLink";
 import getShareLinkData from "./share/getShareLinkData";
 import getShareTicket from "./share/getShareTicket";
-import upload from "./static/upload";
+import upload from "./cloud/upload";
+import getUploadStatus from "./cloud/getUploadStatus";
 import updateNavigation from "./updateNavigation";
 import updateProps from "./updateProps";
 import setSyntax from "./setSyntax";
@@ -26,8 +27,9 @@ const catalog = {
 		getReviewLinkData,
 	},
 	logo,
-	static: {
+	cloud: {
 		upload,
+		getUploadStatus,
 	},
 	favorite: {
 		getArticlesData,

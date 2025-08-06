@@ -9,6 +9,7 @@ import CodeBlockLowlight, { CodeBlockLowlightOptions } from "@tiptap/extension-c
 import getBackspaceShortcuts from "@ext/markdown/elements/codeBlockLowlight/edit/logic/keys/Backspace";
 import { ReactNodeViewRenderer } from "@tiptap/react";
 import CodeBlockComponent from "@ext/markdown/elements/codeBlockLowlight/edit/component/CodeBlockComponent";
+import { LowlightPlugin } from "@ext/markdown/elements/codeBlockLowlight/edit/logic/LowlightPlugin";
 
 interface CodeBlockOptions extends CodeBlockLowlightOptions {
 	monochromeClassName: string;
@@ -25,6 +26,7 @@ declare module "@tiptap/core" {
 export const languageClassPrefix = "language-";
 
 const ExtendedCodeBlockLowlight = CodeBlockLowlight.extend<CodeBlockOptions>({
+	priority: 999,
 	...getExtensionOptions({ schema: code_block, name: "code_block" }),
 
 	addOptions() {
@@ -61,7 +63,10 @@ const ExtendedCodeBlockLowlight = CodeBlockLowlight.extend<CodeBlockOptions>({
 					});
 
 					const codeContent = paragraphNodes.map((node) => node.textContent).join("\n");
-					const codeBlock = state.schema.nodes.code_block.create(attributes, state.schema.text(codeContent));
+					const codeBlock = state.schema.nodes.code_block.create(
+						attributes,
+						codeContent ? state.schema.text(codeContent) : undefined,
+					);
 
 					const tr = state.tr.replaceRangeWith(startOfFirstParagraph, endOfLastParagraph, codeBlock);
 					const newPos = tr.doc.resolve(startOfFirstParagraph + codeBlock.nodeSize - 1);
@@ -78,6 +83,19 @@ const ExtendedCodeBlockLowlight = CodeBlockLowlight.extend<CodeBlockOptions>({
 			...(this.parent?.() || []),
 			...addShortcuts([getShiftTabShortcuts(), getTabShortcuts(), getBackspaceShortcuts()], this.name),
 		};
+	},
+
+	addProseMirrorPlugins() {
+		// I know it's a hack, but it's the only way to replace the lowlight plugin
+		const pluginsWithoutLowlight = this.parent?.().filter((plugin: any) => plugin?.key !== "lowlight$") || [];
+		return [
+			...pluginsWithoutLowlight,
+			LowlightPlugin({
+				name: this.name,
+				lowlight,
+				defaultLanguage: this.options.defaultLanguage,
+			}),
+		];
 	},
 });
 

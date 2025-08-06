@@ -2,26 +2,18 @@ import ActionButton from "@components/controls/HoverController/ActionButton";
 import ActionInput from "@components/controls/HoverController/ActionInput";
 import toggleSignature from "@core-ui/toggleSignature";
 import t from "@ext/localization/locale/translate";
-import { Editor } from "@tiptap/core";
 import { Node } from "@tiptap/pm/model";
 import { ChangeEvent, Dispatch, ReactElement, RefObject, SetStateAction } from "react";
 
 interface VideoActionsProps {
-	editor: Editor;
 	signatureRef: RefObject<HTMLInputElement>;
 	updateAttributes: (attrs: Record<string, string>) => void;
 	node: Node;
-	getPos: () => number;
 	setHasSignature: Dispatch<SetStateAction<boolean>>;
 }
 
 const VideoActions = (props: VideoActionsProps): ReactElement => {
-	const { editor, node, getPos, setHasSignature, signatureRef, updateAttributes } = props;
-
-	const handleDelete = () => {
-		const position = getPos();
-		editor.commands.deleteRange({ from: position, to: position + node.nodeSize });
-	};
+	const { node, setHasSignature, signatureRef, updateAttributes } = props;
 
 	const addSignature = () => {
 		setHasSignature((prev) => toggleSignature(prev, signatureRef.current, updateAttributes));
@@ -46,7 +38,6 @@ const VideoActions = (props: VideoActionsProps): ReactElement => {
 				</a>
 			)}
 			<ActionButton icon="captions" onClick={addSignature} tooltipText={t("signature")} />
-			<ActionButton icon="trash" onClick={handleDelete} tooltipText={t("delete")} />
 		</>
 	);
 };

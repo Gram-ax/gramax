@@ -49,7 +49,7 @@ const SnippetsButton = ({ editor, onClose }: SnippetsButtonProps) => {
 	};
 
 	const onEditClick = (snippet: ProviderItemProps) => {
-		SnippetService.openSnippet(snippet);
+		SnippetService.openItem(snippet);
 	};
 
 	const buttons = [
@@ -68,7 +68,7 @@ const SnippetsButton = ({ editor, onClose }: SnippetsButtonProps) => {
 			onClick: async () => {
 				openSnippetTab();
 				const newSnippet = await SnippetService.addNewSnippet(apiUrlCreator);
-				SnippetService.openSnippet(newSnippet);
+				SnippetService.openItem(newSnippet);
 				onClose();
 			},
 		},

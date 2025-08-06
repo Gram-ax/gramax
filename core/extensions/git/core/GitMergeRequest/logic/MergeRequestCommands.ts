@@ -11,15 +11,24 @@ import type Repository from "@ext/git/core/Repository/Repository";
 import t from "@ext/localization/locale/translate";
 import assert from "assert";
 
+const DISABLED_ERROR_MESSAGE = "merge requests are disabled";
+
 export default class MergeRequestProvider {
 	private _mergeRequests: MergeRequestCommandsModel;
 	private _cachedMergeRequests: MergeRequest[];
 
-	constructor(private _fp: FileProvider, private _repoPath: Path, private _repo: Repository) {
+	constructor(
+		private _fp: FileProvider,
+		private _repoPath: Path,
+		private _repo: Repository,
+		private _disabled: boolean,
+	) {
 		this._mergeRequests = new LibGit2MergeRequestCommands(this._fp.rootPath.join(this._repoPath).value);
 	}
 
 	async list({ cached = true }: { cached?: boolean } = { cached: true }): Promise<MergeRequest[]> {
+		if (this._disabled) return [];
+
 		if (cached && this._cachedMergeRequests?.length) return this._cachedMergeRequests;
 		this._cachedMergeRequests = await this._mergeRequests.list();
 		return this._cachedMergeRequests;
@@ -40,6 +49,8 @@ export default class MergeRequestProvider {
 	}
 
 	async tryGetDraft(): Promise<MergeRequest | undefined> {
+		if (this._disabled) return;
+
 		return this._mergeRequests.tryGetDraft();
 	}
 
@@ -51,19 +62,23 @@ export default class MergeRequestProvider {
 	}
 
 	async create(data: GitSourceData, mergeRequest: CreateMergeRequest): Promise<void> {
+		assert(!this._disabled, DISABLED_ERROR_MESSAGE);
+
 		assert(data, "data is required");
 		assert(mergeRequest, "mergeRequest is required to create merge request");
 
 		const sourceRef = await this._getSourceRef();
 
 		if (await this.findBySource(sourceRef))
-			throw new Error(`Merge Request ${sourceRef} -> ${mergeRequest.targetBranchRef} already exists`);
+			throw new DefaultError(`Merge Request ${sourceRef} -> ${mergeRequest.targetBranchRef} already exists`);
 
 		mergeRequest.createdAt = new Date();
 		return this._createOrUpdateMergeRequest(data, mergeRequest);
 	}
 
 	async setApproval(data: GitSourceData, approve: boolean) {
+		assert(!this._disabled, DISABLED_ERROR_MESSAGE);
+
 		const mergeRequest = await this._findDraftOrFirstBySource(await this._getSourceRef());
 
 		assert(mergeRequest, "merge request is required to set approval");
@@ -97,6 +112,8 @@ export default class MergeRequestProvider {
 	}
 
 	async merge(data: GitSourceData, validateMerge = true) {
+		assert(!this._disabled, DISABLED_ERROR_MESSAGE);
+
 		const branch = await this._repo.gvc.getCurrentBranch();
 
 		const mr = await this.findBySource(branch.toString());
@@ -145,8 +162,20 @@ export default class MergeRequestProvider {
 	}
 
 	private async _createOrUpdateMergeRequest(...args: Parameters<typeof this._mergeRequests.createOrUpdate>) {
+		this._normalizeMergeRequest(args[1]);
 		await this._mergeRequests.createOrUpdate(...args);
 		await this._repo.gvc.add([MERGE_REQUEST_DIRECTORY_PATH]);
+	}
+
+	private _normalizeMergeRequest(mergeRequest: CreateMergeRequest): void {
+		if (!mergeRequest?.approvers) return;
+
+		for (const approver of mergeRequest.approvers) {
+			if (!approver.email) continue;
+			approver.email = approver.email.toLowerCase();
+			if (approver.name && approver.name.toLowerCase() === approver.email)
+				approver.name = approver.name.toLowerCase();
+		}
 	}
 
 	private async _findDraftOrFirstBySource(sourceBranchRef: string): Promise<MergeRequest | undefined> {
@@ -196,14 +225,14 @@ export default class MergeRequestProvider {
 			await this._repo.publish({ onlyPush: true, data });
 		} catch (e) {
 			// already restored
-			await this._repo.gvc.hardReset();
+			await this._repo.gvc.reset({ mode: "hard" });
 			throw e;
 		}
 	}
 
 	private async _restoreArchiveFile() {
 		await this._repo.gvc.restoreRepositoryState();
-		await this._repo.gvc.hardReset();
+		await this._repo.gvc.reset({ mode: "hard" });
 	}
 
 	private _formatArchiveFilename(sourceBranchRef: string, createdAt: Date) {

@@ -39,7 +39,7 @@ const Tabs = ({
 	return (
 		<div className={className}>
 			{visibleChildAttrs.length == 1 && !isEdit ? null : (
-				<div className="switch" contentEditable="false">
+				<div className="switch" contentEditable="false" suppressContentEditableWarning>
 					{visibleChildAttrs.map(({ name, icon, idx }, key) => {
 						return (
 							<div
@@ -161,6 +161,7 @@ export default styled(Tabs)`
 		position: relative;
 
 		.tab {
+			width: 100%;
 			top: 0;
 			left: 0;
 			position: absolute;
@@ -175,6 +176,7 @@ export default styled(Tabs)`
 	.tabs.c-3 .tab.c-3,
 	.tabs.c-4 .tab.c-4,
 	.tabs.c-5 .tab.c-5 {
+		width: unset;
 		position: unset;
 		visibility: visible;
 		pointer-events: all;

@@ -15,6 +15,7 @@ mod error;
 mod platform;
 mod settings;
 mod shared;
+mod updater;
 
 use platform::*;
 
@@ -57,8 +58,8 @@ pub fn run() {
 
   #[cfg(any(target_os = "linux", target_os = "windows"))]
   {
-    use tauri_plugin_deep_link::DeepLinkExt;
     use crate::error::ShowError as _;
+    use tauri_plugin_deep_link::DeepLinkExt;
     if !app.deep_link().is_registered("gramax").unwrap_or(false) {
       _ = app.deep_link().register("gramax").or_show();
     }
@@ -69,9 +70,13 @@ pub fn run() {
 
   #[cfg(desktop)]
   {
+    use crate::updater::legacy::LegacyUpdaterBuilder;
+    use crate::updater::UpdaterExt;
+
     #[cfg(target_family = "unix")]
     app.handle().setup_menu().expect("unable to setup menu");
-    app.setup_updater().expect("unable to setup updater");
+    app.setup_legacy_updater().expect("unable to setup legacy updater");
+    app.handle().updater_init().expect("unable to setup updater");
   }
 
   app.manage(shared::FocusedWebviewLabel(std::sync::Mutex::new(None)));

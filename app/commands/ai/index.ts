@@ -1,19 +1,25 @@
-import getPrettifiedText from "./getPrettifiedText";
-import getGeneratedText from "./getGeneratedText";
-import checkServer from "./checkServer";
-import checkAuth from "./checkAuth";
-import setAiData from "./setAiData";
-import removeAiData from "./removeAiData";
-import getAiData from "./getAiData";
-import getAiUrl from "./getAiUrl";
+import getPrettifiedText from "./text/getPrettifiedText";
+import getGeneratedText from "./text/getGeneratedText";
+import checkServer from "./server/checkServer";
+import checkAuth from "./server/checkAuth";
+import setAiData from "./server/setAiData";
+import removeAiData from "./server/removeAiData";
+import getAiData from "./server/getAiData";
+import transcribe from "./audio/transcribe";
 
 export default {
-	getPrettifiedText,
-	getGeneratedText,
-	checkServer,
-	checkAuth,
-	setAiData,
-	removeAiData,
-	getAiData,
-	getAiUrl,
+	text: {
+		getPrettifiedText,
+		getGeneratedText,
+	},
+	server: {
+		checkServer,
+		checkAuth,
+		setAiData,
+		removeAiData,
+		getAiData,
+	},
+	audio: {
+		transcribe,
+	},
 };

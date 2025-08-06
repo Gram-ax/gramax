@@ -18,13 +18,13 @@ import assert from "assert";
 const docx = import("docx");
 
 const getAsWordDocument: Command<
-	{ ctx: Context; itemPath?: Path; isCategory: boolean; catalogName: string; wordTemplateName?: string },
+	{ ctx: Context; itemPath?: Path; isCategory: boolean; catalogName: string; wordTemplate?: string | Buffer },
 	Buffer
 > = Command.create({
 	path: "word",
 	kind: ResponseKind.file,
 
-	async do({ ctx, catalogName, isCategory, itemPath, wordTemplateName }) {
+	async do({ ctx, catalogName, isCategory, itemPath, wordTemplate }) {
 		const { wm, parser, parserContextFactory } = this._app;
 		const workspace = wm.current();
 		const catalog = await workspace.getCatalog(catalogName, ctx);
@@ -52,8 +52,11 @@ const getAsWordDocument: Command<
 		);
 		const wordExport = new MainWordExport(ExportType.withoutTableOfContents, titlesMap, catalog, itemFilters);
 
-		if (wordTemplateName) {
-			const templateBuffer = await workspace.getAssets().getBuffer(Path.join(WORD_TEMPLATES_DIR, wordTemplateName));
+		if (wordTemplate) {
+			const templateBuffer =
+				typeof wordTemplate === "string"
+					? await workspace.getAssets().getBuffer(Path.join(WORD_TEMPLATES_DIR, wordTemplate))
+					: wordTemplate;
 
 			assert(templateBuffer, t("word.template.error.template-not-found"));
 
@@ -75,9 +78,9 @@ const getAsWordDocument: Command<
 		const catalogName = q.catalogName;
 		const itemPath = new Path(q.itemPath);
 		const isCategory = q.isCategory === "true";
-		const wordTemplateName = q.wordTemplateName;
+		const wordTemplate = q.wordTemplateName;
 
-		return { ctx, itemPath, isCategory, catalogName, wordTemplateName };
+		return { ctx, itemPath, isCategory, catalogName, wordTemplate };
 	},
 });
 

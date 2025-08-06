@@ -1,7 +1,7 @@
-import { SourceDataProvider } from "./SourceDataProvider";
+import Cookie from "../../../../cookie/Cookie";
 import { Encoder } from "../../../../Encoder/Encoder";
 import WorkspaceManager from "../../../../workspace/WorkspaceManager";
-import Cookie from "../../../../cookie/Cookie";
+import { SourceDataProvider } from "./SourceDataProvider";
 
 describe("SourceDataProvider", () => {
 	let workspaceManager: WorkspaceManager;
@@ -48,10 +48,12 @@ describe("SourceDataProvider", () => {
 		});
 
 		describe("getSourceByName", () => {
-			it("should read data with unencoded path if old cookie exists", () => {
+			it("should read data with unencoded path if only old cookie exists", () => {
 				const cookieName = `${testStorageName}${postfix}${testPath}`;
 				(cookie.getAllNames as jest.Mock).mockReturnValue([cookieName]);
-				(cookie.get as jest.Mock).mockReturnValue(encodedSourceData);
+				(cookie.get as jest.Mock).mockImplementation((name) =>
+					name === cookieName ? encodedSourceData : null,
+				);
 
 				const result = provider.getSourceByName(testStorageName);
 
@@ -59,10 +61,12 @@ describe("SourceDataProvider", () => {
 				expect(result.raw).toMatchObject(testSourceData);
 			});
 
-			it("should read data with encoded path if old cookie does not exist", () => {
+			it("should read data with encoded path if only new cookie exists", () => {
 				const cookieName = `${testStorageName}${postfix}${encodedPath}`;
-				(cookie.getAllNames as jest.Mock).mockReturnValue([]);
-				(cookie.get as jest.Mock).mockReturnValue(encodedSourceData);
+				(cookie.getAllNames as jest.Mock).mockReturnValue([cookieName]);
+				(cookie.get as jest.Mock).mockImplementation((name) =>
+					name === cookieName ? encodedSourceData : null,
+				);
 
 				const result = provider.getSourceByName(testStorageName);
 
@@ -70,16 +74,18 @@ describe("SourceDataProvider", () => {
 				expect(result.raw).toMatchObject(testSourceData);
 			});
 
-			it("should select the correct format when both types of cookies are present", () => {
+			it("should select the encoded format when both types of cookies are present", () => {
 				const oldCookieName = `${testStorageName}${postfix}${testPath}`;
 				const newCookieName = `${testStorageName}${postfix}${encodedPath}`;
 
 				(cookie.getAllNames as jest.Mock).mockReturnValue([oldCookieName, "other-cookie", newCookieName]);
-				(cookie.get as jest.Mock).mockReturnValue(encodedSourceData);
+				(cookie.get as jest.Mock).mockImplementation((name) =>
+					name === newCookieName ? encodedSourceData : null,
+				);
 
 				const result = provider.getSourceByName(testStorageName);
 
-				expect(cookie.get).toHaveBeenCalledWith(oldCookieName);
+				expect(cookie.get).toHaveBeenCalledWith(newCookieName);
 				expect(result.raw).toMatchObject(testSourceData);
 			});
 
@@ -92,13 +98,13 @@ describe("SourceDataProvider", () => {
 		});
 
 		describe("getSourceDatas", () => {
-			it("returns unencoded cookies if old cookies exist", () => {
+			it("returns only encoded cookies if both formats exist", () => {
 				const oldFormatData = { ...testSourceData, name: "old" };
 				const newFormatData = { ...testSourceData, name: "new" };
 
 				const cookieData = {
 					[`storage1${postfix}${testPath}`]: encodeTestData(oldFormatData),
-					[`storage2${postfix}${encodedPath}`]: encodeTestData(newFormatData),
+					[`storage1${postfix}${encodedPath}`]: encodeTestData(newFormatData),
 				};
 
 				(cookie.getAllNames as jest.Mock).mockReturnValue(Object.keys(cookieData));
@@ -109,15 +115,15 @@ describe("SourceDataProvider", () => {
 				const results = provider.getSourceDatas();
 
 				expect(results).toHaveLength(1);
-				expect(results[0]).toMatchObject(oldFormatData);
+				expect(results[0]).toMatchObject(newFormatData);
 			});
 		});
 
 		describe("isSourceExists", () => {
-			it("should find source with unencoded path if old cookie exists", () => {
+			it("should find source with unencoded path if only old cookie exists", () => {
 				const cookieName = `${testStorageName}${postfix}${testPath}`;
 				(cookie.getAllNames as jest.Mock).mockReturnValue([cookieName]);
-				(cookie.exist as jest.Mock).mockReturnValue(true);
+				(cookie.exist as jest.Mock).mockImplementation((name) => name === cookieName);
 
 				const result = provider.isSourceExists(testStorageName);
 
@@ -125,15 +131,27 @@ describe("SourceDataProvider", () => {
 				expect(cookie.exist).toHaveBeenCalledWith(cookieName);
 			});
 
-			it("should find source with encoded path if old cookie does not exist", () => {
+			it("should find source with encoded path if only new cookie exists", () => {
 				const cookieName = `${testStorageName}${postfix}${encodedPath}`;
-				(cookie.getAllNames as jest.Mock).mockReturnValue([]);
-				(cookie.exist as jest.Mock).mockReturnValue(true);
+				(cookie.getAllNames as jest.Mock).mockReturnValue([cookieName]);
+				(cookie.exist as jest.Mock).mockImplementation((name) => name === cookieName);
 
 				const result = provider.isSourceExists(testStorageName);
 
 				expect(result).toBe(true);
 				expect(cookie.exist).toHaveBeenCalledWith(cookieName);
+			});
+
+			it("should prefer encoded path if both cookies exist", () => {
+				const oldCookieName = `${testStorageName}${postfix}${testPath}`;
+				const newCookieName = `${testStorageName}${postfix}${encodedPath}`;
+				(cookie.getAllNames as jest.Mock).mockReturnValue([oldCookieName, newCookieName]);
+				(cookie.exist as jest.Mock).mockImplementation((name) => name === newCookieName);
+
+				const result = provider.isSourceExists(testStorageName);
+
+				expect(result).toBe(true);
+				expect(cookie.exist).toHaveBeenCalledWith(newCookieName);
 			});
 		});
 	});

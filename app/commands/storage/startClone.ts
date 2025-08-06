@@ -38,6 +38,8 @@ const startClone: Command<
 		const baseCatalog = await workspace.getBaseCatalog(entry.name);
 		if (baseCatalog) {
 			const storage = baseCatalog.repo.storage;
+			if (!storage) return { alreadyExist: false };
+
 			await rp.validateEqualCatalogNames(ctx, path, data, storage);
 			return { alreadyExist: true };
 		}

@@ -13,6 +13,8 @@ interface ColInfo {
 	colwidth?: (number | string)[];
 }
 
+const TABLE_WRAPPER_PADDINGS = 48; //1.5em + 1.5em
+
 const ColGroup = ({ content, parentElement, tableRef }: ColGroupProps) => {
 	const articleRef = ArticleRefService.value;
 	const [colInfo, setColInfo] = useState<ColInfo[]>([]);
@@ -33,6 +35,12 @@ const ColGroup = ({ content, parentElement, tableRef }: ColGroupProps) => {
 		return cols;
 	};
 
+	const normalizeWidth = (width: string): string => {
+		if (!width) return width;
+		const hasUnits = /[a-zA-Z%]/.test(width);
+		return hasUnits ? width : `${width}px`;
+	};
+
 	const getColInfoFromTable = (): ColInfo[] => {
 		if (!tableRef?.current) return [];
 
@@ -44,7 +52,7 @@ const ColGroup = ({ content, parentElement, tableRef }: ColGroupProps) => {
 			const colwidth = cell.getAttribute("colwidth") || cell.getAttribute("data-colwidth");
 			if (!colwidth) return { colspan: 1, colwidth: null };
 
-			const colwidths = colwidth.split(",").map((w) => w.trim());
+			const colwidths = colwidth.split(",").map((w) => normalizeWidth(w.trim()));
 
 			return {
 				colspan: parseInt(cell.getAttribute("colspan") || "1"),
@@ -53,14 +61,21 @@ const ColGroup = ({ content, parentElement, tableRef }: ColGroupProps) => {
 		});
 	};
 
+	const getCellWidthFromParent = () => {
+		const style = window.getComputedStyle(parentElement);
+		const paddingLeft = parseFloat(style.paddingLeft);
+		const paddingRight = parseFloat(style.paddingRight);
+		return parentElement?.clientWidth - (paddingLeft + paddingRight) - TABLE_WRAPPER_PADDINGS - 1;
+	};
+
 	const calculateCellWidth = (cols: ColInfo[]): number => {
 		if (cols.length === 0) return null;
 
 		if (cols.some((col) => col.colwidth && col.colwidth[0])) return null;
 
-		const maxWidth =
-			parentElement?.clientWidth - 36 ||
-			articleRef?.current?.firstElementChild?.firstElementChild?.clientWidth - 36;
+		const maxWidth = parentElement
+			? getCellWidthFromParent()
+			: articleRef?.current?.firstElementChild?.firstElementChild?.clientWidth;
 
 		if (!maxWidth) return null;
 
@@ -81,8 +96,12 @@ const ColGroup = ({ content, parentElement, tableRef }: ColGroupProps) => {
 		const onResize = () => updateColInfo();
 
 		window.addEventListener("resize", onResize);
+		const resizeObserver = new ResizeObserver(onResize);
+		parentElement && resizeObserver.observe(parentElement);
+
 		return () => {
 			window.removeEventListener("resize", onResize);
+			parentElement && resizeObserver.disconnect();
 		};
 	}, [content, parentElement, tableRef?.current, articleRef?.current]);
 

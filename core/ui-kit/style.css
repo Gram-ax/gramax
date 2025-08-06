@@ -1,3 +1,7 @@
+ol[data-sonner-toaster] {
+	list-style: none !important;
+}
+
 [data-raidx-select-item] {
 	cursor: pointer !important;
 	font-weight: 400;

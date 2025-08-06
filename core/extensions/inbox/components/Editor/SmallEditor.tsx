@@ -1,28 +1,25 @@
+import { classNames } from "@components/libs/classNames";
 import FetchService from "@core-ui/ApiServices/FetchService";
 import MimeTypes from "@core-ui/ApiServices/Types/MimeTypes";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import IsMenuBarOpenService from "@core-ui/ContextServices/IsMenuBarOpenService";
 import { useDebounce } from "@core-ui/hooks/useDebounce";
-import { ArticleProviderType } from "@ext/articleProvider/logic/ArticleProvider";
-import ArticleMat from "@ext/markdown/core/edit/components/ArticleMat";
-import { Editor, EditorContent, JSONContent, useEditor, Extensions } from "@tiptap/react";
-import { memo, useCallback, useEffect, useMemo } from "react";
 import styled from "@emotion/styled";
-import { ContentEditorId } from "@ext/markdown/core/edit/components/ContentEditor";
+import { ArticleProviderType } from "@ext/articleProvider/logic/ArticleProvider";
 import Menu from "@ext/inbox/components/Editor/Menu";
-import OnDeleteNode from "@ext/markdown/elements/onDocChange/OnDeleteNode";
-import deleteDiagrams from "@ext/markdown/elements/diagrams/logic/deleteDiagrams";
-import deleteDrawio from "@ext/markdown/elements/drawio/edit/logic/deleteDrawio";
-import deleteOpenApi from "@ext/markdown/elements/openApi/edit/logic/deleteOpenApi";
-import deleteImages from "@ext/markdown/elements/image/edit/logic/deleteImages";
-import { Mark, Node } from "@tiptap/pm/model";
-import OnDeleteMark from "@ext/markdown/elements/onDocChange/OnDeleteMark";
-import deleteFiles from "@ext/markdown/elements/file/edit/logic/deleteFiles";
-import ResourceService from "@ext/markdown/elements/copyArticles/resourceService";
+import ArticleMat from "@ext/markdown/core/edit/components/ArticleMat";
+import { ContentEditorId } from "@ext/markdown/core/edit/components/ContentEditor";
+import useContentEditorHooks from "@ext/markdown/core/edit/components/UseContentEditorHooks";
 import CopyArticles from "@ext/markdown/elements/copyArticles/copyArticles";
+import ResourceService from "@ext/markdown/elements/copyArticles/resourceService";
+import deleteFiles from "@ext/markdown/elements/file/edit/logic/deleteFiles";
 import imageHandlePaste from "@ext/markdown/elements/image/edit/logic/imageHandlePaste";
+import OnDeleteMark from "@ext/markdown/elements/onDocChange/OnDeleteMark";
+import OnDeleteNode from "@ext/markdown/elements/onDocChange/OnDeleteNode";
+import { Mark } from "@tiptap/pm/model";
 import { EditorView } from "@tiptap/pm/view";
-import { classNames } from "@components/libs/classNames";
+import { Editor, EditorContent, Extensions, JSONContent, useEditor } from "@tiptap/react";
+import { memo, useCallback, useEffect, useMemo } from "react";
 
 type MiniProps<T> = T extends { title: string; content: JSONContent } ? T : { title: string; content: JSONContent };
 
@@ -120,16 +117,7 @@ const SmallEditor = <T extends MiniProps<any>>(proprs: SmallEditorProps<T>) => {
 		return extensions;
 	}, [extensions]);
 
-	const onDeleteNodes = useCallback(
-		(nodes: Node[]): void => {
-			if (!resourceService?.id) return;
-			deleteImages(nodes, resourceService);
-			deleteDrawio(nodes, resourceService);
-			deleteOpenApi(nodes, resourceService);
-			deleteDiagrams(nodes, resourceService);
-		},
-		[resourceService],
-	);
+	const { onDeleteNodes } = useContentEditorHooks();
 
 	const onDeleteMarks = useCallback(
 		(marks: Mark[]): void => {

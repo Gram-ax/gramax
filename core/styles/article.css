@@ -181,26 +181,29 @@ article a span.external-link-wrapper {
 }
 
 .article ul[data-type="taskList"] {
-	list-style-type: none !important;
 	padding: 0 !important;
 }
 
-.article ul[data-type="taskList"] li {
+.article ul[data-type="taskList"] > li::before {
+	display: none;
+}
+
+.article ul[data-type="taskList"] > li {
 	display: flex;
 	align-items: flex-start;
 	gap: 0.35em;
 	margin-bottom: 0 !important;
 }
-.article ul[data-type="taskList"] li label {
+.article ul[data-type="taskList"] > li label {
 	line-height: 1.7em;
 }
 
-.article ul[data-type="taskList"] li label input {
+.article ul[data-type="taskList"] > li label input {
 	width: 1.15em;
 	height: 1.15em;
 }
 
-.article ul[data-type="taskList"] li > div {
+.article ul[data-type="taskList"] > li > div {
 	flex: 1 1 auto;
 }
 
@@ -257,13 +260,18 @@ article a span.external-link-wrapper {
 	margin-bottom: 0.4em !important;
 }
 
+.article .article-body ul {
+	list-style: none;
+}
+
 .article .article-body ol {
 	counter-reset: listitem 0;
 	list-style: none;
 	padding-left: 2em !important;
 }
 
-.article .article-body ol > li {
+.article .article-body ol > li,
+.article .article-body ul > li {
 	position: relative;
 }
 
@@ -278,6 +286,24 @@ article a span.external-link-wrapper {
 	position: absolute;
 	text-align: center;
 	border-radius: 100%;
+}
+
+.article .article-body ul > li::before {
+	padding: 0.25em 0.25em;
+	left: -1.5em;
+	top: 0.9em;
+	font-size: 0.625em;
+	font-weight: 600;
+	line-height: 1em;
+	position: absolute;
+	text-align: center;
+
+	transform: translateY(50%);
+	background-color: var(--color-article-text);
+	content: "";
+}
+
+.article .article-body ol > li::before {
 	content: counter(listitem);
 	counter-increment: listitem 1;
 	background: var(--color-li-num-bg);
@@ -289,39 +315,42 @@ article a span.external-link-wrapper {
 }
 
 .article .article-body ol > li::before,
-.article .article-body ol ol ol ol > li::before,
-.article .article-body ol ol ol ol ol ol ol > li::before {
+.article .article-body ol > li > ol > li > ol > li > ol > li::before,
+.article .article-body ol > li > ol > li > ol > li > ol > li > ol > li > ol > li > ol > li::before {
 	content: counter(listitem, decimal);
 }
 
-.article .article-body ol ol > li::before,
-.article .article-body ol ol ol ol ol > li::before,
-.article .article-body ol ol ol ol ol ol ol ol > li::before {
+.article .article-body ol > li > ol > li::before,
+.article .article-body ol > li > ol > li > ol > li > ol > li > ol > li::before,
+.article .article-body ol > li > ol > li > ol > li > ol > li > ol > li > ol > li > ol > li > ol > li::before {
 	content: counter(listitem, lower-latin);
 }
 
-.article .article-body ol ol ol > li::before,
-.article .article-body ol ol ol ol ol ol > li::before,
-.article .article-body ol ol ol ol ol ol ol ol ol > li::before {
+.article .article-body ol > li > ol > li > ol > li::before,
+.article .article-body ol > li > ol > li > ol > li > ol > li > ol > li > ol > li::before,
+.article .article-body ol > li > ol > li > ol > li > ol > li > ol > li > ol > li > ol > li > ol > li > ol > li::before {
 	content: counter(listitem, lower-roman);
 }
 
-.article .article-body ul,
-.article .article-body ul ul ul ul,
-.article .article-body ul ul ul ul ul ul ul {
-	list-style-type: disc;
+.article .article-body ul > li::before,
+.article .article-body ul ul ul ul > li::before,
+.article .article-body ul ul ul ul ul ul ul > li::before {
+	border-radius: 100%;
 }
 
-.article .article-body ul ul,
-.article .article-body ul ul ul ul ul,
-.article .article-body ul ul ul ul ul ul ul ul {
-	list-style-type: circle;
+.article .article-body ul ul > li::before,
+.article .article-body ul ul ul ul ul > li::before,
+.article .article-body ul ul ul ul ul ul ul ul > li::before {
+	background: transparent;
+	outline: 1px solid var(--color-article-text);
 }
 
-.article .article-body ul ul ul,
-.article .article-body ul ul ul ul ul ul,
-.article .article-body ul ul ul ul ul ul ul ul ul {
-	list-style-type: square;
+.article .article-body ul ul ul > li::before,
+.article .article-body ul ul ul ul ul ul > li::before,
+.article .article-body ul ul ul ul ul ul ul ul ul > li::before {
+	border-radius: 0;
+	background-color: var(--color-article-text);
+	outline: none;
 }
 
 .article code,
@@ -329,7 +358,7 @@ article a span.external-link-wrapper {
 	tab-size: 4;
 	margin: 1em 0;
 	overflow: auto;
-	padding: 2px 6px;
+	padding: 2px 2px;
 	background: var(--color-code-bg);
 	color: var(--color-article-heading-text);
 }

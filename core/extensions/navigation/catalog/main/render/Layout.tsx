@@ -7,6 +7,14 @@ const Layout = ({ children, className }: { children: JSX.Element; className?: st
 export default styled(Layout)`
 	margin-bottom: 1.5rem;
 
+	> div > ul {
+		padding-top: 20px;
+
+		> li:first-of-type {
+			margin-top: 0;
+		}
+	}
+
 	> div > ul > li {
 		font-size: 13px;
 		margin-top: 20px;

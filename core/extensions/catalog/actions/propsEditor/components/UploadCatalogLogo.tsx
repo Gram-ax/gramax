@@ -1,10 +1,10 @@
 import CatalogLogoService from "@core-ui/ContextServices/CatalogLogoService/Context";
 import { useWatchClient } from "@core-ui/hooks/useWatch";
-import { FormProps } from "@ext/catalog/actions/propsEditor/components/CatalogPropsEditor";
 import t from "@ext/localization/locale/translate";
-import { FormField } from "@ui-kit/Form";
 import LogoUploader from "@ext/workspace/components/LogoUploader";
+import { FormField } from "@ui-kit/Form";
 import { useMemo } from "react";
+import type { FormProps } from "../logic/createFormSchema";
 
 const UploadCatalogLogo = ({ formProps }: { formProps: FormProps }) => {
 	const {

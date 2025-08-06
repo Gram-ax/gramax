@@ -8,6 +8,10 @@ function linkToken(context?: ParserContext) {
 			if (!context) return { href: tok.attrGet("href"), hash: "", resourcePath: "" };
 			const { href, resourcePath, hash, isFile } = await linkCreator.getLink(tok.attrGet("href"), context);
 
+			if (resourcePath) {
+				if (isFile) context.getResourceManager().set(resourcePath);
+				else context.getLinkManager().set(resourcePath, hash);
+			}
 			return {
 				href,
 				isFile,

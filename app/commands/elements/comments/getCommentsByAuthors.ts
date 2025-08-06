@@ -1,31 +1,54 @@
 import { ResponseKind } from "@app/types/ResponseKind";
-import type { Comment } from "@core-ui/CommentBlock";
 import type { AuthoredCommentsByAuthor } from "@core-ui/ContextServices/CommentCounter";
 import { AuthorizeMiddleware } from "@core/Api/middleware/AuthorizeMiddleware";
 import { DesktopModeMiddleware } from "@core/Api/middleware/DesktopModeMiddleware";
 import Context from "@core/Context/Context";
+import Path from "@core/FileProvider/Path/Path";
+import { convertContentToUiLanguage } from "@ext/localization/locale/translate";
+import ParserContext from "@ext/markdown/core/Parser/ParserContext/ParserContext";
+import CommentProvider from "@ext/markdown/elements/comment/edit/logic/CommentProvider";
 import { JSONContent } from "@tiptap/core";
+import assert from "assert";
 import { Command } from "../../../types/Command";
 
-const countCommentsRecursively = (pathname: string, editTree: JSONContent, out: AuthoredCommentsByAuthor) => {
-	const countCommentsInTree = (editTree: JSONContent) => {
+const countCommentsRecursively = async (
+	pathname: string,
+	editTree: JSONContent,
+	out: AuthoredCommentsByAuthor,
+	commentProvider: CommentProvider,
+	parserContext: ParserContext,
+	articlePath: Path,
+) => {
+	const existedCommentIds = new Set<string>();
+
+	const countCommentsInTree = async (editTree: JSONContent) => {
 		if (!editTree) return;
 
 		const mark = editTree.marks?.find?.((m) => m.type === "comment");
-		const { comment, count: id } = (mark?.attrs ?? {}) as { comment: Comment; count: string };
+		const attrs = editTree.attrs;
+		const id = attrs?.comment?.id || mark?.attrs?.id;
 
-		if (editTree.type == "text" && comment) {
-			if (!out[comment.user.mail]) out[comment.user.mail] = { total: 0, pathnames: {} };
-			if (!out[comment.user.mail].pathnames[pathname]) out[comment.user.mail].pathnames[pathname] = [];
-			if (out[comment.user.mail].pathnames[pathname].every((commentId) => commentId !== id)) {
-				out[comment.user.mail].total++;
-				out[comment.user.mail].pathnames[pathname].push(id);
+		if (id) {
+			const comment = await commentProvider.getComment(id, articlePath, parserContext);
+
+			if (!comment || existedCommentIds.has(id)) return;
+			const mail = comment.comment.user?.mail;
+			if (!mail) return;
+
+			if (!out[mail]) out[mail] = { total: 0, pathnames: {} };
+			if (!out[mail].pathnames[pathname]) out[mail].pathnames[pathname] = [];
+			if (out[mail].pathnames[pathname].every((commentId) => commentId !== id)) {
+				out[mail].total++;
+				out[mail].pathnames[pathname].push(id);
 			}
+
+			existedCommentIds.add(id);
 		}
 
-		editTree.content?.forEach((child) => countCommentsInTree(child));
+		await editTree.content?.forEachAsync(countCommentsInTree);
 	};
-	countCommentsInTree(editTree);
+
+	await countCommentsInTree(editTree);
 };
 
 const getCommentsByAuthors: Command<{ ctx: Context; catalogName: string }, AuthoredCommentsByAuthor> = Command.create({
@@ -36,17 +59,34 @@ const getCommentsByAuthors: Command<{ ctx: Context; catalogName: string }, Autho
 	middlewares: [new AuthorizeMiddleware(), new DesktopModeMiddleware()],
 
 	async do({ ctx, catalogName }) {
+		const { parserContextFactory } = this._app;
 		const workspace = this._app.wm.current();
 		if (!catalogName) return;
 
 		const catalog = await workspace.getCatalog(catalogName, ctx);
+		assert(catalog, "Catalog not found");
 		const articles = catalog.getContentItems();
 
 		const result: AuthoredCommentsByAuthor = {};
 
 		for (const article of articles) {
 			await article.parsedContent.read(async (p) => {
-				countCommentsRecursively(await catalog.getPathname(article), p?.editTree, result);
+				const commentProvider = catalog.customProviders.commentProvider;
+				const parserContext = await parserContextFactory.fromArticle(
+					article,
+					catalog,
+					convertContentToUiLanguage(ctx.contentLanguage || catalog.props.language),
+					ctx.user.isLogged,
+				);
+
+				await countCommentsRecursively(
+					await catalog.getPathname(article),
+					p?.editTree,
+					result,
+					commentProvider,
+					parserContext,
+					article.ref.path,
+				);
 			});
 		}
 

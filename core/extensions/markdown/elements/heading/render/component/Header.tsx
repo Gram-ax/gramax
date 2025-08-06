@@ -1,5 +1,7 @@
+import isNavigatorAvailable from "@core-ui/isNavigatorAvailable";
+import useGetHref from "@core-ui/useGetHref";
 import styled from "@emotion/styled";
-import React from "react";
+import React, { MouseEvent } from "react";
 
 export interface HeaderProps {
 	level: number;
@@ -12,23 +14,21 @@ export interface HeaderProps {
 
 const Header = (props: HeaderProps) => {
 	const { level, id, children, className, dataQa, copyLinkIcon = true } = props;
-	const hash = id ? `#${id}` : "";
+	const copyAllowed = isNavigatorAvailable();
+	const href = useGetHref(id ? `#${id}` : "");
+
+	const onClickHandler = (e: MouseEvent<HTMLAnchorElement>) => {
+		if (!copyAllowed) return;
+		if (!id) e.preventDefault();
+		const clipboardLink = window.location.origin + window.location.pathname + href;
+		void navigator.clipboard.writeText(clipboardLink);
+	};
 
 	const header = (
 		<>
 			{children}
 			{copyLinkIcon && (
-				<a
-					href={hash}
-					className="anchor"
-					data-mdignore={true}
-					contentEditable={false}
-					onClick={(e) => {
-						if (!id) e.preventDefault();
-						const clipboardLink = window.location.origin + window.location.pathname + hash;
-						void navigator.clipboard.writeText(clipboardLink);
-					}}
-				>
+				<a href={href} className="anchor" data-mdignore={true} contentEditable={false} onClick={onClickHandler}>
 					<i className="link-icon chain-icon" />
 				</a>
 			)}

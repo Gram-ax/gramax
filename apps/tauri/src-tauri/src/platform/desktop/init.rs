@@ -51,7 +51,7 @@ pub fn init_app<R: Runtime>(app: &mut App<R>) -> InitResult {
     let path = path.split_once("://").map(|(_, path)| path).unwrap_or(path.as_str());
     let mut url = window.url()?;
     url.set_path(path);
-    info!("open url in window: {:?}, url: {}", window.label(), url);
+    info!("open url in window: {label:?}, url: {url}", label = window.label());
     window.navigate(url)?;
   }
 
@@ -78,7 +78,7 @@ pub fn macos_init_spellcheck(app_id: &str) {
   let output = match cmd.output() {
     Ok(output) => output,
     Err(e) => {
-      error!("failed to gather output (stdout/stderr) from {:?}; error: {}", cmd, e);
+      error!("failed to gather output (stdout/stderr) from {cmd:?}; error: {e}");
       return;
     }
   };
@@ -98,10 +98,10 @@ pub fn macos_init_spellcheck(app_id: &str) {
   let mut cmd = std::process::Command::new("defaults");
   cmd.args(["write", app_id, "WebContinuousSpellCheckingEnabled", "-bool", "YES"]);
 
-  info!("running: {:?}", cmd);
+  info!("running: {cmd:?}");
   match cmd.spawn().and_then(|mut p| p.wait()) {
     Ok(_) => {}
-    Err(e) => error!("failed to run {:?} command; error: {}", cmd, e),
+    Err(e) => error!("failed to run {cmd:?} command; error: {e}"),
   };
 }
 
@@ -128,7 +128,7 @@ impl Badges<'_> {
 #[cfg(target_os = "windows")]
 pub fn windows_init_badges<R: Runtime>(app: &App<R>) -> anyhow::Result<()> {
   const BADGES_BYTES: &[u8] = include_bytes!("../../../icons/badges.tar.xz");
-  
+
   use std::io::Read;
   use tauri::image::Image;
 

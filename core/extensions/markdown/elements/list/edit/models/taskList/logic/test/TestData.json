@@ -1,0 +1,365 @@
+[
+	{
+		"type": "bullet_list_open",
+		"tag": "ul",
+		"attrs": [["contains-task-list", "true"]],
+		"content": "",
+		"children": null
+	},
+	{
+		"type": "list_item_open",
+		"tag": "li",
+		"attrs": [["checked", "true"]],
+		"content": "",
+		"children": null
+	},
+	{
+		"type": "paragraph_open",
+		"tag": "p",
+		"attrs": null,
+		"content": "",
+		"children": null
+	},
+	{
+		"type": "inline",
+		"tag": "",
+		"attrs": null,
+		"content": "Просто текст",
+		"children": [
+			{
+				"type": "text",
+				"tag": "",
+				"attrs": null,
+				"content": "Просто текст",
+				"children": null
+			}
+		]
+	},
+	{
+		"type": "paragraph_close",
+		"tag": "p",
+		"attrs": null,
+		"content": "",
+		"children": null
+	},
+	{
+		"type": "list_item_close",
+		"tag": "li",
+		"attrs": null,
+		"content": "",
+		"children": null
+	},
+	{
+		"type": "list_item_open",
+		"tag": "li",
+		"attrs": [["checked", "false"]],
+		"content": "",
+		"children": null
+	},
+	{
+		"type": "paragraph_open",
+		"tag": "p",
+		"attrs": null,
+		"content": "",
+		"children": null
+	},
+	{
+		"type": "inline",
+		"tag": "",
+		"attrs": null,
+		"content": "[ссылка](https://example.com)",
+		"children": [
+			{
+				"type": "text",
+				"tag": "",
+				"attrs": null,
+				"content": "",
+				"children": null
+			},
+			{
+				"type": "link_open",
+				"tag": "a",
+				"attrs": [["href", "https://example.com"]],
+				"content": "",
+				"children": null
+			},
+			{
+				"type": "text",
+				"tag": "",
+				"attrs": null,
+				"content": "ссылка",
+				"children": null
+			},
+			{
+				"type": "link_close",
+				"tag": "a",
+				"attrs": null,
+				"content": "",
+				"children": null
+			}
+		]
+	},
+	{
+		"type": "paragraph_close",
+		"tag": "p",
+		"attrs": null,
+		"content": "",
+		"children": null
+	},
+	{
+		"type": "list_item_close",
+		"tag": "li",
+		"attrs": null,
+		"content": "",
+		"children": null
+	},
+	{
+		"type": "list_item_open",
+		"tag": "li",
+		"attrs": [["checked", "true"]],
+		"content": "",
+		"children": null
+	},
+	{
+		"type": "paragraph_open",
+		"tag": "p",
+		"attrs": null,
+		"content": "",
+		"children": null
+	},
+	{
+		"type": "inline",
+		"tag": "",
+		"attrs": null,
+		"content": "**жирный**",
+		"children": [
+			{
+				"type": "text",
+				"tag": "",
+				"attrs": null,
+				"content": "",
+				"children": null
+			},
+			{
+				"type": "strong_open",
+				"tag": "strong",
+				"attrs": null,
+				"content": "",
+				"children": null
+			},
+			{
+				"type": "text",
+				"tag": "",
+				"attrs": null,
+				"content": "жирный",
+				"children": null
+			},
+			{
+				"type": "strong_close",
+				"tag": "strong",
+				"attrs": null,
+				"content": "",
+				"children": null
+			},
+			{
+				"type": "text",
+				"tag": "",
+				"attrs": null,
+				"content": "",
+				"children": null
+			}
+		]
+	},
+	{
+		"type": "paragraph_close",
+		"tag": "p",
+		"attrs": null,
+		"content": "",
+		"children": null
+	},
+	{
+		"type": "list_item_close",
+		"tag": "li",
+		"attrs": null,
+		"content": "",
+		"children": null
+	},
+	{
+		"type": "list_item_open",
+		"tag": "li",
+		"attrs": [["checked", "false"]],
+		"content": "",
+		"children": null
+	},
+	{
+		"type": "blockquote_open",
+		"tag": "blockquote",
+		"attrs": null,
+		"content": "",
+		"children": null
+	},
+	{
+		"type": "paragraph_open",
+		"tag": "p",
+		"attrs": null,
+		"content": "",
+		"children": null
+	},
+	{
+		"type": "inline",
+		"tag": "",
+		"attrs": null,
+		"content": "заметка",
+		"children": [
+			{
+				"type": "text",
+				"tag": "",
+				"attrs": null,
+				"content": "заметка",
+				"children": null
+			}
+		]
+	},
+	{
+		"type": "paragraph_close",
+		"tag": "p",
+		"attrs": null,
+		"content": "",
+		"children": null
+	},
+	{
+		"type": "blockquote_close",
+		"tag": "blockquote",
+		"attrs": null,
+		"content": "",
+		"children": null
+	},
+	{
+		"type": "list_item_close",
+		"tag": "li",
+		"attrs": null,
+		"content": "",
+		"children": null
+	},
+	{
+		"type": "list_item_open",
+		"tag": "li",
+		"attrs": [["checked", "true"]],
+		"content": "",
+		"children": null
+	},
+	{
+		"type": "tag_open",
+		"tag": "",
+		"attrs": null,
+		"content": "",
+		"children": null
+	},
+	{
+		"type": "paragraph_open",
+		"tag": "p",
+		"attrs": null,
+		"content": "",
+		"children": null
+	},
+	{
+		"type": "inline",
+		"tag": "",
+		"attrs": null,
+		"content": "заметка",
+		"children": [
+			{
+				"type": "text",
+				"tag": "",
+				"attrs": null,
+				"content": "заметка",
+				"children": null
+			}
+		]
+	},
+	{
+		"type": "paragraph_close",
+		"tag": "p",
+		"attrs": null,
+		"content": "",
+		"children": null
+	},
+	{
+		"type": "tag_close",
+		"tag": "",
+		"attrs": null,
+		"content": "",
+		"children": null
+	},
+	{
+		"attrs": null,
+		"content": "",
+		"children": null,
+		"tag": "li",
+		"type": "list_item_close"
+	},
+	{
+		"attrs": null,
+		"children": null,
+		"content": "",
+		"tag": "ul",
+		"type": "bullet_list_close"
+	},
+	{
+		"attrs": null,
+		"children": null,
+		"content": "",
+		"type": "bullet_list_open",
+		"tag": "ul"
+	},
+	{
+		"type": "list_item_open",
+		"tag": "li",
+		"attrs": null,
+		"content": "",
+		"children": null
+	},
+	{
+		"type": "paragraph_open",
+		"tag": "p",
+		"attrs": null,
+		"content": "",
+		"children": null
+	},
+	{
+		"type": "inline",
+		"tag": "",
+		"attrs": null,
+		"content": "Просто пункт",
+		"children": [
+			{
+				"type": "text",
+				"tag": "",
+				"attrs": null,
+				"content": "Просто пункт",
+				"children": null
+			}
+		]
+	},
+	{
+		"type": "paragraph_close",
+		"tag": "p",
+		"attrs": null,
+		"content": "",
+		"children": null
+	},
+	{
+		"type": "list_item_close",
+		"tag": "li",
+		"attrs": null,
+		"content": "",
+		"children": null
+	},
+	{
+		"type": "bullet_list_close",
+		"tag": "ul",
+		"attrs": null,
+		"content": "",
+		"children": null
+	}
+]

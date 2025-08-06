@@ -113,6 +113,10 @@ a i.link-icon {
 	vertical-align: 1px;
 }
 
+span i.link-icon {
+	vertical-align: baseline;
+}
+
 *::-webkit-scrollbar {
 	height: var(--scroll-width);
 	width: var(--scroll-width);
@@ -230,7 +234,6 @@ span.pk .far {
 
 .tippy-box {
 	outline: none;
-	max-width: none !important;
 }
 
 @media print {

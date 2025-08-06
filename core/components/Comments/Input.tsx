@@ -6,6 +6,7 @@ import Editor, { EditorProps } from "./CommentEditor";
 import { useEffect } from "react";
 
 interface InputProps extends EditorProps {
+	autoFocus?: boolean;
 	onLoaded?: () => void;
 }
 
@@ -16,13 +17,15 @@ const Input = styled(({ className, ...props }: InputProps) => {
 		props.onLoaded?.();
 	}, []);
 
+	if (!userName) return null;
+
 	return (
 		<div className={className}>
 			<div className="user-circle">
 				<UserCircle name={userName.name} />
 			</div>
 			<div className="editer">
-				<Editor {...props} />
+				<Editor {...props} autoFocus={props.autoFocus} />
 			</div>
 		</div>
 	);

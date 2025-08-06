@@ -161,14 +161,14 @@ impl<C: Creds> MergeRequestExt for Repo<C> {
       let mr_yaml_bytes = if tree.exists(MERGE_REQUEST_FILE_PATH)? {
         tree.read_to_vec(MERGE_REQUEST_FILE_PATH)?
       } else {
-        debug!(target: TAG, "no merge-request file found at ref {}", branch_ref_raw);
+        debug!(target: TAG, "no merge-request file found at ref {branch_ref_raw}");
         continue;
       };
 
       let open_mr = match serde_yml::from_slice::<OpenMergeRequest>(mr_yaml_bytes.as_slice()) {
         Ok(mr) => mr,
         Err(err) => {
-          error!(target: TAG, "failed to parse merge-request yaml at ref {}: {}", branch_ref_raw, err);
+          error!(target: TAG, "failed to parse merge-request yaml at ref {branch_ref_raw}: {err}");
           continue;
         }
       };

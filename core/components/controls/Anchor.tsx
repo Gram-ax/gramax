@@ -13,11 +13,13 @@ interface AnchorProps {
 	basePath?: string;
 	className?: string;
 	target?: "_self" | "_blank" | "_parent" | "_top";
+	onClick?: (e: React.MouseEvent<HTMLAnchorElement>) => void;
 	hideExternalLinkIcon?: boolean;
+	hash?: string;
 }
 
 const Anchor = (Props: AnchorProps) => {
-	const { children, basePath, target: propTarget = "_blank", resourcePath, ...props } = Props;
+	const { children, basePath, onClick, target: propTarget = "_blank", resourcePath, ...props } = Props;
 	const isAnchor = props.href?.match(/^#/);
 	const basePathLength = typeof window === "undefined" ? 0 : useRouter()?.basePath?.length ?? basePath?.length ?? 0;
 	const { setLink } = ArticleTooltipService.value;
@@ -30,8 +32,9 @@ const Anchor = (Props: AnchorProps) => {
 		if (!isExternal) {
 			return (
 				<Link
-					onMouseEnter={(event) => setLink(event.target as HTMLElement, resourcePath)}
-					href={Url.from({ pathname: props.href })}
+					onClick={onClick}
+					onMouseEnter={(event) => setLink(event.target as HTMLElement, resourcePath, props.hash)}
+					href={Url.from({ pathname: props.href + (props.hash ?? "") })}
 				>
 					{children}
 				</Link>

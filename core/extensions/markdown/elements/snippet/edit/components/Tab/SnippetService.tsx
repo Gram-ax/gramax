@@ -4,7 +4,7 @@ import ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
 import FetchService from "@core-ui/ApiServices/FetchService";
 import ArticleViewService from "@core-ui/ContextServices/views/articleView/ArticleViewService";
 import generateUniqueID from "@core/utils/generateUniqueID";
-import { ProviderItemProps } from "@ext/articleProvider/models/types";
+import { ProviderContextService, ProviderItemProps } from "@ext/articleProvider/models/types";
 import ArticleSnippet from "@ext/markdown/elements/snippet/edit/components/Article/ArticleSnippet";
 import { createContext, useContext, useState } from "react";
 
@@ -18,7 +18,7 @@ export const SnippetContext = createContext<SnippetContextType>({
 	selectedID: null,
 });
 
-class SnippetService {
+class SnippetService implements ProviderContextService {
 	private _setSnippets: (snippets: Map<string, ProviderItemProps>) => void = () => {};
 	private _setSelectedID: (selectedID: string) => void = () => {};
 
@@ -36,26 +36,26 @@ class SnippetService {
 		return useContext(SnippetContext);
 	}
 
-	async fetchSnippets(apiUrlCreator: ApiUrlCreator) {
+	async fetchItems(apiUrlCreator: ApiUrlCreator) {
 		const url = apiUrlCreator.getArticleListInGramaxDir("snippet");
 		const res = await FetchService.fetch(url);
 
 		if (!res.ok) return;
 		const snippets = await res.json();
 
-		this.setSnippets(snippets);
+		this.setItems(snippets);
 	}
 
-	setSnippets(snippets: ProviderItemProps[]) {
+	setItems(snippets: ProviderItemProps[]) {
 		this._setSnippets(new Map(snippets.map((snippet) => [snippet.id, snippet])));
 	}
 
-	closeSnippet() {
+	closeItem() {
 		ArticleViewService.setDefaultView();
 		this._setSelectedID(null);
 	}
 
-	openSnippet(snippet: ProviderItemProps) {
+	openItem(snippet: ProviderItemProps) {
 		NavigationTabsService.setTop(LeftNavigationTab.Snippets);
 		ArticleViewService.setView(() => <ArticleSnippet item={snippet} />);
 		this._setSelectedID(snippet.id);
@@ -69,7 +69,7 @@ class SnippetService {
 		if (!res.ok) return;
 
 		const newSnippets = await res.json();
-		this.setSnippets(newSnippets);
+		this.setItems(newSnippets);
 
 		const addedSnippet = newSnippets.find((snippet) => snippet.id === uniqueID);
 		return addedSnippet;

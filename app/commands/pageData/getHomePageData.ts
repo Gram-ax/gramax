@@ -4,34 +4,39 @@ import { HomePageData } from "@core/SitePresenter/SitePresenter";
 import { Command } from "../../types/Command";
 import getPageDataContext from "./getPageDataContext";
 
-const getHomePageData: Command<{ ctx: Context }, { data: HomePageData; context: PageDataContext }> = Command.create({
-	path: "index",
+const getHomePageData: Command<{ ctx: Context; path?: string }, { data: HomePageData; context: PageDataContext }> =
+	Command.create({
+		path: "index",
 
-	async do({ ctx }) {
-		const { wm, sitePresenterFactory } = this._app;
+		async do({ ctx, path }) {
+			const { wm, sitePresenterFactory } = this._app;
 
-		if (!wm.hasWorkspace()) {
+			if (!wm.hasWorkspace()) {
+				return {
+					data: {
+						section: { title: "", href: "", catalogLinks: [] },
+						breadcrumb: [],
+						catalogsLinks: [],
+					},
+					context: await getPageDataContext({ ctx, app: this._app, isArticle: false }),
+				};
+			}
+
+			const workspace = wm.current();
+			const dataProvider = sitePresenterFactory.fromContext(ctx);
+			const data = await dataProvider.getHomePageData(await workspace.config(), path);
+			const context = await getPageDataContext({
+				ctx,
+				app: this._app,
+				isArticle: false,
+				isReadOnly: this._app.conf.isReadOnly,
+			});
+
 			return {
-				data: { catalogLinks: {} },
-				context: await getPageDataContext({ ctx, app: this._app, isArticle: false }),
+				data,
+				context,
 			};
-		}
-
-		const workspace = wm.current();
-		const dataProvider = sitePresenterFactory.fromContext(ctx);
-		const data = await dataProvider.getHomePageData(await workspace.config());
-		const context = await getPageDataContext({
-			ctx,
-			app: this._app,
-			isArticle: false,
-			isReadOnly: this._app.conf.isReadOnly,
-		});
-
-		return {
-			data,
-			context,
-		};
-	},
-});
+		},
+	});
 
 export default getHomePageData;

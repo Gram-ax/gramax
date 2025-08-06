@@ -10,16 +10,10 @@ interface DiagramActionsProps {
 	node: Node;
 	signatureRef: RefObject<HTMLInputElement>;
 	openEditor: () => void;
-	getPos: () => number;
 	setHasSignature: Dispatch<SetStateAction<boolean>>;
 }
 
-const DiagramActions = ({ editor, node, getPos, setHasSignature, signatureRef, openEditor }: DiagramActionsProps) => {
-	const handleDelete = () => {
-		const position = getPos();
-		editor.commands.deleteRange({ from: position, to: position + node.nodeSize });
-	};
-
+const DiagramActions = ({ editor, node, setHasSignature, signatureRef, openEditor }: DiagramActionsProps) => {
 	const updateAttributes = (attributes: Record<string, any>) => {
 		editor.commands.updateAttributes(node.type, attributes);
 	};
@@ -32,7 +26,6 @@ const DiagramActions = ({ editor, node, getPos, setHasSignature, signatureRef, o
 		<>
 			<ActionButton icon="pencil" tooltipText={t("edit2")} onClick={openEditor} />
 			<ActionButton icon="captions" tooltipText={t("signature")} onClick={addSignature} />
-			<ActionButton icon="trash" tooltipText={t("delete")} onClick={handleDelete} />
 		</>
 	);
 };

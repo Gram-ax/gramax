@@ -13,6 +13,8 @@ import getFocusMark from "../../../../elementsUtils/getFocusMark";
 import getMarkPosition from "../../../../elementsUtils/getMarkPosition";
 import BaseMark from "../../../../elementsUtils/prosemirrorPlugins/BaseMark";
 import LinkMenu from "../components/LinkMenu";
+import { Instance, Props } from "tippy.js";
+import Tooltip from "@components/Atoms/Tooltip";
 
 let callbackLink: () => void;
 
@@ -24,6 +26,8 @@ class LinkFocusTooltip extends BaseMark {
 	private _itemLinks: LinkItem[];
 	private _lastInputMethod: string;
 	private _clearLastMark: () => void;
+	private _tippy: Instance<Props>;
+	private _lastMarkPosition: { from: number; to: number };
 
 	constructor(view: EditorView, editor: Editor, private _apiUrlCreator: ApiUrlCreator) {
 		super(view, editor);
@@ -47,31 +51,71 @@ class LinkFocusTooltip extends BaseMark {
 		const element = getFirstPatentByName(text as HTMLElement, "a");
 		if (!element || element.tagName == "BODY") return;
 
-		this._setTooltipPosition(element);
-
 		const markValue = this._getValue(mark) || "";
+		if (this._lastMarkPosition?.from === markPosition?.from && this._lastMarkPosition?.to === markPosition?.to)
+			return;
+
+		this._lastMarkPosition = markPosition;
 
 		this._clearLastMark = () => {
 			if (!this._componentIsSet) return;
 			if (!markValue) this._delete(markPosition);
+			this._lastMarkPosition = null;
 		};
 
-		this._setComponent(
-			<LinkTitleContextService.Provider apiUrlCreator={this._apiUrlCreator}>
-				<LinkMenu
-					focusOnMount={this._lastInputMethod === "mouse"}
-					href={this._getHref(mark)}
-					closeMenu={() => this._closeComponent()}
-					value={markValue}
-					itemLinks={this._itemLinks}
-					onDelete={() => this._delete(markPosition)}
-					onUpdate={(v, href) => {
-						this._update(v, href, markPosition);
-						this._removeComponent(true);
+		if (this._tippy) {
+			this._tippy.hide();
+			this._tippy.destroy();
+			this._tippy = null;
+		}
+
+		// Legacy, need to refactor with normal tiptap example, like a new comments
+		setTimeout(() => {
+			this._setComponent(
+				<Tooltip
+					onMount={(instance) => {
+						this._tippy = instance;
+						requestAnimationFrame(() => {
+							if (this._tippy?.popperInstance) this._tippy.popperInstance.forceUpdate();
+						});
 					}}
-				/>
-			</LinkTitleContextService.Provider>,
-		);
+					reference={element}
+					visible
+					distance={0}
+					placement="bottom-start"
+					arrow={false}
+					hideOnClick={false}
+					hideInMobile={false}
+					customStyle
+					interactive
+					content={
+						<LinkTitleContextService.Provider apiUrlCreator={this._apiUrlCreator}>
+							<LinkMenu
+								focusOnMount={this._lastInputMethod === "mouse"}
+								href={this._getHref(mark)}
+								closeMenu={() => this._closeComponent()}
+								value={markValue}
+								itemLinks={this._itemLinks}
+								onDelete={() => this._delete(markPosition)}
+								onUpdate={(v, href) => {
+									this._update(v, href, markPosition);
+									this._removeComponent(true);
+								}}
+							/>
+						</LinkTitleContextService.Provider>
+					}
+				/>,
+			);
+		});
+	}
+
+	destroy() {
+		if (this._tippy) {
+			this._tippy.destroy();
+			this._tippy = null;
+		}
+
+		super.destroy();
 	}
 
 	static getLinkToHeading = (href: string) => {
@@ -83,6 +127,12 @@ class LinkFocusTooltip extends BaseMark {
 	}
 
 	protected override _removeComponent(dodgeClear?: boolean) {
+		if (this._tippy) {
+			this._tippy.destroy();
+			this._tippy = null;
+		}
+
+		this._lastMarkPosition = null;
 		dodgeClear || this._clearLastMark?.();
 		super._removeComponent();
 	}
@@ -161,18 +211,7 @@ class LinkFocusTooltip extends BaseMark {
 		});
 	}
 
-	protected _setTooltipPosition = (element: HTMLElement) => {
-		const distance = 0;
-		const tooltipWidth = 300;
-		const domReact = this._view.dom.parentElement.getBoundingClientRect();
-		const rect = element.getBoundingClientRect();
-		const left = rect.left - domReact.left;
-		this._tooltip.style.top = rect.top - domReact.top + rect.height + distance + "px";
-		this._tooltip.style.left = this._tooltip.style.right = null;
-		if (left + tooltipWidth > domReact.width)
-			this._tooltip.style.right = domReact.width - (left + rect.width) + "px";
-		else this._tooltip.style.left = left + "px";
-	};
+	protected _setTooltipPosition = () => {};
 }
 
 export default LinkFocusTooltip;

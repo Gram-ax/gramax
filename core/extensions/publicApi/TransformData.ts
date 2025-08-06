@@ -1,7 +1,7 @@
-import { ItemLink } from "@ext/navigation/NavigationLinks";
-import { HomePageData } from "@core/SitePresenter/SitePresenter";
-import { CatalogList, CatalogRef, CatalogNavigation, ArticleRef } from "@ext/publicApi/types";
 import Path from "@core/FileProvider/Path/Path";
+import { HomePageData } from "@core/SitePresenter/SitePresenter";
+import { ItemLink } from "@ext/navigation/NavigationLinks";
+import { ArticleRef, CatalogList, CatalogNavigation, CatalogRef } from "@ext/publicApi/types";
 
 export const getArticleId = (catalogName: string, link: string) => {
 	return new Path(catalogName).subDirectory(new Path(link))?.toString();
@@ -10,12 +10,10 @@ export const getArticleId = (catalogName: string, link: string) => {
 const getListOfCatalogs = (homePageData: HomePageData): CatalogList => {
 	const catalogRefs: CatalogRef[] = [];
 
-	Object.values(homePageData.catalogLinks).forEach((groupData) => {
-		groupData.catalogLinks.forEach((catalogLink) => {
-			catalogRefs.push({
-				id: catalogLink.name,
-				title: catalogLink.title,
-			});
+	homePageData.catalogsLinks.forEach((catalogLink) => {
+		catalogRefs.push({
+			id: catalogLink.name,
+			title: catalogLink.title,
 		});
 	});
 

@@ -1,7 +1,6 @@
 import Tooltip from "@components/Atoms/Tooltip";
 import StatusBarElement from "@components/Layouts/StatusBar/StatusBarElement";
 import { classNames } from "@components/libs/classNames";
-import getIsDevMode from "@core-ui/utils/getIsDevMode";
 import { css } from "@emotion/react";
 import styled from "@emotion/styled";
 import type { MergeRequest } from "@ext/git/core/GitMergeRequest/model/MergeRequest";
@@ -27,9 +26,8 @@ const Wrapper = styled.div<{ show?: boolean }>`
 `;
 
 const ShowMergeRequest = ({ className, mergeRequest, isShow, setShow }: ShowMergeRequestProps) => {
-	if (!getIsDevMode()) return null;
-
 	if (!mergeRequest) return null;
+  
 	const approvedCount = mergeRequest.approvers.filter((a) => !!a.approvedAt).length;
 	const approvedTotal = mergeRequest.approvers.length;
 	return (

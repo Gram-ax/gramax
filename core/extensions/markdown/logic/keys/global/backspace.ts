@@ -17,10 +17,26 @@ const betweenNoteOrCut: KeyboardRule = ({ editor }) => {
 		.run();
 };
 
+const headingAfterNode: KeyboardRule = ({ editor, nodePosition }): boolean => {
+	const selection = editor.state.selection;
+	if (nodePosition <= 3 || nodePosition !== selection.from || nodePosition !== selection.to) return;
+
+	const doc = editor.state.doc;
+
+	const parentNode = doc.nodeAt(nodePosition - 1);
+	if (parentNode.type.name !== "heading") return;
+
+	const nodeBefore = getNodeByPos(nodePosition - 2, doc, (node) => isTypeOf(node, ["note", "listItem"]));
+
+	if (!nodeBefore) return;
+
+	editor.chain().toggleHeading({ level: parentNode.attrs.level }).run();
+};
+
 const getBackspaceShortcuts = (): KeyboardShortcut => {
 	return {
 		key: "Backspace",
-		rules: [betweenNoteOrCut],
+		rules: [betweenNoteOrCut, headingAfterNode],
 	};
 };
 

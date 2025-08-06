@@ -5,14 +5,14 @@ import Path from "@core/FileProvider/Path/Path";
 import { Article } from "@core/FileStructue/Article/Article";
 import LastVisited from "@core/SitePresenter/LastVisited";
 import MergeConflictCaller from "@ext/git/actions/MergeConflictHandler/model/MergeConflictCaller";
-import MergeData from "@ext/git/actions/MergeConflictHandler/model/MergeData";
+import type ClientSyncResult from "@ext/git/core/model/ClientSyncResult";
 import type GitSourceData from "@ext/git/core/model/GitSourceData.schema";
 import type { RepositoryMergeConflictState } from "@ext/git/core/Repository/state/RepositoryState";
 import { AuthorizeMiddleware } from "../../../core/logic/Api/middleware/AuthorizeMiddleware";
 import Context from "../../../core/logic/Context/Context";
 import { Command } from "../../types/Command";
 
-const sync: Command<{ ctx: Context; catalogName: string; articlePath: Path }, MergeData> = Command.create({
+const sync: Command<{ ctx: Context; catalogName: string; articlePath: Path }, ClientSyncResult> = Command.create({
 	path: "storage/sync",
 
 	kind: ResponseKind.json,
@@ -34,7 +34,12 @@ const sync: Command<{ ctx: Context; catalogName: string; articlePath: Path }, Me
 
 		const sourceData = rp.getSourceData<GitSourceData>(ctx, await storage.getSourceName());
 
-		const mergeResult = await catalog.repo.sync({
+		const {
+			mergeData: mergeResult,
+			isVersionChanged,
+			before,
+			after,
+		} = await catalog.repo.sync({
 			recursivePull: this._app.conf.isReadOnly,
 			data: sourceData,
 			onPull: () => logger.logTrace(`Pulled in catalog "${catalogName}".`),
@@ -55,7 +60,7 @@ const sync: Command<{ ctx: Context; catalogName: string; articlePath: Path }, Me
 			lastVisited.setLastVisitedArticle(catalog, articleData.articleProps);
 		}
 
-		return isOk
+		const mergeData = isOk
 			? { ok: true }
 			: {
 					ok: false,
@@ -63,6 +68,8 @@ const sync: Command<{ ctx: Context; catalogName: string; articlePath: Path }, Me
 					reverseMerge: (state.inner as RepositoryMergeConflictState).data.reverseMerge,
 					caller: MergeConflictCaller.Sync,
 			  };
+
+		return { mergeData, isVersionChanged, before: before.toString(), after: after.toString() };
 	},
 
 	params(ctx, q) {

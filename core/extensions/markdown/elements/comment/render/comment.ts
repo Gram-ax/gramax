@@ -4,7 +4,7 @@ export const comment: Schema = {
 	render: "Comment",
 	selfClosing: false,
 	attributes: {
-		count: { type: String },
+		id: { type: String },
 	},
 	transform: (node, config) => {
 		return node.transformChildren(config);

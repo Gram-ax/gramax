@@ -16,11 +16,7 @@ const calculateContentWidth = (element: Element | null): number => {
 	const isTable = element.firstElementChild?.tagName.toLowerCase() === "table";
 	if (!isTable) return element.clientWidth;
 
-	const style = window.getComputedStyle(element);
-	const paddingLeft = parseInt(style.paddingLeft);
-	const paddingRight = parseInt(style.paddingRight);
-
-	return element.clientWidth - paddingLeft - paddingRight;
+	return element.firstElementChild.clientWidth;
 };
 
 const WidthWrapper = ({ children, className }: { children: JSX.Element; className?: string }) => {

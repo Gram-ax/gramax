@@ -1,22 +1,25 @@
 import type ContextualCatalog from "@core/FileStructue/Catalog/ContextualCatalog";
 import type { Category } from "@core/FileStructue/Category/Category";
+import ResourceUpdaterFactory from "@core/Resource/ResourceUpdaterFactory";
 import CustomArticlePresenter from "@core/SitePresenter/CustomArticlePresenter";
 import LastVisited from "@core/SitePresenter/LastVisited";
+import homeSections from "@core/utils/homeSections";
 import type { FileStatus } from "@ext/Watchers/model/FileStatus";
 import type { RefInfo } from "@ext/git/core/GitCommands/model/GitCommandsModel";
 import GitRepositoryProvider from "@ext/git/core/Repository/RepositoryProvider";
 import { catalogHasItems, isLanguageCategory, resolveRootCategory } from "@ext/localization/core/catalogExt";
 import { convertContentToUiLanguage } from "@ext/localization/locale/translate";
+import MarkdownFormatter from "@ext/markdown/core/edit/logic/Formatter/Formatter";
 import { Syntax } from "@ext/markdown/core/edit/logic/Formatter/Formatters/typeFormats/model/Syntax";
 import getArticleWithTitle from "@ext/markdown/elements/article/edit/logic/getArticleWithTitle";
 import TabsTags from "@ext/markdown/elements/tabs/model/TabsTags";
 import NavigationEventHandlers from "@ext/navigation/events/NavigationEventHandlers";
 import getAllCatalogProperties from "@ext/properties/logic/getAllCatalogProps";
-import { Property, PropertyValue } from "@ext/properties/models";
+import { Property, PropertyValue, type PropertyID } from "@ext/properties/models";
 import RuleProvider from "@ext/rules/RuleProvider";
 import { TemplateField } from "@ext/templates/models/types";
 import type { Workspace } from "@ext/workspace/Workspace";
-import type { WorkspaceConfig } from "@ext/workspace/WorkspaceConfig";
+import type { WorkspaceConfig, WorkspaceSection } from "@ext/workspace/WorkspaceConfig";
 import htmlToText from "html-to-text";
 import UiLanguage, { ContentLanguage, resolveLanguage } from "../../extensions/localization/core/model/Language";
 import MarkdownParser from "../../extensions/markdown/core/Parser/Parser";
@@ -31,8 +34,6 @@ import { Article } from "../FileStructue/Article/Article";
 import parseContent from "../FileStructue/Article/parseContent";
 import { ArticleFilter, Catalog, ItemFilter } from "../FileStructue/Catalog/Catalog";
 import type { ReadonlyBaseCatalog, ReadonlyCatalog } from "../FileStructue/Catalog/ReadonlyCatalog";
-import ResourceUpdaterFactory from "@core/Resource/ResourceUpdaterFactory";
-import MarkdownFormatter from "@ext/markdown/core/edit/logic/Formatter/Formatter";
 
 export type ClientCatalogProps = {
 	name: string;
@@ -54,6 +55,8 @@ export type ClientCatalogProps = {
 	syntax?: Syntax;
 	docrootIsNoneExsistent?: boolean;
 	notFound: boolean;
+	resolvedFilterProperty?: PropertyID;
+	filterProperties?: PropertyID[];
 };
 
 export type ClientArticleProps = {
@@ -77,16 +80,26 @@ export type ClientItemRef = {
 	storageId: string;
 };
 
-export type GroupData = {
-	catalogLinks: CatalogLink[];
-	style: "small" | "big";
+export type Section = {
 	title: string;
+	href: string;
+	catalogLinks: CatalogLink[];
+	icon?: string;
+	description?: string;
+	sections?: Sections;
 };
 
-export type CatalogsLinks = Record<string, GroupData>;
+export type Sections = Record<string, Section>;
+
+export type HomePageBreadcrumb = {
+	title: string;
+	href: string;
+};
 
 export type HomePageData = {
-	catalogLinks: CatalogsLinks;
+	section: Section;
+	breadcrumb: HomePageBreadcrumb[];
+	catalogsLinks: CatalogLink[];
 };
 
 export type GetArticlePageDataOptions = {
@@ -120,46 +133,31 @@ export default class SitePresenter {
 		private _grp: GitRepositoryProvider,
 		private _customArticlePresenter: CustomArticlePresenter,
 		private _context: Context,
+		private _isReadOnly: boolean,
 	) {
 		new NavigationEventHandlers(this._nav, this._context, this._customArticlePresenter).mount();
 		this._filters = new RuleProvider(this._context, this._nav, this._customArticlePresenter).getItemFilters();
 	}
 
-	async getHomePageData(workspace: WorkspaceConfig): Promise<HomePageData> {
-		const groups = workspace?.groups && Object.keys(workspace.groups);
-		const catalogLinks: CatalogsLinks = {};
+	async getHomePageData(workspace: WorkspaceConfig, path?: string): Promise<HomePageData> {
+		const pathSections = homeSections.getHomePathSections(path);
+		const sectionsInfo = workspace?.sections ? workspace.sections : workspace?.groups ? workspace.groups : {};
+
 		const catalogs = this._workspace.getAllCatalogs();
-
-		groups?.forEach((group) => {
-			catalogLinks[group] = {
-				catalogLinks: [],
-				style: workspace?.groups?.[group]?.style ?? "small",
-				title: workspace?.groups?.[group]?.title ?? "",
-			};
-		});
-
-		catalogLinks.other = { catalogLinks: [], style: "small", title: "other" };
-		catalogLinks.null = { catalogLinks: [], style: "small", title: null };
-
 		const lastVisited = new LastVisited(this._context, workspace.name);
 		lastVisited.retain(Array.from(catalogs.keys()));
-		(
-			await this._nav.getCatalogsLink(
-				Array.from(catalogs.values()),
-				lastVisited,
-				(c) =>
-					!c.props.language ||
-					!this._context.contentLanguage ||
-					c.props.language == this._context.contentLanguage,
-			)
-		).forEach((cLink) => {
-			let group: string = groups ? cLink.group : null;
-			if (groups && !groups.includes(cLink.group)) group = "other";
 
-			catalogLinks[group].catalogLinks.push(cLink);
-		});
+		const catalogsLinks = await this._nav.getCatalogsLink(
+			Array.from(catalogs.values()),
+			lastVisited,
+			(c) =>
+				!c.props.language ||
+				!this._context.contentLanguage ||
+				c.props.language == this._context.contentLanguage,
+		);
+		const { section, breadcrumb } = this._getSection(catalogsLinks, sectionsInfo, pathSections);
 
-		return { catalogLinks };
+		return { section, catalogsLinks, breadcrumb };
 	}
 
 	async getArticlePageData(
@@ -167,9 +165,9 @@ export default class SitePresenter {
 		catalog: ReadonlyCatalog,
 		{ editableContent, markdown }: GetArticlePageDataOptions = {},
 	): Promise<ArticlePageData> {
-		if (!catalog.customProviders.templateProvider.isTransferedLegacyProperties()) {
+		if (!this._isReadOnly && !catalog?.customProviders?.templateProvider?.isTransferedLegacyProperties()) {
 			const formatter = new MarkdownFormatter();
-			await catalog.customProviders.templateProvider.transferLegacyProperties(
+			await catalog?.customProviders?.templateProvider?.transferLegacyProperties(
 				new ResourceUpdaterFactory(this._parser, this._parserContextFactory, formatter),
 				this._parserContextFactory,
 				this._parser,
@@ -209,7 +207,7 @@ export default class SitePresenter {
 		if (!data.catalog) return null;
 		if (!data.article) {
 			data.article = catalogHasItems(data.catalog, this._context.contentLanguage || data.catalog.props.language)
-				? this._customArticlePresenter.getArticle("Article404", { pathname })
+				? this._customArticlePresenter.getArticle("Article404", { pathname, logicPath: path.join("/") })
 				: this._customArticlePresenter.getArticle("welcome");
 		}
 		return await this.getArticlePageData(data.article, data.catalog, options);
@@ -243,9 +241,11 @@ export default class SitePresenter {
 		if (!article) return null;
 		if (await article.parsedContent.isNull())
 			await parseContent(article, catalog, this._context, this._parser, this._parserContextFactory);
+
+		const htmlValue = await article.parsedContent.read((p) => p?.getHtmlValue.get());
 		let description =
 			article.props["summary"] ??
-			htmlToText.fromString(await article.parsedContent.read((p) => p.htmlValue), {
+			htmlToText.fromString(htmlValue, {
 				ignoreHref: true,
 				ignoreImage: true,
 				selectors: ["h1", "h2", "h3", "h4"].map((v) => ({ selector: v, options: { uppercase: false } })),
@@ -329,7 +329,9 @@ export default class SitePresenter {
 			docroot: catalog.getRelativeRootCategoryPath()?.value,
 			supportedLanguages: Array.from(catalog.props.supportedLanguages || []),
 			versions: catalog.props.versions,
+			filterProperties: catalog.props.filterProperties,
 			resolvedVersion: catalog.props.resolvedVersion,
+			resolvedFilterProperty: catalog.props.resolvedFilterProperty,
 			resolvedVersions: catalog.props.resolvedVersions,
 			syntax: catalog.props.syntax,
 			docrootIsNoneExsistent: catalog.props.docrootIsNoneExistent,
@@ -363,6 +365,54 @@ export default class SitePresenter {
 		}
 
 		return { article, catalog };
+	}
+
+	private _getSection(
+		catalogLinks: CatalogLink[],
+		sectionsInfo: Record<string, WorkspaceSection>,
+		pathSections: string[],
+	) {
+		const addedCatalogLinks: Set<CatalogLink> = new Set();
+
+		const getSections = (
+			level: number,
+			sectionsInfo: Record<string, WorkspaceSection>,
+			parentSectionKeys: string[] = [],
+		) => {
+			const sections: Sections = {};
+
+			for (const sectionName of Object.keys(sectionsInfo)) {
+				const sectionInfo = sectionsInfo[sectionName];
+				const findCatalogLinks = [];
+				const sectionKeys = [...parentSectionKeys, sectionName];
+
+				for (const cLink of catalogLinks) {
+					if (sectionInfo?.catalogs?.includes?.(cLink.name) || (level === 0 && cLink.group === sectionName)) {
+						findCatalogLinks.push(cLink);
+						addedCatalogLinks.add(cLink);
+					}
+				}
+
+				if (findCatalogLinks.length === 0 && !sectionInfo?.sections) continue;
+
+				sections[sectionName] = {
+					catalogLinks: findCatalogLinks,
+					title: sectionInfo?.title ?? "",
+					icon: sectionInfo?.icon,
+					href: homeSections.getSectionHref(sectionKeys),
+					description: sectionInfo?.description,
+					sections: sectionInfo?.sections ? getSections(level + 1, sectionInfo?.sections, sectionKeys) : null,
+				};
+			}
+
+			return sections;
+		};
+
+		const sections = getSections(0, sectionsInfo);
+		const otherCatalogLinks = catalogLinks.filter((cLink) => !addedCatalogLinks.has(cLink));
+		const mainSection = homeSections.getMainSection(otherCatalogLinks, sections);
+
+		return homeSections.findSection(pathSections, mainSection);
 	}
 
 	private _isLogged(): boolean {

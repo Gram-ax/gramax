@@ -170,7 +170,7 @@ class Healthcheck {
 			if (!article) return pushError();
 
 			const tocItems = collapseTocItems(await article.parsedContent.read((p) => p.tocItems));
-			if (!tocItems.length || !tocItems.some(({ url }) => url === hash)) return pushError();
+			if (!tocItems.length || !tocItems.some(({ url }) => url === decodeURIComponent(hash))) return pushError();
 		}
 	}
 

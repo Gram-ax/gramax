@@ -8,7 +8,9 @@ import { PluginView } from "@tiptap/pm/state";
 import { Plugin, PluginKey } from "prosemirror-state";
 import { MutableRefObject } from "react";
 
+import { DiffViewMode } from "@ext/markdown/elements/diff/components/DiffBottomBar";
 import ProseMirrorDiffLineComponent from "@ext/markdown/elements/diff/components/ProseMirrorDiffLine";
+import ProsemirrorAstDiffTransformer from "@ext/markdown/elements/diff/logic/astTransformer/ProseMirrorAstDiffTransformer";
 import { ProseMirrorDiffLine } from "@ext/markdown/elements/diff/logic/model/ProseMirrorDiffLine";
 import { createRoot, Root } from "react-dom/client";
 
@@ -22,6 +24,7 @@ export interface DiffExtensionProps {
 	isPin: SidebarsIsPinValue;
 	oldScope: TreeReadScope;
 	newScope: TreeReadScope;
+	diffViewMode: DiffViewMode;
 }
 
 export interface DiffExtensionStore {
@@ -30,21 +33,30 @@ export interface DiffExtensionStore {
 	isPin: SidebarsIsPinValue;
 	oldScope: TreeReadScope;
 	newScope: TreeReadScope;
+	diffViewMode: DiffViewMode;
 }
 
 declare module "@tiptap/core" {
 	interface Commands<ReturnType> {
-		diff: { updateDiffLinesModel: (diffLines: ProseMirrorDiffLine[]) => ReturnType };
+		diff: {
+			updateDiffLinesModel: (diffLines: ProseMirrorDiffLine[]) => ReturnType;
+			updateDiffViewMode: (diffViewMode: DiffViewMode, triggerUpdate?: boolean) => ReturnType;
+			updateIsPin: (isPin: SidebarsIsPinValue, triggerUpdate?: boolean) => ReturnType;
+		};
 	}
 }
 
 class DiffLines implements PluginView {
-	private readonly _diffLinesStratchPixels = 2;
+	private readonly _diffLinesStratchPixels = -1;
+	private readonly _deletedDiffLineHeight = 5;
+
 	private _article: HTMLDivElement;
 	private _articleRef: HTMLDivElement;
+
 	private static _editorRenderData: Map<Editor, { root: Root; element: HTMLElement }[]> = new Map();
 	private _onEditorDestroyBounded: () => void;
 	private _extensionStore: DiffExtensionStore;
+
 	constructor(
 		private _editor: Editor,
 		articleRef: MutableRefObject<HTMLDivElement>,
@@ -67,7 +79,14 @@ class DiffLines implements PluginView {
 
 	private _update() {
 		if (this._editor.isDestroyed) return;
-		const diffLines = this._extensionStore.diffLines;
+
+		const diffViewMode = this._extensionStore.diffViewMode;
+
+		const diffLines =
+			diffViewMode === "wysiwyg-single"
+				? this._extensionStore.diffLines
+				: this._extensionStore.diffLines.filter((x) => x.type !== "deleted");
+
 		let renderData = this._getRenderData();
 
 		if (diffLines.length > renderData.length) {
@@ -81,30 +100,55 @@ class DiffLines implements PluginView {
 		renderData.forEach((_, idx) => {
 			const rootData = this._getRenderData()[idx];
 			const diffLine = diffLines[idx];
-			const coordsStart = this._editor.view.coordsAtPos(diffLine.pos.from);
-			const coordsEnd = this._editor.view.coordsAtPos(diffLine.pos.to + 1); // +1 to include the last character
-			const left = this._getLeft();
+			const uniqueKey = `${diffLine.pos.from}-${diffLine.pos.to}`;
 
 			rootData.root.render(
 				<ApiUrlCreatorService.Provider value={this._apiUrlCreator}>
 					<ProseMirrorDiffLineComponent
+						key={uniqueKey}
 						diffLine={diffLine}
 						oldScope={this._extensionStore.oldScope}
-						left={left}
-						top={coordsStart.top + this._articleRef.scrollTop - this._diffLinesStratchPixels}
-						height={coordsEnd.bottom - coordsStart.top + this._diffLinesStratchPixels * 2}
+						left={this._getLeft()}
+						top={this._getTop(diffLine)}
+						height={this._getHeight(diffLine)}
+						onDiscard={this._getOnDiscard(diffLine)?.bind(this)}
 					/>
 				</ApiUrlCreatorService.Provider>,
 			);
 		});
 	}
 
+	private _getOnDiscard(diffLine: ProseMirrorDiffLine) {
+		if (diffLine.type !== "modified") return;
+		return () => {
+			const content = ProsemirrorAstDiffTransformer.getContentBySingleParagraphDoc(diffLine.oldContent);
+			this._editor.commands.insertContentAt({ from: diffLine.pos.from, to: diffLine.pos.to + 1 }, content); // + 1 to include the last character
+		};
+	}
+
+	private _getTop(diffLine: ProseMirrorDiffLine) {
+		if (diffLine.type === "deleted") {
+			const coordTop = this._editor.view.coordsAtPos(diffLine.insertAfter + 1).bottom; // +1 to include the last character
+			return coordTop + this._articleRef.scrollTop;
+		}
+
+		const coordTop = this._editor.view.coordsAtPos(diffLine.pos.from).top;
+
+		return coordTop + this._articleRef.scrollTop - this._diffLinesStratchPixels;
+	}
+
+	private _getHeight(diffLine: ProseMirrorDiffLine) {
+		if (diffLine.type === "deleted") return this._deletedDiffLineHeight;
+
+		const coordsStart = this._editor.view.coordsAtPos(diffLine.pos.from);
+		const coordsEnd = this._editor.view.coordsAtPos(diffLine.pos.to + 1); // +1 to include the last character
+		return coordsEnd.bottom - coordsStart.top + this._diffLinesStratchPixels * 2;
+	}
+
 	private _getLeft() {
 		const isPin = this._extensionStore.isPin;
 		const leftOffest = "0.5rem";
-		return isPin.left
-			? `calc((${this._article.getBoundingClientRect().left}px - var(--left-nav-width) - ${leftOffest}) * -1)`
-			: `calc((${this._article.getBoundingClientRect().left}px - 30px - ${leftOffest}) * -1) `;
+		return isPin.left ? leftOffest : `calc(30px + ${leftOffest})`;
 	}
 
 	private _addNewRenderData(count: number) {
@@ -157,6 +201,7 @@ const DiffExtension = Extension.create<DiffExtensionProps, DiffExtensionStore>({
 			apiUrlCreator: null,
 			oldScope: undefined,
 			newScope: undefined,
+			diffViewMode: null,
 		};
 	},
 
@@ -167,6 +212,7 @@ const DiffExtension = Extension.create<DiffExtensionProps, DiffExtensionStore>({
 			diffLines: [],
 			oldScope: this.options.oldScope,
 			newScope: this.options.newScope,
+			diffViewMode: this.options.diffViewMode,
 		};
 	},
 
@@ -176,6 +222,20 @@ const DiffExtension = Extension.create<DiffExtensionProps, DiffExtensionStore>({
 				(diffLines) =>
 				({ editor }) => {
 					editor.storage.diff.diffLines = diffLines;
+					return true;
+				},
+			updateDiffViewMode:
+				(diffViewMode, triggerUpdate = true) =>
+				({ editor }) => {
+					editor.storage.diff.diffViewMode = diffViewMode;
+					if (triggerUpdate) editor.commands.focus(undefined, { scrollIntoView: false });
+					return true;
+				},
+			updateIsPin:
+				(isPin, triggerUpdate = true) =>
+				({ editor }) => {
+					editor.storage.diff.isPin = isPin;
+					if (triggerUpdate) editor.commands.focus(undefined, { scrollIntoView: false });
 					return true;
 				},
 		};

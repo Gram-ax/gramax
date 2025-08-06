@@ -59,15 +59,12 @@ const setArticleView = (
 		const sideBarResourceData = data.sideBarDataElement as SideBarResourceData;
 		const parentPath = sideBarResourceData.parentPath;
 
-		const resourceApiUrlCreator = apiUrlCreator.fromArticle(parentPath.path);
-		const oldResourceApiUrlCreator = parentPath.oldPath ? apiUrlCreator.fromArticle(parentPath.oldPath) : undefined;
 		const relativeTo = new Path(parentPath.path);
 		const oldRelativeTo = parentPath.oldPath ? new Path(parentPath.oldPath) : undefined;
 
 		const resourceView = useResourceView({
+			parentPath,
 			id: data.relativeIdx ?? data.idx,
-			apiUrlCreator: resourceApiUrlCreator,
-			oldApiUrlCreator: oldResourceApiUrlCreator,
 			resourcePath: new Path(data.sideBarDataElement.data.filePath.path),
 			oldResourcePath: new Path(data.sideBarDataElement.data.filePath.oldPath),
 			newContent: sideBarResourceData.data.content,
@@ -132,10 +129,11 @@ const SetArticleDiffView = ({
 const useSetArticleDiffView = (isReadOnly: boolean, scope?: TreeReadScope, deleteScope?: TreeReadScope) => {
 	const diffViewMode = DiffViewModeService.value;
 	const apiUrlCreator = ApiUrlCreatorService.value;
-	const useDefaultStylesRef = useRef(diffViewMode === "wysiwyg");
+	const isWysiwyg = diffViewMode === "wysiwyg-single" || diffViewMode === "wysiwyg-double";
+	const useDefaultStylesRef = useRef(isWysiwyg);
 
 	useWatch(() => {
-		useDefaultStylesRef.current = diffViewMode === "wysiwyg";
+		useDefaultStylesRef.current = isWysiwyg;
 	}, [diffViewMode]);
 
 	const SetArticleDiffViewMemo = useCallback(

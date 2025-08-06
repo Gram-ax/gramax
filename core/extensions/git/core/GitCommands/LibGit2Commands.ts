@@ -21,6 +21,7 @@ import GitCommandsModel, {
 	type GcOptions,
 	type MergeOptions,
 	type RefInfo,
+	type ResetOptions,
 	type TreeReadScope,
 } from "./model/GitCommandsModel";
 
@@ -28,6 +29,7 @@ class LibGit2Commands extends LibGit2BaseCommands implements GitCommandsModel {
 	constructor(repoPath: Path) {
 		super(repoPath.value);
 	}
+
 	format_merge_message(data: SourceData, opts: MergeOptions): Promise<string> {
 		throw new Error("Method not implemented.");
 	}
@@ -227,12 +229,14 @@ class LibGit2Commands extends LibGit2BaseCommands implements GitCommandsModel {
 		return git.restore({ repoPath: this._repoPath, staged, paths: filePaths.map((p) => p.value) });
 	}
 
-	resetHard(head?: GitVersion): Promise<void> {
-		return git.resetAll({ repoPath: this._repoPath, hard: true, head: head?.toString() });
-	}
-
-	resetSoft(head?: GitVersion): Promise<void> {
-		return git.resetAll({ repoPath: this._repoPath, hard: false, head: head?.toString() });
+	reset(opts: ResetOptions): Promise<void> {
+		return git.reset({
+			repoPath: this._repoPath,
+			opts: {
+				mode: opts.mode,
+				head: opts.head?.toString() || null,
+			},
+		});
 	}
 
 	getParentCommit(commitOid: string): Promise<string> {

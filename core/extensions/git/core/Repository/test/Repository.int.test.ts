@@ -10,10 +10,12 @@ import GitVersionControl from "@ext/git/core/GitVersionControl/GitVersionControl
 import { GitStatus } from "@ext/git/core/GitWatcher/model/GitStatus";
 import type Repository from "@ext/git/core/Repository/Repository";
 import RepositoryProvider from "@ext/git/core/Repository/RepositoryProvider";
+import FileRepository from "@ext/git/core/Repository/test/utils/FileRepository";
 import WorkdirRepository from "@ext/git/core/Repository/WorkdirRepository";
 import { TEST_GIT_FIXTURES_PATH } from "@ext/git/test/testGitFixturesPath";
 import SourceData from "@ext/storage/logic/SourceDataProvider/model/SourceData";
 import SourceType from "@ext/storage/logic/SourceDataProvider/model/SourceType";
+import fs from "fs";
 
 const pushGitStorageMock = jest.spyOn(GitStorage.prototype, "push").mockImplementation(() => {
 	return Promise.resolve();
@@ -43,7 +45,7 @@ describe("Repository", () => {
 		gitCommandsFetchMock.mockClear();
 	});
 
-	describe("меняет состояние на", () => {
+	describe("changes state to", () => {
 		beforeEach(async () => {
 			await RepositoryProvider.resetRepo();
 			pushGitStorageMock.mockClear();
@@ -61,7 +63,7 @@ describe("Repository", () => {
 			await dfp.delete(path("testRep"));
 			rep = null;
 		});
-		test("конфликт", async () => {
+		test("conflict", async () => {
 			await rep.gvc.createNewBranch("B");
 			await dfp.write(repPath("1.txt"), "111\nBBB\n333");
 			await rep.publish({ commitMessage: "test", data: mockUserData, filesToPublish: [path("1.txt")] });
@@ -90,8 +92,8 @@ describe("Repository", () => {
 				}
 			}
 		});
-		describe("стандартное", () => {
-			test("при аборте мержа", async () => {
+		describe("default", () => {
+			test("when aborting merge", async () => {
 				const state = { value: "default" };
 				const s = await rep.getState();
 				await s.abortMerge(mockUserData);
@@ -99,7 +101,7 @@ describe("Repository", () => {
 				expect(await dfp.read(repPath(".git/gramax/state.json"))).toBe(JSON.stringify(state));
 				expect((await rep.getState()).inner).toEqual(state);
 			});
-			test("при решении мержа", async () => {
+			test("when resolving merge", async () => {
 				const state = { value: "default" };
 				const s = await rep.getState();
 				await s.resolveMerge([{ path: "1.txt", content: "resolved" }], mockUserData);
@@ -110,7 +112,7 @@ describe("Repository", () => {
 		});
 	});
 
-	describe("синхронизирует рекурсивно", () => {
+	describe("synchronizes recursively", () => {
 		const repNameWithSubmodules = "remoteRep_local_for_test";
 
 		beforeEach(async () => {
@@ -121,17 +123,17 @@ describe("Repository", () => {
 			const storage = new GitStorage(path(repNameWithSubmodules), dfp);
 			rep = new WorkdirRepository(path(repNameWithSubmodules), dfp, gvc, storage);
 
-			await gvc.hardReset(await gvc.getParentCommitHash(await gvc.getHeadCommit()));
+			await gvc.reset({ mode: "hard", head: await gvc.getParentCommitHash(await gvc.getHeadCommit()) });
 			await gvc.checkoutSubGitVersionControls();
 			for (const subGvc of await gvc.getSubGitVersionControls()) {
-				await subGvc.hardReset(await subGvc.getParentCommitHash(await subGvc.getHeadCommit()));
+				await subGvc.reset({ mode: "hard", head: await subGvc.getParentCommitHash(await subGvc.getHeadCommit()) });
 			}
 		});
 		afterEach(async () => {
 			await dfp.delete(new Path(repNameWithSubmodules));
 		});
 
-		test("изменения есть в основном репозитории и в подумодулях", async () => {
+		test("changes exist in main repository and submodules", async () => {
 			let subGvcs = await gvc.getSubGitVersionControls();
 
 			const headCommitHash = (await gvc.getHeadCommit()).toString();
@@ -156,7 +158,7 @@ describe("Repository", () => {
 			]);
 		});
 
-		test("изменения есть только основном репозитории", async () => {
+		test("changes exist only in main repository", async () => {
 			await rep.sync({ data: mockUserData, recursivePull: false });
 
 			let subGvcs = await gvc.getSubGitVersionControls();
@@ -180,6 +182,63 @@ describe("Repository", () => {
 				"docs/submodule1/submodule1.txt",
 				"docs/submodule2/submodule2.txt",
 			]);
+		});
+	});
+
+	describe("checkout", () => {
+		let fr: FileRepository;
+		let rep: WorkdirRepository;
+		let remoteRep: WorkdirRepository;
+
+		beforeEach(async () => {
+			gitCommandsFetchMock.mockRestore();
+			pushGitStorageMock.mockRestore();
+			fr = new FileRepository(__dirname);
+			({ firstInstance: rep, secondInstance: remoteRep } = fr.create());
+
+			fs.writeFileSync(fr.secondPath + "/remote_change", "remote change");
+			await remoteRep.publish({
+				commitMessage: "test",
+				data: mockUserData,
+				filesToPublish: [path("remote_change")],
+			});
+		});
+
+		afterEach(() => {
+			fr.clear();
+			fr = null;
+		});
+
+		test("and pull", async () => {
+			const commitHashBefore = await rep.gvc.getHeadCommit();
+
+			await rep.gvc.createNewBranch("local");
+			await rep.checkout({ data: mockUserData, branch: "master" });
+
+			const commitHashAfter = await rep.gvc.getHeadCommit();
+			const parentCommitHash = await rep.gvc.getParentCommitHash(commitHashAfter);
+
+			expect(commitHashAfter.toString()).not.toBe(commitHashBefore.toString());
+			expect(parentCommitHash.toString()).toBe(commitHashBefore.toString());
+		});
+
+		test("and don't pull if there are local changes", async () => {
+			const commitHashBefore = await rep.gvc.getHeadCommit();
+
+			await rep.gvc.createNewBranch("local");
+			fs.writeFileSync(fr.firstPath + "/change", "change");
+
+			const statusBefore = await rep.gvc.getChanges();
+			expect(statusBefore.length).toBe(1);
+
+			await rep.checkout({ data: mockUserData, branch: "master" });
+
+			const commitHashAfter = await rep.gvc.getHeadCommit();
+			const statusAfter = await rep.gvc.getChanges();
+
+			expect(commitHashAfter.toString()).toBe(commitHashBefore.toString());
+			expect(statusAfter.length).toBe(1);
+			expect(fs.readFileSync(fr.firstPath + "/change", "utf-8")).toBe("change");
 		});
 	});
 });

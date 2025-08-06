@@ -4,7 +4,6 @@ import {
 	MutableRefObject,
 	useRef,
 	CSSProperties,
-	MouseEvent as ReactMouseEvent,
 	useCallback,
 } from "react";
 import { ImageObject } from "@ext/markdown/elements/image/edit/model/imageEditorTypes";
@@ -17,6 +16,7 @@ import {
 	ZOOM_COUNT,
 } from "@components/Atoms/Image/modalImage/modalFunctions";
 import ObjectRenderer from "@ext/markdown/elements/image/render/components/ObjectRenderer";
+import { useTouchHandler } from "@core-ui/hooks/useTouchHandler";
 
 interface ImageProps {
 	id: string;
@@ -78,48 +78,41 @@ const Image = forwardRef((props: ImageProps, ref?: MutableRefObject<HTMLImageEle
 		event.preventDefault();
 	};
 
-	const onMouseDown = useCallback((event: ReactMouseEvent<HTMLDivElement>) => {
-		event.preventDefault();
-		event.stopPropagation();
-
-		const target = event.target as HTMLElement;
-		const startX = event.clientX;
-		const startY = event.clientY;
-
-		const initialLeft = parseFloat(target.style.left) || 0;
-		const initialTop = parseFloat(target.style.top) || 0;
-
+	const onStartDrag = useCallback(() => {
+		const target = ref.current;
 		target.style.transition = "none";
 		document.body.style.cursor = "grabbing";
+	}, []);
 
+	const onDragMove = useCallback((deltaX: number, deltaY: number) => {
+		const target = ref.current;
 		const imgRect = target.getBoundingClientRect();
 		const { minWidth, maxWidth, minHeight, maxHeight } = getClampedValues({
 			width: imgRect.width,
 			height: imgRect.height,
 		});
+		const { left, right, top, bottom } = getCanMoves(imgRect);
+		const newLeft = (parseFloat(target.style.left) || 0) + deltaX;
+		const newTop = (parseFloat(target.style.top) || 0) + deltaY;
 
-		const onMouseMove = (moveEvent: MouseEvent) => {
-			const { left, right, top, bottom } = getCanMoves(imgRect);
-			const newLeft = initialLeft + (moveEvent.clientX - startX);
-			const newTop = initialTop + (moveEvent.clientY - startY);
+		const clampedLeft = Math.min(Math.max(newLeft, minWidth), maxWidth);
+		const clampedTop = Math.min(Math.max(newTop, minHeight), maxHeight);
 
-			const clampedLeft = Math.min(Math.max(newLeft, minWidth), maxWidth);
-			const clampedTop = Math.min(Math.max(newTop, minHeight), maxHeight);
-
-			if (left && right) target.style.left = clampedLeft + "px";
-			if (top && bottom) target.style.top = clampedTop + "px";
-		};
-
-		const onMouseUp = () => {
-			document.removeEventListener("mousemove", onMouseMove);
-			document.removeEventListener("mouseup", onMouseUp);
-			document.body.style.removeProperty("cursor");
-			target.style.removeProperty("transition");
-		};
-
-		document.addEventListener("mousemove", onMouseMove);
-		document.addEventListener("mouseup", onMouseUp);
+		if (left && right) target.style.left = clampedLeft + "px";
+		if (top && bottom) target.style.top = clampedTop + "px";
 	}, []);
+
+	const onDragEnd = useCallback(() => {
+		const target = ref.current;
+		document.body.style.removeProperty("cursor");
+		target.style.removeProperty("transition");
+	}, []);
+
+	const { onPointerDown, onTouchStart, onMouseDown } = useTouchHandler({
+		onStart: onStartDrag,
+		onMove: (deltaX, deltaY) => onDragMove(deltaX, deltaY),
+		onEnd: onDragEnd,
+	});
 
 	useEffect(() => {
 		window.addEventListener("wheel", onWheel, { passive: false });
@@ -196,7 +189,9 @@ const Image = forwardRef((props: ImageProps, ref?: MutableRefObject<HTMLImageEle
 			<AnimatedDiv data-close="true">
 				<div
 					ref={ref}
-					onMouseDownCapture={onMouseDown}
+					onPointerDown={onPointerDown}
+					onTouchStart={onTouchStart}
+					onMouseDown={onMouseDown}
 					style={{
 						...modalStyle,
 						scale: 1,

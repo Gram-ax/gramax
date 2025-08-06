@@ -1,3 +1,5 @@
+import DownloadZip from "@components/Actions/DownloadZip";
+import ShowInExplorer from "@components/Actions/ShowInExplorer";
 import useShouldRenderDeleteCatalog from "@components/Actions/useShouldRenderDeleteCatalog";
 import { TextSize } from "@components/Atoms/Button/Button";
 import Tooltip from "@components/Atoms/Tooltip";
@@ -8,7 +10,8 @@ import CatalogPropsService from "@core-ui/ContextServices/CatalogProps";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import WorkspaceService from "@core-ui/ContextServices/Workspace";
 import { usePlatform } from "@core-ui/hooks/usePlatform";
-import getIsDevMode from "@core-ui/utils/getIsDevMode";
+import AddToFavoriteButton from "@ext/artilce/Favorite/components/AddToFavoriteButton";
+import FavoriteService from "@ext/artilce/Favorite/components/FavoriteService";
 import CatalogPropsEditor from "@ext/catalog/actions/propsEditor/components/CatalogPropsEditor";
 import DeleteCatalog from "@ext/catalog/actions/propsEditor/components/DeleteCatalog";
 import ShareAction from "@ext/catalog/actions/share/components/ShareAction";
@@ -17,15 +20,14 @@ import { ItemLink } from "@ext/navigation/NavigationLinks";
 import { configureCatalogPermission } from "@ext/security/logic/Permission/Permissions";
 import PermissionService from "@ext/security/logic/Permission/components/PermissionService";
 import GetSharedTicket from "@ext/security/logic/TicketManager/components/GetSharedTicket";
-import UploadCloud from "@ext/static/components/UploadCloud";
+import openCloudModal from "@ext/static/components/openCloudModal";
 import useValidateDeleteCatalogInStatic from "@ext/static/logic/useValidateDeleteCatalogInStatic";
 import ExportButton from "@ext/wordExport/components/DropdownButton";
 import ItemExport, { ExportFormat } from "@ext/wordExport/components/ItemExport";
 import { FC, useEffect, useRef, useState } from "react";
 import Healthcheck from "../../extensions/healthcheck/components/Healthcheck";
 import IsReadOnlyHOC from "../../ui-logic/HigherOrderComponent/IsReadOnlyHOC";
-import AddToFavoriteButton from "@ext/artilce/Favorite/components/AddToFavoriteButton";
-import FavoriteService from "@ext/artilce/Favorite/components/FavoriteService";
+import { feature } from "@ext/toggleFeatures/features";
 
 interface CatalogActionsProps {
 	isCatalogExist: boolean;
@@ -36,9 +38,9 @@ interface CatalogActionsProps {
 
 const CatalogActions: FC<CatalogActionsProps> = ({ isCatalogExist, itemLinks, currentTab, setCurrentTab }) => {
 	const catalogProps = CatalogPropsService.value;
-	const workspacePath = WorkspaceService.current().path;
+	const workspacePath = WorkspaceService.current()?.path;
 	const pageData = PageDataContextService.value;
-	const { isNext, isBrowser, isStatic, isStaticCli } = usePlatform();
+	const { isNext, isBrowser, isTauri, isStatic, isStaticCli } = usePlatform();
 	const shouldRenderDeleteCatalog = useShouldRenderDeleteCatalog();
 	const [renderDeleteCatalog, setRenderDeleteCatalog] = useState(false);
 	const { isReadOnly, cloudServiceUrl } = pageData.conf;
@@ -49,7 +51,6 @@ const CatalogActions: FC<CatalogActionsProps> = ({ isCatalogExist, itemLinks, cu
 	const isPrompt = currentTab === LeftNavigationTab.Prompt;
 	const isFavoriteArticles = currentTab === LeftNavigationTab.FavoriteArticles;
 	const isAiEnabled = pageData.conf.ai.enabled;
-	const [isDevMode] = useState(() => getIsDevMode());
 	const validateDeleteCatalogInStatic = useValidateDeleteCatalogInStatic();
 	const { catalogs } = FavoriteService.value;
 
@@ -91,6 +92,16 @@ const CatalogActions: FC<CatalogActionsProps> = ({ isCatalogExist, itemLinks, cu
 			}
 			appendTo={() => document.body}
 		>
+			{canConfigureCatalog && !isReadOnly && (
+				<CatalogPropsEditor trigger={<ButtonLink text={t("catalog.configure")} iconCode="square-pen" />} />
+			)}
+			{canConfigureCatalog && isNext && (
+				<GetSharedTicket trigger={<ButtonLink text={t("share.name.catalog")} iconCode="external-link" />} />
+			)}
+			{!isNext && catalogProps.sourceName && (
+				<ShareAction path={`/${catalogProps.link.pathname}`} isArticle={false} />
+			)}
+			{isTauri && <ShowInExplorer />}
 			<Tooltip content={t("export-disabled")} disabled={isArticleExist}>
 				<PopupMenuLayout
 					appendTo={() => ref.current}
@@ -100,20 +111,23 @@ const CatalogActions: FC<CatalogActionsProps> = ({ isCatalogExist, itemLinks, cu
 					openTrigger="mouseenter focus"
 					disabled={!isArticleExist}
 					trigger={
-						<ExportButton disabled={!isArticleExist} ref={ref} iconCode="file-output" text={t("export")} />
+						<ExportButton
+							disabled={!isArticleExist}
+							ref={ref}
+							iconCode="file-output"
+							text={t("export.name")}
+						/>
 					}
 				>
 					<ItemExport fileName={catalogProps.name} exportFormat={ExportFormat.docx} />
 					<ItemExport fileName={catalogProps.name} exportFormat={ExportFormat.pdf} />
+					<DownloadZip />
 				</PopupMenuLayout>
 			</Tooltip>
-			{canConfigureCatalog && isNext && (
-				<GetSharedTicket trigger={<ButtonLink text={t("share.name.catalog")} iconCode="external-link" />} />
+
+			{(isBrowser || isTauri) && cloudServiceUrl && feature("cloud") && (
+				<ButtonLink text={t("cloud.publish-to-cloud")} iconCode="cloud-upload" onClick={openCloudModal} />
 			)}
-			{!isNext && catalogProps.sourceName && (
-				<ShareAction path={`/${catalogProps.link.pathname}`} isArticle={false} />
-			)}
-			{isBrowser && cloudServiceUrl && isDevMode && <UploadCloud />}
 			{!isStaticCli && !isStatic && (
 				<>
 					<AddToFavoriteButton
@@ -160,9 +174,6 @@ const CatalogActions: FC<CatalogActionsProps> = ({ isCatalogExist, itemLinks, cu
 					itemLinks={itemLinks}
 					trigger={<ButtonLink text={t("check-errors")} iconCode="heart-pulse" />}
 				/>
-				{canConfigureCatalog && !isReadOnly && (
-					<CatalogPropsEditor trigger={<ButtonLink text={t("catalog.configure")} iconCode="square-pen" />} />
-				)}
 			</IsReadOnlyHOC>
 			{renderDeleteCatalog && <DeleteCatalog style={{ margin: 0 }} />}
 		</PopupMenuLayout>

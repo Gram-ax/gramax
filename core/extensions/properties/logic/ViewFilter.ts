@@ -12,8 +12,9 @@ import ParserContextFactory from "@ext/markdown/core/Parser/ParserContext/Parser
 import Context from "@core/Context/Context";
 import MarkdownParser from "@ext/markdown/core/Parser/Parser";
 import { convertContentToUiLanguage } from "@ext/localization/locale/translate";
+import ViewSorter from "@ext/properties/logic/ViewSorter";
 
-interface ProcessedArticle {
+export interface ProcessedArticle {
 	title: string;
 	resourcePath: string;
 	linkPath: string;
@@ -27,7 +28,7 @@ type ArticleFilterOptions = {
 	ignoreProps?: string[];
 };
 
-class ViewFilter {
+class ViewFilter extends ViewSorter {
 	private _catalogPropMap: Map<string, Property>;
 
 	constructor(
@@ -43,7 +44,9 @@ class ViewFilter {
 		private _parserContextFactory: ParserContextFactory,
 		private _parser: MarkdownParser,
 		private _ctx: Context,
-	) {}
+	) {
+		super();
+	}
 
 	public async getFilteredArticles(): Promise<ViewRenderGroup[]> {
 		const groups = this._group(await this._filter());
@@ -144,82 +147,12 @@ class ViewFilter {
 		return newProps;
 	}
 
-	private _orderArticles(articles: ProcessedArticle[]): ProcessedArticle[] {
-		let sortedArticles = articles;
-		for (const orderProp of this._orderby) {
-			const { name, value: orderValues } = orderProp;
-			sortedArticles = sortedArticles.sort((a, b) => {
-				const aProp = a.otherProps.find((prop) => prop.name === name);
-				const bProp = b.otherProps.find((prop) => prop.name === name);
-
-				if (aProp?.name !== name && bProp?.name !== name) return 0;
-				if (aProp?.name !== name) return 1;
-				if (bProp?.name !== name) return -1;
-
-				if (!aProp && !bProp) return 0;
-				if (!aProp) return 1;
-				if (!bProp) return -1;
-
-				if (!aProp.value?.length && !bProp.value?.length) return 0;
-				if (!aProp.value?.length) return 1;
-				if (!bProp.value?.length) return -1;
-
-				const aValue = Array.isArray(aProp.value)
-					? aProp.value.find((v) => orderValues.includes(v))
-					: aProp.value;
-				const bValue = Array.isArray(bProp.value)
-					? bProp.value.find((v) => orderValues.includes(v))
-					: bProp.value;
-
-				if (!aValue && !bValue) return 0;
-				if (!aValue) return 1;
-				if (!bValue) return -1;
-
-				const aIndex = orderValues.indexOf(aValue);
-				const bIndex = orderValues.indexOf(bValue);
-
-				if (aIndex !== bIndex) {
-					const comparison = aIndex - bIndex;
-					if (comparison !== 0) return comparison;
-				}
-
-				return 0;
-			});
-		}
-
-		return sortedArticles;
-	}
-
-	private _orderGroup(groups: ViewRenderGroup[], groupProp: string): ViewRenderGroup[] {
-		return groups.sort((a, b) => {
-			const prop = this._orderby.find((order) => order.name === groupProp);
-			if (!prop) return 0;
-			const aName = a.group?.[0];
-			const bName = b.group?.[0];
-
-			if (!aName && !bName) return 0;
-			if (!aName) return 1;
-			if (!bName) return -1;
-
-			const aIndex = prop.value.indexOf(aName);
-			const bIndex = prop.value.indexOf(bName);
-
-			if (aIndex === bIndex) return 0;
-			if (aIndex !== bIndex) {
-				const comparison = aIndex - bIndex;
-				if (comparison !== 0) return comparison;
-			}
-
-			return 0;
-		});
-	}
-
 	private _group(articles: ProcessedArticle[], groupIndex: number = 0): ViewRenderGroup[] {
 		if (groupIndex >= this._groupby.length) {
 			return [
 				{
 					group: null,
-					articles: this._orderArticles(articles).map(
+					articles: this._sortArticle(articles, this._orderby).map(
 						({ title, resourcePath, linkPath, itemPath, otherProps }) => ({
 							title,
 							resourcePath,
@@ -264,10 +197,10 @@ class ViewFilter {
 		const groups = Object.entries(groupedArticles).map(([groupKey, groupArticles]) => ({
 			group: groupKey === "ungrouped" ? [null] : [groupKey],
 			articles: [],
-			subgroups: this._group(this._orderArticles(groupArticles), groupIndex + 1),
+			subgroups: this._group(this._sortArticle(groupArticles, this._orderby), groupIndex + 1),
 		}));
 
-		return this._orderGroup(groups, this._groupby[groupIndex]);
+		return this._sortGroup(groups, this._orderby, this._groupby[groupIndex]);
 	}
 
 	private _createKey(groupValue: string | string[], groupValueType: PropertyTypes): string {
@@ -283,7 +216,7 @@ class ViewFilter {
 			if (group?.subgroups?.length === 0) {
 				return {
 					...group,
-					articles: this._orderArticles(group.articles as ProcessedArticle[]),
+					articles: this._sortArticle(group.articles as ProcessedArticle[], this._orderby),
 				};
 			}
 
@@ -297,7 +230,8 @@ class ViewFilter {
 	}
 
 	private async _handleSystemProperty(uniqueArticles: Set<string>): Promise<ProcessedArticle[]> {
-		const hierarchyDef = this._defs.find((property) => SystemProperties[property.name]);
+		const defs = this._defs || [];
+		const hierarchyDef = defs.find((property) => SystemProperties[property.name]);
 		if (!hierarchyDef) return [];
 
 		if (!hierarchyDef.value.includes("child-to-current"))

@@ -15,16 +15,15 @@ Schema.properties = {
 	token: Schema.properties.token,
 } as any;
 
-const CreateConfluenceServerSourceData = ({
-	onSubmit,
-	props,
-	readOnlyProps,
-}: {
+export interface CreateConfluenceServerSourceDataProps {
 	onSubmit?: (editProps: ConfluenceServerSourceData) => void;
 	props: ConfluenceServerSourceData;
 	readOnlyProps?: { [key: string]: string };
-}) => {
-	const [thisProps, setThisProps] = useState(props);
+}
+
+const CreateConfluenceServerSourceData = (props: CreateConfluenceServerSourceDataProps) => {
+	const { onSubmit, props: serverProps, readOnlyProps } = props;
+	const [thisProps, setThisProps] = useState(serverProps);
 	const invalidCredentialsTitle = t("invalid-credentials-title");
 	const invalidCredentialsText = t("invalid-credentials-text");
 	const invalidDomainText = t("invalid") + " " + t("value");
@@ -39,7 +38,7 @@ const CreateConfluenceServerSourceData = ({
 	};
 
 	const onChange = (data: ConfluenceServerSourceData) => {
-		const { origin } = parseStorageUrl(data.domain.trim());
+		const { origin } = parseStorageUrl(data.domain?.trim());
 
 		if (origin) {
 			data.domain = origin;

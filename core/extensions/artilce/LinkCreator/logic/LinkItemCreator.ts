@@ -14,6 +14,7 @@ class LinkItemCreator {
 		if (!this._catalog) return [];
 		const filters = new RuleProvider(this._ctx).getItemFilters();
 		const root = resolveRootCategory(this._catalog, this._catalog.props, this._ctx.contentLanguage);
+		if (!root) return [];
 		const itemTree = root.getFilteredItems(filters, this._catalog);
 		return await this._getAllItems(itemTree, itemTree, articlePath);
 	}

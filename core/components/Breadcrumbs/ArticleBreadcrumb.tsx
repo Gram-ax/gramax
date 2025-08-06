@@ -1,6 +1,7 @@
 import LinksBreadcrumb from "@components/Breadcrumbs/LinksBreadcrumb";
 import { classNames } from "@components/libs/classNames";
 import ArticlePropsService from "@core-ui/ContextServices/ArticleProps";
+import IsMobileService from "@core-ui/ContextServices/isMobileService";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import useWatch from "@core-ui/hooks/useWatch";
 import { cssMedia } from "@core-ui/utils/cssUtils";
@@ -23,6 +24,7 @@ const ArticleBreadcrumb = ({ className, itemLinks }: ArticleBreadcrumbProps) => 
 	const linksRef = useRef<HTMLDivElement>(null);
 	const breadcrumbRef = useRef<HTMLDivElement>(null);
 	const { articleProperties, setArticleProperties } = PropertyServiceProvider.value;
+	const isMobile = IsMobileService.value;
 
 	const [isOverflow, setIsOverflow] = useState<boolean>(null);
 	const [itemLink, setItemLink] = useState<ItemLink>(null);
@@ -46,13 +48,13 @@ const ArticleBreadcrumb = ({ className, itemLinks }: ArticleBreadcrumbProps) => 
 	const setNull = () => setIsOverflow(null);
 
 	useEffect(() => {
-		if (isReadOnly || isTemplate) return;
+		if (isReadOnly || isTemplate || isMobile) return;
 		window.addEventListener("resize", setNull);
 		return () => window.removeEventListener("resize", setNull);
 	}, [itemLinks, articleProperties]);
 
 	useEffect(() => {
-		if (isReadOnly) return;
+		if (isReadOnly || isMobile) return;
 		setNull();
 	}, [itemLinks, articleProperties]);
 
@@ -83,7 +85,7 @@ const ArticleBreadcrumb = ({ className, itemLinks }: ArticleBreadcrumbProps) => 
 					<Properties
 						properties={articleProperties}
 						setProperties={setArticleProperties}
-						hideList={isTemplate}
+						hideList={isTemplate || isMobile}
 					/>
 				</>
 			)}

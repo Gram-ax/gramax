@@ -107,7 +107,7 @@ export default styled(ArticleLayout)`
 
 	${cssMedia.narrow} {
 		.article-content-wrapper {
-			padding: 80px 50px 0 20px;
+			padding: 3.5rem 2.125rem 0 1.25rem;
 		}
 	}`
 			: `

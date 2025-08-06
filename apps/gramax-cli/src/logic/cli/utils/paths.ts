@@ -1,3 +1,4 @@
+import CliUserError from "../../CliUserError";
 import { exists, stat } from "fs-extra";
 import { dirname, extname } from "path";
 
@@ -17,5 +18,5 @@ export const getPathWithExtension = async (path: string, name: string) => {
 };
 
 export const checkExistsPath = async (path: string) => {
-	if (!(await exists(path))) throw new Error(`The specified path is invalid or does not exist: ${path}`);
+	if (!(await exists(path))) throw new CliUserError(`The specified path is invalid or does not exist: ${path}`);
 };

@@ -8,6 +8,7 @@ import {
 	DiffItemContentData,
 	DiffItemContentScope,
 } from "@ext/git/core/GitDiffItemCreator/DiffItemContent/DiffItemContent";
+import assert from "assert";
 
 const getDiffTree: Command<
 	{ catalogName: string; ctx: Context; scope: DiffItemContentScope; filePath: Path; isResource: boolean },
@@ -24,7 +25,7 @@ const getDiffTree: Command<
 		const workspace = wm.current();
 
 		const catalog = await workspace.getContextlessCatalog(catalogName);
-		if (!catalog?.repo.gvc) return;
+		assert(catalog?.repo.gvc);
 
 		const articleParser = new ArticleParser(ctx, parser, parserContextFactory);
 		const diffContent = await catalog.repo.diffItemContent.getContent(scope, filePath, articleParser, isResource);

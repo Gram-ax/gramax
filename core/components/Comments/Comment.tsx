@@ -2,7 +2,7 @@ import { Comment } from "@core-ui/CommentBlock";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import styled from "@emotion/styled";
 import t from "@ext/localization/locale/translate";
-import { GlobalEditorIsEditable } from "@ext/markdown/elements/comment/edit/logic/CommentFocusTooltip";
+import GlobalEditorIsEditable from "@ext/markdown/elements/comment/edit/logic/GlobalIsEditable";
 import { JSONContent } from "@tiptap/react";
 import { Dispatch, ReactElement, SetStateAction, useContext, useEffect, useState } from "react";
 import User from "../../extensions/security/components/User/User";
@@ -53,12 +53,12 @@ const CommentComponent = (props: CommentComponentProps): ReactElement => {
 	};
 
 	const isCurrentUserAuthor = () => {
-		return comment.user.mail === userInfo?.mail;
+		return comment.user?.mail === userInfo?.mail;
 	};
 
 	useEffect(() => {
-		if (focusId === editorId) setIsEditable(true);
-		else setIsEditable(false);
+		setIsEditable(focusId === editorId);
+		setIsActive(focusId === editorId);
 	}, [focusId]);
 
 	const UserInfo = () => {
@@ -100,8 +100,8 @@ const CommentComponent = (props: CommentComponentProps): ReactElement => {
 			<div className={className}>
 				<div className="comment">
 					<User
-						name={comment.user.name}
-						mail={comment.user.mail}
+						name={comment.user?.name}
+						mail={comment.user?.mail}
 						date={comment.dateTime}
 						comment={
 							<div className={"editer"}>
@@ -114,6 +114,7 @@ const CommentComponent = (props: CommentComponentProps): ReactElement => {
 									onCancel={currentOnCancel}
 									content={comment.content}
 									isEditable={isEditable}
+									parentIsActive={isActive}
 									confirmButtonText={t("edit")}
 								/>
 							</div>

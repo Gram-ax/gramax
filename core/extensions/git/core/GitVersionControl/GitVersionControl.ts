@@ -11,6 +11,7 @@ import type {
 	MergeMessageFormatOptions,
 	MergeOptions,
 	RefInfo,
+	ResetOptions,
 } from "@ext/git/core/GitCommands/model/GitCommandsModel";
 import GitStash from "@ext/git/core/model/GitStash";
 import GitVersionData from "@ext/git/core/model/GitVersionData";
@@ -132,6 +133,11 @@ export default class GitVersionControl {
 
 	async stash(data: SourceData, doAddBeforeStash = true): Promise<GitStash> {
 		if (doAddBeforeStash) await this.add();
+
+		// needed in case of dummy conflicts: when a file marked as conflited but no actual conflicts are present
+		// in other case stash will fail with error: cannot create a tree from a not fully merged index; class=Index (10); code=Unmerged (-10)
+		await this.reset({ mode: "mixed" });
+
 		return this._gitRepository.stash(data);
 	}
 
@@ -246,23 +252,8 @@ export default class GitVersionControl {
 		return this._gitRepository.formatMergeMessage(data, opts);
 	}
 
-	async getChanges(type: "index" | "workdir" = "workdir", recursive = true): Promise<GitStatus[]> {
-		const changeFiles = await this._gitRepository.status(type);
-		if (recursive) {
-			// const subGitVersionControls = await this._getSubGitVersionControls();
-			// const subGitVersionControlChanges: GitStatus[][] = await Promise.all(
-			// 	subGitVersionControls.map(async (s) => {
-			// 		const relativeSubmodulePath = await this._getRelativeSubmodulePath(s.getPath());
-			// 		const submoduleChanges = (await s.getChanges()).map(({ path, ...rest }) => ({
-			// 			path: relativeSubmodulePath.join(path),
-			// 			...rest,
-			// 		}));
-			// 		return submoduleChanges;
-			// 	}),
-			// );
-			// return [...changeFiles, ...subGitVersionControlChanges.flat()];
-		}
-		return changeFiles;
+	async getChanges(type: "index" | "workdir" = "workdir"): Promise<GitStatus[]> {
+		return this._gitRepository.status(type);
 	}
 
 	async getFileStatus(filePath: Path): Promise<GitStatus> {
@@ -280,7 +271,7 @@ export default class GitVersionControl {
 
 	async restoreRepositoryState(): Promise<void> {
 		const parent = await this.getParentCommitHash(await this.getHeadCommit());
-		await this.softReset(parent);
+		await this.reset({ mode: "soft", head: parent });
 	}
 
 	async getGitVersionControlContainsItem(
@@ -298,12 +289,8 @@ export default class GitVersionControl {
 		return { gitVersionControl: this, relativePath: path };
 	}
 
-	async softReset(head?: GitVersion): Promise<void> {
-		return this._gitRepository.softReset(head);
-	}
-
-	async hardReset(head?: GitVersion): Promise<void> {
-		return this._gitRepository.hardReset(head);
+	async reset(opts: ResetOptions): Promise<void> {
+		return this._gitRepository.reset(opts);
 	}
 
 	async restore(staged: boolean, filePaths: Path[]): Promise<void> {

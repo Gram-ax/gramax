@@ -1,5 +1,7 @@
 import FileProvider from "@core/FileProvider/model/FileProvider";
+import Path from "@core/FileProvider/Path/Path";
 import { Article } from "@core/FileStructue/Article/Article";
+import ArticleParser from "@core/FileStructue/Article/ArticleParser";
 import { ReadonlyCatalog } from "@core/FileStructue/Catalog/ReadonlyCatalog";
 import FileStructure from "@core/FileStructue/FileStructure";
 import SitePresenter from "@core/SitePresenter/SitePresenter";
@@ -13,6 +15,7 @@ import type { DiffItem, DiffResource } from "@ext/VersionControl/model/Diff";
 import { FileStatus } from "@ext/Watchers/model/FileStatus";
 
 type PathAssignees = Map<string, { article: Article; catalog: ReadonlyCatalog }>;
+type ArticleWithCatalog = { article: Article; catalog: ReadonlyCatalog };
 
 export default class RevisionDiffItemCreator extends GitDiffItemCreator {
 	private _fp: FileProvider;
@@ -21,6 +24,7 @@ export default class RevisionDiffItemCreator extends GitDiffItemCreator {
 		catalog: ReadonlyCatalog,
 		sp: SitePresenter,
 		fs: FileStructure,
+		private _articleParser: ArticleParser,
 		private _compareOptions: DiffCompareOptions,
 		private _oldCatalog: ReadonlyCatalog,
 		private _newCatalog: ReadonlyCatalog,
@@ -37,27 +41,17 @@ export default class RevisionDiffItemCreator extends GitDiffItemCreator {
 		const allResources = new Set<DiffResource>();
 		const resourcePathAssignees: PathAssignees = new Map();
 
-		this._newCatalog = await this._sp.parseAllItems(this._newCatalog);
-
-		const articles: { article: Article; catalog: ReadonlyCatalog }[] = this._newCatalog
-			.getContentItems()
-			.map((a) => ({ article: a, catalog: this._newCatalog }));
-
 		const isAnyResourceDeletedOrRenamed = resources.some(
 			(c) => c.status === FileStatus.delete || c.status === FileStatus.rename,
 		);
 
-		if (isAnyResourceDeletedOrRenamed) {
-			this._oldCatalog = await this._sp.parseAllItems(this._oldCatalog);
-			const items = this._oldCatalog.getContentItems().map((a) => ({ article: a, catalog: this._oldCatalog }));
-			articles.push(...items);
-		}
+		const articlesWithCatalogs = await this._getDiffArticles(isAnyResourceDeletedOrRenamed, diffItems);
 
 		for (const resource of resources) {
 			let isResourceAssigned = false;
 			let parentPath: string;
 
-			for (const { article, catalog } of articles) {
+			for (const { article, catalog } of articlesWithCatalogs) {
 				const parsedContent = await article.parsedContent.read((p) => {
 					if (!p) return null;
 					return {
@@ -207,5 +201,36 @@ export default class RevisionDiffItemCreator extends GitDiffItemCreator {
 			added: 0,
 			deleted: 0,
 		};
+	}
+
+	private async _getDiffArticles(
+		isAnyResourceDeletedOrRenamed: boolean,
+		diffItems: DiffItem[],
+	): Promise<ArticleWithCatalog[]> {
+		const articles: ArticleWithCatalog[] = [];
+
+		await diffItems.forEachAsync(async (item) => {
+			const newArticle = await this._getArticleByRepPath(this._newCatalog, item.filePath.path);
+			if (newArticle) articles.push({ article: newArticle, catalog: this._newCatalog });
+
+			if (isAnyResourceDeletedOrRenamed) {
+				const oldArticle = await this._getArticleByRepPath(this._oldCatalog, item.filePath.oldPath);
+				if (oldArticle) articles.push({ article: oldArticle, catalog: this._oldCatalog });
+			}
+		});
+
+		return articles;
+	}
+
+	private async _getArticleByRepPath(catalog: ReadonlyCatalog, path: string): Promise<Article> {
+		const itemRefPath = catalog.getItemRefPath(new Path(path));
+		const itemRef = this._fp.getItemRef(itemRefPath);
+		const article = catalog.findItemByItemRef<Article>(itemRef);
+		try {
+			await this._articleParser.parse(article, catalog);
+		} catch {
+			return null;
+		}
+		return article;
 	}
 }

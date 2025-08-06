@@ -8,6 +8,7 @@ import getAdjustedSize from "@core-ui/utils/getAdjustedSize";
 import Path from "@core/FileProvider/Path/Path";
 import styled from "@emotion/styled";
 import t from "@ext/localization/locale/translate";
+import BlockCommentView from "@ext/markdown/elements/comment/edit/components/BlockCommentView";
 import ResourceService from "@ext/markdown/elements/copyArticles/resourceService";
 import ImageResizer from "@ext/markdown/elements/image/edit/components/ImageResizer";
 import { Crop, ImageObject } from "@ext/markdown/elements/image/edit/model/imageEditorTypes";
@@ -37,6 +38,7 @@ interface ImageRProps {
 	originalWidth: string;
 	isLoaded: boolean;
 	imageContainerRef: RefObject<HTMLDivElement>;
+	commentId?: string;
 	onLoad: (e) => void;
 	onError: (e) => void;
 	openEditor?: () => void;
@@ -56,22 +58,25 @@ const ImageR = forwardRef<HTMLImageElement, ImageRProps>((props, ref) => {
 		onLoad,
 		originalWidth,
 		isLoaded,
+		commentId,
 	} = props;
 
 	return (
 		<div className="image-container" data-focusable="true">
-			<Image
-				ref={ref}
-				id={id}
-				modalEdit={openEditor}
-				onLoad={onLoad}
-				modalTitle={title}
-				onError={onError}
-				src={src}
-				alt={alt}
-				objects={objects}
-				realSrc={realSrc}
-			/>
+			<BlockCommentView commentId={commentId}>
+				<Image
+					ref={ref}
+					id={id}
+					modalEdit={openEditor}
+					onLoad={onLoad}
+					modalTitle={title}
+					onError={onError}
+					src={src}
+					alt={alt}
+					objects={objects}
+					realSrc={realSrc}
+				/>
+			</BlockCommentView>
 			<div className="object-container">
 				<ObjectRenderer
 					isLoaded={isLoaded}
@@ -111,6 +116,7 @@ interface ImageProps {
 	isHovered?: boolean;
 	setIsHovered?: (isHovered: boolean) => void;
 	rightActions?: ReactElement;
+	commentId?: string;
 }
 
 const ImageRenderer = memo((props: ImageProps): ReactElement => {
@@ -133,6 +139,7 @@ const ImageRenderer = memo((props: ImageProps): ReactElement => {
 		isHovered,
 		setIsHovered,
 		rightActions,
+		commentId,
 	} = props;
 
 	const [error, setError] = useState<boolean>(false);
@@ -231,19 +238,21 @@ const ImageRenderer = memo((props: ImageProps): ReactElement => {
 
 	if (isGif)
 		return (
-			<GifImage
-				src={imageSrc}
-				title={noEm ? "" : title}
-				alt={title}
-				onError={onError}
-				hoverElementRef={hoverElementRef}
-				setIsHovered={setIsHovered}
-				isHovered={isHovered}
-				rightActions={rightActions}
-				width={width}
-				height={height}
-				realSrc={realSrc}
-			/>
+			<BlockCommentView commentId={commentId}>
+				<GifImage
+					src={imageSrc}
+					title={noEm ? "" : title}
+					alt={title}
+					onError={onError}
+					hoverElementRef={hoverElementRef}
+					setIsHovered={setIsHovered}
+					isHovered={isHovered}
+					rightActions={rightActions}
+					width={width}
+					height={height}
+					realSrc={realSrc}
+				/>
+			</BlockCommentView>
 		);
 
 	return (
@@ -254,6 +263,7 @@ const ImageRenderer = memo((props: ImageProps): ReactElement => {
 						hoverElementRef={hoverElementRef}
 						isHovered={isHovered}
 						setIsHovered={setIsHovered}
+						actionsOptions={{ comment: true }}
 						rightActions={rightActions}
 					>
 						<div ref={imageContainerRef}>
@@ -272,6 +282,7 @@ const ImageRenderer = memo((props: ImageProps): ReactElement => {
 									onLoad={onLoad}
 									onError={onError}
 									openEditor={openEditor}
+									commentId={commentId}
 								/>
 							</Skeleton>
 						</div>
@@ -296,6 +307,7 @@ export default styled(ImageRenderer)`
 	page-break-inside: avoid;
 	break-inside: avoid;
 	user-select: none;
+	box-sizing: border-box;
 
 	.main-container {
 		display: flex;
@@ -309,7 +321,6 @@ export default styled(ImageRenderer)`
 		position: relative;
 		justify-content: center;
 		margin: 0 auto;
-		border-radius: var(--radius-small);
 	}
 
 	.image-container {
@@ -317,9 +328,11 @@ export default styled(ImageRenderer)`
 		max-width: 100%;
 		position: relative;
 		justify-content: center;
-		border-radius: var(--radius-small);
 	}
 
+	.image-container,
+	.block-comment-view,
+	.resizer-container,
 	.skeleton {
 		border-radius: var(--radius-small);
 	}

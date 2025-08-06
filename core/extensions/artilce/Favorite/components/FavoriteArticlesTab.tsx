@@ -1,15 +1,15 @@
+import SpinnerLoader from "@components/Atoms/SpinnerLoader";
 import TabWrapper from "@components/Layouts/LeftNavigationTabs/TabWrapper";
+import FetchService from "@core-ui/ApiServices/FetchService";
+import ApiUrlCreator from "@core-ui/ContextServices/ApiUrlCreator";
+import CatalogPropsService from "@core-ui/ContextServices/CatalogProps";
+import Workspace from "@core-ui/ContextServices/Workspace";
+import { useRouter } from "@core/Api/useRouter";
+import ItemList from "@ext/articleProvider/components/ItemList";
+import FavoriteService from "@ext/artilce/Favorite/components/FavoriteService";
+import { FavoriteArticleData } from "@ext/artilce/Favorite/models/types";
 import t from "@ext/localization/locale/translate";
 import { useCallback, useEffect, useRef, useState } from "react";
-import ItemList from "@ext/articleProvider/components/ItemList";
-import { useRouter } from "@core/Api/useRouter";
-import FavoriteService from "@ext/artilce/Favorite/components/FavoriteService";
-import Workspace from "@core-ui/ContextServices/Workspace";
-import CatalogPropsService from "@core-ui/ContextServices/CatalogProps";
-import ApiUrlCreator from "@core-ui/ContextServices/ApiUrlCreator";
-import FetchService from "@core-ui/ApiServices/FetchService";
-import SpinnerLoader from "@components/Atoms/SpinnerLoader";
-import { FavoriteArticleData } from "@ext/artilce/Favorite/models/types";
 
 const FavoriteArticlesTab = ({ show }: { show: boolean }) => {
 	const tabWrapperRef = useRef<HTMLDivElement>(null);
@@ -44,8 +44,8 @@ const FavoriteArticlesTab = ({ show }: { show: boolean }) => {
 	useEffect(() => {
 		if (!show) return;
 
-		fetchArticleData(articles);
-	}, [show, catalogProps.name, workspace.name, articles]);
+		fetchArticleData(articles); 
+	}, [show, catalogProps.name, workspace.path, articles]);
 
 	const onItemClick = useCallback(
 		(id: string) => {
@@ -59,7 +59,7 @@ const FavoriteArticlesTab = ({ show }: { show: boolean }) => {
 	return (
 		<TabWrapper ref={tabWrapperRef} isTop show={show} title={t("favorites-articles")} contentHeight={height}>
 			{isLoading ? (
-				<SpinnerLoader fullScreen />
+				<SpinnerLoader fullScreen height={height - 60} width={height - 60} />
 			) : (
 				<ItemList
 					show={show}

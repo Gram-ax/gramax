@@ -1,5 +1,4 @@
 import { useDebounce } from "@core-ui/hooks/useDebounce";
-import t from "@ext/localization/locale/translate";
 import parseNumber from "@ext/markdown/elements/table/edit/logic/parseNumber";
 import {
 	AggregationData,
@@ -63,7 +62,7 @@ const updateCellText = (
 		return;
 	}
 
-	textNode.textContent = `${t(`editor.table.aggregation.methods.${method}.name`)}: ${formattedValue}`;
+	textNode.textContent = formattedValue;
 };
 
 const createRow = (table: HTMLTableElement, sheet: Sheet<string>, hasHeader: boolean) => {
@@ -179,16 +178,11 @@ const getAggregationData = (
 	const startCol = isColumnHeader ? 0 : 0;
 	const startRow = hasHeader ? 1 : 0;
 
-	const lastRow = table?.lastElementChild?.lastElementChild as HTMLElement;
-	const lastRowIsAggregated = lastRow?.dataset.aggregation === "true";
-
 	const getCellsColumnData = (cells: SheetColumn<string>): ColumnData => {
 		const data: ColumnData = [];
 
 		for (let colIndex = 0; colIndex < cells.length; colIndex++) {
 			const cell = cells[colIndex];
-			if (!cell) continue;
-
 			data.push(cell);
 		}
 
@@ -202,10 +196,7 @@ const getAggregationData = (
 			continue;
 		}
 
-		const columnData = getCellsColumnData(sheet.getColumn(colIndex)).slice(
-			startRow,
-			lastRowIsAggregated ? -1 : undefined,
-		);
+		const columnData = getCellsColumnData(sheet.getColumn(colIndex)).slice(startRow);
 
 		data.push({ method, data: columnData });
 	}
@@ -251,10 +242,7 @@ export const convertHtmlTableToSheet = (table: HTMLTableElement): Sheet<string> 
 	let maxColumns = 0;
 	for (let rowIndex = 0; rowIndex < table.rows.length; rowIndex++) {
 		const htmlRow = table.rows[rowIndex];
-
-		if (htmlRow.dataset.aggregation === "true") {
-			continue;
-		}
+		if (htmlRow.dataset.aggregation === "true") continue;
 
 		let colCount = 0;
 
@@ -269,11 +257,15 @@ export const convertHtmlTableToSheet = (table: HTMLTableElement): Sheet<string> 
 
 	const data: SheetType<string> = [];
 	for (let rowIndex = 0; rowIndex < table.rows.length; rowIndex++) {
+		const htmlRow = table.rows[rowIndex];
+		if (htmlRow.dataset.aggregation === "true") continue;
 		data.push(new Array(maxColumns).fill(""));
 	}
 
 	const occupied: boolean[][] = [];
 	for (let rowIndex = 0; rowIndex < table.rows.length; rowIndex++) {
+		const htmlRow = table.rows[rowIndex];
+		if (htmlRow.dataset.aggregation === "true") continue;
 		occupied.push(new Array(maxColumns).fill(false));
 	}
 
@@ -282,6 +274,7 @@ export const convertHtmlTableToSheet = (table: HTMLTableElement): Sheet<string> 
 	for (let rowIndex = 0; rowIndex < table.rows.length; rowIndex++) {
 		const htmlRow = table.rows[rowIndex];
 		let dataColIndex = 0;
+		if (htmlRow.dataset.aggregation === "true") continue;
 
 		for (let cellIndex = 0; cellIndex < htmlRow.cells.length; cellIndex++) {
 			const cell = htmlRow.cells[cellIndex];

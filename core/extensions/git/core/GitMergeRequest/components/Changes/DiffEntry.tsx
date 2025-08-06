@@ -228,7 +228,7 @@ const DiffEntry = ({
 
 	if (entry.type === "resource") {
 		return (
-			<Wrapper>
+			<Wrapper data-qa="qa-clickable">
 				<Highlight
 					status={entry.status}
 					onClick={() => onSelect(entry)}
@@ -294,7 +294,7 @@ const DiffEntry = ({
 
 	return (
 		<>
-			<Wrapper>
+			<Wrapper data-qa="qa-clickable">
 				<Highlight
 					status={entry.status}
 					onClick={() => onSelect(entry)}

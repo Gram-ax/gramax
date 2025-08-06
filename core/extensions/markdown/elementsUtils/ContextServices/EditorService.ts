@@ -6,6 +6,7 @@ import { ClientArticleProps } from "@core/SitePresenter/SitePresenter";
 import { uniqueName } from "@core/utils/uniqueName";
 import { pasteArticleResource } from "@ext/markdown/elements/copyArticles/copyPasteArticleResource";
 import { ResourceServiceType } from "@ext/markdown/elements/copyArticles/resourceService";
+import { HIGHLIGHT_COLOR_NAMES } from "@ext/markdown/elements/highlight/edit/model/consts";
 import imageHandlePaste from "@ext/markdown/elements/image/edit/logic/imageHandlePaste";
 import { PropertyService } from "@ext/properties/components/PropertyService";
 import { Editor } from "@tiptap/core";
@@ -32,8 +33,18 @@ export type EditorPasteHandler = (
 	articleProps: ClientArticleProps,
 ) => boolean | void;
 
+export interface EditorData {
+	lastUsedHighlightColor: HIGHLIGHT_COLOR_NAMES;
+}
+
+export type EditorDataKey = keyof EditorData;
+export type EditorDataValue = EditorData[EditorDataKey];
+
 export default abstract class EditorService {
 	private static _editor: Editor;
+	private static _data: EditorData = {
+		lastUsedHighlightColor: null,
+	};
 
 	public static bindEditor(editor: Editor) {
 		this._editor = editor;
@@ -60,7 +71,7 @@ export default abstract class EditorService {
 			if (event.clipboardData.files.length !== 0)
 				return imageHandlePaste(view, event, articleProps.fileName, resourceService);
 
-			return pasteArticleResource({ view, event, articleProps, apiUrlCreator, resourceService });
+			return pasteArticleResource({ view, event, apiUrlCreator, resourceService });
 		};
 	}
 
@@ -76,7 +87,13 @@ export default abstract class EditorService {
 			const url = apiUrlCreator.updateItemProps();
 			const res = await FetchService.fetch(
 				url,
-				JSON.stringify({ ...articleProps, properties: context.propertyService.articleProperties }),
+				JSON.stringify({
+					...articleProps,
+					properties: context.propertyService?.articleProperties.map((prop) => ({
+						name: prop.name,
+						value: prop.value,
+					})),
+				}),
 				MimeTypes.json,
 			);
 
@@ -86,6 +103,14 @@ export default abstract class EditorService {
 				pathname && router.pushPath(pathname);
 			}
 		};
+	}
+
+	public static setData(key: EditorDataKey, value: EditorDataValue) {
+		this._data[key] = value;
+	}
+
+	public static getData(key: EditorDataKey): EditorDataValue {
+		return this._data?.[key];
 	}
 
 	private static async _getBrotherFileNames(articlePath: string, apiUrlCreator: ApiUrlCreator): Promise<string[]> {

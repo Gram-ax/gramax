@@ -28,7 +28,7 @@ export default class ApiUrlCreator {
 
 	public getLogo(theme: Theme) {
 		return Url.fromBasePath(
-			theme == Theme.dark ? `/images/gramax-logo-dark.svg` : `/images/gramax-logo-light.svg`,
+			theme == Theme.dark ? `/images/gramax-logo-hp-dark.svg` : `/images/gramax-logo-hp-light.svg`,
 			getExecutingEnvironment() == "next" ? this._basePath : "",
 		);
 	}
@@ -50,7 +50,7 @@ export default class ApiUrlCreator {
 	}
 
 	public getCustomStyleAsset(workspacePath: WorkspacePath) {
-		return Url.fromBasePath(`/api/workspace/assets/getCustomStyle`, this._basePath, { workspacePath });
+		return Url.fromBasePath(`/api/workspace/assets/getCustomStyle`, this._basePath, { path: workspacePath });
 	}
 
 	public updateHomeLogo(workspacePath: WorkspacePath, theme: Theme) {
@@ -175,16 +175,17 @@ export default class ApiUrlCreator {
 		});
 	}
 
-	public getCommentCount() {
-		return Url.fromBasePath(`/api/comments/getCommentCount`, this._basePath, {
-			articlePath: this._articlePath,
+	public getNewCommentId() {
+		return Url.fromBasePath(`/api/comments/getNewCommentId`, this._basePath, {
+			catalogName: this._catalogName,
 		});
 	}
 
-	public deleteComment(count: string) {
-		return Url.fromBasePath(`/api/comments/deleteComment`, this._basePath, {
+	public deleteComment(id: string) {
+		return Url.fromBasePath(`/api/comments/delete`, this._basePath, {
+			catalogName: this._catalogName,
 			articlePath: this._articlePath,
-			count,
+			id,
 		});
 	}
 
@@ -339,6 +340,10 @@ export default class ApiUrlCreator {
 			fetch: shouldFetch.toString(),
 			resetSyncCount: resetSyncCount.toString(),
 		});
+	}
+
+	public getAllSyncableWorkspacesUrl() {
+		return Url.fromBasePath(`/api/storage/getAllSyncableWorkspaces`, this._basePath, {});
 	}
 
 	public getStoragePublishUrl(message: string) {
@@ -892,7 +897,13 @@ export default class ApiUrlCreator {
 	}
 
 	public uploadStatic() {
-		return Url.fromBasePath(`/api/catalog/static/upload`, this._basePath, {
+		return Url.fromBasePath(`/api/catalog/cloud/upload`, this._basePath, {
+			catalogName: this._catalogName,
+		});
+	}
+
+	public getUploadStatus() {
+		return Url.fromBasePath(`/api/catalog/cloud/getUploadStatus`, this._basePath, {
 			catalogName: this._catalogName,
 		});
 	}
@@ -901,6 +912,14 @@ export default class ApiUrlCreator {
 		return Url.fromBasePath(`/api/page/getPageData`, this._basePath, {
 			catalogName: this._catalogName,
 			path,
+		});
+	}
+
+	public getPageDataByArticleData(articlePath: string, catalogName: string, scope?: TreeReadScope) {
+		return Url.fromBasePath(`/api/page/getPageDataByArticleData`, this._basePath, {
+			catalogName,
+			scope: scope ? JSON.stringify(scope) : undefined,
+			articlePath,
 		});
 	}
 
@@ -1010,14 +1029,14 @@ export default class ApiUrlCreator {
 	}
 
 	public getPrettifiedText(command: string) {
-		return Url.fromBasePath(`/api/ai/getPrettifiedText`, this._basePath, {
+		return Url.fromBasePath(`/api/ai/text/prettify`, this._basePath, {
 			command,
 			catalogName: this._catalogName,
 		});
 	}
 
 	public getGeneratedText(command: string) {
-		return Url.fromBasePath(`/api/ai/getGeneratedText`, this._basePath, {
+		return Url.fromBasePath(`/api/ai/text/generate`, this._basePath, {
 			command,
 			catalogName: this._catalogName,
 		});
@@ -1038,32 +1057,32 @@ export default class ApiUrlCreator {
 	}
 
 	public checkAiAuth(apiUrl: string, token: string) {
-		return Url.fromBasePath(`/api/ai/checkAuth`, this._basePath, {
+		return Url.fromBasePath(`/api/ai/server/checkAuth`, this._basePath, {
 			apiUrl,
 			token,
 		});
 	}
 
 	public checkAiServer(apiUrl: string) {
-		return Url.fromBasePath(`/api/ai/checkServer`, this._basePath, {
+		return Url.fromBasePath(`/api/ai/server/checkServer`, this._basePath, {
 			apiUrl,
 		});
 	}
 
 	public setAiData(workspacePath: string) {
-		return Url.fromBasePath(`/api/ai/setData`, this._basePath, {
+		return Url.fromBasePath(`/api/ai/server/setData`, this._basePath, {
 			workspacePath,
 		});
 	}
 
 	public removeAiData(workspacePath: string) {
-		return Url.fromBasePath(`/api/ai/removeData`, this._basePath, {
+		return Url.fromBasePath(`/api/ai/server/removeData`, this._basePath, {
 			workspacePath,
 		});
 	}
 
-	public getAiUrl(workspacePath: string) {
-		return Url.fromBasePath(`/api/ai/getUrl`, this._basePath, {
+	public getAiData(workspacePath: string) {
+		return Url.fromBasePath(`/api/ai/server/getData`, this._basePath, {
 			workspacePath,
 		});
 	}
@@ -1085,6 +1104,28 @@ export default class ApiUrlCreator {
 		return Url.fromBasePath(`/api/catalog/links/links/get`, this._basePath, {
 			catalogName: this._catalogName,
 			articlePath,
+		});
+	}
+
+	public getComment(id: string) {
+		return Url.fromBasePath(`/api/comments/get`, this._basePath, {
+			catalogName: this._catalogName,
+			articlePath: this._articlePath,
+			id,
+		});
+	}
+
+	public updateComment(id: string) {
+		return Url.fromBasePath(`/api/comments/update`, this._basePath, {
+			catalogName: this._catalogName,
+			articlePath: this._articlePath,
+			id,
+		});
+	}
+
+	public transcribeAudio() {
+		return Url.fromBasePath(`/api/ai/audio/transcribe`, this._basePath, {
+			catalogName: this._catalogName,
 		});
 	}
 }

@@ -9,7 +9,7 @@ import type { UnsubscribeToken } from "@core/Event/EventEmitter";
 import type Path from "@core/FileProvider/Path/Path";
 import type { TotalOverview } from "@ext/git/core/GitDiffItemCreator/RevisionDiffTreePresenter";
 import { FileStatus } from "@ext/Watchers/model/FileStatus";
-import { createContext, ReactElement, useContext, useState } from "react";
+import { createContext, ReactElement, useContext, useEffect, useState } from "react";
 
 const GitIndexContext = createContext<{ index: Map<string, FileStatus>; overview: TotalOverview }>({
 	index: new Map(),
@@ -84,6 +84,12 @@ export default abstract class GitIndexService {
 		useWatch(() => {
 			if (!isArticle) GitIndexService._inited = false;
 		}, [isArticle]);
+
+		useEffect(() => {
+			return () => {
+				GitIndexService._inited = false;
+			};
+		}, []);
 
 		if (isArticle && !GitIndexService._inited && !isNext && !isStatic && !isStaticCli) GitIndexService._init();
 

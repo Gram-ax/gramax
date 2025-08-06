@@ -8,10 +8,11 @@ import Path from "@core/FileProvider/Path/Path";
 import { Catalog } from "@core/FileStructue/Catalog/Catalog";
 import StaticRenderer from "./StaticRenderer";
 import { logStepWithErrorSuppression, logStep } from "./cli/utils/logger";
-import { RenderedHtml, HtmlData } from "./ArticleTypes";
+import { HtmlData } from "./ArticleTypes";
 import { STORAGE_DIR_NAME } from "@app/config/const";
 import { dirname } from "path";
 import { joinTitles } from "@core-ui/getPageTitle";
+import CliUserError from "./CliUserError";
 
 export type StaticFileProvider = Pick<FileProvider, "write" | "copy" | "mkdir">;
 
@@ -104,7 +105,8 @@ class StaticSiteBuilder {
 		const items = catalog.getContentItems();
 
 		for (const i of items) {
-			if (!(await i.parsedContent.read())) throw new Error("Failed to parse one of the Markdown files");
+			if (!(await i.parsedContent.read()))
+				throw new CliUserError(`Failed to parse ${new Path(wmPath).join(i.ref.path).value}`);
 		}
 
 		const folderPath = catalog.getRootCategory().folderPath.value;
@@ -184,7 +186,7 @@ class StaticSiteBuilder {
 		} as DirectoryInfoBasic;
 	};
 
-	private _writingRenderedHtmlFiles = async (rendered: RenderedHtml, targetDir: Path, catalogName: string) => {
+	private _writingRenderedHtmlFiles = async (htmlDatas: HtmlData[], targetDir: Path, catalogName: string) => {
 		const config = getConfig();
 		config.isReadOnly = true;
 
@@ -192,10 +194,24 @@ class StaticSiteBuilder {
 			.replace(htmlTags.config, `window.${InitialDataKeys.CONFIG} = ` + (JSON.stringify(config) ?? "{}"))
 			.replace(htmlTags.fs, `<script src="${catalogName}/data.js"></script>`);
 
-		const generateHtmlFile = async (htmlData: HtmlData, logicPath: Path, basePath?: string) => {
+		const generateHtmlFile = async (htmlData: HtmlData) => {
+			const is404Html = htmlData.initialData.data?.articlePageData?.articleProps?.errorCode === 404;
 			const dataKey = `window.${InitialDataKeys.DATA} = `;
 			const initialData = this._escapeDollars(JSON.stringify(htmlData.initialData) ?? "{}");
-			const calculatedBasePath = basePath ?? logicPath.getRelativePath(new Path("."));
+
+			const getLogicPath = () => {
+				const get404Path = () => {
+					if (isBrowser) return [htmlData.logicPath, "404.html"];
+					return [htmlData.logicPath.substring(catalogName.length), "404.html"];
+				};
+
+				if (is404Html) return new Path(get404Path());
+				return new Path(htmlData.logicPath).join(new Path("index.html"));
+			};
+
+			const logicPath = getLogicPath();
+
+			const calculatedBasePath = is404Html ? "/" : logicPath.getRelativePath(new Path("."));
 			const title = joinTitles(
 				htmlData.initialData.data.articlePageData.articleProps.title,
 				htmlData.initialData.data.catalogProps.title,
@@ -216,16 +232,7 @@ class StaticSiteBuilder {
 		if (!isBrowser)
 			await this._fp.write(targetDir.join(new Path("index.html")), this._getRedirectHTML(catalogName));
 
-		await generateHtmlFile(
-			rendered.article404Html,
-			new Path(isBrowser ? [catalogName, "404.html"] : "404.html"),
-			"/",
-		);
-		await generateHtmlFile(rendered.defaultHtml, new Path(catalogName).join(new Path("index.html")));
-
-		for (const htmlData of rendered.htmlData) {
-			await generateHtmlFile(htmlData, new Path(htmlData.logicPath).join(new Path("index.html")));
-		}
+		for (const htmlData of htmlDatas) await generateHtmlFile(htmlData);
 	};
 
 	private _escapeDollars(str: string) {

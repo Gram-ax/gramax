@@ -6,6 +6,7 @@ enum ErrorType {
 	Parse = "Parse",
 	NetworkApi = "NetworkApi",
 	TokenValidation = "TokenValidation",
+	CliUser = "CliUser",
 }
 
 export default ErrorType;

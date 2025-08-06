@@ -4,25 +4,20 @@ import { DesktopModeMiddleware } from "@core/Api/middleware/DesktopModeMiddlewar
 import ReloadConfirmMiddleware from "@core/Api/middleware/ReloadConfirmMiddleware";
 import Context from "@core/Context/Context";
 import { Command } from "../../types/Command";
-import { Syntax } from "@ext/markdown/core/edit/logic/Formatter/Formatters/typeFormats/model/Syntax";
 
-const setSyntax: Command<{ ctx: Context; catalogName: string; syntax: Syntax }, void> = Command.create({
+const setSyntax: Command<{ ctx: Context; catalogName: string }, void> = Command.create({
 	path: "catalog/setSyntax",
 
 	kind: ResponseKind.json,
 
 	middlewares: [new AuthorizeMiddleware(), new DesktopModeMiddleware(), new ReloadConfirmMiddleware()],
 
-	async do({ ctx, catalogName, syntax }) {
-		const { wm, sitePresenterFactory, resourceUpdaterFactory, parser, parserContextFactory, formatter } = this._app;
+	async do({ ctx, catalogName }) {
+		const { wm, sitePresenterFactory } = this._app;
 		const workspace = wm.current();
 
 		const catalog = await workspace.getCatalog(catalogName, ctx);
 		if (!catalog) return;
-		if (catalog.props.syntax !== syntax) {
-			catalog.props.syntax = syntax;
-			await catalog.updateProps(catalog.props, resourceUpdaterFactory);
-		}
 
 		await sitePresenterFactory.fromContext(ctx).parseAllItems(catalog);
 		for (const article of catalog.getContentItems()) {
@@ -62,8 +57,7 @@ const setSyntax: Command<{ ctx: Context; catalogName: string; syntax: Syntax }, 
 
 	params(ctx, q) {
 		const catalogName = q.catalogName;
-		const syntax = q.syntax as Syntax;
-		return { ctx, catalogName, syntax };
+		return { ctx, catalogName };
 	},
 });
 

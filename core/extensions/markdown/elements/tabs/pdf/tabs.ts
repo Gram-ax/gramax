@@ -12,38 +12,19 @@ export const tabsHandler = async (node: Tag | JSONContent, context: pdfRenderCon
 		const tabNodes = Array.isArray(children) ? children : [];
 
 		for (const tabNode of tabNodes) {
-			if (typeof tabNode !== "object" || !("type" in tabNode) || !("name" in tabNode)) continue;
-			const name = "name" in tabNode ? tabNode.name : tabNode.type;
-			const attrs = "attributes" in tabNode ? tabNode.attributes : tabNode;
-
-			if (name === "tab") {
-				const tabContent = await parseNodeToPDFContent(tabNode, context);
-				results.push({
-					text: attrs.name,
-					bold: true,
-					margin: [0, 5],
-				});
-				results.push(...tabContent);
-				results.push({ text: "", margin: [0, 5] });
-			}
+			if (tabNode?.type !== "tab") continue;
+			
+			const name = tabNode?.attrs?.name;
+			const tabContent = await parseNodeToPDFContent(tabNode, context);
+			
+			results.push({
+				text: name,
+				bold: true,
+				margin: [0, 5],
+			});
+			results.push(...tabContent);
+			results.push({ text: "", margin: [0, 5] });
 		}
-
-		return results;
-	}
-
-	if (name === "tab") {
-		const results: Content[] = [];
-
-		const tabContent = await parseNodeToPDFContent(node, context);
-		const attrs = "attributes" in node ? node.attributes : node;
-
-		results.push({
-			text: attrs.name,
-			bold: true,
-			margin: [0, 5],
-		});
-		results.push(...tabContent);
-		results.push({ text: "", margin: [0, 10] });
 
 		return results;
 	}

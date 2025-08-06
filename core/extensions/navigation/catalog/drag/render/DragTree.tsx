@@ -167,14 +167,6 @@ const LevNavDragTree = styled((props: LevNavDragTreeProps) => {
 		user-select: none;
 	}
 
-	> ul {
-		padding-top: 20px;
-
-		> li:first-of-type {
-			margin-top: 0;
-		}
-	}
-
 	li {
 		margin-bottom: 0;
 	}

@@ -14,7 +14,7 @@ import { ProviderItemProps } from "@ext/articleProvider/models/types";
 interface AiWritingPanelProps {
 	placeholder: string;
 	onSubmit: (command: string) => void;
-	closeHandler: () => void;
+	closeHandler?: () => void;
 }
 
 interface PromptListProps {
@@ -49,6 +49,8 @@ const TooltipContentWrapper = styled.div`
 	color: var(--color-tooltip-text);
 	border-radius: var(--radius-large);
 	background: var(--color-tooltip-background);
+	max-height: 20em;
+	overflow-y: auto;
 `;
 
 const PromptList = ({ onClick, children }: PromptListProps) => {
@@ -64,20 +66,18 @@ const PromptList = ({ onClick, children }: PromptListProps) => {
 		const res = await FetchService.fetch<ProviderItemProps[]>(url);
 
 		if (!res.ok) return setIsApiRequest(false);
-		const templates = await res.json();
+		const prompts = await res.json();
 
-		setList(templates);
+		setList(prompts);
 		setIsApiRequest(false);
 	};
-
-	if (!list.length) return children;
 
 	return (
 		<Tooltip
 			onMount={(instance) => {
 				instanceRef.current = instance;
 			}}
-			place="bottom-start"
+			place="top-start"
 			appendTo="parent"
 			visible
 			onHide={() => {
@@ -89,31 +89,37 @@ const PromptList = ({ onClick, children }: PromptListProps) => {
 			}}
 			arrow={false}
 			hideOnClick={undefined}
+			distance={8}
+			hideInMobile={false}
 			customStyle
-			interactive={true}
+			interactive
 			content={
-				<TooltipContentWrapper>
-					{isApiRequest ? (
-						<>
-							{[...Array(3)].map((_, index) => (
-								<Loader key={index}>
-									<span>{t("loading")}</span>
-									<SpinnerLoader width={14} height={14} />
-								</Loader>
-							))}
-						</>
-					) : (
-						list.map((item) => {
-							return (
-								<Button key={item.id} onClick={() => onClick(item.id)}>
-									<div className="iconFrame">
-										<span>{item.title.length ? item.title : t("article.no-name")}</span>
-									</div>
-								</Button>
-							);
-						})
-					)}
-				</TooltipContentWrapper>
+				list.length || isApiRequest ? (
+					<TooltipContentWrapper>
+						{isApiRequest ? (
+							<>
+								{[...Array(3)].map((_, index) => (
+									<Loader key={index}>
+										<span>{t("loading")}</span>
+										<SpinnerLoader width={14} height={14} />
+									</Loader>
+								))}
+							</>
+						) : (
+							list.map((item) => {
+								return (
+									<Button key={item.id} onClick={() => onClick(item.id)}>
+										<div className="iconFrame">
+											<span>{item.title.length ? item.title : t("article.no-name")}</span>
+										</div>
+									</Button>
+								);
+							})
+						)}
+					</TooltipContentWrapper>
+				) : (
+					<></>
+				)
 			}
 		>
 			{children}
@@ -126,8 +132,7 @@ const AiWritingPanel = ({ closeHandler, onSubmit, placeholder }: AiWritingPanelP
 
 	const onClickPrettiffy = (command: string) => {
 		onSubmit(command);
-
-		closeHandler();
+		closeHandler?.();
 	};
 
 	const onClickSend = () => {

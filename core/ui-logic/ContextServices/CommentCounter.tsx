@@ -54,10 +54,12 @@ abstract class CommentCounterService {
 	public static delete(comments: AuthoredCommentsByAuthor, pathname: string, author: UserInfo, deleteId: string) {
 		if (!comments[author?.mail]) return;
 		comments[author.mail].total--;
-		comments[author.mail].pathnames[pathname] = comments[author.mail].pathnames[pathname].filter(
-			(id) => id !== deleteId,
-		);
-		if (comments[author.mail].pathnames[pathname].length === 0) delete comments[author.mail].pathnames[pathname];
+
+		const withoutDeleteId = comments[author.mail].pathnames[pathname]?.filter((id) => id !== deleteId);
+		if (!withoutDeleteId) return;
+
+		comments[author.mail].pathnames[pathname] = withoutDeleteId;
+		if (withoutDeleteId.length === 0) delete comments[author.mail].pathnames[pathname];
 
 		_setComments(Object.assign({}, comments));
 	}

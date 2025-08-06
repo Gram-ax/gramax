@@ -31,6 +31,7 @@ export type DiffCompareOptions =
 export type DiffConfig = {
 	compare: DiffCompareOptions;
 	renames: boolean;
+	useMergeBase?: boolean;
 };
 
 export type DiffTree2TreeInfo = {
@@ -74,6 +75,7 @@ type CloneProgressTypes =
 	| { type: "sideband"; data: { id: CloneCancelToken; remoteText: string } }
 	| { type: "checkout"; data: { id: CloneCancelToken; checkouted: number; total: number } }
 	| { type: "download"; data: { id: CloneCancelToken; bytes: number; downloadSpeedBytes: number } }
+	| { type: "download-no-progress"; data: object }
 	| {
 			type: "chunkedTransfer";
 			data: { id: CloneCancelToken; transfer: TransferProgress; bytes: number; downloadSpeedBytes: number };
@@ -106,6 +108,11 @@ export type FileStat = {
 	size: number;
 	isDir: boolean;
 	isBinary: boolean;
+};
+
+export type ResetOptions = {
+	mode: "soft" | "mixed" | "hard";
+	head?: GitVersion;
 };
 
 export type DirStat = { name: string } & FileStat;
@@ -164,8 +171,7 @@ interface GitCommandsModel {
 
 	getHeadCommit(branch: string): Promise<GitVersion>;
 
-	resetHard(head?: GitVersion): Promise<void>;
-	resetSoft(head?: GitVersion): Promise<void>;
+	reset(opts: ResetOptions): Promise<void>;
 
 	addRemote(url: string): Promise<void>;
 	getRemoteBranchName(name: string, data?: GitSourceData): Promise<string>;

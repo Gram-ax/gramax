@@ -379,6 +379,18 @@
 								"children": ["e.com/"]
 							}
 						]
+					},
+					" ",
+					{
+						"$$mdtype": "Tag",
+						"attributes": {
+							"hash": "",
+							"href": "https://translate.google.com/",
+							"isFile": false,
+							"resourcePath": ""
+						},
+						"children": ["another link"],
+						"name": "Link"
 					}
 				]
 			},
@@ -2405,6 +2417,22 @@
 							{ "type": "strong" }
 						],
 						"text": "e.com/"
+					},
+					{ "type": "text", "text": " " },
+					{
+						"type": "text",
+						"marks": [
+							{
+								"type": "link",
+								"attrs": {
+									"href": "https://translate.google.com/",
+									"resourcePath": "",
+									"hash": "",
+									"isFile": false
+								}
+							}
+						],
+						"text": "another link"
 					}
 				]
 			},

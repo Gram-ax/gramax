@@ -11,7 +11,7 @@ import { CheckOptions, defaultCheckName } from "./command";
 import { Catalog } from "@core/FileStructue/Catalog/Catalog";
 import chalk from "chalk";
 import ChalkLogger from "../../../utils/ChalkLogger";
-import { getPathWithExtension, setRootPath } from "../utils/paths";
+import { checkExistsPath, getPathWithExtension, setRootPath } from "../utils/paths";
 
 type errorsType = Record<keyof typeof CatalogErrorGroups, string[]>;
 
@@ -99,6 +99,8 @@ const checkCatalog = async (catalogName: string) => {
 
 export const checkCommandFunction = async (options: CheckOptions) => {
 	const fullPath = resolve(options.destination);
+	await checkExistsPath(fullPath);
+
 	const catalogName = basename(fullPath);
 	setRootPath(fullPath);
 	if (!(await check(catalogName, options.output))) process.exit(1);

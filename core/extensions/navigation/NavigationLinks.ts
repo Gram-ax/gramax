@@ -6,7 +6,6 @@ import type { FileStatus } from "@ext/Watchers/model/FileStatus";
 export interface CatalogLink extends BaseLink {
 	name: string;
 	logo: string;
-	code: string;
 	title: string;
 	style: Style;
 	group: string;

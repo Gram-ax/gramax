@@ -25,3 +25,5 @@ f0a85a100163564ffbe8bf8ac8daf5e1696cab82 983c0f7872b3cd3821a3eb97c499f6d44e45205
 1c2d496d219a8f0103642be49ab481b16cfc0eaa dcdb1233b22ed0faa9b0d46b7242bc040e1e8cae Pavel Smirnov <pavel.smirnov@pavel-macbook.local> 1728909610 +0300	commit: 1
 dcdb1233b22ed0faa9b0d46b7242bc040e1e8cae 542b5622bb6b4703f9aa398dd4c25a87d2eabedc Pavel Smirnov <pavel.smirnov@pavel-macbook.local> 1728997738 +0300	commit: fix
 542b5622bb6b4703f9aa398dd4c25a87d2eabedc 17eea87e3a1b91201348fd96f415732138048d4b Pavel Smirnov <pavel.smirnov@pavel-macbook.local> 1729584628 +0300	commit (amend): fix
+17eea87e3a1b91201348fd96f415732138048d4b 58230d51a754240a799077e1ac18cb6d6ff8dc04 DanilKazanov <danil.kazanov@ics-it.ru> 1752749728 +0300	commit: add file-with-resource
+58230d51a754240a799077e1ac18cb6d6ff8dc04 797b974427a1d33bc7fb357591260958dd2cf104 DanilKazanov <danil.kazanov@ics-it.ru> 1754404043 +0300	commit: add-order-fix

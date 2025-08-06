@@ -7,6 +7,7 @@ import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import AuthorInfoCodec from "@core-ui/utils/authorInfoCodec";
 import generateUniqueID from "@core/utils/generateUniqueID";
 import styled from "@emotion/styled";
+import BranchUpdaterService from "@ext/git/actions/Branch/BranchUpdaterService/logic/BranchUpdaterService";
 import Inbox from "@ext/inbox/components/Inbox";
 import InboxFilter from "@ext/inbox/components/InboxFilter";
 import InboxService from "@ext/inbox/components/InboxService";
@@ -66,6 +67,18 @@ const InboxTab = ({ show }: InboxTabProps) => {
 	useEffect(() => {
 		if (pageData.userInfo?.mail) setSelectedAuthor(pageData.userInfo.mail);
 	}, [pageData.userInfo]);
+
+	useEffect(() => {
+		const listener = () => {
+			selectedIds.forEach((id) => InboxService.closeNote(id));
+		};
+
+		BranchUpdaterService.addListener(listener);
+
+		return () => {
+			BranchUpdaterService.removeListener(listener);
+		};
+	}, []);
 
 	return (
 		<TabWrapper ref={tabWrapperRef} isTop show={show} title="" contentHeight={height}>

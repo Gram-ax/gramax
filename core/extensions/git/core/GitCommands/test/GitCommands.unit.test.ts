@@ -52,7 +52,7 @@ describe("GitCommands", () => {
 				const statusBefore = await git.status();
 
 				await dfp.write(repPath("testFile"), "some local change");
-				await git.hardReset();
+				await git.reset({ mode: "hard" });
 
 				expect(await dfp.read(repPath("testFile"))).toBe("testFile new content");
 				expect((await git.getHeadCommit()).toString()).toBe(hashBefore);
@@ -64,7 +64,7 @@ describe("GitCommands", () => {
 				const hashBefore = (await git.commit("init", mockUserData)).toString();
 				const statusBefore = await git.status();
 
-				await git.hardReset();
+				await git.reset({ mode: "hard" });
 
 				expect(await dfp.read(repPath("testFile"))).toBe("testFile new content");
 				expect((await git.getHeadCommit()).toString()).toBe(hashBefore);
@@ -79,7 +79,7 @@ describe("GitCommands", () => {
 				await dfp.write(repPath("testFile"), "some local change");
 				const statusBefore = await git.status();
 
-				await git.softReset();
+				await git.reset({ mode: "soft" });
 
 				expect(await dfp.read(repPath("testFile"))).toBe("some local change");
 				expect((await git.getHeadCommit()).toString()).toBe(hashBefore);
@@ -91,7 +91,7 @@ describe("GitCommands", () => {
 				const hashBefore = (await git.commit("init", mockUserData)).toString();
 				const statusBefore = await git.status();
 
-				await git.softReset();
+				await git.reset({ mode: "soft" });
 
 				expect(await dfp.read(repPath("testFile"))).toBe("testFile new content");
 				expect((await git.getHeadCommit()).toString()).toBe(hashBefore);

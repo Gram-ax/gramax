@@ -57,11 +57,15 @@ export default class RepositoryProvider {
 		this._sdp.withContext(ctx).removeSource(storageName);
 	}
 
-	getSourceData<T extends SourceData = SourceData>(ctx: Context, storageName: string): ProxiedSourceDataCtx<T> {
+	getSourceData<T extends SourceData = SourceData>(
+		ctx: Context,
+		storageName: string,
+		workspaceId?: WorkspacePath,
+	): ProxiedSourceDataCtx<T> {
 		const sdp = this._sdp.withContext(ctx);
-		const isExist = sdp.isSourceExists(storageName);
+		const isExist = sdp.isSourceExists(storageName, workspaceId);
 		if (!isExist) return null;
-		return sdp.getSourceByName(storageName) as ProxiedSourceDataCtx<T>;
+		return sdp.getSourceByName(storageName, workspaceId) as ProxiedSourceDataCtx<T>;
 	}
 
 	getSourceUserInfo(ctx: Context, storageName: string): UserInfo {
@@ -70,8 +74,8 @@ export default class RepositoryProvider {
 		return { mail: data.userEmail, name: data.userName, id: data.userEmail };
 	}
 
-	setSourceData(ctx: Context, data: SourceData): string {
-		return this._sdp.withContext(ctx).updateSource(data);
+	setSourceData(ctx: Context, data: SourceData, workspaceId?: WorkspacePath): string {
+		return this._sdp.withContext(ctx).updateSource(data, workspaceId);
 	}
 
 	async getRepositoryByPath(path: Path, fp: FileProvider): Promise<Repository> {
@@ -104,6 +108,7 @@ export default class RepositoryProvider {
 	}
 
 	async validateEqualCatalogNames(ctx: Context, path: Path, data: StorageData, storage: Storage): Promise<void> {
+		if (!storage) return;
 		const isGit = isGitSourceType(await storage.getType()) && isGitSourceType(data.source.sourceType);
 		if (!isGit) return;
 
@@ -118,7 +123,7 @@ export default class RepositoryProvider {
 		throw new GitError(GitErrorCode.AlreadyExistsError, null, { repositoryPath: path.value }, "clone");
 	}
 
-	async tryReviveCloneProgress(workspace: Workspace, path: Path, initProps: CatalogProps, cancelTokens: number[]) {
+	tryReviveCloneProgress(workspace: Workspace, path: Path, initProps: CatalogProps, cancelTokens: number[]) {
 		return this._sp.tryReviveCloneProgress(workspace, path, initProps, cancelTokens);
 	}
 
@@ -155,6 +160,6 @@ export default class RepositoryProvider {
 		storage: Storage,
 	): Promise<Repository> {
 		if (await gvc?.isBare()) return new BareRepository(path, fp, gvc, storage);
-		return new WorkdirRepository(path, fp, gvc, storage);
+		return new WorkdirRepository(path, fp, gvc, storage, this._config?.isReadOnly);
 	}
 }

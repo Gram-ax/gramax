@@ -2,17 +2,20 @@ import WidthWrapper from "@components/WidthWrapper/WidthWrapper";
 import ColGroup from "@ext/markdown/elements/table/edit/components/Helpers/ColGroup";
 import TableHelper from "@ext/markdown/elements/table/edit/components/Helpers/TableHelper";
 import { useAggregation } from "@ext/markdown/elements/table/edit/logic/aggregation";
-import { NodeViewProps, NodeViewWrapper, useReactNodeView } from "@tiptap/react";
+import { NodeViewProps, useReactNodeView } from "@tiptap/react";
 import { useLayoutEffect, useRef, useState } from "react";
 import styled from "@emotion/styled";
 import useWatch from "@core-ui/hooks/useWatch";
 import TableWrapper from "@ext/markdown/elements/table/render/component/TableWrapper";
+import { NodeViewContextableWrapper } from "@ext/markdown/core/element/NodeViewContextableWrapper";
 
-const Wrapper = styled.div`
+export const Wrapper = styled.div`
 	overflow: auto;
+	position: relative;
 `;
 
-const TableComponent = ({ node, getPos, editor }: NodeViewProps) => {
+const TableComponent = (props: NodeViewProps) => {
+	const { node, getPos, editor } = props;
 	const { nodeViewContentRef } = useReactNodeView();
 
 	const tableRef = useRef<HTMLTableElement>(null);
@@ -55,14 +58,14 @@ const TableComponent = ({ node, getPos, editor }: NodeViewProps) => {
 
 	if (!editor.isEditable) {
 		return (
-			<NodeViewWrapper ref={hoverElementRef}>
+			<NodeViewContextableWrapper ref={hoverElementRef} props={props}>
 				{isDisabledWrapper ? <Wrapper>{table}</Wrapper> : <WidthWrapper>{table}</WidthWrapper>}
-			</NodeViewWrapper>
+			</NodeViewContextableWrapper>
 		);
 	}
 
 	return (
-		<NodeViewWrapper ref={hoverElementRef}>
+		<NodeViewContextableWrapper ref={hoverElementRef} props={props}>
 			<TableHelper
 				tableRef={tableRef}
 				hoverElementRef={hoverElementRef}
@@ -73,7 +76,7 @@ const TableComponent = ({ node, getPos, editor }: NodeViewProps) => {
 			>
 				{table}
 			</TableHelper>
-		</NodeViewWrapper>
+		</NodeViewContextableWrapper>
 	);
 };
 

@@ -14,7 +14,7 @@ const edit: Command<{ data: ClientWorkspaceConfig }, void> = Command.create({
 		const wm = this._app.wm;
 		const { path, ...init } = data;
 		const { config } = wm.getWorkspaceConfig(path);
-		config.update(init);
+		config.update({ ...config.inner(), ...init });
 		await config.save();
 	},
 

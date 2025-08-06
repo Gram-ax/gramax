@@ -13,7 +13,7 @@ const repTestUtils = {
 		await dfp.write(new Path("category/articleTest2.md"), "articleTest2 file content");
 	},
 	clearChanges: async (dfp: DiskFileProvider, git: GitCommands) => {
-		await git.hardReset();
+		await git.reset({ mode: "hard" });
 		await dfp.delete(new Path("4.md"));
 		await dfp.delete(new Path("category/articleTest2.md"));
 	},
@@ -25,7 +25,7 @@ const repTestUtils = {
 		await dfp.move(new Path("imgs/4.png"), new Path("imgs/3.png"));
 	},
 	clearResourceChanges: async (dfp: DiskFileProvider, git: GitCommands) => {
-		await git.hardReset();
+		await git.reset({ mode: "hard" });
 		await dfp.delete(new Path("imgs/3.png"));
 	},
 
@@ -38,8 +38,19 @@ const repTestUtils = {
 		await dfp.write(new Path("_index2.md"), newContent.join("\n"));
 	},
 	clearRenameChanges: async (dfp: DiskFileProvider, git: GitCommands) => {
-		await git.hardReset();
+		await git.reset({ mode: "hard" });
 		await dfp.delete(new Path("_index2.md"));
+	},
+
+	makeComplexResourceChanges: async (dfp: DiskFileProvider) => {
+		const oldContent = await dfp.read(new Path("file-with-resource.md"));
+		const newContent = oldContent.replace("![](./imgs/1.png)", "");
+		await dfp.write(new Path("file-with-resource.md"), newContent);
+		await dfp.delete(new Path("imgs/2.png"));
+		await dfp.move(new Path("imgs/1.png"), new Path("imgs/2.png"));
+	},
+	clearComplexResourceChanges: async (_dfp: DiskFileProvider, git: GitCommands) => {
+		await git.reset({ mode: "hard" });
 	},
 };
 export default repTestUtils;

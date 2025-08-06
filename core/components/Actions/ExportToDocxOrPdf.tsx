@@ -24,7 +24,7 @@ const ExportToDocxOrPdf = (props: ExportToDocxOrPdfProps) => {
 			className="wrapper"
 			placement="right-start"
 			openTrigger="mouseenter focus"
-			trigger={<ExportButton ref={ref} iconCode="file-output" text={t("export")} />}
+			trigger={<ExportButton ref={ref} iconCode="file-output" text={t("export.name")} />}
 		>
 			{isCategory && (
 				<ItemExport

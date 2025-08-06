@@ -1,3 +1,4 @@
+import getAllSyncableWorkspaces from "@app/commands/storage/getAllSyncableWorkspaces";
 import getAllSyncCount from "@app/commands/storage/getAllSyncCount";
 import getSourceDataUsage from "@app/commands/storage/getSourceDataUsage";
 import getUnsupportedElements from "@app/commands/storage/import/getUnsupportedElements";
@@ -28,6 +29,7 @@ const storage = {
 	publish,
 	getSyncCount,
 	getAllSyncCount,
+	getAllSyncableWorkspaces,
 	setSourceData,
 	getCloneProgress,
 	getSourceDataUsage,

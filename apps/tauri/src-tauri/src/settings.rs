@@ -1,6 +1,8 @@
 use tauri::*;
 
 use std::collections::HashMap;
+use std::io::Read;
+use std::ops::Deref;
 use std::path::Path;
 use std::sync::Mutex;
 use std::time::Duration;
@@ -10,7 +12,16 @@ use serde::Deserialize;
 use serde::Serialize;
 
 const SETTINGS_FILE_NAME: &str = "settings.json";
+const METRIC_FILE_NAME: &str = ".metric-id";
+
 const TAG: &str = "app:settings";
+
+pub trait SettingsExt {
+  fn get_metric_id(&self) -> Result<Option<MetricId>>;
+}
+
+#[derive(Clone, Debug)]
+pub struct MetricId(pub String);
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 #[serde(transparent)]
@@ -22,6 +33,46 @@ struct SettingsStateInner {
 }
 
 type SettingsState = Mutex<SettingsStateInner>;
+
+impl Deref for MetricId {
+  type Target = String;
+
+  fn deref(&self) -> &Self::Target {
+    &self.0
+  }
+}
+
+impl<R: Runtime> SettingsExt for AppHandle<R> {
+  fn get_metric_id(&self) -> Result<Option<MetricId>> {
+    if let Some(id) = self.try_state::<MetricId>() {
+      return Ok(Some(id.inner().clone()));
+    }
+
+    let path = self.path().app_data_dir()?.join(METRIC_FILE_NAME);
+    if !path.exists() {
+      let id = nanoid::nanoid!(16);
+      std::fs::write(path, &id)?;
+      let id = MetricId(id);
+      self.manage::<MetricId>(id.clone());
+      return Ok(Some(id));
+    }
+
+    let mut file = std::fs::File::open(path)?;
+    let mut buf = [0; 16];
+    file.read_exact(&mut buf)?;
+
+    let Ok(id) = String::from_utf8(buf.to_vec()) else {
+      return Ok(None);
+    };
+
+    if id.len() != 16 {
+      return Ok(None);
+    }
+
+    self.manage::<MetricId>(MetricId(id.clone()));
+    Ok(Some(MetricId(id)))
+  }
+}
 
 #[command]
 pub fn get_settings<R: Runtime>(manager: AppHandle<R>) -> Result<Settings> {

@@ -28,7 +28,6 @@ export type EnvironmentVariable = {
 	GRAMAX_DEFAULT_WORKSPACE_PATH: string;
 
 	// Other
-	IS_MOBILE: Bool;
 	DEFAULT_UI_LANGUAGE: string;
 	SHARE_ACCESS_TOKEN: string;
 	DOC_READER_MAIL: string;
@@ -87,6 +86,10 @@ export type EnvironmentVariable = {
 	AI_SERVER_URL: string;
 	AI_INSTANCE_NAME: string;
 	AI_TOKEN: string;
+
+	// DESKTOP ONLY
+	IS_MOBILE: Bool;
+	UPDATE_INSTALLED: string;
 };
 
 export const defaultVariables: Partial<EnvironmentVariable> = {

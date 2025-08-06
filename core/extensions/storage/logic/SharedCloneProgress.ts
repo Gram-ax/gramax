@@ -1,3 +1,4 @@
+import { getExecutingEnvironment } from "@app/resolveModule/env";
 import DefaultError from "@ext/errorHandlers/logic/DefaultError";
 import GitErrorCode from "@ext/git/core/GitCommands/errors/model/GitErrorCode";
 import type { CloneProgress } from "@ext/git/core/GitCommands/model/GitCommandsModel";
@@ -6,7 +7,10 @@ import assert from "assert";
 const BROADCAST_CHANNEL_NAME = "storage-provider";
 const CLONES_IN_PROGRESS_KEY = "clones-in-progress";
 const BROADCAST_EVENT_TIMEOUT = 6000;
-const BROADCAST_CHANNEL = typeof BroadcastChannel !== "undefined" ? new BroadcastChannel(BROADCAST_CHANNEL_NAME) : null;
+const BROADCAST_CHANNEL =
+	typeof BroadcastChannel !== "undefined" && getExecutingEnvironment() !== "cli"
+		? new BroadcastChannel(BROADCAST_CHANNEL_NAME)
+		: null;
 
 type SharedCloneProgressEvent = {
 	type: "progress-update";
@@ -41,9 +45,16 @@ export class SharedCloneProgress {
 		return this._cancelToken;
 	}
 
-	setStarted() {
+	setStarted(hiddenProgress?: boolean) {
 		return this.setProgress({
-			type: "started",
+			type: hiddenProgress ? "download-no-progress" : "started",
+			data: {},
+		});
+	}
+
+	setStartedSilent() {
+		return this.setProgress({
+			type: "download-no-progress",
 			data: {},
 		});
 	}

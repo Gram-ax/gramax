@@ -6,11 +6,12 @@ import type CatalogEntry from "@core/FileStructue/Catalog/CatalogEntry";
 import GitCommands from "@ext/git/core/GitCommands/GitCommands";
 import type RepositoryProvider from "@ext/git/core/Repository/RepositoryProvider";
 import GitTreeFileProvider from "@ext/versioning/GitTreeFileProvider";
+import { addScopeToPath } from "@ext/versioning/utils";
 import type { Workspace } from "@ext/workspace/Workspace";
 
 const VERSION_LIMIT = 32;
 
-export default class CatalogVersionResolver implements EventHandlerCollection, EventHandlerCollection {
+export default class CatalogVersionResolver implements EventHandlerCollection {
 	private _catalogs = new WeakMap<Catalog, Map<string, CatalogEntry>>();
 
 	constructor(private _workspace: Workspace, private _rp: RepositoryProvider) {}
@@ -92,8 +93,7 @@ export default class CatalogVersionResolver implements EventHandlerCollection, E
 		const fs = this._workspace.getFileStructure();
 
 		for (const resolvedVersion of catalog.props.resolvedVersions) {
-			const basePath = catalog.basePath;
-			const path = basePath.value + `:${resolvedVersion.encodedName}`;
+			const path = addScopeToPath(catalog.basePath, resolvedVersion.encodedName);
 			fs.fp.mount(new Path(path), gitfp);
 
 			const entry = await fs.getCatalogEntryByPath(new Path(path), false, {

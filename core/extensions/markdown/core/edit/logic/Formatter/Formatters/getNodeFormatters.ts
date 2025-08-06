@@ -6,7 +6,6 @@ import IconFormatter from "@ext/markdown/elements/icon/edit/logic/IconFormatter"
 import imageNodeFormatter from "@ext/markdown/elements/image/edit/logic/imageNodeFormatter";
 import bulletList from "@ext/markdown/elements/list/edit/models/bulletList/logic/bulletListFormatter";
 import orderedList from "@ext/markdown/elements/list/edit/models/orderList/logic/orderListFormatter";
-import taskItem from "@ext/markdown/elements/list/edit/models/taskItem/logic/taskItemFormatter";
 import taskList from "@ext/markdown/elements/list/edit/models/taskList/logic/taskListFormatter";
 import OpenApiFormatter from "@ext/markdown/elements/openApi/edit/logic/OpenApiFormatter";
 import SnippetFormatter from "@ext/markdown/elements/snippet/edit/logic/SnippetFormatter";
@@ -39,9 +38,14 @@ import blockPropertyFormatter from "@ext/markdown/elements/blockProperty/edit/lo
 import htmlTagNodeFormatters from "@ext/markdown/elements/htmlTag/edit/logic/htmlTagNodeFormatters";
 import inlineImageFormatter from "@ext/markdown/elements/inlineImage/edit/logic/formatter";
 
-const getNodeFormatters = (context?: ParserContext): { [node: string]: NodeSerializerSpec } => {
+type NodeFormatterModifier = (formatters: { [node: string]: NodeSerializerSpec }) => void;
+
+const getNodeFormatters = (
+	context?: ParserContext,
+	modifiers?: NodeFormatterModifier[],
+): { [node: string]: NodeSerializerSpec } => {
 	const formatter = getFormatterTypeByContext(context);
-	return {
+	const formatters = {
 		code_block: codeBlockFormatter,
 		diagrams: DiagramsFormatter(formatter),
 		snippet: SnippetFormatter(formatter),
@@ -55,7 +59,6 @@ const getNodeFormatters = (context?: ParserContext): { [node: string]: NodeSeria
 		unsupported: unsupportedFormatter(formatter),
 		image: imageNodeFormatter(formatter),
 		inlineImage: inlineImageFormatter,
-		taskItem: taskItem,
 		taskList: taskList,
 		orderedList: orderedList,
 		bulletList: bulletList,
@@ -85,6 +88,12 @@ const getNodeFormatters = (context?: ParserContext): { [node: string]: NodeSeria
 		text: textFormatter,
 		...htmlTagNodeFormatters,
 	};
+
+	if (modifiers) {
+		modifiers.forEach((modifier) => modifier(formatters));
+	}
+
+	return formatters;
 };
 
 export default getNodeFormatters;

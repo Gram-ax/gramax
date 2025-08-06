@@ -9,7 +9,7 @@ import Path from "@core/FileProvider/Path/Path";
 import { TreeReadScope } from "@ext/git/core/GitCommands/model/GitCommandsModel";
 import { DiffViewMode } from "@ext/markdown/elements/diff/components/DiffBottomBar";
 import { DiffModeView } from "@ext/markdown/elements/diff/components/DiffModeView";
-import RenderDiffBottomBarInArticle from "@ext/markdown/elements/diff/components/RenderDiffBottomBarInArticle";
+import RenderDiffBottomBarInBody from "@ext/markdown/elements/diff/components/RenderDiffBottomBarInBody";
 import { EditorContext } from "@ext/markdown/elementsUtils/ContextServices/EditorService";
 import NavigationEvents from "@ext/navigation/NavigationEvents";
 import { DiffFilePaths } from "@ext/VersionControl/model/Diff";
@@ -74,8 +74,10 @@ const ArticleDiffModeView = (props: ArticleDiffModeViewProps) => {
 	const restoreRightSidebar = useRestoreRightSidebar();
 	const [diffView, setDiffView] = useState(diffViewService);
 
+	const isWysiwyg = diffView === "wysiwyg-single" || diffView === "wysiwyg-double";
+
 	useLayoutEffect(() => {
-		if (!hasEditTree && diffView === "wysiwyg") setDiffView("single-panel");
+		if (!hasEditTree && isWysiwyg) setDiffView("single-panel");
 	}, []);
 
 	useEffect(() => {
@@ -93,7 +95,11 @@ const ArticleDiffModeView = (props: ArticleDiffModeViewProps) => {
 		};
 	}, [restoreRightSidebar, articlePath, articleProps, catalogName]);
 
-	useSetupRightNavCloseHandler();
+	const setupRightNavCloseHandler = useSetupRightNavCloseHandler();
+
+	useEffect(() => {
+		setupRightNavCloseHandler();
+	}, []);
 
 	const setViewModeWrapper = (mode: DiffViewMode) => {
 		setDiffView(mode);
@@ -103,9 +109,10 @@ const ArticleDiffModeView = (props: ArticleDiffModeViewProps) => {
 
 	return (
 		<div style={{ height: "inherit" }}>
-			{diffView === "wysiwyg" && hasEditTree && (
+			{isWysiwyg && hasEditTree && (
 				<div className="article-body" style={{ height: "inherit" }}>
 					<DiffModeView
+						filePath={filePath}
 						oldScope={oldScope}
 						newScope={newScope}
 						readOnly={readOnly}
@@ -141,7 +148,7 @@ const ArticleDiffModeView = (props: ArticleDiffModeViewProps) => {
 					}}
 				/>
 			)}
-			<RenderDiffBottomBarInArticle
+			<RenderDiffBottomBarInBody
 				// title={title}
 				oldRevision={oldRevision}
 				newRevision={newRevision}

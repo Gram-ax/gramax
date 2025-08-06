@@ -1,14 +1,16 @@
 import NetworkApiError from "@ext/errorHandlers/network/NetworkApiError";
 import type GitHubSourceData from "@ext/git/actions/Source/GitHub/logic/GitHubSourceData";
 import GithubInstallation from "@ext/git/actions/Source/GitHub/model/GithubInstallation";
+import GithubStorageData from "@ext/git/actions/Source/GitHub/model/GithubStorageData";
 import GitSourceApi from "@ext/git/actions/Source/GitSourceApi";
 import { GitRepData, GitRepsPageData } from "@ext/git/actions/Source/model/GitRepsApiData";
 import { SourceUser } from "@ext/git/actions/Source/SourceAPI";
 import parseGithubLink from "@ext/git/actions/Storage/GitHub/logic/utils/getTotalPages";
 import type GitSourceData from "@ext/git/core/model/GitSourceData.schema";
+import GitStorageData from "@ext/git/core/model/GitStorageData";
 import t from "@ext/localization/locale/translate";
-import Branch from "../../../../../VersionControl/model/branch/Branch";
-import GitStorageData from "../../../../core/model/GitStorageData";
+import Branch from "@ext/VersionControl/model/branch/Branch";
+import assert from "assert";
 
 export default class GithubSourceAPI extends GitSourceApi {
 	private readonly _allProjectsUrl = "user/repos?sort=updated";
@@ -45,7 +47,7 @@ export default class GithubSourceAPI extends GitSourceApi {
 
 	async getAllProjects(): Promise<GitRepData[]> {
 		return Promise.all(
-			(await this._paginationApi("user/repos", { method: "GET" }, 10)).map(
+			(await this._paginationApi("user/repos", { method: "GET" })).map(
 				async (res): Promise<GitRepData[]> =>
 					(await res.json()).map((g): GitRepData => ({ path: g.full_name, lastActivity: g.updated_at })),
 			),
@@ -117,10 +119,23 @@ export default class GithubSourceAPI extends GitSourceApi {
 	}
 
 	async refreshAccessToken(): Promise<GitSourceData> {
+		assert(this._authServiceUrl, "authServiceUrl is required");
+
 		const url = `${this._authServiceUrl}/github-refresh?refreshToken=${this._data.refreshToken}`;
 		const res = await fetch(url);
 		this._data.token = await res?.text();
 		return this._data ?? null;
+	}
+
+	async createRepository(data: GithubStorageData): Promise<void> {
+		const url = `${data.type === "User" ? "user" : `orgs/${data.group}`}/repos`;
+		const body = { name: data.name, private: true };
+
+		await this._api(url, {
+			method: "POST",
+			body: JSON.stringify(body),
+			headers: { "Content-Type": "application/json" },
+		});
 	}
 
 	private async _getUserMail(): Promise<string> {

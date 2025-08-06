@@ -1,4 +1,3 @@
-import ActionButton from "@components/controls/HoverController/ActionButton";
 import HoverableActions from "@components/controls/HoverController/HoverableActions";
 import styled from "@emotion/styled";
 import t from "@ext/localization/locale/translate";
@@ -6,8 +5,9 @@ import TabAttrs from "@ext/markdown/elements/tabs/model/TabAttrs";
 import Tabs from "@ext/markdown/elements/tabs/render/component/Tabs";
 import { Editor } from "@tiptap/core";
 import { TextSelection } from "@tiptap/pm/state";
-import { NodeViewContent, NodeViewProps, NodeViewWrapper } from "@tiptap/react";
+import { NodeViewContent, NodeViewProps } from "@tiptap/react";
 import { ReactElement, useCallback, useEffect, useRef, useState } from "react";
+import { NodeViewContextableWrapper } from "@ext/markdown/core/element/NodeViewContextableWrapper";
 
 const EditTabs = (props: { className?: string } & NodeViewProps): ReactElement => {
 	const { node, editor, className, getPos, updateAttributes } = props;
@@ -15,7 +15,6 @@ const EditTabs = (props: { className?: string } & NodeViewProps): ReactElement =
 	const [activeHoverStyle, setActiveHoverStyle] = useState(false);
 	const hoverElementRef = useRef<HTMLDivElement>(null);
 	const [isHovered, setIsHovered] = useState(false);
-	const isEditable = editor.isEditable;
 
 	useEffect(() => {
 		editor.on("selectionUpdate", changeFocus);
@@ -34,11 +33,6 @@ const EditTabs = (props: { className?: string } & NodeViewProps): ReactElement =
 		},
 		[getPos, node],
 	);
-
-	const handleDelete = useCallback(() => {
-		const position = getPos();
-		editor.commands.deleteRange({ from: position, to: position + node.nodeSize });
-	}, [editor, getPos, node]);
 
 	const onNameUpdate = useCallback(
 		(value: string, idx: number) => {
@@ -109,12 +103,11 @@ const EditTabs = (props: { className?: string } & NodeViewProps): ReactElement =
 	);
 
 	return (
-		<NodeViewWrapper ref={hoverElementRef}>
+		<NodeViewContextableWrapper ref={hoverElementRef} props={props}>
 			<HoverableActions
 				hoverElementRef={hoverElementRef}
 				isHovered={isHovered}
 				setIsHovered={setIsHovered}
-				rightActions={isEditable && <ActionButton icon="trash" onClick={handleDelete} />}
 			>
 				<Tabs
 					isEdit
@@ -128,13 +121,13 @@ const EditTabs = (props: { className?: string } & NodeViewProps): ReactElement =
 					<NodeViewContent className="content" />
 				</Tabs>
 			</HoverableActions>
-		</NodeViewWrapper>
+		</NodeViewContextableWrapper>
 	);
 };
 
 export default styled(EditTabs)`
 	padding: 4px 8px;
-	border: 1px dashed #ffffff0f;
+	border: 1px dashed #ffffff00;
 
 	:focus,
 	:hover,

@@ -200,6 +200,7 @@ class TextSelectionMenu extends TooltipBase {
 	}
 
 	private _setTooltip() {
+		if (!this._view || this._view.isDestroyed || !this._view.dom) return;
 		const { from, to, $from } = this._view.state.selection;
 		const isInstanceSelection = this._view.state.selection instanceof CellSelection;
 		const inTable = this._inTable;
@@ -209,8 +210,9 @@ class TextSelectionMenu extends TooltipBase {
 			return this.closeComponent();
 		}
 
-		const anchor = this._view.coordsAtPos(from);
-		const icrAnchor = this._view.coordsAtPos(from + 1);
+		const clampedFrom = Math.min(Math.max(from, 0), this._view.state.doc.content.size);
+		const anchor = this._view.coordsAtPos(clampedFrom);
+		const icrAnchor = this._view.coordsAtPos(Math.min(clampedFrom + 1, this._view.state.doc.content.size));
 
 		const needUseIncremented = anchor.top < icrAnchor.top;
 

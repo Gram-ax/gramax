@@ -36,6 +36,7 @@ const useScrollToArticleAnchor = (data: ArticlePageData) => {
 		})();
 
 		return () => {
+			_data.current = null;
 			if (timeout.current) clearTimeout(timeout.current);
 		};
 	}, [data, articleRef.current]);

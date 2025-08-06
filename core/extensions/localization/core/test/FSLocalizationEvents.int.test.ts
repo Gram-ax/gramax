@@ -264,4 +264,54 @@ supportedLanguages:
 			expect(otherArticle.content).toBe("en");
 		});
 	});
+
+	describe("works with catalogs that have docroot", () => {
+		beforeEach(async () => {
+			await dfp.write(
+				p("catalog-with-docroot/docs/.doc-root.yaml"),
+				`language: ru
+supportedLanguages:
+  - ru
+  - en
+docroot: docs`,
+			);
+
+			await dfp.write(p("catalog-with-docroot/docs/article.md"), "ru content");
+			await dfp.write(p("catalog-with-docroot/docs/en/_index.md"), "");
+			await dfp.write(p("catalog-with-docroot/docs/en/article.md"), "en content");
+		});
+
+		test("updates article properties in all languages with docroot", async () => {
+			const { wm, makeResourceUpdater, fp } = await makeApp();
+			const catalog = await wm.getContextlessCatalog("catalog-with-docroot");
+
+			expect(await fp.exists(p("catalog-with-docroot/docs/article.md"))).toBeTruthy();
+			expect(await fp.exists(p("catalog-with-docroot/docs/en/article.md"))).toBeTruthy();
+
+			const ruArticle = catalog.findItemByItemPath(new Path("catalog-with-docroot/docs/article.md"));
+			const enArticle = catalog.findItemByItemPath(new Path("catalog-with-docroot/docs/en/article.md"));
+			expect(ruArticle).not.toBeNull();
+			expect(enArticle).not.toBeNull();
+
+			await catalog.updateItemProps(
+				{
+					logicPath: ruArticle.logicPath,
+					order: 5,
+					description: "New description",
+				},
+				makeResourceUpdater,
+			);
+
+			await catalog.update();
+
+			const updatedRuArticle = catalog.findItemByItemPath(new Path("catalog-with-docroot/docs/article.md"));
+			const updatedEnArticle = catalog.findItemByItemPath(new Path("catalog-with-docroot/docs/en/article.md"));
+
+			expect(updatedRuArticle).not.toBeNull();
+			expect(updatedEnArticle).not.toBeNull();
+
+			expect(await fp.exists(p("catalog-with-docroot/docs/article.md"))).toBeTruthy();
+			expect(await fp.exists(p("catalog-with-docroot/docs/en/article.md"))).toBeTruthy();
+		});
+	});
 });

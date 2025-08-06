@@ -11,7 +11,8 @@ export interface DirectoryInfoBasic extends FileInfoBasic {
 
 const directory: DirectoryInfoBasic = (window as any)[InitialDataKeys.DIRECTORY] || {
 	name: "docs",
-	children: [{ name: "/", children: [] }],
+	type: "dir",
+	children: [],
 };
 
 export const StaticCall = async <O>(command: string, args?: any): Promise<O> => {

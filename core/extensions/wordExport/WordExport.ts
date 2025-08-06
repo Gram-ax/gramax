@@ -115,14 +115,6 @@ abstract class WordExport {
 	protected abstract _createTitle(article: DocumentTree): Paragraph;
 }
 
-export class FallbackWordExport extends WordExport {
-	protected _createTitle = (article: DocumentTree) =>
-		createParagraph(
-			[createContent(article.level ? article.number + " " + article.name : article.name)],
-			HeadingStyles[+!!article.level],
-		);
-}
-
 export class MainWordExport extends WordExport {
 	protected _createTitle = (article: DocumentTree) => {
 		const bookmarkId = 1;

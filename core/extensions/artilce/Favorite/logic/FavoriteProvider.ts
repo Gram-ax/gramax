@@ -1,7 +1,7 @@
-import { CATALOG_KEY, ARTICLE_KEY } from "@ext/artilce/Favorite/models/consts";
+import { ARTICLE_KEY, CATALOG_KEY } from "@ext/artilce/Favorite/models/consts";
 
 class FavoriteProvider {
-	constructor(private _workspaceName: string) {}
+	constructor(private _workspacePath: string) {}
 
 	public getFavoriteArticlePaths(catalogName: string): string[] {
 		const favoriteArticles = this._getData(this._getLocalstorageKey(catalogName, ARTICLE_KEY));
@@ -35,6 +35,14 @@ class FavoriteProvider {
 		this._setData(this._getLocalstorageKey(CATALOG_KEY), favoriteCatalogNames);
 	}
 
+	public isFavoriteCatalog(catalogName: string) {
+		return this.getFavoriteCatalogNames().includes(catalogName);
+	}
+
+	public isFavoriteArticle(catalogName: string, articlePath: string) {
+		return this.getFavoriteArticlePaths(catalogName).includes(articlePath);
+	}
+
 	private _setData(key: string, data: string[]) {
 		localStorage.setItem(key, data.join(","));
 	}
@@ -51,8 +59,8 @@ class FavoriteProvider {
 
 	private _getLocalstorageKey(catalogKey: string, articleKey?: string) {
 		return articleKey
-			? `${this._workspaceName}/${catalogKey}/${articleKey}`
-			: `${this._workspaceName}/${catalogKey}`;
+			? `${this._workspacePath}/${catalogKey}/${articleKey}`
+			: `${this._workspacePath}/${catalogKey}`;
 	}
 }
 

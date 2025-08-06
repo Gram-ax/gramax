@@ -1,4 +1,3 @@
-import SpinnerLoader from "@components/Atoms/SpinnerLoader";
 import FetchService from "@core-ui/ApiServices/FetchService";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import CatalogPropsService from "@core-ui/ContextServices/CatalogProps";
@@ -8,6 +7,7 @@ import Path from "@core/FileProvider/Path/Path";
 import SideBarData from "@ext/git/actions/Publish/model/SideBarData";
 import { TreeReadScope } from "@ext/git/core/GitCommands/model/GitCommandsModel";
 import ArticleDiffModeView from "@ext/markdown/elements/diff/components/ArticleDiffModeView";
+import LoadingWithDiffBottomBar from "@ext/markdown/elements/diff/components/LoadingWithDiffBottomBar";
 import useFetchDiffData from "@ext/markdown/elements/diff/logic/hooks/useFetchDiffData";
 import { FileStatus } from "@ext/Watchers/model/FileStatus";
 import { JSONContent } from "@tiptap/core";
@@ -84,7 +84,7 @@ const ArticleDiffViewWrapper = (props: ArticleDiffViewWrapperProps) => {
 		void tryGetNewData();
 	}, []);
 
-	if (isLoading) return <SpinnerLoader fullScreen />;
+	if (isLoading) return <LoadingWithDiffBottomBar filePath={sideBarData.data.filePath} />;
 
 	return (
 		<ArticleDiffModeView
@@ -117,7 +117,8 @@ const ArticleDiffViewWrapper = (props: ArticleDiffViewWrapperProps) => {
 				);
 			}}
 			onViewModeChange={(view) => {
-				ArticleViewService.useArticleDefaultStyles = view === "wysiwyg";
+				const isWysiwyg = view === "wysiwyg-single" || view === "wysiwyg-double";
+				ArticleViewService.useArticleDefaultStyles = isWysiwyg;
 				if (isReadOnly) return;
 				void tryGetNewData();
 			}}

@@ -14,8 +14,9 @@ const createChildWindow = async (
 	const top = (screenHeight - height) / 2;
 
 	const features = `width=${width},height=${height},left=${left},top=${top}`;
+	const open = resolveModule("openChildWindow");
 
-	const child = await resolveModule("openChildWindow")({ url, redirect, name, features });
+	const child = await open({ name, url, redirect, features });
 	(window as any).onLoadApp = (data) => callback(data);
 	(child as any).onLoadApp = (data) => callback(data);
 };

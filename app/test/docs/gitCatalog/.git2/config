@@ -5,3 +5,4 @@
 	logallrefupdates = true
 	symlinks = false
 	ignorecase = true
+	autocrlf = false

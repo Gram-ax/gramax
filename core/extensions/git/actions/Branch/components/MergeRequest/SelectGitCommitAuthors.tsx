@@ -2,6 +2,7 @@ import SelectSrc from "@components/Select/Select";
 import styled from "@emotion/styled";
 import useGitCommitAuthors from "@ext/git/actions/Branch/components/useGitCommitAuthors";
 import type { Signature } from "@ext/git/core/model/Signature";
+import t from "@ext/localization/locale/translate";
 
 const Select = styled(SelectSrc)`
 	.react-dropdown-select-content {
@@ -26,7 +27,9 @@ const SelectGitCommitAuthors = ({ shouldFetch, approvers, onChange }: SelectGitC
 	const { authors } = useGitCommitAuthors(shouldFetch);
 	return (
 		<Select
+			create
 			backspaceDelete
+			createNewLabel={`${t("git.merge.add-user")} {search}`}
 			required
 			values={approvers.map((approver) => ({
 				value: `${approver.name} <${approver.email}>`,

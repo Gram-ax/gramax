@@ -15,7 +15,7 @@ loader.config({ monaco });
 loader.init();
 
 const DiffFileInputBundle: DiffFileInput = (props) => {
-	return <DiffEditor {...props} />;
+	return <DiffEditor {...props} keepCurrentModifiedModel keepCurrentOriginalModel />;
 };
 
 export default DiffFileInputBundle;

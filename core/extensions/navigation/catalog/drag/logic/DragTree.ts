@@ -73,7 +73,8 @@ class DragTree {
 		parentArticle?: Article,
 		newCategoryPath?: Path,
 	) {
-		const logicPath = RouterPathProvider.getLogicPath(oldLevNav.find((a) => a.data.isCurrentLink).data.pathname);
+		const currentItem = oldLevNav.find((a) => a.data.isCurrentLink);
+		const logicPath = currentItem && RouterPathProvider.getLogicPath(currentItem.data.pathname);
 		const rootItem = DragTreeTransformer.getRootItem();
 		const movements = getMovements<ItemLink>([rootItem, ...oldLevNav], [rootItem, ...newLevNav]);
 		if (!movements.length) return "";
@@ -92,7 +93,7 @@ class DragTree {
 			const newParentItemRef = this._getItemRef(newParentItem, catalog);
 			const newBrowsersRef = catalog.findCategoryByItemRef(newParentItemRef)?.items?.map((i) => i.ref) ?? [];
 			const newItemRef = itemRefUtils.move(newParentItemRef, moveItemRef, item.type, newBrowsersRef);
-			if (`${logicPath}/`.startsWith(`${item.logicPath}/`))
+			if (currentItem && `${logicPath}/`.startsWith(`${item.logicPath}/`))
 				draggedItemRef = { oldLogicPath: item.logicPath, newItemRef };
 
 			await catalog.moveItem(moveItemRef, newItemRef, this._makeResourceUpdater, innerRefs);

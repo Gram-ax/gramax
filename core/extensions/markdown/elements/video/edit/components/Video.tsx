@@ -1,9 +1,9 @@
-import { NodeViewProps, NodeViewWrapper } from "@tiptap/react";
+import { NodeViewProps } from "@tiptap/react";
 import { ReactElement, useRef, useState } from "react";
-
 import Video from "../../render/components/Video";
 import BlockActionPanel from "@components/BlockActionPanel";
 import VideoActions from "@ext/markdown/elements/video/edit/components/VideoActions";
+import { NodeViewContextableWrapper } from "@ext/markdown/core/element/NodeViewContextableWrapper";
 
 const EditVideo = (props: NodeViewProps): ReactElement => {
 	const { editor, node, getPos } = props;
@@ -23,12 +23,13 @@ const EditVideo = (props: NodeViewProps): ReactElement => {
 	};
 
 	return (
-		<NodeViewWrapper ref={hoverElement} draggable={true} data-drag-handle>
+		<NodeViewContextableWrapper ref={hoverElement} props={props} draggable={true} data-drag-handle>
 			<BlockActionPanel
 				isSignature={node.attrs?.title?.length > 0}
 				updateAttributes={updateAttributes}
 				hoverElementRef={hoverElement}
 				signatureText={node.attrs.title}
+				actionsOptions={{ comment: true }}
 				hasSignature={hasSignature}
 				getPos={getPos}
 				setHasSignature={setHasSignature}
@@ -38,17 +39,20 @@ const EditVideo = (props: NodeViewProps): ReactElement => {
 						<VideoActions
 							updateAttributes={updateAttributes}
 							signatureRef={signatureRef}
-							editor={editor}
 							node={node}
-							getPos={getPos}
 							setHasSignature={setHasSignature}
 						/>
 					)
 				}
 			>
-				<Video noEm={isEditable} path={node.attrs.path} title={node.attrs.title} />
+				<Video
+					noEm={isEditable}
+					path={node.attrs.path}
+					title={node.attrs.title}
+					commentId={node.attrs.comment?.id}
+				/>
 			</BlockActionPanel>
-		</NodeViewWrapper>
+		</NodeViewContextableWrapper>
 	);
 };
 export default EditVideo;

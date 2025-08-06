@@ -14,14 +14,12 @@ pub mod init;
 pub mod menu;
 pub mod save_windows;
 mod win;
-mod updater;
 
 #[cfg(target_os = "macos")]
 mod custom_protocol;
 
 #[cfg(target_family = "unix")]
 pub use menu::MenuBuilder;
-pub use updater::UpdaterBuilder;
 
 use save_windows::SaveWindowsExt;
 
@@ -51,12 +49,15 @@ pub fn on_run_event<R: Runtime>(app: &AppHandle<R>, ev: RunEvent) {
         _ = MainWindowBuilder::default().build(app).or_show_with_message(&t!("etc.error.build-window"));
       }
     }
-    RunEvent::WindowEvent { event: WindowEvent::CloseRequested { .. }, .. } => {
+    RunEvent::WindowEvent { event: WindowEvent::Destroyed, .. } => {
       _ = app.save_windows().or_show();
     }
     RunEvent::ExitRequested { api, .. } => {
       _ = app.save_windows().or_show();
       api.prevent_exit();
+    }
+    RunEvent::Exit => {
+      _ = app.save_windows().or_show();
     }
     RunEvent::WindowEvent { label, event, .. } => on_window_event(app, label, event),
     _ => (),
@@ -66,9 +67,7 @@ pub fn on_run_event<R: Runtime>(app: &AppHandle<R>, ev: RunEvent) {
 #[cfg(not(target_os = "macos"))]
 pub fn on_run_event<R: Runtime>(app: &AppHandle<R>, ev: RunEvent) {
   match ev {
-    RunEvent::WindowEvent { event: WindowEvent::CloseRequested { .. }, .. } => {
-      _ = app.save_windows().or_show()
-    }
+    RunEvent::WindowEvent { event: WindowEvent::Destroyed { .. }, .. } => _ = app.save_windows().or_show(),
     RunEvent::Exit => _ = app.save_windows().or_show(),
     RunEvent::WindowEvent { label, event, .. } => on_window_event(app, label, event),
     _ => (),

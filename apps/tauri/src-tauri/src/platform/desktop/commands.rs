@@ -38,7 +38,7 @@ pub fn open_directory() -> Option<PathBuf> {
 #[command]
 pub fn open_in_explorer(path: &Path) -> Result<()> {
   _ = path.metadata()?;
-  _ = open::that(path).or_show_with_message(&t!("etc.error.open-path", path = path.to_string_lossy()));
+  _ = open::that_detached(path).or_show_with_message(&t!("etc.error.open-path", path = path.to_string_lossy()));
   Ok(())
 }
 

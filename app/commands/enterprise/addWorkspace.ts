@@ -59,7 +59,7 @@ const addWorkspace: Command<{ ctx: Context; token: string }, UserSettings> = Com
 
 		await this._commands.workspace.create.do({ config: workspace });
 		if (userSettings.ai) {
-			await this._commands.ai.setAiData.do({ ctx, workspacePath: workspace.path, ...userSettings.ai });
+			await this._commands.ai.server.setAiData.do({ ctx, workspacePath: workspace.path, ...userSettings.ai });
 		}
 
 		const workspacePermission = new RelaxPermissionMap({ [workspace.path]: new Permission([]) });

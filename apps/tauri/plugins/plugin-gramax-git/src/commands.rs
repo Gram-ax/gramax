@@ -131,8 +131,8 @@ pub(crate) fn diff(repo_path: &Path, opts: DiffConfig) -> Result<DiffTree2TreeIn
 }
 
 #[command(async)]
-pub(crate) fn reset_all(repo_path: &Path, hard: bool, head: Option<&str>) -> Result<()> {
-  git::reset_all(repo_path, hard, head)
+pub(crate) fn reset(repo_path: &Path, opts: ResetOptions) -> Result<()> {
+  git::reset(repo_path, opts)
 }
 
 #[command(async)]

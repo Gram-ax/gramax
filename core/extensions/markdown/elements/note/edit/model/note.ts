@@ -8,8 +8,7 @@ import { callOrReturn, InputRule, mergeAttributes, Node } from "@tiptap/core";
 import { findWrapping } from "@tiptap/pm/transform";
 import { ReactNodeViewRenderer } from "@tiptap/react";
 import EditNote from "../components/Note";
-import { editName as BLOCK_FIELD } from "@ext/markdown/elements/blockContentField/consts";
-import { editName as BLOCK_PROPERTY } from "@ext/markdown/elements/blockProperty/consts";
+import { BlockPlusAndSubNodes, ListGroupAndItem } from "@ext/markdown/logic/insertableNodeGroups";
 
 declare module "@tiptap/core" {
 	interface Commands<ReturnType> {
@@ -43,7 +42,8 @@ const Note = Node.create({
 			new InputRule({
 				find: inputRegex,
 				handler: ({ state, range, match }) => {
-					if (!readyToPlace(this.editor, this.type.name)) return null;
+					if (!readyToPlace(state, this.type.name, [...BlockPlusAndSubNodes, ...ListGroupAndItem]))
+						return null;
 
 					const attributes = callOrReturn({ type: NoteType.quote }, undefined, match) || {};
 					const tr = state.tr.delete(range.from, range.to);
@@ -76,8 +76,9 @@ const Note = Node.create({
 				},
 			toggleNote:
 				(type?: NoteType) =>
-				({ commands, editor }) => {
-					if (stopExecution(editor, "note", [BLOCK_FIELD, BLOCK_PROPERTY])) return false;
+				({ commands, state }) => {
+					if (stopExecution(state, this.type.name, [...BlockPlusAndSubNodes, ...ListGroupAndItem]))
+						return false;
 
 					return commands.toggleWrap(this.name, { type: type || NoteType.note });
 				},

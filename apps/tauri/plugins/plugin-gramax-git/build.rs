@@ -20,7 +20,7 @@ const COMMANDS: &[&str] = &[
   "diff",
   "add_remote",
   "has_remotes",
-  "reset_all",
+  "reset",
   "commit",
   "merge",
   "restore",

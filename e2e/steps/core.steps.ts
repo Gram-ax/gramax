@@ -66,7 +66,10 @@ Given("ждём {float} секунд(ы)(у)", { timeout: 1000000 }, async funct
 });
 
 When("смотрим на подсказку", async function (this: E2EWorld) {
-	await this.page().search().reset().scope(".tippy-content, .tooltip-content", "find");
+	await this.page()
+		.search()
+		.reset()
+		.scope(".tippy-content, .tooltip-content, [data-qa='dropdown-menu-content']", "find");
 });
 
 When("смотрим на вложенную подсказку", async function (this: E2EWorld) {
@@ -215,7 +218,7 @@ Then("папка/файл/путь {string} не существует", async fu
 });
 
 Then("разметка текущей статьи содержит", async function (this: E2EWorld, text: string) {
-	await sleep(20);
+	await sleep(30);
 	if (text.includes("(*)")) await this.page().keyboard().type("(*)");
 	const content = (await this.page().asArticle().getContent())?.replace("(\\*)", "(*)");
 	expect(content).toEqual(text);

@@ -1,4 +1,5 @@
 import ArticleUpdaterService from "@components/Article/ArticleUpdater/ArticleUpdaterService";
+import SpinnerLoader from "@components/Atoms/SpinnerLoader";
 import TabWrapper from "@components/Layouts/LeftNavigationTabs/TabWrapper";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import ArticleViewService from "@core-ui/ContextServices/views/articleView/ArticleViewService";
@@ -31,6 +32,8 @@ const PublishTab = ({ show, setShow }: PublishTabProps) => {
 	if (isNext) return null;
 
 	const [contentHeight, setContentHeight] = useState<number>(null);
+	const [isDiscarding, setIsDiscarding] = useState(false);
+
 	const tabWrapperRef = useRef<HTMLDivElement>(null);
 	const hasBeenOpened = useRef(false);
 	const hasDiscarded = useRef(false);
@@ -111,6 +114,8 @@ const PublishTab = ({ show, setShow }: PublishTabProps) => {
 
 	const hasChanges = diffTree?.tree?.length > 0;
 
+	const isLoading = isDiscarding || isEntriesLoading;
+
 	return (
 		<TabWrapper
 			data-qa="qa-publish-tab"
@@ -119,6 +124,7 @@ const PublishTab = ({ show, setShow }: PublishTabProps) => {
 			show={show}
 			title={t("git.publish.name")}
 			onClose={close}
+			titleRightExtension={isLoading ? <SpinnerLoader width={12} height={12} lineWidth={1.5}  /> : null}
 		>
 			<>
 				<PublishChanges
@@ -130,7 +136,11 @@ const PublishTab = ({ show, setShow }: PublishTabProps) => {
 					isReady={isEntriesReady}
 					setContentHeight={setContentHeight}
 					canDiscard={canDiscard}
-					onDiscard={(paths) => discard(paths?.filter(Boolean) || Array.from(selectedFiles), !paths)}
+					onDiscard={async (paths) => {
+						setIsDiscarding(true);
+						await discard(paths?.filter(Boolean) || Array.from(selectedFiles), !paths);
+						setIsDiscarding(false);
+					}}
 					selectFile={(file, checked) => {
 						if (file.type === "node") return;
 						if (isSelectedAll) selectAll(checked);
@@ -144,8 +154,8 @@ const PublishTab = ({ show, setShow }: PublishTabProps) => {
 					<CommitMessage
 						commitMessageValue={message}
 						commitMessagePlaceholder={placeholder}
-						disableCommitInput={isPublishing || !isEntriesReady}
-						disablePublishButton={!canPublish}
+						disableCommitInput={isPublishing || !isEntriesReady || isDiscarding}
+						disablePublishButton={!canPublish || isDiscarding}
 						fileCount={selectedFiles.size}
 						onPublishClick={() => void publish()}
 						onCommitMessageChange={(msg) => setMessage(msg)}

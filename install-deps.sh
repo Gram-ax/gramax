@@ -111,7 +111,7 @@ if $SHOULD_COMPILE_NODE; then
 fi
 
 if $SHOULD_COMPILE_WARP; then
-    cargo install --path crates/warp-spa
+    cargo install --path crates/spa
 fi
 
 echo "Compiling schemes"

@@ -34,14 +34,14 @@ const TemplateTab = ({ show }: TemplateTabProps) => {
 		if (!res.ok) return;
 
 		const newTemplates = await res.json();
-		TemplateService.setTemplates(newTemplates);
+		TemplateService.setItems(newTemplates);
 	}, [apiUrlCreator]);
 
 	useEffect(() => {
 		if (!selectedID) return;
 
 		const listener = () => {
-			TemplateService.closeTemplate();
+			TemplateService.closeItem();
 			refreshPage();
 		};
 
@@ -59,17 +59,17 @@ const TemplateTab = ({ show }: TemplateTabProps) => {
 	useEffect(() => {
 		if (!show) return;
 
-		TemplateService.fetchTemplates(apiUrlCreator);
+		TemplateService.fetchItems(apiUrlCreator);
 	}, [show]);
 
 	const onDelete = useCallback(
 		(id: string) => {
 			if (selectedID === id) {
-				TemplateService.closeTemplate();
+				TemplateService.closeItem();
 			}
 
 			const newTemplates = Array.from(templates.values()).filter((t) => t.id !== id);
-			TemplateService.setTemplates(newTemplates);
+			TemplateService.setItems(newTemplates);
 		},
 		[selectedID, templates],
 	);
@@ -77,10 +77,10 @@ const TemplateTab = ({ show }: TemplateTabProps) => {
 	const onMarkdownChange = useCallback(
 		(id: string) => {
 			if (selectedID === id) {
-				TemplateService.closeTemplate();
+				TemplateService.closeItem();
 
 				setTimeout(() => {
-					TemplateService.openTemplate(templates.get(id));
+					TemplateService.openItem(templates.get(id));
 				}, 0);
 			}
 		},
@@ -92,7 +92,7 @@ const TemplateTab = ({ show }: TemplateTabProps) => {
 			const template = templates.get(id);
 			if (!template) return;
 
-			TemplateService.openTemplate(template);
+			TemplateService.openItem(template);
 		},
 		[templates],
 	);
@@ -127,6 +127,7 @@ const TemplateTab = ({ show }: TemplateTabProps) => {
 				onItemClick={onItemClick}
 				onDelete={onDelete}
 				onMarkdownChange={onMarkdownChange}
+				confirmDeleteText={t("confirm-templates-delete")}
 			/>
 		</TabWrapper>
 	);

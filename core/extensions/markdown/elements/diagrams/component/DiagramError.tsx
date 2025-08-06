@@ -9,7 +9,13 @@ interface DiagramErrorProps {
 
 const DiagramError = ({ error, title, diagramName }: DiagramErrorProps) => {
 	const alertTitle = `${title || t("diagram.error.render-failed")}${diagramName ? ` (${diagramName})` : ""}`;
-	error.stack = error.cause ? (error.cause as string) : error.stack;
+	if (error.cause) {
+		if (typeof error.cause === "string") {
+			error.stack = error.cause;
+		} else if (typeof error.cause === "object" && "cause" in error.cause && typeof error.cause.cause === "string") {
+			error.stack = error.cause.cause;
+		}
+	}
 	return <AlertError title={alertTitle} error={error} />;
 };
 

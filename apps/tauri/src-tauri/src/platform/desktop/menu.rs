@@ -5,9 +5,9 @@ use tauri::menu::*;
 use tauri::*;
 
 use crate::error::ShowError;
-use crate::platform::desktop::updater::Updater;
 use crate::shared::AppHandleExt;
 use crate::shared::MainWindowBuilder;
+use crate::updater::legacy::Updater as LegacyUpdater;
 
 pub trait MenuBuilder {
   fn setup_menu(&self) -> Result<()>;
@@ -105,7 +105,7 @@ pub fn on_menu_event<R: Runtime>(app: &AppHandle<R>, event: MenuEvent) {
       }
     }
     Id::CheckUpdate => {
-      async_runtime::spawn(async move { app.state::<Updater<R>>().check_and_ask().await });
+      async_runtime::spawn(async move { app.state::<LegacyUpdater<R>>().check_and_ask().await });
     }
     Id::NewWindow => {
       std::thread::spawn(move || {
@@ -121,19 +121,19 @@ pub fn on_menu_event<R: Runtime>(app: &AppHandle<R>, event: MenuEvent) {
       std::thread::spawn(move || app.get_focused_webview().map(|w| w.close()));
     }
     Id::JoinTelegramNews => {
-      _ = open::that("https://t.me/gramax_community")
+      _ = open::that_detached("https://t.me/gramax_community")
         .or_show_with_message(&t!("etc.error.open-url", url = "https://t.me/gramax_community"));
     }
     Id::JoinTelegramChat => {
-      _ = open::that("https://t.me/gramax_chat")
+      _ = open::that_detached("https://t.me/gramax_chat")
         .or_show_with_message(&t!("etc.error.open-url", url = "https://t.me/gramax_chat"));
     }
     Id::VisitGitHub => {
-      _ = open::that("https://github.com/gram-ax/gramax")
+      _ = open::that_detached("https://github.com/gram-ax/gramax")
         .or_show_with_message(&t!("etc.error.open-url", url = "https://github.com/gram-ax/gramax"));
     }
     Id::VisitDocs => {
-      _ = open::that("https://gram.ax/resources/docs")
+      _ = open::that_detached("https://gram.ax/resources/docs")
         .or_show_with_message(&t!("etc.error.open-url", url = "https://gram.ax/resources/docs"));
     }
     #[cfg(target_family = "unix")]

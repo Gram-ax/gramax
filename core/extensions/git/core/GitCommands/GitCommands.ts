@@ -39,6 +39,7 @@ import GitCommandsModel, {
 	type GcOptions,
 	type MergeOptions,
 	type RefInfo,
+	type ResetOptions,
 	type TreeReadScope,
 } from "./model/GitCommandsModel";
 
@@ -271,9 +272,9 @@ export class GitCommands {
 				await this._impl.clone(url, source, cancelToken, branch, depth, isBare, onProgress);
 			} catch (e) {
 				throw new GitError(
-					GitErrorCode.CloneError,
+					e instanceof GitError ? e.props.errorCode : GitErrorCode.CloneError,
 					e,
-					{ repositoryPath: this._repoPath.value, remoteUrl: url },
+					{ repositoryPath: this._repoPath.value, remoteUrl: url, branchName: branch },
 					"clone",
 					null,
 					t("git.clone.error.cannot-clone"),
@@ -298,16 +299,8 @@ export class GitCommands {
 		);
 	}
 
-	async hardReset(head?: GitVersion): Promise<void> {
-		if (!head) head = await this.getHeadCommit();
-		return await this._logWrapper("hardReset", `Hardresetting`, () => this._impl.resetHard(head));
-	}
-
-	async softReset(head?: GitVersion): Promise<void> {
-		if (!head) head = await this.getHeadCommit();
-		return await this._logWrapper("softReset", `Softresetting to '${head ?? "parent"}'`, () =>
-			this._impl.resetSoft(head),
-		);
+	async reset(opts: ResetOptions): Promise<void> {
+		return await this._impl.reset(opts);
 	}
 
 	async stash(data: SourceData): Promise<GitStash> {
@@ -529,14 +522,14 @@ export class GitCommands {
 			`Checking if there are conflicts for ref: '${branch.toString()}'`,
 			async () => {
 				// temp implementation
-				const headBefore = await this.getHeadCommit();
+				const before = await this.getHeadCommit();
 				const isBrowser = getExecutingEnvironment() === "browser";
 				if (!isBrowser) await this.add();
 
 				assert((await this.status("index")).length == 0, "Can't check conflicts if there are local changes");
 
 				const haveConflicts = (await this.merge(data, { theirs: branch.toString() })).length > 0;
-				await this.hardReset(headBefore);
+				await this.reset({ mode: "hard", head: before });
 				return haveConflicts;
 			},
 		);
@@ -598,7 +591,7 @@ export class GitCommands {
 	}
 
 	private _log(msg: string, command: string, error?: Error) {
-		if (error) PersistentLogger.err(msg, error, "git", { command, repo: this._repoPath });
+		if (error) PersistentLogger.err(msg, error, "git", { command, repo: this._repoPath.value });
 		else PersistentLogger.info(msg, "git", { command, repo: this._repoPath.value });
 	}
 

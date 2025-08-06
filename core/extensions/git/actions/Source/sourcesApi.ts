@@ -7,13 +7,13 @@ import type GitHubSourceData from "@ext/git/actions/Source/GitHub/logic/GitHubSo
 import GithubSourceAPI from "@ext/git/actions/Source/GitHub/logic/GithubSourceAPI";
 import GitlabSourceAPI from "@ext/git/actions/Source/GitLab/logic/GitlabSourceAPI";
 import type GitlabSourceData from "@ext/git/actions/Source/GitLab/logic/GitlabSourceData";
+import GitVerseSourceAPI from "@ext/git/actions/Source/GitVerse/logic/GitVerseSourceAPI";
+import GitVerseSourceData from "@ext/git/actions/Source/GitVerse/logic/GitVerseSourceData";
 import type { SourceAPI } from "@ext/git/actions/Source/SourceAPI";
 import NotionAPI from "@ext/notion/api/NotionAPI";
 import NotionSourceData from "@ext/notion/model/NotionSourceData";
 import type SourceData from "@ext/storage/logic/SourceDataProvider/model/SourceData";
 import type SourceType from "@ext/storage/logic/SourceDataProvider/model/SourceType";
-import YandexDiskServiceAPI from "@ext/yandexDisk/api/YandexDiskServiceAPI";
-import YandexDiskSourceData from "@ext/yandexDisk/model/YandexDiskSourceData";
 
 const sourcesAPI: Record<
 	SourceType,
@@ -22,10 +22,13 @@ const sourcesAPI: Record<
 	Git: () => null,
 	GitHub: (data, authServiceUrl, onError) => new GithubSourceAPI(data as GitHubSourceData, authServiceUrl, onError),
 	GitLab: (data, authServiceUrl, onError) => new GitlabSourceAPI(data as GitlabSourceData, authServiceUrl, onError),
+	GitVerse: (data, authServiceUrl, onError) =>
+		new GitVerseSourceAPI(data as GitVerseSourceData, authServiceUrl, onError),
+
 	"Confluence self-hosted server": (data) => new ConfluenceServerAPI(data as ConfluenceServerSourceData),
 	"Confluence Cloud": (data, authServiceUrl) =>
 		new ConfluenceCloudAPI(data as ConfluenceCloudSourceData, authServiceUrl),
-	"Yandex.Disk": (data, authServiceUrl) => new YandexDiskServiceAPI(data as YandexDiskSourceData, authServiceUrl),
+
 	Notion: (data, authServiceUrl) => new NotionAPI(data as NotionSourceData, authServiceUrl),
 };
 

@@ -1,9 +1,13 @@
 import LoaderText from "@ext/ai/components/LoaderText";
-import t from "@ext/localization/locale/translate";
 import { Decoration } from "@tiptap/pm/view";
 import { createRoot } from "react-dom/client";
 
-export const createLoadingDecoration = (from: number, to: number, block: boolean = false): Decoration[] => {
+export const createLoadingDecoration = (
+	from: number,
+	to: number,
+	block: boolean = false,
+	text?: string,
+): Decoration[] => {
 	const decorations = [];
 
 	if (block) {
@@ -26,7 +30,7 @@ export const createLoadingDecoration = (from: number, to: number, block: boolean
 				div.style.borderRadius = "var(--radius-small)";
 
 				const root = createRoot(div);
-				root.render(<LoaderText text={t("ai.generating")} />);
+				root.render(<LoaderText text={text} />);
 
 				wrapperDiv.appendChild(div);
 				return wrapperDiv;

@@ -68,16 +68,17 @@ fn handle_req(req: Request<Vec<u8>>) -> Response<Vec<u8>> {
 #[cfg(target_os = "ios")]
 tauri::ios_plugin_binding!(init_plugin_gramaxfs);
 
+#[allow(unused)]
 pub fn init<R: Runtime>() -> TauriPlugin<R> {
   use commands::*;
 
   let builder = Builder::new("plugin-gramax-fs")
-    .setup(|app, _api| {
+    .setup(|app, api| {
       #[cfg(target_os = "ios")]
-      _api.register_ios_plugin(init_plugin_gramaxfs)?;
+      api.register_ios_plugin(init_plugin_gramaxfs)?;
 
       #[cfg(target_os = "android")]
-      _api.register_android_plugin(app.config().identifier.as_str(), "GramaxFS")?;
+      api.register_android_plugin(app.config().identifier.as_str(), "GramaxFS")?;
       Ok(())
     })
     .invoke_handler(tauri::generate_handler![

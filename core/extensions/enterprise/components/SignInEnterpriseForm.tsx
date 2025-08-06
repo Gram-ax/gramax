@@ -1,17 +1,16 @@
-import ButtonLink from "@components/Molecules/ButtonLink";
-import { FormProps } from "@ext/catalog/actions/propsEditor/components/CatalogPropsEditor";
+import WorkspaceService from "@core-ui/ContextServices/Workspace";
+import { FormProps } from "@ext/catalog/actions/propsEditor/logic/createFormSchema";
 import { useSignInEnterprise } from "@ext/enterprise/components/useSignInEnterprise";
 import { AuthMethod } from "@ext/enterprise/types/UserSettings";
 import t from "@ext/localization/locale/translate";
+import { Button, IconButton } from "@ui-kit/Button";
 import { DescriptionDivider } from "@ui-kit/Divider";
+import { Form, FormField, FormFooterBase, FormStack } from "@ui-kit/Form";
 import GesFormHeader, { GesFormHeaderProps } from "@ui-kit/Form/GesFormHeader";
 import { Input } from "@ui-kit/Input";
-import { useState, useCallback, useMemo } from "react";
-import { Modal, ModalTrigger, ModalContent, ModalBody } from "@ui-kit/Modal";
-import { Button } from "@ui-kit/Button";
-import { Form, FormField, FormStack, FormFooterBase } from "@ui-kit/Form";
-import { InputOTP, InputOTPGroup, InputOTPSlot, InputOTPSeparator } from "@ui-kit/InputOTP";
-import WorkspaceService from "@core-ui/ContextServices/Workspace";
+import { InputOTP, InputOTPGroup, InputOTPSeparator, InputOTPSlot } from "@ui-kit/InputOTP";
+import { Modal, ModalBody, ModalContent, ModalTrigger } from "@ui-kit/Modal";
+import { useCallback, useMemo, useState } from "react";
 
 const SignInEnterpriseForm = ({ authUrl }: { authUrl: string }) => {
 	const [isOpen, setIsOpen] = useState(false);
@@ -62,7 +61,9 @@ const SignInEnterpriseForm = ({ authUrl }: { authUrl: string }) => {
 	return (
 		<Modal open={isOpen} onOpenChange={onOpenChange}>
 			<ModalTrigger asChild>
-				<ButtonLink
+				<IconButton
+					variant="ghost"
+					icon="log-in"
 					onClick={(e) => {
 						if (onlySSO) {
 							e.stopPropagation();
@@ -70,8 +71,6 @@ const SignInEnterpriseForm = ({ authUrl }: { authUrl: string }) => {
 							relocateToAuthUrl();
 						}
 					}}
-					iconCode="log-in"
-					text={t("sing-in")}
 				/>
 			</ModalTrigger>
 			<ModalContent data-modal-root data-sign-in-enteprise-form>

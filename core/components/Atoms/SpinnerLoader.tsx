@@ -54,8 +54,10 @@ export default styled(SpinnerLoader)`
 	}
 
 	.spinner {
+		text-align: justify;
 		width: 100%;
 		height: 100%;
+		text-align: justify;
 
 		:before {
 			content: "";

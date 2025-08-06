@@ -24,7 +24,9 @@ export class WordTemplateManager {
 		this._subscribeToWorkspaceEvents();
 	}
 
-	async from(workspace: Workspace) {
+	async from(workspace?: Workspace): Promise<WordTemplate | undefined> {
+		if (!workspace) return undefined;
+
 		return new WordTemplate(workspace, await this._getTemplates(workspace));
 	}
 

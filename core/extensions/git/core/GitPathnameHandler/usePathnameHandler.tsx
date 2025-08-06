@@ -9,6 +9,7 @@ import ArticleViewService from "@core-ui/ContextServices/views/articleView/Artic
 import { useRouter } from "@core/Api/useRouter";
 import { UnsubscribeToken } from "@core/Event/EventEmitter";
 import Path from "@core/FileProvider/Path/Path";
+import RouterPathProvider from "@core/RouterPath/RouterPathProvider";
 import tryOpenMergeConflict from "@ext/git/actions/MergeConflictHandler/logic/tryOpenMergeConflict";
 import MergeData from "@ext/git/actions/MergeConflictHandler/model/MergeData";
 import SyncService from "@ext/git/actions/Sync/logic/SyncService";
@@ -29,12 +30,12 @@ const usePathnameHandler = (isFirstLoad: boolean) => {
 	const isSourceValid = useIsSourceDataValid();
 	const pageDataContext = PageDataContextService.value;
 	const { isArticle } = pageDataContext;
-	const { isReadOnly } = pageDataContext.conf;
+	const isEditorPathname = RouterPathProvider.isEditorPathname(router.path);
 
 	useOnPathnameUpdateBranch();
 
 	useEffect(() => {
-		if (!isFirstLoad || !isArticle || isReadOnly || !isStorageInitialized) return;
+		if (!isFirstLoad || !isArticle || !isEditorPathname || !isStorageInitialized) return;
 		const handler = async () => {
 			ArticleViewService.setLoadingView();
 			const exit = () => {
@@ -48,7 +49,7 @@ const usePathnameHandler = (isFirstLoad: boolean) => {
 
 			const checkoutData = await getPathnameCheckoutData(apiUrlCreator, new Path(router.path).removeExtraSymbols);
 
-			if (!mergeData.ok) {
+			if (!mergeData || !mergeData.ok) {
 				tryOpenMergeConflict({
 					mergeData,
 					errorText: checkoutData.haveToCheckout
@@ -91,7 +92,7 @@ const usePathnameHandler = (isFirstLoad: boolean) => {
 			ModalToOpenService.setValue<ComponentProps<typeof PullHandler>>(ModalToOpen.PullHandler);
 		};
 		void handler();
-	}, [router.path, isFirstLoad, isArticle, isReadOnly, isStorageInitialized, isSourceValid, apiUrlCreator]);
+	}, [router.path, isFirstLoad, isArticle, isEditorPathname, isStorageInitialized, isSourceValid, apiUrlCreator]);
 };
 
 export default usePathnameHandler;

@@ -2,7 +2,6 @@ import fenceToken from "@ext/markdown/elements/codeBlockLowlight/edit/logic/toke
 import codeBlockToken from "@ext/markdown/elements/codeBlockLowlight/edit/model/token";
 import { bulletList } from "@ext/markdown/elements/list/edit/models/bulletList/bulletListToken";
 import { listItem } from "@ext/markdown/elements/list/edit/models/listItem/model/listItemToken";
-import { taskItem } from "@ext/markdown/elements/list/edit/models/taskItem/model/taskItemToken";
 import { taskList } from "@ext/markdown/elements/list/edit/models/taskList/model/taskListToken";
 import commentToken from "../../../../elements/comment/edit/model/commentToken";
 import c4DiagramToken from "../../../../elements/diagrams/diagrams/c4Diagram/c4DiagramToken";
@@ -23,10 +22,13 @@ import ParserContext from "../../../Parser/ParserContext/ParserContext";
 
 import alertToken from "@ext/markdown/elements/alert/edit/model/alertToken";
 import blockFieldToken from "@ext/markdown/elements/blockContentField/edit/models/blockFieldToken";
+import blockPropertyToken from "@ext/markdown/elements/blockProperty/edit/models/blockPropertyToken";
 import colorToken from "@ext/markdown/elements/color/edit/model/colorToken";
+import highlightToken from "@ext/markdown/elements/highlight/edit/model/token";
 import htmlToken from "@ext/markdown/elements/html/edit/models/htmlToken";
 import htmlTagTokens from "@ext/markdown/elements/htmlTag/edit/model/htmlTagTokens";
 import iconToken from "@ext/markdown/elements/icon/edit/model/iconToken";
+import inlineImageToken from "@ext/markdown/elements/inlineImage/edit/models/token";
 import inlinePropertyToken from "@ext/markdown/elements/inlineProperty/edit/models/inlinePropertyToken";
 import noteToken from "@ext/markdown/elements/note/edit/model/noteToken";
 import snippetToken from "@ext/markdown/elements/snippet/edit/model/snippetToken";
@@ -36,8 +38,9 @@ import tabsToken from "@ext/markdown/elements/tabs/edit/model/tabs/tabsToken";
 import unsupportedToken from "@ext/markdown/elements/unsupported/edit/model/unsupportedToken";
 import viewToken from "@ext/markdown/elements/view/edit/models/viewToken";
 import { ParseSpec } from "./from_markdown";
-import blockPropertyToken from "@ext/markdown/elements/blockProperty/edit/models/blockPropertyToken";
-import inlineImageToken from "@ext/markdown/elements/inlineImage/edit/models/token";
+import tokensCommentModifier from "@ext/markdown/elements/comment/edit/logic/tokensCommentModifier";
+
+type TokenModifier = (tokens: { [name: string]: ParseSpec }, context?: ParserContext) => void;
 
 function listIsTight(tokens, i) {
 	while (++i < tokens.length) if (tokens[i].type != "list_item_open") return tokens[i].hidden;
@@ -46,38 +49,40 @@ function listIsTight(tokens, i) {
 
 const getTokensByContext = (context?: ParserContext): { [name: string]: ParseSpec } => {
 	return {
-		comment: commentToken(context),
+		comment: commentToken(),
 		snippet: snippetToken(context),
 		icon: iconToken(context),
 	};
 };
 
-export const getTokens = (context?: ParserContext): { [name: string]: ParseSpec } => {
+const defaultModifiers: TokenModifier[] = [tokensCommentModifier];
+export const getTokens = (context?: ParserContext, modifiers?: TokenModifier[]): { [name: string]: ParseSpec } => {
 	const contextTokens = context ? getTokensByContext(context) : {};
-
-	return {
+	const allModifiers = [...defaultModifiers, ...(modifiers ?? [])];
+	const tokens = {
 		link: linkToken(context),
+		image: imageToken(context),
+		inlineImage: inlineImageToken(context),
+		drawio: drawioToken(context),
+		openapi: openApiToken(context),
+		mermaid: mermaidToken(context),
+		diagrams: diagramsToken(context),
+		"plant-uml": plantUmlToken(context),
+		"c4-diagram": c4DiagramToken(context),
+		"ts-diagram": tsDiagramToken(context),
 		tab: tabToken,
 		note: noteToken,
 		unsupported: unsupportedToken,
 		tabs: tabsToken,
-		image: imageToken(),
-		inlineImage: inlineImageToken(),
 		fence: fenceToken(),
-		drawio: drawioToken(),
-		openapi: openApiToken,
 		code_block: codeBlockToken,
-		mermaid: mermaidToken,
-		diagrams: diagramsToken,
 		html: htmlToken,
 		view: viewToken,
-		"plant-uml": plantUmlToken,
-		"c4-diagram": c4DiagramToken,
-		"ts-diagram": tsDiagramToken,
 		"inline-property": inlinePropertyToken(),
 		"block-field": blockFieldToken(),
 		"block-property": blockPropertyToken(),
 		alert: alertToken(),
+		highlight: highlightToken,
 
 		br: { node: "br" },
 
@@ -94,7 +99,6 @@ export const getTokens = (context?: ParserContext): { [name: string]: ParseSpec 
 		paragraph: { block: "paragraph" },
 		error: { block: "error" },
 		list_item: listItem,
-		task_item: taskItem,
 		task_list: taskList,
 		bullet_list: bulletList,
 		ordered_list: {
@@ -129,4 +133,7 @@ export const getTokens = (context?: ParserContext): { [name: string]: ParseSpec 
 		answer,
 		comment_old,
 	};
+
+	if (allModifiers) allModifiers.forEach((modifier) => modifier(tokens, context));
+	return tokens;
 };

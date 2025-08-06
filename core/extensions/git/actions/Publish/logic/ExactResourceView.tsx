@@ -1,15 +1,15 @@
-import SpinnerLoader from "@components/Atoms/SpinnerLoader";
 import ExactResourceViewWithContent, {
 	DIAGRAM_FILE_TYPES,
 	IMG_FILE_TYPES,
 	UseResourceArticleViewType,
 } from "@ext/git/actions/Publish/logic/ExactResourceViewWithContent";
+import LoadingWithDiffBottomBar from "@ext/markdown/elements/diff/components/LoadingWithDiffBottomBar";
 import useFetchDiffData from "@ext/markdown/elements/diff/logic/hooks/useFetchDiffData";
 import { FileStatus } from "@ext/Watchers/model/FileStatus";
 import { useEffect, useState } from "react";
 
 const ExactResourceView = (props: Omit<UseResourceArticleViewType, "newContent" | "oldContent" | "type">) => {
-	const { resourcePath, newScope, oldScope, status, oldResourcePath } = props;
+	const { resourcePath, newScope, oldScope, status, oldResourcePath, filePath } = props;
 
 	const isAdded = status === FileStatus.new;
 	const isDeleted = status === FileStatus.delete;
@@ -51,7 +51,7 @@ const ExactResourceView = (props: Omit<UseResourceArticleViewType, "newContent" 
 		void getNewData();
 	}, []);
 
-	if (isLoading) return <SpinnerLoader fullScreen />;
+	if (isLoading) return <LoadingWithDiffBottomBar filePath={filePath} />;
 
 	return <ExactResourceViewWithContent {...props} type={type} newContent={newContent} oldContent={oldContent} />;
 };

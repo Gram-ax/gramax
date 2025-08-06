@@ -17,6 +17,10 @@ import { ArticlePageData } from "../../../../logic/SitePresenter/SitePresenter";
 import TopBarContent from "../../../ArticlePage/Bars/TopBarContent";
 import BarLayout from "../../BarLayout";
 import FavoriteArticlesTab from "@ext/artilce/Favorite/components/FavoriteArticlesTab";
+import { useEffect } from "react";
+import BranchUpdaterService from "@ext/git/actions/Branch/BranchUpdaterService/logic/BranchUpdaterService";
+import SnippetService from "@ext/markdown/elements/snippet/edit/components/Tab/SnippetService";
+import TemplateService from "@ext/templates/components/TemplateService";
 
 const TopBarContentWrapper = styled.div<{ isMacDesktop: boolean }>`
 	padding-top: ${(p) => (p.isMacDesktop ? "1.3rem" : "0")};
@@ -39,6 +43,19 @@ const LeftNavigationTop = ({ data, className }: { data: ArticlePageData; classNa
 		if (narrowMedia) return "0 14px";
 		return leftNavIsOpen ? "0 14px" : "0 30px";
 	};
+
+	useEffect(() => {
+		const onBranchChange = () => {
+			NavigationTabsService.setTop(LeftNavigationTab.None);
+			[SnippetService, TemplateService].forEach((context) => context.closeItem());
+		};
+
+		BranchUpdaterService.addListener(onBranchChange);
+
+		return () => {
+			BranchUpdaterService.removeListener(onBranchChange);
+		};
+	}, []);
 
 	return (
 		<>

@@ -28,8 +28,6 @@ export const tabsWordLayout: WordBlockChild = async ({ state, tag, addOptions })
 						children.map((child) =>
 							state.renderBlock(child as Tag, {
 								...addOptions,
-								maxPictureWidth:
-									(addOptions?.maxPictureWidth ?? STANDARD_PAGE_WIDTH) - INNER_BLOCK_WIDTH_DIFFERENCE,
 								maxTableWidth:
 									(addOptions?.maxTableWidth ?? STANDARD_PAGE_WIDTH) - INNER_BLOCK_WIDTH_DIFFERENCE,
 							}),

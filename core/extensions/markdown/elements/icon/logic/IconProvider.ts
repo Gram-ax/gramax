@@ -30,7 +30,9 @@ export default class IconProvider {
 	}
 
 	getIconsPaths() {
-		return Array.from(this._cachedIcons.keys()).map((code) => this._getIconPath(code));
+		return Array.from(this._cachedIcons.entries())
+			.filter(([, value]) => value != null)
+			.map(([code]) => this._getIconPath(code));
 	}
 
 	private _getIconPath(code: string) {

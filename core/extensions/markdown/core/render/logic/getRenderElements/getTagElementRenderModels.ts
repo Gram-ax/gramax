@@ -48,6 +48,7 @@ import {
 	inlineHtmlTagComponent,
 	blockWithInlineHtmlTag,
 } from "@ext/markdown/elements/htmlTag/render/model/htmlTag";
+import { highlight } from "@ext/markdown/elements/highlight/render/model/schema";
 
 function getContextTagElementRenderModels(context: ParserContext): Record<string, Schema> {
 	return {
@@ -86,6 +87,7 @@ export default function getTagElementRenderModels(context?: ParserContext): Reco
 		module,
 		issue,
 		color,
+		highlight,
 		video,
 		note,
 		alert,

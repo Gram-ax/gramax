@@ -48,10 +48,6 @@ export const logStepWithErrorSuppression = async <T>(
 	console.error = () => {};
 	console.warn = () => {};
 	return await logStep(logMessage, action, {
-		catchF: (error) => {
-			if (error.name === "ParseError") return new Error("Failed to parse one of the Markdown files");
-			return error;
-		},
 		finallyF: () => {
 			console.warn = originalConsoleWarn;
 			console.error = originalConsoleError;

@@ -2,16 +2,18 @@ import { DiffHunk } from "@ext/VersionControl/DiffHandler/model/DiffHunk";
 
 export type Pos = { from: number; to: number };
 
+export type DiffLineType = "added" | "deleted" | "modified";
+
 interface AnyDiffLine {
-	type: "added" | "deleted" | "modified";
+	type: DiffLineType;
 	pos: Pos;
 }
 
-export interface AddedLine extends AnyDiffLine {
+export interface AddedDiffLine extends AnyDiffLine {
 	type: "added";
 }
 
-export interface ModifiedLine extends AnyDiffLine {
+export interface ModifiedDiffLine extends AnyDiffLine {
 	type: "modified";
 	diff: {
 		hunks: DiffHunk[];
@@ -21,9 +23,9 @@ export interface ModifiedLine extends AnyDiffLine {
 	oldPos: Pos;
 }
 
-export interface DeletedLine extends AnyDiffLine {
+export interface DeletedDiffLine extends AnyDiffLine {
 	type: "deleted";
+	insertAfter: number;
 }
 
-export type DiffLine = AddedLine | ModifiedLine | DeletedLine;
-
+export type DiffLine = AddedDiffLine | ModifiedDiffLine | DeletedDiffLine;

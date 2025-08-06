@@ -1,17 +1,16 @@
+import GoToArticle from "@components/Actions/GoToArticle";
 import SpinnerLoader from "@components/Atoms/SpinnerLoader";
 import PopupMenuLayout from "@components/Layouts/PopupMenuLayout";
 import ButtonLink from "@components/Molecules/ButtonLink";
 import FetchService from "@core-ui/ApiServices/FetchService";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
+import { Router } from "@core/Api/Router";
+import { useRouter } from "@core/Api/useRouter";
 import styled from "@emotion/styled";
 import t from "@ext/localization/locale/translate";
+import { Link } from "@ext/properties/logic/CatalogLinksProvider";
 import DropdownButton from "@ext/wordExport/components/DropdownButton";
 import { useRef, useState } from "react";
-import getIsDevMode from "@core-ui/utils/getIsDevMode";
-import { Link } from "@ext/properties/logic/CatalogLinksProvider";
-import GoToArticle from "@components/Actions/GoToArticle";
-import { useRouter } from "@core/Api/useRouter";
-import { Router } from "@core/Api/Router";
 
 const Loader = styled.div`
 	display: flex;
@@ -66,9 +65,6 @@ const LinksContainer = ({ title, links, router }: { title: string; links: Link[]
 };
 
 const ArticleLinks = ({ itemRefPath }: { itemRefPath: string }) => {
-	const [isDevMode] = useState(() => getIsDevMode());
-	if (!isDevMode) return null;
-
 	const [backlinks, setBacklinks] = useState<Link[]>([]);
 	const [links, setLinks] = useState<Link[]>([]);
 	const router = useRouter();

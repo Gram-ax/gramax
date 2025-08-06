@@ -3,6 +3,7 @@ import { ISectionOptions, patchDocument, PatchType, Paragraph, PageBreak } from 
 import JSZip from "jszip";
 import assert from "assert";
 import { DOMParser, XMLSerializer } from "@xmldom/xmldom";
+import DefaultError from "@ext/errorHandlers/logic/DefaultError";
 
 const CONTENT_PLACEHOLDER = "gramax_content";
 
@@ -42,7 +43,13 @@ class TemplateProcessor {
 			const patchedTemplate = await this._patchTemplate(this._templateBuffer);
 			return patchedTemplate;
 		} catch (error) {
-			throw new Error(t("word.template.error.processing-error"), { cause: error as Error });
+			throw new DefaultError(
+				t("app.error.command-failed.body"),
+				error,
+				{ showCause: true, html: true },
+				false,
+				t("word.template.error.processing-error"),
+			);
 		}
 	}
 
@@ -77,7 +84,7 @@ class TemplateProcessor {
 	private async _processDocumentInSingleZip(documentBuffer: Uint8Array): Promise<Uint8Array> {
 		const templateStyleMapping = await this._readTemplateStyles();
 
-		const zip = (await JSZip.loadAsync(documentBuffer));
+		const zip = await JSZip.loadAsync(documentBuffer);
 
 		await this._fixNumIdInZip(zip);
 		await this._updateDocumentPropertiesInZip(zip);

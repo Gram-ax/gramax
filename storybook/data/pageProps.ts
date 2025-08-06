@@ -6,7 +6,11 @@ import PermissionType from "@ext/security/logic/Permission/model/PermissionType"
 export default {
 	data: {
 		markdown: "",
-		catalogLinks: {},
+		section: {
+			href: "/",
+			title: "Home",
+			catalogLinks: [],
+		},
 		articleContentEdit: '{"type":"doc","content":[{"type":"paragraph"}]}',
 		articleContentRender: '{"$$mdtype":"Tag","name":"article","attributes":{},"children":[]}',
 		articleProps: {
@@ -743,6 +747,8 @@ export default {
 				filter: null,
 			},
 		] as any[],
+		catalogsLinks: [],
+		breadcrumb: [],
 	} as HomePageData & ArticlePageData,
 	openGraphData: {
 		title: "",

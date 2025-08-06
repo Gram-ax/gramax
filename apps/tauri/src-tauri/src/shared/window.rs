@@ -52,10 +52,10 @@ impl MainWindowBuilder {
     }
 
     let mut counter = 0;
-    let mut label = format!("gramax-window-{}", counter);
+    let mut label = format!("gramax-window-{counter}");
     while manager.webview_windows().contains_key(&label) {
       counter += 1;
-      label = format!("gramax-window-{}", counter);
+      label = format!("gramax-window-{counter}");
     }
 
     label

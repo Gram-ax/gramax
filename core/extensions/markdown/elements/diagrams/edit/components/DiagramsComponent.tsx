@@ -1,4 +1,4 @@
-import { NodeViewProps, NodeViewWrapper } from "@tiptap/react";
+import { NodeViewProps } from "@tiptap/react";
 import { ReactElement, useRef, useState } from "react";
 import DiagramData from "../../component/DiagramData";
 import ModalToOpenService from "@core-ui/ContextServices/ModalToOpenService/ModalToOpenService";
@@ -7,8 +7,10 @@ import ResourceService from "@ext/markdown/elements/copyArticles/resourceService
 import BlockActionPanel from "@components/BlockActionPanel";
 import DiagramActions from "@ext/markdown/elements/diagrams/edit/components/DiagramActions";
 import getNaturalSize from "@ext/markdown/elements/diagrams/logic/getNaturalSize";
+import { NodeViewContextableWrapper } from "@ext/markdown/core/element/NodeViewContextableWrapper";
 
-const DiagramComponent = ({ node, editor, getPos }: NodeViewProps): ReactElement => {
+const DiagramComponent = (props: NodeViewProps): ReactElement => {
+	const { node, editor, getPos } = props;
 	const { getBuffer } = ResourceService.value;
 	const hoverElement = useRef<HTMLDivElement>(null);
 	const signatureRef = useRef<HTMLInputElement>(null);
@@ -50,13 +52,14 @@ const DiagramComponent = ({ node, editor, getPos }: NodeViewProps): ReactElement
 	};
 
 	return (
-		<NodeViewWrapper ref={hoverElement} as={"div"} draggable={true} data-drag-handle>
+		<NodeViewContextableWrapper ref={hoverElement} props={props}>
 			<BlockActionPanel
 				isSignature={node.attrs?.title?.length > 0}
 				hoverElementRef={hoverElement}
 				updateAttributes={updateAttributes}
 				signatureText={node.attrs.title}
 				signatureRef={signatureRef}
+				actionsOptions={{ comment: true }}
 				hasSignature={hasSignature}
 				setHasSignature={setHasSignature}
 				getPos={getPos}
@@ -67,7 +70,6 @@ const DiagramComponent = ({ node, editor, getPos }: NodeViewProps): ReactElement
 							node={node}
 							openEditor={openEditor}
 							signatureRef={signatureRef}
-							getPos={getPos}
 							setHasSignature={setHasSignature}
 						/>
 					)
@@ -78,9 +80,10 @@ const DiagramComponent = ({ node, editor, getPos }: NodeViewProps): ReactElement
 					openEditor={openEditor}
 					{...node.attrs}
 					diagramName={node.attrs.diagramName}
+					commentId={node.attrs.comment?.id}
 				/>
 			</BlockActionPanel>
-		</NodeViewWrapper>
+		</NodeViewContextableWrapper>
 	);
 };
 export default DiagramComponent;

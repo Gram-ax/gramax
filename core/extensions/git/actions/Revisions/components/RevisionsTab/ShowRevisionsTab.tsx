@@ -1,4 +1,5 @@
 import StatusBarWrapper from "@components/Layouts/StatusBar/StatusBarWrapper";
+import { usePlatform } from "@core-ui/hooks/usePlatform";
 import t from "@ext/localization/locale/translate";
 
 interface ShowRevisionsTabProps {
@@ -8,6 +9,8 @@ interface ShowRevisionsTabProps {
 
 const ShowRevisionsTab = (props: ShowRevisionsTabProps) => {
 	const { isShow, setShow } = props;
+	const { isNext } = usePlatform();
+	if (isNext) return null;
 
 	return (
 		<StatusBarWrapper

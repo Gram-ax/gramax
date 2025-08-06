@@ -98,7 +98,7 @@ export default class DiffItemContent {
 			}
 		}
 		const editTree = { ...(await article.parsedContent.read((p) => p?.editTree)) };
-		return getArticleWithTitle(article.getTitle(), editTree);
+		return getArticleWithTitle(article.props.title, editTree);
 	}
 
 	private _getCacheKey(scope: CommitScope, filePath: Path) {

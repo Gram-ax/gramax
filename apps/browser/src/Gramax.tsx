@@ -7,7 +7,6 @@ import PageDataContext from "@core/Context/PageDataContext";
 import { ArticlePageData, HomePageData } from "@core/SitePresenter/SitePresenter";
 import ErrorBoundary from "@ext/errorHandlers/client/components/ErrorBoundary";
 import React, { Dispatch, SetStateAction } from "react";
-import ForwardBackward from "../../tauri/src/ForwardBackward";
 export interface GramaxProps {
 	data: HomePageData | ArticlePageData;
 	context: PageDataContext;
@@ -37,7 +36,6 @@ const Gramax = React.memo(
 				platform={platform || getExecutingEnvironment()}
 			>
 				<>
-					<ForwardBackward />
 					<ErrorBoundary context={data.context}>
 						{data.context.isArticle ? (
 							<CatalogComponent data={data.data as ArticlePageData}>

@@ -1,11 +1,10 @@
 import { classNames } from "@components/libs/classNames";
 import styled from "@emotion/styled";
 import { CSSProperties, ForwardedRef, MouseEvent, ReactNode, forwardRef } from "react";
-import { Placement } from "tippy.js";
+import { Placement, Props } from "tippy.js";
 import SpinnerLoader from "../SpinnerLoader";
 import Tooltip from "../Tooltip";
 import LucideIcon from "./LucideIcon";
-import { Props } from "tippy.js";
 
 export interface IconProps {
 	code?: string;

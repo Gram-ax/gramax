@@ -15,6 +15,7 @@ declare global {
 		desktopOpened?: boolean;
 		resetIsFirstLoad?: () => void;
 		navigateTo?: (path: string) => void;
+		wasm: any;
 	}
 }
 

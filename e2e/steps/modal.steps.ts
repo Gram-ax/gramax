@@ -13,7 +13,11 @@ Given("смотрим на активную форму", async function (this: E
 });
 
 Given("смотрим на выпадающий список", async function (this: E2EWorld) {
-	await this.page().search().reset().scope(".tippy-content .items:visible", "find");
+	await this.page().search().reset().scope(`.tippy-content .items:visible`, "find");
+});
+
+Given("смотрим на выпадающий список у Dropdown", async function (this: E2EWorld) {
+	await this.page().search().reset().scope('[role="menu"]', "find");
 });
 
 Given("смотрим на выпадающий список у Select", async function (this: E2EWorld) {

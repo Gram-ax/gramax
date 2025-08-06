@@ -101,6 +101,15 @@ export const StyledButton = styled(Button)`
 	}
 `;
 
+const StyledDiv = styled.div`
+	padding: 0 5.5px;
+	width: 300px;
+
+	& > div:last-of-type {
+		margin-top: 4px !important;
+	}
+`;
+
 const ButtonView = ({ href, icon, itemName, setButton, isExternalLink }: ButtonViewProps) => {
 	const { isCtrlPressed } = useCtrlKey();
 	const { isTauri } = usePlatform();
@@ -161,10 +170,11 @@ const ListView = (props: ListViewProps) => {
 	}, [onSearchChange]);
 
 	return (
-		<div ref={parentRef} style={{ padding: "0 5.5px", width: "300px" }}>
+		<StyledDiv ref={parentRef}>
 			<ListLayout
 				filterItems={linkFilter}
 				containerRef={parentRef}
+				appendTo={"parent"}
 				addWidth={8}
 				itemsClassName={className}
 				openByDefault={focusOnMount}
@@ -182,11 +192,12 @@ const ListView = (props: ListViewProps) => {
 				keepFullWidth
 				isHierarchy
 			/>
-		</div>
+		</StyledDiv>
 	);
 };
 
 const getItemByItemLinks = (itemLinks: LinkItem[], value, href) => {
+	if (!itemLinks) return { item: null, index: null };
 	const indexLinkToArticle = itemLinks.findIndex((i) => i.relativePath === value);
 	const linkToArticle = indexLinkToArticle !== -1 ? itemLinks[indexLinkToArticle] : null;
 
@@ -234,7 +245,7 @@ const SelectLinkItem = (props: SelectLinkItemProps) => {
 		[itemLinks, isExternalLink, externalLink],
 	);
 
-	const currentItemIndex = itemLinks.findIndex((item) => item.isCurrent);
+	const currentItemIndex = itemLinks?.findIndex((item) => item.isCurrent) ?? -1;
 
 	const icon = !item ? "globe" : item.type == ItemType.article ? "file" : "folder";
 	const [isButton, setIsButton] = useState(!!item || isExternalLink);

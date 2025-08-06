@@ -10,10 +10,20 @@ const HTTP_PING_SERVER_ADDRESS: &str = "127.0.0.1:52055";
 
 type Error = Box<dyn std::error::Error + Send + Sync + 'static>;
 
-pub fn oauth_listen_once<F: FnOnce(&Request) + Send + Sync + 'static>(redirect: Box<str>, on_request: F) {
+#[derive(serde::Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase", tag = "type", content = "value")]
+pub enum OauthListenOnceAction {
+  Redirect(Box<str>),
+  TryClose,
+}
+
+pub fn oauth_listen_once<F: FnOnce(&Request) + Send + Sync + 'static>(
+  action: OauthListenOnceAction,
+  on_request: F,
+) {
   async_runtime::spawn(async move {
-    if let Err(err) = serve_oauth(&redirect, on_request) {
-      error!("oauth server died with error: {:?}", err)
+    if let Err(err) = serve_oauth(action, on_request) {
+      error!("oauth server died with error: {err:?}")
     }
   });
 }
@@ -21,12 +31,12 @@ pub fn oauth_listen_once<F: FnOnce(&Request) + Send + Sync + 'static>(redirect: 
 pub fn start_ping_server<F: Fn(&Request) + Send + Sync + 'static>(on_request: F) {
   async_runtime::spawn(async move {
     if let Err(err) = serve_ping(on_request) {
-      error!("ping server died with error: {:?}", err);
+      error!("ping server died with error: {err:?}");
     }
   });
 }
 
-fn serve_oauth<F: FnOnce(&Request)>(redirect: &str, on_request: F) -> Result<(), Error> {
+fn serve_oauth<F: FnOnce(&Request)>(action: OauthListenOnceAction, on_request: F) -> Result<(), Error> {
   let server = Server::http(HTTP_OAUTH_SERVER_ADDRESS)?;
   info!("http-server started at {HTTP_OAUTH_SERVER_ADDRESS}");
 
@@ -35,10 +45,27 @@ fn serve_oauth<F: FnOnce(&Request)>(redirect: &str, on_request: F) -> Result<(),
 
   if let Ok(Some(req)) = server.recv_timeout(HTTP_OAUTH_SERVER_TIMEOUT) {
     on_request(&req);
-    let res = Response::new_empty(StatusCode(301))
-      .with_header(Header { field: "Location".parse().unwrap(), value: redirect.parse()? })
-      .with_header(Header { field: "Cache-Control".parse().unwrap(), value: "no-store, no-cache".parse()? });
-    req.respond(res)?;
+
+    match action {
+      OauthListenOnceAction::Redirect(redirect) => {
+        let res = Response::new_empty(StatusCode(301))
+          .with_header(Header { field: "Location".parse().unwrap(), value: redirect.parse()? })
+          .with_header(Header {
+            field: "Cache-Control".parse().unwrap(),
+            value: "no-store, no-cache".parse()?,
+          });
+        req.respond(res)?;
+      }
+      OauthListenOnceAction::TryClose => {
+        let res = Response::from_data(include_bytes!("../scripts/close-window.html"))
+          .with_status_code(StatusCode(200))
+          .with_header(Header {
+            field: "Content-Type".parse().unwrap(),
+            value: "text/html".parse().unwrap(),
+          });
+        req.respond(res)?;
+      }
+    }
   }
 
   info!("http-server died");

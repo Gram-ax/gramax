@@ -1,9 +1,11 @@
 use crate::actions::prelude::*;
 use crate::creds::*;
+use crate::error::OrUtf8Err;
 use crate::ext::prelude::*;
 use crate::prelude::*;
 
 use crate::error::Error;
+use crate::error::HealthcheckIfOdbError;
 
 use crate::repo::Repo;
 use crate::ShortInfo;
@@ -25,11 +27,11 @@ impl std::fmt::Display for GitError {
   fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
     write!(f, "git error (")?;
     if let Some(class) = self.class {
-      write!(f, "class: {}, ", class)?;
+      write!(f, "class: {class}, ")?;
     }
 
     if let Some(code) = self.code {
-      write!(f, "code: {}", code)?;
+      write!(f, "code: {code}")?;
     }
 
     write!(f, "): {}", self.message)?;
@@ -44,6 +46,11 @@ impl From<Error> for GitError {
         message: err.message().into(),
         class: Some(err.class() as i32),
         code: Some(err.code() as i32),
+      },
+      Error::Healthcheck(err) => GitError {
+        message: err.to_string(),
+        class: err.inner.as_ref().map(|e| e.class() as i32),
+        code: err.inner.as_ref().map(|e| e.code() as i32),
       },
       Error::Network { status, message } => {
         GitError { message: message.unwrap_or_default(), class: None, code: Some(status as i32) }
@@ -92,7 +99,9 @@ pub struct CloneProgress {
 }
 
 pub fn file_history(repo_path: &Path, file_path: &Path, count: usize) -> Result<HistoryInfo> {
-  Repo::execute_without_creds_try_lock(repo_path, |repo| Ok(repo.history(file_path, count)?))
+  Repo::execute_without_creds_try_lock(repo_path, |repo| {
+    Ok(repo.history(file_path, count).healthcheck_if_odb_error(&repo)?)
+  })
 }
 
 pub fn branch_info(repo_path: &Path, name: Option<&str>) -> Result<BranchInfo> {
@@ -118,10 +127,13 @@ pub fn branch_list(repo_path: &Path) -> Result<Vec<BranchInfo>> {
     let mut res: Vec<BranchInfo> = vec![];
 
     for branch in repo.branches(None)? {
-      let short_info = repo.resolve_branch_entry(branch?)?.short_info()?;
-      if short_info.name == "HEAD" {
+      let branch = branch?;
+
+      if branch.0.name()?.or_utf8_err()?.ends_with("HEAD") {
         continue;
       }
+
+      let short_info = repo.resolve_branch_entry(branch)?.short_info()?;
 
       match res.iter_mut().find(|b| short_info.name == b.name) {
         Some(found) => _ = std::mem::replace(found, short_info),
@@ -133,7 +145,8 @@ pub fn branch_list(repo_path: &Path) -> Result<Vec<BranchInfo>> {
 }
 
 pub fn fetch(repo_path: &Path, creds: AccessTokenCreds, force: bool) -> Result<()> {
-  Ok(Repo::open(repo_path, creds)?.fetch(force)?)
+  let repo = Repo::open(repo_path, creds)?;
+  Ok(repo.fetch(force).healthcheck_if_odb_error(&repo)?)
 }
 
 pub fn set_head(repo_path: &Path, refname: &str) -> Result<()> {
@@ -171,15 +184,19 @@ pub fn has_remotes(repo_path: &Path) -> Result<bool> {
 }
 
 pub fn status(repo_path: &Path, index: bool) -> Result<StatusInfo> {
-  Repo::execute_without_creds_try_lock(repo_path, |repo| Ok(repo.status(index)?.short_info()?))
+  Repo::execute_without_creds_try_lock(repo_path, |repo| {
+    Ok(repo.status(index).healthcheck_if_odb_error(&repo)?.short_info()?)
+  })
 }
 
 pub fn status_file(repo_path: &Path, file_path: &Path) -> Result<StatusEntry> {
-  Repo::execute_without_creds_try_lock(repo_path, |repo| Ok(repo.status_file(file_path)?))
+  Repo::execute_without_creds_try_lock(repo_path, |repo| {
+    Ok(repo.status_file(file_path).healthcheck_if_odb_error(&repo)?)
+  })
 }
 
 pub fn push(repo_path: &Path, creds: AccessTokenCreds) -> Result<()> {
-  Repo::execute_with_creds_lock(repo_path, creds, |repo| Ok(repo.push()?))
+  Repo::execute_with_creds_lock(repo_path, creds, |repo| Ok(repo.push().healthcheck_if_odb_error(&repo)?))
 }
 
 pub fn init_new(repo_path: &Path, creds: AccessTokenCreds) -> Result<()> {
@@ -188,7 +205,9 @@ pub fn init_new(repo_path: &Path, creds: AccessTokenCreds) -> Result<()> {
 }
 
 pub fn checkout(repo_path: &Path, ref_name: &str, force: bool) -> Result<()> {
-  Repo::execute_without_creds_lock(repo_path, |repo| Ok(repo.checkout(ref_name, force)?))
+  Repo::execute_without_creds_lock(repo_path, |repo| {
+    Ok(repo.checkout(ref_name, force).healthcheck_if_odb_error(&repo)?)
+  })
 }
 
 pub fn clone(creds: AccessTokenCreds, opts: CloneOptions, callback: CloneProgressCallback) -> Result<()> {
@@ -204,25 +223,24 @@ pub fn add(repo_path: &Path, patterns: Vec<PathBuf>, force: bool) -> Result<()> 
   Repo::execute_without_creds_lock(repo_path, |repo| {
     let add_result = if force { repo.add_glob_force(patterns) } else { repo.add_glob(patterns) };
     let Err(err) = add_result else { return Ok(()) };
-    error!(target: "git:add", "failed to add: {}", err);
+    error!(target: "git:add", "failed to add: {err}");
     Ok(())
   })
 }
 
 pub fn diff(repo_path: &Path, opts: DiffConfig) -> Result<DiffTree2TreeInfo> {
-  Repo::execute_without_creds_try_lock(repo_path, |repo| Ok(repo.diff(opts)?))
+  Repo::execute_without_creds_try_lock(repo_path, |repo| Ok(repo.diff(opts).healthcheck_if_odb_error(&repo)?))
 }
 
-pub fn reset_all(repo_path: &Path, hard: bool, head: Option<&str>) -> Result<()> {
+pub fn reset(repo_path: &Path, opts: ResetOptions) -> Result<()> {
   Repo::execute_without_creds_lock(repo_path, |repo| {
-    let head = if let Some(head) = head { Some(Oid::from_str(head).map_err(Error::from)?) } else { None };
-    Ok(repo.reset_all(hard, head)?)
+    Ok(repo.reset(opts).healthcheck_if_odb_error(&repo)?)
   })
 }
 
 pub fn commit(repo_path: &Path, creds: AccessTokenCreds, opts: CommitOptions) -> Result<()> {
   Repo::execute_with_creds_lock(repo_path, creds, |repo| {
-    repo.commit(opts)?;
+    repo.commit(opts).healthcheck_if_odb_error(&repo)?;
     Ok(())
   })
 }
@@ -237,7 +255,9 @@ pub fn get_commit_info(repo_path: &Path, oid: &str, opts: CommitInfoOpts) -> Res
 }
 
 pub fn merge(repo_path: &Path, creds: AccessTokenCreds, opts: MergeOptions) -> Result<MergeResult> {
-  Repo::execute_with_creds_lock(repo_path, creds, |repo| Ok(repo.merge(opts)?))
+  Repo::execute_with_creds_lock(repo_path, creds, |repo| {
+    Ok(repo.merge(opts).healthcheck_if_odb_error(&repo)?)
+  })
 }
 
 pub fn format_merge_message(
@@ -273,7 +293,7 @@ pub fn get_remote(repo_path: &Path) -> Result<Option<String>> {
 
 pub fn stash(repo_path: &Path, message: Option<&str>, creds: AccessTokenCreds) -> Result<Option<String>> {
   Repo::execute_with_creds_lock(repo_path, creds, |mut repo| {
-    let oid = repo.stash(message)?;
+    let oid = repo.stash(message).healthcheck_if_odb_error(&repo)?;
     Ok(oid.map(|oid| oid.to_string()))
   })
 }
@@ -281,14 +301,14 @@ pub fn stash(repo_path: &Path, message: Option<&str>, creds: AccessTokenCreds) -
 pub fn stash_apply(repo_path: &Path, oid: &str) -> Result<MergeResult> {
   Repo::execute_without_creds_lock(repo_path, |mut repo| {
     let oid = Oid::from_str(oid).map_err(Error::from)?;
-    Ok(repo.stash_apply(oid)?)
+    Ok(repo.stash_apply(oid).healthcheck_if_odb_error(&repo)?)
   })
 }
 
 pub fn stash_delete(repo_path: &Path, oid: &str) -> Result<()> {
   Repo::execute_without_creds_lock(repo_path, |mut repo| {
     let oid = Oid::from_str(oid).map_err(Error::from)?;
-    repo.stash_delete(oid)?;
+    repo.stash_delete(oid).healthcheck_if_odb_error(&repo)?;
     Ok(())
   })
 }

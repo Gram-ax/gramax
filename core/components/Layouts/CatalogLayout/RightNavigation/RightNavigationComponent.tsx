@@ -2,8 +2,7 @@ import RightNavigation from "@components/Layouts/CatalogLayout/RightNavigation/R
 import RightNavigationLayout from "@components/Layouts/CatalogLayout/RightNavigation/RightNavigationLayout";
 import SidebarsIsOpenService from "@core-ui/ContextServices/Sidebars/SidebarsIsOpenContext";
 import SidebarsIsPinService from "@core-ui/ContextServices/Sidebars/SidebarsIsPin";
-import useWatch from "@core-ui/hooks/useWatch";
-import { useRef } from "react";
+import { useEffect, useRef } from "react";
 
 interface RightNavigationComponentProps {
 	delay?: number;
@@ -13,11 +12,13 @@ const RightNavigationComponent = (props: RightNavigationComponentProps) => {
 	const { delay } = props;
 
 	const prevIsSidebarRightPin = useRef<boolean>(null);
-	const isSidebarRightPin = SidebarsIsPinService.value.right;
+	const { right: isSidebarRightPin } = SidebarsIsPinService.value;
 
 	const isRightNavHover = useRef(false);
 
-	useWatch(() => {
+	// React Warning with useWatch: Cannot update a component (`bound Init`) while rendering a different component.
+	// To locate the bad setState() call inside
+	useEffect(() => {
 		if (prevIsSidebarRightPin.current && !isSidebarRightPin) {
 			SidebarsIsOpenService.value = { right: false };
 		}
@@ -40,8 +41,9 @@ const RightNavigationComponent = (props: RightNavigationComponentProps) => {
 	return (
 		<RightNavigationLayout
 			rightNavigationContent={<RightNavigation />}
-			onRightNavMouseEnter={onRightNavMouseEnterHandler}
-			onRightNavMouseLeave={onRightNavMouseLeaveHandler}
+			onPointerUp={onRightNavMouseEnterHandler}
+			onPointerLeave={onRightNavMouseLeaveHandler}
+			onTouchEnd={onRightNavMouseEnterHandler}
 		/>
 	);
 };

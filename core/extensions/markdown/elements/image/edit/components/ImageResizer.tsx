@@ -1,6 +1,7 @@
+import { useTouchHandler } from "@core-ui/hooks/useTouchHandler";
 import styled from "@emotion/styled";
 import getScale from "@ext/markdown/elements/image/render/logic/getScale";
-import { MutableRefObject, ReactElement, useCallback, useEffect, useState } from "react";
+import { MutableRefObject, ReactElement, useCallback, useEffect } from "react";
 
 interface ImageResizerProps {
 	saveResize: (resize: number) => void;
@@ -13,57 +14,67 @@ interface ImageResizerProps {
 
 const ImageResizer = (props: ImageResizerProps): ReactElement => {
 	const { containerRef, className, imageRef, saveResize, scale, selected = false } = props;
-	const [isResizing, setIsResizing] = useState<boolean>(false);
 
-	const onMouseDown = useCallback(
-		(event) => {
-			if (isResizing) return;
-
-			const object = imageRef.current;
-			const mainContainer = containerRef.current;
-			const nodeViewWrapper = mainContainer.closest("[data-drag-handle]");
+	const handleResizeStart = useCallback(() => {
+		const mainContainer = containerRef.current;
+		const nodeViewWrapper = mainContainer.closest("[data-drag-handle]");
+		if (nodeViewWrapper) {
 			nodeViewWrapper.removeAttribute("data-drag-handle");
+		}
+	}, [containerRef]);
 
-			setIsResizing(true);
-			const initialWidth = object.offsetWidth;
-			const initialX = event.clientX;
-			const initialHeight = object.offsetHeight;
-			const maxWidth = parseFloat(getComputedStyle(containerRef.current).width);
+	const handleResizeMove = useCallback(
+		(deltaX: number) => {
+			const object = imageRef.current;
+			const container = containerRef.current;
+
+			if (!object || !container) return;
+
+			const currentWidth = object.offsetWidth;
+			const currentHeight = object.offsetHeight;
+
+			const newWidth = currentWidth + deltaX;
+			const aspectRatio = currentWidth / currentHeight;
+			const newHeight = newWidth / aspectRatio;
+
+			const maxWidth = parseFloat(getComputedStyle(container).width);
 			const minWidth = 2.5 * parseFloat(getComputedStyle(object).fontSize);
 
-			const onMouseMove = (e: MouseEvent) => {
-				const deltaX = e.clientX - initialX;
-				const newWidth = initialWidth + deltaX;
-				const aspectRatio = initialWidth / initialHeight;
-				const newHeight = newWidth / aspectRatio;
-
-				if (newWidth >= maxWidth) {
-					object.style.width = `${maxWidth}px`;
-				} else if (newHeight <= minWidth || newWidth <= minWidth) {
-					const adjustedWidth = minWidth * aspectRatio;
-					object.style.width = `${adjustedWidth}px`;
-				} else {
-					object.style.width = `${newWidth}px`;
-				}
-			};
-
-			const onMouseUp = () => {
-				document.removeEventListener("mousemove", onMouseMove);
-				document.removeEventListener("mouseup", onMouseUp);
-				setIsResizing(false);
-				nodeViewWrapper.setAttribute("data-drag-handle", "true");
-
-				const containerWidth = parseFloat(getComputedStyle(containerRef.current).width);
-				const finalWidth = object.offsetWidth;
-				const widthPercent = Math.round((finalWidth / containerWidth) * 100);
-				saveResize(widthPercent);
-			};
-
-			document.addEventListener("mousemove", onMouseMove);
-			document.addEventListener("mouseup", onMouseUp);
+			if (newWidth >= maxWidth) {
+				object.style.width = `${maxWidth}px`;
+			} else if (newHeight <= minWidth || newWidth <= minWidth) {
+				const adjustedWidth = minWidth * aspectRatio;
+				object.style.width = `${adjustedWidth}px`;
+			} else {
+				object.style.width = `${newWidth}px`;
+			}
 		},
-		[saveResize],
+		[imageRef, containerRef],
 	);
+
+	const handleResizeEnd = useCallback(() => {
+		const mainContainer = containerRef.current;
+		const nodeViewWrapper = mainContainer.closest("[data-drag-handle]");
+		if (nodeViewWrapper) {
+			nodeViewWrapper.setAttribute("data-drag-handle", "true");
+		}
+
+		const object = imageRef.current;
+		const container = containerRef.current;
+
+		if (!object || !container) return;
+
+		const containerWidth = parseFloat(getComputedStyle(container).width);
+		const finalWidth = object.offsetWidth;
+		const widthPercent = Math.round((finalWidth / containerWidth) * 100);
+		saveResize(widthPercent);
+	}, [containerRef, imageRef, saveResize]);
+
+	const { onPointerDown, onTouchStart, onMouseDown } = useTouchHandler({
+		onStart: handleResizeStart,
+		onMove: (deltaX) => handleResizeMove(deltaX),
+		onEnd: handleResizeEnd,
+	});
 
 	useEffect(() => {
 		const applyScale = (newScale: number = 100) => {
@@ -96,7 +107,12 @@ const ImageResizer = (props: ImageResizerProps): ReactElement => {
 	if (!selected) return <></>;
 	return (
 		<div className={className}>
-			<div className="resizer" onMouseDownCapture={onMouseDown} />
+			<div
+				className="resizer"
+				onPointerDown={onPointerDown}
+				onTouchStart={onTouchStart}
+				onMouseDown={onMouseDown}
+			/>
 		</div>
 	);
 };
@@ -120,6 +136,8 @@ export default styled(ImageResizer)`
 		background-color: var(--color-white);
 		border-radius: var(--radius-large);
 		transition: opacity 0.15s ease-in-out;
+		touch-action: none;
+		user-select: none;
 
 		.resizer-container:hover & {
 			opacity: 1;

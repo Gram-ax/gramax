@@ -25,18 +25,18 @@ const SnippetsList = ({ show, snippets, selectedID, apiUrlCreator, tabWrapperRef
 	useEffect(() => {
 		if (!show) return;
 
-		SnippetService.fetchSnippets(apiUrlCreator);
+		SnippetService.fetchItems(apiUrlCreator);
 	}, [show]);
 
 	const onDelete = useCallback(
 		(id: string) => {
 			if (selectedID === id) {
-				SnippetService.closeSnippet();
+				SnippetService.closeItem();
 				void FetchService.fetch(apiUrlCreator.clearArticlesContentWithSnippet(id));
 			}
 
 			const newSnippets = Array.from(snippets.values()).filter((s) => s.id !== id);
-			SnippetService.setSnippets(newSnippets);
+			SnippetService.setItems(newSnippets);
 			SnippetUpdateService.clearContent(id);
 		},
 		[selectedID, snippets, apiUrlCreator],
@@ -47,10 +47,10 @@ const SnippetsList = ({ show, snippets, selectedID, apiUrlCreator, tabWrapperRef
 			await SnippetUpdateService.updateContent(id, apiUrlCreator);
 
 			if (selectedID === id) {
-				SnippetService.closeSnippet();
+				SnippetService.closeItem();
 
 				setTimeout(() => {
-					SnippetService.openSnippet(snippets.get(id));
+					SnippetService.openItem(snippets.get(id));
 				}, 0);
 			}
 		},
@@ -62,7 +62,7 @@ const SnippetsList = ({ show, snippets, selectedID, apiUrlCreator, tabWrapperRef
 			const snippet = snippets.get(id);
 			if (!snippet) return;
 
-			SnippetService.openSnippet(snippet);
+			SnippetService.openItem(snippet);
 		},
 		[snippets],
 	);

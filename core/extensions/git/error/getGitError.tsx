@@ -11,6 +11,7 @@ const getGitErrors = (): {
 	[GitErrorCode.NotFoundError]: NotFoundErrorHandler,
 	[GitErrorCode.CheckoutConflictError]: CheckoutConflictErrorComponent,
 	[GitErrorCode.CloneError]: CloneErrorComponent,
+	[GitErrorCode.RemoteRepositoryNotFoundError]: CloneErrorComponent,
 });
 
 export default getGitErrors;

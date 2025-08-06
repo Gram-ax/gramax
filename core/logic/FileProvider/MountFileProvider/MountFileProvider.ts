@@ -32,7 +32,7 @@ export default class MountFileProvider implements FileProvider {
 	}
 
 	static fromDefault(root: Path, watcher?: Watcher) {
-		return new this(root).mount(Path.empty, new DiskFileProvider(Path.empty, watcher));
+		return new this(root).mount(Path.empty, new DiskFileProvider(Path.empty, { watcher }));
 	}
 
 	allFp(): Readonly<Map<string, FileProvider | ReadOnlyFileProvider>> {
@@ -40,7 +40,7 @@ export default class MountFileProvider implements FileProvider {
 	}
 
 	at(path: Path): FileProvider | ReadOnlyFileProvider {
-		return this._mounts.get(path.value) || this._mounts.get("/");
+		return this._resolveFileProvider(path, false, false);
 	}
 
 	withMountPath() {
@@ -60,11 +60,15 @@ export default class MountFileProvider implements FileProvider {
 		return this;
 	}
 
-	mount(mountpoint: Path, fp: FileProvider | ReadOnlyFileProvider) {
+	mount(mountpoint: Path, fp: FileProvider | ReadOnlyFileProvider, useParentPath?: boolean) {
 		if ((!mountpoint?.value || mountpoint?.value === "/") && fp.isReadOnly)
 			throw new Error("Read-only FileProvider cannot be mounted as root");
 
-		fp.withMountPath(this._rootPath.join(mountpoint));
+		const mountPath = useParentPath
+			? this._rootPath.join(mountpoint).parentDirectoryPath
+			: this._rootPath.join(mountpoint);
+
+		fp.withMountPath(mountPath);
 		this._mounts.set(mountpoint?.value || "/", fp);
 		return this;
 	}
@@ -93,7 +97,9 @@ export default class MountFileProvider implements FileProvider {
 			const provider = this._mounts.get(currentPath.slice(0, lastSlashIndex) || "/");
 			if (provider) {
 				if (writeable && provider.isReadOnly)
-					throw new Error(`Requested writable FileProvider but found read-only ${provider.storageId}`);
+					throw new Error(
+						`Requested writable FileProvider but found read-only ${provider.storageId} at ${currentPath}`,
+					);
 				return provider as W extends true ? FileProvider : ReadOnlyFileProvider;
 			}
 

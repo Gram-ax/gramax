@@ -17,6 +17,7 @@ interface LinkMenuProps extends HTMLProps<HTMLInputElement> {
 	onDelete: () => void;
 	closeMenu: () => void;
 	onUpdate: (value: string, href: string) => void;
+	onShow?: () => void;
 }
 
 interface CopyButtonProps extends ButtonProps {
@@ -40,7 +41,7 @@ const CopyButton = ({ isCopied, isCopyShow, ...otherProps }: CopyButtonProps) =>
 	);
 
 const LinkMenu = (props: LinkMenuProps) => {
-	const { href, value, itemLinks, onDelete, onUpdate, focusOnMount, closeMenu } = props;
+	const { href, value, itemLinks, onDelete, onUpdate, focusOnMount, closeMenu, onShow } = props;
 	const [oldHref, setOldHref] = useState(href);
 	const [isReady, setIsReady] = useState(false);
 	const [isCopied, setIsCopied] = useState(false);
@@ -83,6 +84,10 @@ const LinkMenu = (props: LinkMenuProps) => {
 			setIsCopied(false);
 			setIsReady(true);
 		}
+	}, [isReady]);
+
+	useEffect(() => {
+		if (isReady && onShow) onShow();
 	}, [isReady]);
 
 	if (!isReady) return null;

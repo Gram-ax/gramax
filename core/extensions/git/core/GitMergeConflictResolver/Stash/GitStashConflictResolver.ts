@@ -16,9 +16,7 @@ export default class GitStashConflictResolver extends GitBaseConflictResolver {
 	async abortMerge(state: RepositoryStashConflictState, _data: SourceData): Promise<void> {
 		await super.abortMerge(state);
 		const commitHeadBefore = state.data.commitHeadBefore;
-		if (commitHeadBefore) {
-			await this._repo.gvc.hardReset(new GitVersion(commitHeadBefore));
-		}
+		if (commitHeadBefore) await this._repo.gvc.reset({ mode: "hard", head: new GitVersion(commitHeadBefore) });
 		const stashHash = new GitStash(state.data.stashHash);
 		await this._repo.gvc.applyStash(stashHash);
 	}

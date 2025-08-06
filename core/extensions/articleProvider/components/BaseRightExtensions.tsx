@@ -12,6 +12,7 @@ import { MouseEvent, ReactNode, useCallback } from "react";
 interface DeleteItemProps {
 	id: string;
 	providerType: ArticleProviderType;
+	confirmDeleteText?: string;
 	onDelete: (id: string) => void;
 	preDelete?: (id: string) => Promise<boolean>;
 }
@@ -21,12 +22,12 @@ interface BaseRightExtensionsProps extends DeleteItemProps {
 	onMarkdownChange: (id: string, markdown: string) => void;
 }
 
-const Delete = ({ id, onDelete, providerType, preDelete }: DeleteItemProps) => {
+const Delete = ({ id, onDelete, providerType, preDelete, confirmDeleteText }: DeleteItemProps) => {
 	const apiUrlCreator = ApiUrlCreatorService.value;
 
 	const onConfirm = async () => {
 		if (preDelete && !(await preDelete(id))) return;
-		if (!preDelete && !(await confirm(t("confirm-article-delete")))) return;
+		if (!preDelete && !(await confirm(confirmDeleteText || t("confirm-article-delete")))) return;
 
 		await FetchService.fetch(apiUrlCreator.removeFileInGramaxDir(id, providerType));
 		onDelete(id);
@@ -41,7 +42,7 @@ const Delete = ({ id, onDelete, providerType, preDelete }: DeleteItemProps) => {
 };
 
 const BaseRightExtensions = (props: BaseRightExtensionsProps) => {
-	const { id, onDelete, onMarkdownChange, items, providerType, preDelete } = props;
+	const { id, onDelete, onMarkdownChange, items, providerType, preDelete, confirmDeleteText } = props;
 	const apiUrlCreator = ApiUrlCreatorService.value;
 
 	const loadContent = useCallback(async () => {
@@ -79,7 +80,13 @@ const BaseRightExtensions = (props: BaseRightExtensionsProps) => {
 					saveContent={saveContent}
 				/>
 				{items?.(id)}
-				<Delete id={id} onDelete={onDelete} providerType={providerType} preDelete={preDelete} />
+				<Delete
+					id={id}
+					onDelete={onDelete}
+					providerType={providerType}
+					preDelete={preDelete}
+					confirmDeleteText={confirmDeleteText}
+				/>
 			</>
 		</PopupMenuLayout>
 	);

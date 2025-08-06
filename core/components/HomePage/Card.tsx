@@ -1,38 +1,32 @@
-import SpinnerLoader from "@components/Atoms/SpinnerLoader";
 import CardActions from "@components/HomePage/CardParts/CardActions";
 import CardCloneProgress from "@components/HomePage/CardParts/CardCloneProgress";
-import CardError from "@components/HomePage/CardParts/CardError";
-import RightBottomExtWrapper from "@components/HomePage/CardParts/RightBottomExt";
-import BigCard from "@components/HomePage/Cards/BigCard";
-import SmallCard from "@components/HomePage/Cards/SmallCard";
-import { classNames } from "@components/libs/classNames";
+import CardError, { useCardError } from "@components/HomePage/CardParts/CardError";
+import useGetCatalogTitleLogo from "@components/HomePage/Cards/useGetCatalogTitleLogo";
+import Url from "@core-ui/ApiServices/Types/Url";
 import { usePlatform } from "@core-ui/hooks/usePlatform";
-import styled from "@emotion/styled";
 import useCloneProgress from "@ext/git/actions/Clone/logic/useCloneProgress";
 import CatalogFetchNotification from "@ext/git/actions/Fetch/CatalogFetchNotification";
+import t from "@ext/localization/locale/translate";
 import { CatalogLink } from "@ext/navigation/NavigationLinks";
+import { ActionCard, CardFooter, CardSubTitle, CardTitle, CardVisualBadge } from "ics-ui-kit/components/card";
+import { ProgressBlockTemplate } from "ics-ui-kit/components/progress";
+import { Tooltip, TooltipContent, TooltipTrigger } from "ics-ui-kit/components/tooltip";
 import { useState } from "react";
+import Link from "../Atoms/Link";
 
 interface CardProps {
 	link: CatalogLink;
-	style?: "big" | "small";
-	onClick?: () => void;
+	onClick: () => void;
 	className?: string;
 	name: string;
 }
 
-const Loader = () => {
-	return (
-		<RightBottomExtWrapper>
-			<SpinnerLoader height={15} width={15} />
-		</RightBottomExtWrapper>
-	);
-};
-
-const Card = ({ link, style, className, onClick, name }: CardProps) => {
+const GxCard = ({ link, className, onClick, name }: CardProps) => {
 	const [isCancel, setIsCancel] = useState(false);
 	const [isLoading, setIsLoading] = useState<boolean>(false);
 
+	const { isNext, isStatic } = usePlatform();
+	const logo = useGetCatalogTitleLogo(link.name);
 	const { isCloning, percentage, progress, error } = useCloneProgress(
 		link.isCloning,
 		link.name,
@@ -40,63 +34,83 @@ const Card = ({ link, style, className, onClick, name }: CardProps) => {
 		link.cloneCancelDisabled,
 		setIsCancel,
 	);
+	const { onClick: onClickError } = useCardError(link, error);
 
-	const { isNext, isStatic } = usePlatform();
+	const renderLogo = !isCloning && !error && logo;
+	const pathname = link.lastVisited || link.pathname;
+	const errorCardClassName = "border-status-error-secondary-border bg-secondary-bg hover:border-status-error-secondary-border hover:bg-status-error-bg";
 
 	if (isCancel && !isCloning && !error) return null;
 
-	return (
-		<div className={className}>
-			<CatalogFetchNotification catalogLink={link} />
-			{isLoading && <Loader />}
-			{isCloning && (
-				<CardCloneProgress
-					name={name}
-					percentage={percentage}
-					progress={progress}
-					isCancel={isCancel}
-					setIsCancel={setIsCancel}
-				/>
-			)}
+	const card = (
+		<ActionCard
+			onKeyDown={null}
+			className={`h-[154px] w-[268px] relative ${className} ${error ? errorCardClassName : ""}`}
+			style={error ? {} : { background: `var(--color-card-bg-${link.style})` }}
+			onClick={() => {
+				if (error) return onClickError();
+				if (isNext || isStatic) return;
+				onClick();
+				setIsLoading(true);
+			}}
+		>
+			<CardTitle>{link.title}</CardTitle>
+			<CardSubTitle>{link.description}</CardSubTitle>
 			{!isLoading && !isCloning && !error && <CardActions catalogLink={link} />}
-			{error && <CardError link={link} error={error} />}
-			<div
-				className={classNames("card", { cloning: isCloning || !!error }, ["block-elevation-hover-1"])}
-				onClick={() => {
-					if (isNext || isStatic) return;
-					onClick?.();
-					setIsLoading(true);
-				}}
-			>
-				{style === "big" ? (
-					<BigCard link={link} hideLogo={isCloning} />
-				) : (
-					<SmallCard link={link} hideLogo={isCloning} />
+			<CardFooter className={renderLogo ? "mr-14" : ""}>
+				{isLoading && !isCancel && <ProgressBlockTemplate indeterminate size="sm" data-qa="loader" />}
+				{isCloning && (
+					<CardCloneProgress
+						name={name}
+						percentage={percentage}
+						progress={progress}
+						isCancel={isCancel}
+						setIsCancel={setIsCancel}
+					/>
 				)}
-			</div>
-		</div>
+				{error && <CardError link={link} error={error} />}
+			</CardFooter>
+
+			{renderLogo && (
+				<CardVisualBadge>
+					<div
+						style={{
+							backgroundImage: `url(${logo})`,
+							height: "100%",
+							width: "100%",
+							backgroundSize: "contain",
+							backgroundPosition: "center center",
+							backgroundRepeat: "no-repeat",
+						}}
+					/>
+				</CardVisualBadge>
+			)}
+			<CatalogFetchNotification catalogLink={link} />
+		</ActionCard>
+	);
+
+	if (error)
+		return (
+			<Tooltip delayDuration={0}>
+				<TooltipTrigger asChild>{card}</TooltipTrigger>
+				<TooltipContent>
+					<span>{t("clickToViewDetails")}</span>
+				</TooltipContent>
+			</Tooltip>
+		);
+
+	if (isStatic)
+		return (
+			<a data-catalog-card={name} href={pathname}>
+				{card}
+			</a>
+		);
+
+	return (
+		<Link data-catalog-card={name} href={Url.from({ pathname })}>
+			{card}
+		</Link>
 	);
 };
 
-export default styled(Card)`
-	position: relative;
-
-	.card {
-		cursor: pointer;
-		border-radius: var(--radius-large);
-		overflow: hidden;
-	}
-
-	&:hover .card-actions {
-		opacity: 1;
-	}
-
-	.cloning {
-		opacity: 0.5;
-		pointer-events: none;
-	}
-
-	.loading {
-		opacity: 0.7;
-	}
-`;
+export default GxCard;

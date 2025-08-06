@@ -22,6 +22,7 @@ import PlatformService from "@core-ui/ContextServices/PlatformService";
 import SearchQueryService from "@core-ui/ContextServices/SearchQuery";
 import SidebarsIsPinService from "@core-ui/ContextServices/Sidebars/SidebarsIsPin";
 import GlobalSyncCountService from "@core-ui/ContextServices/SyncCount/GlobalSyncCount";
+import SyncableWorkspacesService from "@core-ui/ContextServices/SyncCount/SyncableWorkspaces";
 import SyncIconService from "@core-ui/ContextServices/SyncIconService";
 import ArticleViewService from "@core-ui/ContextServices/views/articleView/ArticleViewService";
 import LeftNavViewContentService from "@core-ui/ContextServices/views/leftNavView/LeftNavViewContentService";
@@ -48,6 +49,9 @@ import ThemeService from "../extensions/Theme/components/ThemeService";
 import PageDataContext from "../logic/Context/PageDataContext";
 import IsOpenModalService from "../ui-logic/ContextServices/IsOpenMpdal";
 import ModalToOpenService from "../ui-logic/ContextServices/ModalToOpenService/ModalToOpenService";
+import CloudStateService from "@core-ui/ContextServices/CloudState";
+import IsMobileService from "../ui-logic/ContextServices/isMobileService";
+import AudioRecorderService from "@ext/ai/components/Audio/AudioRecorderService";
 
 export interface PageProps {
 	data: HomePageData & ArticlePageData;
@@ -57,6 +61,7 @@ export interface PageProps {
 const appServices: ContextService[] = [
 	pagePropsUpdateService,
 	isOfflineService,
+	IsMobileService,
 	permissionService,
 	ApiUrlCreatorService,
 	LanguageService,
@@ -69,6 +74,8 @@ const appServices: ContextService[] = [
 	SyncIconService,
 	IsOpenModalService,
 	PublishChangesProvider,
+	AudioRecorderService,
+	SyncableWorkspacesService,
 	GlobalSyncCountService,
 ];
 const Inits = appServices.map((service) => service.Init.bind(service) as typeof service.Init);
@@ -125,58 +132,68 @@ export default function ContextProviders({
 																	<CatalogPropsService.Init
 																		value={pageProps.data.catalogProps}
 																	>
-																		<CatalogLogoService.Init>
-																			<PromptService.Provider>
-																				<InboxService.Provider>
-																					<PropertyService.Provider>
-																						<TemplateService.Init>
-																							<SnippetService.Init>
-																								<ModalToOpenService.Provider>
-																									<CurrentTabsTagService.Provider>
-																										<ArticleTooltipService.Provider>
-																											<IsFirstLoadService.Provider
-																												resetIsFirstLoad={
-																													resetIsFirstLoad
-																												}
-																												value={
-																													isFirstLoad
-																												}
-																											>
-																												<OnUpdateAppFuncs>
-																													<ViewContextProvider
-																														articlePageData={
-																															pageProps.data
-																														}
-																													>
-																														<>
-																															{pageProps
-																																.context
-																																.isLogged ? (
-																																<CommentCounterService.Provider
-																																	deps={[
-																																		pageProps,
-																																	]}
-																																>
-																																	{
-																																		children
-																																	}
-																																</CommentCounterService.Provider>
-																															) : (
-																																children
-																															)}
-																														</>
-																													</ViewContextProvider>
-																												</OnUpdateAppFuncs>
-																											</IsFirstLoadService.Provider>
-																										</ArticleTooltipService.Provider>
-																									</CurrentTabsTagService.Provider>
-																								</ModalToOpenService.Provider>
-																							</SnippetService.Init>
-																						</TemplateService.Init>
-																					</PropertyService.Provider>
-																				</InboxService.Provider>
-																			</PromptService.Provider>
-																		</CatalogLogoService.Init>
+																		<CloudStateService.Init
+																			value={{
+																				cloudServiceUrl:
+																					pageProps.context.conf
+																						.cloudServiceUrl,
+																				catalogName:
+																					pageProps.data.catalogProps.name,
+																			}}
+																		>
+																			<CatalogLogoService.Init>
+																				<PromptService.Provider>
+																					<InboxService.Provider>
+																						<PropertyService.Provider>
+																							<TemplateService.Init>
+																								<SnippetService.Init>
+																									<ModalToOpenService.Provider>
+																										<CurrentTabsTagService.Provider>
+																											<ArticleTooltipService.Provider>
+																												<IsFirstLoadService.Provider
+																													resetIsFirstLoad={
+																														resetIsFirstLoad
+																													}
+																													value={
+																														isFirstLoad
+																													}
+																												>
+																													<OnUpdateAppFuncs>
+																														<ViewContextProvider
+																															articlePageData={
+																																pageProps.data
+																															}
+																														>
+																															<>
+																																{pageProps
+																																	.context
+																																	.isLogged ? (
+																																	<CommentCounterService.Provider
+																																		deps={[
+																																			pageProps,
+																																		]}
+																																	>
+																																		{
+																																			children
+																																		}
+																																	</CommentCounterService.Provider>
+																																) : (
+																																	children
+																																)}
+																															</>
+																														</ViewContextProvider>
+																													</OnUpdateAppFuncs>
+																												</IsFirstLoadService.Provider>
+																											</ArticleTooltipService.Provider>
+																										</CurrentTabsTagService.Provider>
+																									</ModalToOpenService.Provider>
+																								</SnippetService.Init>
+																							</TemplateService.Init>
+																						</PropertyService.Provider>
+																					</InboxService.Provider>
+																				</PromptService.Provider>
+																			</CatalogLogoService.Init>
+																		</CloudStateService.Init>
 																	</CatalogPropsService.Init>
 																</ArticlePropsService.Provider>
 															</ArticleDataService.Provider>

@@ -1,48 +1,21 @@
-import ExperimentalFeatures from "@components/HomePage/ExperimentalFeatures";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
-import styled from "@emotion/styled";
 import t from "@ext/localization/locale/translate";
-
-const Wrapper = styled.div`
-	width: 100%;
-
-	display: flex;
-	flex-direction: row;
-	justify-content: space-between;
-	align-items: bottom;
-	margin-top: 2rem;
-	margin-bottom: 7px;
-
-	height: fit-content;
-`;
-
-const Part = styled.div`
-	display: flex;
-	gap: 1.5rem;
-
-	font-size: 12px !important;
-	opacity: 0.7;
-	color: var(--color-primary-general);
-
-	> div:nth-of-type(2) {
-		padding-top: 0.5px;
-	}
-`;
+import ToggleFeatures from "@ext/toggleFeatures/components/ToggleFeatures";
 
 const BottomInfo = () => {
 	const config = PageDataContextService.value.conf;
 
-	const cred = `© Gramax ${new Date().getFullYear()}`;
+	const cred = `© ${new Date().getFullYear()} Gramax`;
 	const ver = `${t("version")} ${config.version} ${config.isRelease ? "" : "dev"}`.trim();
 
 	return (
-		<Wrapper>
-			<Part>{ver}</Part>
-			<Part>
-				<ExperimentalFeatures />
-				<div>{cred}</div>
-			</Part>
-		</Wrapper>
+		<div className="w-full mx-auto flex max-w-[1144px] flex-row flex-wrap items-center justify-between gap-4 py-5 px-4">
+			<ToggleFeatures />
+			<div className="text-muted flex items-center gap-2 text-xs">
+				<span>{ver}</span>
+				<span>{cred}</span>
+			</div>
+		</div>
 	);
 };
 

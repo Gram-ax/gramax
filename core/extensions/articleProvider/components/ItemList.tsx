@@ -11,8 +11,9 @@ interface ItemListProps<T = ProviderItemProps> {
 	tabWrapperRef: RefObject<HTMLDivElement>;
 	selectedItemId: string | string[];
 	items: T[];
-	providerType?: ArticleProviderType;
 	noItemsText: string;
+	providerType?: ArticleProviderType;
+	confirmDeleteText?: string;
 	onItemClick: (id: string, target: HTMLElement) => void;
 	onDelete?: (id: string) => void;
 	setContentHeight: (height: number) => void;
@@ -35,6 +36,7 @@ const ItemList = <T extends ProviderItemProps>(props: ItemListProps<T>) => {
 		noItemsText,
 		onItemClick,
 		preDelete,
+		confirmDeleteText,
 	} = props;
 	const ref = useRef<HTMLDivElement>(null);
 
@@ -63,12 +65,13 @@ const ItemList = <T extends ProviderItemProps>(props: ItemListProps<T>) => {
 							onMarkdownChange={onMarkdownChange}
 							items={rightActions}
 							preDelete={preDelete}
+							confirmDeleteText={confirmDeleteText}
 						/>
 					)
 				}
 			/>
 		));
-	}, [items, selectedId, onItemClick, providerType, rightActions]);
+	}, [items, selectedId, onItemClick, providerType, rightActions, confirmDeleteText]);
 
 	if (!show) return;
 

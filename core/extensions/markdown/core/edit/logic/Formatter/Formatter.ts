@@ -10,15 +10,16 @@ import JSONTransformer from "../Prosemirror/JSONTransformer";
 import { getSchema } from "../Prosemirror/schema";
 import getMarkFormatters from "./Formatters/getMarkFormatters";
 import getNodeFormatters from "./Formatters/getNodeFormatters";
+import commentModifyFormatters from "@ext/markdown/elements/comment/edit/logic/commentModifyFormatters";
 
 class MarkdownFormatter {
 	async render(editTree: JSONContent, context?: ParserContext): Promise<string> {
-		if (editTree.content?.length == 1 && editTree.content[0].type == "paragraph" && !editTree.content[0].content)
-			return "";
+		const content = editTree.content;
+		if (content?.length === 1 && content?.[0]?.type === "paragraph" && !content?.[0]?.content) return "";
 
 		const transformEditTree = JSONTransformer.transform(editTree, [filesFormatterTransformer]);
 		const markdownSerializer = new ProsemirrorMarkdownSerializer(
-			getNodeFormatters(context),
+			getNodeFormatters(context, [commentModifyFormatters]),
 			getMarkFormatters(context),
 		);
 		const markdown = await markdownSerializer.serialize(Node.fromJSON(getSchema(), transformEditTree));

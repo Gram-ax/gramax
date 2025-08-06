@@ -25,7 +25,6 @@ export const InlineContent: StoryObj = {
 			title: "test name",
 			url: "test_url",
 			description: "test description",
-			code: "test",
 			style: Style.blue,
 		};
 

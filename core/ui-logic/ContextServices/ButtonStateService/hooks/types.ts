@@ -33,7 +33,7 @@ export type NodeType =
 	| typeof blockFieldEditName
 	| typeof blockPropertyEditName;
 
-export type Mark = "link" | "strong" | "em" | "code" | "file" | "comment" | "s";
+export type Mark = "link" | "strong" | "em" | "code" | "file" | "comment" | "s" | "highlight";
 
 export interface NodeValues {
 	action?: NodeType;

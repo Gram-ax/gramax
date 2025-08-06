@@ -2,18 +2,21 @@ import CatalogPropsService from "@core-ui/ContextServices/CatalogProps";
 import styled from "@emotion/styled";
 import View from "@ext/markdown/elements/view/render/components/View";
 import { Display } from "@ext/properties/models/display";
-import { NodeViewProps, NodeViewWrapper } from "@tiptap/react";
+import { NodeViewProps } from "@tiptap/react";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import FetchService from "@core-ui/ApiServices/FetchService";
 import { MouseEvent, useCallback, useRef, useState } from "react";
 import HoverableActions from "@components/controls/HoverController/HoverableActions";
 import ViewActions from "@ext/markdown/elements/view/edit/components/Helpers/ViewActions";
+import BlockCommentView from "@ext/markdown/elements/comment/edit/components/BlockCommentView";
+import { NodeViewContextableWrapper } from "@ext/markdown/core/element/NodeViewContextableWrapper";
 
 interface ViewComponentProps extends NodeViewProps {
 	className?: string;
 }
 
-const ViewComponent = ({ node, className, updateAttributes, editor, getPos }: ViewComponentProps) => {
+const ViewComponent = (props: ViewComponentProps) => {
+	const { node, className, updateAttributes, editor } = props;
 	const catalogProps = CatalogPropsService.value;
 	const apiUrlCreator = ApiUrlCreatorService.value;
 	const hoverElementRef = useRef<HTMLDivElement>(null);
@@ -37,18 +40,17 @@ const ViewComponent = ({ node, className, updateAttributes, editor, getPos }: Vi
 	);
 
 	return (
-		<NodeViewWrapper ref={hoverElementRef}>
+		<NodeViewContextableWrapper ref={hoverElementRef} props={props}>
 			<div className={className}>
 				<HoverableActions
 					hideOnClick={false}
 					hoverElementRef={hoverElementRef}
+					actionsOptions={{ comment: true }}
 					isHovered={isHovered}
 					setIsHovered={setIsHovered}
 					rightActions={
 						isEditable && (
 							<ViewActions
-								editor={editor}
-								getPos={getPos}
 								node={node}
 								updateDisplay={updateDisplay}
 								updateAttributes={updateAttributes}
@@ -57,18 +59,20 @@ const ViewComponent = ({ node, className, updateAttributes, editor, getPos }: Vi
 						)
 					}
 				>
-					<View
-						defs={node.attrs.defs}
-						orderby={node.attrs.orderby}
-						groupby={node.attrs.groupby}
-						select={node.attrs.select}
-						display={node.attrs.display}
-						disabled={false}
-						updateArticle={updateArticle}
-					/>
+					<BlockCommentView commentId={node.attrs.comment?.id}>
+						<View
+							defs={node.attrs.defs}
+							orderby={node.attrs.orderby}
+							groupby={node.attrs.groupby}
+							select={node.attrs.select}
+							display={node.attrs.display}
+							disabled={false}
+							updateArticle={updateArticle}
+						/>
+					</BlockCommentView>
 				</HoverableActions>
 			</div>
-		</NodeViewWrapper>
+		</NodeViewContextableWrapper>
 	);
 };
 
@@ -78,10 +82,6 @@ export default styled(ViewComponent)`
 	flex-direction: column;
 	border-radius: var(--radius-medium);
 	user-select: none;
-
-	*[data-focusable] {
-		padding: 8px;
-	}
 
 	.view-filter-row {
 		display: flex;

@@ -1,6 +1,7 @@
 import Icon from "@components/Atoms/Icon";
 import SpinnerLoader from "@components/Atoms/SpinnerLoader";
 import Tooltip from "@components/Atoms/Tooltip";
+import { cssMedia } from "@core-ui/utils/cssUtils";
 import styled from "@emotion/styled";
 import t from "@ext/localization/locale/translate";
 import useRemoveSource from "@ext/storage/components/useRemoveSource";
@@ -33,6 +34,10 @@ const StyledIcon = styled(Icon)`
 	margin-left: auto;
 	display: none;
 	cursor: pointer;
+
+	${cssMedia.narrow} {
+		display: block !important;
+	}
 `;
 
 const WarningWrapper = styled.div`

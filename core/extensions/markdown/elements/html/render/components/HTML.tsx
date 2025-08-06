@@ -6,19 +6,18 @@ const Html = ({ content, className }: { content: string; className?: string }): 
 
 	const resizeIframe = useCallback(() => {
 		const root = rootRef.current;
-		if (!root.contentDocument.body) return;
+		if (!root || !root.contentDocument?.body) return;
 
 		root.contentDocument.body.style.margin = "unset";
 		root.contentDocument.body.style.height = "fit-content";
 		root.style.height = `calc(${root.contentDocument.body.offsetHeight}px + 1.5em)`;
 		const head = root.querySelector("head");
 
-		if (head) {
-			const stylesheets = head.querySelectorAll('style, link[rel="stylesheet"]');
-			stylesheets.forEach(function (sheet) {
-				sheet.remove();
-			});
-		}
+		if (!head) return;
+		const stylesheets = head.querySelectorAll('style, link[rel="stylesheet"]');
+		stylesheets.forEach(function (sheet) {
+			sheet.remove();
+		});
 	}, []);
 
 	const renderContent = useCallback((content: string) => {

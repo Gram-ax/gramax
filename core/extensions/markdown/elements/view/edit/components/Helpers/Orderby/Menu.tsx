@@ -1,4 +1,4 @@
-import ModifiedBackend from "@ext/navigation/catalog/drag/logic/ModifiedBackend";
+import ModifiedBackend, { useDragDrop } from "@ext/navigation/catalog/drag/logic/ModifiedBackend";
 import { DndProvider } from "react-dnd";
 import ValueHandler from "@ext/properties/components/Helpers/ValueHandler";
 import styled from "@emotion/styled";
@@ -15,6 +15,8 @@ interface MenuProps {
 }
 
 const Menu = memo(({ name, data, defaultData, updateData, className }: MenuProps) => {
+	const { backend, options } = useDragDrop();
+
 	const onChange = useCallback(
 		(values: string[]) => {
 			updateData(name, values);
@@ -28,7 +30,7 @@ const Menu = memo(({ name, data, defaultData, updateData, className }: MenuProps
 	}, [updateData, name, defaultData, data]);
 
 	return (
-		<DndProvider backend={ModifiedBackend}>
+		<DndProvider backend={(manager) => ModifiedBackend(backend(manager))} options={options}>
 			<ButtonLink text={t("reset")} iconCode="rotate-ccw" onClick={deleteHandler} />
 			<span className={`${className} tree-root`}>
 				<ValueHandler data={data} isActions={true} onChange={onChange} isEditable={false} />

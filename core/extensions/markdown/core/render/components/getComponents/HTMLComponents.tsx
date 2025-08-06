@@ -1,8 +1,11 @@
+import { getExecutingEnvironment } from "@app/resolveModule/env";
+import camelToKebabCase from "@core-ui/camelToKebabCase";
 import PublicApiUrlCreator from "@ext/publicApi/PublicApiUrlCreator";
+import React from "react";
 import Path from "../../../../../../logic/FileProvider/Path/Path";
 import ParserContext from "../../../Parser/ParserContext/ParserContext";
-import camelToKebabCase from "@core-ui/camelToKebabCase";
-import React from "react";
+
+const renderImage = getExecutingEnvironment() === "next";
 
 export enum unSupportedElements {
 	"tab" = "Tab",
@@ -89,7 +92,7 @@ class HTMLComponents {
 	private _getImage = (src: string, title?: string) => {
 		return (
 			<div>
-				<img src={src} />
+				{renderImage && <img src={src} />}
 				{title && <em>{title}</em>}
 			</div>
 		);

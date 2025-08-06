@@ -18,7 +18,7 @@ export type CatalogSyncValues = {
 	[catalogName: string]: CatalogSyncValue;
 };
 
-type GlobalSyncCountContextType = {
+export type GlobalSyncCountContext = {
 	syncCounts: CatalogSyncValues;
 	totalPullCount: number;
 	isLoading: boolean;
@@ -29,7 +29,7 @@ type GlobalSyncCountContextType = {
 
 const FOCUS_REFRESH_DELAY = 5000;
 
-const GlobalSyncCountContext = createContext<GlobalSyncCountContextType | null>(null);
+const GlobalSyncCountContext = createContext<GlobalSyncCountContext | null>(null);
 
 export default class GlobalSyncCountService {
 	static Init({ children }: { children: ReactElement }): ReactElement {
@@ -41,7 +41,7 @@ export default class GlobalSyncCountService {
 		const pageDataContext = PageDataContextService.value;
 		const isOffline = isOfflineService.value;
 
-		const shouldFetch = !pageDataContext.conf.isReadOnly && !isOffline;
+		const fetchAllowed = !pageDataContext.conf.isReadOnly && !isOffline;
 		const key = `${WorkspaceService.current()?.name}_all`;
 		const hasWorkspace = WorkspaceService.hasActive();
 
@@ -66,7 +66,7 @@ export default class GlobalSyncCountService {
 
 		const fetchSyncCounts = useCallback(
 			async (fetch = false) => {
-				if (!hasWorkspace || !shouldFetch) return;
+				if (!hasWorkspace || !fetchAllowed) return;
 
 				const actualFetch = fetch || CatalogFetchTimersService.canFetch(key);
 
@@ -86,20 +86,20 @@ export default class GlobalSyncCountService {
 					setIsLoading(false);
 				}
 			},
-			[hasWorkspace, shouldFetch, key, apiUrlCreator],
+			[hasWorkspace, fetchAllowed, key, apiUrlCreator],
 		);
 
 		useEffect(() => {
-			if (!shouldFetch || !hasWorkspace) return;
+			if (!fetchAllowed || !hasWorkspace) return;
 			fetchSyncCounts(false);
-		}, [shouldFetch, hasWorkspace, fetchSyncCounts]);
+		}, [fetchAllowed, hasWorkspace, fetchSyncCounts]);
 
 		useEffect(() => {
-			if (!shouldFetch) return;
+			if (!fetchAllowed) return;
 
 			const interval = setInterval(() => fetchSyncCounts(true), CatalogFetchTimersService.fetchIntervalDelay);
 			return () => clearInterval(interval);
-		}, [shouldFetch, fetchSyncCounts]);
+		}, [fetchAllowed, fetchSyncCounts]);
 
 		// useEffect(() => {
 		// void resolveModule("setBadge")?.(totalPullCount > 0 ? totalPullCount : null);
@@ -107,7 +107,7 @@ export default class GlobalSyncCountService {
 
 		useEffect(() => {
 			const handleFocus = () => {
-				if (shouldFetch && Date.now() - lastFocusTimeRef.current > FOCUS_REFRESH_DELAY) {
+				if (fetchAllowed && Date.now() - lastFocusTimeRef.current > FOCUS_REFRESH_DELAY) {
 					fetchSyncCounts(false);
 					lastFocusTimeRef.current = Date.now();
 				}
@@ -115,9 +115,9 @@ export default class GlobalSyncCountService {
 
 			window.addEventListener("focus", handleFocus);
 			return () => window.removeEventListener("focus", handleFocus);
-		}, [shouldFetch, fetchSyncCounts]);
+		}, [fetchAllowed, fetchSyncCounts]);
 
-		const val = useMemo<GlobalSyncCountContextType>(
+		const val = useMemo<GlobalSyncCountContext>(
 			() => ({
 				syncCounts,
 				updateSyncCount,
@@ -132,7 +132,7 @@ export default class GlobalSyncCountService {
 		return <GlobalSyncCountContext.Provider value={val}>{children}</GlobalSyncCountContext.Provider>;
 	}
 
-	static context(): GlobalSyncCountContextType {
+	static context(): GlobalSyncCountContext {
 		const context = useContext(GlobalSyncCountContext);
 		assert(context, "GlobalSyncCountService hooks must be used within GlobalSyncCountService.Provider");
 		return context;

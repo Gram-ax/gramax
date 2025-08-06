@@ -105,6 +105,11 @@ impl From<AccessTokenCreds> for gramaxgit::creds::AccessTokenCreds {
   }
 }
 
+#[napi::module_init]
+fn init() {
+  env_logger::init();
+}
+
 #[napi_async]
 pub fn is_init(repo_path: String) -> Output {
   git::is_init(Path::new(&repo_path))
@@ -298,9 +303,39 @@ pub fn restore(repo_path: String, staged: bool, paths: Vec<String>) -> Output {
   git::restore(Path::new(&repo_path), staged, paths)
 }
 
+#[napi(object, use_nullable = true)]
+#[derive(Clone)]
+pub struct ResetOptions {
+  pub head: Option<String>,
+  pub mode: ResetMode,
+}
+
+#[napi(string_enum = "lowercase")]
+pub enum ResetMode {
+  Soft,
+  Mixed,
+  Hard,
+}
+
+impl From<ResetMode> for gramaxgit::actions::reset::ResetMode {
+  fn from(val: ResetMode) -> Self {
+    match val {
+      ResetMode::Soft => gramaxgit::actions::reset::ResetMode::Soft,
+      ResetMode::Mixed => gramaxgit::actions::reset::ResetMode::Mixed,
+      ResetMode::Hard => gramaxgit::actions::reset::ResetMode::Hard,
+    }
+  }
+}
+
+impl From<ResetOptions> for gramaxgit::actions::reset::ResetOptions {
+  fn from(val: ResetOptions) -> Self {
+    gramaxgit::actions::reset::ResetOptions { mode: val.mode.into(), head: val.head.map(OidInfo) }
+  }
+}
+
 #[napi_async]
-pub fn reset_all(repo_path: String, hard: bool, head: Option<String>) -> Output {
-  git::reset_all(Path::new(&repo_path), hard, head.as_deref())
+pub fn reset(repo_path: String, opts: ResetOptions) -> Output {
+  git::reset(Path::new(&repo_path), opts.into())
 }
 
 #[napi_async]

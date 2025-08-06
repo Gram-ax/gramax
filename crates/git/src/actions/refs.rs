@@ -115,7 +115,7 @@ impl<C: Creds> Refs for Repo<C> {
       match self.0.find_branch(refname, BranchType::Local) {
         Ok(branch) => return Ok(Some(branch.short_info()?)),
         Err(e) => {
-          warn!(target: TAG, "failed to resolve branch {} while collecting refnames; skipping; error: {}", refname, e)
+          warn!(target: TAG, "failed to resolve branch {refname} while collecting refnames; skipping; error: {e}")
         }
       }
 
@@ -123,14 +123,14 @@ impl<C: Creds> Refs for Repo<C> {
     }
 
     let Some(oid) = reference.target().or_else(|| reference.target_peel()) else {
-      warn!(target: TAG, "tried to peel reference {} to target but pointee not found; skipping", refname);
+      warn!(target: TAG, "tried to peel reference {refname} to target but pointee not found; skipping");
       return Ok(None);
     };
 
     let object = match self.0.find_object(oid, None) {
       Ok(object) => object,
       Err(err) => {
-        warn!(target: TAG, "tried to find object {} ({}) but failed; skipping; error: {}", refname, oid, err);
+        warn!(target: TAG, "tried to find object {refname} ({oid}) but failed; skipping; error: {err}");
         return Ok(None);
       }
     };

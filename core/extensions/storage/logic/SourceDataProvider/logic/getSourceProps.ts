@@ -23,6 +23,10 @@ const getSourceProps = (sourceType: SourceType, defaultSourceData?: any) => {
 			props: baseProps,
 			readOnlyProps: defaultSourceData,
 		},
+		[SourceType.gitVerse]: {
+			props: baseProps,
+			readOnlyProps: defaultSourceData,
+		},
 		[SourceType.confluenceServer]: {
 			props: {
 				...baseProps,

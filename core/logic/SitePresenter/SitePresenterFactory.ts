@@ -14,6 +14,7 @@ export default class SitePresenterFactory {
 		private _parserContextFactory: ParserContextFactory,
 		private _grp: GitRepositoryProvider,
 		private _customArticlePresenter: CustomArticlePresenter,
+		private _isReadOnly: boolean,
 	) {}
 
 	public fromContext(context: Context): SitePresenter {
@@ -26,6 +27,7 @@ export default class SitePresenterFactory {
 			this._grp,
 			this._customArticlePresenter,
 			context,
+			this._isReadOnly,
 		);
 	}
 }

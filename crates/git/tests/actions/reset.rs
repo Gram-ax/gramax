@@ -1,28 +1,33 @@
 use test_utils::git::*;
 use test_utils::*;
 
+use test_utils::git::OidInfo;
+
 #[rstest]
 fn reset(sandbox: TempDir, #[with(&sandbox)] repo: Repo<TestCreds>) -> Result {
   let file_path = sandbox.path().join("file");
   fs::write(sandbox.path().join("file2"), "contents")?;
   repo.add("file2")?;
-  repo.commit_debug()?;
+  let commit = repo.commit_debug()?;
 
   fs::write(&file_path, "init")?;
   repo.add("file")?;
+  repo.commit_debug()?;
 
   assert!(file_path.exists());
-  repo.reset_all(true, None)?;
+  repo.reset(ResetOptions { mode: ResetMode::Hard, head: Some(OidInfo(commit.0.to_string())) })?;
   assert!(!file_path.exists());
 
   fs::write(&file_path, "init")?;
   repo.add("file")?;
-  repo.commit_debug()?;
+  let second_commit = repo.commit_debug()?;
   fs::write(&file_path, "qwer")?;
+  repo.add("file")?;
+  repo.commit_debug()?;
 
-  repo.reset_all(true, None)?;
+  repo.reset(ResetOptions { mode: ResetMode::Hard, head: Some(OidInfo(second_commit.0.to_string())) })?;
 
-  assert!(!file_path.exists());
+  assert_eq!(fs::read_to_string(&file_path)?, "init");
   Ok(())
 }
 

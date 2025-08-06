@@ -18,7 +18,7 @@ const reset: Command<{ ctx: Context; catalogName: string }, ClientGitBranchData[
 	middlewares: [new AuthorizeMiddleware(), new ReloadConfirmMiddleware()],
 
 	async do({ ctx, catalogName }) {
-		const { rp, wm } = this._app;
+		const { rp, wm, conf } = this._app;
 		const workspace = wm.current();
 
 		const catalog = await workspace.getContextlessCatalog(catalogName);
@@ -39,7 +39,8 @@ const reset: Command<{ ctx: Context; catalogName: string }, ClientGitBranchData[
 		const gvc = catalog.repo.gvc;
 		const headCommitHash = await gvc.getHeadCommit();
 
-		const mrs = (await catalog.repo.mergeRequests.list()).reduce((acc, mr) => {
+		const list = await catalog.repo.mergeRequests.list({ cached: false });
+		const mrs = list.reduce((acc, mr) => {
 			acc[mr.sourceBranchRef] = mr;
 			return acc;
 		}, {} as Record<string, MergeRequest>);

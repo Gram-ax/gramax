@@ -59,7 +59,7 @@ export default class FSLocalizationEvents implements EventHandlerCollection {
 	};
 
 	private onCatalogRead = async ({ fs, catalog }: EventArgs<FSEvents, "catalog-read">) => {
-		if (!catalog.props.language) return;
+		if (!catalog.props.language || catalog.isFpReadOnly) return;
 
 		const filters = [(item: Item) => item.type == ItemType.category];
 
@@ -72,20 +72,16 @@ export default class FSLocalizationEvents implements EventHandlerCollection {
 			let dirty = false;
 
 			if (category && !hasLanguage) {
-				console.warn(
-					`'${code}' (which is language) exist but catalog not supports that language;
-adding to .doc-root.yaml`,
-				);
+				const msg = `'${code}' (which is language) exist but catalog not supports that language; adding to .doc-root.yaml`;
+				console.warn(msg);
 
 				catalog.props.supportedLanguages.push(code);
 				dirty = true;
 			}
 
 			if (!category && hasLanguage) {
-				console.warn(
-					`category associated with '${code}' doesn't exists but catalog still supports that language;
-removing from .doc-root.yaml`,
-				);
+				const msg = `category associated with '${code}' doesn't exists but catalog still supports that language; removing from .doc-root.yaml`;
+				console.warn(msg);
 
 				catalog.props.supportedLanguages = catalog.props.supportedLanguages.filter((l) => l != code);
 				dirty = true;
@@ -184,39 +180,68 @@ removing from .doc-root.yaml`,
 		callback: (ref: ItemRef, item: Item) => void | Promise<void>,
 	) => {
 		if (!originalRef) {
+			const rootCategoryPath = catalog.getRootCategoryPath();
+
 			for (const language of catalog.props.supportedLanguages) {
 				if (language == catalog.props.language) continue;
-				const path = catalog.basePath.join(new Path([language, CATEGORY_ROOT_FILENAME]));
+				const path = rootCategoryPath.join(new Path([language, CATEGORY_ROOT_FILENAME]));
 				await callback({ path, storageId: null }, null);
 			}
 			return;
 		}
 
+		const rootCategoryPath = catalog.getRootCategoryPath();
+
 		const basePaths = catalog.props.supportedLanguages
 			.filter((l) => l != catalog.props.language)
-			.map((l) => new Path([catalog.name, l]));
+			.map((l) => rootCategoryPath.join(new Path(l)));
 
 		const isDefaultLanguage = !basePaths.some((p) => originalRef.path.startsWith(p));
 
 		const resolvePath = (): [ContentLanguage, Path] => {
-			const base = catalog.basePath.subDirectory(originalRef.path).value.split("/");
+			const relativePath = rootCategoryPath.subDirectory(originalRef.path);
+			assert(
+				relativePath,
+				`cannot resolve relative path for ${originalRef.path.value} from root ${rootCategoryPath.value}`,
+			);
+
+			const base = relativePath.value.split("/");
 			const language = base.shift();
 			return [ContentLanguage[language] || "", new Path(base)];
 		};
 
-		const [targetLanguage, itemPath] = isDefaultLanguage
-			? [catalog.props.language, catalog.basePath.subDirectory(originalRef.path)]
-			: resolvePath();
+		let targetLanguage: ContentLanguage;
+		let itemPath: Path;
+
+		if (isDefaultLanguage) {
+			targetLanguage = catalog.props.language;
+			itemPath = rootCategoryPath.subDirectory(originalRef.path);
+			assert(
+				itemPath,
+				`cannot resolve item path for ${originalRef.path.value} from root ${rootCategoryPath.value}`,
+			);
+		} else {
+			[targetLanguage, itemPath] = resolvePath();
+		}
+
+		// language categories has theirs own _index.md files (e.g. en/_index.md) while root category uses .doc-root.yml
+		//  and have no any related props, so we need to skip them
+		const skipPath = new Path([catalog.name, targetLanguage, CATEGORY_ROOT_FILENAME]);
+		const skip = originalRef.path.startsWith(skipPath);
 
 		for (const language of catalog.props.supportedLanguages) {
 			if (language == targetLanguage) continue;
+
 			const path =
 				language == catalog.props.language
-					? catalog.basePath.join(itemPath)
-					: catalog.basePath.join(new Path(language), itemPath);
+					? rootCategoryPath.join(itemPath)
+					: rootCategoryPath.join(new Path(language), itemPath);
 
 			const ref = { path, storageId: originalRef.storageId };
 			let item = catalog.findItemByItemRef(ref);
+
+			if (!item && language == catalog.props.language && skip) continue;
+
 			if (!item && check) {
 				let languageCategoryName = catalog.name;
 				if (catalog.props.language != language) languageCategoryName += "/" + language;

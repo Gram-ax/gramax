@@ -1,8 +1,8 @@
-import { Editor } from "@tiptap/core";
 import { editName as blockFieldEditName } from "@ext/markdown/elements/blockContentField/consts";
 import { editName as blockPropertyEditName } from "@ext/markdown/elements/blockProperty/consts";
+import { EditorState } from "@tiptap/pm/state";
 
-export const readyToPlace = (editor: Editor, nodeName: string, additional?: string[]) => {
+export const readyToPlace = (editor: EditorState, nodeName: string, additional?: string[]) => {
 	const { nodeReadyToPlace } = test(editor, nodeName, [
 		...(additional ?? []),
 		blockFieldEditName,
@@ -12,7 +12,7 @@ export const readyToPlace = (editor: Editor, nodeName: string, additional?: stri
 	return nodeReadyToPlace;
 };
 
-export const stopExecution = (editor: Editor, nodeName: string, additional?: string[]) => {
+export const stopExecution = (editor: EditorState, nodeName: string, additional?: string[]) => {
 	const { nodeReadyToToggle, nodeReadyToPlace } = test(editor, nodeName, [
 		...(additional ?? []),
 		blockFieldEditName,
@@ -22,8 +22,8 @@ export const stopExecution = (editor: Editor, nodeName: string, additional?: str
 	return !nodeReadyToToggle && !nodeReadyToPlace;
 };
 
-export const test = (editor: Editor, nodeName: string, additional?: string[]) => {
-	const { selection } = editor.state;
+export const test = (state: EditorState, nodeName: string, additional?: string[]) => {
+	const { selection } = state;
 	let { $anchor } = selection;
 
 	const result = { nodeReadyToToggle: false, nodeReadyToPlace: true };

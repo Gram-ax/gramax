@@ -47,12 +47,12 @@ describe("GitStorage", () => {
 			storage = new GitStorage(new Path(repNameWithSubmodules), dfp);
 
 			await subGits[0].checkout("master");
-			await subGits[0].hardReset(await subGits[0].getParentCommit(await subGits[0].getHeadCommit()));
+			await subGits[0].reset({ mode: "hard", head: await subGits[0].getParentCommit(await subGits[0].getHeadCommit()) });
 
 			await subGits[1].checkout("master");
-			await subGits[1].hardReset(await subGits[1].getParentCommit(await subGits[1].getHeadCommit()));
+			await subGits[1].reset({ mode: "hard", head: await subGits[1].getParentCommit(await subGits[1].getHeadCommit()) });
 
-			await git.hardReset(await git.getParentCommit(await git.getHeadCommit()));
+			await git.reset({ mode: "hard", head: await git.getParentCommit(await git.getHeadCommit()) });
 		});
 		afterEach(async () => {
 			await dfp.delete(new Path(repNameWithSubmodules));
@@ -77,7 +77,7 @@ describe("GitStorage", () => {
 			git = new GitCommands(dfp, new Path(repNameWithoutSubmodules));
 			storage = new GitStorage(new Path(repNameWithoutSubmodules), dfp);
 
-			await git.hardReset(await git.getParentCommit(await git.getHeadCommit()));
+			await git.reset({ mode: "hard", head: await git.getParentCommit(await git.getHeadCommit()) });
 		});
 		afterEach(async () => {
 			await dfp.delete(new Path(repNameWithoutSubmodules));

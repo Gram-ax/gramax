@@ -9,6 +9,7 @@ import { CONFIG_NAME } from "../../../utils/predefinedValues";
 import { loadConfig } from "../utils/config";
 import { ImportYandexOptions } from "./command";
 import { logStep } from "../utils/logger";
+import CliUserError from "../../CliUserError";
 
 export const importYandexCommandFunction = async (options: ImportYandexOptions) => {
 	const { raw, config: pathToConfig, destination: pathToDistDir } = options;
@@ -16,12 +17,12 @@ export const importYandexCommandFunction = async (options: ImportYandexOptions) 
 	const config = await loadConfig(resolve(pathToConfig, CONFIG_NAME), true);
 
 	const headers = config?.import?.yandex?.headers;
-	if (!headers) throw new Error("Headers are not defined in configuration");
+	if (!headers) throw new CliUserError("Headers are not defined in configuration");
 
 	const requiredKeys = ["x-csrf-token", "x-org-id", "cookie"];
 	const missing = requiredKeys.filter((key) => !(key in headers));
 
-	if (missing.length > 0) throw new Error(`Missing required headers in config: ${missing.join(", ")}`);
+	if (missing.length > 0) throw new CliUserError(`Missing required headers in config: ${missing.join(", ")}`);
 
 	FetchActions.init(headers);
 	InternalPath.init(pathToDistDir);

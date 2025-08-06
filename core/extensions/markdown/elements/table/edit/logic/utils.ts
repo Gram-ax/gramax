@@ -29,7 +29,7 @@ export const addRowDecoration = (sheet: TableNodeSheet, rowIndex: number, tr: Tr
 	const sheetData = sheet.getSheet();
 	if (!sheetData || !sheetData[0]) return null;
 
-	const logicalRow = sheet.getRow(sheet.getLogicalRowIndex(rowIndex));
+	const logicalRow = sheet.getRow(rowIndex);
 	if (logicalRow.length === 0) return null;
 
 	logicalRow.forEach((cell) => {
@@ -189,6 +189,8 @@ export const addColumn = (editor: Editor, cellPosition?: number) => {
 };
 
 const findCellByPosition = (event: MouseEvent, parent: HTMLElement): HTMLTableCellElement => {
+	if (!parent || !(parent instanceof HTMLElement)) return;
+
 	const { clientX, clientY } = event;
 	const tableRect = parent.getBoundingClientRect();
 

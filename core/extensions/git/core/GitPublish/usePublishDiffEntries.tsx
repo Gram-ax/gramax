@@ -29,7 +29,8 @@ const usePublishDiffEntries = ({ autoUpdate }: { autoUpdate?: boolean }): UsePub
 	const overview = GitIndexService.getOverview();
 	const gitStatus = GitIndexService.getStatus();
 
-	useWatch(() => {
+	// useWatch do react warning: bad state update
+	useEffect(() => {
 		if (!diffTree) return;
 		PublishChangesProvider.value = diffTree.tree;
 	}, [diffTree]);
@@ -53,12 +54,13 @@ const usePublishDiffEntries = ({ autoUpdate }: { autoUpdate?: boolean }): UsePub
 	}, [catalogProps.name]);
 
 	useWatch(() => {
+		if (!autoUpdate) return;
 		if (!gitStatus?.size) {
 			setDiffTree(null);
 			return;
 		}
 		request();
-	}, [gitStatus, request]);
+	}, [gitStatus, request, autoUpdate]);
 
 	useEffect(() => {
 		if (!autoUpdate) return;

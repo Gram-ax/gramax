@@ -40,12 +40,14 @@ export class GitDataParser {
 	): string {
 		const links: Record<SourceType, string> = {
 			Git: "",
-			"Confluence Cloud": "",
-			"Confluence self-hosted server": "",
-			Notion: "",
-			"Yandex.Disk": "",
 			GitHub: `https://${sourceName}/${group}/${repName}/edit/${branch}/${filePath.value}`,
 			GitLab: `https://${sourceName}/-/ide/project/${group}/${repName}/blob/${branch}/-/${filePath.value}`,
+			GitVerse: `https://${sourceName}/${group}/${repName}/content/${branch}/${filePath.value}`,
+
+			"Confluence Cloud": "",
+			"Confluence self-hosted server": "",
+
+			Notion: "",
 		};
 		return links[sourceType];
 	}

@@ -4,7 +4,7 @@ import { cssMedia } from "@core-ui/utils/cssUtils";
 import styled from "@emotion/styled";
 import { useMediaQuery } from "@mui/material";
 import Tippy, { TippyProps } from "@tippyjs/react";
-import { ReactNode, forwardRef, useState, useEffect, useRef, RefObject } from "react";
+import { ReactNode, RefObject, forwardRef, useEffect, useRef, useState } from "react";
 import { Placement } from "tippy.js";
 
 interface TooltipProps extends TippyProps {
@@ -26,6 +26,9 @@ interface TooltipContentProps extends Omit<TooltipProps, "children"> {
 	children: ReactNode;
 }
 
+export const DEFAULT_TOOLTIP_SHOW_DELAY = 560;
+const DEFAULT_DELAY = [DEFAULT_TOOLTIP_SHOW_DELAY, 0] as [number, number];
+
 const Tooltip = forwardRef((props: TooltipProps, ref?: RefObject<Element>) => {
 	const {
 		children,
@@ -41,10 +44,11 @@ const Tooltip = forwardRef((props: TooltipProps, ref?: RefObject<Element>) => {
 		hideOnClick = false,
 		setPlaceCallback = () => {},
 		interactive = false,
-		delay = 0,
+		delay,
 		interactiveBorder = 10,
 		inverseStyle,
 		appendTo = () => document.body,
+		onMount,
 		...otherProps
 	} = props;
 
@@ -75,19 +79,21 @@ const Tooltip = forwardRef((props: TooltipProps, ref?: RefObject<Element>) => {
 				)
 			}
 			duration={0}
-			trigger={visible ? undefined : trigger}
+			trigger={trigger}
 			visible={visible}
+			maxWidth="30em"
 			placement={place}
 			interactiveBorder={interactiveBorder}
 			offset={[0, distance]}
 			hideOnClick={visible !== undefined && !hideOnClick ? undefined : hideOnClick}
 			onMount={(instance) => {
+				onMount?.(instance);
 				setFinalPlace(instance.popperInstance.state.placement);
 			}}
 			ref={tooltipRef}
 			appendTo={appendTo}
 			interactive={interactive}
-			delay={delay}
+			delay={interactive ? delay : DEFAULT_DELAY}
 			{...otherProps}
 			className={interactive ? "interactive-tooltip" : undefined}
 		>

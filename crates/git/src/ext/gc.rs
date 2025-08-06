@@ -1,9 +1,15 @@
+use std::cell::RefCell;
+use std::fmt::Display;
+
 use git2::*;
 use indexmap::IndexSet;
+use itertools::intersperse;
+use itertools::Itertools;
 
 use crate::creds::Creds;
 use crate::error::OrUtf8Err;
 use crate::error::Result;
+use crate::ext::walk::*;
 use crate::prelude::*;
 use crate::time_now;
 
@@ -11,6 +17,7 @@ const TAG: &str = "git:gc";
 
 pub trait Gc {
   fn gc(&self, opts: GcOptions) -> Result<()>;
+  fn last_gc(&self) -> Result<Option<GcLog>>;
 }
 
 #[derive(serde::Deserialize, Clone, Default, Debug)]
@@ -20,49 +27,118 @@ pub struct GcOptions {
   pub pack_files_limit: Option<usize>,
 }
 
-impl<C: Creds> Gc for Repo<C> {
-  fn gc(&self, opts: GcOptions) -> Result<()> {
-    let start = time_now();
-    let loose_objects = self.collect_loose_objects()?;
-    let time_loose_objects = time_now() - start;
+#[derive(Debug)]
+pub struct HealthcheckError {
+  pub inner: Option<git2::Error>,
+  pub bad_objects: Option<Vec<BadObject>>,
+  pub prev_log: Option<GcLog>,
+}
 
-    let start = time_now();
-    let unreachable_objects = self.collect_unreachable_objects(&loose_objects)?;
-    let time_unreachable_objects = time_now() - start;
+#[derive(Clone, Debug)]
+pub struct GcLog {
+  pub timestamp_sec: u64,
+  pub log: Option<String>,
+}
 
-    if !unreachable_objects.is_empty() {
-      info!(
-        target: TAG,
-        "found {count} unreachable loose objects in {time:?} (counting took {time_loose:?}){limit}",
-        count = unreachable_objects.len(),
-        time = time_unreachable_objects,
-        time_loose = time_loose_objects,
-        limit = opts.loose_objects_limit.as_ref().map_or("".to_string(), |limit| format!("; limit set to {}", limit))
-      );
+impl Display for GcLog {
+  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    let datetime = chrono::DateTime::from_timestamp(self.timestamp_sec as i64, 0).unwrap_or_default();
+    writeln!(f, "timestamp: {}", datetime.format("%H:%M:%S %d.%m.%Y"))?;
 
-      self.remove_objects(&unreachable_objects)?;
-    } else {
-      info!(
-        target: TAG, "no unreachable loose objects found in {time:?} (counting took {time_loose:?})",
-        time = time_unreachable_objects,
-        time_loose = time_loose_objects
-      );
-    }
-
-    if let Some(limit) = opts.loose_objects_limit {
-      let loose_objects = self.collect_loose_objects()?;
-
-      if loose_objects.len() > limit {
-        info!(target: TAG, "loose objects limit ({} > {} limit) reached; packing...", loose_objects.len(), limit);
-        self.repack(&loose_objects)?;
-      }
+    if let Some(log) = &self.log {
+      write!(f, "\n{log}")?;
     }
 
     Ok(())
   }
 }
 
+impl Display for HealthcheckError {
+  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    if let Some(inner) = &self.inner {
+      writeln!(f, "{inner}")?;
+    }
+
+    if let Some(bad_objects) = &self.bad_objects {
+      let uniq = bad_objects.iter().unique_by(|o| o.oid).collect::<Vec<_>>();
+      let has_duplicates = uniq.len() != bad_objects.len();
+
+      writeln!(f, "found {} bad objects:", uniq.len())?;
+
+      for bad_object in &uniq {
+        writeln!(f, "- {bad_object}\n")?;
+      }
+
+      if has_duplicates {
+        let duplicates = bad_objects.iter().duplicates_by(|o| o.oid).collect::<Vec<_>>();
+        writeln!(f, "and {} duplicate bad objects:", duplicates.len())?;
+        for bad_object in duplicates {
+          writeln!(f, "- {bad_object}\n")?;
+        }
+      }
+    }
+
+    if let Some(prev_log) = &self.prev_log {
+      writeln!(f, "previous gc log:\n{prev_log}")?;
+    }
+    Ok(())
+  }
+}
+
+impl<C: Creds> Gc for Repo<C> {
+  fn gc(&self, opts: GcOptions) -> Result<()> {
+    let last_gc = self.last_gc()?;
+
+    if let Some(ref last_gc) = last_gc {
+      info!(target: TAG, "last gc {last_gc}");
+    }
+
+    let gc_res = self.gc_inner(opts);
+
+    let bad_objects = self.healthcheck()?;
+    self.write_gc_log(&gc_res, &bad_objects)?;
+    self.handle_gc_result(gc_res, bad_objects, last_gc)
+  }
+
+  fn last_gc(&self) -> Result<Option<GcLog>> {
+    let log_path = self.0.path().join("gramax/gc.log");
+    let log = match std::fs::read_to_string(log_path) {
+      Ok(log) => log,
+      Err(err) => {
+        error!(target: TAG, "failed to read gc log: {err}");
+        return Ok(None);
+      }
+    };
+
+    let mut lines = log.lines();
+    let timestamp_sec = lines.next().and_then(|l| l.trim().parse::<u64>().ok());
+    let log = intersperse(lines, "\n").collect::<String>().trim().to_string();
+
+    let gc_log = timestamp_sec
+      .map(|timestamp_sec| GcLog { timestamp_sec, log: if log.is_empty() { None } else { Some(log) } });
+
+    Ok(gc_log)
+  }
+}
+
 impl<C: Creds> Repo<C> {
+  pub fn collect_unreachable_objects(&self, loose_objects: &IndexSet<Oid>) -> Result<IndexSet<Oid>> {
+    let visited_objects = RefCell::new(IndexSet::new());
+
+    let opts = WalkOptions {
+      on_walk: &mut |oid| {
+        visited_objects.borrow_mut().insert(oid);
+        Ok(())
+      },
+      should_skip_object: &mut |oid| visited_objects.borrow().contains(&oid),
+      on_bad_object: &mut |_| {},
+    };
+
+    self.walk(opts)?;
+
+    Ok(loose_objects.difference(&visited_objects.into_inner()).cloned().collect())
+  }
+
   pub fn collect_loose_objects(&self) -> Result<IndexSet<Oid>> {
     let objects_dir = self.0.path().join("objects");
     let exclude = ["pack", "info"];
@@ -91,7 +167,7 @@ impl<C: Creds> Repo<C> {
       .filter_map(|path| {
         let file_name = path.file_name()?.to_str()?;
         let prefix = path.parent()?.file_name()?.to_str()?;
-        let oid_str = format!("{}{}", prefix, file_name);
+        let oid_str = format!("{prefix}{file_name}");
 
         Oid::from_str(&oid_str)
           .inspect_err(|e| {
@@ -125,7 +201,7 @@ impl<C: Creds> Repo<C> {
           .map_err(|e| format!("failed to remove object {} (at {}): {}", oid, path.display(), e))
       })
       .filter_map(|r| r.err())
-      .for_each(|error| error!(target: TAG, "{}", error));
+      .for_each(|error| error!(target: TAG, "{error}"));
 
     prefixes
       .iter()
@@ -137,7 +213,7 @@ impl<C: Creds> Repo<C> {
       })
       .filter_map(|r| r.err())
       .for_each(|error| {
-        error!(target: TAG, "{}", error);
+        error!(target: TAG, "{error}");
       });
 
     let odb = self.0.odb()?;
@@ -146,101 +222,42 @@ impl<C: Creds> Repo<C> {
     Ok(())
   }
 
-  pub fn collect_unreachable_objects(&self, loose_objects: &IndexSet<Oid>) -> Result<IndexSet<Oid>> {
-    let mut visited_objects = IndexSet::new();
+  fn gc_inner(&self, opts: GcOptions) -> Result<IndexSet<Oid>> {
+    let start = time_now();
+    let loose_objects = self.collect_loose_objects()?;
+    let time_loose_objects = time_now() - start;
 
-    self.visit_objects_index(&mut visited_objects)?;
-    self.visit_objects_revwalk(&mut visited_objects)?;
-    self.visit_objects_refs(&mut visited_objects)?;
+    let start = time_now();
+    let unreachable_objects = self.collect_unreachable_objects(&loose_objects)?;
+    let time_unreachable_objects = time_now() - start;
 
-    Ok(loose_objects.difference(&visited_objects).cloned().collect())
-  }
+    if !unreachable_objects.is_empty() {
+      info!(
+        target: TAG,
+        "found {count} unreachable loose objects in {time:?} (counting took {time_loose:?}){limit}",
+        count = unreachable_objects.len(),
+        time = time_unreachable_objects,
+        time_loose = time_loose_objects,
+        limit = opts.loose_objects_limit.as_ref().map_or("".to_string(), |limit| format!("; limit set to {limit}"))
+      );
 
-  fn visit_objects_revwalk(&self, visited_objects: &mut IndexSet<Oid>) -> Result<()> {
-    let mut revwalk = self.0.revwalk()?;
-    revwalk.set_sorting(git2::Sort::NONE)?;
-    revwalk.push_head()?;
-
-    for oid in revwalk.filter_map(|id| id.ok()) {
-      if visited_objects.contains(&oid) {
-        trace!(target: TAG, "skipping {}", oid);
-        continue;
-      }
-
-      let commit = self.0.find_commit(oid)?;
-
-      visited_objects.insert(oid);
-      self.visit_objects_tree(commit.tree()?, visited_objects)?;
+      self.remove_objects(&unreachable_objects)?;
+    } else {
+      info!(
+        target: TAG, "no unreachable loose objects found in {time_unreachable_objects:?} (counting took {time_loose_objects:?})"
+      );
     }
 
-    Ok(())
-  }
+    if let Some(limit) = opts.loose_objects_limit {
+      let loose_objects = self.collect_loose_objects()?;
 
-  fn visit_objects_tree(&self, tree: Tree<'_>, visited_objects: &mut IndexSet<Oid>) -> Result<()> {
-    let id = tree.id();
-
-    visited_objects.insert(id);
-
-    for entry in tree.iter() {
-      if entry.kind() == Some(ObjectType::Tree) && !visited_objects.contains(&entry.id()) {
-        self.visit_objects_tree(self.0.find_tree(entry.id())?, visited_objects)?;
-      }
-
-      visited_objects.insert(entry.id());
-    }
-
-    Ok(())
-  }
-
-  fn visit_objects_refs(&self, visited_objects: &mut IndexSet<Oid>) -> Result<()> {
-    let refs = self.0.references()?;
-
-    for reference in refs
-      .filter_map(|r| r.ok())
-      .filter_map(|r| r.name().map(ToOwned::to_owned))
-      .chain(std::iter::once("HEAD".to_string()))
-    {
-      if let Ok(reflog) = self.0.reflog(&reference) {
-        for entry in reflog.iter() {
-          let new_oid = entry.id_new();
-
-          if visited_objects.contains(&new_oid) {
-            continue;
-          }
-
-          if let Ok(commit) = self.0.find_commit(new_oid) {
-            visited_objects.insert(new_oid);
-            if let Ok(tree) = commit.tree() {
-              self.visit_objects_tree(tree, visited_objects)?;
-            }
-          }
-
-          let old_oid = entry.id_old();
-          if old_oid.is_zero() {
-            continue;
-          }
-
-          if let Ok(commit) = self.0.find_commit(old_oid) {
-            visited_objects.insert(old_oid);
-            if let Ok(tree) = commit.tree() {
-              self.visit_objects_tree(tree, visited_objects)?;
-            }
-          }
-        }
+      if loose_objects.len() > limit {
+        info!(target: TAG, "loose objects limit ({} > {} limit) reached; packing...", loose_objects.len(), limit);
+        self.repack(&loose_objects)?;
       }
     }
 
-    Ok(())
-  }
-
-  fn visit_objects_index(&self, visited_objects: &mut IndexSet<Oid>) -> Result<()> {
-    let index = self.0.index()?;
-
-    for entry in index.iter() {
-      visited_objects.insert(entry.id);
-    }
-
-    Ok(())
+    Ok(unreachable_objects)
   }
 
   fn repack(&self, objects: &IndexSet<Oid>) -> Result<()> {
@@ -264,6 +281,50 @@ impl<C: Creds> Repo<C> {
     let packfile_path = pack_dir.join(pack_name).with_extension("pack");
 
     info!(target: TAG, "repacked {} objects in {:?}; packfile: {}", packbuilder.written(), time_repack, packfile_path.display());
+    Ok(())
+  }
+
+  fn write_gc_log(&self, gc_res: &Result<IndexSet<Oid>>, bad_objects: &[BadObject]) -> Result<()> {
+    use std::io::Write;
+
+    let log_dir_path = self.0.path().join("gramax");
+    std::fs::create_dir_all(&log_dir_path)?;
+
+    let log_path = log_dir_path.join("gc.log");
+    let mut file = std::fs::File::create(log_path)?;
+    file.write_all(format!("{}\n", crate::time_now().as_secs()).as_bytes())?;
+    file.write_all(bad_objects.iter().map(|o| format!("{o}\n")).collect::<Vec<_>>().join("\n").as_bytes())?;
+
+    if let Ok(removed_objects) = gc_res {
+      file.write_all(format!("\nremoved objects: {}\n", removed_objects.len()).as_bytes())?;
+      file.write_all(
+        removed_objects.iter().map(|o| format!("{o}\n")).collect::<Vec<_>>().join("\n").as_bytes(),
+      )?;
+    }
+    Ok(())
+  }
+
+  fn handle_gc_result(
+    &self,
+    gc_res: Result<IndexSet<Oid>>,
+    bad_objects: Vec<BadObject>,
+    last_gc: Option<GcLog>,
+  ) -> Result<()> {
+    if gc_res.is_err() || !bad_objects.is_empty() {
+      let inner = gc_res.err().into_iter().find_map(|e| match e {
+        crate::error::Error::Git(e) => Some(e),
+        _ => None,
+      });
+
+      let err = HealthcheckError {
+        inner,
+        bad_objects: if bad_objects.is_empty() { None } else { Some(bad_objects) },
+        prev_log: last_gc,
+      };
+
+      return Err(crate::error::Error::Healthcheck(err));
+    }
+
     Ok(())
   }
 }

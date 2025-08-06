@@ -1,4 +1,3 @@
-import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import { useRouter } from "@core/Api/useRouter";
 import Path from "@core/FileProvider/Path/Path";
 import RouterPathProvider from "@core/RouterPath/RouterPathProvider";
@@ -9,14 +8,13 @@ import { useEffect } from "react";
 
 const useOnPathnameUpdateBranch = () => {
 	const router = useRouter();
-	const { isReadOnly } = PageDataContextService.value.conf;
 
 	useEffect(() => {
 		const onUpdateBranch = (branch: GitBranchData, caller: OnBranchUpdateCaller) => {
 			if (caller === OnBranchUpdateCaller.MergeRequest || caller === OnBranchUpdateCaller.Publish) return;
 
 			const routerPath = new Path(router.path + router.hash).removeExtraSymbols;
-			if (isReadOnly || !RouterPathProvider.isEditorPathname(routerPath)) return;
+			if (!RouterPathProvider.isEditorPathname(routerPath)) return;
 
 			const checkoutToNewCreatedBranch = caller === OnBranchUpdateCaller.CheckoutToNewCreatedBranch;
 			if (checkoutToNewCreatedBranch) return;
@@ -36,7 +34,7 @@ const useOnPathnameUpdateBranch = () => {
 
 		BranchUpdaterService.addListener(onUpdateBranch);
 		return () => BranchUpdaterService.removeListener(onUpdateBranch);
-	}, [router.path, router.hash, isReadOnly]);
+	}, [router.path, router.hash]);
 };
 
 export default useOnPathnameUpdateBranch;

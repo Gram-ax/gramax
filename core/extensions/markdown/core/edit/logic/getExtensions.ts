@@ -4,8 +4,6 @@ import ArticleSearch from "@ext/markdown/elements/find/edit/models/ArticleSearch
 import { Extensions } from "@tiptap/react";
 
 import History from "@tiptap/extension-history";
-import OrderedList from "@tiptap/extension-ordered-list";
-import TaskList from "@tiptap/extension-task-list";
 import Text from "@tiptap/extension-text";
 
 import GramaxAi from "@ext/ai/logic/GramaxAiExtension";
@@ -15,7 +13,6 @@ import BlockContentField from "@ext/markdown/elements/blockContentField/edit/mod
 import HardBreak from "@ext/markdown/elements/br/edit/hardBreak";
 import Code from "@ext/markdown/elements/code/edit/model/code";
 import Color from "@ext/markdown/elements/color/edit/model/color";
-import Comment from "@ext/markdown/elements/comment/edit/model/comment";
 import CopyMsO from "@ext/markdown/elements/copyMsO/copyMsO";
 import InlineCutComponent from "@ext/markdown/elements/cut/edit/model/inlineCut";
 import Diagrams from "@ext/markdown/elements/diagrams/edit/models/diagrams";
@@ -37,7 +34,6 @@ import LineBreakers from "@ext/markdown/elements/lineBreakers/lineBreakers";
 import LinkComponent from "@ext/markdown/elements/link/edit/model/link";
 import CustomBulletList from "@ext/markdown/elements/list/edit/models/bulletList/model/customBulletList";
 import CustomListItem from "@ext/markdown/elements/list/edit/models/listItem/model/listItem";
-import CustomTaskItem from "@ext/markdown/elements/list/edit/models/taskItem/model/taskItem";
 import BlockMd from "@ext/markdown/elements/md/model/blockMd";
 import InlineMdComponent from "@ext/markdown/elements/md/model/inlineMd";
 import ArrowsMove from "@ext/markdown/elements/moveNode/model/ArrowsMove";
@@ -61,6 +57,9 @@ import View from "@ext/markdown/elements/view/edit/models/view";
 import { Suggestion } from "@ext/StyleGuide/extension/Suggestion";
 import BlockProperty from "@ext/markdown/elements/blockProperty/edit/models/blockProperty";
 import InlineImage from "@ext/markdown/elements/inlineImage/edit/models/node";
+import Highlight from "@ext/markdown/elements/highlight/edit/model/mark";
+import CustomOrderList from "@ext/markdown/elements/list/edit/models/orderList/model/customOrderList";
+import CustomTaskList from "@ext/markdown/elements/list/edit/models/taskList/model/customTaskList";
 
 export interface GetExtensionsPropsOptions {
 	includeResources?: boolean;
@@ -88,6 +87,7 @@ const getExtensions = (options?: GetExtensionsPropsOptions): Extensions => [
 	Tabs,
 	Tab,
 	Suggestion,
+	Highlight,
 	Color,
 	Br,
 	Snippet,
@@ -113,12 +113,10 @@ const getExtensions = (options?: GetExtensionsPropsOptions): Extensions => [
 	Em,
 	GapParagraph,
 	HardBreak,
-	OrderedList,
+	CustomOrderList,
 	CustomBulletList,
-	TaskList,
-	CustomTaskItem,
+	CustomTaskList,
 	CustomListItem,
-	Comment,
 	GramaxAi,
 
 	...(options?.includeResources ? getResourcesExtensions() : []),

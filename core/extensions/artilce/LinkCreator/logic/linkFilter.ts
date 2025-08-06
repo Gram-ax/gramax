@@ -21,11 +21,10 @@ const linkFilter = (items: ListItem[], input: string) => {
 				return;
 			}
 
-			const filePath = new Path(
-				RouterPathProvider.parsePath(
-					(item.element as ReactElement<LinkItemSidebarProps>).props.item.pathname,
-				).filePath,
-			).value;
+			const pathname = (item.element as ReactElement<LinkItemSidebarProps>).props.item?.pathname;
+			if (!pathname) return null;
+
+			const filePath = new Path(RouterPathProvider.parsePath(pathname).filePath).value;
 
 			if (currentFilter(filePath)) {
 				filteredItemsByPath.push(item);

@@ -84,7 +84,7 @@ export const getLevelTocItemsByRenderableTree = (tags: RenderableTreeNode[] | JS
 		if (children) children.forEach((child) => recursiveTraversal(child));
 	};
 
-	tags.forEach((tag) => recursiveTraversal(tag));
+	tags?.forEach((tag) => recursiveTraversal(tag));
 
 	return items;
 };
@@ -105,9 +105,10 @@ export const getLevelTocItemsByJSONContent = (node: Node): LevelTocItem[] => {
 
 	const recursivePushItem = (n: Node) => {
 		if (n?.type?.name == "comment" && n?.firstChild?.type?.name == "heading") recursivePushItem(n.firstChild);
-		if (n?.type?.name == "block-property") n.content.forEach((c) => recursivePushItem(c));
 		if (n?.type?.name == "heading") pushItem(n);
-		if (n?.type?.name == "snippet") items.push(...getLevelTocItemsByRenderableTree(n.attrs.content));
+		if (n?.type?.name == "snippet" && n.attrs.content)
+			items.push(...getLevelTocItemsByRenderableTree(n.attrs.content));
+
 		n?.content?.forEach((n) => {
 			recursivePushItem(n);
 		});

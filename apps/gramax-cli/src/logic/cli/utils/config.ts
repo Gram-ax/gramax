@@ -3,6 +3,7 @@ import { parse } from "yaml";
 import { AppConfig } from "@app/config/AppConfig";
 import { logStep } from "./logger";
 import ChalkLogger from "../../../utils/ChalkLogger";
+import CliUserError from "../../CliUserError";
 type AppBuildConfig = Pick<AppConfig, "logo" | "metrics">;
 
 type BuildConfig = {
@@ -30,10 +31,14 @@ export type CliConfig = {
 
 export const loadConfig = async (configPath: string, force = false) => {
 	const isExist = await exists(configPath);
-	if (!isExist && force) throw new Error(`Configuration file not found at path: ${configPath}`);
+	if (!isExist && force) throw new CliUserError(`Configuration file not found at path: ${configPath}`);
 	if (!isExist) return {} as CliConfig;
 
 	const fileContents = await logStep("Reading configuration file", () => readFile(configPath, "utf-8"));
 	ChalkLogger.log(`Found: ${configPath}`, { indent: 1 });
-	return ((await logStep("Parsing YAML configuration", () => parse(fileContents))) as CliConfig) || ({} as CliConfig);
+	return (
+		((await logStep("Parsing YAML configuration", () => parse(fileContents), {
+			catchF: (e) => new CliUserError(e.message),
+		})) as CliConfig) || ({} as CliConfig)
+	);
 };

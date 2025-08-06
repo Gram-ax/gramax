@@ -8,7 +8,8 @@ pub fn handle_external_url(url: &url::Url) -> bool {
   #[cfg(desktop)]
   {
     use crate::error::ShowError;
-    let _ = open::that(url.as_str()).or_show_with_message(&t!("etc.error.open-url", url = url.as_str()));
+    let _ =
+      open::that_detached(url.as_str()).or_show_with_message(&t!("etc.error.open-url", url = url.as_str()));
     false
   }
 

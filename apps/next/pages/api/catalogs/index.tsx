@@ -10,10 +10,10 @@ export default ApplyApiMiddleware(
 	async function (req: ApiRequest, res: ApiResponse) {
 		const context = await this.app.contextFactory.from(req, res);
 		const dataProvider = this.app.sitePresenterFactory.fromContext(context);
-		const catalogs = await dataProvider.getHomePageData(await this.app.wm.current().config());
+		const homePageData = await dataProvider.getHomePageData(await this.app.wm.current().config());
 		res.setHeader("Content-type", "application/json; charset=utf-8");
 		res.setHeader("Access-Control-Allow-Origin", "*");
-		const сatalogList = TransformData.getListOfCatalogs(catalogs);
+		const сatalogList = TransformData.getListOfCatalogs(homePageData);
 		res.send(сatalogList);
 	},
 	[new MainMiddleware(), new AllowedOriginsMiddleware(), new TokenValidationMiddleware()],

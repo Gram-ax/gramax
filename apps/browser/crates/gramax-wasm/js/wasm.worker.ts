@@ -74,9 +74,8 @@ self.addEventListener("message", async (ev) => {
 		const id = await callGit(ev.data.command, ev.data.args);
 		callbacks[id] = { callbackId: ev.data.callbackId, command: ev.data.command, type: ev.data.type };
 
-		if (ev.data.command === "clone_cancel") {
+		if (ev.data.command === "clone_cancel")
 			broadcast.postMessage({ type: "cancel-clone", id: ev.data.args.id, date: Date.now() });
-		}
 		return;
 	}
 

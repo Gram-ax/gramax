@@ -57,7 +57,7 @@ fn create_merge_request_same_branch(_sandbox: TempDir, #[with(&_sandbox)] repos:
   match err {
     gramaxgit::error::Error::Git(err)
       if err.code() == git2::ErrorCode::Invalid && err.class() == git2::ErrorClass::Reference => {}
-    err => panic!("unexpected error: {:?}", err),
+    err => panic!("unexpected error: {err:?}"),
   }
 
   assert!(!std::fs::exists(local_path.join(".gramax/mr/open.yaml"))?);
@@ -84,7 +84,7 @@ fn create_merge_request_invalid_branch(_sandbox: TempDir, #[with(&_sandbox)] rep
   match err {
     gramaxgit::error::Error::Git(err)
       if err.code() == git2::ErrorCode::NotFound && err.class() == git2::ErrorClass::Reference => {}
-    err => panic!("unexpected error: {:?}", err),
+    err => panic!("unexpected error: {err:?}"),
   }
 
   assert!(!std::fs::exists(local_path.join(".gramax/mr/open.yaml"))?);

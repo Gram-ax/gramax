@@ -179,49 +179,28 @@ const listTransformer = (node: JSONContent): JSONContent => {
 };
 
 const parentLinksTagTransformer = (tag: Child): object | object[] => {
-	const linkChildren =
-		"children" in tag
-			? tag.children.filter((child: Tag) => child?.name === "Link")
-			: tag.content.filter((child: JSONContent) => child?.name === "Link");
+	const children = "children" in tag ? tag.children : tag.content;
+	const linkChildrenExist = children.some((child: Tag) => child?.name === "Link");
 
-	if (!linkChildren.length) return tag;
-
-	const linksByHref: Record<string, Tag[]> = {};
-
-	linkChildren.forEach((link: Tag) => {
-		const href = link.attributes.href;
-		if (!linksByHref[href]) {
-			linksByHref[href] = [];
-		}
-		linksByHref[href].push(link);
-	});
+	if (!linkChildrenExist) return tag;
 
 	const newChildren: Tag[] = [];
 
-	for (let i = 0; i < tag.children.length; i++) {
-		const child = "children" in tag ? tag.children[i] : tag.content[i];
+	for (let i = 0; i < children.length; i++) {
+		const child = children[i];
 
-		if (child.name !== "Link") {
+		if (i === 0 || child.name !== "Link") {
 			newChildren.push(child);
 			continue;
 		}
 
-		const href = child.attributes.href;
-		const linksWithSameHref = linksByHref[href];
+		const currentHref = child.attributes.href;
+		const previousElement = newChildren[newChildren.length - 1];
 
-		if (linksWithSameHref && linksWithSameHref[0] === child) {
-			const combinedLink: Tag = {
-				...child,
-				children: [],
-			};
-
-			linksWithSameHref.forEach((link) => {
-				combinedLink.children.push(...link.children);
-			});
-
-			newChildren.push(combinedLink);
-
-			i += linksWithSameHref.length - 1;
+		if (previousElement && previousElement.attributes?.href === currentHref) {
+			previousElement.children.push(...child.children);
+		} else {
+			newChildren.push(child);
 		}
 	}
 

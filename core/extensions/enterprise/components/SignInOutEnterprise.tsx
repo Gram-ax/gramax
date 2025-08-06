@@ -1,13 +1,10 @@
-import ButtonLink from "@components/Molecules/ButtonLink";
+import { UserAvatar } from "@components/Actions/SingInOut";
+import Icon from "@components/Atoms/Icon";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
-import styled from "@emotion/styled";
 import SignInEnterprise from "@ext/enterprise/components/SignInEnterprise";
 import SignOutEnterprise from "@ext/enterprise/components/SignOutEnterprise";
 import t from "@ext/localization/locale/translate";
-
-const StyledLink = styled.a`
-	white-space: nowrap;
-`;
+import { IconButton } from "@ui-kit/Button";
 
 const SignInOutEnterprise = () => {
 	const workspaceContext = PageDataContextService.value.workspace;
@@ -18,25 +15,22 @@ const SignInOutEnterprise = () => {
 
 	if (workspaceConfig?.enterprise?.gesUrl)
 		return (
-			<SignOutEnterprise
-				trigger={
-					<StyledLink data-qa="qa-clickable">
-						<ButtonLink iconCode="log-in" text={t("sing-out")} />
-					</StyledLink>
+			<UserAvatar
+				logOutComponent={
+					<SignOutEnterprise
+						trigger={
+							<div className="flex items-center gap-2 w-full" data-qa="qa-clickable">
+								<Icon code="log-out" />
+								{t("sing-out")}
+							</div>
+						}
+						workspaceConfig={workspaceConfig}
+					/>
 				}
-				workspaceConfig={workspaceConfig}
 			/>
 		);
 
-	return (
-		<SignInEnterprise
-			trigger={
-				<StyledLink data-qa="qa-clickable">
-					<ButtonLink iconCode="log-in" text={t("sing-in")} />
-				</StyledLink>
-			}
-		/>
-	);
+	return <SignInEnterprise trigger={<IconButton variant="ghost" icon="log-in" />} />;
 };
 
 export default SignInOutEnterprise;

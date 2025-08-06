@@ -5,14 +5,13 @@ import { NodeSerializerSpec } from "@ext/markdown/core/edit/logic/Prosemirror/to
 
 const tableFormatter =
 	(formatter: FormatterType, context?: ParserContext): NodeSerializerSpec =>
-	async (state, node, ...other) => {
+	async (...args) => {
+		const [state, node] = args;
 		if (TableUtils.tableIsSimple(node)) {
-			const delim = state.delim;
-			state.delim = "";
-			state.write(await TableUtils.getSimpleTable(node, delim, context));
-			state.delim = delim;
+			const table = await TableUtils.getSimpleTable(node, state.delim, context);
+			state.write(table);
 		} else {
-			await formatter.nodeFormatters.table(state, node, ...other);
+			await formatter.nodeFormatters.table(...args);
 		}
 		state.closeBlock(node);
 	};

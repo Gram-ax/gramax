@@ -1,4 +1,3 @@
-import { classNames } from "@components/libs/classNames";
 import styled from "@emotion/styled";
 import { forwardRef, MutableRefObject, ReactElement, useLayoutEffect, useRef, useState } from "react";
 import DiagramError from "@ext/markdown/elements/diagrams/component/DiagramError";
@@ -8,6 +7,7 @@ import { resolveImageKind } from "@components/Atoms/Image/resolveImageKind";
 import ResourceService from "@ext/markdown/elements/copyArticles/resourceService";
 import Skeleton from "@components/Atoms/ImageSkeleton";
 import getAdjustedSize from "@core-ui/utils/getAdjustedSize";
+import BlockCommentView from "@ext/markdown/elements/comment/edit/components/BlockCommentView";
 
 interface DrawioProps {
 	id: string;
@@ -18,10 +18,11 @@ interface DrawioProps {
 	openEditor?: () => void;
 	className?: string;
 	noEm?: boolean;
+	commentId?: string;
 }
 
 const Drawio = forwardRef((props: DrawioProps, refT: MutableRefObject<HTMLImageElement>): ReactElement => {
-	const { id, src, title, width, height, className, openEditor, noEm } = props;
+	const { id, src, title, width, height, className, openEditor, noEm, commentId } = props;
 	const { useGetResource } = ResourceService.value;
 
 	const ref = refT || useRef<HTMLImageElement>(null);
@@ -64,22 +65,26 @@ const Drawio = forwardRef((props: DrawioProps, refT: MutableRefObject<HTMLImageE
 
 	return (
 		<div ref={parentRef} data-qa="qa-drawio">
-			<Skeleton isLoaded={isLoaded} width={size?.width} height={size?.height}>
-				<div className={classNames(className, {}, ["drawio"])} data-focusable="true">
-					<Image
-						ref={ref}
-						id={id}
-						realSrc={src}
-						modalTitle={title}
-						src={imageSrc}
-						onLoad={onLoad}
-						modalEdit={openEditor}
-						modalStyle={{
-							backgroundColor: "var(--color-diagram-bg)",
-							borderRadius: "var(--radius-large)",
-							padding: "20px",
-						}}
-					/>
+			<Skeleton isLoaded={isLoaded} width="100%" height={size?.height}>
+				<div className={className} data-focusable="true">
+					<BlockCommentView commentId={commentId}>
+						<div className="drawio">
+							<Image
+								ref={ref}
+								id={id}
+								realSrc={src}
+								modalTitle={title}
+								src={imageSrc}
+								onLoad={onLoad}
+								modalEdit={openEditor}
+								modalStyle={{
+									backgroundColor: "var(--color-diagram-bg)",
+									borderRadius: "var(--radius-large)",
+									padding: "20px",
+								}}
+							/>
+						</div>
+					</BlockCommentView>
 				</div>
 			</Skeleton>
 
@@ -89,13 +94,16 @@ const Drawio = forwardRef((props: DrawioProps, refT: MutableRefObject<HTMLImageE
 });
 
 export default styled(Drawio)`
-	display: flex;
-	justify-content: center;
 	width: 100%;
-	margin: 0.5em 0;
 	background-color: var(--color-diagram-bg);
 	border-radius: var(--radius-large);
-	padding: 0.8em;
+
+	.drawio {
+		display: flex;
+		justify-content: center;
+		padding: 0.8em;
+		margin: 0.5em 0;
+	}
 
 	img {
 		background-color: unset;

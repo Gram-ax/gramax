@@ -6,6 +6,7 @@ import { useMemo } from "react";
 import SmallEditor from "@ext/inbox/components/Editor/SmallEditor";
 import Main, { MainMenuOptions } from "@ext/markdown/core/edit/components/Menu/Menus/Main";
 import { ArticleProviderType } from "@ext/articleProvider/logic/ArticleProvider";
+import Comment from "@ext/markdown/elements/comment/edit/model/comment";
 
 interface TemplateEditorProps {
 	title: string;
@@ -20,6 +21,7 @@ interface TemplateEditorProps {
 
 const getCustomArticleExtensions = (extensions: Extensions, options?: GetExtensionsPropsOptions): Extensions => [
 	...getExtensions(options),
+	Comment,
 	...extensions,
 	Document.extend({
 		content: `paragraph ${ElementGroups.block}+`,

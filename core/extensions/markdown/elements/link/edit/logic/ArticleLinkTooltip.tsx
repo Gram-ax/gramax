@@ -51,14 +51,24 @@ export interface LinkTooltipProps extends Omit<TooltipProviderProps, "children" 
 	element: HTMLElement;
 	resourcePath?: string;
 	getMark: () => Mark | undefined;
+	hash?: string;
 }
 
 const ArticleLinkTooltip = (props: LinkTooltipProps) => {
-	const { closeHandler, element, apiUrlCreator, getMark, resourcePath, className, ...otherProps } = props;
+	const {
+		closeHandler,
+		element,
+		apiUrlCreator,
+		getMark,
+		resourcePath,
+		className,
+		hash: initialHash,
+		...otherProps
+	} = props;
 	const [isVisible, setIsVisible] = useState(false);
 	const [canClose, setCanClose] = useState(true);
 	const [data, setData] = useState<dataType>(null);
-	const [hash, setHash] = useState<string>(null);
+	const [hash, setHash] = useState<string>(initialHash);
 	const [tooltipPlace, setTooltipPlace] = useState("top");
 
 	const debounceClose = useDebounce(closeHandler, 200, canClose);
@@ -88,11 +98,13 @@ const ArticleLinkTooltip = (props: LinkTooltipProps) => {
 		const res = await FetchService.fetch<dataType>(url, undefined, undefined, undefined, false);
 
 		if (!res || !res.ok) return;
-		const data = await res.json();
-
-		if (mark?.attrs?.hash && mark.attrs?.hash !== hash) setHash(mark.attrs.hash);
-
-		setData(data);
+		try {
+			const data = await res.json();
+			if (mark?.attrs?.hash && mark.attrs?.hash !== hash) setHash(mark.attrs.hash);
+			setData(data);
+		} catch (error) {
+			console.warn("Error fetching article content", error);
+		}
 	}, [apiUrlCreator, getMark, resourcePath]);
 
 	const clearHandler = useCallback(() => {

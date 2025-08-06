@@ -1,4 +1,5 @@
 import DefaultError from "@ext/errorHandlers/logic/DefaultError";
+import NetworkApiError from "@ext/errorHandlers/network/NetworkApiError";
 import t from "@ext/localization/locale/translate";
 import ApiRequest from "../ApiRequest";
 import ApiResponse from "../ApiResponse";
@@ -6,6 +7,8 @@ import { apiUtils } from "../apiUtils";
 import Middleware from "./Middleware";
 
 export class MainMiddleware extends Middleware {
+	private _ignoreErrorInstances = [DefaultError, NetworkApiError];
+
 	constructor(private _path?: string) {
 		super();
 	}
@@ -19,7 +22,7 @@ export class MainMiddleware extends Middleware {
 		} catch (e) {
 			let defaultError: DefaultError;
 
-			if (e instanceof DefaultError) {
+			if (this._ignoreErrorInstances.some((instance) => e instanceof instance)) {
 				defaultError = e;
 				// if (defaultError?.cause) this._app.logger.logError(this._getPathError(defaultError.cause));
 			} else {
@@ -34,6 +37,7 @@ export class MainMiddleware extends Middleware {
 				);
 			}
 			if (isEnterprise) defaultError.setShowCause(false);
+			if (defaultError.props?.logCause && defaultError.cause) console.error(defaultError.cause);
 			apiUtils.sendError(res, defaultError);
 		}
 	}

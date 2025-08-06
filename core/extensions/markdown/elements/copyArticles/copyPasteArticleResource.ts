@@ -1,19 +1,19 @@
 import { resolveImageKind } from "@components/Atoms/Image/resolveImageKind";
 import ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
 import FetchService from "@core-ui/ApiServices/FetchService";
-import { ClientArticleProps } from "@core/SitePresenter/SitePresenter";
 import createPlainText from "@ext/markdown/elements/copyArticles/createPlainText";
 import { ResourceServiceType } from "@ext/markdown/elements/copyArticles/resourceService";
 import { Attrs, DOMSerializer, Fragment, Mark, Node as ProseMirrorNode, Schema, Slice } from "@tiptap/pm/model";
 import { Selection, Transaction } from "@tiptap/pm/state";
 import { handlePaste } from "prosemirror-tables";
 import { EditorView } from "prosemirror-view";
+import { readyToPlace } from "@ext/markdown/elementsUtils/cursorFunctions";
+import headingPasteFormatter from "@ext/markdown/elements/heading/edit/logic/headingPasteFormatter";
 
 interface CreateProps {
 	node: ProseMirrorNode;
 	view: EditorView;
 	event: ClipboardEvent;
-	articleProps: ClientArticleProps;
 	apiUrlCreator: ApiUrlCreator;
 	resourceService: ResourceServiceType;
 	tr: Transaction;
@@ -22,15 +22,14 @@ interface FilterProps {
 	view: EditorView;
 	node: ProseMirrorNode;
 	attrs: [] | Attrs;
+	headingAllowed: boolean;
 	apiUrlCreator: ApiUrlCreator;
-	articleProps: ClientArticleProps;
 	resourceService: ResourceServiceType;
 }
 
 interface PasteProps {
 	view: EditorView;
 	event: ClipboardEvent;
-	articleProps: ClientArticleProps;
 	apiUrlCreator: ApiUrlCreator;
 	resourceService: ResourceServiceType;
 }
@@ -73,7 +72,7 @@ const handleCommentary = (view: EditorView, marks: Mark[] | readonly Mark[]): Ma
 	return newMarks;
 };
 
-const createResource = async (
+const createResourceIfNeed = async (
 	node: ProseMirrorNode,
 	apiUrlCreator: ApiUrlCreator,
 	resourceService: ResourceServiceType,
@@ -97,7 +96,7 @@ const createResource = async (
 };
 
 const filterMarks = async (props: FilterProps): Promise<ProseMirrorNode> => {
-	const { view, node, attrs, apiUrlCreator, articleProps, resourceService } = props;
+	const { view, node, attrs, apiUrlCreator, resourceService, headingAllowed } = props;
 	const newChildren = [];
 
 	for (let index = 0; index < node.content.childCount; index++) {
@@ -105,9 +104,11 @@ const filterMarks = async (props: FilterProps): Promise<ProseMirrorNode> => {
 		let newChild = child;
 
 		if (Object.keys(newChild.attrs).length > 0 && !child.isText) {
-			const newAttrs = await createResource(child, apiUrlCreator, resourceService);
+			const newAttrs = await createResourceIfNeed(child, apiUrlCreator, resourceService);
 			newChild = child.type.create(newAttrs, child.content, child.marks);
 		}
+
+		if (!headingAllowed && newChild.type.name === "heading") newChild = headingPasteFormatter(view.state, newChild);
 
 		if (newChild.isText && newChild.marks.length > 0) {
 			const newMarks = handleCommentary(view, newChild.marks);
@@ -115,12 +116,9 @@ const filterMarks = async (props: FilterProps): Promise<ProseMirrorNode> => {
 		} else if (newChild.childCount > 0) {
 			newChildren.push(
 				await filterMarks({
-					view,
+					...props,
 					node: newChild,
 					attrs: newChild.attrs,
-					apiUrlCreator,
-					articleProps,
-					resourceService,
 				}),
 			);
 		} else {
@@ -182,18 +180,12 @@ const handleListItem = (data: ClipboardItems, view: EditorView, node: ProseMirro
 	}
 };
 
-const proceedNodes = async (
-	node: ProseMirrorNode,
-	view: EditorView,
-	attrs: Record<string, unknown>,
-	apiUrlCreator: ApiUrlCreator,
-	articleProps: ClientArticleProps,
-	resourceService: ResourceServiceType,
-) => {
+const proceedNodes = async (props: FilterProps) => {
+	const { node, view } = props;
 	if (node.type.name === "text") {
 		const newMarks = handleCommentary(view, node.marks);
 		return view.state.schema.text(node.text, newMarks);
-	} else return await filterMarks({ view, node, attrs, apiUrlCreator, articleProps, resourceService });
+	} else return await filterMarks(props);
 };
 
 const handleOthers = (view: EditorView, node: ProseMirrorNode): Slice => {
@@ -242,21 +234,23 @@ const createTitleHTML = (view: EditorView, fragment: Fragment) => {
 };
 
 const createNodes = async (props: CreateProps) => {
-	const { event, view, node, apiUrlCreator, articleProps, resourceService } = props;
+	const { event, view, node, apiUrlCreator, resourceService } = props;
 
 	const clipboardData: ClipboardItems = {};
 	Array.from(event.clipboardData.items).forEach((item) => {
 		clipboardData[item.type] = event.clipboardData.getData(item.type);
 	});
 
-	const attrs = await createResource(node, apiUrlCreator, resourceService);
+	const attrs = await createResourceIfNeed(node, apiUrlCreator, resourceService);
 	if (!attrs.nodeName) return;
-	const tr = view.state.tr;
-	const newNode = await proceedNodes(node, view, attrs, apiUrlCreator, articleProps, resourceService);
+
+	const headingAllowed = readyToPlace(view.state, "heading");
+	const newNode = await proceedNodes({ node, view, attrs, apiUrlCreator, resourceService, headingAllowed });
 
 	const isPasted = handleNodes(clipboardData, view, newNode);
 	if (isPasted) return;
 
+	const tr = view.state.tr;
 	const pasteSlice = handleOthers(view, newNode);
 	if (pasteSlice) insertSlice(tr, view, pasteSlice);
 };
@@ -280,7 +274,10 @@ const createNodesJSON = (editor: EditorView, fragment: Fragment, getBuffer: (src
 		}
 
 		if (node.isText) {
-			return editor.state.schema.text(node.text, marks);
+			return editor.state.schema.text(
+				node.text,
+				marks.filter((m) => m.type.name !== "file"),
+			);
 		} else {
 			const newContent = [];
 			if (content && content.size > 0) {
@@ -434,14 +431,17 @@ const copyArticleResource = (
 	}
 
 	if (isCut) {
-		if (data?.deleteRange) tr.deleteRange(data.deleteRange.from, data.deleteRange.to);
-		else tr.deleteSelection();
+		if (data?.deleteRange) {
+			const clampedFrom = Math.max(Math.min(data.deleteRange.from, view.state.doc.content.size), 0);
+			const clampedTo = Math.max(Math.min(data.deleteRange.to, view.state.doc.content.size), 0);
+			tr.deleteRange(clampedFrom, clampedTo);
+		} else tr.deleteSelection();
 		view.dispatch(tr);
 	}
 };
 
 const pasteArticleResource = (props: PasteProps) => {
-	const { view, event, articleProps, apiUrlCreator, resourceService } = props;
+	const { view, event, apiUrlCreator, resourceService } = props;
 	const { tr } = view.state;
 
 	const gramaxText = event.clipboardData.getData("text/gramax");
@@ -456,7 +456,7 @@ const pasteArticleResource = (props: PasteProps) => {
 		}
 
 		const node = view.state.schema.nodes.doc.create(null, nodes);
-		void createNodes({ node, event, view, articleProps, apiUrlCreator, tr, resourceService });
+		void createNodes({ node, event, view, apiUrlCreator, tr, resourceService });
 		return true;
 	} catch {
 		return false;

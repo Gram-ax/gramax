@@ -11,6 +11,7 @@ import SitePresenter, { ClientArticleProps, ClientCatalogProps } from "@core/Sit
 import assert from "assert";
 import { ExtendedArticlePageData, InitialArticleData } from "./ArticleTypes";
 import { getItemLinks, replacePathIfNeeded } from "./NavigationUtils";
+import { resolveRootCategory } from "@ext/localization/core/catalogExt";
 
 export type StaticArticlePageData = {
 	articleContentRender: string;
@@ -20,28 +21,26 @@ export type StaticArticlePageData = {
 export class ArticleDataService {
 	constructor(private readonly _app: Application) {}
 
-	async getDefaultArticlePageData(
+	async getArticlesPageData(
+		context: Context,
 		catalog: Catalog,
 		defaultArticle: Article,
-		context: Context,
+		defaultArticleLogicPath: string,
 	): Promise<InitialArticleData> {
 		const sitePresenter = this._app.sitePresenterFactory.fromContext(context);
-		const catalogProps = await this._getAnonymizedCatalogProps(sitePresenter, catalog);
-		const itemLinks = await getItemLinks(catalog, defaultArticle.ref.path.value, sitePresenter);
-
-		const articlePageData: ExtendedArticlePageData = {
-			...(await this._getStaticArticlePageData(defaultArticle, catalog, context)),
-			itemLinks,
-		};
-
-		const articlePageDataContext = await this._getAnonymizedPageDataContext(context);
-
-		return { catalogProps, articlePageData, articlePageDataContext };
-	}
-
-	async getArticlesPageData(context: Context, catalog: Catalog): Promise<InitialArticleData> {
-		const sitePresenter = this._app.sitePresenterFactory.fromContext(context);
 		const articlesPageData: ExtendedArticlePageData[] = [];
+
+		const getArticle404InitialData = async () => {
+			const itemLinks = await getItemLinks(catalog, "", sitePresenter);
+
+			const article404 = this._app.customArticlePresenter.getArticle("Article404", {});
+			const article404PageData = {
+				...(await this._getStaticArticlePageData(article404, catalog, context)),
+				itemLinks,
+			};
+			article404PageData.articleProps.logicPath = defaultArticleLogicPath;
+			articlesPageData.push(article404PageData);
+		};
 
 		const processArticleForPageData = async (pathname: string) => {
 			const logicPath = RouterPathProvider.getLogicPath(pathname);
@@ -58,14 +57,24 @@ export class ArticleDataService {
 
 		const nav = await sitePresenter.getCatalogNav(catalog, "");
 
+		await getArticle404InitialData();
+
+		const defaultArticlePageData = await this._createArticlePageData(
+			defaultArticle,
+			catalog,
+			sitePresenter,
+			context,
+		);
+		defaultArticlePageData.articleProps.logicPath = defaultArticleLogicPath;
+		articlesPageData.push(defaultArticlePageData);
+
 		for (const item of nav) {
 			await processArticleForPageData(item.pathname);
 		}
 
 		const articlePageDataContext = await this._getAnonymizedPageDataContext(context);
 
-		const catalogProps = await this._getAnonymizedCatalogProps(sitePresenter, catalog);
-		catalogProps.language = context.contentLanguage;
+		const catalogProps = await this._getCatalogProps(sitePresenter, catalog);
 
 		return { catalogProps, articlesPageData, articlePageDataContext };
 	}
@@ -75,8 +84,17 @@ export class ArticleDataService {
 			catalog.props.supportedLanguages.map(async (lang) => {
 				const ctx = await this._app.contextFactory.fromBrowser(lang, null);
 				const sp = this._app.sitePresenterFactory.fromContext(ctx);
-				const catalog = (await sp.getArticleByPathOfCatalog([logicPath])).catalog.deref;
-				return await this.getArticlesPageData(ctx, catalog);
+				const { catalog, article: initialArticle } = await sp.getArticleByPathOfCatalog([logicPath]);
+				let article = initialArticle;
+				let articleLogicPath = logicPath;
+
+				if (!article) {
+					const root = resolveRootCategory(catalog, catalog.props, ctx.contentLanguage);
+					articleLogicPath = root.logicPath;
+					const splittedPath = articleLogicPath.split("/").filter((x) => x);
+					article = (await sp.getArticleByPathOfCatalog(splittedPath)).article;
+				}
+				return await this.getArticlesPageData(ctx, catalog.deref, article, articleLogicPath);
 			}),
 		);
 	}
@@ -85,15 +103,22 @@ export class ArticleDataService {
 		catalog: Catalog,
 		sitePresenter: SitePresenter,
 		context: Context,
+		logicPath: string,
 	): Promise<ExtendedArticlePageData> {
 		const itemLinks = await getItemLinks(catalog, "", sitePresenter);
 
-		const article404 = this._app.customArticlePresenter.getArticle("Article404", {});
+		const article404 = this._app.customArticlePresenter.getArticle("Article404", { logicPath });
 
 		return {
 			...(await this._getStaticArticlePageData(article404, catalog, context)),
 			itemLinks,
 		};
+	}
+
+	private async _getCatalogProps(sitePresenter: SitePresenter, catalog: Catalog) {
+		const props = await this._getAnonymizedCatalogProps(sitePresenter, catalog);
+		props.link.pathname = RouterPathProvider.getLogicPath(props.link.pathname);
+		return props;
 	}
 
 	private async _getAnonymizedPageDataContext(ctx: Context) {

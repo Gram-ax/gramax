@@ -149,6 +149,7 @@ export default styled(memo(Lightbox))`
 	display: flex;
 	justify-content: center;
 	align-items: center;
+	pointer-events: none;
 	width: 100vw;
 	height: 100vh;
 	left: 0;
@@ -159,18 +160,22 @@ export default styled(memo(Lightbox))`
 	@keyframes open {
 		0% {
 			opacity: 0;
+			pointer-events: none;
 		}
 		100% {
 			opacity: 1;
+			pointer-events: auto;
 		}
 	}
 
 	@keyframes close {
 		0% {
 			opacity: 1;
+			pointer-events: auto;
 		}
 		100% {
 			opacity: 0;
+			pointer-events: none;
 		}
 	}
 

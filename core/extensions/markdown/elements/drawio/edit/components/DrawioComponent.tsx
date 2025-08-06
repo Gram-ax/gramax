@@ -1,4 +1,4 @@
-import { NodeViewProps, NodeViewWrapper } from "@tiptap/react";
+import { NodeViewProps } from "@tiptap/react";
 import { ReactElement, useCallback, useRef, useState } from "react";
 import Drawio from "../../render/component/Drawio";
 import ArticlePropsService from "@core-ui/ContextServices/ArticleProps";
@@ -17,8 +17,10 @@ import { Base64ToDataImage, DataImageToBase64, isDataImage } from "@core-ui/Base
 import ArticleUpdaterService from "@components/Article/ArticleUpdater/ArticleUpdaterService";
 import DiagramEditor from "@ext/markdown/elements/drawio/logic/diagram-editor";
 import LanguageService from "@core-ui/ContextServices/Language";
+import { NodeViewContextableWrapper } from "@ext/markdown/core/element/NodeViewContextableWrapper";
 
-const DrawioComponent = ({ node, getPos, editor }: NodeViewProps): ReactElement => {
+const DrawioComponent = (props: NodeViewProps): ReactElement => {
+	const { node, getPos, editor, updateAttributes } = props;
 	const isEditable = editor.isEditable;
 	const nodeSrc: string = node.attrs.src;
 	const hoverElement = useRef<HTMLDivElement>(null);
@@ -72,11 +74,11 @@ const DrawioComponent = ({ node, getPos, editor }: NodeViewProps): ReactElement 
 		);
 	}, [pageDataContext, refT.current, saveCallBack, setImgData]);
 
-	const updateAttributes = useCallback(
+	const updateAttributesCallback = useCallback(
 		async (attributes: Record<string, any>) => {
 			const pos = getPos();
 			if (!pos) return;
-			const tr = editor.view.state.tr;
+
 			const url = apiUrlCreator.getArticleResource(node.attrs.src);
 			const res = await FetchService.fetch(url);
 			if (res.ok) {
@@ -90,22 +92,25 @@ const DrawioComponent = ({ node, getPos, editor }: NodeViewProps): ReactElement 
 				URL.revokeObjectURL(urlToImage);
 			}
 
-			Object.keys(attributes).forEach((key) => {
-				tr.setNodeAttribute(pos, key, attributes[key]);
-			});
-
-			editor.view.dispatch(tr);
+			updateAttributes(attributes);
 		},
-		[editor, getPos, node, apiUrlCreator],
+		[getPos, node, apiUrlCreator, updateAttributes],
 	);
 
 	return (
-		<NodeViewWrapper ref={hoverElement} as={"div"} draggable={true} data-drag-handle data-qa="qa-drawio">
+		<NodeViewContextableWrapper
+			ref={hoverElement}
+			props={props}
+			draggable={true}
+			data-drag-handle
+			data-qa="qa-drawio"
+		>
 			<BlockActionPanel
 				isSignature={hasSignature}
 				hoverElementRef={hoverElement}
-				updateAttributes={updateAttributes}
+				updateAttributes={updateAttributesCallback}
 				signatureText={node.attrs.title}
+				actionsOptions={{ comment: true }}
 				signatureRef={signatureRef}
 				getPos={getPos}
 				hasSignature={hasSignature}
@@ -116,7 +121,6 @@ const DrawioComponent = ({ node, getPos, editor }: NodeViewProps): ReactElement 
 							openEditor={openEditor}
 							editor={editor}
 							node={node}
-							getPos={getPos}
 							setHasSignature={setHasSignature}
 							signatureRef={signatureRef}
 						/>
@@ -132,9 +136,10 @@ const DrawioComponent = ({ node, getPos, editor }: NodeViewProps): ReactElement 
 					openEditor={openEditor}
 					src={nodeSrc}
 					title={node.attrs.title}
+					commentId={node.attrs.comment?.id}
 				/>
 			</BlockActionPanel>
-		</NodeViewWrapper>
+		</NodeViewContextableWrapper>
 	);
 };
 
