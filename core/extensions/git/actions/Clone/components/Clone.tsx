@@ -10,12 +10,12 @@ import { usePlatform } from "@core-ui/hooks/usePlatform";
 import OnNetworkApiErrorService from "@ext/errorHandlers/client/OnNetworkApiErrorService";
 import useCloneHandler from "@ext/git/actions/Clone/logic/useCloneHandler";
 import Mode from "@ext/git/actions/Clone/model/Mode";
-import UnsupportedElementsModal from "@ext/import/components/UnsupportedElementsModal";
-import UnsupportedElements from "@ext/import/model/UnsupportedElements";
+import { UnsupportedElements } from "@ext/import/model/UnsupportedElements";
 import t from "@ext/localization/locale/translate";
 import { useMemo, useState } from "react";
 import SelectStorageDataForm from "../../../../storage/components/SelectStorageDataForm";
 import StorageData from "../../../../storage/models/StorageData";
+import UnsupportedElementsModal from "@ext/import/components/UnsupportedElementsModal";
 
 enum CloneStage {
 	AskForStorage,

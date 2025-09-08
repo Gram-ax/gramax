@@ -102,8 +102,12 @@ const AddProperty = (props: AddPropertyProps) => {
 			ModalToOpenService.setValue<PropertyEditorProps>(ModalToOpen.PropertySettings, {
 				properties,
 				data: catalogProperties.get(id),
-				onSubmit: (property, isDelete, saveValue) => {
-					saveCatalogProperties(property, isDelete, saveValue);
+				onSubmit: (property) => {
+					saveCatalogProperties(property);
+					ModalToOpenService.resetValue();
+				},
+				onDelete: (isArchive: boolean) => {
+					saveCatalogProperties(catalogProperties.get(id), true, isArchive);
 					ModalToOpenService.resetValue();
 				},
 				onClose: () => {
@@ -195,7 +199,7 @@ const AddProperty = (props: AddPropertyProps) => {
 					})}
 				</>
 				{catalogProperties.size > 0 && canAdd && <div className="divider" />}
-				{canAdd && <PropertyItem id={null} name={t("create-new")} startIcon="plus" onClick={hideTippy} />}
+				{canAdd && <PropertyItem id={null} name={t("properties.add")} startIcon="plus" onClick={hideTippy} />}
 			</PopupMenuLayout>
 		</>
 	);

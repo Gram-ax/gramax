@@ -20,7 +20,7 @@ pub trait RemoteConnect {
   fn ensure_remote_connected(&self, remote: &mut git2::Remote, direction: Direction) -> Result<()>;
 }
 
-impl<C: Creds> Remote for Repo<C> {
+impl<C: Creds> Remote for Repo<'_, C> {
   fn add_remote<S: AsRef<str>, U: AsRef<str>>(&self, name: S, url: U) -> Result<()> {
     info!(target: TAG, "create remote {} pointing to url {}", name.as_ref(), url.as_ref());
     self.0.remote(name.as_ref(), url.as_ref())?;
@@ -37,7 +37,7 @@ impl<C: Creds> Remote for Repo<C> {
   }
 }
 
-impl<C: ActualCreds> RemoteConnect for Repo<C> {
+impl<C: ActualCreds> RemoteConnect for Repo<'_, C> {
   fn can_push(&self) -> Result<bool> {
     let mut remote = self.0.find_remote("origin")?;
     Ok(self.ensure_remote_connected(&mut remote, Direction::Push).is_ok())

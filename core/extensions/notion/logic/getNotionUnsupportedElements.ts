@@ -1,4 +1,4 @@
-import UnsupportedElements from "@ext/import/model/UnsupportedElements";
+import { UnsupportedElements } from "@ext/import/model/UnsupportedElements";
 import getNotionConvertors from "@ext/notion/logic/getNotionConverters";
 import { NotionBlock, PageNode } from "@ext/notion/model/NotionTypes";
 

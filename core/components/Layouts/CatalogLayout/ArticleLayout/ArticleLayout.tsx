@@ -3,6 +3,7 @@ import { classNames } from "@components/libs/classNames";
 import ArticleRefService from "@core-ui/ContextServices/ArticleRef";
 import { cssMedia } from "@core-ui/utils/cssUtils";
 import styled from "@emotion/styled";
+import { PAGE_WIDTH_PDF } from "@ext/print/const";
 
 export interface ArticleLayoutProps {
 	article: JSX.Element;
@@ -177,8 +178,13 @@ export default styled(ArticleLayout)`
 		background: #fff;
 
 		.article-content-wrapper {
-			width: 100% !important;
+			padding-top: 0;
 			padding-left: 30px;
+			width: 100% !important;
+		}
+
+		.article-default-content {
+			min-width: ${PAGE_WIDTH_PDF}px !important;
 		}
 	}
 	`}

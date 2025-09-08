@@ -49,13 +49,14 @@ const ArticleSearchComponent: FC<ArticleSearchProps> = (props) => {
 		const keydownCallback = (event: KeyboardEvent) => {
 			const action: (e: KeyboardEvent) => void = {
 				Escape: (e: KeyboardEvent) => {
-					if (!isOpen || !ref.current?.contains(document.activeElement)) return;
+					if (!editor || !isOpen) return;
 
 					e.preventDefault();
 					closeHandle();
 					restoreSelection();
 				},
 				KeyF: (e: KeyboardEvent) => {
+					if (!editor || !editor?.isFocused) return;
 					if (e.shiftKey) return;
 					if (!e.ctrlKey && !e.metaKey) return;
 					if (e.ctrlKey && e.metaKey) return;
@@ -74,7 +75,7 @@ const ArticleSearchComponent: FC<ArticleSearchProps> = (props) => {
 		document.addEventListener("keydown", keydownCallback);
 
 		return () => document.removeEventListener("keydown", keydownCallback);
-	}, [isOpen, closeHandle, openHandle]);
+	}, [isOpen, closeHandle, openHandle, editor]);
 
 	if (!isOpen || !editor) return null;
 

@@ -19,6 +19,7 @@ enum EnvVariables {
 	MATOMO_SITE_ID = "MATOMO_SITE_ID",
 	MATOMO_URL = "MATOMO_URL",
 	MATOMO_CONTAINER_URL = "MATOMO_CONTAINER_URL",
+	FORCE_UI_LANG_SYNC = "FORCE_UI_LANG_SYNC",
 }
 
 const envVariableNames: Record<EnvVariables, string> = {
@@ -28,40 +29,41 @@ const envVariableNames: Record<EnvVariables, string> = {
 	[EnvVariables.MATOMO_SITE_ID]: "Matomo site ID",
 	[EnvVariables.MATOMO_URL]: "Matomo URL",
 	[EnvVariables.MATOMO_CONTAINER_URL]: "Matomo container URL",
+	[EnvVariables.FORCE_UI_LANG_SYNC]: "Force ui lang sync",
 };
 
-const setEnv = async (fullPath: string) => {
+const setEnv = async (fullPath: string, optinons: { forceUiLangSync: boolean }) => {
 	const buildConfig = (await loadConfig(join(fullPath, CONFIG_NAME))).build;
 
-	const envMapping: Record<EnvVariables, string | undefined> = {
+	const envMapping: Record<EnvVariables, string | boolean | undefined> = {
 		[EnvVariables.LOGO_IMAGE_URL]: buildConfig?.logo?.imageUrl,
 		[EnvVariables.LOGO_LINK_URL]: buildConfig?.logo?.linkUrl,
 		[EnvVariables.YANDEX_METRIC_COUNTER]: buildConfig?.metrics?.yandex?.metricCounter,
 		[EnvVariables.MATOMO_SITE_ID]: buildConfig?.metrics?.matomo?.siteId,
 		[EnvVariables.MATOMO_URL]: buildConfig?.metrics?.matomo?.matomoUrl,
 		[EnvVariables.MATOMO_CONTAINER_URL]: buildConfig?.metrics?.matomo?.matomoContainerUrl,
+		[EnvVariables.FORCE_UI_LANG_SYNC]: optinons.forceUiLangSync || buildConfig?.forceUiLangSync,
 	};
 
 	Object.entries(envMapping).forEach(([key, value]) => {
 		if (!process.env[key] && value) {
-			process.env[key] = value;
+			process.env[key] = typeof value === "boolean" ? String(value) : value;
 		}
 	});
 
-	Object.entries(envMapping).forEach(([key]) => {
-		if (process.env[key]) {
-			const readableKey = envVariableNames[key];
+	const existingKeys = Object.keys(envMapping).filter((key) => process.env[key]);
+	if (existingKeys.length > 0) {
+		ChalkLogger.log("Used parameters:");
+		existingKeys.forEach((key) => {
+			const readableKey = envVariableNames[key as EnvVariables];
 			ChalkLogger.log(`  ${readableKey}: "${process.env[key]}"`);
-		}
-	});
-
-	if (Object.keys(envMapping).some((value) => process.env[value])) {
+		});
 		ChalkLogger.log();
 	}
 };
 
 const buildCommandFunction = async (options: BuildOptions) => {
-	const { source, destination, SkipCheck } = options;
+	const { source, destination, SkipCheck, forceUiLangSync } = options;
 
 	const targetDir = new Path(destination);
 	const fullPath = resolve(source);
@@ -72,7 +74,7 @@ const buildCommandFunction = async (options: BuildOptions) => {
 	if (!(await fp.isFolder(new Path(fullPath)))) throw new CliUserError("The provided path is not a directory.");
 
 	const catalogName = basename(fullPath);
-	await setEnv(fullPath);
+	await setEnv(fullPath, { forceUiLangSync });
 
 	const app = await getApp();
 	const wm = app.wm.current();

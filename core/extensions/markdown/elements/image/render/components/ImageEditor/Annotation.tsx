@@ -82,7 +82,7 @@ const Annotation = (props: AnnotationObjectProps) => {
 					top: position.y + unitType,
 				}}
 			>
-				{drawIndexes && index < 9 && <p>{index + 1}</p>}
+				{drawIndexes && <p>{index + 1}</p>}
 			</div>
 		</Tooltip>
 	);

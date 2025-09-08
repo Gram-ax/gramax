@@ -1,7 +1,7 @@
 import Icon from "@components/Atoms/Icon";
 import { classNames } from "@components/libs/classNames";
 import useWatch from "@core-ui/hooks/useWatch";
-import { ReactElement, useState, MouseEvent } from "react";
+import { MouseEvent, ReactElement, useState } from "react";
 
 export enum NoteType {
 	quote = "quote",
@@ -32,6 +32,7 @@ interface NoteProps {
 	className?: string;
 	collapseCallback?: (collapse: boolean) => void;
 	disableRender?: boolean;
+	isPrint?: boolean;
 }
 
 const Note = (props: NoteProps): ReactElement => {
@@ -41,10 +42,11 @@ const Note = (props: NoteProps): ReactElement => {
 		className,
 		children,
 		collapseCallback,
-		collapsed,
 		titleEditor,
 		disableRender,
+		isPrint,
 	} = props;
+	const collapsed = props.collapsed && !isPrint;
 	const [expanded, dispatchExpanded] = useState(!collapsed);
 
 	const toggleExpanded = (e: MouseEvent<HTMLElement>) => {

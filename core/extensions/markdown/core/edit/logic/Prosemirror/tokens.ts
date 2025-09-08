@@ -39,6 +39,7 @@ import unsupportedToken from "@ext/markdown/elements/unsupported/edit/model/unsu
 import viewToken from "@ext/markdown/elements/view/edit/models/viewToken";
 import { ParseSpec } from "./from_markdown";
 import tokensCommentModifier from "@ext/markdown/elements/comment/edit/logic/tokensCommentModifier";
+import tokensFloatModifier from "@ext/markdown/elements/float/edit/logic/floatTokenModifier";
 
 type TokenModifier = (tokens: { [name: string]: ParseSpec }, context?: ParserContext) => void;
 
@@ -55,7 +56,7 @@ const getTokensByContext = (context?: ParserContext): { [name: string]: ParseSpe
 	};
 };
 
-const defaultModifiers: TokenModifier[] = [tokensCommentModifier];
+const defaultModifiers: TokenModifier[] = [tokensCommentModifier, tokensFloatModifier];
 export const getTokens = (context?: ParserContext, modifiers?: TokenModifier[]): { [name: string]: ParseSpec } => {
 	const contextTokens = context ? getTokensByContext(context) : {};
 	const allModifiers = [...defaultModifiers, ...(modifiers ?? [])];

@@ -30,7 +30,7 @@ impl Creds for DummyCreds {
   }
 }
 
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct AccessTokenCreds {
   author_name: Box<str>,
@@ -77,3 +77,23 @@ impl Creds for AccessTokenCreds {
 }
 
 impl ActualCreds for AccessTokenCreds {}
+
+impl std::fmt::Debug for AccessTokenCreds {
+  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    let mut debug = f.debug_struct("AccessTokenCreds");
+    debug
+      .field("name", &self.author_name)
+      .field("email", &self.author_email)
+      .field("access_token", if self.access_token.is_empty() { &"<empty>" } else { &"<redacted>" });
+
+    if let Some(username) = &self.username {
+      debug.field("username", &username);
+    }
+
+    if let Some(protocol) = &self.protocol {
+      debug.field("protocol", &protocol);
+    }
+
+    debug.finish()
+  }
+}

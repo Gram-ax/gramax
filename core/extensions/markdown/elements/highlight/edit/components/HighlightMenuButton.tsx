@@ -16,7 +16,6 @@ const HighlightButton = styled.div<{ color: HIGHLIGHT_COLOR_NAMES }>`
 	> div {
 		width: 1em;
 		height: 1em;
-		cursor: pointer;
 		background-color: ${({ color }) => `var(--color-highlight-${color})`};
 		border-radius: 4px;
 	}

@@ -1,9 +1,15 @@
 import { ServicesConfig } from "@app/config/AppConfig";
 import { AuthMethod } from "@ext/enterprise/types/UserSettings";
 
+export enum WorkspaceView {
+	folder = "folder",
+	section = "section",
+}
+
 export type WorkspaceSection = {
 	title: string;
 	icon?: string;
+	view?: WorkspaceView;
 	description?: string;
 	catalogs?: string[];
 	sections?: Record<string, WorkspaceSection>;

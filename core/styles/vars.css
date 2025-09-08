@@ -111,6 +111,7 @@
 	--z-index-top-menu: 100;
 	--z-index-top-menu-dragable-area: 101;
 	--z-index-article-search: 110;
+	--z-index-modal-overlay: 190;
 }
 
 [data-theme="light"] {

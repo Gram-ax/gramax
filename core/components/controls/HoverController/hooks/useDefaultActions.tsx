@@ -1,20 +1,29 @@
 import ActionButton from "@components/controls/HoverController/ActionButton";
 import FetchService from "@core-ui/ApiServices/FetchService";
 import ApiUrlCreator from "@core-ui/ContextServices/ApiUrlCreator";
+import PageDataContext from "@core-ui/ContextServices/PageDataContext";
 import t from "@ext/localization/locale/translate";
 import { useNodeViewContext } from "@ext/markdown/core/element/NodeViewContextableWrapper";
 import { NodeSelection } from "@tiptap/pm/state";
 import { ReactNode, useCallback, useMemo } from "react";
+import FloatActions from "@ext/markdown/elements/float/edit/components/FloatActions";
 
 export interface UseDefaultActionsOptions {
+	// Button for adding a comment to the node. Need to add node type in Comment extension.
 	comment?: boolean;
+	// Default delete button.
 	delete?: boolean;
+	// Button for adding alignment to the node. Need to specify the node type in Float extension.
+	float?: boolean;
 }
 
 const useDefaultActions = (right: ReactNode, left: ReactNode, options: UseDefaultActionsOptions = {}) => {
-	const { editor, deleteNode } = useNodeViewContext();
+	const { editor, deleteNode, node } = useNodeViewContext();
 	const apiUrlCreator = ApiUrlCreator.value;
-	const { comment = false, delete: deleteAction = true } = options;
+	const pageDataContext = PageDataContext.value;
+	const disabledComment = !pageDataContext.userInfo;
+	const { comment = false, delete: deleteAction = true, float = false } = options;
+	const hasComment = Boolean(node?.attrs?.comment?.id);
 
 	const handleDelete = useCallback(() => {
 		deleteNode();
@@ -40,14 +49,19 @@ const useDefaultActions = (right: ReactNode, left: ReactNode, options: UseDefaul
 	const memoRight = useMemo(
 		() => (
 			<>
+				{float && <FloatActions node={node} editor={editor} />}
 				{right}
-				{comment && (
-					<ActionButton icon="message-square" tooltipText={t("leave-comment")} onClick={handleAddComment} />
+				{comment && !disabledComment && (
+					<ActionButton
+						icon={hasComment ? "message-square-text" : "message-square"}
+						tooltipText={hasComment ? t("show-comment") : t("leave-comment")}
+						onClick={handleAddComment}
+					/>
 				)}
 				{deleteAction && <ActionButton icon="trash" onClick={handleDelete} tooltipText={t("delete")} />}
 			</>
 		),
-		[right, handleAddComment, handleDelete, comment, deleteAction],
+		[right, handleAddComment, handleDelete, comment, deleteAction, disabledComment, hasComment],
 	);
 
 	if (!editor.isEditable) return {};

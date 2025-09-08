@@ -13,7 +13,6 @@ export const cmdWordLayout: WordInlineChild = async ({ tag, addOptions }) => {
 		...icons,
 		createContent(NON_BREAKING_SPACE + tag.attributes.text + NON_BREAKING_SPACE, {
 			...addOptions,
-			italics: true,
 			style: WordFontStyles.button,
 		}),
 	];

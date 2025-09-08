@@ -50,7 +50,7 @@ pub trait Reset {
   fn restore<I: Iterator<Item = P>, P: AsRef<Path>>(&self, paths: I, staged: bool) -> Result<()>;
 }
 
-impl<C: Creds> Reset for Repo<C> {
+impl<C: Creds> Reset for Repo<'_, C> {
   fn reset(&self, opts: ResetOptions) -> Result<()> {
     let ResetOptions { mode, head } = &opts;
     info!(target: TAG, "{opts}");
@@ -78,7 +78,7 @@ impl<C: Creds> Reset for Repo<C> {
   }
 
   fn restore<I: Iterator<Item = P>, P: AsRef<Path>>(&self, paths: I, staged: bool) -> Result<()> {
-    info!(target: TAG, "restore{}", if staged { " staged" } else { "" });
+    info!(target: TAG, "restoring specified paths");
 
     let mut index = self.0.index()?;
     let tree = self.0.head()?.peel_to_tree()?;
@@ -138,7 +138,7 @@ impl<C: Creds> Reset for Repo<C> {
 
 fn try_remove_path(path: &Path) -> Result<()> {
   if !path.exists() {
-    warn!(target: TAG, "path {} does not exist", path.display());
+    warn!(target: TAG, "(try_remove_path) `{}` does not exist", path.display());
     return Ok(());
   }
 

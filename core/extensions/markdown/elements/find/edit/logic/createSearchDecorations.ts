@@ -3,6 +3,7 @@ import ArticleSearchHotkeyView, {
 } from "@ext/markdown/elements/find/edit/components/ArticleSearchHotkeyView";
 import { Decoration, DecorationSet } from "prosemirror-view";
 import { Node } from "prosemirror-model";
+import buildSearchRegex from "./buildSearchRegex";
 
 const createSearchDecorations = (
 	doc: Node,
@@ -20,11 +21,7 @@ const createSearchDecorations = (
 	const decorations: Decoration[] = [];
 	const items: CustomDecorations[] = [];
 
-	let flags = "g";
-	if (!caseSensitive) flags += "i";
-
-	const regexString = wholeWord ? `\\b${searchTerm}\\b` : searchTerm;
-	const regex = new RegExp(regexString, flags);
+	const regex = buildSearchRegex(searchTerm, caseSensitive, wholeWord);
 
 	doc.descendants((node: Node, pos: number) => {
 		if (node.isText) {

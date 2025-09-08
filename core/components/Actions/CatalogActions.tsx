@@ -7,6 +7,7 @@ import PopupMenuLayout from "@components/Layouts/PopupMenuLayout";
 import { LeftNavigationTab } from "@components/Layouts/StatusBar/Extensions/ArticleStatusBar/ArticleStatusBar";
 import ButtonLink from "@components/Molecules/ButtonLink";
 import CatalogPropsService from "@core-ui/ContextServices/CatalogProps";
+import IsMacService from "@core-ui/ContextServices/IsMac";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import WorkspaceService from "@core-ui/ContextServices/Workspace";
 import { usePlatform } from "@core-ui/hooks/usePlatform";
@@ -22,12 +23,12 @@ import PermissionService from "@ext/security/logic/Permission/components/Permiss
 import GetSharedTicket from "@ext/security/logic/TicketManager/components/GetSharedTicket";
 import openCloudModal from "@ext/static/components/openCloudModal";
 import useValidateDeleteCatalogInStatic from "@ext/static/logic/useValidateDeleteCatalogInStatic";
+import { feature } from "@ext/toggleFeatures/features";
 import ExportButton from "@ext/wordExport/components/DropdownButton";
 import ItemExport, { ExportFormat } from "@ext/wordExport/components/ItemExport";
 import { FC, useEffect, useRef, useState } from "react";
 import Healthcheck from "../../extensions/healthcheck/components/Healthcheck";
 import IsReadOnlyHOC from "../../ui-logic/HigherOrderComponent/IsReadOnlyHOC";
-import { feature } from "@ext/toggleFeatures/features";
 
 interface CatalogActionsProps {
 	isCatalogExist: boolean;
@@ -40,7 +41,8 @@ const CatalogActions: FC<CatalogActionsProps> = ({ isCatalogExist, itemLinks, cu
 	const catalogProps = CatalogPropsService.value;
 	const workspacePath = WorkspaceService.current()?.path;
 	const pageData = PageDataContextService.value;
-	const { isNext, isBrowser, isTauri, isStatic, isStaticCli } = usePlatform();
+	const { isNext, isTauri, isStatic, isStaticCli } = usePlatform();
+	const isMac = IsMacService.value;
 	const shouldRenderDeleteCatalog = useShouldRenderDeleteCatalog();
 	const [renderDeleteCatalog, setRenderDeleteCatalog] = useState(false);
 	const { isReadOnly, cloudServiceUrl } = pageData.conf;
@@ -125,7 +127,7 @@ const CatalogActions: FC<CatalogActionsProps> = ({ isCatalogExist, itemLinks, cu
 				</PopupMenuLayout>
 			</Tooltip>
 
-			{(isBrowser || isTauri) && cloudServiceUrl && feature("cloud") && (
+			{!(isMac && isTauri) && cloudServiceUrl && feature("cloud") && (
 				<ButtonLink text={t("cloud.publish-to-cloud")} iconCode="cloud-upload" onClick={openCloudModal} />
 			)}
 			{!isStaticCli && !isStatic && (

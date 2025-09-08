@@ -20,6 +20,7 @@ import { issueWordLayout } from "@ext/markdown/elements/issue/word/issue";
 import { kbdWordLayout } from "@ext/markdown/elements/kbd/word/kbd";
 import { linkWordLayout } from "@ext/markdown/elements/link/word/link";
 import { ulListWordLayout } from "@ext/markdown/elements/list/word/bulletList";
+import { taskListWordLayout } from "@ext/markdown/elements/list/word/taskList";
 import { listItemWordLayout } from "@ext/markdown/elements/list/word/listItem";
 import { orderListWordLayout } from "@ext/markdown/elements/list/word/orderListWordLayout";
 import { moduleWordLayout } from "@ext/markdown/elements/module/word/module";
@@ -43,6 +44,7 @@ import { videoWordLayout } from "../markdown/elements/video/word/video";
 import { blockPropertyWordLayout } from "@ext/markdown/elements/blockProperty/word/blockProperty";
 import { renderInlineImageWordLayout } from "@ext/markdown/elements/inlineImage/word/inlineImage";
 import { highlightWordLayout } from "@ext/markdown/elements/highlight/word/highlight";
+import { commentWordLayout } from "@ext/markdown/elements/comment/word/comment";
 // import { imagesWordLayout } from "@ext/markdown/elements/imgs/word/imgs";
 // import { seeWordLayout } from "@ext/markdown/elements/see/word/see";
 // import { formulaWordLayout } from "../markdown/elements/formula/word/formula";
@@ -70,6 +72,7 @@ export const inlineLayouts = {
 	s: strikeWordLayout,
 	"inline-property": inlinePropertyWordLayout,
 	inlineImage: renderInlineImageWordLayout,
+	comment: commentWordLayout,
 	//Formula: formulaWordLayout,
 	//Fn
 };
@@ -78,6 +81,7 @@ export const blockLayouts = {
 	p: paragraphWordLayout,
 	orderedList: orderListWordLayout,
 	bulletList: ulListWordLayout,
+	taskList: taskListWordLayout,
 	listItem: listItemWordLayout,
 	Heading: headingWordLayout,
 	Table: tableWordLayout,

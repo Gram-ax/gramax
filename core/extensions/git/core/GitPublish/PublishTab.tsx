@@ -104,17 +104,10 @@ const PublishTab = ({ show, setShow }: PublishTabProps) => {
 
 	const canPublish = !isPublishing && !isEntriesLoading && isEntriesReady && selectedFiles.size > 0;
 
-	useEffect(() => {
-		const handler = async (e: KeyboardEvent) =>
-			show && e.code === "Enter" && (e.ctrlKey || e.metaKey) && canPublish && (await publish());
-
-		document.addEventListener("keydown", handler);
-		return () => document.removeEventListener("keydown", handler);
-	}, [show, publish, canPublish]);
-
 	const hasChanges = diffTree?.tree?.length > 0;
 
-	const isLoading = isDiscarding || isEntriesLoading;
+	const isDiffEntriesLoading = !diffTree?.tree && isEntriesLoading;
+	const isLoading = !isDiffEntriesLoading && (isDiscarding || isEntriesLoading);
 
 	return (
 		<TabWrapper
@@ -124,7 +117,7 @@ const PublishTab = ({ show, setShow }: PublishTabProps) => {
 			show={show}
 			title={t("git.publish.name")}
 			onClose={close}
-			titleRightExtension={isLoading ? <SpinnerLoader width={12} height={12} lineWidth={1.5}  /> : null}
+			titleRightExtension={isLoading ? <SpinnerLoader width={12} height={12} lineWidth={1.5} /> : null}
 		>
 			<>
 				<PublishChanges
@@ -132,7 +125,7 @@ const PublishTab = ({ show, setShow }: PublishTabProps) => {
 					tabWrapperRef={tabWrapperRef}
 					diffTree={diffTree}
 					overview={overview}
-					isLoading={isEntriesLoading}
+					isLoading={isDiffEntriesLoading}
 					isReady={isEntriesReady}
 					setContentHeight={setContentHeight}
 					canDiscard={canDiscard}

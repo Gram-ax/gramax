@@ -6,9 +6,9 @@ import type EditEnterpriseConfig from "@ext/enterprise/components/EditEnterprise
 import UiLanguage from "@ext/localization/core/model/Language";
 import { invoke } from "@tauri-apps/api/core";
 import { getCurrentWebviewWindow, type WebviewWindow } from "@tauri-apps/api/webviewWindow";
-import { attachConsole } from "@tauri-apps/plugin-log";
 import type { ComponentProps } from "react";
 import TauriCookie from "./cookie/TauriCookie";
+import { attachConsole } from "./logging";
 import { initZoom } from "./window/zoom";
 
 const subscribeEnterpriseEvents = (current: WebviewWindow) => {
@@ -28,11 +28,11 @@ const initSettings = async () => {
 };
 
 const subscribeEvents = async () => {
+	await attachConsole();
 	TauriCookie.onCookieUpdated(
 		async (encoded) => await invoke("set_settings", { data: encoded ? Object.fromEntries(encoded) : {} }),
 	);
 	const current = getCurrentWebviewWindow();
-	await attachConsole();
 	const env = await invoke("read_env");
 	window.process = { env } as any;
 

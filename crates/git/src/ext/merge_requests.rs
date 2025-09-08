@@ -140,7 +140,7 @@ impl MergeRequest {
   }
 }
 
-impl<C: Creds> MergeRequestExt for Repo<C> {
+impl<C: Creds> MergeRequestExt for Repo<'_, C> {
   fn list_merge_requests(&self) -> Result<Vec<MergeRequest>> {
     let mut mrs = vec![];
 
@@ -216,7 +216,7 @@ impl<C: Creds> MergeRequestExt for Repo<C> {
   }
 }
 
-impl<C: ActualCreds> MergeRequestManageExt<C> for Repo<C> {
+impl<C: ActualCreds> MergeRequestManageExt<C> for Repo<'_, C> {
   fn create_or_update_merge_request(&self, opts: CreateMergeRequest) -> Result<()> {
     self.ensure_branch_exists(&opts.target_branch_ref)?;
 

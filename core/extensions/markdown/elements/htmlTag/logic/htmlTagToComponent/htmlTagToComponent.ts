@@ -70,6 +70,7 @@ const HtmlTagToComponent = {
 			node.attrs.attributes.objects ?? "[]",
 			node.attrs.attributes.width,
 			node.attrs.attributes.height,
+			node.attrs.attributes.float ?? "center",
 		),
 	),
 } as const;

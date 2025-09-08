@@ -1,4 +1,4 @@
-import { ReactNode } from "react";
+import { Fragment, ReactNode } from "react";
 import { ViewRenderData, ViewRenderGroup, Property as PropertyType, PropertyTypes } from "@ext/properties/models";
 import Anchor from "@components/controls/Anchor";
 import Property from "@ext/properties/components/Property";
@@ -34,6 +34,7 @@ const renderGroup = (
 									propertyStyle={property.style}
 									name={property.name}
 									value={property.type !== PropertyTypes.flag ? property.value : property.name}
+									shouldShowValue={property.type !== PropertyTypes.flag}
 								/>
 							}
 						/>
@@ -48,9 +49,9 @@ const renderGroup = (
 			<>
 				{listItems}
 				{group.subgroups?.map((subgroup) => (
-					<li key={subgroup.group?.[0]}>
+					<Fragment key={subgroup.group?.[0]}>
 						{renderGroup(subgroup, disabled, onSubmit, [...parentGroups, group.group?.[0]])}
-					</li>
+					</Fragment>
 				))}
 			</>
 		);
@@ -62,9 +63,9 @@ const renderGroup = (
 			{group.subgroups?.length > 0 && (
 				<ul>
 					{group.subgroups.map((subgroup) => (
-						<li key={subgroup.group?.[0]}>
+						<Fragment key={subgroup.group?.[0]}>
 							{renderGroup(subgroup, disabled, onSubmit, [...parentGroups, group.group?.[0]])}
-						</li>
+						</Fragment>
 					))}
 				</ul>
 			)}

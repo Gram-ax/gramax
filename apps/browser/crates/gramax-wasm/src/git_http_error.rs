@@ -1,6 +1,6 @@
 use std::sync::Mutex;
 
-use log::*;
+use tracing::*;
 
 use gramaxgit::commands::Result;
 use gramaxgit::error::Error;

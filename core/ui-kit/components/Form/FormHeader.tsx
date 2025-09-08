@@ -8,7 +8,7 @@ type UiKitFormHeaderTemplateProps = ExtractComponentGeneric<typeof UiKitFormHead
 
 interface FormHeaderTemplateProps extends Omit<UiKitFormHeaderTemplateProps, "icon" | "description"> {
 	icon?: string;
-	description?: string;
+	description?: JSX.Element;
 }
 
 export const FormHeader: FC<FormHeaderTemplateProps> = (props) => {

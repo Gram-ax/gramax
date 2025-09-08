@@ -15,9 +15,8 @@ ol[data-sonner-toaster] {
 	pointer-events: auto !important;
 }
 
-[data-monaco-modal-normal-width] {
-	width: calc(100vw - 2rem);
-	max-width: 1200px;
+[data-diagram-editor-modal] > :nth-child(2) {
+	height: 100%;
 }
 
 [data-modal-root] .monaco-editor {

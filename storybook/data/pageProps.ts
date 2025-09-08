@@ -814,6 +814,7 @@ export default {
 				linkUrl: "",
 				linkTitle: "",
 			},
+			forceUiLangSync: false,
 		},
 		isReadOnly: false,
 		isProduction: false,

@@ -95,7 +95,11 @@ export default class ApiUrlCreator {
 	}
 
 	public setSourceData() {
-		return Url.fromBasePath(`/api/storage/setSourceData`, this._basePath);
+		return Url.fromBasePath(`/api/storage/sourceData/setSourceData`, this._basePath);
+	}
+
+	public getSourceData() {
+		return Url.fromBasePath(`/api/storage/sourceData/getSourceData`, this._basePath);
 	}
 
 	public getSourceDataUsage(sourceName: string) {
@@ -284,8 +288,20 @@ export default class ApiUrlCreator {
 		return Url.fromBasePath(`api/enterprise/cloneCatalogs`, this._basePath, { token });
 	}
 
+	public getCheckEditEnterpriseWorkspaceUrl(workspaceId: WorkspacePath) {
+		return Url.fromBasePath(`api/enterprise/checkEditWorkspace`, this._basePath, { workspaceId });
+	}
+
 	public getAuthSsoUrl(data: string, sign: string, from: string) {
 		return Url.fromBasePath(`api/auth/sso`, this._basePath, { data, sign, from });
+	}
+
+	public getPrintableContentUrl(catalogName: string, isCategory?: boolean, itemPath?: string) {
+		return Url.fromBasePath(`/api/item/getPrintableContent`, this._basePath, {
+			catalogName,
+			isCategory: isCategory?.toString?.(),
+			itemPath,
+		});
 	}
 
 	public getPdfSaveUrl(isCategory: boolean, itemPath?: string) {
@@ -463,9 +479,10 @@ export default class ApiUrlCreator {
 		return Url.fromBasePath("/api/storage/getUrl", this._basePath, { catalogName: this._catalogName });
 	}
 
-	public getGitCommitAuthors() {
+	public getGitCommitAuthors(authorFilter?: string) {
 		return Url.fromBasePath("/api/versionControl/getAllCommitAuthors", this._basePath, {
 			catalogName: this._catalogName,
+			authorFilter,
 		});
 	}
 

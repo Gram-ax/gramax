@@ -47,6 +47,7 @@ import BlockField from "@ext/markdown/elements/blockContentField/render/componen
 import BlockProperty from "@ext/markdown/elements/blockProperty/render/components/BlockProperty";
 import HtmlTag from "@ext/markdown/elements/htmlTag/render/component/HtmlTag";
 import InlineImage from "@ext/markdown/elements/inlineImage/render/components/InlineImage";
+import Highlight from "@ext/markdown/elements/highlight/render/components/Highlight";
 
 export default function getComponents(): { [name: string]: (...props: any) => ReactNode } {
 	return {
@@ -77,6 +78,7 @@ export default function getComponents(): { [name: string]: (...props: any) => Re
 		blockHtmlTag: HtmlTag,
 		blockWithInlineHtmlTag: HtmlTag,
 		selfClosingHtmlTag: HtmlTag,
+		highlight: Highlight,
 		View,
 		Image,
 		"Img-h": Images,

@@ -1,11 +1,11 @@
 import { ParseSpec } from "@ext/markdown/core/edit/logic/Prosemirror/from_markdown";
 import ParserContext from "@ext/markdown/core/Parser/ParserContext/ParserContext";
-import { COMMENT_BLOCK_NODE_TYPES } from "@ext/markdown/elements/comment/edit/model/consts";
+import { COMMENT_NODE_TYPES } from "@ext/markdown/elements/comment/edit/model/consts";
 
 const tokensCommentModifier = (tokens: Record<string, ParseSpec>, context?: ParserContext): Record<string, ParseSpec> => {
 	for (const [key, tk] of Object.entries(tokens)) {
 		const token = tk instanceof Function ? tk(context) : tk;
-		if (!COMMENT_BLOCK_NODE_TYPES.includes(key)) continue;
+		if (!COMMENT_NODE_TYPES.includes(key)) continue;
 		if (token.getAttrs) {
 			const newGetAttrs = token.getAttrs;
 			token.getAttrs = async (tok, tokens, i) => {

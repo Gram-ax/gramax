@@ -5,7 +5,7 @@ import styled from "@emotion/styled";
 import type { CloneProgress } from "@ext/git/core/GitCommands/model/GitCommandsModel";
 import t from "@ext/localization/locale/translate";
 import { ProgressBlockTemplate } from "ics-ui-kit/components/progress";
-import { Tooltip, TooltipContent, TooltipTrigger } from "ics-ui-kit/components/tooltip";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@ui-kit/Tooltip";
 import { useCallback } from "react";
 
 const collectProgressInfo = (data: CloneProgress) => {

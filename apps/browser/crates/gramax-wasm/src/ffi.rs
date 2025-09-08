@@ -5,6 +5,7 @@ extern "C" {
   pub fn wasmfs_create_opfs_backend() -> *const c_void;
   pub fn wasmfs_create_directory(mnt: *const c_char, mode: u16, backend: *const c_void) -> i32;
   pub fn emscripten_run_script(script: *const u8);
+  pub fn emscripten_get_now() -> f64;
 }
 
 #[no_mangle]

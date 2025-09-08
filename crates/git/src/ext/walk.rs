@@ -7,6 +7,7 @@ use indexmap::IndexSet;
 use itertools::Itertools;
 
 use crate::creds::Creds;
+use crate::error::OrUtf8Err;
 use crate::error::Result;
 use crate::prelude::*;
 
@@ -36,6 +37,17 @@ pub struct BadObject {
   pub oid: Oid,
   pub raw_err: String,
   pub ctx: WalkContext,
+  pub reason: BadObjectReason,
+}
+
+#[derive(Default, Clone)]
+#[non_exhaustive]
+pub enum BadObjectReason {
+  MissingParent {
+    idx: usize,
+  },
+  #[default]
+  Generic,
 }
 
 pub struct WalkOptions<'a> {
@@ -96,7 +108,7 @@ impl Debug for BadObject {
   }
 }
 
-impl<C: Creds> Walk for Repo<C> {
+impl<C: Creds> Walk for Repo<'_, C> {
   fn walk(&self, mut opts: WalkOptions) -> Result<()> {
     self.visit_objects_index(&mut opts, &mut WalkContext { stage: WalkStage::Index, seq: vec![] })?;
     self.visit_objects_revwalk(&mut opts, &mut WalkContext { stage: WalkStage::Revwalk, seq: vec![] })?;
@@ -115,14 +127,34 @@ impl<C: Creds> Walk for Repo<C> {
         Ok(())
       },
       should_skip_object: &mut |oid| visited_objects.borrow().contains(&oid),
-      on_bad_object: &mut |o| bad_objects.borrow_mut().push(o),
+      on_bad_object: &mut |o| {
+        if o.ctx.seq.len() > 1 && o.ctx.seq.last().unwrap().1 == ObjectType::Commit {
+          warn!(target: TAG, "bad commit found; probably this is a submodule and healthcheck does not support it\n\t{}", o.ctx);
+          return;
+        }
+
+        // TODO(18/08/25): debug why this happens & remove in august release
+        if let WalkStage::Ref(ref r) = o.ctx.stage {
+          if r.starts_with("refs/stash") {
+            if let BadObjectReason::MissingParent { idx } = o.reason {
+              if idx > 0 {
+                warn!(target: TAG, "found unreachable parent (idx: {}) while walking through {}; idk why but sometimes stashes has unreachable parents with idx >0\n\t{}", idx, r, o.ctx);
+                return;
+              }
+            }
+          }
+        }
+
+        bad_objects.borrow_mut().push(o)
+      },
     })?;
 
     Ok(bad_objects.into_inner())
   }
 }
 
-impl<C: Creds> Repo<C> {
+impl<C: Creds> Repo<'_, C> {
+  #[tracing::instrument(skip_all, err)]
   fn visit_objects_revwalk(&self, opts: &mut WalkOptions, ctx: &mut WalkContext) -> Result<()> {
     let mut revwalk = self.0.revwalk()?;
     revwalk.set_sorting(git2::Sort::NONE)?;
@@ -146,28 +178,39 @@ impl<C: Creds> Repo<C> {
     Ok(())
   }
 
+  #[tracing::instrument(skip_all, err)]
   fn visit_objects_tree(&self, tree: Tree<'_>, opts: &mut WalkOptions, ctx: &mut WalkContext) -> Result<()> {
     let id = tree.id();
 
-    ctx.seq.push((id, ObjectType::Tree));
+    let use_seq = ctx.seq.last().is_none_or(|o| o.0 != id);
+
+    if use_seq {
+      ctx.seq.push((id, ObjectType::Tree));
+    }
+
     opts.on_walk(id)?;
 
     let mut oids = vec![];
 
     for entry in tree.iter() {
       oids.push(entry.id());
+      let mut predicted_kind = entry.kind();
 
       if !opts.should_skip_object(entry.id()) {
         while let Some(oid) = oids.pop() {
-          self.visit_object_by_oid(oid, opts, ctx, &mut oids)?;
+          self.visit_object_by_oid(oid, opts, ctx, &mut oids, predicted_kind.take())?;
         }
       }
     }
 
-    ctx.seq.pop();
+    if use_seq {
+      ctx.seq.pop();
+    }
+
     Ok(())
   }
 
+  #[tracing::instrument(skip_all, err)]
   fn visit_objects_refs(&self, opts: &mut WalkOptions, ctx: &mut WalkContext) -> Result<()> {
     let refs = self.0.references()?;
 
@@ -191,7 +234,7 @@ impl<C: Creds> Repo<C> {
           }
 
           while let Some(id) = oids.pop() {
-            self.visit_object_by_oid(id, opts, ctx, &mut oids)?;
+            self.visit_object_by_oid(id, opts, ctx, &mut oids, None)?;
           }
         }
       }
@@ -200,29 +243,37 @@ impl<C: Creds> Repo<C> {
     Ok(())
   }
 
+  #[tracing::instrument(skip_all, fields(oid = %oid, out_to_see = %out_to_see.len()), err)]
   fn visit_object_by_oid(
     &self,
     oid: Oid,
     opts: &mut WalkOptions,
     ctx: &mut WalkContext,
     out_to_see: &mut Vec<Oid>,
+    predicted_kind: Option<ObjectType>,
   ) -> Result<()> {
     if opts.should_skip_object(oid) {
       return Ok(());
     }
 
-    ctx.seq.push((oid, ObjectType::Any));
+    ctx.seq.push((oid, predicted_kind.unwrap_or(ObjectType::Any)));
 
     let Ok(object) = self.0.find_object(oid, None).inspect_err(|err| {
       error!(target: TAG, "failed to find object: {oid}; err: {err}");
-      opts.on_bad_object(BadObject { oid, raw_err: err.to_string(), ctx: ctx.clone() });
+
+      opts.on_bad_object(BadObject {
+        oid,
+        raw_err: err.to_string(),
+        ctx: ctx.clone(),
+        reason: BadObjectReason::Generic,
+      });
     }) else {
       ctx.seq.pop();
       return Ok(());
     };
 
     opts.on_walk(oid)?;
-    ctx.seq.last_mut().unwrap().1 = object.kind().unwrap_or(ObjectType::Any);
+    ctx.seq.last_mut().unwrap().1 = object.kind().unwrap_or(predicted_kind.unwrap_or(ObjectType::Any));
 
     match object.kind() {
       Some(ObjectType::Commit) => {
@@ -232,6 +283,7 @@ impl<C: Creds> Repo<C> {
             oid,
             raw_err: format!("failed to get commit from object: {oid}"),
             ctx: ctx.clone(),
+            reason: BadObjectReason::Generic,
           });
 
           ctx.seq.pop();
@@ -240,7 +292,12 @@ impl<C: Creds> Repo<C> {
 
         let Ok(tree) = commit.tree().inspect_err(|err| {
           error!(target: TAG, "failed to get tree from commit: {oid}; err: {err}");
-          opts.on_bad_object(BadObject { oid, raw_err: err.to_string(), ctx: ctx.clone() });
+          opts.on_bad_object(BadObject {
+            oid,
+            raw_err: err.to_string(),
+            ctx: ctx.clone(),
+            reason: BadObjectReason::Generic,
+          });
         }) else {
           ctx.seq.pop();
           return Ok(());
@@ -248,14 +305,24 @@ impl<C: Creds> Repo<C> {
 
         self.visit_objects_tree(tree, opts, ctx)?;
 
+        let is_gx_stash = commit.message().or_utf8_err()?.starts_with("gx-stash");
+
         let parent_count = commit.parent_count();
         for i in 0..parent_count {
           let parent = match commit.parent(i) {
             Ok(parent) => parent,
             Err(e) => {
-              let msg = format!("failed to get parent({i}) from commit: {oid}; original err: {e}");
+              let msg = format!(
+                "{}failed to get parent({i}) from commit: {oid}; original err: {e}",
+                if is_gx_stash { "(gx)" } else { "" }
+              );
               error!(target: TAG, "{msg}");
-              opts.on_bad_object(BadObject { oid, raw_err: msg, ctx: ctx.clone() });
+              opts.on_bad_object(BadObject {
+                oid,
+                raw_err: msg,
+                ctx: ctx.clone(),
+                reason: BadObjectReason::MissingParent { idx: i },
+              });
               continue;
             }
           };
@@ -270,7 +337,7 @@ impl<C: Creds> Repo<C> {
       }
       Some(ObjectType::Tag) => {
         if let Ok(tag) = object.peel_to_tag() {
-          self.visit_object_by_oid(tag.target_id(), opts, ctx, out_to_see)?;
+          self.visit_object_by_oid(tag.target_id(), opts, ctx, out_to_see, None)?;
         }
       }
       Some(ObjectType::Blob | ObjectType::Any) | None => {}
@@ -281,6 +348,7 @@ impl<C: Creds> Repo<C> {
     Ok(())
   }
 
+  #[tracing::instrument(skip_all, err)]
   fn visit_objects_index(&self, opts: &mut WalkOptions, ctx: &mut WalkContext) -> Result<()> {
     let index = self.0.index()?;
     let mut oids = vec![];
@@ -289,7 +357,7 @@ impl<C: Creds> Repo<C> {
       oids.push(entry.id);
 
       while let Some(oid) = oids.pop() {
-        self.visit_object_by_oid(oid, opts, ctx, &mut oids)?;
+        self.visit_object_by_oid(oid, opts, ctx, &mut oids, None)?;
       }
     }
 

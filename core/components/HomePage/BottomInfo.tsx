@@ -9,7 +9,7 @@ const BottomInfo = () => {
 	const ver = `${t("version")} ${config.version} ${config.isRelease ? "" : "dev"}`.trim();
 
 	return (
-		<div className="w-full mx-auto flex max-w-[1144px] flex-row flex-wrap items-center justify-between gap-4 py-5 px-4">
+		<div className="w-full mx-auto flex max-w-[1144px] flex-row flex-wrap items-center justify-between gap-4 py-5">
 			<ToggleFeatures />
 			<div className="text-muted flex items-center gap-2 text-xs">
 				<span>{ver}</span>

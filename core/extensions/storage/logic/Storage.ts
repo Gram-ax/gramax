@@ -12,7 +12,7 @@ export type StorageEvents = Event<"fetch", { storage: Storage; force: boolean }>
 export default interface Storage {
 	pull(source: SourceData, recursive?: boolean): Promise<void>;
 	push(source: SourceData, recursive?: boolean): Promise<void>;
-	fetch(source: SourceData, force?: boolean): Promise<void>;
+	fetch(source: SourceData, force?: boolean, lock?: boolean): Promise<void>;
 	update(): Promise<void>;
 	getDefaultBranch(source: SourceData): Promise<Branch | null>;
 	getSourceName(): Promise<string>;

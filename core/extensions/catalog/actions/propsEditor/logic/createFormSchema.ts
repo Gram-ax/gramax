@@ -25,6 +25,7 @@ export type MultiSelectOption = {
 };
 
 export type FormSelectValues = {
+	workspaceGroups: SelectOption[];
 	cardColors: string[];
 	languages: SelectOption[];
 	syntaxes: SelectOption[];
@@ -37,17 +38,15 @@ export type CreateFormSchema = {
 
 export const createFormSchema = ({ allCatalogNames, validateEncodingSymbolsUrl }: CreateFormSchema) =>
 	z.object({
-		title: z
-			.string()
-			.min(2, { message: t("directory-name-min-length") })
-			.refine((value) => !allCatalogNames.includes(value), {
-				message: t("catalog.error.already-exist"),
-			}),
+		title: z.string().min(2, { message: t("directory-name-min-length") }),
 		url: z
 			.string()
 			.min(2, { message: t("repository-name-min-length") })
 			.refine((value) => validateEncodingSymbolsUrl(value), {
 				message: t("no-encoding-symbols-in-url"),
+			})
+			.refine((value) => !allCatalogNames.includes(value), {
+				message: t("catalog.error.already-exist"),
 			}),
 		docroot: z.optional(z.string().nullable()),
 		language: z.optional(z.string().nullable()),
@@ -66,6 +65,7 @@ export const createFormSchema = ({ allCatalogNames, validateEncodingSymbolsUrl }
 				.max(4, { message: t("max-length") + "4" })
 				.nullable(),
 		),
+		group: z.optional(z.string().nullable()),
 		syntax: z.optional(z.string().nullable()),
 	});
 

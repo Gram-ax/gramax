@@ -8,7 +8,6 @@ import {
 	TranscribeResponse,
 } from "@ics/gx-vector-search";
 import { CheckResponse } from "@ics/gx-vector-search";
-import assert from "assert";
 
 class DefaultGramaxAi implements AiProvider {
 	private _textGenApiClient: TextGenerationApiClient;
@@ -31,10 +30,7 @@ class DefaultGramaxAi implements AiProvider {
 
 	async generateText(command: string): Promise<string> {
 		const res = await this._textGenApiClient.generate({ command: { text: command } }, {});
-
-		assert(res.text, "No text returned");
-
-		return res.text;
+		return res?.text;
 	}
 
 	async prettifyText(command: string, text: string): Promise<string> {
@@ -43,9 +39,7 @@ class DefaultGramaxAi implements AiProvider {
 			text,
 		});
 
-		assert(res.text, "No text returned");
-
-		return res.text;
+		return res?.text;
 	}
 
 	async transcribe(request: TranscribeRequest, options?: RequestOptions): Promise<TranscribeResponse> {

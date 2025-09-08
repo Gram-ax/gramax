@@ -196,7 +196,7 @@ const StyledItem = styled(Item)`
 			background: var(--color-nav-article-drop-target) !important;
 		`}
 
-	${cssMedia.wide} {
+	${cssMedia.moreThanNarrow} {
 		:hover {
 			background: var(--color-lev-sidebar-hover);
 

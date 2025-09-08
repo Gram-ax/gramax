@@ -20,6 +20,7 @@ module.exports = {
 	],
 	reporters: ["default", ["jest-junit", { suiteName: "jest tests" }]],
 	moduleNameMapper: {
+		"^ics-ui-kit$": "<rootDir>/node_modules/ics-ui-kit/dist/index.js",
 		"^ics-ui-kit/(.*)$": "<rootDir>/node_modules/ics-ui-kit/dist/$1",
 		"react-dnd": "<rootDir>/app/test/__mocks__/react-dnd.js",
 		"^lowlight$": "<rootDir>/app/test/__mocks__/lowlight.js",

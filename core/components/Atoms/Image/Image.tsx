@@ -1,17 +1,18 @@
 import {
+	ComponentProps,
 	CSSProperties,
 	DetailedHTMLProps,
 	forwardRef,
-	Fragment,
 	ImgHTMLAttributes,
 	MutableRefObject,
 	ReactEventHandler,
 	useCallback,
-	useState,
 } from "react";
-import Lightbox from "./modalImage/Lightbox";
+import MediaPreview from "./modalImage/MediaPreview";
 import { ImageObject } from "@ext/markdown/elements/image/edit/model/imageEditorTypes";
 import { useDoubleTap } from "../../../ui-logic/hooks/useDoubleTap";
+import ModalToOpenService from "@core-ui/ContextServices/ModalToOpenService/ModalToOpenService";
+import ModalToOpen from "@core-ui/ContextServices/ModalToOpenService/model/ModalsToOpen";
 
 interface ImageProps extends DetailedHTMLProps<ImgHTMLAttributes<HTMLImageElement>, HTMLImageElement> {
 	realSrc?: string;
@@ -24,17 +25,24 @@ interface ImageProps extends DetailedHTMLProps<ImgHTMLAttributes<HTMLImageElemen
 }
 
 const Image = forwardRef((props: ImageProps, ref?: MutableRefObject<HTMLImageElement>) => {
-	const [isOpen, setOpen] = useState(false);
 	const { id, src, alt, title, className, realSrc, objects, modalStyle, modalTitle, modalEdit, onLoad, onError } =
 		props;
 
-	const onClose = useCallback(() => {
-		setOpen(false);
-	}, []);
-
 	const onClick = useCallback(() => {
-		setOpen(true);
-	}, []);
+		ModalToOpenService.setValue<ComponentProps<typeof MediaPreview>>(ModalToOpen.MediaPreview, {
+			id: realSrc,
+			src: src,
+			title: modalTitle,
+			downloadSrc: realSrc,
+			openedElement: ref,
+			objects: objects ?? [],
+			modalEdit: modalEdit,
+			modalStyle: modalStyle,
+			onClose: () => {
+				ModalToOpenService.resetValue();
+			},
+		});
+	}, [src, modalTitle, realSrc, objects, modalEdit, modalStyle]);
 
 	const { onTouchStart, onDoubleClick } = useDoubleTap({
 		onDoubleTap: onClick,
@@ -43,22 +51,7 @@ const Image = forwardRef((props: ImageProps, ref?: MutableRefObject<HTMLImageEle
 	});
 
 	return (
-		<Fragment>
-			<span className="lightbox">
-				{isOpen && (
-					<Lightbox
-						id={id}
-						src={src}
-						title={modalTitle}
-						downloadSrc={realSrc}
-						objects={objects ?? []}
-						modalEdit={modalEdit}
-						onClose={onClose}
-						openedElement={ref}
-						modalStyle={modalStyle}
-					/>
-				)}
-			</span>
+		<>
 			<img
 				ref={ref}
 				id={id}
@@ -71,7 +64,7 @@ const Image = forwardRef((props: ImageProps, ref?: MutableRefObject<HTMLImageEle
 				onTouchStart={onTouchStart}
 			/>
 			{title && <em>{title}</em>}
-		</Fragment>
+		</>
 	);
 });
 

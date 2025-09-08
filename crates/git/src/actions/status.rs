@@ -37,7 +37,20 @@ pub struct StatusInfoEntry {
 
 #[derive(Serialize, Debug)]
 #[serde(rename_all = "camelCase")]
-pub struct StatusInfo(Vec<StatusInfoEntry>);
+pub struct StatusInfo(pub Vec<StatusInfoEntry>);
+
+impl std::fmt::Display for StatusInfo {
+  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    for entry in itertools::intersperse(
+      self.0.iter().map(|e| format!("{}({:?})", e.path.display(), e.status)),
+      ", ".to_string(),
+    ) {
+      f.write_str(&entry)?;
+    }
+
+    Ok(())
+  }
+}
 
 impl StatusInfo {
   pub fn entries(&self) -> &Vec<StatusInfoEntry> {
@@ -97,10 +110,10 @@ impl<'s> ShortInfo<'s, StatusInfo> for Statuses<'s> {
   }
 }
 
-impl<C: Creds> Status for Repo<C> {
+impl<C: Creds> Status for Repo<'_, C> {
   fn status(&self, index: bool) -> Result<Statuses> {
-    info!(target: TAG, "status");
     self.ensure_trash_ignored()?;
+
     let mut opts = StatusOptions::default();
     opts
       .include_unmodified(false)
@@ -114,7 +127,7 @@ impl<C: Creds> Status for Repo<C> {
   }
 
   fn status_file<P: AsRef<Path>>(&self, path: P) -> Result<StatusEntry> {
-    info!(target: TAG, "status file {}", path.as_ref().display());
+    info!(target: TAG, "status file: {}", path.as_ref().display());
     Ok(self.0.status_file(path.as_ref())?.into())
   }
 }

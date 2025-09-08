@@ -1,5 +1,7 @@
+import ElementGroups from "@ext/markdown/core/element/ElementGroups";
+
 const inlineMd_component = {
-	group: "inline",
+	group: `${ElementGroups.inline}`,
 	atom: true,
 	inline: true,
 	attrs: {

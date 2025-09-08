@@ -3,6 +3,7 @@ const ElementGroups = {
 	inline: "inline",
 	listItem: "listItem",
 	listItemContent: "listItemContent",
+	list: "list",
 	tab: "tab",
 };
 

@@ -8,6 +8,9 @@ use std::time::UNIX_EPOCH;
 pub use error::Result;
 use serde::Serialize;
 
+#[macro_use]
+extern crate tracing;
+
 #[derive(Serialize, Debug)]
 pub struct FileInfo {
   #[serde(rename = "type")]

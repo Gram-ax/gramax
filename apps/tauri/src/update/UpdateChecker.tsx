@@ -13,6 +13,10 @@ const Wrapper = styled.div`
 	bottom: 2rem;
 	right: 2rem;
 	z-index: var(--z-index-popover);
+
+	@media print {
+		display: none;
+	}
 `;
 
 const UpdateChecker = () => {

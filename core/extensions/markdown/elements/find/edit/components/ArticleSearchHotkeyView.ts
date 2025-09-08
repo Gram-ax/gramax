@@ -41,7 +41,7 @@ class ArticleSearchHotkeyView extends ReactRenderer {
 
 	public updateEditor(editor: Editor) {
 		if (this.getProps().isOpen) this.updateProps({ editor });
-		else this.silentUpdateProps({ editor });
+		else this.updateProps({ editor });
 		this._editor = editor;
 	}
 }

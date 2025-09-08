@@ -31,6 +31,7 @@ const ArticleSnippet = ({ item }: { item: ProviderItemProps }) => {
 	const onCloseClick = () => {
 		SnippetService.closeItem();
 		SnippetUpdateService.updateContent(item.id, apiUrlCreator);
+		refreshPage();
 	};
 
 	return (

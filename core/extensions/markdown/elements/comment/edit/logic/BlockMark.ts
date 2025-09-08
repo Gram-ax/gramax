@@ -61,7 +61,7 @@ class CommentBlockMark implements BlockMarkInterface {
 			const clampedTo = Math.min(pos + node.nodeSize, range.to);
 
 			if (node.isText) return this._deleteTextAttributes(this._tr, { from: clampedFrom, to: clampedTo });
-			if (node.isBlock) return this._deleteBlockAttributes(this._tr, { from: clampedFrom, to: clampedTo });
+			if ((node.isBlock || node.isInline) && !node.isTextblock) return this._deleteBlockAttributes(this._tr, pos);
 		});
 
 		return this._tr;
@@ -73,22 +73,23 @@ class CommentBlockMark implements BlockMarkInterface {
 			const clampedTo = Math.min(pos + node.nodeSize, range.to);
 
 			if (node.isText) return this._setTextAttributes(this._tr, { from: clampedFrom, to: clampedTo }, attributes);
-			if (node.isBlock) return this._setBlockAttributes(this._tr, { from: clampedFrom, to: clampedTo }, attributes);
+			if ((node.isBlock || node.isInline) && !node.isTextblock)
+				return this._setBlockAttributes(this._tr, pos, attributes);
 		});
 
 		return this._tr;
 	}
 
-	private _setBlockAttributes(tr: Transaction, range: Range, attributes: Attrs) {
-		const node = tr.doc.nodeAt(range.from);
-		if (!node.isBlock) return;
-		tr.setNodeAttribute(range.from, this._markType.name, attributes);
+	private _setBlockAttributes(tr: Transaction, pos: number, attributes: Attrs) {
+		const newNode = tr.doc.nodeAt(pos);
+		if (newNode?.isText || newNode?.isTextblock) return;
+		tr.setNodeAttribute(pos, this._markType.name, attributes);
 	}
 
-	private _deleteBlockAttributes(tr: Transaction, range: Range) {
-		const node = tr.doc.nodeAt(range.from);
-		if (!node.isBlock) return;
-		tr.setNodeAttribute(range.from, this._markType.name, undefined);
+	private _deleteBlockAttributes(tr: Transaction, pos: number) {
+		const newNode = tr.doc.nodeAt(pos);
+		if (newNode?.isText || newNode?.isTextblock) return;
+		tr.setNodeAttribute(pos, this._markType.name, undefined);
 	}
 
 	private _setTextAttributes(tr: Transaction, range: Range, attributes: Attrs) {

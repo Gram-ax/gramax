@@ -14,7 +14,6 @@
       qa-catalog-url: test
       qa-catalog-docroot: test/a/b
       qa-catalog-description: 123
-      qa-catalog-code: T
       """
     И нажимаем на кнопку "Сохранить"
     Тогда находимся по адресу "/-/-/-/-/test/new-article-2"

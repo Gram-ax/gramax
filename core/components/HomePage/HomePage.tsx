@@ -17,7 +17,7 @@ export default styled(({ data, className }: { data: HomePageData; className?: st
 			<TopMenu catalogLinks={data.catalogsLinks} />
 			{catalogCount ? (
 				<FavoriteCatalogLinkService.Init value={data.catalogsLinks}>
-					<Groups section={data.section} breadcrumb={data.breadcrumb} />
+					<Groups section={data.section} breadcrumb={data.breadcrumb} group={data.group} />
 				</FavoriteCatalogLinkService.Init>
 			) : (
 				<NoneGroups className="article px-4" style={{ background: "#ffffff00" }} />

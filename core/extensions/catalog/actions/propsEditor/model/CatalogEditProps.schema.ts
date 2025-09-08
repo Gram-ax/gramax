@@ -12,6 +12,7 @@ export interface CatalogEditProps {
 	docroot?: string;
 	versions?: string[];
 	description?: string;
+	group?: string;
 	/**
 	 * @see language
 	 */

@@ -5,6 +5,7 @@ import {
 	AnnotationObject,
 	SquareObject,
 } from "@ext/markdown/elements/image/edit/model/imageEditorTypes";
+import { FloatAlign } from "@ext/markdown/elements/float/edit/model/types";
 
 export const parse = (
 	crop: string,
@@ -12,10 +13,12 @@ export const parse = (
 	objects: string,
 	width: number,
 	height: number,
-): { crop: Crop; objects: ImageObject[]; scale?: number; width: number; height: number } => {
+	float: FloatAlign,
+): { crop: Crop; objects: ImageObject[]; scale?: number; width: number; height: number; float: FloatAlign } => {
 	const scaleIsObjects = isObjects(scale);
 	const newCrop = transfromToCrop(crop);
 	const newObjects = transformToObjects((scaleIsObjects ? scale : objects) ?? "[]");
+	const newFloat = float || "center";
 
 	return {
 		crop: newCrop,
@@ -23,6 +26,7 @@ export const parse = (
 		scale: (!scaleIsObjects && scale !== null ? +scale : null) ?? null,
 		width: width,
 		height: height,
+		float: newFloat,
 	};
 };
 
@@ -78,7 +82,14 @@ const transformToObjects = (objects: string): ImageObject[] => {
 	return newObjects;
 };
 
-export const format = (width: number, height: number, crop: Crop, objects: ImageObject[], scale?: number) => {
+export const format = (
+	width: number,
+	height: number,
+	crop: Crop,
+	objects: ImageObject[],
+	scale?: number,
+	float?: FloatAlign,
+) => {
 	const result: Record<string, any> = {};
 
 	result.crop = Object.values(crop).join(",");
@@ -96,6 +107,8 @@ export const format = (width: number, height: number, crop: Crop, objects: Image
 		result.width = width;
 		result.height = height;
 	}
+
+	result.float = float || "center";
 
 	return result;
 };

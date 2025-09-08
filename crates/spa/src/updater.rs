@@ -90,6 +90,7 @@ pub enum Channel {
   #[default]
   Prod,
   Dev,
+  Mobile,
 }
 
 impl std::fmt::Display for Channel {
@@ -97,6 +98,7 @@ impl std::fmt::Display for Channel {
     match self {
       Channel::Prod => write!(f, "prod"),
       Channel::Dev => write!(f, "dev"),
+      Channel::Mobile => write!(f, "mobile"),
     }
   }
 }
@@ -134,15 +136,15 @@ impl std::fmt::Display for Platform {
 pub enum Bucket {
   #[serde(rename = "updates")]
   Updates,
-  #[serde(rename = "download")]
-  Releases,
+  #[serde(rename = "downloads")]
+  Downloads,
 }
 
 impl std::fmt::Display for Bucket {
   fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
     match self {
       Bucket::Updates => write!(f, "updates"),
-      Bucket::Releases => write!(f, "download"),
+      Bucket::Downloads => write!(f, "downloads"),
     }
   }
 }
@@ -152,6 +154,7 @@ impl Channel {
     match self {
       Channel::Prod => "release",
       Channel::Dev => "dev",
+      Channel::Mobile => "mobile-dev",
     }
   }
 }
@@ -204,7 +207,7 @@ impl ReleaseCache {
 
     let release = match bucket {
       Bucket::Updates => self.artifacts.read().await.get(&channel).cloned(),
-      Bucket::Releases => self.artifacts.read().await.get(&channel).cloned(),
+      Bucket::Downloads => self.artifacts.read().await.get(&channel).cloned(),
     };
 
     release.ok_or(UpdaterError::ReleaseNotFound(channel))
@@ -281,12 +284,12 @@ async fn stream_download(
 
   let endpoint = match bucket {
     Bucket::Updates => info.url_raw.clone(),
-    Bucket::Releases => info.url_installer.as_ref().unwrap_or(&info.url_raw).clone(),
+    Bucket::Downloads => info.url_installer.as_ref().unwrap_or(&info.url_raw).clone(),
   };
 
   let filename = match bucket {
     Bucket::Updates => info.url_raw.split('/').next_back(),
-    Bucket::Releases => info.url_installer.as_ref().and_then(|s| s.split('/').next_back()),
+    Bucket::Downloads => info.url_installer.as_ref().and_then(|s| s.split('/').next_back()),
   };
 
   let s3_res = reqwest::get(&endpoint).await.report_if_err().map_err(UpdaterError::S3FailedToFetch)?;

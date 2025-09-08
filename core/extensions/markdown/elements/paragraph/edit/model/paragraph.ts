@@ -44,7 +44,7 @@ const Paragraph = Node.create({
 				const targetNode = cursor.node();
 
 				if (cursor.depth === 1 && targetNode.type.name === "paragraph") {
-					return editor.chain().focus().toggleBulletList();
+					return editor.commands.toggleBulletList();
 				}
 
 				return false;

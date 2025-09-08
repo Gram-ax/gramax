@@ -1,6 +1,7 @@
 import { EditorView } from "prosemirror-view";
 import { Node } from "prosemirror-model";
 import { TextSelection } from "prosemirror-state";
+import buildSearchRegex from "./buildSearchRegex";
 
 type ReplaceProps = (
 	view: EditorView,
@@ -25,11 +26,7 @@ const replaceHighlightedText: ReplaceProps = (view, searchTerm, newText, caseSen
 
 	if (!searchTerm) return;
 
-	let flags = "g";
-	if (!caseSensitive) flags += "i";
-
-	const regexString = wholeWord ? `\\b${searchTerm}\\b` : searchTerm;
-	const regex = new RegExp(regexString, flags);
+	const regex = buildSearchRegex(searchTerm, caseSensitive, wholeWord);
 
 	let shift = 0;
 	let lastPos = 0;
@@ -64,11 +61,7 @@ const replaceSpecificHighlightedText: ReplaceOneProps = (view, searchTerm, newTe
 
 	if (!searchTerm) return;
 
-	let flags = "g";
-	if (!caseType) flags += "i";
-
-	const regexString = wholeWord ? `\\b${searchTerm}\\b` : searchTerm;
-	const regex = new RegExp(regexString, flags);
+	const regex = buildSearchRegex(searchTerm, caseType, wholeWord);
 
 	const matchesStack: { start: number; end: number }[] = [];
 

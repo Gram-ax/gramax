@@ -14,7 +14,10 @@ export const linkHandler = async (node: Tag, context: pdfRenderContext): Promise
 	const link = isInternalLink ? undefined : node.attributes?.href || "";
 
 	if (isInternalLink) {
-		const { title, order, anchor } = extractNameAndAnchor(node.attributes.href, context.titlesMap);
+		const { title, order, anchor } = extractNameAndAnchor(
+			node.attributes as { href: string; hash: string },
+			context.titlesMap,
+		);
 
 		if (title !== undefined && order !== undefined) {
 			linkToDestination = generateBookmarkName(order, title, anchor);

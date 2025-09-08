@@ -1,10 +1,5 @@
-import Button from "@components/Atoms/Button/Button";
-import { ButtonStyle } from "@components/Atoms/Button/ButtonStyle";
 import FileInput from "@components/Atoms/FileInput/FileInput";
 import SpinnerLoader from "@components/Atoms/SpinnerLoader";
-import FormStyle from "@components/Form/FormStyle";
-import ModalLayout from "@components/Layouts/Modal";
-import ModalLayoutLight from "@components/Layouts/ModalLayoutLight";
 import { classNames } from "@components/libs/classNames";
 import FetchService from "@core-ui/ApiServices/FetchService";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
@@ -14,7 +9,6 @@ import { useDebounce } from "@core-ui/hooks/useDebounce";
 import useWatch from "@core-ui/hooks/useWatch";
 import DiagramType from "@core/components/Diagram/DiagramType";
 import styled from "@emotion/styled";
-import InfoModalForm from "@ext/errorHandlers/client/components/ErrorForm";
 import t from "@ext/localization/locale/translate";
 import ResourceService from "@ext/markdown/elements/copyArticles/resourceService";
 import DiagramError from "@ext/markdown/elements/diagrams/component/DiagramError";
@@ -24,6 +18,9 @@ import getPlantUmlDiagram from "@ext/markdown/elements/diagrams/diagrams/plantUm
 import getNaturalSize from "@ext/markdown/elements/diagrams/logic/getNaturalSize";
 import { Editor } from "@tiptap/core";
 import { FC, Suspense, lazy, memo, useCallback, useEffect, useRef, useState } from "react";
+import { FormFooter, FormHeader } from "@ui-kit/Form";
+import { Modal, ModalBody, ModalContent, ModalTrigger } from "@ui-kit/Modal";
+import { Button } from "@ui-kit/Button";
 
 const LazySwaggerUI = lazy(() => import("@ext/markdown/elements/openApi/render/SwaggerUI"));
 
@@ -72,19 +69,9 @@ const DiagramsEditor = (props: DiagramsEditorProps) => {
 	const rightItemRef = useRef<HTMLDivElement>(null);
 	const [alertHeight, setAlertHeight] = useState(undefined);
 	const [monacoHeight, setMonacoHeight] = useState(undefined);
-	const [showConfirm, setShowConfirm] = useState(false);
 	const isMobile = IsMobileService.value;
 	const [pendedData, setPendedData] = useState(content ?? "");
 	const diagramsServiceUrl = PageDataContextService.value.conf.diagramsServiceUrl;
-
-	const messages = {
-		dontSave: t("dont-save"),
-		cancel: t("cancel"),
-		saveChanges: t("save"),
-		unsavedChanges: t("unsaved-changes"),
-		closeWithChanges: t("close-with-changes"),
-		exitEditMode: t("exit-edit-mode"),
-	};
 
 	const saveSrc = (newContent = "") => {
 		if (!src) return;
@@ -106,7 +93,6 @@ const DiagramsEditor = (props: DiagramsEditorProps) => {
 		if (src) saveSrc(contentEditState);
 		else saveContent(contentEditState);
 		setContentState(contentEditState);
-		setShowConfirm(false);
 		setStartContent(contentEditState);
 		onClose?.();
 		setIsOpen(false);
@@ -188,49 +174,19 @@ const DiagramsEditor = (props: DiagramsEditorProps) => {
 		return () => window.removeEventListener("resize", start);
 	}, [start]);
 
+	const onOpenChange = (open: boolean) => {
+		setIsOpen(open);
+		if (open) void loadContent(src);
+		else cancel();
+	};
+
 	return (
-		<ModalLayout
-			contentWidth="L"
-			isOpen={isOpen}
-			preventClose
-			onClose={(closeCallback) => {
-				if (contentEditState?.toString() === startContent?.toString()) {
-					cancel();
-					return closeCallback();
-				}
-				setShowConfirm(true);
-			}}
-			onOpen={() => setIsOpen(true)}
-			trigger={trigger}
-			onCmdEnter={save}
-			className={className}
-		>
-			<ModalLayoutLight>
-				{showConfirm && (
-					<div className="modal-confirm">
-						<div className={classNames("modal-confirm-container", { fullWidth: isMobile })}>
-							<InfoModalForm
-								title={messages.unsavedChanges}
-								icon={{ code: "circle-alert", color: "rgb(255 187 1)" }}
-								onCancelClick={() => setShowConfirm(false)}
-								secondButton={{
-									onClick: cancel,
-									text: messages.dontSave,
-								}}
-								actionButton={{
-									onClick: save,
-									text: messages.saveChanges,
-								}}
-								closeButton={{ text: messages.cancel }}
-							>
-								<span>{messages.exitEditMode}</span>
-							</InfoModalForm>
-						</div>
-					</div>
-				)}
-				<FormStyle>
-					<>
-						<legend>{`${t("diagram.name")} ${diagramName}`}</legend>
+		<Modal open={isOpen} onOpenChange={onOpenChange}>
+			<ModalTrigger asChild>{trigger}</ModalTrigger>
+			<ModalContent data-modal-root data-diagram-editor-modal size="L" className="h-full">
+				<FormHeader icon="pen" title={t("edit-diagram")} description={t("edit-diagram-description")} />
+				<ModalBody className="h-full overflow-hidden">
+					<div className={className}>
 						<div className={classNames("window", { isMobile })}>
 							<div className={"left-item"}>
 								<FileInput
@@ -238,9 +194,9 @@ const DiagramsEditor = (props: DiagramsEditorProps) => {
 									language={langs[diagramName]}
 									value={contentState?.toString() || ""}
 									onChange={setContentEditState}
-									height={monacoHeight ?? "60vh"}
+									height={monacoHeight}
+									uiKitTheme
 								/>
-
 								{error && (
 									<div className={"bottom"} style={{ height: alertHeight }}>
 										<div ref={alertWrapperRef}>
@@ -261,19 +217,11 @@ const DiagramsEditor = (props: DiagramsEditorProps) => {
 								</div>
 							</div>
 						</div>
-
-						<div className="buttons">
-							<Button buttonStyle={ButtonStyle.underline} onClick={cancel}>
-								<span>{t("cancel")}</span>
-							</Button>
-							<Button buttonStyle={ButtonStyle.default} onClick={save}>
-								<span>{t("save")}</span>
-							</Button>
-						</div>
-					</>
-				</FormStyle>
-			</ModalLayoutLight>
-		</ModalLayout>
+					</div>
+				</ModalBody>
+				<FormFooter primaryButton={<Button onClick={save}>{t("save")}</Button>} />
+			</ModalContent>
+		</Modal>
 	);
 };
 
@@ -332,6 +280,8 @@ const OverloadDiagramRenderer: FC<OverloadRendererProps> = memo((props) => {
 });
 
 export default styled(DiagramsEditor)`
+	height: 100%;
+
 	.window {
 		height: 100%;
 		width: 100%;
@@ -381,14 +331,14 @@ export default styled(DiagramsEditor)`
 		max-width: 100%;
 		word-wrap: break-word;
 		height: 100%;
-		max-height: 60vh;
+		max-height: 100%;
 		overflow: hidden;
 		position: relative;
 
 		.top {
 			padding: unset !important;
 			margin-bottom: 1rem;
-			height: 60vh;
+			height: 100%;
 			width: 99%;
 		}
 		.top-short {
@@ -415,7 +365,7 @@ export default styled(DiagramsEditor)`
 	}
 
 	.right-item {
-		height: 60vh;
+		height: 100%;
 		width: 100%;
 		overflow: auto;
 
@@ -429,6 +379,10 @@ export default styled(DiagramsEditor)`
 			> div {
 				margin: 0;
 			}
+		}
+
+		.diagram-background {
+			pointer-events: none;
 		}
 
 		> div {

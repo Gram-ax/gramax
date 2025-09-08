@@ -1,16 +1,20 @@
 import { getExecutingEnvironment } from "@app/resolveModule/env";
 import Icon from "@components/Atoms/Icon";
 import ButtonLink from "@components/Molecules/ButtonLink";
+import IsMacService from "@core-ui/ContextServices/IsMac";
 import LanguageService from "@core-ui/ContextServices/Language";
+import { usePlatform } from "@core-ui/hooks/usePlatform";
 import styled from "@emotion/styled";
 import t from "@ext/localization/locale/translate";
+import PermissionService from "@ext/security/logic/Permission/components/PermissionService";
+import { configureWorkspacePermission } from "@ext/security/logic/Permission/Permissions";
 import { getFeatureList, setFeature, type Feature } from "@ext/toggleFeatures/features";
 import { Divider } from "@ui-kit/Divider";
+import { Label } from "@ui-kit/Label";
 import { Badge } from "ics-ui-kit/components/badge";
-import { Label } from "ics-ui-kit/components/label";
 import { Popover, PopoverContent, PopoverTrigger } from "ics-ui-kit/components/popover";
 import { Switch } from "ics-ui-kit/components/switch";
-import { Tooltip, TooltipContent, TooltipTrigger } from "ics-ui-kit/components/tooltip";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@ui-kit/Tooltip";
 import { useCallback, useRef, useState } from "react";
 
 const StyledPopoverContent = styled(PopoverContent)`
@@ -115,7 +119,9 @@ const FeatureItem = ({ feature }: { feature: Feature }) => {
 				<Switch
 					size="sm"
 					checked={enabled}
+					disabled={getExecutingEnvironment() === "next"}
 					onCheckedChange={(e) => {
+						if (getExecutingEnvironment() === "next") return;
 						setEnabled(e);
 						setFeature(feature.name, e);
 					}}
@@ -159,9 +165,15 @@ const ToggleFeatures = () => {
 		[initial],
 	);
 
-	const features = getFeatureList();
+	const featuresList = getFeatureList();
 
-	if (features.length === 0) return null;
+	// temp, waiting for fix in mac desktop
+	const { isTauri, isNext } = usePlatform();
+	const isMac = IsMacService.value;
+	const features = isMac && isTauri ? featuresList.filter((f) => f.name !== "cloud") : featuresList;
+
+	if (isNext && !PermissionService.useCheckPermission(configureWorkspacePermission)) return null;
+	if (features.length === 0) return <div></div>;
 
 	return (
 		<Popover onOpenChange={onOpenChange} modal>

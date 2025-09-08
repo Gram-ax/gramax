@@ -6,6 +6,7 @@ import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import PagePropsUpdateService from "@core-ui/ContextServices/PagePropsUpdate";
 import SyncIconService from "@core-ui/ContextServices/SyncIconService";
 import ArticleViewService from "@core-ui/ContextServices/views/articleView/ArticleViewService";
+import useWatch from "@core-ui/hooks/useWatch";
 import { useRouter } from "@core/Api/useRouter";
 import { UnsubscribeToken } from "@core/Event/EventEmitter";
 import Path from "@core/FileProvider/Path/Path";
@@ -21,7 +22,7 @@ import getPathnamePullData from "@ext/git/core/GitPathnameHandler/pull/logic/get
 import t from "@ext/localization/locale/translate";
 import useIsSourceDataValid from "@ext/storage/components/useIsSourceDataValid";
 import useIsStorageInitialized from "@ext/storage/logic/utils/useIsStorageInitialized";
-import { ComponentProps, useEffect } from "react";
+import { ComponentProps, useEffect, useRef } from "react";
 
 const usePathnameHandler = (isFirstLoad: boolean) => {
 	const router = useRouter();
@@ -31,11 +32,18 @@ const usePathnameHandler = (isFirstLoad: boolean) => {
 	const pageDataContext = PageDataContextService.value;
 	const { isArticle } = pageDataContext;
 	const isEditorPathname = RouterPathProvider.isEditorPathname(router.path);
+	const haveBeenFirstLoad = useRef(false);
 
 	useOnPathnameUpdateBranch();
 
+	useWatch(() => {
+		if (isFirstLoad) haveBeenFirstLoad.current = true;
+	}, [isFirstLoad]);
+
 	useEffect(() => {
-		if (!isFirstLoad || !isArticle || !isEditorPathname || !isStorageInitialized) return;
+		if (!isArticle || !isEditorPathname || !isStorageInitialized || !haveBeenFirstLoad.current) return;
+		haveBeenFirstLoad.current = false;
+
 		const handler = async () => {
 			ArticleViewService.setLoadingView();
 			const exit = () => {

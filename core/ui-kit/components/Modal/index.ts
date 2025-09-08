@@ -1,10 +1,10 @@
 export { ModalTitle } from "./ModalTitle";
 export { ModalDescription } from "./ModalDescription";
 export { isFromModal } from "./utils";
+export { ModalContent } from "./ModalContent";
 export {
 	Modal,
 	ModalTrigger,
-	ModalContent,
 	ModalBody,
 	ModalFooter,
 	ModalHeader,

@@ -75,8 +75,9 @@
 	border-bottom: 2px solid var(--color-comment-border);
 }
 
-.ProseMirror [data-comment="true"]:has(.active) {
-	background: var(--color-comment-hover-bg) !important;
+.ProseMirror [data-comment="true"]:has(.active),
+.ProseMirror .active [data-comment="true"] {
+	background: var(--color-comment-hover-bg);
 	border-bottom-color: var(--color-comment-block-hover-border);
 }
 
@@ -90,6 +91,7 @@
 }
 
 .ProseMirror .active [data-comment-block="true"] {
+	background: unset;
 	outline: 2px solid var(--color-comment-block-hover-border);
 }
 

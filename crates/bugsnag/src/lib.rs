@@ -1,3 +1,5 @@
+#![cfg(not(target_family = "wasm"))]
+
 mod event;
 
 use std::panic::PanicHookInfo;
@@ -8,6 +10,9 @@ use serde::Deserialize;
 use serde::Serialize;
 
 use event::*;
+
+#[macro_use]
+extern crate tracing;
 
 const BUGSNAG_API_ENDPOINT: &str = "https://notify.bugsnag.com/";
 
@@ -104,15 +109,15 @@ impl BugsnagNotification {
     headers.insert("Bugsnag-Api-Key", self.api_key.parse().unwrap());
     headers.insert("Bugsnag-Payload-Version", "5".parse().unwrap());
 
-    log::info!("bugsnag data: {:#?}", &self);
+    info!("bugsnag data: {:#?}", &self);
 
     match client.post(BUGSNAG_API_ENDPOINT).headers(headers).json(&self).send() {
       Ok(res) => {
-        log::info!("sent notification to bugsnag; status: {}", res.status());
+        info!("sent notification to bugsnag; status: {}", res.status());
         true
       }
       Err(err) => {
-        log::error!("error while sending error to bugsnag; error: {err:#?}");
+        error!("error while sending error to bugsnag; error: {err:#?}");
         false
       }
     }

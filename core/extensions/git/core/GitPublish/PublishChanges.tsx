@@ -107,7 +107,7 @@ export const PublishChanges = (props: PublishChangesProps) => {
 				</SelectAllWrapper>
 			)}
 			<ScrollableDiffEntriesLayout>
-				{!diffTree?.tree && isLoading ? (
+				{isLoading ? (
 					<SpinnerLoader ref={containerRef} fullScreen />
 				) : (
 					<DiffEntries

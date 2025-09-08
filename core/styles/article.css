@@ -185,7 +185,7 @@ article a span.external-link-wrapper {
 }
 
 .article ul[data-type="taskList"] > li::before {
-	display: none;
+	display: none !important;
 }
 
 .article ul[data-type="taskList"] > li {
@@ -195,7 +195,9 @@ article a span.external-link-wrapper {
 	margin-bottom: 0 !important;
 }
 .article ul[data-type="taskList"] > li label {
-	line-height: 1.7em;
+	display: flex;
+	align-items: center;
+	height: 1.7em;
 }
 
 .article ul[data-type="taskList"] > li label input {
@@ -257,7 +259,7 @@ article a span.external-link-wrapper {
 
 .article .article-body li,
 .article .article-body li > p {
-	margin-bottom: 0.4em !important;
+	margin-bottom: 0.4em;
 }
 
 .article .article-body ul {
@@ -267,38 +269,43 @@ article a span.external-link-wrapper {
 .article .article-body ol {
 	counter-reset: listitem 0;
 	list-style: none;
-	padding-left: 2em !important;
+	padding-left: 2em;
 }
 
-.article .article-body ol > li,
-.article .article-body ul > li {
+.article .article-body ol,
+.article .article-body ul {
 	position: relative;
+	display: flow-root;
 }
 
 .article .article-body ol > li::before {
-	top: 0.3em;
-	left: -3em;
+	display: inline-flex;
+	margin-left: -2.75em;
+	justify-content: center;
+	align-items: center;
+	margin-top: 0.5em;
 	width: 2em;
-	font-size: 0.625em;
-	padding: 0.5em 0;
+	height: 2em;
 	font-weight: 600;
 	line-height: 1em;
+	font-size: 0.625em;
 	position: absolute;
-	text-align: center;
 	border-radius: 100%;
 }
 
+.article .article-body ol > li:has(> ol),
+.article .article-body ul > li:has(> ul) {
+	margin-bottom: unset;
+}
+
 .article .article-body ul > li::before {
-	padding: 0.25em 0.25em;
-	left: -1.5em;
-	top: 0.9em;
-	font-size: 0.625em;
+	position: absolute;
+	margin-top: 0.65em;
+	display: inline-flex;
+	padding: 0.18em 0.18em;
+	margin-left: -1em;
 	font-weight: 600;
 	line-height: 1em;
-	position: absolute;
-	text-align: center;
-
-	transform: translateY(50%);
 	background-color: var(--color-article-text);
 	content: "";
 }
@@ -613,7 +620,8 @@ article a span.external-link-wrapper {
 
 .article table[data-header="column"] tbody tr td:first-child,
 .article table[data-header="row"] tbody tr:first-child td,
-.article table tbody tr[data-aggregation] td {
+.article table tbody tr[data-aggregation] td,
+.article table thead td {
 	font-weight: 500;
 	color: var(--color-article-strong-text);
 }
@@ -692,7 +700,7 @@ article a span.external-link-wrapper {
 .article table > thead > tr > th {
 	text-align: left;
 	padding: 0.5rem 1rem;
-	vertical-align: top !important;
+	vertical-align: top;
 	word-break: break-word;
 	white-space: normal;
 }
@@ -850,6 +858,26 @@ article a span.external-link-wrapper {
 	50% {
 		opacity: 0.5;
 	}
+}
+
+.article [data-float] {
+	clear: both;
+}
+
+.article [data-float="left"] {
+	position: relative;
+	float: left;
+	margin-right: 0.8em;
+	margin-top: 0.5em;
+	z-index: 1;
+}
+
+.article [data-float="right"] {
+	position: relative;
+	float: right;
+	margin-left: 1.35em;
+	margin-top: 0.5em;
+	z-index: 1;
 }
 
 @media print {

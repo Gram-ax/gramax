@@ -4,7 +4,9 @@ const getAttrs = (attrs: Record<string, string>) => {
 	const src = attrs?.path ?? "";
 	const width = titleIsWidth ? attrs?.title : attrs?.width;
 	const height = titleIsWidth ? attrs?.width : attrs?.height;
-	return { src, title, width, height };
+	const float = width && height ? attrs?.float : attrs?.title;
+
+	return { src, title, width, height, float };
 };
 
 export default getAttrs;

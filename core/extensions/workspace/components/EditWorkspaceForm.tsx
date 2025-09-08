@@ -16,7 +16,9 @@ import { Divider } from "@ui-kit/Divider";
 import { Form, FormField, FormFooter, FormHeader, FormSectionTitle, FormStack } from "@ui-kit/Form";
 import { Input } from "@ui-kit/Input";
 import { Modal, ModalBody, ModalContent } from "@ui-kit/Modal";
-import { Dispatch, SetStateAction, useCallback, useMemo, useState } from "react";
+import { TextInput } from "ics-ui-kit/components/input";
+import { Loader } from "ics-ui-kit/components/loader";
+import { Dispatch, SetStateAction, useCallback, useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
@@ -47,10 +49,11 @@ const EditWorkspaceForm = (props: WorkspaceSettingsModalProps) => {
 		checkServer: checkAiServer,
 		getData: getAiData,
 		checkToken: checkAiToken,
+		isChecking: isAiChecking,
+		isSaving: isAiSaving,
 	} = useWorkspaceAi(workspace.path);
 
 	const { isTauri } = usePlatform();
-	const [isLoading, setIsLoading] = useState(false);
 	const askPath = isTauri;
 
 	const isNameUnique = (name: string) =>
@@ -58,49 +61,43 @@ const EditWorkspaceForm = (props: WorkspaceSettingsModalProps) => {
 
 	const isPathValid = (path: string) => path.length > 0;
 
-	const formSchema = z
-		.object({
-			name: z
+	const formSchema = z.object({
+		name: z
+			.string()
+			.min(2, { message: t("space-name-min-length") })
+			.refine(isNameUnique, { message: t("cant-be-same-name") }),
+		icon: z.optional(z.string()),
+		path: z.optional(
+			z
 				.string()
 				.min(2, { message: t("space-name-min-length") })
-				.refine(isNameUnique, { message: t("cant-be-same-name") }),
-			icon: z.optional(z.string()),
-			path: z.optional(
-				z
-					.string()
-					.min(2, { message: t("space-name-min-length") })
-					.refine(isPathValid, { message: t("cant-be-same-path") }),
-			),
-			aiApiUrl: z.string().optional().or(z.literal("")),
-			aiToken: z.string().optional().or(z.literal("")),
-		})
-		.refine(
-			async (val) => {
-				if (!val.aiApiUrl?.length) return true;
-				setIsLoading(true);
-				const valid = await checkAiServer(val.aiApiUrl);
-				setIsLoading(false);
-				return valid;
-			},
-			{ message: t("workspace.ai-server-error"), path: ["aiApiUrl"] },
-		)
-		.refine(
-			async (val) => {
-				if (!val.aiApiUrl?.length || !val.aiToken?.length) return true;
-				setIsLoading(true);
-				const valid = await checkAiToken(val.aiApiUrl, val.aiToken);
-				setIsLoading(false);
-				return valid;
-			},
-			{ message: t("workspace.ai-token-error"), path: ["aiToken"] },
-		)
-		.refine(
-			(val) => {
-				if (val.aiApiUrl.length && !val.aiToken?.length) return false;
-				return true;
-			},
-			{ message: t("workspace.ai-token-set-error"), path: ["aiToken"] },
-		);
+				.refine(isPathValid, { message: t("cant-be-same-path") }),
+		),
+		ai: z
+			.object({
+				apiUrl: z.string().optional().or(z.literal("")),
+				token: z.string().optional().or(z.literal("")),
+			})
+			.refine(
+				async (val) => {
+					if (!val.apiUrl) return true;
+					return await checkAiServer(val.apiUrl);
+				},
+				{ message: t("workspace.ai-server-error"), path: ["apiUrl"] },
+			)
+			.refine((val) => !(val.apiUrl && !val.token), {
+				message: t("workspace.ai-token-set-error"),
+				path: ["token"],
+			})
+			.refine(
+				async (val) => {
+					if (!val.apiUrl || !val.token) return true;
+					return await checkAiToken(val.apiUrl, val.token);
+				},
+				{ message: t("workspace.ai-token-error"), path: ["token"] },
+			)
+			.optional(),
+	});
 
 	const form = useForm<z.infer<typeof formSchema>>({
 		resolver: zodResolver(formSchema),
@@ -127,7 +124,7 @@ const EditWorkspaceForm = (props: WorkspaceSettingsModalProps) => {
 	const formSubmit = (e) => {
 		form.handleSubmit(async (data) => {
 			await onSubmit({ name: data.name, icon: data.icon, path: data.path }, onCloseHandler);
-			await saveAiData({ apiUrl: data.aiApiUrl, token: data.aiToken });
+			if (data.ai) await saveAiData({ apiUrl: data.ai.apiUrl, token: data.ai.token });
 			onSubmitParent?.(data as ClientWorkspaceConfig);
 		})(e);
 	};
@@ -215,20 +212,24 @@ const EditWorkspaceForm = (props: WorkspaceSettingsModalProps) => {
 									<Divider />
 									<FormSectionTitle children={t("workspace.set-ai-server")} />
 									<FormField
-										name="aiApiUrl"
+										name="ai.apiUrl"
 										title={t("workspace.ai-server-url")}
 										description={t("workspace.ai-server-url-description")}
 										control={({ field }) => (
-											<Input {...field} placeholder="https://your-ai-server.com" />
+											<TextInput
+												{...field}
+												placeholder="https://your-ai-server.com"
+												endIcon={isAiChecking && <Loader style={{ padding: 0 }} size="md" />}
+											/>
 										)}
 										{...formProps}
 									/>
 									<FormField
-										name="aiToken"
+										name="ai.token"
 										title={t("workspace.ai-server-token")}
 										description={t("workspace.ai-server-token-description")}
 										control={({ field }) => (
-											<Input {...field} type="password" placeholder="your-server-token" />
+											<TextInput {...field} type="password" placeholder="your-server-token" />
 										)}
 										{...formProps}
 									/>
@@ -236,8 +237,8 @@ const EditWorkspaceForm = (props: WorkspaceSettingsModalProps) => {
 							</ModalBody>
 							<FormFooter
 								primaryButton={
-									<Button type="submit" variant="primary" disabled={isLoading}>
-										{isLoading && <Icon code="loader-circle" isLoading />}
+									<Button type="submit" variant="primary" disabled={!!isAiChecking || isAiSaving}>
+										{isAiSaving && <Icon code="loader-circle" isLoading />}
 										{t("save")}
 									</Button>
 								}

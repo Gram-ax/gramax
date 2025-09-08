@@ -23,7 +23,11 @@ const transcribe: Command<{ ctx: Context; catalogName: string; blob: Blob }, str
 		assert(data.token, "AI Server token is required");
 		assert(data.apiUrl, "AI Server API URL is required");
 
-		const aiProvider = new DefaultGramaxAi({ apiUrl: data.apiUrl, token: data.token });
+		const aiProvider = new DefaultGramaxAi({
+			apiUrl: data.apiUrl,
+			token: data.token,
+			meta: { instanceName: data.instanceName },
+		});
 
 		const arrayBuffer = await blob.arrayBuffer();
 		const webmFile = new File([arrayBuffer], "audio_recording.webm", { type: "audio/webm" });

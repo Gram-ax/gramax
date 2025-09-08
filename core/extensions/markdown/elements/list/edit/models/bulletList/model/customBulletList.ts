@@ -1,4 +1,5 @@
-import shortcutRulePrepare from "@ext/markdown/elements/list/edit/logic/shortcutRulePrepare";
+import inputRuleHandler from "@ext/markdown/elements/list/edit/logic/inputRuleHandler";
+import toggleListPrepare from "@ext/markdown/elements/list/edit/logic/toggleListPrepare";
 import { wrappingInputRule } from "@tiptap/core";
 import BulletList from "@tiptap/extension-bullet-list";
 
@@ -24,16 +25,16 @@ const CustomBulletList = BulletList.extend({
 				editor: this.editor,
 			});
 		}
-		return [inputRule];
+		return [inputRuleHandler(inputRule)];
 	},
 
 	addCommands() {
 		return {
 			toggleBulletList:
 				() =>
-				({ editor }) => {
-					const chain = shortcutRulePrepare(editor);
-					return chain.toggleList(this.name, this.options.itemTypeName, this.options.keepMarks).run();
+				({ editor, chain }) => {
+					toggleListPrepare(editor, chain());
+					return chain().toggleList(this.name, this.options.itemTypeName, this.options.keepMarks).run();
 				},
 		};
 	},

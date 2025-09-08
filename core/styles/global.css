@@ -235,12 +235,3 @@ span.pk .far {
 .tippy-box {
 	outline: none;
 }
-
-@media print {
-	html,
-	body,
-	div#__next,
-	div#root {
-		background-color: transparent !important;
-	}
-}

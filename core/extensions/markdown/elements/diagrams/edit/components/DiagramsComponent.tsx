@@ -8,6 +8,12 @@ import BlockActionPanel from "@components/BlockActionPanel";
 import DiagramActions from "@ext/markdown/elements/diagrams/edit/components/DiagramActions";
 import getNaturalSize from "@ext/markdown/elements/diagrams/logic/getNaturalSize";
 import { NodeViewContextableWrapper } from "@ext/markdown/core/element/NodeViewContextableWrapper";
+import { resolveFloat } from "@ext/markdown/elements/float/edit/logic/resolveFloat";
+
+const DIAGRAMS_ACTIONS_OPTIONS = {
+	comment: true,
+	float: true,
+};
 
 const DiagramComponent = (props: NodeViewProps): ReactElement => {
 	const { node, editor, getPos } = props;
@@ -16,6 +22,7 @@ const DiagramComponent = (props: NodeViewProps): ReactElement => {
 	const signatureRef = useRef<HTMLInputElement>(null);
 	const [hasSignature, setHasSignature] = useState(node.attrs?.title?.length > 0);
 	const isEditable = editor.isEditable;
+	const float = resolveFloat(node.attrs.float);
 
 	const openEditor = () => {
 		ModalToOpenService.setValue(ModalToOpen.DiagramEditor, {
@@ -52,14 +59,14 @@ const DiagramComponent = (props: NodeViewProps): ReactElement => {
 	};
 
 	return (
-		<NodeViewContextableWrapper ref={hoverElement} props={props}>
+		<NodeViewContextableWrapper ref={hoverElement} props={props} data-float={float}>
 			<BlockActionPanel
 				isSignature={node.attrs?.title?.length > 0}
 				hoverElementRef={hoverElement}
 				updateAttributes={updateAttributes}
 				signatureText={node.attrs.title}
 				signatureRef={signatureRef}
-				actionsOptions={{ comment: true }}
+				actionsOptions={DIAGRAMS_ACTIONS_OPTIONS}
 				hasSignature={hasSignature}
 				setHasSignature={setHasSignature}
 				getPos={getPos}
@@ -78,7 +85,11 @@ const DiagramComponent = (props: NodeViewProps): ReactElement => {
 				<DiagramData
 					noEm={isEditable}
 					openEditor={openEditor}
-					{...node.attrs}
+					title={node.attrs.title}
+					src={node.attrs.src}
+					content={node.attrs.content}
+					width={node.attrs.width}
+					height={node.attrs.height}
 					diagramName={node.attrs.diagramName}
 					commentId={node.attrs.comment?.id}
 				/>

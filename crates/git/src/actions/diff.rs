@@ -87,7 +87,7 @@ pub struct DiffTree2TreeFile {
   pub deleted: usize,
 }
 
-impl<C: Creds> Diff for Repo<C> {
+impl<C: Creds> Diff for Repo<'_, C> {
   fn conflicts(&self) -> Result<Vec<IndexConflict>> {
     let index = self.0.index()?;
     let mut conflicts = vec![];
@@ -115,7 +115,7 @@ impl<C: Creds> Diff for Repo<C> {
   }
 }
 
-impl<C: Creds> Repo<C> {
+impl<C: Creds> Repo<'_, C> {
   fn diff_find_merge_base(&self, opts: &DiffConfig) -> Result<Option<Oid>> {
     if !opts.use_merge_base {
       return Ok(None);

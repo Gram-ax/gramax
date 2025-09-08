@@ -1,4 +1,3 @@
-use core::str;
 use std::path::PathBuf;
 
 use build::CheckoutBuilder;
@@ -8,6 +7,7 @@ use git2::*;
 use crate::creds::ActualCreds;
 use crate::creds::Creds;
 use crate::prelude::RemoteConnect;
+use crate::refmut::RefOrMut;
 use crate::remote_callback::*;
 
 use crate::error::Result;
@@ -42,13 +42,13 @@ pub trait CloneExt {
   fn get_all_cancel_tokens() -> Vec<usize>;
 }
 
-impl<C: Creds> CloneExt for Repo<C> {
+impl<C: Creds> CloneExt for Repo<'_, C> {
   fn get_all_cancel_tokens() -> Vec<usize> {
     CloneCancel::get_all_cancel_tokens()
   }
 }
 
-impl<C: ActualCreds> Clone<C> for Repo<C> {
+impl<C: ActualCreds> Clone<C> for Repo<'_, C> {
   fn clone(creds: C, opts: CloneOptions, callback: CloneProgressCallback) -> Result<()> {
     let CloneOptions { url, to, branch, depth, is_bare, cancel_token } = opts;
 
@@ -140,12 +140,14 @@ impl<C: ActualCreds> Clone<C> for Repo<C> {
       return Ok(());
     }
 
-    let repo = Self(repo, creds);
+    let repo = Self(RefOrMut::Owned(repo), creds);
 
     if !repo.can_push()? && repo.1.access_token().is_empty() {
       info!(target: TAG, "access token wasn't provided, deleting the remote `origin`");
       repo.0.remote_delete("origin")?;
     }
+
+    info!(target: TAG, "clone completed");
 
     repo.ensure_head_exists()?;
     repo.ensure_crlf_configured()?;

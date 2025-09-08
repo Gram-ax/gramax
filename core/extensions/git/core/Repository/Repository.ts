@@ -61,7 +61,7 @@ export type MergeOptions = Credentials & {
 	isMergeRequest?: boolean;
 };
 
-export type IsShouldSyncOptions = Credentials & { shouldFetch?: boolean; onFetch?: () => void };
+export type IsShouldSyncOptions = Credentials & { shouldFetch?: boolean; onFetch?: () => void; lockFetch?: boolean };
 
 export type SyncResult = {
 	mergeData: GitMergeResultContent[];
@@ -143,7 +143,7 @@ export default abstract class Repository {
 		return this._gvc.gc(opts);
 	}
 
-	async stash(data: SourceData, doAddBeforeStash?: boolean): Promise<GitStash> {
+	async stash(data: SourceData, doAddBeforeStash = true): Promise<GitStash> {
 		const isBrowser = getExecutingEnvironment() === "browser";
 
 		if (!isBrowser) await this.gvc.add();

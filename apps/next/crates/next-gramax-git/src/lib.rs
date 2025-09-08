@@ -1,3 +1,5 @@
+#![cfg(not(target_family = "wasm"))]
+
 use std::path::Path;
 use std::path::PathBuf;
 
@@ -107,7 +109,11 @@ impl From<AccessTokenCreds> for gramaxgit::creds::AccessTokenCreds {
 
 #[napi::module_init]
 fn init() {
-  env_logger::init();
+  use tracing_subscriber::layer::SubscriberExt;
+  use tracing_subscriber::util::SubscriberInitExt;
+
+  let env = tracing_subscriber::EnvFilter::from_default_env();
+  tracing_subscriber::registry().with(tracing_subscriber::fmt::layer()).with(env).init();
 }
 
 #[napi_async]
@@ -241,8 +247,8 @@ pub fn get_remote(repo_path: String) -> Output {
 }
 
 #[napi_async]
-pub fn fetch(repo_path: String, creds: AccessTokenCreds, force: bool) -> Output {
-  git::fetch(Path::new(&repo_path), creds.into(), force)
+pub fn fetch(repo_path: String, creds: AccessTokenCreds, force: bool, lock: bool) -> Output {
+  git::fetch(Path::new(&repo_path), creds.into(), force, lock)
 }
 
 #[napi_async]

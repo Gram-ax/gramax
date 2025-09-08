@@ -1,6 +1,6 @@
 import { classNames } from "@components/libs/classNames";
 import styled from "@emotion/styled";
-import getExtensions from "@ext/markdown/core/edit/logic/getExtensions";
+import { getSimpleExtensions } from "@ext/markdown/core/edit/logic/getExtensions";
 import { Placeholder } from "@ext/markdown/elements/placeholder/placeholder";
 import Document from "@tiptap/extension-document";
 import { EditorContent, JSONContent, useEditor } from "@tiptap/react";
@@ -67,7 +67,7 @@ const CommentEditor = styled(
 			{
 				content: { type: "doc", content },
 				extensions: [
-					...getExtensions(),
+					...getSimpleExtensions(),
 					Comment,
 					Document,
 					placeholder ? Placeholder.configure({ placeholder }) : null,

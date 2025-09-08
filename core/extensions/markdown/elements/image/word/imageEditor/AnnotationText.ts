@@ -1,4 +1,5 @@
 import { ImageObject } from "@ext/markdown/elements/image/edit/model/imageEditorTypes";
+import { AddOptionsWord } from "@ext/wordExport/options/WordTypes";
 import { WordFontStyles, wordFontTypes } from "@ext/wordExport/options/wordExportSettings";
 import { Paragraph, TextRun } from "docx";
 
@@ -10,9 +11,13 @@ class AnnotationText {
 		];
 	}
 
-	public static getText(title?: string, objects: ImageObject[] = []) {
+	public static getText(title?: string, objects: ImageObject[] = [], addOptions?: AddOptionsWord) {
+		const indent = typeof addOptions?.indent === "number" ? { left: addOptions.indent } : undefined;
+
 		if (!objects.some((object) => object.text))
-			return title ? [new Paragraph({ children: [new TextRun(title)], style: WordFontStyles.pictureTitle })] : [];
+			return title
+				? [new Paragraph({ children: [new TextRun(title)], style: WordFontStyles.pictureTitle, indent })]
+				: [];
 
 		const lastIndex = objects.reduce((lastIndex, object, index) => {
 			return object.text ? index : lastIndex;
@@ -27,6 +32,7 @@ class AnnotationText {
 			new Paragraph({
 				children: [new TextRun(title), ...annotations],
 				style: WordFontStyles.pictureTitle,
+				indent,
 			}),
 		];
 	}

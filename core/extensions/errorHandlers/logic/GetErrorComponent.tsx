@@ -1,3 +1,4 @@
+import getEnterpriseErrors from "@ext/enterprise/errors/getEnterpriseErrors";
 import { NetworkApiErrorCode } from "@ext/errorHandlers/network/NetworkApiError";
 import NetworkApiErrorComponent from "@ext/errorHandlers/network/components/NetworkApiError";
 import getMergeRequestErrors from "@ext/git/core/GitMergeRequest/errors/getMergeRequestErrors";
@@ -15,6 +16,7 @@ const getComponents = (): {
 	...getGitErrors(),
 	...getStorageErrors(),
 	...getMergeRequestErrors(),
+	...getEnterpriseErrors(),
 	[NetworkApiErrorCode]: NetworkApiErrorComponent,
 });
 

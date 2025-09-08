@@ -13,6 +13,7 @@ interface ImageDataProps {
 	width?: string;
 	height?: string;
 	marginBottom?: string;
+	float?: string;
 }
 
 const Image = (props: ImageDataProps): ReactElement => {

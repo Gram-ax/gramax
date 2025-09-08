@@ -15,6 +15,10 @@ interface ImageResizerProps {
 const ImageResizer = (props: ImageResizerProps): ReactElement => {
 	const { containerRef, className, imageRef, saveResize, scale, selected = false } = props;
 
+	const getContainer = useCallback(() => {
+		return containerRef.current.closest("[data-resize-container]").parentElement;
+	}, []);
+
 	const handleResizeStart = useCallback(() => {
 		const mainContainer = containerRef.current;
 		const nodeViewWrapper = mainContainer.closest("[data-drag-handle]");
@@ -26,7 +30,7 @@ const ImageResizer = (props: ImageResizerProps): ReactElement => {
 	const handleResizeMove = useCallback(
 		(deltaX: number) => {
 			const object = imageRef.current;
-			const container = containerRef.current;
+			const container = getContainer();
 
 			if (!object || !container) return;
 
@@ -60,11 +64,10 @@ const ImageResizer = (props: ImageResizerProps): ReactElement => {
 		}
 
 		const object = imageRef.current;
-		const container = containerRef.current;
 
-		if (!object || !container) return;
+		if (!object) return;
 
-		const containerWidth = parseFloat(getComputedStyle(container).width);
+		const containerWidth = parseFloat(getComputedStyle(getContainer()).width);
 		const finalWidth = object.offsetWidth;
 		const widthPercent = Math.round((finalWidth / containerWidth) * 100);
 		saveResize(widthPercent);
@@ -87,7 +90,7 @@ const ImageResizer = (props: ImageResizerProps): ReactElement => {
 			const scale = newScale || 100;
 			if (!image || +image.style.width || !scale) return;
 
-			const width = getScale(scale, parseFloat(getComputedStyle(containerRef.current).width));
+			const width = getScale(scale, parseFloat(getComputedStyle(getContainer()).width));
 			image.style.width = `${width}px`;
 		};
 

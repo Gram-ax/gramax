@@ -105,7 +105,7 @@ const StyledDiv = styled.div`
 	padding: 0 5.5px;
 	width: 300px;
 
-	& > div:last-of-type {
+	& > [data-tippy-root]:not([data-tippy-root] ~ [data-tippy-root]) {
 		margin-top: 4px !important;
 	}
 `;

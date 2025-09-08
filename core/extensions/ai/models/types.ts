@@ -32,13 +32,8 @@ type ApiUrl = string;
 export interface AiServerConfig {
 	apiUrl: ApiUrl;
 	token: Token;
+	instanceName?: string;
 }
-
-export interface AiData extends AiServerConfig {
-	instanceName: string;
-}
-
-export type AppConfigAiData = Omit<AiData, "token">;
 
 export type GramaxAiOptions = AiServerConfig & {
 	meta?: {
@@ -61,6 +56,7 @@ export interface AiProvider {
 
 export type SourceAiData = {
 	apiUrl: string;
+	instanceName?: string;
 	isInvalid?: boolean;
 };
 

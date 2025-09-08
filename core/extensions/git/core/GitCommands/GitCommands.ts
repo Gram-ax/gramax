@@ -273,7 +273,7 @@ export class GitCommands {
 			} catch (e) {
 				throw new GitError(
 					e instanceof GitError ? e.props.errorCode : GitErrorCode.CloneError,
-					e,
+					e instanceof GitError ? e.cause || e : e,
 					{ repositoryPath: this._repoPath.value, remoteUrl: url, branchName: branch },
 					"clone",
 					null,
@@ -358,10 +358,10 @@ export class GitCommands {
 		});
 	}
 
-	async fetch(data: GitSourceData, force = false): Promise<void> {
+	async fetch(data: GitSourceData, force = false, lock = true): Promise<void> {
 		return await this._logWrapper("fetch", "Fetching", async () => {
 			try {
-				await this._impl.fetch(data, force);
+				await this._impl.fetch(data, force, lock);
 				await this._events.emit("fetch", { commands: this, force });
 			} catch (e) {
 				const origin = await this.getRemoteUrl();

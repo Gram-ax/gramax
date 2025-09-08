@@ -135,8 +135,8 @@ pub fn checkout(repo_path: String, ref_name: String, force: bool) -> Result<()> 
 }
 
 #[em_bindgen]
-pub fn fetch(repo_path: String, creds: AccessTokenCreds, force: bool) -> Result<()> {
-  git::fetch(Path::new(&repo_path), creds, force).or_http_error()
+pub fn fetch(repo_path: String, creds: AccessTokenCreds, force: bool, lock: bool) -> Result<()> {
+  git::fetch(Path::new(&repo_path), creds, force, lock).or_http_error()
 }
 
 #[em_bindgen]

@@ -65,7 +65,7 @@ const sync: Command<{ ctx: Context; catalogName: string; articlePath: Path }, Cl
 			: {
 					ok: false,
 					mergeFiles: mergeResult,
-					reverseMerge: (state.inner as RepositoryMergeConflictState).data.reverseMerge,
+					reverseMerge: (state.inner as RepositoryMergeConflictState).data?.reverseMerge,
 					caller: MergeConflictCaller.Sync,
 			  };
 

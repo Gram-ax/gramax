@@ -20,6 +20,7 @@ import RuleProvider from "@ext/rules/RuleProvider";
 import { TemplateField } from "@ext/templates/models/types";
 import type { Workspace } from "@ext/workspace/Workspace";
 import type { WorkspaceConfig, WorkspaceSection } from "@ext/workspace/WorkspaceConfig";
+import { WorkspaceView } from "@ext/workspace/WorkspaceConfig";
 import htmlToText from "html-to-text";
 import UiLanguage, { ContentLanguage, resolveLanguage } from "../../extensions/localization/core/model/Language";
 import MarkdownParser from "../../extensions/markdown/core/Parser/Parser";
@@ -85,6 +86,7 @@ export type Section = {
 	href: string;
 	catalogLinks: CatalogLink[];
 	icon?: string;
+	view?: WorkspaceView;
 	description?: string;
 	sections?: Sections;
 };
@@ -100,6 +102,7 @@ export type HomePageData = {
 	section: Section;
 	breadcrumb: HomePageBreadcrumb[];
 	catalogsLinks: CatalogLink[];
+	group?: string;
 };
 
 export type GetArticlePageDataOptions = {
@@ -141,7 +144,7 @@ export default class SitePresenter {
 
 	async getHomePageData(workspace: WorkspaceConfig, path?: string): Promise<HomePageData> {
 		const pathSections = homeSections.getHomePathSections(path);
-		const sectionsInfo = workspace?.sections ? workspace.sections : workspace?.groups ? workspace.groups : {};
+		const sectionsInfo = workspace?.sections || workspace?.groups || {};
 
 		const catalogs = this._workspace.getAllCatalogs();
 		const lastVisited = new LastVisited(this._context, workspace.name);
@@ -155,9 +158,9 @@ export default class SitePresenter {
 				!this._context.contentLanguage ||
 				c.props.language == this._context.contentLanguage,
 		);
-		const { section, breadcrumb } = this._getSection(catalogsLinks, sectionsInfo, pathSections);
+		const { section, breadcrumb, group } = this._getSection(catalogsLinks, sectionsInfo, pathSections);
 
-		return { section, catalogsLinks, breadcrumb };
+		return { section, catalogsLinks, breadcrumb, group };
 	}
 
 	async getArticlePageData(
@@ -181,6 +184,8 @@ export default class SitePresenter {
 		const itemLinks = catalog ? await this._nav.getCatalogNav(catalog, article.ref.path.value) : [];
 
 		const { edit, render } = await article.parsedContent.read((p) => {
+			if (!p) return { render: null, edit: null };
+
 			return {
 				render: JSON.stringify(p.renderTree),
 				edit: editableContent ? JSON.stringify(getArticleWithTitle(article.props.title, p.editTree)) : null,
@@ -310,12 +315,12 @@ export default class SitePresenter {
 
 		const storage = catalog.repo.storage;
 
+		const workspaceConfig = await this._workspace.config();
+		const link = await this._nav.getCatalogLink(catalog, new LastVisited(this._context, workspaceConfig.name));
+
 		return {
 			notFound: false,
-			link: await this._nav.getCatalogLink(
-				catalog,
-				new LastVisited(this._context, (await this._workspace.config()).name),
-			),
+			link,
 			relatedLinks: await this._nav.getRelatedLinks(catalog),
 			contactEmail: catalog.props.contactEmail ?? null,
 			tabsTags: catalog.props.tabsTags ?? null,
@@ -350,11 +355,9 @@ export default class SitePresenter {
 			catalog.props,
 			this._context.contentLanguage || catalog.props.language,
 		);
-		let article = catalog.findArticle(
-			itemLogicPath,
-			!root.parent ? [(i) => !isLanguageCategory(catalog, i), ...filters] : filters,
-			root,
-		);
+
+		const finalFilters = !root.parent ? [(i) => !isLanguageCategory(catalog, i), ...filters] : filters;
+		let article = catalog.findArticle(itemLogicPath, finalFilters, root);
 
 		// ! Hack, because we need to 😢
 		// ? Checks if the found category is a language category, then redirects user to first child, or to any other first in route
@@ -371,7 +374,11 @@ export default class SitePresenter {
 		catalogLinks: CatalogLink[],
 		sectionsInfo: Record<string, WorkspaceSection>,
 		pathSections: string[],
-	) {
+	): {
+		section: Section;
+		breadcrumb: HomePageBreadcrumb[];
+		group?: string;
+	} {
 		const addedCatalogLinks: Set<CatalogLink> = new Set();
 
 		const getSections = (
@@ -386,8 +393,10 @@ export default class SitePresenter {
 				const findCatalogLinks = [];
 				const sectionKeys = [...parentSectionKeys, sectionName];
 
+				const sectionCatalogs = sectionInfo?.catalogs?.map((c) => (Number.isInteger(c) ? String(c) : c)) ?? [];
+
 				for (const cLink of catalogLinks) {
-					if (sectionInfo?.catalogs?.includes?.(cLink.name) || (level === 0 && cLink.group === sectionName)) {
+					if (sectionCatalogs.includes(cLink.name) || (level === 0 && cLink.group === sectionName)) {
 						findCatalogLinks.push(cLink);
 						addedCatalogLinks.add(cLink);
 					}
@@ -399,6 +408,7 @@ export default class SitePresenter {
 					catalogLinks: findCatalogLinks,
 					title: sectionInfo?.title ?? "",
 					icon: sectionInfo?.icon,
+					view: sectionInfo?.view,
 					href: homeSections.getSectionHref(sectionKeys),
 					description: sectionInfo?.description,
 					sections: sectionInfo?.sections ? getSections(level + 1, sectionInfo?.sections, sectionKeys) : null,
@@ -412,7 +422,11 @@ export default class SitePresenter {
 		const otherCatalogLinks = catalogLinks.filter((cLink) => !addedCatalogLinks.has(cLink));
 		const mainSection = homeSections.getMainSection(otherCatalogLinks, sections);
 
-		return homeSections.findSection(pathSections, mainSection);
+		const targetSection = homeSections.findSection(pathSections, mainSection);
+		if (pathSections.length !== 1 || targetSection.section.view !== WorkspaceView.section) return targetSection;
+
+		const group = pathSections.pop();
+		return { ...homeSections.findSection(pathSections, mainSection), group };
 	}
 
 	private _isLogged(): boolean {

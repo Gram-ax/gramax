@@ -72,6 +72,7 @@ pub async fn updater_metrics(
 
   let ver = headers.get("x-app-version").and_then(|v| v.to_str().ok()).map(String::from);
   let os = headers.get("x-gx-os").and_then(|v| v.to_str().ok()).map(String::from);
+  let os_version = headers.get("x-gx-os-version").and_then(|v| v.to_str().ok()).map(String::from);
   let platform = headers.get("x-gx-platform").and_then(|v| v.to_str().ok()).map(String::from);
   let device = headers.get("x-gx-device").and_then(|v| v.to_str().ok()).map(String::from);
   let user_id = headers.get("x-gx-uniq-id").and_then(|v| v.to_str().ok()).map(String::from);
@@ -81,7 +82,7 @@ pub async fn updater_metrics(
     Some(id) => MetricDocBuilder::user(UserId(id))
       .with_metadata(UserMetadata {
         os,
-        os_version: None,
+        os_version,
         browser: None,
         browser_version: None,
         platform,
@@ -121,7 +122,7 @@ pub async fn insert_metrics_user_action_download(
 ) -> Response {
   let action = match bucket {
     Bucket::Updates => UserAction::DownloadUpdate { platform, bucket },
-    Bucket::Releases => UserAction::DownloadRelease { platform, bucket },
+    Bucket::Downloads => UserAction::DownloadRelease { platform, bucket },
   };
 
   req.extensions_mut().insert(action);

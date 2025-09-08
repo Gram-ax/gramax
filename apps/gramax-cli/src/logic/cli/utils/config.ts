@@ -4,7 +4,8 @@ import { AppConfig } from "@app/config/AppConfig";
 import { logStep } from "./logger";
 import ChalkLogger from "../../../utils/ChalkLogger";
 import CliUserError from "../../CliUserError";
-type AppBuildConfig = Pick<AppConfig, "logo" | "metrics">;
+
+type AppBuildConfig = Pick<AppConfig, "logo" | "metrics" | "forceUiLangSync">;
 
 type BuildConfig = {
 	logo: AppBuildConfig["logo"];
@@ -13,6 +14,7 @@ type BuildConfig = {
 			siteId: AppBuildConfig["metrics"]["matomo"]["matomoSiteId"];
 		};
 	} & Omit<AppBuildConfig["metrics"], "matomo">;
+	forceUiLangSync: AppBuildConfig["forceUiLangSync"];
 };
 
 export type CliConfig = {

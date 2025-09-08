@@ -1,6 +1,5 @@
 #!/usr/bin/env -S node --no-warnings
 
-import { WORKSPACE_CONFIG_FILENAME } from "@ext/workspace/WorkspaceManager";
 import { Command } from "commander";
 import fs from "fs-extra";
 import { basename } from "path";
@@ -12,6 +11,7 @@ import { STEP_ERROR_NAME } from "./logic/cli/utils/logger";
 import ChalkLogger from "./utils/ChalkLogger";
 import CliUserError from "./logic/CliUserError";
 import ErrorType from "@ext/errorHandlers/model/ErrorTypes";
+import { WORKSPACE_CONFIG_FILENAME } from "@app/config/const";
 
 type WriteFileFn = typeof fs.writeFile;
 
@@ -25,12 +25,23 @@ generateCheckCommand(program);
 generateExportCommand(program);
 generateImportYandexCommand(program);
 
+const origWrite = process.stderr.write.bind(process.stderr) as typeof process.stderr.write;
+const uiKitError = "forwardRef render functions accept exactly two parameters";
+
+const filterUiKitError = ((...args: Parameters<typeof origWrite>): ReturnType<typeof origWrite> => {
+	const [str] = args;
+	if (typeof str === "string" && str.includes(uiKitError)) return true;
+	return origWrite(...args);
+}) as typeof process.stderr.write;
+
+process.stderr.write = filterUiKitError;
+
 const startCli = async () => {
 	const originalWriteFile = fs.writeFile;
 	Object.defineProperty(fs, "writeFile", {
 		writable: true,
 		value: (...args: Parameters<WriteFileFn>) => {
-			if (typeof args[0] === "string" && basename(args[0]) !== WORKSPACE_CONFIG_FILENAME.value)
+			if (typeof args[0] === "string" && basename(args[0]) !== WORKSPACE_CONFIG_FILENAME)
 				originalWriteFile.apply(fs, args);
 		},
 	});

@@ -11,5 +11,5 @@ export const orderListWordLayout: WordBlockChild = async ({ state, tag, addOptio
 	const instance = wordListInstancesCounter.generateInstanceNumberForList();
 	const numbering = { reference, level, instance };
 
-	return await WordListRenderer.renderList(state, tag, { numbering, ...addOptions });
+	return await WordListRenderer.renderList(state, tag, { ...addOptions, numbering });
 };

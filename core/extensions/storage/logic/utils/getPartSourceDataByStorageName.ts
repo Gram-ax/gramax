@@ -15,9 +15,10 @@ const getPartGitSourceDataByStorageName = (
 	if (lcName.includes("gitlab")) {
 		return { sourceType: SourceType.gitLab, data: { domain: name } };
 	}
-	if (lcName.includes("gitverse")) {
-		return { sourceType: SourceType.gitVerse, data: {} };
-	}
+	// temp, wait GitVerse CORS
+	// if (lcName.includes("gitverse")) {
+		// return { sourceType: SourceType.gitVerse, data: {} };
+	// }
 
 	return { sourceType: SourceType.git, data: { domain: name } };
 };

@@ -7,7 +7,7 @@ import { configureCatalogPermission } from "@ext/security/logic/Permission/Permi
 import { useMemo } from "react";
 
 const useShouldRenderDeleteCatalog = () => {
-	const workspacePath = WorkspaceService.current().path;
+	const workspacePath = WorkspaceService.current()?.path;
 	const catalogProps = CatalogPropsService.value;
 	const { cloudServiceUrl } = PageDataContextService.value.conf;
 

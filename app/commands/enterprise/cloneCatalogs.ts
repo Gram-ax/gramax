@@ -16,7 +16,7 @@ const cloneCatalogs: Command<{ ctx: Context; userSettings: UserSettings }, void>
 		const source = userSettings.source;
 		if (!source) throw new DefaultError(t("enterprise.config-error"));
 
-		await this._commands.storage.setSourceData.do({ ctx, ...source });
+		await this._commands.storage.sourceData.setSourceData.do({ ctx, ...source });
 
 		if (!userSettings.workspace.source || !source) return;
 

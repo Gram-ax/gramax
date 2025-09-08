@@ -11,12 +11,12 @@ import { InboxProps } from "@ext/inbox/models/types";
 import type { FSLocalizationProps } from "@ext/localization/core/events/FSLocalizationEvents";
 import t from "@ext/localization/locale/translate";
 import { Property, PropertyValue } from "@ext/properties/models";
+import { TemplateField } from "@ext/templates/models/types";
 import { FileStatus } from "@ext/Watchers/model/FileStatus";
 import IPermission from "../../../extensions/security/logic/Permission/IPermission";
 import Permission from "../../../extensions/security/logic/Permission/Permission";
 import { ClientArticleProps } from "../../SitePresenter/SitePresenter";
 import { Category } from "../Category/Category";
-import { TemplateField } from "@ext/templates/models/types";
 
 export type ItemEvents = Event<"item-order-updated", { item: Item }> &
 	Event<"item-pre-save", { item: Item; mutable: { content: string; props: ItemProps } }> &
@@ -112,7 +112,7 @@ export abstract class Item<P extends ItemProps = ItemProps> implements Hashable 
 		const hasInvalidOrders = orders.some(isNaN);
 		const hasDuplicates = new Set(orders).size !== orders.length;
 
-		if (hasInvalidOrders || hasDuplicates) await parent.sortItems(true);
+		if (hasInvalidOrders || hasDuplicates) await parent.sortItems("force");
 
 		const categoryItemOrders = parent.items.map((i) => i.order);
 		this._props.order = roundedOrderAfter(categoryItemOrders, item?.order ?? 0);
@@ -158,7 +158,7 @@ export abstract class Item<P extends ItemProps = ItemProps> implements Hashable 
 	async updateProps(
 		props: UpdateItemProps,
 		resourceUpdater: ResourceUpdater,
-		catalog?: Catalog,
+		catalog: Catalog,
 		fileNameOnly = false,
 	): Promise<Item<P>> {
 		!fileNameOnly && this._updateProps(props);
@@ -171,7 +171,7 @@ export abstract class Item<P extends ItemProps = ItemProps> implements Hashable 
 		return this;
 	}
 
-	protected abstract _updateFilename(filename: string, ru: ResourceUpdater, catalog?: Catalog): Promise<this>;
+	protected abstract _updateFilename(filename: string, ru: ResourceUpdater, catalog: Catalog): Promise<this>;
 	protected abstract _updateProps(props: UpdateItemProps): void;
 
 	abstract getFileName(): string;

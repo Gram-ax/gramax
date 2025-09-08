@@ -1,5 +1,4 @@
 import type Context from "@core/Context/Context";
-import type Cookie from "@ext/cookie/Cookie";
 import WorkspaceManager from "@ext/workspace/WorkspaceManager";
 import { Encoder } from "@ext/Encoder/Encoder";
 import { AiServerConfig } from "../models/types";
@@ -10,15 +9,15 @@ export class AiDataProvider {
 	private _encoder: Encoder;
 	private _postfix = "_ai_data";
 
-	constructor(private _wm: WorkspaceManager, private _cookie?: Cookie) {
+	constructor(private _wm: WorkspaceManager) {
 		this._encoder = new Encoder();
 	}
 
 	getEditorAiData(ctx: Context, workspacePath: string): AiServerConfig {
-		if (!this._wm.hasWorkspace()) return { apiUrl: "", token: "" };
+		if (!this._wm.hasWorkspace()) return { apiUrl: "", token: "", instanceName: "" };
 
 		const name = this._getCompleteName(workspacePath);
-		if (!ctx.cookie.exist(name)) return { apiUrl: "", token: "" };
+		if (!ctx.cookie.exist(name)) return { apiUrl: "", token: "", instanceName: "" };
 		return this._decode(ctx.cookie.get(name));
 	}
 

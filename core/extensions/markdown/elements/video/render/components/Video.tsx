@@ -1,9 +1,10 @@
-import { useEffect, useState } from "react";
-import RenderVideo from "./RenderVideo";
-import ErrorVideo from "@ext/markdown/elements/video/render/components/ErrorVideo";
 import Skeleton from "@components/Atoms/ImageSkeleton";
 import styled from "@emotion/styled";
+import t from "@ext/localization/locale/translate";
 import BlockCommentView from "@ext/markdown/elements/comment/edit/components/BlockCommentView";
+import ErrorVideo from "@ext/markdown/elements/video/render/components/ErrorVideo";
+import { useEffect, useState } from "react";
+import RenderVideo from "./RenderVideo";
 
 interface VideoProps {
 	path: string;
@@ -11,15 +12,24 @@ interface VideoProps {
 	noEm?: boolean;
 	className?: string;
 	commentId?: string;
+	isPrint?: boolean;
 }
 
-const Video = ({ path, title, noEm, className, commentId }: VideoProps) => {
+const Video = ({ path, title, noEm, className, commentId, isPrint }: VideoProps) => {
 	const [isError, setIsError] = useState(false);
 	const [isLoaded, setIsLoaded] = useState(false);
 
 	useEffect(() => {
 		setIsError(false);
 	}, [path]);
+
+	if (isPrint)
+		return (
+			<a href={path} target="_blank" rel="noreferrer" data-type="video">
+				{t("editor.video.name")}
+				{title && !noEm && <span>:{title}</span>}
+			</a>
+		);
 
 	return (
 		<div className={className} data-type="video">

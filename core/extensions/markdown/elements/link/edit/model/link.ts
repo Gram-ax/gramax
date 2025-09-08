@@ -112,7 +112,7 @@ export const Link = Mark.create<LinkOptions>({
 		return [
 			markPasteRule({
 				find: (text, event) => {
-					if (event.clipboardData.getData("text/gramax")) return;
+					if (event?.clipboardData?.getData("text/gramax")) return;
 					return find(text)
 						.filter((link) => {
 							if (this.options.validate) {

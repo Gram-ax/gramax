@@ -1,6 +1,7 @@
 import { wordFontSizes, wordFontTypes } from "@ext/wordExport/options/wordExportSettings";
-import { AlignmentType, LevelFormat, convertMillimetersToTwip } from "docx";
+import { AlignmentType, LevelFormat } from "docx";
 import { IPropertiesOptions } from "docx/build/file/core-properties";
+import { LIST_HANGING_MM, LIST_LEFT_INDENT_MM, mmToTw } from "../lists/consts";
 
 const levelFormat = {
 	0: LevelFormat.DECIMAL,
@@ -48,8 +49,8 @@ export const wordDocumentStyles: Omit<IPropertiesOptions, "sections"> = {
 						},
 						paragraph: {
 							indent: {
-								left: convertMillimetersToTwip(5 + 5 * level),
-								hanging: convertMillimetersToTwip(5),
+								left: mmToTw(LIST_LEFT_INDENT_MM(level)),
+								hanging: mmToTw(LIST_HANGING_MM),
 							},
 						},
 					},
@@ -71,13 +72,34 @@ export const wordDocumentStyles: Omit<IPropertiesOptions, "sections"> = {
 							},
 							paragraph: {
 								indent: {
-									left: convertMillimetersToTwip(5 + 5 * level),
-									hanging: convertMillimetersToTwip(5),
+									left: mmToTw(LIST_LEFT_INDENT_MM(level)),
+									hanging: mmToTw(LIST_HANGING_MM),
 								},
 							},
 						},
 					};
 				}),
+			},
+			{
+				reference: "taskList",
+				levels: Array.from({ length: 9 }).map((_, level) => ({
+					level,
+					format: LevelFormat.BULLET,
+					text: "\u2610",
+					alignment: AlignmentType.START,
+					style: {
+						run: {
+							font: wordFontTypes.numbering,
+							size: wordFontSizes.list,
+						},
+						paragraph: {
+							indent: {
+								left: mmToTw(LIST_LEFT_INDENT_MM(level)),
+								hanging: mmToTw(LIST_HANGING_MM),
+							},
+						},
+					},
+				})),
 			},
 		],
 	},

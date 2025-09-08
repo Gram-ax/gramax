@@ -10,7 +10,8 @@ type Component = ComponentType<unknown>;
 export default function Renderer(
 	mainNode: RenderableTreeNodes | JSONContent,
 	{ components = {} } = {},
-	onCreate?: VoidFunction,
+	isPrint?: boolean,
+	onRender?: VoidFunction,
 ) {
 	function deepRender(value: any): any {
 		if (value == null || typeof value !== "object") return value;
@@ -22,7 +23,6 @@ export default function Renderer(
 
 		const output: Record<string, Scalar> = {};
 		for (const [k, v] of Object.entries(value)) output[k] = deepRender(v);
-		onCreate?.();
 		return output;
 	}
 
@@ -35,15 +35,16 @@ export default function Renderer(
 
 		if (className) attrs.className = className;
 
-		return React.createElement(
-			tagName(name, components),
-			Object.keys(attrs).length == 0 ? null : deepRender(attrs),
-			...children.map(render),
-		);
+		let renderAttrs = Object.keys(attrs).length == 0 ? null : deepRender(attrs);
+		if (renderAttrs && isPrint) renderAttrs.isPrint = true;
+		if (isPrint && !renderAttrs) renderAttrs = { isPrint };
+		return React.createElement(tagName(name, components), renderAttrs, ...children.map(render));
 	}
 
 	if (!mainNode) return null;
-	return render(mainNode);
+	const component = render(mainNode);
+	onRender?.();
+	return component;
 }
 
 function getNodeData(node: RenderableTreeNodes | JSONContent) {

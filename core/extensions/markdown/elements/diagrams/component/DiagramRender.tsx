@@ -1,10 +1,12 @@
 import styled from "@emotion/styled";
 import DiagramError from "@ext/markdown/elements/diagrams/component/DiagramError";
-import { forwardRef, MutableRefObject, useState } from "react";
+import { ComponentProps, forwardRef, MutableRefObject } from "react";
 import DiagramType from "../../../../../logic/components/Diagram/DiagramType";
-import Lightbox from "@components/Atoms/Image/modalImage/Lightbox";
 import { classNames } from "@components/libs/classNames";
 import BlockCommentView from "@ext/markdown/elements/comment/edit/components/BlockCommentView";
+import ModalToOpenService from "@core-ui/ContextServices/ModalToOpenService/ModalToOpenService";
+import ModalToOpen from "@core-ui/ContextServices/ModalToOpenService/model/ModalsToOpen";
+import MediaPreview from "@components/Atoms/Image/modalImage/MediaPreview";
 
 interface DiagramProps {
 	data?: string;
@@ -34,9 +36,28 @@ const DiagramRender = forwardRef((props: DiagramProps, ref?: MutableRefObject<HT
 		commentId,
 	} = props;
 
-	const [isOpen, setOpen] = useState(false);
-
 	if (error) return <DiagramError error={error} diagramName={diagramName} />;
+
+	const onDoubleClick = () => {
+		ModalToOpenService.setValue<ComponentProps<typeof MediaPreview>>(ModalToOpen.MediaPreview, {
+			id: diagramName,
+			svg: data,
+			title: title,
+			downloadSrc: downloadSrc,
+			openedElement: ref,
+			modalEdit: openEditor,
+			modalStyle: {
+				display: "flex",
+				justifyContent: "center",
+				backgroundColor: diagramName === DiagramType.mermaid ? "var(--color-diagram-bg)" : "transparent",
+				borderRadius: "var(--radius-large)",
+				width: diagramName === DiagramType.mermaid ? "30em" : "fit-content",
+			},
+			onClose: () => {
+				ModalToOpenService.resetValue();
+			},
+		});
+	};
 
 	return (
 		<BlockCommentView commentId={commentId} style={{ borderRadius: "var(--radius-large)" }}>
@@ -44,28 +65,10 @@ const DiagramRender = forwardRef((props: DiagramProps, ref?: MutableRefObject<HT
 				className={classNames(`${className} diagram-image`, { "diagram-background": background })}
 				data-focusable="true"
 			>
-				{isOpen && (
-					<Lightbox
-						id={diagramName}
-						svg={data}
-						title={title}
-						onClose={() => setOpen(false)}
-						openedElement={ref}
-						downloadSrc={downloadSrc}
-						modalEdit={openEditor}
-						modalStyle={{
-							display: "flex",
-							justifyContent: "center",
-							backgroundColor: "var(--color-diagram-bg)",
-							borderRadius: "var(--radius-large)",
-							width: diagramName === DiagramType.mermaid ? "30em" : "auto",
-						}}
-					/>
-				)}
 				<div
 					ref={ref}
 					className={classNames(className, { isFrozen }, [`${diagramName}-diagram`])}
-					onDoubleClick={() => setOpen(true)}
+					onDoubleClick={onDoubleClick}
 					dangerouslySetInnerHTML={{ __html: data }}
 				/>
 			</div>

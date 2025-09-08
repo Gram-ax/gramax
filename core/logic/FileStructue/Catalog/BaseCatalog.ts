@@ -124,7 +124,7 @@ export default abstract class BaseCatalog<P extends CatalogProps = CatalogProps,
 
 		if (to === "entry" && this._type === "entry") return this as unknown as R;
 		if (to === "catalog" && this._type === "catalog") return this as unknown as R;
-		if (load && to === "catalog" && this._type === "entry")
+		if (load && to === "catalog" && this._type === "entry" && !this.props.isCloning)
 			return (this as unknown as CatalogEntry<P>).load() as L extends true ? Promise<R> : never;
 
 		return null;

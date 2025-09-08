@@ -32,10 +32,10 @@ pub struct DirStat {
   pub stat: Stat,
 }
 
-pub trait RepoSelectTreeScope<C: Creds> {
-  fn read_tree_head(&self) -> Result<RepoTreeScope<'_, C>>;
-  fn read_tree_commit(&self, oid: Oid) -> Result<RepoTreeScope<'_, C>>;
-  fn read_tree_reference(&self, reference: &str) -> Result<RepoTreeScope<'_, C>>;
+pub trait RepoSelectTreeScope<'r, C: Creds> {
+  fn read_tree_head(&self) -> Result<RepoTreeScope<'_, 'r, C>>;
+  fn read_tree_commit(&self, oid: Oid) -> Result<RepoTreeScope<'_, 'r, C>>;
+  fn read_tree_reference(&self, reference: &str) -> Result<RepoTreeScope<'_, 'r, C>>;
 }
 
 pub trait ReadTree {
@@ -47,21 +47,21 @@ pub trait ReadTree {
   fn read_to_string<P: AsRef<Path>>(&self, path: P) -> Result<String>;
 }
 
-pub struct RepoTreeScope<'t, C: Creds> {
-  repo: &'t Repo<C>,
+pub struct RepoTreeScope<'t, 'r: 't, C: Creds> {
+  repo: &'t Repo<'r, C>,
   tree: Tree<'t>,
 }
 
-impl<C: Creds> RepoSelectTreeScope<C> for Repo<C> {
-  fn read_tree_head(&self) -> Result<RepoTreeScope<'_, C>> {
+impl<'r, C: Creds> RepoSelectTreeScope<'r, C> for Repo<'r, C> {
+  fn read_tree_head(&self) -> Result<RepoTreeScope<'_, 'r, C>> {
     Ok(RepoTreeScope { repo: self, tree: self.0.head()?.peel_to_tree()? })
   }
 
-  fn read_tree_commit(&self, oid: Oid) -> Result<RepoTreeScope<'_, C>> {
+  fn read_tree_commit(&self, oid: Oid) -> Result<RepoTreeScope<'_, 'r, C>> {
     Ok(RepoTreeScope { repo: self, tree: self.0.find_commit(oid)?.tree()? })
   }
 
-  fn read_tree_reference(&self, reference: &str) -> Result<RepoTreeScope<'_, C>> {
+  fn read_tree_reference(&self, reference: &str) -> Result<RepoTreeScope<'_, 'r, C>> {
     let reference = match reference {
       reference if !reference.starts_with("refs/") => self
         .0
@@ -79,7 +79,7 @@ impl<C: Creds> RepoSelectTreeScope<C> for Repo<C> {
   }
 }
 
-impl<C: Creds> ReadTree for RepoTreeScope<'_, C> {
+impl<C: Creds> ReadTree for RepoTreeScope<'_, '_, C> {
   fn exists<P: AsRef<Path>>(&self, path: P) -> Result<bool> {
     match self.tree.get_path(path.as_ref()) {
       Ok(_) => Ok(true),

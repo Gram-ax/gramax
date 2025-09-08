@@ -5,7 +5,7 @@ import { Article } from "@core/FileStructue/Article/Article";
 import parseContent from "@core/FileStructue/Article/parseContent";
 import { Category } from "@core/FileStructue/Category/Category";
 import { Item } from "@core/FileStructue/Item/Item";
-import UnsupportedElements from "@ext/import/model/UnsupportedElements";
+import { UnsupportedElements } from "@ext/import/model/UnsupportedElements";
 import { resolveRootCategory } from "@ext/localization/core/catalogExt";
 import { tString } from "@ext/localization/locale/translate";
 import { Tag } from "@ext/markdown/core/render/logic/Markdoc";

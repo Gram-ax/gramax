@@ -58,16 +58,18 @@ export class Category<P extends CategoryProps = CategoryProps> extends Article<P
 		return hash;
 	}
 
-	async sortItems(force?: boolean) {
+	async sortItems(mode: "force" | "no-sort" | "auto" = "auto") {
 		const isAsc = this._isAscOrder();
 
-		await this.events.emit("before-sort", { category: this, force: !!force, asc: isAsc });
+		await this.events.emit("before-sort", { category: this, force: mode == "force", asc: isAsc });
 
 		this._items.sort((x, y) => ((x.props.order ?? 0) - (y.props.order ?? 0)) * (isAsc ? 1 : -1));
 
 		if (
 			!this._fs.fp.at(this.ref.path).isReadOnly &&
-			(force || this.items.some((i) => isNaN(i.order) || digitsAfterDot(i.order) > ORDERING_MAX_PRECISION))
+			mode !== "no-sort" &&
+			(mode == "force" ||
+				this.items.some((i) => isNaN(i.order) || digitsAfterDot(i.order) > ORDERING_MAX_PRECISION))
 		) {
 			let order = isAsc ? 1 : this.items.length;
 			for (const item of this.items) {
@@ -79,7 +81,7 @@ export class Category<P extends CategoryProps = CategoryProps> extends Article<P
 			this._items.sort((x, y) => ((x.props.order ?? 0) - (y.props.order ?? 0)) * (isAsc ? 1 : -1));
 		}
 
-		await this.events.emit("sorted", { category: this, force: !!force, asc: isAsc });
+		await this.events.emit("sorted", { category: this, force: mode == "force", asc: isAsc });
 	}
 
 	getFilteredItems(filters: ItemFilter[], catalog: ReadonlyCatalog): Item[] {

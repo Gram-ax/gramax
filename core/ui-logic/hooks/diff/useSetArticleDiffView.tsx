@@ -82,19 +82,16 @@ const setArticleView = (
 		const sideBarData = data.sideBarDataElement as SideBarData;
 		const path = sideBarData.data.filePath.path;
 		const uniqueKey = getUniqueKey(path, scope, deleteScope);
-		ArticleViewService.setView(
-			() => (
-				<ArticleDiffViewWrapper
-					key={uniqueKey}
-					sideBarData={sideBarData}
-					scope={scope}
-					oldScope={deleteScope}
-					isReadOnly={isReadOnly}
-				/>
-			),
-			useDefaultStyles,
-			diffStyles,
+		const ArticleDiffView = () => (
+			<ArticleDiffViewWrapper
+				key={uniqueKey}
+				sideBarData={sideBarData}
+				scope={scope}
+				oldScope={deleteScope}
+				isReadOnly={isReadOnly}
+			/>
 		);
+		ArticleViewService.setView(ArticleDiffView, useDefaultStyles, diffStyles);
 	}
 };
 

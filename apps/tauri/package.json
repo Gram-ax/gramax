@@ -13,8 +13,7 @@
 	},
 	"dependencies": {
 		"@tauri-apps/api": "^2.4.1",
-		"@tauri-apps/plugin-dialog": "^2.2.1",
-		"@tauri-apps/plugin-log": "^2.3.1"
+		"@tauri-apps/plugin-dialog": "^2.3.3"
 	},
 	"devDependencies": {
 		"internal-ip": "^8.0.0",

@@ -60,7 +60,6 @@ const ItemMenu = React.memo(({ itemLink, isCategory, setItemLink }: EditMenuProp
 	const [isCurrentItem, setIsCurrentItem] = useState(articleProps?.ref?.path == itemLink?.ref?.path);
 	const { articles } = FavoriteService.value;
 	const isFavorite = articles.some((article) => article === itemLink.ref.path);
-	// const isTemplate = isCurrentItem && articleProps?.template?.length > 0;
 
 	const { isStatic, isStaticCli } = usePlatform();
 
@@ -148,7 +147,7 @@ const ItemMenu = React.memo(({ itemLink, isCategory, setItemLink }: EditMenuProp
 								fileName={itemProps?.fileName}
 								itemRefPath={itemProps?.ref?.path}
 							/>
-							{isCurrentItem && <TemplateItemList itemRefPath={itemProps?.ref?.path} />}
+							{isCurrentItem && <TemplateItemList itemRefPath={itemProps?.ref.path} />}
 						</>
 					)}
 					<DeleteItem onConfirm={onClickHandler} />

@@ -105,7 +105,7 @@ impl ShortInfo<'_, BranchInfo> for BranchEntry<'_> {
   }
 }
 
-impl<C: Creds> Branch for Repo<C> {
+impl<C: Creds> Branch for Repo<'_, C> {
   fn branches(&self, branch_type: Option<BranchType>) -> Result<Branches> {
     Ok(self.0.branches(branch_type)?)
   }
@@ -202,12 +202,13 @@ impl<C: Creds> Branch for Repo<C> {
       return Ok(true);
     };
 
+    info!(target: TAG, "setting upstream for branch {:?} to {remote_name}", shorthand.as_ref());
     branch.set_upstream(Some(&remote_name))?;
     Ok(false)
   }
 }
 
-impl<C: ActualCreds> RemoteBranch for Repo<C> {
+impl<C: ActualCreds> RemoteBranch for Repo<'_, C> {
   fn delete_branch_remote<S: AsRef<str>>(&self, shorthand: S) -> Result<()> {
     info!(target: TAG, "delete branch {}; pushing to origin", shorthand.as_ref());
     let mut cbs = RemoteCallbacks::new();

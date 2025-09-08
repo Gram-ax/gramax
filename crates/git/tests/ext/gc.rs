@@ -329,7 +329,12 @@ fn gc_stash_objects(_sandbox: TempDir, #[with(&_sandbox)] mut repo: Repo<TestCre
   repo.stash_apply(stash_oid)?;
 
   let loose_objects_after = repo.collect_loose_objects()?;
-  assert_eq!(loose_objects_after.len(), 0);
+
+  assert!(
+    loose_objects_after.len() <= 1,
+    "loose objects should be <=1 (stash apply creates tree to compare new index with old one); actual = {}",
+    loose_objects_after.len()
+  );
 
   Ok(())
 }
@@ -396,7 +401,7 @@ fn gc_healthcheck_after_gc(_sandbox: TempDir, #[with(&_sandbox)] repo: Repo<Test
 
   println!("{err}");
   assert!(err.contains("bad object 6b584e8ece562ebffc15d38808cd6b98fc3d97ea;"));
-  
+
   repo.repo().find_object(id, None).unwrap_err();
 
   Ok(())

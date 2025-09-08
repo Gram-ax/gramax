@@ -6,11 +6,12 @@ description = { workspace = true }
 edition = { workspace = true }
 
 [dependencies]
-env_logger = "^0.10"
+tracing-subscriber = { workspace = true, features = ["env-filter"] }
 gramax-git = { path = "../git", optional = true }
-log = { workspace = true }
+tracing = { workspace = true }
 rstest = "0.23.0"
 tempdir = "0.3.7"
+colored = { workspace = true }
 
 [features]
 git = ["gramax-git"]

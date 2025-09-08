@@ -66,16 +66,16 @@ const EditStyles = ({ children, customCss, setCustomCss, revertCustomCss }: Edit
 	return (
 		<Modal open={isOpen} onOpenChange={onOpenChange}>
 			{children && <ModalTrigger asChild>{children}</ModalTrigger>}
-			<ModalContent className={"monaco-form-old-width"} data-modal-root data-monaco-modal-normal-width>
+			<ModalContent className={"monaco-form-old-width"} data-modal-root size="L">
 				<FormHeader title={t("workspace.editing-css")} description={description as any} icon={"palette"} />
 				<ModalBody>
-					<FormStack>
+					<FormStack className="h-full">
 						<FileInput
 							style={{ padding: undefined }}
 							language={"css"}
 							value={customCss}
 							onChange={setCustomCss}
-							height={"min(calc(650px - 2.5rem), calc(60vh - 2.5rem))"}
+							height={"100%"}
 							uiKitTheme
 						/>
 					</FormStack>

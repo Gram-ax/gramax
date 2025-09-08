@@ -1,6 +1,4 @@
-import SpinnerLoader from "@components/Atoms/SpinnerLoader";
-import LogsLayout from "@components/Layouts/LogsLayout";
-import ModalLayout from "@components/Layouts/Modal";
+import { useDismissableToast } from "@components/Atoms/DismissableToast";
 import ButtonLink from "@components/Molecules/ButtonLink";
 import CatalogPropsService from "@core-ui/ContextServices/CatalogProps";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
@@ -9,7 +7,8 @@ import { useRouter } from "@core/Api/useRouter";
 import ErrorConfirmService from "@ext/errorHandlers/client/ErrorConfirmService";
 import t from "@ext/localization/locale/translate";
 import CloudApi from "@ext/static/logic/CloudApi";
-import { CSSProperties, useState } from "react";
+import { Loader } from "ics-ui-kit/components/loader";
+import { CSSProperties, useCallback } from "react";
 import FetchService from "../../../../../ui-logic/ApiServices/FetchService";
 import ApiUrlCreatorService from "../../../../../ui-logic/ContextServices/ApiUrlCreator";
 
@@ -18,49 +17,54 @@ const DeleteCatalog = ({ style }: { style?: CSSProperties }) => {
 	const apiUrlCreator = ApiUrlCreatorService.value;
 	const cloudServiceUrl = PageDataContextService.value.conf.cloudServiceUrl;
 
+	const { dismiss, show } = useDismissableToast({
+		title: t("catalog.delete.progress"),
+		closeAction: false,
+		focus: "medium",
+		size: "sm",
+		status: "info",
+		primaryAction: <Loader size="md" />,
+	});
+
 	const router = useRouter();
-	const [deleteProcess, setDeleteProcess] = useState(false);
-	const deleteText = t(catalogProps.sourceName ? "delete-storage-catalog" : "delete-local-catalog");
+	const deleteText = catalogProps.sourceName ? t("catalog.delete.storage") : t("catalog.delete.local");
 	const { isStatic } = usePlatform();
 
-	const deleteCatalog = async () => {
-		if (!(await confirm(deleteText))) return;
-		setDeleteProcess(true);
-		ErrorConfirmService.stop();
-		const res = await FetchService.fetch(apiUrlCreator.removeCatalog());
-		ErrorConfirmService.start();
-		setDeleteProcess(false);
-		if (!res.ok) return;
-		router.pushPath("/");
-	};
+	const deleteCatalog = useCallback(async () => {
+		const agreed = await confirm(deleteText);
+		if (!agreed) return;
 
-	const deleteCatalogInCloud = async () => {
-		if (!(await confirm(t("cloud.delete-catalog")))) return;
-		setDeleteProcess(true);
-		const cloudApi = new CloudApi(cloudServiceUrl, (e) => ErrorConfirmService.notify(e));
 		try {
+			show();
+			const res = await FetchService.fetch(apiUrlCreator.removeCatalog());
+			if (!res.ok) return;
+			router.pushPath("/");
+		} finally {
+			dismiss.current?.();
+		}
+	}, [router, show, apiUrlCreator]);
+
+	const deleteCatalogInCloud = useCallback(async () => {
+		if (!(await confirm(t("cloud.delete-catalog")))) return;
+
+		try {
+			show();
+			const cloudApi = new CloudApi(cloudServiceUrl, (e) => ErrorConfirmService.notify(e));
 			await cloudApi.deleteCatalog(catalogProps.name);
 		} finally {
-			setDeleteProcess(false);
+			dismiss.current?.();
 		}
 		router.pushPath("/");
 		location.reload();
-	};
+	}, [cloudServiceUrl, catalogProps, router]);
 
 	return (
-		<>
-			<ModalLayout isOpen={deleteProcess}>
-				<LogsLayout style={{ overflow: "hidden" }}>
-					<SpinnerLoader fullScreen />
-				</LogsLayout>
-			</ModalLayout>
-			<ButtonLink
-				style={style}
-				onClick={isStatic ? deleteCatalogInCloud : deleteCatalog}
-				iconCode="trash"
-				text={t("catalog.delete")}
-			/>
-		</>
+		<ButtonLink
+			style={style}
+			onClick={isStatic ? deleteCatalogInCloud : deleteCatalog}
+			iconCode="trash"
+			text={t("catalog.delete.name")}
+		/>
 	);
 };
 

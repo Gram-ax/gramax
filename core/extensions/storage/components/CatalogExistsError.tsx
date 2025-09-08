@@ -23,6 +23,15 @@ const CatalogExistsError = ({ error, onCancelClick }: ComponentProps<typeof GetE
 
 	return (
 		<>
+			{isSettingsOpen && (
+				<CatalogPropsEditor
+					onClose={() => setIsSettingsOpen(false)}
+					onSubmit={onCancelClick}
+					modalContentProps={{ "data-upper-error": true }}
+					isOpen={isSettingsOpen}
+				/>
+			)}
+
 			{!isSettingsOpen && (
 				<InfoModalForm
 					onCancelClick={onCancelClick}
@@ -37,12 +46,6 @@ const CatalogExistsError = ({ error, onCancelClick }: ComponentProps<typeof GetE
 					{formatError()}
 				</InfoModalForm>
 			)}
-			<CatalogPropsEditor
-				onClose={() => setIsSettingsOpen(false)}
-				onSubmit={onCancelClick}
-				modalContentProps={{ "data-upper-error": true }}
-				isOpen={isSettingsOpen}
-			/>
 		</>
 	);
 };

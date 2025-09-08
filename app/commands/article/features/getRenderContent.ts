@@ -25,6 +25,7 @@ const getRenderContent: Command<
 		if (!articleRelativePath.value) return null;
 		const path = articlePath.parentDirectoryPath.join(articleRelativePath);
 		const catalog = await workspace.getCatalog(catalogName, ctx);
+		if (!catalog) return null;
 		const article: Article = catalog.findItemByItemPath(path);
 		if (!article) return null;
 

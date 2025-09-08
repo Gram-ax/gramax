@@ -12,6 +12,7 @@ export default class MdParser {
 	private _formulaRegExp: RegExp;
 	private _squareRegExp: RegExp;
 	private _arrowRegExp: RegExp;
+	private _oldArrowRegExp: RegExp;
 	private _dashRegExp: RegExp;
 	private _idRegExp: RegExp;
 	private _brRegExp: RegExp;
@@ -42,7 +43,8 @@ export default class MdParser {
 			String.raw`{\s?.*?\s?}|(\${1}[^\$].*?\${1})|(\${2}[^\$].*?\${2})`,
 		);
 		this._squareRegExp = this._createIgnoreRegExp(String.raw`\[(.*?)\](\()?`);
-		this._arrowRegExp = this._createIgnoreRegExp(String.raw`\\-->|[^\\\r\n]?(-->)`);
+		this._arrowRegExp = this._createIgnoreRegExp(String.raw`\\->|[^\\\r\n]?(->)`);
+		this._oldArrowRegExp = this._createIgnoreRegExp(String.raw`\\-->|[^\\\r\n]?(-->)`);
 		this._dashRegExp = this._createIgnoreRegExp(String.raw`.?-->.?|\\--|.?--[-]+|[^\\\n\r]?(--)`);
 		this._idRegExp = this._createIgnoreRegExp(String.raw`[[{] ?(#.*?) ?[\]}]`);
 		this._brRegExp = this._createIgnoreRegExp(String.raw`(<br>|<br\/>)`);
@@ -118,7 +120,8 @@ export default class MdParser {
 
 	private _backdashArrowParser(content: string): string {
 		return content
-			.replaceAll(this._backArrowRegExp, (str: string, match: string) => str.replace(match, "-->"))
+			.replaceAll(this._oldArrowRegExp, (str: string, match: string) => str.replace(match, "->"))
+			.replaceAll(this._backArrowRegExp, (str: string, match: string) => str.replace(match, "->"))
 			.replaceAll(this._backDashRegExp, (str: string, match: string) => str.replace(match, "--"));
 	}
 
@@ -129,8 +132,10 @@ export default class MdParser {
 			return tag ? this._parse([null, group2, group], tag) : str;
 		});
 	}
+
 	private _dashArrowParser(content: string): string {
 		return content
+			.replaceAll(this._oldArrowRegExp, (str: string, match: string) => str.replace(match, "→"))
 			.replaceAll(this._arrowRegExp, (str: string, match: string) => str.replace(match, "→"))
 			.replaceAll(this._dashRegExp, (str: string, match: string) => str.replace(match, "—"));
 	}

@@ -10,17 +10,19 @@ import { useCallback, useState } from "react";
 import { DndProvider } from "react-dnd";
 import PropertyServiceProvider from "@ext/properties/components/PropertyService";
 import { deleteProperty, updateProperty } from "@ext/properties/logic/changeProperty";
+import BlockCommentView from "@ext/markdown/elements/comment/edit/components/BlockCommentView";
 
 interface KanbanProps {
 	groupby: string[];
 	content: ViewRenderGroup[];
 	disabled: boolean;
 	className?: string;
+	commentId?: string;
 	updateArticle?: (articlePath: string, property: string, value: string, isDelete?: boolean) => void;
 }
 
 const Kanban = (props: KanbanProps) => {
-	const { disabled, content, groupby, className, updateArticle } = props;
+	const { disabled, content, groupby, className, updateArticle, commentId } = props;
 	const catalogProperties = PropertyServiceProvider.value?.properties;
 
 	const noGroup = t("properties.validation-errors.no-groupby");
@@ -96,23 +98,25 @@ const Kanban = (props: KanbanProps) => {
 			<div className="tree-root">
 				<WidthWrapper>
 					<div className={className} data-focusable="true">
-						<div className="kanban-wrapper">
-							{data.map((group, index) => {
-								if (!group.subgroups) return null;
-								return (
-									<Column
-										id={index}
-										disabled={disabled}
-										key={group.group?.[0]}
-										name={group.group?.join(" ")}
-										cards={group.subgroups?.[0].articles}
-										onCardDrop={onCardDrop}
-										updateProperty={updateHandler}
-									/>
-								);
-							})}
-						</div>
-						<CustomDragLayer />
+						<BlockCommentView commentId={commentId}>
+							<div className="kanban-wrapper">
+								{data.map((group, index) => {
+									if (!group.subgroups) return null;
+									return (
+										<Column
+											id={index}
+											disabled={disabled}
+											key={group.group?.[0]}
+											name={group.group?.join(" ")}
+											cards={group.subgroups?.[0].articles}
+											onCardDrop={onCardDrop}
+											updateProperty={updateHandler}
+										/>
+									);
+								})}
+							</div>
+							<CustomDragLayer />
+						</BlockCommentView>
 					</div>
 				</WidthWrapper>
 			</div>
@@ -124,6 +128,14 @@ export default styled(Kanban)`
 	width: max-content;
 	max-width: none;
 	border-radius: var(--radius-small);
+
+	&[data-focusable="true"] {
+		outline-offset: -4px !important;
+	}
+
+	.block-comment-view {
+		outline-offset: -2px;
+	}
 
 	.kanban-wrapper {
 		display: flex;

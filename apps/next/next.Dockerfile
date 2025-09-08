@@ -1,6 +1,7 @@
 ARG CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX=docker.io
+ARG BRANCH="develop"
 
-FROM --platform=$BUILDPLATFORM gitlab.ics-it.ru:4567/ics/doc-reader:base-image-${BRANCH:-"develop"} AS deps
+FROM --platform=$BUILDPLATFORM gitlab.ics-it.ru:4567/ics/doc-reader:base-image-${BRANCH} AS deps
 
 WORKDIR /app
 
@@ -26,12 +27,14 @@ WORKDIR /app
 ARG BUGSNAG_API_KEY \
   PRODUCTION \
   BASE_PATH \
+  BRANCH \
   UPLOAD_SOURCE_MAPS_TO_BUGSNAG=false
 
 ENV BUGSNAG_API_KEY=${BUGSNAG_API_KEY} \
   PRODUCTION=${PRODUCTION} \
   BASE_PATH=${BASE_PATH} \
   ROOT_PATH=/app/data \
+  BRANCH=${BRANCH} \
   UPLOAD_SOURCE_MAPS_TO_BUGSNAG=${UPLOAD_SOURCE_MAPS_TO_BUGSNAG}
 
 COPY . .
@@ -50,11 +53,11 @@ RUN apt-get update && apt-get upgrade -y && \
   apt-get clean && \
   rm -rf /var/lib/apt/lists/*
 
-ARG BRANCH \
-  BUGSNAG_API_KEY \
+ARG BUGSNAG_API_KEY \
   PRODUCTION \
   SHARE_ACCESS_TOKEN \
   BASE_PATH \
+  BRANCH \
   COOKIE_SECRET="."
 
 ENV PORT=80 \

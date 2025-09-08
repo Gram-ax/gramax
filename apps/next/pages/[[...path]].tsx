@@ -7,7 +7,7 @@ import { withContext } from "apps/next/logic/Context/ContextHook";
 import { ApplyPageMiddleware } from "../logic/Api/ApplyMiddleware";
 
 export default function Home({ data, context }: { data: ArticlePageData & HomePageData; context: PageDataContext }) {
-	return context.isArticle ? <ArticleViewContainer /> : <HomePage data={data}></HomePage>;
+	return context.isArticle ? <ArticleViewContainer data={data} /> : <HomePage data={data} />;
 }
 
 export function getServerSideProps({ req, res, query }) {

@@ -1,9 +1,14 @@
 use std::borrow::Borrow;
+use std::borrow::Cow;
+use std::fmt;
 use std::ops::Deref;
+use std::path::Component;
+use std::path::Path;
+use std::path::PathBuf;
 use std::time::Duration;
 
 #[macro_use]
-extern crate log;
+extern crate tracing;
 
 pub mod commands;
 
@@ -13,6 +18,7 @@ pub mod creds;
 pub mod error;
 pub mod ext;
 pub mod prelude;
+mod refmut;
 mod remote_callback;
 pub mod repo;
 pub mod repo_ext;
@@ -76,9 +82,9 @@ impl ShortInfo<'_, SignatureInfo> for ::git2::Signature<'_> {
 }
 
 impl Borrow<str> for SignatureInfo {
-    fn borrow(&self) -> &str {
-        &self.email
-    }
+  fn borrow(&self) -> &str {
+    &self.email
+  }
 }
 
 impl<'s> From<&'s ::git2::Oid> for OidInfo {
@@ -145,6 +151,98 @@ impl serde::Serialize for SinglelineSignature {
 impl<'de> serde::Deserialize<'de> for SinglelineSignature {
   fn deserialize<D: serde::Deserializer<'de>>(deserializer: D) -> std::result::Result<Self, D::Error> {
     deserializer.deserialize_str(SinglelineSignatureVisitor)
+  }
+}
+
+pub struct ShortPath<'a>(pub &'a Path);
+
+#[derive(Clone, Default)]
+pub struct ShortPathBuf(pub PathBuf);
+
+impl<'a> From<&'a Path> for ShortPath<'a> {
+  fn from(p: &'a Path) -> Self {
+    ShortPath(p)
+  }
+}
+
+impl From<PathBuf> for ShortPathBuf {
+  fn from(p: PathBuf) -> Self {
+    ShortPathBuf(p)
+  }
+}
+
+impl<'a> AsRef<Path> for ShortPath<'a> {
+  fn as_ref(&self) -> &Path {
+    self.0
+  }
+}
+
+impl AsRef<Path> for ShortPathBuf {
+  fn as_ref(&self) -> &Path {
+    &self.0
+  }
+}
+
+impl Deref for ShortPathBuf {
+  type Target = Path;
+  fn deref(&self) -> &Self::Target {
+    self.0.as_path()
+  }
+}
+
+fn last_two_components(path: &Path) -> Cow<'_, str> {
+  let comps: Vec<Component<'_>> = path.components().collect();
+  if comps.is_empty() {
+    return Cow::Borrowed("");
+  }
+
+  let take_n = comps.iter().rev().filter(|c| matches!(c, Component::Normal(_))).take(2);
+  let mut parts: Vec<String> = take_n.map(|c| c.as_os_str().to_string_lossy().into_owned()).collect();
+  parts.reverse();
+  if parts.is_empty() {
+    return Cow::Owned(path.display().to_string());
+  }
+
+  Cow::Owned(parts.join("/"))
+}
+
+impl<'a> fmt::Debug for ShortPath<'a> {
+  fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+    write!(f, "{}", last_two_components(self.0))
+  }
+}
+
+impl fmt::Debug for ShortPathBuf {
+  fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+    write!(f, "{}", last_two_components(&self.0))
+  }
+}
+
+impl<'a> fmt::Display for ShortPath<'a> {
+  fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+    write!(f, "{}", last_two_components(self.0))
+  }
+}
+
+impl fmt::Display for ShortPathBuf {
+  fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+    write!(f, "{}", last_two_components(&self.0))
+  }
+}
+
+pub trait ShortPathExt {
+  fn short(&self) -> ShortPath<'_>;
+}
+
+impl ShortPathExt for Path {
+  fn short(&self) -> ShortPath<'_> {
+    ShortPath(self)
+  }
+}
+
+impl ShortPathExt for PathBuf {
+  fn short(&self) -> ShortPath<'_> {
+    ShortPath(self.as_path())
   }
 }
 

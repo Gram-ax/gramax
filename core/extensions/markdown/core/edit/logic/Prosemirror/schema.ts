@@ -47,10 +47,11 @@ import * as htmlTagsComponents from "@ext/markdown/elements/htmlTag/edit/model/h
 import inlineImageSchema from "@ext/markdown/elements/inlineImage/edit/models/schema";
 import highlightSchema from "@ext/markdown/elements/highlight/edit/model/schema";
 import commentSchemaModifier from "@ext/markdown/elements/comment/edit/logic/commentSchemaModifier";
+import floatSchemaModifier from "@ext/markdown/elements/float/edit/logic/floatSchemaModifier";
 
 type SchemaModifier = (schema: SchemaSpec<any, any>) => void;
 
-const defaultModifiers: SchemaModifier[] = [commentSchemaModifier];
+const defaultModifiers: SchemaModifier[] = [commentSchemaModifier, floatSchemaModifier];
 export const getSchema = (additionalSchema?: Record<string, any>, modifiers?: SchemaModifier[]) => {
 	const allModifiers = [...defaultModifiers, ...(modifiers ?? [])];
 	const schema = {

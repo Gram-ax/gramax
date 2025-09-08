@@ -28,6 +28,7 @@ class LinkFocusTooltip extends BaseMark {
 	private _clearLastMark: () => void;
 	private _tippy: Instance<Props>;
 	private _lastMarkPosition: { from: number; to: number };
+	private _zIndex: number;
 
 	constructor(view: EditorView, editor: Editor, private _apiUrlCreator: ApiUrlCreator) {
 		super(view, editor);
@@ -35,6 +36,9 @@ class LinkFocusTooltip extends BaseMark {
 		this.update(view);
 		this._initLastInputListener();
 		this._initEditorKeydownListener();
+		this._zIndex = parseInt(
+			window.getComputedStyle(this._view.dom.parentElement).getPropertyValue("--z-index-popover"),
+		);
 	}
 
 	update(view: EditorView, lastState?: EditorState) {
@@ -73,6 +77,7 @@ class LinkFocusTooltip extends BaseMark {
 		setTimeout(() => {
 			this._setComponent(
 				<Tooltip
+					appendTo={() => document.body}
 					onMount={(instance) => {
 						this._tippy = instance;
 						requestAnimationFrame(() => {
@@ -84,8 +89,19 @@ class LinkFocusTooltip extends BaseMark {
 					distance={0}
 					placement="bottom-start"
 					arrow={false}
+					zIndex={this._zIndex}
 					hideOnClick={false}
 					hideInMobile={false}
+					popperOptions={{
+						modifiers: [
+							{
+								name: "preventOverflow",
+								options: {
+									boundary: this._view.dom.parentElement,
+								},
+							},
+						],
+					}}
 					customStyle
 					interactive
 					content={
@@ -184,6 +200,7 @@ class LinkFocusTooltip extends BaseMark {
 	}
 
 	private _loadLinkItems = async () => {
+		if (!this._apiUrlCreator) return;
 		const res = await FetchService.fetch(this._apiUrlCreator.getLinkItems());
 		if (!res.ok) return;
 		this._itemLinks = await res.json();

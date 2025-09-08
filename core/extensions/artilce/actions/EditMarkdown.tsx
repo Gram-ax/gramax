@@ -57,7 +57,7 @@ const EditMarkdown = ({ trigger, loadContent, saveContent }: FileEditorProps) =>
 					{trigger}
 				</ModalTrigger>
 			)}
-			<ModalContent data-modal-root data-monaco-modal-normal-width>
+			<ModalContent data-modal-root size="L">
 				<FormHeader
 					title={t("article.markdown-edit.title")}
 					description={t("article.markdown-edit.description")}

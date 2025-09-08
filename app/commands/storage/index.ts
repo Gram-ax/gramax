@@ -2,6 +2,7 @@ import getAllSyncableWorkspaces from "@app/commands/storage/getAllSyncableWorksp
 import getAllSyncCount from "@app/commands/storage/getAllSyncCount";
 import getSourceDataUsage from "@app/commands/storage/getSourceDataUsage";
 import getUnsupportedElements from "@app/commands/storage/import/getUnsupportedElements";
+import sourceData from "@app/commands/storage/sourceData";
 import cancelClone from "./cancelClone";
 import canPull from "./canPull";
 import fetchCmd from "./fetch";
@@ -12,13 +13,13 @@ import haveToPull from "./haveToPull";
 import publish from "./publish";
 import removeCloneCatalog from "./removeCloneCatalog";
 import removeSourceData from "./removeSourceData";
-import setSourceData from "./setSourceData";
 import setSourceInvalidState from "./setSourceState";
 import startClone from "./startClone";
 import sync from "./sync";
 
 const storage = {
 	import: { getUnsupportedElements },
+	sourceData,
 	sync,
 	fetchCmd,
 	startClone,
@@ -30,7 +31,6 @@ const storage = {
 	getSyncCount,
 	getAllSyncCount,
 	getAllSyncableWorkspaces,
-	setSourceData,
 	getCloneProgress,
 	getSourceDataUsage,
 	removeSourceData,

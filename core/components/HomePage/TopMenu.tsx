@@ -15,10 +15,11 @@ import ThemeToggle from "@ext/Theme/components/ThemeToggle";
 import SwitchWorkspace from "@ext/workspace/components/SwitchWorkspace";
 import ThemeService from "../../extensions/Theme/components/ThemeService";
 import useUrlImage from "../Atoms/Image/useUrlImage";
+import { styled } from "@mui/material";
 
 export type HomePageActionsProps = { catalogLinks: CatalogLink[]; pin?: boolean };
 
-export const Logo = () => {
+const Logo = ({ className }: { className?: string }) => {
 	const theme = ThemeService.value;
 	const apiUrlCreator = ApiUrlCreatorService.value;
 	const { homeLogo } = WorkspaceAssetsService.value();
@@ -26,7 +27,7 @@ export const Logo = () => {
 	const isMacDesktop = IsMacService.value && isTauri;
 
 	return (
-		<div className={classNames("home-icon-wrapper", { "logo-desktop-padding": isMacDesktop })}>
+		<div className={classNames(className, { "logo-desktop-padding": isMacDesktop })}>
 			<img
 				src={homeLogo ? homeLogo : useUrlImage(apiUrlCreator.getLogo(theme))}
 				className={classNames("home-icon")}
@@ -35,6 +36,14 @@ export const Logo = () => {
 		</div>
 	);
 };
+
+const StyledLogo = styled(Logo)`
+	.home-icon {
+		height: 100%;
+	}
+
+	height: 2.25rem;
+`;
 
 const TopMenu = ({ catalogLinks }: { catalogLinks: CatalogLink[] }) => {
 	const { isTauri } = usePlatform();
@@ -56,7 +65,7 @@ const TopMenu = ({ catalogLinks }: { catalogLinks: CatalogLink[] }) => {
 			<div className="w-full mx-auto flex max-w-[1144px] flex-row items-center justify-between py-2 relative">
 				<div className="flex flex-row items-center gap-3 lg:gap-6">
 					<div>
-						<Logo />
+						<StyledLogo />
 					</div>
 					<div className="flex flex-row items-center lg:gap-2">
 						{!isNext && hasWorkspace && !isStatic && <SwitchWorkspace />}

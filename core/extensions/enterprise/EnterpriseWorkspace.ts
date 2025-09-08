@@ -47,7 +47,7 @@ export class EnterpriseWorkspace extends Workspace {
 		const baseHasher = XxHash.hasher();
 		baseHasher.hash({
 			name: this._config.get("name"),
-			groups: this._config.get("groups"),
+			sections: this._config.get("sections"),
 			style: {
 				css: customCss,
 				logo,
@@ -63,7 +63,8 @@ export class EnterpriseWorkspace extends Workspace {
 		if (!config) return;
 		this._config.set("name", config.name);
 		this._config.set("icon", config.icon);
-		this._config.set("groups", config.groups);
+		this._config.set("sections", config.sections || config.groups);
+		this._config.delete("groups");
 		this._config.set("enterprise", {
 			...this._config.get("enterprise"),
 			authMethods: config.authMethods,

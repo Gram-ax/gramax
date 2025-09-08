@@ -8,4 +8,4 @@ const script = `window.getEnv = (name) => {
 	}[name];
 };`;
 
-console.log(script);
+console.error(script);

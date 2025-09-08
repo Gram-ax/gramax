@@ -35,9 +35,12 @@ export class Transformer {
 				node = {
 					type: "inlineMd_component",
 					attrs: {
+						...node.attrs,
+						comment: { id: node.marks.find((mark) => mark.type === "comment")?.attrs.id },
 						tag: await renderer(node.text, this._context, { isOneElement: true, isBlock: false }),
 						text: node.text,
 					},
+					marks: node.marks.filter((mark) => mark.type !== "comment" && mark.type !== "inlineMd"),
 				};
 			}
 		}

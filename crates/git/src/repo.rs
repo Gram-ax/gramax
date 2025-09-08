@@ -15,6 +15,9 @@ use crate::error::Result;
 use crate::remote_callback::make_credentials_callback;
 use crate::remote_callback::AddCredentialsHeaders;
 
+use crate::refmut::RefOrMut;
+use crate::ShortPathExt;
+
 pub use git2::BranchType;
 
 const TAG: &str = "git";
@@ -22,30 +25,28 @@ const TAG: &str = "git";
 #[cfg(not(target_family = "wasm"))]
 #[inline(always)]
 fn set_mwindow_file_limit_once() {
-  const FILE_LIMIT: i32 = 8192;
+  const FILE_LIMIT: i32 = 4096;
 
   static SET_OPT: std::sync::Once = std::sync::Once::new();
 
   SET_OPT.call_once(|| unsafe {
     let result = git2::raw::git_libgit2_opts(git2::raw::GIT_OPT_SET_MWINDOW_FILE_LIMIT as i32, FILE_LIMIT);
 
-    if result == 0 {
-      info!("set GIT_OPT_SET_MWINDOW_FILE_LIMIT to {FILE_LIMIT}; result code {result}");
-    } else {
+    if result != 0 {
       error!("failed to set GIT_OPT_SET_MWINDOW_FILE_LIMIT to {FILE_LIMIT}; result code {result}");
     }
   });
 }
 
-pub struct Repo<C: Creds>(pub(crate) git2::Repository, pub(crate) C);
+pub struct Repo<'r, C: Creds>(pub(crate) RefOrMut<'r, git2::Repository>, pub(crate) C);
 
-impl<C: Creds> Repo<C> {
+impl<'r, C: Creds> Repo<'r, C> {
   pub fn repo(&self) -> &git2::Repository {
-    &self.0
+    self.0.as_ref()
   }
 
   pub fn repo_mut(&mut self) -> &mut git2::Repository {
-    &mut self.0
+    self.0.as_mut().expect("repo is not mutable")
   }
 
   pub fn open<P: AsRef<Path>>(path: P, creds: C) -> Result<Self> {
@@ -59,7 +60,7 @@ impl<C: Creds> Repo<C> {
       repo.config()?.set_bool("core.fileMode", false)?;
     }
 
-    Ok(Self(repo, creds))
+    Ok(Self(RefOrMut::Owned(repo), creds))
   }
 
   pub fn init<P: AsRef<Path>>(path: P, creds: C) -> Result<Self> {
@@ -78,7 +79,7 @@ impl<C: Creds> Repo<C> {
       }
     }
 
-    let repo = Self(repo, creds);
+    let repo = Self(RefOrMut::Owned(repo), creds);
     repo.ensure_trash_ignored()?;
 
     Ok(repo)
@@ -105,9 +106,12 @@ impl<C: Creds> Repo<C> {
       false => ["refs/heads/*:refs/remotes/origin/*"],
     };
 
-    info!(target: TAG, "fetching at {}{}; refspecs: {:?}", self.0.path().display(), if force { " (force)" } else { "" }, refspec);
+    let repo_path = self.0.path().short();
+
+    info!(target: TAG, "fetching refspec: {refspec:?} ({repo_path})");
 
     remote.fetch(&refspec, Some(&mut opts), None)?;
+    info!(target: TAG, "fetched successfully: {refspec:?}");
     Ok(())
   }
 
@@ -129,7 +133,7 @@ impl<C: Creds> Repo<C> {
     let should_set_upstream = self.ensure_branch_has_upstream(head.shorthand().or_utf8_err()?)?;
     let refspec = head.name().or_utf8_err()?;
 
-    info!(target: TAG, "pushing refspec {refspec}");
+    info!(target: TAG, "pushing refspec: {refspec}");
 
     remote.push(&[refspec], Some(&mut push_opts))?;
 
@@ -148,14 +152,13 @@ impl<C: Creds> Repo<C> {
     };
 
     if !self.0.find_reference(&refname)?.is_branch() {
-      return Err(
-        git2::Error::new(
-          git2::ErrorCode::Invalid,
-          git2::ErrorClass::Reference,
-          "Switch head to non-branch is not allowed",
-        )
-        .into(),
+      let error = git2::Error::new(
+        git2::ErrorCode::Invalid,
+        git2::ErrorClass::Reference,
+        "Switch head to non-branch is not allowed",
       );
+
+      return Err(error.into());
     }
 
     self.0.set_head(&refname)?;
@@ -163,7 +166,7 @@ impl<C: Creds> Repo<C> {
   }
 
   pub fn checkout(&self, branch_name: &str, force: bool) -> Result<()> {
-    info!(target: TAG, "checkout to {branch_name} (force: {force})");
+    info!(target: TAG, "performing checkout");
     let branch = match self.0.find_branch(branch_name, BranchType::Local) {
       Ok(b) => b,
       Err(err) if err.code() == ErrorCode::NotFound && err.class() == ErrorClass::Reference => {
@@ -186,7 +189,7 @@ impl<C: Creds> Repo<C> {
   }
 }
 
-impl<C: Creds> Repo<C> {
+impl<C: Creds> Repo<'_, C> {
   pub fn resolve_branch_entry<'b>(
     &'b self,
     branch: (git2::Branch<'b>, BranchType),
@@ -230,6 +233,7 @@ impl<C: Creds> Repo<C> {
       const TRASH: [&str; 1] = ["**/.DS_Store"];
 
       let exclude_file_path = self.0.path().join("info/exclude");
+      std::fs::create_dir_all(exclude_file_path.parent().unwrap())?;
       let mut file = File::options().append(true).read(true).create(true).open(&exclude_file_path)?;
       let mut exclude = String::new();
       file.read_to_string(&mut exclude)?;
@@ -274,6 +278,8 @@ impl<C: Creds> Repo<C> {
     if url.ends_with(".git") || url.ends_with(".git/") || !url.starts_with("http") {
       return Ok(());
     }
+
+    info!(target: TAG, "setting remote {name} url to {url}");
 
     let url = format!("{}.git", url.trim_end_matches('/'));
     self.0.remote_set_pushurl(name, Some(url.as_str()))?;

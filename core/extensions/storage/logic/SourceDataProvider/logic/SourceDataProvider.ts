@@ -24,11 +24,11 @@ export class SourceDataProvider {
 		return new SourceDataProvider(this._wm, ctx.cookie, this._authServiceUrl);
 	}
 
-	getSourceDatas(): SourceData[] {
+	getSourceDatas(workspaceId?: WorkspacePath): SourceData[] {
 		if (!this._wm.hasWorkspace()) return [];
 
 		const sourceTypes = new Set(Object.values(SourceType));
-		const postfixes = [this._getPostfix(null, false), this._getPostfix(null, true)];
+		const postfixes = [this._getPostfix(workspaceId, false), this._getPostfix(workspaceId, true)];
 
 		const uniqNames = new Set<string>();
 		const allCookieNames = this._cookie.getAllNames();
@@ -41,7 +41,7 @@ export class SourceDataProvider {
 		}
 
 		return Array.from(uniqNames)
-			.map((n) => this.getSourceByName(n).raw)
+			.map((n) => this.getSourceByName(n, workspaceId).raw)
 			.filter((d): d is SourceData => !!d && sourceTypes.has(d.sourceType));
 	}
 
@@ -53,8 +53,10 @@ export class SourceDataProvider {
 	}
 
 	removeSource(storageName: string): void {
-		const name = this._getCompleteName(storageName, null);
+		const name = this._getCompleteName(storageName, null, false);
+		const nameEncoded = this._getCompleteName(storageName, null, true);
 		if (this._cookie.exist(name)) this._cookie.remove(name);
+		if (this._cookie.exist(nameEncoded)) this._cookie.remove(nameEncoded);
 	}
 
 	getSourceByName(storageName: string, workspaceId?: WorkspacePath): ProxiedSourceDataCtx<SourceData> {

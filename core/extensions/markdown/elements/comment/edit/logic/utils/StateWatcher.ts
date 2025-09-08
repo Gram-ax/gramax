@@ -16,7 +16,7 @@ const processCommentPositions = (doc: Node): Map<string, Range[]> => {
 			}
 		});
 
-		if (node.isBlock && node.attrs.comment?.id) {
+		if ((node.isBlock || node.isInline) && node.attrs.comment?.id) {
 			if (!commentPositions.has(node.attrs.comment.id)) commentPositions.set(node.attrs.comment.id, []);
 			commentPositions.get(node.attrs.comment.id)?.push({ from: pos, to: pos + node.nodeSize });
 		}
@@ -65,7 +65,8 @@ function StateWatcher(this: {
 			if (step instanceof AttrStep) {
 				const node = tr.doc.nodeAt(step.pos);
 				const oldNode = tr.before.nodeAt(step.pos);
-				if (node.isBlock && step.attr === "comment") {
+
+				if ((node.isBlock || node.isInline) && !node.isTextblock && step.attr === "comment") {
 					const commentId = oldNode?.attrs?.comment?.id || node.attrs.comment?.id;
 					if (!commentId) return;
 
@@ -177,7 +178,7 @@ function StateWatcher(this: {
 	const addDecorations = (state: EditorState, from: number, to: number, decorations: Decoration[]) => {
 		const node = state.doc.nodeAt(from);
 		if (node.isBlock) decorations.push(Decoration.node(from, to, { class: "active" }));
-		else decorations.push(Decoration.inline(from, to, { class: "active" }));
+		else if (node.isInline) decorations.push(Decoration.inline(from, to, { class: "active" }));
 	};
 
 	return new Plugin({
@@ -210,9 +211,8 @@ function StateWatcher(this: {
 				positions.forEach((ranges) => {
 					ranges.forEach(({ from, to }) => {
 						const node = state.doc.nodeAt(from);
-						if (node && node.isBlock) {
-							decorations.push(Decoration.node(from, to, { class: "has-comment" }));
-						}
+						if (!node || node.isText || !node.isBlock) return;
+						decorations.push(Decoration.node(from, to, { class: "has-comment" }));
 					});
 				});
 

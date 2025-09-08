@@ -36,7 +36,7 @@ const CardActions = ({ catalogLink }: CardActionsProps) => {
 	return (
 		<DropdownMenu>
 			<DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-				<CardMenuTrigger className="w-4" />
+				<CardMenuTrigger />
 			</DropdownMenuTrigger>
 			<DropdownMenuContent align="start">
 				<DropdownMenuItem

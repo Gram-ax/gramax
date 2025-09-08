@@ -74,6 +74,8 @@ export type AppConfig = {
 			password: string;
 		};
 	};
+
+	forceUiLangSync: boolean;
 };
 
 const getServices = (): ServicesConfig => {
@@ -206,6 +208,8 @@ export const getConfig = (): AppConfig => {
 			linkUrl: env("LOGO_LINK_URL") || "/",
 			linkTitle: env("LOGO_LINK_TITLE"),
 		},
+
+		forceUiLangSync: env("FORCE_UI_LANG_SYNC") === "true",
 
 		allowedGramaxUrls: env("ALLOWED_GRAMAX_URLS")
 			?.split(",")

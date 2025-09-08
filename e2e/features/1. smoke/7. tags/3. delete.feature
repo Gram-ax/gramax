@@ -13,5 +13,5 @@
     И ждём 1 секунду
     Тогда свойства текущего каталога содержат
       """
-      properties: [{"name":"Assignee","type":"Enum","values":["SY"],"style":"blue"}]
+      properties: [{"name":"Assignee","type":"Enum","style":"blue","values":["SY"]}]
       """

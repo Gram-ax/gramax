@@ -81,7 +81,7 @@ export const HStyles = {
 };
 
 export const enum WordBlockType {
-	table = "table",
+	table = "Table",
 	fence = "Fence",
 	fenceTable = "FenceTable",
 	note = "NoteTitle",

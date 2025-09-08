@@ -49,8 +49,8 @@ export default class RepositoryProvider {
 		this._sdp = sdp;
 	}
 
-	getSourceDatas(ctx: Context): SourceData[] {
-		return this._sdp.withContext(ctx).getSourceDatas();
+	getSourceDatas(ctx: Context, workspaceId?: WorkspacePath): SourceData[] {
+		return this._sdp.withContext(ctx).getSourceDatas(workspaceId);
 	}
 
 	removeSource(ctx: Context, storageName: string) {
@@ -117,7 +117,7 @@ export default class RepositoryProvider {
 		const sourceData = this.getSourceData(ctx, await storage.getSourceName());
 		const repData = (await storage.getStorageData(sourceData)) as GitStorageData;
 
-		const isEqual = cloneData.source.domain === repData.source.domain && cloneData.group === repData.group;
+		const isEqual = cloneData.source.domain === repData.source?.domain && cloneData.group === repData.group;
 
 		if (isEqual) return;
 		throw new GitError(GitErrorCode.AlreadyExistsError, null, { repositoryPath: path.value }, "clone");

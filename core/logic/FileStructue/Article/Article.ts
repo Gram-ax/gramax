@@ -1,4 +1,5 @@
 import Path from "@core/FileProvider/Path/Path";
+import { Catalog } from "@core/FileStructue/Catalog/Catalog";
 import type FileStructure from "@core/FileStructue/FileStructure";
 import { ItemRef } from "@core/FileStructue/Item/ItemRef";
 import { ItemType } from "@core/FileStructue/Item/ItemType";
@@ -106,7 +107,7 @@ export class Article<P extends ArticleProps = ArticleProps> extends Item<P> {
 	}
 
 	async checkLastModified(lastModified: number): Promise<boolean> {
-		const result = this._lastModified !== lastModified;
+		const result = this._lastModified < lastModified;
 		if (result) {
 			const newArticle = await this._getUpdateArticleByRead();
 			this._content = newArticle._content;
@@ -163,7 +164,7 @@ export class Article<P extends ArticleProps = ArticleProps> extends Item<P> {
 		await this.events.emit("item-changed", { item: this, status: renamed ? FileStatus.new : FileStatus.modified });
 	}
 
-	protected override async _updateFilename(fileName: string, resourceUpdater: ResourceUpdater) {
+	protected override async _updateFilename(fileName: string, resourceUpdater: ResourceUpdater, catalog: Catalog) {
 		if (this.getFileName() == fileName) return;
 		let path = this._ref.path.getNewName(fileName);
 		if (await this._fs.fp.exists(path)) {
@@ -175,7 +176,8 @@ export class Article<P extends ArticleProps = ArticleProps> extends Item<P> {
 			);
 		}
 		await this._fs.moveArticle(this, path);
-		const newArticle = this._getUpdateArticleByProps(path);
+		this._lastModified = new Date().getTime();
+		const newArticle = this._getUpdateArticleByProps(path, catalog);
 		await resourceUpdater.update(this, newArticle);
 		this._logicPath = newArticle.logicPath;
 		this._ref = newArticle.ref;
@@ -189,8 +191,8 @@ export class Article<P extends ArticleProps = ArticleProps> extends Item<P> {
 		return await this._fs.createArticle(this._ref.path, this._parent);
 	}
 
-	protected _getUpdateArticleByProps(path: Path) {
-		return this._fs.makeArticleByProps(path, this._props, this._content, this._parent, this._lastModified);
+	protected _getUpdateArticleByProps(path: Path, catalog: Catalog) {
+		return this._fs.makeArticleByProps(path, this._props, this._content, this._parent, this._lastModified, catalog);
 	}
 }
 

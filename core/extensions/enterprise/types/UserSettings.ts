@@ -1,4 +1,4 @@
-import { AiData } from "@ext/ai/models/types";
+import { AiServerConfig } from "@ext/ai/models/types";
 import type GitSourceData from "@ext/git/core/model/GitSourceData.schema";
 import SourceType from "@ext/storage/logic/SourceDataProvider/model/SourceType";
 import { WorkspaceConfig } from "@ext/workspace/WorkspaceConfig";
@@ -31,7 +31,7 @@ export interface EnterpriseWorkspaceConfig extends WorkspaceConfig {
 
 interface UserSettings {
 	source: GitSourceData;
-	ai: AiData;
+	ai: AiServerConfig;
 	workspace: EnterpriseWorkspaceConfig;
 	from: string;
 	isNotEditor?: boolean;

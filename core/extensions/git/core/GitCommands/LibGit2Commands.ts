@@ -110,8 +110,8 @@ class LibGit2Commands extends LibGit2BaseCommands implements GitCommandsModel {
 		await git.push({ repoPath: this._repoPath, creds: this._intoCreds(data) });
 	}
 
-	async fetch(data: GitSourceData, force = false): Promise<void> {
-		await git.fetch({ repoPath: this._repoPath, creds: this._intoCreds(data), force });
+	async fetch(data: GitSourceData, force = false, lock = true): Promise<void> {
+		await git.fetch({ repoPath: this._repoPath, creds: this._intoCreds(data), force, lock });
 	}
 
 	async checkout(ref: string, force?: boolean): Promise<void> {
@@ -261,7 +261,7 @@ class LibGit2Commands extends LibGit2BaseCommands implements GitCommandsModel {
 	}
 
 	stash(data: SourceData): Promise<string> {
-		return git.stash({ repoPath: this._repoPath, creds: this._intoCreds(data), message: "" });
+		return git.stash({ repoPath: this._repoPath, creds: this._intoCreds(data), message: null });
 	}
 
 	async stashParent(stashOid: string): Promise<GitVersion> {

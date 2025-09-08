@@ -1,37 +1,28 @@
 import { PageProps } from "@components/ContextProviders";
 import ContextService from "@core-ui/ContextServices/ContextService";
-import { createContext, Dispatch, ReactElement, SetStateAction, useContext, useState } from "react";
+import { createContext, Dispatch, ReactElement, SetStateAction, useContext } from "react";
 import PageDataContext from "../../logic/Context/PageDataContext";
 
 export const PageDataContextContext = createContext<PageDataContext>(undefined);
 
 class PageDataContextService implements ContextService {
 	private _setPageDataContext: Dispatch<SetStateAction<PageDataContext>>;
+	private _pageDataContextRef: { value: PageDataContext } = { value: null };
 
 	Init({ children, pageProps }: { children: ReactElement; pageProps: PageProps }): ReactElement {
-		const [pageDataContext, setPageDataContext] = useState<PageDataContext>(pageProps.context);
-
-		const [prevPagePropsContext, setPrevPagePropsContext] = useState<PageDataContext>(null);
-		if (prevPagePropsContext !== pageProps.context) {
-			setPrevPagePropsContext(pageProps.context);
-			setPageDataContext(pageProps.context);
-		}
-
-		this._setPageDataContext = setPageDataContext;
-
-		return <PageDataContextContext.Provider value={pageDataContext}>{children}</PageDataContextContext.Provider>;
+		return <PageDataContextContext.Provider value={pageProps.context}>{children}</PageDataContextContext.Provider>;
 	}
 
 	Provider({ children, value }: { children: ReactElement; value: PageDataContext }): ReactElement {
 		return <PageDataContextContext.Provider value={value}>{children}</PageDataContextContext.Provider>;
 	}
 
-	get value(): PageDataContext {
-		return useContext(PageDataContextContext);
+	get ref(): { value: PageDataContext } {
+		return this._pageDataContextRef;
 	}
 
-	set value(value: PageDataContext) {
-		this._setPageDataContext(value);
+	get value(): PageDataContext {
+		return useContext(PageDataContextContext);
 	}
 }
 

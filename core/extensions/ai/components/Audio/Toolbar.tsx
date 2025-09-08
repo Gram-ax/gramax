@@ -118,7 +118,7 @@ const ArticleAudioToolbar = ({ editor }: { editor: Editor }) => {
 		(buffer: ArrayBuffer) => {
 			startTime.current = null;
 			const fileName = generateFileName(
-				createNameForFile(),
+				createNameForFile("wav"),
 				recordedAudio.current.map((audio) => audio.name),
 			);
 			const blob = new Blob([buffer], { type: "audio/wav" });

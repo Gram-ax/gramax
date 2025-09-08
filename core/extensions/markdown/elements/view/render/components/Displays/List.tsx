@@ -1,5 +1,6 @@
 import useWatch from "@core-ui/hooks/useWatch";
 import styled from "@emotion/styled";
+import BlockCommentView from "@ext/markdown/elements/comment/edit/components/BlockCommentView";
 import renderGroup from "@ext/markdown/elements/view/render/components/Displays/Helpers/List/Group";
 import updateListData from "@ext/markdown/elements/view/render/logic/updateListData";
 import PropertyServiceProvider from "@ext/properties/components/PropertyService";
@@ -11,10 +12,11 @@ interface ListProps {
 	groupby: string[];
 	className?: string;
 	disabled?: boolean;
+	commentId?: string;
 	updateArticle?: (articlePath: string, property: string, value: string, isDelete?: boolean) => void;
 }
 
-const List = ({ content, groupby, className, disabled, updateArticle }: ListProps): ReactNode => {
+const List = ({ content, groupby, className, disabled, updateArticle, commentId }: ListProps): ReactNode => {
 	const catalogProperties = PropertyServiceProvider.value?.properties;
 	if (!content.length) return null;
 	const [data, setData] = useState<ViewRenderGroup[]>(content);
@@ -42,11 +44,15 @@ const List = ({ content, groupby, className, disabled, updateArticle }: ListProp
 	);
 
 	return (
-		<ul className={className} data-focusable="true">
-			{data.map((group: ViewRenderGroup, idx: number) => (
-				<Fragment key={`${group.group?.[0]}-${idx}`}>{renderGroup(group, disabled, onSubmit)}</Fragment>
-			))}
-		</ul>
+		<BlockCommentView commentId={commentId}>
+			<div data-focusable="true" className="flex w-full h-full">
+				<ul className={className}>
+					{data.map((group: ViewRenderGroup, idx: number) => (
+						<Fragment key={`${group.group?.[0]}-${idx}`}>{renderGroup(group, disabled, onSubmit)}</Fragment>
+					))}
+				</ul>
+			</div>
+		</BlockCommentView>
 	);
 };
 

@@ -98,7 +98,9 @@ export default abstract class EditorService {
 			);
 
 			if (fileName && res.ok) {
-				const { pathname, ref } = await res.json();
+				const data = await res.json();
+				if (!data) return;
+				const { pathname, ref } = data;
 				articleProps.ref = ref;
 				pathname && router.pushPath(pathname);
 			}

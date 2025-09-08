@@ -278,9 +278,9 @@ export default class GitStorage implements Storage {
 		return { storage: this, relativePath: path };
 	}
 
-	async fetch(source: GitSourceData, force = false) {
+	async fetch(source: GitSourceData, force = false, lock = true) {
 		try {
-			await this._gitRepository.fetch(source, force);
+			await this._gitRepository.fetch(source, force, lock);
 		} catch (e) {
 			await (source as ProxiedSourceDataCtx<GitSourceData>).assertValid?.(e);
 			throw e;

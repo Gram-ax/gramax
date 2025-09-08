@@ -14,7 +14,10 @@ const CustomTable = Table.extend({
 	addNodeView() {
 		return ReactNodeViewRenderer(TableComponent, {
 			contentDOMElementTag: "tbody",
-			ignoreMutation: () => true,
+			ignoreMutation: ({ mutation }) => {
+				if (mutation.type === "selection") return false;
+				return true;
+			},
 		});
 	},
 	addCommands() {

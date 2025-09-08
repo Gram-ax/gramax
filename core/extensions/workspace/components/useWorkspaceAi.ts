@@ -1,7 +1,7 @@
 import FetchService from "@core-ui/ApiServices/FetchService";
 import ApiUrlCreator from "@core-ui/ContextServices/ApiUrlCreator";
 import { AiServerConfig } from "@ext/ai/models/types";
-import { MutableRefObject, useCallback, useRef } from "react";
+import { MutableRefObject, useCallback, useRef, useState } from "react";
 
 const debounce = <T>(
 	callback: () => Promise<T>,
@@ -31,10 +31,18 @@ export const useWorkspaceAi = (workspacePath: string) => {
 	const serverTimeout = useRef<NodeJS.Timeout>();
 	const tokenTimeout = useRef<NodeJS.Timeout>();
 
+	const [isChecking, setIsChecking] = useState(false);
+	const [isSaving, setIsSaving] = useState(false);
+
 	const saveData = useCallback(
 		async (config: AiServerConfig) => {
-			const url = apiUrlCreator.setAiData(workspacePath);
-			await FetchService.fetch(url, JSON.stringify(config));
+			try {
+				setIsSaving(true);
+				const url = apiUrlCreator.setAiData(workspacePath);
+				await FetchService.fetch(url, JSON.stringify(config));
+			} finally {
+				setIsSaving(false);
+			}
 		},
 		[workspacePath, apiUrlCreator],
 	);
@@ -43,18 +51,23 @@ export const useWorkspaceAi = (workspacePath: string) => {
 		const url = apiUrlCreator.getAiData(workspacePath);
 		const res = await FetchService.fetch(url);
 		if (!res.ok) return;
-		const data = await res.json();
 
+		const data = await res.json();
 		return { aiApiUrl: data.apiUrl, aiToken: data.token };
 	}, [workspacePath, apiUrlCreator]);
 
 	const checkToken = useCallback(
 		async (apiUrl: string, token: string): Promise<boolean> => {
+			setIsChecking(true);
 			return debounce<boolean>(
 				async () => {
-					const url = apiUrlCreator.checkAiAuth(apiUrl, token);
-					const res = await FetchService.fetch(url);
-					return await res.json();
+					try {
+						const url = apiUrlCreator.checkAiAuth(apiUrl, token);
+						const res = await FetchService.fetch(url);
+						return await res.json();
+					} finally {
+						setIsChecking(false);
+					}
 				},
 				500,
 				tokenTimeout,
@@ -65,11 +78,16 @@ export const useWorkspaceAi = (workspacePath: string) => {
 
 	const checkServer = useCallback(
 		async (apiUrl: string): Promise<boolean> => {
+			setIsChecking(true);
 			return debounce<boolean>(
 				async () => {
-					const url = apiUrlCreator.checkAiServer(apiUrl);
-					const res = await FetchService.fetch(url, undefined, undefined, undefined, false);
-					return await res.json();
+					try {
+						const url = apiUrlCreator.checkAiServer(apiUrl);
+						const res = await FetchService.fetch(url, undefined, undefined, undefined, false);
+						return await res.json();
+					} finally {
+						setIsChecking(false);
+					}
 				},
 				500,
 				serverTimeout,
@@ -83,5 +101,7 @@ export const useWorkspaceAi = (workspacePath: string) => {
 		saveData,
 		getData,
 		checkToken,
+		isChecking,
+		isSaving,
 	};
 };

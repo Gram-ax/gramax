@@ -47,9 +47,12 @@ export default class SearcherContext {
 	}
 
 	clickable(text: string, scope?: Locator, all?: boolean) {
-		const locator = (scope ?? this._info.scope ?? page).locator('[data-qa="qa-clickable"]', {
-			hasText: replaceMultiple(text, this._alias.bind(this)),
-		});
+		const locator = (scope ?? this._info.scope ?? page).locator(
+			'[data-qa="qa-clickable"], label:has(> button[role="checkbox"]), button',
+			{
+				hasText: replaceMultiple(text, this._alias.bind(this)),
+			},
+		);
 		return all ? locator : locator.first();
 	}
 

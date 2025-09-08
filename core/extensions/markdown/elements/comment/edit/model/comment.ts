@@ -4,7 +4,8 @@ import { Mark, Range } from "@tiptap/core";
 import CommentBlockMark from "@ext/markdown/elements/comment/edit/logic/BlockMark";
 import StateWatcher from "@ext/markdown/elements/comment/edit/logic/utils/StateWatcher";
 import { CommentOptions, CommentStorage } from "@ext/markdown/elements/comment/edit/model/types";
-import { COMMENT_BLOCK_NODE_TYPES } from "@ext/markdown/elements/comment/edit/model/consts";
+import { COMMENT_NODE_TYPES } from "@ext/markdown/elements/comment/edit/model/consts";
+import getNearestNodeWithSameCommentId from "@ext/markdown/elements/comment/edit/logic/utils/getNearestNodeWithSameCommentId";
 
 declare module "@tiptap/core" {
 	interface Commands<ReturnType> {
@@ -58,7 +59,7 @@ const Comment = Mark.create<CommentOptions, CommentStorage>({
 		return [
 			{
 				// We can't use "*" or "all" because TipTap doesn't support it. Need to add types manually.
-				types: COMMENT_BLOCK_NODE_TYPES,
+				types: COMMENT_NODE_TYPES,
 				attributes: {
 					comment: {
 						default: {
@@ -94,11 +95,8 @@ const Comment = Mark.create<CommentOptions, CommentStorage>({
 			const posAtDom = this.editor.view.posAtDOM(dom, 0);
 			if (!posAtDom) return;
 
-			const $pos = this.editor.state.doc.resolve(posAtDom);
-			this.editor.commands.openComment(HTMLAttributes.id, {
-				from: posAtDom,
-				to: posAtDom + $pos.nodeAfter.nodeSize,
-			});
+			const range = getNearestNodeWithSameCommentId(this.editor.state, posAtDom, HTMLAttributes.id);
+			if (range) this.editor.commands.openComment(HTMLAttributes.id, range);
 		});
 
 		return { dom, contentDOM: dom };

@@ -51,7 +51,9 @@ export default class MergeRequestProvider {
 	async tryGetDraft(): Promise<MergeRequest | undefined> {
 		if (this._disabled) return;
 
-		return this._mergeRequests.tryGetDraft();
+		try {
+			return await this._mergeRequests.tryGetDraft();
+		} catch {}
 	}
 
 	async isCreated(): Promise<boolean> {

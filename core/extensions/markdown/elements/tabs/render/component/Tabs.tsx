@@ -17,8 +17,10 @@ const Tabs = ({
 	onRemoveClick,
 	onNameUpdate,
 	isEdit = false,
+	isPrint = false,
 }: {
 	isEdit?: boolean;
+	isPrint?: boolean;
 	childAttrs: TabAttrs[];
 	children?: ReactElement;
 	onAddClick?: () => void;
@@ -38,7 +40,7 @@ const Tabs = ({
 	if (!visibleChildAttrs.length) return null;
 	return (
 		<div className={className}>
-			{visibleChildAttrs.length == 1 && !isEdit ? null : (
+			{(visibleChildAttrs.length == 1 && !isEdit) || isPrint ? null : (
 				<div className="switch" contentEditable="false" suppressContentEditableWarning>
 					{visibleChildAttrs.map(({ name, icon, idx }, key) => {
 						return (
@@ -47,7 +49,7 @@ const Tabs = ({
 								onClick={() => setActiveIdx(idx)}
 								className={`case ${activeIdx == idx ? "active" : ""} ${idx}`}
 							>
-								{icon && <Icon code={icon} />}
+								{icon && <Icon code={icon} style={{ marginRight: "0.2em" }} />}
 								{isEdit ? (
 									<ContentEditable
 										value={name}
@@ -164,9 +166,9 @@ export default styled(Tabs)`
 			width: 100%;
 			top: 0;
 			left: 0;
-			position: absolute;
-			visibility: hidden;
 			pointer-events: none;
+			position: ${(p) => (p.isPrint ? "unset" : "absolute")};
+			visibility: ${(p) => (p.isPrint ? "visible" : "hidden")};
 		}
 	}
 

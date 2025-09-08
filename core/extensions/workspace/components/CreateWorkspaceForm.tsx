@@ -13,7 +13,7 @@ import { Button } from "@ui-kit/Button";
 import { Form, FormField, FormFooter, FormHeader, FormStack } from "@ui-kit/Form";
 import { Input } from "@ui-kit/Input";
 import { Modal, ModalBody, ModalContent } from "@ui-kit/Modal";
-import { useCallback, useMemo } from "react";
+import { FormEvent, useCallback, useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
@@ -51,7 +51,7 @@ const CreateWorkspaceForm = (props: WorkspaceSettingsModalProps) => {
 		mode: "onChange",
 	});
 
-	const formSubmit = (e) => {
+	const formSubmit = (e: FormEvent) => {
 		form.handleSubmit(async (data) => {
 			await onSubmit({ name: data.name, icon: data.icon, path: data.path }, onCloseHandler);
 			onSubmitParent?.(data as ClientWorkspaceConfig);

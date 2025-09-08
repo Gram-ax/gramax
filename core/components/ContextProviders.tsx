@@ -7,6 +7,7 @@ import ArticleRefService from "@core-ui/ContextServices/ArticleRef";
 import ArticleTooltipService from "@core-ui/ContextServices/ArticleTooltip";
 import CatalogLogoService from "@core-ui/ContextServices/CatalogLogoService/Context";
 import CatalogPropsService from "@core-ui/ContextServices/CatalogProps";
+import CloudStateService from "@core-ui/ContextServices/CloudState";
 import CommentCounterService from "@core-ui/ContextServices/CommentCounter";
 import ContextService from "@core-ui/ContextServices/ContextService";
 import DiffViewModeService from "@core-ui/ContextServices/DiffViewModeService";
@@ -21,6 +22,7 @@ import pagePropsUpdateService from "@core-ui/ContextServices/PagePropsUpdate";
 import PlatformService from "@core-ui/ContextServices/PlatformService";
 import SearchQueryService from "@core-ui/ContextServices/SearchQuery";
 import SidebarsIsPinService from "@core-ui/ContextServices/Sidebars/SidebarsIsPin";
+import SourceDataService from "@core-ui/ContextServices/SourceDataService";
 import GlobalSyncCountService from "@core-ui/ContextServices/SyncCount/GlobalSyncCount";
 import SyncableWorkspacesService from "@core-ui/ContextServices/SyncCount/SyncableWorkspaces";
 import SyncIconService from "@core-ui/ContextServices/SyncIconService";
@@ -34,6 +36,7 @@ import useIsFirstLoad from "@core-ui/useIsFirstLoad";
 import { initRefresh } from "@core-ui/utils/initGlobalFuncs";
 import yandexMetric from "@core-ui/yandexMetric";
 import { ArticlePageData, HomePageData } from "@core/SitePresenter/SitePresenter";
+import AudioRecorderService from "@ext/ai/components/Audio/AudioRecorderService";
 import PromptService from "@ext/ai/components/Tab/PromptService";
 import FavoriteService from "@ext/artilce/Favorite/components/FavoriteService";
 import PublishChangesProvider from "@ext/git/core/GitPublish/PublishChangesProvider";
@@ -47,11 +50,10 @@ import permissionService from "@ext/security/logic/Permission/components/Permiss
 import TemplateService from "@ext/templates/components/TemplateService";
 import ThemeService from "../extensions/Theme/components/ThemeService";
 import PageDataContext from "../logic/Context/PageDataContext";
+import IsMobileService from "../ui-logic/ContextServices/isMobileService";
 import IsOpenModalService from "../ui-logic/ContextServices/IsOpenMpdal";
 import ModalToOpenService from "../ui-logic/ContextServices/ModalToOpenService/ModalToOpenService";
-import CloudStateService from "@core-ui/ContextServices/CloudState";
-import IsMobileService from "../ui-logic/ContextServices/isMobileService";
-import AudioRecorderService from "@ext/ai/components/Audio/AudioRecorderService";
+import UiLanguage from "@ext/localization/core/model/Language";
 
 export interface PageProps {
 	data: HomePageData & ArticlePageData;
@@ -77,6 +79,7 @@ const appServices: ContextService[] = [
 	AudioRecorderService,
 	SyncableWorkspacesService,
 	GlobalSyncCountService,
+	SourceDataService,
 ];
 const Inits = appServices.map((service) => service.Init.bind(service) as typeof service.Init);
 const NavigationTabInit = NavigationTabsService.Init.bind(NavigationTabsService);
@@ -101,6 +104,10 @@ export default function ContextProviders({
 
 	if (isArticlePage && !pageProps.context.language.content)
 		pageProps.context.language.content = pageProps.data.catalogProps.language;
+	if (pageProps.context.conf.forceUiLangSync) {
+		const uiLanguageByContentLanguage = UiLanguage[pageProps.context.language.content];
+		if (uiLanguageByContentLanguage) pageProps.context.language.ui = uiLanguageByContentLanguage;
+	}
 
 	const isProduction = pageProps.context.conf.isProduction;
 	const metrics = pageProps.context.conf.metrics;
@@ -159,11 +166,7 @@ export default function ContextProviders({
 																													}
 																												>
 																													<OnUpdateAppFuncs>
-																														<ViewContextProvider
-																															articlePageData={
-																																pageProps.data
-																															}
-																														>
+																														<ViewContextProvider>
 																															<>
 																																{pageProps
 																																	.context
@@ -228,13 +231,12 @@ const OnUpdateAppFuncs = ({ children }: { children: JSX.Element }) => {
 };
 
 interface ViewContextProviderProps {
-	articlePageData: ArticlePageData;
 	children: JSX.Element;
 }
 
-const ViewContextProvider = ({ articlePageData, children }: ViewContextProviderProps) => {
+const ViewContextProvider = ({ children }: ViewContextProviderProps) => {
 	return (
-		<ArticleViewService.Provider articlePageData={articlePageData}>
+		<ArticleViewService.Provider>
 			<LeftNavViewContentService.Provider>{children}</LeftNavViewContentService.Provider>
 		</ArticleViewService.Provider>
 	);

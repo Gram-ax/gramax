@@ -122,6 +122,7 @@
 				"src": "image.png",
 				"scale": 50,
 				"width": "522px",
+				"float": "center",
 				"height": "271px",
 				"crop": {
 					"h": 80,

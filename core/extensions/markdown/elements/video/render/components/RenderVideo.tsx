@@ -42,7 +42,7 @@ const SupportedVideoHostings: {
 		return isCredentiallessUnsupported ? (
 			<PreviewVideo url={url} previewUrl={`https://img.youtube.com/vi/${id}/maxresdefault.jpg`} onLoad={onLoad} />
 		) : (
-			<IFrameVideo url={`https://www.youtube-nocookie.com/embed/${id}`} onLoad={onLoad} onError={onError} />
+			<IFrameVideo url={`https://youtube.com/embed/${id}`} onLoad={onLoad} onError={onError} />
 		);
 	},
 	"youtu.be": (url, onLoad, onError) => {
@@ -56,7 +56,7 @@ const SupportedVideoHostings: {
 				onLoad={onLoad}
 			/>
 		) : (
-			<IFrameVideo url={`https://www.youtube-nocookie.com/embed/${rel}`} onLoad={onLoad} onError={onError} />
+			<IFrameVideo url={`https://youtube.com/embed/${rel}`} onLoad={onLoad} onError={onError} />
 		);
 	},
 	"drive.google.com": (url, onLoad, onError) => {

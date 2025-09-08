@@ -546,7 +546,9 @@ export class Catalog<P extends CatalogProps = CatalogProps>
 	private async _onItemChanged(update: ItemStatus | ItemStatus[]) {
 		const items = Array.isArray(update) ? update : [update];
 		this.repo?.resetCachedStatus();
-		this._searcher.resetCache(items.map((i) => i.item.ref.path.value));
+
+		const fileStructueChenged = items.some((i) => i.status === FileStatus.delete || i.status === FileStatus.rename);
+		this._searcher.resetCache(fileStructueChenged ? null : items.map((i) => i.item.ref.path.value));
 
 		await this.events.emit("files-changed", {
 			catalog: this,

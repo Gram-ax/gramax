@@ -5,11 +5,13 @@ mod ffi;
 mod fs;
 mod git;
 mod git_http_error;
+mod logging;
 mod threading;
 mod utils;
 
 use ffi::*;
-use log::info;
+
+use tracing::*;
 
 #[repr(C)]
 struct Buffer {
@@ -53,15 +55,18 @@ impl From<Vec<u8>> for Buffer {
 unsafe fn main() -> i32 {
   const MOUNTPOINT: &str = "/mnt";
 
-  _ = simple_logger::init_with_level(log::Level::Info);
-
   let mountpoint = std::ffi::CString::new(MOUNTPOINT).unwrap().into_raw();
   let backend = wasmfs_create_opfs_backend();
 
   assert!(!backend.is_null());
   let create_status = wasmfs_create_directory(mountpoint, 0o777, backend);
 
-  info!("opfs was mounted on {}", MOUNTPOINT);
+  if let Err(err) = logging::init() {
+    error!("failed to initialize logging: {}", err);
+    return 1;
+  }
+
+  info!("opfs was mounted on {MOUNTPOINT}");
   assert_eq!(create_status, 0);
   0
 }

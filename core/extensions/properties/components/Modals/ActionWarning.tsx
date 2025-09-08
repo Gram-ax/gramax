@@ -1,11 +1,12 @@
 import Anchor from "@components/controls/Anchor";
-import Modal from "@components/Layouts/Modal";
-import ModalLayoutLight from "@components/Layouts/ModalLayoutLight";
 import FetchService from "@core-ui/ApiServices/FetchService";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import ArticleTooltipService from "@core-ui/ContextServices/ArticleTooltip";
 import useWatch from "@core-ui/hooks/useWatch";
-import InfoModalForm from "@ext/errorHandlers/client/components/ErrorForm";
+import { Modal, ModalBody, ModalContent, ModalTrigger } from "@ui-kit/Modal";
+import { FormFooter, FormHeader } from "@ui-kit/Form";
+import { Button } from "@ui-kit/Button";
+import { Label } from "@ui-kit/Label";
 import t from "@ext/localization/locale/translate";
 import { Property, PropertyUsage } from "@ext/properties/models";
 import { useState } from "react";
@@ -20,11 +21,25 @@ export type ActionWarningProps = {
 	className?: string;
 	data: Property;
 	editData: { name: string; values?: string[] };
+	shouldShowWarning?: boolean;
 };
 
 const ActionWarning = (props: ActionWarningProps) => {
-	const { data, editData, isCatalog, isOpen: initialIsOpen, children, action, onClose, onLinkClick } = props;
+	const {
+		data,
+		editData,
+		isCatalog,
+		isOpen: initialIsOpen,
+		children,
+		action,
+		onClose,
+		onLinkClick,
+		shouldShowWarning,
+	} = props;
+	if (!shouldShowWarning) return children;
+
 	const apiUrlCreator = ApiUrlCreatorService.value;
+
 	const [isOpen, setIsOpen] = useState(initialIsOpen);
 	const [usages, setUsages] = useState<PropertyUsage[]>([]);
 
@@ -39,72 +54,86 @@ const ActionWarning = (props: ActionWarningProps) => {
 		});
 	}, [data, editData]);
 
+	const onClick = () => {
+		setIsOpen(false);
+		onClose?.();
+		action();
+	};
+
+	const onArchiveClick = () => {
+		setIsOpen(false);
+		onClose?.();
+		action(true);
+	};
+
 	return (
-		<Modal
-			closeOnEscape
-			contentWidth="S"
-			isOpen={isOpen}
-			onOpen={() => setIsOpen(true)}
-			onClose={() => {
-				setIsOpen(false);
-				onClose?.();
-			}}
-			trigger={children}
-		>
-			<ModalLayoutLight>
-				<InfoModalForm
-					isWarning
-					onCancelClick={() => setIsOpen(false)}
-					title={
-						isCatalog
-							? t("properties.warning.delete-tag-from-catalog.title")
-							: t("properties.warning.delete-value-from-catalog.title")
-					}
-					actionButton={{
-						text: t("continue"),
-						onClick: () => {
-							setIsOpen(false);
-							action();
-						},
-					}}
-					secondButton={!isCatalog && { text: t("properties.archive"), onClick: () => action(true) }}
-					closeButton={{ text: t("cancel") }}
-					icon={{ code: "alert-circle", color: "var(--color-warning)" }}
-				>
-					<p>
-						{isCatalog
-							? t("properties.warning.delete-tag-from-catalog.body")
-							: t("properties.warning.delete-value-from-catalog.body")}
-					</p>
-					{usages?.length > 0 && (
-						<ArticleTooltipService.Provider>
-							<>
-								<p>
-									{usages.length} {t("properties.update-affected-articles")}:
-								</p>
-								<div style={{ paddingLeft: "1.25em", maxHeight: "25vh", overflowY: "auto" }}>
-									<ul>
-										{usages.map((usage, index) => (
-											<li key={usage.title + index}>
-												<Anchor
-													href={usage.linkPath}
-													resourcePath={usage.resourcePath}
-													onClick={() => {
-														setIsOpen(false);
-														onLinkClick?.();
-													}}
-												>
-													{usage.title || t("article.no-name")}
-												</Anchor>
-											</li>
-										))}
-									</ul>
-								</div>
-							</>
-						</ArticleTooltipService.Provider>
-					)}
-				</InfoModalForm>
-			</ModalLayoutLight>
+		<Modal open={isOpen} onOpenChange={setIsOpen}>
+			<ModalTrigger asChild>{children}</ModalTrigger>
+			<ModalContent>
+				<form>
+					<FormHeader
+						icon="alert-circle"
+						title={t("delete")}
+						description={
+							isCatalog
+								? t("properties.warning.delete-tag-from-catalog.title")
+								: t("properties.warning.delete-value-from-catalog.title")
+						}
+					/>
+					<ModalBody>
+						<div>
+							<Label>
+								{isCatalog
+									? t("properties.warning.delete-tag-from-catalog.body")
+									: t("properties.warning.delete-value-from-catalog.body")}
+							</Label>
+						</div>
+						{usages?.length > 0 && (
+							<ArticleTooltipService.Provider>
+								<>
+									<Label>
+										{usages.length} {t("properties.update-affected-articles")}:
+									</Label>
+									<div style={{ paddingLeft: "1.25em", maxHeight: "25vh", overflowY: "auto" }}>
+										<ul>
+											{usages.map((usage, index) => (
+												<li key={usage.title + index}>
+													<Label>
+														<Anchor
+															href={usage.linkPath}
+															resourcePath={usage.resourcePath}
+															onClick={() => {
+																setIsOpen(false);
+																onLinkClick?.();
+															}}
+														>
+															<span style={{ color: "var(--color-link)" }}>
+																{usage.title || t("article.no-name")}
+															</span>
+														</Anchor>
+													</Label>
+												</li>
+											))}
+										</ul>
+									</div>
+								</>
+							</ArticleTooltipService.Provider>
+						)}
+					</ModalBody>
+					<FormFooter
+						primaryButton={
+							<Button type="button" onClick={onClick}>
+								{t("continue")}
+							</Button>
+						}
+						secondaryButton={
+							<Button type="button" variant="outline" onClick={onArchiveClick}>
+								{t("properties.archive")}
+							</Button>
+						}
+					/>
+				</form>
+			</ModalContent>
 		</Modal>
 	);
 };

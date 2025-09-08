@@ -1,6 +1,9 @@
+use std::path::Path;
+
 use crate::creds::ActualCreds;
 use crate::creds::Creds;
 use crate::error::Result;
+use crate::prelude::Add;
 use crate::prelude::Repo;
 use build::CheckoutBuilder;
 use git2::*;
@@ -19,17 +22,16 @@ pub trait Stash {
   fn stash_delete(&mut self, oid: Oid) -> Result<()>;
 }
 
-impl<C: ActualCreds> StashSave for Repo<C> {
+impl<C: ActualCreds> StashSave for Repo<'_, C> {
   fn stash(&mut self, message: Option<&str>) -> Result<Option<Oid>> {
-    info!(target: TAG, "creating stash with message {message:?}");
+    info!(target: TAG, "stashing changes");
     let signature = self.creds().signature()?.to_owned();
-    match self.0.stash_save2(
-      &signature,
-      message,
-      Some(StashFlags::DEFAULT | StashFlags::INCLUDE_IGNORED | StashFlags::INCLUDE_UNTRACKED),
-    ) {
+    let message = message.unwrap_or("gx-stash");
+    let flags = StashFlags::DEFAULT | StashFlags::INCLUDE_UNTRACKED;
+
+    match self.repo_mut().stash_save(&signature, message, Some(flags)) {
       Ok(oid) => {
-        info!(target: TAG, "created stash with oid {oid}");
+        info!(target: TAG, "created stash with oid {oid}: {message}");
         Ok(Some(oid))
       }
       Err(e) if e.code() == ErrorCode::NotFound && e.class() == ErrorClass::Stash => {
@@ -41,52 +43,65 @@ impl<C: ActualCreds> StashSave for Repo<C> {
   }
 }
 
-impl<C: Creds> Stash for Repo<C> {
+impl<C: Creds> Stash for Repo<'_, C> {
   fn stash_apply(&mut self, oid: Oid) -> Result<MergeResult> {
-    info!(target: TAG, "applying stash with oid {oid}");
+    info!(target: TAG, "applying stash");
 
-    let stash = self.0.find_commit(oid)?;
-    let head = self.0.head()?.peel_to_commit()?;
-    let ancestor = self.0.find_commit(self.0.merge_base(stash.id(), head.id())?)?;
+    let stash_index = self.stash_by_oid(oid)?;
 
-    let mut opts = MergeOptions::new();
-    opts.find_renames(true);
-
-    let mut index = self.0.merge_trees(&ancestor.tree()?, &head.tree()?, &stash.tree()?, Some(&opts))?;
-    let mut opts = CheckoutBuilder::default();
-    opts
+    let mut checkout_opts = CheckoutBuilder::default();
+    checkout_opts
       .allow_conflicts(true)
       .conflict_style_merge(true)
       .our_label("Updated upstream")
       .their_label("Stashed changes");
+
+    let mut opts = StashApplyOptions::default();
+    opts.checkout_options(checkout_opts);
+
+    let mut index = self.repo().index()?;
+    let prev_tree = index.write_tree()?;
+
+    self.repo_mut().stash_apply(stash_index, Some(&mut opts))?;
+
+    let index = self.repo().index()?;
+    let prev_tree = self.repo().find_tree(prev_tree)?;
+
+    let mut diff_opts = DiffOptions::default();
+    diff_opts.context_lines(0).enable_fast_untracked_dirs(true).force_binary(true);
+
+    let diff = self.repo().diff_tree_to_index(Some(&prev_tree), Some(&index), Some(&mut diff_opts))?;
+
+    let paths = diff.deltas().filter_map(|d| d.new_file().path()).collect::<Vec<&'_ Path>>();
+
     if index.has_conflicts() {
       let mut conflicts = vec![];
       for conflict in index.conflicts()? {
         conflicts.push(MergeConflictInfo::from(conflict?))
       }
 
-      self.0.checkout_index(Some(&mut index), Some(&mut opts))?;
-      info!(target: TAG, "stash {} applied with {} conflicts", oid, conflicts.len());
+      info!(target: TAG, "stash applied with {} conflicts; oid: {oid}", conflicts.len());
+      self.add_glob(paths)?;
       return Ok(MergeResult::Conflicts(conflicts));
     }
 
-    self.0.checkout_index(Some(&mut index), Some(&mut opts))?;
-    info!(target: TAG, "stash {oid} applied without conflicts");
+    info!(target: TAG, "stash applied w/o conflicts; oid: {oid}; now adding {} files to index", paths.len());
+    self.add_glob_force(paths)?;
     Ok(MergeResult::Ok)
   }
 
   fn stash_delete(&mut self, oid: Oid) -> Result<()> {
-    info!(target: "git", "delete stash: {oid}");
+    info!(target: TAG, "deleting stash");
     let index = self.stash_by_oid(oid)?;
-    self.0.stash_drop(index)?;
+    self.repo_mut().stash_drop(index)?;
     Ok(())
   }
 }
 
-impl<C: Creds> Repo<C> {
+impl<C: Creds> Repo<'_, C> {
   fn stash_by_oid(&mut self, oid: Oid) -> Result<usize> {
     let mut index = 0usize;
-    self.0.stash_foreach(|stash_index, _, stash_oid| {
+    self.repo_mut().stash_foreach(|stash_index, _, stash_oid| {
       if stash_oid.cmp(&oid).is_eq() {
         index = stash_index;
         return false;

@@ -9,5 +9,5 @@ export const ulListWordLayout: WordBlockChild = async ({ state, tag, addOptions 
 	const level = Math.min(attrs.depth ?? 0, wordNestedListMaxLevel);
 	const numbering = { reference, level };
 
-	return await WordListRenderer.renderList(state, tag, { numbering, ...addOptions });
+	return await WordListRenderer.renderList(state, tag, { ...addOptions, numbering });
 };

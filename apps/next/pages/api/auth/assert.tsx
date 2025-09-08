@@ -11,7 +11,7 @@ export default ApplyApiMiddleware(
 		const ctx = await this.app.contextFactory.from(req, res);
 		await this.app.am.assert(req, res, ctx.cookie, async (user: User) => {
 			await initEnterpriseDocportalSource(user, (data: SourceData) => {
-				this.commands.storage.setSourceData.do({ ctx, ...data });
+				this.commands.storage.sourceData.setSourceData.do({ ctx, ...data });
 			});
 		});
 	},

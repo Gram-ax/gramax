@@ -1,5 +1,5 @@
 import Tooltip from "@components/Atoms/Tooltip";
-import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
+import SourceDataService from "@core-ui/ContextServices/SourceDataService";
 import styled from "@emotion/styled";
 import Mode from "@ext/git/actions/Clone/model/Mode";
 import { useValidateSource } from "@ext/git/actions/Source/logic/useValidateSource";
@@ -7,7 +7,6 @@ import t from "@ext/localization/locale/translate";
 import useSourceData from "@ext/storage/components/useSourceData";
 import CreateSourceData from "@ext/storage/logic/SourceDataProvider/components/CreateSourceData";
 import type SourceData from "@ext/storage/logic/SourceDataProvider/model/SourceData";
-import getStorageNameByData from "@ext/storage/logic/utils/getStorageNameByData";
 import removeSourceTokenIfInvalid from "@ext/storage/logic/utils/removeSourceTokenIfInvalid";
 
 export type InvalidSourceWarningProps = {
@@ -30,7 +29,7 @@ const Warning = styled.span<InvalidSourceWarningProps>`
 
 const InvalidSourceWarning = ({ small, source, modalTrigger = true }: InvalidSourceWarningProps) => {
 	const data = removeSourceTokenIfInvalid(source || useSourceData());
-	const pageData = PageDataContextService.value;
+	const sourceDatas = SourceDataService.value;
 	const validateSource = useValidateSource();
 
 	const trigger = (
@@ -44,14 +43,8 @@ const InvalidSourceWarning = ({ small, source, modalTrigger = true }: InvalidSou
 	return (
 		<CreateSourceData
 			trigger={<div>{trigger}</div>}
-			onCreate={(data: SourceData) => {
-				validateSource(data);
-				const name = getStorageNameByData(data);
-				const index = pageData.sourceDatas.findIndex((s) => getStorageNameByData(s) === name);
-				if (index !== -1) {
-					pageData.sourceDatas[index] = data;
-					PageDataContextService.value = { ...pageData };
-				}
+			onCreate={async (data: SourceData) => {
+				await validateSource(data, sourceDatas);
 			}}
 			defaultSourceData={data}
 			defaultSourceType={data?.sourceType}

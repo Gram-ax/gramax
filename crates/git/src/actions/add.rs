@@ -16,7 +16,7 @@ pub trait Add {
   fn add_glob_force<S: IntoCString + AsRef<Path>>(&self, patterns: Vec<S>) -> Result<()>;
 }
 
-impl<C: Creds> Add for Repo<C> {
+impl<C: Creds> Add for Repo<'_, C> {
   fn add_all(&self) -> Result<()> {
     self.add_glob(vec!["."])
   }
@@ -41,7 +41,7 @@ impl<C: Creds> Add for Repo<C> {
       .map(PathBuf::from)
       .collect::<HashSet<_>>();
 
-    info!(target: TAG, "add {} pathspecs; currently {} conflicts in index", patterns.len(), conflicts.len());
+    info!(target: TAG, "add {} paths; {} conflicts", patterns.len(), conflicts.len());
 
     let use_add_all = patterns
       .len()

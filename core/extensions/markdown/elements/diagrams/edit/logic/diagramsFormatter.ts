@@ -6,6 +6,7 @@ const DiagramsFormatter =
 	(state, node) => {
 		if (node.attrs.src) {
 			const hasSize = node.attrs.width && node.attrs.height;
+			const hasFloat = node.attrs.float;
 			state.write(
 				formatter.openTag(
 					node.attrs.diagramName.toLowerCase(),
@@ -13,6 +14,7 @@ const DiagramsFormatter =
 						path: node.attrs.src,
 						title: node.attrs.title,
 						...(hasSize ? { width: node.attrs.width, height: node.attrs.height } : {}),
+						...(hasFloat ? { float: node.attrs.float } : {}),
 					},
 					true,
 				),

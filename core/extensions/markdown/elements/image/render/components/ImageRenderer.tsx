@@ -44,6 +44,11 @@ interface ImageRProps {
 	openEditor?: () => void;
 }
 
+const IMAGE_ACTIONS_OPTIONS = {
+	comment: true,
+	float: true,
+};
+
 const ImageR = forwardRef<HTMLImageElement, ImageRProps>((props, ref) => {
 	const {
 		id,
@@ -117,6 +122,7 @@ interface ImageProps {
 	setIsHovered?: (isHovered: boolean) => void;
 	rightActions?: ReactElement;
 	commentId?: string;
+	float?: string;
 }
 
 const ImageRenderer = memo((props: ImageProps): ReactElement => {
@@ -140,6 +146,7 @@ const ImageRenderer = memo((props: ImageProps): ReactElement => {
 		setIsHovered,
 		rightActions,
 		commentId,
+		float,
 	} = props;
 
 	const [error, setError] = useState<boolean>(false);
@@ -256,14 +263,18 @@ const ImageRenderer = memo((props: ImageProps): ReactElement => {
 		);
 
 	return (
-		<div className={className}>
+		<div
+			className={className}
+			data-float={float ? float : undefined}
+			data-resize-container={float ? float : undefined}
+		>
 			<div ref={mainContainerRef} className="main-container">
 				<div className="resizer-container">
 					<HoverableActions
 						hoverElementRef={hoverElementRef}
 						isHovered={isHovered}
 						setIsHovered={setIsHovered}
-						actionsOptions={{ comment: true }}
+						actionsOptions={IMAGE_ACTIONS_OPTIONS}
 						rightActions={rightActions}
 					>
 						<div ref={imageContainerRef}>

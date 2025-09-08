@@ -84,7 +84,7 @@ export default abstract class GitDiffItemCreator {
 			status: FileStatus.delete,
 			order: Number.MAX_SAFE_INTEGER,
 			title: file.path.nameWithExtension,
-			filePath: { path: file.path.value },
+			filePath: this._getFilePath(file),
 			resources: [],
 			isChanged: true,
 			added: file.added,

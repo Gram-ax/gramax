@@ -5,6 +5,7 @@ export default {
 	content: `${ElementGroups.block}+`,
 	isolating: true,
 	defining: true,
+	draggable: true,
 	attrs: {
 		bind: { default: "" },
 	},

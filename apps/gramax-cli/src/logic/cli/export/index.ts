@@ -1,7 +1,7 @@
 import getApp from "@app/node/app";
 import getCommands from "@app/node/commands";
 import Path from "@core/FileProvider/Path/Path";
-import UnsupportedElements from "@ext/import/model/UnsupportedElements";
+import { UnsupportedElements } from "@ext/import/model/UnsupportedElements";
 import { defaultName, ExportOptions } from "./command";
 import { logStepWithErrorSuppression, logStep } from "../utils/logger";
 import { checkExistsPath, getPathWithExtension, setRootPath } from "../utils/paths";

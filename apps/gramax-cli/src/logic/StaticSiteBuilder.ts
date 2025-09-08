@@ -36,7 +36,7 @@ const isBrowser = getExecutingEnvironment() === "browser";
 
 class StaticSiteBuilder {
 	constructor(private _fp: StaticFileProvider, private _app: Application, private _html: string) {}
-	static readonly readonlyDir = "bundle";
+	static readonly readonlyDir = "../bundle";
 
 	async generate(catalog: Catalog, targetDir: Path) {
 		const catalogName = catalog.name;
@@ -44,13 +44,18 @@ class StaticSiteBuilder {
 		const directoryTree = await logStepWithErrorSuppression("Copying directory", () =>
 			this._copyDir(catalog, targetDir),
 		);
-		const searchDirectoryTree = await this._createSearchIndexes(catalog, targetDir);
+
+		const { rendered, searchDirectoryTree } = await logStepWithErrorSuppression(
+			"Rendering HTML pages",
+			async () => {
+				return {
+					rendered: await new StaticRenderer(this._app).render(catalogName),
+					searchDirectoryTree: await this._createSearchIndexes(catalog, targetDir),
+				};
+			},
+		);
 
 		directoryTree.children.push(searchDirectoryTree);
-
-		const rendered = await logStepWithErrorSuppression("Rendering HTML pages", async () =>
-			new StaticRenderer(this._app).render(catalogName),
-		);
 
 		await this._fp.write(
 			targetDir.join(new Path([catalogName, "data.js"])),
@@ -150,7 +155,7 @@ class StaticSiteBuilder {
 			const rm = resources.resourceManager;
 			await Promise.all(
 				rm.resources.map(async (r) => {
-					const absolutePath = rm.getAbsolutePath(r);
+					const absolutePath = rm.getAbsolutePath(new Path(decodeURIComponent(r.value)));
 					const targetPath = new Path(catalog.name).join(
 						new Path(absolutePath.value.replace(folderPath, "")),
 					);

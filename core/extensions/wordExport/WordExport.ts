@@ -14,9 +14,9 @@ import { BookmarkEnd, BookmarkStart, Document, ISectionOptions, Paragraph, Table
 import { WordSerializerState } from "./WordExportState";
 import { getBlockChildren } from "./getBlockChildren";
 import { getInlineChildren } from "./getInlineChildren";
-import stylesJson from "./options/mainStyles.json";
 import { wordDocumentStyles } from "./options/wordDocumentStyles";
 import { HeadingStyles, WordFontStyles } from "./options/wordExportSettings";
+import { styles } from "@ext/wordExport/options/mainStyles";
 
 const MAX_HEADING_LEVEL = 9;
 
@@ -29,9 +29,11 @@ abstract class WordExport {
 	) {}
 
 	async getDocument(documentTree: DocumentTree) {
-		const externalStyles = stylesJson[0];
-
-		return new Document({ sections: await this.getSections(documentTree), ...wordDocumentStyles, externalStyles });
+		return new Document({
+			sections: await this.getSections(documentTree),
+			...wordDocumentStyles,
+			externalStyles: styles,
+		});
 	}
 
 	async getSections(documentTree: DocumentTree, skipFirstNode = false) {

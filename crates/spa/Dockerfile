@@ -18,16 +18,13 @@ ENV PATH="/root/.bun/bin:$PATH"
 
 RUN cargo install --path crates/spa
 
-FROM ${CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX}/debian:bookworm-slim AS run
+FROM ${CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX}/oven/bun:latest AS run
 
 RUN apt-get update && apt-get install -y \
     curl \
     git \
     unzip \
-    && curl -fsSL https://bun.sh/install | bash \
     && rm -rf /var/lib/apt/lists/* 
-
-ENV PATH="/root/.bun/bin:$PATH"
 
 STOPSIGNAL SIGTERM
 

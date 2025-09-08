@@ -85,7 +85,7 @@ impl Display for HealthcheckError {
   }
 }
 
-impl<C: Creds> Gc for Repo<C> {
+impl<C: Creds> Gc for Repo<'_, C> {
   fn gc(&self, opts: GcOptions) -> Result<()> {
     let last_gc = self.last_gc()?;
 
@@ -105,7 +105,7 @@ impl<C: Creds> Gc for Repo<C> {
     let log = match std::fs::read_to_string(log_path) {
       Ok(log) => log,
       Err(err) => {
-        error!(target: TAG, "failed to read gc log: {err}");
+        info!(target: TAG, "last gc log not found: {err}");
         return Ok(None);
       }
     };
@@ -121,7 +121,7 @@ impl<C: Creds> Gc for Repo<C> {
   }
 }
 
-impl<C: Creds> Repo<C> {
+impl<C: Creds> Repo<'_, C> {
   pub fn collect_unreachable_objects(&self, loose_objects: &IndexSet<Oid>) -> Result<IndexSet<Oid>> {
     let visited_objects = RefCell::new(IndexSet::new());
 

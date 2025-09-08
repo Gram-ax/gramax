@@ -13,6 +13,10 @@ em-bindgen-macro = { path = "../em-bindgen-macro" }
 
 serde = { workspace = true }
 serde_json = { workspace = true }
-simple_logger = { version = "5.0.0", default-features = false }
-log = "0.4.21"
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true, features = ["json", "env-filter"] }
+chrono = { workspace = true, default-features = false, features = [
+  "alloc",
+  "std",
+] }
 threadpool = "1.8.1"

@@ -35,6 +35,8 @@ enum ModalToOpen {
 
 	CreateWorkspaceForm = "CreateWorkspaceForm",
 	EditWorkspaceForm = "EditWorkspaceForm",
+
+	MediaPreview = "MediaPreview",
 }
 
 export default ModalToOpen;

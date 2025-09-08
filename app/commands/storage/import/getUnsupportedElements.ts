@@ -5,7 +5,7 @@ import Path from "@core/FileProvider/Path/Path";
 import getConfluenceUnsupportedElements from "@ext/confluence/core/logic/getConfluenceUnsupportedElements";
 import ConfluenceStorage from "@ext/confluence/core/logic/ConfluenceStorage";
 import ConfluenceStorageData from "@ext/confluence/core/model/ConfluenceStorageData";
-import UnsupportedElements from "@ext/import/model/UnsupportedElements";
+import { UnsupportedElements } from "@ext/import/model/UnsupportedElements";
 import StorageData from "@ext/storage/models/StorageData";
 import SourceType from "@ext/storage/logic/SourceDataProvider/model/SourceType";
 import NotionStorage from "@ext/notion/logic/NotionStorage";

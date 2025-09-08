@@ -115,8 +115,9 @@ describe("MdParser корректно парсит", () => {
 		});
 
 		describe("стрелочки", () => {
-			const str = `--> ---> \\--> -->d d-->d d--> \n--> \n\\-->`;
-			const parsedStr = `→ -→ \\--> →d d→d d→ \n→ \n\\-->`;
+			const str = `--> -> \\-> -->d-> \n--> ->`;
+			const parsedStr = `→ → \\-> →d→ \n→ →`;
+			const backParsedStr = `-> -> \\-> ->d-> \n-> ->`;
 			test("preParse", async () => {
 				const mdParser = await getMdParser();
 				const testParseStr = mdParser.preParse(str);
@@ -127,7 +128,7 @@ describe("MdParser корректно парсит", () => {
 				const mdParser = await getMdParser();
 				const testParseStr = mdParser.backParse(parsedStr);
 
-				expect(testParseStr).toEqual(str);
+				expect(testParseStr).toEqual(backParsedStr);
 			});
 		});
 

@@ -1,7 +1,7 @@
 #![cfg(not(target_family = "wasm"))]
 
 #[macro_use]
-extern crate log;
+extern crate tracing;
 
 #[cfg(test)]
 #[macro_use]
@@ -12,6 +12,7 @@ extern crate rust_i18n;
 
 mod commands;
 mod error;
+mod logging;
 mod platform;
 mod settings;
 mod shared;
@@ -52,9 +53,14 @@ pub fn run() {
   set_locale();
 
   let builder = Builder::default().init().attach_commands().attach_plugins();
-  let context = tauri::tauri_build_context!();
 
+  let context = tauri::tauri_build_context!();
   let app = builder.build(context).expect("Can't build app");
+  ensure_required_paths_exist(app.handle());
+
+  if let Err(e) = crate::logging::init(app.handle()) {
+    eprintln!("error init logging: {e}");
+  }
 
   #[cfg(any(target_os = "linux", target_os = "windows"))]
   {
@@ -75,8 +81,8 @@ pub fn run() {
 
     #[cfg(target_family = "unix")]
     app.handle().setup_menu().expect("unable to setup menu");
-    app.setup_legacy_updater().expect("unable to setup legacy updater");
     app.handle().updater_init().expect("unable to setup updater");
+    app.setup_legacy_updater().expect("unable to setup legacy updater");
   }
 
   app.manage(shared::FocusedWebviewLabel(std::sync::Mutex::new(None)));
@@ -106,36 +112,30 @@ impl<R: Runtime> AppBuilder for Builder<R> {
       .plugin(tauri_plugin_shell::init())
       .plugin(tauri_plugin_updater::Builder::new().build());
 
-    #[cfg(not(target_os = "android"))]
-    let app = {
-      use log::LevelFilter;
-      use tauri_plugin_log::*;
-      app.plugin(
-        Builder::default()
-          .max_file_size(1024 * 1024 * 10)
-          .targets([
-            Target::new(TargetKind::Stdout),
-            Target::new(TargetKind::Webview),
-            Target::new(TargetKind::LogDir { file_name: Some("gramax".into()) }),
-          ])
-          .level(LevelFilter::Info)
-          .format(|f, _, record| {
-            f.finish(format_args!(
-              "{level:<6} {target} {sep} {body}",
-              level = record.level(),
-              target = record.target(),
-              sep = "#",
-              body = record.args()
-            ));
-          })
-          .build(),
-      )
-    };
-
     app
   }
 
   fn attach_commands(self) -> Self {
     commands::generate_handler(self)
+  }
+}
+
+fn ensure_required_paths_exist<R: Runtime>(app: &AppHandle<R>) {
+  let paths = app.path();
+
+  for path in [paths.document_dir(), paths.app_cache_dir(), paths.app_config_dir(), paths.app_data_dir()] {
+    match path {
+      Ok(path) if !path.exists() => {
+        if let Err(err) = std::fs::create_dir_all(&path) {
+          panic!(
+            "Required path `{path}` not found & failed to create. Please create it manually. Error: {err:?}",
+            path = path.display(),
+            err = err
+          );
+        }
+      }
+      Err(err) => error!("required path not found: {err}"),
+      _ => {}
+    }
   }
 }

@@ -13,13 +13,13 @@ import Path from "@core/FileProvider/Path/Path";
 import { ClientArticleProps } from "@core/SitePresenter/SitePresenter";
 import { TreeReadScope } from "@ext/git/core/GitCommands/model/GitCommandsModel";
 import ArticleMat from "@ext/markdown/core/edit/components/ArticleMat";
-import { ContentEditorId } from "@ext/markdown/core/edit/components/ContentEditor";
 import Menu from "@ext/markdown/core/edit/components/Menu/Menu";
 import Main from "@ext/markdown/core/edit/components/Menu/Menus/Main";
 import useContentEditorHooks from "@ext/markdown/core/edit/components/UseContentEditorHooks";
-import getExtensions from "@ext/markdown/core/edit/logic/getExtensions";
+import getExtensions, { getTemplateExtensions } from "@ext/markdown/core/edit/logic/getExtensions";
 import ElementGroups from "@ext/markdown/core/element/ElementGroups";
 import Comment from "@ext/markdown/elements/comment/edit/model/comment";
+import Controllers from "@ext/markdown/elements/controllers/controllers";
 import ResourceService from "@ext/markdown/elements/copyArticles/resourceService";
 import EditorExtensionsService from "@ext/markdown/elements/diff/components/EditorExtensionsService";
 import LoadingWithDiffBottomBar from "@ext/markdown/elements/diff/components/LoadingWithDiffBottomBar";
@@ -73,6 +73,7 @@ const DiffModeViewInternal = (props: DiffModeViewProps) => {
 	const propertyService = PropertyService.value;
 
 	const articleProps = ArticlePropsService.value;
+	const isTemplateInstance = articleProps.template?.length > 0;
 
 	const { start: onUpdateDebounce } = useDebounce((editor: Editor) => {
 		editorOnUpdate({ editor, apiUrlCreator, articleProps });
@@ -106,15 +107,22 @@ const DiffModeViewInternal = (props: DiffModeViewProps) => {
 	const { onDeleteNodes, onDeleteMarks, onAddMarks } = useContentEditorHooks();
 
 	const getNewEditorExtensions = () => {
-		if (!extensions) return [...getExtensions(), Document.extend({ content: `paragraph ${ElementGroups.block}+` })];
-		const filterOldExtensions = ["OnDeleteNode", "OnDeleteMark", "OnAddMark"];
+		if (!extensions)
+			return [
+				...getExtensions({ isTemplateInstance, includeResources: true }),
+				Document.extend({ content: `paragraph ${ElementGroups.block}+` }),
+			];
+
+		const filterMainEditorExtensions = ["OnDeleteNode", "OnDeleteMark", "OnAddMark"];
 
 		const updatedExtensions = [
-			...extensions.filter((e) => !filterOldExtensions.includes(e.name)),
+			...extensions.filter((e) => !filterMainEditorExtensions.includes(e.name)),
 			UpdatedDiffExtension,
 			OnDeleteNode.configure({ onDeleteNodes }),
 			OnAddMark.configure({ onAddMarks }),
 			OnDeleteMark.configure({ onDeleteMarks }),
+			Controllers.configure({ editable: isTemplateInstance }),
+			...(isTemplateInstance ? getTemplateExtensions(readOnly) : []),
 		];
 		if (readOnly) return getReadOnlyExtensions(updatedExtensions);
 		return updatedExtensions;
@@ -147,8 +155,16 @@ const DiffModeViewInternal = (props: DiffModeViewProps) => {
 	const oldContentEditor = useEditor(
 		{
 			extensions: extensions
-				? [...getReadOnlyExtensions(extensions), UpdatedDiffExtension.configure({ isOldEditor: true })]
-				: [...getExtensions(), Comment, Document.extend({ content: `paragraph ${ElementGroups.block}+` })],
+				? [
+						...getReadOnlyExtensions(extensions),
+						UpdatedDiffExtension.configure({ isOldEditor: true }),
+						...(isTemplateInstance ? getTemplateExtensions(false) : []),
+				  ]
+				: [
+						...getExtensions({ isTemplateInstance, includeResources: true }),
+						Comment,
+						Document.extend({ content: `paragraph ${ElementGroups.block}+` }),
+				  ],
 			editable: false,
 			content: extensions ? oldContent : undefined,
 		},

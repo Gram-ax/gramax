@@ -1,4 +1,5 @@
 import ArticleRefService from "@core-ui/ContextServices/ArticleRef";
+import { PAGE_WIDTH } from "@ext/print/const";
 import { Node } from "@tiptap/pm/model";
 import { memo, RefObject, useLayoutEffect, useMemo, useState } from "react";
 
@@ -6,6 +7,7 @@ interface ColGroupProps {
 	content?: Node;
 	parentElement?: HTMLElement;
 	tableRef?: RefObject<HTMLTableElement>;
+	isPrint?: boolean;
 }
 
 interface ColInfo {
@@ -15,7 +17,7 @@ interface ColInfo {
 
 const TABLE_WRAPPER_PADDINGS = 48; //1.5em + 1.5em
 
-const ColGroup = ({ content, parentElement, tableRef }: ColGroupProps) => {
+const ColGroup = ({ content, parentElement, tableRef, isPrint }: ColGroupProps) => {
 	const articleRef = ArticleRefService.value;
 	const [colInfo, setColInfo] = useState<ColInfo[]>([]);
 	const [cellWidth, setCellWidth] = useState<number>(null);
@@ -107,6 +109,7 @@ const ColGroup = ({ content, parentElement, tableRef }: ColGroupProps) => {
 
 	const generatedCols = useMemo(() => {
 		const cols = [];
+		let allWidth = 0;
 
 		colInfo.forEach((col, i) => {
 			for (let j = 0; j < col.colspan; j++) {
@@ -123,12 +126,21 @@ const ColGroup = ({ content, parentElement, tableRef }: ColGroupProps) => {
 							}}
 						/>,
 					);
+					allWidth += typeof width === "string" ? Number(width.replace("px", "")) : width;
 				} else cols.push(<col key={`${i}-${j}`} />);
 			}
 		});
 
+		if (tableRef?.current && isPrint) {
+			allWidth = allWidth === 0 ? PAGE_WIDTH : allWidth;
+			allWidth = allWidth > PAGE_WIDTH ? PAGE_WIDTH : allWidth;
+			tableRef.current.style.width = `${allWidth}px`;
+		}
+
 		return cols;
 	}, [colInfo, cellWidth]);
+
+	if (isPrint) return null;
 
 	return <colgroup>{generatedCols}</colgroup>;
 };

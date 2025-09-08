@@ -4,7 +4,6 @@ import Input from "@components/Atoms/Input";
 import Tooltip from "@components/Atoms/Tooltip";
 import ButtonLink from "@components/Molecules/ButtonLink";
 import { useDebounce } from "@core-ui/hooks/useDebounce";
-import useWatch from "@core-ui/hooks/useWatch";
 import styled from "@emotion/styled";
 import { CustomDecorations } from "@ext/markdown/elements/find/edit/components/ArticleSearchHotkeyView";
 import { isElementNearEdges } from "@ext/markdown/elements/find/edit/logic/elementNearEdges";
@@ -13,7 +12,7 @@ import {
 	replaceHighlightedText,
 } from "@ext/markdown/elements/find/edit/logic/replaceText";
 import { searchPlugin } from "@ext/markdown/elements/find/edit/models/ArticleSearch";
-import React, { useState, useRef, useEffect, useCallback, ChangeEvent, RefObject } from "react";
+import React, { useState, useRef, useEffect, useCallback, ChangeEvent, RefObject, useLayoutEffect } from "react";
 import { Editor } from "@tiptap/core";
 import { EditorView } from "prosemirror-view";
 import t from "@ext/localization/locale/translate";
@@ -90,7 +89,7 @@ const FindReplaceModal: React.FC<FindReplaceModalProps> = (props) => {
 		setElemIndex(activeElementIndex, "up");
 	};
 
-	useWatch(() => {
+	useLayoutEffect(() => {
 		if (decorations.length === 0 || decorations.length < activeElementIndex) setElemIndex(0);
 	}, [decorations]);
 
@@ -162,7 +161,7 @@ const FindReplaceModal: React.FC<FindReplaceModalProps> = (props) => {
 		[],
 	);
 
-	useWatch(() => {
+	useLayoutEffect(() => {
 		updateSearch(
 			searchPlugin,
 			findText,
@@ -174,7 +173,7 @@ const FindReplaceModal: React.FC<FindReplaceModalProps> = (props) => {
 		);
 	}, [updateSearch, isActiveHighlight, findText, activeElementIndex, caseSensitive, wholeWord]);
 
-	useWatch(() => {
+	useLayoutEffect(() => {
 		if (selectionText) {
 			setFindText(selectionText);
 			setInitialFindText(selectionText);
@@ -188,7 +187,7 @@ const FindReplaceModal: React.FC<FindReplaceModalProps> = (props) => {
 		}
 	}, [openKey]);
 
-	useWatch(() => {
+	useLayoutEffect(() => {
 		if (!decorations.length && !activeElementIndex) return;
 		if (firstSearch.current) {
 			const { from, to } = editor.view.state.selection;
@@ -199,7 +198,7 @@ const FindReplaceModal: React.FC<FindReplaceModalProps> = (props) => {
 		}
 	}, [decorations, activeElementIndex]);
 
-	useWatch(() => {
+	useLayoutEffect(() => {
 		const length = decorations.length;
 		const userRightIndex = activeElementIndex + 1;
 		if (!length) setCounterText("0/0");
@@ -224,9 +223,9 @@ const FindReplaceModal: React.FC<FindReplaceModalProps> = (props) => {
 	}, [activeElementIndex, isActiveHighlight, firstSearch.current]);
 
 	useEffect(() => {
-		if (findText) inputRef.current.select();
+		if (findText && isActiveHighlight) inputRef.current.select();
 		else inputRef.current.focus();
-	}, [openKey]);
+	}, [openKey, findText]);
 
 	useEffect(() => {
 		const MAX_WIDTH = 150;

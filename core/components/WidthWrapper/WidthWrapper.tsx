@@ -47,6 +47,8 @@ const WidthWrapper = ({ children, className }: { children: JSX.Element; classNam
 		const articleRefWidth = first?.clientWidth;
 
 		const scrollContainer = scrollContainerRef.current;
+		if (!scrollContainer) return;
+
 		const scrollContentRef = scrollContainer?.firstElementChild;
 		const scrollContentRefWidth = calculateContentWidth(scrollContentRef);
 

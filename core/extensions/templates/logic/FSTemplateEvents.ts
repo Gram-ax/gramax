@@ -1,14 +1,14 @@
 import type { EventArgs } from "@core/Event/EventEmitter";
-import FileStructure, { type FSEvents } from "../../../logic/FileStructue/FileStructure";
-import MarkdownParser from "@ext/markdown/core/Parser/Parser";
-import MarkdownFormatter from "@ext/markdown/core/edit/logic/Formatter/Formatter";
-import { ItemEvents } from "@core/FileStructue/Item/Item";
-import ParserContextFactory from "@ext/markdown/core/Parser/ParserContext/ParserContextFactory";
 import { Article } from "@core/FileStructue/Article/Article";
-import { defaultLanguage } from "@ext/localization/core/model/Language";
-import { fillMarkdownTemplate, recursiveFindNode } from "@ext/templates/logic/utils";
-import { editName as BLOCK_PROPERTY } from "@ext/markdown/elements/blockProperty/consts";
 import { Catalog } from "@core/FileStructue/Catalog/Catalog";
+import { ItemEvents } from "@core/FileStructue/Item/Item";
+import { defaultLanguage } from "@ext/localization/core/model/Language";
+import MarkdownParser from "@ext/markdown/core/Parser/Parser";
+import ParserContextFactory from "@ext/markdown/core/Parser/ParserContext/ParserContextFactory";
+import MarkdownFormatter from "@ext/markdown/core/edit/logic/Formatter/Formatter";
+import { editName as BLOCK_PROPERTY } from "@ext/markdown/elements/blockProperty/consts";
+import { fillMarkdownTemplate, recursiveFindNode } from "@ext/templates/logic/utils";
+import FileStructure, { type FSEvents } from "../../../logic/FileStructue/FileStructure";
 
 type ItemPreSaveEventArgs = EventArgs<ItemEvents, "item-pre-save"> & { catalog: Catalog };
 type ItemGetContentEventArgs = EventArgs<ItemEvents, "item-get-content"> & { catalog: Catalog };
@@ -18,7 +18,7 @@ export default class FSTemplateEvents {
 	private _formatter: MarkdownFormatter;
 	private _parserContextFactory: ParserContextFactory;
 
-	private _refs = []
+	private _refs = [];
 
 	constructor() {}
 

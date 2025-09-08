@@ -1,109 +1,131 @@
 import styled from "@emotion/styled";
-import InfoModalForm from "@ext/errorHandlers/client/components/ErrorForm";
 import t from "@ext/localization/locale/translate";
-import Note, { NoteType } from "@ext/markdown/elements/note/render/component/Note";
+import { Modal, ModalBody, ModalContent, ModalFooter, ModalHeader, ModalTitle } from "@ui-kit/Modal";
+import { Button } from "@ui-kit/Button";
+import SpinnerLoader from "@components/Atoms/SpinnerLoader";
+import Icon from "@components/Atoms/Icon";
+import { UnsupportedElements } from "@ext/import/model/UnsupportedElements";
 
 interface CommonUnsupportedElementsModalProps {
-	iconColor: string;
-	title: string;
-	description: string;
-	noteTitle: string;
-	firstColumnTitle: string;
-	unsupportedNodes: {
-		article: { title: string; link: string };
-		elements: { name: string; count: number }[];
-	}[];
-	actionButtonText: string;
-	onActionClick: () => void;
-	onCancelClick: () => void;
-	className?: string;
+	open: boolean;
+	unsupportedElements: UnsupportedElements[];
+	isLoading?: boolean;
+	title?: string;
+	description?: string;
+	firstColumnTitle?: string;
+	secondColumnTitle?: string;
+	onOpenChange: (open: boolean) => void;
 	renderArticleLink: (article: { title: string; link: string }) => JSX.Element;
+	onContinue: () => void;
 }
 
 const CommonUnsupportedElementsModal = (props: CommonUnsupportedElementsModalProps) => {
 	const {
-		iconColor,
+		open,
+		onOpenChange,
+		unsupportedElements,
+		onContinue,
+		isLoading,
+		renderArticleLink,
 		title,
 		description,
-		noteTitle,
 		firstColumnTitle,
-		actionButtonText,
-		unsupportedNodes,
-		onActionClick,
-		onCancelClick,
-		className,
-		renderArticleLink,
+		secondColumnTitle = t("element"),
 	} = props;
 
 	return (
-		<InfoModalForm
-			title={title}
-			icon={{ code: "circle-alert", color: iconColor }}
-			isWarning={false}
-			actionButton={{
-				onClick: onActionClick,
-				text: actionButtonText,
-			}}
-			onCancelClick={onCancelClick}
-		>
-			<div className="article">
-				{description && <p>{description}</p>}
-				<div className={className}>
-					<Note type={NoteType.info} collapsed={false} title={noteTitle}>
-						<table>
-							<thead>
-								<tr>
-									<th>{firstColumnTitle}</th>
-									<th>{t("element")}</th>
-								</tr>
-							</thead>
-							<tbody>
-								{unsupportedNodes.map((data, index) => (
-									<tr key={index}>
-										<td className="break-word">{renderArticleLink(data.article)}</td>
-										<td className="break-word">
-											<ul>
-												{data.elements.map((element, articleIndex) => (
-													<li key={articleIndex}>
-														{element.name}
-														{element.count > 1 ? ` (${t("count")}: ${element.count})` : ""}
-													</li>
-												))}
-											</ul>
-										</td>
+		<Modal open={open} onOpenChange={onOpenChange}>
+			<ModalContent showCloseButton={false}>
+				<ModalHeader className="flex gap-4" style={{ border: "unset" }}>
+					<Icon code="circle-alert" className="text-status-warning text-2xl" />
+					<ModalTitle className="text-lg text-status-warning font-medium">{title}</ModalTitle>
+				</ModalHeader>
+				<ModalBody className="flex flex-row items-start gap-4 lg:py-6">
+					<div />
+					<div className="flex flex-row gap-6 space-y-2" style={{ marginTop: "-1.5rem" }}>
+						<div />
+						<div className="article">
+							{description && <p style={{ margin: "0" }}>{description}</p>}
+							<StyledTable>
+								<colgroup>
+									<col width="50%" />
+									<col width="50%" />
+								</colgroup>
+								<thead>
+									<tr>
+										<th className="font-medium">{firstColumnTitle}</th>
+										<th className="font-medium">{secondColumnTitle}</th>
 									</tr>
-								))}
-							</tbody>
-						</table>
-					</Note>
-				</div>
-			</div>
-		</InfoModalForm>
+								</thead>
+								<tbody>
+									{unsupportedElements.map((element, index) => (
+										<>
+											<tr key={element.article.id || `article-${index}`}>
+												<td
+													rowSpan={element.elements.length}
+													style={{ verticalAlign: "middle" }}
+												>
+													{renderArticleLink(element.article)}
+												</td>
+												<td>
+													<p style={{ margin: "0" }}>{element.elements[0].name}</p>
+												</td>
+											</tr>
+
+											{element.elements.slice(1).map((e, elemIndex) => (
+												<tr
+													key={`${element.article.id || index}-${elemIndex}`}
+													style={{ verticalAlign: "middle" }}
+												>
+													<td>
+														<p style={{ margin: "0" }}>{e.name}</p>
+													</td>
+												</tr>
+											))}
+										</>
+									))}
+								</tbody>
+							</StyledTable>
+						</div>
+					</div>
+				</ModalBody>
+				<ModalFooter className="flex gap-2 px-4 pb-4 lg:px-6 lg:pb-6" style={{ border: "unset" }}>
+					<Button className="ml-auto" variant="outline" onClick={() => onOpenChange(false)}>
+						{t("cancel")}
+					</Button>
+					<Button status="warning" onClick={onContinue}>
+						{isLoading ? (
+							<>
+								<SpinnerLoader width={16} height={16} />
+								{t("loading")}
+							</>
+						) : (
+							t("continue")
+						)}
+					</Button>
+				</ModalFooter>
+			</ModalContent>
+		</Modal>
 	);
 };
 
-export default styled(CommonUnsupportedElementsModal)`
-	table {
-		overflow: hidden;
-		padding: 0;
+const StyledTable = styled.table`
+	display: table !important;
+	margin-top: 0.75em;
+
+	tr:hover {
+		background-color: unset !important;
 	}
 
-	.admonition-info {
-		overflow-x: hidden;
-		overflow-y: auto;
-		max-height: 50vh;
-		margin-top: 0;
-		margin-bottom: 0;
+	td,
+	th {
+		vertical-align: middle !important;
 	}
 
-	.admonition-content {
-		width: 100%;
-		overflow: visible;
-		padding: 0;
-	}
-
-	.break-word {
-		width: 50vw;
-		word-break: break-word;
+	td[rowspan],
+	td[colspan] {
+		vertical-align: top !important;
 	}
 `;
+
+export default CommonUnsupportedElementsModal;

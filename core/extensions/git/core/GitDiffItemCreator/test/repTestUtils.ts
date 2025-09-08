@@ -29,6 +29,23 @@ const repTestUtils = {
 		await dfp.delete(new Path("imgs/3.png"));
 	},
 
+	makeResourceDeleteChanges: async (dfp: DiskFileProvider) => {
+		await dfp.delete(new Path("file-with-resource.md"));
+		await dfp.delete(new Path("imgs/1.png"));
+		await dfp.delete(new Path("imgs/2.png"));
+	},
+	clearResourceDeleteChanges: async (dfp: DiskFileProvider, git: GitCommands) => {
+		await git.reset({ mode: "hard" });
+	},
+
+	makeOnlyResourceDeleteChanges: async (dfp: DiskFileProvider) => {
+		await dfp.delete(new Path("imgs/1.png"));
+		await dfp.delete(new Path("imgs/2.png"));
+	},
+	clearOnlyResourceDeleteChanges: async (dfp: DiskFileProvider, git: GitCommands) => {
+		await git.reset({ mode: "hard" });
+	},
+
 	makeRenameChanges: async (dfp: DiskFileProvider) => {
 		await dfp.copy(new Path("_index.md"), new Path("_index2.md"));
 		await dfp.delete(new Path("_index.md"));

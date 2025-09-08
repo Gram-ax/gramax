@@ -6,6 +6,8 @@ use crate::creds::*;
 use crate::prelude::*;
 use crate::Result;
 
+const TAG: &str = "git:ext";
+
 pub trait CommitExt {
   fn try_get_blob<'a>(&self, repo: &'a Repository, path: &Path) -> Result<Option<Blob<'a>>>;
 }
@@ -23,14 +25,17 @@ impl CommitExt for Commit<'_> {
 }
 
 pub trait RepoExt {
+  #[deprecated(note = "use `read_file` instead")]
   fn get_content<P: AsRef<Path>>(&self, path: P, commit_oid: Option<Oid>) -> Result<String>;
   fn get_tree_by_branch_name(&self, branch: &str) -> Result<Oid>;
   fn parent_of(&self, oid: Oid) -> Result<Option<Oid>>;
   fn graph_head_upstream_files<P: AsRef<Path>>(&self, search_in: P) -> Result<UpstreamCountChangedFiles>;
 }
 
-impl<C: Creds> RepoExt for crate::repo::Repo<C> {
+impl<C: Creds> RepoExt for crate::repo::Repo<'_, C> {
   fn get_content<P: AsRef<Path>>(&self, path: P, commit_oid: Option<Oid>) -> Result<String> {
+    warn!(target: TAG, "DEPRECATED: use `read_file` instead");
+
     let commit = match commit_oid {
       Some(oid) => self.0.find_commit(oid)?,
       None => self.0.head()?.peel_to_commit()?,
@@ -50,8 +55,11 @@ impl<C: Creds> RepoExt for crate::repo::Repo<C> {
     let (name, kind) =
       if branch.contains("origin/") { (branch, BranchType::Remote) } else { (branch, BranchType::Local) };
 
+    debug!(target: TAG, "getting tree from {} branch {}", if kind == BranchType::Remote { "remote" } else { "local" }, name);
+
     let branch = self.0.find_branch(name, kind)?;
     let oid = branch.get().peel_to_tree()?.id();
+
     Ok(oid)
   }
 

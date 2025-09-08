@@ -35,6 +35,8 @@ export const createBlock = async (
 		).flat(),
 	] as FileChild[];
 
+	if (addOptions?.insideTableWrapper) return [await createBlockChild(fileChildren, blockType, style, addOptions)];
+
 	return [await createBlockChild(fileChildren, blockType, style, addOptions), createParagraphAfterTable()];
 };
 
@@ -50,8 +52,18 @@ export const createBlockChild = async (
 	};
 	const cell = new TableCell({ children: fileChildren, borders: wordBordersType[blockType], width });
 	const rows = [new TableRow({ children: [cell] })];
+	const indent =
+		typeof addOptions?.indent === "number" ? { size: addOptions.indent, type: WidthType.DXA } : undefined;
 
-	return Promise.resolve(new Table({ rows, columnWidths: [width.size], margins: wordMarginsType[blockType], style }));
+	return Promise.resolve(
+		new Table({
+			rows,
+			columnWidths: [width.size],
+			margins: wordMarginsType[blockType],
+			style,
+			indent,
+		}),
+	);
 };
 
 export const createBlockTitle = async (tag: Tag | JSONContent, blockType: WordBlockType) => {

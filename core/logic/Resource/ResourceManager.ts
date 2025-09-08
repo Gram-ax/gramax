@@ -51,7 +51,8 @@ class ResourceManager implements Hashable {
 		}
 		const oldResources = [...this._resources];
 		const newResources = [];
-		for (const resource of this._resources) {
+		for (const encodedResource of this._resources) {
+			const resource = new Path(decodeURIComponent(encodedResource.value));
 			let newResource = new Path(`./${resource.nameWithExtension.replaceAll(oldPath.name, newPath.name)}`);
 			const absoluteResource = this.getAbsolutePath(resource);
 			let newAbsoluteResource = this.getAbsolutePath(newResource);

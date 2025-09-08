@@ -65,6 +65,8 @@ describe("GitDiffItemCreator ", () => {
 			await gvc.restoreRepositoryState();
 			await repTestUtils.clearChanges(dfp, git);
 			await repTestUtils.clearRenameChanges(dfp, git);
+			await repTestUtils.clearResourceDeleteChanges(dfp, git);
+			await repTestUtils.clearOnlyResourceDeleteChanges(dfp, git);
 			await repTestUtils.clearResourceChanges(dfp, git);
 			await repTestUtils.clearComplexResourceChanges(dfp, git);
 		});
@@ -155,6 +157,80 @@ describe("GitDiffItemCreator ", () => {
 					title: "2_1.png",
 					type: FileStatus.delete,
 				});
+			});
+
+			test("find deleted resources in deleted articles", async () => {
+				const { catalog, dfp, git, fs, sitePresenter, articleParser } = await getGitDiffItemCreatorData();
+				const oldRef = await git.getHeadCommit();
+
+				await repTestUtils.makeResourceDeleteChanges(dfp);
+				await git.add(), await git.commit("", mockUserData);
+
+				const newRef = await git.getHeadCommit();
+				const { oldCatalog, newCatalog } = await getRefCatalogs(catalog, oldRef, newRef, fs);
+				const gitDiffItemCreator = new RevisionDiffItemCreator(
+					catalog,
+					sitePresenter,
+					fs,
+					articleParser,
+					{ type: "tree", old: oldRef.toString(), new: newRef.toString() },
+					oldCatalog,
+					newCatalog,
+				);
+				await catalog.update();
+
+				const res = await gitDiffItemCreator.getDiffItems();
+				const items = res.items.map((x) => ({
+					filePath: { path: x.filePath.path, oldPath: x.filePath.oldPath },
+					resources: x.resources.map((r) => ({
+						filePath: { path: r.filePath.path, oldPath: r.filePath.oldPath },
+					})),
+				}));
+
+				expect(items.length).toBe(1);
+				expect(res.resources.length).toBe(0);
+				expect(items).toEqual([
+					{
+						filePath: { path: "file-with-resource.md", oldPath: "file-with-resource.md" },
+						resources: [
+							{ filePath: { path: "imgs/1.png", oldPath: "imgs/1.png" } },
+							{ filePath: { path: "imgs/2.png", oldPath: "imgs/2.png" } },
+						],
+					},
+				]);
+			});
+
+			test("dont find deleted resource in existing article", async () => {
+				const { catalog, dfp, git, fs, sitePresenter, articleParser } = await getGitDiffItemCreatorData();
+				const oldRef = await git.getHeadCommit();
+
+				await repTestUtils.makeOnlyResourceDeleteChanges(dfp);
+				await git.add(), await git.commit("", mockUserData);
+
+				const newRef = await git.getHeadCommit();
+				const { oldCatalog, newCatalog } = await getRefCatalogs(catalog, oldRef, newRef, fs);
+				const gitDiffItemCreator = new RevisionDiffItemCreator(
+					catalog,
+					sitePresenter,
+					fs,
+					articleParser,
+					{ type: "tree", old: oldRef.toString(), new: newRef.toString() },
+					oldCatalog,
+					newCatalog,
+				);
+				await catalog.update();
+
+				const res = await gitDiffItemCreator.getDiffItems();
+				const resources = res.resources.map((x) => ({
+					filePath: { path: x.filePath.path, oldPath: x.filePath.oldPath },
+				}));
+
+				expect(res.items.length).toBe(0);
+				expect(resources.length).toBe(2);
+				expect(resources).toEqual([
+					{ filePath: { path: "imgs/1.png", oldPath: "imgs/1.png" } },
+					{ filePath: { path: "imgs/2.png", oldPath: "imgs/2.png" } },
+				]);
 			});
 		});
 

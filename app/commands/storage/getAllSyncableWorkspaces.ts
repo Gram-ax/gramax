@@ -1,6 +1,7 @@
 import { ResponseKind } from "@app/types/ResponseKind";
 import { AuthorizeMiddleware } from "@core/Api/middleware/AuthorizeMiddleware";
 import { NetworkConnectMiddleWare } from "@core/Api/middleware/NetworkConntectMiddleware";
+import { SilentMiddleware } from "@core/Api/middleware/SilentMiddleware";
 import type Context from "@core/Context/Context";
 import type { WorkspacePath } from "@ext/workspace/WorkspaceConfig";
 import { Command } from "../../types/Command";
@@ -13,7 +14,7 @@ const getAllSyncableWorkspaces: Command<
 
 	kind: ResponseKind.json,
 
-	middlewares: [new NetworkConnectMiddleWare(), new AuthorizeMiddleware()],
+	middlewares: [new NetworkConnectMiddleWare(), new AuthorizeMiddleware(), new SilentMiddleware()],
 
 	async do({ ctx, shouldFetch }) {
 		const { wm } = this._app;
@@ -29,7 +30,13 @@ const getAllSyncableWorkspaces: Command<
 
 				if (!source || source.isInvalid) return;
 
-				if (await repo.isShouldSync({ data: source, shouldFetch: shouldFetch.includes(workspace.path()) }))
+				if (
+					await repo.isShouldSync({
+						data: source,
+						shouldFetch: shouldFetch.includes(workspace.path()),
+						lockFetch: false,
+					})
+				)
 					res.set(workspace.path(), (res.get(workspace.path()) || 0) + 1);
 			}, 3);
 		}, 2);

@@ -11,6 +11,10 @@ interface BlockCommentViewProps {
 const Wrapper = styled.div`
 	height: inherit;
 	width: inherit;
+
+	&:first-child {
+		margin: 0 !important;
+	}
 `;
 
 const BlockCommentView = ({ children, commentId, style }: BlockCommentViewProps) => {

@@ -3,7 +3,6 @@ import IsFirstLoadService from "@core-ui/ContextServices/IsFirstLoadService";
 import useRemoveQueryT from "@core-ui/useRemoveQueryT";
 import useShareHandler from "@ext/catalog/actions/share/logic/useShareHandler";
 import useEnterpriseTokenHandler from "@ext/enterprise/utils/useEnterpriseTokenHandler";
-import { useFindInvalidSouresOnStart } from "@ext/git/actions/Source/logic/useFindInvalidSources";
 import { saveTempTokenIfPresent } from "@ext/git/actions/Source/tempToken";
 import usePathnameCloneHandler from "@ext/git/core/GitPathnameHandler/clone/logic/usePathnameCloneHandler";
 import usePathnameHandler from "@ext/git/core/GitPathnameHandler/usePathnameHandler";
@@ -27,7 +26,6 @@ const useOnFirstLoadFuncs = () => {
 	const isFirstLoad = IsFirstLoadService.value;
 
 	closeIfChild();
-	useFindInvalidSouresOnStart(isFirstLoad);
 	useRemoveQueryT(isFirstLoad);
 	useShareHandler(isFirstLoad);
 	useEnterpriseTokenHandler(isFirstLoad);

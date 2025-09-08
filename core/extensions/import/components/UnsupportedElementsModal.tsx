@@ -1,9 +1,11 @@
-import CommonUnsupportedElementsModal from "@ext/import/components/CommonUnsupportedElementsModal";
-import UnsupportedElements from "@ext/import/model/UnsupportedElements";
+import { UnsupportedElements } from "@ext/import/model/UnsupportedElements";
 import t from "@ext/localization/locale/translate";
 import Anchor from "@components/controls/Anchor";
 import SourceType from "@ext/storage/logic/SourceDataProvider/model/SourceType";
 import sourceTypeConfig from "@ext/import/logic/unsupportedModalConfig";
+import { useState } from "react";
+import CommonUnsupportedElementsModal from "@ext/import/components/CommonUnsupportedElementsModal";
+import { Button } from "@ui-kit/Button";
 
 interface UnsupportedElementsModalProps {
 	startClone: () => void;
@@ -14,23 +16,34 @@ interface UnsupportedElementsModalProps {
 }
 
 const UnsupportedElementsModal = (props: UnsupportedElementsModalProps) => {
-	const { startClone, onCancelClick, unsupportedNodes, sourceType, className } = props;
+	const { startClone, onCancelClick, unsupportedNodes, sourceType } = props;
+	const [isOpen, setIsOpen] = useState(true);
 
-	const { titleKey, descriptionKey, noteTitleKey } = sourceTypeConfig[sourceType] || sourceTypeConfig.default;
+	const { titleKey, descriptionKey } = sourceTypeConfig[sourceType] || sourceTypeConfig.default;
+
+	const handleOpenChange = (open: boolean) => {
+		setIsOpen(open);
+		if (!open) {
+			onCancelClick();
+		}
+	};
 
 	return (
 		<CommonUnsupportedElementsModal
+			open={isOpen}
+			onOpenChange={handleOpenChange}
+			unsupportedElements={unsupportedNodes}
+			onContinue={startClone}
 			title={t(titleKey)}
-			iconColor="var(--color-admonition-note-br-h)"
 			description={t(descriptionKey)}
-			noteTitle={t(noteTitleKey)}
 			firstColumnTitle={t("page")}
-			unsupportedNodes={unsupportedNodes}
-			actionButtonText={t("continue")}
-			onActionClick={startClone}
-			onCancelClick={onCancelClick}
-			className={className}
-			renderArticleLink={(article) => <Anchor href={article.link}>{article.title}</Anchor>}
+			renderArticleLink={(article) => (
+				<Anchor href={article.link}>
+					<Button variant="link" status="info" className="p-0">
+						{article.title}
+					</Button>
+				</Anchor>
+			)}
 		/>
 	);
 };

@@ -125,7 +125,9 @@ const Square = (props: SquareObjectProps): ReactElement => {
 				className={classNames(className, { selected })}
 			>
 				{drawIndexes && (
-					<div className={`annotation annotation-${direction}`}>{index < 9 && <p>{index + 1}</p>}</div>
+					<div className={`annotation annotation-${direction}`}>
+						<p>{index + 1}</p>
+					</div>
 				)}
 
 				{editable && selected && (

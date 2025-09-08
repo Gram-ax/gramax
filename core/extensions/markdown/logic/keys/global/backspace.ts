@@ -17,20 +17,23 @@ const betweenNoteOrCut: KeyboardRule = ({ editor }) => {
 		.run();
 };
 
-const headingAfterNode: KeyboardRule = ({ editor, nodePosition }): boolean => {
+const headingAfterNode: KeyboardRule = ({ editor, nodePosition, node }): boolean => {
 	const selection = editor.state.selection;
-	if (nodePosition <= 3 || nodePosition !== selection.from || nodePosition !== selection.to) return;
+
+	if (nodePosition <= 3 || selection.from !== selection.to) return;
+
+	const isEmptyHeading = node.type.name === "heading" && !node.content.content.length;
+	if (!(nodePosition === selection.from || isEmptyHeading)) return;
 
 	const doc = editor.state.doc;
+	const headingPosition = isEmptyHeading ? nodePosition : nodePosition - 1;
+	const headingNode = doc.nodeAt(headingPosition);
+	if (headingNode.type.name !== "heading") return;
 
-	const parentNode = doc.nodeAt(nodePosition - 1);
-	if (parentNode.type.name !== "heading") return;
-
-	const nodeBefore = getNodeByPos(nodePosition - 2, doc, (node) => isTypeOf(node, ["note", "listItem"]));
-
+	const nodeBefore = getNodeByPos(headingPosition - 1, doc, (node) => isTypeOf(node, ["note", "listItem"]));
 	if (!nodeBefore) return;
 
-	editor.chain().toggleHeading({ level: parentNode.attrs.level }).run();
+	editor.chain().toggleHeading({ level: headingNode.attrs.level }).run();
 };
 
 const getBackspaceShortcuts = (): KeyboardShortcut => {

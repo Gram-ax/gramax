@@ -2,6 +2,20 @@ use test_utils::git::*;
 use test_utils::*;
 
 #[rstest]
+fn stash_untracked(sandbox: TempDir, #[with(&sandbox)] mut repo: Repo<TestCreds>) -> Result {
+  let path = sandbox.path();
+
+  fs::write(path.join("file"), "1")?;
+
+  let oid = repo.stash(None)?.unwrap();
+  let apply_result = repo.stash_apply(oid)?;
+
+  assert!(matches!(apply_result, MergeResult::Ok));
+  assert_eq!(fs::read_to_string(path.join("file"))?, "1");
+  Ok(())
+}
+
+#[rstest]
 fn stash_without_conflict(sandbox: TempDir, #[with(&sandbox)] mut repo: Repo<TestCreds>) -> Result {
   let path = sandbox.path();
 
@@ -147,5 +161,71 @@ fn add_same_file(sandbox: TempDir, #[with(&sandbox)] mut repo: Repo<TestCreds>) 
 fn no_stash(_sandbox: TempDir, #[with(&_sandbox)] mut repo: Repo<TestCreds>) -> Result {
   let res = repo.stash(None);
   assert!(matches!(res, Ok(None)));
+  Ok(())
+}
+
+#[rstest]
+fn apply_without_conflicts_adds_to_index(
+  sandbox: TempDir,
+  #[with(&sandbox)] mut repo: Repo<TestCreds>,
+) -> Result {
+  let path = sandbox.path();
+
+  fs::write(path.join("file1"), "content1")?;
+  fs::write(path.join("file2"), "content2")?;
+  repo.add("file1")?;
+  repo.commit_debug()?;
+
+  fs::write(path.join("file1"), "modified1")?;
+  fs::write(path.join("file3"), "new_file")?;
+  repo.add("file1")?;
+
+  let oid = repo.stash(None)?.unwrap();
+
+  repo.stash_apply(oid)?;
+
+  let index = repo.repo().index()?;
+  assert!(index.get_path(std::path::Path::new("file1"), 0).is_some());
+  assert!(index.get_path(std::path::Path::new("file3"), 0).is_some());
+
+  Ok(())
+}
+
+#[rstest]
+fn apply_with_conflicts_adds_to_index(
+  sandbox: TempDir,
+  #[with(&sandbox)] mut repo: Repo<TestCreds>,
+) -> Result {
+  let path = sandbox.path();
+
+  fs::write(path.join("file"), "original")?;
+  repo.add("file")?;
+  repo.commit_debug()?;
+
+  fs::write(path.join("file"), "stashed_version")?;
+  repo.add("file")?;
+
+  fs::write(path.join("new_file"), "additional")?;
+  fs::write(path.join("new_file_index"), "additional")?;
+  repo.add("new_file_index")?;
+
+  let oid = repo.stash(None)?.unwrap();
+
+  fs::write(path.join("file"), "current_version")?;
+  repo.add("file")?;
+  repo.commit_debug()?;
+
+  let result = repo.stash_apply(oid)?;
+
+  assert!(matches!(result, MergeResult::Conflicts(_)));
+
+  let index = repo.repo().index()?;
+  assert!(path.join("file").exists());
+  assert!(path.join("new_file").exists());
+  assert!(path.join("new_file_index").exists());
+  assert!(index.get_path(std::path::Path::new("file"), 0).is_none());
+  assert!(index.get_path(std::path::Path::new("new_file"), 0).is_none());
+  assert!(index.get_path(std::path::Path::new("new_file_index"), 0).is_some());
+
   Ok(())
 }

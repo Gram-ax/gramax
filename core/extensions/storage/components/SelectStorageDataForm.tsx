@@ -5,7 +5,7 @@ import ActionListItem from "@components/List/ActionListItem";
 import { ButtonItem } from "@components/List/Item";
 import ListLayout from "@components/List/ListLayout";
 import LanguageService from "@core-ui/ContextServices/Language";
-import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
+import SourceDataService from "@core-ui/ContextServices/SourceDataService";
 import useWatch from "@core-ui/hooks/useWatch";
 import { transliterate } from "@core-ui/languageConverter/transliterate";
 import SelectConfluenceStorageDataFields from "@ext/confluence/core/components/SelectConfluenceStorageDataFields";
@@ -42,7 +42,7 @@ interface SelectStorageDataFormProps {
 
 const SelectStorageDataForm = (props: SelectStorageDataFormProps) => {
 	const { title, children, mode, onChange } = props;
-	const pageProps = PageDataContextService.value;
+	const sourceDatasService = SourceDataService.value;
 	const [childrenCloseHandler, setChildrenCloseHandler] = useState<(value: boolean) => void>(() => () => {});
 	const sharedConfig = {
 		placeholderSuffix: t("storage2"),
@@ -71,10 +71,14 @@ const SelectStorageDataForm = (props: SelectStorageDataFormProps) => {
 		return modeConfigs[mode];
 	}, [LanguageService.currentUi()]);
 
-	const filteredSourceDatas = pageProps.sourceDatas.filter(filter);
+	const filteredSourceDatas = sourceDatasService.filter(filter);
 	const [sourceDatas, setStorageDatas] = useState<SourceData[]>(filteredSourceDatas);
 	const [selectSourceData, setSelectStorageData] = useState<SourceData>(null);
 	const selectStorageName = selectSourceData ? getStorageNameByData(selectSourceData) : "";
+
+	useWatch(() => {
+		setStorageDatas(filteredSourceDatas);
+	}, [sourceDatasService]);
 
 	const [externalIsOpen, setExternalIsOpen] = useState(false);
 	const [isPublicCloneOpen, setIsPublicCloneOpen] = useState(false);
@@ -117,9 +121,7 @@ const SelectStorageDataForm = (props: SelectStorageDataFormProps) => {
 
 					setSelectStorageData(data);
 					setIsPublicCloneOpen(false);
-					setStorageDatas(newSourceDatas);
-					pageProps.sourceDatas = newSourceDatas;
-					PageDataContextService.value = pageProps;
+					setStorageDatas([...newSourceDatas]);
 				}}
 			/>
 		),
@@ -127,32 +129,20 @@ const SelectStorageDataForm = (props: SelectStorageDataFormProps) => {
 		labelField: "",
 	};
 
-	const publicClone: ButtonItem = {
-		element: (
-			<ActionListItem divider={sourceDatas?.length > 0}>
-				<div style={{ width: "100%", padding: "6px 11px" }}>
-					<Sidebar title={t("git.clone.public-clone")} leftActions={[<Icon code="link-2" key={0} />]} />
-				</div>
-			</ActionListItem>
-		),
-		onClick: () => {
-			setIsPublicCloneOpen(true);
-			setExternalIsOpen(false);
-			setSelectStorageData(null);
-		},
-		labelField: "",
-	};
-
 	useWatch(() => {
 		if (!selectSourceData) onChange(null);
-		if (selectSourceData?.sourceType === SourceType.notion)
+		if (selectSourceData?.sourceType === SourceType.notion) {
+			const workspaceName = (selectSourceData as NotionSourceData).workspaceName;
+			if (!workspaceName) return;
+
 			onChange({
-				name: transliterate((selectSourceData as NotionSourceData).workspaceName, {
+				name: transliterate(workspaceName, {
 					kebab: true,
 					maxLength: 50,
 				}),
 				source: selectSourceData,
 			} as NotionStorageData);
+		}
 	}, [selectSourceData]);
 
 	const onSourceDataDelete = useCallback(
@@ -172,9 +162,9 @@ const SelectStorageDataForm = (props: SelectStorageDataFormProps) => {
 				setSelectStorageData(data);
 				setIsPublicCloneOpen(false);
 				const storageName = getStorageNameByData(selectSourceData);
-				pageProps.sourceDatas = pageProps.sourceDatas.filter((d) => getStorageNameByData(d) !== storageName);
-				pageProps.sourceDatas.push(data);
-				setStorageDatas(pageProps.sourceDatas);
+				const newSourceDatas = sourceDatasService.filter((d) => getStorageNameByData(d) !== storageName);
+				newSourceDatas.push(data);
+				setStorageDatas([...newSourceDatas]);
 			}}
 			onOpen={() => setSelectStorageData(null)}
 			onClose={() => setSelectStorageData(null)}

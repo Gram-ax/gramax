@@ -1,7 +1,8 @@
-import { getExecutingEnvironment } from "@app/resolveModule/env";
+import { env, getExecutingEnvironment } from "@app/resolveModule/env";
 import assert from "assert";
 
 export enum FeatureTarget {
+	none = 0,
 	web = 1 << 0,
 	desktop = 1 << 1,
 	docportal = 1 << 2,
@@ -34,11 +35,29 @@ export type Feature = {
 
 let cachedFeatures: Record<string, Feature> = null;
 
-const loadFeatures = () => {
+const getRawEnabledFeatures = () => {
+	if (getExecutingEnvironment() == "next") return env("DOCPORTAL_FEATURES");
+	return typeof window !== "undefined" ? window.localStorage?.getItem(FEATURES_KEY) : null;
+};
+
+const loadFeatures = (list?: (keyof typeof features)[]) => {
 	const feats = { ...features };
 
-	const enabled = typeof window !== "undefined" ? window.localStorage?.getItem(FEATURES_KEY) : null;
-	const enabledFeatures = enabled?.split(",").filter((name) => feats[name as keyof typeof feats]) || [];
+	const enabledFeatures = list || getRawEnabledFeatures()?.split(",") || [];
+
+	const availableFeatures = Object.entries(feats)
+		.filter(([n, f]) => f.targets & target[getExecutingEnvironment()] && enabledFeatures.includes(n))
+		.map(([name]) => name);
+
+	const invalidFeatures = enabledFeatures.filter((feature) => !availableFeatures.includes(feature));
+
+	if (invalidFeatures.length > 0) {
+		console.warn(`invalid features provided: ${invalidFeatures.join(", ")}`);
+	}
+
+	if (availableFeatures.length > 0) {
+		console.log(`enabled features: ${availableFeatures.join(", ")}`);
+	}
 
 	cachedFeatures = Object.fromEntries(
 		Object.entries(feats)
@@ -64,7 +83,9 @@ export const getEnabledFeatures = () => {
 };
 
 export const setFeature = (name: keyof typeof features, value: boolean) => {
+	assert(getExecutingEnvironment() !== "next", "Setting feature in runtime are not supported in this environment");
 	assert(cachedFeatures[name], `Feature ${name} not found`);
+
 	cachedFeatures[name].isEnabled = value;
 
 	const enabledFeatureNames = Object.keys(cachedFeatures).filter(
@@ -73,13 +94,18 @@ export const setFeature = (name: keyof typeof features, value: boolean) => {
 	typeof window !== "undefined" && window.localStorage?.setItem(FEATURES_KEY, enabledFeatureNames.join(","));
 };
 
+export const setFeatureList = (enabled: (keyof typeof features)[]) => {
+	assert(getExecutingEnvironment() === "next", "Supported only in next environment");
+	loadFeatures(enabled);
+};
+
 const target: Record<ReturnType<typeof getExecutingEnvironment>, FeatureTarget> = {
 	browser: FeatureTarget.web,
 	tauri: FeatureTarget.desktop,
-	next: FeatureTarget.static,
-	test: FeatureTarget.all,
-	static: FeatureTarget.all,
-	cli: FeatureTarget.all,
+	next: FeatureTarget.docportal,
+	static: FeatureTarget.static,
+	test: FeatureTarget.none,
+	cli: FeatureTarget.none,
 };
 
 export const feature = (name: keyof typeof features): boolean => {
@@ -111,7 +137,19 @@ export const features = {
 		},
 		url: "https://gram.ax/resources/docs/catalog/filter",
 		icon: "filter",
-		targets: FeatureTarget.web | FeatureTarget.desktop | FeatureTarget.static,
+		targets: FeatureTarget.web | FeatureTarget.desktop | FeatureTarget.static | FeatureTarget.docportal,
+	},
+	"export-pdf": {
+		title: {
+			ru: "Новый экспорт в PDF",
+			en: "New export to PDF",
+		},
+		desc: {
+			ru: "Поддерживает все элементы оформления статей",
+			en: "Supports all article formatting elements",
+		},
+		icon: "file-text",
+		targets: FeatureTarget.web | FeatureTarget.desktop | FeatureTarget.static | FeatureTarget.docportal,
 	},
 } as const satisfies FeatureList;
 

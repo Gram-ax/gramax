@@ -10,11 +10,11 @@ export interface HttpListenOnceOptions {
 	callbackName: string;
 }
 
-export const httpListenOnce = async (opts: HttpListenOnceOptions) => {
+export const httpListenOnce = async ({ action, callbackName, url }: HttpListenOnceOptions) => {
 	await invoke("http_listen_once", {
-		url: opts.url.replace(/redirect=.*$/, `redirect=${encodeURIComponent("http://localhost:52054")}`),
-		action: opts.action,
-		callbackName: "on_done",
+		url,
+		action,
+		callbackName,
 	});
 };
 
@@ -23,8 +23,8 @@ export const openChildWindow = async (opts: { url: string; redirect?: string }):
 	await once("on_done", (ev) => dummy.onLoadApp({ search: "?" + (ev.payload as string) }));
 
 	if (opts.redirect) {
-		httpListenOnce({
-			url: opts.url,
+		void httpListenOnce({
+			url: opts.url.replace(/redirect=.*$/, `redirect=${encodeURIComponent("http://localhost:52054")}`),
 			action: { type: "redirect", value: opts.redirect },
 			callbackName: "on_done",
 		});

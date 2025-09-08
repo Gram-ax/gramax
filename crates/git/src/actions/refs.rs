@@ -59,7 +59,7 @@ pub trait Refs {
   fn find_reference_pointee_info(&self, reference: &Reference) -> Result<Option<RefInfo>>;
 }
 
-impl<C: Creds> Refs for Repo<C> {
+impl<C: Creds> Refs for Repo<'_, C> {
   fn find_refs_by_globs<S: AsRef<str>>(&self, patterns: &[S]) -> Result<Vec<RefInfo>> {
     let mut refs = HashMap::new();
 

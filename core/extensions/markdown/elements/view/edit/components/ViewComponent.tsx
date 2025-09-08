@@ -8,7 +8,6 @@ import FetchService from "@core-ui/ApiServices/FetchService";
 import { MouseEvent, useCallback, useRef, useState } from "react";
 import HoverableActions from "@components/controls/HoverController/HoverableActions";
 import ViewActions from "@ext/markdown/elements/view/edit/components/Helpers/ViewActions";
-import BlockCommentView from "@ext/markdown/elements/comment/edit/components/BlockCommentView";
 import { NodeViewContextableWrapper } from "@ext/markdown/core/element/NodeViewContextableWrapper";
 
 interface ViewComponentProps extends NodeViewProps {
@@ -59,17 +58,16 @@ const ViewComponent = (props: ViewComponentProps) => {
 						)
 					}
 				>
-					<BlockCommentView commentId={node.attrs.comment?.id}>
-						<View
-							defs={node.attrs.defs}
-							orderby={node.attrs.orderby}
-							groupby={node.attrs.groupby}
-							select={node.attrs.select}
-							display={node.attrs.display}
-							disabled={false}
-							updateArticle={updateArticle}
-						/>
-					</BlockCommentView>
+					<View
+						defs={node.attrs.defs}
+						orderby={node.attrs.orderby}
+						groupby={node.attrs.groupby}
+						select={node.attrs.select}
+						display={node.attrs.display}
+						disabled={false}
+						updateArticle={updateArticle}
+						commentId={node.attrs.comment?.id}
+					/>
 				</HoverableActions>
 			</div>
 		</NodeViewContextableWrapper>

@@ -42,7 +42,8 @@ export type AddOptionsWord = IRunPropertiesOptions &
 	IParagraphOptions &
 	CodeOptions &
 	TableMaxWidth &
-	MaxPictureWidth;
+	MaxPictureWidth &
+	TableInsideListItem;
 
 export type TextRunOptions = { readonly break?: number; removeWhiteSpace?: boolean };
 
@@ -71,4 +72,9 @@ export interface ImageDimensions {
 export interface TitleInfo {
 	title: string;
 	order: string;
+}
+
+export interface TableInsideListItem {
+	insideTableWrapper?: boolean;
+	indent?: number;
 }

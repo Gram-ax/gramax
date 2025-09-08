@@ -2,7 +2,7 @@ import t from "@ext/localization/locale/translate";
 import { ISectionOptions, patchDocument, PatchType, Paragraph, PageBreak } from "docx";
 import JSZip from "jszip";
 import assert from "assert";
-import { DOMParser, XMLSerializer } from "@xmldom/xmldom";
+import { DOMParser, XMLSerializer, Document, Element } from "@xmldom/xmldom";
 import DefaultError from "@ext/errorHandlers/logic/DefaultError";
 
 const CONTENT_PLACEHOLDER = "gramax_content";
@@ -22,7 +22,6 @@ function getOrCreate(parent: any, tag: string, namespaceURI?: string): any {
 	parent.appendChild(el);
 	return el;
 }
-
 class TemplateProcessor {
 	private _templateBuffer: Buffer;
 	private _docxSections: ISectionOptions[];
@@ -65,7 +64,7 @@ class TemplateProcessor {
 					}),
 				);
 			}
-			return sectionChildren;
+			return sectionChildren.filter((child) => child !== undefined);
 		});
 
 		const patchedDocument = await patchDocument(templateBuffer, {
@@ -89,6 +88,7 @@ class TemplateProcessor {
 		await this._fixNumIdInZip(zip);
 		await this._updateDocumentPropertiesInZip(zip);
 		await this._fixStyleReferencesInZip(zip, templateStyleMapping);
+		await this._cleanTablePropertiesInZip(zip);
 		await this._updateSettingsXmlInZip(zip);
 		await this._updateContentTypesXmlInZip(zip);
 
@@ -199,7 +199,7 @@ class TemplateProcessor {
 		const numIdNodes = Array.from(doc.getElementsByTagName("w:numId"));
 		for (const node of numIdNodes as any[]) {
 			const val = node.getAttribute("w:val");
-			if (val && /\{(?:bulletList|orderedList)-\d+\}/.test(val)) {
+			if (val && /\{(?:bulletList|orderedList|taskList)-\d+\}/.test(val)) {
 				placeholders.add(val);
 			}
 		}
@@ -221,6 +221,7 @@ class TemplateProcessor {
 		const typeToStyleLink: Record<string, string> = {
 			orderedList: "OrderedList",
 			bulletList: "BulletList",
+			taskList: "TaskList",
 		};
 
 		const placeholderToNewId = new Map<string, string>();
@@ -230,7 +231,7 @@ class TemplateProcessor {
 		let currentNumId = startNumId;
 
 		for (const placeholder of placeholders) {
-			const typeMatch = placeholder.match(/\{(bulletList|orderedList)-/);
+			const typeMatch = placeholder.match(/\{(bulletList|orderedList|taskList)-/);
 			if (!typeMatch) continue;
 
 			const listType = typeMatch[1];
@@ -376,6 +377,70 @@ class TemplateProcessor {
 		return normalized;
 	}
 
+	private async _cleanTablePropertiesInZip(zip: JSZip): Promise<void> {
+		const docPath = "word/document.xml";
+		const docFile = zip.file(docPath);
+		const xmlString = await docFile.async("text");
+		const xmlDoc = parseXml(xmlString);
+
+		const tables = Array.from(xmlDoc.getElementsByTagName("w:tbl"));
+
+		for (let i = 0; i < tables.length; i++) {
+			const table = tables[i];
+			this._cleanTblPr(xmlDoc, table);
+			this._removeTrPr(table);
+			this._cleanTcPr(xmlDoc, table);
+		}
+
+		zip.file(docPath, printXml(xmlDoc));
+	}
+
+	private _cleanTblPr(xmlDoc: Document, table: Element): void {
+		const tblPr = table.getElementsByTagName("w:tblPr")[0];
+		if (!tblPr) return;
+
+		const parent = tblPr.parentNode;
+		const newTblPr = xmlDoc.createElement("w:tblPr");
+
+		const tblStyle = tblPr.getElementsByTagName("w:tblStyle")[0];
+		if (tblStyle) newTblPr.appendChild(tblStyle.cloneNode(true));
+
+		const tblInd = tblPr.getElementsByTagName("w:tblInd")[0];
+		if (tblInd) newTblPr.appendChild(tblInd.cloneNode(true));
+
+		if (parent) {
+			parent.insertBefore(newTblPr, tblPr);
+			parent.removeChild(tblPr);
+		}
+	}
+
+	private _removeTrPr(table: Element): void {
+		const rows = Array.from(table.getElementsByTagName("w:tr"));
+		for (const row of rows) {
+			const trPr = row.getElementsByTagName("w:trPr")[0];
+			if (trPr) row.removeChild(trPr);
+		}
+	}
+
+	private _cleanTcPr(xmlDoc: Document, table: Element): void {
+		const cells = Array.from(table.getElementsByTagName("w:tc"));
+		for (const cell of cells) {
+			const tcPr = cell.getElementsByTagName("w:tcPr")[0];
+			if (!tcPr) continue;
+
+			const parent = tcPr.parentNode;
+			const newTcPr = xmlDoc.createElement("w:tcPr");
+
+			const tcW = tcPr.getElementsByTagName("w:tcW")[0];
+			if (tcW) newTcPr.appendChild(tcW.cloneNode(true));
+
+			if (parent) {
+				parent.insertBefore(newTcPr, tcPr);
+				parent.removeChild(tcPr);
+			}
+		}
+	}
+
 	private async _updateSettingsXmlInZip(zip: JSZip): Promise<void> {
 		const file = zip.file("word/settings.xml");
 		if (!file) return;
@@ -394,15 +459,6 @@ class TemplateProcessor {
 		}
 
 		zip.file("word/settings.xml", printXml(doc));
-	}
-
-	private _escapeXml(text: string): string {
-		return text
-			.replace(/&/g, "&amp;")
-			.replace(/</g, "&lt;")
-			.replace(/>/g, "&gt;")
-			.replace(/"/g, "&quot;")
-			.replace(/'/g, "&#39;");
 	}
 
 	private async _updateContentTypesXmlInZip(zip: JSZip): Promise<void> {

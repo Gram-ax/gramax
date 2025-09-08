@@ -54,43 +54,24 @@ const ForwardBackward = () => {
 
 	const [isFullscreen, setIsFullscreen] = useState(false);
 
-	const [canGoBackward, setCanGoBackward] = useState(() => window.history.length <= 1);
-
-	const updateNavigationState = useCallback(() => {
-		const historyLength = window.history.length;
-		const newCanGoBackward = historyLength <= 1;
-
-		setCanGoBackward((prev) => (prev !== newCanGoBackward ? newCanGoBackward : prev));
-	}, []);
-
 	useEffect(() => {
-		updateNavigationState();
-
 		const wv = getCurrentWindow();
+		void wv.isFullscreen().then(setIsFullscreen);
 		const unlisten = wv.onResized(async () => setIsFullscreen(await wv.isFullscreen()));
-		window.addEventListener("popstate", updateNavigationState);
-
 		return () => {
-			window.removeEventListener("popstate", updateNavigationState);
 			void unlisten.then((unlisten) => unlisten());
 		};
-	}, [updateNavigationState]);
+	}, []);
 
-	const navigate = useCallback(
-		(direction: "forward" | "backward") => {
-			if (direction === "backward" && !canGoBackward) {
-				window.history.back();
-			} else if (direction === "forward") {
-				window.history.forward();
-			}
-		},
-		[canGoBackward],
-	);
+	const navigate = useCallback((direction: "forward" | "backward") => {
+		if (direction === "backward") return window.history.back();
+		if (direction === "forward") return window.history.forward();
+	}, []);
 
 	return (
 		<Wrapper leftPad={isFullscreen ? 0.7 : 5.3} fixedPad>
 			<Tooltip content={t("backward")}>
-				<OpacityIcon disabled={canGoBackward} onClick={() => navigate("backward")} code="arrow-left" />
+				<OpacityIcon onClick={() => navigate("backward")} code="arrow-left" />
 			</Tooltip>
 			<Tooltip content={t("forward")}>
 				<OpacityIcon onClick={() => navigate("forward")} code="arrow-right" />

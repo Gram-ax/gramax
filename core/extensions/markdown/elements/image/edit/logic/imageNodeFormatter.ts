@@ -13,7 +13,8 @@ const imageNodeFormatter =
 				typeof node.attrs.crop !== "string" &&
 				(node.attrs.crop.w !== 100 || node.attrs.crop.h !== 100)) ||
 			node.attrs?.objects?.length > 0 ||
-			node.attrs?.scale;
+			node.attrs?.scale ||
+			node.attrs?.float;
 
 		const hasSize = node.attrs?.width && node.attrs?.height;
 		if (newFormat) {
@@ -26,7 +27,8 @@ const imageNodeFormatter =
 					node.attrs?.height,
 					node.attrs?.crop ?? CLEAR_CROP,
 					node.attrs?.objects ?? [],
-					node.attrs.scale,
+					node.attrs?.scale,
+					node.attrs?.float,
 				),
 			};
 			state.write(formatter.openTag(formatter.type === Syntax.github ? "img" : "image", attrs, true));

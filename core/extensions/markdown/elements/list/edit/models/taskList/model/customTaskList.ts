@@ -1,4 +1,4 @@
-import shortcutRulePrepare from "@ext/markdown/elements/list/edit/logic/shortcutRulePrepare";
+import toggleListPrepare from "@ext/markdown/elements/list/edit/logic/toggleListPrepare";
 import TaskList from "@tiptap/extension-task-list";
 
 const CustomTaskList = TaskList.extend({
@@ -13,9 +13,9 @@ const CustomTaskList = TaskList.extend({
 		return {
 			toggleTaskList:
 				() =>
-				({ editor }) => {
-					const chain = shortcutRulePrepare(editor);
-					return chain.toggleList(this.name, this.options.itemTypeName).run();
+				({ editor, chain }) => {
+					toggleListPrepare(editor, chain());
+					return chain().toggleList(this.name, this.options.itemTypeName).run();
 				},
 		};
 	},

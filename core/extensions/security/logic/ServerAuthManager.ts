@@ -20,18 +20,22 @@ export default class ServerAuthManager extends AuthManager {
 
 	async getUser(cookie: Cookie, query: any, headers: ApiRequest["headers"]): Promise<User> {
 		let user: User = await this._getUser(cookie);
+
+		if (query?.[QUERY_TICKET]) {
+			const shareTicket = decodeURIComponent(query[QUERY_TICKET]);
+			const ticketUser = this._ticketManager.checkShareTicket(shareTicket);
+			if (ticketUser) user = ticketUser;
+			this.setUser(cookie, user);
+		}
+
 		const authorizationHeader = headers?.["authorization"];
 		const authorizationToken = authorizationHeader?.startsWith("Bearer ") ? authorizationHeader.slice(7) : "";
-		if (!authorizationToken && !query?.[QUERY_TICKET]) return user;
+		if (authorizationToken) {
+			const userTicket = decodeURIComponent(authorizationToken);
+			const ticketUser = await this._ticketManager.checkUserTicket(userTicket);
+			if (ticketUser) user = ticketUser;
+		}
 
-		const { catalogPermissions, user: ticketUser } = await this._ticketManager.checkTicket(
-			decodeURIComponent(authorizationToken ?? query[QUERY_TICKET]),
-		);
-		Object.keys(catalogPermissions).forEach((catalogName) => {
-			user.addCatalogPermission(catalogName, catalogPermissions[catalogName]);
-		});
-		if (ticketUser) user = ticketUser;
-		this.setUser(cookie, user, 60 * 60);
 		return user;
 	}
 

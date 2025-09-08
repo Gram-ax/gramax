@@ -10,7 +10,7 @@ import t from "@ext/localization/locale/translate";
 import { CatalogLink } from "@ext/navigation/NavigationLinks";
 import { ActionCard, CardFooter, CardSubTitle, CardTitle, CardVisualBadge } from "ics-ui-kit/components/card";
 import { ProgressBlockTemplate } from "ics-ui-kit/components/progress";
-import { Tooltip, TooltipContent, TooltipTrigger } from "ics-ui-kit/components/tooltip";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@ui-kit/Tooltip";
 import { useState } from "react";
 import Link from "../Atoms/Link";
 
@@ -38,7 +38,8 @@ const GxCard = ({ link, className, onClick, name }: CardProps) => {
 
 	const renderLogo = !isCloning && !error && logo;
 	const pathname = link.lastVisited || link.pathname;
-	const errorCardClassName = "border-status-error-secondary-border bg-secondary-bg hover:border-status-error-secondary-border hover:bg-status-error-bg";
+	const errorCardClassName =
+		"border-status-error-secondary-border bg-secondary-bg hover:border-status-error-secondary-border hover:bg-status-error-bg";
 
 	if (isCancel && !isCloning && !error) return null;
 
@@ -46,10 +47,14 @@ const GxCard = ({ link, className, onClick, name }: CardProps) => {
 		<ActionCard
 			onKeyDown={null}
 			className={`h-[154px] w-[268px] relative ${className} ${error ? errorCardClassName : ""}`}
-			style={error ? {} : { background: `var(--color-card-bg-${link.style})` }}
+			style={
+				error
+					? { overflow: "visible" }
+					: { background: `var(--color-card-bg-${link.style})`, overflow: "visible" }
+			}
 			onClick={() => {
 				if (error) return onClickError();
-				if (isNext || isStatic) return;
+				if (isNext || isStatic || isCloning) return;
 				onClick();
 				setIsLoading(true);
 			}}
@@ -98,6 +103,8 @@ const GxCard = ({ link, className, onClick, name }: CardProps) => {
 				</TooltipContent>
 			</Tooltip>
 		);
+
+	if (isCloning) return card;
 
 	if (isStatic)
 		return (

@@ -46,7 +46,15 @@ enum UpdateCheckMode {
 
 impl<R: Runtime> Updater<R> {
   pub fn new(app: AppHandle<R>) -> updater::Result<Self> {
-    let updater = app.updater_builder().version_comparator(|v, r| is_version_newer(v, r.version)).build()?;
+    let updater = app
+      .updater_builder()
+      .endpoints(vec![Url::parse(&format!(
+        "https://s3.gram.ax/{}/updates.json",
+        option_env!("S3_ENV_FOLDER").unwrap_or("dev")
+      ))
+      .unwrap()])?
+      .version_comparator(|v, r| is_version_newer(v, r.version))
+      .build()?;
     Ok(Self { app, inner: updater })
   }
 

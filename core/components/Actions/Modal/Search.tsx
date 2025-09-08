@@ -112,7 +112,7 @@ const Search = (props: SearchProps) => {
 	const setHeight = () => {
 		if (blockRef.current)
 			blockRef.current.style.height =
-				query && (!data || (data.type === "search" && !data.searchData.length)) ? "193.59px" : "";
+				!query || !data || (data.type === "search" && !data.searchData.length) ? "193.59px" : "";
 		if (document && responseRef.current && itemsResponseRef.current) {
 			responseRef.current.style.height = `${document.body.clientHeight}px`;
 			const blockHeight = itemsResponseRef.current.clientHeight + 104;

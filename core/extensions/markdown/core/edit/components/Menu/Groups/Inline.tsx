@@ -11,8 +11,8 @@ import { Editor } from "@tiptap/core";
 
 interface InlineMenuGroupProps {
 	editor?: Editor;
-	onClick?: () => void;
 	isGramaxAiEnabled?: boolean;
+	onClick?: () => void;
 	setPanel?: (panel: PanelMenu) => void;
 }
 
@@ -24,7 +24,7 @@ const InlineMenuGroup = ({ editor, onClick, isGramaxAiEnabled, setPanel }: Inlin
 	return (
 		<ButtonsLayout>
 			<LinkMenuButton onClick={onClick} editor={editor} />
-			<CodeMenuButton editor={editor} />
+			<CodeMenuButton editor={editor} isInline />
 			<FileMenuButton onSave={onClick} editor={editor} />
 			{isGramaxAiEnabled && (
 				<>

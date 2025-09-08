@@ -83,6 +83,8 @@ interface Application {
 						password: string;
 				  };
 		};
+
+		forceUiLangSync: boolean;
 	};
 }
 

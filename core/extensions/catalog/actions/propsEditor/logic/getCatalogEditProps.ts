@@ -12,6 +12,7 @@ const getCatalogEditProps = (props: ClientCatalogProps): CatalogEditProps => {
 		versions,
 		syntax,
 		properties,
+		group: link?.group,
 		description: link?.description,
 		filterProperties,
 		style: link?.style,

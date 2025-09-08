@@ -85,7 +85,7 @@ const ArticleBreadcrumb = ({ className, itemLinks }: ArticleBreadcrumbProps) => 
 					<Properties
 						properties={articleProperties}
 						setProperties={setArticleProperties}
-						hideList={isTemplate || isMobile}
+						hideList={isMobile}
 					/>
 				</>
 			)}
@@ -126,5 +126,9 @@ export default styled(ArticleBreadcrumb)`
 
 	${cssMedia.narrow} {
 		margin-bottom: 0.25rem;
+	}
+
+	@media print {
+		display: none;
 	}
 `;

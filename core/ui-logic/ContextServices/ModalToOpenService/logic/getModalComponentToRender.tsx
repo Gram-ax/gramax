@@ -24,6 +24,7 @@ import { ReactNode } from "react";
 import ReviewTicketHandler from "../../../../extensions/catalog/actions/review/components/ReviewTicketHandler";
 import ShareTicketHandler from "../../../../extensions/catalog/actions/share/components/ShareTicketHandler";
 import ModalToOpen from "../model/ModalsToOpen";
+import MediaPreview from "@components/Atoms/Image/modalImage/MediaPreview";
 
 const getModalComponentToRender: {
 	[type in ModalToOpen]: (args: { [name: string]: any }) => ReactNode;
@@ -65,6 +66,8 @@ const getModalComponentToRender: {
 
 	[ModalToOpen.CreateWorkspaceForm]: CreateWorkspaceForm,
 	[ModalToOpen.EditWorkspaceForm]: EditWorkspaceForm,
+
+	[ModalToOpen.MediaPreview]: MediaPreview,
 };
 
 export default getModalComponentToRender;

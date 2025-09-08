@@ -1,10 +1,10 @@
 import { EnterpriseConfig, type MetricsConfig } from "@app/config/AppConfig";
 import ShareData from "@ext/catalog/actions/share/model/ShareData";
+import type { features } from "@ext/toggleFeatures/features";
 import type { ClientWorkspaceConfig, WorkspacePath } from "@ext/workspace/WorkspaceConfig";
 import Theme from "../../extensions/Theme/Theme";
 import UiLanguage, { type ContentLanguage } from "../../extensions/localization/core/model/Language";
 import UserInfo from "../../extensions/security/logic/User/UserInfo";
-import SourceData from "../../extensions/storage/logic/SourceDataProvider/model/SourceData";
 
 interface PageDataContext {
 	language: {
@@ -15,7 +15,6 @@ interface PageDataContext {
 	isLogged: boolean;
 	userInfo: UserInfo;
 	domain: string;
-	sourceDatas: SourceData[];
 	isArticle: boolean;
 	wordTemplates: string[];
 	workspace: {
@@ -47,9 +46,11 @@ interface PageDataContext {
 		ai: {
 			enabled: boolean;
 		};
+		forceUiLangSync: boolean;
 	};
 	permissions: string;
 	shareData?: ShareData;
+	features?: (keyof typeof features)[];
 }
 
 export default PageDataContext;

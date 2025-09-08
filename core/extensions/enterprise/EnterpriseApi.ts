@@ -4,6 +4,7 @@ import t from "@ext/localization/locale/translate";
 import UserInfo from "@ext/security/logic/User/UserInfo";
 import { RequestChunkModel } from "@ics/gx-ai/dist/styleGuideCheck/styleGuideGptRequest";
 import { Suggestion } from "@ics/gx-ai/dist/styleGuideCheck/styleGuideGptResponse";
+import { EnterpriseAuthResult } from "./types/EnterpriseAuthResult";
 
 class EnterpriseApi {
 	constructor(private _gesUrl: string) {}
@@ -59,17 +60,16 @@ class EnterpriseApi {
 		}
 	}
 
-	async checkIsAdmin(token: string) {
+	async checkIsAdmin(token: string): Promise<EnterpriseAuthResult> {
 		const headers = {
 			Authorization: `Bearer ${token}`,
 		};
 		const url = `${this._gesUrl}/enterprise/config/check`;
 		try {
 			const res = await fetch(url, { headers });
-			if (res.status === 200) return true;
-			return false;
+			return res.status === 200 ? EnterpriseAuthResult.Permitted : EnterpriseAuthResult.Forbidden;
 		} catch (e) {
-			return false;
+			return EnterpriseAuthResult.Error;
 		}
 	}
 

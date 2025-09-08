@@ -1,7 +1,6 @@
 import getIsSelectedOneNode from "@ext/markdown/elementsUtils/getIsSelectedOneNode";
 import { Mark, markInputRule, markPasteRule, mergeAttributes } from "@tiptap/core";
 import addShortcuts from "@ext/markdown/elementsUtils/keyboardShortcuts/addShortcuts";
-import space from "@ext/markdown/logic/keys/marks/space";
 import arrowRight from "@ext/markdown/logic/keys/marks/arrowRight";
 
 interface CodeOptions {
@@ -69,7 +68,6 @@ const Code = Mark.create<CodeOptions>({
 	addKeyboardShortcuts() {
 		return addShortcuts(
 			[
-				{ key: "Space", focusShouldBeInsideNode: false, rules: [space("toggleCode", this.type.name)] },
 				{ key: "ArrowRight", focusShouldBeInsideNode: false, rules: [arrowRight("toggleCode")] },
 				{ key: "Mod-l", focusShouldBeInsideNode: false, rules: [({ editor }) => editor.commands.toggleCode()] },
 				{ key: "Mod-L", focusShouldBeInsideNode: false, rules: [({ editor }) => editor.commands.toggleCode()] },

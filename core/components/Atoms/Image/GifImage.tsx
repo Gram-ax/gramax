@@ -1,12 +1,23 @@
-import Lightbox from "@components/Atoms/Image/modalImage/Lightbox";
+import MediaPreview from "@components/Atoms/Image/modalImage/MediaPreview";
 import PlayButton from "@components/Atoms/Image/PlayButton";
 import ImageSkeleton from "@components/Atoms/ImageSkeleton";
 import HoverableActions from "@components/controls/HoverController/HoverableActions";
 import { classNames } from "@components/libs/classNames";
 import ArticleRefService from "@core-ui/ContextServices/ArticleRef";
+import ModalToOpenService from "@core-ui/ContextServices/ModalToOpenService/ModalToOpenService";
+import ModalToOpen from "@core-ui/ContextServices/ModalToOpenService/model/ModalsToOpen";
 import getAdjustedSize from "@core-ui/utils/getAdjustedSize";
 import styled from "@emotion/styled";
-import React, { memo, ReactEventHandler, ReactNode, useCallback, useLayoutEffect, useRef, useState } from "react";
+import React, {
+	ComponentProps,
+	memo,
+	ReactEventHandler,
+	ReactNode,
+	useCallback,
+	useLayoutEffect,
+	useRef,
+	useState,
+} from "react";
 
 interface GifImageProps {
 	src: string;
@@ -49,7 +60,6 @@ const GifImage = (props: GifImageProps) => {
 	const articleRef = ArticleRefService.value;
 
 	const [isPlaying, setIsplaying] = useState(false);
-	const [isOpen, setIsOpen] = useState(false);
 	const [thumbnail, setThumbnail] = useState<string>(null);
 	const [size, setSize] = useState(null);
 
@@ -79,13 +89,18 @@ const GifImage = (props: GifImageProps) => {
 		setIsplaying(true);
 	}, [noplay]);
 
-	const onClose = useCallback(() => {
-		setIsOpen(false);
-	}, []);
-
 	const onDoubleClick = useCallback(() => {
-		setIsOpen(true);
-	}, []);
+		ModalToOpenService.setValue<ComponentProps<typeof MediaPreview>>(ModalToOpen.MediaPreview, {
+			id: realSrc,
+			src: src,
+			title: title,
+			downloadSrc: realSrc,
+			openedElement: gifRef,
+			onClose: () => {
+				ModalToOpenService.resetValue();
+			},
+		});
+	}, [src, title, realSrc]);
 
 	const preOnLoad = useCallback(() => {
 		const canvas = canvasRef.current;
@@ -105,19 +120,7 @@ const GifImage = (props: GifImageProps) => {
 	}, [onLoad, thumbnail]);
 
 	return (
-		<div className={className}>
-			<span className="lightbox">
-				{isOpen && (
-					<Lightbox
-						id={realSrc}
-						src={src}
-						title={title}
-						downloadSrc={realSrc}
-						onClose={onClose}
-						openedElement={gifRef}
-					/>
-				)}
-			</span>
+		<div className={className} onClick={onDoubleClick}>
 			<div
 				onDoubleClickCapture={onDoubleClick}
 				className={classNames("ff-container", { "ff-active": isPlaying, "ff-inactive": !isPlaying })}

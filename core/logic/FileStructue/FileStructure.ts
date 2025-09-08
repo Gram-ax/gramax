@@ -369,7 +369,7 @@ export default class FileStructure {
 
 		const directories = files.filter((f) => f.isDirectory() && !FS_EXCLUDE_FILENAMES.includes(f.name));
 		for (const f of directories) await this._readCategory(f.path, category, catalog);
-		await category.sortItems();
+		await category.sortItems("no-sort");
 	}
 
 	private async _makeArticle(path: Path, parentCategory: Category, catalog: Catalog): Promise<Article> {
@@ -377,7 +377,16 @@ export default class FileStructure {
 		const articleCodeInCategory = parentCategory.folderPath.subDirectory(path).name;
 
 		const logicPath = Path.join(parentCategory.logicPath, articleCodeInCategory);
-		const article = this._createArticleByProps(props, parentCategory, path, logicPath, content, null, catalog);
+		const stat = await this._fp.getStat(path);
+		const article = this._createArticleByProps(
+			props,
+			parentCategory,
+			path,
+			logicPath,
+			content,
+			stat.mtimeMs,
+			catalog,
+		);
 
 		return article;
 	}

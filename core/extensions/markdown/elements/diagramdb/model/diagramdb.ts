@@ -15,7 +15,7 @@ export function dbDiagram(context: ParserContext): Schema {
 		transform: async (node: Node) => {
 			const moreTags = node.attributes.moreTags;
 			const path = new Path(node.attributes.path);
-			const lm = context.getResourceManager();
+			const lm = context.getLinkManager();
 			const diagramRef = {
 				storageId: context.getStorageId(),
 				path: lm.getAbsolutePath(path),

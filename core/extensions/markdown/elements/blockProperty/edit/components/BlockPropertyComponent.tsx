@@ -12,7 +12,7 @@ const BlockPropertyComponent = ({ extension }: NodeViewProps) => {
 	const [isEditable] = useState(extension.options.canChangeProps);
 
 	return (
-		<NodeViewWrapper>
+		<NodeViewWrapper draggable={!isEditable} data-drag-handle={isEditable ? undefined : true}>
 			<BlockWrapper readOnly={!isEditable}>
 				<Wrapper readOnly={!isEditable}>
 					<NodeViewContent />

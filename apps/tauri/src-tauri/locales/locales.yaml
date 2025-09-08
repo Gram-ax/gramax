@@ -10,8 +10,8 @@ menu:
       en: "New Window"
 
     configure:
-      ru: "Настроить GES"
-      en: "Configure GES"
+      ru: "Gramax Enterprise Server"
+      en: "Gramax Enterprise Server"
 
     close-window:
       ru: "Закрыть окно"
@@ -143,8 +143,8 @@ updates:
     en: "Update Now"
 
   check:
-    ru: "Проверить обновления..."
-    en: "Check for updates..."
+    ru: "Проверить обновления"
+    en: "Check for updates"
 
   check-in-progress:
     ru: "Проверяем..."

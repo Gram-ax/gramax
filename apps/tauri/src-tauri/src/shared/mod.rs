@@ -8,8 +8,8 @@ pub mod session_data;
 pub mod window;
 
 pub use navigation::*;
-pub use window::*;
 pub use session_data::*;
+pub use window::*;
 
 pub trait AppBuilder {
   fn init(self) -> Self;
@@ -44,8 +44,20 @@ impl<R: Runtime> AppHandleExt<R> for AppHandle<R> {
   }
 }
 
-#[cfg(debug_assertions)]
-pub const ALLOWED_DOMAINS: [&str; 3] = ["tauri.localhost", "gramax", "localhost"];
-
-#[cfg(not(debug_assertions))]
-pub const ALLOWED_DOMAINS: [&str; 2] = ["gramax", "tauri.localhost"];
+pub const ALLOWED_DOMAINS: [&str; 15] = [
+  "tauri.localhost",
+  "vigo.one",
+  "api.vigo.one",
+  "gramax",
+  "localhost",
+  "app.gram.ax",
+  "dev.gram.ax",
+  "youtube.com",
+  "www.youtube.com",
+  "youtu.be",
+  "www.youtu.be",
+  "drive.google.com",
+  "mega.nz",
+  "dropbox.com",
+  "rutube.ru",
+];

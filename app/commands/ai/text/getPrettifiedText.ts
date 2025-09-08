@@ -26,10 +26,15 @@ const getPrettifiedText: Command<{ ctx: Context; catalogName: string; command: s
 
 			assert(data.token, "AI Server token is required");
 			assert(data.apiUrl, "AI Server API URL is required");
-
-			const aiProvider = new DefaultGramaxAi({ apiUrl: data.apiUrl, token: data.token });
+			
+			const aiProvider = new DefaultGramaxAi({
+				apiUrl: data.apiUrl,
+				token: data.token,
+				meta: { instanceName: data.instanceName },
+			});
 
 			const res = await aiProvider.prettifyText(newCommand, text);
+			if (!res) return text;
 			return res;
 		},
 

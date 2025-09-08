@@ -4,14 +4,12 @@ type Article = {
 	link: string;
 };
 
-type UnsupportedElement = {
+export type UnsupportedElement = {
 	name: string;
 	count: number;
 };
 
-type UnsupportedElements = {
+export type UnsupportedElements = {
 	article: Article;
 	elements: UnsupportedElement[];
 };
-
-export default UnsupportedElements;

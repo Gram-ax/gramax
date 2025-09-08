@@ -54,7 +54,10 @@ export const getViewArticleItem = (
 	context: pdfRenderContext,
 	isList: boolean = false,
 ): Content => {
-	const { title, order, anchor } = extractNameAndAnchor(article.linkPath, context.titlesMap);
+	const { title, order, anchor } = extractNameAndAnchor(
+		{ href: article.linkPath, hash: "" },
+		context.titlesMap,
+	);
 	const safeTitle = article.title ? article.title : t("article.no-name");
 	const linkToDestination = title ? generateBookmarkName(order, title, anchor) : undefined;
 

@@ -39,7 +39,7 @@ const CatalogPropsEditor = (props: CatalogSettingsModalProps) => {
 		[onClose],
 	);
 
-	const { cardColors, languages, syntaxes } = useFormSelectValues();
+	const { workspaceGroups, cardColors, languages, syntaxes } = useFormSelectValues();
 
 	const catalogProps = CatalogPropsService.value;
 	const { sourceType } = getPartGitSourceDataByStorageName(catalogProps.sourceName);
@@ -87,7 +87,7 @@ const CatalogPropsEditor = (props: CatalogSettingsModalProps) => {
 	);
 
 	return (
-		<Modal open={open} onOpenChange={internalSetIsOpen} modal={false}>
+		<Modal open={open} onOpenChange={internalSetIsOpen}>
 			{trigger && (
 				<ModalTrigger asChild onMouseEnter={onMouseTriggerEnter}>
 					{trigger}
@@ -114,7 +114,12 @@ const CatalogPropsEditor = (props: CatalogSettingsModalProps) => {
 
 									<Divider />
 									<FormSectionTitle children={t("forms.catalog-edit-props.section.display")} />
-									<EditDisplayProps formProps={formProps} cardColors={cardColors} />
+									<EditDisplayProps
+										formProps={formProps}
+										cardColors={cardColors}
+										originalProps={originalProps}
+										workspaceGroups={workspaceGroups}
+									/>
 
 									<UploadCatalogLogo formProps={formProps} />
 									<UploadArticleIcon formProps={formProps} />

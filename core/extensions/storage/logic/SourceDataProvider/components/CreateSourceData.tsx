@@ -6,6 +6,7 @@ import FetchService from "@core-ui/ApiServices/FetchService";
 import MimeTypes from "@core-ui/ApiServices/Types/MimeTypes";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import LanguageService from "@core-ui/ContextServices/Language";
+import SourceDataService from "@core-ui/ContextServices/SourceDataService";
 import useWatch from "@core-ui/hooks/useWatch";
 import Mode from "@ext/git/actions/Clone/model/Mode";
 import GitSourceData from "@ext/git/core/model/GitSourceData.schema";
@@ -14,6 +15,7 @@ import CreateEnterpriseSourceData from "@ext/storage/logic/SourceDataProvider/co
 import getSourceConfig from "@ext/storage/logic/SourceDataProvider/logic/getSourceConfig";
 import getSourceProps from "@ext/storage/logic/SourceDataProvider/logic/getSourceProps";
 import sourceComponents from "@ext/storage/logic/SourceDataProvider/logic/sourceComponents";
+import getStorageNameByData from "@ext/storage/logic/utils/getStorageNameByData";
 import { useCallback, useMemo, useState } from "react";
 import SourceListItem from "../../../components/SourceListItem";
 import SourceData from "../model/SourceData";
@@ -43,6 +45,7 @@ const CreateSourceData = (props: CreateSourceDataProps) => {
 	} = props;
 	const [isOpen, setIsOpen] = useState(!trigger);
 	const [sourceType, setSourceType] = useState<SourceType>(defaultSourceType || null);
+	const sourceDatas = SourceDataService.value;
 
 	useWatch(() => {
 		if (defaultSourceType) setSourceType(defaultSourceType);
@@ -54,10 +57,20 @@ const CreateSourceData = (props: CreateSourceDataProps) => {
 		async (data: SourceData) => {
 			const url = apiUrlCreator.setSourceData();
 			const res = await FetchService.fetch(url, JSON.stringify(data), MimeTypes.json);
-			if (res.ok) onCreate?.(data);
+			if (res.ok) {
+				const name = getStorageNameByData(data);
+				const index = sourceDatas.findIndex((s) => getStorageNameByData(s) === name);
+				if (index === -1) {
+					SourceDataService.value = [...sourceDatas, data];
+				} else {
+					sourceDatas[index] = data;
+					SourceDataService.value = [...sourceDatas];
+				}
+				onCreate?.(data);
+			}
 			setIsOpen(false);
 		},
-		[apiUrlCreator, onCreate],
+		[apiUrlCreator, onCreate, sourceDatas],
 	);
 
 	useWatch(() => {
@@ -100,6 +113,8 @@ const CreateSourceData = (props: CreateSourceDataProps) => {
 										placeholder={`${t("find")} ${placeholderSuffix}`}
 										items={Object.values(SourceType)
 											.filter(filter)
+											// temp, waiting for GitVerse cors
+											.filter((v) => v !== SourceType.gitVerse)
 											.map((v) => ({
 												element: (
 													<SourceListItem

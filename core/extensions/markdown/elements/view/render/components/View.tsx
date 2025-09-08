@@ -14,11 +14,13 @@ interface ViewProps {
 	select: string[];
 	display: Display;
 	disabled?: boolean;
+	commentId?: string;
+	isPrint?: boolean;
 	updateArticle?: (articlePath: string, property: string, value: string, isDelete?: boolean) => void;
 }
 
 const View = (props: ViewProps) => {
-	const { defs, orderby, groupby, select, display, updateArticle, disabled = true } = props;
+	const { defs, orderby, groupby, select, display, updateArticle, disabled = true, commentId, isPrint } = props;
 	const apiUrlCreator = ApiUrlCreatorService.value;
 	const catalogProps = CatalogPropsService.value;
 	const [content, setContent] = useState<ViewRenderGroup[]>(null);
@@ -55,6 +57,7 @@ const View = (props: ViewProps) => {
 	return (
 		<ViewRenderContent
 			defs={defs}
+			isPrint={isPrint}
 			groupby={groupby}
 			orderby={orderby}
 			select={select}
@@ -63,6 +66,7 @@ const View = (props: ViewProps) => {
 			disabled={disabled}
 			updateArticle={updateArticle}
 			catalogProps={catalogProps}
+			commentId={commentId}
 		/>
 	);
 };

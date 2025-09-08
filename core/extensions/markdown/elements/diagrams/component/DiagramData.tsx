@@ -27,10 +27,11 @@ interface DiagramDataProps {
 	noEm?: boolean;
 	width?: string;
 	height?: string;
+	float?: string;
 }
 
 const DiagramData = (props: DiagramDataProps) => {
-	const { src, title, content, diagramName, openEditor, width, height, noEm, commentId } = props;
+	const { src, title, content, diagramName, openEditor, width, height, noEm, commentId, float } = props;
 	const isC4Diagram = diagramName == DiagramType["c4-diagram"];
 	const apiUrlCreator = ApiUrlCreatorService.value;
 	const diagramsServiceUrl = PageDataContextService.value.conf.diagramsServiceUrl;
@@ -89,7 +90,7 @@ const DiagramData = (props: DiagramDataProps) => {
 	);
 
 	return (
-		<div ref={parentRef} data-qa="qa-diagram-data">
+		<div ref={parentRef} data-qa="qa-diagram-data" data-float={float}>
 			<Skeleton isLoaded={isLoaded} width={size?.width} height={size?.height}>
 				{isC4Diagram ? (
 					<C4Render data={data} error={error} />

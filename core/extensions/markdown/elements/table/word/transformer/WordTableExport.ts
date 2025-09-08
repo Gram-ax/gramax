@@ -20,6 +20,7 @@ export class WordTableExport {
 	public static readonly defaultWidth = 2000;
 	public static readonly defaultWidthCoefficient = 15;
 	public static readonly innerBlockWidthDifference = 470;
+	public static computedDefaultWidth?: number;
 
 	private _addOptions: AddOptionsWord;
 	private _sumColumnsWidth = 0;
@@ -48,7 +49,7 @@ export class WordTableExport {
 		const size = this._getCellWidth(
 			parent.attributes.colwidth
 				? parent.attributes.colwidth[0] * WordTableExport.defaultWidthCoefficient
-				: WordTableExport.defaultWidth,
+				: WordTableExport.computedDefaultWidth ?? WordTableExport.defaultWidth,
 			this._getCellContractionCoefficient(this._sumColumnsWidth),
 		);
 
@@ -124,10 +125,13 @@ export class WordTableExport {
 		const parent = JSON.parse(JSON.stringify(table));
 		this._addOptions = addOptions;
 
+		const columnWidths = this._getColumnWidths(parent);
+
 		const children = "children" in parent ? parent.children : parent.content;
 		const rows: (Tag | JSONContent)[] =
 			children?.[0] && ("name" in children[0] && children ? children[0].children : children);
-
+		const indent =
+			typeof addOptions?.indent === "number" ? { size: addOptions.indent, type: WidthType.DXA } : undefined;
 		aggregateTable(rows);
 		setCellAlignment(rows);
 
@@ -135,7 +139,9 @@ export class WordTableExport {
 			rows: (await Promise.all(this._getParentChildrenMap(state, parent))).flat().filter((val) => val),
 			margins: wordMarginsType[WordBlockType.table],
 			borders: wordBordersType[WordBlockType.table],
-			columnWidths: this._getColumnWidths(parent),
+			columnWidths,
+			style: WordBlockType.table,
+			indent,
 		});
 	}
 
@@ -159,7 +165,7 @@ export class WordTableExport {
 						const cellAttributes = "attributes" in cell ? cell.attributes : cell.attrs;
 						result += cellAttributes.colwidth
 							? cellAttributes.colwidth[0] * WordTableExport.defaultWidthCoefficient
-							: WordTableExport.defaultWidth;
+							: WordTableExport.computedDefaultWidth ?? WordTableExport.defaultWidth;
 					}
 				}
 				break;
@@ -167,6 +173,32 @@ export class WordTableExport {
 		}
 
 		return result;
+	}
+
+	private _getColumnsCount(parent: Tag | JSONContent) {
+		const tbody = "children" in parent ? parent.children : parent.content;
+		const rows = tbody[0].children;
+		let maxCols = 1;
+
+		for (const row of rows) {
+			if (!row || typeof row === "string") continue;
+			const cells = row.children ?? [];
+			let rowCols = 0;
+
+			for (const cell of cells) {
+				if (!cell || typeof cell === "string") continue;
+				const cellAttributes = "attributes" in cell ? cell.attributes : cell.attrs;
+				const spanRaw = cellAttributes?.colspan ?? 1;
+				const span = Number.isFinite(Number(spanRaw)) && Number(spanRaw) > 0 ? Number(spanRaw) : 1;
+				rowCols += span;
+			}
+
+			if (rowCols > 0) {
+				maxCols = Math.max(maxCols, rowCols);
+			}
+		}
+
+		return maxCols;
 	}
 
 	private _getCellContractionCoefficient(sum: number) {
@@ -182,6 +214,11 @@ export class WordTableExport {
 	private _getColumnWidths(parent: Tag | JSONContent) {
 		const result = [];
 		const parentChildren = "children" in parent ? parent.children : parent.content;
+
+		const columnsCount = this._getColumnsCount(parent);
+		const pageWidth = this._addOptions?.maxTableWidth ?? STANDARD_PAGE_WIDTH;
+		WordTableExport.computedDefaultWidth = Math.floor(pageWidth / columnsCount);
+
 		this._sumColumnsWidth = this._getSumOfColumnWidth(parent);
 		const coefficient = this._getCellContractionCoefficient(this._sumColumnsWidth);
 
@@ -191,8 +228,7 @@ export class WordTableExport {
 					const cellAttributes = "attributes" in cell ? cell.attributes : cell.attrs;
 					const width = cellAttributes.colwidth
 						? cellAttributes.colwidth[0] * WordTableExport.defaultWidthCoefficient
-						: WordTableExport.defaultWidth;
-
+						: WordTableExport.computedDefaultWidth;
 					result.push(this._getCellWidth(width, coefficient));
 				}
 				break;

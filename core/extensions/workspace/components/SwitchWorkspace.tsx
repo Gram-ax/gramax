@@ -10,7 +10,7 @@ import {
 } from "@core-ui/ContextServices/SyncCount/useSyncableWorkspaces";
 import WorkspaceService from "@core-ui/ContextServices/Workspace";
 import styled from "@emotion/styled";
-import useEditEnterpriseWorkspace from "@ext/enterprise/components/useEditEnterpriseWorkspace";
+import { useEnterpriseWorkspaceEdit } from "@ext/enterprise/components/useEditEnterpriseWorkspace";
 import t, { pluralize } from "@ext/localization/locale/translate";
 import type { ClientWorkspaceConfig, WorkspacePath } from "@ext/workspace/WorkspaceConfig";
 import { MenuItemInteractiveTemplate } from "@ui-kit/MenuItem";
@@ -123,8 +123,13 @@ const WorkspaceItem = ({ workspace, currentWorkspace, setDropdownOpen, showDot }
 	const { name, path, icon } = workspace;
 
 	const gesUrl = workspace.enterprise?.gesUrl;
-	const editEnterpriseWorkspace = useEditEnterpriseWorkspace(workspace);
 	const apiUrlCreator = ApiUrlCreatorService.value;
+	const editInfo = useEnterpriseWorkspaceEdit({
+		workspacePath: path,
+		apiUrlCreator,
+		gesUrl,
+	});
+	const disableEnterpriseEdit = gesUrl && !editInfo?.permitted;
 
 	const workspaceName = name?.length > 20 ? name.slice(0, 20) + "..." : name;
 
@@ -141,11 +146,13 @@ const WorkspaceItem = ({ workspace, currentWorkspace, setDropdownOpen, showDot }
 				<MenuItemInteractiveTemplate
 					icon={icon}
 					text={workspaceName}
-					isSelected={name === currentWorkspace.name}
-					buttonIcon={gesUrl ? (editEnterpriseWorkspace ? "pen" : undefined) : "pen"}
+					isSelected={path === currentWorkspace.path}
+					buttonIcon={disableEnterpriseEdit ? "pen-off" : "pen"}
+					buttonDisabled={disableEnterpriseEdit}
+					disabledTooltip={editInfo?.tooltip}
 					buttonOnClick={(e) => {
-						if (editEnterpriseWorkspace) {
-							return window.open(editEnterpriseWorkspace.href, editEnterpriseWorkspace.target);
+						if (editInfo.permitted) {
+							return window.open(editInfo.href, editInfo.target);
 						}
 						setDropdownOpen(false);
 						e.stopPropagation();

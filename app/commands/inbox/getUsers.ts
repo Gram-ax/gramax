@@ -12,8 +12,12 @@ const getUsers: Command<{ catalogName: string; ctx: Context }, string[]> = Comma
 		const workspace = wm.current();
 
 		const catalog = await workspace.getCatalog(catalogName, ctx);
-		const inbox = catalog.customProviders.inboxProvider;
-		const users = await inbox.getInboxUsers();
+		if (!catalog) return [];
+
+		const provider = catalog?.customProviders?.inboxProvider;
+		if (!provider) return [];
+
+		const users = await provider.getInboxUsers();
 		return users;
 	},
 

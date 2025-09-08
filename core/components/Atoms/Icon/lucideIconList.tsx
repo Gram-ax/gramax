@@ -115,4 +115,12 @@ export const lucideIconListForUikit = Object.keys(Lucide.icons).map((code) =>
 
 const lucideIconList = Object.keys(Lucide.icons).map((code) => toListItem({ code: camelToKebabCase(code) }));
 
+export const lucideIconListForUikitOptions = Object.keys(Lucide.icons).map((code) => {
+	const kebabCode = camelToKebabCase(code);
+	return {
+		label: kebabCode,
+		value: kebabCode,
+	};
+});
+
 export default lucideIconList;

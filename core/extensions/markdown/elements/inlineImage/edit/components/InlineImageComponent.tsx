@@ -12,6 +12,7 @@ const InlineImageComponent = (props: NodeViewProps) => {
 				alt={node.attrs.alt}
 				width={node.attrs.width}
 				height={node.attrs.height}
+				commentId={node.attrs.comment?.id}
 			/>
 		</NodeViewContextableWrapper>
 	);

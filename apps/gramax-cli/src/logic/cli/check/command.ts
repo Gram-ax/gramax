@@ -1,5 +1,4 @@
 import { Command } from "commander";
-import { checkCommandFunction } from ".";
 import { addOptionsToCommand, OptionProps } from "../build/command";
 
 export interface CheckOptions {
@@ -34,6 +33,7 @@ export const generateCheckCommand = (program: Command) => {
 		.description("Check the specified catalog directory for errors")
 		.helpOption("-h, --help", "Display help for the check command")
 		.action(async (options) => {
+			const { checkCommandFunction } = await import(".");
 			await checkCommandFunction(options);
 		});
 

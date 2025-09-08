@@ -25,22 +25,6 @@ describe("TemplateProcessor", () => {
 		consoleWarnSpy.mockRestore();
 	});
 
-	describe("_escapeXml", () => {
-		const processor = new TemplateProcessor(Buffer.from(""), []);
-		const escapeXml = (processor as any)._escapeXml;
-
-		it("should correctly escape special XML characters", () => {
-			const input = `< > " ' &`;
-			const expected = `&lt; &gt; &quot; &#39; &amp;`;
-			expect(escapeXml(input)).toBe(expected);
-		});
-
-		it("should not change a string without special characters", () => {
-			const input = "Simple text without special characters.";
-			expect(escapeXml(input)).toBe(input);
-		});
-	});
-
 	describe("_readTemplateStyles", () => {
 		it("should correctly read and map styles from styles.xml", async () => {
 			const stylesXml = `
@@ -63,6 +47,67 @@ describe("TemplateProcessor", () => {
 			const mockTemplate = await createMockDocx({ "other/file.txt": "data" });
 			const processor = new TemplateProcessor(Buffer.from(mockTemplate), []);
 			await expect((processor as any)._readTemplateStyles()).rejects.toThrow("styles.xml not found in template.");
+		});
+	});
+
+	describe("_extractStylesMapping", () => {
+		const processor = new TemplateProcessor(Buffer.from(""), []);
+		const extractStylesMapping = (processor as any)._extractStylesMapping;
+
+		it("should extract paragraph and character styles correctly", () => {
+			const stylesXml = `
+        <w:styles xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">
+          <w:style w:type="paragraph" w:styleId="Heading1"><w:name w:val="heading 1"/></w:style>
+          <w:style w:type="character" w:styleId="Bold"><w:name w:val="Strong"/></w:style>
+          <w:style w:type="table" w:styleId="TableNormal"><w:name w:val="Normal Table"/></w:style>
+          <w:style w:type="paragraph" w:styleId="Normal"><w:name w:val="Normal"/></w:style>
+        </w:styles>
+      `;
+
+			const mapping = extractStylesMapping(stylesXml);
+			expect(mapping.size).toBe(3);
+			expect(mapping.get("heading 1")).toBe("Heading1");
+			expect(mapping.get("Strong")).toBe("Bold");
+			expect(mapping.get("Normal")).toBe("Normal");
+			expect(mapping.has("Normal Table")).toBe(false);
+		});
+
+		it("should handle styles without name elements", () => {
+			const stylesXml = `
+        <w:styles xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">
+          <w:style w:type="paragraph" w:styleId="Style1"></w:style>
+          <w:style w:type="character" w:styleId="Style2"><w:name/></w:style>
+        </w:styles>
+      `;
+
+			const mapping = extractStylesMapping(stylesXml);
+			expect(mapping.size).toBe(0);
+		});
+	});
+
+	describe("_normalizeStyleMapping", () => {
+		const processor = new TemplateProcessor(Buffer.from(""), []);
+		const normalizeStyleMapping = (processor as any)._normalizeStyleMapping;
+
+		it("should normalize style names and handle special cases", () => {
+			const originalMapping = new Map([
+				["Heading 1", "Heading1"],
+				["My Custom Style", "CustomStyle"],
+				["default style", "DefaultStyle"],
+			]);
+
+			const normalized = normalizeStyleMapping(originalMapping);
+
+			expect(normalized.get("heading1")).toBe("Heading1");
+			expect(normalized.get("mycustomstyle")).toBe("CustomStyle");
+			expect(normalized.get("defaultstyle")).toBe("DefaultStyle");
+			expect(normalized.get("title")).toBe("Heading1");
+		});
+
+		it("should handle empty mapping", () => {
+			const originalMapping = new Map<string, string>();
+			const normalized = normalizeStyleMapping(originalMapping);
+			expect(normalized.size).toBe(0);
 		});
 	});
 
@@ -235,6 +280,242 @@ describe("TemplateProcessor", () => {
 			const updateNode = dom.getElementsByTagName("w:updateFields")[0] as any;
 			expect(updateNode).toBeDefined();
 			expect(updateNode.getAttribute("w:val")).toBe("true");
+		});
+	});
+
+	describe("_cleanTablePropertiesInZip", () => {
+		it("should clean table, row and cell properties", async () => {
+			const documentXml = `
+        <w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">
+          <w:body>
+            <w:tbl>
+              <w:tblPr>
+                <w:tblStyle w:val="TableGrid"/>
+                <w:tblW w:w="5000" w:type="pct"/>
+                <w:tblInd w:w="100"/>
+              </w:tblPr>
+              <w:tr>
+                <w:trPr>
+                  <w:trHeight w:val="300"/>
+                </w:trPr>
+                <w:tc>
+                  <w:tcPr>
+                    <w:tcW w:w="2500" w:type="pct"/>
+                    <w:tcBorders>
+                      <w:top w:val="single"/>
+                    </w:tcBorders>
+                  </w:tcPr>
+                  <w:p><w:r><w:t>Cell content</w:t></w:r></w:p>
+                </w:tc>
+              </w:tr>
+            </w:tbl>
+          </w:body>
+        </w:document>
+      `;
+
+			const mockDocx = await createMockDocx({ "word/document.xml": documentXml });
+			const zip = (await JSZip.loadAsync(mockDocx)) as JSZip;
+			const processor = new TemplateProcessor(Buffer.from(""), []);
+			await (processor as any)._cleanTablePropertiesInZip(zip);
+
+			const docFile = zip.file("word/document.xml");
+			expect(docFile).not.toBeNull();
+			const updatedXml = await docFile.async("text");
+
+			expect(updatedXml).toContain('<w:tblStyle w:val="TableGrid"/>');
+			expect(updatedXml).toContain('<w:tblInd w:w="100"/>');
+			expect(updatedXml).not.toContain("w:tblW");
+			expect(updatedXml).not.toContain("w:trPr");
+			expect(updatedXml).toContain('<w:tcW w:w="2500" w:type="pct"/>');
+			expect(updatedXml).not.toContain("w:tcBorders");
+		});
+
+		it("should handle tables without properties", async () => {
+			const documentXml = `
+        <w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">
+          <w:body>
+            <w:tbl>
+              <w:tr>
+                <w:tc>
+                  <w:p><w:r><w:t>Simple cell</w:t></w:r></w:p>
+                </w:tc>
+              </w:tr>
+            </w:tbl>
+          </w:body>
+        </w:document>
+      `;
+
+			const mockDocx = await createMockDocx({ "word/document.xml": documentXml });
+			const zip = (await JSZip.loadAsync(mockDocx)) as JSZip;
+			const processor = new TemplateProcessor(Buffer.from(""), []);
+			await (processor as any)._cleanTablePropertiesInZip(zip);
+
+			const docFile = zip.file("word/document.xml");
+			expect(docFile).not.toBeNull();
+			const updatedXml = await docFile.async("text");
+
+			expect(updatedXml).toContain("Simple cell");
+		});
+	});
+
+	describe("_collectTemplateAbstractNums", () => {
+		const processor = new TemplateProcessor(Buffer.from(""), []);
+		const collectTemplateAbstractNums = (processor as any)._collectTemplateAbstractNums;
+
+		it("should collect abstract numbers with style links", () => {
+			const numberingXml = `
+        <w:numbering xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">
+          <w:abstractNum w:abstractNumId="1">
+            <w:styleLink w:val="BulletList"/>
+          </w:abstractNum>
+          <w:abstractNum w:abstractNumId="2">
+            <w:numStyleLink w:val="OrderedList"/>
+          </w:abstractNum>
+          <w:abstractNum w:abstractNumId="3">
+            <w:multiLevelType w:val="hybridMultilevel"/>
+          </w:abstractNum>
+          <w:num w:numId="10"><w:abstractNumId w:val="1"/></w:num>
+        </w:numbering>
+      `;
+
+			const result = collectTemplateAbstractNums(numberingXml);
+			expect(result.size).toBe(2);
+			expect(result.get("BulletList")).toContain('w:abstractNumId="1"');
+			expect(result.get("OrderedList")).toContain('w:abstractNumId="2"');
+			expect(result.has("hybridMultilevel")).toBe(false);
+		});
+
+		it("should handle empty numbering", () => {
+			const numberingXml = `<w:numbering xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"></w:numbering>`;
+			const result = collectTemplateAbstractNums(numberingXml);
+			expect(result.size).toBe(0);
+		});
+	});
+
+	describe("_getMaxIdFromXml", () => {
+		const processor = new TemplateProcessor(Buffer.from(""), []);
+		const getMaxIdFromXml = (processor as any)._getMaxIdFromXml;
+
+		it("should find maximum abstractNumId", () => {
+			const xml = `
+        <w:numbering xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">
+          <w:abstractNum w:abstractNumId="5"/>
+          <w:abstractNum w:abstractNumId="10"/>
+          <w:abstractNum w:abstractNumId="3"/>
+        </w:numbering>
+      `;
+			const maxId = getMaxIdFromXml(xml, /w:abstractNumId="(\d+)"/g);
+			expect(maxId).toBe(10);
+		});
+
+		it("should find maximum numId", () => {
+			const xml = `
+        <w:numbering xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">
+          <w:num w:numId="5"/>
+          <w:num w:numId="15"/>
+          <w:num w:numId="8"/>
+        </w:numbering>
+      `;
+			const maxId = getMaxIdFromXml(xml, /<w:num w:numId="(\d+)"/g);
+			expect(maxId).toBe(15);
+		});
+
+		it("should return 0 for empty XML", () => {
+			const xml = `<w:numbering xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"></w:numbering>`;
+			const maxId = getMaxIdFromXml(xml, /w:numId="(\d+)"/g);
+			expect(maxId).toBe(0);
+		});
+	});
+
+	describe("_extractPlaceholders", () => {
+		const processor = new TemplateProcessor(Buffer.from(""), []);
+		const extractPlaceholders = (processor as any)._extractPlaceholders;
+
+		it("should extract various list placeholders", () => {
+			const docXml = `
+        <w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">
+          <w:body>
+            <w:p><w:pPr><w:numPr><w:numId w:val="{bulletList-0}"/></w:numPr></w:pPr></w:p>
+            <w:p><w:pPr><w:numPr><w:numId w:val="{orderedList-1}"/></w:numPr></w:pPr></w:p>
+            <w:p><w:pPr><w:numPr><w:numId w:val="{taskList-2}"/></w:numPr></w:pPr></w:p>
+            <w:p><w:pPr><w:numPr><w:numId w:val="5"/></w:numPr></w:pPr></w:p>
+          </w:body>
+        </w:document>
+      `;
+
+			const placeholders = extractPlaceholders(docXml);
+			expect(placeholders.size).toBe(3);
+			expect(placeholders.has("{bulletList-0}")).toBe(true);
+			expect(placeholders.has("{orderedList-1}")).toBe(true);
+			expect(placeholders.has("{taskList-2}")).toBe(true);
+		});
+
+		it("should return empty set for no placeholders", () => {
+			const docXml = `
+        <w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">
+          <w:body>
+            <w:p><w:pPr><w:numPr><w:numId w:val="5"/></w:numPr></w:pPr></w:p>
+          </w:body>
+        </w:document>
+      `;
+
+			const placeholders = extractPlaceholders(docXml);
+			expect(placeholders.size).toBe(0);
+		});
+	});
+
+	describe("_updateContentTypesXmlInZip", () => {
+		it("should update content type from template to document", async () => {
+			const contentTypesXml = `<?xml version="1.0" encoding="UTF-8"?>
+        <Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">
+          <Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.template.main+xml"/>
+        </Types>`;
+
+			const mockDocx = await createMockDocx({ "[Content_Types].xml": contentTypesXml });
+			const zip = (await JSZip.loadAsync(mockDocx)) as JSZip;
+			const processor = new TemplateProcessor(Buffer.from(""), []);
+			await (processor as any)._updateContentTypesXmlInZip(zip);
+
+			const contentTypesFile = zip.file("[Content_Types].xml");
+			expect(contentTypesFile).not.toBeNull();
+			const updatedXml = await contentTypesFile.async("text");
+
+			expect(updatedXml).toContain(
+				"application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml",
+			);
+			expect(updatedXml).not.toContain(
+				"application/vnd.openxmlformats-officedocument.wordprocessingml.template.main+xml",
+			);
+		});
+
+		it("should add document override if missing", async () => {
+			const contentTypesXml = `<?xml version="1.0" encoding="UTF-8"?>
+        <Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">
+          <Override PartName="/word/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.styles+xml"/>
+        </Types>`;
+
+			const mockDocx = await createMockDocx({ "[Content_Types].xml": contentTypesXml });
+			const zip = (await JSZip.loadAsync(mockDocx)) as JSZip;
+			const processor = new TemplateProcessor(Buffer.from(""), []);
+			await (processor as any)._updateContentTypesXmlInZip(zip);
+
+			const contentTypesFile = zip.file("[Content_Types].xml");
+			expect(contentTypesFile).not.toBeNull();
+			const updatedXml = await contentTypesFile.async("text");
+
+			expect(updatedXml).toContain('PartName="/word/document.xml"');
+			expect(updatedXml).toContain(
+				"application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml",
+			);
+		});
+
+		it("should throw error if Content_Types.xml is missing", async () => {
+			const mockDocx = await createMockDocx({ "word/document.xml": "<xml/>" });
+			const zip = (await JSZip.loadAsync(mockDocx)) as JSZip;
+			const processor = new TemplateProcessor(Buffer.from(""), []);
+			await expect((processor as any)._updateContentTypesXmlInZip(zip)).rejects.toThrow(
+				"[Content_Types].xml not found.",
+			);
 		});
 	});
 

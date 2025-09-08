@@ -54,7 +54,7 @@ export const generate =
 			($from.node().type.name !== "text" ? $from.node().textContent : $from.node().text).length > 0;
 
 		const isBlock = from === to && !hasContent;
-		const decorations = createLoadingDecoration(from, to, isBlock, t("editor.ai.generate"));
+		const decorations = createLoadingDecoration(from, to, isBlock, t("ai.generating"));
 
 		editor.commands.setMeta("addDecoration", decorations);
 		editor.setEditable(false);

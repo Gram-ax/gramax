@@ -50,6 +50,7 @@ const aliases = {
 const icons = {
 	плюс: ".lucide-plus",
 	коммент: ".lucide-message-square",
+	"коммент с текстом": ".lucide-message-square-text",
 	"блок кода": ".lucide-code-xml",
 	html: ".lucide-file-code",
 	сниппеты: '[data-qa="qa-snippets"]',

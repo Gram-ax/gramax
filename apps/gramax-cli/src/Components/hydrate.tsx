@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { createRoot } from "react-dom/client";
 import { Router } from "wouter";
 
-import Gramax, { GramaxProps } from "../../../browser/src/Gramax";
+import Gramax, { GramaxData } from "../../../browser/src/Gramax";
 import AppError from "../../../browser/src/components/Atoms/AppError";
 import useLocation from "../../../browser/src/logic/Api/useLocation";
 import { InitialData } from "../logic/ArticleTypes";
@@ -78,7 +78,7 @@ const removeBasePath = (path: string) => {
 const Component = () => {
 	const isFirstRender = useRef(true);
 	const [path, setLocation, query] = useLocation();
-	const [data, setData] = useState<GramaxProps>({
+	const [data, setData] = useState<GramaxData>({
 		path,
 		data: initialData.context.isArticle
 			? {

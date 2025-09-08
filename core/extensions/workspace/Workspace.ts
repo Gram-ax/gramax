@@ -126,6 +126,8 @@ export class Workspace {
 	}
 
 	async removeCatalog(name: string, deleteFromFs = true) {
+		await RepositoryProvider.resetRepo();
+
 		if (deleteFromFs) {
 			const catalog = await this.getContextlessCatalog(name);
 			const fp = this.getFileProvider();
@@ -135,7 +137,6 @@ export class Workspace {
 
 		this._entries.delete(name);
 		await this._events.emit("remove-catalog", { name });
-		await RepositoryProvider.resetRepo();
 	}
 
 	addCatalogEntry(catalogEntry: CatalogEntry): void {

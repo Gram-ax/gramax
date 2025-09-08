@@ -9,8 +9,6 @@ import GitTreeFileProvider from "@ext/versioning/GitTreeFileProvider";
 import { addScopeToPath } from "@ext/versioning/utils";
 import type { Workspace } from "@ext/workspace/Workspace";
 
-const VERSION_LIMIT = 32;
-
 export default class CatalogVersionResolver implements EventHandlerCollection {
 	private _catalogs = new WeakMap<Catalog, Map<string, CatalogEntry>>();
 
@@ -87,8 +85,7 @@ export default class CatalogVersionResolver implements EventHandlerCollection {
 		}
 
 		const entries = new Map();
-		const versions = await catalog.repo.gvc.getReferencesByGlob(catalog.props.versions);
-		catalog.props.resolvedVersions = versions.slice(0, VERSION_LIMIT);
+		catalog.props.resolvedVersions = await catalog.repo.gvc.getReferencesByGlob(catalog.props.versions);
 
 		const fs = this._workspace.getFileStructure();
 

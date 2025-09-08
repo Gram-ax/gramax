@@ -166,7 +166,10 @@ const createTableHeaders = (groupby: string[]): TableRow => {
 };
 
 export const getViewArticleItem = (article: ViewRenderData, titlesMap: Map<string, TitleInfo>): Paragraph => {
-	const { title, order, anchor } = extractNameAndAnchor(article.linkPath, titlesMap);
+	const { title, order, anchor } = extractNameAndAnchor(
+		{ href: article.linkPath, hash: "" },
+		titlesMap,
+	);
 	const safeTitle = article.title ? article.title : t("article.no-name");
 	const linkToDestination = title ? generateBookmarkName(order, title, anchor) : undefined;
 

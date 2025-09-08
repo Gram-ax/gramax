@@ -84,6 +84,7 @@ export const getLevelTocItemsByRenderableTree = (tags: RenderableTreeNode[] | JS
 		if (children) children.forEach((child) => recursiveTraversal(child));
 	};
 
+	if (!tags || !Array.isArray(tags)) return items;
 	tags?.forEach((tag) => recursiveTraversal(tag));
 
 	return items;

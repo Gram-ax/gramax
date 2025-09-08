@@ -4,6 +4,7 @@ import { Buffer } from "buffer";
 import type WorkspaceManager from "@ext/workspace/WorkspaceManager";
 
 const WORD_TEMPLATES_DIR = "word";
+const WORD_TEMPLATE_FORMATS = ["doc", "dot"];
 
 class WordTemplate {
 	constructor(private _workspace: Workspace, private _templates: string[]) {}
@@ -55,7 +56,13 @@ export class WordTemplateManager {
 
 		const templates = (await workspace.getAssets().listFiles(WORD_TEMPLATES_DIR)) || [];
 
-		this._templates[workspace.path()] = templates;
+		this._templates[workspace.path()] = templates.filter((template) => {
+			const lastDotIndex = template.lastIndexOf(".");
+			if (lastDotIndex === -1 || lastDotIndex === template.length - 1) return false;
+
+			const extension = template.substring(lastDotIndex + 1).toLowerCase();
+			return WORD_TEMPLATE_FORMATS.some((prefix) => extension.startsWith(prefix));
+		});
 		return this._templates[workspace.path()];
 	}
 

@@ -74,7 +74,10 @@ const CodeBlock = (props: CodeBlockProps) => {
 		setCopped(false);
 	};
 
-	const tree = isRegistered ? lowlight.highlight(lowerLang, trimVal) : lowlight.highlight("none", trimVal);
+	const tree =
+		isRegistered && lowlight.registered(lowerLang)
+			? lowlight.highlight(lowerLang, trimVal)
+			: lowlight.highlight("none", trimVal);
 
 	return (
 		<NewStyledCodeBlock style={style} onMouseEnter={onMouseEnterHandler} onMouseLeave={onMouseLeaveHandler}>

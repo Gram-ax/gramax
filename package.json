@@ -81,7 +81,7 @@
 		"hsluv": "^0.1.0",
 		"html-to-image": "^1.11.13",
 		"html-to-text": "^8.2.0",
-		"ics-ui-kit": "^0.1.0-alpha.18",
+		"ics-ui-kit": "^0.1.0-alpha.24",
 		"ini": "^5.0.0",
 		"js-yaml": "^4.1.0",
 		"kafkajs": "^2.0.2",

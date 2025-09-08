@@ -1,213 +1,280 @@
-import Form, { FormSchema } from "@components/Form/Form";
-import ModalLayout from "@components/Layouts/Modal";
-import ModalLayoutLight from "@components/Layouts/ModalLayoutLight";
-import { JSONSchema7 } from "json-schema";
-import Schema from "@ext/properties/models/schemas/CatalogCreateProps.schema.json";
-import { useMemo, useState } from "react";
-import Field from "@components/Form/Field";
-import Button from "@components/Atoms/Button/Button";
-import { ButtonStyle } from "@components/Atoms/Button/ButtonStyle";
-import t from "@ext/localization/locale/translate";
 import { Property, PropertyTypes, PropertyValue } from "@ext/properties/models";
-import CatalogCreateProps from "@ext/properties/models/schemas/CatalogCreateProps.schema";
-import ActionWarning from "@ext/properties/components/Modals/ActionWarning";
-import ListLayout from "@components/List/ListLayout";
-import lucideIconList, { iconFilter, toListItem } from "@components/Atoms/Icon/lucideIconList";
-import ValueHandler from "@ext/properties/components/Helpers/ValueHandler";
-import { DndProvider } from "react-dnd";
-import ModifiedBackend, { useDragDrop } from "@ext/navigation/catalog/drag/logic/ModifiedBackend";
+import { Form, FormField, FormFooter, FormHeader, FormStack } from "@ui-kit/Form";
+import { FieldLabel } from "@ui-kit/Label";
+import { Modal, ModalBody, ModalContent } from "@ui-kit/Modal";
+import { useState } from "react";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import t from "@ext/localization/locale/translate";
+import Style from "@components/HomePage/Cards/model/Style";
+import { Select, SelectItem, SelectContent, SelectTrigger, SelectValue } from "@ui-kit/Select";
+import { Input } from "ics-ui-kit/components/input";
+import { lucideIconListForUikitOptions } from "@components/Atoms/Icon/lucideIconList";
+import { LazySearchSelect } from "@ui-kit/LazySearchSelect";
 import Icon from "@components/Atoms/Icon";
+import multiLayoutSearcher from "@core-ui/languageConverter/multiLayoutSearcher";
+import { DndProvider } from "react-dnd";
+import ValueHandler from "@ext/properties/components/Helpers/ValueHandler";
+import ModifiedBackend, { useDragDrop } from "@ext/navigation/catalog/drag/logic/ModifiedBackend";
+import { Button, IconButton } from "@ui-kit/Button";
+import styled from "@emotion/styled";
+import { ErrorState } from "@ui-kit/ErrorState";
+import ActionWarning from "@ext/properties/components/Modals/ActionWarning";
 
 export interface PropertyEditorProps<T = Property> {
 	data: Property;
 	properties: PropertyValue[];
-	onSubmit: (values: T, isDelete?: boolean, saveValue?: boolean) => void;
+	onDelete?: (archive?: boolean) => void;
+	onSubmit: (values: T) => void;
 	onClose?: () => void;
 }
 
-const PropertyEditor = ({ properties, onSubmit, onClose, data }: PropertyEditorProps) => {
-	const [isOpen, setIsOpen] = useState<boolean>(true);
-	const [editProps, setEditProps] = useState(data || { name: "", type: null, values: null, icon: null });
-	const [visibleWarning, setVisibleWarning] = useState<number>(undefined);
-	const suchExists = t("properties.validation-errors.prop-creator");
-	const editSchema = useMemo(() => ({ ...Schema }), []);
-	const { backend, options } = useDragDrop();
+interface FormFieldValuesProps {
+	values: string[];
+	onChange: (values: string[]) => void;
+	error: string;
+}
 
-	const onChange = (props) => setEditProps(props);
+const BetweenContainer = styled.div`
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+`;
 
-	const submit = (isDelete: boolean = false, saveValue?: boolean) => {
-		const cleanProps = Object.fromEntries(
-			Object.entries(editProps).filter(([, value]) => value !== null),
-		) as Property;
-		onSubmit(cleanProps, isDelete, saveValue);
-		if (isDelete) setVisibleWarning(undefined);
-		onClose?.();
-	};
+const CustomFormField = styled.div`
+	width: 100%;
+`;
 
-	const onCloseWarning = () => setVisibleWarning(undefined);
+const CustomFormFieldLabel = styled(FieldLabel)`
+	.truncate {
+		width: 100%;
+	}
+`;
 
-	const handleLinkNavigation = () => {
-		onCloseHandler();
-	};
+const TreeRoot = styled.div`
+	margin-top: 0.5rem;
+	font-size: 0.85rem;
+`;
 
-	const validateName = (name: string) => {
-		if (!name) return false;
-		const lowerName = name.toLowerCase();
-		if (lowerName.length < 2) return false;
-		if (!data?.name?.length && properties.some((prop) => prop.name.toLowerCase() === lowerName)) return false;
-		return true;
-	};
+const FormFieldValues = ({ values = [], onChange, error }: FormFieldValuesProps) => {
+	const { backend } = useDragDrop();
 
 	const addValue = () => {
-		setEditProps((prevProps) => ({
-			...prevProps,
-			values: [...(prevProps.values || []), ""],
-		}));
-	};
-
-	const shouldOpenConfirm = () => {
-		if (!data?.values) return false;
-
-		const shouldOpen =
-			(data?.values && data?.values?.length < editProps.values.length) ||
-			JSON.stringify(data.values) !== JSON.stringify(editProps.values);
-
-		if (shouldOpen) setVisibleWarning(2);
-		return shouldOpen;
-	};
-
-	const onCloseHandler = () => {
-		onClose?.();
-		setIsOpen(false);
+		onChange([...values, ""]);
 	};
 
 	return (
-		<>
-			<ModalLayout
-				isOpen={isOpen}
-				closeOnCmdEnter={false}
-				onClose={onCloseHandler}
-				confirmSaveAction={() => submit()}
-				closeConfirm={() => setVisibleWarning(undefined)}
-				forceCloseConfirm={onCloseHandler}
-				confirmTitle={t("unsaved-changes")}
-				confirmText={t("modal.confirm.warning-have-changes")}
-				isOpenConfirm={visibleWarning === 2}
-				shouldOpenConfirmOnClose={shouldOpenConfirm}
-			>
-				<ModalLayoutLight>
-					<Form<CatalogCreateProps>
-						schema={editSchema as JSONSchema7}
-						props={editProps}
-						fieldDirection="row"
-						leftButton={
-							data && (
-								<Button
-									buttonStyle={ButtonStyle.underline}
-									onClick={() => setVisibleWarning(1)}
-									style={{ margin: "0px" }}
-								>
-									{t("delete")}
-								</Button>
-							)
-						}
-						onChange={onChange}
-						validate={({ name }) => ({
-							name: validateName(name) ? null : suchExists,
-						})}
-						onSubmit={() =>
-							data?.values &&
-							data?.values?.length > editProps?.values?.length &&
-							JSON.stringify(data?.values) !== JSON.stringify(editProps?.values)
-								? setVisibleWarning(0)
-								: submit()
-						}
-						onMount={(_, schema) => {
-							schema.properties = {
-								name: Schema.properties.name,
-								type: Schema.properties.type,
-								style: Schema.properties.style,
-							} as any;
-							(schema.properties.type as any).readOnly = !!editProps.type;
-							(schema.properties.name as any).readOnly = !!editProps.name;
-						}}
-					>
-						<>
-							<Field
-								translationKey={"icon"}
-								formTranslationKey={"catalog-create-props"}
-								scheme={Schema.properties.icon as FormSchema}
-								value={editProps?.icon}
-								tabIndex={5}
-								input={
-									<ListLayout
-										placeholder={t("icon")}
-										items={lucideIconList}
-										filterItems={iconFilter([], true)}
-										item={toListItem({ code: editProps.icon ?? "" })}
-										onItemClick={(value) => {
-											editProps.icon = value;
-											setEditProps({ ...editProps });
-										}}
-									/>
-								}
-								onChange={(values: string[]) => {
-									const newProps = { ...editProps, values };
-									setEditProps(newProps);
-								}}
-							/>
-							{(editProps?.type === PropertyTypes.enum || editProps?.type === PropertyTypes.many) && (
-								<Field
-									translationKey={"values"}
-									fieldDirection="column"
-									formTranslationKey={"catalog-create-props"}
-									scheme={Schema.properties.values as FormSchema}
-									actionButtons={
-										<Icon
-											code="plus"
-											isAction
-											tooltipContent={t("add")}
-											dataQa="qa-add-value"
-											onClick={addValue}
-										/>
-									}
-									input={
-										<DndProvider
-											backend={(manager) => ModifiedBackend(backend(manager))}
-											options={options}
-										>
-											<div className="tree-root">
-												<ValueHandler
-													data={editProps.values}
-													onChange={(values) => setEditProps({ ...editProps, values })}
-												/>
-											</div>
-										</DndProvider>
-									}
-									value={editProps?.values}
-									tabIndex={5}
-									onChange={(values: string[]) => {
-										const newProps = { ...editProps, values };
-										setEditProps(newProps);
-									}}
-								/>
-							)}
-						</>
-					</Form>
-					{typeof visibleWarning !== "undefined" && visibleWarning < 2 && (
-						<ActionWarning
-							action={(saveValue?: boolean) => submit(visibleWarning === 1, saveValue)}
-							isCatalog={visibleWarning === 1}
-							onClose={onCloseWarning}
-							onLinkClick={handleLinkNavigation}
-							data={data}
-							editData={editProps}
-							isOpen={true}
+		<CustomFormField>
+			<CustomFormFieldLabel>
+				<BetweenContainer>
+					<span>{t("forms.catalog-create-props.props.values.name")}</span>
+					<IconButton
+						variant="text"
+						type="button"
+						icon="plus"
+						onClick={addValue}
+						size="xs"
+						data-qa="qa-add-value"
+					/>
+				</BetweenContainer>
+			</CustomFormFieldLabel>
+			<ErrorState>{error}</ErrorState>
+			<DndProvider backend={(manager) => ModifiedBackend(backend(manager))}>
+				<TreeRoot className="tree-root">
+					<ValueHandler data={values} onChange={onChange} />
+				</TreeRoot>
+			</DndProvider>
+		</CustomFormField>
+	);
+};
+
+const PropertyEditor = ({ onSubmit, onClose, data, onDelete }: PropertyEditorProps) => {
+	const [open, setOpen] = useState(true);
+	const isNew = !data?.name;
+
+	const schema = z.object({
+		name: z
+			.string()
+			.min(1, { message: t("must-be-not-empty") })
+			.transform((val) => val.trim()),
+		type: z.enum(Object.values(PropertyTypes) as [string, ...string[]], {
+			message: t("must-be-not-empty"),
+		}),
+		style: z.enum(Object.values(Style) as [string, ...string[]]).optional(),
+		icon: z.string().optional(),
+		values: z.array(z.string()).optional(),
+	});
+
+	const form = useForm<z.infer<typeof schema>>({
+		resolver: zodResolver(schema),
+		defaultValues: {
+			name: data?.name,
+			type: data?.type,
+			style: data?.style,
+			icon: data?.icon,
+			values: data?.values,
+		},
+		mode: "onChange",
+	});
+
+	const formSubmit = (e) => {
+		form.handleSubmit((data) => onSubmit(data as unknown as Property))(e);
+	};
+
+	const onOpenChange = (open: boolean) => {
+		setOpen(open);
+		if (!open) onClose?.();
+	};
+
+	const onChangeValues = (values: string[]) => {
+		form.setValue("values", values, { shouldDirty: true });
+	};
+
+	const type = form.watch("type");
+
+	return (
+		<Modal open={open} onOpenChange={onOpenChange}>
+			<ModalContent data-modal-root>
+				<Form asChild {...form}>
+					<form className="contents ui-kit" onSubmit={formSubmit}>
+						<FormHeader
+							icon="tag"
+							title={isNew ? t("forms.catalog-create-props.name") : t("forms.catalog-create-props.name2")}
+							description={
+								isNew
+									? t("forms.catalog-create-props.description")
+									: t("forms.catalog-create-props.description2")
+							}
 						/>
-					)}
-				</ModalLayoutLight>
-			</ModalLayout>
-		</>
+						<ModalBody>
+							<FormStack>
+								<FormField
+									name="name"
+									required
+									readonly={!isNew}
+									title={t("forms.catalog-create-props.props.name.name")}
+									control={({ field }) => (
+										<Input
+											{...field}
+											readOnly={!!data?.name}
+											placeholder={t("forms.catalog-create-props.props.name.placeholder")}
+										/>
+									)}
+								/>
+								<FormField
+									name="type"
+									required
+									readonly={!isNew}
+									title={t("forms.catalog-create-props.props.type.name")}
+									control={({ field }) => (
+										<Select
+											disabled={!!data?.name}
+											onValueChange={field.onChange}
+											defaultValue={field.value || undefined}
+										>
+											<SelectTrigger data-qa={t("forms.catalog-create-props.props.name.name")}>
+												<SelectValue
+													placeholder={t("forms.catalog-create-props.props.type.placeholder")}
+												/>
+											</SelectTrigger>
+											<SelectContent>
+												{Object.values(PropertyTypes).map((type) => (
+													<SelectItem key={type} value={type}>
+														{t(`properties.types.${type}`)}
+													</SelectItem>
+												))}
+											</SelectContent>
+										</Select>
+									)}
+								/>
+								<FormField
+									name="icon"
+									title={t("forms.catalog-create-props.props.icon.name")}
+									description={t("forms.catalog-create-props.props.icon.description")}
+									control={({ field }) => (
+										<LazySearchSelect
+											{...field}
+											onChange={field.onChange}
+											pageSize={25}
+											value={field.value || undefined}
+											defaultValue={field.value || undefined}
+											filter={(value: string, search: string) => {
+												return multiLayoutSearcher((search: string): number => {
+													if (!search) return 0;
+													if (value.toLowerCase().includes(search.toLowerCase())) return 2;
+													return 0;
+												}, true)(search);
+											}}
+											placeholder={t("forms.catalog-create-props.props.icon.placeholder")}
+											options={lucideIconListForUikitOptions}
+											renderOption={({ option }) => (
+												<span>
+													<Icon
+														code={option.value as string}
+														style={{ fontSize: "1.25rem" }}
+														strokeWidth={1}
+													/>
+													<span>{option.value}</span>
+												</span>
+											)}
+										/>
+									)}
+								/>
+								<FormField
+									name="style"
+									title={t("forms.catalog-create-props.props.style.name")}
+									description={t("forms.catalog-create-props.props.style.description")}
+									control={({ field }) => (
+										<Select onValueChange={field.onChange} defaultValue={field.value || undefined}>
+											<SelectTrigger data-qa={t("forms.catalog-create-props.props.style.name")}>
+												<SelectValue
+													placeholder={t(
+														"forms.catalog-create-props.props.style.placeholder",
+													)}
+												/>
+											</SelectTrigger>
+											<SelectContent>
+												{Object.values(Style).map((style) => (
+													<SelectItem key={style} value={style}>
+														{t(`catalog.style.${style}`)}
+													</SelectItem>
+												))}
+											</SelectContent>
+										</Select>
+									)}
+								/>
+								{(type === PropertyTypes.enum || type === PropertyTypes.many) && (
+									<FormFieldValues
+										values={form.watch("values")}
+										onChange={onChangeValues}
+										error={form.formState.errors.values?.message}
+									/>
+								)}
+							</FormStack>
+						</ModalBody>
+						<FormFooter
+							primaryButton={<Button type="submit">{t(isNew ? "add" : "save")}</Button>}
+							secondaryButton={
+								data?.name && (
+									<ActionWarning
+										shouldShowWarning
+										isCatalog
+										action={(isArchive) => onDelete?.(isArchive)}
+										data={data}
+										editData={data}
+									>
+										<Button type="button" variant="outline">
+											{t("delete")}
+										</Button>
+									</ActionWarning>
+								)
+							}
+						/>
+					</form>
+				</Form>
+			</ModalContent>
+		</Modal>
 	);
 };
 

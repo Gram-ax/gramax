@@ -36,7 +36,7 @@ const getAllSyncCount: Command<
 					return;
 				}
 
-				if (shouldFetch) await entry.repo.storage.fetch(data);
+				if (shouldFetch) await entry.repo.storage.fetch(data, false, false);
 				if (resetSyncCount) await entry.repo.storage.updateSyncCount();
 				res[name] = await entry.repo.storage.getSyncCount();
 			} catch (err) {

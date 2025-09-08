@@ -1,5 +1,4 @@
 import camelToKebabCase from "@core-ui/camelToKebabCase";
-import buildCommandFunction from ".";
 import { Command, Option } from "commander";
 import { join } from "path";
 import ChalkLogger from "../../../utils/ChalkLogger";
@@ -8,6 +7,7 @@ export interface BuildOptions {
 	source: string;
 	destination: string;
 	SkipCheck: boolean;
+	forceUiLangSync: boolean;
 }
 
 export interface OptionProps {
@@ -43,6 +43,14 @@ const buildOptions: { [K in keyof BuildOptions]: OptionProps } = {
 			description: "false",
 		},
 	},
+	forceUiLangSync: {
+		description: "Use UI language same as content language if available",
+		defaultValue: {
+			value: false,
+			description: "false",
+		},
+		short: "l",
+	},
 };
 
 export const generateBuildCommand = (program: Command) => {
@@ -58,6 +66,7 @@ export const generateBuildCommand = (program: Command) => {
 		)
 		.action(async (options) => {
 			const startTime = Date.now();
+			const { default: buildCommandFunction } = await import(".");
 			await buildCommandFunction(options);
 			const endTime = Date.now();
 			const duration = ((endTime - startTime) / 1000).toFixed(2);

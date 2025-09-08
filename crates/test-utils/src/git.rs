@@ -40,7 +40,7 @@ impl Creds for TestCreds {
 impl ActualCreds for TestCreds {}
 
 #[fixture]
-pub fn repo(#[default(&sandbox())] sandbox: &TempDir, #[default("")] url: &str) -> Repo<TestCreds> {
+pub fn repo(#[default(&sandbox())] sandbox: &TempDir, #[default("")] url: &str) -> Repo<'static, TestCreds> {
   if url.is_empty() {
     Repo::init(sandbox.path(), TestCreds).unwrap()
   } else {
@@ -63,9 +63,9 @@ pub fn repo(#[default(&sandbox())] sandbox: &TempDir, #[default("")] url: &str) 
 }
 
 pub struct Repos {
-  pub local: Repo<TestCreds>,
+  pub local: Repo<'static, TestCreds>,
   pub local_path: PathBuf,
-  pub remote: Repo<TestCreds>,
+  pub remote: Repo<'static, TestCreds>,
   pub remote_path: PathBuf,
 }
 

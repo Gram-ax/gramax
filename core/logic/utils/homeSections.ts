@@ -1,5 +1,4 @@
 import { HomePageBreadcrumb, Section, Sections } from "@core/SitePresenter/SitePresenter";
-import t from "@ext/localization/locale/translate";
 import { CatalogLink } from "@ext/navigation/NavigationLinks";
 
 const HOME_SECTION_PREFIX = "/home";
@@ -18,7 +17,7 @@ const homeSections = {
 	getMainSection: (otherCatalogLinks: CatalogLink[], sections: Sections): Section => {
 		return {
 			href: "/",
-			title: t("home"),
+			title: "",
 			catalogLinks: otherCatalogLinks,
 			sections: sections,
 		};

@@ -402,16 +402,17 @@ export const sortByFirstLetter = (arr: string[]): string[] =>
 export const StandardCaseLangList = sortByFirstLetter(Object.values(standardLangWriting));
 
 const standardCaseLangListLowe = StandardCaseLangList.slice().map((lang) => lang.toLowerCase());
-const standardCaseKeys = sortByFirstLetter(Object.keys(standardLangWriting));
+
+const langKeys = Object.keys(standardLangWriting);
 
 export const getLowerLangName = (name?: string) => {
 	if (!name || typeof name !== "string") return;
-	const lowerName = name.toLowerCase();
+	return name.toLowerCase();
+};
 
-	const index = standardCaseKeys.indexOf(lowerName);
-	if (index !== -1) return standardCaseKeys[index];
-
-	return;
+export const getOriginalLangName = (lang: string) => {
+	const originalLang = langKeys.find((key) => standardLangWriting[key] === lang);
+	return originalLang;
 };
 
 export function getStandardCaseByLower(name?: string) {
@@ -419,7 +420,6 @@ export function getStandardCaseByLower(name?: string) {
 	if (!lowerName) return name;
 
 	const index = standardCaseLangListLowe.indexOf(lowerName);
-
 	return StandardCaseLangList[index];
 }
 

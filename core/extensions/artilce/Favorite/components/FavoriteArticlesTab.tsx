@@ -45,7 +45,7 @@ const FavoriteArticlesTab = ({ show }: { show: boolean }) => {
 		if (!show) return;
 
 		fetchArticleData(articles); 
-	}, [show, catalogProps.name, workspace.path, articles]);
+	}, [show, catalogProps.name, workspace?.path, articles]);
 
 	const onItemClick = useCallback(
 		(id: string) => {

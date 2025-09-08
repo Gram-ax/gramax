@@ -42,8 +42,8 @@ pub(crate) fn default_branch(repo_path: &Path, creds: AccessTokenCreds) -> Resul
 }
 
 #[command(async)]
-pub(crate) fn fetch(repo_path: &Path, creds: AccessTokenCreds, force: bool) -> Result<()> {
-  git::fetch(repo_path, creds, force)
+pub(crate) fn fetch(repo_path: &Path, creds: AccessTokenCreds, force: bool, lock: bool) -> Result<()> {
+  git::fetch(repo_path, creds, force, lock)
 }
 
 #[command(async)]

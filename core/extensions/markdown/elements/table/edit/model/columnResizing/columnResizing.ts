@@ -15,7 +15,7 @@ import {
 import { CellAttrs } from "@ext/markdown/elements/table/edit/model/columnResizing/CellAttrs";
 import { updateColumnsOnResize } from "@ext/markdown/elements/table/edit/model/columnResizing/updateColumns";
 import stopOpeningPanels from "@core-ui/utils/stopOpeningPanels ";
-import { DATA_QA_LIGHTBOX as LIGHTBOX_DATA_QA } from "@components/Atoms/Image/modalImage/Lightbox";
+import { DATA_QA_LIGHTBOX as LIGHTBOX_DATA_QA } from "@components/Atoms/Image/modalImage/MediaPreview";
 const navsSymbol = Symbol();
 
 type ColumnResizingOptions = {

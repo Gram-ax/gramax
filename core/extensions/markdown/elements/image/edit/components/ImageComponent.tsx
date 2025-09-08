@@ -5,12 +5,14 @@ import getNaturalSize from "@ext/markdown/elements/image/edit/logic/getNaturalSi
 import { NodeViewProps } from "@tiptap/core";
 import { ReactElement, useCallback, useRef } from "react";
 import { NodeViewContextableWrapper } from "@ext/markdown/core/element/NodeViewContextableWrapper";
+import { resolveFloat } from "@ext/markdown/elements/float/edit/logic/resolveFloat";
 
 const ImageComponent = (props: NodeViewProps): ReactElement => {
 	const { editor, node, getPos, selected, updateAttributes } = props;
 	const isSelected = editor.isEditable && selected && editor.state.selection.from + 1 === editor.state.selection.to;
 	const hoverElement = useRef<HTMLDivElement>(null);
 	const resourceService = ResourceService.value;
+	const float = resolveFloat(node.attrs.float);
 
 	const updateAttributesCallback = useCallback(
 		async (attributes: Record<string, any>) => {
@@ -33,11 +35,18 @@ const ImageComponent = (props: NodeViewProps): ReactElement => {
 
 			updateAttributes(attributes);
 		},
-		[editor?.view, getPos, updateAttributes, node.attrs?.width],
+		[getPos, updateAttributes, node.attrs?.width],
 	);
 
 	return (
-		<NodeViewContextableWrapper ref={hoverElement} props={props} draggable={true} data-drag-handle>
+		<NodeViewContextableWrapper
+			ref={hoverElement}
+			draggable={true}
+			props={props}
+			data-float={float}
+			data-drag-handle
+			data-resize-container
+		>
 			<Image
 				editor={editor}
 				updateAttributes={updateAttributesCallback}

@@ -8,10 +8,10 @@ import { ReadonlyBaseCatalog } from "@core/FileStructue/Catalog/ReadonlyCatalog"
 import { Category } from "@core/FileStructue/Category/Category";
 import RouterPathProvider from "@core/RouterPath/RouterPathProvider";
 import SitePresenter, { ClientArticleProps, ClientCatalogProps } from "@core/SitePresenter/SitePresenter";
+import { resolveRootCategory } from "@ext/localization/core/catalogExt";
 import assert from "assert";
 import { ExtendedArticlePageData, InitialArticleData } from "./ArticleTypes";
 import { getItemLinks, replacePathIfNeeded } from "./NavigationUtils";
-import { resolveRootCategory } from "@ext/localization/core/catalogExt";
 
 export type StaticArticlePageData = {
 	articleContentRender: string;
@@ -128,7 +128,6 @@ export class ArticleDataService {
 			isArticle: true,
 			isReadOnly: true,
 		});
-		pageDataContext.sourceDatas = [];
 		pageDataContext.userInfo = null;
 		return pageDataContext;
 	}

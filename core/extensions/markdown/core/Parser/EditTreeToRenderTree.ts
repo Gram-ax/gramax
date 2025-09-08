@@ -135,19 +135,21 @@ const codeBlockTransformer = (node: JSONContent): JSONContent => {
 };
 
 const listTransformer = (node: JSONContent): JSONContent => {
-	if (node.type !== "bulletList" && node.type !== "orderedList") return node;
+	if (node.type !== "bulletList" && node.type !== "orderedList" && node.type !== "taskList") return node;
 
 	const recursiveAddDepth = (node: JSONContent, depth: number) => {
 		if (node.attrs?.depth !== undefined) {
 			return node;
 		}
 
-		if (node.type !== "bulletList" && node.type !== "orderedList") {
+		if (node.type !== "bulletList" && node.type !== "orderedList" && node.type !== "taskList") {
 			if (node.content) {
 				node.content = node.content.map((child) =>
 					recursiveAddDepth(
 						child,
-						child.type === "bulletList" || child.type === "orderedList" ? depth + 1 : depth,
+						child.type === "bulletList" || child.type === "orderedList" || child.type === "taskList"
+							? depth + 1
+							: depth,
 					),
 				);
 			}
@@ -167,7 +169,9 @@ const listTransformer = (node: JSONContent): JSONContent => {
 			newNode.content = node.content.map((child) =>
 				recursiveAddDepth(
 					child,
-					child.type === "bulletList" || child.type === "orderedList" ? depth + 1 : depth,
+					child.type === "bulletList" || child.type === "orderedList" || child.type === "taskList"
+						? depth + 1
+						: depth,
 				),
 			);
 		}

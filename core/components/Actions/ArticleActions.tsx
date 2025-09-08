@@ -12,7 +12,7 @@ import WorkspaceService from "@core-ui/ContextServices/Workspace";
 import IsReadOnlyHOC from "@core-ui/HigherOrderComponent/IsReadOnlyHOC";
 import { usePlatform } from "@core-ui/hooks/usePlatform";
 import { ClientArticleProps } from "@core/SitePresenter/SitePresenter";
-import BugsnagLogsModal from "@ext/bugsnag/components/BugsnagLogsModal";
+import BugsnagModal from "@ext/bugsnag/components/BugsnagModal";
 import ShareAction from "@ext/catalog/actions/share/components/ShareAction";
 import EnterpriseCheckStyleGuide from "@ext/enterprise/components/EnterpriseCheckStyleGuide";
 import t from "@ext/localization/locale/translate";
@@ -71,7 +71,7 @@ const ArticleActions: FC<ArticleActionsProps> = ({ isCatalogExist, item, isCurre
 
 	if (!item) return null;
 
-	if (!isCatalogExist) return <BugsnagLogsModal itemLogicPath={item.logicPath} />;
+	if (!isCatalogExist) return <BugsnagModal itemLogicPath={item.logicPath} />;
 
 	return (
 		<>
@@ -79,7 +79,7 @@ const ArticleActions: FC<ArticleActionsProps> = ({ isCatalogExist, item, isCurre
 			<ArticleLinks itemRefPath={item.ref.path} />
 			<IsReadOnlyHOC>
 				<History key="history" item={item} isFileNew={isFileNew} />
-				<BugsnagLogsModal key="bugsnag" itemLogicPath={item.logicPath} />
+				<BugsnagModal key="bugsnag" itemLogicPath={item.logicPath} />
 				{!isTemplate && isCurrentItem && (
 					<EditMarkdown
 						key="edit-markdown"

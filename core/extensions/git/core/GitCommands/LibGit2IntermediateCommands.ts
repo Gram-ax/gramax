@@ -148,7 +148,7 @@ export const status = (args: Args & { index: boolean }) => call<[{ path: string;
 
 export const statusFile = (args: Args & { filePath: string }) => call<string>("status_file", args);
 
-export const fetch = (args: CredsArgs & { force: boolean }) => call<void>("fetch", args);
+export const fetch = (args: CredsArgs & { force: boolean; lock: boolean }) => call<void>("fetch", args);
 export const merge = (args: CredsArgs & { opts: MergeOptions }) => {
 	args.opts = intoMergeOptions(args.opts);
 	return call<MergeResult>("merge", args);
@@ -180,7 +180,7 @@ export const addRemote = (args: Args & { name: string; url: string }) => call<vo
 
 export const hasRemotes = (args: Args) => call<boolean>("has_remotes", args);
 
-export const stash = (args: CredsArgs & { message: string }) => call<Oid>("stash", args);
+export const stash = (args: CredsArgs & { message: string | null }) => call<Oid>("stash", args);
 
 export const stashApply = (args: Args & { oid: Oid }) => call<MergeResult>("stash_apply", args);
 

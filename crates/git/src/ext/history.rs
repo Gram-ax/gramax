@@ -79,7 +79,7 @@ pub trait History {
   fn get_commit_info(&self, oid: Oid, opts: CommitInfoOpts) -> Result<Vec<CommitInfo>>;
 }
 
-impl<C: Creds> History for Repo<C> {
+impl<C: Creds> History for Repo<'_, C> {
   fn get_commit_info(&self, oid: Oid, opts: CommitInfoOpts) -> Result<Vec<CommitInfo>> {
     let mut res = Vec::with_capacity(opts.depth);
 

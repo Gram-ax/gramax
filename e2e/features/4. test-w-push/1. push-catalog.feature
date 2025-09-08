@@ -11,7 +11,6 @@
       """
       qa-catalog-title: Тестовый репозиторий
       qa-catalog-url: %push-repo%
-      qa-catalog-code: test
       """
     И нажимаем на кнопку "Сохранить"
     Тогда находимся по адресу "/-/-/-/-/%push-repo%/new-article-2"

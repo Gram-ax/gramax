@@ -30,14 +30,14 @@ export const UserAvatar = ({ logOutComponent, onLogOutClick }: UserAvatarProps) 
 	const pageDataContext = PageDataContextService.value;
 	const userInfo = pageDataContext?.userInfo;
 
-	if (!userInfo) return null;
-
 	const code =
-		userInfo.name
+		userInfo?.name
 			?.split(" ")
 			?.map((name) => name[0])
 			?.join("")
-			?.toUpperCase() || userInfo.mail[0]?.toUpperCase();
+			?.toUpperCase() ||
+		userInfo?.mail?.[0]?.toUpperCase() ||
+		"";
 
 	return (
 		<DropdownMenu>
@@ -55,8 +55,8 @@ export const UserAvatar = ({ logOutComponent, onLogOutClick }: UserAvatarProps) 
 								{/* <AvatarImage src="https://github.com/shadcn.png" /> */}
 								<AvatarFallback>{code}</AvatarFallback>
 							</AvatarLabelAvatar>
-							<AvatarLabelTitle>{userInfo.name}</AvatarLabelTitle>
-							<AvatarLabelDescription>{userInfo.mail}</AvatarLabelDescription>
+							<AvatarLabelTitle>{userInfo?.name ?? ""}</AvatarLabelTitle>
+							<AvatarLabelDescription>{userInfo?.mail ?? ""}</AvatarLabelDescription>
 						</AvatarLabel>
 					</DropdownMenuItem>
 					<DropdownMenuSeparator />

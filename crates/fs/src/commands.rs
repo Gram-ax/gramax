@@ -92,7 +92,7 @@ pub fn mv<P: AsRef<Path>>(from: P, to: P) -> Result<()> {
 
   // Resource is Busy (os error 10) or os error 29
   if let Some(10 | 29) = err.raw_os_error() {
-    log::warn!(target: "gramax-fs::mv", "seems resource {} is busy; copying instead of renaming", &from.as_ref().display());
+    warn!(target: "gramax-fs::mv", "seems resource {} is busy; copying instead of renaming", &from.as_ref().display());
 
     copy(&from, &to)?;
     if fs::metadata(&from)?.is_dir() {

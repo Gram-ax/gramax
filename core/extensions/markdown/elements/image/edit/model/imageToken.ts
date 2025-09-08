@@ -15,6 +15,7 @@ function imageToken(context: ParserContext) {
 				tok.attrs.objects ?? "[]",
 				tok.attrs.width,
 				tok.attrs.height,
+				tok.attrs.float,
 			);
 
 			return {

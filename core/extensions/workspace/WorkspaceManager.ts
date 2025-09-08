@@ -1,4 +1,5 @@
 import type { AppConfig, ServicesConfig } from "@app/config/AppConfig";
+import { WORKSPACE_CONFIG_FILENAME } from "@app/config/const";
 
 import resolveModule from "@app/resolveModule/backend";
 import { getExecutingEnvironment } from "@app/resolveModule/env";
@@ -37,7 +38,7 @@ export type WorkspaceConfigWithCatalogs = {
 
 export type WorkspaceManagerEvents = Event<"workspace-changed", { workspace: Workspace }>;
 
-export const WORKSPACE_CONFIG_FILENAME = new Path("workspace.yaml");
+const workspaceConfigFilename = new Path(WORKSPACE_CONFIG_FILENAME);
 const DEFAULT_WORKSPACE_NAME = "workspace.default-name";
 const DEFAULT_WORKSPACE_ICON = "layers";
 const LATEST_WORKSPACE_KEY = "latest-workspace";
@@ -65,7 +66,7 @@ export default class WorkspaceManager {
 		const current = this.maybeCurrent()?.path();
 		if (!current) return [];
 
-		const workspaces = Array.from(this._workspaces.keys()?.filter((w) => w !== current));
+		const workspaces = Array.from(this._workspaces.keys() || []).filter((w) => w !== current);
 
 		return await workspaces.mapAsync(async (w) => {
 			return await WorkspaceRepositoriesOverview.init({
@@ -194,8 +195,9 @@ export default class WorkspaceManager {
 		if (getExecutingEnvironment() == "browser") await fp.delete(Path.empty);
 		this._workspaces.delete(path);
 		await this.saveWorkspaces();
-		if (this.current().path() == path && this.workspaces()?.[0]?.path)
+		if (this.current().path() == path && this.workspaces()?.[0]?.path) {
 			await this.setWorkspace(this.workspaces()[0].path);
+		}
 	}
 
 	defaultPath() {
@@ -250,7 +252,7 @@ export default class WorkspaceManager {
 	}
 
 	private async readWorkspace(fp: FileProvider, config?: WorkspaceConfig): Promise<WorkspaceConfigWithCatalogs> {
-		const yaml = await YamlFileConfig.readFromFile(fp, WORKSPACE_CONFIG_FILENAME, {
+		const yaml = await YamlFileConfig.readFromFile(fp, workspaceConfigFilename, {
 			name: config?.name || t(DEFAULT_WORKSPACE_NAME),
 			icon: config?.icon || DEFAULT_WORKSPACE_ICON,
 			groups: config?.groups ?? null,

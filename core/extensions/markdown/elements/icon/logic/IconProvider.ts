@@ -5,6 +5,7 @@ import FileStructure from "@core/FileStructue/FileStructure";
 import { uniqueName } from "@core/utils/uniqueName";
 
 const ICONS_FOLDER = ".icons";
+const ALLOWED_EXTENSIONS = ["svg"];
 
 export interface IconEditorProps {
 	code: string;
@@ -45,6 +46,7 @@ export default class IconProvider {
 		const list: IconEditorProps[] = [];
 		for (const entry of entries) {
 			const code = entry.name;
+			if (!ALLOWED_EXTENSIONS.includes(entry.extension)) continue;
 			const svg = await this.getIconByCode(code);
 			list.push({ code, svg });
 		}

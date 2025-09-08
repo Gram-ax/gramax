@@ -21,9 +21,10 @@ import Head from "next/head";
 
 import { initModules } from "@app/resolveModule/frontend";
 
+import { setFeatureList } from "@ext/toggleFeatures/features";
 import { Toaster } from "ics-ui-kit/components/toast";
-import { TooltipProvider } from "ics-ui-kit/components/tooltip";
-import { useLayoutEffect, useState } from "react";
+import { TooltipProvider } from "@ui-kit/Tooltip";
+import { useEffect, useLayoutEffect, useState } from "react";
 
 const useInitModules = () => {
 	const [isInit, setIsInit] = useState(false);
@@ -52,8 +53,11 @@ export default function App({
 		openGraphData?: OpenGraphData;
 	};
 }) {
-	const isInit = useInitModules();
+	useEffect(() => {
+		if (pageProps.context?.features) setFeatureList(pageProps.context.features);
+	}, [pageProps.context?.features]);
 
+	const isInit = useInitModules();
 	if (!isInit) return null;
 
 	if (pageProps.error) return <Error statusCode={pageProps.error} />;

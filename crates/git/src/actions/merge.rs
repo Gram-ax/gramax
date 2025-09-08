@@ -106,7 +106,7 @@ impl From<IndexConflict> for MergeConflictInfo {
   }
 }
 
-impl<C: ActualCreds> Merge for Repo<C> {
+impl<C: ActualCreds> Merge for Repo<'_, C> {
   fn merge(&self, opts: MergeOptions) -> Result<MergeResult> {
     info!(target: TAG, "preparing to merge {} into head", opts.theirs);
 
@@ -187,11 +187,11 @@ impl<C: ActualCreds> Merge for Repo<C> {
   }
 }
 
-impl<C: ActualCreds> Repo<C> {
+impl<C: ActualCreds> Repo<'_, C> {
   fn merge_as_fast_forward(&self, fetch_commit: AnnotatedCommit) -> Result<MergeResult> {
     info!(target: TAG, "fast-forwarding to given fetch commit; oid: {}", fetch_commit.id());
     let mut head = self.0.head()?;
-    let msg = format!("Fast-Forward: Setting HEAD to id: {}", fetch_commit.id());
+    let msg = format!("fast-forward: Setting HEAD to id: {}", fetch_commit.id());
     head.set_target(fetch_commit.id(), &msg)?;
     self.0.set_head(head.name().or_utf8_err()?)?;
     self.0.checkout_head(Some(CheckoutBuilder::default().force()))?;

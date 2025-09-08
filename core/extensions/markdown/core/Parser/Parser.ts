@@ -25,7 +25,6 @@ import { ProsemirrorMarkdownParser, ProsemirrorTransformer } from "../edit/logic
 import { getSchema } from "../edit/logic/Prosemirror/schema";
 import { getTokens } from "../edit/logic/Prosemirror/tokens";
 
-import commentNodeTransformer from "@ext/markdown/elements/comment/legacy/transformer/commentNodeTransformer";
 import commentTokenTransformer from "@ext/markdown/elements/comment/logic/commentTokenTransformer";
 import cutTokenTransformer from "@ext/markdown/elements/cut/logic/cutTokenTransformer";
 import inlineCutNodeTransformer from "@ext/markdown/elements/cut/logic/inlineCutNodeTransformer";
@@ -48,6 +47,7 @@ import tableTokenTransformer from "@ext/markdown/elements/table/logic/tableToken
 import getTabsNodeTransformer from "@ext/markdown/elements/tabs/edit/logic/getTabsNodeTransformer";
 import getTocItems, { getLevelTocItemsByRenderableTree } from "@ext/navigation/article/logic/createTocItems";
 import { JSONContent } from "@tiptap/core";
+import inlineNodeTransformers from "@ext/markdown/elements/comment/edit/logic/inlineNodeTransformers";
 
 const katexPlugin = import("@traptitech/markdown-it-katex");
 
@@ -189,8 +189,8 @@ export default class MarkdownParser {
 				diagramsNodeTransformer,
 				noteNodeTransformer,
 				unsupportedNodeTransformer,
-				commentNodeTransformer,
 				getTabsNodeTransformer(context),
+				inlineNodeTransformers,
 			],
 			[
 				inlineImageTokenTransformer,

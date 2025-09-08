@@ -1,12 +1,12 @@
 import Button, { TextSize } from "@components/Atoms/Button/Button";
-import { useEffect, useState } from "react";
-import t from "@ext/localization/locale/translate";
 import Icon from "@components/Atoms/Icon";
-import { showPopover } from "@core-ui/showPopover";
 import ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
 import FetchService from "@core-ui/ApiServices/FetchService";
 import PageDataContext from "@core-ui/ContextServices/PageDataContext";
+import { showPopover } from "@core-ui/showPopover";
+import t from "@ext/localization/locale/translate";
 import useIsStorageInitialized from "@ext/storage/logic/utils/useIsStorageInitialized";
+import { useEffect, useState } from "react";
 
 interface MarkAsReadProps {
 	logicPath: string;
@@ -18,34 +18,30 @@ const MarkAsRead = ({ logicPath, apiUrlCreator }: MarkAsReadProps) => {
 	const pageData = PageDataContext.value;
 	const isStorageInitialized = useIsStorageInitialized();
 
+	const enabled = isStorageInitialized && pageData.conf.search.elastic.enabled && pageData.userInfo?.mail;
+
 	useEffect(() => {
+		if (!enabled) return;
+
 		setIsChecked(false);
-	}, [logicPath]);
-
-	if (!isStorageInitialized) return null;
-	if (!pageData.conf.search.elastic.enabled) return null;
-	if (!pageData.userInfo?.mail) return null;
-
-	useEffect(() => {
 		const url = apiUrlCreator.markArticleAsOpened(logicPath);
 		void FetchService.fetch(url);
-	}, [logicPath]);
+	}, [logicPath, apiUrlCreator]);
 
 	const updateMarkAsRead = async (): Promise<boolean> => {
 		const url = apiUrlCreator.markArticleAsRead(logicPath);
 		const res = await FetchService.fetch(url);
-		if (res.ok) return true;
-		return false;
+		return res.ok;
 	};
 
 	const onButtonClick = async () => {
 		const newState = !isChecked;
-
 		const isSuccess = await updateMarkAsRead();
-
 		if (newState && isSuccess) showPopover(t("mark-as-read-popover"));
 		if (isSuccess) setIsChecked(newState);
 	};
+
+	if (!enabled) return null;
 
 	return (
 		<Button textSize={TextSize.XS} onClick={onButtonClick} isEmUnits disabled={isChecked}>

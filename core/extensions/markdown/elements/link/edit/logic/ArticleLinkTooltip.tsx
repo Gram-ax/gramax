@@ -100,7 +100,7 @@ const ArticleLinkTooltip = (props: LinkTooltipProps) => {
 		if (!res || !res.ok) return;
 		try {
 			const data = await res.json();
-			if (mark?.attrs?.hash && mark.attrs?.hash !== hash) setHash(mark.attrs.hash);
+			if (mark?.attrs?.hash && mark.attrs?.hash !== hash) setHash(decodeURIComponent(mark.attrs.hash));
 			setData(data);
 		} catch (error) {
 			console.warn("Error fetching article content", error);

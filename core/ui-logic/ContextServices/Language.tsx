@@ -1,6 +1,5 @@
 import { PageProps } from "@components/ContextProviders";
 import ContextService from "@core-ui/ContextServices/ContextService";
-import { usePlatform } from "@core-ui/hooks/usePlatform";
 import UiLanguage, { resolveLanguage } from "@ext/localization/core/model/Language";
 import { ReactElement } from "react";
 
@@ -16,9 +15,8 @@ class LanguageService implements ContextService {
 	private _callback: (language: UiLanguage) => void;
 
 	Init({ pageProps, children }: { pageProps?: PageProps; children: ReactElement }): ReactElement {
-		const { isStatic } = usePlatform();
 		const language = pageProps?.context?.language?.ui;
-		if (language && isStatic) this._current = language;
+		if (language) this._current = language;
 		return children;
 	}
 

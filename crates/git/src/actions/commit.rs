@@ -23,7 +23,7 @@ pub trait Commits<C: ActualCreds> {
   fn commit_debug(&self) -> Result<(Oid, String)>;
 }
 
-impl<C: ActualCreds> Commits<C> for Repo<C> {
+impl<C: ActualCreds> Commits<C> for Repo<'_, C> {
   fn commit(&self, opts: CommitOptions) -> Result<Oid> {
     info!(
       target: TAG,
@@ -63,7 +63,7 @@ impl<C: ActualCreds> Commits<C> for Repo<C> {
   }
 }
 
-impl<C: Creds> Repo<C> {
+impl<C: Creds> Repo<'_, C> {
   fn index_create_tree(&self, files: Option<Vec<PathBuf>>) -> Result<Tree> {
     let mut index = self.0.index()?;
 

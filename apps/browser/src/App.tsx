@@ -8,10 +8,10 @@ import type { ArticlePageData } from "@core/SitePresenter/SitePresenter";
 import ThemeService from "@ext/Theme/components/ThemeService";
 import DefaultError from "@ext/errorHandlers/logic/DefaultError";
 import { Toaster } from "ics-ui-kit/components/toast";
-import { TooltipProvider } from "ics-ui-kit/components/tooltip";
+import { TooltipProvider } from "@ui-kit/Tooltip";
 import { useCallback, useEffect, useState } from "react";
 import { Router } from "wouter";
-import Gramax, { GramaxProps } from "./Gramax";
+import Gramax, { GramaxData } from "./Gramax";
 import AppError from "./components/Atoms/AppError";
 import AppLoader from "./components/Atoms/AppLoader";
 import useLocation from "./logic/Api/useLocation";
@@ -36,7 +36,7 @@ const filterOutPageData = (data: ArticlePageData, setLocation: (path: string) =>
 
 const AppContext = () => {
 	const [path, setLocation, query] = useLocation();
-	const [data, setData] = useState<GramaxProps>();
+	const [data, setData] = useState<GramaxData>();
 	const [error, setError] = useState<DefaultError>();
 
 	const refresh = useCallback(async () => {

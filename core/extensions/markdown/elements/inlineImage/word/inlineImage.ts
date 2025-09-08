@@ -11,18 +11,39 @@ export const renderInlineImageWordLayout: WordInlineChild = async ({ tag, addOpt
 	return imageWordLayout(tag, addOptions, wordRenderContext.parserContext);
 };
 
-export const imageWordLayout = async (
-	tag: Tag | JSONContent,
-	addOptions: AddOptionsWord,
-	parserContext: ParserContext,
-) => {
+const MAX_HEIGHT = 28; // inline-image-height(1.7em) in px
+
+const calculateInlineImageSize = (originalWidth: number, originalHeight: number, maxHeight: number = MAX_HEIGHT) => {
+	if (originalHeight <= maxHeight) {
+		return {
+			width: originalWidth,
+			height: originalHeight,
+		};
+	}
+
+	const scale = maxHeight / originalHeight;
+	const scaledWidth = Math.round(originalWidth * scale);
+
+	return {
+		calculatedWidth: scaledWidth,
+		calculatedHeight: maxHeight,
+	};
+};
+
+const imageWordLayout = async (tag: Tag | JSONContent, addOptions: AddOptionsWord, parserContext: ParserContext) => {
 	try {
 		const attrs = "attributes" in tag ? tag.attributes : tag.attrs;
+		const originalWidth = parseFloat(attrs.width) || 100;
+		const originalHeight = parseFloat(attrs.height) || 100;
+
+		const { calculatedWidth, calculatedHeight } = calculateInlineImageSize(originalWidth, originalHeight);
+
 		return [
 			await WordImageExporter.getImageByPath(
 				new Path(attrs.src),
 				parserContext.getResourceManager(),
-				addOptions?.maxPictureWidth,
+				calculatedWidth,
+				calculatedHeight,
 			),
 		];
 	} catch (error) {

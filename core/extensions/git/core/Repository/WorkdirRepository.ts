@@ -86,12 +86,12 @@ export default class WorkdirRepository extends Repository {
 		return !status.length;
 	}
 
-	async isShouldSync({ data, shouldFetch, onFetch }: IsShouldSyncOptions): Promise<boolean> {
+	async isShouldSync({ data, shouldFetch, onFetch, lockFetch = true }: IsShouldSyncOptions): Promise<boolean> {
 		let toPull = (await this.storage.getSyncCount()).pull;
 		if (toPull > 0) return true;
 
 		if (shouldFetch) {
-			await this.storage.fetch(data);
+			await this.storage.fetch(data, false, lockFetch);
 			onFetch?.();
 		}
 
@@ -279,7 +279,15 @@ export default class WorkdirRepository extends Repository {
 	}
 
 	private async _gitIndexAddFiles(p: Path[]) {
-		const paths = p.filter((x) => x && x.value.length && x.startsWith(this._repoPath));
+		const paths = p.filter(
+			(x) =>
+				x &&
+				x.value.length &&
+				x.startsWith(this._repoPath) &&
+				x.value !== this._repoPath.value &&
+				x.value !== this._repoPath.join(new Path(".git")).value,
+		);
+
 		if (paths.length === 0) return;
 		const gitPaths = paths.map((x) => this._repoPath.rootDirectory.subDirectory(x));
 		await this.gvc.add(gitPaths);
@@ -333,7 +341,7 @@ export default class WorkdirRepository extends Repository {
 		let stashResult: GitMergeResult[] = [];
 		const commitHeadBefore = await this.gvc.getCurrentVersion();
 
-		const stashOid = await this.gvc.stash(data);
+		const stashOid = await this.stash(data);
 
 		try {
 			await this.storage.pull(data, recursive);

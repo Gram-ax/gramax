@@ -65,7 +65,11 @@
 			"renderTree": {
 				"$$mdtype": "Tag",
 				"attributes": {
+					"comment": {
+						"id": null
+					},
 					"diagramName": "Plant-uml",
+					"float": null,
 					"height": null,
 					"src": "./plantUmlTest.puml",
 					"title": null,
@@ -109,7 +113,7 @@
 				"xml": "<icon code=\"code\" color=\"green\"/>"
 			},
 			"renderTree": {
-				"attrs": { "code": "code", "color": "green", "svg": null },
+				"attrs": { "code": "code", "color": "green", "svg": null, "comment": { "id": null } },
 				"content": [],
 				"type": "icon"
 			},
@@ -211,6 +215,7 @@
 						"x": 0,
 						"y": 0
 					},
+					"float": null,
 					"scale": null,
 					"objects": [],
 					"height": null,
@@ -241,7 +246,7 @@
 				"children": [],
 				"name": "Video"
 			},
-			"html": "<div class=\"css-1rkrvv1\" data-type=\"video\"><div class=\"css-cvlp6m skeleton\"><div class=\"block-comment-view css-1axo4e6\" data-comment=\"false\" data-comment-block=\"false\"><video id=\"my-player\" data-focusable=\"true\" class=\"video-js\" controls=\"\" preload=\"auto\" data-setup=\"{}\" src=\"sample-mp4-file.mp4\"></video><em>Очень интересное видео</em></div></div></div>"
+			"html": "<div class=\"css-1rkrvv1\" data-type=\"video\"><div class=\"css-cvlp6m skeleton\"><div class=\"block-comment-view css-88ttk\" data-comment=\"false\" data-comment-block=\"false\"><video id=\"my-player\" data-focusable=\"true\" class=\"video-js\" controls=\"\" preload=\"auto\" data-setup=\"{}\" src=\"sample-mp4-file.mp4\"></video><em>Очень интересное видео</em></div></div></div>"
 		}
 	],
 	"Term": [
@@ -635,7 +640,7 @@
 				],
 				"type": "Table"
 			},
-			"html": "<div class=\"css-1le9x7d width-wrapper\"><div class=\"scrollableContent\"><div class=\"css-jaerfr\"><table data-focusable=\"true\"><colgroup></colgroup><thead><tr><th align=\"left\"><p>Столбец 1</p></th><th align=\"left\"><p>Столбец 2</p></th><th align=\"left\"><p>Столбец 3</p></th></tr></thead><tbody><tr><td align=\"left\"><p>Строка 1</p></td><td align=\"left\"><p>Строка 1</p></td><td align=\"left\"><p>Строка 1</p></td></tr><tr><td align=\"left\"><p>Строка 2</p></td><td align=\"left\"><p>Строка 2</p></td><td align=\"left\"><p>Строка 2</p></td></tr></tbody></table></div></div></div>"
+			"html": "<div class=\"css-1le9x7d width-wrapper\"><div class=\"scrollableContent\"><div class=\"css-jaerfr\"><table data-focusable=\"true\" style=\"padding: 1.5em 0px;\"><colgroup></colgroup><thead><tr><th align=\"left\"><p>Столбец 1</p></th><th align=\"left\"><p>Столбец 2</p></th><th align=\"left\"><p>Столбец 3</p></th></tr></thead><tbody><tr><td align=\"left\"><p>Строка 1</p></td><td align=\"left\"><p>Строка 1</p></td><td align=\"left\"><p>Строка 1</p></td></tr><tr><td align=\"left\"><p>Строка 2</p></td><td align=\"left\"><p>Строка 2</p></td><td align=\"left\"><p>Строка 2</p></td></tr></tbody></table></div></div></div>"
 		},
 		{
 			"text": {
@@ -866,7 +871,7 @@
 				],
 				"type": "Table"
 			},
-			"html": "<div class=\"css-1le9x7d width-wrapper\"><div class=\"scrollableContent\"><div class=\"css-jaerfr\"><table data-header=\"row\" data-focusable=\"true\"><colgroup></colgroup><tbody><tr><td colspan=\"2\"><p>Объединённая ячейка по горизонтали</p></td><td><p>Строка 1 Ячейка 2</p></td></tr><tr><td><p>Строка 2 Ячейка 1</p></td><td><p>Строка 2 Ячейка 2</p></td><td rowspan=\"2\"><p>Строка 2 Ячейка 3</p><ul depth=\"0\"><li><p>Объединённая</p></li><li><p>ячейка</p></li><li><p>по вертикали</p></li></ul></td></tr><tr><td><p>Строка 3 Ячейка 1</p></td><td><p>Строка 3 Ячейка 2</p></td></tr></tbody></table></div></div></div>"
+			"html": "<div class=\"css-1le9x7d width-wrapper\"><div class=\"scrollableContent\"><div class=\"css-jaerfr\"><table data-header=\"row\" data-focusable=\"true\" style=\"padding: 1.5em 0px;\"><colgroup></colgroup><tbody><tr><td colspan=\"2\"><p>Объединённая ячейка по горизонтали</p></td><td><p>Строка 1 Ячейка 2</p></td></tr><tr><td><p>Строка 2 Ячейка 1</p></td><td><p>Строка 2 Ячейка 2</p></td><td rowspan=\"2\"><p>Строка 2 Ячейка 3</p><ul depth=\"0\"><li><p>Объединённая</p></li><li><p>ячейка</p></li><li><p>по вертикали</p></li></ul></td></tr><tr><td><p>Строка 3 Ячейка 1</p></td><td><p>Строка 3 Ячейка 2</p></td></tr></tbody></table></div></div></div>"
 		}
 	],
 	"Note": [

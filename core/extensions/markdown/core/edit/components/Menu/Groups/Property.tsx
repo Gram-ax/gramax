@@ -48,10 +48,10 @@ const Button = ({ items, onItemClick, updateProperty, onAddNewProperty, buttonIc
 				ModalToOpenService.setValue<PropertyEditorProps>(ModalToOpen.PropertySettings, {
 					properties,
 					data: null,
-					onSubmit: (property, isDelete, isArchive) => {
+					onSubmit: (property) => {
 						ModalToOpenService.resetValue();
 						onAddNewProperty(property.type, property.name);
-						updateProperty(property, isDelete, isArchive);
+						updateProperty(property);
 					},
 					onClose: () => {
 						ModalToOpenService.resetValue();
@@ -149,8 +149,12 @@ const PropertyMenuGroup = ({ editor }: { editor?: Editor }) => {
 			ModalToOpenService.setValue<PropertyEditorProps>(ModalToOpen.PropertySettings, {
 				properties: Array.from(properties.values()),
 				data: property,
-				onSubmit: (property, isDelete, isArchive) => {
-					updateProperty(property, isDelete, isArchive);
+				onDelete: (isArchive: boolean) => {
+					updateProperty(property, true, isArchive);
+					ModalToOpenService.resetValue();
+				},
+				onSubmit: (property) => {
+					updateProperty(property);
 					ModalToOpenService.resetValue();
 				},
 				onClose: () => {

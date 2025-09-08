@@ -4,12 +4,14 @@ import t from "@ext/localization/locale/translate";
 import ResourceService from "@ext/markdown/elements/copyArticles/resourceService";
 import { ReactNode, useState } from "react";
 import styled from "@emotion/styled";
+import InlineCommentView from "@ext/markdown/elements/comment/edit/components/InlineCommentView";
 
 interface InlineImageProps {
 	src: string;
 	alt: string;
 	width: string;
 	height: string;
+	commentId?: string;
 }
 
 interface SkeletonWrapperProps {
@@ -45,12 +47,21 @@ const SkeletonWrapper = ({ children, width, height, isLoaded }: SkeletonWrapperP
 	);
 };
 
-const ContainerWrapper = styled.span`
+const ContainerWrapper = styled(InlineCommentView)`
 	display: inline-block;
 	border-radius: var(--radius-small);
 	vertical-align: middle;
 	max-height: 1.7em;
 	overflow: hidden;
+	border-bottom: none !important;
+
+	&[data-comment="true"].inline-comment-view {
+		outline: 2px solid var(--color-comment-block-border) !important;
+	}
+
+	&[data-comment="true"].inline-comment-view:has(.active) {
+		outline: 2px solid var(--color-comment-block-hover-border) !important;
+	}
 
 	img {
 		max-height: 1.7em;
@@ -58,7 +69,7 @@ const ContainerWrapper = styled.span`
 	}
 `;
 
-const InlineImage = ({ src: initialSrc, alt, width, height }: InlineImageProps) => {
+const InlineImage = ({ src: initialSrc, alt, width, height, commentId }: InlineImageProps) => {
 	const { useGetResource } = ResourceService.value;
 
 	const [isLoaded, setIsLoaded] = useState(false);
@@ -82,9 +93,9 @@ const InlineImage = ({ src: initialSrc, alt, width, height }: InlineImageProps) 
 	if (isError) return <AlertError title={t("alert.image.unavailable")} error={{ message: t("alert.image.path") }} />;
 
 	return (
-		<ContainerWrapper className="focus-pointer-events" data-focusable="true">
+		<ContainerWrapper commentId={commentId}>
 			<SkeletonWrapper width={width} height={height} isLoaded={isLoaded}>
-				<img src={src} alt={alt} onLoad={onLoad} onError={onError} />
+				<img src={src} alt={alt} onLoad={onLoad} onError={onError} data-focusable="true" />
 			</SkeletonWrapper>
 		</ContainerWrapper>
 	);

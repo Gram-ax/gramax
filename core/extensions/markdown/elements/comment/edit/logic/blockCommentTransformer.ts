@@ -12,8 +12,18 @@ const blockCommentTransformer = (tokens: Token[]) => {
 			if (!nextToken) continue;
 
 			if (!(nextToken instanceof Token)) {
+				if (!nextToken.attrs) nextToken.attrs = [];
 				nextToken.attrs.push(["comment", { id: commentId } as any]);
 				tokens.splice(i, 3, nextToken);
+
+				if (nextToken.meta?.attributes) {
+					nextToken.meta.attributes.push({
+						type: "attribute",
+						name: "comment",
+						value: { id: commentId },
+					});
+				}
+
 				continue;
 			}
 

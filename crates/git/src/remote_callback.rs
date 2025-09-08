@@ -35,6 +35,13 @@ impl AddCredentialsHeaders for PushOptions<'_> {
 }
 
 pub fn ssl_callback(_cert: &cert::Cert, _host: &str) -> Result<CertificateCheckStatus, Error> {
+  static DISABLE_SSL_CERT_CHECK: std::sync::OnceLock<bool> = std::sync::OnceLock::new();
+
+  if *DISABLE_SSL_CERT_CHECK.get_or_init(|| std::env::var("DISABLE_SSL_CERT_CHECK").is_ok()) {
+    warn!("SSL certificate validation bypassed (DISABLE_SSL_CERT_CHECK is set). This poses significant security risks like man-in-the-middle attacks");
+    return Ok(CertificateCheckStatus::CertificateOk);
+  }
+
   #[cfg(not(target_os = "android"))]
   return Ok(CertificateCheckStatus::CertificatePassthrough);
 
@@ -65,11 +72,13 @@ pub fn push_update_reference_callback(
   status: Option<&str>,
 ) -> std::result::Result<(), git2::Error> {
   if let Some(status) = status {
-    return Err(git2::Error::new(
+    let err = git2::Error::new(
       ErrorCode::Invalid,
       ErrorClass::Net,
-      format!("Failed to push {refname}: {status}"),
-    ));
+      format!("failed to push; refname: {refname}; status: {status}"),
+    );
+
+    return Err(err);
   }
   Ok(())
 }

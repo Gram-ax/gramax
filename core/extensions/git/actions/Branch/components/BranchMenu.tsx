@@ -59,7 +59,10 @@ const BranchMenu = (props: BranchMenuProps) => {
 						}));
 					},
 					onSubmit: async (mergeRequest: CreateMergeRequest) => {
-						ModalToOpenService.setValue(ModalToOpen.Loading);
+						ModalToOpenService.updateArgs<ComponentProps<typeof CreateMergeRequestModal>>((prevArgs) => ({
+							...prevArgs,
+							isLoading: true,
+						}));
 						const res = await FetchService.fetch(
 							apiUrlCreator.createMergeRequest(),
 							JSON.stringify(mergeRequest),
@@ -83,7 +86,7 @@ const BranchMenu = (props: BranchMenuProps) => {
 				sourceBranchRef: currentBranchName,
 				targetBranchRef: branchName,
 				onSubmit: async (mergeRequestOptions) => {
-					ModalToOpenService.setValue(ModalToOpen.Loading);
+					ModalToOpenService.updateArgs((prevArgs) => ({ ...prevArgs, isLoading: true }));
 					const res = await FetchService.fetch<MergeData>(
 						apiUrlCreator.mergeInto(
 							branchName,

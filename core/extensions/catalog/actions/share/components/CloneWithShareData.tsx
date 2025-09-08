@@ -1,5 +1,5 @@
 import SmallFence from "@components/Labels/SmallFence";
-import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
+import SourceDataService from "@core-ui/ContextServices/SourceDataService";
 import convertShareLinkDataToStorageData from "@ext/catalog/actions/share/logic/convertShareLinkDataToStorageData";
 import ShareData from "@ext/catalog/actions/share/model/ShareData";
 import InfoModalForm from "@ext/errorHandlers/client/components/ErrorForm";
@@ -36,7 +36,7 @@ const CloneWithShareData = ({
 
 	const clone = useCloneHandler();
 
-	const pageProps = PageDataContextService.value;
+	const sourceDatas = SourceDataService.value;
 
 	const storageData = useMemo(
 		() => convertShareLinkDataToStorageData(sourceData, shareData),
@@ -44,7 +44,7 @@ const CloneWithShareData = ({
 	);
 
 	const getBranch = () => {
-    if (!shareData) return;
+		if (!shareData) return;
 
 		if (shareData.sourceType === SourceType.gitHub || shareData.sourceType === SourceType.gitLab) {
 			return (shareData as GitShareData).branch;
@@ -61,7 +61,7 @@ const CloneWithShareData = ({
 	useEffect(() => {
 		if (!shareData) return;
 		const shareLinkStorageName = getStorageNameByData(shareData);
-		const res = getSourceDataByStorageName(shareLinkStorageName, pageProps);
+		const res = getSourceDataByStorageName(shareLinkStorageName, sourceDatas);
 		if (res) {
 			setSourceData(res);
 			setHasStorageInitialized(true);

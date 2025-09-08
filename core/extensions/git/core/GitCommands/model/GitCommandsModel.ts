@@ -144,7 +144,7 @@ interface GitCommandsModel {
 	fileStatus(filePath: Path): Promise<GitStatus>;
 
 	push(data: GitSourceData): Promise<void>;
-	fetch(data: GitSourceData, force?: boolean): Promise<void>;
+	fetch(data: GitSourceData, force?: boolean, lock?: boolean): Promise<void>;
 	checkout(ref: string, force?: boolean): Promise<void>;
 	merge(data: SourceData, opts: MergeOptions): Promise<MergeResult>;
 	formatMergeMessage(data: SourceData, opts: MergeMessageFormatOptions): Promise<string>;

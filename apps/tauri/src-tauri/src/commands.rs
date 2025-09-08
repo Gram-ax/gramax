@@ -7,6 +7,7 @@ use crate::shared::http_req;
 
 pub fn generate_handler<R: Runtime>(builder: Builder<R>) -> Builder<R> {
   builder.invoke_handler(generate_handler![
+    crate::logging::js_log,
     read_env,
     quit,
     get_user_language,

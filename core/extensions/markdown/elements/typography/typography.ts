@@ -30,12 +30,12 @@ const dash = textInputRule({
 });
 
 const rightArrow = textInputRule({
-	find: /—>$/,
+	find: /(?:—>|->)$/,
 	replace: "→",
 });
 
 export const leftArrow = textInputRule({
-	find: /<--$/,
+	find: /(?:<-|<-)$/,
 	replace: "←",
 });
 

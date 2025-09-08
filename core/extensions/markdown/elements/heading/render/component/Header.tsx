@@ -15,19 +15,20 @@ export interface HeaderProps {
 const Header = (props: HeaderProps) => {
 	const { level, id, children, className, dataQa, copyLinkIcon = true } = props;
 	const copyAllowed = isNavigatorAvailable();
-	const href = useGetHref(id ? `#${id}` : "");
+	const hash = id ? `#${id}` : "";
+	const href = useGetHref(hash);
 
 	const onClickHandler = (e: MouseEvent<HTMLAnchorElement>) => {
 		if (!copyAllowed) return;
 		if (!id) e.preventDefault();
-		const clipboardLink = window.location.origin + window.location.pathname + href;
+		const clipboardLink = window.location.origin + window.location.pathname + hash;
 		void navigator.clipboard.writeText(clipboardLink);
 	};
 
 	const header = (
 		<>
 			{children}
-			{copyLinkIcon && (
+			{copyLinkIcon && !!children && (
 				<a href={href} className="anchor" data-mdignore={true} contentEditable={false} onClick={onClickHandler}>
 					<i className="link-icon chain-icon" />
 				</a>

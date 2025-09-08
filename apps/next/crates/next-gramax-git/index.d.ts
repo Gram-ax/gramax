@@ -57,7 +57,7 @@ export declare function checkout(repoPath: string, branch: string, create: boole
 export declare function add_remote(repoPath: string, name: string, url: string): Promise<unknown>
 export declare function has_remotes(repoPath: string): Promise<unknown>
 export declare function get_remote(repoPath: string): Promise<unknown>
-export declare function fetch(repoPath: string, creds: AccessTokenCreds, force: boolean): Promise<unknown>
+export declare function fetch(repoPath: string, creds: AccessTokenCreds, force: boolean, lock: boolean): Promise<unknown>
 export declare function push(repoPath: string, creds: AccessTokenCreds): Promise<unknown>
 export declare function file_history(repoPath: string, filePath: string, count: number): Promise<unknown>
 export interface CommitInfoOpts {

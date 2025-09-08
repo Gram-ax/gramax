@@ -28,10 +28,12 @@ export type EnvironmentVariable = {
 	GRAMAX_DEFAULT_WORKSPACE_PATH: string;
 
 	// Other
+	FORCE_UI_LANG_SYNC: Bool;
 	DEFAULT_UI_LANGUAGE: string;
 	SHARE_ACCESS_TOKEN: string;
 	DOC_READER_MAIL: string;
 	DOC_READER_MAIL_PASSWORD: string;
+	DOCPORTAL_FEATURES: string;
 
 	// Algolia
 	NEXT_PUBLIC_ALGOLIA_APP_ID: string;

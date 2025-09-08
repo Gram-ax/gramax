@@ -14,18 +14,30 @@ const processImage = (parent: Token, tokens: Token[], idx: number, hasText: bool
 			isInline = height <= MAX_INLINE_IMAGE_HEIGHT;
 		}
 
+		const prevToken = parent.children?.[i - 1] as any;
+		const commentId =
+			prevToken?.meta?.tag === "comment"
+				? prevToken.meta.attributes.find((attr) => attr.name === "id")?.value
+				: null;
+
 		if (isInline || hasText) {
-			parent.children[i] = {
+			const from = commentId ? i - 1 : i;
+			const to = commentId ? 3 : 1;
+			parent.children.splice(from, to, {
 				type: "inlineImage",
-				attrs: Object.fromEntries([...attrs, ["alt", childToken?.content ?? ""]]) as any,
-			} as any;
+				attrs: Object.fromEntries([
+					...attrs,
+					["alt", childToken?.content ?? ""],
+					["comment", { id: commentId }],
+				]),
+			} as any);
 
 			continue;
 		}
 
 		tokens.splice(idx - 1, 3, {
 			type: "image",
-			attrs: [...attrs, ["alt", childToken?.content ?? ""]],
+			attrs: [...attrs, ["alt", childToken?.content ?? ""], ["comment", { id: commentId }]],
 		} as any);
 	}
 };

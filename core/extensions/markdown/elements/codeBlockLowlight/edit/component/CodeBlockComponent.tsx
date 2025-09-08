@@ -1,7 +1,11 @@
 import BlockActionPanel from "@components/BlockActionPanel";
 import CodeBlockActions from "@ext/markdown/elements/codeBlockLowlight/edit/component/CodeBlockActions";
 import { loadLanguage, checkLanguage } from "@ext/markdown/elements/codeBlockLowlight/edit/logic/Lowlight";
-import { getLowerLangName } from "@ext/markdown/elements/codeBlockLowlight/edit/logic/LowlightLangs";
+import {
+	getLowerLangName,
+	getOriginalLangName,
+	getStandardCaseByLower,
+} from "@ext/markdown/elements/codeBlockLowlight/edit/logic/LowlightLangs";
 import StyledCodeBlock from "@ext/markdown/elements/codeBlockLowlight/render/component/StyledCodeBlock";
 import { Editor, NodeViewProps } from "@tiptap/core";
 import { NodeViewContent } from "@tiptap/react";
@@ -63,7 +67,11 @@ const CodeBlockComponent = (props: NodeViewProps) => {
 	const viewWrapperRef = useRef<HTMLDivElement>(null);
 	const isEditable = editor.isEditable;
 
-	const { onChange } = useLowlightActions({ language: node.attrs.language, updateAttributes, editor });
+	const { onChange } = useLowlightActions({
+		language: getOriginalLangName(getStandardCaseByLower(node.attrs.language)),
+		updateAttributes,
+		editor,
+	});
 
 	return (
 		<NodeViewContextableWrapper ref={viewWrapperRef} props={props}>

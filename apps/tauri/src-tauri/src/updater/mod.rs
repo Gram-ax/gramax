@@ -1,6 +1,7 @@
 #![cfg(desktop)]
 
 mod download;
+mod metrics;
 
 pub mod legacy;
 
@@ -13,14 +14,14 @@ use tauri_plugin_updater as inner;
 use tokio::sync::Mutex;
 
 use crate::platform::save_windows::SaveWindowsExt as _;
-use crate::settings::SettingsExt;
 use crate::updater::download::UpdateCache;
+use crate::updater::metrics::SettingsExt;
 
 const TAG: &str = "updater";
 
 pub trait UpdaterExt<R: Runtime> {
   fn updater_init(&self) -> inner::Result<()>;
-  fn updater(&self) -> State<Updater<R>>;
+  fn updater(&self) -> State<'_, Updater<R>>;
 }
 
 pub struct Updater<R: Runtime> {
@@ -38,12 +39,8 @@ impl<R: Runtime> Updater<R> {
     let updater = app.updater_builder().version_comparator(|v, r| Self::is_version_newer(v, r.version));
 
     let updater = if let Some(id) = app.get_metric_id()? {
-      updater
-        .header("x-gx-uniq-id", id.0)?
-        .header("x-gx-app-version", app.package_info().version.to_string())?
-        .header("x-gx-os", std::env::consts::OS)?
-        .header("x-gx-platform", std::env::consts::ARCH)?
-        .header("x-gx-device", if cfg!(desktop) { "pc" } else { "mobile" })?
+      let metrics = metrics::Metric::new(app.clone(), id.0);
+      updater.headers(metrics.as_headers())
     } else {
       updater
     };
@@ -173,7 +170,7 @@ impl<R: Runtime> UpdaterExt<R> for AppHandle<R> {
     Ok(())
   }
 
-  fn updater(&self) -> State<Updater<R>> {
+  fn updater(&self) -> State<'_, Updater<R>> {
     self.state::<Updater<R>>()
   }
 }

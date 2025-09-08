@@ -16,6 +16,7 @@ export type ValidateSourceFn = (source: SourceData) => Promise<boolean>;
 const validateSource = async (
 	source: SourceData,
 	pageData: PageDataContext,
+	sourceDatas: SourceData[],
 	apiUrlCreator: ApiUrlCreator,
 	onNetworkApiError: (error: NetworkApiError) => void,
 ) => {
@@ -26,7 +27,7 @@ const validateSource = async (
 
 	if (!source.isInvalid === isValid) return isValid;
 
-	const sourceIndex = pageData.sourceDatas.findIndex((s) => s === source);
+	const sourceIndex = sourceDatas.findIndex((s) => s === source);
 	if (sourceIndex === -1) return isValid;
 
 	source.isInvalid = !isValid;
@@ -41,7 +42,8 @@ const useValidateSource = () => {
 	const onNetworkApiError = OnNetworkApiErrorService.value;
 
 	return useCallback(
-		(source: SourceData) => validateSource(source, pageData, apiUrlCreator, onNetworkApiError),
+		(source: SourceData, sourceDatas: SourceData[]) =>
+			validateSource(source, pageData, sourceDatas, apiUrlCreator, onNetworkApiError),
 		[pageData, apiUrlCreator, onNetworkApiError],
 	);
 };

@@ -2,6 +2,7 @@ import Path from "@core/FileProvider/Path/Path";
 
 export const GRAMAX_EDITOR_URL = "https://app.gram.ax";
 
+export const WORKSPACE_CONFIG_FILENAME = "workspace.yaml";
 export const GRAMAX_DIRECTORY = ".gramax" as const;
 export const INBOX_DIRECTORY = "inbox" as const;
 export const PROMPT_DIRECTORY = "prompt" as const;

@@ -4,6 +4,7 @@ import Path from "@core/FileProvider/Path/Path";
 import CustomLogoDriver from "@core/utils/CustomLogoDriver";
 import EnterpriseApi from "@ext/enterprise/EnterpriseApi";
 import EnterpriseUser from "@ext/enterprise/EnterpriseUser";
+import { EnterpriseErrorCode } from "@ext/enterprise/errors/getEnterpriseErrors";
 import UserSettings from "@ext/enterprise/types/UserSettings";
 import DefaultError from "@ext/errorHandlers/logic/DefaultError";
 import t from "@ext/localization/locale/translate";
@@ -26,6 +27,7 @@ const addWorkspace: Command<{ ctx: Context; token: string }, UserSettings> = Com
 
 		const userSettings = await new EnterpriseApi(gesUrl).getUserSettings(token);
 
+		if (!userSettings) throw new DefaultError(t("enterprise.user-not-found"));
 		if (userSettings.isNotEditor) {
 			throw new DefaultError(
 				t("enterprise.check-if-user-editor-warning"),
@@ -38,8 +40,15 @@ const addWorkspace: Command<{ ctx: Context; token: string }, UserSettings> = Com
 
 		if (!userSettings.workspace) throw new DefaultError(t("enterprise.config-error"));
 
-		if (wm.workspaces().find((workspace) => workspace.name === userSettings.workspace.name))
-			throw new DefaultError(t("enterprise.workspace-exists"));
+		const existWorkspace = wm.workspaces().find((workspace) => workspace.name === userSettings.workspace.name);
+		if (existWorkspace)
+			throw new DefaultError(
+				t("enterprise.workspace-exists"),
+				null,
+				{ errorCode: EnterpriseErrorCode.WorkspaceExist, workspacePath: existWorkspace.path },
+				true,
+				t("enterprise.workspace-exists-title"),
+			);
 
 		const workspace: ClientWorkspaceConfig = {
 			...userSettings.workspace,

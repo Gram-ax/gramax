@@ -47,10 +47,10 @@ impl ShortInfo<'_, TagInfo> for Tag<'_> {
       author: tagger.as_ref().and_then(|t| t.name().map(|s| s.to_string())),
       date: tagger.as_ref().map(|t| t.when().seconds() * 1000i64),
     })
-  }
+  } 
 }
 
-impl<C: Creds> Tags for Repo<C> {
+impl<C: Creds> Tags for Repo<'_, C> {
   fn find_tag_tree_by_name(&self, tagname: &str) -> Result<Tree<'_>> {
     let tagname = if tagname.contains("refs/tags") {
       Cow::Borrowed(tagname)

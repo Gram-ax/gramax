@@ -13,10 +13,11 @@ const commentModifyFormatters = (formatters: { [node: string]: NodeSerializerSpe
 
 			const comment = node.attrs.comment;
 			const commentId = comment.id;
+			const isInline = node.isInline;
 
-			state.write(formatter.openTag("comment", { id: commentId }, true) + "\n\n");
+			state.write(formatter.openTag("comment", { id: commentId }, true) + (isInline ? "" : "\n\n"));
 			await originalFormatter(state, node, ...args);
-			state.write(formatter.closeTag("comment") + "\n\n");
+			state.write(formatter.closeTag("comment") + (isInline ? "" : "\n\n"));
 		};
 	});
 

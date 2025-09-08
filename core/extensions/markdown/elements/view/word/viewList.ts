@@ -44,7 +44,10 @@ const processGroup = (group: ViewRenderGroup, titlesMap: Map<string, TitleInfo>,
 	if (group.articles?.length > 0) {
 		group.articles.forEach((article) => {
 			const { text, font } = getBulletSymbol(level);
-			const { title, order, anchor } = extractNameAndAnchor(article.linkPath, titlesMap);
+			const { title, order, anchor } = extractNameAndAnchor(
+				{ href: article.linkPath, hash: "" },
+				titlesMap,
+			);
 			const safeTitle = article.title || t("article.no-name");
 
 			items.push(

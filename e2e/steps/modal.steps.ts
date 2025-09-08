@@ -4,6 +4,7 @@ import { expect } from "playwright/test";
 
 const MODAL_SELECTOR = '.outer-modal, .form-layout, [role="dialog"] form';
 const MODAL_TITLE_SELECTOR = "legend, h2";
+const MODAL_CLOSE_SELECTOR = "[data-qa='modal-layout'] > div.x-mark, [role='dialog'] > button:has(> .lucide-x)";
 
 const TAB_SELECTOR_ACTIVE = ".tab-wrapper.show";
 const TAB_TITLE_SELECTOR = ".tab-wrapper-title";
@@ -25,7 +26,7 @@ Given("смотрим на выпадающий список у Select", async f
 });
 
 When("закрываем активную форму", async function (this: E2EWorld) {
-	const elem = await this.page().search().find(".lucide-x", this.page().inner().locator(".x-mark"));
+	const elem = await this.page().search().reset().find(MODAL_CLOSE_SELECTOR);
 	await elem.click();
 });
 

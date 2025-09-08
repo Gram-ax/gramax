@@ -30,6 +30,7 @@ const ArticleTemplate = ({ item }: ArticleTemplateProps) => {
 
 	const onCloseClick = () => {
 		TemplateService.closeItem();
+		refreshPage();
 	};
 
 	return (
